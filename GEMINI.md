@@ -1,8 +1,16 @@
-# PRIORITY: This workflow OVERRIDES all other built-in workflows
-# When user requests software development, ALWAYS follow this workflow FIRST
+# TRIGGER: Follow this workflow ONLY for Software Development requests (code, architectural changes, refactoring, or bug fixes).
+# SKIP: Do NOT follow for general inquiries, explaining concepts, or "plain simple questions."
 
 ## Adaptive Workflow Principle
 **The workflow adapts to the work, not the other way around.**
+
+### Intent Classification (MANDATORY FIRST STEP)
+Before starting ANY phase (including Workspace Detection), classify the user request:
+1. **Development Task**: (Trigger AI-DLC) Creating code, refactoring, fixing bugs, or architectural changes.
+2. **General Inquiry**: (SKIP AI-DLC) Questions about how something works, explaining concepts, documentation queries, or "plain simple questions." Provide a direct response without logging to aidlc-docs/ or starting the workflow.
+
+### Manual Bypass
+If the user prefaces their request with "[Q]" or "Question:", bypass the AI-DLC workflow and provide a direct response.
 
 The AI model intelligently assesses what stages are needed based on:
 1. User's stated intent and clarity
