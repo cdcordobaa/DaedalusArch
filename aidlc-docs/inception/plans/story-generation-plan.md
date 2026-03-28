@@ -16,10 +16,10 @@ Generate user stories and personas for the Architectural Firewall product, conve
 
 ### Part 2: Generation
 - [x] Step 5: Define user personas (`personas.md`)
-- [ ] Step 6: Generate epic structure
-- [ ] Step 7: Generate user stories per epic with acceptance criteria (`stories.md`)
-- [ ] Step 8: Map personas to stories
-- [ ] Step 9: Verify INVEST criteria compliance
+- [x] Step 6: Generate epic structure (17 epics + NFR stories)
+- [x] Step 7: Generate user stories per epic with acceptance criteria (`stories.md`) — 81 stories
+- [x] Step 8: Map personas to stories (DEV/ARCH/LEAD per story + summary table)
+- [x] Step 9: Verify INVEST criteria compliance
 - [ ] Step 10: Final review and approval
 
 ---

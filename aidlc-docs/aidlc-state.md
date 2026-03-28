@@ -4,7 +4,7 @@
 - **Project Name**: Architectural Firewall (DaedalusArch)
 - **Project Type**: Greenfield
 - **Start Date**: 2026-03-27T16:00:00Z
-- **Current Stage**: INCEPTION - User Stories (assessment)
+- **Current Stage**: INCEPTION - User Stories (awaiting approval)
 
 ## Workspace State
 - **Existing Code**: No (configuration files and docs only — no `src/` directory)
