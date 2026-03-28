@@ -199,6 +199,26 @@ All errors use `Result<T, E>` pattern from C10 (Shared Domain).
 
 ---
 
+## Technical Implementation Patterns
+
+### 1. Concurrency Governor (Throttling)
+To prevent `429 Too Many Requests` errors during the Neuronal evaluation of large projects (50+ stories), the **PipelineExecutor (S1)** uses a **Concurrency Governor**.
+*   **Symbolic Path**: Maximum parallelization (Neo4j native).
+*   **Neuronal Path**: Configurable `maxConcurrentLLMCalls` (default: 5) and `retryWithExponentialBackoff` strategy in the **LLMProviderService (S4)**.
+
+### 2. Stochastic Test Persistence (VCR/Cassette)
+To ensure **METH-01 (BDD)** tests are fast, deterministic, and cost-effective, the **AuditLogService (S5)** supports a **Replay Mode (VCR Pattern)**.
+*   **Recording**: LLM prompts and responses are saved as JSON "cassettes" during first-run.
+*   **Replay**: CI/CD runs use these cassettes instead of making live API calls.
+*   **Invalidation**: Cassettes are automatically invalidated if the `ContextPacket` (source code or prompt) changes.
+
+### 3. Spec Schema Versioning
+To handle evolutionary changes in the **AoC YAML** structure, the **Spec Parser (C3)** enforces a `spec_version` requirement.
+*   **Validation**: The tool rejects specs with unsupported versions.
+*   **Migration**: A simple version-to-migration mapper handles minor schema shifts before the **Fitness Compiler (C4)** receives the parsed object.
+
+---
+
 ## Cross-Reference
 
 - **Full component details**: `components.md`
@@ -207,3 +227,6 @@ All errors use `Result<T, E>` pattern from C10 (Shared Domain).
 - **Dependency matrix and data flow**: `component-dependency.md`
 - **Requirements traceability**: `../requirements/requirements.md` (FR-01 through FR-17)
 - **User stories**: `../user-stories/stories.md` (81 stories across 17 epics)
+
+---
+

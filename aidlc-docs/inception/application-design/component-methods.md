@@ -113,6 +113,7 @@ produceDualRules(adr: ADRRule): { symbolic: CypherRule, semantic: SemanticCriter
 **Types**:
 ```typescript
 interface ParsedSpec {
+  spec_version: string   // e.g., "1.0.0"
   layerModel: LayerModel
   fitnessFunctions: FitnessFunction[]
   scoringWeights: ScoringWeights
@@ -278,6 +279,7 @@ interface NeuronalEvalInput {
   adrFiles?: Map<string, string>
   provider: LLMProvider
   runsPerEvaluation: number  // default: 3
+  vcrMode: 'record' | 'replay' | 'bypass'  // default: 'bypass'
 }
 
 interface NeuronalResult {

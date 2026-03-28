@@ -136,6 +136,8 @@ class SnapshotService implements SnapshotStore {
 - Provide common retry/timeout logic in the base strategy
 - Manage API key configuration (from environment variables)
 - Enforce determinism controls (temperature=0, fixed seed)
+- **Concurrency Governor**: Implementation of `p-limit` or similar to throttle simultaneous LLM calls based on `maxConcurrentLLMCalls`.
+- **Retry Logic**: Automatic exponential backoff for 429 and 5xx errors.
 
 ```typescript
 class LLMProviderFactory {
@@ -184,6 +186,7 @@ interface LLMConfig {
 **Responsibilities**:
 - Log every LLM Critic call with input context, prompt, and response
 - Log pipeline stage start/end with timing
+- **VCR Mode Support**: Read/Write to "cassette" files for deterministic replaying of stochastic AI runs during testing.
 - Store audit logs in a reviewable format (JSON lines)
 
 ```typescript
