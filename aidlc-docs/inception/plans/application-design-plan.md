@@ -17,7 +17,7 @@ Design the high-level component architecture for 8 bounded context modules + CLI
   - [x] 4c: services.md — 6 services (S1-S6) with orchestration
   - [x] 4d: component-dependency.md — dependency matrix, data flow, ACLs
   - [x] 4e: application-design.md — consolidated design document
-- [ ] Step 5: Review and approval
+- [x] Step 5: Review and approval — APPROVED (user enriched with DDD hardening patterns, VCR, concurrency governor, spec versioning, C11 FirewallContext)
 
 ---
 

@@ -4,7 +4,7 @@
 - **Project Name**: Architectural Firewall (DaedalusArch)
 - **Project Type**: Greenfield
 - **Start Date**: 2026-03-27T16:00:00Z
-- **Current Stage**: INCEPTION - Application Design
+- **Current Stage**: INCEPTION - Units Generation
 
 ## Workspace State
 - **Existing Code**: No (configuration files and docs only — no `src/` directory)
@@ -29,7 +29,7 @@
 - [x] Requirements Analysis — COMPLETE (17 FR, 6 NFR, 3 METH, partial security)
 - [x] User Stories — COMPLETE (81 stories, 3 personas, 17 epics)
 - [x] Workflow Planning — COMPLETE (all stages execute, no skips)
-- [ ] Application Design
+- [x] Application Design — COMPLETE (11 components, 6 services, DDD hardening, VCR, concurrency governor)
 - [ ] Units Generation
 
 ### CONSTRUCTION PHASE
