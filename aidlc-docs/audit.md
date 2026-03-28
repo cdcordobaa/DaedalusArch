@@ -142,6 +142,22 @@
 
 ---
 
+## Application Design — Ablation Mode Addition
+**Timestamp**: 2026-03-28T01:00:00Z
+**User Input**: "i need to take the following into account - Ground truth suite → this is just your test suite. Every good tool has one. It's part of building the product. Keep it. - Ablation (symbolic-only vs. neuronal-only vs. combined) → this is literally just running your tool in 3 modes and comparing the output. It's not a separate research effort — it's a feature flag (--symbolic-only) + comparing results. Once the tool works, this is trivial. Keep it, but it's a natural byproduct of the tool working. are we considering part of the design?"
+**AI Response**: Added `--neuronal-only` mode to FR-08 (FR-08.6, FR-08.7), FR-12 (FR-12.8), FR-14 (CLI flag). Updated Out of Scope: ablation moved from "separate research effort" to built-in capability. Updated design artifacts: Router (C5), Scoring Engine (C8), CLI (C9), EvaluationMode type, and application-design.md execution modes.
+**Context**: Application Design — Scope correction (ablation is a product feature, not research)
+
+---
+
+## Application Design — Artifacts Generated
+**Timestamp**: 2026-03-28T00:45:00Z
+**User Input**: "continue"
+**AI Response**: All 6 answers clear, no ambiguities. Generated 5 design artifacts: components.md (10 components: C1-C10), component-methods.md (method signatures with typed I/O), services.md (6 services: PipelineExecutor, GraphRepository, SnapshotService, LLMProviderService, AuditLogService, ReportService), component-dependency.md (dependency matrix, data flow diagram, ACLs, external deps), application-design.md (consolidated). Key design: typed pipeline + command pattern orchestration, connection pool, Neo4j+filesystem snapshots, strategy pattern for LLM, fail-fast/accumulate error handling.
+**Context**: Application Design — Steps 3-4 complete, awaiting approval
+
+---
+
 ## Application Design — Plan with Questions
 **Timestamp**: 2026-03-28T00:30:00Z
 **AI Response**: Created application-design-plan.md with 6 questions covering: pipeline communication pattern, orchestration approach, Neo4j connection management, APG snapshot storage, LLM provider abstraction, and error propagation strategy.

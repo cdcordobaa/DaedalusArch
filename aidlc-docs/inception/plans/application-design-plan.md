@@ -9,14 +9,14 @@ Design the high-level component architecture for 8 bounded context modules + CLI
 ## Execution Checklist
 
 - [x] Step 1: Analyze context (requirements + stories loaded)
-- [ ] Step 2: Collect user input on design decisions (questions below)
-- [ ] Step 3: Analyze answers for ambiguities
-- [ ] Step 4: Generate design artifacts
-  - [ ] 4a: components.md — component definitions and responsibilities
-  - [ ] 4b: component-methods.md — method signatures and I/O types
-  - [ ] 4c: services.md — service orchestration patterns
-  - [ ] 4d: component-dependency.md — dependency matrix and data flow
-  - [ ] 4e: application-design.md — consolidated design document
+- [x] Step 2: Collect user input on design decisions (questions below)
+- [x] Step 3: Analyze answers for ambiguities — no issues found
+- [x] Step 4: Generate design artifacts
+  - [x] 4a: components.md — 10 components (C1-C10)
+  - [x] 4b: component-methods.md — method signatures and typed I/O
+  - [x] 4c: services.md — 6 services (S1-S6) with orchestration
+  - [x] 4d: component-dependency.md — dependency matrix, data flow, ACLs
+  - [x] 4e: application-design.md — consolidated design document
 - [ ] Step 5: Review and approval
 
 ---
@@ -34,8 +34,8 @@ A) Direct function calls — each module exports functions, a central orchestrat
 B) Pipeline pattern with typed intermediate representations — each module consumes a typed input and produces a typed output. Modules are composable and independently testable.
 C) Event-driven — modules emit events, a mediator coordinates the pipeline. Loose coupling but harder to trace.
 X) Other (please describe after [Answer]: tag below)
+[Answer]: B (Pipeline pattern with typed intermediate representations)
 
-[Answer]:
 
 ---
 
@@ -46,8 +46,8 @@ A) Single orchestrator service (`PipelineOrchestrator`) that knows the full sequ
 B) Chain-of-responsibility — each module knows the next module and passes results forward. Decentralized.
 C) Command pattern — each pipeline stage is a command object. An executor runs commands in sequence. Supports undo/retry.
 X) Other (please describe after [Answer]: tag below)
+[Answer]: C (Command pattern — stage objects with parallel/branching support)
 
-[Answer]:
 
 ---
 
@@ -58,8 +58,8 @@ A) Connection pool — a shared pool managed by a `GraphRepository` (DDD reposit
 B) Single connection — one connection created at pipeline start, passed through to modules that need it. Simple for CLI use.
 C) Per-module connections — each module that needs Neo4j creates and manages its own connection. Maximum isolation.
 X) Other (please describe after [Answer]: tag below)
+[Answer]: A (Connection pool managed by a GraphRepository - DDD pattern)
 
-[Answer]:
 
 ---
 
@@ -70,8 +70,8 @@ A) Filesystem only — JSON files in `APG_Store/` directory relative to the proj
 B) Neo4j + Filesystem — graph data in Neo4j (labeled by commit SHA), metadata/drift reports as JSON files. Leverages the existing database.
 C) Filesystem with optional Neo4j persistence — default to filesystem, with a flag to persist snapshots in Neo4j for teams that want queryable history.
 X) Other (please describe after [Answer]: tag below)
+[Answer]: B (Neo4j + Filesystem — graph as historical aggregate store)
 
-[Answer]:
 
 ---
 
@@ -82,8 +82,8 @@ A) Adapter pattern — a `LLMProvider` interface with concrete adapters (`Claude
 B) Strategy pattern — similar to adapter but with a factory that selects the strategy based on configuration. Includes common retry/timeout logic in the base.
 C) Plugin system — providers are loaded dynamically from configuration. Maximum extensibility but more complex.
 X) Other (please describe after [Answer]: tag below)
+[Answer]: B (Strategy pattern with factory — isolation of LLM infrastructure)
 
-[Answer]:
 
 ---
 
@@ -94,8 +94,8 @@ A) Fail-fast with typed errors — pipeline stops immediately on any critical er
 B) Accumulate and continue — pipeline continues through all stages, collecting errors. Final report includes all errors. Maximum information but may produce invalid downstream results.
 C) Fail-fast for critical, accumulate for warnings — critical errors (Neo4j down, spec invalid) stop the pipeline. Warnings (file parse skip, ADR not found) accumulate and appear in the report.
 X) Other (please describe after [Answer]: tag below)
+[Answer]: C (Fail-fast for critical, accumulate for warnings — supports partial models)
 
-[Answer]:
 
 ---
 

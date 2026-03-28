@@ -122,6 +122,8 @@
 - **FR-08.3**: The router is deterministic — same fitness function always takes the same route
 - **FR-08.4**: Neuronal route results are tagged as `deterministic: false` in the output
 - **FR-08.5**: Support `--symbolic-only` mode (skip all neuronal evaluations for fully deterministic results)
+- **FR-08.6**: Support `--neuronal-only` mode (skip all symbolic evaluations — run only neuronal and hybrid-neuronal paths). Used for ablation comparison and isolating LLM Critic coverage.
+- **FR-08.7**: Three evaluation modes enable built-in ablation: `--symbolic-only` vs `--neuronal-only` vs full (default). Batch CSV output from all three modes is directly comparable.
 
 ### FR-09: Evaluation Engine (Symbolic Path)
 - **FR-09.1**: Execute compiled Cypher queries against Neo4j graph
@@ -179,6 +181,7 @@
   - `ahs_combined` — symbolic + neuronal (may vary across runs)
 - **FR-12.6**: Tag each result with its evaluation route (symbolic/neuronal/hybrid) and determinism flag
 - **FR-12.7**: Support `--symbolic-only` scoring mode that excludes neuronal dimensions from AHS
+- **FR-12.8**: Support `--neuronal-only` scoring mode that excludes symbolic dimensions from AHS (computes `ahs_neuronal` using only semantic + intent + hybrid-neuronal results)
 
 ### FR-13: Structured Violation Report
 - **FR-13.1**: Output JSON report with: project name, commit SHA, ahs_deterministic, ahs_combined, verdict, per-dimension breakdown (AVR, path, confidence for neuronal), violations array, universal metrics
@@ -193,6 +196,7 @@
   - `--verbose`: Includes per-function violation details and routing logs.
   - `--neo4j-uri <uri>` (Default: `bolt://localhost:7687`): Custom Neo4j connection.
   - `--symbolic-only`: Skips all neuronal path evaluations for 100% determinism.
+  - `--neuronal-only`: Skips all symbolic path evaluations (neuronal + hybrid-neuronal only).
   - `--persist`: Enables JSON snapshot storage and incremental ingestion.
   - `--diff <sha>`: Compares current state against a historical snapshot.
 - **FR-14.4**: JSON output to stdout, human-readable summary to stderr.
@@ -379,7 +383,7 @@ All other SECURITY rules: **N/A** (CLI tool + GitHub Action — no user auth, no
 
 ## Out of Scope (Separate Efforts)
 
-- **Empirical validation / benchmarking**: Ablation study (symbolic-only vs neuronal-only vs combined), comparative benchmark (3x3 factorial), human evaluator protocol, ANOVA — separate research effort
+- **Formal empirical research**: Comparative benchmark (3x3 factorial design), human evaluator protocol, ANOVA statistical analysis — separate research effort. Note: ablation (symbolic-only vs neuronal-only vs combined) is now a built-in capability via `--symbolic-only` / `--neuronal-only` flags + batch CSV comparison (FR-08.7)
 - **ISE (Implicit Specification Extraction)**: Auto-infer spec from existing codebase — future product feature
 - **Automated ADR-to-YAML translation**: LLM-assisted ADR parser — future product feature (v1 is manual)
 - **Web dashboard**: AHS trend tracking, drift visualization, per-repo history — future product feature
