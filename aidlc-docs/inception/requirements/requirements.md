@@ -34,7 +34,10 @@
 - **FR-02.2**: Apply layer annotations based on AoC YAML spec mappings (directory, naming, decorator — in priority order)
 - **FR-02.3**: Assign `layer` and `role` properties to each node
 - **FR-02.4**: Files matching no mapping rule get `layer: null` (excluded from layer-dependent fitness functions)
-- **FR-02.5**: Stateless per-project evaluation — clear graph before each project (ADR-010) for standalone CLI runs
+- **FR-02.5**: **Hybrid Operational Model and State Management**:
+  - **Stateless Mode (Default for Benchmark)**: Fresh parsing and fresh graph per project. Guaranteed isolation.
+  - **Persistent Mode (Monitoring/Drift)**: Enabled via `--persist` or `--diff`. Uses versioned snapshots and incremental updates.
+
 
 ### FR-03: APG Persistence, Snapshots, and Drift Detection
 - **FR-03.1**: The system must NOT regenerate the full APG on every execution. Persist the graph as a versioned snapshot tied to the commit SHA or release tag
@@ -60,6 +63,11 @@
   | Coupling drift | Sustained increase in average graph fan-out | Average fan-out grows > 15% between consecutive releases |
   | Convention drift | Gradual erosion of naming/layer conventions | % of nodes meeting conventions decreases between snapshots |
   | Violation trend | Cumulative AVR across commit history | AVR increases steadily — accumulating technical debt signal |
+- **FR-03.5**: **Incremental Extraction & Ingestion**:
+  - Use file hashing (MD5/mtime) to identify modified files.
+  - In Persistent Mode, the extractor (ts-morph) only parses modified files.
+  - The ingestor detaches/deletes old nodes for modified files before merging new nodes.
+
 - **FR-03.5**: Generate drift reports comparing any two snapshots, with metrics and delta visualization
 - **FR-03.6**: Drift detection integrates with CI/CD — alert when drift metrics exceed configurable thresholds
 
@@ -155,8 +163,17 @@
 ### FR-12: Scoring Engine
 - **FR-12.1**: Compute AVR (Architectural Violation Ratio) per dimension: violated functions / total functions in dimension
 - **FR-12.2**: Compute AHS (Architectural Health Score): weighted complement — AHS = Sum(wi * (1 - AVRi))
-- **FR-12.3**: Apply Layer C scoring weights across 7 dimensions (default: structural 0.20, coupling 0.10, pattern 0.20, SOLID 0.15, convention 0.10, semantic 0.15, intent 0.10)
-- **FR-12.4**: Compute universal health metrics (spec-independent): cycles, fan-out, fan-in, abstraction ratio, instability index, orphan files
+- **FR-12.3**: Apply Layer C scoring weights across 7 dimensions.
+  - **Standard v1 Defaults (ADR-007)**: Structural 0.25, Coupling 0.15, Pattern 0.25, SOLID 0.20, Convention 0.15.
+  - **Neuro-Simbólico v1.1 Extensions**: Semantic 0.15, Intent 0.10 (redistributed from standard weights when enabled).
+
+- **FR-12.4**: **Universal Health Metrics (Spec-Independent)**: List of metrics grounded in software engineering literature (Martin's stability, etc.) that run regardless of the spec:
+  - **Circular Dependencies**: Cycle count in the IMPORTS graph.
+  - **Fan-out / Fan-in**: Max and average outgoing/incoming IMPORTS per file.
+  - **Abstraction Ratio**: Ratio of interfaces to total (interfaces + classes).
+  - **Instability Index**: Ratio of fan-out to total coupling (fan-out / (fan-in + fan-out)).
+  - **Orphan Files**: Nodes with no IMPORTS or IMPORTED_BY edges.
+
 - **FR-12.5**: Produce dual scores:
   - `ahs_deterministic` — symbolic path only (fully reproducible)
   - `ahs_combined` — symbolic + neuronal (may vary across runs)
@@ -168,13 +185,20 @@
 - **FR-13.2**: Human-readable summary format for CLI and PR comments
 - **FR-13.3**: CSV output for batch evaluation (one row per project)
 
-### FR-14: CLI
-- **FR-14.1**: `firewall evaluate --project PATH --spec YAML` — single project evaluation
-- **FR-14.2**: `firewall batch --dir PATH --spec YAML --output CSV` — batch evaluation
-- **FR-14.3**: Flags: `--format json|human|csv`, `--verbose`, `--neo4j-uri bolt://...`, `--symbolic-only`
-- **FR-14.4**: JSON output to stdout, human-readable summary to stderr
-- **FR-14.5**: Use Commander.js as CLI framework
-- **FR-14.6**: Exit codes: 0 = pass, 1 = violations found (soft/hard block), 2 = evaluation error
+### FR-14: CLI Interface
+- **FR-14.1**: `firewall evaluate --project <path> --spec <yaml>` — Single project evaluation.
+- **FR-14.2**: `firewall batch --dir <path> --spec <yaml> --output <csv>` — Batch evaluation of multiple projects.
+- **FR-14.3**: **Supported Flags**:
+  - `--format json|human|csv`: Output format.
+  - `--verbose`: Includes per-function violation details and routing logs.
+  - `--neo4j-uri <uri>` (Default: `bolt://localhost:7687`): Custom Neo4j connection.
+  - `--symbolic-only`: Skips all neuronal path evaluations for 100% determinism.
+  - `--persist`: Enables JSON snapshot storage and incremental ingestion.
+  - `--diff <sha>`: Compares current state against a historical snapshot.
+- **FR-14.4**: JSON output to stdout, human-readable summary to stderr.
+- **FR-14.5**: Use Commander.js as CLI framework.
+- **FR-14.6**: Exit codes: 0 = pass, 1 = violations found (soft/hard block), 2 = evaluation error.
+
 
 ### FR-15: CI/CD Integration
 - **FR-15.1**: GitHub Action that runs on `pull_request` events (opened, synchronize, reopened)
@@ -365,7 +389,19 @@ All other SECURITY rules: **N/A** (CLI tool + GitHub Action — no user auth, no
 
 ---
 
+## Tracing to Specific Objectives (SO)
+
+| SO | Functional Requirements | Spike Status |
+|---|---|---|
+| **SO1: Spec Ingestion** | FR-04, FR-05, FR-07 | Partially Validated (YAML works, ADR pending) |
+| **SO2: APG Construction** | FR-01, FR-02, FR-03 | ✅ Core Validated (Spike 1) |
+| **SO3: Review Gate** | FR-08, FR-09, FR-10, FR-11 | ✅ Symbolic Validated (Spike 2) |
+| **SO4: Empirical Validation** | FR-16, FR-17 | ✅ Strategy Validated (Spike 3) |
+
+---
+
 ## Reference Documents
+
 
 - **PRD**: `Docs/PRD — Architectural Firewall Spec-Driven Compliance.md`
 - **ADR**: `Docs/ADR — Architectural Decision Records Firewall Tech.md`
