@@ -1,475 +1,395 @@
-> This document consolidates the formal system requirements extracted from the methodological analysis. It maps each Specific Objective (SO1–SO4) to concrete functional and non-functional requirements for the neuro-symbolic architectural firewall. This is a living document — requirements will be refined as implementation progresses.
-> 
+# Requirements Document — Architectural Firewall (DaedalusArch)
 
-> 
-> 
+## Intent Analysis
 
-> **Traceability**: Every requirement traces back to the [Metodological Analysis](https://www.notion.so/An-lisis-Metodol-gico-por-Objetivo-Firewall-Neuro-Simb-lico-6f9c196293144165bf1b37b57cd0deeb?pvs=21).
-> 
-
----
-
-## SO1 — Specification Ingestion Pipeline
-
-*Transform ADRs and architectural specifications into executable rules for dual verification: (a) graph queries for structural rules and (b) semantic criteria for the LLM Critic.*
-
-### FR-SPEC-01 — ADR Parsing and Format Support
-
-The system must parse architectural decision records in multiple formats and extract actionable rules.
-
-**Supported formats**: MADR, Nygard, Y-Statements, custom YAML-based ADRs.
-
-**Output**: For each ADR, the parser produces two types of rules:
-
-- **Graph-queryable rules** → compiled to parameterized Cypher queries (symbolic path)
-- **Semantic criteria** → natural language rule + rubric for LLM Critic evaluation (neuronal path)
-
-### FR-SPEC-02 — AoC YAML Spec Parser (3-Layer)
-
-The system must parse the Architecture-as-Code YAML specification with three layers:
-
-- **Layer A — Architectural Model**: Style declaration, layer definitions, allowed dependencies, mapping rules (directories → layers, naming → roles, decorators → annotations)
-- **Layer B — Fitness Functions**: Function declarations with dimension tags, severity, thresholds, and **route** (symbolic / neuronal / hybrid)
-- **Layer C — Scoring Configuration**: Dimension weights for AHS computation, pass/fail thresholds, separate confidence thresholds for neuronal assessments
-
-### FR-SPEC-03 — Violation Taxonomy
-
-The system must maintain a consolidated violation taxonomy derived from OX Security, Slater, Sobania, and the GIST Study. Each violation type must be mapped to:
-
-- Its detecting fitness function(s)
-- Its route (symbolic, neuronal, or hybrid)
-- Its severity level (critical / major / minor / advisory)
-
-### FR-SPEC-04 — Style Template Library
-
-Pre-built templates for architectural styles that auto-load fitness functions:
-
-- `style: clean-architecture` → 17 symbolic + N semantic fitness functions
-- Future: `style: layered`, `style: hexagonal`
-
-Each template defines default Layer B functions with their routing designation.
-
-### FR-SPEC-05 — ADR-to-YAML Compilation Pipeline and LLM Critic Context Assembly
-
-This requirement closes the gap between "specs exist" and "the LLM Critic knows what to evaluate against." It specifies how architectural decisions flow from prose ADRs into executable evaluation criteria for both paths.
-
-**The transformation flow:**
-
-```mermaid
-flowchart LR
-    ADR["ADRs\n(prose decisions)"] --> Manual["Architect\n(manual for v1)"]
-    Manual --> YAML["AoC YAML\n(Layer A + B + C)"]
-    YAML --> Sym["Layer B symbolic\nfunctions → Cypher"]
-    YAML --> Neu["Layer B neuronal\nfunctions → semantic_criteria"]
-    Neu --> Ctx["LLM Critic\nContext Assembly"]
-    ADR -.->|adr_ref| Ctx
-```
-
-**1. ADR → AoC YAML translation (v1: manual)**
-
-For v1 (thesis), the architect manually writes the AoC YAML and embeds semantic criteria derived from ADRs. This is defensible for a thesis scope. Future versions may automate this via an LLM-assisted ADR parser.
-
-**2. Layer B schema for neuronal fitness functions**
-
-Neuronal and hybrid fitness functions in Layer B must include a `semantic_criteria` block:
-
-```yaml
-fitness_functions:
-  # Symbolic — unchanged, route: symbolic
-  - id: dependency-direction
-    dimension: structural
-    route: symbolic
-    severity: critical
-
-  # Neuronal — NEW: semantic_criteria block
-  - id: domain-framework-agnosticism
-    dimension: intent
-    route: neuronal
-    severity: major
-    semantic_criteria:
-      rule: "The domain layer must be completely framework-agnostic"
-      adr_ref: "docs/adr/ADR-003-domain-purity.md"
-      rubric:
-        pass: "No framework-specific patterns, decorators, or idioms in domain layer files"
-        fail: "Domain files contain framework imports, decorators, or coupling to infrastructure patterns"
-        evidence_required: "List specific files and patterns that violate agnosticism"
-
-  # Hybrid — symbolic threshold + semantic_criteria
-  - id: srp-compliance
-    dimension: solid
-    route: hybrid
-    severity: major
-    threshold: 10  # symbolic check: max public methods
-    semantic_criteria:
-      rule: "Each class should have a single, well-defined responsibility"
-      rubric:
-        pass: "All public methods serve a single coherent responsibility"
-        fail: "Methods serve multiple unrelated concerns (e.g., auth + billing)"
-        evidence_required: "Identify the distinct responsibilities found"
-```
-
-**`semantic_criteria` fields:**
-
-- `rule` (required): The architectural rule in natural language, distilled from the ADR
-- `adr_ref` (optional): Path to the original ADR file. If provided, the LLM Critic loads the full ADR prose at evaluation time for additional context
-- `rubric` (required): Structured pass/fail criteria with:
-    - `pass`: What constitutes compliance
-    - `fail`: What constitutes a violation
-    - `evidence_required`: What evidence the LLM Critic must provide in its response
-
-**3. LLM Critic context assembly at evaluation time**
-
-For each neuronal or hybrid fitness function, the system assembles the following context packet and sends it to the LLM Critic:
-
-| **Context element** | **Source** | **Required** |
-| --- | --- | --- |
-| Code snippet | The file or class being evaluated (from project source) | ✅ Always |
-| APG subgraph | The node and its immediate neighborhood (from Neo4j) | ✅ Always |
-| Rule | `semantic_criteria.rule` from AoC YAML Layer B | ✅ Always |
-| Rubric | `semantic_criteria.rubric` from AoC YAML Layer B | ✅ Always |
-| Full ADR prose | Loaded from `semantic_criteria.adr_ref` file path | ⚠️ Only if adr_ref is provided |
-
-This design ensures the LLM Critic always has structured evaluation criteria (from the YAML) and optionally has the full architectural reasoning (from the ADR) for richer context.
-
-**4. Validation rule**
-
-At spec parse time (NF-SPEC-01), the system must validate:
-
-- Every fitness function with `route: neuronal` or `route: hybrid` has a `semantic_criteria` block
-- Every `semantic_criteria` block has both `rule` and `rubric`
-- If `adr_ref` is provided, the referenced file must exist at evaluation time (warning, not error — allows spec portability)
-
-### NF-SPEC-01 — Spec Validation
-
-All AoC YAML specs must be validated against a JSON Schema at parse time. Malformed specs must produce clear error messages with line numbers.
+- **User Request**: Build the Architectural Firewall — a neuro-symbolic architectural compliance product that any team can plug into their development cycle
+- **Request Type**: New Project (greenfield)
+- **Scope Estimate**: System-wide — 8 core pipeline modules + neuro-symbolic router, CLI, CI/CD integration (GitHub Action / PR trigger), batch evaluation
+- **Complexity Estimate**: Complex — graph database pipeline, Cypher compilation, neuro-symbolic routing (LLM Critic Agent), multi-dimensional scoring, CI/CD integration, BDD/TDD/DDD methodologies
+- **Build Scope**: v1.0 product release + selected enhancements (JSON Schema validation, ADR multi-format parsing)
+- **Identity**: This is a **product** — a developer tool for any team. Not a prototype.
 
 ---
 
-## SO2 — Structural Code Representation via APG
+## Product Vision
 
-*Build and maintain an Architectural Property Graph that represents AI-generated code as a queryable graph, enabling deterministic queries over dependencies, types, and structure.*
+> **A developer tool that evaluates TypeScript projects for architectural compliance — quantitatively and automatically — plugging into any team's development cycle via CLI or CI/CD. Combines deterministic graph analysis with semantic LLM evaluation via neuro-symbolic routing.**
 
-### FR-APG-01 — APG Construction Pipeline
-
-The system must extract an APG from TypeScript projects using ts-morph:
-
-- **Node types**: File, Class, Interface, Method, Function
-- **Node properties**: name, filePath, layer, role, isExported, isAbstract, visibility, decorators[]
-- **Relationship types**: IMPORTS, IMPLEMENTS, EXTENDS, CONSTRUCTOR_INJECTS, CALLS, DECLARES, CONTAINS
-
-**Validated capabilities** (spike-confirmed):
-
-- Barrel import resolution ✅
-- Path alias resolution ✅
-- Interface vs. concrete type resolution for DI ✅
-- Decorator extraction ✅
-- Lenient parsing for partially broken code ✅
-
-### FR-APG-02 — Layer Annotation Engine
-
-The system must annotate APG nodes with `layer` and `role` properties using deterministic mapping rules from the AoC YAML spec (Layer A), applied in priority order:
-
-1. **Directory mapping**: `src/domain/**` → layer: domain
-2. **Naming convention**: `*Repository` → role: repository
-3. **Decorator mapping**: `@Controller()` → role: controller, layer: infrastructure
-
-Files matching no rule receive `layer: null` and are excluded from layer-dependent fitness functions but included in universal metrics.
-
-### FR-APG-03 — Neo4j Ingestion
-
-The system must ingest the APG JSON into Neo4j, creating nodes with labels and properties, and relationships with types. The graph must be queryable via Cypher immediately after ingestion.
-
-### NF-APG-01 — APG Persistence and Versioning
-
-<aside>
-🗄️
-
-The system **must not** regenerate the full APG on every execution. Instead, it must persist the graph as a versioned snapshot tied to the commit SHA or release tag, and compute only the **delta APG** — nodes and edges affected by files modified in the current PR.
-
-</aside>
-
-**1. Operational efficiency (delta APG)**
-
-- On each PR, only the nodes/edges affected by changed files are processed
-- The base APG persists between executions and is updated incrementally
-- Significantly reduces analysis time on large projects
-
-**2. Architectural Drift Detection**
-
-By maintaining historical APG snapshots per commit, the system can detect accumulated architectural degradation — not just point-in-time violations:
-
-| **Drift Type** | **What is measured** | **Alert signal** |
-| --- | --- | --- |
-| **Structural drift** | New dependencies between previously decoupled modules | New IMPORTS edges between layers that had none |
-| **Coupling drift** | Sustained increase in average graph fan-out | Average fan-out grows > 15% between consecutive releases |
-| **Convention drift** | Gradual erosion of naming/layer conventions | % of nodes meeting conventions decreases between snapshots |
-| **Violation trend** | Cumulative AVR across commit history | AVR increases steadily → accumulating technical debt signal |
-
-**Proposed storage model:**
-
-```
-APG_Store
-├── snapshot_{commit_sha}        ← full graph at that point
-│   ├── nodes.json
-│   ├── edges.json
-│   └── metadata.json            ← timestamp, author, AVR at that commit
-├── delta_{sha_old}_{sha_new}    ← diff between two snapshots
-│   ├── added_nodes[]
-│   ├── removed_nodes[]
-│   ├── added_edges[]
-│   └── removed_edges[]
-└── drift_report_{sha_new}.json  ← computed drift metrics
-```
-
-**Implication for SO4**: This mechanism opens an additional validation dimension — beyond measuring Precision/Recall on a static snapshot, we can measure whether the firewall **detects architectural regressions** across a real commit history, without needing to inject artificial violations.
-
-### NF-APG-02 — Construction Performance
-
-Full APG construction must complete in < 5 seconds per project (spike-validated). Delta APG updates must complete in < 2 seconds for typical PR-sized changes.
+**Core value proposition**: Quantitative, multi-dimensional, actionable architectural health reports. The symbolic path (Cypher/APG) is fully deterministic. The neural path (LLM Critic) captures what graph queries cannot — semantic violations, intent compliance, soft responsibility analysis.
 
 ---
 
-## SO3 — Neuro-Symbolic Review Gate
+## Functional Requirements
 
-*Build the firewall that combines symbolic verification (graph queries on APG) with an LLM Critic Agent (semantic compliance), producing pass/block verdicts and structured violation reports.*
+### FR-01: APG Extractor (ts-morph)
+- **FR-01.1**: Parse TypeScript projects using ts-morph with lenient mode (handle missing dependencies)
+- **FR-01.2**: Extract 5 node types: File, Class, Interface, Method, Function
+- **FR-01.3**: Extract 7 edge types: IMPORTS, IMPLEMENTS, EXTENDS, CONSTRUCTOR_INJECTS, CALLS, DECLARES, CONTAINS
+- **FR-01.4**: Resolve barrel imports, path aliases, decorator extraction, DI type resolution
+- **FR-01.5**: Output APG as structured JSON with nodes[] and edges[]
+- **FR-01.6**: Report parse coverage % (files successfully parsed / total files)
 
-**This is the main artifact of the thesis.**
+### FR-02: Neo4j Ingestion + Layer Annotation
+- **FR-02.1**: Ingest APG JSON into Neo4j (create nodes with labels and properties, create relationships)
+- **FR-02.2**: Apply layer annotations based on AoC YAML spec mappings (directory, naming, decorator — in priority order)
+- **FR-02.3**: Assign `layer` and `role` properties to each node
+- **FR-02.4**: Files matching no mapping rule get `layer: null` (excluded from layer-dependent fitness functions)
+- **FR-02.5**: Stateless per-project evaluation — clear graph before each project (ADR-010) for standalone CLI runs
 
-### FR-GATE-01 — Symbolic Path (Cypher → APG)
+### FR-03: APG Persistence, Snapshots, and Drift Detection
+- **FR-03.1**: The system must NOT regenerate the full APG on every execution. Persist the graph as a versioned snapshot tied to the commit SHA or release tag
+- **FR-03.2**: **Delta APG (Operational Efficiency)** — On each PR or subsequent run, compute only the nodes and edges affected by files modified since the last snapshot. The base APG persists between executions and is updated incrementally.
+- **FR-03.3**: **Snapshot Storage Model**:
+  ```
+  APG_Store/
+    snapshot_{commit_sha}/        # full graph at that point
+      nodes.json
+      edges.json
+      metadata.json               # timestamp, author, AVR at that commit
+    delta_{sha_old}_{sha_new}/    # diff between two snapshots
+      added_nodes[]
+      removed_nodes[]
+      added_edges[]
+      removed_edges[]
+    drift_report_{sha_new}.json   # computed drift metrics
+  ```
+- **FR-03.4**: **Architectural Drift Detection** — By maintaining historical APG snapshots per commit, detect accumulated architectural degradation across time:
+  | Drift Type | What is measured | Alert signal |
+  |---|---|---|
+  | Structural drift | New dependencies between previously decoupled modules | New IMPORTS edges between layers that had none |
+  | Coupling drift | Sustained increase in average graph fan-out | Average fan-out grows > 15% between consecutive releases |
+  | Convention drift | Gradual erosion of naming/layer conventions | % of nodes meeting conventions decreases between snapshots |
+  | Violation trend | Cumulative AVR across commit history | AVR increases steadily — accumulating technical debt signal |
+- **FR-03.5**: Generate drift reports comparing any two snapshots, with metrics and delta visualization
+- **FR-03.6**: Drift detection integrates with CI/CD — alert when drift metrics exceed configurable thresholds
 
-The system must execute parameterized Cypher queries against the APG for all graph-observable violations. Each fitness function is a Cypher template instantiated with parameters from the AoC YAML spec.
+### FR-04: AoC YAML Spec Parser
+- **FR-04.1**: Parse 3-layer AoC YAML: Layer A (model), Layer B (fitness functions), Layer C (scoring)
+- **FR-04.2**: Support `style: clean-architecture` with auto-loaded template of 17 symbolic + N semantic fitness functions
+- **FR-04.3**: Validate AoC YAML against JSON Schema at parse time; produce clear error messages with line numbers
+- **FR-04.4**: Support layer definitions with directories, naming conventions, and decorator mappings
+- **FR-04.5**: Support fitness function declarations with dimension, severity, threshold, and **route** (symbolic / neuronal / hybrid)
+- **FR-04.6**: For neuronal/hybrid fitness functions, require and validate `semantic_criteria` block containing:
+  - `rule` (required): architectural rule in natural language, distilled from the ADR
+  - `adr_ref` (optional): path to original ADR file for additional context at evaluation time
+  - `rubric` (required): structured pass/fail criteria with `pass`, `fail`, and `evidence_required` fields
+- **FR-04.7**: Layer C must support separate confidence thresholds for neuronal assessments
 
-**17 validated symbolic fitness functions across 5 dimensions:**
+### FR-05: ADR Parsing and Ingestion
+- **FR-05.1**: Parse architectural decision records in multiple formats: MADR, Nygard, Y-Statements, custom YAML-based ADRs
+- **FR-05.2**: For each ADR, produce two types of rules:
+  - Graph-queryable rules compiled to parameterized Cypher queries (symbolic path)
+  - Semantic criteria as natural language rule + rubric for LLM Critic evaluation (neuronal path)
+- **FR-05.3**: v1: architect manually writes AoC YAML and embeds semantic criteria derived from ADRs. The system supports loading ADR prose at evaluation time via `adr_ref`
+- **FR-05.4**: If `adr_ref` is provided in a fitness function, validate that the referenced file exists at evaluation time (warning, not error — allows spec portability)
 
-1. **Structural** (3): dependency-direction, no-circular-dependencies, database-bypass
-2. **Coupling** (3): domain-stability, module-fan-out, component-instability
-3. **Pattern** (3): domain-purity, dependency-inversion, repository-pattern
-4. **SOLID** (4): use-case-isolation, SRP-proxy, ISP-proxy, inheritance-depth
-5. **Convention** (4): naming-conventions, test-coverage-proxy, error-handling, orphan-detection
+### FR-06: Violation Taxonomy
+- **FR-06.1**: Maintain a consolidated violation taxonomy (informed by OX Security, Slater, Sobania, GIST Study)
+- **FR-06.2**: Each violation type maps to: detecting fitness function(s), route (symbolic/neuronal/hybrid), severity (critical/major/minor/advisory)
+- **FR-06.3**: The taxonomy is extensible — users can add custom violation types via the AoC YAML spec
 
-**Properties**: Deterministic, auditable, < 5 seconds for all 17 functions. Spike-validated.
+### FR-07: Fitness Function Compiler
+- **FR-07.1**: Compile each symbolic fitness function to a parameterized Cypher query template
+- **FR-07.2**: Instantiate templates with values from AoC YAML spec
+- **FR-07.3**: Support 17+ fitness functions across 7 dimensions:
+  - **Structural (3)**: dependency-direction, no-circular-dependencies, database-bypass — *symbolic only*
+  - **Coupling (3)**: domain-stability, module-fan-out, component-instability — *symbolic only*
+  - **Pattern (3)**: domain-purity, dependency-inversion, repository-pattern — *symbolic only*
+  - **SOLID (4)**: use-case-isolation, SRP-proxy, ISP-proxy, inheritance-depth — *hybrid* (symbolic first, then neuronal if symbolic passes)
+  - **Convention (4)**: naming-conventions, test-coverage-proxy, error-handling, orphan-detection — *symbolic only*
+  - **Semantic (new)**: abstraction-quality, naming-coherence-with-domain — *neuronal only*
+  - **Intent (new)**: ADR-prose-compliance, framework-agnosticism — *neuronal only*
+- **FR-07.4**: Output array of executable Cypher queries with metadata (dimension, severity, thresholds, route)
+- **FR-07.5**: Tag each fitness function with its route type for the neuro-symbolic router
 
-### FR-GATE-02 — Neuronal Path (LLM Critic Agent)
+### FR-08: Neuro-Symbolic Router
+- **FR-08.1**: Route each fitness function to the appropriate evaluation path based on its route tag:
+  - **Symbolic route**: Cypher query execution against APG (deterministic)
+  - **Neuronal route**: LLM Critic Agent evaluation (semantic analysis)
+  - **Hybrid route**: Symbolic first; if pass (no hard violation), then neuronal evaluation
+- **FR-08.2**: Activation rules (static, auditable — no case-by-case evaluation):
+  - `structural`, `coupling`, `pattern`, `convention` → **symbolic only** (neuronal never activates)
+  - `semantic`, `intent` → **neuronal always** (LLM Critic required)
+  - `solid` → **hybrid** (symbolic hard-check first, neuronal soft-check if symbolic passes)
+- **FR-08.3**: The router is deterministic — same fitness function always takes the same route
+- **FR-08.4**: Neuronal route results are tagged as `deterministic: false` in the output
+- **FR-08.5**: Support `--symbolic-only` mode (skip all neuronal evaluations for fully deterministic results)
 
-The system must implement an LLM Critic Agent for violations that require judgment about intent or semantic meaning — where the graph provides structure but cannot evaluate the *spirit* of a rule.
+### FR-09: Evaluation Engine (Symbolic Path)
+- **FR-09.1**: Execute compiled Cypher queries against Neo4j graph
+- **FR-09.2**: Collect per-function results with violation details (violator file path, source layer, target layer)
+- **FR-09.3**: Compute pass/fail per fitness function based on thresholds
+- **FR-09.4**: Support APOC plugin for cycle detection (`apoc.path.expandConfig`)
 
-**Input to the LLM Critic** (per evaluation, assembled per FR-SPEC-05):
+### FR-10: LLM Critic Agent (Neuronal Path)
+- **FR-10.1**: For each neuronal/hybrid fitness function, assemble a context packet:
+  - Code snippet (the file or class being evaluated from project source) — always
+  - APG subgraph (the node and its immediate neighborhood from Neo4j) — always
+  - `semantic_criteria.rule` from AoC YAML Layer B — always
+  - `semantic_criteria.rubric` from AoC YAML Layer B — always
+  - Full ADR prose loaded from `adr_ref` file path — only if provided
+- **FR-10.2**: Evaluate semantic violations that graph queries cannot express:
+  - Abstraction quality: does an interface make semantic sense, not just syntactic?
+  - Naming coherence: do class/method names align with the domain model?
+  - ADR prose compliance: does the code respect the spirit of architectural decisions?
+  - Soft SRP: does a class with few methods still mix unrelated responsibilities?
+- **FR-10.3**: Return structured verdict: `{ pass/fail/warning, confidence: 0.0-1.0, reasoning: string, evidence: string[], violations: Violation[] }`
+- **FR-10.4**: Configurable LLM provider (support Claude, GPT-4o, or other providers via adapter)
+- **FR-10.5**: Temperature=0 and fixed seed (when API supports it) for maximum consistency
+- **FR-10.6**: Execute 3-5 runs per evaluation and report mean +/- standard deviation
+- **FR-10.7**: Compute ICC (Intraclass Correlation Coefficient) across runs — target ICC > 0.70; flag unstable functions and downweight in combined score
+- **FR-10.8**: Rubric-based evaluation with calibrated scoring criteria to minimize variance
+- **FR-10.9**: Every LLM Critic call logged with input context, prompt, and response for auditability
 
-- Code snippet (relevant file or class)
-- APG subgraph context (the node and its immediate neighborhood)
-- `semantic_criteria.rule` — the architectural rule in natural language (from AoC YAML Layer B)
-- `semantic_criteria.rubric` — structured pass/fail criteria with evidence requirements
-- Full ADR prose (optional, loaded from `adr_ref` if provided in the YAML)
+### FR-11: Verdict Merge Logic
+- **FR-11.1**: Merge results from symbolic and neuronal paths into a unified verdict:
+  - **Hard block**: Any critical symbolic violation OR neuronal violation with confidence >= high threshold → PR cannot merge
+  - **Soft block**: Major symbolic violation OR neuronal violation with confidence in warning zone → PR requires reviewer override
+  - **Warning**: Minor violations or neuronal assessment with low confidence → informational only
+  - **Pass**: No violations from either path → PR can merge
+- **FR-11.2**: Confidence calibration thresholds (tunable):
+  - High confidence (>= 0.85): verdict counts as hard evidence
+  - Medium confidence (0.60-0.85): verdict counts as warning
+  - Low confidence (< 0.60): informational only, excluded from AHS
 
-**Semantic fitness functions (new, to be implemented):**
+### FR-12: Scoring Engine
+- **FR-12.1**: Compute AVR (Architectural Violation Ratio) per dimension: violated functions / total functions in dimension
+- **FR-12.2**: Compute AHS (Architectural Health Score): weighted complement — AHS = Sum(wi * (1 - AVRi))
+- **FR-12.3**: Apply Layer C scoring weights across 7 dimensions (default: structural 0.20, coupling 0.10, pattern 0.20, SOLID 0.15, convention 0.10, semantic 0.15, intent 0.10)
+- **FR-12.4**: Compute universal health metrics (spec-independent): cycles, fan-out, fan-in, abstraction ratio, instability index, orphan files
+- **FR-12.5**: Produce dual scores:
+  - `ahs_deterministic` — symbolic path only (fully reproducible)
+  - `ahs_combined` — symbolic + neuronal (may vary across runs)
+- **FR-12.6**: Tag each result with its evaluation route (symbolic/neuronal/hybrid) and determinism flag
+- **FR-12.7**: Support `--symbolic-only` scoring mode that excludes neuronal dimensions from AHS
 
-| **Type** | **Examples** | **Why the LLM is needed** |
-| --- | --- | --- |
-| **Semantic** | Abstraction quality, naming coherence with domain model | The graph knows an interface exists, not whether it makes semantic sense |
-| **Intent** | ADR prose compliance ("the domain must be framework-agnostic") | Framework patterns without direct imports can only be detected by the LLM |
-| **Responsibility (soft)** | SRP in spirit (not just by method count) | A service with 4 methods may violate SRP conceptually; counting alone cannot capture this |
+### FR-13: Structured Violation Report
+- **FR-13.1**: Output JSON report with: project name, commit SHA, ahs_deterministic, ahs_combined, verdict, per-dimension breakdown (AVR, path, confidence for neuronal), violations array, universal metrics
+- **FR-13.2**: Human-readable summary format for CLI and PR comments
+- **FR-13.3**: CSV output for batch evaluation (one row per project)
 
-**Output**: Structured JSON verdict with:
+### FR-14: CLI
+- **FR-14.1**: `firewall evaluate --project PATH --spec YAML` — single project evaluation
+- **FR-14.2**: `firewall batch --dir PATH --spec YAML --output CSV` — batch evaluation
+- **FR-14.3**: Flags: `--format json|human|csv`, `--verbose`, `--neo4j-uri bolt://...`, `--symbolic-only`
+- **FR-14.4**: JSON output to stdout, human-readable summary to stderr
+- **FR-14.5**: Use Commander.js as CLI framework
+- **FR-14.6**: Exit codes: 0 = pass, 1 = violations found (soft/hard block), 2 = evaluation error
 
-- `pass` / `fail` / `warning`
-- `confidence` score (0.0–1.0)
-- `reasoning` (natural language explanation)
-- `evidence` (specific code locations referenced)
+### FR-15: CI/CD Integration
+- **FR-15.1**: GitHub Action that runs on `pull_request` events (opened, synchronize, reopened)
+- **FR-15.2**: Evaluate the PR's target branch codebase against the repo's `.firewall.yaml` spec
+- **FR-15.3**: Post evaluation results as a PR comment with:
+  - AHS score (deterministic and combined shown separately)
+  - Per-dimension breakdown (all 7 dimensions with route tags)
+  - List of violations with file paths, descriptions, and route
+  - Verdict (hard block / soft block / warning / pass)
+- **FR-15.4**: Set GitHub check status based on verdict and configurable AHS threshold (default: 0.70)
+- **FR-15.5**: Support manual trigger via workflow dispatch or `/firewall` PR comment command
+- **FR-15.6**: Neo4j service container provisioned within the GitHub Action workflow
+- **FR-15.7**: Configurable: run symbolic-only in CI (fast, deterministic) or full neuro-symbolic (comprehensive)
 
-### FR-GATE-03 — Neuro-Symbolic Routing Logic
+### FR-16: Batch Runner
+- **FR-16.1**: Evaluate N projects sequentially against a spec
+- **FR-16.2**: Produce CSV with one row per project (AVR overall, AVR per-dimension, ahs_deterministic, ahs_combined, universal metrics, route tags)
+- **FR-16.3**: Skip failed projects and continue (report failures in output)
+- **FR-16.4**: Performance: < 5 seconds per project symbolic-only; neuronal adds LLM latency per call
 
-<aside>
-🔀
-
-**NF-ROUTING-01 — Deterministic routing by fitness function type**
-
-The firewall must route each check to the symbolic or neuronal path based on the nature of the violation, without case-by-case evaluation. The routing criterion must be static and auditable.
-
-</aside>
-
-**Routing table:**
-
-| **Condition** | **Fitness function types** | **Path** |
-| --- | --- | --- |
-| 🚫 Symbolic only (neuronal never activates) | `structural`, `coupling`, `pattern`, `convention` | Cypher → APG |
-| ✅ Neuronal always activates | `semantic`, `intent` | LLM Critic |
-| ⚠️ Conditional (neuronal only if symbolic passes) | `solid` (hybrid) | Cypher first → LLM if no hard violation |
-
-### FR-GATE-04 — Hybrid Evaluation (Symbolic → Neuronal Cascade)
-
-For hybrid fitness functions, the system must:
-
-1. **Run symbolic check first** — if a hard violation is found (e.g., class with > 10 public methods), block immediately
-2. **If symbolic passes**, invoke the LLM Critic for semantic evaluation
-3. The LLM Critic can upgrade a symbolic pass to a fail (e.g., `UserService` with 4 methods mixing authentication + billing → symbolic approves, neuronal blocks)
-
-**Example — SRP hybrid check:**
-
-1. Symbolic: class with > 10 public methods → hard violation, immediate block
-2. If passes: LLM Critic evaluates whether existing methods represent a single responsibility
-3. A `UserService` with 4 methods mixing authentication + billing → symbolic approves it, neuronal blocks it
-
-### FR-GATE-05 — Merge Logic and Verdict Generation
-
-The system must merge results from both paths into a unified verdict:
-
-| **Verdict** | **Condition** | **Action** |
-| --- | --- | --- |
-| **Hard block** | Any critical symbolic violation OR neuronal violation with confidence ≥ threshold | PR cannot merge |
-| **Soft block** | Major symbolic violation OR neuronal violation with confidence in warning zone | PR requires reviewer override |
-| **Warning** | Minor violations or neuronal assessment with low confidence | Informational only |
-| **Pass** | No violations from either path | PR can merge |
-
-### FR-GATE-06 — Scoring Engine (AVR / AHS)
-
-Two-tier scoring model:
-
-- **AVR** (per dimension): Ratio of violated fitness functions to total in that dimension. Range: 0.0 (all pass) to 1.0 (all fail).
-- **AHS** (aggregate): Weighted complement across dimensions. AHS = Σ(wᵢ × (1 − AVRᵢ)). Range: 0.0 to 1.0.
-
-**Scoring for neuronal assessments**: Neuronal results are scored separately with a confidence-weighted contribution. The report must clearly distinguish:
-
-- **Deterministic score** (symbolic only — reproducible)
-- **Combined score** (symbolic + neuronal — may vary across runs)
-
-This allows users to rely on the deterministic score for governance while using the combined score for deeper insight.
-
-### FR-GATE-07 — Structured Violation Report
-
-Output format (JSON):
-
-```json
-{
-  "project": "my-app",
-  "commit": "abc123",
-  "ahs_deterministic": 0.82,
-  "ahs_combined": 0.71,
-  "verdict": "soft_block",
-  "dimensions": {
-    "structural": { "avr": 0.0, "path": "symbolic", "functions": [...] },
-    "pattern": { "avr": 0.33, "path": "symbolic", "functions": [...] },
-    "semantic": { "avr": 0.50, "path": "neuronal", "confidence": 0.87, "functions": [...] }
-  },
-  "violations": [...],
-  "universal_metrics": { "cycles": 0, "max_fan_out": 7, "abstraction_ratio": 0.35 }
-}
-```
-
-### NF-GATE-01 — LLM Critic Reproducibility
-
-To control non-determinism in the neuronal path:
-
-- Fix temperature to 0 and seed when supported by the API
-- Execute **3–5 runs** per evaluation and report mean ± standard deviation
-- Compute **ICC (Intraclass Correlation Coefficient)** across runs — target ICC > 0.70
-- If ICC < 0.70 for a specific fitness function, flag it as unstable and downweight in combined score
-
-### NF-GATE-02 — Confidence Calibration
-
-LLM Critic confidence thresholds must be calibrated empirically:
-
-- **High confidence** (≥ 0.85): Verdict counts as hard evidence
-- **Medium confidence** (0.60–0.85): Verdict counts as warning
-- **Low confidence** (< 0.60): Verdict is informational only, excluded from AHS
-
-Thresholds are tuned during SO4 Phase 1 validation.
-
-### NF-GATE-03 — End-to-End Latency
-
-Full pipeline (symbolic + neuronal) must complete in < 30 seconds per project. Symbolic-only path must complete in < 5 seconds (spike-validated). LLM Critic calls are the latency bottleneck — batch and parallelize where possible.
+### FR-17: Sample Projects + Validation Set
+- **FR-17.1**: Create 5-10 TypeScript projects demonstrating various architectural compliance levels
+- **FR-17.2**: Include 2-3 clean reference projects (zero violations, AHS >= 0.90)
+- **FR-17.3**: Include projects with known violations across all 7 dimensions (including semantic and intent — violations detectable only by the neuronal path)
+- **FR-17.4**: Each project includes a MANIFEST.md listing: violation type, file path, expected detecting fitness function, dimension, expected route, expected severity
+- **FR-17.5**: Serve as both validation set and usage examples for new adopters
 
 ---
 
-## SO4 — Empirical Validation
+## Non-Functional Requirements
 
-*Validate the evaluator in two phases: (a) instrument validation against human-labeled ground truth, and (b) comparative evaluation with quasi-experimental design.*
+### NFR-01: Determinism (Dual-Path Model)
+- **Symbolic path**: Same code + same spec = same score. Always. Without exception. Fully deterministic.
+- **Neuronal path**: LLM Critic operates at temperature=0 with fixed seed and rubric-based evaluation. Acknowledged as not fully deterministic — results tagged `deterministic: false`. Reproducibility target: ICC > 0.70.
+- **Governance mode**: `--symbolic-only` flag guarantees full determinism for teams that require it for governance/blocking decisions
+- **Transparency**: Every evaluation result clearly indicates which path produced it and reports `ahs_deterministic` separately from `ahs_combined`
 
-### FR-VAL-01 — Ground Truth Suite
+### NFR-02: Performance
+- Full APG construction: < 5 seconds per project (spike-validated)
+- Delta APG update: < 2 seconds for typical PR-sized changes
+- Symbolic-only evaluation: < 5 seconds per project
+- Full neuro-symbolic pipeline (symbolic + neuronal): < 30 seconds per project
+- CI/CD feedback: evaluation completes within typical CI job timeframes
 
-20+ TypeScript projects with seeded violations + [MANIFEST.md](http://MANIFEST.md) files listing:
+### NFR-03: Detection Accuracy
+- Precision >= 90% against validation set manifests (overall: symbolic + neuronal)
+- Recall >= 85% against validation set manifests (overall: symbolic + neuronal)
+- Cohen's kappa >= 0.60 (LLM Critic vs. human judgment, neuronal path only)
+- ICC >= 0.70 (LLM Critic across runs, neuronal path reproducibility)
+- Monotonic AHS discrimination: clean projects score higher than violated ones
 
-- Violation type and dimension
-- File path and location
-- Expected detecting fitness function
-- Expected route (symbolic / neuronal / hybrid)
-- Expected severity
+### NFR-04: Resilience
+- Handle partially broken TypeScript (missing deps, unresolvable imports) via lenient parsing
+- Report parse coverage % per project
+- Skip unresolvable files, don't crash
+- Graceful degradation: partial results are better than no results
 
-Must include violations detectable only by the neuronal path (semantic/intent) to validate the LLM Critic's contribution.
-
-### FR-VAL-02 — Phase 1: Instrument Validation
-
-**Procedure**: Run the full neuro-symbolic firewall against ground truth suite.
-
-**Metrics**:
-
-| **Metric** | **Target** | **Scope** |
-| --- | --- | --- |
-| Precision | ≥ 0.90 | Overall (symbolic + neuronal) |
-| Recall | ≥ 0.85 | Overall (symbolic + neuronal) |
-| Cohen's κ (LLM Critic vs. human) | ≥ 0.60 | Neuronal path only |
-| ICC (LLM Critic across runs) | ≥ 0.70 | Neuronal path reproducibility |
-| AHS discrimination | Monotonic ordering across violation variants | Combined score |
-
-### FR-VAL-03 — Ablation Study
-
-**The key experiment that justifies the neuro-symbolic approach.**
-
-Run the ground truth suite under three conditions:
-
-1. **Symbolic only** — 17 Cypher fitness functions, no LLM
-2. **Neuronal only** — LLM Critic evaluates all rules, no graph queries
-3. **Combined** — full neuro-symbolic pipeline with routing
-
-**Measure for each**: Precision, Recall, F1, AHS discrimination, latency, cost.
-
-**Expected outcome**: Combined > Symbolic-only > Neuronal-only for Recall (neuronal catches what symbolic misses), and Combined ≈ Symbolic-only for Precision (neuronal doesn't introduce many false positives). This proves the marginal value of the LLM Critic.
-
-### FR-VAL-04 — Phase 2: Comparative Benchmark
-
-**Design**: Quasi-experimental factorial design.
-
-- **Factor 1 — Spec Quality** (3 levels): Formal (full AoC YAML), Semi-structured (NL guidelines), Informal (no guidance)
-- **Factor 2 — LLM** (3 levels): Claude, GPT-4o, Gemini (or equivalents)
-- **Sample**: 5 tasks × 3 LLMs × 3 conditions × 3 repetitions = **135 projects**
-
-**Analysis**:
-
-- H2: Cluster per-dimension AVR patterns → failure taxonomy
-- H3: Two-way ANOVA (Spec Quality × LLM → AVR), report F-statistics, η², Tukey HSD
-- H4: 20-project subset comparison APG vs. CodeQL
-
-**Additional question enabled by neuro-symbolic design**: *Does the LLM Critic compensate for low-quality specs?* (Interaction effect: neuronal path may recover violations that weak specs cause symbolic path to miss.)
-
-### FR-VAL-05 — Human Evaluator Protocol
-
-- Minimum **2–3 independent human evaluators** for ground truth labeling
-- Compute **inter-rater reliability (κ)** between humans before comparing LLM Critic to humans
-- Evaluators must label: violation type, severity, location, and whether it requires semantic judgment
-
-### NF-VAL-01 — Reproducibility
-
-All experimental conditions must be fully reproducible:
-
-- Fixed LLM API versions, temperatures, and seeds
+### NFR-05: Reproducibility
+- Docker Compose for Neo4j (identical environment for any user)
+- Lock file committed (exact dependency versions)
+- Deterministic pipeline by design (symbolic path)
+- GitHub Action uses pinned versions (no `latest` tags)
+- Fixed LLM API versions, temperatures, and seeds for neuronal path
 - Published prompts for all LLM Critic evaluations
-- Ground truth suite publicly available
-- Statistical analysis scripts included in repository
+
+### NFR-06: Developer Experience
+- `npm install -g @daedalus/firewall` installs globally and just works
+- Clear, actionable error messages (not stack traces)
+- Human-readable output by default, JSON for tooling
+- PR comments are scannable — highlight what's wrong, not just a score dump
+- Getting started: < 5 minutes from install to first evaluation
 
 ---
 
-## Traceability Matrix
+## Development Methodology Requirements
 
-| **SO** | **Requirements** | **Spike Status** |
-| --- | --- | --- |
-| SO1 — Spec Ingestion | FR-SPEC-01 through 05, NF-SPEC-01 | Partially validated (AoC YAML parser works; ADR multi-format parsing not started) |
-| SO2 — APG Construction | FR-APG-01 through 03, NF-APG-01 through 02 | ✅ Core pipeline validated (Spike 1). Persistence/drift not started. |
-| SO3 — Review Gate | FR-GATE-01 through 07, NF-GATE-01 through 03 | ✅ Symbolic path validated (Spike 2-3). Neuronal path not started. |
-| SO4 — Validation | FR-VAL-01 through 05, NF-VAL-01 | Seeded violation strategy validated (Spike 3). Ablation and Phase 2 not started. |
+### METH-01: Behavior-Driven Development (BDD)
+- All modules must have Gherkin feature files (`.feature`) describing behavior in Given/When/Then
+- Use `@cucumber/cucumber` with `jest-cucumber` for test execution
+- Feature files serve as living documentation and acceptance criteria
+- Feature files written BEFORE implementation (outside-in)
+
+### METH-02: Test-Driven Development (TDD)
+- Red-Green-Refactor cycle for all production code
+- Unit tests written BEFORE implementation code
+- Minimum 80% code coverage target
+- Jest as the test runner
+- Integration tests for Neo4j interactions and LLM Critic calls (mocked provider)
+
+### METH-03: Domain-Driven Design (DDD)
+- **Ubiquitous Language**: Use product terminology consistently (APG, AoC, AVR, AHS, fitness function, dimension, layer, role, violation, symbolic, neuronal, hybrid, verdict)
+- **Bounded Contexts**: Each pipeline module is a bounded context with clear interfaces
+  - APG Extractor context: ts-morph parsing, AST traversal, node/edge extraction
+  - Neo4j Ingestion context: graph database operations, layer annotation, delta APG, drift detection
+  - Spec Parser context: AoC YAML parsing, ADR parsing, schema validation, template resolution
+  - Fitness Compiler context: Cypher query generation, template instantiation
+  - Neuro-Symbolic Router context: route dispatch, activation rules, mode selection
+  - Evaluation Engine context (symbolic): Cypher query execution, result collection
+  - LLM Critic Agent context (neuronal): context assembly, prompt construction, rubric evaluation, structured verdicts
+  - Scoring Engine context: AVR/AHS computation, dual scoring, verdict merge, universal metrics
+- **Domain Model**: Rich domain objects for APG nodes, edges, fitness functions, violations, scores, verdicts
+- **Anti-Corruption Layers**: Adapters between modules (e.g., APG JSON format between Extractor and Ingestion)
+- **Value Objects**: Immutable types for scores (AVR, AHS), dimensions, severity levels, confidence, verdicts
+- **Repository Pattern**: For Neo4j graph operations (GraphRepository interface)
 
 ---
 
-## References
+## Technical Decisions (from ADR)
 
-- Methodological analysis: [Análisis Metodológico por Objetivo — Firewall Neuro-Simbólico](https://www.notion.so/An-lisis-Metodol-gico-por-Objetivo-Firewall-Neuro-Simb-lico-6f9c196293144165bf1b37b57cd0deeb?pvs=21)
-- Thesis research: [thesis-research](https://www.notion.so/thesis-research-32c50d30822780b1a2f9d10505d62516?pvs=21)
-- Spike results: [Spike Strategy](https://www.notion.so/Spike-Strategy-Validating-the-Firewall-with-Claude-Code-177fc8a8efa8464baa82efedc9bc0dcd?pvs=21)
+| Decision | Choice | ADR |
+|---|---|---|
+| Target Language | TypeScript only (v1) | ADR-001 |
+| Extraction Engine | ts-morph v22+ | ADR-002 |
+| Graph Database | Neo4j Community Edition | ADR-003 |
+| Spec Format | AoC YAML (3-layer) | ADR-004 |
+| Graph Schema | APG (5 nodes, 7 edges) | ADR-005 |
+| Query Approach | Parameterized Cypher templates | ADR-006 |
+| Scoring Model | AVR + AHS (dual: deterministic + combined) | ADR-007 |
+| Validation Strategy | Known-violation projects with manifests | ADR-008 |
+| Interface | CLI-first (Commander.js) + GitHub Action | ADR-009 |
+| State Model | Stateless per-project + versioned snapshots for drift | ADR-010 |
+| Annotation | Spec mapping (deterministic) | ADR-012 |
+| Universal Metrics | Spec-independent health metrics | ADR-013 |
+| Implementation | Node.js + TypeScript | ADR-014 |
+
+---
+
+## Project Structure
+
+```
+src/
+  apg-extractor/         # Module 1: ts-morph --> APG JSON
+  neo4j-ingestion/       # Module 2: APG JSON --> Neo4j + layer annotation + delta APG
+  spec-parser/           # Module 3: AoC YAML + ADR parsing + validation
+  fitness-compiler/      # Module 4: Fitness function --> Cypher compilation
+  neuro-symbolic-router/ # Module 5: Route dispatch (symbolic/neuronal/hybrid)
+  evaluation-engine/     # Module 6: Symbolic path — Cypher execution + result collection
+  llm-critic/            # Module 7: Neuronal path — LLM Critic Agent + context assembly
+  scoring-engine/        # Module 8: AVR/AHS computation + verdict merge + universal metrics
+  cli/                   # CLI entry points (evaluate, batch)
+  shared/                # Shared domain types, value objects, interfaces, violation taxonomy
+tests/
+  features/              # BDD Gherkin feature files
+  unit/                  # TDD unit tests (mirrors src/ structure)
+  integration/           # Integration tests (Neo4j, LLM Critic, end-to-end pipeline)
+fixtures/                # Sample/validation TypeScript projects with MANIFESTs
+specs/                   # Sample AoC YAML specs (clean-architecture template)
+.github/
+  actions/
+    firewall/            # GitHub Action definition (action.yml)
+  workflows/
+    ci.yml               # CI pipeline for the Firewall project itself
+docker-compose.yml       # Neo4j setup for local development
+```
+
+---
+
+## Security Requirements (Bare Minimum)
+
+| Rule | Description | Applicability |
+|---|---|---|
+| SECURITY-05 | Input Validation — validate AoC YAML input, ADR files, project paths, CLI args | CLI inputs, YAML/ADR parsing |
+| SECURITY-10 | Supply Chain — lock file, pinned deps, no unused packages | Package management |
+| SECURITY-12 | Secret Management — no hardcoded Neo4j/LLM API credentials, use env vars | Neo4j connection config, LLM API keys |
+| SECURITY-15 | Safe Error Handling — fail closed, resource cleanup, global error handler | All modules, CLI |
+
+All other SECURITY rules: **N/A** (CLI tool + GitHub Action — no user auth, no web server, no cloud infra)
+
+---
+
+## Extension Configuration
+
+| Extension | Enabled | Decided At |
+|---|---|---|
+| Security Baseline | Partial (SECURITY-05, 10, 12, 15 only) | Requirements Analysis |
+
+---
+
+## Out of Scope (Separate Efforts)
+
+- **Empirical validation / benchmarking**: Ablation study (symbolic-only vs neuronal-only vs combined), comparative benchmark (3x3 factorial), human evaluator protocol, ANOVA — separate research effort
+- **ISE (Implicit Specification Extraction)**: Auto-infer spec from existing codebase — future product feature
+- **Automated ADR-to-YAML translation**: LLM-assisted ADR parser — future product feature (v1 is manual)
+- **Web dashboard**: AHS trend tracking, drift visualization, per-repo history — future product feature
+- **Multi-language support**: Python, Java extractors — future product feature
+- **Diff-scoped evaluation**: Only analyze changed files in a PR (delta APG partially addresses this) — future optimization
+- **LLM code generation**: The Firewall evaluates, it does not generate or fix code
+
+---
+
+## Reference Documents
+
+- **PRD**: `Docs/PRD — Architectural Firewall Spec-Driven Compliance.md`
+- **ADR**: `Docs/ADR — Architectural Decision Records Firewall Tech.md`
+- **Product Vision**: `Docs/Product Vision - Architectural Firewall`
+- **Ad-Hoc System Requirements**: `Docs/AdHoc System Requirements — Architectural Firewall.md` (SO1-SO4 traceability, neuro-symbolic routing criteria, semantic_criteria schema, LLM Critic context assembly, violation taxonomy, delta APG/drift detection)
+
+---
+
+## Acceptance Criteria
+
+1. `firewall evaluate --project ./clean-ref --spec ./clean-arch.yaml` produces AHS >= 0.90
+2. `firewall evaluate --project ./violated-project --spec ./clean-arch.yaml` detects known violations listed in MANIFEST.md
+3. `firewall batch --dir ./fixtures --spec ./clean-arch.yaml --output results.csv` completes without error
+4. All 17 symbolic fitness functions compile to valid Cypher and execute successfully
+5. AVR/AHS scoring produces monotonic discrimination (clean > semi-violated > fully-violated)
+6. Symbolic-only evaluation completes in < 5 seconds per project
+7. Full neuro-symbolic evaluation completes in < 30 seconds per project
+8. GitHub Action runs on PR, posts comment with dual AHS + violations + verdict, sets check status
+9. BDD feature files pass for all modules
+10. Unit test coverage >= 80%
+11. `npm install -g` and `firewall evaluate` works end-to-end with Docker Compose Neo4j
+12. `--symbolic-only` flag produces fully deterministic, reproducible results
+13. Neuronal path (LLM Critic) detects semantic violations that symbolic path cannot (e.g., soft SRP on a 4-method class mixing auth + billing)
+14. Neuro-symbolic router correctly dispatches: structural/coupling/pattern/convention --> symbolic, semantic/intent --> neuronal, SOLID --> hybrid
+15. Every evaluation result tagged with route (symbolic/neuronal/hybrid), determinism flag, and confidence (for neuronal)
+16. `semantic_criteria` blocks validated at spec parse time; malformed specs produce clear error messages
+17. LLM Critic ICC >= 0.70 across 3-5 runs per evaluation

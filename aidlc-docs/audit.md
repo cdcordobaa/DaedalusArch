@@ -95,3 +95,48 @@
 **Context**: Requirements Analysis — Scope expansion (neuro-symbolic routing)
 
 ---
+
+## Requirements Analysis — Format Correction
+**Timestamp**: 2026-03-27T16:50:00Z
+**User Input**: "why did you copy format from the reference document. I would rather keep the original framework pattern instead of copying the reference one. You should use the reference one to feed into and to define requirements but not to use them as the ground truth."
+**AI Response**: Restored original AI-DLC requirements framework (FR-01 through FR-16, NFR-01 through NFR-06, METH-01 through METH-03). Used the ad-hoc SO1-SO4 document as INPUT to enrich requirements, not as the document format. Key requirements absorbed from the reference:
+- FR-04 (ADR Parsing): multi-format ADR support (MADR, Nygard, Y-Statements)
+- FR-05 (Violation Taxonomy): consolidated from OX Security, Slater, Sobania, GIST Study
+- FR-03.6 (semantic_criteria schema): rule + adr_ref + rubric (pass/fail/evidence_required)
+- FR-09.1 (LLM Critic context assembly): code snippet + APG subgraph + rule + rubric + optional ADR prose
+- FR-09.6-9.7 (reproducibility): 3-5 runs per evaluation, ICC > 0.70
+- FR-10 (Verdict Merge Logic): hard block / soft block / warning / pass with confidence thresholds
+- FR-11.5 (dual scoring): ahs_deterministic vs ahs_combined
+- FR-02.6-2.7 (delta APG + drift detection): versioned snapshots, architectural drift tracking
+- NFR-02 updated: < 30 seconds full neuro-symbolic, < 2 seconds delta APG
+- Reference document preserved at its original path for traceability
+**Context**: Requirements Analysis — Format correction, kept AI-DLC framework
+
+---
+
+---
+
+## Requirements Review — Comparison against ADR and PRD
+**Timestamp**: 2026-03-27T19:25:00Z
+**User Input**: "help me review this @[AdHoc System Requirements — Architectural Firewall.md] and compare against these @[ADR — Architectural Decision Records Firewall Tech.md] @[AdHoc System Requirements — Architectural Firewall.md] fin missing definitions that are mission in the first doc, but described in the other two"
+**AI Response**: Identified missing definitions (Success Metrics, Universal Health Metrics, APG Schema, CLI details, Scoring Weights) and a critical contradiction between AdHoc (Persistence/Delta) and ADR-010 (Stateless). Created comparison artifact.
+**Context**: Requirements Analysis — Periodic review and gap analysis
+
+---
+
+## Requirements Analysis — Snapshots, Drift, and Operational Efficiency
+**Timestamp**: 2026-03-27T19:45:00Z
+**User Input**: "I'm missing snapshots and arch drift, and Operational efficiency"
+**AI Response**: Expanded FR-02.6/FR-02.7 (one-liners) into a full FR-03 (APG Persistence, Snapshots, and Drift Detection) with 6 sub-requirements: no full APG regeneration (FR-03.1), delta APG operational efficiency (FR-03.2), snapshot storage model with APG_Store directory structure (FR-03.3), architectural drift detection table covering structural/coupling/convention/violation trends (FR-03.4), drift reports between snapshots (FR-03.5), CI/CD drift threshold alerts (FR-03.6). Renumbered all subsequent FRs from FR-04 through FR-17 (previously FR-03 through FR-16) and fixed all internal cross-references.
+**Context**: Requirements Analysis — Scope expansion (persistence, drift detection, operational efficiency)
+
+---
+
+---
+
+## Requirements Review — Gap Analysis between AdHoc, ADR, and PRD
+**Timestamp**: 2026-03-28T00:22:32Z
+**User Input**: "help me review this @[Docs/AdHoc System Requirements — Architectural Firewall.md] and compare against these @[Docs/ADR — Architectural Decision Records Firewall Tech.md] @[Docs/PRD — Architectural Firewall Spec-Driven Compliance.md] find missing definitions that are mission in the first doc, but described in the other two"
+**AI Response**: Identified 5 major gaps and 1 critical contradiction (Persistence vs Statelessness). Created comparison report.
+**Context**: Requirements Analysis — Review and alignment
+
