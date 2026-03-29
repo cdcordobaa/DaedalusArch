@@ -4,7 +4,7 @@
 - **Project Name**: Architectural Firewall (DaedalusArch)
 - **Project Type**: Greenfield
 - **Start Date**: 2026-03-27T16:00:00Z
-- **Current Stage**: INCEPTION - Units Generation
+- **Current Stage**: CONSTRUCTION - Unit 0 (Infrastructure Scaffolding)
 
 ## Workspace State
 - **Existing Code**: No (configuration files and docs only — no `src/` directory)
@@ -30,7 +30,7 @@
 - [x] User Stories — COMPLETE (81 stories, 3 personas, 17 epics)
 - [x] Workflow Planning — COMPLETE (all stages execute, no skips)
 - [x] Application Design — COMPLETE (11 components, 6 services, DDD hardening, VCR, concurrency governor)
-- [ ] Units Generation
+- [x] Units Generation — COMPLETE (8 units: U0-U7, bottom-up, 81 stories mapped)
 
 ### CONSTRUCTION PHASE
 - [ ] Per-Unit Loop
