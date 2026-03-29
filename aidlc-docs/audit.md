@@ -2,6 +2,36 @@
 
 ---
 
+## Construction — Unit 1 Functional Design — Questions
+**Timestamp**: 2026-03-29T00:38:00Z
+**AI Response**: Created unit-1-shared-domain-functional-design-plan.md with 4 targeted questions: Q1 violation taxonomy (proposed 12 types across 7 dimensions), Q2 fixture complexity (A/B/C options), Q3 clean-architecture template fitness functions (proposed 17 symbolic + 3 neuronal), Q4 FirewallContext mutability strategy (A/B/C options). Awaiting user answers.
+**Context**: Construction Phase — Unit 1 Functional Design (Steps 1-4 complete, awaiting Q&A)
+
+---
+
+## Construction — Unit 0 Approval + Unit 1 Start
+**Timestamp**: 2026-03-29T00:35:00Z
+**User Input**: "lets go next"
+**AI Response**: U0 approved. Proceeding to Unit 1 (Shared Domain + Validation). Starting per-unit loop: Functional Design (EXECUTE — new data models + value objects + violation taxonomy), NFR Requirements (SKIP — pure type layer), Infrastructure Design (SKIP — no infra), Code Generation (ALWAYS).
+**Context**: Construction Phase — Unit 1 loop start
+
+---
+
+## Construction — Unit 0 Code Generation COMPLETE
+**Timestamp**: 2026-03-29T00:30:00Z
+**AI Response**: All 12 steps executed and verified. npm install: 726 packages, 0 vulnerabilities. npm test: exit 0, passWithNoTests. Fixed jest.config.cjs: coverageThresholds→coverageThreshold, testMatch globs, --passWithNoTests flag added to scripts.
+**Context**: Construction Phase — Unit 0 Code Generation (Part 2 complete, all steps [x])
+
+---
+
+## Construction — Unit 0 Code Generation Start
+**Timestamp**: 2026-03-29T00:00:00Z
+**User Input**: "continue with aidlc, unit 0"
+**AI Response**: Resuming from approved unit-0-infrastructure-code-generation-plan.md. All 12 steps pending. Executing Part 2 — Generation now. Steps: package.json, tsconfig.json, jest.config.cjs, docker-compose.yml, .env.example, 11 module stubs, ESLint+Prettier, .gitignore update, tests/ structure, fixtures/ and specs/ dirs, .github/ CI scaffolding, and npm install + test verification.
+**Context**: Construction Phase — Unit 0 Code Generation (Part 2 start)
+
+---
+
 ## Workspace Detection
 **Timestamp**: 2026-03-27T16:00:00Z
 **User Input**: "I already have my PRD also my ADR defined for what we are going to build, lets build! here/Volumes/Life-OS/Users/Arkatechie/Development/Archi-Firewall/DaedalusArch/Docs"

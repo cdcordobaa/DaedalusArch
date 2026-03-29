@@ -4,7 +4,7 @@
 - **Project Name**: Architectural Firewall (DaedalusArch)
 - **Project Type**: Greenfield
 - **Start Date**: 2026-03-27T16:00:00Z
-- **Current Stage**: CONSTRUCTION - Unit 0 (Infrastructure Scaffolding)
+- **Current Stage**: CONSTRUCTION - Unit 1 (Shared Domain + Validation) — U0 complete
 
 ## Workspace State
 - **Existing Code**: No (configuration files and docs only — no `src/` directory)
@@ -34,6 +34,14 @@
 
 ### CONSTRUCTION PHASE
 - [ ] Per-Unit Loop
+  - [x] U0 — Infrastructure Scaffolding (Code Generation COMPLETE)
+  - [ ] U1 — Shared Domain + Validation
+  - [ ] U2 — APG Extractor
+  - [ ] U3 — Spec Parser + Fitness Compiler
+  - [ ] U4 — Neo4j + Persistence
+  - [ ] U5 — Router + Evaluation Engine
+  - [ ] U6 — Scoring + Reports
+  - [ ] U7 — CLI + CI/CD
 - [ ] Build and Test
 
 ### OPERATIONS PHASE

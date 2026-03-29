@@ -1,44 +1,55 @@
 {
-  // Visit https://aka.ms/tsconfig to read more about this file
   "compilerOptions": {
-    // File Layout
-    // "rootDir": "./src",
-    // "outDir": "./dist",
+    // --- Layout ---
+    "rootDir": "./src",
+    "outDir": "./dist",
 
-    // Environment Settings
-    // See also https://aka.ms/tsconfig/module
-    "module": "nodenext",
-    "target": "esnext",
-    "types": [],
-    // For nodejs:
-    // "lib": ["esnext"],
-    // "types": ["node"],
-    // and npm install -D @types/node
+    // --- Module ---
+    "module": "NodeNext",
+    "moduleResolution": "NodeNext",
+    "target": "ES2022",
+    "lib": ["ES2022"],
 
-    // Other Outputs
+    // --- Path Aliases ---
+    "baseUrl": ".",
+    "paths": {
+      "@shared/*": ["src/shared/*"],
+      "@apg-extractor/*": ["src/apg-extractor/*"],
+      "@neo4j-ingestion/*": ["src/neo4j-ingestion/*"],
+      "@spec-parser/*": ["src/spec-parser/*"],
+      "@fitness-compiler/*": ["src/fitness-compiler/*"],
+      "@neuro-symbolic-router/*": ["src/neuro-symbolic-router/*"],
+      "@evaluation-engine/*": ["src/evaluation-engine/*"],
+      "@llm-critic/*": ["src/llm-critic/*"],
+      "@scoring-engine/*": ["src/scoring-engine/*"],
+      "@cli/*": ["src/cli/*"],
+      "@firewall-context/*": ["src/firewall-context/*"]
+    },
+
+    // --- Emit ---
     "sourceMap": true,
     "declaration": true,
     "declarationMap": true,
 
-    // Stricter Typechecking Options
+    // --- Strict ---
+    "strict": true,
     "noUncheckedIndexedAccess": true,
     "exactOptionalPropertyTypes": true,
+    "noImplicitReturns": true,
+    "noImplicitOverride": true,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "noFallthroughCasesInSwitch": true,
 
-    // Style Options
-    // "noImplicitReturns": true,
-    // "noImplicitOverride": true,
-    // "noUnusedLocals": true,
-    // "noUnusedParameters": true,
-    // "noFallthroughCasesInSwitch": true,
-    // "noPropertyAccessFromIndexSignature": true,
-
-    // Recommended Options
-    "strict": true,
-    "jsx": "react-jsx",
+    // --- Interop ---
+    "esModuleInterop": true,
     "verbatimModuleSyntax": true,
     "isolatedModules": true,
-    "noUncheckedSideEffectImports": true,
     "moduleDetection": "force",
     "skipLibCheck": true,
-  }
+    "resolveJsonModule": true,
+    "types": ["node"]
+  },
+  "include": ["src/**/*"],
+  "exclude": ["node_modules", "dist", "tests", "**/*.test.ts", "**/*.steps.ts"]
 }

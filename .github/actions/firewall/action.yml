@@ -1,0 +1,49 @@
+name: 'DaedalusArch — Architectural Firewall'
+description: 'Evaluate architectural compliance of a TypeScript project against an AoC spec'
+author: 'DaedalusArch'
+
+branding:
+  icon: 'shield'
+  color: 'blue'
+
+inputs:
+  project-path:
+    description: 'Path to the TypeScript project to evaluate (relative to workspace root)'
+    required: true
+  spec-path:
+    description: 'Path to the AoC YAML spec file'
+    required: true
+  neo4j-uri:
+    description: 'Neo4j Bolt URI'
+    required: false
+    default: 'bolt://localhost:7687'
+  neo4j-user:
+    description: 'Neo4j username'
+    required: false
+    default: 'neo4j'
+  neo4j-password:
+    description: 'Neo4j password'
+    required: true
+  output-format:
+    description: 'Report output format: json | human | csv'
+    required: false
+    default: 'human'
+  evaluation-mode:
+    description: 'Evaluation mode: full | symbolic-only | neuronal-only'
+    required: false
+    default: 'symbolic-only'
+  anthropic-api-key:
+    description: 'Anthropic API key (required for neuronal/full evaluation mode)'
+    required: false
+
+outputs:
+  ahs-score:
+    description: 'Architectural Health Score (0.0 - 1.0)'
+  verdict:
+    description: 'Evaluation verdict: pass | warning | soft-block | hard-block'
+  report-path:
+    description: 'Path to the generated evaluation report'
+
+runs:
+  using: 'node20'
+  main: 'dist/cli/index.js'
