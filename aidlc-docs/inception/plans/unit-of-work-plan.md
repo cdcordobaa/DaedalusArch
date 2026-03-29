@@ -15,9 +15,9 @@ Decompose the system into ordered units of work for the Construction Phase. Each
 - [x] Step 4: Get user approval of plan — APPROVED
 
 ### Part 2: Generation
-- [ ] Step 5: Generate unit-of-work.md
-- [ ] Step 6: Generate unit-of-work-dependency.md
-- [ ] Step 7: Generate unit-of-work-story-map.md
+- [x] Step 5: Generate unit-of-work.md — 8 units (U0-U7)
+- [x] Step 6: Generate unit-of-work-dependency.md — dependency matrix + critical path
+- [x] Step 7: Generate unit-of-work-story-map.md — all 81 stories mapped
 - [ ] Step 8: Validate completeness and get final approval
 
 ---

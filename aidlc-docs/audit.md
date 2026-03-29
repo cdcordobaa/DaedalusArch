@@ -142,6 +142,29 @@
 
 ---
 
+## Units Generation — Artifacts Generated
+**Timestamp**: 2026-03-28T01:30:00Z
+**User Input**: "approve"
+**AI Response**: Plan approved. Generated 3 unit artifacts: unit-of-work.md (8 units: U0 Infrastructure, U1 Shared Domain + Validation, U2 APG Extractor, U3 Spec+Compiler, U4 Neo4j+Persistence, U5 Router+Eval, U6 Scoring+Reports, U7 CLI+CI/CD), unit-of-work-dependency.md (dependency matrix, critical path, integration test points), unit-of-work-story-map.md (all 81 stories mapped to units, coverage verified). Build order: bottom-up with infrastructure first, validation set as golden test data, U2||U3 parallelizable.
+**Context**: Units Generation — Part 2 (Steps 5-7 complete), awaiting final approval
+
+---
+
+## Units Generation — Plan with Questions
+**Timestamp**: 2026-03-28T01:15:00Z
+**AI Response**: Created unit-of-work-plan.md with 4 questions covering: component grouping strategy, build order, infrastructure unit placement, and validation set handling.
+**Context**: Units Generation — Part 1 Steps 1-3 (Plan creation)
+
+---
+
+## Application Design — Approval
+**Timestamp**: 2026-03-28T01:10:00Z
+**User Input**: "aprove"
+**AI Response**: Application Design approved. User enriched the design with: FirewallContext aggregate root (C11), DI/IoC strategy, DomainResult<T> universal result model, Concurrency Governor for LLM throttling, VCR/Cassette pattern for deterministic neuronal testing, spec schema versioning. All additions integrated into the design artifacts.
+**Context**: Application Design — Approval Gate passed. Proceeding to Units Generation.
+
+---
+
 ## Application Design — Ablation Mode Addition
 **Timestamp**: 2026-03-28T01:00:00Z
 **User Input**: "i need to take the following into account - Ground truth suite → this is just your test suite. Every good tool has one. It's part of building the product. Keep it. - Ablation (symbolic-only vs. neuronal-only vs. combined) → this is literally just running your tool in 3 modes and comparing the output. It's not a separate research effort — it's a feature flag (--symbolic-only) + comparing results. Once the tool works, this is trivial. Keep it, but it's a natural byproduct of the tool working. are we considering part of the design?"
