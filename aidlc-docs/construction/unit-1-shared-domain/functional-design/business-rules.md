@@ -116,22 +116,34 @@ If a file matches multiple layers at the same priority level, this is a configur
 
 ### 6.1 Symbolic Fitness Functions (deterministic, Cypher-executed)
 
-> **Source**: Validated by spike against 5 ground-truth projects. 100% detection rate on seeded structural violations.
+**Legend**: ✅ spike-validated (100% detection proven) | 🔲 designed, pending integration test confirmation
 
-| ID | Name | Dimension | Severity | Threshold | Description |
-|----|------|-----------|----------|-----------|-------------|
-| FF-S01 | dependency-direction | structural | critical | 0 violations | Layer dependency direction: domain ← application ← infrastructure |
-| FF-S02 | no-cyclic-deps | structural | critical | 0 violations | No cyclic dependencies (uses APOC apoc.path.expandConfig) |
-| FF-P01 | domain-purity | pattern | critical | 0 violations | Domain layer must not import framework libs (@nestjs, typeorm, express, prisma, sequelize) |
-| FF-P02 | dependency-inversion | pattern | critical | 0.85 | >= 85% of dependencies must go through interfaces, not concrete implementations |
-| FF-P03 | repository-pattern | pattern | critical | 0 violations | Repository impls must depend on an interface (not concrete class) |
-| FF-P04 | use-case-isolation | pattern | major | 0 violations | Use cases must not directly import infrastructure (controllers, ORM, etc.) |
-| FF-C01 | domain-stability | coupling | major | 0.3 | Domain layer instability (fan-out / (fan-in + fan-out)) <= 0.3 |
-| FF-C02 | module-fan-out | coupling | major | 10 | File outgoing dependency count <= 10 |
-| FF-C03 | component-instability | coupling | major | — | Components with high fan-out must not be depended on by stable components |
-| FF-SO01 | single-responsibility-proxy | solid | major | methods ≤ 10, deps ≤ 5 | SRP proxy: public method count and dependency count as heuristics |
-| FF-SO02 | interface-segregation-proxy | solid | major | methods ≤ 5 | ISP proxy: interface method count as heuristic |
-| FF-CV01 | naming-conventions | convention | minor | 0 violations | File/class names follow layer naming conventions |
+| ID | Name | Dimension | Severity | Threshold | Validated | Description |
+|----|------|-----------|----------|-----------|-----------|-------------|
+| FF-S01 | dependency-direction | structural | critical | 0 | ✅ | Layer direction: domain ← application ← infrastructure |
+| FF-S02 | no-cyclic-deps | structural | critical | 0 | ✅ | No cyclic dependencies (APOC) |
+| FF-S03 | no-layer-skip | structural | critical | 0 | 🔲 | No layer skipping (controller cannot call repository directly, bypassing application) |
+| FF-S04 | no-domain-outward-dep | structural | major | 0 | 🔲 | Domain has zero outgoing deps (stricter sub-case of FF-S01, high signal) |
+| FF-P01 | domain-purity | pattern | critical | 0 | ✅ | Domain must not import framework libs (@nestjs, typeorm, express, prisma, sequelize) |
+| FF-P02 | dependency-inversion | pattern | critical | 0.85 | ✅ | ≥ 85% of DI injections go through interfaces, not concrete classes |
+| FF-P03 | repository-pattern | pattern | critical | 0 | ✅ | Repository impls must implement an interface |
+| FF-P04 | use-case-isolation | pattern | major | 0 | ✅ | Use cases must not import infrastructure directly |
+| FF-P05 | controller-no-entity | pattern | major | 0 | 🔲 | Controllers must not instantiate domain entities directly |
+| FF-C01 | domain-stability | coupling | major | 0.3 | ✅ | Domain instability (fan-out / (fan-in + fan-out)) ≤ 0.3 |
+| FF-C02 | module-fan-out | coupling | major | 10 | ✅ | File outgoing dependency count ≤ 10 |
+| FF-C03 | component-instability | coupling | major | — | ✅ | High-fan-out components must not be depended on by stable components |
+| FF-C04 | no-orphan-files | coupling | minor | 0 | 🔲 | No files with fan-in = 0 (unreachable dead code) |
+| FF-C05 | max-fan-in | coupling | minor | 15 | 🔲 | File incoming dependency count ≤ 15 (too-depended-on = hidden fragility) |
+| FF-C06 | abstraction-ratio | coupling | advisory | 0.3 | 🔲 | Interface count / total class count ≥ 0.3 (Martin's abstractness metric) |
+| FF-SO01 | single-responsibility-proxy | solid | major | methods ≤ 10, deps ≤ 5 | ✅ | SRP proxy: public method count + dependency count as structural heuristic |
+| FF-SO02 | interface-segregation-proxy | solid | major | methods ≤ 5 | ✅ | ISP proxy: interface method count ≤ 5 |
+| FF-SO03 | inheritance-depth | solid | minor | depth ≤ 3 | 🔲 | EXTENDS chain depth ≤ 3 (deep hierarchies = brittle coupling) |
+| FF-CV01 | naming-conventions | convention | minor | 0 | ✅ | Generic naming check (spike-level) |
+| FF-CV02 | naming-services | convention | minor | 0 | 🔲 | Service classes must end in `Service` |
+| FF-CV03 | naming-repos | convention | minor | 0 | 🔲 | Repository classes must end in `Repository` or `Repo` |
+| FF-CV04 | naming-controllers | convention | minor | 0 | 🔲 | Controller classes must end in `Controller` |
+| FF-CV05 | test-file-pairing | convention | advisory | — | 🔲 | Every `Foo.ts` should have a corresponding `Foo.spec.ts` (what dropped clean-ref from 1.0 to 0.85 in spike) |
+| FF-CV06 | no-index-logic | convention | advisory | 0 | 🔲 | Barrel/index files must only re-export, not contain business logic |
 
 ### 6.2 Neuronal Fitness Functions (stochastic, LLM-evaluated)
 

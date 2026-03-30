@@ -1,15 +1,18 @@
 spec_version: "1.0.0"
 
 # AoC Specification — Clean Architecture
-# Baseline template for clean-architecture style evaluation.
-# Seeded from the DaedalusArch research spike (validated against 5 ground-truth projects).
+# Full template: 24 symbolic + 2 neuronal fitness functions.
 #
-# Empirical results from spike validation:
-#   correct-reference   AHS: 0.85  (pass)
-#   variant-d-subtle    AHS: 0.66  (warning)
-#   variant-b-pattern   AHS: 0.58  (soft-block)
-#   variant-a-structural AHS: 0.54 (soft-block)
-#   variant-c-everything AHS: 0.33 (hard-block)
+# Validation status:
+#   ✅ spike-validated  — proven against 5 ground-truth projects (100% detection)
+#   🔲 pending          — designed, confirms during integration testing (post-U5)
+#
+# Empirical AHS results from spike:
+#   correct-reference:    0.85  → pass       (≥ 0.80)
+#   variant-d-subtle:     0.66  → warning    (0.65–0.79)
+#   variant-b-pattern:    0.58  → soft-block (0.50–0.64)
+#   variant-a-structural: 0.54  → soft-block (0.50–0.64)
+#   variant-c-everything: 0.33  → hard-block (< 0.50)
 
 architecture:
   style: clean-architecture
@@ -42,25 +45,45 @@ architecture:
         - orm-entity
 
 fitness_functions:
-  # --- Structural ---
+
+  # ── STRUCTURAL ──────────────────────────────────────────────────────────────
+
   - id: FF-S01
     name: dependency-direction
     dimension: structural
     severity: critical
     route: symbolic
+    validated: true  # ✅ spike
 
   - id: FF-S02
     name: no-cyclic-deps
     dimension: structural
     severity: critical
     route: symbolic
+    validated: true  # ✅ spike
 
-  # --- Pattern ---
+  - id: FF-S03
+    name: no-layer-skip
+    dimension: structural
+    severity: critical
+    route: symbolic
+    validated: false  # 🔲 pending integration test
+
+  - id: FF-S04
+    name: no-domain-outward-dep
+    dimension: structural
+    severity: major
+    route: symbolic
+    validated: false  # 🔲 pending integration test
+
+  # ── PATTERN ─────────────────────────────────────────────────────────────────
+
   - id: FF-P01
     name: domain-purity
     dimension: pattern
     severity: critical
     route: symbolic
+    validated: true  # ✅ spike
     forbidden_imports:
       - "@nestjs/*"
       - "typeorm"
@@ -73,48 +96,87 @@ fitness_functions:
     name: dependency-inversion
     dimension: pattern
     severity: critical
-    threshold: 0.85
     route: symbolic
+    validated: true  # ✅ spike
+    threshold: 0.85
 
   - id: FF-P03
     name: repository-pattern
     dimension: pattern
     severity: critical
     route: symbolic
+    validated: true  # ✅ spike
 
   - id: FF-P04
     name: use-case-isolation
     dimension: pattern
     severity: major
     route: symbolic
+    validated: true  # ✅ spike
 
-  # --- Coupling ---
+  - id: FF-P05
+    name: controller-no-entity
+    dimension: pattern
+    severity: major
+    route: symbolic
+    validated: false  # 🔲 pending integration test
+
+  # ── COUPLING ─────────────────────────────────────────────────────────────────
+
   - id: FF-C01
     name: domain-stability
     dimension: coupling
     severity: major
-    threshold: 0.3
     route: symbolic
+    validated: true  # ✅ spike
+    threshold: 0.3
 
   - id: FF-C02
     name: module-fan-out
     dimension: coupling
     severity: major
-    threshold: 10
     route: symbolic
+    validated: true  # ✅ spike
+    threshold: 10
 
   - id: FF-C03
     name: component-instability
     dimension: coupling
     severity: major
     route: symbolic
+    validated: true  # ✅ spike
 
-  # --- SOLID ---
+  - id: FF-C04
+    name: no-orphan-files
+    dimension: coupling
+    severity: minor
+    route: symbolic
+    validated: false  # 🔲 pending integration test
+
+  - id: FF-C05
+    name: max-fan-in
+    dimension: coupling
+    severity: minor
+    route: symbolic
+    validated: false  # 🔲 pending integration test
+    threshold: 15
+
+  - id: FF-C06
+    name: abstraction-ratio
+    dimension: coupling
+    severity: advisory
+    route: symbolic
+    validated: false  # 🔲 pending integration test
+    threshold: 0.3    # interfaces / total classes >= 0.3
+
+  # ── SOLID ────────────────────────────────────────────────────────────────────
+
   - id: FF-SO01
     name: single-responsibility-proxy
     dimension: solid
     severity: major
     route: symbolic
+    validated: true  # ✅ spike
     max_public_methods: 10
     max_dependencies: 5
 
@@ -123,21 +185,72 @@ fitness_functions:
     dimension: solid
     severity: major
     route: symbolic
+    validated: true  # ✅ spike
     max_interface_methods: 5
 
-  # --- Convention ---
+  - id: FF-SO03
+    name: inheritance-depth
+    dimension: solid
+    severity: minor
+    route: symbolic
+    validated: false  # 🔲 pending integration test
+    max_depth: 3
+
+  # ── CONVENTION ───────────────────────────────────────────────────────────────
+
   - id: FF-CV01
     name: naming-conventions
     dimension: convention
     severity: minor
     route: symbolic
+    validated: true  # ✅ spike (generic check)
 
-  # --- Neuronal (full evaluation mode only) ---
+  - id: FF-CV02
+    name: naming-services
+    dimension: convention
+    severity: minor
+    route: symbolic
+    validated: false  # 🔲 pending integration test
+    pattern: "*Service"
+
+  - id: FF-CV03
+    name: naming-repos
+    dimension: convention
+    severity: minor
+    route: symbolic
+    validated: false  # 🔲 pending integration test
+    pattern: "*Repository|*Repo"
+
+  - id: FF-CV04
+    name: naming-controllers
+    dimension: convention
+    severity: minor
+    route: symbolic
+    validated: false  # 🔲 pending integration test
+    pattern: "*Controller"
+
+  - id: FF-CV05
+    name: test-file-pairing
+    dimension: convention
+    severity: advisory
+    route: symbolic
+    validated: false  # 🔲 pending (this is what caused clean-ref to score 0.85 not 1.0 in spike)
+
+  - id: FF-CV06
+    name: no-index-logic
+    dimension: convention
+    severity: advisory
+    route: symbolic
+    validated: false  # 🔲 pending integration test
+
+  # ── NEURONAL (full evaluation mode only) ─────────────────────────────────────
+
   - id: FF-N01
     name: srp-semantic
     dimension: solid
     severity: major
     route: hybrid
+    validated: false  # 🔲 requires LLM path (U5)
     semantic_criteria:
       rule: "A class should have exactly one reason to change"
       rubric:
@@ -150,16 +263,16 @@ fitness_functions:
     dimension: intent
     severity: major
     route: neuronal
+    validated: false  # 🔲 requires LLM path (U5)
     semantic_criteria:
       rule: "Code should respect the documented architectural intent"
       rubric:
-        pass: "File is in the correct layer and its dependencies respect layer boundaries"
+        pass: "File is in the correct layer and dependencies respect layer boundaries"
         fail: "File logic or dependencies contradict the architectural layer it lives in"
         evidence_required: "Cite the specific import or logic that violates the intent"
 
 scoring:
-  # Symbolic-only weights (validated by spike — sum to 1.0)
-  # For full evaluation mode, semantic/intent weights are added from Layer C below
+  # Symbolic-only weights — spike-validated, sum to 1.0
   weights:
     structural: 0.35
     coupling: 0.20
@@ -167,7 +280,7 @@ scoring:
     solid: 0.10
     convention: 0.05
 
-  # Full-mode weights (semantic + intent added, others proportionally reduced)
+  # Full-mode weights — semantic/intent added, others proportionally reduced
   full_mode_weights:
     structural: 0.32
     coupling: 0.18
@@ -177,12 +290,12 @@ scoring:
     semantic: 0.04
     intent: 0.04
 
-  # Verdict thresholds (empirically calibrated from spike results)
+  # Verdict thresholds — empirically calibrated from spike
   thresholds:
-    pass: 0.80        # correct-reference scored 0.85 → pass ✓
-    warning: 0.65     # variant-d-subtle scored 0.66 → warning ✓
-    soft_block: 0.50  # variant-a/b scored 0.54/0.58 → soft-block ✓
-    # below 0.50 → hard-block (variant-c scored 0.33)
+    pass: 0.80
+    warning: 0.65
+    soft_block: 0.50
+    # below 0.50 → hard-block
 
 confidence_thresholds:
   high: 0.85
