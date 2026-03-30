@@ -8,12 +8,12 @@
 
 ## Plan Checklist
 
-- [ ] Step 1: Clarify unknowns via Q&A (4 targeted questions)
-- [ ] Step 2: Generate `domain-entities.md` — all types, value objects, interfaces
-- [ ] Step 3: Generate `business-logic-model.md` — DomainResult<T>, FirewallContext, pipeline contracts
-- [ ] Step 4: Generate `business-rules.md` — violation taxonomy, validation rules, AoC YAML schema
-- [ ] Step 5: Define fixture project structure (clean-ref, violated-ref) + MANIFEST schema
-- [ ] Step 6: Define `specs/clean-arch.yaml` fitness function list
+- [x] Step 1: Clarify unknowns via Q&A (4 targeted questions)
+- [x] Step 2: Generate `domain-entities.md` — all types, value objects, interfaces
+- [x] Step 3: Generate `business-logic-model.md` — DomainResult<T>, FirewallContext, pipeline contracts
+- [x] Step 4: Generate `business-rules.md` — violation taxonomy, validation rules, AoC YAML schema
+- [x] Step 5: Define fixture project structure (clean-ref, violated-ref) + MANIFEST schema
+- [x] Step 6: Define `specs/clean-arch.yaml` fitness function list
 
 ---
 

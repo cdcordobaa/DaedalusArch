@@ -2,6 +2,29 @@
 
 ---
 
+## Construction — Unit 1 Functional Design — Spike Corrections
+**Timestamp**: 2026-03-29T01:05:00Z
+**User Input**: "lets go A and test later, we're in a bit of a hurry"
+**AI Response**: Applying corrections from spike analysis: (1) weights updated to empirically validated values from spike (structural 0.35, pattern 0.30), (2) verdict thresholds corrected (pass≥0.80, not 0.90 — clean reference scored 0.85), (3) fixtures replaced with spike's 5 ground-truth projects, (4) specs/clean-arch.yaml seeded from spike's validated spec.
+**Context**: Construction Phase — Unit 1 Functional Design (corrections applied, re-presenting for approval)
+
+---
+
+## Construction — Unit 1 Functional Design — Complete
+**Timestamp**: 2026-03-29T00:55:00Z
+**AI Response**: Generated 3 functional design artifacts: domain-entities.md (all types, enums, value objects, interfaces, FirewallContext C11 with typed setters + set-once invariant, EvaluationReport contract), business-logic-model.md (DomainResult pattern, FirewallContext lifecycle, pipeline stage contracts, scoring formula AVR/AHS, fixture design), business-rules.md (12-type violation taxonomy, 17+3 fitness functions, weight constraints, spec versioning, layer annotation priority). Awaiting user approval.
+**Context**: Construction Phase — Unit 1 Functional Design (all steps [x])
+
+---
+
+## Construction — Unit 1 Functional Design — Answers
+**Timestamp**: 2026-03-29T00:45:00Z
+**User Input**: "Okay as for question one I agree. As for question two, just stay with A for now. Let's confirm that is the 17 symbolic fitness functions; although at some point we should read the example project to fit some to get some insights from that execution. Also as for remote ability let's stay with more DDD-like decisions."
+**AI Response**: Q1: Taxonomy confirmed (12 types). Q2: A — minimal fixtures (~5-8 files). Q3: 17 symbolic + 3 neuronal confirmed as starter set; note to revisit after first real project run. Q4: C — typed setters on FirewallContext class (DDD-like). Proceeding to generate functional design artifacts.
+**Context**: Construction Phase — Unit 1 Functional Design (Q&A complete, generating artifacts)
+
+---
+
 ## Construction — Unit 1 Functional Design — Questions
 **Timestamp**: 2026-03-29T00:38:00Z
 **AI Response**: Created unit-1-shared-domain-functional-design-plan.md with 4 targeted questions: Q1 violation taxonomy (proposed 12 types across 7 dimensions), Q2 fixture complexity (A/B/C options), Q3 clean-architecture template fitness functions (proposed 17 symbolic + 3 neuronal), Q4 FirewallContext mutability strategy (A/B/C options). Awaiting user answers.

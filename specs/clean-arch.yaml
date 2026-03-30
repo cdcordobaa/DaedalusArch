@@ -1,0 +1,190 @@
+spec_version: "1.0.0"
+
+# AoC Specification — Clean Architecture
+# Baseline template for clean-architecture style evaluation.
+# Seeded from the DaedalusArch research spike (validated against 5 ground-truth projects).
+#
+# Empirical results from spike validation:
+#   correct-reference   AHS: 0.85  (pass)
+#   variant-d-subtle    AHS: 0.66  (warning)
+#   variant-b-pattern   AHS: 0.58  (soft-block)
+#   variant-a-structural AHS: 0.54 (soft-block)
+#   variant-c-everything AHS: 0.33 (hard-block)
+
+architecture:
+  style: clean-architecture
+
+  layers:
+    - name: domain
+      directories:
+        - src/domain/**
+      roles:
+        - entity
+        - value-object
+        - domain-service
+        - repository-interface
+
+    - name: application
+      directories:
+        - src/application/**
+      roles:
+        - use-case
+        - dto
+        - application-service
+
+    - name: infrastructure
+      directories:
+        - src/infrastructure/**
+      roles:
+        - repository-impl
+        - controller
+        - middleware
+        - orm-entity
+
+fitness_functions:
+  # --- Structural ---
+  - id: FF-S01
+    name: dependency-direction
+    dimension: structural
+    severity: critical
+    route: symbolic
+
+  - id: FF-S02
+    name: no-cyclic-deps
+    dimension: structural
+    severity: critical
+    route: symbolic
+
+  # --- Pattern ---
+  - id: FF-P01
+    name: domain-purity
+    dimension: pattern
+    severity: critical
+    route: symbolic
+    forbidden_imports:
+      - "@nestjs/*"
+      - "typeorm"
+      - "express"
+      - "prisma"
+      - "@prisma/*"
+      - "sequelize"
+
+  - id: FF-P02
+    name: dependency-inversion
+    dimension: pattern
+    severity: critical
+    threshold: 0.85
+    route: symbolic
+
+  - id: FF-P03
+    name: repository-pattern
+    dimension: pattern
+    severity: critical
+    route: symbolic
+
+  - id: FF-P04
+    name: use-case-isolation
+    dimension: pattern
+    severity: major
+    route: symbolic
+
+  # --- Coupling ---
+  - id: FF-C01
+    name: domain-stability
+    dimension: coupling
+    severity: major
+    threshold: 0.3
+    route: symbolic
+
+  - id: FF-C02
+    name: module-fan-out
+    dimension: coupling
+    severity: major
+    threshold: 10
+    route: symbolic
+
+  - id: FF-C03
+    name: component-instability
+    dimension: coupling
+    severity: major
+    route: symbolic
+
+  # --- SOLID ---
+  - id: FF-SO01
+    name: single-responsibility-proxy
+    dimension: solid
+    severity: major
+    route: symbolic
+    max_public_methods: 10
+    max_dependencies: 5
+
+  - id: FF-SO02
+    name: interface-segregation-proxy
+    dimension: solid
+    severity: major
+    route: symbolic
+    max_interface_methods: 5
+
+  # --- Convention ---
+  - id: FF-CV01
+    name: naming-conventions
+    dimension: convention
+    severity: minor
+    route: symbolic
+
+  # --- Neuronal (full evaluation mode only) ---
+  - id: FF-N01
+    name: srp-semantic
+    dimension: solid
+    severity: major
+    route: hybrid
+    semantic_criteria:
+      rule: "A class should have exactly one reason to change"
+      rubric:
+        pass: "Class responsibilities are cohesive and serve a single purpose"
+        fail: "Class mixes unrelated concerns (data access + business logic, etc.)"
+        evidence_required: "Cite specific methods that indicate mixed responsibilities"
+
+  - id: FF-N02
+    name: layering-intent
+    dimension: intent
+    severity: major
+    route: neuronal
+    semantic_criteria:
+      rule: "Code should respect the documented architectural intent"
+      rubric:
+        pass: "File is in the correct layer and its dependencies respect layer boundaries"
+        fail: "File logic or dependencies contradict the architectural layer it lives in"
+        evidence_required: "Cite the specific import or logic that violates the intent"
+
+scoring:
+  # Symbolic-only weights (validated by spike — sum to 1.0)
+  # For full evaluation mode, semantic/intent weights are added from Layer C below
+  weights:
+    structural: 0.35
+    coupling: 0.20
+    pattern: 0.30
+    solid: 0.10
+    convention: 0.05
+
+  # Full-mode weights (semantic + intent added, others proportionally reduced)
+  full_mode_weights:
+    structural: 0.32
+    coupling: 0.18
+    pattern: 0.27
+    solid: 0.10
+    convention: 0.05
+    semantic: 0.04
+    intent: 0.04
+
+  # Verdict thresholds (empirically calibrated from spike results)
+  thresholds:
+    pass: 0.80        # correct-reference scored 0.85 → pass ✓
+    warning: 0.65     # variant-d-subtle scored 0.66 → warning ✓
+    soft_block: 0.50  # variant-a/b scored 0.54/0.58 → soft-block ✓
+    # below 0.50 → hard-block (variant-c scored 0.33)
+
+confidence_thresholds:
+  high: 0.85
+  medium: 0.60
+  icc_minimum: 0.70
