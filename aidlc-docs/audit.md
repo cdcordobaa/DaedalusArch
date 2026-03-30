@@ -338,3 +338,34 @@
 **Context**: Construction Phase — U2 Code Generation all steps [x]
 
 ---
+
+## Construction — Unit 3 Code Generation — COMPLETE
+**Timestamp**: 2026-03-30T15:00:00Z
+**AI Response**: All 20 steps executed. Extended U1 shared types (CypherQuery, NeuronalInstruction, CompiledFunctions with new fields). Created 7 source files: spec-parser (types, spec-schema, template-registry, spec-validator, layer-parsers, adr-parsers, spec-parser) + 4 fitness-compiler (types, cypher-templates, fitness-compiler, index). Created 5 test files (3 spec-parser unit, 1 fitness-compiler unit, 1 integration). typecheck: 0 errors. tests: 163/163 passing (61 new U3 + 89 U2 + 13 U1). 24 Cypher templates, 4 ADR strategy parsers, template registry with clean-architecture (26 functions), shadow mode metadata for ADR rules. Awaiting user approval.
+**Context**: Construction Phase — U3 Code Generation all steps [x]
+
+---
+
+## Construction — Unit 3 Functional Design — APPROVED
+**Timestamp**: 2026-03-30T14:25:00Z
+**User Input**: "continue"
+**AI Response**: Functional Design approved. Proceeding to Code Generation Part 1 (plan). Key integration note: FirewallContext needs setParsedSpec() + setCompiledFunctions() setters from U1.
+**Context**: Construction Phase — U3 Functional Design complete, Code Generation starting
+
+---
+
+## Construction — Unit 3 Functional Design — Answers
+**Timestamp**: 2026-03-30T14:10:00Z
+**User Input**: "Q1: A (Hardcoded Cypher per function) — Cypher queries involve APOC path expansions, cyclic checks, complex existential subqueries; hardcoded keeps readable and testable. Q2: A (Strategy pattern) — follows OCP, adding new ADR format = new Strategy class. Q3: A (Static registry) — TS constants avoid runtime file I/O, guarantee availability. Q4: Experimental Shadow Mode (Variant of C) — handcrafted deterministic Cypher + LLM auto-generates Cypher from prose in parallel ('shadow mode'), compare results against ground truth to test LLM Cypher capability without affecting deterministic pipeline. Q5: C (JSON Schema structure + code semantics) — Ajv for structural shape, programmatic validation for cross-field business rules."
+**AI Response**: All 5 answers clear and well-reasoned. Q4 shadow mode introduces a research-grade dual-execution path for ADR rules — design must support handcrafted Cypher as primary + shadow LLM generation with comparison hooks. Proceeding to generate functional design artifacts.
+**Context**: Construction Phase — U3 Functional Design Q&A complete
+
+---
+
+## Construction — Unit 2 Code Generation — APPROVED
+**Timestamp**: 2026-03-30T14:00:00Z
+**User Input**: "Lets continue with next unit, but make sure to use sub agentes where you can"
+**AI Response**: U2 approved. Proceeding to U3 (Spec Parser + Fitness Compiler). Stage assessment: Functional Design (EXECUTE — complex YAML parsing, 17+ Cypher templates, ADR multi-format parsing, template resolution), NFR Requirements (SKIP), NFR Design (SKIP), Infrastructure Design (SKIP — no infra, just YAML/Cypher libraries), Code Generation (ALWAYS).
+**Context**: Construction Phase — U2 complete, U3 loop starting
+
+---

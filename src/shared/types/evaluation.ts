@@ -1,8 +1,8 @@
-import type { Dimension, EvaluationMode } from './enums.js';
+import type { Dimension, Severity, EvaluationMode } from './enums.js';
 import type { AVRScore, AHSScore, Confidence, FunctionId, RunId } from './value-objects.js';
 import type { SemanticCriteria, CypherRule } from './spec.js';
 import type { Violation } from '../taxonomy/violation-types.js';
-import type { PipelineWarning } from '../errors/domain-result.js';
+import type { DomainWarning, PipelineWarning } from '../errors/domain-result.js';
 
 export interface IngestionResult {
   readonly graphStats: GraphStats;
@@ -31,17 +31,35 @@ export interface DeltaStats {
 
 export interface CypherQuery {
   readonly functionId: FunctionId;
+  readonly name: string;
   readonly cypher: string;
   readonly params: Readonly<Record<string, unknown>>;
   readonly dimension: Dimension;
-  readonly threshold: number;
+  readonly severity: Severity;
+  readonly threshold?: number;
+  readonly route: 'symbolic' | 'hybrid';
+  readonly source: 'template' | 'adr';
+}
+
+export interface ContextAssemblyInstruction {
+  readonly includeAPGSubgraph: boolean;
+  readonly nodeFilter?: string;
+  readonly maxNodes?: number;
+  readonly includeSourceCode: boolean;
+  readonly sourceCodeFilter?: string;
 }
 
 export interface NeuronalInstruction {
   readonly functionId: FunctionId;
+  readonly name: string;
   readonly dimension: Dimension;
+  readonly severity: Severity;
+  readonly route: 'neuronal' | 'hybrid';
   readonly semanticCriteria: SemanticCriteria;
-  readonly contextAssemblyHints: readonly string[];
+  readonly contextAssembly: ContextAssemblyInstruction;
+  readonly shadowModeEligible: boolean;
+  readonly shadowPrompt?: string;
+  readonly source: 'fitness-function' | 'adr';
 }
 
 export interface HybridPair {
@@ -54,6 +72,8 @@ export interface CompiledFunctions {
   readonly symbolicQueries: readonly CypherQuery[];
   readonly neuronalInstructions: readonly NeuronalInstruction[];
   readonly hybridPairs: readonly HybridPair[];
+  readonly totalCompiled: number;
+  readonly warnings: readonly DomainWarning[];
 }
 
 export interface SymbolicFunctionResult {

@@ -6,7 +6,7 @@ export interface FitnessFunction {
   readonly name: string;
   readonly dimension: Dimension;
   readonly severity: Severity;
-  readonly threshold: number;
+  readonly threshold?: number;
   readonly route: Route;
   readonly semanticCriteria?: SemanticCriteria;
   readonly isBuiltIn: boolean;

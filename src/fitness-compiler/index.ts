@@ -1,9 +1,6 @@
-/**
- * Fitness Compiler — C4
- * Bounded Context: Cypher query generation, template instantiation, route tagging.
- * Input:  CompilerInput (parsedSpec.fitnessFunctions)
- * Output: CompiledFunctions (symbolicQueries[], neuronalInstructions[], hybridPairs[])
- *
- * Implementation: Unit 3 (U3 — Spec Parser + Fitness Compiler)
- */
-export type {};
+export { FitnessCompilerStage, compileFunctions, instantiateTemplate } from './fitness-compiler.js';
+export { CYPHER_TEMPLATES } from './cypher-templates.js';
+export type {
+  CompilerInput, CompilerError, CompilerErrorCode,
+  CompilerWarning, CompilerWarningCode, CypherTemplate,
+} from './types.js';

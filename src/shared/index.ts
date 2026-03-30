@@ -29,7 +29,7 @@ export { DomainResult } from './errors/domain-result.js'; // exports both the ty
 // Evaluation contracts
 export type {
   IngestionResult, GraphStats, LayerAnnotationSummary, DeltaStats,
-  CompiledFunctions, CypherQuery, NeuronalInstruction, HybridPair,
+  CompiledFunctions, CypherQuery, ContextAssemblyInstruction, NeuronalInstruction, HybridPair,
   SymbolicFunctionResult, NeuronalRun, NeuronalFunctionResult,
   EvaluationResults, PerDimensionScore, UniversalHealthMetrics, EvaluationReport,
 } from './types/evaluation.js';

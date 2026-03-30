@@ -1,9 +1,8 @@
-/**
- * Spec Parser — C3
- * Bounded Context: AoC YAML parsing, ADR parsing, JSON Schema validation, template resolution.
- * Input:  SpecInput (specFilePath, adrDirPath?)
- * Output: ParsedSpec (layerModel, fitnessFunctions[], scoringWeights, confidenceThresholds, adrRules[])
- *
- * Implementation: Unit 3 (U3 — Spec Parser + Fitness Compiler)
- */
-export type {};
+export { SpecParserStage, parseSpec, parseADRs } from './spec-parser.js';
+export { resolveTemplate, TEMPLATE_REGISTRY } from './template-registry.js';
+export { validateSpecSchema, validateBusinessRules } from './spec-validator.js';
+export type {
+  SpecInput, SpecParserOptions, SpecParserError, SpecParserErrorCode,
+  ValidationResult, ValidationError, ValidationWarning, SpecWarningCode,
+  ADRParserStrategy, BuiltInTemplate,
+} from './types.js';
