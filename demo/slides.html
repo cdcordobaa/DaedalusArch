@@ -990,7 +990,10 @@
     clearTimeout(autoTimer);
     if (pausedAt) return;                          // don't schedule while paused
     const dur = (SLIDE_DURATIONS[slideIndex] || 10) * 1000;
-    autoTimer = setTimeout(() => Reveal.next(), dur);
+    autoTimer = setTimeout(() => {
+      // Jump directly to next slide — bypasses fragments
+      Reveal.slide(Reveal.getState().indexh + 1);
+    }, dur);
   }
 
   function updateClock() {
@@ -1068,13 +1071,17 @@
     },
   });
 
-  // Start clock on first slide interaction (not immediately, so presenter is ready)
+  // Auto-start 1s after Reveal is ready — gives browser time to paint
+  Reveal.on('ready', () => {
+    setTimeout(startClock, 1000);
+  });
+
+  // Re-schedule on every slide change (manual or automatic)
   Reveal.on('slidechanged', (e) => {
-    startClock();
     if (!pausedAt) scheduleNext(e.indexh);
   });
 
-  // Also allow clicking the clock to pause
+  // Click clock to pause/resume
   document.getElementById('pitch-clock').addEventListener('click', togglePause);
 </script>
 </body>

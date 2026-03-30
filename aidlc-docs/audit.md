@@ -339,6 +339,13 @@
 
 ---
 
+## Construction — Unit 5 Functional Design — Questions
+**Timestamp**: 2026-03-30T16:20:00Z
+**AI Response**: Starting U5 — Neuro-Symbolic Router + Evaluation. Stage assessment: Functional Design (EXECUTE), Code Generation (ALWAYS). Created 5 design questions: Q1 hybrid dispatch strategy, Q2 VCR/cassette implementation, Q3 violation collection from Cypher, Q4 ICC computation method, Q5 LLM context budget. Awaiting answers.
+**Context**: Construction Phase — U5 Functional Design Steps 1-3 complete
+
+---
+
 ## Construction — Unit 4 Code Generation — APPROVED
 **Timestamp**: 2026-03-30T16:10:00Z
 **User Input**: "continie"
