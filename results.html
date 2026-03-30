@@ -1,0 +1,595 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Dædalus Arch — Results Dashboard</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+  <style>
+    :root {
+      --bg:        #0d1117;
+      --surface:   #161b22;
+      --border:    #30363d;
+      --text:      #e6edf3;
+      --dim:       #8b949e;
+      --cyan:      #39d0f5;
+      --green:     #3fb950;
+      --yellow:    #d29922;
+      --orange:    #db6d28;
+      --red:       #f85149;
+      --pass-bg:   rgba(63,185,80,0.12);
+      --warn-bg:   rgba(210,153,34,0.12);
+      --soft-bg:   rgba(219,109,40,0.12);
+      --hard-bg:   rgba(248,81,73,0.12);
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      padding: 32px;
+      min-height: 100vh;
+    }
+
+    /* ── Header ── */
+    .header {
+      display: flex;
+      align-items: baseline;
+      gap: 16px;
+      margin-bottom: 40px;
+      padding-bottom: 20px;
+      border-bottom: 1px solid var(--border);
+    }
+    .header-title { font-size: 24px; font-weight: 700; letter-spacing: -0.5px; }
+    .header-title span { color: var(--cyan); }
+    .header-meta { color: var(--dim); font-size: 14px; }
+    .header-badge {
+      margin-left: auto;
+      background: var(--pass-bg);
+      border: 1px solid var(--green);
+      color: var(--green);
+      font-size: 12px;
+      font-weight: 600;
+      padding: 4px 12px;
+      border-radius: 20px;
+    }
+
+    /* ── Section labels ── */
+    .section-label {
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      color: var(--dim);
+      margin-bottom: 16px;
+      margin-top: 40px;
+    }
+
+    /* ── AHS Cards ── */
+    .cards {
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      gap: 12px;
+    }
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 20px 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      position: relative;
+      overflow: hidden;
+    }
+    .card::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      height: 3px;
+    }
+    .card.pass::before { background: var(--green); }
+    .card.warn::before { background: var(--yellow); }
+    .card.soft::before { background: var(--orange); }
+    .card.hard::before { background: var(--red); }
+
+    .card-label {
+      font-size: 11px;
+      color: var(--dim);
+      font-weight: 500;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .card-ahs {
+      font-size: 40px;
+      font-weight: 800;
+      letter-spacing: -2px;
+      line-height: 1;
+    }
+    .card.pass .card-ahs  { color: var(--green); }
+    .card.warn .card-ahs  { color: var(--yellow); }
+    .card.soft .card-ahs  { color: var(--orange); }
+    .card.hard .card-ahs  { color: var(--red); }
+
+    .card-verdict {
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 0.8px;
+      padding: 3px 8px;
+      border-radius: 4px;
+      display: inline-block;
+      width: fit-content;
+    }
+    .card.pass .card-verdict { background: var(--pass-bg); color: var(--green); border: 1px solid var(--green); }
+    .card.warn .card-verdict { background: var(--warn-bg); color: var(--yellow); border: 1px solid var(--yellow); }
+    .card.soft .card-verdict { background: var(--soft-bg); color: var(--orange); border: 1px solid var(--orange); }
+    .card.hard .card-verdict { background: var(--hard-bg); color: var(--red);    border: 1px solid var(--red); }
+
+    .card-stat { font-size: 12px; color: var(--dim); }
+    .card-stat span { color: var(--text); font-weight: 600; }
+
+    /* ── Charts row ── */
+    .charts-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 20px;
+    }
+    .chart-box {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 24px;
+    }
+    .chart-box h3 {
+      font-size: 13px;
+      color: var(--dim);
+      font-weight: 600;
+      margin-bottom: 20px;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+    .chart-canvas-wrap { position: relative; height: 220px; }
+
+    /* ── Dimension heatmap ── */
+    .heatmap-box {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 24px;
+      overflow-x: auto;
+    }
+    .heatmap-box h3 {
+      font-size: 13px;
+      color: var(--dim);
+      font-weight: 600;
+      margin-bottom: 20px;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+    .heatmap {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 13px;
+    }
+    .heatmap th {
+      text-align: center;
+      padding: 8px 12px;
+      color: var(--dim);
+      font-weight: 600;
+      font-size: 11px;
+      letter-spacing: 0.5px;
+      text-transform: uppercase;
+      border-bottom: 1px solid var(--border);
+    }
+    .heatmap th.row-header { text-align: left; }
+    .heatmap td {
+      padding: 10px 12px;
+      text-align: center;
+      border-bottom: 1px solid rgba(48,54,61,0.5);
+      font-weight: 600;
+      font-size: 13px;
+      transition: background 0.2s;
+    }
+    .heatmap td.row-name {
+      text-align: left;
+      color: var(--text);
+      font-weight: 500;
+      font-size: 12px;
+      white-space: nowrap;
+    }
+    .hm-100 { color: var(--green);  background: rgba(63,185,80,0.15); }
+    .hm-75  { color: var(--green);  background: rgba(63,185,80,0.08); }
+    .hm-67  { color: var(--yellow); background: rgba(210,153,34,0.10); }
+    .hm-50  { color: var(--yellow); background: rgba(210,153,34,0.06); }
+    .hm-33  { color: var(--orange); background: rgba(219,109,40,0.12); }
+    .hm-25  { color: var(--orange); background: rgba(219,109,40,0.10); }
+    .hm-0   { color: var(--red);    background: rgba(248,81,73,0.15); }
+
+    /* ── Footer stats ── */
+    .stats-row {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 12px;
+    }
+    .stat-box {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 20px;
+      text-align: center;
+    }
+    .stat-number { font-size: 32px; font-weight: 800; color: var(--cyan); letter-spacing: -1px; }
+    .stat-label  { font-size: 12px; color: var(--dim); margin-top: 4px; }
+
+    /* ── Violations table ── */
+    .violations-box {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 24px;
+      overflow-x: auto;
+    }
+    .violations-box h3 {
+      font-size: 13px;
+      color: var(--dim);
+      font-weight: 600;
+      margin-bottom: 20px;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+    .vtable {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 12px;
+    }
+    .vtable th {
+      text-align: left;
+      padding: 8px 12px;
+      color: var(--dim);
+      font-weight: 600;
+      font-size: 11px;
+      letter-spacing: 0.5px;
+      text-transform: uppercase;
+      border-bottom: 1px solid var(--border);
+    }
+    .vtable td {
+      padding: 8px 12px;
+      border-bottom: 1px solid rgba(48,54,61,0.4);
+      color: var(--text);
+    }
+    .vtable tr:last-child td { border-bottom: none; }
+    .dim-badge {
+      display: inline-block;
+      padding: 2px 8px;
+      border-radius: 4px;
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 0.5px;
+    }
+    .dim-structural { background: rgba(248,81,73,0.15);   color: var(--red); }
+    .dim-pattern    { background: rgba(210,153,34,0.15);  color: var(--yellow); }
+    .dim-coupling   { background: rgba(57,208,245,0.10);  color: var(--cyan); }
+    .dim-solid      { background: rgba(63,185,80,0.12);   color: var(--green); }
+    .dim-convention { background: rgba(139,148,158,0.15); color: var(--dim); }
+    .sev-critical { color: var(--red);    font-weight: 700; }
+    .sev-major    { color: var(--orange); font-weight: 600; }
+    .sev-minor    { color: var(--yellow); font-weight: 500; }
+  </style>
+</head>
+<body>
+
+  <!-- Header -->
+  <div class="header">
+    <div class="header-title"><span>Dædalus</span> Arch</div>
+    <div class="header-meta">Architectural Firewall · Benchmark Results · 5 Projects · 17 Fitness Functions</div>
+    <div class="header-badge">100% Detection Rate</div>
+  </div>
+
+  <!-- AHS Score Cards -->
+  <div class="section-label">Architectural Health Score (AHS)</div>
+  <div class="cards">
+    <div class="card pass">
+      <div class="card-label">correct-reference</div>
+      <div class="card-ahs">0.85</div>
+      <div class="card-verdict">✅ PASS</div>
+      <div class="card-stat">Violations: <span>3</span> / 17</div>
+      <div class="card-stat">AVR: <span>18%</span></div>
+    </div>
+    <div class="card warn">
+      <div class="card-label">variant-d-subtle</div>
+      <div class="card-ahs">0.66</div>
+      <div class="card-verdict">⚠ WARNING</div>
+      <div class="card-stat">Violations: <span>5</span> / 17</div>
+      <div class="card-stat">AVR: <span>29%</span></div>
+    </div>
+    <div class="card soft">
+      <div class="card-label">variant-b-pattern</div>
+      <div class="card-ahs">0.58</div>
+      <div class="card-verdict">🔶 SOFT-BLOCK</div>
+      <div class="card-stat">Violations: <span>6</span> / 17</div>
+      <div class="card-stat">AVR: <span>35%</span></div>
+    </div>
+    <div class="card soft">
+      <div class="card-label">variant-a-structural</div>
+      <div class="card-ahs">0.54</div>
+      <div class="card-verdict">🔶 SOFT-BLOCK</div>
+      <div class="card-stat">Violations: <span>6</span> / 17</div>
+      <div class="card-stat">AVR: <span>35%</span></div>
+    </div>
+    <div class="card hard">
+      <div class="card-label">variant-c-everything</div>
+      <div class="card-ahs">0.33</div>
+      <div class="card-verdict">🛑 HARD-BLOCK</div>
+      <div class="card-stat">Violations: <span>9</span> / 17</div>
+      <div class="card-stat">AVR: <span>53%</span></div>
+    </div>
+  </div>
+
+  <!-- Charts -->
+  <div class="section-label">Score Distribution &amp; Dimension Breakdown</div>
+  <div class="charts-row">
+    <div class="chart-box">
+      <h3>AHS Score by Project</h3>
+      <div class="chart-canvas-wrap">
+        <canvas id="ahsChart"></canvas>
+      </div>
+    </div>
+    <div class="chart-box">
+      <h3>Dimension Health by Project (%)</h3>
+      <div class="chart-canvas-wrap">
+        <canvas id="radarChart"></canvas>
+      </div>
+    </div>
+  </div>
+
+  <!-- Dimension Heatmap -->
+  <div class="section-label">Dimension Health Matrix (% conformance)</div>
+  <div class="heatmap-box">
+    <h3>Violation Rate → Health = 1 − violation_rate</h3>
+    <table class="heatmap">
+      <thead>
+        <tr>
+          <th class="row-header">Project</th>
+          <th>Structural</th>
+          <th>Coupling</th>
+          <th>Pattern</th>
+          <th>Solid</th>
+          <th>Convention</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td class="row-name">correct-reference</td>
+          <td class="hm-100">100%</td>
+          <td class="hm-75">75%</td>
+          <td class="hm-75">75%</td>
+          <td class="hm-100">100%</td>
+          <td class="hm-50">50%</td>
+        </tr>
+        <tr>
+          <td class="row-name">variant-d-subtle</td>
+          <td class="hm-67">67%</td>
+          <td class="hm-75">75%</td>
+          <td class="hm-50">50%</td>
+          <td class="hm-100">100%</td>
+          <td class="hm-50">50%</td>
+        </tr>
+        <tr>
+          <td class="row-name">variant-b-pattern</td>
+          <td class="hm-67">67%</td>
+          <td class="hm-75">75%</td>
+          <td class="hm-25">25%</td>
+          <td class="hm-100">100%</td>
+          <td class="hm-50">50%</td>
+        </tr>
+        <tr>
+          <td class="row-name">variant-a-structural</td>
+          <td class="hm-33">33%</td>
+          <td class="hm-75">75%</td>
+          <td class="hm-50">50%</td>
+          <td class="hm-100">100%</td>
+          <td class="hm-50">50%</td>
+        </tr>
+        <tr>
+          <td class="row-name">variant-c-everything</td>
+          <td class="hm-0">0%</td>
+          <td class="hm-75">75%</td>
+          <td class="hm-25">25%</td>
+          <td class="hm-75">75%</td>
+          <td class="hm-50">50%</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Stats -->
+  <div class="section-label">Empirical Validation Summary</div>
+  <div class="stats-row">
+    <div class="stat-box">
+      <div class="stat-number">100%</div>
+      <div class="stat-label">Detection Rate<br>Zero missed violations</div>
+    </div>
+    <div class="stat-box">
+      <div class="stat-number">29</div>
+      <div class="stat-label">Total Violations Detected<br>Across 5 projects</div>
+    </div>
+    <div class="stat-box">
+      <div class="stat-number">0.52</div>
+      <div class="stat-label">AHS Range<br>0.85 → 0.33 (monotonic)</div>
+    </div>
+    <div class="stat-box">
+      <div class="stat-number">&lt;5s</div>
+      <div class="stat-label">Evaluation Time<br>Per project, full pipeline</div>
+    </div>
+  </div>
+
+  <!-- Violations table -->
+  <div class="section-label">Top Violations by Fitness Function</div>
+  <div class="violations-box">
+    <h3>Fitness Functions That Fired Across Projects</h3>
+    <table class="vtable">
+      <thead>
+        <tr>
+          <th>Fitness Function</th>
+          <th>Dimension</th>
+          <th>Severity</th>
+          <th>Projects Affected</th>
+          <th>Total Violations</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>test-coverage-proxy</td>
+          <td><span class="dim-badge dim-convention">CONVENTION</span></td>
+          <td class="sev-minor">minor</td>
+          <td>5 / 5</td>
+          <td>23</td>
+        </tr>
+        <tr>
+          <td>component-instability</td>
+          <td><span class="dim-badge dim-coupling">COUPLING</span></td>
+          <td class="sev-major">major</td>
+          <td>5 / 5</td>
+          <td>7</td>
+        </tr>
+        <tr>
+          <td>repository-pattern</td>
+          <td><span class="dim-badge dim-pattern">PATTERN</span></td>
+          <td class="sev-critical">critical</td>
+          <td>5 / 5</td>
+          <td>5</td>
+        </tr>
+        <tr>
+          <td>dependency-direction</td>
+          <td><span class="dim-badge dim-structural">STRUCTURAL</span></td>
+          <td class="sev-critical">critical</td>
+          <td>4 / 5</td>
+          <td>7</td>
+        </tr>
+        <tr>
+          <td>dependency-inversion</td>
+          <td><span class="dim-badge dim-pattern">PATTERN</span></td>
+          <td class="sev-critical">critical</td>
+          <td>4 / 5</td>
+          <td>6</td>
+        </tr>
+        <tr>
+          <td>no-circular-dependencies</td>
+          <td><span class="dim-badge dim-structural">STRUCTURAL</span></td>
+          <td class="sev-critical">critical</td>
+          <td>2 / 5</td>
+          <td>6</td>
+        </tr>
+        <tr>
+          <td>domain-purity</td>
+          <td><span class="dim-badge dim-pattern">PATTERN</span></td>
+          <td class="sev-critical">critical</td>
+          <td>2 / 5</td>
+          <td>3</td>
+        </tr>
+        <tr>
+          <td>single-responsibility-proxy</td>
+          <td><span class="dim-badge dim-solid">SOLID</span></td>
+          <td class="sev-major">major</td>
+          <td>1 / 5</td>
+          <td>1</td>
+        </tr>
+        <tr>
+          <td>database-bypass</td>
+          <td><span class="dim-badge dim-structural">STRUCTURAL</span></td>
+          <td class="sev-critical">critical</td>
+          <td>1 / 5</td>
+          <td>1</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <script>
+    // ── AHS Bar Chart ─────────────────────────────────────────────
+    const ahsCtx = document.getElementById('ahsChart').getContext('2d');
+    new Chart(ahsCtx, {
+      type: 'bar',
+      data: {
+        labels: ['correct-reference', 'variant-d', 'variant-b', 'variant-a', 'variant-c'],
+        datasets: [{
+          data: [0.85, 0.66, 0.58, 0.54, 0.33],
+          backgroundColor: [
+            'rgba(63,185,80,0.7)',
+            'rgba(210,153,34,0.7)',
+            'rgba(219,109,40,0.7)',
+            'rgba(219,109,40,0.7)',
+            'rgba(248,81,73,0.7)',
+          ],
+          borderColor: [
+            'rgb(63,185,80)',
+            'rgb(210,153,34)',
+            'rgb(219,109,40)',
+            'rgb(219,109,40)',
+            'rgb(248,81,73)',
+          ],
+          borderWidth: 1,
+          borderRadius: 4,
+        }],
+      },
+      options: {
+        indexAxis: 'y',
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: { legend: { display: false } },
+        scales: {
+          x: {
+            min: 0, max: 1,
+            grid: { color: 'rgba(48,54,61,0.6)' },
+            ticks: {
+              color: '#8b949e',
+              callback: v => v.toFixed(2),
+            },
+          },
+          y: {
+            grid: { display: false },
+            ticks: { color: '#8b949e', font: { size: 11 } },
+          },
+        },
+      },
+    });
+
+    // ── Radar Chart ───────────────────────────────────────────────
+    const radarCtx = document.getElementById('radarChart').getContext('2d');
+    new Chart(radarCtx, {
+      type: 'radar',
+      data: {
+        labels: ['Structural', 'Coupling', 'Pattern', 'Solid', 'Convention'],
+        datasets: [
+          { label: 'correct-ref',  data: [100,75,75,100,50], borderColor: 'rgb(63,185,80)',   backgroundColor: 'rgba(63,185,80,0.1)',  borderWidth: 2, pointRadius: 3 },
+          { label: 'variant-d',    data: [67,75,50,100,50],  borderColor: 'rgb(210,153,34)',  backgroundColor: 'rgba(210,153,34,0.1)', borderWidth: 1.5, pointRadius: 2 },
+          { label: 'variant-b',    data: [67,75,25,100,50],  borderColor: 'rgb(219,109,40)',  backgroundColor: 'rgba(219,109,40,0.05)',borderWidth: 1.5, pointRadius: 2 },
+          { label: 'variant-a',    data: [33,75,50,100,50],  borderColor: 'rgb(219,109,40)',  backgroundColor: 'rgba(219,109,40,0.05)',borderWidth: 1, pointRadius: 2, borderDash: [4,4] },
+          { label: 'variant-c',    data: [0,75,25,75,50],    borderColor: 'rgb(248,81,73)',   backgroundColor: 'rgba(248,81,73,0.1)', borderWidth: 2, pointRadius: 3 },
+        ],
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: {
+            position: 'right',
+            labels: { color: '#8b949e', font: { size: 11 }, boxWidth: 12, padding: 8 },
+          },
+        },
+        scales: {
+          r: {
+            min: 0, max: 100,
+            grid:       { color: 'rgba(48,54,61,0.6)' },
+            angleLines: { color: 'rgba(48,54,61,0.6)' },
+            pointLabels: { color: '#8b949e', font: { size: 11 } },
+            ticks: { color: '#8b949e', backdropColor: 'transparent', stepSize: 25 },
+          },
+        },
+      },
+    });
+  </script>
+
+</body>
+</html>

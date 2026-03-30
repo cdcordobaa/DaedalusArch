@@ -339,6 +339,52 @@
 
 ---
 
+## Construction — Unit 4 Code Generation — APPROVED
+**Timestamp**: 2026-03-30T16:10:00Z
+**User Input**: "continie"
+**AI Response**: U4 approved. Proceeding to U5 (Neuro-Symbolic Router + Evaluation Engine).
+**Context**: Construction Phase — U4 complete, U5 loop starting
+
+---
+
+## Construction — Unit 4 Code Generation — COMPLETE
+**Timestamp**: 2026-03-30T16:00:00Z
+**AI Response**: All 17 steps executed. Extended U1 shared types (drift types, SnapshotStore extensions, IngestionResult.driftReport). Created 8 source files: types, layer-annotator (picomatch), neo4j-repository, graph-ingester (UNWIND), fs-snapshot-store, delta-computer, drift-detector (4 drift types), neo4j-ingestion orchestrator + PipelineStage. Created 5 test files. typecheck: 0 errors. tests: 197/197 passing (34 new U4 + 163 existing). All 12 stories traced. Awaiting user approval.
+**Context**: Construction Phase — U4 Code Generation all steps [x]
+
+---
+
+## Construction — Unit 4 Functional Design — APPROVED
+**Timestamp**: 2026-03-30T15:35:00Z
+**User Input**: "continue"
+**AI Response**: Functional Design approved. Proceeding to Code Generation Part 1 (plan).
+**Context**: Construction Phase — U4 Functional Design complete, Code Generation starting
+
+---
+
+## Construction — Unit 4 Functional Design — Answers
+**Timestamp**: 2026-03-30T15:25:00Z
+**User Input**: "continue please"
+**AI Response**: User deferred to AI judgment. Selected: Q1:C (UNWIND bulk insert — idiomatic Neo4j, fewer round-trips), Q2:A (glob matching in TS via picomatch — simplest, well-tested), Q3:B (APG comparison by node/edge ID — no git dependency, simpler contract), Q4:A (filesystem only — portable, matches US-3.1/3.3 acceptance criteria describing APG_Store/ with JSON), Q5:B (component/layer-level — actionable for PR comments while avoiding file-level storage explosion). Proceeding to generate design artifacts.
+**Context**: Construction Phase — U4 Functional Design Q&A complete
+
+---
+
+## Construction — Unit 4 Functional Design — Questions
+**Timestamp**: 2026-03-30T15:20:00Z
+**AI Response**: Starting U4 — Neo4j + Persistence. Stage assessment: Functional Design (EXECUTE), NFR/Infra (SKIP), Code Generation (ALWAYS). Created design plan and 5 questions: Q1 Neo4j transaction strategy, Q2 layer annotation matching, Q3 delta APG scope, Q4 snapshot storage backend, Q5 drift detection granularity. Awaiting answers.
+**Context**: Construction Phase — U4 Functional Design Steps 1-3 complete
+
+---
+
+## Construction — Unit 3 Code Generation — APPROVED
+**Timestamp**: 2026-03-30T15:10:00Z
+**User Input**: "continue"
+**AI Response**: U3 approved. Proceeding to U4 (Neo4j + Persistence).
+**Context**: Construction Phase — U3 complete, U4 loop starting
+
+---
+
 ## Construction — Unit 3 Code Generation — COMPLETE
 **Timestamp**: 2026-03-30T15:00:00Z
 **AI Response**: All 20 steps executed. Extended U1 shared types (CypherQuery, NeuronalInstruction, CompiledFunctions with new fields). Created 7 source files: spec-parser (types, spec-schema, template-registry, spec-validator, layer-parsers, adr-parsers, spec-parser) + 4 fitness-compiler (types, cypher-templates, fitness-compiler, index). Created 5 test files (3 spec-parser unit, 1 fitness-compiler unit, 1 integration). typecheck: 0 errors. tests: 163/163 passing (61 new U3 + 89 U2 + 13 U1). 24 Cypher templates, 4 ADR strategy parsers, template registry with clean-architecture (26 functions), shadow mode metadata for ADR rules. Awaiting user approval.

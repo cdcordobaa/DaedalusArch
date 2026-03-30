@@ -4,7 +4,7 @@
 - **Project Name**: Architectural Firewall (DaedalusArch)
 - **Project Type**: Greenfield
 - **Start Date**: 2026-03-27T16:00:00Z
-- **Current Stage**: CONSTRUCTION - Unit 3 (Spec Parser + Fitness Compiler) — U0+U1+U2 complete
+- **Current Stage**: CONSTRUCTION - Unit 5 (Neuro-Symbolic Router + Evaluation) — U0–U4 complete
 
 ## Workspace State
 - **Existing Code**: No (configuration files and docs only — no `src/` directory)
@@ -37,8 +37,8 @@
   - [x] U0 — Infrastructure Scaffolding (Code Generation COMPLETE)
   - [x] U1 — Shared Domain + Validation (Code Generation COMPLETE)
   - [x] U2 — APG Extractor (Functional Design + Code Generation COMPLETE)
-  - [ ] U3 — Spec Parser + Fitness Compiler
-  - [ ] U4 — Neo4j + Persistence
+  - [x] U3 — Spec Parser + Fitness Compiler (Functional Design + Code Generation COMPLETE)
+  - [x] U4 — Neo4j + Persistence (Functional Design + Code Generation COMPLETE)
   - [ ] U5 — Router + Evaluation Engine
   - [ ] U6 — Scoring + Reports
   - [ ] U7 — CLI + CI/CD

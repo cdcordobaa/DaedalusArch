@@ -1,0 +1,1081 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Dædalus Arch — Presentation</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/dist/reset.css" />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/dist/reveal.css" />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/dist/theme/black.css" />
+  <style>
+    /* ── Base overrides ── */
+    :root {
+      --cyan:   #39d0f5;
+      --green:  #3fb950;
+      --yellow: #d29922;
+      --orange: #db6d28;
+      --red:    #f85149;
+      --dim:    #8b949e;
+      --surface:#161b22;
+      --border: #30363d;
+    }
+    .reveal { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; }
+    .reveal .slides section { text-align: left; }
+    .reveal h1, .reveal h2, .reveal h3 { text-transform: none; letter-spacing: -0.5px; }
+    .reveal .slides { padding: 0; }
+
+    /* ── Typography helpers ── */
+    .cyan   { color: var(--cyan); }
+    .green  { color: var(--green); }
+    .yellow { color: var(--yellow); }
+    .orange { color: var(--orange); }
+    .red    { color: var(--red); }
+    .dim    { color: var(--dim); }
+    .bold   { font-weight: 700; }
+    .mono   { font-family: 'SF Mono','Fira Code','Consolas',monospace; }
+
+    /* ── Slide layouts ── */
+    .slide-center { text-align: center !important; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+    .slide-cols { display: grid; grid-template-columns: 1fr 1fr; gap: 40px; align-items: start; }
+    .slide-cols-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 24px; }
+
+    /* ── Divider label ── */
+    .section-divider {
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      color: var(--cyan);
+      margin-bottom: 6px;
+    }
+
+    /* ── Title slide ── */
+    .title-block { text-align: center; }
+    .title-main {
+      font-size: 76px;
+      font-weight: 900;
+      letter-spacing: -3px;
+      line-height: 1;
+      background: linear-gradient(135deg, #fff 40%, var(--cyan));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    .title-sub {
+      font-size: 22px;
+      color: var(--cyan);
+      font-weight: 400;
+      margin-top: 12px;
+      letter-spacing: 1px;
+    }
+    .title-meta {
+      font-size: 14px;
+      color: var(--dim);
+      margin-top: 20px;
+      letter-spacing: 0.5px;
+    }
+    .title-hook {
+      font-size: 18px;
+      color: #ccc;
+      margin-top: 48px;
+      line-height: 1.6;
+      font-style: italic;
+      max-width: 640px;
+      text-align: center;
+    }
+
+    /* ── Problem slide ── */
+    .problem-headline {
+      font-size: 48px;
+      font-weight: 800;
+      line-height: 1.2;
+      letter-spacing: -1.5px;
+    }
+    .problem-sub { font-size: 20px; color: var(--dim); margin-top: 8px; }
+    .bullet-list { list-style: none; margin-top: 32px; display: flex; flex-direction: column; gap: 16px; }
+    .bullet-list li {
+      display: flex;
+      align-items: flex-start;
+      gap: 12px;
+      font-size: 18px;
+      color: #ccc;
+      line-height: 1.4;
+    }
+    .bullet-list li::before { content: '—'; color: var(--red); flex-shrink: 0; font-weight: 700; margin-top: 1px; }
+    .chaos-visual {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 28px;
+      font-family: 'SF Mono','Fira Code',monospace;
+      font-size: 11px;
+      color: var(--dim);
+      line-height: 1.8;
+    }
+    .chaos-visual .cv-red  { color: var(--red); }
+    .chaos-visual .cv-warn { color: var(--yellow); }
+    .chaos-visual .cv-ok   { color: var(--green); }
+    .chaos-visual .cv-head { color: #fff; font-weight: 700; font-size: 12px; margin-bottom: 8px; display: block; }
+
+    /* ── Solution / How it works ── */
+    .pipeline {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0;
+      margin-top: 32px;
+    }
+    .pipe-step {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 20px 22px;
+      text-align: center;
+      flex: 1;
+    }
+    .pipe-step .ps-icon { font-size: 28px; margin-bottom: 8px; }
+    .pipe-step .ps-label { font-size: 14px; font-weight: 700; color: #fff; }
+    .pipe-step .ps-sub   { font-size: 11px; color: var(--dim); margin-top: 4px; }
+    .pipe-arrow {
+      color: var(--cyan);
+      font-size: 20px;
+      padding: 0 8px;
+      flex-shrink: 0;
+    }
+
+    /* ── Terminal window ── */
+    .terminal-window {
+      background: #1c1c1e;
+      border-radius: 10px;
+      overflow: hidden;
+      box-shadow: 0 24px 48px rgba(0,0,0,0.6);
+      font-size: 12px;
+    }
+    .terminal-window.lg { font-size: 13px; }
+    .terminal-titlebar {
+      background: #3a3a3c;
+      padding: 9px 14px;
+      display: flex;
+      align-items: center;
+      gap: 7px;
+    }
+    .td { width: 12px; height: 12px; border-radius: 50%; flex-shrink: 0; }
+    .td-r { background: #ff5f57; }
+    .td-y { background: #febc2e; }
+    .td-g { background: #28c840; }
+    .terminal-filename {
+      margin-left: 8px;
+      color: #aaa;
+      font-family: 'SF Mono','Fira Code',monospace;
+      font-size: 12px;
+    }
+    .terminal-body {
+      padding: 18px 22px;
+      font-family: 'SF Mono','Fira Code','Consolas',monospace;
+      line-height: 1.55;
+      color: #abb2bf;
+      overflow: hidden;
+    }
+    /* Terminal color spans */
+    .t-cyan   { color: #56b6c2; }
+    .t-green  { color: #98c379; }
+    .t-yellow { color: #e5c07b; }
+    .t-orange { color: #d19a66; }
+    .t-red    { color: #e06c75; }
+    .t-white  { color: #eff0f1; font-weight: 600; }
+    .t-dim    { color: #5c6370; }
+    .t-bold   { font-weight: 700; }
+    .t-check  { color: #98c379; }
+    .t-cross  { color: #e06c75; }
+    .t-bg-green  { background: rgba(152,195,121,0.20); color: #98c379; padding: 1px 6px; border-radius: 3px; font-weight: 700; }
+    .t-bg-yellow { background: rgba(229,192,123,0.18); color: #e5c07b; padding: 1px 6px; border-radius: 3px; font-weight: 700; }
+    .t-bg-orange { background: rgba(209,154,102,0.20); color: #d19a66; padding: 1px 6px; border-radius: 3px; font-weight: 700; }
+    .t-bg-red    { background: rgba(224,108,117,0.20); color: #e06c75; padding: 1px 6px; border-radius: 3px; font-weight: 700; }
+
+    /* ── AHS card (inline, slide version) ── */
+    .ahs-card {
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 16px 20px;
+      margin: 12px 0;
+      background: #1c1c1e;
+    }
+    .ahs-score { font-size: 56px; font-weight: 900; letter-spacing: -2px; line-height: 1; }
+
+    /* ── Spec block ── */
+    .spec-block {
+      background: #1c1c1e;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 24px;
+      font-family: 'SF Mono','Fira Code',monospace;
+      font-size: 13px;
+      line-height: 1.7;
+      color: #abb2bf;
+    }
+    .spec-block .sk  { color: #e06c75; } /* key */
+    .spec-block .sv  { color: #98c379; } /* value string */
+    .spec-block .sn  { color: #d19a66; } /* value number */
+    .spec-block .sc  { color: #5c6370; } /* comment */
+    .spec-block .si  { color: #56b6c2; } /* id */
+
+    /* ── Benchmark table (terminal) ── */
+    .bench-table-wrap { font-family: 'SF Mono','Fira Code',monospace; font-size: 12px; line-height: 1.7; }
+
+    /* ── Built with AI ── */
+    .ai-message {
+      background: var(--surface);
+      border-left: 3px solid var(--cyan);
+      border-radius: 0 8px 8px 0;
+      padding: 20px 24px;
+      margin-bottom: 20px;
+    }
+    .ai-message .am-label { font-size: 11px; font-weight: 700; color: var(--cyan); letter-spacing: 1.5px; text-transform: uppercase; margin-bottom: 8px; }
+    .ai-message .am-text  { font-size: 17px; color: #ddd; line-height: 1.5; }
+
+    /* ── North Star ── */
+    .north-star-number {
+      font-size: 180px;
+      font-weight: 900;
+      letter-spacing: -8px;
+      line-height: 1;
+      background: linear-gradient(135deg, var(--green), var(--cyan));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    .north-star-label {
+      font-size: 26px;
+      color: #ccc;
+      margin-top: 16px;
+      font-weight: 300;
+      letter-spacing: 0.5px;
+    }
+    .north-star-sub { font-size: 16px; color: var(--dim); margin-top: 8px; }
+
+    /* ── What's next cards ── */
+    .next-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 24px;
+    }
+    .next-card .nc-tag  { font-size: 10px; font-weight: 700; letter-spacing: 1.5px; text-transform: uppercase; color: var(--cyan); margin-bottom: 10px; }
+    .next-card .nc-head { font-size: 18px; font-weight: 700; margin-bottom: 10px; }
+    .next-card .nc-body { font-size: 14px; color: var(--dim); line-height: 1.6; }
+
+    /* ── Gemini placeholder ── */
+    .gemini-placeholder {
+      background: repeating-linear-gradient(
+        45deg,
+        rgba(57,208,245,0.03),
+        rgba(57,208,245,0.03) 10px,
+        transparent 10px,
+        transparent 20px
+      );
+      border: 2px dashed rgba(57,208,245,0.25);
+      border-radius: 10px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-height: 200px;
+      color: rgba(57,208,245,0.5);
+      font-size: 13px;
+      text-align: center;
+      gap: 8px;
+    }
+    .gemini-placeholder .gp-icon { font-size: 32px; }
+    .gemini-placeholder .gp-label { font-weight: 700; font-size: 14px; }
+    .gemini-placeholder .gp-prompt { font-size: 11px; color: rgba(57,208,245,0.35); max-width: 280px; line-height: 1.5; }
+
+    /* ── Screenshot placeholder ── */
+    .screenshot-placeholder {
+      background: #1c1c1e;
+      border: 2px dashed rgba(255,255,255,0.1);
+      border-radius: 10px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-height: 260px;
+      color: rgba(255,255,255,0.2);
+      font-size: 13px;
+      text-align: center;
+      gap: 8px;
+    }
+    .screenshot-placeholder .sp-label { font-weight: 700; font-size: 15px; color: rgba(255,255,255,0.3); }
+    .screenshot-placeholder .sp-hint  { font-size: 11px; max-width: 240px; line-height: 1.5; }
+
+    /* ── Closing ── */
+    .closing-quote {
+      font-size: 26px;
+      line-height: 1.5;
+      font-style: italic;
+      color: #ddd;
+      max-width: 760px;
+      text-align: center;
+    }
+    .closing-quote strong { color: #fff; font-style: normal; }
+
+    /* ── Progress dots override ── */
+    .reveal .progress { height: 2px; color: var(--cyan); }
+
+    /* Fragment fade */
+    .reveal .fragment { transition: opacity 0.3s ease; }
+  </style>
+</head>
+<body>
+<div class="reveal">
+<div class="slides">
+
+<!-- ═══════════════════════════════════════════════════════════
+     SLIDE 1 — TITLE
+══════════════════════════════════════════════════════════════ -->
+<section data-background-color="#0d1117" class="slide-center" data-background-image="opening-hero.png" data-background-size="cover" data-background-position="center" data-background-opacity="0.55">
+  <div style="position:absolute;inset:0;background:linear-gradient(to right, rgba(13,17,23,0.88) 42%, rgba(13,17,23,0.25) 100%);pointer-events:none;"></div>
+  <div class="title-block" style="position:relative;z-index:1;text-align:left;max-width:620px;margin-left:3%;">
+    <div class="title-main" style="font-size:68px;">DÆDALUS ARCH</div>
+    <div class="title-sub">Architectural Firewall</div>
+    <div class="title-meta" style="margin-top:10px;">The first tool that gives your codebase an architectural health score.</div>
+    <div class="title-hook" style="margin-top:36px;text-align:left;">
+      "Your team ships code 3× faster with AI.<br>
+      Your architecture decays 3× faster too.<br>
+      <strong style="color:#fff;">Nobody is measuring it."</strong>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════════
+     SLIDE 2 — THE PAIN (business)
+══════════════════════════════════════════════════════════════ -->
+<section data-background-color="#0d1117">
+  <div class="slide-cols" style="gap:52px; align-items:center;">
+    <div>
+      <div class="problem-headline" style="font-size:44px;">
+        Architectural debt<br>
+        is the <span class="red">silent killer.</span>
+      </div>
+      <ul class="bullet-list" style="margin-top:28px;">
+        <li class="fragment">It doesn't show up in unit tests. It doesn't trigger alerts. Code reviews say <strong>LGTM ✅</strong> — and it still ships.</li>
+        <li class="fragment">It shows up six months later: the codebase is too fragile to add features, your best engineer rage-quits, and a migration costs 4× what it should.</li>
+        <li class="fragment"><strong>40% of engineering leaders</strong> say technical debt is their #1 barrier to delivering business value. <span style="color:var(--dim);font-size:14px;">(McKinsey, 2022)</span></li>
+        <li class="fragment">Every architectural violation left undetected at code review costs <strong style="color:var(--red);">10–100×</strong> more to fix in production.</li>
+      </ul>
+    </div>
+    <div>
+      <div style="border-radius:12px;overflow:hidden;border:1px solid rgba(248,81,73,0.35);box-shadow:0 0 40px rgba(248,81,73,0.15);">
+        <img src="arch-degradation.png" alt="Clean architecture degrading into spaghetti — High Coupling, Fragile Code, Technical Debt" style="width:100%;display:block;" />
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════════
+     SLIDE 3 — THE ROOT CAUSE
+══════════════════════════════════════════════════════════════ -->
+<section data-background-color="#0d1117" class="slide-center">
+  <div style="max-width:820px;text-align:center;">
+    <div class="section-divider" style="text-align:center;margin-bottom:20px;">The Root Cause</div>
+    <h2 style="font-size:52px;font-weight:900;letter-spacing:-2px;line-height:1.2;">
+      You can't manage<br>what you <span class="red">can't measure.</span>
+    </h2>
+    <p style="font-size:20px;color:var(--dim);margin-top:24px;line-height:1.6;">
+      SonarQube measures code quality.<br>
+      Codecov measures test coverage.<br>
+      <strong style="color:#fff;">Nothing measures architecture.</strong>
+    </p>
+    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px;margin-top:40px;" class="fragment">
+      <div style="background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:20px;text-align:center;">
+        <div style="font-size:28px;margin-bottom:8px;">🐛</div>
+        <div style="font-weight:700;margin-bottom:4px;">SonarQube</div>
+        <div style="font-size:13px;color:var(--dim);">Bugs &amp; code smells</div>
+        <div style="font-size:11px;color:var(--green);margin-top:8px;">✓ Covered</div>
+      </div>
+      <div style="background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:20px;text-align:center;">
+        <div style="font-size:28px;margin-bottom:8px;">🧪</div>
+        <div style="font-weight:700;margin-bottom:4px;">Codecov</div>
+        <div style="font-size:13px;color:var(--dim);">Test coverage %</div>
+        <div style="font-size:11px;color:var(--green);margin-top:8px;">✓ Covered</div>
+      </div>
+      <div style="background:rgba(248,81,73,0.08);border:1px solid rgba(248,81,73,0.4);border-radius:8px;padding:20px;text-align:center;">
+        <div style="font-size:28px;margin-bottom:8px;">🏛️</div>
+        <div style="font-weight:700;margin-bottom:4px;">Architecture</div>
+        <div style="font-size:13px;color:var(--dim);">Structural compliance</div>
+        <div style="font-size:11px;color:var(--red);margin-top:8px;">✗ Nobody</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════════
+     SLIDE 3b — COMPETITIVE LANDSCAPE
+══════════════════════════════════════════════════════════════ -->
+<section data-background-color="#0d1117">
+  <div class="section-divider">Why Existing Tools Fall Short</div>
+  <h3 style="font-size:28px;font-weight:900;letter-spacing:-1px;margin-bottom:10px;">
+    Even <span class="cyan">AI code review</span> doesn't know your architecture.
+  </h3>
+  <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:16px;" class="fragment">
+    <div style="background:rgba(248,81,73,0.06);border:1px solid rgba(248,81,73,0.25);border-radius:7px;padding:12px 14px;font-size:12px;color:#ccc;line-height:1.5;">
+      <span style="color:var(--red);font-weight:700;">No architectural context</span><br>
+      <span style="color:var(--dim);">Sees the file, not the system. Doesn't know your layers or dependency rules.</span>
+    </div>
+    <div style="background:rgba(248,81,73,0.06);border:1px solid rgba(248,81,73,0.25);border-radius:7px;padding:12px 14px;font-size:12px;color:#ccc;line-height:1.5;">
+      <span style="color:var(--red);font-weight:700;">No formal specification</span><br>
+      <span style="color:var(--dim);">Doesn't know your ADRs or layer model. Gives generic advice, not your rules.</span>
+    </div>
+    <div style="background:rgba(248,81,73,0.06);border:1px solid rgba(248,81,73,0.25);border-radius:7px;padding:12px 14px;font-size:12px;color:#ccc;line-height:1.5;">
+      <span style="color:var(--red);font-weight:700;">Not deterministic or measurable</span><br>
+      <span style="color:var(--dim);">"This might be a code smell" — no score, no gate, no CI/CD block.</span>
+    </div>
+  </div>
+  <!-- Comparison table -->
+  <div style="overflow:hidden;border-radius:9px;border:1px solid var(--border);font-size:11.5px;font-family:'SF Mono','Fira Code',monospace;" class="fragment">
+    <table style="width:100%;border-collapse:collapse;">
+      <thead>
+        <tr style="background:#0d1117;border-bottom:1px solid var(--border);">
+          <th style="padding:9px 14px;text-align:left;color:var(--dim);font-weight:600;width:34%;"></th>
+          <th style="padding:9px 10px;text-align:center;color:var(--dim);font-weight:600;">SonarQube</th>
+          <th style="padding:9px 10px;text-align:center;color:var(--dim);font-weight:600;">CodeQL</th>
+          <th style="padding:9px 10px;text-align:center;color:var(--dim);font-weight:600;">AI Review</th>
+          <th style="padding:9px 12px;text-align:center;color:var(--cyan);font-weight:700;background:rgba(57,208,245,0.06);border-left:1px solid rgba(57,208,245,0.3);">🔥 Arch Firewall</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr style="border-bottom:1px solid rgba(48,54,61,0.6);">
+          <td style="padding:8px 14px;color:#e6edf3;font-weight:600;">Architecture-aware?</td>
+          <td style="padding:8px 10px;text-align:center;color:var(--red);">❌</td>
+          <td style="padding:8px 10px;text-align:center;color:var(--red);">❌</td>
+          <td style="padding:8px 10px;text-align:center;color:var(--red);">❌</td>
+          <td style="padding:8px 12px;text-align:center;color:var(--green);background:rgba(57,208,245,0.04);border-left:1px solid rgba(57,208,245,0.2);">✅ YAML spec</td>
+        </tr>
+        <tr style="border-bottom:1px solid rgba(48,54,61,0.6);">
+          <td style="padding:8px 14px;color:#e6edf3;font-weight:600;">Cross-file analysis?</td>
+          <td style="padding:8px 10px;text-align:center;color:var(--yellow);">Partial</td>
+          <td style="padding:8px 10px;text-align:center;color:var(--green);">✅</td>
+          <td style="padding:8px 10px;text-align:center;color:var(--dim);">Per-file</td>
+          <td style="padding:8px 12px;text-align:center;color:var(--green);background:rgba(57,208,245,0.04);border-left:1px solid rgba(57,208,245,0.2);">✅ Full graph</td>
+        </tr>
+        <tr style="border-bottom:1px solid rgba(48,54,61,0.6);">
+          <td style="padding:8px 14px;color:#e6edf3;font-weight:600;">Formal specification?</td>
+          <td style="padding:8px 10px;text-align:center;color:var(--dim);">Generic rules</td>
+          <td style="padding:8px 10px;text-align:center;color:var(--dim);">Security queries</td>
+          <td style="padding:8px 10px;text-align:center;color:var(--red);">None</td>
+          <td style="padding:8px 12px;text-align:center;color:var(--green);background:rgba(57,208,245,0.04);border-left:1px solid rgba(57,208,245,0.2);">✅ Layers, roles, rules</td>
+        </tr>
+        <tr style="border-bottom:1px solid rgba(48,54,61,0.6);">
+          <td style="padding:8px 14px;color:#e6edf3;font-weight:600;">Quantitative score?</td>
+          <td style="padding:8px 10px;text-align:center;color:var(--yellow);">Code smells</td>
+          <td style="padding:8px 10px;text-align:center;color:var(--yellow);">Vuln count</td>
+          <td style="padding:8px 10px;text-align:center;color:var(--red);">❌</td>
+          <td style="padding:8px 12px;text-align:center;color:var(--green);background:rgba(57,208,245,0.04);border-left:1px solid rgba(57,208,245,0.2);">✅ AHS 0–1</td>
+        </tr>
+        <tr style="border-bottom:1px solid rgba(48,54,61,0.6);">
+          <td style="padding:8px 14px;color:#e6edf3;font-weight:600;">Deterministic?</td>
+          <td style="padding:8px 10px;text-align:center;color:var(--green);">✅</td>
+          <td style="padding:8px 10px;text-align:center;color:var(--green);">✅</td>
+          <td style="padding:8px 10px;text-align:center;color:var(--red);">❌</td>
+          <td style="padding:8px 12px;text-align:center;color:var(--green);background:rgba(57,208,245,0.04);border-left:1px solid rgba(57,208,245,0.2);">✅ Symbolic + measurable</td>
+        </tr>
+        <tr>
+          <td style="padding:8px 14px;color:#e6edf3;font-weight:600;">Detects arch violations?</td>
+          <td style="padding:8px 10px;text-align:center;color:var(--red);">❌</td>
+          <td style="padding:8px 10px;text-align:center;color:var(--red);">❌</td>
+          <td style="padding:8px 10px;text-align:center;color:var(--yellow);">Sometimes</td>
+          <td style="padding:8px 12px;text-align:center;color:var(--green);background:rgba(57,208,245,0.04);border-left:1px solid rgba(57,208,245,0.2);">✅ 26 fitness functions</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════════
+     SLIDE 4 — THE PRODUCT
+══════════════════════════════════════════════════════════════ -->
+<section data-background-color="#0d1117">
+  <div class="slide-cols" style="align-items:center;gap:52px;">
+    <div>
+      <div class="section-divider">The Product</div>
+      <h2 style="font-size:50px;font-weight:900;letter-spacing:-2px;line-height:1.15;margin-bottom:20px;">
+        We give architecture<br><span class="cyan">a number.</span>
+      </h2>
+      <p style="font-size:18px;color:#ddd;line-height:1.6;margin-bottom:28px;">
+        The <strong>Architectural Health Score (AHS)</strong> — a deterministic 0–1 score for every codebase, every commit, every PR.
+      </p>
+      <div style="display:flex;flex-direction:column;gap:12px;">
+        <div style="display:flex;align-items:center;gap:14px;padding:14px 18px;background:rgba(63,185,80,0.08);border:1px solid rgba(63,185,80,0.3);border-radius:8px;">
+          <span style="font-size:20px;">✅</span>
+          <div><strong style="color:var(--green);">AHS ≥ 0.80 → PASS.</strong> <span style="color:var(--dim);">Merge freely.</span></div>
+        </div>
+        <div style="display:flex;align-items:center;gap:14px;padding:14px 18px;background:rgba(210,153,34,0.08);border:1px solid rgba(210,153,34,0.3);border-radius:8px;">
+          <span style="font-size:20px;">⚠️</span>
+          <div><strong style="color:var(--yellow);">AHS 0.65–0.79 → WARNING.</strong> <span style="color:var(--dim);">Review before merging.</span></div>
+        </div>
+        <div style="display:flex;align-items:center;gap:14px;padding:14px 18px;background:rgba(248,81,73,0.08);border:1px solid rgba(248,81,73,0.3);border-radius:8px;">
+          <span style="font-size:20px;">🛑</span>
+          <div><strong style="color:var(--red);">AHS &lt; 0.50 → HARD-BLOCK.</strong> <span style="color:var(--dim);">PR blocked. Fix first.</span></div>
+        </div>
+      </div>
+    </div>
+    <div>
+      <div class="pipeline" style="flex-direction:column;gap:8px;">
+        <div class="pipe-step" style="text-align:left;display:flex;align-items:center;gap:14px;">
+          <div style="font-size:24px;flex-shrink:0;">📋</div>
+          <div><div class="ps-label">Define your architecture once</div><div class="ps-sub">YAML spec: layers, rules, thresholds — takes 5 minutes</div></div>
+        </div>
+        <div style="color:var(--dim);font-size:20px;text-align:center;">↓</div>
+        <div class="pipe-step" style="text-align:left;display:flex;align-items:center;gap:14px;">
+          <div style="font-size:24px;flex-shrink:0;">🔍</div>
+          <div><div class="ps-label">We X-ray your codebase</div><div class="ps-sub">Graph-based analysis — 26 architectural rules across 5 dimensions</div></div>
+        </div>
+        <div style="color:var(--dim);font-size:20px;text-align:center;">↓</div>
+        <div class="pipe-step" style="text-align:left;display:flex;align-items:center;gap:14px;border-color:var(--cyan);">
+          <div style="font-size:24px;flex-shrink:0;">🏆</div>
+          <div><div class="ps-label" style="color:var(--cyan);">Get a score. Block the bad PR.</div><div class="ps-sub">AHS 0–1 · PASS / WARNING / SOFT-BLOCK / HARD-BLOCK</div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════════
+     SLIDE 5 — DEMO HEADER
+══════════════════════════════════════════════════════════════ -->
+<section data-background-color="#0d1117" class="slide-center">
+  <div style="position:absolute;inset:0;opacity:0.12;background:radial-gradient(ellipse at center, rgba(57,208,245,0.4) 0%, transparent 70%);pointer-events:none;"></div>
+  <div style="position:relative;text-align:center;">
+    <!-- GEMINI IMAGE SLOT -->
+    <!-- Prompt: "Epic dark cinematic illustration: a glowing firewall shield blocking red violation arrows labeled 'circular deps', 'broken layers', 'God class'. Background shows clean architecture layers: Domain / Application / Infrastructure. Electric cyan glow, deep dark background, dramatic lighting." -->
+    <div style="font-size:13px;font-weight:700;letter-spacing:3px;text-transform:uppercase;color:var(--cyan);margin-bottom:20px;">Live Demo</div>
+    <h1 style="font-size:68px;font-weight:900;letter-spacing:-3px;line-height:1;">Watch it catch<br><span class="red">every violation.</span></h1>
+    <p style="font-size:20px;color:var(--dim);margin-top:16px;">5 real projects. Same architectural spec. One score.</p>
+    <div style="display:flex;gap:32px;justify-content:center;margin-top:36px;" class="fragment">
+      <div style="text-align:center;"><div style="font-size:32px;font-weight:800;color:var(--green);">0.85</div><div style="font-size:12px;color:var(--dim);">Healthy codebase</div></div>
+      <div style="font-size:32px;color:var(--dim);align-self:center;">→</div>
+      <div style="text-align:center;"><div style="font-size:32px;font-weight:800;color:var(--red);">0.33</div><div style="font-size:12px;color:var(--dim);">Broken codebase</div></div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════════
+     SLIDE 6 — DEMO: PASS CASE
+══════════════════════════════════════════════════════════════ -->
+<section data-background-color="#0d1117">
+  <div class="section-divider">Demo — A Healthy Codebase</div>
+  <div class="slide-cols" style="align-items:start; gap:32px;">
+    <div>
+      <h3 style="font-size:26px;font-weight:800;margin-bottom:4px;">This codebase <span class="green">passes.</span></h3>
+      <p style="font-size:14px;color:var(--dim);margin-bottom:16px;">Clean layers, proper interfaces, dependency rules respected. The Firewall scores it <strong style="color:var(--green);">0.85</strong> and lets it merge.</p>
+      <div class="terminal-window">
+        <div class="terminal-titlebar">
+          <div class="td td-r"></div><div class="td td-y"></div><div class="td td-g"></div>
+          <div class="terminal-filename">firewall evaluate --project ./correct-reference</div>
+        </div>
+        <div class="terminal-body">
+<span class="t-check">✔</span> <span class="t-white">Codebase scanned    </span><span class="t-dim">12 files · 3 layers identified</span>
+<span class="t-check">✔</span> <span class="t-white">26 rules evaluated  </span><span class="t-green">14 passed</span><span class="t-dim"> · </span><span class="t-yellow">3 minor issues</span>
+
+<span class="t-dim">┌──────────────────────────────────────────────┐</span>
+<span class="t-dim">│</span>  <span class="t-white t-bold">AHS  </span><span class="t-green t-bold">0.85</span>  <span class="t-green">████████████████████</span><span class="t-dim">░░░░</span>  <span class="t-bg-green">✅  PASS</span>  <span class="t-dim">│</span>
+<span class="t-dim">│</span>                                              <span class="t-dim">│</span>
+<span class="t-dim">│</span>  <span class="t-dim">Layer boundaries    </span>                <span class="t-green">✓ respected</span>  <span class="t-dim">│</span>
+<span class="t-dim">│</span>  <span class="t-dim">Dependency direction</span>                <span class="t-green">✓ correct</span>    <span class="t-dim">│</span>
+<span class="t-dim">│</span>  <span class="t-dim">Domain purity       </span>                <span class="t-green">✓ clean</span>      <span class="t-dim">│</span>
+<span class="t-dim">│</span>  <span class="t-dim">Test coverage proxy </span>                <span class="t-red">✗ missing</span>    <span class="t-dim">│</span>
+<span class="t-dim">└──────────────────────────────────────────────┘</span>
+
+  <span class="t-green">→ Cleared for merge.</span>
+        </div>
+      </div>
+    </div>
+    <div>
+      <div style="border-radius:10px;overflow:hidden;border:1px solid var(--border);margin-bottom:14px;background:#1e2433;">
+        <div style="background:#1c1c1e;padding:8px 14px;font-size:11px;color:var(--dim);font-family:monospace;border-bottom:1px solid var(--border);">
+          <span style="color:var(--cyan);">Neo4j Browser</span> · localhost:7474 · <span style="color:var(--green);">MATCH (n) RETURN n</span>
+        </div>
+        <img src="neo4j-graph-correct.png" alt="Neo4j graph — correct reference architecture" style="width:100%;display:block;max-height:210px;object-fit:cover;object-position:top;" />
+      </div>
+      <!-- Query results table -->
+      <div style="font-family:'SF Mono','Fira Code',monospace;font-size:10.5px;background:#161b22;border:1px solid var(--border);border-radius:8px;overflow:hidden;">
+        <div style="background:#0d1117;padding:7px 14px;color:var(--dim);border-bottom:1px solid var(--border);font-size:10px;letter-spacing:0.5px;">RETURN n.className, n.layer, n.publicMethods, n.depCount, n.status</div>
+        <table style="width:100%;border-collapse:collapse;">
+          <thead>
+            <tr style="border-bottom:1px solid var(--border);">
+              <th style="padding:6px 10px;text-align:left;color:var(--cyan);font-weight:600;font-size:10px;">className</th>
+              <th style="padding:6px 8px;text-align:left;color:var(--cyan);font-weight:600;font-size:10px;">layer</th>
+              <th style="padding:6px 8px;text-align:center;color:var(--cyan);font-weight:600;font-size:10px;">methods</th>
+              <th style="padding:6px 8px;text-align:center;color:var(--cyan);font-weight:600;font-size:10px;">deps</th>
+              <th style="padding:6px 8px;text-align:left;color:var(--cyan);font-weight:600;font-size:10px;">status</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr style="border-bottom:1px solid rgba(48,54,61,0.5);">
+              <td style="padding:5px 10px;color:#e6edf3;font-size:10px;">InMemoryTaskRepository</td>
+              <td style="padding:5px 8px;"><span style="color:#d29922;font-size:9px;">infrastructure</span></td>
+              <td style="padding:5px 8px;text-align:center;color:#8b949e;font-size:10px;">4</td>
+              <td style="padding:5px 8px;text-align:center;color:#8b949e;font-size:10px;">0</td>
+              <td style="padding:5px 8px;color:var(--green);font-size:10px;">✅ PASS</td>
+            </tr>
+            <tr style="border-bottom:1px solid rgba(48,54,61,0.5);">
+              <td style="padding:5px 10px;color:#e6edf3;font-size:10px;">Task</td>
+              <td style="padding:5px 8px;"><span style="color:#79c0ff;font-size:9px;">domain</span></td>
+              <td style="padding:5px 8px;text-align:center;color:#8b949e;font-size:10px;">2</td>
+              <td style="padding:5px 8px;text-align:center;color:#8b949e;font-size:10px;">0</td>
+              <td style="padding:5px 8px;color:var(--green);font-size:10px;">✅ PASS</td>
+            </tr>
+            <tr style="border-bottom:1px solid rgba(48,54,61,0.5);">
+              <td style="padding:5px 10px;color:#e6edf3;font-size:10px;">InfraLogger</td>
+              <td style="padding:5px 8px;"><span style="color:#d29922;font-size:9px;">infrastructure</span></td>
+              <td style="padding:5px 8px;text-align:center;color:#8b949e;font-size:10px;">2</td>
+              <td style="padding:5px 8px;text-align:center;color:#8b949e;font-size:10px;">0</td>
+              <td style="padding:5px 8px;color:var(--green);font-size:10px;">✅ PASS</td>
+            </tr>
+            <tr>
+              <td style="padding:5px 10px;color:#e6edf3;font-size:10px;">CreateTaskUseCase</td>
+              <td style="padding:5px 8px;"><span style="color:#3fb950;font-size:9px;">application</span></td>
+              <td style="padding:5px 8px;text-align:center;color:#8b949e;font-size:10px;">1</td>
+              <td style="padding:5px 8px;text-align:center;color:#8b949e;font-size:10px;">2</td>
+              <td style="padding:5px 8px;color:var(--green);font-size:10px;">✅ PASS</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════════
+     SLIDE 7 — DEMO: HARD-BLOCK
+══════════════════════════════════════════════════════════════ -->
+<section data-background-color="#0d1117">
+  <div class="section-divider">Demo — A Broken Codebase</div>
+  <div class="slide-cols" style="align-items:start; gap:32px;">
+    <div>
+      <h3 style="font-size:26px;font-weight:800;margin-bottom:4px;">This one <span class="red">never merges.</span></h3>
+      <p style="font-size:14px;color:var(--dim);margin-bottom:16px;">God class with 15 methods. Circular imports. Domain importing Express. Database client in a controller. <strong style="color:var(--red);">AHS: 0.33 — HARD-BLOCK.</strong></p>
+      <div class="terminal-window">
+        <div class="terminal-titlebar">
+          <div class="td td-r"></div><div class="td td-y"></div><div class="td td-g"></div>
+          <div class="terminal-filename">firewall evaluate --project ./variant-c</div>
+        </div>
+        <div class="terminal-body">
+<span class="t-check">✔</span> <span class="t-white">Codebase scanned    </span><span class="t-dim">11 files · 3 layers identified</span>
+<span class="t-cross">✗</span> <span class="t-white">26 rules evaluated  </span><span class="t-green">8 passed</span><span class="t-dim"> · </span><span class="t-red t-bold">9 violations</span>
+
+<span class="t-dim">┌──────────────────────────────────────────────┐</span>
+<span class="t-dim">│</span>  <span class="t-white t-bold">AHS  </span><span class="t-red t-bold">0.33</span>  <span class="t-red">████████</span><span class="t-dim">░░░░░░░░░░░░░░░░</span>  <span class="t-bg-red">🛑 HARD-BLOCK</span>  <span class="t-dim">│</span>
+<span class="t-dim">│</span>                                              <span class="t-dim">│</span>
+<span class="t-dim">│</span>  <span class="t-dim">Layer boundaries    </span>          <span class="t-red">✗ violated (100%)</span>  <span class="t-dim">│</span>
+<span class="t-dim">│</span>  <span class="t-dim">Circular imports    </span>          <span class="t-red">✗ 1 cycle detected</span>  <span class="t-dim">│</span>
+<span class="t-dim">│</span>  <span class="t-dim">Domain purity       </span>          <span class="t-red">✗ imports express</span>   <span class="t-dim">│</span>
+<span class="t-dim">│</span>  <span class="t-dim">GodTask class       </span>          <span class="t-red">✗ 15 public methods</span> <span class="t-dim">│</span>
+<span class="t-dim">└──────────────────────────────────────────────┘</span>
+
+  <span class="t-red t-bold">→ PR blocked. Fix violations before merging.</span>
+        </div>
+      </div>
+    </div>
+    <div>
+      <div style="border-radius:10px;overflow:hidden;border:1px solid rgba(248,81,73,0.4);margin-bottom:14px;background:#1e1414;">
+        <div style="background:#1c1c1e;padding:8px 14px;font-size:11px;color:var(--dim);font-family:monospace;border-bottom:1px solid rgba(248,81,73,0.3);">
+          <span style="color:var(--red);">Neo4j Browser</span> · localhost:7474 · <span style="color:var(--red);">MATCH (n) RETURN n</span>
+          <span style="float:right;color:var(--red);font-weight:700;">⚠ God class detected · circular deps</span>
+        </div>
+        <img src="neo4j-graph-broken.png" alt="Neo4j graph — broken architecture with God class" style="width:100%;display:block;max-height:230px;object-fit:cover;object-position:top;" />
+      </div>
+      <div style="background:rgba(248,81,73,0.06);border:1px solid rgba(248,81,73,0.3);border-radius:8px;padding:14px;font-size:13px;color:#ccc;line-height:1.6;">
+        <strong style="color:var(--red);">What you're looking at:</strong>
+        <span style="color:var(--dim);"> GodTask with 15 methods exploding outward — one class doing everything. Plus circular dependencies between layers that should never touch.</span><br><br>
+        <strong style="color:#fff;">Not an opinion. A deterministic score. AHS 0.33 → PR blocked.</strong>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════════
+     SLIDE 8 — BENCHMARK (the proof)
+══════════════════════════════════════════════════════════════ -->
+<section data-background-color="#0d1117">
+  <div class="section-divider">The Proof — 5 Projects · 1 Score · Perfectly Monotonic</div>
+  <div class="terminal-window lg" style="margin-bottom:20px;">
+    <div class="terminal-titlebar">
+      <div class="td td-r"></div><div class="td td-y"></div><div class="td td-g"></div>
+      <div class="terminal-filename">Architectural Health — 5 ground-truth codebases · same spec</div>
+    </div>
+    <div class="terminal-body">
+  <span class="t-white">correct-reference   </span>  <span class="t-green t-bold">0.85</span>  <span class="t-green">████████████████████████████████████████████</span>  <span class="t-bg-green"> ✅  PASS      </span>
+  <span class="t-white">variant-d-subtle    </span>  <span class="t-yellow t-bold">0.66</span>  <span class="t-yellow">██████████████████████████████████</span>            <span class="t-bg-yellow"> ⚠   WARNING   </span>
+  <span class="t-white">variant-b-pattern   </span>  <span class="t-orange t-bold">0.58</span>  <span class="t-orange">██████████████████████████████</span>                <span class="t-bg-orange"> 🔶 SOFT-BLOCK </span>
+  <span class="t-white">variant-a-structural</span>  <span class="t-orange t-bold">0.54</span>  <span class="t-orange">████████████████████████████</span>                  <span class="t-bg-orange"> 🔶 SOFT-BLOCK </span>
+  <span class="t-white">variant-c-everything</span>  <span class="t-red t-bold">0.33</span>  <span class="t-red">█████████████████</span>                             <span class="t-bg-red"> 🛑 HARD-BLOCK </span>
+
+  <span class="t-green">✔</span>  <span class="t-white t-bold">100% detection rate</span><span class="t-dim"> — every seeded violation caught — score degrades monotonically with quality</span>
+    </div>
+  </div>
+  <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;">
+    <div style="background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:14px;text-align:center;">
+      <div style="font-size:26px;font-weight:800;color:var(--cyan);">100%</div>
+      <div style="font-size:12px;color:var(--dim);">Detection rate</div>
+    </div>
+    <div style="background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:14px;text-align:center;">
+      <div style="font-size:26px;font-weight:800;color:var(--cyan);">0</div>
+      <div style="font-size:12px;color:var(--dim);">False negatives</div>
+    </div>
+    <div style="background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:14px;text-align:center;">
+      <div style="font-size:26px;font-weight:800;color:var(--cyan);">&lt;5s</div>
+      <div style="font-size:12px;color:var(--dim);">Per evaluation</div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════════
+     SLIDE 9 — RESULTS DASHBOARD
+══════════════════════════════════════════════════════════════ -->
+<section data-background-color="#0d1117">
+  <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;">
+    <div>
+      <div class="section-divider">Full Benchmark Dashboard</div>
+      <h3 style="font-size:22px;font-weight:700;">Score cards · Radar chart · Dimension heatmap · Violations breakdown</h3>
+    </div>
+    <a href="results.html" target="_blank" style="font-size:13px;color:var(--cyan);border:1px solid var(--cyan);padding:6px 14px;border-radius:6px;text-decoration:none;white-space:nowrap;">Open full ↗</a>
+  </div>
+  <iframe
+    src="results.html"
+    style="width:100%;height:460px;border:none;border-radius:10px;background:#0d1117;"
+    title="Results Dashboard"
+  ></iframe>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════════
+     SLIDE 10 — NORTH STAR
+══════════════════════════════════════════════════════════════ -->
+<section data-background-color="#0d1117" class="slide-center">
+  <div style="text-align:center;">
+    <div class="north-star-number">100%</div>
+    <div class="north-star-label">Every violation caught. Every time.</div>
+    <div class="north-star-sub">Deterministic. Not AI guesswork. Not opinions. A score.</div>
+    <div style="margin-top:32px;padding:20px 36px;background:var(--surface);border:1px solid var(--border);border-radius:10px;display:inline-block;" class="fragment">
+      <p style="font-size:18px;color:#ddd;font-style:italic;line-height:1.6;">
+        "The average cost of fixing an architectural defect <strong style="color:#fff;">post-production</strong><br>
+        is 10–100× what it costs to catch it <strong style="color:var(--cyan);">on the PR.</strong>"
+      </p>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════════
+     SLIDE 11 — THE MARKET
+══════════════════════════════════════════════════════════════ -->
+<section data-background-color="#0d1117">
+  <div class="section-divider">Who Buys This</div>
+  <h2 style="font-size:38px;font-weight:800;letter-spacing:-1px;margin-bottom:28px;">
+    Every team using <span class="cyan">AI coding tools</span><br>is our customer.
+  </h2>
+  <div class="slide-cols-3">
+    <div class="next-card">
+      <div class="nc-tag">Primary</div>
+      <div class="nc-head" style="font-size:16px;">Engineering teams<br><span style="color:var(--dim);font-weight:400;font-size:14px;">10–50 devs, Cursor / Copilot / Claude Code</span></div>
+      <div class="nc-body">Already paying $20/dev/mo for AI tools. Shipping faster. Feeling quality slip. Want data, not opinions.<br><br><em>"We need a linter, but for architecture."</em></div>
+    </div>
+    <div class="next-card">
+      <div class="nc-tag">Secondary</div>
+      <div class="nc-head" style="font-size:16px;">Platform / DevEx teams<br><span style="color:var(--dim);font-weight:400;font-size:14px;">Larger orgs, multiple teams</span></div>
+      <div class="nc-body">Responsible for enforcing architectural standards across teams. Manual reviews don't scale. Need automated governance in the PR workflow.</div>
+    </div>
+    <div class="next-card" style="border-color:var(--cyan);">
+      <div class="nc-tag" style="color:var(--cyan);">Wedge</div>
+      <div class="nc-head" style="font-size:16px;">Open-source maintainers<br><span style="color:var(--dim);font-weight:400;font-size:14px;">Free tier → community</span></div>
+      <div class="nc-body">Projects with architectural guidelines that contributors violate. Free tier drives viral adoption. Community becomes the pipeline.</div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════════
+     SLIDE 12 — THE PRODUCT VISION
+══════════════════════════════════════════════════════════════ -->
+<section data-background-color="#0d1117">
+  <div class="section-divider">Product Vision</div>
+  <div class="slide-cols" style="align-items:center;gap:48px;">
+    <div>
+      <h2 style="font-size:44px;font-weight:900;letter-spacing:-1.5px;line-height:1.2;margin-bottom:20px;">
+        Like <span class="cyan">Codecov</span>,<br>but for architecture.
+      </h2>
+      <p style="font-size:17px;color:#ddd;line-height:1.7;margin-bottom:24px;">
+        A GitHub App that evaluates every PR. Posts a scored report. Blocks the ones that break your architecture.
+      </p>
+      <div style="display:flex;flex-direction:column;gap:10px;">
+        <div style="display:flex;gap:10px;align-items:center;font-size:15px;"><span class="green">✓</span> <span>Setup in under 5 minutes — auto-infers your architectural spec</span></div>
+        <div style="display:flex;gap:10px;align-items:center;font-size:15px;"><span class="green">✓</span> <span>PR comment with AHS score, delta, and fix suggestions</span></div>
+        <div style="display:flex;gap:10px;align-items:center;font-size:15px;"><span class="green">✓</span> <span>Configurable thresholds — teams set their own quality bar</span></div>
+        <div style="display:flex;gap:10px;align-items:center;font-size:15px;"><span class="green">✓</span> <span>Evaluation in &lt;10 seconds per PR</span></div>
+      </div>
+    </div>
+    <div>
+      <div class="terminal-window">
+        <div class="terminal-titlebar">
+          <div class="td td-r"></div><div class="td td-y"></div><div class="td td-g"></div>
+          <div class="terminal-filename">github.com · PR #342 · Architectural Firewall Check</div>
+        </div>
+        <div class="terminal-body" style="font-size:12px;">
+<span class="t-cyan t-bold">🏛️  Architectural Firewall — PR #342</span>
+
+  <span class="t-white">AHS:  </span><span class="t-yellow">0.78</span> <span class="t-dim">→</span> <span class="t-orange">0.71</span>  <span class="t-red">⚠ -0.07</span>
+
+  <span class="t-red">✗  2 new violations in this PR:</span>
+     <span class="t-dim">dependency-inversion</span>  <span class="t-white">UserService.ts</span>
+     <span class="t-dim">  injects concrete UserRepository (use IUserRepository)</span>
+     <span class="t-dim">dependency-direction  </span><span class="t-white">Order.ts (domain)</span>
+     <span class="t-dim">  imports from infrastructure layer</span>
+
+  <span class="t-green">✅  15/17 rules passing</span>
+  <span class="t-dim">Structural ✅  Coupling ✅  Pattern ⚠️  SOLID ✅</span>
+
+  <span class="t-cyan">💡  Fix: change constructor param to IUserRepository</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════════
+     SLIDE 13 — CLOSING
+══════════════════════════════════════════════════════════════ -->
+<section data-background-color="#0d1117">
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:48px;align-items:start;height:100%;">
+    <!-- Left: identity + closing statement -->
+    <div style="display:flex;flex-direction:column;justify-content:center;padding-top:20px;">
+      <div style="margin-bottom:28px;">
+        <div style="font-size:32px;font-weight:900;color:#fff;letter-spacing:-1px;">Cristian Córdoba</div>
+        <div style="font-size:15px;color:var(--cyan);margin-top:4px;letter-spacing:0.3px;">Software Architect · AI Engineering</div>
+      </div>
+      <div style="font-size:15px;color:#ccc;line-height:1.75;margin-bottom:28px;">
+        I built the Architectural Firewall because I saw that nobody was measuring the architectural impact of AI-generated code.
+      </div>
+      <div style="border-left:3px solid var(--cyan);padding-left:18px;margin-bottom:28px;">
+        <div style="font-size:17px;font-style:italic;color:#e6edf3;line-height:1.6;">
+          "Just as nobody deploys without tests today —<br>
+          tomorrow nobody will deploy without measuring<br>
+          the architectural impact of their AI-generated code."
+        </div>
+      </div>
+      <div style="font-size:13px;color:#fff;font-weight:700;margin-bottom:4px;">Because AI code doesn't just have to work.</div>
+      <div style="font-size:13px;color:var(--cyan);">It has to be well-made. And aligned with the business.</div>
+    </div>
+    <!-- Right: roadmap + stats -->
+    <div style="padding-top:20px;">
+      <div style="font-size:11px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--dim);margin-bottom:14px;">What's Next</div>
+      <div style="display:flex;flex-direction:column;gap:10px;margin-bottom:28px;">
+        <div style="background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:12px 16px;display:flex;gap:12px;align-items:flex-start;">
+          <span style="color:var(--cyan);font-size:16px;flex-shrink:0;">①</span>
+          <div>
+            <div style="font-size:13px;font-weight:700;color:#fff;">Validation against real projects</div>
+            <div style="font-size:11px;color:var(--dim);margin-top:2px;">Close engine accuracy against production codebases</div>
+          </div>
+        </div>
+        <div style="background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:12px 16px;display:flex;gap:12px;align-items:flex-start;">
+          <span style="color:var(--cyan);font-size:16px;flex-shrink:0;">②</span>
+          <div>
+            <div style="font-size:13px;font-weight:700;color:#fff;">Private beta — teams using coding agents</div>
+            <div style="font-size:11px;color:var(--dim);margin-top:2px;">Early access for teams shipping with Copilot, Cursor, Claude</div>
+          </div>
+        </div>
+        <div style="background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:12px 16px;display:flex;gap:12px;align-items:flex-start;">
+          <span style="color:var(--cyan);font-size:16px;flex-shrink:0;">③</span>
+          <div>
+            <div style="font-size:13px;font-weight:700;color:#fff;">CI/CD integration — GitHub Actions, GitLab CI</div>
+            <div style="font-size:11px;color:var(--dim);margin-top:2px;">Firewall runs automatically on every pull request</div>
+          </div>
+        </div>
+        <div style="background:rgba(57,208,245,0.06);border:1px solid rgba(57,208,245,0.3);border-radius:8px;padding:12px 16px;display:flex;gap:12px;align-items:flex-start;">
+          <span style="color:var(--cyan);font-size:16px;flex-shrink:0;">★</span>
+          <div>
+            <div style="font-size:13px;font-weight:700;color:var(--cyan);">Vision: unified project health score</div>
+            <div style="font-size:11px;color:var(--dim);margin-top:2px;">Orchestration layer across SonarQube, CodeQL, testing + business spec alignment</div>
+          </div>
+        </div>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;">
+        <div style="background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:12px;text-align:center;">
+          <div style="font-size:20px;font-weight:800;color:var(--green);">100%</div>
+          <div style="font-size:10px;color:var(--dim);">Detection rate</div>
+        </div>
+        <div style="background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:12px;text-align:center;">
+          <div style="font-size:20px;font-weight:800;color:var(--cyan);">&lt;5s</div>
+          <div style="font-size:10px;color:var(--dim);">Per evaluation</div>
+        </div>
+        <div style="background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:12px;text-align:center;">
+          <div style="font-size:20px;font-weight:800;color:var(--cyan);">26</div>
+          <div style="font-size:10px;color:var(--dim);">Arch rules</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+</div><!-- .slides -->
+</div><!-- .reveal -->
+
+<!-- ── Pitch Clock Overlay ─────────────────────────────────────────────── -->
+<div id="pitch-clock" style="
+  position:fixed; bottom:20px; right:20px; z-index:9999;
+  background:rgba(13,17,23,0.93); border:1px solid #30363d;
+  border-radius:12px; padding:12px 16px; min-width:188px;
+  font-family:'SF Mono','Fira Code',monospace;
+  backdrop-filter:blur(10px); box-shadow:0 4px 24px rgba(0,0,0,0.5);
+  display:none;
+">
+  <!-- Total elapsed -->
+  <div style="display:flex;align-items:baseline;justify-content:space-between;margin-bottom:8px;">
+    <span id="clock-time" style="font-size:28px;font-weight:700;color:#fff;letter-spacing:-1px;">0:00</span>
+    <span style="font-size:11px;color:#8b949e;">/ 3:00</span>
+  </div>
+  <!-- Total progress bar -->
+  <div style="height:3px;background:#21262d;border-radius:2px;margin-bottom:10px;overflow:hidden;">
+    <div id="clock-bar-total" style="height:100%;width:0%;background:#39d0f5;border-radius:2px;transition:width 0.5s linear;"></div>
+  </div>
+  <!-- Section label -->
+  <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:5px;">
+    <span id="clock-section-label" style="font-size:10px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:#39d0f5;"></span>
+    <span id="clock-section-budget" style="font-size:10px;color:#8b949e;"></span>
+  </div>
+  <!-- Section progress bar -->
+  <div style="height:2px;background:#21262d;border-radius:2px;overflow:hidden;">
+    <div id="clock-bar-section" style="height:100%;width:0%;background:#3fb950;border-radius:2px;transition:width 0.5s linear;"></div>
+  </div>
+  <!-- Pause hint -->
+  <div style="margin-top:8px;font-size:9px;color:#484f58;text-align:center;">P · pause &nbsp;|&nbsp; → · skip</div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/dist/reveal.js"></script>
+<script>
+  // ── Slide timing (seconds per slide, 14 slides = 3:00 total) ──────────
+  //  Section 1 — El Problema  (slides 0-3):  5+10+7+8  = 30s
+  //  Section 2 — Demo         (slides 4-7):  8+5+16+16 = 45s
+  //  Section 3 — Cómo con IA  (slides 8-10): 15+15+15  = 45s
+  //  Section 4 — North Star   (slides 11-12):15+15     = 30s
+  //  Section 5 — Cierre       (slide 13):    30        = 30s
+  const SLIDE_DURATIONS = [5,10,7,8, 8,5,16,16, 15,15,15, 15,15, 30];
+  const TOTAL_SECONDS   = 180;
+
+  const SECTIONS = [
+    { label:'El Problema', start:0,   end:30,  slides:[0,3]   },
+    { label:'Demo',        start:30,  end:75,  slides:[4,7]   },
+    { label:'Cómo con IA', start:75,  end:120, slides:[8,10]  },
+    { label:'North Star',  start:120, end:150, slides:[11,12] },
+    { label:'Cierre',      start:150, end:180, slides:[13,13] },
+  ];
+
+  // ── State ──────────────────────────────────────────────────────────────
+  let startTime   = null;
+  let pausedAt    = null;    // Date.now() when paused, null if running
+  let pausedTotal = 0;       // accumulated paused ms
+  let autoTimer   = null;
+  let clockRaf    = null;
+  let started     = false;
+
+  // ── Helpers ────────────────────────────────────────────────────────────
+  function elapsedSeconds() {
+    if (!startTime) return 0;
+    const now = pausedAt || Date.now();
+    return (now - startTime - pausedTotal) / 1000;
+  }
+
+  function fmt(s) {
+    const m = Math.floor(Math.abs(s) / 60);
+    const sec = Math.floor(Math.abs(s) % 60);
+    return (s < 0 ? '-' : '') + m + ':' + String(sec).padStart(2,'0');
+  }
+
+  function scheduleNext(slideIndex) {
+    clearTimeout(autoTimer);
+    if (pausedAt) return;                          // don't schedule while paused
+    const dur = (SLIDE_DURATIONS[slideIndex] || 10) * 1000;
+    autoTimer = setTimeout(() => Reveal.next(), dur);
+  }
+
+  function updateClock() {
+    const el = elapsedSeconds();
+    const pct = Math.min(el / TOTAL_SECONDS * 100, 100);
+    const over = el > TOTAL_SECONDS;
+
+    // Time display
+    document.getElementById('clock-time').textContent = fmt(el);
+    document.getElementById('clock-time').style.color = over ? '#f85149' : pausedAt ? '#d29922' : '#fff';
+
+    // Total bar
+    const tbar = document.getElementById('clock-bar-total');
+    tbar.style.width = pct + '%';
+    tbar.style.background = over ? '#f85149' : el > 150 ? '#d29922' : '#39d0f5';
+
+    // Section
+    const idx = Reveal.getState ? Reveal.getState().indexh : 0;
+    const sec = SECTIONS.find(s => idx >= s.slides[0] && idx <= s.slides[1]);
+    if (sec) {
+      const secEl  = Math.max(0, el - sec.start);
+      const secBud = sec.end - sec.start;
+      const secPct = Math.min(secEl / secBud * 100, 100);
+      const secOver = secEl > secBud;
+
+      document.getElementById('clock-section-label').textContent  = sec.label;
+      document.getElementById('clock-section-budget').textContent = fmt(secBud - secEl);
+      const sbar = document.getElementById('clock-bar-section');
+      sbar.style.width      = secPct + '%';
+      sbar.style.background = secOver ? '#f85149' : '#3fb950';
+    }
+
+    clockRaf = requestAnimationFrame(updateClock);
+  }
+
+  function startClock() {
+    if (started) return;
+    started = true;
+    startTime = Date.now();
+    document.getElementById('pitch-clock').style.display = 'block';
+    updateClock();
+    scheduleNext(0);
+  }
+
+  function togglePause() {
+    if (!started) return;
+    if (pausedAt) {
+      // Resume
+      pausedTotal += Date.now() - pausedAt;
+      pausedAt = null;
+      const idx = Reveal.getState ? Reveal.getState().indexh : 0;
+      scheduleNext(idx);
+    } else {
+      // Pause
+      pausedAt = Date.now();
+      clearTimeout(autoTimer);
+    }
+  }
+
+  // ── Reveal setup ───────────────────────────────────────────────────────
+  Reveal.initialize({
+    hash: true,
+    progress: true,
+    controls: true,
+    slideNumber: 'c/t',
+    transition: 'fade',
+    transitionSpeed: 'fast',
+    backgroundTransition: 'fade',
+    center: false,
+    margin: 0.06,
+    width: 1280,
+    height: 720,
+    keyboard: {
+      80: () => togglePause(),   // P key — pause/resume
+    },
+  });
+
+  // Start clock on first slide interaction (not immediately, so presenter is ready)
+  Reveal.on('slidechanged', (e) => {
+    startClock();
+    if (!pausedAt) scheduleNext(e.indexh);
+  });
+
+  // Also allow clicking the clock to pause
+  document.getElementById('pitch-clock').addEventListener('click', togglePause);
+</script>
+</body>
+</html>

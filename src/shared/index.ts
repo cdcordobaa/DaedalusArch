@@ -34,10 +34,19 @@ export type {
   EvaluationResults, PerDimensionScore, UniversalHealthMetrics, EvaluationReport,
 } from './types/evaluation.js';
 
+// Drift types
+export type {
+  DriftReport, StructuralDriftMetric, CrossLayerDep,
+  CouplingDriftMetric, LayerCouplingDelta, FanOutContributor,
+  ConventionDriftMetric, LayerConventionDelta,
+  ViolationTrendMetric, ViolationTrendDirection,
+  DriftAlert, DriftThresholds,
+} from './types/drift.js';
+
 // Interfaces
 export type { GraphRepository, QueryResult } from './interfaces/graph-repository.js';
 export type { LLMProvider, LLMOptions, LLMResponse } from './interfaces/llm-provider.js';
-export type { SnapshotStore, SnapshotMetadata, Snapshot, SnapshotSummary } from './interfaces/snapshot-store.js';
+export type { SnapshotStore, SnapshotMetadata, Snapshot, SnapshotSummary, DeltaAPG } from './interfaces/snapshot-store.js';
 export type { PipelineStage, PipelineCommand } from './interfaces/pipeline-stage.js';
 
 // FirewallContext (C11)

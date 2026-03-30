@@ -1,4 +1,5 @@
 import type { Dimension, Severity, EvaluationMode } from './enums.js';
+import type { DriftReport } from './drift.js';
 import type { AVRScore, AHSScore, Confidence, FunctionId, RunId } from './value-objects.js';
 import type { SemanticCriteria, CypherRule } from './spec.js';
 import type { Violation } from '../taxonomy/violation-types.js';
@@ -8,6 +9,7 @@ export interface IngestionResult {
   readonly graphStats: GraphStats;
   readonly layerAnnotationSummary: LayerAnnotationSummary;
   readonly deltaStats?: DeltaStats;
+  readonly driftReport?: DriftReport;
 }
 
 export interface GraphStats {
