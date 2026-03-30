@@ -1,5 +1,5 @@
-import { Task } from '../../../domain/entities/Task';
-import { ITaskRepository } from '../../../domain/repositories/ITaskRepository';
+import { Task } from '../../domain/entities/Task';
+import { ITaskRepository } from '../../domain/repositories/ITaskRepository';
 
 export interface CreateTaskInput {
   title: string;

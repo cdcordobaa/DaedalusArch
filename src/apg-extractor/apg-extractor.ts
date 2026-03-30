@@ -62,7 +62,7 @@ export async function extractAPG(
     const parsedFiles = totalFiles - skipped.length;
     const percentage = totalFiles === 0
       ? 100
-      : Math.round((parsedFiles / totalFiles) * 10) / 10;
+      : Math.round((parsedFiles / totalFiles) * 1000) / 10;
 
     const parseCoverage = {
       total: totalFiles,

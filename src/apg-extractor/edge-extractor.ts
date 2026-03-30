@@ -1,3 +1,4 @@
+import { resolve, dirname } from 'node:path';
 import { SourceFile, SyntaxKind, Node } from 'ts-morph';
 import type { APGEdge } from '../shared/types/apg.js';
 import type { ExtractorWarning } from '../shared/types/apg.js';
@@ -95,19 +96,50 @@ export function extractEdges(
       // IMPLEMENTS (Class → Interface)
       for (const impl of cls.getImplements()) {
         try {
+          const ifaceName = impl.getExpression().getText().split('<')[0]!.trim();
+
+          // Primary path: resolve via ts-morph type symbol (works for same-file interfaces)
           const implType = impl.getType();
           const symbol = implType.getSymbol() ?? implType.getAliasSymbol();
-          if (!symbol) continue;
-          const declarations = symbol.getDeclarations();
-          if (declarations.length === 0) continue;
-          const decl = declarations[0];
-          if (!Node.isInterfaceDeclaration(decl)) continue;
-          const ifaceName = decl.getName();
-          const ifacePath = normalizeFilePath(decl.getSourceFile().getFilePath(), projectRoot);
-          const targetId = lookup.typeNodes.get(`${ifaceName.toLowerCase()}@${ifacePath}`);
-          if (targetId) {
-            addEdge(buildEdge('IMPLEMENTS', clsNodeId, targetId, {}));
-          } else {
+          if (symbol && symbol.getDeclarations().length > 0) {
+            const decl = symbol.getDeclarations()[0]!;
+            if (Node.isInterfaceDeclaration(decl)) {
+              const resolvedPath = normalizeFilePath(decl.getSourceFile().getFilePath(), projectRoot);
+              const targetId = lookup.typeNodes.get(`${ifaceName.toLowerCase()}@${resolvedPath}`);
+              if (targetId) {
+                addEdge(buildEdge('IMPLEMENTS', clsNodeId, targetId, {}));
+                continue;
+              }
+            }
+          }
+
+          // Fallback: resolve via the import declarations of the current file.
+          // ts-morph type resolution fails for cross-file interfaces when module
+          // resolution can't follow relative imports (e.g. no .ts extension in specifier).
+          const absoluteFilePath = sf.getFilePath();
+          let resolved = false;
+          for (const importDecl of sf.getImportDeclarations()) {
+            const named = importDecl.getNamedImports().find(n => n.getName() === ifaceName);
+            if (!named) continue;
+            const specifier = importDecl.getModuleSpecifierValue();
+            if (!specifier.startsWith('.') && !specifier.startsWith('/')) continue;
+
+            // Resolve specifier to absolute path, trying .ts and /index.ts
+            const base = resolve(dirname(absoluteFilePath), specifier);
+            const candidates = [`${base}.ts`, `${base}/index.ts`, base];
+            for (const candidate of candidates) {
+              const candidateNorm = normalizeFilePath(candidate, projectRoot);
+              const targetId = lookup.typeNodes.get(`${ifaceName.toLowerCase()}@${candidateNorm}`);
+              if (targetId) {
+                addEdge(buildEdge('IMPLEMENTS', clsNodeId, targetId, {}));
+                resolved = true;
+                break;
+              }
+            }
+            if (resolved) break;
+          }
+
+          if (!resolved) {
             addWarning(filePath, 'EXTRACTOR_004', `IMPLEMENTS target not in extracted set: ${ifaceName}`);
           }
         } catch {
