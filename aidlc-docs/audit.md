@@ -308,3 +308,33 @@
 **AI Response**: Identified 5 major gaps and 1 critical contradiction (Persistence vs Statelessness). Created comparison report.
 **Context**: Requirements Analysis — Review and alignment
 
+
+## Construction — Unit 2 APG Extractor — Loop Start + Functional Design Questions
+**Timestamp**: 2026-03-30T00:05:00Z
+**User Input**: "continue"
+**AI Response**: Starting U2 — APG Extractor. Stage assessment: Functional Design (EXECUTE), NFR Requirements/Design/Infrastructure (all SKIP). Created unit-2-apg-extractor-functional-design-plan.md and unit-2-apg-extractor-design-questions.md with 4 targeted questions: Q1 node ID strategy, Q2 CONSTRUCTOR_INJECTS detection, Q3 CALLS edge scope, Q4 barrel import resolution. Awaiting user answers.
+**Context**: Construction Phase — U2 Functional Design Step 1 complete
+
+---
+
+## Construction — Unit 2 Functional Design — Complete
+**Timestamp**: 2026-03-30T00:20:00Z
+**AI Response**: Q&A complete (Q1:A deterministic SHA-256 IDs, Q2:C decorator+structural DI, Q3:A cross-boundary CALLS only, Q4:A transitive barrel resolution). Generated 3 artifacts: business-logic-model.md (6-stage extraction lifecycle, node/edge extraction rules, ID algo, barrel detection, coverage computation), business-rules.md (35 rules across 7 categories + 7 warning codes), domain-entities.md (ExtractorOptions, ExtractorError, NodeRegistry, ResolvedImport, DIResolution, DecoratorMetadata, CallResolution + DI_DECORATORS + PRIMITIVE_TYPES + DEFAULT_EXCLUDE_PATTERNS constants). Awaiting approval.
+**Context**: Construction Phase — U2 Functional Design Steps 1-6 complete
+
+---
+
+## Construction — Unit 2 Functional Design — APPROVED
+**Timestamp**: 2026-03-30T00:25:00Z
+**User Input**: "go ahead"
+**AI Response**: Functional Design approved. Noted PipelineStage<string, APGResult> alignment from U1 output — APGExtractor class must implement this interface; execute() bridges to internal extractAPG() and calls context.setApgResult() on success. Proceeding to Code Generation Part 1 (plan).
+**Context**: Construction Phase — U2 Functional Design Step 7/8 complete, Code Generation starting
+
+---
+
+## Construction — Unit 2 Code Generation — COMPLETE
+**Timestamp**: 2026-03-30T01:00:00Z
+**AI Response**: All 15 steps executed. Created 6 source files (types.ts, id-generator.ts, node-extractor.ts, edge-extractor.ts, apg-extractor.ts, index.ts) + 7 test files (4 unit, 3 BDD features, 1 integration). typecheck: 0 errors. test:unit: 89/89 passing (50 new U2 tests + 39 existing U1 tests). Fixed 3 typecheck errors: unused import, two array[0] non-null assertions. Awaiting user approval.
+**Context**: Construction Phase — U2 Code Generation all steps [x]
+
+---
