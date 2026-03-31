@@ -1,9 +1,6 @@
-/**
- * Scoring Engine — C8
- * Bounded Context: AVR/AHS computation, dual scoring, verdict merge, universal metrics.
- * Input:  ScoringInput (symbolicResults, neuronalResults, scoringWeights, confidenceThresholds, mode)
- * Output: EvaluationReport (ahsDeterministic, ahsCombined, verdict, perDimensionBreakdown[], violations[], universalMetrics)
- *
- * Implementation: Unit 6 (U6 — Scoring + Reports)
- */
-export type {};
+export { ScoringStage, computeScores } from './scoring-engine.js';
+export { computeAVR, computeAHS, computePerDimensionScores } from './score-computer.js';
+export { determineVerdict } from './verdict.js';
+export { computeUniversalMetrics } from './universal-metrics.js';
+export { formatJSON, formatHuman, formatCSV, csvHeader } from './report-formatter.js';
+export type { ScoringInput, ScoringError, ScoringErrorCode } from './types.js';

@@ -339,6 +339,28 @@
 
 ---
 
+## Construction — Unit 6 Code Generation — COMPLETE
+**Timestamp**: 2026-03-30T17:30:00Z
+**AI Response**: All 9 steps executed. Created 6 source files: types, score-computer (AVR/AHS), verdict, universal-metrics, report-formatter (JSON/human/CSV), scoring-engine + PipelineStage. Created 1 test file (15 tests). typecheck: 0 errors. tests: 239/239 passing (15 new U6 + 224 existing). All 10 stories traced. Awaiting user approval.
+**Context**: Construction Phase — U6 Code Generation all steps [x]
+
+---
+
+## Construction — Unit 5 Code Generation — APPROVED
+**Timestamp**: 2026-03-30T17:10:00Z
+**User Input**: "continue"
+**AI Response**: U5 approved. Proceeding to U6 (Scoring Engine + Reports).
+**Context**: Construction Phase — U5 complete, U6 loop starting
+
+---
+
+## Construction — Unit 5 Code Generation — COMPLETE
+**Timestamp**: 2026-03-30T17:00:00Z
+**AI Response**: All 12 steps executed. Extended CypherTemplate with resultMapping (U3 mod). Created 9 source files across 3 modules: evaluation-engine (types, symbolic-evaluator), llm-critic (types, context-assembler, verdict-parser, cassette-manager, mock-provider, llm-critic), neuro-symbolic-router (types, router). Created 3 test files. typecheck: 0 errors. tests: 224/224 passing (27 new U5 + 197 existing). Awaiting user approval.
+**Context**: Construction Phase — U5 Code Generation all steps [x]
+
+---
+
 ## Construction — Unit 5 Functional Design — APPROVED
 **Timestamp**: 2026-03-30T16:45:00Z
 **User Input**: "continue"

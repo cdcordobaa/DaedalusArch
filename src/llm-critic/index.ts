@@ -1,9 +1,12 @@
-/**
- * LLM Critic Agent — C7
- * Bounded Context: context assembly, prompt construction, rubric evaluation, structured verdicts, VCR cassettes.
- * Input:  NeuronalEvalInput (neuronalInstructions[], projectSourceFiles, apgSubgraphs, adrFiles?)
- * Output: NeuronalResults (results[]: { functionId, verdict, confidence, icc, reasoning, evidence[], violations[], auditLog })
- *
- * Implementation: Unit 5 (U5 — Router + Evaluation Engine) — neuronal path
- */
-export type {};
+export { evaluateNeuronal } from './llm-critic.js';
+export type { NeuronalEvalOutput } from './llm-critic.js';
+export { assembleContext, constructPrompt } from './context-assembler.js';
+export { parseVerdict } from './verdict-parser.js';
+export { MockLLMProvider } from './mock-provider.js';
+export { saveCassette, loadCassette, cassetteExists } from './cassette-manager.js';
+export type {
+  NeuronalEvalInput, CriticVerdict, CriticViolation,
+  CassetteEntry, ContextPacket, TokenBudget, VCRMode,
+  CriticError, CriticErrorCode,
+} from './types.js';
+export { DEFAULT_NEURONAL_OPTIONS, DEFAULT_TOKEN_BUDGET } from './types.js';
