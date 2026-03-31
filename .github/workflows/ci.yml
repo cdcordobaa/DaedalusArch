@@ -65,6 +65,15 @@ jobs:
           PIPELINE_MODE: stateless
           EVALUATION_MODE: symbolic-only
 
+      - name: Firewall self-evaluation (symbolic-only)
+        if: github.event_name == 'pull_request'
+        uses: ./.github/actions/firewall
+        with:
+          project-path: '.'
+          spec-path: 'specs/clean-arch.yaml'
+          neo4j-password: 'test-password'
+          evaluation-mode: 'symbolic-only'
+
       - name: Upload coverage
         uses: codecov/codecov-action@v4
         if: always()

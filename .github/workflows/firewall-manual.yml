@@ -1,0 +1,70 @@
+name: Firewall Manual Trigger
+
+on:
+  issue_comment:
+    types: [created]
+
+jobs:
+  firewall-on-comment:
+    name: Firewall Evaluation (Manual)
+    if: >
+      github.event.issue.pull_request &&
+      contains(github.event.comment.body, '/firewall')
+    runs-on: ubuntu-latest
+
+    services:
+      neo4j:
+        image: neo4j:5.26-community
+        ports:
+          - 7474:7474
+          - 7687:7687
+        env:
+          NEO4J_AUTH: neo4j/test-password
+          NEO4J_PLUGINS: '["apoc"]'
+          NEO4J_dbms_security_procedures_unrestricted: 'apoc.*'
+        options: >-
+          --health-cmd "wget --quiet --tries=1 --spider http://localhost:7474 || exit 1"
+          --health-interval 15s
+          --health-timeout 10s
+          --health-retries 10
+          --health-start-period 30s
+
+    steps:
+      - name: Parse flags from comment
+        id: parse
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const body = context.payload.comment.body;
+            const mode = body.includes('--neuronal-only') ? 'neuronal-only'
+              : body.includes('--full') ? 'full'
+              : 'symbolic-only';
+            core.setOutput('mode', mode);
+
+      - name: Get PR ref
+        id: pr
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const { data: pr } = await github.rest.pulls.get({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              pull_number: context.issue.number,
+            });
+            core.setOutput('ref', pr.head.ref);
+            core.setOutput('sha', pr.head.sha);
+
+      - name: Checkout PR branch
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ steps.pr.outputs.ref }}
+
+      - name: Run firewall evaluation
+        uses: ./.github/actions/firewall
+        with:
+          project-path: '.'
+          spec-path: 'specs/clean-arch.yaml'
+          neo4j-password: 'test-password'
+          evaluation-mode: ${{ steps.parse.outputs.mode }}
+          anthropic-api-key: ${{ secrets.ANTHROPIC_API_KEY }}
+          openai-api-key: ${{ secrets.OPENAI_API_KEY }}

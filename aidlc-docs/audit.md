@@ -460,3 +460,27 @@
 **Context**: Construction Phase — U2 complete, U3 loop starting
 
 ---
+
+## Construction — U7 (CLI + CI/CD + Pipeline Orchestration) — Functional Design START
+**Timestamp**: 2026-03-30T18:00:00Z
+**User Input**: "contunue with the next unit"
+**AI Response**: Starting U7 Functional Design. U7 covers C9 (CLI), S1 (PipelineExecutor), GitHub Action, Batch Runner. 21 stories mapped. Stage assessment: Functional Design (EXECUTE — complex pipeline orchestration with command pattern, parallel branch dispatch, CLI with 3 commands, GitHub Action integration), Code Generation (ALWAYS). NFR/Infra stages handled via Code Gen since GitHub Action stubs already exist and NFR patterns are straightforward CLI concerns.
+**Context**: Construction Phase — U7 Functional Design starting (final unit)
+
+---
+
+## Construction — U7 Functional Design — APPROVED
+**Timestamp**: 2026-03-30T18:30:00Z
+**User Input**: "done keep going" (Q&A answers) then "do it" (approval)
+**AI Response**: Functional design approved. Generated 3 artifacts: business-logic-model.md (7 BL areas), business-rules.md (8 rules), domain-entities.md (11 command classes + PipelineExecutor + factory). Proceeding to Code Generation.
+**Context**: Construction Phase — U7 Functional Design COMPLETE, Code Generation starting
+
+---
+
+## Construction — U7 Code Generation — COMPLETE
+**Timestamp**: 2026-03-30T19:15:00Z
+**User Input**: "do it"
+**AI Response**: U7 Code Generation complete. Implemented: PipelineExecutor (sequential command loop, fail-fast, graceful shutdown), 12 PipelineCommand adapters (Extract, Parse, Ingest, Compile, RouteEvaluate, SymbolicEvaluate, NeuronalEvaluate, Score, SnapshotSave, SnapshotLoad, DriftDetect, ParallelCommand), pipeline factory with preset command sequences + flag overrides, CLI with 3 commands (evaluate/batch/drift) via Commander.js, batch runner with per-project isolation, drift handler with dual-mode snapshot selection, GitHub Action (composite: PR comment + Check Run), manual trigger workflow, bin/firewall.ts entry point. 73 new tests across 6 suites, all passing. Full suite: 29 suites, 312 tests, 0 failures. TypeCheck: 0 errors.
+**Context**: Construction Phase — U7 COMPLETE (final unit). All 8 units done. Next: Build and Test stage.
+
+---

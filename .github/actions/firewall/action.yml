@@ -24,10 +24,6 @@ inputs:
   neo4j-password:
     description: 'Neo4j password'
     required: true
-  output-format:
-    description: 'Report output format: json | human | csv'
-    required: false
-    default: 'human'
   evaluation-mode:
     description: 'Evaluation mode: full | symbolic-only | neuronal-only'
     required: false
@@ -35,15 +31,205 @@ inputs:
   anthropic-api-key:
     description: 'Anthropic API key (required for neuronal/full evaluation mode)'
     required: false
+  openai-api-key:
+    description: 'OpenAI API key (alternative provider for neuronal/full mode)'
+    required: false
+  ahs-threshold:
+    description: 'Optional AHS threshold — fail check if score is below this value (0.0-1.0)'
+    required: false
 
 outputs:
   ahs-score:
     description: 'Architectural Health Score (0.0 - 1.0)'
+    value: ${{ steps.evaluate.outputs.ahs-score }}
   verdict:
     description: 'Evaluation verdict: pass | warning | soft-block | hard-block'
+    value: ${{ steps.evaluate.outputs.verdict }}
   report-path:
     description: 'Path to the generated evaluation report'
+    value: ${{ steps.evaluate.outputs.report-path }}
 
 runs:
-  using: 'node20'
-  main: 'dist/cli/index.js'
+  using: 'composite'
+  steps:
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '22'
+        cache: 'npm'
+
+    - name: Install dependencies
+      shell: bash
+      run: npm ci
+
+    - name: Run firewall evaluation
+      id: evaluate
+      shell: bash
+      env:
+        NEO4J_URI: ${{ inputs.neo4j-uri }}
+        NEO4J_USER: ${{ inputs.neo4j-user }}
+        NEO4J_PASSWORD: ${{ inputs.neo4j-password }}
+        ANTHROPIC_API_KEY: ${{ inputs.anthropic-api-key }}
+        OPENAI_API_KEY: ${{ inputs.openai-api-key }}
+      run: |
+        MODE_FLAG=""
+        if [ "${{ inputs.evaluation-mode }}" = "symbolic-only" ]; then
+          MODE_FLAG="--symbolic-only"
+        elif [ "${{ inputs.evaluation-mode }}" = "neuronal-only" ]; then
+          MODE_FLAG="--neuronal-only"
+        fi
+
+        REPORT_PATH="${{ runner.temp }}/firewall-report.json"
+
+        npx tsx src/cli/cli.ts evaluate \
+          --project "${{ inputs.project-path }}" \
+          --spec "${{ inputs.spec-path }}" \
+          --neo4j-uri "${{ inputs.neo4j-uri }}" \
+          --format json \
+          $MODE_FLAG \
+          > "$REPORT_PATH" 2>/dev/null || true
+
+        # Parse results from JSON report
+        AHS_SCORE=$(jq -r '.ahsDeterministic' "$REPORT_PATH" 2>/dev/null || echo "0")
+        VERDICT=$(jq -r '.verdict' "$REPORT_PATH" 2>/dev/null || echo "error")
+
+        echo "ahs-score=$AHS_SCORE" >> "$GITHUB_OUTPUT"
+        echo "verdict=$VERDICT" >> "$GITHUB_OUTPUT"
+        echo "report-path=$REPORT_PATH" >> "$GITHUB_OUTPUT"
+
+    - name: Post PR comment
+      if: github.event_name == 'pull_request'
+      uses: actions/github-script@v7
+      with:
+        script: |
+          const fs = require('fs');
+          const reportPath = '${{ steps.evaluate.outputs.report-path }}';
+          const ahsScore = '${{ steps.evaluate.outputs.ahs-score }}';
+          const verdict = '${{ steps.evaluate.outputs.verdict }}';
+
+          let report;
+          try {
+            report = JSON.parse(fs.readFileSync(reportPath, 'utf-8'));
+          } catch {
+            report = null;
+          }
+
+          const verdictEmoji = {
+            'pass': '✅', 'warning': '⚠️',
+            'soft-block': '🚫', 'hard-block': '❌'
+          };
+
+          let body = `<!-- firewall-report -->\n`;
+          body += `## ${verdictEmoji[verdict] || '❓'} Architectural Firewall — ${verdict.toUpperCase()}\n\n`;
+          body += `**AHS Score**: \`${parseFloat(ahsScore).toFixed(4)}\`\n`;
+          body += `**Mode**: ${report?.evaluationMode || '${{ inputs.evaluation-mode }}'}\n\n`;
+
+          if (report?.perDimensionScores?.length) {
+            body += `### Per-Dimension Scores\n`;
+            body += `| Dimension | AVR | Violations |\n|-----------|-----|------------|\n`;
+            for (const dim of report.perDimensionScores) {
+              body += `| ${dim.dimension} | ${dim.avr.toFixed(4)} | ${dim.violationCount} |\n`;
+            }
+            body += `\n`;
+          }
+
+          if (report?.violations?.length) {
+            const top = report.violations.slice(0, 10);
+            body += `### Top Violations (${report.violations.length} total)\n`;
+            body += `| File | Rule | Severity |\n|------|------|----------|\n`;
+            for (const v of top) {
+              body += `| \`${v.filePath || v.sourceNode || '—'}\` | ${v.functionId || v.rule || '—'} | ${v.severity} |\n`;
+            }
+            if (report.violations.length > 10) {
+              body += `\n*...and ${report.violations.length - 10} more. See full report.*\n`;
+            }
+            body += `\n`;
+          }
+
+          if (report?.durationMs) {
+            body += `*Completed in ${report.durationMs}ms*\n`;
+          }
+
+          // Find existing comment to update
+          const { data: comments } = await github.rest.issues.listComments({
+            owner: context.repo.owner,
+            repo: context.repo.repo,
+            issue_number: context.issue.number,
+          });
+
+          const existing = comments.find(c => c.body?.includes('<!-- firewall-report -->'));
+
+          if (existing) {
+            await github.rest.issues.updateComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              comment_id: existing.id,
+              body,
+            });
+          } else {
+            await github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+              body,
+            });
+          }
+
+    - name: Create Check Run
+      if: github.event_name == 'pull_request'
+      uses: actions/github-script@v7
+      with:
+        script: |
+          const fs = require('fs');
+          const reportPath = '${{ steps.evaluate.outputs.report-path }}';
+          const ahsScore = '${{ steps.evaluate.outputs.ahs-score }}';
+          const verdict = '${{ steps.evaluate.outputs.verdict }}';
+          const threshold = '${{ inputs.ahs-threshold }}';
+
+          let conclusion = (verdict === 'pass' || verdict === 'warning') ? 'success' : 'failure';
+
+          // Override with threshold if provided
+          if (threshold) {
+            conclusion = parseFloat(ahsScore) >= parseFloat(threshold) ? 'success' : 'failure';
+          }
+
+          let report;
+          try {
+            report = JSON.parse(fs.readFileSync(reportPath, 'utf-8'));
+          } catch {
+            report = null;
+          }
+
+          const violationCount = report?.violations?.length || 0;
+          const summary = `AHS: ${parseFloat(ahsScore).toFixed(4)} | Verdict: ${verdict} | Violations: ${violationCount}`;
+
+          // Build file-level annotations from violations
+          const annotations = [];
+          if (report?.violations) {
+            for (const v of report.violations.slice(0, 50)) {
+              if (v.filePath) {
+                annotations.push({
+                  path: v.filePath,
+                  start_line: v.line || 1,
+                  end_line: v.line || 1,
+                  annotation_level: v.severity === 'critical' ? 'failure' : 'warning',
+                  message: `[${v.dimension}] ${v.message || v.functionId || 'Violation detected'}`,
+                  title: `Firewall: ${v.severity}`,
+                });
+              }
+            }
+          }
+
+          await github.rest.checks.create({
+            owner: context.repo.owner,
+            repo: context.repo.repo,
+            name: 'Architectural Firewall',
+            head_sha: context.payload.pull_request.head.sha,
+            status: 'completed',
+            conclusion,
+            output: {
+              title: `Architectural Health: ${parseFloat(ahsScore).toFixed(4)}`,
+              summary,
+              annotations: annotations.slice(0, 50),
+            },
+          });

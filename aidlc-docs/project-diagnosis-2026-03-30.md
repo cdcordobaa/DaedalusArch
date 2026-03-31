@@ -203,3 +203,223 @@ Of the 26, **11 are spike-validated** against the fixture projects with known-go
 | Cypher result mapping | Template-annotated mapping in `CypherTemplate` config | Decouples DB query from app code; safe for custom rules |
 | ICC computation | Simple stddev-based consistency check (threshold > 0.15 = unstable) | Avoids ICC edge cases (NaN on identical scores) |
 | LLM context budget | Fixed budget per component (code: 2000, subgraph: 500, rule: 300, ADR: 500 tokens) | Predictable, forces concise context |
+
+---
+
+## Extensibility Analysis: Multi-Language and Multi-Architecture Support
+
+### Language Coupling Map
+
+The system has 3 distinct layers with different language dependencies:
+
+| Layer | Components | Language-Coupled? |
+|-------|-----------|-------------------|
+| **APG Extractor** (C1) | `ts-morph`, node/edge extraction | **Hardcoded to TypeScript** — the only language-specific module |
+| **Everything else** (C2–C9, S1–S6) | Neo4j, Cypher, Router, LLM Critic, Scoring, CLI | **Language-agnostic** — operates on the abstract graph |
+| **AoC Spec + Templates** | YAML spec, template registry | **Language-agnostic** — directory patterns and rule definitions |
+
+~85% of the system doesn't care what language produced the graph. The APG is an abstract representation — once nodes and edges are in Neo4j, all downstream modules work regardless of source language.
+
+### The Plugin Boundary: APGResult Contract
+
+Every language extractor must produce the same shape:
+
+```typescript
+interface APGResult {
+  nodes: APGNode[];   // File, Class, Interface, Method, Function
+  edges: APGEdge[];   // IMPORTS, IMPLEMENTS, EXTENDS, CONSTRUCTOR_INJECTS, CALLS, DECLARES, CONTAINS
+  parseCoverage: ParseCoverage;
+  warnings: ExtractorWarning[];
+}
+```
+
+```
+                    ┌──────────────────┐
+                    │  AoC YAML Spec   │  ← language-agnostic
+                    │  + Template      │     (layers, fitness fns, weights)
+                    └────────┬─────────┘
+                             │
+  ┌──────────────┐   ┌──────┴───────┐   ┌──────────────┐
+  │ TS Extractor │   │ Py Extractor │   │ Java Extract  │  ← one per language
+  │ (ts-morph)   │   │ (ast/astroid)│   │ (JavaParser)  │
+  └──────┬───────┘   └──────┬───────┘   └──────┬───────┘
+         │                  │                   │
+         └──────────┬───────┴───────────────────┘
+                    │
+                    ▼
+              ┌───────────┐
+              │ APGResult  │  ← universal graph contract
+              └─────┬─────┘
+                    │
+         ┌──────────┴──────────────────────────────┐
+         │  Neo4j → Cypher → Router → LLM → Score  │  ← 100% shared
+         └─────────────────────────────────────────┘
+```
+
+### Per-Language Viability
+
+| Target | Effort | What Changes |
+|--------|--------|-------------|
+| **Angular / NestJS** | Low | New spec template only — extractor already handles decorators, DI |
+| **React / Next.js** | Low-Medium | New spec template + possibly `RENDERS`/`COMPOSES` edge type for component composition |
+| **Java / Spring** | Medium | New extractor (~900 LOC via JavaParser) + new spec template — maps 1:1 to current node/edge types |
+| **Python / Django / FastAPI** | Medium | New extractor (via `ast`/`astroid`) + adapt Interface concept (ABC/Protocol → Interface node) + new spec template |
+| **Go** | Medium-High | New extractor + rethink implicit interface satisfaction + struct-as-class mapping |
+| **Multi-language monorepo** | High | Multiple extractors merging into one graph, cross-language edge resolution |
+
+### NodeType / EdgeType Constraint
+
+The current enums are fixed:
+- **Nodes**: `File | Class | Interface | Method | Function`
+- **Edges**: `IMPORTS | IMPLEMENTS | EXTENDS | CONSTRUCTOR_INJECTS | CALLS | DECLARES | CONTAINS`
+
+These are referenced in the extractor, Cypher templates, Neo4j labels, and fitness functions. For languages without explicit interfaces (Python, Go) the pragmatic path is mapping to existing types (ABC/Protocol → Interface, struct → Class). Adding new types (e.g., `Component`, `Struct`, `RENDERS`) would touch Cypher templates and every fitness function that filters by type.
+
+---
+
+## Extensibility Analysis: Architecture Style Support
+
+### How Style Flows Through the System
+
+```
+YAML spec                    Template Registry              Cypher Templates
+─────────                    ─────────────────              ────────────────
+architecture:                TEMPLATE_REGISTRY.get()        CYPHER_TEMPLATES.get()
+  style: clean-architecture  → 26 FitnessFunction[]         → 24 CypherTemplate
+  layers:                    → default weights              (keyed by function NAME)
+    - name: domain           → default thresholds
+    - name: application
+    - name: infrastructure
+```
+
+### 4 Extension Points
+
+**1. Layer Definitions (Fully Open — works today)**
+
+`LayerDefinition` is completely user-defined. Nothing is hardcoded about "domain/application/infrastructure":
+
+```typescript
+interface LayerDefinition {
+  readonly name: string;           // ANY string
+  readonly directories: string[];   // ANY glob patterns
+  readonly naming: string[];        // ANY patterns
+  readonly decorators?: string[];   // ANY decorators
+  readonly role: string;            // ANY description
+}
+```
+
+A hexagonal spec can define `domain / ports / adapters`. A feature-sliced design can define `shared / entities / features / pages / app`. The layer annotator uses glob matching against `directories` — it doesn't know or care what the names are.
+
+**2. Template Registry (Extensible — currently 1 entry)**
+
+The registry is a `Map<string, BuiltInTemplate>`. Adding a new style = adding a new entry with curated fitness functions, default weights, and thresholds:
+
+```typescript
+export const TEMPLATE_REGISTRY = new Map([
+  ['clean-architecture', CLEAN_ARCHITECTURE_TEMPLATE],
+  // ['hexagonal', HEXAGONAL_TEMPLATE],
+  // ['modular-monolith', MODULAR_MONOLITH_TEMPLATE],
+]);
+```
+
+**3. Custom Fitness Functions in YAML (Fully Open — works today)**
+
+The spec merge logic supports three modes:
+- **Template + overrides**: Use a style, override specific functions by ID
+- **Template + additions**: Use a style, append custom functions not in the template
+- **No template (fully custom)**: Omit `style:`, define all functions yourself
+
+Custom neuronal functions work today — any rule expressible in English can be evaluated by the LLM path:
+
+```yaml
+- id: FF-CUSTOM-01
+  name: my-boundary-check
+  dimension: pattern
+  severity: major
+  route: neuronal
+  semantic_criteria:
+    rule: "Boundary layer must only expose DTOs, never domain entities"
+    rubric:
+      pass: "All boundary exports are DTOs or interfaces"
+      fail: "Boundary exports domain entities directly"
+      evidence_required: "Cite the specific export that leaks domain types"
+```
+
+**4. Cypher Templates (The Real Constraint)**
+
+The compiler looks up templates by `CYPHER_TEMPLATES.get(ff.name)`. Custom symbolic functions either reuse a built-in template name (and get that Cypher) or have no symbolic query (warning `COMPILER_002`).
+
+Users can bring their own Cypher via ADR files with `cypher_rule`:
+
+```yaml
+# In an ADR YAML file:
+adr:
+  title: Module Boundary Enforcement
+  cypher_rule:
+    query: "MATCH (src:File)-[:IMPORTS]->(tgt:File) WHERE src.module <> tgt.module AND NOT tgt.isPublicAPI RETURN src, tgt"
+    params: {}
+    description: Cross-module imports must go through public API
+```
+
+### The `buildParams()` Bottleneck
+
+The function in `fitness-compiler.ts:204-257` **hardcodes layer name lookups**:
+
+```typescript
+// Current — brittle, assumes clean-architecture naming:
+const domainLayer = layers.find(l => l.name === 'domain')?.name;
+const applicationLayer = layers.find(l => l.name === 'application')?.name;
+const infraLayer = layers.find(l => l.name === 'infrastructure')?.name;
+```
+
+With layers named `core / boundary / shell`, these params become `undefined` and Cypher queries silently match nothing. The spec already has `roles` on each layer — connecting roles to params would make the system truly style-agnostic:
+
+```typescript
+// Fix — role-based (uses existing data):
+const domainLayer = layers.find(l => l.role.includes('entity'))?.name;
+// Or ordinal — innermost layer = domain-equivalent:
+const domainLayer = layers[0]?.name;
+const infraLayer = layers[layers.length - 1]?.name;
+```
+
+**Fix scope**: ~50 lines in `fitness-compiler.ts` + ~10 Cypher templates accepting role-based layer sets.
+
+### The `ScoringWeights` Constraint
+
+The 7 dimensions are hardcoded as a type:
+
+```typescript
+type Dimension = 'structural' | 'coupling' | 'pattern' | 'solid' | 'convention' | 'semantic' | 'intent';
+
+interface ScoringWeights {
+  structural: number; coupling: number; pattern: number;
+  solid: number; convention: number; semantic: number; intent: number;
+}
+```
+
+Custom dimensions (e.g., `modularity`, `isolation`, `api-surface`) would require refactoring: enums, spec types, scoring logic (U6), and report formatting. **Pragmatic take**: the 7 dimensions are general enough for most architecture styles — `structural` applies to any layered system, `coupling` to any graph, `pattern` to any design paradigm.
+
+### Per-Style Viability
+
+| Style | Layers | Reusable Cypher | New Templates | Effort |
+|-------|--------|-----------------|---------------|--------|
+| **Clean Architecture** | domain / application / infrastructure | All 24 | 0 | Done |
+| **Onion Architecture** | domain / domain-services / application / infrastructure | ~20 | ~4 (service layer) | Low |
+| **Hexagonal / Ports & Adapters** | domain / ports / adapters | ~15 (coupling, SOLID, convention) | ~9 (port-adapter wiring) | Medium |
+| **Vertical Slice** | per-feature slices + shared | ~8 (coupling, SOLID, convention) | ~16 (slice isolation) | Medium-High |
+| **Modular Monolith** | modules with public APIs | ~10 (coupling, convention) | ~14 (module boundaries) | Medium-High |
+| **Feature-Sliced Design** | shared / entities / features / pages / app | ~12 (coupling, naming) | ~12 (5-layer ordering) | Medium |
+| **Fully Custom** (no template) | User-defined | Reuse by function name | User writes YAML | Works today (neuronal); needs `buildParams()` fix (symbolic) |
+
+### What Needs Changing for Full Style Flexibility
+
+| Change | Scope | Effort | Impact |
+|--------|-------|--------|--------|
+| Fix `buildParams()` to use roles/ordinals instead of hardcoded layer names | `fitness-compiler.ts` ~50 LOC | Low | Unlocks all architecture styles for symbolic path |
+| Parameterize ~10 Cypher templates for generic layer references | `cypher-templates.ts` | Low | Templates work with any layer naming |
+| Add new built-in templates (hexagonal, modular monolith, etc.) | `template-registry.ts` + new Cypher templates per style | Medium per style | Out-of-box support for popular styles |
+| Make Dimension enum extensible | `enums.ts`, `spec.ts`, scoring (U6), reports (U6) | High | Custom scoring dimensions — not needed for most styles |
+
+### Summary
+
+The system is **80% ready for arbitrary architecture styles**. Layer definitions are fully open. The spec format supports full customization. The neuronal path (LLM evaluation) works for any rule describable in English. ADR-driven custom Cypher is supported today. The gap is `buildParams()` assuming clean-architecture layer names — a focused ~50 LOC fix that would unlock hexagonal, onion, vertical slice, and fully custom architectures for the symbolic evaluation path.
