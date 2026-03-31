@@ -4,7 +4,7 @@
 - **Project Name**: Architectural Firewall (DaedalusArch)
 - **Project Type**: Greenfield
 - **Start Date**: 2026-03-27T16:00:00Z
-- **Current Stage**: CONSTRUCTION - Build and Test — U0–U7 complete
+- **Current Stage**: CONSTRUCTION COMPLETE — All units + Build and Test done
 
 ## Workspace State
 - **Existing Code**: No (configuration files and docs only — no `src/` directory)
@@ -42,7 +42,7 @@
   - [x] U5 — Router + Evaluation Engine (Functional Design + Code Generation COMPLETE)
   - [x] U6 — Scoring + Reports (Functional Design + Code Generation COMPLETE)
   - [x] U7 — CLI + CI/CD (Functional Design + Code Generation COMPLETE)
-- [ ] Build and Test
+- [x] Build and Test — COMPLETE (29 suites, 312 tests, 0 failures, 76% coverage)
 
 ### OPERATIONS PHASE
 - [ ] Operations (PLACEHOLDER)

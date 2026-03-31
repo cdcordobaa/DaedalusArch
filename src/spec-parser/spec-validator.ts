@@ -2,12 +2,7 @@ import type { ParsedSpec, ScoringWeights } from '../shared/types/spec.js';
 import type { ValidationResult, ValidationError, ValidationWarning } from './types.js';
 import { SPEC_SCHEMA_V1 } from './spec-schema.js';
 
-// Ajv CJS/ESM interop — works under both tsc (NodeNext) and Jest (CJS transform)
-// eslint-disable-next-line @typescript-eslint/no-require-imports
-const AjvImport = typeof require !== 'undefined' ? require('ajv') : undefined;
-type AjvClass = import('ajv').default;
-type ErrorObject = import('ajv').ErrorObject;
-const Ajv: new (opts: Record<string, unknown>) => AjvClass = AjvImport?.default ?? AjvImport;
+import { Ajv, type ErrorObject } from 'ajv';
 const ajv = new Ajv({ allErrors: true, verbose: true });
 const validateSchema = ajv.compile(SPEC_SCHEMA_V1);
 
