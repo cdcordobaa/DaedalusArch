@@ -1,4 +1,11 @@
-import type { CypherTemplate } from './types.js';
+import type { CypherTemplate, ResultMapping } from './types.js';
+
+function rm(filePathColumn: string, messageTemplate: string, metadataColumns?: string[]): ResultMapping {
+  const base = { filePathColumn, messageTemplate };
+  return metadataColumns ? { ...base, metadataColumns } : base;
+}
+
+const DEFAULT_RM: ResultMapping = { filePathColumn: 'filePath', messageTemplate: 'Violation in {filePath}' };
 
 function tmpl(
   functionName: string,
@@ -6,8 +13,9 @@ function tmpl(
   requiredParams: string[],
   description: string,
   optionalParams: string[] = [],
+  resultMapping: ResultMapping = DEFAULT_RM,
 ): CypherTemplate {
-  return { functionName, template, requiredParams, optionalParams, description };
+  return { functionName, template, requiredParams, optionalParams, description, resultMapping };
 }
 
 /**
@@ -25,6 +33,8 @@ WHERE src.layer IN $outerLayers AND tgt.layer IN $innerLayers
 RETURN src.filePath AS source, tgt.filePath AS target, src.layer AS srcLayer, tgt.layer AS tgtLayer`,
     ['outerLayers', 'innerLayers'],
     'Detects imports that violate dependency direction (outer layer importing inner layer resources should be allowed; inner importing outer is a violation)',
+    [],
+    rm('source', '{source} ({srcLayer}) imports from {target} ({tgtLayer})', ['target', 'srcLayer', 'tgtLayer']),
   )],
 
   ['no-cyclic-deps', tmpl(
@@ -34,6 +44,8 @@ RETURN [n IN nodes(path) | n.filePath] AS cycle
 LIMIT 100`,
     [],
     'Detects circular import chains of length 2+',
+    [],
+    rm('cycle', 'Circular dependency: {cycle}'),
   )],
 
   ['no-layer-skip', tmpl(
@@ -45,6 +57,8 @@ WHERE src.layer IS NOT NULL AND tgt.layer IS NOT NULL
 RETURN src.filePath AS source, tgt.filePath AS target, src.layer AS srcLayer, tgt.layer AS tgtLayer`,
     ['allowedTransitions'],
     'Detects imports that skip intermediate layers (e.g., infrastructure directly importing domain, bypassing application)',
+    [],
+    rm('source', '{source} ({srcLayer}) skips layers to import {target} ({tgtLayer})', ['target', 'srcLayer', 'tgtLayer']),
   )],
 
   ['no-domain-outward-dep', tmpl(
@@ -54,6 +68,8 @@ WHERE src.layer = $domainLayer AND tgt.layer <> $domainLayer
 RETURN src.filePath AS source, tgt.filePath AS target, tgt.layer AS violatingLayer`,
     ['domainLayer'],
     'Detects domain layer files that import from outer layers',
+    [],
+    rm('source', 'Domain file {source} imports from {target} in {violatingLayer}', ['target', 'violatingLayer']),
   )],
 
   // ── PATTERN ─────────────────────────────────────────────────────────────────
@@ -66,6 +82,8 @@ WHERE src.layer = $domainLayer
 RETURN src.filePath AS source, tgt.filePath AS target`,
     ['domainLayer', 'forbiddenImports'],
     'Detects domain files importing forbidden framework/infrastructure packages',
+    [],
+    rm('source', 'Domain file {source} imports forbidden package {target}', ['target']),
   )],
 
   ['dependency-inversion', tmpl(
@@ -195,6 +213,8 @@ RETURN toFloat(interfaces) / total AS ratio,
        CASE WHEN toFloat(interfaces) / total < $threshold THEN true ELSE false END AS violation`,
     ['threshold'],
     'Checks ratio of interfaces to total classes+interfaces',
+    [],
+    rm('ratio', 'Abstraction ratio {ratio} below threshold', ['violation']),
   )],
 
   // ── SOLID ───────────────────────────────────────────────────────────────────

@@ -339,6 +339,22 @@
 
 ---
 
+## Construction — Unit 5 Functional Design — APPROVED
+**Timestamp**: 2026-03-30T16:45:00Z
+**User Input**: "continue"
+**AI Response**: Functional Design approved. Proceeding to Code Generation Part 1 (plan). Key: CypherTemplate needs resultMapping extension from U3.
+**Context**: Construction Phase — U5 Functional Design complete, Code Generation starting
+
+---
+
+## Construction — Unit 5 Functional Design — Answers
+**Timestamp**: 2026-03-30T16:30:00Z
+**User Input**: "continue, responses added" — Q1:A (sequential hybrid, skip neuronal if symbolic fails), Q2:A (file-based cassettes for VCR), Q3:B (template-annotated result mapping), Q4:B (stddev consistency check, no formal ICC), Q5:A (fixed token budget per component)
+**AI Response**: All 5 answers clear. Proceeding to generate functional design artifacts.
+**Context**: Construction Phase — U5 Functional Design Q&A complete
+
+---
+
 ## Construction — Unit 5 Functional Design — Questions
 **Timestamp**: 2026-03-30T16:20:00Z
 **AI Response**: Starting U5 — Neuro-Symbolic Router + Evaluation. Stage assessment: Functional Design (EXECUTE), Code Generation (ALWAYS). Created 5 design questions: Q1 hybrid dispatch strategy, Q2 VCR/cassette implementation, Q3 violation collection from Cypher, Q4 ICC computation method, Q5 LLM context budget. Awaiting answers.

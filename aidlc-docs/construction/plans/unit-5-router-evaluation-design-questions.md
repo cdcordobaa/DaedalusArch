@@ -10,8 +10,8 @@ For hybrid functions (e.g., FF-N01 srp-semantic), both symbolic and neuronal pat
 
 **C) Sequential — symbolic first, neuronal always** — Symbolic runs first (fast), then neuronal always runs. The symbolic result is available to inform neuronal context, but neuronal is not skipped. Best of both: fast symbolic feedback + full neuronal data.
 
-[Answer]:
-
+[Answer]: A (Sequential)
+Rationale: It runs symbolic first; if symbolic passes, it doesn't run neuronal. If it fails, we get the violation early and avoid LLM cost. 
 ---
 
 ## Q2: VCR/Cassette Implementation
@@ -24,8 +24,8 @@ US-10.8 requires full audit logging and deterministic testing. VCR options:
 
 **C) Both** — File-based cassettes for integration tests (realistic), in-memory mock for unit tests (fast). VCR mode selects: `record` (call LLM + save), `replay` (load cassette), `bypass` (call LLM, don't save).
 
-[Answer]:
-
+[Answer]: A (File-based cassettes)
+Rationale: For deterministic testing, file-based cassettes stored in the repository provide concrete, version-controlled proof of LLM behavior, useful for both unit and integration tests, keeping it simple without needing complex in-memory mock providers.
 ---
 
 ## Q3: Violation Collection from Cypher Results
@@ -38,9 +38,8 @@ When Cypher queries return violation records, how to map them to `Violation` obj
 
 **C) Generic record-to-violation** — Every Cypher result row becomes one Violation. The `filePath` column is required; all other columns become violation metadata. Simple, flexible.
 
-[Answer]:
-
----
+[Answer]: B (Template-annotated mapping)
+Rationale: Explicitly mapping Neo4j result columns (`record.get('offendingNode').properties.path`) to `Violation` fields within the `CypherTemplate` configuration decouples the database query from the application code. This provides robust safety for custom user-written rules, preventing pipeline crashes if an author forgets a strict `AS x` casting convention in their Cypher.---
 
 ## Q4: ICC Computation Method
 
@@ -52,9 +51,8 @@ US-10.6 requires Intraclass Correlation Coefficient across multiple LLM runs. Op
 
 **C) ICC with fallback** — Compute ICC(3,1). If undefined (all scores identical or single run), fall back to stddev-based check. Handles edge cases gracefully.
 
-[Answer]:
-
----
+[Answer]: B (Simple consistency check via standard deviation)
+Rationale: Calculating the strict statistical Intraclass Correlation Coefficient (ICC) overcomplicates the pipeline and introduces edge-case crashes (like divide-by-zero `NaN` when all scores are identical). A simple standard deviation of the LLM's confidence scores instantly answers the critical question: "Is the LLM flip-flopping?" without requiring complex mathematical libraries.---
 
 ## Q5: LLM Context Budget
 
@@ -66,4 +64,5 @@ Context assembly (US-10.1) must fit within LLM token limits. How to manage?
 
 **C) Priority-based truncation** — Include everything, but if total exceeds limit, truncate in priority order: ADR prose first, then subgraph, then code. Rule+rubric always included in full. Simple priority, no budget math.
 
-[Answer]:
+[Answer]: A (Fixed budget per component)
+Rationale: A fixed token budget is simple, incredibly predictable, and avoids complex token math or dependency on specific tokenizer models. Adhering to strict limits forces concise context creation.

@@ -29,10 +29,17 @@ export interface CompilerWarning extends DomainWarning {
   readonly functionId?: string;
 }
 
+export interface ResultMapping {
+  readonly filePathColumn: string;
+  readonly messageTemplate: string;
+  readonly metadataColumns?: readonly string[];
+}
+
 export interface CypherTemplate {
   readonly functionName: string;
   readonly template: string;
   readonly requiredParams: readonly string[];
   readonly optionalParams: readonly string[];
   readonly description: string;
+  readonly resultMapping: ResultMapping;
 }
