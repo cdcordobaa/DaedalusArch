@@ -67,8 +67,7 @@ describe('fitness-compiler', () => {
 
     it('dependency-direction template has correct params', () => {
       const tmpl = CYPHER_TEMPLATES.get('dependency-direction')!;
-      expect(tmpl.requiredParams).toContain('outerLayers');
-      expect(tmpl.requiredParams).toContain('innerLayers');
+      expect(tmpl.requiredParams).toContain('layerOrder');
     });
   });
 

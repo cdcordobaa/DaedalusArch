@@ -28,11 +28,17 @@ export const CYPHER_TEMPLATES: ReadonlyMap<string, CypherTemplate> = new Map([
 
   ['dependency-direction', tmpl(
     'dependency-direction',
-    `MATCH (src:File)-[:IMPORTS]->(tgt:File)
-WHERE src.layer IN $outerLayers AND tgt.layer IN $innerLayers
+    `WITH $layerOrder AS layerOrder
+MATCH (src:File)-[:IMPORTS]->(tgt:File)
+WHERE src.layer IS NOT NULL AND tgt.layer IS NOT NULL
+  AND src.layer <> tgt.layer
+WITH src, tgt,
+     apoc.coll.indexOf(layerOrder, src.layer) AS srcIdx,
+     apoc.coll.indexOf(layerOrder, tgt.layer) AS tgtIdx
+WHERE srcIdx >= 0 AND tgtIdx >= 0 AND srcIdx < tgtIdx
 RETURN src.filePath AS source, tgt.filePath AS target, src.layer AS srcLayer, tgt.layer AS tgtLayer`,
-    ['outerLayers', 'innerLayers'],
-    'Detects imports that violate dependency direction (outer layer importing inner layer resources should be allowed; inner importing outer is a violation)',
+    ['layerOrder'],
+    'Detects imports where a lower layer imports from a higher layer (violates dependency direction)',
     [],
     rm('source', '{source} ({srcLayer}) imports from {target} ({tgtLayer})', ['target', 'srcLayer', 'tgtLayer']),
   )],

@@ -218,11 +218,13 @@ function buildParams(
   if (infraLayer) params['infraLayer'] = infraLayer;
 
   // Layer ordering for dependency-direction
+  // Layers are listed bottom-up in the spec: domain (0), ..., application (N-1)
+  // Violation = lower-index layer file importing from higher-index layer
   const layerOrder = layers.map((l) => l.name);
-  const outerLayers = layerOrder.slice(layerOrder.indexOf(infraLayer ?? '') >= 0 ? layerOrder.indexOf(infraLayer!) : layerOrder.length - 1);
-  const innerLayers = layerOrder.slice(0, layerOrder.indexOf(domainLayer ?? '') + 1);
-  params['outerLayers'] = outerLayers;
-  params['innerLayers'] = innerLayers;
+  params['layerOrder'] = layerOrder;
+  // Keep outerLayers/innerLayers for backward compat with other templates
+  params['outerLayers'] = layerOrder.slice(1).length > 0 ? layerOrder.slice(1) : layerOrder;
+  params['innerLayers'] = layerOrder.slice(0, -1).length > 0 ? layerOrder.slice(0, -1) : layerOrder;
 
   // Allowed layer transitions for no-layer-skip
   const allowedTransitions: string[] = [];
