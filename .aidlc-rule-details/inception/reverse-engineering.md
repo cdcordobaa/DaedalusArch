@@ -308,4 +308,4 @@ Update `aidlc-docs/aidlc-state.md`:
 ## Step 12: Wait for User Approval
 
 - **MANDATORY**: Do not proceed until user explicitly approves
-- **MANDATORY**: Log user's response in audit.md with complete raw input
+- **MANDATORY**: Log user's response in audit.md with user intent
