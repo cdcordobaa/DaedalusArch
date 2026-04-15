@@ -1,12 +1,16 @@
 # Project Diagnosis — DaedalusArch
-**Date**: 2026-03-30
-**Current Stage**: CONSTRUCTION — U5 (Neuro-Symbolic Router + Evaluation) pending, U0–U4 complete
+**Date**: 2026-04-11
+**Current Stage**: v1.0 CONSTRUCTION complete. v1.1 INCEPTION started (Requirements Analysis).
 
 ---
 
 ## The Big Picture
 
-DaedalusArch is an **architectural compliance firewall** that evaluates TypeScript codebases against a YAML specification using a neuro-symbolic approach: symbolic Cypher queries against a Neo4j graph + LLM-based semantic evaluation. The project is roughly **60% through Construction**, with the foundational pipeline complete and the intelligent evaluation layer (U5–U7) remaining.
+DaedalusArch is an **architectural compliance firewall** that evaluates TypeScript codebases against a YAML specification using a neuro-symbolic approach: symbolic Cypher queries against a Neo4j graph + LLM-based semantic evaluation.
+
+**v1.0 is code-complete.** All 8 units (U0–U7) are implemented, tested, and passing. 84 source files, ~15,300 lines of production TypeScript, 29 test suites with 312 tests at 76% coverage. The full pipeline — from TypeScript AST extraction through Neo4j graph persistence, neuro-symbolic evaluation, scoring, and CLI output — is wired end-to-end.
+
+**The hard truth**: When we ran DaedalusArch against *itself*, it took 7 iterations to get useful output. A developer trying this on their own project would hit the same wall at Run 2 and give up. The engine is solid; the developer experience is the gap. That's what v1.1 addresses.
 
 ---
 
@@ -14,11 +18,12 @@ DaedalusArch is an **architectural compliance firewall** that evaluates TypeScri
 
 | Layer | Files | Lines | Status |
 |-------|-------|-------|--------|
-| **Source code** (`src/`) | 47 `.ts` files | ~4,600 LOC | 5 modules implemented, 6 stubs |
-| **Tests** (`tests/`) | 23 files (17 unit, 2 integration, 4 BDD) | ~2,400 LOC | 19 suites, 197 tests, all passing |
-| **Fixtures** (`fixtures/`) | 5 ground-truth projects | ~40 files | Calibrated with empirical AHS scores |
-| **Spec** (`specs/`) | 1 YAML spec | 26 fitness functions | 11 spike-validated, 12 pending integration |
+| **Source code** (`src/`) | 84 `.ts` files | ~15,300 LOC | 12 modules fully implemented across U0–U7 |
+| **Tests** (`tests/`) | 29 test suites (24 unit, 2 integration, 4 BDD) | 312 tests, 0 failures | 76% coverage, 100% pass rate |
+| **Fixtures** (`fixtures/`) | 5 ground-truth projects | ~46 files | Calibrated with empirical AHS scores from spike |
+| **Specs** (`specs/`) | 2 YAML specs | 26+ fitness functions each | `clean-arch.yaml` (reference template) + `daedalus-arch.yaml` (project-specific) |
 | **Infrastructure** | docker-compose, CI, GitHub Action, ESLint, Prettier | — | Fully configured |
+| **Documentation** (`aidlc-docs/`) | 80+ markdown files | ~50,000+ bytes | Full inception + construction phase records |
 
 ---
 
@@ -91,7 +96,54 @@ DaedalusArch is an **architectural compliance firewall** that evaluates TypeScri
 - `src/neo4j-ingestion/drift-detector.ts` — 4-type drift detection (329 LOC)
 - `src/neo4j-ingestion/fs-snapshot-store.ts` — filesystem snapshot persistence
 
-### 5. Golden Test Data — Calibrated Fixtures
+### 5. Neuro-Symbolic Evaluation Layer (U5)
+
+- **Neuro-Symbolic Router** (`src/neuro-symbolic-router/router.ts`): Routes compiled fitness functions to symbolic, neuronal, or hybrid evaluation paths based on the `route` property. Hybrid dispatch is sequential — symbolic first, skip neuronal if symbolic catches the violation (saves LLM tokens).
+- **Evaluation Engine** (`src/evaluation-engine/symbolic-evaluator.ts`): Executes Cypher queries against Neo4j, maps raw results to typed `EvaluationResult` objects using template-annotated mapping config. Decouples DB query shape from application code.
+- **LLM Critic** (`src/llm-critic/`): Full neuronal evaluation pipeline:
+  - `ContextAssembler` — assembles code, subgraph, rule, and ADR context within a fixed token budget (code: 2000, subgraph: 500, rule: 300, ADR: 500 tokens)
+  - `VerdictParser` — extracts structured verdicts from LLM prose responses
+  - `CassetteManager` — VCR-style testing: records LLM responses to JSON cassettes, replays them in CI for deterministic, fast tests without API calls
+  - `MockLLMProvider` — test double implementing `LLMProvider` interface
+  - ICC computation: simple stddev-based consistency check (threshold > 0.15 = unstable)
+
+**Key files**:
+- `src/neuro-symbolic-router/router.ts` — route dispatch logic
+- `src/evaluation-engine/symbolic-evaluator.ts` — Cypher execution + result mapping
+- `src/llm-critic/llm-critic.ts` — orchestrator for neuronal evaluation
+- `src/llm-critic/context-assembler.ts` — budget-aware context assembly
+- `src/llm-critic/cassette-manager.ts` — VCR cassette read/write
+
+### 6. Scoring & Reporting (U6)
+
+- **Scoring Engine** (`src/scoring-engine/scoring-engine.ts`): Orchestrates the full scoring pipeline from evaluation results to final verdict.
+- **Score Computer** (`src/scoring-engine/score-computer.ts`): Computes per-function AVR (Architecture Violation Ratio) scores and aggregates them into the AHS (Architectural Health Score) using weighted dimensions.
+- **Universal Metrics** (`src/scoring-engine/universal-metrics.ts`): Cross-dimensional health indicators — coupling density, violation clustering, drift velocity.
+- **Verdict** (`src/scoring-engine/verdict.ts`): Applies calibrated thresholds (pass >= 0.80, warning >= 0.65, soft-block >= 0.50, hard-block < 0.50) to produce final verdicts.
+- **Report Formatter** (`src/scoring-engine/report-formatter.ts`): Outputs evaluation reports in JSON, Markdown, and HTML formats.
+
+**Key files**:
+- `src/scoring-engine/scoring-engine.ts` — orchestrator + PipelineStage
+- `src/scoring-engine/score-computer.ts` — AVR/AHS computation
+- `src/scoring-engine/verdict.ts` — threshold-based verdict logic
+
+### 7. CLI + Pipeline Orchestration (U7)
+
+- **CLI** (`src/cli/cli.ts`): Commander.js-based interface with three commands: `evaluate` (single project), `batch` (multi-project), `drift-detect` (compare runs)
+- **Pipeline Executor** (`src/pipeline/pipeline-executor.ts`): Sequential command execution with audit logging and error propagation via `DomainResult<T>`
+- **Pipeline Factory** (`src/pipeline/pipeline-factory.ts`): Constructs pre-configured pipelines (full, symbolic-only, neuronal-only)
+- **13 Pipeline Commands** (`src/pipeline/commands/`): Each implements `PipelineStage` — extract, parse, compile, ingest, drift-detect, symbolic-evaluate, neuronal-evaluate, route-evaluate, score, snapshot-save, snapshot-load, parallel
+- **Batch Runner** (`src/cli/batch-runner.ts`): Discovers projects in a directory, runs the firewall pipeline on each, aggregates results
+- **Drift Handler** (`src/cli/drift-handler.ts`): Compares consecutive evaluation snapshots, reports architectural drift
+
+**Key files**:
+- `src/cli/cli.ts` — CLI entry point (Commander.js)
+- `src/pipeline/pipeline-executor.ts` — sequential command execution
+- `src/pipeline/pipeline-factory.ts` — pipeline construction
+- `src/pipeline/commands/` — 13 command implementations
+- `bin/firewall.ts` — binary entry point
+
+### 7. Golden Test Data — Calibrated Fixtures
 
 5 projects with empirical AHS scores from spike testing:
 
@@ -105,7 +157,7 @@ DaedalusArch is an **architectural compliance firewall** that evaluates TypeScri
 
 Each has a `MANIFEST.md` documenting expected violations and scores.
 
-### 6. Infrastructure
+### 8. Infrastructure
 
 - **package.json**: `daedalus-arch` v0.1.0, all deps locked (ts-morph, neo4j-driver, @anthropic-ai/sdk, openai, commander, zod, ajv, yaml, chalk, ora)
 - **tsconfig.json**: ES2022 target, NodeNext modules, strict mode + extras, 11 path aliases (`@shared`, `@apg-extractor`, etc.)
@@ -123,78 +175,131 @@ Each has a `MANIFEST.md` documenting expected violations and scores.
 
 | Metric | Value |
 |--------|-------|
-| TypeScript compilation | Clean (zero errors, strict mode) |
-| Test pass rate | **197/197 (100%)** |
-| Test execution time | ~9.3 seconds |
-| Coverage threshold | 80% (branches, functions, lines, statements) |
-| CI pipeline | Configured (Neo4j service, type check, lint, unit + integration) |
-| Stub modules | 6 (router, evaluation-engine, llm-critic, scoring-engine, cli, firewall-context re-export) |
+| TypeScript compilation | Clean (zero errors, strict mode, ES2022 target) |
+| Test pass rate | **100%** — 312 tests across 29 suites, 0 failures |
+| Test execution time | VCR patterns keep LLM tests fast (~seconds, no live API calls) |
+| Coverage | **76%** line coverage (threshold set at 80% — gap to close) |
+| CI pipeline | Configured (Ubuntu + Node 22 + Neo4j service, typecheck → lint → unit → integration → Codecov) |
+| Stub modules | **0** — all 12 modules contain substantive production code |
+| Build artifacts | `dist/` via `tsc`, `daedalus-arch` bin entry point |
+| GitHub Action | Reusable action at `.github/actions/firewall/action.yml` for PR evaluation |
 
 ---
 
-## Pipeline Flow (Current State)
-
-What can run end-to-end today (programmatically, not via CLI):
+## Pipeline Flow (End-to-End — Fully Wired via CLI)
 
 ```
-TypeScript Project
-    │
-    ▼
-[APG Extractor] ──→ APGResult (nodes + edges)
-    │
-    ▼
-[Neo4j Ingestion] ──→ Graph in Neo4j (with layer annotations)
-    │
-    ▼                          [Spec Parser] ──→ ParsedSpec
-                                     │
-                               [Fitness Compiler] ──→ CompiledFunctions
-                                                        (CypherQuery / NeuronalInstruction / HybridPair)
+$ daedalus-arch evaluate --project ./my-app --spec firewall.spec.yaml
+
+TypeScript Project                    AoC YAML Spec
+    │                                      │
+    ▼                                      ▼
+[APG Extractor]                      [Spec Parser]
+ (ts-morph AST)                       (YAML + JSON Schema validation)
+    │                                      │
+    ▼                                      ▼
+ APGResult                            ParsedSpec
+ (nodes + edges)                      (layers + raw functions)
+    │                                      │
+    ▼                                      ▼
+[Neo4j Ingestion]                    [Fitness Compiler]
+ (graph-ingester +                    (Cypher templates + neuronal instructions)
+  layer-annotator)                         │
+    │                                      ▼
+    ▼                              CompiledFunctions[]
+ Graph in Neo4j ◄─────────────────────────┐│
+                                          ││
+                            ┌─────────────┘│
+                            ▼              │
+                   [Neuro-Symbolic Router] │
+                    ├─ symbolic ──→ [Symbolic Evaluator] ──→ Cypher against Neo4j
+                    ├─ neuronal ──→ [LLM Critic] ──→ Claude/OpenAI judgment
+                    └─ hybrid ────→ symbolic first, neuronal if needed
+                            │
+                            ▼
+                     EvaluationResult[]
+                            │
+                            ▼
+                    [Scoring Engine]
+                     (AVR per-function → AHS aggregate → verdict)
+                            │
+                            ▼
+                    [Report Formatter]
+                     (JSON / Markdown / HTML)
+                            │
+                            ▼
+                      CLI Output / CI Gate
 ```
 
-The two branches converge at **U5 (Router)**, which doesn't exist yet. Once it does, the compiled functions get dispatched against the loaded graph, producing `EvaluationResults` that flow into scoring (U6) and then CLI output (U7).
+**Additional CLI commands**:
+- `daedalus-arch batch <dir>` — evaluates multiple projects, aggregates results
+- `daedalus-arch drift-detect <baseline> <current>` — compares snapshots for architectural drift
 
 ---
 
-## What Does NOT Exist Yet
+## What Works Today vs. What Doesn't
 
-| Component | Unit | Purpose |
-|-----------|------|---------|
-| **Neuro-Symbolic Router** (C5) | U5 | Dispatches fitness functions to symbolic/neuronal/hybrid paths based on route tags and evaluation mode |
-| **Evaluation Engine** (C6) | U5 | Executes Cypher queries against Neo4j, collects violations, determines pass/fail per function |
-| **LLM Critic** (C7) | U5 | Assembles context packets, calls Claude/OpenAI, parses structured verdicts, multi-run consistency checks, VCR cassettes |
-| **LLMProviderService** (S4) | U5 | Provider strategy (Claude + OpenAI adapters), retry/backoff, concurrency governor |
-| **AuditLogService** (S5) | U5 | VCR record/replay/bypass, LLM call logging |
-| **Scoring Engine** (C8) | U6 | AVR per dimension, AHS weighted complement, verdict merge, dual scoring modes, universal health metrics |
-| **ReportService** (S6) | U6 | JSON / human-readable / CSV / PR comment output formats |
-| **CLI** (C9) | U7 | `firewall evaluate`, `firewall batch`, `firewall drift` commands |
-| **PipelineExecutor** (S1) | U7 | Command pattern orchestrator, parallel branch support, fail-fast on critical errors |
-| **GitHub Action** | U7 | PR-triggered evaluation with Neo4j service container |
+### Works (v1.0 complete)
 
----
+| Capability | Status |
+|------------|--------|
+| TypeScript AST → APG extraction (5 node types, 7 edge types) | Production-ready |
+| YAML spec parsing with JSON Schema + business rule validation | Production-ready |
+| Fitness function compilation → Cypher queries | Production-ready |
+| Neo4j graph persistence + layer annotation | Production-ready |
+| APG snapshot persistence + delta computation | Production-ready |
+| 4-type structural drift detection | Production-ready |
+| Symbolic evaluation (Cypher against Neo4j) | Production-ready |
+| Neuronal evaluation framework (VCR cassettes, context assembly) | Framework ready, no live LLM providers |
+| Scoring + AHS/AVR computation + verdicts | Production-ready |
+| CLI (evaluate, batch, drift-detect) | Production-ready |
+| CI pipeline (GitHub Actions + reusable action) | Configured |
+| 5 ground-truth fixture projects with calibrated scores | Validated |
 
-## Dependency Chain (Remaining)
+### Does NOT Work Yet (v1.1 scope)
 
-```
-U5 (Router + Eval) → U6 (Scoring + Reports) → U7 (CLI + CI/CD) → Build & Test
-```
-
-Strictly sequential — no parallelization opportunity from this point forward.
+| Component | Nature | Why It Matters |
+|-----------|--------|----------------|
+| **`firewall init` guided setup** | DX / CLI | No adoption without it — developers can't author YAML specs from scratch |
+| **Real LLM providers** (Claude, OpenAI) | Integration | Neuronal path is test-only; half the value proposition is offline |
+| **`exclude_paths` in Cypher** | Rule engine | Every project needs path exclusions; without them, false positive flood |
+| **Rule enable/disable** | Spec flexibility | Can't customize templates — all 24 functions forced on every project |
+| **`buildParams()` hardcoded layer names** | Rule engine | Breaks all non-clean-arch projects (hexagonal, onion, custom) |
+| **Framework presets** (NestJS, Next, React) | DX / templates | Only clean-architecture template exists; most TS projects don't match |
+| **In-memory graph mode** | Infrastructure | Neo4j mandatory = Docker mandatory = adoption barrier |
+| **React/JSX/TSX extraction** | APG extractor | Largest frontend framework has no component/hook/boundary modeling |
+| **Actionable violation messages** | Reporting | Current output says "what" but not "why" or "how to fix" |
+| **Inline suppression** (`// firewall-ignore`) | DX | No way to document intentional violations at the code site |
 
 ---
 
 ## Spec Coverage
 
-`specs/clean-arch.yaml` defines 26 fitness functions:
+Two specs exist:
 
-- **Symbolic (20)**: Cypher queries against the graph — dependency direction, cycles, domain purity, DI, repo pattern, use-case isolation, coupling metrics, SRP/ISP proxies, naming conventions
+**`specs/clean-arch.yaml`** — reference template (26 fitness functions):
+- **Symbolic (20)**: Cypher queries — dependency direction, cycles, domain purity, DI, repo pattern, use-case isolation, coupling metrics, SRP/ISP proxies, naming conventions
 - **Neuronal (2)**: LLM-evaluated — SRP semantic analysis, cohesion narrative
-- **Hybrid (4)**: Both paths — pending final route tagging in Router
+- **Hybrid (4)**: Both paths — sequential dispatch (symbolic first)
+- 11 of 26 are **spike-validated** against fixture projects with known-good AHS scores
+- Remaining 15 are compiled and templated but lack integration tests against real Neo4j with diverse projects
 
-Of the 26, **11 are spike-validated** against the fixture projects with known-good results. The remaining 12 symbolic + 2 neuronal are pending integration testing post-U5.
+**`specs/daedalus-arch.yaml`** — project-specific spec (added 2026-03-30):
+- Custom layers matching DaedalusArch's own `src/` structure
+- Tailored fitness functions for the project's modular architecture
+- Created during self-evaluation; used to validate the engine against itself
+
+### Fitness Function Calibration Status
+
+The 17 symbolic + 3 neuronal fitness functions in the clean-architecture template are a **starter set**. They need refinement:
+- Run the tool end-to-end against real TypeScript projects (not just fixtures)
+- Compare produced AHS scores against expert judgment
+- Adjust Cypher queries, thresholds, and weights based on empirical results
+- This is a known pending task from the spike phase
 
 ---
 
-## Design Decisions Locked In (from U5 Questions)
+## Design Decisions Implemented (from U5 Questions)
 
 | Decision | Choice | Rationale |
 |----------|--------|-----------|
@@ -773,3 +878,82 @@ And in CI:
 ```
 
 **That** is plug-and-play.
+
+---
+
+## Where We're Going — Roadmap
+
+### v1.1: Plug-and-Play (Current — Inception started)
+
+The mission: make the tool usable by someone who didn't build it.
+
+**Wave 1 — Unblock basic usage** (P0 gaps):
+1. `buildParams()` role-based lookup (GAP-06) — ~50 LOC fix, unlocks all architecture styles
+2. Rule enable/disable mechanism (GAP-03) — `enabled: false` on fitness functions
+3. `exclude_paths` wired to Cypher (GAP-02) — path exclusion predicates in templates
+4. Framework presets (GAP-10) — NestJS, Next.js, Express, React starter specs
+5. `firewall init` guided setup (GAP-01) — scan project, detect patterns, generate spec
+
+**Wave 2 — Production-grade evaluation**:
+6. Real LLM providers (GAP-12) — ClaudeProvider + OpenAIProvider using existing SDKs
+7. Actionable violation messages (GAP-09) — line numbers, explanations, fix suggestions
+8. Template function categories (GAP-04) — required vs recommended vs optional
+
+**Wave 3 — Developer ergonomics**:
+9. Inline suppression `// firewall-ignore` (GAP-08)
+10. Incremental adoption CLI flags (GAP-14) — `--dimensions`, `--rules`, `--min-severity`
+11. Spec validation command (GAP-16) — `firewall validate --spec`
+12. `no-layer-skip` 4+ layer guard (GAP-07)
+
+### v1.2: In-Memory Mode + React Support
+
+- In-memory `GraphRepository` (GAP-11) — zero-Docker evaluation for common fitness functions
+- React/JSX/TSX extraction (GAP-13) — component composition edges, hook tracking, client/server boundaries
+- ADR-to-spec LLM mapping (GAP-15) — extract architectural constraints from ADR prose
+
+### v2.0: Multi-Language + Agent Ecosystem
+
+- Language-agnostic APG via plugin extractors (Java/Spring, Python/Django, Go)
+- Architecture style marketplace (community-contributed templates + fitness functions)
+- MCP tool / Claude skill for interactive spec authoring
+- Monorepo support with cross-package dependency rules
+- Web dashboard for historical AHS trends and drift visualization
+
+---
+
+## Open Questions & Decisions Pending
+
+| Question | Context | Impact |
+|----------|---------|--------|
+| Should in-memory mode use a lightweight Cypher parser or rewrite queries as JS? | GAP-11 design. Cypher parser preserves template reuse; JS rewrite is simpler but duplicates logic | Architecture of v1.2 |
+| How do we model React component composition? New `RENDERS` edge type or reuse `CALLS`? | GAP-13. New edge type touches enums, Cypher templates, fitness functions. `CALLS` is semantically wrong but zero-change | Extractor scope |
+| Should `firewall init` be LLM-powered or heuristic-only? | GAP-01. LLM produces better specs but adds API key requirement to setup flow | DX vs accuracy tradeoff |
+| Do we publish as `npx daedalus-arch` or `npx @daedalus/firewall`? | Package naming affects brand, discoverability, and npm scope reservation | Must decide before first publish |
+| What's the minimum viable set of fitness functions for a "useful first run"? | Related to GAP-10 presets. Too many = noise, too few = no value | Preset design |
+| Should drift detection work without Neo4j (in-memory snapshots)? | Currently requires Neo4j for both baseline and current. In-memory mode would need its own snapshot format | v1.2 scope |
+
+---
+
+## Architecture Principles (Validated by v1.0)
+
+These principles emerged during construction and proved correct:
+
+1. **DomainResult<T> everywhere** — No exceptions thrown across the pipeline. Every error is a value. Made pipeline composition trivial.
+2. **PipelineStage interface** — Every module is a command. The executor doesn't know what it's running. Made the 13-command pipeline possible without coupling.
+3. **DDD-style typed setters** — FirewallContext uses invariant-enforcing setters, not raw mutation. Caught state bugs at compile time.
+4. **VCR cassettes for LLM tests** — Deterministic, fast, git-trackable. No API calls in CI. Would do this again for any LLM-integrated tool.
+5. **APGResult as the universal contract** — Everything downstream of extraction is language-agnostic. This is the seam for multi-language support.
+6. **Spike-first calibration** — Ground-truth fixtures with empirical scores before building the engine. The thresholds (pass >= 0.80, etc.) came from data, not guessing.
+
+---
+
+## Risk Register
+
+| Risk | Likelihood | Impact | Mitigation |
+|------|-----------|--------|------------|
+| Neo4j barrier kills adoption before in-memory mode ships | High | Critical | Prioritize GAP-11 in v1.2; document Docker-free workaround if possible |
+| Fitness functions produce too many false positives on real projects | High | High | Calibrate against diverse real projects (not just fixtures); implement exclude_paths + enable/disable first |
+| LLM costs make neuronal evaluation impractical for CI | Medium | High | VCR cassettes for CI; symbolic-only mode as default; neuronal opt-in |
+| `ts-morph` performance on large projects (>500 files) | Medium | Medium | Benchmark; consider incremental extraction (changed files only) |
+| Cypher template bugs silently produce wrong results | Medium | High | Integration tests against real Neo4j with known-good fixtures (GAP-05) |
+| Template merge logic complexity grows with more presets | Low | Medium | Keep templates declarative; test merge behavior per template |
