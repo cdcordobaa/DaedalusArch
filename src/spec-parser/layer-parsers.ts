@@ -23,9 +23,10 @@ export function parseLayerA(raw: Record<string, unknown>): LayerModel {
 
   const layers: LayerDefinition[] = rawLayers.map((l) => ({
     name: String(l['name']),
-    directories: l['directories'] as string[],
+    directories: (l['directories'] as string[] | undefined) ?? [],
     naming: [],
     decorators: (l['decorators'] as string[] | undefined) ?? [],
+    filePatterns: (l['file_patterns'] as string[] | undefined) ?? [],
     role: ((l['roles'] as string[]) ?? []).join(', '),
   }));
 

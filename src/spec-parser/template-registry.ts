@@ -46,7 +46,7 @@ const CLEAN_ARCH_FUNCTIONS: readonly FitnessFunction[] = [
   // ── Coupling ──
   ff('FF-C01', 'domain-stability', 'coupling', 'major', 'symbolic', true, { threshold: 0.3 }),
   ff('FF-C02', 'module-fan-out', 'coupling', 'major', 'symbolic', true, { threshold: 10 }),
-  ff('FF-C03', 'component-instability', 'coupling', 'major', 'symbolic', true),
+  ff('FF-C03', 'component-instability', 'coupling', 'major', 'symbolic', true, { threshold: 0.8 }),
   ff('FF-C04', 'no-orphan-files', 'coupling', 'minor', 'symbolic', false),
   ff('FF-C05', 'max-fan-in', 'coupling', 'minor', 'symbolic', false, { threshold: 15 }),
   ff('FF-C06', 'abstraction-ratio', 'coupling', 'advisory', 'symbolic', false, { threshold: 0.3 }),
@@ -126,8 +126,19 @@ const CLEAN_ARCHITECTURE_TEMPLATE: BuiltInTemplate = {
   defaultConfidenceThresholds: DEFAULT_CONFIDENCE_THRESHOLDS,
 };
 
+const NESTJS_TEMPLATE: BuiltInTemplate = {
+  style: 'nestjs',
+  version: '1.0.0',
+  functions: CLEAN_ARCH_FUNCTIONS,
+  defaultWeights: SYMBOLIC_WEIGHTS,
+  defaultFullModeWeights: FULL_MODE_WEIGHTS,
+  defaultVerdictThresholds: DEFAULT_VERDICT_THRESHOLDS,
+  defaultConfidenceThresholds: DEFAULT_CONFIDENCE_THRESHOLDS,
+};
+
 export const TEMPLATE_REGISTRY: ReadonlyMap<string, BuiltInTemplate> = new Map([
   ['clean-architecture', CLEAN_ARCHITECTURE_TEMPLATE],
+  ['nestjs', NESTJS_TEMPLATE],
 ]);
 
 export function resolveTemplate(style: string): BuiltInTemplate | undefined {

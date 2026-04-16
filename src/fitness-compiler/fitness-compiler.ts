@@ -51,8 +51,27 @@ export function compileFunctions(input: CompilerInput): DomainResult<CompiledFun
     seenIds.add(id);
   }
 
+  // Auto-skip layer-dependent structural rules when fewer than 3 layers
+  // are defined AND no file_patterns provide per-file layer granularity.
+  const layerCount = layerModel.layers.length;
+  const hasFilePatterns = layerModel.layers.some(l => (l.filePatterns ?? []).length > 0);
+
   // Compile enabled fitness functions by route
   for (const ff of enabledFunctions) {
+    if (ff.name === 'no-layer-skip' && layerCount < 3 && !hasFilePatterns) {
+      disabledFunctions.push({
+        id: ff.id,
+        name: ff.name,
+        reason: `Auto-disabled: only ${layerCount} layer(s) defined with no file_patterns — no intermediate layer to skip`,
+      });
+      warnings.push({
+        code: 'COMPILER_004' as CompilerWarning['code'],
+        message: `FF-S03 (no-layer-skip) auto-disabled: ${layerCount} layers with no file_patterns, need ≥ 3 layers or file_patterns`,
+        functionId: String(ff.id),
+      });
+      continue;
+    }
+
     switch (ff.route) {
       case 'symbolic': {
         const result = compileSymbolic(ff, layerModel, warnings);
@@ -261,9 +280,12 @@ function buildParams(
   params['innerLayers'] = layerOrder.slice(0, -1).length > 0 ? layerOrder.slice(0, -1) : layerOrder;
 
   // Allowed layer transitions for no-layer-skip
+  // Layers are listed inner-to-outer: [infrastructure, application, presentation]
+  // Dependencies flow inward: outer layer imports from adjacent inner layer.
+  // So allowed transitions are: layer[i+1] → layer[i] (next-outer imports next-inner)
   const allowedTransitions: string[] = [];
   for (let i = 0; i < layerOrder.length - 1; i++) {
-    allowedTransitions.push(`${layerOrder[i]}>${layerOrder[i + 1]}`);
+    allowedTransitions.push(`${layerOrder[i + 1]}>${layerOrder[i]}`);
   }
   params['allowedTransitions'] = allowedTransitions;
 

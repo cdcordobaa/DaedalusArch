@@ -43,6 +43,7 @@ export interface LayerDefinition {
   readonly directories: readonly string[];
   readonly naming: readonly string[];
   readonly decorators?: readonly string[];
+  readonly filePatterns?: readonly string[];
   readonly role: string;
 }
 

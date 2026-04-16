@@ -18,6 +18,7 @@ export function buildLayerMappings(layerModel: LayerModel): LayerMapping[] {
     directories: layer.directories,
     roles: layer.role ? layer.role.split(', ') : [],
     decorators: layer.decorators ?? [],
+    filePatterns: layer.filePatterns ?? [],
   }));
 }
 
@@ -37,6 +38,9 @@ export function annotateNodes(
   const matchers = mappings.map((m) => ({
     mapping: m,
     match: picomatch(m.directories as string[], { dot: true }),
+    fileMatch: m.filePatterns.length > 0
+      ? picomatch(m.filePatterns as string[], { dot: true })
+      : null,
   }));
 
   // Build file-to-layer map first (File nodes only)
@@ -99,9 +103,9 @@ export function annotateNodes(
 
 function annotateFileNode(
   node: APGNode,
-  matchers: { mapping: LayerMapping; match: (path: string) => boolean }[],
+  matchers: { mapping: LayerMapping; match: (path: string) => boolean; fileMatch: ((path: string) => boolean) | null }[],
 ): LayerAnnotation {
-  // Priority 1: Directory matching
+  // Priority 1: Directory matching (most specific — explicit layer dirs)
   for (const { mapping, match } of matchers) {
     if (match(node.filePath)) {
       return {
@@ -112,13 +116,25 @@ function annotateFileNode(
     }
   }
 
-  // Priority 2/3: naming and decorator are handled on Class nodes
+  // Priority 2: File-name pattern matching (e.g. *.controller.ts → presentation)
+  // This enables per-file layer assignment inside co-located feature modules.
+  for (const { mapping, fileMatch } of matchers) {
+    if (fileMatch && fileMatch(node.filePath)) {
+      return {
+        layer: mapping.layerName,
+        role: mapping.roles[0] ?? null,
+        matchMethod: 'filename',
+      };
+    }
+  }
+
+  // Priority 3/4: naming and decorator are handled on Class nodes
   return { layer: null, role: null, matchMethod: null };
 }
 
 function annotateEntityNode(
   node: APGNode,
-  matchers: { mapping: LayerMapping; match: (path: string) => boolean }[],
+  matchers: { mapping: LayerMapping; match: (path: string) => boolean; fileMatch: ((path: string) => boolean) | null }[],
 ): LayerAnnotation {
   // Try directory match first via filePath
   for (const { mapping, match } of matchers) {
@@ -127,6 +143,17 @@ function annotateEntityNode(
         layer: mapping.layerName,
         role: mapping.roles[0] ?? null,
         matchMethod: 'directory',
+      };
+    }
+  }
+
+  // Try file-name pattern match
+  for (const { mapping, fileMatch } of matchers) {
+    if (fileMatch && fileMatch(node.filePath)) {
+      return {
+        layer: mapping.layerName,
+        role: mapping.roles[0] ?? null,
+        matchMethod: 'filename',
       };
     }
   }

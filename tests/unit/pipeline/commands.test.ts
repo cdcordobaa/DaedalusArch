@@ -82,7 +82,7 @@ describe('ExtractCommand', () => {
     const result = await cmd.execute(context);
 
     expect(result.success).toBe(true);
-    expect(mockExtractAPG).toHaveBeenCalledWith('/my/project');
+    expect(mockExtractAPG).toHaveBeenCalledWith('/my/project', { excludePatterns: [] });
     expect(context.getApgResult()).toBe(apg);
   });
 

@@ -35,7 +35,7 @@ export const DEFAULT_INGESTION_CONFIG: IngestionConfig = {
 export interface LayerAnnotation {
   readonly layer: string | null;
   readonly role: string | null;
-  readonly matchMethod: 'directory' | 'naming' | 'decorator' | null;
+  readonly matchMethod: 'directory' | 'filename' | 'naming' | 'decorator' | null;
 }
 
 export interface LayerMapping {
@@ -43,6 +43,7 @@ export interface LayerMapping {
   readonly directories: readonly string[];
   readonly roles: readonly string[];
   readonly decorators: readonly string[];
+  readonly filePatterns: readonly string[];
 }
 
 // ── Error Types ───────────────────────────────────────────────────────────────

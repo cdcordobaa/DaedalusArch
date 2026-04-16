@@ -8,10 +8,15 @@ import { toPipelineError, toPipelineWarning } from './map-helpers.js';
 export class ExtractCommand implements PipelineCommand {
   readonly name = 'extract-apg';
 
-  constructor(private readonly projectPath: string) {}
+  constructor(
+    private readonly projectPath: string,
+    private readonly excludePatterns: string[] = [],
+  ) {}
 
   async execute(context: FirewallContext): Promise<DomainResultType<void>> {
-    const result = await extractAPG(this.projectPath);
+    const result = await extractAPG(this.projectPath, {
+      excludePatterns: this.excludePatterns,
+    });
 
     if (!result.success) {
       return DomainResult.fail<void>(

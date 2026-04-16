@@ -19,10 +19,11 @@ export const SPEC_SCHEMA_V1 = {
           minItems: 2,
           items: {
             type: 'object',
-            required: ['name', 'directories', 'roles'],
+            required: ['name', 'roles'],
             properties: {
               name: { type: 'string', minLength: 1 },
-              directories: { type: 'array', items: { type: 'string' }, minItems: 1 },
+              directories: { type: 'array', items: { type: 'string' } },
+              file_patterns: { type: 'array', items: { type: 'string' } },
               roles: { type: 'array', items: { type: 'string' }, minItems: 1 },
               decorators: { type: 'array', items: { type: 'string' } },
             },

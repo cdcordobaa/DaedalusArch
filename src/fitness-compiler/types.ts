@@ -22,7 +22,8 @@ export interface CompilerError extends PipelineError {
 export type CompilerWarningCode =
   | 'COMPILER_001'   // neuronal-only, no Cypher template (expected)
   | 'COMPILER_002'   // unknown function name, no built-in template
-  | 'COMPILER_003';  // shadow mode eligible but no handcrafted Cypher
+  | 'COMPILER_003'   // shadow mode eligible but no handcrafted Cypher
+  | 'COMPILER_004';  // fitness function auto-disabled (e.g. too few layers)
 
 export interface CompilerWarning extends DomainWarning {
   readonly code: CompilerWarningCode;

@@ -1,3 +1,5 @@
+import * as fs from 'node:fs';
+import YAML from 'yaml';
 import type { PipelineConfig } from './types.js';
 import type { PipelineCommand } from '../shared/interfaces/pipeline-stage.js';
 import type { DomainResult as DomainResultType } from '../shared/errors/domain-result.js';
@@ -97,10 +99,25 @@ export function createPipeline(config: PipelineConfig): PipelineBundle {
     );
   }
 
+  // ---- Pre-read spec exclude paths for APG extraction ------------------
+  // The spec and APG extraction run in parallel, so we do a lightweight
+  // YAML read here to get exclude patterns before building commands.
+  let specExcludePaths: string[] = [];
+  try {
+    const rawYaml = fs.readFileSync(config.specFilePath, 'utf-8');
+    const parsed = YAML.parse(rawYaml) as Record<string, unknown>;
+    const rawExcludes = parsed['default_exclude_paths'];
+    if (Array.isArray(rawExcludes)) {
+      specExcludePaths = rawExcludes.map(String);
+    }
+  } catch {
+    // If we can't read the spec, ParseCommand will report the error later.
+  }
+
   // ---- Stage 1: Extract APG + Parse Spec (parallel) -------------------
   commands.push(
     new ParallelCommand([
-      new ExtractCommand(config.projectPath),
+      new ExtractCommand(config.projectPath, specExcludePaths),
       new ParseCommand(config.specFilePath),
     ]),
   );

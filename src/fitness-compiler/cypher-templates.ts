@@ -181,10 +181,11 @@ OPTIONAL MATCH (f)<-[:IMPORTS]-(incoming:File)
 OPTIONAL MATCH (f)-[:IMPORTS]->(outgoing:File)
 WITH f, count(DISTINCT incoming) AS fanIn, count(DISTINCT outgoing) AS fanOut
 WHERE fanIn + fanOut > 0
-RETURN f.filePath AS filePath, f.layer AS layer, f.name AS name,
-       toFloat(fanOut) / (fanIn + fanOut) AS instability`,
-    [],
-    'Computes instability metric per file (fanOut / (fanIn + fanOut))',
+WITH f, fanIn, fanOut, toFloat(fanOut) / (fanIn + fanOut) AS instability
+WHERE instability > $threshold
+RETURN f.filePath AS filePath, f.layer AS layer, f.name AS name, instability`,
+    ['threshold'],
+    'Flags files whose instability metric exceeds the threshold (fanOut / (fanIn + fanOut))',
   )],
 
   ['no-orphan-files', tmpl(
