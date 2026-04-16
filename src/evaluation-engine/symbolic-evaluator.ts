@@ -36,6 +36,7 @@ export async function evaluateSymbolic(input: SymbolicEvalInput): Promise<Domain
 
     results.push({
       functionId: query.functionId,
+      dimension: query.dimension,
       passed,
       violations,
       executionTimeMs: Date.now() - start,

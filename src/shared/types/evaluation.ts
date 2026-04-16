@@ -81,6 +81,7 @@ export interface CompiledFunctions {
 
 export interface SymbolicFunctionResult {
   readonly functionId: FunctionId;
+  readonly dimension: import('./enums.js').Dimension;
   readonly passed: boolean;
   readonly violations: readonly Violation[];
   readonly executionTimeMs: number;

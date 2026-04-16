@@ -20,10 +20,11 @@ export function computeAVR(
   let totalFunctions = 0;
   let violatedFunctions = 0;
 
-  // Symbolic results: violations carry dimension
+  // Symbolic results: count ALL functions in this dimension, not just violated ones
   for (const r of symbolicResults) {
-    const hasDimViolation = r.violations.some((v) => v.dimension === dimension);
-    if (hasDimViolation) {
+    const belongsToDimension = r.dimension === dimension
+      || r.violations.some((v) => v.dimension === dimension);
+    if (belongsToDimension) {
       totalFunctions++;
       if (!r.passed) violatedFunctions++;
     }
