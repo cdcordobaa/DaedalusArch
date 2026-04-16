@@ -65,7 +65,7 @@ For code snippets, terminal output, and monospace content inside the dark termin
 | Role          | Hex       | Maps to          |
 |---------------|-----------|------------------|
 | Keyword       | `#e06c75` | Red (syntax)     |
-| String / Pass | `#34B896` | Teal             |
+| String / Pass | `#34D399` | Mint (green-300)  |
 | Identifier    | `#8B7CF7` | Soft violet      |
 | Function      | `#4361EE` | Royal blue       |
 | Number        | `#d19a66` | Warm orange      |
@@ -102,7 +102,7 @@ When rendering architecture diagrams (SVG, Neo4j, or generated images):
 1. **Red is for data, not decoration.** Only use `--red` for actual violations, errors, HARD-BLOCK verdicts, and negative metrics. Never for emphasis headlines or decorative dashes.
 2. **Violet is the brand voice.** Use `--violet` wherever you would instinctively reach for "accent color" — section labels, emphasis words, links, highlighted keywords.
 3. **Blue/lavender for depth.** Use `--blue` and `--lavender` to create hierarchy within the purple family (primary > secondary > tertiary).
-4. **Teal replaces green.** All positive/pass states use `--teal` (`#1B9E77`), not bright green.
+4. **Use the green scale.** Default success color is `--green-700` (emerald). Use `--green-900` for dark fills, `--green-500` for secondary surfaces, `--green-300` for bright highlights and terminal pass-text. Poster-style gradients sweep from `--green-900` to `--green-300`.
 5. **Dark-first.** All diagrams assume a dark background (`#0d1117`). Light-background variants (poster) should invert text to dark and keep the same accent palette.
 6. **Monospace for data.** Terminal windows, code blocks, Cypher queries, and metric values always use `'SF Mono', 'Fira Code', 'Consolas', monospace`.
 
@@ -110,19 +110,28 @@ When rendering architecture diagrams (SVG, Neo4j, or generated images):
 
 ```css
 :root {
-  --bg:       #0d1117;
-  --surface:  #161b22;
-  --border:   #30363d;
-  --text:     #e6edf3;
-  --dim:      #8b949e;
+  /* ── Backgrounds ── */
+  --bg:         #0d1117;
+  --surface:    #161b22;
+  --border:     #30363d;
+  --text:       #e6edf3;
+  --dim:        #8b949e;
 
-  --violet:   #7C6AEF;   /* primary accent   */
-  --blue:     #4361EE;   /* secondary accent  */
-  --lavender: #A78BFA;   /* tertiary accent   */
+  /* ── Purple family (brand) ── */
+  --violet:     #7C6AEF;   /* primary accent   */
+  --blue:       #4361EE;   /* secondary accent  */
+  --lavender:   #A78BFA;   /* tertiary accent   */
 
-  --teal:     #1B9E77;   /* pass / success    */
-  --yellow:   #d29922;   /* warning           */
-  --orange:   #db6d28;   /* soft-block        */
-  --red:      #f85149;   /* hard-block / error — data only, not decoration */
+  /* ── Green scale (from poster) ── */
+  --green-900:  #147D62;   /* deep teal         */
+  --green-700:  #1B9E77;   /* emerald (default) */
+  --green-500:  #2AB573;   /* forest green      */
+  --green-300:  #34D399;   /* mint              */
+  --teal:       #1B9E77;   /* alias → green-700 */
+
+  /* ── Status ── */
+  --yellow:     #d29922;   /* warning           */
+  --orange:     #db6d28;   /* soft-block        */
+  --red:        #f85149;   /* hard-block / error — data only, not decoration */
 }
 ```

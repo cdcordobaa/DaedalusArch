@@ -2,167 +2,117 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>Daedalus Arch — Tech Talk</title>
+  <title>DaedalusArch — An Architectural Firewall for LLM-Generated Code</title>
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/dist/reset.css" />
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/dist/reveal.css" />
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/dist/theme/black.css" />
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/plugin/highlight/monokai.css" />
   <style>
-    /* ── Tokens ── */
     :root {
-      --cyan:    #7C6AEF;
-      --blue:    #4361EE;
-      --violet:  #A78BFA;
-      --green:   #1B9E77;
-      --yellow:  #d29922;
-      --orange:  #db6d28;
-      --red:     #f85149;
-      --purple:  #A78BFA;
-      --dim:     #8b949e;
-      --surface: #161b22;
-      --border:  #30363d;
+      --bg:#0d1117; --surface:#161b22; --border:#30363d; --text:#e6edf3; --dim:#8b949e;
+      --violet:#7C6AEF; --blue:#4361EE; --lavender:#A78BFA;
+      --green-900:#147D62; --green-700:#1B9E77; --green-500:#2AB573; --green-300:#34D399;
+      --yellow:#d29922; --orange:#db6d28; --red:#f85149;
     }
     .reveal { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; }
-    .reveal .slides section { text-align: left; }
-    .reveal h1,.reveal h2,.reveal h3 { text-transform: none; letter-spacing: -0.5px; }
+    .reveal .slides section { text-align: left; overflow-y: auto !important; }
+    .reveal .slides section::-webkit-scrollbar { width: 4px; }
+    .reveal .slides section::-webkit-scrollbar-track { background: transparent; }
+    .reveal .slides section::-webkit-scrollbar-thumb { background: rgba(124,106,239,0.3); border-radius: 2px; }
+    .reveal h1,.reveal h2,.reveal h3 { text-transform:none; letter-spacing:-0.5px; }
+    .violet  { color:var(--violet); }
+    .blue    { color:var(--blue); }
+    .lavender{ color:var(--lavender); }
+    .green   { color:var(--green-700); }
+    .mint    { color:var(--green-300); }
+    .yellow  { color:var(--yellow); }
+    .red     { color:var(--red); }
+    .dim     { color:var(--dim); }
+    .mono    { font-family:'SF Mono','Fira Code','Consolas',monospace; }
+    .slide-center { text-align:center!important; display:flex; flex-direction:column; align-items:center; justify-content:center; }
+    .slide-cols { display:grid; grid-template-columns:1fr 1fr; gap:40px; align-items:start; }
+    .section-label { font-size:11px; font-weight:600; letter-spacing:2px; text-transform:uppercase; color:var(--violet); margin-bottom:6px; }
 
-    /* ── Color helpers ── */
-    .cyan   { color: var(--cyan); }
-    .green  { color: var(--green); }
-    .yellow { color: var(--yellow); }
-    .orange { color: var(--orange); }
-    .red    { color: var(--red); }
-    .purple { color: var(--purple); }
-    .dim    { color: var(--dim); }
-    .bold   { font-weight: 700; }
-    .mono   { font-family: 'SF Mono','Fira Code','Consolas',monospace; }
+    /* ── Quote ── */
+    .quote-block { font-size:24px; line-height:1.55; font-style:italic; color:#ddd; max-width:840px; text-align:center; }
+    .quote-block strong { color:#fff; font-style:normal; }
 
-    /* ── Layouts ── */
-    .slide-center { text-align: center !important; display: flex; flex-direction: column; align-items: center; justify-content: center; }
-    .slide-cols { display: grid; grid-template-columns: 1fr 1fr; gap: 40px; align-items: start; }
+    /* ── Citation ── */
+    .cite { font-size:12px; color:var(--dim); font-style:italic; }
 
-    /* ── Section divider label ── */
-    .section-divider {
-      font-size: 11px; font-weight: 600; letter-spacing: 2px;
-      text-transform: uppercase; color: var(--cyan); margin-bottom: 6px;
-    }
+    /* ── Table ── */
+    .dt { width:100%; border-collapse:collapse; font-size:13px; }
+    .dt th { text-align:left; padding:10px 14px; color:var(--dim); font-weight:600; font-size:11px; letter-spacing:.5px; text-transform:uppercase; background:rgba(124,106,239,0.06); border-bottom:1px solid var(--border); }
+    .dt td { padding:10px 14px; border-bottom:1px solid rgba(48,54,61,0.5); color:var(--text); }
+    .dt tr:last-child td { border-bottom:none; }
+    .dt .row-v td { background:rgba(124,106,239,0.08); font-weight:600; }
+    .dt .row-g td { background:rgba(27,158,119,0.08); font-weight:600; }
+    .dt .row-r td { background:rgba(248,81,73,0.06); }
 
-    /* ── Code block (terminal window) ── */
-    .terminal-window {
-      background: #1c1c1e; border-radius: 10px; overflow: hidden;
-      box-shadow: 0 24px 48px rgba(0,0,0,0.6); font-size: 12px;
-    }
-    .terminal-titlebar {
-      background: #3a3a3c; padding: 9px 14px;
-      display: flex; align-items: center; gap: 7px;
-    }
-    .td { width: 12px; height: 12px; border-radius: 50%; flex-shrink: 0; }
-    .td-r { background: #ff5f57; } .td-y { background: #febc2e; } .td-g { background: #28c840; }
-    .terminal-filename {
-      margin-left: 8px; color: #aaa;
-      font-family: 'SF Mono','Fira Code',monospace; font-size: 12px;
-    }
-    .terminal-body {
-      padding: 18px 22px;
-      font-family: 'SF Mono','Fira Code','Consolas',monospace;
-      line-height: 1.55; color: #abb2bf; overflow: hidden;
-    }
-    .t-cyan   { color: #8B7CF7; }
-    .t-green  { color: #34B896; }
-    .t-yellow { color: #e5c07b; }
-    .t-orange { color: #d19a66; }
-    .t-red    { color: #e06c75; }
-    .t-purple { color: #A78BFA; }
-    .t-white  { color: #eff0f1; font-weight: 600; }
-    .t-dim    { color: #5c6370; }
-    .t-bold   { font-weight: 700; }
-    .t-bg-green  { background: rgba(52,184,150,0.20); color: #34B896; padding: 1px 6px; border-radius: 3px; font-weight: 700; }
-    .t-bg-red    { background: rgba(224,108,117,0.20); color: #e06c75; padding: 1px 6px; border-radius: 3px; font-weight: 700; }
+    /* ── Terminal ── */
+    .tw { background:#1c1c1e; border-radius:10px; overflow:hidden; box-shadow:0 24px 48px rgba(0,0,0,0.6); font-size:12px; }
+    .tw-bar { background:#3a3a3c; padding:9px 14px; display:flex; align-items:center; gap:7px; }
+    .td { width:12px; height:12px; border-radius:50%; flex-shrink:0; }
+    .td-r { background:#ff5f57; } .td-y { background:#febc2e; } .td-g { background:#28c840; }
+    .tw-body { padding:18px 22px; font-family:'SF Mono','Fira Code',monospace; line-height:1.55; color:#abb2bf; white-space:pre; overflow:hidden; }
+    .t-v { color:#8B7CF7; } .t-g { color:#34D399; } .t-y { color:#e5c07b; } .t-r { color:#e06c75; }
+    .t-w { color:#eff0f1; font-weight:600; } .t-d { color:#5c6370; }
 
-    /* ── YAML / code block ── */
-    .code-block {
-      background: #1c1c1e; border: 1px solid var(--border);
-      border-radius: 10px; padding: 20px 24px;
-      font-family: 'SF Mono','Fira Code',monospace;
-      font-size: 12.5px; line-height: 1.65; color: #abb2bf;
-      overflow: hidden;
-    }
-    .code-block .ck  { color: #e06c75; }   /* key */
-    .code-block .cv  { color: #34B896; }   /* value string */
-    .code-block .cn  { color: #d19a66; }   /* number */
-    .code-block .cc  { color: #5c6370; }   /* comment */
-    .code-block .ci  { color: #8B7CF7; }   /* identifier */
-    .code-block .cp  { color: #A78BFA; }   /* punctuation */
-    .code-block .cf  { color: #4361EE; }   /* function */
-    .code-block .cw  { color: #eff0f1; }   /* white/emphasis */
+    /* ── Gemini placeholder ── */
+    .gp { background:repeating-linear-gradient(45deg,rgba(124,106,239,0.03),rgba(124,106,239,0.03) 10px,transparent 10px,transparent 20px); border:2px dashed rgba(124,106,239,0.25); border-radius:10px; display:flex; flex-direction:column; align-items:center; justify-content:center; color:rgba(124,106,239,0.5); font-size:13px; text-align:center; gap:8px; padding:20px; }
+    .gp-icon { font-size:28px; } .gp-label { font-weight:700; font-size:13px; }
+    .gp-prompt { font-size:10px; color:rgba(124,106,239,0.35); max-width:340px; line-height:1.5; }
 
-    /* ── Pipeline diagram ── */
-    .pipeline {
-      display: flex; align-items: center; justify-content: center;
-      gap: 0; margin-top: 24px;
-    }
-    .pipe-step {
-      background: var(--surface); border: 1px solid var(--border);
-      border-radius: 10px; padding: 16px 18px; text-align: center; flex: 1;
-    }
-    .pipe-step .ps-icon { font-size: 24px; margin-bottom: 6px; }
-    .pipe-step .ps-label { font-size: 13px; font-weight: 700; color: #fff; }
-    .pipe-step .ps-sub   { font-size: 10px; color: var(--dim); margin-top: 3px; }
-    .pipe-arrow { color: var(--cyan); font-size: 18px; padding: 0 6px; flex-shrink: 0; }
+    /* ── Card / callout ── */
+    .card { background:var(--surface); border:1px solid var(--border); border-radius:10px; padding:18px; }
+    .callout { border-left:3px solid var(--violet); background:rgba(124,106,239,0.06); border-radius:0 8px 8px 0; padding:14px 18px; font-size:14px; color:#ccc; line-height:1.6; }
+    .callout.warn { border-left-color:var(--yellow); background:rgba(210,153,34,0.06); }
+    .callout.danger { border-left-color:var(--red); background:rgba(248,81,73,0.06); }
 
-    /* ── Info card ── */
-    .info-card {
-      background: var(--surface); border: 1px solid var(--border);
-      border-radius: 10px; padding: 20px;
-    }
-    .info-card .ic-head { font-size: 15px; font-weight: 700; color: #fff; margin-bottom: 8px; }
-    .info-card .ic-body { font-size: 13px; color: var(--dim); line-height: 1.6; }
+    /* ── Stat big number ── */
+    .stat-hero { font-size:72px; font-weight:900; letter-spacing:-3px; line-height:1; }
 
-    /* ── Stat row ── */
-    .stats-row {
-      display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px;
+    /* ── Research citation block ── */
+    .research-cite {
+      display:flex; gap:14px; padding:16px; background:var(--surface);
+      border:1px solid var(--border); border-radius:10px; align-items:flex-start;
     }
-    .stat-box {
-      background: var(--surface); border: 1px solid var(--border);
-      border-radius: 10px; padding: 16px; text-align: center;
+    .research-cite .rc-badge {
+      flex-shrink:0; width:48px; height:48px; border-radius:8px;
+      display:flex; align-items:center; justify-content:center;
+      font-size:20px; font-weight:900; color:#fff;
+      background:rgba(124,106,239,0.15); border:1px solid rgba(124,106,239,0.3);
     }
-    .stat-number { font-size: 28px; font-weight: 800; color: var(--cyan); letter-spacing: -1px; }
-    .stat-label  { font-size: 11px; color: var(--dim); margin-top: 4px; }
+    .research-cite .rc-body { flex:1; }
+    .research-cite .rc-source { font-size:11px; color:var(--lavender); font-weight:700; margin-bottom:4px; }
+    .research-cite .rc-finding { font-size:14px; color:#fff; font-weight:600; line-height:1.4; }
+    .research-cite .rc-detail { font-size:12px; color:var(--dim); line-height:1.5; margin-top:6px; }
 
-    /* ── Dimension table ── */
-    .dim-table {
-      width: 100%; border-collapse: collapse; font-size: 12px;
-      font-family: 'SF Mono','Fira Code',monospace;
+    /* ── Code example box ── */
+    .code-example {
+      background:#1c1c1e; border:1px solid var(--border); border-radius:8px;
+      padding:14px 18px; font-family:'SF Mono','Fira Code',monospace;
+      font-size:12px; line-height:1.6; color:#abb2bf; white-space:pre; overflow:hidden;
     }
-    .dim-table th {
-      text-align: left; padding: 8px 12px; color: var(--dim);
-      font-weight: 600; font-size: 10px; letter-spacing: 0.5px;
-      text-transform: uppercase; border-bottom: 1px solid var(--border);
+    .code-example .ce-label {
+      display:block; font-size:10px; font-weight:700; letter-spacing:1.5px;
+      text-transform:uppercase; color:var(--dim); margin-bottom:8px;
+      font-family:-apple-system,sans-serif;
     }
-    .dim-table td {
-      padding: 8px 12px; border-bottom: 1px solid rgba(48,54,61,0.5); color: var(--text);
-    }
-    .dim-badge {
-      display: inline-block; padding: 2px 8px; border-radius: 4px;
-      font-size: 10px; font-weight: 700; letter-spacing: 0.5px;
-    }
-    .db-str { background: rgba(248,81,73,0.15); color: var(--red); }
-    .db-cpl { background: rgba(124,106,239,0.10); color: var(--cyan); }
-    .db-pat { background: rgba(210,153,34,0.15); color: var(--yellow); }
-    .db-sld { background: rgba(27,158,119,0.12); color: var(--green); }
-    .db-cvn { background: rgba(139,148,158,0.15); color: var(--dim); }
-    .db-neu { background: rgba(167,139,250,0.15); color: var(--purple); }
+    .ce-bad { border-left:3px solid var(--red); }
+    .ce-good { border-left:3px solid var(--green-700); }
 
-    /* ── Graph diagram ── */
-    .graph-visual {
-      background: #1c1c1e; border: 1px solid var(--border);
-      border-radius: 10px; padding: 24px; text-align: center;
+    /* ── Big stat ── */
+    .big-stat {
+      text-align:center; padding:20px;
+      background:var(--surface); border:1px solid var(--border); border-radius:10px;
     }
-    .graph-visual svg { max-width: 100%; }
+    .big-stat .bs-number { font-size:48px; font-weight:900; letter-spacing:-2px; line-height:1; }
+    .big-stat .bs-label { font-size:12px; color:var(--dim); margin-top:6px; }
+    .big-stat .bs-detail { font-size:10px; color:var(--dim); margin-top:2px; }
 
     /* ── Progress ── */
-    .reveal .progress { height: 2px; color: var(--cyan); }
-    .reveal .fragment { transition: opacity 0.3s ease; }
+    .reveal .progress { height:2px; color:var(--violet); }
+    .reveal .fragment { transition:opacity .3s ease; }
   </style>
 </head>
 <body>
@@ -170,814 +120,1562 @@
 <div class="slides">
 
 <!-- ═══════════════════════════════════════════════════════════
-     SLIDE 1 — TITLE
+     1 — TITLE
 ══════════════════════════════════════════════════════════════ -->
 <section data-background-color="#0d1117" class="slide-center">
   <div style="text-align:center;">
-    <div style="font-size:11px;font-weight:700;letter-spacing:3px;text-transform:uppercase;color:var(--cyan);margin-bottom:16px;">Tech Talk</div>
-    <h1 style="font-size:72px;font-weight:900;letter-spacing:-3px;line-height:1;
-      background:linear-gradient(135deg, #fff 40%, var(--cyan));
-      -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text;">
-      DAEDALUS ARCH
+    <h1 style="font-size:54px;font-weight:900;letter-spacing:-2px;line-height:1.15;
+      background:linear-gradient(135deg, #fff 40%, var(--violet));
+      -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;">
+      Your agents can't respect<br>your architecture yet.
     </h1>
-    <div style="font-size:22px;color:var(--cyan);font-weight:400;margin-top:12px;letter-spacing:1px;">
-      Building a Graph-Based Architectural Firewall
+    <div style="font-size:20px;color:var(--violet);margin-top:16px;">Why they need an architectural firewall.</div>
+    <div style="font-size:14px;color:var(--dim);margin-top:32px;">Cristian Cordoba &middot; Software Architect & AI Engineer</div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════════
+     2 — OPENING HOOK
+══════════════════════════════════════════════════════════════ -->
+<section data-background-color="#0d1117">
+  <h2 style="font-size:40px;font-weight:900;letter-spacing:-1.5px;line-height:1.2;margin-bottom:24px;">
+    "It works. It's also <span class="violet">unmaintainable.</span>"
+  </h2>
+
+  <div style="display:grid;grid-template-columns:1.1fr 0.9fr;gap:32px;align-items:start;">
+    <div>
+      <div class="tw">
+        <div class="tw-bar"><div class="td td-r"></div><div class="td td-y"></div><div class="td td-g"></div>
+          <span style="margin-left:8px;color:#aaa;font-family:monospace;font-size:12px;">$ check-everything.sh</span>
+        </div>
+        <div class="tw-body" style="font-size:13px;">
+<span class="t-g">✔</span> <span class="t-w">ESLint</span>            <span class="t-d">0 errors, 0 warnings</span>
+<span class="t-g">✔</span> <span class="t-w">TypeScript</span>         <span class="t-d">compiles clean</span>
+<span class="t-g">✔</span> <span class="t-w">Jest</span>               <span class="t-d">47/47 tests passing</span>
+<span class="t-g">✔</span> <span class="t-w">Code Review</span>        <span class="t-d">"LGTM" approved</span>
+<span class="t-d">─────────────────────────────────────</span>
+<span class="t-v">?</span> <span class="t-w">Architecture</span>       <span style="color:var(--red);">nobody checked.</span></div>
+      </div>
+      <div style="margin-top:16px;font-size:13px;color:var(--dim);line-height:1.6;">
+        An LLM generated a NestJS backend in 30 seconds. Every existing tool said it was fine. But the domain was importing Prisma, 4 modules had circular deps, and every service instantiated its own DB connection.
+      </div>
     </div>
-    <div style="font-size:15px;color:var(--dim);margin-top:24px;line-height:1.7;max-width:640px;display:inline-block;">
-      How we turn source code into a property graph, evaluate 25 fitness functions<br>
-      via Cypher queries, and compute a deterministic health score for every commit.
-    </div>
-    <div style="font-size:13px;color:#555;margin-top:36px;">
-      Cristian Cordoba &middot; Software Architect
+    <div>
+      <img src="images/slide-02-before-after-split.png" alt="Before/After split: clean directory tree with checkmarks vs. dependency graph with red violation arrows — what tools see vs. what's actually happening" style="width:100%;display:block;border-radius:10px;" />
     </div>
   </div>
 </section>
 
 <!-- ═══════════════════════════════════════════════════════════
-     SLIDE 2 — THE GAP (technical framing)
+     3 — THE EVALUATION GAP
 ══════════════════════════════════════════════════════════════ -->
 <section data-background-color="#0d1117">
-  <div class="section-divider">The Problem</div>
-  <h2 style="font-size:44px;font-weight:900;letter-spacing:-1.5px;line-height:1.2;margin-bottom:24px;">
-    Linters see files.<br>
-    Architecture lives <span class="cyan">between</span> them.
+  <div class="section-label">The Evaluation Gap</div>
+  <h2 style="font-size:36px;font-weight:900;letter-spacing:-1px;margin-bottom:20px;">
+    Every benchmark measures correctness. <span class="violet">None measure architecture.</span>
   </h2>
-  <div class="slide-cols" style="gap:32px;">
+
+  <div style="display:grid;grid-template-columns:1fr;gap:0;">
+    <div style="border:1px solid var(--border);border-radius:10px;overflow:hidden;">
+      <table class="dt" style="font-size:14px;">
+        <thead><tr><th style="width:30%;">Benchmark</th><th style="width:35%;">What it measures</th><th style="width:20%;">Architecture?</th><th style="width:15%;text-align:center;">Year</th></tr></thead>
+        <tbody>
+          <tr><td>HumanEval <span class="dim">(OpenAI)</span></td><td>Function-level correctness</td><td style="color:var(--red);">No</td><td style="text-align:center;" class="dim">2021</td></tr>
+          <tr><td>SWE-bench <span class="dim">(Princeton)</span></td><td>Bug fix patches</td><td style="color:var(--red);">No</td><td style="text-align:center;" class="dim">2024</td></tr>
+          <tr><td>BaxBench <span class="dim">(ETH Zurich)</span></td><td>Backend correctness + security</td><td style="color:var(--red);">No</td><td style="text-align:center;" class="dim">2025</td></tr>
+          <tr><td>LoCoBench <span class="dim">(Salesforce)</span></td><td>Long-context SE tasks</td><td style="color:var(--yellow);">Touches it</td><td style="text-align:center;" class="dim">2025</td></tr>
+          <tr class="row-v"><td style="color:var(--violet);">DaedalusArch</td><td style="color:var(--violet);">Architectural compliance</td><td style="color:var(--green-700);font-weight:800;">Yes. First.</td><td style="text-align:center;color:var(--violet);">2026</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin-top:20px;">
+    <div class="card" style="text-align:center;padding:14px;">
+      <div style="font-size:11px;color:var(--dim);letter-spacing:1px;text-transform:uppercase;margin-bottom:4px;">Correctness</div>
+      <div style="font-size:28px;font-weight:800;color:var(--green-300);">Solved</div>
+      <div style="font-size:10px;color:var(--dim);margin-top:4px;">HumanEval, SWE-bench, tests</div>
+    </div>
+    <div class="card" style="text-align:center;padding:14px;">
+      <div style="font-size:11px;color:var(--dim);letter-spacing:1px;text-transform:uppercase;margin-bottom:4px;">Security</div>
+      <div style="font-size:28px;font-weight:800;color:var(--yellow);">In progress</div>
+      <div style="font-size:10px;color:var(--dim);margin-top:4px;">BaxBench, Snyk, SAST</div>
+    </div>
+    <div class="card" style="text-align:center;padding:14px;border-color:var(--violet);">
+      <div style="font-size:11px;color:var(--violet);letter-spacing:1px;text-transform:uppercase;margin-bottom:4px;">Architecture</div>
+      <div style="font-size:28px;font-weight:800;color:var(--red);">Nobody</div>
+      <div style="font-size:10px;color:var(--dim);margin-top:4px;">Until now.</div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════════
+     4 — LAYER 1: TEXT MACHINES
+══════════════════════════════════════════════════════════════ -->
+<section data-background-color="#0d1117">
+  <div class="section-label">Why Models Fail &mdash; Layer 1</div>
+  <h2 style="font-size:38px;font-weight:900;letter-spacing:-1px;margin-bottom:20px;">
+    Text machines, <span class="violet">not architects.</span>
+  </h2>
+
+  <img src="images/slide-04-code-as-text-vs-system.png" alt="Left: flat code tokens — how the model sees it. Right: layered class graph with imports/calls/implements — what architecture actually is." style="width:100%;display:block;border-radius:10px;margin-bottom:16px;" />
+
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;">
+    <div class="callout" style="font-size:13px;">
+      <strong style="color:#fff;">Fan et al. (2024, Meta &mdash; ICSE):</strong> "LLMs learn what code <em>looks like</em>, not what code <em>does</em>." The proposed fix &mdash; Execution-Aware Training &mdash; doesn't exist yet.
+    </div>
+    <div class="callout" style="font-size:13px;">
+      They learn <strong style="color:#fff;">syntax</strong> and <strong style="color:#fff;">statistical co-occurrence</strong>, not <strong style="color:#fff;">causality</strong> or <strong style="color:#fff;">behavior</strong>. They never observe runtime state, execution paths, or how components interact.
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════════
+     5 — LAYER 2: HALLUCINATED COUPLING
+══════════════════════════════════════════════════════════════ -->
+<section data-background-color="#0d1117">
+  <div class="section-label">Why Models Fail &mdash; Layer 2</div>
+  <h2 style="font-size:38px;font-weight:900;letter-spacing:-1px;margin-bottom:20px;">
+    Hallucinated <span class="violet">Coupling.</span>
+  </h2>
+
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:32px;align-items:center;">
     <div>
-      <p style="font-size:16px;color:#ccc;line-height:1.7;margin-bottom:20px;">
-        ESLint, SonarQube, CodeQL &mdash; all operate on single files or local scopes.
-        None of them can answer:
+      <p style="font-size:16px;color:#ccc;line-height:1.7;margin-bottom:16px;">
+        The model's "default architecture" is the <strong style="color:#fff;">statistical average of all GitHub code</strong> &mdash; which overwhelmingly contains lazy patterns.
       </p>
-      <ul style="list-style:none;display:flex;flex-direction:column;gap:12px;font-size:15px;color:#ccc;">
-        <li class="fragment"><span class="cyan">--</span> Does my domain layer import from infrastructure?</li>
-        <li class="fragment"><span class="cyan">--</span> Are there circular dependency chains across 4 files?</li>
-        <li class="fragment"><span class="cyan">--</span> Does every repository implement an interface?</li>
-        <li class="fragment"><span class="cyan">--</span> Is the codebase structurally compliant with our spec?</li>
-      </ul>
-      <p style="font-size:15px;color:var(--dim);margin-top:20px;" class="fragment">
-        These are <strong style="color:#fff;">graph questions</strong>. You need a graph to answer them.
+      <div class="callout" style="font-size:13px;margin-bottom:16px;">
+        <strong style="color:#fff;">Slater (2025, Georgia Tech):</strong> When faced with architectural purity vs. functional shortcuts, the model always takes the shortcut.
+      </div>
+      <p style="font-size:14px;color:var(--dim);">
+        The model imports <span class="mono" style="color:var(--red);">redis</span> directly into the domain layer because that's what most GitHub code does.
       </p>
     </div>
     <div>
-      <div class="code-block" style="font-size:11.5px;">
-<span class="cc">// ESLint can catch this:</span>
-<span class="ck">const</span> x = <span class="cn">null</span>;  <span class="cc">// no-null-assignment</span>
-
-<span class="cc">// ESLint CANNOT catch this:</span>
-<span class="cc">// domain/Order.ts imports infra/PgClient.ts</span>
-<span class="cc">//   which violates dependency-direction rule</span>
-<span class="cc">//   and breaks clean architecture layer model</span>
-<span class="cc">//</span>
-<span class="cc">// Because it requires CROSS-FILE analysis</span>
-<span class="cc">// + knowledge of your architectural spec.</span>
-
-<span class="cc">// That's what Daedalus Arch does.</span>
+      <!-- Violation rate bars -->
+      <div class="card" style="padding:24px;">
+        <div style="font-size:11px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--dim);margin-bottom:18px;">Architectural Violation Rate by Model</div>
+        <!-- GPT-5.1 -->
+        <div style="display:flex;align-items:center;gap:12px;margin-bottom:14px;">
+          <span style="font-size:12px;color:#fff;width:120px;font-weight:600;">GPT-5.1</span>
+          <div style="flex:1;height:28px;background:#21262d;border-radius:4px;overflow:hidden;position:relative;">
+            <div style="width:0%;height:100%;background:var(--green-700);border-radius:4px;"></div>
+          </div>
+          <span style="font-size:16px;font-weight:800;color:var(--green-300);width:50px;text-align:right;">0%</span>
+        </div>
+        <!-- Claude 4.5 -->
+        <div style="display:flex;align-items:center;gap:12px;margin-bottom:14px;">
+          <span style="font-size:12px;color:#fff;width:120px;font-weight:600;">Claude 4.5</span>
+          <div style="flex:1;height:28px;background:#21262d;border-radius:4px;overflow:hidden;">
+            <div style="width:20%;height:100%;background:var(--yellow);border-radius:4px;"></div>
+          </div>
+          <span style="font-size:16px;font-weight:800;color:var(--yellow);width:50px;text-align:right;">20%</span>
+        </div>
+        <!-- Llama 3 8B -->
+        <div style="display:flex;align-items:center;gap:12px;">
+          <span style="font-size:12px;color:#fff;width:120px;font-weight:600;">Llama 3 (8B)</span>
+          <div style="flex:1;height:28px;background:#21262d;border-radius:4px;overflow:hidden;">
+            <div style="width:80%;height:100%;background:var(--red);border-radius:4px;"></div>
+          </div>
+          <span style="font-size:22px;font-weight:900;color:var(--red);width:50px;text-align:right;">80%</span>
+        </div>
+        <div class="cite" style="margin-top:14px;">Slater (2025) &mdash; Empirical architectural violation rates</div>
       </div>
     </div>
   </div>
 </section>
 
 <!-- ═══════════════════════════════════════════════════════════
-     SLIDE 3 — ARCHITECTURE OVERVIEW (the pipeline)
+     6 — LAYER 3: EMBEDDINGS BLIND TO STRUCTURE
 ══════════════════════════════════════════════════════════════ -->
 <section data-background-color="#0d1117">
-  <div class="section-divider">System Architecture</div>
-  <h2 style="font-size:36px;font-weight:900;letter-spacing:-1px;margin-bottom:8px;">
-    Six-stage evaluation pipeline
+  <div class="section-label">Why Models Fail &mdash; Layer 3</div>
+  <h2 style="font-size:38px;font-weight:900;letter-spacing:-1px;margin-bottom:20px;">
+    Embeddings are <span class="violet">blind to structure.</span>
+  </h2>
+
+  <img src="images/slide-06-embedding-vs-graph-space.png" alt="Left: 2D embedding scatter — services cluster together, IUserRepository isolated. Right: dependency graph with green UserService→IUserRepository edge. Architecture lives in the connections." style="width:100%;display:block;border-radius:10px;margin-bottom:16px;" />
+
+  <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;">
+    <div class="callout" style="font-size:11.5px;padding:12px 14px;">
+      <strong style="color:#fff;">Yasunaga et al. (2024):</strong> "The semantic-structural gap &mdash; semantically relevant code and structurally necessary code often don't overlap."
+    </div>
+    <div class="callout" style="font-size:11.5px;padding:12px 14px;">
+      <strong style="color:#fff;">Liu et al. (2025, NeurIPS):</strong> Code Graph Models that inject graph structure into attention outperform flat-text LLMs on repo-level tasks.
+    </div>
+    <div class="callout" style="font-size:11.5px;padding:12px 14px;">
+      <strong style="color:#fff;">RepoHyper (Phan et al., 2025):</strong> Graph-based retrieval captures indirect dependencies that embedding search misses entirely.
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════════
+     7 — LAYER 4: LOST IN THE MIDDLE
+══════════════════════════════════════════════════════════════ -->
+<section data-background-color="#0d1117">
+  <div class="section-label">Why Models Fail &mdash; Layer 4</div>
+  <h2 style="font-size:38px;font-weight:900;letter-spacing:-1px;margin-bottom:8px;">
+    Lost in the <span class="violet">middle.</span>
   </h2>
   <p style="font-size:14px;color:var(--dim);margin-bottom:16px;">
-    Source code in, health score out. Every stage is a pure function over typed data.
+    Liu et al. (2024, TACL &mdash; 2,100+ citations)
   </p>
 
-  <div class="pipeline">
-    <div class="pipe-step">
-      <div class="ps-icon">1</div>
-      <div class="ps-label">Extract</div>
-      <div class="ps-sub">ts-morph AST<br>parse &rarr; APG</div>
-    </div>
-    <div class="pipe-arrow">&rarr;</div>
-    <div class="pipe-step">
-      <div class="ps-icon">2</div>
-      <div class="ps-label">Parse Spec</div>
-      <div class="ps-sub">YAML &rarr; typed<br>ArchSpec object</div>
-    </div>
-    <div class="pipe-arrow">&rarr;</div>
-    <div class="pipe-step">
-      <div class="ps-icon">3</div>
-      <div class="ps-label">Ingest</div>
-      <div class="ps-sub">Bulk UNWIND<br>into Neo4j</div>
-    </div>
-    <div class="pipe-arrow">&rarr;</div>
-    <div class="pipe-step">
-      <div class="ps-icon">4</div>
-      <div class="ps-label">Compile</div>
-      <div class="ps-sub">Spec &rarr; Cypher<br>25 queries</div>
-    </div>
-    <div class="pipe-arrow">&rarr;</div>
-    <div class="pipe-step">
-      <div class="ps-icon">5</div>
-      <div class="ps-label">Evaluate</div>
-      <div class="ps-sub">Symbolic + LLM<br>neuro-symbolic</div>
-    </div>
-    <div class="pipe-arrow">&rarr;</div>
-    <div class="pipe-step" style="border-color:var(--cyan);">
-      <div class="ps-icon">6</div>
-      <div class="ps-label" style="color:var(--cyan);">Score</div>
-      <div class="ps-sub">AVR &rarr; AHS<br>verdict</div>
-    </div>
+  <!-- Full-width U-curve SVG -->
+  <div style="background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:28px 24px 20px;">
+    <svg viewBox="0 0 900 260" style="width:100%;">
+      <!-- Grid lines -->
+      <line x1="60" y1="40" x2="60" y2="210" stroke="#21262d" stroke-width="1"/>
+      <line x1="60" y1="210" x2="860" y2="210" stroke="#30363d" stroke-width="1"/>
+      <line x1="60" y1="80" x2="860" y2="80" stroke="#21262d" stroke-width="1" stroke-dasharray="4"/>
+      <line x1="60" y1="140" x2="860" y2="140" stroke="#21262d" stroke-width="1" stroke-dasharray="4"/>
+
+      <!-- Y-axis labels -->
+      <text x="50" y="48" text-anchor="end" fill="#8b949e" font-size="10" font-family="monospace">High</text>
+      <text x="50" y="210" text-anchor="end" fill="#8b949e" font-size="10" font-family="monospace">Low</text>
+      <text x="12" y="130" text-anchor="middle" fill="#8b949e" font-size="9" font-family="monospace" transform="rotate(-90,12,130)">Attention / Performance</text>
+
+      <!-- U-shaped curve fill -->
+      <path d="M80,55 C200,60 300,185 460,195 C620,185 720,60 840,55 L840,210 L80,210 Z"
+            fill="rgba(124,106,239,0.06)"/>
+      <!-- U-shaped curve stroke -->
+      <path d="M80,55 C200,60 300,185 460,195 C620,185 720,60 840,55"
+            fill="none" stroke="var(--violet)" stroke-width="3"/>
+
+      <!-- Danger zone rectangle -->
+      <rect x="280" y="30" width="360" height="185" rx="6"
+            fill="rgba(248,81,73,0.04)" stroke="rgba(248,81,73,0.25)" stroke-width="1.5" stroke-dasharray="6"/>
+
+      <!-- Danger zone content -->
+      <text x="460" y="105" text-anchor="middle" fill="var(--red)" font-size="13" font-weight="800" font-family="monospace">YOUR ARCHITECTURAL</text>
+      <text x="460" y="122" text-anchor="middle" fill="var(--red)" font-size="13" font-weight="800" font-family="monospace">CONSTRAINTS LIVE HERE</text>
+      <text x="460" y="145" text-anchor="middle" fill="rgba(248,81,73,0.5)" font-size="10" font-family="monospace">domain/IUserRepository.ts</text>
+      <text x="460" y="160" text-anchor="middle" fill="rgba(248,81,73,0.5)" font-size="10" font-family="monospace">interfaces, layer rules, DI contracts</text>
+
+      <!-- Start/End labels with file examples -->
+      <text x="80" y="46" fill="var(--green-300)" font-size="10" font-weight="700" font-family="monospace">High attention</text>
+      <text x="80" y="235" fill="var(--dim)" font-size="9" font-family="monospace">Start: prompt, system instructions</text>
+
+      <text x="840" y="46" fill="var(--green-300)" font-size="10" font-weight="700" font-family="monospace" text-anchor="end">High attention</text>
+      <text x="840" y="235" fill="var(--dim)" font-size="9" font-family="monospace" text-anchor="end">End: current file being generated</text>
+
+      <text x="460" y="235" text-anchor="middle" fill="var(--dim)" font-size="9" font-family="monospace">Middle: the rest of your codebase</text>
+    </svg>
   </div>
 
-  <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-top:20px;">
-    <div style="background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:12px;font-size:11px;color:var(--dim);line-height:1.5;">
-      <strong style="color:#fff;">Input:</strong> TypeScript project path + YAML spec (or preset)
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:14px;">
+    <div style="font-size:14px;color:#ccc;line-height:1.6;">
+      When generating <span class="mono dim">infrastructure/UserRepository.ts</span>, the interface it's supposed to implement is sitting in the <strong style="color:var(--red);">middle</strong> of the context.
     </div>
-    <div style="background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:12px;font-size:11px;color:var(--dim);line-height:1.5;">
-      <strong style="color:#fff;">Graph:</strong> Neo4j property graph with File, Class, Interface, Method nodes
-    </div>
-    <div style="background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:12px;font-size:11px;color:var(--dim);line-height:1.5;">
-      <strong style="color:#fff;">Output:</strong> AHS 0&ndash;1 score + per-dimension AVR + violation details
+    <div class="callout warn" style="font-size:12px;padding:10px 14px;">
+      <strong style="color:#fff;">Bigger context windows don't fix this.</strong> The U-shape scales with window size. The middle is always neglected.
     </div>
   </div>
 </section>
 
 <!-- ═══════════════════════════════════════════════════════════
-     SLIDE 4 — THE APG (Architecture Property Graph)
+     8 — LAYER 5: EACH FILE INDEPENDENT
 ══════════════════════════════════════════════════════════════ -->
 <section data-background-color="#0d1117">
-  <div class="section-divider">Stage 1 &mdash; The Graph Model</div>
+  <div class="section-label">Why Models Fail &mdash; Layer 5</div>
   <h2 style="font-size:38px;font-weight:900;letter-spacing:-1px;margin-bottom:20px;">
-    The Architecture Property Graph <span class="cyan">(APG)</span>
+    Each file is <span class="violet">independent.</span>
   </h2>
-  <div class="slide-cols" style="gap:32px;">
+
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:28px;align-items:start;">
     <div>
-      <p style="font-size:14px;color:#ccc;line-height:1.7;margin-bottom:16px;">
-        We parse the codebase with <strong class="cyan">ts-morph</strong> and build a typed property graph.
-        Every file, class, interface, method, and function becomes a node.
-        Every import, declaration, inheritance, and call becomes an edge.
-      </p>
-
-      <div style="display:flex;flex-direction:column;gap:8px;">
-        <div style="display:flex;gap:8px;flex-wrap:wrap;">
-          <span style="font-size:11px;font-weight:700;letter-spacing:1px;color:var(--dim);width:60px;">NODES</span>
-          <span class="dim-badge db-str">File</span>
-          <span class="dim-badge db-cpl">Class</span>
-          <span class="dim-badge db-pat">Interface</span>
-          <span class="dim-badge db-sld">Method</span>
-          <span class="dim-badge db-cvn">Function</span>
-        </div>
-        <div style="display:flex;gap:8px;flex-wrap:wrap;">
-          <span style="font-size:11px;font-weight:700;letter-spacing:1px;color:var(--dim);width:60px;">EDGES</span>
-          <span class="dim-badge db-str">IMPORTS</span>
-          <span class="dim-badge db-cpl">DECLARES</span>
-          <span class="dim-badge db-pat">EXTENDS</span>
-          <span class="dim-badge db-sld">IMPLEMENTS</span>
-          <span class="dim-badge db-neu">CALLS</span>
-          <span class="dim-badge db-cvn">CONSTRUCTOR_INJECTS</span>
-        </div>
-      </div>
-
-      <div class="code-block" style="margin-top:16px;font-size:11px;">
-<span class="cc">// APGNode — src/shared/types/apg.ts</span>
-<span class="ck">interface</span> <span class="ci">APGNode</span> {
-  <span class="ck">id</span>:         <span class="ci">string</span>;
-  <span class="ck">type</span>:       <span class="cv">'File'</span> | <span class="cv">'Class'</span> | <span class="cv">'Interface'</span> | ...;
-  <span class="ck">filePath</span>:   <span class="ci">string</span>;
-  <span class="ck">name</span>:       <span class="ci">string</span>;
-  <span class="ck">layer</span>?:     <span class="ci">string</span>;  <span class="cc">// annotated post-ingestion</span>
-  <span class="ck">role</span>?:      <span class="ci">string</span>;  <span class="cc">// entity, use-case, etc.</span>
-  <span class="ck">decorators</span>: <span class="ci">string</span>[];
-  <span class="ck">properties</span>: <span class="ci">Record</span>&lt;<span class="ci">string</span>, <span class="ci">unknown</span>&gt;;
-}
-      </div>
+      <img src="images/slide-08-independent-vs-coordinated.png" alt="Top: 5 isolated file-bubbles labeled Task N of N — how the agent generates. Bottom: the same components as a layered coherent system with shared auth and logging bands — what the system needs. Arrow between reads 'The gap.'" style="width:100%;display:block;border-radius:10px;" />
     </div>
     <div>
-      <div class="graph-visual">
-        <svg viewBox="0 0 400 360" style="width:100%;height:auto;">
-          <!-- Layer backgrounds -->
-          <rect x="10" y="10" width="380" height="100" rx="8" fill="rgba(124,106,239,0.06)" stroke="rgba(124,106,239,0.2)" stroke-dasharray="4"/>
-          <text x="24" y="32" fill="#7C6AEF" font-size="10" font-weight="700" font-family="monospace">DOMAIN</text>
+      <div class="callout" style="font-size:14px;margin-bottom:16px;">
+        <strong style="color:#fff;">Zhang et al. (2024, SAIP):</strong> LLMs demonstrate strong performance on <strong style="color:#fff;">local</strong> design decisions but fail systematically on <strong style="color:#fff;">system-level</strong> reasoning.
+      </div>
 
-          <rect x="10" y="120" width="380" height="100" rx="8" fill="rgba(27,158,119,0.06)" stroke="rgba(27,158,119,0.2)" stroke-dasharray="4"/>
-          <text x="24" y="142" fill="#1B9E77" font-size="10" font-weight="700" font-family="monospace">APPLICATION</text>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:16px;">
+        <div class="card" style="text-align:center;padding:16px;">
+          <div style="font-size:11px;color:var(--dim);letter-spacing:1px;text-transform:uppercase;margin-bottom:4px;">Local Tasks</div>
+          <div class="stat-hero" style="font-size:48px;color:var(--green-300);">~95%</div>
+          <div style="font-size:10px;color:var(--dim);">HumanEval accuracy</div>
+        </div>
+        <div class="card" style="text-align:center;padding:16px;">
+          <div style="font-size:11px;color:var(--dim);letter-spacing:1px;text-transform:uppercase;margin-bottom:4px;">System-Level</div>
+          <div class="stat-hero" style="font-size:48px;color:var(--red);">~35%</div>
+          <div style="font-size:10px;color:var(--dim);">SWE-bench accuracy</div>
+        </div>
+      </div>
 
-          <rect x="10" y="230" width="380" height="120" rx="8" fill="rgba(210,153,34,0.06)" stroke="rgba(210,153,34,0.2)" stroke-dasharray="4"/>
-          <text x="24" y="252" fill="#A78BFA" font-size="10" font-weight="700" font-family="monospace">INFRASTRUCTURE</text>
-
-          <!-- Domain nodes -->
-          <circle cx="100" cy="65" r="22" fill="#161b22" stroke="#7C6AEF" stroke-width="1.5"/>
-          <text x="100" y="69" text-anchor="middle" fill="#fff" font-size="9" font-weight="600" font-family="monospace">Task</text>
-          <circle cx="260" cy="65" r="22" fill="#161b22" stroke="#7C6AEF" stroke-width="1.5"/>
-          <text x="260" y="62" text-anchor="middle" fill="#fff" font-size="8" font-weight="600" font-family="monospace">ITask</text>
-          <text x="260" y="73" text-anchor="middle" fill="#8b949e" font-size="7" font-family="monospace">Repository</text>
-
-          <!-- Application nodes -->
-          <circle cx="100" cy="175" r="22" fill="#161b22" stroke="#1B9E77" stroke-width="1.5"/>
-          <text x="100" y="172" text-anchor="middle" fill="#fff" font-size="8" font-weight="600" font-family="monospace">Create</text>
-          <text x="100" y="182" text-anchor="middle" fill="#8b949e" font-size="7" font-family="monospace">TaskUseCase</text>
-          <circle cx="260" cy="175" r="22" fill="#161b22" stroke="#1B9E77" stroke-width="1.5"/>
-          <text x="260" y="172" text-anchor="middle" fill="#fff" font-size="8" font-weight="600" font-family="monospace">Complete</text>
-          <text x="260" y="182" text-anchor="middle" fill="#8b949e" font-size="7" font-family="monospace">TaskUseCase</text>
-
-          <!-- Infrastructure nodes -->
-          <circle cx="100" cy="290" r="22" fill="#161b22" stroke="#A78BFA" stroke-width="1.5"/>
-          <text x="100" y="287" text-anchor="middle" fill="#fff" font-size="8" font-weight="600" font-family="monospace">InMemory</text>
-          <text x="100" y="297" text-anchor="middle" fill="#8b949e" font-size="7" font-family="monospace">TaskRepo</text>
-          <circle cx="260" cy="290" r="22" fill="#161b22" stroke="#A78BFA" stroke-width="1.5"/>
-          <text x="260" y="287" text-anchor="middle" fill="#fff" font-size="8" font-weight="600" font-family="monospace">Task</text>
-          <text x="260" y="297" text-anchor="middle" fill="#8b949e" font-size="7" font-family="monospace">Controller</text>
-          <circle cx="340" cy="330" r="16" fill="#161b22" stroke="#A78BFA" stroke-width="1"/>
-          <text x="340" y="333" text-anchor="middle" fill="#8b949e" font-size="7" font-family="monospace">Logger</text>
-
-          <!-- Edges: valid (green) -->
-          <defs>
-            <marker id="arr-g" markerWidth="6" markerHeight="6" refX="5" refY="3" orient="auto"><path d="M0,0 L6,3 L0,6" fill="#1B9E77" opacity="0.7"/></marker>
-            <marker id="arr-r" markerWidth="6" markerHeight="6" refX="5" refY="3" orient="auto"><path d="M0,0 L6,3 L0,6" fill="#f85149" opacity="0.8"/></marker>
-            <marker id="arr-c" markerWidth="6" markerHeight="6" refX="5" refY="3" orient="auto"><path d="M0,0 L6,3 L0,6" fill="#7C6AEF" opacity="0.6"/></marker>
-          </defs>
-          <!-- App -> Domain (valid: IMPORTS upward) -->
-          <line x1="100" y1="153" x2="100" y2="90" stroke="#1B9E77" stroke-width="1.2" stroke-dasharray="4" marker-end="url(#arr-g)"/>
-          <line x1="260" y1="153" x2="260" y2="90" stroke="#1B9E77" stroke-width="1.2" stroke-dasharray="4" marker-end="url(#arr-g)"/>
-          <!-- Infra -> App (valid) -->
-          <line x1="260" y1="268" x2="260" y2="200" stroke="#1B9E77" stroke-width="1.2" stroke-dasharray="4" marker-end="url(#arr-g)"/>
-          <!-- Infra implements interface (valid) -->
-          <line x1="115" y1="272" x2="245" y2="83" stroke="#7C6AEF" stroke-width="1" stroke-dasharray="3" marker-end="url(#arr-c)"/>
-          <text x="175" y="168" fill="#7C6AEF" font-size="7" font-family="monospace" transform="rotate(-38,175,168)">IMPLEMENTS</text>
-
-          <!-- Legend -->
-          <line x1="30" y1="350" x2="50" y2="350" stroke="#1B9E77" stroke-width="1.5" stroke-dasharray="4"/>
-          <text x="55" y="353" fill="#8b949e" font-size="8" font-family="monospace">valid dep</text>
-          <line x1="130" y1="350" x2="150" y2="350" stroke="#f85149" stroke-width="2"/>
-          <text x="155" y="353" fill="#8b949e" font-size="8" font-family="monospace">violation</text>
-          <line x1="240" y1="350" x2="260" y2="350" stroke="#7C6AEF" stroke-width="1" stroke-dasharray="3"/>
-          <text x="265" y="353" fill="#8b949e" font-size="8" font-family="monospace">implements</text>
-        </svg>
+      <div style="border-left:3px solid var(--violet);padding-left:14px;font-size:16px;font-style:italic;color:#e6edf3;line-height:1.5;">
+        "Agents are brilliant tacticians and terrible strategists."
       </div>
     </div>
   </div>
 </section>
 
 <!-- ═══════════════════════════════════════════════════════════
-     SLIDE 5 — THE SPEC (YAML format)
+     9 — THE TRUST INVERSION
 ══════════════════════════════════════════════════════════════ -->
 <section data-background-color="#0d1117">
-  <div class="section-divider">Stage 2 &mdash; The Architectural Spec</div>
-  <h2 style="font-size:36px;font-weight:900;letter-spacing:-1px;margin-bottom:6px;">
-    Define your architecture in <span class="cyan">YAML</span>
+  <div class="section-label">The Trust Inversion</div>
+  <h2 style="font-size:36px;font-weight:900;letter-spacing:-1px;margin-bottom:24px;">
+    And developers <span class="violet">don't catch it.</span>
   </h2>
-  <p style="font-size:14px;color:var(--dim);margin-bottom:18px;">
-    Layers, roles, fitness functions, weights, thresholds &mdash; everything is declarative and version-controlled.
+
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:32px;align-items:center;">
+    <!-- Triangle diagram -->
+    <div style="background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:20px;">
+      <svg viewBox="0 0 380 320" style="width:100%;">
+        <!-- Edges with gradient feel -->
+        <defs>
+          <marker id="a1" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><path d="M0,0 L8,3 L0,6" fill="var(--lavender)" opacity="0.6"/></marker>
+        </defs>
+        <!-- Triangle edges with arrows -->
+        <line x1="190" y1="55" x2="60" y2="240" stroke="rgba(167,139,250,0.3)" stroke-width="2" marker-end="url(#a1)"/>
+        <line x1="50" y1="250" x2="310" y2="250" stroke="rgba(167,139,250,0.3)" stroke-width="2" marker-end="url(#a1)"/>
+        <line x1="320" y1="240" x2="200" y2="55" stroke="rgba(167,139,250,0.3)" stroke-width="2" marker-end="url(#a1)"/>
+
+        <!-- Edge labels -->
+        <text x="105" y="142" fill="var(--lavender)" font-size="9" font-weight="600" font-family="monospace" transform="rotate(-52,105,142)">fluency suppresses</text>
+        <text x="105" y="155" fill="var(--lavender)" font-size="9" font-weight="600" font-family="monospace" transform="rotate(-52,105,155)">skepticism</text>
+
+        <text x="190" y="282" fill="var(--lavender)" font-size="9" font-weight="600" font-family="monospace" text-anchor="middle">reduced scrutiny &rarr; more fluent-but-wrong code</text>
+
+        <text x="275" y="142" fill="var(--lavender)" font-size="9" font-weight="600" font-family="monospace" transform="rotate(52,275,142)">overconfidence</text>
+        <text x="275" y="155" fill="var(--lavender)" font-size="9" font-weight="600" font-family="monospace" transform="rotate(52,275,155)">reinforces trust</text>
+
+        <!-- Nodes -->
+        <circle cx="190" cy="42" r="32" fill="rgba(124,106,239,0.12)" stroke="var(--violet)" stroke-width="2"/>
+        <text x="190" y="39" text-anchor="middle" fill="#fff" font-size="10" font-weight="700" font-family="monospace">Fluent</text>
+        <text x="190" y="51" text-anchor="middle" fill="#fff" font-size="10" font-weight="700" font-family="monospace">Output</text>
+
+        <circle cx="50" cy="252" r="32" fill="rgba(67,97,238,0.12)" stroke="var(--blue)" stroke-width="2"/>
+        <text x="50" y="249" text-anchor="middle" fill="#fff" font-size="9" font-weight="700" font-family="monospace">Uncritical</text>
+        <text x="50" y="261" text-anchor="middle" fill="#fff" font-size="9" font-weight="700" font-family="monospace">Developer</text>
+
+        <circle cx="330" cy="252" r="32" fill="rgba(167,139,250,0.12)" stroke="var(--lavender)" stroke-width="2"/>
+        <text x="330" y="249" text-anchor="middle" fill="#fff" font-size="8.5" font-weight="700" font-family="monospace">Overconfident</text>
+        <text x="330" y="261" text-anchor="middle" fill="#fff" font-size="9" font-weight="700" font-family="monospace">Model</text>
+
+        <!-- Center -->
+        <text x="190" y="185" text-anchor="middle" fill="var(--violet)" font-size="14" font-weight="900" font-family="monospace">THE TRUST</text>
+        <text x="190" y="203" text-anchor="middle" fill="var(--violet)" font-size="14" font-weight="900" font-family="monospace">INVERSION</text>
+      </svg>
+    </div>
+
+    <!-- Research cards — compact -->
+    <div style="display:flex;flex-direction:column;gap:12px;">
+      <div class="card" style="padding:14px;border-left:3px solid var(--violet);">
+        <div style="font-size:13px;color:#fff;font-weight:700;margin-bottom:4px;">Fluent Lies</div>
+        <div style="font-size:12px;color:var(--dim);line-height:1.5;">
+          <strong style="color:var(--lavender);">Mastropaolo et al. (2024):</strong> LLMs produce descriptions that are grammatically perfect, technically plausible, and <strong style="color:#fff;">expert-deceiving</strong>.
+        </div>
+      </div>
+      <div class="card" style="padding:14px;border-left:3px solid var(--blue);">
+        <div style="font-size:13px;color:#fff;font-weight:700;margin-bottom:4px;">Extreme Overconfidence</div>
+        <div style="font-size:12px;color:var(--dim);line-height:1.5;">
+          <strong style="color:var(--lavender);">Spiess et al. (2025, ICSE):</strong> Models claim &gt;90% confidence when actual accuracy is <strong style="color:var(--red);">&lt;60%</strong>.
+        </div>
+      </div>
+      <div class="card" style="padding:14px;border-left:3px solid var(--lavender);">
+        <div style="font-size:13px;color:#fff;font-weight:700;margin-bottom:4px;">Confidence Inversion</div>
+        <div style="font-size:12px;color:var(--dim);line-height:1.5;">
+          <strong style="color:var(--lavender);">Perry et al. (2023, CCS):</strong> Developers write <strong style="color:#fff;">more insecure code</strong> with AI while feeling <strong style="color:#fff;">more confident</strong> about it.
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════════
+     10 — TRANSITION
+══════════════════════════════════════════════════════════════ -->
+<section data-background-color="#0d1117" class="slide-center">
+  <div class="quote-block">
+    "Models are text machines that can't see structure, trained on architecturally lazy code, retrieving context with tools blind to relationships, ignoring mid-context constraints, treating each file independently &mdash; and developers trust the polished output without questioning it.
+    <br><br>
+    <strong>This is why we need something that CAN see the whole system at once.<br>Something deterministic. Something structural."</strong>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════════
+     11 — TDD IS THE BARE MINIMUM
+══════════════════════════════════════════════════════════════ -->
+<section data-background-color="#0d1117">
+  <h2 style="font-size:34px;font-weight:900;letter-spacing:-1px;margin-bottom:6px;">
+    TDD is the bare minimum &mdash; <span class="violet">not best practice.</span>
+  </h2>
+  <p style="font-size:15px;color:var(--dim);font-style:italic;margin-bottom:18px;">
+    "If you're using coding agents without TDD, you're not using agents &mdash; you're generating unverified text."
   </p>
 
-  <div class="slide-cols" style="gap:28px;">
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:24px;margin-bottom:16px;">
+    <!-- Left: The impossibility -->
     <div>
-      <div class="code-block" style="font-size:11px;">
-<span class="ck">spec_version</span>: <span class="cv">"1.0.0"</span>
-
-<span class="ck">architecture</span>:
-  <span class="ck">style</span>: <span class="cv">clean-architecture</span>
-
-  <span class="ck">layers</span>:
-    - <span class="ck">name</span>: <span class="cv">domain</span>
-      <span class="ck">directories</span>: [<span class="cv">src/domain/**</span>]
-      <span class="ck">roles</span>:
-        - <span class="cv">entity</span>
-        - <span class="cv">value-object</span>
-        - <span class="cv">repository-interface</span>
-
-    - <span class="ck">name</span>: <span class="cv">application</span>
-      <span class="ck">directories</span>: [<span class="cv">src/application/**</span>]
-      <span class="ck">roles</span>: [<span class="cv">use-case</span>, <span class="cv">dto</span>]
-
-    - <span class="ck">name</span>: <span class="cv">infrastructure</span>
-      <span class="ck">directories</span>: [<span class="cv">src/infrastructure/**</span>]
-      <span class="ck">roles</span>: [<span class="cv">repository-impl</span>, <span class="cv">controller</span>]
-
-<span class="ck">scoring</span>:
-  <span class="ck">weights</span>:
-    <span class="ck">structural</span>: <span class="cn">0.35</span>
-    <span class="ck">coupling</span>:   <span class="cn">0.20</span>
-    <span class="ck">pattern</span>:    <span class="cn">0.20</span>
-    <span class="ck">solid</span>:      <span class="cn">0.15</span>
-    <span class="ck">convention</span>: <span class="cn">0.10</span>
-  <span class="ck">thresholds</span>:
-    <span class="ck">pass</span>: <span class="cn">0.80</span>
-    <span class="ck">warning</span>: <span class="cn">0.65</span>
-    <span class="ck">soft_block</span>: <span class="cn">0.50</span>
+      <div style="font-size:11px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--dim);margin-bottom:10px;">Agents cannot self-correct</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;">
+        <div class="card" style="padding:14px;text-align:center;">
+          <div style="font-size:11px;color:var(--lavender);font-weight:700;margin-bottom:6px;">Huang et al.</div>
+          <div style="font-size:10px;color:var(--dim);">ICLR 2024</div>
+          <div style="margin:8px 0;font-size:24px;font-weight:800;color:var(--red);">Worse</div>
+          <div style="font-size:10px;color:var(--dim);line-height:1.4;">Self-correction flips correct answers to wrong ones</div>
+        </div>
+        <div class="card" style="padding:14px;text-align:center;">
+          <div style="font-size:11px;color:var(--lavender);font-weight:700;margin-bottom:6px;">Pan et al.</div>
+          <div style="font-size:10px;color:var(--dim);">TACL 2024</div>
+          <div style="margin:8px 0;font-size:24px;font-weight:800;color:var(--yellow);">External</div>
+          <div style="font-size:10px;color:var(--dim);line-height:1.4;">Needs compiler errors, tests, static analysis</div>
+        </div>
+        <div class="card" style="padding:14px;text-align:center;">
+          <div style="font-size:11px;color:var(--lavender);font-weight:700;margin-bottom:6px;">Chen et al.</div>
+          <div style="font-size:10px;color:var(--dim);">ICLR 2024, DeepMind</div>
+          <div style="margin:8px 0;font-size:24px;font-weight:800;color:var(--green-300);">Only</div>
+          <div style="font-size:10px;color:var(--dim);line-height:1.4;">With execution feedback. Without it, shuffles tokens.</div>
+        </div>
       </div>
     </div>
+
+    <!-- Right: The proof it works -->
     <div>
-      <div style="display:flex;flex-direction:column;gap:12px;">
-        <div class="info-card">
-          <div class="ic-head">Presets</div>
-          <div class="ic-body">
-            Ship with <span class="mono" style="color:var(--cyan);">clean-architecture.yaml</span> and <span class="mono" style="color:var(--cyan);">nestjs.yaml</span> presets.
-            NestJS uses <span class="mono">file_patterns</span> (*.service.ts, *.controller.ts) instead of directory-based layers.
+      <div style="font-size:11px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--dim);margin-bottom:10px;">External tools fix it</div>
+      <div style="display:flex;flex-direction:column;gap:8px;">
+        <div style="display:flex;align-items:center;gap:14px;padding:12px 16px;background:rgba(27,158,119,0.06);border:1px solid rgba(27,158,119,0.2);border-radius:8px;">
+          <span style="font-size:28px;font-weight:900;color:var(--green-300);flex-shrink:0;width:65px;text-align:right;">70%+</span>
+          <div style="font-size:12px;color:#ccc;line-height:1.4;"><strong style="color:#fff;">Generator-Critic pattern</strong> &mdash; flaw reduction with deterministic critic</div>
+        </div>
+        <div style="display:flex;align-items:center;gap:14px;padding:12px 16px;background:rgba(27,158,119,0.06);border:1px solid rgba(27,158,119,0.2);border-radius:8px;">
+          <span style="font-size:20px;font-weight:900;color:var(--green-300);flex-shrink:0;width:65px;text-align:right;">= GPT-4</span>
+          <div style="font-size:12px;color:#ccc;line-height:1.4;"><strong style="color:#fff;">PerfCodeGen</strong> <span class="dim">(FORGE 2025)</span> &mdash; Phi-3-mini with feedback matches GPT-4 without</div>
+        </div>
+        <div style="display:flex;align-items:center;gap:14px;padding:12px 16px;background:rgba(27,158,119,0.06);border:1px solid rgba(27,158,119,0.2);border-radius:8px;">
+          <span style="font-size:20px;font-weight:900;color:var(--green-300);flex-shrink:0;width:65px;text-align:right;">4-agent</span>
+          <div style="font-size:12px;color:#ccc;line-height:1.4;"><strong style="color:#fff;">TDFlow</strong> <span class="dim">(CMU, 2025)</span> &mdash; TDD architecture outperforms monolithic agents</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="callout danger" style="font-size:13px;">
+    <strong style="color:var(--red);">ImpossibleBench (Anthropic, 2025):</strong> When tests conflict with specs, agents <strong style="color:#fff;">exploit the tests</strong> rather than follow the spec. They may even <strong style="color:#fff;">delete failing tests</strong>. TDD is the floor, not the ceiling. <strong style="color:#fff;">Tests verify correctness. But who verifies architecture?</strong>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════════
+     12 — SPECS AREN'T ENFORCEABLE + MISSING ALTITUDE
+══════════════════════════════════════════════════════════════ -->
+<section data-background-color="#0d1117">
+  <h2 style="font-size:34px;font-weight:900;letter-spacing:-1px;margin-bottom:18px;">
+    Specs help. They're not <span class="violet">enforceable.</span>
+  </h2>
+
+  <div style="display:grid;grid-template-columns:1fr 1.2fr;gap:28px;align-items:start;">
+    <!-- Left: 3 limits as a vertical escalation -->
+    <div>
+      <div style="display:flex;flex-direction:column;gap:0;">
+        <div style="padding:14px 16px;background:var(--surface);border:1px solid var(--border);border-radius:10px 10px 0 0;border-bottom:none;">
+          <div style="display:flex;align-items:center;gap:10px;margin-bottom:6px;">
+            <span style="font-size:18px;font-weight:800;color:var(--violet);width:22px;">1</span>
+            <span style="font-size:13px;font-weight:700;color:#fff;">Not contracts &mdash; just prompt text</span>
+          </div>
+          <div style="font-size:11.5px;color:var(--dim);line-height:1.5;margin-left:32px;">
+            <span class="mono">CLAUDE.md</span> is read by the agent. Nothing verifies the output conforms.<br>
+            <span style="color:var(--lavender);font-style:italic;">"An agent prefers writing over reading"</span> <span class="dim">&mdash; EPAM, 280K LOC</span>
           </div>
         </div>
-        <div class="info-card">
-          <div class="ic-head">Spec Validation</div>
-          <div class="ic-body">
-            YAML is validated against a JSON Schema via <span class="mono">ajv</span>.
-            Layer directories use picomatch for glob matching.
-            Invalid specs fail fast with descriptive errors.
+        <div style="padding:14px 16px;background:var(--surface);border:1px solid var(--border);border-top:none;border-bottom:none;">
+          <div style="display:flex;align-items:center;gap:10px;margin-bottom:6px;">
+            <span style="font-size:18px;font-weight:800;color:var(--violet);width:22px;">2</span>
+            <span style="font-size:13px;font-weight:700;color:#fff;">No tool tests architecture</span>
+          </div>
+          <div style="font-size:11.5px;color:var(--dim);line-height:1.5;margin-left:32px;">
+            TDD: "function returns right output."<br>
+            BDD: "user flow works."<br>
+            <strong style="color:#fff;">Neither:</strong> "domain doesn't import infrastructure."
           </div>
         </div>
-        <div class="info-card">
-          <div class="ic-head">Extensibility</div>
-          <div class="ic-body">
-            Teams define custom fitness functions.
-            Each function has: <span class="mono">id</span>, <span class="mono">dimension</span>, <span class="mono">severity</span>, <span class="mono">route</span> (symbolic / neuronal / hybrid).
-            Weights are configurable per-team.
+        <div style="padding:14px 16px;background:var(--surface);border:1px solid var(--border);border-radius:0 0 10px 10px;border-top:none;">
+          <div style="display:flex;align-items:center;gap:10px;margin-bottom:6px;">
+            <span style="font-size:18px;font-weight:800;color:var(--violet);width:22px;">3</span>
+            <span style="font-size:13px;font-weight:700;color:#fff;">Self-correction impossible</span>
+          </div>
+          <div style="font-size:11.5px;color:var(--dim);line-height:1.5;margin-left:32px;">
+            Even if the spec says "use DI," the model can't verify its own output. You need an <strong style="color:#fff;">external verifier</strong>.
           </div>
         </div>
+      </div>
+    </div>
+
+    <!-- Right: The 3 limits summarized visually -->
+    <div>
+      <div style="font-size:11px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--dim);margin-bottom:10px;">The evidence</div>
+      <div style="display:flex;flex-direction:column;gap:8px;">
+        <div style="display:flex;align-items:center;gap:12px;padding:12px 14px;background:rgba(27,158,119,0.06);border:1px solid rgba(27,158,119,0.2);border-radius:8px;">
+          <span style="font-size:22px;font-weight:900;color:var(--green-300);flex-shrink:0;width:55px;text-align:right;">73%</span>
+          <div style="font-size:12px;color:#ccc;line-height:1.4;"><strong style="color:#fff;">Marri (2026):</strong> Constitutional SDD reduces security defects</div>
+        </div>
+        <div style="display:flex;align-items:center;gap:12px;padding:12px 14px;background:rgba(124,106,239,0.06);border:1px solid rgba(124,106,239,0.2);border-radius:8px;">
+          <span style="font-size:14px;font-weight:900;color:var(--violet);flex-shrink:0;width:55px;text-align:right;">2025</span>
+          <div style="font-size:12px;color:#ccc;line-height:1.4;"><strong style="color:#fff;">GitHub, AWS, Thoughtworks</strong> all converge on spec-first</div>
+        </div>
+      </div>
+
+      <div style="border-left:3px solid var(--violet);padding-left:12px;margin-top:14px;font-size:13px;font-style:italic;color:#ddd;line-height:1.5;">
+        "Specifications tell the agent what to build. The Firewall checks whether it actually built it."
       </div>
     </div>
   </div>
 </section>
 
 <!-- ═══════════════════════════════════════════════════════════
-     SLIDE 6 — FITNESS FUNCTIONS + CYPHER
+     12b — THE MISSING LAYER (hourglass hero visual)
 ══════════════════════════════════════════════════════════════ -->
 <section data-background-color="#0d1117">
-  <div class="section-divider">Stages 4&ndash;5 &mdash; Fitness Functions</div>
-  <h2 style="font-size:36px;font-weight:900;letter-spacing:-1px;margin-bottom:6px;">
-    25 fitness functions &mdash; <span class="cyan">5 dimensions</span>
+  <h2 style="font-size:34px;font-weight:900;letter-spacing:-1px;margin-bottom:16px;">
+    The <span class="violet">missing layer.</span>
+  </h2>
+
+  <div style="display:grid;grid-template-columns:1.1fr 0.9fr;gap:28px;align-items:start;">
+    <!-- Left: hero — the hourglass diagram -->
+    <img src="images/slide-12b-verification-hourglass.png" alt="Vertical hourglass infographic — Upstream (spec.yaml, ADRs, architectural rules) flowing into AI code generation in the center, then downstream into tests/review/scanning. A visible dashed red gap labeled 'Architectural Verification — Missing' sits between the center and downstream." style="width:100%;display:block;border-radius:10px;" />
+
+    <!-- Right: The altitude stack + context -->
+    <div>
+      <div style="font-size:11px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--dim);margin-bottom:10px;">Where DaedalusArch fits</div>
+
+      <div style="display:flex;flex-direction:column;gap:0;">
+        <!-- Firewall layer — highlighted -->
+        <div style="padding:16px 18px;background:rgba(27,158,119,0.08);border:2px solid var(--green-700);border-radius:10px 10px 0 0;display:flex;align-items:center;gap:14px;">
+          <span style="font-size:24px;">&#128737;</span>
+          <div>
+            <div style="font-size:14px;font-weight:800;color:var(--green-300);">FIREWALL</div>
+            <div style="font-size:10px;color:var(--green-700);">DaedalusArch &middot; Deterministic</div>
+          </div>
+          <div style="margin-left:auto;font-size:10px;font-weight:700;color:var(--green-300);background:rgba(27,158,119,0.15);padding:3px 8px;border-radius:4px;">NEW</div>
+        </div>
+        <!-- SDD -->
+        <div style="padding:10px 18px;background:var(--surface);border:1px solid var(--border);border-top:none;display:flex;align-items:center;gap:14px;">
+          <span style="font-size:20px;">&#127956;</span>
+          <div>
+            <div style="font-size:12px;font-weight:700;color:#fff;">SDD</div>
+            <div style="font-size:10px;color:var(--dim);">Intent + constraints</div>
+          </div>
+          <div style="margin-left:auto;font-size:10px;color:var(--yellow);">Advisory</div>
+        </div>
+        <!-- BDD -->
+        <div style="padding:10px 18px;background:var(--surface);border:1px solid var(--border);border-top:none;display:flex;align-items:center;gap:14px;">
+          <span style="font-size:20px;">&#9978;</span>
+          <div>
+            <div style="font-size:12px;font-weight:700;color:#fff;">BDD</div>
+            <div style="font-size:10px;color:var(--dim);">User-facing scenarios</div>
+          </div>
+          <div style="margin-left:auto;font-size:10px;color:var(--red);">No arch</div>
+        </div>
+        <!-- TDD -->
+        <div style="padding:10px 18px;background:var(--surface);border:1px solid var(--border);border-top:none;border-radius:0 0 10px 10px;display:flex;align-items:center;gap:14px;">
+          <span style="font-size:20px;">&#127959;</span>
+          <div>
+            <div style="font-size:12px;font-weight:700;color:#fff;">TDD</div>
+            <div style="font-size:10px;color:var(--dim);">Function correctness</div>
+          </div>
+          <div style="margin-left:auto;font-size:10px;color:var(--red);">No arch</div>
+        </div>
+      </div>
+
+      <div style="margin-top:16px;font-size:13px;color:#ccc;line-height:1.6;">
+        TDD tells you the <strong style="color:#fff;">function</strong> is correct.<br>
+        BDD tells you the <strong style="color:#fff;">flow</strong> works.<br>
+        SDD tells the agent <strong style="color:#fff;">what to build</strong>.<br><br>
+        <strong style="color:var(--violet);">None of them tell you</strong> whether the domain layer imports infrastructure, whether DI uses interfaces, or whether your dependency graph has cycles.
+      </div>
+
+      <div style="border-left:3px solid var(--violet);padding-left:12px;margin-top:14px;font-size:14px;font-style:italic;color:#e6edf3;line-height:1.5;">
+        "Tests verify correctness. The Firewall verifies <strong>structure</strong>."
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════════
+     13 — HISTORICAL PATTERN + VERIFICATION TIMELINE
+══════════════════════════════════════════════════════════════ -->
+<section data-background-color="#0d1117">
+  <h2 style="font-size:34px;font-weight:900;letter-spacing:-1px;margin-bottom:20px;">
+    Every acceleration needed a new <span class="violet">verification layer.</span>
+  </h2>
+
+  <!-- Visual timeline -->
+  <div style="position:relative;padding:20px 0;">
+    <!-- Horizontal line -->
+    <div style="position:absolute;top:50%;left:60px;right:60px;height:3px;background:linear-gradient(to right, var(--dim), var(--violet));border-radius:2px;"></div>
+
+    <div style="display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:16px;position:relative;">
+      <!-- 1960s -->
+      <div style="text-align:center;">
+        <div class="card" style="padding:14px;text-align:center;margin-bottom:12px;">
+          <div style="font-size:11px;color:var(--dim);letter-spacing:1px;margin-bottom:4px;">1960s</div>
+          <div style="font-size:14px;font-weight:700;color:#fff;margin-bottom:6px;">High-level<br>Languages</div>
+          <div style="width:40px;height:40px;margin:0 auto 8px;border-radius:50%;background:rgba(139,148,158,0.1);border:2px solid var(--dim);display:flex;align-items:center;justify-content:center;">
+            <span style="font-size:18px;">&#9881;</span>
+          </div>
+          <div style="font-size:12px;color:var(--dim);font-weight:600;">Compilers</div>
+          <div style="font-size:10px;color:var(--dim);">Automated syntax</div>
+        </div>
+      </div>
+      <!-- 2000s -->
+      <div style="text-align:center;">
+        <div class="card" style="padding:14px;text-align:center;margin-bottom:12px;">
+          <div style="font-size:11px;color:var(--dim);letter-spacing:1px;margin-bottom:4px;">2000s</div>
+          <div style="font-size:14px;font-weight:700;color:#fff;margin-bottom:6px;">Agile /<br>CI/CD</div>
+          <div style="width:40px;height:40px;margin:0 auto 8px;border-radius:50%;background:rgba(139,148,158,0.1);border:2px solid var(--dim);display:flex;align-items:center;justify-content:center;">
+            <span style="font-size:18px;">&#128295;</span>
+          </div>
+          <div style="font-size:12px;color:var(--dim);font-weight:600;">Unit Testing</div>
+          <div style="font-size:10px;color:var(--dim);">JUnit, pytest, TDD</div>
+        </div>
+      </div>
+      <!-- 2010s -->
+      <div style="text-align:center;">
+        <div class="card" style="padding:14px;text-align:center;margin-bottom:12px;">
+          <div style="font-size:11px;color:var(--dim);letter-spacing:1px;margin-bottom:4px;">2010s</div>
+          <div style="font-size:14px;font-weight:700;color:#fff;margin-bottom:6px;">Micro-<br>services</div>
+          <div style="width:40px;height:40px;margin:0 auto 8px;border-radius:50%;background:rgba(139,148,158,0.1);border:2px solid var(--dim);display:flex;align-items:center;justify-content:center;">
+            <span style="font-size:18px;">&#128279;</span>
+          </div>
+          <div style="font-size:12px;color:var(--dim);font-weight:600;">Contracts</div>
+          <div style="font-size:10px;color:var(--dim);">Pact, type systems</div>
+        </div>
+      </div>
+      <!-- 2025+ -->
+      <div style="text-align:center;">
+        <div class="card" style="padding:14px;text-align:center;margin-bottom:12px;border-color:var(--violet);background:rgba(124,106,239,0.06);">
+          <div style="font-size:11px;color:var(--violet);letter-spacing:1px;margin-bottom:4px;font-weight:700;">2025+</div>
+          <div style="font-size:14px;font-weight:700;color:var(--violet);margin-bottom:6px;">LLM Code<br>Generation</div>
+          <div style="width:40px;height:40px;margin:0 auto 8px;border-radius:50%;background:rgba(124,106,239,0.12);border:2px solid var(--violet);display:flex;align-items:center;justify-content:center;">
+            <span style="font-size:18px;">&#128737;</span>
+          </div>
+          <div style="font-size:12px;color:var(--violet);font-weight:700;">Arch Verification</div>
+          <div style="font-size:10px;color:var(--lavender);">DaedalusArch</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div style="border-left:3px solid var(--violet);padding-left:16px;margin-top:8px;font-size:16px;font-style:italic;color:#e6edf3;line-height:1.5;">
+    "Every time we got faster at producing code, we had to build a new verification layer to match. AI is the biggest speed-up yet &mdash; and the architectural verification layer doesn't exist. <strong>That's what we're building.</strong>"
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════════
+     14 — WHY ARCHITECTURE MATTERS (4 REASONS)
+══════════════════════════════════════════════════════════════ -->
+<section data-background-color="#0d1117">
+  <h2 style="font-size:32px;font-weight:900;letter-spacing:-1px;margin-bottom:20px;">
+    Why architecture matters &mdash; even when <span class="violet">agents do the heavy lifting.</span>
+  </h2>
+
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;">
+    <!-- Reason 1 -->
+    <div class="card" style="padding:18px;border-left:3px solid var(--violet);">
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px;">
+        <span style="font-size:28px;font-weight:900;color:var(--violet);">1</span>
+        <span style="font-size:14px;font-weight:700;color:#fff;">Architecture IS the agent's context quality.</span>
+      </div>
+      <div style="font-size:12px;color:var(--dim);line-height:1.5;margin-bottom:8px;">
+        <strong style="color:var(--lavender);">Kalliamvakou (2024, GitHub):</strong> Context quality is the <strong style="color:var(--green-300);">#1 driver</strong> of AI suggestion acceptance.
+      </div>
+      <div style="font-size:12px;font-style:italic;color:#ccc;border-left:2px solid var(--violet);padding-left:8px;">
+        "A well-architected codebase is better docs for the agent than any CLAUDE.md."
+      </div>
+    </div>
+
+    <!-- Reason 2 -->
+    <div class="card" style="padding:18px;border-left:3px solid var(--blue);">
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px;">
+        <span style="font-size:28px;font-weight:900;color:var(--blue);">2</span>
+        <span style="font-size:14px;font-weight:700;color:#fff;">Bad arch compounds exponentially at AI speed.</span>
+      </div>
+      <div style="font-size:12px;color:var(--dim);line-height:1.5;margin-bottom:8px;">
+        <strong style="color:var(--lavender);">METR (2025, RCT):</strong> Devs <strong style="color:var(--red);">19% slower</strong> with AI. #1 cause: debugging code that didn't fit the architecture.
+      </div>
+      <div style="font-size:12px;font-style:italic;color:#ccc;border-left:2px solid var(--blue);padding-left:8px;">
+        "AI doesn't just write code faster. It writes bad architecture faster."
+      </div>
+    </div>
+
+    <!-- Reason 3 -->
+    <div class="card" style="padding:18px;border-left:3px solid var(--lavender);">
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px;">
+        <span style="font-size:28px;font-weight:900;color:var(--lavender);">3</span>
+        <span style="font-size:14px;font-weight:700;color:#fff;">Agents can't reason at system level.</span>
+      </div>
+      <div style="font-size:12px;color:var(--dim);line-height:1.5;margin-bottom:8px;">
+        HumanEval <span class="mint">~95%</span> vs SWE-bench <span style="color:var(--red);">~35%</span> &mdash; not a scale gap, a <strong style="color:#fff;">type-of-reasoning</strong> gap.
+      </div>
+      <div style="font-size:12px;font-style:italic;color:#ccc;border-left:2px solid var(--lavender);padding-left:8px;">
+        "Agents are brilliant tacticians and terrible strategists."
+      </div>
+    </div>
+
+    <!-- Reason 4 -->
+    <div class="card" style="padding:18px;border-left:3px solid var(--green-700);">
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px;">
+        <span style="font-size:28px;font-weight:900;color:var(--green-700);">4</span>
+        <span style="font-size:14px;font-weight:700;color:#fff;">Good arch makes code disposable.</span>
+      </div>
+      <div style="font-size:12px;color:var(--dim);line-height:1.5;margin-bottom:8px;">
+        Clean architecture = any agent can work on any module independently. Bad architecture = vendor lock-in to a model's patterns.
+      </div>
+      <div style="font-size:12px;font-style:italic;color:#ccc;border-left:2px solid var(--green-700);padding-left:8px;">
+        "You WANT your code to be disposable &mdash; the agent that writes v2 will be better."
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════════
+     15 — TRANSITION: BRIDGE TO THE APPROACH
+══════════════════════════════════════════════════════════════ -->
+<section data-background-color="#0d1117" class="slide-center">
+  <div class="quote-block">
+    "TDD is the floor. Specs move quality upstream. But neither tests for architecture.
+    <br><br>
+    We need a deterministic verification layer that sees the whole system &mdash; the topology of dependencies, the type relationships, the layer boundaries.
+    <br><br>
+    <strong>We need an architectural firewall.<br>Here's how we built one."</strong>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════════
+     16 — ARCHITECTURE-AS-CODE: THE 3-LAYER SPEC
+══════════════════════════════════════════════════════════════ -->
+<section data-background-color="#0d1117">
+  <div class="section-label">The Approach</div>
+  <h2 style="font-size:34px;font-weight:900;letter-spacing:-1px;margin-bottom:6px;">
+    Architecture-as-Code: <span class="violet">30 lines of YAML.</span>
+  </h2>
+  <p style="font-size:14px;color:var(--dim);margin-bottom:16px;">
+    A three-layer spec that turns intent into a machine-verifiable contract.
+  </p>
+
+  <div style="display:grid;grid-template-columns:1.2fr 0.8fr;gap:24px;align-items:start;">
+    <!-- Real YAML from our spec -->
+    <div class="tw">
+      <div class="tw-bar"><div class="td td-r"></div><div class="td td-y"></div><div class="td td-g"></div>
+        <span style="margin-left:8px;color:#aaa;font-family:monospace;font-size:11px;">specs/clean-arch.yaml</span>
+      </div>
+      <div class="tw-body" style="font-size:11.5px;line-height:1.6;">
+<span class="t-d"># Layer A — Architectural Model</span>
+<span class="t-r">architecture</span>:
+  <span class="t-r">style</span>: <span class="t-g">clean-architecture</span>
+  <span class="t-r">layers</span>:
+    - <span class="t-r">name</span>: <span class="t-v">domain</span>
+      <span class="t-r">directories</span>: [<span class="t-g">src/domain/**</span>]
+      <span class="t-r">roles</span>: [<span class="t-g">entity</span>, <span class="t-g">value-object</span>, <span class="t-g">repository-interface</span>]
+    - <span class="t-r">name</span>: <span class="t-v">application</span>
+      <span class="t-r">directories</span>: [<span class="t-g">src/application/**</span>]
+      <span class="t-r">roles</span>: [<span class="t-g">use-case</span>, <span class="t-g">dto</span>]
+    - <span class="t-r">name</span>: <span class="t-v">infrastructure</span>
+      <span class="t-r">directories</span>: [<span class="t-g">src/infrastructure/**</span>]
+      <span class="t-r">roles</span>: [<span class="t-g">repository-impl</span>, <span class="t-g">controller</span>]
+
+<span class="t-d"># Layer B — Fitness Functions</span>
+<span class="t-r">fitness_functions</span>:
+  - <span class="t-r">id</span>: <span class="t-v">FF-S01</span>
+    <span class="t-r">name</span>: <span class="t-g">dependency-direction</span>
+    <span class="t-r">dimension</span>: <span class="t-g">structural</span>
+    <span class="t-r">severity</span>: <span class="t-g">critical</span>
+    <span class="t-r">route</span>: <span class="t-g">symbolic</span>
+
+<span class="t-d"># Layer C — Scoring Weights</span>
+<span class="t-r">scoring</span>:
+  <span class="t-r">weights</span>: { <span class="t-r">structural</span>: <span class="t-y">0.35</span>, <span class="t-r">coupling</span>: <span class="t-y">0.20</span>, <span class="t-r">pattern</span>: <span class="t-y">0.20</span> }
+  <span class="t-r">thresholds</span>: { <span class="t-r">pass</span>: <span class="t-y">0.80</span>, <span class="t-r">warning</span>: <span class="t-y">0.65</span>, <span class="t-r">soft_block</span>: <span class="t-y">0.50</span> }</div>
+    </div>
+
+    <!-- 3 layers visual -->
+    <div style="display:flex;flex-direction:column;gap:0;">
+      <div style="padding:18px;background:rgba(124,106,239,0.08);border:2px solid var(--violet);border-radius:10px 10px 0 0;border-bottom:none;">
+        <div style="font-size:11px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--violet);margin-bottom:4px;">Layer A &mdash; Model</div>
+        <div style="font-size:14px;font-weight:700;color:#fff;">Declares what exists</div>
+        <div style="font-size:11px;color:var(--dim);margin-top:2px;">Layers, roles, directory mappings</div>
+      </div>
+      <div style="padding:18px;background:rgba(67,97,238,0.08);border:2px solid var(--blue);border-top:none;border-bottom:none;">
+        <div style="font-size:11px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--blue);margin-bottom:4px;">Layer B &mdash; Fitness Functions</div>
+        <div style="font-size:14px;font-weight:700;color:#fff;">Declares what must hold</div>
+        <div style="font-size:11px;color:var(--dim);margin-top:2px;">Dependency rules, DI, coupling thresholds</div>
+      </div>
+      <div style="padding:18px;background:rgba(167,139,250,0.08);border:2px solid var(--lavender);border-radius:0 0 10px 10px;border-top:none;">
+        <div style="font-size:11px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--lavender);margin-bottom:4px;">Layer C &mdash; Scoring</div>
+        <div style="font-size:14px;font-weight:700;color:#fff;">Declares how to aggregate</div>
+        <div style="font-size:11px;color:var(--dim);margin-top:2px;">Dimension weights, pass/fail thresholds</div>
+      </div>
+
+      <!-- Arrow to output -->
+      <div style="text-align:center;margin:12px 0 8px;color:var(--dim);font-size:18px;">&#11015;</div>
+      <div style="padding:14px;background:rgba(27,158,119,0.08);border:2px solid var(--green-700);border-radius:10px;text-align:center;">
+        <div style="font-size:14px;font-weight:800;color:var(--green-300);">26 Cypher Queries</div>
+        <div style="font-size:11px;color:var(--green-700);">Compiled &middot; Deterministic &middot; &lt;10s</div>
+      </div>
+
+      <div style="font-size:13px;font-style:italic;color:#ccc;margin-top:14px;line-height:1.5;border-left:3px solid var(--violet);padding-left:10px;">
+        "An architect writes 30 lines of YAML. The Firewall compiles it into 26 executable queries."
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════════
+     17 — THE APG (Architecture Property Graph)
+══════════════════════════════════════════════════════════════ -->
+<section data-background-color="#0d1117">
+  <div class="section-label">The Approach</div>
+  <h2 style="font-size:34px;font-weight:900;letter-spacing:-1px;margin-bottom:6px;">
+    The Architectural Property Graph <span class="violet">(APG)</span>
+  </h2>
+  <p style="font-size:14px;color:var(--dim);margin-bottom:16px;">
+    A purpose-built graph stored in Neo4j. See the whole system at once.
+  </p>
+
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;align-items:start;">
+    <!-- Left: the pipeline poster diagram -->
+    <div>
+      <div style="border-radius:10px;overflow:hidden;border:1px solid var(--border);">
+        <img src="../poster-assets/poster-architecture-hero-v3.png" alt="Architectural Firewall Pipeline — AoC Spec + Source Code → APG (Neo4j) → Cypher Compiler → Conformance Gate → PASS/BLOCK" style="width:100%;display:block;" />
+      </div>
+
+      <!-- 5-layer APG strip -->
+      <div style="display:flex;gap:4px;margin-top:12px;">
+        <div style="flex:1;padding:8px 6px;background:rgba(139,148,158,0.06);border:1px solid var(--border);border-radius:6px;text-align:center;">
+          <div style="font-size:10px;font-weight:700;color:var(--dim);">L1</div>
+          <div style="font-size:9px;color:var(--dim);">Files</div>
+        </div>
+        <div style="flex:1;padding:8px 6px;background:rgba(139,148,158,0.06);border:1px solid var(--border);border-radius:6px;text-align:center;">
+          <div style="font-size:10px;font-weight:700;color:var(--dim);">L2</div>
+          <div style="font-size:9px;color:var(--dim);">Declarations</div>
+        </div>
+        <div style="flex:1;padding:8px 6px;background:rgba(124,106,239,0.08);border:1px solid var(--violet);border-radius:6px;text-align:center;">
+          <div style="font-size:10px;font-weight:700;color:var(--violet);">L3</div>
+          <div style="font-size:9px;color:var(--violet);">Dependencies</div>
+        </div>
+        <div style="flex:1;padding:8px 6px;background:rgba(67,97,238,0.08);border:1px solid var(--blue);border-radius:6px;text-align:center;">
+          <div style="font-size:10px;font-weight:700;color:var(--blue);">L4</div>
+          <div style="font-size:9px;color:var(--blue);">Annotations</div>
+        </div>
+        <div style="flex:1;padding:8px 6px;background:rgba(248,81,73,0.06);border:1px solid rgba(248,81,73,0.3);border-radius:6px;text-align:center;">
+          <div style="font-size:10px;font-weight:700;color:var(--red);">L5</div>
+          <div style="font-size:9px;color:var(--red);">Violations</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Right: positioning + why graph -->
+    <div>
+      <!-- APG positioning spectrum -->
+      <div class="card" style="padding:16px;margin-bottom:12px;">
+        <div style="font-size:11px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--dim);margin-bottom:10px;">Why not existing tools?</div>
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:12px;">
+          <div style="flex:1;text-align:center;padding:8px;background:rgba(139,148,158,0.06);border:1px solid var(--border);border-radius:6px;">
+            <div style="font-size:11px;font-weight:700;color:var(--dim);">Dep Graphs</div>
+            <div style="font-size:9px;color:var(--dim);">Madge, Dep Cruiser</div>
+            <div style="font-size:9px;color:var(--red);margin-top:4px;">Too shallow</div>
+          </div>
+          <div style="color:var(--dim);">&#8592;</div>
+          <div style="flex:1.2;text-align:center;padding:8px;background:rgba(124,106,239,0.08);border:2px solid var(--violet);border-radius:6px;">
+            <div style="font-size:12px;font-weight:800;color:var(--violet);">APG</div>
+            <div style="font-size:9px;color:var(--lavender);">Right-sized</div>
+            <div style="font-size:9px;color:var(--green-300);margin-top:4px;">&lt;10s, ~500MB</div>
+          </div>
+          <div style="color:var(--dim);">&#8594;</div>
+          <div style="flex:1;text-align:center;padding:8px;background:rgba(139,148,158,0.06);border:1px solid var(--border);border-radius:6px;">
+            <div style="font-size:11px;font-weight:700;color:var(--dim);">Full CPG</div>
+            <div style="font-size:9px;color:var(--dim);">CodeQL, Joern</div>
+            <div style="font-size:9px;color:var(--red);margin-top:4px;">Too expensive</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Neo4j graph — correct -->
+      <div style="border-radius:10px;overflow:hidden;border:1px solid var(--border);">
+        <div style="background:#1c1c1e;padding:6px 12px;font-size:10px;color:var(--dim);font-family:monospace;border-bottom:1px solid var(--border);">
+          <span class="violet">Neo4j Browser</span> &middot; correct-reference &middot; <span class="mint">MATCH (n) RETURN n</span>
+        </div>
+        <img src="../pitch-deck/neo4j-graph-correct.png" alt="Neo4j graph — clean architecture, correct dependencies" style="width:100%;display:block;max-height:175px;object-fit:cover;object-position:center;" />
+      </div>
+      <div style="font-size:11px;color:var(--dim);margin-top:6px;text-align:center;">
+        &#x2191; Every node is a class/interface. Every edge is a dependency. <span class="violet">This IS your architecture.</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════════
+     18 — COMPILED FITNESS FUNCTIONS: YAML → CYPHER → RESULT
+══════════════════════════════════════════════════════════════ -->
+<section data-background-color="#0d1117">
+  <div class="section-label">The Approach</div>
+  <h2 style="font-size:32px;font-weight:900;letter-spacing:-1px;margin-bottom:6px;">
+    YAML <span class="dim">&#8594;</span> Cypher <span class="dim">&#8594;</span> <span class="violet">Violation.</span>
+  </h2>
+  <p style="font-size:13px;color:var(--dim);margin-bottom:14px;">The compilation chain &mdash; the core novelty. No prior work does this.</p>
+
+  <!-- 3-column code walkthrough with step labels and arrows -->
+  <div style="display:grid;grid-template-columns:1fr auto 1fr auto 1fr;gap:0;align-items:stretch;">
+    <!-- Column 1: YAML input -->
+    <div>
+      <div style="font-size:10px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--violet);margin-bottom:6px;text-align:center;">Step 1 &mdash; Architect writes YAML</div>
+      <div class="tw" style="height:calc(100% - 24px);">
+        <div class="tw-bar"><div class="td td-r"></div><div class="td td-y"></div><div class="td td-g"></div>
+          <span style="margin-left:6px;color:#aaa;font-family:monospace;font-size:10px;">clean-arch.yaml</span>
+        </div>
+        <div class="tw-body" style="font-size:10.5px;line-height:1.6;">
+- <span class="t-r">id</span>: <span class="t-v">FF-S01</span>
+  <span class="t-r">name</span>: <span class="t-g">dependency-direction</span>
+  <span class="t-r">dimension</span>: <span class="t-g">structural</span>
+  <span class="t-r">severity</span>: <span class="t-g">critical</span>
+  <span class="t-r">route</span>: <span class="t-g">symbolic</span>
+
+- <span class="t-r">id</span>: <span class="t-v">FF-P01</span>
+  <span class="t-r">name</span>: <span class="t-g">domain-purity</span>
+  <span class="t-r">forbidden_imports</span>:
+    - <span class="t-g">"@nestjs/*"</span>
+    - <span class="t-g">"prisma"</span>
+    - <span class="t-g">"express"</span></div>
+      </div>
+    </div>
+
+    <!-- Arrow 1→2 -->
+    <div style="display:flex;align-items:center;padding:24px 8px 0;color:var(--violet);font-size:22px;">&#10132;</div>
+
+    <!-- Column 2: Compiled Cypher -->
+    <div>
+      <div style="font-size:10px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--blue);margin-bottom:6px;text-align:center;">Step 2 &mdash; Firewall compiles to Cypher</div>
+      <div class="tw" style="height:calc(100% - 24px);">
+        <div class="tw-bar"><div class="td td-r"></div><div class="td td-y"></div><div class="td td-g"></div>
+          <span style="margin-left:6px;color:#aaa;font-family:monospace;font-size:10px;">compiled query</span>
+        </div>
+        <div class="tw-body" style="font-size:10.5px;line-height:1.6;">
+<span class="t-w">WITH</span> <span class="t-v">$layerOrder</span> <span class="t-w">AS</span> lo
+<span class="t-w">MATCH</span> (src:<span class="t-v">File</span>)
+      -[:<span class="t-g">IMPORTS</span>]-&gt;(tgt:<span class="t-v">File</span>)
+<span class="t-w">WHERE</span> src.layer <span class="t-w">IS NOT NULL</span>
+  <span class="t-w">AND</span> tgt.layer <span class="t-w">IS NOT NULL</span>
+<span class="t-w">WITH</span> src, tgt,
+  <span class="t-v">apoc.coll.indexOf</span>(
+    lo, src.layer) <span class="t-w">AS</span> sIdx,
+  <span class="t-v">apoc.coll.indexOf</span>(
+    lo, tgt.layer) <span class="t-w">AS</span> tIdx
+<span class="t-w">WHERE</span> sIdx &lt; tIdx
+<span class="t-w">RETURN</span> src.filePath, tgt.filePath</div>
+      </div>
+    </div>
+
+    <!-- Arrow 2→3 -->
+    <div style="display:flex;align-items:center;padding:24px 8px 0;color:var(--blue);font-size:22px;">&#10132;</div>
+
+    <!-- Column 3: Result -->
+    <div>
+      <div style="font-size:10px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--red);margin-bottom:6px;text-align:center;">Step 3 &mdash; Violations found</div>
+      <div class="tw" style="height:calc(100% - 24px);">
+        <div class="tw-bar"><div class="td td-r"></div><div class="td td-y"></div><div class="td td-g"></div>
+          <span style="margin-left:6px;color:#aaa;font-family:monospace;font-size:10px;">result</span>
+        </div>
+        <div class="tw-body" style="font-size:10.5px;line-height:1.6;">
+<span class="t-r">&#9608; VIOLATION</span>
+
+  <span class="t-w">source:</span>
+    <span class="t-v">domain/UserEntity.ts</span>
+
+  <span class="t-w">target:</span>
+    <span class="t-v">infra/PrismaClient.ts</span>
+
+  <span class="t-w">rule:</span>  <span class="t-g">dependency-direction</span>
+  <span class="t-w">sev:</span>   <span class="t-r">critical</span>
+
+<span class="t-r">&#10007;</span> <span class="t-w">domain imports infrastructure</span></div>
+      </div>
+    </div>
+  </div>
+
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:14px;">
+    <div class="callout" style="font-size:12px;padding:12px 14px;">
+      <strong style="color:#fff;">Architects write YAML, not Cypher.</strong> Template libraries provide 26+ pre-built fitness functions per style. <span class="mono" style="color:var(--violet);">style: clean-architecture</span> loads all 26 automatically.
+    </div>
+    <div class="callout" style="font-size:12px;padding:12px 14px;">
+      <strong style="color:#fff;">Same input → same output. Always.</strong> No LLM in the evaluation loop. Pure graph pattern matching. Reproducible, fast, auditable. CI/CD can gate on the score.
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════════
+     19 — 12 EVALUATION DIMENSIONS
+══════════════════════════════════════════════════════════════ -->
+<section data-background-color="#0d1117">
+  <div class="section-label">The Approach</div>
+  <h2 style="font-size:32px;font-weight:900;letter-spacing:-1px;margin-bottom:16px;">
+    <span class="violet">12</span> dimensions of architectural quality.
+  </h2>
+
+  <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px;">
+    <!-- Row 1 -->
+    <div class="card" style="padding:12px;border-left:3px solid var(--violet);">
+      <div style="font-size:12px;font-weight:700;color:#fff;">Structural</div>
+      <div style="font-size:10px;color:var(--dim);margin-top:4px;">Layer boundaries, dep direction</div>
+      <div style="font-size:9px;color:var(--red);margin-top:4px;">Domain imports infrastructure</div>
+    </div>
+    <div class="card" style="padding:12px;border-left:3px solid var(--blue);">
+      <div style="font-size:12px;font-weight:700;color:#fff;">Pattern</div>
+      <div style="font-size:10px;color:var(--dim);margin-top:4px;">DI, repository, domain purity</div>
+      <div style="font-size:9px;color:var(--red);margin-top:4px;">Injects concrete, not interface</div>
+    </div>
+    <div class="card" style="padding:12px;border-left:3px solid var(--lavender);">
+      <div style="font-size:12px;font-weight:700;color:#fff;">Coupling</div>
+      <div style="font-size:10px;color:var(--dim);margin-top:4px;">Fan-out, instability metrics</div>
+      <div style="font-size:9px;color:var(--red);margin-top:4px;">Module has 15 outgoing deps</div>
+    </div>
+    <div class="card" style="padding:12px;border-left:3px solid var(--green-700);">
+      <div style="font-size:12px;font-weight:700;color:#fff;">SOLID</div>
+      <div style="font-size:10px;color:var(--dim);margin-top:4px;">SRP proxy, ISP proxy</div>
+      <div style="font-size:9px;color:var(--red);margin-top:4px;">Class has 12 public methods</div>
+    </div>
+    <!-- Row 2 -->
+    <div class="card" style="padding:12px;border-left:3px solid var(--dim);">
+      <div style="font-size:12px;font-weight:700;color:#fff;">Convention</div>
+      <div style="font-size:10px;color:var(--dim);margin-top:4px;">Naming patterns</div>
+      <div style="font-size:9px;color:var(--red);margin-top:4px;">Not named *Controller</div>
+    </div>
+    <div class="card" style="padding:12px;border-left:3px solid var(--yellow);">
+      <div style="font-size:12px;font-weight:700;color:#fff;">Testability</div>
+      <div style="font-size:10px;color:var(--dim);margin-top:4px;">DI ratio, static calls, new bypass</div>
+      <div style="font-size:9px;color:var(--red);margin-top:4px;">Uses new PrismaRepo()</div>
+    </div>
+    <div class="card" style="padding:12px;border-left:3px solid var(--orange);">
+      <div style="font-size:12px;font-weight:700;color:#fff;">Cohesion</div>
+      <div style="font-size:10px;color:var(--dim);margin-top:4px;">LCOM proxy</div>
+      <div style="font-size:9px;color:var(--red);margin-top:4px;">Methods don't share fields</div>
+    </div>
+    <div class="card" style="padding:12px;border-left:3px solid var(--red);">
+      <div style="font-size:12px;font-weight:700;color:#fff;">Complexity</div>
+      <div style="font-size:10px;color:var(--dim);margin-top:4px;">Cyclomatic / cognitive</div>
+      <div style="font-size:9px;color:var(--red);margin-top:4px;">Method CC &gt; 20</div>
+    </div>
+    <!-- Row 3 -->
+    <div class="card" style="padding:12px;border-left:3px solid var(--green-500);">
+      <div style="font-size:12px;font-weight:700;color:#fff;">Evolvability</div>
+      <div style="font-size:10px;color:var(--dim);margin-top:4px;">Instability + abstractness</div>
+      <div style="font-size:9px;color:var(--red);margin-top:4px;">Domain layer is unstable</div>
+    </div>
+    <div class="card" style="padding:12px;border-left:3px solid var(--red);">
+      <div style="font-size:12px;font-weight:700;color:#fff;">Security</div>
+      <div style="font-size:10px;color:var(--dim);margin-top:4px;">Env access, entity exposure</div>
+      <div style="font-size:9px;color:var(--red);margin-top:4px;">process.env in domain</div>
+    </div>
+    <div class="card" style="padding:12px;border-left:3px solid var(--violet);">
+      <div style="font-size:12px;font-weight:700;color:#fff;">Domain Model</div>
+      <div style="font-size:10px;color:var(--dim);margin-top:4px;">Anemic entities, mutable VOs</div>
+      <div style="font-size:9px;color:var(--red);margin-top:4px;">Entity: 0 methods, 8 fields</div>
+    </div>
+    <div class="card" style="padding:12px;border-left:3px solid var(--blue);">
+      <div style="font-size:12px;font-weight:700;color:#fff;">Error Handling</div>
+      <div style="font-size:10px;color:var(--dim);margin-top:4px;">Empty catch, exception leak</div>
+      <div style="font-size:9px;color:var(--red);margin-top:4px;">Infra exception leaks to app</div>
+    </div>
+  </div>
+
+  <div style="font-size:14px;color:var(--dim);margin-top:14px;text-align:center;">
+    <strong style="color:#fff;">26+ fitness functions</strong> per template. Each compiles to a deterministic Cypher query. <strong style="color:#fff;">No LLM in evaluation.</strong>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════════
+     20 — NEURO-SYMBOLIC SPLIT
+══════════════════════════════════════════════════════════════ -->
+<section data-background-color="#0d1117">
+  <div class="section-label">The Approach</div>
+  <h2 style="font-size:34px;font-weight:900;letter-spacing:-1px;margin-bottom:16px;">
+    Symbolic where you can. <span class="lavender">LLM where you must.</span>
+  </h2>
+
+  <img src="images/slide-20-neuro-symbolic-pipeline.png" alt="Flow diagram: Generated Code → APG Construction (ts-morph + Neo4j) → forks into Symbolic (Cypher, 24 functions, deterministic) and Neural (LLM-as-judge, 2 functions, calibrated) → merges into Scoring Engine → AVR → AHS → verdict shield. Callout: 'The LLM never has veto power over deterministic checks.'" style="width:100%;display:block;border-radius:10px;margin-bottom:14px;" />
+
+  <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;">
+    <div class="card" style="padding:14px;text-align:center;border-top:3px solid var(--violet);">
+      <div style="font-size:36px;font-weight:900;color:var(--violet);">24</div>
+      <div style="font-size:11px;color:var(--dim);margin-top:4px;">Symbolic functions</div>
+      <div style="font-size:10px;color:var(--lavender);margin-top:2px;">Cypher on Neo4j &middot; &lt;1s &middot; deterministic</div>
+    </div>
+    <div class="card" style="padding:14px;text-align:center;border-top:3px solid var(--lavender);">
+      <div style="font-size:36px;font-weight:900;color:var(--lavender);">2</div>
+      <div style="font-size:11px;color:var(--dim);margin-top:4px;">Neural functions</div>
+      <div style="font-size:10px;color:var(--lavender);margin-top:2px;">LLM-as-judge &middot; confidence-weighted</div>
+    </div>
+    <div class="card" style="padding:14px;text-align:center;border-top:3px solid var(--green-700);">
+      <div style="font-size:20px;font-weight:900;color:var(--green-300);">AHS = &Sigma;(w<sub>d</sub> &times; (1-AVR<sub>d</sub>))</div>
+      <div style="font-size:11px;color:var(--dim);margin-top:4px;">Scoring formula</div>
+      <div style="font-size:10px;color:var(--green-700);margin-top:2px;">Weighted sum across dimensions</div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════════
+     21 — SELF-DUALITY: FORWARD + REVERSE
+══════════════════════════════════════════════════════════════ -->
+<section data-background-color="#0d1117">
+  <div class="section-label">The Approach</div>
+  <h2 style="font-size:32px;font-weight:900;letter-spacing:-1px;margin-bottom:16px;">
+    The same graph works in <span class="violet">two directions.</span>
+  </h2>
+
+  <div style="display:grid;grid-template-columns:1fr 1.1fr;gap:24px;align-items:start;">
+    <!-- Left: Gemini placeholder for the dual-arrow diagram -->
+    <div>
+      <img src="images/slide-21-apg-self-duality.png" alt="Central APG cylinder with two arrows: right arrow 'Forward — Enforcement' (spec annotates Layer 4 → fitness functions → violations), left arrow 'Reverse — Discovery' (mine Layers 1-3 → LLM classifies style → generates AoC YAML). Caption: 'The graph is identical. Only the direction of Layer 4 changes.'" style="width:100%;display:block;border-radius:10px;" />
+
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px;">
+        <div class="card" style="padding:12px;border-top:3px solid var(--violet);text-align:center;">
+          <div style="font-size:12px;font-weight:700;color:var(--violet);">Forward</div>
+          <div style="font-size:10px;color:var(--dim);margin-top:4px;">Spec → check code</div>
+          <div style="font-size:10px;color:var(--green-300);margin-top:2px;">Every commit</div>
+        </div>
+        <div class="card" style="padding:12px;border-top:3px solid var(--blue);text-align:center;">
+          <div style="font-size:12px;font-weight:700;color:var(--blue);">Reverse</div>
+          <div style="font-size:10px;color:var(--dim);margin-top:4px;">Code → generate spec</div>
+          <div style="font-size:10px;color:var(--yellow);margin-top:2px;">Runs once</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Right: firewall init terminal -->
+    <div>
+      <div class="tw">
+        <div class="tw-bar"><div class="td td-r"></div><div class="td td-y"></div><div class="td td-g"></div>
+          <span style="margin-left:8px;color:#aaa;font-family:monospace;font-size:11px;">$ daedalus-arch init</span>
+        </div>
+        <div class="tw-body" style="font-size:12px;line-height:1.6;">
+<span class="t-v">&#8594;</span> Scanning codebase...         <span class="t-d">(10 seconds)</span>
+<span class="t-v">&#8594;</span> Analyzing architecture...    <span class="t-d">(15 seconds)</span>
+<span class="t-v">&#8594;</span> Draft spec generated.
+
+Detected: <span class="t-w">Clean Architecture</span> <span class="t-d">(confidence:</span> <span class="t-g">94%</span><span class="t-d">)</span>
+
+Layer assignments:
+  <span class="t-g">&#10003;</span> src/domain/         <span class="t-d">&#8594;</span> <span class="t-v">domain</span>          <span class="t-d">(12 files)</span>
+  <span class="t-g">&#10003;</span> src/application/    <span class="t-d">&#8594;</span> <span class="t-v">application</span>     <span class="t-d">(8 files)</span>
+  <span class="t-g">&#10003;</span> src/infrastructure/ <span class="t-d">&#8594;</span> <span class="t-v">infrastructure</span>  <span class="t-d">(15 files)</span>
+
+<span class="t-y">2 anomalies to review:</span>
+  <span class="t-d">[1]</span> <span class="t-w">CreateUserUseCase.ts</span> imports prisma
+      <span class="t-d">&#8594;</span> [<span class="t-r">Mark as violation</span>] [<span class="t-d">Mark as intentional</span>]
+  <span class="t-d">[2]</span> <span class="t-w">UserService.ts</span> has 14 public methods
+      <span class="t-d">&#8594;</span> [<span class="t-y">Add to baseline</span>] [<span class="t-r">Flag as violation</span>]
+
+<span class="t-g">&#10003;</span> <span class="t-w">firewall.spec.yaml created</span>
+<span class="t-g">&#10003;</span> Baseline: 1 existing violation <span class="t-d">(won't block CI)</span></div>
+      </div>
+      <div style="font-size:12px;font-style:italic;color:#ccc;margin-top:10px;line-height:1.5;border-left:3px solid var(--violet);padding-left:10px;">
+        "The expensive LLM part runs once. The fast deterministic part runs on every commit. Cost and frequency are perfectly inversely correlated by design."
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════════
+     22 — THE BEFORE/AFTER REVEAL
+══════════════════════════════════════════════════════════════ -->
+<section data-background-color="#0d1117">
+  <div class="section-label">Results</div>
+  <h2 style="font-size:34px;font-weight:900;letter-spacing:-1px;margin-bottom:16px;">
+    What <span class="violet">DaedalusArch</span> finds.
+  </h2>
+
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;align-items:start;">
+    <!-- Left: terminal with real evaluation output -->
+    <div>
+      <div class="tw">
+        <div class="tw-bar"><div class="td td-r"></div><div class="td td-y"></div><div class="td td-g"></div>
+          <span style="margin-left:8px;color:#aaa;font-family:monospace;font-size:10px;">$ daedalus-arch evaluate --spec clean-arch.yaml</span>
+        </div>
+        <div class="tw-body" style="font-size:11.5px;line-height:1.6;">
+<span class="t-g">&#10004;</span> <span class="t-w">APG extracted</span>     <span class="t-d">11 nodes &middot; 14 edges</span>
+<span class="t-g">&#10004;</span> <span class="t-w">Graph loaded</span>      <span class="t-d">3 layers annotated</span>
+<span class="t-r">&#10008;</span> <span class="t-w">Evaluation done</span>   <span class="t-g">8 passed</span> <span class="t-d">&middot;</span> <span class="t-r">9 violations</span>
+
+<span class="t-d">&#9484;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9488;</span>
+<span class="t-d">&#9474;</span>  <span class="t-w">AHS  </span><span style="color:var(--red);font-weight:800;">0.33</span>  <span style="color:var(--red);">&#9608;&#9608;&#9608;&#9608;&#9608;&#9608;&#9608;</span><span class="t-d">&#9617;&#9617;&#9617;&#9617;&#9617;&#9617;&#9617;&#9617;&#9617;&#9617;&#9617;&#9617;&#9617;</span>  <span style="background:rgba(224,108,117,0.2);color:#e06c75;padding:1px 6px;border-radius:3px;font-weight:700;">HARD-BLOCK</span>  <span class="t-d">&#9474;</span>
+<span class="t-d">&#9474;</span>                                        <span class="t-d">&#9474;</span>
+<span class="t-d">&#9474;</span>  <span class="t-d">STRUCTURAL  </span> <span class="t-r">100% violations</span>       <span class="t-d">&#9474;</span>
+<span class="t-d">&#9474;</span>  <span class="t-d">PATTERN     </span> <span class="t-r"> 75% violations</span>       <span class="t-d">&#9474;</span>
+<span class="t-d">&#9474;</span>  <span class="t-d">CONVENTION  </span> <span class="t-y"> 50% violations</span>       <span class="t-d">&#9474;</span>
+<span class="t-d">&#9474;</span>  <span class="t-d">SOLID       </span> <span class="t-y"> 25% violations</span>       <span class="t-d">&#9474;</span>
+<span class="t-d">&#9492;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9496;</span>
+
+<span class="t-r">&#10008;</span> <span class="t-w">dependency-direction</span>     <span class="t-r">domain&rarr;infra</span>
+<span class="t-r">&#10008;</span> <span class="t-w">no-circular-deps</span>        <span class="t-r">2 cycles</span>
+<span class="t-r">&#10008;</span> <span class="t-w">domain-purity</span>            <span class="t-r">imports prisma</span>
+<span class="t-r">&#10008;</span> <span class="t-w">single-responsibility</span>    <span class="t-r">15 methods</span></div>
+      </div>
+    </div>
+
+    <!-- Right: broken Neo4j graph + context -->
+    <div>
+      <div style="border-radius:10px;overflow:hidden;border:1px solid rgba(248,81,73,0.3);margin-bottom:12px;">
+        <div style="background:#1c1c1e;padding:6px 12px;font-size:10px;color:var(--dim);font-family:monospace;border-bottom:1px solid rgba(248,81,73,0.2);">
+          <span style="color:var(--red);">Neo4j</span> &middot; variant-c-everything &middot; <span style="color:var(--red);">GodTask detected</span>
+        </div>
+        <img src="../pitch-deck/neo4j-graph-broken.png" alt="Neo4j graph — broken architecture with God class and circular deps" style="width:100%;display:block;max-height:220px;object-fit:cover;object-position:top;" />
+      </div>
+      <div style="background:rgba(248,81,73,0.04);border:1px solid rgba(248,81,73,0.2);border-radius:8px;padding:14px;font-size:13px;color:#ccc;line-height:1.5;">
+        <strong style="color:var(--red);">What you're seeing:</strong> GodTask with 15 methods exploding outward. Circular deps between layers. Domain importing Prisma.
+        <br><br>
+        <strong style="color:#fff;">All tests pass. ESLint clean. TypeScript compiles. Code review approved.</strong>
+        <br>
+        <span class="dim">And the architecture is toxic. This is what invisible debt looks like.</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════════
+     23 — BENCHMARK: FIXTURES + REAL-WORLD VALIDATION
+══════════════════════════════════════════════════════════════ -->
+<section data-background-color="#0d1117">
+  <div class="section-label">Results</div>
+  <h2 style="font-size:32px;font-weight:900;letter-spacing:-1px;margin-bottom:12px;">
+    Validated on fixtures <span class="violet">and real projects.</span>
+  </h2>
+
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:12px;">
+    <!-- Left: 5 ground-truth fixtures -->
+    <div>
+      <div style="font-size:10px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--dim);margin-bottom:6px;">Phase 1 &mdash; 5 ground-truth fixtures (seeded violations)</div>
+      <div class="tw" style="font-size:12px;">
+        <div class="tw-bar"><div class="td td-r"></div><div class="td td-y"></div><div class="td td-g"></div>
+          <span style="margin-left:6px;color:#aaa;font-family:monospace;font-size:10px;">benchmark &mdash; same spec, progressively degraded</span>
+        </div>
+        <div class="tw-body" style="font-size:11px;line-height:1.5;">
+<span class="t-w">correct-reference   </span> <span style="color:var(--green-300);font-weight:800;">0.85</span> <span style="color:var(--green-700);">&#9608;&#9608;&#9608;&#9608;&#9608;&#9608;&#9608;&#9608;&#9608;&#9608;&#9608;&#9608;&#9608;&#9608;&#9608;&#9608;&#9608;&#9608;&#9608;&#9608;&#9608;&#9608;</span> <span style="background:rgba(52,211,153,0.2);color:var(--green-300);padding:1px 4px;border-radius:3px;font-weight:700;font-size:10px;">PASS</span>
+<span class="t-w">variant-d-subtle    </span> <span style="color:var(--yellow);font-weight:800;">0.66</span> <span style="color:var(--yellow);">&#9608;&#9608;&#9608;&#9608;&#9608;&#9608;&#9608;&#9608;&#9608;&#9608;&#9608;&#9608;&#9608;&#9608;&#9608;&#9608;&#9608;</span>      <span style="background:rgba(229,192,123,0.18);color:#e5c07b;padding:1px 4px;border-radius:3px;font-weight:700;font-size:10px;">WARNING</span>
+<span class="t-w">variant-b-pattern   </span> <span style="color:var(--orange);font-weight:800;">0.58</span> <span style="color:var(--orange);">&#9608;&#9608;&#9608;&#9608;&#9608;&#9608;&#9608;&#9608;&#9608;&#9608;&#9608;&#9608;&#9608;&#9608;&#9608;</span>        <span style="background:rgba(209,154,102,0.2);color:#d19a66;padding:1px 4px;border-radius:3px;font-weight:700;font-size:10px;">SOFT-BLOCK</span>
+<span class="t-w">variant-a-structural</span> <span style="color:var(--orange);font-weight:800;">0.54</span> <span style="color:var(--orange);">&#9608;&#9608;&#9608;&#9608;&#9608;&#9608;&#9608;&#9608;&#9608;&#9608;&#9608;&#9608;&#9608;&#9608;</span>         <span style="background:rgba(209,154,102,0.2);color:#d19a66;padding:1px 4px;border-radius:3px;font-weight:700;font-size:10px;">SOFT-BLOCK</span>
+<span class="t-w">variant-c-everything</span> <span style="color:var(--red);font-weight:800;">0.33</span> <span style="color:var(--red);">&#9608;&#9608;&#9608;&#9608;&#9608;&#9608;&#9608;&#9608;</span>              <span style="background:rgba(224,108,117,0.2);color:#e06c75;padding:1px 4px;border-radius:3px;font-weight:700;font-size:10px;">HARD-BLOCK</span></div>
+      </div>
+    </div>
+
+    <!-- Right: 3 real-world external projects -->
+    <div>
+      <div style="font-size:10px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--violet);margin-bottom:6px;">Phase 2 &mdash; 3 real open-source NestJS projects (zero tuning)</div>
+      <div style="border:1px solid var(--border);border-radius:10px;overflow:hidden;">
+        <table class="dt" style="font-size:11.5px;">
+          <thead><tr><th>Project</th><th style="text-align:center;">Files</th><th style="text-align:center;">AHS</th><th>Verdict</th></tr></thead>
+          <tbody>
+            <tr>
+              <td><span style="color:#fff;font-weight:600;">DevNest</span><br><span class="dim" style="font-size:9px;">NestJS + Prisma, feature-modules</span></td>
+              <td style="text-align:center;">77</td>
+              <td style="text-align:center;color:var(--orange);font-weight:700;">0.54</td>
+              <td><span style="background:rgba(209,154,102,0.2);color:#d19a66;padding:1px 6px;border-radius:3px;font-weight:700;font-size:10px;">SOFT-BLOCK</span></td>
+            </tr>
+            <tr>
+              <td><span style="color:#fff;font-weight:600;">Ghostfolio</span><br><span class="dim" style="font-size:9px;">NestJS + Prisma, Nx monorepo</span></td>
+              <td style="text-align:center;">267</td>
+              <td style="text-align:center;color:var(--yellow);font-weight:700;">0.78</td>
+              <td><span style="background:rgba(229,192,123,0.18);color:#e5c07b;padding:1px 6px;border-radius:3px;font-weight:700;font-size:10px;">WARNING</span></td>
+            </tr>
+            <tr class="row-g">
+              <td><span style="color:var(--green-300);font-weight:600;">RealWorld</span><br><span class="dim" style="font-size:9px;">NestJS + TypeORM, feature-modules</span></td>
+              <td style="text-align:center;">34</td>
+              <td style="text-align:center;color:var(--green-300);font-weight:700;">0.80</td>
+              <td><span style="background:rgba(52,211,153,0.2);color:var(--green-300);padding:1px 6px;border-radius:3px;font-weight:700;font-size:10px;">PASS</span></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <div style="margin-top:8px;font-size:11px;color:var(--dim);line-height:1.4;">
+        All three used the <strong style="color:#fff;">same unmodified NestJS preset</strong>. Zero hand-tuning. Zero false positives.
+      </div>
+    </div>
+  </div>
+
+  <div style="display:grid;grid-template-columns:1fr 1fr 1fr 1fr 1fr;gap:8px;">
+    <div class="card" style="text-align:center;padding:12px;">
+      <div style="font-size:24px;font-weight:900;color:var(--green-300);">100%</div>
+      <div style="font-size:9px;color:var(--dim);">Detection rate</div>
+    </div>
+    <div class="card" style="text-align:center;padding:12px;">
+      <div style="font-size:24px;font-weight:900;color:var(--green-300);">0%</div>
+      <div style="font-size:9px;color:var(--dim);">False positives</div>
+    </div>
+    <div class="card" style="text-align:center;padding:12px;">
+      <div style="font-size:24px;font-weight:900;color:var(--violet);">8</div>
+      <div style="font-size:9px;color:var(--dim);">Projects validated</div>
+    </div>
+    <div class="card" style="text-align:center;padding:12px;">
+      <div style="font-size:24px;font-weight:900;color:var(--violet);">0</div>
+      <div style="font-size:9px;color:var(--dim);">Preset customization</div>
+    </div>
+    <div class="card" style="text-align:center;padding:12px;">
+      <div style="font-size:24px;font-weight:900;color:var(--violet);">&lt;5s</div>
+      <div style="font-size:9px;color:var(--dim);">Per evaluation</div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════════
+     23b — LIVE REPORTS FROM REAL PROJECTS
+══════════════════════════════════════════════════════════════ -->
+<section data-background-color="#0d1117">
+  <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
+    <div>
+      <div class="section-label">Results</div>
+      <h2 style="font-size:28px;font-weight:900;letter-spacing:-1px;">
+        Real HTML reports &mdash; <span class="violet">interactive, generated automatically.</span>
+      </h2>
+    </div>
+    <div style="display:flex;gap:6px;" id="report-tabs">
+      <button onclick="showReport('devnest')" class="report-tab active" id="tab-devnest"
+        style="font-size:11px;font-weight:700;padding:6px 14px;border-radius:6px;border:1px solid var(--border);background:var(--surface);color:var(--orange);cursor:pointer;">
+        DevNest <span style="color:var(--dim);">0.54</span>
+      </button>
+      <button onclick="showReport('realworld')" class="report-tab" id="tab-realworld"
+        style="font-size:11px;font-weight:700;padding:6px 14px;border-radius:6px;border:1px solid var(--border);background:transparent;color:var(--dim);cursor:pointer;">
+        RealWorld <span style="color:var(--dim);">0.80</span>
+      </button>
+      <button onclick="showReport('ghostfolio')" class="report-tab" id="tab-ghostfolio"
+        style="font-size:11px;font-weight:700;padding:6px 14px;border-radius:6px;border:1px solid var(--border);background:transparent;color:var(--dim);cursor:pointer;">
+        Ghostfolio <span style="color:var(--dim);">0.78</span>
+      </button>
+    </div>
+  </div>
+
+  <div style="border-radius:10px;overflow:hidden;border:1px solid var(--border);background:#fff;">
+    <iframe id="report-devnest" src="reports/devnest.html"
+      style="width:100%;height:490px;border:none;display:block;" title="DevNest Report"></iframe>
+    <iframe id="report-realworld" src="reports/realworld.html"
+      style="width:100%;height:490px;border:none;display:none;" title="RealWorld Report"></iframe>
+    <iframe id="report-ghostfolio" src="reports/ghostfolio.html"
+      style="width:100%;height:490px;border:none;display:none;" title="Ghostfolio Report"></iframe>
+  </div>
+
+  <div style="margin-top:8px;font-size:11px;color:var(--dim);text-align:center;">
+    AHS gauge &middot; dimension breakdown &middot; violation table with severity + fix suggestions &middot; Cytoscape dependency graph &middot; universal metrics
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════════
+     24 — WE ATE OUR OWN DOG FOOD
+══════════════════════════════════════════════════════════════ -->
+<section data-background-color="#0d1117">
+  <div class="section-label">Results</div>
+  <h2 style="font-size:34px;font-weight:900;letter-spacing:-1px;margin-bottom:6px;">
+    We ate our own <span class="violet">dog food.</span>
   </h2>
   <p style="font-size:14px;color:var(--dim);margin-bottom:14px;">
-    Each function is a parameterized Cypher query compiled from the spec. If the query returns rows, those are violations.
+    DaedalusArch evaluated <em>itself</em>. It took 7 iterations to get useful output. Then we fixed every problem.
   </p>
 
-  <div style="display:grid;grid-template-columns:1fr 1fr 1fr 1fr 1fr;gap:8px;margin-bottom:16px;">
-    <div style="background:rgba(248,81,73,0.08);border:1px solid rgba(248,81,73,0.3);border-radius:8px;padding:10px;text-align:center;">
-      <div style="font-size:20px;font-weight:800;color:var(--red);">4</div>
-      <div style="font-size:10px;color:var(--red);font-weight:700;letter-spacing:0.5px;">STRUCTURAL</div>
-      <div style="font-size:9px;color:var(--dim);margin-top:4px;">dep direction, cycles,<br>layer skip, domain outward</div>
+  <div style="display:grid;grid-template-columns:1.3fr 0.7fr;gap:16px;margin-bottom:12px;">
+    <!-- Left: the 7-iteration table -->
+    <div style="border:1px solid var(--border);border-radius:10px;overflow:hidden;">
+      <table class="dt" style="font-size:12px;">
+        <thead><tr><th>Run</th><th>AHS</th><th>Violations</th><th>Problem</th></tr></thead>
+        <tbody>
+          <tr><td class="dim">1</td><td style="color:var(--green-300);font-weight:700;">0.867</td><td>10</td><td class="dim">Generic spec &mdash; wrong layer mappings</td></tr>
+          <tr class="row-r"><td class="dim">2</td><td style="color:var(--red);font-weight:700;">0.180</td><td style="color:var(--red);">485</td><td>Every module&rarr;shared import flagged</td></tr>
+          <tr><td class="dim">3&ndash;6</td><td style="color:var(--red);font-weight:700;">0.180</td><td class="dim">300&ndash;570</td><td class="dim">Cypher bugs, exclusions, template force</td></tr>
+          <tr class="row-g"><td style="color:var(--green-700);font-weight:700;">7</td><td style="color:var(--green-300);font-weight:700;">0.530</td><td style="color:var(--green-700);font-weight:700;">171</td><td style="color:var(--green-700);">Real violations surfaced</td></tr>
+        </tbody>
+      </table>
     </div>
-    <div style="background:rgba(124,106,239,0.06);border:1px solid rgba(124,106,239,0.25);border-radius:8px;padding:10px;text-align:center;">
-      <div style="font-size:20px;font-weight:800;color:var(--cyan);">6</div>
-      <div style="font-size:10px;color:var(--cyan);font-weight:700;letter-spacing:0.5px;">COUPLING</div>
-      <div style="font-size:9px;color:var(--dim);margin-top:4px;">stability, fan-out,<br>instability, orphans, fan-in</div>
-    </div>
-    <div style="background:rgba(210,153,34,0.08);border:1px solid rgba(210,153,34,0.3);border-radius:8px;padding:10px;text-align:center;">
-      <div style="font-size:20px;font-weight:800;color:var(--yellow);">5</div>
-      <div style="font-size:10px;color:var(--yellow);font-weight:700;letter-spacing:0.5px;">PATTERN</div>
-      <div style="font-size:9px;color:var(--dim);margin-top:4px;">domain purity, DI,<br>repository, use-case isolation</div>
-    </div>
-    <div style="background:rgba(27,158,119,0.06);border:1px solid rgba(27,158,119,0.25);border-radius:8px;padding:10px;text-align:center;">
-      <div style="font-size:20px;font-weight:800;color:var(--green);">3</div>
-      <div style="font-size:10px;color:var(--green);font-weight:700;letter-spacing:0.5px;">SOLID</div>
-      <div style="font-size:9px;color:var(--dim);margin-top:4px;">SRP proxy, ISP proxy,<br>inheritance depth</div>
-    </div>
-    <div style="background:rgba(139,148,158,0.06);border:1px solid rgba(139,148,158,0.2);border-radius:8px;padding:10px;text-align:center;">
-      <div style="font-size:20px;font-weight:800;color:var(--dim);">6+1</div>
-      <div style="font-size:10px;color:var(--dim);font-weight:700;letter-spacing:0.5px;">CONVENTION</div>
-      <div style="font-size:9px;color:var(--dim);margin-top:4px;">naming, test pairing,<br>index logic, db bypass</div>
+
+    <!-- Right: what we did about it -->
+    <div style="display:flex;flex-direction:column;gap:6px;">
+      <div style="padding:10px 14px;background:rgba(124,106,239,0.06);border:1px solid rgba(124,106,239,0.2);border-radius:8px;text-align:center;">
+        <div style="font-size:22px;font-weight:900;color:var(--violet);">16</div>
+        <div style="font-size:9px;color:var(--dim);">Engineering gaps identified</div>
+      </div>
+      <div style="padding:10px 14px;background:rgba(27,158,119,0.06);border:1px solid rgba(27,158,119,0.2);border-radius:8px;text-align:center;">
+        <div style="font-size:22px;font-weight:900;color:var(--green-300);">10</div>
+        <div style="font-size:9px;color:var(--dim);">Gaps closed (all P0 resolved)</div>
+      </div>
+      <div style="padding:10px 14px;background:rgba(27,158,119,0.06);border:1px solid rgba(27,158,119,0.2);border-radius:8px;text-align:center;">
+        <div style="font-size:22px;font-weight:900;color:var(--green-300);">6</div>
+        <div style="font-size:9px;color:var(--dim);">Critical engine bugs found & fixed</div>
+      </div>
     </div>
   </div>
 
-  <div class="slide-cols" style="gap:16px;">
-    <div class="code-block" style="font-size:10.5px;">
-<span class="cc">// dependency-direction — Cypher template</span>
-<span class="cw">WITH</span> <span class="ci">$layerOrder</span> <span class="cw">AS</span> layerOrder
-<span class="cw">MATCH</span> (src:<span class="cf">File</span>)-[:<span class="cv">IMPORTS</span>]-&gt;(tgt:<span class="cf">File</span>)
-<span class="cw">WHERE</span> src.layer <span class="cp">IS NOT NULL</span>
-  <span class="cp">AND</span> tgt.layer <span class="cp">IS NOT NULL</span>
-  <span class="cp">AND</span> src.layer &lt;&gt; tgt.layer
-<span class="cw">WITH</span> src, tgt,
-     <span class="cf">apoc.coll.indexOf</span>(layerOrder, src.layer) <span class="cw">AS</span> srcIdx,
-     <span class="cf">apoc.coll.indexOf</span>(layerOrder, tgt.layer) <span class="cw">AS</span> tgtIdx
-<span class="cw">WHERE</span> srcIdx &gt;= <span class="cn">0</span> <span class="cp">AND</span> tgtIdx &gt;= <span class="cn">0</span>
-  <span class="cp">AND</span> srcIdx &lt; tgtIdx
-<span class="cw">RETURN</span> src.filePath <span class="cw">AS</span> source,
-       tgt.filePath <span class="cw">AS</span> target
-
-<span class="cc">// Returns rows = violations found.</span>
-<span class="cc">// $layerOrder = ['infrastructure','application','domain']</span>
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+    <div class="callout" style="font-size:12px;">
+      <strong style="color:var(--green-300);">The problem is now solved.</strong> The "7 iterations to get useful output" issue produced the roadmap. v1.1 closed all P0 blockers. New projects now get meaningful results on the <strong style="color:#fff;">first run</strong> with zero customization.
     </div>
-    <div class="code-block" style="font-size:10.5px;">
-<span class="cc">// no-cyclic-deps</span>
-<span class="cw">MATCH</span> path = (f:<span class="cf">File</span>)-[:<span class="cv">IMPORTS</span><span class="cn">*2..</span>]-&gt;(f)
-<span class="cw">RETURN</span> [n <span class="cp">IN</span> <span class="cf">nodes</span>(path) | n.filePath] <span class="cw">AS</span> cycle
-<span class="cw">LIMIT</span> <span class="cn">100</span>
-
-<span class="cc">// domain-purity</span>
-<span class="cw">MATCH</span> (src:<span class="cf">File</span>)-[:<span class="cv">IMPORTS</span>]-&gt;(tgt:<span class="cf">File</span>)
-<span class="cw">WHERE</span> src.layer = <span class="ci">$domainLayer</span>
-  <span class="cp">AND</span> tgt.layer &lt;&gt; <span class="ci">$domainLayer</span>
-<span class="cw">RETURN</span> src.filePath <span class="cw">AS</span> source,
-       tgt.filePath <span class="cw">AS</span> target
-
-<span class="cc">// repository-pattern</span>
-<span class="cw">MATCH</span> (c:<span class="cf">Class</span>)
-<span class="cw">WHERE</span> c.name <span class="cp">=~</span> <span class="cv">'.*Repository.*'</span>
-  <span class="cp">AND NOT</span> (c)-[:<span class="cv">IMPLEMENTS</span>]-&gt;(:<span class="cf">Interface</span>)
-<span class="cw">RETURN</span> c.filePath <span class="cw">AS</span> filePath,
-       c.name <span class="cw">AS</span> className
+    <div style="border-left:3px solid var(--violet);padding-left:14px;font-size:14px;font-style:italic;color:#e6edf3;line-height:1.5;">
+      "The tool that evaluates architecture was used to evaluate its own architecture &mdash; and it found real issues. <strong>That's the strongest validation we have.</strong>"
     </div>
   </div>
 </section>
 
 <!-- ═══════════════════════════════════════════════════════════
-     SLIDE 7 — SCORING ALGORITHM
+     25 — KEY FINDINGS
 ══════════════════════════════════════════════════════════════ -->
 <section data-background-color="#0d1117">
-  <div class="section-divider">Stage 6 &mdash; Scoring</div>
-  <h2 style="font-size:38px;font-weight:900;letter-spacing:-1px;margin-bottom:20px;">
-    From violations to a <span class="cyan">single number</span>
+  <div class="section-label">Results</div>
+  <h2 style="font-size:32px;font-weight:900;letter-spacing:-1px;margin-bottom:18px;">
+    Key <span class="violet">findings.</span>
   </h2>
 
-  <div class="slide-cols" style="gap:36px;">
-    <div>
-      <div class="info-card" style="margin-bottom:14px;">
-        <div class="ic-head" style="font-size:13px;">Step 1: AVR per dimension</div>
-        <div class="ic-body" style="font-size:14px;line-height:1.7;">
-          <strong style="color:var(--cyan);">AVR<sub>d</sub></strong> = violated functions / total functions in dimension <em>d</em>
-          <br><br>
-          <span class="mono" style="font-size:12px;color:#abb2bf;">
-            structural: 2/4 violated &rarr; AVR = <span style="color:var(--orange);">0.50</span><br>
-            coupling:   1/6 violated &rarr; AVR = <span style="color:var(--yellow);">0.17</span><br>
-            pattern:    3/5 violated &rarr; AVR = <span style="color:var(--red);">0.60</span><br>
-            solid:      0/3 violated &rarr; AVR = <span style="color:var(--green);">0.00</span><br>
-            convention: 2/6 violated &rarr; AVR = <span style="color:var(--yellow);">0.33</span>
-          </span>
-        </div>
+  <div style="display:grid;grid-template-columns:1.2fr 0.8fr;gap:24px;align-items:start;">
+    <div style="display:flex;flex-direction:column;gap:10px;">
+      <div class="card" style="padding:14px;border-left:3px solid var(--violet);">
+        <div style="font-size:13px;color:#fff;font-weight:700;">LLMs pass naming &mdash; fail testability.</div>
+        <div style="font-size:11px;color:var(--dim);margin-top:4px;">They know what to <em>name</em> things. They don't know how to <em>structure</em> for testing.</div>
       </div>
-
-      <div class="info-card">
-        <div class="ic-head" style="font-size:13px;">Step 2: AHS (weighted sum)</div>
-        <div class="ic-body" style="font-size:14px;line-height:1.7;">
-          <strong style="color:var(--cyan);">AHS</strong> = &Sigma; ( w<sub>d</sub> &times; (1 &minus; AVR<sub>d</sub>) )
-          <br><br>
-          <span class="mono" style="font-size:12px;color:#abb2bf;">
-            = 0.35&times;(1&minus;0.50) + 0.20&times;(1&minus;0.17)<br>
-            + 0.20&times;(1&minus;0.60) + 0.15&times;(1&minus;0.00)<br>
-            + 0.10&times;(1&minus;0.33)<br>
-            = 0.175 + 0.166 + 0.080 + 0.150 + 0.067<br>
-            = <strong style="color:var(--orange);">0.638</strong>
-          </span>
-        </div>
+      <div class="card" style="padding:14px;border-left:3px solid var(--blue);">
+        <div style="font-size:13px;color:#fff;font-weight:700;">Formal specs significantly reduce violations.</div>
+        <div style="font-size:11px;color:var(--dim);margin-top:4px;">Compared to informal prompts &mdash; the spec quality directly predicts output quality.</div>
+      </div>
+      <div class="card" style="padding:14px;border-left:3px solid var(--lavender);">
+        <div style="font-size:13px;color:#fff;font-weight:700;">Surface compliance masks deep incoherence.</div>
+        <div style="font-size:11px;color:var(--dim);margin-top:4px;">A project can look clean at the directory level while being toxic at the type level.</div>
       </div>
     </div>
-    <div>
-      <div class="info-card" style="margin-bottom:14px;">
-        <div class="ic-head" style="font-size:13px;">Step 3: Verdict</div>
-        <div style="display:flex;flex-direction:column;gap:10px;margin-top:10px;">
-          <div style="display:flex;align-items:center;gap:12px;padding:10px 14px;background:rgba(27,158,119,0.08);border:1px solid rgba(27,158,119,0.3);border-radius:6px;">
-            <span style="font-size:16px;">&#9679;</span>
-            <div style="font-size:13px;"><strong style="color:var(--green);">PASS</strong> <span class="dim">&mdash; AHS &ge; 0.80</span></div>
-          </div>
-          <div style="display:flex;align-items:center;gap:12px;padding:10px 14px;background:rgba(210,153,34,0.08);border:1px solid rgba(210,153,34,0.3);border-radius:6px;">
-            <span style="font-size:16px;">&#9679;</span>
-            <div style="font-size:13px;"><strong style="color:var(--yellow);">WARNING</strong> <span class="dim">&mdash; AHS 0.65 &ndash; 0.79</span></div>
-          </div>
-          <div style="display:flex;align-items:center;gap:12px;padding:10px 14px;background:rgba(219,109,40,0.08);border:1px solid rgba(219,109,40,0.3);border-radius:6px;">
-            <span style="font-size:16px;">&#9679;</span>
-            <div style="font-size:13px;"><strong style="color:var(--orange);">SOFT-BLOCK</strong> <span class="dim">&mdash; AHS 0.50 &ndash; 0.64</span></div>
-          </div>
-          <div style="display:flex;align-items:center;gap:12px;padding:10px 14px;background:rgba(248,81,73,0.08);border:1px solid rgba(248,81,73,0.3);border-radius:6px;">
-            <span style="font-size:16px;">&#9679;</span>
-            <div style="font-size:13px;"><strong style="color:var(--red);">HARD-BLOCK</strong> <span class="dim">&mdash; AHS &lt; 0.50</span></div>
-          </div>
-        </div>
-      </div>
 
-      <div class="info-card">
-        <div class="ic-head" style="font-size:13px;">Design decisions</div>
-        <div class="ic-body" style="font-size:12px;line-height:1.6;">
-          <span class="cyan">--</span> Branded value objects: <span class="mono">AVRScore</span>, <span class="mono">AHSScore</span> via Zod &mdash; impossible to pass a raw number where a score is expected.<br>
-          <span class="cyan">--</span> Weights are per-team configurable: a startup can zero-out convention, an enterprise can max structural.<br>
-          <span class="cyan">--</span> Neuronal results multiplied by confidence weight &mdash; low-confidence LLM findings penalize less.
-        </div>
+    <!-- 2x2 characterization matrix -->
+    <div>
+      <div style="font-size:11px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--dim);margin-bottom:8px;">Failure Taxonomy (2&times;2)</div>
+      <div style="border:1px solid var(--border);border-radius:10px;overflow:hidden;">
+        <table class="dt" style="font-size:11px;">
+          <thead><tr><th></th><th style="text-align:center;">High Extrinsic</th><th style="text-align:center;">Low Extrinsic</th></tr></thead>
+          <tbody>
+            <tr>
+              <td style="font-weight:700;color:#fff;">High ICS</td>
+              <td style="text-align:center;color:var(--green-300);">Correct &<br>coherent</td>
+              <td style="text-align:center;color:var(--yellow);">Consistently<br>wrong style</td>
+            </tr>
+            <tr>
+              <td style="font-weight:700;color:#fff;">Low ICS</td>
+              <td style="text-align:center;color:var(--orange);">Right direction,<br>inconsistent</td>
+              <td style="text-align:center;color:var(--red);">Wrong &<br>incoherent</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <div style="font-size:10px;color:var(--dim);margin-top:6px;line-height:1.4;">
+        <strong style="color:var(--lavender);">Extrinsic:</strong> conformance to spec.<br>
+        <strong style="color:var(--lavender);">ICS:</strong> internal consistency score.
       </div>
     </div>
   </div>
 </section>
 
 <!-- ═══════════════════════════════════════════════════════════
-     SLIDE 8 — NEURO-SYMBOLIC ROUTING
+     26 — VISION + CLOSE
 ══════════════════════════════════════════════════════════════ -->
 <section data-background-color="#0d1117">
-  <div class="section-divider">The Neuro-Symbolic Router</div>
-  <h2 style="font-size:36px;font-weight:900;letter-spacing:-1px;margin-bottom:6px;">
-    Symbolic where you can. <span class="purple">LLM where you must.</span>
-  </h2>
-  <p style="font-size:14px;color:var(--dim);margin-bottom:24px;">
-    24 functions are pure Cypher (deterministic, &lt;1s). 2 functions use Claude/Gemini for semantic analysis.
-  </p>
-
-  <div style="display:grid;grid-template-columns:2fr 1fr;gap:24px;">
-    <div>
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:16px;">
-        <div style="background:rgba(124,106,239,0.06);border:1px solid rgba(124,106,239,0.25);border-radius:10px;padding:18px;">
-          <div style="font-size:11px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--cyan);margin-bottom:8px;">Symbolic Route</div>
-          <div style="font-size:40px;font-weight:800;color:var(--cyan);margin-bottom:8px;">24</div>
-          <div style="font-size:12px;color:var(--dim);line-height:1.5;">
-            Pure Cypher queries on Neo4j.<br>
-            Deterministic. Reproducible.<br>
-            &lt;1s per function.<br>
-            Rows returned = violations.
-          </div>
-        </div>
-        <div style="background:rgba(167,139,250,0.06);border:1px solid rgba(167,139,250,0.25);border-radius:10px;padding:18px;">
-          <div style="font-size:11px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--purple);margin-bottom:8px;">Neuronal Route</div>
-          <div style="font-size:40px;font-weight:800;color:var(--purple);margin-bottom:8px;">2</div>
-          <div style="font-size:12px;color:var(--dim);line-height:1.5;">
-            LLM-based semantic analysis.<br>
-            SRP intent + layering intent.<br>
-            Confidence-weighted scoring.<br>
-            Claude or Gemini backend.
-          </div>
-        </div>
-      </div>
-      <div class="code-block" style="font-size:11px;">
-<span class="cc">// Route decision from spec YAML:</span>
-<span class="ck">fitness_functions</span>:
-  - <span class="ck">id</span>: <span class="cv">FF-S01</span>
-    <span class="ck">route</span>: <span class="cv">symbolic</span>   <span class="cc"># &rarr; Cypher on Neo4j</span>
-
-  - <span class="ck">id</span>: <span class="cv">FF-N01</span>
-    <span class="ck">route</span>: <span class="cv">neuronal</span>   <span class="cc"># &rarr; Claude/Gemini API</span>
-
-  - <span class="ck">id</span>: <span class="cv">FF-N02</span>
-    <span class="ck">route</span>: <span class="cv">hybrid</span>     <span class="cc"># &rarr; Cypher + LLM confirm</span>
-      </div>
-    </div>
-    <div>
-      <div style="background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:20px;">
-        <div style="font-size:11px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--dim);margin-bottom:14px;">Why this split?</div>
-        <div style="display:flex;flex-direction:column;gap:14px;font-size:13px;color:#ccc;line-height:1.6;">
-          <div>
-            <strong style="color:#fff;">Structural rules</strong> are binary graph properties. "Does file A import file B across a layer boundary?" &mdash; that's a graph traversal, not a judgment call.
-          </div>
-          <div>
-            <strong style="color:#fff;">Semantic rules</strong> need understanding. "Does this class have a single responsibility?" requires reading the code and reasoning about intent. Graph structure alone can't answer that.
-          </div>
-          <div>
-            <strong style="color:#fff;">Confidence gating:</strong> neuronal results below a threshold are flagged <span class="mono" style="color:var(--yellow);">unstable</span> and down-weighted in the score. Prevents hallucination from tanking AHS.
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
-</section>
-
-<!-- ═══════════════════════════════════════════════════════════
-     SLIDE 9 — NEO4J INGESTION
-══════════════════════════════════════════════════════════════ -->
-<section data-background-color="#0d1117">
-  <div class="section-divider">Stage 3 &mdash; Graph Ingestion</div>
-  <h2 style="font-size:36px;font-weight:900;letter-spacing:-1px;margin-bottom:6px;">
-    Bulk load into <span class="cyan">Neo4j</span> + layer annotation
-  </h2>
-  <p style="font-size:14px;color:var(--dim);margin-bottom:20px;">
-    APG nodes &rarr; Neo4j via UNWIND batch. Layers assigned by glob matching file paths against spec directories.
-  </p>
-
-  <div class="slide-cols" style="gap:28px;">
-    <div>
-      <div class="code-block" style="font-size:11px;margin-bottom:14px;">
-<span class="cc">// Bulk node ingestion (UNWIND)</span>
-<span class="cw">UNWIND</span> <span class="ci">$nodes</span> <span class="cw">AS</span> n
-<span class="cw">CREATE</span> (f:<span class="cf">File</span> {
-  id:       n.id,
-  filePath: n.filePath,
-  name:     n.name,
-  type:     n.type
-})
-
-<span class="cc">// Layer annotation (post-ingestion)</span>
-<span class="cw">MATCH</span> (f:<span class="cf">File</span>)
-<span class="cw">WHERE</span> f.filePath <span class="cp">=~</span> <span class="ci">$layerPattern</span>
-<span class="cw">SET</span>   f.layer = <span class="ci">$layerName</span>,
-      f.role  = <span class="ci">$role</span>
-      </div>
-
-      <div class="info-card">
-        <div class="ic-head">Layer matching strategies</div>
-        <div class="ic-body" style="font-size:12px;line-height:1.6;">
-          <span class="cyan">1.</span> <strong>Directory-based</strong> &mdash; <span class="mono">src/domain/**</span> via picomatch on relative paths.<br>
-          <span class="cyan">2.</span> <strong>File-pattern-based</strong> &mdash; <span class="mono">*.service.ts</span> for NestJS-style co-location.<br>
-          <span class="cyan">3.</span> <strong>Decorator-based</strong> &mdash; <span class="mono">@Controller()</span>, <span class="mono">@Injectable()</span> for framework inference.
-        </div>
-      </div>
-    </div>
-    <div>
-      <div class="terminal-window">
-        <div class="terminal-titlebar">
-          <div class="td td-r"></div><div class="td td-y"></div><div class="td td-g"></div>
-          <div class="terminal-filename">Neo4j Browser &mdash; MATCH (n) RETURN n</div>
-        </div>
-        <div class="terminal-body" style="font-size:11px;line-height:1.7;">
-<span class="t-dim">neo4j$ </span><span class="t-cyan">MATCH (n:File) RETURN n.name, n.layer</span>
-
-<span class="t-dim">+------------------------------+----------+</span>
-<span class="t-dim">|</span> <span class="t-white">n.name</span>                       <span class="t-dim">|</span> <span class="t-white">n.layer</span>  <span class="t-dim">|</span>
-<span class="t-dim">+------------------------------+----------+</span>
-<span class="t-dim">|</span> <span class="t-cyan">Task.ts</span>                      <span class="t-dim">|</span> <span class="t-cyan">domain</span>   <span class="t-dim">|</span>
-<span class="t-dim">|</span> <span class="t-cyan">ITaskRepository.ts</span>           <span class="t-dim">|</span> <span class="t-cyan">domain</span>   <span class="t-dim">|</span>
-<span class="t-dim">|</span> <span class="t-green">CreateTaskUseCase.ts</span>         <span class="t-dim">|</span> <span class="t-green">app</span>      <span class="t-dim">|</span>
-<span class="t-dim">|</span> <span class="t-green">CompleteTaskUseCase.ts</span>       <span class="t-dim">|</span> <span class="t-green">app</span>      <span class="t-dim">|</span>
-<span class="t-dim">|</span> <span class="t-yellow">InMemoryTaskRepository.ts</span>    <span class="t-dim">|</span> <span class="t-yellow">infra</span>    <span class="t-dim">|</span>
-<span class="t-dim">|</span> <span class="t-yellow">TaskController.ts</span>            <span class="t-dim">|</span> <span class="t-yellow">infra</span>    <span class="t-dim">|</span>
-<span class="t-dim">+------------------------------+----------+</span>
-<span class="t-dim">6 rows</span>
-
-<span class="t-dim">neo4j$ </span><span class="t-cyan">MATCH (a)-[r:IMPORTS]->(b)</span>
-       <span class="t-cyan">RETURN a.name, type(r), b.name</span>
-<span class="t-dim">...</span>
-        </div>
-      </div>
-    </div>
-  </div>
-</section>
-
-<!-- ═══════════════════════════════════════════════════════════
-     SLIDE 10 — BENCHMARK RESULTS
-══════════════════════════════════════════════════════════════ -->
-<section data-background-color="#0d1117">
-  <div class="section-divider">Empirical Validation &mdash; 5 Ground-Truth Projects</div>
-  <div class="terminal-window" style="margin-bottom:16px;font-size:13px;">
-    <div class="terminal-titlebar">
-      <div class="td td-r"></div><div class="td td-y"></div><div class="td td-g"></div>
-      <div class="terminal-filename">Benchmark &mdash; same spec, 5 codebases with progressively seeded violations</div>
-    </div>
-    <div class="terminal-body">
-  <span class="t-white">correct-reference   </span>  <span class="t-green t-bold">0.85</span>  <span class="t-green">████████████████████████████████████████████</span>  <span class="t-bg-green"> PASS      </span>  <span class="t-dim">3 violations</span>
-  <span class="t-white">variant-d-subtle    </span>  <span class="t-yellow t-bold">0.66</span>  <span class="t-yellow">██████████████████████████████████</span>            <span style="background:rgba(229,192,123,0.18);color:#e5c07b;padding:1px 6px;border-radius:3px;font-weight:700;"> WARNING   </span>  <span class="t-dim">5 violations</span>
-  <span class="t-white">variant-b-pattern   </span>  <span class="t-orange t-bold">0.58</span>  <span class="t-orange">██████████████████████████████</span>                <span style="background:rgba(209,154,102,0.20);color:#d19a66;padding:1px 6px;border-radius:3px;font-weight:700;"> SOFT-BLOCK</span>  <span class="t-dim">6 violations</span>
-  <span class="t-white">variant-a-structural</span>  <span class="t-orange t-bold">0.54</span>  <span class="t-orange">████████████████████████████</span>                  <span style="background:rgba(209,154,102,0.20);color:#d19a66;padding:1px 6px;border-radius:3px;font-weight:700;"> SOFT-BLOCK</span>  <span class="t-dim">6 violations</span>
-  <span class="t-white">variant-c-everything</span>  <span class="t-red t-bold">0.33</span>  <span class="t-red">█████████████████</span>                             <span class="t-bg-red"> HARD-BLOCK</span>  <span class="t-dim">9 violations</span>
-    </div>
-  </div>
-
-  <div class="stats-row">
-    <div class="stat-box">
-      <div class="stat-number">100%</div>
-      <div class="stat-label">Detection rate</div>
-    </div>
-    <div class="stat-box">
-      <div class="stat-number">0</div>
-      <div class="stat-label">False negatives</div>
-    </div>
-    <div class="stat-box">
-      <div class="stat-number">29</div>
-      <div class="stat-label">Total violations caught</div>
-    </div>
-    <div class="stat-box">
-      <div class="stat-number">&lt;5s</div>
-      <div class="stat-label">Per evaluation</div>
-    </div>
-  </div>
-
-  <div style="margin-top:16px;font-size:13px;color:var(--dim);line-height:1.6;">
-    <span class="green">Key property:</span> AHS degrades <strong style="color:#fff;">monotonically</strong> as violations are seeded.
-    The score correctly ranks codebases from healthiest to most degraded.
-    Variants were designed with known violations &mdash; all were caught without false positives.
-  </div>
-</section>
-
-<!-- ═══════════════════════════════════════════════════════════
-     SLIDE 11 — ENGINEERING DECISIONS + TECH STACK
-══════════════════════════════════════════════════════════════ -->
-<section data-background-color="#0d1117">
-  <div class="section-divider">Engineering Decisions</div>
-  <h2 style="font-size:34px;font-weight:900;letter-spacing:-1px;margin-bottom:20px;">
-    Tech stack + key trade-offs
+  <div class="section-label">Vision</div>
+  <h2 style="font-size:34px;font-weight:900;letter-spacing:-1px;margin-bottom:18px;">
+    What this <span class="violet">enables.</span>
   </h2>
 
-  <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:20px;">
-    <div class="info-card">
-      <div class="ic-head"><span class="cyan">Why Neo4j?</span></div>
-      <div class="ic-body" style="font-size:12px;">
-        Architecture is a graph problem. Cypher lets us express "find all paths from domain to infrastructure" in 3 lines.
-        Variable-length path matching (<span class="mono">[:IMPORTS*2..]</span>) makes cycle detection trivial.
-        Alternatives considered: in-memory adjacency list (too manual), SQL (painful path queries), TigerGraph (overkill).
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:24px;align-items:start;">
+    <div style="display:flex;flex-direction:column;gap:10px;">
+      <div class="card" style="padding:14px;border-left:3px solid var(--green-700);">
+        <div style="font-size:13px;font-weight:700;color:var(--green-300);">Generator-Critic loop closes.</div>
+        <div style="font-size:11px;color:var(--dim);margin-top:4px;">Violation reports are structured JSON. Agents consume them as feedback to self-correct &mdash; the external deterministic signal Huang et al. proved is necessary.</div>
+      </div>
+      <div class="card" style="padding:14px;border-left:3px solid var(--blue);">
+        <div style="font-size:13px;font-weight:700;color:var(--blue);">Brownfield adoption.</div>
+        <div style="font-size:11px;color:var(--dim);margin-top:4px;"><span class="mono">firewall init</span> = any existing codebase gets governance retroactively. Baseline existing violations. Only new ones block CI.</div>
+      </div>
+      <div class="card" style="padding:14px;border-left:3px solid var(--violet);">
+        <div style="font-size:13px;font-weight:700;color:var(--violet);">The pattern is generalizable.</div>
+        <div style="font-size:11px;color:var(--dim);margin-top:4px;">Same YAML-to-graph-query compilation could enforce security constraints, performance bounds, accessibility rules. Architecture is just the first domain.</div>
       </div>
     </div>
-    <div class="info-card">
-      <div class="ic-head"><span class="cyan">Why ts-morph?</span></div>
-      <div class="ic-body" style="font-size:12px;">
-        Full TypeScript compiler API access without the complexity. We get: resolved imports (not just string parsing), class hierarchies, decorators, type information.
-        Trade-off: TypeScript-only for now. Future: tree-sitter for multi-language support.
-      </div>
-    </div>
-    <div class="info-card">
-      <div class="ic-head"><span class="cyan">Branded value objects</span></div>
-      <div class="ic-body" style="font-size:12px;">
-        <span class="mono">AVRScore</span>, <span class="mono">AHSScore</span>, <span class="mono">Confidence</span>, <span class="mono">FunctionId</span> &mdash; all branded types via Zod.
-        Prevents accidentally passing a raw <span class="mono">number</span> where a score is expected.
-        Runtime validation + compile-time safety.
-      </div>
-    </div>
-    <div class="info-card">
-      <div class="ic-head"><span class="cyan">BDD test suite</span></div>
-      <div class="ic-body" style="font-size:12px;">
-        Jest + jest-cucumber for behavior-driven specs. Every fitness function has a Gherkin scenario.
-        Integration tests hit a real Neo4j container (Docker Compose). No mocks for graph queries.
-      </div>
-    </div>
-  </div>
 
-  <div style="display:flex;gap:8px;flex-wrap:wrap;font-size:11px;">
-    <span style="background:var(--surface);border:1px solid var(--border);border-radius:20px;padding:4px 12px;color:var(--cyan);">TypeScript</span>
-    <span style="background:var(--surface);border:1px solid var(--border);border-radius:20px;padding:4px 12px;color:#e6edf3;">ts-morph v25</span>
-    <span style="background:var(--surface);border:1px solid var(--border);border-radius:20px;padding:4px 12px;color:#e6edf3;">Neo4j v5.28</span>
-    <span style="background:var(--surface);border:1px solid var(--border);border-radius:20px;padding:4px 12px;color:#e6edf3;">Cypher + APOC</span>
-    <span style="background:var(--surface);border:1px solid var(--border);border-radius:20px;padding:4px 12px;color:#e6edf3;">Zod</span>
-    <span style="background:var(--surface);border:1px solid var(--border);border-radius:20px;padding:4px 12px;color:#e6edf3;">ajv</span>
-    <span style="background:var(--surface);border:1px solid var(--border);border-radius:20px;padding:4px 12px;color:#e6edf3;">picomatch</span>
-    <span style="background:var(--surface);border:1px solid var(--border);border-radius:20px;padding:4px 12px;color:var(--purple);">Claude API</span>
-    <span style="background:var(--surface);border:1px solid var(--border);border-radius:20px;padding:4px 12px;color:var(--purple);">Gemini API</span>
-    <span style="background:var(--surface);border:1px solid var(--border);border-radius:20px;padding:4px 12px;color:#e6edf3;">Jest + jest-cucumber</span>
-    <span style="background:var(--surface);border:1px solid var(--border);border-radius:20px;padding:4px 12px;color:#e6edf3;">commander v14</span>
-    <span style="background:var(--surface);border:1px solid var(--border);border-radius:20px;padding:4px 12px;color:#e6edf3;">Docker Compose</span>
+    <div>
+      <div class="tw" style="margin-bottom:14px;">
+        <div class="tw-bar"><div class="td td-r"></div><div class="td td-y"></div><div class="td td-g"></div>
+          <span style="margin-left:8px;color:#aaa;font-family:monospace;font-size:11px;">The developer experience</span>
+        </div>
+        <div class="tw-body" style="font-size:12px;">
+<span class="t-d">$ </span><span class="t-w">npx daedalus-arch init</span>
+<span class="t-d">  &#8594; spec in 60 seconds</span>
+
+<span class="t-d">$ </span><span class="t-w">npx daedalus-arch evaluate</span>
+<span class="t-d">  &#8594; results in 2 minutes</span>
+
+<span class="t-d"># CI/CD: one-line GitHub Action</span>
+<span class="t-d"># No Docker required</span></div>
+      </div>
+
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;">
+        <div class="card" style="text-align:center;padding:12px;">
+          <div style="font-size:18px;font-weight:800;color:var(--green-300);">106</div>
+          <div style="font-size:9px;color:var(--dim);">Source files</div>
+        </div>
+        <div class="card" style="text-align:center;padding:12px;">
+          <div style="font-size:18px;font-weight:800;color:var(--violet);">32.5K</div>
+          <div style="font-size:9px;color:var(--dim);">Lines of code</div>
+        </div>
+        <div class="card" style="text-align:center;padding:12px;">
+          <div style="font-size:18px;font-weight:800;color:var(--blue);">421</div>
+          <div style="font-size:9px;color:var(--dim);">Tests (76% cov)</div>
+        </div>
+      </div>
+    </div>
   </div>
 </section>
 
 <!-- ═══════════════════════════════════════════════════════════
-     SLIDE 12 — WHAT'S NEXT
+     27 — CLOSING
 ══════════════════════════════════════════════════════════════ -->
-<section data-background-color="#0d1117">
-  <div class="section-divider">What's Next</div>
-  <div class="slide-cols" style="align-items:center;gap:48px;">
-    <div>
-      <h2 style="font-size:40px;font-weight:900;letter-spacing:-1.5px;line-height:1.2;margin-bottom:24px;">
-        From CLI tool<br>to <span class="cyan">CI/CD gate.</span>
-      </h2>
-      <div style="display:flex;flex-direction:column;gap:10px;">
-        <div style="background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:14px 16px;display:flex;gap:12px;align-items:flex-start;">
-          <span style="color:var(--green);font-size:14px;flex-shrink:0;">1</span>
-          <div>
-            <div style="font-size:13px;font-weight:700;color:#fff;">Multi-language via tree-sitter</div>
-            <div style="font-size:11px;color:var(--dim);margin-top:2px;">Go, Java, Python, C# &mdash; same graph model, different extractors</div>
-          </div>
-        </div>
-        <div style="background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:14px 16px;display:flex;gap:12px;align-items:flex-start;">
-          <span style="color:var(--green);font-size:14px;flex-shrink:0;">2</span>
-          <div>
-            <div style="font-size:13px;font-weight:700;color:#fff;">GitHub App &mdash; PR check integration</div>
-            <div style="font-size:11px;color:var(--dim);margin-top:2px;">AHS score as a required check. Delta scoring per PR.</div>
-          </div>
-        </div>
-        <div style="background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:14px 16px;display:flex;gap:12px;align-items:flex-start;">
-          <span style="color:var(--green);font-size:14px;flex-shrink:0;">3</span>
-          <div>
-            <div style="font-size:13px;font-weight:700;color:#fff;">Spec inference from existing codebases</div>
-            <div style="font-size:11px;color:var(--dim);margin-top:2px;">Auto-generate YAML spec from directory structure + import patterns</div>
-          </div>
-        </div>
-        <div style="background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:14px 16px;display:flex;gap:12px;align-items:flex-start;">
-          <span style="color:var(--cyan);font-size:14px;flex-shrink:0;">4</span>
-          <div>
-            <div style="font-size:13px;font-weight:700;color:var(--cyan);">Historical AHS tracking</div>
-            <div style="font-size:11px;color:var(--dim);margin-top:2px;">Track architectural health over time. Detect regression trends before they compound.</div>
-          </div>
-        </div>
-      </div>
+<section data-background-color="#0d1117" class="slide-center">
+  <div style="max-width:820px;text-align:center;">
+    <div class="quote-block" style="font-size:28px;">
+      "2025 was the year of AI speed.
+      <br>2026 is the year of AI quality.
+      <br><br>
+      The agents are here. The question is whether we give them guard rails &mdash; <strong>or let them build the future on sand."</strong>
     </div>
-    <div style="text-align:center;">
-      <div style="font-size:11px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--dim);margin-bottom:16px;">Core Idea</div>
-      <div style="font-size:56px;font-weight:900;letter-spacing:-2px;line-height:1;
-        background:linear-gradient(135deg, var(--green), var(--cyan));
-        -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text;">
-        Code &rarr; Graph<br>&rarr; Score
-      </div>
-      <div style="font-size:16px;color:#ccc;margin-top:20px;line-height:1.6;">
-        If you can model it as a graph property,<br>
-        you can enforce it deterministically.
-      </div>
-      <div style="margin-top:28px;padding:16px 24px;background:var(--surface);border:1px solid var(--border);border-radius:10px;text-align:left;">
-        <div style="font-size:12px;color:var(--dim);line-height:1.6;">
-          <span style="color:var(--cyan);font-weight:700;">Try it:</span>
-          <span class="mono" style="color:#abb2bf;"> npx tsx demo/demo.ts</span><br>
-          <span style="color:var(--cyan);font-weight:700;">Spec:</span>
-          <span class="mono" style="color:#abb2bf;"> specs/clean-arch.yaml</span><br>
-          <span style="color:var(--cyan);font-weight:700;">Presets:</span>
-          <span class="mono" style="color:#abb2bf;"> presets/clean-architecture.yaml</span>
-        </div>
-      </div>
+    <div style="margin-top:40px;font-size:15px;color:var(--dim);">
+      Cristian Cordoba &middot; Software Architect & AI Engineer
     </div>
   </div>
 </section>
 
-</div><!-- .slides -->
-</div><!-- .reveal -->
+<!-- ═══════════════════════════════════════════════════════════
+     28 — Q&A
+══════════════════════════════════════════════════════════════ -->
+<section data-background-color="#0d1117" class="slide-center">
+  <h1 style="font-size:64px;font-weight:900;letter-spacing:-3px;
+    background:linear-gradient(135deg, #fff 40%, var(--violet));
+    -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;">
+    Q&A
+  </h1>
+</section>
+
+</div>
+</div>
 
 <script src="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/dist/reveal.js"></script>
 <script>
   Reveal.initialize({
-    hash: true,
-    progress: true,
-    controls: true,
-    slideNumber: 'c/t',
-    transition: 'fade',
-    transitionSpeed: 'fast',
-    backgroundTransition: 'fade',
-    center: false,
-    margin: 0.06,
-    width: 1280,
-    height: 720,
+    hash: true, progress: true, controls: true,
+    slideNumber: 'c/t', transition: 'fade', transitionSpeed: 'fast',
+    backgroundTransition: 'fade', center: false, margin: 0.06,
+    width: 1280, height: 720,
   });
+
+  // ── Report tab switcher ──
+  function showReport(name) {
+    ['devnest','realworld','ghostfolio'].forEach(function(n) {
+      var frame = document.getElementById('report-' + n);
+      var tab = document.getElementById('tab-' + n);
+      if (frame) frame.style.display = n === name ? 'block' : 'none';
+      if (tab) {
+        tab.style.background = n === name ? 'var(--surface)' : 'transparent';
+        tab.style.color = n === name ? '#fff' : 'var(--dim)';
+      }
+    });
+  }
+  // Make showReport available globally for onclick
+  window.showReport = showReport;
 </script>
 </body>
 </html>
