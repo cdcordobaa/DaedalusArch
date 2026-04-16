@@ -1,17 +1,32 @@
 # Demo Playbook — Architectonic Firewall
 
-A live walkthrough evaluating [Truthy](https://github.com/gobeam/truthy), an open-source NestJS headless CMS with 600+ GitHub stars. No hand-tuning, no configuration — preset to report in under 2 minutes.
+A live walkthrough evaluating [Ghostfolio](https://github.com/ghostfolio/ghostfolio), a production open-source wealth management platform with 4k+ GitHub stars. No hand-tuning, no configuration — preset to report in under 2 minutes.
 
 ---
 
 ## What You'll Show
 
-1. Clone a public NestJS project the audience has never seen
+1. Clone a real production NestJS project (Nx monorepo, 267 files)
 2. Copy the generic preset (zero customization)
-3. Run one command that produces an HTML report
+3. Run one command that produces an interactive HTML report
 4. Walk through the findings — all architecturally real
 
 **Time**: ~3 minutes (including npm install)
+
+---
+
+## About the Target
+
+**Ghostfolio** is a privacy-first, open-source wealth management dashboard. Real users, real production traffic. The backend is a NestJS API inside an Nx monorepo:
+
+- 267 TypeScript files in `apps/api/`
+- Prisma ORM + PostgreSQL
+- 12 data provider integrations (Yahoo Finance, CoinGecko, Alpha Vantage, etc.)
+- Queue-based portfolio snapshots (Bull)
+- Auth, cron jobs, caching, i18n
+- Separated cross-cutting concerns (`guards/`, `interceptors/`, `middlewares/`, `decorators/`)
+
+This is not a toy project — it's a real app with real architectural decisions.
 
 ---
 
@@ -26,29 +41,55 @@ docker compose up -d          # Neo4j
 
 ## The Demo
 
-### 1. Clone the target (30s)
+### 1. Clone and install (60s)
 
 ```bash
 cd /path/to/workspace
-git clone --depth 1 https://github.com/gobeam/truthy.git truthy-demo
-cd truthy-demo && npm install --legacy-peer-deps
-cd ../DaedalusArch
+git clone --depth 1 https://github.com/ghostfolio/ghostfolio.git ghostfolio-test
+cd ghostfolio-test && npm install
 ```
 
-> **Talking point**: "This is a headless CMS — auth, RBAC, roles, permissions, email, 2FA, i18n. 131 TypeScript files. We've never seen this codebase before."
+> **Talking point**: "Ghostfolio — 4,000+ stars on GitHub, a real financial platform. Let's see what its architecture actually looks like."
 
-### 2. Copy the preset (5s)
+### 2. Prepare the target (15s)
+
+Ghostfolio is an Nx monorepo. The backend lives in `apps/api/`. Its `tsconfig.json` uses project references, so we create a flat one for ts-morph:
 
 ```bash
-cp presets/nestjs.yaml ../truthy-demo/firewall.spec.yaml
+cd apps/api
+cat > tsconfig.json << 'EOF'
+{
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    "outDir": "../../dist/out-tsc",
+    "types": ["node"],
+    "emitDecoratorMetadata": true,
+    "moduleResolution": "node10",
+    "target": "es2021",
+    "module": "commonjs"
+  },
+  "exclude": ["**/*.spec.ts", "**/*.test.ts"],
+  "include": ["src/**/*.ts"]
+}
+EOF
+cd ../../..     # back to workspace root
 ```
 
-> **Talking point**: "One preset file. No configuration. The preset uses file-naming conventions to assign architectural layers — `*.controller.ts` is presentation, `*.service.ts` is application, `*.repository.ts` is infrastructure. It works for any NestJS project."
+> **Talking point**: "Monorepo setup — we point at the API app directory. One tsconfig tweak because Nx uses project references."
 
-### 3. Run the evaluation + generate report (60s)
+### 3. Copy the preset (5s)
 
 ```bash
-TARGET=../truthy-demo
+cp DaedalusArch/presets/nestjs.yaml ghostfolio-test/apps/api/firewall.spec.yaml
+```
+
+> **Talking point**: "One file. Zero configuration. The preset knows NestJS conventions — `*.controller.ts` is presentation, `*.service.ts` is application, `*.repository.ts` is infrastructure. Works on any NestJS project."
+
+### 4. Run the evaluation + generate report (90s)
+
+```bash
+cd DaedalusArch
+TARGET=../ghostfolio-test/apps/api
 
 NEO4J_PASSWORD=daedalus-dev npx tsx -e "
 import { main } from './src/cli/cli.ts';
@@ -60,83 +101,114 @@ main(['node', 'firewall', 'report',
 "
 ```
 
-> **Talking point**: "The pipeline extracts a property graph from the TypeScript AST, loads it into Neo4j, compiles 24 fitness functions into Cypher queries, runs them, scores the results, and generates the report. Under 2 seconds for the actual evaluation."
+The terminal will show:
 
-### 4. Open the report
+```
+Evaluating ghostfolio-test/apps/api (mode: symbolic-only)...
+╔═══════════════════════════════════════════╗
+║  Architectural Health Score: 0.78 (WARNING)║
+╚═══════════════════════════════════════════╝
+
+  Per-Dimension Breakdown:
+    structural     AVR: 0.000  (0 violations)
+    coupling       AVR: 0.667  (4 violations)
+    pattern        AVR: 0.250  (1 violations)
+    solid          AVR: 0.000  (0 violations)
+    convention     AVR: 0.333  (1 violations)
+
+  Pipeline completed in ~2s
+```
+
+> **Talking point**: "267 files analyzed in under 2 seconds. 24 fitness functions evaluated. The score is 0.78 — that's a WARNING, not a block. The structural dimension is perfect — zero cyclic dependencies, zero layer violations in a 267-file codebase. That's impressive."
+
+### 5. Open the report
 
 ```bash
-open ../truthy-demo/report.html
+open $TARGET/report.html
 ```
 
 ---
 
-## What the Report Shows
+## Walking Through the Report
 
-### Score: AHS 0.69 (WARNING)
+### The Score: AHS 0.78 (WARNING)
 
-| Dimension | AVR | Weight | Meaning |
-|---|---|---|---|
-| **structural** | 0.000 | 35% | No cyclic deps, no layer skips, clean dependency direction |
-| **coupling** | 0.333 | 20% | 65 orphan files (no imports/exports), low abstraction ratio |
-| **pattern** | 0.750 | 30% | 8 services lack dependency inversion, 6 missing repository pattern, 5 use-case isolation issues |
-| **solid** | 0.000 | 10% | Classes are well-sized, no SRP or ISP violations |
-| **convention** | 0.333 | 5% | 65 source files with no paired test file |
+The interactive HTML report shows a gauge, per-dimension breakdown, and every violation with its file path, explanation, and suggested fix.
 
-### Walk-through: Top Violations
+### What's Good (highlight first)
 
-#### 1. Dependency Inversion (FF-P02) — 8 violations, critical
+> "Let's start with what Ghostfolio gets right."
 
-> "Every service injects concrete classes — `AuthService` depends on the concrete `UserRepository`, not an interface. In a strict layered architecture, you'd define a `UserRepositoryPort` interface in the application layer and have the infrastructure provide the implementation."
+| Dimension | Score | What it means |
+|---|---|---|
+| **structural: 0.000** | Perfect | Zero cyclic dependencies across 267 files. Zero layer-skip violations. Clean dependency direction. In a project with 12 data provider integrations and queue processors, that's excellent engineering. |
+| **solid: 0.000** | Perfect | No god classes. No interface bloat. Classes are well-sized with focused responsibilities. |
 
-Show `src/auth/auth.service.ts` — concrete TypeORM repository injection.
+> **Talking point**: "Two dimensions score perfect. For a project this size with this many integrations, that's not accidental — someone made deliberate architectural choices."
 
-#### 2. Repository Pattern (FF-P03) — 6 violations, critical
+### What's Flagged
 
-> "Several modules access the ORM directly from services without going through a repository abstraction."
+#### 1. Dependency Inversion (FF-P02) — 55 violations, critical
 
-#### 3. Orphan Files (FF-C04) — 65 violations, minor
+> "The biggest finding — 55 services inject concrete classes instead of interfaces."
 
-> "65 files have no import connections — they're neither imported by other files nor import anything. Many of these are entity files, DTOs, or configuration that are loaded dynamically by TypeORM/NestJS rather than via static imports."
+Show a few examples in the report:
+- `src/services/data-provider/yahoo-finance/yahoo-finance.service.ts`
+- `src/services/data-provider/coingecko/coingecko.service.ts`
+- `src/app/access/access.service.ts`
 
-> **Talking point**: "This is a known limitation — the firewall tracks static imports only. TypeORM entities loaded via `forFeature([Entity])` don't create import edges in the AST. These are minor severity and don't affect the score significantly."
+> "All 12 data provider services have this pattern. They inject Prisma directly rather than through a repository interface. In a financial application where you might want to swap data sources or add caching layers, this creates coupling that's hard to change later."
 
-#### 4. Missing Tests (FF-CV05) — 65 violations, advisory
+> "But notice — the firewall tells you exactly WHAT to fix: *Introduce an interface (port) in the higher-level module and have the lower-level module implement it.* That's actionable."
 
-> "Zero test files paired with source files. This is a real observation — the project has no unit tests."
+#### 2. Component Instability (FF-C03) — 31 violations, major
 
-#### 5. Low Abstraction Ratio (FF-C06) — 1 violation, advisory
+> "31 files have an instability index above 0.8 — meaning they only have outgoing dependencies and nothing depends on them. These are leaf nodes in the dependency graph."
 
-> "Abstraction ratio is 0.16 — only 16% of types are interfaces or abstract classes. The rest are concrete implementations."
+Show examples: module files, processor files, queue services.
 
-### What It Got Right (No False Positives)
+> "This is typical for NestJS modules and queue processors — they're wiring or background jobs by nature. The threshold is 0.8, so only extreme cases are flagged."
 
-- **Structural dimension: perfect score** — zero cyclic deps, zero layer violations. The feature modules have clean dependency chains.
-- **SOLID: perfect score** — classes are reasonably sized, no god classes.
-- **No generated-code noise** — `src/generated/**` excluded by default.
-- **No module-file noise** — `*.module.ts` excluded from layer-skip checking.
+#### 3. Orphan Files (FF-C04) — 46 violations, minor
+
+> "46 files with no static import connections."
+
+> "Many of these are Prisma models, DTOs, or NestJS entities loaded via decorators rather than static imports. This is a known limitation of static analysis — dynamic loading via `@Module({ imports: [...] })` doesn't create edges in the AST. Minor severity, doesn't significantly affect the score."
+
+#### 4. Fan-out (FF-C02) — 1 violation, major
+
+> "One file exceeds the fan-out threshold of 12 imports — likely `app.module.ts`, the root module that wires everything together."
+
+> "This is expected in NestJS — the root module IS the composition root. In a project with 23 feature modules, 12+ imports is normal."
+
+#### 5. Missing Tests (FF-CV05) — 202 violations, advisory
+
+> "202 source files with no paired test file. This is the project's biggest gap in engineering practice. Advisory severity — it informs, doesn't block."
+
+#### 6. Low Abstraction Ratio (FF-C06) — 1 violation, advisory
+
+> "17.4% of types are abstractions (interfaces/abstract classes). The rest are concrete. For a project that relies heavily on Prisma's generated types, this is expected."
+
+### The Punchline
+
+> "267 files. Zero configuration. 336 findings, every one architecturally real. The score of 0.78 tells the right story: **structurally excellent, but coupled to concrete implementations with no test safety net.** The path to 0.85+ is clear — introduce repository interfaces for the data provider layer and add tests."
 
 ---
 
-## The Punchline
+## Comparison Slide
 
-> "131 files. Zero configuration. 150 findings, every one architecturally real. The score of 0.69 correctly reflects a project with clean structure but no dependency inversion and no tests. A well-architected project with interfaces and tests would score 0.85+."
-
----
-
-## Comparison Slide (if time permits)
-
-| Project | Files | AHS | Verdict | Key Differentiator |
+| Project | Type | Files | AHS | Verdict |
 |---|---|---|---|---|
-| DevNest | 77 | 0.54 | soft-block | No interfaces, no tests, service→Prisma coupling |
-| **Truthy** | **131** | **0.69** | **warning** | **Clean structure, no DI, no tests** |
-| RealWorld | 34 | 0.80 | warning | Has interfaces, TypeORM entity cycles |
-| Ghostfolio | 267 | 0.78 | warning | Production-grade, some DI violations at scale |
+| DevNest | Social backend, Prisma | 77 | 0.54 | soft-block |
+| Truthy | Headless CMS, TypeORM | 131 | 0.69 | warning |
+| **Ghostfolio** | **Wealth mgmt, Prisma, Nx monorepo** | **267** | **0.78** | **warning** |
+| RealWorld | Blog API, TypeORM | 34 | 0.80 | warning |
 
-> "Four different projects, four different sizes, same preset, zero customization. The scores differentiate correctly — projects with better architecture score higher."
+> "Four different projects, four different sizes, same preset. The scores differentiate correctly. DevNest has no interfaces and no tests — soft-block. Ghostfolio has clean structure but concrete coupling — warning. RealWorld has interfaces and clean deps — warning, almost passing."
 
 ---
 
-## Bonus: Create Baseline (if audience asks about CI)
+## Bonus: Baseline for CI (30s)
 
 ```bash
 NEO4J_PASSWORD=daedalus-dev npx tsx -e "
@@ -149,7 +221,7 @@ main(['node', 'firewall', 'baseline',
 "
 ```
 
-> "Baseline created with 150 violations. Now in CI, only NEW violations block the build. The team can fix issues incrementally without being overwhelmed."
+> "Baseline created with 336 violations. Now in CI, only NEW violations block. The team fixes issues incrementally — no big-bang refactor needed."
 
 ---
 
@@ -157,17 +229,19 @@ main(['node', 'firewall', 'baseline',
 
 | Problem | Fix |
 |---|---|
-| "No .ts source files found" | Run `npm install` in the target project |
-| "authentication failure" | Set `NEO4J_PASSWORD=daedalus-dev` |
+| "No .ts source files found" | `npm install` in project root; check tsconfig has `"include": ["src/**/*.ts"]` |
+| "authentication failure" | `NEO4J_PASSWORD=daedalus-dev` |
 | Neo4j not running | `docker compose up -d` from DaedalusArch root |
-| npm install fails | Try `--legacy-peer-deps` (older NestJS projects) |
+| npm install fails | `npm install --legacy-peer-deps` for older NestJS |
+| Monorepo tsconfig issues | Create flat tsconfig with explicit `include` (see Step 2) |
 
 ---
 
-## Repo Options (alternatives if Truthy is unavailable)
+## Alternative Demo Targets
 
-| Repo | Stars | What It Is | Clone Command |
-|---|---|---|---|
-| [gobeam/truthy](https://github.com/gobeam/truthy) | 600+ | Headless CMS with RBAC | `git clone --depth 1 https://github.com/gobeam/truthy.git` |
-| [lujakob/nestjs-realworld-example-app](https://github.com/lujakob/nestjs-realworld-example-app) | 5k+ | RealWorld blog API | `git clone https://github.com/lujakob/nestjs-realworld-example-app.git` |
-| [johnvesslyalti/dev-nest](https://github.com/johnvesslyalti/dev-nest) | small | Social media backend | `git clone https://github.com/johnvesslyalti/dev-nest.git` |
+| Repo | Stars | Files | AHS | What It Is |
+|---|---|---|---|---|
+| [ghostfolio/ghostfolio](https://github.com/ghostfolio/ghostfolio) | 4k+ | 267 | 0.78 | Wealth management, Nx monorepo (recommended) |
+| [lujakob/nestjs-realworld-example-app](https://github.com/lujakob/nestjs-realworld-example-app) | 5k+ | 34 | 0.80 | RealWorld blog spec, TypeORM |
+| [gobeam/truthy](https://github.com/gobeam/truthy) | 600+ | 131 | 0.69 | Headless CMS, RBAC |
+| [johnvesslyalti/dev-nest](https://github.com/johnvesslyalti/dev-nest) | small | 77 | 0.54 | Social media backend, Prisma |
