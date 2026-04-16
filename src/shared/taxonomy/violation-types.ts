@@ -1,5 +1,6 @@
 import type { Dimension, Severity, Route } from '../types/enums.js';
 import type { FunctionId } from '../types/value-objects.js';
+import type { BaselineStatus } from '../types/baseline.js';
 
 export const BUILT_IN_VIOLATION_TYPES = [
   'LAYER_VIOLATION',
@@ -44,4 +45,12 @@ export interface Violation {
   readonly message: string;
   readonly evidence?: readonly string[];
   readonly deterministic: boolean;
+}
+
+export interface ActionableViolation extends Violation {
+  readonly what: string;
+  readonly where: string;
+  readonly why: string;
+  readonly fix: string;
+  readonly baselineStatus: BaselineStatus;
 }

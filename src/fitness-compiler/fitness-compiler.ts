@@ -1,4 +1,4 @@
-import type { FitnessFunction, ADRRule, ParsedSpec, LayerModel } from '../shared/types/spec.js';
+import type { FitnessFunction, DisabledFunction, ADRRule, ParsedSpec, LayerModel } from '../shared/types/spec.js';
 import type {
   CompiledFunctions, CypherQuery, NeuronalInstruction, HybridPair,
   ContextAssemblyInstruction,
@@ -8,8 +8,26 @@ import type { FirewallContext } from '../shared/context/firewall-context.js';
 import { DomainResult } from '../shared/errors/domain-result.js';
 import type { CompilerInput, CompilerError, CompilerWarning, CypherTemplate } from './types.js';
 import { CYPHER_TEMPLATES } from './cypher-templates.js';
+import { injectExcludePaths } from './exclude-injector.js';
 
 // ── Standalone Function ───────────────────────────────────────────────────────
+
+export function filterEnabled(
+  functions: readonly FitnessFunction[],
+): { enabled: FitnessFunction[]; disabled: DisabledFunction[] } {
+  const enabled: FitnessFunction[] = [];
+  const disabled: DisabledFunction[] = [];
+
+  for (const ff of functions) {
+    if (ff.enabled === false) {
+      disabled.push({ id: ff.id, name: ff.name, ...(ff.disabledReason != null ? { reason: ff.disabledReason } : {}) });
+    } else {
+      enabled.push(ff);
+    }
+  }
+
+  return { enabled, disabled };
+}
 
 export function compileFunctions(input: CompilerInput): DomainResult<CompiledFunctions> {
   const { fitnessFunctions, adrRules, layerModel } = input;
@@ -18,9 +36,12 @@ export function compileFunctions(input: CompilerInput): DomainResult<CompiledFun
   const hybridPairs: HybridPair[] = [];
   const warnings: CompilerWarning[] = [];
 
+  // Filter out disabled functions
+  const { enabled: enabledFunctions, disabled: disabledFunctions } = filterEnabled(fitnessFunctions);
+
   // Check for duplicate function IDs
   const seenIds = new Set<string>();
-  for (const ff of fitnessFunctions) {
+  for (const ff of enabledFunctions) {
     const id = String(ff.id);
     if (seenIds.has(id)) {
       return DomainResult.fail<CompiledFunctions>([
@@ -30,12 +51,12 @@ export function compileFunctions(input: CompilerInput): DomainResult<CompiledFun
     seenIds.add(id);
   }
 
-  // Compile fitness functions by route
-  for (const ff of fitnessFunctions) {
+  // Compile enabled fitness functions by route
+  for (const ff of enabledFunctions) {
     switch (ff.route) {
       case 'symbolic': {
         const result = compileSymbolic(ff, layerModel, warnings);
-        if (result) symbolicQueries.push(result);
+        if (result) symbolicQueries.push(applyExcludePaths(result, ff.excludePaths));
         break;
       }
       case 'neuronal': {
@@ -44,8 +65,9 @@ export function compileFunctions(input: CompilerInput): DomainResult<CompiledFun
         break;
       }
       case 'hybrid': {
-        const sym = compileSymbolic(ff, layerModel, warnings);
+        let sym = compileSymbolic(ff, layerModel, warnings);
         const neur = compileNeuronal(ff, false);
+        if (sym) sym = applyExcludePaths(sym, ff.excludePaths);
         if (sym && neur) {
           hybridPairs.push({ functionId: ff.id, symbolicQuery: sym, neuronalInstruction: neur });
         } else if (sym) {
@@ -85,8 +107,20 @@ export function compileFunctions(input: CompilerInput): DomainResult<CompiledFun
     neuronalInstructions,
     hybridPairs,
     totalCompiled,
+    disabledFunctions,
     warnings,
   });
+}
+
+function applyExcludePaths(query: CypherQuery, excludePaths: readonly string[]): CypherQuery {
+  if (excludePaths.length === 0) return query;
+
+  const { cypher, additionalParams } = injectExcludePaths(query.cypher, excludePaths);
+  return {
+    ...query,
+    cypher,
+    params: { ...query.params, ...additionalParams },
+  };
 }
 
 // ── Symbolic Compilation ──────────────────────────────────────────────────────

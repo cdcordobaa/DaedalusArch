@@ -22,6 +22,8 @@ const symbolicFn: FitnessFunction = {
   route: 'symbolic',
   isBuiltIn: true,
   validated: true,
+  enabled: true,
+  excludePaths: [],
 };
 
 const neuronalFn: FitnessFunction = {
@@ -32,6 +34,8 @@ const neuronalFn: FitnessFunction = {
   route: 'neuronal',
   isBuiltIn: true,
   validated: false,
+  enabled: true,
+  excludePaths: [],
   semanticCriteria: {
     rule: 'Code should respect architectural intent',
     rubric: { pass: 'Correct layer', fail: 'Wrong layer', evidenceRequired: 'Cite imports' },
@@ -46,6 +50,8 @@ const hybridFn: FitnessFunction = {
   route: 'hybrid',
   isBuiltIn: true,
   validated: false,
+  enabled: true,
+  excludePaths: [],
   semanticCriteria: {
     rule: 'One reason to change',
     rubric: { pass: 'Cohesive', fail: 'Mixed concerns', evidenceRequired: 'Cite methods' },

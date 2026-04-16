@@ -1,6 +1,11 @@
 import type { ParsedSpec, ScoringWeights } from '../shared/types/spec.js';
 import type { ValidationResult, ValidationError, ValidationWarning } from './types.js';
+import type { ValidationReport, ValidationError as V11ValidationError } from '../shared/types/validation.js';
 import { SPEC_SCHEMA_V1 } from './spec-schema.js';
+import { CYPHER_TEMPLATES } from '../fitness-compiler/cypher-templates.js';
+import { globToRegex } from '../fitness-compiler/glob-to-regex.js';
+import { existsSync } from 'node:fs';
+import { resolve } from 'node:path';
 
 import { Ajv, type ErrorObject } from 'ajv';
 const ajv = new Ajv({ allErrors: true, verbose: true });
@@ -151,4 +156,100 @@ export function validateBusinessRules(spec: ParsedSpec): ValidationResult {
 
 function sumWeights(w: ScoringWeights): number {
   return w.structural + w.coupling + w.pattern + w.solid + w.convention + w.semantic + w.intent;
+}
+
+/**
+ * Pass 3: Filesystem + project-level validation.
+ * Checks that layer directories exist, glob patterns are valid, template refs resolve, etc.
+ */
+export function validateSpecAgainstProject(spec: ParsedSpec, projectPath: string): ValidationReport {
+  const errors: V11ValidationError[] = [];
+  const warnings: import('../shared/types/validation.js').ValidationWarning[] = [];
+
+  // Check layer directories exist
+  for (const layer of spec.layerModel.layers) {
+    for (const dir of layer.directories) {
+      // Strip glob suffixes for directory existence check
+      const cleanDir = dir.replace(/\/?\*\*.*$/, '').replace(/\/?\*$/, '');
+      if (cleanDir.length > 0) {
+        const fullPath = resolve(projectPath, cleanDir);
+        if (!existsSync(fullPath)) {
+          errors.push({
+            code: 'LAYER_DIR_NOT_FOUND',
+            message: `Layer "${layer.name}" directory "${cleanDir}" not found at ${fullPath}`,
+            field: `architecture.layers.${layer.name}.directories`,
+            suggestion: `Create the directory or update the layer mapping`,
+          });
+        }
+      }
+    }
+  }
+
+  // Check for duplicate function IDs
+  const ids = new Set<string>();
+  for (const ff of spec.fitnessFunctions) {
+    const id = String(ff.id);
+    if (ids.has(id)) {
+      errors.push({
+        code: 'DUPLICATE_FUNCTION_ID',
+        message: `Duplicate fitness function ID: ${id}`,
+        field: `fitness_functions.${id}`,
+      });
+    }
+    ids.add(id);
+  }
+
+  // Per-function validation
+  for (const ff of spec.fitnessFunctions) {
+    const ffId = String(ff.id);
+
+    // Template reference check for symbolic/hybrid functions
+    if ((ff.route === 'symbolic' || ff.route === 'hybrid') && !CYPHER_TEMPLATES.has(ff.name)) {
+      errors.push({
+        code: 'INVALID_TEMPLATE_REF',
+        message: `No Cypher template found for function "${ff.name}" (${ffId})`,
+        field: `fitness_functions.${ffId}.name`,
+        suggestion: `Check available templates or switch route to "neuronal"`,
+      });
+    }
+
+    // Threshold validation
+    if (ff.threshold !== undefined && (typeof ff.threshold !== 'number' || ff.threshold < 0)) {
+      errors.push({
+        code: 'INVALID_THRESHOLD',
+        message: `Invalid threshold ${String(ff.threshold)} for function ${ffId}`,
+        field: `fitness_functions.${ffId}.threshold`,
+      });
+    }
+
+    // Glob pattern validation
+    for (const pattern of ff.excludePaths) {
+      try {
+        globToRegex(pattern);
+      } catch {
+        errors.push({
+          code: 'INVALID_GLOB_PATTERN',
+          message: `Invalid glob pattern "${pattern}" in exclude_paths for ${ffId}`,
+          field: `fitness_functions.${ffId}.exclude_paths`,
+        });
+      }
+    }
+  }
+
+  const enabledCount = spec.fitnessFunctions.filter((f) => f.enabled !== false).length;
+  const disabledCount = spec.fitnessFunctions.length - enabledCount;
+
+  return {
+    valid: errors.length === 0,
+    errors,
+    warnings,
+    summary: {
+      totalFunctions: spec.fitnessFunctions.length,
+      enabledFunctions: enabledCount,
+      disabledFunctions: disabledCount,
+      totalLayers: spec.layerModel.layers.length,
+      totalErrors: errors.length,
+      totalWarnings: warnings.length,
+    },
+  };
 }

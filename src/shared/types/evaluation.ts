@@ -75,6 +75,7 @@ export interface CompiledFunctions {
   readonly neuronalInstructions: readonly NeuronalInstruction[];
   readonly hybridPairs: readonly HybridPair[];
   readonly totalCompiled: number;
+  readonly disabledFunctions: readonly import('./spec.js').DisabledFunction[];
   readonly warnings: readonly DomainWarning[];
 }
 

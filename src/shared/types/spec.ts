@@ -11,6 +11,15 @@ export interface FitnessFunction {
   readonly semanticCriteria?: SemanticCriteria;
   readonly isBuiltIn: boolean;
   readonly validated: boolean;
+  readonly enabled: boolean;
+  readonly excludePaths: readonly string[];
+  readonly disabledReason?: string;
+}
+
+export interface DisabledFunction {
+  readonly id: FunctionId;
+  readonly name: string;
+  readonly reason?: string;
 }
 
 export interface SemanticCriteria {

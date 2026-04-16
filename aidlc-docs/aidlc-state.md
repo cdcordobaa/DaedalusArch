@@ -4,7 +4,9 @@
 - **Project Name**: Architectural Firewall (DaedalusArch)
 - **Project Type**: Greenfield
 - **Start Date**: 2026-03-27T16:00:00Z
-- **Current Stage**: v1.1 INCEPTION — Requirements Analysis (v1.0 Construction complete)
+- **Current Stage**: v1.1 INCEPTION — Requirements Analysis COMPLETE (v1.0 Construction complete)
+- **Product Name**: Architectonic Firewall
+- **CLI Name**: firewall (unchanged from v1.0)
 
 ## Workspace State
 - **Existing Code**: No (configuration files and docs only — no `src/` directory)
@@ -43,6 +45,21 @@
   - [x] U6 — Scoring + Reports (Functional Design + Code Generation COMPLETE)
   - [x] U7 — CLI + CI/CD (Functional Design + Code Generation COMPLETE)
 - [x] Build and Test — COMPLETE (29 suites, 312 tests, 0 failures, 76% coverage)
+
+### v1.1 INCEPTION PHASE
+- [x] Requirements Analysis — COMPLETE (10 FRs: 4 Track A, 2 Track B, 3 Shared + FR-15 NEW)
+- [x] User Stories — COMPLETE (18 stories, 3 epics: E-INIT, E-DASH, E-LLM)
+- [x] Workflow Planning — COMPLETE (App Design + Units Gen EXECUTE, NFR/Infra SKIP, parallel worktrees at code gen)
+- [x] Application Design — COMPLETE (C12 + C13 new, C3/C4/C7/C8/C9 extended, skill non-code)
+- [x] Units Generation — COMPLETE (4 units: U0 Shared, U1 Track A, U2 Track B, U3 Gemini)
+
+### v1.1 CONSTRUCTION PHASE
+- [ ] Per-Unit Loop
+  - [x] U0 — Shared Extensions (Functional Design + Code Generation COMPLETE — 33 suites, 341 tests, 0 failures)
+  - [ ] U1 — Track A Spec Generation (Functional Design + Code Generation, worktree)
+  - [ ] U2 — Track B Demo Dashboard (Functional Design + Code Generation, worktree)
+  - [ ] U3 — Gemini Integration (Code Generation only, in main post-merge)
+- [ ] Build and Test (shared, post-merge)
 
 ### OPERATIONS PHASE
 - [ ] Operations (PLACEHOLDER)

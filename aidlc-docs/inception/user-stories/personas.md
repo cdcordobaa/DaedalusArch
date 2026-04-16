@@ -63,6 +63,22 @@
 - Drift detection catches degradation within 1-2 PRs
 - AHS trends correlate with perceived architectural health
 
+### v1.1 Additions — Demo Presenter
+Alex also presents the architectonic firewall to stakeholders, thesis evaluators, and potential adopters.
+
+**Demo-Specific Goals**:
+- Show end-to-end value in under 5 minutes: skill → spec → evaluation → interactive report
+- Produce a self-contained HTML dashboard that can be shared via email/Slack
+- Demonstrate the tool working on a real open-source repo, not just test fixtures
+- Show both symbolic and neuronal evaluation results side-by-side
+
+**Demo-Specific Interactions**:
+- Runs Claude Code skill on a target repo to generate spec
+- Opens generated HTML report in browser to walk through findings
+- Filters violations by severity/dimension during live demo
+- Shows architecture graph with layer coloring and violation highlighting
+- Explains baseline vs new violations for brownfield adoption story
+
 ---
 
 ## Persona 3: Team Lead (LEAD)

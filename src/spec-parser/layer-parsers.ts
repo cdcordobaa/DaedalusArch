@@ -59,6 +59,8 @@ export function parseLayerB(
       };
     }
 
+    const rawExcludePaths = f['exclude_paths'] as string[] | undefined;
+
     const base: FitnessFunction = {
       id: functionId(String(f['id'])),
       name: String(f['name']),
@@ -67,6 +69,9 @@ export function parseLayerB(
       route: String(f['route']) as Route,
       isBuiltIn: false,
       validated: Boolean(f['validated'] ?? false),
+      enabled: f['enabled'] !== undefined ? Boolean(f['enabled']) : true,
+      excludePaths: Array.isArray(rawExcludePaths) ? rawExcludePaths : [],
+      ...(f['reason'] != null ? { disabledReason: String(f['reason']) } : {}),
     };
 
     return {

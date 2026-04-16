@@ -100,6 +100,7 @@ function filterByMode(compiled: CompiledFunctions, mode: EvaluationMode): Compil
         neuronalInstructions: [],
         hybridPairs: compiled.hybridPairs.map((p) => p), // keep hybrid, but only symbolic part runs
         totalCompiled: compiled.symbolicQueries.length + compiled.hybridPairs.length,
+        disabledFunctions: compiled.disabledFunctions,
         warnings: compiled.warnings,
       };
     case 'neuronal-only':
@@ -108,6 +109,7 @@ function filterByMode(compiled: CompiledFunctions, mode: EvaluationMode): Compil
         neuronalInstructions: compiled.neuronalInstructions,
         hybridPairs: [], // skip hybrid entirely in neuronal-only (no symbolic to run first)
         totalCompiled: compiled.neuronalInstructions.length,
+        disabledFunctions: compiled.disabledFunctions,
         warnings: compiled.warnings,
       };
     case 'full':

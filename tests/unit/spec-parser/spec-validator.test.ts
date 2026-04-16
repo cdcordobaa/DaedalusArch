@@ -98,7 +98,7 @@ describe('spec-validator', () => {
         ],
       },
       fitnessFunctions: [
-        { id: functionId('FF-S01'), name: 'test', dimension: 'structural', severity: 'critical', route: 'symbolic', isBuiltIn: true, validated: true },
+        { id: functionId('FF-S01'), name: 'test', dimension: 'structural', severity: 'critical', route: 'symbolic', isBuiltIn: true, validated: true, enabled: true, excludePaths: [] },
       ],
       scoringWeights: { structural: 0.5, coupling: 0.2, pattern: 0.2, solid: 0.05, convention: 0.05, semantic: 0, intent: 0 },
       verdictThresholds: { pass: 0.8, warning: 0.65, softBlock: 0.5 },
@@ -148,7 +148,7 @@ describe('spec-validator', () => {
       const result = validateBusinessRules({
         ...validSpec,
         fitnessFunctions: [
-          { id: functionId('FF-N01'), name: 'test', dimension: 'solid', severity: 'major', route: 'neuronal', isBuiltIn: false, validated: false },
+          { id: functionId('FF-N01'), name: 'test', dimension: 'solid', severity: 'major', route: 'neuronal', isBuiltIn: false, validated: false, enabled: true, excludePaths: [] },
         ],
       });
       expect(result.valid).toBe(false);
@@ -161,7 +161,7 @@ describe('spec-validator', () => {
         fitnessFunctions: [
           {
             id: functionId('FF-S01'), name: 'test', dimension: 'structural', severity: 'critical', route: 'symbolic',
-            isBuiltIn: true, validated: true,
+            isBuiltIn: true, validated: true, enabled: true, excludePaths: [],
             semanticCriteria: { rule: 'test', rubric: { pass: 'p', fail: 'f', evidenceRequired: 'e' } },
           },
         ],
@@ -174,8 +174,8 @@ describe('spec-validator', () => {
       const result = validateBusinessRules({
         ...validSpec,
         fitnessFunctions: [
-          { id: functionId('FF-S01'), name: 'a', dimension: 'structural', severity: 'critical', route: 'symbolic', isBuiltIn: true, validated: true },
-          { id: functionId('FF-S01'), name: 'b', dimension: 'structural', severity: 'critical', route: 'symbolic', isBuiltIn: true, validated: true },
+          { id: functionId('FF-S01'), name: 'a', dimension: 'structural', severity: 'critical', route: 'symbolic', isBuiltIn: true, validated: true, enabled: true, excludePaths: [] },
+          { id: functionId('FF-S01'), name: 'b', dimension: 'structural', severity: 'critical', route: 'symbolic', isBuiltIn: true, validated: true, enabled: true, excludePaths: [] },
         ],
       });
       expect(result.valid).toBe(false);

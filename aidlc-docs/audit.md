@@ -500,3 +500,115 @@
 **Context**: v1.0 CONSTRUCTION COMPLETE. Starting v1.1 INCEPTION (brownfield — extending existing codebase).
 
 ---
+
+## v1.1 Requirements Analysis — Session Resumption
+**Timestamp**: 2026-04-15T00:00:00Z
+**User Input**: "User wants to re-scope v1.1 for a demoable product. Two parallel tracks: Track A (spec generation via Claude skill + firewall init + presets + excludes + validation) and Track B (interactive HTML demo dashboard for product demos). User reviewed Notion doc 'archguard: Reverse Pipeline, APG Self-Duality & Product Design Synthesis' which informed the reverse pipeline design. User decided on Option C: run inception through Units Generation in main, split into worktrees only at code generation time for parallel coding."
+**AI Response**: Resuming v1.1 Requirements Analysis. Re-scoping from 14 FRs to demo-focused subset. Track A: FR-01, FR-02, FR-03, FR-06, FR-14. Track B: FR-07 + new HTML report generator. Deferring FR-04, FR-05, FR-08, FR-09, FR-10, FR-11, FR-12. FR-13 partially needed (real LLM for skill). Creating verification questions for scope confirmation.
+**Context**: v1.1 INCEPTION — Requirements Analysis (re-scoping for demo focus)
+
+---
+
+## v1.1 Requirements Analysis — Verification Answers
+**Timestamp**: 2026-04-15T00:15:00Z
+**User Input**: "User confirmed scope: D (add FR-04 + FR-09), Gemini for neuronal path, Claude Code skill only (A), 2 presets (B), embedded JSON (A), Cytoscape.js (D), both fixtures + real repo (C), shared Build & Test (A), Neo4j accepted (A), product name 'architectonic firewall' keeping CLI as 'firewall'."
+**AI Response**: Generated v1.1-requirements-scoped.md with 10 FRs (4 Track A, 2 Track B, 3 Shared + 1 NEW FR-15 for HTML report). 5 FRs deferred to v1.2+. Updated aidlc-state.md. No contradictions detected. Requirements Analysis COMPLETE.
+**Context**: v1.1 INCEPTION — Requirements Analysis COMPLETE. Next: User Stories.
+
+---
+
+## v1.1 User Stories — Planning + Generation
+**Timestamp**: 2026-04-15T00:30:00Z
+**User Input**: "User approved AI-recommended answers for story planning: B (extend ARCH persona), B (3 dashboard stories), A (separate v1.1 file), B (Gherkin for Track A, checklist for Track B), D (3 epics: E-INIT, E-DASH, E-LLM)."
+**AI Response**: Generated 18 user stories across 3 epics. E-INIT: 10 stories covering skill workflow, framework detection, presets, excludes, enable/disable, validation, baseline, mining queries. E-DASH: 5 stories covering layout, visualizations, interactive features, report CLI command, actionable messages. E-LLM: 3 stories covering GeminiProvider, neuronal results in dashboard, model configuration. Extended ARCH persona with demo presenter role. Stories use Gherkin for Track A, checklist for Track B. Awaiting approval.
+**Context**: v1.1 INCEPTION — User Stories (generation complete, pending approval)
+
+---
+
+## v1.1 User Stories — APPROVED
+**Timestamp**: 2026-04-15T00:35:00Z
+**User Input**: "User approved v1.1 user stories."
+**AI Response**: User Stories approved. 18 stories across 3 epics. Proceeding to Workflow Planning.
+**Context**: v1.1 INCEPTION — User Stories COMPLETE. Next: Workflow Planning.
+
+---
+
+## v1.1 Workflow Planning
+**Timestamp**: 2026-04-15T00:40:00Z
+**User Input**: "User approved stories and said to keep going."
+**AI Response**: Generated v1.1-execution-plan.md. Stage decisions: Application Design EXECUTE (new components), Units Generation EXECUTE (two-track decomposition). Construction: Functional Design CONDITIONAL per unit, NFR/Infra SKIP (no new concerns), Code Gen EXECUTE with parallel worktrees (Option C), Build & Test EXECUTE shared post-merge. Module update sequence: shared extensions first, then Track A, Track B, GeminiProvider last. Awaiting approval.
+**Context**: v1.1 INCEPTION — Workflow Planning (plan generated, pending approval)
+
+---
+
+## v1.1 Workflow Planning — APPROVED
+**Timestamp**: 2026-04-15T00:45:00Z
+**User Input**: "User approved workflow plan and requested to continue."
+**AI Response**: Workflow Planning approved. Proceeding to Application Design.
+**Context**: v1.1 INCEPTION — Workflow Planning COMPLETE. Next: Application Design.
+
+---
+
+## v1.1 Application Design
+**Timestamp**: 2026-04-15T00:50:00Z
+**User Input**: "User approved design decisions: A (presets extend C3), B (baseline new C12), B (report new C13), A (mining in skill). Agreed with all recommendations."
+**AI Response**: Generated 5 design artifacts: v1.1-components.md (2 new: C12 Baseline Manager, C13 Report Generator; 5 extended: C3, C4, C7, C8, C9), v1.1-component-methods.md (all method signatures), v1.1-services.md (3 new pipeline commands + configs), v1.1-component-dependency.md (dependency matrix + 3 data flow diagrams), v1.1-application-design.md (consolidated). Track boundaries confirmed: A touches C3/C4/C9/C12/Skill, B touches C8/C9/C13, Shared: C7/C10. Awaiting approval.
+**Context**: v1.1 INCEPTION — Application Design (artifacts generated, pending approval)
+
+---
+
+## v1.1 Application Design — APPROVED
+**Timestamp**: 2026-04-15T00:55:00Z
+**User Input**: "User approved application design."
+**AI Response**: Application Design approved. Proceeding to Units Generation.
+**Context**: v1.1 INCEPTION — Application Design COMPLETE. Next: Units Generation.
+
+---
+
+## v1.1 Units Generation
+**Timestamp**: 2026-04-15T01:00:00Z
+**User Input**: "User approved application design and said to continue."
+**AI Response**: Generated 4 units: U0 (Shared Extensions — main, first), U1 (Track A Spec Generation — worktree, parallel), U2 (Track B Dashboard — worktree, parallel), U3 (Gemini Integration — main, last). 18/18 stories mapped. Dependency: U0 blocks U1+U2, U3 independent. Construction stages: Functional Design EXECUTE for U0/U1/U2, SKIP for U3. Awaiting approval.
+**Context**: v1.1 INCEPTION — Units Generation (artifacts generated, pending approval)
+
+---
+
+## v1.1 Units Generation — APPROVED
+**Timestamp**: 2026-04-15T01:05:00Z
+**User Input**: "User approved units and requested to start construction."
+**AI Response**: Units approved. INCEPTION PHASE COMPLETE. Starting CONSTRUCTION PHASE with U0 (Shared Extensions) Functional Design.
+**Context**: v1.1 INCEPTION COMPLETE. CONSTRUCTION starting — U0 Functional Design.
+
+---
+
+## v1.1 Construction — U0 Functional Design
+**Timestamp**: 2026-04-15T01:10:00Z
+**User Input**: "User requested to start construction immediately."
+**AI Response**: Explored existing source code (src/shared/types/spec.ts, src/spec-parser/layer-parsers.ts, src/fitness-compiler/fitness-compiler.ts) to identify exact extension points. Generated 3 functional design artifacts: domain-entities.md (6 new/extended types: FitnessFunction+enabled+excludePaths, DisabledFunction, ValidationReport, ActionableViolation, BaselineSnapshot/Result, GeminiConfig), business-logic-model.md (4 BL areas: glob-to-regex conversion, WHERE NOT injection, enabled filtering, spec validation pipeline), business-rules.md (8 rules covering defaults, scope, safety, backward compat). Awaiting approval.
+**Context**: v1.1 CONSTRUCTION — U0 Functional Design complete, pending approval.
+
+---
+
+## v1.1 Construction — U0 Code Generation Plan
+**Timestamp**: 2026-04-15T01:15:00Z
+**User Input**: "User approved functional design and asked when worktrees happen — answered: after U0 code gen."
+**AI Response**: Created U0 code generation plan with 13 steps: extend shared types, verify backward compat, extend spec parser, test parser, implement glob-to-regex, test glob, implement exclude injector, test injector, extend compiler, test compiler, implement validator, test validator, final verification. ~6 modified files, ~6 new source + ~5 test files, ~40-50 new tests. Awaiting plan approval.
+**Context**: v1.1 CONSTRUCTION — U0 Code Generation Part 1 (plan), pending approval.
+
+---
+
+## v1.1 Construction — U0 Code Generation Plan — APPROVED
+**Timestamp**: 2026-04-15T01:20:00Z
+**User Input**: "User approved plan. Will be notified when to switch to other folders/sessions for U1+U2."
+**AI Response**: Starting U0 Code Generation Part 2. Executing 13 steps.
+**Context**: v1.1 CONSTRUCTION — U0 Code Generation Part 2 (executing).
+
+---
+
+## v1.1 Construction — U0 Code Generation — COMPLETE
+**Timestamp**: 2026-04-15T01:30:00Z
+**User Input**: "User approved code gen plan."
+**AI Response**: U0 Code Generation complete. Modified: src/shared/types/spec.ts (FitnessFunction+enabled+excludePaths+DisabledFunction), src/shared/taxonomy/violation-types.ts (ActionableViolation), src/shared/types/evaluation.ts (CompiledFunctions+disabledFunctions), src/spec-parser/layer-parsers.ts (parse enabled/exclude_paths), src/spec-parser/template-registry.ts (defaults), src/fitness-compiler/fitness-compiler.ts (filterEnabled+applyExcludePaths), src/neuro-symbolic-router/router.ts (disabledFunctions passthrough). Created: src/shared/types/validation.ts, src/shared/types/baseline.ts, src/shared/types/llm-config.ts, src/fitness-compiler/glob-to-regex.ts, src/fitness-compiler/exclude-injector.ts, src/spec-parser/spec-validator.ts (validateSpecAgainstProject). Tests: 4 new test files, 29 new tests. Final: 33 suites, 341 tests, 0 failures. TypeCheck: 0 errors. Backward compat: all 312 original tests pass.
+**Context**: v1.1 CONSTRUCTION — U0 COMPLETE. Ready for worktree creation (U1 + U2 parallel).
+
+---

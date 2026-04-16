@@ -13,14 +13,23 @@ export type { APGNode, APGEdge, APGResult, ParseCoverage, SkippedFile, Extractor
 
 // Spec
 export type {
-  FitnessFunction, SemanticCriteria, EvalRubric,
+  FitnessFunction, DisabledFunction, SemanticCriteria, EvalRubric,
   LayerModel, LayerDefinition, ScoringWeights, ConfidenceThresholds,
   VerdictThresholds, ParsedSpec, ADRRule, CypherRule,
 } from './types/spec.js';
 
 // Violation taxonomy
 export { BUILT_IN_VIOLATION_TYPES } from './taxonomy/violation-types.js';
-export type { BuiltInViolationType, ViolationType, Violation } from './taxonomy/violation-types.js';
+export type { BuiltInViolationType, ViolationType, Violation, ActionableViolation } from './taxonomy/violation-types.js';
+
+// Validation
+export type { ValidationErrorCode, ValidationError, ValidationWarning, ValidationSummary, ValidationReport } from './types/validation.js';
+
+// Baseline
+export type { BaselineStatus, BaselineEntry, BaselineSnapshot, BaselineResult } from './types/baseline.js';
+
+// LLM Config
+export type { GeminiConfig, LLMProviderConfig } from './types/llm-config.js';
 
 // DomainResult + errors
 export type { DomainError, DomainWarning, PipelineError, PipelineWarning, PipelineAuditEntry } from './errors/domain-result.js';

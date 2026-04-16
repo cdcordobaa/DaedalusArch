@@ -19,6 +19,8 @@ function ff(
     route,
     isBuiltIn: true,
     validated,
+    enabled: true,
+    excludePaths: [],
   };
   if (extra?.threshold != null) {
     return { ...base, threshold: extra.threshold, ...(extra.semanticCriteria ? { semanticCriteria: extra.semanticCriteria } : {}) };
