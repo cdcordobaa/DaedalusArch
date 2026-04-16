@@ -1,6 +1,14 @@
 # Architectonic Firewall — NestJS Preset
-# Tailored for NestJS projects with module-based architecture.
-# Includes presentation layer for controllers and 4-layer dependency direction.
+# Supports both layered-directory and feature-module (co-located) projects.
+#
+# Layer assignment uses TWO strategies:
+#   1. directories — for projects with explicit layer folders (src/domain/, etc.)
+#   2. file_patterns — for co-located feature modules where *.controller.ts,
+#      *.service.ts, *.repository.ts live in the same folder
+#
+# file_patterns act as a fallback: if a file matches a directory glob, that
+# takes priority. If not, the file name determines the layer. This means both
+# project shapes work out of the box.
 
 spec_version: "1.0.0"
 
@@ -8,42 +16,77 @@ architecture:
   style: nestjs
 
   layers:
+    # Layer order (inner → outer): domain → infrastructure → application → presentation
+    #
+    # NestJS dependency flow: Controller → Service → Repository → ORM/DB
+    # This maps to: presentation → application → infrastructure → domain
+    #
+    # Unlike clean-architecture (where infrastructure is outer and depends on
+    # application interfaces), NestJS treats infrastructure as an inner data-access
+    # layer that application services call directly.
+
     - name: domain
       directories:
         - src/domain/**
         - src/core/**
+        - src/entities/**
+        - src/models/**
       roles:
         - entity
         - value-object
         - domain-service
         - repository-interface
 
-    - name: application
-      directories:
-        - src/application/**
-        - src/use-cases/**
-        - src/services/**
-      roles:
-        - use-case
-        - dto
-        - application-service
-
     - name: infrastructure
       directories:
         - src/infrastructure/**
         - src/persistence/**
         - src/adapters/**
+        - src/prisma/**
+        - src/lib/**
+        - src/common/middleware/**
+        - src/common/filters/**
+        - src/common/pipes/**
+      file_patterns:
+        - "**/*.repository.ts"
+        - "**/*.worker.ts"
+        - "**/workers/**"
+        - "**/strategies/**"
       roles:
         - repository-impl
         - orm-entity
         - external-service
         - middleware
+        - worker
+
+    - name: application
+      directories:
+        - src/application/**
+        - src/use-cases/**
+        - src/services/**
+      file_patterns:
+        - "**/*.service.ts"
+        - "**/*.processor.ts"
+        - "**/dto/**"
+        - "**/*.dto.ts"
+      roles:
+        - use-case
+        - dto
+        - application-service
+        - processor
 
     - name: presentation
       directories:
         - src/controllers/**
-        - src/modules/**
         - src/gateways/**
+        - src/common/guards/**
+        - src/common/interceptors/**
+      file_patterns:
+        - "**/*.controller.ts"
+        - "**/*.module.ts"
+        - "**/*.guard.ts"
+        - "**/*.interceptor.ts"
+        - "**/*.gateway.ts"
       roles:
         - controller
         - module
@@ -53,7 +96,6 @@ architecture:
       decorators:
         - "@Controller"
         - "@Module"
-        - "@Injectable"
 
 fitness_functions:
 
@@ -79,6 +121,9 @@ fitness_functions:
     severity: critical
     route: symbolic
     validated: false
+    # NestJS *.module.ts files are DI wiring — they import from all layers by design
+    exclude_paths:
+      - "**/*.module.ts"
 
   - id: FF-S04
     name: no-domain-outward-dep
@@ -155,6 +200,7 @@ fitness_functions:
     severity: major
     route: symbolic
     validated: true
+    threshold: 0.8
 
   - id: FF-C04
     name: no-orphan-files
@@ -287,6 +333,7 @@ default_exclude_paths:
   - "**/*.spec.ts"
   - "**/*.test.ts"
   - "test/**"
+  - "src/generated/**"
 
 scoring:
   weights:
