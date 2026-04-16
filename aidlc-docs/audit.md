@@ -2,6 +2,49 @@
 
 ---
 
+## v1.1 Construction — U1 Track A Code Generation — COMPLETE
+**Timestamp**: 2026-04-15T12:00:00Z
+**User Input**: "Start v1.1 U1 construction"
+**AI Response**: Executed full U1 construction in autonomous mode (Functional Design auto-approved + Code Generation). Created 12 new files, modified 4 existing files. All 376 tests pass (38 suites), TypeScript type-check clean.
+**Context**: v1.1 Construction Phase — U1 Track A Spec Generation & Baseline — COMPLETE
+
+### Files Created:
+- `presets/clean-architecture.yaml` — Clean architecture preset (26 fitness functions, 3 layers)
+- `presets/nestjs.yaml` — NestJS preset (26 fitness functions, 4 layers incl. presentation)
+- `src/spec-parser/preset-loader.ts` — loadPreset(), mergeSpecs(), listPresets()
+- `src/baseline/baseline-manager.ts` — Full C12 component (create, load, save, compare, generateKey)
+- `src/baseline/index.ts` — Barrel exports
+- `src/pipeline/commands/validate-spec-command.ts` — ValidateSpecCommand
+- `src/pipeline/commands/create-baseline-command.ts` — CreateBaselineCommand
+- `src/pipeline/commands/compare-baseline-command.ts` — CompareBaselineCommand
+- `.claude/commands/firewall-init.md` — Skill prompt with APG mining queries
+- `tests/unit/spec-parser/preset-loader.test.ts` — 9 tests
+- `tests/unit/baseline/baseline-manager.test.ts` — 16 tests
+- `tests/unit/pipeline/validate-spec-command.test.ts` — 2 tests
+- `tests/unit/pipeline/baseline-commands.test.ts` — 3 tests
+- `tests/unit/cli/validate-baseline-cli.test.ts` — 5 tests
+
+### Files Modified:
+- `src/spec-parser/index.ts` — Added exports for preset-loader and validateSpecAgainstProject
+- `src/pipeline/commands/index.ts` — Added exports for 3 new commands
+- `src/cli/cli.ts` — Added validate, baseline commands + --baseline flag on evaluate
+
+### Stories Implemented:
+- S-INIT-01: Skill-driven spec generation (skill prompt)
+- S-INIT-02: Framework detection and preset selection (preset-loader)
+- S-INIT-03: Preset template library (presets/)
+- S-INIT-06: Spec validation (validate CLI command + ValidateSpecCommand)
+- S-INIT-07: Baseline snapshot creation (baseline-manager + CLI)
+- S-INIT-08: Baseline integration in skill flow (skill prompt includes baseline step)
+- S-INIT-09: First evaluation in skill flow (skill prompt includes evaluate step)
+- S-INIT-10: APG mining queries (embedded in skill prompt)
+
+### Test Results:
+- 38 suites, 376 tests, 0 failures (v1.0: 33 suites, 341 tests — all still passing)
+- TypeScript: 0 type errors
+
+---
+
 ## Construction — Unit 1 Functional Design — APPROVED
 **Timestamp**: 2026-03-29T01:15:00Z
 **User Input**: "User agreed to proceed with code generation."

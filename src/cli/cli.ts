@@ -7,6 +7,9 @@ import type { EvaluationMode } from '../shared/types/enums.js';
 import { formatJSON, formatHuman, formatCSV, csvHeader } from '../scoring-engine/index.js';
 import { runBatch } from './batch-runner.js';
 import { handleDrift } from './drift-handler.js';
+import { parseSpec, validateSpecAgainstProject } from '../spec-parser/index.js';
+import { createBaseline, saveBaseline } from '../baseline/index.js';
+import { loadBaseline, compareBaseline } from '../baseline/index.js';
 
 // Load .env before anything else
 loadDotenv();
@@ -58,6 +61,7 @@ program
   .option('--neuronal-only', 'Run neuronal evaluation only', false)
   .option('--persist', 'Save snapshot after evaluation', false)
   .option('--diff', 'Compare against latest snapshot', false)
+  .option('--baseline <path>', 'Compare against baseline violations file')
   .action(async (opts: {
     project: string;
     spec: string;
@@ -68,6 +72,7 @@ program
     neuronalOnly: boolean;
     persist: boolean;
     diff: boolean;
+    baseline?: string;
   }) => {
     const evaluationMode = resolveEvaluationMode(opts.symbolicOnly, opts.neuronalOnly);
 
@@ -124,6 +129,23 @@ program
       const report = result.data;
       const format = opts.format as OutputFormat;
 
+      // Baseline comparison (if --baseline provided)
+      let exitVerdict = report.verdict;
+      if (opts.baseline) {
+        const baselineResult = loadBaseline(opts.baseline);
+        if (!baselineResult.success) {
+          process.stderr.write(`Baseline error: ${baselineResult.errors[0]?.message}\n`);
+          process.exitCode = 2;
+          return;
+        }
+        const comparison = compareBaseline(report.violations, baselineResult.data, opts.baseline);
+        if (opts.verbose) {
+          process.stderr.write(`\nBaseline: ${String(comparison.baselineViolations.length)} existing, ${String(comparison.newViolations.length)} new, ${String(comparison.removedFromBaseline.length)} fixed\n`);
+        }
+        // Only new violations affect exit code
+        exitVerdict = comparison.newViolations.length === 0 ? 'pass' : report.verdict;
+      }
+
       // Route output: machine-readable to stdout, human to stderr
       switch (format) {
         case 'json':
@@ -147,7 +169,7 @@ program
         }
       }
 
-      process.exitCode = exitCodeFromVerdict(report.verdict);
+      process.exitCode = exitCodeFromVerdict(exitVerdict);
     } finally {
       process.removeListener('SIGINT', onSignal);
       process.removeListener('SIGTERM', onSignal);
@@ -225,6 +247,115 @@ program
 
     const exitCode = await handleDrift(driftOpts);
     process.exitCode = exitCode;
+  });
+
+// ── validate command ─────────────────────────────────────────────────────────
+
+program
+  .command('validate')
+  .description('Validate a spec YAML against a project')
+  .requiredOption('--spec <path>', 'Path to AoC YAML spec')
+  .option('--project <path>', 'Path to TypeScript project (for directory checks)', '.')
+  .action(async (opts: {
+    spec: string;
+    project: string;
+  }) => {
+    // Parse the spec first
+    const parseResult = await parseSpec({ specFilePath: opts.spec });
+    if (!parseResult.success) {
+      process.stderr.write(`Spec parse error: ${parseResult.errors.map((e) => e.message).join('; ')}\n`);
+      process.exitCode = 1;
+      return;
+    }
+
+    // Validate against project
+    const report = validateSpecAgainstProject(parseResult.data, opts.project);
+
+    if (report.valid) {
+      process.stderr.write(
+        `Spec valid: ${String(report.summary.enabledFunctions)} fitness functions (${String(report.summary.disabledFunctions)} disabled), ${String(report.summary.totalLayers)} layers, 0 errors\n`,
+      );
+      process.exitCode = 0;
+    } else {
+      process.stderr.write(`Spec validation failed with ${String(report.summary.totalErrors)} error(s):\n`);
+      for (const error of report.errors) {
+        process.stderr.write(`  - [${error.code}] ${error.message}\n`);
+        if (error.suggestion) {
+          process.stderr.write(`    Suggestion: ${error.suggestion}\n`);
+        }
+      }
+      process.exitCode = 1;
+    }
+
+    for (const w of report.warnings) {
+      process.stderr.write(`  Warning: [${w.code}] ${w.message}\n`);
+    }
+  });
+
+// ── baseline command ─────────────────────────────────────────────────────────
+
+program
+  .command('baseline')
+  .description('Create a baseline snapshot from current violations')
+  .requiredOption('--spec <path>', 'Path to AoC YAML spec')
+  .requiredOption('--project <path>', 'Path to TypeScript project')
+  .option('-o, --output <path>', 'Output file path', 'baseline_violations.json')
+  .option('--verbose', 'Enable verbose logging', false)
+  .option('--neo4j-uri <uri>', 'Neo4j bolt URI', process.env['NEO4J_URI'] ?? 'bolt://localhost:7687')
+  .action(async (opts: {
+    spec: string;
+    project: string;
+    output: string;
+    verbose: boolean;
+    neo4jUri: string;
+  }) => {
+    // Run full evaluation pipeline in symbolic-only mode
+    const config: PipelineConfig = {
+      projectPath: opts.project,
+      specFilePath: opts.spec,
+      neo4jUri: opts.neo4jUri,
+      neo4jUser: process.env['NEO4J_USER'] ?? 'neo4j',
+      neo4jPassword: process.env['NEO4J_PASSWORD'] ?? 'neo4j',
+      evaluationMode: 'symbolic-only' as EvaluationMode,
+      pipelineMode: 'stateless',
+      persist: false,
+      diff: false,
+      verbose: opts.verbose,
+      apgStorePath: process.env['APG_STORE_PATH'] ?? '.apg-store',
+    };
+
+    const { executor, cleanup } = createPipeline(config);
+
+    try {
+      if (opts.verbose) {
+        process.stderr.write(`Running evaluation for baseline creation...\n`);
+      }
+
+      const result = await executor.execute();
+
+      if (!result.success) {
+        process.stderr.write(`Error: ${result.errors.map((e) => e.message).join('; ')}\n`);
+        process.exitCode = 2;
+        return;
+      }
+
+      const report = result.data;
+      const snapshot = createBaseline(report.violations, opts.spec);
+      const saveResult = saveBaseline(snapshot, opts.output);
+
+      if (!saveResult.success) {
+        process.stderr.write(`Error saving baseline: ${saveResult.errors[0]?.message}\n`);
+        process.exitCode = 2;
+        return;
+      }
+
+      process.stderr.write(
+        `Baseline created with ${String(snapshot.totalViolations)} violation(s) at ${opts.output}\n`,
+      );
+      process.exitCode = 0;
+    } finally {
+      await cleanup();
+    }
   });
 
 export { program };

@@ -14,3 +14,7 @@ export { SnapshotSaveCommand } from './snapshot-save-command.js';
 export { SnapshotLoadCommand } from './snapshot-load-command.js';
 export type { SharedSnapshotState } from './snapshot-load-command.js';
 export { DriftDetectCommand } from './drift-detect-command.js';
+export { ValidateSpecCommand } from './validate-spec-command.js';
+export { CreateBaselineCommand } from './create-baseline-command.js';
+export { CompareBaselineCommand } from './compare-baseline-command.js';
+export type { SharedBaselineState } from './compare-baseline-command.js';

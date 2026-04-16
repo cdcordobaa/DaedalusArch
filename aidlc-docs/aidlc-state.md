@@ -56,7 +56,7 @@
 ### v1.1 CONSTRUCTION PHASE
 - [ ] Per-Unit Loop
   - [x] U0 — Shared Extensions (Functional Design + Code Generation COMPLETE — 33 suites, 341 tests, 0 failures)
-  - [ ] U1 — Track A Spec Generation (Functional Design + Code Generation, worktree)
+  - [x] U1 — Track A Spec Generation (Functional Design + Code Generation COMPLETE — 38 suites, 376 tests, 0 failures)
   - [ ] U2 — Track B Demo Dashboard (Functional Design + Code Generation, worktree)
   - [ ] U3 — Gemini Integration (Code Generation only, in main post-merge)
 - [ ] Build and Test (shared, post-merge)
