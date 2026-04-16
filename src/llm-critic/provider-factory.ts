@@ -1,7 +1,6 @@
 import type { LLMProvider } from '../shared/interfaces/llm-provider.js';
 import type { LLMProviderConfig, GeminiConfig } from '../shared/types/llm-config.js';
 import { MockLLMProvider } from './mock-provider.js';
-import { GeminiProvider } from './gemini-provider.js';
 import { NullLLMProvider } from './null-provider.js';
 
 const DEFAULT_GEMINI_MODEL = 'gemini-2.0-flash';
@@ -29,6 +28,9 @@ export function createLLMProvider(config?: LLMProviderConfig): LLMProvider {
         maxTokens: config.gemini?.maxTokens ?? 4096,
       };
 
+      // Dynamic require to avoid pulling @google/generative-ai into every consumer
+      // eslint-disable-next-line @typescript-eslint/no-var-requires
+      const { GeminiProvider } = require('./gemini-provider') as typeof import('./gemini-provider.js');
       return new GeminiProvider(geminiConfig);
     }
 

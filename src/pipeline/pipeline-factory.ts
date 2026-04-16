@@ -12,7 +12,7 @@ import { FirewallContext } from '../shared/context/firewall-context.js';
 import { runId as makeRunId } from '../shared/types/value-objects.js';
 import { Neo4jRepository } from '../neo4j-ingestion/neo4j-repository.js';
 import { FileSystemSnapshotStore } from '../neo4j-ingestion/fs-snapshot-store.js';
-import { MockLLMProvider } from '../llm-critic/index.js';
+import { createLLMProvider } from '../llm-critic/index.js';
 
 // Commands
 import { ExtractCommand } from './commands/extract-command.js';
@@ -77,10 +77,11 @@ export function createPipeline(config: PipelineConfig): PipelineBundle {
   // LLM provider is only needed for neuronal / full evaluation modes
   let llmProvider: LLMProvider | undefined;
   if (config.evaluationMode !== 'symbolic-only') {
-    // TODO: Replace MockLLMProvider with real ClaudeProvider / OpenAIProvider
-    //       once those modules exist. The factory will read config.llmConfig.provider
-    //       to decide which concrete class to instantiate.
-    llmProvider = new MockLLMProvider();
+    llmProvider = createLLMProvider(
+      config.llmConfig
+        ? { provider: 'gemini', gemini: { apiKey: config.llmConfig.apiKey, model: process.env['GEMINI_MODEL'] ?? 'gemini-2.0-flash', temperature: 0, maxTokens: 4096 } }
+        : undefined,
+    );
   }
 
   // ------------------------------------------------------------------

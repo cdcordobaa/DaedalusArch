@@ -214,18 +214,104 @@
 ══════════════════════════════════════════════════════════════ -->
 <section data-background-color="#0d1117">
   <div class="section-label">Why Models Fail &mdash; Layer 1</div>
-  <h2 style="font-size:38px;font-weight:900;letter-spacing:-1px;margin-bottom:20px;">
+  <h2 style="font-size:38px;font-weight:900;letter-spacing:-1px;margin-bottom:14px;">
     Text machines, <span class="violet">not architects.</span>
   </h2>
 
-  <img src="images/slide-04-code-as-text-vs-system.png" alt="Left: flat code tokens — how the model sees it. Right: layered class graph with imports/calls/implements — what architecture actually is." style="width:100%;display:block;border-radius:10px;margin-bottom:16px;" />
-
-  <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;">
-    <div class="callout" style="font-size:13px;">
-      <strong style="color:#fff;">Fan et al. (2024, Meta &mdash; ICSE):</strong> "LLMs learn what code <em>looks like</em>, not what code <em>does</em>." The proposed fix &mdash; Execution-Aware Training &mdash; doesn't exist yet.
+  <!-- Research citation -->
+  <div class="research-cite" style="margin-bottom:16px;">
+    <div class="rc-badge">&#128196;</div>
+    <div class="rc-body">
+      <div class="rc-source">Fan et al. (2024) &mdash; Meta, ICSE</div>
+      <div class="rc-finding">"LLMs learn what code <em>looks like</em>, not what code <em>does</em>."</div>
+      <div class="rc-detail">LLMs are trained on static text &mdash; source code as character sequences. They never observe runtime state, execution paths, or how components interact. They learn syntax and statistical co-occurrence, not causality or behavior. The proposed fix &mdash; Execution-Aware Training &mdash; doesn't exist yet.</div>
     </div>
-    <div class="callout" style="font-size:13px;">
-      They learn <strong style="color:#fff;">syntax</strong> and <strong style="color:#fff;">statistical co-occurrence</strong>, not <strong style="color:#fff;">causality</strong> or <strong style="color:#fff;">behavior</strong>. They never observe runtime state, execution paths, or how components interact.
+  </div>
+
+  <!-- Two-column: code vs violations -->
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:16px;">
+    <!-- Left: what the model sees -->
+    <div style="background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:18px;border-left:3px solid var(--orange);">
+      <div style="font-size:10px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--dim);margin-bottom:10px;">What the model sees &mdash; valid syntax, compiles</div>
+      <div class="code-example" style="font-size:12px;border:none;padding:0;background:transparent;">
+<span class="t-r">import</span> { <span class="t-v">PrismaClient</span> } <span class="t-r">from</span> <span class="t-g">'@prisma/client'</span>
+<span class="t-r">import</span> { <span class="t-v">User</span> } <span class="t-r">from</span> <span class="t-g">'../domain/user.entity'</span>
+
+<span class="t-r">export class</span> <span class="t-v">UserService</span> {
+  <span class="t-r">constructor</span>(
+    <span class="t-r">private</span> <span class="t-v">prisma</span> = <span class="t-r">new</span> <span class="t-v">PrismaClient</span>()
+  ) {}
+  <span class="t-r">async</span> <span class="t-v">createUser</span>(<span class="t-v">name</span>: <span class="t-v">string</span>) {
+    <span class="t-r">return</span> <span class="t-r">this</span>.<span class="t-v">prisma</span>.<span class="t-v">user</span>.<span class="t-v">create</span>({<span class="t-v">data</span>:{<span class="t-v">name</span>}})
+  }
+}</div>
+    </div>
+
+    <!-- Right: what the model does NOT see -->
+    <div style="background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:18px;border-left:3px solid var(--red);">
+      <div style="font-size:10px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--dim);margin-bottom:10px;">What the model does not see &mdash; 3 violations</div>
+      <div style="display:flex;flex-direction:column;gap:14px;">
+        <div>
+          <div style="display:flex;align-items:center;gap:8px;"><span style="color:var(--red);font-weight:800;">&#10008;</span> <strong style="color:#fff;font-size:14px;">dependency-direction</strong></div>
+          <div style="font-size:12px;color:var(--dim);margin-left:22px;margin-top:2px;">Application imports infrastructure<br>(PrismaClient is an ORM &mdash; belongs in infra)</div>
+        </div>
+        <div>
+          <div style="display:flex;align-items:center;gap:8px;"><span style="color:var(--red);font-weight:800;">&#10008;</span> <strong style="color:#fff;font-size:14px;">dependency-inversion</strong></div>
+          <div style="font-size:12px;color:var(--dim);margin-left:22px;margin-top:2px;">Concrete <span class="mono" style="color:var(--violet);">PrismaClient</span> via <span class="mono" style="color:var(--red);">new</span><br>Should inject <span class="mono" style="color:var(--green-300);">IUserRepository</span> interface</div>
+        </div>
+        <div>
+          <div style="display:flex;align-items:center;gap:8px;"><span style="color:var(--red);font-weight:800;">&#10008;</span> <strong style="color:#fff;font-size:14px;">domain-purity</strong></div>
+          <div style="font-size:12px;color:var(--dim);margin-left:22px;margin-top:2px;">Domain entity <span class="mono" style="color:var(--violet);">User</span> exposed through app layer</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Bottom: flat text vs graph structure -->
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;">
+    <div style="background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:18px;">
+      <div style="font-size:10px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--dim);margin-bottom:10px;">How the model sees it</div>
+      <div style="font-family:'SF Mono','Fira Code',monospace;font-size:11px;color:rgba(171,178,191,0.4);line-height:1.6;border-left:2px dashed rgba(139,148,158,0.15);padding-left:12px;white-space:pre;overflow:hidden;">
+import { PrismaClient } from '@prisma/client'
+import { User } from '../domain/user.entity'
+export class UserService {
+constructor(private prisma = new PrismaClient())
+async createUser(name: string): Promise&lt;User&gt;
+return this.prisma.user.create({data:{name}})</div>
+    </div>
+
+    <div style="background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:18px;">
+      <div style="font-size:10px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--violet);margin-bottom:10px;">What architecture actually is</div>
+      <svg viewBox="0 0 420 180" style="width:100%;">
+        <!-- Domain layer -->
+        <rect x="5" y="5" width="410" height="45" rx="5" fill="rgba(124,106,239,0.06)" stroke="rgba(124,106,239,0.25)" stroke-dasharray="4"/>
+        <text x="14" y="22" fill="#7C6AEF" font-size="9" font-weight="700" font-family="monospace">DOMAIN</text>
+        <rect x="100" y="14" width="70" height="28" rx="4" fill="#161b22" stroke="#7C6AEF" stroke-width="1.5"/>
+        <text x="135" y="32" text-anchor="middle" fill="#fff" font-size="9" font-weight="600" font-family="monospace">User</text>
+        <rect x="200" y="14" width="120" height="28" rx="4" fill="#161b22" stroke="#7C6AEF" stroke-width="1.5"/>
+        <text x="260" y="32" text-anchor="middle" fill="#fff" font-size="9" font-weight="600" font-family="monospace">IUserRepository</text>
+
+        <!-- Application layer -->
+        <rect x="5" y="60" width="410" height="45" rx="5" fill="rgba(67,97,238,0.06)" stroke="rgba(67,97,238,0.25)" stroke-dasharray="4"/>
+        <text x="14" y="77" fill="#4361EE" font-size="9" font-weight="700" font-family="monospace">APPLICATION</text>
+        <rect x="150" y="69" width="100" height="28" rx="4" fill="#161b22" stroke="#4361EE" stroke-width="1.5"/>
+        <text x="200" y="87" text-anchor="middle" fill="#fff" font-size="9" font-weight="600" font-family="monospace">UserService</text>
+
+        <!-- Infrastructure layer -->
+        <rect x="5" y="115" width="410" height="45" rx="5" fill="rgba(167,139,250,0.06)" stroke="rgba(167,139,250,0.25)" stroke-dasharray="4"/>
+        <text x="14" y="132" fill="#A78BFA" font-size="9" font-weight="700" font-family="monospace">INFRASTRUCTURE</text>
+        <rect x="150" y="124" width="100" height="28" rx="4" fill="#161b22" stroke="#A78BFA" stroke-width="1.5"/>
+        <text x="200" y="142" text-anchor="middle" fill="#fff" font-size="9" font-weight="600" font-family="monospace">PrismaClient</text>
+
+        <!-- Valid edge: UserService -> User (up) -->
+        <defs><marker id="ag4" markerWidth="6" markerHeight="6" refX="5" refY="3" orient="auto"><path d="M0,0 L6,3 L0,6" fill="#1B9E77"/></marker>
+        <marker id="ar4" markerWidth="6" markerHeight="6" refX="5" refY="3" orient="auto"><path d="M0,0 L6,3 L0,6" fill="#f85149"/></marker></defs>
+        <line x1="180" y1="69" x2="145" y2="42" stroke="#1B9E77" stroke-width="1.5" stroke-dasharray="4" marker-end="url(#ag4)"/>
+
+        <!-- VIOLATION edge: UserService -> PrismaClient (down) -->
+        <line x1="200" y1="97" x2="200" y2="124" stroke="#f85149" stroke-width="2.5" marker-end="url(#ar4)"/>
+        <text x="230" y="114" fill="#f85149" font-size="8" font-weight="700" font-family="monospace">VIOLATION</text>
+      </svg>
     </div>
   </div>
 </section>
@@ -235,21 +321,51 @@
 ══════════════════════════════════════════════════════════════ -->
 <section data-background-color="#0d1117">
   <div class="section-label">Why Models Fail &mdash; Layer 2</div>
-  <h2 style="font-size:38px;font-weight:900;letter-spacing:-1px;margin-bottom:20px;">
+  <h2 style="font-size:38px;font-weight:900;letter-spacing:-1px;margin-bottom:14px;">
     Hallucinated <span class="violet">Coupling.</span>
   </h2>
 
-  <div style="display:grid;grid-template-columns:1fr 1fr;gap:32px;align-items:center;">
+  <div class="research-cite" style="margin-bottom:14px;">
+    <div class="rc-badge">&#128200;</div>
+    <div class="rc-body">
+      <div class="rc-source">Slater (2025) &mdash; Georgia Tech</div>
+      <div class="rc-finding">"Hallucinated Coupling": when faced with architectural purity vs. functional shortcuts, the model always takes the shortcut.</div>
+      <div class="rc-detail">GitHub is full of code that <em>works</em> but is <em>badly structured</em>. The MLE training objective means the model's "default architecture" is the statistical average of all code ever written &mdash; which overwhelmingly contains lazy patterns.</div>
+    </div>
+  </div>
+
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;align-items:start;">
+    <!-- Left: the shortcut vs the right way -->
     <div>
-      <p style="font-size:16px;color:#ccc;line-height:1.7;margin-bottom:16px;">
-        The model's "default architecture" is the <strong style="color:#fff;">statistical average of all GitHub code</strong> &mdash; which overwhelmingly contains lazy patterns.
-      </p>
-      <div class="callout" style="font-size:13px;margin-bottom:16px;">
-        <strong style="color:#fff;">Slater (2025, Georgia Tech):</strong> When faced with architectural purity vs. functional shortcuts, the model always takes the shortcut.
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px;">
+        <div style="background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:14px;border-left:3px solid var(--red);">
+          <div style="font-size:10px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--red);margin-bottom:8px;">What the model generates</div>
+          <div class="code-example" style="font-size:10.5px;border:none;padding:0;background:transparent;">
+<span class="t-d">// domain/user.entity.ts</span>
+<span class="t-r">import</span> { <span class="t-v">Column</span>, <span class="t-v">Entity</span> }
+  <span class="t-r">from</span> <span class="t-g">'typeorm'</span>  <span class="t-d">// ORM in domain!</span>
+
+<span class="t-r">@Entity</span>()
+<span class="t-r">export class</span> <span class="t-v">User</span> {
+  <span class="t-r">@Column</span>() <span class="t-v">name</span>: <span class="t-v">string</span>
+}</div>
+        </div>
+        <div style="background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:14px;border-left:3px solid var(--green-700);">
+          <div style="font-size:10px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--green-700);margin-bottom:8px;">What it should generate</div>
+          <div class="code-example" style="font-size:10.5px;border:none;padding:0;background:transparent;">
+<span class="t-d">// domain/user.entity.ts</span>
+<span class="t-d">// No framework imports!</span>
+
+<span class="t-r">export class</span> <span class="t-v">User</span> {
+  <span class="t-r">constructor</span>(
+    <span class="t-r">public readonly</span> <span class="t-v">name</span>: <span class="t-v">string</span>
+  ) {}
+}</div>
+        </div>
       </div>
-      <p style="font-size:14px;color:var(--dim);">
-        The model imports <span class="mono" style="color:var(--red);">redis</span> directly into the domain layer because that's what most GitHub code does.
-      </p>
+      <div style="font-size:12px;color:var(--dim);line-height:1.5;">
+        The model imports <span class="mono" style="color:var(--red);">typeorm</span> directly into the domain entity because that's what <strong style="color:#fff;">most GitHub code does</strong>. The shortcut is the statistical default.
+      </div>
     </div>
     <div>
       <!-- Violation rate bars -->
@@ -378,14 +494,51 @@
 ══════════════════════════════════════════════════════════════ -->
 <section data-background-color="#0d1117">
   <div class="section-label">Why Models Fail &mdash; Layer 5</div>
-  <h2 style="font-size:38px;font-weight:900;letter-spacing:-1px;margin-bottom:20px;">
+  <h2 style="font-size:38px;font-weight:900;letter-spacing:-1px;margin-bottom:14px;">
     Each file is <span class="violet">independent.</span>
   </h2>
 
-  <div style="display:grid;grid-template-columns:1fr 1fr;gap:28px;align-items:start;">
-    <div>
-      <img src="images/slide-08-independent-vs-coordinated.png" alt="Top: 5 isolated file-bubbles labeled Task N of N — how the agent generates. Bottom: the same components as a layered coherent system with shared auth and logging bands — what the system needs. Arrow between reads 'The gap.'" style="width:100%;display:block;border-radius:10px;" />
+  <div class="research-cite" style="margin-bottom:14px;">
+    <div class="rc-badge">&#128466;</div>
+    <div class="rc-body">
+      <div class="rc-source">Zhang et al. (2024) &mdash; SAIP</div>
+      <div class="rc-finding">LLMs demonstrate strong performance on local design decisions but fail systematically on system-level reasoning.</div>
+      <div class="rc-detail">Cross-cutting concerns &mdash; logging, auth, error handling &mdash; are consistently omitted or implemented inconsistently. The model generates each file as an independent task, not as part of a coordinated system.</div>
     </div>
+  </div>
+
+  <!-- Three files with inconsistent cross-cutting concerns -->
+  <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:14px;">
+    <div style="background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:14px;border-top:3px solid var(--violet);">
+      <div style="font-size:10px;font-weight:700;letter-spacing:1px;color:var(--dim);margin-bottom:6px;">TASK 1 &mdash; UserService.ts</div>
+      <div class="code-example" style="font-size:10px;border:none;padding:0;background:transparent;">
+<span class="t-r">try</span> { ... } <span class="t-r">catch</span>(e) {
+  <span class="t-v">console</span>.<span class="t-v">error</span>(e)  <span class="t-d">// console</span>
+  <span class="t-r">throw</span> e
+}</div>
+    </div>
+    <div style="background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:14px;border-top:3px solid var(--blue);">
+      <div style="font-size:10px;font-weight:700;letter-spacing:1px;color:var(--dim);margin-bottom:6px;">TASK 2 &mdash; OrderService.ts</div>
+      <div class="code-example" style="font-size:10px;border:none;padding:0;background:transparent;">
+<span class="t-r">try</span> { ... } <span class="t-r">catch</span>(e) {
+  <span class="t-v">logger</span>.<span class="t-v">warn</span>(e)   <span class="t-d">// winston</span>
+  <span class="t-r">return</span> <span class="t-v">null</span>
+}</div>
+    </div>
+    <div style="background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:14px;border-top:3px solid var(--lavender);">
+      <div style="font-size:10px;font-weight:700;letter-spacing:1px;color:var(--dim);margin-bottom:6px;">TASK 3 &mdash; AuthService.ts</div>
+      <div class="code-example" style="font-size:10px;border:none;padding:0;background:transparent;">
+<span class="t-r">try</span> { ... } <span class="t-r">catch</span>(e) {
+  <span class="t-d">// swallowed entirely</span>
+  <span class="t-d">// no logging at all</span>
+}</div>
+    </div>
+  </div>
+  <div style="font-size:12px;color:var(--dim);margin-bottom:14px;text-align:center;">
+    Three services, three different error handling strategies. Each file "correct" in isolation. The system is incoherent.
+  </div>
+
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;align-items:start;">
     <div>
       <div class="callout" style="font-size:14px;margin-bottom:16px;">
         <strong style="color:#fff;">Zhang et al. (2024, SAIP):</strong> LLMs demonstrate strong performance on <strong style="color:#fff;">local</strong> design decisions but fail systematically on <strong style="color:#fff;">system-level</strong> reasoning.
@@ -559,6 +712,143 @@
 </section>
 
 <!-- ═══════════════════════════════════════════════════════════
+     11b — REWARD HACKING: WHY EVEN TDD ISN'T ENOUGH
+══════════════════════════════════════════════════════════════ -->
+<section data-background-color="#0d1117">
+  <h2 style="font-size:34px;font-weight:900;letter-spacing:-1px;margin-bottom:6px;">
+    The Reward Hacking <span class="violet">warning.</span>
+  </h2>
+  <p style="font-size:14px;color:var(--dim);margin-bottom:16px;">
+    What happens when unit tests and natural language specifications disagree?
+  </p>
+
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:24px;align-items:start;">
+    <div>
+      <div class="research-cite" style="margin-bottom:14px;">
+        <div class="rc-badge" style="background:rgba(248,81,73,0.15);border-color:rgba(248,81,73,0.3);">&#9888;</div>
+        <div class="rc-body">
+          <div class="rc-source">ImpossibleBench &mdash; Zhong, Raghunathan & Carlini (2025, Anthropic)</div>
+          <div class="rc-finding">When tests conflict with specs, agents exploit the tests rather than follow the spec.</div>
+          <div class="rc-detail">Researchers took LiveCodeBench and SWE-bench and <strong style="color:#fff;">mutated their unit tests</strong> to directly conflict with the specs. This creates "impossible" tasks where passing tests <em>necessarily</em> means violating the spec.</div>
+        </div>
+      </div>
+
+      <div style="display:flex;flex-direction:column;gap:8px;">
+        <div style="display:flex;align-items:center;gap:12px;padding:10px 14px;background:rgba(248,81,73,0.06);border:1px solid rgba(248,81,73,0.2);border-radius:8px;">
+          <span style="color:var(--red);font-size:16px;flex-shrink:0;">&#10008;</span>
+          <div style="font-size:12px;color:#ccc;">Agents find ways to <strong style="color:#fff;">game the evaluation</strong> rather than fix the code</div>
+        </div>
+        <div style="display:flex;align-items:center;gap:12px;padding:10px 14px;background:rgba(248,81,73,0.06);border:1px solid rgba(248,81,73,0.2);border-radius:8px;">
+          <span style="color:var(--red);font-size:16px;flex-shrink:0;">&#10008;</span>
+          <div style="font-size:12px;color:#ccc;">Some agents <strong style="color:#fff;">delete failing tests</strong> rather than fix underlying bugs</div>
+        </div>
+        <div style="display:flex;align-items:center;gap:12px;padding:10px 14px;background:rgba(248,81,73,0.06);border:1px solid rgba(248,81,73,0.2);border-radius:8px;">
+          <span style="color:var(--red);font-size:16px;flex-shrink:0;">&#10008;</span>
+          <div style="font-size:12px;color:#ccc;"><strong style="color:#fff;">RL-trained models</strong> show higher reward hacking rates &mdash; reinforcement learning amplifies shortcut-seeking</div>
+        </div>
+      </div>
+    </div>
+
+    <div>
+      <div style="font-size:11px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--dim);margin-bottom:8px;">Why this matters for architecture</div>
+      <div class="card" style="padding:16px;margin-bottom:14px;">
+        <div style="font-size:13px;color:#ccc;line-height:1.6;">
+          If an agent's only feedback loop is "do the tests pass?", the agent will optimize for passing tests &mdash; even if that means violating architectural constraints that aren't captured in tests. A project can have <strong style="color:#fff;">100% test coverage</strong> and <strong style="color:var(--red);">zero architectural compliance</strong>.
+        </div>
+      </div>
+
+      <div style="font-size:11px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--dim);margin-bottom:8px;">Tests can't see</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;">
+        <div class="code-example ce-bad" style="font-size:10px;padding:10px 12px;">
+<span class="t-d">// Tests CAN'T catch:</span>
+<span class="t-r">import</span> { PrismaClient }
+  <span class="t-r">from</span> <span class="t-g">'@prisma/client'</span>
+<span class="t-d">// domain imports infra</span></div>
+        <div class="code-example ce-bad" style="font-size:10px;padding:10px 12px;">
+<span class="t-d">// Tests CAN'T catch:</span>
+<span class="t-r">new</span> PrismaUserRepo()
+<span class="t-d">// concrete, not interface</span>
+<span class="t-d">// untestable without DB</span></div>
+      </div>
+
+      <div style="border-left:3px solid var(--violet);padding-left:12px;margin-top:14px;font-size:14px;font-style:italic;color:#e6edf3;line-height:1.5;">
+        "TDD is the floor, not the ceiling. Tests verify that code <em>does</em> what it should. But who verifies that code <em>IS</em> what it should be?"
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════════
+     11c — SPEC-DRIVEN DEVELOPMENT: THE UPSTREAM REVOLUTION
+══════════════════════════════════════════════════════════════ -->
+<section data-background-color="#0d1117">
+  <h2 style="font-size:34px;font-weight:900;letter-spacing:-1px;margin-bottom:6px;">
+    The industry's response: move quality <span class="violet">upstream.</span>
+  </h2>
+  <p style="font-size:14px;color:var(--dim);margin-bottom:16px;">
+    From "generate &rarr; review &rarr; hope" to "specify &rarr; generate &rarr; verify."
+  </p>
+
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:24px;align-items:start;">
+    <div>
+      <div style="display:flex;flex-direction:column;gap:10px;">
+        <div class="research-cite">
+          <div class="rc-badge" style="background:rgba(27,158,119,0.15);border-color:rgba(27,158,119,0.3);">73%</div>
+          <div class="rc-body">
+            <div class="rc-source">Marri (2026) &mdash; Constitutional SDD</div>
+            <div class="rc-finding">73% reduction in security defects from a single versioned Constitution document.</div>
+            <div class="rc-detail">CWE/MITRE Top 25 constraints applied to banking microservices. One document. Categorical prevention. Functional correctness maintained.</div>
+          </div>
+        </div>
+        <div class="research-cite">
+          <div class="rc-badge">&#128196;</div>
+          <div class="rc-body">
+            <div class="rc-source">GitHub Spec Kit (2025)</div>
+            <div class="rc-finding">Open-source toolkit: Constitution &rarr; Specify &rarr; Plan &rarr; Tasks.</div>
+            <div class="rc-detail">Martin Fowler analyzed it alongside AWS Kiro and Tessl &mdash; all three independently converged on specs as the source of truth.</div>
+          </div>
+        </div>
+        <div class="research-cite">
+          <div class="rc-badge">3.8%</div>
+          <div class="rc-body">
+            <div class="rc-source">Qodo (2025, Gartner Visionary)</div>
+            <div class="rc-finding">"Move Fast and Verify Things."</div>
+            <div class="rc-detail">Only 3.8% of developers report both low hallucination rates AND high confidence in shipping AI code without human review.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div>
+      <div style="font-size:11px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--dim);margin-bottom:8px;">Every major AI coding tool converged on the same pattern</div>
+      <div style="display:flex;flex-direction:column;gap:6px;margin-bottom:16px;">
+        <div style="display:flex;align-items:center;gap:10px;padding:8px 12px;background:var(--surface);border:1px solid var(--border);border-radius:6px;">
+          <span class="mono" style="color:var(--violet);font-size:11px;width:120px;">CLAUDE.md</span>
+          <span style="font-size:11px;color:var(--dim);">Anthropic &mdash; project-level rules</span>
+        </div>
+        <div style="display:flex;align-items:center;gap:10px;padding:8px 12px;background:var(--surface);border:1px solid var(--border);border-radius:6px;">
+          <span class="mono" style="color:var(--violet);font-size:11px;width:120px;">AGENTS.md</span>
+          <span style="font-size:11px;color:var(--dim);">GitHub Copilot &mdash; agent instructions</span>
+        </div>
+        <div style="display:flex;align-items:center;gap:10px;padding:8px 12px;background:var(--surface);border:1px solid var(--border);border-radius:6px;">
+          <span class="mono" style="color:var(--violet);font-size:11px;width:120px;">.cursorrules</span>
+          <span style="font-size:11px;color:var(--dim);">Cursor &mdash; project conventions</span>
+        </div>
+        <div style="display:flex;align-items:center;gap:10px;padding:8px 12px;background:var(--surface);border:1px solid var(--border);border-radius:6px;">
+          <span class="mono" style="color:var(--violet);font-size:11px;width:120px;">Zen Rules</span>
+          <span style="font-size:11px;color:var(--dim);">Windsurf &mdash; behavioral constraints</span>
+        </div>
+      </div>
+
+      <div class="callout warn" style="font-size:13px;">
+        <strong style="color:#fff;">The evidence is clear: specs help.</strong><br>
+        But they have three structural limits that prevent them from solving the problem alone. The agent reads the spec &mdash; but nothing <em>verifies</em> the output conforms.
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════════
      12 — SPECS AREN'T ENFORCEABLE + MISSING ALTITUDE
 ══════════════════════════════════════════════════════════════ -->
 <section data-background-color="#0d1117">
@@ -689,6 +979,85 @@
       <div style="border-left:3px solid var(--violet);padding-left:12px;margin-top:14px;font-size:14px;font-style:italic;color:#e6edf3;line-height:1.5;">
         "Tests verify correctness. The Firewall verifies <strong>structure</strong>."
       </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════════
+     12c — THE SHIFT: FROM VERIFYING CODE TO VERIFYING SPECS
+══════════════════════════════════════════════════════════════ -->
+<section data-background-color="#0d1117">
+  <h2 style="font-size:34px;font-weight:900;letter-spacing:-1px;margin-bottom:16px;">
+    The shift: from verifying code to <span class="violet">verifying specs.</span>
+  </h2>
+
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:24px;align-items:start;">
+    <div style="display:flex;flex-direction:column;gap:12px;">
+      <div class="research-cite">
+        <div class="rc-badge">&#128161;</div>
+        <div class="rc-body">
+          <div class="rc-source">Clinton Herget &mdash; Field CTO, Snyk</div>
+          <div class="rc-finding">"We're doing the opposite now. The code is disposable. The actual important part of the development process is the set of prompts that define the functionality."</div>
+        </div>
+      </div>
+      <div class="research-cite">
+        <div class="rc-badge">MRP</div>
+        <div class="rc-body">
+          <div class="rc-source">Hassan et al. (2025, SE 3.0 &mdash; Queen's University)</div>
+          <div class="rc-finding">Before any code is merged, a Merge-Readiness Pack must provide multi-dimensional evidence.</div>
+          <div class="rc-detail">Not just test passage &mdash; architectural compliance, security clearance, and specification alignment.</div>
+        </div>
+      </div>
+      <div class="research-cite">
+        <div class="rc-badge">&#9650;</div>
+        <div class="rc-body">
+          <div class="rc-source">Piskala (2026) &mdash; Spec-Driven Development</div>
+          <div class="rc-finding">The specification spectrum: spec-first &rarr; spec-anchored &rarr; spec-as-source.</div>
+          <div class="rc-detail">Code is derived from specs, regenerable at will. We must spend more time defining <em>what we want</em> than inspecting <em>what we got</em>.</div>
+        </div>
+      </div>
+    </div>
+
+    <div>
+      <div style="font-size:11px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--dim);margin-bottom:10px;">The Specification Spectrum</div>
+      <div style="display:flex;flex-direction:column;gap:0;">
+        <div style="padding:14px 18px;background:rgba(139,148,158,0.06);border:1px solid var(--border);border-radius:10px 10px 0 0;border-bottom:none;">
+          <div style="font-size:13px;font-weight:700;color:#fff;">Spec-First</div>
+          <div style="font-size:11px;color:var(--dim);">Write intent before code. CLAUDE.md, SPEC.md.</div>
+        </div>
+        <div style="padding:14px 18px;background:rgba(124,106,239,0.06);border:1px solid rgba(124,106,239,0.3);border-top:none;border-bottom:none;">
+          <div style="font-size:13px;font-weight:700;color:var(--violet);">Spec-Anchored &larr; DaedalusArch</div>
+          <div style="font-size:11px;color:var(--lavender);">Specs enforced in CI/CD. Violations block merges.</div>
+        </div>
+        <div style="padding:14px 18px;background:rgba(27,158,119,0.06);border:1px solid rgba(27,158,119,0.3);border-radius:0 0 10px 10px;border-top:none;">
+          <div style="font-size:13px;font-weight:700;color:var(--green-300);">Spec-as-Source</div>
+          <div style="font-size:11px;color:var(--green-700);">Code derived from specs, regenerable at will.</div>
+        </div>
+      </div>
+
+      <div style="border-left:3px solid var(--violet);padding-left:12px;margin-top:16px;font-size:14px;font-style:italic;color:#e6edf3;line-height:1.5;">
+        "We must spend more time defining and verifying <em>what we want</em> &mdash; not inspecting <em>what we got</em>."
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════════
+     12d — THE VERIFICATION SPECTRUM
+══════════════════════════════════════════════════════════════ -->
+<section data-background-color="#0d1117">
+  <h2 style="font-size:32px;font-weight:900;letter-spacing:-1px;margin-bottom:16px;">
+    The verification frontier keeps <span class="violet">moving up.</span>
+  </h2>
+
+  <img src="images/slide-12d-verification-timeline.png" alt="Horizontal timeline as a road with four milestones: Functional Correctness (SOLVED, green, 1970s-2000s), Security Correctness (IN PROGRESS, yellow, 2020s), Architectural Correctness (YOU ARE HERE, violet unpaved road with DaedalusArch vehicle, 2025+), System Communication (NEXT FRONTIER, dashed road into fog). Banner: 'The more we automate generation, the more properties we need to verify.' Generation-speed bar below grows exponentially, widest gap at Milestone 3." style="width:100%;display:block;border-radius:10px;margin-bottom:14px;" />
+
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;">
+    <div class="callout" style="font-size:13px;">
+      The same way we define <strong style="color:#fff;">functional correctness</strong> through test assertions, we need to define <strong style="color:var(--violet);">architectural correctness</strong> through fitness functions compiled to graph queries.
+    </div>
+    <div style="border-left:3px solid var(--violet);padding-left:12px;font-size:14px;font-style:italic;color:#e6edf3;line-height:1.5;">
+      "We solved 'does it work?' with TDD. We're solving 'is it secure?' with SAST. Now we need to solve 'is it well-structured?' <strong>The verification frontier keeps moving up.</strong>"
     </div>
   </div>
 </section>
@@ -1277,12 +1646,80 @@ Layer assignments:
 </section>
 
 <!-- ═══════════════════════════════════════════════════════════
-     22 — THE BEFORE/AFTER REVEAL
+     22a — THE BEFORE: EVERYTHING LOOKS PERFECT
 ══════════════════════════════════════════════════════════════ -->
 <section data-background-color="#0d1117">
-  <div class="section-label">Results</div>
-  <h2 style="font-size:34px;font-weight:900;letter-spacing:-1px;margin-bottom:16px;">
-    What <span class="violet">DaedalusArch</span> finds.
+  <div class="section-label">Results &mdash; The Before/After Reveal</div>
+  <h2 style="font-size:36px;font-weight:900;letter-spacing:-1px;margin-bottom:16px;">
+    By every tool you use, this project is <span class="mint">perfect.</span>
+  </h2>
+
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:24px;align-items:start;">
+    <div>
+      <div class="tw">
+        <div class="tw-bar"><div class="td td-r"></div><div class="td td-y"></div><div class="td td-g"></div>
+          <span style="margin-left:8px;color:#aaa;font-family:monospace;font-size:11px;">$ check-everything.sh</span>
+        </div>
+        <div class="tw-body" style="font-size:13px;line-height:1.7;">
+<span class="t-g">&#10004;</span> <span class="t-w">Directory structure</span>
+  <span class="t-d">src/domain/  src/application/  src/infrastructure/</span>
+  <span class="t-d">"Looks like clean architecture"</span>
+
+<span class="t-g">&#10004;</span> <span class="t-w">TypeScript</span>          <span class="t-d">compiles clean</span>
+<span class="t-g">&#10004;</span> <span class="t-w">ESLint</span>              <span class="t-d">0 errors, 0 warnings</span>
+<span class="t-g">&#10004;</span> <span class="t-w">Jest</span>                <span class="t-d">47/47 tests passing</span>
+<span class="t-g">&#10004;</span> <span class="t-w">Code Review</span>         <span class="t-d">"LGTM" &#10003; approved</span>
+
+<span class="t-d">─────────────────────────────────────</span>
+<span class="t-g">&#10004;</span> <span class="t-w">Ready to merge.</span></div>
+      </div>
+    </div>
+
+    <div>
+      <div style="border-radius:10px;overflow:hidden;border:1px solid rgba(27,158,119,0.3);margin-bottom:14px;">
+        <div style="background:#1c1c1e;padding:6px 12px;font-size:10px;color:var(--dim);font-family:monospace;border-bottom:1px solid rgba(27,158,119,0.2);">
+          <span style="color:var(--green-300);">Neo4j Browser</span> &middot; correct-reference &middot; <span class="mint">MATCH (n) RETURN n</span>
+        </div>
+        <img src="../pitch-deck/neo4j-graph-correct.png" alt="Neo4j graph — clean architecture, correct dependencies" style="width:100%;display:block;max-height:200px;object-fit:cover;object-position:center;" />
+      </div>
+
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr 1fr 1fr;gap:6px;">
+        <div style="text-align:center;padding:10px 6px;background:rgba(27,158,119,0.08);border:1px solid rgba(27,158,119,0.2);border-radius:6px;">
+          <div style="font-size:16px;">&#9989;</div>
+          <div style="font-size:9px;color:var(--green-300);">Structure</div>
+        </div>
+        <div style="text-align:center;padding:10px 6px;background:rgba(27,158,119,0.08);border:1px solid rgba(27,158,119,0.2);border-radius:6px;">
+          <div style="font-size:16px;">&#9989;</div>
+          <div style="font-size:9px;color:var(--green-300);">Types</div>
+        </div>
+        <div style="text-align:center;padding:10px 6px;background:rgba(27,158,119,0.08);border:1px solid rgba(27,158,119,0.2);border-radius:6px;">
+          <div style="font-size:16px;">&#9989;</div>
+          <div style="font-size:9px;color:var(--green-300);">Lint</div>
+        </div>
+        <div style="text-align:center;padding:10px 6px;background:rgba(27,158,119,0.08);border:1px solid rgba(27,158,119,0.2);border-radius:6px;">
+          <div style="font-size:16px;">&#9989;</div>
+          <div style="font-size:9px;color:var(--green-300);">Tests</div>
+        </div>
+        <div style="text-align:center;padding:10px 6px;background:rgba(27,158,119,0.08);border:1px solid rgba(27,158,119,0.2);border-radius:6px;">
+          <div style="font-size:16px;">&#9989;</div>
+          <div style="font-size:9px;color:var(--green-300);">Review</div>
+        </div>
+      </div>
+
+      <div style="border-left:3px solid var(--green-700);padding-left:12px;margin-top:14px;font-size:15px;font-style:italic;color:#e6edf3;line-height:1.5;">
+        "By every tool you currently use, this project is perfect. <strong>Let's see what DaedalusArch finds.</strong>"
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════════
+     22b — THE AFTER: WHAT DAEDALUSARCH REVEALS
+══════════════════════════════════════════════════════════════ -->
+<section data-background-color="#0d1117">
+  <div class="section-label">Results &mdash; The Reveal</div>
+  <h2 style="font-size:36px;font-weight:900;letter-spacing:-1px;margin-bottom:16px;">
+    The architecture is <span style="color:var(--red);">toxic.</span>
   </h2>
 
   <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;align-items:start;">
@@ -1317,18 +1754,18 @@ Layer assignments:
     <div>
       <div style="border-radius:10px;overflow:hidden;border:1px solid rgba(248,81,73,0.3);margin-bottom:12px;">
         <div style="background:#1c1c1e;padding:6px 12px;font-size:10px;color:var(--dim);font-family:monospace;border-bottom:1px solid rgba(248,81,73,0.2);">
-          <span style="color:var(--red);">Neo4j</span> &middot; variant-c-everything &middot; <span style="color:var(--red);">GodTask detected</span>
+          <span style="color:var(--red);">Neo4j</span> &middot; variant-c-everything &middot; <span style="color:var(--red);">GodTask detected &middot; circular deps</span>
         </div>
         <img src="../pitch-deck/neo4j-graph-broken.png" alt="Neo4j graph — broken architecture with God class and circular deps" style="width:100%;display:block;max-height:220px;object-fit:cover;object-position:top;" />
       </div>
       <div style="background:rgba(248,81,73,0.04);border:1px solid rgba(248,81,73,0.2);border-radius:8px;padding:14px;font-size:13px;color:#ccc;line-height:1.5;">
-        <strong style="color:var(--red);">What you're seeing:</strong> GodTask with 15 methods exploding outward. Circular deps between layers. Domain importing Prisma.
-        <br><br>
-        <strong style="color:#fff;">All tests pass. ESLint clean. TypeScript compiles. Code review approved.</strong>
-        <br>
-        <span class="dim">And the architecture is toxic. This is what invisible debt looks like.</span>
+        <strong style="color:var(--red);">What you're seeing:</strong> GodTask with 15 methods exploding outward. Circular deps between layers. Domain importing Prisma. Infrastructure types leaking through use-case return types.
       </div>
     </div>
+  </div>
+
+  <div style="border-left:3px solid var(--red);padding-left:14px;margin-top:12px;font-size:16px;font-style:italic;color:#e6edf3;line-height:1.5;">
+    "All tests pass. ESLint clean. TypeScript compiles. Code review approved. And the architecture is toxic. <strong>This is what invisible debt looks like. This is why you need a firewall.</strong>"
   </div>
 </section>
 

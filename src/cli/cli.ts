@@ -92,8 +92,8 @@ program
       apgStorePath: process.env['APG_STORE_PATH'] ?? '.apg-store',
       llmConfig: evaluationMode !== 'symbolic-only'
         ? {
-            provider: (process.env['LLM_PROVIDER'] as 'claude' | 'openai' | undefined) ?? 'claude',
-            apiKey: process.env['ANTHROPIC_API_KEY'] ?? process.env['OPENAI_API_KEY'] ?? '',
+            provider: 'gemini' as const,
+            apiKey: process.env['GEMINI_API_KEY'] ?? process.env['ANTHROPIC_API_KEY'] ?? '',
           }
         : undefined,
     };
@@ -101,9 +101,8 @@ program
     // Validate API key for neuronal modes
     if (evaluationMode !== 'symbolic-only' && !config.llmConfig?.apiKey) {
       process.stderr.write(
-        'Error: LLM API key required for neuronal/full mode. Set ANTHROPIC_API_KEY or OPENAI_API_KEY.\n',
+        'Warning: No GEMINI_API_KEY set. Neuronal functions will be skipped (symbolic-only fallback).\n',
       );
-      process.exit(2);
     }
 
     const { executor, cleanup } = createPipeline(config);
@@ -394,17 +393,16 @@ program
       apgStorePath: process.env['APG_STORE_PATH'] ?? '.apg-store',
       llmConfig: evaluationMode !== 'symbolic-only'
         ? {
-            provider: (process.env['LLM_PROVIDER'] as 'claude' | 'openai' | undefined) ?? 'claude',
-            apiKey: process.env['ANTHROPIC_API_KEY'] ?? process.env['OPENAI_API_KEY'] ?? '',
+            provider: 'gemini' as const,
+            apiKey: process.env['GEMINI_API_KEY'] ?? process.env['ANTHROPIC_API_KEY'] ?? '',
           }
         : undefined,
     };
 
     if (evaluationMode !== 'symbolic-only' && !config.llmConfig?.apiKey) {
       process.stderr.write(
-        'Error: LLM API key required for neuronal/full mode. Set ANTHROPIC_API_KEY or OPENAI_API_KEY.\n',
+        'Warning: No GEMINI_API_KEY set. Neuronal functions will be skipped (symbolic-only fallback).\n',
       );
-      process.exit(2);
     }
 
     const { executor, context, cleanup } = createPipeline(config);

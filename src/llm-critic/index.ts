@@ -3,9 +3,10 @@ export type { NeuronalEvalOutput } from './llm-critic.js';
 export { assembleContext, constructPrompt } from './context-assembler.js';
 export { parseVerdict } from './verdict-parser.js';
 export { MockLLMProvider } from './mock-provider.js';
-export { GeminiProvider } from './gemini-provider.js';
 export { NullLLMProvider } from './null-provider.js';
 export { createLLMProvider } from './provider-factory.js';
+// GeminiProvider is NOT re-exported here to avoid pulling @google/generative-ai
+// into every consumer. Import directly from './gemini-provider.js' when needed.
 export { saveCassette, loadCassette, cassetteExists } from './cassette-manager.js';
 export type {
   NeuronalEvalInput, CriticVerdict, CriticViolation,

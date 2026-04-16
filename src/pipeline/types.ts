@@ -2,7 +2,7 @@ import type { EvaluationMode, PipelineMode, OverallVerdict } from '../shared/typ
 import type { CommitSha } from '../shared/types/value-objects.js';
 
 export interface LLMConfig {
-  readonly provider: 'claude' | 'openai';
+  readonly provider: 'claude' | 'openai' | 'gemini';
   readonly apiKey: string;
   readonly model?: string;
   readonly temperature?: number;

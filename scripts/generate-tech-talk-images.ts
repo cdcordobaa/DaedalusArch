@@ -57,6 +57,26 @@ Arrow between top and bottom labeled "The gap."
 Dark bg (#0d1117), violet/blue/lavender palette. Crisp typography.`,
   },
   {
+    slug: "slide-12d-verification-timeline",
+    label: "The Verification Timeline",
+    aspectRatio: "16:9",
+    prompt: `A horizontal timeline flowing left to right, like a road with milestones. The road gets wider and more uncertain as it moves right — from well-paved (mature) to unpaved (frontier).
+
+Milestone 1 (1970s-2000s) — FUNCTIONAL CORRECTNESS — solid green road. "Does it produce the right output?" Signpost icons: JUnit, pytest, TDD, HumanEval. Status badge: SOLVED.
+
+Milestone 2 (2020s) — SECURITY CORRECTNESS — yellow road, under construction. "Is it safe from exploits?" Signpost icons: BaxBench, Snyk, SAST. Status badge: IN PROGRESS.
+
+Milestone 3 (2025+) — ARCHITECTURAL CORRECTNESS — red/violet unpaved road with a single vehicle (DaedalusArch). "Does it respect boundaries, patterns, abstractions?" Signpost: SonarQube AoC (deprecated), ArchUnit (Java only). Status badge: YOU ARE HERE (pin marker).
+
+Milestone 4 (future) — SYSTEM COMMUNICATION — dashed road disappearing into fog. "Do services communicate correctly?" Signpost: Pact (partial). Status badge: NEXT FRONTIER.
+
+Above the timeline, banner: "The more we automate generation, the more properties we need to verify."
+
+Below the timeline, a parallel bar showing GENERATION SPEED increasing exponentially left to right — the gap between what we generate and what we can verify grows unless new verification layers are added. The gap is biggest at Milestone 3.
+
+Dark bg (#0d1117), violet/blue/teal/green palette. Crisp typography.`,
+  },
+  {
     slug: "slide-12b-verification-hourglass",
     label: "The Verification Hourglass",
     aspectRatio: "3:4",
