@@ -1,6 +1,7 @@
 import { existsSync } from 'node:fs';
-import { resolve, join } from 'node:path';
+import { resolve, join, relative } from 'node:path';
 import { Project } from 'ts-morph';
+import picomatch from 'picomatch';
 import type { APGResult } from '../shared/types/apg.js';
 import type { DomainResult } from '../shared/errors/domain-result.js';
 import { DomainResult as DR } from '../shared/errors/domain-result.js';
@@ -41,9 +42,12 @@ export async function extractAPG(
 
     // ── 2. Collect source files (apply exclusion patterns) ───────────────────
     const allExcludes = [...DEFAULT_EXCLUDE_PATTERNS, ...opts.excludePatterns];
+    const isExcluded = picomatch(allExcludes, { dot: true });
     const sourceFiles = project.getSourceFiles().filter(sf => {
-      const fp = sf.getFilePath();
-      return !allExcludes.some(pattern => matchGlob(pattern, fp));
+      // Match against relative path so patterns like "test/**" don't
+      // accidentally match project directory names in the absolute path.
+      const relPath = relative(absoluteProjectPath, sf.getFilePath());
+      return !isExcluded(relPath);
     });
 
     if (sourceFiles.length === 0) {
@@ -125,16 +129,3 @@ function makeError(code: ExtractorError['code'], message: string): ExtractorErro
   return { code, message, stage: 'apg-extractor', critical: true };
 }
 
-/**
- * Minimal glob matcher covering the patterns used in DEFAULT_EXCLUDE_PATTERNS.
- * Supports: **\/prefix\/** (directory), **\/*.ext (extension), exact suffix match.
- */
-function matchGlob(pattern: string, filePath: string): boolean {
-  // Convert glob pattern to regex
-  const escaped = pattern
-    .replace(/\\/g, '/')
-    .replace(/[.+^${}()|[\]]/g, '\\$&')
-    .replace(/\*\*/g, '.+')
-    .replace(/\*/g, '[^/]+');
-  return new RegExp(escaped).test(filePath.replace(/\\/g, '/'));
-}
