@@ -12,7 +12,7 @@ import { FirewallContext } from '../shared/context/firewall-context.js';
 import { runId as makeRunId } from '../shared/types/value-objects.js';
 import { Neo4jRepository } from '../neo4j-ingestion/neo4j-repository.js';
 import { FileSystemSnapshotStore } from '../neo4j-ingestion/fs-snapshot-store.js';
-import { createLLMProvider } from '../llm-critic/index.js';
+import { createLLMProvider } from '../llm-critic/provider-factory.js';
 
 // Commands
 import { ExtractCommand } from './commands/extract-command.js';
