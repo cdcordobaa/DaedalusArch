@@ -1,286 +1,413 @@
 # Architectonic Firewall — Agent Playbook
 
-Instructions for an AI coding agent to evaluate any TypeScript project for architectural compliance. Each step explains what happens inside the engine so results are interpretable.
+Complete operational guide for evaluating any TypeScript project for architectural compliance. This document is self-contained — an agent reading it understands the system internals, the graph model, the rule engine, the spec format, and every step of execution.
 
 ---
 
-## System Overview
+## What This System Is
 
-The Architectonic Firewall treats source code not as text but as a **graph**. It parses every TypeScript file into an Architecture Property Graph (APG) — a directed graph of files, classes, interfaces, methods, and their relationships (imports, implements, extends, injects). That graph is loaded into Neo4j, and 24 fitness functions are compiled into Cypher queries that run against it. The results are scored across 5 dimensions to produce a single Architectural Health Score (AHS).
+The Architectonic Firewall converts source code into a **directed property graph** and runs **architectural fitness functions** (Cypher queries) against it. It answers: "does this codebase follow its declared architectural rules?"
 
-```
-TypeScript Source Code
-        │
-        ▼
-┌─────────────────┐
-│  APG Extractor   │  ts-morph parses ASTs → nodes + edges
-│  (static analysis)│  5 node types: File, Class, Interface, Method, Function
-│                   │  7 edge types: IMPORTS, IMPLEMENTS, EXTENDS,
-│                   │    CONSTRUCTOR_INJECTS, CALLS, DECLARES, CONTAINS
-└────────┬──────────┘
-         │  APGResult (in-memory graph)
-         ▼
-┌─────────────────┐
-│  Layer Annotator  │  Assigns each file to an architectural layer
-│                   │  Priority: directory glob → file_patterns → class naming → decorators
-│                   │  e.g. auth.service.ts → "application", auth.controller.ts → "presentation"
-└────────┬──────────┘
-         │  Annotated graph
-         ▼
-┌─────────────────┐
-│  Neo4j Ingestion  │  Creates labeled nodes + typed relationships in Neo4j
-│                   │  Each file becomes a :File node with layer property
-│                   │  Each import becomes an :IMPORTS edge
-└────────┬──────────┘
-         │  Graph in Neo4j
-         ▼
-┌─────────────────┐
-│  Fitness Compiler │  Reads spec YAML → compiles 24 fitness functions into Cypher queries
-│                   │  Injects exclude_paths as WHERE NOT clauses
-│                   │  Parameterizes queries with layer ordering, thresholds, patterns
-└────────┬──────────┘
-         │  CypherQuery[] (ready to execute)
-         ▼
-┌─────────────────┐
-│  Symbolic         │  Executes each Cypher query against Neo4j
-│  Evaluator        │  Maps results → typed Violation objects
-│                   │  Each violation: file path, severity, dimension, explanation, fix suggestion
-└────────┬──────────┘
-         │  Violation[] per function
-         ▼
-┌─────────────────┐
-│  Scoring Engine   │  Per-dimension AVR = violated_functions / total_functions
-│                   │  AHS = weighted sum of (1 - AVR) across dimensions
-│                   │  Verdict: pass / warning / soft-block / hard-block
-└────────┬──────────┘
-         │  EvaluationReport
-         ▼
-┌─────────────────┐
-│  Report Generator │  Produces interactive HTML with:
-│                   │  - AHS gauge and verdict
-│                   │  - Per-dimension charts
-│                   │  - Full violation list with file paths, explanations, fix suggestions
-│                   │  - Universal metrics (cycles, fan-out, abstraction ratio, etc.)
-└─────────────────┘
-```
-
-The entire pipeline runs in under 2 seconds for a 267-file project.
+The core idea: architecture is not in the text of the code — it's in the **relationships between modules**. Who imports whom, who injects whom, who extends whom. A graph database captures these relationships naturally, and graph queries express architectural rules concisely.
 
 ---
 
-## Engine and Target Directories
+## The Graph Model (APG — Architecture Property Graph)
 
-The system has two parts in separate directories:
+Every TypeScript file is parsed into nodes and edges that form the APG.
+
+### Node Types
+
+| Type | What it represents | Key properties |
+|---|---|---|
+| `File` | A `.ts` source file | `filePath`, `name`, `layer`, `role`, `isBarrel` |
+| `Class` | A class declaration | `filePath`, `name`, `layer`, `decorators[]` |
+| `Interface` | An interface declaration | `filePath`, `name`, `layer` |
+| `Method` | A method on a class/interface | `filePath`, `name` |
+| `Function` | A standalone function | `filePath`, `name` |
+
+### Edge Types
+
+| Type | Meaning | Example |
+|---|---|---|
+| `IMPORTS` | File A imports from File B | `auth.service.ts` → `prisma.service.ts` |
+| `IMPLEMENTS` | Class implements Interface | `UserRepository` → `IUserRepository` |
+| `EXTENDS` | Class extends another Class | `AdminService` → `BaseService` |
+| `CONSTRUCTOR_INJECTS` | Class constructor takes a dependency | `AuthService` injects `JwtService` |
+| `CALLS` | Function/method calls another | `login()` calls `hashPassword()` |
+| `DECLARES` | File declares a Class/Interface/Function | `user.entity.ts` declares `UserEntity` |
+| `CONTAINS` | Class contains a Method | `AuthService` contains `login()` |
+
+### Example: What a NestJS Feature Module Looks Like in the Graph
+
+Given this source structure:
+```
+src/auth/
+  auth.controller.ts    → imports auth.service
+  auth.service.ts       → imports prisma.service, jwt (NestJS), bcrypt
+  auth.module.ts        → imports controller, service, jwt module
+  dto/auth.dto.ts       → standalone, imported by controller
+  guards/jwt.guard.ts   → imports jwt from @nestjs
+```
+
+The graph contains:
+```
+(:File {name: "auth.controller.ts", layer: "presentation"})
+  -[:IMPORTS]-> (:File {name: "auth.service.ts", layer: "application"})
+  -[:IMPORTS]-> (:File {name: "auth.dto.ts", layer: "application"})
+
+(:File {name: "auth.service.ts", layer: "application"})
+  -[:IMPORTS]-> (:File {name: "prisma.service.ts", layer: "infrastructure"})
+
+(:Class {name: "AuthService", layer: "application"})
+  -[:CONSTRUCTOR_INJECTS]-> (:Class {name: "PrismaService"})   ← concrete, not interface
+  -[:CONSTRUCTOR_INJECTS]-> (:Class {name: "JwtService"})
+  -[:CONTAINS]-> (:Method {name: "login"})
+  -[:CONTAINS]-> (:Method {name: "register"})
+```
+
+This graph is loaded into Neo4j. Every fitness function is a Cypher query against this graph.
+
+---
+
+## The Spec (firewall.spec.yaml)
+
+The spec is a YAML file with three sections:
+
+### 1. Architecture — Layer Definitions
+
+```yaml
+architecture:
+  style: nestjs
+
+  layers:
+    # Ordered inner → outer. Dependencies flow inward (outer imports inner).
+    - name: domain
+      directories:
+        - src/domain/**
+        - src/core/**
+      roles: [entity, value-object, domain-service, repository-interface]
+
+    - name: infrastructure
+      directories:
+        - src/prisma/**
+        - src/lib/**
+      file_patterns:
+        - "**/*.repository.ts"
+        - "**/*.worker.ts"
+        - "**/strategies/**"
+      roles: [repository-impl, orm-entity, external-service, middleware]
+
+    - name: application
+      file_patterns:
+        - "**/*.service.ts"
+        - "**/*.processor.ts"
+        - "**/dto/**"
+      roles: [use-case, dto, application-service, processor]
+
+    - name: presentation
+      file_patterns:
+        - "**/*.controller.ts"
+        - "**/*.module.ts"
+        - "**/*.guard.ts"
+        - "**/*.interceptor.ts"
+      roles: [controller, module, guard, interceptor]
+      decorators: ["@Controller", "@Module"]
+```
+
+**How layer assignment works**: When the APG is ingested into Neo4j, the Layer Annotator assigns each `:File` node a `layer` property. It tries four strategies in priority order:
+
+1. **Directory glob** — `src/prisma/prisma.service.ts` matches `src/prisma/**` → `infrastructure`
+2. **File pattern** — `src/auth/auth.service.ts` matches `**/*.service.ts` → `application`
+3. **Class naming** — a class named `UserRepository` matches the `repository-impl` role → `infrastructure`
+4. **Decorator** — a class with `@Controller` decorator → `presentation`
+
+First match wins. Files that match nothing get `layer: null` and are excluded from layer-aware rules.
+
+**Why layer ORDER matters**: The order in the YAML defines allowed dependency direction. Adjacent layers can depend on each other (outer → inner). Non-adjacent imports are "layer skips." For NestJS:
 
 ```
-FIREWALL_HOME  (the engine)             TARGET_PATH  (the project being evaluated)
-├── src/cli/cli.ts   ← CLI entry       ├── src/
-├── presets/                            │   ├── auth/
-│   ├── nestjs.yaml                     │   ├── users/
-│   └── clean-architecture.yaml         │   └── ...
-├── docker-compose.yml  ← Neo4j        ├── package.json
-└── ...                                 ├── tsconfig.json
-                                        │
-                                        │  ── created by the agent ──
-                                        ├── firewall.spec.yaml
-                                        ├── report.html
-                                        └── baseline_violations.json
+presentation → application → infrastructure → domain
+(allowed)      (allowed)      (allowed)
+presentation → infrastructure                        ← LAYER SKIP (violation)
+presentation → domain                                ← LAYER SKIP (violation)
+infrastructure → presentation                        ← WRONG DIRECTION (violation)
 ```
 
-All CLI commands run from `FIREWALL_HOME` with `--project` pointing at the target.
+### 2. Fitness Functions
 
-**Engine location**:
+Each function is a named rule with a severity, dimension, and evaluation route:
+
+```yaml
+fitness_functions:
+  - id: FF-S02
+    name: no-cyclic-deps
+    dimension: structural
+    severity: critical
+    route: symbolic
+    validated: true
+
+  - id: FF-P02
+    name: dependency-inversion
+    dimension: pattern
+    severity: critical
+    route: symbolic
+    validated: true
+    threshold: 0.85
+
+  - id: FF-C02
+    name: module-fan-out
+    dimension: coupling
+    severity: major
+    route: symbolic
+    validated: true
+    threshold: 12
+
+  - id: FF-S03
+    name: no-layer-skip
+    dimension: structural
+    severity: critical
+    route: symbolic
+    exclude_paths:
+      - "**/*.module.ts"     # NestJS modules are DI wiring
+```
+
+### 3. Scoring Weights and Thresholds
+
+```yaml
+scoring:
+  weights:
+    structural: 0.35
+    coupling: 0.20
+    pattern: 0.30
+    solid: 0.10
+    convention: 0.05
+  thresholds:
+    pass: 0.80
+    warning: 0.65
+    soft_block: 0.50
+```
+
+---
+
+## The Cypher Queries (What the Rules Actually Look Like)
+
+Each fitness function compiles to a parameterized Cypher query. Here are the most important ones:
+
+### Cyclic Dependencies (FF-S02)
+
+Finds circular import chains of length 2 or more:
+
+```cypher
+MATCH path = (f:File)-[:IMPORTS*2..]->(f)
+RETURN [n IN nodes(path) | n.filePath] AS cycle
+LIMIT 100
+```
+
+If this returns rows, each row is a cycle like `[auth.service.ts, user.service.ts, auth.service.ts]`.
+
+### Dependency Direction (FF-S01)
+
+Finds files in inner layers that import from outer layers (wrong direction):
+
+```cypher
+WITH $layerOrder AS layerOrder
+MATCH (src:File)-[:IMPORTS]->(tgt:File)
+WHERE src.layer IS NOT NULL AND tgt.layer IS NOT NULL
+  AND src.layer <> tgt.layer
+WITH src, tgt,
+     apoc.coll.indexOf(layerOrder, src.layer) AS srcIdx,
+     apoc.coll.indexOf(layerOrder, tgt.layer) AS tgtIdx
+WHERE srcIdx >= 0 AND tgtIdx >= 0 AND srcIdx < tgtIdx
+RETURN src.filePath AS source, tgt.filePath AS target,
+       src.layer AS srcLayer, tgt.layer AS tgtLayer
+```
+
+`$layerOrder` = `["domain", "infrastructure", "application", "presentation"]`. A file at index 0 (domain) importing from index 2 (application) has `srcIdx < tgtIdx` → violation.
+
+### Layer Skip (FF-S03)
+
+Finds imports that bypass intermediate layers:
+
+```cypher
+MATCH (src:File)-[:IMPORTS]->(tgt:File)
+WHERE src.layer IS NOT NULL AND tgt.layer IS NOT NULL
+  AND src.layer <> tgt.layer
+  AND NOT (src.layer + '>' + tgt.layer) IN $allowedTransitions
+RETURN src.filePath AS source, tgt.filePath AS target,
+       src.layer AS srcLayer, tgt.layer AS tgtLayer
+```
+
+`$allowedTransitions` = `["presentation>application", "application>infrastructure", "infrastructure>domain"]`. A controller (presentation) importing a repository (infrastructure) directly produces `"presentation>infrastructure"` which is NOT in the allowed list → violation.
+
+### Dependency Inversion (FF-P02)
+
+Checks whether application-layer classes inject interfaces or concrete classes:
+
+```cypher
+MATCH (c:Class)-[:CONSTRUCTOR_INJECTS]->(dep)
+WHERE c.layer = "application"
+WITH c,
+  count(CASE WHEN dep:Interface THEN 1 END) AS interfaceDeps,
+  count(dep) AS totalDeps
+WHERE totalDeps > 0
+RETURN c.name AS class, c.filePath AS filePath,
+       toFloat(interfaceDeps) / totalDeps AS ratio,
+       CASE WHEN toFloat(interfaceDeps) / totalDeps < 0.85
+            THEN true ELSE false END AS violation
+```
+
+If `AuthService` injects 4 concrete classes and 0 interfaces, `ratio = 0.0` which is below threshold 0.85 → violation.
+
+### Component Instability (FF-C03)
+
+Robert C. Martin's instability metric per file:
+
+```cypher
+MATCH (f:File) WHERE f.layer IS NOT NULL
+OPTIONAL MATCH (f)<-[:IMPORTS]-(incoming:File)
+OPTIONAL MATCH (f)-[:IMPORTS]->(outgoing:File)
+WITH f, count(DISTINCT incoming) AS fanIn, count(DISTINCT outgoing) AS fanOut
+WHERE fanIn + fanOut > 0
+WITH f, fanIn, fanOut, toFloat(fanOut) / (fanIn + fanOut) AS instability
+WHERE instability > 0.8
+RETURN f.filePath AS filePath, f.layer AS layer, instability
+```
+
+Instability = fanOut / (fanIn + fanOut). A file that imports 10 things but nothing imports it has instability 1.0. Threshold is 0.8.
+
+### Fan-Out (FF-C02)
+
+```cypher
+MATCH (f:File)-[:IMPORTS]->(dep:File)
+WITH f, count(DISTINCT dep) AS fanOut
+WHERE fanOut > 12
+RETURN f.filePath AS filePath, fanOut
+```
+
+### Single Responsibility Proxy (FF-SO01)
+
+```cypher
+MATCH (c:Class)
+OPTIONAL MATCH (c)-[:CONTAINS]->(m:Method)
+OPTIONAL MATCH (c)-[:CONSTRUCTOR_INJECTS]->(dep)
+WITH c, count(DISTINCT m) AS methodCount, count(DISTINCT dep) AS depCount
+WHERE methodCount > 10 OR depCount > 5
+RETURN c.name AS class, c.filePath AS filePath, methodCount, depCount
+```
+
+### Test File Pairing (FF-CV05)
+
+```cypher
+MATCH (src:File)
+WHERE src.layer IS NOT NULL
+  AND NOT src.isBarrel
+  AND NOT src.filePath CONTAINS '.spec.'
+  AND NOT src.filePath CONTAINS '.test.'
+  AND NOT EXISTS {
+    MATCH (test:File)
+    WHERE test.filePath = replace(src.filePath, '.ts', '.spec.ts')
+       OR test.filePath = replace(src.filePath, '.ts', '.test.ts')
+  }
+RETURN src.filePath AS filePath
+```
+
+### Abstraction Ratio (FF-C06)
+
+```cypher
+MATCH (n) WHERE n:Class OR n:Interface
+WITH count(CASE WHEN n:Interface THEN 1 END) AS interfaces,
+     count(n) AS total
+WHERE total > 0
+RETURN toFloat(interfaces) / total AS ratio,
+       CASE WHEN toFloat(interfaces) / total < 0.3
+            THEN true ELSE false END AS violation
+```
+
+---
+
+## Scoring
+
+### AVR (Aggregated Violation Ratio) — per dimension
+
+```
+AVR = violated_functions / total_functions_in_dimension
+```
+
+Example: Structural dimension has 4 functions (S01, S02, S03, S04). If only S02 has violations:
+```
+AVR_structural = 1/4 = 0.25
+```
+
+### AHS (Architectural Health Score) — single number
+
+```
+AHS = sum( weight_d * (1 - AVR_d) )
+
+AHS = 0.35 * (1 - 0.25)    structural
+    + 0.20 * (1 - 0.00)    coupling
+    + 0.30 * (1 - 0.50)    pattern
+    + 0.10 * (1 - 0.00)    solid
+    + 0.05 * (1 - 0.33)    convention
+    = 0.2625 + 0.20 + 0.15 + 0.10 + 0.0335
+    = 0.746   → WARNING
+```
+
+### Verdicts
+
+| AHS | Verdict | Exit code | CI behavior |
+|---|---|---|---|
+| >= 0.80 | pass | 0 | Green |
+| 0.65 - 0.79 | warning | 0 | Yellow (non-blocking) |
+| 0.50 - 0.64 | soft-block | 1 | Red (blocking) |
+| < 0.50 | hard-block | 1 | Red (blocking) |
+
+---
+
+## Engine Location and Invocation
+
+**Engine path**:
 ```
 /Volumes/Life-OS/Users/Arkatechie/Development/Archi-Firewall/DaedalusArch
 ```
 
----
+All CLI commands run from this directory with `--project` pointing at the target.
 
-## Invocation
-
-Available as a **user-level Claude Code command** from any project directory:
-
+**Invocation** — available as a user-level Claude Code command from any directory:
 ```
 /firewall
-/firewall /path/to/specific/project
+/firewall /path/to/target
 ```
 
-If no argument is given, the current working directory is evaluated.
-
-The command is defined at `~/.claude/commands/firewall.md`.
+Defined at `~/.claude/commands/firewall.md`.
 
 ---
 
-## Procedure — Step by Step
+## Procedure
 
-### Step 1: Resolve target path
+### Step 1: Check prerequisites
 
-Use the provided argument, or default to the current working directory.
+1. **Neo4j running**: `docker ps --filter "name=neo4j"` from engine dir. If not: `docker compose up -d`, wait 15s.
+2. **Target has node_modules/**: If missing, `cd <target> && npm install` (use `--legacy-peer-deps` for older projects).
+3. **Target tsconfig.json has `include`**: Must cover source files. If only project references (Nx/Turborepo), create flat tsconfig with `"include": ["src/**/*.ts"]`.
 
-Verify it has a `package.json`. If not, this is not a valid target — abort.
+### Step 2: Detect architecture style
 
----
+Read `<target>/package.json` dependencies:
+- `@nestjs/core` → NestJS → use `presets/nestjs.yaml`
+- No framework → use `presets/clean-architecture.yaml`
 
-### Step 2: Start Neo4j
-
-The APG needs a graph database. Neo4j runs locally via Docker.
+### Step 3: Copy preset to target
 
 ```bash
-cd $FIREWALL_HOME
-docker ps --filter "name=neo4j" --format "{{.Names}} {{.Status}}"
+cp $FIREWALL_HOME/presets/<style>.yaml <target>/firewall.spec.yaml
 ```
 
-If not running:
-```bash
-docker compose up -d
-```
+### Step 4: Add project-specific excludes
 
-Wait ~15 seconds for the health check. Neo4j listens on:
-- `bolt://localhost:7687` — Cypher query protocol (used by the pipeline)
-- `http://localhost:7474` — browser UI (useful for manual APG exploration)
+If `src/generated/`, `src/__generated__/`, or `src/migrations/` exist, add to `default_exclude_paths` in the spec.
 
-Credentials: `neo4j` / `daedalus-dev`
-
----
-
-### Step 3: Install target dependencies
-
-ts-morph (the static analysis engine) needs `node_modules/` to resolve import paths, type aliases, and barrel re-exports. Without it, files that import from packages will fail to resolve and the APG will have missing edges.
-
-```bash
-cd $TARGET_PATH
-ls node_modules/ 2>/dev/null || npm install
-```
-
-Use `--legacy-peer-deps` if npm fails on peer conflicts (common with older NestJS projects).
-
----
-
-### Step 4: Verify tsconfig.json
-
-The APG extractor discovers source files via `tsconfig.json`. It must have an `include` field that covers the source tree.
-
-Read `$TARGET_PATH/tsconfig.json` and check:
-- **Has `include`** with source paths (e.g., `"include": ["src/**/*.ts"]`) → good, proceed.
-- **Has only project references** with empty `include`/`files` (common in Nx/Turborepo monorepos) → the extractor will find zero files. Create a flat tsconfig:
-
-```json
-{
-  "extends": "../../tsconfig.base.json",
-  "compilerOptions": {
-    "types": ["node"],
-    "emitDecoratorMetadata": true,
-    "target": "es2021",
-    "module": "commonjs"
-  },
-  "exclude": ["**/*.spec.ts", "**/*.test.ts"],
-  "include": ["src/**/*.ts"]
-}
-```
-
-Adjust the `extends` path relative to the tsconfig location.
-
-**Why this matters**: ts-morph reads `tsconfig.json` to build its project model. If `include` is empty, it has nothing to parse. The Nx convention of project references (`"references": [{"path": "./tsconfig.app.json"}]`) is for `tsc --build` — ts-morph doesn't follow references.
-
----
-
-### Step 5: Detect architecture style
-
-Read `$TARGET_PATH/package.json` and check the `dependencies` object:
-
-| Signal in dependencies | Detected style | Preset to use |
-|---|---|---|
-| `@nestjs/core` | NestJS | `presets/nestjs.yaml` |
-| None of the above | Clean Architecture | `presets/clean-architecture.yaml` |
-
-Report the detected style and the evidence (e.g., "`@nestjs/core` v11.1.12 found in dependencies → NestJS").
-
----
-
-### Step 6: Copy preset
-
-```bash
-cp $FIREWALL_HOME/presets/<detected-style>.yaml $TARGET_PATH/firewall.spec.yaml
-```
-
-**What the preset contains**:
-
-The `firewall.spec.yaml` is the full evaluation configuration. It defines:
-
-**1. Layer definitions** — which files belong to which architectural layer.
-
-The NestJS preset uses two strategies simultaneously:
-- **`directories`** — explicit folder globs (e.g., `src/prisma/**` → infrastructure)
-- **`file_patterns`** — filename conventions (e.g., `*.service.ts` → application)
-
-Directory matches take priority. File patterns are a fallback for co-located feature modules where `auth.controller.ts`, `auth.service.ts`, and `auth.repository.ts` all live in the same `src/auth/` folder.
-
-| File pattern | Assigned layer | Role |
-|---|---|---|
-| `*.controller.ts` | presentation | HTTP boundary |
-| `*.module.ts` | presentation | DI wiring container |
-| `*.guard.ts`, `*.interceptor.ts`, `*.gateway.ts` | presentation | Cross-cutting HTTP concerns |
-| `*.service.ts`, `*.processor.ts` | application | Business logic |
-| `**/dto/**`, `*.dto.ts` | application | Data transfer objects |
-| `*.repository.ts` | infrastructure | Data access |
-| `*.worker.ts`, `**/workers/**` | infrastructure | Background processing |
-| `**/strategies/**` | infrastructure | Auth/external strategies |
-| `src/prisma/**`, `src/lib/**` | infrastructure | Database/utility |
-| `src/domain/**`, `src/core/**` | domain | Entities, value objects |
-
-**2. Layer ordering** — defines allowed dependency direction.
-
-NestJS preset order (inner → outer): **domain → infrastructure → application → presentation**
-
-This is different from clean-architecture (where infrastructure is outer). In NestJS, the practical dependency flow is `Controller → Service → Repository → ORM`, which maps to `presentation → application → infrastructure`.
-
-Only adjacent layers can depend on each other: `presentation → application` is allowed, `presentation → infrastructure` is a "layer skip" violation.
-
-`*.module.ts` files are excluded from layer-skip checking — NestJS modules are DI wiring that imports from all layers by design.
-
-**3. 24 fitness functions** across 5 dimensions:
-
-| Dimension | Functions | What they check |
-|---|---|---|
-| **structural** (4) | `dependency-direction`, `no-cyclic-deps`, `no-layer-skip`, `no-domain-outward-dep` | Do imports respect the layer hierarchy? Are there circular dependencies? |
-| **pattern** (5) | `domain-purity`, `dependency-inversion`, `repository-pattern`, `use-case-isolation`, `controller-no-entity` | Does application code depend on interfaces rather than concrete classes? Is the domain free of framework imports? |
-| **coupling** (6) | `domain-stability`, `module-fan-out`, `component-instability`, `no-orphan-files`, `max-fan-in`, `abstraction-ratio` | How tightly coupled are modules? Are there god classes with too many dependencies? What % of types are abstractions? |
-| **solid** (3) | `single-responsibility-proxy`, `interface-segregation-proxy`, `inheritance-depth` | Do classes have too many public methods or dependencies (SRP)? Are interfaces too large (ISP)? |
-| **convention** (6) | `naming-conventions`, `naming-services`, `naming-repos`, `naming-controllers`, `test-file-pairing`, `no-index-logic` | Do files follow naming conventions? Does every source file have a test? |
-
-Each function has a **severity** (critical, major, minor, advisory) and a **threshold** where applicable (e.g., fan-out > 12, instability > 0.8).
-
-**4. Scoring weights**:
-
-| Dimension | Weight |
-|---|---|
-| structural | 35% |
-| pattern | 30% |
-| coupling | 20% |
-| solid | 10% |
-| convention | 5% |
-
-**5. Verdict thresholds**: pass >= 0.80, warning >= 0.65, soft-block >= 0.50, hard-block < 0.50
-
-**6. Default exclude paths**: `node_modules/**`, `dist/**`, `**/*.spec.ts`, `**/*.test.ts`, `test/**`, `src/generated/**`
-
----
-
-### Step 7: Add project-specific excludes
-
-Scan `$TARGET_PATH/src/` for generated code. If any of these directories exist, add them to `default_exclude_paths` in `firewall.spec.yaml`:
-
-| Directory found | Add to excludes | Why |
-|---|---|---|
-| `src/generated/` | `src/generated/**` | Prisma/GraphQL codegen — circular refs are by design |
-| `src/__generated__/` | `src/__generated__/**` | Alternative codegen output |
-| `src/migrations/` | `src/migrations/**` | DB migrations follow their own patterns |
-
-**Why this matters**: Generated code creates noise — Prisma's generated client has circular imports by design, codegen output doesn't follow architectural conventions. Excluding it at the APG extraction stage (not just query time) prevents these files from entering the graph at all.
-
----
-
-### Step 8: Run evaluation and generate report
+### Step 5: Run evaluation + report
 
 ```bash
 cd $FIREWALL_HOME
@@ -288,193 +415,53 @@ cd $FIREWALL_HOME
 NEO4J_PASSWORD=daedalus-dev npx tsx -e "
 import { main } from './src/cli/cli.ts';
 main(['node', 'firewall', 'report',
-  '--project', '<TARGET_PATH>',
-  '--spec', '<TARGET_PATH>/firewall.spec.yaml',
-  '-o', '<TARGET_PATH>/report.html',
+  '--project', '<target>',
+  '--spec', '<target>/firewall.spec.yaml',
+  '-o', '<target>/report.html',
   '--symbolic-only', '--verbose']);
 "
 ```
 
-**What happens inside** (pipeline stages):
-
-```
-Stage 1 — Extract APG + Parse Spec (parallel, ~400ms)
-  Extract: ts-morph reads every .ts file in the project
-    → Builds AST for each file
-    → Extracts nodes (File, Class, Interface, Method, Function)
-    → Extracts edges (who imports whom, who implements what, constructor injection)
-    → Applies exclude patterns (default + project-specific)
-    → Reports parse coverage (e.g., "58 files, 100% parsed")
-  Parse: reads firewall.spec.yaml
-    → Validates against JSON schema
-    → Resolves template (merges preset functions with any overrides)
-    → Builds LayerModel (layer definitions + ordering)
-
-Stage 2 — Ingest APG into Neo4j (~200-400ms)
-  → Clears previous graph
-  → Creates :File, :Class, :Interface, :Method, :Function nodes
-  → Creates :IMPORTS, :IMPLEMENTS, :EXTENDS, etc. edges
-  → Layer Annotator runs: assigns each file a `layer` property
-    Priority: directory glob match → file_patterns match → class name match → decorator match
-    Files that match nothing get layer=null (excluded from layer-aware rules)
-
-Stage 3 — Compile Fitness Functions (~1ms)
-  → Reads the 24 fitness functions from the parsed spec
-  → Filters out disabled functions
-  → For each symbolic function, looks up its Cypher template
-  → Parameterizes each query with layer ordering, thresholds, allowed transitions
-  → Injects per-function exclude_paths as WHERE NOT clauses in the Cypher
-  → Output: array of ready-to-execute CypherQuery objects
-
-Stage 4 — Evaluate (~100-600ms)
-  → Executes each Cypher query against Neo4j
-  → Each query returns rows = violations (files that break the rule)
-  → Maps each row to a typed Violation with:
-    - File path
-    - Severity (critical / major / minor / advisory)
-    - Dimension (structural / coupling / pattern / solid / convention)
-    - Message explaining what violated and why
-    - Suggested fix
-  → Functions with zero result rows → passed
-
-Stage 5 — Score (~10-30ms)
-  → Groups violations by dimension
-  → Per dimension: AVR = violated_functions / total_functions_in_dimension
-    (proportional — 1 violation out of 4 structural functions = AVR 0.25, not 1.0)
-  → AHS = sum(weight_d * (1 - AVR_d)) across all dimensions
-  → Verdict based on AHS threshold
-
-Stage 6 — Generate Report
-  → Produces interactive HTML with embedded JavaScript
-  → AHS gauge, per-dimension charts, violation table
-  → Each violation clickable with full details
-```
-
----
-
-### Step 9: Create baseline
+### Step 6: Create baseline
 
 ```bash
 NEO4J_PASSWORD=daedalus-dev npx tsx -e "
 import { main } from './src/cli/cli.ts';
 main(['node', 'firewall', 'baseline',
-  '--project', '<TARGET_PATH>',
-  '--spec', '<TARGET_PATH>/firewall.spec.yaml',
-  '-o', '<TARGET_PATH>/baseline_violations.json',
+  '--project', '<target>',
+  '--spec', '<target>/firewall.spec.yaml',
+  '-o', '<target>/baseline_violations.json',
   '--verbose']);
 "
 ```
 
-**What this does**: Runs the same evaluation and saves all current violations as a JSON snapshot. In CI, future runs with `--baseline baseline_violations.json` only report NEW violations — existing ones are accepted. This enables incremental adoption: the team fixes issues over time without being overwhelmed on day one.
-
----
-
-### Step 10: Open report
+### Step 7: Open report and summarize
 
 ```bash
-open <TARGET_PATH>/report.html
+open <target>/report.html
 ```
 
----
-
-### Step 11: Present summary
-
-After evaluation, present:
-
-- **Project**: name, path, file count, detected framework
-- **AHS score** and **verdict**
-- **Per-dimension breakdown**:
-  - AVR score (0 = perfect, 1 = all functions violated)
-  - Violation count
-  - What the dimension measures
-- **Top 5 non-advisory violations** with:
-  - Severity and fitness function ID (e.g., `[critical] FF-P02`)
-  - File path
-  - What the violation means in plain language
-  - Suggested fix
-- **Universal metrics**:
-  - Cycle count — circular dependency chains found
-  - Max fan-out — highest number of outgoing imports from a single file
-  - Max fan-in — highest number of files importing a single file
-  - Abstraction ratio — % of types that are interfaces/abstract classes vs concrete
-  - Average instability — mean instability across all files (0 = stable, 1 = unstable)
-  - Orphan count — files with no import connections
-- **Files created**: `firewall.spec.yaml`, `report.html`, `baseline_violations.json`
-- **Interpretation**: what the score means for this specific project and what the highest-impact improvements would be
-
----
-
-## Reading the Results
-
-### AHS Formula
-
-```
-AHS = sum( weight_d * (1 - AVR_d) )  for each dimension d
-
-AVR_d = violated_functions_in_d / total_functions_in_d
-```
-
-A dimension with 0 violations has AVR=0, contributing its full weight to AHS.
-A dimension where every function has violations has AVR=1, contributing 0.
-
-### Verdict Thresholds
-
-| AHS Range | Verdict | What it means |
-|---|---|---|
-| >= 0.80 | **pass** | Architecture is healthy — no blocking issues |
-| 0.65 - 0.79 | **warning** | Issues exist but manageable — review recommended |
-| 0.50 - 0.64 | **soft-block** | Significant architectural problems — should address before scaling |
-| < 0.50 | **hard-block** | Severe — architecture impedes development at current scale |
-
-### Understanding Specific Violations
-
-| ID | Name | Severity | What the Cypher query checks | What it means in practice |
-|---|---|---|---|---|
-| FF-S01 | dependency-direction | critical | Files in inner layers importing from outer layers | Domain code depends on infrastructure — fragile, hard to test |
-| FF-S02 | no-cyclic-deps | critical | Import chains that form cycles (A→B→C→A) | Circular dependencies make modules impossible to extract or test independently |
-| FF-S03 | no-layer-skip | critical | Imports that skip intermediate layers (presentation → infrastructure) | Controller bypasses service layer, coupling HTTP boundary to data access |
-| FF-P01 | domain-purity | critical | Domain files importing framework packages (express, prisma, typeorm) | Domain logic coupled to infrastructure — can't reuse or test without the framework |
-| FF-P02 | dependency-inversion | critical | Service classes that inject concrete classes instead of interfaces | Tight coupling — can't swap implementations, mock for tests, or add decorators |
-| FF-P03 | repository-pattern | critical | Services accessing ORM directly without repository abstraction | Data access logic mixed into business logic |
-| FF-C02 | module-fan-out | major | Files with more outgoing imports than the threshold (default: 12) | God module — knows about too many things, hard to reason about |
-| FF-C03 | component-instability | major | Files where instability = fanOut/(fanIn+fanOut) exceeds 0.8 | Highly unstable — depends on many things, nothing depends on it |
-| FF-SO01 | single-responsibility-proxy | major | Classes with > 10 public methods OR > 5 constructor dependencies | Likely doing too many things — SRP violation signal |
-| FF-CV05 | test-file-pairing | advisory | Source files with no corresponding `.spec.ts` or `.test.ts` | No test coverage for this module |
-| FF-C06 | abstraction-ratio | advisory | Project-wide ratio of interfaces to concrete types below threshold (0.3) | Few abstractions — changes ripple through concrete dependencies |
+Present: AHS + verdict, per-dimension AVR breakdown, top violations with file paths and explanations, universal metrics, files created, interpretation of what the score means for this project.
 
 ---
 
 ## Reference Benchmarks
 
-Scores from 4 validated projects using the unmodified NestJS preset:
-
-| Project | Files | AHS | Verdict | Why it scored this way |
+| Project | Files | AHS | Verdict | Key characteristic |
 |---|---|---|---|---|
-| DevNest | 77 | 0.54 | soft-block | Zero interfaces (all DI violations), zero tests, services call Prisma directly |
-| Truthy | 131 | 0.69 | warning | Clean structure, but no DI and no tests |
-| Ghostfolio | 267 | 0.78 | warning | Perfect structural + SOLID, but 55 services inject concrete Prisma, no tests |
-| RealWorld | 34 | 0.80 | warning | Has interfaces, good abstraction ratio, but TypeORM entity cycles |
+| DevNest | 77 | 0.54 | soft-block | No interfaces, no tests, direct Prisma coupling |
+| Truthy | 131 | 0.69 | warning | Clean structure, no DI, no tests |
+| Ghostfolio | 267 | 0.78 | warning | Perfect structural/SOLID, DI violations across data providers |
+| RealWorld | 34 | 0.80 | warning | Has interfaces, TypeORM entity cycles |
 
 ---
 
 ## Troubleshooting
 
-| Error | Cause | Fix |
-|---|---|---|
-| `No .ts source files found` | Missing `node_modules/` or tsconfig has empty `include` | `npm install` in target; add `"include": ["src/**/*.ts"]` to tsconfig |
-| `authentication failure` | Wrong Neo4j password | Use `NEO4J_PASSWORD=daedalus-dev` |
-| `Unknown architecture style` | Style in spec not registered in template registry | Use `nestjs` or `clean-architecture` |
-| `Schema validation failed` | Invalid spec YAML structure | Each layer needs `name`, `roles`, and at least `directories` or `file_patterns` |
-| Pipeline hangs | Neo4j not running or not healthy | `docker compose up -d` from engine dir, wait 15s |
-| npm install fails | Peer dependency conflicts (older NestJS) | Use `--legacy-peer-deps` |
-| Very low score with many violations | Generated code not excluded | Add `src/generated/**` to `default_exclude_paths` in spec |
-
----
-
-## The Cross-Directory Problem
-
-The engine lives in `DaedalusArch/`. The target is a separate project. An agent working in the target directory needs to reach the engine.
-
-**Current solution**: The user-level command at `~/.claude/commands/firewall.md` carries the engine path and full procedure. It is available in every Claude Code session regardless of working directory. The agent reads it via `/firewall`, switches to the engine directory for CLI commands, and writes output files to the target directory.
-
-**Future solution**: Publish DaedalusArch as an npm package (`npx daedalus-arch evaluate --project .`) so no cross-directory navigation is needed.
+| Error | Fix |
+|---|---|
+| `No .ts source files found` | `npm install`; ensure tsconfig has `"include": ["src/**/*.ts"]` |
+| `authentication failure` | `NEO4J_PASSWORD=daedalus-dev` |
+| `Unknown architecture style` | Use `nestjs` or `clean-architecture` |
+| `Schema validation failed` | Each layer needs `name`, `roles`, and `directories` or `file_patterns` |
+| Pipeline hangs | `docker compose up -d` from engine dir |
