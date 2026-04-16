@@ -18,7 +18,7 @@ Run the requested tests and report results concisely. Do not read source files u
 - Lint: `npm run lint`
 
 ## Working directory
-Always run commands from: /Volumes/Life-OS/Users/Arkatechie/Development/Archi-Firewall/DaedalusArch
+Always run commands from the project root (the directory containing package.json).
 
 ## Output format
 Report:
