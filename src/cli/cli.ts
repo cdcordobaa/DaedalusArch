@@ -5,6 +5,8 @@ import type { PipelineConfig, OutputFormat } from '../pipeline/types.js';
 import type { BatchOptions, DriftOptions } from '../pipeline/types.js';
 import type { EvaluationMode } from '../shared/types/enums.js';
 import { formatJSON, formatHuman, formatCSV, csvHeader } from '../scoring-engine/index.js';
+import { generateReport } from '../report/report-generator.js';
+import { formatActionableHuman } from '../scoring-engine/report-formatter.js';
 import { runBatch } from './batch-runner.js';
 import { handleDrift } from './drift-handler.js';
 
@@ -225,6 +227,111 @@ program
 
     const exitCode = await handleDrift(driftOpts);
     process.exitCode = exitCode;
+  });
+
+// ── report command ──────────────────────────────────────────────────────────
+
+program
+  .command('report')
+  .description('Generate an interactive HTML report from evaluation results')
+  .requiredOption('--project <path>', 'Path to TypeScript project')
+  .requiredOption('--spec <path>', 'Path to AoC YAML spec')
+  .option('-o, --output <path>', 'Output HTML file path', 'report.html')
+  .option('--verbose', 'Enable verbose logging', false)
+  .option('--neo4j-uri <uri>', 'Neo4j bolt URI', process.env['NEO4J_URI'] ?? 'bolt://localhost:7687')
+  .option('--symbolic-only', 'Run symbolic evaluation only', false)
+  .option('--neuronal-only', 'Run neuronal evaluation only', false)
+  .action(async (opts: {
+    project: string;
+    spec: string;
+    output: string;
+    verbose: boolean;
+    neo4jUri: string;
+    symbolicOnly: boolean;
+    neuronalOnly: boolean;
+  }) => {
+    const evaluationMode = resolveEvaluationMode(opts.symbolicOnly, opts.neuronalOnly);
+
+    const config: PipelineConfig = {
+      projectPath: opts.project,
+      specFilePath: opts.spec,
+      neo4jUri: opts.neo4jUri,
+      neo4jUser: process.env['NEO4J_USER'] ?? 'neo4j',
+      neo4jPassword: process.env['NEO4J_PASSWORD'] ?? 'neo4j',
+      evaluationMode,
+      pipelineMode: 'stateless',
+      persist: false,
+      diff: false,
+      verbose: opts.verbose,
+      apgStorePath: process.env['APG_STORE_PATH'] ?? '.apg-store',
+      llmConfig: evaluationMode !== 'symbolic-only'
+        ? {
+            provider: (process.env['LLM_PROVIDER'] as 'claude' | 'openai' | undefined) ?? 'claude',
+            apiKey: process.env['ANTHROPIC_API_KEY'] ?? process.env['OPENAI_API_KEY'] ?? '',
+          }
+        : undefined,
+    };
+
+    if (evaluationMode !== 'symbolic-only' && !config.llmConfig?.apiKey) {
+      process.stderr.write(
+        'Error: LLM API key required for neuronal/full mode. Set ANTHROPIC_API_KEY or OPENAI_API_KEY.\n',
+      );
+      process.exit(2);
+    }
+
+    const { executor, context, cleanup } = createPipeline(config);
+
+    const onSignal = (): void => {
+      process.stderr.write('\nShutdown requested, finishing current stage...\n');
+      executor.requestShutdown();
+    };
+    process.on('SIGINT', onSignal);
+    process.on('SIGTERM', onSignal);
+
+    try {
+      if (opts.verbose) {
+        process.stderr.write(`Evaluating ${opts.project} (mode: ${evaluationMode})...\n`);
+      }
+
+      const pipelineResult = await executor.execute();
+
+      if (!pipelineResult.success) {
+        process.stderr.write(`Error: ${pipelineResult.errors.map((e) => e.message).join('; ')}\n`);
+        process.exit(2);
+      }
+
+      // Generate HTML report from pipeline context
+      const report = context.getReport();
+      const parsedSpec = context.getParsedSpec();
+      const apgResult = context.getApgResult();
+
+      // Extract project name from path
+      const projectName = opts.project.split('/').filter(Boolean).pop() ?? opts.project;
+
+      const reportResult = generateReport({
+        evaluationReport: report,
+        parsedSpec,
+        apgResult,
+        projectName,
+        specFilePath: opts.spec,
+        outputPath: opts.output,
+      });
+
+      if (!reportResult.success) {
+        process.stderr.write(`Error generating report: ${reportResult.errors.map((e) => e.message).join('; ')}\n`);
+        process.exit(2);
+      }
+
+      // Print actionable summary to stderr
+      process.stderr.write(formatActionableHuman(report, parsedSpec.fitnessFunctions) + '\n');
+      process.stderr.write(`\nReport written to ${reportResult.data.outputPath}\n`);
+
+      process.exitCode = exitCodeFromVerdict(report.verdict);
+    } finally {
+      process.removeListener('SIGINT', onSignal);
+      process.removeListener('SIGTERM', onSignal);
+      await cleanup();
+    }
   });
 
 export { program };
