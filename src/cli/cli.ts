@@ -429,6 +429,9 @@ program
       const report = context.getReport();
       const parsedSpec = context.getParsedSpec();
       const apgResult = context.getApgResult();
+      const evaluationResults = (() => {
+        try { return context.getEvaluationResults(); } catch { return undefined; }
+      })();
 
       const projectName = opts.project.split('/').filter(Boolean).pop() ?? opts.project;
 
@@ -436,6 +439,8 @@ program
         evaluationReport: report,
         parsedSpec,
         apgResult,
+        evaluationResults,
+        pipelineWarnings: context.warnings,
         projectName,
         specFilePath: opts.spec,
         outputPath: opts.output,

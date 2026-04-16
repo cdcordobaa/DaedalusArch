@@ -22,14 +22,22 @@ export function generateReport(input: ReportInput): DomainResult<ReportOutput> {
     evaluationReport,
     parsedSpec,
     apgResult,
+    evaluationResults,
+    pipelineWarnings,
     baselineResult,
     projectName,
     outputPath,
   } = input;
 
+  // Merge pipeline-level warnings into the report's warnings
+  // (the scoring engine doesn't propagate them today)
+  const reportWithWarnings = pipelineWarnings && pipelineWarnings.length > 0
+    ? { ...evaluationReport, warnings: [...evaluationReport.warnings, ...pipelineWarnings] }
+    : evaluationReport;
+
   // 1. Format violations
   const actionableViolations = formatAllActionableViolations(
-    evaluationReport.violations,
+    reportWithWarnings.violations,
     parsedSpec.fitnessFunctions,
     baselineResult,
   );
@@ -43,12 +51,13 @@ export function generateReport(input: ReportInput): DomainResult<ReportOutput> {
 
   // 3. Build dashboard data
   const dashboardData: DashboardData = buildDashboardData(
-    evaluationReport,
+    reportWithWarnings,
     parsedSpec,
     apgResult,
     actionableViolations,
     projectName,
     baselineResult,
+    evaluationResults,
   );
 
   // 4. Render HTML

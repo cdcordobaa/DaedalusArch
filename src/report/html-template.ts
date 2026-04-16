@@ -32,10 +32,14 @@ export function getHtmlTemplate(): string {
     .severity-advisory { background: #f0f9ff; color: #075985; border-color: #bae6fd; }
     .baseline-tag { background: #e5e7eb; color: #4b5563; }
     .new-tag { background: #fee2e2; color: #991b1b; }
+    .route-symbolic { background: #eff6ff; color: #1e40af; border: 1px solid #bfdbfe; }
+    .route-neuronal { background: #f5f3ff; color: #6b21a8; border: 1px solid #ddd6fe; }
+    .route-hybrid { background: #ecfdf5; color: #065f46; border: 1px solid #a7f3d0; }
     table th { cursor: pointer; user-select: none; }
     table th:hover { background: #f3f4f6; }
     .sort-asc::after { content: ' \\u25B2'; font-size: 0.65rem; }
     .sort-desc::after { content: ' \\u25BC'; font-size: 0.65rem; }
+    .pipeline-arrow { color: #94a3b8; font-size: 1.5rem; line-height: 1; }
   </style>
 </head>
 <body class="bg-gray-50 text-gray-900 min-h-screen">
@@ -59,6 +63,82 @@ export function getHtmlTemplate(): string {
   </header>
 
   <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
+
+    <!-- ═══ HOW IT WORKS ═══ -->
+    <section data-testid="how-it-works-section" class="bg-gradient-to-r from-indigo-50 to-purple-50 border border-indigo-200 rounded-lg p-5">
+      <div class="flex items-start justify-between">
+        <div>
+          <h2 class="text-base font-semibold text-indigo-900 mb-2">How this evaluation works</h2>
+          <p class="text-sm text-indigo-800 leading-relaxed">
+            <strong>Two evaluation paths run side-by-side.</strong>
+            The <span class="px-1.5 py-0.5 rounded text-xs route-symbolic">symbolic</span> path compiles fitness functions to Cypher queries that run against the Architectural Property Graph (APG) — fast, deterministic, structural.
+            The <span class="px-1.5 py-0.5 rounded text-xs route-neuronal">neuronal</span> path sends code + graph context to an LLM (Gemini) for semantic judgment — slow, probabilistic, intent-aware.
+            <span class="px-1.5 py-0.5 rounded text-xs route-hybrid">hybrid</span> functions run both, requiring agreement.
+            The combined score reflects what graphs can prove plus what reading the code reveals.
+          </p>
+        </div>
+        <button data-testid="toggle-explainer" class="text-xs text-indigo-600 hover:text-indigo-800 underline ml-4 flex-shrink-0">Hide</button>
+      </div>
+    </section>
+
+    <!-- ═══ DUAL SCORE COMPARISON ═══ -->
+    <section data-testid="dual-score-section" class="bg-white rounded-lg shadow p-6">
+      <h2 class="text-lg font-semibold mb-4">Symbolic vs Combined Score</h2>
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div class="border-2 border-blue-200 bg-blue-50 rounded-lg p-4 text-center">
+          <p class="text-xs uppercase tracking-wide text-blue-700 font-semibold">Symbolic AHS</p>
+          <p class="text-3xl font-bold text-blue-900 mt-1" data-testid="dual-symbolic-ahs"></p>
+          <p class="text-xs text-blue-600 mt-1"><span data-testid="dual-symbolic-count"></span> Cypher checks</p>
+        </div>
+        <div class="border-2 border-purple-200 bg-purple-50 rounded-lg p-4 text-center" data-testid="dual-combined-card">
+          <p class="text-xs uppercase tracking-wide text-purple-700 font-semibold">Combined AHS</p>
+          <p class="text-3xl font-bold text-purple-900 mt-1" data-testid="dual-combined-ahs"></p>
+          <p class="text-xs text-purple-600 mt-1">+ <span data-testid="dual-neuronal-count"></span> LLM judgments</p>
+        </div>
+        <div class="border-2 border-gray-200 rounded-lg p-4 text-center" data-testid="dual-delta-card">
+          <p class="text-xs uppercase tracking-wide text-gray-600 font-semibold">LLM Adjustment</p>
+          <p class="text-3xl font-bold mt-1" data-testid="dual-delta"></p>
+          <p class="text-xs text-gray-500 mt-1" data-testid="dual-delta-explainer"></p>
+        </div>
+      </div>
+      <div class="mt-4 p-3 bg-amber-50 border border-amber-200 rounded text-xs text-amber-800 hidden" data-testid="no-llm-warning">
+        <strong>Symbolic-only mode.</strong> Set <code class="font-mono bg-amber-100 px-1">GEMINI_API_KEY</code> and re-run to enable neuronal evaluation. The combined score will only differ from the symbolic score when neuronal functions have run.
+      </div>
+      <div class="mt-4 p-3 bg-red-50 border border-red-200 rounded text-xs text-red-800 hidden" data-testid="llm-error-warning">
+        <strong>LLM call failed.</strong> The neuronal evaluations were attempted but the LLM rejected them. Likely causes: API quota exhausted, invalid key, or rate limit. See details below.
+        <ul class="mt-2 ml-4 list-disc space-y-1" data-testid="llm-error-list"></ul>
+      </div>
+    </section>
+
+    <!-- ═══ PIPELINE TRACE ═══ -->
+    <section data-testid="pipeline-trace-section" class="bg-white rounded-lg shadow p-6">
+      <h2 class="text-lg font-semibold mb-4">Pipeline Trace</h2>
+      <div class="flex flex-wrap items-center justify-around gap-2">
+        <div class="text-center">
+          <p class="text-2xl font-bold text-gray-900" data-testid="trace-apg-nodes"></p>
+          <p class="text-xs text-gray-500">APG nodes</p>
+          <p class="text-xs text-gray-400" data-testid="trace-apg-edges"></p>
+        </div>
+        <span class="pipeline-arrow">→</span>
+        <div class="text-center">
+          <p class="text-2xl font-bold text-blue-700" data-testid="trace-symbolic-queries"></p>
+          <p class="text-xs text-blue-600">Cypher queries</p>
+          <p class="text-xs text-gray-400">symbolic</p>
+        </div>
+        <span class="pipeline-arrow">→</span>
+        <div class="text-center">
+          <p class="text-2xl font-bold text-purple-700" data-testid="trace-neuronal-calls"></p>
+          <p class="text-xs text-purple-600">LLM calls</p>
+          <p class="text-xs text-gray-400" data-testid="trace-llm-status"></p>
+        </div>
+        <span class="pipeline-arrow">→</span>
+        <div class="text-center">
+          <p class="text-2xl font-bold text-gray-900" data-testid="trace-disabled"></p>
+          <p class="text-xs text-gray-500">disabled</p>
+          <p class="text-xs text-gray-400">skipped</p>
+        </div>
+      </div>
+    </section>
 
     <!-- ═══ AHS SCORE ═══ -->
     <section data-testid="ahs-section" class="bg-white rounded-lg shadow p-6">
@@ -103,10 +183,46 @@ export function getHtmlTemplate(): string {
       </div>
     </section>
 
-    <!-- ═══ FITNESS FUNCTION CARDS ═══ -->
+    <!-- ═══ FITNESS FUNCTION CARDS — grouped by route ═══ -->
     <section data-testid="fitness-section" class="bg-white rounded-lg shadow p-6">
       <h2 class="text-lg font-semibold mb-4">Fitness Functions</h2>
-      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4" data-testid="fitness-cards-grid"></div>
+
+      <!-- Symbolic group -->
+      <div class="mb-6" data-testid="fitness-group-symbolic">
+        <h3 class="text-sm font-semibold text-blue-900 mb-2 flex items-center gap-2">
+          <span class="px-2 py-0.5 rounded text-xs route-symbolic">symbolic</span>
+          <span class="text-gray-600 font-normal" data-testid="group-symbolic-summary"></span>
+        </h3>
+        <p class="text-xs text-gray-500 mb-3">Cypher queries against the APG. Deterministic structural checks.</p>
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4" data-testid="fitness-grid-symbolic"></div>
+      </div>
+
+      <!-- Neuronal group -->
+      <div class="mb-6" data-testid="fitness-group-neuronal">
+        <h3 class="text-sm font-semibold text-purple-900 mb-2 flex items-center gap-2">
+          <span class="px-2 py-0.5 rounded text-xs route-neuronal">neuronal</span>
+          <span class="text-gray-600 font-normal" data-testid="group-neuronal-summary"></span>
+        </h3>
+        <p class="text-xs text-gray-500 mb-3">LLM judgment on semantic intent. Reads code and graph context.</p>
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4" data-testid="fitness-grid-neuronal"></div>
+      </div>
+
+      <!-- Hybrid group -->
+      <div data-testid="fitness-group-hybrid">
+        <h3 class="text-sm font-semibold text-emerald-900 mb-2 flex items-center gap-2">
+          <span class="px-2 py-0.5 rounded text-xs route-hybrid">hybrid</span>
+          <span class="text-gray-600 font-normal" data-testid="group-hybrid-summary"></span>
+        </h3>
+        <p class="text-xs text-gray-500 mb-3">Symbolic check first, then LLM confirmation. Highest confidence when both agree.</p>
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4" data-testid="fitness-grid-hybrid"></div>
+      </div>
+    </section>
+
+    <!-- ═══ NEURONAL VERDICTS DETAIL ═══ -->
+    <section data-testid="neuronal-section" class="bg-white rounded-lg shadow p-6 hidden">
+      <h2 class="text-lg font-semibold mb-2">Neuronal Verdicts</h2>
+      <p class="text-xs text-gray-500 mb-4">Each neuronal function ran 3 times. ICC measures inter-run agreement (1.0 = identical, &lt; 0.7 = unstable).</p>
+      <div class="space-y-3" data-testid="neuronal-verdicts-list"></div>
     </section>
 
     <!-- ═══ VIOLATIONS EXPLORER ═══ -->
@@ -373,31 +489,201 @@ export function getHtmlTemplate(): string {
       });
     }
 
-    // ── Fitness Cards ────────────────────────────────────────────────
-    function renderFitnessCards() {
-      const grid = $('[data-testid="fitness-cards-grid"]');
-      if (!grid) return;
-      grid.innerHTML = '';
+    // ── Fitness Cards (grouped by route) ─────────────────────────────
+    function buildCardHtml(ff) {
+      var badge = ff.passed
+        ? '<span class="px-2 py-0.5 text-xs rounded-full bg-green-100 text-green-700">PASS</span>'
+        : '<span class="px-2 py-0.5 text-xs rounded-full bg-red-100 text-red-700">FAIL</span>';
 
-      for (const ff of DASHBOARD_DATA.fitnessFunctions) {
-        const badge = ff.passed
-          ? '<span class="px-2 py-0.5 text-xs rounded-full bg-green-100 text-green-700">PASS</span>'
-          : '<span class="px-2 py-0.5 text-xs rounded-full bg-red-100 text-red-700">FAIL</span>';
+      var threshold = ff.threshold != null ? '<p class="text-xs text-gray-400 mt-1">Threshold: ' + ff.threshold + '</p>' : '';
 
-        const threshold = ff.threshold != null ? '<p class="text-xs text-gray-400 mt-1">Threshold: ' + ff.threshold + '</p>' : '';
+      var routeBadge = '<span class="px-1.5 py-0.5 text-xs rounded route-' + ff.route + '">' + ff.route + '</span>';
 
-        grid.innerHTML += '<div class="border rounded-lg p-4 ' + (ff.passed ? 'border-green-200' : 'border-red-200') +
-          '" data-testid="fitness-card">' +
-          '<div class="flex items-center justify-between mb-2">' +
-            '<span class="text-xs font-mono text-gray-400">' + ff.id + '</span>' +
-            badge +
-          '</div>' +
-          '<h3 class="text-sm font-medium">' + ff.name + '</h3>' +
-          '<p class="text-xs text-gray-500 capitalize mt-1">' + ff.dimension + ' | ' + ff.severity + '</p>' +
-          threshold +
-          (ff.violationCount > 0 ? '<p class="text-xs text-red-500 mt-1">' + ff.violationCount + ' violation(s)</p>' : '') +
+      var neuronalInfo = '';
+      if (ff.neuronalVerdict) {
+        var nv = ff.neuronalVerdict;
+        var iccColor = nv.icc >= 0.85 ? 'text-green-600' : nv.icc >= 0.7 ? 'text-yellow-600' : 'text-red-600';
+        neuronalInfo = '<div class="mt-2 pt-2 border-t border-gray-100 text-xs">' +
+          '<p class="text-gray-500">LLM confidence: <span class="font-mono font-medium">' + (nv.confidence * 100).toFixed(0) + '%</span></p>' +
+          '<p class="text-gray-500">ICC (3 runs): <span class="font-mono font-medium ' + iccColor + '">' + nv.icc.toFixed(2) + '</span>' +
+          (nv.flaggedUnstable ? ' <span class="text-red-600">⚠ unstable</span>' : '') + '</p>' +
         '</div>';
       }
+
+      return '<div class="border rounded-lg p-4 ' + (ff.passed ? 'border-green-200' : 'border-red-200') +
+        '" data-testid="fitness-card">' +
+        '<div class="flex items-center justify-between mb-2">' +
+          '<span class="text-xs font-mono text-gray-400">' + ff.id + '</span>' +
+          '<div class="flex gap-1">' + routeBadge + ' ' + badge + '</div>' +
+        '</div>' +
+        '<h3 class="text-sm font-medium">' + ff.name + '</h3>' +
+        '<p class="text-xs text-gray-500 capitalize mt-1">' + ff.dimension + ' | ' + ff.severity + '</p>' +
+        threshold +
+        (ff.violationCount > 0 ? '<p class="text-xs text-red-500 mt-1">' + ff.violationCount + ' violation(s)</p>' : '') +
+        neuronalInfo +
+      '</div>';
+    }
+
+    function renderFitnessCards() {
+      var groups = { symbolic: [], neuronal: [], hybrid: [] };
+      for (var i = 0; i < DASHBOARD_DATA.fitnessFunctions.length; i++) {
+        var ff = DASHBOARD_DATA.fitnessFunctions[i];
+        if (groups[ff.route]) groups[ff.route].push(ff);
+      }
+
+      ['symbolic', 'neuronal', 'hybrid'].forEach(function(route) {
+        var grid = $('[data-testid="fitness-grid-' + route + '"]');
+        var summary = $('[data-testid="group-' + route + '-summary"]');
+        var groupSection = $('[data-testid="fitness-group-' + route + '"]');
+        var items = groups[route];
+
+        if (items.length === 0) {
+          if (groupSection) groupSection.style.display = 'none';
+          return;
+        }
+
+        var passed = items.filter(function(f) { return f.passed; }).length;
+        if (summary) summary.textContent = '— ' + passed + '/' + items.length + ' passed';
+
+        if (grid) {
+          grid.innerHTML = '';
+          for (var j = 0; j < items.length; j++) {
+            grid.innerHTML += buildCardHtml(items[j]);
+          }
+        }
+      });
+    }
+
+    // ── Neuronal Verdicts Detail Panel ───────────────────────────────
+    function renderNeuronalVerdicts() {
+      var withVerdicts = DASHBOARD_DATA.fitnessFunctions.filter(function(f) { return f.neuronalVerdict; });
+      var section = $('[data-testid="neuronal-section"]');
+      if (!section || withVerdicts.length === 0) return;
+
+      section.classList.remove('hidden');
+      var list = $('[data-testid="neuronal-verdicts-list"]');
+      if (!list) return;
+      list.innerHTML = '';
+
+      for (var i = 0; i < withVerdicts.length; i++) {
+        var ff = withVerdicts[i];
+        var nv = ff.neuronalVerdict;
+        var verdictBg = nv.verdict === 'pass' ? 'bg-green-50 border-green-200' :
+                       nv.verdict === 'fail' ? 'bg-red-50 border-red-200' :
+                       'bg-yellow-50 border-yellow-200';
+        var verdictColor = nv.verdict === 'pass' ? 'text-green-700' :
+                          nv.verdict === 'fail' ? 'text-red-700' : 'text-yellow-700';
+        var iccColor = nv.icc >= 0.85 ? 'text-green-600' : nv.icc >= 0.7 ? 'text-yellow-600' : 'text-red-600';
+
+        var evidence = '';
+        if (nv.evidence && nv.evidence.length > 0) {
+          evidence = '<div class="mt-2"><p class="text-xs font-semibold text-gray-600">Evidence:</p><ul class="text-xs text-gray-700 list-disc list-inside ml-2">';
+          for (var e = 0; e < nv.evidence.length; e++) {
+            evidence += '<li>' + escapeHtml(nv.evidence[e]) + '</li>';
+          }
+          evidence += '</ul></div>';
+        }
+
+        list.innerHTML += '<div class="border rounded-lg p-4 ' + verdictBg + '">' +
+          '<div class="flex items-center justify-between mb-2">' +
+            '<div>' +
+              '<span class="text-xs font-mono text-gray-500">' + escapeHtml(ff.id) + '</span> ' +
+              '<span class="font-medium">' + escapeHtml(ff.name) + '</span>' +
+              ' <span class="px-1.5 py-0.5 text-xs rounded route-' + ff.route + '">' + ff.route + '</span>' +
+            '</div>' +
+            '<span class="px-2 py-0.5 text-xs rounded font-semibold uppercase ' + verdictColor + '">' + nv.verdict + '</span>' +
+          '</div>' +
+          '<div class="grid grid-cols-3 gap-2 text-xs mt-2">' +
+            '<div><span class="text-gray-500">Confidence:</span> <span class="font-mono font-medium">' + (nv.confidence * 100).toFixed(0) + '%</span></div>' +
+            '<div><span class="text-gray-500">ICC (' + nv.runCount + ' runs):</span> <span class="font-mono font-medium ' + iccColor + '">' + nv.icc.toFixed(3) + '</span></div>' +
+            '<div><span class="text-gray-500">Std dev:</span> <span class="font-mono font-medium">±' + nv.confidenceStdDev.toFixed(3) + '</span></div>' +
+          '</div>' +
+          '<div class="mt-2 pt-2 border-t border-gray-200">' +
+            '<p class="text-xs font-semibold text-gray-600">LLM reasoning:</p>' +
+            '<p class="text-xs text-gray-700 mt-1 whitespace-pre-wrap">' + escapeHtml(nv.reasoning) + '</p>' +
+          '</div>' +
+          evidence +
+        '</div>';
+      }
+    }
+
+    // ── Dual Score ──────────────────────────────────────────────────
+    function renderDualScore() {
+      var d = DASHBOARD_DATA.dualScore;
+      var t = DASHBOARD_DATA.pipelineTrace;
+      setText('[data-testid="dual-symbolic-ahs"]', (d.symbolicAhs * 100).toFixed(1) + '%');
+      setText('[data-testid="dual-symbolic-count"]', d.symbolicCount);
+
+      var combinedCard = $('[data-testid="dual-combined-card"]');
+      var deltaCard = $('[data-testid="dual-delta-card"]');
+      var warning = $('[data-testid="no-llm-warning"]');
+      var errWarning = $('[data-testid="llm-error-warning"]');
+      var errList = $('[data-testid="llm-error-list"]');
+
+      // Surface LLM failures (e.g. 429 quota exhausted) prominently
+      if (t.llmWarnings && t.llmWarnings.length > 0 && errWarning && errList) {
+        errWarning.classList.remove('hidden');
+        errList.innerHTML = '';
+        for (var w = 0; w < t.llmWarnings.length; w++) {
+          var msg = t.llmWarnings[w].message;
+          // Truncate very long error messages
+          if (msg.length > 250) msg = msg.slice(0, 250) + '...';
+          errList.innerHTML += '<li><span class="font-mono text-red-700">' + escapeHtml(t.llmWarnings[w].code) + '</span> — ' + escapeHtml(msg) + '</li>';
+        }
+      }
+
+      if (d.combinedAhs != null && d.hasNeuronal) {
+        setText('[data-testid="dual-combined-ahs"]', (d.combinedAhs * 100).toFixed(1) + '%');
+        setText('[data-testid="dual-neuronal-count"]', d.neuronalCount);
+
+        var deltaPct = (d.delta * 100);
+        var deltaText = (deltaPct >= 0 ? '+' : '') + deltaPct.toFixed(1) + '%';
+        var deltaEl = $('[data-testid="dual-delta"]');
+        if (deltaEl) {
+          deltaEl.textContent = deltaText;
+          deltaEl.className = 'text-3xl font-bold mt-1 ' + (deltaPct > 0 ? 'text-green-600' : deltaPct < 0 ? 'text-red-600' : 'text-gray-600');
+        }
+        var explainer = deltaPct > 0 ? 'LLM agrees + finds passes Cypher missed' :
+                       deltaPct < 0 ? 'LLM finds violations Cypher missed' :
+                       'LLM agrees with symbolic verdict';
+        setText('[data-testid="dual-delta-explainer"]', explainer);
+      } else {
+        if (combinedCard) combinedCard.style.opacity = '0.4';
+        if (deltaCard) deltaCard.style.opacity = '0.4';
+        setText('[data-testid="dual-combined-ahs"]', '—');
+        setText('[data-testid="dual-neuronal-count"]', '0');
+        setText('[data-testid="dual-delta"]', '—');
+        setText('[data-testid="dual-delta-explainer"]', 'No LLM provider');
+        if (warning) warning.classList.remove('hidden');
+      }
+    }
+
+    // ── Pipeline Trace ──────────────────────────────────────────────
+    function renderPipelineTrace() {
+      var t = DASHBOARD_DATA.pipelineTrace;
+      setText('[data-testid="trace-apg-nodes"]', t.apgNodes);
+      setText('[data-testid="trace-apg-edges"]', t.apgEdges + ' edges');
+      setText('[data-testid="trace-symbolic-queries"]', t.symbolicQueries);
+      setText('[data-testid="trace-neuronal-calls"]', t.llmAvailable ? t.neuronalCalls : '0');
+      setText('[data-testid="trace-llm-status"]', t.llmAvailable ? (t.llmModel || 'gemini') : 'no LLM');
+      setText('[data-testid="trace-disabled"]', t.disabledFunctions);
+    }
+
+    // ── Explainer toggle ────────────────────────────────────────────
+    function setupExplainerToggle() {
+      var btn = $('[data-testid="toggle-explainer"]');
+      var section = $('[data-testid="how-it-works-section"]');
+      if (!btn || !section) return;
+      var p = section.querySelector('p');
+      btn.addEventListener('click', function() {
+        if (p.style.display === 'none') {
+          p.style.display = '';
+          btn.textContent = 'Hide';
+        } else {
+          p.style.display = 'none';
+          btn.textContent = 'Show';
+        }
+      });
     }
 
     // ── Violations Explorer ──────────────────────────────────────────
@@ -537,9 +823,13 @@ export function getHtmlTemplate(): string {
     // ── Boot ─────────────────────────────────────────────────────────
     function init() {
       renderHeader();
+      setupExplainerToggle();
+      renderDualScore();
+      renderPipelineTrace();
       renderAHS();
       renderGraph();
       renderFitnessCards();
+      renderNeuronalVerdicts();
       setupViolationsFilters();
       renderBaseline();
       renderSummary();

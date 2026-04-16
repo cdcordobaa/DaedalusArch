@@ -1,9 +1,9 @@
 import type { ActionableViolation } from '../shared/taxonomy/violation-types.js';
-import type { EvaluationReport } from '../shared/types/evaluation.js';
+import type { EvaluationReport, EvaluationResults } from '../shared/types/evaluation.js';
 import type { ParsedSpec } from '../shared/types/spec.js';
 import type { APGResult } from '../shared/types/apg.js';
 import type { BaselineResult } from '../shared/types/baseline.js';
-import type { Dimension, Severity, OverallVerdict, EvaluationMode } from '../shared/types/enums.js';
+import type { Dimension, Severity, OverallVerdict, EvaluationMode, Route } from '../shared/types/enums.js';
 
 // ── Report Generator Input / Output ──────────────────────────────────────────
 
@@ -11,6 +11,8 @@ export interface ReportInput {
   readonly evaluationReport: EvaluationReport;
   readonly parsedSpec: ParsedSpec;
   readonly apgResult: APGResult;
+  readonly evaluationResults?: EvaluationResults | undefined;
+  readonly pipelineWarnings?: readonly import('../shared/errors/domain-result.js').PipelineWarning[] | undefined;
   readonly baselineResult?: BaselineResult | undefined;
   readonly projectName: string;
   readonly specFilePath: string;
@@ -87,6 +89,47 @@ export interface FitnessFunctionCardData {
   readonly threshold?: number | undefined;
   readonly severity: Severity;
   readonly violationCount: number;
+  readonly route: Route;
+  readonly neuronalVerdict?: NeuronalVerdictData | undefined;
+}
+
+export interface NeuronalVerdictData {
+  readonly verdict: 'pass' | 'fail' | 'warning';
+  readonly confidence: number;
+  readonly confidenceStdDev: number;
+  readonly icc: number;
+  readonly reasoning: string;
+  readonly evidence: readonly string[];
+  readonly runCount: number;
+  readonly flaggedUnstable: boolean;
+}
+
+export interface PipelineTraceData {
+  readonly apgNodes: number;
+  readonly apgEdges: number;
+  readonly symbolicQueries: number;
+  readonly neuronalCalls: number;
+  readonly hybridPairs: number;
+  readonly disabledFunctions: number;
+  readonly llmAvailable: boolean;
+  readonly llmModel?: string | undefined;
+  readonly llmWarnings: readonly LLMWarningData[];
+}
+
+export interface LLMWarningData {
+  readonly code: string;
+  readonly message: string;
+}
+
+export interface DualScoreData {
+  readonly symbolicAhs: number;
+  readonly combinedAhs?: number | undefined;
+  readonly delta?: number | undefined;
+  readonly hasNeuronal: boolean;
+  readonly symbolicCount: number;
+  readonly neuronalCount: number;
+  readonly neuronalPassed: number;
+  readonly neuronalFailed: number;
 }
 
 export interface BaselineSplitData {
@@ -108,6 +151,8 @@ export interface SummaryStatsData {
 export interface DashboardData {
   readonly header: HeaderData;
   readonly ahsScore: AHSScoreData;
+  readonly dualScore: DualScoreData;
+  readonly pipelineTrace: PipelineTraceData;
   readonly fitnessFunctions: readonly FitnessFunctionCardData[];
   readonly violations: readonly ActionableViolation[];
   readonly baseline: BaselineSplitData | null;
