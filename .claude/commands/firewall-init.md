@@ -1,179 +1,250 @@
 # Architectonic Firewall — Project Init
 
-Generate a tailored `firewall.spec.yaml` for a TypeScript project. This skill scans the codebase, classifies the architecture style, selects a preset, maps directories to layers, and produces a ready-to-use spec.
+Generate a tailored `firewall.spec.yaml` for a TypeScript project, run the first evaluation, create a baseline, and produce an HTML report.
+
+**Usage**: `/firewall-init --project <path-to-target-project>`
 
 ## Prerequisites
 
-- The Architectonic Firewall CLI must be installed (`npx firewall --help` should work)
-- Neo4j must be running locally (`docker compose up -d neo4j`)
+- Neo4j must be running locally (`docker compose up -d` from DaedalusArch root)
 - The target project must be a TypeScript project with `package.json` and `tsconfig.json`
+- The target project must have dependencies installed (`npm install`)
 
 ## Workflow
 
-### Step 1: Scan Project Structure
+### Step 1: Validate prerequisites
+
+1. Check Neo4j is running: `docker ps --filter "name=neo4j"`
+2. Check the target project exists and has `package.json` + `tsconfig.json`
+3. Check `node_modules/` exists in the target — if not, warn the user to run `npm install`
+
+### Step 2: Scan project structure
 
 Read the project to gather structural signals:
 
 1. Read `package.json` — check dependencies for framework markers:
-   - `@nestjs/core` → NestJS project
-   - No framework markers → Clean Architecture / plain TypeScript
-2. Read `tsconfig.json` — note path aliases and source roots
+   - `@nestjs/core` in dependencies → **NestJS** project
+   - No framework markers → **Clean Architecture** / plain TypeScript
+2. Read `tsconfig.json` — check for:
+   - `include` field: must include source files (not just project references)
+   - Path aliases: note any `@app/*`, `@core/*`, etc.
+   - If `tsconfig.json` uses project references with empty `include`/`files`, check for `tsconfig.app.json` and warn that a flat tsconfig is needed for ts-morph
 3. List the `src/` directory tree (2 levels deep) to understand folder structure
-4. Count files per top-level directory under `src/`
+4. Count `.ts` files per top-level directory under `src/`
 
-### Step 2: Classify Architecture Style
+### Step 3: Classify architecture style
 
 Based on structural signals, classify as one of:
 - **nestjs**: `@nestjs/core` in dependencies
 - **clean-architecture**: No framework markers (default)
 
-Report the classification and the evidence that led to it.
+Report the classification and evidence to the user.
 
-### Step 3: Select Preset
+### Step 4: Detect project shape (NestJS only)
 
-Load the matching preset template:
-- `presets/clean-architecture.yaml` for clean-architecture
-- `presets/nestjs.yaml` for NestJS
+For NestJS projects, determine if the project uses:
 
-### Step 4: Map Directories to Layers
+**A) Layered directories** — explicit `src/domain/`, `src/application/`, `src/infrastructure/` folders
+**B) Feature modules (co-located)** — `src/auth/`, `src/users/`, etc. where each module contains its own controller, service, repository, DTOs
 
-Examine the actual project directory structure and map folders to architectural layers:
+Most real-world NestJS projects use shape B. The preset handles BOTH shapes via `file_patterns` fallback — no manual tuning needed.
 
-**For clean-architecture:**
-- Domain layer: `src/domain/`, `src/core/`, `src/entities/`, `src/models/`
-- Application layer: `src/application/`, `src/use-cases/`, `src/services/`
-- Infrastructure layer: `src/infrastructure/`, `src/infra/`, `src/adapters/`, `src/persistence/`
+### Step 5: Select and copy preset
 
-**For nestjs:**
-- Domain layer: `src/domain/`, `src/core/`
-- Application layer: `src/application/`, `src/use-cases/`, `src/services/`
-- Infrastructure layer: `src/infrastructure/`, `src/persistence/`, `src/adapters/`
-- Presentation layer: `src/controllers/`, `src/modules/`, `src/gateways/`
+Copy the matching preset to the target project root:
 
-Only include directories that actually exist in the project. Add glob suffixes (`/**`).
-
-### Step 5: Customize Exclude Paths
-
-Add project-specific exclude paths:
-- Always: `node_modules/**`, `dist/**`, `**/*.spec.ts`, `**/*.test.ts`
-- If `test/` or `tests/` exists: `test/**` or `tests/**`
-- If generated code dirs exist (e.g., `generated/`, `__generated__/`): add them
-
-### Step 6: Generate firewall.spec.yaml
-
-Create `firewall.spec.yaml` in the project root by:
-1. Starting from the preset template
-2. Replacing placeholder layer directories with actual project paths
-3. Adding project-specific exclude paths
-
-Present the generated spec to the user for review.
-
-### Step 7: Validate the Spec
-
-Run:
 ```bash
-npx firewall validate --spec firewall.spec.yaml --project .
+cp DaedalusArch/presets/nestjs.yaml <target>/firewall.spec.yaml
+# or
+cp DaedalusArch/presets/clean-architecture.yaml <target>/firewall.spec.yaml
 ```
 
-If validation fails, fix the issues and regenerate.
+**IMPORTANT**: The NestJS preset works out of the box for both layered and feature-module projects. It uses `file_patterns` to assign layers per file:
 
-### Step 8: Run First Evaluation
+| File pattern | Layer | Role |
+|---|---|---|
+| `*.controller.ts` | presentation | controller |
+| `*.module.ts` | presentation | module |
+| `*.guard.ts` | presentation | guard |
+| `*.interceptor.ts` | presentation | interceptor |
+| `*.service.ts` | application | service |
+| `*.processor.ts` | application | processor |
+| `**/dto/**`, `*.dto.ts` | application | dto |
+| `*.repository.ts` | infrastructure | repository |
+| `*.worker.ts` | infrastructure | worker |
+| `**/strategies/**` | infrastructure | strategy |
 
-After user approves the spec:
+Layer order (inner to outer): **domain → infrastructure → application → presentation**
+
+Dependency direction: outer layers may import from adjacent inner layers. `*.module.ts` files are excluded from layer-skip checking because they are NestJS DI wiring.
+
+### Step 6: Customize exclude paths
+
+Check for project-specific paths to exclude and add them to `default_exclude_paths` in the spec:
+
+- If `src/generated/` or `src/__generated__/` exists → add `src/generated/**`
+- If `prisma/` has generated client in `src/` → add the generated path
+- If `migrations/` exist → add `src/migrations/**`
+- If `test/` or `tests/` exists and not already listed → add it
+
+### Step 7: Validate the spec
+
+Run from the DaedalusArch directory:
+
 ```bash
-npx firewall evaluate --spec firewall.spec.yaml --project . --format json --symbolic-only
+NEO4J_PASSWORD=daedalus-dev npx tsx -e "
+import { main } from './src/cli/cli.ts';
+main(['node', 'firewall', 'validate',
+  '--spec', '<target>/firewall.spec.yaml',
+  '--project', '<target>']);
+"
 ```
 
-Present a summary:
-- AHS score
-- Verdict (pass/warning/soft-block/hard-block)
-- Number of violations by severity
-- Top 5 most impactful violations
+Expected: `Spec valid: N fitness functions, L layers, 0 errors`
 
-### Step 9: Create Baseline
+If validation fails, fix the spec and retry.
 
-If the evaluation found violations:
+### Step 8: Run first evaluation
+
 ```bash
-npx firewall baseline --spec firewall.spec.yaml --project . -o baseline_violations.json
+NEO4J_PASSWORD=daedalus-dev npx tsx -e "
+import { main } from './src/cli/cli.ts';
+main(['node', 'firewall', 'evaluate',
+  '--project', '<target>',
+  '--spec', '<target>/firewall.spec.yaml',
+  '--symbolic-only',
+  '--format', 'json',
+  '--verbose']);
+"
 ```
 
-Report: "Baseline created with N existing violations. Future new violations will block CI."
+Present a summary to the user:
+- **AHS score** and **verdict** (pass / warning / soft-block / hard-block)
+- **Per-dimension breakdown** (structural, coupling, pattern, solid, convention)
+- **Violation counts** by severity (critical, major, minor, advisory)
+- **Top 5 violations** with file paths and explanations
+- **Universal metrics** (cycles, max fan-out, max fan-in, abstraction ratio, avg instability, orphans)
 
-### Step 10: Summary
+### Step 9: Generate HTML report
 
-Present the final summary:
-- Architecture style detected
-- Layers mapped
-- Fitness functions active (enabled count / total)
-- AHS score from first evaluation
-- Baseline status
-- Files created: `firewall.spec.yaml`, `baseline_violations.json` (if applicable)
+```bash
+NEO4J_PASSWORD=daedalus-dev npx tsx -e "
+import { main } from './src/cli/cli.ts';
+main(['node', 'firewall', 'report',
+  '--project', '<target>',
+  '--spec', '<target>/firewall.spec.yaml',
+  '-o', '<target>/report.html',
+  '--symbolic-only',
+  '--verbose']);
+"
+```
+
+Open in browser: `open <target>/report.html`
+
+### Step 10: Create baseline
+
+If violations were found, create a baseline so future CI runs only block on NEW violations:
+
+```bash
+NEO4J_PASSWORD=daedalus-dev npx tsx -e "
+import { main } from './src/cli/cli.ts';
+main(['node', 'firewall', 'baseline',
+  '--project', '<target>',
+  '--spec', '<target>/firewall.spec.yaml',
+  '-o', '<target>/baseline_violations.json',
+  '--verbose']);
+"
+```
+
+### Step 11: Final summary
+
+Present the complete summary:
+
+```
+Architecture style:  [nestjs / clean-architecture]
+Project shape:       [feature-modules / layered-directories]
+Files analyzed:      N
+Layers mapped:       L (list names)
+Fitness functions:   X enabled / Y total
+
+AHS Score:           0.XX (verdict)
+Violations:          N total (C critical, M major, m minor, A advisory)
+
+Files created:
+  - firewall.spec.yaml
+  - report.html
+  - baseline_violations.json (if violations found)
+```
 
 Suggest next steps:
-- Add `firewall evaluate` to CI pipeline
-- Review and customize thresholds in `firewall.spec.yaml`
-- Run `firewall evaluate --baseline baseline_violations.json` in CI
+1. Open `report.html` to review violations in detail
+2. Add `firewall evaluate --baseline baseline_violations.json` to CI pipeline
+3. Review and customize thresholds in `firewall.spec.yaml` if needed
+4. Address critical violations first — they have the highest AHS impact
 
 ---
 
-## APG Mining Queries
+## Troubleshooting
 
-These Cypher queries can be used against the Neo4j APG to extract structural signals for classification. They are provided here as reference for manual investigation — the skill uses directory scanning and `package.json` analysis for classification instead.
+### "No .ts source files found"
+- **Cause**: Dependencies not installed, or `tsconfig.json` uses project references with empty `include`
+- **Fix**: Run `npm install` in the target project. For monorepos, ensure the `tsconfig.json` in the target app has `"include": ["src/**/*.ts"]`
 
-### Query 1: Directory Structure Signals
+### "Failed to clear graph: authentication failure"
+- **Cause**: Wrong Neo4j password
+- **Fix**: Set `NEO4J_PASSWORD=daedalus-dev` (or whatever is configured in `docker-compose.yml`)
+
+### "Unknown architecture style"
+- **Cause**: The `style` field in the spec doesn't match a registered template
+- **Fix**: Use `nestjs` or `clean-architecture` (these are the two registered styles)
+
+### "Schema validation failed"
+- **Cause**: Spec YAML has invalid structure
+- **Fix**: Check that each layer has `name`, `roles`, and at least one of `directories` or `file_patterns`
+
+---
+
+## APG Mining Queries (optional)
+
+After evaluation, the APG is in Neo4j. These Cypher queries can be used for manual investigation via the Neo4j Browser at `http://localhost:7474`:
+
+### Layer assignment summary
 ```cypher
 MATCH (f:File)
-WITH split(f.filePath, '/') AS parts
-WITH parts[0..size(parts)-1] AS dirParts
-WITH reduce(s = '', p IN dirParts | s + '/' + p) AS dir
-RETURN dir, count(*) AS fileCount
+RETURN f.layer AS layer, count(*) AS fileCount
 ORDER BY fileCount DESC
-LIMIT 20
 ```
 
-### Query 2: Dependency Matrix (Layer-to-Layer)
+### Cross-layer imports
 ```cypher
-MATCH (source:File)-[:IMPORTS]->(target:File)
-WHERE source.layer IS NOT NULL AND target.layer IS NOT NULL
-RETURN source.layer AS fromLayer, target.layer AS toLayer, count(*) AS importCount
+MATCH (src:File)-[:IMPORTS]->(tgt:File)
+WHERE src.layer IS NOT NULL AND tgt.layer IS NOT NULL
+  AND src.layer <> tgt.layer
+RETURN src.layer AS fromLayer, tgt.layer AS toLayer, count(*) AS importCount
 ORDER BY importCount DESC
 ```
 
-### Query 3: Naming Pattern Counts
+### Naming pattern distribution
 ```cypher
 MATCH (c:Class)
 WITH c,
   CASE
-    WHEN c.name STARTS WITH 'I' AND c.name =~ 'I[A-Z].*' THEN 'Interface-prefix'
     WHEN c.name ENDS WITH 'Repository' THEN 'Repository'
     WHEN c.name ENDS WITH 'Service' THEN 'Service'
-    WHEN c.name ENDS WITH 'UseCase' THEN 'UseCase'
     WHEN c.name ENDS WITH 'Controller' THEN 'Controller'
     WHEN c.name ENDS WITH 'Module' THEN 'Module'
+    WHEN c.name ENDS WITH 'Guard' THEN 'Guard'
     ELSE 'Other'
   END AS pattern
 RETURN pattern, count(*) AS count
 ORDER BY count DESC
 ```
 
-### Query 4: Constructor Injection Ratio
+### Files with highest fan-out
 ```cypher
-MATCH (c:Class)
-OPTIONAL MATCH (c)-[:HAS_CONSTRUCTOR]->(ctor:Method)
-OPTIONAL MATCH (ctor)-[:HAS_PARAMETER]->(p:Parameter)
-WHERE p.type STARTS WITH 'I' OR p.type CONTAINS 'Interface'
-WITH c, count(p) AS interfaceParams
-RETURN
-  count(CASE WHEN interfaceParams > 0 THEN 1 END) AS classesWithDI,
-  count(c) AS totalClasses,
-  toFloat(count(CASE WHEN interfaceParams > 0 THEN 1 END)) / count(c) AS diRatio
-```
-
-### Query 5: Anomalies (Cross-Layer Violations)
-```cypher
-MATCH (source:File)-[:IMPORTS]->(target:File)
-WHERE source.layer IS NOT NULL AND target.layer IS NOT NULL
-AND source.layer <> target.layer
-RETURN source.filePath, source.layer, target.filePath, target.layer
-LIMIT 20
+MATCH (f:File)-[:IMPORTS]->(target:File)
+WITH f, count(target) AS fanOut
+ORDER BY fanOut DESC
+LIMIT 10
+RETURN f.filePath, fanOut
 ```
