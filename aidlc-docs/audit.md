@@ -2,6 +2,14 @@
 
 ---
 
+## v1.1 — Closure Reconciliation
+**Timestamp**: 2026-04-20T00:00:00Z
+**User Input**: "Review and make sure what is done gets closed, what is added gets synced with specs and we get to a clean point."
+**AI Response**: Reconciled state vs reality. Updated aidlc-state.md to close U2, U3, and Build & Test (previously stale — these were merged days ago). Added 4 new stories (S-DASH-06..09) to v1.1-stories.md covering the post-merge dashboard clarity additions (How-It-Works panel, Symbolic vs Combined comparison, Pipeline Trace, LLM Failure Transparency). S-LLM-02 noted as "originally scoped, skipped in U2, implemented post-merge." Extended v1.1-requirements-scoped.md with Post-Merge Amendments section documenting: (1) FR-15 scope extension for neuro-symbolic explicitness, (2) scoring-engine warning-dropping defect fixed, (3) S-LLM-02 silent skip during autonomous U2 run, (4) process note for v1.2 on autonomous-mode gate enforcement. Status: v1.1 COMPLETE and demo-ready.
+**Context**: v1.1 COMPLETE. 22 stories total (was 18), 43 test suites, 421 tests, 0 failures. End-to-end validated against dev-nest (real NestJS repo) with working Gemini API key.
+
+---
+
 ## v1.1 Construction — U1 Track A Code Generation — COMPLETE
 **Timestamp**: 2026-04-15T12:00:00Z
 **User Input**: "Start v1.1 U1 construction"

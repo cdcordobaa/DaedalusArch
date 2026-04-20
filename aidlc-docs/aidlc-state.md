@@ -54,12 +54,21 @@
 - [x] Units Generation — COMPLETE (4 units: U0 Shared, U1 Track A, U2 Track B, U3 Gemini)
 
 ### v1.1 CONSTRUCTION PHASE
-- [ ] Per-Unit Loop
+- [x] Per-Unit Loop — COMPLETE
   - [x] U0 — Shared Extensions (Functional Design + Code Generation COMPLETE — 33 suites, 341 tests, 0 failures)
   - [x] U1 — Track A Spec Generation (Functional Design + Code Generation COMPLETE — 38 suites, 376 tests, 0 failures)
-  - [ ] U2 — Track B Demo Dashboard (Functional Design + Code Generation, worktree)
-  - [ ] U3 — Gemini Integration (Code Generation only, in main post-merge)
-- [ ] Build and Test (shared, post-merge)
+  - [x] U2 — Track B Demo Dashboard (Functional Design + Code Generation COMPLETE — 42 suites, 413 tests at merge)
+  - [x] U3 — Gemini Integration (Code Generation COMPLETE — 43 suites, 421 tests, 0 failures)
+- [x] Build and Test — COMPLETE (43 suites, 421 tests, 0 failures, end-to-end validated against dev-nest)
+
+### v1.1 POST-CONSTRUCTION FIXES
+- [x] S-LLM-02 gap closed — dashboard now explicit about neuro-symbolic evaluation (5 new sections)
+- [x] Scoring-engine warning-dropping defect fixed (pipeline warnings now flow to report)
+- [x] Real-repo demo validation — dev-nest (NestJS, 260 APG nodes, 371 edges) — AHS 87.9%/89.0% symbolic/combined
+
+### v1.1 STATUS
+- **COMPLETE** — demo-ready, all scoped FRs + stories closed
+- **Next**: v1.2 scope discussion or Operations phase
 
 ### OPERATIONS PHASE
 - [ ] Operations (PLACEHOLDER)
