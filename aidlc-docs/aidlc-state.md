@@ -4,12 +4,12 @@
 - **Project Name**: Architectural Firewall (DaedalusArch)
 - **Project Type**: Greenfield
 - **Start Date**: 2026-03-27T16:00:00Z
-- **Current Stage**: v1.1 INCEPTION — Requirements Analysis COMPLETE (v1.0 Construction complete)
+- **Current Stage**: v1.2 INCEPTION — Workspace Detection re-run 2026-09-07 (resume path); Requirements Analysis GATED on entry decision (v1.0 + v1.1 COMPLETE)
 - **Product Name**: Architectonic Firewall
 - **CLI Name**: firewall (unchanged from v1.0)
 
 ## Workspace State
-- **Existing Code**: No (configuration files and docs only — no `src/` directory)
+- **Existing Code**: Yes — 106 TypeScript files under `src/` plus `tests/` (npm build). NOTE: originally recorded as No on 2026-03-27 when the workspace was empty; the project is brownfield in fact as of v1.0 Construction. Reverse Engineering remains SKIPPED (artifacts exist under `inception/reverse-engineering/`).
 - **Reverse Engineering Needed**: No (greenfield project with comprehensive PRD + ADR)
 - **Workspace Root**: /Volumes/Life-OS/Users/Arkatechie/Development/Archi-Firewall/DaedalusArch
 
@@ -68,7 +68,18 @@
 
 ### v1.1 STATUS
 - **COMPLETE** — demo-ready, all scoped FRs + stories closed
-- **Next**: v1.2 scope discussion or Operations phase
+- **Next**: v1.2 INCEPTION underway (see below)
+
+### v1.2 INCEPTION PHASE
+- **Scope draft**: `inception/plans/v1.2-pending-units-plan.md` (5 deferred FRs: FR-05, FR-08, FR-10, FR-11, FR-12) — DRAFT, not yet approved
+- **New addition (this cycle)**: provisional **FR-16 — Graph JSON Export** (write APG to a flat JSON file). **Re-scoped to MINIMAL depth** — reuse existing `extractAPG` + snapshot-store serialization + `baseline`/`report` CLI pattern (~30 lines, no Neo4j/contract changes, additive & opt-in). NOT a from-scratch backend; FR-12 (in-memory backend) remains separate/deferred.
+- **Entry gate (2026-09-07)**: User asked to start Inception from the v1.0 PRD. Reconciliation found that PRD already fully consumed by v1.0 Inception (17 FR / 81 stories / 8 units, all built) and by v1.1. Re-running Inception would overwrite approved artifacts, so it was NOT started. Four-question entry decision presented in `inception/requirements/v1.2-inception-entry-questions.md` (re-entry intent, PRD-vs-built delta scope, FR numbering namespace, security opt-in). GATE: awaiting user answers.
+- **Known ID collision**: provisional "FR-16 Graph JSON Export" clashes with v1.0 FR-16 (Batch Runner). Resolution deferred to entry-gate Question 3.
+- [ ] Requirements Analysis — **IN PROGRESS** (FR-16, Minimal depth) — minimal scope decision presented (`inception/requirements/v1.2-graph-export-verification-questions.md`): delivery surface + JSON shape. Recommended: new `firewall graph` command + single-file JSON. Security extension judged N/A (internal read-only export). GATE: awaiting user pick.
+- [ ] User Stories
+- [ ] Workflow Planning
+- [ ] Application Design
+- [ ] Units Generation
 
 ### OPERATIONS PHASE
 - [ ] Operations (PLACEHOLDER)

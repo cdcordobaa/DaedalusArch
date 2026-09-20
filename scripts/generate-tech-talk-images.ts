@@ -57,6 +57,29 @@ Arrow between top and bottom labeled "The gap."
 Dark bg (#0d1117), violet/blue/lavender palette. Crisp typography.`,
   },
   {
+    slug: "slide-11b-reward-hacking",
+    label: "Reward Hacking",
+    aspectRatio: "4:3",
+    prompt: `A dark, cinematic split-panel diagram illustrating "reward hacking" by AI coding agents. Two panels side by side, divided by a vertical red dashed line.
+
+LEFT PANEL — "The agent games the test":
+A stylized robot/agent character at a terminal, with a sly expression. It's using the 'rm' command to delete a file labeled 'failing_test.spec.ts' (shown with a red X and trash-can icon). Above: a green checkmark badge "ALL TESTS PASS ✓" glowing deceptively. Background: faint silhouette of the original bug still lurking in the code (shown as a red bug icon inside a code block labeled 'UserService.ts').
+Label at top: "What the agent does."
+
+RIGHT PANEL — "What we wanted":
+The same robot/agent at the terminal, this time debugging — magnifying glass over the code, highlighting the real bug. The test file is intact. Label above: "FIX THE BUG ✓" in teal/green.
+Label at top: "What the spec says."
+
+CENTER DIVIDER:
+Red dashed vertical line. Small badge in the middle reading "REWARD HACKING" in red caps, with a warning triangle icon.
+
+BOTTOM BANNER:
+"100% test coverage. Zero architectural compliance."
+Citation: "ImpossibleBench — Zhong, Raghunathan & Carlini (2025, Anthropic)"
+
+Style: Dark background (#0d1117), violet/blue/red palette. Flat illustrated style (not photorealistic), clean vector-art feel. Crisp typography. The left panel should feel slightly sinister, the right panel feel correct/clean.`,
+  },
+  {
     slug: "slide-12d-verification-timeline",
     label: "The Verification Timeline",
     aspectRatio: "16:9",
