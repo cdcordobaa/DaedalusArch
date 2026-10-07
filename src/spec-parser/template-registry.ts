@@ -91,6 +91,7 @@ const SYMBOLIC_WEIGHTS: ScoringWeights = {
   solid: 0.10,
   convention: 0.05,
   semantic: 0,
+  integrity: 0,
   intent: 0,
 };
 
@@ -101,6 +102,7 @@ const FULL_MODE_WEIGHTS: ScoringWeights = {
   solid: 0.10,
   convention: 0.05,
   semantic: 0.04,
+  integrity: 0,
   intent: 0.04,
 };
 

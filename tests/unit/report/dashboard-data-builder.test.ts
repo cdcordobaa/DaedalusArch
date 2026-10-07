@@ -49,7 +49,7 @@ function makeSpec(ffs: Partial<FitnessFunction>[] = []): ParsedSpec {
       excludePaths: [],
       ...ff,
     })),
-    scoringWeights: { structural: 0.35, coupling: 0.2, pattern: 0.3, solid: 0.1, convention: 0.05, semantic: 0, intent: 0 },
+    scoringWeights: { structural: 0.35, coupling: 0.2, pattern: 0.3, solid: 0.1, convention: 0.05, semantic: 0, integrity: 0, intent: 0 },
     verdictThresholds: { pass: 0.8, warning: 0.65, softBlock: 0.5 },
     confidenceThresholds: { high: 0.85, medium: 0.6, iccMinimum: 0.7 },
     adrRules: [],

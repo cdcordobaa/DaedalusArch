@@ -128,6 +128,7 @@ export function parseLayerC(raw: Record<string, unknown>): LayerCResult {
     solid: Number(weights['solid']),
     convention: Number(weights['convention']),
     semantic: Number(weights['semantic'] ?? 0),
+    integrity: 0,
     intent: Number(weights['intent'] ?? 0),
   };
 
@@ -146,6 +147,7 @@ export function parseLayerC(raw: Record<string, unknown>): LayerCResult {
       solid: Number(rawFullWeights['solid']),
       convention: Number(rawFullWeights['convention']),
       semantic: Number(rawFullWeights['semantic']),
+      integrity: 0,
       intent: Number(rawFullWeights['intent']),
     };
   }

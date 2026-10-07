@@ -70,7 +70,7 @@ describe('compileFunctions with v1.1 extensions', () => {
       fitnessFunctions: [enabledFn, disabledFn],
       adrRules: [],
       layerModel: LAYER_MODEL,
-      scoringWeights: { structural: 1, coupling: 0, pattern: 0, solid: 0, convention: 0, semantic: 0, intent: 0 },
+      scoringWeights: { structural: 1, coupling: 0, pattern: 0, solid: 0, convention: 0, semantic: 0, integrity: 0, intent: 0 },
     };
     const result = compileFunctions(input);
     expect(result.success).toBe(true);
@@ -86,7 +86,7 @@ describe('compileFunctions with v1.1 extensions', () => {
       fitnessFunctions: [fnWithExcludes],
       adrRules: [],
       layerModel: LAYER_MODEL,
-      scoringWeights: { structural: 0, coupling: 1, pattern: 0, solid: 0, convention: 0, semantic: 0, intent: 0 },
+      scoringWeights: { structural: 0, coupling: 1, pattern: 0, solid: 0, convention: 0, semantic: 0, integrity: 0, intent: 0 },
     };
     const result = compileFunctions(input);
     expect(result.success).toBe(true);
@@ -104,7 +104,7 @@ describe('compileFunctions with v1.1 extensions', () => {
       fitnessFunctions: [enabledFn],
       adrRules: [],
       layerModel: LAYER_MODEL,
-      scoringWeights: { structural: 1, coupling: 0, pattern: 0, solid: 0, convention: 0, semantic: 0, intent: 0 },
+      scoringWeights: { structural: 1, coupling: 0, pattern: 0, solid: 0, convention: 0, semantic: 0, integrity: 0, intent: 0 },
     };
     const result = compileFunctions(input);
     expect(result.success).toBe(true);
@@ -119,7 +119,7 @@ describe('compileFunctions with v1.1 extensions', () => {
       fitnessFunctions: [enabledFn],
       adrRules: [],
       layerModel: LAYER_MODEL,
-      scoringWeights: { structural: 1, coupling: 0, pattern: 0, solid: 0, convention: 0, semantic: 0, intent: 0 },
+      scoringWeights: { structural: 1, coupling: 0, pattern: 0, solid: 0, convention: 0, semantic: 0, integrity: 0, intent: 0 },
     };
     const result = compileFunctions(input);
     expect(result.success).toBe(true);

@@ -1,4 +1,4 @@
-import type { Dimension, Severity, Route, ADRFormat } from './enums.js';
+import type { Dimension, Severity, Route, ADRFormat, JudgeUnitKind, LayerKind } from './enums.js';
 import type { FunctionId } from './value-objects.js';
 
 export interface FitnessFunction {
@@ -14,7 +14,22 @@ export interface FitnessFunction {
   readonly enabled: boolean;
   readonly excludePaths: readonly string[];
   readonly disabledReason?: string;
+  // Function-specific fields (FR-07); the parser does not fill them yet (U1).
+  readonly forbiddenImports?: readonly string[];
+  readonly maxPublicMethods?: number;
+  readonly maxDependencies?: number;
+  readonly maxInterfaceMethods?: number;
+  readonly maxDepth?: number;
+  readonly pattern?: string;
+  // Judge unit for neuronal/hybrid functions (FR-33); default per dimension is set by U4.
+  readonly judgeUnit?: JudgeUnitKind;
 }
+
+/** The six YAML keys FR-07 maps, as one typed bag. */
+export type FunctionSpecificFields = Pick<
+  FitnessFunction,
+  'forbiddenImports' | 'maxPublicMethods' | 'maxDependencies' | 'maxInterfaceMethods' | 'maxDepth' | 'pattern'
+>;
 
 export interface DisabledFunction {
   readonly id: FunctionId;
@@ -45,17 +60,14 @@ export interface LayerDefinition {
   readonly decorators?: readonly string[];
   readonly filePatterns?: readonly string[];
   readonly role: string;
+  // Resolved layer kind and the precedence step that produced it (FR-19); not filled in U0.
+  readonly kind?: LayerKind;
+  readonly kindSource?: 'explicit' | 'name' | 'position';
 }
 
-export interface ScoringWeights {
-  readonly structural: number;
-  readonly coupling: number;
-  readonly pattern: number;
-  readonly solid: number;
-  readonly convention: number;
-  readonly semantic: number;
-  readonly intent: number;
-}
+// Keyed by the Dimension union (FR-22). While 'intent' is a transitional Dimension member
+// (D-U0-1), every literal carries both 'integrity' and 'intent'.
+export type ScoringWeights = Readonly<Record<Dimension, number>>;
 
 export interface ConfidenceThresholds {
   readonly high: number;
@@ -71,6 +83,7 @@ export interface VerdictThresholds {
 
 export interface ParsedSpec {
   readonly specVersion: string;
+  readonly style?: string; // FR-20; not filled in U0
   readonly layerModel: LayerModel;
   readonly fitnessFunctions: readonly FitnessFunction[];
   readonly scoringWeights: ScoringWeights;

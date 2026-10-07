@@ -155,7 +155,7 @@ export function validateBusinessRules(spec: ParsedSpec): ValidationResult {
 }
 
 function sumWeights(w: ScoringWeights): number {
-  return w.structural + w.coupling + w.pattern + w.solid + w.convention + w.semantic + w.intent;
+  return w.structural + w.coupling + w.pattern + w.solid + w.convention + w.semantic + w.integrity + w.intent;
 }
 
 /**
