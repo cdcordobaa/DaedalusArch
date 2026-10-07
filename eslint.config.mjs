@@ -8,7 +8,7 @@ export default tseslint.config(
   {
     languageOptions: {
       parserOptions: {
-        project: true,
+        project: './tsconfig.eslint.json',
         tsconfigRootDir: import.meta.dirname,
       },
     },
@@ -20,7 +20,8 @@ export default tseslint.config(
       // Enforce explicit return types on public methods
       '@typescript-eslint/explicit-function-return-type': ['warn', { allowExpressions: true }],
       // Enforce Result<T> pattern — no throwing untyped errors in domain code
-      '@typescript-eslint/no-throw-literal': 'error',
+      // typescript-eslint v8 removed no-throw-literal; only-throw-error is its replacement (already 'error' in strictTypeChecked)
+      '@typescript-eslint/only-throw-error': 'error',
       // Prefer readonly for immutable value objects
       '@typescript-eslint/prefer-readonly': 'error',
       // No any

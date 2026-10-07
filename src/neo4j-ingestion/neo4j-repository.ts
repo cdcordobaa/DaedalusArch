@@ -1,5 +1,5 @@
 import neo4j, { type Driver, type Session } from 'neo4j-driver';
-import type { GraphRepository, QueryResult } from '../shared/interfaces/graph-repository.js';
+import type { GraphRepository, QueryOptions, QueryResult } from '../shared/interfaces/graph-repository.js';
 import { DomainResult } from '../shared/errors/domain-result.js';
 import type { IngestionConfig } from './types.js';
 import { DEFAULT_INGESTION_CONFIG } from './types.js';
@@ -12,11 +12,18 @@ export class Neo4jRepository implements GraphRepository {
     this.driver = neo4j.driver(cfg.neo4jUri, neo4j.auth.basic(cfg.neo4jUser, cfg.neo4jPassword));
   }
 
-  async executeQuery(cypher: string, params?: Record<string, unknown>): Promise<DomainResult<QueryResult>> {
+  async executeQuery(
+    cypher: string,
+    params?: Record<string, unknown>,
+    options?: QueryOptions,
+  ): Promise<DomainResult<QueryResult>> {
     let session: Session | undefined;
     try {
       session = this.driver.session();
-      const result = await session.run(cypher, params);
+      // D-U0-5: no default timeout; without timeoutMs the call is exactly the pre-U0 two-argument form.
+      const result = options?.timeoutMs !== undefined
+        ? await session.run(cypher, params, { timeout: options.timeoutMs })
+        : await session.run(cypher, params);
       const records = result.records.map((r) => {
         const obj: Record<string, unknown> = {};
         for (const key of r.keys as string[]) {

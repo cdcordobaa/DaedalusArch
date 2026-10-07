@@ -7,6 +7,7 @@ import type {
   CompiledFunctions,
   EvaluationResults,
   EvaluationReport,
+  ScoredReport,
 } from '../types/evaluation.js';
 
 export interface FirewallContextSnapshot {
@@ -31,6 +32,7 @@ export class FirewallContext {
   private _compiledFunctions?: CompiledFunctions;
   private _evaluationResults?: EvaluationResults;
   private _report?: EvaluationReport;
+  private _scoredReport?: ScoredReport;
   private readonly _warnings: PipelineWarning[] = [];
   private readonly _auditLog: PipelineAuditEntry[] = [];
 
@@ -83,6 +85,13 @@ export class FirewallContext {
     this._report = report;
   }
 
+  setScoredReport(scored: ScoredReport): void {
+    if (this._scoredReport !== undefined) {
+      throw new Error('ScoredReport already set on FirewallContext — cannot overwrite');
+    }
+    this._scoredReport = scored;
+  }
+
   // ── Typed Getters (throw with descriptive message if prereq not met) ─────────
 
   get runId(): RunId { return this._runId; }
@@ -130,6 +139,13 @@ export class FirewallContext {
       throw new Error('EvaluationReport not available — Scoring Engine stage has not run');
     }
     return this._report;
+  }
+
+  getScoredReport(): ScoredReport {
+    if (this._scoredReport === undefined) {
+      throw new Error('ScoredReport not available — Scoring Engine stage has not run');
+    }
+    return this._scoredReport;
   }
 
   // ── Accumulation Methods ─────────────────────────────────────────────────────

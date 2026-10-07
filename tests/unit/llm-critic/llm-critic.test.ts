@@ -25,6 +25,7 @@ const makeInstruction = (id: string, name: string): NeuronalInstruction => ({
   contextAssembly: CTX,
   shadowModeEligible: false,
   source: 'fitness-function',
+  judgeUnit: 'file',
 });
 
 describe('context-assembler', () => {
@@ -129,7 +130,7 @@ describe('cassette-manager', () => {
 describe('MockLLMProvider', () => {
   it('returns default response', async () => {
     const provider = new MockLLMProvider();
-    const result = await provider.evaluate('test', { temperature: 0 });
+    const result = await provider.evaluate('test', { model: 'mock-model', maxTokens: 1000, temperature: 0 });
     expect(result.success).toBe(true);
     if (result.success) {
       const parsed = JSON.parse(result.data.content);
@@ -140,7 +141,7 @@ describe('MockLLMProvider', () => {
   it('returns custom response for matching prompt', async () => {
     const provider = new MockLLMProvider();
     provider.setResponse('special', '{"pass": false, "confidence": 0.2, "reasoning": "nope", "evidence": [], "violations": []}');
-    const result = await provider.evaluate('special keyword', { temperature: 0 });
+    const result = await provider.evaluate('special keyword', { model: 'mock-model', maxTokens: 1000, temperature: 0 });
     expect(result.success).toBe(true);
     if (result.success) {
       const parsed = JSON.parse(result.data.content);
@@ -150,8 +151,8 @@ describe('MockLLMProvider', () => {
 
   it('tracks call count', async () => {
     const provider = new MockLLMProvider();
-    await provider.evaluate('a', { temperature: 0 });
-    await provider.evaluate('b', { temperature: 0 });
+    await provider.evaluate('a', { model: 'mock-model', maxTokens: 1000, temperature: 0 });
+    await provider.evaluate('b', { model: 'mock-model', maxTokens: 1000, temperature: 0 });
     expect(provider.getCallCount()).toBe(2);
   });
 });

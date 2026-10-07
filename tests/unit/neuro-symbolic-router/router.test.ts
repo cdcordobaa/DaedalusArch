@@ -41,6 +41,7 @@ const neurInstr: NeuronalInstruction = {
   contextAssembly: CTX,
   shadowModeEligible: false,
   source: 'fitness-function',
+  judgeUnit: 'file',
 };
 
 const hybridPair = {

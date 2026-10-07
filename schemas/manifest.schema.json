@@ -1,0 +1,54 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://daedalus-arch.local/schemas/manifest.schema.json",
+  "$comment": "DRAFT (U0). U5a completes: fixes the MutationSite shape of `site`, the `expected` union and the `lineShifts` items (open objects until then). Mirrors Manifest / ManifestRow in v1.2E-component-methods.md (FR-24).",
+  "title": "DaedalusArch seeded-mutation manifest",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schemaVersion", "rows"],
+  "properties": {
+    "schemaVersion": { "type": "string", "const": "1" },
+    "rows": { "type": "array", "items": { "$ref": "#/definitions/manifestRow" } }
+  },
+  "definitions": {
+    "manifestRow": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "seedId",
+        "projectId",
+        "baseCommit",
+        "operatorId",
+        "catalogueVersion",
+        "rngSeed",
+        "site",
+        "expected",
+        "lineShifts",
+        "appliedAt"
+      ],
+      "properties": {
+        "seedId": { "type": "string", "minLength": 1 },
+        "projectId": { "type": "string", "minLength": 1 },
+        "baseCommit": { "type": "string", "pattern": "^[0-9a-f]{40}$" },
+        "operatorId": { "type": "string", "minLength": 1 },
+        "catalogueVersion": { "type": "string", "minLength": 1 },
+        "rngSeed": { "type": "integer" },
+        "site": { "type": "object", "additionalProperties": true },
+        "expected": { "type": "object", "additionalProperties": true },
+        "lineShifts": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": true,
+            "properties": {
+              "filePath": { "type": "string" },
+              "afterLine": { "type": "integer" },
+              "delta": { "type": "integer" }
+            }
+          }
+        },
+        "appliedAt": { "type": "string", "format": "date-time" }
+      }
+    }
+  }
+}

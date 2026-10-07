@@ -830,3 +830,12 @@
 **Context**: CONSTRUCTION — U0 Code Generation Part 2 IN PROGRESS.
 
 ---
+
+## v1.2 Evaluation-Readiness — U0 Part 2 executed
+**Timestamp**: 2026-10-07T21:30:00Z
+**User Input**: "how is this going?" (status check during execution; answered with progress)
+**AI Response**: Steps 1–9 executed directly (GOLDEN_BASE f5fed3f, CI-proven baseline run 37679924705). Steps 5–7 via workflow wf_2b2020c6-003 (implement, three adversarial reviews, repair). Steps 10–29 via workflow wf_2787b3e4-051 (six groups, each implement → adversarial verify; all passed without fix rounds). Steps 30–32 executed directly. Exit: 592 tests green, golden 8/8 with snapshots unchanged, Gate B 85, lint 624 ≤ 626, CI green on ebefd92. Deviations recorded in the code summary (branch names v1.2e-<unit>, pinned local image digest, Steps 5–7 in one commit, lint version/rule rename). Pull request v1.2e-u0-foundation → v1.2e opened for the PR-CI exit check; not merged.
+**AI Prompt**: Code Generation completion (2-option) for U0.
+**Context**: CONSTRUCTION — U0 Code Generation COMPLETE, awaiting approval.
+
+---

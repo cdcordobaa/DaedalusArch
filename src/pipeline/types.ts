@@ -1,14 +1,6 @@
 import type { EvaluationMode, PipelineMode, OverallVerdict } from '../shared/types/enums.js';
 import type { CommitSha } from '../shared/types/value-objects.js';
-
-export interface LLMConfig {
-  readonly provider: 'claude' | 'openai' | 'gemini';
-  readonly apiKey: string;
-  readonly model?: string;
-  readonly temperature?: number;
-  readonly seed?: number;
-  readonly maxConcurrency?: number;
-}
+import type { LLMProviderConfig } from '../shared/types/llm-config.js';
 
 export interface PipelineConfig {
   readonly projectPath: string;
@@ -21,7 +13,7 @@ export interface PipelineConfig {
   readonly persist: boolean;
   readonly diff: boolean;
   readonly commitSha?: CommitSha | undefined;
-  readonly llmConfig?: LLMConfig | undefined;
+  readonly llmConfig?: LLMProviderConfig | undefined;
   readonly verbose: boolean;
   readonly apgStorePath: string;
 }
@@ -60,16 +52,8 @@ export interface DriftOptions {
   readonly persist: boolean;
 }
 
-export interface StageTimingEntry {
-  readonly name: string;
-  readonly durationMs: number;
-  readonly status: 'success' | 'warning' | 'error' | 'skipped';
-}
-
-export interface StageTimings {
-  readonly stages: readonly StageTimingEntry[];
-  readonly totalMs: number;
-}
+// Moved to C10 (FR-14); re-exported here for existing importers
+export type { StageTimingEntry, StageTimings } from '../shared/types/evaluation.js';
 
 export interface BatchRow {
   readonly projectPath: string;

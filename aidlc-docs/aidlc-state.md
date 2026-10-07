@@ -4,7 +4,7 @@
 - **Project Name**: Architectural Firewall (DaedalusArch)
 - **Project Type**: Greenfield
 - **Start Date**: 2026-03-27T16:00:00Z
-- **Current Stage**: v1.2 Evaluation-Readiness cycle — CONSTRUCTION — U0 Code Generation Part 2 IN PROGRESS (plan approved 2026-10-07).
+- **Current Stage**: v1.2 Evaluation-Readiness cycle — CONSTRUCTION — U0 Code Generation COMPLETE, awaiting approval (not merged into v1.2e).
 - **Product Name**: Architectonic Firewall
 - **CLI Name**: firewall (unchanged from v1.0)
 
@@ -100,5 +100,5 @@
 - [x] Application Design — APPROVED 2026-10-07 (`inception/application-design/v1.2E-*.md`, 16 components, 3 new)
 - [x] Units Generation — APPROVED 2026-10-07 (7 units: U0, U1, U2, U3, U4, U5a, U5b; lanes U0 | U1+U2 | U3+U4+U5a | U5b)
 ### v1.2E CONSTRUCTION PHASE
-- [ ] U0 Foundation — plan APPROVED 2026-10-07; Part 2 IN PROGRESS (`construction/plans/v1.2E-u0-foundation-code-generation-plan.md`) (U0 Foundation; U1 Spec+compiler; U2 Extractor+graph; U3 Evaluation+scoring+report; U4 Neural path; U5 Experiment tooling)
+- [ ] U0 Foundation — Code Generation COMPLETE 2026-10-07 (code-summary in construction/v1.2E-u0-foundation/code/), awaiting approval (`construction/plans/v1.2E-u0-foundation-code-generation-plan.md`) (U0 Foundation; U1 Spec+compiler; U2 Extractor+graph; U3 Evaluation+scoring+report; U4 Neural path; U5 Experiment tooling)
 - CONSTRUCTION: Functional Design EXECUTE U1–U5 / SKIP U0; NFR Requirements EXECUTE light (in U0); NFR Design, Infrastructure Design SKIP; Code Generation and Build and Test EXECUTE

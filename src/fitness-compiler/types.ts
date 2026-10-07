@@ -1,11 +1,24 @@
 import type { FitnessFunction, ADRRule, LayerModel, ScoringWeights } from '../shared/types/spec.js';
 import type { DomainWarning, PipelineError } from '../shared/errors/domain-result.js';
+import type { LayerKind, TemplateTag } from '../shared/types/enums.js';
 
 export interface CompilerInput {
   readonly fitnessFunctions: readonly FitnessFunction[];
   readonly adrRules: readonly ADRRule[];
   readonly layerModel: LayerModel;
   readonly scoringWeights: ScoringWeights;
+  readonly style?: string; // FR-20; nothing sets it in U0
+}
+
+/**
+ * Role -> layer name(s) used to bind template parameters (FR-19). Derived inside C4 from
+ * LayerDefinition.kind; provenance lives in LayerDefinition.kindSource.
+ */
+export interface LayerKindBinding {
+  readonly domainLayer?: string;
+  readonly applicationLayers: readonly string[]; // bound as $applicationLayers; [] = no application layer
+  readonly infraLayer?: string;
+  readonly presentationLayer?: string;
 }
 
 export type CompilerErrorCode =
@@ -34,6 +47,14 @@ export interface ResultMapping {
   readonly filePathColumn: string;
   readonly messageTemplate: string;
   readonly metadataColumns?: readonly string[];
+  // Location, target and id-discriminator columns (FR-12). Optional in U0 (D-U0-4);
+  // U3 makes discriminatorColumns required.
+  readonly lineColumn?: string;
+  readonly linesColumn?: string;
+  readonly targetColumn?: string;
+  readonly isTypeOnlyColumn?: string;
+  readonly discriminatorColumns?: readonly string[];
+  readonly cycleColumn?: string; // only for no-cyclic-deps (FR-35)
 }
 
 export interface CypherTemplate {
@@ -43,4 +64,8 @@ export interface CypherTemplate {
   readonly optionalParams: readonly string[];
   readonly description: string;
   readonly resultMapping: ResultMapping;
+  // Optional in U0 (D-U0-4); U1 makes tag and requiredLayerKinds required (FR-29, FR-19).
+  readonly tag?: TemplateTag;
+  readonly requiredLayerKinds?: readonly LayerKind[];
+  readonly applicableStyles?: readonly string[]; // undefined = every style (FR-20)
 }

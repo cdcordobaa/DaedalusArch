@@ -55,8 +55,16 @@ function buildConfig(
     apgStorePath: process.env['APG_STORE_PATH'] ?? '.apg-store',
     llmConfig: evaluationMode !== 'symbolic-only'
       ? {
-          provider: (process.env['LLM_PROVIDER'] as 'claude' | 'openai' | undefined) ?? 'claude',
-          apiKey: process.env['ANTHROPIC_API_KEY'] ?? process.env['OPENAI_API_KEY'] ?? '',
+          // The pipeline built a Gemini provider whatever LLM_PROVIDER declared; same key expression
+          // as before (residual fallback, removed by U3, D-U0-8).
+          provider: 'gemini' as const,
+          gemini: {
+            apiKey: process.env['ANTHROPIC_API_KEY'] ?? process.env['OPENAI_API_KEY'] ?? '',
+            model: process.env.GEMINI_MODEL ?? 'gemini-2.0-flash',
+            temperature: 0,
+            maxTokens: 4096,
+          },
+          cassette: { mode: 'record' as const, dir: 'fixtures/cassettes' },
         }
       : undefined,
   };

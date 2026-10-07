@@ -1,4 +1,5 @@
 import type { LLMProvider, LLMOptions, LLMResponse } from '../shared/interfaces/llm-provider.js';
+import type { ProviderDescription } from '../shared/types/evaluation.js';
 import { DomainResult } from '../shared/errors/domain-result.js';
 
 /**
@@ -9,6 +10,7 @@ export class MockLLMProvider implements LLMProvider {
   private responses: Map<string, string> = new Map();
   private defaultResponse: string;
   private callCount = 0;
+  private lastOptions: LLMOptions | undefined;
 
   constructor(defaultResponse?: string) {
     this.defaultResponse = defaultResponse ?? JSON.stringify({
@@ -31,8 +33,20 @@ export class MockLLMProvider implements LLMProvider {
     return this.callCount;
   }
 
-  async evaluate(prompt: string, _options: LLMOptions): Promise<DomainResult<LLMResponse>> {
+  /** Options received by the most recent evaluate() call (FR-31 test helper). */
+  getLastOptions(): LLMOptions | undefined {
+    return this.lastOptions;
+  }
+
+  describe(): ProviderDescription {
+    return { provider: 'mock', model: 'mock-model' };
+  }
+
+  async evaluate(prompt: string, options: LLMOptions): Promise<DomainResult<LLMResponse>> {
     this.callCount++;
+    this.lastOptions = options;
+    // The mock sends nothing anywhere: every received option is reported as ignored.
+    const ignoredOptions = Object.keys(options) as (keyof LLMOptions)[];
 
     // Check for matching canned response
     for (const [key, response] of this.responses) {
@@ -41,6 +55,8 @@ export class MockLLMProvider implements LLMProvider {
           content: response,
           model: 'mock-model',
           usage: { inputTokens: prompt.length / 4, outputTokens: response.length / 4 },
+          usedOptions: {},
+          ignoredOptions,
         });
       }
     }
@@ -49,6 +65,8 @@ export class MockLLMProvider implements LLMProvider {
       content: this.defaultResponse,
       model: 'mock-model',
       usage: { inputTokens: prompt.length / 4, outputTokens: this.defaultResponse.length / 4 },
+      usedOptions: {},
+      ignoredOptions,
     });
   }
 }

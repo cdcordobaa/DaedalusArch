@@ -93,13 +93,20 @@ program
       llmConfig: evaluationMode !== 'symbolic-only'
         ? {
             provider: 'gemini' as const,
-            apiKey: process.env['GEMINI_API_KEY'] ?? process.env['ANTHROPIC_API_KEY'] ?? '',
+            gemini: {
+              // Key fallback kept verbatim; removed by U4 (D-U0-8)
+              apiKey: process.env['GEMINI_API_KEY'] ?? process.env['ANTHROPIC_API_KEY'] ?? '',
+              model: process.env.GEMINI_MODEL ?? 'gemini-2.0-flash',
+              temperature: 0,
+              maxTokens: 4096,
+            },
+            cassette: { mode: 'record' as const, dir: 'fixtures/cassettes' },
           }
         : undefined,
     };
 
     // Validate API key for neuronal modes
-    if (evaluationMode !== 'symbolic-only' && !config.llmConfig?.apiKey) {
+    if (evaluationMode !== 'symbolic-only' && !config.llmConfig?.gemini?.apiKey) {
       process.stderr.write(
         'Warning: No GEMINI_API_KEY set. Neuronal functions will be skipped (symbolic-only fallback).\n',
       );
@@ -394,12 +401,19 @@ program
       llmConfig: evaluationMode !== 'symbolic-only'
         ? {
             provider: 'gemini' as const,
-            apiKey: process.env['GEMINI_API_KEY'] ?? process.env['ANTHROPIC_API_KEY'] ?? '',
+            gemini: {
+              // Key fallback kept verbatim; removed by U4 (D-U0-8)
+              apiKey: process.env['GEMINI_API_KEY'] ?? process.env['ANTHROPIC_API_KEY'] ?? '',
+              model: process.env.GEMINI_MODEL ?? 'gemini-2.0-flash',
+              temperature: 0,
+              maxTokens: 4096,
+            },
+            cassette: { mode: 'record' as const, dir: 'fixtures/cassettes' },
           }
         : undefined,
     };
 
-    if (evaluationMode !== 'symbolic-only' && !config.llmConfig?.apiKey) {
+    if (evaluationMode !== 'symbolic-only' && !config.llmConfig?.gemini?.apiKey) {
       process.stderr.write(
         'Warning: No GEMINI_API_KEY set. Neuronal functions will be skipped (symbolic-only fallback).\n',
       );

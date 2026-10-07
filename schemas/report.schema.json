@@ -1,0 +1,319 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://daedalus-arch.local/schemas/report.schema.json",
+  "$comment": "DRAFT (U0). U3 freezes: adds the new fields to `required`. Mirrors EvaluationReport in src/shared/types/evaluation.ts; enums mirror NODE_TYPES, EDGE_TYPES, DIMENSIONS (src/shared/types/enums.ts) and BUILT_IN_VIOLATION_TYPES.",
+  "title": "DaedalusArch evaluation report",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "runId",
+    "projectPath",
+    "specVersion",
+    "ahsDeterministic",
+    "verdict",
+    "perDimensionScores",
+    "violations",
+    "universalMetrics",
+    "evaluationMode",
+    "durationMs",
+    "warnings"
+  ],
+  "properties": {
+    "runId": { "type": "string", "minLength": 1 },
+    "projectPath": { "type": "string" },
+    "specVersion": { "type": "string" },
+    "ahsDeterministic": { "$ref": "#/definitions/unitInterval" },
+    "ahsCombined": { "$ref": "#/definitions/unitInterval" },
+    "ahsNeuronal": { "$ref": "#/definitions/unitInterval" },
+    "verdict": { "type": "string", "enum": ["pass", "warning", "soft-block", "hard-block"] },
+    "perDimensionScores": { "type": "array", "items": { "$ref": "#/definitions/perDimensionScore" } },
+    "violations": { "type": "array", "items": { "$ref": "#/definitions/violation" } },
+    "universalMetrics": { "$ref": "#/definitions/universalHealthMetrics" },
+    "evaluationMode": { "type": "string", "enum": ["full", "symbolic-only", "neuronal-only"] },
+    "durationMs": { "$ref": "#/definitions/nonNegativeNumber" },
+    "warnings": { "type": "array", "items": { "$ref": "#/definitions/pipelineWarning" } },
+    "functionExecution": { "$ref": "#/definitions/functionExecution" },
+    "functionResults": { "type": "array", "items": { "$ref": "#/definitions/functionResultRow" } },
+    "graphStats": { "$ref": "#/definitions/graphStats" },
+    "layerAnnotation": { "$ref": "#/definitions/layerAnnotationSummary" },
+    "parseCoverage": { "$ref": "#/definitions/parseCoverage" },
+    "importResolution": { "$ref": "#/definitions/importResolutionStats" },
+    "timings": { "$ref": "#/definitions/stageTimings" },
+    "droppedDimensions": { "type": "array", "items": { "$ref": "#/definitions/droppedDimension" } },
+    "judge": { "$ref": "#/definitions/judgeProvenance" }
+  },
+  "definitions": {
+    "unitInterval": { "type": "number", "minimum": 0, "maximum": 1 },
+    "nonNegativeNumber": { "type": "number", "minimum": 0 },
+    "count": { "type": "integer", "minimum": 0 },
+    "dimension": {
+      "type": "string",
+      "enum": ["structural", "coupling", "pattern", "solid", "convention", "semantic", "integrity", "intent"]
+    },
+    "nodeType": { "type": "string", "enum": ["File", "Class", "Interface", "Method", "Function", "Package"] },
+    "edgeType": {
+      "type": "string",
+      "enum": [
+        "IMPORTS",
+        "IMPLEMENTS",
+        "EXTENDS",
+        "CONSTRUCTOR_INJECTS",
+        "CALLS",
+        "DECLARES",
+        "CONTAINS",
+        "FLOWS_TO",
+        "RE_EXPORTS"
+      ]
+    },
+    "severity": { "type": "string", "enum": ["critical", "major", "minor", "advisory"] },
+    "route": { "type": "string", "enum": ["symbolic", "neuronal", "hybrid"] },
+    "templateTag": { "type": "string", "enum": ["structural", "topological", "pattern-proxy"] },
+    "violationType": {
+      "anyOf": [
+        {
+          "type": "string",
+          "enum": [
+            "LAYER_VIOLATION",
+            "CYCLIC_DEPENDENCY",
+            "LAYER_SKIP",
+            "DOMAIN_OUTWARD_DEP",
+            "DOMAIN_PURITY_VIOLATION",
+            "DEPENDENCY_INVERSION_VIOLATION",
+            "REPOSITORY_PATTERN_VIOLATION",
+            "USE_CASE_ISOLATION_VIOLATION",
+            "CONTROLLER_ENTITY_VIOLATION",
+            "FAN_OUT_EXCEEDED",
+            "FAN_IN_EXCEEDED",
+            "INSTABILITY_VIOLATION",
+            "ORPHAN_FILE",
+            "LOW_ABSTRACTION_RATIO",
+            "SRP_VIOLATION",
+            "ISP_VIOLATION",
+            "INHERITANCE_DEPTH_EXCEEDED",
+            "NAMING_CONVENTION",
+            "PLACEMENT_CONVENTION",
+            "MISSING_TEST_FILE",
+            "INDEX_LOGIC_VIOLATION",
+            "SEMANTIC_RULE_VIOLATION",
+            "INTENT_VIOLATION",
+            "DOMAIN_STATE_PURITY_VIOLATION",
+            "INTEGRITY_VIOLATION"
+          ]
+        },
+        { "type": "string", "pattern": "^CUSTOM_" }
+      ]
+    },
+    "violation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "type", "dimension", "severity", "functionId", "route", "filePath", "message", "deterministic"],
+      "properties": {
+        "id": { "type": "string" },
+        "type": { "$ref": "#/definitions/violationType" },
+        "dimension": { "$ref": "#/definitions/dimension" },
+        "severity": { "$ref": "#/definitions/severity" },
+        "functionId": { "type": "string" },
+        "route": { "$ref": "#/definitions/route" },
+        "filePath": { "type": "string" },
+        "sourceLayer": { "type": "string" },
+        "targetLayer": { "type": "string" },
+        "message": { "type": "string" },
+        "evidence": { "type": "array", "items": { "type": "string" } },
+        "deterministic": { "type": "boolean" },
+        "line": { "type": "integer", "minimum": 1 },
+        "lines": { "type": "array", "items": { "type": "integer", "minimum": 1 } },
+        "target": { "type": "string" },
+        "isTypeOnly": { "type": "boolean" },
+        "tag": { "$ref": "#/definitions/templateTag" },
+        "unitId": { "type": "string" },
+        "discriminator": { "type": "array", "items": { "type": "string" } }
+      }
+    },
+    "perDimensionScore": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["dimension", "avr", "weight", "violationCount", "functionCount"],
+      "properties": {
+        "dimension": { "$ref": "#/definitions/dimension" },
+        "avr": { "$ref": "#/definitions/unitInterval" },
+        "weight": { "$ref": "#/definitions/nonNegativeNumber" },
+        "effectiveWeight": { "$ref": "#/definitions/unitInterval" },
+        "violationCount": { "$ref": "#/definitions/count" },
+        "functionCount": { "$ref": "#/definitions/count" }
+      }
+    },
+    "universalHealthMetrics": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "cyclicDependencyCount",
+        "maxFanOut",
+        "maxFanIn",
+        "abstractionRatio",
+        "averageInstability",
+        "orphanFileCount"
+      ],
+      "properties": {
+        "cyclicDependencyCount": { "$ref": "#/definitions/count" },
+        "maxFanOut": { "$ref": "#/definitions/count" },
+        "maxFanIn": { "$ref": "#/definitions/count" },
+        "abstractionRatio": { "$ref": "#/definitions/nonNegativeNumber" },
+        "averageInstability": { "$ref": "#/definitions/nonNegativeNumber" },
+        "orphanFileCount": { "$ref": "#/definitions/count" }
+      }
+    },
+    "pipelineWarning": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["code", "message", "stage"],
+      "properties": {
+        "code": { "type": "string" },
+        "message": { "type": "string" },
+        "context": { "type": "object" },
+        "stage": { "type": "string" }
+      }
+    },
+    "functionFailure": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["functionId", "name", "code", "message"],
+      "properties": {
+        "functionId": { "type": "string" },
+        "name": { "type": "string" },
+        "code": { "type": "string" },
+        "message": { "type": "string" }
+      }
+    },
+    "functionExecution": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["compiled", "executed", "failed"],
+      "properties": {
+        "compiled": { "$ref": "#/definitions/count" },
+        "executed": { "$ref": "#/definitions/count" },
+        "failed": { "type": "array", "items": { "$ref": "#/definitions/functionFailure" } }
+      }
+    },
+    "functionResultRow": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["functionId", "name", "dimension", "route", "passed", "violationCount", "executionTimeMs"],
+      "properties": {
+        "functionId": { "type": "string" },
+        "name": { "type": "string" },
+        "dimension": { "$ref": "#/definitions/dimension" },
+        "route": { "$ref": "#/definitions/route" },
+        "tag": { "$ref": "#/definitions/templateTag" },
+        "passed": { "type": "boolean" },
+        "violationCount": { "$ref": "#/definitions/count" },
+        "executionTimeMs": { "$ref": "#/definitions/nonNegativeNumber" }
+      }
+    },
+    "countByNodeType": {
+      "type": "object",
+      "propertyNames": { "$ref": "#/definitions/nodeType" },
+      "additionalProperties": { "$ref": "#/definitions/count" }
+    },
+    "countByEdgeType": {
+      "type": "object",
+      "propertyNames": { "$ref": "#/definitions/edgeType" },
+      "additionalProperties": { "$ref": "#/definitions/count" }
+    },
+    "graphStats": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["nodeCount", "edgeCount", "layerCoverage", "nodeCountByType", "edgeCountByType"],
+      "properties": {
+        "nodeCount": { "$ref": "#/definitions/count" },
+        "edgeCount": { "$ref": "#/definitions/count" },
+        "layerCoverage": { "$ref": "#/definitions/nonNegativeNumber" },
+        "nodeCountByType": { "$ref": "#/definitions/countByNodeType" },
+        "edgeCountByType": { "$ref": "#/definitions/countByEdgeType" }
+      }
+    },
+    "layerAnnotationSummary": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["mapped", "unmapped", "unmappedFiles"],
+      "properties": {
+        "mapped": { "$ref": "#/definitions/count" },
+        "unmapped": { "$ref": "#/definitions/count" },
+        "unmappedFiles": { "type": "array", "items": { "type": "string" } }
+      }
+    },
+    "skippedFile": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["filePath", "reason"],
+      "properties": {
+        "filePath": { "type": "string" },
+        "reason": { "type": "string" }
+      }
+    },
+    "parseCoverage": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["total", "parsed", "percentage", "skipped"],
+      "properties": {
+        "total": { "$ref": "#/definitions/count" },
+        "parsed": { "$ref": "#/definitions/count" },
+        "percentage": { "$ref": "#/definitions/nonNegativeNumber" },
+        "skipped": { "type": "array", "items": { "$ref": "#/definitions/skippedFile" } }
+      }
+    },
+    "importResolutionStats": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["resolvedInternal", "external", "unresolved", "unsupportedDynamic"],
+      "properties": {
+        "resolvedInternal": { "$ref": "#/definitions/count" },
+        "external": { "$ref": "#/definitions/count" },
+        "unresolved": { "$ref": "#/definitions/count" },
+        "unsupportedDynamic": { "$ref": "#/definitions/count" }
+      }
+    },
+    "stageTimingEntry": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["name", "durationMs", "status"],
+      "properties": {
+        "name": { "type": "string" },
+        "durationMs": { "$ref": "#/definitions/nonNegativeNumber" },
+        "status": { "type": "string", "enum": ["success", "warning", "error", "skipped"] }
+      }
+    },
+    "stageTimings": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["stages", "totalMs"],
+      "properties": {
+        "stages": { "type": "array", "items": { "$ref": "#/definitions/stageTimingEntry" } },
+        "totalMs": { "$ref": "#/definitions/nonNegativeNumber" }
+      }
+    },
+    "droppedDimension": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["dimension", "reason", "declared", "executed"],
+      "properties": {
+        "dimension": { "$ref": "#/definitions/dimension" },
+        "reason": { "type": "string", "enum": ["disabled_by_spec", "execution_failure", "none_declared"] },
+        "declared": { "$ref": "#/definitions/count" },
+        "executed": { "$ref": "#/definitions/count" }
+      }
+    },
+    "judgeProvenance": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["provider", "model", "runsPerUnit"],
+      "properties": {
+        "provider": { "type": "string", "enum": ["claude-cli", "gemini", "mock", "null", "none"] },
+        "model": { "type": "string" },
+        "effort": { "type": "string", "enum": ["low", "medium", "high", "xhigh", "max"] },
+        "cliVersion": { "type": "string" },
+        "cassetteMode": { "type": "string", "enum": ["record", "replay"] },
+        "runsPerUnit": { "$ref": "#/definitions/count" }
+      }
+    }
+  }
+}

@@ -83,7 +83,7 @@ describe('fitness-compiler', () => {
         fitnessFunctions: [symbolicFn],
         adrRules: [],
         layerModel: LAYER_MODEL,
-        scoringWeights: { structural: 1, coupling: 0, pattern: 0, solid: 0, convention: 0, semantic: 0, intent: 0 },
+        scoringWeights: { structural: 1, coupling: 0, pattern: 0, solid: 0, convention: 0, semantic: 0, integrity: 0, intent: 0 },
       };
       const result = compileFunctions(input);
       expect(result.success).toBe(true);
@@ -101,7 +101,7 @@ describe('fitness-compiler', () => {
         fitnessFunctions: [neuronalFn],
         adrRules: [],
         layerModel: LAYER_MODEL,
-        scoringWeights: { structural: 0, coupling: 0, pattern: 0, solid: 0, convention: 0, semantic: 0, intent: 1 },
+        scoringWeights: { structural: 0, coupling: 0, pattern: 0, solid: 0, convention: 0, semantic: 0, integrity: 0, intent: 1 },
       };
       const result = compileFunctions(input);
       expect(result.success).toBe(true);
@@ -118,7 +118,7 @@ describe('fitness-compiler', () => {
         fitnessFunctions: [hybridFn],
         adrRules: [],
         layerModel: LAYER_MODEL,
-        scoringWeights: { structural: 0, coupling: 0, pattern: 0, solid: 1, convention: 0, semantic: 0, intent: 0 },
+        scoringWeights: { structural: 0, coupling: 0, pattern: 0, solid: 1, convention: 0, semantic: 0, integrity: 0, intent: 0 },
       };
       const result = compileFunctions(input);
       expect(result.success).toBe(true);
@@ -142,7 +142,7 @@ describe('fitness-compiler', () => {
         fitnessFunctions: [],
         adrRules: [adr],
         layerModel: LAYER_MODEL,
-        scoringWeights: { structural: 1, coupling: 0, pattern: 0, solid: 0, convention: 0, semantic: 0, intent: 0 },
+        scoringWeights: { structural: 1, coupling: 0, pattern: 0, solid: 0, convention: 0, semantic: 0, integrity: 0, intent: 0 },
       };
       const result = compileFunctions(input);
       expect(result.success).toBe(true);
@@ -165,7 +165,7 @@ describe('fitness-compiler', () => {
         fitnessFunctions: [],
         adrRules: [adr],
         layerModel: LAYER_MODEL,
-        scoringWeights: { structural: 1, coupling: 0, pattern: 0, solid: 0, convention: 0, semantic: 0, intent: 0 },
+        scoringWeights: { structural: 1, coupling: 0, pattern: 0, solid: 0, convention: 0, semantic: 0, integrity: 0, intent: 0 },
       };
       const result = compileFunctions(input);
       expect(result.success).toBe(true);
@@ -184,7 +184,7 @@ describe('fitness-compiler', () => {
         fitnessFunctions: [symbolicFn, { ...symbolicFn }],
         adrRules: [],
         layerModel: LAYER_MODEL,
-        scoringWeights: { structural: 1, coupling: 0, pattern: 0, solid: 0, convention: 0, semantic: 0, intent: 0 },
+        scoringWeights: { structural: 1, coupling: 0, pattern: 0, solid: 0, convention: 0, semantic: 0, integrity: 0, intent: 0 },
       };
       const result = compileFunctions(input);
       expect(result.success).toBe(false);
@@ -198,7 +198,7 @@ describe('fitness-compiler', () => {
         fitnessFunctions: [symbolicFn, neuronalFn],
         adrRules: [],
         layerModel: LAYER_MODEL,
-        scoringWeights: { structural: 0.5, coupling: 0, pattern: 0, solid: 0, convention: 0, semantic: 0, intent: 0.5 },
+        scoringWeights: { structural: 0.5, coupling: 0, pattern: 0, solid: 0, convention: 0, semantic: 0, integrity: 0, intent: 0.5 },
       };
       const result = compileFunctions(input);
       expect(result.success).toBe(true);

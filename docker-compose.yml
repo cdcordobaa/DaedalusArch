@@ -1,14 +1,12 @@
-version: '3.9'
-
 services:
   neo4j:
-    image: neo4j:5.26-community
+    image: neo4j:5.26-community@sha256:f66304b9511c60d33555a2c451f88e03d82d1ebc893f32d84c98a6b326096435
     container_name: daedalus-arch-neo4j
     ports:
-      - '7474:7474'   # HTTP browser
-      - '7687:7687'   # Bolt protocol
+      - '127.0.0.1:7474:7474'   # HTTP browser (localhost only)
+      - '127.0.0.1:7687:7687'   # Bolt protocol (localhost only)
     environment:
-      NEO4J_AUTH: ${NEO4J_USER:-neo4j}/${NEO4J_PASSWORD:-daedalus-dev}
+      NEO4J_AUTH: ${NEO4J_USER:-neo4j}/${NEO4J_PASSWORD:?NEO4J_PASSWORD must be set (copy .env.example to .env; at least 8 characters)}
       NEO4J_PLUGINS: '["apoc"]'
       NEO4J_dbms_security_procedures_unrestricted: 'apoc.*'
       NEO4J_dbms_security_procedures_allowlist: 'apoc.*'

@@ -100,7 +100,7 @@ describe('spec-validator', () => {
       fitnessFunctions: [
         { id: functionId('FF-S01'), name: 'test', dimension: 'structural', severity: 'critical', route: 'symbolic', isBuiltIn: true, validated: true, enabled: true, excludePaths: [] },
       ],
-      scoringWeights: { structural: 0.5, coupling: 0.2, pattern: 0.2, solid: 0.05, convention: 0.05, semantic: 0, intent: 0 },
+      scoringWeights: { structural: 0.5, coupling: 0.2, pattern: 0.2, solid: 0.05, convention: 0.05, semantic: 0, integrity: 0, intent: 0 },
       verdictThresholds: { pass: 0.8, warning: 0.65, softBlock: 0.5 },
       confidenceThresholds: { high: 0.85, medium: 0.60, iccMinimum: 0.70 },
       adrRules: [],
@@ -120,7 +120,7 @@ describe('spec-validator', () => {
     it('rejects weights not summing to 1.0', () => {
       const result = validateBusinessRules({
         ...validSpec,
-        scoringWeights: { structural: 0.5, coupling: 0.5, pattern: 0.5, solid: 0, convention: 0, semantic: 0, intent: 0 },
+        scoringWeights: { structural: 0.5, coupling: 0.5, pattern: 0.5, solid: 0, convention: 0, semantic: 0, integrity: 0, intent: 0 },
       });
       expect(result.valid).toBe(false);
       expect(result.errors.some((e) => e.rule === 'BR-SPEC-06')).toBe(true);
@@ -129,7 +129,7 @@ describe('spec-validator', () => {
     it('warns on floating-point weight drift', () => {
       const result = validateBusinessRules({
         ...validSpec,
-        scoringWeights: { structural: 0.35, coupling: 0.20, pattern: 0.30, solid: 0.10, convention: 0.05, semantic: 0, intent: 0 },
+        scoringWeights: { structural: 0.35, coupling: 0.20, pattern: 0.30, solid: 0.10, convention: 0.05, semantic: 0, integrity: 0, intent: 0 },
       });
       // 0.35+0.20+0.30+0.10+0.05 may not === 1.0 due to floating point
       expect(result.valid).toBe(true);

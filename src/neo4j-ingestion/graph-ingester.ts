@@ -3,7 +3,28 @@ import type { GraphRepository } from '../shared/interfaces/graph-repository.js';
 import type { GraphStats } from '../shared/types/evaluation.js';
 import type { DomainWarning } from '../shared/errors/domain-result.js';
 import { DomainResult } from '../shared/errors/domain-result.js';
+import { NODE_TYPES, EDGE_TYPES } from '../shared/types/enums.js';
+import type { NodeType, EdgeType } from '../shared/types/enums.js';
 import type { LayerAnnotation } from './types.js';
+
+// Ingestion order is preserved from before the enums existed (D-U0-13): templates have no ORDER BY
+// until FR-35, so a different insertion order could reorder rows inside a function's results.
+const LEGACY_NODE_ORDER: readonly NodeType[] = ['File', 'Class', 'Interface', 'Method', 'Function'];
+const LEGACY_EDGE_ORDER: readonly EdgeType[] = [
+  'IMPORTS', 'DECLARES', 'CONTAINS', 'EXTENDS', 'IMPLEMENTS', 'CONSTRUCTOR_INJECTS', 'CALLS',
+];
+
+/** Node types in ingestion order: the legacy order, then the remaining NODE_TYPES members. */
+export const NODE_INGESTION_ORDER: readonly NodeType[] = [
+  ...LEGACY_NODE_ORDER,
+  ...NODE_TYPES.filter((t) => !LEGACY_NODE_ORDER.includes(t)),
+];
+
+/** Edge types in ingestion order: the legacy order, then the remaining EDGE_TYPES members. */
+export const EDGE_INGESTION_ORDER: readonly EdgeType[] = [
+  ...LEGACY_EDGE_ORDER,
+  ...EDGE_TYPES.filter((t) => !LEGACY_EDGE_ORDER.includes(t)),
+];
 
 export interface IngestResult {
   readonly graphStats: GraphStats;
@@ -18,10 +39,9 @@ export async function ingestNodes(
   annotations: ReadonlyMap<string, LayerAnnotation>,
   graphRepo: GraphRepository,
 ): Promise<DomainResult<number>> {
-  const nodeTypes = ['File', 'Class', 'Interface', 'Method', 'Function'] as const;
   let totalCreated = 0;
 
-  for (const type of nodeTypes) {
+  for (const type of NODE_INGESTION_ORDER) {
     const typeNodes = nodes.filter((n) => n.type === type);
     if (typeNodes.length === 0) continue;
 
@@ -61,10 +81,9 @@ export async function ingestEdges(
   edges: readonly APGEdge[],
   graphRepo: GraphRepository,
 ): Promise<DomainResult<number>> {
-  const edgeTypes = ['IMPORTS', 'DECLARES', 'CONTAINS', 'EXTENDS', 'IMPLEMENTS', 'CONSTRUCTOR_INJECTS', 'CALLS'] as const;
   let totalCreated = 0;
 
-  for (const type of edgeTypes) {
+  for (const type of EDGE_INGESTION_ORDER) {
     const typeEdges = edges.filter((e) => e.type === type);
     if (typeEdges.length === 0) continue;
 
@@ -112,7 +131,8 @@ export async function verifyIngestion(
   const edgeCount = Number(edgeResult.data.records[0]?.['cnt'] ?? 0);
   const layerCoverage = totalFileNodes > 0 ? mappedCount / totalFileNodes : 1;
 
-  return DomainResult.ok({ nodeCount, edgeCount, layerCoverage });
+  // Per-type counts are filled by U2 (FR-14); empty maps keep U0 behaviour-neutral.
+  return DomainResult.ok({ nodeCount, edgeCount, layerCoverage, nodeCountByType: {}, edgeCountByType: {} });
 }
 
 function flattenProperties(props: Readonly<Record<string, unknown>>): Record<string, unknown> {

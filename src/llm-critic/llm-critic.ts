@@ -58,7 +58,12 @@ async function evaluateSingleFunction(
     }
 
     if (!verdict) {
-      const llmResult = await input.provider.evaluate(prompt, { temperature: 0, seed: 42, maxTokens: 1000 });
+      const llmResult = await input.provider.evaluate(prompt, {
+        model: input.provider.describe().model,
+        temperature: 0,
+        seed: 42,
+        maxTokens: 1000, // raised in U4 for the pinned model (D-U0-17)
+      });
       if (!llmResult.success) {
         continue; // Run failed, use remaining runs
       }
@@ -127,6 +132,7 @@ async function evaluateSingleFunction(
 
   return DomainResult.ok<NeuronalFunctionResult>({
     functionId: instruction.functionId,
+    dimension: instruction.dimension,
     verdict: overallPass ? 'pass' : 'fail',
     confidence: makeConfidence(Math.round(meanConf * 1000) / 1000),
     confidenceStdDev: Math.round(stddev * 10000) / 10000,
@@ -137,6 +143,10 @@ async function evaluateSingleFunction(
     runs,
     deterministic: false,
     flaggedUnstable: stddev > opts.unstableThreshold,
+    // FR-33 contract fields; filled by U4's per-unit judging
+    unitResults: [],
+    unitsSelected: 0,
+    unitsCapped: 0,
   });
 }
 
