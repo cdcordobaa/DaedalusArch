@@ -70,6 +70,10 @@ export type { GraphRepository, QueryOptions, QueryResult } from './interfaces/gr
 export type { LLMProvider, LLMOptions, LLMResponse, LLMEffort } from './interfaces/llm-provider.js';
 export type { SnapshotStore, SnapshotMetadata, Snapshot, SnapshotSummary, DeltaAPG } from './interfaces/snapshot-store.js';
 export type { PipelineStage, PipelineCommand } from './interfaces/pipeline-stage.js';
+export type { ProcessRunner, ProcessRunOptions, ProcessResult } from './interfaces/process-runner.js';
+
+// Process runner (NFR-08; no caller in U0)
+export { NodeProcessRunner, buildChildEnv } from './process/node-process-runner.js';
 
 // FirewallContext (C11)
 export type { FirewallContextSnapshot } from './context/firewall-context.js';
