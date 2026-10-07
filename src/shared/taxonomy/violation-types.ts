@@ -1,4 +1,4 @@
-import type { Dimension, Severity, Route } from '../types/enums.js';
+import type { Dimension, Severity, Route, TemplateTag } from '../types/enums.js';
 import type { FunctionId } from '../types/value-objects.js';
 import type { BaselineStatus } from '../types/baseline.js';
 
@@ -26,6 +26,8 @@ export const BUILT_IN_VIOLATION_TYPES = [
   'INDEX_LOGIC_VIOLATION',
   'SEMANTIC_RULE_VIOLATION',
   'INTENT_VIOLATION',
+  'DOMAIN_STATE_PURITY_VIOLATION', // FR-21
+  'INTEGRITY_VIOLATION',           // FR-22
 ] as const;
 
 export type BuiltInViolationType = (typeof BUILT_IN_VIOLATION_TYPES)[number];
@@ -45,6 +47,14 @@ export interface Violation {
   readonly message: string;
   readonly evidence?: readonly string[];
   readonly deterministic: boolean;
+  // Optional fields added by the C10 contract; nothing fills them in U0.
+  readonly line?: number;                     // FR-12
+  readonly lines?: readonly number[];         // FR-10
+  readonly target?: string;                   // FR-12
+  readonly isTypeOnly?: boolean;              // set on import-derived violations
+  readonly tag?: TemplateTag;                 // FR-29
+  readonly unitId?: string;                   // FR-33: judge unit for neuronal violations
+  readonly discriminator?: readonly string[]; // FR-12: discriminator values hashed into `id`
 }
 
 export interface ActionableViolation extends Violation {
