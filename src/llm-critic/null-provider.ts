@@ -1,4 +1,5 @@
 import type { LLMProvider, LLMOptions, LLMResponse } from '../shared/interfaces/llm-provider.js';
+import type { ProviderDescription } from '../shared/types/evaluation.js';
 import { DomainResult } from '../shared/errors/domain-result.js';
 
 /**
@@ -10,6 +11,10 @@ export class NullLLMProvider implements LLMProvider {
 
   isAvailable(): boolean {
     return false;
+  }
+
+  describe(): ProviderDescription {
+    return { provider: 'null', model: 'none' };
   }
 
   async evaluate(_prompt: string, _options: LLMOptions): Promise<DomainResult<LLMResponse>> {

@@ -58,7 +58,12 @@ async function evaluateSingleFunction(
     }
 
     if (!verdict) {
-      const llmResult = await input.provider.evaluate(prompt, { temperature: 0, seed: 42, maxTokens: 1000 });
+      const llmResult = await input.provider.evaluate(prompt, {
+        model: input.provider.describe().model,
+        temperature: 0,
+        seed: 42,
+        maxTokens: 1000, // raised in U4 for the pinned model (D-U0-17)
+      });
       if (!llmResult.success) {
         continue; // Run failed, use remaining runs
       }

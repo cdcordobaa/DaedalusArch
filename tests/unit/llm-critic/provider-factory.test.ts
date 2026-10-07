@@ -62,7 +62,7 @@ describe('createLLMProvider', () => {
 describe('NullLLMProvider', () => {
   it('returns non-critical error on evaluate', async () => {
     const provider = new NullLLMProvider();
-    const result = await provider.evaluate('test', { temperature: 0 });
+    const result = await provider.evaluate('test', { model: 'none', maxTokens: 1000, temperature: 0 });
     expect(result.success).toBe(false);
     if (!result.success) {
       expect(result.errors[0]?.code).toBe('LLM_NOT_CONFIGURED');
