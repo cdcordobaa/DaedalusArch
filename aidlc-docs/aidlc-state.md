@@ -100,5 +100,5 @@
 - [x] Application Design — APPROVED 2026-10-07 (`inception/application-design/v1.2E-*.md`, 16 components, 3 new)
 - [x] Units Generation — APPROVED 2026-10-07 (7 units: U0, U1, U2, U3, U4, U5a, U5b; lanes U0 | U1+U2 | U3+U4+U5a | U5b)
 ### v1.2E CONSTRUCTION PHASE
-- [x] U0 Foundation — COMPLETE and merged 2026-10-07 (PR #1, 2050193) (code-summary in construction/v1.2E-u0-foundation/code/), awaiting approval (`construction/plans/v1.2E-u0-foundation-code-generation-plan.md`) (U0 Foundation; U1 Spec+compiler; U2 Extractor+graph; U3 Evaluation+scoring+report; U4 Neural path; U5 Experiment tooling)
+- [x] U0 Foundation — COMPLETE and merged 2026-10-07 (PR #1, 2050193) (code-summary in construction/v1.2E-u0-foundation/code/) (`construction/plans/v1.2E-u0-foundation-code-generation-plan.md`) (U0 Foundation; U1 Spec+compiler; U2 Extractor+graph; U3 Evaluation+scoring+report; U4 Neural path; U5 Experiment tooling)
 - CONSTRUCTION: Functional Design EXECUTE U1–U5 / SKIP U0; NFR Requirements EXECUTE light (in U0); NFR Design, Infrastructure Design SKIP; Code Generation and Build and Test EXECUTE
