@@ -1,7 +1,11 @@
 // Enums
+export {
+  NODE_TYPES, EDGE_TYPES, DIMENSIONS, SYMBOLIC_DIMENSIONS, MODEL_JUDGED_DIMENSIONS, LAYER_KINDS,
+} from './types/enums.js';
 export type {
   NodeType, EdgeType, Dimension, Severity, Route,
   EvaluationMode, PipelineMode, OverallVerdict, ADRFormat,
+  LayerKind, TemplateTag, JudgeUnitKind,
 } from './types/enums.js';
 
 // Value Objects

@@ -1,22 +1,51 @@
-export type NodeType = 'File' | 'Class' | 'Interface' | 'Method' | 'Function';
+// Single source of truth for the C10 enumerations; the union types are derived from these arrays
+// (FR-09, FR-21, FR-22, FR-32, FR-34).
+export const NODE_TYPES = ['File', 'Class', 'Interface', 'Method', 'Function', 'Package'] as const;
 
-export type EdgeType =
-  | 'IMPORTS'
-  | 'IMPLEMENTS'
-  | 'EXTENDS'
-  | 'CONSTRUCTOR_INJECTS'
-  | 'CALLS'
-  | 'DECLARES'
-  | 'CONTAINS';
+export const EDGE_TYPES = [
+  'IMPORTS',
+  'IMPLEMENTS',
+  'EXTENDS',
+  'CONSTRUCTOR_INJECTS',
+  'CALLS',
+  'DECLARES',
+  'CONTAINS',
+  'FLOWS_TO',
+  'RE_EXPORTS',
+] as const;
 
-export type Dimension =
-  | 'structural'
-  | 'coupling'
-  | 'pattern'
-  | 'solid'
-  | 'convention'
-  | 'semantic'
-  | 'intent';
+// 'intent' is a transitional member (D-U0-1, Option B); U1 removes it in its FR-22 work.
+export const DIMENSIONS = [
+  'structural',
+  'coupling',
+  'pattern',
+  'solid',
+  'convention',
+  'semantic',
+  'integrity',
+  'intent',
+] as const;
+
+export const SYMBOLIC_DIMENSIONS = ['structural', 'coupling', 'pattern', 'solid', 'convention'] as const;
+
+export const MODEL_JUDGED_DIMENSIONS = ['semantic', 'integrity'] as const;
+
+export const LAYER_KINDS = ['domain', 'application', 'infrastructure', 'presentation'] as const;
+
+export type NodeType = (typeof NODE_TYPES)[number];
+
+export type EdgeType = (typeof EDGE_TYPES)[number];
+
+export type Dimension = (typeof DIMENSIONS)[number];
+
+// Layer role used for parameter binding (FR-19)
+export type LayerKind = (typeof LAYER_KINDS)[number];
+
+// Catalogue tag of each template (FR-29)
+export type TemplateTag = 'structural' | 'topological' | 'pattern-proxy';
+
+// Judge unit granularity (FR-33)
+export type JudgeUnitKind = 'file' | 'class' | 'module';
 
 export type Severity = 'critical' | 'major' | 'minor' | 'advisory';
 
