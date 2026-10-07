@@ -7,9 +7,13 @@ export interface GeminiConfig {
   readonly maxTokens: number;
 }
 
+// FR-23: 'claude-cli' and the cassette settings are contract only in U0 ('claude-cli' still builds
+// NullLLMProvider; nothing reads `cassette` until U4).
 export interface LLMProviderConfig {
-  readonly provider: 'mock' | 'gemini';
+  readonly provider: 'mock' | 'gemini' | 'claude-cli';
   readonly gemini?: GeminiConfig;
+  readonly claudeCli?: ClaudeCliConfig;
+  readonly cassette: { readonly mode: VCRMode; readonly dir: string };
 }
 
 // C10 cassette mode (FR-23). The C7 copy in src/llm-critic/types.ts (with 'bypass') stays until U4

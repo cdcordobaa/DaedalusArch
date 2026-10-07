@@ -6,7 +6,6 @@ export type { PipelineBundle } from './pipeline-factory.js';
 // Types
 export type {
   PipelineConfig,
-  LLMConfig,
   StageTimingEntry,
   StageTimings,
   OutputFormat,

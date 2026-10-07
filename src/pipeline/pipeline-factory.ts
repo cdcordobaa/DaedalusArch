@@ -77,11 +77,7 @@ export function createPipeline(config: PipelineConfig): PipelineBundle {
   // LLM provider is only needed for neuronal / full evaluation modes
   let llmProvider: LLMProvider | undefined;
   if (config.evaluationMode !== 'symbolic-only') {
-    llmProvider = createLLMProvider(
-      config.llmConfig
-        ? { provider: 'gemini', gemini: { apiKey: config.llmConfig.apiKey, model: process.env['GEMINI_MODEL'] ?? 'gemini-2.0-flash', temperature: 0, maxTokens: 4096 } }
-        : undefined,
-    );
+    llmProvider = createLLMProvider(config.llmConfig);
   }
 
   // ------------------------------------------------------------------

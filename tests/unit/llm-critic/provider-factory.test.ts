@@ -3,6 +3,8 @@ import { MockLLMProvider } from '../../../src/llm-critic/mock-provider.js';
 import { NullLLMProvider } from '../../../src/llm-critic/null-provider.js';
 import { GeminiProvider } from '../../../src/llm-critic/gemini-provider.js';
 
+const CASSETTE = { mode: 'record', dir: 'fixtures/cassettes' } as const;
+
 describe('createLLMProvider', () => {
   const originalEnv = process.env;
 
@@ -23,7 +25,7 @@ describe('createLLMProvider', () => {
   });
 
   it('returns MockLLMProvider for mock config', () => {
-    const provider = createLLMProvider({ provider: 'mock' });
+    const provider = createLLMProvider({ provider: 'mock', cassette: CASSETTE });
     expect(provider).toBeInstanceOf(MockLLMProvider);
     expect(provider.name).toBe('mock');
   });
@@ -32,6 +34,7 @@ describe('createLLMProvider', () => {
     const provider = createLLMProvider({
       provider: 'gemini',
       gemini: { apiKey: 'test-key', model: 'gemini-2.0-flash', temperature: 0, maxTokens: 4096 },
+      cassette: CASSETTE,
     });
     expect(provider).toBeInstanceOf(GeminiProvider);
     expect(provider.name).toBe('gemini');
@@ -39,12 +42,12 @@ describe('createLLMProvider', () => {
 
   it('returns GeminiProvider when API key is in env', () => {
     process.env['GEMINI_API_KEY'] = 'env-key';
-    const provider = createLLMProvider({ provider: 'gemini' });
+    const provider = createLLMProvider({ provider: 'gemini', cassette: CASSETTE });
     expect(provider).toBeInstanceOf(GeminiProvider);
   });
 
   it('returns NullLLMProvider when gemini config has no API key', () => {
-    const provider = createLLMProvider({ provider: 'gemini' });
+    const provider = createLLMProvider({ provider: 'gemini', cassette: CASSETTE });
     expect(provider).toBeInstanceOf(NullLLMProvider);
   });
 
@@ -53,6 +56,7 @@ describe('createLLMProvider', () => {
     const provider = createLLMProvider({
       provider: 'gemini',
       gemini: { apiKey: 'test-key', model: 'gemini-2.0-flash', temperature: 0, maxTokens: 4096 },
+      cassette: CASSETTE,
     });
     expect(provider).toBeInstanceOf(GeminiProvider);
     expect((provider as GeminiProvider).getModelName()).toBe('gemini-1.5-pro');
