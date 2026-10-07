@@ -1,0 +1,542 @@
+{
+  "ahsDeterministic": 0.787,
+  "caseId": "correct-reference",
+  "evaluationMode": "symbolic-only",
+  "functionResults": [
+    {
+      "dimension": "structural",
+      "functionId": "FF-S01",
+      "passed": true,
+      "violationCount": 0
+    },
+    {
+      "dimension": "structural",
+      "functionId": "FF-S02",
+      "passed": true,
+      "violationCount": 0
+    },
+    {
+      "dimension": "structural",
+      "functionId": "FF-S03",
+      "passed": false,
+      "violationCount": 2
+    },
+    {
+      "dimension": "structural",
+      "functionId": "FF-S04",
+      "passed": true,
+      "violationCount": 0
+    },
+    {
+      "dimension": "pattern",
+      "functionId": "FF-P02",
+      "passed": true,
+      "violationCount": 2
+    },
+    {
+      "dimension": "pattern",
+      "functionId": "FF-P03",
+      "passed": false,
+      "violationCount": 1
+    },
+    {
+      "dimension": "pattern",
+      "functionId": "FF-P04",
+      "passed": true,
+      "violationCount": 0
+    },
+    {
+      "dimension": "pattern",
+      "functionId": "FF-P05",
+      "passed": true,
+      "violationCount": 0
+    },
+    {
+      "dimension": "coupling",
+      "functionId": "FF-C01",
+      "passed": true,
+      "violationCount": 2
+    },
+    {
+      "dimension": "coupling",
+      "functionId": "FF-C02",
+      "passed": true,
+      "violationCount": 0
+    },
+    {
+      "dimension": "coupling",
+      "functionId": "FF-C03",
+      "passed": false,
+      "violationCount": 5
+    },
+    {
+      "dimension": "coupling",
+      "functionId": "FF-C04",
+      "passed": true,
+      "violationCount": 0
+    },
+    {
+      "dimension": "coupling",
+      "functionId": "FF-C05",
+      "passed": true,
+      "violationCount": 0
+    },
+    {
+      "dimension": "coupling",
+      "functionId": "FF-C06",
+      "passed": true,
+      "violationCount": 1
+    },
+    {
+      "dimension": "convention",
+      "functionId": "FF-CV01",
+      "passed": true,
+      "violationCount": 0
+    },
+    {
+      "dimension": "convention",
+      "functionId": "FF-CV05",
+      "passed": false,
+      "violationCount": 10
+    },
+    {
+      "dimension": "convention",
+      "functionId": "FF-CV06",
+      "passed": true,
+      "violationCount": 0
+    }
+  ],
+  "perDimensionScores": [
+    {
+      "avr": 0.25,
+      "dimension": "structural",
+      "functionCount": 17,
+      "violationCount": 1,
+      "weight": 0.35
+    },
+    {
+      "avr": 0.167,
+      "dimension": "coupling",
+      "functionCount": 17,
+      "violationCount": 1,
+      "weight": 0.2
+    },
+    {
+      "avr": 0.25,
+      "dimension": "pattern",
+      "functionCount": 17,
+      "violationCount": 1,
+      "weight": 0.3
+    },
+    {
+      "avr": 0,
+      "dimension": "solid",
+      "functionCount": 17,
+      "violationCount": 0,
+      "weight": 0.1
+    },
+    {
+      "avr": 0.333,
+      "dimension": "convention",
+      "functionCount": 17,
+      "violationCount": 1,
+      "weight": 0.05
+    }
+  ],
+  "projectPath": "fixtures/correct-reference",
+  "specVersion": "1.0.0",
+  "unexecutedFunctionIds": [
+    "FF-CV02",
+    "FF-CV03",
+    "FF-CV04",
+    "FF-P01",
+    "FF-SO01",
+    "FF-SO02",
+    "FF-SO03"
+  ],
+  "universalMetrics": {
+    "abstractionRatio": 0.455,
+    "averageInstability": 0.625,
+    "cyclicDependencyCount": 0,
+    "maxFanIn": 6,
+    "maxFanOut": 2,
+    "orphanFileCount": 0
+  },
+  "verdict": "warning",
+  "violations": [
+    {
+      "dimension": "structural",
+      "filePath": "src/infrastructure/repositories/InMemoryTaskRepository.ts",
+      "functionId": "FF-S03",
+      "message": "src/infrastructure/repositories/InMemoryTaskRepository.ts (infrastructure) skips layers to import src/domain/entities/Task.ts (domain)",
+      "route": "symbolic",
+      "severity": "critical",
+      "type": "LAYER_SKIP"
+    },
+    {
+      "dimension": "structural",
+      "filePath": "src/infrastructure/repositories/InMemoryTaskRepository.ts",
+      "functionId": "FF-S03",
+      "message": "src/infrastructure/repositories/InMemoryTaskRepository.ts (infrastructure) skips layers to import src/domain/repositories/ITaskRepository.ts (domain)",
+      "route": "symbolic",
+      "severity": "critical",
+      "type": "LAYER_SKIP"
+    },
+    {
+      "dimension": "pattern",
+      "filePath": "src/application/use-cases/CompleteTaskUseCase.ts",
+      "functionId": "FF-P02",
+      "message": "Violation in src/application/use-cases/CompleteTaskUseCase.ts",
+      "route": "symbolic",
+      "severity": "critical",
+      "type": "DEPENDENCY_INVERSION_VIOLATION"
+    },
+    {
+      "dimension": "pattern",
+      "filePath": "src/application/use-cases/CreateTaskUseCase.ts",
+      "functionId": "FF-P02",
+      "message": "Violation in src/application/use-cases/CreateTaskUseCase.ts",
+      "route": "symbolic",
+      "severity": "critical",
+      "type": "DEPENDENCY_INVERSION_VIOLATION"
+    },
+    {
+      "dimension": "pattern",
+      "filePath": "src/infrastructure/repositories/InMemoryTaskRepository.ts",
+      "functionId": "FF-P03",
+      "message": "Violation in src/infrastructure/repositories/InMemoryTaskRepository.ts",
+      "route": "symbolic",
+      "severity": "critical",
+      "type": "REPOSITORY_PATTERN_VIOLATION"
+    },
+    {
+      "dimension": "coupling",
+      "filePath": "src/domain/entities/Task.ts",
+      "functionId": "FF-C01",
+      "message": "Violation in src/domain/entities/Task.ts",
+      "route": "symbolic",
+      "severity": "major",
+      "type": "INSTABILITY_VIOLATION"
+    },
+    {
+      "dimension": "coupling",
+      "filePath": "src/domain/repositories/ITaskRepository.ts",
+      "functionId": "FF-C01",
+      "message": "Violation in src/domain/repositories/ITaskRepository.ts",
+      "route": "symbolic",
+      "severity": "major",
+      "type": "INSTABILITY_VIOLATION"
+    },
+    {
+      "dimension": "coupling",
+      "filePath": "src/application/use-cases/CompleteTaskUseCase.ts",
+      "functionId": "FF-C03",
+      "message": "Violation in src/application/use-cases/CompleteTaskUseCase.ts",
+      "route": "symbolic",
+      "severity": "major",
+      "type": "INSTABILITY_VIOLATION"
+    },
+    {
+      "dimension": "coupling",
+      "filePath": "src/application/use-cases/CreateTaskUseCase.ts",
+      "functionId": "FF-C03",
+      "message": "Violation in src/application/use-cases/CreateTaskUseCase.ts",
+      "route": "symbolic",
+      "severity": "major",
+      "type": "INSTABILITY_VIOLATION"
+    },
+    {
+      "dimension": "coupling",
+      "filePath": "src/domain/repositories/ICategoryRepository.ts",
+      "functionId": "FF-C03",
+      "message": "Violation in src/domain/repositories/ICategoryRepository.ts",
+      "route": "symbolic",
+      "severity": "major",
+      "type": "INSTABILITY_VIOLATION"
+    },
+    {
+      "dimension": "coupling",
+      "filePath": "src/infrastructure/controllers/TaskController.ts",
+      "functionId": "FF-C03",
+      "message": "Violation in src/infrastructure/controllers/TaskController.ts",
+      "route": "symbolic",
+      "severity": "major",
+      "type": "INSTABILITY_VIOLATION"
+    },
+    {
+      "dimension": "coupling",
+      "filePath": "src/infrastructure/repositories/InMemoryTaskRepository.ts",
+      "functionId": "FF-C03",
+      "message": "Violation in src/infrastructure/repositories/InMemoryTaskRepository.ts",
+      "route": "symbolic",
+      "severity": "major",
+      "type": "INSTABILITY_VIOLATION"
+    },
+    {
+      "dimension": "coupling",
+      "filePath": "0.45454545454545453",
+      "functionId": "FF-C06",
+      "message": "Abstraction ratio 0.45454545454545453 below threshold",
+      "route": "symbolic",
+      "severity": "advisory",
+      "type": "LOW_ABSTRACTION_RATIO"
+    },
+    {
+      "dimension": "convention",
+      "filePath": "src/application/use-cases/CompleteTaskUseCase.ts",
+      "functionId": "FF-CV05",
+      "message": "Violation in src/application/use-cases/CompleteTaskUseCase.ts",
+      "route": "symbolic",
+      "severity": "advisory",
+      "type": "MISSING_TEST_FILE"
+    },
+    {
+      "dimension": "convention",
+      "filePath": "src/application/use-cases/CreateTaskUseCase.ts",
+      "functionId": "FF-CV05",
+      "message": "Violation in src/application/use-cases/CreateTaskUseCase.ts",
+      "route": "symbolic",
+      "severity": "advisory",
+      "type": "MISSING_TEST_FILE"
+    },
+    {
+      "dimension": "convention",
+      "filePath": "src/application/use-cases/ICompleteTaskUseCase.ts",
+      "functionId": "FF-CV05",
+      "message": "Violation in src/application/use-cases/ICompleteTaskUseCase.ts",
+      "route": "symbolic",
+      "severity": "advisory",
+      "type": "MISSING_TEST_FILE"
+    },
+    {
+      "dimension": "convention",
+      "filePath": "src/application/use-cases/ICreateTaskUseCase.ts",
+      "functionId": "FF-CV05",
+      "message": "Violation in src/application/use-cases/ICreateTaskUseCase.ts",
+      "route": "symbolic",
+      "severity": "advisory",
+      "type": "MISSING_TEST_FILE"
+    },
+    {
+      "dimension": "convention",
+      "filePath": "src/domain/entities/Category.ts",
+      "functionId": "FF-CV05",
+      "message": "Violation in src/domain/entities/Category.ts",
+      "route": "symbolic",
+      "severity": "advisory",
+      "type": "MISSING_TEST_FILE"
+    },
+    {
+      "dimension": "convention",
+      "filePath": "src/domain/entities/Task.ts",
+      "functionId": "FF-CV05",
+      "message": "Violation in src/domain/entities/Task.ts",
+      "route": "symbolic",
+      "severity": "advisory",
+      "type": "MISSING_TEST_FILE"
+    },
+    {
+      "dimension": "convention",
+      "filePath": "src/domain/repositories/ICategoryRepository.ts",
+      "functionId": "FF-CV05",
+      "message": "Violation in src/domain/repositories/ICategoryRepository.ts",
+      "route": "symbolic",
+      "severity": "advisory",
+      "type": "MISSING_TEST_FILE"
+    },
+    {
+      "dimension": "convention",
+      "filePath": "src/domain/repositories/ITaskRepository.ts",
+      "functionId": "FF-CV05",
+      "message": "Violation in src/domain/repositories/ITaskRepository.ts",
+      "route": "symbolic",
+      "severity": "advisory",
+      "type": "MISSING_TEST_FILE"
+    },
+    {
+      "dimension": "convention",
+      "filePath": "src/infrastructure/controllers/TaskController.ts",
+      "functionId": "FF-CV05",
+      "message": "Violation in src/infrastructure/controllers/TaskController.ts",
+      "route": "symbolic",
+      "severity": "advisory",
+      "type": "MISSING_TEST_FILE"
+    },
+    {
+      "dimension": "convention",
+      "filePath": "src/infrastructure/repositories/InMemoryTaskRepository.ts",
+      "functionId": "FF-CV05",
+      "message": "Violation in src/infrastructure/repositories/InMemoryTaskRepository.ts",
+      "route": "symbolic",
+      "severity": "advisory",
+      "type": "MISSING_TEST_FILE"
+    }
+  ],
+  "warnings": [
+    {
+      "code": "EVAL_001",
+      "message": "Query failed for domain-purity: Expected parameter(s): forbiddenImports",
+      "stage": "evaluate-symbolic"
+    },
+    {
+      "code": "EVAL_001",
+      "message": "Query failed for inheritance-depth: Expected parameter(s): maxDepth",
+      "stage": "evaluate-symbolic"
+    },
+    {
+      "code": "EVAL_001",
+      "message": "Query failed for interface-segregation-proxy: Expected parameter(s): maxInterfaceMethods",
+      "stage": "evaluate-symbolic"
+    },
+    {
+      "code": "EVAL_001",
+      "message": "Query failed for naming-controllers: Expected parameter(s): pattern",
+      "stage": "evaluate-symbolic"
+    },
+    {
+      "code": "EVAL_001",
+      "message": "Query failed for naming-repos: Expected parameter(s): pattern",
+      "stage": "evaluate-symbolic"
+    },
+    {
+      "code": "EVAL_001",
+      "message": "Query failed for naming-services: Expected parameter(s): pattern",
+      "stage": "evaluate-symbolic"
+    },
+    {
+      "code": "EVAL_001",
+      "message": "Query failed for single-responsibility-proxy: Expected parameter(s): maxPublicMethods, maxDependencies",
+      "stage": "evaluate-symbolic"
+    },
+    {
+      "code": "SPEC_002",
+      "message": "Template function \"FF-C01\" overridden by spec declaration",
+      "stage": "parse-spec"
+    },
+    {
+      "code": "SPEC_002",
+      "message": "Template function \"FF-C02\" overridden by spec declaration",
+      "stage": "parse-spec"
+    },
+    {
+      "code": "SPEC_002",
+      "message": "Template function \"FF-C03\" overridden by spec declaration",
+      "stage": "parse-spec"
+    },
+    {
+      "code": "SPEC_002",
+      "message": "Template function \"FF-C04\" overridden by spec declaration",
+      "stage": "parse-spec"
+    },
+    {
+      "code": "SPEC_002",
+      "message": "Template function \"FF-C05\" overridden by spec declaration",
+      "stage": "parse-spec"
+    },
+    {
+      "code": "SPEC_002",
+      "message": "Template function \"FF-C06\" overridden by spec declaration",
+      "stage": "parse-spec"
+    },
+    {
+      "code": "SPEC_002",
+      "message": "Template function \"FF-CV01\" overridden by spec declaration",
+      "stage": "parse-spec"
+    },
+    {
+      "code": "SPEC_002",
+      "message": "Template function \"FF-CV02\" overridden by spec declaration",
+      "stage": "parse-spec"
+    },
+    {
+      "code": "SPEC_002",
+      "message": "Template function \"FF-CV03\" overridden by spec declaration",
+      "stage": "parse-spec"
+    },
+    {
+      "code": "SPEC_002",
+      "message": "Template function \"FF-CV04\" overridden by spec declaration",
+      "stage": "parse-spec"
+    },
+    {
+      "code": "SPEC_002",
+      "message": "Template function \"FF-CV05\" overridden by spec declaration",
+      "stage": "parse-spec"
+    },
+    {
+      "code": "SPEC_002",
+      "message": "Template function \"FF-CV06\" overridden by spec declaration",
+      "stage": "parse-spec"
+    },
+    {
+      "code": "SPEC_002",
+      "message": "Template function \"FF-N01\" overridden by spec declaration",
+      "stage": "parse-spec"
+    },
+    {
+      "code": "SPEC_002",
+      "message": "Template function \"FF-N02\" overridden by spec declaration",
+      "stage": "parse-spec"
+    },
+    {
+      "code": "SPEC_002",
+      "message": "Template function \"FF-P01\" overridden by spec declaration",
+      "stage": "parse-spec"
+    },
+    {
+      "code": "SPEC_002",
+      "message": "Template function \"FF-P02\" overridden by spec declaration",
+      "stage": "parse-spec"
+    },
+    {
+      "code": "SPEC_002",
+      "message": "Template function \"FF-P03\" overridden by spec declaration",
+      "stage": "parse-spec"
+    },
+    {
+      "code": "SPEC_002",
+      "message": "Template function \"FF-P04\" overridden by spec declaration",
+      "stage": "parse-spec"
+    },
+    {
+      "code": "SPEC_002",
+      "message": "Template function \"FF-P05\" overridden by spec declaration",
+      "stage": "parse-spec"
+    },
+    {
+      "code": "SPEC_002",
+      "message": "Template function \"FF-S01\" overridden by spec declaration",
+      "stage": "parse-spec"
+    },
+    {
+      "code": "SPEC_002",
+      "message": "Template function \"FF-S02\" overridden by spec declaration",
+      "stage": "parse-spec"
+    },
+    {
+      "code": "SPEC_002",
+      "message": "Template function \"FF-S03\" overridden by spec declaration",
+      "stage": "parse-spec"
+    },
+    {
+      "code": "SPEC_002",
+      "message": "Template function \"FF-S04\" overridden by spec declaration",
+      "stage": "parse-spec"
+    },
+    {
+      "code": "SPEC_002",
+      "message": "Template function \"FF-SO01\" overridden by spec declaration",
+      "stage": "parse-spec"
+    },
+    {
+      "code": "SPEC_002",
+      "message": "Template function \"FF-SO02\" overridden by spec declaration",
+      "stage": "parse-spec"
+    },
+    {
+      "code": "SPEC_002",
+      "message": "Template function \"FF-SO03\" overridden by spec declaration",
+      "stage": "parse-spec"
+    }
+  ]
+}
