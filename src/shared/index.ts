@@ -43,6 +43,9 @@ export type { GeminiConfig, LLMProviderConfig, VCRMode, ClaudeCliConfig } from '
 export type { DomainError, DomainWarning, PipelineError, PipelineWarning, PipelineAuditEntry } from './errors/domain-result.js';
 export { DomainResult } from './errors/domain-result.js'; // exports both the type union and the helper object
 
+// Secret scrubber (NFR-05, NFR-08; not wired in U0, D-U0-6)
+export { REDACTED, scrubSecrets, scrubWarning, scrubDeep } from './errors/scrub.js';
+
 // Evaluation contracts
 export type {
   IngestionResult, GraphStats, LayerAnnotationSummary, DeltaStats,
