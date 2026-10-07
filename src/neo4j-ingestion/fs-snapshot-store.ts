@@ -33,7 +33,13 @@ export class FileSystemSnapshotStore implements SnapshotStore {
 
       const snapshot: Snapshot = {
         metadata,
-        apg: { nodes, edges, parseCoverage: { total: nodes.length, parsed: nodes.length, skipped: [], percentage: 100 }, warnings: [] },
+        apg: {
+          nodes,
+          edges,
+          parseCoverage: { total: nodes.length, parsed: nodes.length, skipped: [], percentage: 100 },
+          warnings: [],
+          importResolution: { resolvedInternal: 0, external: 0, unresolved: 0, unsupportedDynamic: 0 },
+        },
       };
       return DomainResult.ok<Snapshot | null>(snapshot);
     } catch (e) {

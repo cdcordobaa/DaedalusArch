@@ -65,6 +65,7 @@ function makeReportInput(outputPath: string): ReportInput {
     ],
     parseCoverage: { total: 2, parsed: 2, percentage: 100, skipped: [] },
     warnings: [],
+    importResolution: { resolvedInternal: 0, external: 0, unresolved: 0, unsupportedDynamic: 0 },
   };
 
   return {

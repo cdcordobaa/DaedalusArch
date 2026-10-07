@@ -13,7 +13,11 @@ export type { AVRScore, AHSScore, Confidence, CommitSha, FunctionId, RunId } fro
 export { avrScore, ahsScore, confidence, commitSha, functionId, runId } from './types/value-objects.js';
 
 // APG
-export type { APGNode, APGEdge, APGResult, ParseCoverage, SkippedFile, ExtractorWarning } from './types/apg.js';
+export type {
+  APGNode, APGEdge, APGResult, ParseCoverage, SkippedFile, ExtractorWarning,
+  ImportEdgeProperties, ReExportEdgeProperties, FlowsToEdgeProperties, PackageNodeProperties,
+  ImportResolutionStats,
+} from './types/apg.js';
 
 // Spec
 export type {

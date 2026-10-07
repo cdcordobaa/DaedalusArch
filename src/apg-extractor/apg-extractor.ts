@@ -75,7 +75,10 @@ export async function extractAPG(
       skipped,
     };
 
-    return DR.ok<APGResult>({ nodes, edges, parseCoverage, warnings });
+    // Import resolution is not modelled yet (U2, FR-14); the counts stay zero.
+    const importResolution = { resolvedInternal: 0, external: 0, unresolved: 0, unsupportedDynamic: 0 };
+
+    return DR.ok<APGResult>({ nodes, edges, parseCoverage, warnings, importResolution });
 
   } catch (err) {
     return DR.fromError<APGResult>(err);
