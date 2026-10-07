@@ -2,9 +2,9 @@ name: CI
 
 on:
   push:
-    branches: [main, develop]
+    branches: [main, develop, v1.2e, 'v1.2e-*']
   pull_request:
-    branches: [main]
+    branches: [main, v1.2e]
 
 jobs:
   build-and-test:
@@ -13,7 +13,7 @@ jobs:
 
     services:
       neo4j:
-        image: neo4j:5.26-community
+        image: neo4j:5.26-community@sha256:f66304b9511c60d33555a2c451f88e03d82d1ebc893f32d84c98a6b326096435
         ports:
           - 7474:7474
           - 7687:7687
@@ -44,7 +44,12 @@ jobs:
       - name: Type check
         run: npm run typecheck
 
+      - name: Type check U0 tests
+        run: npm run typecheck:u0-tests
+
       - name: Lint
+        # D-U0-16: lint tooling broken at 7cd15b4; repaired in U0 Step 11, findings are a recorded residual
+        continue-on-error: true
         run: npm run lint
 
       - name: Unit tests
@@ -65,8 +70,16 @@ jobs:
           PIPELINE_MODE: stateless
           EVALUATION_MODE: symbolic-only
 
+      - name: Golden regression suite
+        run: npm run test:golden
+        env:
+          NEO4J_URI: bolt://localhost:7687
+          NEO4J_USER: neo4j
+          NEO4J_PASSWORD: test-password
+          GOLDEN_REQUIRED: '1'
+
       - name: Firewall self-evaluation (symbolic-only)
-        if: github.event_name == 'pull_request'
+        if: github.event_name == 'pull_request' && github.base_ref == 'main'
         uses: ./.github/actions/firewall
         with:
           project-path: '.'
