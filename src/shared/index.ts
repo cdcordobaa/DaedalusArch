@@ -63,7 +63,7 @@ export type {
 } from './types/drift.js';
 
 // Interfaces
-export type { GraphRepository, QueryResult } from './interfaces/graph-repository.js';
+export type { GraphRepository, QueryOptions, QueryResult } from './interfaces/graph-repository.js';
 export type { LLMProvider, LLMOptions, LLMResponse, LLMEffort } from './interfaces/llm-provider.js';
 export type { SnapshotStore, SnapshotMetadata, Snapshot, SnapshotSummary, DeltaAPG } from './interfaces/snapshot-store.js';
 export type { PipelineStage, PipelineCommand } from './interfaces/pipeline-stage.js';

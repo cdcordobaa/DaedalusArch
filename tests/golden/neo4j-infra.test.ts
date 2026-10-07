@@ -1,7 +1,7 @@
 /**
  * FR-01 automated: the local Neo4j answers a smoke query and APOC is loaded.
  * Same skip and host guards as golden.test.ts (see golden-env.ts).
- * (The NFR-07 timeout case is appended in U0 Step 25.)
+ * NFR-07 (U0 Step 25): an explicit per-query timeout aborts a slow query.
  */
 import { Neo4jRepository } from '../../src/neo4j-ingestion/neo4j-repository.js';
 import { redactUri, resolveGoldenEnv } from './golden-env.js';
@@ -47,5 +47,22 @@ describeInfra('Neo4j infrastructure (FR-01)', () => {
       throw new Error(`APOC call failed against ${redactUri(neo4jConfig().uri)}: ${result.errors.map((e) => e.code).join(', ')}`);
     }
     expect(Number(result.data.records[0]?.['idx'])).toBe(1);
+  });
+
+  // Neo4j enforces transaction timeouts from a monitor that runs every
+  // db.transaction.monitor.check.interval (2s default), so termination lands
+  // 0.2-2.2 s after start. The sleep is far longer than that window so the
+  // query can never finish first; the bound is the interval plus 1 s slack.
+  it('aborts a slow query with an explicit timeout (NFR-07)', async () => {
+    if (!repo) throw new Error('repository not initialised');
+    const started = Date.now();
+    const result = await repo.executeQuery('CALL apoc.util.sleep(10000)', {}, { timeoutMs: 200 });
+    const elapsedMs = Date.now() - started;
+    expect(result.success).toBe(false);
+    if (result.success) return;
+    const code = result.errors[0]?.code ?? '';
+    console.info(`[neo4j-infra] timeout error code: ${code} (${String(elapsedMs)} ms)`);
+    expect(code).toMatch(/Transaction.*Timed?Out/);
+    expect(elapsedMs).toBeLessThan(3000);
   });
 });
