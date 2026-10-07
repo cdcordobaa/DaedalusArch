@@ -4,7 +4,7 @@
 - **Project Name**: Architectural Firewall (DaedalusArch)
 - **Project Type**: Greenfield
 - **Start Date**: 2026-03-27T16:00:00Z
-- **Current Stage**: v1.2 INCEPTION — Workspace Detection re-run 2026-09-07 (resume path); Requirements Analysis GATED on entry decision (v1.0 + v1.1 COMPLETE)
+- **Current Stage**: v1.2 Evaluation-Readiness cycle — CONSTRUCTION — U0 Code Generation Part 2 IN PROGRESS (plan approved 2026-10-07).
 - **Product Name**: Architectonic Firewall
 - **CLI Name**: firewall (unchanged from v1.0)
 
@@ -18,6 +18,11 @@
 - **ADR**: `Docs/ADR — Architectural Decision Records Firewall Tech.md` (14 ADRs, all Accepted)
 - **Product Vision**: `Docs/Product Vision - Architectural Firewall` (post-thesis commercial vision)
 - **Config Files**: `package.json` (name: "symphony" — legacy), `tsconfig.json`, `jest.config.cjs`
+
+## Extension Configuration
+| Extension | Enabled | Decided At |
+|---|---|---|
+| Security Baseline | Yes | Requirements Analysis (v1.2 Evaluation-Readiness, 2026-10-05, Q3-A) |
 
 ## Code Location Rules
 - **Application Code**: Workspace root (NEVER in aidlc-docs/)
@@ -83,3 +88,17 @@
 
 ### OPERATIONS PHASE
 - [ ] Operations (PLACEHOLDER)
+
+### v1.2 EVALUATION-READINESS CYCLE (started 2026-10-05)
+- **Source**: read-only audit of commit `7cd15b4` (Notion: "Evaluation readiness audit and data-generation plan (Chapters 7–9)", page 3f150d308227812c9073e29fb963892f) and the six design decisions the user took the same day (Package nodes + specifier/line on IMPORTS edges; renormalise weights over executed dimensions; optional line/target on violations; dataset 8–10 projects / 80–120 instances; author-only labelling; Anthropic provider via Claude-account OAuth profile, model `claude-opus-5-5`, cassettes committed).
+- **Scope of this cycle**: WP0 (freeze the ground) + WP1 (engine fixes that precede any measurement). WP2–WP7 (golden dataset, matching scorer, ablation tooling, neural path, tag and run, analysis) are later cycles.
+- [x] Workspace Detection (resume, 2026-10-05)
+- [ ] Reverse Engineering — SKIPPED (artefacts exist)
+- [x] Requirements Analysis — COMPLETE and APPROVED 2026-10-06 (Standard depth; 26 FR + 6 NFR after adding minimal proposal compliance FR-19..23 and experiment tooling FR-24..26 in `inception/requirements/v1.2-evaluation-readiness-requirements.md`; questions answered all-A)
+- [x] User Stories — SKIPPED (one persona, no workflow change)
+- [x] Workflow Planning — APPROVED 2026-10-06 after adversarial review (plan revision 2; review in `inception/plans/v1.2E-execution-plan-adversarial-review.md`)
+- [x] Application Design — APPROVED 2026-10-07 (`inception/application-design/v1.2E-*.md`, 16 components, 3 new)
+- [x] Units Generation — APPROVED 2026-10-07 (7 units: U0, U1, U2, U3, U4, U5a, U5b; lanes U0 | U1+U2 | U3+U4+U5a | U5b)
+### v1.2E CONSTRUCTION PHASE
+- [ ] U0 Foundation — plan APPROVED 2026-10-07; Part 2 IN PROGRESS (`construction/plans/v1.2E-u0-foundation-code-generation-plan.md`) (U0 Foundation; U1 Spec+compiler; U2 Extractor+graph; U3 Evaluation+scoring+report; U4 Neural path; U5 Experiment tooling)
+- CONSTRUCTION: Functional Design EXECUTE U1–U5 / SKIP U0; NFR Requirements EXECUTE light (in U0); NFR Design, Infrastructure Design SKIP; Code Generation and Build and Test EXECUTE

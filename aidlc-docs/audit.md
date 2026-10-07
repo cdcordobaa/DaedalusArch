@@ -701,3 +701,132 @@
 **Context**: Tooling/meta request, not a product Development Task — full AI-DLC workflow not triggered. Install verified complete and healthy; reported to user with the three real options (install elsewhere, upgrade from upstream, add other IDE variants).
 
 ---
+
+## Session Re-Entry — Workspace Detection (resume path) + new cycle request
+**Timestamp**: 2026-10-05T18:00:00Z
+**User Input**: "Wants to start WP0 (freeze the ground) and WP1 (engine fixes that precede any measurement) from the evaluation-readiness plan, and wants them specified before any code is written."
+**AI Response**: Classified as Development Task (bug fixes + architectural contract changes to the graph schema, parser, compiler, scoring and report). AI-DLC triggered. Loaded common rules (process-overview, session-continuity, content-validation, question-format-guide, welcome-message, depth-levels) and the single extension opt-in (security-baseline). Workspace Detection: `aidlc-docs/aidlc-state.md` EXISTS → RESUME path. Workspace is brownfield (106 TS files, npm, jest; HEAD `7cd15b4`, one untracked doc). Reverse-engineering artefacts exist → Reverse Engineering SKIPPED. Found the v1.2 Inception entry gate of 2026-09-07 still open (four unanswered [Answer]: tags in `inception/requirements/v1.2-inception-entry-questions.md`; graph-export questions also unanswered). This request is a different v1.2 scope (evaluation readiness, sourced from the 2026-10-05 read-only audit recorded in Notion), so the stale gate must be retired or merged before a new Requirements Analysis can write artefacts; made that Question 1 of the new question file. Pre-read for the spec: `symbolic-evaluator.ts` (EVAL_001 reaches context warnings; function dropped from results), `scoring-engine.ts:64` (JSON report `warnings: []`; `report-generator.ts:32-35` merges pipeline warnings for the HTML path only — the v1.1 "warning-dropping fix" covered HTML, not JSON), `layer-parsers.ts:65-82` (six function-specific fields dropped), `fitness-compiler.ts:298-303` (reads them from the object), `edge-extractor.ts:253-255` (non-relative imports skipped with EXTRACTOR_001), `violation-types.ts:35-48` (no line/target), `score-computer.ts:56-77` (no renormalisation) and `:116` (functionCount "approximate"), `graph-ingester.ts:21,64` (literal node/edge type arrays), `batch-runner.ts:56-61` (provider 'claude' misconfig), `.gitignore:3` (package-lock.json ignored), `package.json` (no engines).
+**Context**: v1.2 INCEPTION — Workspace Detection COMPLETE (resume). Requirements Analysis for the Evaluation-Readiness cycle STARTED at Standard depth.
+
+---
+
+## v1.2 Evaluation-Readiness — Requirements Analysis START (WP0 + WP1)
+**Timestamp**: 2026-10-05T18:10:00Z
+**User Input**: (same request) "Spec WP0 and WP1 before proceeding."
+**AI Response**: Intent analysis — Request type: bug fix + enhancement (contract changes); scope: multiple components (apg-extractor, neo4j-ingestion, spec-parser, fitness-compiler, evaluation-engine, scoring-engine, report, cli); complexity: moderate; clarity: clear on goals (six design decisions already taken by the user on 2026-10-05 and recorded in Notion), unclear on seven points. Depth: Standard. Per question-format-guide created `aidlc-docs/inception/requirements/v1.2-evaluation-readiness-questions.md` with 7 questions (stale-gate disposition, FR namespace, security extension opt-in, fan-out metric and Package targets, Package node naming for scoped/subpath specifiers, relationship of WP1 to the drafted v1.2-U0 foundation unit, severity of the new bound-parameter validation rule) plus the proposed WP0/WP1 requirement list with acceptance criteria as preview context. Did NOT write requirements.md (gate). Did NOT modify any source file.
+**Context**: v1.2 INCEPTION — Requirements Analysis IN PROGRESS. GATE: awaiting answers in the question file; STOP.
+
+---
+
+## v1.2 Evaluation-Readiness — Requirements Analysis: answers received, requirements generated
+**Timestamp**: 2026-10-05T18:40:00Z
+**User Input**: "Answer all seven questions with the recommended options; done."
+**AI Response**: Filled all seven [Answer]: tags with A at the user's instruction and checked for contradictions (none: retiring the stale gates, version-prefixed IDs, security enabled, file-to-file fan-out plus a new externalFanOut metric, one Package node per package root, folding into v1.2-U0, always-fatal BR-SPEC-10 are mutually consistent). Marked `v1.2-inception-entry-questions.md` and `v1.2-graph-export-verification-questions.md` SUPERSEDED (header note; files kept). Security Baseline extension ENABLED → loaded `extensions/security/baseline/security-baseline.md`; recorded in aidlc-state.md Extension Configuration. Generated `inception/requirements/v1.2-evaluation-readiness-requirements.md`: 18 FRs (FR-v1.2E-01..06 WP0; 07..18 WP1), 6 NFRs, security compliance table, thesis traceability. Read `.github/workflows/ci.yml` (Node 22) for FR-02.
+**Security Findings** (SECURITY extension, Requirements stage): SECURITY-09 non-compliant in current code — `docker-compose.yml` falls back to default password `daedalus-dev`; resolved by FR-v1.2E-06 in this cycle. SECURITY-10 non-compliant in current code — `package-lock.json` gitignored, no vulnerability scan in CI; resolved by FR-v1.2E-02 and NFR-v1.2E-06. All other rules Compliant or N/A (no endpoints, no cloud, no auth). No blocking finding remains at the requirements level.
+**Context**: v1.2 INCEPTION — Requirements Analysis COMPLETE. User Stories assessed as SKIP (internal engine fixes and report fields; no user workflow change; single persona = the author). Approval prompt presented; next stage Workflow Planning.
+
+---
+
+## v1.2 Evaluation-Readiness — Requirements change and approval
+**Timestamp**: 2026-10-06T15:00:00Z
+**User Input**: "Agrees with the minimal compliance plan (four engine changes and three experiment tools on top of WP0+WP1) and wants it done; before starting, wants a plan for generating the experiment assets and validating results and conclusions."
+**AI Response**: Added FR-v1.2E-19..23 (layer binding by kind/position; layered style library; FLOWS_TO data-flow edge with domain-state-purity template; Semantic and Integrity dimensions; judge receives real source via an Anthropic provider using the author's OAuth profile, model claude-opus-5-5, no API key) and FR-v1.2E-24..26 (manifest schema + mutation tool; dated matching rule + scorer; offline re-scorer). Out-of-scope list updated to the deviations of the compliance register. Recorded requirements as APPROVED. Security re-check of the added rows: FR-23 introduces credential use — compliant with SECURITY-12 (no hardcoded credentials; OAuth profile resolved by the SDK) and SECURITY-03 (provider/model logged, never tokens). No new blocking finding. Workflow Planning held until the experiment protocol is agreed.
+**Context**: v1.2 INCEPTION — Requirements Analysis APPROVED; Workflow Planning pending.
+
+---
+
+## v1.2 Evaluation-Readiness — Final objective wording and no-human-label constraint
+**Timestamp**: 2026-10-06T16:00:00Z
+**User Input**: "Provided the final SO1–SO5 wording (SO3 now names 'structural and topological rules' and the neural dimensions 'Semantic intent alignment and architectural Integrity'; SO2 'a bounded set of data-flow edges'). States there is no time or resources for human labels; the work must rely almost entirely on LLM labels, LLM-synthesised data and seeded issues."
+**AI Response**: Added FR-v1.2E-27 (LLM labeller panel independent of the judge, cassette-recorded), FR-v1.2E-28 (project generator across model x spec-quality grid, serving SO5 and a never-seen corpus) and FR-v1.2E-29 (structural/topological/pattern-proxy tag per template). Security: FR-27/28 use provider credentials only through the SDK credential chain (SECURITY-12); generated code is untrusted input and is only parsed, never executed (SECURITY-13). No blocking finding. Requirements remain APPROVED with these additions per the author's direction.
+**Context**: v1.2 INCEPTION — Requirements extended; Workflow Planning pending.
+
+---
+
+## v1.2 Evaluation-Readiness — Simplification of the results plan
+**Timestamp**: 2026-10-06T16:30:00Z
+**User Input**: "Will audit the random sample of labels personally. Other model families (Gemini / Antigravity CLI, Codex subscription) come at the final stage. Asked for an assessment and a solid but not overly complex plan to generate the results."
+**AI Response**: Assessed the plan as over-built (four tiers, 20-30 public repos each needing hand-mapped specs, 15 operators, two-labeller panel run twice). Simplified: generated projects become the main corpus; public projects limited to the three existing ones plus one layered project; eight mutation operators; one labeller (Gemini) plus the author's 30-item audit; Claude models first, other families as the last phase. FR-24, FR-27 and FR-28 edited accordingly. Plan of record written to Notion ("Results plan — plan of record").
+**Context**: v1.2 INCEPTION — Requirements adjusted; Workflow Planning pending.
+
+---
+
+## v1.2 Evaluation-Readiness — Workflow Planning
+**Timestamp**: 2026-10-06T17:00:00Z
+**User Input**: "proceed to workflow planning"
+**AI Response**: Loaded inception/workflow-planning.md and content-validation rules. Created `inception/plans/v1.2E-execution-plan.md` (cycle-specific name so the v1.0 execution-plan.md is not overwritten). Decisions: User Stories SKIP; Application Design EXECUTE (minimal); Units Generation EXECUTE with six proposed units (U0 Foundation, U1 Spec+compiler, U2 Extractor+graph, U3 Evaluation+scoring+report, U4 Neural path, U5 Experiment tooling); Functional Design per unit except U0; NFR Requirements, NFR Design, Infrastructure Design SKIP; Code Generation and Build and Test always. Risk Medium; rollback easy. Mermaid validated (alphanumeric node ids, no special characters in labels, emoji removed from subgraph titles) with a text alternative. Security: no stage skip removes a security control; SECURITY-09/10 items sit in U0, SECURITY-12 in U4.
+**AI Prompt**: "Ready to proceed with this plan?"
+**Context**: Workflow Planning COMPLETE, awaiting approval.
+
+---
+
+## v1.2 Evaluation-Readiness — Workflow Planning adversarial review, approval, Application Design start
+**Timestamp**: 2026-10-06T18:00:00Z
+**User Input**: "generate an adversarial assessment of this plan with a subagent and then progress"
+**AI Response**: Ran one independent read-only reviewer agent over the execution plan, requirements and code. Verdict: do not proceed until three false assumptions are fixed (SDK/port cannot deliver FR-23; neural dimension accounting broken; NFR-01 already violated with no Neo4j-backed regression test) and circularity guards are added. Verified the key claims in code before acting. Accepted all 14 findings (record: `inception/plans/v1.2E-execution-plan-adversarial-review.md`). Requirements amended (FR-09, 10, 12, 23, 24, 25, 27, 28 restated; FR-30..36, NFR-07, NFR-08 added; NFR-01 widened; Section 5 made consistent). Execution plan revision 2: NFR Requirements now EXECUTE (light, in U0); units re-scoped with a shared-file ownership table; U5 no longer depends on U4; timeline 25–30 days. Treated "then progress" as approval of Workflow Planning revision 2. Started Application Design: created `inception/plans/v1.2E-application-design-plan.md` with 10 questions (credential route, judge unit, type-only imports, layer kind precedence, labeller design, Claude-on-Claude judging, differential vs absolute clean, review cuts, verdict thresholds, timeline).
+**Security**: review F1/F12 strengthen SECURITY-12 and SECURITY-03 handling (credential route decision; NFR-08 scrubbing test). No blocking finding.
+**Context**: Workflow Planning APPROVED (rev. 2). Application Design IN PROGRESS, GATE on design questions.
+
+---
+
+## v1.2 Evaluation-Readiness — Application Design answers
+**Timestamp**: 2026-10-06T18:30:00Z
+**User Input**: "recommended for all, then continue; once the plan is set we set up an ultracode workflow"
+**AI Response**: Filled all ten [Answer]: tags with A. Ambiguity analysis: none (single options, mutually consistent: Claude Code headless CLI credential route; Semantic per file, Integrity per module; type-only imports counted and flagged; kind precedence explicit > name > position; one Gemini labeller run twice; Claude judge kept with a Phase 5 Gemini cross-check; differential clean status; review cuts accepted with FR-20 kept; thresholds kept and described; 25-30 days). Generating the design artefacts with a multi-agent workflow (ultracode opt-in): four writers, three verification lenses, one repair pass, one consolidation.
+**Context**: Application Design — gate passed; artefact generation in progress.
+
+---
+
+## v1.2 Evaluation-Readiness — Application Design artefacts generated
+**Timestamp**: 2026-10-06T22:40:00Z
+**User Input**: "continue as soon as it finishes"
+**AI Response**: Multi-agent workflow (run wf_f1754876-091; first launch interrupted by a usage limit with no output, relaunched) generated `inception/application-design/v1.2E-components.md`, `v1.2E-component-methods.md`, `v1.2E-services.md`, `v1.2E-component-dependency.md` and the consolidated `v1.2E-application-design.md`. Verification: coverage lens 15 issues, consistency lens 17 (4 blocking), code-reality lens 11 (1 blocking); repair applied all 43 after re-checking each. Main resolutions: one report-assembly design (AssembleReportCommand + buildEvaluationReport); one revised LLM port (model required, usedOptions/ignoredOptions, describe(), effort incl. xhigh); RE_EXPORTS as a ninth edge type; ProcessRunner in C10 so C15 does not depend on C14; multiple application layers bound as $applicationLayers list; differential matching by baselineMatchKey without line; judge_unit file/class/module; single scrubber with allow-listed child environment. Requirement text aligned for FR-21 (via new | field-assignment) and FR-28 (Claude Code CLI). Open for Functional Design: Claude CLI JSON field names, pinned Gemini id, whether orphan checks count RE_EXPORTS, budget and cap values, generator tool permissions.
+**Security**: SECURITY-11/13 condition for U5 — the generator must not run with an unrestricted Bash tool on the host; Functional Design U5 must restrict tools (file write/edit only) and confine the working directory. Not blocking at design level. Other rules as in the consolidated summary.
+**AI Prompt**: Approval of Application Design requested.
+**Context**: Application Design COMPLETE, awaiting approval.
+
+---
+
+## v1.2 Evaluation-Readiness — Application Design approval; Units Generation Part 1
+**Timestamp**: 2026-10-07T09:00:00Z
+**User Input**: "approve the design and continue to units generation"
+**Status**: Application Design APPROVED.
+**AI Response**: Loaded inception/units-generation.md. Created `inception/plans/v1.2E-unit-of-work-plan.md` with seven proposed units (U0, U1, U2, U3, U4, U5a, U5b, taken from the approved build order) and four questions (split U5; branching and integration; units in flight; requirement map instead of story map). Gate: awaiting answers.
+**Context**: Units Generation Part 1 IN PROGRESS.
+
+---
+
+## v1.2 Evaluation-Readiness — Units Generation
+**Timestamp**: 2026-10-07T09:30:00Z
+**User Input**: "recommended for all, then continue"
+**AI Response**: Filled the four answers with A (U5 split into U5a/U5b; integration branch v1.2e with per-unit branches and worktrees; dependency lanes; requirement map instead of story map). No ambiguities. Treated "then continue" as approval of the unit-of-work plan. Generated `v1.2E-unit-of-work.md`, `v1.2E-unit-of-work-dependency.md`, `v1.2E-unit-of-work-requirement-map.md` (36 FR + 8 NFR, one owner each, FR-17 deferred). All plan checkboxes ticked.
+**AI Prompt**: Approval of Units Generation requested.
+**Context**: Units Generation COMPLETE, awaiting approval.
+
+---
+
+## v1.2 Evaluation-Readiness — Units approved; U0 planning starts
+**Timestamp**: 2026-10-07T10:00:00Z
+**User Input**: "approve units and start U0 with the ultracode workflow"
+**Status**: Units Generation APPROVED.
+**AI Response**: Loaded construction/code-generation.md. U0 skips Functional Design (contracts fixed in Application Design); the execution plan places a light NFR Requirements pass in U0. Launched a multi-agent workflow (ultracode opt-in) that scouts four areas, drafts the U0 NFR note and code-generation plan, verifies them under three adversarial lenses, and repairs. No source changes until the plan is approved.
+**Context**: CONSTRUCTION — U0 Part 1 (planning) IN PROGRESS.
+
+---
+
+## v1.2 Evaluation-Readiness — U0 plan ready
+**Timestamp**: 2026-10-07T11:00:00Z
+**AI Response**: Workflow wf_857e41f5-f98 produced `construction/v1.2E-u0-foundation/nfr-requirements/nfr-requirements.md` and `construction/plans/v1.2E-u0-foundation-code-generation-plan.md` (32 steps). Verification: neutrality 3 issues, completeness 7, executability 10 (1 blocking: CI cannot run while package-lock.json is gitignored). Repair applied the verified issues (lock tracked unchanged before the golden baseline is proven in CI; emitted-order snapshots; LayerKindBinding matches the design; CLI config tests; hand-offs recorded in design docs; lint found broken at HEAD and handled as a ratchet). New finding recorded: `npm run lint` fails at HEAD.
+**AI Prompt**: "U0 code-generation plan complete. Review the plan. Ready to proceed to generation?" Approval includes pushing branches v1.2e and v1.2e/u0-foundation to origin so CI can run the golden suite.
+**Context**: U0 Part 1 complete, awaiting approval.
+
+---
+
+## v1.2 Evaluation-Readiness — U0 plan approved; Part 2 starts
+**Timestamp**: 2026-10-07T12:00:00Z
+**User Input**: "approve the U0 plan and push, start generation"
+**Status**: U0 code-generation plan APPROVED (decisions D-U0-1..17 as recommended). Push of `v1.2e` and `v1.2e/u0-foundation` to origin AUTHORISED; `main` untouched.
+**AI Response**: Starting U0 Part 2. Steps 1–9 (branches, Neo4j smoke, baselines, lock, golden suite, CI-proven baseline) executed directly because they share git, Docker and CI state; Steps 10–29 run as a sequential multi-agent workflow (implement → gate check → adversarial review per step); Steps 30–32 closed directly.
+**Context**: CONSTRUCTION — U0 Code Generation Part 2 IN PROGRESS.
+
+---
