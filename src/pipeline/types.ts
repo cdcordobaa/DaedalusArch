@@ -60,16 +60,8 @@ export interface DriftOptions {
   readonly persist: boolean;
 }
 
-export interface StageTimingEntry {
-  readonly name: string;
-  readonly durationMs: number;
-  readonly status: 'success' | 'warning' | 'error' | 'skipped';
-}
-
-export interface StageTimings {
-  readonly stages: readonly StageTimingEntry[];
-  readonly totalMs: number;
-}
+// Moved to C10 (FR-14); re-exported here for existing importers
+export type { StageTimingEntry, StageTimings } from '../shared/types/evaluation.js';
 
 export interface BatchRow {
   readonly projectPath: string;

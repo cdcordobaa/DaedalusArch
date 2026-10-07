@@ -131,7 +131,8 @@ export async function verifyIngestion(
   const edgeCount = Number(edgeResult.data.records[0]?.['cnt'] ?? 0);
   const layerCoverage = totalFileNodes > 0 ? mappedCount / totalFileNodes : 1;
 
-  return DomainResult.ok({ nodeCount, edgeCount, layerCoverage });
+  // Per-type counts are filled by U2 (FR-14); empty maps keep U0 behaviour-neutral.
+  return DomainResult.ok({ nodeCount, edgeCount, layerCoverage, nodeCountByType: {}, edgeCountByType: {} });
 }
 
 function flattenProperties(props: Readonly<Record<string, unknown>>): Record<string, unknown> {

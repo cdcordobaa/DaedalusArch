@@ -127,6 +127,7 @@ async function evaluateSingleFunction(
 
   return DomainResult.ok<NeuronalFunctionResult>({
     functionId: instruction.functionId,
+    dimension: instruction.dimension,
     verdict: overallPass ? 'pass' : 'fail',
     confidence: makeConfidence(Math.round(meanConf * 1000) / 1000),
     confidenceStdDev: Math.round(stddev * 10000) / 10000,
@@ -137,6 +138,10 @@ async function evaluateSingleFunction(
     runs,
     deterministic: false,
     flaggedUnstable: stddev > opts.unstableThreshold,
+    // FR-33 contract fields; filled by U4's per-unit judging
+    unitResults: [],
+    unitsSelected: 0,
+    unitsCapped: 0,
   });
 }
 

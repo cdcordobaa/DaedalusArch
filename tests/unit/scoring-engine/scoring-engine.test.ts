@@ -40,6 +40,7 @@ const symResult = (id: string, dim: Dimension, passed: boolean): SymbolicFunctio
 
 const neurResult = (id: string, dim: Dimension, verdict: 'pass' | 'fail', conf: number): NeuronalFunctionResult => ({
   functionId: functionId(id),
+  dimension: dim,
   verdict,
   confidence: confidence(conf),
   confidenceStdDev: 0.05,
@@ -54,6 +55,9 @@ const neurResult = (id: string, dim: Dimension, verdict: 'pass' | 'fail', conf: 
   runs: [{ runIndex: 0, verdict, confidence: confidence(conf), reasoning: 'test' }],
   deterministic: false,
   flaggedUnstable: false,
+  unitResults: [],
+  unitsSelected: 0,
+  unitsCapped: 0,
 });
 
 describe('score-computer', () => {

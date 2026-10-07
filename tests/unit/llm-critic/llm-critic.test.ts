@@ -25,6 +25,7 @@ const makeInstruction = (id: string, name: string): NeuronalInstruction => ({
   contextAssembly: CTX,
   shadowModeEligible: false,
   source: 'fitness-function',
+  judgeUnit: 'file',
 });
 
 describe('context-assembler', () => {

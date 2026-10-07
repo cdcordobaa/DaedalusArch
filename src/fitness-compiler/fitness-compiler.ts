@@ -194,6 +194,7 @@ function compileNeuronal(
     contextAssembly: defaultContextAssembly(ff),
     shadowModeEligible: shadowEligible,
     source: 'fitness-function',
+    judgeUnit: 'file', // FR-33 contract; inert until U4 reads it
   };
 }
 
@@ -238,6 +239,7 @@ function compileADRNeuronal(adr: ADRRule): NeuronalInstruction {
     shadowModeEligible: true,
     shadowPrompt: `Based on the following ADR decision, generate a Cypher query that checks compliance against the project's Architectural Property Graph:\n\nADR: ${adr.title}\nDecision: ${criteria.rule}`,
     source: 'adr',
+    judgeUnit: 'file', // FR-33 contract; inert until U4 reads it
   };
 }
 

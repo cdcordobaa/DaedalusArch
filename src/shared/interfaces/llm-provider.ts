@@ -1,5 +1,8 @@
 import type { DomainResult } from '../errors/domain-result.js';
 
+// Effort levels the installed Claude CLI accepts (`--effort <level>`); FR-23, FR-31
+export type LLMEffort = 'low' | 'medium' | 'high' | 'xhigh' | 'max';
+
 export interface LLMOptions {
   readonly temperature: 0;
   readonly seed?: number;
