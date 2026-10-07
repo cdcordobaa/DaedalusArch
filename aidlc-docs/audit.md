@@ -839,3 +839,12 @@
 **Context**: CONSTRUCTION — U0 Code Generation COMPLETE, awaiting approval.
 
 ---
+
+## v1.2 Evaluation-Readiness — U0 approved and merged
+**Timestamp**: 2026-10-07T21:30:00Z
+**User Input**: "yes aprove whats the next step?"
+**Status**: U0 Code Generation APPROVED.
+**AI Response**: Merged PR #1 (v1.2e-u0-foundation → v1.2e) as merge commit 2050193. Next stage: lane 2 — Functional Design for U1 (spec + compiler) and U2 (extractor + graph), one plan with questions per unit; parallel worktrees once their code plans are approved.
+**Context**: CONSTRUCTION — U0 COMPLETE; lane 2 next.
+
+---
