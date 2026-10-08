@@ -54,7 +54,7 @@ export const KEY_TABLE: Readonly<Record<string, { keys: unknown[]; collateral: u
     collateral: [['operator', 'declared', 'FF-CV01', CREATE, '', ['CoreCreateTaskUseCase'], 'site-line', 10]],
   },
   'MO-DF01': {
-    keys: [],
+    keys: [['FF-P06', TASK, IMPL, ['Task', 'InMemoryTaskRepository', 'FLOWS_TO', 'repo'], 'site-line', 5]],
     collateral: [['operator', 'declared', 'FF-S01', TASK, IMPL, ['IMPORTS'], 'site-line', 1], ['operator', 'declared', 'FF-S04', TASK, IMPL, ['IMPORTS'], 'site-line', 1], ['site', 'cycle', 'FF-S02', [TASK, IMPL, TASK].join(','), IMPL, [JSON.stringify([TASK, IMPL, TASK])], 'first-edge-line', 1], ['site', 'cycle', 'FF-S02', [TASK, IMPL, ITASK, TASK].join(','), IMPL, [JSON.stringify([TASK, IMPL, ITASK, TASK])], 'first-edge-line', 1]],
   },
   'MO-DF01n': {

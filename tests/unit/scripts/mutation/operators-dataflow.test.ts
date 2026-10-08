@@ -44,7 +44,9 @@ describe('MO-DF01 (BR-U5a-25)', () => {
     expect(row?.expected.expectedEdges).toEqual([{ type: 'FLOWS_TO', source: 'Task', target: 'InMemoryTaskRepository', via: 'new' }]);
     expect(after.via).toEqual([row?.expected.expectedEdges?.[0]?.via]);
     expect(after.field).toEqual(['repo']);
-    expect(row?.expected).toMatchObject({ functionIds: [], absentTemplates: ['domain-state-purity'], dimension: 'pattern', keys: [], coverage: 'in' });
+    // Since U3 (FF-P06 declared by specs/clean-arch.yaml, BR-U3-22..24) MO-DF01 carries its expected key: field line, FLOWS_TO.
+    expect(row?.expected).toMatchObject({ functionIds: ['FF-P06'], absentTemplates: [], dimension: 'pattern', coverage: 'in' });
+    expect(keyTuples(row?.expected.keys ?? [])).toEqual([['FF-P06', TASK, IMPL, ['Task', 'InMemoryTaskRepository', 'FLOWS_TO', 'repo'], 'site-line', 5]]);
     const ops = (row?.expected.collateral ?? []).filter((c) => c.kind === 'operator');
     expect(keyTuples(ops.flatMap((c) => (c.key !== undefined ? [c.key] : [])))).toEqual([
       ['FF-S01', TASK, IMPL, ['IMPORTS'], 'site-line', 1],

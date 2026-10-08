@@ -24,11 +24,16 @@ const REPO = process.cwd();
 jest.setTimeout(120_000);
 
 let clean: CompiledSpec;
+/** Declares only dependency-direction and no-cyclic-deps; since U3 (FF-P06) `specs/clean-arch.yaml` declares every template. */
+let partial: CompiledSpec;
 let scratch: string;
 beforeAll(async () => {
   const r = await loadCompiledSpec(REPO, 'specs/clean-arch.yaml');
   if (!r.success) throw new Error(JSON.stringify(r.errors));
   clean = r.data;
+  const p = await loadCompiledSpec(REPO, 'tests/fixtures/u5a/no-domain/firewall.spec.yaml');
+  if (!p.success) throw new Error(JSON.stringify(p.errors));
+  partial = p.data;
   scratch = fs.mkdtempSync(path.join(os.tmpdir(), 'u5a-expected-'));
 });
 afterAll(() => {
@@ -114,10 +119,11 @@ describe('resolution on specs/clean-arch.yaml (BR-U5a-19, 21)', () => {
 
   it('disabled template carries the C5 reason; undeclared template is absent', () => {
     const r = resolveTemplates(clean, ['no-layer-skip', 'domain-state-purity']);
-    expect(r.functionIds).toEqual([]);
+    expect(r.functionIds).toEqual(['FF-P06']);
     expect(r.disabledFunctionIds).toEqual([{ functionId: 'FF-S03', reason: 'not applicable to style clean-architecture' }]);
-    expect(r.absentTemplates).toEqual(['domain-state-purity']);
-    expect(r.dimension).toBeUndefined();
+    expect(r.absentTemplates).toEqual([]);
+    const u = resolveTemplates(partial, ['domain-state-purity']);
+    expect(u).toEqual({ functionIds: [], disabledFunctionIds: [], absentTemplates: ['domain-state-purity'], dimension: undefined });
     expect(isStyleDisabled(clean, ['no-layer-skip'])).toBe(true);
     expect(isStyleDisabled(clean, ['dependency-direction'])).toBe(false);
     expect(isStyleDisabled(clean, ['domain-state-purity'])).toBe(false);
@@ -164,7 +170,7 @@ describe('location rules (BR-U5a-20)', () => {
     expect(b.data.keys.map((k) => k.functionId)).toEqual(['FF-S01', 'FF-S04']);
 
     const absent = op({ dimension: 'pattern', expectedTemplates: [{ template: 'domain-state-purity', filePath: 'site', line: 'site-line' }] });
-    const a = expectedBlock(clean, absent, SITE, EDIT, []);
+    const a = expectedBlock(partial, absent, SITE, EDIT, []);
     expect(a.success && a.data).toMatchObject({ functionIds: [], absentTemplates: ['domain-state-purity'], dimension: 'pattern', keys: [] });
 
     const twin = op({ id: 'MO-Tn', role: 'twin', twinOf: 'MO-T' });

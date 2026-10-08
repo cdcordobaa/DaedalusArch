@@ -2,8 +2,8 @@
  * SP-* sensitivity probes (U5a plan Step 33; ADR-015 item 10; ADR-016 b; Q12; BR-U5a-30).
  *
  * - The set of probe target function ids equals the symbolic set `compileFunctions(compilerInputFromSpec(…))`
- *   compiles for `specs/clean-arch.yaml` plus FF-S03 under the layered fixture spec; the only probe whose template no
- *   current spec compiles is SP-DF01-ci (`domain-state-purity`, FF-P06, added by U3).
+ *   compiles for `specs/clean-arch.yaml` plus FF-S03 under the layered fixture spec; since the U3 merge the clean-arch
+ *   set holds FF-P06 (`domain-state-purity`), reached by SP-DF01-ci, so every probe resolves (OI-U5a-18).
  * - Each probe applies to its fixture at a forced site with `split: 'probe'`, the mutant type-checks, the row
  *   validates and carries the declared key of its target (expected key, `cycle` collateral, or the keyless
  *   `project-metric` entry).
@@ -130,11 +130,12 @@ afterAll(() => {
 });
 
 describe('SP target set (BR-U5a-30)', () => {
-  it('equals the compiled symbolic set of clean-arch plus FF-S03 under the layered spec; only SP-DF01-ci awaits U3', async () => {
+  it('equals the compiled symbolic set of clean-arch plus FF-S03 under the layered spec; every probe resolves (FF-P06 since U3)', async () => {
     const clean = await spec(CLEAN_SPEC);
     const layered = await spec(LAYERED_SPEC);
     const expected = new Set([...clean.enabled.values()].flat().map((f) => f.functionId));
-    expect(expected.size).toBe(23);
+    expect(expected.size).toBe(24);
+    expect(expected.has('FF-P06')).toBe(true);
     expect(expected.has('FF-S03')).toBe(false);
     expect((layered.enabled.get('no-layer-skip') ?? []).map((f) => f.functionId)).toEqual(['FF-S03']);
     expected.add('FF-S03');
@@ -149,7 +150,7 @@ describe('SP target set (BR-U5a-30)', () => {
       }
     }
     expect([...resolved].sort()).toEqual([...expected].sort());
-    expect(unresolved).toEqual(['SP-DF01-ci']);
+    expect(unresolved).toEqual([]);
   });
 
   it('one probe per target, ids SP-<functionId> (plus SP-DF01-ci), role probe, no twin, in coverage', () => {
@@ -192,7 +193,9 @@ describe('each probe applies to its fixture and type-checks', () => {
     } else if (p.declaredBy === 'project-metric') {
       expect(row.expected.collateral.filter((c) => c.cause === 'project-metric').map((c) => [c.functionId, c.key])).toEqual([[target, undefined]]);
     } else if (id === 'SP-DF01-ci') {
-      expect('absentTemplates' in row.expected ? row.expected.absentTemplates : null).toEqual(['domain-state-purity']);
+      // BR-U3-22: the injection row has no line; key (site, target, [class, targetName, 'CONSTRUCTOR_INJECTS', parameter]).
+      expect(row.expected.functionIds).toEqual(['FF-P06']);
+      expect(row.expected.keys.map((k) => [k.functionId, k.lineRule, k.discriminator[2]])).toEqual([['FF-P06', 'none', 'CONSTRUCTOR_INJECTS']]);
     } else {
       expect(row.expected.functionIds).toEqual([target]);
       expect(row.expected.keys.map((k) => k.functionId)).toEqual([target]);

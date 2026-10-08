@@ -126,6 +126,14 @@ fitness_functions:
     route: symbolic
     validated: false
 
+  # FR-21 (U3-R6; BR-U3-22..24): domain class holding infrastructure state (FLOWS_TO | CONSTRUCTOR_INJECTS)
+  - id: FF-P06
+    name: domain-state-purity
+    dimension: pattern
+    severity: critical
+    route: symbolic
+    validated: false
+
   # ── COUPLING ──
 
   - id: FF-C01
@@ -433,6 +441,14 @@ fitness_functions:
     name: controller-no-entity
     dimension: pattern
     severity: major
+    route: symbolic
+    validated: false
+
+  # FR-21 (U3-R6; BR-U3-22..24): domain class holding infrastructure state (FLOWS_TO | CONSTRUCTOR_INJECTS)
+  - id: FF-P06
+    name: domain-state-purity
+    dimension: pattern
+    severity: critical
     route: symbolic
     validated: false
 

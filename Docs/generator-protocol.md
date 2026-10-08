@@ -78,14 +78,14 @@ Installed once under `<H>/skeleton-install/` with `npm ci --offline --ignore-scr
 | none | order-fulfilment | `f0f1ef1fe59b600105db8b76a8dc9aa84f797558dc0c7876ae2fc6994addd072` |
 | minimal-prose | task-management | `c837212d545422a334476c1b692693945ffecb115b7740ac1c171ee361e6d25f` |
 | minimal-prose | order-fulfilment | `6724563a4f48e5ab3609a98113f80266dfd532d0c1317957940d79b46c2cbc63` |
-| full-aac | task-management | `60b54da5e03e8b362b365784ce4cf28b04ea3a90cdd8a1d36015e275b07ef246` |
-| full-aac | order-fulfilment | `07b3997a8ac194b275288f6d252d99d966d07a259a7ae88f2a34af688b2f3e40` |
+| full-aac | task-management | `d24fbc47366123673c3ca186812b29807ad8bdf26b63bfacb441e44b65d252e5` |
+| full-aac | order-fulfilment | `c984ec3a144dcfaad4ff9985078946f2b20b67bd48f386ee161c12670a772a60` |
 
 | Template file | File sha256 |
 |---|---|
 | `scripts/generator/prompts/none.md` | `cc49003c5384c6f5f65f40d688082a1a1334662756994a32d139ec82b6245895` |
 | `scripts/generator/prompts/minimal-prose.md` | `7d7a78a922fe345dce479e24991a4669d8f0257e555526be4d69632e69c6563c` |
-| `scripts/generator/prompts/full-aac.md` | `a24e088d446f2e282bb8449b249c8fe69aa8973eddb0c92ea46f137e38e1c10d` |
+| `scripts/generator/prompts/full-aac.md` | `cdc5ecb6839f6ebe3735e0f734d5b8adfdeac525f6fae2971d3ad2dc421ed5bd` |
 
 ## 6. Envelope and model-usage rule (BR-U5a-46, 47)
 
