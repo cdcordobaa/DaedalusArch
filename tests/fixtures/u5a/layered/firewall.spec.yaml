@@ -1,0 +1,290 @@
+spec_version: "1.0.0"
+
+# U5a layered fixture spec (BR-U5a-19, §3 MO-S03; D-U5a-7). Applied to copies of `fixtures/correct-reference`:
+# controllers → presentation, application + domain → business, repositories → persistence (closed layering after
+# Buschmann et al. 1996; layers bottom-up as presets/layered.yaml).
+# Declared functions: the full catalogue with the FR-07 values of presets/layered.yaml (U1 BR-SPEC-10 makes a
+# template function without its required values fatal). FF-S03 `no-layer-skip` is the function MO-S03, MO-S03n and
+# the Step 33 FF-S03 probe exercise; the others give the layered cases their collateral. Applicability disables
+# FF-CV01/FF-CV02 by kind (no application layer) as in the preset, so no FF-CV01/FF-CV02 probe targets this spec.
+
+architecture:
+  style: layered
+
+  layers:
+    - name: persistence
+      kind: infrastructure
+      directories:
+        - src/infrastructure/repositories/**
+      roles:
+        - repository
+
+    - name: business
+      kind: domain
+      directories:
+        - src/application/**
+        - src/domain/**
+      roles:
+        - business-service
+        - entity
+
+    - name: presentation
+      kind: presentation
+      directories:
+        - src/infrastructure/controllers/**
+      roles:
+        - controller
+
+fitness_functions:
+
+  # ── STRUCTURAL ──
+
+  - id: FF-S01
+    name: dependency-direction
+    dimension: structural
+    severity: critical
+    route: symbolic
+    validated: true
+
+  - id: FF-S02
+    name: no-cyclic-deps
+    dimension: structural
+    severity: critical
+    route: symbolic
+    validated: true
+
+  - id: FF-S03
+    name: no-layer-skip
+    dimension: structural
+    severity: critical
+    route: symbolic
+    validated: false
+
+  - id: FF-S04
+    name: no-domain-outward-dep
+    dimension: structural
+    severity: major
+    route: symbolic
+    validated: false
+
+  # ── PATTERN ──
+
+  - id: FF-P01
+    name: domain-purity
+    dimension: pattern
+    severity: critical
+    route: symbolic
+    validated: true
+    forbidden_imports:
+      - "@nestjs/*"
+      - typeorm
+      - express
+      - prisma
+      - "@prisma/*"
+      - sequelize
+
+  - id: FF-P02
+    name: dependency-inversion
+    dimension: pattern
+    severity: critical
+    route: symbolic
+    validated: true
+    threshold: 0.85
+
+  - id: FF-P03
+    name: repository-pattern
+    dimension: pattern
+    severity: critical
+    route: symbolic
+    validated: true
+
+  - id: FF-P04
+    name: use-case-isolation
+    dimension: pattern
+    severity: major
+    route: symbolic
+    validated: true
+
+  - id: FF-P05
+    name: controller-no-entity
+    dimension: pattern
+    severity: major
+    route: symbolic
+    validated: false
+
+  # ── COUPLING ──
+
+  - id: FF-C01
+    name: domain-stability
+    dimension: coupling
+    severity: major
+    route: symbolic
+    validated: true
+    threshold: 0.3
+
+  - id: FF-C02
+    name: module-fan-out
+    dimension: coupling
+    severity: major
+    route: symbolic
+    validated: true
+    threshold: 10
+
+  - id: FF-C03
+    name: component-instability
+    dimension: coupling
+    severity: major
+    route: symbolic
+    validated: true
+
+  - id: FF-C04
+    name: no-orphan-files
+    dimension: coupling
+    severity: minor
+    route: symbolic
+    validated: false
+
+  - id: FF-C05
+    name: max-fan-in
+    dimension: coupling
+    severity: minor
+    route: symbolic
+    validated: false
+    threshold: 15
+
+  - id: FF-C06
+    name: abstraction-ratio
+    dimension: coupling
+    severity: advisory
+    route: symbolic
+    validated: false
+    threshold: 0.3
+
+  # ── SOLID ──
+
+  - id: FF-SO01
+    name: single-responsibility-proxy
+    dimension: solid
+    severity: major
+    route: symbolic
+    validated: true
+    max_public_methods: 10
+    max_dependencies: 5
+
+  - id: FF-SO02
+    name: interface-segregation-proxy
+    dimension: solid
+    severity: major
+    route: symbolic
+    validated: true
+    max_interface_methods: 5
+
+  - id: FF-SO03
+    name: inheritance-depth
+    dimension: solid
+    severity: minor
+    route: symbolic
+    validated: false
+    max_depth: 3
+
+  # ── CONVENTION ──
+
+  - id: FF-CV01
+    name: naming-conventions
+    dimension: convention
+    severity: minor
+    route: symbolic
+    validated: true
+
+  - id: FF-CV02
+    name: naming-services
+    dimension: convention
+    severity: minor
+    route: symbolic
+    validated: false
+    pattern: "*Service|*UseCase"
+
+  - id: FF-CV03
+    name: naming-repos
+    dimension: convention
+    severity: minor
+    route: symbolic
+    validated: false
+    pattern: "*Repository|*Repo"
+
+  - id: FF-CV04
+    name: naming-controllers
+    dimension: convention
+    severity: minor
+    route: symbolic
+    validated: false
+    pattern: "*Controller"
+
+  - id: FF-CV05
+    name: test-file-pairing
+    dimension: convention
+    severity: advisory
+    route: symbolic
+    validated: false
+
+  - id: FF-CV06
+    name: no-index-logic
+    dimension: convention
+    severity: advisory
+    route: symbolic
+    validated: false
+
+  # ── NEURONAL ──
+
+  - id: FF-N01
+    name: srp-semantic
+    dimension: integrity
+    severity: major
+    route: neuronal
+    validated: false
+    semantic_criteria:
+      rule: "A class should have exactly one reason to change"
+      rubric:
+        pass: "Class responsibilities are cohesive and serve a single purpose"
+        fail: "Class mixes unrelated concerns (data access + business logic, etc.)"
+        evidence_required: "Cite specific methods that indicate mixed responsibilities"
+
+  - id: FF-N02
+    name: layering-intent
+    dimension: semantic
+    severity: major
+    route: neuronal
+    validated: false
+    semantic_criteria:
+      rule: "Code should respect the documented architectural intent"
+      rubric:
+        pass: "File is in the correct layer and dependencies respect layer boundaries"
+        fail: "File logic or dependencies contradict the architectural layer it lives in"
+        evidence_required: "Cite the specific import or logic that violates the intent"
+
+scoring:
+  weights:
+    structural: 0.35
+    coupling: 0.20
+    pattern: 0.30
+    solid: 0.10
+    convention: 0.05
+
+  full_mode_weights:
+    structural: 0.32
+    coupling: 0.18
+    pattern: 0.27
+    solid: 0.10
+    convention: 0.05
+    semantic: 0.04
+    integrity: 0.04
+
+  thresholds:
+    pass: 0.80
+    warning: 0.65
+    soft_block: 0.50
+
+confidence_thresholds:
+  high: 0.85
+  medium: 0.60
+  icc_minimum: 0.70
