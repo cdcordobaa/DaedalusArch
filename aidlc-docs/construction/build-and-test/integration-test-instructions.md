@@ -1,168 +1,87 @@
-# Integration Test Instructions — DaedalusArch
+# Integration Test Instructions — DaedalusArch v1.2E
 
-## Purpose
+> **Supersedes** the v1.0 integration-test instructions. The earlier text stays in git history.
+> **Cycle**: v1.2 Evaluation-Readiness, Build and Test (plan Steps 4 and 8). **Date**: 2026-10-08.
 
-Validate that modules work together correctly through the full pipeline, with real Neo4j graph database interactions.
+All scenarios make **zero live LLM calls**. They need the lane Neo4j (build-instructions.md §3) and the lane preamble.
 
-## Prerequisites
-
-- Neo4j running: `docker-compose up -d`
-- Environment configured: `NEO4J_URI`, `NEO4J_USER`, `NEO4J_PASSWORD`
-- Fixture projects available in `fixtures/`
-- Sample spec available in `specs/clean-arch.yaml`
-
-## Run Integration Tests
+## 1. Lane Neo4j setup and teardown
 
 ```bash
-npm run test:integration
+# setup: see build-instructions.md §3 (daedalus-neo4j-bt, 127.0.0.1:7693 / 7479)
+docker ps --filter name=daedalus-neo4j-bt --format '{{.Status}} {{.Ports}}'   # both ports on 127.0.0.1 only
+set -a; . ~/.daedalus-bt.env; set +a
+
+# teardown (end of the stage; the env file is removed with it)
+docker rm -f daedalus-neo4j-bt
+rm -f ~/.daedalus-bt.env
 ```
 
-**Expected**: 2 integration suites pass.
-
-## Existing Integration Tests
-
-### Scenario 1: APG Extractor → Fixture Projects
-
-**File**: `tests/integration/apg-extractor/fixture-extraction.test.ts`
-
-**What it tests**:
-- Extract APG from each fixture project in `fixtures/`
-- Verify node counts match expected values per project
-- Verify edge types are within the 7 permitted types
-- Verify parse coverage >= 90% for clean reference projects
-- Cross-reference against fixture MANIFEST.md expected values
-
-**Setup**: No special setup — reads fixture projects from filesystem.
-
-### Scenario 2: Spec Parser → Full Pipeline Parse
-
-**File**: `tests/integration/spec-parser/full-pipeline.test.ts`
-
-**What it tests**:
-- Parse `specs/clean-arch.yaml` end-to-end
-- Resolve built-in clean-architecture template
-- Validate all layer definitions
-- Compile fitness functions from parsed output
-- Verify Cypher query generation for all 7 dimensions
-
-**Setup**: No special setup — reads spec files from filesystem.
-
-## Recommended Additional Integration Tests
-
-The following integration test scenarios should be added to achieve full pipeline validation:
-
-### Scenario 3: APG → Neo4j Ingestion (requires Neo4j)
+Commands that write the lane graph run under the lane lock, so two runs never share a database:
 
 ```bash
-# Create: tests/integration/neo4j-ingestion/ingest-and-query.test.ts
+mkdir "$HOME/.daedalus-7693.lock" && { <command>; rmdir "$HOME/.daedalus-7693.lock"; }
 ```
 
-**Steps**:
-1. Extract APG from a clean fixture project
-2. Ingest APG into Neo4j (`ingestAPG()`)
-3. Verify nodes created in graph (`MATCH (n) RETURN count(n)`)
-4. Verify layer annotations applied
-5. Verify relationships match expected edge count
-6. Clear graph after test
-
-### Scenario 4: Full Symbolic Pipeline (requires Neo4j)
+## 2. Golden suite (Gate G, FR-30)
 
 ```bash
-# Create: tests/integration/pipeline/symbolic-pipeline.test.ts
+set -a; . ~/.daedalus-bt.env; set +a
+GOLDEN_REQUIRED=1 npm run test:golden          # 80 tests / 7 suites, 0 skipped
+shasum -a 256 tests/golden/__snapshots__/*.json  # must equal BT_SNAPSHOT_HASHES unless the step is a declared snapshot step
+npx tsx tests/golden/check-changes-log-cli.ts    # golden change log ok
 ```
 
-**Steps**:
-1. Extract APG from `fixtures/correct-reference/`
-2. Parse `specs/clean-arch.yaml`
-3. Ingest into Neo4j
-4. Compile fitness functions
-5. Run symbolic evaluation
-6. Compute scores
-7. Verify: AHS >= 0.90 for clean project, verdict = "pass"
+`BT_SNAPSHOT_HASHES` (Build and Test Step 3, equal to U5b G0): correct-reference `a9dbd9cc…`, variant-a `8836db1f…`, variant-b `61327e59…`, variant-c `fbbdcbf5…`, variant-d `17a7b632…`.
 
-### Scenario 5: Violation Detection (requires Neo4j)
+A snapshot change is allowed only in a commit whose subject carries a label (`BT-<A–G><n>:` in this stage) and which adds exactly one attributed line per changed case to `tests/golden/CHANGES.md`:
 
+```text
+<date> BT-<G><n> [baseline |observation |re-record, cause <commit/FR> ]<case ids|all> — <FR/ADR id>: <text>
+```
+
+CI runs the checker on PRs from `v1.2e-u1-*`, `v1.2e-u3-*`, `v1.2e-u4-*` and `v1.2e-build-and-test*`, after proving its `--self-test` fails.
+
+## 3. Cross-unit scenarios (Build and Test Step 4)
+
+### Scenario 1 — U1 → U2 → U3 symbolic pipeline
+The golden suite above: spec compile (U1), extraction and ingestion (U2), evaluation, scoring and report (U3) on the five fixtures.
+
+### Scenario 2 — U3 + U4 full mode, replayed Mock judge
 ```bash
-# Create: tests/integration/pipeline/violation-detection.test.ts
+set -a; . ~/.daedalus-bt.env; set +a
+npx tsx bin/firewall.ts evaluate --format json --spec specs/clean-arch.yaml \
+  --project fixtures/correct-reference \
+  --llm-provider mock --cassette-mode replay \
+  --cassette-dir tests/fixtures/judge-cassettes/correct-reference > "$SCRATCH/full.json"
 ```
+Expected: exit 0, empty stderr, schema-valid report, `neuralResults` FF-N01 4 units + FF-N02 10 units = 14 judged units, `judge.seededList` `[]`, AHS deterministic .958 / combined .962 / neuronal 1, verdict pass, accepted by `acceptReport`. A replay miss fails with `re-record: <n> missing keys` (BR-U4-CAS-11).
 
-**Steps**:
-1. Extract APG from a seeded-violation fixture
-2. Parse spec, ingest, compile, evaluate (symbolic)
-3. Score results
-4. Verify: violations detected match MANIFEST.md entries
-5. Verify: AHS < 0.90 for violated project
-6. Verify: verdict = "soft-block" or "hard-block"
-
-### Scenario 6: CLI End-to-End
-
+### Scenario 3 — U5a → U5b, one forced FR-24 entry
 ```bash
-# Create: tests/integration/cli/evaluate-command.test.ts
+npx tsx scripts/mutate.ts --base fixtures/correct-reference --spec specs/clean-arch.yaml --operator MO-S01 \
+  --manifest "$SCRATCH/case/manifest.json" --out "$SCRATCH/copies" --split dev \
+  --site '{"filePath":"src/domain/entities/Task.ts","line":1,"detail":{"targetFile":"src/infrastructure/repositories/InMemoryTaskRepository.ts","symbol":"InMemoryTaskRepository"}}'
+# evaluate fixtures/correct-reference and the seeded copy (symbolic-only) into $SCRATCH/case/reports/{baseline,MO-S01}.json,
+# write their RunRecords (*.run.json; the seeded one carries seed.baselineReportPath), then:
+npx tsx scripts/score-golden-cli.ts --case "$SCRATCH/case" --out "$SCRATCH/score.json"
 ```
+Expected (Step 4): 1 row, 0 rejections; seeded copy exit 1 (blocked); score exit 0, status `matched`, detectedBy 2, collateral 2 (FF-S02 cycles), undeclared new 0, dev strict TP 1 / FP 0 / FN 0.
 
-**Steps**:
-1. Spawn `firewall evaluate --project fixtures/correct-reference --spec specs/clean-arch.yaml --format json --symbolic-only`
-2. Capture stdout (JSON report)
-3. Verify exit code = 0
-4. Parse JSON, verify AHS field exists and is numeric
-5. Verify verdict = "pass"
-
-### Scenario 7: Batch Evaluation
-
+### Scenario 4 — U5b harness on the fixture plan
 ```bash
-# Create: tests/integration/cli/batch-command.test.ts
+npx jest tests/unit/scripts/u5b/aggregate.test.ts tests/unit/scripts/u5b/run-experiment.test.ts --verbose
 ```
+Expected: the full CSV set is written, `runs.csv` lists the two injected failures (`tests/fixtures/u5b/injected/function-failed.json`, `function-truncated.json`) as rejected, and one SVG per figure spec (`ahs-by-project.svg`) renders byte-identically.
 
-**Steps**:
-1. Spawn `firewall batch --dir fixtures --spec specs/clean-arch.yaml --format csv --symbolic-only`
-2. Capture stdout (CSV)
-3. Verify CSV header row
-4. Verify one row per fixture project
-5. Verify exit code based on aggregate results
+## 4. Hand-off checks (read-only)
 
-### Scenario 8: Snapshot and Drift
-
-```bash
-# Create: tests/integration/pipeline/drift-detection.test.ts
-```
-
-**Steps**:
-1. Extract + ingest fixture project A, save snapshot
-2. Extract + ingest modified fixture project A', save snapshot
-3. Compute delta between snapshots
-4. Run drift detection
-5. Verify structural drift detected (added/removed nodes)
-
-## Integration Test Environment Setup
-
-```bash
-# Start Neo4j
-docker-compose up -d
-
-# Wait for readiness (up to 60s)
-for i in $(seq 1 12); do
-  curl -sf http://localhost:7474 > /dev/null && break
-  echo "Waiting for Neo4j... ($i/12)"
-  sleep 5
-done
-
-# Set environment
-export NEO4J_URI=bolt://localhost:7687
-export NEO4J_USER=neo4j
-export NEO4J_PASSWORD=test-password
-export EVALUATION_MODE=symbolic-only
-export PIPELINE_MODE=stateless
-
-# Run integration tests
-npm run test:integration
-
-# Cleanup
-docker-compose down
-```
-
-## CI Integration
-
-The GitHub Actions CI workflow (`.github/workflows/ci.yml`) already includes:
-- Neo4j 5.26-community service container with APOC
-- Integration test step with correct env vars
-- Symbolic-only mode for CI speed
+| Hand-off | Check |
+|---|---|
+| H8 | `src/llm-critic/neural-result-rows.ts` exports `toNeuralResultRows`; `judgeProvenanceOf` in `src/llm-critic/provenance.ts` |
+| H9 | `src/llm-critic/llm-critic.ts` emits `JUDGE_NO_UNITS` with `context.functionId` |
+| H10 | `requireEnvForCli('NEO4J_PASSWORD')` in `src/cli/cli.ts`; no default password (`NEO4J_USER ?? 'neo4j'` is a user-name default, DV-BT-6) |
+| H11 | `U4-K5` router test in `tests/unit/neuro-symbolic-router/router-modes.test.ts` |
+| OI-U4-8 | `acceptReport` reasons `seeded-list-nonempty`, `missing-baseline-selection` and the `judge.model` check (`scripts/lib/report-io.ts`; DV-BT-5) |
+| OI-U5a-5, OI-U5a-17 | `scripts/prepare-bases.ts` measures `tscVersion` from `tscPath` and hashes the overlaid file |
+| BR-U3-66 | `tests/unit/scripts/mutation/u3-discriminators.test.ts` |

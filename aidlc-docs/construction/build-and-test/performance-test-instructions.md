@@ -1,162 +1,60 @@
-# Performance Test Instructions — DaedalusArch
+# Performance Test Instructions — DaedalusArch v1.2E
 
-## Performance Requirements (from NFRs)
+> **Supersedes** the v1.0 performance-test instructions (US-NFR-2 targets). The earlier text stays in git history.
+> **Cycle**: v1.2 Evaluation-Readiness, Build and Test (plan Steps 11, 21–25). **Date**: 2026-10-08.
 
-| Metric | Target | Mode | Story |
-|--------|--------|------|-------|
-| APG extraction | < 5s per project | Any | US-NFR-2 |
-| Symbolic evaluation | < 5s per project | symbolic-only | US-NFR-2 |
-| Full neuro-symbolic pipeline | < 30s per project | full | US-NFR-2 |
-| Delta APG computation | < 2s | persistent | US-NFR-2 |
-| Batch throughput | < 5s per project | symbolic-only | US-16.4 |
-| Install-to-first-evaluation | < 5 minutes | Any | US-NFR-6 |
-| ICC (neuronal reproducibility) | >= 0.70 | neuronal/full | US-NFR-1 |
-| Detection precision | >= 90% | Any | US-NFR-3 |
-| Detection recall | >= 85% | Any | US-NFR-3 |
+## 1. Targets
 
-## Setup
+| Requirement | Target | Where measured |
+|---|---|---|
+| NFR-v1.2E-03 | Under 5 000 ms per fixture project (extract + ingest + evaluate, symbolic-only) after Package nodes and edge properties were added | FR-18 result file `results/pre-tag/fixtures-<sha>.json` (Step 11) |
+| NFR-v1.2E-07 | Every Cypher query has a timeout; the cycle search is bounded (`MAX_CYCLE_LENGTH` 10, `CYCLE_ROW_CAP` 100, `src/fitness-compiler/cypher-templates.ts`); a latency budget is stated for public projects up to 300 files | `Docs/DiagnosticRuns /bt-latency-profile.md` (Steps 23, 25) |
+| H13 / ADR-016 e | Latency gate on ghostfolio `apps/api`: both cycle queries (FF-S02 template, universal cycle metric) complete within `LATENCY_GATE_MS` = 30 000 ms (`scripts/run-experiment.ts`) | registered plan `experiments/latency-gate/plan.json` (Step 22) |
 
-```bash
-# Ensure Neo4j is running
-docker-compose up -d
+Steps 11 and 21–25 are held by escalation E-1 (catalogue freeze needs pending author decision (a)); the commands below are what they run once released.
 
-# Set environment
-export NEO4J_URI=bolt://localhost:7687
-export NEO4J_USER=neo4j
-export NEO4J_PASSWORD=test-password
-```
-
-## Test 1: APG Extraction Performance
+## 2. NFR-03 fixture timings (FR-18)
 
 ```bash
-# Time extraction on each fixture project
-time npx tsx -e "
-  const { extractAPG } = require('./src/apg-extractor/index.js');
-  const start = Date.now();
-  extractAPG('./fixtures/correct-reference').then(r => {
-    console.log('Duration:', Date.now() - start, 'ms');
-    console.log('Nodes:', r.data?.nodes.length, 'Edges:', r.data?.edges.length);
-  });
-"
-```
-
-**Target**: < 5,000ms per project.
-**Typical**: 500-2,000ms for projects under 100 files.
-
-## Test 2: Symbolic-Only Pipeline Performance
-
-```bash
-time npx tsx src/cli/cli.ts evaluate \
-  --project ./fixtures/correct-reference \
-  --spec ./specs/clean-arch.yaml \
-  --format json \
-  --symbolic-only \
-  > /dev/null
-```
-
-**Target**: < 5,000ms total (extraction + parsing + ingestion + Cypher evaluation + scoring).
-
-## Test 3: Batch Performance
-
-```bash
-time npx tsx src/cli/cli.ts batch \
-  --dir ./fixtures \
-  --spec ./specs/clean-arch.yaml \
-  --format csv \
-  --symbolic-only
-```
-
-**Target**: < 5,000ms per project average (total time / number of projects).
-
-## Test 4: Full Neuro-Symbolic Pipeline (requires LLM API key)
-
-```bash
-export ANTHROPIC_API_KEY=<your-key>
-
-time npx tsx src/cli/cli.ts evaluate \
-  --project ./fixtures/correct-reference \
-  --spec ./specs/clean-arch.yaml \
-  --format json \
-  > /dev/null
-```
-
-**Target**: < 30,000ms total.
-**Note**: LLM API latency is the dominant factor. Use `--verbose` to see per-stage timings.
-
-## Test 5: Detection Accuracy (Precision / Recall)
-
-```bash
-# Run symbolic evaluation against all fixture projects
-# Compare detected violations against MANIFEST.md expected violations
-
-npx tsx src/cli/cli.ts batch \
-  --dir ./fixtures \
-  --spec ./specs/clean-arch.yaml \
-  --format json \
-  --symbolic-only \
-  > accuracy-results.json
-```
-
-Then verify:
-- **Clean reference projects**: AHS >= 0.90, verdict = "pass", 0 violations
-- **Seeded violation projects**: violations match MANIFEST.md entries
-- **Precision**: (true violations detected) / (total violations reported) >= 0.90
-- **Recall**: (true violations detected) / (known violations in manifests) >= 0.85
-
-## Test 6: Install-to-First-Evaluation (Developer Experience)
-
-**Manual timer test** — from a clean checkout:
-
-```bash
-# Start timer
-START=$(date +%s)
-
-git clone <repository-url> /tmp/firewall-test
-cd /tmp/firewall-test
-npm ci
-docker-compose up -d
-sleep 15  # wait for Neo4j
-
-npx tsx src/cli/cli.ts evaluate \
-  --project ./fixtures/correct-reference \
-  --spec ./specs/clean-arch.yaml \
-  --symbolic-only
-
-END=$(date +%s)
-echo "Total: $((END - START)) seconds"
-
-# Cleanup
-docker-compose down
-rm -rf /tmp/firewall-test
-```
-
-**Target**: < 300 seconds (5 minutes).
-
-## Test 7: Neuronal Reproducibility (ICC)
-
-```bash
-# Requires LLM API key
-# Run the same evaluation 5 times and compute ICC
-
-for i in 1 2 3 4 5; do
-  npx tsx src/cli/cli.ts evaluate \
-    --project ./fixtures/correct-reference \
-    --spec ./specs/clean-arch.yaml \
-    --format json \
-    > "run-$i.json"
+npm run build
+set -a; . ~/.daedalus-bt.env; set +a
+for c in correct-reference variant-a-structural variant-b-pattern variant-c-everything variant-d-subtle; do
+  node dist/cli/index.js evaluate --project fixtures/$c --spec specs/clean-arch.yaml --symbolic-only \
+    --format json --verbose > "$SCRATCH/fr18/$c.json" 2> "$SCRATCH/fr18/$c.timings"
 done
-
-# Compare AHS scores across runs
-# ICC >= 0.70 means acceptable reproducibility
-# Temperature=0 + fixed seed should yield ICC > 0.90
 ```
 
-## Performance Optimization Guide
+The `--verbose` stage timings give extract, ingest and total ms per fixture; each total must be under 5 000 ms. The result file stores the scrubbed reports with repository-relative paths, and `grep -c` of the Neo4j host:port and the password over it prints `0` (NFR-05).
 
-If targets are not met:
+## 3. H13 latency gate (registered plan)
 
-1. **APG extraction slow**: Check project size, enable `lenientMode` to skip unparsable files
-2. **Neo4j queries slow**: Add indexes on `:APGNode(id)` and `:APGNode(layer)`, increase Java heap
-3. **LLM calls slow**: Increase `maxConcurrency` in LLMConfig (default: 3), use `p-limit` throttle
-4. **Batch slow**: Verify Neo4j `clearGraph()` isn't bottleneck, consider connection pool reuse between projects
-5. **Scoring slow**: Universal metrics Cypher queries may need APOC optimization
+```bash
+npx tsx scripts/run-experiment-cli.ts --check-prereg experiments/latency-gate/plan.json
+set -a; . ~/.daedalus-bt.env; set +a
+npx tsx scripts/run-experiment-cli.ts experiments/latency-gate/plan.json
+# writes results/latency-gate/ (RunRecord, scrubbed report, EnvironmentRecord) and latency.csv
+```
+
+## 4. PROFILE capture (H13, NFR-07)
+
+Ingest the project into the lane database, then run `PROFILE` on the FF-S02 template and on the universal cycle metric through a direct driver session (not `executeQuery`, which hides the summary), one warm-up and three repetitions:
+
+```ts
+const session = driver.session();
+const res = await session.run('PROFILE ' + cypher, params);
+const s = res.summary;
+// record: s.profile db hits and rows (walk the plan tree), s.resultAvailableAfter, s.resultConsumedAfter,
+// and the cap flags: cycle length bound 10, row cap 100, truncation warning (EVAL_003)
+await session.close();
+```
+
+Record the rows in `Docs/DiagnosticRuns /bt-latency-profile.md`.
+
+## 5. Cycle-strategy decision (ADR-016 e, applied mechanically)
+
+- Both cycle queries within 30 s: `CYCLE_STRATEGY` stays `'cypher'` (`src/evaluation-engine/scc-cycles.ts`), U5a `simple-cycles` stays aligned (D-U5a-14).
+- Otherwise: flip both to the Tarjan SCC fallback (`CYCLE_STRATEGY = 'scc'`), as an attributed snapshot step with its prereg bump (P-2).
+
+## 6. NFR-07 latency table and long cycles
+
+Repeat §4 on the other prepared corpus bases (`realworld-test`, `truthy-demo`, `dry-run-test`) and append the table for public projects up to 300 files. For each base, compare SCC component sizes with the bounded query's cycles; a component larger than 10 files is reported as a possible undetected long cycle (threat to validity).
