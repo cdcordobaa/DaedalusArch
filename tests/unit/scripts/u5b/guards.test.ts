@@ -1,23 +1,97 @@
 /**
  * U5b CI guards run by the existing scripts-project test step (`npm test`; `.github/**` untouched).
  * BR-U5b-56: no U5b commit adds or changes anything under `results/`. The check reads git history and fails (never
- * skips) when `origin/v1.2e` cannot be resolved. Build and Test re-scopes this guard when it commits registered results.
+ * skips) when `origin/v1.2e` cannot be resolved. Build and Test re-scoped it (BT Step 5): under `results/`, only
+ * `results/pre-tag/**` (FR-18) and `results/<registered plan id>/**` whose `runs/*.run.json` are schema-valid
+ * `RunRecord`s of that plan (at least one) are allowed; anything else fails. Checked over the tracked files and the
+ * branch diff against `origin/v1.2e`.
  * BR-U5b-44 (Step 28): no test under `tests/unit/scripts/**` constructs the live Gemini provider or imports its
  * constructor as a value; U5b tests label through Mock providers and cassettes only.
  */
 import { execFileSync } from 'node:child_process';
 import { readdirSync, readFileSync, statSync } from 'node:fs';
 import { join, relative } from 'node:path';
+import { validateRunRecord } from '../../../../scripts/run-experiment.js';
+import { resultsPathAllowed } from '../../../golden/check-changes-log.js';
 import { ROOT } from './score-fixture.js';
 
 function git(...args: string[]): string {
   return execFileSync('git', args, { cwd: ROOT, encoding: 'utf8', stdio: ['ignore', 'pipe', 'pipe'] }).trim();
 }
 
-describe('results guard (BR-U5b-56)', () => {
-  it('origin/v1.2e resolves and `git diff --name-only origin/v1.2e...HEAD -- results/` is empty', () => {
+/**
+ * Problems of a set of `results/` paths (BR-U5b-56 as re-scoped by Build and Test). `readRecord` returns the parsed
+ * JSON of a `*.run.json` path, or undefined when it no longer exists (a deletion is checked by path only).
+ */
+export function resultsGuardProblems(
+  files: readonly string[],
+  planIds: readonly string[],
+  readRecord: (path: string) => unknown,
+): string[] {
+  const problems: string[] = [];
+  const plans = new Set<string>();
+  for (const f of [...new Set(files)].sort()) {
+    if (!resultsPathAllowed(f, planIds)) { problems.push(`${f}: not under results/pre-tag/ or results/<registered plan id>/`); continue; }
+    const top = f.split('/')[1] ?? '';
+    if (top !== 'pre-tag') plans.add(top);
+  }
+  for (const id of [...plans].sort()) {
+    const records = files.filter((f) => f.startsWith(`results/${id}/runs/`) && f.endsWith('.run.json'));
+    const present = records.map((f) => [f, readRecord(f)] as const).filter(([, v]) => v !== undefined);
+    if (present.length === 0) problems.push(`results/${id}/: no RunRecord under runs/`);
+    for (const [f, v] of present) {
+      const schema = validateRunRecord(v, ROOT);
+      if (schema.length > 0) problems.push(`${f}: RunRecord schema: ${schema.join('; ')}`);
+      else if ((v as { readonly planId?: unknown }).planId !== id) problems.push(`${f}: planId is not ${id}`);
+    }
+  }
+  return problems;
+}
+
+function registeredPlanIds(): string[] {
+  return readdirSync(join(ROOT, 'experiments')).filter((d) => {
+    try {
+      return (JSON.parse(readFileSync(join(ROOT, 'experiments', d, 'plan.json'), 'utf8')) as { id?: unknown }).id === d;
+    } catch {
+      return false;
+    }
+  }).sort();
+}
+
+describe('results guard (BR-U5b-56, re-scoped by Build and Test Step 5)', () => {
+  const lines = (t: string): string[] => t.split('\n').filter((l) => l.length > 0);
+
+  it('origin/v1.2e resolves; every tracked or branch-changed results/ path is allowed', () => {
     expect(git('rev-parse', '--verify', 'origin/v1.2e^{commit}')).toMatch(/^[0-9a-f]{40}$/);
-    expect(git('diff', '--name-only', 'origin/v1.2e...HEAD', '--', 'results/')).toBe('');
+    const files = [...lines(git('ls-files', 'results/')), ...lines(git('diff', '--name-only', 'origin/v1.2e...HEAD', '--', 'results/'))];
+    const read = (f: string): unknown => {
+      try { return JSON.parse(readFileSync(join(ROOT, f), 'utf8')) as unknown; } catch { return undefined; }
+    };
+    expect(resultsGuardProblems(files, registeredPlanIds(), read)).toEqual([]);
+  });
+
+  it('allows pre-tag files and a registered plan directory with a schema-valid RunRecord', () => {
+    const rec = JSON.parse(readFileSync(join(ROOT, 'tests/fixtures/u5b/reports/correct-reference.run.json'), 'utf8')) as Record<string, unknown>;
+    const records: Record<string, unknown> = { 'results/latency-gate/runs/r1.run.json': { ...rec, planId: 'latency-gate' } };
+    const files = ['results/pre-tag/fixtures-abc1234.json', 'results/pre-tag/README.md', 'results/latency-gate/runs/r1.run.json', 'results/latency-gate/latency.csv'];
+    expect(resultsGuardProblems(files, registeredPlanIds(), (f) => records[f])).toEqual([]);
+  });
+
+  it('fails anything else: unregistered plan, top-level file, missing or invalid RunRecord, wrong planId', () => {
+    const rec = JSON.parse(readFileSync(join(ROOT, 'tests/fixtures/u5b/reports/correct-reference.run.json'), 'utf8')) as Record<string, unknown>;
+    const records: Record<string, unknown> = {
+      'results/sensitivity/runs/bad.run.json': { ...rec, planId: 'sensitivity', attempt: 3 },
+      'results/fixtures/runs/r.run.json': { ...rec, planId: 'latency-gate' },
+    };
+    const problems = resultsGuardProblems(
+      ['results/unregistered/x.json', 'results/top.json', 'results/latency-gate/latency.csv', 'results/sensitivity/runs/bad.run.json', 'results/fixtures/runs/r.run.json'],
+      registeredPlanIds(), (f) => records[f],
+    ).join('\n');
+    expect(problems).toMatch(/results\/unregistered\/x.json: not under/);
+    expect(problems).toMatch(/results\/top.json: not under/);
+    expect(problems).toMatch(/results\/latency-gate\/: no RunRecord/);
+    expect(problems).toMatch(/bad.run.json: RunRecord schema/);
+    expect(problems).toMatch(/r.run.json: planId is not fixtures/);
   });
 });
 

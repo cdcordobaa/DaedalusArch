@@ -1,7 +1,7 @@
 /**
  * U5b Step 5: report acceptance and loading (FR-36, FR-25; BR-U5b-25, 45; domain-entities §1, §6).
  */
-import { mkdtempSync, rmSync, writeFileSync } from 'node:fs';
+import { mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { acceptReport, checkRunRecord, loadRun } from '../../../../scripts/lib/report-io.js';
@@ -114,6 +114,45 @@ describe('acceptReport (BR-U5b-45)', () => {
     expect(r.judge.provider).toBe('none');
     expect(acceptReport(r).accepted).toBe(true);
     expect(reasons(acceptReport(r, { pinnedJudge: PINNED }))).toEqual(['judge-model-mismatch']);
+  });
+});
+
+describe('OI-U4-8 consumer reasons (BR-U4-SEL-06, SEL-07; Build and Test Step 4)', () => {
+  const FULL = join(__dirname, '../../../fixtures/u5b/reports/full-mode/correct-reference.json');
+  interface Row { selection: { source: string; selectedUnitIds: string[] } }
+  const load = (): Record<string, unknown> & { judge: Record<string, unknown>; neuralResults: Row[] } =>
+    JSON.parse(readFileSync(FULL, 'utf8')) as Record<string, unknown> & { judge: Record<string, unknown>; neuralResults: Row[] };
+
+  it('the committed full-mode report is accepted (empty seeded list, no pairing)', () => {
+    expect(acceptReport(load()).accepted).toBe(true);
+  });
+
+  it('seeded-list-nonempty: a report whose judge.seededList is not empty', () => {
+    const r = load();
+    r.judge.seededList = ['src/domain/entities/Task.ts'];
+    expect(reasons(acceptReport(r))).toEqual(['seeded-list-nonempty']);
+  });
+
+  it('missing-baseline-selection: a paired variant must reuse the baseline selection', () => {
+    const baseline = load();
+    const ownSelection = load();
+    expect(reasons(acceptReport(ownSelection, { pairedBaseline: baseline as never }))).toEqual(['missing-baseline-selection']);
+    const reused = load();
+    for (const row of reused.neuralResults) row.selection.source = 'baseline';
+    expect(acceptReport(reused, { pairedBaseline: baseline as never }).accepted).toBe(true);
+    const drifted = load();
+    for (const row of drifted.neuralResults) row.selection.source = 'baseline';
+    const [first] = drifted.neuralResults;
+    if (first === undefined) throw new Error('fixture has no neural rows');
+    first.selection.selectedUnitIds = first.selection.selectedUnitIds.slice(1);
+    const a = acceptReport(drifted, { pairedBaseline: baseline as never });
+    expect(reasons(a)).toEqual(['missing-baseline-selection']);
+    expect(a.accepted ? '' : a.reasonDetail).toContain('selectedUnitIds differ');
+  });
+
+  it('a symbolic-only pair has no neural rows and is not affected by pairing', async () => {
+    const b = await storedReport();
+    expect(acceptReport(await storedReport(), { pairedBaseline: b as never }).accepted).toBe(true);
   });
 });
 

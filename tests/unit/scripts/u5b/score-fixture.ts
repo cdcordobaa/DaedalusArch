@@ -155,6 +155,9 @@ export function key(functionId: string, filePath: string, target = '', discrimin
 }
 
 export function seed(r: ManifestRow, baseline: unknown, seeded: unknown, rec: { baseline?: RunRecord | null; seeded?: RunRecord | null } = {}): SeedInput {
+  // A seeded run reuses the baseline's judge selection (BR-U4-SEL-07, `--judge-baseline-report`).
+  const rows = (seeded as { neuralResults?: { selection: { source: string } }[] } | null)?.neuralResults;
+  for (const nr of rows ?? []) nr.selection.source = 'baseline';
   return {
     row: r,
     baseline: { report: baseline, record: rec.baseline === null ? undefined : (rec.baseline ?? record()) },

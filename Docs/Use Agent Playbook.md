@@ -412,7 +412,7 @@ If `src/generated/`, `src/__generated__/`, or `src/migrations/` exist, add to `d
 ```bash
 cd $FIREWALL_HOME
 
-NEO4J_PASSWORD=daedalus-dev npx tsx -e "
+NEO4J_PASSWORD=<your-neo4j-password> npx tsx -e "
 import { main } from './src/cli/cli.ts';
 main(['node', 'firewall', 'report',
   '--project', '<target>',
@@ -425,7 +425,7 @@ main(['node', 'firewall', 'report',
 ### Step 6: Create baseline
 
 ```bash
-NEO4J_PASSWORD=daedalus-dev npx tsx -e "
+NEO4J_PASSWORD=<your-neo4j-password> npx tsx -e "
 import { main } from './src/cli/cli.ts';
 main(['node', 'firewall', 'baseline',
   '--project', '<target>',
@@ -461,7 +461,7 @@ Present: AHS + verdict, per-dimension AVR breakdown, top violations with file pa
 | Error | Fix |
 |---|---|
 | `No .ts source files found` | `npm install`; ensure tsconfig has `"include": ["src/**/*.ts"]` |
-| `authentication failure` | `NEO4J_PASSWORD=daedalus-dev` |
+| `authentication failure` | `NEO4J_PASSWORD=<your-neo4j-password>` |
 | `Unknown architecture style` | Use `nestjs` or `clean-architecture` |
 | `Schema validation failed` | Each layer needs `name`, `roles`, and `directories` or `file_patterns` |
 | Pipeline hangs | `docker compose up -d` from engine dir |

@@ -44,15 +44,32 @@ jobs:
         run: npm ci
 
       - name: Dependency audit
-        # NFR-06: report-only until the baseline is triaged
+        # NFR-06: full report; stays report-only because accepted residuals still count as high here
         run: npm audit --audit-level=high
         continue-on-error: true
+
+      - name: Dependency audit gate (triaged)
+        # NFR-06 promoted to blocking after the Build and Test Step 6 triage (Docs/DiagnosticRuns/bt-audit-triage.md):
+        # fails on any high/critical advisory missing from scripts/lib/audit-allowlist.json
+        run: npx tsx scripts/audit-gate-cli.ts
 
       - name: Type check
         run: npm run typecheck
 
       - name: Type check U0 tests
         run: npm run typecheck:u0-tests
+
+      - name: Type check scripts
+        # OI-U5b-P2-1: scripts/** and tests/unit/scripts/** (Build and Test Step 5)
+        run: npx tsc -p tsconfig.scripts.json
+
+      - name: Type check U3 tests
+        # D-U4-14 (Build and Test Step 5)
+        run: npx tsc -p tsconfig.u3-tests.json
+
+      - name: Type check U4 tests
+        # D-U4-14 (Build and Test Step 5)
+        run: npx tsc -p tsconfig.u4-tests.json
 
       - name: Lint
         # D-U0-16: lint tooling broken at 7cd15b4; repaired in U0 Step 11, findings are a recorded residual
@@ -86,8 +103,9 @@ jobs:
           GOLDEN_REQUIRED: '1'
 
       - name: Golden change log
-        # BR-U1-41 / D-U1-5, widened by BR-U3-91 (D-U3-6): U1, U3 and U4 PRs; the self-test must fail to prove the CLI entry runs (D-U1-15)
-        if: github.event_name == 'pull_request' && (startsWith(github.head_ref, 'v1.2e-u1-') || startsWith(github.head_ref, 'v1.2e-u3-') || startsWith(github.head_ref, 'v1.2e-u4-'))
+        # BR-U1-41 / D-U1-5, widened by BR-U3-91 (D-U3-6) and Build and Test Step 5 (BT grammar): U1, U3, U4 and
+        # Build and Test PRs; the self-test must fail to prove the CLI entry runs (D-U1-15)
+        if: github.event_name == 'pull_request' && (startsWith(github.head_ref, 'v1.2e-u1-') || startsWith(github.head_ref, 'v1.2e-u3-') || startsWith(github.head_ref, 'v1.2e-u4-') || startsWith(github.head_ref, 'v1.2e-build-and-test'))
         run: |
           if npx tsx tests/golden/check-changes-log-cli.ts --self-test; then echo "change-log self-test did not fail"; exit 1; fi
           npx tsx tests/golden/check-changes-log-cli.ts

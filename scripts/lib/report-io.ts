@@ -48,6 +48,7 @@ export type RunStatus = 'accepted' | 'rejected' | 'not-run' | 'incomplete';
 /** Acceptance reason codes (BR-U5b-45), in the order they are reported. */
 export const ACCEPTANCE_REASON_CODES = [
   'schema-invalid', 'function-timeout', 'function-failed', 'function-truncated', 'metric-failed', 'judge-model-mismatch',
+  'seeded-list-nonempty', 'missing-baseline-selection',
 ] as const;
 export type AcceptanceReasonCode = (typeof ACCEPTANCE_REASON_CODES)[number];
 
@@ -78,6 +79,12 @@ export interface PinnedJudge {
 export interface AcceptOptions {
   /** Absent for a plan mode without a judge (symbolic-only): the judge check is skipped. */
   readonly pinnedJudge?: PinnedJudge;
+  /**
+   * The accepted baseline report this report is paired with (differential pair, BR-U4-SEL-07). When given,
+   * every `neuralResults[]` row must carry `selection.source = 'baseline'` and the baseline row's
+   * `selectedUnitIds` (OI-U4-8 consumer side, `missing-baseline-selection`).
+   */
+  readonly pairedBaseline?: EvaluationReport;
 }
 
 export interface AcceptanceRejection {
@@ -109,6 +116,26 @@ function judgeMismatch(judge: EvaluationReport['judge'], pinned: PinnedJudge): s
     return `judge.resolvedModel ${resolved} does not resolve to pinned ${pinned.model}`;
   }
   return undefined;
+}
+
+type NeuralRows = NonNullable<EvaluationReport['neuralResults']>;
+
+function neuralRowsOf(r: EvaluationReport): NeuralRows {
+  return r.neuralResults ?? [];
+}
+
+/** BR-U4-SEL-07: each neural row of a variant uses the paired baseline's selection. Returns problems. */
+export function baselineSelectionProblems(variant: EvaluationReport, baseline: EvaluationReport): string[] {
+  const base = new Map(neuralRowsOf(baseline).map((row) => [String(row.functionId), row.selection.selectedUnitIds] as const));
+  const problems: string[] = [];
+  for (const row of neuralRowsOf(variant)) {
+    const id = String(row.functionId);
+    if (row.selection.source !== 'baseline') { problems.push(`${id}: selection.source ${row.selection.source}`); continue; }
+    const expected = base.get(id);
+    if (expected === undefined) { problems.push(`${id}: no row in the paired baseline`); continue; }
+    if (JSON.stringify(row.selection.selectedUnitIds) !== JSON.stringify(expected)) problems.push(`${id}: selectedUnitIds differ from the baseline's`);
+  }
+  return problems;
 }
 
 /** BR-U5b-45: accept or reject a stored report (parsed JSON value). */
@@ -149,6 +176,14 @@ export function acceptReport(report: unknown, options: AcceptOptions = {}): Acce
   if (options.pinnedJudge !== undefined) {
     const mismatch = judgeMismatch(r.judge, options.pinnedJudge);
     if (mismatch !== undefined) found.push({ code: 'judge-model-mismatch', detail: mismatch });
+  }
+  const seededList = (r.judge as { readonly seededList?: readonly string[] }).seededList ?? [];
+  if (seededList.length > 0) {
+    found.push({ code: 'seeded-list-nonempty', detail: `judge.seededList has ${String(seededList.length)} entries: ${seededList.join(', ')}` });
+  }
+  if (options.pairedBaseline !== undefined) {
+    const problems = baselineSelectionProblems(r, options.pairedBaseline);
+    if (problems.length > 0) found.push({ code: 'missing-baseline-selection', detail: problems.join('; ') });
   }
   found.sort((a, b) => ACCEPTANCE_REASON_CODES.indexOf(a.code) - ACCEPTANCE_REASON_CODES.indexOf(b.code));
   const [first] = found;

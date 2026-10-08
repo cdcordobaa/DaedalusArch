@@ -243,6 +243,26 @@ scoring:
 - Cannot detect runtime behavior or dynamic dispatch patterns
 - Adding new fitness functions may require schema extensions (e.g., adding a THROWS edge for error handling depth)
 
+**Amendment (2026-10-08, v1.2E Build and Test, NFR-04)**: the schema above is the 2026-03-27 spike schema. The graph contract that v1.2E implements (U2, FR-09, FR-10, FR-21, FR-34; ADR-015 item 8; ADR-016 f) is **6 node labels and 9 relationship types**; the source of truth is `src/shared/types/enums.ts` (`NODE_TYPES`, `EDGE_TYPES`) with the property views in `src/shared/types/apg.ts`.
+
+| Node label | Change | Notes |
+| --- | --- | --- |
+| **Package** | new (FR-09) | One node per external package or Node built-in that a file imports; `filePath ''`, property `scope` (`npm`, `node` or `@scope`); outside the mapped/unmapped file counts; never layer-annotated |
+| **Method** | widened (ADR-016 f) | Interface members are Method nodes too, not only class members |
+| File, Class, Interface, Function | unchanged | `:File` typing is what the universal orphan metric reads (FR-09) |
+
+| Relationship | From → To | Change | Properties / notes |
+| --- | --- | --- | --- |
+| **IMPORTS** | File → File \| Package | widened (FR-09, FR-10) | Merged per file pair: `specifier`, `specifiers[]`, `line`, `lines[]`, `isTypeOnly`, `importedNames[]`; alias-aware resolution; External imports end at a Package node |
+| **RE_EXPORTS** | File → File | new (FR-34; ADR-015 item 8) | Per-name barrel resolution: `specifier`, `specifiers[]`, `line`, `lines[]`, `exportedNames[]` (`['*']` for `export *`), `isTypeOnly`; dependency rules and the cycle query traverse `IMPORTS\|RE_EXPORTS`, coupling metrics stay IMPORTS-only (BR-U1-36) |
+| **FLOWS_TO** | Class → Class \| Interface | new (FR-21) | Field-type data flow within the D8 scope: `field`, `via` (`new` or `field-assignment`), `line`; constructor parameters stay CONSTRUCTOR_INJECTS |
+| **CONSTRUCTOR_INJECTS** | Class → Interface \| Class | unchanged | Read together with FLOWS_TO by `domain-state-purity` (BR-U2-30) |
+| **CALLS** | Method/Function → Method/Function | unchanged | |
+| **CONTAINS** | Class → Method; **Interface → Method** | widened (ADR-016 f) | Interface members (e.g. variant-b `ITaskRepository` has 8) |
+| IMPLEMENTS, EXTENDS, DECLARES | unchanged | | |
+
+The rationale line "5 node types + 7 edge types" reads as "6 node types + 9 edge types" from v1.2E on. The spike validation statement refers to the 17 functions of the spike, not to the v1.2E catalogue.
+
 ---
 
 ## ADR-006: Fitness functions compiled to parameterized Cypher queries
@@ -826,7 +846,7 @@ i. **U2 derived settlements** S-1 to S-7 and S-9 (U2 `business-rules.md` §14.1)
 | 002 | ts-morph as extraction engine | Accepted | ✅ Spike 1 |
 | 003 | Neo4j for APG storage + querying | Accepted | ✅ Spike 2 |
 | 004 | AoC YAML with 3-layer structure | Accepted | ✅ Spike 2 |
-| 005 | Purpose-built APG schema (5 nodes, 7 edges) | Accepted | ✅ Spike 1 + 2 |
+| 005 | Purpose-built APG schema (5 nodes, 7 edges; amended 2026-10-08 to the v1.2E graph contract: 6 nodes incl. Package, 9 edges incl. RE_EXPORTS, FLOWS_TO, Interface CONTAINS) | Accepted, amended | ✅ Spike 1 + 2 |
 | 006 | Fitness functions as parameterized Cypher | Accepted | ✅ Spike 2 |
 | 007 | AVR + AHS scoring model | Accepted | ✅ Spike 3 |
 | 008 | Seeded violations for ground truth | Accepted | ✅ Spike 3 |

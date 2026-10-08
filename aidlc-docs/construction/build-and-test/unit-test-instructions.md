@@ -1,151 +1,68 @@
-# Unit Test Execution — DaedalusArch
+# Unit Test Instructions — DaedalusArch v1.2E
 
-## Overview
+> **Supersedes** the v1.0 unit-test instructions (312 tests, U7). The earlier text stays in git history.
+> **Cycle**: v1.2 Evaluation-Readiness, Build and Test (plan Step 8). **Date**: 2026-10-08.
 
-- **Framework**: Jest 29.x with ts-jest
-- **Test files**: 27 unit test files across 10 modules
-- **Total tests**: 312 (as of U7 completion)
-- **BDD features**: 4 Gherkin feature files (jest-cucumber)
-
-## Run All Unit Tests
+## 1. Gate U — unit and integration tests
 
 ```bash
-npm run test:unit
+npm test                 # jest over tests/unit and tests/integration (tests/unit/scripts/** included)
 ```
 
-**Expected**: 27 suites pass, ~280 unit tests pass, 0 failures.
+| Measurement | Value | When |
+|---|---|---|
+| `U_BT` (entry baseline, `BT_BASE` `e9c24c4`) | 2864 tests / 199 suites, 0 failed | Build and Test Step 3 |
+| After BT-A Steps 4–6 | 2888 tests / 201 suites, 0 failed (+5 OI-U4-8 reasons, +16 change-log / guard / prereg bump, +3 audit gate) | Build and Test Step 6 |
 
-## Run All Tests (Unit + Integration + BDD)
+The expected count is `U_BT` plus the tests each later step names in its Done note. CI splits the same set into "Unit tests" (`npm run test:unit`) and "Integration tests" (`npm run test:integration`, 15 tests); the two numbers add up to the `npm test` total.
+
+Useful subsets:
 
 ```bash
-npm test
+npx jest tests/unit/scripts/u5b          # U5b harness, scoring, guards, prereg, audit gate
+npx jest tests/unit/golden               # change-log checker, normalisation, byte stability
+npx jest tests/unit/scripts/mutation     # U5a operators, keys, U3 discriminators (BR-U3-66)
+npx jest tests/unit/llm-critic           # U4 judge, cassettes, isolation (Mock and replay only)
 ```
 
-**Expected**: 29 suites, 312 tests, 0 failures, ~14s runtime.
+No unit test makes a live LLM call: the judge runs through Mock providers and committed cassettes, and `guards.test.ts` fails if a test constructs the live Gemini provider (BR-U5b-44).
 
-## Run with Coverage
+## 2. Gate B — test type-error budget
+
+The tests are type-checked by a scratch configuration that is never committed (U0 Step 3 content):
+
+```json
+{
+  "extends": "<REPO>/tsconfig.json",
+  "compilerOptions": {
+    "noEmit": true, "module": "CommonJS", "moduleResolution": "node",
+    "verbatimModuleSyntax": false, "noUnusedLocals": false, "noUnusedParameters": false,
+    "rootDir": "<REPO>", "typeRoots": ["<REPO>/node_modules/@types"], "types": ["node", "jest"]
+  },
+  "include": ["<REPO>/src/**/*.ts", "<REPO>/tests/**/*.ts"],
+  "exclude": ["<REPO>/node_modules", "<REPO>/dist"]
+}
+```
 
 ```bash
-npm run test:coverage
+npx tsc -p "$SCRATCH/tsconfig.tests-audit.json" > "$SCRATCH/gateB.txt" 2>&1
+grep -c "error TS" "$SCRATCH/gateB.txt"     # <= B_BT = 80
+grep -c TS2688 "$SCRATCH/gateB.txt"         # 0
 ```
 
-**Expected**:
-- **Statements**: >= 76%
-- **Functions**: >= 82%
-- **Lines**: >= 77%
-- Coverage report at `coverage/lcov-report/index.html`
+`<REPO>` is the absolute path of the checkout or worktree being measured; `$SCRATCH` is a session scratch directory outside every checkout.
 
-## Per-Module Test Breakdown
-
-### Shared Domain (U1)
-```bash
-npx jest tests/unit/shared/ --no-coverage
-```
-| Suite | Tests | Key Assertions |
-|-------|-------|---------------|
-| `firewall-context.test.ts` | ~15 | Set-once invariant, typed getters, warning accumulation |
-| `domain-result.test.ts` | ~10 | Ok/fail constructors, type narrowing |
-| `value-objects.test.ts` | ~8 | Brand validation, range constraints |
-
-### APG Extractor (U2)
-```bash
-npx jest tests/unit/apg-extractor/ --no-coverage
-```
-| Suite | Tests | Key Assertions |
-|-------|-------|---------------|
-| `apg-extractor.test.ts` | ~11 | Project parsing, fixture extraction, parse coverage |
-| `node-extractor.test.ts` | ~15 | 5 node types: File, Class, Interface, Method, Function |
-| `edge-extractor.test.ts` | ~20 | 7 edge types: IMPORTS, IMPLEMENTS, EXTENDS, etc. |
-| `id-generator.test.ts` | ~5 | Deterministic ID generation |
-
-### Spec Parser (U3)
-```bash
-npx jest tests/unit/spec-parser/ --no-coverage
-```
-| Suite | Tests | Key Assertions |
-|-------|-------|---------------|
-| `spec-parser.test.ts` | ~15 | 3-layer YAML parsing, template resolution |
-| `spec-validator.test.ts` | ~10 | JSON Schema validation, business rule validation |
-| `adr-parsers.test.ts` | ~8 | MADR, Nygard, Y-Statement, custom YAML formats |
-| `template-registry.test.ts` | ~5 | Clean-architecture template, registry lookup |
-
-### Fitness Compiler (U3)
-```bash
-npx jest tests/unit/fitness-compiler/ --no-coverage
-```
-| Suite | Tests | Key Assertions |
-|-------|-------|---------------|
-| `fitness-compiler.test.ts` | ~20 | Cypher template instantiation, 7 dimensions, route tagging |
-
-### Neo4j Ingestion (U4)
-```bash
-npx jest tests/unit/neo4j-ingestion/ --no-coverage
-```
-| Suite | Tests | Key Assertions |
-|-------|-------|---------------|
-| `neo4j-ingestion.test.ts` | ~12 | APG ingestion, layer annotation, stateless mode |
-| `layer-annotator.test.ts` | ~10 | Directory/naming/decorator priority |
-| `delta-computer.test.ts` | ~8 | Added/removed nodes/edges computation |
-| `drift-detector.test.ts` | ~10 | Structural, coupling, convention, violation trend drift |
-| `fs-snapshot-store.test.ts` | ~8 | Save/load snapshots, delta persistence |
-
-### Router + Evaluation (U5)
-```bash
-npx jest tests/unit/neuro-symbolic-router/ tests/unit/evaluation-engine/ tests/unit/llm-critic/ --no-coverage
-```
-| Suite | Tests | Key Assertions |
-|-------|-------|---------------|
-| `router.test.ts` | ~12 | Route dispatch, mode filtering, parallel execution |
-| `symbolic-evaluator.test.ts` | ~10 | Cypher execution, violation collection, APOC cycles |
-| `llm-critic.test.ts` | ~15 | Context assembly, prompt construction, verdict parsing, VCR |
-
-### Scoring Engine (U6)
-```bash
-npx jest tests/unit/scoring-engine/ --no-coverage
-```
-| Suite | Tests | Key Assertions |
-|-------|-------|---------------|
-| `scoring-engine.test.ts` | ~20 | AVR, AHS, verdict, dual scoring, report formatting |
-
-### Pipeline (U7)
-```bash
-npx jest tests/unit/pipeline/ --no-coverage
-```
-| Suite | Tests | Key Assertions |
-|-------|-------|---------------|
-| `pipeline-executor.test.ts` | 8 | Sequential execution, fail-fast, shutdown, timings |
-| `parallel-command.test.ts` | 6 | Promise.all, error propagation, warning merge |
-| `commands.test.ts` | 9 | Extract/Parse/Compile context read/write, error mapping |
-| `pipeline-factory.test.ts` | 7 | Preset sequences, flag overrides, cleanup |
-
-### CLI (U7)
-```bash
-npx jest tests/unit/cli/ --no-coverage
-```
-| Suite | Tests | Key Assertions |
-|-------|-------|---------------|
-| `cli.test.ts` | 24 | Commander.js parsing, exit codes, output routing, cleanup |
-| `batch-runner.test.ts` | 19 | Project discovery, sequential execution, CSV/JSON output |
-
-## BDD Feature Files
+## 3. Gate L — lint ratchet
 
 ```bash
-npx jest tests/features/ --no-coverage
+npm run lint 2>&1 | tail -1      # errors <= L_BT = 497 (2 warnings)
+npx eslint --parser-options project:./tsconfig.scripts.json <new or edited scripts/** files>   # 0 errors (D-U5a-8)
 ```
 
-| Feature | Scenarios |
-|---------|-----------|
-| `apg-extraction.feature` | APG extraction from TypeScript projects |
-| `import-resolution.feature` | Barrel imports, path aliases |
-| `parse-coverage.feature` | Coverage percentage reporting |
-| `violation-taxonomy.feature` | Violation type classification |
+The 497 errors are a recorded residual (per-rule counts in `Docs/DiagnosticRuns /bt-audit-triage.md`); CI keeps the lint step under `continue-on-error` (D-U0-16).
 
-## Fix Failing Tests
+## 4. Reviewing and fixing failures
 
-1. Run the specific failing suite in verbose mode:
-   ```bash
-   npx jest tests/unit/<module>/<file>.test.ts --verbose --no-coverage
-   ```
-2. Check for environment issues (Neo4j not running, missing env vars)
-3. Check for module dependency issues (`npm ci` to reset)
-4. Review the test output for assertion mismatches
+1. Re-run the failing file alone: `npx jest <path> --verbose`.
+2. A failure in `tests/unit/scripts/u5b/guards.test.ts` means a forbidden path under `results/` or a live Gemini construction in a test; fix the change, not the guard.
+3. A failure that needs a design or requirement change outside ADR-015..018 is escalated, not patched (plan §4 stop rule).

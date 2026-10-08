@@ -270,6 +270,15 @@ describe('input rejection (BR-U5b-25)', () => {
     expect(await rejected(scoreDifferential({ rule: rule(), seeds: [seed(s01Seed(), await report([]), s)] }))).toContain('judge differs');
   });
 
+  it('a full-mode seeded report without the baseline selection is rejected (OI-U4-8, BR-U4-SEL-07)', async () => {
+    const s = await report([], { mode: 'full' });
+    const input = seed(s01Seed(), await report([], { mode: 'full' }), s);
+    const rows = (s as { neuralResults?: { selection: { source: string } }[] }).neuralResults ?? [];
+    expect(rows.length).toBeGreaterThan(0);
+    for (const nr of rows) nr.selection.source = 'own';
+    expect(await rejected(scoreDifferential({ rule: rule(), seeds: [input] }))).toContain('missing-baseline-selection');
+  });
+
   it('a report passed without its RunRecord is rejected', async () => {
     const detail = await rejected(scoreDifferential({ rule: rule(), seeds: [seed(s01Seed(), await report([]), await report([]), { seeded: null })] }));
     expect(detail).toContain('seeded report without its RunRecord');
