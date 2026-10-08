@@ -1003,3 +1003,12 @@ Plan checkboxes ticked. Auto-approved under standing approval; no blocking or ma
 **Context**: CONSTRUCTION — U5b Code Generation Part 2, Group 1 done; next Group 2 (Steps 3–5, G-CI).
 
 ---
+
+## v1.2 Evaluation-Readiness — U5b Group 2 (Steps 3–5): setup and shared libraries
+**Timestamp**: 2026-10-08T15:26:26Z
+**User Input**: None (standing approval of 2026-10-08T00:30:00Z; orchestrator started U5b Group 2)
+**Intent**: Add the U5b devDependencies and npm scripts, then the canonical JSON, report acceptance and statistics libraries with their tests, keeping every golden snapshot unchanged.
+**AI Response**: Group 2 complete on v1.2e-u5b-scoring-harness. Step 3 af39e24: vega ^6.4.0 and vega-lite ^6.5.0 devDependencies with the lock; npm ls canvas empty; npm audit 37 high before and after (no new advisory); u5b:* npm scripts; smoke test; tsconfig.scripts.json and jest config already cover U5b by glob (DV-U5b-6). Step 4 56ff406: scripts/lib/canonical-json.ts (BR-U5b-26), 8 tests. Step 5 654d498: scripts/lib/report-io.ts (RunRecord types, loadRun, acceptReport with the six BR-U5b-45 reason codes and the U4 actual-model rule), scripts/lib/stats.ts (seeded RNG, Wilson, Clopper–Pearson, cluster bootstrap, within-block permutation, Cohen κ, Gwet AC1, Fleiss κ, Holm, Cliff δ, BR-U5b-61 interval rule), static import whitelist test (BR-U5b-55; type-only src/shared/types imports allowed, DV-U5b-7); 37 tests. Gates at Step 5: T clean; U 2201 / 157 suites (2155 + 46 U5b); L 558 (= baseline), new U5b files 0; B 85, 0 TS2688; G 74 executed, 0 skipped, src and tests/golden diffs empty, snapshot hashes equal to U5B_SNAPSHOT_HASHES; P 0 at every commit. Gate G-CI: runs 37797471306 (Step 3) and 37800013681 (Step 5) green. Golden changes: none, no CHANGES.md line. Open: OI-U5b-P2-1 (CI lacks tsc -p tsconfig.scripts.json; .github outside the U5b allow-list), OI-U5b-P2-2 (vega ESM-only, Step 16 uses dynamic import).
+**Context**: CONSTRUCTION — U5b Code Generation Part 2, Group 2 done; next Group 3 (Steps 6–10, G-CI).
+
+---
