@@ -7,11 +7,13 @@ import type { ScoringError, ScoringInput } from './types.js';
 import { scoreDimensions } from './score-computer.js';
 import { determineVerdict } from './verdict.js';
 import { computeUniversalMetrics } from './universal-metrics.js';
+import { CYCLE_STRATEGY } from '../evaluation-engine/scc-cycles.js';
 
 /**
  * Scoring stage output (business-logic-model.md §6): per-dimension rows, dropped dimensions, the AHS
  * variants of the mode, the verdict from the mode's verdict source (BR-U3-36) and universal metrics.
- * Fails with `CONFIG_MISSING_FULL_MODE_WEIGHTS` or `SCORING_NO_EXECUTED_WEIGHT` (BR-U3-37).
+ * Fails with `CONFIG_MISSING_FULL_MODE_WEIGHTS` or `SCORING_NO_EXECUTED_WEIGHT` (BR-U3-37). The
+ * universal-metric warnings (`METRIC_001`, `METRIC_002`) travel as the result's warnings.
  */
 export async function computeScoredReport(input: ScoringInput): Promise<DomainResult<ScoredReport>> {
   const start = Date.now();
@@ -41,11 +43,10 @@ export async function computeScoredReport(input: ScoringInput): Promise<DomainRe
   }
   const verdict = determineVerdict(verdictAHS, input.verdictThresholds);
 
-  // Universal metrics
-  const metricsResult = await computeUniversalMetrics(input.graphRepository);
-  const universalMetrics = metricsResult.success
-    ? metricsResult.data
-    : { cyclicDependencyCount: 0, maxFanOut: 0, maxFanIn: 0, abstractionRatio: 0, averageInstability: 0, orphanFileCount: 0 };
+  // Universal metrics (BR-U3-40..42): a failed metric is null + METRIC_001, never a silent 0.
+  const metricsResult = await computeUniversalMetrics(input.graphRepository, CYCLE_STRATEGY, input.apg);
+  if (!metricsResult.success) return DomainResult.fail(metricsResult.errors, metricsResult.warnings);
+  const { metrics: universalMetrics, warnings: metricWarnings } = metricsResult.data;
 
   // Violations of executed functions only: a failed function contributes none (BR-U3-53), and a hybrid
   // symbolic half that found violations counts no neural result.
@@ -85,7 +86,7 @@ export async function computeScoredReport(input: ScoringInput): Promise<DomainRe
     evaluationMode: input.mode,
     durationMs: Date.now() - start,
     droppedDimensions,
-  });
+  }, metricWarnings);
 }
 
 /**

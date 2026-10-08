@@ -2,6 +2,12 @@ import type { EvaluationReport } from '../shared/types/evaluation.js';
 import type { FitnessFunction } from '../shared/types/spec.js';
 import { formatAllActionableViolations } from '../report/actionable-formatter.js';
 
+/** Printed form of a universal metric: `n/a` for `null` (BR-U3-43; JSON keeps `null`). */
+export function metricText(value: number | null, fractionDigits?: number): string {
+  if (value === null) return 'n/a';
+  return fractionDigits === undefined ? String(value) : value.toFixed(fractionDigits);
+}
+
 /**
  * Format report as JSON string.
  */
@@ -57,8 +63,8 @@ export function formatHuman(report: EvaluationReport): string {
   // Universal metrics
   const m = report.universalMetrics;
   lines.push('  Universal Metrics:');
-  lines.push(`    Cycles: ${m.cyclicDependencyCount} | Max fan-out: ${m.maxFanOut} | Max fan-in: ${m.maxFanIn}`);
-  lines.push(`    Abstraction ratio: ${m.abstractionRatio} | Avg instability: ${m.averageInstability} | Orphans: ${m.orphanFileCount}`);
+  lines.push(`    Cycles: ${metricText(m.cyclicDependencyCount)} | Max fan-out: ${metricText(m.maxFanOut)} | Max fan-in: ${metricText(m.maxFanIn)}`);
+  lines.push(`    Abstraction ratio: ${metricText(m.abstractionRatio)} | Avg instability: ${metricText(m.averageInstability)} | Orphans: ${metricText(m.orphanFileCount)}`);
   lines.push('');
   lines.push(`  Duration: ${report.durationMs}ms`);
 
@@ -87,12 +93,12 @@ export function formatCSV(report: EvaluationReport): string {
     getAVR('solid'),
     getAVR('convention'),
     getAVR('semantic'),
-    String(m.cyclicDependencyCount),
-    String(m.maxFanOut),
-    String(m.maxFanIn),
-    m.abstractionRatio === null ? '' : m.abstractionRatio.toFixed(3),
-    m.averageInstability === null ? '' : m.averageInstability.toFixed(3),
-    String(m.orphanFileCount),
+    metricText(m.cyclicDependencyCount),
+    metricText(m.maxFanOut),
+    metricText(m.maxFanIn),
+    metricText(m.abstractionRatio, 3),
+    metricText(m.averageInstability, 3),
+    metricText(m.orphanFileCount),
   ];
 
   return fields.join(',');

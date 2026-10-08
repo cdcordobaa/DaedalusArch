@@ -4,7 +4,10 @@ export {
 } from './score-computer.js';
 export type { DimensionTally, DimensionScoring, DimensionScoringInput, VerdictSource } from './score-computer.js';
 export { determineVerdict } from './verdict.js';
-export { computeUniversalMetrics } from './universal-metrics.js';
+export {
+  computeUniversalMetrics, UNIVERSAL_METRIC_QUERIES, NO_CLASSES_OR_INTERFACES, NO_FILE_TO_FILE_IMPORTS, APG_MISSING,
+} from './universal-metrics.js';
+export type { UniversalMetricsOutput, UniversalMetric } from './universal-metrics.js';
 export { formatJSON, formatHuman, formatActionableHuman, formatCSV, csvHeader } from './report-formatter.js';
 export type { ScoringInput, ScoringError, ScoringErrorCode } from './types.js';
 export { renormaliseWeights, dropReasonFor, ahsFromEffectiveWeights } from './renormaliser.js';

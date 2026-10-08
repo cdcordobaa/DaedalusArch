@@ -45,6 +45,8 @@ export class ScoreCommand implements PipelineCommand {
 
   async execute(context: FirewallContext): Promise<DomainResultType<void>> {
     const evaluationResults = context.getEvaluationResults();
+    // The APG feeds the SCC cycle path (BR-U3-45; read only when CYCLE_STRATEGY === 'scc').
+    const apg = context.snapshot().apgResult;
 
     const result = await computeScores({
       evaluationResults,
@@ -59,6 +61,7 @@ export class ScoreCommand implements PipelineCommand {
       fitnessFunctions: this.config.fitnessFunctions,
       compiled: context.getCompiledFunctions(),
       noJudgeUnits: noJudgeUnitIds(context.warnings),
+      ...(apg !== undefined && { apg }),
     });
 
     if (!result.success) {
