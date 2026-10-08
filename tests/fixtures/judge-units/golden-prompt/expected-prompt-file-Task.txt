@@ -1,0 +1,50 @@
+## Rule
+The unit's responsibilities match the role of its declared layer.
+
+## Rubric
+Pass: Every responsibility in the file belongs to the role and kind of its declared layer, and agrees with any ADR prose given.
+Fail: The file carries a responsibility that belongs to a different layer kind, for example persistence, transport or framework logic in a domain file, or business rules in an infrastructure or presentation file.
+Evidence required: Name the file and cite the function, method or statement that carries the misplaced responsibility, and the layer kind it belongs to.
+Out of scope: import direction and layer-dependency rules, which are checked symbolically.
+
+## Layer model
+- domain (kind: domain): src/domain/**
+- application (kind: application): src/application/**
+- infrastructure (kind: infrastructure): src/infrastructure/**
+
+## Unit
+Kind: file
+Id: src/domain/entities/Task.ts
+Layer: domain
+Unit files:
+- src/domain/entities/Task.ts
+
+## Source
+=====SOURCE-BEGIN src/domain/entities/Task.ts=====
+// Task — pure domain entity, zero violations
+export class Task {
+  constructor(
+    public readonly id: string,
+    public readonly title: string,
+    public readonly description: string,
+    public readonly completed: boolean,
+    public readonly categoryId: string,
+    public readonly createdAt: Date
+  ) {}
+
+  complete(): Task {
+    return new Task(this.id, this.title, this.description, true, this.categoryId, this.createdAt);
+  }
+
+  isValid(): boolean {
+    return this.title.length > 0 && this.categoryId.length > 0;
+  }
+}
+
+=====SOURCE-END=====
+
+## Graph excerpt
+{"edges":[{"from":"src/application/use-cases/CompleteTaskUseCase.ts","to":"src/domain/entities/Task.ts","type":"IMPORTS"},{"from":"src/application/use-cases/CreateTaskUseCase.ts","to":"src/domain/entities/Task.ts","type":"IMPORTS"},{"from":"src/application/use-cases/ICompleteTaskUseCase.ts","to":"src/domain/entities/Task.ts","type":"IMPORTS"},{"from":"src/application/use-cases/ICreateTaskUseCase.ts","to":"src/domain/entities/Task.ts","type":"IMPORTS"},{"from":"src/domain/repositories/ITaskRepository.ts","to":"src/domain/entities/Task.ts","type":"IMPORTS"},{"from":"src/infrastructure/repositories/InMemoryTaskRepository.ts","to":"src/domain/entities/Task.ts","type":"IMPORTS"}],"nodes":[{"kind":"Class","layer":"domain","name":"Task","path":"src/domain/entities/Task.ts"},{"kind":"File","layer":"application","path":"src/application/use-cases/CompleteTaskUseCase.ts"},{"kind":"File","layer":"application","path":"src/application/use-cases/CreateTaskUseCase.ts"},{"kind":"File","layer":"application","path":"src/application/use-cases/ICompleteTaskUseCase.ts"},{"kind":"File","layer":"application","path":"src/application/use-cases/ICreateTaskUseCase.ts"},{"kind":"File","layer":"domain","path":"src/domain/entities/Task.ts"},{"kind":"File","layer":"domain","path":"src/domain/repositories/ITaskRepository.ts"},{"kind":"File","layer":"infrastructure","path":"src/infrastructure/repositories/InMemoryTaskRepository.ts"}]}
+
+## Instructions
+Judge the unit against the rule and rubric. Return the JSON object the schema requires. Set pass to false if any file of the unit fails the rubric.

@@ -6,6 +6,7 @@ import { confidence as makeConfidence, functionId as makeFunctionId } from '../s
 import type { NeuronalEvalInput, CriticVerdict } from './types.js';
 import { DEFAULT_NEURONAL_OPTIONS } from './types.js';
 import { assembleContext, constructPrompt } from './context-assembler.js';
+import { EMPTY_EXCERPT } from './source-context.js';
 import { parseVerdict } from './verdict-parser.js';
 import { saveCassette, loadCassette } from './cassette-manager.js';
 
@@ -39,8 +40,16 @@ async function evaluateSingleFunction(
   input: NeuronalEvalInput,
   opts: Required<typeof DEFAULT_NEURONAL_OPTIONS> & NeuronalEvalInput,
 ): Promise<DomainResult<NeuronalFunctionResult>> {
-  // Assemble context (simplified — real impl would query Neo4j for subgraph)
-  const context = assembleContext(instruction, '// Source code placeholder — retrieved at runtime');
+  // Placeholder unit until U4 Step 21 wires the selector and the unit source (BR-U4-CTX-01)
+  const unitId = String(instruction.functionId);
+  const context = assembleContext(instruction, {
+    unit: { id: unitId, kind: instruction.judgeUnit, layer: 'unassigned', filePaths: [] },
+    context: {
+      unitId, source: '// Source code placeholder — retrieved at runtime', incoming: [], outgoing: [],
+      subgraphExcerpt: EMPTY_EXCERPT, truncated: false, filesOmitted: [], excerptTruncated: false,
+    },
+    evaluatorSpecLayers: [],
+  });
   const prompt = constructPrompt(context);
 
   const runs: NeuronalRun[] = [];

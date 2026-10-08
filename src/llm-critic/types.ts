@@ -3,6 +3,8 @@ import type { LLMProvider } from '../shared/interfaces/llm-provider.js';
 import type { GraphRepository } from '../shared/interfaces/graph-repository.js';
 import type { PipelineError } from '../shared/errors/domain-result.js';
 import type { VCRMode } from '../shared/types/llm-config.js';
+import type { JudgeUnitKind } from '../shared/types/enums.js';
+import { JUDGE_TOKEN_BUDGET } from './frozen.js';
 
 // C10 cassette mode re-exported (D-U0-3, U4-K2): the C7-only bypass member is gone; default 'record' (BR-U4-CAS-05)
 export type { VCRMode };
@@ -48,27 +50,33 @@ export interface CassetteEntry {
   readonly timestamp: string;
 }
 
+// Context packet of one unit (U4 DE §3.3; BR-U4-CTX-06): the frozen prompt template's inputs.
 export interface ContextPacket {
   readonly rule: string;
   readonly rubric: { readonly pass: string; readonly fail: string; readonly evidenceRequired: string };
-  readonly codeSnippet: string;
-  readonly apgSubgraph?: string;
+  readonly layerModel: string;            // from the evaluation spec only (BR-U4-CTX-07)
+  readonly unitId: string;
+  readonly unitKind: JudgeUnitKind;
+  readonly unitLayer: string;
+  readonly unitFiles: readonly string[];
+  readonly source: string;                // fenced file blocks (BR-U4-CTX-05)
+  readonly signatures?: string;           // module units
+  readonly incoming: readonly string[];   // module units
+  readonly outgoing: readonly string[];   // module units
+  readonly apgSubgraph: string;           // canonical JSON excerpt, '{"edges":[],"nodes":[]}' when empty
   readonly adrProse?: string;
 }
 
+// Token budgets (U4 DE §3.4, BR-U4-CTX-03); 1 token = CHARS_PER_TOKEN characters.
 export interface TokenBudget {
-  readonly ruleRubric: number;
-  readonly codeSnippet: number;
-  readonly apgSubgraph: number;
-  readonly adrProse: number;
+  readonly ruleRubric: number;   // 300 (frozen rubric text must fit)
+  readonly codeSnippet: number;  // file/class units: 8000
+  readonly moduleSource: number; // module units: 24000
+  readonly apgSubgraph: number;  // 1000
+  readonly adrProse: number;     // 1000
 }
 
-export const DEFAULT_TOKEN_BUDGET: TokenBudget = {
-  ruleRubric: 300,
-  codeSnippet: 2000,
-  apgSubgraph: 500,
-  adrProse: 500,
-};
+export const DEFAULT_TOKEN_BUDGET: TokenBudget = JUDGE_TOKEN_BUDGET;
 
 export type CriticErrorCode =
   | 'LLM_CALL_FAILED'

@@ -34,34 +34,44 @@ const makeInstruction = (id: string, name: string): NeuronalInstruction => ({
   judgeUnit: 'file',
 });
 
+// The CTX-06 template is covered in source-context.test.ts; these keep the C7 entry points honest.
+const unitInput = (source: string) => ({
+  unit: { id: 'src/a.ts', kind: 'file' as const, layer: 'domain', filePaths: ['src/a.ts'] },
+  context: {
+    unitId: 'src/a.ts', source, incoming: [], outgoing: [], subgraphExcerpt: '{"edges":[],"nodes":[]}',
+    truncated: false, filesOmitted: [], excerptTruncated: false,
+  },
+  evaluatorSpecLayers: [],
+});
+
 describe('context-assembler', () => {
   it('assembles context with all fields', () => {
     const inst = makeInstruction('FF-N01', 'srp-test');
-    const ctx = assembleContext(inst, 'const x = 1;', '{"nodes":[]}', 'ADR: use DDD');
+    const ctx = assembleContext(inst, unitInput('const x = 1;'), 'ADR: use DDD');
     expect(ctx.rule).toContain('one responsibility');
-    expect(ctx.codeSnippet).toBe('const x = 1;');
-    expect(ctx.apgSubgraph).toBe('{"nodes":[]}');
+    expect(ctx.source).toBe('const x = 1;');
+    expect(ctx.apgSubgraph).toBe('{"edges":[],"nodes":[]}');
     expect(ctx.adrProse).toBe('ADR: use DDD');
   });
 
-  it('truncates code to token budget', () => {
+  it('truncates ADR prose to its token budget', () => {
     const inst = makeInstruction('FF-N01', 'srp-test');
-    const longCode = 'x'.repeat(20000); // way over 2000 tokens * 4 chars
-    const ctx = assembleContext(inst, longCode);
-    expect(ctx.codeSnippet.length).toBeLessThan(longCode.length);
-    expect(ctx.codeSnippet).toContain('[truncated]');
+    const longAdr = 'x'.repeat(20000); // over the 1000-token ADR budget
+    const ctx = assembleContext(inst, unitInput('class Foo {}'), longAdr);
+    expect((ctx.adrProse ?? '').length).toBeLessThan(longAdr.length);
+    expect(ctx.adrProse).toContain('[truncated]');
   });
 });
 
 describe('constructPrompt', () => {
   it('produces prompt with rule, rubric, code, instructions', () => {
     const inst = makeInstruction('FF-N01', 'test');
-    const ctx = assembleContext(inst, 'class Foo {}');
+    const ctx = assembleContext(inst, unitInput('class Foo {}'));
     const prompt = constructPrompt(ctx);
-    expect(prompt).toContain('architectural reviewer');
+    expect(prompt).toContain('## Rule');
     expect(prompt).toContain('one responsibility');
     expect(prompt).toContain('class Foo {}');
-    expect(prompt).toContain('Return ONLY the JSON');
+    expect(prompt).toContain('Return the JSON object the schema requires');
   });
 });
 

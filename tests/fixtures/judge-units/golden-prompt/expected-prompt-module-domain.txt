@@ -1,0 +1,145 @@
+## Rule
+The module's files form one coherent unit with a consistent abstraction and boundary.
+
+## Rubric
+Pass: The files serve one cohesive concern, use the module's abstractions consistently, and keep each rule or invariant in one place.
+Fail: The files split into unrelated concerns, duplicate a rule or invariant that should live in one place, or bypass the module's own abstractions.
+Evidence required: Name each file involved and cite the declarations that show the split, the duplication or the bypass.
+Out of scope: import direction and layer-dependency rules, which are checked symbolically.
+
+## Layer model
+- domain (kind: domain): src/domain/**
+- application (kind: application): src/application/**
+- infrastructure (kind: infrastructure): src/infrastructure/**
+
+## Unit
+Kind: module
+Id: src/domain
+Layer: domain
+Unit files:
+- src/domain/entities/Category.ts
+- src/domain/entities/Task.ts
+- src/domain/repositories/ICategoryRepository.ts
+- src/domain/repositories/ITaskRepository.ts
+
+## Source
+=====SOURCE-BEGIN src/domain/entities/Category.ts=====
+export class Category {
+  constructor(
+    public readonly id: string,
+    public readonly name: string,
+    public readonly color: string
+  ) {}
+
+  isValid(): boolean {
+    return this.name.length > 0;
+  }
+}
+
+=====SOURCE-END=====
+
+=====SOURCE-BEGIN src/domain/entities/Task.ts=====
+// Task — pure domain entity, zero violations
+export class Task {
+  constructor(
+    public readonly id: string,
+    public readonly title: string,
+    public readonly description: string,
+    public readonly completed: boolean,
+    public readonly categoryId: string,
+    public readonly createdAt: Date
+  ) {}
+
+  complete(): Task {
+    return new Task(this.id, this.title, this.description, true, this.categoryId, this.createdAt);
+  }
+
+  isValid(): boolean {
+    return this.title.length > 0 && this.categoryId.length > 0;
+  }
+}
+
+=====SOURCE-END=====
+
+=====SOURCE-BEGIN src/domain/repositories/ICategoryRepository.ts=====
+import { Category } from '../entities/Category';
+
+export interface ICategoryRepository {
+  findById(id: string): Promise<Category | null>;
+  findAll(): Promise<Category[]>;
+  save(category: Category): Promise<Category>;
+  delete(id: string): Promise<void>;
+}
+
+=====SOURCE-END=====
+
+=====SOURCE-BEGIN src/domain/repositories/ITaskRepository.ts=====
+import { Task } from '../entities/Task';
+
+export interface ITaskRepository {
+  findById(id: string): Promise<Task | null>;
+  findAll(): Promise<Task[]>;
+  findByCategory(categoryId: string): Promise<Task[]>;
+  save(task: Task): Promise<Task>;
+  delete(id: string): Promise<void>;
+}
+
+=====SOURCE-END=====
+
+## Exported signatures
+// src/domain/entities/Category.ts
+export class Category {
+  constructor(
+    public readonly id: string,
+    public readonly name: string,
+    public readonly color: string
+  );
+  isValid(): boolean;
+}
+
+// src/domain/entities/Task.ts
+export class Task {
+  constructor(
+    public readonly id: string,
+    public readonly title: string,
+    public readonly description: string,
+    public readonly completed: boolean,
+    public readonly categoryId: string,
+    public readonly createdAt: Date
+  );
+  complete(): Task;
+  isValid(): boolean;
+}
+
+// src/domain/repositories/ICategoryRepository.ts
+export interface ICategoryRepository {
+  findById(id: string): Promise<Category | null>;
+  findAll(): Promise<Category[]>;
+  save(category: Category): Promise<Category>;
+  delete(id: string): Promise<void>;
+}
+
+// src/domain/repositories/ITaskRepository.ts
+export interface ITaskRepository {
+  findById(id: string): Promise<Task | null>;
+  findAll(): Promise<Task[]>;
+  findByCategory(categoryId: string): Promise<Task[]>;
+  save(task: Task): Promise<Task>;
+  delete(id: string): Promise<void>;
+}
+
+## Incoming
+- src/application/use-cases/CompleteTaskUseCase.ts
+- src/application/use-cases/CreateTaskUseCase.ts
+- src/application/use-cases/ICompleteTaskUseCase.ts
+- src/application/use-cases/ICreateTaskUseCase.ts
+- src/infrastructure/repositories/InMemoryTaskRepository.ts
+
+## Outgoing
+(none)
+
+## Graph excerpt
+{"edges":[{"from":"InMemoryTaskRepository@src/infrastructure/repositories/InMemoryTaskRepository.ts","to":"ITaskRepository@src/domain/repositories/ITaskRepository.ts","type":"IMPLEMENTS"},{"from":"src/application/use-cases/CompleteTaskUseCase.ts","to":"src/domain/entities/Task.ts","type":"IMPORTS"},{"from":"src/application/use-cases/CompleteTaskUseCase.ts","to":"src/domain/repositories/ITaskRepository.ts","type":"IMPORTS"},{"from":"src/application/use-cases/CreateTaskUseCase.ts","to":"src/domain/entities/Task.ts","type":"IMPORTS"},{"from":"src/application/use-cases/CreateTaskUseCase.ts","to":"src/domain/repositories/ITaskRepository.ts","type":"IMPORTS"},{"from":"src/application/use-cases/ICompleteTaskUseCase.ts","to":"src/domain/entities/Task.ts","type":"IMPORTS"},{"from":"src/application/use-cases/ICreateTaskUseCase.ts","to":"src/domain/entities/Task.ts","type":"IMPORTS"},{"from":"src/domain/repositories/ICategoryRepository.ts","to":"src/domain/entities/Category.ts","type":"IMPORTS"},{"from":"src/domain/repositories/ITaskRepository.ts","to":"src/domain/entities/Task.ts","type":"IMPORTS"},{"from":"src/infrastructure/repositories/InMemoryTaskRepository.ts","to":"src/domain/entities/Task.ts","type":"IMPORTS"},{"from":"src/infrastructure/repositories/InMemoryTaskRepository.ts","to":"src/domain/repositories/ITaskRepository.ts","type":"IMPORTS"}],"nodes":[{"kind":"Class","layer":"domain","name":"Category","path":"src/domain/entities/Category.ts"},{"kind":"Class","layer":"domain","name":"Task","path":"src/domain/entities/Task.ts"},{"kind":"Class","layer":"infrastructure","name":"InMemoryTaskRepository","path":"src/infrastructure/repositories/InMemoryTaskRepository.ts"},{"kind":"File","layer":"application","path":"src/application/use-cases/CompleteTaskUseCase.ts"},{"kind":"File","layer":"application","path":"src/application/use-cases/CreateTaskUseCase.ts"},{"kind":"File","layer":"application","path":"src/application/use-cases/ICompleteTaskUseCase.ts"},{"kind":"File","layer":"application","path":"src/application/use-cases/ICreateTaskUseCase.ts"},{"kind":"File","layer":"domain","path":"src/domain/entities/Category.ts"},{"kind":"File","layer":"domain","path":"src/domain/entities/Task.ts"},{"kind":"File","layer":"domain","path":"src/domain/repositories/ICategoryRepository.ts"},{"kind":"File","layer":"domain","path":"src/domain/repositories/ITaskRepository.ts"},{"kind":"File","layer":"infrastructure","path":"src/infrastructure/repositories/InMemoryTaskRepository.ts"},{"kind":"Interface","layer":"domain","name":"ICategoryRepository","path":"src/domain/repositories/ICategoryRepository.ts"},{"kind":"Interface","layer":"domain","name":"ITaskRepository","path":"src/domain/repositories/ITaskRepository.ts"}]}
+
+## Instructions
+Judge the unit against the rule and rubric. Return the JSON object the schema requires. Set pass to false if any file of the unit fails the rubric.
