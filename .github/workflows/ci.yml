@@ -44,9 +44,14 @@ jobs:
         run: npm ci
 
       - name: Dependency audit
-        # NFR-06: report-only until the baseline is triaged
+        # NFR-06: full report; stays report-only because accepted residuals still count as high here
         run: npm audit --audit-level=high
         continue-on-error: true
+
+      - name: Dependency audit gate (triaged)
+        # NFR-06 promoted to blocking after the Build and Test Step 6 triage (Docs/DiagnosticRuns/bt-audit-triage.md):
+        # fails on any high/critical advisory missing from scripts/lib/audit-allowlist.json
+        run: npx tsx scripts/audit-gate-cli.ts
 
       - name: Type check
         run: npm run typecheck

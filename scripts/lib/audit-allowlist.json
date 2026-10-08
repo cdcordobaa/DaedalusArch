@@ -1,0 +1,12 @@
+{
+  "$comment": "Triaged high/critical npm advisories (NFR-06, SECURITY-10). Reasoning: Docs/DiagnosticRuns/bt-audit-triage.md. Checked by scripts/audit-gate-cli.ts in CI; a new high advisory fails until it is added here with a decision.",
+  "triagedAt": "2026-10-08",
+  "advisories": [
+    {
+      "id": "GHSA-vfj7-8cjw-p6xm",
+      "package": "braces",
+      "decision": "accepted-residual",
+      "reason": "No fixed braces release exists (<=3.0.3 affected, 3.0.3 is the latest). Runtime path ts-morph -> @ts-morph/common -> fast-glob -> micromatch -> braces expands glob patterns from the evaluated project's tsconfig include/exclude and the local CLI; worst case a crafted pattern crashes the local evaluation (stack exhaustion, DoS), no data exposure. The dev path (jest -> micromatch) runs only on this repository's own config. Removal needs ts-morph 28 and jest 30 (semver-major), outside Build and Test."
+    }
+  ]
+}
