@@ -7,7 +7,7 @@ import { mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'nod
 import { tmpdir } from 'node:os';
 import { dirname, join } from 'node:path';
 import {
-  buildPreRegistration, checkPreRegistration, isRegisteredPath, loadPreRegistration, PREREG_FILE, PREREG_REFUSED,
+  buildPreRegistration, checkPreRegistration, FIXTURE_SPECS, isRegisteredPath, loadPreRegistration, PREREG_FILE, PREREG_REFUSED,
   REGISTERED_ARTEFACTS, registeredArtefactPaths, validatePreRegistration,
 } from '../../../../scripts/lib/prereg.js';
 import type { PreRegistration } from '../../../../scripts/lib/prereg.js';
@@ -141,6 +141,13 @@ describe('gate (BR-U5b-50)', () => {
     expect(check({ specPaths: ['corpus/specs/realworld-test.yaml'] }).ok).toBe(true);
     expect(check({ specPaths: ['specs/daedalus-arch.yaml'] })).toMatchObject({ ok: false, refusal: 'spec-outside-corpus' });
     expect(check({ specPaths: [join(repo, '../elsewhere.yaml')] })).toMatchObject({ ok: false, refusal: 'spec-outside-corpus' });
+  });
+
+  it('the layered fixture spec of SP-FF-S03 is admitted (OI-U5b-P2-4; BR-U5b-51)', () => {
+    expect(FIXTURE_SPECS).toEqual(['specs/clean-arch.yaml', 'tests/fixtures/u5a/layered/firewall.spec.yaml']);
+    register(1, T0);
+    expect(check({ specPaths: ['tests/fixtures/u5a/layered/firewall.spec.yaml'] }).ok).toBe(true);
+    expect(check({ specPaths: ['tests/fixtures/u5a/no-domain/firewall.spec.yaml'] })).toMatchObject({ ok: false, refusal: 'spec-outside-corpus' });
   });
 
   it('a plan file that is not registered → refused', () => {
