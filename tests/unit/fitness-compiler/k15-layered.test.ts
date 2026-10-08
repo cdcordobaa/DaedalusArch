@@ -84,6 +84,7 @@ describe('BR-U1-17 layered library', () => {
     const { spec } = await parsed(LAYERED);
     expect(bindLayerParams(spec.layerModel.layers)).toEqual({
       domainLayer: 'business', applicationLayers: [], infraLayer: 'persistence', presentationLayer: 'presentation',
+      controllerLayer: 'presentation', // K16 (ADR-016 a, BR-U1-46)
     });
     const c = compiled(spec);
     expect(c.symbolicQueries.map((q) => q.name).sort()).toEqual([...LAYERED_APPLICABLE].sort());

@@ -11,7 +11,7 @@ describe('bindLayerParams (FR-19, BR-U1-14)', () => {
   it('specs/clean-arch.yaml and presets/clean-architecture.yaml', () => {
     expect(bindLayerParams([
       layer('domain', 'domain'), layer('application', 'application'), layer('infrastructure', 'infrastructure'),
-    ])).toEqual({ domainLayer: 'domain', applicationLayers: ['application'], infraLayer: 'infrastructure' });
+    ])).toEqual({ domainLayer: 'domain', applicationLayers: ['application'], infraLayer: 'infrastructure', controllerLayer: 'infrastructure' });
   });
 
   it('presets/nestjs.yaml', () => {
@@ -20,14 +20,14 @@ describe('bindLayerParams (FR-19, BR-U1-14)', () => {
       layer('application', 'application'), layer('presentation', 'presentation'),
     ])).toEqual({
       domainLayer: 'domain', applicationLayers: ['application'],
-      infraLayer: 'infrastructure', presentationLayer: 'presentation',
+      infraLayer: 'infrastructure', presentationLayer: 'presentation', controllerLayer: 'presentation',
     });
   });
 
   it('specs/daedalus-arch.yaml (core-modules kind: infrastructure)', () => {
     expect(bindLayerParams([
       layer('domain', 'domain'), layer('core-modules', 'infrastructure'), layer('application', 'application'),
-    ])).toEqual({ domainLayer: 'domain', applicationLayers: ['application'], infraLayer: 'core-modules' });
+    ])).toEqual({ domainLayer: 'domain', applicationLayers: ['application'], infraLayer: 'core-modules', controllerLayer: 'core-modules' });
   });
 
   it('presets/layered.yaml layers (inline)', () => {
@@ -35,18 +35,19 @@ describe('bindLayerParams (FR-19, BR-U1-14)', () => {
       layer('persistence', 'infrastructure'), layer('business', 'domain'), layer('presentation', 'presentation'),
     ])).toEqual({
       domainLayer: 'business', applicationLayers: [], infraLayer: 'persistence', presentationLayer: 'presentation',
+      controllerLayer: 'presentation',
     });
   });
 
   it('position-inferred core, services, adapters', () => {
     expect(bindLayerParams([
       layer('core', 'domain'), layer('services', 'application'), layer('adapters', 'infrastructure'),
-    ])).toEqual({ domainLayer: 'core', applicationLayers: ['services'], infraLayer: 'adapters' });
+    ])).toEqual({ domainLayer: 'core', applicationLayers: ['services'], infraLayer: 'adapters', controllerLayer: 'adapters' });
   });
 
   it('2 layers: no application layer', () => {
     const b = bindLayerParams([layer('inner', 'domain'), layer('outer', 'infrastructure')]);
-    expect(b).toEqual({ domainLayer: 'inner', applicationLayers: [], infraLayer: 'outer' });
+    expect(b).toEqual({ domainLayer: 'inner', applicationLayers: [], infraLayer: 'outer', controllerLayer: 'outer' });
     expect('presentationLayer' in b).toBe(false);
   });
 
@@ -62,8 +63,9 @@ describe('bindLayerParams (FR-19, BR-U1-14)', () => {
     ]).domainLayer).toBe('core');
   });
 
-  it('has no controllerLayer before K16', () => {
+  it('controllerLayer (K16) is the last key and prefers presentation over infrastructure (ADR-016 a, BR-U1-46)', () => {
     const b = bindLayerParams([layer('d', 'domain'), layer('p', 'presentation'), layer('i', 'infrastructure')]);
-    expect(Object.keys(b)).toEqual(['domainLayer', 'applicationLayers', 'infraLayer', 'presentationLayer']);
+    expect(Object.keys(b)).toEqual(['domainLayer', 'applicationLayers', 'infraLayer', 'presentationLayer', 'controllerLayer']);
+    expect(b.controllerLayer).toBe('p');
   });
 });

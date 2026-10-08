@@ -205,11 +205,11 @@ ORDER BY filePath, useCase`,
   ['controller-no-entity', tmpl(
     'controller-no-entity',
     `MATCH (ctrl:Class)-[:IMPORTS|CONSTRUCTOR_INJECTS*1..2]->(entity:Class)
-WHERE ctrl.layer = $infraLayer AND entity.layer = $domainLayer
+WHERE ctrl.layer = $controllerLayer AND entity.layer = $domainLayer
   AND ANY(role IN $entityRoles WHERE entity.name CONTAINS role) /*EXCLUDE:ctrl*/
 RETURN ctrl.name AS controller, entity.name AS entity, ctrl.filePath AS filePath
 ORDER BY filePath, controller, entity`,
-    ['infraLayer', 'domainLayer', 'entityRoles'],
+    ['controllerLayer', 'domainLayer', 'entityRoles'], // controllerLayer replaces infraLayer (ADR-016 a, BR-U1-46)
     ['infrastructure', 'domain'],
     'pattern-proxy',
     'Detects controllers directly referencing domain entities',
@@ -412,12 +412,12 @@ ORDER BY filePath, class`,
   ['naming-controllers', tmpl(
     'naming-controllers',
     `MATCH (c:Class)
-WHERE c.layer = $infraLayer
+WHERE c.layer = $controllerLayer
   AND ANY(dec IN c.decorators WHERE dec CONTAINS 'Controller')
   AND NOT c.name =~ $pattern /*EXCLUDE:c*/
 RETURN c.name AS class, c.filePath AS filePath
 ORDER BY filePath, class`,
-    ['infraLayer', 'pattern'],
+    ['controllerLayer', 'pattern'], // controllerLayer replaces infraLayer (ADR-016 a, BR-U1-46)
     ['infrastructure'],
     'pattern-proxy',
     'Verifies controller classes follow naming pattern',

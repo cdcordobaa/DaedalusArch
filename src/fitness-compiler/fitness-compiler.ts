@@ -309,6 +309,8 @@ export function buildParams(
   if (binding.domainLayer != null) candidates.domainLayer = binding.domainLayer;
   candidates.applicationLayers = [...binding.applicationLayers];
   if (binding.infraLayer != null) candidates.infraLayer = binding.infraLayer;
+  // Controllers live in the presentation layer when one is bound, else in infrastructure (ADR-016 a, BR-U1-46).
+  if (binding.controllerLayer != null) candidates.controllerLayer = binding.controllerLayer;
 
   // Layer ordering for dependency-direction
   // Layers are listed bottom-up in the spec: domain (0), ..., application (N-1)

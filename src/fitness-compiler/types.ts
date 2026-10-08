@@ -19,6 +19,7 @@ export interface LayerKindBinding {
   readonly applicationLayers: readonly string[]; // bound as $applicationLayers; [] = no application layer
   readonly infraLayer?: string;
   readonly presentationLayer?: string;
+  readonly controllerLayer?: string; // presentationLayer ?? infraLayer; bound as $controllerLayer (ADR-016 a, BR-U1-46)
 }
 
 export type CompilerErrorCode =

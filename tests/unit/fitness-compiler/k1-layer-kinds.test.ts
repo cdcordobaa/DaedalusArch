@@ -143,12 +143,13 @@ describe('K1 parser: layer kind (schema, parseLayerA)', () => {
 
 describe('BR-U1-14 binding of the four shipped specs (parseSpec + bindLayerParams)', () => {
   it.each([
-    ['presets/clean-architecture.yaml', { domainLayer: 'domain', applicationLayers: ['application'], infraLayer: 'infrastructure' }],
+    ['presets/clean-architecture.yaml', { domainLayer: 'domain', applicationLayers: ['application'], infraLayer: 'infrastructure', controllerLayer: 'infrastructure' }],
     ['presets/nestjs.yaml', {
       domainLayer: 'domain', applicationLayers: ['application'], infraLayer: 'infrastructure', presentationLayer: 'presentation',
+      controllerLayer: 'presentation', // K16 (ADR-016 a, BR-U1-46)
     }],
-    ['specs/daedalus-arch.yaml', { domainLayer: 'domain', applicationLayers: ['application'], infraLayer: 'core-modules' }],
-    ['specs/clean-arch.yaml', { domainLayer: 'domain', applicationLayers: ['application'], infraLayer: 'infrastructure' }],
+    ['specs/daedalus-arch.yaml', { domainLayer: 'domain', applicationLayers: ['application'], infraLayer: 'core-modules', controllerLayer: 'core-modules' }],
+    ['specs/clean-arch.yaml', { domainLayer: 'domain', applicationLayers: ['application'], infraLayer: 'infrastructure', controllerLayer: 'infrastructure' }],
   ])('%s', async (rel, expected) => {
     const spec = await parseShipped(rel);
     expect(bindLayerParams(spec.layerModel.layers)).toEqual(expected);
@@ -162,9 +163,10 @@ describe('BR-U1-14 binding of the four shipped specs (parseSpec + bindLayerParam
 
   it('self-spec: FF-P03, FF-P05, FF-CV01, FF-CV04 compile with infraLayer = core-modules (BR-U1-16 a)', async () => {
     const c = compile(await parseShipped('specs/daedalus-arch.yaml'));
-    for (const id of ['FF-P03', 'FF-P05', 'FF-CV01', 'FF-CV04']) {
+    // FF-P05 and FF-CV04 bind core-modules through $controllerLayer from K16 (no presentation layer; BR-U1-46).
+    for (const [id, param] of [['FF-P03', 'infraLayer'], ['FF-P05', 'controllerLayer'], ['FF-CV01', 'infraLayer'], ['FF-CV04', 'controllerLayer']] as const) {
       const q = c.symbolicQueries.find((x) => String(x.functionId) === id);
-      expect(q).toMatchObject({ params: { infraLayer: 'core-modules' } });
+      expect(q?.params[param]).toBe('core-modules');
     }
     expect(c.disabledFunctions).toEqual([]);
   });

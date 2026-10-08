@@ -65,8 +65,9 @@ describe.each(SHIPPED)('probe %s', (rel) => {
 describe('self-spec (BR-U1-16 a)', () => {
   it('infraLayer = core-modules; FF-P03, FF-P05, FF-CV01, FF-CV04 compile; FF-C03 threshold 0.8', async () => {
     const c = compile(await load('specs/daedalus-arch.yaml'));
-    for (const id of ['FF-P03', 'FF-P05', 'FF-CV01', 'FF-CV04']) {
-      expect(c.symbolicQueries.find((q) => String(q.functionId) === id)).toMatchObject({ params: { infraLayer: 'core-modules' } });
+    // FF-P05 and FF-CV04 bind core-modules through $controllerLayer from K16 (no presentation layer; BR-U1-46).
+    for (const [id, param] of [['FF-P03', 'infraLayer'], ['FF-P05', 'controllerLayer'], ['FF-CV01', 'infraLayer'], ['FF-CV04', 'controllerLayer']] as const) {
+      expect(c.symbolicQueries.find((q) => String(q.functionId) === id)?.params[param]).toBe('core-modules');
     }
     expect(c.symbolicQueries.find((q) => String(q.functionId) === 'FF-C03')).toMatchObject({ params: { threshold: 0.8 } });
   });

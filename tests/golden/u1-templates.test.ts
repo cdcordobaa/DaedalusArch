@@ -572,3 +572,47 @@ describeU1('U1 layered strict adjacency on Neo4j (K15; business-rules.md §6)', 
     expect((await edges('no-layer-skip')).sort()).toEqual(['persistence>business', 'presentation>persistence']);
   });
 });
+
+describeU1('U1 controllerLayer on Neo4j (K16; BR-U1-46 d)', () => {
+  let repo: Neo4jRepository | undefined;
+
+  beforeAll(() => {
+    const neo4j = neo4jConfig();
+    repo = new Neo4jRepository({ neo4jUri: neo4j.uri, neo4jUser: neo4j.user, neo4jPassword: neo4j.password });
+  });
+
+  beforeEach(async () => {
+    await run(
+      "CREATE (c:Class {name: 'TaskController', filePath: 'src/presentation/TaskController.ts', layer: 'presentation'}) " +
+      "CREATE (e:Class {name: 'TaskEntity', filePath: 'src/domain/TaskEntity.ts', layer: 'domain'}) " +
+      'CREATE (c)-[:IMPORTS {line: 1}]->(e)',
+    );
+  });
+
+  afterEach(async () => {
+    await run('MATCH (n) DETACH DELETE n');
+  });
+
+  afterAll(async () => {
+    if (repo) await repo.close();
+  });
+
+  async function run(cypher: string, params?: Record<string, unknown>): Promise<readonly Record<string, unknown>[]> {
+    if (!repo) throw new Error('repository not initialised');
+    const result = await repo.executeQuery(cypher, params);
+    if (!result.success) {
+      throw new Error(`Query failed against ${redactUri(neo4jConfig().uri)}: ${result.errors.map((e) => `${e.code} ${e.message}`).join('; ')}`);
+    }
+    return result.data.records;
+  }
+
+  it('a presentation TaskController importing a domain TaskEntity yields one FF-P05 row under the nestjs binding', async () => {
+    const q = (await compiledQueries('presets/nestjs.yaml')).find((c) => c.name === 'controller-no-entity');
+    if (!q) throw new Error('controller-no-entity not compiled from presets/nestjs.yaml');
+    expect(q.params.controllerLayer).toBe('presentation');
+    const rows = await run(q.cypher, q.params);
+    expect(rows.map((r) => [r.controller, r.entity, r.filePath])).toEqual([
+      ['TaskController', 'TaskEntity', 'src/presentation/TaskController.ts'],
+    ]);
+  });
+});
