@@ -36,6 +36,7 @@ describe('Claude CLI probe fixtures', () => {
       'init-tools-off.json',
       'init-tools-on.json',
       'probe-values.json',
+      'rate-limit-event.json',
       'timing.json',
       'init-extra-tool.json',
       'init-mcp.json',

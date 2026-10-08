@@ -9,7 +9,7 @@ import {
   SOURCE_DELIMITER_PREFIX, SOURCE_END, TRUNCATION_MARKER,
 } from './frozen.js';
 import type { JudgeGraphView } from './judge-graph.js';
-import { typeKey } from './judge-graph.js';
+import { loadJudgeGraphView, typeKey } from './judge-graph.js';
 import type { JudgeUnit } from './judge-unit-selector.js';
 import type { TokenBudget } from './types.js';
 
@@ -296,19 +296,17 @@ export function assembleUnitSourceFromView(
 }
 
 /**
- * DE §3.1 export (U5b BR-U5b-35/55): reads the graph view, then runs the pure core. The
- * Cypher reader `loadJudgeGraphView` arrives at U4 plan Step 21; until then this entry
- * fails closed with `CRITIC_001` and only the pure core is used.
+ * DE §3.1 export (U5b BR-U5b-35/55): reads the graph view with `loadJudgeGraphView`, then runs
+ * the pure core. A graph read failure is `CRITIC_001`, as is a unit file outside the root.
  */
 export async function assembleUnitSource(
   unit: JudgeUnit,
   projectRoot: string,
-  _graph: GraphRepository,
-  _budget: TokenBudget,
-  _maxNodes: number = EXCERPT_MAX_NODES,
+  graph: GraphRepository,
+  budget: TokenBudget,
+  maxNodes: number = EXCERPT_MAX_NODES,
 ): Promise<DomainResult<UnitSourceContext>> {
-  return Promise.resolve(DomainResult.fail([{
-    code: 'CRITIC_001',
-    message: `Graph view reader not wired before U4 Step 21 (unit ${unit.id}, root ${path.basename(projectRoot)})`,
-  }]));
+  const view = await loadJudgeGraphView(graph);
+  if (!view.success) return DomainResult.fail(view.errors);
+  return assembleUnitSourceFromView(unit, projectRoot, view.data, budget, maxNodes);
 }

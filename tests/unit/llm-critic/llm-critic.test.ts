@@ -10,6 +10,7 @@ import * as fs from 'node:fs';
 import * as path from 'node:path';
 import * as os from 'node:os';
 import { DEFAULT_NEURONAL_OPTIONS } from '../../../src/llm-critic/types.js';
+import type { JudgeGraphView } from '../../../src/llm-critic/judge-graph.js';
 
 // U4-K2 (D-U0-3): the default cassette mode is 'record', so every evaluateNeuronal call below
 // writes its cassettes to a temp dir instead of the repository-relative default path. Each call
@@ -171,19 +172,29 @@ describe('MockLLMProvider', () => {
   });
 });
 
+// Step 21 (U4-K4): the critic judges real units. These tests use a one-file project (`src/a.ts`,
+// layer domain) given as a graph view; the wiring itself is covered by critic-wiring.test.ts.
+const ONE_FILE_ROOT = fs.mkdtempSync(path.join(os.tmpdir(), 'u4-k4-one-file-'));
+fs.mkdirSync(path.join(ONE_FILE_ROOT, 'src'));
+fs.writeFileSync(path.join(ONE_FILE_ROOT, 'src/a.ts'), 'export class A {\n  run(): number { return 1; }\n}\n');
+afterAll(() => { fs.rmSync(ONE_FILE_ROOT, { recursive: true, force: true }); });
+const ONE_FILE_VIEW: JudgeGraphView = {
+  files: [{ path: 'src/a.ts', layer: 'domain', isBarrel: false }], classes: [{ name: 'A', file: 'src/a.ts' }], interfaces: [], edges: [],
+};
+const graphRepo = {
+  executeQuery: () => Promise.resolve(DomainResult.ok({ records: [], summary: { counters: {} } })),
+  clearGraph: () => Promise.resolve(DomainResult.ok(undefined)),
+  healthCheck: () => Promise.resolve(true),
+  close: () => Promise.resolve(),
+};
+const oneFile = { graphRepository: graphRepo, projectRoot: ONE_FILE_ROOT, graphView: ONE_FILE_VIEW, knownSecrets: [] as string[] };
+
 describe('evaluateNeuronal', () => {
   it('evaluates instruction with mock provider', async () => {
     const provider = new MockLLMProvider();
-    const graphRepo = {
-      async executeQuery() { return DomainResult.ok({ records: [], summary: { counters: {} } }); },
-      async clearGraph() { return DomainResult.ok(undefined); },
-      async healthCheck() { return true; },
-      async close() {},
-    };
-
     const result = await evaluateNeuronal({
+      ...oneFile,
       instructions: [makeInstruction('FF-N01', 'srp-semantic')],
-      graphRepository: graphRepo,
       provider,
       runsPerEvaluation: 3,
       cassettePath: fs.mkdtempSync(path.join(CASSETTE_DIR, 'run-')),
@@ -193,10 +204,12 @@ describe('evaluateNeuronal', () => {
     if (result.success) {
       expect(result.data.results).toHaveLength(1);
       const r = result.data.results[0];
-      expect(r.deterministic).toBe(false);
-      expect(r.runs.length).toBe(3);
-      expect(r.confidence).toBeGreaterThan(0);
-      expect(typeof r.confidenceStdDev).toBe('number');
+      expect(r?.deterministic).toBe(false);
+      // Step 21: runs live per unit; the function-level list is empty (DE §4.4)
+      expect(r?.runs).toEqual([]);
+      expect(r?.unitResults[0]?.runs.length).toBe(3);
+      expect(r?.confidence).toBeGreaterThan(0);
+      expect(typeof r?.confidenceStdDev).toBe('number');
     }
   });
 
@@ -209,23 +222,15 @@ describe('evaluateNeuronal', () => {
       JSON.stringify({ pass: false, confidence: 0.3, reasoning: 'b', evidence: [], violations: [] }),
       JSON.stringify({ pass: true, confidence: 0.8, reasoning: 'c', evidence: [], violations: [] }),
     ];
-    provider.setResponse = function(this: MockLLMProvider, _key: string, _val: string) {} as any;
     // Override evaluate to cycle responses
     (provider as any).evaluate = async () => {
       const resp = responses[callIdx++ % responses.length];
       return DomainResult.ok({ content: resp!, model: 'mock', usage: { inputTokens: 10, outputTokens: 10 } });
     };
 
-    const graphRepo = {
-      async executeQuery() { return DomainResult.ok({ records: [], summary: { counters: {} } }); },
-      async clearGraph() { return DomainResult.ok(undefined); },
-      async healthCheck() { return true; },
-      async close() {},
-    };
-
     const result = await evaluateNeuronal({
+      ...oneFile,
       instructions: [makeInstruction('FF-N01', 'srp-test')],
-      graphRepository: graphRepo,
       provider,
       runsPerEvaluation: 3,
       unstableThreshold: 0.15,
@@ -234,18 +239,14 @@ describe('evaluateNeuronal', () => {
 
     expect(result.success).toBe(true);
     if (result.success) {
-      expect(result.data.results[0].flaggedUnstable).toBe(true);
+      // the one unit is unstable (stddev over 0.9, 0.3, 0.8), so its carrying function is too (AGG-04)
+      expect(result.data.results[0]?.unitResults[0]?.flaggedUnstable).toBe(true);
+      expect(result.data.results[0]?.flaggedUnstable).toBe(true);
     }
   });
 });
 
 describe('evaluateNeuronal violation type (BR-U4-VIO-03)', () => {
-  const graphRepo = {
-    async executeQuery() { return DomainResult.ok({ records: [], summary: { counters: {} } }); },
-    async clearGraph() { return DomainResult.ok(undefined); },
-    async healthCheck() { return true; },
-    async close() {},
-  };
   const failing = JSON.stringify({
     pass: false, confidence: 0.9, reasoning: 'r', evidence: [],
     violations: [{ filePath: 'src/a.ts', message: 'm' }],
@@ -260,7 +261,7 @@ describe('evaluateNeuronal violation type (BR-U4-VIO-03)', () => {
     (provider as any).evaluate = async () =>
       DomainResult.ok({ content: failing, model: 'mock', usage: { inputTokens: 1, outputTokens: 1 } });
     const inst = { ...makeInstruction('FF-N02', 'type-map'), ...overrides } as NeuronalInstruction;
-    const result = await evaluateNeuronal({ instructions: [inst], graphRepository: graphRepo, provider, runsPerEvaluation: 3, cassettePath: fs.mkdtempSync(path.join(CASSETTE_DIR, 'run-')) });
+    const result = await evaluateNeuronal({ ...oneFile, instructions: [inst], provider, runsPerEvaluation: 3, cassettePath: fs.mkdtempSync(path.join(CASSETTE_DIR, 'run-')) });
     expect(result.success).toBe(true);
     if (result.success) {
       const vs = result.data.results[0]!.violations;
@@ -274,15 +275,9 @@ describe('C7 VCRMode (U4-K2, D-U0-3)', () => {
   it("defaults to 'record' and records each run under the given cassette path", async () => {
     expect(DEFAULT_NEURONAL_OPTIONS.vcrMode).toBe('record');
     const dir = fs.mkdtempSync(path.join(CASSETTE_DIR, 'default-'));
-    const graphRepo = {
-      executeQuery: () => Promise.resolve(DomainResult.ok({ records: [], summary: { counters: {} } })),
-      clearGraph: () => Promise.resolve(DomainResult.ok(undefined)),
-      healthCheck: () => Promise.resolve(true),
-      close: () => Promise.resolve(),
-    };
     const result = await evaluateNeuronal({
+      ...oneFile,
       instructions: [makeInstruction('FF-N01', 'record-default')],
-      graphRepository: graphRepo,
       provider: new MockLLMProvider(),
       runsPerEvaluation: 3,
       cassettePath: dir,

@@ -205,7 +205,14 @@ describe('createJudgeProvider: every real provider wrapped once (CAS-*, U4-K3)',
       contextAssembly: { includeAPGSubgraph: true, includeSourceCode: true }, shadowModeEligible: false,
       source: 'fitness-function', judgeUnit: 'file',
     } as unknown as NeuronalInstruction;
-    await evaluateNeuronal({ instructions: [instruction], graphRepository: {} as GraphRepository, provider: built.data, cassettePath: other });
+    // Step 21: a one-file project given as a graph view (the critic judges real units)
+    const root = tmpDir();
+    fs.mkdirSync(path.join(root, 'src'));
+    fs.writeFileSync(path.join(root, 'src/a.ts'), 'export const a = 1;\n');
+    await evaluateNeuronal({
+      instructions: [instruction], graphRepository: {} as GraphRepository, provider: built.data, cassettePath: other,
+      projectRoot: root, graphView: { files: [{ path: 'src/a.ts', layer: 'domain', isBarrel: false }], classes: [], interfaces: [], edges: [] },
+    });
     expect(listCassetteKeys(own).length).toBe(3);
     expect(listCassetteKeys(other)).toEqual([]);
   });

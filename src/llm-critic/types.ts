@@ -1,18 +1,76 @@
-import type { InvalidCause, NeuronalInstruction } from '../shared/types/evaluation.js';
+import type { BaselineSelection, InvalidCause, NeuronalInstruction } from '../shared/types/evaluation.js';
+import type { LayerDefinition } from '../shared/types/spec.js';
 import type { LLMEffort, LLMOptions, LLMProvider } from '../shared/interfaces/llm-provider.js';
 import type { GraphRepository } from '../shared/interfaces/graph-repository.js';
 import type { PipelineError } from '../shared/errors/domain-result.js';
 import type { VCRMode } from '../shared/types/llm-config.js';
 import type { JudgeUnitKind } from '../shared/types/enums.js';
-import { DEFAULT_CASSETTE_DIR, JUDGE_TOKEN_BUDGET } from './frozen.js';
+import type { JudgeGraphView } from './judge-graph.js';
+import {
+  DEFAULT_CASSETTE_DIR, EXCERPT_MAX_NODES, JUDGE_EFFORT, JUDGE_MAX_TOKENS, JUDGE_MODEL, JUDGE_TIMEOUT_MS,
+  JUDGE_TOKEN_BUDGET, MAX_CONCURRENCY, MIN_SIZE_TOKENS, RUNS_PER_EVALUATION, SELECTION_SEED, UNIT_CAP,
+  UNSTABLE_THRESHOLD,
+} from './frozen.js';
 
 // C10 cassette mode re-exported (D-U0-3, U4-K2): the C7-only bypass member is gone; default 'record' (BR-U4-CAS-05)
 export type { VCRMode };
+
+/**
+ * Run options of the critic (U4 DE §5.5; defaults frozen in `frozen.ts`, BR §11). The CLI fills
+ * `llm`, `repetition`, `cassette` and `baseline` from `parseLLMOptions` (C9 hunks, Step 25).
+ */
+export interface NeuronalRunOptions {
+  readonly runsPerEvaluation: number;          // 3
+  readonly maxConcurrency: number;             // 3
+  readonly unstableThreshold: number;          // 0.15
+  readonly llm: LLMOptions;                    // { model: 'claude-opus-5-5', effort: 'high', maxTokens: 8192 }
+  readonly unitCap: number;                    // 20
+  readonly selectionSeed: string;              // "daedalus-v1.2E-judge"
+  readonly minSizeTokens: number;              // 0
+  readonly seededList: readonly string[];      // [] (BR-U4-SEL-06)
+  readonly maxNodes: number;                   // 40
+  readonly tokenBudget: TokenBudget;           // DE §3.4
+  readonly timeoutMs: number;                  // 180000 (graph reads use their own read timeout)
+  readonly repetition: number;                 // 0
+  readonly cassette: { readonly mode: VCRMode; readonly dir: string; readonly omitPrompt: boolean };
+  readonly baseline?: readonly BaselineSelection[];        // variant run (BR-U4-SEL-07)
+  readonly evaluatorSpecLayers: readonly LayerDefinition[]; // layer model and module roots (CTX-07, SEL-03)
+}
+
+export const DEFAULT_NEURONAL_RUN_OPTIONS: NeuronalRunOptions = Object.freeze({
+  runsPerEvaluation: RUNS_PER_EVALUATION,
+  maxConcurrency: MAX_CONCURRENCY,
+  unstableThreshold: UNSTABLE_THRESHOLD,
+  llm: Object.freeze({ model: JUDGE_MODEL, effort: JUDGE_EFFORT, maxTokens: JUDGE_MAX_TOKENS }),
+  unitCap: UNIT_CAP,
+  selectionSeed: SELECTION_SEED,
+  minSizeTokens: MIN_SIZE_TOKENS,
+  seededList: Object.freeze([]),
+  maxNodes: EXCERPT_MAX_NODES,
+  tokenBudget: JUDGE_TOKEN_BUDGET,
+  timeoutMs: JUDGE_TIMEOUT_MS,
+  repetition: 0,
+  cassette: Object.freeze({ mode: 'record', dir: DEFAULT_CASSETTE_DIR, omitPrompt: false }),
+  evaluatorSpecLayers: Object.freeze([]),
+});
 
 export interface NeuronalEvalInput {
   readonly instructions: readonly NeuronalInstruction[];
   readonly graphRepository: GraphRepository;
   readonly provider: LLMProvider;
+  /** The evaluated project; unit files are read under it (CTX-02). Default: `process.cwd()`. */
+  readonly projectRoot?: string;
+  /** Run options; omitted fields take `DEFAULT_NEURONAL_RUN_OPTIONS`. */
+  readonly options?: Partial<NeuronalRunOptions>;
+  /** A graph view already loaded (tests, U5b); otherwise `loadJudgeGraphView(graphRepository)`. */
+  readonly graphView?: JudgeGraphView;
+  /** Per-function `exclude_paths` of the spec (`NeuronalInstruction` carries none; SEL-01). */
+  readonly excludePaths?: Readonly<Record<string, readonly string[]>>;
+  /** ADR prose per function id, for the `## ADR context` section (CTX-06). */
+  readonly adrProse?: Readonly<Record<string, string>>;
+  /** Values scrubbed from messages besides the built-in patterns (CAS-07); default from `process.env`. */
+  readonly knownSecrets?: readonly string[];
+  // Shorthands kept for the callers written before Step 21 (router, U3 commands); `options` wins.
   readonly runsPerEvaluation?: number;
   readonly vcrMode?: VCRMode;
   readonly cassettePath?: string;
@@ -21,11 +79,11 @@ export interface NeuronalEvalInput {
 }
 
 export const DEFAULT_NEURONAL_OPTIONS = {
-  runsPerEvaluation: 3,
+  runsPerEvaluation: RUNS_PER_EVALUATION,
   vcrMode: 'record' as VCRMode,
   cassettePath: DEFAULT_CASSETTE_DIR,
-  maxConcurrency: 3,
-  unstableThreshold: 0.15,
+  maxConcurrency: MAX_CONCURRENCY,
+  unstableThreshold: UNSTABLE_THRESHOLD,
 };
 
 export interface CriticVerdict {

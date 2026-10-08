@@ -1,4 +1,4 @@
-export { evaluateNeuronal } from './llm-critic.js';
+export { evaluateNeuronal, resolveRunOptions } from './llm-critic.js';
 export type { NeuronalEvalOutput } from './llm-critic.js';
 export { assembleContext, constructPrompt } from './context-assembler.js';
 export { parseVerdict } from './verdict-parser.js';
@@ -21,8 +21,12 @@ export {
 } from './cassette-provider.js';
 export type { JudgeRequest, JudgeCallResult, CassetteOptions, ResponseInterpreter } from './cassette-provider.js';
 export type {
-  NeuronalEvalInput, CriticVerdict, CriticViolation,
+  NeuronalEvalInput, NeuronalRunOptions, CriticVerdict, CriticViolation,
   CassetteEntry, ContextPacket, TokenBudget, VCRMode, CallOutcome, StopCause, RunManifest, RunCompleteness,
   CriticError, CriticErrorCode,
 } from './types.js';
-export { DEFAULT_NEURONAL_OPTIONS, DEFAULT_TOKEN_BUDGET } from './types.js';
+export { DEFAULT_NEURONAL_OPTIONS, DEFAULT_NEURONAL_RUN_OPTIONS, DEFAULT_TOKEN_BUDGET } from './types.js';
+export { loadJudgeGraphView, JUDGE_GRAPH_QUERIES } from './judge-graph.js';
+export type { JudgeGraphView } from './judge-graph.js';
+export { assembleUnitSource } from './source-context.js';
+export type { UnitSourceContext } from './source-context.js';

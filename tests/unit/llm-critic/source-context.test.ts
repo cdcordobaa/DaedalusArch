@@ -10,13 +10,12 @@ import { functionId } from '../../../src/shared/types/value-objects.js';
 import type { JudgeGraphView } from '../../../src/llm-critic/judge-graph.js';
 import type { JudgeUnit } from '../../../src/llm-critic/judge-unit-selector.js';
 import {
-  assembleUnitSourceFromView, assembleUnitSource, buildGraphExcerpt, exportedSignatures, escapeDelimiters, EMPTY_EXCERPT,
+  assembleUnitSourceFromView, buildGraphExcerpt, exportedSignatures, escapeDelimiters, EMPTY_EXCERPT,
 } from '../../../src/llm-critic/source-context.js';
 import { assembleContext, constructPrompt } from '../../../src/llm-critic/context-assembler.js';
 import { DEFAULT_TOKEN_BUDGET } from '../../../src/llm-critic/types.js';
 import { FF_N01_RUBRIC, FF_N02_RUBRIC } from '../../../src/llm-critic/rubric.js';
 import { canonicalJSON, sha256Hex } from '../../../src/llm-critic/canonical-json.js';
-import type { GraphRepository } from '../../../src/shared/interfaces/graph-repository.js';
 
 const REPO = path.resolve(__dirname, '../../..');
 const CORRECT = path.join(REPO, 'fixtures/correct-reference');
@@ -252,14 +251,5 @@ describe('CTX-08 determinism across absolute locations', () => {
       expect(pa).not.toContain(a);
       expect(pa).not.toContain(os.tmpdir());
     }
-  });
-});
-
-describe('assembleUnitSource (DE §3.1 export)', () => {
-  it('keeps the frozen signature and fails closed until the Step 21 graph reader', async () => {
-    const graph = {} as GraphRepository;
-    const result = await assembleUnitSource(TASK_UNIT, CORRECT, graph, DEFAULT_TOKEN_BUDGET);
-    expect(result.success).toBe(false);
-    if (!result.success) expect(result.errors[0]?.code).toBe('CRITIC_001');
   });
 });

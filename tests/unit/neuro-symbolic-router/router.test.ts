@@ -6,6 +6,7 @@ import { functionId, runId } from '../../../src/shared/types/value-objects.js';
 import type { GraphRepository, QueryResult } from '../../../src/shared/interfaces/graph-repository.js';
 import type { CompiledFunctions, CypherQuery, NeuronalInstruction, ContextAssemblyInstruction } from '../../../src/shared/types/evaluation.js';
 import type { RouterInput } from '../../../src/neuro-symbolic-router/types.js';
+import { JUDGE_GRAPH_QUERIES } from '../../../src/llm-critic/judge-graph.js';
 
 // U4-K2 (D-U0-3): C7 now defaults to cassette mode 'record'. The router does not forward a
 // cassette dir yet (Step 21), so the cassette file store (U4 Step 18 API) is stubbed here to keep
@@ -18,9 +19,16 @@ jest.mock('../../../src/llm-critic/cassette-manager.js', () => ({
 
 const CTX: ContextAssemblyInstruction = { includeAPGSubgraph: false, includeSourceCode: false };
 
+// U4-K4 (Step 21): the critic reads a judge graph view; the files query answers one layered file
+// that exists under the default project root (the working directory) until Step 22 passes one.
+const JUDGED_FILE = 'fixtures/correct-reference/src/domain/entities/Task.ts';
+
 function mockGraphRepo(): GraphRepository {
   return {
-    async executeQuery(): Promise<DomainResult<QueryResult>> {
+    async executeQuery(cypher: string): Promise<DomainResult<QueryResult>> {
+      if (cypher === JUDGE_GRAPH_QUERIES.files) {
+        return DomainResult.ok({ records: [{ path: JUDGED_FILE, layer: 'domain', isBarrel: false }], summary: { counters: {} } });
+      }
       return DomainResult.ok({ records: [], summary: { counters: {} } });
     },
     async clearGraph() { return DomainResult.ok(undefined); },
