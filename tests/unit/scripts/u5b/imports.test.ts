@@ -5,7 +5,8 @@
  * `node:*`, an allowed package (`vega`, `vega-lite`, `ajv`, `ajv-formats` (Step 12, existing dependency), `ts-morph`, `yaml`) or a whitelisted `src/`
  * module: C10 types, C3 `parseSpec`, C6 evidence, C8 renormaliser / AHS / verdict / report validation.
  * Type-only imports from `src/shared/types/**` (C10 contract types) are allowed; they emit no code.
- * The U4 C7 modules (Gemini / Cassette providers, `assembleUnitSource`) join the list at Step 26.
+ * The U4 C7 modules (Gemini / Cassette providers, `assembleUnitSource`) joined the list after the Step 26 merge
+ * (Step 27), with the C7 values those calls need: the token budget, the frozen rubric and the cassette store reader.
  */
 import { existsSync, readdirSync, readFileSync } from 'node:fs';
 import { dirname, join, relative, resolve } from 'node:path';
@@ -52,6 +53,19 @@ const WHITELISTED_SRC = new Set([
   'src/shared/interfaces/process-runner.ts',       // ProcessRunner port (type)
   'src/shared/process/node-process-runner.ts',     // NodeProcessRunner, buildChildEnv
   'src/shared/errors/scrub.ts',                    // scrubDeep
+  // Step 27..29 (BR-U5b-35, 36, 43, 55; U4 hand-off): C7 Gemini / Cassette providers and `assembleUnitSource`.
+  'src/llm-critic/source-context.ts',              // assembleUnitSourceFromView (P4 context, BR-U5b-35)
+  'src/llm-critic/judge-graph.ts',                 // JudgeGraphView (its input)
+  'src/llm-critic/judge-unit-selector.ts',         // JudgeUnit (its input)
+  'src/llm-critic/frozen.ts',                      // JUDGE_TOKEN_BUDGET (its budget)
+  'src/llm-critic/rubric.ts',                      // FF-N01 / FF-N02 rubric text (P4 context, BR-U5b-35)
+  'src/llm-critic/cassette-provider.ts',           // CassetteLLMProvider (BR-U5b-36)
+  'src/llm-critic/cassette-manager.ts',            // committed judge cassettes (reliability, BR-U5b-43)
+  'src/llm-critic/types.ts',                       // CassetteEntry
+  'src/llm-critic/gemini-provider.ts',             // GeminiProvider (record mode only, BR-U5b-44)
+  'src/llm-critic/mock-provider.ts',               // MockLLMProvider (fixture recording)
+  'src/shared/interfaces/llm-provider.ts',         // LLMProvider port (type)
+  'src/shared/errors/domain-result.ts',            // DomainResult (provider answers)
 ]);
 
 interface ImportUse {
