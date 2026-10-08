@@ -2,7 +2,7 @@
  * U5b Step 5: static import whitelist (BR-U5b-55; C:342, CM:1545).
  *
  * Every import, re-export, dynamic `import()` and `require()` in a U5b script resolves to `scripts/**`,
- * `node:*`, an allowed package (`vega`, `vega-lite`, `ajv`, `ts-morph`, `yaml`) or a whitelisted `src/`
+ * `node:*`, an allowed package (`vega`, `vega-lite`, `ajv`, `ajv-formats` (Step 12, existing dependency), `ts-morph`, `yaml`) or a whitelisted `src/`
  * module: C10 types, C3 `parseSpec`, C6 evidence, C8 renormaliser / AHS / verdict / report validation.
  * Type-only imports from `src/shared/types/**` (C10 contract types) are allowed; they emit no code.
  * The U4 C7 modules (Gemini / Cassette providers, `assembleUnitSource`) join the list at Step 26.
@@ -32,7 +32,7 @@ export function u5bScriptFiles(root: string = ROOT): string[] {
   return [...candidates, ...extra].filter((f) => existsSync(join(root, f)));
 }
 
-const ALLOWED_PACKAGES = new Set(['vega', 'vega-lite', 'ajv', 'ts-morph', 'yaml']);
+const ALLOWED_PACKAGES = new Set(['vega', 'vega-lite', 'ajv', 'ajv-formats', 'ts-morph', 'yaml']);
 const WHITELISTED_SRC = new Set([
   'src/shared/types/evaluation.ts',          // C10 EvaluationReport, Violation
   'src/spec-parser/spec-parser.ts',          // C3 parseSpec
