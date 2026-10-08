@@ -3,11 +3,12 @@ import type { Violation, ViolationType } from '../shared/taxonomy/violation-type
 import type { PipelineWarning } from '../shared/errors/domain-result.js';
 import { DomainResult } from '../shared/errors/domain-result.js';
 import type { ResultMapping } from '../fitness-compiler/types.js';
-import { CYPHER_TEMPLATES, getTemplateTag } from '../fitness-compiler/cypher-templates.js';
+import { CYCLE_ROW_CAP, CYPHER_TEMPLATES, getTemplateTag } from '../fitness-compiler/cypher-templates.js';
 import type { SymbolicEvalInput } from './types.js';
 import { functionId as makeFunctionId } from '../shared/types/value-objects.js';
-import { computeViolationId, discriminatorValues, toFiniteNumber } from './violation-id.js';
+import { computeViolationId, discriminatorValues, scalarText, toFiniteNumber } from './violation-id.js';
 import { formatEvidence, mergeById } from './evidence.js';
+import { applyCycleCap, dedupeCycleRecords } from './cycle-canonicaliser.js';
 
 export interface SymbolicEvalOutput {
   readonly results: readonly SymbolicFunctionResult[];
@@ -33,9 +34,27 @@ export async function evaluateSymbolic(input: SymbolicEvalInput): Promise<Domain
     const template = CYPHER_TEMPLATES.get(query.name);
     const mapping = template?.resultMapping ?? FALLBACK_MAPPING;
 
+    // FR-35 cycle sentinel (BR-U3-08, BR-U3-09): `truncated` is decided on the raw rows, before the
+    // defensive canonicaliser and de-duplicator run on the kept rows, so they can never hide it.
+    let records = queryResult.data.records;
+    let truncated = false;
+    if (mapping.cycleColumn !== undefined) {
+      const capped = applyCycleCap(records, CYCLE_ROW_CAP);
+      truncated = capped.truncated;
+      records = dedupeCycleRecords(capped.kept, mapping.cycleColumn);
+      if (truncated) {
+        warnings.push({
+          code: 'EVAL_003',
+          message: `Cycle result for ${String(query.functionId)} truncated at ${String(CYCLE_ROW_CAP)} rows`,
+          stage: 'evaluation-engine',
+          context: { functionId: String(query.functionId), cap: CYCLE_ROW_CAP },
+        });
+      }
+    }
+
     // FR-12: ids hash the row's own identity values; rows sharing an id merge (BR-U3-05, BR-U3-07).
-    const violations = [...mergeById(mapResultsToViolations(queryResult.data.records, mapping, query))];
-    const passed = computePassFail(violations, query, queryResult.data.records);
+    const violations = [...mergeById(mapResultsToViolations(records, mapping, query))];
+    const passed = computePassFail(violations, query, records);
 
     results.push({
       functionId: query.functionId,
@@ -44,6 +63,7 @@ export async function evaluateSymbolic(input: SymbolicEvalInput): Promise<Domain
       violations,
       executionTimeMs: Date.now() - start,
       deterministic: true,
+      ...(truncated ? { truncated: true as const } : {}),
     });
   }
 
@@ -58,7 +78,7 @@ function optionalText(record: Readonly<Record<string, unknown>>, column: string 
   if (column === undefined) return undefined;
   const value = record[column];
   if (value === null || value === undefined) return undefined;
-  return typeof value === 'string' ? value : String(value);
+  return scalarText(value);
 }
 
 /** Finite numbers of a list cell; absent when the column is unmapped or the cell is not a list. */
