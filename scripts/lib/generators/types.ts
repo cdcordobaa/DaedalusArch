@@ -114,6 +114,29 @@ export type GenerationFailureReason =
   | 'envelope-unreadable'
   | 'timeout';
 
+/** One CLI call that consumed an attempt (BR-U5a-50). `outcome`: `completed`, `timeout`, `spawn-failed`, `timeout-no-files`, `exit-<n>-before-first-turn`. */
+export interface GenerationAttempt {
+  readonly startedAt: string;
+  readonly outcome: string;
+}
+
+/** A usage- or rate-limit interruption (no attempt consumed); `movedTo` is POSIX, relative to the grid `outRoot`. */
+export interface GenerationInterruption {
+  readonly at: string;
+  readonly subtype: string;
+  readonly movedTo: string;
+}
+
+/** An instantiated prompt and its provenance (BR-U5a-52). */
+export interface PromptInstance {
+  /** `<specLevel>/<taskId>`. */
+  readonly promptTemplateId: string;
+  readonly promptTemplateSha256: string;
+  /** The instantiated text (template with `{{TYPECHECK_COMMAND}}` replaced). */
+  readonly prompt: string;
+  readonly promptSha256: string;
+}
+
 export interface GenerationOutcome {
   readonly status: GenerationStatus;
   readonly failureReason?: GenerationFailureReason;
@@ -138,8 +161,8 @@ export interface GenerationOutcome {
   readonly fileCountInRange: boolean;
   readonly permissionDenials: number;
   readonly typecheck: { readonly tscVersion: string; readonly errors: number } | null;
-  readonly attempts: readonly { readonly startedAt: string; readonly outcome: string }[];
-  readonly interruptions: readonly { readonly at: string; readonly subtype: string; readonly movedTo: string }[];
+  readonly attempts: readonly GenerationAttempt[];
+  readonly interruptions: readonly GenerationInterruption[];
   readonly treeSha: string | null;
   readonly durationMs: number;
   readonly pilot: boolean;

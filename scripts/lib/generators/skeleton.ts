@@ -280,7 +280,12 @@ export interface HarnessCheckReport {
   readonly passed: boolean;
 }
 
-async function runHarnessTsc(
+/**
+ * Runs the type-check of record: the exact `typecheckCommand` (harness-owned `<H>/bin/tsc` with the per-run tsconfig),
+ * never a binary in `cwd` (BR-U5a-48). Returns the error codes (`TSnnnn`, or one synthetic `TSC_EXIT_<n>` /
+ * `TSC_TIMEOUT` when tsc failed without a parsed diagnostic).
+ */
+export async function runHarnessTypecheck(
   runner: ProcessRunner,
   harnessRoot: string,
   runId: string,
@@ -330,10 +335,10 @@ export async function runHarnessTsconfigCheck(
       fs.writeFileSync(path.join(cwd, rel), text);
     }
     writeHarnessTsconfig(h, runId, cwd);
-    const clean = await runHarnessTsc(runner, h, runId, cwd);
+    const clean = await runHarnessTypecheck(runner, h, runId, cwd);
     if (!clean.success) return DomainResult.fail(clean.errors);
     fs.appendFileSync(path.join(cwd, 'src/config.ts'), HARNESS_CHECK_BAD_LINE);
-    const bad = await runHarnessTsc(runner, h, runId, cwd);
+    const bad = await runHarnessTypecheck(runner, h, runId, cwd);
     if (!bad.success) return DomainResult.fail(bad.errors);
     const integrity = checkSkeletonIntact(install, repoRoot, cwd);
     return DomainResult.ok({
