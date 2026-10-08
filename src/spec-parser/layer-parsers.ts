@@ -3,7 +3,7 @@ import type {
   ScoringWeights, VerdictThresholds, ConfidenceThresholds,
   SemanticCriteria,
 } from '../shared/types/spec.js';
-import type { Dimension, Severity, Route, LayerKind } from '../shared/types/enums.js';
+import type { Dimension, Severity, Route, LayerKind, JudgeUnitKind } from '../shared/types/enums.js';
 import type { ValidationWarning } from './types.js';
 import { functionId } from '../shared/types/value-objects.js';
 import { resolveLayerKinds } from './layer-kind-resolver.js';
@@ -77,6 +77,7 @@ export function parseLayerB(
     }
 
     const rawExcludePaths = f['exclude_paths'] as string[] | undefined;
+    const { judge_unit: judgeUnit } = f as { judge_unit?: JudgeUnitKind };
     const id = String(f['id']);
     const name = String(f['name']);
     const { fields } = mapFunctionSpecificFields(f, `fitness_functions[${id}]`);
@@ -101,6 +102,7 @@ export function parseLayerB(
       ...base,
       ...(f['threshold'] != null ? { threshold: Number(f['threshold']) } : {}),
       ...(semanticCriteria ? { semanticCriteria } : {}),
+      ...(judgeUnit != null ? { judgeUnit } : {}), // FR-33 (BR-U1-26); the schema has checked the value
       ...fields,
     };
   });

@@ -60,6 +60,8 @@ export const SPEC_SCHEMA_V1 = {
           max_interface_methods: { type: 'integer', minimum: 0 },
           max_depth: { type: 'integer', minimum: 0 },
           pattern: { type: 'string', pattern: PATTERN_GRAMMAR },
+          // FR-33 judge unit for neuronal/hybrid functions (BR-U1-04, BR-U1-26)
+          judge_unit: { type: 'string', enum: ['file', 'class', 'module'] },
           semantic_criteria: {
             type: 'object',
             required: ['rule', 'rubric'],
