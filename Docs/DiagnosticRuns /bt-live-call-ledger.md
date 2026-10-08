@@ -32,6 +32,8 @@ Totals: Step 35 (3) + FF-N01 (17) + FF-N02 (35) = **55 > 40**. **E-2 confirmed**
 |---|---|---|---|---|---|
 | — | 2026-10-08 | 34 | preflight (no live call) | 0 | 0 |
 | 1 | 2026-10-08 | 35 | ISO-07 canary repeat: positive control, negative (ancestor cwd), negative (neutral cwd); `tests/fixtures/claude-cli/canary-result-bt-2026-10-08.json` | 3 (3 spawns, no retry) | 3 |
+| 2 | 2026-10-08 | 37 | SEN-01 FF-N01 + live smoke, base copy (scratch spec, FF-N02 off): 1 init probe + 4 module units × 3 | 13 (12 cassette attempts, no retry, + 1 probe) | 16 |
+| 3 | 2026-10-08 | 37 | SEN-01 FF-N01, I copy (same cassette dir; 3 base units hit): 1 init probe + 1 unit × 3 | 4 (3 cassette attempts, no retry, + 1 probe) | 20 |
 
 ## Generator (cap 11 sessions + 3 retries; not judge calls)
 
