@@ -41,7 +41,14 @@ Only variant-b and variant-c match the header verdict. U0 fixes nothing; the re-
 2026-10-08 U1-K2 observation all — FR-07 + FR-08 (Q1 grammar, Q2, Q5): `default_exclude_paths` in `presets/clean-architecture.yaml` and `presets/nestjs.yaml` stays an unknown key, ignored with `SPEC_001` (U1 Q20 A, D-U1-13).
 2026-10-08 U1-K2 observation correct-reference — FR-07 + FR-08 (Q1 grammar, Q2, Q5): the verdict flips warning → pass at K2 partly through FF-P01's vacuous pass; recorded as a cut-off sensitivity threat (business-rules.md §8).
 
+2026-10-08 U1-K3 correct-reference — ADR-015 item 10 (U1 Q21 B): FF-CV02 pattern `*Service|*UseCase` in the four shipped YAMLs (BR-U1-38); use cases no longer read as misnamed services, FF-CV02 passes (2 violations removed: `CompleteTaskUseCase`, `CreateTaskUseCase`); AHS 0.802 → 0.811, verdict pass unchanged.
+2026-10-08 U1-K3 variant-a-structural — ADR-015 item 10 (U1 Q21 B): FF-CV02 pattern `*Service|*UseCase` in the four shipped YAMLs (BR-U1-38); use cases no longer read as misnamed services, FF-CV02 passes (1 violation removed: `CreateTaskUseCase`); AHS 0.353 → 0.362, verdict hard-block unchanged.
+2026-10-08 U1-K3 variant-b-pattern — ADR-015 item 10 (U1 Q21 B): FF-CV02 pattern `*Service|*UseCase` in the four shipped YAMLs (BR-U1-38); use cases no longer read as misnamed services, FF-CV02 passes (2 violations removed: `CompleteTaskUseCase`, `CreateTaskUseCase`); AHS 0.528 → 0.537, verdict soft-block unchanged.
+2026-10-08 U1-K3 variant-c-everything — ADR-015 item 10 (U1 Q21 B): FF-CV02 pattern `*Service|*UseCase` in the four shipped YAMLs (BR-U1-38); use cases no longer read as misnamed services, FF-CV02 passes (1 violation removed: `CreateTaskUseCase`); AHS 0.374 → 0.382, verdict hard-block unchanged.
+2026-10-08 U1-K3 variant-d-subtle — ADR-015 item 10 (U1 Q21 B): FF-CV02 pattern `*Service|*UseCase` in the four shipped YAMLs (BR-U1-38); use cases no longer read as misnamed services, FF-CV02 passes (1 violation removed: `CreateTaskUseCase`); AHS 0.407 → 0.416, verdict hard-block unchanged.
+
 ## Self-spec
 
 2026-10-08 U1-K1 self — FR-19 (U1 Q3 B): core-modules kind: infrastructure; FF-P03, FF-P05, FF-CV01, FF-CV04 now bind infraLayer and execute.
 2026-10-08 U1-K2 self — FR-07 + FR-08 (Q1 grammar, Q2, Q5): FF-C03 threshold 0.8; typed fields bind FF-P01, FF-SO01–03, FF-CV02–04.
+2026-10-08 U1-K3 self — ADR-015 item 10 (U1 Q21 B): FF-CV02 pattern `*Service|*UseCase`.
