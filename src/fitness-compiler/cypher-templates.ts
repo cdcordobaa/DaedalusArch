@@ -180,16 +180,16 @@ ORDER BY source, target`,
 WHERE c.layer IN $applicationLayers
 WITH c, count(CASE WHEN dep:Interface THEN 1 END) AS interfaceDeps, count(dep) AS totalDeps
 WHERE totalDeps > 0 /*EXCLUDE:c*/
-RETURN c.name AS class, c.filePath AS filePath,
-       toFloat(interfaceDeps) / totalDeps AS ratio,
-       CASE WHEN toFloat(interfaceDeps) / totalDeps < $threshold THEN true ELSE false END AS violation
+WITH c, toFloat(interfaceDeps) / totalDeps AS ratio
+WHERE ratio < $threshold
+RETURN c.name AS class, c.filePath AS filePath, ratio
 ORDER BY filePath, class`,
     ['applicationLayers', 'threshold'],
     ['application'],
     'pattern-proxy',
-    'Checks that application-layer classes inject interfaces, not concrete classes (DIP)',
+    'Checks that application-layer classes inject interfaces, not concrete classes (DIP); violating rows only (BR-U3-11)',
     [],
-    DEFAULT_RM,
+    defaultMapped({ discriminatorColumns: ['class'], evidenceColumns: ['ratio'] }),
     CLEAN_AND_NESTJS,
   )],
 
@@ -257,16 +257,16 @@ OPTIONAL MATCH (f)<-[:IMPORTS]-(incoming:File) WHERE incoming.layer <> $domainLa
 OPTIONAL MATCH (f)-[:IMPORTS]->(outgoing:File) WHERE outgoing.layer <> $domainLayer
 WITH f, count(DISTINCT incoming) AS fanIn, count(DISTINCT outgoing) AS fanOut
 WHERE fanIn + fanOut > 0 /*EXCLUDE:f*/
-RETURN f.filePath AS filePath, f.name AS name,
-       toFloat(fanOut) / (fanIn + fanOut) AS instability,
-       CASE WHEN toFloat(fanOut) / (fanIn + fanOut) > $threshold THEN true ELSE false END AS violation
+WITH f, toFloat(fanOut) / (fanIn + fanOut) AS instability
+WHERE instability > $threshold
+RETURN f.filePath AS filePath, f.name AS name, instability
 ORDER BY filePath`,
     ['domainLayer', 'threshold'],
     ['domain'],
     'topological',
-    'Domain layer instability must be below threshold (lower = more stable)',
+    'Domain layer instability must be below threshold (lower = more stable); violating rows only (BR-U3-11)',
     [],
-    DEFAULT_RM,
+    defaultMapped({ discriminatorColumns: [], evidenceColumns: ['instability'] }),
     CLEAN_AND_NESTJS,
   )],
 
@@ -343,15 +343,16 @@ ORDER BY filePath`,
 WITH count(CASE WHEN n:Interface THEN 1 END) AS interfaces,
      count(n) AS total
 WHERE total > 0
-RETURN toFloat(interfaces) / total AS ratio,
-       CASE WHEN toFloat(interfaces) / total < $threshold THEN true ELSE false END AS violation
+WITH toFloat(interfaces) / total AS ratio
+WHERE ratio < $threshold
+RETURN '<project>' AS filePath, ratio
 ORDER BY ratio`,
     ['threshold'],
     [],
     'topological',
-    'Checks ratio of interfaces to total classes+interfaces',
+    'Checks ratio of interfaces to total classes+interfaces; one project-level row when below threshold (BR-U3-11, BR-U3-12)',
     [],
-    rm('ratio', 'Abstraction ratio {ratio} below threshold', ['violation']),
+    mapped('filePath', 'Abstraction ratio {ratio} below threshold', { discriminatorColumns: [], evidenceColumns: ['ratio'] }),
   )],
 
   // ── SOLID ───────────────────────────────────────────────────────────────────

@@ -193,13 +193,16 @@ const T_MAP: Readonly<Record<string, {
   'no-cyclic-deps': { filePath: 'cycle', target: 'target', line: 'line', disc: ['cycle'], evid: [], cycle: 'cycle' },
   'no-layer-skip': { filePath: 'source', target: 'target', line: 'line', lines: 'lines', isTypeOnly: 'isTypeOnly', disc: ['relType'], evid: [] },
   'no-domain-outward-dep': { filePath: 'source', target: 'target', line: 'line', lines: 'lines', isTypeOnly: 'isTypeOnly', disc: ['relType'], evid: [] },
+  'dependency-inversion': { filePath: 'filePath', disc: ['class'], evid: ['ratio'] },
   'repository-pattern': { filePath: 'filePath', disc: ['implementation'], evid: [] },
   'use-case-isolation': { filePath: 'filePath', disc: ['useCase'], evid: [] },
   'controller-no-entity': { filePath: 'filePath', disc: ['controller', 'entity'], evid: [] },
+  'domain-stability': { filePath: 'filePath', disc: [], evid: ['instability'] },
   'module-fan-out': { filePath: 'filePath', disc: [], evid: ['fanOut'] },
   'component-instability': { filePath: 'filePath', disc: [], evid: ['instability'] },
   'no-orphan-files': { filePath: 'filePath', disc: [], evid: [] },
   'max-fan-in': { filePath: 'filePath', disc: [], evid: ['fanIn'] },
+  'abstraction-ratio': { filePath: 'filePath', disc: [], evid: ['ratio'] },
   'single-responsibility-proxy': { filePath: 'filePath', disc: ['class'], evid: ['methodCount', 'depCount'] },
   'interface-segregation-proxy': { filePath: 'filePath', disc: ['interface'], evid: ['methodCount'] },
   'inheritance-depth': { filePath: 'filePath', disc: ['class'], evid: ['depth'] },
@@ -211,8 +214,8 @@ const T_MAP: Readonly<Record<string, {
   'no-index-logic': { filePath: 'filePath', disc: [], evid: ['declCount'] },
 };
 
-/** Templates whose T-MAP row lands with a later R commit (plan Step 13): R4 metric tails, R5 domain-purity. */
-const LATER_R = ['domain-purity', 'dependency-inversion', 'domain-stability', 'abstraction-ratio'];
+/** Templates whose T-MAP row lands with a later R commit (plan Step 13): R5 domain-purity (R4 rows mapped since U3-R4). */
+const LATER_R = ['domain-purity'];
 
 const MEASURED = ['fanIn', 'fanOut', 'instability', 'depth', 'ratio', 'methodCount', 'depCount', 'declCount'];
 
@@ -251,7 +254,8 @@ describe('BR-U3-06 / BR-U3-66 T-MAP and TEMPLATE_DISCRIMINATORS (static)', () =>
   it('messages are unchanged by R2 (dependency templates and cycle pinned)', () => {
     expect(mappingOf('dependency-direction').messageTemplate).toBe('{source} ({srcLayer}) {verb} from {target} ({tgtLayer})');
     expect(mappingOf('no-cyclic-deps').messageTemplate).toBe('Circular dependency: {cycle}');
-    for (const name of Object.keys(T_MAP).filter((n) => T_MAP[n]?.filePath === 'filePath')) {
+    expect(mappingOf('abstraction-ratio').messageTemplate).toBe('Abstraction ratio {ratio} below threshold');
+    for (const name of Object.keys(T_MAP).filter((n) => T_MAP[n]?.filePath === 'filePath' && n !== 'abstraction-ratio')) {
       expect({ name, m: mappingOf(name).messageTemplate }).toEqual({ name, m: 'Violation in {filePath}' });
     }
   });

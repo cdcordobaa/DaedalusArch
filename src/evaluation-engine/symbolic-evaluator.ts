@@ -54,7 +54,7 @@ export async function evaluateSymbolic(input: SymbolicEvalInput): Promise<Domain
 
     // FR-12: ids hash the row's own identity values; rows sharing an id merge (BR-U3-05, BR-U3-07).
     const violations = [...mergeById(mapResultsToViolations(records, mapping, query))];
-    const passed = computePassFail(violations, query, records);
+    const passed = computePassFail(violations);
 
     results.push({
       functionId: query.functionId,
@@ -164,24 +164,7 @@ function dimensionToViolationType(name: string): ViolationType {
   return mapping[name] ?? `CUSTOM_${name}` as ViolationType;
 }
 
-function computePassFail(
-  violations: Violation[],
-  query: CypherQuery,
-  records: readonly Record<string, unknown>[],
-): boolean {
-  // For metric queries that return a ratio/count with a threshold
-  if (query.threshold != null && records.length > 0) {
-    const firstRecord = records[0];
-    // Check for 'violation' boolean column (used by some templates)
-    if (firstRecord && 'violation' in firstRecord) {
-      return !records.some((r) => r['violation'] === true);
-    }
-    // Check for 'ratio' column
-    if (firstRecord && 'ratio' in firstRecord) {
-      return Number(firstRecord['ratio']) >= query.threshold;
-    }
-  }
-
-  // Default: pass if no violation records
+/** Single pass rule (FR-14, BR-U1-40, BR-U3-10): a symbolic function passes exactly when it has no violation. */
+function computePassFail(violations: readonly Violation[]): boolean {
   return violations.length === 0;
 }
