@@ -1,0 +1,30 @@
+{
+  "description": "BR-U4-SEL-03 / BLM §4.1-4.2 expected domain modules on the NestJS-style ADR-017 item 4 remap tree; written from the design tables, not from the code. Files of layers absent from a scenario are unlayered.",
+  "scenarios": [
+    {
+      "name": "domain-remap",
+      "layers": [
+        { "name": "domain", "directories": ["**/domain/**"], "filePatterns": ["**/*.entity.ts"] }
+      ],
+      "modules": [
+        { "id": "src/billing/domain", "layer": "domain", "filePaths": ["src/billing/domain/invoice.ts", "src/billing/domain/money.ts", "src/billing/domain/rules/tax.entity.ts"], "singleFile": false },
+        { "id": "src/orders", "layer": "domain", "filePaths": ["src/orders/order-line.entity.ts", "src/orders/order.entity.ts"], "singleFile": false },
+        { "id": "src/users", "layer": "domain", "filePaths": ["src/users/user.entity.ts"], "singleFile": true }
+      ]
+    },
+    {
+      "name": "domain-remap-with-application-glob",
+      "layers": [
+        { "name": "domain", "directories": ["**/domain/**"], "filePatterns": ["**/*.entity.ts"] },
+        { "name": "application", "directories": [], "filePatterns": ["**/*.service.ts"] }
+      ],
+      "modules": [
+        { "id": "src/billing/domain", "layer": "domain", "filePaths": ["src/billing/domain/invoice.ts", "src/billing/domain/money.ts", "src/billing/domain/rules/tax.entity.ts"], "singleFile": false },
+        { "id": "src/orders#application", "layer": "application", "filePaths": ["src/orders/orders.service.ts"], "singleFile": true },
+        { "id": "src/orders#domain", "layer": "domain", "filePaths": ["src/orders/order-line.entity.ts", "src/orders/order.entity.ts"], "singleFile": false },
+        { "id": "src/users#application", "layer": "application", "filePaths": ["src/users/users.service.ts"], "singleFile": true },
+        { "id": "src/users#domain", "layer": "domain", "filePaths": ["src/users/user.entity.ts"], "singleFile": true }
+      ]
+    }
+  ]
+}
