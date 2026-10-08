@@ -1,8 +1,8 @@
 /**
  * BR-U1-01 (a): thresholds are frozen. Pins every function `threshold` and the
  * `scoring.thresholds` block of each shipped preset and spec, as they are at `ee32a1f`.
- * Allowed differences: self-spec FF-C03 `threshold` absent or 0.8; `presets/layered.yaml`
- * absent, or its values equal to `presets/clean-architecture.yaml` for the same ids.
+ * Allowed differences: self-spec FF-C03 `threshold` absent or 0.8; `presets/layered.yaml` (K15), whose
+ * values equal `presets/clean-architecture.yaml` for the same ids.
  */
 import * as fs from 'node:fs';
 import * as path from 'node:path';
@@ -72,10 +72,12 @@ describe('frozen thresholds (BR-U1-01 a)', () => {
     expect(actual.scoring).toEqual(PINNED[rel]?.scoring);
   });
 
-  it('presets/layered.yaml, when present, equals clean-architecture for the same ids', () => {
-    if (!fs.existsSync(path.join(ROOT, LAYERED))) return;
+  it('presets/layered.yaml (K15) declares the clean-architecture ids with equal thresholds', () => {
+    expect(fs.existsSync(path.join(ROOT, LAYERED))).toBe(true);
     const layered = view(LAYERED);
     const clean = view('presets/clean-architecture.yaml');
+    expect(layered.ids).toEqual(clean.ids);
+    expect(layered.functions).toEqual(CLEAN_ARCH_FUNCTIONS);
     for (const id of layered.ids.filter((i) => clean.ids.includes(i))) {
       expect({ id, threshold: layered.functions[id] }).toEqual({ id, threshold: clean.functions[id] });
     }

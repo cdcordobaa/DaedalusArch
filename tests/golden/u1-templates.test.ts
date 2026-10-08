@@ -521,3 +521,54 @@ describeU1('U1 exclude anchors on Neo4j (BR-U1-32 a, BR-U1-44 b)', () => {
     expect(await run(srpExcluded.cypher, srpExcluded.params)).toEqual([]);
   });
 });
+
+describeU1('U1 layered strict adjacency on Neo4j (K15; business-rules.md §6)', () => {
+  let repo: Neo4jRepository | undefined;
+
+  beforeAll(() => {
+    const neo4j = neo4jConfig();
+    repo = new Neo4jRepository({ neo4jUri: neo4j.uri, neo4jUser: neo4j.user, neo4jPassword: neo4j.password });
+  });
+
+  beforeEach(async () => {
+    // Four imports of the §6 table between one file per layer of presets/layered.yaml.
+    await run(
+      "CREATE (p:File {filePath: 'src/persistence/TaskDao.ts', name: 'TaskDao.ts', layer: 'persistence', isBarrel: false}) " +
+      "CREATE (b:File {filePath: 'src/business/TaskService.ts', name: 'TaskService.ts', layer: 'business', isBarrel: false}) " +
+      "CREATE (r:File {filePath: 'src/presentation/TaskView.ts', name: 'TaskView.ts', layer: 'presentation', isBarrel: false}) " +
+      'CREATE (r)-[:IMPORTS {line: 1}]->(b) CREATE (b)-[:IMPORTS {line: 2}]->(p) ' +
+      'CREATE (p)-[:IMPORTS {line: 3}]->(b) CREATE (r)-[:IMPORTS {line: 4}]->(p)',
+    );
+  });
+
+  afterEach(async () => {
+    await run('MATCH (n) DETACH DELETE n');
+  });
+
+  afterAll(async () => {
+    if (repo) await repo.close();
+  });
+
+  async function run(cypher: string, params?: Record<string, unknown>): Promise<readonly Record<string, unknown>[]> {
+    if (!repo) throw new Error('repository not initialised');
+    const result = await repo.executeQuery(cypher, params);
+    if (!result.success) {
+      throw new Error(`Query failed against ${redactUri(neo4jConfig().uri)}: ${result.errors.map((e) => `${e.code} ${e.message}`).join('; ')}`);
+    }
+    return result.data.records;
+  }
+
+  async function edges(name: string): Promise<string[]> {
+    const q = (await compiledQueries('presets/layered.yaml')).find((c) => c.name === name);
+    if (!q) throw new Error(`${name} not compiled from presets/layered.yaml`);
+    return (await run(q.cypher, q.params)).map((r) => `${String(r.srcLayer)}>${String(r.tgtLayer)}`);
+  }
+
+  it('FF-S01 dependency-direction flags only persistence → business', async () => {
+    expect(await edges('dependency-direction')).toEqual(['persistence>business']);
+  });
+
+  it('FF-S03 no-layer-skip flags persistence → business and presentation → persistence (skip)', async () => {
+    expect((await edges('no-layer-skip')).sort()).toEqual(['persistence>business', 'presentation>persistence']);
+  });
+});
