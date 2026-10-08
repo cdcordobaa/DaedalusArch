@@ -9,7 +9,8 @@
  *
  * Refuses to run (exit 2) unless `GOLDEN_REQUIRED=1` and `NEO4J_URI` are set. For each distinct `specPath` of the
  * manifest rows the base is evaluated once (baseline); each row's copy `<copies>/<projectId>/<operatorId>/k-<k>` is
- * evaluated through the CLI as a subprocess (`src/cli/index.ts evaluate --format json --symbolic-only`, with an
+ * evaluated through the CLI as a subprocess (`bin/firewall.ts evaluate --format json --symbolic-only`, the entry that
+ * calls `main()`; `src/cli/index.ts` is only a re-export barrel and prints nothing, with an
  * explicit environment: `PATH`, `HOME`, `NEO4J_URI`, `NEO4J_USER`, `NEO4J_PASSWORD`). `compareDeclaredKeys`
  * (`freeze-gates.ts`) gives per row the new, expected, collateral and undeclared keys; all rows are written to
  * `<out>/u5a-declaration-gate.json` and one line per row is printed. Exit 0 every row passes; 1 a row has an
@@ -38,6 +39,9 @@ export const FREEZE_GATE_REFUSAL =
   'u5a-freeze-gate refuses to run without GOLDEN_REQUIRED=1 and NEO4J_URI: the declaration gate evaluates through the detector against Neo4j (BR-U5a-36 a)';
 
 export const DECLARATION_GATE_FILE = 'u5a-declaration-gate.json';
+
+/** The CLI entry that calls `main()` (`src/cli/index.ts` is a re-export barrel and exits 0 with no output). */
+export const CLI_ENTRY = 'bin/firewall.ts';
 
 export type Evaluate = (projectDir: string, specPath: string) => Promise<DomainResult<EvaluatedViolations>>;
 
@@ -85,7 +89,7 @@ export function cliEvaluate(runner: ProcessRunner, repoRoot: string, env: NodeJS
   }
   const tsx = path.resolve(repoRoot, 'node_modules/.bin/tsx');
   return async (projectDir, specPath) => {
-    const args = ['src/cli/index.ts', 'evaluate', '--project', projectDir, '--spec', specPath, '--format', 'json', '--symbolic-only', '--neo4j-uri', env.NEO4J_URI ?? ''];
+    const args = [CLI_ENTRY, 'evaluate', '--project', projectDir, '--spec', specPath, '--format', 'json', '--symbolic-only', '--neo4j-uri', env.NEO4J_URI ?? ''];
     const run = await runner.run(tsx, args, { cwd: repoRoot, env: childEnv, timeoutMs: 600_000 });
     if (!run.success) return run;
     if (run.data.timedOut) return DomainResult.fail([{ code: 'GATE_TIMEOUT', message: `evaluation of ${path.basename(projectDir)} timed out` }]);

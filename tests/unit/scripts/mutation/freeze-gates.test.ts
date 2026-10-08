@@ -10,8 +10,9 @@ import * as os from 'node:os';
 import * as path from 'node:path';
 import { NodeProcessRunner } from '../../../../src/shared/process/node-process-runner.js';
 import { DomainResult } from '../../../../src/shared/errors/domain-result.js';
-import { DECLARATION_GATE_FILE, FREEZE_GATE_REFUSAL, main as freezeGateMain, violationsFromOutput } from '../../../../scripts/lib/freeze-gate-main.js';
+import { CLI_ENTRY, DECLARATION_GATE_FILE, FREEZE_GATE_REFUSAL, cliEvaluate, main as freezeGateMain, violationsFromOutput } from '../../../../scripts/lib/freeze-gate-main.js';
 import type { Evaluate } from '../../../../scripts/lib/freeze-gate-main.js';
+import type { ProcessRunOptions, ProcessRunner } from '../../../../src/shared/interfaces/process-runner.js';
 import type { ManifestRow } from '../../../../scripts/lib/manifest.js';
 import {
   BASE_TYPECHECK_STEM,
@@ -196,6 +197,31 @@ describe('scripts/u5a-freeze-gate.ts main', () => {
       expect(await freezeGateMain([], REPO, { env, out: (t) => c.out.push(t), err: (t) => c.err.push(t) })).toBe(2);
       expect(c.err.join('')).toContain(FREEZE_GATE_REFUSAL);
     }
+  });
+
+  it('cliEvaluate runs the entry that calls main() (bin/firewall.ts) with the explicit environment only', async () => {
+    expect(CLI_ENTRY).toBe('bin/firewall.ts');
+    expect(fs.readFileSync(path.join(REPO, CLI_ENTRY), 'utf8')).toMatch(/\bmain\(\)/);
+    const seen: { command: string; args: readonly string[]; options: ProcessRunOptions }[] = [];
+    const fake: ProcessRunner = {
+      run: (command, args, options) => {
+        seen.push({ command, args, options });
+        const stdout = JSON.stringify({ violations: [{ functionId: 'FF-S01', filePath: 'src/domain/Task.ts', target: 't', discriminator: ['a'] }] });
+        return Promise.resolve(DomainResult.ok({ exitCode: 1, stdout, stderr: '', timedOut: false, durationMs: 1 }));
+      },
+    };
+    const env = { PATH: '/bin', HOME: '/h', NEO4J_URI: 'bolt://localhost:7691', NEO4J_USER: 'u', NEO4J_PASSWORD: 'p', OTHER: 'x' };
+    const r = await cliEvaluate(fake, REPO, env)('/tmp/copy', 'specs/clean-arch.yaml');
+    expect(r.success && r.data.violations).toEqual([{ functionId: 'FF-S01', filePath: 'src/domain/Task.ts', target: 't', discriminator: ['a'] }]);
+    expect(seen).toHaveLength(1);
+    const call = seen[0];
+    if (call === undefined) throw new Error('call');
+    expect(call.command).toBe(path.resolve(REPO, 'node_modules/.bin/tsx'));
+    expect(call.args).toEqual([
+      'bin/firewall.ts', 'evaluate', '--project', '/tmp/copy', '--spec', 'specs/clean-arch.yaml', '--format', 'json', '--symbolic-only', '--neo4j-uri', 'bolt://localhost:7691',
+    ]);
+    expect(call.options.cwd).toBe(REPO);
+    expect(Object.keys(call.options.env).sort()).toEqual(['HOME', 'NEO4J_PASSWORD', 'NEO4J_URI', 'NEO4J_USER', 'PATH']);
   });
 
   it('evaluates baseline and copies through the evaluator and fails on an undeclared key (fake evaluator)', async () => {
