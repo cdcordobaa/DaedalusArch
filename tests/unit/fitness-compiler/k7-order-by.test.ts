@@ -11,6 +11,7 @@ const EXPECTED_KEYS: Readonly<Record<string, string>> = {
   'no-layer-skip': 'source, target, relType',
   'no-domain-outward-dep': 'source, target, relType',
   'domain-purity': 'source, target, relType', // U3-R5 (BR-U3-20, §2.1): attributed cross-unit update
+  'domain-state-purity': 'filePath, class, target, relType, field', // U3-R6 (BR-U3-22, §2.2): attributed cross-unit update
   'dependency-inversion': 'filePath, class',
   'repository-pattern': 'filePath, implementation',
   'use-case-isolation': 'filePath, useCase',
@@ -33,7 +34,7 @@ const EXPECTED_KEYS: Readonly<Record<string, string>> = {
 };
 
 describe('ORDER BY on every template (BR-U1-29 a)', () => {
-  it('covers all 24 templates', () => {
+  it('covers all 25 templates', () => {
     expect([...CYPHER_TEMPLATES.keys()].sort()).toEqual(Object.keys(EXPECTED_KEYS).sort());
   });
 

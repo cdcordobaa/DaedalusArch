@@ -91,9 +91,9 @@ describe('BR-U1-19 (b): declared = (compiled − ADR-derived) + disabled + dropp
     checkDenominator(spec, spec.adrRules);
   });
 
-  it('presets/layered.yaml: 26 = (17 − 0) + 9 + 0 (BR-U1-19 a)', async () => {
+  it('presets/layered.yaml: 27 = (18 − 0) + 9 + 0 (BR-U1-19 a)', async () => {
     const spec = await loadSpec(path.join(ROOT, 'presets/layered.yaml'));
-    expect(checkDenominator(spec, spec.adrRules)).toEqual({ declared: 26, compiled: 17, adr: 0, disabled: 9, dropped: 0 });
+    expect(checkDenominator(spec, spec.adrRules)).toEqual({ declared: 27, compiled: 18, adr: 0, disabled: 9, dropped: 0 }); // U3-R6 (BR-U3-25): attributed cross-unit update
   });
 
   it('every term is live: ADR rules, enabled: false, and the three dropped kinds', async () => {

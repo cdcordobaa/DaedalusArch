@@ -172,16 +172,11 @@ describe('functionExecution on the golden shape (BR-U3-51, BR-U3-52)', () => {
     compiled = compileSpec(spec);
   });
 
-  it('specs/clean-arch.yaml with FF-P06 (as after R6) gives {27, 0, 26, 1, [], 2, [], 24, []} in symbolic-only mode', () => {
-    // FF-P06 arrives with U3-R6 (Step 17); here it is appended as the 27th declared, 24th symbolic function.
-    const ffP06: FitnessFunction = {
-      id: functionId('FF-P06'), name: 'domain-state-purity', dimension: 'pattern', severity: 'major', route: 'symbolic',
-      isBuiltIn: true, validated: true, enabled: true, excludePaths: [],
-    };
-    const fitnessFunctions = [...spec.fitnessFunctions, ffP06];
-    const withP06 = compiledOf({ ...compiled, symbolicQueries: [...compiled.symbolicQueries, query('FF-P06', 'domain-state-purity', 'pattern')] });
-    const evaluation: EvaluationResults = { symbolicResults: withP06.symbolicQueries.map((q) => symResult(String(q.functionId), q.dimension)), neuronalResults: [], failures: [] };
-    const report = ok(scoredOf(evaluation, 'symbolic-only'), factsOf({ compiled: withP06, compileFacts: compileFactsOf(fitnessFunctions, withP06), evaluation, mode: 'symbolic-only' }));
+  it('specs/clean-arch.yaml (FF-P06 declared since U3-R6) gives {27, 0, 26, 1, [], 2, [], 24, []} in symbolic-only mode', () => {
+    expect(spec.fitnessFunctions.find((f) => String(f.id) === 'FF-P06')).toMatchObject({ name: 'domain-state-purity', dimension: 'pattern', route: 'symbolic' });
+    expect(compiled.symbolicQueries.map((q) => String(q.functionId))).toContain('FF-P06');
+    const evaluation: EvaluationResults = { symbolicResults: compiled.symbolicQueries.map((q) => symResult(String(q.functionId), q.dimension)), neuronalResults: [], failures: [] };
+    const report = ok(scoredOf(evaluation, 'symbolic-only'), factsOf({ compiled, compileFacts: compileFactsOf(spec.fitnessFunctions, compiled), evaluation, mode: 'symbolic-only' }));
     expect(report.functionExecution).toEqual({
       declared: 27, adrDerived: 0, compiled: 26, disabled: 1, dropped: [], skippedByMode: 2, noJudgeUnits: [], executed: 24, failed: [],
     });

@@ -184,7 +184,7 @@ describe('BR-U3-05 hashed ids', () => {
   });
 });
 
-/** T-MAP (U3 business-rules.md §3) for the templates U3-R2 maps, plus R4's three and R5's `domain-purity`. */
+/** T-MAP (U3 business-rules.md §3), all 25 templates after U3-R6: R2's, R4's three, R5's `domain-purity`, R6's `domain-state-purity`. */
 const T_MAP: Readonly<Record<string, {
   filePath: string; target?: string; line?: string; lines?: string; isTypeOnly?: string;
   disc: string[]; evid: string[]; cycle?: string;
@@ -194,6 +194,7 @@ const T_MAP: Readonly<Record<string, {
   'no-layer-skip': { filePath: 'source', target: 'target', line: 'line', lines: 'lines', isTypeOnly: 'isTypeOnly', disc: ['relType'], evid: [] },
   'no-domain-outward-dep': { filePath: 'source', target: 'target', line: 'line', lines: 'lines', isTypeOnly: 'isTypeOnly', disc: ['relType'], evid: [] },
   'domain-purity': { filePath: 'source', target: 'target', line: 'line', lines: 'lines', isTypeOnly: 'isTypeOnly', disc: ['relType'], evid: [] },
+  'domain-state-purity': { filePath: 'filePath', target: 'target', line: 'line', disc: ['class', 'targetName', 'relType', 'field'], evid: [] },
   'dependency-inversion': { filePath: 'filePath', disc: ['class'], evid: ['ratio'] },
   'repository-pattern': { filePath: 'filePath', disc: ['implementation'], evid: [] },
   'use-case-isolation': { filePath: 'filePath', disc: ['useCase'], evid: [] },
@@ -256,7 +257,7 @@ describe('BR-U3-06 / BR-U3-66 T-MAP and TEMPLATE_DISCRIMINATORS (static)', () =>
     expect(mappingOf('dependency-direction').messageTemplate).toBe('{source} ({srcLayer}) {verb} from {target} ({tgtLayer})');
     expect(mappingOf('no-cyclic-deps').messageTemplate).toBe('Circular dependency: {cycle}');
     expect(mappingOf('abstraction-ratio').messageTemplate).toBe('Abstraction ratio {ratio} below threshold');
-    for (const name of Object.keys(T_MAP).filter((n) => T_MAP[n]?.filePath === 'filePath' && n !== 'abstraction-ratio')) {
+    for (const name of Object.keys(T_MAP).filter((n) => T_MAP[n]?.filePath === 'filePath' && n !== 'abstraction-ratio' && n !== 'domain-state-purity')) {
       expect({ name, m: mappingOf(name).messageTemplate }).toEqual({ name, m: 'Violation in {filePath}' });
     }
   });

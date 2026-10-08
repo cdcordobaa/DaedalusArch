@@ -6,17 +6,17 @@ describe('template-registry', () => {
       expect(TEMPLATE_REGISTRY.has('clean-architecture')).toBe(true);
     });
 
-    it('clean-architecture has 26 functions', () => {
+    it('clean-architecture has 27 functions', () => {
       const template = TEMPLATE_REGISTRY.get('clean-architecture')!;
-      expect(template.functions).toHaveLength(26);
+      expect(template.functions).toHaveLength(27); // U3-R6 (BR-U3-25): attributed cross-unit update
     });
 
-    it('has 24 symbolic + 2 neuronal/hybrid functions', () => {
+    it('has 25 symbolic + 2 neuronal/hybrid functions', () => {
       const template = TEMPLATE_REGISTRY.get('clean-architecture')!;
       const symbolic = template.functions.filter((f) => f.route === 'symbolic');
       const hybrid = template.functions.filter((f) => f.route === 'hybrid');
       const neuronal = template.functions.filter((f) => f.route === 'neuronal');
-      expect(symbolic).toHaveLength(24);
+      expect(symbolic).toHaveLength(25); // U3-R6 (BR-U3-25): attributed cross-unit update
       expect(hybrid).toHaveLength(0); // FF-N01 srp-semantic is neuronal from K14 (FR-22, BR-U1-22)
       expect(neuronal).toHaveLength(2); // FF-N01 srp-semantic (integrity), FF-N02 layering-intent (semantic)
     });

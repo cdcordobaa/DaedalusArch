@@ -108,12 +108,12 @@ describe('BR-U1-11 (a): validate prints the CompileCommand denominator', () => {
     );
   });
 
-  it('presets/layered.yaml prints declared 26, compiled 17, disabled 9 (BR-U1-19 a)', async () => {
+  it('presets/layered.yaml prints declared 27, compiled 18, disabled 9 (BR-U1-19 a)', async () => {
     const specPath = path.join(ROOT, 'presets/layered.yaml');
     const spec = await loadSpec(specPath);
     const { exitCode, text } = await runValidate(specPath, projectFor(spec, 'layered-counts'));
     expect(exitCode).toBe(0);
-    expect(text).toContain('declared 26, compiled 17, disabled 9\n');
+    expect(text).toContain('declared 27, compiled 18, disabled 9\n'); // U3-R6 (BR-U3-25)
     expect(text).toContain('  Disabled: FF-CV02 naming-services: no application layer\n');
     expect(text).toContain('  Disabled: FF-S04 ');
   });
@@ -145,7 +145,7 @@ confidence_thresholds: { high: 0.85, medium: 0.70, icc_minimum: 0.75 }
     const { exitCode, text } = await runValidate(specPath, path.join(TMP, 'no-such-project'));
     expect(exitCode).toBe(1);
     expect(text).toContain('[LAYER_DIR_NOT_FOUND]');
-    expect(text).toContain('declared 26, compiled 17, disabled 9\n');
+    expect(text).toContain('declared 27, compiled 18, disabled 9\n'); // U3-R6 (BR-U3-25)
   });
 });
 

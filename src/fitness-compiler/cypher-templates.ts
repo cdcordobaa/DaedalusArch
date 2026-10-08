@@ -60,7 +60,7 @@ function tmpl(
 }
 
 /**
- * Hardcoded Cypher templates for 24 symbolic fitness functions.
+ * Hardcoded Cypher templates for 25 symbolic fitness functions (FF-P06 `domain-state-purity` from U3-R6).
  * Each template uses $paramName placeholders for instantiation, and an exclude anchor
  * `/*EXCLUDE:<alias>*\/` or `/*EXCLUDE:nodes(<path>)*\/` where `exclude_paths` applies (BR-U1-32, BR-U1-44);
  * `abstraction-ratio` has none.
@@ -171,6 +171,25 @@ ORDER BY source, target, relType`,
     'Detects domain files importing or re-exporting forbidden framework/infrastructure packages (Package nodes, FR-11)',
     [],
     mapped('source', 'Domain file {source} {verb} forbidden package {target}', DEP_EDGE, FR12_DEP_COLUMNS(['target'])),
+  )],
+
+  ['domain-state-purity', tmpl(
+    'domain-state-purity',
+    // FR-21 (ADR-015 item 9; BR-U3-22, 23): a domain class holding an infrastructure Class or Interface
+    // through a FLOWS_TO (U2, D8 scope) or CONSTRUCTOR_INJECTS edge (BR-U2-30). Injection rows have no line.
+    `MATCH (c:Class)-[e:FLOWS_TO|CONSTRUCTOR_INJECTS]->(t)
+WHERE c.layer = $domainLayer AND t.layer = $infraLayer AND (t:Class OR t:Interface) /*EXCLUDE:c*/
+RETURN c.filePath AS filePath, c.name AS class, t.filePath AS target, t.name AS targetName,
+       type(e) AS relType, coalesce(e.field, e.parameterName) AS field, e.line AS line
+ORDER BY filePath, class, target, relType, field`,
+    ['domainLayer', 'infraLayer'],
+    ['domain', 'infrastructure'],
+    'structural',
+    'Detects domain classes that hold infrastructure state through a field (FLOWS_TO) or an injected constructor parameter (CONSTRUCTOR_INJECTS)',
+    [],
+    mapped('filePath', 'Domain class {class} holds infrastructure {targetName} via {relType} ({field})', {
+      targetColumn: 'target', lineColumn: 'line', discriminatorColumns: ['class', 'targetName', 'relType', 'field'],
+    }),
   )],
 
   ['dependency-inversion', tmpl(

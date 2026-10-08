@@ -31,6 +31,7 @@ const LAYERED_APPLICABLE = [
   'dependency-direction', 'no-cyclic-deps', 'no-layer-skip', 'domain-purity', 'module-fan-out',
   'component-instability', 'no-orphan-files', 'max-fan-in', 'abstraction-ratio', 'single-responsibility-proxy',
   'interface-segregation-proxy', 'inheritance-depth', 'naming-repos', 'test-file-pairing', 'no-index-logic',
+  'domain-state-purity', // U3-R6 (BR-U3-24, 25): business = domain, persistence = infrastructure
 ];
 
 async function parsed(file: string): Promise<{ spec: ParsedSpec; warnings: readonly { code: string; message: string }[] }> {
@@ -64,13 +65,13 @@ describe('BR-U1-17 layered library', () => {
     expect(spec.fullModeWeights).toMatchObject({ semantic: 0.04, integrity: 0.04, intent: 0 });
   });
 
-  it('(b) resolveTemplate(layered) is LAYERED_TEMPLATE: the 26 clean-architecture ids, no FR-07 values, FF-N01 integrity/neuronal, FF-N02 semantic', () => {
+  it('(b) resolveTemplate(layered) is LAYERED_TEMPLATE: the 27 clean-architecture ids, no FR-07 values, FF-N01 integrity/neuronal, FF-N02 semantic', () => {
     const t = resolveTemplate('layered');
     expect(t).toBe(LAYERED_TEMPLATE);
     expect(t?.style).toBe('layered');
     const clean = resolveTemplate('clean-architecture');
     expect(t?.functions.map((f) => String(f.id))).toEqual(clean?.functions.map((f) => String(f.id)));
-    expect(t?.functions).toHaveLength(26);
+    expect(t?.functions).toHaveLength(27); // U3-R6 (BR-U3-25): attributed cross-unit update
     const fr07 = Object.values(FUNCTION_FIELD_KEYS);
     expect(t?.functions.filter((f) => fr07.some((k) => k in f)).map((f) => String(f.id))).toEqual([]);
     const n01 = t?.functions.find((f) => String(f.id) === 'FF-N01');
@@ -131,12 +132,12 @@ describe('BR-U1-17 layered library', () => {
 });
 
 describe('BR-U1-19 (a) visible denominator and BR-U1-15 on presets/layered.yaml', () => {
-  it('declared 26, compiled 17, disabled 9 (7 by style, 2 by kind) with reasons; no ADR', async () => {
+  it('declared 27, compiled 18, disabled 9 (7 by style, 2 by kind) with reasons; no ADR', async () => {
     const { spec } = await parsed(LAYERED);
     const c = compiled(spec);
-    expect(spec.fitnessFunctions).toHaveLength(26);
+    expect(spec.fitnessFunctions).toHaveLength(27); // U3-R6 (BR-U3-25): attributed cross-unit update
     expect(spec.adrRules).toEqual([]);
-    expect(c.totalCompiled).toBe(17);
+    expect(c.totalCompiled).toBe(18); // U3-R6 (BR-U3-25): attributed cross-unit update
     expect(c.disabledFunctions.map((d) => [String(d.id), d.reason])).toEqual([
       ['FF-S04', STYLE], ['FF-P02', STYLE], ['FF-P03', STYLE], ['FF-P04', STYLE], ['FF-P05', STYLE], ['FF-C01', STYLE],
       ['FF-CV01', NO_APP], ['FF-CV02', NO_APP], ['FF-CV04', STYLE],
@@ -170,7 +171,7 @@ scoring:
 confidence_thresholds: { high: 0.85, medium: 0.60, icc_minimum: 0.70 }
 `);
     const { spec } = await parsed(file);
-    expect(spec.fitnessFunctions).toHaveLength(26);
+    expect(spec.fitnessFunctions).toHaveLength(27); // U3-R6 (BR-U3-25): attributed cross-unit update
     const r = compileFunctions(compilerInputFromSpec(spec));
     expect(r.success).toBe(false);
     if (r.success) return;

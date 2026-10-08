@@ -202,3 +202,81 @@ describeU3('U3-R5 domain-purity over Package nodes (FR-11; BR-U3-20, TF-01, TF-0
     ]);
   }, RUN_TIMEOUT_MS);
 });
+
+const DOMAIN_INFRA: LayerModel = {
+  layers: [
+    { name: 'domain', directories: ['src/domain/**'], naming: [], role: 'domain' },
+    { name: 'infrastructure', directories: ['src/infrastructure/**'], naming: [], role: 'repository' },
+  ],
+};
+
+const STATE_PARAMS = { domainLayer: 'domain', infraLayer: 'infrastructure' };
+const REPO_TARGET = 'src/infrastructure/InMemoryOrderRepository.ts';
+
+describeU3('U3-R6 domain-state-purity (FR-21; BR-U3-22, 23; TF-02..04)', () => {
+  const fixture = (name: string): string => `fixtures/unit/u3-state-purity/${name}`;
+  const shape = (v: Violation): Record<string, unknown> => ({
+    file: v.filePath, target: v.target, disc: v.discriminator, hasLine: 'line' in v, line: v.line, tag: v.tag,
+  });
+
+  it("TF-02: `private readonly repo = new InMemoryOrderRepository()` gives one FLOWS_TO violation with line and field 'repo'", async () => {
+    const { rows, violations } = await runTemplateOnFixture(fixture('field-new'), DOMAIN_INFRA, 'domain-state-purity', 'FF-P06', STATE_PARAMS);
+    expect(rows.map((r) => r.relType)).toEqual(['FLOWS_TO']);
+    expect(violations.map(shape)).toEqual([
+      { file: 'src/domain/Order.ts', target: REPO_TARGET, disc: ['Order', 'InMemoryOrderRepository', 'FLOWS_TO', 'repo'], hasLine: true, line: 5, tag: 'structural' },
+    ]);
+  }, RUN_TIMEOUT_MS);
+
+  it("TF-03: constructor injection gives one CONSTRUCTOR_INJECTS violation, field 'repo', no line key", async () => {
+    const { violations } = await runTemplateOnFixture(fixture('ctor-inject'), DOMAIN_INFRA, 'domain-state-purity', 'FF-P06', STATE_PARAMS);
+    expect(violations.map(shape)).toEqual([
+      { file: 'src/domain/Order.ts', target: REPO_TARGET, disc: ['Order', 'InMemoryOrderRepository', 'CONSTRUCTOR_INJECTS', 'repo'], hasLine: false, line: undefined, tag: 'structural' },
+    ]);
+  }, RUN_TIMEOUT_MS);
+
+  it('TF-04 (fixture): two injected parameters of one type reach the graph as one CONSTRUCTOR_INJECTS edge (U2 keep-first), so one violation', async () => {
+    // U2 keeps one CONSTRUCTOR_INJECTS edge per (class, target) (U2 business-logic-model.md step 5, keep-first addEdge);
+    // the template-level expectation (two edges → two violations) is pinned by the seeded test below (plan Step 17 deviation).
+    const { violations } = await runTemplateOnFixture(fixture('ctor-inject-two'), DOMAIN_INFRA, 'domain-state-purity', 'FF-P06', STATE_PARAMS);
+    expect(violations.map((v) => v.discriminator?.[3])).toEqual(['a']);
+  }, RUN_TIMEOUT_MS);
+
+  it('TF-04 (seeded graph): two CONSTRUCTOR_INJECTS edges to one infrastructure type give two violations (field a, b)', async () => {
+    const neo4j = neo4jConfig();
+    const repo = new Neo4jRepository({ neo4jUri: neo4j.uri, neo4jUser: neo4j.user, neo4jPassword: neo4j.password });
+    try {
+      const cleared = await repo.clearGraph();
+      if (!cleared.success) throw new Error('clearGraph failed');
+      const seeded = await repo.executeQuery(
+        `CREATE (c:APGNode:Class {id: 'c', name: 'Order', filePath: 'src/domain/Order.ts', layer: $domainLayer})
+         CREATE (t:APGNode:Class {id: 't', name: 'InMemoryOrderRepository', filePath: $target, layer: $infraLayer})
+         CREATE (c)-[:CONSTRUCTOR_INJECTS {parameterName: 'a'}]->(t)
+         CREATE (c)-[:CONSTRUCTOR_INJECTS {parameterName: 'b'}]->(t)`,
+        { ...STATE_PARAMS, target: REPO_TARGET },
+      );
+      if (!seeded.success) throw new Error('seed failed');
+      const t = CYPHER_TEMPLATES.get('domain-state-purity');
+      if (t === undefined) throw new Error('domain-state-purity missing');
+      const q: CypherQuery = {
+        functionId: functionId('FF-P06'), name: 'domain-state-purity', cypher: t.template, params: STATE_PARAMS,
+        dimension: 'pattern', severity: 'critical', route: 'symbolic', source: 'template',
+      };
+      const out = await evaluateSymbolic({ queries: [q], graphRepository: repo });
+      if (!out.success) throw new Error('evaluateSymbolic failed');
+      const vs = out.data.results[0]?.violations ?? [];
+      expect(vs.map((v) => ({ field: v.discriminator?.[3], hasLine: 'line' in v }))).toEqual([
+        { field: 'a', hasLine: false }, { field: 'b', hasLine: false },
+      ]);
+      expect(new Set(vs.map((v) => v.id)).size).toBe(2);
+    } finally {
+      await repo.clearGraph();
+      await repo.close();
+    }
+  }, RUN_TIMEOUT_MS);
+
+  it('correct-reference: FF-P06 compiles, executes and has no violation', async () => {
+    const r = await run('correct-reference');
+    const p06 = r.evaluationResults.symbolicResults.find((x) => String(x.functionId) === 'FF-P06');
+    expect({ rows: p06?.violations.length, passed: p06?.passed }).toEqual({ rows: 0, passed: true });
+  }, RUN_TIMEOUT_MS);
+});

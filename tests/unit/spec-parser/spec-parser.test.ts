@@ -26,8 +26,8 @@ describe('spec-parser', () => {
       expect(result.success).toBe(true);
       if (result.success) {
         const fns = result.data.fitnessFunctions;
-        // Should have 26 functions from template, all merged with spec overrides
-        expect(fns.length).toBe(26);
+        // Should have 27 functions from template, all merged with spec overrides
+        expect(fns.length).toBe(27); // U3-R6 (BR-U3-25): attributed cross-unit update
         // Check some specific functions
         const s01 = fns.find((f) => String(f.id) === 'FF-S01');
         expect(s01).toBeDefined();

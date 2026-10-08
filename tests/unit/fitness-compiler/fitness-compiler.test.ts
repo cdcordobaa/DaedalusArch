@@ -60,8 +60,8 @@ const hybridFn: FitnessFunction = {
 
 describe('fitness-compiler', () => {
   describe('CYPHER_TEMPLATES', () => {
-    it('contains 24 templates', () => {
-      expect(CYPHER_TEMPLATES.size).toBe(24);
+    it('contains 25 templates', () => {
+      expect(CYPHER_TEMPLATES.size).toBe(25); // U3-R6 (BR-U3-25): attributed cross-unit update
     });
 
     it('all templates have non-empty Cypher', () => {

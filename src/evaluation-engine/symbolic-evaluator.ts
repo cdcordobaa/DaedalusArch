@@ -141,6 +141,7 @@ function dimensionToViolationType(name: string): ViolationType {
     'no-layer-skip': 'LAYER_SKIP',
     'no-domain-outward-dep': 'DOMAIN_OUTWARD_DEP',
     'domain-purity': 'DOMAIN_PURITY_VIOLATION',
+    'domain-state-purity': 'DOMAIN_STATE_PURITY_VIOLATION', // FR-21 (BR-U3-14)
     'dependency-inversion': 'DEPENDENCY_INVERSION_VIOLATION',
     'repository-pattern': 'REPOSITORY_PATTERN_VIOLATION',
     'use-case-isolation': 'USE_CASE_ISOLATION_VIOLATION',
