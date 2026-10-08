@@ -86,10 +86,9 @@ describe('verdict-parser', () => {
     expect(parseVerdict('not json')).toBeNull();
   });
 
-  it('clamps confidence to [0, 1]', () => {
+  it('rejects confidence outside [0, 1] instead of clamping (BR-U4-VRD-03)', () => {
     const raw = JSON.stringify({ pass: true, confidence: 1.5, reasoning: '', evidence: [], violations: [] });
-    const v = parseVerdict(raw);
-    expect(v!.confidence).toBe(1);
+    expect(parseVerdict(raw)).toBeNull();
   });
 
   it('returns null if pass field missing', () => {
