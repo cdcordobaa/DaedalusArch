@@ -6,6 +6,7 @@ import type { JudgeProvenance, NeuralResultRow, StageTimings } from '../../share
 import { DomainResult } from '../../shared/errors/domain-result.js';
 import { buildEvaluationReport, NO_JUDGE } from '../../scoring-engine/report-builder.js';
 import type { RunFacts } from '../../scoring-engine/report-builder.js';
+import { validateReport } from '../../scoring-engine/report-schema-validator.js';
 import type { CompileFactsHolder } from './compile-command.js';
 
 export interface AssembleReportConfig {
@@ -26,7 +27,8 @@ export interface AssembleReportConfig {
  * S1: the one assembly point (FR-13, FR-14; BR-U3-50). Appended last by `createPipeline`; reads, in
  * order, the scored report, the APG facts, the ingestion facts, the compiled functions with their
  * `CompileFacts`, the evaluation results, the context warnings and the stage timings, calls
- * `buildEvaluationReport` and writes `setReport`. JSON, HTML, batch, golden and harness read this report.
+ * `buildEvaluationReport`, validates the result against the frozen schema (`REPORT_SCHEMA_INVALID`,
+ * BR-U3-59) and writes `setReport`. JSON, HTML, batch, golden and harness read this report.
  */
 export class AssembleReportCommand implements PipelineCommand {
   readonly name = 'assemble-report';
@@ -74,7 +76,11 @@ export class AssembleReportCommand implements PipelineCommand {
     const built = buildEvaluationReport(scored, facts);
     if (!built.success) return DomainResult.fail<undefined>(built.errors);
 
-    context.setReport(built.data);
+    // Fail closed: only a report that matches the frozen schema is written (BR-U3-59).
+    const valid = validateReport(built.data);
+    if (!valid.success) return DomainResult.fail<undefined>(valid.errors);
+
+    context.setReport(valid.data);
     context.addAuditEntry({
       timestamp: new Date().toISOString(),
       stage: this.name,

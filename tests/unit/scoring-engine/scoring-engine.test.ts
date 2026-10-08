@@ -1,7 +1,8 @@
 import { computeAVR, computeAHS } from '../../../src/scoring-engine/score-computer.js';
 import { determineVerdict } from '../../../src/scoring-engine/verdict.js';
 import { formatJSON, formatHuman, formatCSV, csvHeader } from '../../../src/scoring-engine/report-formatter.js';
-import { computeScores, ScoringStage } from '../../../src/scoring-engine/scoring-engine.js';
+import { ScoringStage } from '../../../src/scoring-engine/scoring-engine.js';
+import { scoreAndAssemble } from './assembled-report-fixture.js';
 import { avrScore, ahsScore, functionId, runId, confidence } from '../../../src/shared/types/value-objects.js';
 import { DomainResult } from '../../../src/shared/errors/domain-result.js';
 import { FirewallContext } from '../../../src/shared/context/firewall-context.js';
@@ -142,7 +143,7 @@ describe('verdict', () => {
 });
 
 describe('report-formatter', () => {
-  const makeReport = () => computeScores({
+  const makeReport = () => scoreAndAssemble({
     evaluationResults: { symbolicResults: [symResult('FF-S01', 'structural', true)], neuronalResults: [] },
     scoringWeights: WEIGHTS,
     confidenceThresholds: CONF_THRESHOLDS,
@@ -195,7 +196,7 @@ describe('report-formatter', () => {
   });
 });
 
-describe('computeScores (full)', () => {
+describe('scored and assembled report (computeScores removed at U3-R10)', () => {
   it('produces complete EvaluationReport', async () => {
     const results: EvaluationResults = {
       symbolicResults: [
@@ -206,7 +207,7 @@ describe('computeScores (full)', () => {
       neuronalResults: [],
     };
 
-    const result = await computeScores({
+    const result = await scoreAndAssemble({
       evaluationResults: results,
       scoringWeights: WEIGHTS,
       confidenceThresholds: CONF_THRESHOLDS,

@@ -8,7 +8,7 @@ import {
   APG_MISSING, NO_CLASSES_OR_INTERFACES, NO_FILE_TO_FILE_IMPORTS, UNIVERSAL_METRIC_QUERIES, computeUniversalMetrics,
 } from '../../../src/scoring-engine/universal-metrics.js';
 import type { UniversalMetric, UniversalMetricsOutput } from '../../../src/scoring-engine/universal-metrics.js';
-import { computeScores } from '../../../src/scoring-engine/scoring-engine.js';
+import { scoreAndAssemble } from './assembled-report-fixture.js';
 import { csvHeader, formatCSV, formatHuman, metricText } from '../../../src/scoring-engine/report-formatter.js';
 import { MAX_CYCLE_LENGTH } from '../../../src/fitness-compiler/cypher-templates.js';
 import { CYCLE_STRATEGY } from '../../../src/evaluation-engine/scc-cycles.js';
@@ -168,7 +168,7 @@ describe('BR-U3-45 cycle strategy', () => {
 
 describe('BR-U3-43 null printing and warning propagation', () => {
   async function reportWith(answers: Partial<Record<UniversalMetric, Answer>>): Promise<DomainResult<EvaluationReport>> {
-    return computeScores({
+    return scoreAndAssemble({
       evaluationResults: {
         symbolicResults: [{ functionId: functionId('FF-S01'), dimension: 'structural', passed: true, violations: [], executionTimeMs: 1, deterministic: true }],
         neuronalResults: [],
@@ -211,6 +211,8 @@ describe('BR-U3-43 null printing and warning propagation', () => {
     const r = await reportWith({ ...POPULATED, orphanFileCount: { fail: 'NEO4J_QUERY_FAILED' } });
     if (!r.success) throw new Error(JSON.stringify(r.errors));
     expect(r.data.universalMetrics.orphanFileCount).toBeNull();
-    expect(r.warnings?.map((w) => [w.code, w.context])).toEqual([['METRIC_001', { metric: 'orphanFileCount', code: 'NEO4J_QUERY_FAILED' }]]);
+    // Since U3-R10 the assembled report carries them (computeScores removed): stage compute-scores.
+    expect(r.data.warnings.filter((w) => w.code.startsWith('METRIC_')).map((w) => [w.code, w.context, w.stage]))
+      .toEqual([['METRIC_001', { metric: 'orphanFileCount', code: 'NEO4J_QUERY_FAILED' }, 'compute-scores']]);
   });
 });

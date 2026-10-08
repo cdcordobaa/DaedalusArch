@@ -1,4 +1,14 @@
-{
+/**
+ * The frozen report schema (FR-14, FR-36; U3 BR-U3-59, 60; domain-entities.md §7), embedded so the
+ * built CLI validates without reading `schemas/` at run time. Deep-equal to
+ * the repository schema file `report.schema.json` under `schemas/` (unit test); edit both together,
+ * and only as a reviewed U3 patch.
+ */
+
+/** `$id` of the frozen schema; with the CLI commit it identifies the report version (Q10 A). */
+export const REPORT_SCHEMA_ID = 'https://daedalus-arch.local/schemas/report.schema.json';
+
+export const REPORT_SCHEMA = {
   "$schema": "http://json-schema.org/draft-07/schema#",
   "$id": "https://daedalus-arch.local/schemas/report.schema.json",
   "$comment": "FROZEN at U3-R10 (FR-14, FR-36; U3 BR-U3-59, 60, 65; domain-entities.md §7). Embedded as REPORT_SCHEMA in src/scoring-engine/report-schema.ts (deep-equal test); validateReport runs it on every assembled report. Version = $id + the CLI commit (no reportSchemaVersion). A change reopens U3 as a reviewed patch. Enums mirror NODE_TYPES, EDGE_TYPES, DIMENSIONS (src/shared/types/enums.ts) and BUILT_IN_VIOLATION_TYPES; neuralResults rows are U4 NeuralResultRow (U4 DE §4.8).",
@@ -1289,4 +1299,4 @@
       }
     }
   }
-}
+} as const;

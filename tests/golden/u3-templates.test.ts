@@ -24,6 +24,7 @@ import type { GoldenCase } from './golden-cases.js';
 import { resolveGoldenEnv } from './golden-env.js';
 import type { GoldenNeo4jConfig } from './golden-env.js';
 import { runGoldenCase } from './golden-runner.js';
+import { validateReport } from '../../src/scoring-engine/report-schema-validator.js';
 import type { GoldenRun } from './golden-runner.js';
 
 const goldenEnv = resolveGoldenEnv();
@@ -318,6 +319,8 @@ describeU3('U3-R9 one assembly point (BR-U3-50, 55, 56, 64)', () => {
       expect(out.error).toBeUndefined();
       const cliReport = JSON.parse(out.stdout) as unknown;
       expect(withoutRunValues(cliReport)).toEqual(withoutRunValues(pipelineReport));
+      // U3-R10: the printed JSON validates against the frozen schema (FR-14 acceptance).
+      expect(validateReport(cliReport).success).toBe(true);
     } finally {
       fs.rmSync(apgStore, { recursive: true, force: true });
     }
@@ -337,5 +340,16 @@ describeU3('U3-R9 one assembly point (BR-U3-50, 55, 56, 64)', () => {
     const r = await run('variant-c-everything');
     expect(r.report.importResolution.external).toBe(3);
     expect(r.report.graphStats.edgeCountByType).toHaveProperty('FLOWS_TO');
+  }, RUN_TIMEOUT_MS);
+});
+
+describeU3('U3-R10 frozen schema (BR-U3-59, 60)', () => {
+  it.each(GOLDEN_CASES.map((g) => g.id))('%s: the assembled report and its JSON validate against the frozen schema', async (id) => {
+    const r = await run(id);
+    const asObject = validateReport(r.report);
+    const asJson = validateReport(JSON.parse(JSON.stringify(r.report)) as unknown);
+    expect([asObject.success ? 'ok' : asObject.errors.map((e) => e.message), asJson.success ? 'ok' : asJson.errors.map((e) => e.message)]).toEqual(['ok', 'ok']);
+    expect(r.report.judge).toEqual({ provider: 'none', model: 'none', runsPerUnit: 0 });
+    expect(r.report).not.toHaveProperty('neuralResults');
   }, RUN_TIMEOUT_MS);
 });

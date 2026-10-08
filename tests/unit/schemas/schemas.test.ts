@@ -1,13 +1,14 @@
 /**
- * Report and manifest schema drafts (U0 Step 29, FR-14 schema draft, FR-24 manifest draft).
- * No `src/` file reads the schemas in U0 (`validateReport` is U3).
+ * Report schema (frozen at U3-R10, FR-14) and manifest draft (U0 Step 29, FR-24).
+ * The report fixtures are scored and assembled as the pipeline does (`computeScores` was removed
+ * at U3-R10); the U3 schema rules themselves are tested in tests/unit/scoring-engine/report-schema.test.ts.
  */
 import { readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { Ajv } from 'ajv';
 import type { ValidateFunction } from 'ajv';
 import addFormats from 'ajv-formats';
-import { computeScores } from '../../../src/scoring-engine/scoring-engine.js';
+import { scoreAndAssemble, stubNeuralRows } from '../scoring-engine/assembled-report-fixture.js';
 import { formatJSON } from '../../../src/scoring-engine/report-formatter.js';
 import { DomainResult } from '../../../src/shared/errors/domain-result.js';
 import { DIMENSIONS, EDGE_TYPES, NODE_TYPES } from '../../../src/shared/types/enums.js';
@@ -28,7 +29,8 @@ const reportSchema = loadSchema('report.schema.json');
 const manifestSchema = loadSchema('manifest.schema.json');
 
 function newAjv(): Ajv {
-  const ajv = new Ajv({ strict: true, allErrors: true });
+  // Union types (`["integer","null"]`) are part of the frozen report schema (U3-R10).
+  const ajv = new Ajv({ strict: true, allErrors: true, allowUnionTypes: true, strictRequired: false });
   addFormats(ajv);
   return ajv;
 }
@@ -106,7 +108,7 @@ const neurResult = (id: string, dim: Dimension, verdict: 'pass' | 'fail', conf: 
 });
 
 async function formattedReport(mode: 'symbolic-only' | 'full'): Promise<unknown> {
-  const result = await computeScores({
+  const result = await scoreAndAssemble({
     evaluationResults: {
       symbolicResults: [
         symResult('FF-S01', 'structural', true),
@@ -127,7 +129,7 @@ async function formattedReport(mode: 'symbolic-only' | 'full'): Promise<unknown>
     noJudgeUnits: [],
   });
   if (!result.success) {
-    throw new Error(`computeScores failed: ${JSON.stringify(result.errors)}`);
+    throw new Error(`scoreAndAssemble failed: ${JSON.stringify(result.errors)}`);
   }
   return JSON.parse(formatJSON(result.data)) as unknown;
 }
@@ -213,6 +215,7 @@ const fullReport: EvaluationReport = {
   },
   droppedDimensions: [{ dimension: 'coupling', reason: 'execution_failure', declared: 2, executed: 0 }],
   judge: { provider: 'claude-cli', model: 'claude-model', effort: 'high', cliVersion: '1.0.0', cassetteMode: 'replay', runsPerUnit: 3 },
+  neuralResults: stubNeuralRows([neurResult('FF-I01', 'integrity', 'fail', 0.9)]),
 };
 
 const manifest = {
@@ -240,12 +243,12 @@ describe('schema drafts', () => {
     expect(() => ajv.compile(manifestSchema)).not.toThrow();
   });
 
-  it('are draft-07 drafts with the agreed $id values and DRAFT comments', () => {
+  it('are draft-07 schemas with the agreed $id values; the report schema is frozen (U3-R10), the manifest a draft', () => {
     expect(reportSchema.$schema).toBe('http://json-schema.org/draft-07/schema#');
     expect(manifestSchema.$schema).toBe('http://json-schema.org/draft-07/schema#');
     expect(reportSchema.$id).toBe('https://daedalus-arch.local/schemas/report.schema.json');
     expect(manifestSchema.$id).toBe('https://daedalus-arch.local/schemas/manifest.schema.json');
-    expect(String(reportSchema.$comment)).toMatch(/^DRAFT \(U0\)\. U3 freezes: adds the new fields to `required`/);
+    expect(String(reportSchema.$comment)).toMatch(/^FROZEN at U3-R10 /);
     expect(String(manifestSchema.$comment)).toMatch(/^DRAFT \(U0\)\. U5a completes/);
   });
 });
@@ -262,15 +265,16 @@ describe('report.schema.json', () => {
     expect(anyOf[0]?.enum).toEqual([...BUILT_IN_VIOLATION_TYPES]);
   });
 
-  it('requires only the fields the report has at HEAD', () => {
+  it('requires every run-level field (D-U0-2, BR-U3-55; frozen at U3-R10)', () => {
     expect(reportSchema.required).toEqual([
-      'runId', 'projectPath', 'specVersion', 'ahsDeterministic', 'verdict', 'perDimensionScores',
-      'violations', 'universalMetrics', 'evaluationMode', 'durationMs', 'warnings',
+      'runId', 'projectPath', 'specVersion', 'evaluationMode', 'durationMs', 'verdict', 'scoring', 'perDimensionScores',
+      'droppedDimensions', 'violations', 'functionExecution', 'functionResults', 'disabledFunctions', 'universalMetrics',
+      'graphStats', 'layerAnnotation', 'parseCoverage', 'importResolution', 'timings', 'judge', 'warnings',
     ]);
   });
 
   it.each([['symbolic-only' as const], ['full' as const]])(
-    'validates the current formatJSON output of a scoring-engine fixture (%s)',
+    'validates the formatJSON output of a scored and assembled fixture (%s)',
     async (mode) => {
       const report = await formattedReport(mode);
       const ok = validate(report);

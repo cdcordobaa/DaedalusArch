@@ -1,4 +1,7 @@
-export { ScoringStage, computeScores, computeScoredReport } from './scoring-engine.js';
+export { ScoringStage, computeScoredReport } from './scoring-engine.js';
+export { REPORT_SCHEMA, REPORT_SCHEMA_ID } from './report-schema.js';
+export { validateReport, parseReport, REPORT_SCHEMA_ERROR_LIMIT } from './report-schema-validator.js';
+export type { ReportSchemaError } from './report-schema-validator.js';
 export {
   computeAVR, computeAHS, tallyDimensions, scoreDimensions, inModeDimensions, verdictSourceOf,
 } from './score-computer.js';
