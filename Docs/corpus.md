@@ -56,3 +56,20 @@ Recorded 2026-10-08 (U2 `business-rules.md` BR-U2-06, BR-U2-08; ADR-016). These 
 - **Out-of-root alias** (BR-U2-08): an alias (`compilerOptions.paths` or `baseUrl`) that resolves to a file outside the project root and outside `node_modules` is not a project file. It yields a Package node named by the alias naming rule below, and it increments both `importResolution.external` and `importResolution.externalOutOfRootAlias`, so the count of such imports is visible next to `external` in every report.
 - **Alias naming** (BR-U2-06): a package-shaped alias is named by its root (`@scope/name/sub` → `@scope/name`, BR-U2-05). A non-package-shaped alias is named by the matched `paths` key with a trailing `/*` removed (`~/*` → `~`, `#internal/*` → `#internal`), or by the first segment for a `baseUrl` match (`src/x` → `src`); its scope is `npm`.
 - **Per-project alias-name listing**: every non-package-shaped alias name used on a corpus project is to be listed here for that project. The listing is a Build and Test obligation, produced after the corpus-run freeze lifts; it is not part of U2 code generation.
+
+## Corpus specs (BR-U5b-77, BR-U1-25)
+
+Recorded 2026-10-08 (U5b Code Generation, ADR-015 item 4, ADR-017 item 4). The four existing corpus specs were untracked files in the clones (see "Working-tree state"). They are committed under `corpus/specs/` in four separate commits, in this order: (1) unchanged; (2) FR-22 migration (`scripts/migrate-corpus-spec-cli.ts --step fr22`); (3) FF-CV02 correction (`--step cv02`); (4) the ADR-017 item 4 domain-layer remap (`scripts/remap-domain-layer-cli.ts`). dev-nest and the added projects get their specs in the E7 mapping step.
+
+### 1. Committed unchanged
+
+Each target is a byte-for-byte copy of its source (`cmp` exit 0); source paths are relative to the parent directory of this repository.
+
+| Source | Target | sha256 (source = target) |
+|---|---|---|
+| `../realworld-test/firewall.spec.yaml` | `corpus/specs/realworld-test.yaml` | `ebda5fdec7b78191d85d1438d223d5ddfc3cb2dc775c53171785a60b000a411e` |
+| `../ghostfolio-test/apps/api/firewall.spec.yaml` | `corpus/specs/ghostfolio-test.yaml` | `ebda5fdec7b78191d85d1438d223d5ddfc3cb2dc775c53171785a60b000a411e` |
+| `../truthy-demo/firewall.spec.yaml` | `corpus/specs/truthy-demo.yaml` | `ebda5fdec7b78191d85d1438d223d5ddfc3cb2dc775c53171785a60b000a411e` |
+| `../dry-run-test/firewall.spec.yaml` | `corpus/specs/dry-run-test.yaml` | `74bad9609a0146b6b44788a2485d9ad76c7b7aeb8889c1161fa1a5b668076565` |
+
+realworld-test, ghostfolio-test and truthy-demo carry the same spec text (the NestJS preset as it was used in the earlier runs); dry-run-test differs.
