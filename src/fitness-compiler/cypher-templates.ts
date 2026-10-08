@@ -8,6 +8,9 @@ function rm(filePathColumn: string, messageTemplate: string, metadataColumns?: s
 
 const DEFAULT_RM: ResultMapping = { filePathColumn: 'filePath', messageTemplate: 'Violation in {filePath}' };
 
+/** Styles of the seven Clean-Architecture-only templates (business-rules.md §3.1, frozen; BR-U1-18). */
+const CLEAN_AND_NESTJS: readonly string[] = ['clean-architecture', 'nestjs'];
+
 function tmpl(
   functionName: string,
   template: string,
@@ -16,8 +19,12 @@ function tmpl(
   description: string,
   optionalParams: string[] = [],
   resultMapping: ResultMapping = DEFAULT_RM,
+  applicableStyles?: readonly string[], // undefined = every style (FR-20, AD-8)
 ): CypherTemplate {
-  return { functionName, template, requiredParams, requiredLayerKinds, optionalParams, description, resultMapping };
+  return {
+    functionName, template, requiredParams, requiredLayerKinds, optionalParams, description, resultMapping,
+    ...(applicableStyles !== undefined ? { applicableStyles } : {}),
+  };
 }
 
 /**
@@ -70,6 +77,7 @@ RETURN src.filePath AS source, tgt.filePath AS target, src.layer AS srcLayer, tg
     'Detects imports that skip intermediate layers (e.g., infrastructure directly importing domain, bypassing application)',
     [],
     rm('source', '{source} ({srcLayer}) skips layers to import {target} ({tgtLayer})', ['target', 'srcLayer', 'tgtLayer']),
+    ['layered'], // closed layering (BR-U1-43, U1 Q22 B)
   )],
 
   ['no-domain-outward-dep', tmpl(
@@ -82,6 +90,7 @@ RETURN src.filePath AS source, tgt.filePath AS target, tgt.layer AS violatingLay
     'Detects domain layer files that import from outer layers',
     [],
     rm('source', 'Domain file {source} imports from {target} in {violatingLayer}', ['target', 'violatingLayer']),
+    CLEAN_AND_NESTJS,
   )],
 
   // ── PATTERN ─────────────────────────────────────────────────────────────────
@@ -111,6 +120,9 @@ RETURN c.name AS class, c.filePath AS filePath,
     ['applicationLayer', 'threshold'],
     ['application'],
     'Checks that application-layer classes inject interfaces, not concrete classes (DIP)',
+    [],
+    DEFAULT_RM,
+    CLEAN_AND_NESTJS,
   )],
 
   ['repository-pattern', tmpl(
@@ -128,6 +140,9 @@ RETURN '' AS interface, c.name AS implementation, c.filePath AS filePath`,
     ['domainLayer', 'infraLayer'],
     ['domain', 'infrastructure'],
     'Verifies infrastructure repositories implement domain interfaces',
+    [],
+    DEFAULT_RM,
+    CLEAN_AND_NESTJS,
   )],
 
   ['use-case-isolation', tmpl(
@@ -143,6 +158,8 @@ RETURN uc.name AS useCase, uc.filePath AS filePath, collect(dep.name) AS violati
     ['application', 'domain'],
     'Verifies use cases only depend on domain and application layers',
     ['useCaseRoles'],
+    DEFAULT_RM,
+    CLEAN_AND_NESTJS,
   )],
 
   ['controller-no-entity', tmpl(
@@ -155,6 +172,8 @@ RETURN ctrl.name AS controller, entity.name AS entity, ctrl.filePath AS filePath
     ['infrastructure', 'domain'],
     'Detects controllers directly referencing domain entities',
     ['entityRoles'],
+    DEFAULT_RM,
+    CLEAN_AND_NESTJS,
   )],
 
   // ── COUPLING ────────────────────────────────────────────────────────────────
@@ -173,6 +192,9 @@ RETURN f.filePath AS filePath, f.name AS name,
     ['domainLayer', 'threshold'],
     ['domain'],
     'Domain layer instability must be below threshold (lower = more stable)',
+    [],
+    DEFAULT_RM,
+    CLEAN_AND_NESTJS,
   )],
 
   ['module-fan-out', tmpl(
@@ -331,6 +353,9 @@ RETURN c.name AS class, c.filePath AS filePath`,
     ['infraLayer', 'pattern'],
     ['infrastructure'],
     'Verifies controller classes follow naming pattern',
+    [],
+    DEFAULT_RM,
+    CLEAN_AND_NESTJS,
   )],
 
   ['test-file-pairing', tmpl(

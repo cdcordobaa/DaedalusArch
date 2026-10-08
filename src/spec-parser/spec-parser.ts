@@ -107,6 +107,7 @@ export async function parseSpec(
     verdictThresholds,
     confidenceThresholds,
     adrRules,
+    ...(style ? { style: style.toLowerCase() } : {}), // FR-20: lower-cased architecture.style, absent when not declared
   };
 
   // 9. Business rule validation

@@ -31,23 +31,30 @@ describe('compilerInputFromSpec (BR-U1-11)', () => {
   });
 
   it('omits the style key when the spec has none', async () => {
-    const spec = await loadSpec();
+    // specs/daedalus-arch.yaml declares no style (ParsedSpec.style is filled from U1 K4 on).
+    const result = await parseSpec({ specFilePath: path.resolve(__dirname, '../../../specs/daedalus-arch.yaml') });
+    if (!result.success) throw new Error('daedalus-arch.yaml did not parse');
+    const spec = result.data;
     expect(spec.style).toBeUndefined();
     const input = compilerInputFromSpec(spec);
     expect(Object.prototype.hasOwnProperty.call(input, 'style')).toBe(false);
     expect(Object.keys(input).sort()).toEqual(['adrRules', 'fitnessFunctions', 'layerModel', 'scoringWeights']);
   });
 
-  it('FitnessCompilerStage and CompileCommand compile the same as the pre-change literal', async () => {
+  it('FitnessCompilerStage and CompileCommand compile the same as a literal carrying the spec style', async () => {
     const spec = await loadSpec();
+    expect(spec.style).toBe('clean-architecture'); // filled from U1 K4 on
     const legacy = compileFunctions({
       fitnessFunctions: spec.fitnessFunctions,
       adrRules: spec.adrRules,
       layerModel: spec.layerModel,
       scoringWeights: spec.scoringWeights,
+      style: 'clean-architecture',
     });
     expect(legacy.success).toBe(true);
     if (!legacy.success) return;
+    // style reaches C5 (BR-U1-11): FF-S03 is style-disabled
+    expect(legacy.data.disabledFunctions.map((d) => String(d.id))).toEqual(['FF-S03']);
 
     const stageCtx = new FirewallContext(runId('test-run'));
     const stageResult = await new FitnessCompilerStage().execute(spec, stageCtx);
