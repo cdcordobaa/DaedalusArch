@@ -129,14 +129,14 @@ ORDER BY source, target`,
   ['dependency-inversion', tmpl(
     'dependency-inversion',
     `MATCH (c:Class)-[:CONSTRUCTOR_INJECTS]->(dep)
-WHERE c.layer = $applicationLayer
+WHERE c.layer IN $applicationLayers
 WITH c, count(CASE WHEN dep:Interface THEN 1 END) AS interfaceDeps, count(dep) AS totalDeps
 WHERE totalDeps > 0 /*EXCLUDE:c*/
 RETURN c.name AS class, c.filePath AS filePath,
        toFloat(interfaceDeps) / totalDeps AS ratio,
        CASE WHEN toFloat(interfaceDeps) / totalDeps < $threshold THEN true ELSE false END AS violation
 ORDER BY filePath, class`,
-    ['applicationLayer', 'threshold'],
+    ['applicationLayers', 'threshold'],
     ['application'],
     'Checks that application-layer classes inject interfaces, not concrete classes (DIP)',
     [],
@@ -164,15 +164,15 @@ ORDER BY filePath, implementation`,
   ['use-case-isolation', tmpl(
     'use-case-isolation',
     `MATCH (uc:Class)
-WHERE uc.layer = $applicationLayer
+WHERE uc.layer IN $applicationLayers
   AND ANY(role IN $useCaseRoles WHERE uc.name CONTAINS role)
 WITH uc
 MATCH (uc)-[:CONSTRUCTOR_INJECTS]->(dep)
-WHERE dep.layer IS NOT NULL AND dep.layer <> $domainLayer AND dep.layer <> $applicationLayer /*EXCLUDE:uc*/
+WHERE dep.layer IS NOT NULL AND dep.layer <> $domainLayer AND NOT dep.layer IN $applicationLayers /*EXCLUDE:uc*/
 WITH uc, apoc.coll.sort(collect(dep.name)) AS violations
 RETURN uc.name AS useCase, uc.filePath AS filePath, violations
 ORDER BY filePath, useCase`,
-    ['applicationLayer', 'domainLayer', 'useCaseRoles'],
+    ['applicationLayers', 'domainLayer', 'useCaseRoles'],
     ['application', 'domain'],
     'Verifies use cases only depend on domain and application layers',
     ['useCaseRoles'],
@@ -335,16 +335,16 @@ ORDER BY filePath, class, depth`,
     `MATCH (c:Class)
 WHERE c.layer IS NOT NULL
 WITH c, c.layer AS layer,
-     CASE c.layer
-       WHEN $domainLayer THEN $domainPattern
-       WHEN $applicationLayer THEN $applicationPattern
-       WHEN $infraLayer THEN $infraPattern
+     CASE
+       WHEN c.layer = $domainLayer THEN $domainPattern
+       WHEN c.layer IN $applicationLayers THEN $applicationPattern
+       WHEN c.layer = $infraLayer THEN $infraPattern
        ELSE '.*'
      END AS expectedPattern
 WHERE NOT c.name =~ expectedPattern /*EXCLUDE:c*/
 RETURN c.name AS class, c.filePath AS filePath, layer, expectedPattern
 ORDER BY filePath, class`,
-    ['domainLayer', 'applicationLayer', 'infraLayer', 'domainPattern', 'applicationPattern', 'infraPattern'],
+    ['domainLayer', 'applicationLayers', 'infraLayer', 'domainPattern', 'applicationPattern', 'infraPattern'],
     ['domain', 'application', 'infrastructure'],
     'Checks class naming conventions per layer',
   )],
@@ -352,12 +352,12 @@ ORDER BY filePath, class`,
   ['naming-services', tmpl(
     'naming-services',
     `MATCH (c:Class)
-WHERE c.layer = $applicationLayer
+WHERE c.layer IN $applicationLayers
   AND ANY(role IN ['Service', 'UseCase'] WHERE c.name CONTAINS role)
   AND NOT c.name =~ $pattern /*EXCLUDE:c*/
 RETURN c.name AS class, c.filePath AS filePath
 ORDER BY filePath, class`,
-    ['applicationLayer', 'pattern'],
+    ['applicationLayers', 'pattern'],
     ['application'],
     'Verifies service classes follow naming pattern',
   )],

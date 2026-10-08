@@ -291,31 +291,29 @@ export function instantiateTemplate(
 /**
  * Template parameters for one function (C8). Layers come from the kind binding (FR-19); FR-07 fields are
  * read typed with `!= null` presence, so `0` and `[]` are values (BR-U1-03, BR-U1-07); `pattern` is
- * compiled to an anchored regex (BR-U1-06). BR-SPEC-10 (`bound-param-checker.ts`) judges boundness.
+ * compiled to an anchored regex (BR-U1-06). The map is restricted to the template's bound
+ * `requiredParams ∪ optionalParams`, keys in template-declared order, required first (BR-U1-33, NFR-02);
+ * `excludePatterns` is appended later by the caller. BR-SPEC-10 (`bound-param-checker.ts`) judges boundness.
  */
 export function buildParams(
   ff: FitnessFunction,
   layerModel: LayerModel,
   binding: LayerKindBinding,
 ): Record<string, unknown> {
-  const params: Record<string, unknown> = {};
+  const candidates: Record<string, unknown> = {};
   const layers = layerModel.layers;
 
-  // Common layer params, bound by kind (FR-19, BR-U1-14). The scalar applicationLayer is the first
-  // application layer until the list parameter $applicationLayers lands (K9).
-  const applicationLayer = binding.applicationLayers[0];
-  if (binding.domainLayer != null) params['domainLayer'] = binding.domainLayer;
-  if (applicationLayer != null) params['applicationLayer'] = applicationLayer;
-  if (binding.infraLayer != null) params['infraLayer'] = binding.infraLayer;
+  // Layer params, bound by kind (FR-19, BR-U1-14): scalars for domain and infrastructure, the list
+  // $applicationLayers for application (BR-U1-37).
+  if (binding.domainLayer != null) candidates.domainLayer = binding.domainLayer;
+  candidates.applicationLayers = [...binding.applicationLayers];
+  if (binding.infraLayer != null) candidates.infraLayer = binding.infraLayer;
 
   // Layer ordering for dependency-direction
   // Layers are listed bottom-up in the spec: domain (0), ..., application (N-1)
   // Violation = lower-index layer file importing from higher-index layer
   const layerOrder = layers.map((l) => l.name);
-  params['layerOrder'] = layerOrder;
-  // Keep outerLayers/innerLayers for backward compat with other templates
-  params['outerLayers'] = layerOrder.slice(1).length > 0 ? layerOrder.slice(1) : layerOrder;
-  params['innerLayers'] = layerOrder.slice(0, -1).length > 0 ? layerOrder.slice(0, -1) : layerOrder;
+  candidates.layerOrder = layerOrder;
 
   // Allowed layer transitions for no-layer-skip
   // Layers are listed inner-to-outer: [infrastructure, application, presentation]
@@ -323,28 +321,37 @@ export function buildParams(
   // So allowed transitions are: layer[i+1] → layer[i] (next-outer imports next-inner)
   const allowedTransitions: string[] = [];
   for (let i = 0; i < layerOrder.length - 1; i++) {
-    allowedTransitions.push(`${layerOrder[i + 1]}>${layerOrder[i]}`);
+    allowedTransitions.push(`${String(layerOrder[i + 1])}>${String(layerOrder[i])}`);
   }
-  params['allowedTransitions'] = allowedTransitions;
+  candidates.allowedTransitions = allowedTransitions;
 
   // Function-specific params: threshold and the typed FR-07 fields (BR-U1-03)
-  if (ff.threshold != null) params['threshold'] = ff.threshold;
-  if (ff.forbiddenImports != null) params['forbiddenImports'] = ff.forbiddenImports;
-  if (ff.maxPublicMethods != null) params['maxPublicMethods'] = ff.maxPublicMethods;
-  if (ff.maxDependencies != null) params['maxDependencies'] = ff.maxDependencies;
-  if (ff.maxInterfaceMethods != null) params['maxInterfaceMethods'] = ff.maxInterfaceMethods;
-  if (ff.maxDepth != null) params['maxDepth'] = ff.maxDepth;
-  if (ff.pattern != null) params['pattern'] = compilePattern(ff.pattern);
+  if (ff.threshold != null) candidates.threshold = ff.threshold;
+  if (ff.forbiddenImports != null) candidates.forbiddenImports = ff.forbiddenImports;
+  if (ff.maxPublicMethods != null) candidates.maxPublicMethods = ff.maxPublicMethods;
+  if (ff.maxDependencies != null) candidates.maxDependencies = ff.maxDependencies;
+  if (ff.maxInterfaceMethods != null) candidates.maxInterfaceMethods = ff.maxInterfaceMethods;
+  if (ff.maxDepth != null) candidates.maxDepth = ff.maxDepth;
+  if (ff.pattern != null) candidates.pattern = compilePattern(ff.pattern);
 
   // Default role patterns
-  params['useCaseRoles'] = ['UseCase', 'Service', 'Handler'];
-  params['entityRoles'] = ['Entity', 'Aggregate', 'ValueObject'];
+  candidates.useCaseRoles = ['UseCase', 'Service', 'Handler'];
+  candidates.entityRoles = ['Entity', 'Aggregate', 'ValueObject'];
 
   // Default naming patterns per layer
-  params['domainPattern'] = '.*';
-  params['applicationPattern'] = '.*';
-  params['infraPattern'] = '.*';
+  candidates.domainPattern = '.*';
+  candidates.applicationPattern = '.*';
+  candidates.infraPattern = '.*';
 
+  // Restriction (BR-U1-33): only the template's declared parameters, required first, in declared order.
+  const template = CYPHER_TEMPLATES.get(ff.name);
+  const params: Record<string, unknown> = {};
+  if (!template) return params;
+  for (const name of [...template.requiredParams, ...template.optionalParams]) {
+    if (name in params) continue;
+    const value = candidates[name];
+    if (value != null) params[name] = value;
+  }
   return params;
 }
 
