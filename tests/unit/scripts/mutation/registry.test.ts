@@ -90,6 +90,7 @@ function fakeOperator(id: string): MutationOperator {
     id,
     role: 'positive',
     core: true,
+    dimension: 'structural',
     expectedTemplates: [],
     operatorCollateral: [],
     coveredByTemplates: [],
@@ -98,6 +99,7 @@ function fakeOperator(id: string): MutationOperator {
     findSites: () => [],
     checkPreconditions: () => ({ ok: true }),
     apply: () => DomainResult.fail([{ code: 'TEST', message: 'not applied' }]),
+    plannedEdges: () => [],
   };
 }
 

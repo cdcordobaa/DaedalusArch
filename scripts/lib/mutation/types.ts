@@ -96,7 +96,36 @@ export interface MutationSite {
 
 export type LineRule = 'site-line' | 'first-edge-line' | 'none';
 
-export type DiscriminatorColumn = 'class' | 'interface' | 'controller' | 'entity' | 'field' | 'relType' | 'cycle';
+/**
+ * Discriminator selectors of a location rule. The design's seven plus the four U3 BR-U3-66 adds (`targetName`,
+ * `implementation`, `useCase`, `scc`), so every T-MAP `disc` column is expressible (DV-U5a-13).
+ */
+export type DiscriminatorColumn =
+  | 'class'
+  | 'interface'
+  | 'controller'
+  | 'entity'
+  | 'field'
+  | 'relType'
+  | 'cycle'
+  | 'targetName'
+  | 'implementation'
+  | 'useCase'
+  | 'scc';
+
+export const DISCRIMINATOR_COLUMNS: readonly DiscriminatorColumn[] = [
+  'class',
+  'interface',
+  'controller',
+  'entity',
+  'field',
+  'relType',
+  'cycle',
+  'targetName',
+  'implementation',
+  'useCase',
+  'scc',
+];
 
 export interface LocationRule {
   /** Template name. */
@@ -142,6 +171,10 @@ export interface PreconditionContext {
   readonly cycleRowCap: number;
   /** Compiled threshold per template name the spec declares (BR-U5a-14 ii). */
   readonly thresholds: Readonly<Record<string, number>>;
+  /** Compiled parameters per enabled template (`maxPublicMethods`, `pattern`, …; DV-U5a-13). */
+  readonly templateParams: Readonly<Record<string, Readonly<Record<string, unknown>>>>;
+  /** Templates the spec declares and C5 compiles (enabled, applicable). */
+  readonly enabledTemplates: readonly string[];
 }
 
 export interface LineShift {
@@ -156,6 +189,11 @@ export interface MutationEdit {
   readonly lineShifts: readonly LineShift[];
   /** Planned File→File edges; used by the cycle-cap precondition; must equal edges(G') − edges(G). */
   readonly newEdges: readonly { readonly source: string; readonly target: string }[];
+  /**
+   * Values the location rules read after the edit (DV-U5a-13): `line` = the site line in mutant coordinates
+   * (`site-line` keys), `values` = discriminator values by selector (e.g. `class`, `field`, `relType`).
+   */
+  readonly keyAnchor?: { readonly line?: number; readonly values: Readonly<Record<string, string>> };
 }
 
 export type OperatorRole = 'positive' | 'twin' | 'probe';
@@ -167,6 +205,8 @@ export interface MutationOperator {
   readonly id: string;
   readonly role: OperatorRole;
   readonly core: boolean;
+  /** Catalogue dimension; used when no expected template is compiled by the spec (DV-U5a-13). */
+  readonly dimension: Dimension;
   readonly twinOf?: string;
   /** [] for twins and judge probes. */
   readonly expectedTemplates: readonly LocationRule[];
@@ -187,6 +227,20 @@ export interface MutationOperator {
     ctx: PreconditionContext,
   ): PreconditionResult;
   apply(project: ProjectHandle, site: MutationSite, rng: SeededRng): DomainResult<MutationEdit>;
+  /** File→File edges the edit will add (cycle-cap precondition before the edit; DV-U5a-13). */
+  plannedEdges(site: MutationSite): readonly { readonly source: string; readonly target: string }[];
+  /** Package imports the edit will add (stub provisioning before the edit, BR-U5a-10). */
+  plannedImportUses?(site: MutationSite): readonly PlannedImportUse[];
+  /** Files the edit will edit or create (judge-placement precondition, BR-U5a-27). */
+  plannedFiles?(site: MutationSite): readonly string[];
+}
+
+/** A package import an operator will add (same shape as `stubs.ts` `ImportUse`). */
+export interface PlannedImportUse {
+  readonly specifier: string;
+  readonly fromFile: string;
+  readonly form: 'default' | 'named' | 'named-class' | 'namespace';
+  readonly name?: string;
 }
 
 /** Cycle key form (BR-U5a-14 i; D-U5a-14). Explicit input, never inferred. */

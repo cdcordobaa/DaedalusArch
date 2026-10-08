@@ -21,10 +21,13 @@
  *   the representative cycle (BFS-shortest cycle through the smallest member, neighbours in ascending order, as
  *   U3's evidence cycle).
  *
- * Both `maxLength` and `cap` are parameters; Step 25 wires them to U1's `MAX_CYCLE_LENGTH` / `CYCLE_ROW_CAP`. The
+ * Both `maxLength` and `cap` are parameters; callers pass U1's `MAX_CYCLE_LENGTH` / `CYCLE_ROW_CAP` (re-exported here). The
  * strategy is an explicit input with no default here (D-U5a-14).
  */
 import type { CycleStrategy, ExpectedKey, ImportGraph } from './types.js';
+
+/** U1's frozen bounds (BR-U1-28), wired into every caller of this module (Step 25). */
+export { CYCLE_ROW_CAP, MAX_CYCLE_LENGTH } from '../../../src/fitness-compiler/cypher-templates.js';
 
 function cmp(a: string, b: string): number {
   return a < b ? -1 : a > b ? 1 : 0;
