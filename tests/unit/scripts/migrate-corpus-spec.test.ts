@@ -182,8 +182,12 @@ describe('(c) a migrated corpus-shaped spec parses without SPEC_004 (FR-22, BR-U
   // The inline SPEC above is a fragment (no layers' directories, weights or thresholds) and cannot
   // pass parseSpec, so (c) uses a full nestjs-style spec: presets/nestjs.yaml with the three FR-22
   // keys and the FF-CV02 pattern put back to their pre-migration values (the corpus shape).
-  const preset = fs.readFileSync(path.join(ROOT, 'presets/nestjs.yaml'), 'utf-8');
-  const legacy = preset
+  // FF-N01/FF-N02 names go back to their pre-U4-K6 values too: U4 renames them in the corpus by its own later
+  // step (BR-U4-RUB-03), so fr22 + cv02 restore the preset with the old names (`presetOldNames`).
+  const presetOldNames = fs.readFileSync(path.join(ROOT, 'presets/nestjs.yaml'), 'utf-8')
+    .replace('    name: architectural-integrity\n', '    name: srp-semantic\n')
+    .replace('    name: intent-alignment\n', '    name: layering-intent\n');
+  const legacy = presetOldNames
     .replace('    dimension: integrity\n    severity: major\n    route: neuronal\n', '    dimension: solid\n    severity: major\n    route: hybrid\n')
     .replace('    name: layering-intent\n    dimension: semantic\n', '    name: layering-intent\n    dimension: intent\n')
     .replace(/^ {4}integrity: 0\.04$/m, '    intent: 0.04')
@@ -222,7 +226,7 @@ describe('(c) a migrated corpus-shaped spec parses without SPEC_004 (FR-22, BR-U
     expect(cv02.editedPaths).toEqual(['fitness_functions[FF-CV02].pattern']);
     expect(cv02.untouched).toEqual([]);
     expect(await spec004(cv02.text, 'migrated.yaml')).toEqual([]);
-    expect(cv02.text).toBe(preset);
+    expect(cv02.text).toBe(presetOldNames);
   });
 });
 

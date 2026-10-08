@@ -64,24 +64,24 @@ const CLEAN_ARCH_FUNCTIONS: readonly FitnessFunction[] = [
   ff('FF-CV06', 'no-index-logic', 'convention', 'advisory', 'symbolic', false),
   // ── Neuronal ──
   // FR-22 producers (BR-U1-22): FF-N01 is the integrity check (neuronal), FF-N02 the semantic one.
-  // Id FF-N01 and name `srp-semantic` stay until U4 renames them with the rubric.
-  ff('FF-N01', 'srp-semantic', 'integrity', 'major', 'neuronal', false, {
+  // Names and rubric text from src/llm-critic/rubric.ts (U4-K6, BR-U4-RUB-01/02); the single-source test checks them.
+  ff('FF-N01', 'architectural-integrity', 'integrity', 'major', 'neuronal', false, {
     semanticCriteria: {
-      rule: 'A class should have exactly one reason to change',
+      rule: 'The module\'s files form one coherent unit with a consistent abstraction and boundary.',
       rubric: {
-        pass: 'Class responsibilities are cohesive and serve a single purpose',
-        fail: 'Class mixes unrelated concerns (data access + business logic, etc.)',
-        evidenceRequired: 'Cite specific methods that indicate mixed responsibilities',
+        pass: 'The files serve one cohesive concern, use the module\'s abstractions consistently, and keep each rule or invariant in one place.',
+        fail: 'The files split into unrelated concerns, duplicate a rule or invariant that should live in one place, or bypass the module\'s own abstractions.',
+        evidenceRequired: 'Name each file involved and cite the declarations that show the split, the duplication or the bypass.',
       },
     },
   }),
-  ff('FF-N02', 'layering-intent', 'semantic', 'major', 'neuronal', false, {
+  ff('FF-N02', 'intent-alignment', 'semantic', 'major', 'neuronal', false, {
     semanticCriteria: {
-      rule: 'Code should respect the documented architectural intent',
+      rule: 'The unit\'s responsibilities match the role of its declared layer.',
       rubric: {
-        pass: 'File is in the correct layer and dependencies respect layer boundaries',
-        fail: 'File logic or dependencies contradict the architectural layer it lives in',
-        evidenceRequired: 'Cite the specific import or logic that violates the intent',
+        pass: 'Every responsibility in the file belongs to the role and kind of its declared layer, and agrees with any ADR prose given.',
+        fail: 'The file carries a responsibility that belongs to a different layer kind, for example persistence, transport or framework logic in a domain file, or business rules in an infrastructure or presentation file.',
+        evidenceRequired: 'Name the file and cite the function, method or statement that carries the misplaced responsibility, and the layer kind it belongs to.',
       },
     },
   }),
