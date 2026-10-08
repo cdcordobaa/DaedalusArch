@@ -1,0 +1,40 @@
+{
+  "attempts": 1,
+  "durationMs": 0,
+  "effort": null,
+  "functionId": "FF-N02",
+  "ignoredOptions": [
+    "model",
+    "effort",
+    "maxTokens"
+  ],
+  "key": "378fa2896b4dee0ea1535067fdbb3d5dd9f1da08e1c6be5faffecdbdb2356584-r0-1",
+  "model": "claude-opus-5-5",
+  "outcome": {
+    "kind": "valid"
+  },
+  "parsedVerdict": {
+    "confidence": 0.9,
+    "evidence": [
+      "scripted evidence"
+    ],
+    "pass": true,
+    "reasoning": "Scripted fixture verdict: pass",
+    "violations": []
+  },
+  "prompt": "## Rule\nThe unit's responsibilities match the role of its declared layer.\n\n## Rubric\nPass: Every responsibility in the file belongs to the role and kind of its declared layer, and agrees with any ADR prose given.\nFail: The file carries a responsibility that belongs to a different layer kind, for example persistence, transport or framework logic in a domain file, or business rules in an infrastructure or presentation file.\nEvidence required: Name the file and cite the function, method or statement that carries the misplaced responsibility, and the layer kind it belongs to.\nOut of scope: import direction and layer-dependency rules, which are checked symbolically.\n\n## Layer model\n- domain (kind: domain): src/domain/**\n- application (kind: application): src/application/**\n- infrastructure (kind: infrastructure): src/infrastructure/**\n\n## Unit\nKind: file\nId: src/domain/repositories/ICategoryRepository.ts\nLayer: domain\nUnit files:\n- src/domain/repositories/ICategoryRepository.ts\n\n## Source\n=====SOURCE-BEGIN src/domain/repositories/ICategoryRepository.ts=====\nimport { Category } from '../entities/Category';\n\nexport interface ICategoryRepository {\n  findById(id: string): Promise<Category | null>;\n  findAll(): Promise<Category[]>;\n  save(category: Category): Promise<Category>;\n  delete(id: string): Promise<void>;\n}\n\n=====SOURCE-END=====\n\n## Graph excerpt\n{\"edges\":[{\"from\":\"src/domain/repositories/ICategoryRepository.ts\",\"to\":\"src/domain/entities/Category.ts\",\"type\":\"IMPORTS\"}],\"nodes\":[{\"kind\":\"File\",\"layer\":\"domain\",\"path\":\"src/domain/entities/Category.ts\"},{\"kind\":\"File\",\"layer\":\"domain\",\"path\":\"src/domain/repositories/ICategoryRepository.ts\"},{\"kind\":\"Interface\",\"layer\":\"domain\",\"name\":\"ICategoryRepository\",\"path\":\"src/domain/repositories/ICategoryRepository.ts\"}]}\n\n## Instructions\nJudge the unit against the rule and rubric. Return the JSON object the schema requires. Set pass to false if any file of the unit fails the rubric.\n",
+  "provider": "mock",
+  "recordedAt": "2026-10-08T16:37:46.569Z",
+  "repetition": 0,
+  "requestHash": "378fa2896b4dee0ea1535067fdbb3d5dd9f1da08e1c6be5faffecdbdb2356584",
+  "resolvedModel": "mock-model",
+  "response": "{\"pass\":true,\"confidence\":0.9,\"reasoning\":\"Scripted fixture verdict: pass\",\"evidence\":[\"scripted evidence\"],\"violations\":[]}",
+  "runIndex": 1,
+  "schemaVersion": 2,
+  "unitId": "src/domain/repositories/ICategoryRepository.ts",
+  "usage": {
+    "inputTokens": 489,
+    "outputTokens": 31
+  },
+  "usedOptions": {}
+}
