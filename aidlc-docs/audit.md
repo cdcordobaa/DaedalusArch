@@ -1148,3 +1148,11 @@ Plan checkboxes ticked. Auto-approved under standing approval; no blocking or ma
 **Context**: CONSTRUCTION — Build and Test, group BT-C complete; next per run order BT-E Steps 26–27. Open: E-1 (decision (a), now with the ghostfolio exclusion question), E-2, decision (b), OI-BT-C1..C3.
 
 ---
+
+## Build and Test — Group BT-D (Steps 21–25) held by E-1 (auto-approved)
+**Timestamp**: 2026-10-08T22:52:39Z
+**User Input**: "Execute group BT-D of the Build and Test plan (Steps 21–25: H13 latency gate on ghostfolio apps/api, PROFILE rows for FF-S02 and the universal cycle metric, ADR-016 e flip only on the gate result with P-2, NFR-07 table) under the standing approval; do not decide pending (a) or (b)."
+**AI Response**: "Step 21 entry gate measured on the worktree at 3e07b9f and not met: --check-prereg experiments/latency-gate/plan.json exit 1, PREREG_REFUSED (artefact-changed) on corpus/specs/dry-run-test.yaml (Step 14 RUB-03 edit); prereg.json still v1 (P-1 / Step 43 not committed); operator catalogue and generator protocol DRAFT. Per BR-U5a-40 the latency-gate run is the first corpus run, so Steps 21–25 were not executed and are marked Held in the plan (c6209a6). No latency run, no PROFILE rows, no ADR-016 e decision (CYCLE_STRATEGY stays 'cypher' by default, not by gate result), no P-2, no NFR-07 table; no snapshot change, no CHANGES.md line, no results/ file; no PR (nothing on the BT branch). Live judge calls: 0 of 40."
+**Context**: CONSTRUCTION — Build and Test, group BT-D held by E-1 (pending author decision (a), BR-U5a-37 CAT_SHORTFALL 69 < 80). Resume at Step 21 after Steps 42–43; BT-B and BT-E Steps 28+ also wait on Step 24.
+
+---
