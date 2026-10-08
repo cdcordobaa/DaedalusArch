@@ -45,3 +45,4 @@ Generator plan file used for Steps 39–41 (scratch, not committed; outside the 
 | — | 2026-10-08 | 34 | preflight (no live session) | 0 | 0 | 0 |
 | 1 | 2026-10-08 | 39 | confinement probes (`confinement-cli.ts`, opus, Bash set): 5 / 5 pass | 5 | 0 | 5 |
 | 2 | 2026-10-08 | 40 | model-usage envelopes (Bash set), one per pinned id: opus, sonnet, haiku; all model-valid | 3 | 0 | 8 |
+| 3 | 2026-10-08 | 41 | pilot (`generate-projects.ts --pilot`): opus, task-management, none / minimal-prose / full-aac; 3 ok | 3 | 0 | **11** (cap reached; 0 of 3 retries used) |
