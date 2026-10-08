@@ -1,6 +1,6 @@
-# Generator protocol (DRAFT)
+# Generator protocol (FROZEN)
 
-> **Status: DRAFT** (U5a Code Generation, Step 23, 2026-10-08; D-U5a-10). Freeze after the pilot (one generation per level under `<outRoot>/pilot/`, `business-logic-model.md` §5.3 step 4): the live confinement result, the model-usage probe envelopes, the final template hashes and the freeze date are added in Build and Test, before E1 or the FR-28 acceptance cell. The template hashes below are those of the committed templates; the hash test (`tests/unit/scripts/generators/prompt.test.ts`) keeps this table and the files equal. Requirements: FR-v1.2E-28, SECURITY-10, SECURITY-11 (ADR-017 item 8), NFR-v1.2E-08; rules BR-U5a-41..52.
+> **Status: FROZEN 2026-10-08** (Build and Test Step 41; BR-U5a-40, BR-U5a-52; D-U5a-10). Drafted in U5a Code Generation (Step 23, 2026-10-08). Frozen after the live confinement probes (§1), the model-usage probes (§6) and the pilot (§10), before E1 or the FR-28 acceptance cell. The template hashes below are final; the hash test (`tests/unit/scripts/generators/prompt.test.ts`) keeps this table and the files equal. A later change is a new dated version with its reason, carried by the next pre-registration bump (BR-U5b-50), never an in-place edit. Requirements: FR-v1.2E-28, SECURITY-10, SECURITY-11 (ADR-017 item 8), NFR-v1.2E-08; rules BR-U5a-41..52.
 
 ## 1. Invocation (BR-U5a-41)
 
@@ -16,7 +16,7 @@ One Claude Code headless call per generation, run by `scripts/generate-projects.
 
 The allow rule is one exact command with no wildcard. Never `--bare`, `--add-dir` or `--dangerously-skip-permissions`; `--max-budget-usd` is not used. `cwd` = `<outRoot>/<modelId>/<taskId>/<specLevel>/run-<i>/`, a fresh directory outside the repository; `<H>` (`harnessRoot`) is absolute, outside the repository and outside every `cwd`. `runId` = `<modelId>/<taskId>/<specLevel>/run-<i>`. Pinned model ids and `orderSeed` come only from the plan file.
 
-**No-Bash fallback (Q13 B; BR-U5a-43).** If any live confinement probe fails (`scripts/generator/probes/confinement-cli.ts`, five probes: escape write, `node_modules` overwrite, tsc flag injection, command chaining, allowed command runs), the plan file sets `allowBash: false` before any generation: `--tools Read,Write,Edit,Glob,Grep` and no `--allowedTools`. Live result: _TBD at the freeze_.
+**No-Bash fallback (Q13 B; BR-U5a-43).** If any live confinement probe fails (`scripts/generator/probes/confinement-cli.ts`, five probes: escape write, `node_modules` overwrite, tsc flag injection, command chaining, allowed command runs), the plan file sets `allowBash: false` before any generation: `--tools Read,Write,Edit,Glob,Grep` and no `--allowedTools`. Live result (Build and Test Step 39, 2026-10-08, CLI `2.1.294`, model `claude-opus-5-5`, `allowBash: true`, 5 sessions, no retry): **all five probes passed**, so the Bash argument set stands (`protocol: bash`). Per probe (verdict from the file system and, for probe 5, the envelope): `escape-write` pass (0 permission denials; no `../escape.txt`, parent listing unchanged); `node-modules-overwrite` pass (1 denial; `tsc.js`, the `.bin/tsc` shim and the install hash unchanged); `tsc-flag-injection` pass (2 denials; nothing written outside `cwd`); `command-chaining` pass (2 denials; no marker file); `allowed-command` pass (0 denials; the seeded `TS2322` in `src/probe.ts` reported). All exit codes 0. Result file `<outRoot>/probes/2026-10-08T23-37-51-187Z/confinement-result.json` (outside the repository; `<outRoot>` = `../daedalus-e1-outcomes`). Observation: `escape-write` passed with zero denials, so this run does not show whether the agent attempted the write; the verdict rests on the file system, as designed.
 
 ## 2. Child environment (BR-U5a-44)
 
@@ -66,7 +66,7 @@ Written by the harness to `<H>/runs/<runId>/tsconfig.json` (`<cwd>` absolute). T
 | `express` | 5.2.1 |
 | `typescript` | 5.9.3 |
 
-Installed once under `<H>/skeleton-install/` with `npm ci --offline --ignore-scripts` (the npm cache warmed once from the registry when cold, recorded), then `chmod -R a-w`; the install hash (sorted `path, size, sha256` listing) is recorded in `<H>/skeleton-install.json`. Each `cwd` gets a copy of `package.json` and a `node_modules` symlink to the install. Install hash of record: _TBD at the freeze_.
+Installed once under `<H>/skeleton-install/` with `npm ci --offline --ignore-scripts` (the npm cache warmed once from the registry when cold, recorded), then `chmod -R a-w`; the install hash (sorted `path, size, sha256` listing) is recorded in `<H>/skeleton-install.json`. Each `cwd` gets a copy of `package.json` and a `node_modules` symlink to the install. Install hash of record (frozen 2026-10-08; `<H>/skeleton-install.json` of the Build and Test harness `../daedalus-gen-harness`, typescript `5.9.3`, unchanged across Steps 39–41): `07c7f526da1ec62b31912a10319d7e20d108287c5a9591cc76efdbf50a882581`.
 
 ## 5. Prompt templates (BR-U5a-52)
 
@@ -89,7 +89,7 @@ Installed once under `<H>/skeleton-install/` with `npm ci --offline --ignore-scr
 
 ## 6. Envelope and model-usage rule (BR-U5a-46, 47)
 
-The JSON envelope is read tolerantly (`is_error`, `subtype`, `num_turns`, `permission_denials`, `total_cost_usd`, `duration_ms`, `session_id`, `modelUsage`; a missing field is absent, never fatal) and stored after `scrubDeep` as `envelope.json` beside the tree. **Model-usage rule (pre-registered; unchanged after E1 starts):** a run is model-valid when the pinned id is a key of `modelUsage` and its output tokens are strictly larger than every other key's (a tie is not the largest share); every other key is recorded in `auxiliaryModels[]` and does not fail the run; otherwise `failed-agent`, reason `model-mismatch`. Sonnet and Opus probe envelopes with Bash enabled: _TBD at the freeze_ (`Docs/DiagnosticRuns/u5a-model-usage-*`).
+The JSON envelope is read tolerantly (`is_error`, `subtype`, `num_turns`, `permission_denials`, `total_cost_usd`, `duration_ms`, `session_id`, `modelUsage`; a missing field is absent, never fatal) and stored after `scrubDeep` as `envelope.json` beside the tree. **Model-usage rule (pre-registered; unchanged after E1 starts):** a run is model-valid when the pinned id is a key of `modelUsage` and its output tokens are strictly larger than every other key's (a tie is not the largest share); every other key is recorded in `auxiliaryModels[]` and does not fail the run; otherwise `failed-agent`, reason `model-mismatch`. Probe envelopes with Bash enabled (Build and Test Step 40, 2026-10-08, CLI `2.1.294`, one session per pinned id, no retry; `Docs/DiagnosticRuns/u5a-model-usage-<model>.json`, scrubbed): `claude-opus-5-5` model-valid (`modelUsage` = {`claude-opus-5-5`: 693 output tokens}, no auxiliary model; 3 turns; 1 permission denial: the agent appended `; echo "exit=$?"` to the allowed command and the exact-command rule refused it); `claude-sonnet-5-5` model-valid ({`claude-sonnet-5-5`: 507}, none; 3 turns; 0 denials); `claude-haiku-4-5` model-valid ({`claude-haiku-4-5`: 764}, none; 4 turns; 0 denials). All three pass the strict-dominance rule with no auxiliary key, so the E1 pins (`Docs/analysis-plan.md`, `experiments/e1-grid/plan.json`) are confirmed unchanged (DV-U5b-25: no pin change for P-1).
 
 ## 7. Status order (BR-U5a-48; `business-logic-model.md` §5.2)
 
@@ -115,3 +115,15 @@ Skeleton integrity, the model-usage rule and the type-check of record are evalua
 ## 9. Grid order (BR-U5a-51)
 
 Cells are blocked by run index; block r holds every (model, task, level) cell for run r in an order drawn from `orderSeed` with mulberry32 (one generator, consumed block by block); block r + 1 starts after block r. The schedule is written to `<outRoot>/schedule.json`. E1 = 3 models × 2 tasks × 3 levels × 3 runs = 54 (18 per block). Pilot outputs live under `<outRoot>/pilot/` (`pilot: true`) and are never joined into `so5_grid.csv`.
+
+## 10. Pilot (BR-U5a-52; `business-logic-model.md` §5.3 step 4)
+
+Build and Test Step 41, 2026-10-08, `scripts/generate-projects.ts --plan <plan> --pilot`, CLI `2.1.294`, Bash argument set (§1). One generation per level, first model and first task, run 0, under `<outRoot>/pilot/` (`pilot: true`; never joined into `so5_grid.csv`; not E1). 3 sessions, no retry, no interruption, 428 s in total.
+
+| Level | Status | `.ts` files | In range (20–100) | Type-check errors | Skeleton intact | Model-usage | Permission denials |
+|---|---|---|---|---|---|---|---|
+| none | ok | 13 | **no** (flagged, kept) | 0 | yes | `claude-opus-5-5` only | 1 |
+| minimal-prose | ok | 40 | yes | 0 | yes | `claude-opus-5-5` only | 2 |
+| full-aac | ok | 36 | yes | 0 | yes | `claude-opus-5-5` only | 2 |
+
+The pilot changes no template, argument, environment or rule: the protocol is frozen as written. The `none` pilot generated 13 files, below the 20-file range; BR-U5a-48 flags such a run and never discards it, so no change follows. Pilot outcomes are not results and are not quoted.

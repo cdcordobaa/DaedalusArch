@@ -66,7 +66,7 @@ describe('instantiatePrompt (BR-U5a-52)', () => {
   });
 });
 
-describe('Docs/generator-protocol.md (DRAFT)', () => {
+describe('Docs/generator-protocol.md (FROZEN, Build and Test Step 41)', () => {
   it('template hashes equal the committed templates (six templates, three files)', () => {
     for (const level of SPEC_LEVELS) {
       for (const task of TASK_IDS) {
@@ -77,7 +77,8 @@ describe('Docs/generator-protocol.md (DRAFT)', () => {
       const file = sha256Text(fs.readFileSync(path.join(REPO, 'scripts/generator/prompts', `${level}.md`), 'utf8'));
       expect(PROTOCOL).toContain(`| \`scripts/generator/prompts/${level}.md\` | \`${file}\` |`);
     }
-    expect(PROTOCOL).toMatch(/^# Generator protocol \(DRAFT\)/);
+    expect(PROTOCOL).toMatch(/^# Generator protocol \(FROZEN\)/);
+    expect(PROTOCOL).not.toContain('_TBD at the freeze_');
   });
 
   it('the pinned tsconfig block equals buildHarnessTsconfig with <cwd> substituted (BR-U5a-42)', () => {
