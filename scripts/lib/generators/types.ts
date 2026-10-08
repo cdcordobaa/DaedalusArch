@@ -174,3 +174,16 @@ export interface HarnessTsconfig {
   /** [`${cwd}/src/**\/*.ts`], absolute. */
   readonly include: readonly [string];
 }
+
+/** BR-U5a-44: the only parent variables a generator child process sees (through C10 `buildChildEnv`). */
+export const GENERATOR_ENV_ALLOW: readonly string[] = Object.freeze([
+  'HOME',
+  'USER',
+  'LOGNAME',
+  'PATH',
+  'SHELL',
+  'LANG',
+  'LC_ALL',
+  'TERM',
+  'TMPDIR',
+]);
