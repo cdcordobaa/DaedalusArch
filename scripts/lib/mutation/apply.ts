@@ -59,6 +59,7 @@ import type {
   MutationOperator,
   PreconditionContext,
   PreparedBase,
+  ProjectHandle,
   ProvisionedStub,
 } from './types.js';
 
@@ -214,6 +215,21 @@ async function rejectApply(state: RunState, dir: string, rngSeed: number, k: num
   return r.success ? DomainResult.ok('rejected') : r;
 }
 
+/**
+ * Class and interface counts of the copy's project (every source file, as the extractor counts `Class` and
+ * `Interface` nodes). A change between before and after the edit is "the edit adds or removes a class or
+ * interface", which declares the keyless `project-metric` collateral (BR-U5a-14 iv). A rename changes no count.
+ */
+function typeDeclarationCounts(handle: ProjectHandle): { readonly classes: number; readonly interfaces: number } {
+  let classes = 0;
+  let interfaces = 0;
+  for (const sf of handle.project.getSourceFiles()) {
+    classes += sf.getClasses().length;
+    interfaces += sf.getInterfaces().length;
+  }
+  return { classes, interfaces };
+}
+
 /** One application at one site on a fresh copy: row or rejection. */
 async function applyOne(state: RunState, chosen: EligibleSite, k: number, selection: 'sampled' | 'forced'): Promise<DomainResult<'row' | 'rejected'>> {
   const { env, base, op, compiled, trace } = state;
@@ -231,6 +247,7 @@ async function applyOne(state: RunState, chosen: EligibleSite, k: number, select
 
   const handle = openImportGraphProject(dir, base.tsconfigPath);
   const before = sourceTexts(handle);
+  const typesBefore = typeDeclarationCounts(handle);
   trace('apply');
   let applied: DomainResult<MutationEdit>;
   try {
@@ -243,6 +260,8 @@ async function applyOne(state: RunState, chosen: EligibleSite, k: number, select
   }
   trace('line-shifts');
   const after = sourceTexts(handle);
+  const typesAfter = typeDeclarationCounts(handle);
+  const typesAddedOrRemoved = typesBefore.classes !== typesAfter.classes || typesBefore.interfaces !== typesAfter.interfaces;
   const editedFiles: string[] = [];
   const createdFiles: string[] = [];
   const lineShifts: LineShift[] = [];
@@ -284,7 +303,7 @@ async function applyOne(state: RunState, chosen: EligibleSite, k: number, select
   const declared = declaredKeys(compiled, op, chosen.site, edit);
   if (!declared.success) return rejectApply(state, dir, rngSeed, k, declared.errors.map((x) => `${x.code}: ${x.message}`).join('; '));
   const keysSoFar = [...declared.data.keys, ...declared.data.operatorCollateral.flatMap((c) => (c.key !== undefined ? [c.key] : []))];
-  const sc = siteCollateral(state.baseGraph, mutantGraph, edit, collateralContext(compiled, state.opts.cycleStrategy, keysSoFar));
+  const sc = siteCollateral(state.baseGraph, mutantGraph, edit, { ...collateralContext(compiled, state.opts.cycleStrategy, keysSoFar), typesAddedOrRemoved });
   if (!sc.success) return rejectApply(state, dir, rngSeed, k, sc.errors.map((x) => `${x.code}: ${x.message}`).join('; '));
   trace('expected');
   const expected = expectedBlock(compiled, op, chosen.site, edit, sc.data);

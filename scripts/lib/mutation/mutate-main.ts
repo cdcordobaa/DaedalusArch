@@ -35,6 +35,7 @@ import type { Split } from '../manifest.js';
 import { applyMutation } from './apply.js';
 import type { MutationEnv } from './apply.js';
 import { MASTER_SEED, loadCatalogueRegistry } from './operators/index.js';
+import { loadProbeRegistry } from './operators/sp/index.js';
 import { makePreparedBase, prepareFixtureBase } from './prepare.js';
 import type { PreparedBaseInput } from './prepare.js';
 import type { OperatorRegistry } from './registry.js';
@@ -57,7 +58,7 @@ const SPLITS: readonly Split[] = ['dev', 'held-out', 'probe'];
 
 export interface MutateMainDeps {
   readonly runner: ProcessRunner;
-  /** Registry lookup by operator id (catalogue, plus the SP probe registry once it exists). */
+  /** Registry lookup by operator id: `SP-*` → the probe registry, else the catalogue registry. */
   readonly registryFor: (repoRoot: string, operatorId: string) => DomainResult<OperatorRegistry>;
   readonly now?: () => string;
   readonly out: (text: string) => void;
@@ -67,7 +68,7 @@ export interface MutateMainDeps {
 export function defaultMutateDeps(): MutateMainDeps {
   return {
     runner: new NodeProcessRunner(),
-    registryFor: (repoRoot) => loadCatalogueRegistry(repoRoot),
+    registryFor: (repoRoot, operatorId) => (operatorId.startsWith('SP-') ? loadProbeRegistry(repoRoot) : loadCatalogueRegistry(repoRoot)),
     out: (t) => process.stdout.write(t),
     err: (t) => process.stderr.write(t),
   };
