@@ -1039,3 +1039,12 @@ Plan checkboxes ticked. Auto-approved under standing approval; no blocking or ma
 **Context**: CONSTRUCTION — U5b Code Generation Part 2, Group 3 done; next Group 4 (Step 11).
 
 ---
+
+## v1.2 Evaluation-Readiness — U4 Group 7 (Steps 26–27): rubric
+**Timestamp**: 2026-10-08T16:26:32Z
+**User Input**: None (standing approval of 2026-10-08T00:30:00Z; orchestrator started U4 Group 7)
+**Intent**: Replace the SRP and layering-intent rubrics of FF-N01/FF-N02 with the frozen-draft Integrity and Semantic rubric text and names from one source, and provide the corpus rubric step script for Build and Test, without any snapshot change.
+**AI Response**: Group 7 complete on v1.2e-u4-neural-path. Step 26 3049e78 (U4-K6): FF-N01 architectural-integrity and FF-N02 intent-alignment with the BR-U4-RUB-01 text from src/llm-critic/rubric.ts in the three presets, the two specs and the template registry (BR-U4-RUB-02); rubric-single-source test (+34: registry enumerated, five YAMLs raw and parsed, retired-name/SRP grep, probe-vocabulary check). Attributed cross-unit updates in the same commit: two U1 tests that rebuild a legacy spec from a preset now revert the names first (k14-integrity-dimension, migrate-corpus-spec); the U5a full-aac prompt template re-embeds the preset verbatim (BR-U5a-52) with its DRAFT hash table in Docs/generator-protocol.md updated (precedent ed32c02). Step 27 55501c4: scripts/corpus-rubric-u4.ts (applyRubric/assertNoOldRubric, in-place scalar edits) and scripts/corpus-rubric-u4-cli.ts (--check; --self-test exits 1), +16 tests. Gates per step: T clean; U 2594 then 2610 (171 suites); L 497 ≤ 558; B 80 ≤ 85; G strict 74 executed, 0 skipped, snapshots, hashes and CHANGES.md unchanged (no golden change); S and X clean. Gate G-CI run 37807867731 on 55501c4 green (unit 2595 + integration 15, golden 74, lint 497); recorded in 1209bea. Open item: tests/fixtures/u5a/layered/firewall.spec.yaml still carries the old rubric (outside RUB-02; for RUB-03 or U5a).
+**Context**: CONSTRUCTION — U4 Code Generation Part 2, Group 7 done; next Group 8 (Steps 28–29).
+
+---
