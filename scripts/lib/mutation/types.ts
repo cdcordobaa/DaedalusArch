@@ -193,7 +193,13 @@ export interface MutationEdit {
    * Values the location rules read after the edit (DV-U5a-13): `line` = the site line in mutant coordinates
    * (`site-line` keys), `values` = discriminator values by selector (e.g. `class`, `field`, `relType`).
    */
-  readonly keyAnchor?: { readonly line?: number; readonly values: Readonly<Record<string, string>> };
+  readonly keyAnchor?: {
+    readonly line?: number;
+    /** Per-template line overriding `line` (e.g. MO-DF01: the field line for `domain-state-purity`). */
+    readonly lines?: Readonly<Record<string, number>>;
+    /** Selector values; a `<selector>@<template>` entry overrides `<selector>` for that template only. */
+    readonly values: Readonly<Record<string, string>>;
+  };
 }
 
 export type OperatorRole = 'positive' | 'twin' | 'probe';

@@ -251,7 +251,7 @@ export function resolveKey(
   }
   const discriminator: string[] = [];
   for (const col of rule.discriminator ?? []) {
-    const v = col === 'relType' ? (values.relType ?? 'IMPORTS') : values[col];
+    const v = values[`${col}@${rule.template}`] ?? (col === 'relType' ? (values.relType ?? 'IMPORTS') : values[col]);
     if (v === undefined || v.length === 0) {
       return fail('MUT_KEY_UNRESOLVED', `${rule.template}: no value for discriminator ${col}`);
     }
@@ -260,7 +260,7 @@ export function resolveKey(
   if (rule.line === 'none') {
     return DomainResult.ok({ functionId, filePath, target, discriminator, lineRule: 'none' });
   }
-  const line = edit.keyAnchor?.line;
+  const line = edit.keyAnchor?.lines?.[rule.template] ?? edit.keyAnchor?.line;
   if (line === undefined || line < 1) return fail('MUT_KEY_UNRESOLVED', `${rule.template}: no ${rule.line} line for the key`);
   return DomainResult.ok({ functionId, filePath, target, discriminator, lineRule: rule.line, line });
 }
