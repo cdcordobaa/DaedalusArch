@@ -27,6 +27,8 @@ export type {
 } from './types.js';
 export { DEFAULT_NEURONAL_OPTIONS, DEFAULT_NEURONAL_RUN_OPTIONS, DEFAULT_TOKEN_BUDGET } from './types.js';
 export { loadJudgeGraphView, JUDGE_GRAPH_QUERIES } from './judge-graph.js';
+export { judgeProvenanceOf, provenanceWarning } from './provenance.js';
+export type { JudgeRunFacts } from './provenance.js';
 export type { JudgeGraphView } from './judge-graph.js';
 export { assembleUnitSource } from './source-context.js';
 export type { UnitSourceContext } from './source-context.js';

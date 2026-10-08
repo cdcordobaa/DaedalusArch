@@ -194,6 +194,16 @@ export class CassetteLLMProvider implements LLMProvider {
     return this.inner.describe();
   }
 
+  /** Run-level provenance this decorator was built with (record mode: C14 pre-flight; CAS-10). */
+  get runProvenance(): { readonly cliVersion?: string; readonly isolationProbeSha256?: string; readonly configListingSha256?: string } {
+    const o = this.options;
+    return {
+      ...(o.cliVersion !== undefined ? { cliVersion: o.cliVersion } : {}),
+      ...(o.isolationProbeSha256 !== undefined ? { isolationProbeSha256: o.isolationProbeSha256 } : {}),
+      ...(o.configListingSha256 !== undefined ? { configListingSha256: o.configListingSha256 } : {}),
+    };
+  }
+
   /** Entries answered or written by this decorator, by key (provenance in replay, CAS-10). */
   entriesUsed(): readonly CassetteEntry[] {
     return [...this.used.values()].sort((a, b) => (a.key < b.key ? -1 : a.key > b.key ? 1 : 0));
