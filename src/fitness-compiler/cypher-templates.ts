@@ -127,12 +127,8 @@ RETURN c.name AS class, c.filePath AS filePath,
 
   ['repository-pattern', tmpl(
     'repository-pattern',
-    `MATCH (c:Class)-[:IMPLEMENTS]->(i:Interface)
-WHERE i.layer = $domainLayer AND c.layer = $infraLayer
-  AND (i.name CONTAINS 'Repository' OR i.name CONTAINS 'Repo')
-RETURN i.name AS interface, c.name AS implementation, c.filePath AS filePath
-UNION
-MATCH (c:Class)
+    // Violating branch only (ADR-015 item 1, BR-U1-45): the compliant UNION branch was dropped.
+    `MATCH (c:Class)
 WHERE c.layer = $infraLayer
   AND (c.name CONTAINS 'Repository' OR c.name CONTAINS 'Repo')
   AND NOT EXISTS { MATCH (c)-[:IMPLEMENTS]->(:Interface) }
