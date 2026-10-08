@@ -209,6 +209,81 @@ describeU1('U1 cycle query on Neo4j (BR-U1-28 a, b; BR-U1-31)', () => {
   });
 });
 
+describeU1('U1 FR-12 columns on Neo4j (K10; BR-U1-28, BR-U1-35)', () => {
+  let repo: Neo4jRepository | undefined;
+  let tempRoot = '';
+
+  beforeAll(() => {
+    const neo4j = neo4jConfig();
+    repo = new Neo4jRepository({ neo4jUri: neo4j.uri, neo4jUser: neo4j.user, neo4jPassword: neo4j.password });
+    tempRoot = fs.realpathSync(fs.mkdtempSync(path.join(os.tmpdir(), 'u1-fr12-')));
+  });
+
+  afterEach(async () => {
+    await run('MATCH (n) DETACH DELETE n');
+  });
+
+  afterAll(async () => {
+    if (repo) await repo.close();
+    if (tempRoot !== '') fs.rmSync(tempRoot, { recursive: true, force: true });
+  });
+
+  async function run(cypher: string, params?: Record<string, unknown>): Promise<readonly Record<string, unknown>[]> {
+    if (!repo) throw new Error('repository not initialised');
+    const result = await repo.executeQuery(cypher, params);
+    if (!result.success) {
+      throw new Error(`Query failed against ${redactUri(neo4jConfig().uri)}: ${result.errors.map((e) => `${e.code} ${e.message}`).join('; ')}`);
+    }
+    return result.data.records;
+  }
+
+  /** A Neo4j integer (the driver returns `Integer` objects) or a JS integer. */
+  function isInteger(v: unknown): boolean {
+    return neo4jDriver.isInt(v) || Number.isInteger(v);
+  }
+
+  async function ingestVariantA(): Promise<void> {
+    const variantA = GOLDEN_CASES.find((c) => c.id === 'variant-a-structural');
+    if (!variantA || !repo) throw new Error('variant-a case or repository missing');
+    const spec = await parseSpec({ specFilePath: variantA.specPath });
+    if (!spec.success) throw new Error('golden spec did not parse');
+    const apg = await extractAPG(variantA.projectPath);
+    if (!apg.success) throw new Error(`extractAPG failed: ${apg.errors.map((e) => e.code).join(', ')}`);
+    const store = new FileSystemSnapshotStore(path.join(tempRoot, '.apg-store'));
+    const ingested = await ingestAPG({ apgResult: apg.data, layerModel: spec.data.layerModel, mode: 'stateless' }, repo, store);
+    if (!ingested.success) throw new Error(`ingestAPG failed: ${ingested.errors.map((e) => e.code).join(', ')}`);
+  }
+
+  async function compiled(name: string): Promise<CypherQuery> {
+    const q = (await compiledQueries('specs/clean-arch.yaml')).find((c) => c.name === name);
+    if (!q) throw new Error(`${name} not compiled from specs/clean-arch.yaml`);
+    return q;
+  }
+
+  it('every FF-S01 row on ingested variant-a carries a non-null integer line and the FR-12 columns', async () => {
+    await ingestVariantA();
+    const q = await compiled('dependency-direction');
+    const rows = await run(q.cypher, q.params);
+    expect(rows.length).toBeGreaterThan(0);
+    for (const r of rows) {
+      expect({ source: r.source, lineIsInteger: isInteger(r.line), relType: r.relType, isTypeOnly: typeof r.isTypeOnly })
+        .toEqual({ source: r.source, lineIsInteger: true, relType: 'IMPORTS', isTypeOnly: 'boolean' });
+      expect(typeof r.target).toBe('string');
+    }
+  });
+
+  it('every cycle row on ingested variant-a carries target = cycle[1] and an integer line', async () => {
+    await ingestVariantA();
+    const q = await compiled('no-cyclic-deps');
+    const rows = await run(q.cypher, q.params);
+    expect(rows.length).toBeGreaterThan(0);
+    for (const r of rows) {
+      const cycle = r.cycle as string[];
+      expect({ cycle, target: r.target, lineIsInteger: isInteger(r.line) }).toEqual({ cycle, target: cycle[1], lineIsInteger: true });
+    }
+  });
+});
+
 describeU1('U1 row order on Neo4j (BR-U1-29 b)', () => {
   let repo: Neo4jRepository | undefined;
   let tempRoot = '';

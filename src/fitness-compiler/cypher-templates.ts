@@ -12,6 +12,9 @@ export const MAX_CYCLE_LENGTH = 10;
 /** Cycle rows reported before truncation; the query returns one more row as the sentinel (BR-U1-28). */
 export const CYCLE_ROW_CAP = 100;
 
+/** FR-12 edge columns of the three dependency templates (BR-U1-35); unmapped until U3 (FR-12 mapping). */
+const FR12_DEP_COLUMNS = (columns: readonly string[]): string[] => [...columns, 'relType', 'line', 'lines', 'isTypeOnly'];
+
 const DEFAULT_RM: ResultMapping = { filePathColumn: 'filePath', messageTemplate: 'Violation in {filePath}' };
 
 /** Styles of the seven Clean-Architecture-only templates (business-rules.md §3.1, frozen; BR-U1-18). */
@@ -46,20 +49,22 @@ export const CYPHER_TEMPLATES: ReadonlyMap<string, CypherTemplate> = new Map([
   ['dependency-direction', tmpl(
     'dependency-direction',
     `WITH $layerOrder AS layerOrder
-MATCH (src:File)-[:IMPORTS]->(tgt:File)
+MATCH (src:File)-[i:IMPORTS]->(tgt:File)
 WHERE src.layer IS NOT NULL AND tgt.layer IS NOT NULL
   AND src.layer <> tgt.layer
-WITH src, tgt,
+WITH src, tgt, i,
      apoc.coll.indexOf(layerOrder, src.layer) AS srcIdx,
      apoc.coll.indexOf(layerOrder, tgt.layer) AS tgtIdx
 WHERE srcIdx >= 0 AND tgtIdx >= 0 AND srcIdx < tgtIdx /*EXCLUDE:src*/
-RETURN src.filePath AS source, tgt.filePath AS target, src.layer AS srcLayer, tgt.layer AS tgtLayer
-ORDER BY source, target`,
+RETURN src.filePath AS source, tgt.filePath AS target, src.layer AS srcLayer, tgt.layer AS tgtLayer,
+       type(i) AS relType,
+       i.line AS line, i.lines AS lines, coalesce(i.isTypeOnly, false) AS isTypeOnly
+ORDER BY source, target, relType`,
     ['layerOrder'],
     [],
     'Detects imports where a lower layer imports from a higher layer (violates dependency direction)',
     [],
-    rm('source', '{source} ({srcLayer}) imports from {target} ({tgtLayer})', ['target', 'srcLayer', 'tgtLayer']),
+    rm('source', '{source} ({srcLayer}) imports from {target} ({tgtLayer})', FR12_DEP_COLUMNS(['target', 'srcLayer', 'tgtLayer'])),
   )],
 
   ['no-cyclic-deps', tmpl(
@@ -69,44 +74,49 @@ ORDER BY source, target`,
     `MATCH p = (f:File)-[:IMPORTS*2..${String(MAX_CYCLE_LENGTH)}]->(f)
 WHERE ALL(n IN nodes(p) WHERE n.filePath >= f.filePath)
   AND size(apoc.coll.toSet(nodes(p)[1..])) = length(p) /*EXCLUDE:nodes(p)*/
-WITH DISTINCT [n IN nodes(p) | n.filePath] AS cycle
-RETURN cycle
+WITH DISTINCT [n IN nodes(p) | n.filePath] AS cycle, relationships(p)[0].line AS firstLine
+WITH cycle, min(firstLine) AS line
+RETURN cycle, cycle[1] AS target, line
 ORDER BY cycle
 LIMIT ${String(CYCLE_ROW_CAP + 1)}`,
     [],
     [],
-    `Detects simple circular import chains of length 2..${String(MAX_CYCLE_LENGTH)} (one row per cycle; row ${String(CYCLE_ROW_CAP + 1)} is a truncation sentinel)`,
+    `Detects simple circular import chains of length 2..${String(MAX_CYCLE_LENGTH)} (one row per cycle with its first-edge target and line, FR-12; row ${String(CYCLE_ROW_CAP + 1)} is a truncation sentinel)`,
     [],
     rm('cycle', 'Circular dependency: {cycle}'),
   )],
 
   ['no-layer-skip', tmpl(
     'no-layer-skip',
-    `MATCH (src:File)-[:IMPORTS]->(tgt:File)
+    `MATCH (src:File)-[i:IMPORTS]->(tgt:File)
 WHERE src.layer IS NOT NULL AND tgt.layer IS NOT NULL
   AND src.layer <> tgt.layer
   AND NOT (src.layer + '>' + tgt.layer) IN $allowedTransitions /*EXCLUDE:src*/
-RETURN src.filePath AS source, tgt.filePath AS target, src.layer AS srcLayer, tgt.layer AS tgtLayer
-ORDER BY source, target`,
+RETURN src.filePath AS source, tgt.filePath AS target, src.layer AS srcLayer, tgt.layer AS tgtLayer,
+       type(i) AS relType,
+       i.line AS line, i.lines AS lines, coalesce(i.isTypeOnly, false) AS isTypeOnly
+ORDER BY source, target, relType`,
     ['allowedTransitions'],
     [],
     'Detects imports that skip intermediate layers (e.g., infrastructure directly importing domain, bypassing application)',
     [],
-    rm('source', '{source} ({srcLayer}) skips layers to import {target} ({tgtLayer})', ['target', 'srcLayer', 'tgtLayer']),
+    rm('source', '{source} ({srcLayer}) skips layers to import {target} ({tgtLayer})', FR12_DEP_COLUMNS(['target', 'srcLayer', 'tgtLayer'])),
     ['layered'], // closed layering (BR-U1-43, U1 Q22 B)
   )],
 
   ['no-domain-outward-dep', tmpl(
     'no-domain-outward-dep',
-    `MATCH (src:File)-[:IMPORTS]->(tgt:File)
+    `MATCH (src:File)-[i:IMPORTS]->(tgt:File)
 WHERE src.layer = $domainLayer AND tgt.layer <> $domainLayer /*EXCLUDE:src*/
-RETURN src.filePath AS source, tgt.filePath AS target, tgt.layer AS violatingLayer
-ORDER BY source, target`,
+RETURN src.filePath AS source, tgt.filePath AS target, tgt.layer AS violatingLayer,
+       type(i) AS relType,
+       i.line AS line, i.lines AS lines, coalesce(i.isTypeOnly, false) AS isTypeOnly
+ORDER BY source, target, relType`,
     ['domainLayer'],
     ['domain'],
     'Detects domain layer files that import from outer layers',
     [],
-    rm('source', 'Domain file {source} imports from {target} in {violatingLayer}', ['target', 'violatingLayer']),
+    rm('source', 'Domain file {source} imports from {target} in {violatingLayer}', FR12_DEP_COLUMNS(['target', 'violatingLayer'])),
     CLEAN_AND_NESTJS,
   )],
 

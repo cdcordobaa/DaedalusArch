@@ -1,15 +1,15 @@
 /**
  * K7 (FR-35; BR-U1-29 a): every row-returning template ends with a total ORDER BY after its last
  * RETURN, and every collect is sorted explicitly. Keys per business-logic-model.md §5.2; the
- * `relType` discriminator of the three dependency templates joins the key with its column (K10).
+ * `relType` discriminator of the three dependency templates joined the key with its column at K10.
  */
 import { CYPHER_TEMPLATES } from '../../../src/fitness-compiler/cypher-templates.js';
 
 const EXPECTED_KEYS: Readonly<Record<string, string>> = {
-  'dependency-direction': 'source, target',
+  'dependency-direction': 'source, target, relType',
   'no-cyclic-deps': 'cycle',
-  'no-layer-skip': 'source, target',
-  'no-domain-outward-dep': 'source, target',
+  'no-layer-skip': 'source, target, relType',
+  'no-domain-outward-dep': 'source, target, relType',
   'domain-purity': 'source, target',
   'dependency-inversion': 'filePath, class',
   'repository-pattern': 'filePath, implementation',
