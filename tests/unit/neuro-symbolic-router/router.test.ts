@@ -5,6 +5,7 @@ import { FirewallContext } from '../../../src/shared/context/firewall-context.js
 import { functionId, runId } from '../../../src/shared/types/value-objects.js';
 import type { GraphRepository, QueryResult } from '../../../src/shared/interfaces/graph-repository.js';
 import type { CompiledFunctions, CypherQuery, NeuronalInstruction, ContextAssemblyInstruction } from '../../../src/shared/types/evaluation.js';
+import * as path from 'node:path';
 import type { RouterInput } from '../../../src/neuro-symbolic-router/types.js';
 import { JUDGE_GRAPH_QUERIES } from '../../../src/llm-critic/judge-graph.js';
 
@@ -19,9 +20,10 @@ jest.mock('../../../src/llm-critic/cassette-manager.js', () => ({
 
 const CTX: ContextAssemblyInstruction = { includeAPGSubgraph: false, includeSourceCode: false };
 
-// U4-K4 (Step 21): the critic reads a judge graph view; the files query answers one layered file
-// that exists under the default project root (the working directory) until Step 22 passes one.
-const JUDGED_FILE = 'fixtures/correct-reference/src/domain/entities/Task.ts';
+// U4-K4/K5: the critic reads a judge graph view; the files query answers one layered file of the
+// project root the router passes (BR-U4-RTR-03).
+const PROJECT_ROOT = path.resolve(__dirname, '../../../fixtures/correct-reference');
+const JUDGED_FILE = 'src/domain/entities/Task.ts';
 
 function mockGraphRepo(): GraphRepository {
   return {
@@ -88,6 +90,7 @@ describe('router', () => {
         mode: 'full',
         graphRepository: mockGraphRepo(),
         llmProvider: new MockLLMProvider(),
+        projectRoot: PROJECT_ROOT,
       });
       expect(result.success).toBe(true);
       if (result.success) {
@@ -104,6 +107,7 @@ describe('router', () => {
         mode: 'full',
         graphRepository: mockGraphRepo(),
         llmProvider: new MockLLMProvider(),
+        projectRoot: PROJECT_ROOT,
       });
       expect(result.success).toBe(true);
       if (result.success) {
@@ -119,6 +123,7 @@ describe('router', () => {
         mode: 'full',
         graphRepository: mockGraphRepo(),
         llmProvider: new MockLLMProvider(),
+        projectRoot: PROJECT_ROOT,
       });
       expect(result.success).toBe(true);
       if (result.success) {
@@ -137,12 +142,14 @@ describe('router', () => {
         mode: 'symbolic-only',
         graphRepository: mockGraphRepo(),
         llmProvider: provider,
+        projectRoot: PROJECT_ROOT,
       });
       expect(result.success).toBe(true);
       if (result.success) {
-        expect(result.data.symbolicResults.length).toBeGreaterThanOrEqual(1);
-        // Neuronal instructions should be empty after filtering
-        // But hybrid still runs symbolic part
+        // BR-U4-RTR-01 (BR-U3-15): hybrid pairs run in neither half in symbolic-only mode
+        expect(result.data.symbolicResults.map((r) => String(r.functionId))).toEqual(['FF-S01']);
+        expect(result.data.neuronalResults).toHaveLength(0);
+        expect(provider.getCallCount()).toBe(0);
       }
     });
   });
@@ -154,6 +161,7 @@ describe('router', () => {
         mode: 'neuronal-only',
         graphRepository: mockGraphRepo(),
         llmProvider: new MockLLMProvider(),
+        projectRoot: PROJECT_ROOT,
       });
       expect(result.success).toBe(true);
       if (result.success) {
@@ -171,6 +179,7 @@ describe('router', () => {
         mode: 'full',
         graphRepository: mockGraphRepo(),
         llmProvider: new MockLLMProvider(),
+        projectRoot: PROJECT_ROOT,
       });
       expect(result.success).toBe(false);
       if (!result.success) {
@@ -190,6 +199,7 @@ describe('router', () => {
         mode: 'full',
         graphRepository: mockGraphRepo(),
         llmProvider: new MockLLMProvider(),
+        projectRoot: PROJECT_ROOT,
       };
 
       const result = await stage.execute(input, context);
