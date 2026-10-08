@@ -276,15 +276,15 @@ ORDER BY filePath`,
     'no-orphan-files',
     `MATCH (f:File)
 WHERE f.layer IS NOT NULL
-  AND NOT EXISTS { MATCH (f)-[:IMPORTS]->() }
-  AND NOT EXISTS { MATCH ()-[:IMPORTS]->(f) }
+  AND NOT EXISTS { MATCH (f)-[:IMPORTS|RE_EXPORTS]->(:File) }
+  AND NOT EXISTS { MATCH (:File)-[:IMPORTS|RE_EXPORTS]->(f) }
   AND NOT f.isBarrel /*EXCLUDE:f*/
 RETURN f.filePath AS filePath, f.name AS name, f.layer AS layer
 ORDER BY filePath`,
     [],
     [],
     'topological',
-    'Detects files with no import connections (neither importing nor imported)',
+    'Detects files with no import or re-export connection to another file (Package targets do not count; barrels excluded)',
   )],
 
   ['max-fan-in', tmpl(

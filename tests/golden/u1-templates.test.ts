@@ -303,6 +303,55 @@ describeU1('U1 FR-12 columns on Neo4j (K10; BR-U1-28, BR-U1-35)', () => {
   });
 });
 
+describeU1('U1 orphan files on Neo4j (K13; BR-U1-34 b)', () => {
+  let repo: Neo4jRepository | undefined;
+
+  beforeAll(() => {
+    const neo4j = neo4jConfig();
+    repo = new Neo4jRepository({ neo4jUri: neo4j.uri, neo4jUser: neo4j.user, neo4jPassword: neo4j.password });
+  });
+
+  afterEach(async () => {
+    await run('MATCH (n) DETACH DELETE n');
+  });
+
+  afterAll(async () => {
+    if (repo) await repo.close();
+  });
+
+  async function run(cypher: string, params?: Record<string, unknown>): Promise<readonly Record<string, unknown>[]> {
+    if (!repo) throw new Error('repository not initialised');
+    const result = await repo.executeQuery(cypher, params);
+    if (!result.success) {
+      throw new Error(`Query failed against ${redactUri(neo4jConfig().uri)}: ${result.errors.map((e) => `${e.code} ${e.message}`).join('; ')}`);
+    }
+    return result.data.records;
+  }
+
+  async function orphans(): Promise<unknown[]> {
+    const q = (await compiledQueries('specs/clean-arch.yaml')).find((c) => c.name === 'no-orphan-files');
+    if (!q) throw new Error('no-orphan-files not compiled from specs/clean-arch.yaml');
+    return (await run(q.cypher, q.params)).map((r) => r.filePath);
+  }
+
+  it('a file importing only Packages is reported as an orphan', async () => {
+    await run(
+      "CREATE (f:File {filePath: 'src/domain/Lonely.ts', name: 'Lonely.ts', layer: 'domain', isBarrel: false}) " +
+      "CREATE (p:Package {name: 'express'}) CREATE (f)-[:IMPORTS {line: 1}]->(p)",
+    );
+    expect(await orphans()).toEqual(['src/domain/Lonely.ts']);
+  });
+
+  it("a declaring file reached only through a barrel's RE_EXPORTS is not an orphan", async () => {
+    await run(
+      "CREATE (b:File {filePath: 'src/infrastructure/index.ts', name: 'index.ts', layer: 'infrastructure', isBarrel: true}) " +
+      "CREATE (d:File {filePath: 'src/infrastructure/Formatters.ts', name: 'Formatters.ts', layer: 'infrastructure', isBarrel: false}) " +
+      'CREATE (b)-[:RE_EXPORTS {line: 1}]->(d)',
+    );
+    expect(await orphans()).toEqual([]);
+  });
+});
+
 describeU1('U1 row order on Neo4j (BR-U1-29 b)', () => {
   let repo: Neo4jRepository | undefined;
   let tempRoot = '';
