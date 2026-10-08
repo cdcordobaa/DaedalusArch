@@ -881,3 +881,28 @@
 **Context**: CONSTRUCTION — Functional Design U1, U2 answers complete.
 
 ---
+
+## v1.2 Evaluation-Readiness — Standing approval granted
+**Timestamp**: 2026-10-08T00:30:00Z
+**User Input**: "okay then keep on it use ultracode where it fits, and dont stop until we have results"
+**Intent**: Standing approval for all remaining AI-DLC gates of the cycle (Functional Design, code-generation plan, code generation, merge into v1.2e for U1–U5b; Build and Test) and for running the experiments that produce the thesis results. Agents proceed without pausing at each gate.
+**Conditions recorded by the AI** (stated to the user in the previous turn): a stage is auto-approved only when its adversarial verification reports no blocking or major issue; design questions are answered by the ADR-015 criterion (choices that change whether promised results can be produced and defended take the verified-best option; all else the recommended default) and recorded in an ADR; genuine cross-unit conflicts, any change to requirement text beyond ADR-recorded amendments, and anything touching `main` are escalated to the author; every merge into v1.2e is summarised in this log. The author's 30-item audit remains the author's.
+**Context**: CONSTRUCTION — lane 2 Functional Design generation running (wf_fe5a2f01-c23).
+
+---
+
+## v1.2 Evaluation-Readiness — Lane 2 Functional Design complete (auto-approved)
+**Timestamp**: 2026-10-08T01:30:00Z
+**User Input**: None (standing approval of 2026-10-08T00:30:00Z; settlements of the lane-2 open items delegated by the author)
+**Intent**: Close the U1 and U2 functional designs, record the delegated settlements, and make the U1 and U2 records agree before code-generation planning.
+**AI Response**: The U1 Spec and Compiler design has 45 business rules (BR-U1-01..45) at verification, and adversarial verification found 20 issues, all fixed. ADR-016 a adds BR-U1-46 (`controllerLayer`, commit K16, no fixture delta). The U2 Extractor and Graph design has 46 rules (BR-U2-01..46), and verification found 9 issues, all fixed. ADR-016 f adds BR-U2-47 (Interface→Method `CONTAINS`). ADR-016 ("Lane-2 functional-design settlements") was appended to `Docs/ADR — Architectural Decision Records Firewall Tech.md`, with a summary-table row. It settles: a) NestJS controller checks bind presentation; b) cannot-fire checks are decided by the Build and Test sensitivity check; c) U3 routes compiler warnings; d) the `layered` business forbidden list = the clean-architecture list; e) a 30 s cycle-query budget on ghostfolio, else SCC fallback; f) Interface→Method `CONTAINS` in U2; g) the universal orphan metric has no layer filter; h) the probe script is committed by U2 code generation; i) S-1..S-7 and S-9 are confirmed. The new record `construction/plans/v1.2E-lane2-functional-design-clarifications.md` covers the FR-19, FR-29, FR-20 and FR-08/FR-20 amendments, the U2 FR-21/FR-14 amendments with the BR-U2-30 disclosure, S-1..S-9, ADR-016 a–i, and the record corrections. Record corrections applied:
+- Q24 answer moved under Q24.
+- U2 G7, §10 row 2 and the built-in row fixed.
+- U2 G1–G4 aligned to U1 labels K4, K12 and K13.
+- New G8 row for FF-SO02.
+- U1 §8.2 AHS recomputed for variant-b and variant-c (final .595 / .412; verdicts unchanged).
+- Identical orphan-rule text in U1 and U2.
+Plan checkboxes ticked. Auto-approved under standing approval; no blocking or major verification issue remains.
+**Context**: CONSTRUCTION — lane 2 Functional Design COMPLETE (U1, U2); next: code-generation plans U2, then U1.
+
+---

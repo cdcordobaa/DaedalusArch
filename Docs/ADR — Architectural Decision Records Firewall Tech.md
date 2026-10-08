@@ -703,6 +703,56 @@ firewall batch --dir ./generated/ --spec ./specs/ --output results.csv
 
 ---
 
+## ADR-016: Lane-2 functional-design settlements (v1.2)
+
+**Status**: Accepted
+
+**Date**: 2026-10-08
+
+**Context**: The U1 (spec + compiler) and U2 (extractor + graph) functional designs left open items that the plan answers did not decide (U1 `business-logic-model.md` §9.2: OI-4, OI-5, OI-6, OI-8, OI-9, OI-11; U2 `business-rules.md` §14: OI-7, OI-10, and the derived settlements S-1 to S-7 and S-9). The author delegated these decisions under the standing approval of 2026-10-08 (`aidlc-docs/audit.md`). Each is settled by the ADR-015 criterion: **does the choice change whether the promised results can be produced and defended?** The full record, with the requirement amendments these designs need, is `aidlc-docs/construction/plans/v1.2E-lane2-functional-design-clarifications.md`.
+
+**Decision**:
+
+a. **NestJS controllers** (U1 OI-4). `naming-controllers` (FF-CV04) and `controller-no-entity` (FF-P05) bind the presentation layer, where NestJS controllers live (`presets/nestjs.yaml:78-98`). This fixes a rule applied to the wrong style under ADR-015 item 1. Realisation (U1 BR-U1-46): a new binding `controllerLayer` = the presentation layer when the layer model has one, else `infraLayer`. Clean-architecture specs, the self-spec and the five fixtures have no presentation layer, so their binding and golden snapshots do not change.
+b. **Checks that cannot fire** (U1 OI-5; ADR-015 items 1, 10). FF-CV01, FF-CV04 and any other check that cannot fire are decided by the per-function sensitivity check in Build and Test. If the template can be made to fire on a seeded fixture, it is fixed. Otherwise it is excluded from the denominator and declared (`enabled: false` plus `reason`, visible in `disabledFunctions`).
+c. **Compiler warnings** (U1 OI-6). Warnings for functions disabled by style or kind (`COMPILER_004`) are routed into reports by U3 (FR-13/FR-14). U1 prints the counts in `validate` only.
+d. **Business-layer forbidden imports in `layered`** (U1 OI-8). `presets/layered.yaml` business-layer `forbidden_imports` = the FF-P01 `forbidden_imports` list of `presets/clean-architecture.yaml` (`@nestjs/*`, `typeorm`, `express`, `prisma`, `@prisma/*`, `sequelize`; no Node built-in).
+e. **Cycle-query latency budget** (U1 OI-9; ADR-015 item 5; NFR-07). Each cycle query (the FF-S02 template and the universal cycle metric) completes within **30 s** on the largest corpus project (ghostfolio `apps/api`). Otherwise the pre-agreed in-memory SCC (Tarjan) fallback replaces both.
+f. **Interface→Method `CONTAINS`** (U1 OI-11). U2 emits Method nodes for interface method signatures and `Interface -[:CONTAINS]-> Method` edges, so FF-SO02 `interface-segregation-proxy` can fire. This is accepted into U2's scope (U2 BR-U2-47). The U1 exclusion fallback for FF-SO02 (BR-U1-39) applies only if U2's acceptance check fails at FR-18.
+g. **Universal orphan metric** (U2 OI-10). No layer filter: the metric stays spec-independent (ADR-013). The barrel filter and the `:File` typing on `IMPORTS|RE_EXPORTS` in both directions apply. The `no-orphan-files` template keeps its existing `f.layer IS NOT NULL` filter, because it is a spec-bound check.
+h. **Scout probe script** (U2 OI-7). U2 code generation commits the probe script and its output under `Docs/DiagnosticRuns/`, so the corpus figures quoted in the U2 design are reproducible.
+i. **U2 derived settlements** S-1 to S-7 and S-9 (U2 `business-rules.md` §14.1) are confirmed as written. S-8 is unused.
+
+**Rationale**:
+
+- a and b remove construct defects before the first corpus run without tuning a threshold (ADR-015 item 1). Without a, both controller checks are vacuous on every corpus project (all `style: nestjs`). Without b, a check that cannot fail would inflate every AVR denominator.
+- c keeps FR-20's visible denominator honest in the report rather than only on the CLI.
+- d gives FR-20's business-layer list a stated source instead of an ad hoc one. No fixture result depends on the values.
+- e states the NFR-07 budget before the run, so the fallback decision cannot be made after seeing results.
+- f makes the seeded fat-interface violations (variant-b, variant-c) detectable, which changes P/R/F1 against the manifests (SO4).
+- g keeps ADR-013's spec-independence: a universal metric that read the spec's layer mapping would no longer be universal.
+- h and i make every quoted figure and every derived rule traceable.
+
+**Alternatives Considered**:
+
+| Alternative | Why Rejected |
+| --- | --- |
+| a: exclude and declare both controller checks for nestjs | Loses two checks on every corpus project when a binding fix exists |
+| a: bind `presentationLayer` unconditionally | Clean-architecture specs have no presentation layer, so the checks would disable there and the golden snapshots would move without cause |
+| f: exclude FF-SO02 everywhere | The seeded fat interfaces in variant-b and variant-c would be missed by construction |
+| g: add `f.layer IS NOT NULL` to the universal metric | Makes a universal metric depend on the spec (contradicts ADR-013) |
+| e: no fixed budget, decide at the run | Post-hoc choice of the fallback; examiner-visible threat |
+
+**Consequences**:
+
+- U1 gains BR-U1-46 (`controllerLayer`, commit K16, no fixture delta). Its golden table changes at K2: FF-SO02 fails on variant-b and variant-c once U2's `CONTAINS` edges exist (AHS estimates b .562 → .528, c .408 → .374 at K2; final .595 and .412; verdicts unchanged).
+- U2 gains BR-U2-47 (interface Method nodes and `CONTAINS` edges). U2 alone still changes no golden snapshot, because FF-SO02 is not executed before U1 K2 binds `maxInterfaceMethods`.
+- U3 inherits compiler-warning routing (c) and the universal orphan metric without a layer filter (g).
+- Build and Test inherits the sensitivity check (b) and the 30 s latency gate (e).
+- References: `v1.2E-lane2-functional-design-clarifications.md`; U1 and U2 `functional-design/` folders; ADR-013; ADR-015.
+
+---
+
 ## Decision Log Summary
 
 | **ADR** | **Decision** | **Status** | **Spike Validated** |
@@ -722,4 +772,5 @@ firewall batch --dir ./generated/ --spec ./specs/ --output results.csv
 | 013 | Universal health metrics (spec-independent) | Accepted | ✅ Spike 3 |
 | 014 | Node.js + TypeScript implementation | Accepted | — |
 | 015 | v1.2 lane-2 evaluation-readiness decisions (fix/observe rule, corpus provenance, cycle bound, RE_EXPORTS, tags, merge order) | Accepted | — |
+| 016 | v1.2 lane-2 functional-design settlements (NestJS controller binding, cannot-fire checks, 30 s cycle budget, Interface CONTAINS, spec-independent orphan metric) | Accepted | — |
 | 014 | Node.js + TypeScript implementation | Accepted | ✅ All spikes |

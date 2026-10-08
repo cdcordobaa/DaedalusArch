@@ -4,7 +4,7 @@
 - **Project Name**: Architectural Firewall (DaedalusArch)
 - **Project Type**: Greenfield
 - **Start Date**: 2026-03-27T16:00:00Z
-- **Current Stage**: v1.2 Evaluation-Readiness cycle — CONSTRUCTION — U0 COMPLETE (merged into v1.2e at 2050193); next: Functional Design U1 + U2.
+- **Current Stage**: v1.2 Evaluation-Readiness cycle — CONSTRUCTION — lane 2 Functional Design COMPLETE; code-generation plans U2, U1 (U0 merged at 2050193; ADR-016 settlements 2026-10-08).
 - **Product Name**: Architectonic Firewall
 - **CLI Name**: firewall (unchanged from v1.0)
 
@@ -101,4 +101,5 @@
 - [x] Units Generation — APPROVED 2026-10-07 (7 units: U0, U1, U2, U3, U4, U5a, U5b; lanes U0 | U1+U2 | U3+U4+U5a | U5b)
 ### v1.2E CONSTRUCTION PHASE
 - [x] U0 Foundation — COMPLETE and merged 2026-10-07 (PR #1, 2050193) (code-summary in construction/v1.2E-u0-foundation/code/) (`construction/plans/v1.2E-u0-foundation-code-generation-plan.md`) (U0 Foundation; U1 Spec+compiler; U2 Extractor+graph; U3 Evaluation+scoring+report; U4 Neural path; U5 Experiment tooling)
+- [x] Lane 2 Functional Design U1 Spec+compiler (BR-U1-01..46) + U2 Extractor+graph (BR-U2-01..47) — COMPLETE 2026-10-08, auto-approved under standing approval; settlements ADR-016; record `construction/plans/v1.2E-lane2-functional-design-clarifications.md`. Next: code-generation plans U2, then U1
 - CONSTRUCTION: Functional Design EXECUTE U1–U5 / SKIP U0; NFR Requirements EXECUTE light (in U0); NFR Design, Infrastructure Design SKIP; Code Generation and Build and Test EXECUTE
