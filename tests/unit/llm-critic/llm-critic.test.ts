@@ -222,3 +222,34 @@ describe('evaluateNeuronal', () => {
     }
   });
 });
+
+describe('evaluateNeuronal violation type (BR-U4-VIO-03)', () => {
+  const graphRepo = {
+    async executeQuery() { return DomainResult.ok({ records: [], summary: { counters: {} } }); },
+    async clearGraph() { return DomainResult.ok(undefined); },
+    async healthCheck() { return true; },
+    async close() {},
+  };
+  const failing = JSON.stringify({
+    pass: false, confidence: 0.9, reasoning: 'r', evidence: [],
+    violations: [{ filePath: 'src/a.ts', message: 'm' }],
+  });
+
+  it.each([
+    ['adr source', { source: 'adr', dimension: 'semantic' }, 'INTENT_VIOLATION'],
+    ['integrity dimension', { source: 'fitness-function', dimension: 'integrity' }, 'INTEGRITY_VIOLATION'],
+    ['other', { source: 'fitness-function', dimension: 'solid' }, 'SEMANTIC_RULE_VIOLATION'],
+  ] as const)('%s -> %s', async (_label, overrides, expected) => {
+    const provider = new MockLLMProvider();
+    (provider as any).evaluate = async () =>
+      DomainResult.ok({ content: failing, model: 'mock', usage: { inputTokens: 1, outputTokens: 1 } });
+    const inst = { ...makeInstruction('FF-N02', 'type-map'), ...overrides } as NeuronalInstruction;
+    const result = await evaluateNeuronal({ instructions: [inst], graphRepository: graphRepo, provider, runsPerEvaluation: 3 });
+    expect(result.success).toBe(true);
+    if (result.success) {
+      const vs = result.data.results[0]!.violations;
+      expect(vs.length).toBeGreaterThan(0);
+      for (const v of vs) expect(v.type).toBe(expected);
+    }
+  });
+});
