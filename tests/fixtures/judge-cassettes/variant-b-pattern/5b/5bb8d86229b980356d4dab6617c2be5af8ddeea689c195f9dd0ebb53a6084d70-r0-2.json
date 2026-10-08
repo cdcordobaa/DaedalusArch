@@ -1,0 +1,40 @@
+{
+  "attempts": 1,
+  "durationMs": 1,
+  "effort": null,
+  "functionId": "FF-N01",
+  "ignoredOptions": [
+    "model",
+    "effort",
+    "maxTokens"
+  ],
+  "key": "5bb8d86229b980356d4dab6617c2be5af8ddeea689c195f9dd0ebb53a6084d70-r0-2",
+  "model": "claude-opus-5-5",
+  "outcome": {
+    "kind": "valid"
+  },
+  "parsedVerdict": {
+    "confidence": 0.9,
+    "evidence": [
+      "scripted evidence"
+    ],
+    "pass": true,
+    "reasoning": "Scripted fixture verdict: pass",
+    "violations": []
+  },
+  "prompt": "## Rule\nThe module's files form one coherent unit with a consistent abstraction and boundary.\n\n## Rubric\nPass: The files serve one cohesive concern, use the module's abstractions consistently, and keep each rule or invariant in one place.\nFail: The files split into unrelated concerns, duplicate a rule or invariant that should live in one place, or bypass the module's own abstractions.\nEvidence required: Name each file involved and cite the declarations that show the split, the duplication or the bypass.\nOut of scope: import direction and layer-dependency rules, which are checked symbolically.\n\n## Layer model\n- domain (kind: domain): src/domain/**\n- application (kind: application): src/application/**\n- infrastructure (kind: infrastructure): src/infrastructure/**\n\n## Unit\nKind: module\nId: src/domain\nLayer: domain\nUnit files:\n- src/domain/entities/Task.ts\n- src/domain/repositories/ITaskRepository.ts\n\n## Source\n=====SOURCE-BEGIN src/domain/entities/Task.ts=====\n// VIOLATION #4: Domain imports @nestjs/common (domain purity violation)\nimport { Injectable } from '@nestjs/common';\n\n@Injectable()\nexport class Task {\n  constructor(\n    public readonly id: string,\n    public readonly title: string,\n    public readonly description: string,\n    public readonly completed: boolean,\n    public readonly categoryId: string,\n    public readonly createdAt: Date\n  ) {}\n\n  complete(): Task {\n    return new Task(this.id, this.title, this.description, true, this.categoryId, this.createdAt);\n  }\n\n  isValid(): boolean {\n    return this.title.length > 0 && this.categoryId.length > 0;\n  }\n}\n\n=====SOURCE-END=====\n\n=====SOURCE-BEGIN src/domain/repositories/ITaskRepository.ts=====\nimport { Task } from '../entities/Task';\n\n// VIOLATION #5: Fat interface with 8 methods (interface segregation)\nexport interface ITaskRepository {\n  findById(id: string): Promise<Task | null>;\n  findAll(): Promise<Task[]>;\n  findByCategory(categoryId: string): Promise<Task[]>;\n  findCompleted(): Promise<Task[]>;\n  findPending(): Promise<Task[]>;\n  save(task: Task): Promise<Task>;\n  update(task: Task): Promise<Task>;\n  delete(id: string): Promise<void>;\n}\n\n=====SOURCE-END=====\n\n## Exported signatures\n// src/domain/entities/Task.ts\nexport class Task {\n  constructor(\n    public readonly id: string,\n    public readonly title: string,\n    public readonly description: string,\n    public readonly completed: boolean,\n    public readonly categoryId: string,\n    public readonly createdAt: Date\n  );\n  complete(): Task;\n  isValid(): boolean;\n}\n\n// src/domain/repositories/ITaskRepository.ts\nexport interface ITaskRepository {\n  findById(id: string): Promise<Task | null>;\n  findAll(): Promise<Task[]>;\n  findByCategory(categoryId: string): Promise<Task[]>;\n  findCompleted(): Promise<Task[]>;\n  findPending(): Promise<Task[]>;\n  save(task: Task): Promise<Task>;\n  update(task: Task): Promise<Task>;\n  delete(id: string): Promise<void>;\n}\n\n## Incoming\n- src/application/use-cases/CompleteTaskUseCase.ts\n- src/application/use-cases/CreateTaskUseCase.ts\n- src/infrastructure/repositories/InMemoryTaskRepository.ts\n\n## Outgoing\n- @nestjs/common\n\n## Graph excerpt\n{\"edges\":[{\"from\":\"src/application/use-cases/CompleteTaskUseCase.ts\",\"to\":\"src/domain/entities/Task.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/application/use-cases/CreateTaskUseCase.ts\",\"to\":\"src/domain/entities/Task.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/domain/entities/Task.ts\",\"to\":\"@nestjs/common\",\"type\":\"IMPORTS\"},{\"from\":\"src/domain/repositories/ITaskRepository.ts\",\"to\":\"src/domain/entities/Task.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/infrastructure/repositories/InMemoryTaskRepository.ts\",\"to\":\"src/domain/entities/Task.ts\",\"type\":\"IMPORTS\"}],\"nodes\":[{\"kind\":\"Class\",\"layer\":\"domain\",\"name\":\"Task\",\"path\":\"src/domain/entities/Task.ts\"},{\"kind\":\"File\",\"layer\":\"application\",\"path\":\"src/application/use-cases/CompleteTaskUseCase.ts\"},{\"kind\":\"File\",\"layer\":\"application\",\"path\":\"src/application/use-cases/CreateTaskUseCase.ts\"},{\"kind\":\"File\",\"layer\":\"domain\",\"path\":\"src/domain/entities/Task.ts\"},{\"kind\":\"File\",\"layer\":\"domain\",\"path\":\"src/domain/repositories/ITaskRepository.ts\"},{\"kind\":\"File\",\"layer\":\"infrastructure\",\"path\":\"src/infrastructure/repositories/InMemoryTaskRepository.ts\"},{\"kind\":\"Interface\",\"layer\":\"domain\",\"name\":\"ITaskRepository\",\"path\":\"src/domain/repositories/ITaskRepository.ts\"},{\"kind\":\"Package\",\"layer\":null,\"path\":\"@nestjs/common\"}]}\n\n## Instructions\nJudge the unit against the rule and rubric. Return the JSON object the schema requires. Set pass to false if any file of the unit fails the rubric.\n",
+  "provider": "mock",
+  "recordedAt": "2026-10-08T23:45:33.982Z",
+  "repetition": 0,
+  "requestHash": "5bb8d86229b980356d4dab6617c2be5af8ddeea689c195f9dd0ebb53a6084d70",
+  "resolvedModel": "mock-model",
+  "response": "{\"pass\":true,\"confidence\":0.9,\"reasoning\":\"Scripted fixture verdict: pass\",\"evidence\":[\"scripted evidence\"],\"violations\":[]}",
+  "runIndex": 2,
+  "schemaVersion": 2,
+  "unitId": "src/domain",
+  "usage": {
+    "inputTokens": 1141,
+    "outputTokens": 31
+  },
+  "usedOptions": {}
+}

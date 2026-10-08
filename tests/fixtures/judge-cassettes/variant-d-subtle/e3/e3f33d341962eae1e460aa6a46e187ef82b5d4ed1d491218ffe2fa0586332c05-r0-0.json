@@ -1,0 +1,40 @@
+{
+  "attempts": 1,
+  "durationMs": 0,
+  "effort": null,
+  "functionId": "FF-N02",
+  "ignoredOptions": [
+    "model",
+    "effort",
+    "maxTokens"
+  ],
+  "key": "e3f33d341962eae1e460aa6a46e187ef82b5d4ed1d491218ffe2fa0586332c05-r0-0",
+  "model": "claude-opus-5-5",
+  "outcome": {
+    "kind": "valid"
+  },
+  "parsedVerdict": {
+    "confidence": 0.9,
+    "evidence": [
+      "scripted evidence"
+    ],
+    "pass": true,
+    "reasoning": "Scripted fixture verdict: pass",
+    "violations": []
+  },
+  "prompt": "## Rule\nThe unit's responsibilities match the role of its declared layer.\n\n## Rubric\nPass: Every responsibility in the file belongs to the role and kind of its declared layer, and agrees with any ADR prose given.\nFail: The file carries a responsibility that belongs to a different layer kind, for example persistence, transport or framework logic in a domain file, or business rules in an infrastructure or presentation file.\nEvidence required: Name the file and cite the function, method or statement that carries the misplaced responsibility, and the layer kind it belongs to.\nOut of scope: import direction and layer-dependency rules, which are checked symbolically.\n\n## Layer model\n- domain (kind: domain): src/domain/**\n- application (kind: application): src/application/**\n- infrastructure (kind: infrastructure): src/infrastructure/**\n\n## Unit\nKind: file\nId: src/infrastructure/logging/InfraLogger.ts\nLayer: infrastructure\nUnit files:\n- src/infrastructure/logging/InfraLogger.ts\n\n## Source\n=====SOURCE-BEGIN src/infrastructure/logging/InfraLogger.ts=====\n// Concrete logger in infrastructure — should be behind an ILogger interface\nexport class InfraLogger {\n  log(message: string): void {\n    console.log(`[LOG] ${new Date().toISOString()} ${message}`);\n  }\n  error(message: string): void {\n    console.error(`[ERR] ${new Date().toISOString()} ${message}`);\n  }\n}\n\n=====SOURCE-END=====\n\n## Graph excerpt\n{\"edges\":[{\"from\":\"CreateTaskUseCase@src/application/use-cases/CreateTaskUseCase.ts\",\"to\":\"InfraLogger@src/infrastructure/logging/InfraLogger.ts\",\"type\":\"CONSTRUCTOR_INJECTS\"},{\"from\":\"src/application/use-cases/CreateTaskUseCase.ts\",\"to\":\"src/infrastructure/logging/InfraLogger.ts\",\"type\":\"IMPORTS\"}],\"nodes\":[{\"kind\":\"Class\",\"layer\":\"application\",\"name\":\"CreateTaskUseCase\",\"path\":\"src/application/use-cases/CreateTaskUseCase.ts\"},{\"kind\":\"Class\",\"layer\":\"infrastructure\",\"name\":\"InfraLogger\",\"path\":\"src/infrastructure/logging/InfraLogger.ts\"},{\"kind\":\"File\",\"layer\":\"application\",\"path\":\"src/application/use-cases/CreateTaskUseCase.ts\"},{\"kind\":\"File\",\"layer\":\"infrastructure\",\"path\":\"src/infrastructure/logging/InfraLogger.ts\"}]}\n\n## Instructions\nJudge the unit against the rule and rubric. Return the JSON object the schema requires. Set pass to false if any file of the unit fails the rubric.\n",
+  "provider": "mock",
+  "recordedAt": "2026-10-08T23:45:35.046Z",
+  "repetition": 0,
+  "requestHash": "e3f33d341962eae1e460aa6a46e187ef82b5d4ed1d491218ffe2fa0586332c05",
+  "resolvedModel": "mock-model",
+  "response": "{\"pass\":true,\"confidence\":0.9,\"reasoning\":\"Scripted fixture verdict: pass\",\"evidence\":[\"scripted evidence\"],\"violations\":[]}",
+  "runIndex": 0,
+  "schemaVersion": 2,
+  "unitId": "src/infrastructure/logging/InfraLogger.ts",
+  "usage": {
+    "inputTokens": 578,
+    "outputTokens": 31
+  },
+  "usedOptions": {}
+}

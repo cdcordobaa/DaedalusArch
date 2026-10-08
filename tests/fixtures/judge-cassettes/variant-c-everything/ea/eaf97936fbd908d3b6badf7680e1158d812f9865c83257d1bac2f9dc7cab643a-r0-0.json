@@ -1,0 +1,45 @@
+{
+  "attempts": 1,
+  "durationMs": 0,
+  "effort": null,
+  "functionId": "FF-N01",
+  "ignoredOptions": [
+    "model",
+    "effort",
+    "maxTokens"
+  ],
+  "key": "eaf97936fbd908d3b6badf7680e1158d812f9865c83257d1bac2f9dc7cab643a-r0-0",
+  "model": "claude-opus-5-5",
+  "outcome": {
+    "kind": "valid"
+  },
+  "parsedVerdict": {
+    "confidence": 0.8,
+    "evidence": [
+      "scripted evidence"
+    ],
+    "pass": false,
+    "reasoning": "Scripted fixture verdict: fail",
+    "violations": [
+      {
+        "filePath": "src/infrastructure/repositories/CircularB.ts",
+        "message": "Scripted fixture violation"
+      }
+    ]
+  },
+  "prompt": "## Rule\nThe module's files form one coherent unit with a consistent abstraction and boundary.\n\n## Rubric\nPass: The files serve one cohesive concern, use the module's abstractions consistently, and keep each rule or invariant in one place.\nFail: The files split into unrelated concerns, duplicate a rule or invariant that should live in one place, or bypass the module's own abstractions.\nEvidence required: Name each file involved and cite the declarations that show the split, the duplication or the bypass.\nOut of scope: import direction and layer-dependency rules, which are checked symbolically.\n\n## Layer model\n- domain (kind: domain): src/domain/**\n- application (kind: application): src/application/**\n- infrastructure (kind: infrastructure): src/infrastructure/**\n\n## Unit\nKind: module\nId: src/infrastructure/repositories\nLayer: infrastructure\nUnit files:\n- src/infrastructure/repositories/CircularB.ts\n- src/infrastructure/repositories/InMemoryTaskRepository.ts\n\n## Source\n=====SOURCE-BEGIN src/infrastructure/repositories/CircularB.ts=====\nimport { InMemoryTaskRepository } from './InMemoryTaskRepository';\n\nexport class CircularB {\n  log(msg: string): void {\n    console.log(msg);\n  }\n}\n\n=====SOURCE-END=====\n\n=====SOURCE-BEGIN src/infrastructure/repositories/InMemoryTaskRepository.ts=====\nimport { Task } from '../../domain/entities/Task';\nimport { CircularB } from './CircularB';\n\n// Does NOT implement ITaskRepository (repository pattern violation)\nexport class InMemoryTaskRepository {\n  private readonly store = new Map<string, Task>();\n  private readonly helper = new CircularB();\n\n  async findById(id: string): Promise<Task | null> {\n    return this.store.get(id) ?? null;\n  }\n\n  async findAll(): Promise<Task[]> {\n    return [...this.store.values()];\n  }\n\n  async findByCategory(categoryId: string): Promise<Task[]> {\n    return [...this.store.values()].filter(t => t.categoryId === categoryId);\n  }\n\n  async findCompleted(): Promise<Task[]> {\n    return [...this.store.values()].filter(t => t.completed);\n  }\n\n  async findPending(): Promise<Task[]> {\n    return [...this.store.values()].filter(t => !t.completed);\n  }\n\n  async findByPriority(_priority: string): Promise<Task[]> {\n    return [...this.store.values()];\n  }\n\n  async save(task: Task): Promise<Task> {\n    this.store.set(task.id, task);\n    return task;\n  }\n\n  async update(task: Task): Promise<Task> {\n    return this.save(task);\n  }\n\n  async delete(id: string): Promise<void> {\n    this.store.delete(id);\n  }\n}\n\n=====SOURCE-END=====\n\n## Exported signatures\n// src/infrastructure/repositories/CircularB.ts\nexport class CircularB {\n  log(msg: string): void;\n}\n\n// src/infrastructure/repositories/InMemoryTaskRepository.ts\nexport class InMemoryTaskRepository {\n  async findById(id: string): Promise<Task | null>;\n  async findAll(): Promise<Task[]>;\n  async findByCategory(categoryId: string): Promise<Task[]>;\n  async findCompleted(): Promise<Task[]>;\n  async findPending(): Promise<Task[]>;\n  async findByPriority(_priority: string): Promise<Task[]>;\n  async save(task: Task): Promise<Task>;\n  async update(task: Task): Promise<Task>;\n  async delete(id: string): Promise<void>;\n}\n\n## Incoming\n- src/application/use-cases/CreateTaskUseCase.ts\n\n## Outgoing\n- src/domain/entities/Task.ts\n\n## Graph excerpt\n{\"edges\":[{\"from\":\"CreateTaskUseCase@src/application/use-cases/CreateTaskUseCase.ts\",\"to\":\"InMemoryTaskRepository@src/infrastructure/repositories/InMemoryTaskRepository.ts\",\"type\":\"CONSTRUCTOR_INJECTS\"},{\"from\":\"InMemoryTaskRepository@src/infrastructure/repositories/InMemoryTaskRepository.ts\",\"to\":\"CircularB@src/infrastructure/repositories/CircularB.ts\",\"type\":\"FLOWS_TO\"},{\"from\":\"src/application/use-cases/CreateTaskUseCase.ts\",\"to\":\"src/infrastructure/repositories/InMemoryTaskRepository.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/infrastructure/repositories/CircularB.ts\",\"to\":\"src/infrastructure/repositories/InMemoryTaskRepository.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/infrastructure/repositories/InMemoryTaskRepository.ts\",\"to\":\"src/domain/entities/Task.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/infrastructure/repositories/InMemoryTaskRepository.ts\",\"to\":\"src/infrastructure/repositories/CircularB.ts\",\"type\":\"IMPORTS\"}],\"nodes\":[{\"kind\":\"Class\",\"layer\":\"application\",\"name\":\"CreateTaskUseCase\",\"path\":\"src/application/use-cases/CreateTaskUseCase.ts\"},{\"kind\":\"Class\",\"layer\":\"infrastructure\",\"name\":\"CircularB\",\"path\":\"src/infrastructure/repositories/CircularB.ts\"},{\"kind\":\"Class\",\"layer\":\"infrastructure\",\"name\":\"InMemoryTaskRepository\",\"path\":\"src/infrastructure/repositories/InMemoryTaskRepository.ts\"},{\"kind\":\"File\",\"layer\":\"application\",\"path\":\"src/application/use-cases/CreateTaskUseCase.ts\"},{\"kind\":\"File\",\"layer\":\"domain\",\"path\":\"src/domain/entities/Task.ts\"},{\"kind\":\"File\",\"layer\":\"infrastructure\",\"path\":\"src/infrastructure/repositories/CircularB.ts\"},{\"kind\":\"File\",\"layer\":\"infrastructure\",\"path\":\"src/infrastructure/repositories/InMemoryTaskRepository.ts\"}]}\n\n## Instructions\nJudge the unit against the rule and rubric. Return the JSON object the schema requires. Set pass to false if any file of the unit fails the rubric.\n",
+  "provider": "mock",
+  "recordedAt": "2026-10-08T23:45:34.530Z",
+  "repetition": 0,
+  "requestHash": "eaf97936fbd908d3b6badf7680e1158d812f9865c83257d1bac2f9dc7cab643a",
+  "resolvedModel": "mock-model",
+  "response": "{\"pass\":false,\"confidence\":0.8,\"reasoning\":\"Scripted fixture verdict: fail\",\"evidence\":[\"scripted evidence\"],\"violations\":[{\"filePath\":\"src/infrastructure/repositories/CircularB.ts\",\"message\":\"Scripted fixture violation\"}]}",
+  "runIndex": 0,
+  "schemaVersion": 2,
+  "unitId": "src/infrastructure/repositories",
+  "usage": {
+    "inputTokens": 1280,
+    "outputTokens": 56
+  },
+  "usedOptions": {}
+}

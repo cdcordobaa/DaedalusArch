@@ -1,0 +1,45 @@
+{
+  "attempts": 1,
+  "durationMs": 1,
+  "effort": null,
+  "functionId": "FF-N01",
+  "ignoredOptions": [
+    "model",
+    "effort",
+    "maxTokens"
+  ],
+  "key": "35d423359ed7d3c5f78a635982cc83f79c3203377519d8d537a36585eaca2247-r0-1",
+  "model": "claude-opus-5-5",
+  "outcome": {
+    "kind": "valid"
+  },
+  "parsedVerdict": {
+    "confidence": 0.8,
+    "evidence": [
+      "scripted evidence"
+    ],
+    "pass": false,
+    "reasoning": "Scripted fixture verdict: fail",
+    "violations": [
+      {
+        "filePath": "src/infrastructure/repositories/CircularHelper.ts",
+        "message": "Scripted fixture violation"
+      }
+    ]
+  },
+  "prompt": "## Rule\nThe module's files form one coherent unit with a consistent abstraction and boundary.\n\n## Rubric\nPass: The files serve one cohesive concern, use the module's abstractions consistently, and keep each rule or invariant in one place.\nFail: The files split into unrelated concerns, duplicate a rule or invariant that should live in one place, or bypass the module's own abstractions.\nEvidence required: Name each file involved and cite the declarations that show the split, the duplication or the bypass.\nOut of scope: import direction and layer-dependency rules, which are checked symbolically.\n\n## Layer model\n- domain (kind: domain): src/domain/**\n- application (kind: application): src/application/**\n- infrastructure (kind: infrastructure): src/infrastructure/**\n\n## Unit\nKind: module\nId: src/infrastructure/repositories\nLayer: infrastructure\nUnit files:\n- src/infrastructure/repositories/CircularHelper.ts\n- src/infrastructure/repositories/InMemoryTaskRepository.ts\n\n## Source\n=====SOURCE-BEGIN src/infrastructure/repositories/CircularHelper.ts=====\n// VIOLATION #4: circular — CircularHelper imports InMemoryTaskRepository, which imports CircularHelper\nimport { InMemoryTaskRepository } from './InMemoryTaskRepository';\n\nexport class CircularHelper {\n  logSave(id: string): void {\n    console.log(`Saved task: ${id}`);\n  }\n}\n\n=====SOURCE-END=====\n\n=====SOURCE-BEGIN src/infrastructure/repositories/InMemoryTaskRepository.ts=====\nimport { Task } from '../../domain/entities/Task';\nimport { ITaskRepository } from '../../domain/repositories/ITaskRepository';\n// VIOLATION #4: circular — this imports CircularHelper which imports back here\nimport { CircularHelper } from './CircularHelper';\n\nexport class InMemoryTaskRepository implements ITaskRepository {\n  private readonly store = new Map<string, Task>();\n  private readonly helper = new CircularHelper();\n\n  async findById(id: string): Promise<Task | null> {\n    return this.store.get(id) ?? null;\n  }\n\n  async findAll(): Promise<Task[]> {\n    return [...this.store.values()];\n  }\n\n  async save(task: Task): Promise<Task> {\n    this.store.set(task.id, task);\n    return task;\n  }\n\n  async delete(id: string): Promise<void> {\n    this.store.delete(id);\n  }\n}\n\n=====SOURCE-END=====\n\n## Exported signatures\n// src/infrastructure/repositories/CircularHelper.ts\nexport class CircularHelper {\n  logSave(id: string): void;\n}\n\n// src/infrastructure/repositories/InMemoryTaskRepository.ts\nexport class InMemoryTaskRepository implements ITaskRepository {\n  async findById(id: string): Promise<Task | null>;\n  async findAll(): Promise<Task[]>;\n  async save(task: Task): Promise<Task>;\n  async delete(id: string): Promise<void>;\n}\n\n## Incoming\n- src/application/use-cases/CreateTaskUseCase.ts\n\n## Outgoing\n- src/domain/entities/Task.ts\n- src/domain/repositories/ITaskRepository.ts\n\n## Graph excerpt\n{\"edges\":[{\"from\":\"CreateTaskUseCase@src/application/use-cases/CreateTaskUseCase.ts\",\"to\":\"InMemoryTaskRepository@src/infrastructure/repositories/InMemoryTaskRepository.ts\",\"type\":\"CONSTRUCTOR_INJECTS\"},{\"from\":\"InMemoryTaskRepository@src/infrastructure/repositories/InMemoryTaskRepository.ts\",\"to\":\"CircularHelper@src/infrastructure/repositories/CircularHelper.ts\",\"type\":\"FLOWS_TO\"},{\"from\":\"InMemoryTaskRepository@src/infrastructure/repositories/InMemoryTaskRepository.ts\",\"to\":\"ITaskRepository@src/domain/repositories/ITaskRepository.ts\",\"type\":\"IMPLEMENTS\"},{\"from\":\"src/application/use-cases/CreateTaskUseCase.ts\",\"to\":\"src/infrastructure/repositories/InMemoryTaskRepository.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/infrastructure/repositories/CircularHelper.ts\",\"to\":\"src/infrastructure/repositories/InMemoryTaskRepository.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/infrastructure/repositories/InMemoryTaskRepository.ts\",\"to\":\"src/domain/entities/Task.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/infrastructure/repositories/InMemoryTaskRepository.ts\",\"to\":\"src/domain/repositories/ITaskRepository.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/infrastructure/repositories/InMemoryTaskRepository.ts\",\"to\":\"src/infrastructure/repositories/CircularHelper.ts\",\"type\":\"IMPORTS\"}],\"nodes\":[{\"kind\":\"Class\",\"layer\":\"application\",\"name\":\"CreateTaskUseCase\",\"path\":\"src/application/use-cases/CreateTaskUseCase.ts\"},{\"kind\":\"Class\",\"layer\":\"infrastructure\",\"name\":\"CircularHelper\",\"path\":\"src/infrastructure/repositories/CircularHelper.ts\"},{\"kind\":\"Class\",\"layer\":\"infrastructure\",\"name\":\"InMemoryTaskRepository\",\"path\":\"src/infrastructure/repositories/InMemoryTaskRepository.ts\"},{\"kind\":\"File\",\"layer\":\"application\",\"path\":\"src/application/use-cases/CreateTaskUseCase.ts\"},{\"kind\":\"File\",\"layer\":\"domain\",\"path\":\"src/domain/entities/Task.ts\"},{\"kind\":\"File\",\"layer\":\"domain\",\"path\":\"src/domain/repositories/ITaskRepository.ts\"},{\"kind\":\"File\",\"layer\":\"infrastructure\",\"path\":\"src/infrastructure/repositories/CircularHelper.ts\"},{\"kind\":\"File\",\"layer\":\"infrastructure\",\"path\":\"src/infrastructure/repositories/InMemoryTaskRepository.ts\"},{\"kind\":\"Interface\",\"layer\":\"domain\",\"name\":\"ITaskRepository\",\"path\":\"src/domain/repositories/ITaskRepository.ts\"}]}\n\n## Instructions\nJudge the unit against the rule and rubric. Return the JSON object the schema requires. Set pass to false if any file of the unit fails the rubric.\n",
+  "provider": "mock",
+  "recordedAt": "2026-10-08T23:45:33.368Z",
+  "repetition": 0,
+  "requestHash": "35d423359ed7d3c5f78a635982cc83f79c3203377519d8d537a36585eaca2247",
+  "resolvedModel": "mock-model",
+  "response": "{\"pass\":false,\"confidence\":0.8,\"reasoning\":\"Scripted fixture verdict: fail\",\"evidence\":[\"scripted evidence\"],\"violations\":[{\"filePath\":\"src/infrastructure/repositories/CircularHelper.ts\",\"message\":\"Scripted fixture violation\"}]}",
+  "runIndex": 1,
+  "schemaVersion": 2,
+  "unitId": "src/infrastructure/repositories",
+  "usage": {
+    "inputTokens": 1308,
+    "outputTokens": 57
+  },
+  "usedOptions": {}
+}

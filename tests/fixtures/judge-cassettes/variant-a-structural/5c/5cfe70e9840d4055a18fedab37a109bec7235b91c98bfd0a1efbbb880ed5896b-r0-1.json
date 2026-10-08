@@ -1,0 +1,45 @@
+{
+  "attempts": 1,
+  "durationMs": 1,
+  "effort": null,
+  "functionId": "FF-N01",
+  "ignoredOptions": [
+    "model",
+    "effort",
+    "maxTokens"
+  ],
+  "key": "5cfe70e9840d4055a18fedab37a109bec7235b91c98bfd0a1efbbb880ed5896b-r0-1",
+  "model": "claude-opus-5-5",
+  "outcome": {
+    "kind": "valid"
+  },
+  "parsedVerdict": {
+    "confidence": 0.8,
+    "evidence": [
+      "scripted evidence"
+    ],
+    "pass": false,
+    "reasoning": "Scripted fixture verdict: fail",
+    "violations": [
+      {
+        "filePath": "src/application/use-cases/CreateTaskUseCase.ts",
+        "message": "Scripted fixture violation"
+      }
+    ]
+  },
+  "prompt": "## Rule\nThe module's files form one coherent unit with a consistent abstraction and boundary.\n\n## Rubric\nPass: The files serve one cohesive concern, use the module's abstractions consistently, and keep each rule or invariant in one place.\nFail: The files split into unrelated concerns, duplicate a rule or invariant that should live in one place, or bypass the module's own abstractions.\nEvidence required: Name each file involved and cite the declarations that show the split, the duplication or the bypass.\nOut of scope: import direction and layer-dependency rules, which are checked symbolically.\n\n## Layer model\n- domain (kind: domain): src/domain/**\n- application (kind: application): src/application/**\n- infrastructure (kind: infrastructure): src/infrastructure/**\n\n## Unit\nKind: module\nId: src/application\nLayer: application\nUnit files:\n- src/application/use-cases/CreateTaskUseCase.ts\n\n## Source\n=====SOURCE-BEGIN src/application/use-cases/CreateTaskUseCase.ts=====\n// VIOLATION #3: Application layer imports concrete InMemoryTaskRepository (infra) directly\nimport { InMemoryTaskRepository } from '../../infrastructure/repositories/InMemoryTaskRepository';\nimport { Task } from '../../domain/entities/Task';\n\nexport class CreateTaskUseCase {\n  constructor(\n    // Should inject ITaskRepository (interface), not concrete impl\n    private readonly taskRepository: InMemoryTaskRepository\n  ) {}\n\n  async execute(title: string, description: string, categoryId: string): Promise<Task> {\n    const task = new Task(\n      crypto.randomUUID(),\n      title,\n      description,\n      false,\n      categoryId,\n      new Date()\n    );\n    return this.taskRepository.save(task);\n  }\n}\n\n=====SOURCE-END=====\n\n## Exported signatures\n// src/application/use-cases/CreateTaskUseCase.ts\nexport class CreateTaskUseCase {\n  constructor(\n    // Should inject ITaskRepository (interface), not concrete impl\n    private readonly taskRepository: InMemoryTaskRepository\n  );\n  async execute(title: string, description: string, categoryId: string): Promise<Task>;\n}\n\n## Incoming\n(none)\n\n## Outgoing\n- src/domain/entities/Task.ts\n- src/infrastructure/repositories/InMemoryTaskRepository.ts\n\n## Graph excerpt\n{\"edges\":[{\"from\":\"CreateTaskUseCase@src/application/use-cases/CreateTaskUseCase.ts\",\"to\":\"InMemoryTaskRepository@src/infrastructure/repositories/InMemoryTaskRepository.ts\",\"type\":\"CONSTRUCTOR_INJECTS\"},{\"from\":\"src/application/use-cases/CreateTaskUseCase.ts\",\"to\":\"src/domain/entities/Task.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/application/use-cases/CreateTaskUseCase.ts\",\"to\":\"src/infrastructure/repositories/InMemoryTaskRepository.ts\",\"type\":\"IMPORTS\"}],\"nodes\":[{\"kind\":\"Class\",\"layer\":\"application\",\"name\":\"CreateTaskUseCase\",\"path\":\"src/application/use-cases/CreateTaskUseCase.ts\"},{\"kind\":\"Class\",\"layer\":\"infrastructure\",\"name\":\"InMemoryTaskRepository\",\"path\":\"src/infrastructure/repositories/InMemoryTaskRepository.ts\"},{\"kind\":\"File\",\"layer\":\"application\",\"path\":\"src/application/use-cases/CreateTaskUseCase.ts\"},{\"kind\":\"File\",\"layer\":\"domain\",\"path\":\"src/domain/entities/Task.ts\"},{\"kind\":\"File\",\"layer\":\"infrastructure\",\"path\":\"src/infrastructure/repositories/InMemoryTaskRepository.ts\"}]}\n\n## Instructions\nJudge the unit against the rule and rubric. Return the JSON object the schema requires. Set pass to false if any file of the unit fails the rubric.\n",
+  "provider": "mock",
+  "recordedAt": "2026-10-08T23:45:33.362Z",
+  "repetition": 0,
+  "requestHash": "5cfe70e9840d4055a18fedab37a109bec7235b91c98bfd0a1efbbb880ed5896b",
+  "resolvedModel": "mock-model",
+  "response": "{\"pass\":false,\"confidence\":0.8,\"reasoning\":\"Scripted fixture verdict: fail\",\"evidence\":[\"scripted evidence\"],\"violations\":[{\"filePath\":\"src/application/use-cases/CreateTaskUseCase.ts\",\"message\":\"Scripted fixture violation\"}]}",
+  "runIndex": 1,
+  "schemaVersion": 2,
+  "unitId": "src/application",
+  "usage": {
+    "inputTokens": 839,
+    "outputTokens": 57
+  },
+  "usedOptions": {}
+}

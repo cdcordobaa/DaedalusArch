@@ -1,0 +1,40 @@
+{
+  "attempts": 1,
+  "durationMs": 0,
+  "effort": null,
+  "functionId": "FF-N01",
+  "ignoredOptions": [
+    "model",
+    "effort",
+    "maxTokens"
+  ],
+  "key": "8b98aa0c14502a717c88a8f42e061cc206324bdd9d374c11fb8a300864903590-r0-0",
+  "model": "claude-opus-5-5",
+  "outcome": {
+    "kind": "valid"
+  },
+  "parsedVerdict": {
+    "confidence": 0.9,
+    "evidence": [
+      "scripted evidence"
+    ],
+    "pass": true,
+    "reasoning": "Scripted fixture verdict: pass",
+    "violations": []
+  },
+  "prompt": "## Rule\nThe module's files form one coherent unit with a consistent abstraction and boundary.\n\n## Rubric\nPass: The files serve one cohesive concern, use the module's abstractions consistently, and keep each rule or invariant in one place.\nFail: The files split into unrelated concerns, duplicate a rule or invariant that should live in one place, or bypass the module's own abstractions.\nEvidence required: Name each file involved and cite the declarations that show the split, the duplication or the bypass.\nOut of scope: import direction and layer-dependency rules, which are checked symbolically.\n\n## Layer model\n- domain (kind: domain): src/domain/**\n- application (kind: application): src/application/**\n- infrastructure (kind: infrastructure): src/infrastructure/**\n\n## Unit\nKind: module\nId: src/infrastructure\nLayer: infrastructure\nUnit files:\n- src/infrastructure/logging/InfraLogger.ts\n- src/infrastructure/repositories/InMemoryTaskRepository.ts\n- src/infrastructure/utils/InfraFormatters.ts\n\n## Source\n=====SOURCE-BEGIN src/infrastructure/logging/InfraLogger.ts=====\n// Concrete logger in infrastructure — should be behind an ILogger interface\nexport class InfraLogger {\n  log(message: string): void {\n    console.log(`[LOG] ${new Date().toISOString()} ${message}`);\n  }\n  error(message: string): void {\n    console.error(`[ERR] ${new Date().toISOString()} ${message}`);\n  }\n}\n\n=====SOURCE-END=====\n\n=====SOURCE-BEGIN src/infrastructure/repositories/InMemoryTaskRepository.ts=====\nimport { Task } from '../../domain/entities/Task';\nimport { ITaskRepository } from '../../domain/repositories/ITaskRepository';\n\nexport class InMemoryTaskRepository implements ITaskRepository {\n  private readonly store = new Map<string, Task>();\n\n  async findById(id: string): Promise<Task | null> {\n    return this.store.get(id) ?? null;\n  }\n\n  async findAll(): Promise<Task[]> {\n    return [...this.store.values()];\n  }\n\n  async save(task: Task): Promise<Task> {\n    this.store.set(task.id, task);\n    return task;\n  }\n\n  async delete(id: string): Promise<void> {\n    this.store.delete(id);\n  }\n}\n\n=====SOURCE-END=====\n\n=====SOURCE-BEGIN src/infrastructure/utils/InfraFormatters.ts=====\nexport function formatDate(date: Date): string {\n  return date.toISOString().split('T')[0];\n}\n\n=====SOURCE-END=====\n\n## Exported signatures\n// src/infrastructure/logging/InfraLogger.ts\nexport class InfraLogger {\n  log(message: string): void;\n  error(message: string): void;\n}\n\n// src/infrastructure/repositories/InMemoryTaskRepository.ts\nexport class InMemoryTaskRepository implements ITaskRepository {\n  async findById(id: string): Promise<Task | null>;\n  async findAll(): Promise<Task[]>;\n  async save(task: Task): Promise<Task>;\n  async delete(id: string): Promise<void>;\n}\n\n// src/infrastructure/utils/InfraFormatters.ts\nexport function formatDate(date: Date): string;\n\n## Incoming\n- src/application/use-cases/CreateTaskUseCase.ts\n- src/application/utils/TaskUtils.ts\n\n## Outgoing\n- src/domain/entities/Task.ts\n- src/domain/repositories/ITaskRepository.ts\n\n## Graph excerpt\n{\"edges\":[{\"from\":\"CreateTaskUseCase@src/application/use-cases/CreateTaskUseCase.ts\",\"to\":\"InfraLogger@src/infrastructure/logging/InfraLogger.ts\",\"type\":\"CONSTRUCTOR_INJECTS\"},{\"from\":\"InMemoryTaskRepository@src/infrastructure/repositories/InMemoryTaskRepository.ts\",\"to\":\"ITaskRepository@src/domain/repositories/ITaskRepository.ts\",\"type\":\"IMPLEMENTS\"},{\"from\":\"src/application/use-cases/CreateTaskUseCase.ts\",\"to\":\"src/infrastructure/logging/InfraLogger.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/application/utils/TaskUtils.ts\",\"to\":\"src/infrastructure/utils/InfraFormatters.ts\",\"type\":\"RE_EXPORTS\"},{\"from\":\"src/infrastructure/repositories/InMemoryTaskRepository.ts\",\"to\":\"src/domain/entities/Task.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/infrastructure/repositories/InMemoryTaskRepository.ts\",\"to\":\"src/domain/repositories/ITaskRepository.ts\",\"type\":\"IMPORTS\"}],\"nodes\":[{\"kind\":\"Class\",\"layer\":\"application\",\"name\":\"CreateTaskUseCase\",\"path\":\"src/application/use-cases/CreateTaskUseCase.ts\"},{\"kind\":\"Class\",\"layer\":\"infrastructure\",\"name\":\"InMemoryTaskRepository\",\"path\":\"src/infrastructure/repositories/InMemoryTaskRepository.ts\"},{\"kind\":\"Class\",\"layer\":\"infrastructure\",\"name\":\"InfraLogger\",\"path\":\"src/infrastructure/logging/InfraLogger.ts\"},{\"kind\":\"File\",\"layer\":\"application\",\"path\":\"src/application/use-cases/CreateTaskUseCase.ts\"},{\"kind\":\"File\",\"layer\":\"application\",\"path\":\"src/application/utils/TaskUtils.ts\"},{\"kind\":\"File\",\"layer\":\"domain\",\"path\":\"src/domain/entities/Task.ts\"},{\"kind\":\"File\",\"layer\":\"domain\",\"path\":\"src/domain/repositories/ITaskRepository.ts\"},{\"kind\":\"File\",\"layer\":\"infrastructure\",\"path\":\"src/infrastructure/logging/InfraLogger.ts\"},{\"kind\":\"File\",\"layer\":\"infrastructure\",\"path\":\"src/infrastructure/repositories/InMemoryTaskRepository.ts\"},{\"kind\":\"File\",\"layer\":\"infrastructure\",\"path\":\"src/infrastructure/utils/InfraFormatters.ts\"},{\"kind\":\"Interface\",\"layer\":\"domain\",\"name\":\"ITaskRepository\",\"path\":\"src/domain/repositories/ITaskRepository.ts\"}]}\n\n## Instructions\nJudge the unit against the rule and rubric. Return the JSON object the schema requires. Set pass to false if any file of the unit fails the rubric.\n",
+  "provider": "mock",
+  "recordedAt": "2026-10-08T23:45:35.040Z",
+  "repetition": 0,
+  "requestHash": "8b98aa0c14502a717c88a8f42e061cc206324bdd9d374c11fb8a300864903590",
+  "resolvedModel": "mock-model",
+  "response": "{\"pass\":true,\"confidence\":0.9,\"reasoning\":\"Scripted fixture verdict: pass\",\"evidence\":[\"scripted evidence\"],\"violations\":[]}",
+  "runIndex": 0,
+  "schemaVersion": 2,
+  "unitId": "src/infrastructure",
+  "usage": {
+    "inputTokens": 1301,
+    "outputTokens": 31
+  },
+  "usedOptions": {}
+}

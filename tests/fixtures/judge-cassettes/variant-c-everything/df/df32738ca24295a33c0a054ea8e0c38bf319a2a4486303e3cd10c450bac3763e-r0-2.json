@@ -1,0 +1,40 @@
+{
+  "attempts": 1,
+  "durationMs": 1,
+  "effort": null,
+  "functionId": "FF-N01",
+  "ignoredOptions": [
+    "model",
+    "effort",
+    "maxTokens"
+  ],
+  "key": "df32738ca24295a33c0a054ea8e0c38bf319a2a4486303e3cd10c450bac3763e-r0-2",
+  "model": "claude-opus-5-5",
+  "outcome": {
+    "kind": "valid"
+  },
+  "parsedVerdict": {
+    "confidence": 0.9,
+    "evidence": [
+      "scripted evidence"
+    ],
+    "pass": true,
+    "reasoning": "Scripted fixture verdict: pass",
+    "violations": []
+  },
+  "prompt": "## Rule\nThe module's files form one coherent unit with a consistent abstraction and boundary.\n\n## Rubric\nPass: The files serve one cohesive concern, use the module's abstractions consistently, and keep each rule or invariant in one place.\nFail: The files split into unrelated concerns, duplicate a rule or invariant that should live in one place, or bypass the module's own abstractions.\nEvidence required: Name each file involved and cite the declarations that show the split, the duplication or the bypass.\nOut of scope: import direction and layer-dependency rules, which are checked symbolically.\n\n## Layer model\n- domain (kind: domain): src/domain/**\n- application (kind: application): src/application/**\n- infrastructure (kind: infrastructure): src/infrastructure/**\n\n## Unit\nKind: module\nId: src/domain\nLayer: domain\nUnit files:\n- src/domain/repositories/ITaskRepository.ts\n\n## Source\n=====SOURCE-BEGIN src/domain/repositories/ITaskRepository.ts=====\nimport { Task } from '../entities/Task';\n\n// VIOLATION: fat interface (9 methods)\nexport interface ITaskRepository {\n  findById(id: string): Promise<Task | null>;\n  findAll(): Promise<Task[]>;\n  findByCategory(categoryId: string): Promise<Task[]>;\n  findCompleted(): Promise<Task[]>;\n  findPending(): Promise<Task[]>;\n  findByPriority(priority: string): Promise<Task[]>;\n  save(task: Task): Promise<Task>;\n  update(task: Task): Promise<Task>;\n  delete(id: string): Promise<void>;\n}\n\n=====SOURCE-END=====\n\n## Exported signatures\n// src/domain/repositories/ITaskRepository.ts\nexport interface ITaskRepository {\n  findById(id: string): Promise<Task | null>;\n  findAll(): Promise<Task[]>;\n  findByCategory(categoryId: string): Promise<Task[]>;\n  findCompleted(): Promise<Task[]>;\n  findPending(): Promise<Task[]>;\n  findByPriority(priority: string): Promise<Task[]>;\n  save(task: Task): Promise<Task>;\n  update(task: Task): Promise<Task>;\n  delete(id: string): Promise<void>;\n}\n\n## Incoming\n(none)\n\n## Outgoing\n- src/domain/entities/Task.ts\n\n## Graph excerpt\n{\"edges\":[{\"from\":\"src/domain/repositories/ITaskRepository.ts\",\"to\":\"src/domain/entities/Task.ts\",\"type\":\"IMPORTS\"}],\"nodes\":[{\"kind\":\"File\",\"layer\":\"domain\",\"path\":\"src/domain/entities/Task.ts\"},{\"kind\":\"File\",\"layer\":\"domain\",\"path\":\"src/domain/repositories/ITaskRepository.ts\"},{\"kind\":\"Interface\",\"layer\":\"domain\",\"name\":\"ITaskRepository\",\"path\":\"src/domain/repositories/ITaskRepository.ts\"}]}\n\n## Instructions\nJudge the unit against the rule and rubric. Return the JSON object the schema requires. Set pass to false if any file of the unit fails the rubric.\n",
+  "provider": "mock",
+  "recordedAt": "2026-10-08T23:45:34.527Z",
+  "repetition": 0,
+  "requestHash": "df32738ca24295a33c0a054ea8e0c38bf319a2a4486303e3cd10c450bac3763e",
+  "resolvedModel": "mock-model",
+  "response": "{\"pass\":true,\"confidence\":0.9,\"reasoning\":\"Scripted fixture verdict: pass\",\"evidence\":[\"scripted evidence\"],\"violations\":[]}",
+  "runIndex": 2,
+  "schemaVersion": 2,
+  "unitId": "src/domain",
+  "usage": {
+    "inputTokens": 644,
+    "outputTokens": 31
+  },
+  "usedOptions": {}
+}

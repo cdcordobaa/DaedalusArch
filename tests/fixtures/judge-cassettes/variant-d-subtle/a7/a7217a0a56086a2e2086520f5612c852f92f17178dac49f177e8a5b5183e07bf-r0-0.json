@@ -1,0 +1,40 @@
+{
+  "attempts": 1,
+  "durationMs": 0,
+  "effort": null,
+  "functionId": "FF-N01",
+  "ignoredOptions": [
+    "model",
+    "effort",
+    "maxTokens"
+  ],
+  "key": "a7217a0a56086a2e2086520f5612c852f92f17178dac49f177e8a5b5183e07bf-r0-0",
+  "model": "claude-opus-5-5",
+  "outcome": {
+    "kind": "valid"
+  },
+  "parsedVerdict": {
+    "confidence": 0.9,
+    "evidence": [
+      "scripted evidence"
+    ],
+    "pass": true,
+    "reasoning": "Scripted fixture verdict: pass",
+    "violations": []
+  },
+  "prompt": "## Rule\nThe module's files form one coherent unit with a consistent abstraction and boundary.\n\n## Rubric\nPass: The files serve one cohesive concern, use the module's abstractions consistently, and keep each rule or invariant in one place.\nFail: The files split into unrelated concerns, duplicate a rule or invariant that should live in one place, or bypass the module's own abstractions.\nEvidence required: Name each file involved and cite the declarations that show the split, the duplication or the bypass.\nOut of scope: import direction and layer-dependency rules, which are checked symbolically.\n\n## Layer model\n- domain (kind: domain): src/domain/**\n- application (kind: application): src/application/**\n- infrastructure (kind: infrastructure): src/infrastructure/**\n\n## Unit\nKind: module\nId: src/domain\nLayer: domain\nUnit files:\n- src/domain/entities/Task.ts\n- src/domain/repositories/ITaskRepository.ts\n\n## Source\n=====SOURCE-BEGIN src/domain/entities/Task.ts=====\n// SUBTLE VIOLATION #2: imports from application utils which re-exports from infra\n// The domain entity doesn't directly import infra, but one level of indirection hides it.\nimport { normalizeTitle } from '../../application/utils/TaskUtils';\n\nexport class Task {\n  constructor(\n    public readonly id: string,\n    public readonly title: string,\n    public readonly description: string,\n    public readonly completed: boolean,\n    public readonly categoryId: string,\n    public readonly createdAt: Date\n  ) {}\n\n  complete(): Task {\n    return new Task(this.id, normalizeTitle(this.title), this.description, true, this.categoryId, this.createdAt);\n  }\n\n  isValid(): boolean {\n    return this.title.length > 0 && this.categoryId.length > 0;\n  }\n}\n\n=====SOURCE-END=====\n\n=====SOURCE-BEGIN src/domain/repositories/ITaskRepository.ts=====\nimport { Task } from '../entities/Task';\n\nexport interface ITaskRepository {\n  findById(id: string): Promise<Task | null>;\n  findAll(): Promise<Task[]>;\n  save(task: Task): Promise<Task>;\n  delete(id: string): Promise<void>;\n}\n\n=====SOURCE-END=====\n\n## Exported signatures\n// src/domain/entities/Task.ts\nexport class Task {\n  constructor(\n    public readonly id: string,\n    public readonly title: string,\n    public readonly description: string,\n    public readonly completed: boolean,\n    public readonly categoryId: string,\n    public readonly createdAt: Date\n  );\n  complete(): Task;\n  isValid(): boolean;\n}\n\n// src/domain/repositories/ITaskRepository.ts\nexport interface ITaskRepository {\n  findById(id: string): Promise<Task | null>;\n  findAll(): Promise<Task[]>;\n  save(task: Task): Promise<Task>;\n  delete(id: string): Promise<void>;\n}\n\n## Incoming\n- src/application/use-cases/CreateTaskUseCase.ts\n- src/infrastructure/repositories/InMemoryTaskRepository.ts\n\n## Outgoing\n- src/application/utils/TaskUtils.ts\n\n## Graph excerpt\n{\"edges\":[{\"from\":\"CreateTaskUseCase@src/application/use-cases/CreateTaskUseCase.ts\",\"to\":\"ITaskRepository@src/domain/repositories/ITaskRepository.ts\",\"type\":\"CONSTRUCTOR_INJECTS\"},{\"from\":\"InMemoryTaskRepository@src/infrastructure/repositories/InMemoryTaskRepository.ts\",\"to\":\"ITaskRepository@src/domain/repositories/ITaskRepository.ts\",\"type\":\"IMPLEMENTS\"},{\"from\":\"src/application/use-cases/CreateTaskUseCase.ts\",\"to\":\"src/domain/entities/Task.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/application/use-cases/CreateTaskUseCase.ts\",\"to\":\"src/domain/repositories/ITaskRepository.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/domain/entities/Task.ts\",\"to\":\"src/application/utils/TaskUtils.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/domain/repositories/ITaskRepository.ts\",\"to\":\"src/domain/entities/Task.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/infrastructure/repositories/InMemoryTaskRepository.ts\",\"to\":\"src/domain/entities/Task.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/infrastructure/repositories/InMemoryTaskRepository.ts\",\"to\":\"src/domain/repositories/ITaskRepository.ts\",\"type\":\"IMPORTS\"}],\"nodes\":[{\"kind\":\"Class\",\"layer\":\"application\",\"name\":\"CreateTaskUseCase\",\"path\":\"src/application/use-cases/CreateTaskUseCase.ts\"},{\"kind\":\"Class\",\"layer\":\"domain\",\"name\":\"Task\",\"path\":\"src/domain/entities/Task.ts\"},{\"kind\":\"Class\",\"layer\":\"infrastructure\",\"name\":\"InMemoryTaskRepository\",\"path\":\"src/infrastructure/repositories/InMemoryTaskRepository.ts\"},{\"kind\":\"File\",\"layer\":\"application\",\"path\":\"src/application/use-cases/CreateTaskUseCase.ts\"},{\"kind\":\"File\",\"layer\":\"application\",\"path\":\"src/application/utils/TaskUtils.ts\"},{\"kind\":\"File\",\"layer\":\"domain\",\"path\":\"src/domain/entities/Task.ts\"},{\"kind\":\"File\",\"layer\":\"domain\",\"path\":\"src/domain/repositories/ITaskRepository.ts\"},{\"kind\":\"File\",\"layer\":\"infrastructure\",\"path\":\"src/infrastructure/repositories/InMemoryTaskRepository.ts\"},{\"kind\":\"Interface\",\"layer\":\"domain\",\"name\":\"ITaskRepository\",\"path\":\"src/domain/repositories/ITaskRepository.ts\"}]}\n\n## Instructions\nJudge the unit against the rule and rubric. Return the JSON object the schema requires. Set pass to false if any file of the unit fails the rubric.\n",
+  "provider": "mock",
+  "recordedAt": "2026-10-08T23:45:35.039Z",
+  "repetition": 0,
+  "requestHash": "a7217a0a56086a2e2086520f5612c852f92f17178dac49f177e8a5b5183e07bf",
+  "resolvedModel": "mock-model",
+  "response": "{\"pass\":true,\"confidence\":0.9,\"reasoning\":\"Scripted fixture verdict: pass\",\"evidence\":[\"scripted evidence\"],\"violations\":[]}",
+  "runIndex": 0,
+  "schemaVersion": 2,
+  "unitId": "src/domain",
+  "usage": {
+    "inputTokens": 1244,
+    "outputTokens": 31
+  },
+  "usedOptions": {}
+}
