@@ -91,8 +91,8 @@ export function formatCSV(report: EvaluationReport): string {
     String(m.cyclicDependencyCount),
     String(m.maxFanOut),
     String(m.maxFanIn),
-    m.abstractionRatio.toFixed(3),
-    m.averageInstability.toFixed(3),
+    m.abstractionRatio === null ? '' : m.abstractionRatio.toFixed(3),
+    m.averageInstability === null ? '' : m.averageInstability.toFixed(3),
     String(m.orphanFileCount),
   ];
 

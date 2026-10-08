@@ -2,7 +2,7 @@ import type { LayerKind, TemplateTag } from '../shared/types/enums.js';
 import type { CypherTemplate, ResultMapping } from './types.js';
 
 function rm(filePathColumn: string, messageTemplate: string, metadataColumns?: string[]): ResultMapping {
-  const base = { filePathColumn, messageTemplate };
+  const base = { filePathColumn, messageTemplate, discriminatorColumns: [] }; // T-MAP columns arrive with U3-R2
   return metadataColumns ? { ...base, metadataColumns } : base;
 }
 
@@ -15,7 +15,7 @@ export const CYCLE_ROW_CAP = 100;
 /** FR-12 edge columns of the three dependency templates (BR-U1-35); unmapped until U3 (FR-12 mapping). */
 const FR12_DEP_COLUMNS = (columns: readonly string[]): string[] => [...columns, 'relType', 'line', 'lines', 'isTypeOnly'];
 
-const DEFAULT_RM: ResultMapping = { filePathColumn: 'filePath', messageTemplate: 'Violation in {filePath}' };
+const DEFAULT_RM: ResultMapping = { filePathColumn: 'filePath', messageTemplate: 'Violation in {filePath}', discriminatorColumns: [] };
 
 /** Styles of the seven Clean-Architecture-only templates (business-rules.md §3.1, frozen; BR-U1-18). */
 const CLEAN_AND_NESTJS: readonly string[] = ['clean-architecture', 'nestjs'];

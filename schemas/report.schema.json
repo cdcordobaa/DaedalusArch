@@ -26,6 +26,7 @@
     "ahsCombined": { "$ref": "#/definitions/unitInterval" },
     "ahsNeuronal": { "$ref": "#/definitions/unitInterval" },
     "verdict": { "type": "string", "enum": ["pass", "warning", "soft-block", "hard-block"] },
+    "scoring": { "$ref": "#/definitions/reportScoring" },
     "perDimensionScores": { "type": "array", "items": { "$ref": "#/definitions/perDimensionScore" } },
     "violations": { "type": "array", "items": { "$ref": "#/definitions/violation" } },
     "universalMetrics": { "$ref": "#/definitions/universalHealthMetrics" },
@@ -34,6 +35,7 @@
     "warnings": { "type": "array", "items": { "$ref": "#/definitions/pipelineWarning" } },
     "functionExecution": { "$ref": "#/definitions/functionExecution" },
     "functionResults": { "type": "array", "items": { "$ref": "#/definitions/functionResultRow" } },
+    "disabledFunctions": { "type": "array", "items": { "$ref": "#/definitions/disabledFunctionRow" } },
     "graphStats": { "$ref": "#/definitions/graphStats" },
     "layerAnnotation": { "$ref": "#/definitions/layerAnnotationSummary" },
     "parseCoverage": { "$ref": "#/definitions/parseCoverage" },
@@ -136,6 +138,7 @@
       "properties": {
         "dimension": { "$ref": "#/definitions/dimension" },
         "avr": { "$ref": "#/definitions/unitInterval" },
+        "violatedWeight": { "$ref": "#/definitions/nonNegativeNumber" },
         "weight": { "$ref": "#/definitions/nonNegativeNumber" },
         "effectiveWeight": { "$ref": "#/definitions/unitInterval" },
         "violationCount": { "$ref": "#/definitions/count" },
@@ -189,7 +192,13 @@
       "additionalProperties": false,
       "required": ["compiled", "executed", "failed"],
       "properties": {
+        "declared": { "$ref": "#/definitions/count" },
+        "adrDerived": { "$ref": "#/definitions/count" },
         "compiled": { "$ref": "#/definitions/count" },
+        "disabled": { "$ref": "#/definitions/count" },
+        "dropped": { "type": "array", "items": { "type": "string" } },
+        "skippedByMode": { "$ref": "#/definitions/count" },
+        "noJudgeUnits": { "type": "array", "items": { "type": "string" } },
         "executed": { "$ref": "#/definitions/count" },
         "failed": { "type": "array", "items": { "$ref": "#/definitions/functionFailure" } }
       }
@@ -206,7 +215,53 @@
         "tag": { "$ref": "#/definitions/templateTag" },
         "passed": { "type": "boolean" },
         "violationCount": { "$ref": "#/definitions/count" },
-        "executionTimeMs": { "$ref": "#/definitions/nonNegativeNumber" }
+        "executionTimeMs": { "$ref": "#/definitions/nonNegativeNumber" },
+        "truncated": { "type": "boolean" }
+      }
+    },
+    "disabledFunctionRow": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["functionId", "name", "reason"],
+      "properties": {
+        "functionId": { "type": "string" },
+        "name": { "type": "string" },
+        "reason": { "type": "string" }
+      }
+    },
+    "scoringWeights": {
+      "type": "object",
+      "propertyNames": { "$ref": "#/definitions/dimension" },
+      "additionalProperties": { "$ref": "#/definitions/nonNegativeNumber" }
+    },
+    "reportScoring": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["weights", "thresholds", "confidenceThresholds", "verdictSource"],
+      "properties": {
+        "weights": { "$ref": "#/definitions/scoringWeights" },
+        "fullModeWeights": { "$ref": "#/definitions/scoringWeights" },
+        "thresholds": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["pass", "warning", "softBlock"],
+          "properties": {
+            "pass": { "$ref": "#/definitions/unitInterval" },
+            "warning": { "$ref": "#/definitions/unitInterval" },
+            "softBlock": { "$ref": "#/definitions/unitInterval" }
+          }
+        },
+        "confidenceThresholds": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["high", "medium", "iccMinimum"],
+          "properties": {
+            "high": { "$ref": "#/definitions/unitInterval" },
+            "medium": { "$ref": "#/definitions/unitInterval" },
+            "iccMinimum": { "$ref": "#/definitions/unitInterval" }
+          }
+        },
+        "verdictSource": { "type": "string", "enum": ["ahsDeterministic", "ahsCombined", "ahsNeuronal"] }
       }
     },
     "countByNodeType": {
@@ -299,7 +354,7 @@
       "required": ["dimension", "reason", "declared", "executed"],
       "properties": {
         "dimension": { "$ref": "#/definitions/dimension" },
-        "reason": { "type": "string", "enum": ["disabled_by_spec", "execution_failure", "none_declared"] },
+        "reason": { "type": "string", "enum": ["disabled_by_spec", "execution_failure", "none_declared", "no-judge-units"] },
         "declared": { "$ref": "#/definitions/count" },
         "executed": { "$ref": "#/definitions/count" }
       }

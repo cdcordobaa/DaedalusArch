@@ -17,6 +17,16 @@ export function computeAVR(
   dimension: Dimension,
   confidenceThresholds?: ConfidenceThresholds,
 ): AVRScore {
+  return countAVR(symbolicResults, neuronalResults, dimension, confidenceThresholds).avr;
+}
+
+/** AVR with its unrounded numerator (`violatedWeight`, FR-15). */
+function countAVR(
+  symbolicResults: readonly SymbolicFunctionResult[],
+  neuronalResults: readonly NeuronalFunctionResult[],
+  dimension: Dimension,
+  confidenceThresholds?: ConfidenceThresholds,
+): { avr: AVRScore; violatedWeight: number } {
   let totalFunctions = 0;
   let violatedFunctions = 0;
 
@@ -45,8 +55,11 @@ export function computeAVR(
     }
   }
 
-  if (totalFunctions === 0) return avrScore(0);
-  return avrScore(Math.min(1, Math.round((violatedFunctions / totalFunctions) * 1000) / 1000));
+  if (totalFunctions === 0) return { avr: avrScore(0), violatedWeight: violatedFunctions };
+  return {
+    avr: avrScore(Math.min(1, Math.round((violatedFunctions / totalFunctions) * 1000) / 1000)),
+    violatedWeight: violatedFunctions,
+  };
 }
 
 /**
@@ -105,7 +118,7 @@ export function computePerDimensionScores(
   const scores: PerDimensionScore[] = [];
 
   for (const dim of dimensions) {
-    const avr = computeAVR(results.symbolicResults, results.neuronalResults, dim, confidenceThresholds);
+    const { avr, violatedWeight } = countAVR(results.symbolicResults, results.neuronalResults, dim, confidenceThresholds);
     avrs.set(dim, avr);
 
     // Count functions and violations
@@ -115,7 +128,9 @@ export function computePerDimensionScores(
     scores.push({
       dimension: dim,
       avr,
+      violatedWeight,
       weight: weightMap[dim] ?? 0,
+      effectiveWeight: weightMap[dim] ?? 0, // configured weight until the renormaliser is wired (U3-R7, FR-15)
       violationCount: symViolations.length + neurViolations.length,
       functionCount: results.symbolicResults.length + results.neuronalResults.length, // approximate
     });

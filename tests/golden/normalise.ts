@@ -58,13 +58,14 @@ export interface WarningRow {
   readonly message: string;
 }
 
+// number | null as C10 UniversalHealthMetrics (U3 DE §8 row 10); the golden values are numbers
 export interface UniversalMetricsRow {
-  readonly cyclicDependencyCount: number;
-  readonly maxFanOut: number;
-  readonly maxFanIn: number;
-  readonly abstractionRatio: number;
-  readonly averageInstability: number;
-  readonly orphanFileCount: number;
+  readonly cyclicDependencyCount: number | null;
+  readonly maxFanOut: number | null;
+  readonly maxFanIn: number | null;
+  readonly abstractionRatio: number | null;
+  readonly averageInstability: number | null;
+  readonly orphanFileCount: number | null;
 }
 
 export interface GoldenSnapshot {

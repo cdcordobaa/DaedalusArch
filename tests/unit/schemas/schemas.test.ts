@@ -138,9 +138,16 @@ const fullReport: EvaluationReport = {
   ahsCombined: ahsScore(0.8),
   ahsNeuronal: ahsScore(0.7),
   verdict: 'pass',
+  scoring: {
+    weights: WEIGHTS,
+    fullModeWeights: FULL_WEIGHTS,
+    thresholds: THRESHOLDS,
+    confidenceThresholds: CONF_THRESHOLDS,
+    verdictSource: 'ahsCombined',
+  },
   perDimensionScores: [
-    { dimension: 'structural', avr: avrScore(1), weight: 0.35, effectiveWeight: 0.5, violationCount: 0, functionCount: 2 },
-    { dimension: 'integrity', avr: avrScore(0.5), weight: 0.1, effectiveWeight: 0.5, violationCount: 1, functionCount: 1 },
+    { dimension: 'structural', avr: avrScore(1), violatedWeight: 2, weight: 0.35, effectiveWeight: 0.5, violationCount: 0, functionCount: 2 },
+    { dimension: 'integrity', avr: avrScore(0.5), violatedWeight: 0.5, weight: 0.1, effectiveWeight: 0.5, violationCount: 1, functionCount: 1 },
   ],
   violations: [
     {
@@ -163,20 +170,27 @@ const fullReport: EvaluationReport = {
   durationMs: 1234,
   warnings: [{ code: 'EVAL_001', message: 'query failed', stage: 'evaluation', context: { functionId: 'FF-X' } }],
   functionExecution: {
+    declared: 3,
+    adrDerived: 0,
     compiled: 3,
+    disabled: 1,
+    dropped: [],
+    skippedByMode: 0,
+    noJudgeUnits: [],
     executed: 2,
     failed: [{ functionId: functionId('FF-X'), name: 'broken', code: 'EVAL_001', message: 'syntax error' }],
   },
   functionResults: [
     {
       functionId: functionId('FF-S09'), name: 'domain-state-purity', dimension: 'structural', route: 'symbolic',
-      tag: 'topological', passed: false, violationCount: 1, executionTimeMs: 12.5,
+      tag: 'topological', passed: false, violationCount: 1, executionTimeMs: 12.5, truncated: false,
     },
     {
       functionId: functionId('FF-I01'), name: 'integrity', dimension: 'integrity', route: 'neuronal',
-      passed: false, violationCount: 1, executionTimeMs: 900,
+      passed: false, violationCount: 1, executionTimeMs: 900, truncated: false,
     },
   ],
+  disabledFunctions: [{ functionId: functionId('FF-P05'), name: 'repository-pattern', reason: 'disabled in spec' }],
   graphStats: {
     nodeCount: 10,
     edgeCount: 12,

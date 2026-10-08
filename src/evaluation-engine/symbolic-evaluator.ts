@@ -29,7 +29,7 @@ export async function evaluateSymbolic(input: SymbolicEvalInput): Promise<Domain
     }
 
     const template = CYPHER_TEMPLATES.get(query.name);
-    const mapping = template?.resultMapping ?? { filePathColumn: 'filePath', messageTemplate: 'Violation in {filePath}' };
+    const mapping = template?.resultMapping ?? { filePathColumn: 'filePath', messageTemplate: 'Violation in {filePath}', discriminatorColumns: [] };
 
     const violations = mapResultsToViolations(queryResult.data.records, mapping, query);
     const passed = computePassFail(violations, query, queryResult.data.records);

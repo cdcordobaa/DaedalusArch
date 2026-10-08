@@ -44,7 +44,7 @@ function fnResult(fid: string, violations: Violation[], dimension: Dimension = '
 }
 
 function score(dimension: Dimension, avr: number): PerDimensionScore {
-  return { dimension, avr: avrScore(avr), weight: 0.2, violationCount: 1, functionCount: 3 };
+  return { dimension, avr: avrScore(avr), violatedWeight: 1, weight: 0.2, effectiveWeight: 0.2, violationCount: 1, functionCount: 3 };
 }
 
 interface RunSpec {
@@ -63,6 +63,12 @@ function makeRun(spec: RunSpec): GoldenRun {
       specVersion: '1.0.0',
       ahsDeterministic: ahsScore(0.75),
       verdict: 'warning',
+      scoring: {
+        weights: { structural: 0.2, coupling: 0.2, pattern: 0.2, solid: 0.2, convention: 0.2, semantic: 0, integrity: 0, intent: 0 },
+        thresholds: { pass: 0.8, warning: 0.65, softBlock: 0.5 },
+        confidenceThresholds: { high: 0.85, medium: 0.6, iccMinimum: 0.7 },
+        verdictSource: 'ahsDeterministic',
+      },
       perDimensionScores: spec.scores ?? [score('structural', 0.5), score('coupling', 0)],
       violations: spec.results.flatMap((r) => r.violations),
       universalMetrics: {
@@ -72,6 +78,22 @@ function makeRun(spec: RunSpec): GoldenRun {
       evaluationMode: 'symbolic-only',
       durationMs: Math.floor(Math.random() * 1000),
       warnings: [],
+      functionExecution: {
+        declared: 0, adrDerived: 0, compiled: 0, disabled: 0, dropped: [],
+        skippedByMode: 0, noJudgeUnits: [], executed: 0, failed: [],
+      },
+      functionResults: [],
+      disabledFunctions: [],
+      graphStats: { nodeCount: 0, edgeCount: 0, layerCoverage: 0, nodeCountByType: {}, edgeCountByType: {} },
+      layerAnnotation: { mapped: 0, unmapped: 0, unmappedFiles: [] },
+      parseCoverage: { total: 0, parsed: 0, percentage: 0, skipped: [] },
+      importResolution: {
+        resolvedInternal: 0, external: 0, unresolved: 0, unsupportedDynamic: 0,
+        externalOutOfRootAlias: 0, droppedNoFileNode: 0,
+      },
+      timings: { stages: [], totalMs: 0 },
+      droppedDimensions: [],
+      judge: { provider: 'none', model: 'none', runsPerUnit: 0 },
     },
     evaluationResults: { symbolicResults: spec.results, neuronalResults: [] },
     compiledSymbolic: spec.compiled ?? spec.results.map((r) => ({ functionId: String(r.functionId), templateName: 'dependency-direction' })),

@@ -1,4 +1,4 @@
-import type { EvaluationReport } from '../shared/types/evaluation.js';
+import type { EvaluationReport, ReportScoring } from '../shared/types/evaluation.js';
 import type { PipelineStage } from '../shared/interfaces/pipeline-stage.js';
 import type { FirewallContext } from '../shared/context/firewall-context.js';
 import { DomainResult } from '../shared/errors/domain-result.js';
@@ -49,6 +49,14 @@ export async function computeScores(input: ScoringInput): Promise<DomainResult<E
     ...input.evaluationResults.neuronalResults.flatMap((r) => r.violations),
   ];
 
+  const scoring: ReportScoring = {
+    weights: input.scoringWeights,
+    ...(input.fullModeWeights !== undefined && { fullModeWeights: input.fullModeWeights }),
+    thresholds: input.verdictThresholds,
+    confidenceThresholds: input.confidenceThresholds,
+    verdictSource: ahsCombined ? 'ahsCombined' : 'ahsDeterministic',
+  };
+
   const report: EvaluationReport = {
     runId: makeRunId(`run-${Date.now()}`),
     projectPath: input.projectPath,
@@ -56,15 +64,48 @@ export async function computeScores(input: ScoringInput): Promise<DomainResult<E
     ahsDeterministic,
     ...(ahsCombined ? { ahsCombined } : {}),
     verdict,
+    scoring,
     perDimensionScores: scores,
     violations: allViolations,
     universalMetrics,
     evaluationMode: input.mode,
     durationMs: Date.now() - start,
     warnings: [],
+    droppedDimensions: [],
+    ...runLevelPlaceholders(input),
   };
 
   return DomainResult.ok(report);
+}
+
+/**
+ * Required run-level fields (D-U0-2, BR-U3-55) before the report builder exists. Placeholders only:
+ * `buildEvaluationReport` replaces every one of them when `AssembleReportCommand` is wired (U3-R9).
+ */
+function runLevelPlaceholders(input: ScoringInput): Pick<EvaluationReport,
+  'functionExecution' | 'functionResults' | 'disabledFunctions' | 'graphStats' | 'layerAnnotation' |
+  'parseCoverage' | 'importResolution' | 'timings' | 'judge'> {
+  const results = input.evaluationResults;
+  const failed = results.failures ?? [];
+  const executed = results.symbolicResults.length + results.neuronalResults.length;
+  const compiled = executed + failed.length;
+  return {
+    functionExecution: {
+      declared: compiled, adrDerived: 0, compiled, disabled: 0, dropped: [],
+      skippedByMode: 0, noJudgeUnits: [], executed, failed,
+    },
+    functionResults: [],
+    disabledFunctions: [],
+    graphStats: { nodeCount: 0, edgeCount: 0, layerCoverage: 0, nodeCountByType: {}, edgeCountByType: {} },
+    layerAnnotation: { mapped: 0, unmapped: 0, unmappedFiles: [] },
+    parseCoverage: { total: 0, parsed: 0, percentage: 0, skipped: [] },
+    importResolution: {
+      resolvedInternal: 0, external: 0, unresolved: 0, unsupportedDynamic: 0,
+      externalOutOfRootAlias: 0, droppedNoFileNode: 0,
+    },
+    timings: { stages: [], totalMs: 0 },
+    judge: { provider: 'none', model: 'none', runsPerUnit: 0 },
+  };
 }
 
 /**
