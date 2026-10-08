@@ -39,6 +39,7 @@ import type {
 import type { ImportGraph, ImportGraphEdge, ImportGraphFile, ProjectHandle } from './types.js';
 
 export type { ImportGraph, ImportGraphEdge, ImportGraphFile } from './types.js';
+export { newSimpleCycles } from './cycles.js';
 
 /** Same six globs, same order, as `DEFAULT_EXCLUDE_PATTERNS` (`src/apg-extractor/types.ts`); equality is tested. */
 export const IMPORT_GRAPH_EXCLUDE_PATTERNS: readonly string[] = Object.freeze([
