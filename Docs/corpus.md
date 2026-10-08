@@ -84,3 +84,14 @@ realworld-test, ghostfolio-test and truthy-demo carry the same spec text (the Ne
 | `ghostfolio-test` | `fitness_functions[FF-N01].dimension`, `fitness_functions[FF-N01].route`, `fitness_functions[FF-N02].dimension`, `scoring.full_mode_weights.intent` |
 | `truthy-demo` | `fitness_functions[FF-N01].dimension`, `fitness_functions[FF-N01].route`, `fitness_functions[FF-N02].dimension`, `scoring.full_mode_weights.intent` |
 | `dry-run-test` | `fitness_functions[FF-N01].dimension`, `fitness_functions[FF-N01].route`, `fitness_functions[FF-N02].dimension`, `scoring.full_mode_weights.intent` |
+
+### 3. FF-CV02 correction
+
+`npx tsx scripts/migrate-corpus-spec-cli.ts --step cv02 corpus/specs/<project>.yaml`, per spec (ADR-015 item 10, BR-U1-38). Every spec had exactly `*Service`; none was reported untouched. A rerun prints `no change` for all four.
+
+| Spec | Edited key paths |
+|---|---|
+| `realworld-test` | `fitness_functions[FF-CV02].pattern` (`*Service` → `*Service\|*UseCase`) |
+| `ghostfolio-test` | `fitness_functions[FF-CV02].pattern` (`*Service` → `*Service\|*UseCase`) |
+| `truthy-demo` | `fitness_functions[FF-CV02].pattern` (`*Service` → `*Service\|*UseCase`) |
+| `dry-run-test` | `fitness_functions[FF-CV02].pattern` (`*Service` → `*Service\|*UseCase`) |
