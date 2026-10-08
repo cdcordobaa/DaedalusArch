@@ -1,4 +1,10 @@
 /**
+ * FR-07 `pattern` grammar (BR-U1-06, frozen; domain-entities.md §5): one or more alternatives of
+ * [A-Za-z0-9_$*?], separated by `|`; no empty alternative, no trimming, no escapes.
+ */
+export const PATTERN_GRAMMAR = '^[A-Za-z0-9_$*?]+(\\|[A-Za-z0-9_$*?]+)*$';
+
+/**
  * JSON Schema v1.0.0 for AoC YAML specification.
  * Validates structural shape only — business rules validated separately in spec-validator.ts.
  */
