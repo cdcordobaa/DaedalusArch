@@ -915,3 +915,11 @@ Plan checkboxes ticked. Auto-approved under standing approval; no blocking or ma
 **Context**: CONSTRUCTION — lane 2 Code Generation planning COMPLETE (U2, U1); next: code generation U2 and U1 in worktrees.
 
 ---
+
+## v1.2 Evaluation-Readiness — Lane 3/4 Functional Design plans; escalations accepted
+**Timestamp**: 2026-10-08T03:30:00Z
+**User Input**: "accept all"
+**AI Response**: Workflow wf_b74b3ea7-f1a produced answered Functional Design plans for U3 (11 Q, 16 review issues fixed), U4 (19 Q, 18 fixed), U5a (16 fixed), U5b (16 fixed). Seven escalations presented; author accepted all. Recorded as ADR-017 (corpus core + 3–5 E7 projects; SO5 in scope; ADR-011 superseded by the E1 grid; SO4 domain-layer remap pre-registered; FR-11 RE_EXPORTS; FR-25 per tag; FR-27 agreement pairs; SECURITY-11 on generator; U4 halt condition). Requirement text amended with dated notes. Next: Functional Design Part 2 for U3/U4/U5a/U5b while lane 2 builds.
+**Context**: CONSTRUCTION — lanes 3/4 Functional Design plans complete.
+
+---

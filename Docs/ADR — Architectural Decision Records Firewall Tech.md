@@ -753,6 +753,40 @@ i. **U2 derived settlements** S-1 to S-7 and S-9 (U2 `business-rules.md` §14.1)
 
 ---
 
+## ADR-017: Scope and requirement amendments for producing the thesis results (v1.2, lanes 3–4)
+
+**Status**: Accepted (author, 2026-10-08: "accept all")
+
+**Date**: 2026-10-08
+
+**Context**: The functional-design plans for U3, U4, U5a and U5b raised escalations. Each one either changes requirement text or revisits an earlier ADR. The author accepted every recommendation.
+
+**Decision**:
+
+1. **Corpus.** The five projects in `Docs/corpus.md` remain the frozen core (ADR-015 item 3). E7 adds 3–5 further open-source projects, selected under criteria dated in git before any run, to reach 8–10 projects.
+2. **SO5 in scope.** The SO5 deviation wording is removed from the requirements. The generator (FR-28) is built, and E1 is run.
+3. **ADR-011 superseded.** The 3×3 / 135-project design is replaced by the parametric E1 grid: 3 Claude models × 3 spec levels × 2 tasks × 3 runs = 54 projects. Gemini, Antigravity and Codex adapters are added at the end.
+4. **SO4 seeding floor.** To reach 80–120 seeded instances, one uniform scripted remap of the corpus specs' domain layer (`**/domain/**`, `**/*.entity.ts`) is applied. It is a spec correction under ADR-015 item 1, committed and dated before any corpus run, and recorded in `Docs/corpus.md`.
+5. **FR-11.** `domain-purity` traverses `IMPORTS|RE_EXPORTS` and returns `type(i)`, consistent with ADR-015 item 8.
+6. **FR-25.** "per-tier" becomes "per tag (FR-29)".
+7. **FR-27.** Agreement is reported run vs run, judge vs panel, and panel vs the author's 30-item audit. A single labeller has no labeller-vs-labeller agreement.
+8. **SECURITY-11** is enforced on the generator: restricted tool list and a confined output directory.
+9. **U4 halt condition.** If the subscription login cannot be used from a dedicated `CLAUDE_CONFIG_DIR`, U4 halts and the author chooses the route.
+
+**Rationale**: Each item is needed to produce, or honestly report, a result promised in SO1–SO5. Requirement text is amended in `v1.2-evaluation-readiness-requirements.md`, with dated notes, instead of being silently reinterpreted.
+
+**Alternatives Considered**:
+
+| Alternative | Why Rejected |
+| --- | --- |
+| Keep SO5 as a deviation | The objective promises the LLM × spec-quality taxonomy |
+| Seed only into generated projects | Makes SO4 depend on E1 output quality |
+| Lower the SO4 number | Changes an objective sentence |
+
+**Consequences**: ADR-011 is marked superseded. Lane 3 (U3, U4, U5a) and lane 4 (U5b) are designed against these amendments. The experiments run after Build and Test.
+
+---
+
 ## Decision Log Summary
 
 | **ADR** | **Decision** | **Status** | **Spike Validated** |
@@ -767,10 +801,11 @@ i. **U2 derived settlements** S-1 to S-7 and S-9 (U2 `business-rules.md` §14.1)
 | 008 | Seeded violations for ground truth | Accepted | ✅ Spike 3 |
 | 009 | CLI-first interface | Accepted | — |
 | 010 | Stateless per-project evaluation | Accepted | ✅ Spike 3 |
-| 011 | 3×3 factorial experimental design | Accepted | — |
+| 011 | 3×3 factorial experimental design | Superseded by ADR-017 | — |
 | 012 | Layer annotation via spec mappings | Accepted | ✅ Spike 1 |
 | 013 | Universal health metrics (spec-independent) | Accepted | ✅ Spike 3 |
 | 014 | Node.js + TypeScript implementation | Accepted | — |
 | 015 | v1.2 lane-2 evaluation-readiness decisions (fix/observe rule, corpus provenance, cycle bound, RE_EXPORTS, tags, merge order) | Accepted | — |
 | 016 | v1.2 lane-2 functional-design settlements (NestJS controller binding, cannot-fire checks, 30 s cycle budget, Interface CONTAINS, spec-independent orphan metric) | Accepted | — |
 | 014 | Node.js + TypeScript implementation | Accepted | ✅ All spikes |
+| 017 | v1.2 scope/requirement amendments for results (corpus core+E7, SO5 in scope, E1 grid, SO4 remap, FR-11/25/27) | Accepted | — |
