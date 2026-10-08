@@ -1,19 +1,39 @@
 import { resolve, dirname } from 'node:path';
 import { SourceFile, SyntaxKind, Node } from 'ts-morph';
-import type { APGEdge } from '../shared/types/apg.js';
+import type { APGEdge, APGNode, ImportResolutionStats } from '../shared/types/apg.js';
 import type { ExtractorWarning } from '../shared/types/apg.js';
 import type { EdgeType } from '../shared/types/enums.js';
 import type { ExtractorOptions, NodeLookup } from './types.js';
 import { DEFAULT_OPTIONS, DI_DECORATORS, PRIMITIVE_TYPES } from './types.js';
 import { generateEdgeId, normalizeFilePath } from './id-generator.js';
+import { ImportEdgeMerger } from './import-edge-merger.js';
+import { PackageNodeRegistry } from './package-node-factory.js';
+import {
+  buildImportResolutionContext,
+  countUnsupportedDynamicImports,
+  importEqualsSpecifier,
+  resolveImportTargets,
+  resolveReExportTargets,
+} from './import-resolver.js';
+import type { StatementResolution } from './import-resolver.js';
+
+// Warning code EXTRACTOR_001 ("External import skipped") is retired and reserved
+// (FR-v1.2E-09, BR-U2-02): never emitted, never reused.
 
 export interface EdgeExtractionResult {
   readonly edges: APGEdge[];
   readonly warnings: ExtractorWarning[];
+  /** Package nodes referenced by IMPORTS / RE_EXPORTS edges, sorted by name (FR-09). */
+  readonly packageNodes: readonly APGNode[];
+  /** Partition counts over the counted statements (FR-14, BR-U2-14). */
+  readonly importResolution: ImportResolutionStats;
 }
 
 /**
- * Second pass: extract all 7 edge types using the NodeLookup built in the first pass.
+ * Second pass: extract the edge types using the NodeLookup built in the first pass.
+ * IMPORTS and RE_EXPORTS come from import resolution and the FR-10 merger and are
+ * emitted first (IMPORTS, then RE_EXPORTS, each in first-occurrence order); the
+ * other types follow in insertion order.
  */
 export function extractEdges(
   sourceFiles: SourceFile[],
@@ -22,9 +42,14 @@ export function extractEdges(
   options: ExtractorOptions = {},
 ): EdgeExtractionResult {
   const opts = { ...DEFAULT_OPTIONS, ...options };
-  const edgeSet = new Map<string, APGEdge>(); // key=(type+sourceId+targetId) for dedup
+  const edgeSet = new Map<string, APGEdge>(); // key=(type+sourceId+targetId) for dedup, non-import types only
   const warnings: ExtractorWarning[] = [];
+  const counts = { resolvedInternal: 0, external: 0, externalOutOfRootAlias: 0, unresolved: 0, droppedNoFileNode: 0, unsupportedDynamic: 0 };
 
+  const project = sourceFiles[0]?.getProject();
+  if (project === undefined) return { edges: [], warnings, packageNodes: [], importResolution: counts };
+
+  // Keep-first insertion for every type except IMPORTS / RE_EXPORTS, which the merger owns (BR-U2-17).
   const addEdge = (edge: APGEdge): void => {
     const key = `${edge.type}:${edge.sourceId}:${edge.targetId}`;
     if (!edgeSet.has(key)) edgeSet.set(key, edge);
@@ -34,20 +59,40 @@ export function extractEdges(
     warnings.push({ filePath, code, message });
   };
 
+  const packages = new PackageNodeRegistry();
+  const importCtx = buildImportResolutionContext(project, lookup, projectRoot, opts, addWarning, packages);
+  const merger = new ImportEdgeMerger();
+
   for (const sf of sourceFiles) {
     const filePath = normalizeFilePath(sf.getFilePath(), projectRoot);
     const fileNodeId = lookup.fileNodes.get(filePath);
     if (!fileNodeId) continue;
 
-    // IMPORTS edges
-    for (const importDecl of sf.getImportDeclarations()) {
-      const result = resolveImport(importDecl, sf, lookup, projectRoot, opts, addWarning);
-      if (!result) continue;
-      const edge = buildEdge('IMPORTS', fileNodeId, result.targetFileNodeId, {
-        importedNames: result.importedNames,
-        isTypeOnly: result.isTypeOnly,
-      });
-      addEdge(edge);
+    // IMPORTS / RE_EXPORTS: statements in source order, one partition counter each (BR-U2-14, 15).
+    for (const stmt of sf.getStatements()) {
+      let resolution: StatementResolution;
+      if (Node.isImportDeclaration(stmt)) {
+        resolution = resolveImportTargets(stmt, importCtx);
+      } else if (Node.isImportEqualsDeclaration(stmt) && importEqualsSpecifier(stmt) !== undefined) {
+        resolution = resolveImportTargets(stmt, importCtx);
+      } else if (Node.isExportDeclaration(stmt) && stmt.getModuleSpecifierValue() !== undefined) {
+        resolution = resolveReExportTargets(stmt, importCtx);
+      } else {
+        continue;
+      }
+      for (const occ of resolution.occurrences) {
+        const targetId = occ.target.kind === 'file' ? occ.target.fileNodeId : packages.getOrCreate(occ.target.root).id;
+        merger.add(occ, targetId);
+      }
+      counts[resolution.outcome]++;
+      if (resolution.outOfRootAlias) counts.externalOutOfRootAlias++;
+    }
+
+    // import() / require() calls are counted, not modelled (BR-U2-25).
+    const dynamic = countUnsupportedDynamicImports(sf);
+    if (dynamic > 0) {
+      counts.unsupportedDynamic += dynamic;
+      addWarning(filePath, 'EXTRACTOR_009', `Unsupported dynamic import(s): ${String(dynamic)}`);
     }
 
     // DECLARES edges (File → top-level Class / Interface / Function)
@@ -233,101 +278,13 @@ export function extractEdges(
     }
   }
 
-  return { edges: Array.from(edgeSet.values()), warnings };
-}
-
-// ── Barrel-aware import resolution ──────────────────────────────────────────
-
-function resolveImport(
-  importDecl: ReturnType<SourceFile['getImportDeclarations']>[number],
-  sf: SourceFile,
-  lookup: NodeLookup,
-  projectRoot: string,
-  opts: Required<ExtractorOptions>,
-  addWarning: (fp: string, code: string, msg: string) => void,
-): { targetFileNodeId: string; importedNames: string[]; isTypeOnly: boolean } | null {
-  const filePath = normalizeFilePath(sf.getFilePath(), projectRoot);
-  const moduleSpecifier = importDecl.getModuleSpecifierValue();
-
-  // Skip external / node_modules imports
-  if (!moduleSpecifier.startsWith('.') && !moduleSpecifier.startsWith('/')) {
-    addWarning(filePath, 'EXTRACTOR_001', `External import skipped: ${moduleSpecifier}`);
-    return null;
-  }
-
-  try {
-    const resolvedSf = importDecl.getModuleSpecifierSourceFile();
-    if (!resolvedSf) {
-      addWarning(filePath, 'EXTRACTOR_002', `Unresolvable import: ${moduleSpecifier}`);
-      return null;
-    }
-
-    const ultimateSf = resolveBarrelTransitively(resolvedSf, projectRoot, opts.maxBarrelDepth, new Set(), addWarning);
-    const targetPath = normalizeFilePath(ultimateSf.getFilePath(), projectRoot);
-    const targetFileNodeId = lookup.fileNodes.get(targetPath);
-    if (!targetFileNodeId) return null;
-
-    const namedImports = importDecl.getNamedImports().map(n => n.getName());
-    const defaultImport = importDecl.getDefaultImport()?.getText();
-    const namespaceImport = importDecl.getNamespaceImport()?.getText();
-    const importedNames = [
-      ...namedImports,
-      ...(defaultImport ? [defaultImport] : []),
-      ...(namespaceImport ? [`* as ${namespaceImport}`] : []),
-    ];
-
-    return {
-      targetFileNodeId,
-      importedNames,
-      isTypeOnly: importDecl.isTypeOnly(),
-    };
-  } catch {
-    addWarning(filePath, 'EXTRACTOR_002', `Unresolvable import: ${moduleSpecifier}`);
-    return null;
-  }
-}
-
-function resolveBarrelTransitively(
-  sf: SourceFile,
-  projectRoot: string,
-  maxDepth: number,
-  visited: Set<string>,
-  addWarning: (fp: string, code: string, msg: string) => void,
-): SourceFile {
-  const sfPath = sf.getFilePath();
-
-  if (visited.has(sfPath)) {
-    addWarning(normalizeFilePath(sfPath, projectRoot), 'EXTRACTOR_007', 'Circular barrel chain detected');
-    return sf;
-  }
-  if (visited.size >= maxDepth) {
-    addWarning(normalizeFilePath(sfPath, projectRoot), 'EXTRACTOR_006', 'Barrel resolution depth exceeded');
-    return sf;
-  }
-
-  const stmts = sf.getStatements();
-  const isBarrel = stmts.length > 0 && stmts.every(
-    s => s.getKind() === SyntaxKind.ExportDeclaration || s.getKind() === SyntaxKind.ImportDeclaration,
-  );
-  if (!isBarrel) return sf;
-
-  visited.add(sfPath);
-
-  // Follow first re-export to next file
-  for (const stmt of stmts) {
-    if (stmt.getKind() !== SyntaxKind.ExportDeclaration) continue;
-    try {
-      const exportDecl = stmt.asKindOrThrow(SyntaxKind.ExportDeclaration);
-      const nextSf = exportDecl.getModuleSpecifierSourceFile();
-      if (nextSf && nextSf.getFilePath() !== sfPath) {
-        return resolveBarrelTransitively(nextSf, projectRoot, maxDepth, new Set(visited), addWarning);
-      }
-    } catch {
-      // skip
-    }
-  }
-
-  return sf;
+  const importEdges = merger.edges();
+  const edges = [
+    ...importEdges.filter(e => e.type === 'IMPORTS'),
+    ...importEdges.filter(e => e.type === 'RE_EXPORTS'),
+    ...edgeSet.values(),
+  ];
+  return { edges, warnings, packageNodes: packages.nodes(), importResolution: counts };
 }
 
 // ── Helpers ──────────────────────────────────────────────────────────────────

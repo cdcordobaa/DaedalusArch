@@ -36,15 +36,6 @@ export interface NodeLookup {
   readonly functionNodes: Map<string, string>;
 }
 
-export interface ResolvedImport {
-  readonly originalSpecifier: string;
-  readonly resolvedFilePath: string;   // absolute path after barrel traversal
-  readonly isBarrel: boolean;
-  readonly barrelDepth: number;
-  readonly importedNames: string[];
-  readonly isTypeOnly: boolean;
-}
-
 export interface DIResolution {
   readonly parameterName: string;
   readonly typeName: string;
