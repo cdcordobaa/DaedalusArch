@@ -1057,3 +1057,12 @@ Plan checkboxes ticked. Auto-approved under standing approval; no blocking or ma
 **Context**: CONSTRUCTION — U4 Code Generation Part 2, Group 8 done; next Group 9 (Steps 30–32).
 
 ---
+
+## v1.2 Evaluation-Readiness — U5b Group 4 (Step 11): re-scorer
+**Timestamp**: 2026-10-08T16:53:29Z
+**User Input**: None (standing approval of 2026-10-08T00:30:00Z; orchestrator started U5b Group 4)
+**Intent**: Build the FR-26 re-scorer and prove the 3 dp reproduction on the five symbolic fixture reports (exit criterion 2, symbolic part), with leave-one-dimension-out and sensitivity-only scenarios.
+**AI Response**: Group 4 complete on v1.2e-u5b-scoring-harness. Step 11 78db180: five symbolic-only fixture reports produced under the lock on the lane Neo4j 7692 (same CLI entry as Step 7), scrubbed, committed under tests/fixtures/u5b/reports/ with test-input RunRecords (D-U5b-7; no path, user name or password); scripts/rescore.ts and rescore-cli.ts (inputs from the scoring block, spec re-parse fallback at RunRecord.specSha; every AHS field and the verdict from verdictSource reproduced via renormaliseWeights / computeAHS / determineVerdict, RESCORE_MISMATCH on any 3 dp difference; leave-one-dimension-out marked ablated; sensitivity-only threshold bands and majority / any-fail / share aggregation from persisted unitResults; rescore_ablation.csv and rescore_sensitivity.csv); 16 tests (five reports reproduce; FR-15 vector .389/.222/.333/.056 on solid ablation; sensitivity rows sensitivity-only; majority reproduces stored neural verdicts; spec-reparse source). Gates: T clean; U 2281 / 164 suites (2155 + 126 U5b); L 558 (= baseline), U5b files 0; B 85, 0 TS2688; G 74 executed, 0 skipped, src and tests/golden diffs empty, snapshot hashes equal to U5B_SNAPSHOT_HASHES; P 0. Gate G-CI (recommended): run 37811510701 green (unit 2266 + integration 15, golden 74, audit 37 high unchanged, lint 558 under continue-on-error). Golden changes: none, no CHANGES.md line. Deviations: DV-U5b-11 (CSV run_id column; ablation rows only for AHS fields whose candidate set holds the ablated dimension), DV-U5b-12 (any-fail and share variant definitions; hybrids keep stored contribution). Open: OI-U5b-P2-1, OI-U5b-P2-2, OI-U5b-P2-3 unchanged. No escalation.
+**Context**: CONSTRUCTION — U5b Code Generation Part 2, Group 4 done; next Group 5 (Steps 12–16).
+
+---
