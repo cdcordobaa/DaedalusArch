@@ -3,9 +3,11 @@ import type { Violation, ViolationType } from '../shared/taxonomy/violation-type
 import type { PipelineWarning } from '../shared/errors/domain-result.js';
 import { DomainResult } from '../shared/errors/domain-result.js';
 import type { ResultMapping } from '../fitness-compiler/types.js';
-import { CYPHER_TEMPLATES } from '../fitness-compiler/cypher-templates.js';
+import { CYPHER_TEMPLATES, getTemplateTag } from '../fitness-compiler/cypher-templates.js';
 import type { SymbolicEvalInput } from './types.js';
 import { functionId as makeFunctionId } from '../shared/types/value-objects.js';
+import { computeViolationId, discriminatorValues, toFiniteNumber } from './violation-id.js';
+import { formatEvidence, mergeById } from './evidence.js';
 
 export interface SymbolicEvalOutput {
   readonly results: readonly SymbolicFunctionResult[];
@@ -29,9 +31,10 @@ export async function evaluateSymbolic(input: SymbolicEvalInput): Promise<Domain
     }
 
     const template = CYPHER_TEMPLATES.get(query.name);
-    const mapping = template?.resultMapping ?? { filePathColumn: 'filePath', messageTemplate: 'Violation in {filePath}', discriminatorColumns: [] };
+    const mapping = template?.resultMapping ?? FALLBACK_MAPPING;
 
-    const violations = mapResultsToViolations(queryResult.data.records, mapping, query);
+    // FR-12: ids hash the row's own identity values; rows sharing an id merge (BR-U3-05, BR-U3-07).
+    const violations = [...mergeById(mapResultsToViolations(queryResult.data.records, mapping, query))];
     const passed = computePassFail(violations, query, queryResult.data.records);
 
     results.push({
@@ -47,13 +50,37 @@ export async function evaluateSymbolic(input: SymbolicEvalInput): Promise<Domain
   return DomainResult.ok({ results, warnings });
 }
 
-let violationCounter = 0;
+/** Mapping of a query without a built-in template (ADR queries, unknown names). */
+const FALLBACK_MAPPING: ResultMapping = { filePathColumn: 'filePath', messageTemplate: 'Violation in {filePath}', discriminatorColumns: [] };
 
+/** `row[column]` as a string, or absent when the column is unmapped or the value is null/missing. */
+function optionalText(record: Readonly<Record<string, unknown>>, column: string | undefined): string | undefined {
+  if (column === undefined) return undefined;
+  const value = record[column];
+  if (value === null || value === undefined) return undefined;
+  return typeof value === 'string' ? value : String(value);
+}
+
+/** Finite numbers of a list cell; absent when the column is unmapped or the cell is not a list. */
+function optionalLines(record: Readonly<Record<string, unknown>>, column: string | undefined): number[] | undefined {
+  if (column === undefined) return undefined;
+  const value = record[column];
+  if (!Array.isArray(value)) return undefined;
+  return value.map(toFiniteNumber).filter((n): n is number => n !== undefined);
+}
+
+/**
+ * Row mapping (FR-12, BR-U3-04; T-MAP of U3 business-rules.md §3): file path, target, line, lines,
+ * isTypeOnly, discriminator, evidence and tag per the template's `ResultMapping`; the id is
+ * `computeViolationId` over the identity values (BR-U3-05), never a counter.
+ */
 function mapResultsToViolations(
   records: readonly Record<string, unknown>[],
   mapping: ResultMapping,
   query: CypherQuery,
 ): Violation[] {
+  const tag = query.source === 'template' ? getTemplateTag(query.name) : undefined;
+  const evidenceColumns = mapping.evidenceColumns ?? [];
   return records.map((record) => {
     const filePath = String(record[mapping.filePathColumn] ?? 'unknown');
     let message = mapping.messageTemplate;
@@ -61,16 +88,28 @@ function mapResultsToViolations(
       message = message.replace(`{${key}}`, String(value));
     }
 
+    const target = optionalText(record, mapping.targetColumn);
+    const line = mapping.lineColumn !== undefined ? toFiniteNumber(record[mapping.lineColumn]) : undefined;
+    const lines = optionalLines(record, mapping.linesColumn);
+    const discriminator = discriminatorValues(record, mapping.discriminatorColumns);
+
     return {
-      id: `v-${String(query.functionId)}-${++violationCounter}`,
+      id: computeViolationId({ functionId: query.functionId, filePath, target, line, discriminator }),
       type: dimensionToViolationType(query.name),
       dimension: query.dimension,
       severity: query.severity,
       functionId: makeFunctionId(String(query.functionId)),
-      route: query.route === 'hybrid' ? 'symbolic' as const : 'symbolic' as const,
+      route: 'symbolic' as const,
       filePath,
       message,
       deterministic: true,
+      ...(target !== undefined ? { target } : {}),
+      ...(line !== undefined ? { line } : {}),
+      ...(lines !== undefined ? { lines } : {}),
+      ...(mapping.isTypeOnlyColumn !== undefined ? { isTypeOnly: record[mapping.isTypeOnlyColumn] === true } : {}),
+      discriminator,
+      ...(evidenceColumns.length > 0 ? { evidence: formatEvidence(record, evidenceColumns) } : {}),
+      ...(tag !== undefined ? { tag } : {}),
     };
   });
 }

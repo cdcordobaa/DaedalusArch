@@ -4,6 +4,8 @@
  * Only genuinely nondeterministic data is normalised:
  * - run-specific fields (runId, durationMs, executionTimeMs, violation id,
  *   timings, audit log, startedAt) are not picked;
+ * - violations carry `line` and `target` when the evaluator sets them
+ *   (U3-R2, FR-12; D-U0-12 pick reviewed by U3);
  * - the repository root is replaced by `<root>` in every string;
  * - violations keep their per-function grouping in emitted order and are
  *   stable-sorted only inside each function group (Neo4j row order, no
@@ -44,6 +46,8 @@ export interface ViolationRow {
   readonly route: string;
   readonly filePath: string;
   readonly message: string;
+  readonly line?: number;   // FR-12 (U3-R2): present when the violation has a line
+  readonly target?: string; // FR-12 (U3-R2): present when the violation has a target
 }
 
 export interface TruncatedFunctionRow {
@@ -215,6 +219,8 @@ export function normaliseForSnapshot(
       route: v.route,
       filePath,
       message,
+      ...(v.line !== undefined && { line: v.line }),
+      ...(v.target !== undefined && { target: r(v.target) }),
     };
     const group = groups.get(functionId);
     if (group) group.push(row);

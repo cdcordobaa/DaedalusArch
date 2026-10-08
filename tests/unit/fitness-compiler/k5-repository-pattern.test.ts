@@ -20,7 +20,8 @@ describe('BR-U1-45 (b): repository-pattern keeps only the violating branch', () 
 
   it('keeps the row shape, result mapping, requiredParams and requiredLayerKinds', () => {
     expect(t.template).toContain("RETURN '' AS interface, c.name AS implementation, c.filePath AS filePath");
-    expect(t.resultMapping).toEqual({ filePathColumn: 'filePath', messageTemplate: 'Violation in {filePath}', discriminatorColumns: [] });
+    // discriminator from T-MAP since U3-R2 (attributed cross-unit update; U3 BR-U3-06)
+    expect(t.resultMapping).toEqual({ filePathColumn: 'filePath', messageTemplate: 'Violation in {filePath}', discriminatorColumns: ['implementation'] });
     expect(t.requiredParams).toEqual(['domainLayer', 'infraLayer']);
     expect(t.requiredLayerKinds).toEqual(['domain', 'infrastructure']);
   });

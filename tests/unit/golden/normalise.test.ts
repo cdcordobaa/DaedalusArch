@@ -136,6 +136,26 @@ describe('normaliseForSnapshot', () => {
     expect(snap.functionResults).toEqual([{ functionId: 'F1', dimension: 'structural', passed: false, violationCount: 1 }]);
   });
 
+  it('picks line and target when the violation carries them (U3-R2, FR-12; D-U0-12 pick)', () => {
+    const located: Violation = {
+      ...violation('F1', `${ROOT}/src/a.ts`, 'm'),
+      line: 3, target: `${ROOT}/src/b.ts`, lines: [3, 7], isTypeOnly: false,
+      discriminator: ['IMPORTS'], evidence: ['fanIn=2'], tag: 'structural',
+    };
+    const run = makeRun({ results: [fnResult('F1', [located, violation('F1', `${ROOT}/src/c.ts`, 'n')])] });
+    const snap = normaliseForSnapshot('case-x', run, { repoRoot: ROOT });
+    expect(snap.violations[0]).toEqual({
+      functionId: 'F1', type: 'LAYER_VIOLATION', dimension: 'structural', severity: 'major', route: 'symbolic',
+      filePath: '<root>/src/a.ts', message: 'm', line: 3, target: '<root>/src/b.ts',
+    });
+    // A violation without line and target keeps the U0 field set (no undefined keys).
+    expect(Object.keys(snap.violations[1] ?? {}).sort()).toEqual(
+      ['dimension', 'filePath', 'functionId', 'message', 'route', 'severity', 'type'],
+    );
+    expect(serialiseSnapshot(snap)).not.toContain('"lines"');
+    expect(serialiseSnapshot(snap)).not.toContain('"evidence"');
+  });
+
   it('replaces the resolved root with <root> in every string', () => {
     const run = makeRun({
       results: [fnResult('F1', [violation('F1', `${ROOT}/src/a.ts`, `${ROOT}/src/a.ts imports ${ROOT}/src/b.ts`)])],
