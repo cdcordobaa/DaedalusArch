@@ -10,7 +10,7 @@
  *   `npm-ci-ignore-scripts` with the lock sha256 at the recorded commit, tsc `project` at the lock's version).
  */
 import { readFileSync, writeFileSync } from 'node:fs';
-import { join } from 'node:path';
+import { join, resolve } from 'node:path';
 import type { ProcessRunner } from '../src/shared/interfaces/process-runner.js';
 import { buildChildEnv, NodeProcessRunner } from '../src/shared/process/node-process-runner.js';
 import { canonicalize } from './lib/canonical-json.js';
@@ -225,19 +225,19 @@ export async function main(argv: readonly string[], repoRoot: string, io: Select
     const gdeps: GhDeps = deps ?? { runner: new NodeProcessRunner(), env: buildChildEnv(process.env, ['PATH', 'HOME', 'GH_TOKEN', 'GH_HOST', 'XDG_CONFIG_HOME']) };
     if (argv.includes('--search')) {
       const list = await searchCandidates(gdeps, now, criteria.backendPackages);
-      writeFileSync(join(repoRoot, arg(argv, '--out') ?? CANDIDATES_FILE), json(list));
+      writeFileSync(resolve(repoRoot, arg(argv, '--out') ?? CANDIDATES_FILE), json(list));
       io.out(`${String(list.candidates.length)} candidates\n`);
       return 0;
     }
-    const corpusPath = join(repoRoot, arg(argv, '--corpus') ?? CORPUS_FILE);
+    const corpusPath = resolve(repoRoot, arg(argv, '--corpus') ?? CORPUS_FILE);
     const loaded = loadCorpus(corpusPath, repoRoot);
     if (!loaded.ok) {
       io.err(`${loaded.errors.join('\n')}\n`);
       return 1;
     }
-    const list = JSON.parse(readFileSync(join(repoRoot, arg(argv, '--candidates') ?? CANDIDATES_FILE), 'utf8')) as CandidateList;
+    const list = JSON.parse(readFileSync(resolve(repoRoot, arg(argv, '--candidates') ?? CANDIDATES_FILE), 'utf8')) as CandidateList;
     if (argv.includes('--append-entries')) {
-      const selection = JSON.parse(readFileSync(join(repoRoot, arg(argv, '--selection') ?? SELECTION_FILE), 'utf8')) as Selection;
+      const selection = JSON.parse(readFileSync(resolve(repoRoot, arg(argv, '--selection') ?? SELECTION_FILE), 'utf8')) as Selection;
       const byName = new Map(list.candidates.map((c) => [c.name, c]));
       const added: CorpusEntry[] = [];
       for (const s of selection.selected) {
@@ -256,7 +256,7 @@ export async function main(argv: readonly string[], repoRoot: string, io: Select
       io.err(`${r.code}: ${r.detail}\n`);
       return 1;
     }
-    writeFileSync(join(repoRoot, arg(argv, '--out') ?? SELECTION_FILE), json(r.selection));
+    writeFileSync(resolve(repoRoot, arg(argv, '--out') ?? SELECTION_FILE), json(r.selection));
     io.out(`${r.selection.selected.map((s) => `${s.name} (${s.style}, ${String(s.fileCount)} files)`).join('\n')}\n`);
     return 0;
   } catch (e) {

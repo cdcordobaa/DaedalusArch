@@ -1,0 +1,140 @@
+{
+  "version": 1,
+  "entries": [
+    {
+      "name": "dev-nest",
+      "originUrl": "https://github.com/johnvesslyalti/dev-nest.git",
+      "licence": "isc",
+      "licenceNote": "Ambiguous: package.json declares ISC, the README states MIT, no licence file (Docs/corpus.md). Both permissive; read and analysed only.",
+      "fileCount": 75,
+      "style": "nestjs",
+      "commitSha": "a57d4f0ed91d42b263c92c8d6f1e39337317621e",
+      "core": true,
+      "specPath": "corpus/specs/dev-nest.yaml",
+      "overlays": [],
+      "install": {
+        "policy": "npm-ci-ignore-scripts",
+        "lockSha256": "28c24f8911ab75decbc1d4982f8968d740da0dfec9f776d3a213f3331c7a0e5c"
+      },
+      "tsc": {
+        "kind": "project",
+        "tscPath": "node_modules/typescript/bin/tsc",
+        "tscVersion": "5.9.3"
+      }
+    },
+    {
+      "name": "realworld-test",
+      "originUrl": "https://github.com/lujakob/nestjs-realworld-example-app.git",
+      "licence": "isc",
+      "licenceNote": "ISC from package.json only (no licence file, no README statement). Overlay src/config.ts is the repository's own src/config.ts.example.",
+      "fileCount": 34,
+      "style": "nestjs",
+      "commitSha": "c1c2cc4e448b279ff083272df1ac50d20c3304fa",
+      "core": true,
+      "specPath": "corpus/specs/realworld-test.yaml",
+      "overlays": [
+        {
+          "path": "src/config.ts",
+          "patchFile": "corpus/overlays/realworld-test/src-config.patch",
+          "sha256": "4b4892265a4276448006bf61bdbdc236efbfc2bdd33ca1e8077196e2b358ea56"
+        }
+      ],
+      "install": {
+        "policy": "npm-ci-ignore-scripts",
+        "lockSha256": "d5e2bbd08d770652e964b0f540b2c3253f948805eefa1bf6e912ecf6999e16c0"
+      },
+      "tsc": {
+        "kind": "project",
+        "tscPath": "node_modules/typescript/bin/tsc",
+        "tscVersion": "3.8.3"
+      }
+    },
+    {
+      "name": "ghostfolio-test",
+      "originUrl": "https://github.com/ghostfolio/ghostfolio.git",
+      "licence": "agpl-3.0",
+      "licenceNote": "AGPL-3.0: read-only use; the only overlay is configuration (apps/api/tsconfig.json), no source file is patched.",
+      "fileCount": 241,
+      "style": "nestjs",
+      "commitSha": "6d4cae31232386649e5ee8cda140b9dcbd2b6f2b",
+      "core": true,
+      "specPath": "corpus/specs/ghostfolio-test.yaml",
+      "subPath": "apps/api",
+      "overlays": [
+        {
+          "path": "apps/api/tsconfig.json",
+          "patchFile": "corpus/overlays/ghostfolio-test/apps-api-tsconfig.patch",
+          "sha256": "db662b72fe5faaa765ed1fd17379ff46ebfa57fc34fbed4c58526a2f51d4df19"
+        }
+      ],
+      "install": {
+        "policy": "npm-ci-ignore-scripts",
+        "lockSha256": "e9191a047adbbf7b4dbbf8446eb7a88d897438a2b18ed6bd1f12edbb0b995ddb"
+      },
+      "tsc": {
+        "kind": "project",
+        "tscPath": "node_modules/typescript/bin/tsc",
+        "tscVersion": "5.9.2"
+      }
+    },
+    {
+      "name": "truthy-demo",
+      "originUrl": "https://github.com/gobeam/truthy.git",
+      "licence": "mit",
+      "licenceNote": "MIT. The upstream commit tracks only yarn.lock; the overlay adds the package-lock.json of the evaluated local install so that npm ci pins TypeScript 4.7.4, and .npmrc legacy-peer-deps=true (the lock has a @nestjs/core 8 / platform-express 9 peer conflict that npm ci otherwise refuses). Configuration only.",
+      "fileCount": 131,
+      "style": "nestjs",
+      "commitSha": "9b9a61be6c0a6439c2afeb4170ef42b545e8fe54",
+      "core": true,
+      "specPath": "corpus/specs/truthy-demo.yaml",
+      "overlays": [
+        {
+          "path": "package-lock.json",
+          "patchFile": "corpus/overlays/truthy-demo/package-lock.patch",
+          "sha256": "5c171979d68f9f1a8fef4b2f19a90432e35c67e33534506ee4047e52470ea2dd"
+        },
+        {
+          "path": ".npmrc",
+          "patchFile": "corpus/overlays/truthy-demo/npmrc.patch",
+          "sha256": "abed217f31f0383256d5ecc87a7c16cb0f553ba361bc7491551525b8b32a2273"
+        }
+      ],
+      "install": {
+        "policy": "npm-ci-ignore-scripts",
+        "lockSha256": "80a19e1961bca010d55689b39d3cab47ff6ca83cb06e30788b16b85730cdf30d"
+      },
+      "tsc": {
+        "kind": "project",
+        "tscPath": "node_modules/typescript/bin/tsc",
+        "tscVersion": "4.7.4"
+      }
+    },
+    {
+      "name": "dry-run-test",
+      "originUrl": "https://github.com/brocoders/nestjs-boilerplate.git",
+      "licence": "mit",
+      "licenceNote": "MIT (Brocoders, 2023). Configuration-only overlay (tsconfig.json include/exclude).",
+      "fileCount": 156,
+      "style": "nestjs",
+      "commitSha": "dd0034750fc7f6ec15712afbecf50fa9828018a2",
+      "core": true,
+      "specPath": "corpus/specs/dry-run-test.yaml",
+      "overlays": [
+        {
+          "path": "tsconfig.json",
+          "patchFile": "corpus/overlays/dry-run-test/tsconfig.patch",
+          "sha256": "d581ea3d2b87434e2a77d0a2864ddaac1999c6173b96e8ea54213d2ec6110a42"
+        }
+      ],
+      "install": {
+        "policy": "npm-ci-ignore-scripts",
+        "lockSha256": "c019ce88c1bf745c1f1e38249ebeb55d968ae6ae464417505c9cbda89adb8c9a"
+      },
+      "tsc": {
+        "kind": "project",
+        "tscPath": "node_modules/typescript/bin/tsc",
+        "tscVersion": "5.9.3"
+      }
+    }
+  ]
+}

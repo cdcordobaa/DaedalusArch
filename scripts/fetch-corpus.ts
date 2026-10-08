@@ -151,7 +151,7 @@ export async function main(argv: readonly string[], repoRoot: string, io: FetchI
     io.err('usage: fetch-corpus-cli.ts --dest <dir> [--corpus <file>] [--only a,b] [--check] [--no-install] [--out <file>]\n');
     return 2;
   }
-  const loaded = loadCorpus(join(repoRoot, arg(argv, '--corpus') ?? CORPUS_FILE), repoRoot);
+  const loaded = loadCorpus(resolve(repoRoot, arg(argv, '--corpus') ?? CORPUS_FILE), repoRoot);
   if (!loaded.ok) {
     io.err(`${loaded.errors.join('\n')}\n`);
     return 1;
