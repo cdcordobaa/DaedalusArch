@@ -95,3 +95,14 @@ realworld-test, ghostfolio-test and truthy-demo carry the same spec text (the Ne
 | `ghostfolio-test` | `fitness_functions[FF-CV02].pattern` (`*Service` → `*Service\|*UseCase`) |
 | `truthy-demo` | `fitness_functions[FF-CV02].pattern` (`*Service` → `*Service\|*UseCase`) |
 | `dry-run-test` | `fitness_functions[FF-CV02].pattern` (`*Service` → `*Service\|*UseCase`) |
+
+### 4. Domain-layer remap (ADR-017 item 4)
+
+`npx tsx scripts/remap-domain-layer-cli.ts corpus/specs/*.yaml`. The domain layer of every spec gains the directory glob `**/domain/**` and the file pattern `**/*.entity.ts`; existing entries are kept. A rerun prints `no change` for all four. The registered spec hashes are the post-remap ones.
+
+| Spec | Edited key paths |
+|---|---|
+| `realworld-test` | `architecture.layers[0].directories` (+ `**/domain/**`), `architecture.layers[0].file_patterns` (new, `**/*.entity.ts`) |
+| `ghostfolio-test` | `architecture.layers[0].directories` (+ `**/domain/**`), `architecture.layers[0].file_patterns` (new, `**/*.entity.ts`) |
+| `truthy-demo` | `architecture.layers[0].directories` (+ `**/domain/**`), `architecture.layers[0].file_patterns` (new, `**/*.entity.ts`) |
+| `dry-run-test` | `architecture.layers[0].directories` (+ `**/domain/**`), `architecture.layers[0].file_patterns` (new, `**/*.entity.ts`) |
