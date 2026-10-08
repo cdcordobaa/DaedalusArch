@@ -44,6 +44,29 @@ export interface Applied {
 
 let counter = 0;
 
+/** Like `applyForced`, but returns the pipeline result instead of throwing on a failure. */
+export async function tryApply(
+  scratch: string,
+  ops: readonly MutationOperator[],
+  opId: string,
+  base: PreparedBase,
+  site: Omit<MutationSite, 'kind' | 'line'>,
+): Promise<{ readonly result: Awaited<ReturnType<typeof applyMutation>>; readonly manifestPath: string }> {
+  counter++;
+  const dir = path.join(scratch, `${opId}-try-${String(counter)}`);
+  fs.mkdirSync(dir, { recursive: true });
+  const manifestPath = path.join(dir, 'manifest.json');
+  const result = await applyMutation(
+    { repoRoot: REPO, runner, registry: testRegistry(ops), masterSeed: 20261008, sitesPerOperator: 1, split: 'dev', now: () => NOW },
+    base,
+    opId,
+    manifestPath,
+    path.join(dir, 'copies'),
+    { cycleStrategy: 'simple-cycles', siteOverride: { filePath: site.filePath, detail: site.detail } },
+  );
+  return { result, manifestPath };
+}
+
 /** Applies `op` (forced at `site`, or sampled when `site` is undefined) in a fresh scratch directory. */
 export async function applyForced(
   scratch: string,
