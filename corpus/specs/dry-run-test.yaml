@@ -305,30 +305,30 @@ fitness_functions:
   # ── NEURONAL ──
 
   - id: FF-N01
-    name: srp-semantic
+    name: architectural-integrity
     dimension: integrity
     severity: major
     route: neuronal
     validated: false
     semantic_criteria:
-      rule: "A class should have exactly one reason to change"
+      rule: "The module's files form one coherent unit with a consistent abstraction and boundary."
       rubric:
-        pass: "Class responsibilities are cohesive and serve a single purpose"
-        fail: "Class mixes unrelated concerns (data access + business logic, etc.)"
-        evidence_required: "Cite specific methods that indicate mixed responsibilities"
+        pass: "The files serve one cohesive concern, use the module's abstractions consistently, and keep each rule or invariant in one place."
+        fail: "The files split into unrelated concerns, duplicate a rule or invariant that should live in one place, or bypass the module's own abstractions."
+        evidence_required: "Name each file involved and cite the declarations that show the split, the duplication or the bypass."
 
   - id: FF-N02
-    name: layering-intent
+    name: intent-alignment
     dimension: semantic
     severity: major
     route: neuronal
     validated: false
     semantic_criteria:
-      rule: "Code should respect the documented architectural intent"
+      rule: "The unit's responsibilities match the role of its declared layer."
       rubric:
-        pass: "File is in the correct layer and dependencies respect layer boundaries"
-        fail: "File logic or dependencies contradict the architectural layer it lives in"
-        evidence_required: "Cite the specific import or logic that violates the intent"
+        pass: "Every responsibility in the file belongs to the role and kind of its declared layer, and agrees with any ADR prose given."
+        fail: "The file carries a responsibility that belongs to a different layer kind, for example persistence, transport or framework logic in a domain file, or business rules in an infrastructure or presentation file."
+        evidence_required: "Name the file and cite the function, method or statement that carries the misplaced responsibility, and the layer kind it belongs to."
 
 default_exclude_paths:
   - "node_modules/**"

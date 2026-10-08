@@ -106,3 +106,17 @@ realworld-test, ghostfolio-test and truthy-demo carry the same spec text (the Ne
 | `ghostfolio-test` | `architecture.layers[0].directories` (+ `**/domain/**`), `architecture.layers[0].file_patterns` (new, `**/*.entity.ts`) |
 | `truthy-demo` | `architecture.layers[0].directories` (+ `**/domain/**`), `architecture.layers[0].file_patterns` (new, `**/*.entity.ts`) |
 | `dry-run-test` | `architecture.layers[0].directories` (+ `**/domain/**`), `architecture.layers[0].file_patterns` (new, `**/*.entity.ts`) |
+
+### 5. FR-22 (U4 rubric) (BR-U4-RUB-03)
+
+Recorded 2026-10-08 (Build and Test Step 14). `npx tsx scripts/corpus-rubric-u4-cli.ts corpus/specs/*.yaml tests/fixtures/u5a/layered/firewall.spec.yaml`, exit 0; its post-assertion holds (no `srp-semantic`, `layering-intent` or SRP rubric text in any function). A rerun prints `no change` for all five files. The text comes from the single source `src/llm-critic/rubric.ts`. **DV-BT-1**: BR-U4-RUB-03 calls this the fourth corpus commit; the U5b chain (BR-U5b-77) already made the domain-layer remap the fourth, so this is the fifth. The content is unchanged. The registered spec hashes change, so `--check-prereg` refuses until the next pre-registration bump (P-1, held by E-1).
+
+| Spec | Edited key paths | sha256 after |
+|---|---|---|
+| `realworld-test` | FF-N01 and FF-N02: `name`, `semantic_criteria.rule`, `semantic_criteria.rubric.pass`, `.fail`, `.evidence_required` (10 paths) | `08e7ba247c4dc428296bc5cc13a31798f86630d09804dc6adc2496d5c3675244` |
+| `ghostfolio-test` | same 10 paths | `08e7ba247c4dc428296bc5cc13a31798f86630d09804dc6adc2496d5c3675244` |
+| `truthy-demo` | same 10 paths | `08e7ba247c4dc428296bc5cc13a31798f86630d09804dc6adc2496d5c3675244` |
+| `dry-run-test` | same 10 paths | `dbdca3b5f1a47cd35556c19ddffd5ab734e63035d56e4960fa356e0a67536317` |
+| `tests/fixtures/u5a/layered/firewall.spec.yaml` (layered fixture spec, U4 §7 row "layered fixture spec old names") | same 10 paths | `cebbeb626fbaa46985caeaf0bfa32e95bad52543e11a878d08f56b025434b10c` |
+
+dev-nest has no spec yet (OI-12); the assertion applies to it when its spec is written in the E7 mapping step.
