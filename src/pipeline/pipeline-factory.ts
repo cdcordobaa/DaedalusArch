@@ -27,6 +27,8 @@ import { ScoreCommand } from './commands/score-command.js';
 import { SnapshotSaveCommand } from './commands/snapshot-save-command.js';
 import { SnapshotLoadCommand } from './commands/snapshot-load-command.js';
 import { DriftDetectCommand } from './commands/drift-detect-command.js';
+import { AssembleReportCommand } from './commands/assemble-report-command.js';
+import type { CompileFactsHolder } from './commands/compile-command.js';
 
 /**
  * The value returned by `createPipeline`. Holds everything the caller needs
@@ -37,6 +39,8 @@ export interface PipelineBundle {
   readonly executor: PipelineExecutor;
   /** The shared FirewallContext (useful for reading audit/warnings post-run). */
   readonly context: FirewallContext;
+  /** The command sequence in execution order; the last is always `assemble-report` (BR-U3-50). */
+  readonly commands: readonly PipelineCommand[];
   /** Must be called in a `finally` block to close the Neo4j driver. */
   readonly cleanup: () => Promise<void>;
 }
@@ -53,6 +57,7 @@ export interface PipelineBundle {
  *   6. Score                            — sequential (needs EvaluationResults + ParsedSpec)
  *   7. (optional) SnapshotSave          — if `--persist` and commitSha present
  *   8. (optional) DriftDetect           — if `--diff`
+ *   9. AssembleReport                   — always last: the one EvaluationReport (BR-U3-50)
  */
 export function createPipeline(config: PipelineConfig): PipelineBundle {
   // ------------------------------------------------------------------
@@ -128,7 +133,9 @@ export function createPipeline(config: PipelineConfig): PipelineBundle {
   commands.push(new IngestCommand(graphRepo, snapshotStore, ingestConfig));
 
   // ---- Stage 3: Compile fitness functions -----------------------------
-  commands.push(new CompileCommand());
+  // CompileCommand records the declared-side counts that AssembleReportCommand reads (BR-U3-52).
+  const compileFacts: CompileFactsHolder = {};
+  commands.push(new CompileCommand(compileFacts));
 
   // ---- Stage 4: Evaluate (mode-dependent) -----------------------------
   switch (config.evaluationMode) {
@@ -169,6 +176,15 @@ export function createPipeline(config: PipelineConfig): PipelineBundle {
     );
   }
 
+  // ---- Last: assemble the one report (BR-U3-50) -----------------------
+  // The timing source reads the executor (created below) when the command runs: timings at assembly time.
+  commands.push(new AssembleReportCommand({
+    mode: config.evaluationMode,
+    timingSource: () => executor.getTimings(),
+    compileFacts,
+    knownSecrets: [],
+  }));
+
   // ------------------------------------------------------------------
   // 4. Create the executor
   // ------------------------------------------------------------------
@@ -181,7 +197,7 @@ export function createPipeline(config: PipelineConfig): PipelineBundle {
     await graphRepo.close();
   };
 
-  return { executor, context, cleanup };
+  return { executor, context, commands, cleanup };
 }
 
 // ======================================================================

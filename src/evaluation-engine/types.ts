@@ -6,6 +6,8 @@ import type { FunctionId } from '../shared/types/value-objects.js';
 export interface SymbolicEvalInput {
   readonly queries: readonly CypherQuery[];
   readonly graphRepository: GraphRepository;
+  /** Per-query timeout passed through when set; otherwise the repository default applies (BR-U3-03). */
+  readonly queryTimeoutMs?: number;
 }
 
 export type EvalErrorCode =

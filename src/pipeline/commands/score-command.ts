@@ -7,7 +7,7 @@ import type { ScoringWeights, VerdictThresholds, ConfidenceThresholds, FitnessFu
 import type { FunctionId } from '../../shared/types/value-objects.js';
 import type { PipelineWarning } from '../../shared/errors/domain-result.js';
 import { DomainResult } from '../../shared/errors/domain-result.js';
-import { computeScores } from '../../scoring-engine/index.js';
+import { computeScoredReport } from '../../scoring-engine/index.js';
 import { toPipelineError, toPipelineWarning } from './map-helpers.js';
 
 export interface ScoreCommandConfig {
@@ -48,7 +48,7 @@ export class ScoreCommand implements PipelineCommand {
     // The APG feeds the SCC cycle path (BR-U3-45; read only when CYCLE_STRATEGY === 'scc').
     const apg = context.snapshot().apgResult;
 
-    const result = await computeScores({
+    const result = await computeScoredReport({
       evaluationResults,
       scoringWeights: this.config.scoringWeights,
       ...(this.config.fullModeWeights !== undefined && { fullModeWeights: this.config.fullModeWeights }),
@@ -70,7 +70,8 @@ export class ScoreCommand implements PipelineCommand {
       );
     }
 
-    context.setReport(result.data);
+    // The scored report only; AssembleReportCommand builds the one EvaluationReport (BR-U3-50).
+    context.setScoredReport(result.data);
 
     if (result.warnings) {
       for (const w of result.warnings) {

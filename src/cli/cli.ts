@@ -474,7 +474,6 @@ program
         parsedSpec,
         apgResult,
         evaluationResults,
-        pipelineWarnings: context.warnings,
         projectName,
         specFilePath: opts.spec,
         outputPath: opts.output,

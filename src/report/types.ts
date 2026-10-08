@@ -12,7 +12,6 @@ export interface ReportInput {
   readonly parsedSpec: ParsedSpec;
   readonly apgResult: APGResult;
   readonly evaluationResults?: EvaluationResults | undefined;
-  readonly pipelineWarnings?: readonly import('../shared/errors/domain-result.js').PipelineWarning[] | undefined;
   readonly baselineResult?: BaselineResult | undefined;
   readonly projectName: string;
   readonly specFilePath: string;

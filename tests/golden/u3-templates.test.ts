@@ -6,6 +6,7 @@
 import * as fs from 'node:fs';
 import * as os from 'node:os';
 import * as path from 'node:path';
+import { spawnSync } from 'node:child_process';
 import neo4jDriver from 'neo4j-driver';
 import { extractAPG } from '../../src/apg-extractor/index.js';
 import { evaluateSymbolic } from '../../src/evaluation-engine/symbolic-evaluator.js';
@@ -98,8 +99,8 @@ describeU3('U3-R4 metric filters (BR-U3-10, 11, 12)', () => {
   it('correct-reference: FF-P02, FF-C01 and FF-C06 return 0 rows and pass', async () => {
     const r = await run('correct-reference');
     for (const id of ['FF-P02', 'FF-C01', 'FF-C06']) {
-      const result = r.evaluationResults.symbolicResults.find((x) => String(x.functionId) === id);
-      expect({ id, rows: result?.violations.length, passed: result?.passed }).toEqual({ id, rows: 0, passed: true });
+      const result = r.report.functionResults.find((x) => String(x.functionId) === id);
+      expect({ id, rows: result?.violationCount, passed: result?.passed }).toEqual({ id, rows: 0, passed: true });
     }
   }, RUN_TIMEOUT_MS);
 
@@ -276,7 +277,65 @@ describeU3('U3-R6 domain-state-purity (FR-21; BR-U3-22, 23; TF-02..04)', () => {
 
   it('correct-reference: FF-P06 compiles, executes and has no violation', async () => {
     const r = await run('correct-reference');
-    const p06 = r.evaluationResults.symbolicResults.find((x) => String(x.functionId) === 'FF-P06');
-    expect({ rows: p06?.violations.length, passed: p06?.passed }).toEqual({ rows: 0, passed: true });
+    const p06 = r.report.functionResults.find((x) => String(x.functionId) === 'FF-P06');
+    expect({ rows: p06?.violationCount, passed: p06?.passed }).toEqual({ rows: 0, passed: true });
+  }, RUN_TIMEOUT_MS);
+});
+
+/** The five run-specific paths of BR-U3-61, set to 0 so two reports of one run state compare equal. */
+function withoutRunValues(report: unknown): unknown {
+  const r = JSON.parse(JSON.stringify(report)) as {
+    runId: string;
+    durationMs: number;
+    timings: { totalMs: number; stages: { durationMs: number }[] };
+    functionResults: { executionTimeMs: number }[];
+  };
+  r.runId = '<run>';
+  r.durationMs = 0;
+  r.timings.totalMs = 0;
+  for (const s of r.timings.stages) s.durationMs = 0;
+  for (const f of r.functionResults) f.executionTimeMs = 0;
+  return r;
+}
+
+describeU3('U3-R9 one assembly point (BR-U3-50, 55, 56, 64)', () => {
+  it('variant-a: evaluate --format json deep-equals executor.execute() (run-specific values aside)', async () => {
+    const c = goldenCase('variant-a-structural');
+    const pipelineReport = (await run(c.id)).report;
+    const neo4j = neo4jConfig();
+    const apgStore = fs.mkdtempSync(path.join(os.tmpdir(), 'u3-r9-cli-'));
+    try {
+      // Credentials travel in the environment only, never on argv.
+      const out = spawnSync(path.join(REPO_ROOT, 'node_modules', '.bin', 'tsx'), [
+        path.join(REPO_ROOT, 'bin', 'firewall.ts'), 'evaluate',
+        '--project', c.projectPath, '--spec', c.specPath, '--symbolic-only', '--format', 'json', '--neo4j-uri', neo4j.uri,
+      ], {
+        cwd: REPO_ROOT,
+        encoding: 'utf8',
+        env: { ...process.env, NEO4J_USER: neo4j.user, NEO4J_PASSWORD: neo4j.password, APG_STORE_PATH: apgStore },
+        maxBuffer: 64 * 1024 * 1024,
+      });
+      expect(out.error).toBeUndefined();
+      const cliReport = JSON.parse(out.stdout) as unknown;
+      expect(withoutRunValues(cliReport)).toEqual(withoutRunValues(pipelineReport));
+    } finally {
+      fs.rmSync(apgStore, { recursive: true, force: true });
+    }
+  }, RUN_TIMEOUT_MS);
+
+  it.each(GOLDEN_CASES.map((g) => g.id))('%s: one COMPILER_004 naming FF-S03; disabledFunctions lists FF-S03; last stage assemble-report', async (id) => {
+    const r = await run(id);
+    const c004 = r.report.warnings.filter((w) => w.code === 'COMPILER_004');
+    expect(c004.map((w) => w.message.includes('FF-S03'))).toEqual([true]);
+    expect(r.report.disabledFunctions.map((d) => String(d.functionId))).toEqual(['FF-S03']);
+    expect(r.report.functionExecution.failed).toEqual([]);
+    expect(r.report.timings.stages.map((s) => s.name)).not.toContain('assemble-report');
+    expect(r.report.timings.stages.at(-1)?.name).toBe('compute-scores');
+  }, RUN_TIMEOUT_MS);
+
+  it('variant-c: importResolution.external === 3 and graphStats.edgeCountByType.FLOWS_TO present', async () => {
+    const r = await run('variant-c-everything');
+    expect(r.report.importResolution.external).toBe(3);
+    expect(r.report.graphStats.edgeCountByType).toHaveProperty('FLOWS_TO');
   }, RUN_TIMEOUT_MS);
 });

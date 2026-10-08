@@ -23,21 +23,17 @@ export function generateReport(input: ReportInput): DomainResult<ReportOutput> {
     parsedSpec,
     apgResult,
     evaluationResults,
-    pipelineWarnings,
     baselineResult,
     projectName,
     outputPath,
   } = input;
 
-  // Merge pipeline-level warnings into the report's warnings
-  // (the scoring engine doesn't propagate them today)
-  const reportWithWarnings = pipelineWarnings && pipelineWarnings.length > 0
-    ? { ...evaluationReport, warnings: [...evaluationReport.warnings, ...pipelineWarnings] }
-    : evaluationReport;
+  // The assembled report already carries the merged, scrubbed, capped warnings (BR-U3-57);
+  // this path no longer merges warnings itself.
 
   // 1. Format violations
   const actionableViolations = formatAllActionableViolations(
-    reportWithWarnings.violations,
+    evaluationReport.violations,
     parsedSpec.fitnessFunctions,
     baselineResult,
   );
@@ -51,7 +47,7 @@ export function generateReport(input: ReportInput): DomainResult<ReportOutput> {
 
   // 3. Build dashboard data
   const dashboardData: DashboardData = buildDashboardData(
-    reportWithWarnings,
+    evaluationReport,
     parsedSpec,
     apgResult,
     actionableViolations,

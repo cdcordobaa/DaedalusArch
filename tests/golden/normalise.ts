@@ -12,7 +12,11 @@
  *   ORDER BY until FR-35);
  * - `no-cyclic-deps` cycles are rotated to a canonical start;
  * - warnings and unexecuted function ids are sorted.
- * `perDimensionScores` and `functionResults` keep emitted order (no sort).
+ * `perDimensionScores` and `functionResults` keep the report's order (no sort;
+ * `functionResults` is tag-grouped by the assembler, BR-U3-54).
+ * Everything is read from the assembled report (U3-R9, BR-U3-62):
+ * `functionResults`, `unexecutedFunctionIds` (= `functionExecution.failed`)
+ * and truncation (`functionResults[*].truncated`).
  */
 import * as fs from 'node:fs';
 import * as path from 'node:path';
@@ -167,25 +171,24 @@ export function normaliseForSnapshot(
   const repoRoot = options.repoRoot ?? REPO_ROOT;
   const roots = rootVariants(repoRoot, options.rootAliases);
   const r = (s: string): string => replaceRoots(s, roots);
-  const { report, evaluationResults, compiledSymbolic } = run;
+  const { report } = run;
 
+  // `FunctionResultRow.name` is the template name for symbolic rows.
   const cycleFunctionIds = new Set(
-    compiledSymbolic.filter((f) => f.templateName === CYCLE_TEMPLATE).map((f) => f.functionId),
+    report.functionResults.filter((f) => f.name === CYCLE_TEMPLATE).map((f) => String(f.functionId)),
   );
 
-  // Function results in emitted order (sequential evaluator loop).
-  const functionResults: FunctionResultRow[] = evaluationResults.symbolicResults.map((fr) => ({
+  // Function results in the report's order (tag-grouped, BR-U3-54).
+  const functionResults: FunctionResultRow[] = report.functionResults.map((fr) => ({
     functionId: String(fr.functionId),
     dimension: fr.dimension,
     passed: fr.passed,
-    violationCount: fr.violations.length,
+    violationCount: fr.violationCount,
   }));
 
-  // Cap fallback (R2, BR-U1-28): a cycle function that returned the sentinel row (more than the cap) is truncated.
+  // FR-35 sentinel (BR-U3-08): a truncated function's rows are not picked; it is listed instead.
   const truncatedIds = new Set(
-    functionResults
-      .filter((fr) => cycleFunctionIds.has(fr.functionId) && fr.violationCount > CYCLE_ROW_CAP)
-      .map((fr) => fr.functionId),
+    report.functionResults.filter((fr) => fr.truncated).map((fr) => String(fr.functionId)),
   );
   const truncatedFunctions: TruncatedFunctionRow[] = [...truncatedIds].map((functionId) => ({
     functionId,
@@ -193,10 +196,7 @@ export function normaliseForSnapshot(
     truncated: true as const,
   }));
 
-  const executed = new Set(functionResults.map((fr) => fr.functionId));
-  const unexecutedFunctionIds = compiledSymbolic
-    .map((f) => f.functionId)
-    .filter((id) => !executed.has(id))
+  const unexecutedFunctionIds = [...new Set(report.functionExecution.failed.map((f) => String(f.functionId)))]
     .sort(compareStrings);
 
   // Violations: per-function groups in emitted order; sort only inside a group.

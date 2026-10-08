@@ -1,4 +1,4 @@
-import type { CypherQuery, SymbolicFunctionResult } from '../shared/types/evaluation.js';
+import type { CypherQuery, FunctionFailure, SymbolicFunctionResult } from '../shared/types/evaluation.js';
 import type { Violation, ViolationType } from '../shared/taxonomy/violation-types.js';
 import type { PipelineWarning } from '../shared/errors/domain-result.js';
 import { DomainResult } from '../shared/errors/domain-result.js';
@@ -12,7 +12,17 @@ import { applyCycleCap, dedupeCycleRecords } from './cycle-canonicaliser.js';
 
 export interface SymbolicEvalOutput {
   readonly results: readonly SymbolicFunctionResult[];
+  /** One entry per query that failed to run (FR-13, BR-U3-01); always present, `[]` when none failed. */
+  readonly failures: readonly FunctionFailure[];
   readonly warnings: readonly PipelineWarning[];
+}
+
+/** Neo4j 5 timeout status codes both contain this text (BR-U3-02). */
+const TIMEOUT_CODE_MARKER = 'TransactionTimedOut';
+
+/** BR-U3-02: `EVAL_002` for a transaction timeout, `EVAL_001` for every other repository failure. */
+export function failureCodeOf(repositoryCode: string | undefined): 'EVAL_001' | 'EVAL_002' {
+  return repositoryCode?.includes(TIMEOUT_CODE_MARKER) === true ? 'EVAL_002' : 'EVAL_001';
 }
 
 /**
@@ -20,14 +30,24 @@ export interface SymbolicEvalOutput {
  */
 export async function evaluateSymbolic(input: SymbolicEvalInput): Promise<DomainResult<SymbolicEvalOutput>> {
   const results: SymbolicFunctionResult[] = [];
+  const failures: FunctionFailure[] = [];
   const warnings: PipelineWarning[] = [];
 
   for (const query of input.queries) {
     const start = Date.now();
 
-    const queryResult = await input.graphRepository.executeQuery(query.cypher, query.params as Record<string, unknown>);
+    // BR-U3-03: no timeout of C6's own; the repository default applies unless the caller sets one.
+    const queryResult = input.queryTimeoutMs !== undefined
+      ? await input.graphRepository.executeQuery(query.cypher, query.params, { timeoutMs: input.queryTimeoutMs })
+      : await input.graphRepository.executeQuery(query.cypher, query.params);
     if (!queryResult.success) {
-      warnings.push({ code: 'EVAL_001', message: `Query failed for ${query.name}: ${queryResult.errors[0]?.message}`, stage: 'evaluation-engine' });
+      // BR-U3-01: a failed query is a function failure: one FunctionFailure, one warning with the same
+      // code and message, no result row; evaluation continues with the next query.
+      const error = queryResult.errors[0];
+      const code = failureCodeOf(error?.code);
+      const message = `Query failed for ${String(query.functionId)} (${query.name}): ${error?.message ?? 'unknown error'}`;
+      failures.push({ functionId: query.functionId, name: query.name, code, message });
+      warnings.push({ code, message, stage: 'evaluation-engine', context: { functionId: String(query.functionId) } });
       continue;
     }
 
@@ -67,7 +87,7 @@ export async function evaluateSymbolic(input: SymbolicEvalInput): Promise<Domain
     });
   }
 
-  return DomainResult.ok({ results, warnings });
+  return DomainResult.ok({ results, failures, warnings });
 }
 
 /** Mapping of a query without a built-in template (ADR queries, unknown names). */

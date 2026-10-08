@@ -25,10 +25,11 @@ export class SymbolicEvaluateCommand implements PipelineCommand {
       );
     }
 
-    // Set evaluation results with symbolic only (empty neuronal)
+    // Set evaluation results with symbolic only (empty neuronal); failures forwarded (FR-13, BR-U3-01)
     context.setEvaluationResults({
       symbolicResults: result.data.results,
       neuronalResults: [],
+      failures: result.data.failures,
     });
 
     for (const w of result.data.warnings) {
@@ -45,7 +46,7 @@ export class SymbolicEvaluateCommand implements PipelineCommand {
     context.addAuditEntry({
       timestamp: new Date().toISOString(),
       stage: this.name,
-      event: `Symbolic evaluation complete: ${passCount}/${result.data.results.length} passed`,
+      event: `Symbolic evaluation complete: ${passCount}/${result.data.results.length} passed, ${String(result.data.failures.length)} failed to run`,
     });
 
     return DomainResult.ok(undefined);
