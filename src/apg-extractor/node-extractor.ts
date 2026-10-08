@@ -69,6 +69,19 @@ export function extractNodes(
           registerNode(ifaceNode, lookup);
           nodes.push(ifaceNode);
           lookup.typeNodes.set(`${ifaceNode.name.toLowerCase()}@${filePath}`, ifaceNode.id);
+
+          // Interface Method nodes: one per own method-signature name (ADR-016 f, BR-U2-47).
+          for (const methodNode of extractInterfaceMethodNodes(iface, filePath)) {
+            const key = `${methodNode.name.toLowerCase()}@${filePath}`;
+            if (lookup.nodeIds.has(methodNode.id)) {
+              // A class and an interface of one name merged in one file: keep the existing node.
+              if (!lookup.methodNodes.has(key)) lookup.methodNodes.set(key, methodNode.id);
+              continue;
+            }
+            registerNode(methodNode, lookup);
+            nodes.push(methodNode);
+            lookup.methodNodes.set(key, methodNode.id);
+          }
         } catch {
           // lenient: skip individual interface failures
         }
@@ -163,6 +176,33 @@ function extractMethodNode(
     isAbstract: method.isAbstract(),
     returnType: method.getReturnType().getText(),
   }, decorators.map(d => d.name));
+}
+
+/**
+ * Method nodes for an interface's own method signatures (`getMethods()`: not inherited through
+ * `extends`; property signatures with a function type, call, construct and index signatures are
+ * not methods). An overload set yields one node, from its first signature in source order
+ * (BR-U2-47; `domain-entities.md` §2.9).
+ */
+function extractInterfaceMethodNodes(
+  iface: ReturnType<SourceFile['getInterfaces']>[number],
+  filePath: string,
+): APGNode[] {
+  const ifaceName = iface.getName();
+  const seen = new Set<string>();
+  const out: APGNode[] = [];
+  for (const sig of iface.getMethods()) {
+    const methodName = sig.getName();
+    if (seen.has(methodName)) continue;
+    seen.add(methodName);
+    out.push(buildNode('Method', filePath, `${ifaceName}.${methodName}`, {
+      isAsync: false,
+      isStatic: false,
+      isAbstract: true,
+      returnType: sig.getReturnType().getText(),
+    }));
+  }
+  return out;
 }
 
 function extractFunctionNode(

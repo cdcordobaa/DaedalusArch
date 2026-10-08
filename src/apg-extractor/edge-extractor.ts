@@ -280,6 +280,18 @@ export function extractEdges(
         }
       }
     }
+
+    // CONTAINS (Interface → Method), one per own method-signature name, after the class edges
+    // (ADR-016 f, BR-U2-47). CALLS is unchanged: it targets class MethodDeclarations only.
+    for (const iface of sf.getInterfaces()) {
+      const ifaceName = iface.getName();
+      const ifaceNodeId = lookup.typeNodes.get(`${ifaceName.toLowerCase()}@${filePath}`);
+      if (!ifaceNodeId) continue;
+      for (const sig of iface.getMethods()) {
+        const methodId = lookup.methodNodes.get(`${`${ifaceName}.${sig.getName()}`.toLowerCase()}@${filePath}`);
+        if (methodId) addEdge(buildEdge('CONTAINS', ifaceNodeId, methodId, {}));
+      }
+    }
   }
 
   const importEdges = merger.edges();
