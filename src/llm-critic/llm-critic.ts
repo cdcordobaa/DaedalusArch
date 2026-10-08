@@ -23,7 +23,11 @@ export async function evaluateNeuronal(input: NeuronalEvalInput): Promise<Domain
   const results: NeuronalFunctionResult[] = [];
   const allWarnings: PipelineWarning[] = [];
 
-  const cassette = new CassetteLLMProvider(input.provider, { mode: opts.vcrMode, dir: opts.cassettePath });
+  // Every real provider is wrapped exactly once (U4 Step 20): a provider built by
+  // `createJudgeProvider` is already the decorator and is used as is.
+  const cassette = input.provider instanceof CassetteLLMProvider
+    ? input.provider
+    : new CassetteLLMProvider(input.provider, { mode: opts.vcrMode, dir: opts.cassettePath });
   for (const instruction of input.instructions) {
     const result = await evaluateSingleFunction(instruction, input, opts, cassette);
     if (result.success) {

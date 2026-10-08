@@ -185,6 +185,11 @@ export class CassetteLLMProvider implements LLMProvider {
     return this.options.dir;
   }
 
+  /** The wrapped provider (wrapping happens once, in `createJudgeProvider` or the critic). */
+  get innerProvider(): LLMProvider {
+    return this.inner;
+  }
+
   describe(): ProviderDescription {
     return this.inner.describe();
   }

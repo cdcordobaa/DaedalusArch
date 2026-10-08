@@ -455,11 +455,17 @@ export function checkConfigListing(judgeConfigDir: string): ConfigListingResult 
   return { pass: failures.length === 0, matchedItems, configListingSha256: sha256Hex(matchedItems.join('\n')), failures };
 }
 
+/** Real path of `p`, or of its nearest existing ancestor joined with the missing rest. */
 function realOrResolved(p: string): string {
-  try {
-    return fs.realpathSync(p);
-  } catch {
-    return path.resolve(p);
+  const abs = path.resolve(p);
+  const missing: string[] = [];
+  for (let at = abs; ; at = path.dirname(at)) {
+    try {
+      return path.join(fs.realpathSync(at), ...missing.reverse());
+    } catch {
+      if (path.dirname(at) === at) return abs;
+      missing.push(path.basename(at));
+    }
   }
 }
 
