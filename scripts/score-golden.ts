@@ -38,7 +38,7 @@ import { canonicalize, ratio } from './lib/canonical-json.js';
 import { loadManifest } from './lib/manifest.js';
 import type { Manifest, ManifestRejection, ManifestRow, Split } from './lib/manifest.js';
 import type { MatchingRule, RuleLoad } from './lib/matching-rule.js';
-import { acceptReport, checkRunRecord } from './lib/report-io.js';
+import { acceptReport, baselineSelectionProblems, checkRunRecord } from './lib/report-io.js';
 import type { PinnedJudge, RunRecord } from './lib/report-io.js';
 import { compiledThresholds, loadCompiledSpec } from './lib/mutation/expected.js';
 import { isMetricTemplate } from './lib/mutation/metrics.js';
@@ -300,6 +300,9 @@ export function acceptPair(seed: SeedInput, pinnedJudge?: PinnedJudge): { ok: tr
   if (br.cliCommit !== sr.cliCommit) return { ok: false, reason: `${id}: cliCommit differs (${br.cliCommit} vs ${sr.cliCommit})` };
   if (b.evaluationMode !== s.evaluationMode) return { ok: false, reason: `${id}: evaluationMode differs (${b.evaluationMode} vs ${s.evaluationMode})` };
   if (judgeTriple(b) !== judgeTriple(s)) return { ok: false, reason: `${id}: judge differs (${judgeTriple(b)} vs ${judgeTriple(s)})` };
+  // OI-U4-8 consumer side (BR-U4-SEL-07): the seeded run judges the baseline's selected units.
+  const selection = baselineSelectionProblems(s, b);
+  if (selection.length > 0) return { ok: false, reason: `${id}: seeded report rejected (missing-baseline-selection: ${selection.join('; ')})` };
   return { ok: true, pair: { row: seed.row, baseline: b, seeded: s, baselineRecord: br, seededRecord: sr } };
 }
 
