@@ -1,5 +1,5 @@
 {
-  "ahsDeterministic": 0.412,
+  "ahsDeterministic": 0.352,
   "caseId": "variant-c-everything",
   "evaluationMode": "symbolic-only",
   "functionResults": [
@@ -24,8 +24,8 @@
     {
       "dimension": "pattern",
       "functionId": "FF-P01",
-      "passed": true,
-      "violationCount": 0
+      "passed": false,
+      "violationCount": 2
     },
     {
       "dimension": "pattern",
@@ -158,10 +158,10 @@
       "weight": 0.2
     },
     {
-      "avr": 0.6,
+      "avr": 0.8,
       "dimension": "pattern",
       "functionCount": 23,
-      "violationCount": 3,
+      "violationCount": 4,
       "weight": 0.3
     },
     {
@@ -213,6 +213,28 @@
       "severity": "critical",
       "target": "src/infrastructure/repositories/InMemoryTaskRepository.ts",
       "type": "CYCLIC_DEPENDENCY"
+    },
+    {
+      "dimension": "pattern",
+      "filePath": "src/domain/entities/Task.ts",
+      "functionId": "FF-P01",
+      "line": 2,
+      "message": "Domain file src/domain/entities/Task.ts imports forbidden package @nestjs/common",
+      "route": "symbolic",
+      "severity": "critical",
+      "target": "@nestjs/common",
+      "type": "DOMAIN_PURITY_VIOLATION"
+    },
+    {
+      "dimension": "pattern",
+      "filePath": "src/domain/entities/Task.ts",
+      "functionId": "FF-P01",
+      "line": 3,
+      "message": "Domain file src/domain/entities/Task.ts imports forbidden package express",
+      "route": "symbolic",
+      "severity": "critical",
+      "target": "express",
+      "type": "DOMAIN_PURITY_VIOLATION"
     },
     {
       "dimension": "pattern",

@@ -10,7 +10,7 @@ const EXPECTED_KEYS: Readonly<Record<string, string>> = {
   'no-cyclic-deps': 'cycle',
   'no-layer-skip': 'source, target, relType',
   'no-domain-outward-dep': 'source, target, relType',
-  'domain-purity': 'source, target',
+  'domain-purity': 'source, target, relType', // U3-R5 (BR-U3-20, §2.1): attributed cross-unit update
   'dependency-inversion': 'filePath, class',
   'repository-pattern': 'filePath, implementation',
   'use-case-isolation': 'filePath, useCase',

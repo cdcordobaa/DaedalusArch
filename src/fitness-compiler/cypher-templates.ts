@@ -1,11 +1,6 @@
 import type { LayerKind, TemplateTag } from '../shared/types/enums.js';
 import type { CypherTemplate, ResultMapping } from './types.js';
 
-function rm(filePathColumn: string, messageTemplate: string, metadataColumns?: string[]): ResultMapping {
-  const base = { filePathColumn, messageTemplate, discriminatorColumns: [] };
-  return metadataColumns ? { ...base, metadataColumns } : base;
-}
-
 /** T-MAP columns of one template (U3 business-rules.md §3, BR-U3-04, BR-U3-06; frozen with U3-R2). */
 type TMapColumns = Omit<ResultMapping, 'filePathColumn' | 'messageTemplate' | 'metadataColumns'>;
 
@@ -161,17 +156,21 @@ ORDER BY source, target, relType`,
 
   ['domain-purity', tmpl(
     'domain-purity',
-    `MATCH (src:File)-[:IMPORTS]->(tgt:File)
+    // FR-11 (ADR-017 item 5; BR-U3-20, 21): Package nodes over IMPORTS|RE_EXPORTS, exact name or `prefix/*`;
+    // type-only imports count (D3). The OR sits inside ANY(…), so the predicate is a top-level conjunction (BR-U1-44).
+    `MATCH (src:File)-[i:IMPORTS|RE_EXPORTS]->(p:Package)
 WHERE src.layer = $domainLayer
-  AND ANY(forbidden IN $forbiddenImports WHERE tgt.filePath CONTAINS forbidden) /*EXCLUDE:src*/
-RETURN src.filePath AS source, tgt.filePath AS target
-ORDER BY source, target`,
+  AND ANY(fp IN $forbiddenImports WHERE p.name = fp OR (fp ENDS WITH '/*' AND p.name STARTS WITH left(fp, size(fp) - 1))) /*EXCLUDE:src*/
+RETURN src.filePath AS source, p.name AS target, type(i) AS relType,
+       CASE type(i) WHEN 'IMPORTS' THEN 'imports' ELSE 're-exports' END AS verb,
+       i.line AS line, i.lines AS lines, coalesce(i.isTypeOnly, false) AS isTypeOnly
+ORDER BY source, target, relType`,
     ['domainLayer', 'forbiddenImports'],
     ['domain'],
     'pattern-proxy',
-    'Detects domain files importing forbidden framework/infrastructure packages',
+    'Detects domain files importing or re-exporting forbidden framework/infrastructure packages (Package nodes, FR-11)',
     [],
-    rm('source', 'Domain file {source} imports forbidden package {target}', ['target']),
+    mapped('source', 'Domain file {source} {verb} forbidden package {target}', DEP_EDGE, FR12_DEP_COLUMNS(['target'])),
   )],
 
   ['dependency-inversion', tmpl(

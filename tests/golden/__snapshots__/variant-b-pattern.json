@@ -1,5 +1,5 @@
 {
-  "ahsDeterministic": 0.595,
+  "ahsDeterministic": 0.535,
   "caseId": "variant-b-pattern",
   "evaluationMode": "symbolic-only",
   "functionResults": [
@@ -24,8 +24,8 @@
     {
       "dimension": "pattern",
       "functionId": "FF-P01",
-      "passed": true,
-      "violationCount": 0
+      "passed": false,
+      "violationCount": 1
     },
     {
       "dimension": "pattern",
@@ -158,10 +158,10 @@
       "weight": 0.2
     },
     {
-      "avr": 0.6,
+      "avr": 0.8,
       "dimension": "pattern",
       "functionCount": 23,
-      "violationCount": 3,
+      "violationCount": 4,
       "weight": 0.3
     },
     {
@@ -213,6 +213,17 @@
       "severity": "critical",
       "target": "src/infrastructure/repositories/InMemoryTaskRepository.ts",
       "type": "LAYER_VIOLATION"
+    },
+    {
+      "dimension": "pattern",
+      "filePath": "src/domain/entities/Task.ts",
+      "functionId": "FF-P01",
+      "line": 2,
+      "message": "Domain file src/domain/entities/Task.ts imports forbidden package @nestjs/common",
+      "route": "symbolic",
+      "severity": "critical",
+      "target": "@nestjs/common",
+      "type": "DOMAIN_PURITY_VIOLATION"
     },
     {
       "dimension": "pattern",

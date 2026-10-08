@@ -184,7 +184,7 @@ describe('BR-U3-05 hashed ids', () => {
   });
 });
 
-/** T-MAP (U3 business-rules.md §3) for the templates U3-R2 maps. */
+/** T-MAP (U3 business-rules.md §3) for the templates U3-R2 maps, plus R4's three and R5's `domain-purity`. */
 const T_MAP: Readonly<Record<string, {
   filePath: string; target?: string; line?: string; lines?: string; isTypeOnly?: string;
   disc: string[]; evid: string[]; cycle?: string;
@@ -193,6 +193,7 @@ const T_MAP: Readonly<Record<string, {
   'no-cyclic-deps': { filePath: 'cycle', target: 'target', line: 'line', disc: ['cycle'], evid: [], cycle: 'cycle' },
   'no-layer-skip': { filePath: 'source', target: 'target', line: 'line', lines: 'lines', isTypeOnly: 'isTypeOnly', disc: ['relType'], evid: [] },
   'no-domain-outward-dep': { filePath: 'source', target: 'target', line: 'line', lines: 'lines', isTypeOnly: 'isTypeOnly', disc: ['relType'], evid: [] },
+  'domain-purity': { filePath: 'source', target: 'target', line: 'line', lines: 'lines', isTypeOnly: 'isTypeOnly', disc: ['relType'], evid: [] },
   'dependency-inversion': { filePath: 'filePath', disc: ['class'], evid: ['ratio'] },
   'repository-pattern': { filePath: 'filePath', disc: ['implementation'], evid: [] },
   'use-case-isolation': { filePath: 'filePath', disc: ['useCase'], evid: [] },
@@ -214,8 +215,8 @@ const T_MAP: Readonly<Record<string, {
   'no-index-logic': { filePath: 'filePath', disc: [], evid: ['declCount'] },
 };
 
-/** Templates whose T-MAP row lands with a later R commit (plan Step 13): R5 domain-purity (R4 rows mapped since U3-R4). */
-const LATER_R = ['domain-purity'];
+/** Templates whose T-MAP row lands with a later R commit (plan Step 13): none since U3-R5 (R4 rows since U3-R4). */
+const LATER_R: readonly string[] = [];
 
 const MEASURED = ['fanIn', 'fanOut', 'instability', 'depth', 'ratio', 'methodCount', 'depCount', 'declCount'];
 

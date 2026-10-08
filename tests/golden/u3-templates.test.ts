@@ -3,8 +3,17 @@
  * against the real Neo4j 5.26. Same skip and host guards as golden.test.ts (see golden-env.ts).
  * Each case runs the full symbolic pipeline, which wipes and re-ingests the graph itself.
  */
+import * as fs from 'node:fs';
+import * as os from 'node:os';
 import * as path from 'node:path';
 import neo4jDriver from 'neo4j-driver';
+import { extractAPG } from '../../src/apg-extractor/index.js';
+import { evaluateSymbolic } from '../../src/evaluation-engine/symbolic-evaluator.js';
+import { CYPHER_TEMPLATES } from '../../src/fitness-compiler/cypher-templates.js';
+import { FileSystemSnapshotStore, Neo4jRepository, ingestAPG } from '../../src/neo4j-ingestion/index.js';
+import type { Violation } from '../../src/shared/taxonomy/violation-types.js';
+import type { LayerModel } from '../../src/shared/types/spec.js';
+import { functionId } from '../../src/shared/types/value-objects.js';
 import { compileFunctions } from '../../src/fitness-compiler/fitness-compiler.js';
 import { compilerInputFromSpec } from '../../src/fitness-compiler/compiler-input.js';
 import { parseSpec } from '../../src/spec-parser/spec-parser.js';
@@ -120,5 +129,76 @@ describeU3('U3-R4 metric filters (BR-U3-10, 11, 12)', () => {
     } finally {
       await driver.close();
     }
+  }, RUN_TIMEOUT_MS);
+});
+
+/** Extracts and ingests a unit fixture (wipes the graph), then runs one template with `params` (D-U3-14). */
+async function runTemplateOnFixture(
+  fixtureDir: string,
+  layerModel: LayerModel,
+  name: string,
+  id: string,
+  params: Record<string, unknown>,
+): Promise<{ rows: readonly Record<string, unknown>[]; violations: readonly Violation[] }> {
+  const neo4j = neo4jConfig();
+  const repo = new Neo4jRepository({ neo4jUri: neo4j.uri, neo4jUser: neo4j.user, neo4jPassword: neo4j.password });
+  const storeDir = fs.mkdtempSync(path.join(os.tmpdir(), 'u3-fixture-apg-'));
+  try {
+    const apg = await extractAPG(path.join(REPO_ROOT, fixtureDir));
+    if (!apg.success) throw new Error(`extractAPG failed: ${apg.errors.map((e) => e.code).join(', ')}`);
+    const ingested = await ingestAPG({ apgResult: apg.data, layerModel, mode: 'stateless' }, repo, new FileSystemSnapshotStore(storeDir));
+    if (!ingested.success) throw new Error(`ingestAPG failed: ${ingested.errors.map((e) => e.code).join(', ')}`);
+    const t = CYPHER_TEMPLATES.get(name);
+    if (t === undefined) throw new Error(`${name} missing`);
+    const raw = await repo.executeQuery(t.template, params);
+    if (!raw.success) throw new Error(`${name} failed: ${raw.errors.map((e) => e.code).join(', ')}`);
+    const q: CypherQuery = {
+      functionId: functionId(id), name, cypher: t.template, params,
+      dimension: 'pattern', severity: 'critical', route: 'symbolic', source: 'template',
+    };
+    const evaluated = await evaluateSymbolic({ queries: [q], graphRepository: repo });
+    if (!evaluated.success) throw new Error('evaluateSymbolic failed');
+    return { rows: raw.data.records, violations: evaluated.data.results[0]?.violations ?? [] };
+  } finally {
+    await repo.close();
+    fs.rmSync(storeDir, { recursive: true, force: true });
+  }
+}
+
+const DOMAIN_ONLY: LayerModel = {
+  layers: [{ name: 'domain', directories: ['src/domain/**'], naming: [], role: 'domain' }],
+};
+
+describeU3('U3-R5 domain-purity over Package nodes (FR-11; BR-U3-20, TF-01, TF-05)', () => {
+  const p01 = (r: GoldenRun): { file: string; target: string | undefined; relType: string | undefined; line: number | undefined }[] =>
+    r.report.violations.filter((v) => String(v.functionId) === 'FF-P01')
+      .map((v) => ({ file: v.filePath, target: v.target, relType: v.discriminator?.[0], line: v.line }));
+
+  it('variant-b: exactly one row (Task.ts, @nestjs/common, IMPORTS, line 2)', async () => {
+    expect(p01(await run('variant-b-pattern'))).toEqual([
+      { file: 'src/domain/entities/Task.ts', target: '@nestjs/common', relType: 'IMPORTS', line: 2 },
+    ]);
+  }, RUN_TIMEOUT_MS);
+
+  it('variant-c: exactly two rows on Task.ts (@nestjs/common line 2, express line 3)', async () => {
+    expect(p01(await run('variant-c-everything'))).toEqual([
+      { file: 'src/domain/entities/Task.ts', target: '@nestjs/common', relType: 'IMPORTS', line: 2 },
+      { file: 'src/domain/entities/Task.ts', target: 'express', relType: 'IMPORTS', line: 3 },
+    ]);
+  }, RUN_TIMEOUT_MS);
+
+  it.each(['correct-reference', 'variant-a-structural', 'variant-d-subtle'])('%s: no FF-P01 row', async (id) => {
+    expect(p01(await run(id))).toEqual([]);
+  }, RUN_TIMEOUT_MS);
+
+  it("TF-05: a domain file with export { Router } from 'express' gives one RE_EXPORTS row, verb re-exports", async () => {
+    const { rows, violations } = await runTemplateOnFixture('fixtures/unit/u3-reexport', DOMAIN_ONLY, 'domain-purity', 'FF-P01',
+      { domainLayer: 'domain', forbiddenImports: ['@nestjs/*', 'express'] });
+    expect(rows.map((r) => ({ source: r.source, target: r.target, relType: r.relType, verb: r.verb }))).toEqual([
+      { source: 'src/domain/router.ts', target: 'express', relType: 'RE_EXPORTS', verb: 're-exports' },
+    ]);
+    expect(violations.map((v) => ({ message: v.message, line: v.line, disc: v.discriminator }))).toEqual([
+      { message: 'Domain file src/domain/router.ts re-exports forbidden package express', line: 2, disc: ['RE_EXPORTS'] },
+    ]);
   }, RUN_TIMEOUT_MS);
 });
