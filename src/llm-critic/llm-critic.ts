@@ -1,5 +1,5 @@
 import type { NeuronalInstruction, NeuronalFunctionResult, NeuronalRun } from '../shared/types/evaluation.js';
-import type { Violation, ViolationType } from '../shared/taxonomy/violation-types.js';
+import type { Violation } from '../shared/taxonomy/violation-types.js';
 import type { PipelineWarning } from '../shared/errors/domain-result.js';
 import { DomainResult } from '../shared/errors/domain-result.js';
 import { confidence as makeConfidence, functionId as makeFunctionId } from '../shared/types/value-objects.js';
@@ -7,6 +7,7 @@ import type { NeuronalEvalInput, CriticVerdict } from './types.js';
 import { DEFAULT_NEURONAL_OPTIONS } from './types.js';
 import { assembleContext, constructPrompt } from './context-assembler.js';
 import { EMPTY_EXCERPT } from './source-context.js';
+import { violationTypeOf } from './aggregation.js';
 import { parseVerdict } from './verdict-parser.js';
 import { saveCassette, loadCassette } from './cassette-manager.js';
 
@@ -126,7 +127,7 @@ async function evaluateSingleFunction(
     .flatMap((v) => v.violations)
     .map((cv) => ({
       id: `nv-${String(instruction.functionId)}-${++vIdx}`,
-      type: violationTypeFor(instruction),
+      type: violationTypeOf(instruction),
       dimension: instruction.dimension,
       severity: instruction.severity,
       functionId: makeFunctionId(String(instruction.functionId)),
@@ -157,17 +158,6 @@ async function evaluateSingleFunction(
     unitsSelected: 0,
     unitsCapped: 0,
   });
-}
-
-/**
- * Violation type by source and dimension (BR-U4-VIO-03, ADR-015 item 6):
- * ADR-derived functions produce INTENT_VIOLATION, Integrity functions
- * produce INTEGRITY_VIOLATION, everything else SEMANTIC_RULE_VIOLATION.
- */
-function violationTypeFor(instruction: NeuronalInstruction): ViolationType {
-  if (instruction.source === 'adr') return 'INTENT_VIOLATION';
-  if (instruction.dimension === 'integrity') return 'INTEGRITY_VIOLATION';
-  return 'SEMANTIC_RULE_VIOLATION';
 }
 
 function deduplicateViolations(violations: Violation[]): Violation[] {

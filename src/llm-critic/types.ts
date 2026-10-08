@@ -1,4 +1,4 @@
-import type { NeuronalInstruction } from '../shared/types/evaluation.js';
+import type { InvalidCause, NeuronalInstruction } from '../shared/types/evaluation.js';
 import type { LLMProvider } from '../shared/interfaces/llm-provider.js';
 import type { GraphRepository } from '../shared/interfaces/graph-repository.js';
 import type { PipelineError } from '../shared/errors/domain-result.js';
@@ -40,6 +40,14 @@ export interface CriticViolation {
   readonly filePath: string;
   readonly message: string;
 }
+
+// Call outcomes (U4 DE §4.2; BR-U4-CAS-04, AGG-02). `InvalidCause` is the C10 type.
+export type CallOutcome =
+  | { readonly kind: 'valid' }
+  | { readonly kind: 'invalid'; readonly cause: InvalidCause };
+
+// Stop causes are never recorded in a cassette; they make the run incomplete (BR-U4-AGG-03).
+export type StopCause = 'USAGE_LIMIT' | 'AUTH' | 'CLI_NOT_FOUND' | 'CASSETTE_MISS' | 'ISOLATION' | 'CLI_VERSION';
 
 export interface CassetteEntry {
   readonly functionId: string;
