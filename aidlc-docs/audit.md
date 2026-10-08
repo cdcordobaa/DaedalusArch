@@ -976,3 +976,12 @@ Plan checkboxes ticked. Auto-approved under standing approval; no blocking or ma
 **Context**: CONSTRUCTION, U4 Code Generation Part 2, Group 1 exit
 
 ---
+
+## v1.2 Evaluation-Readiness — U3 merged into v1.2e (auto-approved)
+**Timestamp**: 2026-10-08T13:47:05Z
+**User Input**: None (standing approval of 2026-10-08T00:30:00Z)
+**Intent**: Finish U3 Code Generation Group 11 (Steps 30–34): record hand-offs and the code summary, verify exit, open the PR into v1.2e, merge on green CI, verify the merged tree.
+**AI Response**: U3 merged into v1.2e (auto-approved). PR #5 (v1.2e-u3-evaluation-scoring-report → v1.2e) merged with a merge commit, c4d7bc49e11126e4015c72f68fd4233161bb49b7 (parents ecf0184, 13785cf; no squash, rebase or force-push; main unchanged at 7cd15b4). Tests: Gate U 1712 / 119 suites (base 1277 / 94); Gate G 74 executed, 0 skipped; L 558 (≤ 575); B 85; Gate P 0 at every commit. Golden changes: snapshots changed only in U3-R2 (a, b, c, d), U3-R4 (all five), U3-R5 (b, c), U3-R6 (all five), U3-R7 (all), U3-R8 (d), U3-R9 (all), each with one attributed tests/golden/CHANGES.md line; change-log checker green on PR CI (138 commits); final AHS .958 / .442 / .575 / .391 / .558, verdicts pass / hard-block / soft-block / hard-block / soft-block (failing sets as the binding table). CI: PR run 37786297526 green incl. Golden change log; merge push run 37786728598 green. Post-merge in the main checkout: T clean, U 1712 / 119, G 74 / 0 skipped under the 7687 lock, 7 U3-R snapshot commits on v1.2e. Deviations recorded in the plan: Step 32 scope allow-list prints the two already-attributed files (R11 neo4j-repository.ts shared-scrub call, R7 dimension-alias.ts type fix); Step 34 container/worktree cleanup deferred to the orchestrator's word. Open hand-offs (code/handoffs.md): U4 H8–H11, U5a H3–H4, lane-2 record owner H14–H15, lane-3 record owner H6/H16, Build and Test H13.
+**Context**: CONSTRUCTION — lane 3, U3 Code Generation COMPLETE and merged; next: U4 and U5a code generation, then U5b.
+
+---
