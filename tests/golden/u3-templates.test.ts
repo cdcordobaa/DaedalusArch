@@ -363,3 +363,38 @@ describeU3('U3-R11 scrubbing (NFR-05, BR-U3-58)', () => {
     expect({ uri: count(neo4j.uri), password: count(neo4j.password) }).toEqual({ uri: 0, password: 0 });
   }, RUN_TIMEOUT_MS);
 });
+
+describeU3('U3-R12 batch rows from the assembled report (FR-16; BR-U3-83)', () => {
+  it('batch --dir fixtures --spec presets/clean-architecture.yaml --format json gives five rows with the four report fields', () => {
+    const neo4j = neo4jConfig();
+    const apgStore = fs.mkdtempSync(path.join(os.tmpdir(), 'u3-r12-batch-'));
+    try {
+      // Credentials travel in the environment only, never on argv. No mode flag: batch is symbolic-only.
+      const out = spawnSync(path.join(REPO_ROOT, 'node_modules', '.bin', 'tsx'), [
+        path.join(REPO_ROOT, 'bin', 'firewall.ts'), 'batch',
+        '--dir', 'fixtures', '--spec', 'presets/clean-architecture.yaml', '--format', 'json', '--neo4j-uri', neo4j.uri,
+      ], {
+        cwd: REPO_ROOT,
+        encoding: 'utf8',
+        env: { ...process.env, NEO4J_USER: neo4j.user, NEO4J_PASSWORD: neo4j.password, APG_STORE_PATH: apgStore },
+        maxBuffer: 64 * 1024 * 1024,
+      });
+      expect(out.error).toBeUndefined();
+      const parsed = JSON.parse(out.stdout) as { totalProjects: number; errorCount: number; rows: Record<string, unknown>[] };
+      expect({ total: parsed.totalProjects, errors: parsed.errorCount, rows: parsed.rows.length }).toEqual({ total: 5, errors: 0, rows: 5 });
+      for (const row of parsed.rows) {
+        expect({
+          violations: Array.isArray(row.violations),
+          perDimensionScores: Array.isArray(row.perDimensionScores),
+          functionExecution: typeof row.functionExecution === 'object' && row.functionExecution !== null,
+          droppedDimensions: Array.isArray(row.droppedDimensions),
+          violationCount: (row.violations as unknown[]).length === row.violationCount,
+        }).toEqual({ violations: true, perDimensionScores: true, functionExecution: true, droppedDimensions: true, violationCount: true });
+      }
+      const text = out.stdout + out.stderr;
+      expect(text.split(neo4j.password).length - 1).toBe(0);
+    } finally {
+      fs.rmSync(apgStore, { recursive: true, force: true });
+    }
+  }, RUN_TIMEOUT_MS * 3);
+});
