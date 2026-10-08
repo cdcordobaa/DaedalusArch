@@ -1,0 +1,48 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://daedalus-arch.local/scripts/lib/schemas/environment-record.schema.json",
+  "$comment": "U5b EnvironmentRecord (domain-entities §9; BR-U5b-69, 70; FR-03). No field holds an environment variable; written scrubbed.",
+  "title": "DaedalusArch environment record",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["id", "recordedAt", "gitCommit", "node", "typescript", "tsMorph", "neo4jDriver", "jest", "neo4jImage", "neo4jServer", "apoc", "geminiSdk", "judgeModelIds", "generatorModelIds", "environmentDocSha256", "hardware"],
+  "properties": {
+    "id": { "type": "string", "pattern": "^env-[0-9a-f]{12}$" },
+    "recordedAt": { "type": "string", "format": "date-time" },
+    "gitCommit": { "type": "string", "pattern": "^[0-9a-f]{40}$" },
+    "node": { "type": "string", "minLength": 1 },
+    "typescript": { "type": "string", "minLength": 1 },
+    "tsMorph": { "type": "string", "minLength": 1 },
+    "neo4jDriver": { "type": "string", "minLength": 1 },
+    "jest": { "type": "string", "minLength": 1 },
+    "neo4jImage": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["tag", "id", "repoDigests"],
+      "properties": {
+        "tag": { "type": "string", "minLength": 1 },
+        "id": { "type": "string", "pattern": "^sha256:[0-9a-f]{64}$" },
+        "repoDigests": { "type": "array", "items": { "type": "string" } }
+      }
+    },
+    "neo4jServer": { "type": "string", "minLength": 1 },
+    "apoc": { "type": "string", "minLength": 1 },
+    "geminiSdk": { "type": "string", "minLength": 1 },
+    "claudeCli": { "type": "string", "minLength": 1 },
+    "labellerModelId": { "type": "string", "minLength": 1 },
+    "judgeModelIds": { "type": "array", "items": { "type": "string", "minLength": 1 } },
+    "generatorModelIds": { "type": "array", "items": { "type": "string", "minLength": 1 } },
+    "environmentDocSha256": { "type": "string", "pattern": "^[0-9a-f]{64}$" },
+    "hardware": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["cpu", "cores", "memGb", "os"],
+      "properties": {
+        "cpu": { "type": "string" },
+        "cores": { "type": "integer", "minimum": 1 },
+        "memGb": { "type": "number", "minimum": 0 },
+        "os": { "type": "string", "minLength": 1 }
+      }
+    }
+  }
+}

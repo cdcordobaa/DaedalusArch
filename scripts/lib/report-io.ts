@@ -9,9 +9,14 @@
  *   timed-out functions (`EVAL_001` / `EVAL_002`), truncation (`truncated` rows or `EVAL_003`), failed
  *   universal metrics (`METRIC_001`) and the judge actual-model rule (U4 BR-U4-VRD-07) against the plan
  *   mode's pinned values. `METRIC_002`, disabled and cannot-fire functions are not failures.
+ * - `scrubbedJson` / `writeScrubbedJson` (BR-U5b-70, NFR-05, NFR-08): every artefact U5b writes (cassettes,
+ *   `RunRecord`s, `EnvironmentRecord`s, stored reports, subprocess output) goes through C10 `scrubDeep` with the
+ *   known secrets (`NEO4J_PASSWORD`, `GEMINI_API_KEY` values of the parent environment) first.
  */
-import { readFileSync } from 'node:fs';
+import { mkdirSync, readFileSync, writeFileSync } from 'node:fs';
+import { dirname } from 'node:path';
 import { validateReport } from '../../src/scoring-engine/report-schema-validator.js';
+import { scrubDeep } from '../../src/shared/errors/scrub.js';
 import type { EvaluationReport } from '../../src/shared/types/evaluation.js';
 import type { Split } from './manifest.js';
 import type { BaseKind } from './mutation/types.js';
@@ -202,4 +207,26 @@ export function loadRun(reportPath: string, recordPath: string | undefined): Loa
   const problems = checkRunRecord(record.value);
   if (problems.length > 0) return { ok: false, reason: 'record-invalid', detail: problems.join('; ') };
   return { ok: true, report: report.value, record: record.value as RunRecord };
+}
+
+// ---------------------------------------------------------------------------------------------
+// Scrubbed artefacts (BR-U5b-70)
+
+/** The environment variables whose values are known secrets (BR-U5b-70). */
+export const KNOWN_SECRET_VARIABLES: readonly string[] = Object.freeze(['NEO4J_PASSWORD', 'GEMINI_API_KEY']);
+
+/** The known secret values present in `env`. */
+export function knownSecretsOf(env: NodeJS.ProcessEnv): string[] {
+  return KNOWN_SECRET_VARIABLES.map((k) => env[k]).filter((v): v is string => typeof v === 'string' && v.trim() !== '');
+}
+
+/** Deep copy of `value` with every string scrubbed (C10 `scrubDeep`: known secrets, credentialed URIs, key shapes). */
+export function scrubbedJson<T>(value: T, secrets: readonly string[]): T {
+  return scrubDeep(value, secrets);
+}
+
+/** Writes `value` as pretty JSON after scrubbing; creates the parent directory. */
+export function writeScrubbedJson(path: string, value: unknown, secrets: readonly string[]): void {
+  mkdirSync(dirname(path), { recursive: true });
+  writeFileSync(path, `${JSON.stringify(scrubbedJson(value, secrets), null, 2)}\n`);
 }

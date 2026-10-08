@@ -22,18 +22,17 @@
  * runs; tests pass a temp `--out-dir` (BR-U5b-56).
  */
 import { createHash } from 'node:crypto';
-import { existsSync, mkdirSync, readdirSync, readFileSync, writeFileSync } from 'node:fs';
-import { dirname, isAbsolute, join, resolve } from 'node:path';
+import { existsSync, readdirSync, readFileSync } from 'node:fs';
+import { isAbsolute, join, resolve } from 'node:path';
 import { Ajv } from 'ajv';
 import type { ValidateFunction } from 'ajv';
 import addFormats from 'ajv-formats';
-import { scrubDeep } from '../src/shared/errors/scrub.js';
 import type { ProcessResult, ProcessRunner } from '../src/shared/interfaces/process-runner.js';
 import { buildChildEnv, NodeProcessRunner } from '../src/shared/process/node-process-runner.js';
 import { cellOutputDir } from './lib/generators/schedule.js';
 import { checkPreRegistration, repoRelative } from './lib/prereg.js';
 import type { PreregCheck, PreregCheckInput } from './lib/prereg.js';
-import { acceptReport } from './lib/report-io.js';
+import { acceptReport, knownSecretsOf, scrubbedJson, writeScrubbedJson } from './lib/report-io.js';
 import type { GenerationCell, PinnedJudge, ReasonCode, RunRecord, RunStatus, SeedRef } from './lib/report-io.js';
 import { genCodeOf, loadSo5Codes } from './lib/so5-codes.js';
 import type { GenCode, So5Codes } from './lib/so5-codes.js';
@@ -324,17 +323,10 @@ export interface RunPlanResult {
 }
 
 /** Known secrets (BR-U5b-70): the values of `NEO4J_PASSWORD` and `GEMINI_API_KEY` in the parent environment. */
-export function knownSecrets(env: NodeJS.ProcessEnv): string[] {
-  return ['NEO4J_PASSWORD', 'GEMINI_API_KEY'].map((k) => env[k]).filter((v): v is string => typeof v === 'string' && v !== '');
-}
+export const knownSecrets = knownSecretsOf;
 
 export function runIdOf(planId: string, entry: PlanEntry): string {
   return `${planId}-${String(entry.index).padStart(3, '0')}-${entry.projectId.replace(/[^A-Za-z0-9._-]/g, '_')}`;
-}
-
-function writeJson(path: string, value: unknown): void {
-  mkdirSync(dirname(path), { recursive: true });
-  writeFileSync(path, `${JSON.stringify(value, null, 2)}\n`);
 }
 
 /** Existing records of the plan in `<outDir>/runs/` (for gate condition (b)). */
@@ -348,13 +340,13 @@ export async function runPlan(plan: ExperimentPlan, planFile: string, repoRoot: 
   const schemaRoot = deps.schemaRoot ?? repoRoot;
   const outDir = resolve(repoRoot, deps.outDir ?? plan.outDir);
   const secrets = knownSecrets(deps.parentEnv);
-  const scrub = <T>(v: T): T => scrubDeep(v, secrets);
+  const scrub = <T>(v: T): T => scrubbedJson(v, secrets);
   const records: RunRecord[] = [];
   const emit = (record: RunRecord): void => {
     const clean = scrub(record);
     const problems = validateRunRecord(clean, schemaRoot);
     if (problems.length > 0) throw new Error(`RunRecord ${clean.runId} fails run-record.schema.json: ${problems.join('; ')}`);
-    writeJson(join(outDir, 'runs', `${clean.runId}.run.json`), clean);
+    writeScrubbedJson(join(outDir, 'runs', `${clean.runId}.run.json`), clean, secrets);
     records.push(clean);
   };
 
@@ -386,14 +378,14 @@ export async function runPlan(plan: ExperimentPlan, planFile: string, repoRoot: 
   if (!so5.ok) return { ok: false, code: so5.code, detail: so5.detail, records, outDir };
 
   const env = await deps.recordEnvironment(plan.id);
-  writeJson(join(outDir, 'env', `${env.id}.json`), scrub(env.record));
+  writeScrubbedJson(join(outDir, 'env', `${env.id}.json`), env.record, secrets);
 
   const pinnedJudge: PinnedJudge | undefined = plan.mode === 'symbolic-only' || plan.judge === undefined ? undefined : plan.judge;
   const childEnv = { ...buildChildEnv(deps.parentEnv, CLI_ENV_ALLOW), ...(deps.extraEnv ?? {}) };
   for (const entry of entries) {
     const record = await runEntry(plan, entry, {
       repoRoot, deps, so5: so5.codes, envRecordId: env.id, preregVersion: gate.prereg.version,
-      frozenHashes: gate.frozenHashes, pinnedJudge, childEnv, outDir, scrub, specSha: specShaOf(entry.specPath),
+      frozenHashes: gate.frozenHashes, pinnedJudge, childEnv, outDir, scrub, secrets, specSha: specShaOf(entry.specPath),
     });
     emit(record);
   }
@@ -411,6 +403,7 @@ interface EntryContext {
   readonly childEnv: Readonly<Record<string, string>>;
   readonly outDir: string;
   readonly scrub: <T>(v: T) => T;
+  readonly secrets: readonly string[];
   readonly specSha: string;
 }
 
@@ -464,7 +457,7 @@ async function runEntry(plan: ExperimentPlan, entry: PlanEntry, ctx: EntryContex
       break;
   }
   const reportPath = `reports/${runId}.json`;
-  writeJson(join(ctx.outDir, reportPath), ctx.scrub(outcome.report));
+  writeScrubbedJson(join(ctx.outDir, reportPath), outcome.report, ctx.secrets);
   const acceptance = acceptReport(outcome.report, ctx.pinnedJudge === undefined ? {} : { pinnedJudge: ctx.pinnedJudge });
   if (acceptance.accepted) return base('accepted', undefined, undefined, attempt, reportPath);
   return base('rejected', acceptance.reasonCode, ctx.scrub(acceptance.reasonDetail), attempt, reportPath);
@@ -474,7 +467,7 @@ async function runEntry(plan: ExperimentPlan, entry: PlanEntry, ctx: EntryContex
 // CLI
 
 export const RUN_USAGE = [
-  'Usage: npx tsx scripts/run-experiment-cli.ts <plan.json> [--out-dir <dir>]',
+  'Usage: npx tsx scripts/run-experiment-cli.ts <plan.json> [--out-dir <dir>] [--neo4j-container <name>]',
   '       npx tsx scripts/run-experiment-cli.ts --check-prereg <plan.json>   (gate only; exit 0 / 1)',
   '       npx tsx scripts/run-experiment-cli.ts --dry-run <plan.json>        (print the expansion)',
   '       npx tsx scripts/run-experiment-cli.ts --self-test',
@@ -486,8 +479,11 @@ export interface RunMainIo {
 }
 
 /** `deps` builds the harness dependencies lazily (only a real run needs them). */
-export async function main(argv: readonly string[], repoRoot: string, io: RunMainIo, makeDeps: () => HarnessDeps, schemaRoot: string = repoRoot): Promise<number> {
-  const [first, second, third, fourth] = argv;
+export async function main(
+  argv: readonly string[], repoRoot: string, io: RunMainIo,
+  makeDeps: (opts: { readonly neo4jContainer?: string }) => HarnessDeps, schemaRoot: string = repoRoot,
+): Promise<number> {
+  const [first, second] = argv;
   if (first === '--self-test') {
     // Known-bad input: a plan whose spec lies outside corpus/specs/ and the fixture specs (BR-U5b-51).
     const refused = checkPreRegistration({ repoRoot, schemaRoot, planPath: 'experiments/self-test/plan.json', specPaths: ['specs/daedalus-arch.yaml'], records: [], now: new Date() });
@@ -544,14 +540,20 @@ export async function main(argv: readonly string[], repoRoot: string, io: RunMai
     return 2;
   }
   let outDir: string | undefined;
-  if (second === '--out-dir' && third !== undefined) outDir = third;
-  else if (second !== undefined || fourth !== undefined) {
-    io.err(`${RUN_USAGE}\n`);
-    return 2;
+  let neo4jContainer: string | undefined;
+  for (let i = 1; i < argv.length; i++) {
+    const a = argv[i];
+    const v = argv[i + 1];
+    if (a === '--out-dir' && v !== undefined) outDir = argv[++i];
+    else if (a === '--neo4j-container' && v !== undefined) neo4jContainer = argv[++i];
+    else {
+      io.err(`${RUN_USAGE}\n`);
+      return 2;
+    }
   }
   const l = loadAt(first);
   if (!l.ok) return 1;
-  const deps = makeDeps();
+  const deps = makeDeps(neo4jContainer !== undefined ? { neo4jContainer } : {});
   const result = await runPlan(l.plan, l.file, repoRoot, { ...deps, schemaRoot, ...(outDir !== undefined && { outDir }) });
   if (!result.ok) {
     io.err(`${result.code ?? 'RUN_FAILED'}: ${result.detail ?? ''}\n`);
