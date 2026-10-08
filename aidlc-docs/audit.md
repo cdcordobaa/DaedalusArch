@@ -923,3 +923,12 @@ Plan checkboxes ticked. Auto-approved under standing approval; no blocking or ma
 **Context**: CONSTRUCTION — lanes 3/4 Functional Design plans complete.
 
 ---
+
+## v1.2 Evaluation-Readiness — Lanes 3/4 Functional Design and code-generation plans complete (auto-approved)
+**Timestamp**: 2026-10-08T05:00:00Z
+**User Input**: None (standing approval; author's "accept all" of 2026-10-08T03:30:00Z)
+**Intent**: Close Functional Design Part 2 and the code-generation plans for U3, U4, U5a and U5b.
+**AI Response**: Functional designs written under `construction/v1.2E-u3-evaluation-scoring-report/`, `v1.2E-u4-neural-path/`, `v1.2E-u5a-mutation-manifest-generator/`, `v1.2E-u5b-scoring-harness/`, and code-generation plans under `construction/plans/`. Adversarial review issues found and fixed: U3 design 14, plan 7; U4 design 13, plan 14; U5a design 13, plan 8; U5b design 10, plan 9. Auto-approved under standing approval; no blocking or major review issue remains.
+**Context**: CONSTRUCTION — lanes 3/4 Functional Design and Code Generation planning COMPLETE (U3, U4, U5a, U5b); next: code generation after lane 2 lands.
+
+---
