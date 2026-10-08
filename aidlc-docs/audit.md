@@ -906,3 +906,12 @@ Plan checkboxes ticked. Auto-approved under standing approval; no blocking or ma
 **Context**: CONSTRUCTION — lane 2 Functional Design COMPLETE (U1, U2); next: code-generation plans U2, then U1.
 
 ---
+
+## v1.2 Evaluation-Readiness — Lane 2 code-generation plans complete (auto-approved)
+**Timestamp**: 2026-10-08T02:30:00Z
+**User Input**: None (standing approval of 2026-10-08T00:30:00Z)
+**Intent**: Close the U2 and U1 code-generation plans and open the per-unit worktrees for lane-2 code generation.
+**AI Response**: Code-generation plans written for U2 Extractor and Graph (`construction/plans/v1.2E-u2-extractor-graph-code-generation-plan.md`) and U1 Spec and Compiler (`construction/plans/v1.2E-u1-spec-compiler-code-generation-plan.md`). Adversarial review found 12 issues in the U2 plan and 14 issues in the U1 plan, all fixed. Auto-approved under standing approval; no blocking or major review issue remains. Worktrees `v1.2e-u2-extractor-graph` and `v1.2e-u1-spec-compiler` are created from origin/v1.2e for code generation.
+**Context**: CONSTRUCTION — lane 2 Code Generation planning COMPLETE (U2, U1); next: code generation U2 and U1 in worktrees.
+
+---
