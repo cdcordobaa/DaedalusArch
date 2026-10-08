@@ -15,6 +15,8 @@ update. Regenerate only with `UPDATE_GOLDEN=1 GOLDEN_REQUIRED=1 npm run test:gol
 Observations (verdict gaps against the spec header, truncated `no-cyclic-deps`
 results, unexecuted functions) are recorded here too, marked `observation`.
 
+U1 lines use the label `U1-Kn` in place of the commit hash (recover it with `git log --grep 'U1-Kn'`), in the grammar of the U1 code-generation plan D-U1-7.
+
 ## Entries
 
 2026-10-07 baseline @7cd15b4 all — FR-30: snapshots of current behaviour (symbolic-only, `specs/clean-arch.yaml`); generated three times with Neo4j 5.26.24 restarted between runs, byte-identical.
