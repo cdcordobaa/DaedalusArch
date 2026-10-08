@@ -73,3 +73,14 @@ Each target is a byte-for-byte copy of its source (`cmp` exit 0); source paths a
 | `../dry-run-test/firewall.spec.yaml` | `corpus/specs/dry-run-test.yaml` | `74bad9609a0146b6b44788a2485d9ad76c7b7aeb8889c1161fa1a5b668076565` |
 
 realworld-test, ghostfolio-test and truthy-demo carry the same spec text (the NestJS preset as it was used in the earlier runs); dry-run-test differs.
+
+### 2. FR-22 migration
+
+`npx tsx scripts/migrate-corpus-spec-cli.ts --step fr22 corpus/specs/<project>.yaml`, per spec. A rerun prints `no change` for all four.
+
+| Spec | Edited key paths |
+|---|---|
+| `realworld-test` | `fitness_functions[FF-N01].dimension`, `fitness_functions[FF-N01].route`, `fitness_functions[FF-N02].dimension`, `scoring.full_mode_weights.intent` |
+| `ghostfolio-test` | `fitness_functions[FF-N01].dimension`, `fitness_functions[FF-N01].route`, `fitness_functions[FF-N02].dimension`, `scoring.full_mode_weights.intent` |
+| `truthy-demo` | `fitness_functions[FF-N01].dimension`, `fitness_functions[FF-N01].route`, `fitness_functions[FF-N02].dimension`, `scoring.full_mode_weights.intent` |
+| `dry-run-test` | `fitness_functions[FF-N01].dimension`, `fitness_functions[FF-N01].route`, `fitness_functions[FF-N02].dimension`, `scoring.full_mode_weights.intent` |
