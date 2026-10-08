@@ -66,6 +66,7 @@ export function generateReport(input: ReportInput): DomainResult<ReportOutput> {
   const sections = [
     'header',
     'ahs-score',
+    'run-completeness',
     'architecture-map',
     'fitness-functions',
     'violations-explorer',
@@ -86,7 +87,14 @@ export function generateReport(input: ReportInput): DomainResult<ReportOutput> {
 function renderHTML(dashboardData: DashboardData, graphData: CytoscapeGraphData): string {
   const template = getHtmlTemplate();
 
+  // Function replacers (no `$&`-style patterns) and `<` escaped, so report text such as a failure
+  // message can never close the inline script.
   return template
-    .replace('__DASHBOARD_DATA__', JSON.stringify(dashboardData))
-    .replace('__GRAPH_DATA__', JSON.stringify(graphData));
+    .replace('__DASHBOARD_DATA__', () => scriptJson(dashboardData))
+    .replace('__GRAPH_DATA__', () => scriptJson(graphData));
+}
+
+/** JSON safe to embed in an inline `<script>`: `<` written as `\u003c`. */
+export function scriptJson(value: unknown): string {
+  return JSON.stringify(value).replace(/</g, '\\u003c');
 }
