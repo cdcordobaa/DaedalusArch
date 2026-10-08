@@ -968,3 +968,11 @@ Plan checkboxes ticked. Auto-approved under standing approval; no blocking or ma
 **Context**: CONSTRUCTION — U4 Code Generation Group 1 (Gate H) complete; plan Steps 2–6 ticked with the Done note; Step 7 waits on the ISO-04 decision.
 
 ---
+
+## U4 Gate H — ISO-04 resolution
+**Timestamp**: 2026-10-08T12:40:00Z
+**User Input**: "logged in" / "done" (author completed the subscription login into the dedicated judge config dir)
+**AI Response**: "Gate H passed H1–H5 (8bbd2cc). The judge dir broke the ISO-04 allow-list (marketplace plugins, settings.json, per-call projects/*/memory). Resolved under the standing approval as ADR-018: plugins/ removed and the judge call re-verified; allow-list values filled; settings.json content rule; CLI pinned at 2.1.294 with DISABLE_AUTOUPDATER in the child env. U4 proceeds to Step 7 after U3 merges."
+**Context**: CONSTRUCTION, U4 Code Generation Part 2, Group 1 exit
+
+---
