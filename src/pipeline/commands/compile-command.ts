@@ -3,6 +3,7 @@ import type { FirewallContext } from '../../shared/context/firewall-context.js';
 import type { DomainResult as DomainResultType } from '../../shared/errors/domain-result.js';
 import { DomainResult } from '../../shared/errors/domain-result.js';
 import { compileFunctions } from '../../fitness-compiler/index.js';
+import { compilerInputFromSpec } from '../../fitness-compiler/compiler-input.js';
 import { toPipelineError, toPipelineWarning } from './map-helpers.js';
 
 export class CompileCommand implements PipelineCommand {
@@ -11,12 +12,7 @@ export class CompileCommand implements PipelineCommand {
   async execute(context: FirewallContext): Promise<DomainResultType<void>> {
     const parsedSpec = context.getParsedSpec();
 
-    const result = compileFunctions({
-      fitnessFunctions: parsedSpec.fitnessFunctions,
-      adrRules: parsedSpec.adrRules,
-      layerModel: parsedSpec.layerModel,
-      scoringWeights: parsedSpec.scoringWeights,
-    });
+    const result = compileFunctions(compilerInputFromSpec(parsedSpec));
 
     if (!result.success) {
       return DomainResult.fail<void>(

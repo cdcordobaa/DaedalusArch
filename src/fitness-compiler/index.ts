@@ -1,5 +1,6 @@
 export { FitnessCompilerStage, compileFunctions, instantiateTemplate } from './fitness-compiler.js';
 export { CYPHER_TEMPLATES } from './cypher-templates.js';
+export { compilerInputFromSpec } from './compiler-input.js';
 export type {
   CompilerInput, CompilerError, CompilerErrorCode,
   CompilerWarning, CompilerWarningCode, CypherTemplate,

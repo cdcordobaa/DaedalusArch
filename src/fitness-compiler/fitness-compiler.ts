@@ -9,6 +9,7 @@ import { DomainResult } from '../shared/errors/domain-result.js';
 import type { CompilerInput, CompilerError, CompilerWarning, CypherTemplate } from './types.js';
 import { CYPHER_TEMPLATES } from './cypher-templates.js';
 import { injectExcludePaths } from './exclude-injector.js';
+import { compilerInputFromSpec } from './compiler-input.js';
 
 // ── Standalone Function ───────────────────────────────────────────────────────
 
@@ -332,14 +333,7 @@ export class FitnessCompilerStage implements PipelineStage<ParsedSpec, CompiledF
 
   async execute(input: ParsedSpec, context: FirewallContext): Promise<DomainResult<CompiledFunctions>> {
     const start = Date.now();
-    const compilerInput: CompilerInput = {
-      fitnessFunctions: input.fitnessFunctions,
-      adrRules: input.adrRules,
-      layerModel: input.layerModel,
-      scoringWeights: input.scoringWeights,
-    };
-
-    const result = compileFunctions(compilerInput);
+    const result = compileFunctions(compilerInputFromSpec(input));
 
     if (result.success) {
       context.setCompiledFunctions(result.data);
