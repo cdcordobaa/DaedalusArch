@@ -959,3 +959,12 @@ Plan checkboxes ticked. Auto-approved under standing approval; no blocking or ma
 **Context**: CONSTRUCTION — U4 pre-patch for U3 Step 19; U3 Group 7 unblocked.
 
 ---
+
+## v1.2 Evaluation-Readiness — U4 Group 1 Gate H subscription probe (Steps 2–6)
+**Timestamp**: 2026-10-08T12:35:06Z
+**User Input**: None (standing approval of 2026-10-08T00:30:00Z; the author completed the Step 2 subscription /login into the judge config dir)
+**Intent**: Run the U4 Part 2 probe (Steps 2–6) and decide Gate H before any U4 worktree or code.
+**AI Response**: Gate H PASS on H1–H5. H1: judge call under the dedicated CLAUDE_CONFIG_DIR, env -i allow-list and neutral cwd exited 0 with is_error false. H2: apiKeySource none and mcp_servers []. H3: every frozen flag accepted. H4: canary tokensFound neutral [] and ancestor []; the positive control fired on the ancestor channel only (variant: real HOME plus the judge dir, no isolation flags, because the throwaway home cannot authenticate). The user CLAUDE.md and hook channels were not positively controlled. H5: the structured_output field is present. [PROBE] values: toolsFlag true; modelUsage with camelCase keys and no alias suffix; PINNED_CLI_VERSION 2.1.294 (the CLI auto-updated from 2.1.293 during the login); auto-update is switched off by DISABLE_AUTOUPDATER=1, which must join JUDGE_ENV_ALLOW (not applied to the author's global install); AUTH is classified on is_error plus the result text "Not logged in" (subtype stays success); USAGE_LIMIT patterns are unverified. Timing medians: high 6570 ms, medium 5736 ms. Scrubbed evidence in ~/.firewall/u4-probe/out passes Gate X. Escalation: ISO-04 conflict. The CLI auto-installed the official plugin marketplace (plugins/**) into the judge dir at login, and settings.json is CLI-created; the author must choose between a re-login without the marketplace and an ISO-04 amendment before Step 7.
+**Context**: CONSTRUCTION — U4 Code Generation Group 1 (Gate H) complete; plan Steps 2–6 ticked with the Done note; Step 7 waits on the ISO-04 decision.
+
+---
