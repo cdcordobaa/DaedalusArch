@@ -1,5 +1,5 @@
 {
-  "ahsDeterministic": 0.308,
+  "ahsDeterministic": 0.422,
   "caseId": "variant-a-structural",
   "evaluationMode": "symbolic-only",
   "functionResults": [
@@ -13,19 +13,19 @@
       "dimension": "structural",
       "functionId": "FF-S02",
       "passed": false,
-      "violationCount": 4
-    },
-    {
-      "dimension": "structural",
-      "functionId": "FF-S03",
-      "passed": false,
-      "violationCount": 4
+      "violationCount": 2
     },
     {
       "dimension": "structural",
       "functionId": "FF-S04",
       "passed": false,
       "violationCount": 1
+    },
+    {
+      "dimension": "pattern",
+      "functionId": "FF-P01",
+      "passed": true,
+      "violationCount": 0
     },
     {
       "dimension": "pattern",
@@ -36,8 +36,8 @@
     {
       "dimension": "pattern",
       "functionId": "FF-P03",
-      "passed": false,
-      "violationCount": 1
+      "passed": true,
+      "violationCount": 0
     },
     {
       "dimension": "pattern",
@@ -88,8 +88,44 @@
       "violationCount": 1
     },
     {
+      "dimension": "solid",
+      "functionId": "FF-SO01",
+      "passed": true,
+      "violationCount": 0
+    },
+    {
+      "dimension": "solid",
+      "functionId": "FF-SO02",
+      "passed": true,
+      "violationCount": 0
+    },
+    {
+      "dimension": "solid",
+      "functionId": "FF-SO03",
+      "passed": true,
+      "violationCount": 0
+    },
+    {
       "dimension": "convention",
       "functionId": "FF-CV01",
+      "passed": true,
+      "violationCount": 0
+    },
+    {
+      "dimension": "convention",
+      "functionId": "FF-CV02",
+      "passed": true,
+      "violationCount": 0
+    },
+    {
+      "dimension": "convention",
+      "functionId": "FF-CV03",
+      "passed": true,
+      "violationCount": 0
+    },
+    {
+      "dimension": "convention",
+      "functionId": "FF-CV04",
       "passed": true,
       "violationCount": 0
     },
@@ -110,50 +146,42 @@
     {
       "avr": 1,
       "dimension": "structural",
-      "functionCount": 17,
-      "violationCount": 4,
+      "functionCount": 23,
+      "violationCount": 3,
       "weight": 0.35
     },
     {
       "avr": 0.5,
       "dimension": "coupling",
-      "functionCount": 17,
+      "functionCount": 23,
       "violationCount": 3,
       "weight": 0.2
     },
     {
-      "avr": 0.75,
+      "avr": 0.4,
       "dimension": "pattern",
-      "functionCount": 17,
-      "violationCount": 3,
+      "functionCount": 23,
+      "violationCount": 2,
       "weight": 0.3
     },
     {
       "avr": 0,
       "dimension": "solid",
-      "functionCount": 17,
+      "functionCount": 23,
       "violationCount": 0,
       "weight": 0.1
     },
     {
-      "avr": 0.333,
+      "avr": 0.167,
       "dimension": "convention",
-      "functionCount": 17,
+      "functionCount": 23,
       "violationCount": 1,
       "weight": 0.05
     }
   ],
   "projectPath": "fixtures/variant-a-structural",
   "specVersion": "1.0.0",
-  "unexecutedFunctionIds": [
-    "FF-CV02",
-    "FF-CV03",
-    "FF-CV04",
-    "FF-P01",
-    "FF-SO01",
-    "FF-SO02",
-    "FF-SO03"
-  ],
+  "unexecutedFunctionIds": [],
   "universalMetrics": {
     "abstractionRatio": 0.2,
     "averageInstability": 0.472,
@@ -193,66 +221,12 @@
     },
     {
       "dimension": "structural",
-      "filePath": "src/domain/entities/Task.ts,src/domain/repositories/ITaskRepository.ts,src/domain/entities/Task.ts",
-      "functionId": "FF-S02",
-      "message": "Circular dependency: src/domain/entities/Task.ts,src/domain/repositories/ITaskRepository.ts,src/domain/entities/Task.ts",
-      "route": "symbolic",
-      "severity": "critical",
-      "type": "CYCLIC_DEPENDENCY"
-    },
-    {
-      "dimension": "structural",
       "filePath": "src/infrastructure/repositories/CircularHelper.ts,src/infrastructure/repositories/InMemoryTaskRepository.ts,src/infrastructure/repositories/CircularHelper.ts",
       "functionId": "FF-S02",
       "message": "Circular dependency: src/infrastructure/repositories/CircularHelper.ts,src/infrastructure/repositories/InMemoryTaskRepository.ts,src/infrastructure/repositories/CircularHelper.ts",
       "route": "symbolic",
       "severity": "critical",
       "type": "CYCLIC_DEPENDENCY"
-    },
-    {
-      "dimension": "structural",
-      "filePath": "src/infrastructure/repositories/CircularHelper.ts,src/infrastructure/repositories/InMemoryTaskRepository.ts,src/infrastructure/repositories/CircularHelper.ts",
-      "functionId": "FF-S02",
-      "message": "Circular dependency: src/infrastructure/repositories/CircularHelper.ts,src/infrastructure/repositories/InMemoryTaskRepository.ts,src/infrastructure/repositories/CircularHelper.ts",
-      "route": "symbolic",
-      "severity": "critical",
-      "type": "CYCLIC_DEPENDENCY"
-    },
-    {
-      "dimension": "structural",
-      "filePath": "src/application/use-cases/CreateTaskUseCase.ts",
-      "functionId": "FF-S03",
-      "message": "src/application/use-cases/CreateTaskUseCase.ts (application) skips layers to import src/infrastructure/repositories/InMemoryTaskRepository.ts (infrastructure)",
-      "route": "symbolic",
-      "severity": "critical",
-      "type": "LAYER_SKIP"
-    },
-    {
-      "dimension": "structural",
-      "filePath": "src/domain/entities/Task.ts",
-      "functionId": "FF-S03",
-      "message": "src/domain/entities/Task.ts (domain) skips layers to import src/infrastructure/config/InfraConfig.ts (infrastructure)",
-      "route": "symbolic",
-      "severity": "critical",
-      "type": "LAYER_SKIP"
-    },
-    {
-      "dimension": "structural",
-      "filePath": "src/infrastructure/repositories/InMemoryTaskRepository.ts",
-      "functionId": "FF-S03",
-      "message": "src/infrastructure/repositories/InMemoryTaskRepository.ts (infrastructure) skips layers to import src/domain/entities/Task.ts (domain)",
-      "route": "symbolic",
-      "severity": "critical",
-      "type": "LAYER_SKIP"
-    },
-    {
-      "dimension": "structural",
-      "filePath": "src/infrastructure/repositories/InMemoryTaskRepository.ts",
-      "functionId": "FF-S03",
-      "message": "src/infrastructure/repositories/InMemoryTaskRepository.ts (infrastructure) skips layers to import src/domain/repositories/ITaskRepository.ts (domain)",
-      "route": "symbolic",
-      "severity": "critical",
-      "type": "LAYER_SKIP"
     },
     {
       "dimension": "structural",
@@ -271,15 +245,6 @@
       "route": "symbolic",
       "severity": "critical",
       "type": "DEPENDENCY_INVERSION_VIOLATION"
-    },
-    {
-      "dimension": "pattern",
-      "filePath": "src/infrastructure/repositories/InMemoryTaskRepository.ts",
-      "functionId": "FF-P03",
-      "message": "Violation in src/infrastructure/repositories/InMemoryTaskRepository.ts",
-      "route": "symbolic",
-      "severity": "critical",
-      "type": "REPOSITORY_PATTERN_VIOLATION"
     },
     {
       "dimension": "pattern",
@@ -382,41 +347,6 @@
     }
   ],
   "warnings": [
-    {
-      "code": "EVAL_001",
-      "message": "Query failed for domain-purity: Expected parameter(s): forbiddenImports",
-      "stage": "evaluate-symbolic"
-    },
-    {
-      "code": "EVAL_001",
-      "message": "Query failed for inheritance-depth: Expected parameter(s): maxDepth",
-      "stage": "evaluate-symbolic"
-    },
-    {
-      "code": "EVAL_001",
-      "message": "Query failed for interface-segregation-proxy: Expected parameter(s): maxInterfaceMethods",
-      "stage": "evaluate-symbolic"
-    },
-    {
-      "code": "EVAL_001",
-      "message": "Query failed for naming-controllers: Expected parameter(s): pattern",
-      "stage": "evaluate-symbolic"
-    },
-    {
-      "code": "EVAL_001",
-      "message": "Query failed for naming-repos: Expected parameter(s): pattern",
-      "stage": "evaluate-symbolic"
-    },
-    {
-      "code": "EVAL_001",
-      "message": "Query failed for naming-services: Expected parameter(s): pattern",
-      "stage": "evaluate-symbolic"
-    },
-    {
-      "code": "EVAL_001",
-      "message": "Query failed for single-responsibility-proxy: Expected parameter(s): maxPublicMethods, maxDependencies",
-      "stage": "evaluate-symbolic"
-    },
     {
       "code": "SPEC_002",
       "message": "Template function \"FF-C01\" overridden by spec declaration",

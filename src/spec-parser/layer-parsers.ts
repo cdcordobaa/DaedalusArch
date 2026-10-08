@@ -3,38 +3,54 @@ import type {
   ScoringWeights, VerdictThresholds, ConfidenceThresholds,
   SemanticCriteria,
 } from '../shared/types/spec.js';
-import type { Dimension, Severity, Route } from '../shared/types/enums.js';
+import type { Dimension, Severity, Route, LayerKind, JudgeUnitKind } from '../shared/types/enums.js';
 import type { ValidationWarning } from './types.js';
 import { functionId } from '../shared/types/value-objects.js';
+import { resolveLayerKinds } from './layer-kind-resolver.js';
+import { mapFunctionSpecificFields, FUNCTION_FIELD_KEYS } from './function-fields.js';
+import { normaliseDimension } from './dimension-alias.js';
+import { CYPHER_TEMPLATES } from '../fitness-compiler/cypher-templates.js';
 
 export interface LayerCResult {
   readonly scoringWeights: ScoringWeights;
   readonly fullModeWeights: ScoringWeights | undefined;
   readonly verdictThresholds: VerdictThresholds;
   readonly confidenceThresholds: ConfidenceThresholds;
+  readonly warnings: readonly ValidationWarning[]; // SPEC_004 for the legacy full_mode_weights.intent key (BR-U1-21)
 }
 
 /**
- * Parse Layer A: architecture.layers → LayerModel
+ * Parse Layer A: architecture.layers → LayerModel.
+ * Reads the optional layer `kind` and resolves every layer's kind (FR-19, BR-U1-12); duplicate scalar
+ * kinds add SPEC_005 to `warnings` (BR-U1-13).
  */
-export function parseLayerA(raw: Record<string, unknown>): LayerModel {
+export function parseLayerA(raw: Record<string, unknown>, warnings: ValidationWarning[] = []): LayerModel {
   const arch = raw['architecture'] as Record<string, unknown>;
   const rawLayers = arch['layers'] as Record<string, unknown>[];
 
-  const layers: LayerDefinition[] = rawLayers.map((l) => ({
-    name: String(l['name']),
-    directories: (l['directories'] as string[] | undefined) ?? [],
-    naming: [],
-    decorators: (l['decorators'] as string[] | undefined) ?? [],
-    filePatterns: (l['file_patterns'] as string[] | undefined) ?? [],
-    role: ((l['roles'] as string[]) ?? []).join(', '),
-  }));
+  const declared: LayerDefinition[] = rawLayers.map((l) => {
+    const { kind } = l as { kind?: LayerKind };
+    return {
+      name: String(l['name']),
+      directories: (l['directories'] as string[] | undefined) ?? [],
+      naming: [],
+      decorators: (l['decorators'] as string[] | undefined) ?? [],
+      filePatterns: (l['file_patterns'] as string[] | undefined) ?? [],
+      role: ((l['roles'] as string[]) ?? []).join(', '),
+      ...(kind != null ? { kind } : {}),
+    };
+  });
 
+  const { layers, warnings: kindWarnings } = resolveLayerKinds(declared);
+  warnings.push(...kindWarnings);
   return { layers };
 }
 
 /**
  * Parse Layer B: fitness_functions → FitnessFunction[]
+ * Each declaration's dimension goes through `normaliseDimension` (`intent` → `semantic` with SPEC_004,
+ * FR-22, BR-U1-20). Each declaration's FR-07 keys are mapped to typed fields (absent keys omitted, BR-U1-03); a key whose
+ * parameter the function's template does not use raises SPEC_001 and is still carried (BR-U1-05).
  * If a template is provided, merges spec declarations on top of template functions.
  */
 export function parseLayerB(
@@ -61,11 +77,18 @@ export function parseLayerB(
     }
 
     const rawExcludePaths = f['exclude_paths'] as string[] | undefined;
+    const { judge_unit: judgeUnit } = f as { judge_unit?: JudgeUnitKind };
+    const id = String(f['id']);
+    const name = String(f['name']);
+    const { fields } = mapFunctionSpecificFields(f, `fitness_functions[${id}]`);
+    warnings.push(...unusedFieldWarnings(id, name, fields));
+    const { dimension, warning: dimensionWarning } = normaliseDimension(String(f['dimension']) as Dimension, id);
+    if (dimensionWarning) warnings.push({ ...dimensionWarning, path: `fitness_functions[${id}].dimension` });
 
     const base: FitnessFunction = {
-      id: functionId(String(f['id'])),
-      name: String(f['name']),
-      dimension: String(f['dimension']) as Dimension,
+      id: functionId(id),
+      name,
+      dimension,
       severity: String(f['severity']) as Severity,
       route: String(f['route']) as Route,
       isBuiltIn: false,
@@ -79,6 +102,8 @@ export function parseLayerB(
       ...base,
       ...(f['threshold'] != null ? { threshold: Number(f['threshold']) } : {}),
       ...(semanticCriteria ? { semanticCriteria } : {}),
+      ...(judgeUnit != null ? { judgeUnit } : {}), // FR-33 (BR-U1-26); the schema has checked the value
+      ...fields,
     };
   });
 
@@ -113,7 +138,29 @@ export function parseLayerB(
 }
 
 /**
- * Parse Layer C: scoring + confidence_thresholds → LayerCResult
+ * SPEC_001 for each FR-07 key whose mapped parameter is not in the template's
+ * `requiredParams ∪ optionalParams` (BR-U1-05). A function without a template uses no FR-07 key.
+ */
+function unusedFieldWarnings(id: string, name: string, fields: object): ValidationWarning[] {
+  const template = CYPHER_TEMPLATES.get(name);
+  const used = new Set([...(template?.requiredParams ?? []), ...(template?.optionalParams ?? [])]);
+  const warnings: ValidationWarning[] = [];
+  for (const [yamlKey, field] of Object.entries(FUNCTION_FIELD_KEYS)) {
+    if (!(field in fields) || used.has(field)) continue;
+    warnings.push({
+      code: 'SPEC_001',
+      message: `Field "${yamlKey}" of ${id} not used by template ${name}`,
+      path: `fitness_functions[${id}].${yamlKey}`,
+    });
+  }
+  return warnings;
+}
+
+/**
+ * Parse Layer C: scoring + confidence_thresholds → LayerCResult.
+ * FR-22 (BR-U1-21): `scoring.weights` carries the five symbolic keys only, so `semantic`, `integrity` and
+ * `intent` are 0. `full_mode_weights` takes `integrity` from `integrity` or from the legacy `intent` key
+ * (SPEC_004; the schema admits exactly one of them); `intent` is always 0.
  */
 export function parseLayerC(raw: Record<string, unknown>): LayerCResult {
   const scoring = raw['scoring'] as Record<string, unknown>;
@@ -127,9 +174,9 @@ export function parseLayerC(raw: Record<string, unknown>): LayerCResult {
     pattern: Number(weights['pattern']),
     solid: Number(weights['solid']),
     convention: Number(weights['convention']),
-    semantic: Number(weights['semantic'] ?? 0),
+    semantic: 0,
     integrity: 0,
-    intent: Number(weights['intent'] ?? 0),
+    intent: 0,
   };
 
   const verdictThresholds: VerdictThresholds = {
@@ -138,8 +185,17 @@ export function parseLayerC(raw: Record<string, unknown>): LayerCResult {
     softBlock: Number(thresholds['soft_block']),
   };
 
+  const warnings: ValidationWarning[] = [];
   let fullModeWeights: ScoringWeights | undefined;
   if (rawFullWeights) {
+    const legacyIntent = rawFullWeights['intent'];
+    if (legacyIntent != null) {
+      warnings.push({
+        code: 'SPEC_004',
+        message: 'full_mode_weights.intent is deprecated; mapped to integrity',
+        path: 'scoring.full_mode_weights.intent',
+      });
+    }
     fullModeWeights = {
       structural: Number(rawFullWeights['structural']),
       coupling: Number(rawFullWeights['coupling']),
@@ -147,8 +203,8 @@ export function parseLayerC(raw: Record<string, unknown>): LayerCResult {
       solid: Number(rawFullWeights['solid']),
       convention: Number(rawFullWeights['convention']),
       semantic: Number(rawFullWeights['semantic']),
-      integrity: 0,
-      intent: Number(rawFullWeights['intent']),
+      integrity: Number(rawFullWeights['integrity'] ?? legacyIntent),
+      intent: 0,
     };
   }
 
@@ -159,5 +215,5 @@ export function parseLayerC(raw: Record<string, unknown>): LayerCResult {
     iccMinimum: Number(rawConfidence['icc_minimum']),
   };
 
-  return { scoringWeights, fullModeWeights, verdictThresholds, confidenceThresholds };
+  return { scoringWeights, fullModeWeights, verdictThresholds, confidenceThresholds, warnings };
 }

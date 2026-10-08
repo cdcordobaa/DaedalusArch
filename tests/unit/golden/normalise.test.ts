@@ -8,6 +8,7 @@ import {
   serialiseSnapshot,
   CYCLE_ROW_CAP,
 } from '../../golden/normalise.js';
+import { CYCLE_ROW_CAP as COMPILER_CYCLE_ROW_CAP } from '../../../src/fitness-compiler/cypher-templates.js';
 import type { Violation } from '../../../src/shared/taxonomy/violation-types.js';
 import type { PerDimensionScore, SymbolicFunctionResult } from '../../../src/shared/types/evaluation.js';
 import type { Dimension } from '../../../src/shared/types/enums.js';
@@ -277,9 +278,9 @@ describe('normaliseForSnapshot', () => {
       .toBe('<root>/b.ts,<root>/a.ts,<root>/b.ts');
   });
 
-  it('applies the cap fallback when no-cyclic-deps returns exactly 100 rows', () => {
-    const rows = Array.from({ length: CYCLE_ROW_CAP }, (_, i) =>
-      violation('CYC', `${ROOT}/f${i}.ts,${ROOT}/g.ts,${ROOT}/f${i}.ts`, `Circular dependency: ${i}`));
+  it('applies the cap fallback when no-cyclic-deps returns the sentinel row (101 rows, BR-U1-28 d)', () => {
+    const rows = Array.from({ length: CYCLE_ROW_CAP + 1 }, (_, i) =>
+      violation('CYC', `${ROOT}/f${String(i)}.ts,${ROOT}/g.ts,${ROOT}/f${String(i)}.ts`, `Circular dependency: ${String(i)}`));
     const other = fnResult('F1', [violation('F1', `${ROOT}/src/a.ts`, 'm')]);
     const run = makeRun({
       results: [fnResult('CYC', rows), other],
@@ -291,7 +292,23 @@ describe('normaliseForSnapshot', () => {
     const snap = normaliseForSnapshot('case-x', run, { repoRoot: ROOT });
     expect(snap.truncatedFunctions).toEqual([{ functionId: 'CYC', count: 100, truncated: true }]);
     expect(snap.violations.map((v) => v.functionId)).toEqual(['F1']);
-    expect(snap.functionResults.find((f) => f.functionId === 'CYC')!.violationCount).toBe(100);
+    expect(snap.functionResults.find((f) => f.functionId === 'CYC')?.violationCount).toBe(101);
+  });
+
+  it('does not truncate exactly CYCLE_ROW_CAP (100) cycle rows (BR-U1-28 d)', () => {
+    const rows = Array.from({ length: CYCLE_ROW_CAP }, (_, i) =>
+      violation('CYC', `${ROOT}/f${String(i)}.ts,${ROOT}/g.ts,${ROOT}/f${String(i)}.ts`, `Circular dependency: ${String(i)}`));
+    const run = makeRun({
+      results: [fnResult('CYC', rows)],
+      compiled: [{ functionId: 'CYC', templateName: 'no-cyclic-deps' }],
+    });
+    const snap = normaliseForSnapshot('case-x', run, { repoRoot: ROOT });
+    expect(snap).not.toHaveProperty('truncatedFunctions');
+    expect(snap.violations).toHaveLength(100);
+  });
+
+  it('uses the compiler CYCLE_ROW_CAP (D-U1-8)', () => {
+    expect(CYCLE_ROW_CAP).toBe(COMPILER_CYCLE_ROW_CAP);
   });
 
   it('omits truncatedFunctions below the cap', () => {

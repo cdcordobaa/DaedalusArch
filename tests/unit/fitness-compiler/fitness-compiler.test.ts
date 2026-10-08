@@ -212,10 +212,10 @@ describe('fitness-compiler', () => {
   });
 
   describe('instantiateTemplate', () => {
-    it('returns the template string as-is (parameterized queries)', () => {
+    it('returns the template string with its exclude anchors removed when there are no excludes (K8)', () => {
       const tmpl = CYPHER_TEMPLATES.get('dependency-direction')!;
-      const result = instantiateTemplate(tmpl, { outerLayers: ['infrastructure'], innerLayers: ['domain'] });
-      expect(result).toBe(tmpl.template);
+      const result = instantiateTemplate(tmpl, { layerOrder: ['domain', 'application', 'infrastructure'] });
+      expect(result).toBe(tmpl.template.replace(' /*EXCLUDE:src*/', ' '));
     });
   });
 

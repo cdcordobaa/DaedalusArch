@@ -79,9 +79,13 @@ describe('integration: spec parse → compile pipeline', () => {
     expect(result.success).toBe(true);
     if (!result.success) return;
 
-    // Check dependency-direction query has layer params
+    // Restricted parameter maps (K9, BR-U1-33): dependency-direction carries only its layer order,
+    // and the domain layer reaches the template that declares it (no-domain-outward-dep)
     const depDir = result.data.symbolicQueries.find((q) => q.name === 'dependency-direction');
     expect(depDir).toBeDefined();
-    expect(depDir!.params['domainLayer']).toBe('domain');
+    expect(depDir?.params.layerOrder).toEqual(spec.layerModel.layers.map((l) => l.name));
+    const outward = result.data.symbolicQueries.find((q) => q.name === 'no-domain-outward-dep');
+    expect(outward).toBeDefined();
+    expect(outward?.params.domainLayer).toBe('domain');
   });
 });

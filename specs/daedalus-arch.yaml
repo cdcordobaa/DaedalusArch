@@ -38,6 +38,7 @@ architecture:
         - context
 
     - name: core-modules
+      kind: infrastructure   # FR-19 (U1 Q3 B, BR-U1-16): bound as infraLayer
       directories:
         - src/apg-extractor/**
         - src/spec-parser/**
@@ -152,6 +153,7 @@ fitness_functions:
     dimension: coupling
     severity: advisory            # downgraded — shared kernel is intentionally stable (low instability)
     route: symbolic
+    threshold: 0.8                # equal to the template default (U1 Q4 A, BR-U1-16); no style, so no registry value
     exclude_paths:
       - "src/shared/**"           # shared kernel SHOULD be maximally stable
 
@@ -214,7 +216,7 @@ fitness_functions:
     dimension: convention
     severity: minor
     route: symbolic
-    pattern: "*Service"
+    pattern: "*Service|*UseCase"
 
   - id: FF-CV03
     name: naming-repos
@@ -246,9 +248,9 @@ fitness_functions:
 
   - id: FF-N01
     name: srp-semantic
-    dimension: solid
+    dimension: integrity
     severity: major
-    route: hybrid
+    route: neuronal
     semantic_criteria:
       rule: "A class should have exactly one reason to change"
       rubric:
@@ -258,7 +260,7 @@ fitness_functions:
 
   - id: FF-N02
     name: layering-intent
-    dimension: intent
+    dimension: semantic
     severity: major
     route: neuronal
     semantic_criteria:
@@ -283,7 +285,7 @@ scoring:
     solid: 0.10
     convention: 0.05
     semantic: 0.04
-    intent: 0.04
+    integrity: 0.04
 
   thresholds:
     pass: 0.80

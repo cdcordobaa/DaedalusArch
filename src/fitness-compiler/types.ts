@@ -19,6 +19,7 @@ export interface LayerKindBinding {
   readonly applicationLayers: readonly string[]; // bound as $applicationLayers; [] = no application layer
   readonly infraLayer?: string;
   readonly presentationLayer?: string;
+  readonly controllerLayer?: string; // presentationLayer ?? infraLayer; bound as $controllerLayer (ADR-016 a, BR-U1-46)
 }
 
 export type CompilerErrorCode =
@@ -64,8 +65,9 @@ export interface CypherTemplate {
   readonly optionalParams: readonly string[];
   readonly description: string;
   readonly resultMapping: ResultMapping;
-  // Optional in U0 (D-U0-4); U1 makes tag and requiredLayerKinds required (FR-29, FR-19).
-  readonly tag?: TemplateTag;
-  readonly requiredLayerKinds?: readonly LayerKind[];
+  // Operational tag (FR-29, BR-U1-27; business-rules.md §4.1). Required from U1 K11.
+  readonly tag: TemplateTag;
+  // Layer kinds the template needs bound; [] = none (FR-19, BR-U1-15). Required from U1 K1.
+  readonly requiredLayerKinds: readonly LayerKind[];
   readonly applicableStyles?: readonly string[]; // undefined = every style (FR-20)
 }

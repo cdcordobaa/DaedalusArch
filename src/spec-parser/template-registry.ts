@@ -62,7 +62,9 @@ const CLEAN_ARCH_FUNCTIONS: readonly FitnessFunction[] = [
   ff('FF-CV05', 'test-file-pairing', 'convention', 'advisory', 'symbolic', false),
   ff('FF-CV06', 'no-index-logic', 'convention', 'advisory', 'symbolic', false),
   // ── Neuronal ──
-  ff('FF-N01', 'srp-semantic', 'solid', 'major', 'hybrid', false, {
+  // FR-22 producers (BR-U1-22): FF-N01 is the integrity check (neuronal), FF-N02 the semantic one.
+  // Id FF-N01 and name `srp-semantic` stay until U4 renames them with the rubric.
+  ff('FF-N01', 'srp-semantic', 'integrity', 'major', 'neuronal', false, {
     semanticCriteria: {
       rule: 'A class should have exactly one reason to change',
       rubric: {
@@ -72,7 +74,7 @@ const CLEAN_ARCH_FUNCTIONS: readonly FitnessFunction[] = [
       },
     },
   }),
-  ff('FF-N02', 'layering-intent', 'intent', 'major', 'neuronal', false, {
+  ff('FF-N02', 'layering-intent', 'semantic', 'major', 'neuronal', false, {
     semanticCriteria: {
       rule: 'Code should respect the documented architectural intent',
       rubric: {
@@ -102,8 +104,8 @@ const FULL_MODE_WEIGHTS: ScoringWeights = {
   solid: 0.10,
   convention: 0.05,
   semantic: 0.04,
-  integrity: 0,
-  intent: 0.04,
+  integrity: 0.04, // FR-22 (BR-U1-22): the weight moves from intent to integrity
+  intent: 0,
 };
 
 const DEFAULT_VERDICT_THRESHOLDS: VerdictThresholds = {
@@ -138,9 +140,28 @@ const NESTJS_TEMPLATE: BuiltInTemplate = {
   defaultConfidenceThresholds: DEFAULT_CONFIDENCE_THRESHOLDS,
 };
 
+/**
+ * `layered` library (FR-20, BR-U1-17; U1 Q6 A, Q7 A): the full catalogue, i.e. the same 26 ids as
+ * CLEAN_ARCH_FUNCTIONS (so style- and kind-disabled functions are listed in the denominator), with no FR-07
+ * values (BR-U1-08: `presets/layered.yaml` carries them), FF-N01 `integrity`/`neuronal` and FF-N02 `semantic`
+ * (BR-U1-22), and the same weights and thresholds as the other presets.
+ */
+const LAYERED_FUNCTIONS: readonly FitnessFunction[] = CLEAN_ARCH_FUNCTIONS;
+
+export const LAYERED_TEMPLATE: BuiltInTemplate = {
+  style: 'layered',
+  version: '1.0.0',
+  functions: LAYERED_FUNCTIONS,
+  defaultWeights: SYMBOLIC_WEIGHTS,
+  defaultFullModeWeights: FULL_MODE_WEIGHTS,
+  defaultVerdictThresholds: DEFAULT_VERDICT_THRESHOLDS,   // 0.80 / 0.65 / 0.50 (AD-9)
+  defaultConfidenceThresholds: DEFAULT_CONFIDENCE_THRESHOLDS,
+};
+
 export const TEMPLATE_REGISTRY: ReadonlyMap<string, BuiltInTemplate> = new Map([
   ['clean-architecture', CLEAN_ARCHITECTURE_TEMPLATE],
   ['nestjs', NESTJS_TEMPLATE],
+  ['layered', LAYERED_TEMPLATE],
 ]);
 
 export function resolveTemplate(style: string): BuiltInTemplate | undefined {

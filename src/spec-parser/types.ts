@@ -65,6 +65,8 @@ export type SpecWarningCode =
   | 'SPEC_001'
   | 'SPEC_002'
   | 'SPEC_003'
+  | 'SPEC_004'   // deprecated `intent` alias used (FR-22, BR-U1-20/21)
+  | 'SPEC_005'   // duplicate scalar layer kind (FR-19, BR-U1-13)
   | 'ADR_001'
   | 'ADR_002'
   | 'ADR_003';

@@ -17,8 +17,8 @@ describe('template-registry', () => {
       const hybrid = template.functions.filter((f) => f.route === 'hybrid');
       const neuronal = template.functions.filter((f) => f.route === 'neuronal');
       expect(symbolic).toHaveLength(24);
-      expect(hybrid).toHaveLength(1); // FF-N01 srp-semantic
-      expect(neuronal).toHaveLength(1); // FF-N02 layering-intent
+      expect(hybrid).toHaveLength(0); // FF-N01 srp-semantic is neuronal from K14 (FR-22, BR-U1-22)
+      expect(neuronal).toHaveLength(2); // FF-N01 srp-semantic (integrity), FF-N02 layering-intent (semantic)
     });
 
     it('all functions are marked isBuiltIn', () => {
@@ -29,14 +29,14 @@ describe('template-registry', () => {
     it('default weights sum to 1.0', () => {
       const template = TEMPLATE_REGISTRY.get('clean-architecture')!;
       const w = template.defaultWeights;
-      const sum = w.structural + w.coupling + w.pattern + w.solid + w.convention + w.semantic + w.intent;
+      const sum = w.structural + w.coupling + w.pattern + w.solid + w.convention + w.semantic + w.integrity; // FR-22: intent is 0 and not counted
       expect(sum).toBeCloseTo(1.0, 5);
     });
 
     it('full mode weights sum to 1.0', () => {
       const template = TEMPLATE_REGISTRY.get('clean-architecture')!;
       const w = template.defaultFullModeWeights;
-      const sum = w.structural + w.coupling + w.pattern + w.solid + w.convention + w.semantic + w.intent;
+      const sum = w.structural + w.coupling + w.pattern + w.solid + w.convention + w.semantic + w.integrity; // FR-22: intent is 0 and not counted
       expect(sum).toBeCloseTo(1.0, 5);
     });
 

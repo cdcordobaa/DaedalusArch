@@ -10,6 +10,7 @@ import { formatActionableHuman } from '../scoring-engine/report-formatter.js';
 import { runBatch } from './batch-runner.js';
 import { handleDrift } from './drift-handler.js';
 import { parseSpec, validateSpecAgainstProject } from '../spec-parser/index.js';
+import { compileFunctions, compilerInputFromSpec } from '../fitness-compiler/index.js';
 import { createBaseline, saveBaseline } from '../baseline/index.js';
 import { loadBaseline, compareBaseline } from '../baseline/index.js';
 
@@ -295,6 +296,25 @@ program
 
     for (const w of report.warnings) {
       process.stderr.write(`  Warning: [${w.code}] ${w.message}\n`);
+    }
+
+    // C9 parity (FR-08, BR-U1-11): the spec must also compile; the denominator is visible (FR-20, BR-U1-19).
+    const spec = parseResult.data;
+    const compiled = compileFunctions(compilerInputFromSpec(spec));
+    if (!compiled.success) {
+      process.stderr.write(`Spec compilation failed with ${String(compiled.errors.length)} error(s):\n`);
+      for (const error of compiled.errors) {
+        process.stderr.write(`  - [${error.code}] ${error.message}\n`);
+      }
+      process.exitCode = 1;
+      return;
+    }
+    const { totalCompiled, disabledFunctions } = compiled.data;
+    process.stderr.write(
+      `declared ${String(spec.fitnessFunctions.length)}, compiled ${String(totalCompiled)}, disabled ${String(disabledFunctions.length)}\n`,
+    );
+    for (const d of disabledFunctions) {
+      process.stderr.write(`  Disabled: ${String(d.id)} ${d.name}: ${d.reason ?? ''}\n`);
     }
   });
 

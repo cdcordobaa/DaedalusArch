@@ -61,16 +61,29 @@ describe('resolveGoldenEnv password guard (BR-U2-43, Q14 A)', () => {
     expect(message.replace('shorter', '').includes('short')).toBe(false);
   });
 
+  // A string every committed snapshot contains (a snapshot key). The BR-U2-43 example `forbiddenImports`
+  // left the committed snapshots at U1 K2 (its EVAL_001 text is gone), so it is checked against a
+  // golden-baseline text passed explicitly.
+  const IN_SNAPSHOT = 'ahsDeterministic';
+  const BASELINE_TEXT = '{"code":"EVAL_001","message":"Query failed for domain-purity: Expected parameter(s): forbiddenImports"}';
+
   it('throws for a password contained in a committed snapshot, naming the rule only', () => {
-    expect(snapshots.some((t) => t.includes('forbiddenImports'))).toBe(true);
+    expect(snapshots.every((t) => t.includes(IN_SNAPSHOT))).toBe(true);
     const message = messageOf(() =>
-      resolveGoldenEnv({ NEO4J_PASSWORD: 'forbiddenImports', GOLDEN_REQUIRED: '1' }, snapshots));
+      resolveGoldenEnv({ NEO4J_PASSWORD: IN_SNAPSHOT, GOLDEN_REQUIRED: '1' }, snapshots));
+    expect(message).toMatch(/committed golden snapshot/);
+    expect(message.includes(IN_SNAPSHOT)).toBe(false);
+  });
+
+  it('throws for forbiddenImports when a snapshot text contains it (BR-U2-43 example), naming the rule only', () => {
+    const message = messageOf(() =>
+      resolveGoldenEnv({ NEO4J_PASSWORD: 'forbiddenImports', GOLDEN_REQUIRED: '1' }, [BASELINE_TEXT]));
     expect(message).toMatch(/committed golden snapshot/);
     expect(message.includes('forbiddenImports')).toBe(false);
   });
 
   it('skips (does not throw) without GOLDEN_REQUIRED, with a reason naming the rule only', () => {
-    for (const pw of ['short', 'forbiddenImports']) {
+    for (const pw of ['short', IN_SNAPSHOT]) {
       const env = resolveGoldenEnv({ NEO4J_PASSWORD: pw }, snapshots);
       expect(env.enabled).toBe(false);
       if (env.enabled) continue;
@@ -85,7 +98,7 @@ describe('resolveGoldenEnv password guard (BR-U2-43, Q14 A)', () => {
   });
 
   it('reads the snapshots by default when no texts are passed', () => {
-    expect(() => resolveGoldenEnv({ NEO4J_PASSWORD: 'forbiddenImports', GOLDEN_REQUIRED: '1' })).toThrow(/snapshot/);
+    expect(() => resolveGoldenEnv({ NEO4J_PASSWORD: IN_SNAPSHOT, GOLDEN_REQUIRED: '1' })).toThrow(/snapshot/);
   });
 });
 

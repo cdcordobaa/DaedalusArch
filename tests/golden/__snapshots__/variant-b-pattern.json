@@ -1,5 +1,5 @@
 {
-  "ahsDeterministic": 0.517,
+  "ahsDeterministic": 0.595,
   "caseId": "variant-b-pattern",
   "evaluationMode": "symbolic-only",
   "functionResults": [
@@ -17,13 +17,13 @@
     },
     {
       "dimension": "structural",
-      "functionId": "FF-S03",
-      "passed": false,
-      "violationCount": 3
+      "functionId": "FF-S04",
+      "passed": true,
+      "violationCount": 0
     },
     {
-      "dimension": "structural",
-      "functionId": "FF-S04",
+      "dimension": "pattern",
+      "functionId": "FF-P01",
       "passed": true,
       "violationCount": 0
     },
@@ -88,8 +88,44 @@
       "violationCount": 1
     },
     {
+      "dimension": "solid",
+      "functionId": "FF-SO01",
+      "passed": true,
+      "violationCount": 0
+    },
+    {
+      "dimension": "solid",
+      "functionId": "FF-SO02",
+      "passed": false,
+      "violationCount": 1
+    },
+    {
+      "dimension": "solid",
+      "functionId": "FF-SO03",
+      "passed": true,
+      "violationCount": 0
+    },
+    {
       "dimension": "convention",
       "functionId": "FF-CV01",
+      "passed": true,
+      "violationCount": 0
+    },
+    {
+      "dimension": "convention",
+      "functionId": "FF-CV02",
+      "passed": true,
+      "violationCount": 0
+    },
+    {
+      "dimension": "convention",
+      "functionId": "FF-CV03",
+      "passed": true,
+      "violationCount": 0
+    },
+    {
+      "dimension": "convention",
+      "functionId": "FF-CV04",
       "passed": true,
       "violationCount": 0
     },
@@ -108,52 +144,44 @@
   ],
   "perDimensionScores": [
     {
-      "avr": 0.5,
+      "avr": 0.333,
       "dimension": "structural",
-      "functionCount": 17,
-      "violationCount": 2,
+      "functionCount": 23,
+      "violationCount": 1,
       "weight": 0.35
     },
     {
       "avr": 0.333,
       "dimension": "coupling",
-      "functionCount": 17,
+      "functionCount": 23,
       "violationCount": 2,
       "weight": 0.2
     },
     {
-      "avr": 0.75,
+      "avr": 0.6,
       "dimension": "pattern",
-      "functionCount": 17,
+      "functionCount": 23,
       "violationCount": 3,
       "weight": 0.3
     },
     {
-      "avr": 0,
+      "avr": 0.333,
       "dimension": "solid",
-      "functionCount": 17,
-      "violationCount": 0,
+      "functionCount": 23,
+      "violationCount": 1,
       "weight": 0.1
     },
     {
-      "avr": 0.333,
+      "avr": 0.167,
       "dimension": "convention",
-      "functionCount": 17,
+      "functionCount": 23,
       "violationCount": 1,
       "weight": 0.05
     }
   ],
   "projectPath": "fixtures/variant-b-pattern",
   "specVersion": "1.0.0",
-  "unexecutedFunctionIds": [
-    "FF-CV02",
-    "FF-CV03",
-    "FF-CV04",
-    "FF-P01",
-    "FF-SO01",
-    "FF-SO02",
-    "FF-SO03"
-  ],
+  "unexecutedFunctionIds": [],
   "universalMetrics": {
     "abstractionRatio": 0.2,
     "averageInstability": 0.667,
@@ -181,33 +209,6 @@
       "route": "symbolic",
       "severity": "critical",
       "type": "LAYER_VIOLATION"
-    },
-    {
-      "dimension": "structural",
-      "filePath": "src/application/use-cases/CompleteTaskUseCase.ts",
-      "functionId": "FF-S03",
-      "message": "src/application/use-cases/CompleteTaskUseCase.ts (application) skips layers to import src/infrastructure/repositories/InMemoryTaskRepository.ts (infrastructure)",
-      "route": "symbolic",
-      "severity": "critical",
-      "type": "LAYER_SKIP"
-    },
-    {
-      "dimension": "structural",
-      "filePath": "src/application/use-cases/CreateTaskUseCase.ts",
-      "functionId": "FF-S03",
-      "message": "src/application/use-cases/CreateTaskUseCase.ts (application) skips layers to import src/infrastructure/repositories/InMemoryTaskRepository.ts (infrastructure)",
-      "route": "symbolic",
-      "severity": "critical",
-      "type": "LAYER_SKIP"
-    },
-    {
-      "dimension": "structural",
-      "filePath": "src/infrastructure/repositories/InMemoryTaskRepository.ts",
-      "functionId": "FF-S03",
-      "message": "src/infrastructure/repositories/InMemoryTaskRepository.ts (infrastructure) skips layers to import src/domain/entities/Task.ts (domain)",
-      "route": "symbolic",
-      "severity": "critical",
-      "type": "LAYER_SKIP"
     },
     {
       "dimension": "pattern",
@@ -300,6 +301,15 @@
       "type": "LOW_ABSTRACTION_RATIO"
     },
     {
+      "dimension": "solid",
+      "filePath": "src/domain/repositories/ITaskRepository.ts",
+      "functionId": "FF-SO02",
+      "message": "Violation in src/domain/repositories/ITaskRepository.ts",
+      "route": "symbolic",
+      "severity": "major",
+      "type": "ISP_VIOLATION"
+    },
+    {
       "dimension": "convention",
       "filePath": "src/application/use-cases/CompleteTaskUseCase.ts",
       "functionId": "FF-CV05",
@@ -346,41 +356,6 @@
     }
   ],
   "warnings": [
-    {
-      "code": "EVAL_001",
-      "message": "Query failed for domain-purity: Expected parameter(s): forbiddenImports",
-      "stage": "evaluate-symbolic"
-    },
-    {
-      "code": "EVAL_001",
-      "message": "Query failed for inheritance-depth: Expected parameter(s): maxDepth",
-      "stage": "evaluate-symbolic"
-    },
-    {
-      "code": "EVAL_001",
-      "message": "Query failed for interface-segregation-proxy: Expected parameter(s): maxInterfaceMethods",
-      "stage": "evaluate-symbolic"
-    },
-    {
-      "code": "EVAL_001",
-      "message": "Query failed for naming-controllers: Expected parameter(s): pattern",
-      "stage": "evaluate-symbolic"
-    },
-    {
-      "code": "EVAL_001",
-      "message": "Query failed for naming-repos: Expected parameter(s): pattern",
-      "stage": "evaluate-symbolic"
-    },
-    {
-      "code": "EVAL_001",
-      "message": "Query failed for naming-services: Expected parameter(s): pattern",
-      "stage": "evaluate-symbolic"
-    },
-    {
-      "code": "EVAL_001",
-      "message": "Query failed for single-responsibility-proxy: Expected parameter(s): maxPublicMethods, maxDependencies",
-      "stage": "evaluate-symbolic"
-    },
     {
       "code": "SPEC_002",
       "message": "Template function \"FF-C01\" overridden by spec declaration",

@@ -155,7 +155,8 @@ export function validateBusinessRules(spec: ParsedSpec): ValidationResult {
 }
 
 function sumWeights(w: ScoringWeights): number {
-  return w.structural + w.coupling + w.pattern + w.solid + w.convention + w.semantic + w.integrity + w.intent;
+  // FR-22 (BR-U1-21): `intent` is always 0 internally and no longer counted.
+  return w.structural + w.coupling + w.pattern + w.solid + w.convention + w.semantic + w.integrity;
 }
 
 /**

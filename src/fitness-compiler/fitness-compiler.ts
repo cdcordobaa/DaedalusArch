@@ -6,9 +6,15 @@ import type {
 import type { PipelineStage } from '../shared/interfaces/pipeline-stage.js';
 import type { FirewallContext } from '../shared/context/firewall-context.js';
 import { DomainResult } from '../shared/errors/domain-result.js';
-import type { CompilerInput, CompilerError, CompilerWarning, CypherTemplate } from './types.js';
+import type { CompilerInput, CompilerError, CompilerWarning, CypherTemplate, LayerKindBinding } from './types.js';
 import { CYPHER_TEMPLATES } from './cypher-templates.js';
-import { injectExcludePaths } from './exclude-injector.js';
+import { bindLayerParams } from './layer-binding.js';
+import { isTemplateApplicable } from './template-applicability.js';
+import { hasExcludeMarker, replaceExcludeMarkers } from './exclude-injector.js';
+import { globToRegex } from './glob-to-regex.js';
+import { compilerInputFromSpec } from './compiler-input.js';
+import { compilePattern } from './pattern-compiler.js';
+import { checkBoundParameters } from './bound-param-checker.js';
 
 // ── Standalone Function ───────────────────────────────────────────────────────
 
@@ -51,31 +57,40 @@ export function compileFunctions(input: CompilerInput): DomainResult<CompiledFun
     seenIds.add(id);
   }
 
-  // Auto-skip layer-dependent structural rules when fewer than 3 layers
-  // are defined AND no file_patterns provide per-file layer granularity.
-  const layerCount = layerModel.layers.length;
-  const hasFilePatterns = layerModel.layers.some(l => (l.filePatterns ?? []).length > 0);
+  // C6 BR-SPEC-10 (FR-08, BR-U1-09): every required parameter of every applicable function must be bound.
+  // Runs the same applicability (C5) and buildParams as below; always fatal, independent of strictMode.
+  const bound = checkBoundParameters(input);
+  if (!bound.success) return DomainResult.fail<CompiledFunctions>(bound.errors);
+
+  // C4: bind layer parameters by resolved kind (FR-19). Reads only LayerDefinition.kind.
+  const binding = bindLayerParams(layerModel.layers);
+
+  // C7: exclude_paths needs an exclude anchor in the template (BR-U1-32); always fatal.
+  const anchorErrors = checkExcludeAnchors(enabledFunctions, input.style, binding, layerModel);
+  if (anchorErrors.length > 0) return DomainResult.fail<CompiledFunctions>(anchorErrors);
 
   // Compile enabled fitness functions by route
   for (const ff of enabledFunctions) {
-    if (ff.name === 'no-layer-skip' && layerCount < 3 && !hasFilePatterns) {
-      disabledFunctions.push({
-        id: ff.id,
-        name: ff.name,
-        reason: `Auto-disabled: only ${layerCount} layer(s) defined with no file_patterns — no intermediate layer to skip`,
-      });
-      warnings.push({
-        code: 'COMPILER_004' as CompilerWarning['code'],
-        message: `FF-S03 (no-layer-skip) auto-disabled: ${layerCount} layers with no file_patterns, need ≥ 3 layers or file_patterns`,
-        functionId: String(ff.id),
-      });
-      continue;
+    // C5: applicability (style, layer kinds, no-layer-skip layer count) for symbolic/hybrid functions
+    // with a template; a disabled function is skipped downstream (BR-U1-10, BR-U1-15, BR-U1-18).
+    const template = ff.route === 'neuronal' ? undefined : CYPHER_TEMPLATES.get(ff.name);
+    if (template) {
+      const applicability = isTemplateApplicable(template, input.style, binding, layerModel);
+      if (!applicability.applicable) {
+        disabledFunctions.push({ id: ff.id, name: ff.name, reason: applicability.reason });
+        warnings.push({
+          code: 'COMPILER_004',
+          message: `${String(ff.id)} (${ff.name}) disabled: ${applicability.reason}`,
+          functionId: String(ff.id),
+        });
+        continue;
+      }
     }
 
     switch (ff.route) {
       case 'symbolic': {
-        const result = compileSymbolic(ff, layerModel, warnings);
-        if (result) symbolicQueries.push(applyExcludePaths(result, ff.excludePaths));
+        const result = compileSymbolic(ff, layerModel, binding, warnings);
+        if (result) symbolicQueries.push(result);
         break;
       }
       case 'neuronal': {
@@ -84,9 +99,8 @@ export function compileFunctions(input: CompilerInput): DomainResult<CompiledFun
         break;
       }
       case 'hybrid': {
-        let sym = compileSymbolic(ff, layerModel, warnings);
+        const sym = compileSymbolic(ff, layerModel, binding, warnings);
         const neur = compileNeuronal(ff, false);
-        if (sym) sym = applyExcludePaths(sym, ff.excludePaths);
         if (sym && neur) {
           hybridPairs.push({ functionId: ff.id, symbolicQuery: sym, neuronalInstruction: neur });
         } else if (sym) {
@@ -131,15 +145,26 @@ export function compileFunctions(input: CompilerInput): DomainResult<CompiledFun
   });
 }
 
-function applyExcludePaths(query: CypherQuery, excludePaths: readonly string[]): CypherQuery {
-  if (excludePaths.length === 0) return query;
-
-  const { cypher, additionalParams } = injectExcludePaths(query.cypher, excludePaths);
-  return {
-    ...query,
-    cypher,
-    params: { ...query.params, ...additionalParams },
-  };
+/**
+ * C7 (BR-U1-32): every applicable symbolic or hybrid function with `exclude_paths` must use a template
+ * that holds an exclude anchor. One error per offending function, in declaration order.
+ */
+function checkExcludeAnchors(
+  functions: readonly FitnessFunction[],
+  style: string | undefined,
+  binding: LayerKindBinding,
+  layerModel: LayerModel,
+): CompilerError[] {
+  const errors: CompilerError[] = [];
+  for (const ff of functions) {
+    if (ff.route === 'neuronal' || ff.excludePaths.length === 0) continue;
+    const template = CYPHER_TEMPLATES.get(ff.name);
+    if (!template || !isTemplateApplicable(template, style, binding, layerModel).applicable) continue;
+    if (!hasExcludeMarker(template.template)) {
+      errors.push(compilerError('COMPILATION_FAILED', `${String(ff.id)}: exclude_paths not supported by template ${template.functionName}`));
+    }
+  }
+  return errors;
 }
 
 // ── Symbolic Compilation ──────────────────────────────────────────────────────
@@ -147,6 +172,7 @@ function applyExcludePaths(query: CypherQuery, excludePaths: readonly string[]):
 function compileSymbolic(
   ff: FitnessFunction,
   layerModel: LayerModel,
+  binding: LayerKindBinding,
   warnings: CompilerWarning[],
 ): CypherQuery | undefined {
   const template = CYPHER_TEMPLATES.get(ff.name);
@@ -160,7 +186,9 @@ function compileSymbolic(
     return undefined;
   }
 
-  const params = buildParams(ff, layerModel);
+  const params = buildParams(ff, layerModel, binding);
+  // C9: excludePatterns is appended to the map last (BR-U1-32, NFR-02).
+  if (ff.excludePaths.length > 0) params.excludePatterns = ff.excludePaths.map(globToRegex);
   const cypher = instantiateTemplate(template, params);
 
   return {
@@ -194,7 +222,8 @@ function compileNeuronal(
     contextAssembly: defaultContextAssembly(ff),
     shadowModeEligible: shadowEligible,
     source: 'fitness-function',
-    judgeUnit: 'file', // FR-33 contract; inert until U4 reads it
+    // FR-33 (BR-U1-26): the declared judge unit, else module for integrity and file otherwise; U4 iterates it.
+    judgeUnit: ff.judgeUnit ?? (ff.dimension === 'integrity' ? 'module' : 'file'),
   };
 }
 
@@ -207,7 +236,7 @@ function compileADRSymbolic(adr: ADRRule): CypherQuery {
     name: `adr:${adr.title}`,
     cypher: rule.query,
     params: rule.params as Record<string, unknown>,
-    dimension: 'intent',
+    dimension: 'semantic', // FR-22 (BR-U1-22): nothing compiled carries intent
     severity: 'major',
     route: 'hybrid',
     source: 'adr',
@@ -227,7 +256,7 @@ function compileADRNeuronal(adr: ADRRule): NeuronalInstruction {
   return {
     functionId: adr.id as import('../shared/types/value-objects.js').FunctionId,
     name: `adr:${adr.title}`,
-    dimension: 'intent',
+    dimension: 'semantic', // FR-22 (BR-U1-22): nothing compiled carries intent
     severity: 'major',
     route: adr.symbolicRule ? 'hybrid' : 'neuronal',
     semanticCriteria: criteria,
@@ -239,47 +268,55 @@ function compileADRNeuronal(adr: ADRRule): NeuronalInstruction {
     shadowModeEligible: true,
     shadowPrompt: `Based on the following ADR decision, generate a Cypher query that checks compliance against the project's Architectural Property Graph:\n\nADR: ${adr.title}\nDecision: ${criteria.rule}`,
     source: 'adr',
-    judgeUnit: 'file', // FR-33 contract; inert until U4 reads it
+    judgeUnit: 'file', // FR-33 (BR-U1-26): ADR instructions judge per file
   };
 }
 
 // ── Template Instantiation ────────────────────────────────────────────────────
 
+/**
+ * Template text for one function (C9). Values stay `$param` placeholders (passed at execution time);
+ * every exclude anchor becomes the `$excludePatterns` predicate when the map holds a non-empty
+ * `excludePatterns`, else the empty string (BR-U1-32).
+ */
 export function instantiateTemplate(
   template: CypherTemplate,
-  _params: Record<string, unknown>,
+  params: Readonly<Record<string, unknown>>,
 ): string {
-  // Neo4j uses parameterized queries — template stays as-is with $param placeholders.
-  // Params are passed separately at query execution time (U5).
-  return template.template;
+  const patterns = params.excludePatterns;
+  return replaceExcludeMarkers(template.template, Array.isArray(patterns) && patterns.length > 0);
 }
 
 // ── Parameter Building ────────────────────────────────────────────────────────
 
-function buildParams(
+/**
+ * Template parameters for one function (C8). Layers come from the kind binding (FR-19); FR-07 fields are
+ * read typed with `!= null` presence, so `0` and `[]` are values (BR-U1-03, BR-U1-07); `pattern` is
+ * compiled to an anchored regex (BR-U1-06). The map is restricted to the template's bound
+ * `requiredParams ∪ optionalParams`, keys in template-declared order, required first (BR-U1-33, NFR-02);
+ * `excludePatterns` is appended later by the caller. BR-SPEC-10 (`bound-param-checker.ts`) judges boundness.
+ */
+export function buildParams(
   ff: FitnessFunction,
   layerModel: LayerModel,
+  binding: LayerKindBinding,
 ): Record<string, unknown> {
-  const params: Record<string, unknown> = {};
+  const candidates: Record<string, unknown> = {};
   const layers = layerModel.layers;
 
-  // Common layer params
-  const domainLayer = layers.find((l) => l.name === 'domain')?.name;
-  const applicationLayer = layers.find((l) => l.name === 'application')?.name;
-  const infraLayer = layers.find((l) => l.name === 'infrastructure')?.name;
-
-  if (domainLayer) params['domainLayer'] = domainLayer;
-  if (applicationLayer) params['applicationLayer'] = applicationLayer;
-  if (infraLayer) params['infraLayer'] = infraLayer;
+  // Layer params, bound by kind (FR-19, BR-U1-14): scalars for domain and infrastructure, the list
+  // $applicationLayers for application (BR-U1-37).
+  if (binding.domainLayer != null) candidates.domainLayer = binding.domainLayer;
+  candidates.applicationLayers = [...binding.applicationLayers];
+  if (binding.infraLayer != null) candidates.infraLayer = binding.infraLayer;
+  // Controllers live in the presentation layer when one is bound, else in infrastructure (ADR-016 a, BR-U1-46).
+  if (binding.controllerLayer != null) candidates.controllerLayer = binding.controllerLayer;
 
   // Layer ordering for dependency-direction
   // Layers are listed bottom-up in the spec: domain (0), ..., application (N-1)
   // Violation = lower-index layer file importing from higher-index layer
   const layerOrder = layers.map((l) => l.name);
-  params['layerOrder'] = layerOrder;
-  // Keep outerLayers/innerLayers for backward compat with other templates
-  params['outerLayers'] = layerOrder.slice(1).length > 0 ? layerOrder.slice(1) : layerOrder;
-  params['innerLayers'] = layerOrder.slice(0, -1).length > 0 ? layerOrder.slice(0, -1) : layerOrder;
+  candidates.layerOrder = layerOrder;
 
   // Allowed layer transitions for no-layer-skip
   // Layers are listed inner-to-outer: [infrastructure, application, presentation]
@@ -287,32 +324,37 @@ function buildParams(
   // So allowed transitions are: layer[i+1] → layer[i] (next-outer imports next-inner)
   const allowedTransitions: string[] = [];
   for (let i = 0; i < layerOrder.length - 1; i++) {
-    allowedTransitions.push(`${layerOrder[i + 1]}>${layerOrder[i]}`);
+    allowedTransitions.push(`${String(layerOrder[i + 1])}>${String(layerOrder[i])}`);
   }
-  params['allowedTransitions'] = allowedTransitions;
+  candidates.allowedTransitions = allowedTransitions;
 
-  // Function-specific params (from YAML custom fields)
-  if (ff.threshold != null) params['threshold'] = ff.threshold;
-
-  // Extract custom fields from the raw FF data
-  // These come through as extra properties on the FitnessFunction object
-  const ffAny = ff as unknown as Record<string, unknown>;
-  if (ffAny['forbidden_imports']) params['forbiddenImports'] = ffAny['forbidden_imports'];
-  if (ffAny['max_public_methods']) params['maxPublicMethods'] = ffAny['max_public_methods'];
-  if (ffAny['max_dependencies']) params['maxDependencies'] = ffAny['max_dependencies'];
-  if (ffAny['max_interface_methods']) params['maxInterfaceMethods'] = ffAny['max_interface_methods'];
-  if (ffAny['max_depth']) params['maxDepth'] = ffAny['max_depth'];
-  if (ffAny['pattern']) params['pattern'] = ffAny['pattern'];
+  // Function-specific params: threshold and the typed FR-07 fields (BR-U1-03)
+  if (ff.threshold != null) candidates.threshold = ff.threshold;
+  if (ff.forbiddenImports != null) candidates.forbiddenImports = ff.forbiddenImports;
+  if (ff.maxPublicMethods != null) candidates.maxPublicMethods = ff.maxPublicMethods;
+  if (ff.maxDependencies != null) candidates.maxDependencies = ff.maxDependencies;
+  if (ff.maxInterfaceMethods != null) candidates.maxInterfaceMethods = ff.maxInterfaceMethods;
+  if (ff.maxDepth != null) candidates.maxDepth = ff.maxDepth;
+  if (ff.pattern != null) candidates.pattern = compilePattern(ff.pattern);
 
   // Default role patterns
-  params['useCaseRoles'] = ['UseCase', 'Service', 'Handler'];
-  params['entityRoles'] = ['Entity', 'Aggregate', 'ValueObject'];
+  candidates.useCaseRoles = ['UseCase', 'Service', 'Handler'];
+  candidates.entityRoles = ['Entity', 'Aggregate', 'ValueObject'];
 
   // Default naming patterns per layer
-  params['domainPattern'] = '.*';
-  params['applicationPattern'] = '.*';
-  params['infraPattern'] = '.*';
+  candidates.domainPattern = '.*';
+  candidates.applicationPattern = '.*';
+  candidates.infraPattern = '.*';
 
+  // Restriction (BR-U1-33): only the template's declared parameters, required first, in declared order.
+  const template = CYPHER_TEMPLATES.get(ff.name);
+  const params: Record<string, unknown> = {};
+  if (!template) return params;
+  for (const name of [...template.requiredParams, ...template.optionalParams]) {
+    if (name in params) continue;
+    const value = candidates[name];
+    if (value != null) params[name] = value;
+  }
   return params;
 }
 
@@ -321,7 +363,7 @@ function defaultContextAssembly(ff: FitnessFunction): ContextAssemblyInstruction
     includeAPGSubgraph: true,
     includeSourceCode: ff.route === 'neuronal' || ff.route === 'hybrid',
     ...(ff.dimension === 'solid' ? { nodeFilter: 'type:Class', maxNodes: 20 } : {}),
-    ...(ff.dimension === 'intent' ? { maxNodes: 50 } : {}),
+    ...(ff.dimension === 'semantic' ? { maxNodes: 50 } : {}), // FR-22: was the intent branch (BR-U1-22)
   };
 }
 
@@ -332,14 +374,7 @@ export class FitnessCompilerStage implements PipelineStage<ParsedSpec, CompiledF
 
   async execute(input: ParsedSpec, context: FirewallContext): Promise<DomainResult<CompiledFunctions>> {
     const start = Date.now();
-    const compilerInput: CompilerInput = {
-      fitnessFunctions: input.fitnessFunctions,
-      adrRules: input.adrRules,
-      layerModel: input.layerModel,
-      scoringWeights: input.scoringWeights,
-    };
-
-    const result = compileFunctions(compilerInput);
+    const result = compileFunctions(compilerInputFromSpec(input));
 
     if (result.success) {
       context.setCompiledFunctions(result.data);

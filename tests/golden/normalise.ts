@@ -18,7 +18,7 @@ import type { GoldenRun } from './golden-runner.js';
 import { REPO_ROOT } from './golden-cases.js';
 
 export const CYCLE_TEMPLATE = 'no-cyclic-deps';
-/** `LIMIT 100` in the no-cyclic-deps template (cypher-templates.ts). */
+/** `CYCLE_ROW_CAP` of the no-cyclic-deps template (cypher-templates.ts; the query returns one sentinel row more). */
 export const CYCLE_ROW_CAP = 100;
 
 export interface PerDimensionScoreRow {
@@ -176,10 +176,10 @@ export function normaliseForSnapshot(
     violationCount: fr.violations.length,
   }));
 
-  // Cap fallback (R2): a cycle function that hit LIMIT 100 is truncated.
+  // Cap fallback (R2, BR-U1-28): a cycle function that returned the sentinel row (more than the cap) is truncated.
   const truncatedIds = new Set(
     functionResults
-      .filter((fr) => cycleFunctionIds.has(fr.functionId) && fr.violationCount === CYCLE_ROW_CAP)
+      .filter((fr) => cycleFunctionIds.has(fr.functionId) && fr.violationCount > CYCLE_ROW_CAP)
       .map((fr) => fr.functionId),
   );
   const truncatedFunctions: TruncatedFunctionRow[] = [...truncatedIds].map((functionId) => ({
