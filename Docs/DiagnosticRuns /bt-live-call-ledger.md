@@ -38,6 +38,9 @@ Totals: Step 35 (3) + FF-N01 (17) + FF-N02 (35) = **55 > 40**. **E-2 confirmed**
 
 ## Generator (cap 11 sessions + 3 retries; not judge calls)
 
+Generator plan file used for Steps 39–41 (scratch, not committed; outside the repository): `adapters` opus / sonnet / haiku (`claude-code-cli`), both tasks, three levels, `runs` 3, `outRoot` `../daedalus-e1-outcomes`, `harnessRoot` `../daedalus-gen-harness`, `binary` `<HOME>/.local/share/claude/versions/2.1.294`, `allowBash` true. `orderSeed` 0 is a probe and pilot placeholder only (the pilot has one cell per level); the E1 `orderSeed` is not set here (OI-BT-F3).
+
 | # | Date | Step | Run | Sessions | Retries | Running total |
 |---|---|---|---|---|---|---|
 | — | 2026-10-08 | 34 | preflight (no live session) | 0 | 0 | 0 |
+| 1 | 2026-10-08 | 39 | confinement probes (`confinement-cli.ts`, opus, Bash set): 5 / 5 pass | 5 | 0 | 5 |
