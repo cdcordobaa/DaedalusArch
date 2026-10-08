@@ -1,7 +1,7 @@
 /**
  * CLI entry of `scripts/prepare-bases.ts` (FR-36; BR-U5b-76, 73). No exports; D-U5a-13 (a) form (`void main(...).then(...)`),
  * because `tsconfig.scripts.json` compiles CommonJS, where a top-level `await` is TS1378 (OI-U5a-16).
- * Usage: npx tsx scripts/prepare-bases-cli.ts --clones <dir> --selections <dir> [--corpus <file>] [--only a,b] [--out <file>]
+ * Usage: npx tsx scripts/prepare-bases-cli.ts --clones <dir> --selections <dir> [--corpus <file>] [--only a,b] [--out <file>] | --self-test
  */
 import { main } from './prepare-bases.js';
 

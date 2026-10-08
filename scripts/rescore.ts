@@ -480,8 +480,12 @@ export const RESCORE_USAGE = [
   '  --spec    spec file whose sha256 equals RunRecord.specSha (fallback only)',
   '  --bands   threshold offsets of the sensitivity sweep (default -0.05,0.05)',
   '  --out-dir write rescore_ablation.csv and rescore_sensitivity.csv there; otherwise JSON on stdout',
+  '       rescore --self-test   run a built-in known-bad report (exits 1, BR-U5b-73)',
   '',
 ].join('\n');
+
+/** Built-in known-bad input for `--self-test` (BR-U5b-73): a report with no `scoring` block and no re-parsed spec. */
+export const SELF_TEST_REPORT = { runId: 'self-test', projectPath: '<self-test>', evaluationMode: 'symbolic-only' } as unknown as RescorableReport;
 
 export interface RescoreMainIo {
   readonly out: (text: string) => void;
@@ -527,6 +531,11 @@ function readJsonFile(path: string): unknown {
 }
 
 export async function main(argv: readonly string[], repoRoot: string, io: RescoreMainIo): Promise<number> {
+  if (argv.includes('--self-test')) {
+    const r = rescoreReport(SELF_TEST_REPORT);
+    io.err(r.ok ? 'self-test: known-bad report was re-scored\n' : `self-test: ${r.code}: ${r.detail}\n`);
+    return 1;
+  }
   const args = parseArgs(argv);
   if (typeof args === 'string') {
     io.err(`${args}\n${RESCORE_USAGE}`);

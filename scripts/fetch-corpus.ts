@@ -144,8 +144,26 @@ function arg(argv: readonly string[], name: string): string | undefined {
   return i >= 0 ? argv[i + 1] : undefined;
 }
 
+/**
+ * `--self-test` (BR-U5b-73): the first registered entry with an overlay, its overlay hash replaced by a wrong value,
+ * must be refused with `OVERLAY_SHA_MISMATCH` before any clone (no network, nothing written). Always returns 1.
+ */
+async function selfTest(repoRoot: string, io: FetchIo, runner: ProcessRunner): Promise<number> {
+  const loaded = loadCorpus(resolve(repoRoot, CORPUS_FILE), repoRoot);
+  const entry = loaded.ok ? loaded.corpus.entries.find((e) => e.overlays.length > 0) : undefined;
+  if (entry === undefined) {
+    io.err('self-test: no registered entry with an overlay\n');
+    return 1;
+  }
+  const bad: CorpusEntry = { ...entry, overlays: entry.overlays.map((ov) => ({ ...ov, sha256: '0'.repeat(64) })) };
+  const r = await fetchEntry(bad, join(tmpdir(), 'u5b-fetch-self-test-never-created'), { repoRoot, runner, env: {}, now: () => new Date(), check: true });
+  io.err(r.ok ? 'self-test: a wrong overlay hash was accepted\n' : `self-test: ${r.code}: ${r.detail}\n`);
+  return 1;
+}
+
 /** `--dest <dir> [--corpus corpus/corpus.json] [--only a,b] [--check] [--no-install] [--out <records.json>]`. */
 export async function main(argv: readonly string[], repoRoot: string, io: FetchIo, runner: ProcessRunner = new NodeProcessRunner()): Promise<number> {
+  if (argv.includes('--self-test')) return selfTest(repoRoot, io, runner);
   const dest = arg(argv, '--dest');
   if (dest === undefined) {
     io.err('usage: fetch-corpus-cli.ts --dest <dir> [--corpus <file>] [--only a,b] [--check] [--no-install] [--out <file>]\n');

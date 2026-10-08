@@ -1,7 +1,7 @@
 /**
  * CLI entry of `scripts/rescore.ts` (FR-26; BR-U5b-73). No exports; D-U5a-13 (a) form (`void main(...).then(...)`),
  * because `tsconfig.scripts.json` compiles CommonJS, where a top-level `await` is TS1378 (OI-U5a-16).
- * Usage: npx tsx scripts/rescore-cli.ts --report <file> [--record <file>] [--spec <file>] ... [--bands o1,o2] [--out-dir <dir>]
+ * Usage: npx tsx scripts/rescore-cli.ts --report <file> [--record <file>] [--spec <file>] ... [--bands o1,o2] [--out-dir <dir>] | --self-test
  */
 import { mkdirSync, writeFileSync } from 'node:fs';
 import { dirname } from 'node:path';

@@ -222,6 +222,12 @@ const json = (v: unknown): string => `${JSON.stringify(v, null, 2)}\n`;
 export async function main(argv: readonly string[], repoRoot: string, io: SelectIo, deps?: GhDeps, now: () => Date = () => new Date()): Promise<number> {
   try {
     const criteria = parseCriteria(readFileSync(join(repoRoot, CRITERIA_DOC), 'utf8'));
+    if (argv.includes('--self-test')) {
+      // BR-U5b-73: built-in known-bad input, an empty candidate list, must be refused with CORPUS_SHORTFALL.
+      const r = selectCorpus({ searchedAt: '1970-01-01T00:00:00.000Z', tool: 'self-test', candidates: [] }, criteria, []);
+      io.err(r.ok ? 'self-test: an empty candidate list was accepted\n' : `self-test: ${r.code}: ${r.detail}\n`);
+      return 1;
+    }
     const gdeps: GhDeps = deps ?? { runner: new NodeProcessRunner(), env: buildChildEnv(process.env, ['PATH', 'HOME', 'GH_TOKEN', 'GH_HOST', 'XDG_CONFIG_HOME']) };
     if (argv.includes('--search')) {
       const list = await searchCandidates(gdeps, now, criteria.backendPackages);

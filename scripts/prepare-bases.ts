@@ -123,6 +123,16 @@ function arg(argv: readonly string[], name: string): string | undefined {
 
 /** `--clones <dir> --selections <dir of <name>.json> [--corpus …] [--only a,b] [--out <file>]`. */
 export async function main(argv: readonly string[], repoRoot: string, io: PrepIo, runner: ProcessRunner = new NodeProcessRunner()): Promise<number> {
+  if (argv.includes('--self-test')) {
+    // BR-U5b-73: built-in known-bad input, a stored selection whose selected unit has no file mapping (OI-11),
+    // must be refused with PREP_SELECTION_UNMAPPED before any directory or subprocess is touched.
+    const r = judgeSelectionOf({
+      projectId: 'self-test',
+      functions: [{ template: 'intent-alignment', functionId: 'FF-N01', candidateUnitIds: ['u1'], selectedUnitIds: ['u1'], unitFiles: {} }],
+    });
+    io.err(r.ok ? 'self-test: an unmapped selection was accepted\n' : `self-test: ${PREP_SELECTION_UNMAPPED}: ${r.detail}\n`);
+    return 1;
+  }
   const clones = arg(argv, '--clones');
   const selections = arg(argv, '--selections');
   if (clones === undefined || selections === undefined) {
