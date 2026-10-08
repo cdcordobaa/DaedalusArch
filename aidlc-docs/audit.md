@@ -1156,3 +1156,11 @@ Plan checkboxes ticked. Auto-approved under standing approval; no blocking or ma
 **Context**: CONSTRUCTION — Build and Test, group BT-D held by E-1 (pending author decision (a), BR-U5a-37 CAT_SHORTFALL 69 < 80). Resume at Step 21 after Steps 42–43; BT-B and BT-E Steps 28+ also wait on Step 24.
 
 ---
+
+## Build and Test — Group BT-E Steps 26–27 done, PR #11 merged; Steps 28–33 held by E-1 (auto-approved)
+**Timestamp**: 2026-10-08T23:07:55Z
+**User Input**: "Execute group BT-E of the Build and Test plan (Steps 26–33: dev-split gate and OI-U5a-13 drift check, SP-FF-S03 admitted to FIXTURE_SPECS, SP copies, DV-U5b-24/25 registration with P-3, sensitivity run, CV01/CV04(/CV06) fixed or excluded per ADR-016 b, U5a §9 ledger, PR-3) under the standing approval; do not decide pending (a) or (b)."
+**AI Response**: "Step 26 4044948: 22 FR-24 forced sites on correct-reference (MO-S03/MO-S03n under the layered spec) mutated and evaluated through U3 on the BT lane; u5a-freeze-gate exit 0, 22/22 pass, 0 undeclared keys; no template drift (OI-U5a-13), no catalogue changelog entry; Docs/DiagnosticRuns/u5a-freeze-gate-a.{json,md}. Step 27 b67b584: FIXTURE_SPECS admits tests/fixtures/u5a/layered/firewall.spec.yaml, test +1; BR-U5b-51 registered list unchanged (DV-BT-E1 / OI-BT-E1: plan wording said 'registered artefact'; the layered spec is admitted, not hashed). Gates T clean, U 2901/203, L 497, B 80 (0 TS2688), G 80/7 hashes unchanged, P 0/0. PR #11 merged (5020099), CI green. Steps 28–33 held (1abc740): prereg.json v1, catalogue and generator protocol DRAFT, Steps 11, 24, 39–41 and 43 not done. No sensitivity run, no P-3, no ADR-016 b decision, no snapshot change, 0 live calls."
+**Context**: CONSTRUCTION — Build and Test, BT-E pre-freeze part complete; Steps 28–33 held by E-1 (pending author decision (a), BR-U5a-37 CAT_SHORTFALL 69 < 80; BR-U5a-40). Next per run order: BT-F Steps 34–41. Open: E-1, E-2, decision (b), OI-BT-C1..C3, OI-BT-E1.
+
+---
