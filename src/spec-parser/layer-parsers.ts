@@ -8,6 +8,7 @@ import type { ValidationWarning } from './types.js';
 import { functionId } from '../shared/types/value-objects.js';
 import { resolveLayerKinds } from './layer-kind-resolver.js';
 import { mapFunctionSpecificFields, FUNCTION_FIELD_KEYS } from './function-fields.js';
+import { normaliseDimension } from './dimension-alias.js';
 import { CYPHER_TEMPLATES } from '../fitness-compiler/cypher-templates.js';
 
 export interface LayerCResult {
@@ -15,6 +16,7 @@ export interface LayerCResult {
   readonly fullModeWeights: ScoringWeights | undefined;
   readonly verdictThresholds: VerdictThresholds;
   readonly confidenceThresholds: ConfidenceThresholds;
+  readonly warnings: readonly ValidationWarning[]; // SPEC_004 for the legacy full_mode_weights.intent key (BR-U1-21)
 }
 
 /**
@@ -46,7 +48,8 @@ export function parseLayerA(raw: Record<string, unknown>, warnings: ValidationWa
 
 /**
  * Parse Layer B: fitness_functions → FitnessFunction[]
- * Each declaration's FR-07 keys are mapped to typed fields (absent keys omitted, BR-U1-03); a key whose
+ * Each declaration's dimension goes through `normaliseDimension` (`intent` → `semantic` with SPEC_004,
+ * FR-22, BR-U1-20). Each declaration's FR-07 keys are mapped to typed fields (absent keys omitted, BR-U1-03); a key whose
  * parameter the function's template does not use raises SPEC_001 and is still carried (BR-U1-05).
  * If a template is provided, merges spec declarations on top of template functions.
  */
@@ -78,11 +81,13 @@ export function parseLayerB(
     const name = String(f['name']);
     const { fields } = mapFunctionSpecificFields(f, `fitness_functions[${id}]`);
     warnings.push(...unusedFieldWarnings(id, name, fields));
+    const { dimension, warning: dimensionWarning } = normaliseDimension(String(f['dimension']) as Dimension, id);
+    if (dimensionWarning) warnings.push({ ...dimensionWarning, path: `fitness_functions[${id}].dimension` });
 
     const base: FitnessFunction = {
       id: functionId(id),
       name,
-      dimension: String(f['dimension']) as Dimension,
+      dimension,
       severity: String(f['severity']) as Severity,
       route: String(f['route']) as Route,
       isBuiltIn: false,
@@ -150,7 +155,10 @@ function unusedFieldWarnings(id: string, name: string, fields: object): Validati
 }
 
 /**
- * Parse Layer C: scoring + confidence_thresholds → LayerCResult
+ * Parse Layer C: scoring + confidence_thresholds → LayerCResult.
+ * FR-22 (BR-U1-21): `scoring.weights` carries the five symbolic keys only, so `semantic`, `integrity` and
+ * `intent` are 0. `full_mode_weights` takes `integrity` from `integrity` or from the legacy `intent` key
+ * (SPEC_004; the schema admits exactly one of them); `intent` is always 0.
  */
 export function parseLayerC(raw: Record<string, unknown>): LayerCResult {
   const scoring = raw['scoring'] as Record<string, unknown>;
@@ -164,9 +172,9 @@ export function parseLayerC(raw: Record<string, unknown>): LayerCResult {
     pattern: Number(weights['pattern']),
     solid: Number(weights['solid']),
     convention: Number(weights['convention']),
-    semantic: Number(weights['semantic'] ?? 0),
+    semantic: 0,
     integrity: 0,
-    intent: Number(weights['intent'] ?? 0),
+    intent: 0,
   };
 
   const verdictThresholds: VerdictThresholds = {
@@ -175,8 +183,17 @@ export function parseLayerC(raw: Record<string, unknown>): LayerCResult {
     softBlock: Number(thresholds['soft_block']),
   };
 
+  const warnings: ValidationWarning[] = [];
   let fullModeWeights: ScoringWeights | undefined;
   if (rawFullWeights) {
+    const legacyIntent = rawFullWeights['intent'];
+    if (legacyIntent != null) {
+      warnings.push({
+        code: 'SPEC_004',
+        message: 'full_mode_weights.intent is deprecated; mapped to integrity',
+        path: 'scoring.full_mode_weights.intent',
+      });
+    }
     fullModeWeights = {
       structural: Number(rawFullWeights['structural']),
       coupling: Number(rawFullWeights['coupling']),
@@ -184,8 +201,8 @@ export function parseLayerC(raw: Record<string, unknown>): LayerCResult {
       solid: Number(rawFullWeights['solid']),
       convention: Number(rawFullWeights['convention']),
       semantic: Number(rawFullWeights['semantic']),
-      integrity: 0,
-      intent: Number(rawFullWeights['intent']),
+      integrity: Number(rawFullWeights['integrity'] ?? legacyIntent),
+      intent: 0,
     };
   }
 
@@ -196,5 +213,5 @@ export function parseLayerC(raw: Record<string, unknown>): LayerCResult {
     iccMinimum: Number(rawConfidence['icc_minimum']),
   };
 
-  return { scoringWeights, fullModeWeights, verdictThresholds, confidenceThresholds };
+  return { scoringWeights, fullModeWeights, verdictThresholds, confidenceThresholds, warnings };
 }

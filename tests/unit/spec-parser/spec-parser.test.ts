@@ -54,7 +54,8 @@ describe('spec-parser', () => {
       if (result.success) {
         expect(result.data.fullModeWeights).toBeDefined();
         expect(result.data.fullModeWeights!.semantic).toBe(0.04);
-        expect(result.data.fullModeWeights!.intent).toBe(0.04);
+        expect(result.data.fullModeWeights?.integrity).toBe(0.04); // FR-22: weight key intent → integrity (K14)
+        expect(result.data.fullModeWeights!.intent).toBe(0);
       }
     });
 

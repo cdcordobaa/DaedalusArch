@@ -235,7 +235,7 @@ function compileADRSymbolic(adr: ADRRule): CypherQuery {
     name: `adr:${adr.title}`,
     cypher: rule.query,
     params: rule.params as Record<string, unknown>,
-    dimension: 'intent',
+    dimension: 'semantic', // FR-22 (BR-U1-22): nothing compiled carries intent
     severity: 'major',
     route: 'hybrid',
     source: 'adr',
@@ -255,7 +255,7 @@ function compileADRNeuronal(adr: ADRRule): NeuronalInstruction {
   return {
     functionId: adr.id as import('../shared/types/value-objects.js').FunctionId,
     name: `adr:${adr.title}`,
-    dimension: 'intent',
+    dimension: 'semantic', // FR-22 (BR-U1-22): nothing compiled carries intent
     severity: 'major',
     route: adr.symbolicRule ? 'hybrid' : 'neuronal',
     semanticCriteria: criteria,
@@ -360,7 +360,7 @@ function defaultContextAssembly(ff: FitnessFunction): ContextAssemblyInstruction
     includeAPGSubgraph: true,
     includeSourceCode: ff.route === 'neuronal' || ff.route === 'hybrid',
     ...(ff.dimension === 'solid' ? { nodeFilter: 'type:Class', maxNodes: 20 } : {}),
-    ...(ff.dimension === 'intent' ? { maxNodes: 50 } : {}),
+    ...(ff.dimension === 'semantic' ? { maxNodes: 50 } : {}), // FR-22: was the intent branch (BR-U1-22)
   };
 }
 

@@ -48,7 +48,7 @@ export const SPEC_SCHEMA_V1 = {
         properties: {
           id: { type: 'string', pattern: '^FF-[A-Z]{1,3}[0-9]{2}$' },
           name: { type: 'string', minLength: 1 },
-          dimension: { type: 'string', enum: ['structural', 'coupling', 'pattern', 'solid', 'convention', 'semantic', 'intent'] },
+          dimension: { type: 'string', enum: ['structural', 'coupling', 'pattern', 'solid', 'convention', 'semantic', 'integrity', 'intent'] }, // FR-22: `intent` is a deprecated alias (BR-U1-20)
           severity: { type: 'string', enum: ['critical', 'major', 'minor', 'advisory'] },
           route: { type: 'string', enum: ['symbolic', 'neuronal', 'hybrid'] },
           threshold: { type: 'number' },
@@ -101,7 +101,7 @@ export const SPEC_SCHEMA_V1 = {
         },
         full_mode_weights: {
           type: 'object',
-          required: ['structural', 'coupling', 'pattern', 'solid', 'convention', 'semantic', 'intent'],
+          required: ['structural', 'coupling', 'pattern', 'solid', 'convention', 'semantic'],
           properties: {
             structural: { type: 'number', minimum: 0, maximum: 1 },
             coupling: { type: 'number', minimum: 0, maximum: 1 },
@@ -109,8 +109,11 @@ export const SPEC_SCHEMA_V1 = {
             solid: { type: 'number', minimum: 0, maximum: 1 },
             convention: { type: 'number', minimum: 0, maximum: 1 },
             semantic: { type: 'number', minimum: 0, maximum: 1 },
-            intent: { type: 'number', minimum: 0, maximum: 1 },
+            integrity: { type: 'number', minimum: 0, maximum: 1 },
+            intent: { type: 'number', minimum: 0, maximum: 1 }, // FR-22: deprecated alias of integrity (BR-U1-21)
           },
+          // Exactly one of integrity / legacy intent (BR-U1-21): both or neither is a schema error.
+          oneOf: [{ required: ['integrity'] }, { required: ['intent'] }],
           additionalProperties: false,
         },
         thresholds: {

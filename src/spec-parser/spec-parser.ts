@@ -61,9 +61,9 @@ export async function parseSpec(
   const layerWarnings: ValidationWarning[] = [];
   const layerModel = parseLayerA(raw, layerWarnings);
   const { functions, warnings: mergeWarnings } = parseLayerB(raw, templateFunctions);
-  const { scoringWeights, fullModeWeights, verdictThresholds, confidenceThresholds } = parseLayerC(raw);
+  const { scoringWeights, fullModeWeights, verdictThresholds, confidenceThresholds, warnings: weightWarnings } = parseLayerC(raw);
 
-  for (const w of [...layerWarnings, ...mergeWarnings]) {
+  for (const w of [...layerWarnings, ...mergeWarnings, ...weightWarnings]) {
     warnings.push({ code: w.code, message: w.message });
   }
 

@@ -62,7 +62,9 @@ const CLEAN_ARCH_FUNCTIONS: readonly FitnessFunction[] = [
   ff('FF-CV05', 'test-file-pairing', 'convention', 'advisory', 'symbolic', false),
   ff('FF-CV06', 'no-index-logic', 'convention', 'advisory', 'symbolic', false),
   // ── Neuronal ──
-  ff('FF-N01', 'srp-semantic', 'solid', 'major', 'hybrid', false, {
+  // FR-22 producers (BR-U1-22): FF-N01 is the integrity check (neuronal), FF-N02 the semantic one.
+  // Id FF-N01 and name `srp-semantic` stay until U4 renames them with the rubric.
+  ff('FF-N01', 'srp-semantic', 'integrity', 'major', 'neuronal', false, {
     semanticCriteria: {
       rule: 'A class should have exactly one reason to change',
       rubric: {
@@ -72,7 +74,7 @@ const CLEAN_ARCH_FUNCTIONS: readonly FitnessFunction[] = [
       },
     },
   }),
-  ff('FF-N02', 'layering-intent', 'intent', 'major', 'neuronal', false, {
+  ff('FF-N02', 'layering-intent', 'semantic', 'major', 'neuronal', false, {
     semanticCriteria: {
       rule: 'Code should respect the documented architectural intent',
       rubric: {
@@ -102,8 +104,8 @@ const FULL_MODE_WEIGHTS: ScoringWeights = {
   solid: 0.10,
   convention: 0.05,
   semantic: 0.04,
-  integrity: 0,
-  intent: 0.04,
+  integrity: 0.04, // FR-22 (BR-U1-22): the weight moves from intent to integrity
+  intent: 0,
 };
 
 const DEFAULT_VERDICT_THRESHOLDS: VerdictThresholds = {
