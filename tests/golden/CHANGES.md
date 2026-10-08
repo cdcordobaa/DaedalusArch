@@ -57,6 +57,9 @@ Only variant-b and variant-c match the header verdict. U0 fixes nothing; the re-
 2026-10-08 U1-K5 variant-a-structural — ADR-015 item 1 (U1 BR-U1-45): `repository-pattern` drops its compliant UNION branch (an infrastructure class implementing a domain repository interface was reported as a violation), so FF-P03 reports only Repository/Repo classes that implement no interface; FF-P03 1 → 0 rows, passes; AHS 0.362 → 0.422, verdict hard-block unchanged.
 2026-10-08 U1-K5 variant-d-subtle — ADR-015 item 1 (U1 BR-U1-45): `repository-pattern` drops its compliant UNION branch (an infrastructure class implementing a domain repository interface was reported as a violation), so FF-P03 reports only Repository/Repo classes that implement no interface; FF-P03 1 → 0 rows, passes; AHS 0.445 → 0.505, verdict hard-block → soft-block.
 2026-10-08 U1-K5 observation variant-d-subtle — ADR-015 item 1 (U1 BR-U1-45): variant-d crosses the 0.50 soft-block cut-off at 0.505, just above it; recorded as a cut-off sensitivity threat (business-rules.md §8). variant-b and variant-c keep their seeded FF-P03 violation (`InMemoryTaskRepository` does not implement `ITaskRepository`).
+2026-10-08 U1-K6 variant-a-structural — FR-35 + NFR-07 (U1 Q15 A): the cycle query is bounded (`*2..10`), keeps one canonical rotation per simple cycle (start at the smallest `filePath`) and de-duplicates with `WITH DISTINCT`, so each 2-cycle is reported once instead of once per rotation; FF-S02 4 → 2 rows (`Task.ts`/`ITaskRepository.ts` and `CircularHelper.ts`/`InMemoryTaskRepository.ts` once each), still fails; AHS and verdict unchanged.
+2026-10-08 U1-K6 variant-c-everything — FR-35 + NFR-07 (U1 Q15 A): the cycle query is bounded (`*2..10`), keeps one canonical rotation per simple cycle and de-duplicates with `WITH DISTINCT`, so the 2-cycle `CircularB.ts`/`InMemoryTaskRepository.ts` is reported once instead of twice; FF-S02 2 → 1 rows, still fails; AHS and verdict unchanged.
+2026-10-08 U1-K6 observation all — FR-35 + NFR-07 (U1 Q15 A): cycles longer than `MAX_CYCLE_LENGTH` (10 files) are not detected (business-rules.md §8 item 1; measured on the corpus in Build and Test, BR-U1-31). Row 101 of the cycle query is a truncation sentinel; until U3 drops it, the normaliser treats more than `CYCLE_ROW_CAP` (100) rows as truncated.
 
 ## Self-spec
 
@@ -65,3 +68,4 @@ Only variant-b and variant-c match the header verdict. U0 fixes nothing; the re-
 2026-10-08 U1-K3 self — ADR-015 item 10 (U1 Q21 B): FF-CV02 pattern `*Service|*UseCase`.
 2026-10-08 U1-K4 self — ADR-015 item 10 (U1 Q22 B): no change (no style; applicableStyles ignored, BR-U1-18); FF-S04, FF-P02, FF-P03, FF-P04, FF-P05, FF-C01, FF-CV04 still compile; FF-S03 not declared.
 2026-10-08 U1-K5 self — ADR-015 item 1 (U1 BR-U1-45): FF-P03 no longer reports compliant repository implementations.
+2026-10-08 U1-K6 self — FR-35 + NFR-07 (U1 Q15 A): FF-S02 reports each simple import cycle of 2 to 10 files once, in canonical rotation.

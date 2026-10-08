@@ -6,6 +6,12 @@ function rm(filePathColumn: string, messageTemplate: string, metadataColumns?: s
   return metadataColumns ? { ...base, metadataColumns } : base;
 }
 
+/** Longest import cycle the cycle query detects (BR-U1-28, frozen; BR-U1-02). Never a Cypher parameter. */
+export const MAX_CYCLE_LENGTH = 10;
+
+/** Cycle rows reported before truncation; the query returns one more row as the sentinel (BR-U1-28). */
+export const CYCLE_ROW_CAP = 100;
+
 const DEFAULT_RM: ResultMapping = { filePathColumn: 'filePath', messageTemplate: 'Violation in {filePath}' };
 
 /** Styles of the seven Clean-Architecture-only templates (business-rules.md §3.1, frozen; BR-U1-18). */
@@ -55,12 +61,18 @@ RETURN src.filePath AS source, tgt.filePath AS target, src.layer AS srcLayer, tg
 
   ['no-cyclic-deps', tmpl(
     'no-cyclic-deps',
-    `MATCH path = (f:File)-[:IMPORTS*2..]->(f)
-RETURN [n IN nodes(path) | n.filePath] AS cycle
-LIMIT 100`,
+    // Bounded, canonical, simple cycles (FR-35, NFR-07, BR-U1-28): the bound and the sentinel cap are
+    // literals interpolated at module load (Neo4j rejects a parameter in a variable-length bound).
+    `MATCH p = (f:File)-[:IMPORTS*2..${String(MAX_CYCLE_LENGTH)}]->(f)
+WHERE ALL(n IN nodes(p) WHERE n.filePath >= f.filePath)
+  AND size(apoc.coll.toSet(nodes(p)[1..])) = length(p)
+WITH DISTINCT [n IN nodes(p) | n.filePath] AS cycle
+RETURN cycle
+ORDER BY cycle
+LIMIT ${String(CYCLE_ROW_CAP + 1)}`,
     [],
     [],
-    'Detects circular import chains of length 2+',
+    `Detects simple circular import chains of length 2..${String(MAX_CYCLE_LENGTH)} (one row per cycle; row ${String(CYCLE_ROW_CAP + 1)} is a truncation sentinel)`,
     [],
     rm('cycle', 'Circular dependency: {cycle}'),
   )],
