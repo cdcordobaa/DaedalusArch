@@ -12,23 +12,23 @@ function io() {
 }
 
 describe('score-golden main (BR-U5b-73)', () => {
-  it('--help exits 0; unknown arguments and a missing --case exit 2', () => {
+  it('--help exits 0; unknown arguments and a missing --case exit 2', async () => {
     const a = io();
-    expect(main(['--help'], ROOT, a.io, (r) => loadMatchingRule(r))).toBe(0);
+    expect(await main(['--help'], ROOT, a.io, (r) => loadMatchingRule(r))).toBe(0);
     expect(a.out.join('')).toContain('usage:');
-    expect(main(['--bogus'], ROOT, io().io, (r) => loadMatchingRule(r))).toBe(2);
-    expect(main([], ROOT, io().io, (r) => loadMatchingRule(r))).toBe(2);
+    expect(await main(['--bogus'], ROOT, io().io, (r) => loadMatchingRule(r))).toBe(2);
+    expect(await main([], ROOT, io().io, (r) => loadMatchingRule(r))).toBe(2);
   });
 
-  it('--self-test exits 1 on the built-in known-bad input', () => {
+  it('--self-test exits 1 on the built-in known-bad input', async () => {
     const a = io();
-    expect(main(['--self-test'], ROOT, a.io, (r) => loadMatchingRule(r))).toBe(1);
+    expect(await main(['--self-test'], ROOT, a.io, (r) => loadMatchingRule(r))).toBe(1);
     expect(a.err.join('')).toContain('SCORE_INPUT_REJECTED');
   });
 
-  it('a rule document whose version differs from the registered one exits 1 with SCORE_RULE_MISMATCH, no score', () => {
+  it('a rule document whose version differs from the registered one exits 1 with SCORE_RULE_MISMATCH, no score', async () => {
     const a = io();
-    expect(main(['--case', 'tests/fixtures/u5b/hand-computed'], ROOT, a.io, (r) => loadMatchingRule(r, '9.9.9'))).toBe(1);
+    expect(await main(['--case', 'tests/fixtures/u5b/hand-computed'], ROOT, a.io, (r) => loadMatchingRule(r, '9.9.9'))).toBe(1);
     expect(a.err.join('')).toContain('SCORE_RULE_MISMATCH');
     expect(a.out).toEqual([]);
   });

@@ -46,6 +46,7 @@ export const FNS: readonly Fn[] = [
   { functionId: 'FF-S02', name: 'no-cyclic-deps', dimension: 'structural', tag: 'topological' },
   { functionId: 'FF-S04', name: 'no-domain-outward-dep', dimension: 'structural', tag: 'structural' },
   { functionId: 'FF-C04', name: 'no-orphan-files', dimension: 'coupling', tag: 'topological' },
+  { functionId: 'FF-C05', name: 'module-fan-out', dimension: 'coupling', tag: 'topological' },
   { functionId: 'FF-C06', name: 'abstraction-ratio', dimension: 'coupling', tag: 'topological' },
   { functionId: 'FF-CV05', name: 'test-file-pairing', dimension: 'convention', tag: 'pattern-proxy' },
   { functionId: 'FF-P06', name: 'domain-state-purity', dimension: 'pattern', tag: 'structural' },
@@ -107,6 +108,9 @@ export interface RowOpts {
   readonly baseKind?: 'fixture' | 'corpus' | 'generated';
   readonly expected: Record<string, unknown>;
   readonly lineShifts?: readonly { filePath: string; afterLine: number; delta: number }[];
+  readonly editedFiles?: readonly string[];
+  readonly createdFiles?: readonly string[];
+  readonly specSha256?: string;
 }
 
 export function row(o: RowOpts): ManifestRow {
@@ -118,6 +122,10 @@ export function row(o: RowOpts): ManifestRow {
     split: o.split ?? 'held-out',
     baseKind: o.baseKind ?? 'corpus',
     baseTreeSha: 'c'.repeat(40),
+    specPath: 'specs/clean-arch.yaml',
+    specSha256: o.specSha256 ?? SPEC_SHA,
+    editedFiles: o.editedFiles ?? [],
+    createdFiles: o.createdFiles ?? [],
     lineShifts: o.lineShifts ?? [],
     expected: {
       functionIds: [], disabledFunctionIds: [], absentTemplates: [], dimension: 'structural', keys: [], collateral: [],

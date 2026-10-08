@@ -1,5 +1,5 @@
 /**
- * C15.3 differential scorer (FR-25; BR-U5b-02..11, 25; U5b domain-entities §2, §3; business-logic-model §3).
+ * C15.3 differential scorer (FR-25; BR-U5b-02..19, 25; U5b domain-entities §2, §3; business-logic-model §3).
  *
  * Scores seeded copies against their baselines under the pre-registered matching rule
  * (`Docs/matching-rule.md`, loaded by `scripts/lib/matching-rule.ts`):
@@ -13,22 +13,32 @@
  *   (BR-U5b-09); FP-labelled from reconciled labels, `null` before labels (BR-U5b-10); `computePrf` with `null` on
  *   a zero denominator (BR-U5b-11);
  * - `scoreDifferential` takes each report with its `RunRecord` and rejects a pair that fails acceptance or differs in
- *   `specSha`, `cliCommit`, `evaluationMode` or `judge` (`SCORE_INPUT_REJECTED`, BR-U5b-25).
+ *   `specSha`, `cliCommit`, `evaluationMode` or `judge` (`SCORE_INPUT_REJECTED`, BR-U5b-25);
+ * - fixed rule order per row (BR-U5b-12): manifest rejections are never instances; not-applicable by
+ *   `disabledFunctionIds`, `absentTemplates`, the report's `disabledFunctions` and absence from
+ *   `functionResults[].functionId` (BR-U5b-13); site-invalid (BR-U5b-14); metric threshold crossing through
+ *   `parseEvidence` and the spec threshold at `specSha256` (BR-U5b-15); metric-key exclusions from the frozen
+ *   instrument's readiness flags (BR-U5b-16); twins, specificity and "incl. twins" precision (BR-U5b-17); SCC
+ *   member-overlap matching (BR-U5b-18); neural rows by `(functionId, filePath, [unitId])` with judge collateral
+ *   (BR-U5b-19).
  *
  * The output is a `GoldenScore`; `canonicalGoldenScore` writes it in the canonical form (BR-U5b-26).
  */
 import { createHash } from 'node:crypto';
-import { readFileSync, readdirSync } from 'node:fs';
+import { existsSync, readFileSync, readdirSync } from 'node:fs';
 import { join, resolve } from 'node:path';
 import type { EvaluationReport } from '../src/shared/types/evaluation.js';
 import type { Dimension } from '../src/shared/types/enums.js';
+import { parseEvidence } from '../src/evaluation-engine/evidence.js';
 import { canonicalize, ratio } from './lib/canonical-json.js';
 import { loadManifest } from './lib/manifest.js';
 import type { Manifest, ManifestRejection, ManifestRow, Split } from './lib/manifest.js';
 import type { MatchingRule, RuleLoad } from './lib/matching-rule.js';
 import { acceptReport, checkRunRecord } from './lib/report-io.js';
 import type { PinnedJudge, RunRecord } from './lib/report-io.js';
-import type { BaseKind, Coverage, ExpectedKey, LineShift, SiteCollateral } from './lib/mutation/types.js';
+import { compiledThresholds, loadCompiledSpec } from './lib/mutation/expected.js';
+import { isMetricTemplate } from './lib/mutation/metrics.js';
+import type { BaseKind, Coverage, ExpectedKey, LineShift } from './lib/mutation/types.js';
 
 export type { MatchingRule };
 
@@ -154,6 +164,14 @@ export interface ScoreInput {
   readonly labels?: ReadonlyMap<string, ReconciledP1Label>;
   /** The plan mode's pinned judge (acceptance, BR-U5b-45); absent for symbolic-only plans. */
   readonly pinnedJudge?: PinnedJudge;
+  /**
+   * Metric-key readiness flags of the frozen instrument export (BR-U5b-16, 52). When either is false, the new
+   * violations of `METRIC_KEY_TEMPLATES` functions are listed in `metricKeyExclusions`, never FP. Absent → only the
+   * rule's own `metricKeyExclusions` list applies (until the Step 13 export exists).
+   */
+  readonly metricKeyReadiness?: MetricKeyReadiness;
+  /** Compiled thresholds by `specSha256` → template name (BR-U5b-15; `metricThresholds`). */
+  readonly thresholds?: ReadonlyMap<string, Readonly<Record<string, number>>>;
 }
 
 export type ScoreOutcome =
@@ -259,7 +277,7 @@ export function acceptPair(seed: SeedInput, pinnedJudge?: PinnedJudge): { ok: tr
 }
 
 // ---------------------------------------------------------------------------------------------
-// Per-seed classification
+// Per-seed classification (rule order BR-U5b-12)
 
 interface FunctionInfo { readonly dimension: string; readonly tag: string | undefined; readonly template: string | undefined }
 
@@ -276,15 +294,66 @@ function isSymbolic(v: Violation): boolean {
   return v.route !== 'neuronal';
 }
 
+/** Neural key (BR-U5b-19): `(functionId, filePath, [unitId])`, line-independent. */
+export function neuralMatchKey(v: { readonly functionId: string; readonly filePath: string; readonly unitId?: string }): MatchKey {
+  return JSON.stringify([v.functionId, v.filePath, [v.unitId ?? '']]);
+}
+
+/** SCC members of a Tarjan-fallback cycle row (`discriminator ["scc"]`, evidence `cycle=<JSON>`), else undefined. */
+export function sccMembers(v: Pick<Violation, 'discriminator' | 'evidence'>): readonly string[] | undefined {
+  if (v.discriminator?.length !== 1 || v.discriminator[0] !== 'scc') return undefined;
+  const cycle = parseEvidence(v.evidence ?? []).cycle;
+  if (typeof cycle !== 'string') return [];
+  try {
+    const parsed = JSON.parse(cycle) as unknown;
+    return Array.isArray(parsed) ? parsed.map(String) : [];
+  } catch {
+    return [];
+  }
+}
+
+function overlaps(a: readonly string[], b: readonly string[]): boolean {
+  return a.some((x) => b.includes(x));
+}
+
+/**
+ * Templates whose project-level / ratio rows are excluded from differential FP accounting unless U3's metric-key
+ * readiness flags are both set (BR-U5b-16): FF-C06, FF-P02, FF-C01 on the shipped specs.
+ */
+export const METRIC_KEY_TEMPLATES: readonly string[] = ['abstraction-ratio', 'dependency-inversion', 'domain-stability'];
+
+/** The flags of `corpus/frozen-instrument.json` `metricKeyReadiness` (BR-U5b-16, 52). */
+export interface MetricKeyReadiness { readonly projectLevelKeys: boolean; readonly rowFilters: boolean }
+
+/**
+ * Metric crossing (BR-U5b-15): some numeric evidence column crosses `threshold` between the baseline row and the
+ * seeded row (non-violating side to violating side, either direction of the template's comparison).
+ */
+export function crossesThreshold(baselineEvidence: readonly string[], seededEvidence: readonly string[], threshold: number): boolean {
+  const b = parseEvidence(baselineEvidence);
+  const s = parseEvidence(seededEvidence);
+  return Object.entries(s).some(([col, sv]) => {
+    const bv = b[col];
+    if (typeof sv !== 'number' || typeof bv !== 'number') return false;
+    return (bv <= threshold && sv > threshold) || (bv >= threshold && sv < threshold);
+  });
+}
+
 interface CountedItem { readonly itemId: string; readonly functionId: string }
 
 interface SeedOutcome {
   readonly instance: InstanceResult;
-  /** Applicable expected functions with their per-function result. */
+  /** Applicable expected functions with their per-function result (empty unless the row is a scored positive). */
   readonly perFunction: readonly { readonly functionId: string; readonly detected: boolean }[];
   readonly fps: readonly CountedItem[];
+  readonly twinFps: readonly CountedItem[];
   readonly items: readonly P1Item[];
   readonly collateralFunctions: readonly string[];
+  readonly notApplicable: readonly string[];
+  readonly metricKeyExcluded: readonly string[];
+  readonly metricCrossing: boolean;
+  readonly sccOverlapMatches: number;
+  readonly judgeCollateral: number;
   readonly preExisting: number;
   readonly info: ReadonlyMap<string, FunctionInfo>;
 }
@@ -303,93 +372,253 @@ function checkCollateral(row: ManifestRow): string | undefined {
   return undefined;
 }
 
-function collateralMatcher(collateral: readonly SiteCollateral[]): (v: Violation, key: MatchKey) => boolean {
-  const keyed = new Set(collateral.flatMap((c) => (c.key === undefined ? [] : [expectedMatchKey(c.key)])));
-  const projectMetric = new Set(collateral.filter((c) => c.key === undefined && c.cause === 'project-metric').map((c) => c.functionId));
-  return (v, key) => keyed.has(key) || (projectMetric.has(String(v.functionId)) && v.filePath === PROJECT_FILE_PATH);
+function sortStrings(xs: Iterable<string>): string[] {
+  return [...xs].sort((a, b) => (a < b ? -1 : a > b ? 1 : 0));
 }
 
-function classifySeed(pair: AcceptedPair): SeedOutcome {
-  const { row, baseline, seeded } = pair;
-  const info = functionInfo(seeded);
-  const baseKeys = baseline.violations.filter(isSymbolic).map(baselineMatchKey);
+interface ClassifyContext {
+  readonly excludedTemplates: ReadonlySet<string>;
+  readonly excludedFunctions: ReadonlySet<string>;
+  readonly thresholds: ReadonlyMap<string, Readonly<Record<string, number>>> | undefined;
+}
+
+/** A new symbolic violation occurrence (one per multiset count) with a sample violation of its key. */
+interface NewOccurrence { readonly key: MatchKey; readonly v: Violation; readonly members: readonly string[] | undefined }
+
+/**
+ * Key diff of one pair (BR-U5b-03, 18, 19): symbolic multiset difference, with SCC rows (`["scc"]`) of the Tarjan
+ * fallback matched to an unconsumed baseline SCC row of the same function by member overlap; neural rows by
+ * `(functionId, filePath, [unitId])`.
+ */
+function diffPair(baseline: EvaluationReport, seeded: EvaluationReport): {
+  readonly fresh: readonly NewOccurrence[]; readonly preExisting: number; readonly sccOverlap: number;
+  readonly neuralNew: readonly Violation[]; readonly baselineKeys: ReadonlySet<MatchKey>;
+  readonly baselineByKey: ReadonlyMap<MatchKey, Violation>;
+} {
+  const baseSym = baseline.violations.filter(isSymbolic);
+  const baselineByKey = new Map<MatchKey, Violation>();
+  for (const v of baseSym) if (!baselineByKey.has(baselineMatchKey(v))) baselineByKey.set(baselineMatchKey(v), v);
   const seededSym = seeded.violations.filter(isSymbolic);
-  const { newKeys, preExisting } = multisetDifference(baseKeys, seededSym.map(baselineMatchKey));
-  const byKey = new Map<MatchKey, Violation[]>();
+  const { newKeys, preExisting } = multisetDifference(baseSym.map(baselineMatchKey), seededSym.map(baselineMatchKey));
+  const sample = new Map<MatchKey, Violation[]>();
   for (const v of seededSym) {
     const k = baselineMatchKey(v);
-    byKey.set(k, [...(byKey.get(k) ?? []), v]);
+    sample.set(k, [...(sample.get(k) ?? []), v]);
   }
+  // SCC overlap: baseline SCC rows not consumed by an exact key match.
+  const seededCount = new Map<MatchKey, number>();
+  for (const v of seededSym) seededCount.set(baselineMatchKey(v), (seededCount.get(baselineMatchKey(v)) ?? 0) + 1);
+  const freeBaseScc: { fid: string; members: readonly string[] }[] = [];
+  const baseCount = new Map<MatchKey, number>();
+  for (const v of baseSym) {
+    const k = baselineMatchKey(v);
+    baseCount.set(k, (baseCount.get(k) ?? 0) + 1);
+    const members = sccMembers(v);
+    if (members !== undefined && (baseCount.get(k) ?? 0) > (seededCount.get(k) ?? 0)) freeBaseScc.push({ fid: v.functionId, members });
+  }
+  const fresh: NewOccurrence[] = [];
+  let pre = preExisting;
+  let sccOverlap = 0;
+  for (const [key, count] of [...newKeys.entries()].sort(([a], [b]) => (a < b ? -1 : a > b ? 1 : 0))) {
+    const v = sample.get(key)?.[0];
+    if (v === undefined) continue;
+    const members = sccMembers(v);
+    for (let i = 0; i < count; i += 1) {
+      if (members !== undefined) {
+        const at = freeBaseScc.findIndex((b) => b.fid === v.functionId && overlaps(b.members, members));
+        if (at >= 0) {
+          freeBaseScc.splice(at, 1);
+          pre += 1;
+          sccOverlap += 1;
+          continue;
+        }
+      }
+      fresh.push({ key, v, members });
+    }
+  }
+  const neural = multisetDifference(
+    baseline.violations.filter((v) => !isSymbolic(v)).map(neuralMatchKey),
+    seeded.violations.filter((v) => !isSymbolic(v)).map(neuralMatchKey),
+  );
+  const neuralSample = new Map(seeded.violations.filter((v) => !isSymbolic(v)).map((v) => [neuralMatchKey(v), v] as const));
+  const neuralNew = [...neural.newKeys.entries()].flatMap(([k, n]) => {
+    const v = neuralSample.get(k);
+    return v === undefined ? [] : Array.from({ length: n }, () => v);
+  });
+  return { fresh, preExisting: pre + neural.preExisting, sccOverlap, neuralNew, baselineKeys: new Set(baselineByKey.keys()), baselineByKey };
+}
+
+/** Judge units added by the variant or covering an edited or created file of the row (BR-U5b-19). */
+function judgeCollateralUnits(seeded: EvaluationReport, row: ManifestRow): ReadonlySet<string> {
+  const touched = new Set([...row.editedFiles, ...row.createdFiles]);
+  const out = new Set<string>();
+  for (const nr of seeded.neuralResults ?? []) {
+    for (const u of nr.unitResults) {
+      const unit = u as typeof u & { readonly origin?: string };
+      if (unit.origin === 'addedByVariant' || u.filePaths.some((f) => touched.has(f))) out.add(u.unitId);
+    }
+  }
+  return out;
+}
+
+function classifySeed(pair: AcceptedPair, ctx: ClassifyContext): SeedOutcome {
+  const { row, baseline, seeded } = pair;
+  const info = functionInfo(seeded);
   const expected = row.expected;
-  const applicable = expected.functionIds.filter((f) => info.has(f));
-  const expectedKeys = new Map(expected.keys.map((k) => [expectedMatchKey(k), k]));
-  const isCollateral = collateralMatcher(expected.collateral);
+  const diff = diffPair(baseline, seeded);
+  const judgeUnits = judgeCollateralUnits(seeded, row);
+  const judgeCollateral = diff.neuralNew.filter((v) => v.unitId !== undefined && judgeUnits.has(v.unitId)).length;
+  const neuralFp = diff.neuralNew.filter((v) => v.unitId === undefined || !judgeUnits.has(v.unitId));
+
+  // Not-applicable expected functions (BR-U5b-13).
+  const disabledInReport = new Set(seeded.disabledFunctions.map((d) => String(d.functionId)));
+  const declaredDisabled = expected.negative === true ? [] : expected.disabledFunctionIds.map((d) => d.functionId);
+  const absent = expected.negative === true ? [] : [...expected.absentTemplates];
+  const notApplicable = [...declaredDisabled, ...absent];
+  const applicable: string[] = [];
+  for (const f of expected.functionIds) {
+    const fi = info.get(f);
+    if (fi === undefined || disabledInReport.has(f) || (fi.template !== undefined && absent.includes(fi.template))) notApplicable.push(f);
+    else applicable.push(f);
+  }
+  const expectedKeys = new Map(expected.keys.map((k) => [expectedMatchKey(k), k] as const));
+  const keyed = new Map(expected.collateral.flatMap((c) => (c.key === undefined ? [] : [[expectedMatchKey(c.key), c.key] as const])));
+  const projectMetric = new Set(expected.collateral.filter((c) => c.key === undefined && c.cause === 'project-metric').map((c) => c.functionId));
+  const isCollateral = (o: NewOccurrence): boolean => {
+    if (keyed.has(o.key)) return true;
+    if (projectMetric.has(o.v.functionId) && o.v.filePath === PROJECT_FILE_PATH) return true;
+    // SCC fallback: a declared SCC key matches a new SCC row of its function whose members contain its filePath.
+    return o.members !== undefined && [...keyed.values()].some((k) => k.functionId === o.v.functionId && k.discriminator[0] === 'scc' && o.members?.includes(k.filePath) === true);
+  };
+  const isExcluded = (v: Violation): boolean => {
+    const t = info.get(v.functionId)?.template;
+    return ctx.excludedFunctions.has(v.functionId) || (t !== undefined && ctx.excludedTemplates.has(t));
+  };
 
   const detectedBy = new Set<string>();
   const lineChecks: boolean[] = [];
   const collateral: MatchKey[] = [];
   const collateralFunctions: string[] = [];
   const undeclared: MatchKey[] = [];
+  const excluded: string[] = [];
+  let sccOverlapMatches = diff.sccOverlap;
+  let metricCrossing = false;
+
+  const base = {
+    seedId: row.seedId, projectId: row.projectId, operatorId: row.operatorId, split: row.split, baseKind: row.baseKind,
+    coverage: expected.coverage,
+  };
+  const empty = {
+    perFunction: [], fps: [], twinFps: [], items: [], metricKeyExcluded: [], metricCrossing: false,
+    sccOverlapMatches: diff.sccOverlap, judgeCollateral, preExisting: diff.preExisting, info,
+  };
+  const tagsOf = (fns: readonly string[]): string[] => sortStrings(new Set(fns.flatMap((f) => { const t = info.get(f)?.tag; return t === undefined ? [] : [t]; })));
+
+  // Twins (BR-U5b-17): declared collateral neutral, anything else a twin FP.
+  if (expected.negative === true) {
+    const twinFps: CountedItem[] = [];
+    const items: P1Item[] = [];
+    for (const o of diff.fresh) {
+      if (isCollateral(o)) {
+        collateral.push(o.key);
+        collateralFunctions.push(o.v.functionId);
+      } else if (isExcluded(o.v)) {
+        excluded.push(o.v.functionId);
+      } else {
+        undeclared.push(o.key);
+        const itemId = p1ItemId(row, o.key);
+        twinFps.push({ itemId, functionId: o.v.functionId });
+        items.push({ itemId, kind: 'violation', population: 'P1', projectId: row.projectId, seedId: row.seedId, functionId: o.v.functionId, stratum: `${row.projectId}, ${o.v.functionId}`, inclusionProbability: 1, key: o.key, twin: true });
+      }
+    }
+    for (const v of neuralFp) {
+      const k = neuralMatchKey(v);
+      undeclared.push(k);
+      const itemId = p1ItemId(row, k);
+      twinFps.push({ itemId, functionId: v.functionId });
+      items.push({ itemId, kind: 'violation', population: 'P1', projectId: row.projectId, seedId: row.seedId, functionId: v.functionId, stratum: `${row.projectId}, ${v.functionId}`, inclusionProbability: 1, key: k, twin: true });
+    }
+    return {
+      ...empty,
+      instance: {
+        ...base, dimension: null, tags: [], status: twinFps.length === 0 ? 'twin-clean' : 'twin-fired', detectedBy: [], lineConfirmed: null,
+        collateral: sortStrings(collateral), undeclaredNew: sortStrings(undeclared),
+      },
+      twinFps, items, collateralFunctions, notApplicable: [], metricKeyExcluded: excluded,
+    };
+  }
+
+  const dimension = expected.dimension;
+  // (2) Not-applicable.
+  if (applicable.length === 0) {
+    return { ...empty, instance: { ...base, dimension, tags: [], status: 'not-applicable', detectedBy: [], lineConfirmed: null, collateral: [], undeclaredNew: [] }, collateralFunctions: [], notApplicable };
+  }
+  const tags = tagsOf(applicable);
+  const isMetricSeed = applicable.every((f) => isMetricTemplate(info.get(f)?.template ?? ''));
+  const applicableKeys = [...expectedKeys].filter(([, k]) => applicable.includes(k.functionId));
+  // (3) Site-invalid: a non-metric seed whose expected key is already in the baseline.
+  if (!isMetricSeed && applicableKeys.some(([k]) => diff.baselineKeys.has(k))) {
+    return { ...empty, instance: { ...base, dimension, tags, status: 'site-invalid', detectedBy: [], lineConfirmed: null, collateral: [], undeclaredNew: [] }, collateralFunctions: [], notApplicable };
+  }
+  // (4) Metric threshold crossing on a pre-existing key (BR-U5b-15).
+  if (isMetricSeed) {
+    for (const [k, ek] of applicableKeys) {
+      const b = diff.baselineByKey.get(k);
+      const s = seeded.violations.find((v) => isSymbolic(v) && baselineMatchKey(v) === k);
+      if (b === undefined || s === undefined) continue;
+      const template = info.get(ek.functionId)?.template ?? '';
+      const threshold = ctx.thresholds?.get(row.specSha256)?.[template];
+      if (threshold === undefined) continue;
+      if (crossesThreshold(b.evidence ?? [], s.evidence ?? [], threshold)) {
+        detectedBy.add(ek.functionId);
+        metricCrossing = true;
+      }
+    }
+  }
+  // (6) Detection, collateral, FP-strict.
   const fps: CountedItem[] = [];
   const items: P1Item[] = [];
-  for (const [key, count] of [...newKeys.entries()].sort(([a], [b]) => (a < b ? -1 : a > b ? 1 : 0))) {
-    const sample = byKey.get(key)?.[0];
-    if (sample === undefined) continue;
-    const fid = String(sample.functionId);
-    const exp = expectedKeys.get(key);
-    if (exp !== undefined && applicable.includes(fid)) {
+  const addFp = (key: MatchKey, functionId: string): void => {
+    undeclared.push(key);
+    const itemId = p1ItemId(row, key);
+    fps.push({ itemId, functionId });
+    items.push({ itemId, kind: 'violation', population: 'P1', projectId: row.projectId, seedId: row.seedId, functionId, stratum: `${row.projectId}, ${functionId}`, inclusionProbability: 1, key, twin: false });
+  };
+  const sccExpected = applicableKeys.filter(([, k]) => k.discriminator[0] === 'scc');
+  for (const o of diff.fresh) {
+    const fid = o.v.functionId;
+    let exp = applicable.includes(fid) ? expectedKeys.get(o.key) : undefined;
+    if (exp === undefined && o.members !== undefined && applicable.includes(fid)) {
+      exp = sccExpected.find(([, k]) => k.functionId === fid && o.members?.includes(k.filePath) === true)?.[1];
+      if (exp !== undefined) sccOverlapMatches += 1;
+    }
+    if (exp !== undefined) {
       detectedBy.add(fid);
-      if (exp.lineRule !== 'none' && exp.line !== undefined) {
-        const lines = (byKey.get(key) ?? []).map((v) => v.line).filter((l): l is number => l !== undefined);
-        if (lines.length > 0) lineChecks.push(lines.includes(exp.line));
-      }
+      if (exp.lineRule !== 'none' && exp.line !== undefined && o.v.line !== undefined) lineChecks.push(o.v.line === exp.line);
       continue;
     }
-    for (let i = 0; i < count; i += 1) {
-      if (isCollateral(sample, key)) {
-        collateral.push(key);
-        collateralFunctions.push(fid);
-        continue;
-      }
-      undeclared.push(key);
-      const itemId = p1ItemId(row, key);
-      fps.push({ itemId, functionId: fid });
-      items.push({
-        itemId, kind: 'violation', population: 'P1', projectId: row.projectId, seedId: row.seedId, functionId: fid,
-        stratum: `${row.projectId}, ${fid}`, inclusionProbability: 1, key, twin: false,
-      });
+    if (isCollateral(o)) {
+      collateral.push(o.key);
+      collateralFunctions.push(fid);
+      continue;
     }
+    if (isExcluded(o.v)) {
+      excluded.push(fid);
+      continue;
+    }
+    addFp(o.key, fid);
   }
-  const detected = [...detectedBy].sort();
-  const tags = new Set<string>();
-  for (const f of applicable) {
-    const t = info.get(f)?.tag;
-    if (t !== undefined) tags.add(t);
-  }
-  const dimension = expected.negative === true ? null : expected.dimension;
-  const instance: InstanceResult = {
-    seedId: row.seedId,
-    projectId: row.projectId,
-    operatorId: row.operatorId,
-    split: row.split,
-    baseKind: row.baseKind,
-    coverage: expected.coverage,
-    dimension,
-    tags: [...tags].sort(),
-    status: detected.length > 0 ? 'matched' : 'missed',
-    detectedBy: detected,
-    lineConfirmed: lineChecks.length === 0 ? null : lineChecks.every(Boolean),
-    collateral: [...collateral].sort(),
-    undeclaredNew: [...undeclared].sort(),
-  };
+  for (const v of neuralFp) addFp(neuralMatchKey(v), v.functionId);
+  const detected = sortStrings(detectedBy);
   return {
-    instance,
+    instance: {
+      ...base, dimension, tags, status: detected.length > 0 ? 'matched' : 'missed', detectedBy: detected,
+      lineConfirmed: lineChecks.length === 0 ? null : lineChecks.every(Boolean),
+      collateral: sortStrings(collateral), undeclaredNew: sortStrings(undeclared),
+    },
     perFunction: applicable.map((functionId) => ({ functionId, detected: detectedBy.has(functionId) })),
-    fps,
-    items,
-    collateralFunctions,
-    preExisting,
-    info,
+    fps, twinFps: [], items, collateralFunctions, notApplicable, metricKeyExcluded: excluded, metricCrossing,
+    sccOverlapMatches, judgeCollateral, preExisting: diff.preExisting, info,
   };
 }
 
@@ -444,7 +673,11 @@ function tagRows(tags: readonly string[], templates: readonly (string | undefine
   return templates.includes(DATA_FLOW_TEMPLATE) ? [...tags, DATA_FLOW_SUB_ROW] : [...tags];
 }
 
-/** Scores the seeds (BR-U5b-02..11, 25). */
+function increment(m: Map<string, number>, k: string): void {
+  m.set(k, (m.get(k) ?? 0) + 1);
+}
+
+/** Scores the seeds (BR-U5b-02..19, 25). */
 export function scoreDifferential(input: ScoreInput): ScoreOutcome {
   const pairs: AcceptedPair[] = [];
   for (const seed of input.seeds) {
@@ -454,27 +687,61 @@ export function scoreDifferential(input: ScoreInput): ScoreOutcome {
     if (!acc.ok) return { ok: false, code: SCORE_INPUT_REJECTED, detail: acc.reason };
     pairs.push(acc.pair);
   }
+  const readiness = input.metricKeyReadiness;
+  const ctx: ClassifyContext = {
+    excludedFunctions: new Set(input.rule.metricKeyExclusions),
+    excludedTemplates: new Set(readiness === undefined || (readiness.projectLevelKeys && readiness.rowFilters) ? [] : METRIC_KEY_TEMPLATES),
+    thresholds: input.thresholds,
+  };
   const perFunction = new Map<string, Map<string, Cell>>();
   const perDimension = new Map<string, Map<string, Cell>>();
   const perTag = new Map<string, Map<string, Cell>>();
   const overall = new Map<string, Map<string, Cell>>();
   const collateralByFunction = new Map<string, number>();
+  const notApplicable = new Map<string, number>();
+  const metricKeyExclusions = new Map<string, number>();
   const instances: InstanceResult[] = [];
   const items: P1Item[] = [];
   let preExistingIgnored = 0;
   let executedFunctions = 0;
+  let siteInvalid = 0;
+  let metricCrossings = 0;
+  let sccOverlapMatches = 0;
+  let judgeCollateral = 0;
+  const twins = { clean: 0, scored: 0 };
   for (const pair of [...pairs].sort((a, b) => (a.row.seedId < b.row.seedId ? -1 : a.row.seedId > b.row.seedId ? 1 : 0))) {
-    const o = classifySeed(pair);
-    instances.push(o.instance);
+    const o = classifySeed(pair, ctx);
+    const i = o.instance;
+    instances.push(i);
     items.push(...o.items);
     preExistingIgnored += o.preExisting;
+    sccOverlapMatches += o.sccOverlapMatches;
+    judgeCollateral += o.judgeCollateral;
     executedFunctions = Math.max(executedFunctions, pair.seeded.functionExecution.executed);
-    for (const f of o.collateralFunctions) collateralByFunction.set(f, (collateralByFunction.get(f) ?? 0) + 1);
-    if (o.instance.split === 'probe') continue; // probes never enter a P/R table (BR-U5b-20)
-    const i = o.instance;
-    const tp = i.status === 'matched';
+    for (const f of o.collateralFunctions) increment(collateralByFunction, f);
+    for (const f of o.notApplicable) increment(notApplicable, f);
+    for (const f of o.metricKeyExcluded) increment(metricKeyExclusions, f);
+    if (i.status === 'site-invalid') siteInvalid += 1;
+    if (o.metricCrossing) metricCrossings += 1;
+    if (i.status === 'twin-clean' || i.status === 'twin-fired') {
+      twins.scored += 1;
+      if (i.status === 'twin-clean') twins.clean += 1;
+    }
+    if (i.split === 'probe') continue; // probes never enter a P/R table (BR-U5b-20)
+    const scoredPositive = i.status === 'matched' || i.status === 'missed';
     const templates = o.perFunction.map((p) => o.info.get(p.functionId)?.template);
     for (const stratum of strataOf(i)) {
+      const fpCells = (fid: string): Cell[] => {
+        const fi = o.info.get(fid);
+        return [
+          bump(perFunction, stratum, fid),
+          bump(overall, stratum, ''),
+          ...(fi === undefined ? [] : [bump(perDimension, stratum, fi.dimension)]),
+          ...(fi?.tag === undefined ? [] : tagRows([fi.tag], [fi.template]).map((t) => bump(perTag, stratum, t))),
+        ];
+      };
+      for (const fp of o.twinFps) for (const c of fpCells(fp.functionId)) c.twinFpItems.push(fp.itemId);
+      if (!scoredPositive) continue;
       for (const p of o.perFunction) {
         const c = bump(perFunction, stratum, p.functionId);
         if (p.detected) c.tp += 1;
@@ -486,19 +753,10 @@ export function scoreDifferential(input: ScoreInput): ScoreOutcome {
         ...tagRows(i.tags, templates).map((t) => bump(perTag, stratum, t)),
       ];
       for (const c of seedCells) {
-        if (tp) c.tp += 1;
+        if (i.status === 'matched') c.tp += 1;
         else c.fn += 1;
       }
-      for (const fp of o.fps) {
-        const fi = o.info.get(fp.functionId);
-        const cells = [
-          bump(perFunction, stratum, fp.functionId),
-          bump(overall, stratum, ''),
-          ...(fi === undefined ? [] : [bump(perDimension, stratum, fi.dimension)]),
-          ...(fi?.tag === undefined ? [] : tagRows([fi.tag], [fi.template]).map((t) => bump(perTag, stratum, t))),
-        ];
-        for (const c of cells) c.fpItems.push(fp.itemId);
-      }
+      for (const fp of o.fps) for (const c of fpCells(fp.functionId)) c.fpItems.push(fp.itemId);
     }
   }
   const overallModes = new Map([...freeze(overall, input.labels)].flatMap(([s, inner]) => {
@@ -518,13 +776,13 @@ export function scoreDifferential(input: ScoreInput): ScoreOutcome {
       executedFunctions,
       preExistingIgnored,
       collateralByFunction,
-      notApplicable: new Map(),
-      siteInvalid: 0,
-      metricCrossings: 0,
-      metricKeyExclusions: new Map(),
-      sccOverlapMatches: 0,
-      judgeCollateral: 0,
-      twinSpecificity: { clean: 0, scored: 0 },
+      notApplicable,
+      siteInvalid,
+      metricCrossings,
+      metricKeyExclusions,
+      sccOverlapMatches,
+      judgeCollateral,
+      twinSpecificity: twins,
       edgeEvidence: [],
       judgeProbe: [],
       denominators: [],
@@ -562,11 +820,43 @@ export function canonicalGoldenScore(score: GoldenScore): string {
 }
 
 // ---------------------------------------------------------------------------------------------
+// Metric thresholds (BR-U5b-15): parsed from the spec at the row's `specSha256` (C3 `parseSpec` and the compiled
+// functions, through U5a's `loadCompiledSpec`), refusing a spec file whose bytes no longer match the recorded hash.
+
+export async function metricThresholds(
+  repoRoot: string,
+  rows: readonly ManifestRow[],
+): Promise<{ ok: true; value: Map<string, Record<string, number>> } | { ok: false; detail: string }> {
+  const out = new Map<string, Record<string, number>>();
+  for (const row of rows) {
+    if (out.has(row.specSha256)) continue;
+    const compiled = await loadCompiledSpec(repoRoot, row.specPath);
+    if (!compiled.success) return { ok: false, detail: `${row.seedId}: spec ${row.specPath}: ${compiled.errors.map((e) => e.message).join('; ')}` };
+    if (compiled.data.specSha256 !== row.specSha256) {
+      return { ok: false, detail: `${row.seedId}: spec ${row.specPath} sha256 ${compiled.data.specSha256} != recorded ${row.specSha256}` };
+    }
+    out.set(row.specSha256, compiledThresholds(compiled.data));
+  }
+  return { ok: true, value: out };
+}
+
+// ---------------------------------------------------------------------------------------------
 // Case loading (a directory with `manifest.json` and `reports/<name>.json` + `reports/<name>.run.json`)
 
 export interface LoadedCase {
   readonly manifest: Manifest;
   readonly seeds: readonly SeedInput[];
+  /** `metricKeyReadiness` of `<case>/frozen-instrument.json`, else `corpus/frozen-instrument.json`, when present. */
+  readonly metricKeyReadiness?: MetricKeyReadiness;
+}
+
+function readReadiness(repoRoot: string, dir: string): MetricKeyReadiness | undefined {
+  for (const f of [join(dir, 'frozen-instrument.json'), join(repoRoot, 'corpus/frozen-instrument.json')]) {
+    if (!existsSync(f)) continue;
+    const r = (readJson(f) as { readonly metricKeyReadiness?: MetricKeyReadiness }).metricKeyReadiness;
+    if (r !== undefined) return r;
+  }
+  return undefined;
 }
 
 function readJson(file: string): unknown {
@@ -598,7 +888,8 @@ export function loadCase(repoRoot: string, caseDir: string): { ok: true; value: 
       baseline: { report: readJson(join(dir, rec.seed.baselineReportPath)), record: baseRec },
     });
   }
-  return { ok: true, value: { manifest: manifest.data, seeds } };
+  const metricKeyReadiness = readReadiness(repoRoot, dir);
+  return { ok: true, value: { manifest: manifest.data, seeds, ...(metricKeyReadiness !== undefined && { metricKeyReadiness }) } };
 }
 
 // ---------------------------------------------------------------------------------------------
@@ -645,7 +936,7 @@ function selfTestInput(rule: MatchingRule): ScoreInput {
   return { rule, seeds: [{ row: { seedId: 'self-test:MO-S01:0', expected: { collateral: [] } } as unknown as ManifestRow, baseline: { report: {}, record: undefined }, seeded: { report: {}, record: undefined } }] };
 }
 
-export function main(argv: readonly string[], repoRoot: string, io: ScoreMainIo, loadRule: (root: string) => RuleLoad): number {
+export async function main(argv: readonly string[], repoRoot: string, io: ScoreMainIo, loadRule: (root: string) => RuleLoad): Promise<number> {
   const args = parseArgs(argv);
   if (typeof args === 'string') {
     io.err(`${args}\n${SCORE_USAGE}`);
@@ -686,8 +977,15 @@ export function main(argv: readonly string[], repoRoot: string, io: ScoreMainIo,
     io.err(`input error: ${loaded.detail}\n`);
     return 2;
   }
+  const thresholds = await metricThresholds(repoRoot, loaded.value.manifest.rows);
+  if (!thresholds.ok) {
+    io.err(`${SCORE_INPUT_REJECTED}: ${thresholds.detail}\n`);
+    return 1;
+  }
   const result = scoreDifferential({
-    rule: rule.rule, seeds: loaded.value.seeds, rejections: loaded.value.manifest.rejections, ...(labels !== undefined && { labels }),
+    rule: rule.rule, seeds: loaded.value.seeds, rejections: loaded.value.manifest.rejections, thresholds: thresholds.value,
+    ...(loaded.value.metricKeyReadiness !== undefined && { metricKeyReadiness: loaded.value.metricKeyReadiness }),
+    ...(labels !== undefined && { labels }),
   });
   if (!result.ok) {
     io.err(`${result.code}: ${result.detail}\n`);
