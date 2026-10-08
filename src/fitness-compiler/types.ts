@@ -64,8 +64,9 @@ export interface CypherTemplate {
   readonly optionalParams: readonly string[];
   readonly description: string;
   readonly resultMapping: ResultMapping;
-  // Optional in U0 (D-U0-4); U1 makes tag and requiredLayerKinds required (FR-29, FR-19).
+  // tag optional in U0 (D-U0-4); U1 makes it required at K11 (FR-29).
   readonly tag?: TemplateTag;
-  readonly requiredLayerKinds?: readonly LayerKind[];
+  // Layer kinds the template needs bound; [] = none (FR-19, BR-U1-15). Required from U1 K1.
+  readonly requiredLayerKinds: readonly LayerKind[];
   readonly applicableStyles?: readonly string[]; // undefined = every style (FR-20)
 }

@@ -32,7 +32,7 @@ export function isTemplateApplicable(
     return { applicable: false, reason: `not applicable to style ${style}` };
   }
 
-  const missing = (template.requiredLayerKinds ?? []).find((kind) => !isKindBound(kind, binding));
+  const missing = template.requiredLayerKinds.find((kind) => !isKindBound(kind, binding));
   if (missing !== undefined) {
     return { applicable: false, reason: `no ${missing} layer` };
   }

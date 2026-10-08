@@ -30,3 +30,7 @@ U1 lines use the label `U1-Kn` in place of the commit hash (recover it with `git
 - variant-c-everything: hard-block, 0.396 (header: 0.33 hard-block)
 - variant-d-subtle: hard-block, 0.362 (header: 0.66 warning)
 Only variant-b and variant-c match the header verdict. U0 fixes nothing; the re-baseline in Build and Test explains the gaps.
+
+## Self-spec
+
+2026-10-08 U1-K1 self — FR-19 (U1 Q3 B): core-modules kind: infrastructure; FF-P03, FF-P05, FF-CV01, FF-CV04 now bind infraLayer and execute.

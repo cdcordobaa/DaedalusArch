@@ -11,6 +11,7 @@ function template(overrides: Partial<CypherTemplate> = {}): CypherTemplate {
     optionalParams: [],
     description: 'test',
     resultMapping: { filePathColumn: 'filePath', messageTemplate: 'x' },
+    requiredLayerKinds: [],
     ...overrides,
   };
 }
@@ -73,7 +74,7 @@ describe('isTemplateApplicable (BR-U1-10, BR-U1-15, BR-U1-18)', () => {
         .toEqual({ applicable: false, reason: 'no application layer' });
     });
 
-    it('treats an absent requiredLayerKinds as none', () => {
+    it('an empty requiredLayerKinds needs no bound layer', () => {
       expect(isTemplateApplicable(template(), undefined, { applicationLayers: [] }, THREE))
         .toEqual({ applicable: true });
     });

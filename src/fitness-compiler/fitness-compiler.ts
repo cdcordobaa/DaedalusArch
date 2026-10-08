@@ -6,8 +6,10 @@ import type {
 import type { PipelineStage } from '../shared/interfaces/pipeline-stage.js';
 import type { FirewallContext } from '../shared/context/firewall-context.js';
 import { DomainResult } from '../shared/errors/domain-result.js';
-import type { CompilerInput, CompilerError, CompilerWarning, CypherTemplate } from './types.js';
+import type { CompilerInput, CompilerError, CompilerWarning, CypherTemplate, LayerKindBinding } from './types.js';
 import { CYPHER_TEMPLATES } from './cypher-templates.js';
+import { bindLayerParams } from './layer-binding.js';
+import { isTemplateApplicable } from './template-applicability.js';
 import { injectExcludePaths } from './exclude-injector.js';
 import { compilerInputFromSpec } from './compiler-input.js';
 
@@ -52,30 +54,30 @@ export function compileFunctions(input: CompilerInput): DomainResult<CompiledFun
     seenIds.add(id);
   }
 
-  // Auto-skip layer-dependent structural rules when fewer than 3 layers
-  // are defined AND no file_patterns provide per-file layer granularity.
-  const layerCount = layerModel.layers.length;
-  const hasFilePatterns = layerModel.layers.some(l => (l.filePatterns ?? []).length > 0);
+  // C4: bind layer parameters by resolved kind (FR-19). Reads only LayerDefinition.kind.
+  const binding = bindLayerParams(layerModel.layers);
 
   // Compile enabled fitness functions by route
   for (const ff of enabledFunctions) {
-    if (ff.name === 'no-layer-skip' && layerCount < 3 && !hasFilePatterns) {
-      disabledFunctions.push({
-        id: ff.id,
-        name: ff.name,
-        reason: `Auto-disabled: only ${layerCount} layer(s) defined with no file_patterns — no intermediate layer to skip`,
-      });
-      warnings.push({
-        code: 'COMPILER_004' as CompilerWarning['code'],
-        message: `FF-S03 (no-layer-skip) auto-disabled: ${layerCount} layers with no file_patterns, need ≥ 3 layers or file_patterns`,
-        functionId: String(ff.id),
-      });
-      continue;
+    // C5: applicability (style, layer kinds, no-layer-skip layer count) for symbolic/hybrid functions
+    // with a template; a disabled function is skipped downstream (BR-U1-10, BR-U1-15, BR-U1-18).
+    const template = ff.route === 'neuronal' ? undefined : CYPHER_TEMPLATES.get(ff.name);
+    if (template) {
+      const applicability = isTemplateApplicable(template, input.style, binding, layerModel);
+      if (!applicability.applicable) {
+        disabledFunctions.push({ id: ff.id, name: ff.name, reason: applicability.reason });
+        warnings.push({
+          code: 'COMPILER_004',
+          message: `${String(ff.id)} (${ff.name}) disabled: ${applicability.reason}`,
+          functionId: String(ff.id),
+        });
+        continue;
+      }
     }
 
     switch (ff.route) {
       case 'symbolic': {
-        const result = compileSymbolic(ff, layerModel, warnings);
+        const result = compileSymbolic(ff, layerModel, binding, warnings);
         if (result) symbolicQueries.push(applyExcludePaths(result, ff.excludePaths));
         break;
       }
@@ -85,7 +87,7 @@ export function compileFunctions(input: CompilerInput): DomainResult<CompiledFun
         break;
       }
       case 'hybrid': {
-        let sym = compileSymbolic(ff, layerModel, warnings);
+        let sym = compileSymbolic(ff, layerModel, binding, warnings);
         const neur = compileNeuronal(ff, false);
         if (sym) sym = applyExcludePaths(sym, ff.excludePaths);
         if (sym && neur) {
@@ -148,6 +150,7 @@ function applyExcludePaths(query: CypherQuery, excludePaths: readonly string[]):
 function compileSymbolic(
   ff: FitnessFunction,
   layerModel: LayerModel,
+  binding: LayerKindBinding,
   warnings: CompilerWarning[],
 ): CypherQuery | undefined {
   const template = CYPHER_TEMPLATES.get(ff.name);
@@ -161,7 +164,7 @@ function compileSymbolic(
     return undefined;
   }
 
-  const params = buildParams(ff, layerModel);
+  const params = buildParams(ff, layerModel, binding);
   const cypher = instantiateTemplate(template, params);
 
   return {
@@ -260,18 +263,17 @@ export function instantiateTemplate(
 function buildParams(
   ff: FitnessFunction,
   layerModel: LayerModel,
+  binding: LayerKindBinding,
 ): Record<string, unknown> {
   const params: Record<string, unknown> = {};
   const layers = layerModel.layers;
 
-  // Common layer params
-  const domainLayer = layers.find((l) => l.name === 'domain')?.name;
-  const applicationLayer = layers.find((l) => l.name === 'application')?.name;
-  const infraLayer = layers.find((l) => l.name === 'infrastructure')?.name;
-
-  if (domainLayer) params['domainLayer'] = domainLayer;
-  if (applicationLayer) params['applicationLayer'] = applicationLayer;
-  if (infraLayer) params['infraLayer'] = infraLayer;
+  // Common layer params, bound by kind (FR-19, BR-U1-14). The scalar applicationLayer is the first
+  // application layer until the list parameter $applicationLayers lands (K9).
+  const applicationLayer = binding.applicationLayers[0];
+  if (binding.domainLayer != null) params['domainLayer'] = binding.domainLayer;
+  if (applicationLayer != null) params['applicationLayer'] = applicationLayer;
+  if (binding.infraLayer != null) params['infraLayer'] = binding.infraLayer;
 
   // Layer ordering for dependency-direction
   // Layers are listed bottom-up in the spec: domain (0), ..., application (N-1)

@@ -3,9 +3,10 @@ import type {
   ScoringWeights, VerdictThresholds, ConfidenceThresholds,
   SemanticCriteria,
 } from '../shared/types/spec.js';
-import type { Dimension, Severity, Route } from '../shared/types/enums.js';
+import type { Dimension, Severity, Route, LayerKind } from '../shared/types/enums.js';
 import type { ValidationWarning } from './types.js';
 import { functionId } from '../shared/types/value-objects.js';
+import { resolveLayerKinds } from './layer-kind-resolver.js';
 
 export interface LayerCResult {
   readonly scoringWeights: ScoringWeights;
@@ -15,21 +16,29 @@ export interface LayerCResult {
 }
 
 /**
- * Parse Layer A: architecture.layers → LayerModel
+ * Parse Layer A: architecture.layers → LayerModel.
+ * Reads the optional layer `kind` and resolves every layer's kind (FR-19, BR-U1-12); duplicate scalar
+ * kinds add SPEC_005 to `warnings` (BR-U1-13).
  */
-export function parseLayerA(raw: Record<string, unknown>): LayerModel {
+export function parseLayerA(raw: Record<string, unknown>, warnings: ValidationWarning[] = []): LayerModel {
   const arch = raw['architecture'] as Record<string, unknown>;
   const rawLayers = arch['layers'] as Record<string, unknown>[];
 
-  const layers: LayerDefinition[] = rawLayers.map((l) => ({
-    name: String(l['name']),
-    directories: (l['directories'] as string[] | undefined) ?? [],
-    naming: [],
-    decorators: (l['decorators'] as string[] | undefined) ?? [],
-    filePatterns: (l['file_patterns'] as string[] | undefined) ?? [],
-    role: ((l['roles'] as string[]) ?? []).join(', '),
-  }));
+  const declared: LayerDefinition[] = rawLayers.map((l) => {
+    const { kind } = l as { kind?: LayerKind };
+    return {
+      name: String(l['name']),
+      directories: (l['directories'] as string[] | undefined) ?? [],
+      naming: [],
+      decorators: (l['decorators'] as string[] | undefined) ?? [],
+      filePatterns: (l['file_patterns'] as string[] | undefined) ?? [],
+      role: ((l['roles'] as string[]) ?? []).join(', '),
+      ...(kind != null ? { kind } : {}),
+    };
+  });
 
+  const { layers, warnings: kindWarnings } = resolveLayerKinds(declared);
+  warnings.push(...kindWarnings);
   return { layers };
 }
 

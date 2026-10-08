@@ -1,3 +1,4 @@
+import type { LayerKind } from '../shared/types/enums.js';
 import type { CypherTemplate, ResultMapping } from './types.js';
 
 function rm(filePathColumn: string, messageTemplate: string, metadataColumns?: string[]): ResultMapping {
@@ -11,11 +12,12 @@ function tmpl(
   functionName: string,
   template: string,
   requiredParams: string[],
+  requiredLayerKinds: LayerKind[],
   description: string,
   optionalParams: string[] = [],
   resultMapping: ResultMapping = DEFAULT_RM,
 ): CypherTemplate {
-  return { functionName, template, requiredParams, optionalParams, description, resultMapping };
+  return { functionName, template, requiredParams, requiredLayerKinds, optionalParams, description, resultMapping };
 }
 
 /**
@@ -38,6 +40,7 @@ WITH src, tgt,
 WHERE srcIdx >= 0 AND tgtIdx >= 0 AND srcIdx < tgtIdx
 RETURN src.filePath AS source, tgt.filePath AS target, src.layer AS srcLayer, tgt.layer AS tgtLayer`,
     ['layerOrder'],
+    [],
     'Detects imports where a lower layer imports from a higher layer (violates dependency direction)',
     [],
     rm('source', '{source} ({srcLayer}) imports from {target} ({tgtLayer})', ['target', 'srcLayer', 'tgtLayer']),
@@ -48,6 +51,7 @@ RETURN src.filePath AS source, tgt.filePath AS target, src.layer AS srcLayer, tg
     `MATCH path = (f:File)-[:IMPORTS*2..]->(f)
 RETURN [n IN nodes(path) | n.filePath] AS cycle
 LIMIT 100`,
+    [],
     [],
     'Detects circular import chains of length 2+',
     [],
@@ -62,6 +66,7 @@ WHERE src.layer IS NOT NULL AND tgt.layer IS NOT NULL
   AND NOT (src.layer + '>' + tgt.layer) IN $allowedTransitions
 RETURN src.filePath AS source, tgt.filePath AS target, src.layer AS srcLayer, tgt.layer AS tgtLayer`,
     ['allowedTransitions'],
+    [],
     'Detects imports that skip intermediate layers (e.g., infrastructure directly importing domain, bypassing application)',
     [],
     rm('source', '{source} ({srcLayer}) skips layers to import {target} ({tgtLayer})', ['target', 'srcLayer', 'tgtLayer']),
@@ -73,6 +78,7 @@ RETURN src.filePath AS source, tgt.filePath AS target, src.layer AS srcLayer, tg
 WHERE src.layer = $domainLayer AND tgt.layer <> $domainLayer
 RETURN src.filePath AS source, tgt.filePath AS target, tgt.layer AS violatingLayer`,
     ['domainLayer'],
+    ['domain'],
     'Detects domain layer files that import from outer layers',
     [],
     rm('source', 'Domain file {source} imports from {target} in {violatingLayer}', ['target', 'violatingLayer']),
@@ -87,6 +93,7 @@ WHERE src.layer = $domainLayer
   AND ANY(forbidden IN $forbiddenImports WHERE tgt.filePath CONTAINS forbidden)
 RETURN src.filePath AS source, tgt.filePath AS target`,
     ['domainLayer', 'forbiddenImports'],
+    ['domain'],
     'Detects domain files importing forbidden framework/infrastructure packages',
     [],
     rm('source', 'Domain file {source} imports forbidden package {target}', ['target']),
@@ -102,6 +109,7 @@ RETURN c.name AS class, c.filePath AS filePath,
        toFloat(interfaceDeps) / totalDeps AS ratio,
        CASE WHEN toFloat(interfaceDeps) / totalDeps < $threshold THEN true ELSE false END AS violation`,
     ['applicationLayer', 'threshold'],
+    ['application'],
     'Checks that application-layer classes inject interfaces, not concrete classes (DIP)',
   )],
 
@@ -118,6 +126,7 @@ WHERE c.layer = $infraLayer
   AND NOT EXISTS { MATCH (c)-[:IMPLEMENTS]->(:Interface) }
 RETURN '' AS interface, c.name AS implementation, c.filePath AS filePath`,
     ['domainLayer', 'infraLayer'],
+    ['domain', 'infrastructure'],
     'Verifies infrastructure repositories implement domain interfaces',
   )],
 
@@ -131,6 +140,7 @@ MATCH (uc)-[:CONSTRUCTOR_INJECTS]->(dep)
 WHERE dep.layer IS NOT NULL AND dep.layer <> $domainLayer AND dep.layer <> $applicationLayer
 RETURN uc.name AS useCase, uc.filePath AS filePath, collect(dep.name) AS violations`,
     ['applicationLayer', 'domainLayer', 'useCaseRoles'],
+    ['application', 'domain'],
     'Verifies use cases only depend on domain and application layers',
     ['useCaseRoles'],
   )],
@@ -142,6 +152,7 @@ WHERE ctrl.layer = $infraLayer AND entity.layer = $domainLayer
   AND ANY(role IN $entityRoles WHERE entity.name CONTAINS role)
 RETURN ctrl.name AS controller, entity.name AS entity, ctrl.filePath AS filePath`,
     ['infraLayer', 'domainLayer', 'entityRoles'],
+    ['infrastructure', 'domain'],
     'Detects controllers directly referencing domain entities',
     ['entityRoles'],
   )],
@@ -160,6 +171,7 @@ RETURN f.filePath AS filePath, f.name AS name,
        toFloat(fanOut) / (fanIn + fanOut) AS instability,
        CASE WHEN toFloat(fanOut) / (fanIn + fanOut) > $threshold THEN true ELSE false END AS violation`,
     ['domainLayer', 'threshold'],
+    ['domain'],
     'Domain layer instability must be below threshold (lower = more stable)',
   )],
 
@@ -170,6 +182,7 @@ WITH f, count(DISTINCT dep) AS fanOut
 WHERE fanOut > $threshold
 RETURN f.filePath AS filePath, f.name AS name, fanOut`,
     ['threshold'],
+    [],
     'Detects files with excessive outgoing dependencies',
   )],
 
@@ -185,6 +198,7 @@ WITH f, fanIn, fanOut, toFloat(fanOut) / (fanIn + fanOut) AS instability
 WHERE instability > $threshold
 RETURN f.filePath AS filePath, f.layer AS layer, f.name AS name, instability`,
     ['threshold'],
+    [],
     'Flags files whose instability metric exceeds the threshold (fanOut / (fanIn + fanOut))',
   )],
 
@@ -197,6 +211,7 @@ WHERE f.layer IS NOT NULL
   AND NOT f.isBarrel
 RETURN f.filePath AS filePath, f.name AS name, f.layer AS layer`,
     [],
+    [],
     'Detects files with no import connections (neither importing nor imported)',
   )],
 
@@ -207,6 +222,7 @@ WITH f, count(DISTINCT incoming) AS fanIn
 WHERE fanIn > $threshold
 RETURN f.filePath AS filePath, f.name AS name, fanIn`,
     ['threshold'],
+    [],
     'Detects files with excessive incoming dependencies (god modules)',
   )],
 
@@ -219,6 +235,7 @@ WHERE total > 0
 RETURN toFloat(interfaces) / total AS ratio,
        CASE WHEN toFloat(interfaces) / total < $threshold THEN true ELSE false END AS violation`,
     ['threshold'],
+    [],
     'Checks ratio of interfaces to total classes+interfaces',
     [],
     rm('ratio', 'Abstraction ratio {ratio} below threshold', ['violation']),
@@ -235,6 +252,7 @@ WITH c, count(DISTINCT m) AS methodCount, count(DISTINCT dep) AS depCount
 WHERE methodCount > $maxPublicMethods OR depCount > $maxDependencies
 RETURN c.name AS class, c.filePath AS filePath, methodCount, depCount`,
     ['maxPublicMethods', 'maxDependencies'],
+    [],
     'SRP proxy: classes with too many methods or dependencies likely have multiple responsibilities',
   )],
 
@@ -245,6 +263,7 @@ WITH i, count(m) AS methodCount
 WHERE methodCount > $maxInterfaceMethods
 RETURN i.name AS interface, i.filePath AS filePath, methodCount`,
     ['maxInterfaceMethods'],
+    [],
     'ISP proxy: interfaces with too many methods should be split',
   )],
 
@@ -255,6 +274,7 @@ WITH c, length(path) AS depth
 WHERE depth > $maxDepth
 RETURN c.name AS class, c.filePath AS filePath, depth`,
     ['maxDepth'],
+    [],
     'Detects deep inheritance hierarchies',
   )],
 
@@ -274,6 +294,7 @@ WITH c, c.layer AS layer,
 WHERE NOT c.name =~ expectedPattern
 RETURN c.name AS class, c.filePath AS filePath, layer, expectedPattern`,
     ['domainLayer', 'applicationLayer', 'infraLayer', 'domainPattern', 'applicationPattern', 'infraPattern'],
+    ['domain', 'application', 'infrastructure'],
     'Checks class naming conventions per layer',
   )],
 
@@ -285,6 +306,7 @@ WHERE c.layer = $applicationLayer
   AND NOT c.name =~ $pattern
 RETURN c.name AS class, c.filePath AS filePath`,
     ['applicationLayer', 'pattern'],
+    ['application'],
     'Verifies service classes follow naming pattern',
   )],
 
@@ -295,6 +317,7 @@ WHERE (c.name CONTAINS 'Repository' OR c.name CONTAINS 'Repo')
   AND NOT c.name =~ $pattern
 RETURN c.name AS class, c.filePath AS filePath`,
     ['pattern'],
+    [],
     'Verifies repository classes follow naming pattern',
   )],
 
@@ -306,6 +329,7 @@ WHERE c.layer = $infraLayer
   AND NOT c.name =~ $pattern
 RETURN c.name AS class, c.filePath AS filePath`,
     ['infraLayer', 'pattern'],
+    ['infrastructure'],
     'Verifies controller classes follow naming pattern',
   )],
 
@@ -323,6 +347,7 @@ WHERE src.layer IS NOT NULL
   }
 RETURN src.filePath AS filePath, src.name AS name`,
     [],
+    [],
     'Detects source files without corresponding test files',
   )],
 
@@ -335,6 +360,7 @@ WHERE NOT decl:Function OR decl.name IS NOT NULL
 WITH f, count(decl) AS declCount
 WHERE declCount > 0
 RETURN f.filePath AS filePath, declCount`,
+    [],
     [],
     'Detects barrel/index files that contain business logic declarations',
   )],

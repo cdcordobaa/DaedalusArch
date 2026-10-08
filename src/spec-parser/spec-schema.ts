@@ -32,6 +32,7 @@ export const SPEC_SCHEMA_V1 = {
               file_patterns: { type: 'array', items: { type: 'string' } },
               roles: { type: 'array', items: { type: 'string' }, minItems: 1 },
               decorators: { type: 'array', items: { type: 'string' } },
+              kind: { type: 'string', enum: ['domain', 'application', 'infrastructure', 'presentation'] },
             },
             additionalProperties: false,
           },

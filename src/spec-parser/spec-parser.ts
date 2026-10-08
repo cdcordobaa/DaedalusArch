@@ -6,7 +6,7 @@ import type { PipelineStage } from '../shared/interfaces/pipeline-stage.js';
 import type { FirewallContext } from '../shared/context/firewall-context.js';
 import type { DomainWarning } from '../shared/errors/domain-result.js';
 import { DomainResult } from '../shared/errors/domain-result.js';
-import type { SpecInput, SpecParserOptions, SpecParserError } from './types.js';
+import type { SpecInput, SpecParserOptions, SpecParserError, ValidationWarning } from './types.js';
 import { DEFAULT_SPEC_PARSER_OPTIONS } from './types.js';
 import { validateSpecSchema, validateBusinessRules } from './spec-validator.js';
 import { resolveTemplate } from './template-registry.js';
@@ -58,11 +58,12 @@ export async function parseSpec(
   }
 
   // 4. Parse layers
-  const layerModel = parseLayerA(raw);
+  const layerWarnings: ValidationWarning[] = [];
+  const layerModel = parseLayerA(raw, layerWarnings);
   const { functions, warnings: mergeWarnings } = parseLayerB(raw, templateFunctions);
   const { scoringWeights, fullModeWeights, verdictThresholds, confidenceThresholds } = parseLayerC(raw);
 
-  for (const w of mergeWarnings) {
+  for (const w of [...layerWarnings, ...mergeWarnings]) {
     warnings.push({ code: w.code, message: w.message });
   }
 
