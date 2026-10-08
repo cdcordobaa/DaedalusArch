@@ -1,7 +1,7 @@
 # Labeller prompt — missed-seed items (MS)
 
 > **Requirements**: FR-v1.2E-27 (two pinned-model runs, root-cause codes from the fixed list, cassettes); BR-U5b-28, 29, 31, 32, 35, 36.
-> **Status**: *draft until Step 32* (registered with the pre-registration, BR-U5b-51).
+> **Status**: final, version 1.0.0 (U5b Step 31); registered with `corpus/prereg.json` version 1 (U5b Step 32, BR-U5b-51). Any change is a pre-registration version bump with a reason (BR-U5b-50).
 
 A deliberately introduced construct that the checker did not report (a false negative no mechanical rule explained) is labelled `FN` with the root cause of the miss.
 

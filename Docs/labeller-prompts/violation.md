@@ -1,7 +1,7 @@
 # Labeller prompt — violation items (P1, P2, P3)
 
 > **Requirements**: FR-v1.2E-27 (two pinned-model runs, root-cause codes from the fixed list, cassettes); BR-U5b-28, 29, 31, 32, 35, 36.
-> **Status**: *draft until Step 32* (registered with the pre-registration, BR-U5b-51).
+> **Status**: final, version 1.0.0 (U5b Step 31); registered with `corpus/prereg.json` version 1 (U5b Step 32, BR-U5b-51). Any change is a pre-registration version bump with a reason (BR-U5b-50).
 
 A reported rule violation (a finding of the symbolic checker) is labelled true positive (`TP`), false positive (`FP`) or unseeded true positive (`unseeded-TP`: a real violation that was not deliberately introduced).
 

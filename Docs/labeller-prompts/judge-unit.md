@@ -1,7 +1,7 @@
 # Labeller prompt — judge-unit items (P4)
 
 > **Requirements**: FR-v1.2E-27 (two pinned-model runs, root-cause codes from the fixed list, cassettes); BR-U5b-28, 29, 31, 32, 35, 36.
-> **Status**: *draft until Step 32* (registered with the pre-registration, BR-U5b-51).
+> **Status**: final, version 1.0.0 (U5b Step 31); registered with `corpus/prereg.json` version 1 (U5b Step 32, BR-U5b-51). Any change is a pre-registration version bump with a reason (BR-U5b-50).
 
 A judge unit (file, class or module) is labelled `pass` or `fail` against the dimension rubric. The labeller sees the unit's source and the rubric only, never the judge's result.
 
