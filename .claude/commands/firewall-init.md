@@ -92,7 +92,7 @@ Check for project-specific paths to exclude and add them to `default_exclude_pat
 Run from the DaedalusArch directory:
 
 ```bash
-NEO4J_PASSWORD=daedalus-dev npx tsx -e "
+NEO4J_PASSWORD=<your-neo4j-password> npx tsx -e "
 import { main } from './src/cli/cli.ts';
 main(['node', 'firewall', 'validate',
   '--spec', '<target>/firewall.spec.yaml',
@@ -107,7 +107,7 @@ If validation fails, fix the spec and retry.
 ### Step 8: Run first evaluation
 
 ```bash
-NEO4J_PASSWORD=daedalus-dev npx tsx -e "
+NEO4J_PASSWORD=<your-neo4j-password> npx tsx -e "
 import { main } from './src/cli/cli.ts';
 main(['node', 'firewall', 'evaluate',
   '--project', '<target>',
@@ -128,7 +128,7 @@ Present a summary to the user:
 ### Step 9: Generate HTML report
 
 ```bash
-NEO4J_PASSWORD=daedalus-dev npx tsx -e "
+NEO4J_PASSWORD=<your-neo4j-password> npx tsx -e "
 import { main } from './src/cli/cli.ts';
 main(['node', 'firewall', 'report',
   '--project', '<target>',
@@ -146,7 +146,7 @@ Open in browser: `open <target>/report.html`
 If violations were found, create a baseline so future CI runs only block on NEW violations:
 
 ```bash
-NEO4J_PASSWORD=daedalus-dev npx tsx -e "
+NEO4J_PASSWORD=<your-neo4j-password> npx tsx -e "
 import { main } from './src/cli/cli.ts';
 main(['node', 'firewall', 'baseline',
   '--project', '<target>',
@@ -192,7 +192,7 @@ Suggest next steps:
 
 ### "Failed to clear graph: authentication failure"
 - **Cause**: Wrong Neo4j password
-- **Fix**: Set `NEO4J_PASSWORD=daedalus-dev` (or whatever is configured in `docker-compose.yml`)
+- **Fix**: Set `NEO4J_PASSWORD=<your-neo4j-password>` (or whatever is configured in `docker-compose.yml`)
 
 ### "Unknown architecture style"
 - **Cause**: The `style` field in the spec doesn't match a registered template
