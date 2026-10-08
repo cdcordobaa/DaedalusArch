@@ -1021,3 +1021,12 @@ Plan checkboxes ticked. Auto-approved under standing approval; no blocking or ma
 **Context**: CONSTRUCTION — U4 Code Generation Part 2, Group 6 done; next Group 7 (Steps 26–27).
 
 ---
+
+## v1.2 Evaluation-Readiness — U4 Group 6 review follow-up (judge stage secrets, provenance warning, disposal)
+**Timestamp**: 2026-10-08T16:02:32Z
+**User Input**: None (standing approval of 2026-10-08T00:30:00Z; orchestrator passed the Group 6 review findings: 1 major, 3 minor, 1 info)
+**Intent**: Fix the C9 wiring so the cassette scrubber keeps the env-derived secrets (BR-U4-CAS-07), emit the mixed-provenance warning (BR-U4-CAS-10), dispose the Claude CLI neutral cwd on every path (BR-U4-ISO-05), and correct the Step 21/25 bookkeeping.
+**AI Response**: Follow-up commit e4feed7 on v1.2e-u4-neural-path (no history rewrite). Major CAS-07 fixed: judgeKnownSecrets() unites knownSecretsFrom(process.env) with the Neo4j policy secrets, used by pipeline-factory for the judge stage, router and critic. CAS-10 fixed: finishJudgeStage returns JUDGE_PROVENANCE_MIXED and both evaluation commands add it to the context. ISO-05 fixed: both commands dispose the inner ClaudeCliProvider in a finally; judgeStageNeeded() skips the record-mode pre-flight when no neural work exists (report then carries NO_JUDGE). Bookkeeping fixed: Step 25 hand-off-branch ticks annotated as superseded; Step 21 deviation (5) corrected. Info item (U3 cli.test.ts NEO4J_URI sensitivity): no U4 action; Gate U already runs with NEO4J_URI unset. Tests c9-hunks +9 (no U3-owned test touched). Gates: T clean; U 2560 / 169 suites; L 497 (<= 558); B 80 (<= 85); G 74 executed, 0 skipped, snapshot and CHANGES.md diffs empty, hashes unchanged. CI run 37805024158 green (unit 2545 + integration 15, golden 74, lint 497). No merged PR touched, so no follow-up PR.
+**Context**: CONSTRUCTION — U4 Code Generation Part 2, Group 6 review follow-up done; next Group 7 (Steps 26–27).
+
+---
