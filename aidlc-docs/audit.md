@@ -1012,3 +1012,12 @@ Plan checkboxes ticked. Auto-approved under standing approval; no blocking or ma
 **Context**: CONSTRUCTION — U5b Code Generation Part 2, Group 2 done; next Group 3 (Steps 6–10, G-CI).
 
 ---
+
+## v1.2 Evaluation-Readiness — U4 Group 6 (Steps 21–25): critic, router, provenance, report rows
+**Timestamp**: 2026-10-08T15:38:51Z
+**User Input**: None (standing approval of 2026-10-08T00:30:00Z; orchestrator started U4 Group 6 after U3 PR #5 merged)
+**Intent**: Merge v1.2e into the unit branch (D-U4-13), wire the critic to real units with U3's computeViolationId, align the router with BR-U3-15/53, add judge provenance and the neural result rows, and apply the C9 hunks to the U3-owned files on the unit branch because U3 had already merged.
+**AI Response**: Group 6 complete on v1.2e-u4-neural-path. Merges ce3f3d8 and 704fbcb (evaluation.ts conflict resolved as the union of U3-R1 and U4-K1 hunks); re-recorded U4_BASE 83b5c81, U_BASE 2155, L0_U4 558, B0_U4 85, N_G_U4 74. Step 21 f602422 (U4-K4: loadJudgeGraphView on U2 names filePath/DECLARES, critic with selection, pool, stop flow, RunManifest, aggregation, computeViolationId, JUDGE_NO_UNITS context.functionId). Step 22 810efdf (U4-K5: filterByMode keeps totalCompiled, hybrids only in full mode, no neural half after a failed or violating symbolic half, failures forwarded). Step 23 cfcf404 (U4-K7: judgeProvenanceOf; replay through ClaudeCliProvider with PATH emptied, zero spawns). Step 24 232f57f (toNeuralResultRows, readBaselineSelections, schema equal to U3's frozen rows). Step 25 73420f4 (C9 hunks in cli.ts, pipeline-factory.ts, route/neuronal evaluate commands as one attributed cross-unit commit, no hand-off branch; cli-llm-config test rewritten; ANTHROPIC_API_KEY and gemini-2.0-flash absent from src/). Gates at Step 25: T clean; U 2551 / 169 suites; L 497 (<= 558); B 80 (<= 85), 0 TS2688; G 74 executed, 0 skipped, snapshot and CHANGES.md diffs empty, hashes unchanged. Gate G-CI: runs 37799690179 (232f57f) and 37801622120 (73420f4) green. Golden changes: none, no CHANGES.md line. Open: ADR prose not wired into the critic (Build and Test); U1 k14 test prefix (Step 11).
+**Context**: CONSTRUCTION — U4 Code Generation Part 2, Group 6 done; next Group 7 (Steps 26–27).
+
+---
