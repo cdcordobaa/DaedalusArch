@@ -2,7 +2,9 @@ import {
   checkChangeLog,
   main,
   parseChangesLine,
+  parseBtChangesLine,
   parseU3ChangesLine,
+  resultsPathAllowed,
   SELF_TEST_INPUT,
   U3_ATTRIBUTIONS,
 } from '../../golden/check-changes-log.js';
@@ -283,5 +285,94 @@ describe('checkChangeLog U3-R and U4-K labels (BR-U3-91, D-U3-6)', () => {
     expect(problems).toMatch(/unattributable/);
     expect(problems).toMatch(/unknown U3 label U3-R15/);
     expect(problems).toMatch(/not the canonical U3-R2 string/);
+  });
+});
+
+describe('checkChangeLog Build and Test labels and results/ re-scope (BT Step 5; BR-U4-CAS-11; BR-U5b-56)', () => {
+  const FULL = 'tests/golden/__snapshots_full__/';
+
+  it('parses the three markers and a plain line', () => {
+    expect(parseBtChangesLine('2026-10-09 BT-B1 all — FR-18: re-baseline @abc1234 (symbolic-only); snapshots unchanged.')).toMatchObject({ label: 'BT-B1', observation: false, caseIds: ['all'], attribution: 'FR-18', marker: undefined });
+    expect(parseBtChangesLine('2026-10-09 BT-F46 baseline all — FR-36 (L0 lane): full-mode baseline.')).toMatchObject({ label: 'BT-F46', marker: 'baseline', observation: false });
+    expect(parseBtChangesLine('2026-10-09 BT-F47 re-record, cause 1a2b3c4 correct-reference — BR-U4-CAS-11: 3 missing keys.')).toMatchObject({ marker: 're-record', caseIds: ['correct-reference'] });
+    expect(parseBtChangesLine('2026-10-09 BT-D24 observation variant-b-pattern — ADR-016 e: no change.')).toMatchObject({ observation: true, marker: 'observation' });
+  });
+
+  it('rejects malformed BT lines: unknown group, no requirement id, unknown case id', () => {
+    const r = run([commit({
+      subject: 'test(bt): x',
+      addedChangesLines: [
+        '2026-10-09 BT-H1 all — FR-18: group H does not exist.',
+        '2026-10-09 BT-B1 all — re-baseline: no requirement id.',
+        '2026-10-09 BT-B1 variant-e — FR-18: unknown case.',
+      ],
+    })]);
+    expect(r.ok).toBe(false);
+    expect(r.problems.filter((p) => p.includes('Build and Test grammar'))).toHaveLength(2);
+    expect(r.problems.join('\n')).toMatch(/unknown case id "variant-e"/);
+  });
+
+  it('passes a BT snapshot commit with exactly one line per changed case', () => {
+    const r = run([commit({
+      subject: 'BT-E31: fix(bt): FF-CV01 probe fixed (ADR-016 b)',
+      changedFiles: [`${SNAP}variant-b-pattern.json`, `${SNAP}variant-c-everything.json`],
+      addedChangesLines: [
+        '2026-10-09 BT-E31 variant-b-pattern — ADR-016 b: FF-CV01 now fires.',
+        '2026-10-09 BT-E31 variant-c-everything — ADR-016 b: FF-CV01 now fires.',
+      ],
+    })]);
+    expect(r).toEqual({ ok: true, problems: [] });
+  });
+
+  it('fails a BT snapshot commit with two lines for one case, or none for a case', () => {
+    const doubled = run([commit({
+      subject: 'BT-B1: test(bt): x',
+      changedFiles: [`${SNAP}correct-reference.json`],
+      addedChangesLines: ['2026-10-09 BT-B1 correct-reference — FR-18: a.', '2026-10-09 BT-B1 all — FR-18: b.'],
+    })]);
+    expect(doubled.problems.join('\n')).toMatch(/adds 2 BT-B1 lines for it \(exactly one required\)/);
+    const missing = run([commit({
+      subject: 'BT-B1: test(bt): x',
+      changedFiles: [`${SNAP}correct-reference.json`, `${SNAP}variant-a-structural.json`],
+      addedChangesLines: ['2026-10-09 BT-B1 correct-reference — FR-18: a.'],
+    })]);
+    expect(missing.problems.join('\n')).toMatch(/"variant-a-structural" but no BT-B1 line/);
+  });
+
+  it('an observation or a line of another label does not attribute a BT snapshot commit', () => {
+    const r = run([commit({
+      subject: 'BT-B1: test(bt): x',
+      changedFiles: [`${SNAP}correct-reference.json`],
+      addedChangesLines: ['2026-10-09 BT-B1 observation all — FR-18: o.', '2026-10-09 BT-B2 all — FR-18: other step.'],
+    })]);
+    expect(r.problems.join('\n')).toMatch(/adds no non-observation BT-B1 line/);
+  });
+
+  it('treats the full-mode lane directory as a snapshot directory', () => {
+    const unlabelled = run([commit({ subject: 'test(bt): lane', changedFiles: [`${FULL}correct-reference.json`] })]);
+    expect(unlabelled.problems.join('\n')).toMatch(/unattributable/);
+    const baseline = run([commit({
+      subject: 'BT-F46: test(bt): full-mode golden lane L0 baseline',
+      changedFiles: [`${FULL}correct-reference.json`],
+      addedChangesLines: ['2026-10-09 BT-F46 baseline correct-reference — FR-36 (BR-U4-CAS-10): L0 baseline.'],
+    })]);
+    expect(baseline).toEqual({ ok: true, problems: [] });
+  });
+
+  it('allows results/pre-tag/** and results/<registered plan id>/** only', () => {
+    expect(resultsPathAllowed('results/pre-tag/fixtures-abc1234.json', [])).toBe(true);
+    expect(resultsPathAllowed('results/latency-gate/runs/r1.run.json', ['latency-gate'])).toBe(true);
+    expect(resultsPathAllowed('results/latency-gate/runs/r1.run.json', [])).toBe(false);
+    expect(resultsPathAllowed('results/other/x.json', ['latency-gate'])).toBe(false);
+    expect(resultsPathAllowed('results/x.json', ['x.json'])).toBe(false);
+    const r = checkChangeLog({ commits: [], resultsChanged: ['results/pre-tag/README.md', 'results/sensitivity/runs/a.run.json', 'results/scratch.json'], registeredPlanIds: ['sensitivity'] });
+    expect(r.problems).toHaveLength(1);
+    expect(r.problems[0]).toMatch(/BR-U1-42.*results\/scratch.json/);
+  });
+
+  it('self-test input also reports the doubled BT line and the unregistered results/ path', () => {
+    const problems = checkChangeLog(SELF_TEST_INPUT).problems.join('\n');
+    expect(problems).toMatch(/exactly one required/);
+    expect(problems).toMatch(/results\/unregistered\/x.json/);
   });
 });
