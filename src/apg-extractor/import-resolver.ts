@@ -1,15 +1,19 @@
 /**
- * Import resolution (FR-v1.2E-09, ADR-015 item 7).
+ * Import resolution (FR-v1.2E-09, FR-v1.2E-10, FR-v1.2E-34, ADR-015 item 7).
  *
  * Module-level resolution of one specifier from one source file, following the
  * decision list of `business-logic-model.md` §3.1 (first match wins): built-in →
  * relative → alias or bare through `ts.resolveModuleName` (D-U2-3) → `paths`
  * rule into `node_modules` → installed package → looks like a project alias →
- * bare Package. Shapes follow `domain-entities.md` §2.1–2.3 and §2.5.
+ * bare Package. Statement-level resolution (§3.2 per-name barrel routing, §3.3
+ * re-exports) turns each statement into occurrences and one partition outcome
+ * (§6). Shapes follow `domain-entities.md` §2.1–2.5.
  */
 import { dirname, isAbsolute, join, relative } from 'node:path';
-import { ts } from 'ts-morph';
-import type { Project, SourceFile } from 'ts-morph';
+import { Node, SyntaxKind, ts } from 'ts-morph';
+import type {
+  ExportDeclaration, ImportDeclaration, ImportEqualsDeclaration, Project, SourceFile, Symbol as MorphSymbol,
+} from 'ts-morph';
 import type { ExtractorOptions, NodeLookup } from './types.js';
 import { DEFAULT_OPTIONS } from './types.js';
 import { normalizeFilePath } from './id-generator.js';
@@ -22,6 +26,7 @@ import {
   packageRootFromSpecifier,
 } from './package-node-factory.js';
 import type { PackageNodeRegistry, PackageRoot } from './package-node-factory.js';
+import type { ImportOccurrence } from './import-edge-merger.js';
 
 // ── Entities ─────────────────────────────────────────────────────────────────
 
@@ -261,4 +266,259 @@ function resolveModuleSilently(specifier: string, fromSourceFile: SourceFile, ct
   }
   if (looksLikeProjectAlias(specifier, ctx)) return { kind: 'unresolved' };
   return { kind: 'package', root: packageRootForSpecifier(specifier, ctx.aliasRules), outOfRootAlias: false };
+}
+
+// ── Statement resolution (business-logic-model.md §3.2, §3.3, §6) ────────────
+
+/** The single partition counter a statement increments (`domain-entities.md` §2.3, BR-U2-14). */
+export type StatementOutcome = 'resolvedInternal' | 'external' | 'droppedNoFileNode' | 'unresolved';
+
+export interface StatementResolution {
+  /** In emission order (BR-U2-15). */
+  readonly occurrences: readonly ImportOccurrence[];
+  readonly outcome: StatementOutcome;
+  /** The statement's own specifier was an out-of-root alias and the outcome is `external` (BR-U2-08, 14). */
+  readonly outOfRootAlias: boolean;
+}
+
+type OccurrenceTarget = ImportOccurrence['target'];
+
+/** Result of following one exported name to its declaring file. */
+type NameTarget =
+  | { readonly kind: 'target'; readonly target: OccurrenceTarget }
+  | { readonly kind: 'dropped' }
+  | { readonly kind: 'fallback' };
+
+function sourceFileNodeIdOf(sf: SourceFile, ctx: ImportResolutionContext): string {
+  const id = ctx.lookup.fileNodes.get(normalizeFilePath(sf.getFilePath(), ctx.projectRoot));
+  if (id === undefined) throw new Error('import-resolver: statement in a file without a File node');
+  return id;
+}
+
+function targetKey(target: OccurrenceTarget, ctx: ImportResolutionContext): string {
+  return target.kind === 'file' ? `file:${target.fileNodeId}` : `package:${ctx.packages.getOrCreate(target.root).id}`;
+}
+
+/** Precedence for split statements: File > Package > dropped (BR-U2-14). */
+function outcomeOf(occurrences: readonly ImportOccurrence[]): StatementOutcome {
+  if (occurrences.some(o => o.target.kind === 'file')) return 'resolvedInternal';
+  if (occurrences.some(o => o.target.kind === 'package')) return 'external';
+  return 'droppedNoFileNode';
+}
+
+/** Module specifier of the import or export statement an alias declaration belongs to, if any. */
+function moduleSpecifierOfAlias(decl: Node): string | undefined {
+  if (Node.isExportSpecifier(decl)) return decl.getExportDeclaration().getModuleSpecifierValue();
+  if (Node.isNamespaceExport(decl)) return decl.getFirstAncestorByKind(SyntaxKind.ExportDeclaration)?.getModuleSpecifierValue();
+  if (Node.isImportSpecifier(decl)) return decl.getImportDeclaration().getModuleSpecifierValue();
+  if (Node.isImportClause(decl) || Node.isNamespaceImport(decl)) {
+    return decl.getFirstAncestorByKind(SyntaxKind.ImportDeclaration)?.getModuleSpecifierValue();
+  }
+  if (Node.isImportEqualsDeclaration(decl)) return importEqualsSpecifier(decl);
+  return undefined;
+}
+
+/** The alias stands for a whole module (`* as ns`, `import x = require()`), not for one of its names. */
+function aliasesWholeModule(decl: Node): boolean {
+  return Node.isNamespaceExport(decl) || Node.isNamespaceImport(decl) || Node.isImportEqualsDeclaration(decl);
+}
+
+/** String specifier of `import x = require('m')`; `undefined` for `import x = N.M`. */
+export function importEqualsSpecifier(decl: ImportEqualsDeclaration): string | undefined {
+  const ref = decl.getModuleReference();
+  if (!Node.isExternalModuleReference(ref)) return undefined;
+  const expr = ref.getExpression();
+  return expr !== undefined && Node.isStringLiteral(expr) ? expr.getLiteralValue() : undefined;
+}
+
+function fileTargetOf(sf: SourceFile, ctx: ImportResolutionContext): OccurrenceTarget | undefined {
+  const fileNodeId = ctx.lookup.fileNodes.get(normalizeFilePath(sf.getFilePath(), ctx.projectRoot));
+  return fileNodeId === undefined ? undefined : { kind: 'file', fileNodeId };
+}
+
+/**
+ * Follows one exported name of module file M hop by hop with
+ * `getImmediatelyAliasedSymbol()` (BR-U2-24). Each hop through an import or
+ * `export … from 'S'` statement classifies `S` from the hop's file (S-9a):
+ * project File → continue; Package → Package target; no File node → dropped
+ * (`EXTRACTOR_008`); unresolved → fall back to M, no extra warning. More hops
+ * than `maxBarrelDepth` → `EXTRACTOR_006`, a revisited alias declaration →
+ * `EXTRACTOR_007`; both fall back to M, as does a name the chain cannot resolve.
+ */
+function followExportedName(
+  name: string,
+  moduleFile: SourceFile,
+  specifier: string,
+  warnFile: string,
+  ctx: ImportResolutionContext,
+): NameTarget {
+  let sym: MorphSymbol | undefined = moduleFile.getExportSymbols().find(s => s.getName() === name);
+  let hops = 0;
+  const visited = new Set<string>();
+  while (sym !== undefined) {
+    const decl = sym.getDeclarations()[0];
+    if (decl === undefined) return { kind: 'fallback' };
+    if (!sym.isAlias()) {
+      const target = fileTargetOf(decl.getSourceFile(), ctx);
+      return target === undefined ? { kind: 'fallback' } : { kind: 'target', target };
+    }
+    const key = `${decl.getSourceFile().getFilePath()}:${String(decl.getStart())}`;
+    if (visited.has(key)) {
+      ctx.addWarning(warnFile, 'EXTRACTOR_007', `Circular barrel chain detected: ${specifier}`);
+      return { kind: 'fallback' };
+    }
+    visited.add(key);
+    const hopSpecifier = moduleSpecifierOfAlias(decl);
+    if (hopSpecifier !== undefined) {
+      hops++;
+      if (hops > ctx.maxBarrelDepth) {
+        ctx.addWarning(warnFile, 'EXTRACTOR_006', `Barrel resolution depth exceeded: ${specifier}`);
+        return { kind: 'fallback' };
+      }
+      const r = resolveModule(hopSpecifier, decl.getSourceFile(), ctx, { warnUnresolved: false });
+      if (r.kind === 'package') return { kind: 'target', target: { kind: 'package', root: r.root } };
+      if (r.kind === 'no-file-node') return { kind: 'dropped' };
+      if (r.kind === 'unresolved') return { kind: 'fallback' };
+      if (aliasesWholeModule(decl)) return { kind: 'target', target: { kind: 'file', fileNodeId: r.fileNodeId } };
+    }
+    sym = sym.getImmediatelyAliasedSymbol();
+  }
+  return { kind: 'fallback' };
+}
+
+interface NameSpec {
+  /** Exported-name form (Q8 A): `default`, `*`, or `A` for `{ A as B }`. */
+  readonly name: string;
+  readonly typeMarked: boolean;
+}
+
+/** Specifiers of an import declaration in source order. */
+function importNameSpecs(decl: ImportDeclaration): NameSpec[] {
+  const specs: NameSpec[] = [];
+  if (decl.getDefaultImport() !== undefined) specs.push({ name: 'default', typeMarked: false });
+  if (decl.getNamespaceImport() !== undefined) specs.push({ name: '*', typeMarked: false });
+  for (const n of decl.getNamedImports()) specs.push({ name: n.getName(), typeMarked: n.isTypeOnly() });
+  return specs;
+}
+
+function allTypeMarked(specs: readonly NameSpec[]): boolean {
+  return specs.length > 0 && specs.every(s => s.typeMarked);
+}
+
+/**
+ * IMPORTS occurrences of one import declaration or `import x = require()`
+ * (BR-U2-15, 16, 20, 21, 24; S-9b) and the statement's partition outcome.
+ */
+export function resolveImportTargets(
+  statement: ImportDeclaration | ImportEqualsDeclaration,
+  ctx: ImportResolutionContext,
+): StatementResolution {
+  const sf = statement.getSourceFile();
+  const sourceFileNodeId = sourceFileNodeIdOf(sf, ctx);
+  const warnFile = normalizeFilePath(sf.getFilePath(), ctx.projectRoot);
+  const line = statement.getStartLineNumber();
+  const statementTypeOnly = statement.isTypeOnly();
+  const isEquals = Node.isImportEqualsDeclaration(statement);
+  const specifier = isEquals ? importEqualsSpecifier(statement) : statement.getModuleSpecifierValue();
+  if (specifier === undefined) throw new Error('import-resolver: import-equals without a module reference');
+  // `import x = require()` is a static import of the whole module (S-9b).
+  const specs = isEquals ? [{ name: '*', typeMarked: false }] : importNameSpecs(statement);
+
+  const occurrence = (target: OccurrenceTarget, names: readonly string[], isTypeOnly: boolean): ImportOccurrence => ({
+    edgeType: 'IMPORTS', sourceFileNodeId, target, specifier, line, names, isTypeOnly,
+  });
+
+  const resolution = resolveModule(specifier, sf, ctx);
+  switch (resolution.kind) {
+    case 'unresolved':
+      return { occurrences: [], outcome: 'unresolved', outOfRootAlias: false };
+    case 'no-file-node':
+      return { occurrences: [], outcome: 'droppedNoFileNode', outOfRootAlias: false };
+    case 'package': {
+      const names = specs.map(s => s.name);
+      const occ = occurrence({ kind: 'package', root: resolution.root }, names, statementTypeOnly || allTypeMarked(specs));
+      return { occurrences: [occ], outcome: 'external', outOfRootAlias: resolution.outOfRootAlias };
+    }
+    case 'project-file':
+      break;
+  }
+
+  const moduleTarget: OccurrenceTarget = { kind: 'file', fileNodeId: resolution.fileNodeId };
+  if (specs.length === 0) {
+    // Side-effect import: one occurrence to M, no names, never type-only (BR-U2-20, 21).
+    return { occurrences: [occurrence(moduleTarget, [], false)], outcome: 'resolvedInternal', outOfRootAlias: false };
+  }
+
+  const routed = new Map<string, { target: OccurrenceTarget; specs: NameSpec[] }>();
+  for (const spec of specs) {
+    let target: OccurrenceTarget | undefined;
+    if (spec.name === '*') {
+      target = moduleTarget;
+    } else {
+      const followed = followExportedName(spec.name, resolution.sourceFile, specifier, warnFile, ctx);
+      if (followed.kind === 'dropped') continue;
+      target = followed.kind === 'target' ? followed.target : moduleTarget;
+    }
+    const key = targetKey(target, ctx);
+    const slot = routed.get(key);
+    if (slot === undefined) routed.set(key, { target, specs: [spec] });
+    else slot.specs.push(spec);
+  }
+
+  const occurrences = [...routed.values()].map(({ target, specs: routedSpecs }) =>
+    occurrence(target, routedSpecs.map(s => s.name), statementTypeOnly || allTypeMarked(routedSpecs)));
+  return { occurrences, outcome: outcomeOf(occurrences), outOfRootAlias: false };
+}
+
+/**
+ * RE_EXPORTS occurrence of one `export … from 'S'` statement: one occurrence to
+ * the module it names, not followed further (BR-U2-22, 23; S-3).
+ */
+export function resolveReExportTargets(statement: ExportDeclaration, ctx: ImportResolutionContext): StatementResolution {
+  const specifier = statement.getModuleSpecifierValue();
+  if (specifier === undefined) throw new Error('import-resolver: export declaration without a module specifier');
+  const sf = statement.getSourceFile();
+  const sourceFileNodeId = sourceFileNodeIdOf(sf, ctx);
+  const named = statement.getNamedExports();
+  const wholeModule = statement.isNamespaceExport() || statement.getNamespaceExport() !== undefined;
+  const names = wholeModule ? ['*'] : named.map(n => n.getName());
+  const isTypeOnly = statement.isTypeOnly() || (!wholeModule && named.length > 0 && named.every(n => n.isTypeOnly()));
+
+  const resolution = resolveModule(specifier, sf, ctx);
+  let target: OccurrenceTarget;
+  switch (resolution.kind) {
+    case 'unresolved':
+      return { occurrences: [], outcome: 'unresolved', outOfRootAlias: false };
+    case 'no-file-node':
+      return { occurrences: [], outcome: 'droppedNoFileNode', outOfRootAlias: false };
+    case 'package':
+      target = { kind: 'package', root: resolution.root };
+      break;
+    case 'project-file':
+      target = { kind: 'file', fileNodeId: resolution.fileNodeId };
+      break;
+  }
+  const occ: ImportOccurrence = {
+    edgeType: 'RE_EXPORTS', sourceFileNodeId, target, specifier, line: statement.getStartLineNumber(), names, isTypeOnly,
+  };
+  return {
+    occurrences: [occ],
+    outcome: outcomeOf([occ]),
+    outOfRootAlias: resolution.kind === 'package' && resolution.outOfRootAlias,
+  };
+}
+
+/**
+ * `import()` and `require()` call occurrences in one file (BR-U2-25). Import-equals
+ * declarations, `import('x').T` type references and `require.resolve()` are not calls
+ * of this form and are not counted.
+ */
+export function countUnsupportedDynamicImports(sf: SourceFile): number {
+  let count = 0;
+  for (const call of sf.getDescendantsOfKind(SyntaxKind.CallExpression)) {
+    const callee = call.getExpression();
+    if (callee.getKind() === SyntaxKind.ImportKeyword) count++;
+    else if (Node.isIdentifier(callee) && callee.getText() === 'require') count++;
+  }
+  return count;
 }
