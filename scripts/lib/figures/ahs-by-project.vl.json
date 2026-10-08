@@ -1,0 +1,20 @@
+{
+  "$schema": "https://vega.github.io/schema/vega-lite/v6.json",
+  "description": "AHS of the verdict-source field per accepted run (ahs_by_project.csv; SO3).",
+  "usermeta": { "csv": "ahs_by_project.csv", "svg": "ahs-by-project.svg" },
+  "width": 480,
+  "height": 240,
+  "data": { "name": "csv" },
+  "transform": [
+    {
+      "calculate": "datum.verdict_source === 'ahsCombined' ? toNumber(datum.ahs_combined) : datum.verdict_source === 'ahsNeuronal' ? toNumber(datum.ahs_neuronal) : toNumber(datum.ahs_deterministic)",
+      "as": "ahs"
+    }
+  ],
+  "mark": { "type": "bar" },
+  "encoding": {
+    "x": { "field": "project_id", "type": "nominal", "sort": null, "title": "project" },
+    "y": { "field": "ahs", "type": "quantitative", "scale": { "domain": [0, 1] }, "title": "AHS (verdict source)" },
+    "color": { "field": "verdict", "type": "nominal" }
+  }
+}

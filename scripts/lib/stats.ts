@@ -279,6 +279,123 @@ export function permutationTest(
   return { statistic: observed, p: (extreme + 1) / (resamples + 1), resamples, seed: options.seed };
 }
 
+/**
+ * Permutes `items` within blocks: the item at index i only moves to an index of the same block (BR-U5b-65:
+ * permutations never move a project across tasks). Blocks are visited in sorted order for reproducibility.
+ */
+export function permuteWithinBlocks<T>(items: readonly T[], blocks: readonly string[], rng: SeededRng): T[] {
+  if (items.length !== blocks.length) throw new RangeError('stats: items and blocks differ in length');
+  const byBlock = new Map<string, number[]>();
+  blocks.forEach((b, i) => {
+    const list = byBlock.get(b);
+    if (list === undefined) byBlock.set(b, [i]); else list.push(i);
+  });
+  const out = [...items];
+  for (const b of [...byBlock.keys()].sort()) {
+    const idx = byBlock.get(b) ?? [];
+    const shuffled = shuffle(idx.map((i) => pick(items, i)), rng);
+    idx.forEach((i, j) => { out[i] = pick(shuffled, j); });
+  }
+  return out;
+}
+
+function groupMeans(keys: readonly string[], values: readonly number[]): Map<string, { n: number; mean: number }> {
+  const acc = new Map<string, { n: number; sum: number }>();
+  keys.forEach((k, i) => {
+    const a = acc.get(k) ?? { n: 0, sum: 0 };
+    a.n += 1;
+    a.sum += pick(values, i);
+    acc.set(k, a);
+  });
+  return new Map([...acc].map(([k, a]) => [k, { n: a.n, mean: a.sum / a.n }]));
+}
+
+/** Between-level sum of squares: sum over levels of n_l (mean_l - grand mean)^2. */
+export function betweenSS(levels: readonly string[], values: readonly number[]): number {
+  if (values.length === 0) return 0;
+  const grand = values.reduce((a, b) => a + b, 0) / values.length;
+  let ss = 0;
+  for (const { n, mean } of groupMeans(levels, values).values()) ss += n * (mean - grand) ** 2;
+  return ss;
+}
+
+/** Interaction sum of squares of factors a and b: sum over cells n_ab (mean_ab - mean_a - mean_b + grand)^2. */
+export function interactionSS(a: readonly string[], b: readonly string[], values: readonly number[]): number {
+  if (values.length === 0) return 0;
+  const grand = values.reduce((x, y) => x + y, 0) / values.length;
+  const ma = groupMeans(a, values);
+  const mb = groupMeans(b, values);
+  const cells = groupMeans(a.map((x, i) => JSON.stringify([x, pick(b, i)])), values);
+  let ss = 0;
+  for (const [key, { n, mean }] of cells) {
+    const [ka, kb] = JSON.parse(key) as [string, string];
+    ss += n * (mean - (ma.get(ka)?.mean ?? 0) - (mb.get(kb)?.mean ?? 0) + grand) ** 2;
+  }
+  return ss;
+}
+
+export interface FactorObservation {
+  readonly block: string;
+  readonly level: string;
+  readonly value: number;
+}
+
+/**
+ * Permutation test of a factor main effect (statistic: between-level sum of squares), with the level labels
+ * permuted within blocks (task as blocking factor, BR-U5b-65). p = (1 + #{T* >= T}) / (1 + resamples).
+ */
+export function permutationFactorTest(
+  observations: readonly FactorObservation[],
+  options: { readonly seed: number; readonly resamples?: number },
+): PermutationResult {
+  const resamples = options.resamples ?? 10_000;
+  const rng = createRng(options.seed);
+  const levels = observations.map((o) => o.level);
+  const blocks = observations.map((o) => o.block);
+  const values = observations.map((o) => o.value);
+  const observed = betweenSS(levels, values);
+  const eps = 1e-12;
+  let extreme = 0;
+  for (let r = 0; r < resamples; r += 1) {
+    if (betweenSS(permuteWithinBlocks(levels, blocks, rng), values) >= observed - eps) extreme += 1;
+  }
+  return { statistic: observed, p: (extreme + 1) / (resamples + 1), resamples, seed: options.seed };
+}
+
+export interface TwoFactorObservation {
+  readonly block: string;
+  readonly a: string;
+  readonly b: string;
+  readonly value: number;
+}
+
+/**
+ * Permutation test of the a × b interaction (statistic: interaction sum of squares). Residuals of the additive
+ * model (value - mean_a - mean_b + grand) are permuted within blocks (permutation of reduced-model residuals).
+ */
+export function permutationInteractionTest(
+  observations: readonly TwoFactorObservation[],
+  options: { readonly seed: number; readonly resamples?: number },
+): PermutationResult {
+  const resamples = options.resamples ?? 10_000;
+  const rng = createRng(options.seed);
+  const a = observations.map((o) => o.a);
+  const b = observations.map((o) => o.b);
+  const blocks = observations.map((o) => o.block);
+  const values = observations.map((o) => o.value);
+  const observed = interactionSS(a, b, values);
+  const grand = values.reduce((x, y) => x + y, 0) / Math.max(1, values.length);
+  const ma = groupMeans(a, values);
+  const mb = groupMeans(b, values);
+  const residuals = values.map((v, i) => v - (ma.get(pick(a, i))?.mean ?? 0) - (mb.get(pick(b, i))?.mean ?? 0) + grand);
+  const eps = 1e-12;
+  let extreme = 0;
+  for (let r = 0; r < resamples; r += 1) {
+    if (interactionSS(a, b, permuteWithinBlocks(residuals, blocks, rng)) >= observed - eps) extreme += 1;
+  }
+  return { statistic: observed, p: (extreme + 1) / (resamples + 1), resamples, seed: options.seed };
+}
+
 // ---------------------------------------------------------------------------------------------
 // Agreement
 
