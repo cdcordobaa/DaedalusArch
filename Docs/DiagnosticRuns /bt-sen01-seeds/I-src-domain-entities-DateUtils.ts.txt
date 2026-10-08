@@ -1,0 +1,19 @@
+// General-purpose date helpers
+export function addDays(date: Date, days: number): Date {
+  const copy = new Date(date.getTime());
+  copy.setDate(copy.getDate() + days);
+  return copy;
+}
+
+export function isWeekend(date: Date): boolean {
+  const day = date.getDay();
+  return day === 0 || day === 6;
+}
+
+export function formatIsoDate(date: Date): string {
+  return date.toISOString().slice(0, 10);
+}
+
+export function daysBetween(a: Date, b: Date): number {
+  return Math.round(Math.abs(b.getTime() - a.getTime()) / 86400000);
+}

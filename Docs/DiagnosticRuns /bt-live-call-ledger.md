@@ -15,6 +15,17 @@
 | Author-install auto-update switch (U4 §7 row) | **AUTHOR ACTION open**: `DISABLE_AUTOUPDATER` is not set in the author shell environment; the author's own `~/.claude` settings were not read (task secrets rule), so the install-level switch is unverified |
 | ADR prose (`adrProse`, U4 §7 row) | no registered spec supplies it: the spec grammar has no ADR-prose field and no caller sets `RouterInput.adrProse`; the only occurrence outside `src/` is the token budget `adrProse: 1000` in `corpus/frozen-instrument.json`. The `## ADR context` prompt section is therefore always absent: **declared limitation**, no code change (wiring it would change the instrument before the freeze) |
 
+## SEN-01 required live calls (Step 36, Mock record, zero live calls)
+
+Mock provider, full mode, `--cassette-mode record` into scratch cassette dirs, lane 7693, seeds in `bt-sen01-seeds/`. A cassette entry is one judge call (3 runs per unit). The FF-N01 keys of the scratch spec with FF-N02 `enabled: false` equal the FF-N01 keys of the full-spec runs (15 = 15, set-equal), so disabling the other function does not change the probed function's prompts (DV-BT-3 holds). The base run of the full spec reproduces the committed `tests/fixtures/judge-cassettes/correct-reference/` file names exactly (42).
+
+| Function | Base copy | New on the seeded copy | Cassette entries | Init probes (2 record runs, DV-BT-F1) | Required live calls |
+|---|---|---|---|---|---|
+| FF-N01 (copy I) | 4 module units × 3 = 12 | `src/domain/entities` × 3 = 3 | 15 | 2 | **17** |
+| FF-N02 (copy S) | 10 file units × 3 = 30 | `src/domain/entities/Task.ts` × 3 = 3 | 33 | 2 | **35** |
+
+Totals: Step 35 (3) + FF-N01 (17) + FF-N02 (35) = **55 > 40**. **E-2 confirmed**: after Steps 35 and 37 the remaining budget is 40 − 3 − 17 = **20 < 35** (without the probes: 33). Copy S also changes the FF-N01 `src/domain/entities` key and copy I adds two FF-N02 file units (6 entries); neither is needed for the probed function.
+
 ## Judge (cap 40, retries included)
 
 | # | Date | Step | Run | Calls (attempts) | Running total |

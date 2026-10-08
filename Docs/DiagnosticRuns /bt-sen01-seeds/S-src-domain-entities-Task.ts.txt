@@ -1,0 +1,48 @@
+// Task — domain entity
+import * as fs from 'fs';
+import * as path from 'path';
+
+export class Task {
+  constructor(
+    public readonly id: string,
+    public readonly title: string,
+    public readonly description: string,
+    public readonly completed: boolean,
+    public readonly categoryId: string,
+    public readonly createdAt: Date
+  ) {}
+
+  complete(): Task {
+    return new Task(this.id, this.title, this.description, true, this.categoryId, this.createdAt);
+  }
+
+  isValid(): boolean {
+    return this.title.length > 0 && this.categoryId.length > 0;
+  }
+
+  save(storageDir: string): void {
+    const file = path.join(storageDir, 'tasks.json');
+    const rows: Array<Record<string, unknown>> = fs.existsSync(file)
+      ? (JSON.parse(fs.readFileSync(file, 'utf8')) as Array<Record<string, unknown>>)
+      : [];
+    const others = rows.filter((row) => row['id'] !== this.id);
+    others.push({
+      id: this.id,
+      title: this.title,
+      description: this.description,
+      completed: this.completed,
+      categoryId: this.categoryId,
+      createdAt: this.createdAt.toISOString(),
+    });
+    fs.writeFileSync(file, JSON.stringify(others, null, 2));
+  }
+
+  static findById(storageDir: string, id: string): Task | null {
+    const file = path.join(storageDir, 'tasks.json');
+    if (!fs.existsSync(file)) return null;
+    const rows = JSON.parse(fs.readFileSync(file, 'utf8')) as Array<Record<string, string | boolean>>;
+    const row = rows.find((r) => r['id'] === id);
+    if (row === undefined) return null;
+    return new Task(String(row['id']), String(row['title']), String(row['description']), row['completed'] === true, String(row['categoryId']), new Date(String(row['createdAt'])));
+  }
+}

@@ -1,0 +1,16 @@
+// Formats outgoing notification messages for e-mail and SMS channels
+export type Channel = 'email' | 'sms';
+
+export class NotificationFormatter {
+  format(channel: Channel, recipient: string, subject: string, body: string): string {
+    if (channel === 'sms') {
+      const text = `${subject}: ${body}`;
+      return text.length > 160 ? `${text.slice(0, 157)}...` : text;
+    }
+    return [`To: ${recipient}`, `Subject: ${subject}`, '', body, '', '-- sent by the notifier'].join('\n');
+  }
+
+  escapeHtml(value: string): string {
+    return value.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+  }
+}
