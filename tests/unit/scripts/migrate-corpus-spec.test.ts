@@ -1,4 +1,8 @@
+import * as fs from 'node:fs';
+import * as os from 'node:os';
+import * as path from 'node:path';
 import { migrate, main, CV02_FROM, CV02_TO } from '../../../scripts/migrate-corpus-spec.js';
+import { parseSpec } from '../../../src/spec-parser/spec-parser.js';
 
 // Inline nestjs-style corpus spec (shape of presets/nestjs.yaml before FR-22 and K3).
 const SPEC = `# Corpus spec: example project
@@ -167,5 +171,57 @@ describe('main (D-U1-15)', () => {
     } finally {
       write.mockRestore();
     }
+  });
+});
+
+describe('(c) a migrated corpus-shaped spec parses without SPEC_004 (FR-22, BR-U1-25 c; needs K14)', () => {
+  const ROOT = path.resolve(__dirname, '../../..');
+  const TMP = fs.mkdtempSync(path.join(os.tmpdir(), 'u1-migrate-c-'));
+  afterAll(() => { fs.rmSync(TMP, { recursive: true, force: true }); });
+
+  // The inline SPEC above is a fragment (no layers' directories, weights or thresholds) and cannot
+  // pass parseSpec, so (c) uses a full nestjs-style spec: presets/nestjs.yaml with the three FR-22
+  // keys and the FF-CV02 pattern put back to their pre-migration values (the corpus shape).
+  const preset = fs.readFileSync(path.join(ROOT, 'presets/nestjs.yaml'), 'utf-8');
+  const legacy = preset
+    .replace('    dimension: integrity\n    severity: major\n    route: neuronal\n', '    dimension: solid\n    severity: major\n    route: hybrid\n')
+    .replace('    name: layering-intent\n    dimension: semantic\n', '    name: layering-intent\n    dimension: intent\n')
+    .replace(/^ {4}integrity: 0\.04$/m, '    intent: 0.04')
+    .replace(`    pattern: "${CV02_TO}"`, `    pattern: "${CV02_FROM}"`);
+
+  async function spec004(text: string, name: string): Promise<string[]> {
+    const file = path.join(TMP, name);
+    fs.writeFileSync(file, text);
+    const r = await parseSpec({ specFilePath: file });
+    expect(r.success).toBe(true);
+    return (r.warnings ?? []).filter((w) => w.code === 'SPEC_004').map((w) => w.message);
+  }
+
+  it('the legacy fixture really is unmigrated', () => {
+    expect(legacy).not.toMatch(/integrity/);
+    expect(legacy).toContain(`pattern: "${CV02_FROM}"`);
+    expect(legacy).not.toContain(CV02_TO);
+  });
+
+  it('the unmigrated spec yields SPEC_004 (the check is live)', async () => {
+    expect(await spec004(legacy, 'unmigrated.yaml')).toEqual([
+      'Dimension "intent" of FF-N02 is deprecated; mapped to "semantic"',
+      'full_mode_weights.intent is deprecated; mapped to integrity',
+    ]);
+  });
+
+  it('fr22 then cv02 gives a spec that parses with no SPEC_004 and equals the corrected preset', async () => {
+    const fr22 = migrate(legacy, 'fr22');
+    expect(fr22.editedPaths).toEqual([
+      'fitness_functions[FF-N01].dimension',
+      'fitness_functions[FF-N01].route',
+      'fitness_functions[FF-N02].dimension',
+      'scoring.full_mode_weights.intent',
+    ]);
+    const cv02 = migrate(fr22.text, 'cv02');
+    expect(cv02.editedPaths).toEqual(['fitness_functions[FF-CV02].pattern']);
+    expect(cv02.untouched).toEqual([]);
+    expect(await spec004(cv02.text, 'migrated.yaml')).toEqual([]);
+    expect(cv02.text).toBe(preset);
   });
 });
