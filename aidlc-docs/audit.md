@@ -950,3 +950,12 @@ Plan checkboxes ticked. Auto-approved under standing approval; no blocking or ma
 **Context**: CONSTRUCTION — lane 2 Code Generation COMPLETE (U2, U1); next: lanes 3/4 code generation.
 
 ---
+
+## v1.2 Evaluation-Readiness — U4 pre-patch merged (auto-approved)
+**Timestamp**: 2026-10-08T11:45:36Z
+**User Input**: None (standing approval of 2026-10-08T00:30:00Z)
+**Intent**: Remove the `dimension === 'intent'` branch from src/llm-critic/llm-critic.ts so U3 plan Step 19 (Group 7 entry check) can proceed; pre-agreed U4 patch (U4 owns the file).
+**AI Response**: U4 pre-patch merged (auto-approved). PR #4 (v1.2e-u4-intent-prepatch → v1.2e) merged with a merge commit, 94a63c4af3433100154faafb0c2d816dfcd0e5bd. Violation type now follows BR-U4-VIO-03 (ADR-015 item 6): source 'adr' → INTENT_VIOLATION; dimension 'integrity' → INTEGRITY_VIOLATION; otherwise SEMANTIC_RULE_VIOLATION; BR-U4-VIO-03 three-case table test added. Gate T clean; Gate U 94 suites / 1280 tests; golden suite 38/38 against main Neo4j with snapshots unchanged (no CHANGES.md line). PR CI Build & Test green (runs 37771817326, 37771824903). Read-back: `git grep "dimension === 'intent'" origin/v1.2e -- src/llm-critic` empty. Remaining BR-U4-VIO-03 item (C10 comment text on INTENT_VIOLATION) left to U4. Pre-patch worktree removed. No escalation; main unchanged.
+**Context**: CONSTRUCTION — U4 pre-patch for U3 Step 19; U3 Group 7 unblocked.
+
+---
