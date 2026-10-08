@@ -44,7 +44,7 @@ function fnResult(fid: string, violations: Violation[], dimension: Dimension = '
 }
 
 function score(dimension: Dimension, avr: number): PerDimensionScore {
-  return { dimension, avr: avrScore(avr), weight: 0.2, violationCount: 1, functionCount: 3 };
+  return { dimension, avr: avrScore(avr), violatedWeight: 1, weight: 0.2, effectiveWeight: 0.2, violationCount: 1, functionCount: 3 };
 }
 
 interface RunSpec {
@@ -54,8 +54,16 @@ interface RunSpec {
   readonly root?: string;
 }
 
+/**
+ * A run as the assembled report carries it (U3-R9, BR-U3-62): `functionResults` from the results in
+ * the given order (name = compiled template name), and compiled functions without a result listed in
+ * `functionExecution.failed`.
+ */
 function makeRun(spec: RunSpec): GoldenRun {
   const root = spec.root ?? ROOT;
+  const compiled = spec.compiled ?? spec.results.map((r) => ({ functionId: String(r.functionId), templateName: 'dependency-direction' }));
+  const nameOf = new Map(compiled.map((c) => [c.functionId, c.templateName]));
+  const executed = new Set(spec.results.map((r) => String(r.functionId)));
   return {
     report: {
       runId: runId(`run-${Date.now()}-${Math.random()}`),
@@ -63,6 +71,12 @@ function makeRun(spec: RunSpec): GoldenRun {
       specVersion: '1.0.0',
       ahsDeterministic: ahsScore(0.75),
       verdict: 'warning',
+      scoring: {
+        weights: { structural: 0.2, coupling: 0.2, pattern: 0.2, solid: 0.2, convention: 0.2, semantic: 0, integrity: 0 },
+        thresholds: { pass: 0.8, warning: 0.65, softBlock: 0.5 },
+        confidenceThresholds: { high: 0.85, medium: 0.6, iccMinimum: 0.7 },
+        verdictSource: 'ahsDeterministic',
+      },
       perDimensionScores: spec.scores ?? [score('structural', 0.5), score('coupling', 0)],
       violations: spec.results.flatMap((r) => r.violations),
       universalMetrics: {
@@ -72,9 +86,35 @@ function makeRun(spec: RunSpec): GoldenRun {
       evaluationMode: 'symbolic-only',
       durationMs: Math.floor(Math.random() * 1000),
       warnings: [],
+      functionExecution: {
+        declared: 0, adrDerived: 0, compiled: 0, disabled: 0, dropped: [],
+        skippedByMode: 0, noJudgeUnits: [], executed: spec.results.length,
+        failed: compiled.filter((c) => !executed.has(c.functionId)).map((c) => ({
+          functionId: functionId(c.functionId), name: c.templateName, code: 'EVAL_001', message: 'failed',
+        })),
+      },
+      functionResults: spec.results.map((r) => ({
+        functionId: r.functionId,
+        name: nameOf.get(String(r.functionId)) ?? 'dependency-direction',
+        dimension: r.dimension,
+        route: 'symbolic' as const,
+        passed: r.passed,
+        violationCount: r.violations.length,
+        executionTimeMs: r.executionTimeMs,
+        truncated: r.truncated === true,
+      })),
+      disabledFunctions: [],
+      graphStats: { nodeCount: 0, edgeCount: 0, layerCoverage: 0, nodeCountByType: {}, edgeCountByType: {} },
+      layerAnnotation: { mapped: 0, unmapped: 0, unmappedFiles: [] },
+      parseCoverage: { total: 0, parsed: 0, percentage: 0, skipped: [] },
+      importResolution: {
+        resolvedInternal: 0, external: 0, unresolved: 0, unsupportedDynamic: 0,
+        externalOutOfRootAlias: 0, droppedNoFileNode: 0,
+      },
+      timings: { stages: [], totalMs: 0 },
+      droppedDimensions: [],
+      judge: { provider: 'none', model: 'none', runsPerUnit: 0 },
     },
-    evaluationResults: { symbolicResults: spec.results, neuronalResults: [] },
-    compiledSymbolic: spec.compiled ?? spec.results.map((r) => ({ functionId: String(r.functionId), templateName: 'dependency-direction' })),
     warnings: [],
   };
 }
@@ -112,6 +152,26 @@ describe('normaliseForSnapshot', () => {
       ['dimension', 'filePath', 'functionId', 'message', 'route', 'severity', 'type'],
     );
     expect(snap.functionResults).toEqual([{ functionId: 'F1', dimension: 'structural', passed: false, violationCount: 1 }]);
+  });
+
+  it('picks line and target when the violation carries them (U3-R2, FR-12; D-U0-12 pick)', () => {
+    const located: Violation = {
+      ...violation('F1', `${ROOT}/src/a.ts`, 'm'),
+      line: 3, target: `${ROOT}/src/b.ts`, lines: [3, 7], isTypeOnly: false,
+      discriminator: ['IMPORTS'], evidence: ['fanIn=2'], tag: 'structural',
+    };
+    const run = makeRun({ results: [fnResult('F1', [located, violation('F1', `${ROOT}/src/c.ts`, 'n')])] });
+    const snap = normaliseForSnapshot('case-x', run, { repoRoot: ROOT });
+    expect(snap.violations[0]).toEqual({
+      functionId: 'F1', type: 'LAYER_VIOLATION', dimension: 'structural', severity: 'major', route: 'symbolic',
+      filePath: '<root>/src/a.ts', message: 'm', line: 3, target: '<root>/src/b.ts',
+    });
+    // A violation without line and target keeps the U0 field set (no undefined keys).
+    expect(Object.keys(snap.violations[1] ?? {}).sort()).toEqual(
+      ['dimension', 'filePath', 'functionId', 'message', 'route', 'severity', 'type'],
+    );
+    expect(serialiseSnapshot(snap)).not.toContain('"lines"');
+    expect(serialiseSnapshot(snap)).not.toContain('"evidence"');
   });
 
   it('replaces the resolved root with <root> in every string', () => {
@@ -278,12 +338,12 @@ describe('normaliseForSnapshot', () => {
       .toBe('<root>/b.ts,<root>/a.ts,<root>/b.ts');
   });
 
-  it('applies the cap fallback when no-cyclic-deps returns the sentinel row (101 rows, BR-U1-28 d)', () => {
-    const rows = Array.from({ length: CYCLE_ROW_CAP + 1 }, (_, i) =>
+  it('lists a function whose report row is truncated and drops its rows (FR-35, BR-U3-08; U3-R9 reads functionResults[*].truncated)', () => {
+    const rows = Array.from({ length: CYCLE_ROW_CAP }, (_, i) =>
       violation('CYC', `${ROOT}/f${String(i)}.ts,${ROOT}/g.ts,${ROOT}/f${String(i)}.ts`, `Circular dependency: ${String(i)}`));
     const other = fnResult('F1', [violation('F1', `${ROOT}/src/a.ts`, 'm')]);
     const run = makeRun({
-      results: [fnResult('CYC', rows), other],
+      results: [{ ...fnResult('CYC', rows), truncated: true }, other],
       compiled: [
         { functionId: 'CYC', templateName: 'no-cyclic-deps' },
         { functionId: 'F1', templateName: 'dependency-direction' },
@@ -292,10 +352,10 @@ describe('normaliseForSnapshot', () => {
     const snap = normaliseForSnapshot('case-x', run, { repoRoot: ROOT });
     expect(snap.truncatedFunctions).toEqual([{ functionId: 'CYC', count: 100, truncated: true }]);
     expect(snap.violations.map((v) => v.functionId)).toEqual(['F1']);
-    expect(snap.functionResults.find((f) => f.functionId === 'CYC')?.violationCount).toBe(101);
+    expect(snap.functionResults.find((f) => f.functionId === 'CYC')?.violationCount).toBe(100);
   });
 
-  it('does not truncate exactly CYCLE_ROW_CAP (100) cycle rows (BR-U1-28 d)', () => {
+  it('does not truncate CYCLE_ROW_CAP (100) cycle rows without the truncated flag (BR-U1-28 d)', () => {
     const rows = Array.from({ length: CYCLE_ROW_CAP }, (_, i) =>
       violation('CYC', `${ROOT}/f${String(i)}.ts,${ROOT}/g.ts,${ROOT}/f${String(i)}.ts`, `Circular dependency: ${String(i)}`));
     const run = makeRun({

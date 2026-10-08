@@ -959,3 +959,29 @@ Plan checkboxes ticked. Auto-approved under standing approval; no blocking or ma
 **Context**: CONSTRUCTION — U4 pre-patch for U3 Step 19; U3 Group 7 unblocked.
 
 ---
+
+## v1.2 Evaluation-Readiness — U4 Group 1 Gate H subscription probe (Steps 2–6)
+**Timestamp**: 2026-10-08T12:35:06Z
+**User Input**: None (standing approval of 2026-10-08T00:30:00Z; the author completed the Step 2 subscription /login into the judge config dir)
+**Intent**: Run the U4 Part 2 probe (Steps 2–6) and decide Gate H before any U4 worktree or code.
+**AI Response**: Gate H PASS on H1–H5. H1: judge call under the dedicated CLAUDE_CONFIG_DIR, env -i allow-list and neutral cwd exited 0 with is_error false. H2: apiKeySource none and mcp_servers []. H3: every frozen flag accepted. H4: canary tokensFound neutral [] and ancestor []; the positive control fired on the ancestor channel only (variant: real HOME plus the judge dir, no isolation flags, because the throwaway home cannot authenticate). The user CLAUDE.md and hook channels were not positively controlled. H5: the structured_output field is present. [PROBE] values: toolsFlag true; modelUsage with camelCase keys and no alias suffix; PINNED_CLI_VERSION 2.1.294 (the CLI auto-updated from 2.1.293 during the login); auto-update is switched off by DISABLE_AUTOUPDATER=1, which must join JUDGE_ENV_ALLOW (not applied to the author's global install); AUTH is classified on is_error plus the result text "Not logged in" (subtype stays success); USAGE_LIMIT patterns are unverified. Timing medians: high 6570 ms, medium 5736 ms. Scrubbed evidence in ~/.firewall/u4-probe/out passes Gate X. Escalation: ISO-04 conflict. The CLI auto-installed the official plugin marketplace (plugins/**) into the judge dir at login, and settings.json is CLI-created; the author must choose between a re-login without the marketplace and an ISO-04 amendment before Step 7.
+**Context**: CONSTRUCTION — U4 Code Generation Group 1 (Gate H) complete; plan Steps 2–6 ticked with the Done note; Step 7 waits on the ISO-04 decision.
+
+---
+
+## U4 Gate H — ISO-04 resolution
+**Timestamp**: 2026-10-08T12:40:00Z
+**User Input**: "logged in" / "done" (author completed the subscription login into the dedicated judge config dir)
+**AI Response**: "Gate H passed H1–H5 (8bbd2cc). The judge dir broke the ISO-04 allow-list (marketplace plugins, settings.json, per-call projects/*/memory). Resolved under the standing approval as ADR-018: plugins/ removed and the judge call re-verified; allow-list values filled; settings.json content rule; CLI pinned at 2.1.294 with DISABLE_AUTOUPDATER in the child env. U4 proceeds to Step 7 after U3 merges."
+**Context**: CONSTRUCTION, U4 Code Generation Part 2, Group 1 exit
+
+---
+
+## v1.2 Evaluation-Readiness — U3 merged into v1.2e (auto-approved)
+**Timestamp**: 2026-10-08T13:47:05Z
+**User Input**: None (standing approval of 2026-10-08T00:30:00Z)
+**Intent**: Finish U3 Code Generation Group 11 (Steps 30–34): record hand-offs and the code summary, verify exit, open the PR into v1.2e, merge on green CI, verify the merged tree.
+**AI Response**: U3 merged into v1.2e (auto-approved). PR #5 (v1.2e-u3-evaluation-scoring-report → v1.2e) merged with a merge commit, c4d7bc49e11126e4015c72f68fd4233161bb49b7 (parents ecf0184, 13785cf; no squash, rebase or force-push; main unchanged at 7cd15b4). Tests: Gate U 1712 / 119 suites (base 1277 / 94); Gate G 74 executed, 0 skipped; L 558 (≤ 575); B 85; Gate P 0 at every commit. Golden changes: snapshots changed only in U3-R2 (a, b, c, d), U3-R4 (all five), U3-R5 (b, c), U3-R6 (all five), U3-R7 (all), U3-R8 (d), U3-R9 (all), each with one attributed tests/golden/CHANGES.md line; change-log checker green on PR CI (138 commits); final AHS .958 / .442 / .575 / .391 / .558, verdicts pass / hard-block / soft-block / hard-block / soft-block (failing sets as the binding table). CI: PR run 37786297526 green incl. Golden change log; merge push run 37786728598 green. Post-merge in the main checkout: T clean, U 1712 / 119, G 74 / 0 skipped under the 7687 lock, 7 U3-R snapshot commits on v1.2e. Deviations recorded in the plan: Step 32 scope allow-list prints the two already-attributed files (R11 neo4j-repository.ts shared-scrub call, R7 dimension-alias.ts type fix); Step 34 container/worktree cleanup deferred to the orchestrator's word. Open hand-offs (code/handoffs.md): U4 H8–H11, U5a H3–H4, lane-2 record owner H14–H15, lane-3 record owner H6/H16, Build and Test H13.
+**Context**: CONSTRUCTION — lane 3, U3 Code Generation COMPLETE and merged; next: U4 and U5a code generation, then U5b.
+
+---

@@ -8,7 +8,9 @@ import type { SnapshotStore } from '../shared/interfaces/snapshot-store.js';
 import type { LLMProvider } from '../shared/interfaces/llm-provider.js';
 import type { SharedSnapshotState } from './commands/snapshot-load-command.js';
 import { PipelineExecutor } from './pipeline-executor.js';
-import { FirewallContext } from '../shared/context/firewall-context.js';
+import type { FirewallContext } from '../shared/context/firewall-context.js';
+import { ScrubbingFirewallContext } from './scrubbing-context.js';
+import { neo4jScrubPolicy } from '../shared/errors/scrub.js';
 import { runId as makeRunId } from '../shared/types/value-objects.js';
 import { Neo4jRepository } from '../neo4j-ingestion/neo4j-repository.js';
 import { FileSystemSnapshotStore } from '../neo4j-ingestion/fs-snapshot-store.js';
@@ -27,6 +29,8 @@ import { ScoreCommand } from './commands/score-command.js';
 import { SnapshotSaveCommand } from './commands/snapshot-save-command.js';
 import { SnapshotLoadCommand } from './commands/snapshot-load-command.js';
 import { DriftDetectCommand } from './commands/drift-detect-command.js';
+import { AssembleReportCommand } from './commands/assemble-report-command.js';
+import type { CompileFactsHolder } from './commands/compile-command.js';
 
 /**
  * The value returned by `createPipeline`. Holds everything the caller needs
@@ -37,6 +41,8 @@ export interface PipelineBundle {
   readonly executor: PipelineExecutor;
   /** The shared FirewallContext (useful for reading audit/warnings post-run). */
   readonly context: FirewallContext;
+  /** The command sequence in execution order; the last is always `assemble-report` (BR-U3-50). */
+  readonly commands: readonly PipelineCommand[];
   /** Must be called in a `finally` block to close the Neo4j driver. */
   readonly cleanup: () => Promise<void>;
 }
@@ -53,12 +59,15 @@ export interface PipelineBundle {
  *   6. Score                            — sequential (needs EvaluationResults + ParsedSpec)
  *   7. (optional) SnapshotSave          — if `--persist` and commitSha present
  *   8. (optional) DriftDetect           — if `--diff`
+ *   9. AssembleReport                   — always last: the one EvaluationReport (BR-U3-50)
  */
 export function createPipeline(config: PipelineConfig): PipelineBundle {
   // ------------------------------------------------------------------
   // 1. Create the shared FirewallContext
   // ------------------------------------------------------------------
-  const context = new FirewallContext(makeRunId(`run-${Date.now()}`));
+  // NFR-05 (BR-U3-58): one scrub policy per run; warnings and audit entries are scrubbed on entry.
+  const scrubPolicy = neo4jScrubPolicy(config);
+  const context = new ScrubbingFirewallContext(makeRunId(`run-${Date.now()}`), scrubPolicy);
 
   // ------------------------------------------------------------------
   // 2. Instantiate infrastructure services
@@ -128,7 +137,9 @@ export function createPipeline(config: PipelineConfig): PipelineBundle {
   commands.push(new IngestCommand(graphRepo, snapshotStore, ingestConfig));
 
   // ---- Stage 3: Compile fitness functions -----------------------------
-  commands.push(new CompileCommand());
+  // CompileCommand records the declared-side counts that AssembleReportCommand reads (BR-U3-52).
+  const compileFacts: CompileFactsHolder = {};
+  commands.push(new CompileCommand(compileFacts));
 
   // ---- Stage 4: Evaluate (mode-dependent) -----------------------------
   switch (config.evaluationMode) {
@@ -139,7 +150,7 @@ export function createPipeline(config: PipelineConfig): PipelineBundle {
       break;
 
     case 'symbolic-only':
-      commands.push(new SymbolicEvaluateCommand(graphRepo));
+      commands.push(new SymbolicEvaluateCommand(graphRepo, scrubPolicy.secrets));
       break;
 
     case 'neuronal-only':
@@ -169,6 +180,15 @@ export function createPipeline(config: PipelineConfig): PipelineBundle {
     );
   }
 
+  // ---- Last: assemble the one report (BR-U3-50) -----------------------
+  // The timing source reads the executor (created below) when the command runs: timings at assembly time.
+  commands.push(new AssembleReportCommand({
+    mode: config.evaluationMode,
+    timingSource: () => executor.getTimings(),
+    compileFacts,
+    scrubPolicy,
+  }));
+
   // ------------------------------------------------------------------
   // 4. Create the executor
   // ------------------------------------------------------------------
@@ -181,7 +201,7 @@ export function createPipeline(config: PipelineConfig): PipelineBundle {
     await graphRepo.close();
   };
 
-  return { executor, context, cleanup };
+  return { executor, context, commands, cleanup };
 }
 
 // ======================================================================
@@ -212,6 +232,7 @@ class LazyScoreCommand implements PipelineCommand {
       evaluationMode: this.config.evaluationMode,
       projectPath: this.config.projectPath,
       specVersion: parsedSpec.specVersion,
+      fitnessFunctions: parsedSpec.fitnessFunctions,
     });
 
     return scoreCmd.execute(context);

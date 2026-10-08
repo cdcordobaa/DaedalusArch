@@ -2,6 +2,11 @@
  * Runs one golden case through the real pipeline, built exactly as the CLI
  * builds it (src/cli/cli.ts evaluate action), and returns the data the
  * snapshot needs (D-U0-12). No credential fallback: the caller passes them.
+ *
+ * Collapsed onto the assembled report (U3-R9, BR-U3-62): the run carries the
+ * `EvaluationReport` that `executor.execute()` returns (written by
+ * `AssembleReportCommand`) and the context warnings; it never reads the
+ * evaluation results or the compiled functions from the context.
  */
 import * as fs from 'node:fs';
 import * as os from 'node:os';
@@ -11,21 +16,14 @@ import type { PipelineBundle } from '../../src/pipeline/pipeline-factory.js';
 import type { PipelineConfig } from '../../src/pipeline/types.js';
 import { DomainResult } from '../../src/shared/errors/domain-result.js';
 import type { PipelineWarning } from '../../src/shared/errors/domain-result.js';
-import type { EvaluationReport, EvaluationResults } from '../../src/shared/types/evaluation.js';
+import type { EvaluationReport } from '../../src/shared/types/evaluation.js';
 import type { GoldenCase } from './golden-cases.js';
 import type { GoldenNeo4jConfig } from './golden-env.js';
 
-export interface CompiledSymbolicFunction {
-  readonly functionId: string;
-  readonly templateName: string;
-}
-
 export interface GoldenRun {
+  /** The assembled report (`executor.execute()`, BR-U3-50). */
   readonly report: EvaluationReport;
-  readonly evaluationResults: EvaluationResults;
-  /** Compiled symbolic functions in compiled order (`CypherQuery.name` is the template name). */
-  readonly compiledSymbolic: readonly CompiledSymbolicFunction[];
-  /** `FirewallContext.warnings` (the report's own `warnings` is `[]` at 7cd15b4). */
+  /** `FirewallContext.warnings`: equal to `report.warnings` before scrub, sort and cap (BR-U3-62). */
   readonly warnings: readonly PipelineWarning[];
 }
 
@@ -88,14 +86,8 @@ async function executeBundle(bundle: PipelineBundle): Promise<DomainResult<Golde
   if (!result.success) {
     return DomainResult.fail<GoldenRun>(result.errors);
   }
-  const compiled = bundle.context.getCompiledFunctions();
   return DomainResult.ok<GoldenRun>({
     report: result.data,
-    evaluationResults: bundle.context.getEvaluationResults(),
-    compiledSymbolic: compiled.symbolicQueries.map((q) => ({
-      functionId: String(q.functionId),
-      templateName: q.name,
-    })),
     warnings: [...bundle.context.warnings],
   });
 }

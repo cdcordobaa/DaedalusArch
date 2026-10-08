@@ -116,8 +116,20 @@ describe('createPipeline', () => {
     }));
 
     expect(names[0]).toBe('snapshot-load');
-    expect(names[names.length - 1]).toBe('drift-detect');
+    // U3-R9 (BR-U3-50): assemble-report is always last; drift-detect runs just before it.
+    expect(names[names.length - 2]).toBe('drift-detect');
+    expect(names[names.length - 1]).toBe('assemble-report');
   });
+
+  it.each(['full', 'symbolic-only', 'neuronal-only'] as const)(
+    'U3-R9 BR-U3-50: createPipeline(...).commands.at(-1).name is assemble-report in %s mode',
+    (evaluationMode) => {
+      const bundle = createPipeline(baseConfig({ evaluationMode, persist: true, diff: true, commitSha: 'abc123' as NonNullable<PipelineConfig['commitSha']> }));
+      expect(bundle.commands.at(-1)?.name).toBe('assemble-report');
+      expect(bundle.commands.filter((c) => c.name === 'assemble-report')).toHaveLength(1);
+      expect(getCommandNames(baseConfig({ evaluationMode })).at(-1)).toBe('assemble-report');
+    },
+  );
 
   it('cleanup function calls graphRepo.close()', async () => {
     const bundle = createPipeline(baseConfig());

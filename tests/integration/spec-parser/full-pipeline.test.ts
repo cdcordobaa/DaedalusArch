@@ -13,7 +13,7 @@ describe('integration: spec parse → compile pipeline', () => {
     if (!specResult.success) return;
 
     const spec = specResult.data;
-    expect(spec.fitnessFunctions).toHaveLength(26);
+    expect(spec.fitnessFunctions).toHaveLength(27); // U3-R6 (BR-U3-25): FF-P06 added; attributed cross-unit update
 
     // Step 2: Compile
     const input: CompilerInput = {

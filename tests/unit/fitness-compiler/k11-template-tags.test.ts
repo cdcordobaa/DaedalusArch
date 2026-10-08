@@ -11,6 +11,7 @@ const TAG_TABLE: Readonly<Record<string, TemplateTag>> = {
   'dependency-direction': 'structural',
   'no-layer-skip': 'structural',
   'no-domain-outward-dep': 'structural',
+  'domain-state-purity': 'structural', // U3-R6 (BR-U3-25): attributed cross-unit update (ADR-015 item 9, BR-U3-23)
   'no-cyclic-deps': 'topological',
   'module-fan-out': 'topological',
   'max-fan-in': 'topological',
@@ -45,9 +46,9 @@ describe('template tags (BR-U1-27)', () => {
     expect([tagRequired, kindsRequired]).toEqual([true, true]);
   });
 
-  it('the table covers exactly the 24 templates', () => {
+  it('the table covers exactly the 25 templates', () => {
     expect(Object.keys(TAG_TABLE).sort()).toEqual([...CYPHER_TEMPLATES.keys()].sort());
-    expect(CYPHER_TEMPLATES.size).toBe(24);
+    expect(CYPHER_TEMPLATES.size).toBe(25); // U3-R6 (BR-U3-25): attributed cross-unit update
   });
 
   it.each(Object.entries(TAG_TABLE))('(b) getTemplateTag(%s) = %s (§4.1, frozen)', (name, tag) => {
@@ -59,11 +60,11 @@ describe('template tags (BR-U1-27)', () => {
     expect(getTemplateTag('no-such-template')).toBeUndefined();
   });
 
-  it('(c) listTemplatesByTag partitions the 24 templates 3 / 8 / 13, in insertion order', () => {
+  it('(c) listTemplatesByTag partitions the 25 templates 4 / 8 / 13, in insertion order', () => {
     const lists = TAGS.map((t) => listTemplatesByTag(t));
-    expect(lists.map((l) => l.length)).toEqual([3, 8, 13]);
+    expect(lists.map((l) => l.length)).toEqual([4, 8, 13]); // U3-R6 (BR-U3-25): attributed cross-unit update
     const all = lists.flat();
-    expect(new Set(all).size).toBe(24);
+    expect(new Set(all).size).toBe(25); // U3-R6 (BR-U3-25): attributed cross-unit update
     expect([...all].sort()).toEqual([...CYPHER_TEMPLATES.keys()].sort());
     const order = [...CYPHER_TEMPLATES.keys()];
     for (const [i, t] of TAGS.entries()) {

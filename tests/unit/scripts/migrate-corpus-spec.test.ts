@@ -225,3 +225,119 @@ describe('(c) a migrated corpus-shaped spec parses without SPEC_004 (FR-22, BR-U
     expect(cv02.text).toBe(preset);
   });
 });
+
+describe('migrate fp06 (U3 FR-21, BR-U3-24; attributed cross-unit U3 rule)', () => {
+  const ROOT = path.resolve(__dirname, '../../..');
+  const WITH_LAYERS = `spec_version: "1.0.0"
+architecture:
+  style: clean-architecture
+  layers:
+    - name: core
+      kind: domain
+      roles: [entity]
+    - name: adapters
+      kind: infrastructure
+      roles: [repository]
+
+fitness_functions:
+  - id: FF-P01
+    name: domain-purity
+    dimension: pattern
+
+  - id: FF-P05
+    name: controller-no-entity
+    dimension: pattern
+    validated: false  # pending
+
+  # ── COUPLING ──
+
+  - id: FF-C01
+    name: domain-stability
+`;
+  const P06_BLOCK = '\n  - id: FF-P06\n    name: domain-state-purity\n    dimension: pattern\n    severity: critical\n    route: symbolic\n    validated: false\n';
+
+  it('inserts FF-P06 after FF-P05 in block style, keeping every other byte', () => {
+    const r = migrate(WITH_LAYERS, 'fp06');
+    expect(r.editedPaths).toEqual(['fitness_functions[FF-P06]']);
+    expect(r.untouched).toEqual([]);
+    expect(r.text).toBe(WITH_LAYERS.replace('    validated: false  # pending\n', `    validated: false  # pending\n${P06_BLOCK}`));
+  });
+
+  it('(b) is idempotent: a rerun on the output edits nothing and reports nothing', () => {
+    const once = migrate(WITH_LAYERS, 'fp06').text;
+    const again = migrate(once, 'fp06');
+    expect(again.text).toBe(once);
+    expect(again.editedPaths).toEqual([]);
+    expect(again.untouched).toEqual([]);
+  });
+
+  it('accepts a layer named persistence (no kind) as the infrastructure layer, and a layer named domain', () => {
+    const spec = WITH_LAYERS.replace('    - name: core\n      kind: domain\n', '    - name: domain\n')
+      .replace('    - name: adapters\n      kind: infrastructure\n', '    - name: persistence\n');
+    expect(migrate(spec, 'fp06').editedPaths).toEqual(['fitness_functions[FF-P06]']);
+  });
+
+  it('without FF-P05 it follows the last FF-P function; without any FF-P it goes last', () => {
+    const noP05 = WITH_LAYERS.replace('  - id: FF-P05\n    name: controller-no-entity\n    dimension: pattern\n    validated: false  # pending\n\n', '');
+    expect(migrate(noP05, 'fp06').text).toBe(noP05.replace('    dimension: pattern\n', `    dimension: pattern\n${P06_BLOCK}`));
+    const noP = 'architecture:\n  layers:\n    - { name: domain }\n    - { name: infrastructure }\nfitness_functions:\n  - id: FF-C01\n    name: domain-stability\n';
+    expect(migrate(noP, 'fp06').text).toBe(`${noP}${P06_BLOCK}`);
+  });
+
+  it('follows a flow-style anchor with a flow-style item', () => {
+    const flow = 'architecture:\n  layers:\n    - { name: business, kind: domain }\n    - { name: persistence, kind: infrastructure }\nfitness_functions:\n  - { id: FF-P05, name: controller-no-entity }\n  - { id: FF-C01, name: domain-stability }\n';
+    expect(migrate(flow, 'fp06').text).toBe(flow.replace('controller-no-entity }\n',
+      'controller-no-entity }\n  - { id: FF-P06, name: domain-state-purity, dimension: pattern, severity: critical, route: symbolic, validated: false }\n'));
+  });
+
+  it('a spec without a declared infrastructure layer is left untouched and reported', () => {
+    const r = migrate(SPEC, 'fp06');
+    expect(r.text).toBe(SPEC);
+    expect(r.editedPaths).toEqual([]);
+    expect(r.untouched).toEqual(['fitness_functions[FF-P06]: no domain and infrastructure (or persistence) layer declared']);
+  });
+
+  it('does not touch the FR-22 keys or FF-CV02', () => {
+    const r = migrate(WITH_LAYERS + (SPEC.split('fitness_functions:\n')[1] ?? ''), 'fp06');
+    expect(r.text).toContain('dimension: solid');
+    expect(r.text).toContain('pattern: "*Service"');
+  });
+
+  it.each(['presets/clean-architecture.yaml', 'presets/nestjs.yaml', 'presets/layered.yaml'])(
+    '%s without FF-P06 migrates back to the shipped declaration, which parses and compiles FF-P06', async (rel) => {
+      const shipped = fs.readFileSync(path.join(ROOT, rel), 'utf-8');
+      const comment = '  # FR-21 (U3-R6; BR-U3-22..24): domain class holding infrastructure state (FLOWS_TO | CONSTRUCTOR_INJECTS)\n';
+      const p06 = `${comment}${P06_BLOCK.slice(1)}\n`;
+      expect(shipped).toContain(p06);
+      const legacy = shipped.replace(p06, '');
+      const r = migrate(legacy, 'fp06');
+      expect(r.editedPaths).toEqual(['fitness_functions[FF-P06]']);
+      expect(r.text).toBe(shipped.replace(comment, ''));
+      const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'u3-fp06-'));
+      try {
+        const file = path.join(tmp, path.basename(rel));
+        fs.writeFileSync(file, r.text);
+        const parsed = await parseSpec({ specFilePath: file });
+        expect(parsed.success).toBe(true);
+        if (parsed.success) expect(parsed.data.fitnessFunctions.find((f) => String(f.id) === 'FF-P06')?.name).toBe('domain-state-purity');
+      } finally {
+        fs.rmSync(tmp, { recursive: true, force: true });
+      }
+    },
+  );
+
+  it('main accepts --step fp06 and writes the file', async () => {
+    const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'u3-fp06-cli-'));
+    const write = jest.spyOn(process.stdout, 'write').mockImplementation(() => true);
+    try {
+      const file = path.join(tmp, 'spec.yaml');
+      fs.writeFileSync(file, WITH_LAYERS);
+      await expect(main(['--step', 'fp06', file])).resolves.toBe(0);
+      expect(fs.readFileSync(file, 'utf-8')).toContain('  - id: FF-P06\n');
+      await expect(main(['--step', 'fp06', file])).resolves.toBe(0);
+    } finally {
+      write.mockRestore();
+      fs.rmSync(tmp, { recursive: true, force: true });
+    }
+  });
+});

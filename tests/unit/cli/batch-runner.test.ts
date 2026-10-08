@@ -94,8 +94,12 @@ const defaultBatchOpts: BatchOptions = {
 let stderrSpy: jest.SpyInstance;
 let stdoutSpy: jest.SpyInstance;
 
+const savedPassword = process.env.NEO4J_PASSWORD;
+
 beforeEach(() => {
   jest.clearAllMocks();
+  // BR-U3-80: runBatch requires NEO4J_PASSWORD before any project runs.
+  process.env.NEO4J_PASSWORD = 'test-password-for-batch-tests';
   stderrSpy = jest.spyOn(process.stderr, 'write').mockImplementation(() => true);
   stdoutSpy = jest.spyOn(process.stdout, 'write').mockImplementation(() => true);
 });
@@ -103,6 +107,8 @@ beforeEach(() => {
 afterEach(() => {
   stderrSpy.mockRestore();
   stdoutSpy.mockRestore();
+  if (savedPassword === undefined) delete process.env.NEO4J_PASSWORD;
+  else process.env.NEO4J_PASSWORD = savedPassword;
 });
 
 // ---------------------------------------------------------------------------

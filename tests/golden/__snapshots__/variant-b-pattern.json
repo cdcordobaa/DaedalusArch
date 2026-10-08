@@ -1,8 +1,14 @@
 {
-  "ahsDeterministic": 0.595,
+  "ahsDeterministic": 0.575,
   "caseId": "variant-b-pattern",
   "evaluationMode": "symbolic-only",
   "functionResults": [
+    {
+      "dimension": "pattern",
+      "functionId": "FF-P06",
+      "passed": true,
+      "violationCount": 0
+    },
     {
       "dimension": "structural",
       "functionId": "FF-S01",
@@ -11,43 +17,7 @@
     },
     {
       "dimension": "structural",
-      "functionId": "FF-S02",
-      "passed": true,
-      "violationCount": 0
-    },
-    {
-      "dimension": "structural",
       "functionId": "FF-S04",
-      "passed": true,
-      "violationCount": 0
-    },
-    {
-      "dimension": "pattern",
-      "functionId": "FF-P01",
-      "passed": true,
-      "violationCount": 0
-    },
-    {
-      "dimension": "pattern",
-      "functionId": "FF-P02",
-      "passed": false,
-      "violationCount": 2
-    },
-    {
-      "dimension": "pattern",
-      "functionId": "FF-P03",
-      "passed": false,
-      "violationCount": 1
-    },
-    {
-      "dimension": "pattern",
-      "functionId": "FF-P04",
-      "passed": false,
-      "violationCount": 2
-    },
-    {
-      "dimension": "pattern",
-      "functionId": "FF-P05",
       "passed": true,
       "violationCount": 0
     },
@@ -55,7 +25,7 @@
       "dimension": "coupling",
       "functionId": "FF-C01",
       "passed": true,
-      "violationCount": 1
+      "violationCount": 0
     },
     {
       "dimension": "coupling",
@@ -88,16 +58,10 @@
       "violationCount": 1
     },
     {
-      "dimension": "solid",
-      "functionId": "FF-SO01",
+      "dimension": "structural",
+      "functionId": "FF-S02",
       "passed": true,
       "violationCount": 0
-    },
-    {
-      "dimension": "solid",
-      "functionId": "FF-SO02",
-      "passed": false,
-      "violationCount": 1
     },
     {
       "dimension": "solid",
@@ -140,41 +104,83 @@
       "functionId": "FF-CV06",
       "passed": true,
       "violationCount": 0
+    },
+    {
+      "dimension": "pattern",
+      "functionId": "FF-P01",
+      "passed": false,
+      "violationCount": 1
+    },
+    {
+      "dimension": "pattern",
+      "functionId": "FF-P02",
+      "passed": false,
+      "violationCount": 2
+    },
+    {
+      "dimension": "pattern",
+      "functionId": "FF-P03",
+      "passed": false,
+      "violationCount": 1
+    },
+    {
+      "dimension": "pattern",
+      "functionId": "FF-P04",
+      "passed": false,
+      "violationCount": 2
+    },
+    {
+      "dimension": "pattern",
+      "functionId": "FF-P05",
+      "passed": true,
+      "violationCount": 0
+    },
+    {
+      "dimension": "solid",
+      "functionId": "FF-SO01",
+      "passed": true,
+      "violationCount": 0
+    },
+    {
+      "dimension": "solid",
+      "functionId": "FF-SO02",
+      "passed": false,
+      "violationCount": 1
     }
   ],
   "perDimensionScores": [
     {
       "avr": 0.333,
       "dimension": "structural",
-      "functionCount": 23,
+      "functionCount": 3,
       "violationCount": 1,
       "weight": 0.35
     },
     {
       "avr": 0.333,
       "dimension": "coupling",
-      "functionCount": 23,
+      "functionCount": 6,
       "violationCount": 2,
       "weight": 0.2
     },
     {
-      "avr": 0.6,
+      "avr": 0.667,
       "dimension": "pattern",
-      "functionCount": 23,
-      "violationCount": 3,
+      "functionCount": 6,
+      "violationCount": 4,
       "weight": 0.3
     },
     {
       "avr": 0.333,
       "dimension": "solid",
-      "functionCount": 23,
+      "functionCount": 3,
       "violationCount": 1,
       "weight": 0.1
     },
     {
       "avr": 0.167,
       "dimension": "convention",
-      "functionCount": 23,
+      "functionCount": 6,
       "violationCount": 1,
       "weight": 0.05
     }
@@ -196,19 +202,34 @@
       "dimension": "structural",
       "filePath": "src/application/use-cases/CompleteTaskUseCase.ts",
       "functionId": "FF-S01",
+      "line": 2,
       "message": "src/application/use-cases/CompleteTaskUseCase.ts (application) imports from src/infrastructure/repositories/InMemoryTaskRepository.ts (infrastructure)",
       "route": "symbolic",
       "severity": "critical",
+      "target": "src/infrastructure/repositories/InMemoryTaskRepository.ts",
       "type": "LAYER_VIOLATION"
     },
     {
       "dimension": "structural",
       "filePath": "src/application/use-cases/CreateTaskUseCase.ts",
       "functionId": "FF-S01",
+      "line": 2,
       "message": "src/application/use-cases/CreateTaskUseCase.ts (application) imports from src/infrastructure/repositories/InMemoryTaskRepository.ts (infrastructure)",
       "route": "symbolic",
       "severity": "critical",
+      "target": "src/infrastructure/repositories/InMemoryTaskRepository.ts",
       "type": "LAYER_VIOLATION"
+    },
+    {
+      "dimension": "pattern",
+      "filePath": "src/domain/entities/Task.ts",
+      "functionId": "FF-P01",
+      "line": 2,
+      "message": "Domain file src/domain/entities/Task.ts imports forbidden package @nestjs/common",
+      "route": "symbolic",
+      "severity": "critical",
+      "target": "@nestjs/common",
+      "type": "DOMAIN_PURITY_VIOLATION"
     },
     {
       "dimension": "pattern",
@@ -257,15 +278,6 @@
     },
     {
       "dimension": "coupling",
-      "filePath": "src/domain/entities/Task.ts",
-      "functionId": "FF-C01",
-      "message": "Violation in src/domain/entities/Task.ts",
-      "route": "symbolic",
-      "severity": "major",
-      "type": "INSTABILITY_VIOLATION"
-    },
-    {
-      "dimension": "coupling",
       "filePath": "src/application/use-cases/CompleteTaskUseCase.ts",
       "functionId": "FF-C03",
       "message": "Violation in src/application/use-cases/CompleteTaskUseCase.ts",
@@ -293,7 +305,7 @@
     },
     {
       "dimension": "coupling",
-      "filePath": "0.2",
+      "filePath": "<project>",
       "functionId": "FF-C06",
       "message": "Abstraction ratio 0.2 below threshold",
       "route": "symbolic",
@@ -356,6 +368,11 @@
     }
   ],
   "warnings": [
+    {
+      "code": "COMPILER_004",
+      "message": "FF-S03 (no-layer-skip) disabled: not applicable to style clean-architecture",
+      "stage": "compile-functions"
+    },
     {
       "code": "SPEC_002",
       "message": "Template function \"FF-C01\" overridden by spec declaration",
@@ -449,6 +466,11 @@
     {
       "code": "SPEC_002",
       "message": "Template function \"FF-P05\" overridden by spec declaration",
+      "stage": "parse-spec"
+    },
+    {
+      "code": "SPEC_002",
+      "message": "Template function \"FF-P06\" overridden by spec declaration",
       "stage": "parse-spec"
     },
     {

@@ -28,6 +28,7 @@ jest.mock('../../../src/fitness-compiler/index.js', () => ({
 import { ExtractCommand } from '../../../src/pipeline/commands/extract-command.js';
 import { ParseCommand } from '../../../src/pipeline/commands/parse-command.js';
 import { CompileCommand } from '../../../src/pipeline/commands/compile-command.js';
+import type { CompileFactsHolder } from '../../../src/pipeline/commands/compile-command.js';
 
 // ---------------------------------------------------------------------------
 // Helpers
@@ -38,6 +39,7 @@ function stubApgResult(): APGResult {
     nodes: [{ id: 'n1', type: 'file', filePath: 'src/a.ts', layer: 'domain', labels: [], properties: {} }],
     edges: [],
     parseCoverage: { totalFiles: 1, parsedFiles: 1, percentage: 100 },
+    warnings: [],
   } as unknown as APGResult;
 }
 
@@ -47,7 +49,7 @@ function stubParsedSpec(): ParsedSpec {
     fitnessFunctions: [],
     adrRules: [],
     layerModel: { layers: [{ name: 'domain', patterns: ['src/domain/**'] }] },
-    scoringWeights: { structural: 0.35, coupling: 0.20, pattern: 0.30, solid: 0.10, convention: 0.05, semantic: 0, integrity: 0, intent: 0 },
+    scoringWeights: { structural: 0.35, coupling: 0.20, pattern: 0.30, solid: 0.10, convention: 0.05, semantic: 0, integrity: 0 },
     verdictThresholds: { pass: 0.80, warning: 0.65, softBlock: 0.50 },
     confidenceThresholds: { high: 0.85, medium: 0.60, iccMinimum: 0.70 },
   } as unknown as ParsedSpec;
@@ -59,7 +61,9 @@ function stubCompiledFunctions(): CompiledFunctions {
     neuronalInstructions: [],
     hybridPairs: [],
     totalCompiled: 0,
-  } as unknown as CompiledFunctions;
+    disabledFunctions: [],
+    warnings: [],
+  };
 }
 
 // ---------------------------------------------------------------------------
@@ -243,5 +247,73 @@ describe('CompileCommand', () => {
       code: 'UNUSED_RULE',
       stage: 'compile-functions',
     });
+  });
+});
+
+// ---------------------------------------------------------------------------
+// U3-R9 warning routing (BR-U3-56, ADR-016 c) and CompileFacts (BR-U3-52)
+// ---------------------------------------------------------------------------
+
+describe('U3-R9 warning routing and compile facts', () => {
+  let context: FirewallContext;
+
+  beforeEach(() => {
+    context = new FirewallContext(runId('test-run'));
+    jest.clearAllMocks();
+  });
+
+  it('ExtractCommand: an extractor warning in APGResult.warnings (data.warnings) reaches the context', async () => {
+    const apg = { ...stubApgResult(), warnings: [{ filePath: 'src/a.ts', code: 'EXTRACTOR_009', message: 'dynamic import' }] } as unknown as APGResult;
+    mockExtractAPG.mockResolvedValue(DomainResult.ok(apg));
+
+    await new ExtractCommand('/my/project').execute(context);
+
+    expect(context.warnings).toEqual([
+      { code: 'EXTRACTOR_009', message: 'dynamic import', context: { filePath: 'src/a.ts' }, stage: 'extract-apg' },
+    ]);
+  });
+
+  it('CompileCommand: COMPILER_004 in CompiledFunctions.warnings reaches the context with its functionId', async () => {
+    context.setParsedSpec(stubParsedSpec());
+    const compiled = {
+      ...stubCompiledFunctions(),
+      disabledFunctions: [{ id: 'FF-S03', name: 'no-layer-skip', reason: 'not applicable to style clean-architecture' }],
+      warnings: [{ code: 'COMPILER_004', message: 'FF-S03 (no-layer-skip) disabled: not applicable to style clean-architecture', functionId: 'FF-S03' }],
+    } as unknown as CompiledFunctions;
+    mockCompileFunctions.mockReturnValue(DomainResult.ok(compiled));
+
+    await new CompileCommand().execute(context);
+
+    expect(context.warnings).toEqual([{
+      code: 'COMPILER_004',
+      message: 'FF-S03 (no-layer-skip) disabled: not applicable to style clean-architecture',
+      context: { functionId: 'FF-S03' },
+      stage: 'compile-functions',
+    }]);
+  });
+
+  it('CompileCommand records CompileFacts (declared, adrDerived, dropped) in the shared holder (BR-U3-52)', async () => {
+    const spec = {
+      ...stubParsedSpec(),
+      fitnessFunctions: [
+        { id: 'FF-A', name: 'unknown-template', route: 'symbolic' },
+        { id: 'FF-B', name: 'judge-me', route: 'neuronal' },
+        { id: 'FF-C', name: 'dependency-direction', route: 'symbolic' },
+        { id: 'FF-S03', name: 'no-layer-skip', route: 'symbolic' },
+      ],
+    } as unknown as ParsedSpec;
+    context.setParsedSpec(spec);
+    const compiled = {
+      ...stubCompiledFunctions(),
+      symbolicQueries: [{ functionId: 'FF-C', name: 'dependency-direction', source: 'template' }],
+      totalCompiled: 1,
+      disabledFunctions: [{ id: 'FF-S03', name: 'no-layer-skip', reason: 'style' }],
+    } as unknown as CompiledFunctions;
+    mockCompileFunctions.mockReturnValue(DomainResult.ok(compiled));
+    const holder: CompileFactsHolder = {};
+
+    await new CompileCommand(holder).execute(context);
+
+    expect(holder.facts).toEqual({ declared: 4, adrDerived: 0, dropped: ['FF-A', 'FF-B'] });
   });
 });

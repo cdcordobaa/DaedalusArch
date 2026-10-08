@@ -74,7 +74,7 @@ describe('K1 undefined-kind rule (C4 reads only LayerDefinition.kind)', () => {
     const result = compileFunctions({
       fitnessFunctions: [fn('FF-P02', 'no-domain-outward-dep', 'structural')],
       adrRules: [], layerModel: kindless,
-      scoringWeights: { structural: 0.35, coupling: 0.2, pattern: 0.3, solid: 0.1, convention: 0.05, semantic: 0, integrity: 0, intent: 0 },
+      scoringWeights: { structural: 0.35, coupling: 0.2, pattern: 0.3, solid: 0.1, convention: 0.05, semantic: 0, integrity: 0 },
     });
     expect(result.success).toBe(true);
     if (!result.success) return;

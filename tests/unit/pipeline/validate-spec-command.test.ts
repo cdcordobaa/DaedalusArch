@@ -25,7 +25,7 @@ function makeSpec(overrides: Partial<ParsedSpec> = {}): ParsedSpec {
         excludePaths: [],
       },
     ],
-    scoringWeights: { structural: 0.35, coupling: 0.20, pattern: 0.30, solid: 0.10, convention: 0.05, semantic: 0, integrity: 0, intent: 0 },
+    scoringWeights: { structural: 0.35, coupling: 0.20, pattern: 0.30, solid: 0.10, convention: 0.05, semantic: 0, integrity: 0 },
     verdictThresholds: { pass: 0.80, warning: 0.65, softBlock: 0.50 },
     confidenceThresholds: { high: 0.85, medium: 0.60, iccMinimum: 0.70 },
     adrRules: [],

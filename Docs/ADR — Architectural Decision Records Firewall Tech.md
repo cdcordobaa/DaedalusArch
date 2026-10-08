@@ -787,6 +787,37 @@ i. **U2 derived settlements** S-1 to S-7 and S-9 (U2 `business-rules.md` §14.1)
 
 ---
 
+## ADR-018: Judge config-directory allow-list after the Gate H probe (v1.2, U4)
+
+**Status**: Accepted (orchestrator under the 2026-10-08 standing approval; ADR-015 item 1 criterion)
+
+**Date**: 2026-10-08
+
+**Context**: Gate H passed H1–H5 (plan Step 6, commit `8bbd2cc`). The probe found that the real judge config dir does not match the BR-U4-ISO-04 allow-list:
+- `/login` auto-installed the official plugin marketplace (`plugins/**`, about 786 entries).
+- The CLI creates `settings.json`.
+- Each call creates `projects/<cwd>/memory`, even with `--no-session-persistence`.
+- The CLI auto-updated from 2.1.293 to 2.1.294 during the login.
+
+**Decision**:
+
+1. **`plugins/` stays forbidden.** It was removed from the judge dir. A judge call afterwards succeeded (`is_error` false), and nothing was recreated. If `plugins/` reappears, the run-time check fails closed, and the operator removes it. No re-login is needed, because the credentials live in the keychain.
+2. **Allow-list additions** (anchored globs; no pattern may match `plugins/`, `settings.local.json`, `CLAUDE.md`, `agents/`, `commands/`, `skills/`, `hooks` or `.mcp.json`):
+   - `.last-cleanup`
+   - `.last-update-result.json`
+   - `backups/.claude.json.backup.*`
+   - `sessions/<digits>.json` and `sessions/<digits>.*.key`, matched with digit classes rather than `*`, so `sessions/settings.json` is not matched
+   - `projects/*` and `projects/*/memory`, allowed only as empty directories; any file under them fails the check
+   - `cache/**`
+3. **`settings.json` is allowed with a content rule.** The check parses the file and logs only key names. It fails closed unless the top-level keys ⊆ {`theme`, `env`} and the `env` keys ⊆ {`DISABLE_AUTOUPDATER`}. Today the file holds only `theme`.
+4. **Version pin.** `PINNED_CLI_VERSION` = 2.1.294. `DISABLE_AUTOUPDATER=1` joins `JUDGE_ENV_ALLOW` and is set in the judge child env. Every run checks `claude --version` against the pin and fails closed on a mismatch. The manifest records the version.
+5. **Error classification.** It uses `is_error` plus the result text, never `subtype`; an auth error reports `subtype: success`. The `USAGE_LIMIT` patterns stay marked unverified until a natural sample is seen.
+6. **Canary residual.** The ancestor-`CLAUDE.md` channel was positively controlled; the user-level `CLAUDE.md` and hook channels were not. Credentials are tied to the real home, so a throwaway home cannot log in. This is recorded as a residual threat to validity and repeated in Build and Test. No edit to the author's real config is made without consent.
+
+**Rationale**: These changes keep ISO-04 fail-closed while matching what the pinned CLI actually writes. Requirement text is unchanged. Only the frozen allow-list values, which the plan marks [PROBE], are filled in.
+
+---
+
 ## Decision Log Summary
 
 | **ADR** | **Decision** | **Status** | **Spike Validated** |
@@ -809,3 +840,4 @@ i. **U2 derived settlements** S-1 to S-7 and S-9 (U2 `business-rules.md` §14.1)
 | 016 | v1.2 lane-2 functional-design settlements (NestJS controller binding, cannot-fire checks, 30 s cycle budget, Interface CONTAINS, spec-independent orphan metric) | Accepted | — |
 | 014 | Node.js + TypeScript implementation | Accepted | ✅ All spikes |
 | 017 | v1.2 scope/requirement amendments for results (corpus core+E7, SO5 in scope, E1 grid, SO4 remap, FR-11/25/27) | Accepted | — |
+| 018 | v1.2 U4 judge config-dir allow-list, CLI pin 2.1.294, settings.json content rule | Accepted | — |
