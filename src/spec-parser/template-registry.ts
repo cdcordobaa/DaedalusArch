@@ -95,7 +95,6 @@ const SYMBOLIC_WEIGHTS: ScoringWeights = {
   convention: 0.05,
   semantic: 0,
   integrity: 0,
-  intent: 0,
 };
 
 const FULL_MODE_WEIGHTS: ScoringWeights = {
@@ -106,7 +105,6 @@ const FULL_MODE_WEIGHTS: ScoringWeights = {
   convention: 0.05,
   semantic: 0.04,
   integrity: 0.04, // FR-22 (BR-U1-22): the weight moves from intent to integrity
-  intent: 0,
 };
 
 const DEFAULT_VERDICT_THRESHOLDS: VerdictThresholds = {

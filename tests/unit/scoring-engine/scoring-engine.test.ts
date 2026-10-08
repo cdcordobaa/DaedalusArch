@@ -1,4 +1,4 @@
-import { computeAVR, computeAHS, computePerDimensionScores } from '../../../src/scoring-engine/score-computer.js';
+import { computeAVR, computeAHS } from '../../../src/scoring-engine/score-computer.js';
 import { determineVerdict } from '../../../src/scoring-engine/verdict.js';
 import { formatJSON, formatHuman, formatCSV, csvHeader } from '../../../src/scoring-engine/report-formatter.js';
 import { computeScores, ScoringStage } from '../../../src/scoring-engine/scoring-engine.js';
@@ -10,8 +10,8 @@ import type { ScoringWeights, VerdictThresholds, ConfidenceThresholds } from '..
 import type { Dimension } from '../../../src/shared/types/enums.js';
 import type { GraphRepository, QueryResult } from '../../../src/shared/interfaces/graph-repository.js';
 
-const WEIGHTS: ScoringWeights = { structural: 0.35, coupling: 0.20, pattern: 0.30, solid: 0.10, convention: 0.05, semantic: 0, integrity: 0, intent: 0 };
-const FULL_WEIGHTS: ScoringWeights = { structural: 0.32, coupling: 0.18, pattern: 0.27, solid: 0.10, convention: 0.05, semantic: 0.04, integrity: 0, intent: 0.04 };
+const WEIGHTS: ScoringWeights = { structural: 0.35, coupling: 0.20, pattern: 0.30, solid: 0.10, convention: 0.05, semantic: 0, integrity: 0 };
+const FULL_WEIGHTS: ScoringWeights = { structural: 0.32, coupling: 0.18, pattern: 0.27, solid: 0.10, convention: 0.05, semantic: 0.04, integrity: 0.04 };
 const THRESHOLDS: VerdictThresholds = { pass: 0.80, warning: 0.65, softBlock: 0.50 };
 const CONF_THRESHOLDS: ConfidenceThresholds = { high: 0.85, medium: 0.60, iccMinimum: 0.70 };
 
@@ -26,8 +26,17 @@ function mockGraphRepo(): GraphRepository {
   };
 }
 
+// ScoringInput fields added at U3-R7 (domain-entities.md §4.1); the declared/disabled counts only feed
+// droppedDimensions, which these tests do not inspect.
+const R7_INPUT = {
+  fitnessFunctions: [],
+  compiled: { symbolicQueries: [], neuronalInstructions: [], hybridPairs: [], totalCompiled: 0, disabledFunctions: [], warnings: [] },
+  noJudgeUnits: [],
+} as const;
+
 const symResult = (id: string, dim: Dimension, passed: boolean): SymbolicFunctionResult => ({
   functionId: functionId(id),
+  dimension: dim,
   passed,
   violations: passed ? [] : [{
     id: `v-${id}`, type: 'LAYER_VIOLATION', dimension: dim, severity: 'critical',
@@ -68,14 +77,13 @@ describe('score-computer', () => {
       expect(Number(avr)).toBe(0);
     });
 
-    it('returns correct ratio for partial violations', () => {
+    it('returns failed / executed functions of the dimension (BR-U3-32: both functions count, passing or failing)', () => {
       const results = [
         symResult('FF-S01', 'structural', false),
         symResult('FF-S02', 'structural', true),
       ];
-      // 1 violated out of 1 that has violations in structural dim
       const avr = computeAVR(results, [], 'structural');
-      expect(Number(avr)).toBeGreaterThan(0);
+      expect(Number(avr)).toBe(0.5);
     });
 
     it('returns 0 for dimension with no functions', () => {
@@ -97,7 +105,7 @@ describe('score-computer', () => {
       expect(Number(ahs)).toBeCloseTo(1.0, 2);
     });
 
-    it('returns weighted complement', () => {
+    it('returns 1 − Σ effectiveWeight × avr (BR-U3-35; weights renormalised over the present dimensions, here summing to 1)', () => {
       const avrs = new Map<Dimension, typeof avrScore extends (...args: any[]) => infer R ? R : never>([
         ['structural', avrScore(0.5)],
         ['coupling', avrScore(0)],
@@ -143,6 +151,7 @@ describe('report-formatter', () => {
     projectPath: '/test/project',
     specVersion: '1.0.0',
     graphRepository: mockGraphRepo(),
+    ...R7_INPUT,
   });
 
   it('formatJSON produces valid JSON', async () => {
@@ -206,6 +215,7 @@ describe('computeScores (full)', () => {
       projectPath: '/test',
       specVersion: '1.0.0',
       graphRepository: mockGraphRepo(),
+      ...R7_INPUT,
     });
 
     expect(result.success).toBe(true);
@@ -220,7 +230,7 @@ describe('computeScores (full)', () => {
 });
 
 describe('ScoringStage', () => {
-  it('implements PipelineStage and sets context', async () => {
+  it('implements PipelineStage and sets the scored report on the context (BR-U3-85 compile fix: setScoredReport)', async () => {
     const stage = new ScoringStage();
     expect(stage.name).toBe('scoring-engine');
 
@@ -234,11 +244,13 @@ describe('ScoringStage', () => {
       projectPath: '/test',
       specVersion: '1.0.0',
       graphRepository: mockGraphRepo(),
+      ...R7_INPUT,
     }, context);
 
     expect(result.success).toBe(true);
-    const report = context.getReport();
+    const report = context.getScoredReport();
     expect(report.verdict).toBeDefined();
+    expect(report.scoring.verdictSource).toBe('ahsDeterministic');
     expect(context.auditLog.some((e) => e.stage === 'scoring-engine')).toBe(true);
   });
 });

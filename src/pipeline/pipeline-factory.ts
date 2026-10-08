@@ -212,6 +212,7 @@ class LazyScoreCommand implements PipelineCommand {
       evaluationMode: this.config.evaluationMode,
       projectPath: this.config.projectPath,
       specVersion: parsedSpec.specVersion,
+      fitnessFunctions: parsedSpec.fitnessFunctions,
     });
 
     return scoreCmd.execute(context);

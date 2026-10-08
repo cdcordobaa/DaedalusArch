@@ -64,7 +64,7 @@ function makeRun(spec: RunSpec): GoldenRun {
       ahsDeterministic: ahsScore(0.75),
       verdict: 'warning',
       scoring: {
-        weights: { structural: 0.2, coupling: 0.2, pattern: 0.2, solid: 0.2, convention: 0.2, semantic: 0, integrity: 0, intent: 0 },
+        weights: { structural: 0.2, coupling: 0.2, pattern: 0.2, solid: 0.2, convention: 0.2, semantic: 0, integrity: 0 },
         thresholds: { pass: 0.8, warning: 0.65, softBlock: 0.5 },
         confidenceThresholds: { high: 0.85, medium: 0.6, iccMinimum: 0.7 },
         verdictSource: 'ahsDeterministic',

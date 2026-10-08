@@ -6,7 +6,7 @@ import type { ValidationWarning } from './types.js';
  * Every other value passes through (the schema has already rejected unknown values).
  */
 export function normaliseDimension(
-  value: Dimension,
+  value: string, // schema-validated YAML value; the legacy alias is not a Dimension member (U3-R7)
   functionId: string,
 ): { dimension: Dimension; warning?: ValidationWarning } {
   if (value === 'intent') {
@@ -18,5 +18,5 @@ export function normaliseDimension(
       },
     };
   }
-  return { dimension: value };
+  return { dimension: value as Dimension };
 }

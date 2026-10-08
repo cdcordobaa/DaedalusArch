@@ -3,7 +3,9 @@ import type { FirewallContext } from '../../shared/context/firewall-context.js';
 import type { DomainResult as DomainResultType } from '../../shared/errors/domain-result.js';
 import type { GraphRepository } from '../../shared/interfaces/graph-repository.js';
 import type { EvaluationMode } from '../../shared/types/enums.js';
-import type { ScoringWeights, VerdictThresholds, ConfidenceThresholds } from '../../shared/types/spec.js';
+import type { ScoringWeights, VerdictThresholds, ConfidenceThresholds, FitnessFunction } from '../../shared/types/spec.js';
+import type { FunctionId } from '../../shared/types/value-objects.js';
+import type { PipelineWarning } from '../../shared/errors/domain-result.js';
 import { DomainResult } from '../../shared/errors/domain-result.js';
 import { computeScores } from '../../scoring-engine/index.js';
 import { toPipelineError, toPipelineWarning } from './map-helpers.js';
@@ -16,6 +18,21 @@ export interface ScoreCommandConfig {
   readonly evaluationMode: EvaluationMode;
   readonly projectPath: string;
   readonly specVersion: string;
+  /** Spec functions in scope, enabled or not: declared counts by dimension (BR-U3-34). */
+  readonly fitnessFunctions: readonly FitnessFunction[];
+}
+
+/** U4's warning for a neural function with zero selected units (U4 BR-U4-AGG-09). */
+const JUDGE_NO_UNITS = 'JUDGE_NO_UNITS';
+
+/** Ids named by `JUDGE_NO_UNITS` warnings (`context.functionId`), ascending; the builder checks completeness (R9). */
+export function noJudgeUnitIds(warnings: readonly PipelineWarning[]): readonly FunctionId[] {
+  const ids = new Set<string>();
+  for (const w of warnings) {
+    const id = w.code === JUDGE_NO_UNITS ? w.context?.functionId : undefined;
+    if (typeof id === 'string' && id.length > 0) ids.add(id);
+  }
+  return [...ids].sort() as FunctionId[];
 }
 
 export class ScoreCommand implements PipelineCommand {
@@ -39,6 +56,9 @@ export class ScoreCommand implements PipelineCommand {
       projectPath: this.config.projectPath,
       specVersion: this.config.specVersion,
       graphRepository: this.graphRepository,
+      fitnessFunctions: this.config.fitnessFunctions,
+      compiled: context.getCompiledFunctions(),
+      noJudgeUnits: noJudgeUnitIds(context.warnings),
     });
 
     if (!result.success) {
@@ -59,10 +79,11 @@ export class ScoreCommand implements PipelineCommand {
     context.addAuditEntry({
       timestamp: new Date().toISOString(),
       stage: this.name,
-      event: `Scoring complete: AHS(det)=${report.ahsDeterministic}${report.ahsCombined !== undefined ? `, AHS(combined)=${report.ahsCombined}` : ''}, verdict=${report.verdict}, ${report.violations.length} violations`,
+      event: `Scoring complete: ${report.scoring.verdictSource}=${String(report[report.scoring.verdictSource])}, verdict=${report.verdict}, ${String(report.violations.length)} violations`,
       metadata: {
         verdict: report.verdict,
-        ahsDeterministic: report.ahsDeterministic,
+        verdictSource: report.scoring.verdictSource,
+        ...(report.ahsDeterministic !== undefined && { ahsDeterministic: report.ahsDeterministic }),
         ...(report.ahsCombined !== undefined && { ahsCombined: report.ahsCombined }),
         violationCount: report.violations.length,
         durationMs: report.durationMs,

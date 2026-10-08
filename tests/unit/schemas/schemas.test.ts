@@ -40,10 +40,10 @@ function errorsOf(validate: ValidateFunction): string {
 // --- scoring-engine fixture (same shape as tests/unit/scoring-engine/scoring-engine.test.ts) ---
 
 const WEIGHTS: ScoringWeights = {
-  structural: 0.35, coupling: 0.2, pattern: 0.3, solid: 0.1, convention: 0.05, semantic: 0, integrity: 0, intent: 0,
+  structural: 0.35, coupling: 0.2, pattern: 0.3, solid: 0.1, convention: 0.05, semantic: 0, integrity: 0,
 };
 const FULL_WEIGHTS: ScoringWeights = {
-  structural: 0.32, coupling: 0.18, pattern: 0.27, solid: 0.1, convention: 0.05, semantic: 0.04, integrity: 0, intent: 0.04,
+  structural: 0.32, coupling: 0.18, pattern: 0.27, solid: 0.1, convention: 0.05, semantic: 0.04, integrity: 0.04,
 };
 const THRESHOLDS: VerdictThresholds = { pass: 0.8, warning: 0.65, softBlock: 0.5 };
 const CONF_THRESHOLDS: ConfidenceThresholds = { high: 0.85, medium: 0.6, iccMinimum: 0.7 };
@@ -122,6 +122,9 @@ async function formattedReport(mode: 'symbolic-only' | 'full'): Promise<unknown>
     projectPath: '/test/project',
     specVersion: '1.0.0',
     graphRepository: mockGraphRepo(),
+    fitnessFunctions: [],
+    compiled: { symbolicQueries: [], neuronalInstructions: [], hybridPairs: [], totalCompiled: 0, disabledFunctions: [], warnings: [] },
+    noJudgeUnits: [],
   });
   if (!result.success) {
     throw new Error(`computeScores failed: ${JSON.stringify(result.errors)}`);

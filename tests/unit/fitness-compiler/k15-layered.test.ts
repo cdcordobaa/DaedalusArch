@@ -62,7 +62,7 @@ describe('BR-U1-17 layered library', () => {
     ]);
     expect(spec.layerModel.layers.every((l) => l.directories.length > 0 && l.role.length > 0)).toBe(true);
     expect(warnings.filter((w) => w.code !== 'SPEC_002')).toEqual([]);
-    expect(spec.fullModeWeights).toMatchObject({ semantic: 0.04, integrity: 0.04, intent: 0 });
+    expect(spec.fullModeWeights).toMatchObject({ semantic: 0.04, integrity: 0.04 });
   });
 
   it('(b) resolveTemplate(layered) is LAYERED_TEMPLATE: the 27 clean-architecture ids, no FR-07 values, FF-N01 integrity/neuronal, FF-N02 semantic', () => {

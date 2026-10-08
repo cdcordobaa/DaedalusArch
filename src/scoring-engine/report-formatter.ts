@@ -87,7 +87,6 @@ export function formatCSV(report: EvaluationReport): string {
     getAVR('solid'),
     getAVR('convention'),
     getAVR('semantic'),
-    getAVR('intent'),
     String(m.cyclicDependencyCount),
     String(m.maxFanOut),
     String(m.maxFanIn),
@@ -142,5 +141,5 @@ export function formatActionableHuman(
  * CSV header row.
  */
 export function csvHeader(): string {
-  return 'project,ahs_deterministic,ahs_combined,verdict,avr_structural,avr_coupling,avr_pattern,avr_solid,avr_convention,avr_semantic,avr_intent,cycles,max_fan_out,max_fan_in,abstraction_ratio,avg_instability,orphans';
+  return 'project,ahs_deterministic,ahs_combined,verdict,avr_structural,avr_coupling,avr_pattern,avr_solid,avr_convention,avr_semantic,cycles,max_fan_out,max_fan_in,abstraction_ratio,avg_instability,orphans';
 }
