@@ -2,7 +2,7 @@ import { evaluateNeuronal } from '../../../src/llm-critic/llm-critic.js';
 import { assembleContext, constructPrompt } from '../../../src/llm-critic/context-assembler.js';
 import { parseVerdict } from '../../../src/llm-critic/verdict-parser.js';
 import { MockLLMProvider } from '../../../src/llm-critic/mock-provider.js';
-import { saveCassette, loadCassette, cassetteExists } from '../../../src/llm-critic/cassette-manager.js';
+import { writeCassetteEntry, readCassetteEntry, listCassetteKeys } from '../../../src/llm-critic/cassette-manager.js';
 import { DomainResult } from '../../../src/shared/errors/domain-result.js';
 import { functionId } from '../../../src/shared/types/value-objects.js';
 import type { NeuronalInstruction, ContextAssemblyInstruction } from '../../../src/shared/types/evaluation.js';
@@ -12,7 +12,8 @@ import * as os from 'node:os';
 import { DEFAULT_NEURONAL_OPTIONS } from '../../../src/llm-critic/types.js';
 
 // U4-K2 (D-U0-3): the default cassette mode is 'record', so every evaluateNeuronal call below
-// writes its cassettes to a temp dir instead of the repository-relative default path.
+// writes its cassettes to a temp dir instead of the repository-relative default path. Each call
+// gets its own dir: identical requests share a key (BR-U4-CAS-08), so a shared dir would replay.
 const CASSETTE_DIR = fs.mkdtempSync(path.join(os.tmpdir(), 'u4-k2-cassettes-'));
 afterAll(() => { fs.rmSync(CASSETTE_DIR, { recursive: true, force: true }); });
 
@@ -118,27 +119,25 @@ describe('cassette-manager', () => {
     fs.rmSync(tmpDir, { recursive: true, force: true });
   });
 
-  it('round-trips a cassette entry', () => {
+  it('round-trips a v2 cassette entry under <key[0..1]>/<key>.json', () => {
     const entry = {
-      functionId: 'FF-N01',
-      runIndex: 0,
-      prompt: 'test prompt',
-      response: '{"pass": true}',
+      schemaVersion: 2 as const, key: `ab${'0'.repeat(62)}-r0-0`, requestHash: `ab${'0'.repeat(62)}`, repetition: 0, runIndex: 0,
+      functionId: 'FF-N01', provider: 'mock', model: 'mock-model', effort: null, usedOptions: {}, ignoredOptions: [],
+      attempts: 1 as const, outcome: { kind: 'valid' as const }, prompt: 'test prompt', response: '{"pass": true}',
       parsedVerdict: { pass: true, confidence: 0.9, reasoning: '', evidence: [], violations: [] },
-      timestamp: '2026-01-01T00:00:00Z',
+      usage: { inputTokens: 1, outputTokens: 1 }, durationMs: 1, recordedAt: '2026-01-01T00:00:00Z',
     };
-    saveCassette(tmpDir, entry);
-    expect(cassetteExists(tmpDir, 'FF-N01', 0)).toBe(true);
+    const file = writeCassetteEntry(tmpDir, entry);
+    expect(path.relative(tmpDir, file)).toBe(path.join('ab', `${entry.key}.json`));
+    expect(listCassetteKeys(tmpDir)).toEqual([entry.key]);
 
-    const loaded = loadCassette(tmpDir, 'FF-N01', 0);
-    expect(loaded).not.toBeNull();
-    expect(loaded!.functionId).toBe('FF-N01');
-    expect(loaded!.parsedVerdict!.pass).toBe(true);
+    const loaded = readCassetteEntry(tmpDir, entry.key);
+    expect(loaded).toEqual(entry);
   });
 
   it('returns null for missing cassette', () => {
-    expect(loadCassette(tmpDir, 'missing', 0)).toBeNull();
-    expect(cassetteExists(tmpDir, 'missing', 0)).toBe(false);
+    expect(readCassetteEntry(tmpDir, 'ff-missing-r0-0')).toBeNull();
+    expect(listCassetteKeys(path.join(tmpDir, 'none'))).toEqual([]);
   });
 });
 
@@ -187,7 +186,7 @@ describe('evaluateNeuronal', () => {
       graphRepository: graphRepo,
       provider,
       runsPerEvaluation: 3,
-      cassettePath: CASSETTE_DIR,
+      cassettePath: fs.mkdtempSync(path.join(CASSETTE_DIR, 'run-')),
     });
 
     expect(result.success).toBe(true);
@@ -230,7 +229,7 @@ describe('evaluateNeuronal', () => {
       provider,
       runsPerEvaluation: 3,
       unstableThreshold: 0.15,
-      cassettePath: CASSETTE_DIR,
+      cassettePath: fs.mkdtempSync(path.join(CASSETTE_DIR, 'run-')),
     });
 
     expect(result.success).toBe(true);
@@ -261,7 +260,7 @@ describe('evaluateNeuronal violation type (BR-U4-VIO-03)', () => {
     (provider as any).evaluate = async () =>
       DomainResult.ok({ content: failing, model: 'mock', usage: { inputTokens: 1, outputTokens: 1 } });
     const inst = { ...makeInstruction('FF-N02', 'type-map'), ...overrides } as NeuronalInstruction;
-    const result = await evaluateNeuronal({ instructions: [inst], graphRepository: graphRepo, provider, runsPerEvaluation: 3, cassettePath: CASSETTE_DIR });
+    const result = await evaluateNeuronal({ instructions: [inst], graphRepository: graphRepo, provider, runsPerEvaluation: 3, cassettePath: fs.mkdtempSync(path.join(CASSETTE_DIR, 'run-')) });
     expect(result.success).toBe(true);
     if (result.success) {
       const vs = result.data.results[0]!.violations;
@@ -289,6 +288,8 @@ describe('C7 VCRMode (U4-K2, D-U0-3)', () => {
       cassettePath: dir,
     });
     expect(result.success).toBe(true);
-    expect([0, 1, 2].map((i) => cassetteExists(dir, 'FF-N01', i))).toEqual([true, true, true]);
+    const keys = listCassetteKeys(dir);
+    expect(keys).toHaveLength(3);
+    expect(keys.map((k) => readCassetteEntry(dir, k)?.runIndex).sort()).toEqual([0, 1, 2]);
   });
 });

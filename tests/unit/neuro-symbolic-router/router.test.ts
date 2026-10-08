@@ -8,11 +8,12 @@ import type { CompiledFunctions, CypherQuery, NeuronalInstruction, ContextAssemb
 import type { RouterInput } from '../../../src/neuro-symbolic-router/types.js';
 
 // U4-K2 (D-U0-3): C7 now defaults to cassette mode 'record'. The router does not forward a
-// cassette path yet (Step 18/21), so the file store is stubbed here to keep the repository clean.
+// cassette dir yet (Step 21), so the cassette file store (U4 Step 18 API) is stubbed here to keep
+// the repository clean.
 jest.mock('../../../src/llm-critic/cassette-manager.js', () => ({
-  saveCassette: jest.fn(),
-  loadCassette: jest.fn(() => null),
-  cassetteExists: jest.fn(() => false),
+  ...jest.requireActual<object>('../../../src/llm-critic/cassette-manager.js'),
+  readCassetteEntry: jest.fn(() => null),
+  writeCassetteEntry: jest.fn(() => ''),
 }));
 
 const CTX: ContextAssemblyInstruction = { includeAPGSubgraph: false, includeSourceCode: false };

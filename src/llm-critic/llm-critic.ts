@@ -8,8 +8,7 @@ import { DEFAULT_NEURONAL_OPTIONS } from './types.js';
 import { assembleContext, constructPrompt } from './context-assembler.js';
 import { EMPTY_EXCERPT } from './source-context.js';
 import { violationTypeOf } from './aggregation.js';
-import { parseVerdict } from './verdict-parser.js';
-import { saveCassette, loadCassette } from './cassette-manager.js';
+import { CassetteLLMProvider } from './cassette-provider.js';
 
 export interface NeuronalEvalOutput {
   readonly results: readonly NeuronalFunctionResult[];
@@ -24,8 +23,9 @@ export async function evaluateNeuronal(input: NeuronalEvalInput): Promise<Domain
   const results: NeuronalFunctionResult[] = [];
   const allWarnings: PipelineWarning[] = [];
 
+  const cassette = new CassetteLLMProvider(input.provider, { mode: opts.vcrMode, dir: opts.cassettePath });
   for (const instruction of input.instructions) {
-    const result = await evaluateSingleFunction(instruction, input, opts);
+    const result = await evaluateSingleFunction(instruction, input, opts, cassette);
     if (result.success) {
       results.push(result.data);
     } else {
@@ -40,6 +40,7 @@ async function evaluateSingleFunction(
   instruction: NeuronalInstruction,
   input: NeuronalEvalInput,
   opts: Required<typeof DEFAULT_NEURONAL_OPTIONS> & NeuronalEvalInput,
+  cassette: CassetteLLMProvider,
 ): Promise<DomainResult<NeuronalFunctionResult>> {
   // Placeholder unit until U4 Step 21 wires the selector and the unit source (BR-U4-CTX-01)
   const unitId = String(instruction.functionId);
@@ -58,42 +59,18 @@ async function evaluateSingleFunction(
   const functionId = String(instruction.functionId);
 
   for (let i = 0; i < opts.runsPerEvaluation; i++) {
-    let verdict: CriticVerdict | null = null;
-
-    if (opts.vcrMode === 'replay') {
-      const cassette = loadCassette(opts.cassettePath, functionId, i);
-      if (cassette?.parsedVerdict) {
-        verdict = cassette.parsedVerdict;
-      }
+    // Record and replay go through the cassette decorator (U4 Step 18); stops and invalid
+    // outcomes drop the run here until Step 21 wires completeness and per-unit aggregation.
+    const call = await cassette.judge(prompt, {
+      model: input.provider.describe().model,
+      temperature: 0,
+      seed: 42,
+      maxTokens: 1000, // raised in U4 for the pinned model (D-U0-17)
+    }, { runIndex: i, repetition: 0, functionId });
+    if (call.kind === 'stop' || call.outcome.kind !== 'valid' || call.verdict === null) {
+      continue;
     }
-
-    if (!verdict) {
-      const llmResult = await input.provider.evaluate(prompt, {
-        model: input.provider.describe().model,
-        temperature: 0,
-        seed: 42,
-        maxTokens: 1000, // raised in U4 for the pinned model (D-U0-17)
-      });
-      if (!llmResult.success) {
-        continue; // Run failed, use remaining runs
-      }
-
-      verdict = parseVerdict(llmResult.data.content);
-      if (!verdict) {
-        continue; // CRITIC_002 — parse failure
-      }
-
-      if (opts.vcrMode === 'record') {
-        saveCassette(opts.cassettePath, {
-          functionId,
-          runIndex: i,
-          prompt,
-          response: llmResult.data.content,
-          parsedVerdict: verdict,
-          timestamp: new Date().toISOString(),
-        });
-      }
-    }
+    const verdict = call.verdict;
 
     verdicts.push(verdict);
     runs.push({
