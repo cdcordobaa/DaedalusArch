@@ -1132,3 +1132,11 @@ Plan checkboxes ticked. Auto-approved under standing approval; no blocking or ma
 **Context**: CONSTRUCTION — Build and Test, group BT-A complete; next per run order BT-C (Steps 13–20). Open: E-1, E-2, pending author decisions (a) and (b); author actions: rotate the local .env Neo4j password, consider renaming the trailing-space Docs/DiagnosticRuns folder, update thesis Appendix A and Chapter 4/5 rows.
 
 ---
+
+## Build and Test — Group BT-B (Steps 9–12) held by E-1 (auto-approved)
+**Timestamp**: 2026-10-08T21:59:39Z
+**User Input**: "Execute group BT-B of the Build and Test plan (Steps 9–12: FR-18 golden re-baseline, results/pre-tag/fixtures-<sha>.json with README and NFR-03 timings, spec-header verdicts) under the standing approval (orchestrator task; pending author decisions (a) and (b) not to be decided)."
+**AI Response**: "Step 9 entry gate measured and not met: --check-prereg experiments/fixtures/plan.json prints 'pre-registration v1 ok: 28 registered artefacts unchanged' (v1, P-1 / Step 43 not committed); Docs/operator-catalogue.md and Docs/generator-protocol.md still DRAFT; BT-D Step 24 undecided. Per the plan ('Otherwise stop: E-1 still open') Steps 9–12 were not executed and are marked Held in the plan (7caba57). No Gate G re-baseline, no snapshot change, no tests/golden/CHANGES.md line, no results/ file, spec header unchanged; no PR (nothing on the BT branch). Live judge calls: 0 of 40."
+**Context**: CONSTRUCTION — Build and Test, group BT-B held by E-1 (pending author decision (a), BR-U5a-37 CAT_SHORTFALL 69 < 80; BR-U5a-40). Resume at Step 9 after Steps 42–43 (and Step 24).
+
+---
