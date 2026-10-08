@@ -20,6 +20,7 @@
 | # | Date | Step | Run | Calls (attempts) | Running total |
 |---|---|---|---|---|---|
 | — | 2026-10-08 | 34 | preflight (no live call) | 0 | 0 |
+| 1 | 2026-10-08 | 35 | ISO-07 canary repeat: positive control, negative (ancestor cwd), negative (neutral cwd); `tests/fixtures/claude-cli/canary-result-bt-2026-10-08.json` | 3 (3 spawns, no retry) | 3 |
 
 ## Generator (cap 11 sessions + 3 retries; not judge calls)
 

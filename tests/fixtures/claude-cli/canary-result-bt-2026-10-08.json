@@ -1,0 +1,28 @@
+{
+  "run": "Build and Test BT-F Step 35 (BR-U4-ISO-07 repeat)",
+  "cliVersion": "2.1.294",
+  "date": "2026-10-08",
+  "variant": "real HOME + CLAUDE_CONFIG_DIR=judge config dir + buildJudgeChildEnv (JUDGE_ENV_ALLOW, DISABLE_AUTOUPDATER=1); positive control: cwd <canary-ancestor>/a/b, plain claude -p (--model, --output-format json, --no-session-persistence) WITHOUT --system-prompt/--setting-sources/--strict-mcp-config/--disable-slash-commands/--tools; negatives: full judge argv (buildClaudeCliArgs, output json, verdict schema, judge persona) in (1) a fresh createNeutralCwd() dir and (2) cwd <canary-ancestor>/a/b",
+  "calls": 3,
+  "positiveControl": [
+    "CANARY-ANCESTOR-9K"
+  ],
+  "positiveControlChannels": {
+    "ancestorClaudeMd": "controlled (fired)",
+    "userClaudeMd": "not positively controlled (needs a logged-in throwaway config dir: AUTHOR ACTION; not attempted with the real judge dir)",
+    "userPromptSubmitHook": "not positively controlled (as above)"
+  },
+  "tokensFound": {
+    "neutral": [],
+    "ancestor": [
+      "CANARY-ANCESTOR-9K"
+    ]
+  },
+  "comparisonWithU4": {
+    "neutral": "equal ([] in both)",
+    "ancestor": "differs: U4 Part 2 recorded []; this rerun found the ancestor token under the full judge argv (structured_output.reasoning). The projects/<canary cwd>/memory entry the CLI created held no file, so the channel is the ancestor CLAUDE.md read under --setting-sources project, not auto-memory."
+  },
+  "iso07Verdict": "pass on the rule condition (judge argv + clean judgeConfigDir + neutral cwd: no token). The ancestor channel is closed only by BR-U4-ISO-05 (fresh neutral cwd, fail closed on any ancestor CLAUDE.md or .claude), not by the argv (OI-BT-F1).",
+  "judgeDirAfter": "the non-isolated positive control wrote plugins/**, skills/** and an empty projects/<canary cwd>/memory into the judge dir; all three removed; allow-list check passes again (0 failures)",
+  "usageLimit": "not provoked; classifier patterns and calls per usage window stay unverified (residual)"
+}
