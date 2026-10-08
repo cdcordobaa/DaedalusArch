@@ -208,3 +208,82 @@ describeU1('U1 cycle query on Neo4j (BR-U1-28 a, b; BR-U1-31)', () => {
     }
   });
 });
+
+describeU1('U1 row order on Neo4j (BR-U1-29 b)', () => {
+  let repo: Neo4jRepository | undefined;
+  let tempRoot = '';
+
+  beforeAll(() => {
+    const neo4j = neo4jConfig();
+    repo = new Neo4jRepository({ neo4jUri: neo4j.uri, neo4jUser: neo4j.user, neo4jPassword: neo4j.password });
+    tempRoot = fs.realpathSync(fs.mkdtempSync(path.join(os.tmpdir(), 'u1-order-')));
+  });
+
+  afterEach(async () => {
+    await run('MATCH (n) DETACH DELETE n');
+  });
+
+  afterAll(async () => {
+    if (repo) await repo.close();
+    if (tempRoot !== '') fs.rmSync(tempRoot, { recursive: true, force: true });
+  });
+
+  async function run(cypher: string, params?: Record<string, unknown>): Promise<readonly Record<string, unknown>[]> {
+    if (!repo) throw new Error('repository not initialised');
+    const result = await repo.executeQuery(cypher, params);
+    if (!result.success) {
+      throw new Error(`Query failed against ${redactUri(neo4jConfig().uri)}: ${result.errors.map((e) => `${e.code} ${e.message}`).join('; ')}`);
+    }
+    return result.data.records;
+  }
+
+  /** Neo4j integers and floats to plain JSON, so two executions compare by value. */
+  function plain(rows: readonly Record<string, unknown>[]): string {
+    return JSON.stringify(rows, (_k, v: unknown) =>
+      (typeof v === 'object' && v !== null && 'toNumber' in v && typeof v.toNumber === 'function'
+        ? (v as { toNumber: () => number }).toNumber()
+        : v));
+  }
+
+  it('every compiled golden-spec query returns identical row arrays on two executions (ingested variant-a)', async () => {
+    const variantA = GOLDEN_CASES.find((c) => c.id === 'variant-a-structural');
+    if (!variantA || !repo) throw new Error('variant-a case or repository missing');
+    const spec = await parseSpec({ specFilePath: variantA.specPath });
+    if (!spec.success) throw new Error('golden spec did not parse');
+    const apg = await extractAPG(variantA.projectPath);
+    if (!apg.success) throw new Error(`extractAPG failed: ${apg.errors.map((e) => e.code).join(', ')}`);
+    const store = new FileSystemSnapshotStore(path.join(tempRoot, '.apg-store'));
+    const ingested = await ingestAPG({ apgResult: apg.data, layerModel: spec.data.layerModel, mode: 'stateless' }, repo, store);
+    if (!ingested.success) throw new Error(`ingestAPG failed: ${ingested.errors.map((e) => e.code).join(', ')}`);
+
+    const queries = await compiledQueries('specs/clean-arch.yaml');
+    expect(queries.length).toBe(23);
+    let withRows = 0;
+    for (const q of queries) {
+      const first = await run(q.cypher, q.params);
+      const second = await run(q.cypher, q.params);
+      if (first.length > 0) withRows++;
+      expect({ id: String(q.functionId), rows: plain(second) }).toEqual({ id: String(q.functionId), rows: plain(first) });
+      if (q.name === 'use-case-isolation') {
+        for (const r of first) {
+          const list = r.violations as string[];
+          expect(list).toEqual([...list].sort());
+        }
+      }
+    }
+    expect(withRows).toBeGreaterThan(0);
+  });
+
+  it('use-case-isolation returns its violation list sorted', async () => {
+    await run(
+      "CREATE (uc:Class {name: 'CreateTaskUseCase', layer: 'application', filePath: 'src/application/CreateTaskUseCase.ts'}) " +
+      'WITH uc UNWIND $deps AS d ' +
+      "CREATE (uc)-[:CONSTRUCTOR_INJECTS]->(:Class {name: d, layer: 'infrastructure', filePath: 'src/infrastructure/' + d + '.ts'})",
+      { deps: ['Zed', 'Alpha', 'Mid'] },
+    );
+    const q = (await compiledQueries('specs/clean-arch.yaml')).find((c) => c.name === 'use-case-isolation');
+    if (!q) throw new Error('use-case-isolation not compiled');
+    const rows = await run(q.cypher, q.params);
+    expect(rows.map((r) => r.violations)).toEqual([['Alpha', 'Mid', 'Zed']]);
+  });
+});
