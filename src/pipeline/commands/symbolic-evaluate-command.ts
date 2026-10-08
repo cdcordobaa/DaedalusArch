@@ -9,7 +9,11 @@ import { toPipelineError, toPipelineWarning } from './map-helpers.js';
 export class SymbolicEvaluateCommand implements PipelineCommand {
   readonly name = 'evaluate-symbolic';
 
-  constructor(private readonly graphRepository: GraphRepository) {}
+  constructor(
+    private readonly graphRepository: GraphRepository,
+    /** Known secrets scrubbed from failure messages (BR-U3-58). */
+    private readonly knownSecrets: readonly string[] = [],
+  ) {}
 
   async execute(context: FirewallContext): Promise<DomainResultType<void>> {
     const compiledFunctions = context.getCompiledFunctions();
@@ -17,6 +21,7 @@ export class SymbolicEvaluateCommand implements PipelineCommand {
     const result = await evaluateSymbolic({
       queries: compiledFunctions.symbolicQueries,
       graphRepository: this.graphRepository,
+      knownSecrets: this.knownSecrets,
     });
 
     if (!result.success) {

@@ -12,6 +12,7 @@ import { AssembleReportCommand } from '../../../src/pipeline/commands/assemble-r
 import { SymbolicEvaluateCommand } from '../../../src/pipeline/commands/symbolic-evaluate-command.js';
 import { FirewallContext } from '../../../src/shared/context/firewall-context.js';
 import { DomainResult } from '../../../src/shared/errors/domain-result.js';
+import { SHAPES_ONLY } from '../../../src/shared/errors/scrub.js';
 import type { GraphRepository, QueryOptions, QueryResult } from '../../../src/shared/interfaces/graph-repository.js';
 import { parseSpec } from '../../../src/spec-parser/spec-parser.js';
 import { ahsScore, avrScore, functionId, runId } from '../../../src/shared/types/value-objects.js';
@@ -248,7 +249,7 @@ const TIMINGS = { stages: [{ name: 'compute-scores', durationMs: 4, status: 'suc
 describe('AssembleReportCommand (BR-U3-50, 51, 55, 57, 63, 64)', () => {
   it('builds the one report from the context facts in symbolic-only mode and writes setReport', async () => {
     const context = assemblyContext('symbolic-only');
-    const res = await new AssembleReportCommand({ mode: 'symbolic-only', timingSource: () => TIMINGS, compileFacts: FACTS, knownSecrets: [] }).execute(context);
+    const res = await new AssembleReportCommand({ mode: 'symbolic-only', timingSource: () => TIMINGS, compileFacts: FACTS, scrubPolicy: SHAPES_ONLY }).execute(context);
     expect(res.success).toBe(true);
     const report = context.getReport();
     expect(report.functionExecution).toEqual({
@@ -281,7 +282,7 @@ describe('AssembleReportCommand (BR-U3-50, 51, 55, 57, 63, 64)', () => {
       },
     });
     await new AssembleReportCommand({
-      mode: 'symbolic-only', timingSource: () => { order.push('timings'); return TIMINGS; }, compileFacts: FACTS, knownSecrets: [],
+      mode: 'symbolic-only', timingSource: () => { order.push('timings'); return TIMINGS; }, compileFacts: FACTS, scrubPolicy: SHAPES_ONLY,
     }).execute(spied);
     expect(order).toEqual([
       'getScoredReport', 'getApgResult', 'getIngestionResult', 'getCompiledFunctions', 'getEvaluationResults', 'warnings', 'timings',
@@ -290,18 +291,18 @@ describe('AssembleReportCommand (BR-U3-50, 51, 55, 57, 63, 64)', () => {
 
   it('fails closed with REPORT_NEURAL_ROWS_UNAVAILABLE in full mode until U4 wires the row mapper (BR-U3-65, D-U3-11)', async () => {
     const context = assemblyContext('full');
-    const res = await new AssembleReportCommand({ mode: 'full', timingSource: () => TIMINGS, compileFacts: FACTS, knownSecrets: [] }).execute(context);
+    const res = await new AssembleReportCommand({ mode: 'full', timingSource: () => TIMINGS, compileFacts: FACTS, scrubPolicy: SHAPES_ONLY }).execute(context);
     expect(res.success).toBe(false);
     if (!res.success) expect(res.errors.map((e) => e.code)).toEqual(['REPORT_NEURAL_ROWS_UNAVAILABLE']);
     expect(() => context.getReport()).toThrow();
   });
 
   it('fails without CompileFacts and on an identity violation (REPORT_COUNTS_INCONSISTENT)', async () => {
-    const missing = await new AssembleReportCommand({ mode: 'symbolic-only', timingSource: () => TIMINGS, compileFacts: {}, knownSecrets: [] })
+    const missing = await new AssembleReportCommand({ mode: 'symbolic-only', timingSource: () => TIMINGS, compileFacts: {}, scrubPolicy: SHAPES_ONLY })
       .execute(assemblyContext('symbolic-only'));
     expect(missing.success ? [] : missing.errors.map((e) => e.code)).toEqual(['REPORT_COUNTS_INCONSISTENT']);
     const wrong = await new AssembleReportCommand({
-      mode: 'symbolic-only', timingSource: () => TIMINGS, compileFacts: { facts: { declared: 9, adrDerived: 0, dropped: [] } }, knownSecrets: [],
+      mode: 'symbolic-only', timingSource: () => TIMINGS, compileFacts: { facts: { declared: 9, adrDerived: 0, dropped: [] } }, scrubPolicy: SHAPES_ONLY,
     }).execute(assemblyContext('symbolic-only'));
     expect(wrong.success ? [] : wrong.errors.map((e) => e.code)).toEqual(['REPORT_COUNTS_INCONSISTENT']);
   });

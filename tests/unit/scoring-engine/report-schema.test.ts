@@ -9,6 +9,7 @@ import { NO_JUDGE } from '../../../src/scoring-engine/report-builder.js';
 import { AssembleReportCommand } from '../../../src/pipeline/commands/assemble-report-command.js';
 import { FirewallContext } from '../../../src/shared/context/firewall-context.js';
 import { DomainResult } from '../../../src/shared/errors/domain-result.js';
+import { SHAPES_ONLY } from '../../../src/shared/errors/scrub.js';
 import { ahsScore, avrScore, confidence, functionId, runId } from '../../../src/shared/types/value-objects.js';
 import type { GraphRepository, QueryResult } from '../../../src/shared/interfaces/graph-repository.js';
 import type { APGResult } from '../../../src/shared/types/apg.js';
@@ -220,7 +221,7 @@ describe('assembly fails closed on an invalid report (BR-U3-59)', () => {
       violations: [], universalMetrics: valid.universalMetrics, evaluationMode: 'symbolic-only', durationMs: 1, droppedDimensions: [],
     });
     const res = await new AssembleReportCommand({
-      mode: 'symbolic-only', timingSource: () => ({ stages: [], totalMs: 0 }), compileFacts: { facts: { declared: 1, adrDerived: 0, dropped: [] } }, knownSecrets: [],
+      mode: 'symbolic-only', timingSource: () => ({ stages: [], totalMs: 0 }), compileFacts: { facts: { declared: 1, adrDerived: 0, dropped: [] } }, scrubPolicy: SHAPES_ONLY,
     }).execute(context);
     expect(codes(res)).toEqual(['REPORT_SCHEMA_INVALID']);
     expect(() => context.getReport()).toThrow();

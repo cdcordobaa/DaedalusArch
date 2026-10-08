@@ -8,6 +8,8 @@ export interface SymbolicEvalInput {
   readonly graphRepository: GraphRepository;
   /** Per-query timeout passed through when set; otherwise the repository default applies (BR-U3-03). */
   readonly queryTimeoutMs?: number;
+  /** Known secrets scrubbed from every failure message and warning (BR-U3-58); shapes are always scrubbed. */
+  readonly knownSecrets?: readonly string[];
 }
 
 export type EvalErrorCode =

@@ -2,6 +2,7 @@ import type { CypherQuery, FunctionFailure, SymbolicFunctionResult } from '../sh
 import type { Violation, ViolationType } from '../shared/taxonomy/violation-types.js';
 import type { PipelineWarning } from '../shared/errors/domain-result.js';
 import { DomainResult } from '../shared/errors/domain-result.js';
+import { scrubSecrets } from '../shared/errors/scrub.js';
 import type { ResultMapping } from '../fitness-compiler/types.js';
 import { CYCLE_ROW_CAP, CYPHER_TEMPLATES, getTemplateTag } from '../fitness-compiler/cypher-templates.js';
 import type { SymbolicEvalInput } from './types.js';
@@ -45,7 +46,7 @@ export async function evaluateSymbolic(input: SymbolicEvalInput): Promise<Domain
       // code and message, no result row; evaluation continues with the next query.
       const error = queryResult.errors[0];
       const code = failureCodeOf(error?.code);
-      const message = `Query failed for ${String(query.functionId)} (${query.name}): ${error?.message ?? 'unknown error'}`;
+      const message = scrubSecrets(`Query failed for ${String(query.functionId)} (${query.name}): ${error?.message ?? 'unknown error'}`, input.knownSecrets ?? []);
       failures.push({ functionId: query.functionId, name: query.name, code, message });
       warnings.push({ code, message, stage: 'evaluation-engine', context: { functionId: String(query.functionId) } });
       continue;

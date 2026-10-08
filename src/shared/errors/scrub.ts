@@ -150,9 +150,13 @@ export function scrubSecrets(text: string, knownSecrets: readonly string[]): str
  */
 export function scrubWarning<W extends DomainWarning>(warning: W, knownSecrets: readonly string[]): W {
   const secrets = normaliseSecrets(knownSecrets);
-  const copy: W = { ...warning, message: scrubWith(warning.message, secrets) };
+  return warningWith(warning, (text) => scrubWith(text, secrets));
+}
+
+function warningWith<W extends DomainWarning>(warning: W, scrubText: (text: string) => string): W {
+  const copy: W = { ...warning, message: scrubText(warning.message) };
   if (warning.context !== undefined) {
-    return { ...copy, context: deepCopy(warning.context, secrets, new Set<object>()) };
+    return { ...copy, context: deepCopy(warning.context, scrubText, new Set<object>()) };
   }
   return copy;
 }
@@ -162,9 +166,9 @@ function isPlainObject(value: object): value is Record<string, unknown> {
   return proto === Object.prototype || proto === null;
 }
 
-function deepCopy<T>(value: T, secrets: readonly string[], ancestors: Set<object>): T {
+function deepCopy<T>(value: T, scrubText: (text: string) => string, ancestors: Set<object>): T {
   if (typeof value === 'string') {
-    return scrubWith(value, secrets) as T;
+    return scrubText(value) as T;
   }
   if (typeof value !== 'object' || value === null) {
     return value;
@@ -174,7 +178,7 @@ function deepCopy<T>(value: T, secrets: readonly string[], ancestors: Set<object
   }
   if (Array.isArray(value)) {
     ancestors.add(value);
-    const copy = value.map((item: unknown) => deepCopy(item, secrets, ancestors));
+    const copy = value.map((item: unknown) => deepCopy(item, scrubText, ancestors));
     ancestors.delete(value);
     return copy as T;
   }
@@ -185,7 +189,7 @@ function deepCopy<T>(value: T, secrets: readonly string[], ancestors: Set<object
   ancestors.add(value);
   const copy: Record<string, unknown> = {};
   for (const [key, item] of Object.entries(value)) {
-    copy[key] = deepCopy(item, secrets, ancestors);
+    copy[key] = deepCopy(item, scrubText, ancestors);
   }
   ancestors.delete(value);
   return copy as T;
@@ -197,5 +201,81 @@ function deepCopy<T>(value: T, secrets: readonly string[], ancestors: Set<object
  * returned unchanged; a reference back to an ancestor becomes `"[Circular]"`.
  */
 export function scrubDeep<T>(value: T, knownSecrets: readonly string[]): T {
-  return deepCopy(value, normaliseSecrets(knownSecrets), new Set<object>());
+  const secrets = normaliseSecrets(knownSecrets);
+  return deepCopy(value, (text) => scrubWith(text, secrets), new Set<object>());
 }
+
+// ── Neo4j connection secrets (BR-U2-39, S-1; moved here from neo4j-repository.ts at U3-R11, BR-U3-58) ──
+
+/** The URI schemes this module recognises; never treated as a known secret (BR-U2-39). */
+const SCHEME_TOKENS: ReadonlySet<string> = new Set([
+  'bolt', 'bolt+s', 'bolt+ssc', 'neo4j', 'neo4j+s', 'neo4j+ssc', 'http', 'https',
+]);
+
+/** Minimum length of a known secret; shorter values would mask ordinary words (BR-U2-39). */
+const MIN_SECRET_LENGTH = 8;
+
+/** Port assumed when the URI names none (Bolt default). */
+const DEFAULT_BOLT_PORT = '7687';
+
+/** The connection values a run's secrets are derived from. */
+export interface Neo4jSecretSource {
+  readonly neo4jUri: string;
+  readonly neo4jUser: string;
+  readonly neo4jPassword: string;
+}
+
+/**
+ * Known secrets (`[NEO4J_PASSWORD, NEO4J_URI, host:port]`, each kept only when at least 8 characters,
+ * not the user and not a scheme token) and the resolved-address pattern for the URI's port (IPv4,
+ * bracketed IPv6, bare `::1`), BR-U2-39 / BR-U3-58. The single definition used by the repository,
+ * the report assembler, the audit log and batch error rows.
+ */
+export interface ScrubPolicy {
+  readonly secrets: readonly string[];
+  readonly addressPattern: RegExp;
+}
+
+/** `host:port` of the URI's authority when the URI carries an explicit port, else undefined. */
+function explicitHostPort(uri: string): string | undefined {
+  const authority = /^[A-Za-z][A-Za-z0-9+.-]*:\/\/(?:[^@/?#]*@)?([^/?#]+)/.exec(uri)?.[1];
+  if (authority === undefined) return undefined;
+  return /^(?:\[[^\]]*\]|[^:]+):\d+$/.test(authority) ? authority : undefined;
+}
+
+function portOf(uri: string): string {
+  return /:(\d+)$/.exec(explicitHostPort(uri) ?? '')?.[1] ?? DEFAULT_BOLT_PORT;
+}
+
+export function neo4jScrubPolicy(source: Neo4jSecretSource): ScrubPolicy {
+  const hostPort = explicitHostPort(source.neo4jUri);
+  const candidates = [source.neo4jPassword, source.neo4jUri, ...(hostPort !== undefined ? [hostPort] : [])];
+  const secrets = candidates.filter((s) =>
+    s.length >= MIN_SECRET_LENGTH && s !== source.neo4jUser && !SCHEME_TOKENS.has(s.toLowerCase()));
+  const port = portOf(source.neo4jUri); // digits only, safe inside a pattern
+  const addressPattern = new RegExp(
+    `\\b\\d{1,3}(?:\\.\\d{1,3}){3}:${port}\\b|\\[[0-9A-Fa-f:.]+\\]:${port}\\b|(?<![0-9A-Fa-f:])::1:${port}\\b`,
+    'g',
+  );
+  return { secrets, addressPattern };
+}
+
+/** NFR-05, D-U0-6: resolved addresses first, then known secrets and credential shapes (BR-U2-39). */
+export function scrubWithPolicy(text: string, policy: ScrubPolicy): string {
+  return scrubSecrets(text.replace(policy.addressPattern, REDACTED), policy.secrets);
+}
+
+/** `scrubWarning` under a `ScrubPolicy` (message and every string in `context`). */
+export function scrubWarningWithPolicy<W extends DomainWarning>(warning: W, policy: ScrubPolicy): W {
+  const secrets = normaliseSecrets(policy.secrets);
+  return warningWith(warning, (text) => scrubWith(text.replace(policy.addressPattern, REDACTED), secrets));
+}
+
+/** `scrubDeep` under a `ScrubPolicy`. */
+export function scrubDeepWithPolicy<T>(value: T, policy: ScrubPolicy): T {
+  const secrets = normaliseSecrets(policy.secrets);
+  return deepCopy(value, (text) => scrubWith(text.replace(policy.addressPattern, REDACTED), secrets), new Set<object>());
+}
+
+/** A policy that only applies the credential-shape patterns (no known secret, no address). */
+export const SHAPES_ONLY: ScrubPolicy = { secrets: [], addressPattern: /(?!)/g };

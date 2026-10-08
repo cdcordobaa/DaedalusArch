@@ -353,3 +353,13 @@ describeU3('U3-R10 frozen schema (BR-U3-59, 60)', () => {
     expect(r.report).not.toHaveProperty('neuralResults');
   }, RUN_TIMEOUT_MS);
 });
+
+describeU3('U3-R11 scrubbing (NFR-05, BR-U3-58)', () => {
+  it.each(GOLDEN_CASES.map((g) => g.id))('%s: the report JSON and the context warnings contain neither the URI nor the password (counts only)', async (id) => {
+    const r = await run(id);
+    const neo4j = neo4jConfig();
+    const text = JSON.stringify({ report: r.report, warnings: r.warnings });
+    const count = (needle: string): number => text.split(needle).length - 1;
+    expect({ uri: count(neo4j.uri), password: count(neo4j.password) }).toEqual({ uri: 0, password: 0 });
+  }, RUN_TIMEOUT_MS);
+});

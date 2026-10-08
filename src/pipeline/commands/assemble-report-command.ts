@@ -7,6 +7,8 @@ import { DomainResult } from '../../shared/errors/domain-result.js';
 import { buildEvaluationReport, NO_JUDGE } from '../../scoring-engine/report-builder.js';
 import type { RunFacts } from '../../scoring-engine/report-builder.js';
 import { validateReport } from '../../scoring-engine/report-schema-validator.js';
+import { scrubDeepWithPolicy } from '../../shared/errors/scrub.js';
+import type { ScrubPolicy } from '../../shared/errors/scrub.js';
 import type { CompileFactsHolder } from './compile-command.js';
 
 export interface AssembleReportConfig {
@@ -15,8 +17,8 @@ export interface AssembleReportConfig {
   readonly timingSource: () => StageTimings;
   /** Shared with `CompileCommand`, which writes the declared-side counts (BR-U3-52). */
   readonly compileFacts: CompileFactsHolder;
-  /** Values scrubbed from every warning (BR-U3-58). */
-  readonly knownSecrets: readonly string[];
+  /** The run's scrub policy (known secrets, credential shapes, resolved addresses; BR-U3-58). */
+  readonly scrubPolicy: ScrubPolicy;
   /** U4 `judgeProvenanceOf`; the symbolic-only stub `NO_JUDGE` until U4 merges (BR-U3-63). */
   readonly judge?: JudgeProvenance;
   /** U4 `toNeuralResultRows`; absent until U4 merges, so full / neuronal-only fail closed (BR-U3-65, D-U3-11). */
@@ -27,7 +29,7 @@ export interface AssembleReportConfig {
  * S1: the one assembly point (FR-13, FR-14; BR-U3-50). Appended last by `createPipeline`; reads, in
  * order, the scored report, the APG facts, the ingestion facts, the compiled functions with their
  * `CompileFacts`, the evaluation results, the context warnings and the stage timings, calls
- * `buildEvaluationReport`, validates the result against the frozen schema (`REPORT_SCHEMA_INVALID`,
+ * `buildEvaluationReport`, scrubs the whole report (BR-U3-58), validates the result against the frozen schema (`REPORT_SCHEMA_INVALID`,
  * BR-U3-59) and writes `setReport`. JSON, HTML, batch, golden and harness read this report.
  */
 export class AssembleReportCommand implements PipelineCommand {
@@ -69,15 +71,16 @@ export class AssembleReportCommand implements PipelineCommand {
       pipelineWarnings,
       judge: this.config.judge ?? NO_JUDGE,
       ...(neuralRows !== undefined && { neuralRows }),
-      knownSecrets: this.config.knownSecrets,
+      knownSecrets: this.config.scrubPolicy.secrets,
       mode: this.config.mode,
     };
 
     const built = buildEvaluationReport(scored, facts);
     if (!built.success) return DomainResult.fail<undefined>(built.errors);
 
-    // Fail closed: only a report that matches the frozen schema is written (BR-U3-59).
-    const valid = validateReport(built.data);
+    // NFR-05: the whole report is scrubbed before validation (BR-U3-58), then validated fail-closed:
+    // only a report that matches the frozen schema is written (BR-U3-59).
+    const valid = validateReport(scrubDeepWithPolicy(built.data, this.config.scrubPolicy));
     if (!valid.success) return DomainResult.fail<undefined>(valid.errors);
 
     context.setReport(valid.data);

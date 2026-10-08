@@ -8,7 +8,9 @@ import type { SnapshotStore } from '../shared/interfaces/snapshot-store.js';
 import type { LLMProvider } from '../shared/interfaces/llm-provider.js';
 import type { SharedSnapshotState } from './commands/snapshot-load-command.js';
 import { PipelineExecutor } from './pipeline-executor.js';
-import { FirewallContext } from '../shared/context/firewall-context.js';
+import type { FirewallContext } from '../shared/context/firewall-context.js';
+import { ScrubbingFirewallContext } from './scrubbing-context.js';
+import { neo4jScrubPolicy } from '../shared/errors/scrub.js';
 import { runId as makeRunId } from '../shared/types/value-objects.js';
 import { Neo4jRepository } from '../neo4j-ingestion/neo4j-repository.js';
 import { FileSystemSnapshotStore } from '../neo4j-ingestion/fs-snapshot-store.js';
@@ -63,7 +65,9 @@ export function createPipeline(config: PipelineConfig): PipelineBundle {
   // ------------------------------------------------------------------
   // 1. Create the shared FirewallContext
   // ------------------------------------------------------------------
-  const context = new FirewallContext(makeRunId(`run-${Date.now()}`));
+  // NFR-05 (BR-U3-58): one scrub policy per run; warnings and audit entries are scrubbed on entry.
+  const scrubPolicy = neo4jScrubPolicy(config);
+  const context = new ScrubbingFirewallContext(makeRunId(`run-${Date.now()}`), scrubPolicy);
 
   // ------------------------------------------------------------------
   // 2. Instantiate infrastructure services
@@ -146,7 +150,7 @@ export function createPipeline(config: PipelineConfig): PipelineBundle {
       break;
 
     case 'symbolic-only':
-      commands.push(new SymbolicEvaluateCommand(graphRepo));
+      commands.push(new SymbolicEvaluateCommand(graphRepo, scrubPolicy.secrets));
       break;
 
     case 'neuronal-only':
@@ -182,7 +186,7 @@ export function createPipeline(config: PipelineConfig): PipelineBundle {
     mode: config.evaluationMode,
     timingSource: () => executor.getTimings(),
     compileFacts,
-    knownSecrets: [],
+    scrubPolicy,
   }));
 
   // ------------------------------------------------------------------

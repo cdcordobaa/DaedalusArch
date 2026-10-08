@@ -3,6 +3,7 @@ import { join, resolve } from 'node:path';
 import { createPipeline } from '../pipeline/pipeline-factory.js';
 import type { BatchOptions, BatchRow, BatchResult, PipelineConfig } from '../pipeline/types.js';
 import type { EvaluationMode } from '../shared/types/enums.js';
+import { neo4jScrubPolicy, scrubWithPolicy } from '../shared/errors/scrub.js';
 
 /**
  * Discover TypeScript projects inside a directory.
@@ -70,6 +71,11 @@ function buildConfig(
   };
 }
 
+/** A batch error row's message, scrubbed under the project's run policy (NFR-05, BR-U3-58). */
+export function scrubBatchError(message: string, config: PipelineConfig): string {
+  return scrubWithPolicy(message, neo4jScrubPolicy(config));
+}
+
 /**
  * Evaluate a single project within a batch, returning a BatchRow.
  */
@@ -105,7 +111,7 @@ async function evaluateProject(
       verdict: 'ERROR',
       violationCount: 0,
       durationMs,
-      error: result.errors.map((e) => e.message).join('; '),
+      error: scrubBatchError(result.errors.map((e) => e.message).join('; '), config),
     };
   } catch (err) {
     const durationMs = Date.now() - start;
@@ -116,7 +122,7 @@ async function evaluateProject(
       verdict: 'ERROR',
       violationCount: 0,
       durationMs,
-      error: err instanceof Error ? err.message : String(err),
+      error: scrubBatchError(err instanceof Error ? err.message : String(err), config),
     };
   } finally {
     await cleanup();
