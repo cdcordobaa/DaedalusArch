@@ -39,8 +39,12 @@ const FORBIDDEN_FOR_MUTATION = [
 /** BR-U5a-06: any `*report*.json` file name in a plain or template string. */
 const REPORT_JSON_NAME = /report[^'"`/]*\.json/i;
 
-/** BR-U5a-51: a Claude model id literal (`claude-opus-…`, `claude-3-…`, …). */
-const CLAUDE_MODEL_ID = /claude-[a-z0-9]/i;
+/**
+ * BR-U5a-51: a Claude model id literal (`claude-opus-…`, `claude-3-…`, …). The design's adapter id
+ * `claude-code-cli` (domain-entities §5, `GridPlan.adapters[].adapterId`) is not a model id and is exempt
+ * (DV-U5a-9).
+ */
+const CLAUDE_MODEL_ID = /claude-(?!code-cli\b)[a-z0-9]/i;
 
 /** D-U5a-13: tokens no U5a script may contain. */
 const BANNED_TOKENS = /import\.meta|__dirname|__filename|\brequire\(/;
@@ -203,6 +207,9 @@ describe('U5a architecture (BR-U5a-06, 51, 53; D-U5a-13)', () => {
     it('the Claude model-id and banned-token detectors fire', () => {
       expect(CLAUDE_MODEL_ID.test("const m = 'claude-opus-4-1';")).toBe(true);
       expect(CLAUDE_MODEL_ID.test("const bin = 'claude';")).toBe(false);
+      expect(CLAUDE_MODEL_ID.test("const a = 'claude-code-cli';")).toBe(false);
+      expect(CLAUDE_MODEL_ID.test("const m = 'claude-3-5-sonnet-20241022';")).toBe(true);
+      expect(CLAUDE_MODEL_ID.test("const m = 'claude-code-cli-x claude-sonnet-4-5';")).toBe(true);
       expect(BANNED_TOKENS.test('const d = __dirname;')).toBe(true);
       expect(BANNED_TOKENS.test('const u = import.meta.url;')).toBe(true);
       expect(BANNED_TOKENS.test("const x = require('x');")).toBe(true);
