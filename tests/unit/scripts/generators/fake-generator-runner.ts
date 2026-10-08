@@ -50,10 +50,14 @@ export class FakeGeneratorRunner implements ProcessRunner {
   /** Number of `error TS…` lines the harness tsc prints (per call, last value repeats). */
   tscErrors: number[] = [0];
 
+  private readonly scripts: CliScript[];
+
   constructor(
     private readonly cliBinary: string,
-    private readonly scripts: CliScript[] = [],
-  ) {}
+    scripts: readonly CliScript[] = [],
+  ) {
+    this.scripts = [...scripts];
+  }
 
   queue(...s: CliScript[]): this {
     this.scripts.push(...s);

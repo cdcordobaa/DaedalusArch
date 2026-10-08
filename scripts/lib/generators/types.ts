@@ -137,6 +137,12 @@ export interface PromptInstance {
   readonly promptSha256: string;
 }
 
+/**
+ * Gives the instantiated prompt of a request: the template `scripts/generator/prompts/<specLevel>.md` (task section
+ * `taskId`) with `{{TYPECHECK_COMMAND}}` replaced by `typecheckCommand` (BR-U5a-52; `prompt.ts`).
+ */
+export type PromptProvider = (req: GenerationRequest, typecheckCommand: string) => DomainResult<PromptInstance>;
+
 export interface GenerationOutcome {
   readonly status: GenerationStatus;
   readonly failureReason?: GenerationFailureReason;

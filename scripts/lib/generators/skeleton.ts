@@ -305,6 +305,38 @@ export async function runHarnessTypecheck(
   return DomainResult.ok(errs);
 }
 
+export interface HarnessReady {
+  readonly install: SkeletonInstall;
+  readonly installMode: 'offline' | 'warmed-then-offline';
+  /** `<H>/bin/tsc`. */
+  readonly tscLauncher: string;
+}
+
+/**
+ * Prepares `<H>` for generation (BR-U5a-42, 45): the read-only skeleton install (offline first; on a cold cache the
+ * cache is warmed once from the registry, then the offline install is retried) and the `<H>/bin/tsc` launcher of
+ * its pinned typescript, run by the current node binary. Used by the grid, the confinement probes and the D-U5a-9
+ * check; also rebuilds the install after a `skeleton-tampered` run.
+ */
+export async function ensureHarness(
+  runner: ProcessRunner,
+  repoRoot: string,
+  harnessRoot: string,
+  tmpRoot = os.tmpdir(),
+): Promise<DomainResult<HarnessReady>> {
+  let installMode: HarnessReady['installMode'] = 'offline';
+  let inst = await installSkeleton(runner, repoRoot, harnessRoot);
+  if (!inst.success) {
+    const warmed = await warmSkeletonCache(runner, repoRoot, tmpRoot);
+    if (!warmed.success) return DomainResult.fail(warmed.errors);
+    installMode = 'warmed-then-offline';
+    inst = await installSkeleton(runner, repoRoot, harnessRoot);
+    if (!inst.success) return DomainResult.fail(inst.errors);
+  }
+  const tscLauncher = writeHarnessTscLauncher(harnessRoot, inst.data.tscJs, process.execPath);
+  return DomainResult.ok({ install: inst.data, installMode, tscLauncher });
+}
+
 /** Runs the D-U5a-9 check in a throwaway harness under `tmpRoot` (outside the repository). */
 export async function runHarnessTsconfigCheck(
   runner: ProcessRunner,
@@ -315,17 +347,9 @@ export async function runHarnessTsconfigCheck(
   try {
     const h = path.join(root, 'h');
     fs.mkdirSync(h);
-    let installMode: HarnessCheckReport['installMode'] = 'offline';
-    let inst = await installSkeleton(runner, repoRoot, h);
-    if (!inst.success) {
-      const warmed = await warmSkeletonCache(runner, repoRoot, root);
-      if (!warmed.success) return DomainResult.fail(warmed.errors);
-      installMode = 'warmed-then-offline';
-      inst = await installSkeleton(runner, repoRoot, h);
-      if (!inst.success) return DomainResult.fail(inst.errors);
-    }
-    const install = inst.data;
-    writeHarnessTscLauncher(h, install.tscJs, process.execPath);
+    const ready = await ensureHarness(runner, repoRoot, h, root);
+    if (!ready.success) return DomainResult.fail(ready.errors);
+    const { install, installMode } = ready.data;
     const runId = 'harness-check/task-management/none/run-0';
     const cwd = path.join(root, 'out', ...runId.split('/'));
     const prep = prepareCellDir(install, repoRoot, cwd);
