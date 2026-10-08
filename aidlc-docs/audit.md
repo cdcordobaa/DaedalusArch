@@ -848,3 +848,36 @@
 **Context**: CONSTRUCTION — U0 COMPLETE; lane 2 next.
 
 ---
+
+## v1.2 Evaluation-Readiness — Lane 2 Functional Design starts
+**Timestamp**: 2026-10-07T21:40:00Z
+**User Input**: "use ultracode and subagents to progress on this"
+**AI Response**: Loaded construction/functional-design.md. Launched a multi-agent workflow for U1 and U2 in parallel: code scouts per unit, a drafter that writes the functional-design plan with [Answer]: questions (recommended option first, with code evidence), an adversarial reviewer, and a repairer. Gate: user answers both question files.
+**Context**: CONSTRUCTION — Functional Design U1, U2 Part 1 (plan + questions) IN PROGRESS.
+
+---
+
+## v1.2 Evaluation-Readiness — Lane 2 Functional Design plans ready
+**Timestamp**: 2026-10-07T22:10:00Z
+**AI Response**: Workflow wf_80205bff-95d (10 agents) wrote `construction/plans/v1.2E-u1-spec-compiler-functional-design-plan.md` (24 questions; review raised 22 issues, all fixed) and `construction/plans/v1.2E-u2-extractor-graph-functional-design-plan.md` (17 questions; 18 review issues fixed). Cross-unit note: U2 Q6A hands RE_EXPORTS-following dependency templates to U1, which has no matching question; to be added to U1 under FR-34 if accepted.
+**AI Prompt**: Answer both question files (or "recommended for all").
+**Context**: CONSTRUCTION — Functional Design U1, U2 awaiting answers.
+
+---
+
+## v1.2 Evaluation-Readiness — Lane 2 adversarial review of recommended options
+**Timestamp**: 2026-10-07T22:45:00Z
+**User Input**: "Can you generate an adversarial suggestion on all the relevant design choices and hand them to me?"
+**AI Response**: Three parallel reviewers (U1 Q1–12, U1 Q13–24, U2 Q1–17) attacked every recommended option against code, corpus clones and Neo4j EXPLAIN. Consolidated in `construction/plans/v1.2E-lane2-functional-design-adversarial-review.md`: 5 keep, 29 keep-with-condition, 7 switch (U1 Q3, Q8, Q14, Q21, Q22, Q24; U2 Q13); 8 factual errors in the plans; new U1 Q25 proposed; pre-registration rule for observation-vs-fix proposed. Advisory only; question files unanswered.
+**Context**: CONSTRUCTION — Functional Design U1, U2 awaiting answers.
+
+---
+
+## v1.2 Evaluation-Readiness — Lane 2 decisions; ADR-015; answers filled
+**Timestamp**: 2026-10-07T23:10:00Z
+**User Input**: "Okay let's go this way. Let's generate an ADR so we keep track of the decisions we are generating here and then progress with the plan."
+**Intent**: Prioritise only decisions that affect producing the promised objective results (SO1–SO5) and a sound evaluation; default everything else; record decisions durably.
+**AI Response**: Added ADR-015 to `Docs/ADR — Architectural Decision Records Firewall Tech.md` (pre-registered fix/observe rule; frozen choices; corpus = Docs/corpus.md five, specs versioned; cycle bound literal + same bound in universal metric + latency gate/SCC fallback; intent→integrity weight; package-existence check; RE_EXPORTS traversal with byte-identical IMPORTS messages; operational tags; FF-CV02/FF-S03 corrections; FR-19/FR-20 met not reworded; merge order U2→U1; all else default A). Filled all [Answer]: tags (U1 25 incl. new Q25, U2 17), each citing ADR-015. No ambiguous answers remain. Proceeding to Functional Design Part 2 (artefact generation) via workflow.
+**Context**: CONSTRUCTION — Functional Design U1, U2 answers complete.
+
+---

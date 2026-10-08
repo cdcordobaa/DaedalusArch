@@ -609,6 +609,100 @@ firewall batch --dir ./generated/ --spec ./specs/ --output results.csv
 
 ---
 
+## ADR-015: Evaluation-readiness design decisions for the spec compiler and graph extractor (v1.2, lane 2)
+
+**Status**: Accepted
+
+**Date**: 2026-10-07
+
+**Context**: The v1.2 evaluation-readiness cycle must make DaedalusArch produce the results the thesis objectives promise. Those are: style libraries (SO1); APG coverage and latency (SO2); symbolic structural/topological rules plus a neural judge yielding AHS (SO3); P/R/F1 on a seeded golden dataset (SO4); and the LLM × spec-quality study (SO5). The U0 golden baseline at `7cd15b4` (`tests/golden/CHANGES.md`) showed that 7 of 24 checks never execute and that 3 of 5 fixture verdicts disagree with the spec header. The functional-design plans for U1 (spec + compiler) and U2 (extractor + graph) asked 41 design questions. An adversarial review (`aidlc-docs/construction/plans/v1.2E-lane2-functional-design-adversarial-review.md`) attacked every recommended option. The author asked for the decisions to be selected by one criterion: **does the choice change whether the promised results can be produced and defended?** Everything else takes the default recommended option.
+
+**Decision**:
+
+*Measurement policy (pre-registered before any FR-18 re-baseline or corpus run)*
+
+1. **Fix vs observe rule.**
+   - Fix internal spec/template inconsistencies and rules applied to the wrong architectural style.
+   - Never tune thresholds or verdict cut-offs to data.
+   - A check that cannot fire is either fixed, or excluded from the denominator and declared.
+   - The five fixtures are the development set; the corpus is held out.
+   - Every fix is one commit with one `tests/golden/CHANGES.md` line, dated before the first corpus run.
+2. **Frozen before the first run**, each with a threats-to-validity entry:
+   - the `pattern` grammar (glob over the class name with `|` alternation);
+   - the `layered` applicability table;
+   - the cycle-length bound (10);
+   - the operational tag definitions (item 9);
+   - the self-spec deviations from preset defaults.
+
+*Corpus and provenance*
+
+3. **Corpus = the five projects in `Docs/corpus.md`.** dev-nest receives its spec in the open-source mapping step (E7). `demo-target` is not part of the corpus.
+4. **Corpus specs are versioned in this repository.** They are committed unchanged first (e.g. `corpus/specs/<project>.yaml`). The FR-22 migration (`intent` → `integrity`) is a separate, scripted commit.
+
+*Correctness of results*
+
+5. **Cycle query** (U1 Q15, U2 Q12):
+   - the path bound is a literal compiler constant (Neo4j rejects a parameter there);
+   - rotations are canonicalised with a pushed-down `ALL(...)` predicate;
+   - `WITH DISTINCT` comes before `ORDER BY`;
+   - truncation is detected with a `LIMIT cap+1` sentinel;
+   - the universal cycle metric (`universal-metrics.ts`) uses the same bound;
+   - a latency gate runs on the largest corpus project, with in-memory SCC (Tarjan) as the pre-agreed fallback.
+6. **`intent` migration** (U1 Q9): the weight key `intent` maps to `integrity`; the dimension alias `intent` maps to `semantic`; a collision rule is defined; a test asserts that nothing compiled carries `intent`.
+7. **Unresolved bare specifiers** (U2 Q2): before an import is classified as an unresolved alias, check whether a package by that name is installed. `paths` aliases that point into `node_modules` are treated as Package. This prevents dropping real external dependencies (truthy-demo `config`, dev-nest).
+8. **Re-exports in dependency rules** (U2 Q6, new U1 Q25):
+   - `dependency-direction`, `no-layer-skip`, `no-domain-outward-dep` and the cycle query traverse `IMPORTS|RE_EXPORTS`;
+   - they return `type(i)` and `coalesce(i.isTypeOnly, false)`;
+   - IMPORTS messages stay byte-identical, and only RE_EXPORTS rows say "re-exports";
+   - coupling metrics stay IMPORTS-only.
+9. **Template tags** (U1 Q14), by operational definition:
+   - **structural**: a single typed edge checked against the layer model, with no name heuristic;
+   - **topological**: path, degree, connectivity or ratio;
+   - **pattern-proxy**: name, role or count heuristic.
+
+   FR-29 is amended only where this definition requires it (`no-layer-skip` → structural).
+10. **Construct-validity corrections** under rule 1:
+    - FF-CV02 pattern becomes `*Service|*UseCase` (the template selects both roles; U1 Q21);
+    - FF-S03 `no-layer-skip` applies to `layered` only; strict adjacency contradicts Clean Architecture's dependency rule (U1 Q22; Martin 2017; Buschmann et al. 1996); nestjs is decided explicitly in the U1 design;
+    - checks that cannot fail at the re-baseline (FF-SO02, FF-CV01) are fixed or excluded and declared (U1 Q20);
+    - a per-function sensitivity check in Build and Test proves that each check can fire on a seeded fixture.
+11. **Requirements met rather than reworded**:
+    - FR-19: the self-spec marks `core-modules` as `kind: infrastructure` (U1 Q3);
+    - FR-20: runs report declared, compiled and executed counts, so "100 % executed" has a visible denominator (U1 Q6).
+
+*Attribution*
+
+12. **Merge order U2 → U1** (U1 Q24). U2 alone changes no golden snapshot, so every interaction delta lands in the U1 commit that causes it.
+
+*Defaults*
+
+13. All other questions take the recommended option A of their plan. The adversarial review's remaining conditions are optional refinements; they are adopted only where code generation needs them to work.
+
+**Rationale**:
+
+- Each selected item either changes a number reported against SO2–SO4, prevents a run from failing (FR-36 rejects on timeout), or keeps the Chapter 4/7 "requirement met" and "structural and topological rules" claims defensible.
+- Pre-registering the fix/observe rule and the frozen choices separates corrections of the instrument from tuning to the data. That separation is the main threat an examiner will probe.
+- Versioning the corpus specs and keeping one cause per snapshot change keep every reported figure reproducible and attributable.
+
+**Alternatives Considered**:
+
+| Alternative | Why Rejected |
+| --- | --- |
+| Take every recommended option A unchanged | Cycle query does not compile; Integrity weight collapses to 0; real external imports dropped; FF-S03/FF-CV02 bias precision on the correct reference |
+| Adopt all 34 conditions of the adversarial review | Most do not change a promised result; schedule cost on a 25–30 day plan |
+| "No calibration change" for everything (observe only) | Leaves known construct defects in every score; P/R/F1 would measure spec bugs |
+| Merge order "whoever is second re-runs" | Joint deltas become unattributable to either unit |
+
+**Consequences**:
+
+- U1 gains Q25 (RE_EXPORTS traversal) and the construct corrections. Golden snapshots will change in U1 by design, each change attributed in `CHANGES.md`.
+- U2 must merge before U1. Both can still be designed and coded in parallel.
+- U3 inherits the bounded universal cycle metric and the orphan/barrel filters. U4 inherits the rubric and naming obligations.
+- The thesis reports the pre-registered rule, the frozen choices and their sensitivity (e.g. the correct-reference verdict around the 0.80 cut-off) as threats to validity.
+- References: `v1.2E-u1-spec-compiler-functional-design-plan.md`, `v1.2E-u2-extractor-graph-functional-design-plan.md`, `v1.2E-lane2-functional-design-adversarial-review.md`, `tests/golden/CHANGES.md`.
+
+---
+
 ## Decision Log Summary
 
 | **ADR** | **Decision** | **Status** | **Spike Validated** |
@@ -626,4 +720,6 @@ firewall batch --dir ./generated/ --spec ./specs/ --output results.csv
 | 011 | 3×3 factorial experimental design | Accepted | — |
 | 012 | Layer annotation via spec mappings | Accepted | ✅ Spike 1 |
 | 013 | Universal health metrics (spec-independent) | Accepted | ✅ Spike 3 |
+| 014 | Node.js + TypeScript implementation | Accepted | — |
+| 015 | v1.2 lane-2 evaluation-readiness decisions (fix/observe rule, corpus provenance, cycle bound, RE_EXPORTS, tags, merge order) | Accepted | — |
 | 014 | Node.js + TypeScript implementation | Accepted | ✅ All spikes |
