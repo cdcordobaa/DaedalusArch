@@ -120,3 +120,27 @@ Recorded 2026-10-08 (Build and Test Step 14). `npx tsx scripts/corpus-rubric-u4-
 | `tests/fixtures/u5a/layered/firewall.spec.yaml` (layered fixture spec, U4 §7 row "layered fixture spec old names") | same 10 paths | `cebbeb626fbaa46985caeaf0bfa32e95bad52543e11a878d08f56b025434b10c` |
 
 dev-nest has no spec yet (OI-12); the assertion applies to it when its spec is written in the E7 mapping step.
+
+## Fetched and prepared bases (Build and Test)
+
+Recorded 2026-10-08 (Build and Test Steps 13–19; FR-36; BR-U5b-66, 67, 76; OI-11). Clones under `../daedalus-corpus/<name>` (outside every checkout, never committed), fetched with `npx tsx scripts/fetch-corpus-cli.ts --dest ../daedalus-corpus` (Node v24.5.0, npm 11.5.1). Every fetched HEAD equals `commitSha` in `corpus/corpus.json`, and the core five equal the Clones table above. A rerun with `--check` into a fresh scratch destination prints "SHA and overlays check" for all ten (exit 0); `fetch-corpus` refuses an existing destination, so the idempotence rerun cannot target `../daedalus-corpus` itself. Selections: `corpus/selections/<project>.json`, projected by `scripts/store-baseline-selection-cli.ts` from Mock-provider full-mode reports (zero live calls; DV-BT-2). Prepared with `npx tsx scripts/prepare-bases-cli.ts --clones ../daedalus-corpus --selections corpus/selections --only realworld-test,ghostfolio-test,truthy-demo,dry-run-test` (exit 0; measured tsc equals the registered value for all four, OI-U5a-5; overlay `sha256` is the overlaid content, OI-U5a-17). Parity: `scripts/u5a-parity-check.ts` exit 0 (`OK`) on each of the four (BR-U5a-56). Type-check and feasibility: `Docs/DiagnosticRuns/u5a-base-typecheck.*` and `u5a-site-feasibility.*`.
+
+| Entry | Set | HEAD = registered | Tree hash (source + overlays) | Overlays (patch sha256, overlaid content sha256) | Install lock sha256 | Install | tsc (registered; measured when prepared) | Prepared | Parity |
+|---|---|---|---|---|---|---|---|---|---|
+| `dev-nest` | core | yes | `51d97809532d26cca7fef2551cc0af00ff22fe4a` | — | `28c24f8911ab…` | ok | 5.9.3 | no: no spec (OI-12) | — |
+| `realworld-test` | core | yes | `a35a8d572473ce3aee63f27df114b43686547e21` | `src/config.ts` patch `4b4892265a42…`, overlaid `1d32c182ead8…` | `d5e2bbd08d77…` | INSTALL_FAILED (incomplete, see note 1) | 3.8.3 | yes | OK |
+| `ghostfolio-test` | core | yes | `cb3dfcd8af7e319ff9cc32d5aca76ce97f238c44` | `apps/api/tsconfig.json` patch `db662b72fe5f…`, overlaid `b8d3b02be527…` | `e9191a047adb…` | ok | 5.9.2 | yes (`apps/api`) | OK |
+| `truthy-demo` | core | yes | `cd3914eca7a5db576a22703aa66f9ad4be37b3e0` | `package-lock.json` patch `5c171979d68f…`, overlaid `80a19e1961bc…`; `.npmrc` patch `abed217f31f0…`, overlaid `a093bb2fed59…` | `80a19e1961bc…` | ok | 4.7.4 | yes | OK |
+| `dry-run-test` | core | yes | `697f7a49a6cfb87faaee8c7e29163fc887c29846` | `tsconfig.json` patch `d581ea3d2b87…`, overlaid `dfc7de7a6ecb…` | `c019ce88c1bf…` | ok | 5.9.3 | yes | OK |
+| `zhuravlevma__nestjs-active-record` | E7 | yes | `f4209ac123da5d84a136015e6cd8807409a5d9b3` | — | `3cfb9991354c…` | ok | 4.9.5 | no: no spec (OI-12) | — |
+| `nestjslatam__ddd` | E7 | yes | `d889b5b4294177c71032ae1481ec2ae54aca23b8` | — | `dc62206bb060…` | ok | 5.9.3 | no: no spec (OI-12) | — |
+| `MarvinRF__nest-docfy` | E7 | yes | `542a6b9f618f1450c0226cf085658b09d16371b5` | — | `a8a5a6340195…` | ok | 5.9.3 | no: no spec (OI-12) | — |
+| `eryzerz__nestjs-ddd` | E7 | yes | `01aa7917e7845914fdd6acbc9c63680731ab8365` | — | `432c5f9c6167…` | ok | 3.6.4 | no: no spec (OI-12) | — |
+| `v-aguiar__valex` | E7 | yes | `aa164b3c199daccd487065fa284eda2f6f09664e` | — | `19e62ccb77e9…` | ok | 4.7.4 | no: no spec (OI-12) | — |
+
+Notes:
+
+1. **realworld-test install incomplete.** `npm ci --ignore-scripts` fails with npm's "Exit handler never called!" under npm 11.5.1 and again under npm 10.9.2 (same lock, `lockfileVersion` 1). 194 of the lock's `resolved` URLs point to a third-party mirror (`npm.styque.de`) that no longer answers; 39 non-optional packages stay missing (the earlier local clone `../realworld-test` lacks 192). TypeScript 3.8.3 is installed, the base type-checks with 0 errors (stubs on failed resolution, BR-U5a-10) and parity is `OK`. The tree hash above was computed with `treeHash` after the failure and equals U5b Step 25's no-install value. A registered fix (for example an overlay that re-points the lock to the public registry) changes `corpus/corpus.json` and is left to the author.
+2. **truthy-demo tree hash depends on the install.** npm rewrites the tracked `yarn.lock` during `npm ci` (npm's yarn.lock sync), so the post-install tree hash is `cd3914eca7a5db576a22703aa66f9ad4be37b3e0`; without install (U5b Step 25) it is `f28724d8…`. The source files the tools read are unchanged. Hashing before the install would make the record install-independent; that is a `fetch-corpus` design change left to the author.
+3. **ghostfolio-test is excluded by the base type-check** (3 errors, `TS2688`, `TS5052`, `TS5083`): the analysis copy of the `apps/api` sub-path base does not include the monorepo root (`tsconfig.base.json`, root `node_modules`). Type-checked in the clone itself, `apps/api` gives 432 errors (`TS2305` 232, `TS2339` 188, …), consistent with a Prisma client that is not generated under `--ignore-scripts`. Both are left to the author; no base was patched.
+4. dev-nest and the five E7 additions are fetched but not prepared: they have no spec yet (OI-12; deferred to the E7 mapping step).
