@@ -941,3 +941,12 @@ Plan checkboxes ticked. Auto-approved under standing approval; no blocking or ma
 **Context**: CONSTRUCTION — lane 2 Code Generation: U2 COMPLETE and merged; next: U1 rebases or merges onto v1.2e.
 
 ---
+
+## v1.2 Evaluation-Readiness — U1 merged into v1.2e (auto-approved)
+**Timestamp**: 2026-10-08T09:50:00Z
+**User Input**: None (standing approval of 2026-10-08T00:30:00Z)
+**Intent**: Close U1 Code Generation: merge the U1 Spec and Compiler branch into v1.2e and record completion; lane 2 complete.
+**AI Response**: U1 merged into v1.2e (auto-approved). PR #3 (v1.2e-u1-spec-compiler → v1.2e) merged with a merge commit, eee25fbec418b40cda05fac9b859c095914e9cdc (parents cea1e7c, f08b864; no squash, rebase or force-push; main unchanged at 7cd15b4). Code summary extended with the realised-vs-predicted golden-change table (all K1–K16 match business-logic-model.md §8.2 to 3 dp), every U1 CHANGES.md line verbatim, and the post-U1 per-fixture table. PR CI run 37758444791 green: Build & Test, Golden regression suite 38/38 (0 skipped), Golden change log; merge push run 37758784666 green. Interim post-U1 AHS/verdicts (never quoted as results, BR-U1-42): correct-reference 0.958 pass; variant-a-structural 0.422 hard-block; variant-b-pattern 0.595 soft-block; variant-c-everything 0.412 hard-block; variant-d-subtle 0.538 soft-block. Hand-offs to U3/U4/Build and Test recorded in v1.2E-unit-of-work.md. The U1 worktree is kept for the orchestrator to remove. No escalation.
+**Context**: CONSTRUCTION — lane 2 Code Generation COMPLETE (U2, U1); next: lanes 3/4 code generation.
+
+---
