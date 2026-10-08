@@ -2,7 +2,14 @@
  * Pure tests of the golden suite environment guards (FR-30, NFR-05). No Neo4j.
  * Dummy credentials only.
  */
-import { isCiEnv, redactSecrets, redactUri, resolveGoldenEnv } from '../../golden/golden-env.js';
+import {
+  isCiEnv,
+  passwordRuleViolation,
+  readSnapshotTexts,
+  redactSecrets,
+  redactUri,
+  resolveGoldenEnv,
+} from '../../golden/golden-env.js';
 
 const DUMMY = 'dummy-not-real-pw';
 
@@ -29,6 +36,56 @@ describe('resolveGoldenEnv', () => {
     expect(message).toMatch(/embedded credentials/);
     expect(message.includes('SECRETX99')).toBe(false);
     expect(message.includes('neo4j:')).toBe(false);
+  });
+});
+
+describe('resolveGoldenEnv password guard (BR-U2-43, Q14 A)', () => {
+  const snapshots = readSnapshotTexts();
+
+  function messageOf(fn: () => unknown): string {
+    try {
+      fn();
+    } catch (e) {
+      return (e as Error).message;
+    }
+    return '';
+  }
+
+  it('reads the committed golden snapshots', () => {
+    expect(snapshots.length).toBe(5);
+  });
+
+  it('throws for a password shorter than 8 characters under GOLDEN_REQUIRED=1, naming the rule only', () => {
+    const message = messageOf(() => resolveGoldenEnv({ NEO4J_PASSWORD: 'short', GOLDEN_REQUIRED: '1' }, snapshots));
+    expect(message).toMatch(/shorter than 8 characters/);
+    expect(message.replace('shorter', '').includes('short')).toBe(false);
+  });
+
+  it('throws for a password contained in a committed snapshot, naming the rule only', () => {
+    expect(snapshots.some((t) => t.includes('forbiddenImports'))).toBe(true);
+    const message = messageOf(() =>
+      resolveGoldenEnv({ NEO4J_PASSWORD: 'forbiddenImports', GOLDEN_REQUIRED: '1' }, snapshots));
+    expect(message).toMatch(/committed golden snapshot/);
+    expect(message.includes('forbiddenImports')).toBe(false);
+  });
+
+  it('skips (does not throw) without GOLDEN_REQUIRED, with a reason naming the rule only', () => {
+    for (const pw of ['short', 'forbiddenImports']) {
+      const env = resolveGoldenEnv({ NEO4J_PASSWORD: pw }, snapshots);
+      expect(env.enabled).toBe(false);
+      if (env.enabled) continue;
+      expect(env.reason.replace('shorter', '').includes(pw)).toBe(false);
+    }
+  });
+
+  it.each(['test-password', 'test-password-123'])('accepts %p (CI value and a long dummy)', (pw) => {
+    const env = resolveGoldenEnv({ NEO4J_PASSWORD: pw, GOLDEN_REQUIRED: '1' }, snapshots);
+    expect(env.enabled).toBe(true);
+    expect(passwordRuleViolation(pw, snapshots)).toBeUndefined();
+  });
+
+  it('reads the snapshots by default when no texts are passed', () => {
+    expect(() => resolveGoldenEnv({ NEO4J_PASSWORD: 'forbiddenImports', GOLDEN_REQUIRED: '1' })).toThrow(/snapshot/);
   });
 });
 
