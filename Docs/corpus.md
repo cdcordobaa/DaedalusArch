@@ -48,3 +48,11 @@ git clone <origin> <directory>
 git -C <directory> checkout <HEAD SHA>
 # then re-apply the tsconfig change listed above for ghostfolio-test and dry-run-test
 ```
+
+## Import resolution rules (U2)
+
+Recorded 2026-10-08 (U2 `business-rules.md` BR-U2-06, BR-U2-08; ADR-016). These rules decide how the extractor classifies an import on a corpus project, so they are part of the evaluated input.
+
+- **Out-of-root alias** (BR-U2-08): an alias (`compilerOptions.paths` or `baseUrl`) that resolves to a file outside the project root and outside `node_modules` is not a project file. It yields a Package node named by the alias naming rule below, and it increments both `importResolution.external` and `importResolution.externalOutOfRootAlias`, so the count of such imports is visible next to `external` in every report.
+- **Alias naming** (BR-U2-06): a package-shaped alias is named by its root (`@scope/name/sub` → `@scope/name`, BR-U2-05). A non-package-shaped alias is named by the matched `paths` key with a trailing `/*` removed (`~/*` → `~`, `#internal/*` → `#internal`), or by the first segment for a `baseUrl` match (`src/x` → `src`); its scope is `npm`.
+- **Per-project alias-name listing**: every non-package-shaped alias name used on a corpus project is to be listed here for that project. The listing is a Build and Test obligation, produced after the corpus-run freeze lifts; it is not part of U2 code generation.
