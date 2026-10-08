@@ -6,6 +6,7 @@ import { DomainResult } from '../shared/errors/domain-result.js';
 import { NODE_TYPES, EDGE_TYPES } from '../shared/types/enums.js';
 import type { NodeType, EdgeType } from '../shared/types/enums.js';
 import type { LayerAnnotation } from './types.js';
+import { WRITE_QUERY_TIMEOUT_MS } from './types.js';
 
 // Ingestion order is preserved from before the enums existed (D-U0-13): templates have no ORDER BY
 // until FR-35, so a different insertion order could reorder rows inside a function's results.
@@ -31,6 +32,47 @@ export interface IngestResult {
   readonly warnings: DomainWarning[];
 }
 
+/** Index statements run after `clearGraph`, before node ingestion (FR-09; BR-U2-33). */
+export const INDEX_STATEMENTS: readonly string[] = [
+  'CREATE INDEX apg_node_id IF NOT EXISTS FOR (n:APGNode) ON (n.id)',
+  'CREATE INDEX package_id IF NOT EXISTS FOR (n:Package) ON (n.id)',
+  'CALL db.awaitIndexes()',
+];
+
+/**
+ * Create the APGNode and Package id indexes and wait until they are online. Each statement is its
+ * own auto-commit call (schema and writes cannot share a transaction), with the write timeout.
+ */
+export async function ensureIndexes(graphRepo: GraphRepository): Promise<DomainResult<void>> {
+  for (const statement of INDEX_STATEMENTS) {
+    const result = await graphRepo.executeQuery(statement, undefined, { timeoutMs: WRITE_QUERY_TIMEOUT_MS });
+    if (!result.success) return DomainResult.fail(result.errors);
+  }
+  return DomainResult.ok(undefined);
+}
+
+/**
+ * BR-U2-35: compares a batch's created counter with its size. A missing counter key (a mock or a
+ * non-Neo4j repository) skips the check and counts the batch size.
+ */
+function checkCreated(
+  counters: Readonly<Record<string, number>>,
+  check: { readonly key: 'nodesCreated' | 'relationshipsCreated'; readonly code: 'INGEST_002' | 'INGEST_003'; readonly noun: string },
+  type: string,
+  batchSize: number,
+  warnings: DomainWarning[],
+): number {
+  if (!(check.key in counters)) return batchSize;
+  const created = counters[check.key] ?? 0;
+  if (created !== batchSize) {
+    warnings.push({ code: check.code, message: `${type}: created ${String(created)} of ${String(batchSize)} ${check.noun}` });
+  }
+  return created;
+}
+
+const NODE_CHECK = { key: 'nodesCreated', code: 'INGEST_002', noun: 'nodes' } as const;
+const EDGE_CHECK = { key: 'relationshipsCreated', code: 'INGEST_003', noun: 'relationships' } as const;
+
 /**
  * Ingest annotated nodes into Neo4j via UNWIND bulk insert.
  */
@@ -40,6 +82,7 @@ export async function ingestNodes(
   graphRepo: GraphRepository,
 ): Promise<DomainResult<number>> {
   let totalCreated = 0;
+  const warnings: DomainWarning[] = [];
 
   for (const type of NODE_INGESTION_ORDER) {
     const typeNodes = nodes.filter((n) => n.type === type);
@@ -47,14 +90,16 @@ export async function ingestNodes(
 
     const batch = typeNodes.map((n) => {
       const ann = annotations.get(n.id);
+      // BR-U2-31: reserved keys last, so a same-named entry in `properties` never overrides them;
+      // `decorators` are not written.
       return {
+        ...(n.properties ? flattenProperties(n.properties) : {}),
         id: n.id,
         type: n.type,
         name: n.name,
         filePath: n.filePath,
         layer: ann?.layer ?? null,
         role: ann?.role ?? null,
-        ...(n.properties ? flattenProperties(n.properties) : {}),
       };
     });
 
@@ -64,14 +109,14 @@ export async function ingestNodes(
       SET n = node
     `;
 
-    const result = await graphRepo.executeQuery(cypher, { batch });
+    const result = await graphRepo.executeQuery(cypher, { batch }, { timeoutMs: WRITE_QUERY_TIMEOUT_MS });
     if (!result.success) {
       return DomainResult.fail(result.errors);
     }
-    totalCreated += typeNodes.length;
+    totalCreated += checkCreated(result.data.summary.counters, NODE_CHECK, type, batch.length, warnings);
   }
 
-  return DomainResult.ok(totalCreated);
+  return DomainResult.ok(totalCreated, warnings.length > 0 ? warnings : undefined);
 }
 
 /**
@@ -82,16 +127,18 @@ export async function ingestEdges(
   graphRepo: GraphRepository,
 ): Promise<DomainResult<number>> {
   let totalCreated = 0;
+  const warnings: DomainWarning[] = [];
 
   for (const type of EDGE_INGESTION_ORDER) {
     const typeEdges = edges.filter((e) => e.type === type);
     if (typeEdges.length === 0) continue;
 
+    // BR-U2-32: every edge type writes its flattened properties plus `id` (FR-10, FR-21, FR-34);
+    // `type` is the relationship type and is not stored as a property.
     const batch = typeEdges.map((e) => ({
       sourceId: e.sourceId,
       targetId: e.targetId,
-      id: e.id,
-      type: e.type,
+      props: { ...flattenProperties(e.properties), id: e.id },
     }));
 
     // Neo4j doesn't support dynamic relationship types in UNWIND CREATE,
@@ -100,17 +147,18 @@ export async function ingestEdges(
       UNWIND $batch AS edge
       MATCH (src:APGNode {id: edge.sourceId})
       MATCH (tgt:APGNode {id: edge.targetId})
-      CREATE (src)-[r:${type} {id: edge.id}]->(tgt)
+      CREATE (src)-[r:${type}]->(tgt)
+      SET r = edge.props
     `;
 
-    const result = await graphRepo.executeQuery(cypher, { batch });
+    const result = await graphRepo.executeQuery(cypher, { batch }, { timeoutMs: WRITE_QUERY_TIMEOUT_MS });
     if (!result.success) {
       return DomainResult.fail(result.errors);
     }
-    totalCreated += typeEdges.length;
+    totalCreated += checkCreated(result.data.summary.counters, EDGE_CHECK, type, batch.length, warnings);
   }
 
-  return DomainResult.ok(totalCreated);
+  return DomainResult.ok(totalCreated, warnings.length > 0 ? warnings : undefined);
 }
 
 /**
@@ -127,12 +175,37 @@ export async function verifyIngestion(
   const edgeResult = await graphRepo.executeQuery('MATCH ()-[r]->() RETURN count(r) AS cnt');
   if (!edgeResult.success) return DomainResult.fail(edgeResult.errors);
 
+  // FR-14, BR-U2-34: per-type counts.
+  const nodeTypeResult = await graphRepo.executeQuery('MATCH (n:APGNode) RETURN n.type AS type, count(*) AS cnt');
+  if (!nodeTypeResult.success) return DomainResult.fail(nodeTypeResult.errors);
+
+  const edgeTypeResult = await graphRepo.executeQuery('MATCH ()-[r]->() RETURN type(r) AS type, count(*) AS cnt');
+  if (!edgeTypeResult.success) return DomainResult.fail(edgeTypeResult.errors);
+
   const nodeCount = Number(nodeResult.data.records[0]?.['cnt'] ?? 0);
   const edgeCount = Number(edgeResult.data.records[0]?.['cnt'] ?? 0);
   const layerCoverage = totalFileNodes > 0 ? mappedCount / totalFileNodes : 1;
+  const nodeCountByType = countsByType(NODE_TYPES, nodeTypeResult.data.records);
+  const edgeCountByType = countsByType(EDGE_TYPES, edgeTypeResult.data.records);
 
-  // Per-type counts are filled by U2 (FR-14); empty maps keep U0 behaviour-neutral.
-  return DomainResult.ok({ nodeCount, edgeCount, layerCoverage, nodeCountByType: {}, edgeCountByType: {} });
+  return DomainResult.ok({ nodeCount, edgeCount, layerCoverage, nodeCountByType, edgeCountByType });
+}
+
+/** Every key of `types` in enum order, zeros included; `cnt` converted with `Number()` (BR-U2-34). */
+function countsByType<T extends string>(
+  types: readonly T[],
+  records: readonly Record<string, unknown>[],
+): Record<T, number> {
+  const found = new Map<string, number>();
+  for (const record of records) {
+    const { type, cnt } = record;
+    if (typeof type === 'string') found.set(type, Number(cnt ?? 0));
+  }
+  const counts = {} as Record<T, number>;
+  for (const type of types) {
+    counts[type] = found.get(type) ?? 0;
+  }
+  return counts;
 }
 
 function flattenProperties(props: Readonly<Record<string, unknown>>): Record<string, unknown> {

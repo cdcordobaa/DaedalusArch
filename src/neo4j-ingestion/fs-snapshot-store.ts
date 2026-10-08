@@ -38,7 +38,7 @@ export class FileSystemSnapshotStore implements SnapshotStore {
           edges,
           parseCoverage: { total: nodes.length, parsed: nodes.length, skipped: [], percentage: 100 },
           warnings: [],
-          importResolution: { resolvedInternal: 0, external: 0, unresolved: 0, unsupportedDynamic: 0 },
+          importResolution: { resolvedInternal: 0, external: 0, unresolved: 0, unsupportedDynamic: 0, externalOutOfRootAlias: 0, droppedNoFileNode: 0 },
         },
       };
       return DomainResult.ok<Snapshot | null>(snapshot);

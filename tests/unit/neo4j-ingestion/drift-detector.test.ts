@@ -55,6 +55,31 @@ describe('drift-detector', () => {
   });
 
   describe('detectCouplingDrift', () => {
+    it('counts only IMPORTS edges whose target is a File node (D-4, BR-U2-37)', () => {
+      const pkg = (id: string): APGNode => ({ id, type: 'Package', name: id, filePath: '', decorators: [], properties: {} });
+      const nodes = [n('a', 'app'), n('b', 'lib'), n('c', 'lib'), pkg('p1'), pkg('p2'), pkg('p3')];
+      const prevNodes = [n('a', 'app'), n('b', 'lib'), n('c', 'lib')];
+      const edges = [
+        e('e1', 'a', 'b'), e('e2', 'a', 'c'),
+        e('e3', 'a', 'p1'), e('e4', 'a', 'p2'), e('e5', 'a', 'p3'),
+      ];
+      const result = detectCouplingDrift(edges, [], nodes, prevNodes, DEFAULT_DRIFT_THRESHOLDS);
+      expect(result.perLayer.find((l) => l.layer === 'app')?.currentAvgFanOut).toBe(2);
+      expect(result.topContributors).toEqual([{ filePath: 'src/a.ts', previousFanOut: 0, currentFanOut: 2, delta: 2 }]);
+    });
+
+    it('previous Package imports do not count either', () => {
+      const pkg: APGNode = { id: 'p1', type: 'Package', name: 'p1', filePath: '', decorators: [], properties: {} };
+      const nodes = [n('a', 'app'), n('b', 'lib'), pkg];
+      const prevEdges = [e('e1', 'a', 'b'), e('e2', 'a', 'p1')];
+      const currEdges = [e('e1', 'a', 'b')];
+      const result = detectCouplingDrift(currEdges, prevEdges, nodes, nodes, DEFAULT_DRIFT_THRESHOLDS);
+      const app = result.perLayer.find((l) => l.layer === 'app');
+      expect(app?.previousAvgFanOut).toBe(1);
+      expect(app?.deltaPercent).toBe(0);
+      expect(result.topContributors).toEqual([]);
+    });
+
     it('detects fan-out increase per layer', () => {
       const prevNodes = [n('a', 'domain'), n('b', 'domain')];
       const prevEdges = [e('e1', 'a', 'b')];

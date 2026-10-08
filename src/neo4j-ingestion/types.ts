@@ -21,14 +21,24 @@ export interface IngestionConfig {
   readonly neo4jUser: string;
   readonly neo4jPassword: string;
   readonly apgStorePath: string;
+  /** Default transaction timeout for queries that pass no `timeoutMs` (NFR-07, D-U0-5; BR-U2-38). */
+  readonly queryTimeoutMs: number;
 }
 
-export const DEFAULT_INGESTION_CONFIG: IngestionConfig = {
+/** Defaults for every field except the password, which has no default (D-U0-8; BR-U2-44). */
+export const DEFAULT_INGESTION_CONFIG: Omit<IngestionConfig, 'neo4jPassword'> = {
   neo4jUri: 'bolt://localhost:7687',
   neo4jUser: 'neo4j',
-  neo4jPassword: 'password',
   apgStorePath: './APG_Store',
+  queryTimeoutMs: 30_000,
 };
+
+/** Timeout for clear, ingest and index calls (BR-U2-38). */
+export const WRITE_QUERY_TIMEOUT_MS = 120_000;
+
+/** `Neo4jRepository` constructor parameter: the password is required, everything else optional. */
+export type Neo4jRepositoryConfig =
+  Partial<Omit<IngestionConfig, 'neo4jPassword'>> & Pick<IngestionConfig, 'neo4jPassword'>;
 
 // ── Layer Annotation ──────────────────────────────────────────────────────────
 

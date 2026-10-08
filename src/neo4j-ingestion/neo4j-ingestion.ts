@@ -8,12 +8,12 @@ import { DomainResult } from '../shared/errors/domain-result.js';
 import type { IngestionInput, IngestionError } from './types.js';
 import { DEFAULT_DRIFT_THRESHOLDS } from './types.js';
 import { annotateNodes } from './layer-annotator.js';
-import { ingestNodes, ingestEdges, verifyIngestion } from './graph-ingester.js';
+import { ensureIndexes, ingestNodes, ingestEdges, verifyIngestion } from './graph-ingester.js';
 import { computeDelta, computeDeltaStats } from './delta-computer.js';
 import { detectDrift } from './drift-detector.js';
 
 /**
- * Full APG ingestion pipeline: annotate → clear → ingest → verify → snapshot → delta → drift
+ * Full APG ingestion pipeline: annotate → clear → indexes → ingest → verify → snapshot → delta → drift
  */
 export async function ingestAPG(
   input: IngestionInput,
@@ -32,17 +32,25 @@ export async function ingestAPG(
     return DomainResult.fail<IngestionResult>([ingestionError('NEO4J_QUERY_FAILED', `Failed to clear graph: ${clearResult.errors[0]?.message}`)]);
   }
 
+  // 2b. Indexes on APGNode(id) and Package(id) (FR-09; BR-U2-33); a failure stops ingestion like a clear failure
+  const indexResult = await ensureIndexes(graphRepo);
+  if (!indexResult.success) {
+    return DomainResult.fail<IngestionResult>([ingestionError('NEO4J_QUERY_FAILED', `Failed to ensure indexes: ${indexResult.errors[0]?.message ?? ''}`)]);
+  }
+
   // 3. Ingest nodes
   const nodeResult = await ingestNodes(input.apgResult.nodes, annotations, graphRepo);
   if (!nodeResult.success) {
     return DomainResult.fail<IngestionResult>([ingestionError('INGESTION_FAILED', `Node ingestion failed: ${nodeResult.errors[0]?.message}`)]);
   }
+  warnings.push(...(nodeResult.warnings ?? [])); // INGEST_002 (BR-U2-35)
 
   // 4. Ingest edges
   const edgeResult = await ingestEdges(input.apgResult.edges, graphRepo);
   if (!edgeResult.success) {
     return DomainResult.fail<IngestionResult>([ingestionError('INGESTION_FAILED', `Edge ingestion failed: ${edgeResult.errors[0]?.message}`)]);
   }
+  warnings.push(...(edgeResult.warnings ?? [])); // INGEST_003 (BR-U2-35)
 
   // 5. Verify ingestion
   const fileNodeCount = input.apgResult.nodes.filter((n) => n.type === 'File').length;

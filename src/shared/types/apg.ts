@@ -36,6 +36,7 @@ export interface ReExportEdgeProperties {
   readonly line: number;
   readonly lines: readonly number[];
   readonly exportedNames: readonly string[]; // ['*'] for `export * from`
+  readonly isTypeOnly: boolean; // true only when every contributing statement is type-only
 }
 
 // Typed view of APGEdge.properties for FLOWS_TO edges (FR-21). Not produced in U0.
@@ -54,8 +55,10 @@ export interface PackageNodeProperties {
 export interface ImportResolutionStats {
   readonly resolvedInternal: number;   // import statements resolved to project files
   readonly external: number;           // statements mapped to Package nodes
-  readonly unresolved: number;         // relative statements with EXTRACTOR_002
+  readonly unresolved: number;         // project-intended statements (relative or alias) that resolve to no file
   readonly unsupportedDynamic: number; // import() and require() occurrences, not modelled
+  readonly externalOutOfRootAlias: number; // subset of external: statements whose specifier was an alias resolving outside the project root and outside node_modules
+  readonly droppedNoFileNode: number; // statements whose every target is a file without a File node
 }
 
 export interface APGResult {

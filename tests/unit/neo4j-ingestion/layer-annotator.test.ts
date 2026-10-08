@@ -97,5 +97,21 @@ describe('layer-annotator', () => {
       expect(result.summary.mapped).toBe(2);
       expect(result.summary.unmapped).toBe(1);
     });
+
+    it('never annotates Package nodes and counts only Files in mapped + unmapped (BR-U2-36)', () => {
+      const nodes: APGNode[] = [
+        makeNode({ id: 'f1', type: 'File', name: 'User.ts', filePath: 'src/domain/User.ts' }),
+        makeNode({ id: 'f3', type: 'File', name: 'util.ts', filePath: 'src/utils/util.ts' }),
+        makeNode({ id: 'p1', type: 'Package', name: 'express', filePath: '' }),
+        makeNode({ id: 'p2', type: 'Package', name: '@nestjs/common', filePath: '' }),
+      ];
+      const result = annotateNodes(nodes, LAYER_MODEL);
+      // "No annotation" = the all-null entry every unmatched non-File node gets (no layer, role or match).
+      const none = { layer: null, role: null, matchMethod: null };
+      expect(result.annotations.get('p1')).toEqual(none);
+      expect(result.annotations.get('p2')).toEqual(none);
+      expect(result.summary.mapped + result.summary.unmapped).toBe(2);
+      expect(result.summary.unmappedFiles).not.toContain('');
+    });
   });
 });

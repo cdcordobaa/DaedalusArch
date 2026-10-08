@@ -102,7 +102,9 @@ export function detectCouplingDrift(
 ): CouplingDriftMetric {
   const computeFanOutPerLayer = (nodes: readonly APGNode[], edges: readonly APGEdge[]) => {
     const fileNodes = nodes.filter((n) => n.type === 'File');
-    const importEdges = edges.filter((e) => e.type === 'IMPORTS');
+    // D-4, BR-U2-37: only IMPORTS edges to File nodes count; File -> Package edges are not coupling.
+    const fileIds = fileIdsOf(nodes);
+    const importEdges = edges.filter((e) => e.type === 'IMPORTS' && fileIds.has(e.targetId));
     const fanOutMap = new Map<string, number>();
     for (const edge of importEdges) {
       fanOutMap.set(edge.sourceId, (fanOutMap.get(edge.sourceId) ?? 0) + 1);
@@ -162,18 +164,21 @@ export function detectCouplingDrift(
 function computeTopContributors(
   currentNodes: readonly APGNode[],
   currentEdges: readonly APGEdge[],
-  _previousNodes: readonly APGNode[],
+  previousNodes: readonly APGNode[],
   previousEdges: readonly APGEdge[],
 ): FanOutContributor[] {
-  const fanOut = (nodeId: string, edges: readonly APGEdge[]) =>
-    edges.filter((e) => e.type === 'IMPORTS' && e.sourceId === nodeId).length;
+  // D-4, BR-U2-37: File targets only, each snapshot against its own File nodes.
+  const currFileIds = fileIdsOf(currentNodes);
+  const prevFileIds = fileIdsOf(previousNodes);
+  const fanOut = (nodeId: string, edges: readonly APGEdge[], fileIds: ReadonlySet<string>): number =>
+    edges.filter((e) => e.type === 'IMPORTS' && e.sourceId === nodeId && fileIds.has(e.targetId)).length;
 
   const currFiles = currentNodes.filter((n) => n.type === 'File');
   const contributors: FanOutContributor[] = [];
 
   for (const node of currFiles) {
-    const currFO = fanOut(node.id, currentEdges);
-    const prevFO = fanOut(node.id, previousEdges);
+    const currFO = fanOut(node.id, currentEdges, currFileIds);
+    const prevFO = fanOut(node.id, previousEdges, prevFileIds);
     const delta = currFO - prevFO;
     if (delta > 0) {
       contributors.push({
@@ -186,6 +191,10 @@ function computeTopContributors(
   }
 
   return contributors.sort((a, b) => b.delta - a.delta);
+}
+
+function fileIdsOf(nodes: readonly APGNode[]): ReadonlySet<string> {
+  return new Set(nodes.filter((n) => n.type === 'File').map((n) => n.id));
 }
 
 export function detectConventionDrift(

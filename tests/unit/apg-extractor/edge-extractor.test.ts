@@ -15,8 +15,8 @@ function setup(files: Record<string, string>) {
   }
   const sfs = project.getSourceFiles();
   const { nodes, lookup } = extractNodes(sfs, ROOT);
-  const { edges, warnings } = extractEdges(sfs, lookup, ROOT);
-  return { nodes, edges, warnings, lookup };
+  const { edges, warnings, packageNodes } = extractEdges(sfs, lookup, ROOT);
+  return { nodes, edges, warnings, lookup, packageNodes };
 }
 
 describe('DECLARES edges', () => {
@@ -153,10 +153,14 @@ describe('CALLS edges', () => {
 });
 
 describe('Warning codes', () => {
-  it('emits EXTRACTOR_001 for external imports', () => {
-    const { warnings } = setup({
+  it('BR-U2-02: an external import yields a Package edge and no EXTRACTOR_001', () => {
+    const { edges, warnings, packageNodes } = setup({
       '/proj/src/foo.ts': "import { something } from 'lodash';",
     });
-    expect(warnings.some(w => w.code === 'EXTRACTOR_001')).toBe(true);
+    expect(packageNodes.map(n => [n.type, n.name, n.properties.scope])).toEqual([['Package', 'lodash', 'npm']]);
+    const imports = edges.filter(e => e.type === 'IMPORTS');
+    expect(imports).toHaveLength(1);
+    expect(imports[0]?.targetId).toBe(packageNodes[0]?.id);
+    expect(warnings.some(w => w.code === 'EXTRACTOR_001')).toBe(false);
   });
 });

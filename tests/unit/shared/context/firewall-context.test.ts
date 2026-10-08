@@ -7,7 +7,7 @@ const mockApgResult: APGResult = {
   edges: [],
   parseCoverage: { total: 0, parsed: 0, percentage: 100, skipped: [] },
   warnings: [],
-  importResolution: { resolvedInternal: 0, external: 0, unresolved: 0, unsupportedDynamic: 0 },
+  importResolution: { resolvedInternal: 0, external: 0, unresolved: 0, unsupportedDynamic: 0, externalOutOfRootAlias: 0, droppedNoFileNode: 0 },
 };
 
 function makeContext(): FirewallContext {

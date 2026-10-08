@@ -186,7 +186,7 @@ const fullReport: EvaluationReport = {
   },
   layerAnnotation: { mapped: 4, unmapped: 1, unmappedFiles: ['src/misc.ts'] },
   parseCoverage: { total: 5, parsed: 4, percentage: 80, skipped: [{ filePath: 'src/bad.ts', reason: 'parse error' }] },
-  importResolution: { resolvedInternal: 6, external: 2, unresolved: 1, unsupportedDynamic: 0 },
+  importResolution: { resolvedInternal: 6, external: 2, unresolved: 1, unsupportedDynamic: 0, externalOutOfRootAlias: 0, droppedNoFileNode: 0 },
   timings: {
     stages: [
       { name: 'extract', durationMs: 100, status: 'success' },
@@ -275,6 +275,13 @@ describe('report.schema.json', () => {
     expect(validate({ ...base, perDimensionScores: [{ dimension: 'speed', avr: 1, weight: 1, violationCount: 0, functionCount: 0 }] })).toBe(false);
     expect(validate({ ...base, extra: true })).toBe(false);
     expect(validate({ ...base, graphStats: { ...fullReport.graphStats, nodeCountByType: { Module: 1 } } })).toBe(false);
+  });
+
+  it('rejects a report whose importResolution lacks droppedNoFileNode (U2 Q5)', () => {
+    const base = JSON.parse(JSON.stringify(fullReport)) as Record<string, unknown>;
+    const { droppedNoFileNode: _dropped, ...importResolution } = base.importResolution as Record<string, unknown>;
+    expect(validate({ ...base, importResolution })).toBe(false);
+    expect(errorsOf(validate)).toContain('droppedNoFileNode');
   });
 });
 
