@@ -23,6 +23,7 @@ import { loadCompiledSpec } from '../../../../scripts/lib/mutation/expected.js';
 import { MO_C04 } from '../../../../scripts/lib/mutation/operators/mo-c04.js';
 import { MO_DF01 } from '../../../../scripts/lib/mutation/operators/mo-df01.js';
 import { MO_S01 } from '../../../../scripts/lib/mutation/operators/mo-s01.js';
+import { MO_X03 } from '../../../../scripts/lib/mutation/operators/mo-x03.js';
 import { CLEAN_SPEC, LAYERED_SPEC, applyForced, fixtureBase } from './operator-harness.js';
 
 const REPO = process.cwd();
@@ -253,6 +254,16 @@ describe('import graph — MO-DF01 mutant (BR-U5a-56; Step 29)', () => {
     const { copy } = await applyForced(scratch, [MO_DF01], 'MO-DF01', fixtureBase(CLEAN_SPEC), {
       filePath: 'src/domain/entities/Task.ts',
       detail: { class: 'Task', targetFile: 'src/infrastructure/repositories/InMemoryTaskRepository.ts', targetName: 'InMemoryTaskRepository' },
+    });
+    await expectParity(copy, CLEAN_ARCH);
+  });
+});
+
+describe('import graph — MO-X03 mutant (BR-U5a-56; Step 30)', () => {
+  it('MO-X03 mutant of correct-reference (created rule module imported by the use case)', async () => {
+    const { copy } = await applyForced(scratch, [MO_X03], 'MO-X03', fixtureBase(CLEAN_SPEC), {
+      filePath: 'src/domain/entities/Task.ts',
+      detail: { class: 'Task', method: 'isValid', guardFile: 'src/application/use-cases/CreateTaskUseCase.ts' },
     });
     await expectParity(copy, CLEAN_ARCH);
   });
