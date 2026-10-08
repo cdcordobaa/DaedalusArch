@@ -54,6 +54,7 @@ export type {
   EvaluationResults, PerDimensionScore, UniversalHealthMetrics, EvaluationReport,
   JudgeUnitResult, FunctionFailure, FunctionExecution, FunctionResultRow, DroppedReason, DroppedDimension,
   StageTimingEntry, StageTimings, JudgeProviderName, ProviderDescription, JudgeProvenance, ScoredReport,
+  BaselineSelection, ExclusionReason, InvalidCause, NeuralUnitRow, NeuralResultRow,
 } from './types/evaluation.js';
 
 // Drift types
@@ -67,7 +68,7 @@ export type {
 
 // Interfaces
 export type { GraphRepository, QueryOptions, QueryResult } from './interfaces/graph-repository.js';
-export type { LLMProvider, LLMOptions, LLMResponse, LLMEffort } from './interfaces/llm-provider.js';
+export type { LLMProvider, LLMOptions, LLMResponse, LLMEffort, LLMCallContext } from './interfaces/llm-provider.js';
 export type { SnapshotStore, SnapshotMetadata, Snapshot, SnapshotSummary, DeltaAPG } from './interfaces/snapshot-store.js';
 export type { PipelineStage, PipelineCommand } from './interfaces/pipeline-stage.js';
 export type { ProcessRunner, ProcessRunOptions, ProcessResult } from './interfaces/process-runner.js';

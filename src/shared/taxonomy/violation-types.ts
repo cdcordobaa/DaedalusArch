@@ -25,7 +25,7 @@ export const BUILT_IN_VIOLATION_TYPES = [
   'MISSING_TEST_FILE',
   'INDEX_LOGIC_VIOLATION',
   'SEMANTIC_RULE_VIOLATION',
-  'INTENT_VIOLATION',              // deprecated (FR-22, BR-U1-23): kept so older reports parse; no U1 producer; U3 removes it with the `intent` Dimension member
+  'INTENT_VIOLATION',              // deprecated (FR-22, BR-U1-23) as the `intent` dimension's type; produced for ADR-derived functions (BR-U4-VIO-03; kept, BR-U3-30)
   'DOMAIN_STATE_PURITY_VIOLATION', // FR-21
   'INTEGRITY_VIOLATION',           // FR-22
 ] as const;
