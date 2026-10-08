@@ -9,6 +9,12 @@ import type { NeuronalInstruction, ContextAssemblyInstruction } from '../../../s
 import * as fs from 'node:fs';
 import * as path from 'node:path';
 import * as os from 'node:os';
+import { DEFAULT_NEURONAL_OPTIONS } from '../../../src/llm-critic/types.js';
+
+// U4-K2 (D-U0-3): the default cassette mode is 'record', so every evaluateNeuronal call below
+// writes its cassettes to a temp dir instead of the repository-relative default path.
+const CASSETTE_DIR = fs.mkdtempSync(path.join(os.tmpdir(), 'u4-k2-cassettes-'));
+afterAll(() => { fs.rmSync(CASSETTE_DIR, { recursive: true, force: true }); });
 
 const CTX: ContextAssemblyInstruction = { includeAPGSubgraph: true, includeSourceCode: true };
 
@@ -172,6 +178,7 @@ describe('evaluateNeuronal', () => {
       graphRepository: graphRepo,
       provider,
       runsPerEvaluation: 3,
+      cassettePath: CASSETTE_DIR,
     });
 
     expect(result.success).toBe(true);
@@ -214,6 +221,7 @@ describe('evaluateNeuronal', () => {
       provider,
       runsPerEvaluation: 3,
       unstableThreshold: 0.15,
+      cassettePath: CASSETTE_DIR,
     });
 
     expect(result.success).toBe(true);
@@ -244,12 +252,34 @@ describe('evaluateNeuronal violation type (BR-U4-VIO-03)', () => {
     (provider as any).evaluate = async () =>
       DomainResult.ok({ content: failing, model: 'mock', usage: { inputTokens: 1, outputTokens: 1 } });
     const inst = { ...makeInstruction('FF-N02', 'type-map'), ...overrides } as NeuronalInstruction;
-    const result = await evaluateNeuronal({ instructions: [inst], graphRepository: graphRepo, provider, runsPerEvaluation: 3 });
+    const result = await evaluateNeuronal({ instructions: [inst], graphRepository: graphRepo, provider, runsPerEvaluation: 3, cassettePath: CASSETTE_DIR });
     expect(result.success).toBe(true);
     if (result.success) {
       const vs = result.data.results[0]!.violations;
       expect(vs.length).toBeGreaterThan(0);
       for (const v of vs) expect(v.type).toBe(expected);
     }
+  });
+});
+
+describe('C7 VCRMode (U4-K2, D-U0-3)', () => {
+  it("defaults to 'record' and records each run under the given cassette path", async () => {
+    expect(DEFAULT_NEURONAL_OPTIONS.vcrMode).toBe('record');
+    const dir = fs.mkdtempSync(path.join(CASSETTE_DIR, 'default-'));
+    const graphRepo = {
+      executeQuery: () => Promise.resolve(DomainResult.ok({ records: [], summary: { counters: {} } })),
+      clearGraph: () => Promise.resolve(DomainResult.ok(undefined)),
+      healthCheck: () => Promise.resolve(true),
+      close: () => Promise.resolve(),
+    };
+    const result = await evaluateNeuronal({
+      instructions: [makeInstruction('FF-N01', 'record-default')],
+      graphRepository: graphRepo,
+      provider: new MockLLMProvider(),
+      runsPerEvaluation: 3,
+      cassettePath: dir,
+    });
+    expect(result.success).toBe(true);
+    expect([0, 1, 2].map((i) => cassetteExists(dir, 'FF-N01', i))).toEqual([true, true, true]);
   });
 });

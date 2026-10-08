@@ -2,8 +2,10 @@ import type { NeuronalInstruction } from '../shared/types/evaluation.js';
 import type { LLMProvider } from '../shared/interfaces/llm-provider.js';
 import type { GraphRepository } from '../shared/interfaces/graph-repository.js';
 import type { PipelineError } from '../shared/errors/domain-result.js';
+import type { VCRMode } from '../shared/types/llm-config.js';
 
-export type VCRMode = 'record' | 'replay' | 'bypass';
+// C10 cassette mode re-exported (D-U0-3, U4-K2): the C7-only bypass member is gone; default 'record' (BR-U4-CAS-05)
+export type { VCRMode };
 
 export interface NeuronalEvalInput {
   readonly instructions: readonly NeuronalInstruction[];
@@ -18,7 +20,7 @@ export interface NeuronalEvalInput {
 
 export const DEFAULT_NEURONAL_OPTIONS = {
   runsPerEvaluation: 3,
-  vcrMode: 'bypass' as VCRMode,
+  vcrMode: 'record' as VCRMode,
   cassettePath: 'fixtures/cassettes',
   maxConcurrency: 3,
   unstableThreshold: 0.15,

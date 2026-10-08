@@ -7,6 +7,14 @@ import type { GraphRepository, QueryResult } from '../../../src/shared/interface
 import type { CompiledFunctions, CypherQuery, NeuronalInstruction, ContextAssemblyInstruction } from '../../../src/shared/types/evaluation.js';
 import type { RouterInput } from '../../../src/neuro-symbolic-router/types.js';
 
+// U4-K2 (D-U0-3): C7 now defaults to cassette mode 'record'. The router does not forward a
+// cassette path yet (Step 18/21), so the file store is stubbed here to keep the repository clean.
+jest.mock('../../../src/llm-critic/cassette-manager.js', () => ({
+  saveCassette: jest.fn(),
+  loadCassette: jest.fn(() => null),
+  cassetteExists: jest.fn(() => false),
+}));
+
 const CTX: ContextAssemblyInstruction = { includeAPGSubgraph: false, includeSourceCode: false };
 
 function mockGraphRepo(): GraphRepository {
