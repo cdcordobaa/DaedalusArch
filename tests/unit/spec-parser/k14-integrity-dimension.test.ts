@@ -102,7 +102,8 @@ describe('BR-U1-21 full_mode_weights intent alias and collision', () => {
     const migrated = fs.readFileSync(path.join(ROOT, 'presets/nestjs.yaml'), 'utf-8');
     const legacy = migrated
       .replace('    dimension: integrity\n    severity: major\n    route: neuronal\n', '    dimension: solid\n    severity: major\n    route: hybrid\n')
-      .replace('    name: layering-intent\n    dimension: semantic\n', '    name: layering-intent\n    dimension: intent\n')
+      .replace('    name: intent-alignment\n    dimension: semantic\n', '    name: layering-intent\n    dimension: intent\n')
+      .replace('    name: architectural-integrity\n', '    name: srp-semantic\n') // pre-U4-K6 names (BR-U4-RUB-02)
       .replace(/^ {4}integrity: 0\.04$/m, '    intent: 0.04');
     expect(legacy).not.toBe(migrated);
     expect(legacy).not.toMatch(/integrity/);
@@ -123,7 +124,7 @@ describe('BR-U1-22 FR-22 producers', () => {
       const t = resolveTemplate(style);
       const n01 = t?.functions.find((f) => String(f.id) === 'FF-N01');
       const n02 = t?.functions.find((f) => String(f.id) === 'FF-N02');
-      expect([n01?.name, n01?.dimension, n01?.route]).toEqual(['srp-semantic', 'integrity', 'neuronal']);
+      expect([n01?.name, n01?.dimension, n01?.route]).toEqual(['architectural-integrity', 'integrity', 'neuronal']);
       expect([n02?.dimension, n02?.route]).toEqual(['semantic', 'neuronal']);
       expect(t?.defaultFullModeWeights).toMatchObject({ semantic: 0.04, integrity: 0.04 });
       expect(t?.defaultWeights).toMatchObject({ semantic: 0, integrity: 0 });
@@ -134,7 +135,7 @@ describe('BR-U1-22 FR-22 producers', () => {
     const { spec, warnings } = await parsed(path.join(ROOT, rel));
     const n01 = spec.fitnessFunctions.find((f) => String(f.id) === 'FF-N01');
     const n02 = spec.fitnessFunctions.find((f) => String(f.id) === 'FF-N02');
-    expect([n01?.name, n01?.dimension, n01?.route]).toEqual(['srp-semantic', 'integrity', 'neuronal']);
+    expect([n01?.name, n01?.dimension, n01?.route]).toEqual(['architectural-integrity', 'integrity', 'neuronal']);
     expect(n02?.dimension).toBe('semantic');
     expect(spec.fullModeWeights).toMatchObject({ integrity: 0.04 });
     expect(spec004(warnings)).toEqual([]);

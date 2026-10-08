@@ -14,6 +14,10 @@ import { parseSpec, validateSpecAgainstProject } from '../spec-parser/index.js';
 import { compileFunctions, compilerInputFromSpec } from '../fitness-compiler/index.js';
 import { createBaseline, saveBaseline } from '../baseline/index.js';
 import { loadBaseline, compareBaseline } from '../baseline/index.js';
+import * as path from 'node:path';
+import type { LLMProviderConfig } from '../shared/types/llm-config.js';
+import { parseLLMOptions } from './llm-options.js';
+import { JUDGE_RUN_INCOMPLETE } from '../llm-critic/judge-stage.js';
 
 // Load .env before anything else
 loadDotenv();
@@ -43,6 +47,67 @@ function exitCodeFromVerdict(verdict: string): number {
   return 2;
 }
 
+// ── U4 C9 hunk: judge options (FR-23, FR-31, D-U0-8; BR-U4-ISO-01, AGG-03) ──────
+
+/** The judge options both `evaluate` and `report` accept (DE §5.6); values are parsed by `parseLLMOptions`. */
+interface LLMCliOpts {
+  llmProvider?: string;
+  llmModel?: string;
+  llmEffort?: string;
+  cassetteMode?: string;
+  cassetteDir?: string;
+  judgeRepetition?: string;
+  judgeConfigDir?: string;
+  judgeBaselineReport?: string;
+  cassetteOmitPrompt?: boolean;
+}
+
+function withLLMOptions(command: Command): Command {
+  return command
+    .option('--llm-provider <name>', 'Judge provider: claude-cli | gemini | mock (default claude-cli)')
+    .option('--llm-model <id>', 'Judge model id (default claude-opus-5-5; required for gemini)')
+    .option('--llm-effort <level>', 'Judge effort: low | medium | high | xhigh | max (default high)')
+    .option('--cassette-mode <mode>', 'Cassette mode: record | replay (default record)')
+    .option('--cassette-dir <dir>', 'Cassette directory (default ./.firewall/cassettes)')
+    .option('--judge-repetition <n>', 'Judge repetition index (default 0)')
+    .option('--judge-config-dir <dir>', 'Judge CLI config dir (default ~/.firewall/judge-claude-config)')
+    .option('--judge-baseline-report <path>', 'Baseline report whose neuralResults[].selection a variant reuses')
+    .option('--cassette-omit-prompt', 'Record cassettes without prompts (corpus runs)', false);
+}
+
+/** The argv `parseLLMOptions` reads, rebuilt from the parsed options (so `main(argv)` tests work). */
+function llmArgv(opts: LLMCliOpts): string[] {
+  const pairs: [string, string | undefined][] = [
+    ['--llm-provider', opts.llmProvider], ['--llm-model', opts.llmModel], ['--llm-effort', opts.llmEffort],
+    ['--cassette-mode', opts.cassetteMode], ['--cassette-dir', opts.cassetteDir], ['--judge-repetition', opts.judgeRepetition],
+    ['--judge-config-dir', opts.judgeConfigDir], ['--judge-baseline-report', opts.judgeBaselineReport],
+  ];
+  const argv = pairs.flatMap(([name, value]) => (value === undefined ? [] : [`${name}=${value}`]));
+  if (opts.cassetteOmitPrompt === true) argv.push('--cassette-omit-prompt');
+  return argv;
+}
+
+/**
+ * LLM configuration of a full or neuronal-only run (`undefined` for symbolic-only). Only
+ * `GEMINI_API_KEY` is read, and only for `--llm-provider gemini` (BR-U4-ISO-01); a configuration
+ * error is reported and the process exits 2 before any connection.
+ */
+function llmConfigFor(mode: EvaluationMode, projectPath: string, opts: LLMCliOpts): LLMProviderConfig | undefined | null {
+  if (mode === 'symbolic-only') return undefined;
+  const parsed = parseLLMOptions(llmArgv(opts), process.env, { projectRoot: path.resolve(projectPath) });
+  if (!parsed.success) {
+    process.stderr.write(`Error: ${parsed.errors.map((e) => e.message).join('; ')}\n`);
+    process.exitCode = 2;
+    return null;
+  }
+  return parsed.data;
+}
+
+/** Exit code of a failed pipeline: 3 when the judge run is incomplete (resume in record mode), else 2. */
+function exitCodeFromErrors(errors: readonly { readonly code: string }[]): number {
+  return errors.some((e) => e.code === JUDGE_RUN_INCOMPLETE) ? 3 : 2;
+}
+
 // ── Build the CLI program ────────────────────────────────────────────────────
 
 const program = new Command();
@@ -53,9 +118,9 @@ program
 
 // ── evaluate command ─────────────────────────────────────────────────────────
 
-program
+withLLMOptions(program
   .command('evaluate')
-  .description('Evaluate a single TypeScript project for architectural compliance')
+  .description('Evaluate a single TypeScript project for architectural compliance'))
   .requiredOption('--project <path>', 'Path to TypeScript project')
   .requiredOption('--spec <path>', 'Path to AoC YAML spec')
   .option('--format <fmt>', 'Output format: json | human | csv', 'human')
@@ -66,7 +131,7 @@ program
   .option('--persist', 'Save snapshot after evaluation', false)
   .option('--diff', 'Compare against latest snapshot', false)
   .option('--baseline <path>', 'Compare against baseline violations file')
-  .action(async (opts: {
+  .action(async (opts: LLMCliOpts & {
     project: string;
     spec: string;
     format: string;
@@ -82,6 +147,9 @@ program
     // BR-U3-80: no default password; stop before any connection.
     const neo4jPassword = requireEnvForCli('NEO4J_PASSWORD');
     if (neo4jPassword === undefined) return;
+    // U4 C9 hunk: judge options parsed before any connection (no key fallback, D-U0-8)
+    const llmConfig = llmConfigFor(evaluationMode, opts.project, opts);
+    if (llmConfig === null) return;
 
     const config: PipelineConfig = {
       projectPath: opts.project,
@@ -95,27 +163,8 @@ program
       diff: opts.diff,
       verbose: opts.verbose,
       apgStorePath: process.env['APG_STORE_PATH'] ?? '.apg-store',
-      llmConfig: evaluationMode !== 'symbolic-only'
-        ? {
-            provider: 'gemini' as const,
-            gemini: {
-              // Key fallback kept verbatim; removed by U4 (D-U0-8)
-              apiKey: process.env['GEMINI_API_KEY'] ?? process.env['ANTHROPIC_API_KEY'] ?? '',
-              model: process.env.GEMINI_MODEL ?? 'gemini-2.0-flash',
-              temperature: 0,
-              maxTokens: 4096,
-            },
-            cassette: { mode: 'record' as const, dir: 'fixtures/cassettes' },
-          }
-        : undefined,
+      llmConfig,
     };
-
-    // Validate API key for neuronal modes
-    if (evaluationMode !== 'symbolic-only' && !config.llmConfig?.gemini?.apiKey) {
-      process.stderr.write(
-        'Warning: No GEMINI_API_KEY set. Neuronal functions will be skipped (symbolic-only fallback).\n',
-      );
-    }
 
     const { executor, cleanup } = createPipeline(config);
 
@@ -136,7 +185,7 @@ program
 
       if (!result.success) {
         process.stderr.write(`Error: ${result.errors.map((e) => e.message).join('; ')}\n`);
-        process.exit(2);
+        process.exit(exitCodeFromErrors(result.errors));
       }
 
       const report = result.data;
@@ -397,9 +446,9 @@ program
 
 // ── report command ──────────────────────────────────────────────────────────
 
-program
+withLLMOptions(program
   .command('report')
-  .description('Generate an interactive HTML report from evaluation results')
+  .description('Generate an interactive HTML report from evaluation results'))
   .requiredOption('--project <path>', 'Path to TypeScript project')
   .requiredOption('--spec <path>', 'Path to AoC YAML spec')
   .option('-o, --output <path>', 'Output HTML file path', 'report.html')
@@ -407,7 +456,7 @@ program
   .option('--neo4j-uri <uri>', 'Neo4j bolt URI', process.env['NEO4J_URI'] ?? 'bolt://localhost:7687')
   .option('--symbolic-only', 'Run symbolic evaluation only', false)
   .option('--neuronal-only', 'Run neuronal evaluation only', false)
-  .action(async (opts: {
+  .action(async (opts: LLMCliOpts & {
     project: string;
     spec: string;
     output: string;
@@ -420,6 +469,9 @@ program
     // BR-U3-80: no default password; stop before any connection.
     const neo4jPassword = requireEnvForCli('NEO4J_PASSWORD');
     if (neo4jPassword === undefined) return;
+    // U4 C9 hunk: judge options parsed before any connection (no key fallback, D-U0-8)
+    const llmConfig = llmConfigFor(evaluationMode, opts.project, opts);
+    if (llmConfig === null) return;
 
     const config: PipelineConfig = {
       projectPath: opts.project,
@@ -433,26 +485,8 @@ program
       diff: false,
       verbose: opts.verbose,
       apgStorePath: process.env['APG_STORE_PATH'] ?? '.apg-store',
-      llmConfig: evaluationMode !== 'symbolic-only'
-        ? {
-            provider: 'gemini' as const,
-            gemini: {
-              // Key fallback kept verbatim; removed by U4 (D-U0-8)
-              apiKey: process.env['GEMINI_API_KEY'] ?? process.env['ANTHROPIC_API_KEY'] ?? '',
-              model: process.env.GEMINI_MODEL ?? 'gemini-2.0-flash',
-              temperature: 0,
-              maxTokens: 4096,
-            },
-            cassette: { mode: 'record' as const, dir: 'fixtures/cassettes' },
-          }
-        : undefined,
+      llmConfig,
     };
-
-    if (evaluationMode !== 'symbolic-only' && !config.llmConfig?.gemini?.apiKey) {
-      process.stderr.write(
-        'Warning: No GEMINI_API_KEY set. Neuronal functions will be skipped (symbolic-only fallback).\n',
-      );
-    }
 
     const { executor, context, cleanup } = createPipeline(config);
 
@@ -472,7 +506,7 @@ program
 
       if (!pipelineResult.success) {
         process.stderr.write(`Error: ${pipelineResult.errors.map((e) => e.message).join('; ')}\n`);
-        process.exit(2);
+        process.exit(exitCodeFromErrors(pipelineResult.errors));
       }
 
       const report = context.getReport();

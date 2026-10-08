@@ -1,0 +1,83 @@
+{
+  "date": "2026-10-08",
+  "CLI_VERSION_PROBE_step1": "2.1.293",
+  "cliVersionDuringProbe": "2.1.294",
+  "PINNED_CLI_VERSION": "2.1.294",
+  "cliPath": "$HOME/.local/bin/claude -> $HOME/.local/share/claude/versions/2.1.294",
+  "versionDriftNote": "the CLI auto-updated 2.1.293 -> 2.1.294 at 07:12 local during the author's interactive /login under CLAUDE_CONFIG_DIR=judge dir (.last-update-result.json written there); every probe call ran on 2.1.294 (init claude_code_version)",
+  "autoUpdate": {
+    "mechanism": "environment variable DISABLE_AUTOUPDATER=1 (also DISABLE_UPDATES); the CLI's own migration writes it as {\"env\":{\"DISABLE_AUTOUPDATER\":\"1\"}} into user settings.json; global-config autoUpdates:false is not honoured reliably for native installs",
+    "authorInstallChanged": false,
+    "judgeChildNeedsVariable": true,
+    "reason": "the judge child reads user settings from CLAUDE_CONFIG_DIR (judge dir), not ~/.claude, and a session under the judge dir performed the update; DISABLE_AUTOUPDATER must be set to 1 in the child env and added to JUDGE_ENV_ALLOW (ISO-09)"
+  },
+  "toolsFlag": true,
+  "structuredOutputField": "structured_output",
+  "structuredOutputPresent": {
+    "toolsOff": true,
+    "toolsOn": true,
+    "noSchema": false
+  },
+  "resultWithSchema": "result also holds the same JSON as text (num_turns 2, stop_reason tool_use)",
+  "resultNoSchema": "fenced ```json text with a model-chosen shape (fallback parse needed)",
+  "modelUsageSpelling": "modelUsage",
+  "modelUsagePerModelKeys": [
+    "inputTokens",
+    "outputTokens",
+    "cacheReadInputTokens",
+    "cacheCreationInputTokens",
+    "webSearchRequests",
+    "costUSD",
+    "contextWindow",
+    "maxOutputTokens",
+    "thinkingTokens",
+    "canonicalModel",
+    "provider",
+    "costBasis"
+  ],
+  "topLevelModelInEnvelope": false,
+  "resolvedIdForClaudeOpus55": "claude-opus-5-5 (modelUsage key and canonicalModel identical; no date or alias suffix); init event model = claude-opus-5-5",
+  "auxiliaryModelsSeen": "none (19 envelopes, each a single modelUsage key)",
+  "initPassCondition": "tools == [\"StructuredOutput\"] (subset of {StructuredOutput}), mcp_servers == [], model == \"claude-opus-5-5\", apiKeySource == \"none\"; also observed slash_commands [], skills [], agents = built-ins [claude, Explore, general-purpose, Plan, statusline-setup], plugins = 3 builtin (cc-plugin-agents-md, cc-plugin-telemetry, cc-plugin-plugin-authoring)",
+  "initToolsOn": "without --tools \"\" the init lists the full default tool set (Task, Bash, Edit, Read, ... , StructuredOutput) -> fails the pass condition, keep --tools \"\"",
+  "classifier": {
+    "AUTH": {
+      "observed": {
+        "exit": 1,
+        "is_error": true,
+        "subtype": "success",
+        "terminal_reason": "api_error",
+        "api_error_status": null,
+        "result": "Not logged in · Please run /login",
+        "stderr": ""
+      },
+      "patterns": [
+        "^Not logged in",
+        "Please run /login",
+        "Authentication required · Sign in again",
+        "[Oo]Auth token (has )?(expired|revoked)",
+        "Invalid API key"
+      ],
+      "note": "subtype is 'success' even on auth failure: classify on is_error + result text (+ terminal_reason api_error), never on subtype"
+    },
+    "USAGE_LIMIT": {
+      "verified": false,
+      "patterns": [
+        "You've hit your limit",
+        "usage limit reached",
+        "Usage limit reached"
+      ],
+      "signals": "api_error_status 429; stream-json rate_limit_event.rate_limit_info.status != \"allowed\" (observed allowed: rateLimitType five_hour, unifiedWindows five_hour/seven_day utilization)",
+      "source": "CLI 2.1.294 binary strings; not observed live (never provoked)"
+    }
+  },
+  "neutralCwd": "mktemp -d $TMPDIR/daedalus-judge-XXXXXX; no CLAUDE.md or .claude in it or any ancestor",
+  "authBinding": "credentials bound to the real HOME/keychain: HOME=<canary home> with the judge CLAUDE_CONFIG_DIR -> Not logged in",
+  "callsPerUsageWindow": "unverified (measured by the first fixture record run in Build and Test, per plan)",
+  "callsMade": {
+    "judgeArgvOrVariant": 17,
+    "authErrorSamples": 3,
+    "positiveControl": 1,
+    "usageLimitHit": false
+  }
+}

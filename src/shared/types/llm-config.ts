@@ -16,8 +16,7 @@ export interface LLMProviderConfig {
   readonly cassette: { readonly mode: VCRMode; readonly dir: string };
 }
 
-// C10 cassette mode (FR-23). The C7 copy in src/llm-critic/types.ts (with 'bypass') stays until U4
-// swaps it to this type (D-U0-3).
+// C10 cassette mode (FR-23). C7 (src/llm-critic/types.ts) re-exports this type since U4-K2 (D-U0-3).
 export type VCRMode = 'record' | 'replay';
 
 // Claude CLI judge settings (FR-23, D-1); no credential field by construction. Not used in U0.

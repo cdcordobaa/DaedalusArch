@@ -106,14 +106,32 @@ export interface NeuronalRun {
   readonly reasoning: string;
 }
 
-// One judged unit (FR-33)
+// FR-33 unit selection persisted for variant runs (C10 row 15; U4 DE §2.4, BR-U4-SEL-07)
+export interface BaselineSelection {
+  readonly functionId: FunctionId;
+  readonly candidateUnitIds: readonly string[];  // all candidate ids of the baseline tree, sorted
+  readonly selectedUnitIds: readonly string[];   // the baseline selection, sorted
+  readonly treeSha?: string;                     // baseline tree id when known (U5a/U5b), for audit only
+  readonly source?: 'own' | 'baseline';          // how the run holding this value selected; always set by C7
+}
+
+// One judged unit (FR-33). Fields marked C10 row 15 are optional in the type (U4 DE §4.3);
+// C7 is the only producer and always sets them (`origin` on variant runs only).
 export interface JudgeUnitResult {
   readonly unitId: string;               // file path, `Class@file`, or module directory
   readonly unitKind: JudgeUnitKind;
-  readonly verdict: 'pass' | 'fail' | 'warning';
-  readonly confidence: Confidence;
-  readonly confidenceStdDev: number;
-  readonly runs: readonly NeuronalRun[];
+  readonly layer?: string;                            // C10 row 15
+  readonly filePaths?: readonly string[];             // C10 row 15
+  readonly status?: 'valid' | 'invalid';              // C10 row 15
+  readonly verdict: 'pass' | 'fail' | 'warning';      // 'warning' for invalid units, never counted
+  readonly confidence: Confidence;                    // 0 for invalid units (BR-U4-AGG-01)
+  readonly confidenceStdDev: number;                  // population stddev over valid runs
+  readonly flaggedUnstable?: boolean;                 // C10 row 15
+  readonly validRunCount?: number;                    // C10 row 15
+  readonly invalidRunCauses?: readonly InvalidCause[]; // C10 row 15, in run order
+  readonly truncated?: boolean;                       // C10 row 15
+  readonly origin?: 'addedByVariant';                 // C10 row 15, variant runs only
+  readonly runs: readonly NeuronalRun[];              // valid runs, in runIndex order
   readonly violations: readonly Violation[];
 }
 
@@ -133,6 +151,18 @@ export interface NeuronalFunctionResult {
   readonly unitResults: readonly JudgeUnitResult[];    // FR-33
   readonly unitsSelected: number;                      // FR-33
   readonly unitsCapped: number;                        // FR-33: units dropped by the per-run cap
+  // C10 row 15 (U4 DE §4.4): optional in the type; C7 always sets them except
+  // `removedByVariant` (variant runs only) and `singleFileModules` (module units only)
+  readonly unitsInvalidByCause?: Readonly<Record<InvalidCause | 'INSUFFICIENT_VALID_RUNS', number>>;
+  readonly singleFileModules?: number;
+  readonly candidateExclusions?: Readonly<Record<ExclusionReason, number>>;
+  readonly candidateCount?: number;
+  readonly uncoveredFileCount?: number;
+  readonly truncatedUnits?: number;
+  readonly excerptTruncatedUnits?: number;
+  readonly removedByVariant?: readonly string[];
+  readonly selection?: BaselineSelection;              // written on every run; a baseline run supplies it to its variants
+  readonly aggregationRule?: 'majority-of-valid-units-v1'; // FR-33 "stated rule"
 }
 
 export interface EvaluationResults {
@@ -239,6 +269,13 @@ export interface ProviderDescription {
 export interface JudgeProvenance extends ProviderDescription {
   readonly cassetteMode?: VCRMode;       // absent when provider is 'none'
   readonly runsPerUnit: number;          // 0 when provider is 'none'
+  // C10 row 15 (U4 DE §4.6); `judgeProvenanceOf(undefined)` sets none of them
+  readonly resolvedModel?: string;
+  readonly repetition?: number;
+  readonly isolationProbeSha256?: string;   // claude-cli
+  readonly configListingSha256?: string;    // claude-cli
+  readonly provenanceMixed?: boolean;       // replay found differing values across entries (BR-U4-CAS-10)
+  readonly seededList?: readonly string[];  // sorted; [] in every reported run (BR-U4-SEL-06)
 }
 
 // Types referenced by NeuralResultRow, verbatim from U4 DE §2.2 and §4.2 (C10 row 14 needs them;

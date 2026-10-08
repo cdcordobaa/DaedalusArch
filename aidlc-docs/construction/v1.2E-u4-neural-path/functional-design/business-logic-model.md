@@ -1,7 +1,7 @@
 # Business Logic Model — v1.2E U4 Neural path
 
 > **Unit**: U4 (C7, C14, C5, C9 provider hunks) · **Date**: 2026-10-08 · **Base**: `v1.2e` @ `8c3d6df` (source lines as at `ee32a1f`)
-> **Binding inputs**: plan answers Q1–Q19, ADR-015/016/017, the amended requirements, U1/U2 designs and code plans, U0 contracts. Rules cited as `BR-U4-*` are in `business-rules.md`; shapes in `domain-entities.md`. Values marked **[PROBE]** are fixed by the Part 2 probe before code generation (OI-U4-1).
+> **Binding inputs**: plan answers Q1–Q19, ADR-015/016/017, the amended requirements, U1/U2 designs and code plans, U0 contracts. Rules cited as `BR-U4-*` are in `business-rules.md`; shapes in `domain-entities.md`. Values marked **[PROBE]** are fixed by the Part 2 probe before code generation (OI-U4-1). All were fixed on 2026-10-08 and written into `business-rules.md` and `domain-entities.md` at U4 Step 30 (OI-U4-1 closed).
 > **Repair 2026-10-08**: §2.1 step 4 aligned with BR-U3-15/53; §4 root rules for globs without a literal directory segment (ADR-017 item 4) and `#<layer>` ids; §5 persisted selection (OI-U4-8); §6 CLI version check (BR-U4-ISO-09); §8 note and §11 sensitivity check at unit level.
 
 ---

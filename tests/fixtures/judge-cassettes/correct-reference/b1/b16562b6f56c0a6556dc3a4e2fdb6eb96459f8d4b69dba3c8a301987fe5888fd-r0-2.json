@@ -1,0 +1,40 @@
+{
+  "attempts": 1,
+  "durationMs": 1,
+  "effort": null,
+  "functionId": "FF-N01",
+  "ignoredOptions": [
+    "model",
+    "effort",
+    "maxTokens"
+  ],
+  "key": "b16562b6f56c0a6556dc3a4e2fdb6eb96459f8d4b69dba3c8a301987fe5888fd-r0-2",
+  "model": "claude-opus-5-5",
+  "outcome": {
+    "kind": "valid"
+  },
+  "parsedVerdict": {
+    "confidence": 0.9,
+    "evidence": [
+      "scripted evidence"
+    ],
+    "pass": true,
+    "reasoning": "Scripted fixture verdict: pass",
+    "violations": []
+  },
+  "prompt": "## Rule\nThe module's files form one coherent unit with a consistent abstraction and boundary.\n\n## Rubric\nPass: The files serve one cohesive concern, use the module's abstractions consistently, and keep each rule or invariant in one place.\nFail: The files split into unrelated concerns, duplicate a rule or invariant that should live in one place, or bypass the module's own abstractions.\nEvidence required: Name each file involved and cite the declarations that show the split, the duplication or the bypass.\nOut of scope: import direction and layer-dependency rules, which are checked symbolically.\n\n## Layer model\n- domain (kind: domain): src/domain/**\n- application (kind: application): src/application/**\n- infrastructure (kind: infrastructure): src/infrastructure/**\n\n## Unit\nKind: module\nId: src/domain/entities\nLayer: domain\nUnit files:\n- src/domain/entities/Category.ts\n- src/domain/entities/Task.ts\n\n## Source\n=====SOURCE-BEGIN src/domain/entities/Category.ts=====\nexport class Category {\n  constructor(\n    public readonly id: string,\n    public readonly name: string,\n    public readonly color: string\n  ) {}\n\n  isValid(): boolean {\n    return this.name.length > 0;\n  }\n}\n\n=====SOURCE-END=====\n\n=====SOURCE-BEGIN src/domain/entities/Task.ts=====\n// Task — pure domain entity, zero violations\nexport class Task {\n  constructor(\n    public readonly id: string,\n    public readonly title: string,\n    public readonly description: string,\n    public readonly completed: boolean,\n    public readonly categoryId: string,\n    public readonly createdAt: Date\n  ) {}\n\n  complete(): Task {\n    return new Task(this.id, this.title, this.description, true, this.categoryId, this.createdAt);\n  }\n\n  isValid(): boolean {\n    return this.title.length > 0 && this.categoryId.length > 0;\n  }\n}\n\n=====SOURCE-END=====\n\n## Exported signatures\n// src/domain/entities/Category.ts\nexport class Category {\n  constructor(\n    public readonly id: string,\n    public readonly name: string,\n    public readonly color: string\n  );\n  isValid(): boolean;\n}\n\n// src/domain/entities/Task.ts\nexport class Task {\n  constructor(\n    public readonly id: string,\n    public readonly title: string,\n    public readonly description: string,\n    public readonly completed: boolean,\n    public readonly categoryId: string,\n    public readonly createdAt: Date\n  );\n  complete(): Task;\n  isValid(): boolean;\n}\n\n## Incoming\n- src/application/use-cases/CompleteTaskUseCase.ts\n- src/application/use-cases/CreateTaskUseCase.ts\n- src/application/use-cases/ICompleteTaskUseCase.ts\n- src/application/use-cases/ICreateTaskUseCase.ts\n- src/domain/repositories/ICategoryRepository.ts\n- src/domain/repositories/ITaskRepository.ts\n- src/infrastructure/repositories/InMemoryTaskRepository.ts\n\n## Outgoing\n(none)\n\n## Graph excerpt\n{\"edges\":[{\"from\":\"src/application/use-cases/CompleteTaskUseCase.ts\",\"to\":\"src/domain/entities/Task.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/application/use-cases/CreateTaskUseCase.ts\",\"to\":\"src/domain/entities/Task.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/application/use-cases/ICompleteTaskUseCase.ts\",\"to\":\"src/domain/entities/Task.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/application/use-cases/ICreateTaskUseCase.ts\",\"to\":\"src/domain/entities/Task.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/domain/repositories/ICategoryRepository.ts\",\"to\":\"src/domain/entities/Category.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/domain/repositories/ITaskRepository.ts\",\"to\":\"src/domain/entities/Task.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/infrastructure/repositories/InMemoryTaskRepository.ts\",\"to\":\"src/domain/entities/Task.ts\",\"type\":\"IMPORTS\"}],\"nodes\":[{\"kind\":\"Class\",\"layer\":\"domain\",\"name\":\"Category\",\"path\":\"src/domain/entities/Category.ts\"},{\"kind\":\"Class\",\"layer\":\"domain\",\"name\":\"Task\",\"path\":\"src/domain/entities/Task.ts\"},{\"kind\":\"File\",\"layer\":\"application\",\"path\":\"src/application/use-cases/CompleteTaskUseCase.ts\"},{\"kind\":\"File\",\"layer\":\"application\",\"path\":\"src/application/use-cases/CreateTaskUseCase.ts\"},{\"kind\":\"File\",\"layer\":\"application\",\"path\":\"src/application/use-cases/ICompleteTaskUseCase.ts\"},{\"kind\":\"File\",\"layer\":\"application\",\"path\":\"src/application/use-cases/ICreateTaskUseCase.ts\"},{\"kind\":\"File\",\"layer\":\"domain\",\"path\":\"src/domain/entities/Category.ts\"},{\"kind\":\"File\",\"layer\":\"domain\",\"path\":\"src/domain/entities/Task.ts\"},{\"kind\":\"File\",\"layer\":\"domain\",\"path\":\"src/domain/repositories/ICategoryRepository.ts\"},{\"kind\":\"File\",\"layer\":\"domain\",\"path\":\"src/domain/repositories/ITaskRepository.ts\"},{\"kind\":\"File\",\"layer\":\"infrastructure\",\"path\":\"src/infrastructure/repositories/InMemoryTaskRepository.ts\"}]}\n\n## Instructions\nJudge the unit against the rule and rubric. Return the JSON object the schema requires. Set pass to false if any file of the unit fails the rubric.\n",
+  "provider": "mock",
+  "recordedAt": "2026-10-08T16:37:46.559Z",
+  "repetition": 0,
+  "requestHash": "b16562b6f56c0a6556dc3a4e2fdb6eb96459f8d4b69dba3c8a301987fe5888fd",
+  "resolvedModel": "mock-model",
+  "response": "{\"pass\":true,\"confidence\":0.9,\"reasoning\":\"Scripted fixture verdict: pass\",\"evidence\":[\"scripted evidence\"],\"violations\":[]}",
+  "runIndex": 2,
+  "schemaVersion": 2,
+  "unitId": "src/domain/entities",
+  "usage": {
+    "inputTokens": 1186,
+    "outputTokens": 31
+  },
+  "usedOptions": {}
+}

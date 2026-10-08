@@ -3,7 +3,7 @@
 > **Unit**: U4 (C7 LLM critic, C14 Claude CLI provider, C5 router, C9 provider-selection hunks) · **Date**: 2026-10-08 · **Base**: `v1.2e` @ `8c3d6df` (source lines as at `ee32a1f` unless stated)
 > **Binding inputs**: plan answers Q1–Q19 (`aidlc-docs/construction/plans/v1.2E-u4-neural-path-functional-design-plan.md`, answered under standing approval, escalations resolved by ADR-017), ADR-015, ADR-016 b, ADR-017 item 9, requirements FR-12, 13, 22, 23, 31, 32, 33, NFR-08 (amended 2026-10-08), U1 BR-U1-22..26 and BR-U1-32, U2 `isBarrel` and `DEFAULT_EXCLUDE_PATTERNS`, U0 contracts (`src/shared/**` at `8c3d6df`).
 > **Companion files**: rules in `business-rules.md` (ids `BR-U4-*`), algorithms in `business-logic-model.md`.
-> **Markers**: **NEW** = new type; **CHANGED** = existing type with a change; **C10 patch** = goes into the one bundled, reviewed C10 patch shared with U3 (plan §1.3); **[PROBE]** = a value fixed by the Part 2 probe before code generation (open item OI-U4-1 in `business-rules.md` §17). Types are shapes, not code; code generation may rename private helpers but not exported names.
+> **Markers**: **NEW** = new type; **CHANGED** = existing type with a change; **C10 patch** = goes into the one bundled, reviewed C10 patch shared with U3 (plan §1.3); **[PROBE]** = a value fixed by the Part 2 probe before code generation (open item OI-U4-1 in `business-rules.md` §17); **all resolved at U4 Step 30 (2026-10-08)**: each former mark now names the probe value and its fixture in `tests/fixtures/claude-cli/`. Types are shapes, not code; code generation may rename private helpers but not exported names.
 > **Repair 2026-10-08**: every field this unit adds to a C10 type is optional in the C10 patch; C7 is the only producer of those types and always sets the fields (asserted by tests), so U3 and other readers are unaffected until they opt in. New: `NeuralResultRow` (§4.8, OI-U4-8), `JudgeProvenance.seededList`, `DroppedReason` member, stop cause `CLI_VERSION`, `selection.source`, `#<layer>` module ids, `assembleUnitSource` export confirmed.
 
 ---
@@ -17,7 +17,7 @@
 | `ExclusionReason` | enum | `src/shared/types/evaluation.ts` | NEW, C10 patch | SEL-01 |
 | `UnitSelectionRule` | value object | `judge-unit-selector.ts` | CHANGED vs design (`seed` is a string) | SEL-04..06 |
 | `BaselineSelection` | value object | `src/shared/types/evaluation.ts` | NEW, C10 patch | SEL-07 |
-| `NeuralResultRow` | report row | `src/shared/types/evaluation.ts` (type), mapper `toNeuralResultRows` in `src/llm-critic/neural-result-rows.ts` | NEW, C10 patch (type); report placement per OI-U4-8 | SEL-05..07, AGG-04, OI-U4-8 |
+| `NeuralResultRow` | report row | `src/shared/types/evaluation.ts` (type), mapper `toNeuralResultRows` in `src/llm-critic/neural-result-rows.ts` | NEW, C10 patch (type); report field `neuralResults[]` (OI-U4-8 decided by BR-U3-65) | SEL-05..07, AGG-04, OI-U4-8 |
 | `DroppedReason` | enum | `src/shared/types/evaluation.ts:186` | CHANGED, C10 patch (`'no-judge-units'`) | AGG-09 |
 | `UnitSourceContext` | value object | `src/llm-critic/source-context.ts` | NEW (design shape plus `excerptTruncated`, `filesOmitted`) | CTX |
 | `GraphExcerpt` | value object | `source-context.ts` | NEW | CTX-04 |
@@ -385,9 +385,9 @@ export interface RunManifest {                 // written only for an incomplete
 
 Path: `<cassetteDir>/_incomplete/<sha256(projectRoot ‖ specSha)[0..16]>.json`; deleted when the same run later completes.
 
-### 4.8 `NeuralResultRow` (NEW, C10 patch type; report placement is OI-U4-8)
+### 4.8 `NeuralResultRow` (NEW, C10 patch type; report field `neuralResults[]`, OI-U4-8 decided)
 
-The persisted per-function neural record that `--judge-baseline-report` (BR-U4-SEL-07), U5b judge-probe detection (BR-U5b-23) and the FR-26 aggregation variants (BR-U5b-60) read. Proposed for U3 as a top-level `neuralResults[]` in `report.schema.json` (required when the mode is full or neuronal-only, absent in symbolic-only); fallback: the same rows in the sidecar `<report>.neural.json` = `{ "neuralResults": [...], "judge": JudgeProvenance }`.
+The persisted per-function neural record that `--judge-baseline-report` (BR-U4-SEL-07), U5b judge-probe detection (BR-U5b-23) and the FR-26 aggregation variants (BR-U5b-60) read. Proposed for U3 as a top-level `neuralResults[]` in `report.schema.json` (required when the mode is full or neuronal-only, absent in symbolic-only); fallback: the same rows in the sidecar `<report>.neural.json` = `{ "neuralResults": [...], "judge": JudgeProvenance }`. **Decided (BR-U3-65, U4 D-U4-8)**: the report field, filled by U3's builder from `toNeuralResultRows`; no sidecar is written. U3's frozen row keeps `singleFileModules` and `origin` optional.
 
 ```typescript
 export interface NeuralUnitRow {
@@ -424,25 +424,25 @@ Rows hold no reasoning, evidence, prompt or absolute path (reasoning stays in ca
 ```typescript
 export interface ClaudeCliEnvelope {
   readonly result: string;                      // text answer (fallback parse source)
-  readonly structuredOutput?: unknown;          // [PROBE] field name that carries --json-schema output
+  readonly structured_output?: unknown;         // probe value: field `structured_output` carries --json-schema output (envelope-schema-tools-off.json)
   readonly model?: string;
-  readonly modelUsage?: Readonly<Record<string, { readonly outputTokens: number; readonly inputTokens?: number }>>; // [PROBE] exact key spelling
+  readonly modelUsage?: Readonly<Record<string, { readonly outputTokens: number; readonly inputTokens?: number }>>; // probe value: spelled `modelUsage`, camelCase per-model keys; no top-level `model` in the json envelope (probe-values.json)
   readonly usage?: { readonly input_tokens?: number; readonly output_tokens?: number };
   readonly is_error?: boolean;
-  readonly subtype?: string;                    // [PROBE] error subtype used by the usage-limit/auth classifier
+  readonly subtype?: string;                    // probe value: NOT used by the classifier (auth errors report `success`); classify on is_error + result text (auth-error.json)
 }
 ```
 
 ### 5.2 `ClaudeCliArgv` (NEW) and child environment
 
 ```typescript
-export const JUDGE_ENV_ALLOW = ['PATH','HOME','USER','LOGNAME','TMPDIR','LANG','LC_ALL','__CF_USER_TEXT_ENCODING','CLAUDE_CONFIG_DIR'] as const;
+export const JUDGE_ENV_ALLOW = ['PATH','HOME','USER','LOGNAME','TMPDIR','LANG','LC_ALL','__CF_USER_TEXT_ENCODING','CLAUDE_CONFIG_DIR','DISABLE_AUTOUPDATER'] as const; // DISABLE_AUTOUPDATER=1 set by the provider (ISO-09, ADR-018)
 export interface ClaudeCliArgv { readonly binary: string; readonly args: readonly string[]; readonly argvFlags: readonly string[] }
 ```
 
 ### 5.3 `ClaudeCliConfig` (CHANGED, C10 `llm-config.ts`)
 
-Adds `judgeConfigDir: string` (default `~/.firewall/judge-claude-config`, expanded at CLI parse time, never inside a repo) and `toolsFlag: boolean` (true unless the probe shows `--tools ""` disables structured output, [PROBE]). `neutralCwd` is created per run by the provider, not configured.
+Adds `judgeConfigDir: string` (default `~/.firewall/judge-claude-config`, expanded at CLI parse time, never inside a repo) and `toolsFlag: boolean` (true unless the probe shows `--tools ""` disables structured output; probe value: **true**, `envelope-schema-tools-off.json`, `init-tools-on.json`). **As built (U4 Step 19 deviation)**: the U0-owned `ClaudeCliConfig` is not extended; `ClaudeCliProvider` takes its own `ClaudeCliProviderConfig` (`judgeConfigDir`, `toolsFlag`, `mode`, `projectRoot`, optional binary, model, effort, timeout). `neutralCwd` is created per run by the provider, not configured.
 
 ### 5.4 `IsolationProbeResult` (NEW)
 
