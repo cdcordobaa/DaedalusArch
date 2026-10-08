@@ -994,3 +994,12 @@ Plan checkboxes ticked. Auto-approved under standing approval; no blocking or ma
 **Context**: CONSTRUCTION — lane 3, U5a Code Generation COMPLETE and merged; next: U4 code generation, then U5b.
 
 ---
+
+## v1.2 Evaluation-Readiness — U5b Group 1 (Steps 0–2): plan, worktree and baselines
+**Timestamp**: 2026-10-08T14:49:00Z
+**User Input**: None (standing approval of 2026-10-08T00:30:00Z; orchestrator started U5b Group 1 after the U3 and U5a merges)
+**Intent**: Record the U5b plan commit, check the U5b entry conditions, create the worktree and unit branch, and measure the gate baselines before any U5b code.
+**AI Response**: Group 1 complete. Step 0: plan already on v1.2e in f7aa173 (PLAN_SHA); tick commit 76f04f4. Step 1: U3 (c4d7bc4) and U5a (23a2055) merges are ancestors; U5B_BASE = 76f04f4; worktree DaedalusArch-wt-u5b on v1.2e-u5b-scoring-harness (npm ci, pushed); tick commit 83b5c81. Step 2: lane container daedalus-neo4j-u5b on 127.0.0.1:7692 (bolt) and 7478 (http), CI-pinned digest; Gate T clean; Gate U 2155 tests / 152 suites (scripts subset 426 / 34); Gate L 558 errors, 2 warnings (scripts lint 1 pre-existing error); Gate B 85, 0 TS2688; Gate G N_G = 74, 0 skipped, snapshot hashes recorded, no src or golden diff; OI-2 both flags true; OI-9 and OI-10 settled, OI-11 open (U4); tick commit b3ad298. Unit-branch CI on 76f04f4 green (2140 + 15 unit, 74 golden). Deviations DV-U5b-1..5 recorded in the plan (Step 0 no content commit; no separate scripts jest project; BaselineSelection is U4's and is checked at Step 26; lane 7692 instead of 7689; lane-specific Gate B scratch config). No snapshot change, no CHANGES.md line.
+**Context**: CONSTRUCTION — U5b Code Generation Part 2, Group 1 done; next Group 2 (Steps 3–5, G-CI).
+
+---
