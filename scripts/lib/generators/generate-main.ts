@@ -20,6 +20,7 @@ import { NodeProcessRunner } from '../../../src/shared/process/node-process-runn
 import { scrubSecrets } from '../../../src/shared/errors/scrub.js';
 import { createGeneratorCliConfig } from './config.js';
 import { ClaudeCodeAdapter, runGenerationGrid } from './grid.js';
+import { filePromptProvider } from './prompt.js';
 import { realSleep, systemClock } from './retry.js';
 import type { Clock, Sleeper } from './retry.js';
 import { loadGeneratorPlanFile, pilotPlan } from './schedule.js';
@@ -48,14 +49,10 @@ export interface GenerateMainDeps {
   readonly err: (text: string) => void;
 }
 
-/** Until the prompt templates are committed every request is refused (no generation without a frozen template). */
-export const unavailablePrompts: PromptProvider = () =>
-  DomainResult.fail([{ code: 'GEN_PROMPT_TEMPLATE_INVALID', message: 'prompt templates are not available' }]);
-
-export function defaultGenerateDeps(_repoRoot: string): GenerateMainDeps {
+export function defaultGenerateDeps(repoRoot: string): GenerateMainDeps {
   return {
     runner: new NodeProcessRunner(),
-    prompts: unavailablePrompts,
+    prompts: filePromptProvider(repoRoot),
     clock: systemClock,
     sleep: realSleep,
     parentEnv: process.env,
