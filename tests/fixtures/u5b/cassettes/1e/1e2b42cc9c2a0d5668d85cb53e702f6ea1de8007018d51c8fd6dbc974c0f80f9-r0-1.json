@@ -1,0 +1,31 @@
+{
+  "attempts": 1,
+  "durationMs": 0,
+  "effort": null,
+  "functionId": "label:violation:9677fe620fee5b1271ebebb941b6d66dbf37cbc0cfad72e791ec59d971f1ad19",
+  "ignoredOptions": [
+    "model",
+    "maxTokens",
+    "temperature"
+  ],
+  "key": "1e2b42cc9c2a0d5668d85cb53e702f6ea1de8007018d51c8fd6dbc974c0f80f9-r0-1",
+  "model": "gemini-fixture-pinned",
+  "outcome": {
+    "kind": "valid"
+  },
+  "parsedVerdict": null,
+  "prompt": "Decide whether the finding below is a real violation of the rule as described.\n- TP: the code violates the rule at this location.\n- FP: the code does not violate the rule; give the root cause of the false finding.\n- unseeded-TP: the code violates the rule, but the violation is part of the original design rather than a\n  deliberate change; give the root cause (use RC-GENUINE-UNSEEDED when the violation is simply real).\n\n## Item\n## Violation\n  Function: FF-S01\n  Description: fitness function FF-S01 of specs/clean-arch.yaml\n  File: src/application/use-cases/CreateTaskUseCase.ts\n  Line: 2\n  Target: src/infrastructure/repositories/InMemoryTaskRepository.ts\n  \n  ## Source\n      1 | // VIOLATION #3: Application layer imports concrete InMemoryTaskRepository (infra) directly\n      2 | import { InMemoryTaskRepository } from '../../infrastructure/repositories/InMemoryTaskRepository';\n      3 | import { Task } from '../../domain/entities/Task';\n      4 | \n      5 | export class CreateTaskUseCase {\n      6 |   constructor(\n      7 |     // Should inject ITaskRepository (interface), not concrete impl\n      8 |     private readonly taskRepository: InMemoryTaskRepository\n      9 |   ) {}\n     10 | \n     11 |   async execute(title: string, description: string, categoryId: string): Promise<Task> {\n     12 |     const task = new Task(\n     13 |       crypto.randomUUID(),\n     14 |       title,\n     15 |       description,\n     16 |       false,\n     17 |       categoryId,\n\n## Label options\n1. FP\n  2. TP\n  3. unseeded-TP\n\n## Root causes\n1. RC-TEMPLATE-OVERAPPROX\n  2. RC-TEST-CODE\n  3. RC-DYNAMIC-IMPORT\n  4. RC-EXTRACT-BARREL\n  5. RC-LAYER-MAP\n  6. RC-GENERATED-CODE\n  7. RC-EXTRACT-ALIAS\n  8. RC-GENUINE-UNSEEDED\n  9. RC-STYLE-INAPPLICABLE\n  10. RC-TYPE-ONLY\n  11. RC-SPEC-PARAM\n  12. RC-OTHER\n\nAnswer with one JSON object: {\"option\": <number of the label option>, \"rootCause\": <number of the root cause or null>, \"note\": \"<text, required with RC-OTHER>\", \"rationale\": \"<one or two sentences citing the code>\"}.",
+  "provider": "mock",
+  "recordedAt": "2026-10-08T00:00:00.000Z",
+  "repetition": 0,
+  "requestHash": "1e2b42cc9c2a0d5668d85cb53e702f6ea1de8007018d51c8fd6dbc974c0f80f9",
+  "resolvedModel": "mock-model",
+  "response": "{\"option\":1,\"rootCause\":null,\"rationale\":\"missing cause\"}",
+  "runIndex": 1,
+  "schemaVersion": 2,
+  "usage": {
+    "inputTokens": 505,
+    "outputTokens": 15
+  },
+  "usedOptions": {}
+}

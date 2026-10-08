@@ -1,0 +1,31 @@
+{
+  "attempts": 1,
+  "durationMs": 0,
+  "effort": null,
+  "functionId": "label:violation:70586f7611747c0e867edbca9d44f78305a5e1dc53a63ab0ec12d0610c935c28",
+  "ignoredOptions": [
+    "model",
+    "maxTokens",
+    "temperature"
+  ],
+  "key": "c853f5ecae93dc4ed64c29bef093d069cb2df8a9ec31a37e243c56c1295b0ef9-r0-0",
+  "model": "gemini-fixture-pinned",
+  "outcome": {
+    "kind": "valid"
+  },
+  "parsedVerdict": null,
+  "prompt": "Decide whether the finding below is a real violation of the rule as described.\n- TP: the code violates the rule at this location.\n- FP: the code does not violate the rule; give the root cause of the false finding.\n- unseeded-TP: the code violates the rule, but the violation is part of the original design rather than a\n  deliberate change; give the root cause (use RC-GENUINE-UNSEEDED when the violation is simply real).\n\n## Item\n## Violation\n  Function: FF-C03\n  Description: fitness function FF-C03 of specs/clean-arch.yaml\n  File: src/application/use-cases/CreateTaskUseCase.ts\n  Line: n/a\n  Target: n/a\n  \n  ## Source\n      1 | // VIOLATION #3: Application layer imports concrete InMemoryTaskRepository (infra) directly\n      2 | import { InMemoryTaskRepository } from '../../infrastructure/repositories/InMemoryTaskRepository';\n      3 | import { Task } from '../../domain/entities/Task';\n      4 | \n      5 | export class CreateTaskUseCase {\n      6 |   constructor(\n      7 |     // Should inject ITaskRepository (interface), not concrete impl\n      8 |     private readonly taskRepository: InMemoryTaskRepository\n      9 |   ) {}\n     10 | \n     11 |   async execute(title: string, description: string, categoryId: string): Promise<Task> {\n     12 |     const task = new Task(\n     13 |       crypto.randomUUID(),\n     14 |       title,\n     15 |       description,\n     16 |       false,\n     17 |       categoryId,\n     18 |       new Date()\n     19 |     );\n     20 |     return this.taskRepository.save(task);\n     21 |   }\n     22 | }\n     23 | \n\n## Label options\n1. TP\n  2. FP\n  3. unseeded-TP\n\n## Root causes\n1. RC-LAYER-MAP\n  2. RC-EXTRACT-ALIAS\n  3. RC-EXTRACT-BARREL\n  4. RC-DYNAMIC-IMPORT\n  5. RC-TYPE-ONLY\n  6. RC-TEMPLATE-OVERAPPROX\n  7. RC-STYLE-INAPPLICABLE\n  8. RC-SPEC-PARAM\n  9. RC-GENERATED-CODE\n  10. RC-TEST-CODE\n  11. RC-GENUINE-UNSEEDED\n  12. RC-OTHER\n\nAnswer with one JSON object: {\"option\": <number of the label option>, \"rootCause\": <number of the root cause or null>, \"note\": \"<text, required with RC-OTHER>\", \"rationale\": \"<one or two sentences citing the code>\"}.",
+  "provider": "mock",
+  "recordedAt": "2026-10-08T00:00:00.000Z",
+  "repetition": 0,
+  "requestHash": "c853f5ecae93dc4ed64c29bef093d069cb2df8a9ec31a37e243c56c1295b0ef9",
+  "resolvedModel": "mock-model",
+  "response": "{\"option\":1,\"rootCause\":null,\"rationale\":\"the import crosses the layer boundary\"}",
+  "runIndex": 0,
+  "schemaVersion": 2,
+  "usage": {
+    "inputTokens": 526,
+    "outputTokens": 21
+  },
+  "usedOptions": {}
+}
