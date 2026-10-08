@@ -1140,3 +1140,11 @@ Plan checkboxes ticked. Auto-approved under standing approval; no blocking or ma
 **Context**: CONSTRUCTION — Build and Test, group BT-B held by E-1 (pending author decision (a), BR-U5a-37 CAT_SHORTFALL 69 < 80; BR-U5a-40). Resume at Step 9 after Steps 42–43 (and Step 24).
 
 ---
+
+## Build and Test — Group BT-C (Steps 13–20) executed, PR #10 merged (auto-approved)
+**Timestamp**: 2026-10-08T22:42:04Z
+**User Input**: "Execute group BT-C of the Build and Test plan (Steps 13–20: corpus fetch, RUB-03, OI-11 selection projection, prepare-bases, parity, base type-check, site feasibility stopping at CAT_SHORTFALL, corpus record) under the standing approval; do not decide pending (a) or (b); no live judge or generator calls needed."
+**AI Response**: "Step 13: ten clones under ../daedalus-corpus, 10/10 HEADs = registered SHA (core five = Clones table); realworld-test npm ci fails (194 lock URLs on unreachable npm.styque.de, 39 packages missing, tsc 3.8.3 present; OI-BT-C1); truthy-demo npm ci rewrites yarn.lock, tree hash install-dependent (OI-BT-C2); --check rerun into scratch ok x10 (DV-BT-9: fetch refuses an existing destination). Step 14 8e6b94d: RUB-03 on four corpus specs + layered fixture spec, rerun no change, Docs/corpus.md §5 (DV-BT-1); --check-prereg refuses until P-1. Step 15 bd13765: store-baseline-selection (+10 tests), corpus/selections x4 from Mock full mode, zero live calls, byte-identical rederivation (DV-BT-2; OI-11 settled). Step 16: four PreparedBase, tsc = registered. Step 17: parity OK x4. Step 18 2b6ed60: u5a-base-measure entry (+2 tests); type errors 0/0/0, ghostfolio 3 -> excluded (sub-path copy lacks monorepo root; 432 errors in situ, Prisma client not generated; OI-BT-C3). Step 19 e77bed2: held-out golden k=2 47, k=3 69 -> CAT_SHORTFALL, no k chosen (without ghostfolio 37/54, reported only). Step 20 b81cd21: corpus record. Gates T clean, U 2900/203, L 497, B 80/0, G 80/7 hashes unchanged, P 0/0; CI 37853526160 and PR checks 37854352961 green; PR #10 merged bb97a7e. Plan ticks 97c2b24..7b08fea. Live calls: judge 0, generator 0."
+**Context**: CONSTRUCTION — Build and Test, group BT-C complete; next per run order BT-E Steps 26–27. Open: E-1 (decision (a), now with the ghostfolio exclusion question), E-2, decision (b), OI-BT-C1..C3.
+
+---
