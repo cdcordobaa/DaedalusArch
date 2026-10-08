@@ -50,7 +50,7 @@ export const CYPHER_TEMPLATES: ReadonlyMap<string, CypherTemplate> = new Map([
   ['dependency-direction', tmpl(
     'dependency-direction',
     `WITH $layerOrder AS layerOrder
-MATCH (src:File)-[i:IMPORTS]->(tgt:File)
+MATCH (src:File)-[i:IMPORTS|RE_EXPORTS]->(tgt:File)
 WHERE src.layer IS NOT NULL AND tgt.layer IS NOT NULL
   AND src.layer <> tgt.layer
 WITH src, tgt, i,
@@ -59,6 +59,7 @@ WITH src, tgt, i,
 WHERE srcIdx >= 0 AND tgtIdx >= 0 AND srcIdx < tgtIdx /*EXCLUDE:src*/
 RETURN src.filePath AS source, tgt.filePath AS target, src.layer AS srcLayer, tgt.layer AS tgtLayer,
        type(i) AS relType,
+       CASE type(i) WHEN 'IMPORTS' THEN 'imports' ELSE 're-exports' END AS verb,
        i.line AS line, i.lines AS lines, coalesce(i.isTypeOnly, false) AS isTypeOnly
 ORDER BY source, target, relType`,
     ['layerOrder'],
@@ -66,14 +67,14 @@ ORDER BY source, target, relType`,
     'structural',
     'Detects imports where a lower layer imports from a higher layer (violates dependency direction)',
     [],
-    rm('source', '{source} ({srcLayer}) imports from {target} ({tgtLayer})', FR12_DEP_COLUMNS(['target', 'srcLayer', 'tgtLayer'])),
+    rm('source', '{source} ({srcLayer}) {verb} from {target} ({tgtLayer})', FR12_DEP_COLUMNS(['target', 'srcLayer', 'tgtLayer'])),
   )],
 
   ['no-cyclic-deps', tmpl(
     'no-cyclic-deps',
     // Bounded, canonical, simple cycles (FR-35, NFR-07, BR-U1-28): the bound and the sentinel cap are
     // literals interpolated at module load (Neo4j rejects a parameter in a variable-length bound).
-    `MATCH p = (f:File)-[:IMPORTS*2..${String(MAX_CYCLE_LENGTH)}]->(f)
+    `MATCH p = (f:File)-[:IMPORTS|RE_EXPORTS*2..${String(MAX_CYCLE_LENGTH)}]->(f)
 WHERE ALL(n IN nodes(p) WHERE n.filePath >= f.filePath)
   AND size(apoc.coll.toSet(nodes(p)[1..])) = length(p) /*EXCLUDE:nodes(p)*/
 WITH DISTINCT [n IN nodes(p) | n.filePath] AS cycle, relationships(p)[0].line AS firstLine
@@ -84,19 +85,20 @@ LIMIT ${String(CYCLE_ROW_CAP + 1)}`,
     [],
     [],
     'topological',
-    `Detects simple circular import chains of length 2..${String(MAX_CYCLE_LENGTH)} (one row per cycle with its first-edge target and line, FR-12; row ${String(CYCLE_ROW_CAP + 1)} is a truncation sentinel)`,
+    `Detects simple circular import/re-export chains of length 2..${String(MAX_CYCLE_LENGTH)} (one row per cycle with its first-edge target and line, FR-12; row ${String(CYCLE_ROW_CAP + 1)} is a truncation sentinel)`,
     [],
     rm('cycle', 'Circular dependency: {cycle}'),
   )],
 
   ['no-layer-skip', tmpl(
     'no-layer-skip',
-    `MATCH (src:File)-[i:IMPORTS]->(tgt:File)
+    `MATCH (src:File)-[i:IMPORTS|RE_EXPORTS]->(tgt:File)
 WHERE src.layer IS NOT NULL AND tgt.layer IS NOT NULL
   AND src.layer <> tgt.layer
   AND NOT (src.layer + '>' + tgt.layer) IN $allowedTransitions /*EXCLUDE:src*/
 RETURN src.filePath AS source, tgt.filePath AS target, src.layer AS srcLayer, tgt.layer AS tgtLayer,
        type(i) AS relType,
+       CASE type(i) WHEN 'IMPORTS' THEN 'import' ELSE 're-export' END AS verb,
        i.line AS line, i.lines AS lines, coalesce(i.isTypeOnly, false) AS isTypeOnly
 ORDER BY source, target, relType`,
     ['allowedTransitions'],
@@ -104,16 +106,17 @@ ORDER BY source, target, relType`,
     'structural',
     'Detects imports that skip intermediate layers (e.g., infrastructure directly importing domain, bypassing application)',
     [],
-    rm('source', '{source} ({srcLayer}) skips layers to import {target} ({tgtLayer})', FR12_DEP_COLUMNS(['target', 'srcLayer', 'tgtLayer'])),
+    rm('source', '{source} ({srcLayer}) skips layers to {verb} {target} ({tgtLayer})', FR12_DEP_COLUMNS(['target', 'srcLayer', 'tgtLayer'])),
     ['layered'], // closed layering (BR-U1-43, U1 Q22 B)
   )],
 
   ['no-domain-outward-dep', tmpl(
     'no-domain-outward-dep',
-    `MATCH (src:File)-[i:IMPORTS]->(tgt:File)
+    `MATCH (src:File)-[i:IMPORTS|RE_EXPORTS]->(tgt:File)
 WHERE src.layer = $domainLayer AND tgt.layer <> $domainLayer /*EXCLUDE:src*/
 RETURN src.filePath AS source, tgt.filePath AS target, tgt.layer AS violatingLayer,
        type(i) AS relType,
+       CASE type(i) WHEN 'IMPORTS' THEN 'imports' ELSE 're-exports' END AS verb,
        i.line AS line, i.lines AS lines, coalesce(i.isTypeOnly, false) AS isTypeOnly
 ORDER BY source, target, relType`,
     ['domainLayer'],
@@ -121,7 +124,7 @@ ORDER BY source, target, relType`,
     'structural',
     'Detects domain layer files that import from outer layers',
     [],
-    rm('source', 'Domain file {source} imports from {target} in {violatingLayer}', FR12_DEP_COLUMNS(['target', 'violatingLayer'])),
+    rm('source', 'Domain file {source} {verb} from {target} in {violatingLayer}', FR12_DEP_COLUMNS(['target', 'violatingLayer'])),
     CLEAN_AND_NESTJS,
   )],
 

@@ -37,9 +37,8 @@ describe('no-cyclic-deps (BR-U1-28)', () => {
     expect(order).toBeGreaterThan(distinct);
   });
 
-  it('traverses IMPORTS only at K6 and keeps the message and filePathColumn', () => {
-    expect(cycle.template).toContain('-[:IMPORTS*2..');
-    expect(cycle.template).not.toContain('RE_EXPORTS');
+  it('traverses IMPORTS|RE_EXPORTS (IMPORTS only at K6, widened at K12) and keeps the message and filePathColumn', () => {
+    expect(cycle.template).toContain('-[:IMPORTS|RE_EXPORTS*2..');
     expect(cycle.resultMapping.filePathColumn).toBe('cycle');
     expect(cycle.resultMapping.messageTemplate).toBe('Circular dependency: {cycle}');
   });

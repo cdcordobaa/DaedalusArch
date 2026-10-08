@@ -60,6 +60,7 @@ Only variant-b and variant-c match the header verdict. U0 fixes nothing; the re-
 2026-10-08 U1-K6 variant-a-structural — FR-35 + NFR-07 (U1 Q15 A): the cycle query is bounded (`*2..10`), keeps one canonical rotation per simple cycle (start at the smallest `filePath`) and de-duplicates with `WITH DISTINCT`, so each 2-cycle is reported once instead of once per rotation; FF-S02 4 → 2 rows (`Task.ts`/`ITaskRepository.ts` and `CircularHelper.ts`/`InMemoryTaskRepository.ts` once each), still fails; AHS and verdict unchanged.
 2026-10-08 U1-K6 variant-c-everything — FR-35 + NFR-07 (U1 Q15 A): the cycle query is bounded (`*2..10`), keeps one canonical rotation per simple cycle and de-duplicates with `WITH DISTINCT`, so the 2-cycle `CircularB.ts`/`InMemoryTaskRepository.ts` is reported once instead of twice; FF-S02 2 → 1 rows, still fails; AHS and verdict unchanged.
 2026-10-08 U1-K6 observation all — FR-35 + NFR-07 (U1 Q15 A): cycles longer than `MAX_CYCLE_LENGTH` (10 files) are not detected (business-rules.md §8 item 1; measured on the corpus in Build and Test, BR-U1-31). Row 101 of the cycle query is a truncation sentinel; until U3 drops it, the normaliser treats more than `CYCLE_ROW_CAP` (100) rows as truncated.
+2026-10-08 U1-K12 variant-d-subtle — FR-34 (FD U2 Q6 / U1 Q25), ADR-015 item 8: `dependency-direction`, `no-domain-outward-dep` and the cycle query traverse `IMPORTS|RE_EXPORTS` and the dependency rows carry a `verb` column, so the re-export edge from the application barrel is a dependency like an import (U2 G1); FF-S01 2 → 3 rows, new `src/application/utils/TaskUtils.ts (application) re-exports from src/infrastructure/utils/InfraFormatters.ts (infrastructure)`, still fails; IMPORTS row texts byte-identical, no new cycle, no FF-S03 change (absent since K4); AHS 0.505 and verdict soft-block unchanged.
 
 ## Self-spec
 
@@ -70,3 +71,4 @@ Only variant-b and variant-c match the header verdict. U0 fixes nothing; the re-
 2026-10-08 U1-K5 self — ADR-015 item 1 (U1 BR-U1-45): FF-P03 no longer reports compliant repository implementations.
 2026-10-08 U1-K6 self — FR-35 + NFR-07 (U1 Q15 A): FF-S02 reports each simple import cycle of 2 to 10 files once, in canonical rotation.
 2026-10-08 U1-K8 self — FR-35 (U1 Q17 A): no change expected; FF-P02, FF-C02, FF-C03, FF-C05 keep their alias.
+2026-10-08 U1-K12 self — FR-34 (FD U2 Q6 / U1 Q25), ADR-015 item 8: dependency rules (FF-S01, FF-S04) and FF-S02 follow `RE_EXPORTS` edges as well as `IMPORTS`; coupling metrics stay IMPORTS-only (BR-U1-36).

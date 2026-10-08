@@ -1,8 +1,9 @@
 /**
  * K10 (FR-12 template part; BR-U1-28 FR-12 columns, BR-U1-35 columns): the three dependency templates
- * return `relType`, `line`, `lines`, `isTypeOnly` and `target` (IMPORTS only at K10; RE_EXPORTS at K12),
- * and the cycle row returns `target = cycle[1]` and the first-edge `line`. The columns stay unmapped
- * until U3, so messages are unchanged. Graph behaviour is checked in tests/golden/u1-templates.test.ts.
+ * return `relType`, `line`, `lines`, `isTypeOnly` and `target` (IMPORTS only at K10; K12 widened the
+ * edge to IMPORTS|RE_EXPORTS and added `verb`, see k12-re-exports.test.ts), and the cycle row returns
+ * `target = cycle[1]` and the first-edge `line`. The columns stay unmapped until U3, so IMPORTS messages
+ * are unchanged. Graph behaviour is checked in tests/golden/u1-templates.test.ts.
  */
 import { evaluateSymbolic } from '../../../src/evaluation-engine/symbolic-evaluator.js';
 import { CYPHER_TEMPLATES } from '../../../src/fitness-compiler/cypher-templates.js';
@@ -53,9 +54,9 @@ const IMPORTS_ROW = {
 };
 
 describe('K10 dependency templates return the FR-12 columns (BR-U1-35)', () => {
-  it.each(DEPENDENCY_TEMPLATES)('%s binds the edge as i:IMPORTS and returns relType, line, lines, isTypeOnly, target', (name) => {
+  it.each(DEPENDENCY_TEMPLATES)('%s binds the edge as i and returns relType, line, lines, isTypeOnly, target', (name) => {
     const text = template(name).template;
-    expect(text).toContain('-[i:IMPORTS]->');
+    expect(text).toContain('-[i:IMPORTS|RE_EXPORTS]->');
     const ret = finalProjection(text);
     expect(ret).toContain('tgt.filePath AS target');
     expect(ret).toContain('type(i) AS relType');
@@ -78,18 +79,18 @@ describe('K10 dependency templates return the FR-12 columns (BR-U1-35)', () => {
     expect(cols.slice(-FR12_COLUMNS.length)).toEqual([...FR12_COLUMNS]);
   });
 
-  it('messages are unchanged (pinned pre-K10 texts)', () => {
-    expect(template('dependency-direction').resultMapping.messageTemplate).toBe('{source} ({srcLayer}) imports from {target} ({tgtLayer})');
-    expect(template('no-layer-skip').resultMapping.messageTemplate).toBe('{source} ({srcLayer}) skips layers to import {target} ({tgtLayer})');
-    expect(template('no-domain-outward-dep').resultMapping.messageTemplate).toBe('Domain file {source} imports from {target} in {violatingLayer}');
+  it('message templates use {verb} from K12 (pinned)', () => {
+    expect(template('dependency-direction').resultMapping.messageTemplate).toBe('{source} ({srcLayer}) {verb} from {target} ({tgtLayer})');
+    expect(template('no-layer-skip').resultMapping.messageTemplate).toBe('{source} ({srcLayer}) skips layers to {verb} {target} ({tgtLayer})');
+    expect(template('no-domain-outward-dep').resultMapping.messageTemplate).toBe('Domain file {source} {verb} from {target} in {violatingLayer}');
   });
 
-  it('an IMPORTS row renders the same message as before K10 (extra columns ignored)', async () => {
-    expect(await render('dependency-direction', { ...IMPORTS_ROW, srcLayer: 'domain', tgtLayer: 'infrastructure' }))
+  it('an IMPORTS row renders the same message as before K10 (extra columns ignored; BR-U1-35 b)', async () => {
+    expect(await render('dependency-direction', { ...IMPORTS_ROW, verb: 'imports', srcLayer: 'domain', tgtLayer: 'infrastructure' }))
       .toBe('src/domain/Task.ts (domain) imports from src/infrastructure/Db.ts (infrastructure)');
-    expect(await render('no-layer-skip', { ...IMPORTS_ROW, srcLayer: 'domain', tgtLayer: 'infrastructure' }))
+    expect(await render('no-layer-skip', { ...IMPORTS_ROW, verb: 'import', srcLayer: 'domain', tgtLayer: 'infrastructure' }))
       .toBe('src/domain/Task.ts (domain) skips layers to import src/infrastructure/Db.ts (infrastructure)');
-    expect(await render('no-domain-outward-dep', { ...IMPORTS_ROW, violatingLayer: 'infrastructure' }))
+    expect(await render('no-domain-outward-dep', { ...IMPORTS_ROW, verb: 'imports', violatingLayer: 'infrastructure' }))
       .toBe('Domain file src/domain/Task.ts imports from src/infrastructure/Db.ts in infrastructure');
   });
 });

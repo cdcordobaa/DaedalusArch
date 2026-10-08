@@ -178,6 +178,25 @@ describeU1('U1 cycle query on Neo4j (BR-U1-28 a, b; BR-U1-31)', () => {
     expect(rows[0]).toEqual(['src/p000a.ts', 'src/p000b.ts', 'src/p000a.ts']);
   });
 
+  it('(c) A->B by IMPORTS (line 7) and RE_EXPORTS (line 3) plus B->A yields one row, target B, line 3 (K12)', async () => {
+    await run(
+      "CREATE (a:File {filePath: 'src/A.ts'}), (b:File {filePath: 'src/B.ts'}) " +
+      'CREATE (a)-[:IMPORTS {line: 7}]->(b), (a)-[:RE_EXPORTS {line: 3}]->(b), (b)-[:IMPORTS {line: 1}]->(a)',
+    );
+    const q = await compiledCycleQuery();
+    const rows = await run(q.cypher, q.params);
+    expect(rows.map((r) => ({ cycle: r.cycle, target: r.target, line: Number(r.line) })))
+      .toEqual([{ cycle: ['src/A.ts', 'src/B.ts', 'src/A.ts'], target: 'src/B.ts', line: 3 }]);
+  });
+
+  it('(c) a cycle whose only edges are type-only IMPORTS yields one row (K12)', async () => {
+    await run(
+      "CREATE (a:File {filePath: 'src/A.ts'}), (b:File {filePath: 'src/B.ts'}) " +
+      'CREATE (a)-[:IMPORTS {line: 2, isTypeOnly: true}]->(b), (b)-[:IMPORTS {line: 4, isTypeOnly: true}]->(a)',
+    );
+    expect(await cycles()).toEqual([['src/A.ts', 'src/B.ts', 'src/A.ts']]);
+  });
+
   it('(BR-U1-31) logs resultAvailableAfter of the cycle query on ingested variant-a', async () => {
     const variantA = GOLDEN_CASES.find((c) => c.id === 'variant-a-structural');
     if (!variantA || !repo) throw new Error('variant-a case or repository missing');
