@@ -18,6 +18,7 @@ import { createHash } from 'node:crypto';
 import { existsSync, readFileSync, readdirSync } from 'node:fs';
 import { join, resolve } from 'node:path';
 import { parse as parseYaml } from 'yaml';
+import { listCassetteKeys, readCassetteEntry } from '../src/llm-critic/cassette-manager.js';
 import { CassetteLLMProvider } from '../src/llm-critic/cassette-provider.js';
 import type { Interpretation } from '../src/llm-critic/cassette-provider.js';
 import type { LLMProvider } from '../src/shared/interfaces/llm-provider.js';
@@ -26,7 +27,7 @@ import { ROOT_CAUSE_CODES } from './lib/matching-rule.js';
 import type { RootCauseCode } from './lib/matching-rule.js';
 import { allocateBudget, estimateExit } from './lib/label-context.js';
 import type { ItemKind, LabelItem, Population, SampledPopulation } from './lib/label-context.js';
-import { createRng, shuffle } from './lib/stats.js';
+import { cohenKappa, createRng, fleissKappa, gwetAC1, shuffle, wilson } from './lib/stats.js';
 import { knownSecretsOf } from './lib/report-io.js';
 
 export type { ItemKind, LabelItem, Population, RootCauseCode };
@@ -64,6 +65,9 @@ export interface ReconciledLabel<L extends string = AnyLabel> {
   readonly population: Population;
   readonly stratum: string;
   readonly inclusionProbability: number;
+  /** Judge-unit items: the unit and function (matched to judge verdicts at comparison time only). */
+  readonly unitId?: string;
+  readonly functionId?: string;
   readonly label: L | 'uncertain';
   readonly uncertainReason?: 'disagree' | 'invalid-run';
   readonly rootCause?: RootCauseCode;
@@ -284,6 +288,8 @@ export function reconcile<L extends string>(item: LabelItem, prompt: LabellerPro
   const base = {
     itemId: item.itemId, projectId: item.projectId, kind: item.kind, population: item.population, stratum: item.stratum,
     inclusionProbability: item.inclusionProbability, runs,
+    ...(item.kind === 'judge-unit' && item.unitId !== undefined && { unitId: item.unitId }),
+    ...(item.kind === 'judge-unit' && item.functionId !== undefined && { functionId: item.functionId }),
   };
   const [a, b] = runs;
   if (a.label === null || b.label === null) return { ...base, label: 'uncertain', uncertainReason: 'invalid-run' };
@@ -417,6 +423,9 @@ export const LABEL_USAGE = [
   'usage: npx tsx scripts/llm-label-cli.ts --plan <label-plan.json> --estimate',
   '       npx tsx scripts/llm-label-cli.ts --plan <label-plan.json> --mode record|replay --cassette-dir <dir> --model <pinned id>',
   '                                        [--provider gemini|mock] --out <labels.json>',
+  '       npx tsx scripts/llm-label-cli.ts --allocate-audit --plan <file> --labels <labels.json> --plan-id <id> --seed <n> --out <dir>',
+  '       npx tsx scripts/llm-label-cli.ts --agreement --plan <file> --labels <labels.json> --model <pinned id> [--allocation <file>',
+  '                                        --audit audit/<plan-id>.json] [--judge-verdicts <file>] [--judge-cassettes <dir>] --out <labelling.json>',
   '       npx tsx scripts/llm-label-cli.ts --self-test',
   '',
 ].join('\n');
@@ -433,8 +442,8 @@ export interface LabelMainDeps {
 }
 
 function parseArgs(argv: readonly string[]): Map<string, string> | string {
-  const flags = new Set(['--estimate', '--self-test', '--help']);
-  const valued = new Set(['--plan', '--mode', '--cassette-dir', '--model', '--provider', '--out']);
+  const flags = new Set(['--estimate', '--self-test', '--help', '--allocate-audit', '--agreement']);
+  const valued = new Set(['--plan', '--mode', '--cassette-dir', '--model', '--provider', '--out', '--labels', '--plan-id', '--seed', '--allocation', '--audit', '--judge-verdicts', '--judge-cassettes']);
   const out = new Map<string, string>();
   for (let i = 0; i < argv.length; i += 1) {
     const a = argv[i] ?? '';
@@ -484,6 +493,8 @@ export async function main(argv: readonly string[], repoRoot: string, io: LabelM
     io.err(`${LABELLER_PLAN_INVALID}: ${errs.join('; ')}\n`);
     return 1;
   }
+  if (args.has('allocate-audit')) return allocateAuditMain(args, repoRoot, io, plan);
+  if (args.has('agreement')) return agreementMain(args, repoRoot, io, plan);
   if (args.has('estimate')) {
     const e = estimatePlan(plan);
     if (e.exitCode === 0) io.out(`${e.line}\n`);
@@ -542,5 +553,436 @@ export async function main(argv: readonly string[], repoRoot: string, io: LabelM
   }
   io.writeFile(resolve(repoRoot, out), `${JSON.stringify(r.labels, null, 2)}\n`);
   io.out(`labelled ${String(r.labels.length)} items in ${String(r.calls)} calls (${mode})\n`);
+  return 0;
+}
+
+// ---------------------------------------------------------------------------------------------
+// Audit allocation and blinding (BR-U5b-41, 42; Docs/matching-rule.md §8)
+
+export const AUDIT_TOTAL = 30;
+export const AUDIT_FLOOR = 3;
+export const AUDIT_MODIFIED = 'AUDIT_MODIFIED';
+export const AUDIT_INVALID = 'AUDIT_INVALID';
+
+export interface AuditStratum {
+  readonly kind: ItemKind;
+  readonly label: string;
+  readonly size: number;
+  readonly allocated: number;
+  readonly samplingFraction: number;
+}
+export interface AuditAllocation {
+  readonly seed: number;
+  readonly total: number;
+  readonly strata: readonly AuditStratum[];
+  /** Allocated item ids, per stratum in round-robin order. */
+  readonly itemIds: readonly string[];
+}
+export interface AuditRecord {
+  readonly itemId: string;
+  readonly label: string;
+  readonly rootCause?: RootCauseCode;
+  readonly note?: string;
+  readonly recordedAt: string;
+}
+/** `audit/<plan-id>.json`: the author's labels, written before any comparison. */
+export interface AuditFile {
+  readonly version: 1;
+  readonly planId: string;
+  readonly records: readonly AuditRecord[];
+}
+/** What the author sees: the labeller's context and the canonical options only (BR-U5b-42). */
+export interface AuditViewItem {
+  readonly itemId: string;
+  readonly kind: ItemKind;
+  readonly projectId: string;
+  readonly context: string;
+  readonly options: readonly string[];
+  readonly rootCauses: readonly RootCauseCode[];
+}
+
+function stratumName(kind: ItemKind, label: string): string {
+  return `${kind}|${label}`;
+}
+
+/** Proportional allocation with a floor of `min(3, size)` per non-empty stratum, summing to `total` when possible. */
+export function allocateAuditCounts(sizes: ReadonlyMap<string, number>, total: number = AUDIT_TOTAL): Map<string, number> {
+  const names = [...sizes.keys()].filter((n) => (sizes.get(n) ?? 0) > 0).sort();
+  const n = names.reduce((s, k) => s + (sizes.get(k) ?? 0), 0);
+  const target = new Map(names.map((k) => [k, (total * (sizes.get(k) ?? 0)) / Math.max(1, n)]));
+  const floor = (k: string): number => Math.min(AUDIT_FLOOR, sizes.get(k) ?? 0);
+  const alloc = new Map(names.map((k) => [k, Math.min(sizes.get(k) ?? 0, Math.max(floor(k), Math.floor(target.get(k) ?? 0)))]));
+  const sum = (): number => [...alloc.values()].reduce((a, b) => a + b, 0);
+  const goal = Math.min(total, n);
+  while (sum() > goal) {
+    // Take one from the stratum furthest above its target that is still above its floor.
+    const cands = names.filter((k) => (alloc.get(k) ?? 0) > floor(k));
+    if (cands.length === 0) break;
+    cands.sort((a, b) => ((alloc.get(b) ?? 0) - (target.get(b) ?? 0)) - ((alloc.get(a) ?? 0) - (target.get(a) ?? 0)) || (a < b ? -1 : 1));
+    const k = cands[0] ?? '';
+    alloc.set(k, (alloc.get(k) ?? 0) - 1);
+  }
+  while (sum() < goal) {
+    // Give one to the stratum furthest below its target that has items left.
+    const cands = names.filter((k) => (alloc.get(k) ?? 0) < (sizes.get(k) ?? 0));
+    if (cands.length === 0) break;
+    cands.sort((a, b) => ((target.get(b) ?? 0) - (alloc.get(b) ?? 0)) - ((target.get(a) ?? 0) - (alloc.get(a) ?? 0)) || (a < b ? -1 : 1));
+    const k = cands[0] ?? '';
+    alloc.set(k, (alloc.get(k) ?? 0) + 1);
+  }
+  return alloc;
+}
+
+/** Round-robin by project in a seeded project order; items within a project in a seeded order. */
+export function roundRobinByProject<T extends { readonly itemId: string; readonly projectId: string }>(items: readonly T[], count: number, seed: number): T[] {
+  const byProject = new Map<string, T[]>();
+  for (const i of [...items].sort((a, b) => (a.itemId < b.itemId ? -1 : 1))) byProject.set(i.projectId, [...(byProject.get(i.projectId) ?? []), i]);
+  const rng = createRng(seed);
+  const projects = shuffle([...byProject.keys()].sort(), rng);
+  const queues = projects.map((p) => shuffle(byProject.get(p) ?? [], rng));
+  const out: T[] = [];
+  while (out.length < count && queues.some((q) => q.length > 0)) {
+    for (const q of queues) {
+      const next = q.shift();
+      if (next !== undefined && out.length < count) out.push(next);
+    }
+  }
+  return out;
+}
+
+/** BR-U5b-41: strata (kind, label) of reconciled labels, `uncertain` excluded. */
+export function allocateAudit(labels: readonly ReconciledLabel[], seed: number, total: number = AUDIT_TOTAL): AuditAllocation {
+  const certain = labels.filter((l) => l.label !== 'uncertain');
+  const groups = new Map<string, ReconciledLabel[]>();
+  for (const l of certain) groups.set(stratumName(l.kind, l.label), [...(groups.get(stratumName(l.kind, l.label)) ?? []), l]);
+  const counts = allocateAuditCounts(new Map([...groups].map(([k, v]) => [k, v.length])), total);
+  const strata: AuditStratum[] = [];
+  const itemIds: string[] = [];
+  for (const name of [...groups.keys()].sort()) {
+    const members = groups.get(name) ?? [];
+    const allocated = counts.get(name) ?? 0;
+    const [kind, label] = [members[0]?.kind ?? 'violation', members[0]?.label ?? ''];
+    strata.push({ kind, label, size: members.length, allocated, samplingFraction: members.length === 0 ? 0 : allocated / members.length });
+    const stratumSeed = createHash('sha256').update(JSON.stringify([seed, name])).digest().readUInt32BE(0);
+    itemIds.push(...roundRobinByProject(members, allocated, stratumSeed).map((m) => m.itemId));
+  }
+  return { seed, total, strata, itemIds };
+}
+
+/** The blinded audit view (BR-U5b-42): context and canonical options; no panel label, rationale or root cause. */
+export function auditView(allocation: AuditAllocation, items: readonly LabelItem[], prompts: ReadonlyMap<ItemKind, LabellerPrompt>): AuditViewItem[] {
+  const byId = new Map(items.map((i) => [i.itemId, i]));
+  return allocation.itemIds.flatMap((id) => {
+    const i = byId.get(id);
+    const p = i === undefined ? undefined : prompts.get(i.kind);
+    if (i === undefined || p === undefined) return [];
+    return [{ itemId: i.itemId, kind: i.kind, projectId: i.projectId, context: i.context, options: [...p.options], rootCauses: [...p.rootCauses] }];
+  });
+}
+
+export interface AuditLock {
+  readonly auditSha256: string;
+  readonly firstComparedAt: string;
+}
+
+/**
+ * Hash lock of the audit file: the first comparison records its sha256; a later comparison refuses
+ * (`AUDIT_MODIFIED`) when the file changed. Returns the lock to persist on the first run.
+ */
+export function checkAuditLock(auditBytes: Buffer, lock: AuditLock | undefined, now: string): { ok: true; lock: AuditLock; first: boolean } | { ok: false; code: string; detail: string } {
+  const sha = createHash('sha256').update(auditBytes).digest('hex');
+  if (lock === undefined) return { ok: true, lock: { auditSha256: sha, firstComparedAt: now }, first: true };
+  if (lock.auditSha256 !== sha) {
+    return { ok: false, code: AUDIT_MODIFIED, detail: `${AUDIT_MODIFIED}: the audit file changed after the first comparison (${lock.firstComparedAt}); recorded ${lock.auditSha256}, now ${sha}` };
+  }
+  return { ok: true, lock, first: false };
+}
+
+// ---------------------------------------------------------------------------------------------
+// Agreement statistics (BR-U5b-43)
+
+export type AgreementComparison = 'run-vs-run' | 'judge-vs-panel' | 'panel-vs-audit' | 'judge-repetition';
+export interface AgreementStats {
+  readonly comparison: AgreementComparison;
+  /** Judge rows: the judge model compared (cross-check rows carry the Gemini id); reliability rows: the function id. */
+  readonly scope: string;
+  readonly n: number;
+  readonly weighted: boolean;
+  readonly percentAgreement: number | null;
+  readonly ci: readonly [number, number] | null;
+  readonly ciMethod: string;
+  readonly cohensKappa: number | null;
+  readonly gwetAc1: number | null;
+  readonly fleissKappa: number | null;
+  readonly uncertain: number;
+  readonly sameFamily: boolean;
+}
+
+/** A stored judge verdict for a P4 unit (read only at comparison time, never into a context). */
+export interface JudgeUnitVerdict {
+  readonly projectId: string;
+  readonly functionId: string;
+  readonly unitId: string;
+  readonly verdict: 'pass' | 'fail';
+  readonly judgeModel: string;
+}
+
+const finite = (x: number): number | null => (Number.isFinite(x) ? x : null);
+
+/** Agreement over weighted pairs on a fixed category list (q >= 2). */
+export function pairAgreement(
+  comparison: AgreementComparison,
+  scope: string,
+  pairs: readonly { readonly a: string; readonly b: string; readonly w: number }[],
+  categories: readonly string[],
+  weighted: boolean,
+  uncertain: number,
+  sameFamilyFlag = false,
+): AgreementStats {
+  const cats = [...new Set([...categories, ...pairs.flatMap((p) => [p.a, p.b])])];
+  if (cats.length < 2) cats.push('__other__');
+  const empty = { comparison, scope, n: pairs.length, weighted, uncertain, sameFamily: sameFamilyFlag, fleissKappa: null };
+  if (pairs.length === 0) return { ...empty, percentAgreement: null, ci: null, ciMethod: 'none', cohensKappa: null, gwetAc1: null };
+  const idx = new Map(cats.map((c, i) => [c, i]));
+  const table = cats.map(() => cats.map(() => 0));
+  for (const p of pairs) {
+    const row = table[idx.get(p.a) ?? 0];
+    if (row !== undefined) row[idx.get(p.b) ?? 0] = (row[idx.get(p.b) ?? 0] ?? 0) + p.w;
+  }
+  const total = pairs.reduce((s, p) => s + p.w, 0);
+  const agree = pairs.reduce((s, p) => s + (p.a === p.b ? p.w : 0), 0);
+  const po = agree / total;
+  const k = Math.round(po * pairs.length);
+  const ci = wilson(k, pairs.length);
+  return {
+    ...empty, percentAgreement: po, ci: [ci.low, ci.high], ciMethod: weighted ? 'wilson-on-weighted-proportion' : 'wilson',
+    cohensKappa: finite(cohenKappa(table)), gwetAc1: finite(gwetAC1(table)),
+  };
+}
+
+export interface AgreementInput {
+  readonly labels: readonly ReconciledLabel[];
+  readonly prompts: ReadonlyMap<ItemKind, LabellerPrompt>;
+  readonly labellerModel: string;
+  /** Judge verdicts of the P4 units (headline judge and any Phase-5 cross-check). */
+  readonly judgeVerdicts?: readonly JudgeUnitVerdict[];
+  readonly allocation?: AuditAllocation;
+  readonly audit?: AuditFile;
+  /** Committed judge cassette entries (reliability across repetition / run samples). */
+  readonly judgeEntries?: readonly { readonly functionId: string; readonly unitId?: string; readonly projectId?: string; readonly outcome: { readonly kind: string }; readonly parsedVerdict: { readonly pass: boolean } | null }[];
+}
+
+/**
+ * `agreement.csv` rows: run vs run (all items), judge vs panel (P4, weighted by 1 / inclusion probability; one
+ * headline row over judges of another family, and one row per same-family cross-check model, flagged and excluded
+ * from the headline), panel vs audit (weighted by 1 / stratum sampling fraction), and judge reliability per judge
+ * function from cassettes (Fleiss κ over the valid samples of each unit). No labeller-vs-labeller statistic exists.
+ */
+export function agreementStats(input: AgreementInput): AgreementStats[] {
+  const out: AgreementStats[] = [];
+  const uncertain = input.labels.filter((l) => l.label === 'uncertain').length;
+  // run vs run
+  const allOptions = [...new Set([...input.prompts.values()].flatMap((p) => p.options))];
+  const rr = input.labels.flatMap((l) => {
+    const [a, b] = l.runs;
+    return a.label === null || b.label === null ? [] : [{ a: a.label, b: b.label, w: 1 }];
+  });
+  out.push(pairAgreement('run-vs-run', 'all', rr, allOptions, false, uncertain));
+  // judge vs panel
+  const p4 = input.labels.filter((l) => l.kind === 'judge-unit');
+  const p4Uncertain = p4.filter((l) => l.label === 'uncertain').length;
+  const verdicts = input.judgeVerdicts ?? [];
+  const pairsFor = (vs: readonly JudgeUnitVerdict[]): { a: string; b: string; w: number }[] => vs.flatMap((v) => {
+    const l = p4.find((x) => x.projectId === v.projectId && x.label !== 'uncertain' && unitMatches(x, v));
+    return l === undefined ? [] : [{ a: v.verdict, b: l.label, w: 1 / Math.max(l.inclusionProbability, Number.EPSILON) }];
+  });
+  const headline = verdicts.filter((v) => !sameFamily(input.labellerModel, v.judgeModel));
+  out.push(pairAgreement('judge-vs-panel', [...new Set(headline.map((v) => v.judgeModel))].sort().join('+') || 'none', pairsFor(headline), ['pass', 'fail'], true, p4Uncertain));
+  for (const model of [...new Set(verdicts.filter((v) => sameFamily(input.labellerModel, v.judgeModel)).map((v) => v.judgeModel))].sort()) {
+    out.push(pairAgreement('judge-vs-panel', model, pairsFor(verdicts.filter((v) => v.judgeModel === model)), ['pass', 'fail'], true, p4Uncertain, true));
+  }
+  // panel vs audit
+  const fraction = new Map((input.allocation?.strata ?? []).map((s) => [stratumName(s.kind, s.label), s.samplingFraction]));
+  const byId = new Map(input.labels.map((l) => [l.itemId, l]));
+  const pa = (input.audit?.records ?? []).flatMap((r) => {
+    const l = byId.get(r.itemId);
+    if (l === undefined || l.label === 'uncertain') return [];
+    const f = fraction.get(stratumName(l.kind, l.label)) ?? 1;
+    return [{ a: l.label, b: r.label, w: 1 / Math.max(f, Number.EPSILON) }];
+  });
+  out.push(pairAgreement('panel-vs-audit', 'author', pa, allOptions, true, uncertain));
+  // judge reliability from cassettes
+  const subjects = new Map<string, boolean[]>();
+  for (const e of input.judgeEntries ?? []) {
+    if (e.outcome.kind !== 'valid' || e.parsedVerdict === null) continue;
+    const k = JSON.stringify([e.functionId, e.projectId ?? '', e.unitId ?? '']);
+    subjects.set(k, [...(subjects.get(k) ?? []), e.parsedVerdict.pass]);
+  }
+  const byFunction = new Map<string, boolean[][]>();
+  for (const [k, ratings] of subjects) {
+    const fn = (JSON.parse(k) as string[])[0] ?? '';
+    byFunction.set(fn, [...(byFunction.get(fn) ?? []), ratings]);
+  }
+  for (const fn of [...byFunction.keys()].sort()) {
+    const all = byFunction.get(fn) ?? [];
+    const m = Math.min(...all.map((r) => r.length));
+    const usable = all.filter((r) => r.length >= 2).map((r) => r.slice(0, m));
+    if (m < 2 || usable.length === 0) continue;
+    const counts = usable.map((r) => [r.filter((x) => x).length, r.filter((x) => !x).length]);
+    const pBar = counts.reduce((s, [p, f]) => s + ((p ?? 0) * ((p ?? 0) - 1) + (f ?? 0) * ((f ?? 0) - 1)) / (m * (m - 1)), 0) / counts.length;
+    out.push({
+      comparison: 'judge-repetition', scope: fn, n: usable.length, weighted: false, percentAgreement: pBar, ci: null, ciMethod: 'none',
+      cohensKappa: null, gwetAc1: null, fleissKappa: finite(fleissKappa(counts)), uncertain: 0, sameFamily: false,
+    });
+  }
+  return out;
+}
+
+/** A judge verdict refers to a P4 label when its unit and function agree (the project is matched by the caller). */
+function unitMatches(l: ReconciledLabel, v: JudgeUnitVerdict): boolean {
+  return l.unitId === v.unitId && l.functionId === v.functionId;
+}
+
+// ---------------------------------------------------------------------------------------------
+// Labeller-fed CSV tables (aggregate.ts writes them; domain-entities §10)
+
+export const AGREEMENT_COLUMNS = ['comparison', 'scope', 'n', 'weighted', 'percent_agreement', 'ci_low', 'ci_high', 'ci_method', 'cohens_kappa', 'gwet_ac1', 'fleiss_kappa', 'uncertain', 'same_family'] as const;
+export const AUDIT_ALLOCATION_COLUMNS = ['kind', 'label', 'size', 'allocated', 'sampling_fraction', 'seed'] as const;
+export const LABEL_BUDGET_COLUMNS = ['population', 'stratum', 'size', 'cap', 'sampled', 'inclusion_probability', 'uncertain', 'calls'] as const;
+export const TAXONOMY_COLUMNS = ['population', 'root_cause', 'count', 'weighted_count', 'source'] as const;
+
+export interface LabellingOutputs {
+  readonly plan?: Pick<LabelPlanFile, 'strata'>;
+  readonly labels?: readonly ReconciledLabel[];
+  readonly fnCauses?: readonly { readonly seedId: string; readonly rootCause: RootCauseCode; readonly source: 'mechanical' }[];
+  readonly allocation?: AuditAllocation;
+  readonly agreement?: readonly AgreementStats[];
+}
+export interface Table {
+  readonly header: readonly string[];
+  readonly rows: readonly (readonly string[])[];
+}
+
+const fx = (x: number | null | undefined): string => (x === null || x === undefined || !Number.isFinite(x) ? '' : x.toFixed(6));
+
+export function labellingTables(o: LabellingOutputs): Record<'agreement.csv' | 'audit_allocation.csv' | 'label_budget.csv' | 'fp_fn_taxonomy.csv', Table> {
+  const labels = o.labels ?? [];
+  const calls = (l: ReconciledLabel): number => l.runs[0].attempts + l.runs[1].attempts;
+  const budgetRows = (o.plan?.strata ?? []).map((s) => {
+    const members = labels.filter((l) => l.population === s.population && l.stratum === s.stratum);
+    return [s.population, s.stratum, String(s.size), s.cap === null ? '' : String(s.cap), String(members.length),
+      fx(members[0]?.inclusionProbability ?? null), String(members.filter((l) => l.label === 'uncertain').length),
+      String(members.reduce((a, l) => a + calls(l), 0))];
+  });
+  const tax = new Map<string, { count: number; weighted: number; population: string; rootCause: string; source: string }>();
+  const addTax = (population: string, rootCause: string, source: string, w: number): void => {
+    const k = JSON.stringify([population, rootCause, source]);
+    const e = tax.get(k) ?? { count: 0, weighted: 0, population, rootCause, source };
+    e.count += 1;
+    e.weighted += w;
+    tax.set(k, e);
+  };
+  for (const l of labels) {
+    if (l.rootCause !== undefined && l.label !== 'uncertain' && l.label !== 'TP') addTax(l.population, l.rootCause, 'labeller', 1 / Math.max(l.inclusionProbability, Number.EPSILON));
+  }
+  for (const c of o.fnCauses ?? []) addTax('MS', c.rootCause, c.source, 1);
+  return {
+    'agreement.csv': {
+      header: AGREEMENT_COLUMNS,
+      rows: (o.agreement ?? []).map((a) => [a.comparison, a.scope, String(a.n), String(a.weighted), fx(a.percentAgreement), fx(a.ci?.[0]), fx(a.ci?.[1]), a.ciMethod, fx(a.cohensKappa), fx(a.gwetAc1), fx(a.fleissKappa), String(a.uncertain), String(a.sameFamily)]),
+    },
+    'audit_allocation.csv': {
+      header: AUDIT_ALLOCATION_COLUMNS,
+      rows: (o.allocation?.strata ?? []).map((s) => [s.kind, s.label, String(s.size), String(s.allocated), fx(s.samplingFraction), String(o.allocation?.seed ?? '')]),
+    },
+    'label_budget.csv': { header: LABEL_BUDGET_COLUMNS, rows: budgetRows },
+    'fp_fn_taxonomy.csv': {
+      header: TAXONOMY_COLUMNS,
+      rows: [...tax.values()].sort((a, b) => (JSON.stringify([a.population, a.rootCause, a.source]) < JSON.stringify([b.population, b.rootCause, b.source]) ? -1 : 1))
+        .map((e) => [e.population, e.rootCause, String(e.count), fx(e.weighted), e.source]),
+    },
+  };
+}
+
+// ---------------------------------------------------------------------------------------------
+// CLI: audit allocation and agreement (BR-U5b-41..43)
+
+function readJson(repoRoot: string, path: string): unknown {
+  return JSON.parse(readFileSync(resolve(repoRoot, path), 'utf8')) as unknown;
+}
+
+function allocateAuditMain(args: Map<string, string>, repoRoot: string, io: LabelMainIo, plan: LabelPlanFile): number {
+  const labelsPath = args.get('labels');
+  const planId = args.get('plan-id');
+  const seed = Number(args.get('seed'));
+  const out = args.get('out');
+  if (labelsPath === undefined || planId === undefined || out === undefined || !Number.isSafeInteger(seed)) {
+    io.err(`--labels, --plan-id, an integer --seed and --out are required\n${LABEL_USAGE}`);
+    return 2;
+  }
+  const prompts = loadLabellerPrompts(repoRoot);
+  if (!prompts.ok) {
+    io.err(`${prompts.detail}\n`);
+    return 1;
+  }
+  const labels = readJson(repoRoot, labelsPath) as ReconciledLabel[];
+  const allocation = allocateAudit(labels, seed);
+  const view = auditView(allocation, plan.items, prompts.prompts);
+  io.writeFile(resolve(repoRoot, out, `${planId}.allocation.json`), `${JSON.stringify(allocation, null, 2)}\n`);
+  io.writeFile(resolve(repoRoot, out, `${planId}.view.json`), `${JSON.stringify(view, null, 2)}\n`);
+  io.out(`audit allocation: ${String(allocation.itemIds.length)} items in ${String(allocation.strata.length)} strata\n`);
+  return 0;
+}
+
+function agreementMain(args: Map<string, string>, repoRoot: string, io: LabelMainIo, plan: LabelPlanFile): number {
+  const labelsPath = args.get('labels');
+  const out = args.get('out');
+  const model = args.get('model') ?? '';
+  if (labelsPath === undefined || out === undefined) {
+    io.err(`--labels and --out are required\n${LABEL_USAGE}`);
+    return 2;
+  }
+  const pinned = checkLabellerModel(model);
+  if (!pinned.ok) {
+    io.err(`${pinned.detail}\n`);
+    return 1;
+  }
+  const prompts = loadLabellerPrompts(repoRoot);
+  if (!prompts.ok) {
+    io.err(`${prompts.detail}\n`);
+    return 1;
+  }
+  const labels = readJson(repoRoot, labelsPath) as ReconciledLabel[];
+  const allocationPath = args.get('allocation');
+  const auditPath = args.get('audit');
+  const allocation = allocationPath === undefined ? undefined : readJson(repoRoot, allocationPath) as AuditAllocation;
+  let audit: AuditFile | undefined;
+  if (auditPath !== undefined) {
+    const abs = resolve(repoRoot, auditPath);
+    const bytes = readFileSync(abs);
+    const lockPath = `${abs.replace(/\.json$/, '')}.lock.json`;
+    const lock = existsSync(lockPath) ? (JSON.parse(readFileSync(lockPath, 'utf8')) as AuditLock) : undefined;
+    const checked = checkAuditLock(bytes, lock, new Date().toISOString());
+    if (!checked.ok) {
+      io.err(`${checked.detail}\n`);
+      return 1;
+    }
+    if (checked.first) io.writeFile(lockPath, `${JSON.stringify(checked.lock, null, 2)}\n`);
+    audit = JSON.parse(bytes.toString('utf8')) as AuditFile;
+  }
+  const verdictsPath = args.get('judge-verdicts');
+  const cassettes = args.get('judge-cassettes');
+  const judgeEntries = cassettes === undefined ? [] : listCassetteKeys(resolve(repoRoot, cassettes)).flatMap((k) => {
+    const e = readCassetteEntry(resolve(repoRoot, cassettes), k);
+    return e === null ? [] : [e];
+  });
+  const agreement = agreementStats({
+    labels, prompts: prompts.prompts, labellerModel: model, judgeEntries,
+    ...(verdictsPath !== undefined && { judgeVerdicts: readJson(repoRoot, verdictsPath) as JudgeUnitVerdict[] }),
+    ...(allocation !== undefined && { allocation }), ...(audit !== undefined && { audit }),
+  });
+  const outputs: LabellingOutputs = { plan: { strata: plan.strata }, labels, agreement, ...(allocation !== undefined && { allocation }) };
+  io.writeFile(resolve(repoRoot, out), `${JSON.stringify(outputs, null, 2)}\n`);
+  io.out(`agreement: ${String(agreement.length)} rows\n`);
   return 0;
 }

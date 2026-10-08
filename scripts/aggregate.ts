@@ -16,7 +16,7 @@
  *   bootstrap CIs (runs resampled within cells) and Cliff's δ; secondary outcomes Holm-corrected within their own
  *   family and marked exploratory.
  * - Files whose inputs come from the labeller (`fp_fn_taxonomy`, `agreement`, `audit_allocation`, `label_budget`) are
- *   written with their header until the labeller (Group 7) supplies rows.
+ *   the `llm-label.ts` tables of the `--labelling` outputs (header only when none are given).
  */
 import { existsSync, readdirSync, readFileSync } from 'node:fs';
 import { join, resolve } from 'node:path';
@@ -35,6 +35,8 @@ import { cycleQueryTimes, latencyGate } from './run-experiment.js';
 import type { ExperimentPlan } from './run-experiment.js';
 import { DATA_FLOW_SUB_ROW, denominatorRow, strataOf } from './score-golden.js';
 import type { DenominatorRow, EdgeEvidence, FunctionSensitivityResult, InstanceResult, JudgeProbeResult } from './score-golden.js';
+import { labellingTables } from './llm-label.js';
+import type { LabellingOutputs } from './llm-label.js';
 
 export const AGGREGATE_INPUT_INVALID = 'AGGREGATE_INPUT_INVALID';
 
@@ -112,6 +114,8 @@ export interface AggregateInput {
   readonly score?: GoldenScoreJson;
   readonly sensitivity?: readonly FunctionSensitivityResult[];
   readonly labels?: readonly LabelledViolation[];
+  /** Labeller outputs (plan strata, reconciled labels, FN causes, audit allocation, agreement) for the four labeller files. */
+  readonly labelling?: LabellingOutputs;
   /** Seed id → twin-of seed id (from the manifest). */
   readonly twinOf?: ReadonlyMap<string, string>;
   /** Bootstrap and permutation resamples (default 10 000). */
@@ -336,11 +340,9 @@ function runFiles(input: AggregateInput): Partial<Record<CsvFile, string>> {
       r.cell === undefined ? '' : JSON.stringify(r.cell), r.seed === undefined ? '' : JSON.stringify(r.seed),
     ]),
   );
-  // Labeller-fed files: header only until the labeller (Group 7) supplies rows.
-  out['fp_fn_taxonomy.csv'] = csvText(['population', 'root_cause', 'count', 'weighted_count', 'source'], []);
-  out['agreement.csv'] = csvText(['comparison', 'population', 'n', 'categories', 'percent_agreement', 'cohen_kappa', 'gwet_ac1', 'fleiss_kappa', 'ci_low', 'ci_high', 'ci_method'], []);
-  out['audit_allocation.csv'] = csvText(['stratum', 'population', 'size', 'allocated', 'seed'], []);
-  out['label_budget.csv'] = csvText(['population', 'stratum', 'size', 'cap', 'sampled', 'inclusion_probability', 'uncertain', 'calls'], []);
+  // Labeller-fed files (llm-label.ts tables; header only when no labelling outputs are given).
+  const lt = labellingTables(input.labelling ?? {});
+  for (const name of ['fp_fn_taxonomy.csv', 'agreement.csv', 'audit_allocation.csv', 'label_budget.csv'] as const) out[name] = csvText(lt[name].header, lt[name].rows);
   return out;
 }
 
@@ -574,7 +576,7 @@ export function loadRunDir(dir: string): LoadedRunDir {
 
 export const AGGREGATE_USAGE = [
   'Usage: npx tsx scripts/aggregate-cli.ts --runs <dir> --out <dir> [--plan <plan.json>] [--score <golden.json>]',
-  '         [--manifest <manifest.json>] [--sensitivity <results.json>] [--labels <labels.json>] [--resamples <n>] [--no-figures]',
+  '         [--manifest <manifest.json>] [--sensitivity <results.json>] [--labels <labels.json>] [--labelling <labelling.json>] [--resamples <n>] [--no-figures]',
   '       npx tsx scripts/aggregate-cli.ts --self-test',
 ].join('\n');
 
@@ -631,6 +633,7 @@ export async function main(argv: readonly string[], repoRoot: string, io: Aggreg
       ...(opts.has('score') && { score: readJsonFile(resolve(repoRoot, opts.get('score') ?? '')) as GoldenScoreJson }),
       ...(opts.has('sensitivity') && { sensitivity: readJsonFile(resolve(repoRoot, opts.get('sensitivity') ?? '')) as FunctionSensitivityResult[] }),
       ...(opts.has('labels') && { labels: readJsonFile(resolve(repoRoot, opts.get('labels') ?? '')) as LabelledViolation[] }),
+      ...(opts.has('labelling') && { labelling: readJsonFile(resolve(repoRoot, opts.get('labelling') ?? '')) as LabellingOutputs }),
       ...(twinOf !== undefined && { twinOf }),
       ...(resamples !== undefined && { resamples: Number(resamples) }),
     };
