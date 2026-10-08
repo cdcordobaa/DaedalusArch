@@ -1,0 +1,72 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://daedalus-arch.local/scripts/lib/schemas/run-record.schema.json",
+  "$comment": "U5b RunRecord (domain-entities §6; BR-U5b-46, 53). One per plan entry outcome; written scrubbed (BR-U5b-70).",
+  "title": "DaedalusArch run record",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["runId", "planId", "projectId", "status", "attempt", "specSha", "cliCommit", "preregVersion", "frozenHashes", "envRecordId", "startedAt", "wallMs"],
+  "properties": {
+    "runId": { "type": "string", "minLength": 1 },
+    "planId": { "type": "string", "minLength": 1 },
+    "projectId": { "type": "string", "minLength": 1 },
+    "status": { "enum": ["accepted", "rejected", "not-run", "incomplete"] },
+    "reasonCode": {
+      "enum": ["schema-invalid", "function-failed", "function-timeout", "function-truncated", "metric-failed", "judge-model-mismatch", "transport-error", "generation-failed", "usage-limit", "prereg-refused"]
+    },
+    "reasonDetail": { "type": "string" },
+    "attempt": { "enum": [1, 2] },
+    "reportPath": { "type": "string", "minLength": 1 },
+    "specSha": { "type": "string", "pattern": "^[0-9a-f]{64}$" },
+    "cliCommit": { "type": "string", "pattern": "^[0-9a-f]{7,40}$" },
+    "preregVersion": { "type": "integer", "minimum": 0 },
+    "frozenHashes": { "type": "object", "additionalProperties": { "type": "string", "pattern": "^[0-9a-f]{64}$" } },
+    "envRecordId": { "type": "string", "minLength": 1 },
+    "startedAt": { "type": "string", "format": "date-time" },
+    "wallMs": { "type": "number", "minimum": 0 },
+    "cell": { "$ref": "#/definitions/generationCell" },
+    "seed": { "$ref": "#/definitions/seedRef" }
+  },
+  "allOf": [
+    {
+      "if": { "required": ["status"], "properties": { "status": { "enum": ["rejected", "not-run", "incomplete"] } } },
+      "then": { "required": ["reasonCode"], "properties": { "reasonCode": { "type": "string" } } }
+    }
+  ],
+  "definitions": {
+    "generationCell": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["requestedModelId", "adapterId", "promptTemplateId", "style", "specLevel", "taskId", "runIndex", "generationOutcomePath", "generationStatus", "fileCount", "fileCountInRange", "permissionDenials"],
+      "properties": {
+        "requestedModelId": { "type": "string", "minLength": 1 },
+        "resolvedModelId": { "type": "string" },
+        "adapterId": { "type": "string", "minLength": 1 },
+        "promptTemplateId": { "type": "string", "minLength": 1 },
+        "style": { "type": "string", "minLength": 1 },
+        "specLevel": { "enum": ["none", "minimal-prose", "full-aac"] },
+        "taskId": { "type": "string", "minLength": 1 },
+        "runIndex": { "enum": [0, 1, 2] },
+        "generationOutcomePath": { "type": "string", "minLength": 1 },
+        "generationStatus": { "enum": ["ok", "failed-typecheck", "failed-agent"] },
+        "failureReason": { "enum": ["typecheck", "agent-error", "model-mismatch", "skeleton-tampered", "infrastructure", "envelope-unreadable", "timeout"] },
+        "fileCount": { "type": "integer", "minimum": 0 },
+        "fileCountInRange": { "type": "boolean" },
+        "permissionDenials": { "type": "integer", "minimum": 0 }
+      }
+    },
+    "seedRef": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["seedId", "baseProjectId", "split", "baseKind", "manifestPath", "baselineReportPath"],
+      "properties": {
+        "seedId": { "type": "string", "minLength": 1 },
+        "baseProjectId": { "type": "string", "minLength": 1 },
+        "split": { "enum": ["dev", "held-out", "probe"] },
+        "baseKind": { "enum": ["fixture", "corpus", "generated"] },
+        "manifestPath": { "type": "string", "minLength": 1 },
+        "baselineReportPath": { "type": "string", "minLength": 1 }
+      }
+    }
+  }
+}

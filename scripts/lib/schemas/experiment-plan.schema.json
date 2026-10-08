@@ -1,0 +1,78 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://daedalus-arch.local/scripts/lib/schemas/experiment-plan.schema.json",
+  "$comment": "U5b ExperimentPlan (domain-entities §6; BR-U5b-53, 54, 56, 78). `e1` holds the registered E1 grid parameters that expand into the plan entries (DV-U5b-14); `projects` lists every other entry. Paths are repository-relative.",
+  "title": "DaedalusArch experiment plan",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["id", "experiment", "mode", "seeds", "cassetteDir", "outDir", "projects"],
+  "properties": {
+    "id": { "type": "string", "pattern": "^[a-z0-9][a-z0-9._-]*$" },
+    "experiment": { "enum": ["E1", "E7", "SO4", "latency-gate", "sensitivity", "fixtures"] },
+    "mode": { "enum": ["symbolic-only", "neuronal-only", "full"] },
+    "judge": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["provider", "model"],
+      "properties": { "provider": { "type": "string", "minLength": 1 }, "model": { "type": "string", "minLength": 1 } }
+    },
+    "seeds": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["sampling", "bootstrap", "permutation"],
+      "properties": {
+        "sampling": { "type": "integer", "minimum": 0 },
+        "bootstrap": { "type": "integer", "minimum": 0 },
+        "permutation": { "type": "integer", "minimum": 0 }
+      }
+    },
+    "cassetteDir": { "type": "string", "pattern": "^experiments/[a-z0-9][a-z0-9._-]*/cassettes$" },
+    "fixAttempts": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["functionId", "ref"],
+        "properties": { "functionId": { "type": "string", "minLength": 1 }, "ref": { "type": "string", "minLength": 1 } }
+      }
+    },
+    "outDir": { "type": "string", "minLength": 1 },
+    "projects": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["projectId", "path", "specPath"],
+        "properties": {
+          "projectId": { "type": "string", "minLength": 1 },
+          "path": { "type": "string", "minLength": 1 },
+          "specPath": { "type": "string", "minLength": 1 },
+          "cell": { "$ref": "run-record.schema.json#/definitions/generationCell" },
+          "seed": { "$ref": "run-record.schema.json#/definitions/seedRef" }
+        }
+      }
+    },
+    "e1": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["outcomesRoot", "style", "models", "specLevels", "tasks", "runs"],
+      "properties": {
+        "outcomesRoot": { "type": "string", "minLength": 1 },
+        "style": { "type": "string", "minLength": 1 },
+        "models": { "type": "array", "minItems": 1, "uniqueItems": true, "items": { "type": "string", "minLength": 1 } },
+        "specLevels": { "type": "array", "minItems": 1, "uniqueItems": true, "items": { "enum": ["none", "minimal-prose", "full-aac"] } },
+        "tasks": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["taskId", "specPath"],
+            "properties": { "taskId": { "type": "string", "minLength": 1 }, "specPath": { "type": "string", "minLength": 1 } }
+          }
+        },
+        "runs": { "type": "integer", "minimum": 1, "maximum": 3 }
+      }
+    }
+  }
+}

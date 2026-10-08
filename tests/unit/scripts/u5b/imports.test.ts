@@ -48,6 +48,10 @@ const WHITELISTED_SRC = new Set([
   'src/fitness-compiler/template-applicability.ts', // isTemplateApplicable
   'src/fitness-compiler/layer-binding.ts',         // bindLayerParams (applicability input)
   'src/spec-parser/spec-schema.ts',                // PATTERN_GRAMMAR
+  // Step 14 (BR-U5b-55 "ProcessRunner, buildChildEnv"; BR-U5b-70 C10 `scrubDeep`): the subprocess boundary.
+  'src/shared/interfaces/process-runner.ts',       // ProcessRunner port (type)
+  'src/shared/process/node-process-runner.ts',     // NodeProcessRunner, buildChildEnv
+  'src/shared/errors/scrub.ts',                    // scrubDeep
 ]);
 
 interface ImportUse {
