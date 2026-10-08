@@ -985,3 +985,12 @@ Plan checkboxes ticked. Auto-approved under standing approval; no blocking or ma
 **Context**: CONSTRUCTION — lane 3, U3 Code Generation COMPLETE and merged; next: U4 and U5a code generation, then U5b.
 
 ---
+
+## v1.2 Evaluation-Readiness — U5a merged into v1.2e (auto-approved)
+**Timestamp**: 2026-10-08T14:39:28Z
+**User Input**: None (standing approval of 2026-10-08T00:30:00Z)
+**Intent**: Finish U5a Code Generation Group 10 (Steps 35–37): code summary, exit checks, PR into v1.2e, merge on green CI, record completion.
+**AI Response**: U5a merged into v1.2e (auto-approved). PR #6 (v1.2e-u5a-mutation-manifest-generator → v1.2e) merged with a merge commit, 23a2055f386618c7b31f030c9dde8b93f3b56e17 (parents 3c4f435, 6aaab7b; no squash, rebase or force-push; main untouched). Before the exit checks origin/v1.2e (U3) was merged into the unit branch (0748b83; schemas.test.ts resolved per D-U5a-6) and U5a-owned files aligned with FF-P06 (ed32c02: MO-DF01 FF-P06 key, SP-DF01-ci resolves, full-aac preset re-embedded with protocol hashes updated, BR-U3-66 discriminator test for U3 H4) — DV-U5a-25. Tests: Gate U 2155 / 152 suites (v1.2e 1712 / 119 + 443 U5a tests in 33 suites), 0 failed, 0 skipped; Gate G 74 executed / 6 suites, 0 skipped on lane 7691; L 558 (= v1.2e); B 85; T clean; S empty; P 0 at every commit. Golden changes: none (snapshots byte-identical to v1.2e, no tests/golden/CHANGES.md line; change-log checker run locally against origin/v1.2e ok — the CI step is scoped to U1/U3/U4 head refs). CI: PR head runs 37792356596 / 37792363516 green; merge push run 37793341718 green. Step commits: 35 55572f8, 36 6aaab7b, 37 no content commit (tick recorded here). Open: DV-U5a-22 author decision at the freeze review (BR-U5a-37 cap on a k = 2 total); U5b hand-offs OI-U5a-5, 12, 16, 17; lane-3 record owner OI-U5a-4 and U3 H16 (b); Build and Test obligations 1–10 in the code summary. U3 handoffs H3/H4 closed by U5a (handoffs.md row update pending the orchestrator).
+**Context**: CONSTRUCTION — lane 3, U5a Code Generation COMPLETE and merged; next: U4 code generation, then U5b.
+
+---
