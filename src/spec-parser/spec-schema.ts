@@ -53,6 +53,13 @@ export const SPEC_SCHEMA_V1 = {
           route: { type: 'string', enum: ['symbolic', 'neuronal', 'hybrid'] },
           threshold: { type: 'number' },
           validated: { type: 'boolean' },
+          // FR-07 function-specific fields (BR-U1-04, BR-U1-06); domain-entities.md §4
+          forbidden_imports: { type: 'array', items: { type: 'string', minLength: 1 } },
+          max_public_methods: { type: 'integer', minimum: 0 },
+          max_dependencies: { type: 'integer', minimum: 0 },
+          max_interface_methods: { type: 'integer', minimum: 0 },
+          max_depth: { type: 'integer', minimum: 0 },
+          pattern: { type: 'string', pattern: PATTERN_GRAMMAR },
           semantic_criteria: {
             type: 'object',
             required: ['rule', 'rubric'],

@@ -1,5 +1,5 @@
 {
-  "ahsDeterministic": 0.517,
+  "ahsDeterministic": 0.528,
   "caseId": "variant-b-pattern",
   "evaluationMode": "symbolic-only",
   "functionResults": [
@@ -24,6 +24,12 @@
     {
       "dimension": "structural",
       "functionId": "FF-S04",
+      "passed": true,
+      "violationCount": 0
+    },
+    {
+      "dimension": "pattern",
+      "functionId": "FF-P01",
       "passed": true,
       "violationCount": 0
     },
@@ -88,8 +94,44 @@
       "violationCount": 1
     },
     {
+      "dimension": "solid",
+      "functionId": "FF-SO01",
+      "passed": true,
+      "violationCount": 0
+    },
+    {
+      "dimension": "solid",
+      "functionId": "FF-SO02",
+      "passed": false,
+      "violationCount": 1
+    },
+    {
+      "dimension": "solid",
+      "functionId": "FF-SO03",
+      "passed": true,
+      "violationCount": 0
+    },
+    {
       "dimension": "convention",
       "functionId": "FF-CV01",
+      "passed": true,
+      "violationCount": 0
+    },
+    {
+      "dimension": "convention",
+      "functionId": "FF-CV02",
+      "passed": false,
+      "violationCount": 2
+    },
+    {
+      "dimension": "convention",
+      "functionId": "FF-CV03",
+      "passed": true,
+      "violationCount": 0
+    },
+    {
+      "dimension": "convention",
+      "functionId": "FF-CV04",
       "passed": true,
       "violationCount": 0
     },
@@ -110,50 +152,42 @@
     {
       "avr": 0.5,
       "dimension": "structural",
-      "functionCount": 17,
+      "functionCount": 24,
       "violationCount": 2,
       "weight": 0.35
     },
     {
       "avr": 0.333,
       "dimension": "coupling",
-      "functionCount": 17,
+      "functionCount": 24,
       "violationCount": 2,
       "weight": 0.2
     },
     {
-      "avr": 0.75,
+      "avr": 0.6,
       "dimension": "pattern",
-      "functionCount": 17,
+      "functionCount": 24,
       "violationCount": 3,
       "weight": 0.3
     },
     {
-      "avr": 0,
+      "avr": 0.333,
       "dimension": "solid",
-      "functionCount": 17,
-      "violationCount": 0,
+      "functionCount": 24,
+      "violationCount": 1,
       "weight": 0.1
     },
     {
       "avr": 0.333,
       "dimension": "convention",
-      "functionCount": 17,
-      "violationCount": 1,
+      "functionCount": 24,
+      "violationCount": 2,
       "weight": 0.05
     }
   ],
   "projectPath": "fixtures/variant-b-pattern",
   "specVersion": "1.0.0",
-  "unexecutedFunctionIds": [
-    "FF-CV02",
-    "FF-CV03",
-    "FF-CV04",
-    "FF-P01",
-    "FF-SO01",
-    "FF-SO02",
-    "FF-SO03"
-  ],
+  "unexecutedFunctionIds": [],
   "universalMetrics": {
     "abstractionRatio": 0.2,
     "averageInstability": 0.667,
@@ -300,6 +334,33 @@
       "type": "LOW_ABSTRACTION_RATIO"
     },
     {
+      "dimension": "solid",
+      "filePath": "src/domain/repositories/ITaskRepository.ts",
+      "functionId": "FF-SO02",
+      "message": "Violation in src/domain/repositories/ITaskRepository.ts",
+      "route": "symbolic",
+      "severity": "major",
+      "type": "ISP_VIOLATION"
+    },
+    {
+      "dimension": "convention",
+      "filePath": "src/application/use-cases/CompleteTaskUseCase.ts",
+      "functionId": "FF-CV02",
+      "message": "Violation in src/application/use-cases/CompleteTaskUseCase.ts",
+      "route": "symbolic",
+      "severity": "minor",
+      "type": "NAMING_CONVENTION"
+    },
+    {
+      "dimension": "convention",
+      "filePath": "src/application/use-cases/CreateTaskUseCase.ts",
+      "functionId": "FF-CV02",
+      "message": "Violation in src/application/use-cases/CreateTaskUseCase.ts",
+      "route": "symbolic",
+      "severity": "minor",
+      "type": "NAMING_CONVENTION"
+    },
+    {
       "dimension": "convention",
       "filePath": "src/application/use-cases/CompleteTaskUseCase.ts",
       "functionId": "FF-CV05",
@@ -346,41 +407,6 @@
     }
   ],
   "warnings": [
-    {
-      "code": "EVAL_001",
-      "message": "Query failed for domain-purity: Expected parameter(s): forbiddenImports",
-      "stage": "evaluate-symbolic"
-    },
-    {
-      "code": "EVAL_001",
-      "message": "Query failed for inheritance-depth: Expected parameter(s): maxDepth",
-      "stage": "evaluate-symbolic"
-    },
-    {
-      "code": "EVAL_001",
-      "message": "Query failed for interface-segregation-proxy: Expected parameter(s): maxInterfaceMethods",
-      "stage": "evaluate-symbolic"
-    },
-    {
-      "code": "EVAL_001",
-      "message": "Query failed for naming-controllers: Expected parameter(s): pattern",
-      "stage": "evaluate-symbolic"
-    },
-    {
-      "code": "EVAL_001",
-      "message": "Query failed for naming-repos: Expected parameter(s): pattern",
-      "stage": "evaluate-symbolic"
-    },
-    {
-      "code": "EVAL_001",
-      "message": "Query failed for naming-services: Expected parameter(s): pattern",
-      "stage": "evaluate-symbolic"
-    },
-    {
-      "code": "EVAL_001",
-      "message": "Query failed for single-responsibility-proxy: Expected parameter(s): maxPublicMethods, maxDependencies",
-      "stage": "evaluate-symbolic"
-    },
     {
       "code": "SPEC_002",
       "message": "Template function \"FF-C01\" overridden by spec declaration",

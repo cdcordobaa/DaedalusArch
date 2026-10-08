@@ -19,8 +19,6 @@ jest.mock('neo4j-driver', () => ({
   },
 }));
 
-import * as fs from 'node:fs';
-import * as path from 'node:path';
 import { Neo4jRepository } from '../../../src/neo4j-ingestion/neo4j-repository.js';
 import { WRITE_QUERY_TIMEOUT_MS } from '../../../src/neo4j-ingestion/types.js';
 
@@ -319,24 +317,19 @@ describe('Neo4jRepository failure paths (BR-U2-40, D-U0-6)', () => {
 describe('Neo4jRepository keeps the golden EVAL_001 texts byte-identical (BR-U2-42)', () => {
   beforeEach(resetMocks);
 
-  const snapshotDir = path.resolve(__dirname, '../../golden/__snapshots__');
+  // The seven EVAL_001 texts of the golden baseline (GOLDEN_BASE f5fed3f). U1 K2 (FR-07, FR-08) binds the
+  // parameters, so the committed snapshots no longer carry them; the texts are pinned here verbatim.
+  const texts = new Set<string>([
+    'Query failed for domain-purity: Expected parameter(s): forbiddenImports',
+    'Query failed for inheritance-depth: Expected parameter(s): maxDepth',
+    'Query failed for interface-segregation-proxy: Expected parameter(s): maxInterfaceMethods',
+    'Query failed for naming-controllers: Expected parameter(s): pattern',
+    'Query failed for naming-repos: Expected parameter(s): pattern',
+    'Query failed for naming-services: Expected parameter(s): pattern',
+    'Query failed for single-responsibility-proxy: Expected parameter(s): maxPublicMethods, maxDependencies',
+  ]);
 
-  function collectEval001(value: unknown, out: Set<string>): void {
-    if (Array.isArray(value)) {
-      for (const item of value) collectEval001(item, out);
-    } else if (typeof value === 'object' && value !== null) {
-      const rec = value as { code?: unknown; message?: unknown };
-      if (rec.code === 'EVAL_001' && typeof rec.message === 'string') out.add(rec.message);
-      for (const item of Object.values(value)) collectEval001(item, out);
-    }
-  }
-
-  const texts = new Set<string>();
-  for (const file of fs.readdirSync(snapshotDir).filter((f) => f.endsWith('.json'))) {
-    collectEval001(JSON.parse(fs.readFileSync(path.join(snapshotDir, file), 'utf8')) as unknown, texts);
-  }
-
-  it('reads the seven EVAL_001 texts from the committed snapshots', () => {
+  it('pins the seven EVAL_001 texts of the golden baseline', () => {
     expect(texts.size).toBe(7);
   });
 

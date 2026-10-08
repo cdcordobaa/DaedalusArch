@@ -12,6 +12,8 @@ import { bindLayerParams } from './layer-binding.js';
 import { isTemplateApplicable } from './template-applicability.js';
 import { injectExcludePaths } from './exclude-injector.js';
 import { compilerInputFromSpec } from './compiler-input.js';
+import { compilePattern } from './pattern-compiler.js';
+import { checkBoundParameters } from './bound-param-checker.js';
 
 // ── Standalone Function ───────────────────────────────────────────────────────
 
@@ -53,6 +55,11 @@ export function compileFunctions(input: CompilerInput): DomainResult<CompiledFun
     }
     seenIds.add(id);
   }
+
+  // C6 BR-SPEC-10 (FR-08, BR-U1-09): every required parameter of every applicable function must be bound.
+  // Runs the same applicability (C5) and buildParams as below; always fatal, independent of strictMode.
+  const bound = checkBoundParameters(input);
+  if (!bound.success) return DomainResult.fail<CompiledFunctions>(bound.errors);
 
   // C4: bind layer parameters by resolved kind (FR-19). Reads only LayerDefinition.kind.
   const binding = bindLayerParams(layerModel.layers);
@@ -260,7 +267,12 @@ export function instantiateTemplate(
 
 // ── Parameter Building ────────────────────────────────────────────────────────
 
-function buildParams(
+/**
+ * Template parameters for one function (C8). Layers come from the kind binding (FR-19); FR-07 fields are
+ * read typed with `!= null` presence, so `0` and `[]` are values (BR-U1-03, BR-U1-07); `pattern` is
+ * compiled to an anchored regex (BR-U1-06). BR-SPEC-10 (`bound-param-checker.ts`) judges boundness.
+ */
+export function buildParams(
   ff: FitnessFunction,
   layerModel: LayerModel,
   binding: LayerKindBinding,
@@ -294,18 +306,14 @@ function buildParams(
   }
   params['allowedTransitions'] = allowedTransitions;
 
-  // Function-specific params (from YAML custom fields)
+  // Function-specific params: threshold and the typed FR-07 fields (BR-U1-03)
   if (ff.threshold != null) params['threshold'] = ff.threshold;
-
-  // Extract custom fields from the raw FF data
-  // These come through as extra properties on the FitnessFunction object
-  const ffAny = ff as unknown as Record<string, unknown>;
-  if (ffAny['forbidden_imports']) params['forbiddenImports'] = ffAny['forbidden_imports'];
-  if (ffAny['max_public_methods']) params['maxPublicMethods'] = ffAny['max_public_methods'];
-  if (ffAny['max_dependencies']) params['maxDependencies'] = ffAny['max_dependencies'];
-  if (ffAny['max_interface_methods']) params['maxInterfaceMethods'] = ffAny['max_interface_methods'];
-  if (ffAny['max_depth']) params['maxDepth'] = ffAny['max_depth'];
-  if (ffAny['pattern']) params['pattern'] = ffAny['pattern'];
+  if (ff.forbiddenImports != null) params['forbiddenImports'] = ff.forbiddenImports;
+  if (ff.maxPublicMethods != null) params['maxPublicMethods'] = ff.maxPublicMethods;
+  if (ff.maxDependencies != null) params['maxDependencies'] = ff.maxDependencies;
+  if (ff.maxInterfaceMethods != null) params['maxInterfaceMethods'] = ff.maxInterfaceMethods;
+  if (ff.maxDepth != null) params['maxDepth'] = ff.maxDepth;
+  if (ff.pattern != null) params['pattern'] = compilePattern(ff.pattern);
 
   // Default role patterns
   params['useCaseRoles'] = ['UseCase', 'Service', 'Handler'];

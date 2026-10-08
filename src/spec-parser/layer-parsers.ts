@@ -7,6 +7,8 @@ import type { Dimension, Severity, Route, LayerKind } from '../shared/types/enum
 import type { ValidationWarning } from './types.js';
 import { functionId } from '../shared/types/value-objects.js';
 import { resolveLayerKinds } from './layer-kind-resolver.js';
+import { mapFunctionSpecificFields, FUNCTION_FIELD_KEYS } from './function-fields.js';
+import { CYPHER_TEMPLATES } from '../fitness-compiler/cypher-templates.js';
 
 export interface LayerCResult {
   readonly scoringWeights: ScoringWeights;
@@ -44,6 +46,8 @@ export function parseLayerA(raw: Record<string, unknown>, warnings: ValidationWa
 
 /**
  * Parse Layer B: fitness_functions → FitnessFunction[]
+ * Each declaration's FR-07 keys are mapped to typed fields (absent keys omitted, BR-U1-03); a key whose
+ * parameter the function's template does not use raises SPEC_001 and is still carried (BR-U1-05).
  * If a template is provided, merges spec declarations on top of template functions.
  */
 export function parseLayerB(
@@ -70,10 +74,14 @@ export function parseLayerB(
     }
 
     const rawExcludePaths = f['exclude_paths'] as string[] | undefined;
+    const id = String(f['id']);
+    const name = String(f['name']);
+    const { fields } = mapFunctionSpecificFields(f, `fitness_functions[${id}]`);
+    warnings.push(...unusedFieldWarnings(id, name, fields));
 
     const base: FitnessFunction = {
-      id: functionId(String(f['id'])),
-      name: String(f['name']),
+      id: functionId(id),
+      name,
       dimension: String(f['dimension']) as Dimension,
       severity: String(f['severity']) as Severity,
       route: String(f['route']) as Route,
@@ -88,6 +96,7 @@ export function parseLayerB(
       ...base,
       ...(f['threshold'] != null ? { threshold: Number(f['threshold']) } : {}),
       ...(semanticCriteria ? { semanticCriteria } : {}),
+      ...fields,
     };
   });
 
@@ -119,6 +128,25 @@ export function parseLayerB(
   }
 
   return { functions: merged, warnings };
+}
+
+/**
+ * SPEC_001 for each FR-07 key whose mapped parameter is not in the template's
+ * `requiredParams ∪ optionalParams` (BR-U1-05). A function without a template uses no FR-07 key.
+ */
+function unusedFieldWarnings(id: string, name: string, fields: object): ValidationWarning[] {
+  const template = CYPHER_TEMPLATES.get(name);
+  const used = new Set([...(template?.requiredParams ?? []), ...(template?.optionalParams ?? [])]);
+  const warnings: ValidationWarning[] = [];
+  for (const [yamlKey, field] of Object.entries(FUNCTION_FIELD_KEYS)) {
+    if (!(field in fields) || used.has(field)) continue;
+    warnings.push({
+      code: 'SPEC_001',
+      message: `Field "${yamlKey}" of ${id} not used by template ${name}`,
+      path: `fitness_functions[${id}].${yamlKey}`,
+    });
+  }
+  return warnings;
 }
 
 /**
