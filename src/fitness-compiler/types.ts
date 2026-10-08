@@ -48,13 +48,13 @@ export interface ResultMapping {
   readonly filePathColumn: string;
   readonly messageTemplate: string;
   readonly metadataColumns?: readonly string[];
-  // Location, target and id-discriminator columns (FR-12). Optional in U0 (D-U0-4);
-  // U3 makes discriminatorColumns required.
+  // Location, target and id-discriminator columns (FR-12; T-MAP, U3 business-rules.md §3).
   readonly lineColumn?: string;
   readonly linesColumn?: string;
   readonly targetColumn?: string;
   readonly isTypeOnlyColumn?: string;
-  readonly discriminatorColumns?: readonly string[];
+  readonly discriminatorColumns: readonly string[]; // required (pre-agreed D-U0-4, C10 row 11); [] allowed
+  readonly evidenceColumns?: readonly string[];     // measured values; never part of the violation id (C10 row 11)
   readonly cycleColumn?: string; // only for no-cyclic-deps (FR-35)
 }
 

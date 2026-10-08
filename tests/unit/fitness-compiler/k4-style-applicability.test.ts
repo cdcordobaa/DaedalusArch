@@ -46,6 +46,7 @@ const TABLE: [string, readonly string[] | undefined, string, string, string, str
   ['no-layer-skip', ['layered'], STYLE('clean-architecture'), STYLE('nestjs'), OK, OK],
   ['no-domain-outward-dep', CA_NESTJS, OK, OK, STYLE('layered'), OK],
   ['domain-purity', undefined, OK, OK, OK, OK],
+  ['domain-state-purity', undefined, OK, OK, OK, OK], // U3-R6 (BR-U3-25): attributed cross-unit update
   ['dependency-inversion', CA_NESTJS, OK, OK, STYLE('layered'), OK],
   ['repository-pattern', CA_NESTJS, OK, OK, STYLE('layered'), OK],
   ['use-case-isolation', CA_NESTJS, OK, OK, STYLE('layered'), OK],
@@ -68,7 +69,7 @@ const TABLE: [string, readonly string[] | undefined, string, string, string, str
 ];
 
 describe('BR-U1-18 (a): applicability table (business-rules.md §3.1, frozen)', () => {
-  it('covers exactly the 24 templates', () => {
+  it('covers exactly the 25 templates', () => {
     expect(TABLE.map((r) => r[0]).sort()).toEqual([...CYPHER_TEMPLATES.keys()].sort());
   });
 

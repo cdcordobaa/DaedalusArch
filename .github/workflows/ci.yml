@@ -86,8 +86,8 @@ jobs:
           GOLDEN_REQUIRED: '1'
 
       - name: Golden change log
-        # BR-U1-41 / D-U1-5: U1 PR only; the self-test must fail to prove the CLI entry runs (D-U1-15)
-        if: github.event_name == 'pull_request' && startsWith(github.head_ref, 'v1.2e-u1-')
+        # BR-U1-41 / D-U1-5, widened by BR-U3-91 (D-U3-6): U1, U3 and U4 PRs; the self-test must fail to prove the CLI entry runs (D-U1-15)
+        if: github.event_name == 'pull_request' && (startsWith(github.head_ref, 'v1.2e-u1-') || startsWith(github.head_ref, 'v1.2e-u3-') || startsWith(github.head_ref, 'v1.2e-u4-'))
         run: |
           if npx tsx tests/golden/check-changes-log-cli.ts --self-test; then echo "change-log self-test did not fail"; exit 1; fi
           npx tsx tests/golden/check-changes-log-cli.ts

@@ -8,6 +8,7 @@ import { formatJSON, formatHuman, formatCSV, csvHeader } from '../scoring-engine
 import { generateReport } from '../report/report-generator.js';
 import { formatActionableHuman } from '../scoring-engine/report-formatter.js';
 import { runBatch } from './batch-runner.js';
+import { requireEnvForCli } from './require-env.js';
 import { handleDrift } from './drift-handler.js';
 import { parseSpec, validateSpecAgainstProject } from '../spec-parser/index.js';
 import { compileFunctions, compilerInputFromSpec } from '../fitness-compiler/index.js';
@@ -78,13 +79,16 @@ program
     baseline?: string;
   }) => {
     const evaluationMode = resolveEvaluationMode(opts.symbolicOnly, opts.neuronalOnly);
+    // BR-U3-80: no default password; stop before any connection.
+    const neo4jPassword = requireEnvForCli('NEO4J_PASSWORD');
+    if (neo4jPassword === undefined) return;
 
     const config: PipelineConfig = {
       projectPath: opts.project,
       specFilePath: opts.spec,
       neo4jUri: opts.neo4jUri,
       neo4jUser: process.env['NEO4J_USER'] ?? 'neo4j',
-      neo4jPassword: process.env['NEO4J_PASSWORD'] ?? 'neo4j',
+      neo4jPassword,
       evaluationMode,
       pipelineMode: 'stateless',
       persist: opts.persist,
@@ -207,7 +211,11 @@ program
     symbolicOnly: boolean;
     neuronalOnly: boolean;
   }) => {
-    const evaluationMode = resolveEvaluationMode(opts.symbolicOnly, opts.neuronalOnly);
+    // FR-16 (reduced): batch is symbolic-only; without a flag it runs symbolic-only, and
+    // `--neuronal-only` reaches runBatch's mode guard, which exits 2 (BR-U3-82).
+    const evaluationMode: EvaluationMode = opts.neuronalOnly
+      ? resolveEvaluationMode(opts.symbolicOnly, opts.neuronalOnly)
+      : 'symbolic-only';
 
     const batchOpts: BatchOptions = {
       dir: opts.dir,
@@ -335,12 +343,16 @@ program
     verbose: boolean;
     neo4jUri: string;
   }) => {
+    // BR-U3-80: no default password; stop before any connection.
+    const neo4jPassword = requireEnvForCli('NEO4J_PASSWORD');
+    if (neo4jPassword === undefined) return;
+
     const config: PipelineConfig = {
       projectPath: opts.project,
       specFilePath: opts.spec,
       neo4jUri: opts.neo4jUri,
       neo4jUser: process.env['NEO4J_USER'] ?? 'neo4j',
-      neo4jPassword: process.env['NEO4J_PASSWORD'] ?? 'neo4j',
+      neo4jPassword,
       evaluationMode: 'symbolic-only' as EvaluationMode,
       pipelineMode: 'stateless',
       persist: false,
@@ -405,13 +417,16 @@ program
     neuronalOnly: boolean;
   }) => {
     const evaluationMode = resolveEvaluationMode(opts.symbolicOnly, opts.neuronalOnly);
+    // BR-U3-80: no default password; stop before any connection.
+    const neo4jPassword = requireEnvForCli('NEO4J_PASSWORD');
+    if (neo4jPassword === undefined) return;
 
     const config: PipelineConfig = {
       projectPath: opts.project,
       specFilePath: opts.spec,
       neo4jUri: opts.neo4jUri,
       neo4jUser: process.env['NEO4J_USER'] ?? 'neo4j',
-      neo4jPassword: process.env['NEO4J_PASSWORD'] ?? 'neo4j',
+      neo4jPassword,
       evaluationMode,
       pipelineMode: 'stateless',
       persist: false,
@@ -474,7 +489,6 @@ program
         parsedSpec,
         apgResult,
         evaluationResults,
-        pipelineWarnings: context.warnings,
         projectName,
         specFilePath: opts.spec,
         outputPath: opts.output,

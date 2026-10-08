@@ -20,7 +20,7 @@ import { createPipeline } from '../../../src/pipeline/pipeline-factory.js';
 import type { PipelineConfig } from '../../../src/pipeline/types.js';
 
 const WARNING = 'Warning: No GEMINI_API_KEY set. Neuronal functions will be skipped (symbolic-only fallback).\n';
-const ENV_KEYS = ['GEMINI_API_KEY', 'ANTHROPIC_API_KEY', 'GEMINI_MODEL'] as const;
+const ENV_KEYS = ['GEMINI_API_KEY', 'ANTHROPIC_API_KEY', 'GEMINI_MODEL', 'NEO4J_PASSWORD'] as const;
 
 type Command_ = 'evaluate' | 'report';
 type Mode = 'full' | 'neuronal-only' | 'symbolic-only';
@@ -75,6 +75,8 @@ beforeEach(() => {
     // eslint-disable-next-line @typescript-eslint/no-dynamic-delete
     delete process.env[k];
   }
+  // BR-U3-80: no default password; the commands need one set (restored with ENV_KEYS).
+  process.env.NEO4J_PASSWORD = 'test-password-for-cli-tests';
   stderrSpy = jest.spyOn(process.stderr, 'write').mockImplementation(() => true);
 });
 

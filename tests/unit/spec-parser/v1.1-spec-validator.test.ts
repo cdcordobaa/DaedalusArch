@@ -33,7 +33,7 @@ describe('validateSpecAgainstProject (v1.1)', () => {
         isBuiltIn: true, validated: true, enabled: true, excludePaths: [],
       },
     ],
-    scoringWeights: { structural: 0.5, coupling: 0.2, pattern: 0.2, solid: 0.05, convention: 0.05, semantic: 0, integrity: 0, intent: 0 },
+    scoringWeights: { structural: 0.5, coupling: 0.2, pattern: 0.2, solid: 0.05, convention: 0.05, semantic: 0, integrity: 0 },
     verdictThresholds: { pass: 0.8, warning: 0.65, softBlock: 0.5 },
     confidenceThresholds: { high: 0.85, medium: 0.60, iccMinimum: 0.70 },
     adrRules: [],

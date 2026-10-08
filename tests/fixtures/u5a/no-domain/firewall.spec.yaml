@@ -1,0 +1,52 @@
+spec_version: "1.0.0"
+
+# U5a fixture F-U5A-NOSITE (BR-U5a-16, 34; D-U5a-7): a two-layer project whose spec has no domain-kind layer.
+# MO-S01 (domain file imports an infrastructure symbol) has no candidate here, so it yields one `no-site`
+# rejection. Declared functions: FF-S01 and FF-S02 (exercised by the no-domain cases; neither needs a domain layer
+# to compile).
+
+architecture:
+  layers:
+    - name: persistence
+      kind: infrastructure
+      directories:
+        - src/persistence/**
+      roles:
+        - repository
+
+    - name: presentation
+      kind: presentation
+      directories:
+        - src/presentation/**
+      roles:
+        - controller
+
+fitness_functions:
+  - id: FF-S01
+    name: dependency-direction
+    dimension: structural
+    severity: critical
+    route: symbolic
+
+  - id: FF-S02
+    name: no-cyclic-deps
+    dimension: structural
+    severity: critical
+    route: symbolic
+
+scoring:
+  weights:
+    structural: 1.0
+    coupling: 0
+    pattern: 0
+    solid: 0
+    convention: 0
+  thresholds:
+    pass: 0.80
+    warning: 0.65
+    soft_block: 0.50
+
+confidence_thresholds:
+  high: 0.85
+  medium: 0.60
+  icc_minimum: 0.70

@@ -14,7 +14,8 @@ export const EDGE_TYPES = [
   'RE_EXPORTS',
 ] as const;
 
-// 'intent' is a transitional member (D-U0-1, Option B); U1 removes it in its FR-22 work.
+// Seven dimensions (FR-32; U3-R7, BR-U3-30): intent is no longer a member. It survives only as a
+// deprecated YAML alias normalised by the spec parser (BR-U1-20/21); INTENT_VIOLATION stays (U4 Q11 A).
 export const DIMENSIONS = [
   'structural',
   'coupling',
@@ -23,7 +24,6 @@ export const DIMENSIONS = [
   'convention',
   'semantic',
   'integrity',
-  'intent',
 ] as const;
 
 export const SYMBOLIC_DIMENSIONS = ['structural', 'coupling', 'pattern', 'solid', 'convention'] as const;

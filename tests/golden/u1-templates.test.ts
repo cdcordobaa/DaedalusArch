@@ -400,7 +400,7 @@ describeU1('U1 row order on Neo4j (BR-U1-29 b)', () => {
     if (!ingested.success) throw new Error(`ingestAPG failed: ${ingested.errors.map((e) => e.code).join(', ')}`);
 
     const queries = await compiledQueries('specs/clean-arch.yaml');
-    expect(queries.length).toBe(23);
+    expect(queries.length).toBe(24); // U3-R6 (BR-U3-25): FF-P06 added; attributed cross-unit update
     let withRows = 0;
     for (const q of queries) {
       const first = await run(q.cypher, q.params);
@@ -472,7 +472,7 @@ describeU1('U1 exclude anchors on Neo4j (BR-U1-32 a, BR-U1-44 b)', () => {
     const compiled = compileFunctions(await goldenInputWithExcludes((name) => name !== 'abstraction-ratio', true));
     if (!compiled.success) throw new Error(`did not compile: ${compiled.errors.map((e) => e.message).join('; ')}`);
     const queries = [...compiled.data.symbolicQueries, ...compiled.data.hybridPairs.map((h) => h.symbolicQuery)];
-    expect(new Set(queries.map((q) => q.name)).size).toBe(24);
+    expect(new Set(queries.map((q) => q.name)).size).toBe(25); // U3-R6 (BR-U3-25): attributed cross-unit update
 
     const neo4j = neo4jConfig();
     const driver = neo4jDriver.driver(neo4j.uri, neo4jDriver.auth.basic(neo4j.user, neo4j.password));

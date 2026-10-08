@@ -3,7 +3,7 @@ import type {
 } from './enums.js';
 import type { DriftReport } from './drift.js';
 import type { AVRScore, AHSScore, Confidence, FunctionId, RunId } from './value-objects.js';
-import type { SemanticCriteria, CypherRule } from './spec.js';
+import type { SemanticCriteria, CypherRule, ScoringWeights, VerdictThresholds, ConfidenceThresholds } from './spec.js';
 import type { Violation } from '../taxonomy/violation-types.js';
 import type { DomainWarning, PipelineWarning } from '../errors/domain-result.js';
 import type { ParseCoverage, ImportResolutionStats } from './apg.js';
@@ -95,6 +95,7 @@ export interface SymbolicFunctionResult {
   readonly executionTimeMs: number;
   readonly deterministic: true;
   readonly tag?: TemplateTag;            // FR-29
+  readonly truncated?: true;             // FR-35: set only when the cycle sentinel row was present (C10, U3 DE §8 row 5)
   readonly neuralSkipped?: 'symbolic-fail'; // full mode, hybrid pair whose symbolic half found violations (C10, row 6)
 }
 
@@ -174,20 +175,22 @@ export interface EvaluationResults {
 
 export interface PerDimensionScore {
   readonly dimension: Dimension;
-  readonly avr: AVRScore;
+  readonly avr: AVRScore;                // round3(violatedWeight / functionCount)
+  readonly violatedWeight: number;       // FR-15: unrounded AVR numerator (C10, row 8)
   readonly weight: number;
-  readonly effectiveWeight?: number;     // FR-15; optional until U3 freezes the report (D-U0-2)
+  readonly effectiveWeight: number;      // FR-15: unrounded renormalised weight (D-U0-2, C10 row 8)
   readonly violationCount: number;
   readonly functionCount: number;
 }
 
+// null only with METRIC_001 (query failed) or METRIC_002 (ratio undefined) (C10, row 10; BR-U3-41, 42)
 export interface UniversalHealthMetrics {
-  readonly cyclicDependencyCount: number;
-  readonly maxFanOut: number;
-  readonly maxFanIn: number;
-  readonly abstractionRatio: number;
-  readonly averageInstability: number;
-  readonly orphanFileCount: number;
+  readonly cyclicDependencyCount: number | null;
+  readonly maxFanOut: number | null;
+  readonly maxFanIn: number | null;
+  readonly abstractionRatio: number | null;
+  readonly averageInstability: number | null;
+  readonly orphanFileCount: number | null;
 }
 
 // FR-13
@@ -198,10 +201,17 @@ export interface FunctionFailure {
   readonly message: string;              // scrubbed (NFR-05)
 }
 
+// C10 rows 2-4 (U3 DE §3.2); identities I1-I6 are asserted by the report builder
 export interface FunctionExecution {
-  readonly compiled: number;
-  readonly executed: number;
-  readonly failed: readonly FunctionFailure[];
+  readonly declared: number;                    // spec functions in scope, enabled or not
+  readonly adrDerived: number;                  // compiled functions with source 'adr'
+  readonly compiled: number;                    // = CompiledFunctions.totalCompiled
+  readonly disabled: number;                    // = disabledFunctions.length (FR-20)
+  readonly dropped: readonly FunctionId[];      // declared ids that compiled to nothing, ascending
+  readonly skippedByMode: number;               // compiled functions whose route the mode does not run
+  readonly noJudgeUnits: readonly FunctionId[]; // neural functions with zero selected units, ascending
+  readonly executed: number;                    // functions with a result and no failure (a count)
+  readonly failed: readonly FunctionFailure[];  // ordered by functionId, then code
 }
 
 // FR-14
@@ -214,6 +224,14 @@ export interface FunctionResultRow {
   readonly passed: boolean;
   readonly violationCount: number;
   readonly executionTimeMs: number;
+  readonly truncated: boolean;           // FR-35: false unless the cycle sentinel fired (C10, row 5)
+}
+
+// FR-20, BR-U5b-13 (C10, row 12): sorted by functionId; reason 'disabled in spec' when the compiler gave none
+export interface DisabledFunctionRow {
+  readonly functionId: FunctionId;
+  readonly name: string;
+  readonly reason: string;
 }
 
 // FR-15 ('no-judge-units': U4 BR-U4-AGG-09 / OI-U4-4, C10 row 13)
@@ -295,35 +313,46 @@ export interface NeuralResultRow {
   readonly unitResults: readonly NeuralUnitRow[];       // sorted by unitId
 }
 
+// FR-26 re-scoring inputs (C10 row 7; U3 DE §4.5)
+export interface ReportScoring {
+  readonly weights: ScoringWeights;                 // scoringWeights as configured (symbolic map)
+  readonly fullModeWeights?: ScoringWeights;        // present in full and neuronal-only modes
+  readonly thresholds: VerdictThresholds;
+  readonly confidenceThresholds: ConfidenceThresholds;
+  readonly verdictSource: 'ahsDeterministic' | 'ahsCombined' | 'ahsNeuronal';
+}
+
 // FR-13, FR-14: what the scoring stage produces; run-level fields are added by the report builder (U3)
 export type ScoredReport = Omit<EvaluationReport,
   'warnings' | 'functionExecution' | 'functionResults' | 'graphStats' | 'layerAnnotation' |
-  'parseCoverage' | 'importResolution' | 'timings' | 'judge'>;
+  'parseCoverage' | 'importResolution' | 'timings' | 'judge' | 'disabledFunctions' | 'neuralResults'>;
 
 export interface EvaluationReport {
   readonly runId: RunId;
   readonly projectPath: string;
   readonly specVersion: string;
-  readonly ahsDeterministic: AHSScore;
+  readonly ahsDeterministic?: AHSScore;  // absent in neuronal-only mode (C10 row 9)
   readonly ahsCombined?: AHSScore;
   readonly ahsNeuronal?: AHSScore;
   readonly verdict: import('./enums.js').OverallVerdict;
+  readonly scoring: ReportScoring;
   readonly perDimensionScores: readonly PerDimensionScore[];
   readonly violations: readonly Violation[];
   readonly universalMetrics: UniversalHealthMetrics;
   readonly evaluationMode: EvaluationMode;
   readonly durationMs: number;
   readonly warnings: readonly PipelineWarning[];
-  // FR-13, FR-14, FR-15, FR-23: optional and not filled until U3 freezes the report schema (D-U0-2)
-  readonly functionExecution?: FunctionExecution;
-  readonly functionResults?: readonly FunctionResultRow[];
-  readonly graphStats?: GraphStats;
-  readonly layerAnnotation?: LayerAnnotationSummary;
-  readonly parseCoverage?: ParseCoverage;
-  readonly importResolution?: ImportResolutionStats;
-  readonly timings?: StageTimings;
-  readonly droppedDimensions?: readonly DroppedDimension[];
-  readonly judge?: JudgeProvenance;
+  // FR-13, FR-14, FR-15, FR-20, FR-23: required run-level fields (pre-agreed D-U0-2; C10 rows 12, 17; BR-U3-55)
+  readonly functionExecution: FunctionExecution;
+  readonly functionResults: readonly FunctionResultRow[];
+  readonly disabledFunctions: readonly DisabledFunctionRow[];
+  readonly graphStats: GraphStats;
+  readonly layerAnnotation: LayerAnnotationSummary;
+  readonly parseCoverage: ParseCoverage;
+  readonly importResolution: ImportResolutionStats;
+  readonly timings: StageTimings;
+  readonly droppedDimensions: readonly DroppedDimension[];
+  readonly judge: JudgeProvenance;
   // FR-33: present in full and neuronal-only modes, absent in symbolic-only (schema if/then, BR-U3-65; C10 row 14)
   readonly neuralResults?: readonly NeuralResultRow[];
 }

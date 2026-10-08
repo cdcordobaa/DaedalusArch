@@ -103,7 +103,9 @@ beforeEach(() => {
 
   // Set a default API key so the LLM key validation doesn't block non-symbolic tests
   process.env['ANTHROPIC_API_KEY'] = 'test-key-for-cli-tests';
-  savedEnvKeys = ['ANTHROPIC_API_KEY'];
+  // BR-U3-80: no default password; the commands need one set.
+  process.env.NEO4J_PASSWORD = 'test-password-for-cli-tests';
+  savedEnvKeys = ['ANTHROPIC_API_KEY', 'NEO4J_PASSWORD'];
 
   stderrSpy = jest.spyOn(process.stderr, 'write').mockImplementation(() => true);
   stdoutSpy = jest.spyOn(process.stdout, 'write').mockImplementation(() => true);
@@ -340,6 +342,24 @@ describe('CLI', () => {
 
       const batchOpts = (runBatch as jest.Mock).mock.calls[0][0];
       expect(batchOpts.format).toBe('csv');
+    });
+
+    it('without a mode flag batch runs symbolic-only (FR-16 reduced)', async () => {
+      const program = loadProgram();
+      await program.parseAsync([
+        'node', 'firewall', 'batch', '--dir', '/projects', '--spec', 'spec.yaml',
+      ]);
+
+      expect((runBatch as jest.Mock<Promise<number>, [unknown, string]>).mock.calls[0]?.[1]).toBe('symbolic-only');
+    });
+
+    it('--neuronal-only reaches runBatch as neuronal-only (refused there, BR-U3-82)', async () => {
+      const program = loadProgram();
+      await program.parseAsync([
+        'node', 'firewall', 'batch', '--dir', '/projects', '--spec', 'spec.yaml', '--neuronal-only',
+      ]);
+
+      expect((runBatch as jest.Mock<Promise<number>, [unknown, string]>).mock.calls[0]?.[1]).toBe('neuronal-only');
     });
 
     it('passes evaluation mode to runBatch', async () => {

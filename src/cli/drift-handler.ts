@@ -6,6 +6,7 @@ import { commitSha } from '../shared/types/value-objects.js';
 import type { DriftOptions } from '../pipeline/types.js';
 import type { DriftReport, DriftAlert } from '../shared/types/drift.js';
 import type { Snapshot, DeltaAPG } from '../shared/interfaces/snapshot-store.js';
+import { MissingEnvError, missingEnvMessage, requireEnv } from './require-env.js';
 
 /**
  * Handle the `firewall drift` command.
@@ -33,6 +34,10 @@ export async function handleDrift(opts: DriftOptions): Promise<number> {
     }
     return await handleLatestVsCurrentDrift(opts, snapshotStore);
   } catch (err) {
+    if (err instanceof MissingEnvError) {
+      process.stderr.write(missingEnvMessage(err));
+      return 2;
+    }
     process.stderr.write(
       `Error: ${err instanceof Error ? err.message : String(err)}\n`,
     );
@@ -85,6 +90,9 @@ async function handleLatestVsCurrentDrift(
   opts: DriftOptions,
   snapshotStore: FileSystemSnapshotStore,
 ): Promise<number> {
+  // BR-U3-80: the fresh evaluation needs Neo4j; no default password, stop before any connection.
+  const neo4jPassword = requireEnv('NEO4J_PASSWORD');
+
   // Load the most recent snapshot as baseline
   const latestResult = await snapshotStore.getLatestSnapshot();
   if (!latestResult.success || !latestResult.data) {
@@ -101,7 +109,7 @@ async function handleLatestVsCurrentDrift(
     specFilePath: opts.spec!,
     neo4jUri: opts.neo4jUri,
     neo4jUser: process.env['NEO4J_USER'] ?? 'neo4j',
-    neo4jPassword: process.env['NEO4J_PASSWORD'] ?? 'neo4j',
+    neo4jPassword,
     evaluationMode: 'symbolic-only', // drift uses symbolic for speed
     pipelineMode: 'stateless',
     persist: opts.persist,

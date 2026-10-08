@@ -1,10 +1,32 @@
 import type { LayerKind, TemplateTag } from '../shared/types/enums.js';
 import type { CypherTemplate, ResultMapping } from './types.js';
 
-function rm(filePathColumn: string, messageTemplate: string, metadataColumns?: string[]): ResultMapping {
-  const base = { filePathColumn, messageTemplate };
-  return metadataColumns ? { ...base, metadataColumns } : base;
+/** T-MAP columns of one template (U3 business-rules.md §3, BR-U3-04, BR-U3-06; frozen with U3-R2). */
+type TMapColumns = Omit<ResultMapping, 'filePathColumn' | 'messageTemplate' | 'metadataColumns'>;
+
+/** A result mapping with its T-MAP location, discriminator and evidence columns (FR-12). */
+function mapped(
+  filePathColumn: string,
+  messageTemplate: string,
+  columns: TMapColumns,
+  metadataColumns?: string[],
+): ResultMapping {
+  return {
+    filePathColumn, messageTemplate, ...columns,
+    ...(metadataColumns !== undefined ? { metadataColumns } : {}),
+  };
 }
+
+/** Default message with the T-MAP columns of a template that keeps `Violation in {filePath}`. */
+function defaultMapped(columns: TMapColumns): ResultMapping {
+  return mapped('filePath', 'Violation in {filePath}', columns);
+}
+
+/** T-MAP edge columns of the dependency templates (BR-U3-04): target, line, lines, isTypeOnly; disc relType. */
+const DEP_EDGE: TMapColumns = {
+  targetColumn: 'target', lineColumn: 'line', linesColumn: 'lines', isTypeOnlyColumn: 'isTypeOnly',
+  discriminatorColumns: ['relType'],
+};
 
 /** Longest import cycle the cycle query detects (BR-U1-28, frozen; BR-U1-02). Never a Cypher parameter. */
 export const MAX_CYCLE_LENGTH = 10;
@@ -12,10 +34,10 @@ export const MAX_CYCLE_LENGTH = 10;
 /** Cycle rows reported before truncation; the query returns one more row as the sentinel (BR-U1-28). */
 export const CYCLE_ROW_CAP = 100;
 
-/** FR-12 edge columns of the three dependency templates (BR-U1-35); unmapped until U3 (FR-12 mapping). */
+/** FR-12 edge columns of the three dependency templates (BR-U1-35); mapped by `DEP_EDGE` from U3-R2 (BR-U3-04). */
 const FR12_DEP_COLUMNS = (columns: readonly string[]): string[] => [...columns, 'relType', 'line', 'lines', 'isTypeOnly'];
 
-const DEFAULT_RM: ResultMapping = { filePathColumn: 'filePath', messageTemplate: 'Violation in {filePath}' };
+const DEFAULT_RM: ResultMapping = { filePathColumn: 'filePath', messageTemplate: 'Violation in {filePath}', discriminatorColumns: [] };
 
 /** Styles of the seven Clean-Architecture-only templates (business-rules.md §3.1, frozen; BR-U1-18). */
 const CLEAN_AND_NESTJS: readonly string[] = ['clean-architecture', 'nestjs'];
@@ -38,7 +60,7 @@ function tmpl(
 }
 
 /**
- * Hardcoded Cypher templates for 24 symbolic fitness functions.
+ * Hardcoded Cypher templates for 25 symbolic fitness functions (FF-P06 `domain-state-purity` from U3-R6).
  * Each template uses $paramName placeholders for instantiation, and an exclude anchor
  * `/*EXCLUDE:<alias>*\/` or `/*EXCLUDE:nodes(<path>)*\/` where `exclude_paths` applies (BR-U1-32, BR-U1-44);
  * `abstraction-ratio` has none.
@@ -67,7 +89,7 @@ ORDER BY source, target, relType`,
     'structural',
     'Detects imports where a lower layer imports from a higher layer (violates dependency direction)',
     [],
-    rm('source', '{source} ({srcLayer}) {verb} from {target} ({tgtLayer})', FR12_DEP_COLUMNS(['target', 'srcLayer', 'tgtLayer'])),
+    mapped('source', '{source} ({srcLayer}) {verb} from {target} ({tgtLayer})', DEP_EDGE, FR12_DEP_COLUMNS(['target', 'srcLayer', 'tgtLayer'])),
   )],
 
   ['no-cyclic-deps', tmpl(
@@ -87,7 +109,9 @@ LIMIT ${String(CYCLE_ROW_CAP + 1)}`,
     'topological',
     `Detects simple circular import/re-export chains of length 2..${String(MAX_CYCLE_LENGTH)} (one row per cycle with its first-edge target and line, FR-12; row ${String(CYCLE_ROW_CAP + 1)} is a truncation sentinel)`,
     [],
-    rm('cycle', 'Circular dependency: {cycle}'),
+    mapped('cycle', 'Circular dependency: {cycle}', {
+      targetColumn: 'target', lineColumn: 'line', discriminatorColumns: ['cycle'], cycleColumn: 'cycle',
+    }),
   )],
 
   ['no-layer-skip', tmpl(
@@ -106,7 +130,7 @@ ORDER BY source, target, relType`,
     'structural',
     'Detects imports that skip intermediate layers (e.g., infrastructure directly importing domain, bypassing application)',
     [],
-    rm('source', '{source} ({srcLayer}) skips layers to {verb} {target} ({tgtLayer})', FR12_DEP_COLUMNS(['target', 'srcLayer', 'tgtLayer'])),
+    mapped('source', '{source} ({srcLayer}) skips layers to {verb} {target} ({tgtLayer})', DEP_EDGE, FR12_DEP_COLUMNS(['target', 'srcLayer', 'tgtLayer'])),
     ['layered'], // closed layering (BR-U1-43, U1 Q22 B)
   )],
 
@@ -124,7 +148,7 @@ ORDER BY source, target, relType`,
     'structural',
     'Detects domain layer files that import from outer layers',
     [],
-    rm('source', 'Domain file {source} {verb} from {target} in {violatingLayer}', FR12_DEP_COLUMNS(['target', 'violatingLayer'])),
+    mapped('source', 'Domain file {source} {verb} from {target} in {violatingLayer}', DEP_EDGE, FR12_DEP_COLUMNS(['target', 'violatingLayer'])),
     CLEAN_AND_NESTJS,
   )],
 
@@ -132,17 +156,40 @@ ORDER BY source, target, relType`,
 
   ['domain-purity', tmpl(
     'domain-purity',
-    `MATCH (src:File)-[:IMPORTS]->(tgt:File)
+    // FR-11 (ADR-017 item 5; BR-U3-20, 21): Package nodes over IMPORTS|RE_EXPORTS, exact name or `prefix/*`;
+    // type-only imports count (D3). The OR sits inside ANY(…), so the predicate is a top-level conjunction (BR-U1-44).
+    `MATCH (src:File)-[i:IMPORTS|RE_EXPORTS]->(p:Package)
 WHERE src.layer = $domainLayer
-  AND ANY(forbidden IN $forbiddenImports WHERE tgt.filePath CONTAINS forbidden) /*EXCLUDE:src*/
-RETURN src.filePath AS source, tgt.filePath AS target
-ORDER BY source, target`,
+  AND ANY(fp IN $forbiddenImports WHERE p.name = fp OR (fp ENDS WITH '/*' AND p.name STARTS WITH left(fp, size(fp) - 1))) /*EXCLUDE:src*/
+RETURN src.filePath AS source, p.name AS target, type(i) AS relType,
+       CASE type(i) WHEN 'IMPORTS' THEN 'imports' ELSE 're-exports' END AS verb,
+       i.line AS line, i.lines AS lines, coalesce(i.isTypeOnly, false) AS isTypeOnly
+ORDER BY source, target, relType`,
     ['domainLayer', 'forbiddenImports'],
     ['domain'],
     'pattern-proxy',
-    'Detects domain files importing forbidden framework/infrastructure packages',
+    'Detects domain files importing or re-exporting forbidden framework/infrastructure packages (Package nodes, FR-11)',
     [],
-    rm('source', 'Domain file {source} imports forbidden package {target}', ['target']),
+    mapped('source', 'Domain file {source} {verb} forbidden package {target}', DEP_EDGE, FR12_DEP_COLUMNS(['target'])),
+  )],
+
+  ['domain-state-purity', tmpl(
+    'domain-state-purity',
+    // FR-21 (ADR-015 item 9; BR-U3-22, 23): a domain class holding an infrastructure Class or Interface
+    // through a FLOWS_TO (U2, D8 scope) or CONSTRUCTOR_INJECTS edge (BR-U2-30). Injection rows have no line.
+    `MATCH (c:Class)-[e:FLOWS_TO|CONSTRUCTOR_INJECTS]->(t)
+WHERE c.layer = $domainLayer AND t.layer = $infraLayer AND (t:Class OR t:Interface) /*EXCLUDE:c*/
+RETURN c.filePath AS filePath, c.name AS class, t.filePath AS target, t.name AS targetName,
+       type(e) AS relType, coalesce(e.field, e.parameterName) AS field, e.line AS line
+ORDER BY filePath, class, target, relType, field`,
+    ['domainLayer', 'infraLayer'],
+    ['domain', 'infrastructure'],
+    'structural',
+    'Detects domain classes that hold infrastructure state through a field (FLOWS_TO) or an injected constructor parameter (CONSTRUCTOR_INJECTS)',
+    [],
+    mapped('filePath', 'Domain class {class} holds infrastructure {targetName} via {relType} ({field})', {
+      targetColumn: 'target', lineColumn: 'line', discriminatorColumns: ['class', 'targetName', 'relType', 'field'],
+    }),
   )],
 
   ['dependency-inversion', tmpl(
@@ -151,16 +198,16 @@ ORDER BY source, target`,
 WHERE c.layer IN $applicationLayers
 WITH c, count(CASE WHEN dep:Interface THEN 1 END) AS interfaceDeps, count(dep) AS totalDeps
 WHERE totalDeps > 0 /*EXCLUDE:c*/
-RETURN c.name AS class, c.filePath AS filePath,
-       toFloat(interfaceDeps) / totalDeps AS ratio,
-       CASE WHEN toFloat(interfaceDeps) / totalDeps < $threshold THEN true ELSE false END AS violation
+WITH c, toFloat(interfaceDeps) / totalDeps AS ratio
+WHERE ratio < $threshold
+RETURN c.name AS class, c.filePath AS filePath, ratio
 ORDER BY filePath, class`,
     ['applicationLayers', 'threshold'],
     ['application'],
     'pattern-proxy',
-    'Checks that application-layer classes inject interfaces, not concrete classes (DIP)',
+    'Checks that application-layer classes inject interfaces, not concrete classes (DIP); violating rows only (BR-U3-11)',
     [],
-    DEFAULT_RM,
+    defaultMapped({ discriminatorColumns: ['class'], evidenceColumns: ['ratio'] }),
     CLEAN_AND_NESTJS,
   )],
 
@@ -178,7 +225,7 @@ ORDER BY filePath, implementation`,
     'pattern-proxy',
     'Verifies infrastructure repositories implement domain interfaces',
     [],
-    DEFAULT_RM,
+    defaultMapped({ discriminatorColumns: ['implementation'] }),
     CLEAN_AND_NESTJS,
   )],
 
@@ -198,7 +245,7 @@ ORDER BY filePath, useCase`,
     'pattern-proxy',
     'Verifies use cases only depend on domain and application layers',
     ['useCaseRoles'],
-    DEFAULT_RM,
+    defaultMapped({ discriminatorColumns: ['useCase'] }),
     CLEAN_AND_NESTJS,
   )],
 
@@ -214,7 +261,7 @@ ORDER BY filePath, controller, entity`,
     'pattern-proxy',
     'Detects controllers directly referencing domain entities',
     ['entityRoles'],
-    DEFAULT_RM,
+    defaultMapped({ discriminatorColumns: ['controller', 'entity'] }),
     CLEAN_AND_NESTJS,
   )],
 
@@ -228,16 +275,16 @@ OPTIONAL MATCH (f)<-[:IMPORTS]-(incoming:File) WHERE incoming.layer <> $domainLa
 OPTIONAL MATCH (f)-[:IMPORTS]->(outgoing:File) WHERE outgoing.layer <> $domainLayer
 WITH f, count(DISTINCT incoming) AS fanIn, count(DISTINCT outgoing) AS fanOut
 WHERE fanIn + fanOut > 0 /*EXCLUDE:f*/
-RETURN f.filePath AS filePath, f.name AS name,
-       toFloat(fanOut) / (fanIn + fanOut) AS instability,
-       CASE WHEN toFloat(fanOut) / (fanIn + fanOut) > $threshold THEN true ELSE false END AS violation
+WITH f, toFloat(fanOut) / (fanIn + fanOut) AS instability
+WHERE instability > $threshold
+RETURN f.filePath AS filePath, f.name AS name, instability
 ORDER BY filePath`,
     ['domainLayer', 'threshold'],
     ['domain'],
     'topological',
-    'Domain layer instability must be below threshold (lower = more stable)',
+    'Domain layer instability must be below threshold (lower = more stable); violating rows only (BR-U3-11)',
     [],
-    DEFAULT_RM,
+    defaultMapped({ discriminatorColumns: [], evidenceColumns: ['instability'] }),
     CLEAN_AND_NESTJS,
   )],
 
@@ -252,6 +299,8 @@ ORDER BY filePath`,
     [],
     'topological',
     'Detects files with excessive outgoing dependencies',
+    [],
+    defaultMapped({ discriminatorColumns: [], evidenceColumns: ['fanOut'] }),
   )],
 
   ['component-instability', tmpl(
@@ -270,6 +319,8 @@ ORDER BY filePath`,
     [],
     'topological',
     'Flags files whose instability metric exceeds the threshold (fanOut / (fanIn + fanOut))',
+    [],
+    defaultMapped({ discriminatorColumns: [], evidenceColumns: ['instability'] }),
   )],
 
   ['no-orphan-files', tmpl(
@@ -285,6 +336,8 @@ ORDER BY filePath`,
     [],
     'topological',
     'Detects files with no import or re-export connection to another file (Package targets do not count; barrels excluded)',
+    [],
+    defaultMapped({ discriminatorColumns: [] }),
   )],
 
   ['max-fan-in', tmpl(
@@ -298,6 +351,8 @@ ORDER BY filePath`,
     [],
     'topological',
     'Detects files with excessive incoming dependencies (god modules)',
+    [],
+    defaultMapped({ discriminatorColumns: [], evidenceColumns: ['fanIn'] }),
   )],
 
   ['abstraction-ratio', tmpl(
@@ -306,15 +361,16 @@ ORDER BY filePath`,
 WITH count(CASE WHEN n:Interface THEN 1 END) AS interfaces,
      count(n) AS total
 WHERE total > 0
-RETURN toFloat(interfaces) / total AS ratio,
-       CASE WHEN toFloat(interfaces) / total < $threshold THEN true ELSE false END AS violation
+WITH toFloat(interfaces) / total AS ratio
+WHERE ratio < $threshold
+RETURN '<project>' AS filePath, ratio
 ORDER BY ratio`,
     ['threshold'],
     [],
     'topological',
-    'Checks ratio of interfaces to total classes+interfaces',
+    'Checks ratio of interfaces to total classes+interfaces; one project-level row when below threshold (BR-U3-11, BR-U3-12)',
     [],
-    rm('ratio', 'Abstraction ratio {ratio} below threshold', ['violation']),
+    mapped('filePath', 'Abstraction ratio {ratio} below threshold', { discriminatorColumns: [], evidenceColumns: ['ratio'] }),
   )],
 
   // ── SOLID ───────────────────────────────────────────────────────────────────
@@ -332,6 +388,8 @@ ORDER BY filePath, class`,
     [],
     'pattern-proxy',
     'SRP proxy: classes with too many methods or dependencies likely have multiple responsibilities',
+    [],
+    defaultMapped({ discriminatorColumns: ['class'], evidenceColumns: ['methodCount', 'depCount'] }),
   )],
 
   ['interface-segregation-proxy', tmpl(
@@ -345,6 +403,8 @@ ORDER BY filePath, interface`,
     [],
     'pattern-proxy',
     'ISP proxy: interfaces with too many methods should be split',
+    [],
+    defaultMapped({ discriminatorColumns: ['interface'], evidenceColumns: ['methodCount'] }),
   )],
 
   ['inheritance-depth', tmpl(
@@ -358,6 +418,8 @@ ORDER BY filePath, class, depth`,
     [],
     'topological',
     'Detects deep inheritance hierarchies',
+    [],
+    defaultMapped({ discriminatorColumns: ['class'], evidenceColumns: ['depth'] }),
   )],
 
   // ── CONVENTION ──────────────────────────────────────────────────────────────
@@ -380,6 +442,8 @@ ORDER BY filePath, class`,
     ['domain', 'application', 'infrastructure'],
     'pattern-proxy',
     'Checks class naming conventions per layer',
+    [],
+    defaultMapped({ discriminatorColumns: ['class'] }),
   )],
 
   ['naming-services', tmpl(
@@ -394,6 +458,8 @@ ORDER BY filePath, class`,
     ['application'],
     'pattern-proxy',
     'Verifies service classes follow naming pattern',
+    [],
+    defaultMapped({ discriminatorColumns: ['class'] }),
   )],
 
   ['naming-repos', tmpl(
@@ -407,6 +473,8 @@ ORDER BY filePath, class`,
     [],
     'pattern-proxy',
     'Verifies repository classes follow naming pattern',
+    [],
+    defaultMapped({ discriminatorColumns: ['class'] }),
   )],
 
   ['naming-controllers', tmpl(
@@ -422,7 +490,7 @@ ORDER BY filePath, class`,
     'pattern-proxy',
     'Verifies controller classes follow naming pattern',
     [],
-    DEFAULT_RM,
+    defaultMapped({ discriminatorColumns: ['class'] }),
     CLEAN_AND_NESTJS,
   )],
 
@@ -444,6 +512,8 @@ ORDER BY filePath`,
     [],
     'pattern-proxy',
     'Detects source files without corresponding test files',
+    [],
+    defaultMapped({ discriminatorColumns: [] }),
   )],
 
   ['no-index-logic', tmpl(
@@ -460,6 +530,8 @@ ORDER BY filePath`,
     [],
     'pattern-proxy',
     'Detects barrel/index files that contain business logic declarations',
+    [],
+    defaultMapped({ discriminatorColumns: [], evidenceColumns: ['declCount'] }),
   )],
 ]);
 
@@ -472,3 +544,14 @@ export function getTemplateTag(functionName: string): TemplateTag | undefined {
 export function listTemplatesByTag(tag: TemplateTag): readonly string[] {
   return [...CYPHER_TEMPLATES.values()].filter((t) => t.tag === tag).map((t) => t.functionName);
 }
+
+/**
+ * Discriminator columns per template (FR-12, BR-U3-06, BR-U3-66): the `disc` column of T-MAP
+ * (U3 business-rules.md §3), read from each template's `resultMapping.discriminatorColumns`, in
+ * declaration order. The binding contract for U5a's location rule.
+ */
+export const TEMPLATE_DISCRIMINATORS: Readonly<Record<string, readonly string[]>> = Object.freeze(
+  Object.fromEntries(
+    [...CYPHER_TEMPLATES.entries()].map(([name, t]) => [name, Object.freeze([...t.resultMapping.discriminatorColumns])]),
+  ),
+);
