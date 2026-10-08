@@ -12,6 +12,7 @@ function template(overrides: Partial<CypherTemplate> = {}): CypherTemplate {
     description: 'test',
     resultMapping: { filePathColumn: 'filePath', messageTemplate: 'x' },
     requiredLayerKinds: [],
+    tag: 'structural',
     ...overrides,
   };
 }

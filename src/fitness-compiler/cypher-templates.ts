@@ -1,4 +1,4 @@
-import type { LayerKind } from '../shared/types/enums.js';
+import type { LayerKind, TemplateTag } from '../shared/types/enums.js';
 import type { CypherTemplate, ResultMapping } from './types.js';
 
 function rm(filePathColumn: string, messageTemplate: string, metadataColumns?: string[]): ResultMapping {
@@ -25,13 +25,14 @@ function tmpl(
   template: string,
   requiredParams: string[],
   requiredLayerKinds: LayerKind[],
+  tag: TemplateTag, // business-rules.md §4.1 (frozen; FR-29, BR-U1-27)
   description: string,
   optionalParams: string[] = [],
   resultMapping: ResultMapping = DEFAULT_RM,
   applicableStyles?: readonly string[], // undefined = every style (FR-20, AD-8)
 ): CypherTemplate {
   return {
-    functionName, template, requiredParams, requiredLayerKinds, optionalParams, description, resultMapping,
+    functionName, template, requiredParams, requiredLayerKinds, tag, optionalParams, description, resultMapping,
     ...(applicableStyles !== undefined ? { applicableStyles } : {}),
   };
 }
@@ -62,6 +63,7 @@ RETURN src.filePath AS source, tgt.filePath AS target, src.layer AS srcLayer, tg
 ORDER BY source, target, relType`,
     ['layerOrder'],
     [],
+    'structural',
     'Detects imports where a lower layer imports from a higher layer (violates dependency direction)',
     [],
     rm('source', '{source} ({srcLayer}) imports from {target} ({tgtLayer})', FR12_DEP_COLUMNS(['target', 'srcLayer', 'tgtLayer'])),
@@ -81,6 +83,7 @@ ORDER BY cycle
 LIMIT ${String(CYCLE_ROW_CAP + 1)}`,
     [],
     [],
+    'topological',
     `Detects simple circular import chains of length 2..${String(MAX_CYCLE_LENGTH)} (one row per cycle with its first-edge target and line, FR-12; row ${String(CYCLE_ROW_CAP + 1)} is a truncation sentinel)`,
     [],
     rm('cycle', 'Circular dependency: {cycle}'),
@@ -98,6 +101,7 @@ RETURN src.filePath AS source, tgt.filePath AS target, src.layer AS srcLayer, tg
 ORDER BY source, target, relType`,
     ['allowedTransitions'],
     [],
+    'structural',
     'Detects imports that skip intermediate layers (e.g., infrastructure directly importing domain, bypassing application)',
     [],
     rm('source', '{source} ({srcLayer}) skips layers to import {target} ({tgtLayer})', FR12_DEP_COLUMNS(['target', 'srcLayer', 'tgtLayer'])),
@@ -114,6 +118,7 @@ RETURN src.filePath AS source, tgt.filePath AS target, tgt.layer AS violatingLay
 ORDER BY source, target, relType`,
     ['domainLayer'],
     ['domain'],
+    'structural',
     'Detects domain layer files that import from outer layers',
     [],
     rm('source', 'Domain file {source} imports from {target} in {violatingLayer}', FR12_DEP_COLUMNS(['target', 'violatingLayer'])),
@@ -131,6 +136,7 @@ RETURN src.filePath AS source, tgt.filePath AS target
 ORDER BY source, target`,
     ['domainLayer', 'forbiddenImports'],
     ['domain'],
+    'pattern-proxy',
     'Detects domain files importing forbidden framework/infrastructure packages',
     [],
     rm('source', 'Domain file {source} imports forbidden package {target}', ['target']),
@@ -148,6 +154,7 @@ RETURN c.name AS class, c.filePath AS filePath,
 ORDER BY filePath, class`,
     ['applicationLayers', 'threshold'],
     ['application'],
+    'pattern-proxy',
     'Checks that application-layer classes inject interfaces, not concrete classes (DIP)',
     [],
     DEFAULT_RM,
@@ -165,6 +172,7 @@ RETURN '' AS interface, c.name AS implementation, c.filePath AS filePath
 ORDER BY filePath, implementation`,
     ['domainLayer', 'infraLayer'],
     ['domain', 'infrastructure'],
+    'pattern-proxy',
     'Verifies infrastructure repositories implement domain interfaces',
     [],
     DEFAULT_RM,
@@ -184,6 +192,7 @@ RETURN uc.name AS useCase, uc.filePath AS filePath, violations
 ORDER BY filePath, useCase`,
     ['applicationLayers', 'domainLayer', 'useCaseRoles'],
     ['application', 'domain'],
+    'pattern-proxy',
     'Verifies use cases only depend on domain and application layers',
     ['useCaseRoles'],
     DEFAULT_RM,
@@ -199,6 +208,7 @@ RETURN ctrl.name AS controller, entity.name AS entity, ctrl.filePath AS filePath
 ORDER BY filePath, controller, entity`,
     ['infraLayer', 'domainLayer', 'entityRoles'],
     ['infrastructure', 'domain'],
+    'pattern-proxy',
     'Detects controllers directly referencing domain entities',
     ['entityRoles'],
     DEFAULT_RM,
@@ -221,6 +231,7 @@ RETURN f.filePath AS filePath, f.name AS name,
 ORDER BY filePath`,
     ['domainLayer', 'threshold'],
     ['domain'],
+    'topological',
     'Domain layer instability must be below threshold (lower = more stable)',
     [],
     DEFAULT_RM,
@@ -236,6 +247,7 @@ RETURN f.filePath AS filePath, f.name AS name, fanOut
 ORDER BY filePath`,
     ['threshold'],
     [],
+    'topological',
     'Detects files with excessive outgoing dependencies',
   )],
 
@@ -253,6 +265,7 @@ RETURN f.filePath AS filePath, f.layer AS layer, f.name AS name, instability
 ORDER BY filePath`,
     ['threshold'],
     [],
+    'topological',
     'Flags files whose instability metric exceeds the threshold (fanOut / (fanIn + fanOut))',
   )],
 
@@ -267,6 +280,7 @@ RETURN f.filePath AS filePath, f.name AS name, f.layer AS layer
 ORDER BY filePath`,
     [],
     [],
+    'topological',
     'Detects files with no import connections (neither importing nor imported)',
   )],
 
@@ -279,6 +293,7 @@ RETURN f.filePath AS filePath, f.name AS name, fanIn
 ORDER BY filePath`,
     ['threshold'],
     [],
+    'topological',
     'Detects files with excessive incoming dependencies (god modules)',
   )],
 
@@ -293,6 +308,7 @@ RETURN toFloat(interfaces) / total AS ratio,
 ORDER BY ratio`,
     ['threshold'],
     [],
+    'topological',
     'Checks ratio of interfaces to total classes+interfaces',
     [],
     rm('ratio', 'Abstraction ratio {ratio} below threshold', ['violation']),
@@ -311,6 +327,7 @@ RETURN c.name AS class, c.filePath AS filePath, methodCount, depCount
 ORDER BY filePath, class`,
     ['maxPublicMethods', 'maxDependencies'],
     [],
+    'pattern-proxy',
     'SRP proxy: classes with too many methods or dependencies likely have multiple responsibilities',
   )],
 
@@ -323,6 +340,7 @@ RETURN i.name AS interface, i.filePath AS filePath, methodCount
 ORDER BY filePath, interface`,
     ['maxInterfaceMethods'],
     [],
+    'pattern-proxy',
     'ISP proxy: interfaces with too many methods should be split',
   )],
 
@@ -335,6 +353,7 @@ RETURN c.name AS class, c.filePath AS filePath, depth
 ORDER BY filePath, class, depth`,
     ['maxDepth'],
     [],
+    'topological',
     'Detects deep inheritance hierarchies',
   )],
 
@@ -356,6 +375,7 @@ RETURN c.name AS class, c.filePath AS filePath, layer, expectedPattern
 ORDER BY filePath, class`,
     ['domainLayer', 'applicationLayers', 'infraLayer', 'domainPattern', 'applicationPattern', 'infraPattern'],
     ['domain', 'application', 'infrastructure'],
+    'pattern-proxy',
     'Checks class naming conventions per layer',
   )],
 
@@ -369,6 +389,7 @@ RETURN c.name AS class, c.filePath AS filePath
 ORDER BY filePath, class`,
     ['applicationLayers', 'pattern'],
     ['application'],
+    'pattern-proxy',
     'Verifies service classes follow naming pattern',
   )],
 
@@ -381,6 +402,7 @@ RETURN c.name AS class, c.filePath AS filePath
 ORDER BY filePath, class`,
     ['pattern'],
     [],
+    'pattern-proxy',
     'Verifies repository classes follow naming pattern',
   )],
 
@@ -394,6 +416,7 @@ RETURN c.name AS class, c.filePath AS filePath
 ORDER BY filePath, class`,
     ['infraLayer', 'pattern'],
     ['infrastructure'],
+    'pattern-proxy',
     'Verifies controller classes follow naming pattern',
     [],
     DEFAULT_RM,
@@ -416,6 +439,7 @@ RETURN src.filePath AS filePath, src.name AS name
 ORDER BY filePath`,
     [],
     [],
+    'pattern-proxy',
     'Detects source files without corresponding test files',
   )],
 
@@ -431,6 +455,17 @@ RETURN f.filePath AS filePath, declCount
 ORDER BY filePath`,
     [],
     [],
+    'pattern-proxy',
     'Detects barrel/index files that contain business logic declarations',
   )],
 ]);
+
+/** The template's tag (FR-29, BR-U1-27); undefined for a name without a template. */
+export function getTemplateTag(functionName: string): TemplateTag | undefined {
+  return CYPHER_TEMPLATES.get(functionName)?.tag;
+}
+
+/** Names of the templates carrying `tag`, in CYPHER_TEMPLATES insertion order (FR-29, BR-U1-27). */
+export function listTemplatesByTag(tag: TemplateTag): readonly string[] {
+  return [...CYPHER_TEMPLATES.values()].filter((t) => t.tag === tag).map((t) => t.functionName);
+}
