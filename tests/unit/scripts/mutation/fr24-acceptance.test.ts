@@ -154,6 +154,11 @@ describe('scripts/mutate.ts usage and refusals (exit codes)', () => {
     expect(ok.success && ok.data).toEqual({ filePath: 'a.ts', line: 3, detail: { symbol: 'X' } });
     const forced = parseMutateArgs([...base, '--site', siteArg(s01.site), '--k', '1', '--cycle-strategy', 'scc']);
     expect(forced.success && [forced.data.k, forced.data.cycleStrategy, forced.data.split]).toEqual([1, 'scc', 'dev']);
+    const sp = ['--base', CORRECT_REL, '--spec', CLEAN_SPEC, '--operator', 'SP-FF-C04', '--manifest', 'm.json', '--out', 'o', '--k', '1'];
+    const spDefault = parseMutateArgs(sp);
+    expect(spDefault.success && spDefault.data.split).toBe('probe');
+    const spDev = parseMutateArgs([...sp, '--split', 'dev']);
+    expect(spDev.success && spDev.data.split).toBe('dev');
   });
 
   it('an unknown operator exits 2', async () => {

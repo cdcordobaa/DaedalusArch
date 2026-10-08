@@ -185,6 +185,16 @@ describe('pipeline order and forced sites (BR-U5a-06, 55; F-U5A-CYCLE; D-U5a-14)
     expect(sha(f.manifest)).toBe(before);
   });
 
+  it('BR-U5a-30 (DV-U5a-24): a role/split mismatch is refused before any work (MUT_SPLIT_ROLE), both ways', async () => {
+    const f = fresh('split-role');
+    const asProbe = await applyMutation(env([linesOperator()], { split: 'probe' }), CORRECT(), 'MO-TEST-lines', f.manifest, f.scratchRoot, { cycleStrategy: 'simple-cycles' });
+    expect(!asProbe.success && asProbe.errors[0]?.code).toBe('MUT_SPLIT_ROLE');
+    const probeOp: MutationOperator = { ...linesOperator(), id: 'SP-TEST-lines', role: 'probe' };
+    const asDev = await applyMutation(env([probeOp], { split: 'dev' }), CORRECT(), 'SP-TEST-lines', f.manifest, f.scratchRoot, { cycleStrategy: 'simple-cycles' });
+    expect(!asDev.success && asDev.errors[0]?.code).toBe('MUT_SPLIT_ROLE');
+    expect(fs.existsSync(f.manifest)).toBe(false);
+  });
+
   it('the same override twice on fresh copies gives identical rows except appliedAt', async () => {
     const a = fresh('twice-a');
     const b = fresh('twice-b');

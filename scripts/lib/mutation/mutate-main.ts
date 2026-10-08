@@ -14,7 +14,8 @@
  * (BR-U5a-55; `{ "filePath", "line"?, "detail" }`), and `--k` is then its application index (default 0); without
  * `--site`, `--k` is the number of sampled sites and is required (`sitesPerOperator` is fixed only at the freeze).
  * `--cycle-strategy` (default `simple-cycles`) is written to a new manifest's header and must equal an existing
- * header (`MAN_CYCLE_STRATEGY_MISMATCH`, checked before any work). `--split` defaults to `dev`.
+ * header (`MAN_CYCLE_STRATEGY_MISMATCH`, checked before any work). `--split` defaults to `probe` for an `SP-*`
+ * operator and to `dev` otherwise; `applyMutation` refuses a role/split mismatch (`MUT_SPLIT_ROLE`, BR-U5a-30).
  *
  * Writes: copies, the analysis copy and the throwaway git object store of `baseTreeSha` under `--out`; the manifest
  * and its `.lock` at `--manifest`. Nothing else is written; the base is only read (BR-U5a-04).
@@ -141,7 +142,8 @@ export function parseMutateArgs(argv: readonly string[]): DomainResult<MutateArg
   }
   const strategy = values.get('--cycle-strategy') ?? 'simple-cycles';
   if (!(CYCLE_STRATEGIES as readonly string[]).includes(strategy)) return usage(`--cycle-strategy must be one of ${CYCLE_STRATEGIES.join(', ')}`);
-  const split = values.get('--split') ?? 'dev';
+  // DV-U5a-24: the default follows the operator's namespace, so an SP-* probe never lands in the dev split.
+  const split = values.get('--split') ?? ((values.get('--operator') ?? '').startsWith('SP-') ? 'probe' : 'dev');
   if (!(SPLITS as readonly string[]).includes(split)) return usage(`--split must be one of ${SPLITS.join(', ')}`);
   let k: number | undefined;
   const kText = values.get('--k');

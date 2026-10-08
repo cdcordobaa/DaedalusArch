@@ -57,6 +57,7 @@ import type {
   LineShift,
   MutationEdit,
   MutationOperator,
+  OperatorRole,
   PreconditionContext,
   PreparedBase,
   ProjectHandle,
@@ -179,6 +180,11 @@ function sourceTexts(handle: ReturnType<typeof openImportGraphProject>): Map<str
 
 function splitAllowed(base: PreparedBase, split: Split): boolean {
   return base.baseKind === 'fixture' ? split === 'dev' || split === 'probe' : split === 'held-out';
+}
+
+/** BR-U5a-30: an SP-* probe (role `probe`) is always `split: 'probe'`, and only probes carry it (DV-U5a-24). */
+export function splitMatchesRole(role: OperatorRole, split: Split): boolean {
+  return role === 'probe' ? split === 'probe' : split !== 'probe';
 }
 
 function stubsFor(dir: string, base: PreparedBase, op: MutationOperator, sites: readonly EligibleSite[]): DomainResult<readonly ProvisionedStub[]> {
@@ -360,6 +366,9 @@ export async function applyMutation(
   if (op === undefined) return fail('MUT_UNKNOWN_OPERATOR', `operator ${operatorId} is not in the frozen registry`);
   if (!CYCLE_STRATEGIES.includes(opts.cycleStrategy)) return fail('MUT_CYCLE_STRATEGY', `unknown cycle strategy ${JSON.stringify(opts.cycleStrategy)}`);
   if (!splitAllowed(base, env.split)) return fail('MUT_SPLIT_INVALID', `split ${env.split} is not allowed for a ${base.baseKind} base (BR-U5a-02)`);
+  if (!splitMatchesRole(op.role, env.split)) {
+    return fail('MUT_SPLIT_ROLE', `operator ${op.id} has role ${op.role}; ${op.role === 'probe' ? "a probe must use split 'probe'" : "split 'probe' is reserved for SP-* probes"} (BR-U5a-30)`);
+  }
   if (opts.siteOverride !== undefined && env.split === 'held-out') {
     return fail('MUT_SITE_OVERRIDE_INVALID', 'a forced site is never a held-out instance (BR-U5a-55)');
   }
