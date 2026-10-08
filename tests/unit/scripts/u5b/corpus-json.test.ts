@@ -3,7 +3,9 @@
  */
 import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
-import { sha256Hex, validateCorpus } from '../../../../scripts/lib/corpus.js';
+import { parseCriteria, sha256Hex, validateCorpus } from '../../../../scripts/lib/corpus.js';
+import { selectCorpus } from '../../../../scripts/select-corpus.js';
+import type { CandidateList, Selection } from '../../../../scripts/select-corpus.js';
 import type { CorpusFile } from '../../../../scripts/lib/corpus.js';
 import { ROOT } from './score-fixture.js';
 
@@ -38,6 +40,35 @@ describe('corpus/corpus.json (BR-U5b-66)', () => {
     const doc = readFileSync(join(ROOT, 'Docs/corpus.md'), 'utf8');
     for (const e of corpus.entries.filter((x) => x.core)) {
       expect(doc).toMatch(new RegExp(`\\| \`${e.name}\` \\| ${e.originUrl.replace(/[.]/g, '\\.')} \\| \`[^\`]+\` \\| \`${e.commitSha}\``));
+    }
+  });
+});
+
+describe('corpus/candidates.json and corpus/selection.json (BR-U5b-68)', () => {
+  const list = JSON.parse(readFileSync(join(ROOT, 'corpus/candidates.json'), 'utf8')) as CandidateList;
+  const committed = JSON.parse(readFileSync(join(ROOT, 'corpus/selection.json'), 'utf8')) as Selection;
+
+  it('re-running the seeded selection over the committed candidates gives the committed selection', () => {
+    const criteria = parseCriteria(readFileSync(join(ROOT, 'Docs/corpus-criteria.md'), 'utf8'));
+    const r = selectCorpus(list, criteria, corpus.entries.filter((e) => e.core).map((e) => e.originUrl));
+    if (!r.ok) throw new Error(r.detail);
+    expect(r.selection).toEqual(committed);
+    expect(committed.selected.length).toBeGreaterThanOrEqual(3);
+    expect(committed.selected.length).toBeLessThanOrEqual(5);
+    expect(committed.selected.some((s) => s.style === 'layered')).toBe(true);
+    expect(committed.excluded.length + committed.selected.length).toBe(list.candidates.length);
+  });
+
+  it('every selected project is an added corpus entry with commit, licence, install and tsc decisions', () => {
+    const added = corpus.entries.filter((e) => !e.core);
+    expect(added.map((e) => e.name)).toEqual(committed.selected.map((s) => s.name.replace('/', '__')));
+    const byName = new Map(list.candidates.map((c) => [c.name.replace('/', '__'), c]));
+    for (const e of added) {
+      const c = byName.get(e.name);
+      expect(e.commitSha).toBe(c?.commitSha);
+      expect(e.licence).toBe(c?.licence);
+      expect(e.install.policy).toBe('npm-ci-ignore-scripts');
+      expect(e.tsc.kind).toBe('project');
     }
   });
 });
