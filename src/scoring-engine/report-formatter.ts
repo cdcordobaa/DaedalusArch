@@ -1,6 +1,45 @@
-import type { EvaluationReport } from '../shared/types/evaluation.js';
+import type { EvaluationReport, ReportScoring } from '../shared/types/evaluation.js';
 import type { FitnessFunction } from '../shared/types/spec.js';
+import type { Dimension } from '../shared/types/enums.js';
 import { formatAllActionableViolations } from '../report/actionable-formatter.js';
+
+/** The three AHS variants of a report; which one is the headline is `scoring.verdictSource`. */
+export type AhsVariant = ReportScoring['verdictSource'];
+
+/** Printed form of an AHS variant: `n/a` when the mode does not compute it (BR-U3-43; never `NaN`). */
+export function ahsText(value: number | undefined, fractionDigits: number): string {
+  return value === undefined ? 'n/a' : value.toFixed(fractionDigits);
+}
+
+/** The headline AHS: the verdict-source variant (BR-U3-43, BR-U3-35). */
+export function headlineAhs(report: EvaluationReport): { readonly source: AhsVariant; readonly value: number | undefined } {
+  const source = report.scoring.verdictSource;
+  return { source, value: report[source] };
+}
+
+/** Dimensions printed as CSV `avr_<dimension>` columns, in `DIMENSIONS` order (no `intent`, R7). */
+const CSV_DIMENSIONS: readonly Dimension[] = ['structural', 'coupling', 'pattern', 'solid', 'convention', 'semantic', 'integrity'];
+
+function headerBox(report: EvaluationReport): string[] {
+  const headline = headlineAhs(report);
+  const verdict = report.verdict.toUpperCase();
+  return [
+    '╔═══════════════════════════════════════════╗',
+    `║  Architectural Health Score: ${ahsText(headline.value, 2)} (${verdict})`.padEnd(44) + '║',
+    '╚═══════════════════════════════════════════╝',
+    '',
+    `  Headline AHS:        ${headline.source}`,
+    `  AHS (deterministic): ${ahsText(report.ahsDeterministic, 2)}`,
+    `  AHS (combined):      ${ahsText(report.ahsCombined, 2)}`,
+    `  AHS (neuronal):      ${ahsText(report.ahsNeuronal, 2)}`,
+  ];
+}
+
+/** Printed form of a universal metric: `n/a` for `null` (BR-U3-43; JSON keeps `null`). */
+export function metricText(value: number | null, fractionDigits?: number): string {
+  if (value === null) return 'n/a';
+  return fractionDigits === undefined ? String(value) : value.toFixed(fractionDigits);
+}
 
 /**
  * Format report as JSON string.
@@ -13,21 +52,7 @@ export function formatJSON(report: EvaluationReport): string {
  * Format report as human-readable summary for CLI / PR comments.
  */
 export function formatHuman(report: EvaluationReport): string {
-  const ahs = Number(report.ahsDeterministic).toFixed(2);
-  const verdict = report.verdict.toUpperCase();
-  const lines: string[] = [];
-
-  lines.push('╔═══════════════════════════════════════════╗');
-  lines.push(`║  Architectural Health Score: ${ahs} (${verdict})`.padEnd(44) + '║');
-  lines.push('╚═══════════════════════════════════════════╝');
-  lines.push('');
-  lines.push(`  AHS (deterministic): ${Number(report.ahsDeterministic).toFixed(2)}`);
-  if (report.ahsCombined) {
-    lines.push(`  AHS (combined):      ${Number(report.ahsCombined).toFixed(2)}`);
-  }
-  if (report.ahsNeuronal) {
-    lines.push(`  AHS (neuronal):      ${Number(report.ahsNeuronal).toFixed(2)}`);
-  }
+  const lines: string[] = headerBox(report);
   lines.push(`  Verdict:             ${report.verdict}`);
   lines.push(`  Mode:                ${report.evaluationMode}`);
   lines.push('');
@@ -39,6 +64,18 @@ export function formatHuman(report: EvaluationReport): string {
     lines.push(`    ${dim.dimension.padEnd(14)} AVR: ${avr}  (${dim.functionCount} functions, ${dim.violationCount} violations)`);
   }
   lines.push('');
+
+  // Functions that failed to run and dimensions left out of the score (FR-13, FR-15)
+  if (report.functionExecution.failed.length > 0) {
+    lines.push('  Failed to run:');
+    for (const f of report.functionExecution.failed) lines.push(`    ${String(f.functionId)} ${f.name} [${f.code}] ${f.message}`);
+    lines.push('');
+  }
+  if (report.droppedDimensions.length > 0) {
+    lines.push('  Dropped dimensions:');
+    for (const d of report.droppedDimensions) lines.push(`    ${d.dimension}: ${d.reason} (declared ${String(d.declared)}, executed ${String(d.executed)})`);
+    lines.push('');
+  }
 
   // Top violations
   if (report.violations.length > 0) {
@@ -57,8 +94,8 @@ export function formatHuman(report: EvaluationReport): string {
   // Universal metrics
   const m = report.universalMetrics;
   lines.push('  Universal Metrics:');
-  lines.push(`    Cycles: ${m.cyclicDependencyCount} | Max fan-out: ${m.maxFanOut} | Max fan-in: ${m.maxFanIn}`);
-  lines.push(`    Abstraction ratio: ${m.abstractionRatio} | Avg instability: ${m.averageInstability} | Orphans: ${m.orphanFileCount}`);
+  lines.push(`    Cycles: ${metricText(m.cyclicDependencyCount)} | Max fan-out: ${metricText(m.maxFanOut)} | Max fan-in: ${metricText(m.maxFanIn)}`);
+  lines.push(`    Abstraction ratio: ${metricText(m.abstractionRatio)} | Avg instability: ${metricText(m.averageInstability)} | Orphans: ${metricText(m.orphanFileCount)}`);
   lines.push('');
   lines.push(`  Duration: ${report.durationMs}ms`);
 
@@ -70,30 +107,28 @@ export function formatHuman(report: EvaluationReport): string {
  */
 export function formatCSV(report: EvaluationReport): string {
   const dims = report.perDimensionScores;
-  const getAVR = (d: string) => {
+  // A dimension without a row (not executed in the mode, or dropped) is printed `n/a` (BR-U3-43).
+  const getAVR = (d: Dimension): string => {
     const found = dims.find((s) => s.dimension === d);
-    return found ? Number(found.avr).toFixed(3) : '0.000';
+    return found ? Number(found.avr).toFixed(3) : 'n/a';
   };
 
   const m = report.universalMetrics;
   const fields = [
     report.projectPath,
-    Number(report.ahsDeterministic).toFixed(3),
-    report.ahsCombined ? Number(report.ahsCombined).toFixed(3) : '',
+    ahsText(headlineAhs(report).value, 3),
+    report.scoring.verdictSource,
+    ahsText(report.ahsDeterministic, 3),
+    ahsText(report.ahsCombined, 3),
+    ahsText(report.ahsNeuronal, 3),
     report.verdict,
-    getAVR('structural'),
-    getAVR('coupling'),
-    getAVR('pattern'),
-    getAVR('solid'),
-    getAVR('convention'),
-    getAVR('semantic'),
-    getAVR('intent'),
-    String(m.cyclicDependencyCount),
-    String(m.maxFanOut),
-    String(m.maxFanIn),
-    m.abstractionRatio.toFixed(3),
-    m.averageInstability.toFixed(3),
-    String(m.orphanFileCount),
+    ...CSV_DIMENSIONS.map(getAVR),
+    metricText(m.cyclicDependencyCount),
+    metricText(m.maxFanOut),
+    metricText(m.maxFanIn),
+    metricText(m.abstractionRatio, 3),
+    metricText(m.averageInstability, 3),
+    metricText(m.orphanFileCount),
   ];
 
   return fields.join(',');
@@ -107,15 +142,7 @@ export function formatActionableHuman(
   report: EvaluationReport,
   fitnessFunctions: readonly FitnessFunction[],
 ): string {
-  const ahs = Number(report.ahsDeterministic).toFixed(2);
-  const verdict = report.verdict.toUpperCase();
-  const lines: string[] = [];
-
-  lines.push('╔═══════════════════════════════════════════╗');
-  lines.push(`║  Architectural Health Score: ${ahs} (${verdict})`.padEnd(44) + '║');
-  lines.push('╚═══════════════════════════════════════════╝');
-  lines.push('');
-  lines.push(`  AHS (deterministic): ${Number(report.ahsDeterministic).toFixed(2)}`);
+  const lines: string[] = headerBox(report);
   lines.push(`  Verdict:             ${report.verdict}`);
   lines.push(`  Mode:                ${report.evaluationMode}`);
   lines.push('');
@@ -142,5 +169,5 @@ export function formatActionableHuman(
  * CSV header row.
  */
 export function csvHeader(): string {
-  return 'project,ahs_deterministic,ahs_combined,verdict,avr_structural,avr_coupling,avr_pattern,avr_solid,avr_convention,avr_semantic,avr_intent,cycles,max_fan_out,max_fan_in,abstraction_ratio,avg_instability,orphans';
+  return 'project,ahs,verdict_source,ahs_deterministic,ahs_combined,ahs_neuronal,verdict,avr_structural,avr_coupling,avr_pattern,avr_solid,avr_convention,avr_semantic,avr_integrity,cycles,max_fan_out,max_fan_in,abstraction_ratio,avg_instability,orphans';
 }

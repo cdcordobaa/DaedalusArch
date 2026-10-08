@@ -16,7 +16,7 @@ function makeReportInput(outputPath: string): ReportInput {
     ahsDeterministic: ahsScore(0.85),
     verdict: 'pass',
     perDimensionScores: [
-      { dimension: 'structural', avr: avrScore(0.1), weight: 0.35, violationCount: 1, functionCount: 3 },
+      { dimension: 'structural', avr: avrScore(0.1), violatedWeight: 0.3, weight: 0.35, effectiveWeight: 0.35, violationCount: 1, functionCount: 3 },
     ],
     violations: [
       {
@@ -32,6 +32,28 @@ function makeReportInput(outputPath: string): ReportInput {
     evaluationMode: 'symbolic-only',
     durationMs: 500,
     warnings: [],
+    scoring: {
+      weights: { structural: 0.35, coupling: 0.2, pattern: 0.3, solid: 0.1, convention: 0.05, semantic: 0, integrity: 0 },
+      thresholds: { pass: 0.8, warning: 0.65, softBlock: 0.5 },
+      confidenceThresholds: { high: 0.85, medium: 0.6, iccMinimum: 0.7 },
+      verdictSource: 'ahsDeterministic',
+    },
+    functionExecution: {
+      declared: 0, adrDerived: 0, compiled: 0, disabled: 0, dropped: [],
+      skippedByMode: 0, noJudgeUnits: [], executed: 0, failed: [],
+    },
+    functionResults: [],
+    disabledFunctions: [],
+    graphStats: { nodeCount: 0, edgeCount: 0, layerCoverage: 0, nodeCountByType: {}, edgeCountByType: {} },
+    layerAnnotation: { mapped: 0, unmapped: 0, unmappedFiles: [] },
+    parseCoverage: { total: 0, parsed: 0, percentage: 0, skipped: [] },
+    importResolution: {
+      resolvedInternal: 0, external: 0, unresolved: 0, unsupportedDynamic: 0,
+      externalOutOfRootAlias: 0, droppedNoFileNode: 0,
+    },
+    timings: { stages: [], totalMs: 0 },
+    droppedDimensions: [],
+    judge: { provider: 'none', model: 'none', runsPerUnit: 0 },
   };
 
   const spec: ParsedSpec = {
@@ -49,7 +71,7 @@ function makeReportInput(outputPath: string): ReportInput {
         isBuiltIn: true, validated: true, enabled: true, excludePaths: [],
       },
     ],
-    scoringWeights: { structural: 0.35, coupling: 0.2, pattern: 0.3, solid: 0.1, convention: 0.05, semantic: 0, integrity: 0, intent: 0 },
+    scoringWeights: { structural: 0.35, coupling: 0.2, pattern: 0.3, solid: 0.1, convention: 0.05, semantic: 0, integrity: 0 },
     verdictThresholds: { pass: 0.8, warning: 0.65, softBlock: 0.5 },
     confidenceThresholds: { high: 0.85, medium: 0.6, iccMinimum: 0.7 },
     adrRules: [],

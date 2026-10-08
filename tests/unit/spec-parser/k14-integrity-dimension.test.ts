@@ -74,19 +74,19 @@ describe('BR-U1-20 dimension alias', () => {
 describe('BR-U1-21 full_mode_weights intent alias and collision', () => {
   it('(a) legacy weights map intent to integrity, intent 0, one SPEC_004, BR-SPEC-07 sum passes (strict mode)', async () => {
     const { spec, warnings } = await parsed(writeSpec(FN_S01, FULL(', intent: 0.04')), true);
-    expect(spec.fullModeWeights).toMatchObject({ integrity: 0.04, semantic: 0.04, intent: 0 });
+    expect(spec.fullModeWeights).toMatchObject({ integrity: 0.04, semantic: 0.04 });
     expect(spec004(warnings)).toEqual(['full_mode_weights.intent is deprecated; mapped to integrity']);
   });
 
   it('(a) the integrity key parses without SPEC_004', async () => {
     const { spec, warnings } = await parsed(writeSpec(FN_S01, FULL(', integrity: 0.04')), true);
-    expect(spec.fullModeWeights).toMatchObject({ integrity: 0.04, semantic: 0.04, intent: 0 });
+    expect(spec.fullModeWeights).toMatchObject({ integrity: 0.04, semantic: 0.04 });
     expect(spec004(warnings)).toEqual([]);
   });
 
   it('(a) scoring.weights gives semantic = integrity = intent = 0', async () => {
     const { spec } = await parsed(writeSpec(FN_S01, ''));
-    expect(spec.scoringWeights).toMatchObject({ semantic: 0, integrity: 0, intent: 0 });
+    expect(spec.scoringWeights).toMatchObject({ semantic: 0, integrity: 0 });
   });
 
   it.each([
@@ -113,7 +113,7 @@ describe('BR-U1-21 full_mode_weights intent alias and collision', () => {
       'Dimension "intent" of FF-N02 is deprecated; mapped to "semantic"',
       'full_mode_weights.intent is deprecated; mapped to integrity',
     ]);
-    expect(spec.fullModeWeights).toMatchObject({ integrity: 0.04, intent: 0 });
+    expect(spec.fullModeWeights).toMatchObject({ integrity: 0.04 });
   });
 });
 
@@ -125,8 +125,8 @@ describe('BR-U1-22 FR-22 producers', () => {
       const n02 = t?.functions.find((f) => String(f.id) === 'FF-N02');
       expect([n01?.name, n01?.dimension, n01?.route]).toEqual(['srp-semantic', 'integrity', 'neuronal']);
       expect([n02?.dimension, n02?.route]).toEqual(['semantic', 'neuronal']);
-      expect(t?.defaultFullModeWeights).toMatchObject({ semantic: 0.04, integrity: 0.04, intent: 0 });
-      expect(t?.defaultWeights).toMatchObject({ semantic: 0, integrity: 0, intent: 0 });
+      expect(t?.defaultFullModeWeights).toMatchObject({ semantic: 0.04, integrity: 0.04 });
+      expect(t?.defaultWeights).toMatchObject({ semantic: 0, integrity: 0 });
     }
   });
 
@@ -136,7 +136,7 @@ describe('BR-U1-22 FR-22 producers', () => {
     const n02 = spec.fitnessFunctions.find((f) => String(f.id) === 'FF-N02');
     expect([n01?.name, n01?.dimension, n01?.route]).toEqual(['srp-semantic', 'integrity', 'neuronal']);
     expect(n02?.dimension).toBe('semantic');
-    expect(spec.fullModeWeights).toMatchObject({ integrity: 0.04, intent: 0 });
+    expect(spec.fullModeWeights).toMatchObject({ integrity: 0.04 });
     expect(spec004(warnings)).toEqual([]);
   });
 

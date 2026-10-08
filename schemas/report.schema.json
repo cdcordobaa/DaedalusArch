@@ -1,7 +1,7 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
   "$id": "https://daedalus-arch.local/schemas/report.schema.json",
-  "$comment": "DRAFT (U0). U3 freezes: adds the new fields to `required`. Mirrors EvaluationReport in src/shared/types/evaluation.ts; enums mirror NODE_TYPES, EDGE_TYPES, DIMENSIONS (src/shared/types/enums.ts) and BUILT_IN_VIOLATION_TYPES.",
+  "$comment": "FROZEN at U3-R10 (FR-14, FR-36; U3 BR-U3-59, 60, 65; domain-entities.md §7). Embedded as REPORT_SCHEMA in src/scoring-engine/report-schema.ts (deep-equal test); validateReport runs it on every assembled report. Version = $id + the CLI commit (no reportSchemaVersion). A change reopens U3 as a reviewed patch. Enums mirror NODE_TYPES, EDGE_TYPES, DIMENSIONS (src/shared/types/enums.ts) and BUILT_IN_VIOLATION_TYPES; neuralResults rows are U4 NeuralResultRow (U4 DE §4.8).",
   "title": "DaedalusArch evaluation report",
   "type": "object",
   "additionalProperties": false,
@@ -9,48 +9,249 @@
     "runId",
     "projectPath",
     "specVersion",
-    "ahsDeterministic",
-    "verdict",
-    "perDimensionScores",
-    "violations",
-    "universalMetrics",
     "evaluationMode",
     "durationMs",
+    "verdict",
+    "scoring",
+    "perDimensionScores",
+    "droppedDimensions",
+    "violations",
+    "functionExecution",
+    "functionResults",
+    "disabledFunctions",
+    "universalMetrics",
+    "graphStats",
+    "layerAnnotation",
+    "parseCoverage",
+    "importResolution",
+    "timings",
+    "judge",
     "warnings"
   ],
+  "allOf": [
+    {
+      "if": {
+        "required": [
+          "evaluationMode"
+        ],
+        "properties": {
+          "evaluationMode": {
+            "const": "neuronal-only"
+          }
+        }
+      },
+      "then": {
+        "required": [
+          "ahsNeuronal",
+          "neuralResults"
+        ]
+      },
+      "else": {
+        "required": [
+          "ahsDeterministic"
+        ]
+      }
+    },
+    {
+      "if": {
+        "required": [
+          "evaluationMode"
+        ],
+        "properties": {
+          "evaluationMode": {
+            "const": "full"
+          }
+        }
+      },
+      "then": {
+        "required": [
+          "ahsCombined",
+          "ahsNeuronal",
+          "neuralResults"
+        ]
+      }
+    },
+    {
+      "if": {
+        "required": [
+          "evaluationMode"
+        ],
+        "properties": {
+          "evaluationMode": {
+            "const": "symbolic-only"
+          }
+        }
+      },
+      "then": {
+        "not": {
+          "required": [
+            "neuralResults"
+          ]
+        }
+      }
+    }
+  ],
   "properties": {
-    "runId": { "type": "string", "minLength": 1 },
-    "projectPath": { "type": "string" },
-    "specVersion": { "type": "string" },
-    "ahsDeterministic": { "$ref": "#/definitions/unitInterval" },
-    "ahsCombined": { "$ref": "#/definitions/unitInterval" },
-    "ahsNeuronal": { "$ref": "#/definitions/unitInterval" },
-    "verdict": { "type": "string", "enum": ["pass", "warning", "soft-block", "hard-block"] },
-    "perDimensionScores": { "type": "array", "items": { "$ref": "#/definitions/perDimensionScore" } },
-    "violations": { "type": "array", "items": { "$ref": "#/definitions/violation" } },
-    "universalMetrics": { "$ref": "#/definitions/universalHealthMetrics" },
-    "evaluationMode": { "type": "string", "enum": ["full", "symbolic-only", "neuronal-only"] },
-    "durationMs": { "$ref": "#/definitions/nonNegativeNumber" },
-    "warnings": { "type": "array", "items": { "$ref": "#/definitions/pipelineWarning" } },
-    "functionExecution": { "$ref": "#/definitions/functionExecution" },
-    "functionResults": { "type": "array", "items": { "$ref": "#/definitions/functionResultRow" } },
-    "graphStats": { "$ref": "#/definitions/graphStats" },
-    "layerAnnotation": { "$ref": "#/definitions/layerAnnotationSummary" },
-    "parseCoverage": { "$ref": "#/definitions/parseCoverage" },
-    "importResolution": { "$ref": "#/definitions/importResolutionStats" },
-    "timings": { "$ref": "#/definitions/stageTimings" },
-    "droppedDimensions": { "type": "array", "items": { "$ref": "#/definitions/droppedDimension" } },
-    "judge": { "$ref": "#/definitions/judgeProvenance" }
+    "runId": {
+      "type": "string",
+      "minLength": 1
+    },
+    "projectPath": {
+      "type": "string"
+    },
+    "specVersion": {
+      "type": "string"
+    },
+    "ahsDeterministic": {
+      "$ref": "#/definitions/unitInterval"
+    },
+    "ahsCombined": {
+      "$ref": "#/definitions/unitInterval"
+    },
+    "ahsNeuronal": {
+      "$ref": "#/definitions/unitInterval"
+    },
+    "verdict": {
+      "type": "string",
+      "enum": [
+        "pass",
+        "warning",
+        "soft-block",
+        "hard-block"
+      ]
+    },
+    "scoring": {
+      "$ref": "#/definitions/reportScoring"
+    },
+    "perDimensionScores": {
+      "type": "array",
+      "items": {
+        "$ref": "#/definitions/perDimensionScore"
+      }
+    },
+    "violations": {
+      "type": "array",
+      "items": {
+        "$ref": "#/definitions/violation"
+      }
+    },
+    "universalMetrics": {
+      "$ref": "#/definitions/universalHealthMetrics"
+    },
+    "evaluationMode": {
+      "type": "string",
+      "enum": [
+        "full",
+        "symbolic-only",
+        "neuronal-only"
+      ]
+    },
+    "durationMs": {
+      "$ref": "#/definitions/nonNegativeNumber"
+    },
+    "warnings": {
+      "type": "array",
+      "items": {
+        "$ref": "#/definitions/pipelineWarning"
+      }
+    },
+    "functionExecution": {
+      "$ref": "#/definitions/functionExecution"
+    },
+    "functionResults": {
+      "type": "array",
+      "items": {
+        "$ref": "#/definitions/functionResultRow"
+      }
+    },
+    "disabledFunctions": {
+      "type": "array",
+      "items": {
+        "$ref": "#/definitions/disabledFunctionRow"
+      }
+    },
+    "graphStats": {
+      "$ref": "#/definitions/graphStats"
+    },
+    "layerAnnotation": {
+      "$ref": "#/definitions/layerAnnotationSummary"
+    },
+    "parseCoverage": {
+      "$ref": "#/definitions/parseCoverage"
+    },
+    "importResolution": {
+      "$ref": "#/definitions/importResolutionStats"
+    },
+    "timings": {
+      "$ref": "#/definitions/stageTimings"
+    },
+    "droppedDimensions": {
+      "type": "array",
+      "items": {
+        "$ref": "#/definitions/droppedDimension"
+      }
+    },
+    "judge": {
+      "$ref": "#/definitions/judgeProvenance"
+    },
+    "neuralResults": {
+      "type": "array",
+      "items": {
+        "$ref": "#/definitions/neuralResultRow"
+      }
+    }
   },
   "definitions": {
-    "unitInterval": { "type": "number", "minimum": 0, "maximum": 1 },
-    "nonNegativeNumber": { "type": "number", "minimum": 0 },
-    "count": { "type": "integer", "minimum": 0 },
+    "unitInterval": {
+      "type": "number",
+      "minimum": 0,
+      "maximum": 1
+    },
+    "nonNegativeNumber": {
+      "type": "number",
+      "minimum": 0
+    },
+    "count": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "countOrNull": {
+      "type": [
+        "integer",
+        "null"
+      ],
+      "minimum": 0
+    },
+    "ratioOrNull": {
+      "type": [
+        "number",
+        "null"
+      ],
+      "minimum": 0
+    },
     "dimension": {
       "type": "string",
-      "enum": ["structural", "coupling", "pattern", "solid", "convention", "semantic", "integrity", "intent"]
+      "enum": [
+        "structural",
+        "coupling",
+        "pattern",
+        "solid",
+        "convention",
+        "semantic",
+        "integrity"
+      ]
     },
-    "nodeType": { "type": "string", "enum": ["File", "Class", "Interface", "Method", "Function", "Package"] },
+    "nodeType": {
+      "type": "string",
+      "enum": [
+        "File",
+        "Class",
+        "Interface",
+        "Method",
+        "Function",
+        "Package"
+      ]
+    },
     "edgeType": {
       "type": "string",
       "enum": [
@@ -65,9 +266,31 @@
         "RE_EXPORTS"
       ]
     },
-    "severity": { "type": "string", "enum": ["critical", "major", "minor", "advisory"] },
-    "route": { "type": "string", "enum": ["symbolic", "neuronal", "hybrid"] },
-    "templateTag": { "type": "string", "enum": ["structural", "topological", "pattern-proxy"] },
+    "severity": {
+      "type": "string",
+      "enum": [
+        "critical",
+        "major",
+        "minor",
+        "advisory"
+      ]
+    },
+    "route": {
+      "type": "string",
+      "enum": [
+        "symbolic",
+        "neuronal",
+        "hybrid"
+      ]
+    },
+    "templateTag": {
+      "type": "string",
+      "enum": [
+        "structural",
+        "topological",
+        "pattern-proxy"
+      ]
+    },
     "violationType": {
       "anyOf": [
         {
@@ -100,46 +323,131 @@
             "INTEGRITY_VIOLATION"
           ]
         },
-        { "type": "string", "pattern": "^CUSTOM_" }
+        {
+          "type": "string",
+          "pattern": "^CUSTOM_"
+        }
       ]
     },
     "violation": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["id", "type", "dimension", "severity", "functionId", "route", "filePath", "message", "deterministic"],
+      "required": [
+        "id",
+        "type",
+        "dimension",
+        "severity",
+        "functionId",
+        "route",
+        "filePath",
+        "message",
+        "deterministic"
+      ],
       "properties": {
-        "id": { "type": "string" },
-        "type": { "$ref": "#/definitions/violationType" },
-        "dimension": { "$ref": "#/definitions/dimension" },
-        "severity": { "$ref": "#/definitions/severity" },
-        "functionId": { "type": "string" },
-        "route": { "$ref": "#/definitions/route" },
-        "filePath": { "type": "string" },
-        "sourceLayer": { "type": "string" },
-        "targetLayer": { "type": "string" },
-        "message": { "type": "string" },
-        "evidence": { "type": "array", "items": { "type": "string" } },
-        "deterministic": { "type": "boolean" },
-        "line": { "type": "integer", "minimum": 1 },
-        "lines": { "type": "array", "items": { "type": "integer", "minimum": 1 } },
-        "target": { "type": "string" },
-        "isTypeOnly": { "type": "boolean" },
-        "tag": { "$ref": "#/definitions/templateTag" },
-        "unitId": { "type": "string" },
-        "discriminator": { "type": "array", "items": { "type": "string" } }
+        "id": {
+          "type": "string"
+        },
+        "type": {
+          "$ref": "#/definitions/violationType"
+        },
+        "dimension": {
+          "$ref": "#/definitions/dimension"
+        },
+        "severity": {
+          "$ref": "#/definitions/severity"
+        },
+        "functionId": {
+          "type": "string"
+        },
+        "route": {
+          "$ref": "#/definitions/route"
+        },
+        "filePath": {
+          "type": "string"
+        },
+        "sourceLayer": {
+          "type": "string"
+        },
+        "targetLayer": {
+          "type": "string"
+        },
+        "message": {
+          "type": "string"
+        },
+        "evidence": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "deterministic": {
+          "type": "boolean"
+        },
+        "line": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "lines": {
+          "type": "array",
+          "items": {
+            "type": "integer",
+            "minimum": 1
+          }
+        },
+        "target": {
+          "type": "string"
+        },
+        "isTypeOnly": {
+          "type": "boolean"
+        },
+        "tag": {
+          "$ref": "#/definitions/templateTag"
+        },
+        "unitId": {
+          "type": "string"
+        },
+        "discriminator": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
       }
     },
     "perDimensionScore": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["dimension", "avr", "weight", "violationCount", "functionCount"],
+      "required": [
+        "dimension",
+        "avr",
+        "violatedWeight",
+        "weight",
+        "effectiveWeight",
+        "violationCount",
+        "functionCount"
+      ],
       "properties": {
-        "dimension": { "$ref": "#/definitions/dimension" },
-        "avr": { "$ref": "#/definitions/unitInterval" },
-        "weight": { "$ref": "#/definitions/nonNegativeNumber" },
-        "effectiveWeight": { "$ref": "#/definitions/unitInterval" },
-        "violationCount": { "$ref": "#/definitions/count" },
-        "functionCount": { "$ref": "#/definitions/count" }
+        "dimension": {
+          "$ref": "#/definitions/dimension"
+        },
+        "avr": {
+          "$ref": "#/definitions/unitInterval"
+        },
+        "violatedWeight": {
+          "$ref": "#/definitions/nonNegativeNumber"
+        },
+        "weight": {
+          "$ref": "#/definitions/nonNegativeNumber"
+        },
+        "effectiveWeight": {
+          "$ref": "#/definitions/unitInterval"
+        },
+        "violationCount": {
+          "$ref": "#/definitions/count"
+        },
+        "functionCount": {
+          "$ref": "#/definitions/count"
+        }
       }
     },
     "universalHealthMetrics": {
@@ -154,167 +462,830 @@
         "orphanFileCount"
       ],
       "properties": {
-        "cyclicDependencyCount": { "$ref": "#/definitions/count" },
-        "maxFanOut": { "$ref": "#/definitions/count" },
-        "maxFanIn": { "$ref": "#/definitions/count" },
-        "abstractionRatio": { "$ref": "#/definitions/nonNegativeNumber" },
-        "averageInstability": { "$ref": "#/definitions/nonNegativeNumber" },
-        "orphanFileCount": { "$ref": "#/definitions/count" }
+        "cyclicDependencyCount": {
+          "$ref": "#/definitions/countOrNull"
+        },
+        "maxFanOut": {
+          "$ref": "#/definitions/countOrNull"
+        },
+        "maxFanIn": {
+          "$ref": "#/definitions/countOrNull"
+        },
+        "abstractionRatio": {
+          "$ref": "#/definitions/ratioOrNull"
+        },
+        "averageInstability": {
+          "$ref": "#/definitions/ratioOrNull"
+        },
+        "orphanFileCount": {
+          "$ref": "#/definitions/countOrNull"
+        }
       }
     },
     "pipelineWarning": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["code", "message", "stage"],
+      "required": [
+        "code",
+        "message",
+        "stage"
+      ],
       "properties": {
-        "code": { "type": "string" },
-        "message": { "type": "string" },
-        "context": { "type": "object" },
-        "stage": { "type": "string" }
+        "code": {
+          "type": "string"
+        },
+        "message": {
+          "type": "string"
+        },
+        "context": {
+          "type": "object"
+        },
+        "stage": {
+          "type": "string"
+        }
       }
     },
     "functionFailure": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["functionId", "name", "code", "message"],
+      "required": [
+        "functionId",
+        "name",
+        "code",
+        "message"
+      ],
       "properties": {
-        "functionId": { "type": "string" },
-        "name": { "type": "string" },
-        "code": { "type": "string" },
-        "message": { "type": "string" }
+        "functionId": {
+          "type": "string"
+        },
+        "name": {
+          "type": "string"
+        },
+        "code": {
+          "type": "string"
+        },
+        "message": {
+          "type": "string"
+        }
       }
     },
     "functionExecution": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["compiled", "executed", "failed"],
+      "required": [
+        "declared",
+        "adrDerived",
+        "compiled",
+        "disabled",
+        "dropped",
+        "skippedByMode",
+        "noJudgeUnits",
+        "executed",
+        "failed"
+      ],
       "properties": {
-        "compiled": { "$ref": "#/definitions/count" },
-        "executed": { "$ref": "#/definitions/count" },
-        "failed": { "type": "array", "items": { "$ref": "#/definitions/functionFailure" } }
+        "declared": {
+          "$ref": "#/definitions/count"
+        },
+        "adrDerived": {
+          "$ref": "#/definitions/count"
+        },
+        "compiled": {
+          "$ref": "#/definitions/count"
+        },
+        "disabled": {
+          "$ref": "#/definitions/count"
+        },
+        "dropped": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "skippedByMode": {
+          "$ref": "#/definitions/count"
+        },
+        "noJudgeUnits": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "executed": {
+          "$ref": "#/definitions/count"
+        },
+        "failed": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/functionFailure"
+          }
+        }
       }
     },
     "functionResultRow": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["functionId", "name", "dimension", "route", "passed", "violationCount", "executionTimeMs"],
+      "required": [
+        "functionId",
+        "name",
+        "dimension",
+        "route",
+        "passed",
+        "violationCount",
+        "executionTimeMs",
+        "truncated"
+      ],
+      "allOf": [
+        {
+          "if": {
+            "required": [
+              "route"
+            ],
+            "properties": {
+              "route": {
+                "enum": [
+                  "symbolic",
+                  "hybrid"
+                ]
+              }
+            }
+          },
+          "then": {
+            "required": [
+              "tag"
+            ]
+          }
+        },
+        {
+          "if": {
+            "required": [
+              "route"
+            ],
+            "properties": {
+              "route": {
+                "const": "neuronal"
+              }
+            }
+          },
+          "then": {
+            "not": {
+              "required": [
+                "tag"
+              ]
+            }
+          }
+        }
+      ],
       "properties": {
-        "functionId": { "type": "string" },
-        "name": { "type": "string" },
-        "dimension": { "$ref": "#/definitions/dimension" },
-        "route": { "$ref": "#/definitions/route" },
-        "tag": { "$ref": "#/definitions/templateTag" },
-        "passed": { "type": "boolean" },
-        "violationCount": { "$ref": "#/definitions/count" },
-        "executionTimeMs": { "$ref": "#/definitions/nonNegativeNumber" }
+        "functionId": {
+          "type": "string"
+        },
+        "name": {
+          "type": "string"
+        },
+        "dimension": {
+          "$ref": "#/definitions/dimension"
+        },
+        "route": {
+          "$ref": "#/definitions/route"
+        },
+        "tag": {
+          "$ref": "#/definitions/templateTag"
+        },
+        "passed": {
+          "type": "boolean"
+        },
+        "violationCount": {
+          "$ref": "#/definitions/count"
+        },
+        "executionTimeMs": {
+          "$ref": "#/definitions/nonNegativeNumber"
+        },
+        "truncated": {
+          "type": "boolean"
+        }
+      }
+    },
+    "disabledFunctionRow": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "functionId",
+        "name",
+        "reason"
+      ],
+      "properties": {
+        "functionId": {
+          "type": "string"
+        },
+        "name": {
+          "type": "string"
+        },
+        "reason": {
+          "type": "string"
+        }
+      }
+    },
+    "scoringWeights": {
+      "type": "object",
+      "propertyNames": {
+        "$ref": "#/definitions/dimension"
+      },
+      "additionalProperties": {
+        "$ref": "#/definitions/nonNegativeNumber"
+      }
+    },
+    "reportScoring": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "weights",
+        "thresholds",
+        "confidenceThresholds",
+        "verdictSource"
+      ],
+      "properties": {
+        "weights": {
+          "$ref": "#/definitions/scoringWeights"
+        },
+        "fullModeWeights": {
+          "$ref": "#/definitions/scoringWeights"
+        },
+        "thresholds": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "pass",
+            "warning",
+            "softBlock"
+          ],
+          "properties": {
+            "pass": {
+              "$ref": "#/definitions/unitInterval"
+            },
+            "warning": {
+              "$ref": "#/definitions/unitInterval"
+            },
+            "softBlock": {
+              "$ref": "#/definitions/unitInterval"
+            }
+          }
+        },
+        "confidenceThresholds": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "high",
+            "medium",
+            "iccMinimum"
+          ],
+          "properties": {
+            "high": {
+              "$ref": "#/definitions/unitInterval"
+            },
+            "medium": {
+              "$ref": "#/definitions/unitInterval"
+            },
+            "iccMinimum": {
+              "$ref": "#/definitions/unitInterval"
+            }
+          }
+        },
+        "verdictSource": {
+          "type": "string",
+          "enum": [
+            "ahsDeterministic",
+            "ahsCombined",
+            "ahsNeuronal"
+          ]
+        }
       }
     },
     "countByNodeType": {
       "type": "object",
-      "propertyNames": { "$ref": "#/definitions/nodeType" },
-      "additionalProperties": { "$ref": "#/definitions/count" }
+      "propertyNames": {
+        "$ref": "#/definitions/nodeType"
+      },
+      "additionalProperties": {
+        "$ref": "#/definitions/count"
+      }
     },
     "countByEdgeType": {
       "type": "object",
-      "propertyNames": { "$ref": "#/definitions/edgeType" },
-      "additionalProperties": { "$ref": "#/definitions/count" }
+      "propertyNames": {
+        "$ref": "#/definitions/edgeType"
+      },
+      "additionalProperties": {
+        "$ref": "#/definitions/count"
+      }
     },
     "graphStats": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["nodeCount", "edgeCount", "layerCoverage", "nodeCountByType", "edgeCountByType"],
+      "required": [
+        "nodeCount",
+        "edgeCount",
+        "layerCoverage",
+        "nodeCountByType",
+        "edgeCountByType"
+      ],
       "properties": {
-        "nodeCount": { "$ref": "#/definitions/count" },
-        "edgeCount": { "$ref": "#/definitions/count" },
-        "layerCoverage": { "$ref": "#/definitions/nonNegativeNumber" },
-        "nodeCountByType": { "$ref": "#/definitions/countByNodeType" },
-        "edgeCountByType": { "$ref": "#/definitions/countByEdgeType" }
+        "nodeCount": {
+          "$ref": "#/definitions/count"
+        },
+        "edgeCount": {
+          "$ref": "#/definitions/count"
+        },
+        "layerCoverage": {
+          "$ref": "#/definitions/nonNegativeNumber"
+        },
+        "nodeCountByType": {
+          "$ref": "#/definitions/countByNodeType"
+        },
+        "edgeCountByType": {
+          "$ref": "#/definitions/countByEdgeType"
+        }
       }
     },
     "layerAnnotationSummary": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["mapped", "unmapped", "unmappedFiles"],
+      "required": [
+        "mapped",
+        "unmapped",
+        "unmappedFiles"
+      ],
       "properties": {
-        "mapped": { "$ref": "#/definitions/count" },
-        "unmapped": { "$ref": "#/definitions/count" },
-        "unmappedFiles": { "type": "array", "items": { "type": "string" } }
+        "mapped": {
+          "$ref": "#/definitions/count"
+        },
+        "unmapped": {
+          "$ref": "#/definitions/count"
+        },
+        "unmappedFiles": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
       }
     },
     "skippedFile": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["filePath", "reason"],
+      "required": [
+        "filePath",
+        "reason"
+      ],
       "properties": {
-        "filePath": { "type": "string" },
-        "reason": { "type": "string" }
+        "filePath": {
+          "type": "string"
+        },
+        "reason": {
+          "type": "string"
+        }
       }
     },
     "parseCoverage": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["total", "parsed", "percentage", "skipped"],
+      "required": [
+        "total",
+        "parsed",
+        "percentage",
+        "skipped"
+      ],
       "properties": {
-        "total": { "$ref": "#/definitions/count" },
-        "parsed": { "$ref": "#/definitions/count" },
-        "percentage": { "$ref": "#/definitions/nonNegativeNumber" },
-        "skipped": { "type": "array", "items": { "$ref": "#/definitions/skippedFile" } }
+        "total": {
+          "$ref": "#/definitions/count"
+        },
+        "parsed": {
+          "$ref": "#/definitions/count"
+        },
+        "percentage": {
+          "$ref": "#/definitions/nonNegativeNumber"
+        },
+        "skipped": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/skippedFile"
+          }
+        }
       }
     },
     "importResolutionStats": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["resolvedInternal", "external", "unresolved", "unsupportedDynamic", "externalOutOfRootAlias", "droppedNoFileNode"],
+      "required": [
+        "resolvedInternal",
+        "external",
+        "unresolved",
+        "unsupportedDynamic",
+        "externalOutOfRootAlias",
+        "droppedNoFileNode"
+      ],
       "properties": {
-        "resolvedInternal": { "$ref": "#/definitions/count" },
-        "external": { "$ref": "#/definitions/count" },
-        "unresolved": { "$ref": "#/definitions/count" },
-        "unsupportedDynamic": { "$ref": "#/definitions/count" },
-        "externalOutOfRootAlias": { "$ref": "#/definitions/count" },
-        "droppedNoFileNode": { "$ref": "#/definitions/count" }
+        "resolvedInternal": {
+          "$ref": "#/definitions/count"
+        },
+        "external": {
+          "$ref": "#/definitions/count"
+        },
+        "unresolved": {
+          "$ref": "#/definitions/count"
+        },
+        "unsupportedDynamic": {
+          "$ref": "#/definitions/count"
+        },
+        "externalOutOfRootAlias": {
+          "$ref": "#/definitions/count"
+        },
+        "droppedNoFileNode": {
+          "$ref": "#/definitions/count"
+        }
       }
     },
     "stageTimingEntry": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["name", "durationMs", "status"],
+      "required": [
+        "name",
+        "durationMs",
+        "status"
+      ],
       "properties": {
-        "name": { "type": "string" },
-        "durationMs": { "$ref": "#/definitions/nonNegativeNumber" },
-        "status": { "type": "string", "enum": ["success", "warning", "error", "skipped"] }
+        "name": {
+          "type": "string"
+        },
+        "durationMs": {
+          "$ref": "#/definitions/nonNegativeNumber"
+        },
+        "status": {
+          "type": "string",
+          "enum": [
+            "success",
+            "warning",
+            "error",
+            "skipped"
+          ]
+        }
       }
     },
     "stageTimings": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["stages", "totalMs"],
+      "required": [
+        "stages",
+        "totalMs"
+      ],
       "properties": {
-        "stages": { "type": "array", "items": { "$ref": "#/definitions/stageTimingEntry" } },
-        "totalMs": { "$ref": "#/definitions/nonNegativeNumber" }
+        "stages": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/stageTimingEntry"
+          }
+        },
+        "totalMs": {
+          "$ref": "#/definitions/nonNegativeNumber"
+        }
       }
     },
     "droppedDimension": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["dimension", "reason", "declared", "executed"],
+      "required": [
+        "dimension",
+        "reason",
+        "declared",
+        "executed"
+      ],
       "properties": {
-        "dimension": { "$ref": "#/definitions/dimension" },
-        "reason": { "type": "string", "enum": ["disabled_by_spec", "execution_failure", "none_declared"] },
-        "declared": { "$ref": "#/definitions/count" },
-        "executed": { "$ref": "#/definitions/count" }
+        "dimension": {
+          "$ref": "#/definitions/dimension"
+        },
+        "reason": {
+          "type": "string",
+          "enum": [
+            "disabled_by_spec",
+            "execution_failure",
+            "none_declared",
+            "no-judge-units"
+          ]
+        },
+        "declared": {
+          "$ref": "#/definitions/count"
+        },
+        "executed": {
+          "$ref": "#/definitions/count"
+        }
       }
     },
     "judgeProvenance": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["provider", "model", "runsPerUnit"],
+      "required": [
+        "provider",
+        "model",
+        "runsPerUnit"
+      ],
       "properties": {
-        "provider": { "type": "string", "enum": ["claude-cli", "gemini", "mock", "null", "none"] },
-        "model": { "type": "string" },
-        "effort": { "type": "string", "enum": ["low", "medium", "high", "xhigh", "max"] },
-        "cliVersion": { "type": "string" },
-        "cassetteMode": { "type": "string", "enum": ["record", "replay"] },
-        "runsPerUnit": { "$ref": "#/definitions/count" }
+        "provider": {
+          "type": "string",
+          "enum": [
+            "claude-cli",
+            "gemini",
+            "mock",
+            "null",
+            "none"
+          ]
+        },
+        "model": {
+          "type": "string"
+        },
+        "effort": {
+          "type": "string",
+          "enum": [
+            "low",
+            "medium",
+            "high",
+            "xhigh",
+            "max"
+          ]
+        },
+        "cliVersion": {
+          "type": "string"
+        },
+        "cassetteMode": {
+          "type": "string",
+          "enum": [
+            "record",
+            "replay"
+          ]
+        },
+        "runsPerUnit": {
+          "$ref": "#/definitions/count"
+        },
+        "resolvedModel": {
+          "type": "string"
+        },
+        "repetition": {
+          "$ref": "#/definitions/count"
+        },
+        "isolationProbeSha256": {
+          "type": "string"
+        },
+        "configListingSha256": {
+          "type": "string"
+        },
+        "provenanceMixed": {
+          "type": "boolean"
+        },
+        "seededList": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "neuralUnitRow": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "unitId",
+        "unitKind",
+        "layer",
+        "filePaths",
+        "status",
+        "verdict",
+        "confidence",
+        "confidenceStdDev",
+        "flaggedUnstable",
+        "validRunCount"
+      ],
+      "properties": {
+        "unitId": {
+          "type": "string"
+        },
+        "unitKind": {
+          "type": "string",
+          "enum": [
+            "file",
+            "class",
+            "module"
+          ]
+        },
+        "layer": {
+          "type": "string"
+        },
+        "filePaths": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "status": {
+          "type": "string",
+          "enum": [
+            "valid",
+            "invalid"
+          ]
+        },
+        "verdict": {
+          "type": "string",
+          "enum": [
+            "pass",
+            "fail",
+            "warning"
+          ]
+        },
+        "confidence": {
+          "$ref": "#/definitions/unitInterval"
+        },
+        "confidenceStdDev": {
+          "$ref": "#/definitions/nonNegativeNumber"
+        },
+        "flaggedUnstable": {
+          "type": "boolean"
+        },
+        "validRunCount": {
+          "$ref": "#/definitions/count"
+        },
+        "origin": {
+          "type": "string",
+          "enum": [
+            "addedByVariant"
+          ]
+        }
+      }
+    },
+    "neuralResultRow": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "functionId",
+        "dimension",
+        "aggregationRule",
+        "selection",
+        "unitsSelected",
+        "unitsCapped",
+        "candidateCount",
+        "uncoveredFileCount",
+        "candidateExclusions",
+        "unitsInvalidByCause",
+        "truncatedUnits",
+        "excerptTruncatedUnits",
+        "removedByVariant",
+        "unitResults"
+      ],
+      "properties": {
+        "functionId": {
+          "type": "string"
+        },
+        "dimension": {
+          "$ref": "#/definitions/dimension"
+        },
+        "aggregationRule": {
+          "type": "string",
+          "enum": [
+            "majority-of-valid-units-v1"
+          ]
+        },
+        "selection": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "source",
+            "candidateUnitIds",
+            "selectedUnitIds"
+          ],
+          "properties": {
+            "source": {
+              "type": "string",
+              "enum": [
+                "own",
+                "baseline"
+              ]
+            },
+            "candidateUnitIds": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            },
+            "selectedUnitIds": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            }
+          }
+        },
+        "unitsSelected": {
+          "$ref": "#/definitions/count"
+        },
+        "unitsCapped": {
+          "$ref": "#/definitions/count"
+        },
+        "candidateCount": {
+          "$ref": "#/definitions/count"
+        },
+        "uncoveredFileCount": {
+          "$ref": "#/definitions/count"
+        },
+        "singleFileModules": {
+          "$ref": "#/definitions/count"
+        },
+        "candidateExclusions": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "unlayered",
+            "exclude-paths",
+            "barrel",
+            "test-path",
+            "e2e-spec",
+            "generated-path",
+            "generated-marker"
+          ],
+          "properties": {
+            "unlayered": {
+              "$ref": "#/definitions/count"
+            },
+            "exclude-paths": {
+              "$ref": "#/definitions/count"
+            },
+            "barrel": {
+              "$ref": "#/definitions/count"
+            },
+            "test-path": {
+              "$ref": "#/definitions/count"
+            },
+            "e2e-spec": {
+              "$ref": "#/definitions/count"
+            },
+            "generated-path": {
+              "$ref": "#/definitions/count"
+            },
+            "generated-marker": {
+              "$ref": "#/definitions/count"
+            }
+          }
+        },
+        "unitsInvalidByCause": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "PARSE_FAILURE",
+            "MISSING_CONFIDENCE",
+            "MODEL_MISMATCH",
+            "TIMEOUT",
+            "BAD_ENVELOPE",
+            "CLI_EXIT",
+            "INSUFFICIENT_VALID_RUNS"
+          ],
+          "properties": {
+            "PARSE_FAILURE": {
+              "$ref": "#/definitions/count"
+            },
+            "MISSING_CONFIDENCE": {
+              "$ref": "#/definitions/count"
+            },
+            "MODEL_MISMATCH": {
+              "$ref": "#/definitions/count"
+            },
+            "TIMEOUT": {
+              "$ref": "#/definitions/count"
+            },
+            "BAD_ENVELOPE": {
+              "$ref": "#/definitions/count"
+            },
+            "CLI_EXIT": {
+              "$ref": "#/definitions/count"
+            },
+            "INSUFFICIENT_VALID_RUNS": {
+              "$ref": "#/definitions/count"
+            }
+          }
+        },
+        "truncatedUnits": {
+          "$ref": "#/definitions/count"
+        },
+        "excerptTruncatedUnits": {
+          "$ref": "#/definitions/count"
+        },
+        "removedByVariant": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "unitResults": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/neuralUnitRow"
+          }
+        }
       }
     }
   }

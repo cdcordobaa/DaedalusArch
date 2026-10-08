@@ -32,9 +32,9 @@ describe('C10 enumerations', () => {
     ]);
   });
 
-  it('DIMENSIONS gains integrity and keeps intent as a transitional member (D-U0-1)', () => {
+  it('DIMENSIONS has seven members: integrity in, intent removed (U3-R7, BR-U3-30)', () => {
     expect([...DIMENSIONS]).toEqual([
-      'structural', 'coupling', 'pattern', 'solid', 'convention', 'semantic', 'integrity', 'intent',
+      'structural', 'coupling', 'pattern', 'solid', 'convention', 'semantic', 'integrity',
     ]);
   });
 
@@ -54,7 +54,7 @@ describe('C10 enumerations', () => {
   it('derived unions accept the array members (compile-time check via tsconfig.u0-tests.json)', () => {
     const n: NodeType = 'Package';
     const e: EdgeType[] = ['FLOWS_TO', 'RE_EXPORTS'];
-    const d: Dimension[] = ['integrity', 'intent'];
+    const d: Dimension[] = ['integrity', 'semantic'];
     const k: LayerKind = 'application';
     const t: TemplateTag[] = ['structural', 'topological', 'pattern-proxy'];
     const j: JudgeUnitKind[] = ['file', 'class', 'module'];

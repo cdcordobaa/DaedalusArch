@@ -65,8 +65,8 @@ export interface LayerDefinition {
   readonly kindSource?: 'explicit' | 'name' | 'position';
 }
 
-// Keyed by the Dimension union (FR-22). While 'intent' is a transitional Dimension member
-// (D-U0-1), every literal carries both 'integrity' and 'intent'.
+// Keyed by the Dimension union (FR-22): every literal carries 'integrity'. 'intent' is no longer a
+// Dimension member (U3-R7, BR-U3-30); it survives only as a deprecated YAML alias (BR-U1-20/21).
 export type ScoringWeights = Readonly<Record<Dimension, number>>;
 
 export interface ConfidenceThresholds {

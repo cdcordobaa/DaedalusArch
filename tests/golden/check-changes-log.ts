@@ -1,17 +1,24 @@
 /**
- * Golden change-log checker (BR-U1-41, BR-U1-42; U1 code-generation plan D-U1-5, D-U1-7, D-U1-15).
+ * Golden change-log checker (BR-U1-41, BR-U1-42; U1 code-generation plan D-U1-5, D-U1-7, D-U1-15;
+ * extended for U3 and U4 labels by BR-U3-91, U3 code-generation plan D-U3-6).
  *
  * Pure module: `checkChangeLog` judges commit data, `collectFromGit` gathers it, `main` is the
  * CLI body. The runnable entry is `check-changes-log-cli.ts` (no exports, no direct-run guard).
  *
  * Rules:
- * - every commit touching `tests/golden/__snapshots__/` has a subject starting `U1-K<n>:`
- *   (n = 1..16); a snapshot commit without the label is unattributable;
+ * - every commit touching `tests/golden/__snapshots__/` has a subject starting with one label:
+ *   `U1-K<n>:` (n = 1..16), `U3-R<n>:` (n = 1..14) or `U4-K<n>:` (n >= 1); a snapshot commit
+ *   without a label is unattributable;
  * - that commit adds at least one non-observation `CHANGES.md` line with the same label whose
  *   case ids are `all` or cover every changed snapshot case;
  * - every added `CHANGES.md` line carrying a U1 label (`U1-K<digit>`) matches the D-U1-7 format,
  *   its case-id slot holds only members of the closed set (`all`/`self` only alone), and its
  *   attribution is the canonical string of its K;
+ * - every added line that is a U3 entry (`<date> U3-R<digit>` at the label position; prose that
+ *   only mentions `U3-Rn` is not an entry) matches the D-U3-6 grammar, has a known R (1..14), the
+ *   D-U1-7 case-id closed set, and an attribution equal byte for byte to `U3_ATTRIBUTIONS[R]`;
+ * - every added U4 entry (`<date> U4-K<digit>`) passes the shape check only (U4 supplies its
+ *   canonical strings in its own plan);
  * - any change under `results/` fails (BR-U1-42).
  */
 import { execFileSync } from 'node:child_process';
@@ -46,7 +53,22 @@ export const CHANGES_LINE_RE =
 /** A line carries a U1 label when it names a numbered K (`U1-Kn` placeholders in prose do not). */
 const U1_LABEL_RE = /U1-K\d/;
 
-const SUBJECT_LABEL_RE = /^U1-K(1[0-6]|[1-9]):/;
+/** Subject label of a snapshot-touching commit: U1-K, U3-R or U4-K (D-U3-6). */
+const SUBJECT_LABEL_RE = /^(U1-K(?:1[0-6]|[1-9])|U3-R(?:1[0-4]|[1-9])|U4-K[1-9][0-9]*):/;
+
+/** A line is a U3 entry only when a numbered R sits at the label position after the date. */
+export const U3_ENTRY_TRIGGER_RE = /^\d{4}-\d{2}-\d{2} U3-R[0-9]/;
+
+/** D-U3-6 line: `<date> U3-Rn [observation ]<case ids> — <attribution>: <text>`. */
+const U3_LINE_RE = /^\d{4}-\d{2}-\d{2} U3-R(\d+) (observation )?(all|self|[a-z-]+(?:, [a-z-]+)*) — (.+)$/;
+
+const U3_R_RE = /^(1[0-4]|[1-9])$/;
+
+/** A line is a U4 entry only when a numbered K sits at the label position after the date. */
+export const U4_ENTRY_TRIGGER_RE = /^\d{4}-\d{2}-\d{2} U4-K[0-9]/;
+
+/** U4 shape check (no canonical strings yet): `<date> U4-Kn [observation ]<case ids> — <attr>: <text>`. */
+const U4_LINE_RE = /^\d{4}-\d{2}-\d{2} U4-K([1-9][0-9]*) (observation )?(all|self|[a-z-]+(?:, [a-z-]+)*) — ([^:]+(?::[^ ][^:]*)*): .+$/;
 
 export const CASE_IDS: readonly string[] = [
   'correct-reference',
@@ -78,6 +100,27 @@ export const CANONICAL_ATTRIBUTION: Readonly<Record<number, string>> = {
   16: 'ADR-015 item 1 (ADR-016 a, U1 BR-U1-46)',
 };
 
+/**
+ * Canonical U3 attribution strings per R (U3 code-generation plan, "Canonical attribution
+ * strings"; the BLM §9 "Cause" cells, verbatim). Compared by string equality, not regex.
+ */
+export const U3_ATTRIBUTIONS: Readonly<Record<number, string>> = {
+  1: 'Bundled C10 patch (types, optional fields, intent kept until R7)',
+  2: 'FR-12 (FD U3 Q2 A; D-U0-12 pick)',
+  3: 'FR-35 (FD U3 BR-U3-08/09)',
+  4: 'FR-14 / BR-U1-40 (FD U3 BR-U3-10/11/12)',
+  5: 'FR-11 (FD U3 E-1; ADR-017 item 5; F14)',
+  6: 'FR-21 (FD U3 Q8 A); attributed cross-unit U1 test updates',
+  7: 'FR-15 + FR-32 (FD U3 Q3 A); intent removed',
+  8: 'FR-09 :File typing + FR-34 (FD U2 Q16 / U1 Q19)',
+  9: 'FR-13 / FR-14 (FD U3 Q1, Q4, Q7); ADR-016 c',
+  10: 'FR-14 (FD U3 Q4 A): schema freeze, validateReport',
+  11: 'NFR-05 (FD U3 BR-U3-58)',
+  12: 'D-U0-8 + FR-16 (FD U3 Q9 A)',
+  13: 'C13 HTML (FD U3 BR-U3-84)',
+  14: 'FR-35 (FD U3 BR-U3-61): byte-stability test; SCC fallback present, off (Q11)',
+};
+
 export interface ParsedChangesLine {
   readonly k: number;
   readonly observation: boolean;
@@ -91,13 +134,8 @@ export function parseChangesLine(line: string): ParsedChangesLine | string {
   if (m === null) return `malformed CHANGES.md line (D-U1-7 format): ${line}`;
   const k = Number(m[1]);
   const caseIds = (m[3] ?? '').split(', ');
-  const allowed = [...SOLE_IDS, ...CASE_IDS];
-  for (const id of caseIds) {
-    if (!allowed.includes(id)) return `unknown case id "${id}" in CHANGES.md line: ${line}`;
-  }
-  if (caseIds.length > 1 && caseIds.some((id) => SOLE_IDS.includes(id))) {
-    return `"all"/"self" must be the only case id in CHANGES.md line: ${line}`;
-  }
+  const idProblem = caseIdProblem(caseIds, line);
+  if (idProblem !== null) return idProblem;
   const dash = line.indexOf(' — ');
   const rest = line.slice(dash + 3);
   const attribution = rest.slice(0, rest.indexOf(': '));
@@ -106,6 +144,64 @@ export function parseChangesLine(line: string): ParsedChangesLine | string {
     return `attribution "${attribution}" is not the canonical U1-K${String(k)} string "${canonical ?? '?'}": ${line}`;
   }
   return { k, observation: m[2] !== undefined, caseIds, attribution };
+}
+
+/** D-U1-7 closed case-id set; returns the problem text, or null when the ids are valid. */
+function caseIdProblem(caseIds: readonly string[], line: string): string | null {
+  const allowed = [...SOLE_IDS, ...CASE_IDS];
+  for (const id of caseIds) {
+    if (!allowed.includes(id)) return `unknown case id "${id}" in CHANGES.md line: ${line}`;
+  }
+  if (caseIds.length > 1 && caseIds.some((id) => SOLE_IDS.includes(id))) {
+    return `"all"/"self" must be the only case id in CHANGES.md line: ${line}`;
+  }
+  return null;
+}
+
+/** A parsed entry of any unit, keyed by its label (`U1-K5`, `U3-R2`, `U4-K1`). */
+export interface LabelledEntry {
+  readonly label: string;
+  readonly observation: boolean;
+  readonly caseIds: readonly string[];
+  readonly attribution: string;
+}
+
+/** Parses one D-U3-6 line; returns the problem text instead when the line is not valid. */
+export function parseU3ChangesLine(line: string): LabelledEntry | string {
+  const m = U3_LINE_RE.exec(line);
+  if (m === null) return `malformed CHANGES.md line (D-U3-6 format): ${line}`;
+  const rText = m[1] ?? '';
+  if (!U3_R_RE.test(rText)) return `unknown U3 label U3-R${rText} (U3-R1..U3-R14) in CHANGES.md line: ${line}`;
+  const r = Number(rText);
+  const caseIds = (m[3] ?? '').split(', ');
+  const idProblem = caseIdProblem(caseIds, line);
+  if (idProblem !== null) return idProblem;
+  const canonical = U3_ATTRIBUTIONS[r] ?? '';
+  const rest = m[4] ?? '';
+  if (!rest.startsWith(`${canonical}: `) || rest.length === canonical.length + 2) {
+    return `attribution is not the canonical U3-R${rText} string "${canonical}" followed by ": <text>": ${line}`;
+  }
+  return { label: `U3-R${rText}`, observation: m[2] !== undefined, caseIds, attribution: canonical };
+}
+
+/** Shape check of one U4 line (D-U3-6 hand-off); returns the problem text when malformed. */
+export function parseU4ChangesLine(line: string): LabelledEntry | string {
+  const m = U4_LINE_RE.exec(line);
+  if (m === null) return `malformed CHANGES.md line (U4 shape, D-U3-6): ${line}`;
+  const caseIds = (m[3] ?? '').split(', ');
+  const idProblem = caseIdProblem(caseIds, line);
+  if (idProblem !== null) return idProblem;
+  return { label: `U4-K${m[1] ?? ''}`, observation: m[2] !== undefined, caseIds, attribution: m[4] ?? '' };
+}
+
+/** Routes an added CHANGES.md line to its unit's grammar; null when the line is not an entry. */
+function parseEntry(line: string): LabelledEntry | string | null {
+  if (U3_ENTRY_TRIGGER_RE.test(line)) return parseU3ChangesLine(line);
+  if (U4_ENTRY_TRIGGER_RE.test(line)) return parseU4ChangesLine(line);
+  if (!U1_LABEL_RE.test(line)) return null;
+  const p = parseChangesLine(line);
+  if (typeof p === 'string') return p;
+  return { label: `U1-K${String(p.k)}`, observation: p.observation, caseIds: p.caseIds, attribution: p.attribution };
 }
 
 function snapshotCase(file: string): string {
@@ -117,10 +213,10 @@ export function checkChangeLog(input: CheckInput): CheckResult {
 
   for (const commit of input.commits) {
     const short = commit.sha.slice(0, 7);
-    const parsed: ParsedChangesLine[] = [];
+    const parsed: LabelledEntry[] = [];
     for (const line of commit.addedChangesLines) {
-      if (!U1_LABEL_RE.test(line)) continue;
-      const p = parseChangesLine(line);
+      const p = parseEntry(line);
+      if (p === null) continue;
       if (typeof p === 'string') problems.push(`${short}: ${p}`);
       else parsed.push(p);
     }
@@ -130,12 +226,13 @@ export function checkChangeLog(input: CheckInput): CheckResult {
 
     const label = SUBJECT_LABEL_RE.exec(commit.subject);
     if (label === null) {
-      problems.push(`${short}: touches ${SNAPSHOT_DIR} without a U1-K<n>: subject label (unattributable): ${commit.subject}`);
+      problems.push(
+        `${short}: touches ${SNAPSHOT_DIR} without a U1-K<n>:, U3-R<n>: or U4-K<n>: subject label (unattributable): ${commit.subject}`,
+      );
       continue;
     }
-    const k = Number(label[1]);
-    const kl = `U1-K${String(k)}`;
-    const attributing = parsed.filter((p) => p.k === k && !p.observation);
+    const kl = label[1] ?? '';
+    const attributing = parsed.filter((p) => p.label === kl && !p.observation);
     if (attributing.length === 0) {
       problems.push(`${short}: ${kl} changes snapshots but adds no non-observation ${kl} line to ${CHANGES_FILE}`);
       continue;
@@ -181,7 +278,10 @@ export function collectFromGit(base: string): CheckInput {
   return { commits, resultsChanged };
 }
 
-/** Built-in known-bad input for `--self-test`: one unlabelled snapshot-touching commit. */
+/**
+ * Built-in known-bad input for `--self-test`: one unlabelled snapshot-touching commit, plus one
+ * U3 line with an unknown R and one with a wrong attribution (BR-U3-91).
+ */
 export const SELF_TEST_INPUT: CheckInput = {
   commits: [
     {
@@ -189,6 +289,15 @@ export const SELF_TEST_INPUT: CheckInput = {
       subject: 'fix(u1): regenerate snapshots without a label',
       changedFiles: [`${SNAPSHOT_DIR}correct-reference.json`],
       addedChangesLines: [],
+    },
+    {
+      sha: '1111111111111111111111111111111111111111',
+      subject: 'test(u3): self-test lines',
+      changedFiles: [CHANGES_FILE],
+      addedChangesLines: [
+        '2026-10-08 U3-R15 all — FR-12 (FD U3 Q2 A; D-U0-12 pick): unknown R.',
+        '2026-10-08 U3-R2 all — FR-12 (FD U3 Q2 A): wrong attribution.',
+      ],
     },
   ],
   resultsChanged: [],
@@ -202,11 +311,12 @@ export function main(argv: readonly string[]): Promise<number> {
 function run(argv: readonly string[]): number {
   if (argv.includes('--self-test')) {
     const result = checkChangeLog(SELF_TEST_INPUT);
-    if (!result.ok && result.problems.some((p) => p.includes('unattributable'))) {
-      console.log('self-test: checker reported the unlabelled snapshot commit (expected exit 1)');
+    const reported = (text: string): boolean => result.problems.some((p) => p.includes(text));
+    if (!result.ok && reported('unattributable') && reported('unknown U3 label U3-R15') && reported('canonical U3-R2')) {
+      console.log('self-test: checker reported the unlabelled snapshot commit and both bad U3 lines (expected exit 1)');
       return 1;
     }
-    console.log('self-test: checker did NOT report the unlabelled snapshot commit');
+    console.log('self-test: checker did NOT report every known-bad input');
     return 0;
   }
   const base = argv.find((a) => !a.startsWith('--')) ?? GOLDEN_BASE;

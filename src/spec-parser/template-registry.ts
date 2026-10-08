@@ -43,6 +43,7 @@ const CLEAN_ARCH_FUNCTIONS: readonly FitnessFunction[] = [
   ff('FF-P03', 'repository-pattern', 'pattern', 'critical', 'symbolic', true),
   ff('FF-P04', 'use-case-isolation', 'pattern', 'major', 'symbolic', true),
   ff('FF-P05', 'controller-no-entity', 'pattern', 'major', 'symbolic', false),
+  ff('FF-P06', 'domain-state-purity', 'pattern', 'critical', 'symbolic', false), // FR-21 (U3-R6; BR-U3-23, 24)
   // ── Coupling ──
   ff('FF-C01', 'domain-stability', 'coupling', 'major', 'symbolic', true, { threshold: 0.3 }),
   ff('FF-C02', 'module-fan-out', 'coupling', 'major', 'symbolic', true, { threshold: 10 }),
@@ -94,7 +95,6 @@ const SYMBOLIC_WEIGHTS: ScoringWeights = {
   convention: 0.05,
   semantic: 0,
   integrity: 0,
-  intent: 0,
 };
 
 const FULL_MODE_WEIGHTS: ScoringWeights = {
@@ -105,7 +105,6 @@ const FULL_MODE_WEIGHTS: ScoringWeights = {
   convention: 0.05,
   semantic: 0.04,
   integrity: 0.04, // FR-22 (BR-U1-22): the weight moves from intent to integrity
-  intent: 0,
 };
 
 const DEFAULT_VERDICT_THRESHOLDS: VerdictThresholds = {

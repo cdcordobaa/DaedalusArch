@@ -3,7 +3,7 @@ import type {
   ScoringWeights, VerdictThresholds, ConfidenceThresholds,
   SemanticCriteria,
 } from '../shared/types/spec.js';
-import type { Dimension, Severity, Route, LayerKind, JudgeUnitKind } from '../shared/types/enums.js';
+import type { Severity, Route, LayerKind, JudgeUnitKind } from '../shared/types/enums.js';
 import type { ValidationWarning } from './types.js';
 import { functionId } from '../shared/types/value-objects.js';
 import { resolveLayerKinds } from './layer-kind-resolver.js';
@@ -82,7 +82,7 @@ export function parseLayerB(
     const name = String(f['name']);
     const { fields } = mapFunctionSpecificFields(f, `fitness_functions[${id}]`);
     warnings.push(...unusedFieldWarnings(id, name, fields));
-    const { dimension, warning: dimensionWarning } = normaliseDimension(String(f['dimension']) as Dimension, id);
+    const { dimension, warning: dimensionWarning } = normaliseDimension(String(f['dimension']), id);
     if (dimensionWarning) warnings.push({ ...dimensionWarning, path: `fitness_functions[${id}].dimension` });
 
     const base: FitnessFunction = {
@@ -158,9 +158,9 @@ function unusedFieldWarnings(id: string, name: string, fields: object): Validati
 
 /**
  * Parse Layer C: scoring + confidence_thresholds → LayerCResult.
- * FR-22 (BR-U1-21): `scoring.weights` carries the five symbolic keys only, so `semantic`, `integrity` and
- * `intent` are 0. `full_mode_weights` takes `integrity` from `integrity` or from the legacy `intent` key
- * (SPEC_004; the schema admits exactly one of them); `intent` is always 0.
+ * FR-22 (BR-U1-21): `scoring.weights` carries the five symbolic keys only, so `semantic` and `integrity`
+ * are 0. `full_mode_weights` takes `integrity` from `integrity` or from the legacy `intent` key
+ * (SPEC_004; the schema admits exactly one of them). `intent` is not a `Dimension` (U3-R7, BR-U3-30).
  */
 export function parseLayerC(raw: Record<string, unknown>): LayerCResult {
   const scoring = raw['scoring'] as Record<string, unknown>;
@@ -176,7 +176,6 @@ export function parseLayerC(raw: Record<string, unknown>): LayerCResult {
     convention: Number(weights['convention']),
     semantic: 0,
     integrity: 0,
-    intent: 0,
   };
 
   const verdictThresholds: VerdictThresholds = {
@@ -204,7 +203,6 @@ export function parseLayerC(raw: Record<string, unknown>): LayerCResult {
       convention: Number(rawFullWeights['convention']),
       semantic: Number(rawFullWeights['semantic']),
       integrity: Number(rawFullWeights['integrity'] ?? legacyIntent),
-      intent: 0,
     };
   }
 

@@ -1,9 +1,9 @@
 import type { ActionableViolation } from '../shared/taxonomy/violation-types.js';
-import type { EvaluationReport, EvaluationResults } from '../shared/types/evaluation.js';
+import type { DroppedDimension, EvaluationReport, EvaluationResults, FunctionFailure, ReportScoring } from '../shared/types/evaluation.js';
 import type { ParsedSpec } from '../shared/types/spec.js';
 import type { APGResult } from '../shared/types/apg.js';
 import type { BaselineResult } from '../shared/types/baseline.js';
-import type { Dimension, Severity, OverallVerdict, EvaluationMode, Route } from '../shared/types/enums.js';
+import type { Dimension, Severity, OverallVerdict, EvaluationMode, Route, TemplateTag } from '../shared/types/enums.js';
 
 // ── Report Generator Input / Output ──────────────────────────────────────────
 
@@ -12,7 +12,6 @@ export interface ReportInput {
   readonly parsedSpec: ParsedSpec;
   readonly apgResult: APGResult;
   readonly evaluationResults?: EvaluationResults | undefined;
-  readonly pipelineWarnings?: readonly import('../shared/errors/domain-result.js').PipelineWarning[] | undefined;
   readonly baselineResult?: BaselineResult | undefined;
   readonly projectName: string;
   readonly specFilePath: string;
@@ -64,7 +63,11 @@ export interface HeaderData {
 }
 
 export interface AHSScoreData {
-  readonly deterministic: number;
+  /** Verdict-source AHS (BR-U3-43); `null` only if the report lacks it. */
+  readonly headline: number | null;
+  readonly headlineSource: ReportScoring['verdictSource'];
+  /** `null` when the mode does not compute it (neuronal-only); printed `n/a`. */
+  readonly deterministic: number | null;
   readonly combined?: number | undefined;
   readonly neuronal?: number | undefined;
   readonly verdict: OverallVerdict;
@@ -80,8 +83,17 @@ export interface DimensionScoreData {
   readonly functionCount: number;
 }
 
+/** BR-U3-54 grouping key of a card: the template tag; `neural` for neural rows, `untagged` otherwise. */
+export type CardGroup = TemplateTag | 'neural' | 'untagged';
+
+/** Card group order (BR-U3-54: structural < topological < pattern-proxy < neural). */
+export const CARD_GROUP_ORDER: readonly CardGroup[] = ['structural', 'topological', 'pattern-proxy', 'neural', 'untagged'];
+
 export interface FitnessFunctionCardData {
   readonly id: string;
+  readonly group: CardGroup;
+  /** `executed`: a result row exists; `failed`: listed in `functionExecution.failed`; `not-run`: skipped by mode. */
+  readonly status: 'executed' | 'failed' | 'not-run';
   readonly name: string;
   readonly dimension: Dimension;
   readonly passed: boolean;
@@ -112,7 +124,9 @@ export interface PipelineTraceData {
   readonly hybridPairs: number;
   readonly disabledFunctions: number;
   readonly llmAvailable: boolean;
-  readonly llmModel?: string | undefined;
+  /** Judge provider and model from `report.judge` (BR-U3-84); `none` when no judge ran. */
+  readonly judgeProvider: string;
+  readonly judgeModel: string;
   readonly llmWarnings: readonly LLMWarningData[];
 }
 
@@ -122,7 +136,8 @@ export interface LLMWarningData {
 }
 
 export interface DualScoreData {
-  readonly symbolicAhs: number;
+  /** `null` when the mode does not compute it (neuronal-only); printed `n/a`. */
+  readonly symbolicAhs: number | null;
   readonly combinedAhs?: number | undefined;
   readonly delta?: number | undefined;
   readonly hasNeuronal: boolean;
@@ -148,8 +163,15 @@ export interface SummaryStatsData {
   readonly durationMs: number;
 }
 
+/** Functions that failed to run and dimensions left out of the score (FR-13, FR-15; BR-U3-84). */
+export interface RunCompletenessData {
+  readonly failed: readonly FunctionFailure[];
+  readonly droppedDimensions: readonly DroppedDimension[];
+}
+
 export interface DashboardData {
   readonly header: HeaderData;
+  readonly completeness: RunCompletenessData;
   readonly ahsScore: AHSScoreData;
   readonly dualScore: DualScoreData;
   readonly pipelineTrace: PipelineTraceData;

@@ -10,7 +10,7 @@ function template(overrides: Partial<CypherTemplate> = {}): CypherTemplate {
     requiredParams: [],
     optionalParams: [],
     description: 'test',
-    resultMapping: { filePathColumn: 'filePath', messageTemplate: 'x' },
+    resultMapping: { filePathColumn: 'filePath', messageTemplate: 'x', discriminatorColumns: [] },
     requiredLayerKinds: [],
     tag: 'structural',
     ...overrides,
