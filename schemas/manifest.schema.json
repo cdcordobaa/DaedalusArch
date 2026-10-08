@@ -1,53 +1,951 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
   "$id": "https://daedalus-arch.local/schemas/manifest.schema.json",
-  "$comment": "DRAFT (U0). U5a completes: fixes the MutationSite shape of `site`, the `expected` union and the `lineShifts` items (open objects until then). Mirrors Manifest / ManifestRow in v1.2E-component-methods.md (FR-24).",
+  "$comment": "FROZEN (U5a). Seeded-mutation manifest of FR-v1.2E-24: header (schemaVersion, catalogueVersion, masterSeed, cycleStrategy), closed rows (domain-entities.md §3, §3.1; BR-U5a-02, 20, 22, 26, 31, 32, 55) and rejections (BR-U5a-34). Changes need a design revision of U5a.",
   "title": "DaedalusArch seeded-mutation manifest",
   "type": "object",
   "additionalProperties": false,
-  "required": ["schemaVersion", "rows"],
+  "required": [
+    "schemaVersion",
+    "catalogueVersion",
+    "masterSeed",
+    "cycleStrategy",
+    "rows",
+    "rejections"
+  ],
   "properties": {
-    "schemaVersion": { "type": "string", "const": "1" },
-    "rows": { "type": "array", "items": { "$ref": "#/definitions/manifestRow" } }
+    "schemaVersion": {
+      "type": "string",
+      "const": "1"
+    },
+    "catalogueVersion": {
+      "$ref": "#/definitions/sha256"
+    },
+    "masterSeed": {
+      "$ref": "#/definitions/uint32"
+    },
+    "cycleStrategy": {
+      "type": "string",
+      "enum": [
+        "simple-cycles",
+        "scc"
+      ]
+    },
+    "rows": {
+      "type": "array",
+      "items": {
+        "$ref": "#/definitions/manifestRow"
+      }
+    },
+    "rejections": {
+      "type": "array",
+      "items": {
+        "$ref": "#/definitions/rejection"
+      }
+    }
   },
   "definitions": {
+    "sha1": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{40}$"
+    },
+    "sha256": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "uint32": {
+      "type": "integer",
+      "minimum": 0,
+      "maximum": 4294967295
+    },
+    "nonEmptyString": {
+      "type": "string",
+      "minLength": 1
+    },
+    "stringList": {
+      "type": "array",
+      "items": {
+        "$ref": "#/definitions/nonEmptyString"
+      }
+    },
+    "seedDerivation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "projectId",
+        "operatorId",
+        "k"
+      ],
+      "properties": {
+        "projectId": {
+          "type": "string",
+          "minLength": 1,
+          "pattern": "^[^|]+$"
+        },
+        "operatorId": {
+          "type": "string",
+          "minLength": 1,
+          "pattern": "^[^|]+$"
+        },
+        "k": {
+          "type": "integer",
+          "minimum": 0
+        }
+      }
+    },
+    "site": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "filePath",
+        "line",
+        "kind",
+        "detail"
+      ],
+      "properties": {
+        "filePath": {
+          "$ref": "#/definitions/nonEmptyString"
+        },
+        "line": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "kind": {
+          "type": "string",
+          "enum": [
+            "import-edge",
+            "package-import",
+            "created-file",
+            "class-members",
+            "interface-members",
+            "class-rename",
+            "field-new",
+            "field-assignment",
+            "dynamic-import",
+            "guard-move",
+            "invariant-split"
+          ]
+        },
+        "detail": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "lineShift": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "filePath",
+        "afterLine",
+        "delta"
+      ],
+      "properties": {
+        "filePath": {
+          "$ref": "#/definitions/nonEmptyString"
+        },
+        "afterLine": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "delta": {
+          "type": "integer",
+          "not": {
+            "const": 0
+          }
+        }
+      }
+    },
+    "provisionedStub": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "specifier",
+        "path"
+      ],
+      "properties": {
+        "specifier": {
+          "$ref": "#/definitions/nonEmptyString"
+        },
+        "path": {
+          "$ref": "#/definitions/nonEmptyString"
+        }
+      }
+    },
+    "typecheck": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "tscPath",
+        "tscVersion",
+        "baseErrors",
+        "mutantErrors"
+      ],
+      "properties": {
+        "tscPath": {
+          "$ref": "#/definitions/nonEmptyString"
+        },
+        "tscVersion": {
+          "$ref": "#/definitions/nonEmptyString"
+        },
+        "baseErrors": {
+          "type": "integer",
+          "const": 0
+        },
+        "mutantErrors": {
+          "type": "integer",
+          "const": 0
+        }
+      }
+    },
+    "expectedKey": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "functionId",
+        "filePath",
+        "target",
+        "discriminator",
+        "lineRule"
+      ],
+      "properties": {
+        "functionId": {
+          "$ref": "#/definitions/nonEmptyString"
+        },
+        "filePath": {
+          "$ref": "#/definitions/nonEmptyString"
+        },
+        "target": {
+          "type": "string"
+        },
+        "discriminator": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "lineRule": {
+          "type": "string",
+          "enum": [
+            "site-line",
+            "first-edge-line",
+            "none"
+          ]
+        },
+        "line": {
+          "type": "integer",
+          "minimum": 1
+        }
+      },
+      "if": {
+        "type": "object",
+        "properties": {
+          "lineRule": {
+            "type": "string",
+            "const": "none"
+          }
+        }
+      },
+      "then": {
+        "type": "object",
+        "properties": {
+          "line": false
+        }
+      },
+      "else": {
+        "type": "object",
+        "required": [
+          "line"
+        ],
+        "properties": {
+          "line": true
+        }
+      }
+    },
+    "collateral": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "kind",
+        "template",
+        "functionId",
+        "cause"
+      ],
+      "properties": {
+        "kind": {
+          "type": "string",
+          "enum": [
+            "operator",
+            "site"
+          ]
+        },
+        "template": {
+          "$ref": "#/definitions/nonEmptyString"
+        },
+        "functionId": {
+          "$ref": "#/definitions/nonEmptyString"
+        },
+        "cause": {
+          "type": "string",
+          "enum": [
+            "declared",
+            "cycle",
+            "metric-crossing",
+            "created-without-test",
+            "project-metric"
+          ]
+        },
+        "key": {
+          "$ref": "#/definitions/expectedKey"
+        },
+        "metric": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "base",
+            "mutant",
+            "threshold"
+          ],
+          "properties": {
+            "base": {
+              "anyOf": [
+                {
+                  "type": "number"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "mutant": {
+              "type": "number"
+            },
+            "threshold": {
+              "type": "number"
+            }
+          }
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "type": "object",
+            "properties": {
+              "cause": {
+                "type": "string",
+                "const": "project-metric"
+              }
+            }
+          },
+          "then": {
+            "type": "object",
+            "properties": {
+              "key": false
+            }
+          },
+          "else": {
+            "type": "object",
+            "required": [
+              "key"
+            ],
+            "properties": {
+              "key": true
+            }
+          }
+        },
+        {
+          "if": {
+            "type": "object",
+            "properties": {
+              "cause": {
+                "type": "string",
+                "const": "metric-crossing"
+              }
+            }
+          },
+          "then": {
+            "type": "object",
+            "required": [
+              "metric"
+            ],
+            "properties": {
+              "key": {
+                "type": "object",
+                "properties": {
+                  "discriminator": {
+                    "type": "array",
+                    "maxItems": 0
+                  },
+                  "lineRule": {
+                    "type": "string",
+                    "const": "none"
+                  }
+                }
+              },
+              "metric": true
+            }
+          },
+          "else": {
+            "type": "object",
+            "properties": {
+              "metric": false
+            }
+          }
+        },
+        {
+          "if": {
+            "type": "object",
+            "properties": {
+              "cause": {
+                "type": "string",
+                "const": "declared"
+              }
+            }
+          },
+          "then": {
+            "type": "object",
+            "properties": {
+              "kind": {
+                "type": "string",
+                "const": "operator"
+              }
+            }
+          },
+          "else": {
+            "type": "object",
+            "properties": {
+              "kind": {
+                "type": "string",
+                "const": "site"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "type": "object",
+            "properties": {
+              "cause": {
+                "type": "string",
+                "const": "cycle"
+              }
+            }
+          },
+          "then": {
+            "type": "object",
+            "properties": {
+              "key": {
+                "type": "object",
+                "properties": {
+                  "lineRule": {
+                    "type": "string",
+                    "const": "first-edge-line"
+                  }
+                }
+              }
+            }
+          }
+        }
+      ]
+    },
+    "expectedEdge": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "type",
+        "source",
+        "target",
+        "via"
+      ],
+      "properties": {
+        "type": {
+          "type": "string",
+          "const": "FLOWS_TO"
+        },
+        "source": {
+          "$ref": "#/definitions/nonEmptyString"
+        },
+        "target": {
+          "$ref": "#/definitions/nonEmptyString"
+        },
+        "via": {
+          "type": "string",
+          "enum": [
+            "new",
+            "field-assignment"
+          ]
+        }
+      }
+    },
+    "positiveExpected": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "functionIds",
+        "disabledFunctionIds",
+        "absentTemplates",
+        "dimension",
+        "keys",
+        "collateral",
+        "coverage"
+      ],
+      "properties": {
+        "functionIds": {
+          "$ref": "#/definitions/stringList"
+        },
+        "disabledFunctionIds": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "functionId",
+              "reason"
+            ],
+            "properties": {
+              "functionId": {
+                "$ref": "#/definitions/nonEmptyString"
+              },
+              "reason": {
+                "$ref": "#/definitions/nonEmptyString"
+              }
+            }
+          }
+        },
+        "absentTemplates": {
+          "$ref": "#/definitions/stringList"
+        },
+        "dimension": {
+          "type": "string",
+          "enum": [
+            "structural",
+            "coupling",
+            "pattern",
+            "solid",
+            "convention",
+            "semantic",
+            "integrity",
+            "intent"
+          ]
+        },
+        "keys": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/expectedKey"
+          }
+        },
+        "collateral": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/collateral"
+          }
+        },
+        "coverage": {
+          "type": "string",
+          "enum": [
+            "in",
+            "outside"
+          ]
+        },
+        "judgeProbe": {
+          "type": "string",
+          "enum": [
+            "semantic",
+            "integrity"
+          ]
+        },
+        "expectedEdges": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/expectedEdge"
+          }
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "type": "object",
+            "required": [
+              "judgeProbe"
+            ],
+            "properties": {
+              "judgeProbe": true
+            }
+          },
+          "then": {
+            "type": "object",
+            "properties": {
+              "functionIds": {
+                "type": "array",
+                "maxItems": 0
+              },
+              "coverage": {
+                "type": "string",
+                "const": "outside"
+              },
+              "dimension": {
+                "type": "string",
+                "enum": [
+                  "semantic",
+                  "integrity"
+                ]
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "type": "object",
+            "properties": {
+              "coverage": {
+                "type": "string",
+                "const": "outside"
+              },
+              "judgeProbe": false
+            }
+          },
+          "then": {
+            "type": "object",
+            "properties": {
+              "functionIds": {
+                "type": "array",
+                "minItems": 1
+              }
+            }
+          }
+        }
+      ]
+    },
+    "negativeExpected": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "negative",
+        "twinOf",
+        "functionIds",
+        "keys",
+        "collateral",
+        "coverage"
+      ],
+      "properties": {
+        "negative": {
+          "type": "boolean",
+          "const": true
+        },
+        "twinOf": {
+          "$ref": "#/definitions/nonEmptyString"
+        },
+        "functionIds": {
+          "type": "array",
+          "maxItems": 0
+        },
+        "keys": {
+          "type": "array",
+          "maxItems": 0
+        },
+        "collateral": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/collateral"
+          }
+        },
+        "coverage": {
+          "type": "string",
+          "enum": [
+            "in",
+            "outside"
+          ]
+        },
+        "expectedEdges": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/expectedEdge"
+          }
+        }
+      }
+    },
     "manifestRow": {
       "type": "object",
       "additionalProperties": false,
       "required": [
         "seedId",
         "projectId",
-        "baseCommit",
+        "baseKind",
+        "baseTreeSha",
+        "specPath",
+        "specSha256",
+        "split",
         "operatorId",
         "catalogueVersion",
         "rngSeed",
+        "seedDerivation",
+        "siteIndex",
+        "siteSelection",
         "site",
-        "expected",
+        "editedFiles",
+        "createdFiles",
         "lineShifts",
+        "expected",
+        "provisionedStubs",
+        "typecheck",
         "appliedAt"
       ],
       "properties": {
-        "seedId": { "type": "string", "minLength": 1 },
-        "projectId": { "type": "string", "minLength": 1 },
-        "baseCommit": { "type": "string", "pattern": "^[0-9a-f]{40}$" },
-        "operatorId": { "type": "string", "minLength": 1 },
-        "catalogueVersion": { "type": "string", "minLength": 1 },
-        "rngSeed": { "type": "integer" },
-        "site": { "type": "object", "additionalProperties": true },
-        "expected": { "type": "object", "additionalProperties": true },
+        "seedId": {
+          "type": "string",
+          "pattern": "^.+:.+:(0|[1-9][0-9]*)$"
+        },
+        "projectId": {
+          "type": "string",
+          "minLength": 1,
+          "pattern": "^[^|]+$"
+        },
+        "baseKind": {
+          "type": "string",
+          "enum": [
+            "fixture",
+            "corpus",
+            "generated"
+          ]
+        },
+        "baseCommit": {
+          "$ref": "#/definitions/sha1"
+        },
+        "baseGenerationTreeSha": {
+          "$ref": "#/definitions/sha1"
+        },
+        "baseTreeSha": {
+          "$ref": "#/definitions/sha1"
+        },
+        "installLockSha256": {
+          "$ref": "#/definitions/sha256"
+        },
+        "specPath": {
+          "$ref": "#/definitions/nonEmptyString"
+        },
+        "specSha256": {
+          "$ref": "#/definitions/sha256"
+        },
+        "split": {
+          "type": "string",
+          "enum": [
+            "dev",
+            "held-out",
+            "probe"
+          ]
+        },
+        "operatorId": {
+          "type": "string",
+          "minLength": 1,
+          "pattern": "^[^|]+$"
+        },
+        "catalogueVersion": {
+          "$ref": "#/definitions/sha256"
+        },
+        "rngSeed": {
+          "$ref": "#/definitions/uint32"
+        },
+        "seedDerivation": {
+          "$ref": "#/definitions/seedDerivation"
+        },
+        "siteIndex": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "siteSelection": {
+          "type": "string",
+          "enum": [
+            "sampled",
+            "forced"
+          ]
+        },
+        "site": {
+          "$ref": "#/definitions/site"
+        },
+        "editedFiles": {
+          "$ref": "#/definitions/stringList"
+        },
+        "createdFiles": {
+          "$ref": "#/definitions/stringList"
+        },
         "lineShifts": {
           "type": "array",
           "items": {
+            "$ref": "#/definitions/lineShift"
+          }
+        },
+        "expected": {
+          "oneOf": [
+            {
+              "$ref": "#/definitions/positiveExpected"
+            },
+            {
+              "$ref": "#/definitions/negativeExpected"
+            }
+          ]
+        },
+        "provisionedStubs": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/provisionedStub"
+          }
+        },
+        "typecheck": {
+          "$ref": "#/definitions/typecheck"
+        },
+        "appliedAt": {
+          "type": "string",
+          "format": "date-time"
+        }
+      },
+      "allOf": [
+        {
+          "if": {
             "type": "object",
-            "additionalProperties": true,
             "properties": {
-              "filePath": { "type": "string" },
-              "afterLine": { "type": "integer" },
-              "delta": { "type": "integer" }
+              "baseKind": {
+                "type": "string",
+                "const": "fixture"
+              }
+            }
+          },
+          "then": {
+            "type": "object",
+            "required": [
+              "baseCommit"
+            ],
+            "properties": {
+              "split": {
+                "type": "string",
+                "enum": [
+                  "dev",
+                  "probe"
+                ]
+              },
+              "baseGenerationTreeSha": false,
+              "baseCommit": true
             }
           }
         },
-        "appliedAt": { "type": "string", "format": "date-time" }
+        {
+          "if": {
+            "type": "object",
+            "properties": {
+              "baseKind": {
+                "type": "string",
+                "const": "corpus"
+              }
+            }
+          },
+          "then": {
+            "type": "object",
+            "required": [
+              "baseCommit"
+            ],
+            "properties": {
+              "split": {
+                "type": "string",
+                "const": "held-out"
+              },
+              "baseGenerationTreeSha": false,
+              "baseCommit": true
+            }
+          }
+        },
+        {
+          "if": {
+            "type": "object",
+            "properties": {
+              "baseKind": {
+                "type": "string",
+                "const": "generated"
+              }
+            }
+          },
+          "then": {
+            "type": "object",
+            "required": [
+              "baseGenerationTreeSha"
+            ],
+            "properties": {
+              "split": {
+                "type": "string",
+                "const": "held-out"
+              },
+              "baseCommit": false,
+              "baseGenerationTreeSha": true
+            }
+          }
+        },
+        {
+          "if": {
+            "type": "object",
+            "properties": {
+              "siteSelection": {
+                "type": "string",
+                "const": "forced"
+              }
+            }
+          },
+          "then": {
+            "type": "object",
+            "properties": {
+              "split": {
+                "type": "string",
+                "not": {
+                  "const": "held-out"
+                }
+              }
+            }
+          }
+        }
+      ]
+    },
+    "rejection": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "operatorId",
+        "projectId",
+        "reason",
+        "detail",
+        "appliedAt"
+      ],
+      "properties": {
+        "operatorId": {
+          "type": "string",
+          "minLength": 1,
+          "pattern": "^[^|]+$"
+        },
+        "projectId": {
+          "type": "string",
+          "minLength": 1,
+          "pattern": "^[^|]+$"
+        },
+        "reason": {
+          "type": "string",
+          "enum": [
+            "no-site",
+            "precondition",
+            "typecheck",
+            "apply-error"
+          ]
+        },
+        "detail": {
+          "type": "string"
+        },
+        "rngSeed": {
+          "$ref": "#/definitions/uint32"
+        },
+        "seedDerivation": {
+          "$ref": "#/definitions/seedDerivation"
+        },
+        "appliedAt": {
+          "type": "string",
+          "format": "date-time"
+        }
       }
     }
   }
