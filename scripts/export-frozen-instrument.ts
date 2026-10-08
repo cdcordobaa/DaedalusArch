@@ -8,7 +8,8 @@
  * - `tags`: `getTemplateTag` over every template (operational tag definitions, ADR-015 item 9);
  * - the self-spec deviations of BR-U1-16, values read from `specs/daedalus-arch.yaml`;
  * - U3's frozen verdict source per mode and the `ahsNeuronal` weight rule (BR-U3-70 item 4), from C8;
- * - U4's judge freeze: `null` until U4 merges into the unit branch (Step 26); `--final` refuses without it;
+ * - U4's judge freeze: `FROZEN_VALUES` of `src/llm-critic/frozen.ts` verbatim with its `FROZEN_SHA256` anchor
+ *   (U4 business-rules §11, BR-U4-POL-01); `--final` refuses when no judge freeze is supplied;
  * - the metric-key readiness flags of BR-U5b-16, read from the three metric templates' Cypher and result mapping.
  *
  * The same commit always exports the same bytes (canonical JSON; no timestamp, no path).
@@ -23,6 +24,7 @@ import { bindLayerParams } from '../src/fitness-compiler/layer-binding.js';
 import { isTemplateApplicable } from '../src/fitness-compiler/template-applicability.js';
 import { inModeDimensions, verdictSourceOf } from '../src/scoring-engine/score-computer.js';
 import { PATTERN_GRAMMAR } from '../src/spec-parser/spec-schema.js';
+import { FROZEN_SHA256, FROZEN_VALUES } from '../src/llm-critic/frozen.js';
 import type { EvaluationMode, LayerKind, TemplateTag } from '../src/shared/types/enums.js';
 import type { LayerModel } from '../src/shared/types/spec.js';
 import { canonicalize } from './lib/canonical-json.js';
@@ -48,7 +50,7 @@ export interface FrozenInstrument {
   readonly tags: Readonly<Record<string, TemplateTag>>;
   readonly selfSpecDeviations: readonly string[];
   readonly scoringFreeze: ScoringFreeze;
-  /** U4 Section 5.2 values verbatim; `null` until U4 is merged (Step 26). */
+  /** U4 Section 5.2 values verbatim (`{ frozenSha256, values }`); `null` only when a caller supplies none. */
   readonly judgeFreeze: unknown;
   readonly metricKeyReadiness: MetricKeyReadiness;
 }
@@ -166,9 +168,9 @@ export function metricKeyReadiness(): MetricKeyReadiness {
 // ---------------------------------------------------------------------------------------------
 // Export
 
-/** U4's frozen judge values; `null` until U4 merges (Step 26 wires the U4 exports here). */
+/** U4's frozen judge values (U4 §11 / §5.2, verbatim) with the U4 hash anchor of `canonicalJSON(FROZEN_VALUES)`. */
 export function judgeFreeze(): unknown {
-  return null;
+  return { frozenSha256: FROZEN_SHA256, values: FROZEN_VALUES };
 }
 
 export function exportFrozenInstrument(repoRoot: string, judge: unknown = judgeFreeze()): { ok: true; value: FrozenInstrument } | { ok: false; code: string; detail: string } {

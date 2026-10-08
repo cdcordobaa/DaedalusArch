@@ -4,6 +4,7 @@
 import { readdirSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { CYPHER_TEMPLATES } from '../../../../src/fitness-compiler/cypher-templates.js';
+import { computeFrozenSha256, FROZEN_SHA256, FROZEN_VALUES } from '../../../../src/llm-critic/frozen.js';
 import {
   allTemplateIds, exportFrozenInstrument, FROZEN_EXPORT_FINAL_REFUSED, main,
 } from '../../../../scripts/export-frozen-instrument.js';
@@ -43,12 +44,15 @@ describe('frozen-instrument exporter (BR-U5b-52)', () => {
   });
 
   it('--final without the U4 judge freeze exits 1 and writes nothing; with it, exits 0', () => {
-    const r = run(['--final', '--out', 'x.json']);
+    const r = run(['--final', '--out', 'x.json'], null);
     expect(r.code).toBe(1);
     expect(r.err).toContain(FROZEN_EXPORT_FINAL_REFUSED);
     expect(r.files.size).toBe(0);
-    expect(exported().judgeFreeze).toBeNull();
     expect(run(['--final'], { unitCap: 1 }).code).toBe(0);
+    // Default: U4's FROZEN_VALUES verbatim with the hash anchor (merged at Step 26); a final export succeeds.
+    expect(exported().judgeFreeze).toEqual(JSON.parse(JSON.stringify({ frozenSha256: FROZEN_SHA256, values: FROZEN_VALUES })));
+    expect(computeFrozenSha256()).toBe(FROZEN_SHA256);
+    expect(run(['--final']).code).toBe(0);
     expect(run(['--self-test']).code).toBe(1);
     expect(run(['--bogus']).code).toBe(2);
   });
