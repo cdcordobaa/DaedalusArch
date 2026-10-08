@@ -1,5 +1,5 @@
 /**
- * C15.3 differential scorer (FR-25; BR-U5b-02..19, 25; U5b domain-entities §2, §3; business-logic-model §3).
+ * C15.3 differential scorer (FR-25; BR-U5b-02..27, 78; U5b domain-entities §2, §3; business-logic-model §3).
  *
  * Scores seeded copies against their baselines under the pre-registered matching rule
  * (`Docs/matching-rule.md`, loaded by `scripts/lib/matching-rule.ts`):
@@ -20,7 +20,11 @@
  *   `parseEvidence` and the spec threshold at `specSha256` (BR-U5b-15); metric-key exclusions from the frozen
  *   instrument's readiness flags (BR-U5b-16); twins, specificity and "incl. twins" precision (BR-U5b-17); SCC
  *   member-overlap matching (BR-U5b-18); neural rows by `(functionId, filePath, [unitId])` with judge collateral
- *   (BR-U5b-19).
+ *   (BR-U5b-19);
+ * - strata `split` × `baseKind` × `coverage` (split total, base-kind and coverage strata; never pooled across splits;
+ *   SP-* probe rows only through `scoreSensitivity` into `FunctionSensitivityResult`, BR-U5b-20, 21, 78); FLOWS_TO
+ *   edge evidence (`EDGE_EVIDENCE_UNAVAILABLE` on `{}`, BR-U5b-22); judge probes overall and conditional on the
+ *   baseline selection (BR-U5b-23); one `denominators` row per report with U3's identities I1 / I2 (BR-U5b-24).
  *
  * The output is a `GoldenScore`; `canonicalGoldenScore` writes it in the canonical form (BR-U5b-26).
  */
@@ -38,6 +42,7 @@ import { acceptReport, checkRunRecord } from './lib/report-io.js';
 import type { PinnedJudge, RunRecord } from './lib/report-io.js';
 import { compiledThresholds, loadCompiledSpec } from './lib/mutation/expected.js';
 import { isMetricTemplate } from './lib/mutation/metrics.js';
+import { loadCatalogueRegistry } from './lib/mutation/operators/index.js';
 import type { BaseKind, Coverage, ExpectedKey, LineShift } from './lib/mutation/types.js';
 
 export type { MatchingRule };
@@ -57,7 +62,13 @@ export const DATA_FLOW_SUB_ROW = 'structural/data-flow';
 
 export const SCORE_INPUT_REJECTED = 'SCORE_INPUT_REJECTED';
 export const SCORE_COLLATERAL_UNKEYED = 'SCORE_COLLATERAL_UNKEYED';
-export type ScoreErrorCode = typeof SCORE_INPUT_REJECTED | typeof SCORE_COLLATERAL_UNKEYED;
+export const EDGE_EVIDENCE_UNAVAILABLE = 'EDGE_EVIDENCE_UNAVAILABLE';
+export const SENSITIVITY_EXCLUSION_UNSUPPORTED = 'SENSITIVITY_EXCLUSION_UNSUPPORTED';
+export type ScoreErrorCode = typeof SCORE_INPUT_REJECTED | typeof SCORE_COLLATERAL_UNKEYED | typeof EDGE_EVIDENCE_UNAVAILABLE;
+
+/** Probed neural template per judge probe (BR-U5b-23). */
+export const JUDGE_PROBE_TEMPLATE = { semantic: 'intent-alignment', integrity: 'architectural-integrity' } as const;
+export type JudgeProbeKind = keyof typeof JUDGE_PROBE_TEMPLATE;
 
 export interface Confusion { readonly tp: number; readonly fp: number; readonly fn: number }
 export interface Prf extends Confusion {
@@ -96,6 +107,17 @@ export interface EdgeEvidence {
 export interface JudgeProbeResult {
   readonly seedId: string; readonly probe: 'semantic' | 'integrity'; readonly negative: boolean; readonly runIndex: number;
   readonly detected: boolean; readonly inSelection: boolean; readonly coverageShare: number;
+}
+/** One SP-* probe result (BR-U5b-78); `split: 'probe'` only, never in a `GoldenScore` stratum. */
+export interface FunctionSensitivityResult {
+  readonly probeId: string;
+  readonly functionId: string;
+  /** `null` = run rejected (the reason is `rejectedReason`, and in `runs.csv`). */
+  readonly pass: boolean | null;
+  readonly lineConfirmed: boolean | null;
+  readonly excludedAfterFail: boolean;
+  readonly fixAttemptRef?: string;
+  readonly rejectedReason?: string;
 }
 /** One `denominators.csv` row per scored report (BR-U5b-24; DV-U5b-9). */
 export interface DenominatorRow {
@@ -172,6 +194,11 @@ export interface ScoreInput {
   readonly metricKeyReadiness?: MetricKeyReadiness;
   /** Compiled thresholds by `specSha256` → template name (BR-U5b-15; `metricThresholds`). */
   readonly thresholds?: ReadonlyMap<string, Readonly<Record<string, number>>>;
+  /**
+   * Operator id → judge probe kind for twins of judge probes (the negative expected block carries no `judgeProbe`;
+   * BR-U5b-23). Positive judge-probe rows are recognised by `expected.judgeProbe`; their operator ids are added.
+   */
+  readonly judgeProbeOperators?: ReadonlyMap<string, JudgeProbeKind>;
 }
 
 export type ScoreOutcome =
@@ -623,6 +650,131 @@ function classifySeed(pair: AcceptedPair, ctx: ClassifyContext): SeedOutcome {
 }
 
 // ---------------------------------------------------------------------------------------------
+// Evidence: FLOWS_TO edges, judge probes, denominators (BR-U5b-22, 23, 24)
+
+/** Edge evidence of a row with `expected.expectedEdges` (BR-U5b-22); `{}` in either report is refused. */
+function edgeEvidenceOf(p: AcceptedPair): { ok: true; value: EdgeEvidence[] } | { ok: false; detail: string } {
+  const declared = p.row.expected.expectedEdges ?? [];
+  if (declared.length === 0) return { ok: true, value: [] };
+  const b = p.baseline.graphStats.edgeCountByType;
+  const s = p.seeded.graphStats.edgeCountByType;
+  if (Object.keys(b).length === 0 || Object.keys(s).length === 0) {
+    return { ok: false, detail: `${p.row.seedId}: graphStats.edgeCountByType is empty in the ${Object.keys(b).length === 0 ? 'baseline' : 'seeded'} report` };
+  }
+  // `expectedEdges` entries are FLOWS_TO edges only (U5a `FlowsToEdge`); declared = their number.
+  const baseline = b.FLOWS_TO ?? 0;
+  const seeded = s.FLOWS_TO ?? 0;
+  const declaredCount = declared.length;
+  return {
+    ok: true,
+    value: [{ seedId: p.row.seedId, negative: p.row.expected.negative === true, edgeType: 'FLOWS_TO', baseline, seeded, delta: seeded - baseline, declared: declaredCount, pass: seeded - baseline === declaredCount }],
+  };
+}
+
+type NeuralRow = NonNullable<EvaluationReport['neuralResults']>[number];
+
+function neuralRowOf(report: EvaluationReport, template: string): NeuralRow | undefined {
+  const ids = new Set(report.functionResults.filter((r) => (r as typeof r & { readonly name?: string }).name === template).map((r) => String(r.functionId)));
+  return report.neuralResults?.find((n) => ids.has(String(n.functionId)));
+}
+
+/**
+ * Judge probe (BR-U5b-23): detected when the probed function has a failing unit covering an edited or created file
+ * of the row that does not fail on the baseline; `inSelection` when every such file lies inside a baseline-selected
+ * unit, `coverageShare` the share that does.
+ */
+function judgeProbeResult(p: AcceptedPair, probe: JudgeProbeKind): JudgeProbeResult {
+  const template = JUDGE_PROBE_TEMPLATE[probe];
+  const touched = new Set([...p.row.editedFiles, ...p.row.createdFiles]);
+  const seededRow = neuralRowOf(p.seeded, template);
+  const baseRow = neuralRowOf(p.baseline, template);
+  const baseFailing = new Set((baseRow?.unitResults ?? []).filter((u) => u.verdict === 'fail').map((u) => u.unitId));
+  const detected = (seededRow?.unitResults ?? []).some(
+    (u) => u.verdict === 'fail' && !baseFailing.has(u.unitId) && u.filePaths.some((f) => touched.has(f)),
+  );
+  const selected = new Set(baseRow?.selection.selectedUnitIds ?? []);
+  const selectedFiles = new Set((baseRow?.unitResults ?? []).filter((u) => selected.has(u.unitId)).flatMap((u) => u.filePaths));
+  const covered = [...touched].filter((f) => selectedFiles.has(f)).length;
+  const coverageShare = touched.size === 0 ? 0 : covered / touched.size;
+  return {
+    seedId: p.row.seedId, probe, negative: p.row.expected.negative === true, runIndex: p.seededRecord.cell?.runIndex ?? 0,
+    detected, inSelection: touched.size > 0 && covered === touched.size, coverageShare,
+  };
+}
+
+/** A `denominators.csv` row with U3's identities I1 and I2 (BR-U5b-24). */
+export function denominatorRow(seedId: string | null, runId: string, r: EvaluationReport, notApplicable: number, metricKeyExcluded: number): DenominatorRow {
+  const fe = r.functionExecution;
+  const i1 = fe.declared + fe.adrDerived === fe.compiled + fe.disabled + fe.dropped.length;
+  const i2 = fe.compiled === fe.executed + fe.failed.length + fe.skippedByMode;
+  return {
+    seedId, runId, declared: fe.declared, adrDerived: fe.adrDerived, compiled: fe.compiled, disabled: fe.disabled,
+    dropped: fe.dropped.length, droppedIds: sortStrings(fe.dropped), skippedByMode: fe.skippedByMode, executed: fe.executed,
+    failed: fe.failed.length, notApplicable, metricKeyExcluded, identityOk: i1 && i2,
+  };
+}
+
+// ---------------------------------------------------------------------------------------------
+// Function sensitivity probes (BR-U5b-78)
+
+export interface SensitivityInput {
+  readonly rule: MatchingRule;
+  /** Rows with `split: 'probe'` (SP-*), each against its own baseline. */
+  readonly probes: readonly SeedInput[];
+  /** Function ids disabled (`enabled: false` + reason) in a later registered spec version (ADR-016 b). */
+  readonly laterDisabled?: ReadonlySet<string>;
+  /** `ExperimentPlan.fixAttempts` of the sensitivity plan. */
+  readonly fixAttempts?: readonly { readonly functionId: string; readonly ref: string }[];
+  readonly pinnedJudge?: PinnedJudge;
+}
+
+export type SensitivityOutcome =
+  | { readonly ok: true; readonly results: readonly FunctionSensitivityResult[] }
+  | { readonly ok: false; readonly code: typeof SENSITIVITY_EXCLUSION_UNSUPPORTED | typeof SCORE_INPUT_REJECTED; readonly detail: string };
+
+/**
+ * Scores SP-* probes (BR-U5b-78): `pass` when a new violation of the probe's target function has a key in
+ * `expected.keys[]` (key rules BR-U5b-02..04; line confirmation recorded, never changing `pass`); a rejected run gives
+ * `pass: null`. `excludedAfterFail` only for a failed probe whose function a later spec disables, with the fix
+ * attempt named; a later-disabled function without a failed probe and a recorded fix attempt is refused.
+ */
+export function scoreSensitivity(input: SensitivityInput): SensitivityOutcome {
+  const results: FunctionSensitivityResult[] = [];
+  const fix = new Map((input.fixAttempts ?? []).map((f) => [f.functionId, f.ref] as const));
+  for (const seed of [...input.probes].sort((a, b) => (a.row.seedId < b.row.seedId ? -1 : a.row.seedId > b.row.seedId ? 1 : 0))) {
+    const row = seed.row;
+    if (row.split !== 'probe') return { ok: false, code: SCORE_INPUT_REJECTED, detail: `${row.seedId}: split ${row.split} is not a probe row` };
+    const functionId = row.expected.functionIds[0] ?? '';
+    const acc = acceptPair(seed, input.pinnedJudge);
+    if (!acc.ok) {
+      results.push({ probeId: row.operatorId, functionId, pass: null, lineConfirmed: null, excludedAfterFail: false, rejectedReason: acc.reason });
+      continue;
+    }
+    const diff = diffPair(acc.pair.baseline, acc.pair.seeded);
+    const keys = new Map(row.expected.keys.filter((k) => k.functionId === functionId).map((k) => [expectedMatchKey(k), k] as const));
+    const hits = diff.fresh.filter((o) => o.v.functionId === functionId && keys.has(o.key));
+    const lineChecks = hits.flatMap((o) => {
+      const k = keys.get(o.key);
+      return k === undefined || k.lineRule === 'none' || k.line === undefined || o.v.line === undefined ? [] : [o.v.line === k.line];
+    });
+    const pass = hits.length > 0;
+    const disabledLater = input.laterDisabled?.has(functionId) === true;
+    const ref = fix.get(functionId);
+    results.push({
+      probeId: row.operatorId, functionId, pass, lineConfirmed: lineChecks.length === 0 ? null : lineChecks.every(Boolean),
+      excludedAfterFail: !pass && disabledLater && ref !== undefined, ...(ref !== undefined && { fixAttemptRef: ref }),
+    });
+  }
+  for (const f of sortStrings(input.laterDisabled ?? [])) {
+    const failed = results.some((r) => r.functionId === f && r.pass === false);
+    if (!failed || !fix.has(f)) {
+      return { ok: false, code: SENSITIVITY_EXCLUSION_UNSUPPORTED, detail: `${f} is disabled in a later spec without ${failed ? 'a recorded fix attempt' : 'a failed probe'}` };
+    }
+  }
+  return { ok: true, results };
+}
+
+// ---------------------------------------------------------------------------------------------
 // Aggregation
 
 class Cell {
@@ -666,7 +818,8 @@ function freeze(map: Map<string, Map<string, Cell>>, labels: ReadonlyMap<string,
 
 /** Stratum keys a scored (non-probe) instance contributes to. */
 export function strataOf(i: Pick<InstanceResult, 'split' | 'baseKind' | 'coverage'>): string[] {
-  return [JSON.stringify([i.split, 'all', 'all'])];
+  // BR-U5b-20, 21: the split total, the base-kind stratum and the coverage stratum; never across splits.
+  return [JSON.stringify([i.split, 'all', 'all']), JSON.stringify([i.split, i.baseKind, 'all']), JSON.stringify([i.split, 'all', i.coverage])];
 }
 
 function tagRows(tags: readonly string[], templates: readonly (string | undefined)[]): string[] {
@@ -677,7 +830,7 @@ function increment(m: Map<string, number>, k: string): void {
   m.set(k, (m.get(k) ?? 0) + 1);
 }
 
-/** Scores the seeds (BR-U5b-02..19, 25). */
+/** Scores the seeds (BR-U5b-02..25; SP-* probe rows are left to `scoreSensitivity`). */
 export function scoreDifferential(input: ScoreInput): ScoreOutcome {
   const pairs: AcceptedPair[] = [];
   for (const seed of input.seeds) {
@@ -686,6 +839,26 @@ export function scoreDifferential(input: ScoreInput): ScoreOutcome {
     const acc = acceptPair(seed, input.pinnedJudge);
     if (!acc.ok) return { ok: false, code: SCORE_INPUT_REJECTED, detail: acc.reason };
     pairs.push(acc.pair);
+  }
+  const probeOps = new Map(input.judgeProbeOperators ?? []);
+  for (const p of pairs) if (p.row.expected.negative !== true && p.row.expected.judgeProbe !== undefined) probeOps.set(p.row.operatorId, p.row.expected.judgeProbe);
+  const judgeProbeOf = (p: AcceptedPair): JudgeProbeKind | undefined =>
+    p.row.expected.negative === true ? probeOps.get(p.row.operatorId) ?? probeOps.get(p.row.expected.twinOf) : p.row.expected.judgeProbe;
+  const edgeEvidence: EdgeEvidence[] = [];
+  const judgeProbe: JudgeProbeResult[] = [];
+  const denominators = new Map<string, DenominatorRow>();
+  const scored: AcceptedPair[] = [];
+  for (const p of pairs) {
+    if (p.row.split === 'probe') continue; // SP-* probes: scoreSensitivity only (BR-U5b-20, 78)
+    const edges = edgeEvidenceOf(p);
+    if (!edges.ok) return { ok: false, code: EDGE_EVIDENCE_UNAVAILABLE, detail: edges.detail };
+    edgeEvidence.push(...edges.value);
+    const probe = judgeProbeOf(p);
+    if (probe !== undefined) {
+      judgeProbe.push(judgeProbeResult(p, probe));
+      continue;
+    }
+    scored.push(p);
   }
   const readiness = input.metricKeyReadiness;
   const ctx: ClassifyContext = {
@@ -709,8 +882,10 @@ export function scoreDifferential(input: ScoreInput): ScoreOutcome {
   let sccOverlapMatches = 0;
   let judgeCollateral = 0;
   const twins = { clean: 0, scored: 0 };
-  for (const pair of [...pairs].sort((a, b) => (a.row.seedId < b.row.seedId ? -1 : a.row.seedId > b.row.seedId ? 1 : 0))) {
+  for (const pair of [...scored].sort((a, b) => (a.row.seedId < b.row.seedId ? -1 : a.row.seedId > b.row.seedId ? 1 : 0))) {
     const o = classifySeed(pair, ctx);
+    if (!denominators.has(pair.baselineRecord.runId)) denominators.set(pair.baselineRecord.runId, denominatorRow(null, pair.baselineRecord.runId, pair.baseline, 0, 0));
+    denominators.set(`${pair.row.seedId}\u0000${pair.seededRecord.runId}`, denominatorRow(pair.row.seedId, pair.seededRecord.runId, pair.seeded, o.notApplicable.length, o.metricKeyExcluded.length));
     const i = o.instance;
     instances.push(i);
     items.push(...o.items);
@@ -783,9 +958,13 @@ export function scoreDifferential(input: ScoreInput): ScoreOutcome {
       sccOverlapMatches,
       judgeCollateral,
       twinSpecificity: twins,
-      edgeEvidence: [],
-      judgeProbe: [],
-      denominators: [],
+      edgeEvidence: [...edgeEvidence].sort((a, b) => (a.seedId < b.seedId ? -1 : a.seedId > b.seedId ? 1 : 0)),
+      judgeProbe: [...judgeProbe].sort((a, b) => (a.seedId < b.seedId ? -1 : a.seedId > b.seedId ? 1 : a.runIndex - b.runIndex)),
+      denominators: [...denominators.values()].sort((a, b) => {
+        const ka = `${a.seedId ?? ''}\u0000${a.runId}`;
+        const kb = `${b.seedId ?? ''}\u0000${b.runId}`;
+        return ka < kb ? -1 : ka > kb ? 1 : 0;
+      }),
     },
   };
 }
@@ -893,6 +1072,20 @@ export function loadCase(repoRoot: string, caseDir: string): { ok: true; value: 
 }
 
 // ---------------------------------------------------------------------------------------------
+// Judge-probe operators from U5a's catalogue registry (twins of judge probes carry no `judgeProbe`; BR-U5b-23)
+
+export function judgeProbeOperators(repoRoot: string): Map<string, JudgeProbeKind> {
+  const out = new Map<string, JudgeProbeKind>();
+  const reg = loadCatalogueRegistry(repoRoot);
+  if (!reg.success) return out;
+  for (const op of reg.data.list()) {
+    const probe = op.judgeProbe ?? (op.twinOf === undefined ? undefined : reg.data.get(op.twinOf)?.judgeProbe);
+    if (probe !== undefined) out.set(op.id, probe);
+  }
+  return out;
+}
+
+// ---------------------------------------------------------------------------------------------
 // CLI main (BR-U5b-73; entry file `scripts/score-golden-cli.ts`)
 
 export const SCORE_USAGE = [
@@ -984,6 +1177,7 @@ export async function main(argv: readonly string[], repoRoot: string, io: ScoreM
   }
   const result = scoreDifferential({
     rule: rule.rule, seeds: loaded.value.seeds, rejections: loaded.value.manifest.rejections, thresholds: thresholds.value,
+    judgeProbeOperators: judgeProbeOperators(repoRoot),
     ...(loaded.value.metricKeyReadiness !== undefined && { metricKeyReadiness: loaded.value.metricKeyReadiness }),
     ...(labels !== undefined && { labels }),
   });
