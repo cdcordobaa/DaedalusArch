@@ -213,3 +213,89 @@ No deviation contradicts the functional design or ADR-015/016. No escalation was
 ## Security Baseline compliance (`business-rules.md` §9)
 
 SECURITY-05 compliant: every spec value reaches Neo4j as a parameter, `pattern` passes the allowlist grammar before regex compilation, exclude anchors carry no user text, and the interpolated literals (`10`, `101`) are compile-time constants. SECURITY-15 compliant: BR-SPEC-10, schema errors, the pattern grammar and missing exclude anchors fail closed; disabled functions are reported with reasons. All other rules are N/A, as listed in §9. No new dependency was added. The lane password stayed out of every tracked file, command line and output (D-U1-10).
+
+## Realised golden changes vs predicted (§8.2)
+
+AHS columns are cumulative, in the order correct-reference / variant-a / variant-b / variant-c / variant-d. Predicted values come from `business-logic-model.md` §8.2; realised values come from the `CHANGES.md` lines and the snapshots. `git log f5fed3f..HEAD -- tests/golden/__snapshots__` lists exactly K2, K3, K4, K5, K6, K12 and K13.
+
+| K | Predicted change | Realised change | Pass/fail (binding) | AHS predicted | AHS realised | Verdict change |
+|---|---|---|---|---|---|---|
+| K1 | none | none (snapshots untouched) | match | unchanged | unchanged | none |
+| K2 | `unexecutedFunctionIds` 7 → 0, +7 rows, `functionCount` 17 → 24; +FF-CV02 (cr 2, a 1, b 2, c 1, d 1), +FF-SO01 c, +FF-SO02 b, c | as predicted | match | .802 / .353 / .528 / .374 / .407 | .802 / .353 / .528 / .374 / .407 | cr warning → pass (as predicted) |
+| K3 | −7 FF-CV02 violations | as predicted | match | .811 / .362 / .537 / .382 / .416 | .811 / .362 / .537 / .382 / .416 | none |
+| K4 | FF-S03 leaves (cr 2, a 4, b 3, c 2, d 4); `functionCount` 24 → 23 | as predicted | match | .898 / .362 / .595 / .412 / .445 | .898 / .362 / .595 / .412 / .445 | none |
+| K5 | FF-P03 cr, a, d 1 → 0; b, c keep 1 | as predicted | match | .958 / .422 / .595 / .412 / .505 | .958 / .422 / .595 / .412 / .505 | d hard-block → soft-block (as predicted) |
+| K6 | FF-S02 rows a 4 → 2, c 2 → 1 | as predicted | match | unchanged | unchanged | none |
+| K7 | none | none | match | unchanged | unchanged | none |
+| K8 | none | none | match | unchanged | unchanged | none |
+| K9 | none | none | match | unchanged | unchanged | none |
+| K10 | none | none | match | unchanged | unchanged | none |
+| K11 | none | none | match | unchanged | unchanged | none |
+| K12 | d FF-S01 2 → 3 (re-export row) | as predicted; IMPORTS rows byte-identical | match | unchanged | unchanged | none |
+| K13 | d FF-C04 1 → 0 | as predicted; coupling `avr` 0.667 → 0.5 | match | .958 / .422 / .595 / .412 / .538 | .958 / .422 / .595 / .412 / .538 | none |
+| K14 | none (symbolic-only) | none | match | unchanged | unchanged | none |
+| K15 | none | none | — | — | — | none |
+| K16 | none; one observation line | none; observation line added | match | unchanged | unchanged | none |
+
+Every realised value equals its estimate to 3 dp. No step stopped for review.
+
+## Post-U1 per-fixture state (read from the snapshots)
+
+| Fixture | `ahsDeterministic` | Verdict | `functionResults` | `unexecutedFunctionIds` | Failing functions |
+|---|---|---|---|---|---|
+| correct-reference | 0.958 | pass | 23 | [] | FF-C03, FF-CV05 |
+| variant-a-structural | 0.422 | hard-block | 23 | [] | FF-S01, FF-S02, FF-S04, FF-P02, FF-P04, FF-C01, FF-C03, FF-C06, FF-CV05 |
+| variant-b-pattern | 0.595 | soft-block | 23 | [] | FF-S01, FF-P02, FF-P03, FF-P04, FF-C03, FF-C06, FF-SO02, FF-CV05 |
+| variant-c-everything | 0.412 | hard-block | 23 | [] | FF-S01, FF-S02, FF-P02, FF-P03, FF-P04, FF-C03, FF-C04, FF-C06, FF-SO01, FF-SO02, FF-CV05 |
+| variant-d-subtle | 0.538 | soft-block | 23 | [] | FF-S01, FF-S04, FF-P02, FF-P04, FF-C01, FF-C03, FF-C06, FF-CV05 |
+
+These values are interim (BR-U1-42). Against the `MANIFEST.md` expectations (pass / soft-block / soft-block / hard-block / warning), correct-reference, variant-b and variant-c match. variant-a (expected soft-block) and variant-d (expected warning) are explained in the FR-18 re-baseline in Build and Test.
+
+## Merge record
+
+PR #3 (`v1.2e-u1-spec-compiler` → `v1.2e`), merge commit (D-U1-5). PR CI run 37757806873 at `b66c478`: `Build & Test` success, `Golden regression suite` success (38 tests, 0 skipped), `Golden change log` success. The merge SHA is recorded in `aidlc-docs/aidlc-state.md` and `aidlc-docs/audit.md` on `v1.2e`.
+
+## Appendix: every U1 line in `tests/golden/CHANGES.md` (verbatim)
+
+```text
+2026-10-08 U1-K2 correct-reference — FR-07 + FR-08 (Q1 grammar, Q2, Q5): typed FR-07 fields and BR-SPEC-10 bind FF-P01, FF-SO01–03, FF-CV02–04; `unexecutedFunctionIds` 7 → 0, the 7 `EVAL_001` warnings removed, `functionResults` 17 → 24 rows, `functionCount` 17 → 24 in every dimension row; FF-CV02 fails with 2 violations (`CompleteTaskUseCase`, `CreateTaskUseCase` do not match `*Service`); AHS 0.787 → 0.802, verdict warning → pass.
+2026-10-08 U1-K2 variant-a-structural — FR-07 + FR-08 (Q1 grammar, Q2, Q5): typed FR-07 fields and BR-SPEC-10 bind FF-P01, FF-SO01–03, FF-CV02–04; `unexecutedFunctionIds` 7 → 0, the 7 `EVAL_001` warnings removed, `functionResults` 17 → 24 rows, `functionCount` 17 → 24 in every dimension row; FF-CV02 fails with 1 violation (`CreateTaskUseCase`); AHS 0.308 → 0.353, verdict hard-block unchanged.
+2026-10-08 U1-K2 variant-b-pattern — FR-07 + FR-08 (Q1 grammar, Q2, Q5): typed FR-07 fields and BR-SPEC-10 bind FF-P01, FF-SO01–03, FF-CV02–04; `unexecutedFunctionIds` 7 → 0, the 7 `EVAL_001` warnings removed, `functionResults` 17 → 24 rows, `functionCount` 17 → 24 in every dimension row; FF-CV02 fails with 2 violations (`CompleteTaskUseCase`, `CreateTaskUseCase`); FF-SO02 fails with 1 violation (`ITaskRepository` above `max_interface_methods` 5, through U2 Interface CONTAINS Method, BR-U2-47, ADR-016 f); AHS 0.517 → 0.528, verdict soft-block unchanged.
+2026-10-08 U1-K2 variant-c-everything — FR-07 + FR-08 (Q1 grammar, Q2, Q5): typed FR-07 fields and BR-SPEC-10 bind FF-P01, FF-SO01–03, FF-CV02–04; `unexecutedFunctionIds` 7 → 0, the 7 `EVAL_001` warnings removed, `functionResults` 17 → 24 rows, `functionCount` 17 → 24 in every dimension row; FF-CV02 fails with 1 violation (`CreateTaskUseCase`); FF-SO01 fails with 1 violation (`GodTask`); FF-SO02 fails with 1 violation (`ITaskRepository`, BR-U2-47, ADR-016 f); AHS 0.396 → 0.374, verdict hard-block unchanged.
+2026-10-08 U1-K2 variant-d-subtle — FR-07 + FR-08 (Q1 grammar, Q2, Q5): typed FR-07 fields and BR-SPEC-10 bind FF-P01, FF-SO01–03, FF-CV02–04; `unexecutedFunctionIds` 7 → 0, the 7 `EVAL_001` warnings removed, `functionResults` 17 → 24 rows, `functionCount` 17 → 24 in every dimension row; FF-CV02 fails with 1 violation (`CreateTaskUseCase`); AHS 0.362 → 0.407, verdict hard-block unchanged.
+2026-10-08 U1-K2 observation all — FR-07 + FR-08 (Q1 grammar, Q2, Q5): FF-P01 passes vacuously until U3's FR-11 rewrite matches Package nodes, although variant-b and variant-c import `@nestjs/common` / `express` in the domain (`fixtures/variant-b-pattern/src/domain/entities/Task.ts:2`).
+2026-10-08 U1-K2 observation all — FR-07 + FR-08 (Q1 grammar, Q2, Q5): FF-SO02 could not match at HEAD (no Interface→Method `CONTAINS` edge); U2 adds it (BR-U2-47, ADR-016 f), so it fires on variant-b and variant-c from K2 on. FF-CV01 always passes (`'.*'` defaults) and FF-CV04 cannot match (`c.decorators` is never ingested). Each is decided by the Build and Test sensitivity check: fixed if it can be made to fire, else excluded from the denominator and declared (BR-U1-39, ADR-016 b).
+2026-10-08 U1-K2 observation all — FR-07 + FR-08 (Q1 grammar, Q2, Q5): `default_exclude_paths` in `presets/clean-architecture.yaml` and `presets/nestjs.yaml` stays an unknown key, ignored with `SPEC_001` (U1 Q20 A, D-U1-13).
+2026-10-08 U1-K2 observation correct-reference — FR-07 + FR-08 (Q1 grammar, Q2, Q5): the verdict flips warning → pass at K2 partly through FF-P01's vacuous pass; recorded as a cut-off sensitivity threat (business-rules.md §8).
+2026-10-08 U1-K3 correct-reference — ADR-015 item 10 (U1 Q21 B): FF-CV02 pattern `*Service|*UseCase` in the four shipped YAMLs (BR-U1-38); use cases no longer read as misnamed services, FF-CV02 passes (2 violations removed: `CompleteTaskUseCase`, `CreateTaskUseCase`); AHS 0.802 → 0.811, verdict pass unchanged.
+2026-10-08 U1-K3 variant-a-structural — ADR-015 item 10 (U1 Q21 B): FF-CV02 pattern `*Service|*UseCase` in the four shipped YAMLs (BR-U1-38); use cases no longer read as misnamed services, FF-CV02 passes (1 violation removed: `CreateTaskUseCase`); AHS 0.353 → 0.362, verdict hard-block unchanged.
+2026-10-08 U1-K3 variant-b-pattern — ADR-015 item 10 (U1 Q21 B): FF-CV02 pattern `*Service|*UseCase` in the four shipped YAMLs (BR-U1-38); use cases no longer read as misnamed services, FF-CV02 passes (2 violations removed: `CompleteTaskUseCase`, `CreateTaskUseCase`); AHS 0.528 → 0.537, verdict soft-block unchanged.
+2026-10-08 U1-K3 variant-c-everything — ADR-015 item 10 (U1 Q21 B): FF-CV02 pattern `*Service|*UseCase` in the four shipped YAMLs (BR-U1-38); use cases no longer read as misnamed services, FF-CV02 passes (1 violation removed: `CreateTaskUseCase`); AHS 0.374 → 0.382, verdict hard-block unchanged.
+2026-10-08 U1-K3 variant-d-subtle — ADR-015 item 10 (U1 Q21 B): FF-CV02 pattern `*Service|*UseCase` in the four shipped YAMLs (BR-U1-38); use cases no longer read as misnamed services, FF-CV02 passes (1 violation removed: `CreateTaskUseCase`); AHS 0.407 → 0.416, verdict hard-block unchanged.
+2026-10-08 U1-K4 correct-reference — ADR-015 item 10 (U1 Q22 B): FF-S03 `no-layer-skip` is applicable to `layered` only (§3.1, BR-U1-18, AD-8), so it is style-disabled for `clean-architecture`; its `functionResults` row and violations leave the snapshot, `functionCount` 24 → 23 in every dimension row, structural denominator 4 → 3 (`COMPILER_004` is not routed to the snapshot); 2 FF-S03 violations removed; AHS 0.811 → 0.898, verdict pass unchanged.
+2026-10-08 U1-K4 variant-a-structural — ADR-015 item 10 (U1 Q22 B): FF-S03 `no-layer-skip` is applicable to `layered` only (§3.1, BR-U1-18, AD-8), so it is style-disabled for `clean-architecture`; its `functionResults` row and violations leave the snapshot, `functionCount` 24 → 23 in every dimension row, structural denominator 4 → 3 (`COMPILER_004` is not routed to the snapshot); 4 FF-S03 violations removed; AHS 0.362 unchanged (structural AVR stays 1.0), verdict hard-block unchanged.
+2026-10-08 U1-K4 variant-b-pattern — ADR-015 item 10 (U1 Q22 B): FF-S03 `no-layer-skip` is applicable to `layered` only (§3.1, BR-U1-18, AD-8), so it is style-disabled for `clean-architecture`; its `functionResults` row and violations leave the snapshot, `functionCount` 24 → 23 in every dimension row, structural denominator 4 → 3 (`COMPILER_004` is not routed to the snapshot); 3 FF-S03 violations removed; AHS 0.537 → 0.595, verdict soft-block unchanged.
+2026-10-08 U1-K4 variant-c-everything — ADR-015 item 10 (U1 Q22 B): FF-S03 `no-layer-skip` is applicable to `layered` only (§3.1, BR-U1-18, AD-8), so it is style-disabled for `clean-architecture`; its `functionResults` row and violations leave the snapshot, `functionCount` 24 → 23 in every dimension row, structural denominator 4 → 3 (`COMPILER_004` is not routed to the snapshot); 2 FF-S03 violations removed; AHS 0.382 → 0.412, verdict hard-block unchanged.
+2026-10-08 U1-K4 variant-d-subtle — ADR-015 item 10 (U1 Q22 B): FF-S03 `no-layer-skip` is applicable to `layered` only (§3.1, BR-U1-18, AD-8), so it is style-disabled for `clean-architecture`; its `functionResults` row and violations leave the snapshot, `functionCount` 24 → 23 in every dimension row, structural denominator 4 → 3 (`COMPILER_004` is not routed to the snapshot); 4 FF-S03 violations removed; AHS 0.416 → 0.445, verdict hard-block unchanged.
+2026-10-08 U1-K5 correct-reference — ADR-015 item 1 (U1 BR-U1-45): `repository-pattern` drops its compliant UNION branch (an infrastructure class implementing a domain repository interface was reported as a violation), so FF-P03 reports only Repository/Repo classes that implement no interface; FF-P03 1 → 0 rows (`InMemoryTaskRepository` implements `ITaskRepository`), passes; AHS 0.898 → 0.958, verdict pass unchanged.
+2026-10-08 U1-K5 variant-a-structural — ADR-015 item 1 (U1 BR-U1-45): `repository-pattern` drops its compliant UNION branch (an infrastructure class implementing a domain repository interface was reported as a violation), so FF-P03 reports only Repository/Repo classes that implement no interface; FF-P03 1 → 0 rows, passes; AHS 0.362 → 0.422, verdict hard-block unchanged.
+2026-10-08 U1-K5 variant-d-subtle — ADR-015 item 1 (U1 BR-U1-45): `repository-pattern` drops its compliant UNION branch (an infrastructure class implementing a domain repository interface was reported as a violation), so FF-P03 reports only Repository/Repo classes that implement no interface; FF-P03 1 → 0 rows, passes; AHS 0.445 → 0.505, verdict hard-block → soft-block.
+2026-10-08 U1-K5 observation variant-d-subtle — ADR-015 item 1 (U1 BR-U1-45): variant-d crosses the 0.50 soft-block cut-off at 0.505, just above it; recorded as a cut-off sensitivity threat (business-rules.md §8). variant-b and variant-c keep their seeded FF-P03 violation (`InMemoryTaskRepository` does not implement `ITaskRepository`).
+2026-10-08 U1-K6 variant-a-structural — FR-35 + NFR-07 (U1 Q15 A): the cycle query is bounded (`*2..10`), keeps one canonical rotation per simple cycle (start at the smallest `filePath`) and de-duplicates with `WITH DISTINCT`, so each 2-cycle is reported once instead of once per rotation; FF-S02 4 → 2 rows (`Task.ts`/`ITaskRepository.ts` and `CircularHelper.ts`/`InMemoryTaskRepository.ts` once each), still fails; AHS and verdict unchanged.
+2026-10-08 U1-K6 variant-c-everything — FR-35 + NFR-07 (U1 Q15 A): the cycle query is bounded (`*2..10`), keeps one canonical rotation per simple cycle and de-duplicates with `WITH DISTINCT`, so the 2-cycle `CircularB.ts`/`InMemoryTaskRepository.ts` is reported once instead of twice; FF-S02 2 → 1 rows, still fails; AHS and verdict unchanged.
+2026-10-08 U1-K6 observation all — FR-35 + NFR-07 (U1 Q15 A): cycles longer than `MAX_CYCLE_LENGTH` (10 files) are not detected (business-rules.md §8 item 1; measured on the corpus in Build and Test, BR-U1-31). Row 101 of the cycle query is a truncation sentinel; until U3 drops it, the normaliser treats more than `CYCLE_ROW_CAP` (100) rows as truncated.
+2026-10-08 U1-K12 variant-d-subtle — FR-34 (FD U2 Q6 / U1 Q25), ADR-015 item 8: `dependency-direction`, `no-domain-outward-dep` and the cycle query traverse `IMPORTS|RE_EXPORTS` and the dependency rows carry a `verb` column, so the re-export edge from the application barrel is a dependency like an import (U2 G1); FF-S01 2 → 3 rows, new `src/application/utils/TaskUtils.ts (application) re-exports from src/infrastructure/utils/InfraFormatters.ts (infrastructure)`, still fails; IMPORTS row texts byte-identical, no new cycle, no FF-S03 change (absent since K4); AHS 0.505 and verdict soft-block unchanged.
+2026-10-08 U1-K13 variant-d-subtle — FR-09 :File typing + FR-34 (FD U2 Q16 / U1 Q19): `no-orphan-files` counts a file as connected when it has an `IMPORTS|RE_EXPORTS` relationship to or from a `:File` (Package targets do not count; barrels stay excluded), so `src/infrastructure/utils/InfraFormatters.ts`, reached only through the application barrel's re-export, is no longer an orphan; FF-C04 1 → 0 rows, passes; coupling `avr` 0.667 → 0.5; AHS 0.505 → 0.538, verdict soft-block unchanged; `universalMetrics.orphanFileCount` unchanged (U3).
+2026-10-08 U1-K14 observation all — FR-22 (U1 Q9 A, Q12 A): full mode and neuronal-only runs are unsupported and unreported between the U1 and U3 merges (Q11); symbolic-only snapshots unchanged.
+2026-10-08 U1-K16 observation all — ADR-015 item 1 (ADR-016 a, U1 BR-U1-46): controllerLayer = presentation if bound, else infraLayer; no fixture has a presentation layer, so no snapshot changes.
+2026-10-08 U1-K1 self — FR-19 (U1 Q3 B): core-modules kind: infrastructure; FF-P03, FF-P05, FF-CV01, FF-CV04 now bind infraLayer and execute.
+2026-10-08 U1-K2 self — FR-07 + FR-08 (Q1 grammar, Q2, Q5): FF-C03 threshold 0.8; typed fields bind FF-P01, FF-SO01–03, FF-CV02–04.
+2026-10-08 U1-K3 self — ADR-015 item 10 (U1 Q21 B): FF-CV02 pattern `*Service|*UseCase`.
+2026-10-08 U1-K4 self — ADR-015 item 10 (U1 Q22 B): no change (no style; applicableStyles ignored, BR-U1-18); FF-S04, FF-P02, FF-P03, FF-P04, FF-P05, FF-C01, FF-CV04 still compile; FF-S03 not declared.
+2026-10-08 U1-K5 self — ADR-015 item 1 (U1 BR-U1-45): FF-P03 no longer reports compliant repository implementations.
+2026-10-08 U1-K6 self — FR-35 + NFR-07 (U1 Q15 A): FF-S02 reports each simple import cycle of 2 to 10 files once, in canonical rotation.
+2026-10-08 U1-K8 self — FR-35 (U1 Q17 A): no change expected; FF-P02, FF-C02, FF-C03, FF-C05 keep their alias.
+2026-10-08 U1-K12 self — FR-34 (FD U2 Q6 / U1 Q25), ADR-015 item 8: dependency rules (FF-S01, FF-S04) and FF-S02 follow `RE_EXPORTS` edges as well as `IMPORTS`; coupling metrics stay IMPORTS-only (BR-U1-36).
+2026-10-08 U1-K13 self — FR-09 :File typing + FR-34 (FD U2 Q16 / U1 Q19): FF-C04 counts only `IMPORTS|RE_EXPORTS` edges to or from a `:File` as connections; a file importing only Packages is an orphan.
+2026-10-08 U1-K14 self — FR-22 (U1 Q9 A, Q12 A): FF-N01 `dimension: integrity`, `route: neuronal` (id and name `srp-semantic` kept); FF-N02 `dimension: semantic`; `full_mode_weights.intent` → `integrity` (0.04); symbolic functions unchanged.
+```
