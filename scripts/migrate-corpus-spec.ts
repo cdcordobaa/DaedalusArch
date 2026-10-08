@@ -7,6 +7,11 @@
  *   `scoring.full_mode_weights.intent` key renamed to `integrity` (value kept).
  * - `cv02`: FF-CV02 `pattern: "*Service"` -> `"*Service|*UseCase"`, only when the value is exactly `*Service`;
  *   any other value leaves the file untouched and is reported.
+ * - `fp06` (U3, FR-21, BR-U3-24; attributed cross-unit): adds FF-P06 `domain-state-purity` (pattern, critical,
+ *   symbolic) when the spec declares a domain layer (`kind: domain` or name `domain`) and an infrastructure layer
+ *   (`kind: infrastructure`, or name `infrastructure` or `persistence`); inserted after FF-P05 (else after the last
+ *   `FF-P` function, else at the end of `fitness_functions`) in that item's style. A spec without both layers, or
+ *   without a `fitness_functions` list, is left untouched and reported; one that already declares FF-P06 is not edited.
  *
  * Nodes are located with the `yaml` Document API and edited in place by source range, so every byte outside
  * the edited scalars (comments, key order, quoting, layout) is kept. Idempotent: a rerun on the output edits nothing.
@@ -15,7 +20,7 @@ import * as fs from 'node:fs';
 import { parseDocument, isMap, isSeq, isScalar } from 'yaml';
 import type { Document, Scalar, YAMLMap } from 'yaml';
 
-export type MigrationStep = 'fr22' | 'cv02';
+export type MigrationStep = 'fr22' | 'cv02' | 'fp06';
 
 export interface MigrationResult {
   readonly text: string;
@@ -29,6 +34,15 @@ export const CV02_FROM = '*Service';
 export const CV02_TO = '*Service|*UseCase';
 
 interface Edit { readonly start: number; readonly end: number; readonly replacement: string; readonly path: string }
+
+/** The FF-P06 declaration added by step `fp06` (BR-U3-24), as key/value pairs in output order. */
+export const FP06_FIELDS: readonly (readonly [string, string])[] = [
+  ['id', 'FF-P06'], ['name', 'domain-state-purity'], ['dimension', 'pattern'], ['severity', 'critical'],
+  ['route', 'symbolic'], ['validated', 'false'],
+];
+
+const FP06_DOMAIN_NAMES: readonly string[] = ['domain'];
+const FP06_INFRA_NAMES: readonly string[] = ['infrastructure', 'persistence'];
 
 function renderScalar(node: Scalar, value: string): string {
   if (node.type === 'QUOTE_SINGLE') return `'${value.replace(/'/g, "''")}'`;
@@ -94,6 +108,50 @@ function collectCv02(doc: Document, edits: Edit[], untouched: string[]): void {
   edits.push({ start: node.range[0], end: node.range[1], replacement: renderScalar(node, CV02_TO), path });
 }
 
+function declaresLayer(doc: Document, kind: string, names: readonly string[]): boolean {
+  const layers = doc.getIn(['architecture', 'layers'], true);
+  if (!isSeq(layers)) return false;
+  return layers.items.some((l) => {
+    if (!isMap(l)) return false;
+    const k = l.get('kind');
+    const n = l.get('name');
+    return k === kind || (typeof n === 'string' && names.includes(n));
+  });
+}
+
+function collectFp06(doc: Document, text: string, edits: Edit[], untouched: string[]): void {
+  const path = 'fitness_functions[FF-P06]';
+  const seq = doc.get('fitness_functions', true);
+  if (!isSeq(seq) || seq.items.length === 0) { untouched.push(`${path}: fitness_functions not declared`); return; }
+  if (findFunction(doc, 'FF-P06')) return; // already declared
+  if (!declaresLayer(doc, 'domain', FP06_DOMAIN_NAMES) || !declaresLayer(doc, 'infrastructure', FP06_INFRA_NAMES)) {
+    untouched.push(`${path}: no domain and infrastructure (or persistence) layer declared`);
+    return;
+  }
+  const items = seq.items.filter(isMap);
+  const anchor = findFunction(doc, 'FF-P05')
+    ?? [...items].reverse().find((i) => String(i.get('id')).startsWith('FF-P'))
+    ?? items[items.length - 1];
+  if (anchor?.range == null) { untouched.push(`${path}: anchor function has no source range`); return; }
+
+  const start = anchor.range[0];
+  const lineStart = text.lastIndexOf('\n', start - 1) + 1;
+  const dashIndent = ' '.repeat(Math.max(0, text.slice(lineStart, start).indexOf('-')));
+  let at: number;
+  let block: string;
+  if (anchor.flow === true) {
+    const eol = text.indexOf('\n', anchor.range[1]);
+    at = eol < 0 ? text.length : eol + 1;
+    block = `${dashIndent}- { ${FP06_FIELDS.map(([k, v]) => `${k}: ${v}`).join(', ')} }\n`;
+  } else {
+    const keyIndent = ' '.repeat(start - lineStart);
+    at = anchor.range[1];
+    block = `\n${dashIndent}- ${FP06_FIELDS.map(([k, v], i) => `${i === 0 ? '' : keyIndent}${k}: ${v}`).join('\n')}\n`;
+  }
+  const lead = at > 0 && text[at - 1] !== '\n' ? '\n' : '';
+  edits.push({ start: at, end: at, replacement: lead + block, path });
+}
+
 /** Apply one migration step to a spec's YAML text. Pure. */
 export function migrate(text: string, step: MigrationStep): MigrationResult {
   const doc = parseDocument(text);
@@ -103,7 +161,8 @@ export function migrate(text: string, step: MigrationStep): MigrationResult {
   const edits: Edit[] = [];
   const untouched: string[] = [];
   if (step === 'fr22') collectFr22(doc, edits, untouched);
-  else collectCv02(doc, edits, untouched);
+  else if (step === 'cv02') collectCv02(doc, edits, untouched);
+  else collectFp06(doc, text, edits, untouched);
 
   let out = text;
   for (const e of [...edits].sort((a, b) => b.start - a.start)) {
@@ -119,7 +178,7 @@ fitness_functions:
     pattern: "*Foo"
 `;
 
-const USAGE = 'usage: npx tsx scripts/migrate-corpus-spec-cli.ts --step fr22|cv02 <file> | --self-test\n';
+const USAGE = 'usage: npx tsx scripts/migrate-corpus-spec-cli.ts --step fr22|cv02|fp06 <file> | --self-test\n';
 
 /**
  * CLI behaviour. Exit codes: 0 = done (edits written or nothing to do); 2 = a target was reported untouched
@@ -140,7 +199,7 @@ export function main(argv: readonly string[]): Promise<number> {
   const stepIdx = argv.indexOf('--step');
   const step = stepIdx >= 0 ? argv[stepIdx + 1] : undefined;
   const file = argv.find((a, i) => !a.startsWith('--') && i !== stepIdx + 1);
-  if ((step !== 'fr22' && step !== 'cv02') || file === undefined) {
+  if ((step !== 'fr22' && step !== 'cv02' && step !== 'fp06') || file === undefined) {
     err(USAGE);
     return Promise.resolve(1);
   }
