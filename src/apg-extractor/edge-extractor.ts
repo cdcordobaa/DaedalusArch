@@ -7,6 +7,7 @@ import type { ExtractorOptions, NodeLookup } from './types.js';
 import { DEFAULT_OPTIONS, DI_DECORATORS, PRIMITIVE_TYPES } from './types.js';
 import { generateEdgeId, normalizeFilePath } from './id-generator.js';
 import { ImportEdgeMerger } from './import-edge-merger.js';
+import { deriveFlowsToEdges } from './flows-to-deriver.js';
 import { PackageNodeRegistry } from './package-node-factory.js';
 import {
   buildImportResolutionContext,
@@ -112,7 +113,7 @@ export function extractEdges(
       if (targetId) addEdge(buildEdge('DECLARES', fileNodeId, targetId, {}));
     }
 
-    // Per-class edges: CONTAINS, EXTENDS, IMPLEMENTS, CONSTRUCTOR_INJECTS, CALLS
+    // Per-class edges: CONTAINS, EXTENDS, IMPLEMENTS, CONSTRUCTOR_INJECTS, FLOWS_TO, CALLS
     for (const cls of sf.getClasses()) {
       const clsName = cls.getName() ?? '<anonymous>';
       const clsNodeId = lookup.typeNodes.get(`${clsName.toLowerCase()}@${filePath}`);
@@ -230,6 +231,9 @@ export function extractEdges(
           }
         }
       }
+
+      // FLOWS_TO (Class → Class | Interface), D8 scope (FR-21; BR-U2-27..29)
+      for (const edge of deriveFlowsToEdges(cls, clsNodeId, lookup, projectRoot, addWarning)) addEdge(edge);
 
       // CALLS (cross-boundary Method → Method)
       for (const method of cls.getMethods()) {
