@@ -287,3 +287,94 @@ describeU1('U1 row order on Neo4j (BR-U1-29 b)', () => {
     expect(rows.map((r) => r.violations)).toEqual([['Alpha', 'Mid', 'Zed']]);
   });
 });
+
+/** The golden-spec compiler input with `exclude_paths` on every function whose template is in `templates`. */
+async function goldenInputWithExcludes(templates: (name: string) => boolean, styleless = false): Promise<ReturnType<typeof compilerInputFromSpec>> {
+  const parsed = await parseSpec({ specFilePath: path.join(ROOT, 'specs/clean-arch.yaml') });
+  if (!parsed.success) throw new Error('specs/clean-arch.yaml did not parse');
+  const input = compilerInputFromSpec(parsed.data);
+  const fitnessFunctions = input.fitnessFunctions.map((ff) => (templates(ff.name) ? { ...ff, excludePaths: ['src/x/**'] } : ff));
+  if (!styleless) return { ...input, fitnessFunctions };
+  const { style: _style, ...rest } = input;
+  return { ...rest, fitnessFunctions };
+}
+
+describeU1('U1 exclude anchors on Neo4j (BR-U1-32 a, BR-U1-44 b)', () => {
+  let repo: Neo4jRepository | undefined;
+
+  beforeAll(() => {
+    const neo4j = neo4jConfig();
+    repo = new Neo4jRepository({ neo4jUri: neo4j.uri, neo4jUser: neo4j.user, neo4jPassword: neo4j.password });
+  });
+
+  afterEach(async () => {
+    await run('MATCH (n) DETACH DELETE n');
+  });
+
+  afterAll(async () => {
+    if (repo) await repo.close();
+  });
+
+  async function run(cypher: string, params?: Record<string, unknown>): Promise<readonly Record<string, unknown>[]> {
+    if (!repo) throw new Error('repository not initialised');
+    const result = await repo.executeQuery(cypher, params);
+    if (!result.success) {
+      throw new Error(`Query failed against ${redactUri(neo4jConfig().uri)}: ${result.errors.map((e) => `${e.code} ${e.message}`).join('; ')}`);
+    }
+    return result.data.records;
+  }
+
+  it('(a) every template compiled with exclude_paths ["src/x/**"] EXPLAINs with no deprecation notification', async () => {
+    // Style dropped so FF-S03 (no-layer-skip, layered only) compiles too: all 24 templates are covered.
+    const compiled = compileFunctions(await goldenInputWithExcludes((name) => name !== 'abstraction-ratio', true));
+    if (!compiled.success) throw new Error(`did not compile: ${compiled.errors.map((e) => e.message).join('; ')}`);
+    const queries = [...compiled.data.symbolicQueries, ...compiled.data.hybridPairs.map((h) => h.symbolicQuery)];
+    expect(new Set(queries.map((q) => q.name)).size).toBe(24);
+
+    const neo4j = neo4jConfig();
+    const driver = neo4jDriver.driver(neo4j.uri, neo4jDriver.auth.basic(neo4j.user, neo4j.password));
+    try {
+      for (const q of queries) {
+        const session = driver.session();
+        try {
+          const result = await session.run(`EXPLAIN ${q.cypher}`, q.params, { timeout: 30_000 });
+          const deprecations = result.summary.notifications
+            .filter((n) => n.category === 'DEPRECATION' || n.code.includes('Deprecat'))
+            .map((n) => n.code);
+          const predicate = q.name === 'abstraction-ratio' || q.cypher.includes('$excludePatterns');
+          expect({ name: q.name, deprecations, predicate }).toEqual({ name: q.name, deprecations: [], predicate: true });
+        } finally {
+          await session.close();
+        }
+      }
+    } finally {
+      await driver.close();
+    }
+  });
+
+  it('(BR-U1-44 b) an excluded class over maxPublicMethods only yields no FF-SO01 row; without the exclude it yields one', async () => {
+    const plainInput = await goldenInputWithExcludes(() => false);
+    const plain = compileFunctions(plainInput);
+    const excluded = compileFunctions(await goldenInputWithExcludes((name) => name === 'single-responsibility-proxy'));
+    if (!plain.success || !excluded.success) throw new Error('did not compile');
+    const pick = (qs: readonly CypherQuery[]): CypherQuery => {
+      const q = qs.find((c) => c.name === 'single-responsibility-proxy');
+      if (!q) throw new Error('single-responsibility-proxy not compiled');
+      return q;
+    };
+    const srpPlain = pick(plain.data.symbolicQueries);
+    const srpExcluded = pick(excluded.data.symbolicQueries);
+    const maxMethods = Number(srpPlain.params.maxPublicMethods);
+    const maxDeps = Number(srpPlain.params.maxDependencies);
+    expect(maxDeps).toBeGreaterThanOrEqual(0);
+
+    await run(
+      "CREATE (c:Class {name: 'A', filePath: 'src/x/A.ts', layer: 'domain'}) " +
+      "WITH c UNWIND range(1, $methods) AS i CREATE (c)-[:CONTAINS]->(:Method {name: 'm' + toString(i)})",
+      { methods: neo4jDriver.int(maxMethods + 1) },
+    );
+
+    expect((await run(srpPlain.cypher, srpPlain.params)).map((r) => r.filePath)).toEqual(['src/x/A.ts']);
+    expect(await run(srpExcluded.cypher, srpExcluded.params)).toEqual([]);
+  });
+});

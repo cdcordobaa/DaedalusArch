@@ -69,3 +69,4 @@ Only variant-b and variant-c match the header verdict. U0 fixes nothing; the re-
 2026-10-08 U1-K4 self — ADR-015 item 10 (U1 Q22 B): no change (no style; applicableStyles ignored, BR-U1-18); FF-S04, FF-P02, FF-P03, FF-P04, FF-P05, FF-C01, FF-CV04 still compile; FF-S03 not declared.
 2026-10-08 U1-K5 self — ADR-015 item 1 (U1 BR-U1-45): FF-P03 no longer reports compliant repository implementations.
 2026-10-08 U1-K6 self — FR-35 + NFR-07 (U1 Q15 A): FF-S02 reports each simple import cycle of 2 to 10 files once, in canonical rotation.
+2026-10-08 U1-K8 self — FR-35 (U1 Q17 A): no change expected; FF-P02, FF-C02, FF-C03, FF-C05 keep their alias.

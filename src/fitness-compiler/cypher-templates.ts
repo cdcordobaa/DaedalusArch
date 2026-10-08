@@ -35,7 +35,9 @@ function tmpl(
 
 /**
  * Hardcoded Cypher templates for 24 symbolic fitness functions.
- * Each template uses $paramName placeholders for instantiation.
+ * Each template uses $paramName placeholders for instantiation, and an exclude anchor
+ * `/*EXCLUDE:<alias>*\/` or `/*EXCLUDE:nodes(<path>)*\/` where `exclude_paths` applies (BR-U1-32, BR-U1-44);
+ * `abstraction-ratio` has none.
  */
 export const CYPHER_TEMPLATES: ReadonlyMap<string, CypherTemplate> = new Map([
 
@@ -50,7 +52,7 @@ WHERE src.layer IS NOT NULL AND tgt.layer IS NOT NULL
 WITH src, tgt,
      apoc.coll.indexOf(layerOrder, src.layer) AS srcIdx,
      apoc.coll.indexOf(layerOrder, tgt.layer) AS tgtIdx
-WHERE srcIdx >= 0 AND tgtIdx >= 0 AND srcIdx < tgtIdx
+WHERE srcIdx >= 0 AND tgtIdx >= 0 AND srcIdx < tgtIdx /*EXCLUDE:src*/
 RETURN src.filePath AS source, tgt.filePath AS target, src.layer AS srcLayer, tgt.layer AS tgtLayer
 ORDER BY source, target`,
     ['layerOrder'],
@@ -66,7 +68,7 @@ ORDER BY source, target`,
     // literals interpolated at module load (Neo4j rejects a parameter in a variable-length bound).
     `MATCH p = (f:File)-[:IMPORTS*2..${String(MAX_CYCLE_LENGTH)}]->(f)
 WHERE ALL(n IN nodes(p) WHERE n.filePath >= f.filePath)
-  AND size(apoc.coll.toSet(nodes(p)[1..])) = length(p)
+  AND size(apoc.coll.toSet(nodes(p)[1..])) = length(p) /*EXCLUDE:nodes(p)*/
 WITH DISTINCT [n IN nodes(p) | n.filePath] AS cycle
 RETURN cycle
 ORDER BY cycle
@@ -83,7 +85,7 @@ LIMIT ${String(CYCLE_ROW_CAP + 1)}`,
     `MATCH (src:File)-[:IMPORTS]->(tgt:File)
 WHERE src.layer IS NOT NULL AND tgt.layer IS NOT NULL
   AND src.layer <> tgt.layer
-  AND NOT (src.layer + '>' + tgt.layer) IN $allowedTransitions
+  AND NOT (src.layer + '>' + tgt.layer) IN $allowedTransitions /*EXCLUDE:src*/
 RETURN src.filePath AS source, tgt.filePath AS target, src.layer AS srcLayer, tgt.layer AS tgtLayer
 ORDER BY source, target`,
     ['allowedTransitions'],
@@ -97,7 +99,7 @@ ORDER BY source, target`,
   ['no-domain-outward-dep', tmpl(
     'no-domain-outward-dep',
     `MATCH (src:File)-[:IMPORTS]->(tgt:File)
-WHERE src.layer = $domainLayer AND tgt.layer <> $domainLayer
+WHERE src.layer = $domainLayer AND tgt.layer <> $domainLayer /*EXCLUDE:src*/
 RETURN src.filePath AS source, tgt.filePath AS target, tgt.layer AS violatingLayer
 ORDER BY source, target`,
     ['domainLayer'],
@@ -114,7 +116,7 @@ ORDER BY source, target`,
     'domain-purity',
     `MATCH (src:File)-[:IMPORTS]->(tgt:File)
 WHERE src.layer = $domainLayer
-  AND ANY(forbidden IN $forbiddenImports WHERE tgt.filePath CONTAINS forbidden)
+  AND ANY(forbidden IN $forbiddenImports WHERE tgt.filePath CONTAINS forbidden) /*EXCLUDE:src*/
 RETURN src.filePath AS source, tgt.filePath AS target
 ORDER BY source, target`,
     ['domainLayer', 'forbiddenImports'],
@@ -129,7 +131,7 @@ ORDER BY source, target`,
     `MATCH (c:Class)-[:CONSTRUCTOR_INJECTS]->(dep)
 WHERE c.layer = $applicationLayer
 WITH c, count(CASE WHEN dep:Interface THEN 1 END) AS interfaceDeps, count(dep) AS totalDeps
-WHERE totalDeps > 0
+WHERE totalDeps > 0 /*EXCLUDE:c*/
 RETURN c.name AS class, c.filePath AS filePath,
        toFloat(interfaceDeps) / totalDeps AS ratio,
        CASE WHEN toFloat(interfaceDeps) / totalDeps < $threshold THEN true ELSE false END AS violation
@@ -148,7 +150,7 @@ ORDER BY filePath, class`,
     `MATCH (c:Class)
 WHERE c.layer = $infraLayer
   AND (c.name CONTAINS 'Repository' OR c.name CONTAINS 'Repo')
-  AND NOT EXISTS { MATCH (c)-[:IMPLEMENTS]->(:Interface) }
+  AND NOT EXISTS { MATCH (c)-[:IMPLEMENTS]->(:Interface) } /*EXCLUDE:c*/
 RETURN '' AS interface, c.name AS implementation, c.filePath AS filePath
 ORDER BY filePath, implementation`,
     ['domainLayer', 'infraLayer'],
@@ -166,7 +168,7 @@ WHERE uc.layer = $applicationLayer
   AND ANY(role IN $useCaseRoles WHERE uc.name CONTAINS role)
 WITH uc
 MATCH (uc)-[:CONSTRUCTOR_INJECTS]->(dep)
-WHERE dep.layer IS NOT NULL AND dep.layer <> $domainLayer AND dep.layer <> $applicationLayer
+WHERE dep.layer IS NOT NULL AND dep.layer <> $domainLayer AND dep.layer <> $applicationLayer /*EXCLUDE:uc*/
 WITH uc, apoc.coll.sort(collect(dep.name)) AS violations
 RETURN uc.name AS useCase, uc.filePath AS filePath, violations
 ORDER BY filePath, useCase`,
@@ -182,7 +184,7 @@ ORDER BY filePath, useCase`,
     'controller-no-entity',
     `MATCH (ctrl:Class)-[:IMPORTS|CONSTRUCTOR_INJECTS*1..2]->(entity:Class)
 WHERE ctrl.layer = $infraLayer AND entity.layer = $domainLayer
-  AND ANY(role IN $entityRoles WHERE entity.name CONTAINS role)
+  AND ANY(role IN $entityRoles WHERE entity.name CONTAINS role) /*EXCLUDE:ctrl*/
 RETURN ctrl.name AS controller, entity.name AS entity, ctrl.filePath AS filePath
 ORDER BY filePath, controller, entity`,
     ['infraLayer', 'domainLayer', 'entityRoles'],
@@ -202,7 +204,7 @@ WHERE f.layer = $domainLayer
 OPTIONAL MATCH (f)<-[:IMPORTS]-(incoming:File) WHERE incoming.layer <> $domainLayer
 OPTIONAL MATCH (f)-[:IMPORTS]->(outgoing:File) WHERE outgoing.layer <> $domainLayer
 WITH f, count(DISTINCT incoming) AS fanIn, count(DISTINCT outgoing) AS fanOut
-WHERE fanIn + fanOut > 0
+WHERE fanIn + fanOut > 0 /*EXCLUDE:f*/
 RETURN f.filePath AS filePath, f.name AS name,
        toFloat(fanOut) / (fanIn + fanOut) AS instability,
        CASE WHEN toFloat(fanOut) / (fanIn + fanOut) > $threshold THEN true ELSE false END AS violation
@@ -219,7 +221,7 @@ ORDER BY filePath`,
     'module-fan-out',
     `MATCH (f:File)-[:IMPORTS]->(dep:File)
 WITH f, count(DISTINCT dep) AS fanOut
-WHERE fanOut > $threshold
+WHERE fanOut > $threshold /*EXCLUDE:f*/
 RETURN f.filePath AS filePath, f.name AS name, fanOut
 ORDER BY filePath`,
     ['threshold'],
@@ -236,7 +238,7 @@ OPTIONAL MATCH (f)-[:IMPORTS]->(outgoing:File)
 WITH f, count(DISTINCT incoming) AS fanIn, count(DISTINCT outgoing) AS fanOut
 WHERE fanIn + fanOut > 0
 WITH f, fanIn, fanOut, toFloat(fanOut) / (fanIn + fanOut) AS instability
-WHERE instability > $threshold
+WHERE instability > $threshold /*EXCLUDE:f*/
 RETURN f.filePath AS filePath, f.layer AS layer, f.name AS name, instability
 ORDER BY filePath`,
     ['threshold'],
@@ -250,7 +252,7 @@ ORDER BY filePath`,
 WHERE f.layer IS NOT NULL
   AND NOT EXISTS { MATCH (f)-[:IMPORTS]->() }
   AND NOT EXISTS { MATCH ()-[:IMPORTS]->(f) }
-  AND NOT f.isBarrel
+  AND NOT f.isBarrel /*EXCLUDE:f*/
 RETURN f.filePath AS filePath, f.name AS name, f.layer AS layer
 ORDER BY filePath`,
     [],
@@ -262,7 +264,7 @@ ORDER BY filePath`,
     'max-fan-in',
     `MATCH (f:File)<-[:IMPORTS]-(incoming:File)
 WITH f, count(DISTINCT incoming) AS fanIn
-WHERE fanIn > $threshold
+WHERE fanIn > $threshold /*EXCLUDE:f*/
 RETURN f.filePath AS filePath, f.name AS name, fanIn
 ORDER BY filePath`,
     ['threshold'],
@@ -294,7 +296,7 @@ ORDER BY ratio`,
 OPTIONAL MATCH (c)-[:CONTAINS]->(m:Method)
 OPTIONAL MATCH (c)-[:CONSTRUCTOR_INJECTS]->(dep)
 WITH c, count(DISTINCT m) AS methodCount, count(DISTINCT dep) AS depCount
-WHERE methodCount > $maxPublicMethods OR depCount > $maxDependencies
+WHERE (methodCount > $maxPublicMethods OR depCount > $maxDependencies) /*EXCLUDE:c*/
 RETURN c.name AS class, c.filePath AS filePath, methodCount, depCount
 ORDER BY filePath, class`,
     ['maxPublicMethods', 'maxDependencies'],
@@ -306,7 +308,7 @@ ORDER BY filePath, class`,
     'interface-segregation-proxy',
     `MATCH (i:Interface)-[:CONTAINS]->(m:Method)
 WITH i, count(m) AS methodCount
-WHERE methodCount > $maxInterfaceMethods
+WHERE methodCount > $maxInterfaceMethods /*EXCLUDE:i*/
 RETURN i.name AS interface, i.filePath AS filePath, methodCount
 ORDER BY filePath, interface`,
     ['maxInterfaceMethods'],
@@ -318,7 +320,7 @@ ORDER BY filePath, interface`,
     'inheritance-depth',
     `MATCH path = (c:Class)-[:EXTENDS*]->(base:Class)
 WITH c, length(path) AS depth
-WHERE depth > $maxDepth
+WHERE depth > $maxDepth /*EXCLUDE:c*/
 RETURN c.name AS class, c.filePath AS filePath, depth
 ORDER BY filePath, class, depth`,
     ['maxDepth'],
@@ -339,7 +341,7 @@ WITH c, c.layer AS layer,
        WHEN $infraLayer THEN $infraPattern
        ELSE '.*'
      END AS expectedPattern
-WHERE NOT c.name =~ expectedPattern
+WHERE NOT c.name =~ expectedPattern /*EXCLUDE:c*/
 RETURN c.name AS class, c.filePath AS filePath, layer, expectedPattern
 ORDER BY filePath, class`,
     ['domainLayer', 'applicationLayer', 'infraLayer', 'domainPattern', 'applicationPattern', 'infraPattern'],
@@ -352,7 +354,7 @@ ORDER BY filePath, class`,
     `MATCH (c:Class)
 WHERE c.layer = $applicationLayer
   AND ANY(role IN ['Service', 'UseCase'] WHERE c.name CONTAINS role)
-  AND NOT c.name =~ $pattern
+  AND NOT c.name =~ $pattern /*EXCLUDE:c*/
 RETURN c.name AS class, c.filePath AS filePath
 ORDER BY filePath, class`,
     ['applicationLayer', 'pattern'],
@@ -364,7 +366,7 @@ ORDER BY filePath, class`,
     'naming-repos',
     `MATCH (c:Class)
 WHERE (c.name CONTAINS 'Repository' OR c.name CONTAINS 'Repo')
-  AND NOT c.name =~ $pattern
+  AND NOT c.name =~ $pattern /*EXCLUDE:c*/
 RETURN c.name AS class, c.filePath AS filePath
 ORDER BY filePath, class`,
     ['pattern'],
@@ -377,7 +379,7 @@ ORDER BY filePath, class`,
     `MATCH (c:Class)
 WHERE c.layer = $infraLayer
   AND ANY(dec IN c.decorators WHERE dec CONTAINS 'Controller')
-  AND NOT c.name =~ $pattern
+  AND NOT c.name =~ $pattern /*EXCLUDE:c*/
 RETURN c.name AS class, c.filePath AS filePath
 ORDER BY filePath, class`,
     ['infraLayer', 'pattern'],
@@ -399,7 +401,7 @@ WHERE src.layer IS NOT NULL
     MATCH (test:File)
     WHERE test.filePath = replace(src.filePath, '.ts', '.spec.ts')
        OR test.filePath = replace(src.filePath, '.ts', '.test.ts')
-  }
+  } /*EXCLUDE:src*/
 RETURN src.filePath AS filePath, src.name AS name
 ORDER BY filePath`,
     [],
@@ -414,7 +416,7 @@ WHERE f.isBarrel = true
 MATCH (f)-[:DECLARES]->(decl)
 WHERE NOT decl:Function OR decl.name IS NOT NULL
 WITH f, count(decl) AS declCount
-WHERE declCount > 0
+WHERE declCount > 0 /*EXCLUDE:f*/
 RETURN f.filePath AS filePath, declCount
 ORDER BY filePath`,
     [],

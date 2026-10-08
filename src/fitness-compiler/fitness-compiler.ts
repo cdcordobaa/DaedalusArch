@@ -10,7 +10,8 @@ import type { CompilerInput, CompilerError, CompilerWarning, CypherTemplate, Lay
 import { CYPHER_TEMPLATES } from './cypher-templates.js';
 import { bindLayerParams } from './layer-binding.js';
 import { isTemplateApplicable } from './template-applicability.js';
-import { injectExcludePaths } from './exclude-injector.js';
+import { hasExcludeMarker, replaceExcludeMarkers } from './exclude-injector.js';
+import { globToRegex } from './glob-to-regex.js';
 import { compilerInputFromSpec } from './compiler-input.js';
 import { compilePattern } from './pattern-compiler.js';
 import { checkBoundParameters } from './bound-param-checker.js';
@@ -64,6 +65,10 @@ export function compileFunctions(input: CompilerInput): DomainResult<CompiledFun
   // C4: bind layer parameters by resolved kind (FR-19). Reads only LayerDefinition.kind.
   const binding = bindLayerParams(layerModel.layers);
 
+  // C7: exclude_paths needs an exclude anchor in the template (BR-U1-32); always fatal.
+  const anchorErrors = checkExcludeAnchors(enabledFunctions, input.style, binding, layerModel);
+  if (anchorErrors.length > 0) return DomainResult.fail<CompiledFunctions>(anchorErrors);
+
   // Compile enabled fitness functions by route
   for (const ff of enabledFunctions) {
     // C5: applicability (style, layer kinds, no-layer-skip layer count) for symbolic/hybrid functions
@@ -85,7 +90,7 @@ export function compileFunctions(input: CompilerInput): DomainResult<CompiledFun
     switch (ff.route) {
       case 'symbolic': {
         const result = compileSymbolic(ff, layerModel, binding, warnings);
-        if (result) symbolicQueries.push(applyExcludePaths(result, ff.excludePaths));
+        if (result) symbolicQueries.push(result);
         break;
       }
       case 'neuronal': {
@@ -94,9 +99,8 @@ export function compileFunctions(input: CompilerInput): DomainResult<CompiledFun
         break;
       }
       case 'hybrid': {
-        let sym = compileSymbolic(ff, layerModel, binding, warnings);
+        const sym = compileSymbolic(ff, layerModel, binding, warnings);
         const neur = compileNeuronal(ff, false);
-        if (sym) sym = applyExcludePaths(sym, ff.excludePaths);
         if (sym && neur) {
           hybridPairs.push({ functionId: ff.id, symbolicQuery: sym, neuronalInstruction: neur });
         } else if (sym) {
@@ -141,15 +145,26 @@ export function compileFunctions(input: CompilerInput): DomainResult<CompiledFun
   });
 }
 
-function applyExcludePaths(query: CypherQuery, excludePaths: readonly string[]): CypherQuery {
-  if (excludePaths.length === 0) return query;
-
-  const { cypher, additionalParams } = injectExcludePaths(query.cypher, excludePaths);
-  return {
-    ...query,
-    cypher,
-    params: { ...query.params, ...additionalParams },
-  };
+/**
+ * C7 (BR-U1-32): every applicable symbolic or hybrid function with `exclude_paths` must use a template
+ * that holds an exclude anchor. One error per offending function, in declaration order.
+ */
+function checkExcludeAnchors(
+  functions: readonly FitnessFunction[],
+  style: string | undefined,
+  binding: LayerKindBinding,
+  layerModel: LayerModel,
+): CompilerError[] {
+  const errors: CompilerError[] = [];
+  for (const ff of functions) {
+    if (ff.route === 'neuronal' || ff.excludePaths.length === 0) continue;
+    const template = CYPHER_TEMPLATES.get(ff.name);
+    if (!template || !isTemplateApplicable(template, style, binding, layerModel).applicable) continue;
+    if (!hasExcludeMarker(template.template)) {
+      errors.push(compilerError('COMPILATION_FAILED', `${String(ff.id)}: exclude_paths not supported by template ${template.functionName}`));
+    }
+  }
+  return errors;
 }
 
 // ── Symbolic Compilation ──────────────────────────────────────────────────────
@@ -172,6 +187,8 @@ function compileSymbolic(
   }
 
   const params = buildParams(ff, layerModel, binding);
+  // C9: excludePatterns is appended to the map last (BR-U1-32, NFR-02).
+  if (ff.excludePaths.length > 0) params.excludePatterns = ff.excludePaths.map(globToRegex);
   const cypher = instantiateTemplate(template, params);
 
   return {
@@ -256,13 +273,17 @@ function compileADRNeuronal(adr: ADRRule): NeuronalInstruction {
 
 // ── Template Instantiation ────────────────────────────────────────────────────
 
+/**
+ * Template text for one function (C9). Values stay `$param` placeholders (passed at execution time);
+ * every exclude anchor becomes the `$excludePatterns` predicate when the map holds a non-empty
+ * `excludePatterns`, else the empty string (BR-U1-32).
+ */
 export function instantiateTemplate(
   template: CypherTemplate,
-  _params: Record<string, unknown>,
+  params: Readonly<Record<string, unknown>>,
 ): string {
-  // Neo4j uses parameterized queries — template stays as-is with $param placeholders.
-  // Params are passed separately at query execution time (U5).
-  return template.template;
+  const patterns = params.excludePatterns;
+  return replaceExcludeMarkers(template.template, Array.isArray(patterns) && patterns.length > 0);
 }
 
 // ── Parameter Building ────────────────────────────────────────────────────────

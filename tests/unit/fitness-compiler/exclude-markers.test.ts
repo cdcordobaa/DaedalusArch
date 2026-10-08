@@ -1,7 +1,5 @@
 import * as path from 'node:path';
-import {
-  EXCLUDE_MARKER_RE, replaceExcludeMarkers, injectExcludePaths,
-} from '../../../src/fitness-compiler/exclude-injector.js';
+import { EXCLUDE_MARKER_RE, replaceExcludeMarkers } from '../../../src/fitness-compiler/exclude-injector.js';
 import { CYPHER_TEMPLATES } from '../../../src/fitness-compiler/cypher-templates.js';
 import { parseSpec } from '../../../src/spec-parser/spec-parser.js';
 
@@ -42,8 +40,8 @@ describe('replaceExcludeMarkers (BR-U1-32, domain-entities.md §3.8)', () => {
   });
 });
 
-// BR-U1-32 (b) pin: today's splice lands on these aliases; K8 re-asserts the same list against the markers.
-describe('injectExcludePaths alias pin (BR-U1-32 b)', () => {
+// BR-U1-32 (b) pin: the splice (retired at K8) landed on these aliases; the anchors keep them.
+describe('exclude anchor alias pin (BR-U1-32 b)', () => {
   const ROOT = path.resolve(__dirname, '../../..');
 
   it.each([
@@ -60,7 +58,9 @@ describe('injectExcludePaths alias pin (BR-U1-32 b)', () => {
     expect(ff.excludePaths.length).toBeGreaterThan(0);
     const tmpl = CYPHER_TEMPLATES.get(ff.name);
     if (!tmpl) throw new Error(`no template ${ff.name}`);
-    const { cypher } = injectExcludePaths(tmpl.template, ff.excludePaths);
+    const markers = [...tmpl.template.matchAll(EXCLUDE_MARKER_RE)].map((m) => m[2]);
+    expect(markers).toEqual([alias]);
+    const cypher = replaceExcludeMarkers(tmpl.template, true);
     const aliases = [...cypher.matchAll(/NONE\(ep IN \$excludePatterns WHERE (\w+)\.filePath =~ ep\)/g)].map((m) => m[1]);
     expect(aliases).toEqual([alias]);
   });
