@@ -2,7 +2,7 @@ import { computeDelta, computeDeltaStats } from '../../../src/neo4j-ingestion/de
 import type { APGResult, APGNode, APGEdge } from '../../../src/shared/types/apg.js';
 
 function makeAPG(nodes: APGNode[], edges: APGEdge[]): APGResult {
-  return { nodes, edges, parseCoverage: { total: nodes.length, parsed: nodes.length, skipped: [], percentage: 100 }, warnings: [], importResolution: { resolvedInternal: 0, external: 0, unresolved: 0, unsupportedDynamic: 0 } };
+  return { nodes, edges, parseCoverage: { total: nodes.length, parsed: nodes.length, skipped: [], percentage: 100 }, warnings: [], importResolution: { resolvedInternal: 0, external: 0, unresolved: 0, unsupportedDynamic: 0, externalOutOfRootAlias: 0, droppedNoFileNode: 0 } };
 }
 
 const n = (id: string, name: string): APGNode => ({ id, type: 'File', name, filePath: `src/${name}`, properties: {} });
