@@ -1,7 +1,7 @@
 import * as os from 'node:os';
 import type { LLMProvider } from '../shared/interfaces/llm-provider.js';
 import type { ProcessRunner } from '../shared/interfaces/process-runner.js';
-import type { LLMProviderConfig, GeminiConfig } from '../shared/types/llm-config.js';
+import type { LLMProviderConfig, GeminiConfig, VCRMode } from '../shared/types/llm-config.js';
 import { DomainResult } from '../shared/errors/domain-result.js';
 import { NodeProcessRunner } from '../shared/process/node-process-runner.js';
 import { MockLLMProvider } from './mock-provider.js';
@@ -99,21 +99,22 @@ export function createLLMProvider(config?: LLMProviderConfig, deps: ProviderFact
 export type JudgeCassetteOptions = Omit<CassetteOptions, 'mode' | 'dir' | 'interpret' | 'cliVersion' | 'isolationProbeSha256' | 'configListingSha256'>;
 
 /**
- * The judge provider: the inner provider wrapped once in `CassetteLLMProvider`. For
- * `claude-cli` in record mode the isolation pre-flight runs first and a failure (version
- * drift, isolation, CLI not found, auth) is returned as the error.
+ * Wraps an inner provider exactly once in the cassette decorator (BR-U4-CAS-05). For a
+ * `ClaudeCliProvider` in record mode it first runs the isolation pre-flight (ISO-04..06, ISO-09)
+ * so the decorator carries the CLI version and the probe and listing hashes; a failed pre-flight
+ * is returned as its error (`LLM_CLI_VERSION_DRIFT`, `LLM_CLI_ISOLATION`, ...). Replay spawns nothing.
  */
-export async function createJudgeProvider(
-  config: LLMProviderConfig,
-  deps: ProviderFactoryDeps = {},
+export async function wrapJudgeProvider(
+  inner: LLMProvider,
+  cassette: { readonly mode: VCRMode; readonly dir: string },
   cassetteOptions: JudgeCassetteOptions = {},
 ): Promise<DomainResult<CassetteLLMProvider>> {
-  const inner = createLLMProvider(config, deps);
-  const base: CassetteOptions = { ...cassetteOptions, mode: config.cassette.mode, dir: config.cassette.dir };
+  if (inner instanceof CassetteLLMProvider) return DomainResult.ok(inner);
+  const base: CassetteOptions = { ...cassetteOptions, mode: cassette.mode, dir: cassette.dir };
   if (!(inner instanceof ClaudeCliProvider)) {
     return DomainResult.ok(new CassetteLLMProvider(inner, base));
   }
-  if (config.cassette.mode === 'replay') {
+  if (cassette.mode === 'replay') {
     return DomainResult.ok(new CassetteLLMProvider(inner, { ...base, interpret: inner.interpret }));
   }
   const prepared = await inner.prepare();
@@ -125,4 +126,13 @@ export async function createJudgeProvider(
     isolationProbeSha256: prepared.data.isolationProbeSha256,
     configListingSha256: prepared.data.configListingSha256,
   }));
+}
+
+/** The judge entry: `createLLMProvider` then `wrapJudgeProvider` (mode and dir from the config). */
+export async function createJudgeProvider(
+  config: LLMProviderConfig,
+  deps: ProviderFactoryDeps = {},
+  cassetteOptions: JudgeCassetteOptions = {},
+): Promise<DomainResult<CassetteLLMProvider>> {
+  return wrapJudgeProvider(createLLMProvider(config, deps), config.cassette, cassetteOptions);
 }

@@ -22,23 +22,20 @@
  */
 import * as os from 'node:os';
 import * as path from 'node:path';
-import type { LLMEffort, LLMOptions } from '../shared/interfaces/llm-provider.js';
+import type { LLMEffort } from '../shared/interfaces/llm-provider.js';
 import type { LLMProviderConfig, VCRMode } from '../shared/types/llm-config.js';
 import { DomainResult } from '../shared/errors/domain-result.js';
 import {
   DEFAULT_CASSETTE_DIR, JUDGE_CONFIG_DIR_DEFAULT, JUDGE_EFFORT, JUDGE_MAX_TOKENS, JUDGE_MODEL, JUDGE_TIMEOUT_MS,
 } from '../llm-critic/frozen.js';
 import { configDirPlacementProblem } from '../llm-critic/claude-cli-provider.js';
+import type { JudgeRunSettings } from '../llm-critic/types.js';
 
 export type LLMProviderName = LLMProviderConfig['provider'];
 
 /** Per-run judge settings the critic reads (subset of DE §5.5 `NeuronalRunOptions`). */
-export interface LLMRunSettings {
-  readonly llm: LLMOptions;                 // { model, effort, maxTokens: 8192 } (OPS-01)
-  readonly repetition: number;
-  readonly cassette: { readonly mode: VCRMode; readonly dir: string; readonly omitPrompt: boolean };
-  readonly baselineReport?: string;
-}
+/** The parsed run settings (DE §5.6); the same type the C9 hunks pass to the critic stage. */
+export type LLMRunSettings = JudgeRunSettings;
 
 /** `LLMProviderConfig` plus the judge config dir and the run settings (DE §5.6). */
 export type ParsedLLMOptions = LLMProviderConfig & {

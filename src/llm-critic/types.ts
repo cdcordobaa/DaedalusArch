@@ -37,6 +37,14 @@ export interface NeuronalRunOptions {
   readonly evaluatorSpecLayers: readonly LayerDefinition[]; // layer model and module roots (CTX-07, SEL-03)
 }
 
+/** The judge run settings the CLI parses (`parseLLMOptions().run`, DE §5.6); the C9 hunks pass them on. */
+export interface JudgeRunSettings {
+  readonly llm: LLMOptions;                 // { model, effort, maxTokens: 8192 } (OPS-01)
+  readonly repetition: number;
+  readonly cassette: { readonly mode: VCRMode; readonly dir: string; readonly omitPrompt: boolean };
+  readonly baselineReport?: string;         // --judge-baseline-report
+}
+
 export const DEFAULT_NEURONAL_RUN_OPTIONS: NeuronalRunOptions = Object.freeze({
   runsPerEvaluation: RUNS_PER_EVALUATION,
   maxConcurrency: MAX_CONCURRENCY,

@@ -4,7 +4,11 @@ export { assembleContext, constructPrompt } from './context-assembler.js';
 export { parseVerdict } from './verdict-parser.js';
 export { MockLLMProvider } from './mock-provider.js';
 export { NullLLMProvider } from './null-provider.js';
-export { createLLMProvider, createJudgeProvider } from './provider-factory.js';
+export { createLLMProvider, createJudgeProvider, wrapJudgeProvider } from './provider-factory.js';
+export {
+  prepareJudgeStage, finishJudgeStage, judgeRunSettingsOf, neuralRowsOf, specShaOf, JUDGE_RUN_INCOMPLETE,
+} from './judge-stage.js';
+export type { JudgeRunHolder, JudgeStageSettings, PreparedJudgeStage } from './judge-stage.js';
 export type { ProviderFactoryDeps, JudgeCassetteOptions } from './provider-factory.js';
 export {
   ClaudeCliProvider, buildClaudeCliArgs, checkJudgeIsolation, interpretClaudeEnvelope,
