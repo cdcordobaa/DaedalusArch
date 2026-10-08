@@ -4,7 +4,7 @@
 - **Project Name**: Architectural Firewall (DaedalusArch)
 - **Project Type**: Greenfield
 - **Start Date**: 2026-03-27T16:00:00Z
-- **Current Stage**: v1.2 Evaluation-Readiness cycle — CONSTRUCTION — lane 2 Functional Design COMPLETE; code-generation plans U2, U1 (U0 merged at 2050193; ADR-016 settlements 2026-10-08).
+- **Current Stage**: v1.2 Evaluation-Readiness cycle — CONSTRUCTION — lane 2 Code Generation: U2 COMPLETE and merged at f7ae34b (PR #2); U1 in progress (U0 merged at 2050193; ADR-016 settlements 2026-10-08).
 - **Product Name**: Architectonic Firewall
 - **CLI Name**: firewall (unchanged from v1.0)
 
@@ -102,4 +102,5 @@
 ### v1.2E CONSTRUCTION PHASE
 - [x] U0 Foundation — COMPLETE and merged 2026-10-07 (PR #1, 2050193) (code-summary in construction/v1.2E-u0-foundation/code/) (`construction/plans/v1.2E-u0-foundation-code-generation-plan.md`) (U0 Foundation; U1 Spec+compiler; U2 Extractor+graph; U3 Evaluation+scoring+report; U4 Neural path; U5 Experiment tooling)
 - [x] Lane 2 Functional Design U1 Spec+compiler (BR-U1-01..46) + U2 Extractor+graph (BR-U2-01..47) — COMPLETE 2026-10-08, auto-approved under standing approval; settlements ADR-016; record `construction/plans/v1.2E-lane2-functional-design-clarifications.md`. Next: code-generation plans U2, then U1
+- [x] U2 Extractor+graph — Code Generation COMPLETE and merged 2026-10-08 (PR #2, merge commit f7ae34b; 808 tests / 63 suites; golden 17/17 with snapshots unchanged at f5fed3f (G0); Gate G-CI run 37732537181 green) (code-summary in construction/v1.2E-u2-extractor-graph/code/) (`construction/plans/v1.2E-u2-extractor-graph-code-generation-plan.md`). Next: U1 rebases or merges onto this v1.2e
 - CONSTRUCTION: Functional Design EXECUTE U1–U5 / SKIP U0; NFR Requirements EXECUTE light (in U0); NFR Design, Infrastructure Design SKIP; Code Generation and Build and Test EXECUTE

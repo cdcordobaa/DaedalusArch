@@ -932,3 +932,12 @@ Plan checkboxes ticked. Auto-approved under standing approval; no blocking or ma
 **Context**: CONSTRUCTION — lanes 3/4 Functional Design and Code Generation planning COMPLETE (U3, U4, U5a, U5b); next: code generation after lane 2 lands.
 
 ---
+
+## v1.2 Evaluation-Readiness — U2 Extractor and Graph Code Generation complete and merged (auto-approved)
+**Timestamp**: 2026-10-08T05:35:18Z
+**User Input**: None (standing approval of 2026-10-08T00:30:00Z)
+**Intent**: Close U2 Code Generation: verify the merged v1.2e and record completion.
+**AI Response**: PR #2 (v1.2e-u2-extractor-graph → v1.2e) merged with a merge commit, f7ae34b (no squash, rebase or force-push; main unchanged at 7cd15b4). Post-merge gates on the merged tree in the main checkout: typecheck clean; 808 tests / 63 suites passed; lint 624 errors / 3 warnings (≤ 624 baseline); test type-error budget 85 (unchanged); golden 3 suites / 17 passed / 0 skipped with snapshots unchanged at f5fed3f and hashes equal (G0, ADR-015 item 12). Gate G-CI: merge push run 37732537181 green. Plan steps 0–24 ticked with Done notes and deviations. The U2 worktree is kept for the orchestrator to remove. Auto-approved under standing approval; no escalation.
+**Context**: CONSTRUCTION — lane 2 Code Generation: U2 COMPLETE and merged; next: U1 rebases or merges onto v1.2e.
+
+---
