@@ -43,6 +43,11 @@ const WHITELISTED_SRC = new Set([
   'src/scoring-engine/verdict.ts',           // C8 determineVerdict
   'src/scoring-engine/report-schema-validator.ts', // C8 parseReport / validateReport
   'src/scoring-engine/index.ts',
+  // Step 13 (BR-U5b-52; domain-entities §1 U1 exports): the frozen-instrument exporter reads them from code.
+  'src/fitness-compiler/cypher-templates.ts',      // MAX_CYCLE_LENGTH, CYCLE_ROW_CAP, getTemplateTag, listTemplatesByTag
+  'src/fitness-compiler/template-applicability.ts', // isTemplateApplicable
+  'src/fitness-compiler/layer-binding.ts',         // bindLayerParams (applicability input)
+  'src/spec-parser/spec-schema.ts',                // PATTERN_GRAMMAR
 ]);
 
 interface ImportUse {
