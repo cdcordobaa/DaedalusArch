@@ -10,7 +10,7 @@ import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { loadMatchingRule } from '../../../../scripts/lib/matching-rule.js';
 import { canonicalGoldenScore, judgeProbeOperators, loadCase, metricThresholds, scoreDifferential } from '../../../../scripts/score-golden.js';
-import { ROOT } from './score-fixture.js';
+import { ROOT, specRootAt } from './score-fixture.js';
 
 const CASE = 'tests/fixtures/u5b/hand-computed';
 
@@ -24,7 +24,11 @@ describe('hand-computed acceptance (BR-U5b-26, 27)', () => {
     if (!rule.ok) throw new Error(rule.detail);
     const loaded = loadCase(ROOT, join(ROOT, CASE));
     if (!loaded.ok) throw new Error(loaded.detail);
-    const thresholds = await metricThresholds(ROOT, loaded.value.manifest.rows);
+    // The spec as the fixture's runs saw it (RunRecord.cliCommit), DV-U5b-21.
+    const row0 = loaded.value.manifest.rows[0];
+    if (row0 === undefined) throw new Error('empty manifest');
+    const runCommit = (JSON.parse(readFileSync(join(ROOT, CASE, 'reports/baseline.run.json'), 'utf8')) as { cliCommit: string }).cliCommit;
+    const thresholds = await metricThresholds(specRootAt(runCommit, row0.specPath), loaded.value.manifest.rows);
     if (!thresholds.ok) throw new Error(thresholds.detail);
     const out = scoreDifferential({
       rule: rule.rule, seeds: loaded.value.seeds, rejections: loaded.value.manifest.rejections,

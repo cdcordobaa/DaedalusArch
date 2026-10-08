@@ -16,7 +16,7 @@ import { DomainResult } from '../../../../src/shared/errors/domain-result.js';
 import type { NeuralUnitRow, NeuronalFunctionResult } from '../../../../src/shared/types/evaluation.js';
 import type { Dimension } from '../../../../src/shared/types/enums.js';
 import { confidence, functionId } from '../../../../src/shared/types/value-objects.js';
-import { ROOT } from './score-fixture.js';
+import { ROOT, specRootAt } from './score-fixture.js';
 
 const FIXTURES = ['correct-reference', 'variant-a-structural', 'variant-b-pattern', 'variant-c-everything', 'variant-d-subtle'] as const;
 const DIR = 'tests/fixtures/u5b/reports';
@@ -26,8 +26,8 @@ type Mutable = { -readonly [K in keyof RescorableReport]: RescorableReport[K] };
 function fixture(id: string): Mutable {
   return JSON.parse(readFileSync(resolve(ROOT, DIR, `${id}.json`), 'utf8')) as Mutable;
 }
-function record(id: string): { specSha: string } {
-  return JSON.parse(readFileSync(resolve(ROOT, DIR, `${id}.run.json`), 'utf8')) as { specSha: string };
+function record(id: string): { specSha: string; cliCommit: string } {
+  return JSON.parse(readFileSync(resolve(ROOT, DIR, `${id}.run.json`), 'utf8')) as { specSha: string; cliCommit: string };
 }
 function ok(report: RescorableReport, opts: Parameters<typeof rescoreReport>[1] = {}): RescoreOutput {
   const r = rescoreReport(report, opts);
@@ -146,14 +146,16 @@ describe('re-scorer reproduction (BR-U5b-57, 58; exit criterion 2, symbolic part
     const report = fixture('variant-c-everything');
     delete (report as { scoring?: unknown }).scoring;
     expect(rescoreReport(report)).toMatchObject({ ok: false, code: RESCORE_INPUT_MISSING });
-    const parsed = await reparseSpecScoring(resolve(ROOT, 'specs/clean-arch.yaml'), record('variant-c-everything').specSha);
+    // The spec as committed at the fixture's RunRecord.cliCommit (DV-U5b-21: U4-K6 later edited the neuronal rubric).
+    const spec = join(specRootAt(record('variant-c-everything').cliCommit, 'specs/clean-arch.yaml'), 'specs/clean-arch.yaml');
+    const parsed = await reparseSpecScoring(spec, record('variant-c-everything').specSha);
     if (!parsed.ok) throw new Error(parsed.detail);
     const out = ok(report, { specScoring: parsed.value });
     expect(out.inputSource).toBe('spec-reparse');
     expect(out.reproduction.inputSource).toBe('spec-reparse');
     expect(out.reproduction.reproducesStored).toBe(true);
     // A spec whose bytes do not hash to specSha is refused.
-    const wrong = await reparseSpecScoring(resolve(ROOT, 'specs/clean-arch.yaml'), '0'.repeat(64));
+    const wrong = await reparseSpecScoring(spec, '0'.repeat(64));
     expect(wrong.ok).toBe(false);
   });
 });
@@ -268,7 +270,8 @@ describe('rescore main (BR-U5b-73)', () => {
       expect(await main(['--report', file, '--record', `${DIR}/correct-reference.run.json`], ROOT, a.io)).toBe(1);
       expect(a.err.join('')).toContain(RESCORE_INPUT_MISSING);
       const b = io();
-      expect(await main(['--report', file, '--record', `${DIR}/correct-reference.run.json`, '--spec', 'specs/clean-arch.yaml'], ROOT, b.io)).toBe(0);
+      const spec = join(specRootAt(record('correct-reference').cliCommit, 'specs/clean-arch.yaml'), 'specs/clean-arch.yaml');
+      expect(await main(['--report', file, '--record', `${DIR}/correct-reference.run.json`, '--spec', spec], ROOT, b.io)).toBe(0);
       const json = JSON.parse(b.out.join('')) as { inputSource: string; reproduction: { reproducesStored: boolean } }[];
       expect(json[0]?.inputSource).toBe('spec-reparse');
       expect(json[0]?.reproduction.reproducesStored).toBe(true);

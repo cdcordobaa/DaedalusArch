@@ -2,7 +2,10 @@
  * U5b scorer test helpers: synthetic baseline/seeded report pairs (schema-valid, built through `storedReport`),
  * synthetic manifest rows and run records. In-memory test inputs only.
  */
-import { resolve } from 'node:path';
+import { execFileSync } from 'node:child_process';
+import { mkdirSync, mkdtempSync, writeFileSync } from 'node:fs';
+import { tmpdir } from 'node:os';
+import { dirname, join, resolve } from 'node:path';
 import { storedReport } from './report-fixture.js';
 import type { StoredReport } from './report-fixture.js';
 import { loadMatchingRule } from '../../../../scripts/lib/matching-rule.js';
@@ -13,6 +16,19 @@ import type { SeedInput } from '../../../../scripts/score-golden.js';
 import type { EvaluationMode } from '../../../../src/shared/types/enums.js';
 
 export const ROOT = resolve(__dirname, '../../../..');
+
+/**
+ * A temp root holding `specPath` as committed at `commit` (the fixture's `RunRecord.cliCommit`). The committed
+ * fixtures were produced against that spec; a later spec edit by another unit (U4-K6 renamed the FF-N01 / FF-N02
+ * rubric, DV-U5b-21) must not make them unreadable. Needs full history, as the provenance test (CI: fetch-depth 0).
+ */
+export function specRootAt(commit: string, specPath: string): string {
+  const root = mkdtempSync(join(tmpdir(), 'u5b-spec-at-'));
+  const bytes = execFileSync('git', ['show', `${commit}:${specPath}`], { cwd: ROOT });
+  mkdirSync(dirname(join(root, specPath)), { recursive: true });
+  writeFileSync(join(root, specPath), bytes);
+  return root;
+}
 
 export function rule(): MatchingRule {
   const r = loadMatchingRule(ROOT);
