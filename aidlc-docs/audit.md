@@ -1100,3 +1100,11 @@ Plan checkboxes ticked. Auto-approved under standing approval; no blocking or ma
 **Context**: CONSTRUCTION — U5b Code Generation Part 2, Group 7 done; next Group 8 (Steps 31–32).
 
 ---
+
+## U5b Code Generation Part 2 — Group 8 (Steps 31–32), analysis plan, registered plans and pre-registration
+**Timestamp**: 2026-10-08T20:11:46Z
+**User Input**: "Execute Group 8 — Analysis plan, registered plans and pre-registration, Steps 31–32, under the standing approval (orchestrator task)."
+**AI Response**: "Step 31 06d221f: Docs/analysis-plan.md completed around the SO5 block (registered plans and seeds, outcomes, populations and caps, labellingBudgetCalls 4000 from the cap-derived bound, interval rule, SO5 factors / permutation tests / Holm families with the verdictSource AHS primary, flag columns, missingness); Docs/matching-rule.md final 1.0.0; six experiments/<id>/plan.json (fixtures, latency-gate, sensitivity, so4-heldout, e1-grid 54 cells, e7-corpus 4). Fix 50396b2 (DV-U5b-26): the frozen-instrument exporter now carries U4's FROZEN_VALUES and FROZEN_SHA256. Step 32 84bd30c: corpus/frozen-instrument.json (--final, re-export byte-identical) and corpus/prereg.json v1 (28 artefacts, matching rule 1.0.0, budget 4000, E1 grid 3x3x2x3); --check-prereg passes for all six plans; one changed byte in Docs/matching-rule.md refused in a scratch clone; corpus-spec hashes equal the Step 25 blobs; no RunRecord of a registered plan, results/ absent. Gates: U 2860 / 198, L 497, B 80, G 80 / 7 suites with unchanged hashes, P 0 / 0; G-CI runs 37836018563 and 37836644126 green. Golden changes: none. Deviations DV-U5b-23..26; open item OI-U5b-P2-4 (U5a / U4 documents still DRAFT and the later SO4 / SP / E7 entries and E1 model pins need prereg v2+ with a reason before the runs they affect; SP-FF-S03 layered spec outside FIXTURE_SPECS)."
+**Context**: CONSTRUCTION — U5b Code Generation Part 2, Group 8 done; next Group 9 (Steps 33–35).
+
+---
