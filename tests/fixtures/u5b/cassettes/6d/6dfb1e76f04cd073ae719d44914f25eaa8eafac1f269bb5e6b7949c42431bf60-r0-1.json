@@ -1,0 +1,31 @@
+{
+  "attempts": 1,
+  "durationMs": 0,
+  "effort": null,
+  "functionId": "label:violation:33f8c7c36eff9cf832d84988a369acdaefeae0f32a4360b660877527ca54068d",
+  "ignoredOptions": [
+    "model",
+    "maxTokens",
+    "temperature"
+  ],
+  "key": "6dfb1e76f04cd073ae719d44914f25eaa8eafac1f269bb5e6b7949c42431bf60-r0-1",
+  "model": "gemini-fixture-pinned",
+  "outcome": {
+    "kind": "valid"
+  },
+  "parsedVerdict": null,
+  "prompt": "Decide whether the finding below is a real violation of the rule as described.\n- TP: the code violates the rule at this location.\n- FP: the code does not violate the rule; give the root cause of the false finding.\n- unseeded-TP: the code violates the rule, but the violation is part of the original design rather than a\n  deliberate change; give the root cause (use RC-GENUINE-UNSEEDED when the violation is simply real).\n\n## Item\n## Violation\n  Function: FF-S01\n  Description: fitness function FF-S01 of specs/clean-arch.yaml\n  File: src/domain/entities/Task.ts\n  Line: 1\n  Target: src/infrastructure/repositories/InMemoryTaskRepository.ts\n  \n  ## Source\n      1 | // Task — pure domain entity, zero violations\n      2 | export class Task {\n      3 |   constructor(\n      4 |     public readonly id: string,\n      5 |     public readonly title: string,\n      6 |     public readonly description: string,\n      7 |     public readonly completed: boolean,\n      8 |     public readonly categoryId: string,\n      9 |     public readonly createdAt: Date\n     10 |   ) {}\n     11 | \n     12 |   complete(): Task {\n     13 |     return new Task(this.id, this.title, this.description, true, this.categoryId, this.createdAt);\n     14 |   }\n     15 | \n     16 |   isValid(): boolean {\n\n## Label options\n1. TP\n  2. unseeded-TP\n  3. FP\n\n## Root causes\n1. RC-OTHER\n  2. RC-GENERATED-CODE\n  3. RC-STYLE-INAPPLICABLE\n  4. RC-LAYER-MAP\n  5. RC-TEMPLATE-OVERAPPROX\n  6. RC-DYNAMIC-IMPORT\n  7. RC-EXTRACT-ALIAS\n  8. RC-EXTRACT-BARREL\n  9. RC-TYPE-ONLY\n  10. RC-GENUINE-UNSEEDED\n  11. RC-TEST-CODE\n  12. RC-SPEC-PARAM\n\nAnswer with one JSON object: {\"option\": <number of the label option>, \"rootCause\": <number of the root cause or null>, \"note\": \"<text, required with RC-OTHER>\", \"rationale\": \"<one or two sentences citing the code>\"}.",
+  "provider": "mock",
+  "recordedAt": "2026-10-08T00:00:00.000Z",
+  "repetition": 0,
+  "requestHash": "6dfb1e76f04cd073ae719d44914f25eaa8eafac1f269bb5e6b7949c42431bf60",
+  "resolvedModel": "mock-model",
+  "response": "{\"option\":3,\"rootCause\":5,\"rationale\":\"the construct is allowed\"}",
+  "runIndex": 1,
+  "schemaVersion": 2,
+  "usage": {
+    "inputTokens": 455,
+    "outputTokens": 17
+  },
+  "usedOptions": {}
+}

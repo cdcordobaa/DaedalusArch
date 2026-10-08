@@ -1,0 +1,31 @@
+{
+  "attempts": 1,
+  "durationMs": 0,
+  "effort": null,
+  "functionId": "label:violation:ed16d11f1eabcdc43b75dcea5d4bb6e31b7169373332bd4cec2e47c8e736157a",
+  "ignoredOptions": [
+    "model",
+    "maxTokens",
+    "temperature"
+  ],
+  "key": "b5a51358b89686b5d41f70ae92364e738e1350c139dcee7fee65bcdea081068b-r0-0",
+  "model": "gemini-fixture-pinned",
+  "outcome": {
+    "kind": "valid"
+  },
+  "parsedVerdict": null,
+  "prompt": "Decide whether the finding below is a real violation of the rule as described.\n- TP: the code violates the rule at this location.\n- FP: the code does not violate the rule; give the root cause of the false finding.\n- unseeded-TP: the code violates the rule, but the violation is part of the original design rather than a\n  deliberate change; give the root cause (use RC-GENUINE-UNSEEDED when the violation is simply real).\n\n## Item\n## Violation\n  Function: FF-S01\n  Description: fitness function FF-S01 of specs/clean-arch.yaml\n  File: src/domain/entities/Task.ts\n  Line: 2\n  Target: src/infrastructure/config/InfraConfig.ts\n  \n  ## Source\n      1 | // VIOLATION #1: Domain entity imports InfraConfig from infrastructure layer (wrong direction)\n      2 | import { InfraConfig } from '../../infrastructure/config/InfraConfig';\n      3 | import { ITaskRepository } from '../repositories/ITaskRepository';\n      4 | \n      5 | export class Task {\n      6 |   static readonly DEFAULT_TIMEOUT = InfraConfig.DEFAULT_TIMEOUT;\n      7 | \n      8 |   constructor(\n      9 |     public readonly id: string,\n     10 |     public readonly title: string,\n     11 |     public readonly description: string,\n     12 |     public readonly completed: boolean,\n     13 |     public readonly categoryId: string,\n     14 |     public readonly createdAt: Date\n     15 |   ) {}\n     16 | \n     17 |   complete(): Task {\n\n## Label options\n1. TP\n  2. FP\n  3. unseeded-TP\n\n## Root causes\n1. RC-LAYER-MAP\n  2. RC-EXTRACT-ALIAS\n  3. RC-EXTRACT-BARREL\n  4. RC-DYNAMIC-IMPORT\n  5. RC-TYPE-ONLY\n  6. RC-TEMPLATE-OVERAPPROX\n  7. RC-STYLE-INAPPLICABLE\n  8. RC-SPEC-PARAM\n  9. RC-GENERATED-CODE\n  10. RC-TEST-CODE\n  11. RC-GENUINE-UNSEEDED\n  12. RC-OTHER\n\nAnswer with one JSON object: {\"option\": <number of the label option>, \"rootCause\": <number of the root cause or null>, \"note\": \"<text, required with RC-OTHER>\", \"rationale\": \"<one or two sentences citing the code>\"}.",
+  "provider": "mock",
+  "recordedAt": "2026-10-08T00:00:00.000Z",
+  "repetition": 0,
+  "requestHash": "b5a51358b89686b5d41f70ae92364e738e1350c139dcee7fee65bcdea081068b",
+  "resolvedModel": "mock-model",
+  "response": "{\"option\":2,\"rootCause\":12,\"note\":\"\",\"rationale\":\"other without note\"}",
+  "runIndex": 0,
+  "schemaVersion": 2,
+  "usage": {
+    "inputTokens": 485,
+    "outputTokens": 18
+  },
+  "usedOptions": {}
+}

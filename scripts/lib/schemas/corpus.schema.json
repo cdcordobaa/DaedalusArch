@@ -1,0 +1,78 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://daedalus-arch.local/scripts/lib/schemas/corpus.schema.json",
+  "$comment": "U5b corpus/corpus.json (domain-entities §8 CorpusEntry; BR-U5b-66). Overlay sha256 = sha256 of the committed patch file (checked in scripts/lib/corpus.ts). tsc.tscPath is relative to the clone root ('project') or to this repository's root ('repo-pinned').",
+  "title": "DaedalusArch evaluation corpus",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["version", "entries"],
+  "properties": {
+    "version": { "type": "integer", "minimum": 1 },
+    "entries": {
+      "type": "array",
+      "minItems": 1,
+      "items": { "$ref": "#/definitions/entry" }
+    }
+  },
+  "definitions": {
+    "relPath": { "type": "string", "minLength": 1, "pattern": "^(?!/)(?!.*(^|/)\\.\\.(/|$)).+$" },
+    "sha256": { "type": "string", "pattern": "^[0-9a-f]{64}$" },
+    "entry": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["name", "originUrl", "licence", "commitSha", "core", "specPath", "overlays", "install", "tsc"],
+      "properties": {
+        "name": { "type": "string", "pattern": "^[A-Za-z0-9._-]+$" },
+        "originUrl": { "type": "string", "minLength": 1 },
+        "licence": { "type": "string", "minLength": 1 },
+        "licenceNote": { "type": "string", "minLength": 1 },
+        "fileCount": { "type": "integer", "minimum": 0 },
+        "style": { "type": "string", "enum": ["layered", "clean-architecture", "nestjs"] },
+        "commitSha": { "type": "string", "pattern": "^[0-9a-f]{40}$" },
+        "core": { "type": "boolean" },
+        "specPath": { "$ref": "#/definitions/relPath" },
+        "subPath": { "$ref": "#/definitions/relPath" },
+        "tsconfigPath": { "$ref": "#/definitions/relPath" },
+        "overlays": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["path", "patchFile", "sha256"],
+            "properties": {
+              "path": { "$ref": "#/definitions/relPath" },
+              "patchFile": { "$ref": "#/definitions/relPath" },
+              "sha256": { "$ref": "#/definitions/sha256" }
+            }
+          }
+        },
+        "install": {
+          "oneOf": [
+            {
+              "type": "object",
+              "additionalProperties": false,
+              "required": ["policy"],
+              "properties": { "policy": { "const": "none" } }
+            },
+            {
+              "type": "object",
+              "additionalProperties": false,
+              "required": ["policy", "lockSha256"],
+              "properties": { "policy": { "const": "npm-ci-ignore-scripts" }, "lockSha256": { "$ref": "#/definitions/sha256" } }
+            }
+          ]
+        },
+        "tsc": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["kind", "tscPath", "tscVersion"],
+          "properties": {
+            "kind": { "type": "string", "enum": ["project", "repo-pinned"] },
+            "tscPath": { "$ref": "#/definitions/relPath" },
+            "tscVersion": { "type": "string", "pattern": "^[0-9]+\\.[0-9]+\\.[0-9]+([-+].+)?$" }
+          }
+        }
+      }
+    }
+  }
+}

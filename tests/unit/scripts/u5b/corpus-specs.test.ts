@@ -1,0 +1,45 @@
+/**
+ * U5b Step 25: the corpus-spec chain after the domain-layer remap (ADR-017 item 4; BR-U5b-77; BR-U1-25).
+ * The log-order check reads full history (CI checks out with `fetch-depth: 0`).
+ */
+import { execFileSync } from 'node:child_process';
+import { readdirSync, readFileSync } from 'node:fs';
+import { join } from 'node:path';
+import { parse as parseYaml } from 'yaml';
+import { CV02_TO } from '../../../../scripts/migrate-corpus-spec.js';
+import { DOMAIN_DIRECTORY, DOMAIN_FILE_PATTERN, remap } from '../../../../scripts/remap-domain-layer.js';
+import { ROOT } from './score-fixture.js';
+
+const SPECS = join(ROOT, 'corpus/specs');
+const files = readdirSync(SPECS).filter((f) => f.endsWith('.yaml')).sort();
+
+interface Spec {
+  architecture: { layers: { name: string; kind?: string; directories?: string[]; file_patterns?: string[] }[] };
+  fitness_functions: { id: string; pattern?: string }[];
+}
+
+describe('corpus specs after the chain (BR-U5b-77)', () => {
+  it('holds the four existing corpus specs', () => {
+    expect(files).toEqual(['dry-run-test.yaml', 'ghostfolio-test.yaml', 'realworld-test.yaml', 'truthy-demo.yaml']);
+  });
+
+  it.each(files)('%s: FF-CV02 is *Service|*UseCase, the domain layer carries both remap globs, and the remap is a no-op', (f) => {
+    const text = readFileSync(join(SPECS, f), 'utf8');
+    const spec = parseYaml(text) as Spec;
+    expect(spec.fitness_functions.find((x) => x.id === 'FF-CV02')?.pattern).toBe(CV02_TO);
+    const domain = spec.architecture.layers.find((l) => l.kind === 'domain' || l.name === 'domain');
+    expect(domain?.directories).toContain(DOMAIN_DIRECTORY);
+    expect(domain?.file_patterns).toContain(DOMAIN_FILE_PATTERN);
+    expect(remap(text).text).toBe(text);
+  });
+
+  it('git log orders the four chain commits unchanged → fr22 → cv02 → remap', () => {
+    const subjects = execFileSync('git', ['log', '--reverse', '--format=%s', '--', 'corpus/specs'], { cwd: ROOT, encoding: 'utf8' })
+      .trim().split('\n');
+    const at = (re: RegExp): number => subjects.findIndex((s) => re.test(s));
+    const order = [at(/corpus specs unchanged/), at(/FR-22 migration of corpus specs/), at(/FF-CV02 pattern correction/), at(/domain-layer remap of corpus specs/)];
+    expect(order.every((i) => i >= 0)).toBe(true);
+    expect([...order].sort((a, b) => a - b)).toEqual(order);
+    expect(subjects.slice(0, 4)).toEqual(order.map((i) => subjects[i]));
+  });
+});

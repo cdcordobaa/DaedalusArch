@@ -1,0 +1,31 @@
+{
+  "attempts": 1,
+  "durationMs": 0,
+  "effort": null,
+  "functionId": "label:violation:1a5b8105135fb0d4a48972db717c669b365e89c35c6b630d04ed86f87ef20cba",
+  "ignoredOptions": [
+    "model",
+    "maxTokens",
+    "temperature"
+  ],
+  "key": "670f3d560d5d44eeb9cc98a2ae065aa0989cfc336bc407ce0b0aa62cc119ccfc-r0-0",
+  "model": "gemini-fixture-pinned",
+  "outcome": {
+    "kind": "valid"
+  },
+  "parsedVerdict": null,
+  "prompt": "Decide whether the finding below is a real violation of the rule as described.\n- TP: the code violates the rule at this location.\n- FP: the code does not violate the rule; give the root cause of the false finding.\n- unseeded-TP: the code violates the rule, but the violation is part of the original design rather than a\n  deliberate change; give the root cause (use RC-GENUINE-UNSEEDED when the violation is simply real).\n\n## Item\n## Violation\n  Function: FF-CV05\n  Description: fitness function FF-CV05 of specs/clean-arch.yaml\n  File: src/infrastructure/repositories/CircularHelper.ts\n  Line: n/a\n  Target: n/a\n  \n  ## Source\n      1 | // VIOLATION #4: circular — CircularHelper imports InMemoryTaskRepository, which imports CircularHelper\n      2 | import { InMemoryTaskRepository } from './InMemoryTaskRepository';\n      3 | \n      4 | export class CircularHelper {\n      5 |   logSave(id: string): void {\n      6 |     console.log(`Saved task: ${id}`);\n      7 |   }\n      8 | }\n      9 | \n\n## Label options\n1. TP\n  2. FP\n  3. unseeded-TP\n\n## Root causes\n1. RC-LAYER-MAP\n  2. RC-EXTRACT-ALIAS\n  3. RC-EXTRACT-BARREL\n  4. RC-DYNAMIC-IMPORT\n  5. RC-TYPE-ONLY\n  6. RC-TEMPLATE-OVERAPPROX\n  7. RC-STYLE-INAPPLICABLE\n  8. RC-SPEC-PARAM\n  9. RC-GENERATED-CODE\n  10. RC-TEST-CODE\n  11. RC-GENUINE-UNSEEDED\n  12. RC-OTHER\n\nAnswer with one JSON object: {\"option\": <number of the label option>, \"rootCause\": <number of the root cause or null>, \"note\": \"<text, required with RC-OTHER>\", \"rationale\": \"<one or two sentences citing the code>\"}.",
+  "provider": "mock",
+  "recordedAt": "2026-10-08T00:00:00.000Z",
+  "repetition": 0,
+  "requestHash": "670f3d560d5d44eeb9cc98a2ae065aa0989cfc336bc407ce0b0aa62cc119ccfc",
+  "resolvedModel": "mock-model",
+  "response": "{\"option\":3,\"rootCause\":11,\"rationale\":\"real but original\"}",
+  "runIndex": 0,
+  "schemaVersion": 2,
+  "usage": {
+    "inputTokens": 384,
+    "outputTokens": 15
+  },
+  "usedOptions": {}
+}

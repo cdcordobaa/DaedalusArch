@@ -1,0 +1,31 @@
+{
+  "attempts": 1,
+  "durationMs": 0,
+  "effort": null,
+  "functionId": "label:violation:f9f5cdb92df70efc4cf5b13a1b5e4c7f5dbe01dd41ddca30ffe3a65aff8aff46",
+  "ignoredOptions": [
+    "model",
+    "maxTokens",
+    "temperature"
+  ],
+  "key": "5a9f0fab35870a2f9e02accb0ce2602b68d1205352adb469dbd89bd1cdd19566-r0-0",
+  "model": "gemini-fixture-pinned",
+  "outcome": {
+    "kind": "valid"
+  },
+  "parsedVerdict": null,
+  "prompt": "Decide whether the finding below is a real violation of the rule as described.\n- TP: the code violates the rule at this location.\n- FP: the code does not violate the rule; give the root cause of the false finding.\n- unseeded-TP: the code violates the rule, but the violation is part of the original design rather than a\n  deliberate change; give the root cause (use RC-GENUINE-UNSEEDED when the violation is simply real).\n\n## Item\n## Violation\n  Function: FF-CV05\n  Description: fitness function FF-CV05 of specs/clean-arch.yaml\n  File: src/infrastructure/repositories/InMemoryTaskRepository.ts\n  Line: n/a\n  Target: n/a\n  \n  ## Source\n      1 | import { Task } from '../../domain/entities/Task';\n      2 | import { ITaskRepository } from '../../domain/repositories/ITaskRepository';\n      3 | // VIOLATION #4: circular — this imports CircularHelper which imports back here\n      4 | import { CircularHelper } from './CircularHelper';\n      5 | \n      6 | export class InMemoryTaskRepository implements ITaskRepository {\n      7 |   private readonly store = new Map<string, Task>();\n      8 |   private readonly helper = new CircularHelper();\n      9 | \n     10 |   async findById(id: string): Promise<Task | null> {\n     11 |     return this.store.get(id) ?? null;\n     12 |   }\n     13 | \n     14 |   async findAll(): Promise<Task[]> {\n     15 |     return [...this.store.values()];\n     16 |   }\n     17 | \n     18 |   async save(task: Task): Promise<Task> {\n     19 |     this.store.set(task.id, task);\n     20 |     return task;\n     21 |   }\n     22 | \n     23 |   async delete(id: string): Promise<void> {\n     24 |     this.store.delete(id);\n     25 |   }\n     26 | }\n     27 | \n\n## Label options\n1. TP\n  2. FP\n  3. unseeded-TP\n\n## Root causes\n1. RC-LAYER-MAP\n  2. RC-EXTRACT-ALIAS\n  3. RC-EXTRACT-BARREL\n  4. RC-DYNAMIC-IMPORT\n  5. RC-TYPE-ONLY\n  6. RC-TEMPLATE-OVERAPPROX\n  7. RC-STYLE-INAPPLICABLE\n  8. RC-SPEC-PARAM\n  9. RC-GENERATED-CODE\n  10. RC-TEST-CODE\n  11. RC-GENUINE-UNSEEDED\n  12. RC-OTHER\n\nAnswer with one JSON object: {\"option\": <number of the label option>, \"rootCause\": <number of the root cause or null>, \"note\": \"<text, required with RC-OTHER>\", \"rationale\": \"<one or two sentences citing the code>\"}.",
+  "provider": "mock",
+  "recordedAt": "2026-10-08T00:00:00.000Z",
+  "repetition": 0,
+  "requestHash": "5a9f0fab35870a2f9e02accb0ce2602b68d1205352adb469dbd89bd1cdd19566",
+  "resolvedModel": "mock-model",
+  "response": "{\"option\":1,\"rootCause\":null,\"rationale\":\"the import crosses the layer boundary\"}",
+  "runIndex": 0,
+  "schemaVersion": 2,
+  "usage": {
+    "inputTokens": 557,
+    "outputTokens": 21
+  },
+  "usedOptions": {}
+}

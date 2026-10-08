@@ -1,0 +1,31 @@
+{
+  "attempts": 1,
+  "durationMs": 0,
+  "effort": null,
+  "functionId": "label:violation:50cc9a717c04d21f418e7fe08925e4c268d90f8df130de55add481fd862cc198",
+  "ignoredOptions": [
+    "model",
+    "maxTokens",
+    "temperature"
+  ],
+  "key": "a2c2d653b9ea6e9e3ed0265545faf4f859ab98556a01d529e85af7e855fdfd2a-r0-0",
+  "model": "gemini-fixture-pinned",
+  "outcome": {
+    "kind": "valid"
+  },
+  "parsedVerdict": null,
+  "prompt": "Decide whether the finding below is a real violation of the rule as described.\n- TP: the code violates the rule at this location.\n- FP: the code does not violate the rule; give the root cause of the false finding.\n- unseeded-TP: the code violates the rule, but the violation is part of the original design rather than a\n  deliberate change; give the root cause (use RC-GENUINE-UNSEEDED when the violation is simply real).\n\n## Item\n## Violation\n  Function: FF-S02\n  Description: fitness function FF-S02 of specs/clean-arch.yaml\n  File: src/domain/entities/Task.ts,src/domain/repositories/ITaskRepository.ts,src/domain/entities/Task.ts\n  Line: 3\n  Target: src/domain/repositories/ITaskRepository.ts\n  \n  ## Source\n  (file not present in the source tree)\n\n## Label options\n1. TP\n  2. FP\n  3. unseeded-TP\n\n## Root causes\n1. RC-LAYER-MAP\n  2. RC-EXTRACT-ALIAS\n  3. RC-EXTRACT-BARREL\n  4. RC-DYNAMIC-IMPORT\n  5. RC-TYPE-ONLY\n  6. RC-TEMPLATE-OVERAPPROX\n  7. RC-STYLE-INAPPLICABLE\n  8. RC-SPEC-PARAM\n  9. RC-GENERATED-CODE\n  10. RC-TEST-CODE\n  11. RC-GENUINE-UNSEEDED\n  12. RC-OTHER\n\nAnswer with one JSON object: {\"option\": <number of the label option>, \"rootCause\": <number of the root cause or null>, \"note\": \"<text, required with RC-OTHER>\", \"rationale\": \"<one or two sentences citing the code>\"}.",
+  "provider": "mock",
+  "recordedAt": "2026-10-08T00:00:00.000Z",
+  "repetition": 0,
+  "requestHash": "a2c2d653b9ea6e9e3ed0265545faf4f859ab98556a01d529e85af7e855fdfd2a",
+  "resolvedModel": "mock-model",
+  "response": "{\"option\":1,\"rootCause\":null,\"rationale\":\"violates\"}",
+  "runIndex": 0,
+  "schemaVersion": 2,
+  "usage": {
+    "inputTokens": 324,
+    "outputTokens": 13
+  },
+  "usedOptions": {}
+}

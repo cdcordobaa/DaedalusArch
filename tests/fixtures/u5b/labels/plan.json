@@ -1,0 +1,310 @@
+{
+  "version": 1,
+  "permutationSeed": 20261008,
+  "budgetCalls": 200,
+  "strata": [
+    {
+      "population": "MS",
+      "stratum": "correct-reference, FF-S01",
+      "size": 1,
+      "cap": null
+    },
+    {
+      "population": "P1",
+      "stratum": "correct-reference, FF-S01",
+      "size": 1,
+      "cap": null
+    },
+    {
+      "population": "P2",
+      "stratum": "variant-a-structural, FF-C01",
+      "size": 1,
+      "cap": 20
+    },
+    {
+      "population": "P2",
+      "stratum": "variant-a-structural, FF-C03",
+      "size": 1,
+      "cap": 20
+    },
+    {
+      "population": "P2",
+      "stratum": "variant-a-structural, FF-C06",
+      "size": 1,
+      "cap": 20
+    },
+    {
+      "population": "P2",
+      "stratum": "variant-a-structural, FF-CV05",
+      "size": 6,
+      "cap": 20
+    },
+    {
+      "population": "P2",
+      "stratum": "variant-a-structural, FF-P02",
+      "size": 1,
+      "cap": 20
+    },
+    {
+      "population": "P2",
+      "stratum": "variant-a-structural, FF-P04",
+      "size": 1,
+      "cap": 20
+    },
+    {
+      "population": "P2",
+      "stratum": "variant-a-structural, FF-S01",
+      "size": 2,
+      "cap": 20
+    },
+    {
+      "population": "P2",
+      "stratum": "variant-a-structural, FF-S02",
+      "size": 2,
+      "cap": 20
+    },
+    {
+      "population": "P2",
+      "stratum": "variant-a-structural, FF-S04",
+      "size": 1,
+      "cap": 20
+    },
+    {
+      "population": "P4",
+      "stratum": "correct-reference, integrity",
+      "size": 1,
+      "cap": 10
+    },
+    {
+      "population": "P4",
+      "stratum": "correct-reference, semantic",
+      "size": 1,
+      "cap": 10
+    }
+  ],
+  "items": [
+    {
+      "itemId": "6e5d293320f38f2767ab11ce678391549fb02de53c89b9b78d86cc9e9ef1bf02",
+      "kind": "missed-seed",
+      "population": "MS",
+      "projectId": "correct-reference",
+      "stratum": "correct-reference, FF-S01",
+      "inclusionProbability": 1,
+      "key": "[\"FF-S01\",\"src/domain/entities/Category.ts\",\"src/infrastructure/repositories/InMemoryTaskRepository.ts\",[\"IMPORTS\"]]",
+      "functionId": "FF-S01",
+      "seedId": "correct-reference:MO-S01:0",
+      "context": "## Seeded construct (expected, not reported)\nFunction: FF-S01\nDescription: fitness function FF-S01 of specs/clean-arch.yaml\nFile: src/domain/entities/Category.ts\nLine: 1\nTarget: src/infrastructure/repositories/InMemoryTaskRepository.ts\n\n## Source\n    1 | export class Category {\n    2 |   constructor(\n    3 |     public readonly id: string,\n    4 |     public readonly name: string,\n    5 |     public readonly color: string\n    6 |   ) {}\n    7 | \n    8 |   isValid(): boolean {\n    9 |     return this.name.length > 0;\n   10 |   }\n   11 | }\n   12 | "
+    },
+    {
+      "itemId": "33f8c7c36eff9cf832d84988a369acdaefeae0f32a4360b660877527ca54068d",
+      "kind": "violation",
+      "population": "P1",
+      "projectId": "correct-reference",
+      "stratum": "correct-reference, FF-S01",
+      "inclusionProbability": 1,
+      "key": "[\"FF-S01\",\"src/domain/entities/Task.ts\",\"src/infrastructure/repositories/InMemoryTaskRepository.ts\",[]]",
+      "functionId": "FF-S01",
+      "context": "## Violation\nFunction: FF-S01\nDescription: fitness function FF-S01 of specs/clean-arch.yaml\nFile: src/domain/entities/Task.ts\nLine: 1\nTarget: src/infrastructure/repositories/InMemoryTaskRepository.ts\n\n## Source\n    1 | // Task — pure domain entity, zero violations\n    2 | export class Task {\n    3 |   constructor(\n    4 |     public readonly id: string,\n    5 |     public readonly title: string,\n    6 |     public readonly description: string,\n    7 |     public readonly completed: boolean,\n    8 |     public readonly categoryId: string,\n    9 |     public readonly createdAt: Date\n   10 |   ) {}\n   11 | \n   12 |   complete(): Task {\n   13 |     return new Task(this.id, this.title, this.description, true, this.categoryId, this.createdAt);\n   14 |   }\n   15 | \n   16 |   isValid(): boolean {"
+    },
+    {
+      "itemId": "6f8d9a32a461e44a372495a48f83b363c9cad0bcdb8f99b7118781e38e9dee5c",
+      "kind": "violation",
+      "population": "P2",
+      "projectId": "variant-a-structural",
+      "stratum": "variant-a-structural, FF-C01",
+      "inclusionProbability": 1,
+      "key": "[\"FF-C01\",\"src/domain/entities/Task.ts\",\"\",[]]",
+      "functionId": "FF-C01",
+      "context": "## Violation\nFunction: FF-C01\nDescription: fitness function FF-C01 of specs/clean-arch.yaml\nFile: src/domain/entities/Task.ts\nLine: n/a\nTarget: n/a\n\n## Source\n    1 | // VIOLATION #1: Domain entity imports InfraConfig from infrastructure layer (wrong direction)\n    2 | import { InfraConfig } from '../../infrastructure/config/InfraConfig';\n    3 | import { ITaskRepository } from '../repositories/ITaskRepository';\n    4 | \n    5 | export class Task {\n    6 |   static readonly DEFAULT_TIMEOUT = InfraConfig.DEFAULT_TIMEOUT;\n    7 | \n    8 |   constructor(\n    9 |     public readonly id: string,\n   10 |     public readonly title: string,\n   11 |     public readonly description: string,\n   12 |     public readonly completed: boolean,\n   13 |     public readonly categoryId: string,\n   14 |     public readonly createdAt: Date\n   15 |   ) {}\n   16 | \n   17 |   complete(): Task {\n   18 |     return new Task(this.id, this.title, this.description, true, this.categoryId, this.createdAt);\n   19 |   }\n   20 | \n   21 |   isValid(): boolean {\n   22 |     return this.title.length > 0 && this.categoryId.length > 0;\n   23 |   }\n   24 | }\n   25 | "
+    },
+    {
+      "itemId": "70586f7611747c0e867edbca9d44f78305a5e1dc53a63ab0ec12d0610c935c28",
+      "kind": "violation",
+      "population": "P2",
+      "projectId": "variant-a-structural",
+      "stratum": "variant-a-structural, FF-C03",
+      "inclusionProbability": 1,
+      "key": "[\"FF-C03\",\"src/application/use-cases/CreateTaskUseCase.ts\",\"\",[]]",
+      "functionId": "FF-C03",
+      "context": "## Violation\nFunction: FF-C03\nDescription: fitness function FF-C03 of specs/clean-arch.yaml\nFile: src/application/use-cases/CreateTaskUseCase.ts\nLine: n/a\nTarget: n/a\n\n## Source\n    1 | // VIOLATION #3: Application layer imports concrete InMemoryTaskRepository (infra) directly\n    2 | import { InMemoryTaskRepository } from '../../infrastructure/repositories/InMemoryTaskRepository';\n    3 | import { Task } from '../../domain/entities/Task';\n    4 | \n    5 | export class CreateTaskUseCase {\n    6 |   constructor(\n    7 |     // Should inject ITaskRepository (interface), not concrete impl\n    8 |     private readonly taskRepository: InMemoryTaskRepository\n    9 |   ) {}\n   10 | \n   11 |   async execute(title: string, description: string, categoryId: string): Promise<Task> {\n   12 |     const task = new Task(\n   13 |       crypto.randomUUID(),\n   14 |       title,\n   15 |       description,\n   16 |       false,\n   17 |       categoryId,\n   18 |       new Date()\n   19 |     );\n   20 |     return this.taskRepository.save(task);\n   21 |   }\n   22 | }\n   23 | "
+    },
+    {
+      "itemId": "51858f411b154e4824ebe568dc905a07a79a154eafd79d1036613878a5cfbc0f",
+      "kind": "violation",
+      "population": "P2",
+      "projectId": "variant-a-structural",
+      "stratum": "variant-a-structural, FF-C06",
+      "inclusionProbability": 1,
+      "key": "[\"FF-C06\",\"<project>\",\"\",[]]",
+      "functionId": "FF-C06",
+      "context": "## Violation\nFunction: FF-C06\nDescription: fitness function FF-C06 of specs/clean-arch.yaml\nFile: <project>\nLine: n/a\nTarget: n/a\n\n## Source\n(file not present in the source tree)"
+    },
+    {
+      "itemId": "1a5b8105135fb0d4a48972db717c669b365e89c35c6b630d04ed86f87ef20cba",
+      "kind": "violation",
+      "population": "P2",
+      "projectId": "variant-a-structural",
+      "stratum": "variant-a-structural, FF-CV05",
+      "inclusionProbability": 1,
+      "key": "[\"FF-CV05\",\"src/infrastructure/repositories/CircularHelper.ts\",\"\",[]]",
+      "functionId": "FF-CV05",
+      "context": "## Violation\nFunction: FF-CV05\nDescription: fitness function FF-CV05 of specs/clean-arch.yaml\nFile: src/infrastructure/repositories/CircularHelper.ts\nLine: n/a\nTarget: n/a\n\n## Source\n    1 | // VIOLATION #4: circular — CircularHelper imports InMemoryTaskRepository, which imports CircularHelper\n    2 | import { InMemoryTaskRepository } from './InMemoryTaskRepository';\n    3 | \n    4 | export class CircularHelper {\n    5 |   logSave(id: string): void {\n    6 |     console.log(`Saved task: ${id}`);\n    7 |   }\n    8 | }\n    9 | "
+    },
+    {
+      "itemId": "7c9423c6d3deb2525cac8d9be17c0017d54f9b8202e16ab5ec1a40c30d5cbae2",
+      "kind": "violation",
+      "population": "P2",
+      "projectId": "variant-a-structural",
+      "stratum": "variant-a-structural, FF-CV05",
+      "inclusionProbability": 1,
+      "key": "[\"FF-CV05\",\"src/domain/entities/Task.ts\",\"\",[]]",
+      "functionId": "FF-CV05",
+      "context": "## Violation\nFunction: FF-CV05\nDescription: fitness function FF-CV05 of specs/clean-arch.yaml\nFile: src/domain/entities/Task.ts\nLine: n/a\nTarget: n/a\n\n## Source\n    1 | // VIOLATION #1: Domain entity imports InfraConfig from infrastructure layer (wrong direction)\n    2 | import { InfraConfig } from '../../infrastructure/config/InfraConfig';\n    3 | import { ITaskRepository } from '../repositories/ITaskRepository';\n    4 | \n    5 | export class Task {\n    6 |   static readonly DEFAULT_TIMEOUT = InfraConfig.DEFAULT_TIMEOUT;\n    7 | \n    8 |   constructor(\n    9 |     public readonly id: string,\n   10 |     public readonly title: string,\n   11 |     public readonly description: string,\n   12 |     public readonly completed: boolean,\n   13 |     public readonly categoryId: string,\n   14 |     public readonly createdAt: Date\n   15 |   ) {}\n   16 | \n   17 |   complete(): Task {\n   18 |     return new Task(this.id, this.title, this.description, true, this.categoryId, this.createdAt);\n   19 |   }\n   20 | \n   21 |   isValid(): boolean {\n   22 |     return this.title.length > 0 && this.categoryId.length > 0;\n   23 |   }\n   24 | }\n   25 | "
+    },
+    {
+      "itemId": "c3a382641860f8419da758e0aa36db4c41707002e7d88ee94d8b506bff242d6b",
+      "kind": "violation",
+      "population": "P2",
+      "projectId": "variant-a-structural",
+      "stratum": "variant-a-structural, FF-CV05",
+      "inclusionProbability": 1,
+      "key": "[\"FF-CV05\",\"src/domain/repositories/ITaskRepository.ts\",\"\",[]]",
+      "functionId": "FF-CV05",
+      "context": "## Violation\nFunction: FF-CV05\nDescription: fitness function FF-CV05 of specs/clean-arch.yaml\nFile: src/domain/repositories/ITaskRepository.ts\nLine: n/a\nTarget: n/a\n\n## Source\n    1 | import { Task } from '../entities/Task';\n    2 | \n    3 | export interface ITaskRepository {\n    4 |   findById(id: string): Promise<Task | null>;\n    5 |   findAll(): Promise<Task[]>;\n    6 |   save(task: Task): Promise<Task>;\n    7 |   delete(id: string): Promise<void>;\n    8 | }\n    9 | "
+    },
+    {
+      "itemId": "cb50adce19358030c255f51307693e2e25a1ced8711d78ced08431d2e6c26c32",
+      "kind": "violation",
+      "population": "P2",
+      "projectId": "variant-a-structural",
+      "stratum": "variant-a-structural, FF-CV05",
+      "inclusionProbability": 1,
+      "key": "[\"FF-CV05\",\"src/infrastructure/config/InfraConfig.ts\",\"\",[]]",
+      "functionId": "FF-CV05",
+      "context": "## Violation\nFunction: FF-CV05\nDescription: fitness function FF-CV05 of specs/clean-arch.yaml\nFile: src/infrastructure/config/InfraConfig.ts\nLine: n/a\nTarget: n/a\n\n## Source\n    1 | // Infrastructure config — referenced by domain (violation enabler)\n    2 | export const InfraConfig = {\n    3 |   DEFAULT_TIMEOUT: 5000,\n    4 |   DB_HOST: 'localhost',\n    5 | };\n    6 | "
+    },
+    {
+      "itemId": "f84500790933e2799b884408650359025c30e2d7082b103666f424bc101f6378",
+      "kind": "violation",
+      "population": "P2",
+      "projectId": "variant-a-structural",
+      "stratum": "variant-a-structural, FF-CV05",
+      "inclusionProbability": 1,
+      "key": "[\"FF-CV05\",\"src/application/use-cases/CreateTaskUseCase.ts\",\"\",[]]",
+      "functionId": "FF-CV05",
+      "context": "## Violation\nFunction: FF-CV05\nDescription: fitness function FF-CV05 of specs/clean-arch.yaml\nFile: src/application/use-cases/CreateTaskUseCase.ts\nLine: n/a\nTarget: n/a\n\n## Source\n    1 | // VIOLATION #3: Application layer imports concrete InMemoryTaskRepository (infra) directly\n    2 | import { InMemoryTaskRepository } from '../../infrastructure/repositories/InMemoryTaskRepository';\n    3 | import { Task } from '../../domain/entities/Task';\n    4 | \n    5 | export class CreateTaskUseCase {\n    6 |   constructor(\n    7 |     // Should inject ITaskRepository (interface), not concrete impl\n    8 |     private readonly taskRepository: InMemoryTaskRepository\n    9 |   ) {}\n   10 | \n   11 |   async execute(title: string, description: string, categoryId: string): Promise<Task> {\n   12 |     const task = new Task(\n   13 |       crypto.randomUUID(),\n   14 |       title,\n   15 |       description,\n   16 |       false,\n   17 |       categoryId,\n   18 |       new Date()\n   19 |     );\n   20 |     return this.taskRepository.save(task);\n   21 |   }\n   22 | }\n   23 | "
+    },
+    {
+      "itemId": "f9f5cdb92df70efc4cf5b13a1b5e4c7f5dbe01dd41ddca30ffe3a65aff8aff46",
+      "kind": "violation",
+      "population": "P2",
+      "projectId": "variant-a-structural",
+      "stratum": "variant-a-structural, FF-CV05",
+      "inclusionProbability": 1,
+      "key": "[\"FF-CV05\",\"src/infrastructure/repositories/InMemoryTaskRepository.ts\",\"\",[]]",
+      "functionId": "FF-CV05",
+      "context": "## Violation\nFunction: FF-CV05\nDescription: fitness function FF-CV05 of specs/clean-arch.yaml\nFile: src/infrastructure/repositories/InMemoryTaskRepository.ts\nLine: n/a\nTarget: n/a\n\n## Source\n    1 | import { Task } from '../../domain/entities/Task';\n    2 | import { ITaskRepository } from '../../domain/repositories/ITaskRepository';\n    3 | // VIOLATION #4: circular — this imports CircularHelper which imports back here\n    4 | import { CircularHelper } from './CircularHelper';\n    5 | \n    6 | export class InMemoryTaskRepository implements ITaskRepository {\n    7 |   private readonly store = new Map<string, Task>();\n    8 |   private readonly helper = new CircularHelper();\n    9 | \n   10 |   async findById(id: string): Promise<Task | null> {\n   11 |     return this.store.get(id) ?? null;\n   12 |   }\n   13 | \n   14 |   async findAll(): Promise<Task[]> {\n   15 |     return [...this.store.values()];\n   16 |   }\n   17 | \n   18 |   async save(task: Task): Promise<Task> {\n   19 |     this.store.set(task.id, task);\n   20 |     return task;\n   21 |   }\n   22 | \n   23 |   async delete(id: string): Promise<void> {\n   24 |     this.store.delete(id);\n   25 |   }\n   26 | }\n   27 | "
+    },
+    {
+      "itemId": "47613bff13d7a6ac9f7b70485d58f5e87867fd9d972bf09298645ab2268edcaa",
+      "kind": "violation",
+      "population": "P2",
+      "projectId": "variant-a-structural",
+      "stratum": "variant-a-structural, FF-P02",
+      "inclusionProbability": 1,
+      "key": "[\"FF-P02\",\"src/application/use-cases/CreateTaskUseCase.ts\",\"\",[\"CreateTaskUseCase\"]]",
+      "functionId": "FF-P02",
+      "context": "## Violation\nFunction: FF-P02\nDescription: fitness function FF-P02 of specs/clean-arch.yaml\nFile: src/application/use-cases/CreateTaskUseCase.ts\nLine: n/a\nTarget: n/a\n\n## Source\n    1 | // VIOLATION #3: Application layer imports concrete InMemoryTaskRepository (infra) directly\n    2 | import { InMemoryTaskRepository } from '../../infrastructure/repositories/InMemoryTaskRepository';\n    3 | import { Task } from '../../domain/entities/Task';\n    4 | \n    5 | export class CreateTaskUseCase {\n    6 |   constructor(\n    7 |     // Should inject ITaskRepository (interface), not concrete impl\n    8 |     private readonly taskRepository: InMemoryTaskRepository\n    9 |   ) {}\n   10 | \n   11 |   async execute(title: string, description: string, categoryId: string): Promise<Task> {\n   12 |     const task = new Task(\n   13 |       crypto.randomUUID(),\n   14 |       title,\n   15 |       description,\n   16 |       false,\n   17 |       categoryId,\n   18 |       new Date()\n   19 |     );\n   20 |     return this.taskRepository.save(task);\n   21 |   }\n   22 | }\n   23 | "
+    },
+    {
+      "itemId": "3077349640e036873574e2a97e288939b96606d0917a7eae7ea36f03c75cafea",
+      "kind": "violation",
+      "population": "P2",
+      "projectId": "variant-a-structural",
+      "stratum": "variant-a-structural, FF-P04",
+      "inclusionProbability": 1,
+      "key": "[\"FF-P04\",\"src/application/use-cases/CreateTaskUseCase.ts\",\"\",[\"CreateTaskUseCase\"]]",
+      "functionId": "FF-P04",
+      "context": "## Violation\nFunction: FF-P04\nDescription: fitness function FF-P04 of specs/clean-arch.yaml\nFile: src/application/use-cases/CreateTaskUseCase.ts\nLine: n/a\nTarget: n/a\n\n## Source\n    1 | // VIOLATION #3: Application layer imports concrete InMemoryTaskRepository (infra) directly\n    2 | import { InMemoryTaskRepository } from '../../infrastructure/repositories/InMemoryTaskRepository';\n    3 | import { Task } from '../../domain/entities/Task';\n    4 | \n    5 | export class CreateTaskUseCase {\n    6 |   constructor(\n    7 |     // Should inject ITaskRepository (interface), not concrete impl\n    8 |     private readonly taskRepository: InMemoryTaskRepository\n    9 |   ) {}\n   10 | \n   11 |   async execute(title: string, description: string, categoryId: string): Promise<Task> {\n   12 |     const task = new Task(\n   13 |       crypto.randomUUID(),\n   14 |       title,\n   15 |       description,\n   16 |       false,\n   17 |       categoryId,\n   18 |       new Date()\n   19 |     );\n   20 |     return this.taskRepository.save(task);\n   21 |   }\n   22 | }\n   23 | "
+    },
+    {
+      "itemId": "9677fe620fee5b1271ebebb941b6d66dbf37cbc0cfad72e791ec59d971f1ad19",
+      "kind": "violation",
+      "population": "P2",
+      "projectId": "variant-a-structural",
+      "stratum": "variant-a-structural, FF-S01",
+      "inclusionProbability": 1,
+      "key": "[\"FF-S01\",\"src/application/use-cases/CreateTaskUseCase.ts\",\"src/infrastructure/repositories/InMemoryTaskRepository.ts\",[\"IMPORTS\"]]",
+      "functionId": "FF-S01",
+      "context": "## Violation\nFunction: FF-S01\nDescription: fitness function FF-S01 of specs/clean-arch.yaml\nFile: src/application/use-cases/CreateTaskUseCase.ts\nLine: 2\nTarget: src/infrastructure/repositories/InMemoryTaskRepository.ts\n\n## Source\n    1 | // VIOLATION #3: Application layer imports concrete InMemoryTaskRepository (infra) directly\n    2 | import { InMemoryTaskRepository } from '../../infrastructure/repositories/InMemoryTaskRepository';\n    3 | import { Task } from '../../domain/entities/Task';\n    4 | \n    5 | export class CreateTaskUseCase {\n    6 |   constructor(\n    7 |     // Should inject ITaskRepository (interface), not concrete impl\n    8 |     private readonly taskRepository: InMemoryTaskRepository\n    9 |   ) {}\n   10 | \n   11 |   async execute(title: string, description: string, categoryId: string): Promise<Task> {\n   12 |     const task = new Task(\n   13 |       crypto.randomUUID(),\n   14 |       title,\n   15 |       description,\n   16 |       false,\n   17 |       categoryId,"
+    },
+    {
+      "itemId": "ed16d11f1eabcdc43b75dcea5d4bb6e31b7169373332bd4cec2e47c8e736157a",
+      "kind": "violation",
+      "population": "P2",
+      "projectId": "variant-a-structural",
+      "stratum": "variant-a-structural, FF-S01",
+      "inclusionProbability": 1,
+      "key": "[\"FF-S01\",\"src/domain/entities/Task.ts\",\"src/infrastructure/config/InfraConfig.ts\",[\"IMPORTS\"]]",
+      "functionId": "FF-S01",
+      "context": "## Violation\nFunction: FF-S01\nDescription: fitness function FF-S01 of specs/clean-arch.yaml\nFile: src/domain/entities/Task.ts\nLine: 2\nTarget: src/infrastructure/config/InfraConfig.ts\n\n## Source\n    1 | // VIOLATION #1: Domain entity imports InfraConfig from infrastructure layer (wrong direction)\n    2 | import { InfraConfig } from '../../infrastructure/config/InfraConfig';\n    3 | import { ITaskRepository } from '../repositories/ITaskRepository';\n    4 | \n    5 | export class Task {\n    6 |   static readonly DEFAULT_TIMEOUT = InfraConfig.DEFAULT_TIMEOUT;\n    7 | \n    8 |   constructor(\n    9 |     public readonly id: string,\n   10 |     public readonly title: string,\n   11 |     public readonly description: string,\n   12 |     public readonly completed: boolean,\n   13 |     public readonly categoryId: string,\n   14 |     public readonly createdAt: Date\n   15 |   ) {}\n   16 | \n   17 |   complete(): Task {"
+    },
+    {
+      "itemId": "50cc9a717c04d21f418e7fe08925e4c268d90f8df130de55add481fd862cc198",
+      "kind": "violation",
+      "population": "P2",
+      "projectId": "variant-a-structural",
+      "stratum": "variant-a-structural, FF-S02",
+      "inclusionProbability": 1,
+      "key": "[\"FF-S02\",\"src/domain/entities/Task.ts,src/domain/repositories/ITaskRepository.ts,src/domain/entities/Task.ts\",\"src/domain/repositories/ITaskRepository.ts\",[\"[\\\"src/domain/entities/Task.ts\\\",\\\"src/domain/repositories/ITaskRepository.ts\\\",\\\"src/domain/entities/Task.ts\\\"]\"]]",
+      "functionId": "FF-S02",
+      "context": "## Violation\nFunction: FF-S02\nDescription: fitness function FF-S02 of specs/clean-arch.yaml\nFile: src/domain/entities/Task.ts,src/domain/repositories/ITaskRepository.ts,src/domain/entities/Task.ts\nLine: 3\nTarget: src/domain/repositories/ITaskRepository.ts\n\n## Source\n(file not present in the source tree)"
+    },
+    {
+      "itemId": "fd840d4e509350f0e40f218ead057ac10d3d9cd50764967ec8d7b44d001a3e6e",
+      "kind": "violation",
+      "population": "P2",
+      "projectId": "variant-a-structural",
+      "stratum": "variant-a-structural, FF-S02",
+      "inclusionProbability": 1,
+      "key": "[\"FF-S02\",\"src/infrastructure/repositories/CircularHelper.ts,src/infrastructure/repositories/InMemoryTaskRepository.ts,src/infrastructure/repositories/CircularHelper.ts\",\"src/infrastructure/repositories/InMemoryTaskRepository.ts\",[\"[\\\"src/infrastructure/repositories/CircularHelper.ts\\\",\\\"src/infrastructure/repositories/InMemoryTaskRepository.ts\\\",\\\"src/infrastructure/repositories/CircularHelper.ts\\\"]\"]]",
+      "functionId": "FF-S02",
+      "context": "## Violation\nFunction: FF-S02\nDescription: fitness function FF-S02 of specs/clean-arch.yaml\nFile: src/infrastructure/repositories/CircularHelper.ts,src/infrastructure/repositories/InMemoryTaskRepository.ts,src/infrastructure/repositories/CircularHelper.ts\nLine: 2\nTarget: src/infrastructure/repositories/InMemoryTaskRepository.ts\n\n## Source\n(file not present in the source tree)"
+    },
+    {
+      "itemId": "e965ef4b9450f57cd111d00bcf8270c09664662c718dbd73cc0fbac5f8e0641c",
+      "kind": "violation",
+      "population": "P2",
+      "projectId": "variant-a-structural",
+      "stratum": "variant-a-structural, FF-S04",
+      "inclusionProbability": 1,
+      "key": "[\"FF-S04\",\"src/domain/entities/Task.ts\",\"src/infrastructure/config/InfraConfig.ts\",[\"IMPORTS\"]]",
+      "functionId": "FF-S04",
+      "context": "## Violation\nFunction: FF-S04\nDescription: fitness function FF-S04 of specs/clean-arch.yaml\nFile: src/domain/entities/Task.ts\nLine: 2\nTarget: src/infrastructure/config/InfraConfig.ts\n\n## Source\n    1 | // VIOLATION #1: Domain entity imports InfraConfig from infrastructure layer (wrong direction)\n    2 | import { InfraConfig } from '../../infrastructure/config/InfraConfig';\n    3 | import { ITaskRepository } from '../repositories/ITaskRepository';\n    4 | \n    5 | export class Task {\n    6 |   static readonly DEFAULT_TIMEOUT = InfraConfig.DEFAULT_TIMEOUT;\n    7 | \n    8 |   constructor(\n    9 |     public readonly id: string,\n   10 |     public readonly title: string,\n   11 |     public readonly description: string,\n   12 |     public readonly completed: boolean,\n   13 |     public readonly categoryId: string,\n   14 |     public readonly createdAt: Date\n   15 |   ) {}\n   16 | \n   17 |   complete(): Task {"
+    },
+    {
+      "itemId": "39c9ac4cef041213bae340405b6d51a2893a59d84bff53ddc28f0f0c616867d1",
+      "kind": "judge-unit",
+      "population": "P4",
+      "projectId": "correct-reference",
+      "stratum": "correct-reference, integrity",
+      "inclusionProbability": 1,
+      "unitId": "src/domain/entities",
+      "functionId": "FF-N01",
+      "dimension": "integrity",
+      "context": "## Judge unit\nFunction: FF-N01 (integrity)\nUnit: src/domain/entities (module, layer domain)\n\n## Rubric\nRule: The module's files form one coherent unit with a consistent abstraction and boundary.\nPass: The files serve one cohesive concern, use the module's abstractions consistently, and keep each rule or invariant in one place.\nFail: The files split into unrelated concerns, duplicate a rule or invariant that should live in one place, or bypass the module's own abstractions.\nEvidence required: Name each file involved and cite the declarations that show the split, the duplication or the bypass.\nOut of scope: import direction and layer-dependency rules, which are checked symbolically.\n\n## Source\n// src/domain/entities/Category.ts\nexport class Category {\n  constructor(\n    public readonly id: string,\n    public readonly name: string,\n    public readonly color: string\n  );\n  isValid(): boolean;\n}\n\n// src/domain/entities/Task.ts\nexport class Task {\n  constructor(\n    public readonly id: string,\n    public readonly title: string,\n    public readonly description: string,\n    public readonly completed: boolean,\n    public readonly categoryId: string,\n    public readonly createdAt: Date\n  );\n  complete(): Task;\n  isValid(): boolean;\n}\n\n=====SOURCE-BEGIN src/domain/entities/Category.ts=====\nexport class Category {\n  constructor(\n    public readonly id: string,\n    public readonly name: string,\n    public readonly color: string\n  ) {}\n\n  isValid(): boolean {\n    return this.name.length > 0;\n  }\n}\n\n=====SOURCE-END=====\n\n=====SOURCE-BEGIN src/domain/entities/Task.ts=====\n// Task — pure domain entity, zero violations\nexport class Task {\n  constructor(\n    public readonly id: string,\n    public readonly title: string,\n    public readonly description: string,\n    public readonly completed: boolean,\n    public readonly categoryId: string,\n    public readonly createdAt: Date\n  ) {}\n\n  complete(): Task {\n    return new Task(this.id, this.title, this.description, true, this.categoryId, this.createdAt);\n  }\n\n  isValid(): boolean {\n    return this.title.length > 0 && this.categoryId.length > 0;\n  }\n}\n\n=====SOURCE-END====="
+    },
+    {
+      "itemId": "5886bd84039179e100e1abe8cd50043c0b4186b5223d23d824d4bb61b8f883a3",
+      "kind": "judge-unit",
+      "population": "P4",
+      "projectId": "correct-reference",
+      "stratum": "correct-reference, semantic",
+      "inclusionProbability": 1,
+      "unitId": "src/domain/entities/Task.ts",
+      "functionId": "FF-N02",
+      "dimension": "semantic",
+      "context": "## Judge unit\nFunction: FF-N02 (semantic)\nUnit: src/domain/entities/Task.ts (file, layer domain)\n\n## Rubric\nRule: The unit's responsibilities match the role of its declared layer.\nPass: Every responsibility in the file belongs to the role and kind of its declared layer, and agrees with any ADR prose given.\nFail: The file carries a responsibility that belongs to a different layer kind, for example persistence, transport or framework logic in a domain file, or business rules in an infrastructure or presentation file.\nEvidence required: Name the file and cite the function, method or statement that carries the misplaced responsibility, and the layer kind it belongs to.\nOut of scope: import direction and layer-dependency rules, which are checked symbolically.\n\n## Source\n=====SOURCE-BEGIN src/domain/entities/Task.ts=====\n// Task — pure domain entity, zero violations\nexport class Task {\n  constructor(\n    public readonly id: string,\n    public readonly title: string,\n    public readonly description: string,\n    public readonly completed: boolean,\n    public readonly categoryId: string,\n    public readonly createdAt: Date\n  ) {}\n\n  complete(): Task {\n    return new Task(this.id, this.title, this.description, true, this.categoryId, this.createdAt);\n  }\n\n  isValid(): boolean {\n    return this.title.length > 0 && this.categoryId.length > 0;\n  }\n}\n\n=====SOURCE-END====="
+    }
+  ]
+}

@@ -1,0 +1,896 @@
+{
+  "runId": "run-1791477283783",
+  "projectPath": "fixtures/variant-b-pattern",
+  "specVersion": "1.0.0",
+  "ahsDeterministic": 0.575,
+  "verdict": "soft-block",
+  "scoring": {
+    "weights": {
+      "structural": 0.35,
+      "coupling": 0.2,
+      "pattern": 0.3,
+      "solid": 0.1,
+      "convention": 0.05,
+      "semantic": 0,
+      "integrity": 0
+    },
+    "fullModeWeights": {
+      "structural": 0.32,
+      "coupling": 0.18,
+      "pattern": 0.27,
+      "solid": 0.1,
+      "convention": 0.05,
+      "semantic": 0.04,
+      "integrity": 0.04
+    },
+    "thresholds": {
+      "pass": 0.8,
+      "warning": 0.65,
+      "softBlock": 0.5
+    },
+    "confidenceThresholds": {
+      "high": 0.85,
+      "medium": 0.6,
+      "iccMinimum": 0.7
+    },
+    "verdictSource": "ahsDeterministic"
+  },
+  "perDimensionScores": [
+    {
+      "dimension": "structural",
+      "avr": 0.333,
+      "violatedWeight": 1,
+      "weight": 0.35,
+      "effectiveWeight": 0.35,
+      "violationCount": 1,
+      "functionCount": 3
+    },
+    {
+      "dimension": "coupling",
+      "avr": 0.333,
+      "violatedWeight": 2,
+      "weight": 0.2,
+      "effectiveWeight": 0.2,
+      "violationCount": 2,
+      "functionCount": 6
+    },
+    {
+      "dimension": "pattern",
+      "avr": 0.667,
+      "violatedWeight": 4,
+      "weight": 0.3,
+      "effectiveWeight": 0.3,
+      "violationCount": 4,
+      "functionCount": 6
+    },
+    {
+      "dimension": "solid",
+      "avr": 0.333,
+      "violatedWeight": 1,
+      "weight": 0.1,
+      "effectiveWeight": 0.1,
+      "violationCount": 1,
+      "functionCount": 3
+    },
+    {
+      "dimension": "convention",
+      "avr": 0.167,
+      "violatedWeight": 1,
+      "weight": 0.05,
+      "effectiveWeight": 0.05,
+      "violationCount": 1,
+      "functionCount": 6
+    }
+  ],
+  "violations": [
+    {
+      "id": "v-e11d9fdd692285d6",
+      "type": "LAYER_VIOLATION",
+      "dimension": "structural",
+      "severity": "critical",
+      "functionId": "FF-S01",
+      "route": "symbolic",
+      "filePath": "src/application/use-cases/CompleteTaskUseCase.ts",
+      "message": "src/application/use-cases/CompleteTaskUseCase.ts (application) imports from src/infrastructure/repositories/InMemoryTaskRepository.ts (infrastructure)",
+      "deterministic": true,
+      "target": "src/infrastructure/repositories/InMemoryTaskRepository.ts",
+      "line": 2,
+      "lines": [
+        2
+      ],
+      "isTypeOnly": false,
+      "discriminator": [
+        "IMPORTS"
+      ],
+      "tag": "structural"
+    },
+    {
+      "id": "v-e0ea9b48ce6d8772",
+      "type": "LAYER_VIOLATION",
+      "dimension": "structural",
+      "severity": "critical",
+      "functionId": "FF-S01",
+      "route": "symbolic",
+      "filePath": "src/application/use-cases/CreateTaskUseCase.ts",
+      "message": "src/application/use-cases/CreateTaskUseCase.ts (application) imports from src/infrastructure/repositories/InMemoryTaskRepository.ts (infrastructure)",
+      "deterministic": true,
+      "target": "src/infrastructure/repositories/InMemoryTaskRepository.ts",
+      "line": 2,
+      "lines": [
+        2
+      ],
+      "isTypeOnly": false,
+      "discriminator": [
+        "IMPORTS"
+      ],
+      "tag": "structural"
+    },
+    {
+      "id": "v-cc6c1164192d6804",
+      "type": "DOMAIN_PURITY_VIOLATION",
+      "dimension": "pattern",
+      "severity": "critical",
+      "functionId": "FF-P01",
+      "route": "symbolic",
+      "filePath": "src/domain/entities/Task.ts",
+      "message": "Domain file src/domain/entities/Task.ts imports forbidden package @nestjs/common",
+      "deterministic": true,
+      "target": "@nestjs/common",
+      "line": 2,
+      "lines": [
+        2
+      ],
+      "isTypeOnly": false,
+      "discriminator": [
+        "IMPORTS"
+      ],
+      "tag": "pattern-proxy"
+    },
+    {
+      "id": "v-7fa7f6706242a5c5",
+      "type": "DEPENDENCY_INVERSION_VIOLATION",
+      "dimension": "pattern",
+      "severity": "critical",
+      "functionId": "FF-P02",
+      "route": "symbolic",
+      "filePath": "src/application/use-cases/CompleteTaskUseCase.ts",
+      "message": "Violation in src/application/use-cases/CompleteTaskUseCase.ts",
+      "deterministic": true,
+      "discriminator": [
+        "CompleteTaskUseCase"
+      ],
+      "evidence": [
+        "ratio=0"
+      ],
+      "tag": "pattern-proxy"
+    },
+    {
+      "id": "v-fcb3c758783a459a",
+      "type": "DEPENDENCY_INVERSION_VIOLATION",
+      "dimension": "pattern",
+      "severity": "critical",
+      "functionId": "FF-P02",
+      "route": "symbolic",
+      "filePath": "src/application/use-cases/CreateTaskUseCase.ts",
+      "message": "Violation in src/application/use-cases/CreateTaskUseCase.ts",
+      "deterministic": true,
+      "discriminator": [
+        "CreateTaskUseCase"
+      ],
+      "evidence": [
+        "ratio=0"
+      ],
+      "tag": "pattern-proxy"
+    },
+    {
+      "id": "v-c39a5bc38da01c6f",
+      "type": "REPOSITORY_PATTERN_VIOLATION",
+      "dimension": "pattern",
+      "severity": "critical",
+      "functionId": "FF-P03",
+      "route": "symbolic",
+      "filePath": "src/infrastructure/repositories/InMemoryTaskRepository.ts",
+      "message": "Violation in src/infrastructure/repositories/InMemoryTaskRepository.ts",
+      "deterministic": true,
+      "discriminator": [
+        "InMemoryTaskRepository"
+      ],
+      "tag": "pattern-proxy"
+    },
+    {
+      "id": "v-0c481cf228d252b2",
+      "type": "USE_CASE_ISOLATION_VIOLATION",
+      "dimension": "pattern",
+      "severity": "major",
+      "functionId": "FF-P04",
+      "route": "symbolic",
+      "filePath": "src/application/use-cases/CompleteTaskUseCase.ts",
+      "message": "Violation in src/application/use-cases/CompleteTaskUseCase.ts",
+      "deterministic": true,
+      "discriminator": [
+        "CompleteTaskUseCase"
+      ],
+      "tag": "pattern-proxy"
+    },
+    {
+      "id": "v-dbded3c872abb3a9",
+      "type": "USE_CASE_ISOLATION_VIOLATION",
+      "dimension": "pattern",
+      "severity": "major",
+      "functionId": "FF-P04",
+      "route": "symbolic",
+      "filePath": "src/application/use-cases/CreateTaskUseCase.ts",
+      "message": "Violation in src/application/use-cases/CreateTaskUseCase.ts",
+      "deterministic": true,
+      "discriminator": [
+        "CreateTaskUseCase"
+      ],
+      "tag": "pattern-proxy"
+    },
+    {
+      "id": "v-a6c25adb89fb7f05",
+      "type": "INSTABILITY_VIOLATION",
+      "dimension": "coupling",
+      "severity": "major",
+      "functionId": "FF-C03",
+      "route": "symbolic",
+      "filePath": "src/application/use-cases/CompleteTaskUseCase.ts",
+      "message": "Violation in src/application/use-cases/CompleteTaskUseCase.ts",
+      "deterministic": true,
+      "discriminator": [],
+      "evidence": [
+        "instability=1"
+      ],
+      "tag": "topological"
+    },
+    {
+      "id": "v-2bfeb24fbe40d276",
+      "type": "INSTABILITY_VIOLATION",
+      "dimension": "coupling",
+      "severity": "major",
+      "functionId": "FF-C03",
+      "route": "symbolic",
+      "filePath": "src/application/use-cases/CreateTaskUseCase.ts",
+      "message": "Violation in src/application/use-cases/CreateTaskUseCase.ts",
+      "deterministic": true,
+      "discriminator": [],
+      "evidence": [
+        "instability=1"
+      ],
+      "tag": "topological"
+    },
+    {
+      "id": "v-bfaed825ab989919",
+      "type": "INSTABILITY_VIOLATION",
+      "dimension": "coupling",
+      "severity": "major",
+      "functionId": "FF-C03",
+      "route": "symbolic",
+      "filePath": "src/domain/repositories/ITaskRepository.ts",
+      "message": "Violation in src/domain/repositories/ITaskRepository.ts",
+      "deterministic": true,
+      "discriminator": [],
+      "evidence": [
+        "instability=1"
+      ],
+      "tag": "topological"
+    },
+    {
+      "id": "v-b0f52043a29b792b",
+      "type": "LOW_ABSTRACTION_RATIO",
+      "dimension": "coupling",
+      "severity": "advisory",
+      "functionId": "FF-C06",
+      "route": "symbolic",
+      "filePath": "<project>",
+      "message": "Abstraction ratio 0.2 below threshold",
+      "deterministic": true,
+      "discriminator": [],
+      "evidence": [
+        "ratio=0.2"
+      ],
+      "tag": "topological"
+    },
+    {
+      "id": "v-f5c9b71611aa2796",
+      "type": "ISP_VIOLATION",
+      "dimension": "solid",
+      "severity": "major",
+      "functionId": "FF-SO02",
+      "route": "symbolic",
+      "filePath": "src/domain/repositories/ITaskRepository.ts",
+      "message": "Violation in src/domain/repositories/ITaskRepository.ts",
+      "deterministic": true,
+      "discriminator": [
+        "ITaskRepository"
+      ],
+      "evidence": [
+        "methodCount=8"
+      ],
+      "tag": "pattern-proxy"
+    },
+    {
+      "id": "v-ec08265bca5cf4cb",
+      "type": "MISSING_TEST_FILE",
+      "dimension": "convention",
+      "severity": "advisory",
+      "functionId": "FF-CV05",
+      "route": "symbolic",
+      "filePath": "src/application/use-cases/CompleteTaskUseCase.ts",
+      "message": "Violation in src/application/use-cases/CompleteTaskUseCase.ts",
+      "deterministic": true,
+      "discriminator": [],
+      "tag": "pattern-proxy"
+    },
+    {
+      "id": "v-b7e67481a1460372",
+      "type": "MISSING_TEST_FILE",
+      "dimension": "convention",
+      "severity": "advisory",
+      "functionId": "FF-CV05",
+      "route": "symbolic",
+      "filePath": "src/application/use-cases/CreateTaskUseCase.ts",
+      "message": "Violation in src/application/use-cases/CreateTaskUseCase.ts",
+      "deterministic": true,
+      "discriminator": [],
+      "tag": "pattern-proxy"
+    },
+    {
+      "id": "v-86c296b00b13c384",
+      "type": "MISSING_TEST_FILE",
+      "dimension": "convention",
+      "severity": "advisory",
+      "functionId": "FF-CV05",
+      "route": "symbolic",
+      "filePath": "src/domain/entities/Task.ts",
+      "message": "Violation in src/domain/entities/Task.ts",
+      "deterministic": true,
+      "discriminator": [],
+      "tag": "pattern-proxy"
+    },
+    {
+      "id": "v-4e8a29d90e2bccc3",
+      "type": "MISSING_TEST_FILE",
+      "dimension": "convention",
+      "severity": "advisory",
+      "functionId": "FF-CV05",
+      "route": "symbolic",
+      "filePath": "src/domain/repositories/ITaskRepository.ts",
+      "message": "Violation in src/domain/repositories/ITaskRepository.ts",
+      "deterministic": true,
+      "discriminator": [],
+      "tag": "pattern-proxy"
+    },
+    {
+      "id": "v-2a5e75405be30605",
+      "type": "MISSING_TEST_FILE",
+      "dimension": "convention",
+      "severity": "advisory",
+      "functionId": "FF-CV05",
+      "route": "symbolic",
+      "filePath": "src/infrastructure/repositories/InMemoryTaskRepository.ts",
+      "message": "Violation in src/infrastructure/repositories/InMemoryTaskRepository.ts",
+      "deterministic": true,
+      "discriminator": [],
+      "tag": "pattern-proxy"
+    }
+  ],
+  "universalMetrics": {
+    "cyclicDependencyCount": 0,
+    "maxFanOut": 2,
+    "maxFanIn": 4,
+    "abstractionRatio": 0.2,
+    "averageInstability": 0.667,
+    "orphanFileCount": 0
+  },
+  "evaluationMode": "symbolic-only",
+  "durationMs": 10,
+  "droppedDimensions": [],
+  "warnings": [
+    {
+      "code": "SPEC_002",
+      "message": "Template function \"FF-C01\" overridden by spec declaration",
+      "stage": "parse-spec"
+    },
+    {
+      "code": "SPEC_002",
+      "message": "Template function \"FF-C02\" overridden by spec declaration",
+      "stage": "parse-spec"
+    },
+    {
+      "code": "SPEC_002",
+      "message": "Template function \"FF-C03\" overridden by spec declaration",
+      "stage": "parse-spec"
+    },
+    {
+      "code": "SPEC_002",
+      "message": "Template function \"FF-C04\" overridden by spec declaration",
+      "stage": "parse-spec"
+    },
+    {
+      "code": "SPEC_002",
+      "message": "Template function \"FF-C05\" overridden by spec declaration",
+      "stage": "parse-spec"
+    },
+    {
+      "code": "SPEC_002",
+      "message": "Template function \"FF-C06\" overridden by spec declaration",
+      "stage": "parse-spec"
+    },
+    {
+      "code": "SPEC_002",
+      "message": "Template function \"FF-CV01\" overridden by spec declaration",
+      "stage": "parse-spec"
+    },
+    {
+      "code": "SPEC_002",
+      "message": "Template function \"FF-CV02\" overridden by spec declaration",
+      "stage": "parse-spec"
+    },
+    {
+      "code": "SPEC_002",
+      "message": "Template function \"FF-CV03\" overridden by spec declaration",
+      "stage": "parse-spec"
+    },
+    {
+      "code": "SPEC_002",
+      "message": "Template function \"FF-CV04\" overridden by spec declaration",
+      "stage": "parse-spec"
+    },
+    {
+      "code": "SPEC_002",
+      "message": "Template function \"FF-CV05\" overridden by spec declaration",
+      "stage": "parse-spec"
+    },
+    {
+      "code": "SPEC_002",
+      "message": "Template function \"FF-CV06\" overridden by spec declaration",
+      "stage": "parse-spec"
+    },
+    {
+      "code": "SPEC_002",
+      "message": "Template function \"FF-N01\" overridden by spec declaration",
+      "stage": "parse-spec"
+    },
+    {
+      "code": "SPEC_002",
+      "message": "Template function \"FF-N02\" overridden by spec declaration",
+      "stage": "parse-spec"
+    },
+    {
+      "code": "SPEC_002",
+      "message": "Template function \"FF-P01\" overridden by spec declaration",
+      "stage": "parse-spec"
+    },
+    {
+      "code": "SPEC_002",
+      "message": "Template function \"FF-P02\" overridden by spec declaration",
+      "stage": "parse-spec"
+    },
+    {
+      "code": "SPEC_002",
+      "message": "Template function \"FF-P03\" overridden by spec declaration",
+      "stage": "parse-spec"
+    },
+    {
+      "code": "SPEC_002",
+      "message": "Template function \"FF-P04\" overridden by spec declaration",
+      "stage": "parse-spec"
+    },
+    {
+      "code": "SPEC_002",
+      "message": "Template function \"FF-P05\" overridden by spec declaration",
+      "stage": "parse-spec"
+    },
+    {
+      "code": "SPEC_002",
+      "message": "Template function \"FF-P06\" overridden by spec declaration",
+      "stage": "parse-spec"
+    },
+    {
+      "code": "SPEC_002",
+      "message": "Template function \"FF-S01\" overridden by spec declaration",
+      "stage": "parse-spec"
+    },
+    {
+      "code": "SPEC_002",
+      "message": "Template function \"FF-S02\" overridden by spec declaration",
+      "stage": "parse-spec"
+    },
+    {
+      "code": "SPEC_002",
+      "message": "Template function \"FF-S03\" overridden by spec declaration",
+      "stage": "parse-spec"
+    },
+    {
+      "code": "SPEC_002",
+      "message": "Template function \"FF-S04\" overridden by spec declaration",
+      "stage": "parse-spec"
+    },
+    {
+      "code": "SPEC_002",
+      "message": "Template function \"FF-SO01\" overridden by spec declaration",
+      "stage": "parse-spec"
+    },
+    {
+      "code": "SPEC_002",
+      "message": "Template function \"FF-SO02\" overridden by spec declaration",
+      "stage": "parse-spec"
+    },
+    {
+      "code": "SPEC_002",
+      "message": "Template function \"FF-SO03\" overridden by spec declaration",
+      "stage": "parse-spec"
+    },
+    {
+      "code": "COMPILER_004",
+      "message": "FF-S03 (no-layer-skip) disabled: not applicable to style clean-architecture",
+      "context": {
+        "functionId": "FF-S03"
+      },
+      "stage": "compile-functions"
+    }
+  ],
+  "functionExecution": {
+    "declared": 27,
+    "adrDerived": 0,
+    "compiled": 26,
+    "disabled": 1,
+    "dropped": [],
+    "skippedByMode": 2,
+    "noJudgeUnits": [],
+    "executed": 24,
+    "failed": []
+  },
+  "functionResults": [
+    {
+      "functionId": "FF-P06",
+      "name": "domain-state-purity",
+      "dimension": "pattern",
+      "route": "symbolic",
+      "tag": "structural",
+      "passed": true,
+      "violationCount": 0,
+      "executionTimeMs": 1,
+      "truncated": false
+    },
+    {
+      "functionId": "FF-S01",
+      "name": "dependency-direction",
+      "dimension": "structural",
+      "route": "symbolic",
+      "tag": "structural",
+      "passed": false,
+      "violationCount": 2,
+      "executionTimeMs": 3,
+      "truncated": false
+    },
+    {
+      "functionId": "FF-S04",
+      "name": "no-domain-outward-dep",
+      "dimension": "structural",
+      "route": "symbolic",
+      "tag": "structural",
+      "passed": true,
+      "violationCount": 0,
+      "executionTimeMs": 1,
+      "truncated": false
+    },
+    {
+      "functionId": "FF-C01",
+      "name": "domain-stability",
+      "dimension": "coupling",
+      "route": "symbolic",
+      "tag": "topological",
+      "passed": true,
+      "violationCount": 0,
+      "executionTimeMs": 1,
+      "truncated": false
+    },
+    {
+      "functionId": "FF-C02",
+      "name": "module-fan-out",
+      "dimension": "coupling",
+      "route": "symbolic",
+      "tag": "topological",
+      "passed": true,
+      "violationCount": 0,
+      "executionTimeMs": 1,
+      "truncated": false
+    },
+    {
+      "functionId": "FF-C03",
+      "name": "component-instability",
+      "dimension": "coupling",
+      "route": "symbolic",
+      "tag": "topological",
+      "passed": false,
+      "violationCount": 3,
+      "executionTimeMs": 1,
+      "truncated": false
+    },
+    {
+      "functionId": "FF-C04",
+      "name": "no-orphan-files",
+      "dimension": "coupling",
+      "route": "symbolic",
+      "tag": "topological",
+      "passed": true,
+      "violationCount": 0,
+      "executionTimeMs": 1,
+      "truncated": false
+    },
+    {
+      "functionId": "FF-C05",
+      "name": "max-fan-in",
+      "dimension": "coupling",
+      "route": "symbolic",
+      "tag": "topological",
+      "passed": true,
+      "violationCount": 0,
+      "executionTimeMs": 1,
+      "truncated": false
+    },
+    {
+      "functionId": "FF-C06",
+      "name": "abstraction-ratio",
+      "dimension": "coupling",
+      "route": "symbolic",
+      "tag": "topological",
+      "passed": false,
+      "violationCount": 1,
+      "executionTimeMs": 1,
+      "truncated": false
+    },
+    {
+      "functionId": "FF-S02",
+      "name": "no-cyclic-deps",
+      "dimension": "structural",
+      "route": "symbolic",
+      "tag": "topological",
+      "passed": true,
+      "violationCount": 0,
+      "executionTimeMs": 1,
+      "truncated": false
+    },
+    {
+      "functionId": "FF-SO03",
+      "name": "inheritance-depth",
+      "dimension": "solid",
+      "route": "symbolic",
+      "tag": "topological",
+      "passed": true,
+      "violationCount": 0,
+      "executionTimeMs": 0,
+      "truncated": false
+    },
+    {
+      "functionId": "FF-CV01",
+      "name": "naming-conventions",
+      "dimension": "convention",
+      "route": "symbolic",
+      "tag": "pattern-proxy",
+      "passed": true,
+      "violationCount": 0,
+      "executionTimeMs": 2,
+      "truncated": false
+    },
+    {
+      "functionId": "FF-CV02",
+      "name": "naming-services",
+      "dimension": "convention",
+      "route": "symbolic",
+      "tag": "pattern-proxy",
+      "passed": true,
+      "violationCount": 0,
+      "executionTimeMs": 1,
+      "truncated": false
+    },
+    {
+      "functionId": "FF-CV03",
+      "name": "naming-repos",
+      "dimension": "convention",
+      "route": "symbolic",
+      "tag": "pattern-proxy",
+      "passed": true,
+      "violationCount": 0,
+      "executionTimeMs": 1,
+      "truncated": false
+    },
+    {
+      "functionId": "FF-CV04",
+      "name": "naming-controllers",
+      "dimension": "convention",
+      "route": "symbolic",
+      "tag": "pattern-proxy",
+      "passed": true,
+      "violationCount": 0,
+      "executionTimeMs": 1,
+      "truncated": false
+    },
+    {
+      "functionId": "FF-CV05",
+      "name": "test-file-pairing",
+      "dimension": "convention",
+      "route": "symbolic",
+      "tag": "pattern-proxy",
+      "passed": false,
+      "violationCount": 5,
+      "executionTimeMs": 1,
+      "truncated": false
+    },
+    {
+      "functionId": "FF-CV06",
+      "name": "no-index-logic",
+      "dimension": "convention",
+      "route": "symbolic",
+      "tag": "pattern-proxy",
+      "passed": true,
+      "violationCount": 0,
+      "executionTimeMs": 1,
+      "truncated": false
+    },
+    {
+      "functionId": "FF-P01",
+      "name": "domain-purity",
+      "dimension": "pattern",
+      "route": "symbolic",
+      "tag": "pattern-proxy",
+      "passed": false,
+      "violationCount": 1,
+      "executionTimeMs": 3,
+      "truncated": false
+    },
+    {
+      "functionId": "FF-P02",
+      "name": "dependency-inversion",
+      "dimension": "pattern",
+      "route": "symbolic",
+      "tag": "pattern-proxy",
+      "passed": false,
+      "violationCount": 2,
+      "executionTimeMs": 1,
+      "truncated": false
+    },
+    {
+      "functionId": "FF-P03",
+      "name": "repository-pattern",
+      "dimension": "pattern",
+      "route": "symbolic",
+      "tag": "pattern-proxy",
+      "passed": false,
+      "violationCount": 1,
+      "executionTimeMs": 1,
+      "truncated": false
+    },
+    {
+      "functionId": "FF-P04",
+      "name": "use-case-isolation",
+      "dimension": "pattern",
+      "route": "symbolic",
+      "tag": "pattern-proxy",
+      "passed": false,
+      "violationCount": 2,
+      "executionTimeMs": 1,
+      "truncated": false
+    },
+    {
+      "functionId": "FF-P05",
+      "name": "controller-no-entity",
+      "dimension": "pattern",
+      "route": "symbolic",
+      "tag": "pattern-proxy",
+      "passed": true,
+      "violationCount": 0,
+      "executionTimeMs": 1,
+      "truncated": false
+    },
+    {
+      "functionId": "FF-SO01",
+      "name": "single-responsibility-proxy",
+      "dimension": "solid",
+      "route": "symbolic",
+      "tag": "pattern-proxy",
+      "passed": true,
+      "violationCount": 0,
+      "executionTimeMs": 1,
+      "truncated": false
+    },
+    {
+      "functionId": "FF-SO02",
+      "name": "interface-segregation-proxy",
+      "dimension": "solid",
+      "route": "symbolic",
+      "tag": "pattern-proxy",
+      "passed": false,
+      "violationCount": 1,
+      "executionTimeMs": 2,
+      "truncated": false
+    }
+  ],
+  "disabledFunctions": [
+    {
+      "functionId": "FF-S03",
+      "name": "no-layer-skip",
+      "reason": "not applicable to style clean-architecture"
+    }
+  ],
+  "graphStats": {
+    "nodeCount": 31,
+    "edgeCount": 38,
+    "layerCoverage": 1,
+    "nodeCountByType": {
+      "File": 5,
+      "Class": 4,
+      "Interface": 1,
+      "Method": 20,
+      "Function": 0,
+      "Package": 1
+    },
+    "edgeCountByType": {
+      "IMPORTS": 7,
+      "IMPLEMENTS": 0,
+      "EXTENDS": 0,
+      "CONSTRUCTOR_INJECTS": 2,
+      "CALLS": 4,
+      "DECLARES": 5,
+      "CONTAINS": 20,
+      "FLOWS_TO": 0,
+      "RE_EXPORTS": 0
+    }
+  },
+  "layerAnnotation": {
+    "mapped": 5,
+    "unmapped": 0,
+    "unmappedFiles": []
+  },
+  "parseCoverage": {
+    "total": 5,
+    "parsed": 5,
+    "percentage": 100,
+    "skipped": []
+  },
+  "importResolution": {
+    "resolvedInternal": 6,
+    "external": 1,
+    "externalOutOfRootAlias": 0,
+    "unresolved": 0,
+    "droppedNoFileNode": 0,
+    "unsupportedDynamic": 0
+  },
+  "timings": {
+    "stages": [
+      {
+        "name": "parallel:extract-apg+parse-spec",
+        "durationMs": 495,
+        "status": "success"
+      },
+      {
+        "name": "ingest-apg",
+        "durationMs": 69,
+        "status": "success"
+      },
+      {
+        "name": "compile-functions",
+        "durationMs": 2,
+        "status": "success"
+      },
+      {
+        "name": "evaluate-symbolic",
+        "durationMs": 29,
+        "status": "success"
+      },
+      {
+        "name": "compute-scores",
+        "durationMs": 11,
+        "status": "success"
+      }
+    ],
+    "totalMs": 606
+  },
+  "judge": {
+    "provider": "none",
+    "model": "none",
+    "runsPerUnit": 0
+  }
+}

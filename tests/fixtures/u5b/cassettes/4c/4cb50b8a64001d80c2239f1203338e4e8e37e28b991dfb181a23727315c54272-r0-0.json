@@ -1,0 +1,32 @@
+{
+  "attempts": 1,
+  "durationMs": 0,
+  "effort": null,
+  "functionId": "label:judge-unit:5886bd84039179e100e1abe8cd50043c0b4186b5223d23d824d4bb61b8f883a3",
+  "ignoredOptions": [
+    "model",
+    "maxTokens",
+    "temperature"
+  ],
+  "key": "4cb50b8a64001d80c2239f1203338e4e8e37e28b991dfb181a23727315c54272-r0-0",
+  "model": "gemini-fixture-pinned",
+  "outcome": {
+    "kind": "valid"
+  },
+  "parsedVerdict": null,
+  "prompt": "Decide whether the unit below satisfies the rubric.\n- pass: the unit meets the rubric's pass condition.\n- fail: the unit meets the rubric's fail condition.\nGive a short rationale that cites the code. Root cause: answer null.\n\n## Item\n## Judge unit\n  Function: FF-N02 (semantic)\n  Unit: src/domain/entities/Task.ts (file, layer domain)\n  \n  ## Rubric\n  Rule: The unit's responsibilities match the role of its declared layer.\n  Pass: Every responsibility in the file belongs to the role and kind of its declared layer, and agrees with any ADR prose given.\n  Fail: The file carries a responsibility that belongs to a different layer kind, for example persistence, transport or framework logic in a domain file, or business rules in an infrastructure or presentation file.\n  Evidence required: Name the file and cite the function, method or statement that carries the misplaced responsibility, and the layer kind it belongs to.\n  Out of scope: import direction and layer-dependency rules, which are checked symbolically.\n  \n  ## Source\n  =====SOURCE-BEGIN src/domain/entities/Task.ts=====\n  // Task — pure domain entity, zero violations\n  export class Task {\n    constructor(\n      public readonly id: string,\n      public readonly title: string,\n      public readonly description: string,\n      public readonly completed: boolean,\n      public readonly categoryId: string,\n      public readonly createdAt: Date\n    ) {}\n  \n    complete(): Task {\n      return new Task(this.id, this.title, this.description, true, this.categoryId, this.createdAt);\n    }\n  \n    isValid(): boolean {\n      return this.title.length > 0 && this.categoryId.length > 0;\n    }\n  }\n  \n  =====SOURCE-END=====\n\n## Label options\n1. pass\n  2. fail\n\n## Root causes\n1. RC-LAYER-MAP\n  2. RC-EXTRACT-ALIAS\n  3. RC-EXTRACT-BARREL\n  4. RC-DYNAMIC-IMPORT\n  5. RC-TYPE-ONLY\n  6. RC-TEMPLATE-OVERAPPROX\n  7. RC-STYLE-INAPPLICABLE\n  8. RC-SPEC-PARAM\n  9. RC-GENERATED-CODE\n  10. RC-TEST-CODE\n  11. RC-GENUINE-UNSEEDED\n  12. RC-OTHER\n\nAnswer with one JSON object: {\"option\": <number of the label option>, \"rootCause\": <number of the root cause or null>, \"note\": \"<text, required with RC-OTHER>\", \"rationale\": \"<one or two sentences citing the code>\"}.",
+  "provider": "mock",
+  "recordedAt": "2026-10-08T00:00:00.000Z",
+  "repetition": 0,
+  "requestHash": "4cb50b8a64001d80c2239f1203338e4e8e37e28b991dfb181a23727315c54272",
+  "resolvedModel": "mock-model",
+  "response": "{\"option\":1,\"rootCause\":null,\"rationale\":\"unit read from source (pass)\"}",
+  "runIndex": 0,
+  "schemaVersion": 2,
+  "unitId": "src/domain/entities/Task.ts",
+  "usage": {
+    "inputTokens": 552,
+    "outputTokens": 18
+  },
+  "usedOptions": {}
+}

@@ -1,0 +1,31 @@
+{
+  "attempts": 1,
+  "durationMs": 0,
+  "effort": null,
+  "functionId": "label:violation:fd840d4e509350f0e40f218ead057ac10d3d9cd50764967ec8d7b44d001a3e6e",
+  "ignoredOptions": [
+    "model",
+    "maxTokens",
+    "temperature"
+  ],
+  "key": "26b2c8061420e592297d5c286449ba2cb9a206aa35a5e3aa1a490f8aeb67f627-r0-1",
+  "model": "gemini-fixture-pinned",
+  "outcome": {
+    "kind": "valid"
+  },
+  "parsedVerdict": null,
+  "prompt": "Decide whether the finding below is a real violation of the rule as described.\n- TP: the code violates the rule at this location.\n- FP: the code does not violate the rule; give the root cause of the false finding.\n- unseeded-TP: the code violates the rule, but the violation is part of the original design rather than a\n  deliberate change; give the root cause (use RC-GENUINE-UNSEEDED when the violation is simply real).\n\n## Item\n## Violation\n  Function: FF-S02\n  Description: fitness function FF-S02 of specs/clean-arch.yaml\n  File: src/infrastructure/repositories/CircularHelper.ts,src/infrastructure/repositories/InMemoryTaskRepository.ts,src/infrastructure/repositories/CircularHelper.ts\n  Line: 2\n  Target: src/infrastructure/repositories/InMemoryTaskRepository.ts\n  \n  ## Source\n  (file not present in the source tree)\n\n## Label options\n1. unseeded-TP\n  2. TP\n  3. FP\n\n## Root causes\n1. RC-STYLE-INAPPLICABLE\n  2. RC-TYPE-ONLY\n  3. RC-LAYER-MAP\n  4. RC-EXTRACT-BARREL\n  5. RC-SPEC-PARAM\n  6. RC-DYNAMIC-IMPORT\n  7. RC-GENUINE-UNSEEDED\n  8. RC-TEST-CODE\n  9. RC-EXTRACT-ALIAS\n  10. RC-GENERATED-CODE\n  11. RC-OTHER\n  12. RC-TEMPLATE-OVERAPPROX\n\nAnswer with one JSON object: {\"option\": <number of the label option>, \"rootCause\": <number of the root cause or null>, \"note\": \"<text, required with RC-OTHER>\", \"rationale\": \"<one or two sentences citing the code>\"}.",
+  "provider": "mock",
+  "recordedAt": "2026-10-08T00:00:00.000Z",
+  "repetition": 0,
+  "requestHash": "26b2c8061420e592297d5c286449ba2cb9a206aa35a5e3aa1a490f8aeb67f627",
+  "resolvedModel": "mock-model",
+  "response": "{\"option\":1,\"rootCause\":7,\"rationale\":\"real but original\"}",
+  "runIndex": 1,
+  "schemaVersion": 2,
+  "usage": {
+    "inputTokens": 342,
+    "outputTokens": 15
+  },
+  "usedOptions": {}
+}
