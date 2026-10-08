@@ -1,15 +1,16 @@
 import neo4j, { type Driver, type Session } from 'neo4j-driver';
 import type { GraphRepository, QueryOptions, QueryResult } from '../shared/interfaces/graph-repository.js';
 import { DomainResult } from '../shared/errors/domain-result.js';
-import type { IngestionConfig } from './types.js';
-import { DEFAULT_INGESTION_CONFIG } from './types.js';
+import type { IngestionConfig, Neo4jRepositoryConfig } from './types.js';
+import { DEFAULT_INGESTION_CONFIG, WRITE_QUERY_TIMEOUT_MS } from './types.js';
 
 export class Neo4jRepository implements GraphRepository {
-  private readonly driver: Driver;
+  private readonly cfg: IngestionConfig;
+  /** Created lazily by the first query (BR-U2-41); the constructor never touches the driver. */
+  private driver: Driver | undefined;
 
-  constructor(config: Partial<IngestionConfig> = {}) {
-    const cfg = { ...DEFAULT_INGESTION_CONFIG, ...config };
-    this.driver = neo4j.driver(cfg.neo4jUri, neo4j.auth.basic(cfg.neo4jUser, cfg.neo4jPassword));
+  constructor(config: Neo4jRepositoryConfig) {
+    this.cfg = { ...DEFAULT_INGESTION_CONFIG, ...config };
   }
 
   async executeQuery(
@@ -19,11 +20,12 @@ export class Neo4jRepository implements GraphRepository {
   ): Promise<DomainResult<QueryResult>> {
     let session: Session | undefined;
     try {
+      // Synchronous, before the first await: concurrent first calls share one driver (BR-U2-41).
+      this.driver ??= neo4j.driver(this.cfg.neo4jUri, neo4j.auth.basic(this.cfg.neo4jUser, this.cfg.neo4jPassword));
       session = this.driver.session();
-      // D-U0-5: no default timeout; without timeoutMs the call is exactly the pre-U0 two-argument form.
-      const result = options?.timeoutMs !== undefined
-        ? await session.run(cypher, params, { timeout: options.timeoutMs })
-        : await session.run(cypher, params);
+      // BR-U2-38: a timeout is always passed; the config default applies when the caller gives none.
+      const timeout = options?.timeoutMs ?? this.cfg.queryTimeoutMs;
+      const result = await session.run(cypher, params, { timeout });
       const records = result.records.map((r) => {
         const obj: Record<string, unknown> = {};
         for (const key of r.keys as string[]) {
@@ -45,7 +47,7 @@ export class Neo4jRepository implements GraphRepository {
   }
 
   async clearGraph(): Promise<DomainResult<void>> {
-    const result = await this.executeQuery('MATCH (n) DETACH DELETE n');
+    const result = await this.executeQuery('MATCH (n) DETACH DELETE n', undefined, { timeoutMs: WRITE_QUERY_TIMEOUT_MS });
     if (!result.success) return DomainResult.fail(result.errors);
     return DomainResult.ok(undefined);
   }
@@ -60,6 +62,6 @@ export class Neo4jRepository implements GraphRepository {
   }
 
   async close(): Promise<void> {
-    await this.driver.close();
+    if (this.driver) await this.driver.close();
   }
 }

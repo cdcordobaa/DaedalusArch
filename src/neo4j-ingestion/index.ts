@@ -6,6 +6,6 @@ export { computeDelta, computeDeltaStats } from './delta-computer.js';
 export { detectDrift, detectStructuralDrift, detectCouplingDrift, detectConventionDrift, detectViolationTrend } from './drift-detector.js';
 export type {
   IngestionInput, IngestionConfig, IngestionError, IngestionErrorCode,
-  LayerAnnotation, LayerMapping, IngestionWarningCode,
+  LayerAnnotation, LayerMapping, IngestionWarningCode, Neo4jRepositoryConfig,
 } from './types.js';
-export { DEFAULT_DRIFT_THRESHOLDS, DEFAULT_INGESTION_CONFIG } from './types.js';
+export { DEFAULT_DRIFT_THRESHOLDS, DEFAULT_INGESTION_CONFIG, WRITE_QUERY_TIMEOUT_MS } from './types.js';
