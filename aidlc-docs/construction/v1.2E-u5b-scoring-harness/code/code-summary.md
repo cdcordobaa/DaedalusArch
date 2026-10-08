@@ -68,7 +68,7 @@ BR-U5b-73 (`--self-test` exits 1 for every U5b CLI): 11 / 11 CLIs exit 1 (`score
 - **Pre-registration v1**: commit `84bd30c`, committed 2026-10-08T20:03:37Z (`registeredAt` 2026-10-08T20:01:06Z). There are 28 artefacts, `matchingRuleVersion` 1.0.0 and `labellingBudgetCalls` 4000. `e1Grid` has 3 models, 3 levels, 2 tasks and 3 runs. `run-experiment-cli.ts --check-prereg experiments/fixtures/plan.json` still prints `pre-registration v1 ok: 28 registered artefacts unchanged` at Step 33.
 - **Corpus-spec chain** (BR-U1-25, BR-U5b-77): unchanged `0c7b2df` → FR-22 `450134f` → FF-CV02 `194f7fe` → domain-layer remap `06ef4a7`.
 
-## 6. Deviations (DV-U5b-1..27)
+## 6. Deviations (DV-U5b-1..29)
 
 | # | Step | Deviation |
 |---|---|---|
@@ -99,11 +99,14 @@ BR-U5b-73 (`--self-test` exits 1 for every U5b CLI): 11 / 11 CLIs exit 1 (`score
 | 25 | 31 | E1 Claude model ids are the current id of each tier, to be confirmed at the generator-protocol freeze |
 | 26 | 32 | Fix `50396b2`: the frozen-instrument export carries U4's judge freeze |
 | 27 | 33 | Fix `dd7ed6c`: `--self-test` added to `rescore`, `select-corpus`, `fetch-corpus` and `prepare-bases` (BR-U5b-73). Each runs a built-in known-bad input with no subprocess or network and exits 1; `self-test.test.ts` +4. No registered artefact changed |
+| 28 | 35 | The SO4 floor escalation row was added to §7 on `v1.2e` after the merge (docs-only), because the merged summary had left it out |
+| 29 | 35 | `git status --porcelain` in `<MAIN>` is not empty: it shows only the pre-existing untracked `.claude/sdd-cache/`, which is not U5b's |
 
 ## 7. Open items still open
 
 | # | Item | Owner | Blocks |
 |---|---|---|---|
+| SO4 floor (escalated) | Step 25: held-out golden capacity on the remapped specs is 69 < 80 at k = 3 (`CAT_SHORTFALL`; k = 2 → 47). The floor-check box stays open pending the author decision (BR-U5a-37); dev-nest and the added projects (OI-12) are not counted yet | author | SO4 held-out run |
 | OI-11 | `BaselineSelection` unit id → file path mapping; `prepare-bases` reads U5b's `StoredBaselineSelection` projection until it is settled | U4 + U5a | corpus `prepare-bases` (Build and Test) |
 | OI-12 | Specs for dev-nest and the added projects. Is an additive `prereg.json` bump a deviation? | author | first E7 run on those projects |
 | OI-1 | R-1..R-16 and the §12 amendments go to the clarifications file | orchestrator | none |

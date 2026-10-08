@@ -1108,3 +1108,11 @@ Plan checkboxes ticked. Auto-approved under standing approval; no blocking or ma
 **Context**: CONSTRUCTION — U5b Code Generation Part 2, Group 8 done; next Group 9 (Steps 33–35).
 
 ---
+
+## U5b merged into v1.2e (auto-approved)
+**Timestamp**: 2026-10-08T20:39:31Z
+**User Input**: "Execute Group 9, Exit, PR, merge and post-merge (Steps 33–35), under the standing approval: open the PR into v1.2e, merge it once CI is green, then do the post-merge bookkeeping (orchestrator task)."
+**AI Response**: "PR #8 (v1.2e-u5b-scoring-harness → v1.2e) merged with a merge commit; U5B_MERGE = 7192cb73b1ab4a82139ee2e1384e75e022e7b885 (first parent 0a94c20, second parent 8adc319); origin/main unchanged (7cd15b4). Step 33: fix dd7ed6c (DV-U5b-27) adds --self-test to rescore, select-corpus, fetch-corpus and prepare-bases (BR-U5b-73); all 11 U5b CLIs now exit 1; +4 tests. Summary commit 8adc319 adds the code summary with the exit table for criteria 1–7. The allow-list three-dot diff is empty, no U<n>-K subject, --check-prereg passes with 28 artefacts unchanged, and the local golden change-log check is ok. Gates: T clean; U 2864 / 199; L 497; B 80, 0 TS2688; G 80 / 7 suites, 0 skipped; P 0 / 0. PR CI 37839347368 and push 37839298686 green (Unit 2849 + Integration 15, Golden 80). Step 34: the completion message was presented and Continue was taken under the standing approval; merged. Step 35, on the merged tree in the main checkout after npm ci: T clean, U 2864 / 199, L 497, B 80; G against U5B_MERGE^1 has an empty src/tests/golden diff, all five snapshot hashes equal to the parent's, and 80 / 7 suites with 0 skipped; merge push CI 37840382331 green. Test counts: 2864 total, of which 254 are U5b tests. Golden changes: none; no snapshot changed and no tests/golden/CHANGES.md line was written. Pre-registration v1 is 84bd30c (2026-10-08T20:03:37Z). Deviations DV-U5b-27..29. Still open: the SO4 floor escalation (CAT_SHORTFALL 69 < 80, Step 25, author decision), OI-11, OI-12, OI-U5b-P2-1, OI-U5b-P2-4 and the Gemini labeller id. Observation: CI Dependency audit now reports 1 critical (handlebars via ts-jest, a new advisory, not caused by U5b; continue-on-error)."
+**Context**: CONSTRUCTION — U5b Code Generation complete and merged (Group 9 done); next Build and Test.
+
+---
