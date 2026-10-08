@@ -16,7 +16,7 @@ import { Neo4jRepository } from '../neo4j-ingestion/neo4j-repository.js';
 import { FileSystemSnapshotStore } from '../neo4j-ingestion/fs-snapshot-store.js';
 import * as path from 'node:path';
 import { createLLMProvider } from '../llm-critic/provider-factory.js';
-import { judgeRunSettingsOf, neuralRowsOf, specShaOf } from '../llm-critic/judge-stage.js';
+import { judgeKnownSecrets, judgeRunSettingsOf, neuralRowsOf, specShaOf } from '../llm-critic/judge-stage.js';
 import type { JudgeRunHolder, JudgeStageSettings } from '../llm-critic/judge-stage.js';
 
 // Commands
@@ -103,7 +103,7 @@ export function createPipeline(config: PipelineConfig): PipelineBundle {
       projectRoot,
       specSha: specShaOf(config.specFilePath),
       run: judgeRunSettingsOf(config.llmConfig),
-      knownSecrets: scrubPolicy.secrets,
+      knownSecrets: judgeKnownSecrets(scrubPolicy.secrets), // BR-U4-CAS-07: env-derived list plus the Neo4j policy secrets
       holder: judgeHolder,
     };
   }

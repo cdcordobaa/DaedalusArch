@@ -18,14 +18,15 @@ import type { ParsedSpec } from '../../../src/shared/types/spec.js';
 import { RouteEvaluateCommand } from '../../../src/pipeline/commands/route-evaluate-command.js';
 import { NeuronalEvaluateCommand } from '../../../src/pipeline/commands/neuronal-evaluate-command.js';
 import { PipelineExecutor } from '../../../src/pipeline/pipeline-executor.js';
+import { createPipeline } from '../../../src/pipeline/pipeline-factory.js';
 import type { PipelineCommand } from '../../../src/shared/interfaces/pipeline-stage.js';
 import { MockLLMProvider } from '../../../src/llm-critic/mock-provider.js';
 import { ClaudeCliProvider } from '../../../src/llm-critic/claude-cli-provider.js';
 import { JUDGE_GRAPH_QUERIES } from '../../../src/llm-critic/judge-graph.js';
-import { JUDGE_RUN_INCOMPLETE, neuralRowsOf } from '../../../src/llm-critic/judge-stage.js';
+import { JUDGE_RUN_INCOMPLETE, judgeKnownSecrets, judgeStageNeeded, neuralRowsOf } from '../../../src/llm-critic/judge-stage.js';
 import type { JudgeRunHolder, JudgeStageSettings } from '../../../src/llm-critic/judge-stage.js';
 import { toNeuralResultRows } from '../../../src/llm-critic/neural-result-rows.js';
-import { readRunManifest, runManifestPath } from '../../../src/llm-critic/cassette-manager.js';
+import { listCassetteKeys, readCassetteEntry, readRunManifest, runManifestPath, writeCassetteEntry } from '../../../src/llm-critic/cassette-manager.js';
 import { FF_N02_RUBRIC } from '../../../src/llm-critic/rubric.js';
 import { PINNED_CLI_VERSION } from '../../../src/llm-critic/frozen.js';
 import { DEFAULT_NEURONAL_RUN_OPTIONS } from '../../../src/llm-critic/types.js';
@@ -224,6 +225,135 @@ describe('exit-2 command paths of the record-mode pre-flight', () => {
     expect(result.success).toBe(false);
     if (!result.success) expect(result.errors[0]?.code).toBe('LLM_CLI_VERSION_DRIFT');
     expect(runner.judgeCalls).toBe(0);
+  });
+});
+
+// ── Review follow-ups: CAS-07 secrets, CAS-10 warning, ISO-05 disposal, no-neural-work skip ──
+
+/** Echoes a parent-env secret into the verdict reasoning, as a model might. */
+class EchoProvider implements LLMProvider {
+  readonly name = 'echo';
+  constructor(private readonly echoed: string) {}
+  describe(): ProviderDescription { return { provider: 'mock', model: 'mock-model' }; }
+  evaluate(): Promise<DomainResult<LLMResponse>> {
+    return Promise.resolve(DomainResult.ok({
+      content: JSON.stringify({ pass: true, confidence: 0.9, reasoning: `the run used ${this.echoed} here`, evidence: [], violations: [] }),
+      model: 'mock-model', usage: { inputTokens: 1, outputTokens: 1 }, usedOptions: {}, ignoredOptions: [],
+    }));
+  }
+}
+
+function cassetteText(dir: string): string {
+  return fs.readdirSync(dir, { recursive: true, withFileTypes: true })
+    .filter((e) => e.isFile())
+    .map((e) => fs.readFileSync(path.join(e.parentPath, e.name), 'utf8'))
+    .join('\n');
+}
+
+describe('judge stage review follow-ups', () => {
+  const SECRET = 'zq7plainvalue0x9noshape';
+  const savedToken = process.env.FOO_TOKEN;
+  beforeEach(() => { process.env.FOO_TOKEN = SECRET; });
+  afterEach(() => {
+    if (savedToken === undefined) delete process.env.FOO_TOKEN;
+    else process.env.FOO_TOKEN = savedToken;
+  });
+
+  it('CAS-07: judgeKnownSecrets is the env-derived list united with the Neo4j policy secrets, sorted and deduplicated', () => {
+    expect(judgeKnownSecrets(['neo4j-pw', 'b-host:7687', 'neo4j-pw'], { FOO_TOKEN: 'tok', PATH: '/bin', DB_PASSWORD: 'neo4j-pw' }))
+      .toEqual(['b-host:7687', 'neo4j-pw', 'tok']);
+  });
+
+  it.each(['full', 'neuronal-only'] as const)('CAS-07: createPipeline (%s) gives the judge stage the env list united with the Neo4j policy secrets', (evaluationMode) => {
+    const bundle = createPipeline({
+      projectPath: ROOT, specFilePath: path.join(tmpDir(), 'spec.yaml'), neo4jUri: 'bolt://localhost:7687', neo4jUser: 'neo4j',
+      neo4jPassword: 'neo4j-policy-pw-for-tests', evaluationMode, pipelineMode: 'stateless', persist: false, diff: false, verbose: false,
+      apgStorePath: tmpDir('u4-c9-apg-'),
+    });
+    const executor = bundle.executor as unknown as { commands: readonly { judge?: { knownSecrets: readonly string[] } }[] };
+    const secrets = executor.commands.find((c) => c.judge !== undefined)?.judge?.knownSecrets ?? [];
+    // booleans only: the list carries real parent-env values, which a failure diff must never print
+    expect(secrets.includes(SECRET)).toBe(true);
+    expect(secrets.includes('neo4j-policy-pw-for-tests')).toBe(true);
+  });
+
+  it.each([
+    ['RouteEvaluateCommand', (p: LLMProvider, s: JudgeStageSettings): PipelineCommand => new RouteEvaluateCommand(recordedGraph(), p, 'full', s)],
+    ['NeuronalEvaluateCommand', (p: LLMProvider, s: JudgeStageSettings): PipelineCommand => new NeuronalEvaluateCommand(recordedGraph(), p, s)],
+  ] as const)('CAS-07 (%s): an unshaped env *_TOKEN echoed by the judge is redacted in the cassette and the result', async (_n, make) => {
+    // control: the pre-fix wiring (Neo4j policy secrets only) writes the value to disk
+    const leaky = { ...stage(), knownSecrets: ['neo4j-pw'] };
+    expect((await make(new EchoProvider(SECRET), leaky).execute(context())).success).toBe(true);
+    expect(cassetteText(leaky.run.cassette.dir).includes(SECRET)).toBe(true); // booleans: never print stored text
+
+    const s = { ...stage(), knownSecrets: judgeKnownSecrets(['neo4j-pw']) };
+    const ctx = context();
+    expect((await make(new EchoProvider(SECRET), s).execute(ctx)).success).toBe(true);
+    const stored = cassetteText(s.run.cassette.dir);
+    expect(stored.length).toBeGreaterThan(0);
+    expect(stored.includes(SECRET)).toBe(false);
+    expect(stored.includes('[REDACTED]')).toBe(true);
+    expect(JSON.stringify(ctx.getEvaluationResults()).includes(SECRET)).toBe(false);
+  });
+
+  it('CAS-10: a replay over one re-stamped entry adds JUDGE_PROVENANCE_MIXED to the context', async () => {
+    const recorded = stage();
+    expect((await new NeuronalEvaluateCommand(recordedGraph(), new MockLLMProvider(), recorded).execute(context())).success).toBe(true);
+    const dir = recorded.run.cassette.dir;
+    const [first] = listCassetteKeys(dir);
+    const entry = first === undefined ? null : readCassetteEntry(dir, first);
+    if (entry === null) throw new Error('no entry');
+    writeCassetteEntry(dir, { ...entry, model: 'restamped-model' });
+
+    const replay = stage({ cassette: { mode: 'replay', dir, omitPrompt: false } });
+    const ctx = context();
+    expect((await new NeuronalEvaluateCommand(recordedGraph(), new MockLLMProvider(), replay).execute(ctx)).success).toBe(true);
+    expect(replay.holder.judge?.provenanceMixed).toBe(true);
+    expect(ctx.warnings.map((w) => w.code)).toContain('JUDGE_PROVENANCE_MIXED');
+
+    // control: an unmixed replay adds no such warning
+    const clean = stage();
+    expect((await new NeuronalEvaluateCommand(recordedGraph(), new MockLLMProvider(), clean).execute(context())).success).toBe(true);
+    const cleanCtx = context();
+    await new NeuronalEvaluateCommand(recordedGraph(), new MockLLMProvider(), stage({ cassette: { mode: 'replay', dir: clean.run.cassette.dir, omitPrompt: false } })).execute(cleanCtx);
+    expect(cleanCtx.warnings.map((w) => w.code)).not.toContain('JUDGE_PROVENANCE_MIXED');
+  });
+
+  it.each([
+    ['RouteEvaluateCommand', (p: LLMProvider, s: JudgeStageSettings): PipelineCommand => new RouteEvaluateCommand(recordedGraph(), p, 'full', s)],
+    ['NeuronalEvaluateCommand', (p: LLMProvider, s: JudgeStageSettings): PipelineCommand => new NeuronalEvaluateCommand(recordedGraph(), p, s)],
+  ] as const)('ISO-05 (%s): an early failure after the pre-flight still removes the neutral cwd', async (_n, make) => {
+    const tmpRoot = tmpDir('u4-c9-tmproot-');
+    const runner = new PreflightRunner(PINNED_CLI_VERSION);
+    const provider = new ClaudeCliProvider({ judgeConfigDir: judgeDir(), mode: 'record', projectRoot: ROOT }, { runner, parentEnv: { PATH: '/usr/bin:/bin', HOME: tmpDir() }, tmpRoot });
+    const result = await make(provider, stage({ baselineReport: path.join(tmpDir(), 'absent.json') })).execute(context());
+    expect(result.success).toBe(false);
+    if (!result.success) expect(result.errors[0]?.code).toBe('LLM_BASELINE_SELECTION_MISSING');
+    expect(provider.isolationResult()).not.toBeNull(); // the pre-flight ran and created the neutral cwd
+    expect(fs.readdirSync(tmpRoot)).toEqual([]);
+  });
+
+  it('no neural work: judgeStageNeeded is false and full mode runs without the CLI pre-flight', async () => {
+    const symbolicOnly: CompiledFunctions = { ...COMPILED, neuronalInstructions: [] };
+    expect(judgeStageNeeded(symbolicOnly, 'full')).toBe(false);
+    expect(judgeStageNeeded(COMPILED, 'full')).toBe(true);
+    expect(judgeStageNeeded(COMPILED, 'symbolic-only')).toBe(false);
+    expect(judgeStageNeeded({ ...symbolicOnly, hybridPairs: [{} as never] }, 'full')).toBe(true);
+    expect(judgeStageNeeded({ ...symbolicOnly, hybridPairs: [{} as never] }, 'neuronal-only')).toBe(false);
+
+    // a drifted CLI would fail the pre-flight; with no neural work the run never reaches it
+    const runner = new PreflightRunner('2.1.300');
+    const spy = jest.spyOn(runner, 'run');
+    const ctx = new FirewallContext(runId('u4-c9-empty'));
+    ctx.setParsedSpec(SPEC);
+    ctx.setCompiledFunctions({ ...symbolicOnly, totalCompiled: 0 });
+    const s = stage();
+    const result = await new RouteEvaluateCommand(recordedGraph(), cli(runner, judgeDir()), 'full', s).execute(ctx);
+    // the router reports the empty run itself (before the fix: LLM_CLI_VERSION_DRIFT from the pre-flight)
+    expect(result.success).toBe(false);
+    if (!result.success) expect(result.errors[0]?.code).toBe('NO_FUNCTIONS_TO_EVALUATE');
+    expect(spy).not.toHaveBeenCalled();
+    expect(s.holder.judge).toBeUndefined();
   });
 });
 
