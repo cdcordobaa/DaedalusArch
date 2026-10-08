@@ -12,6 +12,7 @@ import { buildChildEnv, NodeProcessRunner } from '../../../../src/shared/process
 import { loadCorpus, parseCriteria, sha256Hex, validateCorpus } from '../../../../scripts/lib/corpus.js';
 import type { CorpusCandidate, CorpusCriteria, CorpusEntry, CorpusFile } from '../../../../scripts/lib/corpus.js';
 import type { PreparedBase } from '../../../../scripts/lib/mutation/types.js';
+import { copyBase } from '../../../../scripts/lib/mutation/prepare.js';
 import {
   FETCH_SHA_MISMATCH, fetchCorpus, fetchEntry, INSTALL_LOCK_MISMATCH, OVERLAY_CHECK_FAILED, OVERLAY_SHA_MISMATCH,
 } from '../../../../scripts/fetch-corpus.js';
@@ -294,7 +295,10 @@ describe('prepareBase (BR-U5b-76)', () => {
     expect(base.tscPath).toBe(tscPath);
     expect(base.tscVersion).toBe(parseTscVersion(execFileSync('node', [tscPath, '--version'], { encoding: 'utf8' })));
     expect(base).toMatchObject({ projectId: 'fixture-repo', baseKind: 'corpus', dir: clone, baseCommit: sha, tsconfigPath: 'tsconfig.json', specPath: 'corpus/specs/fixture-repo.yaml' });
-    expect(base.overlays).toEqual([{ path: configOverlay.path, sha256: configOverlay.sha256 }]);
+    // OI-U5a-17: the overlaid file's content hash (what U5a's copyBase checks), not the patch-file hash
+    expect(base.overlays).toEqual([{ path: 'src/config.ts', sha256: sha256Hex('export const PORT = 3000;\n') }]);
+    const copied = await copyBase(base, join(mkdtempSync(join(work, 'copy-')), 'base'));
+    expect(copied.success).toBe(true);
     expect(base.installLockSha256).toBeUndefined();
   });
 

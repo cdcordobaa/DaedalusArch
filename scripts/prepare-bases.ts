@@ -5,17 +5,20 @@
  * entry: `baseKind = 'corpus'`, `dir` (clone + `subPath`), `baseCommit` = `commitSha`, `tsconfigPath`, `tscPath`
  * resolved from `CorpusEntry.tsc` (`project` → the clone root, `repo-pinned` → this repository's root) and
  * `tscVersion` measured as `node <tscPath> --version` (must equal the registered value, `PREP_TSC_MISMATCH`),
- * `installLockSha256`, `overlays` `{path, sha256}`, `specPath`.
+ * `installLockSha256`, `overlays` `{path, sha256}` with `path` relative to `dir` and `sha256` = the overlaid file's
+ * content in the fetched clone (U5a `copyBase` checks exactly that; OI-U5a-17 hand-off, DV-U5b-20), `specPath`.
+ * The value is built through U5a's validating constructor `makePreparedBase` (`PREP_INVALID`).
  *
  * `capped` / `judgeSelection` are copied from U4's baseline selection stored for the base, never computed:
  * one row per neural function with `candidateUnitIds`, `selectedUnitIds` and the unit → file mapping
  * (`unitFiles`, the report's `unitResults[].filePaths`; OI-11). No stored selection → `PREP_SELECTION_MISSING`.
  */
 import { existsSync, readFileSync, writeFileSync } from 'node:fs';
-import { join, resolve } from 'node:path';
+import { isAbsolute, join, relative, resolve, sep } from 'node:path';
 import type { ProcessRunner } from '../src/shared/interfaces/process-runner.js';
 import { buildChildEnv, NodeProcessRunner } from '../src/shared/process/node-process-runner.js';
-import { CORPUS_FILE, loadCorpus } from './lib/corpus.js';
+import { CORPUS_FILE, loadCorpus, sha256Hex } from './lib/corpus.js';
+import { makePreparedBase } from './lib/mutation/prepare.js';
 import type { CorpusEntry } from './lib/corpus.js';
 import type { JudgeSelection, PreparedBase } from './lib/mutation/types.js';
 
@@ -23,8 +26,9 @@ export const PREP_SELECTION_MISSING = 'PREP_SELECTION_MISSING';
 export const PREP_SELECTION_UNMAPPED = 'PREP_SELECTION_UNMAPPED';
 export const PREP_TSC_MISMATCH = 'PREP_TSC_MISMATCH';
 export const PREP_DIR_MISSING = 'PREP_DIR_MISSING';
+export const PREP_INVALID = 'PREP_INVALID';
 
-export type PrepCode = typeof PREP_SELECTION_MISSING | typeof PREP_SELECTION_UNMAPPED | typeof PREP_TSC_MISMATCH | typeof PREP_DIR_MISSING;
+export type PrepCode = typeof PREP_SELECTION_MISSING | typeof PREP_SELECTION_UNMAPPED | typeof PREP_TSC_MISMATCH | typeof PREP_DIR_MISSING | typeof PREP_INVALID;
 
 /** U4's baseline selection for one base, as stored from its baseline full-mode report (U4 `NeuralResultRow`). */
 export interface StoredBaselineSelection {
@@ -83,7 +87,15 @@ export async function prepareBase(entry: CorpusEntry, cloneDir: string, stored: 
   const measured = r.success && r.data.exitCode === 0 ? parseTscVersion(r.data.stdout) : undefined;
   if (measured === undefined) return bad(PREP_TSC_MISMATCH, `node ${tscPath} --version failed`);
   if (measured !== entry.tsc.tscVersion) return bad(PREP_TSC_MISMATCH, `measured ${measured} ≠ registered ${entry.tsc.tscVersion}`);
-  const base: PreparedBase = {
+  const overlays: { path: string; sha256: string }[] = [];
+  for (const ov of entry.overlays) {
+    const file = join(cloneDir, ...ov.path.split('/'));
+    const rel = relative(dir, file).split(sep).join('/');
+    if (rel.startsWith('..') || isAbsolute(rel)) return bad(PREP_INVALID, `overlay ${ov.path} lies outside the project directory`);
+    if (!existsSync(file)) return bad(PREP_INVALID, `overlay ${ov.path} not applied (file missing)`);
+    overlays.push({ path: rel, sha256: sha256Hex(readFileSync(file)) });
+  }
+  const made = makePreparedBase({
     projectId: id,
     baseKind: 'corpus',
     dir,
@@ -92,12 +104,12 @@ export async function prepareBase(entry: CorpusEntry, cloneDir: string, stored: 
     tscPath,
     tscVersion: measured,
     ...(entry.install.policy === 'npm-ci-ignore-scripts' ? { installLockSha256: entry.install.lockSha256 } : {}),
-    overlays: entry.overlays.map((ov) => ({ path: ov.path, sha256: ov.sha256 })),
+    overlays,
     specPath: entry.specPath,
-    capped: sel.value.some((s) => s.capped),
     judgeSelection: sel.value,
-  };
-  return { ok: true, base };
+  });
+  if (!made.success) return bad(PREP_INVALID, made.errors.map((e) => e.message).join('; '));
+  return { ok: true, base: made.data };
 }
 
 // --- CLI ----------------------------------------------------------------------------------------------------------
