@@ -309,6 +309,10 @@ export interface ImportGraphEdge {
   readonly source: string;
   readonly target: string;
   readonly type: 'IMPORTS' | 'RE_EXPORTS';
+  /** True only when every contributing statement is type-only for this target (BR-U2-18, 23). */
+  readonly isTypeOnly: boolean;
+  /** Smallest 1-based statement line contributing to the edge (the extractor's `line`, BR-U2-16). */
+  readonly line: number;
 }
 
 export interface ImportGraph {
