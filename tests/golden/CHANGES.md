@@ -17,6 +17,8 @@ results, unexecuted functions) are recorded here too, marked `observation`.
 
 U1 lines use the label `U1-Kn` in place of the commit hash (recover it with `git log --grep 'U1-Kn'`), in the grammar of the U1 code-generation plan D-U1-7.
 
+U3 lines use the label `U3-Rn` (recover the hash with `git log --grep '^U3-Rn'`) in the grammar of the U3 code-generation plan D-U3-6.
+
 ## Entries
 
 2026-10-07 baseline @7cd15b4 all — FR-30: snapshots of current behaviour (symbolic-only, `specs/clean-arch.yaml`); generated three times with Neo4j 5.26.24 restarted between runs, byte-identical.
