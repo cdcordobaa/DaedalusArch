@@ -14,7 +14,10 @@ import { neo4jScrubPolicy } from '../shared/errors/scrub.js';
 import { runId as makeRunId } from '../shared/types/value-objects.js';
 import { Neo4jRepository } from '../neo4j-ingestion/neo4j-repository.js';
 import { FileSystemSnapshotStore } from '../neo4j-ingestion/fs-snapshot-store.js';
+import * as path from 'node:path';
 import { createLLMProvider } from '../llm-critic/provider-factory.js';
+import { judgeKnownSecrets, judgeRunSettingsOf, neuralRowsOf, specShaOf } from '../llm-critic/judge-stage.js';
+import type { JudgeRunHolder, JudgeStageSettings } from '../llm-critic/judge-stage.js';
 
 // Commands
 import { ExtractCommand } from './commands/extract-command.js';
@@ -30,6 +33,9 @@ import { SnapshotSaveCommand } from './commands/snapshot-save-command.js';
 import { SnapshotLoadCommand } from './commands/snapshot-load-command.js';
 import { DriftDetectCommand } from './commands/drift-detect-command.js';
 import { AssembleReportCommand } from './commands/assemble-report-command.js';
+import type { AssembleReportConfig } from './commands/assemble-report-command.js';
+import { NO_JUDGE } from '../scoring-engine/report-builder.js';
+import type { JudgeProvenance } from '../shared/types/evaluation.js';
 import type { CompileFactsHolder } from './commands/compile-command.js';
 
 /**
@@ -83,10 +89,23 @@ export function createPipeline(config: PipelineConfig): PipelineBundle {
     config.apgStorePath,
   );
 
-  // LLM provider is only needed for neuronal / full evaluation modes
+  // LLM provider is only needed for neuronal / full evaluation modes.
+  // U4 C9 hunk (D-U4-7, D-U4-8): the inner provider is built here; the evaluation command wraps it
+  // once in the cassette decorator (record-mode C14 pre-flight) through the judge stage, which
+  // also carries the run settings, the manifest key and the holder the report assembly reads.
   let llmProvider: LLMProvider | undefined;
+  let judgeStage: JudgeStageSettings | undefined;
+  const judgeHolder: JudgeRunHolder = {};
   if (config.evaluationMode !== 'symbolic-only') {
-    llmProvider = createLLMProvider(config.llmConfig);
+    const projectRoot = path.resolve(config.projectPath);
+    llmProvider = createLLMProvider(config.llmConfig, { projectRoot });
+    judgeStage = {
+      projectRoot,
+      specSha: specShaOf(config.specFilePath),
+      run: judgeRunSettingsOf(config.llmConfig),
+      knownSecrets: judgeKnownSecrets(scrubPolicy.secrets), // BR-U4-CAS-07: env-derived list plus the Neo4j policy secrets
+      holder: judgeHolder,
+    };
   }
 
   // ------------------------------------------------------------------
@@ -145,7 +164,7 @@ export function createPipeline(config: PipelineConfig): PipelineBundle {
   switch (config.evaluationMode) {
     case 'full':
       commands.push(
-        new RouteEvaluateCommand(graphRepo, llmProvider!, config.evaluationMode),
+        new RouteEvaluateCommand(graphRepo, llmProvider!, config.evaluationMode, judgeStage),
       );
       break;
 
@@ -154,7 +173,7 @@ export function createPipeline(config: PipelineConfig): PipelineBundle {
       break;
 
     case 'neuronal-only':
-      commands.push(new NeuronalEvaluateCommand(graphRepo, llmProvider!));
+      commands.push(new NeuronalEvaluateCommand(graphRepo, llmProvider!, judgeStage));
       break;
   }
 
@@ -182,11 +201,19 @@ export function createPipeline(config: PipelineConfig): PipelineBundle {
 
   // ---- Last: assemble the one report (BR-U3-50) -----------------------
   // The timing source reads the executor (created below) when the command runs: timings at assembly time.
-  commands.push(new AssembleReportCommand({
+  // U4 C9 hunk (D-U4-8, BR-U3-63, BR-U3-65): judge provenance and neural rows are read at assembly
+  // time from the holder the evaluation command filled; symbolic-only keeps the NO_JUDGE stub.
+  const assembleConfig: AssembleReportConfig = {
     mode: config.evaluationMode,
     timingSource: () => executor.getTimings(),
     compileFacts,
     scrubPolicy,
+  };
+  commands.push(new AssembleReportCommand(judgeStage === undefined ? assembleConfig : {
+    ...assembleConfig,
+    // a getter, not a value: the provenance exists only once the evaluation command has run
+    get judge(): JudgeProvenance { return judgeHolder.judge ?? NO_JUDGE; },
+    neuralRows: () => neuralRowsOf(judgeHolder),
   }));
 
   // ------------------------------------------------------------------

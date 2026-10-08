@@ -1,4 +1,4 @@
-import type { LLMProvider, LLMOptions, LLMResponse } from '../shared/interfaces/llm-provider.js';
+import type { LLMCallContext, LLMProvider, LLMOptions, LLMResponse } from '../shared/interfaces/llm-provider.js';
 import type { ProviderDescription } from '../shared/types/evaluation.js';
 import { DomainResult } from '../shared/errors/domain-result.js';
 
@@ -17,10 +17,10 @@ export class NullLLMProvider implements LLMProvider {
     return { provider: 'null', model: 'none' };
   }
 
-  async evaluate(_prompt: string, _options: LLMOptions): Promise<DomainResult<LLMResponse>> {
-    return DomainResult.fail<LLMResponse>([{
+  evaluate(_prompt: string, _options: LLMOptions, _call?: LLMCallContext): Promise<DomainResult<LLMResponse>> {
+    return Promise.resolve(DomainResult.fail<LLMResponse>([{
       code: 'LLM_NOT_CONFIGURED',
       message: 'No LLM provider configured. Running in symbolic-only mode.',
-    }]);
+    }]));
   }
 }

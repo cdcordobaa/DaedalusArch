@@ -1,0 +1,32 @@
+{
+  "cliVersion": "2.1.294",
+  "source": "names only from listing-after-login.txt, listing-after-calls.txt, listing-final.txt; contents never read",
+  "exact": [
+    ".claude.json",
+    ".last-update-result.json",
+    ".last-cleanup",
+    "backups",
+    "cache",
+    "cache/changelog.md",
+    "cache/model-catalog",
+    "cache/my-closed-issues.json",
+    "sessions",
+    "settings.json"
+  ],
+  "patterns": [
+    "backups/.claude.json.backup.*",
+    "cache/model-catalog/*.json",
+    "sessions/*.json",
+    "sessions/*.key"
+  ],
+  "notes": [
+    "sessions/*.json and sessions/*.key are pid-named (and a hashed key name); globToRegex has no character classes, so sessions/*.json would also match a hypothetical sessions/settings.json",
+    "settings.json (root) is written by the CLI itself at login; it is an exact name of the forbidden settings*.json family (ISO-04) and its hook content cannot be checked without reading it",
+    "projects/<encoded-cwd>/memory appears only after a NON-isolated call (positive control); judge-argv calls with --no-session-persistence created no projects/ entry"
+  ],
+  "conflicts": {
+    "plugins/**": "CLI auto-installed the official plugin marketplace (plugins/known_marketplaces.json, plugins/marketplaces/claude-plugins-official/**, ~786 entries incl. commands/, agents/, skills/, .mcp.json names) during the author's interactive /login; ISO-04 forbids any pattern matching plugins/, so the designed allow-list fails closed on this dir as-is",
+    "skills/synced/**, plugins/synced/**": "written by the non-isolated positive-control call (account skill/plugin sync); removed afterwards; not produced by the 17 judge-argv calls"
+  },
+  "forbiddenCheck": "no exact name or pattern above matches CLAUDE.md, .mcp.json, agents/, commands/, plugins/, skills/; settings.json is exact (see notes)"
+}
