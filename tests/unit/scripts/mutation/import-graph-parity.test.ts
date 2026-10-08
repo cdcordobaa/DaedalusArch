@@ -3,8 +3,8 @@
  *
  * Test code may import `src/apg-extractor` (the BR-U5a-06 static check covers `scripts/lib/mutation/**` only).
  * Projects read in place are never written; projects built for a case are written into a temp directory, so jest's
- * `**\/*.test.ts` match and the lint and type gates never see them. The mutant cases of BR-U5a-56 are added in
- * Steps 27, 29 and 30.
+ * `**\/*.test.ts` match and the lint and type gates never see them. The mutant cases of BR-U5a-56: MO-S01, MO-C04
+ * and the layered fixture spec (Step 27), MO-DF01 (Step 29), MO-X03 (Step 30).
  */
 import { execFileSync } from 'node:child_process';
 import * as fs from 'node:fs';
@@ -19,6 +19,10 @@ import {
   openImportGraphProject,
 } from '../../../../scripts/lib/mutation/import-graph.js';
 import type { ImportGraph, LayerDirs } from '../../../../scripts/lib/mutation/import-graph.js';
+import { loadCompiledSpec } from '../../../../scripts/lib/mutation/expected.js';
+import { MO_C04 } from '../../../../scripts/lib/mutation/operators/mo-c04.js';
+import { MO_S01 } from '../../../../scripts/lib/mutation/operators/mo-s01.js';
+import { CLEAN_SPEC, LAYERED_SPEC, applyForced, fixtureBase } from './operator-harness.js';
 
 const REPO = process.cwd();
 jest.setTimeout(120_000);
@@ -216,5 +220,29 @@ describe('layerOf', () => {
     expect(layerOf('src/domain/x.controller.ts', layers)).toBe('domain');
     expect(layerOf('src/web/x.controller.ts', layers)).toBe('presentation');
     expect(layerOf('src/web/x.ts', layers)).toBeNull();
+  });
+});
+
+describe('import graph — mutants and the layered fixture spec (BR-U5a-56; Step 27)', () => {
+  it('MO-S01 mutant of correct-reference (forced F-U5A-CYCLE site)', async () => {
+    const { copy } = await applyForced(scratch, [MO_S01], 'MO-S01', fixtureBase(CLEAN_SPEC), {
+      filePath: 'src/domain/entities/Task.ts',
+      detail: { symbol: 'InMemoryTaskRepository', targetFile: 'src/infrastructure/repositories/InMemoryTaskRepository.ts' },
+    });
+    await expectParity(copy, CLEAN_ARCH);
+  });
+
+  it('MO-C04 mutant of correct-reference (created orphan file)', async () => {
+    const { copy } = await applyForced(scratch, [MO_C04], 'MO-C04', fixtureBase(CLEAN_SPEC), {
+      filePath: 'src/application/use-cases/OrphanHelper.ts',
+      detail: { directory: 'src/application/use-cases' },
+    });
+    await expectParity(copy, CLEAN_ARCH);
+  });
+
+  it('correct-reference under the layered fixture spec layers', async () => {
+    const spec = await loadCompiledSpec(REPO, LAYERED_SPEC);
+    if (!spec.success) throw new Error(JSON.stringify(spec.errors));
+    await expectParity(path.resolve(REPO, 'fixtures/correct-reference'), spec.data.layers);
   });
 });

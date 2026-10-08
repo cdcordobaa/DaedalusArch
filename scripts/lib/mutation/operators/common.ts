@@ -13,7 +13,17 @@ import { DomainResult } from '../../../../src/shared/errors/domain-result.js';
 import { layerDirsOf } from '../expected.js';
 import { IMPORT_GRAPH_EXCLUDE_PATTERNS, layerOf } from '../import-graph.js';
 import type { LayerDirs } from '../import-graph.js';
-import type { ImportGraph, MutationEdit, ParsedSpec, ProjectHandle } from '../types.js';
+import type {
+  ImportGraph,
+  LocationRule,
+  MutationEdit,
+  MutationSite,
+  ParsedSpec,
+  PreconditionContext,
+  PreconditionResult,
+  ProjectHandle,
+  SiteKind,
+} from '../types.js';
 import picomatch from 'picomatch';
 
 export function cmp(a: string, b: string): number {
@@ -207,3 +217,66 @@ export function editOf(
     ...(keyAnchor !== undefined ? { keyAnchor } : {}),
   };
 }
+
+// ── Import-edge operators (MO-S01, MO-S01n, MO-S03, MO-S03n, MO-X01, MO-X01n) ─────────────────────────────────
+
+/** Location rule of the edge templates: `(site file, site target, [relType]; site-line)`. */
+export function edgeRule(template: string): LocationRule {
+  return { template, filePath: 'site', target: 'site-target', discriminator: ['relType'], line: 'site-line' };
+}
+
+/**
+ * (source file, target file, symbol) sites: every source file accepted by `source` and every other file accepted
+ * by `target`, with the symbol chosen by `symbol` (no site when it returns undefined). `line` 1 (file-level site).
+ */
+export function pairSites(
+  handle: ProjectHandle,
+  kind: SiteKind,
+  source: (rel: string, sf: SourceFile) => boolean,
+  target: (rel: string, sf: SourceFile) => boolean,
+  symbol: (sf: SourceFile) => string | undefined,
+): MutationSite[] {
+  const files = projectFiles(handle);
+  const sites: MutationSite[] = [];
+  for (const s of files) {
+    const sp = relOf(handle, s);
+    if (!source(sp, s)) continue;
+    for (const t of files) {
+      const tp = relOf(handle, t);
+      if (tp === sp || !target(tp, t)) continue;
+      const sym = symbol(t);
+      if (sym === undefined) continue;
+      sites.push({ filePath: sp, line: 1, kind, detail: { targetFile: tp, symbol: sym } });
+    }
+  }
+  return sites;
+}
+
+/** First exported name whose text has no entity-role term (twins keep FF-P05 silent). */
+export function firstNonEntityExport(sf: SourceFile): string | undefined {
+  return exportedNames(sf).find((n) => !hasEntityRole(n));
+}
+
+/** Imports `detail.symbol` of `detail.targetFile` into the site file and adds a value (or type) reference. */
+export function applyImportEdge(handle: ProjectHandle, site: MutationSite): DomainResult<MutationEdit> {
+  const sf = fileAt(handle, site.filePath);
+  const targetFile = site.detail.targetFile ?? '';
+  const target = fileAt(handle, targetFile);
+  const symbol = site.detail.symbol ?? '';
+  if (sf === undefined || target === undefined || symbol.length === 0) return fail('MUT_SITE_STALE', `site ${site.filePath} → ${targetFile} not found`);
+  const line = insertImport(sf, specifierTo(sf, target), { named: [symbol] });
+  if (exportedValueNames(target).includes(symbol)) appendValueRef(sf, symbol, `${lowerFirst(symbol)}Ref`);
+  else appendTypeRef(sf, symbol, `${symbol}Ref`);
+  return DomainResult.ok(editOf([site.filePath], [], [{ source: site.filePath, target: targetFile }], { line, values: { relType: 'IMPORTS' } }));
+}
+
+export function plannedImportEdge(site: MutationSite): { source: string; target: string }[] {
+  return [{ source: site.filePath, target: site.detail.targetFile ?? '' }];
+}
+
+/** Edge pre-exists in the base graph (BR-U5a-12 b). */
+export function edgeExists(ctx: PreconditionContext, site: MutationSite): PreconditionResult {
+  return hasEdge(ctx.baseGraph, site.filePath, site.detail.targetFile ?? '') ? { ok: false, reason: 'edge-exists' } : { ok: true };
+}
+
+export const OK: PreconditionResult = { ok: true };
