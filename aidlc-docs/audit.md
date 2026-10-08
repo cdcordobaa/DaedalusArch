@@ -1116,3 +1116,11 @@ Plan checkboxes ticked. Auto-approved under standing approval; no blocking or ma
 **Context**: CONSTRUCTION — U5b Code Generation complete and merged (Group 9 done); next Build and Test.
 
 ---
+
+## Build and Test — plan written (auto-approved)
+**Timestamp**: 2026-10-08T20:59:24Z
+**User Input**: "Write the v1.2E Build and Test plan (groups BT-A..BT-G) mapping every code-summary hand-off to a step or to 'deferred to experiments', commit it on v1.2e and push (orchestrator task, standing approval; pending author decisions (a) SO4 floor shortfall and (b) Gemini labeller id / live-labelling route not to be decided; no E1, E7, SO4 held-out run or live labelling; at most 40 live judge calls)."
+**AI Response**: "Plan aidlc-docs/construction/plans/v1.2E-build-and-test-plan.md: Steps 0-51 in groups BT-A 0-8, BT-B 9-12, BT-C 13-20, BT-D 21-25, BT-E 26-33, BT-F 34-47, BT-G 48-51, with a dependency run order, four pre-registration bumps (P-1..P-4), a live-call ledger (judge <= 40, generator <= 11 + 3 retries) and a hand-off mapping table. Two conflicts registered for escalation: E-1, BR-U5a-40 requires the catalogue (with k, pending decision (a)) and the generator protocol to be frozen before the FR-18 re-baseline or the first corpus run, so BT-B, BT-D and the sensitivity run are held; E-2, BR-U4-SEN-01 for FF-N02 needs more live judge calls than the 40-call cap allows (correct-reference has 14 judge units x 3 runs = 42 calls per copy), so the rubric freeze, FROZEN_SHA256, the final export and the L0 baseline are held. Deviations DV-BT-1..3 recorded."
+**Context**: CONSTRUCTION — Build and Test, planning; Step 0 committed; execution starts at Step 1 (BT-A).
+
+---
