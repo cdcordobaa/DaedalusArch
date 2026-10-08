@@ -10,6 +10,7 @@ import { functionId as makeFunctionId } from '../shared/types/value-objects.js';
 import { computeViolationId, discriminatorValues, scalarText, toFiniteNumber } from './violation-id.js';
 import { formatEvidence, mergeById } from './evidence.js';
 import { applyCycleCap, dedupeCycleRecords } from './cycle-canonicaliser.js';
+import { CYCLE_STRATEGY, SCC_TEMPLATE_NAME, findSccViolations } from './scc-cycles.js';
 
 export interface SymbolicEvalOutput {
   readonly results: readonly SymbolicFunctionResult[];
@@ -36,6 +37,32 @@ export async function evaluateSymbolic(input: SymbolicEvalInput): Promise<Domain
 
   for (const query of input.queries) {
     const start = Date.now();
+
+    // BR-U3-45: with the SCC strategy, FF-S02 is answered from the APG instead of its Cypher query.
+    if (CYCLE_STRATEGY === 'scc' && query.name === SCC_TEMPLATE_NAME && query.source === 'template') {
+      if (input.apg === undefined) {
+        const message = `Query failed for ${String(query.functionId)} (${query.name}): APG missing for the SCC cycle strategy`;
+        failures.push({ functionId: query.functionId, name: query.name, code: 'EVAL_001', message });
+        warnings.push({ code: 'EVAL_001', message, stage: 'evaluation-engine', context: { functionId: String(query.functionId), code: 'APG_MISSING' } });
+        continue;
+      }
+      const excludePatterns = query.params.excludePatterns;
+      const violations = findSccViolations(input.apg, {
+        functionId: String(query.functionId),
+        dimension: query.dimension,
+        severity: query.severity,
+        ...(Array.isArray(excludePatterns) ? { excludePatterns: excludePatterns.map(String) } : {}),
+      });
+      results.push({
+        functionId: query.functionId,
+        dimension: query.dimension,
+        passed: computePassFail(violations),
+        violations,
+        executionTimeMs: Date.now() - start,
+        deterministic: true,
+      });
+      continue;
+    }
 
     // BR-U3-03: no timeout of C6's own; the repository default applies unless the caller sets one.
     const queryResult = input.queryTimeoutMs !== undefined

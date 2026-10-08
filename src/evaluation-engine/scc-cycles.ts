@@ -3,8 +3,9 @@
  *
  * Tarjan's algorithm over the File→File `IMPORTS|RE_EXPORTS` edges of an `APGResult`. Prepared
  * and off: `CYCLE_STRATEGY` stays `'cypher'` until the latency gate decides otherwise, and then
- * for the whole experiment (BR-U3-70 item 3). Nothing in the pipeline reads this module until
- * U3-R14 wires it behind the constant.
+ * for the whole experiment (BR-U3-70 item 3). Wired behind the constant (U3-R14): with `'scc'` the
+ * C6 evaluator answers FF-S02 (`no-cyclic-deps`) from `SymbolicEvalInput.apg` and the metric path
+ * counts `cyclicDependencyCount` from `ScoringInput.apg`; with `'cypher'` neither reads the APG.
  *
  * Output contract (BR-U3-45): one violation per SCC of size ≥ 2, keyed on its smallest member
  * (`filePath`), discriminator `["scc"]`, no `target` (`""` in the id), evidence
@@ -32,7 +33,12 @@ const CYCLE_EDGE_TYPES: ReadonlySet<string> = new Set(['IMPORTS', 'RE_EXPORTS'])
 export interface SccOptions {
   /** Glob patterns (FF-S02 `exclude_paths`); a file matching any of them is removed from the graph. */
   readonly excludePaths?: readonly string[];
+  /** The same exclusions already compiled to anchored regex sources (`params.excludePatterns`, BR-U1-32). */
+  readonly excludePatterns?: readonly string[];
 }
+
+/** Template answered by the SCC path when `CYCLE_STRATEGY === 'scc'` (FF-S02). */
+export const SCC_TEMPLATE_NAME = 'no-cyclic-deps';
 
 export interface SccViolationOptions extends SccOptions {
   readonly functionId: string;
@@ -42,7 +48,10 @@ export interface SccViolationOptions extends SccOptions {
 
 /** File→File adjacency with sorted, de-duplicated neighbour lists. Self-loops are kept. */
 export function buildFileGraph(apg: Pick<APGResult, 'nodes' | 'edges'>, options: SccOptions = {}): ReadonlyMap<string, readonly string[]> {
-  const patterns = (options.excludePaths ?? []).map((glob) => new RegExp(globToRegex(glob)));
+  const patterns = [
+    ...(options.excludePaths ?? []).map((glob) => new RegExp(globToRegex(glob))),
+    ...(options.excludePatterns ?? []).map((source) => new RegExp(source)),
+  ];
   const excluded = (filePath: string): boolean => patterns.some((re) => re.test(filePath));
   const fileOf = new Map<string, string>();
   for (const node of apg.nodes) {
@@ -162,7 +171,7 @@ export function representativeCycle(
 export function findSccViolations(apg: Pick<APGResult, 'nodes' | 'edges'>, options: SccViolationOptions): readonly Violation[] {
   const graph = buildFileGraph(apg, options);
   const fid = makeFunctionId(options.functionId);
-  const tag = getTemplateTag('no-cyclic-deps');
+  const tag = getTemplateTag(SCC_TEMPLATE_NAME);
   return stronglyConnectedComponents(graph).map((component) => {
     const filePath = component[0] ?? '';
     const cycle = representativeCycle(graph, component, filePath);
