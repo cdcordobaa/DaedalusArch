@@ -32,6 +32,47 @@ export interface IngestResult {
   readonly warnings: DomainWarning[];
 }
 
+/** Index statements run after `clearGraph`, before node ingestion (FR-09; BR-U2-33). */
+export const INDEX_STATEMENTS: readonly string[] = [
+  'CREATE INDEX apg_node_id IF NOT EXISTS FOR (n:APGNode) ON (n.id)',
+  'CREATE INDEX package_id IF NOT EXISTS FOR (n:Package) ON (n.id)',
+  'CALL db.awaitIndexes()',
+];
+
+/**
+ * Create the APGNode and Package id indexes and wait until they are online. Each statement is its
+ * own auto-commit call (schema and writes cannot share a transaction), with the write timeout.
+ */
+export async function ensureIndexes(graphRepo: GraphRepository): Promise<DomainResult<void>> {
+  for (const statement of INDEX_STATEMENTS) {
+    const result = await graphRepo.executeQuery(statement, undefined, { timeoutMs: WRITE_QUERY_TIMEOUT_MS });
+    if (!result.success) return DomainResult.fail(result.errors);
+  }
+  return DomainResult.ok(undefined);
+}
+
+/**
+ * BR-U2-35: compares a batch's created counter with its size. A missing counter key (a mock or a
+ * non-Neo4j repository) skips the check and counts the batch size.
+ */
+function checkCreated(
+  counters: Readonly<Record<string, number>>,
+  check: { readonly key: 'nodesCreated' | 'relationshipsCreated'; readonly code: 'INGEST_002' | 'INGEST_003'; readonly noun: string },
+  type: string,
+  batchSize: number,
+  warnings: DomainWarning[],
+): number {
+  if (!(check.key in counters)) return batchSize;
+  const created = counters[check.key] ?? 0;
+  if (created !== batchSize) {
+    warnings.push({ code: check.code, message: `${type}: created ${String(created)} of ${String(batchSize)} ${check.noun}` });
+  }
+  return created;
+}
+
+const NODE_CHECK = { key: 'nodesCreated', code: 'INGEST_002', noun: 'nodes' } as const;
+const EDGE_CHECK = { key: 'relationshipsCreated', code: 'INGEST_003', noun: 'relationships' } as const;
+
 /**
  * Ingest annotated nodes into Neo4j via UNWIND bulk insert.
  */
@@ -41,6 +82,7 @@ export async function ingestNodes(
   graphRepo: GraphRepository,
 ): Promise<DomainResult<number>> {
   let totalCreated = 0;
+  const warnings: DomainWarning[] = [];
 
   for (const type of NODE_INGESTION_ORDER) {
     const typeNodes = nodes.filter((n) => n.type === type);
@@ -71,10 +113,10 @@ export async function ingestNodes(
     if (!result.success) {
       return DomainResult.fail(result.errors);
     }
-    totalCreated += typeNodes.length;
+    totalCreated += checkCreated(result.data.summary.counters, NODE_CHECK, type, batch.length, warnings);
   }
 
-  return DomainResult.ok(totalCreated);
+  return DomainResult.ok(totalCreated, warnings.length > 0 ? warnings : undefined);
 }
 
 /**
@@ -85,6 +127,7 @@ export async function ingestEdges(
   graphRepo: GraphRepository,
 ): Promise<DomainResult<number>> {
   let totalCreated = 0;
+  const warnings: DomainWarning[] = [];
 
   for (const type of EDGE_INGESTION_ORDER) {
     const typeEdges = edges.filter((e) => e.type === type);
@@ -112,10 +155,10 @@ export async function ingestEdges(
     if (!result.success) {
       return DomainResult.fail(result.errors);
     }
-    totalCreated += typeEdges.length;
+    totalCreated += checkCreated(result.data.summary.counters, EDGE_CHECK, type, batch.length, warnings);
   }
 
-  return DomainResult.ok(totalCreated);
+  return DomainResult.ok(totalCreated, warnings.length > 0 ? warnings : undefined);
 }
 
 /**

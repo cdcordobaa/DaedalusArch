@@ -1,8 +1,12 @@
 /**
  * U2 Step 15: node and edge properties written, per-type graph counts
  * (FR-10, FR-14, FR-21, FR-34; BR-U2-31, 32, 34, 38).
+ * U2 Step 16: ensureIndexes and batch count checks (FR-09; BR-U2-33, 35; S-7).
  */
-import { ingestNodes, ingestEdges, verifyIngestion } from '../../../src/neo4j-ingestion/graph-ingester.js';
+import * as os from 'node:os';
+import { ensureIndexes, ingestNodes, ingestEdges, verifyIngestion } from '../../../src/neo4j-ingestion/graph-ingester.js';
+import { ingestAPG } from '../../../src/neo4j-ingestion/neo4j-ingestion.js';
+import { FileSystemSnapshotStore } from '../../../src/neo4j-ingestion/fs-snapshot-store.js';
 import { WRITE_QUERY_TIMEOUT_MS } from '../../../src/neo4j-ingestion/types.js';
 import { DomainResult } from '../../../src/shared/errors/domain-result.js';
 import { NODE_TYPES, EDGE_TYPES } from '../../../src/shared/types/enums.js';
@@ -16,13 +20,20 @@ interface Call {
   readonly options: QueryOptions | undefined;
 }
 
-function mockRepo(answer: (cypher: string) => readonly Record<string, unknown>[] = () => []): GraphRepository & { calls: Call[] } {
+function mockRepo(
+  answer: (cypher: string) => readonly Record<string, unknown>[] = () => [],
+  counters: (cypher: string, params?: Record<string, unknown>) => Record<string, number> = () => ({}),
+  failOn?: string,
+): GraphRepository & { calls: Call[] } {
   const calls: Call[] = [];
   return {
     calls,
     executeQuery(cypher: string, params?: Record<string, unknown>, options?: QueryOptions): Promise<DomainResult<QueryResult>> {
       calls.push({ cypher, params, options });
-      return Promise.resolve(DomainResult.ok({ records: answer(cypher), summary: { counters: {} } }));
+      if (failOn !== undefined && cypher.includes(failOn)) {
+        return Promise.resolve(DomainResult.fail([{ code: 'Neo.ClientError.Schema.IndexFailed', message: `failed: ${failOn}` }]));
+      }
+      return Promise.resolve(DomainResult.ok({ records: answer(cypher), summary: { counters: counters(cypher, params) } }));
     },
     clearGraph() { return Promise.resolve(DomainResult.ok(undefined)); },
     healthCheck() { return Promise.resolve(true); },
@@ -167,5 +178,113 @@ describe('verifyIngestion per-type counts (BR-U2-34)', () => {
     if (!result.success) throw new Error('expected success');
     expect(Object.values(result.data.nodeCountByType).every((v) => v === 0)).toBe(true);
     expect(Object.keys(result.data.edgeCountByType)).toHaveLength(EDGE_TYPES.length);
+  });
+});
+
+describe('ensureIndexes (BR-U2-33)', () => {
+  it('issues the three statements in order, each with the write timeout', async () => {
+    const repo = mockRepo();
+    const result = await ensureIndexes(repo);
+    expect(result.success).toBe(true);
+    expect(repo.calls.map((c) => c.cypher)).toEqual([
+      'CREATE INDEX apg_node_id IF NOT EXISTS FOR (n:APGNode) ON (n.id)',
+      'CREATE INDEX package_id IF NOT EXISTS FOR (n:Package) ON (n.id)',
+      'CALL db.awaitIndexes()',
+    ]);
+    for (const call of repo.calls) expect(call.options).toEqual({ timeoutMs: WRITE_QUERY_TIMEOUT_MS });
+  });
+
+  it('stops at the first failing statement', async () => {
+    const repo = mockRepo(undefined, undefined, 'apg_node_id');
+    const result = await ensureIndexes(repo);
+    expect(result.success).toBe(false);
+    expect(repo.calls).toHaveLength(1);
+  });
+});
+
+describe('ingestAPG sequence with indexes (BR-U2-33)', () => {
+  const store = new FileSystemSnapshotStore(os.tmpdir()); // stateless mode never touches it
+  const input = {
+    apgResult: {
+      nodes: NODES, edges: [] as APGEdge[], warnings: [],
+      parseCoverage: { total: 1, parsed: 1, skipped: [], percentage: 100 },
+    },
+    layerModel: { layers: [] },
+    mode: 'stateless',
+  } as unknown as Parameters<typeof ingestAPG>[0];
+
+  it('creates the indexes after clearGraph and before the first node batch', async () => {
+    const repo = mockRepo();
+    const order: string[] = [];
+    const cleared = repo.clearGraph.bind(repo);
+    repo.clearGraph = () => { order.push('clearGraph'); return cleared(); };
+    const exec = repo.executeQuery.bind(repo);
+    repo.executeQuery = (cypher, params, options) => { order.push(cypher.trim().split('\n')[0] ?? ''); return exec(cypher, params, options); };
+    const result = await ingestAPG(input, repo, store);
+    expect(result.success).toBe(true);
+    expect(order.slice(0, 5)).toEqual([
+      'clearGraph',
+      'CREATE INDEX apg_node_id IF NOT EXISTS FOR (n:APGNode) ON (n.id)',
+      'CREATE INDEX package_id IF NOT EXISTS FOR (n:Package) ON (n.id)',
+      'CALL db.awaitIndexes()',
+      'UNWIND $batch AS node',
+    ]);
+  });
+
+  it.each(['CREATE INDEX apg_node_id', 'CREATE INDEX package_id', 'db.awaitIndexes()'])(
+    'a failing "%s" fails with NEO4J_QUERY_FAILED and ingests nothing', async (failOn) => {
+      const repo = mockRepo(undefined, undefined, failOn);
+      const result = await ingestAPG(input, repo, store);
+      expect(result.success).toBe(false);
+      if (!result.success) {
+        expect(result.errors[0]?.code).toBe('NEO4J_QUERY_FAILED');
+        expect(result.errors[0]?.message).toContain(`failed: ${failOn}`);
+      }
+      expect(repo.calls.some((c) => c.cypher.includes('UNWIND $batch'))).toBe(false);
+    });
+});
+
+describe('batch count checks (BR-U2-35, S-7)', () => {
+  const store = new FileSystemSnapshotStore(os.tmpdir());
+  const threeImports: APGEdge[] = ['a', 'b', 'c'].map((t, i) => ({
+    id: `i${String(i)}`, type: 'IMPORTS', sourceId: 'f1', targetId: t, properties: IMPORT_PROPS,
+  }));
+  const twoFiles: APGNode[] = [
+    { id: 'f1', type: 'File', name: 'a.ts', filePath: 'src/a.ts', decorators: [], properties: {} },
+    { id: 'f2', type: 'File', name: 'b.ts', filePath: 'src/b.ts', decorators: [], properties: {} },
+  ];
+  const created = (nodes: number, rels: number) => (cypher: string): Record<string, number> =>
+    cypher.includes('APGNode:File') ? { nodesCreated: nodes } : cypher.includes('[r:IMPORTS]') ? { relationshipsCreated: rels } : {};
+
+  function inputWith(nodes: APGNode[], edges: APGEdge[]): Parameters<typeof ingestAPG>[0] {
+    return {
+      apgResult: { nodes, edges, warnings: [], parseCoverage: { total: 2, parsed: 2, skipped: [], percentage: 100 } },
+      layerModel: { layers: [] },
+      mode: 'stateless',
+    } as unknown as Parameters<typeof ingestAPG>[0];
+  }
+
+  it('relationshipsCreated 2 of 3 gives one INGEST_003 in the ingestAPG warnings', async () => {
+    const result = await ingestAPG(inputWith(twoFiles, threeImports), mockRepo(undefined, created(2, 2)), store);
+    expect(result.success).toBe(true);
+    expect(result.warnings).toEqual([{ code: 'INGEST_003', message: 'IMPORTS: created 2 of 3 relationships' }]);
+  });
+
+  it('nodesCreated 1 of 2 gives one INGEST_002', async () => {
+    const result = await ingestAPG(inputWith(twoFiles, []), mockRepo(undefined, created(1, 0)), store);
+    expect(result.warnings).toEqual([{ code: 'INGEST_002', message: 'File: created 1 of 2 nodes' }]);
+  });
+
+  it('totalCreated sums the counters; a missing key adds the batch size', async () => {
+    const nodes = await ingestNodes(twoFiles, new Map(), mockRepo(undefined, created(1, 0)));
+    expect(nodes).toEqual({ success: true, data: 1, warnings: [{ code: 'INGEST_002', message: 'File: created 1 of 2 nodes' }] });
+    const edges = await ingestEdges(threeImports, mockRepo());
+    expect(edges).toEqual({ success: true, data: 3 });
+  });
+
+  it('matching counters give no warning', async () => {
+    const result = await ingestAPG(inputWith(twoFiles, threeImports), mockRepo(undefined, created(2, 3)), store);
+    expect(result.success).toBe(true);
+    expect(result.warnings).toBeUndefined();
   });
 });

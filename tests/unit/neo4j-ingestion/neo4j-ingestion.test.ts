@@ -98,6 +98,18 @@ describe('neo4j-ingestion', () => {
       fs.rmSync(tmpDir, { recursive: true, force: true });
     });
 
+    it('mocks without created counters yield no INGEST_002/003 (BR-U2-35)', async () => {
+      const graphRepo = createMockGraphRepo();
+      const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'ingest-test-'));
+      const snapshotStore = new FileSystemSnapshotStore(tmpDir);
+
+      const result = await ingestAPG({ apgResult: SAMPLE_APG, layerModel: LAYER_MODEL, mode: 'stateless' }, graphRepo, snapshotStore);
+      expect(result.success).toBe(true);
+      expect((result.warnings ?? []).filter((w) => w.code === 'INGEST_002' || w.code === 'INGEST_003')).toEqual([]);
+
+      fs.rmSync(tmpDir, { recursive: true, force: true });
+    });
+
     it('clears graph before ingestion', async () => {
       const graphRepo = createMockGraphRepo();
       const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'ingest-test-'));
