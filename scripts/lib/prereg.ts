@@ -41,9 +41,12 @@ export const REGISTERED_ARTEFACTS: readonly string[] = Object.freeze([
   'corpus/frozen-instrument.json',
 ]);
 
-/** Specs a plan may evaluate with (BR-U5b-51): the corpus specs and the fixture spec of the C16 suite. */
+/**
+ * Specs a plan may evaluate with (BR-U5b-51): the corpus specs and the fixture specs, i.e. the spec of the C16
+ * suite and the layered fixture spec of the SP-FF-S03 probe and MO-S03 (OI-U5b-P2-4; U5a catalogue §SP).
+ */
 export const CORPUS_SPEC_PATTERN = 'corpus/specs/*.yaml';
-export const FIXTURE_SPECS: readonly string[] = Object.freeze(['specs/clean-arch.yaml']);
+export const FIXTURE_SPECS: readonly string[] = Object.freeze(['specs/clean-arch.yaml', 'tests/fixtures/u5a/layered/firewall.spec.yaml']);
 
 export interface PreRegistration {
   readonly version: number;
