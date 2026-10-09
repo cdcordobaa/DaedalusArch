@@ -238,6 +238,18 @@ describe('build-score-case CLI on the hand-computed case laid out as harness out
     expect(built.value.seeds).toEqual(original.value.seeds);
   });
 
+  it('the case manifest carries no absolute repository path (a mutate row records the absolute tscPath)', () => {
+    const dir = harnessLayout();
+    const m = JSON.parse(readFileSync(join(CASE, 'manifest.json'), 'utf8')) as { rows: { typecheck?: { tscPath?: string } }[] };
+    for (const r of m.rows) if (r.typecheck !== undefined) r.typecheck.tscPath = join(ROOT, 'node_modules/typescript/lib/tsc.js');
+    writeFileSync(join(dir, 'abs-manifest.json'), JSON.stringify(m));
+    const a = io();
+    expect(caseMain(['--runs', join(dir, 'run'), '--out', join(dir, 'case'), '--manifest', join(dir, 'abs-manifest.json')], ROOT, a.io)).toBe(0);
+    const text = readFileSync(join(dir, 'case', 'manifest.json'), 'utf8');
+    expect(text).not.toContain(ROOT);
+    expect(text).toContain('"tscPath": "node_modules/typescript/lib/tsc.js"');
+  });
+
   it('refuses a non-empty --out and a missing manifest; --self-test exits 1; usage errors exit 2', () => {
     const dir = harnessLayout();
     writeFileSync(join(dir, 'busy'), 'x');
