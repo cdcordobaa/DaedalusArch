@@ -8,8 +8,8 @@
  *
  * - P/R/F1 files carry the common columns. Recall intervals (ADR-020 item 3) take the (project, operator) cell as the
  *   unit: `ci_low` / `ci_high` / `ci_method` / `n_clusters` are the cell interval (cell bootstrap from 10 cells, Wilson
- *   on the cell count below), `ci_project_*` the co-primary project cluster bootstrap and `ci_independent_*` the
- *   instance Wilson interval, the bound that holds only if the copies were independent; counts only below n = 10.
+ *   on the cell count below), `ci_project_*` the project cluster bootstrap (co-primary from 10 projects,
+ *   `ci_project_descriptive = true` with 2..9 projects) and `ci_independent_*` the instance Wilson interval, the bound that holds only if the copies were independent; counts only below n = 10.
  *   The precision columns are the seeded differential precision; the SO4 baseline precision (ADR-020 item 1, the HT
  *   share of TP-class P2 labels) is `precision_baseline` beside it and has its own file `precision_baseline.csv`;
  *   `precision_figure.csv` holds both in figure-ready long form. Neural new violations are the `neural_new` column
@@ -65,7 +65,7 @@ export const DIMENSION_COLUMNS = ['structural', 'coupling', 'pattern', 'solid', 
 export const COMMON_PRF_COLUMNS = [
   'plan_id', 'split', 'base_kind', 'coverage', 'tp', 'fp_strict', 'fp_labelled', 'fp_uncertain', 'fn', 'precision_strict',
   'precision_labelled', 'precision_incl_twins', 'recall', 'f1_labelled', 'ci_low', 'ci_high', 'ci_method', 'n_clusters',
-  'ci_project_low', 'ci_project_high', 'ci_project_method', 'n_projects', 'ci_independent_low', 'ci_independent_high', 'ci_independent_method',
+  'ci_project_low', 'ci_project_high', 'ci_project_method', 'n_projects', 'ci_project_descriptive', 'ci_independent_low', 'ci_independent_high', 'ci_independent_method',
 ] as const;
 export const BASELINE_PRECISION_COLUMNS = [
   'plan_id', 'scope', 'key', 'n_items', 'n_tp_class', 'n_uncertain', 'weighted_tp_class', 'weighted_total', 'n_effective',
@@ -185,10 +185,12 @@ export function instanceCells(
 function ciCells(cells: readonly RecallCell[], tp: number, fn: number, seed: number, resamples: number): string[] {
   const sum = cells.reduce((a, c) => ({ num: a.num + c.num, den: a.den + c.den }), { num: 0, den: 0 });
   const reproduces = cells.length > 0 && sum.num === tp && sum.den === tp + fn;
-  if (tp + fn === 0) return ['', '', '', int(cells.length), '', '', '', '', '', '', ''];
+  if (tp + fn === 0) return ['', '', '', int(cells.length), '', '', '', '', '', '', '', ''];
   const r = recallIntervals(reproduces ? cells : [{ project: '', operator: '', num: tp, den: tp + fn }], { seed, resamples });
   const cellCols = reproduces ? [f6(r.cell.ciLow), f6(r.cell.ciHigh), r.cell.ciMethod ?? '', int(r.nCells)] : ['', '', '', ''];
-  const projectCols = reproduces ? [f6(r.project.ciLow), f6(r.project.ciHigh), r.project.ciMethod ?? '', int(r.nProjects)] : ['', '', '', ''];
+  const projectCols = reproduces
+    ? [f6(r.project.ciLow), f6(r.project.ciHigh), r.project.ciMethod ?? '', int(r.nProjects), r.project.descriptive === null ? '' : String(r.project.descriptive)]
+    : ['', '', '', '', ''];
   return [...cellCols, ...projectCols, f6(r.independent.ciLow), f6(r.independent.ciHigh), r.independent.ciMethod ?? ''];
 }
 

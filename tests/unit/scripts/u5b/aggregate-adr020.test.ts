@@ -67,7 +67,7 @@ function base(score: GoldenScoreJson, over: Partial<AggregateInput> = {}): Aggre
 }
 
 describe('recall intervals per (project, operator) cell (ADR-020 item 3)', () => {
-  it('held-out total: Wilson on 4 cells is primary; project bootstrap co-primary; instance Wilson as the "if independent" bound', async () => {
+  it('held-out total: Wilson on 4 cells is primary; project bootstrap descriptive (2 < 10 projects); instance Wilson as the "if independent" bound', async () => {
     const { score } = await cellScore();
     const out = aggregate(base(score));
     const overall = parseCsv(out.get('prf_overall.csv') ?? '').rows;
@@ -76,7 +76,7 @@ describe('recall intervals per (project, operator) cell (ADR-020 item 3)', () =>
     // Wilson(8, 12 instances) = [0.390622, 0.861880].
     expect(ho).toMatchObject({
       tp: '8', fn: '4', fp_strict: '1', recall: '0.666667', ci_low: '0.245120', ci_high: '0.924917', ci_method: 'wilson-cells', n_clusters: '4',
-      ci_project_method: 'cluster-bootstrap', n_projects: '2', ci_independent_low: '0.390622', ci_independent_high: '0.861880', ci_independent_method: 'wilson',
+      ci_project_method: 'cluster-bootstrap', n_projects: '2', ci_project_descriptive: 'true', ci_independent_low: '0.390622', ci_independent_high: '0.861880', ci_independent_method: 'wilson',
     });
     const fn = parseCsv(out.get('prf_by_function.csv') ?? '').rows.find((r) => r.split === 'held-out' && r.base_kind === 'all' && r.coverage === 'all' && r.function_id === 'FF-S01');
     expect(fn).toMatchObject({ tp: '8', fn: '4', ci_method: 'wilson-cells', n_clusters: '4', ci_low: '0.245120' });

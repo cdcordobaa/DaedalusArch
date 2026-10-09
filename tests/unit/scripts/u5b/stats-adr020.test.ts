@@ -65,6 +65,19 @@ describe('recallIntervals with the (project, operator) cell as the unit (ADR-020
     expect([r.independent.ciLow?.toFixed(6), r.independent.ciHigh?.toFixed(6)]).toEqual(['0.390622', '0.861880']);
     expect((r.cell.ciHigh ?? 0) - (r.cell.ciLow ?? 0)).toBeGreaterThan((r.independent.ciHigh ?? 0) - (r.independent.ciLow ?? 0));
     expect(r.project.ciMethod).toBe('cluster-bootstrap');
+    // 2 projects < 10: reported, but descriptive only (BR-U5b-61 cluster floor).
+    expect(r.project.descriptive).toBe(true);
+  });
+
+  it('project bootstrap: descriptive with 2..9 projects, co-primary from 10, null without an interval', () => {
+    const perProject = (m: number): RecallCell[] => Array.from({ length: m }, (_, i) => ({ project: `p${String(i).padStart(2, '0')}`, operator: 'MO-S01', num: i % 2, den: 2 }));
+    // 9 projects × k = 2 → n = 18 ≥ 10, so an interval is computed; 9 < 10 clusters → descriptive.
+    expect(recallIntervals(perProject(9), { seed: 3, resamples: 200 }).project).toMatchObject({ ciMethod: 'cluster-bootstrap', descriptive: true });
+    // 10 projects → co-primary.
+    expect(recallIntervals(perProject(10), { seed: 3, resamples: 200 }).project).toMatchObject({ ciMethod: 'cluster-bootstrap', descriptive: false });
+    // 1 project → no project interval; n < 10 → no interval at all.
+    expect(recallIntervals([{ project: 'p', operator: 'o', num: 5, den: 10 }], { seed: 3 }).project).toEqual({ ciLow: null, ciHigh: null, ciMethod: null, descriptive: null });
+    expect(recallIntervals([{ project: 'p', operator: 'o', num: 2, den: 3 }, { project: 'q', operator: 'o', num: 1, den: 3 }], { seed: 3 }).project.descriptive).toBeNull();
   });
 
   it('every cell detects → Clopper–Pearson on cells; 10 cells → cell bootstrap; one project → no project interval; n < 10 → counts only', () => {

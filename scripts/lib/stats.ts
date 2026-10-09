@@ -15,8 +15,8 @@
  * - `selectIntervalMethod`, `proportionInterval`: the BR-U5b-61 interval rule.
  * - `weightedProportionInterval`, `kishEffectiveN`: the BR-U5b-61 rule for a Horvitz–Thompson weighted proportion
  *   (SO4 baseline precision, ADR-020 item 1).
- * - `recallIntervals`: recall with the (project, operator) cell as the unit, the project bootstrap co-primary and the
- *   instance Wilson interval as the "if independent" bound (ADR-020 item 3).
+ * - `recallIntervals`: recall with the (project, operator) cell as the unit, the project bootstrap co-primary from
+ *   10 projects (descriptive below) and the instance Wilson interval as the "if independent" bound (ADR-020 item 3).
  */
 
 /** Two-sided standard normal quantile for 95 %. */
@@ -668,21 +668,29 @@ export interface RecallIntervals {
   readonly estimate: number | null;
   /** Primary: the cell is the unit. ≥ 10 cells → cell bootstrap; else Wilson with n = cells (CP at 0 or n). */
   readonly cell: IntervalColumns<CellCiMethod>;
-  /** Co-primary: project cluster bootstrap (≥ 2 projects). */
-  readonly project: IntervalColumns<'cluster-bootstrap'>;
+  /**
+   * Project cluster bootstrap, reported from 2 projects. Co-primary only with ≥ 10 projects (BR-U5b-61);
+   * with 2..9 projects a percentile bootstrap over so few clusters undercovers, so it is descriptive.
+   */
+  readonly project: IntervalColumns<'cluster-bootstrap'> & {
+    /** `true` with 2..9 projects (descriptive), `false` with ≥ 10 (co-primary), `null` when no interval is reported. */
+    readonly descriptive: boolean | null;
+  };
   /** The "if independent" bound: Wilson on instances (Clopper–Pearson at 0 or n). */
   readonly independent: IntervalColumns<'wilson' | 'clopper-pearson'>;
   readonly seed: number;
 }
 
 const NO_INTERVAL = { ciLow: null, ciHigh: null, ciMethod: null } as const;
+const NO_PROJECT_INTERVAL = { ...NO_INTERVAL, descriptive: null } as const;
 
 /**
  * Recall intervals of ADR-020 item 3. The k copies of one operator on one base are not independent, so the
  * (project, operator) cell is the unit: with ≥ 10 cells the cluster bootstrap over cells is primary; with fewer,
  * Wilson on the pooled recall with n = the number of cells (Clopper–Pearson when every cell or none detects).
- * The project cluster bootstrap is co-primary; the instance Wilson interval is reported only as the bound that
- * would hold if the copies were independent. Cells with `den = 0` are ignored.
+ * The project cluster bootstrap is reported from 2 projects and is co-primary only with ≥ 10 projects (the BR-U5b-61
+ * cluster floor); below that it is flagged `descriptive`. The instance Wilson interval is reported only as the bound
+ * that would hold if the copies were independent. Cells with `den = 0` are ignored.
  */
 export function recallIntervals(cells: readonly RecallCell[], options: { readonly seed: number; readonly resamples?: number }): RecallIntervals {
   const used = cells.filter((c) => c.den > 0);
@@ -697,7 +705,7 @@ export function recallIntervals(cells: readonly RecallCell[], options: { readonl
   }
   const projects = [...byProject.keys()].sort().map((p) => byProject.get(p) ?? { num: 0, den: 0 });
   const base = { k, n, nCells: used.length, nProjects: projects.length, seed: options.seed };
-  if (n < MIN_INTERVAL_N) return { ...base, estimate: null, cell: NO_INTERVAL, project: NO_INTERVAL, independent: NO_INTERVAL };
+  if (n < MIN_INTERVAL_N) return { ...base, estimate: null, cell: NO_INTERVAL, project: NO_PROJECT_INTERVAL, independent: NO_INTERVAL };
   const resamples = options.resamples !== undefined ? { resamples: options.resamples } : {};
   const estimate = k / n;
   const extreme = k === 0 || k === n;
@@ -711,10 +719,10 @@ export function recallIntervals(cells: readonly RecallCell[], options: { readonl
     const iv = extreme ? clopperPearson(k === 0 ? 0 : used.length, used.length) : wilsonProportion(estimate, used.length);
     cell = { ciLow: iv.low, ciHigh: iv.high, ciMethod: extreme ? 'clopper-pearson-cells' : 'wilson-cells' };
   }
-  let project: IntervalColumns<'cluster-bootstrap'> = NO_INTERVAL;
+  let project: RecallIntervals['project'] = NO_PROJECT_INTERVAL;
   if (projects.length >= 2) {
     const b = clusterBootstrap(projects, ratioOfSums, { seed: options.seed, ...resamples });
-    project = { ciLow: b.low, ciHigh: b.high, ciMethod: 'cluster-bootstrap' };
+    project = { ciLow: b.low, ciHigh: b.high, ciMethod: 'cluster-bootstrap', descriptive: projects.length < MIN_BOOTSTRAP_CLUSTERS };
   }
   const ind = extreme ? clopperPearson(k, n) : wilson(k, n);
   return { ...base, estimate, cell, project, independent: { ciLow: ind.low, ciHigh: ind.high, ciMethod: extreme ? 'clopper-pearson' : 'wilson' } };

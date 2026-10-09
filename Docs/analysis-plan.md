@@ -212,8 +212,12 @@ CSV floats are written with six decimals and rounding happens only at display (B
 so the recall interval unit is the **(project, operator) cell**, with cell recall = detected / k. Primary
 (`ci_low`, `ci_high`, `ci_method`, `n_clusters` = cells): with 10 or more cells the cluster percentile bootstrap over
 cells (`cell-bootstrap`); with fewer, Wilson on the pooled recall with n = the number of cells (`wilson-cells`;
-`clopper-pearson-cells` when the pooled recall is 0 or 1). Co-primary: the project cluster bootstrap
-(`ci_project_*`, from 2 projects). The instance Wilson interval (`ci_independent_*`) is reported only as the
+`clopper-pearson-cells` when the pooled recall is 0 or 1). The project cluster bootstrap (`ci_project_*`) is
+reported from 2 projects and is **co-primary only with 10 or more projects**, the cluster floor of the rule above;
+with 2 to 9 projects a percentile bootstrap over so few clusters does not reach 95 % coverage (2 projects give a
+three-point resampling distribution), so the column is **descriptive** and flagged `ci_project_descriptive = true`
+(`false` when co-primary, empty without an interval). With the five core projects, and with fewer than 10 projects
+in any stratum, the cell interval is the only primary recall interval. The instance Wilson interval (`ci_independent_*`) is reported only as the
 "if independent" bound. Per-function rows use the seeds for which the function is applicable. The n < 10 rule
 applies to instances.
 
@@ -267,7 +271,8 @@ Flags are recorded on every row and never exclude it by themselves:
 - Labels: `uncertain` with its reason (`disagree`, `invalid-run`); on agreement rows `sameFamily`, `source`,
   `generator_model`, `headline` and `uncertain_as_category` (ADR-020 item 7, B3).
 - Seeds also carry `corpus_tier` (`instances.csv`); functions carry `neural_new` and `precision_baseline`
-  (`prf_by_function.csv`); `so5_tests.csv` rows carry `descriptive`.
+  (`prf_by_function.csv`); `so5_tests.csv` rows carry `descriptive`; every P/R/F1 row carries
+  `ci_project_descriptive` (§5).
 - Probes (`function_sensitivity.csv`): `excluded_after_fail`, `fix_attempt_ref`.
 
 ## 8. Missingness and exclusions
@@ -345,3 +350,4 @@ These statements are registered: every report of the corresponding figure carrie
 | 2026-10-08 | §3, §7 | Judge-vs-panel rows per source (E1 headline) and per generator model; `uncertain` as a category | ADR-020 item 7, B3 |
 | 2026-10-08 | §3 | E7 the only unseen stratum; E7 specs from the registered rule, declared floor-motivated | ADR-020 items 4, 8 |
 | 2026-10-08 | §10 | Reporting duties B1–B7 | ADR-020 item 9 |
+| 2026-10-09 | §5, §7 | Project cluster bootstrap co-primary only with ≥ 10 projects, else descriptive (`ci_project_descriptive`) | ADR-020 item 3; BR-U5b-61 |
