@@ -1108,6 +1108,29 @@ A reading of "implementers completed" (MO-SO02) that also rewrites every object 
 
 ---
 
+## ADR-025: SO4 scoring defects fixed after the strict results (POST-HOC): class-rename identity, MO-S01 style guard, MO-DF01n constructor scope; prereg v9
+
+**Status**: Accepted (author, 2026-10-09: "Fix scoring, spot-check, then decide E7")
+
+**Date**: 2026-10-09
+
+**POST-HOC declaration**: every defect below was found **after** the SO4 strict results (PR #40; `results/so4-heldout/score-strict.json`) were seen. The strict score under matching rule 1.1.0 is kept unchanged and Ch7 reports it beside the corrected score; neither replaces the other.
+
+**Context**: the SO4 symbolic-only strict score (N = 75) gave TP 67, FN 8, FP 13. All 13 FP and 8 of the 13 dirty twins come from MO-CV02 / MO-CV02n class renames: FF-P02, FF-P04 and FF-SO01 key their pre-existing violations by class name (discriminator), so after a rename the same violation has a new key and the MAT-03 difference counts it as new. MAT-04's registered remap (`remapLine`) moves baseline *lines* through `lineShifts`; `line` is not part of the key (MAT-02) and MO-CV02 rows have no line shifts, so wiring `remapLine` would change no count. The registered text does not cover class-name re-keying. Two FN are MO-S01 on `v-aguiar__valex`, whose spec is `layered`: the business (domain-kind) → persistence (infrastructure-kind) import MO-S01 seeds is the step the layered preset allows, so FF-S01 cannot fire there and the expected FF-S01 key is an oracle error (ADR-024 audit note). ADR-024 also recorded a precondition gap: MO-DF01n (`nestjslatam__ddd`, k = 1) passed `type-shape` with a protected constructor and was rejected with TS2674.
+
+**Decision**:
+1. **Matching rule 1.2.0, MAT-04a (class-rename identity; amendment, not the registered text)**. For a `class-rename` row, before the MAT-03 difference, each baseline symbolic violation on the site file has discriminator elements equal to the stored old name (`site.detail.class`) replaced by the new name. The new name is the single candidate of the frozen rename list (operator catalogue §3, both roles) that a seeded violation on the site file carries and no baseline violation on that file carries; otherwise no remap. Implemented in `scripts/score-golden.ts` (`classRenameOf`, `remapRenamedIdentity`, used by `diffPair` for seeds and SP probes); unit test `tests/unit/scripts/u5b/score-golden-adr025.test.ts` reproduces `truthy-demo:MO-CV02:0` from the SO4 run (strict FP 2 → 0, TP 1). `remapLine` stays uncalled (MAT-04 note B7).
+2. **MO-S01 expectation style guard (no operator or catalogue change)**. `scripts/lib/mutation/expected.ts` (`STYLE_GUARDED_EXPECTED`, `applyStyleGuard`) records MO-S01's `dependency-direction` function under `disabledFunctionIds` (reason "expected key not applicable to style layered") and drops its key when the spec style is `layered`. Like MO-S03's style rule it acts on the expectation from the compiled spec; the operator definitions of the frozen catalogue are untouched and `catalogueVersion` is unchanged. With FF-S04 already style-disabled, the seed is not applicable (MAT-13 a) and leaves N: corrected golden N = **73**. MAT-13 carries a note (no rule change). The guard was applied to the two stored SO4 rows by the same functions, giving `results/so4-heldout/case-corrected/manifest.json` (diff: those two rows only; `reports/` links to the registered case).
+3. **MO-DF01 / MO-DF01n constructor scope**: `constructorLiterals` (`scripts/lib/mutation/operators/mo-df01.ts`) returns "not constructible" for a private or protected constructor, so such a site fails `type-shape`, the catalogue's existing precondition. In SO4 only the twin was rejected for it (no positive had TS2673 or TS2674); no golden N effect. It applies to future seeding; the SO4 manifest is not re-seeded.
+4. **Pre-registration v9** (one dated bump, `--matching-rule-version 1.2.0`): `Docs/matching-rule.md` changes (1.1.0 → 1.2.0, MAT-04a, MAT-13 note, §9 rows). No other registered artefact changes. Runs registered under v8 keep their `preregVersion`.
+5. **Re-score without re-running**: `score-golden-cli.ts --case results/so4-heldout/case-corrected` → `score-corrected.json`, `label-items-corrected.json`; `aggregate-cli.ts` → `agg-corrected/`. `score-strict.json` and `agg-strict/` are unchanged.
+
+**Effect (held-out, symbolic-only)**: strict (1.1.0, N 75): TP 67, FN 8, FP 13, recall 0.893, seeded differential precision 0.838, F1 0.865, twin specificity 60/73. Corrected (1.2.0, N 73): TP 67, FN 6, FP 0, recall 0.918, precision 1.000, F1 0.957, twin specificity 68/73. The six remaining FN are MO-X01 (outside coverage, dynamic import). Remaining dirty twins: three FF-CV05 on `index.ts` (nestjslatam__ddd MO-P01n ×2, MO-S01n ×1) and two valex MO-S01n where the persistence → business import is a real upward violation under `layered`, i.e. the MO-S01n twin is not a negative in a layered spec (reported, not changed).
+
+**Rationale**: the rename artefact and the layered oracle error are scorer and expectation defects, not detector behaviour; keeping the strict score beside the corrected one and declaring the change post hoc keeps the comparison honest. Precision 1.000 is the seeded differential precision only (no label exists yet); the baseline precision of SO4 is the label-dependent figure and is not changed by this ADR (see `Docs/DiagnosticRuns/baseline-spot-check-2026-10-09.md` for an informal, agent-only sanity check).
+
+---
+
 ## Decision Log Summary
 
 | **ADR** | **Decision** | **Status** | **Spike Validated** |
@@ -1137,3 +1160,4 @@ A reading of "implementers completed" (MO-SO02) that also rewrites every object 
 | 022 | v1.2 B&T sensitivity outcome: FF-CV01, FF-CV04 excluded (presets, specs, E7 regenerated by the registered generator), FF-CV06 template fix, post-hoc tooling fixes declared; P-E bump | Accepted | — |
 | 023 | FLOWS_TO near-empty on real DI-style code: reported as an SO2 limitation, instrument unchanged | Accepted | — |
 | 024 | SO4 seeding typecheck losses (10) diagnosed as site infeasibility, no operator defect; golden N = 75 reported against the floor; runbook 3.2, 1.6, flows-to paths fixed | Accepted | — |
+| 025 | POST-HOC SO4 scoring fixes: MAT-04a class-rename identity (rule 1.2.0), MO-S01 layered style guard (expectation), MO-DF01n constructor scope; prereg v9; strict and corrected scores side by side | Accepted | — |

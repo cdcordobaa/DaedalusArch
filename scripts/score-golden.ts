@@ -54,6 +54,7 @@ import type { PinnedJudge, RunRecord } from './lib/report-io.js';
 import { compiledThresholds, loadCompiledSpec } from './lib/mutation/expected.js';
 import { isMetricTemplate } from './lib/mutation/metrics.js';
 import { loadCatalogueRegistry } from './lib/mutation/operators/index.js';
+import { positiveNames, twinNames } from './lib/mutation/operators/mo-cv02.js';
 import type { BaseKind, CorpusTier, Coverage, ExpectedKey, LineShift } from './lib/mutation/types.js';
 import { corpusStyles as corpusStylesOf, corpusTiers as corpusTiersOf } from './lib/corpus.js';
 import type { CorpusFile, CorpusStyle } from './lib/corpus.js';
@@ -344,6 +345,35 @@ export function remapLine(line: number, filePath: string, shifts: readonly LineS
   return out;
 }
 
+/**
+ * MAT-04a (matching rule 1.2.0, ADR-025): the identity of a class renamed by a `class-rename` site. `from` is the
+ * stored `site.detail.class`; `to` is the one name of the frozen rename list (MO-CV02 suffixes or MO-CV02n prefixes,
+ * `Docs/operator-catalogue.md` §3) that a seeded symbolic violation on the site file carries as a discriminator
+ * element and no baseline violation on that file carries. Nothing is re-derived from source. `undefined` when the
+ * row is not a rename or no single such name exists (then no remap applies).
+ */
+export interface ClassRename { readonly filePath: string; readonly from: string; readonly to: string }
+
+export function classRenameOf(row: Pick<ManifestRow, 'site'>, baseline: EvaluationReport, seeded: EvaluationReport): ClassRename | undefined {
+  if (row.site.kind !== 'class-rename') return undefined;
+  const from = row.site.detail.class;
+  if (!from) return undefined;
+  const filePath = row.site.filePath;
+  const candidates = new Set([...positiveNames(from), ...twinNames(from)]);
+  const onFile = (r: EvaluationReport): Set<string> =>
+    new Set(r.violations.filter((v) => isSymbolic(v) && v.filePath === filePath).flatMap((v) => [...(v.discriminator ?? [])]));
+  const before = onFile(baseline);
+  const hits = [...onFile(seeded)].filter((d) => candidates.has(d) && !before.has(d));
+  const [to] = hits;
+  return hits.length === 1 && to !== undefined ? { filePath, from, to } : undefined;
+}
+
+/** MAT-04a: a baseline violation on the renamed class's file re-keyed under the new name (discriminator elements equal to `from`). */
+export function remapRenamedIdentity(v: Violation, rename: ClassRename | undefined): Violation {
+  if (v.filePath !== rename?.filePath || !(v.discriminator ?? []).includes(rename.from)) return v;
+  return { ...v, discriminator: (v.discriminator ?? []).map((d) => (d === rename.from ? rename.to : d)) };
+}
+
 // ---------------------------------------------------------------------------------------------
 // P/R/F1 (BR-U5b-11)
 
@@ -527,12 +557,13 @@ interface NewOccurrence { readonly key: MatchKey; readonly v: Violation; readonl
  * fallback matched to an unconsumed baseline SCC row of the same function by member overlap; neural rows by
  * `(functionId, filePath, [unitId])`.
  */
-function diffPair(baseline: EvaluationReport, seeded: EvaluationReport): {
+function diffPair(baseline: EvaluationReport, seeded: EvaluationReport, rename?: ClassRename): {
   readonly fresh: readonly NewOccurrence[]; readonly preExisting: number; readonly sccOverlap: number;
   readonly neuralNew: readonly Violation[]; readonly baselineKeys: ReadonlySet<MatchKey>;
   readonly baselineByKey: ReadonlyMap<MatchKey, Violation>;
 } {
-  const baseSym = baseline.violations.filter(isSymbolic);
+  // MAT-04a (1.2.0): baseline identities of a renamed class are mapped onto the new name before the difference.
+  const baseSym = baseline.violations.filter(isSymbolic).map((v) => remapRenamedIdentity(v, rename));
   const baselineByKey = new Map<MatchKey, Violation>();
   for (const v of baseSym) if (!baselineByKey.has(baselineMatchKey(v))) baselineByKey.set(baselineMatchKey(v), v);
   const seededSym = seeded.violations.filter(isSymbolic);
@@ -602,7 +633,7 @@ function classifySeed(pair: AcceptedPair, ctx: ClassifyContext): SeedOutcome {
   const { row, baseline, seeded } = pair;
   const info = functionInfo(seeded);
   const expected = row.expected;
-  const diff = diffPair(baseline, seeded);
+  const diff = diffPair(baseline, seeded, classRenameOf(row, baseline, seeded));
   const judgeUnits = judgeCollateralUnits(seeded, row);
   const judgeCollateral = diff.neuralNew.filter((v) => v.unitId !== undefined && judgeUnits.has(v.unitId)).length;
   // MAT-19 1.1.0 (ADR-020 item 5): neural new violations outside judge collateral form their own column.
@@ -885,7 +916,7 @@ export function scoreSensitivity(input: SensitivityInput): SensitivityOutcome {
       results.push({ probeId: row.operatorId, functionId, pass: null, lineConfirmed: null, excludedAfterFail: false, rejectedReason: acc.reason });
       continue;
     }
-    const diff = diffPair(acc.pair.baseline, acc.pair.seeded);
+    const diff = diffPair(acc.pair.baseline, acc.pair.seeded, classRenameOf(acc.pair.row, acc.pair.baseline, acc.pair.seeded));
     const keys = new Map(declared.keys.map((k) => [expectedMatchKey(k), k] as const));
     const hits = diff.fresh.filter((o) => o.v.functionId === functionId && (declared.keyless || keys.has(o.key)));
     const lineChecks = hits.flatMap((o) => {

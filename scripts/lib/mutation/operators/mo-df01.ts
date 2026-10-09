@@ -44,6 +44,9 @@ export function constructorLiterals(cls: ClassDeclaration, primitivesAllowed: bo
   if (cls.getTypeParameters().length > 0 || cls.isAbstract()) return undefined;
   const ctors = cls.getConstructors();
   if (ctors.length > 1) return undefined;
+  // ADR-025: a private or protected constructor cannot be called from the holder (TS2673 / TS2674): `type-shape`.
+  const scope = ctors[0]?.getScope();
+  if (scope === Scope.Private || scope === Scope.Protected) return undefined;
   const params = ctors[0]?.getParameters() ?? [];
   if (params.length === 0) return [];
   if (!primitivesAllowed) return undefined;

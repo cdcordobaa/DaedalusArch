@@ -167,6 +167,44 @@ export function resolveTemplates(compiled: CompiledSpec, templates: readonly str
   return { functionIds, disabledFunctionIds, absentTemplates, ...(dimension !== undefined ? { dimension } : {}) };
 }
 
+/**
+ * Expectation style guard (ADR-025; operator definitions unchanged). Under these styles the operator's edit is not a
+ * violation of the listed expected templates, so their functions are expected as disabled, not as detectors, and
+ * their keys are dropped. `layered`: MO-S01's domain-kind file importing an infrastructure-kind file is the
+ * business → persistence step the layered preset allows (`dependency-direction` flags only lower → higher), so FF-S01
+ * cannot fire on it. Like MO-S03's style rule, the guard acts on the expectation; when it leaves no applicable
+ * function the scorer treats the seed as not applicable (MAT-13 a).
+ */
+export const STYLE_GUARDED_EXPECTED: Readonly<Record<string, Readonly<Record<string, readonly string[]>>>> = {
+  layered: { 'MO-S01': ['dependency-direction'] },
+};
+
+export const STYLE_GUARD_REASON = (style: string): string => `expected key not applicable to style ${style}: the spec allows the edge (ADR-025)`;
+
+/** Applies `STYLE_GUARDED_EXPECTED` to a resolved positive: guarded functions move to `disabledFunctionIds`, their keys go. */
+export function applyStyleGuard<K extends { readonly functionId: string }>(
+  operatorId: string,
+  style: string,
+  guardedFunctionIds: readonly string[],
+  block: { readonly functionIds: readonly string[]; readonly disabledFunctionIds: readonly { readonly functionId: string; readonly reason: string }[]; readonly keys: readonly K[] },
+): { functionIds: string[]; disabledFunctionIds: { functionId: string; reason: string }[]; keys: K[] } {
+  const guarded = new Set(STYLE_GUARDED_EXPECTED[style]?.[operatorId] === undefined ? [] : guardedFunctionIds);
+  return {
+    functionIds: block.functionIds.filter((f) => !guarded.has(f)),
+    disabledFunctionIds: [
+      ...block.disabledFunctionIds,
+      ...block.functionIds.filter((f) => guarded.has(f)).map((functionId) => ({ functionId, reason: STYLE_GUARD_REASON(style) })),
+    ],
+    keys: block.keys.filter((k) => !guarded.has(k.functionId)),
+  };
+}
+
+/** Enabled function ids of the templates `STYLE_GUARDED_EXPECTED` lists for (style, operator). */
+export function styleGuardedFunctionIds(compiled: CompiledSpec, operatorId: string): string[] {
+  const templates = STYLE_GUARDED_EXPECTED[compiled.spec.style ?? '']?.[operatorId] ?? [];
+  return templates.flatMap((t) => (compiled.enabled.get(t) ?? []).map((f) => f.functionId));
+}
+
 /** BR-U5a-12 (a): every expected template of a positive is disabled for the spec's style or layer kinds. */
 export function isStyleDisabled(compiled: CompiledSpec, templates: readonly string[]): boolean {
   if (templates.length === 0) return false;
@@ -340,14 +378,18 @@ export function expectedBlock(
     });
   }
   const templates = op.expectedTemplates.map((r) => r.template);
-  const resolution = resolveTemplates(compiled, templates);
+  const resolved = resolveTemplates(compiled, templates);
+  const guarded = applyStyleGuard(op.id, compiled.spec.style ?? '', styleGuardedFunctionIds(compiled, op.id), {
+    functionIds: resolved.functionIds, disabledFunctionIds: resolved.disabledFunctionIds, keys: declared.data.keys,
+  });
+  const resolution = { ...resolved, ...guarded };
   return DomainResult.ok({
     functionIds: op.judgeProbe !== undefined ? [] : resolution.functionIds,
     disabledFunctionIds: resolution.disabledFunctionIds,
     absentTemplates: resolution.absentTemplates,
     dimension: op.judgeProbe !== undefined ? op.dimension : (resolution.dimension ?? op.dimension),
     // Outside-coverage positives (MO-X01) keep their intended keys: the outside stratum measures their misses.
-    keys: declared.data.keys,
+    keys: resolution.keys,
     collateral,
     coverage: op.coverage,
     ...(op.judgeProbe !== undefined ? { judgeProbe: op.judgeProbe } : {}),
