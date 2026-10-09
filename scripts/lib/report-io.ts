@@ -33,7 +33,11 @@ export interface GenerationCell {
   readonly requestedModelId: string; readonly resolvedModelId?: string; readonly adapterId: string;
   readonly promptTemplateId: string; readonly style: string; readonly specLevel: 'none' | 'minimal-prose' | 'full-aac';
   readonly taskId: string; readonly runIndex: 0 | 1 | 2; readonly generationOutcomePath: string;
-  readonly generationStatus: 'ok' | 'failed-typecheck' | 'failed-agent';
+  /**
+   * U5a's status, or a U5b join status (ADR-021 SO5-03, SO5-05): `missing` = no `generation.json` for the grid
+   * coordinate; `protocol-mismatch` = an outcome that breaks the registered generator plan. Both are not-run cells.
+   */
+  readonly generationStatus: 'ok' | 'failed-typecheck' | 'failed-agent' | 'missing' | 'protocol-mismatch';
   readonly failureReason?: 'typecheck' | 'agent-error' | 'model-mismatch' | 'skeleton-tampered'
     | 'infrastructure' | 'envelope-unreadable' | 'timeout';
   readonly fileCount: number; readonly fileCountInRange: boolean; readonly permissionDenials: number;
