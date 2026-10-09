@@ -36,4 +36,5 @@ Not registered, but for the bump reviewer: `schemas/report.schema.json` (a froze
 
 - Re-admitting MarvinRF as an exploratory extra needs a dated registered decision. It stays outside SO4.
 - `aggregate-cli` in the B&T integration scenario 3 and in the SO4 instructions should use `build-score-case-cli` and `--golden-registered 85` once the so4-heldout run exists (after P-U6).
+- Figures (docs lane, FIG-02 `prepareSo4Prf`): the seeded-differential precision and the F1 points are still drawn without an interval. They can now read `precision_ci_*` and `f1_ci_*` (the primary precision interval is `precision_ci_low/high`; F1 has a primary one only from 10 cells). The figure fixtures `prf_by_function.csv` and `prf_by_tag.csv` now carry the empty interval columns, so the header check passes.
 - The P2 baseline-precision interval (`precision_baseline.csv`) keeps its own weighted rule (ADR-020 item 1); this lane did not change it.
