@@ -3,9 +3,9 @@
  * fallback-required), the scripted latency.csv and NFR-07 table, graph size and FLOWS_TO coverage, the FLOWS_TO
  * store accounting, the APG-full vs AST-only ablation and the PROFILE / SCC rows. Fixtures are hand-computed.
  */
-import { mkdtempSync, readFileSync, rmSync } from 'node:fs';
+import { mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
-import { join } from 'node:path';
+import { join, resolve } from 'node:path';
 import type { ProcessResult, ProcessRunner, ProcessRunOptions } from '../../../src/shared/interfaces/process-runner.js';
 import { UNIVERSAL_CYCLE_STAGE } from '../../../src/scoring-engine/universal-metrics.js';
 import type { APGResult } from '../../../src/shared/types/apg.js';
@@ -27,6 +27,9 @@ const read = (p: string): string => readFileSync(p, 'utf8');
 const OK_REPORT = read(join(ROOT, 'tests/fixtures/u5b/reports/correct-reference.json'));
 const FAILED_REPORT = read(join(ROOT, 'tests/fixtures/u5b/injected/function-failed.json'));
 const TIMEOUT_CODE_NEO = 'Neo.ClientError.Transaction.TransactionTimedOutClientConfiguration';
+
+/** `default_exclude_paths` of corpus/specs/truthy-demo.yaml (and the first six of dry-run-test.yaml). */
+const TRUTHY_EXCLUDES = ['node_modules/**', 'dist/**', '**/*.spec.ts', '**/*.test.ts', 'test/**', 'src/generated/**'];
 
 function capture(): { out: (t: string) => void; err: (t: string) => void; writeFile: (p: string, t: string) => void; text: () => string; files: Map<string, string> } {
   let s = '';
@@ -288,7 +291,8 @@ describe('so2-metrics CLI', () => {
   it('--self-test runs a known-bad input (missing run directory) and exits 1', async () => {
     const io = capture();
     expect(await main(['--self-test'], ROOT, io)).toBe(1);
-    expect(io.text()).toContain('AGGREGATE_INPUT_INVALID');
+    expect(io.text()).toContain('SO2_INPUT_INVALID');
+    expect(io.text()).not.toContain('AGGREGATE_INPUT_INVALID');
     expect(io.files.size).toBe(0);
   });
 
@@ -302,9 +306,15 @@ describe('so2-metrics CLI', () => {
     const io = capture();
     const seen: string[] = [];
     const apg = { importResolution: { resolvedInternal: 8 }, flowsTo: { stores: 5, candidates: 3, skippedUnionOrIntersection: 0, skippedUnextractedTarget: 1, skippedSelfLoop: 1, edges: 2 } } as unknown as APGResult;
-    const deps: So2Deps = { extract: (p, mode) => { seen.push(`${p}:${mode}`); return Promise.resolve(apg); } };
+    const excludes = new Map<string, readonly string[]>();
+    const deps: So2Deps = { extract: (p, mode, ex) => { seen.push(`${p}:${mode}`); excludes.set(p, ex); return Promise.resolve(apg); } };
     expect(await main(['flows-to', '--plan', 'experiments/apg-ablation/plan.json', '--out', '/o'], ROOT, io, deps)).toBe(0);
     expect(seen).toHaveLength(9);
+    // Each entry is extracted with its spec's default_exclude_paths, as the pipeline does (audit SO2-3, X-4):
+    // corpus/specs/truthy-demo.yaml lists 6, dry-run-test.yaml adds its migrations (7), specs/clean-arch.yaml none.
+    expect(excludes.get(resolve(ROOT, '../daedalus-corpus/truthy-demo'))).toEqual(TRUTHY_EXCLUDES);
+    expect(excludes.get(resolve(ROOT, '../daedalus-corpus/dry-run-test'))).toEqual([...TRUTHY_EXCLUDES, 'src/database/migrations/**']);
+    expect([...excludes.entries()].filter(([, ex]) => ex.length === 0)).toHaveLength(5);
     expect(seen.every((s) => s.endsWith(':full'))).toBe(true);
     const csv = (io.files.get('/o/flows_to_stores.csv') ?? '').trim().split('\n');
     expect(csv).toHaveLength(10);
@@ -324,11 +334,39 @@ describe('so2-metrics CLI', () => {
       nodes: [{ id: 'fa', type: 'File', filePath: 'a.ts' }, { id: 'fb', type: 'File', filePath: 'b.ts' }],
       edges: [{ id: 'e1', type: 'IMPORTS', sourceId: 'fa', targetId: 'fb' }, { id: 'e2', type: 'IMPORTS', sourceId: 'fb', targetId: 'fa' }],
     } as unknown as APGResult;
-    const deps: So2Deps = { extract: () => Promise.resolve(apg), profileBackend: () => Promise.resolve(backend) };
-    expect(await main(['profile', '--project', 'p', '--spec', 's.yaml', '--project-id', 'g', '--out', '/o', '--reps', '2'], ROOT, io, deps)).toBe(0);
+    const seenExcludes: (readonly string[])[] = [];
+    const deps: So2Deps = { extract: (_p, _m, ex) => { seenExcludes.push(ex); return Promise.resolve(apg); }, profileBackend: () => Promise.resolve(backend) };
+    const dir = mkdtempSync(join(tmpdir(), 'so2-profile-'));
+    const spec = join(dir, 's.yaml');
+    writeFileSync(spec, 'default_exclude_paths:\n  - "test/**"\n  - "src/database/migrations/**"\n');
+    try {
+      expect(await main(['profile', '--project', 'p', '--spec', spec, '--project-id', 'g', '--out', '/o', '--reps', '2'], ROOT, io, deps)).toBe(0);
+    } finally {
+      rmSync(dir, { recursive: true, force: true });
+    }
+    expect(seenExcludes).toEqual([['test/**', 'src/database/migrations/**']]);
     expect(calls).toEqual(['ingest', 'ff', 'ff', 'ff', 'metric', 'metric', 'metric', 'close']);
     expect((io.files.get('/o/profile.csv') ?? '').trim().split('\n')).toHaveLength(7);
     expect((io.files.get('/o/scc_components.csv') ?? '').trim().split('\n')[1]).toBe('g,0,2,false,a.ts');
+  });
+
+  it('profile with an unreadable spec is SO2_INPUT_INVALID before any extraction or database call', async () => {
+    const io = capture();
+    const calls: string[] = [];
+    const deps: So2Deps = {
+      extract: () => { calls.push('extract'); return Promise.resolve({} as APGResult); },
+      profileBackend: () => { calls.push('backend'); return Promise.reject(new Error('unreachable')); },
+    };
+    expect(await main(['profile', '--project', 'p', '--spec', 'no/such/spec.yaml', '--project-id', 'g', '--out', '/o'], ROOT, io, deps)).toBe(1);
+    expect(io.text()).toContain('SO2_INPUT_INVALID: spec');
+    expect(calls).toEqual([]);
+  });
+
+  it('tables with a missing --run-dir reports SO2_INPUT_INVALID (not the aggregate code), exit 1', async () => {
+    const io = capture();
+    expect(await main(['tables', '--run-dir', 'no/such/dir', '--out', '/o'], ROOT, io)).toBe(1);
+    expect(io.text()).toContain('SO2_INPUT_INVALID');
+    expect(io.text()).not.toContain('AGGREGATE_INPUT_INVALID');
   });
 
   it('gateSummary groups runs by plan id', () => {
@@ -379,9 +417,11 @@ describe('apg_arms.csv: the two arms differ (ADR-021 item 8; audit SO2-5, X-2)',
   it('arms extracts both arms of each pair of the apg-ablation plan (injected extractor)', async () => {
     const io = capture();
     const seen: string[] = [];
-    const deps: So2Deps = { extract: (_p, mode) => { seen.push(mode); return Promise.resolve(mode === 'full' ? full : ast); } };
+    const excl: string[] = [];
+    const deps: So2Deps = { extract: (p, mode, ex) => { seen.push(mode); if (p.endsWith('dry-run-test')) excl.push(`${mode}:${String(ex.length)}`); return Promise.resolve(mode === 'full' ? full : ast); } };
     expect(await main(['arms', '--plan', 'experiments/apg-ablation/plan.json', '--out', '/o'], ROOT, io, deps)).toBe(0);
     expect(seen).toHaveLength(18);
+    expect(excl).toEqual(['full:7', 'ast-only:7']);
     const csv = (io.files.get('/o/apg_arms.csv') ?? '').trim().split('\n');
     expect(csv).toHaveLength(10);
     expect(csv[1]?.startsWith('realworld-test,8,4,4,')).toBe(true);

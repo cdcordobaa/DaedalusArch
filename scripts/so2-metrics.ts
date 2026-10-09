@@ -31,12 +31,12 @@ import { FileSystemSnapshotStore } from '../src/neo4j-ingestion/fs-snapshot-stor
 import { ingestAPG } from '../src/neo4j-ingestion/index.js';
 import { Neo4jRepository } from '../src/neo4j-ingestion/neo4j-repository.js';
 import { UNIVERSAL_METRIC_QUERIES } from '../src/scoring-engine/universal-metrics.js';
-import { parseSpec } from '../src/spec-parser/index.js';
+import { parseSpec, readSpecExcludePaths } from '../src/spec-parser/index.js';
 import type { GraphMode } from '../src/apg-extractor/types.js';
 import { CYCLE_ROW_CAP, MAX_CYCLE_LENGTH } from '../src/fitness-compiler/cypher-templates.js';
 import { buildFileGraph, stronglyConnectedComponents } from '../src/evaluation-engine/scc-cycles.js';
 import type { APGResult } from '../src/shared/types/apg.js';
-import { csvText, f6, loadRunDir } from './aggregate.js';
+import { csvText, f6 } from './aggregate.js';
 import type { ExperimentPlan } from './run-experiment.js';
 import {
   ABLATION_COLUMNS, ABLATION_SUMMARY_COLUMNS, ablationCsvRows, ablationRows, ablationSummaryRows, ARMS_COLUMNS, armsRow, AST_ONLY_SUFFIX, FLOWS_TO_STORE_COLUMNS,
@@ -45,7 +45,7 @@ import {
 } from './lib/so2.js';
 import type { GateResult, ProfileMeasurement, So2Run } from './lib/so2.js';
 import { FF_S02_TEMPLATE, TIMEOUT_MARKER, totalDbHits } from './lib/so2.js';
-import { knownSecretsOf, scrubbedJson } from './lib/report-io.js';
+import { knownSecretsOf, loadRunDir as loadRunDirOf, scrubbedJson } from './lib/report-io.js';
 
 export const SO2_INPUT_INVALID = 'SO2_INPUT_INVALID';
 export const SO2_ARMS_IDENTICAL = 'SO2_ARMS_IDENTICAL';
@@ -77,22 +77,39 @@ export interface ProfileBackend {
 }
 
 export interface So2Deps {
-  readonly extract: (projectPath: string, graphMode: GraphMode) => Promise<APGResult>;
+  /**
+   * Extracts `projectPath` in `graphMode` with `excludePatterns` beyond the extractor defaults: the evaluating spec's
+   * `default_exclude_paths` (`specExcludesOf`), so the measured graph is the one the run evaluated (audit SO2-3, X-4).
+   */
+  readonly extract: (projectPath: string, graphMode: GraphMode, excludePatterns: readonly string[]) => Promise<APGResult>;
   /** Built only by `profile` (lazily: no other subcommand touches a database). */
   readonly profileBackend?: () => Promise<ProfileBackend>;
 }
 
 export const defaultSo2Deps: So2Deps = {
-  extract: async (projectPath, graphMode) => {
-    const r = await extractAPG(projectPath, { graphMode });
+  extract: async (projectPath, graphMode, excludePatterns) => {
+    const r = await extractAPG(projectPath, { graphMode, excludePatterns: [...excludePatterns] });
     if (!r.success) throw new Error(`${SO2_INPUT_INVALID}: extraction of ${projectPath} failed: ${r.errors.map((e) => e.message).join('; ')}`);
     return r.data;
   },
 };
 
+/**
+ * The extraction excludes of the spec at `specPath` (repo-relative or absolute): its `default_exclude_paths`, read
+ * by the same C3 rule the pipeline passes to `ExtractCommand` (`readSpecExcludePaths`). An unreadable or unparsable
+ * spec is `SO2_INPUT_INVALID`: a measurement without the run's excludes would describe a different graph.
+ */
+export function specExcludesOf(repoRoot: string, specPath: string): string[] {
+  try {
+    return readSpecExcludePaths(resolve(repoRoot, specPath));
+  } catch (e) {
+    throw new Error(`${SO2_INPUT_INVALID}: spec ${specPath}: ${e instanceof Error ? e.message : String(e)}`);
+  }
+}
+
 /** Runs of one harness output directory (records with their stored reports). */
 export function loadSo2Runs(dir: string): So2Run[] {
-  const { records, reports } = loadRunDir(dir);
+  const { records, reports } = loadRunDirOf(dir, SO2_INPUT_INVALID);
   return records.map((record) => ({ record, report: reports.get(record.runId) }));
 }
 
@@ -173,7 +190,8 @@ export async function main(argv: readonly string[], repoRoot: string, io: So2Mai
           const baseId = a.projectId.endsWith(AST_ONLY_SUFFIX) ? a.projectId.slice(0, -AST_ONLY_SUFFIX.length) : a.projectId;
           const f = plan.projects.find((x) => x.projectId === baseId && (x.graphMode ?? 'full') === 'full');
           if (f?.path !== a.path) throw new Error(`${SO2_INPUT_INVALID}: ${a.projectId} has no full arm ${baseId} on the same path`);
-          rows.push(armsRow(baseId, await deps.extract(resolve(repoRoot, f.path), 'full'), await deps.extract(resolve(repoRoot, a.path), 'ast-only')));
+          const excludes = specExcludesOf(repoRoot, f.specPath);
+          rows.push(armsRow(baseId, await deps.extract(resolve(repoRoot, f.path), 'full', excludes), await deps.extract(resolve(repoRoot, a.path), 'ast-only', specExcludesOf(repoRoot, a.specPath))));
         }
         io.writeFile(join(outDir, 'apg_arms.csv'), csvText(ARMS_COLUMNS, rows));
         const differ = rows.filter((r) => r[r.length - 1] === 'true').length;
@@ -190,7 +208,7 @@ export async function main(argv: readonly string[], repoRoot: string, io: So2Mai
         const plan = JSON.parse(readFileSync(resolve(repoRoot, planFile), 'utf8')) as ExperimentPlan;
         const rows: string[][] = [];
         for (const p of plan.projects.filter((x) => (x.graphMode ?? 'full') === 'full')) {
-          const apg = await deps.extract(resolve(repoRoot, p.path), 'full');
+          const apg = await deps.extract(resolve(repoRoot, p.path), 'full', specExcludesOf(repoRoot, p.specPath));
           if (apg.flowsTo === undefined) throw new Error(`${SO2_INPUT_INVALID}: the extractor returned no FLOWS_TO accounting for ${p.projectId}`);
           rows.push(flowsToStoreRow(p.projectId, apg.flowsTo, apg.importResolution.resolvedInternal, f6));
         }
@@ -224,7 +242,7 @@ async function profile(opts: Map<string, string[]>, repoRoot: string, outDir: st
   }
   if (deps.profileBackend === undefined) throw new Error(`${SO2_INPUT_INVALID}: no database backend for profile`);
   const specPath = resolve(repoRoot, spec);
-  const apg = await deps.extract(resolve(repoRoot, project), 'full');
+  const apg = await deps.extract(resolve(repoRoot, project), 'full', specExcludesOf(repoRoot, specPath));
   const backend = await deps.profileBackend();
   try {
     await backend.ingest(apg, specPath);
