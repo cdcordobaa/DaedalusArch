@@ -1,6 +1,6 @@
 # U6 lane SO5-gen (ADR-021)
 
-**Date**: 2026-10-08. **Branch**: `v1.2e-u6-so5gen`. **Findings closed**: SO5-03, THR-8, SO5-04, SO5-05, SO5-08 (`Docs/DiagnosticRuns/so-readiness-audit-2026-10-08.json`). No live LLM call, no generation, no E1/E7/SO4 or labelling run.
+**Date**: 2026-10-08. **Branch**: `v1.2e-u6-so5gen`. **Findings closed**: SO5-03, THR-8, SO5-04, SO5-05 (PR #18 plus the follow-ups below); SO5-08 closed for the ADR-021 work item (the pre-run E1 estimate) only, its residual stays open (see Open items) (`Docs/DiagnosticRuns/so-readiness-audit-2026-10-08.json`). No live LLM call, no generation, no E1/E7/SO4 or labelling run.
 
 ## What changed
 
@@ -28,7 +28,7 @@
 ## Open items
 
 - `Docs/analysis-plan.md` (owned by P-M) should document the two join codes, `GEN-MISSING` and `GEN-PROTOCOL-MISMATCH`, beside its `genCodes` table in the P-U6 text. The registered table itself is unchanged, so `parseSo5Codes` still requires exactly the seven U5a codes.
-- SO5-08 residual: the measured calls per usage window and the dated comparison line in `Docs/judge-preregistration.md` stay open. They need live calls, which are out of scope here. The judge pre-registration's own registration (the finding's last clause) is also not in this lane.
+- SO5-08 residual: the measured calls per usage window, the dated comparison line in `Docs/judge-preregistration.md` (its "Dated lines" still reads "None yet" and does not yet reference `Docs/DiagnosticRuns/e1-judge-volume-estimate.md`) and an E7 estimate stay open. They need live calls, which are out of scope here. The judge pre-registration's own registration (the finding's last clause) is also not in this lane.
 - The existing pilot outcomes under `../daedalus-e1-outcomes/pilot/` carry `orderSeed` 0 and were written by the scratch plan. They are pilot data, never joined, so they need no action. A re-run of the pilot must use the registered plan.
 
 ## Follow-up (2026-10-09, branch `v1.2e-u6-so5gen-followup`)
@@ -46,3 +46,16 @@ A review of PR #18 found SO5-05 only half closed end to end: `aggregate.ts` stil
 - Still for P-U6 (unchanged from above): register `experiments/e1-grid/generator-plan.json`, re-hash `Docs/generator-protocol.md`, and add `GEN-MISSING` / `GEN-PROTOCOL-MISMATCH` beside the `genCodes` table of `Docs/analysis-plan.md` (the seven-code registered table stays as is).
 - Still for P-U6 or the pilot: the SO5-08 residual (measured calls per usage window, the dated comparison line, registering `Docs/judge-preregistration.md` in `corpus/prereg.json`). No change here.
 - Housekeeping: the merged branch `v1.2e-u6-so5gen` was deleted locally and on origin.
+
+## Follow-up 2 (2026-10-09, branch `v1.2e-u6-so5gen-fix`)
+
+A second review found that a `generation.json` declaring another coordinate (task, model, level or run) produced a `protocol-mismatch` cell carrying the outcome's own fields. `completeE1Cells` then saw it as an off-grid extra and synthesised `GEN-MISSING` for the real coordinate, so `so5_grid.csv` had 55 rows for the 54-cell grid and the mismatch was reported at the wrong cell.
+
+| Finding | Change |
+|---|---|
+| SO5-03, SO5-05 (coordinate mismatch) | `joinOutcome` (`scripts/run-experiment.ts`): every `protocol-mismatch` cell now starts from `missingE1Cell` at the grid entry's coordinate (`requestedModelId`, `taskId`, `specLevel`, `runIndex`, `promptTemplateId`, `style`, `adapterId`, outcome path) and copies only the outcome's counts (`fileCount`, `fileCountInRange`, `permissionDenials`) as evidence; the outcome's `resolvedModelId` and `failureReason` are not carried. |
+| Gate L | `scripts/e1-judge-volume.ts`: the two new-lane eslint errors (`prefer-optional-chain`, `no-unnecessary-template-expression`) are fixed; the generated estimate text is unchanged. |
+
+- Tests: `run-experiment.test.ts` gains "an outcome declaring another task, model or run is a mismatch cell at its directory's own coordinate" (three outcomes declaring task `order-fulfilment`, model `m9`, run 0; each cell equals the grid coordinate with counts 25 / true / 2). `aggregate.test.ts` gains a describe over the 54-cell synthetic grid with the mismatched outcome under `m1/task-management/none/run-0`, joined through `joinOutcome`: 54 `so5_grid.csv` rows, `GEN-PROTOCOL-MISMATCH` at that coordinate, no `GEN-MISSING`, patterns `GEN-PROTOCOL-MISMATCH` and `GEN-TIMEOUT`, 52 valid cells. Both fail on the previous code.
+- Registered artefacts touched: none. Golden unchanged (no CHANGES.md line).
+- Known flake, not in this lane: `aggregate.test.ts` "the same CSV renders to byte-identical SVG through the CLI" failed once under `--maxWorkers=2` in the review run (it already has a 120 s timeout); it passed in this lane's full run.

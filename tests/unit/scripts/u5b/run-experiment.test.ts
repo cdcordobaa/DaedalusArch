@@ -295,6 +295,36 @@ describe('E1 registered generator plan and missing cells (ADR-021 SO5-03, SO5-05
     }
   });
 
+  it('SO5-03/SO5-05: an outcome declaring another task, model or run is a mismatch cell at its directory\'s own coordinate', async () => {
+    // Hand-computed: run-0 declares task order-fulfilment (and its template id), run-1 declares model m9, run-2
+    // declares run 0. Each is GEN-PROTOCOL-MISMATCH naming the field; each cell carries the grid coordinate
+    // (m1 / task-management / none / its own run, template none/task-management) and the outcome's counts (25, true, 2).
+    const e = e1Repo(3);
+    try {
+      e.outcome(0, { taskId: 'order-fulfilment', promptTemplateId: 'none/order-fulfilment' });
+      e.outcome(1, { requestedModelId: 'm9', resolvedModelId: 'm9-2026', adapterId: 'other-cli' });
+      e.outcome(2, { runIndex: 0 });
+      const runner = new FakeRunner(() => { throw new Error('must not run'); });
+      const r = await runPlan(e.plan, 'experiments/t/plan.json', e.root, deps(runner, { schemaRoot: ROOT, gate: e.gate }));
+      expect(r.records).toHaveLength(3);
+      expect(r.records[0]?.reasonDetail).toMatch(/^GEN-PROTOCOL-MISMATCH: .*taskId "order-fulfilment" != "task-management"/);
+      expect(r.records[1]?.reasonDetail).toMatch(/requestedModelId "m9" != "m1"/);
+      expect(r.records[2]?.reasonDetail).toMatch(/runIndex 0 != 2/);
+      r.records.forEach((rec, i) => {
+        expect(rec.projectId).toBe(`m1/task-management/none/run-${String(i)}`);
+        expect(rec.cell).toEqual({
+          requestedModelId: 'm1', adapterId: 'claude-code-cli', promptTemplateId: 'none/task-management', style: 'clean-architecture',
+          specLevel: 'none', taskId: 'task-management', runIndex: i, generationOutcomePath: `gen/m1/task-management/none/run-${String(i)}/generation.json`,
+          generationStatus: 'protocol-mismatch', fileCount: 25, fileCountInRange: true, permissionDenials: 2,
+        });
+      });
+      for (const rec of records()) expect(validateRunRecord(rec, ROOT)).toEqual([]);
+      expect(runner.calls).toHaveLength(0);
+    } finally {
+      e.cleanup();
+    }
+  });
+
   it('SO5-03: a schedule.json from another plan or seed marks every present outcome as a protocol mismatch', async () => {
     const e = e1Repo(1);
     try {
