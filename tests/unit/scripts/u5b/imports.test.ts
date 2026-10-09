@@ -64,6 +64,7 @@ const WHITELISTED_SRC = new Set([
   'src/llm-critic/types.ts',                       // CassetteEntry
   'src/llm-critic/gemini-provider.ts',             // GeminiProvider (record mode only, BR-U5b-44)
   'src/llm-critic/mock-provider.ts',               // MockLLMProvider (fixture recording)
+  'src/llm-critic/agy-cli-provider.ts',           // AgyCliProvider, the labeller route (ADR-019 item 4 as amended; ADR-021 SO3-1)
   'src/shared/interfaces/llm-provider.ts',         // LLMProvider port (type)
   'src/shared/errors/domain-result.ts',            // DomainResult (provider answers)
 ]);

@@ -3,7 +3,7 @@
   "adr": "ADR-019 item 4",
   "cliVersion": "0.46.0",
   "cliPath": "<HOME>/.nvm/versions/node/v24.5.0/bin/gemini (npm global, @google/gemini-cli)",
-  "outcome": "HALT: the Google-account route is refused by the Code Assist backend before any model request (IneligibleTierError, reasonCode UNSUPPORTED_CLIENT, tierId free-tier, tierName 'Gemini Code Assist for individuals'). The refusal comes from the account tier and client (server side); isolation itself held up to the tier check.",
+  "outcome": "HALT, route closed: the Gemini CLI Google-account route is refused by the Code Assist backend before any model request (IneligibleTierError, reasonCode UNSUPPORTED_CLIENT, tierId free-tier, tierName 'Gemini Code Assist for individuals'). The refusal comes from the account tier and client (server side); isolation itself held up to the tier check. ADR-019 item 4 as amended (2026-10-08, commit 1185a1f, the parent of this probe commit) already records this refusal and binds the route to the Antigravity CLI (agy 1.1.23, dedicated home <HOME>/.firewall/labeller-agy-home, model gemini-3.1-pro-high). This route is not resumed; the next step is the agy isolation probe under that amendment, not a new author decision.",
   "probeSpawns": 5,
   "probeSpawnsReachingAuth": 3,
   "modelRequests": 0,
@@ -25,7 +25,8 @@
       "stderrClass": "IneligibleTierError UNSUPPORTED_CLIENT",
       "modelRequest": false,
       "authReached": true,
-      "note": "run in a first dedicated home that was removed by a concurrent process before its files were saved; result re-observed in call 5"
+      "note": "run in a first dedicated home that no longer existed when its files were to be saved; the cause of its removal was not established (the earlier attribution to a concurrent process is unproven). The refusal is evidenced only by call 5",
+      "evidence": "unevidenced: no stderr was saved (the first dedicated home was gone before its files were saved); exit, stderrClass and authReached rest on session notes, not on a committed artefact"
     },
     {
       "n": 3,
@@ -35,7 +36,8 @@
       "stderrClass": "IneligibleTierError UNSUPPORTED_CLIENT",
       "modelRequest": false,
       "authReached": true,
-      "note": "as call 2"
+      "note": "as call 2",
+      "evidence": "unevidenced: no stderr was saved (the first dedicated home was gone before its files were saved); exit, stderrClass and authReached rest on session notes, not on a committed artefact"
     },
     {
       "n": 4,
@@ -64,11 +66,11 @@
       "json",
       "stream-json"
     ],
-    "jsonErrorEnvelope": "none on an auth/tier failure: stdout empty, exit 1, error on stderr"
+    "jsonErrorEnvelope": "none on an auth/tier failure: stdout empty, exit 1 in headless mode (call 5), error on stderr; non-headless subcommands exited 0 on the same refusal (calls 2 and 3)"
   },
   "isolation": {
     "configHome": "GEMINI_CLI_HOME=<HOME>/.firewall/labeller-gemini/home (also HOME, so os.homedir() lookups stay inside it); env -i with an allow-list",
-    "credentialReuse": "supported without copying: fetchCachedCredentials() tries <GEMINI_CLI_HOME>/.gemini/oauth_creds.json, then the path in GOOGLE_APPLICATION_CREDENTIALS; the child gets GOOGLE_APPLICATION_CREDENTIALS=<HOME>/.gemini/oauth_creds.json and GOOGLE_GENAI_USE_GCA=true. The CLI reads the file; the probe never read, copied or edited it (size and mtime unchanged before/after).",
+    "credentialReuse": "supported without copying: fetchCachedCredentials() tries <GEMINI_CLI_HOME>/.gemini/oauth_creds.json, then the path in GOOGLE_APPLICATION_CREDENTIALS; the child gets GOOGLE_APPLICATION_CREDENTIALS=<HOME>/.gemini/oauth_creds.json and GOOGLE_GENAI_USE_GCA=true. The CLI reads the file; the probe never read, copied or edited it (size and mtime unchanged before/after). DO NOT REPEAT: pointing the child at the author's ambient <HOME>/.gemini/oauth_creds.json tied the dedicated home to the ambient ~/.gemini, against the spirit of ADR-019 item 4, and carries the refresh hazard below. Any CLI route signs in inside its own dedicated home (as the agy amendment does: Google OAuth into <HOME>/.firewall/labeller-agy-home) and never references ~/.gemini credentials.",
     "credentialRefreshHazard": "on a token refresh the CLI writes the refreshed tokens (no refresh_token) to <GEMINI_CLI_HOME>/.gemini/oauth_creds.json, which is tried first on the next call; a provider would have to remove that file (names only) before each call. Not observed in this probe (no refresh happened).",
     "systemSettings": "GEMINI_CLI_SYSTEM_SETTINGS_PATH -> isolation-settings.json (highest precedence); GEMINI_CLI_SYSTEM_DEFAULTS_PATH -> a non-existent file",
     "tools": "tools.core = [] (truthy, so createToolRegistry registers no built-in tool, AgentTool included); experimental.enableAgents false; useWriteTodos false; skills.enabled false",
@@ -77,7 +79,8 @@
     "systemPrompt": "GEMINI_SYSTEM_MD=<persona file> replaces the built-in coding-agent system prompt (substitutions of ${...} placeholders apply)",
     "authSource": "oauth-personal (Login with Google) via GOOGLE_GENAI_USE_GCA=true and security.auth.selectedType; GEMINI_API_KEY must stay out of the child env (it would select API-key auth)",
     "autoUpdate": "general.enableAutoUpdate false and enableAutoUpdateNotification false in the system settings; pin by checking gemini --version == 0.46.0",
-    "notVerified": "tool, MCP and GEMINI.md canaries with positive controls, model id, JSON envelope shape (stats.models), error classes other than the tier refusal: no model request was possible"
+    "notVerified": "tool, MCP and GEMINI.md canaries with positive controls, model id, JSON envelope shape (stats.models), error classes other than the tier refusal: no model request was possible",
+    "credentialReuseRepeat": false
   },
   "dedicatedHomeWrites": [
     "<HOME>",
@@ -104,10 +107,20 @@
   "errorClasses": {
     "INELIGIBLE_TIER": {
       "observed": true,
-      "exit": 1,
+      "exit": "1 headless (call 5); 0 for non-headless subcommands (calls 2 and 3, unevidenced); classify on stderrPattern",
       "stdout": "",
       "stderrPattern": "IneligibleTierError|UNSUPPORTED_CLIENT|no longer supported for Gemini Code Assist for individuals",
-      "stop": "route unavailable (author action)"
+      "stop": "route closed (ADR-019 item 4 amendment: agy)"
     }
+  },
+  "routeStatus": {
+    "gemini": "closed (ADR-019 item 4 amendment)",
+    "next": "agy isolation probe under the amendment: no tools, extensions or MCP servers, no ambient GEMINI.md, dedicated home <HOME>/.firewall/labeller-agy-home, version pin 1.1.23, canaries with positive controls, model-id check gemini-3.1-pro-high, cassettes; escalate only if agy cannot be isolated"
+  },
+  "probeSpawnsReachingAuthEvidenced": 1,
+  "exitCodeByMode": "the tier refusal exit code depends on the mode: 0 for non-headless subcommands (calls 2 and 3, --list-extensions, refusal on stderr only; unevidenced) and 1 for the headless --output-format json call (call 5). An adapter must classify on the stderr pattern, never on the exit code alone.",
+  "budgets": {
+    "probeCap": 15,
+    "estimateNote": "llm-label --estimate on tests/fixtures/u5b/labels/plan.json gave 40 calls <= 200 (caps P2 20, P3 20, P4 10), exit 0; that 200 is the fixture plan's own budgetCalls, unrelated to the ADR-019 item 5 Build and Test judge-call budget of 200 in the live-call ledger. The registered labelling budget is labellingBudgetCalls 4000 in corpus/prereg.json."
   }
 }

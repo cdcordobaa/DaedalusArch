@@ -952,6 +952,25 @@ i. **U2 derived settlements** S-1 to S-7 and S-9 (U2 `business-rules.md` §14.1)
      - Naming (X-6): the ADR-020 bump is "P-M"; "P-2" stays the B&T cycle-strategy flip.
 3. **The H13 latency gate (BT-D) moves to U6**, so the gate's fixes come before its first run.
 4. **Registration.** Every U6 change to a registered artefact goes into one dated bump, P-U6, after P-1 and P-M and before any so4-heldout, e7-corpus, e1-grid or live-labelling run. The final pre-run check of P-U6 is reviewed by a Fable adversarial verifier.
+5. **P-U6 additions from the Fable verification of P-1 (2026-10-09; verdict PASS with no blocking issues; the record is `Docs/DiagnosticRuns/p1-verification-2026-10-09.md`).**
+   - **Major 1:** the registered plans must name the held-out set.
+     - Write the seven held-out `{projectId, path, specPath}` entries into `experiments/so4-heldout/plan.json`: realworld, ghostfolio, truthy-demo, dry-run-test, zhuravlevma, nestjslatam, valex.
+     - Add the three E7 bases to `experiments/e7-corpus/plan.json`.
+     - Update the run list in `Docs/analysis-plan.md`, and add its Reporting duties section if P-M has not already done so.
+   - **Major 2:** register the count inputs. Commit the `--bases` list used for the count, or record the exact command lines in `u5a-site-feasibility.md`. Add these to `REGISTERED_ARTEFACTS`, without rerunning any count:
+     - `Docs/DiagnosticRuns/u5a-site-feasibility.json`
+     - `u5a-base-typecheck.json`
+     - `e7-spec-generation.json`
+     - `corpus/selections/*.json`
+   - **Minor:** also register `presets/*.yaml`, `generate-e7-specs-cli.ts` and the three chain tools (`migrate-corpus-spec`, `remap-domain-layer`, `corpus-rubric-u4`).
+   - **MarvinRF stays excluded from SO4 for good.** Re-admitting it would need a second feasibility count. If the zero-judge-units schema defect is fixed, MarvinRF may be reported only as an exploratory extra.
+   - **Ch7 reporting duties 1–9 from that verification are binding.** They cover the full capacity history (29/42, then 47/69, then 85/126), the three floor-motivated decisions with their arithmetic, the counterfactual (N = 111 at k = 3 on six bases without the ghostfolio repair), the exclusions by name, the style mismatches and imbalance, the vocabulary written after the projects were known, and the 85-vs-80 margin.
+6. **Labelling budget (2026-10-09, after PR #21).** The agy route measured about 60 s and 74k–124k input tokens per label call. Two calls used about 1.1% of the weekly and 2.6% of the 5-hour Gemini quota, so about 180 calls fit in a week. The registered ceiling of 4000 calls is a cap, not a requirement. The U6 label-plan producer must therefore:
+   - size every stratum explicitly and register the sizes in P-U6. The whole live labelling plan, both runs included, must fit in 300 calls or fewer, spread over at least two weeks of quota.
+   - cut the context to what the labeller needs: the 31-line window plus the rule text and the verdict schema. Measure the input tokens per call and record them.
+   - compute the CI widths that the registered sizes give, and report them, so the precision of FP/FN and agreement is stated before any run.
+
+   If 300 calls cannot support FR-27, the gap is reported as a limitation. The judge-vs-panel agreement (P4) takes priority over the P2 baseline-precision sample, and P2 over P3.
 
 ---
 

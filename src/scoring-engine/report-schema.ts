@@ -1004,6 +1004,7 @@ export const REPORT_SCHEMA = {
           "enum": [
             "claude-cli",
             "gemini",
+            "agy",
             "mock",
             "null",
             "none"

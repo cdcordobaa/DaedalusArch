@@ -1,5 +1,5 @@
 /**
- * Registered catalogue and the DRAFT operator catalogue (U5a plan Step 31; FR-24 amendment; BR-U5a-05, 20, 21, 38,
+ * Registered catalogue and the frozen operator catalogue (U5a plan Step 31; FR-24 amendment; BR-U5a-05, 20, 21, 38,
  * 39; D-U5a-10).
  */
 import * as fs from 'node:fs';
@@ -69,14 +69,16 @@ describe('registry ↔ catalogue (BR-U5a-38, 39)', () => {
     expect(!res.success && res.errors[0]?.code).toBe('CAT_FROZEN');
   });
 
-  it('DRAFT header, master seed and vectors, rename list, sitesPerOperator TBD, SP placeholder, changelog', () => {
-    expect(TEXT.startsWith('# Operator Catalogue (DRAFT)')).toBe(true);
+  it('FROZEN header, master seed and vectors, rename list, sitesPerOperator 2, E1 orderSeed, SP section, changelog, threats', () => {
+    expect(TEXT.startsWith('# Operator Catalogue (FROZEN)')).toBe(true);
     expect(TEXT).toContain(`\`masterSeed = ${String(MASTER_SEED)}\``);
     expect(TEXT).toContain(`\`${String(deriveSeed(MASTER_SEED, { projectId: 'correct-reference', operatorId: 'MO-S01', k: 0 }))}\``);
     expect(TEXT).toContain(`\`${String(deriveSeed(MASTER_SEED, { projectId: 'correct-reference', operatorId: 'MO-S01', k: 'select' }))}\``);
     expect(TEXT).toContain(`suffixes ${RENAME_SUFFIXES.map((s) => `\`${s}\``).join(', ')}`);
     expect(TEXT).toContain(`prefixes ${TWIN_PREFIXES.map((s) => `\`${s}\``).join(', ')}`);
-    expect(TEXT).toContain('`sitesPerOperator: TBD`');
+    expect(TEXT).toContain('`sitesPerOperator: 2`');
+    expect(TEXT).toContain('E1 `orderSeed = 20261008`');
+    expect(TEXT).toContain('## 7. Threats to validity (BR-U5a-40)');
     expect(TEXT).toContain('## 5. SP-* sensitivity probes');
     expect(TEXT).toContain('## 6. Changelog');
   });
