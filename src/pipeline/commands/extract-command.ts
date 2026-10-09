@@ -3,6 +3,7 @@ import type { FirewallContext } from '../../shared/context/firewall-context.js';
 import type { DomainResult as DomainResultType } from '../../shared/errors/domain-result.js';
 import { DomainResult } from '../../shared/errors/domain-result.js';
 import { extractAPG } from '../../apg-extractor/index.js';
+import type { GraphMode } from '../../apg-extractor/types.js';
 import { toPipelineError, toPipelineWarning } from './map-helpers.js';
 
 export class ExtractCommand implements PipelineCommand {
@@ -11,11 +12,14 @@ export class ExtractCommand implements PipelineCommand {
   constructor(
     private readonly projectPath: string,
     private readonly excludePatterns: string[] = [],
+    /** `ast-only` is the APG ablation arm (ADR-021 SO2); absent = `full`. */
+    private readonly graphMode?: GraphMode,
   ) {}
 
   async execute(context: FirewallContext): Promise<DomainResultType<void>> {
     const result = await extractAPG(this.projectPath, {
       excludePatterns: this.excludePatterns,
+      ...(this.graphMode !== undefined && { graphMode: this.graphMode }),
     });
 
     if (!result.success) {

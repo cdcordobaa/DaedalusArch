@@ -37,6 +37,9 @@ import type { AssembleReportConfig } from './commands/assemble-report-command.js
 import { NO_JUDGE } from '../scoring-engine/report-builder.js';
 import type { JudgeProvenance } from '../shared/types/evaluation.js';
 import type { CompileFactsHolder } from './commands/compile-command.js';
+import { UNIVERSAL_CYCLE_STAGE } from '../scoring-engine/universal-metrics.js';
+import type { CycleMetricTiming } from '../scoring-engine/universal-metrics.js';
+import type { StageTimingEntry, StageTimings } from './types.js';
 
 /**
  * The value returned by `createPipeline`. Holds everything the caller needs
@@ -142,7 +145,7 @@ export function createPipeline(config: PipelineConfig): PipelineBundle {
   // ---- Stage 1: Extract APG + Parse Spec (parallel) -------------------
   commands.push(
     new ParallelCommand([
-      new ExtractCommand(config.projectPath, specExcludePaths),
+      new ExtractCommand(config.projectPath, specExcludePaths, config.graphMode),
       new ParseCommand(config.specFilePath),
     ]),
   );
@@ -183,7 +186,12 @@ export function createPipeline(config: PipelineConfig): PipelineBundle {
   // We must supply them at construction because ScoreCommandConfig is a
   // static value. To avoid reading the spec twice we use a lazy proxy
   // command that defers ScoreCommand construction until execute().
-  commands.push(new LazyScoreCommand(graphRepo, config));
+  // The universal cycle metric's own timing joins the report timings as a sub-stage entry (ADR-021 SO2).
+  const subStages: StageTimingEntry[] = [];
+  const onCycleMetricTiming = (t: CycleMetricTiming): void => {
+    subStages.push(cycleMetricStage(t));
+  };
+  commands.push(new LazyScoreCommand(graphRepo, config, onCycleMetricTiming));
 
   // ---- Optional: save snapshot ----------------------------------------
   if (config.persist && config.commitSha !== undefined) {
@@ -205,7 +213,7 @@ export function createPipeline(config: PipelineConfig): PipelineBundle {
   // time from the holder the evaluation command filled; symbolic-only keeps the NO_JUDGE stub.
   const assembleConfig: AssembleReportConfig = {
     mode: config.evaluationMode,
-    timingSource: () => executor.getTimings(),
+    timingSource: () => withSubStages(executor.getTimings(), subStages),
     compileFacts,
     scrubPolicy,
   };
@@ -231,6 +239,29 @@ export function createPipeline(config: PipelineConfig): PipelineBundle {
   return { executor, context, commands, cleanup };
 }
 
+/** The `report.timings.stages` entry of the universal cycle metric (ADR-016 e; ADR-021 SO2; audit SO2-2). */
+export function cycleMetricStage(t: CycleMetricTiming): StageTimingEntry {
+  return { name: UNIVERSAL_CYCLE_STAGE, durationMs: t.durationMs, status: t.failed ? 'error' : 'success' };
+}
+
+/** The executor stage that contains the cycle-metric sub-stage (`ScoreCommand.name`). */
+export const CYCLE_METRIC_PARENT_STAGE = 'compute-scores';
+
+/**
+ * Executor timings plus sub-stage entries, each placed immediately before its parent stage (`parent`, default
+ * `compute-scores`), so the last entry stays the last executor stage (U3-R9, BR-U3-50: the last stage is
+ * `compute-scores`). Without the parent the sub-stages are appended. `totalMs` stays the sum of the top-level
+ * stages: a sub-stage is already inside its parent stage's duration.
+ */
+export function withSubStages(timings: StageTimings, subStages: readonly StageTimingEntry[], parent: string = CYCLE_METRIC_PARENT_STAGE): StageTimings {
+  if (subStages.length === 0) return timings;
+  const at = timings.stages.findIndex((st) => st.name === parent);
+  const stages = at < 0
+    ? [...timings.stages, ...subStages]
+    : [...timings.stages.slice(0, at), ...subStages, ...timings.stages.slice(at)];
+  return { stages, totalMs: timings.totalMs };
+}
+
 // ======================================================================
 // Internal helper: LazyScoreCommand
 // ======================================================================
@@ -246,6 +277,7 @@ class LazyScoreCommand implements PipelineCommand {
   constructor(
     private readonly graphRepository: GraphRepository,
     private readonly config: PipelineConfig,
+    private readonly onCycleMetricTiming?: (timing: CycleMetricTiming) => void,
   ) {}
 
   async execute(context: FirewallContext): Promise<DomainResultType<void>> {
@@ -260,6 +292,7 @@ class LazyScoreCommand implements PipelineCommand {
       projectPath: this.config.projectPath,
       specVersion: parsedSpec.specVersion,
       fitnessFunctions: parsedSpec.fitnessFunctions,
+      ...(this.onCycleMetricTiming !== undefined && { onCycleMetricTiming: this.onCycleMetricTiming }),
     });
 
     return scoreCmd.execute(context);

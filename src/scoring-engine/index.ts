@@ -9,8 +9,9 @@ export type { DimensionTally, DimensionScoring, DimensionScoringInput, VerdictSo
 export { determineVerdict } from './verdict.js';
 export {
   computeUniversalMetrics, UNIVERSAL_METRIC_QUERIES, NO_CLASSES_OR_INTERFACES, NO_FILE_TO_FILE_IMPORTS, APG_MISSING,
+  UNIVERSAL_CYCLE_STAGE,
 } from './universal-metrics.js';
-export type { UniversalMetricsOutput, UniversalMetric } from './universal-metrics.js';
+export type { UniversalMetricsOutput, UniversalMetric, CycleMetricTiming } from './universal-metrics.js';
 export { formatJSON, formatHuman, formatActionableHuman, formatCSV, csvHeader } from './report-formatter.js';
 export type { ScoringInput, ScoringError, ScoringErrorCode } from './types.js';
 export { renormaliseWeights, dropReasonFor, ahsFromEffectiveWeights } from './renormaliser.js';
