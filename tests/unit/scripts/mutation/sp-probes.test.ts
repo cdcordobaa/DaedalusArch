@@ -36,48 +36,18 @@ import {
   spHashOf,
 } from '../../../../scripts/lib/mutation/operators/sp/index.js';
 import type { MutationSite } from '../../../../scripts/lib/mutation/types.js';
+import { SP_FORCED_SITES, forcedSiteOf } from '../../../../scripts/lib/mutation/operators/sp/forced-sites.js';
 import { CLEAN_SPEC, CORRECT_DIR, LAYERED_SPEC, NOW, REPO, fixtureBase } from './operator-harness.js';
 
 jest.setTimeout(900_000);
 
-const TASK = 'src/domain/entities/Task.ts';
 const CATEGORY = 'src/domain/entities/Category.ts';
 const ICAT = 'src/domain/repositories/ICategoryRepository.ts';
-const ITASK = 'src/domain/repositories/ITaskRepository.ts';
 const CREATE = 'src/application/use-cases/CreateTaskUseCase.ts';
 const ICREATE = 'src/application/use-cases/ICreateTaskUseCase.ts';
 const IMPL = 'src/infrastructure/repositories/InMemoryTaskRepository.ts';
 const CTRL = 'src/infrastructure/controllers/TaskController.ts';
-const ORPHAN = 'src/application/use-cases/OrphanHelper.ts';
 
-/** Forced site of each probe on correct-reference: file plus a detail predicate (the full detail comes from findSites). */
-const FORCED: Readonly<Record<string, { readonly filePath: string; readonly match?: (d: Readonly<Record<string, string>>) => boolean }>> = {
-  'SP-FF-S01': { filePath: CATEGORY, match: (d) => d.targetFile === IMPL },
-  'SP-FF-S02': { filePath: CATEGORY, match: (d) => d.targetFile === ICAT },
-  'SP-FF-S03': { filePath: CTRL, match: (d) => d.targetFile === IMPL },
-  'SP-FF-S04': { filePath: CATEGORY, match: (d) => d.targetFile === ICREATE },
-  'SP-FF-P01': { filePath: TASK, match: (d) => d.package === 'express' },
-  'SP-FF-P02': { filePath: CREATE },
-  'SP-FF-P03': { filePath: IMPL },
-  'SP-FF-P04': { filePath: CREATE, match: (d) => (d.deps ?? '').startsWith('InMemoryTaskRepository=') },
-  'SP-FF-P05': { filePath: CTRL },
-  'SP-DF01-ci': { filePath: CATEGORY, match: (d) => d.targetName === 'InMemoryTaskRepository' },
-  'SP-FF-C01': { filePath: CATEGORY },
-  'SP-FF-C02': { filePath: CATEGORY },
-  'SP-FF-C03': { filePath: CATEGORY },
-  'SP-FF-C04': { filePath: ORPHAN },
-  'SP-FF-C05': { filePath: TASK },
-  'SP-FF-C06': { filePath: 'src/application/use-cases/ProbeAbstraction.ts' },
-  'SP-FF-SO01': { filePath: TASK },
-  'SP-FF-SO02': { filePath: ITASK },
-  'SP-FF-SO03': { filePath: 'src/application/use-cases/ProbeHierarchy.ts' },
-  'SP-FF-CV01': { filePath: CATEGORY },
-  'SP-FF-CV02': { filePath: CREATE },
-  'SP-FF-CV03': { filePath: IMPL },
-  'SP-FF-CV04': { filePath: CTRL },
-  'SP-FF-CV05': { filePath: ORPHAN, match: (d) => d.importer === CREATE },
-  'SP-FF-CV06': { filePath: 'src/domain/entities/index.ts' },
-};
 
 const runner = new NodeProcessRunner();
 const compiled = new Map<string, CompiledSpec>();
@@ -102,10 +72,9 @@ beforeAll(async () => {
   const handle = openImportGraphProject(CORRECT_DIR, 'tsconfig.json');
   for (const p of SP_PROBES) {
     const c = await spec(p.spec);
-    const want = FORCED[p.op.id];
-    if (want === undefined) throw new Error(`${p.op.id}: no forced site`);
-    const site = p.op.findSites(handle, c.spec).find((s) => s.filePath === want.filePath && (want.match?.(s.detail) ?? true));
-    if (site === undefined) throw new Error(`${p.op.id}: forced site ${want.filePath} not found`);
+    if (SP_FORCED_SITES[p.op.id] === undefined) throw new Error(`${p.op.id}: no forced site`);
+    const site = forcedSiteOf(p.op.id, p.op.findSites(handle, c.spec));
+    if (site === undefined) throw new Error(`${p.op.id}: forced site ${SP_FORCED_SITES[p.op.id]?.filePath ?? ''} not found`);
     sites.set(p.op.id, site);
     const r = await applyMutation(
       { repoRoot: REPO, runner, registry, masterSeed: MASTER_SEED, sitesPerOperator: 1, split: 'probe', now: () => NOW },
