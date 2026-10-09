@@ -61,6 +61,7 @@ describe('registry (BR-U5b-51)', () => {
       'Docs/matching-rule.md', 'Docs/analysis-plan.md', 'Docs/operator-catalogue.md', 'Docs/generator-protocol.md',
       'scripts/generator/prompts/*.md', 'Docs/corpus-criteria.md', 'Docs/labeller-prompts/*', 'corpus/corpus.json',
       'corpus/overlays/**', 'corpus/specs/*.yaml', 'experiments/*/plan.json', 'corpus/frozen-instrument.json',
+      'Docs/e7-spec-rule.md', 'scripts/generate-e7-specs.ts',
     ]);
     expect(REGISTERED_ARTEFACTS).toContain('Docs/matching-rule.md');
     expect(REGISTERED_ARTEFACTS).toContain('Docs/analysis-plan.md');

@@ -9,6 +9,11 @@
  * content in the fetched clone (U5a `copyBase` checks exactly that; OI-U5a-17 hand-off, DV-U5b-20), `specPath`.
  * The value is built through U5a's validating constructor `makePreparedBase` (`PREP_INVALID`).
  *
+ * An entry with `preparation` (ADR-019 item 2) first runs those steps on the clone (`runPreparation`,
+ * `scripts/lib/base-preparation.ts`; deterministic, no source file changed); a generated configuration file is
+ * appended to `overlays` with its sha256, so U5a `copyBase` checks it in every copy. A failed step →
+ * `PREP_STEP_FAILED`.
+ *
  * `capped` / `judgeSelection` are copied from U4's baseline selection stored for the base, never computed:
  * one row per neural function with `candidateUnitIds`, `selectedUnitIds` and the unit → file mapping
  * (`unitFiles`, the report's `unitResults[].filePaths`; OI-11). No stored selection → `PREP_SELECTION_MISSING`.
@@ -18,6 +23,7 @@ import { isAbsolute, join, relative, resolve, sep } from 'node:path';
 import type { ProcessRunner } from '../src/shared/interfaces/process-runner.js';
 import { buildChildEnv, NodeProcessRunner } from '../src/shared/process/node-process-runner.js';
 import { CORPUS_FILE, loadCorpus, sha256Hex } from './lib/corpus.js';
+import { PREP_STEP_FAILED, runPreparation } from './lib/base-preparation.js';
 import { makePreparedBase } from './lib/mutation/prepare.js';
 import type { CorpusEntry } from './lib/corpus.js';
 import type { JudgeSelection, PreparedBase } from './lib/mutation/types.js';
@@ -28,7 +34,7 @@ export const PREP_TSC_MISMATCH = 'PREP_TSC_MISMATCH';
 export const PREP_DIR_MISSING = 'PREP_DIR_MISSING';
 export const PREP_INVALID = 'PREP_INVALID';
 
-export type PrepCode = typeof PREP_SELECTION_MISSING | typeof PREP_SELECTION_UNMAPPED | typeof PREP_TSC_MISMATCH | typeof PREP_DIR_MISSING | typeof PREP_INVALID;
+export type PrepCode = typeof PREP_SELECTION_MISSING | typeof PREP_SELECTION_UNMAPPED | typeof PREP_TSC_MISMATCH | typeof PREP_DIR_MISSING | typeof PREP_INVALID | typeof PREP_STEP_FAILED;
 
 /** U4's baseline selection for one base, as stored from its baseline full-mode report (U4 `NeuralResultRow`). */
 export interface StoredBaselineSelection {
@@ -49,6 +55,8 @@ export interface PrepOptions {
   readonly repoRoot: string;
   readonly runner: ProcessRunner;
   readonly env: Readonly<Record<string, string>>;
+  /** Progress lines of preparation steps (stderr in the CLI). */
+  readonly log?: (line: string) => void;
 }
 
 /** `Version 5.9.3` → `5.9.3`. */
@@ -87,6 +95,16 @@ export async function prepareBase(entry: CorpusEntry, cloneDir: string, stored: 
   const measured = r.success && r.data.exitCode === 0 ? parseTscVersion(r.data.stdout) : undefined;
   if (measured === undefined) return bad(PREP_TSC_MISMATCH, `node ${tscPath} --version failed`);
   if (measured !== entry.tsc.tscVersion) return bad(PREP_TSC_MISMATCH, `measured ${measured} ≠ registered ${entry.tsc.tscVersion}`);
+  const generated: { path: string; sha256: string }[] = [];
+  if (entry.preparation !== undefined) {
+    const prep = await runPreparation(
+      { projectId: id, cloneDir, ...(entry.subPath !== undefined ? { subPath: entry.subPath } : {}), tscVersion: measured, steps: entry.preparation },
+      { runner: o.runner, env: o.env },
+    );
+    if (!prep.ok) return bad(PREP_STEP_FAILED, prep.detail);
+    for (const line of prep.log) o.log?.(`${id}: ${line}`);
+    generated.push(...prep.generated);
+  }
   const overlays: { path: string; sha256: string }[] = [];
   for (const ov of entry.overlays) {
     const file = join(cloneDir, ...ov.path.split('/'));
@@ -95,6 +113,7 @@ export async function prepareBase(entry: CorpusEntry, cloneDir: string, stored: 
     if (!existsSync(file)) return bad(PREP_INVALID, `overlay ${ov.path} not applied (file missing)`);
     overlays.push({ path: rel, sha256: sha256Hex(readFileSync(file)) });
   }
+  overlays.push(...generated);
   const made = makePreparedBase({
     projectId: id,
     baseKind: 'corpus',
@@ -145,7 +164,7 @@ export async function main(argv: readonly string[], repoRoot: string, io: PrepIo
     return 1;
   }
   const only = arg(argv, '--only')?.split(',');
-  const o: PrepOptions = { repoRoot, runner, env: buildChildEnv(process.env, ['PATH', 'HOME']) };
+  const o: PrepOptions = { repoRoot, runner, env: buildChildEnv(process.env, ['PATH', 'HOME']), log: (l) => { io.err(`${l}\n`); } };
   const bases: PreparedBase[] = [];
   let bad = 0;
   for (const e of loaded.corpus.entries.filter((x) => only === undefined || only.includes(x.name))) {

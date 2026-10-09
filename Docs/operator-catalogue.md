@@ -1,6 +1,6 @@
-# Operator Catalogue (DRAFT)
+# Operator Catalogue (FROZEN)
 
-> **Status: DRAFT** (U5a Code Generation, 2026-10-08; D-U5a-10). Frozen in Build and Test after the dev-split declaration gate (BR-U5a-36 a), the base type-check measurement and the site-feasibility table (BR-U5a-36 b, c) and the `sitesPerOperator` rule (BR-U5a-37), before the FR-18 re-baseline or the first corpus/E1 run (BR-U5a-40). `catalogueVersion` = sha256 of this file's bytes (BR-U5a-38); every manifest header and row carries it, so the freeze edit changes it.
+> **Status: FROZEN 2026-10-08** (Build and Test Step 58; BR-U5a-37..40; ADR-019 items 1, 6). Drafted in U5a Code Generation (2026-10-08; D-U5a-10). Frozen in Build and Test after the dev-split declaration gate (BR-U5a-36 a), the base type-check measurement and the site-feasibility table (BR-U5a-36 b, c) and the `sitesPerOperator` rule (BR-U5a-37), before the FR-18 re-baseline or the first corpus/E1 run (BR-U5a-40). `catalogueVersion` = sha256 of this file's bytes (BR-U5a-38); every manifest header and row carries it, so the freeze edit changes it.
 > **Source of truth**: the operators are built in code (`scripts/lib/mutation/operators/index.ts`); `tests/unit/scripts/mutation/catalogue.test.ts` asserts that the entry table below and the registry match one to one on id, twin, dimension, expected templates, coverage and source (BR-U5a-39).
 > **Design**: `aidlc-docs/construction/v1.2E-u5a-mutation-manifest-generator/functional-design/business-rules.md` §3 (operator content), BR-U5a-01..40; worked sites and keys in `business-logic-model.md` §2.3–§2.5.
 
@@ -66,7 +66,8 @@ Candidates equal to an existing class name are dropped; the name is drawn with `
 - `masterSeed = 20261008` (BR-U5a-15).
 - `rngSeed = uint32BE(sha256(utf8(masterSeed + '|' + projectId + '|' + operatorId + '|' + k))[0..3])`; the site sample uses `k = 'select'`, the BR-U5a-37 subsample `k = 'subsample'`.
 - Pinned vector (Step 6, cross-checked by an independent `node -e` computation): `(20261008, correct-reference, MO-S01, 0)` → `2184350454`; `(20261008, correct-reference, MO-S01, 'select')` → `757368179`. `mulberry32(1)` first three outputs: `0.6270739405881613`, `0.002735721180215478`, `0.5274470399599522`.
-- `sitesPerOperator: TBD` — set and dated at the freeze by the BR-U5a-37 rule over the held-out feasibility table.
+- `sitesPerOperator: 2` — frozen 2026-10-08 by the BR-U5a-37 rule over the held-out feasibility table (`Docs/DiagnosticRuns/u5a-site-feasibility.{json,md}`, Build and Test Step 57, one count): seven frozen held-out bases (realworld-test, ghostfolio-test, truthy-demo, dry-run-test, zhuravlevma__nestjs-active-record, nestjslatam__ddd, v-aguiar__valex); held-out golden totals k = 2 → 85, k = 3 → 126; the smallest k reaching 80 is 2; 85 ≤ 120, so no subsample. Until this freeze the line read `sitesPerOperator: TBD`, and that text is the one hashed in pre-registration v1.
+- E1 `orderSeed = 20261008` (ADR-019 item 6; OI-BT-F3), the seed of the E1 grid order (`Docs/generator-protocol.md` §9). It is written into the E1 generator plan file, which stays the only source the harness reads (BR-U5a-51).
 
 ## 5. SP-* sensitivity probes
 
@@ -109,3 +110,12 @@ SP hash: `sha256:be5fbf83e919eae13513afd1da73cec3d36eac2ba4eee404f9695295f8afea4
 | 2026-10-08 | DRAFT: 22 entries registered in code (U5a plan Step 31); rename list, master seed and vectors recorded; `sitesPerOperator` and the SP section pending |
 | 2026-10-08 | DRAFT: SP-* probe set (25 probes) and its hash recorded (U5a plan Step 33); `sitesPerOperator` pending |
 | 2026-10-08 | DRAFT: v1.2e synced after the U3 merge (DV-U5a-25): `specs/clean-arch.yaml` now declares FF-P06, so MO-DF01 rows carry the FF-P06 expected key and SP-DF01-ci resolves; §5 intro updated, probe table and SP hash unchanged |
+| 2026-10-08 | FROZEN (Build and Test Step 58): `sitesPerOperator: 2` with its rule outcome; E1 `orderSeed = 20261008` recorded; master seed `20261008` and SP hash confirmed unchanged; dev-split gate (Step 26) found no template drift, so no entry or operator changed; §7 threats added. `catalogueVersion` changes with these bytes (BR-U5a-38) |
+
+## 7. Threats to validity (BR-U5a-40)
+
+- **Floor-motivated corpus decisions.** The k = 2 outcome depends on three decisions taken after the first feasibility table (69 < 80 at k = 3, `CAT_SHORTFALL`): the ADR-017 item 4 domain-layer remap, the ADR-019 item 2 preparation of ghostfolio-test (10 sites at k = 2), and the five E7 projects with their specs (38 sites at k = 2 from zhuravlevma__nestjs-active-record, nestjslatam__ddd and v-aguiar__valex). The E7 specs come from the mechanical rule `Docs/e7-spec-rule.md`, committed before the single count and never edited afterwards. Ch7 declares all three as floor-motivated.
+- **Excluded bases.** dev-nest (10 type errors; its only repair would rewrite tracked generated sources), eryzerz__nestjs-ddd (4 type errors in tracked test files; corpus-criteria §4 allows no overlay) and MarvinRF__nest-docfy (no baseline selection; its full-mode report fails the frozen schema with zero judge units) do not count toward k. They are excluded under BR-U5a-07, or for lack of a selection, and are not repaired.
+- **Style imbalance.** Five of the seven bases use the nestjs preset (the four core bases and zhuravlevma). One uses clean-architecture (nestjslatam) and one layered (valex). Per-style recall rests on one project for each non-nestjs style.
+- **k below the original intent.** With k = 2, at most two sites per operator and project are drawn. Recall cells are small, so the cell-level unit and the project cluster bootstrap of ADR-020 item 3 apply.
+- **Catalogue hashed while DRAFT.** Pre-registration v1 hashed this file with `sitesPerOperator: TBD`. The frozen bytes are registered by P-1.
