@@ -975,6 +975,15 @@ i. **U2 derived settlements** S-1 to S-7 and S-9 (U2 `business-rules.md` §14.1)
    - register both files, with reasons, and bump the prereg version;
    - confirm that every plan prints "pre-registration v<N> ok";
    - then add a CI step that runs `--check-prereg` for every `experiments/*/plan.json` on PRs to v1.2e.
+8. **Label-size corrections, to be implemented in P-U6 before the bump** (Fable review of PR #26, 2026-10-09, verdict CONDITIONAL; record in `Docs/DiagnosticRuns/label-sizes-review-2026-10-09.md`):
+   1. **P3 is dropped from live labelling.** Set `maxItems` to 0. Label-dependent `fpat_*` per-cell values become N/A (undefined, never 0), and Ch9 reports the FPAT profile from symbolic counts only. P3's calls go to P2.
+   2. **No refusal on overflow.** Add a pre-committed escalation rule: when P1 + MS exceeds 135, `budgetCalls` grows in whole weeks of 180 calls, up to `maxWeeks` = 4 (720 calls), before any sampled ceiling is lowered. State the basis for the P1 + MS projection, taken from the fixture or spike FP counts.
+   3. **Effective n per row.** `precisionStatement` prints the Kish effective n and its half-width per row: E1 headline (n = 36), fixtures, per generator, and P2 overall. P2 is drawn with probability proportional to stratum size, so it is self-weighting. Correct analysis-plan §4 to match.
+   4. **Intervals for κ.** κ and AC1 get confidence intervals from the same weighted item bootstrap, in `kappa_ci_low` and `kappa_ci_high` columns. The κ < 0.60 rule is judged on the point estimate, with the interval reported beside it.
+   5. **Audit seed.** `seeds.audit` is registered in `corpus/label-plan-config.json` and carried into the plan. A different `--seed` is refused.
+   6. **Labeller context.** The context ceiling is set per kind; a judge unit gets about `codeSnippet` × 4 characters. Report `context.cut` by kind. The information asymmetry between labeller and judge is stated in the threats register.
+   7. **Call counting.** The budget counts agy invocations, retries included.
+   8. **Label-blind audit.** The 30-item audit is drawn from the plan, stratified by kind × population, before the live labelling run. Excluding `uncertain` items no longer applies.
 
    **Small-cluster interval decision:** with 7 projects, the project cluster bootstrap is descriptive only (ADR-020 item 3 amendment). The cell-level interval stays the sole primary recall interval. No cluster-robust t or BCa interval is added.
 
