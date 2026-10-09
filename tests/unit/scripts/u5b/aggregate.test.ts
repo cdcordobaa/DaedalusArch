@@ -300,7 +300,8 @@ describe('SO5 grid completeness over the registered E1 grid (ADR-021 SO5-05)', (
   });
 
   it('a plan without an e1 block keeps every record that has a cell, in record order', () => {
-    expect(so5Records({ ...inp, plan: { ...plan, e1: undefined } }).map((r) => r.runId)).toEqual([
+    const { e1: _grid, ...noGrid } = plan;
+    expect(so5Records({ ...inp, plan: noGrid }).map((r) => r.runId)).toEqual([
       'e1t-002-m2_task-management_none_run-0', 'e1t-000-m1_task-management_none_run-0', 'e1t-009-m9', 'e1t-001-m1_task-management_none_run-1',
     ]);
   });
