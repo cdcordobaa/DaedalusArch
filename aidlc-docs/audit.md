@@ -1244,3 +1244,11 @@ Plan checkboxes ticked. Auto-approved under standing approval; no blocking or ma
 **Context**: CONSTRUCTION — Build and Test, post-SO4 scoring correction (results/so4-heldout/score-corrected.json, agg-corrected/, case-corrected/; strict files unchanged). Worktree ../DaedalusArch-wt-score, branch v1.2e-fix-scoring; main checkout's uncommitted files untouched. E7 decision pending with the author.
 
 ---
+
+## Build and Test — Instrument v2 role exemptions (ADR-026 draft, POST-HOC, pending Fable review)
+**Timestamp**: 2026-10-09T23:30:00Z
+**User Input**: "Tune noisy rules now as a declared instrument v2 before E7 and E1: derive every change from rule intent and common conventions (never from the spot-check items), declarative exemptions only, no structural rule or SO4 seeded detection change, measure baseline per function on the 7 held-out and 4 core bases, new spot check with seed 20261010, keep v1 results intact, ADR-026 draft, analysis-plan statement, prereg v10 prepared, draft PR, no merge before Fable review; no E7, E1, full mode or live LLM call."
+**AI Response**: "Library-level role exemptions (src/fitness-compiler/role-exemptions.ts, exported into frozen-instrument roleExemptions): FF-CV05 skips declaration-only files (dto, interface, type, enum, index) and composition roots (main.ts, *.module.ts); FF-C02 and FF-C03 skip composition roots. FF-SO01, FF-C06, FF-P01 unchanged (SO01: MO-SO01 seeds a controller and module classes; P01: fix would be a layer-mapping change). SO4 symbolic-only re-run (results/so4-heldout-v2): TP 67, FN 6, FP 0 identical to v1 corrected, twin specificity 68/73 -> 71/73, CV05 collateral 26 -> 13; v2 baselines equal v1 minus exempted rows on all 7 bases. Baseline (all 7) 1066 -> 824 (CV05 560 -> 365, C03 83 -> 53, C02 27 -> 10; core 4: 758 -> 546). apg-ablation re-run (results/apg-ablation-v2): gate pass, ablation deltas unchanged. Spot check v2 (seed 20261010, informal agent check): REAL 6, FALSE 4, DEBATABLE 10. Unit tests 3300+ pass. Zero live calls."
+**Context**: CONSTRUCTION — Build and Test, post-SO4 instrument v2 (ADR-026 draft). Worktree ../DaedalusArch-wt-tune, branch v1.2e-instrument-v2; v1 results untouched; draft PR, not merged.
+
+---

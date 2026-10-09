@@ -520,6 +520,20 @@ These statements are registered: every report of the corresponding figure carrie
   `correct-reference`, and the fixture units it judges are also P4 items; the ghostfolio repair was post-hoc; the
   number of pairs rejected under MAT-25 because a cycle function was truncated is reported (`runs.csv` reason
   counts); every secondary SO5 family is exploratory.
+- **B8 Instrument v1 and v2 (ADR-026, POST-HOC).** Instrument v2 adds library-level role exemptions to three proxy
+  rules (FF-CV05, FF-C02, FF-C03; `corpus/frozen-instrument.json` `roleExemptions`), decided after the SO4 results and
+  the 2026-10-09 baseline spot check were seen. Both versions are reported, and neither replaces the other:
+  - **SO4 and SO2** (already run under v1): the registered v1 results (`results/so4-heldout/` strict and corrected,
+    `results/apg-ablation/`) stay the primary report. The v2 re-runs (`results/so4-heldout-v2/`,
+    `results/apg-ablation-v2/`) are reported beside them, labelled post hoc, with the per-function baseline counts
+    v1 → v2 and the statement that v2 changes no seeded detection (twin specificity and collateral may differ).
+  - **SO4 baseline precision (P2)**: items are drawn from the v1 baseline population as registered; the v1 estimate
+    uses all of them, and the v2 estimate is the domain estimate over the labelled items that v2 still reports (same
+    weights), with its own n. No item is redrawn.
+  - **E7, E1 and SO5** (not yet run): v2 is the instrument, registered at v10 before these runs. Any symbolic count
+    they report (violations, violations per KLOC, FPAT profile) also gets a v1 sensitivity row from a symbolic-only
+    re-evaluation of the same stored code at the last v1 commit; no generation or judge call is repeated for it.
+  - Every table that carries symbolic counts names its instrument version in a column or caption.
 
 ## 11. Amendments
 
@@ -549,3 +563,4 @@ These statements are registered: every report of the corresponding figure carrie
 | 2026-10-09 (P-U6) | §5 | κ and AC1 intervals from the item bootstrap, the κ < 0.60 rule on the point estimate; SO4 precision and F1 intervals per cell count | ADR-021 item 8.4, SO4-06, item 9 |
 | 2026-10-09 (P-U6) | §6 | Label-dependent FPAT values N/A without P3 labels; the profile from symbolic counts (`so5_patterns.csv` `basis`) | ADR-021 item 8.1 |
 | 2026-10-09 (P-U6) | §8 | Rejected pairs listed and the rest scored | ADR-021 SO4-03 |
+| 2026-10-09 (ADR-026, POST-HOC, draft) | §10 | B8: instrument v2 role exemptions (FF-CV05, FF-C02, FF-C03); v1 primary for SO4 and SO2 with v2 beside; P2 v2 precision as a domain estimate over the v1 draw; v2 the instrument for E7, E1 and SO5 with a v1 symbolic sensitivity row | ADR-026 |

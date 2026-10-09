@@ -1,0 +1,1316 @@
+{
+  "runId": "run-1791585149477",
+  "projectPath": "../daedalus-so4/copies/zhuravlevma__nestjs-active-record/MO-DF01n/k-0",
+  "specVersion": "1.0.0",
+  "ahsDeterministic": 0.571,
+  "verdict": "soft-block",
+  "scoring": {
+    "weights": {
+      "structural": 0.35,
+      "coupling": 0.2,
+      "pattern": 0.3,
+      "solid": 0.1,
+      "convention": 0.05,
+      "semantic": 0,
+      "integrity": 0
+    },
+    "fullModeWeights": {
+      "structural": 0.32,
+      "coupling": 0.18,
+      "pattern": 0.27,
+      "solid": 0.1,
+      "convention": 0.05,
+      "semantic": 0.04,
+      "integrity": 0.04
+    },
+    "thresholds": {
+      "pass": 0.8,
+      "warning": 0.65,
+      "softBlock": 0.5
+    },
+    "confidenceThresholds": {
+      "high": 0.85,
+      "medium": 0.6,
+      "iccMinimum": 0.7
+    },
+    "verdictSource": "ahsDeterministic"
+  },
+  "perDimensionScores": [
+    {
+      "dimension": "structural",
+      "avr": 0.333,
+      "violatedWeight": 1,
+      "weight": 0.35,
+      "effectiveWeight": 0.35,
+      "violationCount": 1,
+      "functionCount": 3
+    },
+    {
+      "dimension": "coupling",
+      "avr": 0.333,
+      "violatedWeight": 2,
+      "weight": 0.2,
+      "effectiveWeight": 0.2,
+      "violationCount": 2,
+      "functionCount": 6
+    },
+    {
+      "dimension": "pattern",
+      "avr": 0.667,
+      "violatedWeight": 4,
+      "weight": 0.3,
+      "effectiveWeight": 0.3,
+      "violationCount": 4,
+      "functionCount": 6
+    },
+    {
+      "dimension": "solid",
+      "avr": 0.333,
+      "violatedWeight": 1,
+      "weight": 0.1,
+      "effectiveWeight": 0.1,
+      "violationCount": 1,
+      "functionCount": 3
+    },
+    {
+      "dimension": "convention",
+      "avr": 0.25,
+      "violatedWeight": 1,
+      "weight": 0.05,
+      "effectiveWeight": 0.05,
+      "violationCount": 1,
+      "functionCount": 4
+    }
+  ],
+  "violations": [
+    {
+      "id": "v-829b909c8c92012d",
+      "type": "CYCLIC_DEPENDENCY",
+      "dimension": "structural",
+      "severity": "critical",
+      "functionId": "FF-S02",
+      "route": "symbolic",
+      "filePath": "src/delivery/__models__/deliveryman.model.ts,src/delivery/__models__/orders.model.ts,src/delivery/__models__/deliveryman.model.ts",
+      "message": "Circular dependency: src/delivery/__models__/deliveryman.model.ts,src/delivery/__models__/orders.model.ts,src/delivery/__models__/deliveryman.model.ts",
+      "deterministic": true,
+      "target": "src/delivery/__models__/orders.model.ts",
+      "line": 2,
+      "discriminator": [
+        "[\"src/delivery/__models__/deliveryman.model.ts\",\"src/delivery/__models__/orders.model.ts\",\"src/delivery/__models__/deliveryman.model.ts\"]"
+      ],
+      "tag": "topological"
+    },
+    {
+      "id": "v-06e3946692b9d166",
+      "type": "DOMAIN_PURITY_VIOLATION",
+      "dimension": "pattern",
+      "severity": "critical",
+      "functionId": "FF-P01",
+      "route": "symbolic",
+      "filePath": "src/delivery/__models__/deliveryman.model.ts",
+      "message": "Domain file src/delivery/__models__/deliveryman.model.ts imports forbidden package typeorm",
+      "deterministic": true,
+      "target": "typeorm",
+      "line": 1,
+      "lines": [
+        1
+      ],
+      "isTypeOnly": false,
+      "discriminator": [
+        "IMPORTS"
+      ],
+      "tag": "pattern-proxy"
+    },
+    {
+      "id": "v-30011ae0f3cf1e81",
+      "type": "DOMAIN_PURITY_VIOLATION",
+      "dimension": "pattern",
+      "severity": "critical",
+      "functionId": "FF-P01",
+      "route": "symbolic",
+      "filePath": "src/delivery/__models__/orders.model.ts",
+      "message": "Domain file src/delivery/__models__/orders.model.ts imports forbidden package typeorm",
+      "deterministic": true,
+      "target": "typeorm",
+      "line": 1,
+      "lines": [
+        1
+      ],
+      "isTypeOnly": false,
+      "discriminator": [
+        "IMPORTS"
+      ],
+      "tag": "pattern-proxy"
+    },
+    {
+      "id": "v-d6b89463421a6fc2",
+      "type": "DEPENDENCY_INVERSION_VIOLATION",
+      "dimension": "pattern",
+      "severity": "critical",
+      "functionId": "FF-P02",
+      "route": "symbolic",
+      "filePath": "src/delivery/deliveryman/services/add-order-to-deliveryman.service.ts",
+      "message": "Violation in src/delivery/deliveryman/services/add-order-to-deliveryman.service.ts",
+      "deterministic": true,
+      "discriminator": [
+        "AddOrderToDeliverymanService"
+      ],
+      "evidence": [
+        "ratio=0"
+      ],
+      "tag": "pattern-proxy"
+    },
+    {
+      "id": "v-601414842ba3dd19",
+      "type": "DEPENDENCY_INVERSION_VIOLATION",
+      "dimension": "pattern",
+      "severity": "critical",
+      "functionId": "FF-P02",
+      "route": "symbolic",
+      "filePath": "src/delivery/deliveryman/services/change-deliverymans-status.ts",
+      "message": "Violation in src/delivery/deliveryman/services/change-deliverymans-status.ts",
+      "deterministic": true,
+      "discriminator": [
+        "ChangeDeliverymansStatusService"
+      ],
+      "evidence": [
+        "ratio=0"
+      ],
+      "tag": "pattern-proxy"
+    },
+    {
+      "id": "v-68e9c127a399eafd",
+      "type": "DEPENDENCY_INVERSION_VIOLATION",
+      "dimension": "pattern",
+      "severity": "critical",
+      "functionId": "FF-P02",
+      "route": "symbolic",
+      "filePath": "src/delivery/deliveryman/services/create-deliveryman.service.ts",
+      "message": "Violation in src/delivery/deliveryman/services/create-deliveryman.service.ts",
+      "deterministic": true,
+      "discriminator": [
+        "CreateDeliverymanService"
+      ],
+      "evidence": [
+        "ratio=0"
+      ],
+      "tag": "pattern-proxy"
+    },
+    {
+      "id": "v-105e538a22c355d3",
+      "type": "DEPENDENCY_INVERSION_VIOLATION",
+      "dimension": "pattern",
+      "severity": "critical",
+      "functionId": "FF-P02",
+      "route": "symbolic",
+      "filePath": "src/delivery/deliveryman/services/find-all-deliverymans.ts",
+      "message": "Violation in src/delivery/deliveryman/services/find-all-deliverymans.ts",
+      "deterministic": true,
+      "discriminator": [
+        "FindAllDeliverymansService"
+      ],
+      "evidence": [
+        "ratio=0"
+      ],
+      "tag": "pattern-proxy"
+    },
+    {
+      "id": "v-c8a6dbd3152cebaf",
+      "type": "DEPENDENCY_INVERSION_VIOLATION",
+      "dimension": "pattern",
+      "severity": "critical",
+      "functionId": "FF-P02",
+      "route": "symbolic",
+      "filePath": "src/delivery/deliveryman/services/update-deliverymans-info.service.ts",
+      "message": "Violation in src/delivery/deliveryman/services/update-deliverymans-info.service.ts",
+      "deterministic": true,
+      "discriminator": [
+        "UpdateDeliverymansInfoService"
+      ],
+      "evidence": [
+        "ratio=0"
+      ],
+      "tag": "pattern-proxy"
+    },
+    {
+      "id": "v-f809f4eeaa164e7e",
+      "type": "DEPENDENCY_INVERSION_VIOLATION",
+      "dimension": "pattern",
+      "severity": "critical",
+      "functionId": "FF-P02",
+      "route": "symbolic",
+      "filePath": "src/delivery/deliveryman/services/update-deliverymans-orders.service.ts",
+      "message": "Violation in src/delivery/deliveryman/services/update-deliverymans-orders.service.ts",
+      "deterministic": true,
+      "discriminator": [
+        "UpdateDeliverymansOrdersService"
+      ],
+      "evidence": [
+        "ratio=0"
+      ],
+      "tag": "pattern-proxy"
+    },
+    {
+      "id": "v-076b0055a52f115f",
+      "type": "DEPENDENCY_INVERSION_VIOLATION",
+      "dimension": "pattern",
+      "severity": "critical",
+      "functionId": "FF-P02",
+      "route": "symbolic",
+      "filePath": "src/delivery/deliveryman/services/update-order.service.ts",
+      "message": "Violation in src/delivery/deliveryman/services/update-order.service.ts",
+      "deterministic": true,
+      "discriminator": [
+        "UpdateOrderService"
+      ],
+      "evidence": [
+        "ratio=0"
+      ],
+      "tag": "pattern-proxy"
+    },
+    {
+      "id": "v-b8e71e878d1e24bd",
+      "type": "DEPENDENCY_INVERSION_VIOLATION",
+      "dimension": "pattern",
+      "severity": "critical",
+      "functionId": "FF-P02",
+      "route": "symbolic",
+      "filePath": "src/delivery/orders/services/find-all-orders.service.ts",
+      "message": "Violation in src/delivery/orders/services/find-all-orders.service.ts",
+      "deterministic": true,
+      "discriminator": [
+        "FindAllOrdersService"
+      ],
+      "evidence": [
+        "ratio=0"
+      ],
+      "tag": "pattern-proxy"
+    },
+    {
+      "id": "v-cee693823a95c404",
+      "type": "DEPENDENCY_INVERSION_VIOLATION",
+      "dimension": "pattern",
+      "severity": "critical",
+      "functionId": "FF-P02",
+      "route": "symbolic",
+      "filePath": "src/delivery/orders/services/find-one-order.service.ts",
+      "message": "Violation in src/delivery/orders/services/find-one-order.service.ts",
+      "deterministic": true,
+      "discriminator": [
+        "FindOneOrderService"
+      ],
+      "evidence": [
+        "ratio=0"
+      ],
+      "tag": "pattern-proxy"
+    },
+    {
+      "id": "v-cf090b52df447c41",
+      "type": "DEPENDENCY_INVERSION_VIOLATION",
+      "dimension": "pattern",
+      "severity": "critical",
+      "functionId": "FF-P02",
+      "route": "symbolic",
+      "filePath": "src/delivery/orders/services/update-order.service.ts",
+      "message": "Violation in src/delivery/orders/services/update-order.service.ts",
+      "deterministic": true,
+      "discriminator": [
+        "UpdateOrderService"
+      ],
+      "evidence": [
+        "ratio=0"
+      ],
+      "tag": "pattern-proxy"
+    },
+    {
+      "id": "v-35ee58985dfaf355",
+      "type": "REPOSITORY_PATTERN_VIOLATION",
+      "dimension": "pattern",
+      "severity": "critical",
+      "functionId": "FF-P03",
+      "route": "symbolic",
+      "filePath": "src/delivery/deliveryman/dal/deliveryman.repository.ts",
+      "message": "Violation in src/delivery/deliveryman/dal/deliveryman.repository.ts",
+      "deterministic": true,
+      "discriminator": [
+        "DeliverymanRepository"
+      ],
+      "tag": "pattern-proxy"
+    },
+    {
+      "id": "v-52329eb73b666909",
+      "type": "REPOSITORY_PATTERN_VIOLATION",
+      "dimension": "pattern",
+      "severity": "critical",
+      "functionId": "FF-P03",
+      "route": "symbolic",
+      "filePath": "src/delivery/orders/dal/orders.repository.ts",
+      "message": "Violation in src/delivery/orders/dal/orders.repository.ts",
+      "deterministic": true,
+      "discriminator": [
+        "OrdersRepository"
+      ],
+      "tag": "pattern-proxy"
+    },
+    {
+      "id": "v-d7eaaff2e23788bd",
+      "type": "USE_CASE_ISOLATION_VIOLATION",
+      "dimension": "pattern",
+      "severity": "major",
+      "functionId": "FF-P04",
+      "route": "symbolic",
+      "filePath": "src/delivery/deliveryman/services/add-order-to-deliveryman.service.ts",
+      "message": "Violation in src/delivery/deliveryman/services/add-order-to-deliveryman.service.ts",
+      "deterministic": true,
+      "discriminator": [
+        "AddOrderToDeliverymanService"
+      ],
+      "tag": "pattern-proxy"
+    },
+    {
+      "id": "v-4d92ad68e65bbda3",
+      "type": "USE_CASE_ISOLATION_VIOLATION",
+      "dimension": "pattern",
+      "severity": "major",
+      "functionId": "FF-P04",
+      "route": "symbolic",
+      "filePath": "src/delivery/deliveryman/services/change-deliverymans-status.ts",
+      "message": "Violation in src/delivery/deliveryman/services/change-deliverymans-status.ts",
+      "deterministic": true,
+      "discriminator": [
+        "ChangeDeliverymansStatusService"
+      ],
+      "tag": "pattern-proxy"
+    },
+    {
+      "id": "v-f6f353b4a3c7f641",
+      "type": "USE_CASE_ISOLATION_VIOLATION",
+      "dimension": "pattern",
+      "severity": "major",
+      "functionId": "FF-P04",
+      "route": "symbolic",
+      "filePath": "src/delivery/deliveryman/services/create-deliveryman.service.ts",
+      "message": "Violation in src/delivery/deliveryman/services/create-deliveryman.service.ts",
+      "deterministic": true,
+      "discriminator": [
+        "CreateDeliverymanService"
+      ],
+      "tag": "pattern-proxy"
+    },
+    {
+      "id": "v-9358a062724132f8",
+      "type": "USE_CASE_ISOLATION_VIOLATION",
+      "dimension": "pattern",
+      "severity": "major",
+      "functionId": "FF-P04",
+      "route": "symbolic",
+      "filePath": "src/delivery/deliveryman/services/find-all-deliverymans.ts",
+      "message": "Violation in src/delivery/deliveryman/services/find-all-deliverymans.ts",
+      "deterministic": true,
+      "discriminator": [
+        "FindAllDeliverymansService"
+      ],
+      "tag": "pattern-proxy"
+    },
+    {
+      "id": "v-c5c19bbc64e820e4",
+      "type": "USE_CASE_ISOLATION_VIOLATION",
+      "dimension": "pattern",
+      "severity": "major",
+      "functionId": "FF-P04",
+      "route": "symbolic",
+      "filePath": "src/delivery/deliveryman/services/update-deliverymans-info.service.ts",
+      "message": "Violation in src/delivery/deliveryman/services/update-deliverymans-info.service.ts",
+      "deterministic": true,
+      "discriminator": [
+        "UpdateDeliverymansInfoService"
+      ],
+      "tag": "pattern-proxy"
+    },
+    {
+      "id": "v-55797ec30e7f2ffc",
+      "type": "USE_CASE_ISOLATION_VIOLATION",
+      "dimension": "pattern",
+      "severity": "major",
+      "functionId": "FF-P04",
+      "route": "symbolic",
+      "filePath": "src/delivery/deliveryman/services/update-deliverymans-orders.service.ts",
+      "message": "Violation in src/delivery/deliveryman/services/update-deliverymans-orders.service.ts",
+      "deterministic": true,
+      "discriminator": [
+        "UpdateDeliverymansOrdersService"
+      ],
+      "tag": "pattern-proxy"
+    },
+    {
+      "id": "v-450db37cf6514c13",
+      "type": "USE_CASE_ISOLATION_VIOLATION",
+      "dimension": "pattern",
+      "severity": "major",
+      "functionId": "FF-P04",
+      "route": "symbolic",
+      "filePath": "src/delivery/deliveryman/services/update-order.service.ts",
+      "message": "Violation in src/delivery/deliveryman/services/update-order.service.ts",
+      "deterministic": true,
+      "discriminator": [
+        "UpdateOrderService"
+      ],
+      "tag": "pattern-proxy"
+    },
+    {
+      "id": "v-324c7d9f7b1fd5f5",
+      "type": "USE_CASE_ISOLATION_VIOLATION",
+      "dimension": "pattern",
+      "severity": "major",
+      "functionId": "FF-P04",
+      "route": "symbolic",
+      "filePath": "src/delivery/orders/services/find-all-orders.service.ts",
+      "message": "Violation in src/delivery/orders/services/find-all-orders.service.ts",
+      "deterministic": true,
+      "discriminator": [
+        "FindAllOrdersService"
+      ],
+      "tag": "pattern-proxy"
+    },
+    {
+      "id": "v-a5ae2c99b30c452e",
+      "type": "USE_CASE_ISOLATION_VIOLATION",
+      "dimension": "pattern",
+      "severity": "major",
+      "functionId": "FF-P04",
+      "route": "symbolic",
+      "filePath": "src/delivery/orders/services/find-one-order.service.ts",
+      "message": "Violation in src/delivery/orders/services/find-one-order.service.ts",
+      "deterministic": true,
+      "discriminator": [
+        "FindOneOrderService"
+      ],
+      "tag": "pattern-proxy"
+    },
+    {
+      "id": "v-7fca2692ade3e14e",
+      "type": "USE_CASE_ISOLATION_VIOLATION",
+      "dimension": "pattern",
+      "severity": "major",
+      "functionId": "FF-P04",
+      "route": "symbolic",
+      "filePath": "src/delivery/orders/services/update-order.service.ts",
+      "message": "Violation in src/delivery/orders/services/update-order.service.ts",
+      "deterministic": true,
+      "discriminator": [
+        "UpdateOrderService"
+      ],
+      "tag": "pattern-proxy"
+    },
+    {
+      "id": "v-43a15ddde36a1dec",
+      "type": "INSTABILITY_VIOLATION",
+      "dimension": "coupling",
+      "severity": "major",
+      "functionId": "FF-C03",
+      "route": "symbolic",
+      "filePath": "src/delivery/deliveryman/deliveryman.controller.ts",
+      "message": "Violation in src/delivery/deliveryman/deliveryman.controller.ts",
+      "deterministic": true,
+      "discriminator": [],
+      "evidence": [
+        "instability=0.9230769230769231"
+      ],
+      "tag": "topological"
+    },
+    {
+      "id": "v-6fe31b7dd5e4fe4c",
+      "type": "INSTABILITY_VIOLATION",
+      "dimension": "coupling",
+      "severity": "major",
+      "functionId": "FF-C03",
+      "route": "symbolic",
+      "filePath": "src/delivery/deliveryman/services/update-order.service.ts",
+      "message": "Violation in src/delivery/deliveryman/services/update-order.service.ts",
+      "deterministic": true,
+      "discriminator": [],
+      "evidence": [
+        "instability=1"
+      ],
+      "tag": "topological"
+    },
+    {
+      "id": "v-b0f52043a29b792b",
+      "type": "LOW_ABSTRACTION_RATIO",
+      "dimension": "coupling",
+      "severity": "advisory",
+      "functionId": "FF-C06",
+      "route": "symbolic",
+      "filePath": "<project>",
+      "message": "Abstraction ratio 0 below threshold",
+      "deterministic": true,
+      "discriminator": [],
+      "evidence": [
+        "ratio=0"
+      ],
+      "tag": "topological"
+    },
+    {
+      "id": "v-56d84c4b334e2902",
+      "type": "SRP_VIOLATION",
+      "dimension": "solid",
+      "severity": "major",
+      "functionId": "FF-SO01",
+      "route": "symbolic",
+      "filePath": "src/delivery/deliveryman/deliveryman.controller.ts",
+      "message": "Violation in src/delivery/deliveryman/deliveryman.controller.ts",
+      "deterministic": true,
+      "discriminator": [
+        "DeliverymanController"
+      ],
+      "evidence": [
+        "methodCount=6",
+        "depCount=6"
+      ],
+      "tag": "pattern-proxy"
+    },
+    {
+      "id": "v-e7dc529e95a1c356",
+      "type": "MISSING_TEST_FILE",
+      "dimension": "convention",
+      "severity": "advisory",
+      "functionId": "FF-CV05",
+      "route": "symbolic",
+      "filePath": "src/delivery/__models__/deliveryman.model.ts",
+      "message": "Violation in src/delivery/__models__/deliveryman.model.ts",
+      "deterministic": true,
+      "discriminator": [],
+      "tag": "pattern-proxy"
+    },
+    {
+      "id": "v-05bb5e3750781f03",
+      "type": "MISSING_TEST_FILE",
+      "dimension": "convention",
+      "severity": "advisory",
+      "functionId": "FF-CV05",
+      "route": "symbolic",
+      "filePath": "src/delivery/__models__/orders.model.ts",
+      "message": "Violation in src/delivery/__models__/orders.model.ts",
+      "deterministic": true,
+      "discriminator": [],
+      "tag": "pattern-proxy"
+    },
+    {
+      "id": "v-400265dbd10ebfd6",
+      "type": "MISSING_TEST_FILE",
+      "dimension": "convention",
+      "severity": "advisory",
+      "functionId": "FF-CV05",
+      "route": "symbolic",
+      "filePath": "src/delivery/deliveryman/dal/deliveryman.repository.ts",
+      "message": "Violation in src/delivery/deliveryman/dal/deliveryman.repository.ts",
+      "deterministic": true,
+      "discriminator": [],
+      "tag": "pattern-proxy"
+    },
+    {
+      "id": "v-30abc70b88ec18d1",
+      "type": "MISSING_TEST_FILE",
+      "dimension": "convention",
+      "severity": "advisory",
+      "functionId": "FF-CV05",
+      "route": "symbolic",
+      "filePath": "src/delivery/deliveryman/deliveryman.controller.ts",
+      "message": "Violation in src/delivery/deliveryman/deliveryman.controller.ts",
+      "deterministic": true,
+      "discriminator": [],
+      "tag": "pattern-proxy"
+    },
+    {
+      "id": "v-30458ca96dbb534f",
+      "type": "MISSING_TEST_FILE",
+      "dimension": "convention",
+      "severity": "advisory",
+      "functionId": "FF-CV05",
+      "route": "symbolic",
+      "filePath": "src/delivery/deliveryman/services/add-order-to-deliveryman.service.ts",
+      "message": "Violation in src/delivery/deliveryman/services/add-order-to-deliveryman.service.ts",
+      "deterministic": true,
+      "discriminator": [],
+      "tag": "pattern-proxy"
+    },
+    {
+      "id": "v-048f6c857f36c4e1",
+      "type": "MISSING_TEST_FILE",
+      "dimension": "convention",
+      "severity": "advisory",
+      "functionId": "FF-CV05",
+      "route": "symbolic",
+      "filePath": "src/delivery/deliveryman/services/change-deliverymans-status.ts",
+      "message": "Violation in src/delivery/deliveryman/services/change-deliverymans-status.ts",
+      "deterministic": true,
+      "discriminator": [],
+      "tag": "pattern-proxy"
+    },
+    {
+      "id": "v-8d1a480cf2415fb3",
+      "type": "MISSING_TEST_FILE",
+      "dimension": "convention",
+      "severity": "advisory",
+      "functionId": "FF-CV05",
+      "route": "symbolic",
+      "filePath": "src/delivery/deliveryman/services/create-deliveryman.service.ts",
+      "message": "Violation in src/delivery/deliveryman/services/create-deliveryman.service.ts",
+      "deterministic": true,
+      "discriminator": [],
+      "tag": "pattern-proxy"
+    },
+    {
+      "id": "v-5a3d4e943de4f2d4",
+      "type": "MISSING_TEST_FILE",
+      "dimension": "convention",
+      "severity": "advisory",
+      "functionId": "FF-CV05",
+      "route": "symbolic",
+      "filePath": "src/delivery/deliveryman/services/find-all-deliverymans.ts",
+      "message": "Violation in src/delivery/deliveryman/services/find-all-deliverymans.ts",
+      "deterministic": true,
+      "discriminator": [],
+      "tag": "pattern-proxy"
+    },
+    {
+      "id": "v-4772567f900ce893",
+      "type": "MISSING_TEST_FILE",
+      "dimension": "convention",
+      "severity": "advisory",
+      "functionId": "FF-CV05",
+      "route": "symbolic",
+      "filePath": "src/delivery/deliveryman/services/update-deliverymans-info.service.ts",
+      "message": "Violation in src/delivery/deliveryman/services/update-deliverymans-info.service.ts",
+      "deterministic": true,
+      "discriminator": [],
+      "tag": "pattern-proxy"
+    },
+    {
+      "id": "v-1400a99b3977435f",
+      "type": "MISSING_TEST_FILE",
+      "dimension": "convention",
+      "severity": "advisory",
+      "functionId": "FF-CV05",
+      "route": "symbolic",
+      "filePath": "src/delivery/deliveryman/services/update-deliverymans-orders.service.ts",
+      "message": "Violation in src/delivery/deliveryman/services/update-deliverymans-orders.service.ts",
+      "deterministic": true,
+      "discriminator": [],
+      "tag": "pattern-proxy"
+    },
+    {
+      "id": "v-06c3ac68c3221e57",
+      "type": "MISSING_TEST_FILE",
+      "dimension": "convention",
+      "severity": "advisory",
+      "functionId": "FF-CV05",
+      "route": "symbolic",
+      "filePath": "src/delivery/deliveryman/services/update-order.service.ts",
+      "message": "Violation in src/delivery/deliveryman/services/update-order.service.ts",
+      "deterministic": true,
+      "discriminator": [],
+      "tag": "pattern-proxy"
+    },
+    {
+      "id": "v-6c42e6db1d2f8f74",
+      "type": "MISSING_TEST_FILE",
+      "dimension": "convention",
+      "severity": "advisory",
+      "functionId": "FF-CV05",
+      "route": "symbolic",
+      "filePath": "src/delivery/orders/dal/orders.repository.ts",
+      "message": "Violation in src/delivery/orders/dal/orders.repository.ts",
+      "deterministic": true,
+      "discriminator": [],
+      "tag": "pattern-proxy"
+    },
+    {
+      "id": "v-6c4d76b8ebc92234",
+      "type": "MISSING_TEST_FILE",
+      "dimension": "convention",
+      "severity": "advisory",
+      "functionId": "FF-CV05",
+      "route": "symbolic",
+      "filePath": "src/delivery/orders/orders.controller.ts",
+      "message": "Violation in src/delivery/orders/orders.controller.ts",
+      "deterministic": true,
+      "discriminator": [],
+      "tag": "pattern-proxy"
+    },
+    {
+      "id": "v-1b016d6da7e3c4ba",
+      "type": "MISSING_TEST_FILE",
+      "dimension": "convention",
+      "severity": "advisory",
+      "functionId": "FF-CV05",
+      "route": "symbolic",
+      "filePath": "src/delivery/orders/services/find-all-orders.service.ts",
+      "message": "Violation in src/delivery/orders/services/find-all-orders.service.ts",
+      "deterministic": true,
+      "discriminator": [],
+      "tag": "pattern-proxy"
+    },
+    {
+      "id": "v-d826d5d320836df6",
+      "type": "MISSING_TEST_FILE",
+      "dimension": "convention",
+      "severity": "advisory",
+      "functionId": "FF-CV05",
+      "route": "symbolic",
+      "filePath": "src/delivery/orders/services/find-one-order.service.ts",
+      "message": "Violation in src/delivery/orders/services/find-one-order.service.ts",
+      "deterministic": true,
+      "discriminator": [],
+      "tag": "pattern-proxy"
+    },
+    {
+      "id": "v-6fa4e9bd994b25dc",
+      "type": "MISSING_TEST_FILE",
+      "dimension": "convention",
+      "severity": "advisory",
+      "functionId": "FF-CV05",
+      "route": "symbolic",
+      "filePath": "src/delivery/orders/services/update-order.service.ts",
+      "message": "Violation in src/delivery/orders/services/update-order.service.ts",
+      "deterministic": true,
+      "discriminator": [],
+      "tag": "pattern-proxy"
+    }
+  ],
+  "universalMetrics": {
+    "cyclicDependencyCount": 2,
+    "maxFanOut": 15,
+    "maxFanIn": 12,
+    "abstractionRatio": 0,
+    "averageInstability": 0.437,
+    "orphanFileCount": 0
+  },
+  "evaluationMode": "symbolic-only",
+  "durationMs": 10,
+  "droppedDimensions": [],
+  "warnings": [
+    {
+      "code": "EXTRACTOR_005",
+      "message": "CONSTRUCTOR_INJECTS type unresolvable: import(\"../daedalus-so4/copies/zhuravlevma__nestjs-active-record/MO-DF01n/k-0/node_modules/typeorm/repository/Repository\").Repository<import(\"../daedalus-so4/copies/zhuravlevma__nestjs-active-record/MO-DF01n/k-0/src/delivery/__models__/deliveryman.model\").Deliveryman>",
+      "context": {
+        "filePath": "src/delivery/deliveryman/dal/deliveryman.repository.ts"
+      },
+      "stage": "extract-apg"
+    },
+    {
+      "code": "EXTRACTOR_005",
+      "message": "CONSTRUCTOR_INJECTS type unresolvable: import(\"../daedalus-so4/copies/zhuravlevma__nestjs-active-record/MO-DF01n/k-0/node_modules/typeorm/repository/Repository\").Repository<import(\"../daedalus-so4/copies/zhuravlevma__nestjs-active-record/MO-DF01n/k-0/src/delivery/__models__/orders.model\").Order>",
+      "context": {
+        "filePath": "src/delivery/orders/dal/orders.repository.ts"
+      },
+      "stage": "extract-apg"
+    },
+    {
+      "code": "SPEC_001",
+      "message": "Unknown field \"default_exclude_paths\" in spec (ignored)",
+      "stage": "parse-spec"
+    },
+    {
+      "code": "SPEC_002",
+      "message": "Template function \"FF-C01\" overridden by spec declaration",
+      "stage": "parse-spec"
+    },
+    {
+      "code": "SPEC_002",
+      "message": "Template function \"FF-C02\" overridden by spec declaration",
+      "stage": "parse-spec"
+    },
+    {
+      "code": "SPEC_002",
+      "message": "Template function \"FF-C03\" overridden by spec declaration",
+      "stage": "parse-spec"
+    },
+    {
+      "code": "SPEC_002",
+      "message": "Template function \"FF-C04\" overridden by spec declaration",
+      "stage": "parse-spec"
+    },
+    {
+      "code": "SPEC_002",
+      "message": "Template function \"FF-C05\" overridden by spec declaration",
+      "stage": "parse-spec"
+    },
+    {
+      "code": "SPEC_002",
+      "message": "Template function \"FF-C06\" overridden by spec declaration",
+      "stage": "parse-spec"
+    },
+    {
+      "code": "SPEC_002",
+      "message": "Template function \"FF-CV01\" overridden by spec declaration",
+      "stage": "parse-spec"
+    },
+    {
+      "code": "SPEC_002",
+      "message": "Template function \"FF-CV02\" overridden by spec declaration",
+      "stage": "parse-spec"
+    },
+    {
+      "code": "SPEC_002",
+      "message": "Template function \"FF-CV03\" overridden by spec declaration",
+      "stage": "parse-spec"
+    },
+    {
+      "code": "SPEC_002",
+      "message": "Template function \"FF-CV04\" overridden by spec declaration",
+      "stage": "parse-spec"
+    },
+    {
+      "code": "SPEC_002",
+      "message": "Template function \"FF-CV05\" overridden by spec declaration",
+      "stage": "parse-spec"
+    },
+    {
+      "code": "SPEC_002",
+      "message": "Template function \"FF-CV06\" overridden by spec declaration",
+      "stage": "parse-spec"
+    },
+    {
+      "code": "SPEC_002",
+      "message": "Template function \"FF-N01\" overridden by spec declaration",
+      "stage": "parse-spec"
+    },
+    {
+      "code": "SPEC_002",
+      "message": "Template function \"FF-N02\" overridden by spec declaration",
+      "stage": "parse-spec"
+    },
+    {
+      "code": "SPEC_002",
+      "message": "Template function \"FF-P01\" overridden by spec declaration",
+      "stage": "parse-spec"
+    },
+    {
+      "code": "SPEC_002",
+      "message": "Template function \"FF-P02\" overridden by spec declaration",
+      "stage": "parse-spec"
+    },
+    {
+      "code": "SPEC_002",
+      "message": "Template function \"FF-P03\" overridden by spec declaration",
+      "stage": "parse-spec"
+    },
+    {
+      "code": "SPEC_002",
+      "message": "Template function \"FF-P04\" overridden by spec declaration",
+      "stage": "parse-spec"
+    },
+    {
+      "code": "SPEC_002",
+      "message": "Template function \"FF-P05\" overridden by spec declaration",
+      "stage": "parse-spec"
+    },
+    {
+      "code": "SPEC_002",
+      "message": "Template function \"FF-P06\" overridden by spec declaration",
+      "stage": "parse-spec"
+    },
+    {
+      "code": "SPEC_002",
+      "message": "Template function \"FF-S01\" overridden by spec declaration",
+      "stage": "parse-spec"
+    },
+    {
+      "code": "SPEC_002",
+      "message": "Template function \"FF-S02\" overridden by spec declaration",
+      "stage": "parse-spec"
+    },
+    {
+      "code": "SPEC_002",
+      "message": "Template function \"FF-S03\" overridden by spec declaration",
+      "stage": "parse-spec"
+    },
+    {
+      "code": "SPEC_002",
+      "message": "Template function \"FF-S04\" overridden by spec declaration",
+      "stage": "parse-spec"
+    },
+    {
+      "code": "SPEC_002",
+      "message": "Template function \"FF-SO01\" overridden by spec declaration",
+      "stage": "parse-spec"
+    },
+    {
+      "code": "SPEC_002",
+      "message": "Template function \"FF-SO02\" overridden by spec declaration",
+      "stage": "parse-spec"
+    },
+    {
+      "code": "SPEC_002",
+      "message": "Template function \"FF-SO03\" overridden by spec declaration",
+      "stage": "parse-spec"
+    },
+    {
+      "code": "COMPILER_004",
+      "message": "FF-S03 (no-layer-skip) disabled: not applicable to style nestjs",
+      "context": {
+        "functionId": "FF-S03"
+      },
+      "stage": "compile-functions"
+    }
+  ],
+  "functionExecution": {
+    "declared": 27,
+    "adrDerived": 0,
+    "compiled": 24,
+    "disabled": 3,
+    "dropped": [],
+    "skippedByMode": 2,
+    "noJudgeUnits": [],
+    "executed": 22,
+    "failed": []
+  },
+  "functionResults": [
+    {
+      "functionId": "FF-P06",
+      "name": "domain-state-purity",
+      "dimension": "pattern",
+      "route": "symbolic",
+      "tag": "structural",
+      "passed": true,
+      "violationCount": 0,
+      "executionTimeMs": 1,
+      "truncated": false
+    },
+    {
+      "functionId": "FF-S01",
+      "name": "dependency-direction",
+      "dimension": "structural",
+      "route": "symbolic",
+      "tag": "structural",
+      "passed": true,
+      "violationCount": 0,
+      "executionTimeMs": 2,
+      "truncated": false
+    },
+    {
+      "functionId": "FF-S04",
+      "name": "no-domain-outward-dep",
+      "dimension": "structural",
+      "route": "symbolic",
+      "tag": "structural",
+      "passed": true,
+      "violationCount": 0,
+      "executionTimeMs": 1,
+      "truncated": false
+    },
+    {
+      "functionId": "FF-C01",
+      "name": "domain-stability",
+      "dimension": "coupling",
+      "route": "symbolic",
+      "tag": "topological",
+      "passed": true,
+      "violationCount": 0,
+      "executionTimeMs": 1,
+      "truncated": false
+    },
+    {
+      "functionId": "FF-C02",
+      "name": "module-fan-out",
+      "dimension": "coupling",
+      "route": "symbolic",
+      "tag": "topological",
+      "passed": true,
+      "violationCount": 0,
+      "executionTimeMs": 1,
+      "truncated": false
+    },
+    {
+      "functionId": "FF-C03",
+      "name": "component-instability",
+      "dimension": "coupling",
+      "route": "symbolic",
+      "tag": "topological",
+      "passed": false,
+      "violationCount": 2,
+      "executionTimeMs": 1,
+      "truncated": false
+    },
+    {
+      "functionId": "FF-C04",
+      "name": "no-orphan-files",
+      "dimension": "coupling",
+      "route": "symbolic",
+      "tag": "topological",
+      "passed": true,
+      "violationCount": 0,
+      "executionTimeMs": 1,
+      "truncated": false
+    },
+    {
+      "functionId": "FF-C05",
+      "name": "max-fan-in",
+      "dimension": "coupling",
+      "route": "symbolic",
+      "tag": "topological",
+      "passed": true,
+      "violationCount": 0,
+      "executionTimeMs": 1,
+      "truncated": false
+    },
+    {
+      "functionId": "FF-C06",
+      "name": "abstraction-ratio",
+      "dimension": "coupling",
+      "route": "symbolic",
+      "tag": "topological",
+      "passed": false,
+      "violationCount": 1,
+      "executionTimeMs": 1,
+      "truncated": false
+    },
+    {
+      "functionId": "FF-S02",
+      "name": "no-cyclic-deps",
+      "dimension": "structural",
+      "route": "symbolic",
+      "tag": "topological",
+      "passed": false,
+      "violationCount": 1,
+      "executionTimeMs": 3,
+      "truncated": false
+    },
+    {
+      "functionId": "FF-SO03",
+      "name": "inheritance-depth",
+      "dimension": "solid",
+      "route": "symbolic",
+      "tag": "topological",
+      "passed": true,
+      "violationCount": 0,
+      "executionTimeMs": 1,
+      "truncated": false
+    },
+    {
+      "functionId": "FF-CV02",
+      "name": "naming-services",
+      "dimension": "convention",
+      "route": "symbolic",
+      "tag": "pattern-proxy",
+      "passed": true,
+      "violationCount": 0,
+      "executionTimeMs": 1,
+      "truncated": false
+    },
+    {
+      "functionId": "FF-CV03",
+      "name": "naming-repos",
+      "dimension": "convention",
+      "route": "symbolic",
+      "tag": "pattern-proxy",
+      "passed": true,
+      "violationCount": 0,
+      "executionTimeMs": 1,
+      "truncated": false
+    },
+    {
+      "functionId": "FF-CV05",
+      "name": "test-file-pairing",
+      "dimension": "convention",
+      "route": "symbolic",
+      "tag": "pattern-proxy",
+      "passed": false,
+      "violationCount": 16,
+      "executionTimeMs": 2,
+      "truncated": false
+    },
+    {
+      "functionId": "FF-CV06",
+      "name": "no-index-logic",
+      "dimension": "convention",
+      "route": "symbolic",
+      "tag": "pattern-proxy",
+      "passed": true,
+      "violationCount": 0,
+      "executionTimeMs": 1,
+      "truncated": false
+    },
+    {
+      "functionId": "FF-P01",
+      "name": "domain-purity",
+      "dimension": "pattern",
+      "route": "symbolic",
+      "tag": "pattern-proxy",
+      "passed": false,
+      "violationCount": 2,
+      "executionTimeMs": 1,
+      "truncated": false
+    },
+    {
+      "functionId": "FF-P02",
+      "name": "dependency-inversion",
+      "dimension": "pattern",
+      "route": "symbolic",
+      "tag": "pattern-proxy",
+      "passed": false,
+      "violationCount": 10,
+      "executionTimeMs": 2,
+      "truncated": false
+    },
+    {
+      "functionId": "FF-P03",
+      "name": "repository-pattern",
+      "dimension": "pattern",
+      "route": "symbolic",
+      "tag": "pattern-proxy",
+      "passed": false,
+      "violationCount": 2,
+      "executionTimeMs": 1,
+      "truncated": false
+    },
+    {
+      "functionId": "FF-P04",
+      "name": "use-case-isolation",
+      "dimension": "pattern",
+      "route": "symbolic",
+      "tag": "pattern-proxy",
+      "passed": false,
+      "violationCount": 10,
+      "executionTimeMs": 2,
+      "truncated": false
+    },
+    {
+      "functionId": "FF-P05",
+      "name": "controller-no-entity",
+      "dimension": "pattern",
+      "route": "symbolic",
+      "tag": "pattern-proxy",
+      "passed": true,
+      "violationCount": 0,
+      "executionTimeMs": 1,
+      "truncated": false
+    },
+    {
+      "functionId": "FF-SO01",
+      "name": "single-responsibility-proxy",
+      "dimension": "solid",
+      "route": "symbolic",
+      "tag": "pattern-proxy",
+      "passed": false,
+      "violationCount": 1,
+      "executionTimeMs": 2,
+      "truncated": false
+    },
+    {
+      "functionId": "FF-SO02",
+      "name": "interface-segregation-proxy",
+      "dimension": "solid",
+      "route": "symbolic",
+      "tag": "pattern-proxy",
+      "passed": true,
+      "violationCount": 0,
+      "executionTimeMs": 1,
+      "truncated": false
+    }
+  ],
+  "disabledFunctions": [
+    {
+      "functionId": "FF-CV01",
+      "name": "naming-conventions",
+      "reason": "ADR-016 b (B&T Step 31): cannot fire; per-layer naming patterns compile to .* and no requirement supplies them (SP-FF-CV01 not fired)"
+    },
+    {
+      "functionId": "FF-CV04",
+      "name": "naming-controllers",
+      "reason": "ADR-016 b (B&T Step 31): cannot fire; class decorators are not ingested (BR-U2-31), so no controller is selected (SP-FF-CV04 not fired)"
+    },
+    {
+      "functionId": "FF-S03",
+      "name": "no-layer-skip",
+      "reason": "not applicable to style nestjs"
+    }
+  ],
+  "graphStats": {
+    "nodeCount": 92,
+    "edgeCount": 214,
+    "layerCoverage": 0.9230769230769231,
+    "nodeCountByType": {
+      "File": 26,
+      "Class": 24,
+      "Interface": 0,
+      "Method": 35,
+      "Function": 1,
+      "Package": 6
+    },
+    "edgeCountByType": {
+      "IMPORTS": 101,
+      "IMPLEMENTS": 0,
+      "EXTENDS": 0,
+      "CONSTRUCTOR_INJECTS": 18,
+      "CALLS": 34,
+      "DECLARES": 25,
+      "CONTAINS": 35,
+      "FLOWS_TO": 1,
+      "RE_EXPORTS": 0
+    }
+  },
+  "layerAnnotation": {
+    "mapped": 24,
+    "unmapped": 2,
+    "unmappedFiles": [
+      "src/config.ts",
+      "src/main.ts"
+    ]
+  },
+  "parseCoverage": {
+    "total": 26,
+    "parsed": 26,
+    "percentage": 100,
+    "skipped": []
+  },
+  "importResolution": {
+    "resolvedInternal": 69,
+    "external": 32,
+    "externalOutOfRootAlias": 0,
+    "unresolved": 0,
+    "droppedNoFileNode": 0,
+    "unsupportedDynamic": 0
+  },
+  "timings": {
+    "stages": [
+      {
+        "name": "parallel:extract-apg+parse-spec",
+        "durationMs": 1036,
+        "status": "success"
+      },
+      {
+        "name": "ingest-apg",
+        "durationMs": 99,
+        "status": "success"
+      },
+      {
+        "name": "compile-functions",
+        "durationMs": 2,
+        "status": "success"
+      },
+      {
+        "name": "evaluate-symbolic",
+        "durationMs": 29,
+        "status": "success"
+      },
+      {
+        "name": "universal-metric:cyclicDependencyCount",
+        "durationMs": 2,
+        "status": "success"
+      },
+      {
+        "name": "compute-scores",
+        "durationMs": 10,
+        "status": "success"
+      }
+    ],
+    "totalMs": 1176
+  },
+  "judge": {
+    "provider": "none",
+    "model": "none",
+    "runsPerUnit": 0
+  }
+}

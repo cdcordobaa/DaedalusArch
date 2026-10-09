@@ -1131,6 +1131,62 @@ A reading of "implementers completed" (MO-SO02) that also rewrites every object 
 
 ---
 
+## ADR-026: Instrument v2, role exemptions for three proxy rules (POST-HOC); v1 and v2 reported side by side; prereg v10 prepared
+
+**Status**: Draft, **pending Fable review** (author decision 2026-10-09: "Tune noisy rules now", as a declared instrument v2 before E7 and E1). Not to be merged before the review.
+
+**Date**: 2026-10-09
+
+**POST-HOC declaration**: this tuning was designed **after** the SO4 strict and corrected results (ADR-025) and the informal baseline spot check (`Docs/DiagnosticRuns/baseline-spot-check-2026-10-09.md`, seed 20261009) were seen. The spot check named the noisy rules. The registered v1 results stay unchanged and are reported; v2 is reported beside them and replaces nothing that is already registered.
+
+**Context**: the spot check found 6 REAL, 6 FALSE ALARM and 8 DEBATABLE among 20 baseline violations. The false alarms came from proxy rules: FF-CV05 test-file pairing on DTOs (and, after a twin edit, on `index.ts` barrels of `nestjslatam__ddd`, the three dirty twins of ADR-025), FF-C03 instability on the composition root and a leaf service, FF-SO01 method count on a REST controller, and FF-C02 fan-out on a Nest module file. FF-C06 (project ratio) and FF-P01 (TypeORM entities mapped to the domain by the spec) were debatable. FF-CV05 is 227 of the 477 violations of those two baselines.
+
+**Rules the change set had to follow** (set by the author before the design): (1) every change follows from the rule's own stated intent and a widely used convention, never from making the spot-check items pass; (2) exemptions are declarative, spec- or library-level configuration, not special cases inside queries; (3) no structural rule (FF-S*, FF-P06, cycles) changes, and no SO4 seeded detection changes; (4)–(6) measure the baseline effect, re-check with a new spot-check seed, and keep the registered v1 results intact.
+
+**Decision**:
+1. **Mechanism: library-level role exemptions** (`src/fitness-compiler/role-exemptions.ts`, `INSTRUMENT_VERSION = 2`). A frozen table maps a template name to path globs that name a file *role* by a common naming convention. At compile time (C9, BR-U1-32) they are appended to the function's own `exclude_paths` and reach the query through the existing exclude anchor; no Cypher template text changes. They are library-level, not written into the corpus specs, because (a) every registered spec's bytes are bound to the SO4 manifest by `specSha256` (`score-golden` refuses a changed spec), and (b) E7-generated specs must get the same instrument as the hand-written ones. The globs compile with a segment-aware `**/` (opt-in `segmentGlobstar`, so `**/main.ts` does not match `src/domain.ts`); spec globs and layer globs keep the v1 regex. The table is exported into `corpus/frozen-instrument.json` (`roleExemptions`), so the v10 registration hashes it.
+2. **Two role groups**:
+   - *Composition roots*: `**/main.ts`, `**/*.module.ts`. Intent: the bootstrap file and the `@Module` DI declarations wire the application and import what they wire. Conventions: the Composition Root (Seemann, *Dependency Injection in .NET*, 2011, ch. 3); Martin's "Main" component as the dirtiest, most unstable component (*Clean Architecture*, 2017, ch. 26); NestJS modules are DI metadata ("modules organize the application structure", NestJS docs, Modules). Precedent inside this instrument: every NestJS corpus spec already excludes `**/*.module.ts` from FF-S03 as "DI wiring, they import from all layers by design".
+   - *Declaration-only files*: `**/*.dto.ts`, `**/dto/**`, `**/dtos/**`, `**/*.interface.ts`, `**/*.type.ts`, `**/*.types.ts`, `**/*.enum.ts`, `**/index.ts`. Intent: data shapes, type declarations and barrels carry no behaviour of their own. Conventions: the Nest CLI generates `*.spec.ts` for behavioural schematics (controller, service, guard, pipe, interceptor, gateway, resolver, middleware) and none for `module`, `interface` or the `dto/` files of `nest g resource`; barrels (`index.ts`) only re-export. The template itself already skips graph-detected barrels (`NOT src.isBarrel`); the `index.ts` glob extends that intent to an index that a single edit made non-pure.
+3. **Per rule**:
+
+| Rule | v2 change | Stated intent it follows | Convention |
+|---|---|---|---|
+| FF-CV05 `test-file-pairing` | exempt declaration-only files and composition roots | "Detects source files without corresponding test files" (template); catalogue *test-coverage-proxy*: a unit with behaviour should have a test | Nest CLI spec generation; barrels re-export only |
+| FF-C02 `module-fan-out` | exempt composition roots | "Detects files with excessive outgoing dependencies" (template), FPAT-COUPLING: coupling of code, not of DI wiring | Composition Root; FF-S03's existing `*.module.ts` exclusion |
+| FF-C03 `component-instability` | exempt composition roots | instability I = Ce / (Ca + Ce) (template); under the Stable Dependencies Principle high I is expected of the outermost component | Martin 2017 ch. 14 and ch. 26 ("Main" has I = 1) |
+| FF-SO01 `single-responsibility-proxy` | **no change** | — | A controller threshold or exemption would lose SO4 seeded detections: MO-SO01 seeds `health.controller.ts` (ghostfolio k = 1) and three `*.module.ts` classes at t + 1 methods (rule 3). No widely used controller method-count threshold exists to cite. |
+| FF-C06 `abstraction-ratio` | **no change** | project-level advisory metric; spot-check verdicts were debatable, not false | No convention gives a different threshold; its template has no exclude anchor by design. |
+| FF-P01 `domain-purity` | **no change** | the spec maps `**/*.entity.ts` to the domain; the finding follows the spec | The fix would be a layer-mapping change, which alters every structural rule (rule 3), and MO-P01 seeds `realworld-test` entity files. |
+
+   Not changed either: the leaf-service FF-C03 rows (an edge adapter imported only by its module still has I ≥ 0.8; the SDP-faithful fix is an edge-based check, a template rewrite outside a minimal change) and the FF-P03 abstract-class ports found by the v2 spot check. Both are reported as residual noise.
+4. **SO4 under v2** (symbolic-only re-run of the registered `so4-heldout` plan, unchanged, into `results/so4-heldout-v2/`; case built with the ADR-025 `case-corrected` manifest; `score.json`, `agg/`): seeded detection is **identical to v1 corrected**: TP 67, FN 6, FP 0, recall 0.918, precision 1.000, F1 0.957; every positive seed has the same status and `detectedBy`; `prf_overall.csv`, `prf_by_project.csv` and `golden_instances.csv` are byte-identical to `agg-corrected/`. What changes: twin specificity 68/73 → **71/73** (the three `nestjslatam__ddd` FF-CV05 `index.ts` twins become clean), FF-CV05 collateral 26 → 13, and an all-zero FF-CV05 row leaves `perFunction`. Each v2 baseline report equals its v1 report minus exactly the rows whose file matches the v2 exemptions (checked row by row on all seven bases), so no other rule moved.
+5. **SO2 under v2** (`apg-ablation` plan re-run into `results/apg-ablation-v2/`, `so2-metrics ablation` and `tables`): the H13 gate passes as in v1; per base the detected-function counts, lost and gained functions and the full − AST-only deltas are unchanged; only the violation totals fall (e.g. ghostfolio 436 / 375 → 332 / 271).
+6. **Baseline effect** (seven held-out bases, unseeded, symbolic-only; v1 → v2):
+
+| Base | FF-C02 | FF-C03 | FF-CV05 | Total |
+|---|---|---|---|---|
+| realworld-test | 0 | 6 → 3 | 25 → 15 | 41 → 28 |
+| ghostfolio-test | 15 → 3 | 36 → 18 | 202 → 128 | 436 → 332 |
+| truthy-demo | 4 → 3 | 11 → 9 | 72 → 38 | 125 → 88 |
+| dry-run-test | 3 → 2 | 15 → 9 | 103 → 52 | 156 → 98 |
+| zhuravlevma__nestjs-active-record | 1 → 0 | 3 → 2 | 24 → 16 | 55 → 45 |
+| nestjslatam__ddd | 4 → 2 | 9 | 115 → 98 | 222 → 203 |
+| v-aguiar__valex | 0 | 3 | 19 → 18 | 31 → 30 |
+| **Core 4** | 22 → 8 | 68 → 39 | 402 → 233 | 758 → 546 |
+| **All 7** | 27 → 10 | 83 → 53 | 560 → 365 | 1066 → 824 |
+
+   Every other function is unchanged on every base (all 7: C01 17, C04 6, C05 9, C06 6, P01 20, P02 108, P03 19, P04 37, S01 69, S02 27, S03 3, S04 33, SO01 41, SO02 1).
+7. **New spot check** (`Docs/DiagnosticRuns/baseline-spot-check-v2-2026-10-09.md`; seed 20261010, drawn after the tuning, pooled over the seven v2 baselines, stratified by function; informal agent check, not the registered labelling): REAL 6, FALSE ALARM 4, DEBATABLE 10. No sampled item falls in an exempted class; the remaining false alarms come from FF-P03, FF-C03 (leaf adapter), FF-P01 (spec mapping) and FF-SO01 (value object), all unchanged by rule 3 or by minimality.
+8. **Reporting**: `Docs/analysis-plan.md` §10 B8 states how v1 and v2 are both reported: v1 stays primary for SO4 and SO2 with v2 beside it; P2 gives a v2 precision as a domain estimate over the registered v1 draw; v2 is the instrument for E7, E1 and SO5, with a v1 symbolic-only sensitivity row.
+9. **Pre-registration v10, prepared, not merged before the review**: one dated bump registering `Docs/analysis-plan.md` (§10 B8, §11 row) and `corpus/frozen-instrument.json` (`roleExemptions`). No spec, preset, plan, operator catalogue or matching rule changes. The v2 runs above ran under the v9 gate with `cliCommit` = the v2 code commit; their records keep `preregVersion` 9 and that commit identifies the instrument.
+
+**Rationale**: the three exempted roles are outside each rule's stated intent by conventions that predate this study, the exemptions sit in one declarative, registered table instead of in queries or specs, and the SO4 re-run shows they change no seeded detection. Rules whose tuning would touch seeded detections or structure stay as they are and their noise is reported. Declaring the change post hoc and reporting v1 beside v2 lets a reader see that baseline volume fell (−23 % over the seven bases, −35 % for FF-CV05) without any change to the registered SO4 result.
+
+**Threat**: the exempted classes were chosen after seeing which rules were noisy; the spot check names the rules, and the conventions only decide where each rule's boundary lies. The v2 spot check uses a new seed and a wider pool, and the registered P2 labelling remains the precision measurement.
+
+---
+
 ## Decision Log Summary
 
 | **ADR** | **Decision** | **Status** | **Spike Validated** |
@@ -1161,3 +1217,4 @@ A reading of "implementers completed" (MO-SO02) that also rewrites every object 
 | 023 | FLOWS_TO near-empty on real DI-style code: reported as an SO2 limitation, instrument unchanged | Accepted | — |
 | 024 | SO4 seeding typecheck losses (10) diagnosed as site infeasibility, no operator defect; golden N = 75 reported against the floor; runbook 3.2, 1.6, flows-to paths fixed | Accepted | — |
 | 025 | POST-HOC SO4 scoring fixes: MAT-04a class-rename identity (rule 1.2.0), MO-S01 layered style guard (expectation), MO-DF01n constructor scope; prereg v9; strict and corrected scores side by side | Accepted | — |
+| 026 | POST-HOC instrument v2: library-level role exemptions for FF-CV05, FF-C02, FF-C03 (composition roots, declaration-only files); SO4 detection unchanged; v1 and v2 reported side by side; prereg v10 prepared | Draft (pending Fable review) | — |
