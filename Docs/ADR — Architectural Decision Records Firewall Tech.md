@@ -952,6 +952,19 @@ i. **U2 derived settlements** S-1 to S-7 and S-9 (U2 `business-rules.md` §14.1)
      - Naming (X-6): the ADR-020 bump is "P-M"; "P-2" stays the B&T cycle-strategy flip.
 3. **The H13 latency gate (BT-D) moves to U6**, so the gate's fixes come before its first run.
 4. **Registration.** Every U6 change to a registered artefact goes into one dated bump, P-U6, after P-1 and P-M and before any so4-heldout, e7-corpus, e1-grid or live-labelling run. The final pre-run check of P-U6 is reviewed by a Fable adversarial verifier.
+5. **P-U6 additions from the Fable verification of P-1 (2026-10-09; verdict PASS with no blocking issues; the record is `Docs/DiagnosticRuns/p1-verification-2026-10-09.md`).**
+   - **Major 1:** the registered plans must name the held-out set.
+     - Write the seven held-out `{projectId, path, specPath}` entries into `experiments/so4-heldout/plan.json`: realworld, ghostfolio, truthy-demo, dry-run-test, zhuravlevma, nestjslatam, valex.
+     - Add the three E7 bases to `experiments/e7-corpus/plan.json`.
+     - Update the run list in `Docs/analysis-plan.md`, and add its Reporting duties section if P-M has not already done so.
+   - **Major 2:** register the count inputs. Commit the `--bases` list used for the count, or record the exact command lines in `u5a-site-feasibility.md`. Add these to `REGISTERED_ARTEFACTS`, without rerunning any count:
+     - `Docs/DiagnosticRuns/u5a-site-feasibility.json`
+     - `u5a-base-typecheck.json`
+     - `e7-spec-generation.json`
+     - `corpus/selections/*.json`
+   - **Minor:** also register `presets/*.yaml`, `generate-e7-specs-cli.ts` and the three chain tools (`migrate-corpus-spec`, `remap-domain-layer`, `corpus-rubric-u4`).
+   - **MarvinRF stays excluded from SO4 for good.** Re-admitting it would need a second feasibility count. If the zero-judge-units schema defect is fixed, MarvinRF may be reported only as an exploratory extra.
+   - **Ch7 reporting duties 1–9 from that verification are binding.** They cover the full capacity history (29/42, then 47/69, then 85/126), the three floor-motivated decisions with their arithmetic, the counterfactual (N = 111 at k = 3 on six bases without the ghostfolio repair), the exclusions by name, the style mismatches and imbalance, the vocabulary written after the projects were known, and the 85-vs-80 margin.
 
 ---
 
