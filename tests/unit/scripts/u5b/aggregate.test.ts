@@ -4,7 +4,7 @@
  * acceptance run under the lane lock (Done note); this suite replays the five stored fixture reports.
  */
 import { execFileSync } from 'node:child_process';
-import { mkdtempSync, readFileSync, readdirSync, rmSync } from 'node:fs';
+import { mkdirSync, mkdtempSync, readFileSync, readdirSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { CYPHER_TEMPLATES, listTemplatesByTag } from '../../../../src/fitness-compiler/cypher-templates.js';
@@ -20,8 +20,8 @@ import {
   aggregate, CSV_FILES, fpatCounts, loadRunDir, primaryOutcome, so5Cells, so5Csv, so5Records, so5Tests,
 } from '../../../../scripts/aggregate.js';
 import type { AggregateInput, GoldenScoreJson, So5Cell } from '../../../../scripts/aggregate.js';
-import { runPlan } from '../../../../scripts/run-experiment.js';
-import type { ExperimentPlan } from '../../../../scripts/run-experiment.js';
+import { joinOutcome, runPlan } from '../../../../scripts/run-experiment.js';
+import type { ExperimentPlan, PlanEntry } from '../../../../scripts/run-experiment.js';
 import { ROOT } from './score-fixture.js';
 
 const so5 = ((): So5Codes => {
@@ -304,5 +304,62 @@ describe('SO5 grid completeness over the registered E1 grid (ADR-021 SO5-05)', (
     expect(so5Records({ ...inp, plan: noGrid }).map((r) => r.runId)).toEqual([
       'e1t-002-m2_task-management_none_run-0', 'e1t-000-m1_task-management_none_run-0', 'e1t-009-m9', 'e1t-001-m1_task-management_none_run-1',
     ]);
+  });
+});
+
+describe('SO5 grid when a generation.json declares another coordinate (ADR-021 SO5-03, SO5-05)', () => {
+  // The 54-cell synthetic grid (3 models x 3 levels x 2 tasks x 3 runs). The generation.json under
+  // gen/m1/task-management/none/run-0 declares task order-fulfilment (and its template id); joinOutcome turns it into
+  // a protocol-mismatch cell. Hand-computed: so5_grid.csv keeps 54 rows (no off-grid extra, no synthesised GEN-MISSING);
+  // m1/task-management/none/0 is GEN-PROTOCOL-MISMATCH; m1/order-fulfilment/none/0 stays the accepted run; the
+  // not-run rows are that mismatch plus the planted m3 timeout, so the valid-generation-yield is 52 of 54.
+  const grid = {
+    outcomesRoot: 'gen', style: 'clean-architecture', models: ['m1', 'm2', 'm3'], specLevels: ['none', 'minimal-prose', 'full-aac'] as GenerationCell['specLevel'][],
+    tasks: [{ taskId: 'task-management', specPath: 'specs/task-management.yaml' }, { taskId: 'order-fulfilment', specPath: 'specs/order-fulfilment.yaml' }], runs: 3,
+  };
+
+  it('54 so5_grid rows with GEN-PROTOCOL-MISMATCH at the directory\'s own coordinate', () => {
+    const root = mkdtempSync(join(tmpdir(), 'u5b-so5-coord-'));
+    try {
+      const outcomeDir = 'gen/m1/task-management/none/run-0';
+      mkdirSync(join(root, outcomeDir), { recursive: true });
+      writeFileSync(join(root, outcomeDir, 'generation.json'), JSON.stringify({
+        status: 'ok', adapterId: 'claude-code-cli', taskId: 'order-fulfilment', specLevel: 'none', runIndex: 0, requestedModelId: 'm1',
+        promptTemplateId: 'none/order-fulfilment', promptTemplateSha256: 'a'.repeat(64), orderSeed: 20261008, pilot: false,
+        fileCount: 25, fileCountInRange: true, permissionDenials: 0,
+      }));
+      const entry: PlanEntry = {
+        index: 0, projectId: 'm1/task-management/none/run-0', path: outcomeDir, specPath: 'specs/task-management.yaml',
+        grid: { modelId: 'm1', taskId: 'task-management', specLevel: 'none', runIndex: 0, outcomeDir },
+      };
+      const joined = joinOutcome(entry, 'clean-architecture', root, { orderSeed: 20261008, templateSha: () => 'a'.repeat(64) });
+      expect(joined.ok).toBe(false);
+      const mismatchCell = joined.ok ? undefined : joined.cell;
+      expect(mismatchCell).toMatchObject({ requestedModelId: 'm1', taskId: 'task-management', specLevel: 'none', runIndex: 0, generationStatus: 'protocol-mismatch' });
+
+      const { input } = synthetic();
+      const isTarget = (c?: GenerationCell): boolean => c?.requestedModelId === 'm1' && c.taskId === 'task-management' && c.specLevel === 'none' && c.runIndex === 0;
+      const target = input.records.find((r) => isTarget(r.cell));
+      const reports = new Map(input.reports);
+      if (target !== undefined) reports.delete(target.runId);
+      const records = input.records.map((r): RunRecord => (isTarget(r.cell) && mismatchCell !== undefined
+        ? { ...r, status: 'not-run', reasonCode: 'generation-failed', cell: mismatchCell }
+        : r));
+      const basePlan = input.plan;
+      if (basePlan === undefined) throw new Error('synthetic() always carries a plan');
+      const inp: AggregateInput = { ...input, records, reports, plan: { ...basePlan, e1: grid } };
+
+      const rows = parseCsv(so5Csv(inp, 50)['so5_grid.csv'] ?? '').rows;
+      expect(rows).toHaveLength(54);
+      const at = (task: string): Record<string, string>[] => rows.filter((r) => r.requested_model_id === 'm1' && r.task_id === task && r.spec_level === 'none' && r.run_index === '0');
+      expect(at('task-management').map((r) => [r.status, r.generation_status, r.gen_code])).toEqual([['not-run', 'protocol-mismatch', 'GEN-PROTOCOL-MISMATCH']]);
+      expect(at('order-fulfilment').map((r) => [r.status, r.gen_code])).toEqual([['accepted', '']]);
+      expect(rows.filter((r) => r.gen_code === 'GEN-MISSING')).toHaveLength(0);
+      const patterns = parseCsv(so5Csv(inp, 50)['so5_patterns.csv'] ?? '').rows;
+      expect(patterns.map((p) => p.code).sort()).toEqual(['GEN-PROTOCOL-MISMATCH', 'GEN-TIMEOUT']);
+      expect(so5Cells(inp).filter((c) => c.valid)).toHaveLength(52);
+    } finally {
+      rmSync(root, { recursive: true, force: true });
+    }
   });
 });
