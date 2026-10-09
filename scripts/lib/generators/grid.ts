@@ -9,12 +9,15 @@
  * (`runWithRetries`) → `finaliseRun` (envelope, model-usage rule, skeleton integrity, type-check of record, counts,
  * tree sha). `isAvailable()` runs `<binary> --version`.
  *
- * `runGenerationGrid(plan, adapters, hooks)` validates the plan, writes `<outRoot>/schedule.json`, runs the cells in
- * the seeded blocked order (`scheduleGrid`) and writes each outcome to `generation.json` beside its tree before the
- * next cell. Every outcome is kept: failed generations are recorded and never replaced (BR-U5a-49), so a cell may
- * hold fewer than `runs` valid projects. A cell whose `generation.json` already exists is not re-run (resume after a
- * stop). A `skeleton-tampered` outcome triggers `hooks.onSkeletonTampered` (rebuild the install) before the next
- * cell. A harness failure (an adapter `DomainResult.fail`) stops the grid.
+ * `runGenerationGrid(plan, adapters, hooks)` validates the plan, writes `<outRoot>/schedule.json` (with the generator
+ * plan file's path and sha256 when `hooks.planProvenance` is given), runs the cells in the seeded blocked order
+ * (`scheduleGrid`) and writes each outcome to `generation.json` beside its tree before the next cell. Every outcome is
+ * kept: failed generations are recorded and never replaced (BR-U5a-49), so a cell may hold fewer than `runs` valid
+ * projects. Each cell runs in its staging directory and is committed by one rename (`cell-restart.ts`, SO5-04): before
+ * a cell runs, `recoverCell` skips a complete cell, promotes a finished staging directory, or moves a partial cell to
+ * `restarts/` and regenerates it, so a grid stopped mid-cell resumes on the next start. A `skeleton-tampered`
+ * outcome triggers `hooks.onSkeletonTampered` (rebuild the install) before the next cell. A harness failure (an
+ * adapter `DomainResult.fail`) stops the grid; its partial cell is discarded on the next start.
  */
 import * as fs from 'node:fs';
 import * as path from 'node:path';
@@ -29,6 +32,8 @@ import { agentFileCount, attemptDisposition, finaliseRun, generationJsonPath, wr
 import { DEFAULT_RETRY_POLICY, realSleep, runWithRetries, systemClock } from './retry.js';
 import type { Clock, RetryPolicy, Sleeper } from './retry.js';
 import { SCHEDULE_JSON, requestForCell, scheduleGrid, validateGridPlan } from './schedule.js';
+import { commitCell, recoverCell, stagingDirFor } from './cell-restart.js';
+import type { CellRecovery } from './cell-restart.js';
 import { prepareCellDir, removeTree } from './skeleton.js';
 import type { SkeletonInstall } from './skeleton.js';
 import { CLAUDE_CODE_ADAPTER_ID } from './types.js';
@@ -150,6 +155,12 @@ export interface GridHooks {
   readonly onOutcome?: (outcome: GenerationOutcome, cell: GenerationCell) => void;
   /** When given, `outRoot` must lie outside it. */
   readonly repoRoot?: string;
+  /** Recorded in `schedule.json` as `generatorPlan` (SO5-03): the plan file the grid was started from. */
+  readonly planProvenance?: { readonly path: string; readonly sha256: string };
+  /** Called when a cell was promoted or discarded at start (SO5-04). */
+  readonly onRecovery?: (recovery: Exclude<CellRecovery, { kind: 'complete' | 'fresh' }>, cell: GenerationCell) => void;
+  /** Clock of the `restarts.jsonl` lines (default the system clock). */
+  readonly now?: () => Date;
 }
 
 /** Runs the grid (see the module header). */
@@ -170,21 +181,33 @@ export async function runGenerationGrid(
   fs.mkdirSync(plan.outRoot, { recursive: true });
   fs.writeFileSync(
     path.join(plan.outRoot, SCHEDULE_JSON),
-    `${JSON.stringify({ orderSeed: plan.orderSeed, runs: plan.runs, cells }, null, 2)}\n`,
+    `${JSON.stringify(
+      {
+        orderSeed: plan.orderSeed,
+        runs: plan.runs,
+        ...(hooks.planProvenance !== undefined ? { generatorPlan: hooks.planProvenance } : {}),
+        cells,
+      },
+      null,
+      2,
+    )}\n`,
   );
   const outcomes: GenerationOutcome[] = [];
   for (const cell of cells) {
     const req = requestForCell(plan, cell);
-    const existing = generationJsonPath(req.outputDir);
-    if (fs.existsSync(existing)) {
-      outcomes.push(JSON.parse(fs.readFileSync(existing, 'utf8')) as GenerationOutcome);
+    const recovery = recoverCell(plan.outRoot, req.runId, req.outputDir, hooks.now);
+    if (recovery.kind === 'promoted' || recovery.kind === 'discarded') hooks.onRecovery?.(recovery, cell);
+    if (recovery.kind === 'complete' || recovery.kind === 'promoted') {
+      outcomes.push(JSON.parse(fs.readFileSync(generationJsonPath(req.outputDir), 'utf8')) as GenerationOutcome);
       continue;
     }
     const adapter = byModel.get(cell.modelId);
     if (adapter === undefined) return DomainResult.fail([{ code: 'GEN_ADAPTER_MISSING', message: 'adapter missing' }]);
-    const r = await adapter.generate(req);
+    const staged: GenerationRequest = { ...req, outputDir: stagingDirFor(plan.outRoot, req.runId) };
+    const r = await adapter.generate(staged);
     if (!r.success) return DomainResult.fail(r.errors);
-    writeGenerationJson(req.outputDir, r.data);
+    writeGenerationJson(staged.outputDir, r.data);
+    commitCell(staged.outputDir, req.outputDir);
     outcomes.push(r.data);
     hooks.onOutcome?.(r.data, cell);
     if (!r.data.skeletonIntact && hooks.onSkeletonTampered !== undefined) {
