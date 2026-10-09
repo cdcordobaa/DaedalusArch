@@ -14,11 +14,12 @@ import {
 } from '../../../../scripts/score-golden.js';
 import type { GoldenScore, ReconciledP1Label, ScoreInput, ScoreOutcome } from '../../../../scripts/score-golden.js';
 import { CASE_INPUT_INVALID, CASE_OUT_NOT_EMPTY, main as caseMain, manifestPathOf, planScoreCase } from '../../../../scripts/build-score-case.js';
-import { aggregate, PRF_INTERVAL_COLUMNS } from '../../../../scripts/aggregate.js';
+import { aggregate, PRF_INTERVAL_COLUMNS, projectModes } from '../../../../scripts/aggregate.js';
 import type { AggregateInput, GoldenScoreJson } from '../../../../scripts/aggregate.js';
 import { parseCsv } from '../../../../scripts/lib/figures/draw.js';
 import { loadSo5Codes } from '../../../../scripts/lib/so5-codes.js';
 import type { ManifestRow } from '../../../../scripts/lib/manifest.js';
+import { loadRunDir, loadRunRecords } from '../../../../scripts/lib/report-io.js';
 import type { RunRecord } from '../../../../scripts/lib/report-io.js';
 import type { EvaluationReport } from '../../../../src/shared/types/evaluation.js';
 import { ROOT, SPEC_SHA, key, record, report, row, rule, seed } from '../u5b/score-fixture.js';
@@ -100,6 +101,31 @@ describe('a rejected pair does not stop the score (ADR-021 SO4-03; MAT-25)', () 
     expect(o.detail).toBe('p:MO-S01:0: seeded report without its RunRecord; p:MO-S01:1: baseline report without its RunRecord');
   });
 
+  it('a rejected pair carries the spec style of its specSha256, as a scored instance does (SO1-C)', async () => {
+    const s = ok(score({
+      seeds: [
+        seed(s01Row('p:MO-S01:0'), await report([]), await report([S01_V])),
+        seed(s01Row('p:MO-S01:1'), await report([]), await report([S01_V]), { seeded: null }),
+      ],
+      specStyles: new Map([[SPEC_SHA, 'nestjs']]),
+    }));
+    expect(s.perInstance[0]?.specStyle).toBe('nestjs');
+    expect(s.rejectedPairs.map((r) => [r.seedId, r.specStyle])).toEqual([['p:MO-S01:1', 'nestjs']]);
+  });
+
+  it('every non-probe pair rejected but an SP-* probe pair accepted: not refused; the probe stays out of the P/R tables', async () => {
+    const probe = row({ seedId: 'p:SP-FF-S01:0', operatorId: 'SP-FF-S01', split: 'probe', expected: { functionIds: ['FF-S01'], keys: [S01_KEY] } });
+    const s = ok(score({
+      seeds: [
+        seed(s01Row('p:MO-S01:0'), await report([]), await report([S01_V]), { seeded: null }),
+        seed(probe, await report([]), await report([S01_V])),
+      ],
+    }));
+    expect(s.perInstance).toEqual([]);
+    expect(s.rejectedPairs.map((r) => r.seedId)).toEqual(['p:MO-S01:0']);
+    expect(s.overall.get(HELD_OUT)).toBeUndefined();
+  });
+
   it('a dev or twin row is listed as not golden; manifest rejections are carried', async () => {
     const twin = row({ seedId: 'p:MO-S01n:0', expected: { negative: true, twinOf: 'MO-S01', functionIds: [], keys: [] } });
     const dev = row({ seedId: 'f:MO-S01:0', split: 'dev', baseKind: 'fixture', expected: { functionIds: ['FF-S01'], keys: [S01_KEY] } });
@@ -156,6 +182,19 @@ describe('pairRuns / loadCase never stop on a missing run (ADR-021 SO4-03, 04)',
       { seedId: 'p:MO-S01:2', status: 'unusable', reason: 'seeded: report reports/so4-003-s2.json of run so4-003-s2 not found' },
       { seedId: 'p:MO-S01:3', status: 'unusable', reason: 'seeded: no seeded run' },
     ]);
+  });
+
+  it('loadRunRecords reads only runs/*.run.json: a corrupt stored report does not matter (build-score-case input)', () => {
+    const dir = mkdtempSync(join(tmpdir(), 'so4-records-'));
+    mkdirSync(join(dir, 'runs'));
+    mkdirSync(join(dir, 'reports'));
+    writeFileSync(join(dir, 'runs', 'b.run.json'), JSON.stringify(record({ runId: 'b', reportPath: 'reports/b.json' })));
+    writeFileSync(join(dir, 'runs', 'a.run.json'), JSON.stringify(record({ runId: 'a', reportPath: 'reports/a.json' })));
+    writeFileSync(join(dir, 'runs', 'notes.txt'), 'ignored');
+    writeFileSync(join(dir, 'reports', 'a.json'), '{ not json');
+    expect(loadRunRecords(dir, CASE_INPUT_INVALID).map((r) => r.runId)).toEqual(['a', 'b']);
+    expect(() => loadRunDir(dir)).toThrow(SyntaxError);
+    expect(() => loadRunRecords(join(dir, 'missing'), CASE_INPUT_INVALID)).toThrow(`${CASE_INPUT_INVALID}: `);
   });
 
   it('manifestPathOf: one manifest named by every seeded record, else CASE_INPUT_INVALID', () => {
@@ -317,13 +356,34 @@ describe('aggregate: precision and F1 intervals, coverage, styles (ADR-021 SO4-0
     const withRun = { ...s, denominators: [{ ...s.denominators[0], runId: 'r-p1' } as GoldenScoreJson['denominators'][number]] };
     const out = aggregate(input(withRun, { records, corpusStyles: new Map([['p1', 'nestjs'], ['p2', 'layered']]), registeredGoldenN: 85 }));
     const projects = parseCsv(out.get('prf_by_project.csv') ?? '').rows.filter((r) => r.split === 'held-out' && r.base_kind === 'all' && r.coverage === 'all');
-    expect(projects.map((r) => [r.project_id, r.corpus_style, r.spec_style, r.precision_f1_ci_basis])).toEqual([['p1', 'nestjs', 'nestjs', 'strict'], ['p2', 'layered', 'nestjs', 'strict']]);
+    expect(projects.map((r) => [r.project_id, r.corpus_style, r.spec_style, r.precision_f1_ci_basis])).toEqual([['p1', 'nestjs', 'nestjs', 'labelled'], ['p2', 'layered', 'nestjs', 'labelled']]);
+    // Labelled per project from the item labels (the one TP-class label is on a p2 item): p1 6 / (6 + 1), p2 6 / (6 + 2 - 1);
+    // F1 = 12 / 13 each. n = TP + FP = 7 < 10 per project, so counts only (precision_n_cells = 2).
+    expect(projects.map((r) => [r.fp_strict, r.fp_labelled, r.precision_labelled, r.f1_labelled, r.precision_n_cells, r.precision_ci_low]))
+      .toEqual([['1', '1', '0.857143', '0.923077', '2', ''], ['2', '1', '0.857143', '0.923077', '2', '']]);
     expect(parseCsv(out.get('denominators.csv') ?? '').rows[0]).toMatchObject({ run_id: 'r-p1', project_id: 'p1', corpus_style: 'nestjs', spec_style: 'nestjs' });
     const coverage = parseCsv(out.get('seed_coverage.csv') ?? '').rows;
     expect(coverage).toHaveLength(12);
     expect(coverage.every((r) => r.stage === 'scored' && r.status === 'matched' && r.golden === 'true')).toBe(true);
     const golden = parseCsv(out.get('golden_instances.csv') ?? '').rows[0];
     expect(golden).toMatchObject({ scope: 'overall', n_golden: '12', n_scored: '12', n_registered: '85', floor_met: 'false', shortfall: '68' });
+  });
+
+  it('projectModes: labelled FP drops TP-class items, an unlabelled item counts as uncertain; strict without labels or fpItems', () => {
+    const base = { projectId: 'p', operatorId: 'MO-S01', split: 'held-out', baseKind: 'corpus', coverage: 'in', dimension: 'structural', tags: [], applicable: [], detectedBy: [], lineConfirmed: null, collateral: [] };
+    const fp = (itemId: string, label?: ReconciledP1Label) => ({ itemId, functionId: 'FF-C04', ...(label !== undefined && { label }) });
+    const rows = [
+      { ...base, seedId: 'p:MO-S01:0', status: 'matched', undeclaredNew: ['k1', 'k2'], fpItems: [fp('i1', 'TP'), fp('i2', 'FP')] },
+      { ...base, seedId: 'p:MO-S01:1', status: 'missed', undeclaredNew: ['k3', 'k4'], fpItems: [fp('i3', 'uncertain'), fp('i4')] },
+    ] as unknown as GoldenScoreJson['perInstance'];
+    // strict: TP 1, FP 4, FN 1 → precision 0.2. Labelled: FP 3 (FP, uncertain, unlabelled) → precision 1/4, recall 1/2, F1 = 1/3.
+    const m = projectModes(rows, true);
+    expect(m.strict).toMatchObject({ tp: 1, fp: 4, fn: 1, precision: 0.2 });
+    expect(m.labelled).toMatchObject({ tp: 1, fp: 3, fn: 1, precision: 0.25, recall: 0.5 });
+    expect(m.labelled?.f1).toBeCloseTo(1 / 3, 12);
+    expect([m.fpUncertain, m.inclTwins]).toEqual([1, null]);
+    expect(projectModes(rows, false).labelled).toBeNull();
+    expect(projectModes(rows.map(({ fpItems: _f, ...r }) => r) as GoldenScoreJson['perInstance'], true).labelled).toBeNull();
   });
 
   it('without a score the coverage files are header-only', () => {

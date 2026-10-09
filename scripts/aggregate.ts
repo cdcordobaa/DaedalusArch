@@ -19,7 +19,8 @@
  *   recall unit rule: (project, operator) cells, cell bootstrap primary from 10 cells (precision: Wilson on the cells
  *   below), the project cluster bootstrap descriptive below 10 projects, and for precision the Wilson interval on the
  *   violations as the "if independent" bound. F1 gets no Wilson interval. The basis is the labelled mode when the score
- *   is labelled, else strict (`precision_f1_ci_basis`).
+ *   is labelled, else strict (`precision_f1_ci_basis`); project rows rebuild their labelled mode from the instances'
+ *   item labels (`projectModes`), so they share the basis of the other rows.
  * - SO4 coverage (ADR-021 SO4-03, 05): `seed_coverage.csv` lists every seed (scored, or rejected as a pair with its
  *   reason) and every manifest rejection; `golden_instances.csv` gives the golden N per stage and the scored N against
  *   the 80-120 floor with the ADR-019 item 1 shortfall statement (`scripts/lib/so4-coverage.ts`).
@@ -58,7 +59,7 @@ import { ablationCsv, rescoreReport, sensitivityCsv } from './rescore.js';
 import type { RescoreOutput } from './rescore.js';
 import { cycleQueryTimes, latencyGate, runIdOf } from './run-experiment.js';
 import type { ExperimentPlan } from './run-experiment.js';
-import { DATA_FLOW_SUB_ROW, DATA_FLOW_TEMPLATE, denominatorRow, readCorpusStyles, readCorpusTiers, strataOf } from './score-golden.js';
+import { computePrf, DATA_FLOW_SUB_ROW, DATA_FLOW_TEMPLATE, denominatorRow, readCorpusStyles, readCorpusTiers, strataOf } from './score-golden.js';
 import type {
   DenominatorRow, EdgeEvidence, FpItemRef, FunctionSensitivityResult, InstanceResult, JudgeProbeResult, ManifestRejectionRef, RejectedPair,
 } from './score-golden.js';
@@ -325,6 +326,26 @@ function differentialFigureRows(pid: string, scope: 'overall' | 'function', fid:
   return rows;
 }
 
+/**
+ * The P/R/F1 modes of one project's counted instances in a stratum (`prf_by_project.csv`). Strict FP is the
+ * instances' undeclared new items. When the score is labelled (`labelled`, from the stratum's overall row) and every
+ * instance carries `fpItems`, the labelled mode is rebuilt from the item labels as `score-golden` does (MAT-10 1.1.0:
+ * TP-class labels leave FP; an unlabelled item counts as `uncertain`), so the project row's interval basis matches
+ * the overall, function, dimension and tag rows. "Incl. twins" stays `null` on project rows: twin items are not
+ * carried per instance. A score without `fpItems` keeps the strict basis.
+ */
+export function projectModes(rows: readonly InstanceResult[], labelled: boolean): PrfModesJson {
+  const tp = rows.filter((i) => i.status === 'matched').length;
+  const fn = rows.length - tp;
+  const fp = rows.reduce((a, i) => a + i.undeclaredNew.length, 0);
+  const strict = { tp, fp, fn, precision: tp + fp === 0 ? null : tp / (tp + fp), recall: tp + fn === 0 ? null : tp / (tp + fn), f1: null };
+  if (!labelled || rows.some((i) => i.fpItems === undefined)) return { strict, labelled: null, inclTwins: null, fpUncertain: 0 };
+  const items = rows.flatMap((i) => i.fpItems ?? []);
+  const fpLabelled = items.filter((f) => !isTpClass(f.label ?? 'uncertain')).length;
+  const fpUncertain = items.filter((f) => f.label === 'uncertain').length;
+  return { strict, labelled: computePrf({ tp, fp: fpLabelled, fn }), inclTwins: null, fpUncertain };
+}
+
 /** Stratum of the headline SO4 figure: the held-out total (BR-U5b-20). */
 export const HEADLINE_STRATUM = JSON.stringify(['held-out', 'all', 'all']);
 
@@ -382,20 +403,14 @@ function prfFiles(input: AggregateInput, seed: number, resamples: number): Parti
       const pf = prfIntervalCells(m, (lab) => confusionCells(inst, stratum, () => true, (i) => i.status === 'matched', () => true, lab), seed, resamples);
       overallRows.push([...prfCells(pid, stratum, m, ciCells(instanceCells(inst, stratum), m.strict.tp, m.strict.fn, seed, resamples)), f6(inCov?.strict.recall), f6(all?.strict.recall), baselineOf('overall', ''), ...pf]);
     }
-    for (const [stratum] of s.overall) {
+    for (const [stratum, om] of s.overall) {
       const projects = [...new Set(inst.filter((i) => strataOf(i).includes(stratum)).map((i) => i.projectId))].sort();
       for (const p of projects) {
         const rows = inst.filter((i) => i.projectId === p && strataOf(i).includes(stratum) && counted(i));
-        const tp = rows.filter((i) => i.status === 'matched').length;
-        const fn = rows.length - tp;
-        const fp = rows.reduce((a, i) => a + i.undeclaredNew.length, 0);
-        const m: PrfModesJson = {
-          strict: { tp, fp, fn, precision: tp + fp === 0 ? null : tp / (tp + fp), recall: tp + fn === 0 ? null : tp / (tp + fn), f1: null },
-          labelled: null, inclTwins: null, fpUncertain: 0,
-        };
+        const m = projectModes(rows, om.labelled !== null);
         const pf = prfIntervalCells(m, (lab) => confusionCells(inst, stratum, (i) => i.projectId === p, (i) => i.status === 'matched', () => true, lab)?.filter((c) => c.project === p), seed, resamples);
         const styleOf = rows.find((i) => i.specStyle !== undefined)?.specStyle ?? '';
-        projectRows.push([...prfCells(pid, stratum, m, ciCells(instanceCells(inst, stratum, (i) => i.projectId === p), tp, fn, seed, resamples)), p, input.corpusStyles?.get(p) ?? rows[0]?.corpusStyle ?? '', styleOf, ...pf]);
+        projectRows.push([...prfCells(pid, stratum, m, ciCells(instanceCells(inst, stratum, (i) => i.projectId === p), m.strict.tp, m.strict.fn, seed, resamples)), p, input.corpusStyles?.get(p) ?? rows[0]?.corpusStyle ?? '', styleOf, ...pf]);
       }
     }
   }

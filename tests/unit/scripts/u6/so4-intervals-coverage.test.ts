@@ -99,7 +99,7 @@ describe('SO4 seed coverage and the golden N (ADR-021 SO4-03, SO4-05)', () => {
       inst('b:MO-P01:0', 'site-invalid', { specStyle: 'layered' }), inst('dev:MO-S01:0', 'matched', { split: 'dev', baseKind: 'fixture' }),
     ],
     rejectedPairs: [
-      { seedId: 'a:MO-P01:0', projectId: 'a', operatorId: 'MO-P01', split: 'held-out', baseKind: 'corpus', golden: true, code: 'SCORE_INPUT_REJECTED', reason: 'a:MO-P01:0: seeded run rejected (transport-error)' },
+      { seedId: 'a:MO-P01:0', projectId: 'a', operatorId: 'MO-P01', split: 'held-out', baseKind: 'corpus', golden: true, specStyle: 'nestjs', code: 'SCORE_INPUT_REJECTED', reason: 'a:MO-P01:0: seeded run rejected (transport-error)' },
       { seedId: 'b:MO-S01n:1', projectId: 'b', operatorId: 'MO-S01n', split: 'held-out', baseKind: 'corpus', golden: false, code: 'EDGE_EVIDENCE_UNAVAILABLE', reason: 'empty' },
     ],
     manifestRejections: [{ projectId: 'a', operatorId: 'MO-C02', reason: 'no-site', detail: 'no eligible site' }],
@@ -133,6 +133,8 @@ describe('SO4 seed coverage and the golden N (ADR-021 SO4-03, SO4-05)', () => {
     ]);
     expect(rows[1]?.[11]).toBe('SCORE_INPUT_REJECTED: a:MO-P01:0: seeded run rejected (transport-error)');
     expect(rows[1]?.[6]).toBe('nestjs'); // corpus style from corpus.json for a rejected pair
+    expect(rows[1]?.[7]).toBe('nestjs'); // spec style carried on the rejected pair
+    expect(rows[7]?.[7]).toBe(''); // a rejected pair without a spec style (older score) leaves it blank
     expect(rows[9]?.[11]).toBe('no-site: no eligible site');
   });
 
@@ -151,7 +153,7 @@ describe('SO4 seed coverage and the golden N (ADR-021 SO4-03, SO4-05)', () => {
       ['project', 'a', '4', '2', ''],
       ['project', 'b', '2', '1', ''],
       ['spec_style', 'layered', '2', '1', ''],
-      ['spec_style', 'nestjs', '3', '2', ''],
+      ['spec_style', 'nestjs', '4', '2', ''], // 3 scored-stage golden rows + the rejected pair a:MO-P01:0, as in project a
       ['corpus_style', 'layered', '2', '1', ''],
       ['corpus_style', 'nestjs', '4', '2', ''],
     ]);
