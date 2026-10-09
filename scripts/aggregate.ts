@@ -31,8 +31,9 @@ import type { EvaluationReport } from '../src/shared/types/evaluation.js';
 import { drawFigures } from './lib/figures/draw.js';
 import { loadManifest } from './lib/manifest.js';
 import { loadRunDir as loadRunDirOf } from './lib/report-io.js';
-import type { LoadedRunDir, RunRecord } from './lib/report-io.js';
-import { ANALYSIS_PLAN_DOC, familyOf, FPAT_FAMILIES, genCodeOf, loadSo5Codes } from './lib/so5-codes.js';
+import type { GenerationCell, LoadedRunDir, RunRecord } from './lib/report-io.js';
+import { ANALYSIS_PLAN_DOC, cellGenCode, familyOf, FPAT_FAMILIES, JOIN_GEN_CODES, loadSo5Codes } from './lib/so5-codes.js';
+import { completeE1Cells, e1ProjectId } from './lib/e1-cells.js';
 import type { FpatFamily, So5Codes } from './lib/so5-codes.js';
 import { baselineLabelsOf, baselinePrecision, isTpClass } from './lib/baseline-precision.js';
 import type { BaselinePrecisionRow } from './lib/baseline-precision.js';
@@ -43,7 +44,7 @@ import {
 import type { RecallCell } from './lib/stats.js';
 import { ablationCsv, rescoreReport, sensitivityCsv } from './rescore.js';
 import type { RescoreOutput } from './rescore.js';
-import { cycleQueryTimes, latencyGate } from './run-experiment.js';
+import { cycleQueryTimes, latencyGate, runIdOf } from './run-experiment.js';
 import type { ExperimentPlan } from './run-experiment.js';
 import { DATA_FLOW_SUB_ROW, DATA_FLOW_TEMPLATE, denominatorRow, readCorpusTiers, strataOf } from './score-golden.js';
 import type { DenominatorRow, EdgeEvidence, FunctionSensitivityResult, InstanceResult, JudgeProbeResult } from './score-golden.js';
@@ -471,8 +472,43 @@ export interface So5Cell {
   readonly fpat: Map<FpatFamily, { count: number; weighted: number }>;
 }
 
+/**
+ * The not-run record of an E1 grid coordinate that no RunRecord carries (ADR-021 SO5-05): a run that stopped before
+ * the entry, or an older record without a `cell`. It exists only inside the SO5 outputs and is never written; its
+ * `runId` is the one `run-experiment.ts` gives the entry (projects first, then the grid in coordinate order).
+ */
+export function missingE1Record(plan: ExperimentPlan, coordinateIndex: number, cell: GenerationCell): RunRecord {
+  const projectId = e1ProjectId({ modelId: cell.requestedModelId, taskId: cell.taskId, specLevel: cell.specLevel, runIndex: cell.runIndex });
+  const runId = runIdOf(plan.id, { index: plan.projects.length + coordinateIndex, projectId, path: '', specPath: '' });
+  return {
+    runId, planId: plan.id, projectId, status: 'not-run', reasonCode: 'generation-failed',
+    reasonDetail: `${JOIN_GEN_CODES.missing}: no RunRecord for the grid coordinate`, attempt: 1,
+    specSha: '', cliCommit: '', preregVersion: 0, frozenHashes: {}, envRecordId: '', startedAt: '', wallMs: 0, cell,
+  };
+}
+
+/**
+ * The records the SO5 outputs read. For a plan with an `e1` grid: one record per grid coordinate in coordinate order
+ * (`completeE1Cells`; a coordinate no record carries gets `missingE1Record`), then the record cells that match no
+ * coordinate, so nothing is dropped (analysis-plan §8). Otherwise every record with a `cell`.
+ */
+export function so5Records(input: AggregateInput): RunRecord[] {
+  const withCell = input.records.filter((r) => r.cell !== undefined);
+  const grid = input.plan?.e1;
+  if (input.plan === undefined || grid === undefined) return withCell;
+  const plan = input.plan;
+  const byCell = new Map<GenerationCell, RunRecord>(withCell.flatMap((r) => (r.cell === undefined ? [] : [[r.cell, r] as const])));
+  const complete = completeE1Cells(withCell, grid);
+  const out = complete.cells.map((cell, i) => byCell.get(cell) ?? missingE1Record(plan, i, cell));
+  for (const cell of complete.extra) {
+    const r = byCell.get(cell);
+    if (r !== undefined) out.push(r);
+  }
+  return out;
+}
+
 export function so5Cells(input: AggregateInput): So5Cell[] {
-  return input.records.filter((r) => r.cell !== undefined).map((record) => {
+  return so5Records(input).map((record) => {
     const cell = record.cell;
     if (cell === undefined) throw new Error('unreachable');
     const report = record.status === 'accepted' ? input.reports.get(record.runId) : undefined;
@@ -645,7 +681,7 @@ export function so5Csv(input: AggregateInput, resamples: number): Partial<Record
       f6(r === undefined ? undefined : ahsOf(r, 'ahsCombined')), f6(r === undefined ? undefined : ahsOf(r, 'ahsNeuronal')),
       ...DIMENSION_COLUMNS.map((d) => f6(avr.get(d))),
       ...FPAT_FAMILIES.map((f) => (c.valid ? f6(c.fpat.get(f)?.weighted ?? 0) : '')),
-      genCodeOf(input.so5, cell.generationStatus, cell.failureReason) ?? '',
+      cellGenCode(input.so5, cell) ?? '',
     ];
   });
   const patterns: string[][] = [];
@@ -655,7 +691,7 @@ export function so5Csv(input: AggregateInput, resamples: number): Partial<Record
       if (v !== undefined) patterns.push([c.record.runId, f, int(v.count), f6(v.weighted)]);
     }
     const cell = c.record.cell;
-    const gen = cell === undefined ? undefined : genCodeOf(input.so5, cell.generationStatus, cell.failureReason);
+    const gen = cell === undefined ? undefined : cellGenCode(input.so5, cell);
     if (gen !== undefined) patterns.push([c.record.runId, gen, '1', f6(1)]);
   }
   const seeds = input.plan?.seeds ?? { sampling: 0, bootstrap: 0, permutation: 0 };
