@@ -14,7 +14,8 @@
  *   computes the tree's git tree sha, then builds the outcome through `makeGenerationOutcome`.
  * - `makeGenerationOutcome(fields)`: the factory enforcing the §5 invariants (`status = ok` ⇔ no `failureReason`;
  *   `failed-typecheck` ⇒ `typecheck.errors > 0`; `fileCountInRange` = 20 ≤ `fileCount` ≤ 100).
- * - `writeGenerationJson(dir, outcome)`: `<dir>/generation.json`.
+ * - `writeGenerationJson(dir, outcome)`: `<dir>/generation.json`, written atomically (a temp file renamed into place),
+ *   so a `generation.json` that exists is always complete: it is the commit marker of a cell (SO5-04).
  */
 import * as fs from 'node:fs';
 import * as path from 'node:path';
@@ -223,7 +224,9 @@ export function generationJsonPath(dir: string): string {
 export function writeGenerationJson(dir: string, outcome: GenerationOutcome): string {
   const file = generationJsonPath(dir);
   fs.mkdirSync(dir, { recursive: true });
-  fs.writeFileSync(file, `${JSON.stringify(outcome, null, 2)}\n`);
+  const tmp = `${file}.tmp-${String(process.pid)}`;
+  fs.writeFileSync(tmp, `${JSON.stringify(outcome, null, 2)}\n`);
+  fs.renameSync(tmp, file);
   return file;
 }
 

@@ -2,8 +2,13 @@
  * `main` of `scripts/generate-projects.ts` (FR-v1.2E-28; BR-U5a-51; D-U5a-13 a).
  *
  * Usage (repository root):
- *   npx tsx scripts/generate-projects.ts --plan <plan.json> [--pilot]
+ *   npx tsx scripts/generate-projects.ts --plan <plan.json> [--pilot] [--binary <abs>] [--harness-root <abs>]
  *   npx tsx scripts/generate-projects.ts --help
+ *
+ * The E1 grid and its pilot start from the registered plan `experiments/e1-grid/generator-plan.json`, whose `binary`
+ * and `harnessRoot` are `"<local>"` and come from `--binary` / `--harness-root` (`guardE1Plan`, SO5-03). The plan
+ * file's path and sha256 are written to `schedule.json`. A grid stopped mid-cell resumes by an atomic cell restart
+ * (`cell-restart.ts`, SO5-04).
  *
  * The plan file (`GeneratorPlanFile`, `schedule.ts`) is the only source of the pinned model ids and `orderSeed`
  * (BR-U5a-51). `--pilot` runs one generation per level under `<outRoot>/pilot/` (§5.3 step 4). Before the grid the
@@ -23,19 +28,23 @@ import { ClaudeCodeAdapter, runGenerationGrid } from './grid.js';
 import { filePromptProvider } from './prompt.js';
 import { realSleep, systemClock } from './retry.js';
 import type { Clock, Sleeper } from './retry.js';
+import { loadPreRegistration, repoRelative, sha256File } from '../prereg.js';
+import { E1_GENERATOR_PLAN, guardE1Plan } from './registered-plan.js';
+import type { LocalPaths } from './registered-plan.js';
 import { loadGeneratorPlanFile, pilotPlan } from './schedule.js';
 import { ensureHarness } from './skeleton.js';
 import type { SkeletonInstall } from './skeleton.js';
 import type { GenerationOutcome, PromptProvider } from './types.js';
 
 export const GENERATE_USAGE = [
-  'usage: npx tsx scripts/generate-projects.ts --plan <plan.json> [--pilot]',
+  'usage: npx tsx scripts/generate-projects.ts --plan <plan.json> [--pilot] [--binary <abs>] [--harness-root <abs>]',
   '       npx tsx scripts/generate-projects.ts --help',
   '',
   'Runs the FR-28 generation grid (Claude Code headless, confined argv) described by the plan file:',
   '{ adapters: [{ adapterId: "claude-code-cli", modelId }], tasks, style, levels, runs, outRoot, orderSeed,',
   '  binary, harnessRoot, timeoutMs?, allowBash }',
   'Pinned model ids and orderSeed come only from the plan file. --pilot: one generation per level under <outRoot>/pilot/.',
+  `The E1 grid and pilot use ${E1_GENERATOR_PLAN}; its "<local>" binary and harnessRoot come from --binary / --harness-root.`,
   '',
 ].join('\n');
 
@@ -65,21 +74,31 @@ interface ParsedArgs {
   readonly help: boolean;
   readonly plan?: string;
   readonly pilot: boolean;
+  readonly local: LocalPaths;
 }
 
 export function parseGenerateArgs(argv: readonly string[]): DomainResult<ParsedArgs> {
   let help = false;
   let pilot = false;
   let plan: string | undefined;
+  let binary: string | undefined;
+  let harnessRoot: string | undefined;
+  const value = (i: number): string | undefined => {
+    const v = argv[i + 1];
+    return v !== undefined && !v.startsWith('--') ? v : undefined;
+  };
   for (let i = 0; i < argv.length; i++) {
     const a = argv[i];
     if (a === '--help' || a === '-h') help = true;
     else if (a === '--pilot') pilot = true;
-    else if (a === '--plan' && argv[i + 1] !== undefined && !(argv[i + 1] ?? '').startsWith('--')) plan = argv[++i];
+    else if (a === '--plan' && value(i) !== undefined) plan = argv[++i];
+    else if (a === '--binary' && value(i) !== undefined) binary = argv[++i];
+    else if (a === '--harness-root' && value(i) !== undefined) harnessRoot = argv[++i];
     else return DomainResult.fail([{ code: 'GEN_USAGE', message: `unexpected argument ${JSON.stringify(a)}` }]);
   }
   if (!help && plan === undefined) return DomainResult.fail([{ code: 'GEN_USAGE', message: '--plan <file> is required' }]);
-  return DomainResult.ok({ help, pilot, ...(plan !== undefined ? { plan } : {}) });
+  const local: LocalPaths = { ...(binary !== undefined ? { binary } : {}), ...(harnessRoot !== undefined ? { harnessRoot } : {}) };
+  return DomainResult.ok({ help, pilot, local, ...(plan !== undefined ? { plan } : {}) });
 }
 
 function report(deps: GenerateMainDeps, errors: readonly DomainError[]): number {
@@ -111,8 +130,14 @@ export async function main(argv: readonly string[], repoRoot: string, depsIn?: G
     deps.err('run from the repository root\n');
     return 2;
   }
-  const loaded = loadGeneratorPlanFile(path.resolve(repoRoot, args.data.plan ?? ''), repoRoot);
+  const planFile = path.resolve(repoRoot, args.data.plan ?? '');
+  const loaded = loadGeneratorPlanFile(planFile, repoRoot, args.data.local);
   if (!loaded.success) return report(deps, loaded.errors);
+  const prereg = loadPreRegistration(repoRoot);
+  const registeredSha = prereg.ok ? prereg.value.artefacts.find((a) => a.path === E1_GENERATOR_PLAN)?.sha256 : undefined;
+  const guard = guardE1Plan(planFile, loaded.data, repoRoot, registeredSha, sha256File);
+  if (!guard.ok) return report(deps, [{ code: 'GEN_PLAN_UNREGISTERED', message: guard.detail }]);
+  if (guard.warning !== undefined) deps.err(`warning: ${guard.warning}\n`);
   const plan = args.data.pilot ? pilotPlan(loaded.data) : loaded.data;
 
   const configs = [];
@@ -155,6 +180,10 @@ export async function main(argv: readonly string[], repoRoot: string, depsIn?: G
   }
   const grid = await runGenerationGrid(plan, adapters, {
     repoRoot,
+    planProvenance: { path: repoRelative(repoRoot, planFile), sha256: sha256File(planFile) },
+    onRecovery: (r, cell) => {
+      deps.err(`${cell.modelId}/${cell.taskId}/${cell.specLevel}/run-${String(cell.runIndex)}: ${r.kind === 'discarded' ? `partial cell discarded to ${r.movedTo}, regenerating` : 'finished staging directory committed'}\n`);
+    },
     onSkeletonTampered: async () => {
       const again = await ensureHarness(deps.runner, repoRoot, plan.harnessRoot);
       if (!again.success) return DomainResult.fail(again.errors);

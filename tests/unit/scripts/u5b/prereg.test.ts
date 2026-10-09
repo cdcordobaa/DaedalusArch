@@ -60,9 +60,12 @@ describe('registry (BR-U5b-51)', () => {
     expect([...REGISTERED_ARTEFACTS]).toEqual([
       'Docs/matching-rule.md', 'Docs/analysis-plan.md', 'Docs/operator-catalogue.md', 'Docs/generator-protocol.md',
       'scripts/generator/prompts/*.md', 'Docs/corpus-criteria.md', 'Docs/labeller-prompts/*', 'corpus/corpus.json',
-      'corpus/overlays/**', 'corpus/specs/*.yaml', 'experiments/*/plan.json', 'corpus/frozen-instrument.json',
-      'Docs/e7-spec-rule.md', 'scripts/generate-e7-specs.ts',
+      'corpus/overlays/**', 'corpus/specs/*.yaml', 'experiments/*/plan.json', 'experiments/e1-grid/generator-plan.json',
+      'corpus/frozen-instrument.json', 'Docs/e7-spec-rule.md', 'scripts/generate-e7-specs.ts',
     ]);
+    // ADR-021 SO5-03 / THR-8: the E1 generator plan is registered; another experiment's generator plan is not.
+    expect(isRegisteredPath('experiments/e1-grid/generator-plan.json')).toBe(true);
+    expect(isRegisteredPath('experiments/e7-corpus/generator-plan.json')).toBe(false);
     expect(REGISTERED_ARTEFACTS).toContain('Docs/matching-rule.md');
     expect(REGISTERED_ARTEFACTS).toContain('Docs/analysis-plan.md');
     expect(isRegisteredPath('corpus/overlays/realworld-test/config.patch')).toBe(true);

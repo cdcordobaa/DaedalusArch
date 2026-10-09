@@ -116,3 +116,24 @@ export function familyOf(codes: So5Codes, templateOrDimension: string): FpatFami
   return (codes.functionFamilies as Record<string, FpatFamily | undefined>)[templateOrDimension]
     ?? (codes.judgeDimensions as Record<string, FpatFamily | undefined>)[templateOrDimension];
 }
+
+/**
+ * Join codes of an E1 cell that U5a never produced an outcome for, or whose outcome breaks the registered generator
+ * plan (ADR-021 SO5-03, SO5-05). They are not U5a `failureReason` values, so they sit outside the registered
+ * `genCodes` table of `Docs/analysis-plan.md`; the P-U6 bump documents them beside it.
+ */
+export const JOIN_GEN_CODES = Object.freeze({ missing: 'GEN-MISSING', 'protocol-mismatch': 'GEN-PROTOCOL-MISMATCH' } as const);
+export type JoinGenCode = (typeof JOIN_GEN_CODES)[keyof typeof JOIN_GEN_CODES];
+
+/**
+ * The GEN code of an E1 cell (`RunRecord.cell`): a join code for a `missing` or `protocol-mismatch` cell, else the
+ * registered code of its U5a `failureReason` (`genCodeOf`); none for an `ok` cell.
+ */
+export function cellGenCode(
+  codes: So5Codes,
+  cell: { readonly generationStatus: string; readonly failureReason?: string },
+): GenCode | JoinGenCode | undefined {
+  if (cell.generationStatus === 'missing') return JOIN_GEN_CODES.missing;
+  if (cell.generationStatus === 'protocol-mismatch') return JOIN_GEN_CODES['protocol-mismatch'];
+  return genCodeOf(codes, cell.generationStatus, cell.failureReason);
+}
