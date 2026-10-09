@@ -4,15 +4,21 @@
 > (Step 14: the SO5 code tables; Step 31: the rest, 2026-10-08), before the FR-18 re-baseline, any corpus run and the
 > first E1 run (BR-U5b-50, 51, 64; OI-6). This file is a registered artefact: after registration any change to it is a
 > pre-registration version bump with a reason (BR-U5b-50), and every earlier run keeps its own `preregVersion`.
+> **Amended 2026-10-08 (ADR-020, pre-registration P-2)**, after the Fable adversarial review
+> (`Docs/DiagnosticRuns/methodology-review-2026-10-08.md`) and before any so4-heldout, e7-corpus, e1-grid or
+> live-labelling run: SO4 baseline precision (§3, item 1), TP-class label weighting (§1, §6, item 2), the cell-level
+> recall unit (§5, item 3), symbolic-only SO4 (§2, item 5), descriptive pairwise CIs (§6, item 6), self-preference
+> rows and the directional check (§3, §6, item 7), the E7 stratum (§3, item 8) and the reporting duties (§10, item 9).
+> §11 lists every change.
 > **Requirements**: FR-v1.2E-25, 27, 36; SO1–SO5 (ADR-017 items 1–3, 6, 7); ADR-015 items 1, 2, 5, 10; ADR-016 b, e.
 > **Design source**: `aidlc-docs/construction/v1.2E-u5b-scoring-harness/functional-design/business-rules.md`
 > (BR-U5b-20, 30, 33, 34, 45..49, 53, 54, 61..65, 78). The matching of seeds to violations is `Docs/matching-rule.md`
-> (version 1.0.0); this plan does not restate it. The code lists (`RC-*` there, `FPAT-*` / `GEN-*` here) are disjoint
+> (version 1.1.0 from P-2; 1.0.0 before); this plan does not restate it. The code lists (`RC-*` there, `FPAT-*` / `GEN-*` here) are disjoint
 > (BR-U5b-30).
 
 Sections: §1 the SO5 code tables (machine block); §2 registered plans and seeds; §3 outcomes per objective; §4
 labelling populations, caps and budget; §5 interval rule; §6 SO5 factors, tests and Holm families; §7 flag columns;
-§8 missingness and exclusions; §9 what is fixed by registration.
+§8 missingness and exclusions; §9 what is fixed by registration; §10 reporting duties; §11 amendments.
 
 ## 1. SO5 code tables (frozen at registration)
 
@@ -20,9 +26,11 @@ Two closed code sets describe E1 outcomes. They are disjoint from each other and
 codes `RC-*` of `Docs/matching-rule.md` (BR-U5b-30).
 
 **Failure-pattern families (`FPAT-*`)**. Every compiled template id maps to exactly one family; the two judge
-dimensions map to their own family. Families are counted per E1 cell on violations labelled `TP` (weight 1) and
-`unseeded-TP` (weighted by the inverse of their P3 inclusion probability), and on failing judge units, by
-dimension. No labeller assigns a pattern code; the family is a function of the function id only (BR-U5b-64).
+dimensions map to their own family. Families are counted per E1 cell on violations labelled TP-class (`TP` or
+`unseeded-TP`, each weighted by the inverse of its P3 inclusion probability; nothing is seeded in P3, so the two
+labels are one class, ADR-020 item 2), and on failing judge units, by dimension (weight 1, from the judge's own
+verdict). No labeller assigns a pattern code; the family is a function of the function id only (BR-U5b-64). The
+family counts are a pre-specified rule-family profile, not a derived failure taxonomy (§10, B4).
 
 | Family | Meaning | Templates / judge dimension |
 |---|---|---|
@@ -121,7 +129,7 @@ pre-registration gate (BR-U5b-50). Judge modes pin the judge of `Docs/judge-prer
 | `fixtures` | fixtures | `full` | the five C16 fixtures (`fixtures/correct-reference`, `fixtures/variant-a-structural`, `-b-pattern`, `-c-everything`, `-d-subtle`) with `specs/clean-arch.yaml` | 1101 / 1102 / 1103 |
 | `latency-gate` | latency-gate | `symbolic-only` | ghostfolio `apps/api` with `corpus/specs/ghostfolio-test.yaml` | 2101 / 2102 / 2103 |
 | `sensitivity` | sensitivity | `symbolic-only` | none yet; `fixAttempts: []` | 3101 / 3102 / 3103 |
-| `so4-heldout` | SO4 | `full` | none yet | 4101 / 4102 / 4103 |
+| `so4-heldout` | SO4 | `symbolic-only` (ADR-020 item 5; was `full`) | none yet | 4101 / 4102 / 4103 |
 | `e1-grid` | E1 | `full` | the `e1` block: 3 models × 3 spec levels × 2 tasks × 3 runs = 54 cells | 5101 / 5102 / 5103 |
 | `e7-corpus` | E7 | `full` | the four core projects whose corpus spec exists (`realworld-test`, `ghostfolio-test` `apps/api`, `truthy-demo`, `dry-run-test`) | 7101 / 7102 / 7103 |
 
@@ -149,17 +157,22 @@ it adds entries and changes no other field of a registered plan.
 
 | Objective | Primary outcome | Secondary outcomes (exploratory unless stated) | Output |
 |---|---|---|---|
-| SO4 instrument validity | precision (FP-labelled), recall and F1 on `split = held-out` seeded instances, overall and per function, dimension, tag (with the `structural / data-flow` sub-row) and project | precision FP-strict and incl. twins; recall in coverage; twin specificity; `dev` rows (never pooled with held-out) | `prf_*.csv`, `instances.csv`, `twins.csv` |
+| SO4 instrument validity | seeded differential precision (FP-labelled, `Docs/matching-rule.md` MAT-10 1.1.0), recall and F1 on `split = held-out` seeded instances, overall and per function, dimension, tag (with the `structural / data-flow` sub-row) and project; recall intervals per §5 (cell unit); the pooled E7 row (`base_kind = corpus-e7`, the only unseen stratum) next to the all-bases figure (ADR-020 item 8) | **registered secondary: SO4 baseline precision** (ADR-020 item 1), per function, per corpus tier and overall: the Horvitz–Thompson weighted share of P2 items labelled TP-class (`TP`, `unseeded-TP`), each weighing 1 / p, `uncertain` kept in the denominator as non-TP, with the §5 interval rule; reported beside the differential precision wherever a precision is quoted. Exploratory: precision FP-strict and incl. twins; recall in coverage; twin specificity; `corpus-core` rows; `dev` rows (never pooled with held-out); the neural column `neural_new` (never in symbolic P/R/F1, MAT-19 1.1.0) | `prf_*.csv`, `precision_baseline.csv`, `precision_figure.csv`, `instances.csv`, `twins.csv` |
 | SO4 FP / FN analysis | weighted counts per `RC-*` root cause (P1–P3, missed seeds) | mechanical vs labeller FN causes | `fp_fn_taxonomy.csv` |
 | SO3 report | per project, the AHS field named by `scoring.verdictSource` of the run's mode, with its verdict | the other AHS fields present; per-dimension AVR; leave-one-dimension-out deltas; sensitivity-only sweeps | `ahs_by_project.csv`, `rescore_*.csv` |
-| SO3 neural | judge vs panel agreement on P4 (weighted, headline row from a judge of another model family) | run vs run; panel vs audit; judge repetition reliability; judge-probe detection conditional on selection | `agreement.csv`, `judge_probe.csv` |
+| SO3 neural | judge vs panel agreement on P4 E1 units (weighted, judges of another model family; `headline = true`; ADR-020 item 7) | the same agreement per source (`e1`, `fixture`) and pooled, per E1 generator model, and with `uncertain` kept as a category; run vs run (order sensitivity, §10 B3); panel vs audit (sanity check, B6); judge repetition reliability; judge-probe detection conditional on selection | `agreement.csv`, `judge_probe.csv` |
 | SO2 | parse coverage and resolution counts per run; latency gate result | stage times; FLOWS_TO evidence per MO-DF01 seed and twin | `coverage.csv`, `latency.csv`, `edge_evidence.csv` |
 | SO1 | denominators per run (declared, ADR-derived, compiled, disabled, dropped, skipped by mode, executed, failed), identities I1 and I2 | per-style P/R/F1 rows | `denominators.csv` |
-| SO5 (E1) | the `verdictSource` AHS of each valid cell (§6) | other AHS fields, per-dimension AVR, `FPAT-*` weighted family counts, valid-generation yield, judge fail share | `so5_grid.csv`, `so5_patterns.csv`, `so5_tests.csv` |
+| SO5 (E1) | the `verdictSource` AHS of each valid cell (§6); for the model effect, `ahsDeterministic` is co-primary (ADR-020 item 7) | the directional self-preference check (§6, registered); other AHS fields, per-dimension AVR, `FPAT-*` weighted family counts (rule-family profile), valid-generation yield, judge fail share (exploratory) | `so5_grid.csv`, `so5_patterns.csv`, `so5_tests.csv` |
 | ADR-016 b | one pass / fail per SP-* probe; exclusion only after a failed probe and a recorded fix attempt | line confirmation | `function_sensitivity.csv` |
 
 Probe rows (`split = probe`) never enter a P/R/F1 table (BR-U5b-20, 78). `dev` is never pooled with `held-out`; the
-headline SO4 table is `held-out`, reported per `baseKind` (`corpus`, `generated`) and as a held-out total.
+headline SO4 table is `held-out`, reported per `baseKind` (`corpus`, `generated`), per corpus tier (`corpus-core`,
+`corpus-e7`) and as a held-out total. The core corpus was seen during development (`Docs/corpus.md`; ADR-015 item 7,
+ADR-017 item 4), so E7 is the only unseen stratum and its pooled row is reported next to the all-bases figure
+(ADR-020 item 8). The E7 specs come from the registered mechanical directory-to-layer rule
+(`Docs/e7-spec-rule.md`), fixed before any feasibility count and never edited afterwards; the domain-layer remap and
+the E7 specs are declared floor-motivated (ADR-020 item 4).
 
 ## 4. Labelling populations, caps and budget
 
@@ -195,6 +208,21 @@ cluster bootstrap is a sensitivity column. Every interval column names its metho
 n < 10 reports counts only. Per-project values are always reported (BR-U5b-61). Stored figures keep full precision;
 CSV floats are written with six decimals and rounding happens only at display (BR-U5b-63).
 
+**SO4 recall (amended 2026-10-08, ADR-020 item 3).** The k copies of one operator on one base are not independent,
+so the recall interval unit is the **(project, operator) cell**, with cell recall = detected / k. Primary
+(`ci_low`, `ci_high`, `ci_method`, `n_clusters` = cells): with 10 or more cells the cluster percentile bootstrap over
+cells (`cell-bootstrap`); with fewer, Wilson on the pooled recall with n = the number of cells (`wilson-cells`;
+`clopper-pearson-cells` when the pooled recall is 0 or 1). Co-primary: the project cluster bootstrap
+(`ci_project_*`, from 2 projects). The instance Wilson interval (`ci_independent_*`) is reported only as the
+"if independent" bound. Per-function rows use the seeds for which the function is applicable. The n < 10 rule
+applies to instances.
+
+**Weighted proportions (ADR-020 item 1, B3).** The baseline precision and the weighted P2–P4 estimates are
+Horvitz–Thompson ratios Σ w·y / Σ w with w = 1 / p. With 10 or more project clusters the cluster bootstrap is primary;
+with fewer, Wilson on the Kish effective size n_eff = (Σw)² / Σw² (`wilson-kish`; `clopper-pearson-kish` on ⌊n_eff⌋
+at 0 or 1), the bootstrap as sensitivity. The judge-vs-panel and panel-vs-audit agreement CIs remain Wilson on the
+weighted proportion and are labelled approximate (`wilson-weighted-approximate`).
+
 ## 6. SO5 factors, tests and Holm families
 
 - **Unit of analysis**: one valid E1 cell (an `accepted` run of a generation with `status = 'ok'`).
@@ -207,11 +235,23 @@ CSV floats are written with six decimals and rounding happens only at display (B
   secondary outcome (each other AHS field, each per-dimension AVR, each `FPAT-*` weighted family count, the
   valid-generation yield, the judge fail share) forms its own family of three tests, Holm-corrected within that
   family and labelled exploratory (`so5_tests.csv` `exploratory = true`).
+- **Co-primary (ADR-020 item 7)**: for the model effect, `ahsDeterministic` is co-primary with the verdict-source
+  field (`ahsCombined` in `full` mode): its three tests form their own Holm family, the model test is confirmatory
+  (`so5_tests.csv` family `co-primary:ahsDeterministic`, `exploratory = false`), the other two exploratory. The judge
+  is a Claude model judging Claude-generated code, so a model effect seen only in the judge-bearing field is not read
+  as a model effect.
+- **Directional self-preference check (registered, ADR-020 item 7)**: per valid cell d = `ahsNeuronal` −
+  `ahsDeterministic`; statistic = mean(d | model = the judge model `claude-opus-5-5`) − mean(d | other models);
+  one-sided permutation test (greater), model labels permuted within task, 10 000 permutations with the plan's
+  `permutation` seed, α = 0.05, a family of one; Cliff's δ of the two d samples. A positive significant result is
+  reported as evidence of judge self-preference; `so5_tests.csv` family `directional:ahsNeuronal-minus-ahsDeterministic`.
 - **Effect sizes**: pairwise mean-AHS differences between factor levels with cluster-bootstrap 95 % intervals
-  (resampling runs within cells) and Cliff's δ.
+  (resampling runs within cells) and Cliff's δ. The pairwise intervals resample three replicates within each cell and
+  have no multiplicity control, so they are **descriptive only** (`descriptive = true`, ADR-020 item 6); inference
+  rests on the Holm-corrected permutation p-values and Cliff's δ.
 - **Significance level**: α = 0.05 after Holm.
-- **Family counts** (`FPAT-*`, §1): labelled `TP` violations weight 1, `unseeded-TP` weighted by 1 / p of P3, failing
-  judge units by dimension. No labeller assigns a pattern code.
+- **Family counts** (`FPAT-*`, §1): TP-class violations (`TP`, `unseeded-TP`) weighted by 1 / p of P3 (ADR-020 item 2;
+  was: `TP` weight 1), failing judge units by dimension. No labeller assigns a pattern code.
 
 ## 7. Flag columns
 
@@ -224,7 +264,10 @@ Flags are recorded on every row and never exclude it by themselves:
 - Functions (`prf_by_function.csv`): `not_applicable`, `collateral`, `metric_key_excluded` (empty at registration:
   both U3 metric-key readiness flags are true, `corpus/frozen-instrument.json`).
 - Runs (`runs.csv`): `attempt` (a transport-error retry), `reason_code`, every registered hash.
-- Labels: `uncertain` with its reason (`disagree`, `invalid-run`); `sameFamily` on agreement rows.
+- Labels: `uncertain` with its reason (`disagree`, `invalid-run`); on agreement rows `sameFamily`, `source`,
+  `generator_model`, `headline` and `uncertain_as_category` (ADR-020 item 7, B3).
+- Seeds also carry `corpus_tier` (`instances.csv`); functions carry `neural_new` and `precision_baseline`
+  (`prf_by_function.csv`); `so5_tests.csv` rows carry `descriptive`.
 - Probes (`function_sensitivity.csv`): `excluded_after_fail`, `fix_attempt_ref`.
 
 ## 8. Missingness and exclusions
@@ -249,8 +292,56 @@ Flags are recorded on every row and never exclude it by themselves:
 
 ## 9. Fixed by registration
 
-The registration (`corpus/prereg.json`) fixes this file, `Docs/matching-rule.md` 1.0.0, the labeller prompts, the
+The registration (`corpus/prereg.json`) fixes this file, `Docs/matching-rule.md` (1.0.0 in v1, 1.1.0 from P-2), the labeller prompts, the
 corpus files and specs (after the domain-layer remap), the registered plan files with their seeds, the frozen
 instrument export, the labelling budget and the E1 grid shape (3 × 3 × 2 × 3). `run-experiment` refuses a plan when
 any registered artefact differs from its registered hash, or when the registration is not older than the plan's
 first run (BR-U5b-50).
+
+## 10. Reporting duties (ADR-020 item 9, review B1–B7)
+
+These statements are registered: every report of the corresponding figure carries them.
+
+- **B1 Construct sensitivity and coverage.** The operators are literal negations of the templates, realised as
+  synthetic constructs at feasible sites, and the dev declaration gate guarantees the key match. SO4 recall is
+  reported as **construct sensitivity** (does the Cypher match the canonical construct), not as detection of
+  naturally occurring violations. Every SO4 report states the template coverage (templates with at least one
+  operator out of the compiled templates), the structural in-coverage n before and after E7, and that every core
+  project is `nestjs`. The P2 items labelled TP-class are named as the only naturally occurring positives.
+- **B2 Twin specificity is by construction.** Twin preconditions (controller-or-entity, threshold arithmetic;
+  `Docs/operator-catalogue.md`) select sites where the rule should stay silent; specificity is reported as a check
+  of those preconditions, not as a false-alarm rate on real code (that is the baseline precision, §3).
+- **B3 The panel is one model run twice.** The panel is one Gemini model, two runs at temperature 0 with permuted
+  option order; run-vs-run agreement is reported as **order sensitivity**, not inter-rater reliability. Agreement is
+  reported with `uncertain` kept as a category beside the row that drops it, and weighted agreement CIs are labelled
+  approximate (`wilson-weighted-approximate`).
+- **B4 FPAT is a rule-family profile.** The `FPAT-*` counts are a fixed function-to-family map (§1), with judge fails
+  counted from the judge's own verdict at weight 1: a **pre-specified rule-family profile**, not a derived taxonomy.
+  A derived taxonomy needs an exploratory coding of the labeller rationales, pre-registered with this file, with the
+  author declared as a non-blind coder; none is registered now.
+- **B5 Spec-level and tier confounds.** In `full-aac` the generator receives the evaluator spec verbatim
+  (`scripts/generator/prompts/full-aac.md`), so the spec level is confounded with knowledge of the test and with
+  prompt length; the model tier is confounded with the model generation (`claude-haiku-4-5` vs the `-5-5` models);
+  all generators and the judge are from one vendor. These are stated beside every SO5 effect.
+- **B6 The audit is a sanity check.** The 30-item author audit gives 3 to 10 items per stratum and the author sees the
+  function id, so it is not blind to the rule. Panel-vs-audit agreement is reported as a sanity check, not as a
+  validity estimate.
+- **B7 Housekeeping.** Reported once in the methods: `remapLine` is not called by the scorer (`Docs/matching-rule.md`
+  MAT-04 note); prereg v1 hashed a DRAFT operator catalogue with `sitesPerOperator` TBD, superseded by the frozen
+  catalogue of a later registration; the judge pre-registration stays DRAFT until SEN-01 passes on
+  `correct-reference`, and the fixture units it judges are also P4 items; the ghostfolio repair was post-hoc; the
+  number of pairs rejected under MAT-25 because a cycle function was truncated is reported (`runs.csv` reason
+  counts); every secondary SO5 family is exploratory.
+
+## 11. Amendments
+
+| Date | Section | Change | Source |
+|---|---|---|---|
+| 2026-10-08 | §3 | SO4 baseline precision registered as a secondary outcome; the differential figure named seeded differential precision; pooled E7 row; neural column | ADR-020 items 1, 5, 8 |
+| 2026-10-08 | §1, §6 | TP-class labels (`TP`, `unseeded-TP`) weighted 1 / p in the FPAT counts | ADR-020 item 2 |
+| 2026-10-08 | §5 | Recall interval unit = (project, operator) cell; project bootstrap co-primary; instance Wilson as the "if independent" bound; Kish-Wilson for weighted proportions | ADR-020 items 1, 3 |
+| 2026-10-08 | §2 | `so4-heldout` mode `symbolic-only` (was `full`) | ADR-020 item 5 |
+| 2026-10-08 | §6 | Pairwise CIs descriptive; `ahsDeterministic` co-primary for the model effect; directional self-preference check | ADR-020 items 6, 7 |
+| 2026-10-08 | §3, §7 | Judge-vs-panel rows per source (E1 headline) and per generator model; `uncertain` as a category | ADR-020 item 7, B3 |
+| 2026-10-08 | §3 | E7 the only unseen stratum; E7 specs from the registered rule, declared floor-motivated | ADR-020 items 4, 8 |
+| 2026-10-08 | §10 | Reporting duties B1–B7 | ADR-020 item 9 |
