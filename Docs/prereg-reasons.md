@@ -106,3 +106,13 @@ Previous: v6 (P-E), commit `65ae471`. No full-mode plan (`fixtures`, `e7-corpus`
 | Artefact | Change | Reason | Post-hoc risk |
 |---|---|---|---|
 | (none of the 65 hashes change) | — | **Judge freeze.** SEN-01 passed for FF-N01 (`eec1e72`) and FF-N02 (`bbc9526`) by the unit-level criterion. `Docs/judge-preregistration.md` left DRAFT in `e8a2caf`. `FROZEN_SHA256` = `f8b2dabb…eac5a` is unchanged because no rubric text changed after either run. `export-frozen-instrument-cli.ts --final` succeeds and is byte-identical to the committed `corpus/frozen-instrument.json`, whose `judgeFreeze` block already carries that hash. The bump dates the registration point after which full-mode plans may run (BR-U4-POL-01; runbook 0b). The pinned judge CLI is `2.1.294` under `~/.firewall/judge-cli` (ADR-022 item 5). | None. The rubric is frozen before any measured full-mode run. |
+
+## P-SO4 — prereg v8 (runbook 3.4, so4-heldout seeded entries; ADR-024, 2026-10-09)
+
+Previous: v7 (P-4), commit `2ead570`. No so4-heldout run has happened under any version; the held-out seeding (runbook 3.1–3.3) has. ADR-024 (pre-run, declared post-hoc) found no operator defect in the ten golden typecheck rejections and changed no registered artefact, so this is the next dated version after v7.
+
+| Artefact | v7 → v8 sha256 | Change and reason | Post-hoc risk |
+|---|---|---|---|
+| `experiments/so4-heldout/plan.json` | `3ef0a972…` → `72208c0b…` | **Seeded entries** (runbook 3.3; ADR-021 item 9 form): the seven baseline entries unchanged, then 156 seeded entries from `../daedalus-so4/manifest.json` (masterSeed 20261008, k = 2 frozen, catalogue `f764e1ba…`), written by `so4-plan-entries-cli.ts`. 75 of the 156 are golden held-out instances, below the registered floor of 80 (85 counted by the feasibility table; 10 typecheck losses, ADR-024). | Low. The entries are generator output of the frozen catalogue and seeds; no detector output was read. The shortfall is reported, not repaired (ADR-019 item 1). |
+
+All other 64 hashes are unchanged.
