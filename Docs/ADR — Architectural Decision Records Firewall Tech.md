@@ -971,6 +971,14 @@ i. **U2 derived settlements** S-1 to S-7 and S-9 (U2 `business-rules.md` §14.1)
    - size every stratum explicitly and register the sizes in P-U6. The whole live labelling plan, both runs included, must fit in 300 calls or fewer, spread over at least two weeks of quota.
    - cut the context to what the labeller needs: the 31-line window plus the rule text and the verdict schema. Measure the input tokens per call and record them.
    - compute the CI widths that the registered sizes give, and report them, so the precision of FP/FN and agreement is stated before any run.
+7. **The prereg gate is currently refused, and P-U6 must clear it (2026-10-09, from the P-M verification).** On `444439b`, `--check-prereg` refuses all six plans: `Docs/generator-protocol.md` changed after v3, and `experiments/e1-grid/generator-plan.json` is not registered. P-U6 must:
+   - register both files, with reasons, and bump the prereg version;
+   - confirm that every plan prints "pre-registration v<N> ok";
+   - then add a CI step that runs `--check-prereg` for every `experiments/*/plan.json` on PRs to v1.2e.
+
+   **Small-cluster interval decision:** with 7 projects, the project cluster bootstrap is descriptive only (ADR-020 item 3 amendment). The cell-level interval stays the sole primary recall interval. No cluster-robust t or BCa interval is added.
+
+   **Build and Test:** BT-B, BT-E and BT-F resume only after P-U6, because their entry gates need `--check-prereg` to pass.
 
    If 300 calls cannot support FR-27, the gap is reported as a limitation. The judge-vs-panel agreement (P4) takes priority over the P2 baseline-precision sample, and P2 over P3.
 
