@@ -12,6 +12,7 @@ import { bindLayerParams } from './layer-binding.js';
 import { isTemplateApplicable } from './template-applicability.js';
 import { hasExcludeMarker, replaceExcludeMarkers } from './exclude-injector.js';
 import { globToRegex } from './glob-to-regex.js';
+import { roleExemptionPatterns } from './role-exemptions.js';
 import { compilerInputFromSpec } from './compiler-input.js';
 import { compilePattern } from './pattern-compiler.js';
 import { checkBoundParameters } from './bound-param-checker.js';
@@ -187,8 +188,10 @@ function compileSymbolic(
   }
 
   const params = buildParams(ff, layerModel, binding);
-  // C9: excludePatterns is appended to the map last (BR-U1-32, NFR-02).
-  if (ff.excludePaths.length > 0) params.excludePatterns = ff.excludePaths.map(globToRegex);
+  // C9: excludePatterns is appended to the map last (BR-U1-32, NFR-02): the function's own exclude_paths, then
+  // the template's instrument v2 role exemptions (ADR-026).
+  const excludePatterns = [...ff.excludePaths.map((g) => globToRegex(g)), ...roleExemptionPatterns(template.functionName)];
+  if (excludePatterns.length > 0) params.excludePatterns = excludePatterns;
   const cypher = instantiateTemplate(template, params);
 
   return {

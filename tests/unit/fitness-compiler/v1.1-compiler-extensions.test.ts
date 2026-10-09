@@ -1,4 +1,5 @@
 import { compileFunctions, filterEnabled } from '../../../src/fitness-compiler/fitness-compiler.js';
+import { roleExemptionPatterns } from '../../../src/fitness-compiler/role-exemptions.js';
 import { functionId } from '../../../src/shared/types/value-objects.js';
 import type { FitnessFunction, LayerModel } from '../../../src/shared/types/spec.js';
 import type { CompilerInput } from '../../../src/fitness-compiler/types.js';
@@ -95,7 +96,9 @@ describe('compileFunctions with v1.1 extensions', () => {
       expect(query.cypher).toContain('NONE(ep IN $excludePatterns');
       expect(query.params).toHaveProperty('excludePatterns');
       const patterns = query.params['excludePatterns'] as string[];
-      expect(patterns).toHaveLength(2);
+      // The two spec excludes, then module-fan-out's instrument v2 role exemptions (ADR-026).
+      expect(patterns).toHaveLength(2 + roleExemptionPatterns('module-fan-out').length);
+      expect(patterns.slice(2)).toEqual(roleExemptionPatterns('module-fan-out'));
     }
   });
 
