@@ -12,16 +12,26 @@
  * - FIG-01 schema: a source CSV must carry every required column, or the figure fails `FIG_CSV_SCHEMA`.
  * - FIG-02 SO4 P/R/F1: rows of the chosen split with `base_kind` and `coverage` both `all`. Precision is "seeded
  *   differential precision" (ADR-020 item 1): `precision_labelled` when present, else `precision_strict`, with its
- *   basis. Recall carries `ci_low` / `ci_high` (BR-U5b-61). F1 is `f1_labelled` when present, else 2PR / (P + R) on
- *   the strict basis (0 when P + R = 0). Precision and F1 intervals are drawn only when the CSV carries
- *   `precision_ci_low` / `_high` or `f1_ci_low` / `_high` (SO4-06 adds them); nothing is invented.
+ *   basis; the registered secondary `precision_baseline` is plotted beside it where the CSV has that column (per
+ *   function). Recall carries the cell interval `ci_low` / `ci_high` and the project cluster interval
+ *   `ci_project_low` / `_high` with its `ci_project_descriptive` flag (ADR-020 item 3, BR-U5b-61). F1 is
+ *   `f1_labelled` when present, else 2PR / (P + R) on the strict basis (0 when P + R = 0). The P/R/F1 CSVs carry no
+ *   precision or F1 interval, so none is drawn here; precision intervals are FIG-08.
+ * - FIG-08 SO4 precision: `precision_figure.csv` (aggregate.ts, figure-ready long form): per scope (`overall` first,
+ *   then each function) the seeded differential precision (FP-labelled, FP-strict) beside the baseline precision,
+ *   each with its interval. A row with an empty estimate is skipped; an unknown `measure` or `scope` fails
+ *   `FIG_VALUE_INVALID`.
  * - FIG-03 SO5 grid: a cell is valid when `status` is `accepted` and the outcome is a number. Two outcomes are
  *   plotted side by side (ADR-020 item 7, co-primary): the verdict-source AHS (the column named by `verdict_source`)
  *   and `ahs_deterministic`. Each model × spec-level cell shows its mean over valid runs and `n valid / n cells`
  *   (TV-30: selection on generation success stays visible). Spec levels follow `SPEC_LEVELS`.
  * - FIG-04 SO5 interaction: one row per valid run and outcome; the spec draws the per-model mean line over spec level.
- * - FIG-05 SO2 latency: one row per run (the first `latency.csv` row of each `run_id`), seconds, and
- *   `over_budget` = `cycle_query_ms` > `LATENCY_GATE_MS` (30 s, ADR-016 e).
+ * - FIG-05 SO2 latency: the `so2-metrics tables` `latency.csv` (`scripts/lib/so2.ts` `LATENCY_COLUMNS`; one row per
+ *   run, rejected and not-run included), read from `--so2-dir`. The aggregate's `latency.csv` is not used: it is
+ *   accepted-only, its `cycle_query_ms` sums both cycle queries and its `gate_result` is not the registered gate
+ *   (ADR-021 item 8). Runs of an `@ast-only` arm are left out (not the product's graph). One row per run and cycle
+ *   query (FF-S02, universal cycle metric), in seconds; `exceeds` = the query timed out or took more than the run's
+ *   `budget_ms` (`LATENCY_GATE_MS`, 30 s, ADR-016 e, when empty), the per-query half of `latencyGateOf`.
  * - FIG-06 SO2 coverage: parse coverage per run, and each import-outcome count as a share of the six outcome counts
  *   (no share when they sum to 0).
  * - FIG-07 threshold sweep: every row must have `purpose` = `sensitivity-only`, or the figure fails
@@ -35,6 +45,7 @@ import { existsSync, readdirSync, readFileSync } from 'node:fs';
 import { join, resolve } from 'node:path';
 import { parseCsv, renderSvgValues } from './lib/figures/draw.js';
 import { SPEC_LEVELS } from './lib/generators/types.js';
+import { AST_ONLY_SUFFIX } from './lib/so2.js';
 import { LATENCY_GATE_MS } from './run-experiment.js';
 
 export const THESIS_FIGURES_DIR = 'scripts/lib/figures/thesis';
@@ -51,8 +62,12 @@ export interface CsvTable { readonly header: readonly string[]; readonly rows: r
 export interface FigureOptions { readonly split: string }
 export const DEFAULT_FIGURE_OPTIONS: FigureOptions = { split: 'held-out' };
 
+/** Which output directory a figure reads: the `aggregate` CSV set (`--csv-dir`) or `so2-metrics tables` (`--so2-dir`). */
+export type FigureSource = 'aggregate' | 'so2-metrics';
+
 export interface FigureDef {
   readonly id: string;
+  readonly source: FigureSource;
   readonly csv: string;
   readonly svg: string;
   readonly objective: 'SO2' | 'SO4' | 'SO5' | 'SO4/SO5';
@@ -98,15 +113,24 @@ const mean = (xs: readonly number[]): number => xs.reduce((a, b) => a + b, 0) / 
 
 const PRF_REQUIRED = [
   'split', 'base_kind', 'coverage', 'tp', 'fn', 'precision_strict', 'precision_labelled', 'recall', 'f1_labelled', 'ci_low',
-  'ci_high', 'ci_method',
+  'ci_high', 'ci_method', 'ci_project_low', 'ci_project_high', 'ci_project_method', 'ci_project_descriptive',
 ] as const;
-export const SO4_METRICS = ['seeded differential precision', 'recall', 'F1'] as const;
+export const SO4_METRICS = ['seeded differential precision', 'baseline precision', 'recall', 'F1'] as const;
 
-function optionalInterval(header: readonly string[], row: Readonly<Record<string, string>>, prefix: string): [number | null, number | null] {
-  const lo = `${prefix}_ci_low`;
-  const hi = `${prefix}_ci_high`;
-  if (!header.includes(lo) || !header.includes(hi)) return [null, null];
-  return [num(row, lo), num(row, hi)];
+/** The project cluster interval of a recall row (ADR-020 item 3); all null / '' on the other metrics. */
+interface ProjectInterval {
+  readonly ci_project_low: number | null;
+  readonly ci_project_high: number | null;
+  readonly ci_project_method: string;
+  readonly ci_project_descriptive: boolean | null;
+}
+
+/** `ci_project_descriptive`: 'true' / 'false' / '' (no project interval). */
+function flag(row: Readonly<Record<string, string>>, column: string): boolean | null {
+  const v = row[column] ?? '';
+  if (v === '') return null;
+  if (v === 'true' || v === 'false') return v === 'true';
+  throw new FigureError(FIG_VALUE_INVALID, `column ${column} holds ${JSON.stringify(v)}, not true / false`);
 }
 
 /** FIG-02 for `prf_by_function.csv` (group `function_id`) or `prf_by_tag.csv` (group `tag`, plus `sub_row`). */
@@ -124,20 +148,57 @@ export function prepareSo4Prf(table: CsvTable, options: FigureOptions, group: 'f
     const fLab = num(r, 'f1_labelled');
     const f = fLab ?? (pStrict !== null && rec !== null ? (pStrict + rec === 0 ? 0 : round6((2 * pStrict * rec) / (pStrict + rec))) : null);
     const fBasis = fLab !== null ? 'labelled' : 'strict';
-    const [pLo, pHi] = optionalInterval(table.header, r, 'precision');
-    const [fLo, fHi] = optionalInterval(table.header, r, 'f1');
-    const cand: [string, number | null, string, number | null, number | null, string][] = [
-      ['seeded differential precision', p, pBasis, pLo, pHi, pLo === null ? '' : 'csv'],
-      ['recall', rec, 'strict', num(r, 'ci_low'), num(r, 'ci_high'), r.ci_method ?? ''],
-      ['F1', f, fBasis, fLo, fHi, fLo === null ? '' : 'csv'],
+    const pBase = table.header.includes('precision_baseline') ? num(r, 'precision_baseline') : null;
+    const noProject: ProjectInterval = { ci_project_low: null, ci_project_high: null, ci_project_method: '', ci_project_descriptive: null };
+    const cand: [string, number | null, string, number | null, number | null, string, ProjectInterval][] = [
+      ['seeded differential precision', p, pBasis, null, null, '', noProject],
+      ['baseline precision', pBase, 'baseline', null, null, '', noProject],
+      ['recall', rec, 'strict', num(r, 'ci_low'), num(r, 'ci_high'), r.ci_method ?? '', {
+        ci_project_low: num(r, 'ci_project_low'), ci_project_high: num(r, 'ci_project_high'), ci_project_method: r.ci_project_method ?? '',
+        ci_project_descriptive: flag(r, 'ci_project_descriptive'),
+      }],
+      ['F1', f, fBasis, null, null, '', noProject],
     ];
-    for (const [metric, value, basis, ciLow, ciHigh, ciMethod] of cand) {
+    for (const [metric, value, basis, ciLow, ciHigh, ciMethod, project] of cand) {
       if (value === null) continue;
-      out.push({ group: label, metric, value, basis, ci_low: ciLow, ci_high: ciHigh, ci_method: ciMethod, n_seeded: nSeeded });
+      out.push({ group: label, metric, value, basis, ci_low: ciLow, ci_high: ciHigh, ci_method: ciMethod, ...project, n_seeded: nSeeded });
     }
   }
   const order = (m: FigureCell | undefined): number => SO4_METRICS.indexOf(m as (typeof SO4_METRICS)[number]);
   return out.sort((a, b) => (String(a.group) < String(b.group) ? -1 : String(a.group) > String(b.group) ? 1 : order(a.metric) - order(b.metric)));
+}
+
+// ---------------------------------------------------------------------------------------------
+// FIG-08 SO4 precision (precision_figure.csv)
+
+const PRECISION_REQUIRED = ['scope', 'function_id', 'measure', 'estimate', 'ci_low', 'ci_high', 'ci_method', 'n'] as const;
+/** `precision_figure.csv` measure → plotted label, in plot order (ADR-020 item 1). */
+export const PRECISION_MEASURES: readonly (readonly [string, string])[] = [
+  ['seeded-differential-labelled', 'seeded differential (FP-labelled)'],
+  ['seeded-differential-strict', 'seeded differential (FP-strict)'],
+  ['baseline', 'baseline (HT-weighted TP-class share)'],
+];
+
+/** FIG-08: one row per scope × measure with an estimate; `overall` first, then functions ascending. */
+export function prepareSo4Precision(table: CsvTable): FigureRow[] {
+  const labels = new Map(PRECISION_MEASURES);
+  const order = (m: string): number => PRECISION_MEASURES.findIndex(([k]) => k === m);
+  const out: (FigureRow & { readonly _m: string })[] = [];
+  for (const r of table.rows) {
+    const scope = r.scope ?? '';
+    if (scope !== 'overall' && scope !== 'function') throw new FigureError(FIG_VALUE_INVALID, `scope ${JSON.stringify(scope)}`);
+    const measure = labels.get(r.measure ?? '');
+    if (measure === undefined) throw new FigureError(FIG_VALUE_INVALID, `measure ${JSON.stringify(r.measure ?? '')}`);
+    const value = num(r, 'estimate');
+    if (value === null) continue;
+    out.push({
+      _m: r.measure ?? '', group: scope === 'overall' ? 'overall' : r.function_id ?? '', scope, measure, value,
+      ci_low: num(r, 'ci_low'), ci_high: num(r, 'ci_high'), ci_method: r.ci_method ?? '', n: num(r, 'n'),
+    });
+  }
+  out.sort((a, b) => (a.scope !== b.scope ? (a.scope === 'overall' ? -1 : 1)
+    : String(a.group) !== String(b.group) ? (String(a.group) < String(b.group) ? -1 : 1) : order(a._m) - order(b._m)));
+  return out.map(({ _m, ...row }) => row);
 }
 
 // ---------------------------------------------------------------------------------------------
@@ -210,28 +271,35 @@ export function prepareSo5Interaction(table: CsvTable): FigureRow[] {
 // ---------------------------------------------------------------------------------------------
 // FIG-05 / FIG-06 SO2
 
-const LATENCY_REQUIRED = ['run_id', 'project_id', 'file_count', 'total_ms', 'cycle_query_ms', 'gate_result'] as const;
+const LATENCY_REQUIRED = [
+  'run_id', 'project_id', 'status', 'file_count', 'total_ms', 'ff_s02_ms', 'ff_s02_status', 'universal_cycle_ms', 'universal_cycle_status',
+  'budget_ms', 'gate_result',
+] as const;
+/** The two cycle queries of the H13 gate, as `so2.ts` labels them, with their `latency.csv` column prefix. */
+export const CYCLE_QUERIES = [['FF-S02', 'ff_s02'], ['universal cycle metric', 'universal_cycle']] as const;
 const COVERAGE_REQUIRED = [
   'run_id', 'parse_coverage', 'resolved_internal', 'external', 'external_out_of_root_alias', 'unresolved', 'dropped_no_file_node',
   'unsupported_dynamic',
 ] as const;
 export const IMPORT_OUTCOMES = COVERAGE_REQUIRED.slice(2);
 
-/** FIG-05: one row per run. */
+/** FIG-05: one row per run and cycle query; `@ast-only` arms are left out. */
 export function prepareLatency(table: CsvTable): FigureRow[] {
-  const seen = new Set<string>();
   const out: FigureRow[] = [];
   for (const r of table.rows) {
-    const id = r.run_id ?? '';
-    if (seen.has(id)) continue;
-    seen.add(id);
+    const project = r.project_id ?? '';
+    if (project.endsWith(AST_ONLY_SUFFIX)) continue;
     const total = num(r, 'total_ms');
-    const cycle = num(r, 'cycle_query_ms');
-    out.push({
-      run_id: id, project_id: r.project_id ?? '', file_count: num(r, 'file_count'), total_s: total === null ? null : total / 1000,
-      cycle_query_s: cycle === null ? null : cycle / 1000, gate_s: LATENCY_GATE_MS / 1000, gate_result: r.gate_result ?? '',
-      over_budget: cycle !== null && cycle > LATENCY_GATE_MS,
-    });
+    const budget = num(r, 'budget_ms') ?? LATENCY_GATE_MS;
+    for (const [query, prefix] of CYCLE_QUERIES) {
+      const ms = num(r, `${prefix}_ms`);
+      const status = r[`${prefix}_status`] ?? '';
+      out.push({
+        run_id: r.run_id ?? '', project_id: project, status: r.status ?? '', file_count: num(r, 'file_count'),
+        total_s: total === null ? null : total / 1000, query, query_s: ms === null ? null : ms / 1000, query_status: status,
+        budget_s: budget / 1000, exceeds: status === 'timeout' || (ms !== null && ms > budget), gate_result: r.gate_result ?? '',
+      });
+    }
   }
   return out;
 }
@@ -273,43 +341,49 @@ export function prepareSensitivity(table: CsvTable): FigureRow[] {
 
 export const FIGURES: readonly FigureDef[] = [
   {
-    id: 'so4-prf-by-function', csv: 'prf_by_function.csv', svg: 'so4-prf-by-function.svg', objective: 'SO4', section: '8.1',
+    source: 'aggregate', id: 'so4-prf-by-function', csv: 'prf_by_function.csv', svg: 'so4-prf-by-function.svg', objective: 'SO4', section: '8.1',
     title: 'SO4 detection per fitness function',
-    caption: 'Seeded differential precision, recall and F1 per function on the chosen split (default held-out); a line shows an interval only where the CSV carries one (BR-U5b-61). Quote beside baseline precision (ADR-020 item 1).',
+    caption: 'Seeded differential precision, baseline precision, recall and F1 per function on the chosen split (default held-out). Recall: solid line = cell interval, dashed = project cluster interval (descriptive below 10 projects; ADR-020 item 3, BR-U5b-61). Precision intervals: so4-precision.',
     requiredColumns: [...PRF_REQUIRED, 'function_id'], prepare: (t, o) => prepareSo4Prf(t, o, 'function_id'),
   },
   {
-    id: 'so4-prf-by-tag', csv: 'prf_by_tag.csv', svg: 'so4-prf-by-tag.svg', objective: 'SO4', section: '8.1',
+    source: 'aggregate', id: 'so4-precision', csv: 'precision_figure.csv', svg: 'so4-precision.svg', objective: 'SO4', section: '8.1',
+    title: 'SO4 precision: seeded differential beside baseline',
+    caption: 'Held-out total stratum. Seeded differential precision (FP-labelled, FP-strict; Wilson / Clopper-Pearson on items) beside the registered secondary baseline precision (HT-weighted share of TP-class P2 labels, ADR-020 item 1), each with its interval.',
+    requiredColumns: PRECISION_REQUIRED, prepare: (t) => prepareSo4Precision(t),
+  },
+  {
+    source: 'aggregate', id: 'so4-prf-by-tag', csv: 'prf_by_tag.csv', svg: 'so4-prf-by-tag.svg', objective: 'SO4', section: '8.1',
     title: 'SO4 detection per tag',
-    caption: 'Seeded differential precision, recall and F1 per tag (FR-29) on the chosen split; data-flow is its own sub-row (TV-65).',
+    caption: 'Seeded differential precision, recall and F1 per tag (FR-29) on the chosen split; data-flow is its own sub-row (TV-65). Recall: solid line = cell interval, dashed = project cluster interval.',
     requiredColumns: [...PRF_REQUIRED, 'tag', 'sub_row'], prepare: (t, o) => prepareSo4Prf(t, o, 'tag'),
   },
   {
-    id: 'so5-grid-heatmap', csv: 'so5_grid.csv', svg: 'so5-grid-heatmap.svg', objective: 'SO5', section: '8.2',
+    source: 'aggregate', id: 'so5-grid-heatmap', csv: 'so5_grid.csv', svg: 'so5-grid-heatmap.svg', objective: 'SO5', section: '8.2',
     title: 'SO5 mean AHS per model and spec level',
     caption: 'Mean over valid E1 runs; label = mean (n valid / n cells). Verdict-source AHS and ahsDeterministic are co-primary (ADR-020 item 7). Descriptive; inference is in so5_tests.csv.',
     requiredColumns: SO5_REQUIRED, prepare: (t) => prepareSo5Heatmap(t),
   },
   {
-    id: 'so5-interaction', csv: 'so5_grid.csv', svg: 'so5-interaction.svg', objective: 'SO5', section: '8.2',
+    source: 'aggregate', id: 'so5-interaction', csv: 'so5_grid.csv', svg: 'so5-interaction.svg', objective: 'SO5', section: '8.2',
     title: 'SO5 model × spec-level interaction',
     caption: 'Valid E1 runs (points) and the per-model mean (lines) over spec level, for both co-primary outcomes. Descriptive; inference is the Holm-corrected permutation test (ADR-020 item 6).',
     requiredColumns: SO5_REQUIRED, prepare: (t) => prepareSo5Interaction(t),
   },
   {
-    id: 'so2-latency', csv: 'latency.csv', svg: 'so2-latency.svg', objective: 'SO2', section: '8.1',
+    source: 'so2-metrics', id: 'so2-latency', csv: 'latency.csv', svg: 'so2-latency.svg', objective: 'SO2', section: '8.1',
     title: 'SO2 evaluation latency',
-    caption: 'Total evaluation time against file count, and the cycle-query time per run against the 30 s H13 budget (ADR-016 e).',
+    caption: 'so2-metrics latency.csv, every run (rejected included): total evaluation time against file count, and each cycle query (FF-S02, universal cycle metric) per run against the 30 s H13 budget (ADR-016 e; ADR-021 item 8). The registered gate verdict is gate.json.',
     requiredColumns: LATENCY_REQUIRED, prepare: (t) => prepareLatency(t),
   },
   {
-    id: 'so2-coverage', csv: 'coverage.csv', svg: 'so2-coverage.svg', objective: 'SO2', section: '8.1',
+    source: 'aggregate', id: 'so2-coverage', csv: 'coverage.csv', svg: 'so2-coverage.svg', objective: 'SO2', section: '8.1',
     title: 'SO2 structural coverage',
     caption: 'Parse coverage per run, and the share of each import-resolution outcome among all imports.',
     requiredColumns: COVERAGE_REQUIRED, prepare: (t) => prepareCoverage(t),
   },
   {
-    id: 'threshold-sensitivity', csv: 'rescore_sensitivity.csv', svg: 'threshold-sensitivity.svg', objective: 'SO4/SO5', section: '7.2',
+    source: 'aggregate', id: 'threshold-sensitivity', csv: 'rescore_sensitivity.csv', svg: 'threshold-sensitivity.svg', objective: 'SO4/SO5', section: '7.2',
     title: 'Verdict under threshold bands and neural aggregation variants',
     caption: `${SENSITIVITY_CAPTION} (BR-U5b-60): the shipped thresholds 0.80 / 0.65 / 0.50 are never replaced in a reported table.`,
     requiredColumns: SENSITIVITY_REQUIRED, prepare: (t) => prepareSensitivity(t),
@@ -365,7 +439,7 @@ export function thesisSpecIds(repoRoot: string): string[] {
 // CLI main
 
 export const FIGURES_USAGE = [
-  'Usage: npx tsx scripts/figures-cli.ts --csv-dir <dir> [--out <dir>] [--split <split>] [--only <figure-id>]',
+  'Usage: npx tsx scripts/figures-cli.ts --csv-dir <aggregate dir> [--so2-dir <so2-metrics tables dir>] [--out <dir>] [--split <split>] [--only <figure-id>]',
   '       npx tsx scripts/figures-cli.ts --list',
   '       npx tsx scripts/figures-cli.ts --self-test',
 ].join('\n');
@@ -390,7 +464,7 @@ export async function main(argv: readonly string[], repoRoot: string, io: Figure
       return 1;
     }
     if (a === '--list') {
-      for (const f of FIGURES) io.out(`${f.id}\t${f.objective}\t${f.section}\t${f.csv} -> ${f.svg}\n`);
+      for (const f of FIGURES) io.out(`${f.id}\t${f.objective}\t${f.section}\t${f.source}:${f.csv} -> ${f.svg}\n`);
       return 0;
     }
     if (a.startsWith('--') && argv[i + 1] !== undefined) opts.set(a.slice(2), argv[++i] ?? '');
@@ -411,11 +485,19 @@ export async function main(argv: readonly string[], repoRoot: string, io: Figure
     return 2;
   }
   const options: FigureOptions = { split: opts.get('split') ?? DEFAULT_FIGURE_OPTIONS.split };
-  const inDir = resolve(repoRoot, csvDir);
+  const inDirs: Readonly<Record<FigureSource, string | undefined>> = {
+    aggregate: resolve(repoRoot, csvDir),
+    'so2-metrics': opts.has('so2-dir') ? resolve(repoRoot, opts.get('so2-dir') ?? '') : undefined,
+  };
   const outDir = resolve(repoRoot, opts.get('out') ?? csvDir);
   let failed = 0;
   let drawn = 0;
   for (const def of defs) {
+    const inDir = inDirs[def.source];
+    if (inDir === undefined) {
+      io.out(`skip ${def.id}: no --so2-dir\n`);
+      continue;
+    }
     const csvPath = join(inDir, def.csv);
     if (!existsSync(csvPath)) {
       io.out(`skip ${def.id}: ${def.csv} not found\n`);

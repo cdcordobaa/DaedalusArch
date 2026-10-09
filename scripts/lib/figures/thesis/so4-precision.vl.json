@@ -1,42 +1,40 @@
 {
   "$schema": "https://vega.github.io/schema/vega-lite/v6.json",
-  "description": "FIG-02 SO4 P/R/F1 per function (scripts/figures.ts; ADR-021 X-5).",
+  "description": "FIG-08 SO4 precision, seeded differential beside baseline (scripts/figures.ts; ADR-021 X-5; ADR-020 item 1).",
   "usermeta": {
-    "figure": "so4-prf-by-function"
+    "figure": "so4-precision"
   },
   "width": 420,
   "height": {
-    "step": 42
+    "step": 36
   },
   "encoding": {
     "y": {
       "field": "group",
       "type": "nominal",
-      "sort": "ascending",
-      "title": "function"
+      "sort": null,
+      "title": "scope"
     },
     "yOffset": {
-      "field": "metric",
+      "field": "measure",
       "type": "nominal",
       "sort": [
-        "seeded differential precision",
-        "baseline precision",
-        "recall",
-        "F1"
+        "seeded differential (FP-labelled)",
+        "seeded differential (FP-strict)",
+        "baseline (HT-weighted TP-class share)"
       ]
     },
     "color": {
-      "field": "metric",
+      "field": "measure",
       "type": "nominal",
       "sort": [
-        "seeded differential precision",
-        "baseline precision",
-        "recall",
-        "F1"
+        "seeded differential (FP-labelled)",
+        "seeded differential (FP-strict)",
+        "baseline (HT-weighted TP-class share)"
       ],
-      "title": "metric",
+      "title": "precision",
       "legend": {
-        "labelLimit": 240
+        "labelLimit": 340
       }
     }
   },
@@ -62,31 +60,6 @@
       }
     },
     {
-      "transform": [
-        {
-          "filter": "datum.ci_project_low !== null && datum.ci_project_high !== null"
-        }
-      ],
-      "mark": {
-        "type": "rule",
-        "strokeWidth": 1,
-        "strokeDash": [
-          4,
-          3
-        ],
-        "opacity": 0.7
-      },
-      "encoding": {
-        "x": {
-          "field": "ci_project_low",
-          "type": "quantitative"
-        },
-        "x2": {
-          "field": "ci_project_high"
-        }
-      }
-    },
-    {
       "mark": {
         "type": "point",
         "filled": true,
@@ -102,21 +75,18 @@
               1
             ]
           },
-          "title": "value (recall: solid = cell interval, dashed = project interval)"
+          "title": "precision (line = interval)"
         },
         "tooltip": [
           {
             "field": "group"
           },
           {
-            "field": "metric"
+            "field": "measure"
           },
           {
             "field": "value",
             "format": ".3f"
-          },
-          {
-            "field": "basis"
           },
           {
             "field": "ci_low",
@@ -130,21 +100,7 @@
             "field": "ci_method"
           },
           {
-            "field": "ci_project_low",
-            "format": ".3f"
-          },
-          {
-            "field": "ci_project_high",
-            "format": ".3f"
-          },
-          {
-            "field": "ci_project_method"
-          },
-          {
-            "field": "ci_project_descriptive"
-          },
-          {
-            "field": "n_seeded"
+            "field": "n"
           }
         ]
       }

@@ -20,6 +20,7 @@
       "type": "nominal",
       "sort": [
         "seeded differential precision",
+        "baseline precision",
         "recall",
         "F1"
       ]
@@ -29,6 +30,7 @@
       "type": "nominal",
       "sort": [
         "seeded differential precision",
+        "baseline precision",
         "recall",
         "F1"
       ],
@@ -60,6 +62,31 @@
       }
     },
     {
+      "transform": [
+        {
+          "filter": "datum.ci_project_low !== null && datum.ci_project_high !== null"
+        }
+      ],
+      "mark": {
+        "type": "rule",
+        "strokeWidth": 1,
+        "strokeDash": [
+          4,
+          3
+        ],
+        "opacity": 0.7
+      },
+      "encoding": {
+        "x": {
+          "field": "ci_project_low",
+          "type": "quantitative"
+        },
+        "x2": {
+          "field": "ci_project_high"
+        }
+      }
+    },
+    {
       "mark": {
         "type": "point",
         "filled": true,
@@ -75,7 +102,7 @@
               1
             ]
           },
-          "title": "value (interval only where the CSV carries one)"
+          "title": "value (recall: solid = cell interval, dashed = project interval)"
         },
         "tooltip": [
           {
@@ -101,6 +128,20 @@
           },
           {
             "field": "ci_method"
+          },
+          {
+            "field": "ci_project_low",
+            "format": ".3f"
+          },
+          {
+            "field": "ci_project_high",
+            "format": ".3f"
+          },
+          {
+            "field": "ci_project_method"
+          },
+          {
+            "field": "ci_project_descriptive"
           },
           {
             "field": "n_seeded"

@@ -1,6 +1,6 @@
 {
   "$schema": "https://vega.github.io/schema/vega-lite/v6.json",
-  "description": "FIG-05 SO2 latency per run against the 30 s H13 budget (scripts/figures.ts; ADR-021 X-5).",
+  "description": "FIG-05 SO2 latency per run and cycle query against the 30 s H13 budget, from so2-metrics latency.csv (scripts/figures.ts; ADR-021 X-5, item 8).",
   "usermeta": {
     "figure": "so2-latency"
   },
@@ -45,14 +45,25 @@
             "field": "project_id"
           },
           {
+            "field": "status"
+          },
+          {
             "field": "file_count"
           },
           {
             "field": "total_s",
             "format": ".1f"
+          },
+          {
+            "field": "gate_result"
           }
         ]
-      }
+      },
+      "transform": [
+        {
+          "filter": "datum.query === 'FF-S02'"
+        }
+      ]
     },
     {
       "width": 260,
@@ -71,24 +82,41 @@
               }
             },
             "y": {
-              "field": "cycle_query_s",
+              "field": "query_s",
               "type": "quantitative",
               "title": "cycle query time (s)"
             },
             "color": {
-              "field": "over_budget",
+              "field": "exceeds",
               "type": "nominal",
-              "title": "over budget"
+              "title": "timed out or over budget"
             },
             "tooltip": [
               {
                 "field": "project_id"
               },
               {
-                "field": "cycle_query_s",
+                "field": "query"
+              },
+              {
+                "field": "query_s",
                 "format": ".2f"
+              },
+              {
+                "field": "query_status"
+              },
+              {
+                "field": "gate_result"
               }
-            ]
+            ],
+            "xOffset": {
+              "field": "query",
+              "type": "nominal",
+              "sort": [
+                "FF-S02",
+                "universal cycle metric"
+              ]
+            }
           }
         },
         {
@@ -102,8 +130,44 @@
           "encoding": {
             "y": {
               "aggregate": "max",
-              "field": "gate_s",
+              "field": "budget_s",
               "type": "quantitative"
+            }
+          }
+        },
+        {
+          "transform": [
+            {
+              "filter": "datum.query_status !== 'ok'"
+            }
+          ],
+          "mark": {
+            "type": "text",
+            "angle": -90,
+            "align": "left",
+            "dx": 4,
+            "fontSize": 9
+          },
+          "encoding": {
+            "x": {
+              "field": "run_id",
+              "type": "nominal",
+              "sort": null
+            },
+            "xOffset": {
+              "field": "query",
+              "type": "nominal",
+              "sort": [
+                "FF-S02",
+                "universal cycle metric"
+              ]
+            },
+            "y": {
+              "datum": 0,
+              "type": "quantitative"
+            },
+            "text": {
+              "field": "query_status"
             }
           }
         }

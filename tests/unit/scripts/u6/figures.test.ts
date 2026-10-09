@@ -1,5 +1,5 @@
 /**
- * U6 Docs lane (ADR-021 X-5): thesis figure rules FIG-01..07 of `scripts/figures.ts`, on hand-computed fixture CSVs
+ * U6 Docs lane (ADR-021 X-5): thesis figure rules FIG-01..08 of `scripts/figures.ts`, on hand-computed fixture CSVs
  * in `tests/fixtures/u6/figures/` whose headers are the `scripts/aggregate.ts` headers (checked below).
  */
 import { execFileSync } from 'node:child_process';
@@ -9,16 +9,18 @@ import { join, resolve } from 'node:path';
 import { aggregate } from '../../../../scripts/aggregate.js';
 import {
   DEFAULT_FIGURE_OPTIONS, FIG_CSV_SCHEMA, FIG_SENSITIVITY_PURPOSE, FIG_VALUE_INVALID, FIGURES, main, missingColumns, num,
-  prepareCoverage, prepareFigure, prepareLatency, prepareSensitivity, prepareSo4Prf, prepareSo5Heatmap, prepareSo5Interaction,
+  prepareCoverage, prepareFigure, prepareLatency, prepareSensitivity, prepareSo4Precision, prepareSo4Prf, prepareSo5Heatmap, prepareSo5Interaction,
   SENSITIVITY_CAPTION, specLevelOrder, specWithCaption, loadThesisSpec, thesisSpecIds, wrapCaption,
 } from '../../../../scripts/figures.js';
 import type { CsvTable, FigureDef } from '../../../../scripts/figures.js';
 import { parseCsv } from '../../../../scripts/lib/figures/draw.js';
 import { loadSo5Codes } from '../../../../scripts/lib/so5-codes.js';
+import { LATENCY_COLUMNS } from '../../../../scripts/lib/so2.js';
 import { SENSITIVITY_COLUMNS } from '../../../../scripts/rescore.js';
 
 const ROOT = resolve(__dirname, '../../../..');
 const FIX = join(ROOT, 'tests/fixtures/u6/figures');
+const FIX_SO2 = join(FIX, 'so2');
 const table = (name: string): CsvTable => parseCsv(readFileSync(join(FIX, name), 'utf8'));
 const csv = (text: string): CsvTable => parseCsv(text);
 const def = (id: string): FigureDef => {
@@ -41,12 +43,12 @@ describe('FIG-01 schema and cell readers', () => {
   });
 
   it('a CSV without a required column fails FIG_CSV_SCHEMA and names it', () => {
-    const r = prepareFigure(def('so2-latency'), csv('run_id,project_id\nr1,p\n'));
-    expect(r).toEqual({ ok: false, code: FIG_CSV_SCHEMA, detail: 'latency.csv lacks file_count, total_ms, cycle_query_ms, gate_result' });
+    const r = prepareFigure(def('so2-coverage'), csv('run_id,parse_coverage,resolved_internal\nr1,1,0\n'));
+    expect(r).toEqual({ ok: false, code: FIG_CSV_SCHEMA, detail: 'coverage.csv lacks external, external_out_of_root_alias, unresolved, dropped_no_file_node, unsupported_dynamic' });
   });
 
   it('a non-numeric value fails FIG_VALUE_INVALID through prepareFigure', () => {
-    const r = prepareFigure(def('so2-latency'), csv('run_id,project_id,file_count,total_ms,cycle_query_ms,gate_result\nr1,p,ten,1,1,pass\n'));
+    const r = prepareFigure(def('so2-latency'), csv(`${LATENCY_COLUMNS.join(',')}\nr1,pl,p,accepted,,ten,1,,1,ok,1,ok,30000,pass,\n`));
     expect(r.ok).toBe(false);
     expect(!r.ok && r.code).toBe(FIG_VALUE_INVALID);
   });
@@ -56,7 +58,7 @@ describe('FIG-01 schema and cell readers', () => {
     if (!so5.ok) throw new Error(so5.detail);
     const out = aggregate({ planId: 'x', records: [], reports: new Map(), so5: so5.codes });
     for (const d of FIGURES) {
-      const header = (out.get(d.csv as never) ?? '').split('\n')[0]?.split(',') ?? [];
+      const header = d.source === 'so2-metrics' ? [...LATENCY_COLUMNS] : (out.get(d.csv as never) ?? '').split('\n')[0]?.split(',') ?? [];
       expect({ id: d.id, missing: missingColumns(header, d.requiredColumns) }).toEqual({ id: d.id, missing: [] });
     }
     expect(missingColumns([...SENSITIVITY_COLUMNS], def('threshold-sensitivity').requiredColumns)).toEqual([]);
@@ -69,22 +71,34 @@ describe('FIG-01 schema and cell readers', () => {
     for (const f of readdirSync(FIX).filter((n) => n.endsWith('.csv'))) {
       expect({ f, header: table(f).header.join(',') }).toEqual({ f, header: (out.get(f as never) ?? '').split('\n')[0] });
     }
+    // FIG-05 reads the so2-metrics latency.csv, never the aggregate's (ADR-021 item 8).
+    expect(parseCsv(readFileSync(join(FIX_SO2, 'latency.csv'), 'utf8')).header).toEqual([...LATENCY_COLUMNS]);
+    expect(FIGURES.filter((d) => d.source === 'so2-metrics').map((d) => d.csv)).toEqual(['latency.csv']);
   });
 });
 
+const NO_PROJECT = { ci_project_low: null, ci_project_high: null, ci_project_method: '', ci_project_descriptive: null };
+
 describe('FIG-02 SO4 P/R/F1', () => {
-  it('keeps the held-out all/all rows; precision labelled-else-strict; recall with its CI; F1 labelled-else-strict', () => {
+  it('keeps the held-out all/all rows; precision labelled-else-strict, baseline beside it; recall with both intervals; F1 labelled-else-strict', () => {
     const rows = prepareSo4Prf(table('prf_by_function.csv'), DEFAULT_FIGURE_OPTIONS, 'function_id');
+    const counts = { ...NO_PROJECT, ci_project_method: 'counts' };
     expect(rows).toEqual([
-      { group: 'FF-C01', metric: 'seeded differential precision', value: 1, basis: 'labelled', ci_low: null, ci_high: null, ci_method: '', n_seeded: 4 },
-      { group: 'FF-C01', metric: 'recall', value: 0.75, basis: 'strict', ci_low: null, ci_high: null, ci_method: 'counts', n_seeded: 4 },
-      { group: 'FF-C01', metric: 'F1', value: 0.857143, basis: 'labelled', ci_low: null, ci_high: null, ci_method: '', n_seeded: 4 },
-      // tp + fp = 0: no precision, and so no strict F1; recall 0 with no CI.
-      { group: 'FF-P06', metric: 'recall', value: 0, basis: 'strict', ci_low: null, ci_high: null, ci_method: 'counts', n_seeded: 4 },
-      { group: 'FF-S01', metric: 'seeded differential precision', value: 1, basis: 'strict', ci_low: null, ci_high: null, ci_method: '', n_seeded: 8 },
-      { group: 'FF-S01', metric: 'recall', value: 0.75, basis: 'strict', ci_low: 0.409, ci_high: 0.9285, ci_method: 'wilson', n_seeded: 8 },
+      { group: 'FF-C01', metric: 'seeded differential precision', value: 1, basis: 'labelled', ci_low: null, ci_high: null, ci_method: '', ...NO_PROJECT, n_seeded: 4 },
+      { group: 'FF-C01', metric: 'baseline precision', value: 0.666667, basis: 'baseline', ci_low: null, ci_high: null, ci_method: '', ...NO_PROJECT, n_seeded: 4 },
+      { group: 'FF-C01', metric: 'recall', value: 0.75, basis: 'strict', ci_low: null, ci_high: null, ci_method: 'counts', ...counts, n_seeded: 4 },
+      { group: 'FF-C01', metric: 'F1', value: 0.857143, basis: 'labelled', ci_low: null, ci_high: null, ci_method: '', ...NO_PROJECT, n_seeded: 4 },
+      // tp + fp = 0: no precision, and so no strict F1; no baseline either (empty cell); recall 0 with no CI.
+      { group: 'FF-P06', metric: 'recall', value: 0, basis: 'strict', ci_low: null, ci_high: null, ci_method: 'counts', ...counts, n_seeded: 4 },
+      { group: 'FF-S01', metric: 'seeded differential precision', value: 1, basis: 'strict', ci_low: null, ci_high: null, ci_method: '', ...NO_PROJECT, n_seeded: 8 },
+      { group: 'FF-S01', metric: 'baseline precision', value: 0.9, basis: 'baseline', ci_low: null, ci_high: null, ci_method: '', ...NO_PROJECT, n_seeded: 8 },
+      // 3 projects: the project cluster interval is drawn and flagged descriptive (2..9 projects, ADR-020 item 3).
+      {
+        group: 'FF-S01', metric: 'recall', value: 0.75, basis: 'strict', ci_low: 0.409, ci_high: 0.9285, ci_method: 'wilson',
+        ci_project_low: 0.35, ci_project_high: 0.95, ci_project_method: 'cluster-bootstrap', ci_project_descriptive: true, n_seeded: 8,
+      },
       // 2 * 1 * 0.75 / 1.75 = 0.857142857 -> 0.857143
-      { group: 'FF-S01', metric: 'F1', value: 0.857143, basis: 'strict', ci_low: null, ci_high: null, ci_method: '', n_seeded: 8 },
+      { group: 'FF-S01', metric: 'F1', value: 0.857143, basis: 'strict', ci_low: null, ci_high: null, ci_method: '', ...NO_PROJECT, n_seeded: 8 },
     ]);
   });
 
@@ -100,20 +114,50 @@ describe('FIG-02 SO4 P/R/F1', () => {
     expect(prepareSo4Prf(t, DEFAULT_FIGURE_OPTIONS, 'function_id').find((r) => r.metric === 'F1')?.value).toBe(0);
   });
 
-  it('precision and F1 intervals are taken only from explicit *_ci_low/_ci_high columns (SO4-06)', () => {
-    const t = csv('split,base_kind,coverage,tp,fn,precision_strict,precision_labelled,recall,f1_labelled,ci_low,ci_high,ci_method,precision_ci_low,precision_ci_high,f1_ci_low,f1_ci_high,function_id\n'
-      + 'held-out,all,all,3,1,0.750000,,0.750000,,0.3,0.95,cluster-bootstrap,0.4,0.9,0.5,0.85,FF-X\n');
-    const rows = prepareSo4Prf(t, DEFAULT_FIGURE_OPTIONS, 'function_id');
-    expect(rows.map((r) => [r.metric, r.ci_low, r.ci_high, r.ci_method])).toEqual([
-      ['seeded differential precision', 0.4, 0.9, 'csv'], ['recall', 0.3, 0.95, 'cluster-bootstrap'], ['F1', 0.5, 0.85, 'csv'],
-    ]);
+  it('no precision or F1 interval is invented: those rows carry none even when recall has both', () => {
+    const rows = prepareSo4Prf(table('prf_by_function.csv'), DEFAULT_FIGURE_OPTIONS, 'function_id').filter((r) => r.group === 'FF-S01' && r.metric !== 'recall');
+    expect(rows.map((r) => [r.ci_low, r.ci_high, r.ci_project_low, r.ci_project_high])).toEqual([[null, null, null, null], [null, null, null, null], [null, null, null, null]]);
   });
 
-  it('per tag, a data-flow sub-row is labelled tag/sub_row', () => {
+  it('a ci_project_descriptive cell other than true / false / empty fails FIG_VALUE_INVALID', () => {
+    const t = csv('split,base_kind,coverage,tp,fn,precision_strict,precision_labelled,recall,f1_labelled,ci_low,ci_high,ci_method,ci_project_low,ci_project_high,ci_project_method,ci_project_descriptive,function_id\n'
+      + 'held-out,all,all,3,1,0.750000,,0.750000,,,,counts,0.4,0.9,cluster-bootstrap,yes,FF-X\n');
+    const r = prepareFigure({ ...def('so4-prf-by-function'), requiredColumns: [] }, t);
+    expect(!r.ok && r.code).toBe(FIG_VALUE_INVALID);
+  });
+
+  it('per tag, a data-flow sub-row is labelled tag/sub_row; no baseline column, no baseline row', () => {
     const r = prepareFigure(def('so4-prf-by-tag'), table('prf_by_tag.csv'));
     expect(r.ok && [...new Set(r.rows.map((x) => x.group))]).toEqual(['structural', 'structural/data-flow']);
     // structural: 2 * 0.8 * 0.8 / 1.6 = 0.8
     expect(r.ok && r.rows.find((x) => x.group === 'structural' && x.metric === 'F1')?.value).toBe(0.8);
+    expect(r.ok && r.rows.some((x) => x.metric === 'baseline precision')).toBe(false);
+    expect(r.ok && r.rows.find((x) => x.group === 'structural' && x.metric === 'recall')?.ci_project_high).toBe(0.95);
+  });
+});
+
+describe('FIG-08 SO4 precision', () => {
+  it('overall first, then functions ascending; labelled, strict, baseline; an empty estimate is skipped', () => {
+    const rows = prepareSo4Precision(table('precision_figure.csv'));
+    expect(rows.map((r) => [r.group, r.measure, r.value, r.ci_low, r.ci_high, r.ci_method, r.n])).toEqual([
+      ['overall', 'seeded differential (FP-labelled)', 0.9, 0.596, 0.982, 'wilson', 10],
+      ['overall', 'seeded differential (FP-strict)', 0.8, 0.49, 0.943, 'wilson', 10],
+      ['overall', 'baseline (HT-weighted TP-class share)', 0.75, 0.5, 0.9, 'cluster-bootstrap', 12],
+      ['FF-C01', 'seeded differential (FP-labelled)', 1, 0.439, 1, 'clopper-pearson', 3],
+      ['FF-C01', 'seeded differential (FP-strict)', 0.75, 0.301, 0.954, 'wilson', 4],
+      ['FF-C01', 'baseline (HT-weighted TP-class share)', 0.666667, 0.208, 0.939, 'cluster-bootstrap', 3],
+      // FF-S01 baseline has no estimate (no P2 labels for it) and is not drawn.
+      ['FF-S01', 'seeded differential (FP-strict)', 1, 0.676, 1, 'wilson', 8],
+    ]);
+    expect(rows.every((r) => !('_m' in r))).toBe(true);
+  });
+
+  it('an unknown measure or scope fails FIG_VALUE_INVALID', () => {
+    const head = 'plan_id,scope,function_id,measure,estimate,ci_low,ci_high,ci_method,n\n';
+    const bad = prepareFigure(def('so4-precision'), csv(`${head}fx,overall,,precision_tuned,0.9,,,,1\n`));
+    expect(!bad.ok && [bad.code, bad.detail]).toEqual([FIG_VALUE_INVALID, 'precision_figure.csv: FIG_VALUE_INVALID: measure "precision_tuned"']);
+    const scope = prepareFigure(def('so4-precision'), csv(`${head}fx,tag,,baseline,0.9,,,,1\n`));
+    expect(!scope.ok && scope.code).toBe(FIG_VALUE_INVALID);
   });
 });
 
@@ -162,17 +206,21 @@ describe('FIG-03 / FIG-04 SO5', () => {
 });
 
 describe('FIG-05 / FIG-06 SO2', () => {
-  it('latency: one row per run, seconds, over budget only above 30 s', () => {
-    expect(prepareLatency(table('latency.csv'))).toEqual([
-      { run_id: 'r1', project_id: 'proj-a', file_count: 120, total_s: 4.5, cycle_query_s: 1.2, gate_s: 30, gate_result: 'pass', over_budget: false },
-      { run_id: 'r2', project_id: 'proj-b', file_count: 800, total_s: 61, cycle_query_s: 31, gate_s: 30, gate_result: 'fallback-required', over_budget: true },
-      { run_id: 'r3', project_id: 'proj-c', file_count: 50, total_s: null, cycle_query_s: 0, gate_s: 30, gate_result: 'pass', over_budget: false },
+  it('latency: one row per run and cycle query, seconds; timeout or > budget exceeds; ast-only arms left out', () => {
+    const rows = prepareLatency(parseCsv(readFileSync(join(FIX_SO2, 'latency.csv'), 'utf8')));
+    expect(rows.map((r) => [r.run_id, r.status, r.file_count, r.total_s, r.query, r.query_s, r.query_status, r.budget_s, r.exceeds, r.gate_result])).toEqual([
+      ['r1', 'accepted', 120, 4.5, 'FF-S02', 1.2, 'ok', 30, false, 'pass'],
+      ['r1', 'accepted', 120, 4.5, 'universal cycle metric', 0.8, 'ok', 30, false, 'pass'],
+      // a rejected run is kept: FF-S02 timed out (no ms), the universal query took 31 000 ms > 30 000
+      ['r2', 'rejected', 800, 61, 'FF-S02', null, 'timeout', 30, true, 'fallback-required'],
+      ['r2', 'rejected', 800, 61, 'universal cycle metric', 31, 'ok', 30, true, 'fallback-required'],
+      // exactly 30 000 ms is not over budget; an empty budget_ms falls back to LATENCY_GATE_MS
+      ['r3', 'accepted', 50, null, 'FF-S02', 30, 'ok', 30, false, 'inconclusive'],
+      ['r3', 'accepted', 50, null, 'universal cycle metric', null, 'absent', 30, false, 'inconclusive'],
+      ['r4', 'not-run', null, null, 'FF-S02', null, 'absent', 30, false, 'inconclusive'],
+      ['r4', 'not-run', null, null, 'universal cycle metric', null, 'absent', 30, false, 'inconclusive'],
     ]);
-  });
-
-  it('exactly 30 000 ms is not over budget', () => {
-    const t = csv('run_id,project_id,file_count,total_ms,cycle_query_ms,gate_result\nr,p,1,1,30000,pass\n');
-    expect(prepareLatency(t)[0]?.over_budget).toBe(false);
+    expect(rows.some((r) => String(r.project_id).endsWith('@ast-only'))).toBe(false);
   });
 
   it('coverage: parse rows, import shares of the six outcomes, no shares when they sum to 0', () => {
@@ -258,7 +306,7 @@ describe('CLI (tsx / ESM route)', () => {
     const sparse = mkdtempSync(join(tmpdir(), 'u6-fig-sparse-'));
     try {
       for (const o of outs) {
-        execFileSync(join(ROOT, 'node_modules/.bin/tsx'), [join(ROOT, 'scripts/figures-cli.ts'), '--csv-dir', FIX, '--out', o], { cwd: ROOT, stdio: 'pipe' });
+        execFileSync(join(ROOT, 'node_modules/.bin/tsx'), [join(ROOT, 'scripts/figures-cli.ts'), '--csv-dir', FIX, '--so2-dir', FIX_SO2, '--out', o], { cwd: ROOT, stdio: 'pipe' });
       }
       const svgs = outs.map((o) => readdirSync(o).filter((f) => f.endsWith('.svg')).sort());
       expect(svgs[0]).toEqual(FIGURES.map((f) => f.svg).sort());
@@ -270,12 +318,15 @@ describe('CLI (tsx / ESM route)', () => {
       expect(readFileSync(join(outs[0] ?? '', 'threshold-sensitivity.svg'), 'utf8')).toContain(SENSITIVITY_CAPTION);
 
       mkdirSync(join(sparse, 'in'));
-      copyFileSync(join(FIX, 'latency.csv'), join(sparse, 'in', 'latency.csv'));
+      // the aggregate's latency.csv in --csv-dir is never read by FIG-05; without --so2-dir the figure is skipped
+      writeFileSync(join(sparse, 'in', 'latency.csv'), 'run_id,project_id,file_count,total_ms,stage,stage_ms,cycle_query_ms,gate_result\nr1,p,1,1,parse,1,1,pass\n');
+      copyFileSync(join(FIX, 'so5_grid.csv'), join(sparse, 'in', 'so5_grid.csv'));
       writeFileSync(join(sparse, 'in', 'coverage.csv'), `${table('coverage.csv').header.join(',')}\n`);
       const text = execFileSync(join(ROOT, 'node_modules/.bin/tsx'), [join(ROOT, 'scripts/figures-cli.ts'), '--csv-dir', join(sparse, 'in'), '--out', join(sparse, 'out')], { cwd: ROOT, stdio: 'pipe' }).toString('utf8');
       expect(text).toContain('skip so2-coverage: no rows in coverage.csv');
       expect(text).toContain('skip so4-prf-by-function: prf_by_function.csv not found');
-      expect(readdirSync(join(sparse, 'out'))).toEqual(['so2-latency.svg']);
+      expect(text).toContain('skip so2-latency: no --so2-dir');
+      expect(readdirSync(join(sparse, 'out')).sort()).toEqual(['so5-grid-heatmap.svg', 'so5-interaction.svg']);
     } finally {
       for (const o of [...outs, sparse]) rmSync(o, { recursive: true, force: true });
     }
