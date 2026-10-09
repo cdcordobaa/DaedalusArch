@@ -427,6 +427,15 @@ describe('apg_arms.csv: the two arms differ (ADR-021 item 8; audit SO2-5, X-2)',
     expect(csv[1]?.startsWith('realworld-test,8,4,4,')).toBe(true);
   });
 
+  it('arms exits 1 with SO2_ARMS_IDENTICAL naming the one base whose arms are identical (per-base check)', async () => {
+    const io = capture();
+    // Only truthy-demo's ast-only arm equals its full arm; the other 8 pairs differ (8 vs 4 edges).
+    const deps: So2Deps = { extract: (p, mode) => Promise.resolve(mode === 'full' && !p.endsWith('truthy-demo') ? full : ast) };
+    expect(await main(['arms', '--plan', 'experiments/apg-ablation/plan.json', '--out', '/o'], ROOT, io, deps)).toBe(1);
+    expect(io.text()).toContain(`${SO2_ARMS_IDENTICAL}: identical arms for truthy-demo;`);
+    expect(io.text()).toContain('9 pairs, 8 differ');
+  });
+
   it('arms exits 1 with SO2_ARMS_IDENTICAL when no pair differs', async () => {
     const io = capture();
     const deps: So2Deps = { extract: () => Promise.resolve(ast) };
