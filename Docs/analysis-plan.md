@@ -163,8 +163,18 @@ it adds entries and changes no other field of a registered plan.
 | SO3 neural | judge vs panel agreement on P4 E1 units (weighted, judges of another model family; `headline = true`; ADR-020 item 7) | the same agreement per source (`e1`, `fixture`) and pooled, per E1 generator model, and with `uncertain` kept as a category; run vs run (order sensitivity, §10 B3); panel vs audit (sanity check, B6); judge repetition reliability; judge-probe detection conditional on selection | `agreement.csv`, `judge_probe.csv` |
 | SO2 | parse coverage and resolution counts per run; latency gate result | stage times; FLOWS_TO evidence per MO-DF01 seed and twin | `coverage.csv`, `latency.csv`, `edge_evidence.csv` |
 | SO1 | denominators per run (declared, ADR-derived, compiled, disabled, dropped, skipped by mode, executed, failed), identities I1 and I2 | per-style P/R/F1 rows | `denominators.csv` |
+| SO1 instrument (ADR-021 SO1-E, X-7) | per spec group (corpus, fixture, preset): validator first-pass rate with its Wilson 95 % interval; per built-in style library: template coverage (declared functions with a template ÷ declared) | current pass rate; first-failure error codes; compiled ÷ declared per spec style (ratio of sums); spec line counts (total, blank, comment, content), descriptive only | `so1-metrics-<sha>.json` (`scripts/so1-metrics-cli.ts`) |
 | SO5 (E1) | the `verdictSource` AHS of each valid cell (§6); for the model effect, `ahsDeterministic` is co-primary (ADR-020 item 7) | the directional self-preference check (§6, registered); other AHS fields, per-dimension AVR, `FPAT-*` weighted family counts (rule-family profile), valid-generation yield, judge fail share (exploratory) | `so5_grid.csv`, `so5_patterns.csv`, `so5_tests.csv` |
 | ADR-016 b | one pass / fail per SP-* probe; exclusion only after a failed probe and a recorded fix attempt | line confirmation | `function_sensitivity.csv` |
+
+SO1 instrument definitions (ADR-021 SO1-E, X-7; `scripts/lib/so1-metrics.ts`). The population is every committed
+spec of the BR-U5b-51 spec patterns: `corpus/specs/*.yaml` (group corpus, the registered population of the first-pass
+rate), the two fixture specs and `presets/*.yaml`. The *validate check* is the spec part of `validate`: parse and
+schema, non-strict business rules, template references, and compilation without errors. The layer-directory check
+needs the project checkout and is left out. A spec passes *first time* when the version in the commit that added it
+passes the check of the registered instrument; a spec not yet committed counts by its working-tree text. A function
+*has a template* when it has a Cypher template (symbolic), a rubric (neuronal), or both (hybrid). A *content line* is a
+non-blank line that is not only a YAML comment. These are descriptive SO1 outcomes; no test is run on them.
 
 Probe rows (`split = probe`) never enter a P/R/F1 table (BR-U5b-20, 78). `dev` is never pooled with `held-out`; the
 headline SO4 table is `held-out`, reported per `baseKind` (`corpus`, `generated`), per corpus tier (`corpus-core`,
