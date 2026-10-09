@@ -1188,3 +1188,11 @@ Plan checkboxes ticked. Auto-approved under standing approval; no blocking or ma
 **Context**: CONSTRUCTION, Build and Test, escalations E-1/E-2
 
 ---
+
+## Build and Test — ADR-019 item 4 labeller route (Gemini CLI) probe: HALT, PR #15 merged
+**Timestamp**: 2026-10-09T02:28:24Z
+**User Input**: "Implement the ADR-019 item 4 labeller route: probe the Gemini CLI 0.46.0 Google-account route Gate H style (headless, JSON, no tools, extensions, MCP or ambient GEMINI.md, dedicated config home, auth source, model id, version pin, error classes, canary), at most 15 probe calls; if isolation holds add GeminiCliProvider, '--provider gemini-cli', cassettes and tests, pin the model id; run llm-label --estimate; stop and report if the CLI needs a sign-in or cannot be isolated." (Orchestrator task under the standing approval.)
+**AI Response**: "Probe aae310a, PR #15 green and merged (5542571). Isolation mechanism found in the 0.46.0 bundle: GEMINI_CLI_HOME (+HOME) dedicated home, env -i allow-list, GOOGLE_APPLICATION_CREDENTIALS pointing at the author's oauth_creds.json, so the credentials are reused without being read or copied (size and mtime unchanged), GOOGLE_GENAI_USE_GCA=true, GEMINI_SYSTEM_MD persona, GEMINI_CLI_SYSTEM_SETTINGS_PATH frozen settings (tools.core [], admin mcp/extensions/skills off, builtin extensions disabled, context.fileName override, auto-update off), --extensions none, --allowed-mcp-server-names __none__. Every spawn that reached auth was refused by the Code Assist backend before any model request: IneligibleTierError UNSUPPORTED_CLIENT, free tier 'Gemini Code Assist for individuals' ('no longer supported ... migrate to the Antigravity suite'); headless json gives exit 1 with empty stdout. 5 spawns, 3 reaching auth, 0 model requests. HALT per ADR-019 item 4: no GeminiCliProvider, no --provider gemini-cli, no model pin; canaries, model id and envelope not verifiable. llm-label --estimate on the only committed plan (tests/fixtures/u5b/labels/plan.json): 40 calls <= 200; no real label plan exists before E1/E7/SO4 (prereg budget 4000). Evidence in tests/fixtures/gemini-cli/, ledger section added. Dedicated home removed."
+**Context**: CONSTRUCTION — Build and Test, ADR-019 item 4; live labelling halted, author to pick the route. No snapshot change, no CHANGES.md line, judge ledger unchanged.
+
+---
