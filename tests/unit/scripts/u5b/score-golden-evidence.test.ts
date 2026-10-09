@@ -181,6 +181,30 @@ describe('function sensitivity probes (BR-U5b-78)', () => {
     expect(o.results[2]?.rejectedReason).toContain('function-timeout');
   });
 
+  it('collateral-declared probes (catalogue §5): FF-S02 by its cycle key, FF-C06 keyless by any new row; target from the probe id', async () => {
+    const cycle = 'src/domain/Task.ts,src/infra/Repo.ts,src/domain/Task.ts';
+    const s02 = row({ seedId: 'p:SP-FF-S02:0', operatorId: 'SP-FF-S02', split: 'probe', expected: { collateral: [
+      { kind: 'site', template: 'no-cyclic-deps', functionId: 'FF-S02', cause: 'cycle', key: key('FF-S02', cycle, I, ['cycle']) },
+    ] } });
+    const c06 = row({ seedId: 'p:SP-FF-C06:0', operatorId: 'SP-FF-C06', split: 'probe', expected: { collateral: [
+      { kind: 'site', template: 'no-orphan-files', functionId: 'FF-C04', cause: 'metric-crossing', key: key('FF-C04', 'src/x.ts') },
+      { kind: 'project', template: 'abstraction-ratio', functionId: 'FF-C06', cause: 'project-metric' },
+    ] } });
+    const cycleV: V = { functionId: 'FF-S02', filePath: cycle, target: I, discriminator: ['cycle'] };
+    const o = scoreSensitivity({
+      rule: rule(),
+      probes: [
+        seed(s02, await report([]), await report([cycleV])),
+        seed({ ...c06, seedId: 'p:SP-FF-C06:0' }, await report([]), await report([{ functionId: 'FF-C06', filePath: '' }])),
+        seed({ ...c06, seedId: 'p:SP-FF-C06:1' }, await report([]), await report([{ functionId: 'FF-C04', filePath: 'src/x.ts' }])),
+      ],
+    });
+    if (!o.ok) throw new Error(o.detail);
+    expect(o.results.map((r) => [r.probeId, r.functionId, r.pass])).toEqual([
+      ['SP-FF-C06', 'FF-C06', true], ['SP-FF-C06', 'FF-C06', false], ['SP-FF-S02', 'FF-S02', true],
+    ]);
+  });
+
   it('a failed probe with a later disabled spec entry and a fixAttempts ref → excludedAfterFail with the ref', async () => {
     const o = scoreSensitivity({
       rule: rule(),

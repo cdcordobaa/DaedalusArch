@@ -36,48 +36,19 @@ import {
   spHashOf,
 } from '../../../../scripts/lib/mutation/operators/sp/index.js';
 import type { MutationSite } from '../../../../scripts/lib/mutation/types.js';
+import { SP_FORCED_SITES, forcedSiteOf } from '../../../../scripts/lib/mutation/operators/sp/forced-sites.js';
 import { CLEAN_SPEC, CORRECT_DIR, LAYERED_SPEC, NOW, REPO, fixtureBase } from './operator-harness.js';
 
 jest.setTimeout(900_000);
 
-const TASK = 'src/domain/entities/Task.ts';
+const ADR016B: readonly string[] = ['FF-CV01', 'FF-CV04'];
 const CATEGORY = 'src/domain/entities/Category.ts';
 const ICAT = 'src/domain/repositories/ICategoryRepository.ts';
-const ITASK = 'src/domain/repositories/ITaskRepository.ts';
 const CREATE = 'src/application/use-cases/CreateTaskUseCase.ts';
 const ICREATE = 'src/application/use-cases/ICreateTaskUseCase.ts';
 const IMPL = 'src/infrastructure/repositories/InMemoryTaskRepository.ts';
 const CTRL = 'src/infrastructure/controllers/TaskController.ts';
-const ORPHAN = 'src/application/use-cases/OrphanHelper.ts';
 
-/** Forced site of each probe on correct-reference: file plus a detail predicate (the full detail comes from findSites). */
-const FORCED: Readonly<Record<string, { readonly filePath: string; readonly match?: (d: Readonly<Record<string, string>>) => boolean }>> = {
-  'SP-FF-S01': { filePath: CATEGORY, match: (d) => d.targetFile === IMPL },
-  'SP-FF-S02': { filePath: CATEGORY, match: (d) => d.targetFile === ICAT },
-  'SP-FF-S03': { filePath: CTRL, match: (d) => d.targetFile === IMPL },
-  'SP-FF-S04': { filePath: CATEGORY, match: (d) => d.targetFile === ICREATE },
-  'SP-FF-P01': { filePath: TASK, match: (d) => d.package === 'express' },
-  'SP-FF-P02': { filePath: CREATE },
-  'SP-FF-P03': { filePath: IMPL },
-  'SP-FF-P04': { filePath: CREATE, match: (d) => (d.deps ?? '').startsWith('InMemoryTaskRepository=') },
-  'SP-FF-P05': { filePath: CTRL },
-  'SP-DF01-ci': { filePath: CATEGORY, match: (d) => d.targetName === 'InMemoryTaskRepository' },
-  'SP-FF-C01': { filePath: CATEGORY },
-  'SP-FF-C02': { filePath: CATEGORY },
-  'SP-FF-C03': { filePath: CATEGORY },
-  'SP-FF-C04': { filePath: ORPHAN },
-  'SP-FF-C05': { filePath: TASK },
-  'SP-FF-C06': { filePath: 'src/application/use-cases/ProbeAbstraction.ts' },
-  'SP-FF-SO01': { filePath: TASK },
-  'SP-FF-SO02': { filePath: ITASK },
-  'SP-FF-SO03': { filePath: 'src/application/use-cases/ProbeHierarchy.ts' },
-  'SP-FF-CV01': { filePath: CATEGORY },
-  'SP-FF-CV02': { filePath: CREATE },
-  'SP-FF-CV03': { filePath: IMPL },
-  'SP-FF-CV04': { filePath: CTRL },
-  'SP-FF-CV05': { filePath: ORPHAN, match: (d) => d.importer === CREATE },
-  'SP-FF-CV06': { filePath: 'src/domain/entities/index.ts' },
-};
 
 const runner = new NodeProcessRunner();
 const compiled = new Map<string, CompiledSpec>();
@@ -102,10 +73,9 @@ beforeAll(async () => {
   const handle = openImportGraphProject(CORRECT_DIR, 'tsconfig.json');
   for (const p of SP_PROBES) {
     const c = await spec(p.spec);
-    const want = FORCED[p.op.id];
-    if (want === undefined) throw new Error(`${p.op.id}: no forced site`);
-    const site = p.op.findSites(handle, c.spec).find((s) => s.filePath === want.filePath && (want.match?.(s.detail) ?? true));
-    if (site === undefined) throw new Error(`${p.op.id}: forced site ${want.filePath} not found`);
+    if (SP_FORCED_SITES[p.op.id] === undefined) throw new Error(`${p.op.id}: no forced site`);
+    const site = forcedSiteOf(p.op.id, p.op.findSites(handle, c.spec));
+    if (site === undefined) throw new Error(`${p.op.id}: forced site ${SP_FORCED_SITES[p.op.id]?.filePath ?? ''} not found`);
     sites.set(p.op.id, site);
     const r = await applyMutation(
       { repoRoot: REPO, runner, registry, masterSeed: MASTER_SEED, sitesPerOperator: 1, split: 'probe', now: () => NOW },
@@ -130,11 +100,15 @@ afterAll(() => {
 });
 
 describe('SP target set (BR-U5a-30)', () => {
-  it('equals the compiled symbolic set of clean-arch plus FF-S03 under the layered spec; every probe resolves (FF-P06 since U3)', async () => {
+  it('equals the compiled symbolic set of clean-arch plus FF-S03 under the layered spec plus the two ADR-016 b exclusions; every probe resolves (FF-P06 since U3)', async () => {
     const clean = await spec(CLEAN_SPEC);
     const layered = await spec(LAYERED_SPEC);
     const expected = new Set([...clean.enabled.values()].flat().map((f) => f.functionId));
-    expect(expected.size).toBe(24);
+    // BT-E1 (ADR-016 b): FF-CV01 and FF-CV04 failed their frozen probes and are disabled with a reason; the frozen probe
+    // set still targets them and resolves them through the disabled list.
+    expect(expected.size).toBe(22);
+    for (const id of ADR016B) expect([...clean.disabled.values()].flat().map((d) => d.functionId)).toContain(id);
+    for (const id of ADR016B) expected.add(id);
     expect(expected.has('FF-P06')).toBe(true);
     expect(expected.has('FF-S03')).toBe(false);
     expect((layered.enabled.get('no-layer-skip') ?? []).map((f) => f.functionId)).toEqual(['FF-S03']);
@@ -142,7 +116,8 @@ describe('SP target set (BR-U5a-30)', () => {
     const resolved = new Set<string>();
     const unresolved: string[] = [];
     for (const p of SP_PROBES) {
-      const ids = ((await spec(p.spec)).enabled.get(p.targetTemplate) ?? []).map((f) => f.functionId);
+      const c = await spec(p.spec);
+      const ids = [...(c.enabled.get(p.targetTemplate) ?? []), ...(c.disabled.get(p.targetTemplate) ?? []).filter((d) => ADR016B.includes(d.functionId))].map((f) => f.functionId);
       if (ids.length === 0) unresolved.push(p.op.id);
       for (const id of ids) {
         resolved.add(id);
@@ -196,6 +171,12 @@ describe('each probe applies to its fixture and type-checks', () => {
       // BR-U3-22: the injection row has no line; key (site, target, [class, targetName, 'CONSTRUCTOR_INJECTS', parameter]).
       expect(row.expected.functionIds).toEqual(['FF-P06']);
       expect(row.expected.keys.map((k) => [k.functionId, k.lineRule, k.discriminator[2]])).toEqual([['FF-P06', 'none', 'CONSTRUCTOR_INJECTS']]);
+    } else if (ADR016B.includes(target)) {
+      // BT-E1 (ADR-016 b): the target is disabled with its reason, so the row expects no key of it.
+      expect(row.expected.functionIds).toEqual([]);
+      const disabled = (row.expected as { readonly disabledFunctionIds: readonly { readonly functionId: string; readonly reason: string }[] }).disabledFunctionIds;
+      expect(disabled.map((d) => d.functionId)).toEqual([target]);
+      expect(disabled[0]?.reason).toContain('ADR-016 b');
     } else {
       expect(row.expected.functionIds).toEqual([target]);
       expect(row.expected.keys.map((k) => k.functionId)).toEqual([target]);
@@ -222,9 +203,9 @@ describe('probe edits (worked values on correct-reference)', () => {
     expect(keyOf('SP-FF-P04')).toEqual([[CREATE, '', ['CreateTaskUseCase'], 'none']]);
     expect(keyOf('SP-FF-P05')).toEqual([[CTRL, '', ['TaskController', 'ProbeEntity'], 'none']]);
     expect(keyOf('SP-FF-SO03')).toEqual([['src/application/use-cases/ProbeHierarchy.ts', '', ['ProbeLevel4'], 'none']]);
-    expect(keyOf('SP-FF-CV01')).toEqual([[CATEGORY, '', ['category_probe'], 'site-line']]);
+    expect(keyOf('SP-FF-CV01')).toEqual([]); // BT-E1: disabled (ADR-016 b); was [[CATEGORY, '', ['category_probe'], 'site-line']]
     expect(keyOf('SP-FF-CV03')).toEqual([[IMPL, '', ['InMemoryTaskRepositoryImpl'], 'site-line']]);
-    expect(keyOf('SP-FF-CV04')).toEqual([[CTRL, '', ['TaskHandler'], 'site-line']]);
+    expect(keyOf('SP-FF-CV04')).toEqual([]); // BT-E1: disabled (ADR-016 b); was [[CTRL, '', ['TaskHandler'], 'site-line']]
     expect(keyOf('SP-FF-CV06')).toEqual([['src/domain/entities/index.ts', '', [], 'none']]);
     expect(keyOf('SP-FF-S04')).toEqual([[CATEGORY, ICREATE, ['IMPORTS'], 'site-line']]);
   });

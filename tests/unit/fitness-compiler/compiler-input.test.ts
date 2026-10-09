@@ -6,13 +6,14 @@ import { parseSpec } from '../../../src/spec-parser/spec-parser.js';
 import { FirewallContext } from '../../../src/shared/context/firewall-context.js';
 import { runId } from '../../../src/shared/types/value-objects.js';
 import type { ParsedSpec } from '../../../src/shared/types/spec.js';
+import { reenableAdr016b } from './adr016b.js';
 
 const SPEC_PATH = path.resolve(__dirname, '../../../specs/clean-arch.yaml');
 
 async function loadSpec(): Promise<ParsedSpec> {
   const result = await parseSpec({ specFilePath: SPEC_PATH });
   if (!result.success) throw new Error('clean-arch.yaml did not parse');
-  return result.data;
+  return reenableAdr016b(result.data); // ADR-016 b exclusions re-enabled for the mechanism (adr016b.ts)
 }
 
 describe('compilerInputFromSpec (BR-U1-11)', () => {

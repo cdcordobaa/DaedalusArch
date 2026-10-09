@@ -12,13 +12,14 @@ import { compilerInputFromSpec } from '../../../src/fitness-compiler/compiler-in
 import { parseSpec } from '../../../src/spec-parser/spec-parser.js';
 import type { ParsedSpec } from '../../../src/shared/types/spec.js';
 import type { CypherQuery } from '../../../src/shared/types/evaluation.js';
+import { reenableAdr016b } from './adr016b.js';
 
 const ROOT = path.resolve(__dirname, '../../..');
 
 async function parsed(rel: string): Promise<ParsedSpec> {
   const r = await parseSpec({ specFilePath: path.join(ROOT, rel) });
   if (!r.success) throw new Error(`${rel} did not parse: ${r.errors.map((e) => e.message).join('; ')}`);
-  return r.data;
+  return reenableAdr016b(r.data); // ADR-016 b exclusions re-enabled for the binding mechanism (adr016b.ts)
 }
 
 async function queries(rel: string): Promise<readonly CypherQuery[]> {

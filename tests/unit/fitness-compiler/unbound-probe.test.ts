@@ -10,6 +10,7 @@ import { CYPHER_TEMPLATES } from '../../../src/fitness-compiler/cypher-templates
 import { parseSpec } from '../../../src/spec-parser/spec-parser.js';
 import type { ParsedSpec } from '../../../src/shared/types/spec.js';
 import type { CompiledFunctions } from '../../../src/shared/types/evaluation.js';
+import { reenableAdr016b } from './adr016b.js';
 
 const ROOT = path.resolve(__dirname, '../../..');
 const SHIPPED = ['presets/clean-architecture.yaml', 'presets/nestjs.yaml', 'specs/daedalus-arch.yaml', 'specs/clean-arch.yaml'];
@@ -17,7 +18,7 @@ const SHIPPED = ['presets/clean-architecture.yaml', 'presets/nestjs.yaml', 'spec
 async function load(rel: string): Promise<ParsedSpec> {
   const r = await parseSpec({ specFilePath: path.join(ROOT, rel) });
   if (!r.success) throw new Error(`${rel} did not parse: ${r.errors.map((e) => e.message).join('; ')}`);
-  return r.data;
+  return reenableAdr016b(r.data); // ADR-016 b exclusions re-enabled for the binding mechanism (adr016b.ts)
 }
 
 function compile(spec: ParsedSpec): CompiledFunctions {

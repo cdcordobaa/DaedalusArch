@@ -13,7 +13,7 @@ import type { GenerationCell, RunRecord } from '../../../../scripts/lib/report-i
 import { FAILURE_REASONS, genCodeOf, loadSo5Codes, parseSo5Codes, SO5_CODES_INVALID } from '../../../../scripts/lib/so5-codes.js';
 import { loadPromptTemplate } from '../../../../scripts/lib/generators/prompt.js';
 import {
-  cliArgv, cycleQueryTimes, E1_GENERATOR_PLAN_MISMATCH, E1_SPEC_MISMATCH, expandPlan, latencyGate, loadPlan, main, runPlan, sha256Of, validateRunRecord,
+  cliArgv, cycleQueryTimes, E1_GENERATOR_PLAN_MISMATCH, E1_SPEC_MISMATCH, expandPlan, latencyGate, loadPlan, main, runPlan, sha256Of, validateRunRecord, relativizePaths,
 } from '../../../../scripts/run-experiment.js';
 import type { ExperimentPlan, HarnessDeps } from '../../../../scripts/run-experiment.js';
 import { ROOT } from './score-fixture.js';
@@ -387,6 +387,23 @@ describe('E1 registered generator plan and missing cells (ADR-021 SO5-03, SO5-05
     } finally {
       f.cleanup();
     }
+  });
+});
+
+describe('committed results carry no absolute path', () => {
+  it('relativizePaths strips the repository root and maps its parent to ../ in every string, deep; other values unchanged', () => {
+    const repo = '/abs/work/DaedalusArch';
+    const v = {
+      projectPath: '../daedalus-corpus/g',
+      warnings: [{ message: 'CONSTRUCTOR_INJECTS type unresolvable: import("/abs/work/daedalus-corpus/g/src/x").X' }, { message: 'see /abs/work/DaedalusArch/specs/a.yaml' }],
+      n: 3, ok: true, none: null,
+    };
+    expect(relativizePaths(v, repo)).toEqual({
+      projectPath: '../daedalus-corpus/g',
+      warnings: [{ message: 'CONSTRUCTOR_INJECTS type unresolvable: import("../daedalus-corpus/g/src/x").X' }, { message: 'see specs/a.yaml' }],
+      n: 3, ok: true, none: null,
+    });
+    expect(relativizePaths('/abs/workother/x', repo)).toBe('/abs/workother/x');
   });
 });
 

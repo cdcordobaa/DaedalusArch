@@ -7,12 +7,20 @@ spec_version: "1.0.0"
 #   ✅ spike-validated  — proven against 5 ground-truth projects (100% detection)
 #   🔲 pending          — designed, confirms during integration testing (post-U5)
 #
-# Empirical AHS results from spike:
+# Empirical AHS results from spike (17 functions):
 #   correct-reference:    0.85  → pass       (≥ 0.80)
 #   variant-d-subtle:     0.66  → warning    (0.65–0.79)
 #   variant-b-pattern:    0.58  → soft-block (0.50–0.64)
 #   variant-a-structural: 0.54  → soft-block (0.50–0.64)
 #   variant-c-everything: 0.33  → hard-block (< 0.50)
+#
+# Measured FR-18 re-baseline, symbolic-only, 24 functions (2026-10-09, tool commit 0c6a0de;
+# results/pre-tag/fixtures-0c6a0de0b4e1.json and README.md explain the differences):
+#   correct-reference:    0.958 → pass
+#   variant-d-subtle:     0.558 → soft-block
+#   variant-b-pattern:    0.575 → soft-block
+#   variant-a-structural: 0.442 → hard-block
+#   variant-c-everything: 0.391 → hard-block
 
 architecture:
   style: clean-architecture
@@ -211,6 +219,8 @@ fitness_functions:
     dimension: convention
     severity: minor
     route: symbolic
+    enabled: false
+    reason: "ADR-016 b (B&T Step 31): cannot fire; per-layer naming patterns compile to .* and no requirement supplies them (SP-FF-CV01 not fired)"
     validated: true  # ✅ spike (generic check)
 
   - id: FF-CV02
@@ -234,6 +244,8 @@ fitness_functions:
     dimension: convention
     severity: minor
     route: symbolic
+    enabled: false
+    reason: "ADR-016 b (B&T Step 31): cannot fire; class decorators are not ingested (BR-U2-31), so no controller is selected (SP-FF-CV04 not fired)"
     validated: false  # 🔲 pending integration test
     pattern: "*Controller"
 

@@ -16,12 +16,13 @@
  *
  * Pure planning (`planScoreCase`) is separate from the file copy (`writeScoreCase`).
  */
-import { copyFileSync, existsSync, mkdirSync, readdirSync, writeFileSync } from 'node:fs';
+import { copyFileSync, existsSync, mkdirSync, readFileSync, readdirSync, writeFileSync } from 'node:fs';
 import { dirname, join, resolve } from 'node:path';
 import { loadManifest } from './lib/manifest.js';
 import type { ManifestRow } from './lib/manifest.js';
 import { loadRunRecords } from './lib/report-io.js';
 import type { RunRecord } from './lib/report-io.js';
+import { relativizePaths } from './run-experiment.js';
 import { pairRuns } from './score-golden.js';
 
 export const CASE_INPUT_INVALID = 'CASE_INPUT_INVALID';
@@ -74,10 +75,15 @@ export function planScoreCase(
   return { copies, rows: caseRows };
 }
 
-/** Copies the planned files and the manifest into `caseDir` (which must be absent or empty). */
-export function writeScoreCase(runDir: string, manifestFile: string, caseDir: string, plan: ScoreCasePlan): void {
+/**
+ * Copies the planned files and the manifest into `caseDir` (which must be absent or empty). With `repoRoot`, the
+ * manifest is written with absolute paths made repository-relative (its rows record the absolute `typecheck.tscPath`
+ * of the machine that ran `mutate`), because a case under `results/` is committed.
+ */
+export function writeScoreCase(runDir: string, manifestFile: string, caseDir: string, plan: ScoreCasePlan, repoRoot?: string): void {
   mkdirSync(join(caseDir, 'reports'), { recursive: true });
-  copyFileSync(manifestFile, join(caseDir, 'manifest.json'));
+  if (repoRoot === undefined) copyFileSync(manifestFile, join(caseDir, 'manifest.json'));
+  else writeFileSync(join(caseDir, 'manifest.json'), `${JSON.stringify(relativizePaths(JSON.parse(readFileSync(manifestFile, 'utf8')) as unknown, repoRoot), null, 2)}\n`);
   for (const c of plan.copies) {
     mkdirSync(dirname(join(caseDir, c.to)), { recursive: true });
     copyFileSync(join(runDir, c.from), join(caseDir, c.to));
@@ -186,7 +192,7 @@ export function main(argv: readonly string[], repoRoot: string, io: CaseMainIo):
     return 1;
   }
   const plan = planScoreCase(manifest.data.rows, records, (rel) => existsSync(join(runDir, rel)));
-  writeScoreCase(runDir, manifestFile, caseDir, plan);
+  writeScoreCase(runDir, manifestFile, caseDir, plan, repoRoot);
   for (const r of plan.rows) io.out(`${r.seedId}\t${r.status}${r.reason === undefined ? '' : `\t${r.reason}`}\n`);
   const usable = plan.rows.filter((r) => r.status === 'paired').length;
   io.out(`case ${outArg}: ${String(plan.rows.length)} rows, ${String(usable)} paired, ${String(plan.rows.length - usable)} unusable; ${String(plan.copies.length)} files\n`);

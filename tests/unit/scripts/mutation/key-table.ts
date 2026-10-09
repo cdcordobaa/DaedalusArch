@@ -47,11 +47,11 @@ export const KEY_TABLE: Readonly<Record<string, { keys: unknown[]; collateral: u
   },
   'MO-CV02': {
     keys: [['FF-CV02', CREATE, '', ['CreateTaskUseCaseDefault'], 'site-line', 10]],
-    collateral: [['operator', 'declared', 'FF-CV01', CREATE, '', ['CreateTaskUseCaseDefault'], 'site-line', 10]],
+    collateral: [], // BT-E1: FF-CV01 disabled (ADR-016 b); was the declared FF-CV01 collateral at CREATE line 10
   },
   'MO-CV02n': {
     keys: [],
-    collateral: [['operator', 'declared', 'FF-CV01', CREATE, '', ['CoreCreateTaskUseCase'], 'site-line', 10]],
+    collateral: [], // BT-E1: FF-CV01 disabled (ADR-016 b); was the declared FF-CV01 collateral at CREATE line 10
   },
   'MO-DF01': {
     keys: [['FF-P06', TASK, IMPL, ['Task', 'InMemoryTaskRepository', 'FLOWS_TO', 'repo'], 'site-line', 5]],

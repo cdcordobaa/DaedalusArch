@@ -28,7 +28,7 @@
  */
 import { createHash } from 'node:crypto';
 import { existsSync, readdirSync, readFileSync } from 'node:fs';
-import { isAbsolute, join, resolve } from 'node:path';
+import { dirname, isAbsolute, join, resolve, sep } from 'node:path';
 import { Ajv } from 'ajv';
 import type { ValidateFunction } from 'ajv';
 import addFormats from 'ajv-formats';
@@ -459,6 +459,24 @@ export function runIdOf(planId: string, entry: PlanEntry): string {
 }
 
 /** Existing records of the plan in `<outDir>/runs/` (for gate condition (b)). */
+/**
+ * Committed results carry no absolute path (`Docs/analysis-plan.md` §2 paths; NFR-05 portability): every string of a
+ * RunRecord or report has the repository root prefix removed and the prefix of the repository's parent (where the
+ * sibling `../daedalus-*` directories live) replaced by `../`. Extractor warnings quote ts-morph type text such as
+ * `import("/abs/clone/src/x")`, which otherwise lands in `results/` verbatim.
+ */
+export function relativizePaths<T>(value: T, repoRoot: string): T {
+  const root = resolve(repoRoot);
+  const pairs: [string, string][] = [[`${root}${sep}`, ''], [`${dirname(root)}${sep}`, `..${sep}`]];
+  const walk = (v: unknown): unknown => {
+    if (typeof v === 'string') return pairs.reduce((t, [from, to]) => t.split(from).join(to), v);
+    if (Array.isArray(v)) return v.map(walk);
+    if (v !== null && typeof v === 'object') return Object.fromEntries(Object.entries(v).map(([k, x]) => [k, walk(x)]));
+    return v;
+  };
+  return walk(value) as T;
+}
+
 export function existingRecords(outDir: string): RunRecord[] {
   const dir = join(outDir, 'runs');
   if (!existsSync(dir)) return [];
@@ -469,7 +487,7 @@ export async function runPlan(plan: ExperimentPlan, planFile: string, repoRoot: 
   const schemaRoot = deps.schemaRoot ?? repoRoot;
   const outDir = resolve(repoRoot, deps.outDir ?? plan.outDir);
   const secrets = knownSecrets(deps.parentEnv);
-  const scrub = <T>(v: T): T => scrubbedJson(v, secrets);
+  const scrub = <T>(v: T): T => relativizePaths(scrubbedJson(v, secrets), repoRoot);
   const records: RunRecord[] = [];
   const emit = (record: RunRecord): void => {
     const clean = scrub(record);
@@ -603,7 +621,7 @@ async function runEntry(plan: ExperimentPlan, entry: PlanEntry, ctx: EntryContex
       break;
   }
   const reportPath = `reports/${runId}.json`;
-  writeScrubbedJson(join(ctx.outDir, reportPath), outcome.report, ctx.secrets);
+  writeScrubbedJson(join(ctx.outDir, reportPath), relativizePaths(outcome.report, ctx.repoRoot), ctx.secrets);
   const acceptance = acceptReport(outcome.report, ctx.pinnedJudge === undefined ? {} : { pinnedJudge: ctx.pinnedJudge });
   if (acceptance.accepted) return base('accepted', undefined, undefined, attempt, reportPath);
   return base('rejected', acceptance.reasonCode, ctx.scrub(acceptance.reasonDetail), attempt, reportPath);

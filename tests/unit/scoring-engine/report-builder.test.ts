@@ -172,15 +172,15 @@ describe('functionExecution on the golden shape (BR-U3-51, BR-U3-52)', () => {
     compiled = compileSpec(spec);
   });
 
-  it('specs/clean-arch.yaml (FF-P06 declared since U3-R6) gives {27, 0, 26, 1, [], 2, [], 24, []} in symbolic-only mode', () => {
+  it('specs/clean-arch.yaml (FF-P06 since U3-R6; FF-CV01, FF-CV04 disabled since BT-E1, ADR-016 b) gives {27, 0, 24, 3, [], 2, [], 22, []} in symbolic-only mode', () => {
     expect(spec.fitnessFunctions.find((f) => String(f.id) === 'FF-P06')).toMatchObject({ name: 'domain-state-purity', dimension: 'pattern', route: 'symbolic' });
     expect(compiled.symbolicQueries.map((q) => String(q.functionId))).toContain('FF-P06');
     const evaluation: EvaluationResults = { symbolicResults: compiled.symbolicQueries.map((q) => symResult(String(q.functionId), q.dimension)), neuronalResults: [], failures: [] };
     const report = ok(scoredOf(evaluation, 'symbolic-only'), factsOf({ compiled, compileFacts: compileFactsOf(spec.fitnessFunctions, compiled), evaluation, mode: 'symbolic-only' }));
     expect(report.functionExecution).toEqual({
-      declared: 27, adrDerived: 0, compiled: 26, disabled: 1, dropped: [], skippedByMode: 2, noJudgeUnits: [], executed: 24, failed: [],
+      declared: 27, adrDerived: 0, compiled: 24, disabled: 3, dropped: [], skippedByMode: 2, noJudgeUnits: [], executed: 22, failed: [],
     });
-    expect(report.functionResults).toHaveLength(24);
+    expect(report.functionResults).toHaveLength(22);
   });
 
   it('a corrupted input (one result removed without a failure) raises REPORT_COUNTS_INCONSISTENT', () => {
@@ -190,10 +190,14 @@ describe('functionExecution on the golden shape (BR-U3-51, BR-U3-52)', () => {
       .toBe('REPORT_COUNTS_INCONSISTENT I2');
   });
 
-  it('BR-U3-64: clean-arch gives the FF-S03 row with U1 reason; length = functionExecution.disabled', () => {
+  it('BR-U3-64: clean-arch gives the FF-CV01 and FF-CV04 rows with the ADR-016 b reasons and the FF-S03 row with the U1 reason; length = functionExecution.disabled', () => {
     const evaluation: EvaluationResults = { symbolicResults: compiled.symbolicQueries.map((q) => symResult(String(q.functionId), q.dimension)), neuronalResults: [], failures: [] };
     const report = ok(scoredOf(evaluation, 'symbolic-only'), factsOf({ compiled, compileFacts: compileFactsOf(spec.fitnessFunctions, compiled), evaluation, mode: 'symbolic-only' }));
-    expect(report.disabledFunctions).toEqual([{ functionId: 'FF-S03', name: 'no-layer-skip', reason: 'not applicable to style clean-architecture' }]);
+    expect(report.disabledFunctions).toEqual([
+      { functionId: 'FF-CV01', name: 'naming-conventions', reason: 'ADR-016 b (B&T Step 31): cannot fire; per-layer naming patterns compile to .* and no requirement supplies them (SP-FF-CV01 not fired)' },
+      { functionId: 'FF-CV04', name: 'naming-controllers', reason: 'ADR-016 b (B&T Step 31): cannot fire; class decorators are not ingested (BR-U2-31), so no controller is selected (SP-FF-CV04 not fired)' },
+      { functionId: 'FF-S03', name: 'no-layer-skip', reason: 'not applicable to style clean-architecture' },
+    ]);
     expect(report.disabledFunctions).toHaveLength(report.functionExecution.disabled);
   });
 

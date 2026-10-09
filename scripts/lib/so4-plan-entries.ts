@@ -61,17 +61,19 @@ export function seededPlan<P extends So4PlanLike>(
   plan: P, rows: readonly ManifestRowView[], opts: { readonly copiesRoot: string; readonly manifestPath: string },
 ): SeededPlanResult<P> {
   const baselines = plan.projects.filter((p) => p.seed === undefined);
-  const indexOf = new Map(baselines.map((b, i) => [b.projectId, i]));
   const seeded: So4PlanEntry[] = [];
   for (const row of rows) {
-    const i = indexOf.get(row.projectId);
-    const base = i === undefined ? undefined : baselines[i];
-    if (i === undefined || base === undefined) {
+    // A base may have one baseline entry per spec (the sensitivity plan evaluates correct-reference under the clean
+    // and the layered fixture spec); a row pairs with the baseline of its own project and spec.
+    const ofProject = baselines.map((b, i) => [b, i] as const).filter(([b]) => b.projectId === row.projectId);
+    if (ofProject.length === 0) {
       return { ok: false, code: SO4_PLAN_BASELINE_MISSING, detail: `${SO4_PLAN_BASELINE_MISSING}: manifest row ${row.seedId}: no baseline entry for ${row.projectId} in plan ${plan.id}` };
     }
-    if (posix.normalize(base.specPath) !== posix.normalize(row.specPath)) {
-      return { ok: false, code: SO4_PLAN_SPEC_MISMATCH, detail: `${SO4_PLAN_SPEC_MISMATCH}: manifest row ${row.seedId} was mutated under ${row.specPath}, the baseline entry evaluates with ${base.specPath}` };
+    const hit = ofProject.find(([b]) => posix.normalize(b.specPath) === posix.normalize(row.specPath));
+    if (hit === undefined) {
+      return { ok: false, code: SO4_PLAN_SPEC_MISMATCH, detail: `${SO4_PLAN_SPEC_MISMATCH}: manifest row ${row.seedId} was mutated under ${row.specPath}, the baseline entry evaluates with ${ofProject.map(([b]) => b.specPath).join(', ')}` };
     }
+    const [base, i] = hit;
     const k = seedK(row);
     if (k === undefined) return { ok: false, code: SO4_PLAN_SEED_INVALID, detail: `${SO4_PLAN_SEED_INVALID}: seed id ${row.seedId} is not <projectId>:<operatorId>:<k>` };
     seeded.push({

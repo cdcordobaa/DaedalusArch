@@ -66,3 +66,35 @@ Previous: v3, commit `a83de82`. No run of any registered plan has happened under
 | `scripts/generate-e7-specs-cli.ts`, `migrate-corpus-spec{,-cli}.ts`, `remap-domain-layer{,-cli}.ts`, `corpus-rubric-u4{,-cli}.ts` (new) | — | `92ecc716…`, `ee1a97db…` / `82e9e793…`, `774fedc3…` / `4fd513e8…`, `cb701491…` / `0137f792…` | The spec-chain tools (item 5 minor), so the spec bytes are reproducible from registered tools. | None. |
 
 Changes covered by this bump that are not registered artefacts (named for completeness): the U6 code of PRs #18, #23–#33 and of this bump's branch (`scripts/lib/label-plan.ts`, `scripts/build-label-plan.ts`, `scripts/llm-label.ts`, `scripts/aggregate.ts`, `scripts/so2-metrics.ts`, `scripts/score-golden.ts`, `scripts/build-score-case*.ts`, `scripts/so1-*.ts`, `scripts/so5-open-coding*.ts`, `scripts/lib/prereg.ts`), unit-tested with hand-computed fixtures; `schemas/report.schema.json` (the reviewed zero-judge-units patch, ADR-021 item 9); the CI step that runs `--check-prereg` on every plan for PRs to v1.2e (item 7).
+
+## P-3 — prereg v5 (Build and Test Steps 12, 24 and 29, 2026-10-09)
+
+Previous: v4 (P-U6), commit `b39b88f`. No sensitivity run has happened under any version. The bump comes before the first run of `experiments/sensitivity/plan.json` (B&T Step 30) and before any so4-heldout, e7-corpus, e1-grid or live-labelling run.
+
+| Artefact | v4 sha256 | v5 sha256 | Change and reason | Post-hoc risk (examiner view) |
+|---|---|---|---|---|
+| `experiments/sensitivity/plan.json` | `f0903254…` | `f1db34e0…` | **Sensitivity entries (DV-U5b-24)**, added after FR-18 (`4aa9281`), as `Docs/analysis-plan.md` §2 requires. The plan gets two baseline entries, `correct-reference` under `specs/clean-arch.yaml` and under the layered fixture spec, and 25 SP-* probe entries. `so4-plan-entries` wrote them from `../daedalus-sp-probes/manifest.json`: 25 rows, 0 rejections, the frozen `catalogueVersion` `f764e1ba…`, split `probe`, `simple-cycles`, 0 mutant type errors. The probes are applied at the forced sites of the U5a Step 33 unit test, now kept in `scripts/lib/mutation/operators/sp/forced-sites.ts` (`aa8da14`) and unchanged. The change is additive: no other plan field changes, and `fixAttempts` stays `[]`. | Low. The probe set and its SP hash were frozen with the catalogue at P-1. The sites are the ones the unit test has always used. No probe has been run. |
+| `specs/clean-arch.yaml` | `d14189f0…` | `373fc553…` | **NFR-04 spec-header verdicts (B&T Step 12).** Comment lines only: the spike values are relabelled as 17-function values, and the measured FR-18 symbolic-only values (24 functions, tool commit `0c6a0de`) are added. No key, threshold, layer or function changed. `firewall validate` still compiles 26 of 27 (FF-S03 not applicable). The frozen-instrument export is byte-identical. | None. The edit changes no behaviour. It is registered only because the file's bytes are hashed. |
+
+Also named in this bump (not registered artefacts):
+- **H13 latency gate, B&T Steps 22–24 (`1bace26`).** The registered `latency-gate` run passed: FF-S02 547 ms and the universal cycle metric 1 346 ms on ghostfolio `apps/api`, against a 30 000 ms budget. So **`CYCLE_STRATEGY` stays `'cypher'`**, with no flip. **P-2 stays reserved and unused.** ADR-016 e says that, without a flip, the outcome is named in the next bump's reason, and it is named here.
+- `run-experiment` relativises absolute paths in the results it writes (`f3fe474`).
+- `so4-plan-entries` refuses absolute paths and pairs a seeded row with the baseline of its own spec (`0c6a0de`, `0fac5b9`).
+
+## P-E — prereg v6 (Build and Test Step 31; ADR-022, 2026-10-09)
+
+Previous: v5 (P-3), commit `1689249`. The P-3 sensitivity run has happened, and its results are kept in `results/sensitivity/` as the record of the failed frozen probes. No so4-heldout, e7-corpus, e1-grid, fixtures or live-labelling run has happened under any version. This bump comes before the Step 31 sensitivity re-run and before every later run.
+
+| Artefact | v5 → v6 sha256 | Change and reason | Post-hoc risk (examiner view) |
+|---|---|---|---|
+| `presets/clean-architecture.yaml`, `presets/layered.yaml`, `presets/nestjs.yaml` | `663f83cb…` → `28544791…`, `05ff62ee…` → `f0d9045d…`, `00c9136f…` → `0172db1c…` | **ADR-016 b exclusion** (ADR-022 item 1): FF-CV01 and FF-CV04 get `enabled: false` plus `reason`, by a scripted insertion and nothing else. | **Post-hoc by design.** ADR-016 b requires the exclusion only after the frozen probe has failed (P-3 run, `9c146cb`). Both checks were already predicted to be unable to fire (U1 OI-5, catalogue §5), and they now cannot affect any denominator. |
+| `specs/clean-arch.yaml`, `tests/fixtures/u5a/layered/firewall.spec.yaml` | `373fc553…` → `91bd152e…`, `cebbeb62…` → `2e1c2640…` | The same exclusion. Golden BT-E1 (`4e94cea`): AHS −0.004 on each fixture, verdicts unchanged. | As above. |
+| `corpus/specs/{realworld-test,ghostfolio-test,truthy-demo}.yaml`, `corpus/specs/dry-run-test.yaml` | `08e7ba24…` → `c806b925…` (×3), `dbdca3b5…` → `40019222…` | The same scripted insertion into the four core specs. | As above. No threshold, layer or other function changed. |
+| `corpus/specs/{dev-nest,zhuravlevma__nestjs-active-record,nestjslatam__ddd,MarvinRF__nest-docfy,eryzerz__nestjs-ddd,v-aguiar__valex}.yaml` | `06c5a3d8…` → `c94da6be…`, `8c1c8052…` → `532905a1…`, `ad1671c9…` → `86e057f0…`, `dbb626bb…` → `e097014c…`, `8cb1a7a2…` → `3afc343e…`, `32c150f2…` → `3311daa9…` | **Regenerated by the registered generator** from the changed presets (ADR-020 item 4 holds: the specs are generator output, never hand-edited). Each differs from `054f993` by exactly 4 added lines, the two `enabled`/`reason` pairs. | Low. The held-out feasibility table was re-run as a verification: k = 2 → 85, k = 3 → 126, golden rows identical to `a90f3e3`. Neither function is a golden-operator target (BR-U5a-05), so k = 2 is unaffected. |
+| `experiments/sensitivity/plan.json` | `f1db34e0…` → `54425f4f…` | **`fixAttempts`** for FF-CV01 and FF-CV04 (both excluded, ADR-022 item 1) and FF-CV06 (template fix `165ec73`, ADR-022 item 2). Entries are unchanged: same paths and seeds. The copies were regenerated under the changed specs. | The procedure ADR-016 b prescribes. The FF-CV06 fix is within the template's stated purpose, and the fixtures are unaffected. |
+
+Also named (not registered artefacts):
+- **ADR-022** records three post-hoc tooling fixes that change no measured value: path relativisation, `score-golden --sensitivity`, and collateral-declared probe scoring.
+- The frozen E1 `full-aac` prompt keeps its freeze-commit preset text (`3049e78`).
+- `specs/daedalus-arch.yaml` (the self-spec) carries the same exclusion.
+- `corpus/frozen-instrument.json` re-exports byte-identically.

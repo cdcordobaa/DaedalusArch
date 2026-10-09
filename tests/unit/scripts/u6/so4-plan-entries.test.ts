@@ -40,6 +40,25 @@ describe('seeded SO4 plan entries (ADR-021 item 9)', () => {
     expect(again.ok && again.plan).toEqual(r.plan);
   });
 
+  it('one base with two baseline specs (sensitivity: clean and layered): each row pairs with the baseline of its own spec', () => {
+    const two = { id: 'sensitivity', projects: [
+      { projectId: 'correct-reference', path: 'fixtures/correct-reference', specPath: 'specs/clean-arch.yaml' },
+      { projectId: 'correct-reference', path: 'fixtures/correct-reference', specPath: 'tests/fixtures/u5a/layered/firewall.spec.yaml' },
+    ] };
+    const rows = [
+      { ...row('correct-reference', 'SP-FF-S01', 0, 'specs/clean-arch.yaml'), split: 'probe' as const, baseKind: 'fixture' as const },
+      { ...row('correct-reference', 'SP-FF-S03', 0, 'tests/fixtures/u5a/layered/firewall.spec.yaml'), split: 'probe' as const, baseKind: 'fixture' as const },
+    ];
+    const r = seededPlan(two, rows, { copiesRoot: '../daedalus-sp-probes/copies', manifestPath: '../daedalus-sp-probes/manifest.json' });
+    if (!r.ok) throw new Error(r.detail);
+    expect(r.plan.projects.slice(2).map((p) => [p.specPath, p.seed?.baselineReportPath])).toEqual([
+      ['specs/clean-arch.yaml', 'reports/sensitivity-000-correct-reference.json'],
+      ['tests/fixtures/u5a/layered/firewall.spec.yaml', 'reports/sensitivity-001-correct-reference.json'],
+    ]);
+    const first = { ...row('correct-reference', 'SP-FF-S01', 0, 'presets/layered.yaml'), split: 'probe' as const, baseKind: 'fixture' as const };
+    expect(seededPlan(two, [first], { copiesRoot: 'c', manifestPath: 'm' })).toMatchObject({ ok: false, code: SO4_PLAN_SPEC_MISMATCH });
+  });
+
   it('the run id rule equals the harness runIdOf; seedK parses <projectId>:<operatorId>:<k>', () => {
     expect(so4RunIdOf('so4-heldout', 4, 'a:MO-S01:2')).toBe(runIdOf('so4-heldout', { index: 4, projectId: 'a:MO-S01:2', path: '', specPath: '' }));
     expect(seedK({ seedId: 'p:MO-S01:12', projectId: 'p', operatorId: 'MO-S01' })).toBe(12);

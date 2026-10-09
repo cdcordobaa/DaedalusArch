@@ -519,7 +519,7 @@ ORDER BY filePath`,
   ['no-index-logic', tmpl(
     'no-index-logic',
     `MATCH (f:File)
-WHERE f.isBarrel = true
+WHERE f.isBarrel = true OR f.name IN ['index.ts', 'index.tsx']
 MATCH (f)-[:DECLARES]->(decl)
 WHERE NOT decl:Function OR decl.name IS NOT NULL
 WITH f, count(decl) AS declCount
