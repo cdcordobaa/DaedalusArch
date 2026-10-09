@@ -1,0 +1,109 @@
+{
+  "$schema": "https://vega.github.io/schema/vega-lite/v6.json",
+  "description": "FIG-08 SO4 precision, seeded differential beside baseline (scripts/figures.ts; ADR-021 X-5; ADR-020 item 1).",
+  "usermeta": {
+    "figure": "so4-precision"
+  },
+  "width": 420,
+  "height": {
+    "step": 36
+  },
+  "encoding": {
+    "y": {
+      "field": "group",
+      "type": "nominal",
+      "sort": null,
+      "title": "scope"
+    },
+    "yOffset": {
+      "field": "measure",
+      "type": "nominal",
+      "sort": [
+        "seeded differential (FP-labelled)",
+        "seeded differential (FP-strict)",
+        "baseline (HT-weighted TP-class share)"
+      ]
+    },
+    "color": {
+      "field": "measure",
+      "type": "nominal",
+      "sort": [
+        "seeded differential (FP-labelled)",
+        "seeded differential (FP-strict)",
+        "baseline (HT-weighted TP-class share)"
+      ],
+      "title": "precision",
+      "legend": {
+        "labelLimit": 340
+      }
+    }
+  },
+  "layer": [
+    {
+      "transform": [
+        {
+          "filter": "datum.ci_low !== null && datum.ci_high !== null"
+        }
+      ],
+      "mark": {
+        "type": "rule",
+        "strokeWidth": 1.5
+      },
+      "encoding": {
+        "x": {
+          "field": "ci_low",
+          "type": "quantitative"
+        },
+        "x2": {
+          "field": "ci_high"
+        }
+      }
+    },
+    {
+      "mark": {
+        "type": "point",
+        "filled": true,
+        "size": 50
+      },
+      "encoding": {
+        "x": {
+          "field": "value",
+          "type": "quantitative",
+          "scale": {
+            "domain": [
+              0,
+              1
+            ]
+          },
+          "title": "precision (line = interval)"
+        },
+        "tooltip": [
+          {
+            "field": "group"
+          },
+          {
+            "field": "measure"
+          },
+          {
+            "field": "value",
+            "format": ".3f"
+          },
+          {
+            "field": "ci_low",
+            "format": ".3f"
+          },
+          {
+            "field": "ci_high",
+            "format": ".3f"
+          },
+          {
+            "field": "ci_method"
+          },
+          {
+            "field": "n"
+          }
+        ]
+      }
+    }
+  ]
+}

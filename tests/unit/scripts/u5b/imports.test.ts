@@ -23,6 +23,7 @@ const U5B_LIB = [
 const U5B_SCRIPTS = [
   'score-golden', 'rescore', 'llm-label', 'run-experiment', 'aggregate', 'select-corpus', 'fetch-corpus',
   'prepare-bases', 'record-env', 'export-frozen-instrument', 'remap-domain-layer',
+  'figures', // U6 Docs lane (ADR-021 X-5): same import whitelist as the U5b scripts
   // ADR-021 SO3-2 (U6 Labels): the label-plan producer joins the whitelist check.
   'build-label-plan',
   // ADR-021 SO4-04 (U6 SO4): the run-to-score-case adapter.

@@ -50,9 +50,13 @@ export function loadFigureSpecs(repoRoot: string): FigureSpec[] {
 
 /** Renders one spec over CSV text to SVG text. */
 export async function renderSvg(spec: Record<string, unknown>, csvText: string): Promise<string> {
+  return renderSvgValues(spec, parseCsv(csvText).rows);
+}
+
+/** Renders one spec over already prepared rows (`scripts/figures.ts`) to SVG text. */
+export async function renderSvgValues(spec: Record<string, unknown>, rows: readonly Record<string, unknown>[]): Promise<string> {
   const vega = await import('vega');
   const vl = await import('vega-lite');
-  const { rows } = parseCsv(csvText);
   const withData = { ...spec, data: { values: rows } };
   delete (withData as { usermeta?: unknown }).usermeta;
   const compiled = vl.compile(withData as Parameters<typeof vl.compile>[0]).spec;
