@@ -44,6 +44,27 @@
     {
       "transform": [
         {
+          "filter": "datum.ci_independent_low !== null && datum.ci_independent_high !== null"
+        }
+      ],
+      "mark": {
+        "type": "rule",
+        "strokeWidth": 4,
+        "opacity": 0.25
+      },
+      "encoding": {
+        "x": {
+          "field": "ci_independent_low",
+          "type": "quantitative"
+        },
+        "x2": {
+          "field": "ci_independent_high"
+        }
+      }
+    },
+    {
+      "transform": [
+        {
           "filter": "datum.ci_low !== null && datum.ci_high !== null"
         }
       ],
@@ -102,7 +123,7 @@
               1
             ]
           },
-          "title": "value (recall: solid = cell interval, dashed = project interval)"
+          "title": "value (recall: solid = cell interval, dashed = project interval, faint = if-independent bound)"
         },
         "tooltip": [
           {
@@ -142,6 +163,17 @@
           },
           {
             "field": "ci_project_descriptive"
+          },
+          {
+            "field": "ci_independent_low",
+            "format": ".3f"
+          },
+          {
+            "field": "ci_independent_high",
+            "format": ".3f"
+          },
+          {
+            "field": "ci_independent_method"
           },
           {
             "field": "n_seeded"

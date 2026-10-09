@@ -14,7 +14,9 @@
  *   differential precision" (ADR-020 item 1): `precision_labelled` when present, else `precision_strict`, with its
  *   basis; the registered secondary `precision_baseline` is plotted beside it where the CSV has that column (per
  *   function). Recall carries the cell interval `ci_low` / `ci_high` and the project cluster interval
- *   `ci_project_low` / `_high` with its `ci_project_descriptive` flag (ADR-020 item 3, BR-U5b-61). F1 is
+ *   `ci_project_low` / `_high` with its `ci_project_descriptive` flag (ADR-020 item 3, BR-U5b-61), and the instance
+ *   Wilson interval `ci_independent_low` / `_high`, the bound that holds only if the k copies were independent (TV-22),
+ *   drawn as a third, lighter interval. F1 is
  *   `f1_labelled` when present, else 2PR / (P + R) on the strict basis (0 when P + R = 0). The P/R/F1 CSVs carry no
  *   precision or F1 interval, so none is drawn here; precision intervals are FIG-08.
  * - FIG-08 SO4 precision: `precision_figure.csv` (aggregate.ts, figure-ready long form): per scope (`overall` first,
@@ -114,6 +116,7 @@ const mean = (xs: readonly number[]): number => xs.reduce((a, b) => a + b, 0) / 
 const PRF_REQUIRED = [
   'split', 'base_kind', 'coverage', 'tp', 'fn', 'precision_strict', 'precision_labelled', 'recall', 'f1_labelled', 'ci_low',
   'ci_high', 'ci_method', 'ci_project_low', 'ci_project_high', 'ci_project_method', 'ci_project_descriptive',
+  'ci_independent_low', 'ci_independent_high', 'ci_independent_method',
 ] as const;
 export const SO4_METRICS = ['seeded differential precision', 'baseline precision', 'recall', 'F1'] as const;
 
@@ -123,6 +126,13 @@ interface ProjectInterval {
   readonly ci_project_high: number | null;
   readonly ci_project_method: string;
   readonly ci_project_descriptive: boolean | null;
+}
+
+/** The "if independent" instance Wilson bound of a recall row (TV-22); all null / '' on the other metrics. */
+interface IndependentInterval {
+  readonly ci_independent_low: number | null;
+  readonly ci_independent_high: number | null;
+  readonly ci_independent_method: string;
 }
 
 /** `ci_project_descriptive`: 'true' / 'false' / '' (no project interval). */
@@ -149,19 +159,24 @@ export function prepareSo4Prf(table: CsvTable, options: FigureOptions, group: 'f
     const f = fLab ?? (pStrict !== null && rec !== null ? (pStrict + rec === 0 ? 0 : round6((2 * pStrict * rec) / (pStrict + rec))) : null);
     const fBasis = fLab !== null ? 'labelled' : 'strict';
     const pBase = table.header.includes('precision_baseline') ? num(r, 'precision_baseline') : null;
-    const noProject: ProjectInterval = { ci_project_low: null, ci_project_high: null, ci_project_method: '', ci_project_descriptive: null };
-    const cand: [string, number | null, string, number | null, number | null, string, ProjectInterval][] = [
-      ['seeded differential precision', p, pBasis, null, null, '', noProject],
-      ['baseline precision', pBase, 'baseline', null, null, '', noProject],
+    const none: ProjectInterval & IndependentInterval = {
+      ci_project_low: null, ci_project_high: null, ci_project_method: '', ci_project_descriptive: null,
+      ci_independent_low: null, ci_independent_high: null, ci_independent_method: '',
+    };
+    const cand: [string, number | null, string, number | null, number | null, string, ProjectInterval & IndependentInterval][] = [
+      ['seeded differential precision', p, pBasis, null, null, '', none],
+      ['baseline precision', pBase, 'baseline', null, null, '', none],
       ['recall', rec, 'strict', num(r, 'ci_low'), num(r, 'ci_high'), r.ci_method ?? '', {
         ci_project_low: num(r, 'ci_project_low'), ci_project_high: num(r, 'ci_project_high'), ci_project_method: r.ci_project_method ?? '',
         ci_project_descriptive: flag(r, 'ci_project_descriptive'),
+        ci_independent_low: num(r, 'ci_independent_low'), ci_independent_high: num(r, 'ci_independent_high'),
+        ci_independent_method: r.ci_independent_method ?? '',
       }],
-      ['F1', f, fBasis, null, null, '', noProject],
+      ['F1', f, fBasis, null, null, '', none],
     ];
-    for (const [metric, value, basis, ciLow, ciHigh, ciMethod, project] of cand) {
+    for (const [metric, value, basis, ciLow, ciHigh, ciMethod, extra] of cand) {
       if (value === null) continue;
-      out.push({ group: label, metric, value, basis, ci_low: ciLow, ci_high: ciHigh, ci_method: ciMethod, ...project, n_seeded: nSeeded });
+      out.push({ group: label, metric, value, basis, ci_low: ciLow, ci_high: ciHigh, ci_method: ciMethod, ...extra, n_seeded: nSeeded });
     }
   }
   const order = (m: FigureCell | undefined): number => SO4_METRICS.indexOf(m as (typeof SO4_METRICS)[number]);
@@ -343,7 +358,7 @@ export const FIGURES: readonly FigureDef[] = [
   {
     source: 'aggregate', id: 'so4-prf-by-function', csv: 'prf_by_function.csv', svg: 'so4-prf-by-function.svg', objective: 'SO4', section: '8.1',
     title: 'SO4 detection per fitness function',
-    caption: 'Seeded differential precision, baseline precision, recall and F1 per function on the chosen split (default held-out). Recall: solid line = cell interval, dashed = project cluster interval (descriptive below 10 projects; ADR-020 item 3, BR-U5b-61). Precision intervals: so4-precision.',
+    caption: 'Seeded differential precision, baseline precision, recall and F1 per function on the chosen split (default held-out). Recall: solid line = cell interval, dashed = project cluster interval (descriptive below 10 projects; ADR-020 item 3, BR-U5b-61), faint = instance Wilson bound if the copies were independent (TV-22). Precision intervals: so4-precision.',
     requiredColumns: [...PRF_REQUIRED, 'function_id'], prepare: (t, o) => prepareSo4Prf(t, o, 'function_id'),
   },
   {
@@ -355,7 +370,7 @@ export const FIGURES: readonly FigureDef[] = [
   {
     source: 'aggregate', id: 'so4-prf-by-tag', csv: 'prf_by_tag.csv', svg: 'so4-prf-by-tag.svg', objective: 'SO4', section: '8.1',
     title: 'SO4 detection per tag',
-    caption: 'Seeded differential precision, recall and F1 per tag (FR-29) on the chosen split; data-flow is its own sub-row (TV-65). Recall: solid line = cell interval, dashed = project cluster interval.',
+    caption: 'Seeded differential precision, recall and F1 per tag (FR-29) on the chosen split; data-flow is its own sub-row (TV-65). Recall: solid line = cell interval, dashed = project cluster interval, faint = instance Wilson bound if the copies were independent (TV-22).',
     requiredColumns: [...PRF_REQUIRED, 'tag', 'sub_row'], prepare: (t, o) => prepareSo4Prf(t, o, 'tag'),
   },
   {
