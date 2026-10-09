@@ -91,7 +91,7 @@ describe('fixture harness run → CSV set (exit criterion 3; BR-U5b-48, 63)', ()
     expect(overall.find((r) => r.split === 'dev' && r.base_kind === 'all' && r.coverage === 'all')).toMatchObject({ tp: '3', fn: '0', recall: '1.000000', ci_method: '', recall_overall: '1.000000' });
     expect(parseCsv(out.get('prf_by_tag.csv') ?? '').rows.some((r) => r.tag === 'structural' && r.sub_row === 'data-flow')).toBe(true);
     expect(parseCsv(out.get('denominators.csv') ?? '').rows.every((r) => r.identity_ok === 'true')).toBe(true);
-    expect(parseCsv(out.get('latency.csv') ?? '').rows.every((r) => r.gate_result === 'pass')).toBe(true);
+    expect(parseCsv(out.get('latency.csv') ?? '').rows.every((r) => r.gate_result_unregistered === 'pass')).toBe(true);
     expect(parseCsv(out.get('twins.csv') ?? '').rows.at(-1)).toMatchObject({ seed_id: 'specificity', status: '1/1', undeclared_new: '1.000000' });
   });
 
@@ -209,7 +209,7 @@ describe('SO5 analysis (BR-U5b-54, 64, 65)', () => {
     expect(grid.filter((r) => r.status === 'accepted').every((r) => r.gen_code === '' && r.verdict_source === 'ahsCombined')).toBe(true);
     expect(so5Csv(inp, 50)['so5_tests.csv']).toBe(so5Csv(inp, 50)['so5_tests.csv']);
     const patterns = parseCsv(so5Csv(inp, 50)['so5_patterns.csv'] ?? '').rows;
-    expect(patterns).toEqual([{ run_id: expect.any(String) as string, code: 'GEN-TIMEOUT', count: '1', weighted_count: '1.000000' }]);
+    expect(patterns).toEqual([{ run_id: expect.any(String) as string, code: 'GEN-TIMEOUT', count: '1', weighted_count: '1.000000', basis: 'gen' }]);
   });
 
   it('FPAT counts: TP weight 1, unseeded-TP weight 1/p (0.4 → 2.5), failing judge unit by dimension, FP not counted', () => {
@@ -287,9 +287,9 @@ describe('SO5 grid completeness over the registered E1 grid (ADR-021 SO5-05)', (
   it('so5_patterns.csv has one GEN row per not-run coordinate, including the synthesised one', () => {
     const rows = parseCsv(so5Csv(inp, 50)['so5_patterns.csv'] ?? '').rows;
     expect(rows).toEqual([
-      { run_id: 'e1t-001-m1_task-management_none_run-1', code: 'GEN-MISSING', count: '1', weighted_count: '1.000000' },
-      { run_id: 'e1t-002-m2_task-management_none_run-0', code: 'GEN-PROTOCOL-MISMATCH', count: '1', weighted_count: '1.000000' },
-      { run_id: 'e1t-003-m2_task-management_none_run-1', code: 'GEN-MISSING', count: '1', weighted_count: '1.000000' },
+      { run_id: 'e1t-001-m1_task-management_none_run-1', code: 'GEN-MISSING', count: '1', weighted_count: '1.000000', basis: 'gen' },
+      { run_id: 'e1t-002-m2_task-management_none_run-0', code: 'GEN-PROTOCOL-MISMATCH', count: '1', weighted_count: '1.000000', basis: 'gen' },
+      { run_id: 'e1t-003-m2_task-management_none_run-1', code: 'GEN-MISSING', count: '1', weighted_count: '1.000000', basis: 'gen' },
     ]);
   });
 

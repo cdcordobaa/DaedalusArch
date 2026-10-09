@@ -120,6 +120,21 @@ jobs:
           if npx tsx tests/golden/check-changes-log-cli.ts --self-test; then echo "change-log self-test did not fail"; exit 1; fi
           npx tsx tests/golden/check-changes-log-cli.ts
 
+      - name: Pre-registration gate on every registered plan
+        # ADR-021 item 7 (added with P-U6, prereg v4): on PRs to v1.2e, `--check-prereg` must print
+        # "pre-registration v<N> ok" for every experiments/*/plan.json. A PR that changes a registered artefact
+        # therefore carries its own dated bump (BR-U5b-50).
+        if: github.event_name == 'pull_request' && github.base_ref == 'v1.2e'
+        run: |
+          status=0
+          for plan in experiments/*/plan.json; do
+            if ! npx tsx scripts/run-experiment-cli.ts --check-prereg "$plan"; then
+              echo "::error file=$plan::--check-prereg refused $plan"
+              status=1
+            fi
+          done
+          exit $status
+
       - name: Firewall self-evaluation (symbolic-only)
         if: github.event_name == 'pull_request' && github.base_ref == 'main'
         uses: ./.github/actions/firewall

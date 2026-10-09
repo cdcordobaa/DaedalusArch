@@ -6,10 +6,11 @@ import { existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import {
-  AUDIT_ALLOCATION_EXPOSED, AUDIT_MODIFIED, AUDIT_UNCOMMITTED, agreementStats, allocateAudit, auditView, auditViewKey, checkAuditLock, labellingTables, loadLabellerPrompts, main, pairAgreement,
+  AUDIT_ALLOCATION_EXPOSED, AUDIT_MODIFIED, AUDIT_NOT_LABEL_BLIND, AUDIT_SEED_MISMATCH, AUDIT_UNCOMMITTED, agreementStats, allocateAudit, auditSeedOf, auditView,
+  auditViewKey, checkAuditLock, labellingTables, loadLabellerPrompts, main, pairAgreement,
 } from '../../../../scripts/llm-label.js';
-import type { AnyLabel, AuditFile, JudgeUnitVerdict, LabelPlanFile, LabellerPrompt, LabellingOutputs, ReconciledLabel } from '../../../../scripts/llm-label.js';
-import type { ItemKind } from '../../../../scripts/lib/label-context.js';
+import type { AuditFile, AuditPlanItem, JudgeUnitVerdict, LabelPlanFile, LabellerPrompt, LabellingOutputs, ReconciledLabel } from '../../../../scripts/llm-label.js';
+import type { ItemKind, Population } from '../../../../scripts/lib/label-context.js';
 import { csvText } from '../../../../scripts/aggregate.js';
 import { listCassetteKeys, readCassetteEntry } from '../../../../src/llm-critic/cassette-manager.js';
 import { FIXTURE_MODEL, LABEL_CASSETTE_DIR, LABEL_FIXTURE_DIR } from './label-fixture.js';
@@ -36,61 +37,64 @@ function judgeEntries(): NonNullable<Parameters<typeof agreementStats>[0]['judge
   });
 }
 
-/** Synthetic reconciled labels: `n` items of (kind, label) spread over three projects. */
-function synthetic(kind: ItemKind, label: string, n: number): ReconciledLabel[] {
-  return Array.from({ length: n }, (_, i) => ({
-    itemId: `${kind}-${label}-${String(i).padStart(4, '0')}`, projectId: `p${String(i % 3)}`, kind, population: kind === 'judge-unit' ? 'P4' : kind === 'missed-seed' ? 'MS' : 'P2',
-    stratum: 's', inclusionProbability: 1, label: label as ReconciledLabel['label'],
-    runs: [
-      { runIndex: 0, label: label as AnyLabel, rationale: 'PANEL-RATIONALE', cassetteKey: 'k0', attempts: 1 },
-      { runIndex: 1, label: label as AnyLabel, rationale: 'PANEL-RATIONALE', cassetteKey: 'k1', attempts: 1 },
-    ],
-  }));
+/** Synthetic plan items: `n` items of (kind, population) spread over three projects (no label exists yet). */
+function synthetic(kind: ItemKind, population: Population, n: number): AuditPlanItem[] {
+  return Array.from({ length: n }, (_, i) => ({ itemId: `${kind}-${population}-${String(i).padStart(4, '0')}`, projectId: `p${String(i % 3)}`, kind, population }));
 }
 
-describe('audit allocation (BR-U5b-41)', () => {
-  const labels = [
-    ...synthetic('violation', 'TP', 200), ...synthetic('violation', 'FP', 40), ...synthetic('violation', 'unseeded-TP', 2),
-    ...synthetic('judge-unit', 'fail', 30), ...synthetic('judge-unit', 'pass', 70), ...synthetic('missed-seed', 'FN', 5),
-    ...synthetic('violation', 'uncertain', 9),
+describe('audit allocation (BR-U5b-41 as amended by ADR-021 item 8.8: drawn from the plan, kind x population)', () => {
+  const items = [
+    ...synthetic('violation', 'P1', 40), ...synthetic('violation', 'P2', 200), ...synthetic('violation', 'P3', 2),
+    ...synthetic('judge-unit', 'P4', 100), ...synthetic('missed-seed', 'MS', 5),
   ];
 
-  it('strata {TP 200, FP 40, unseeded-TP 2, fail 30, pass 70, missed-seed 5}: floors kept, total 30, every kind, uncertain excluded', () => {
-    const a = allocateAudit(labels, 11);
-    const by = new Map(a.strata.map((s) => [`${s.kind}|${s.label}`, s]));
-    expect(a.strata).toHaveLength(6);
-    expect(by.has('violation|uncertain')).toBe(false);
+  it('strata {P1 40, P2 200, P3 2, P4 100, MS 5}: floors kept, total 30, every kind; label-free', () => {
+    const a = allocateAudit(items, 11);
+    const by = new Map(a.strata.map((s) => [`${s.kind}|${s.population}`, s]));
+    expect(a.strata).toHaveLength(5);
     expect(a.strata.reduce((s, x) => s + x.allocated, 0)).toBe(30);
     expect(a.itemIds).toHaveLength(30);
     for (const s of a.strata) expect(s.allocated).toBeGreaterThanOrEqual(Math.min(3, s.size));
-    expect(by.get('violation|unseeded-TP')?.allocated).toBe(2);
-    expect(by.get('violation|TP')?.allocated).toBeGreaterThan(by.get('judge-unit|pass')?.allocated ?? 0);
+    expect(by.get('violation|P3')?.allocated).toBe(2);
+    expect(by.get('violation|P2')?.allocated).toBeGreaterThan(by.get('judge-unit|P4')?.allocated ?? 0);
     expect(new Set(a.strata.filter((s) => s.allocated > 0).map((s) => s.kind))).toEqual(new Set(['violation', 'judge-unit', 'missed-seed']));
-    expect(by.get('violation|FP')?.samplingFraction).toBeCloseTo((by.get('violation|FP')?.allocated ?? 0) / 40, 12);
-    expect(allocateAudit(labels, 11)).toEqual(a);
+    expect(by.get('violation|P1')?.samplingFraction).toBeCloseTo((by.get('violation|P1')?.allocated ?? 0) / 40, 12);
+    expect(allocateAudit(items, 11)).toEqual(a);
+    // Duplicated plan rows count once.
+    expect(allocateAudit([...items, ...items.slice(0, 5)], 11)).toEqual(a);
+  });
+
+  it('hand-computed proportional allocation: P2 120, P4 60 of 180 -> 20 and 10', () => {
+    const a = allocateAudit([...synthetic('violation', 'P2', 120), ...synthetic('judge-unit', 'P4', 60)], 3);
+    expect(a.strata.map((s) => [s.kind, s.population, s.size, s.allocated])).toEqual([['judge-unit', 'P4', 60, 10], ['violation', 'P2', 120, 20]]);
   });
 
   it('projects alternate within a stratum (round-robin selection in a seeded order)', () => {
-    const a = allocateAudit(labels, 11);
-    const project = new Map(labels.map((l) => [l.itemId, l.projectId]));
-    const tp = a.itemIds.filter((id) => id.startsWith('violation-TP-')).map((id) => project.get(id));
-    expect(tp.length).toBeGreaterThanOrEqual(3);
-    // Round-robin over the seeded project order: the selected TP items spread over min(allocated, projects) projects.
-    expect(new Set(tp).size).toBe(Math.min(tp.length, new Set(labels.filter((l) => l.itemId.startsWith('violation-TP-')).map((l) => l.projectId)).size));
+    const a = allocateAudit(items, 11);
+    const project = new Map(items.map((l) => [l.itemId, l.projectId]));
+    const p2 = a.itemIds.filter((id) => id.startsWith('violation-P2-')).map((id) => project.get(id));
+    expect(p2.length).toBeGreaterThanOrEqual(3);
+    expect(new Set(p2).size).toBe(Math.min(p2.length, 3));
   });
 
-  it('THR-3: the view order is a seeded order independent of the strata (no contiguous label blocks)', () => {
-    const a = allocateAudit(labels, 11);
-    const labelOf = new Map(labels.map((l) => [l.itemId, `${l.kind}|${l.label}`]));
-    // The order is the sha256([seed, 'audit-view', itemId]) order, hand-checkable item by item.
+  it('THR-3: the view order is a seeded order independent of the strata (no contiguous blocks)', () => {
+    const a = allocateAudit(items, 11);
+    const stratumOf = new Map(items.map((l) => [l.itemId, `${l.kind}|${l.population}`]));
     const keys = a.itemIds.map((id) => auditViewKey(11, id));
     expect([...keys].sort()).toEqual(keys);
-    // Grouping by stratum would give one run per non-empty stratum; the blinded order has many more label changes.
-    const runs = a.itemIds.reduce((n, id, i) => n + (i > 0 && labelOf.get(id) !== labelOf.get(a.itemIds[i - 1] ?? '') ? 1 : 0), 1);
+    const runs = a.itemIds.reduce((n, id, i) => n + (i > 0 && stratumOf.get(id) !== stratumOf.get(a.itemIds[i - 1] ?? '') ? 1 : 0), 1);
     expect(runs).toBeGreaterThan(a.strata.filter((x) => x.allocated > 0).length);
-    // Another seed gives another order of the same allocated items.
-    const b = allocateAudit(labels, 12);
-    expect(b.itemIds).not.toEqual(a.itemIds);
+    expect(allocateAudit(items, 12).itemIds).not.toEqual(a.itemIds);
+  });
+
+  it('ADR-021 item 8.5: the plan\'s registered audit seed is used; another --seed is refused', () => {
+    expect(auditSeedOf({ auditSeed: 6104 }, undefined)).toEqual({ ok: true, seed: 6104 });
+    expect(auditSeedOf({ auditSeed: 6104 }, '6104')).toEqual({ ok: true, seed: 6104 });
+    const bad = auditSeedOf({ auditSeed: 6104 }, '5');
+    expect(bad.ok).toBe(false);
+    expect(bad.ok ? '' : bad.detail).toContain(AUDIT_SEED_MISMATCH);
+    expect(auditSeedOf({}, '5')).toEqual({ ok: true, seed: 5 });
+    expect(auditSeedOf({}, undefined).ok).toBe(false);
   });
 });
 
@@ -98,7 +102,7 @@ describe('blinding (BR-U5b-42)', () => {
   it('the audit view model has no panel label, rationale or root-cause field', () => {
     const labels = fixtureLabels();
     const plan = fixturePlanFile();
-    const view = auditView(allocateAudit(labels, 5), plan.items, prompts());
+    const view = auditView(allocateAudit(plan.items, 5), plan.items, prompts());
     expect(view.length).toBeGreaterThan(0);
     for (const v of view) {
       expect(Object.keys(v).sort()).toEqual(['context', 'itemId', 'kind', 'options', 'projectId', 'rootCauses']);
@@ -120,7 +124,7 @@ describe('agreement (BR-U5b-40, 43)', () => {
   const labels = fixtureLabels();
   const p4 = labels.filter((l) => l.kind === 'judge-unit');
   const headline: JudgeUnitVerdict[] = p4.map((l, i) => ({ projectId: l.projectId, functionId: l.functionId ?? '', unitId: l.unitId ?? '', verdict: i === 0 ? 'pass' : 'fail', judgeModel: 'claude-opus-5-5' }));
-  const allocation = allocateAudit(labels, 5);
+  const allocation = allocateAudit(fixturePlanFile().items, 5);
   const byId = new Map(labels.map((l) => [l.itemId, l]));
   const audit: AuditFile = {
     version: 1, planId: 'fixtures',
@@ -141,7 +145,8 @@ describe('agreement (BR-U5b-40, 43)', () => {
     expect(rr?.uncertain).toBe(labels.filter((l) => l.label === 'uncertain').length);
     expect(rows[1]).toMatchObject({ comparison: 'judge-vs-panel', scope: 'claude-opus-5-5', weighted: true, sameFamily: false, n: p4.filter((l) => l.label !== 'uncertain').length, source: 'all', headline: false, uncertainAsCategory: false });
     expect(rows[2]).toMatchObject({ comparison: 'judge-vs-panel', source: 'all', uncertainAsCategory: true, n: p4.length });
-    expect(rows[3]).toMatchObject({ comparison: 'panel-vs-audit', weighted: true, n: allocation.itemIds.length, ciMethod: 'wilson-weighted-approximate' });
+    // ADR-021 item 8.8: no exclusion of uncertain panel labels; they are a category of the comparison.
+    expect(rows[3]).toMatchObject({ comparison: 'panel-vs-audit', weighted: true, n: allocation.itemIds.length, ciMethod: 'wilson-weighted-approximate', uncertainAsCategory: true });
     expect((rows[3]?.percentAgreement ?? 0)).toBeLessThan(1);
     const t = labellingTables({ agreement: rows })['agreement.csv'];
     expect(csvText(t.header, t.rows).trim().split('\n')).toHaveLength(1 + 6);
@@ -184,8 +189,9 @@ describe('agreement (BR-U5b-40, 43)', () => {
     ]);
     expect(rows.filter((r) => r.headline)).toHaveLength(1);
     const t = labellingTables({ agreement: rows })['agreement.csv'];
-    expect(t.header.slice(-4)).toEqual(['source', 'generator_model', 'headline', 'uncertain_as_category']);
-    expect(t.rows[1]?.slice(-4)).toEqual(['e1', '', 'true', 'false']);
+    const at = t.header.indexOf('source');
+    expect(t.header.slice(at, at + 4)).toEqual(['source', 'generator_model', 'headline', 'uncertain_as_category']);
+    expect(t.rows[1]?.slice(at, at + 4)).toEqual(['e1', '', 'true', 'false']);
   });
 
   it('a known 2x2 table reproduces the hand-computed kappa and AC1 to 6 dp; weights enter the table', () => {
@@ -223,11 +229,15 @@ describe('labeller tables in aggregate and the CLI (exit criterion 4)', () => {
       const sealed = join(dir, 'sealed', 'fixtures.allocation.json');
       // THR-3: the allocation may not be written next to the author's view.
       const exposed = io();
-      expect(await main(['--allocate-audit', '--plan', plan, '--labels', labelsOut, '--plan-id', 'fixtures', '--seed', '5', '--out', viewDir, '--allocation-out', join(viewDir, 'a.json')], ROOT, exposed.io)).toBe(1);
+      expect(await main(['--allocate-audit', '--plan', plan, '--plan-id', 'fixtures', '--seed', '5', '--out', viewDir, '--allocation-out', join(viewDir, 'a.json')], ROOT, exposed.io)).toBe(1);
       expect(exposed.err.join('')).toContain(AUDIT_ALLOCATION_EXPOSED);
       mkdirSync(join(dir, 'sealed'), { recursive: true });
       mkdirSync(viewDir, { recursive: true });
-      expect(await main(['--allocate-audit', '--plan', plan, '--labels', labelsOut, '--plan-id', 'fixtures', '--seed', '5', '--out', viewDir, '--allocation-out', sealed], ROOT, io().io)).toBe(0);
+      // ADR-021 item 8.8: the audit is drawn from the plan, before labelling; labels are refused.
+      const blind = io();
+      expect(await main(['--allocate-audit', '--plan', plan, '--labels', labelsOut, '--plan-id', 'fixtures', '--seed', '5', '--out', viewDir, '--allocation-out', sealed], ROOT, blind.io)).toBe(1);
+      expect(blind.err.join('')).toContain(AUDIT_NOT_LABEL_BLIND);
+      expect(await main(['--allocate-audit', '--plan', plan, '--plan-id', 'fixtures', '--seed', '5', '--out', viewDir, '--allocation-out', sealed], ROOT, io().io)).toBe(0);
       expect(existsSync(join(viewDir, 'fixtures.allocation.json'))).toBe(false);
       const alloc = JSON.parse(readFileSync(sealed, 'utf8')) as { itemIds: string[] };
       const view = JSON.parse(readFileSync(join(viewDir, 'fixtures.view.json'), 'utf8')) as { itemId: string }[];

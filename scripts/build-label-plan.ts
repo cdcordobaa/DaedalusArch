@@ -1,5 +1,5 @@
 /**
- * Label-plan producer (ADR-021 SO3-2, SO4-02, SO3-3, item 6; FR-27; BR-U5b-33..36, 38, 63).
+ * Label-plan producer (ADR-021 SO3-2, SO4-02, SO3-3, items 6 and 8; FR-27; BR-U5b-33..36, 38, 63).
  *
  * Builds, from stored outputs only, the input of `llm-label`:
  *
@@ -29,13 +29,13 @@ import type { JudgeGraphView } from '../src/llm-critic/judge-graph.js';
 import { judgeVerdictsFromRuns, p4SourceOf } from './lib/judge-verdicts.js';
 import type { JudgeUnitVerdict } from './lib/judge-verdicts.js';
 import {
-  POPULATION_CAPS, SAMPLED_POPULATIONS, buildItems, candidateItemId, candidateStratum, classifyMissedSeeds,
+  POPULATION_CAPS, RUNS_PER_ITEM, SAMPLED_POPULATIONS, buildItems, candidateItemId, candidateStratum, classifyMissedSeeds,
   judgeUnitCandidates, p1Candidate, sampleCandidates, violationCandidates,
 } from './lib/label-context.js';
-import type { Candidate, FnCause, LabelItem, MissedSeedEvidence, SampledPopulation, StratumSample } from './lib/label-context.js';
+import type { Candidate, FnCause, ItemKind, LabelItem, MissedSeedEvidence, SampledPopulation, StratumSample } from './lib/label-context.js';
 import {
-  LABEL_PLAN_CONFIG_FILE, LABEL_PLAN_CONFIG_INVALID, ceilingsFor, checkLabelPlanConfig, estimateTokens, precisionStatement,
-  sampleRegistered, trimContext, weeksNeeded,
+  ITEM_KINDS, LABEL_PLAN_CONFIG_FILE, LABEL_PLAN_CONFIG_INVALID, ceilingsFor, checkLabelPlanConfig, estimateTokens, precisionStatement,
+  sampleRegistered, thinExhaustive, trimContext, weeksNeeded,
 } from './lib/label-plan.js';
 import type { LabelPlanConfig, PrecisionStatement } from './lib/label-plan.js';
 import { loadBases } from './lib/base-measure-main.js';
@@ -92,13 +92,27 @@ export interface PlanSummary {
   readonly mechanicalFnCauses: number;
   readonly calls: number;
   readonly reaskReserveCalls: number;
+  /** The plan's budget: the registered one, or the escalated one (ADR-021 item 8.2). */
   readonly budgetCalls: number;
+  readonly registeredBudgetCalls: number;
+  readonly escalated: boolean;
+  /** P1 + MS items found, and kept (fewer only past the escalation limit). */
+  readonly exhaustive: { readonly found: number; readonly kept: number; readonly basis: string };
   readonly weeks: number;
   readonly ceilings: Readonly<Record<SampledPopulation, number>>;
   readonly lowered: readonly SampledPopulation[];
   readonly precision: readonly PrecisionStatement[];
-  readonly context: { readonly maxChars: number; readonly meanChars: number; readonly estimatedTokensMean: number; readonly estimatedTokensMax: number; readonly cut: number };
+  readonly context: {
+    readonly maxChars: Readonly<Record<ItemKind, number>>;
+    readonly meanChars: number;
+    readonly estimatedTokensMean: number;
+    readonly estimatedTokensMax: number;
+    readonly cut: number;
+    /** Items cut at the ceiling, per kind (ADR-021 item 8.6). */
+    readonly cutByKind: Readonly<Record<ItemKind, number>>;
+  };
   readonly judgeVerdicts: number;
+  readonly detail?: string;
 }
 
 export type BuildResult =
@@ -180,6 +194,36 @@ function runCandidates(runs: readonly LoadedRun[]): { candidates: Candidate[]; s
 }
 
 // ---------------------------------------------------------------------------------------------
+// Precision rows (ADR-021 item 8.3)
+
+const weightOf = (i: LabelItem): number => 1 / Math.max(i.inclusionProbability, Number.EPSILON);
+
+/**
+ * The rows whose precision is stated before any run, each at its Kish effective n: the P4 E1 headline (the units of
+ * E1 cells), the P4 fixtures, P4 per E1 generator model, P2 overall, and the P1 and MS censuses.
+ */
+export function precisionRows(items: readonly LabelItem[], runs: readonly LoadedRun[]): PrecisionStatement[] {
+  const runOf = new Map(runs.map((r) => [r.record.runId, r]));
+  const p4 = items.filter((i) => i.population === 'P4');
+  const roleOf = (i: LabelItem): RunRole | undefined => (i.runId === undefined ? undefined : runOf.get(i.runId)?.role);
+  const generatorOf = (i: LabelItem): string | undefined => (i.runId === undefined ? undefined : runOf.get(i.runId)?.record.cell?.requestedModelId);
+  const e1 = p4.filter((i) => roleOf(i) === 'e1');
+  const rows: PrecisionStatement[] = [
+    precisionStatement('P4 judge-vs-panel agreement, E1 headline', e1.map(weightOf)),
+    precisionStatement('P4 judge-vs-panel agreement, fixtures', p4.filter((i) => roleOf(i) === 'fixture').map(weightOf)),
+  ];
+  for (const g of [...new Set(e1.flatMap((i) => { const m = generatorOf(i); return m === undefined ? [] : [m]; }))].sort()) {
+    rows.push(precisionStatement(`P4 judge-vs-panel agreement, generator ${g}`, e1.filter((i) => generatorOf(i) === g).map(weightOf)));
+  }
+  rows.push(
+    precisionStatement('P2 baseline precision, overall', items.filter((i) => i.population === 'P2').map(weightOf)),
+    precisionStatement('P1 FP-labelled share (census)', items.filter((i) => i.population === 'P1').map(weightOf)),
+    precisionStatement('MS root-cause shares (census)', items.filter((i) => i.population === 'MS').map(weightOf)),
+  );
+  return rows;
+}
+
+// ---------------------------------------------------------------------------------------------
 // Core
 
 const ORDER = ['P1', 'MS', 'P4', 'P2', 'P3'] as const;
@@ -208,17 +252,17 @@ export function buildLabelPlan(input: BuildInput): BuildResult {
     return [p, [...counts.values()].map((v) => v.size)];
   })) as Record<SampledPopulation, number[]>;
   const ceilings = ceilingsFor(config, exhaustiveItems, sizes);
-  if (!ceilings.ok) return { ok: false, code: LABEL_PLAN_INPUT_INVALID, detail: ceilings.detail ?? LABEL_PLAN_INPUT_INVALID };
-  const sampled: (StratumSample & { stratumInclusionProbability?: number })[] = [...exhaustive];
+  // ADR-021 item 8.2: past the escalation limit the censuses are thinned, never refused.
+  const sampled: (StratumSample & { stratumInclusionProbability?: number })[] = thinExhaustive(exhaustive, ceilings.exhaustiveKept, config.seeds.strata);
   for (const p of SAMPLED_POPULATIONS) {
     sampled.push(...sampleRegistered(candidates, p, config.sampled[p], ceilings.maxItems[p], config.seeds.strata, (stratum) => seedOf.get(`${p}\u0000${stratum}`) ?? 0));
   }
   const built = buildItems(sampled);
   if (!built.ok) return { ok: false, code: built.code, detail: built.detail };
-  let cut = 0;
+  const cutByKind: Record<ItemKind, number> = { violation: 0, 'judge-unit': 0, 'missed-seed': 0 };
   const items: LabelItem[] = built.items.map((i) => {
-    const t = trimContext(i.context, config.context.maxChars);
-    if (t.cut) cut += 1;
+    const t = trimContext(i.context, config.context.maxChars[i.kind]);
+    if (t.cut) cutByKind[i.kind] += 1;
     return { ...i, context: t.text };
   });
   const rank = (i: LabelItem): number => ORDER.indexOf(i.population);
@@ -230,48 +274,48 @@ export function buildLabelPlan(input: BuildInput): BuildResult {
     }))
     .sort((a, b) => ORDER.indexOf(a.population) - ORDER.indexOf(b.population) || (a.stratum < b.stratum ? -1 : 1));
   const plan: LabelPlanFile = {
-    version: 1, permutationSeed: config.seeds.permutation, budgetCalls: config.budgetCalls, strata, items,
+    version: 1, permutationSeed: config.seeds.permutation, budgetCalls: ceilings.budgetCalls, strata, items,
     sizing: 'registered', reaskReserveCalls: config.reaskReserveCalls, bootstrapSeed: config.seeds.bootstrap,
-    provider: config.provider, model: config.model,
+    auditSeed: config.seeds.audit, provider: config.provider, model: config.model,
   };
   const p4Runs = input.runs.filter((r) => r.role === 'e1' || r.role === 'fixture');
   const judgeVerdicts = judgeVerdictsFromRuns(p4Runs.map((r) => r.record), new Map(p4Runs.map((r) => [r.record.runId, r.report])));
   const count = (p: (typeof ORDER)[number]): number => items.filter((i) => i.population === p).length;
   const chars = items.map((i) => i.context.length);
-  const calls = items.length * 2;
+  const calls = items.length * RUNS_PER_ITEM;
   const summary: PlanSummary = {
     items: { P1: count('P1'), MS: count('MS'), P2: count('P2'), P3: count('P3'), P4: count('P4') },
-    mechanicalFnCauses: causes.length, calls, reaskReserveCalls: config.reaskReserveCalls, budgetCalls: config.budgetCalls,
+    mechanicalFnCauses: causes.length, calls, reaskReserveCalls: config.reaskReserveCalls, budgetCalls: ceilings.budgetCalls,
+    registeredBudgetCalls: config.budgetCalls, escalated: ceilings.escalated,
+    exhaustive: { found: exhaustiveItems, kept: ceilings.exhaustiveKept, basis: config.exhaustivePlannedBasis },
     weeks: weeksNeeded(config, calls + config.reaskReserveCalls), ceilings: ceilings.maxItems, lowered: ceilings.lowered,
-    precision: [
-      precisionStatement('P4 judge-vs-panel agreement', count('P4')),
-      precisionStatement('P2 baseline precision', count('P2')),
-      precisionStatement('P3 TP-class share', count('P3')),
-      precisionStatement('P1 FP-labelled share (census)', count('P1')),
-      precisionStatement('MS root-cause shares (census)', count('MS')),
-    ],
+    precision: precisionRows(items, input.runs),
     context: {
       maxChars: config.context.maxChars,
       meanChars: chars.length === 0 ? 0 : chars.reduce((a, b) => a + b, 0) / chars.length,
       estimatedTokensMean: chars.length === 0 ? 0 : estimateTokens(chars.reduce((a, b) => a + b, 0) / chars.length),
       estimatedTokensMax: estimateTokens(Math.max(0, ...chars)),
-      cut,
+      cut: ITEM_KINDS.reduce((n, k) => n + cutByKind[k], 0),
+      cutByKind,
     },
     judgeVerdicts: judgeVerdicts.length,
+    ...(ceilings.detail !== undefined && { detail: ceilings.detail }),
   };
   return { ok: true, plan, fnCauses: causes, judgeVerdicts, summary };
 }
 
 /** One line per summary fact, for the CLI. */
 export function summaryLines(s: PlanSummary): string[] {
-  const hw = (x: number | null): string => (x === null ? 'n<10, counts only' : `+/-${x.toFixed(3)}`);
+  const hw = (x: number | null): string => (x === null ? 'n_eff<10, counts only' : `+/-${x.toFixed(3)}`);
   return [
     `items: P1 ${String(s.items.P1)}, MS ${String(s.items.MS)}, P4 ${String(s.items.P4)}, P2 ${String(s.items.P2)}, P3 ${String(s.items.P3)}; mechanical FN causes ${String(s.mechanicalFnCauses)}`,
-    `calls: ${String(s.calls)} + re-ask reserve ${String(s.reaskReserveCalls)} <= budget ${String(s.budgetCalls)}; at least ${String(s.weeks)} week(s) of quota`,
+    `calls: ${String(s.calls)} + re-ask reserve ${String(s.reaskReserveCalls)} <= budget ${String(s.budgetCalls)}${s.escalated ? ` (escalated from ${String(s.registeredBudgetCalls)}, ADR-021 item 8.2)` : ''}; at least ${String(s.weeks)} week(s) of quota`,
+    `P1 + MS: ${String(s.exhaustive.found)} found, ${String(s.exhaustive.kept)} kept`,
     `ceilings: P4 ${String(s.ceilings.P4)}, P2 ${String(s.ceilings.P2)}, P3 ${String(s.ceilings.P3)}${s.lowered.length === 0 ? '' : ` (lowered for the budget: ${s.lowered.join(', ')})`}`,
-    ...s.precision.map((p) => `precision ${p.population}: n ${String(p.n)}, Wilson 95% half-width ${hw(p.halfWidthAt50)} at p=0.5, ${hw(p.halfWidthAt85)} at p=0.85 (nominal n)`),
-    `context: mean ${s.context.meanChars.toFixed(0)} chars (~${String(s.context.estimatedTokensMean)} tokens), max ~${String(s.context.estimatedTokensMax)} tokens, ${String(s.context.cut)} cut at ${String(s.context.maxChars)} chars`,
+    ...s.precision.map((p) => `precision ${p.row}: n ${String(p.n)}, Kish n_eff ${p.nEff.toFixed(1)}, Wilson 95% half-width ${hw(p.halfWidthAt50)} at p=0.5, ${hw(p.halfWidthAt85)} at p=0.85`),
+    `context: mean ${s.context.meanChars.toFixed(0)} chars (~${String(s.context.estimatedTokensMean)} tokens), max ~${String(s.context.estimatedTokensMax)} tokens; cut at the ceiling: ${ITEM_KINDS.map((k) => `${k} ${String(s.context.cutByKind[k])} (${String(s.context.maxChars[k])} chars)`).join(', ')}`,
     `judge verdicts: ${String(s.judgeVerdicts)}`,
+    ...(s.detail === undefined ? [] : [s.detail]),
   ];
 }
 
@@ -309,14 +353,15 @@ export function seededCopyRoot(copies: string, row: Pick<ManifestRow, 'seedId' |
 
 export const BUILD_LABEL_PLAN_USAGE = [
   'usage: npx tsx scripts/build-label-plan-cli.ts --out <dir> [--config corpus/label-plan-config.json]',
-  '         [--case <score case dir> --label-items <file> --copies <seeded copies root> --bases <prepared-bases.json>]',
+  '         [--case <score case dir> --label-items <file> --copies <seeded copies root> [--bases <prepared-bases.json>]]',
   '         [--corpus-runs <dir>[,<dir>...]] [--e1-runs <dir>[,<dir>...]] [--fixture-runs <dir>[,<dir>...]]',
   '         [--specs <spec>[,<spec>...]] [--root-map <from>=<to>[,...]]',
   '       npx tsx scripts/build-label-plan-cli.ts --self-test | --help',
   '',
   'Writes <out>/label-plan.json, fn-causes.json, judge-verdicts.json and label-plan-summary.json (ADR-021 SO3-2, SO4-02,',
   'SO3-3, item 6). No model call and no database: contexts are read from the stored source trees.',
-  'Exit: 0 written; 1 refused (LABEL_PLAN_CONFIG_INVALID, LABEL_PLAN_INPUT_INVALID, LABEL_PLAN_OVER_BUDGET, LABEL_CONTEXT_FAILED); 2 usage.',
+  'Exit: 0 written (an over-budget P1 + MS escalates the budget, ADR-021 item 8.2); 1 refused (LABEL_PLAN_CONFIG_INVALID,',
+  'LABEL_PLAN_INPUT_INVALID, LABEL_CONTEXT_FAILED); 2 usage.',
   '',
 ].join('\n');
 
@@ -354,9 +399,10 @@ const list = (v: string | undefined): string[] => (v ?? '').split(',').map((x) =
 /** A known-bad configuration for `--self-test`: 400 calls exceed the ADR-021 ceiling of 300. */
 export function selfTestConfig(): unknown {
   return {
-    version: 1, provider: 'agy', model: 'gemini-3.1-pro-high', budgetCalls: 400, reaskReserveCalls: 0, seeds: { strata: 1, permutation: 2, bootstrap: 3 },
+    version: 2, provider: 'agy', model: 'gemini-3.1-pro-high', budgetCalls: 400, reaskReserveCalls: 0, seeds: { strata: 1, permutation: 2, bootstrap: 3, audit: 4 },
     priority: ['P4', 'P2', 'P3'], sampled: { P2: { perStratum: 1, maxItems: 1 }, P3: { perStratum: 1, maxItems: 1 }, P4: { perStratum: 1, maxItems: 1 } },
-    exhaustivePlanned: 0, context: { maxChars: 4000 }, quota: { callsPerWeek: 180, minWeeks: 2 },
+    exhaustivePlanned: 0, exhaustivePlannedBasis: 'self-test', context: { maxChars: { violation: 4000, 'judge-unit': 4000, 'missed-seed': 4000 } },
+    quota: { callsPerWeek: 180, minWeeks: 2, maxWeeks: 4 },
   };
 }
 
@@ -380,9 +426,11 @@ export async function main(argv: readonly string[], repoRoot: string, io: BuildM
     io.err(`--out is required\n${BUILD_LABEL_PLAN_USAGE}`);
     return 2;
   }
-  const so4Flags = ['case', 'label-items', 'copies', 'bases'].filter((f) => args.has(f));
-  if (so4Flags.length !== 0 && so4Flags.length !== 4) {
-    io.err(`--case, --label-items, --copies and --bases go together\n${BUILD_LABEL_PLAN_USAGE}`);
+  // --bases is read only when a missed seed needs its prepared base's tsconfig (the FN rules); a case without
+  // missed seeds, or a fixture case, needs none.
+  const so4Flags = ['case', 'label-items', 'copies'].filter((f) => args.has(f));
+  if ((so4Flags.length !== 0 && so4Flags.length !== 3) || (args.has('bases') && so4Flags.length === 0)) {
+    io.err(`--case, --label-items and --copies go together (--bases with them)\n${BUILD_LABEL_PLAN_USAGE}`);
     return 2;
   }
   const at = (p: string): string => resolve(repoRoot, p);
@@ -434,11 +482,12 @@ export async function main(argv: readonly string[], repoRoot: string, io: BuildM
       }
     }
     let so4: So4Inputs | undefined;
-    if (so4Flags.length === 4) {
+    if (so4Flags.length === 3) {
       const caseDir = at(args.get('case') ?? '');
       const manifest = loadManifest(repoRoot, join(caseDir, 'manifest.json'));
       if (!manifest.success) throw new Error(`${LABEL_PLAN_INPUT_INVALID}: ${manifest.errors.map((e) => e.message).join('; ')}`);
-      const bases = loadBases(at(args.get('bases') ?? ''));
+      const basesFile = args.get('bases');
+      const bases = basesFile === undefined ? [] : loadBases(at(basesFile));
       if (typeof bases === 'string') throw new Error(`${LABEL_PLAN_INPUT_INVALID}: --bases: ${bases}`);
       const reportsDir = join(caseDir, 'reports');
       const seededPath = new Map<string, string>();

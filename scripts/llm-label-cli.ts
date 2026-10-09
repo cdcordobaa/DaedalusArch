@@ -11,7 +11,7 @@ import { dirname } from 'node:path';
 import { AGY_HOME_DEFAULT, AgyCliProvider, expandHome } from '../src/llm-critic/agy-cli-provider.js';
 import { GeminiProvider } from '../src/llm-critic/gemini-provider.js';
 import { NodeProcessRunner } from '../src/shared/process/node-process-runner.js';
-import { MockLLMProvider } from '../src/llm-critic/mock-provider.js';
+import { MockLabellerProvider } from './lib/mock-labeller.js';
 import { LABELLER_MAX_TOKENS, LABELLER_TEMPERATURE, main } from './llm-label.js';
 
 void main(process.argv.slice(2), process.cwd(), {
@@ -29,7 +29,8 @@ void main(process.argv.slice(2), process.cwd(), {
     { model, home: expandHome(process.env.LABELLER_AGY_HOME ?? AGY_HOME_DEFAULT), mode: 'record' },
     { runner: new NodeProcessRunner() },
   ),
-  mock: () => new MockLLMProvider(),
+  // A labeller-shaped Mock (valid answers by option name), never U4's judge-shaped Mock (P-U6 dry run).
+  mock: () => new MockLabellerProvider(),
 }).then(
   (code) => {
     process.exitCode = code;

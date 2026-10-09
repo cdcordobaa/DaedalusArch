@@ -14,7 +14,7 @@ import { DomainResult } from '../../../../src/shared/errors/domain-result.js';
 import type { LLMCallContext, LLMOptions, LLMProvider, LLMResponse } from '../../../../src/shared/interfaces/llm-provider.js';
 import type { ProviderDescription } from '../../../../src/shared/types/evaluation.js';
 import { LABEL_PLAN_INPUT_INVALID, buildLabelPlan, main as buildMain, seededCopyRoot } from '../../../../scripts/build-label-plan.js';
-import type { So4Inputs } from '../../../../scripts/build-label-plan.js';
+import type { PlanSummary, So4Inputs } from '../../../../scripts/build-label-plan.js';
 import { LABEL_BUDGET_STOP, labelItems, loadLabellerPrompts } from '../../../../scripts/llm-label.js';
 import type { LabelPlanFile, LabellerPrompt, ReconciledLabel } from '../../../../scripts/llm-label.js';
 import type { ItemKind } from '../../../../scripts/lib/label-context.js';
@@ -36,10 +36,12 @@ const SPEC = 'specs/clean-arch.yaml';
 const SPEC_SHA = createHash('sha256').update(readFileSync(join(ROOT, SPEC))).digest('hex');
 const MODEL = 'gemini-3.1-pro-high';
 
+/** A test configuration that still labels P3 (the FPAT labelled path); the registered config has P3 at 0 (item 8.1). */
 const CONFIG: LabelPlanConfig = {
-  version: 1, provider: 'mock', model: MODEL, budgetCalls: 300, reaskReserveCalls: 30, seeds: { strata: 6101, permutation: 6103, bootstrap: 6102 },
+  version: 2, provider: 'mock', model: MODEL, budgetCalls: 300, reaskReserveCalls: 30, seeds: { strata: 6101, permutation: 6103, bootstrap: 6102, audit: 6105 },
   priority: ['P4', 'P2', 'P3'], sampled: { P4: { perStratum: 1, maxItems: 46 }, P2: { perStratum: 1, maxItems: 20 }, P3: { perStratum: 1, maxItems: 10 } },
-  exhaustivePlanned: 59, context: { maxChars: 6000 }, quota: { callsPerWeek: 180, minWeeks: 2 },
+  exhaustivePlanned: 59, exhaustivePlannedBasis: 'test', context: { maxChars: { violation: 6000, 'missed-seed': 6000, 'judge-unit': 32000 } },
+  quota: { callsPerWeek: 180, minWeeks: 2, maxWeeks: 4 },
 };
 
 /** Answers by option name: violations TP, judge units pass, missed seeds FN with RC-LAYER-MAP (so both runs agree). */
@@ -127,12 +129,12 @@ describe('build-label-plan from run directories (P2, P3, P4, judge verdicts)', (
     // P4: (cell-a | correct-reference) x (integrity: 4 units, semantic: 10 units) -> 4 strata, p = 1/4 and 1/10.
     expect(count('P4')).toBe(4);
     expect(plan.items.filter((i) => i.population === 'P4').map((i) => i.inclusionProbability).sort()).toEqual([0.1, 0.1, 0.25, 0.25]);
-    expect(plan).toMatchObject({ sizing: 'registered', provider: 'mock', model: MODEL, permutationSeed: 6103, bootstrapSeed: 6102, budgetCalls: 300, reaskReserveCalls: 30 });
+    expect(plan).toMatchObject({ sizing: 'registered', provider: 'mock', model: MODEL, permutationSeed: 6103, bootstrapSeed: 6102, auditSeed: 6105, budgetCalls: 300, reaskReserveCalls: 30 });
     // Every P2..P4 item names its run (FPAT rows key on it).
     expect(new Set(plan.items.map((i) => i.runId))).toEqual(new Set(['e7-corpus-000-variant-a-structural', 'e1-grid-000-cell-a', 'fixtures-000-correct-reference']));
     // Contexts: source window or unit source, never the judge verdict or rationale (BR-U5b-35).
     for (const i of plan.items) {
-      expect(i.context.length).toBeLessThanOrEqual(6000);
+      expect(i.context.length).toBeLessThanOrEqual(i.kind === 'judge-unit' ? 32000 : 6000);
       expect(i.context).not.toMatch(/rationale|confidence/i);
     }
     // Judge verdicts: every valid pass/fail unit of both P4 runs (14 + 14), with source and generator model.
@@ -145,7 +147,7 @@ describe('build-label-plan from run directories (P2, P3, P4, judge verdicts)', (
     // Label it, then feed aggregate's FPAT input (SO5-01): the symbolic family counts are no longer zero.
     const labels = await label(plan, join(tmp, 'cassettes'));
     const { records, reports } = loadRunDir(e1);
-    const fpat = fpatLabelsFromFile(labels, records, reports);
+    const fpat = fpatLabelsFromFile(labels, records);
     expect(fpat).toHaveLength(2);
     expect(fpat.every((l) => l.runId === 'e1-grid-000-cell-a' && l.label === 'TP')).toBe(true);
     const so5 = loadSo5Codes(ROOT);
@@ -161,6 +163,39 @@ describe('build-label-plan from run directories (P2, P3, P4, judge verdicts)', (
     await expect(label(plan, join(tmp, 'cassettes-2'), 10)).rejects.toThrow(LABEL_BUDGET_STOP);
   });
 
+  it('ADR-021 item 8 with the registered config: P3 out of labelling (strata kept), P2 calls, audit seed, precision rows, cut by kind', async () => {
+    const corpus = runDir('corpus', { runId: 'e7-corpus-000-variant-a-structural', planId: 'e7-corpus', projectId: 'variant-a-structural' }, 'tests/fixtures/u5b/reports/variant-a-structural.json');
+    const e1 = runDir('e1', { runId: 'e1-grid-000-cell-a', planId: 'e1-grid', projectId: 'cell-a', cell: E1_CELL }, 'tests/fixtures/u5b/reports/full-mode/correct-reference.json');
+    const fixtures = runDir('fixtures', { runId: 'fixtures-000-correct-reference', planId: 'fixtures', projectId: 'correct-reference' }, 'tests/fixtures/u5b/reports/full-mode/correct-reference.json');
+    const registered = { ...(JSON.parse(readFileSync(join(ROOT, 'corpus/label-plan-config.json'), 'utf8')) as LabelPlanConfig), provider: 'mock' as const };
+    writeFileSync(join(tmp, 'config.json'), JSON.stringify(registered));
+    const out = join(tmp, 'out');
+    const a = io();
+    expect(await buildMain(['--out', out, '--config', join(tmp, 'config.json'), '--corpus-runs', corpus, '--e1-runs', e1, '--fixture-runs', fixtures, '--specs', SPEC], ROOT, a.io)).toBe(0);
+    const plan = JSON.parse(readFileSync(join(out, 'label-plan.json'), 'utf8')) as LabelPlanFile;
+    expect(plan.items.filter((i) => i.population === 'P3')).toHaveLength(0);
+    // The two P3 strata stay in the plan with their sizes (so the population is described, never labelled).
+    expect(plan.strata.filter((s) => s.population === 'P3')).toHaveLength(2);
+    expect(plan.items.filter((i) => i.population === 'P2')).toHaveLength(9);
+    expect(plan.auditSeed).toBe(6105);
+    const summary = JSON.parse(readFileSync(join(out, 'label-plan-summary.json'), 'utf8')) as PlanSummary;
+    expect(summary.escalated).toBe(false);
+    expect(summary.context.cutByKind).toEqual({ violation: 0, 'judge-unit': 0, 'missed-seed': 0 });
+    // Rows: E1 headline (2 units, p = 1/4 and 1/10: weights 4 and 10 -> n_eff = 196 / 116), fixtures, one generator,
+    // P2 (9 strata, all kept: p = 1 / N_h, so n_eff = (sum N_h)^2 / sum N_h^2 < 9), the censuses.
+    const rows = new Map(summary.precision.map((r) => [r.row, r]));
+    expect(rows.get('P4 judge-vs-panel agreement, E1 headline')).toMatchObject({ n: 2, halfWidthAt50: null });
+    expect(rows.get('P4 judge-vs-panel agreement, E1 headline')?.nEff).toBeCloseTo(196 / 116, 12);
+    expect(rows.get('P4 judge-vs-panel agreement, fixtures')?.n).toBe(2);
+    expect(rows.get('P4 judge-vs-panel agreement, generator claude-haiku-4-5')?.n).toBe(2);
+    const p2 = plan.strata.filter((x) => x.population === 'P2').map((x) => x.size);
+    const sum = p2.reduce((x, y) => x + y, 0);
+    expect(rows.get('P2 baseline precision, overall')).toMatchObject({ n: 9, halfWidthAt50: null });
+    expect(rows.get('P2 baseline precision, overall')?.nEff).toBeCloseTo((sum * sum) / p2.reduce((x, y) => x + y * y, 0), 12);
+    expect(rows.get('P2 baseline precision, overall')?.nEff).toBeLessThan(9);
+    expect(a.out.join('')).toContain('cut at the ceiling: violation 0 (6000 chars), judge-unit 0 (32000 chars), missed-seed 0 (6000 chars)');
+  });
+
   it('refuses a run whose spec is not among --specs and a known-bad config (--self-test)', async () => {
     const corpus = runDir('corpus', { runId: 'r', planId: 'e7-corpus', projectId: 'variant-a-structural', specSha: 'f'.repeat(64) }, 'tests/fixtures/u5b/reports/variant-a-structural.json');
     writeFileSync(join(tmp, 'config.json'), JSON.stringify(CONFIG));
@@ -171,6 +206,8 @@ describe('build-label-plan from run directories (P2, P3, P4, judge verdicts)', (
     expect(await buildMain(['--self-test'], ROOT, b.io)).toBe(1);
     expect(b.err.join('')).toContain('budgetCalls');
     expect(await buildMain(['--out', 'x', '--case', 'y'], ROOT, io().io)).toBe(2);
+    // --bases goes only with a case (it is read only when a missed seed needs its prepared base).
+    expect(await buildMain(['--out', 'x', '--bases', 'b.json'], ROOT, io().io)).toBe(2);
   });
 });
 

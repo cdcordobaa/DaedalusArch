@@ -167,3 +167,36 @@ Held-out golden totals: k = 2 → 85, k = 3 → 126. Rule: k = 2 (held-out golde
 | v-aguiar__valex | held-out | MO-X03 | 0 | — | 0 | 0 | 0 |
 | v-aguiar__valex | held-out | MO-X03n | 0 | — | 0 | 0 | 0 |
 | v-aguiar__valex | held-out | MO-S03n | 9 | edge-exists 1 | 8 | 2 | 3 |
+
+## Count inputs and command lines (ADR-021 item 5, Major 2; recorded for P-U6, 2026-10-09, without a recount)
+
+This table is the single count of commit `a90f3e3` (B&T plan Step 57; ADR-019 item 1, ADR-020 item 4). The count was
+not repeated for this record. Its inputs are registered by P-U6 (`corpus/prereg.json` version 4): this file's JSON
+twin `u5a-site-feasibility.json`, the type-check result `u5a-base-typecheck.json`, the E7 spec-generation result
+`e7-spec-generation.json`, the stored baseline selections `corpus/selections/*.json`, the corpus specs and presets,
+and the spec-chain tools (`scripts/generate-e7-specs*.ts`, `migrate-corpus-spec*.ts`, `remap-domain-layer*.ts`,
+`corpus-rubric-u4*.ts`).
+
+The `--bases` lists were `PreparedBase` arrays that `prepare-bases` wrote to scratch; they hold absolute scratch
+paths and are not committed, and the scratch invocations themselves were not logged. The command lines below are
+**reconstructed** from commit `a90f3e3`, the B&T plan Steps 56–57 and the documented usage of the entries; they
+name the same inputs and reproduce the lists from registered files only. Run from the repository root with the
+clones of `fetch-corpus --dest ../daedalus-corpus` (the registered SHAs and overlays of `corpus/corpus.json`):
+
+```sh
+# Step 56: the nine corpus entries that have a stored selection (MarvinRF__nest-docfy has none: PREP_SELECTION_MISSING).
+npx tsx scripts/prepare-bases-cli.ts --clones ../daedalus-corpus --selections corpus/selections \
+  --only dev-nest,realworld-test,ghostfolio-test,truthy-demo,dry-run-test,zhuravlevma__nestjs-active-record,nestjslatam__ddd,eryzerz__nestjs-ddd,v-aguiar__valex \
+  --out "$SCRATCH/prepared-bases-9.json"
+npx tsx scripts/u5a-base-measure.ts typecheck --bases "$SCRATCH/prepared-bases-9.json" --out Docs/DiagnosticRuns --scratch "$SCRATCH/measure"
+# Step 57: the seven bases at 0 type errors (dev-nest and eryzerz__nestjs-ddd excluded, BR-U5a-07).
+npx tsx scripts/prepare-bases-cli.ts --clones ../daedalus-corpus --selections corpus/selections \
+  --only realworld-test,ghostfolio-test,truthy-demo,dry-run-test,zhuravlevma__nestjs-active-record,nestjslatam__ddd,v-aguiar__valex \
+  --out "$SCRATCH/prepared-bases-7.json"
+npx tsx scripts/u5a-base-measure.ts feasibility --bases "$SCRATCH/prepared-bases-7.json" --out Docs/DiagnosticRuns --scratch "$SCRATCH/measure" --split held-out
+```
+
+`chooseSitesPerOperator` used `MASTER_SEED` 20261008. Bases (`projectId`, tsc, from `u5a-base-typecheck.json`):
+realworld-test 3.8.3, ghostfolio-test (`apps/api`) 5.9.2, truthy-demo 4.7.4, dry-run-test 5.9.3,
+zhuravlevma__nestjs-active-record 4.9.5, nestjslatam__ddd 5.9.3, v-aguiar__valex 4.7.4. The scratch paths are not
+part of the result.

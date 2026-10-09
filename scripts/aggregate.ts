@@ -493,6 +493,24 @@ function verdictSourceOf(r: EvaluationReport): 'ahsDeterministic' | 'ahsCombined
   return r.evaluationMode === 'full' ? 'ahsCombined' : r.evaluationMode === 'neuronal-only' ? 'ahsNeuronal' : 'ahsDeterministic';
 }
 
+/**
+ * Sub-stages of `report.timings.stages` and the stage that already contains them (ADR-021 item 8, SO2 follow-up):
+ * the universal cycle metric runs inside `compute-scores`, so its row is marked and never summed with its parent.
+ * Equal to `run-experiment.ts` `UNIVERSAL_CYCLE_STAGE` and C8's stage name (tested).
+ */
+export const NESTED_STAGES: Readonly<Record<string, string>> = Object.freeze({ 'universal-metric:cyclicDependencyCount': 'compute-scores' });
+
+/**
+ * The aggregate's `latency.csv` columns (descriptive, accepted runs only; ADR-021 item 8). `total_ms` is the pipeline
+ * total (`timings.totalMs`, the sum of the top-level stages; the report's `durationMs` before P-U6 was the scoring
+ * time); `within_stage` names the parent of a nested sub-stage row; `cycle_queries_sum_ms` sums both cycle queries
+ * (FF-S02 and the universal metric); `gate_result_unregistered` is not the H13 gate: the registered gate source is
+ * `so2-metrics tables` `gate.json` (rejected runs included).
+ */
+export const AGGREGATE_LATENCY_COLUMNS = [
+  'run_id', 'project_id', 'file_count', 'total_ms', 'stage', 'stage_ms', 'within_stage', 'cycle_queries_sum_ms', 'gate_result_unregistered',
+] as const;
+
 function runFiles(input: AggregateInput): Partial<Record<CsvFile, string>> {
   const out: Partial<Record<CsvFile, string>> = {};
   const acc = acceptedReports(input);
@@ -516,13 +534,17 @@ function runFiles(input: AggregateInput): Partial<Record<CsvFile, string>> {
     const cycles = cycleQueryTimes(report);
     const timeout = report.functionExecution.failed.some((f) => f.code === 'EVAL_002');
     const gate = latencyGate(cycles, timeout);
-    const stages = (report as unknown as { timings?: { stages?: { name: string; durationMs: number }[] } }).timings?.stages ?? [];
-    const total = (report as unknown as { durationMs?: number }).durationMs;
+    const timings = (report as unknown as { timings?: { totalMs?: number; stages?: { name: string; durationMs: number }[] } }).timings;
+    const stages = timings?.stages ?? [];
+    const total = timings?.totalMs ?? (report as unknown as { durationMs?: number }).durationMs;
     for (const st of stages.length > 0 ? stages : [{ name: '', durationMs: Number.NaN }]) {
-      latencyRows.push([record.runId, record.projectId, int(report.parseCoverage.total), int(total), st.name, Number.isFinite(st.durationMs) ? int(st.durationMs) : '', int(cycles.reduce((a, b) => a + b, 0)), gate]);
+      latencyRows.push([
+        record.runId, record.projectId, int(report.parseCoverage.total), int(total), st.name, Number.isFinite(st.durationMs) ? int(st.durationMs) : '',
+        NESTED_STAGES[st.name] ?? '', int(cycles.reduce((a, b) => a + b, 0)), gate,
+      ]);
     }
   }
-  out['latency.csv'] = csvText(['run_id', 'project_id', 'file_count', 'total_ms', 'stage', 'stage_ms', 'cycle_query_ms', 'gate_result'], latencyRows);
+  out['latency.csv'] = csvText(AGGREGATE_LATENCY_COLUMNS, latencyRows);
   out['coverage.csv'] = csvText(
     ['run_id', 'parse_coverage', 'resolved_internal', 'external', 'external_out_of_root_alias', 'unresolved', 'dropped_no_file_node', 'unsupported_dynamic'],
     acc.map(({ record, report }) => {
@@ -592,6 +614,30 @@ export function fpatCounts(runId: string, report: EvaluationReport | undefined, 
   return out;
 }
 
+/**
+ * The FPAT families whose per-cell value depends on labels (ADR-021 item 8.1): the families of compiled template
+ * functions (counted on TP-class P3 labels). The judge families count failing judge units and need no label.
+ */
+export function labelDependentFamilies(so5: So5Codes): Set<FpatFamily> {
+  const judge = new Set<string>(Object.values(so5.judgeDimensions as Record<string, string>));
+  return new Set((Object.values(so5.functionFamilies as Record<string, FpatFamily>)).filter((f) => !judge.has(f)));
+}
+
+/**
+ * Symbolic FPAT profile of one cell (ADR-021 item 8.1): every symbolic violation of the report counted once in its
+ * function's family, unlabelled and unweighted. This is the profile Ch9 reports while P3 is out of live labelling.
+ */
+export function symbolicFpatCounts(report: EvaluationReport | undefined, so5: So5Codes): Map<FpatFamily, number> {
+  const out = new Map<FpatFamily, number>();
+  const names = new Map((report?.functionResults ?? []).map((r) => [String(r.functionId), r.name]));
+  for (const v of report?.violations ?? []) {
+    if (v.route === 'neuronal' || (v as { readonly unitId?: unknown }).unitId !== undefined) continue;
+    const fam = familyOf(so5, names.get(String(v.functionId)) ?? String(v.functionId));
+    if (fam !== undefined) out.set(fam, (out.get(fam) ?? 0) + 1);
+  }
+  return out;
+}
+
 export interface So5Cell {
   readonly record: RunRecord;
   readonly report?: EvaluationReport;
@@ -601,6 +647,13 @@ export interface So5Cell {
   readonly taskId: string;
   readonly runIndex: number;
   readonly fpat: Map<FpatFamily, { count: number; weighted: number }>;
+  /**
+   * False when no P3 label exists (P3 is out of live labelling, ADR-021 item 8.1): the label-dependent families are
+   * then N/A for the cell (undefined, never 0). Absent = labelled (cells built before P-U6).
+   */
+  readonly fpatLabelled?: boolean;
+  /** Symbolic FPAT profile of the cell (`symbolicFpatCounts`). */
+  readonly symbolicFpat?: Map<FpatFamily, number>;
 }
 
 /**
@@ -639,6 +692,7 @@ export function so5Records(input: AggregateInput): RunRecord[] {
 }
 
 export function so5Cells(input: AggregateInput): So5Cell[] {
+  const labelled = (input.labels ?? []).length > 0;
   return so5Records(input).map((record) => {
     const cell = record.cell;
     if (cell === undefined) throw new Error('unreachable');
@@ -647,6 +701,7 @@ export function so5Cells(input: AggregateInput): So5Cell[] {
       record, ...(report !== undefined && { report }), valid: report !== undefined,
       model: cell.requestedModelId, specLevel: cell.specLevel, taskId: cell.taskId, runIndex: cell.runIndex,
       fpat: fpatCounts(record.runId, report, input.labels ?? [], input.so5),
+      fpatLabelled: labelled, symbolicFpat: symbolicFpatCounts(report, input.so5),
     };
   });
 }
@@ -662,7 +717,17 @@ interface Outcome { readonly family: string; readonly confirmatory: readonly str
 
 const ALL_EFFECTS = ['model', 'spec-level', 'model×spec-level'] as const;
 
-function outcomesOf(cells: readonly So5Cell[]): Outcome[] {
+/**
+ * A cell's weighted FPAT value of one family: undefined for an invalid cell and, without P3 labels, for a
+ * label-dependent family (N/A, never 0; ADR-021 item 8.1); else the weighted count (0 when none).
+ */
+export function fpatValue(c: So5Cell, fam: FpatFamily, labelDependent: ReadonlySet<FpatFamily>): number | undefined {
+  if (!c.valid) return undefined;
+  if (c.fpatLabelled === false && labelDependent.has(fam)) return undefined;
+  return c.fpat.get(fam)?.weighted ?? 0;
+}
+
+function outcomesOf(cells: readonly So5Cell[], labelDependent: ReadonlySet<FpatFamily> = new Set()): Outcome[] {
   const valid = cells.filter((c) => c.report !== undefined);
   const first = valid[0]?.report;
   const primaryField = first === undefined ? 'ahsDeterministic' : verdictSourceOf(first);
@@ -679,7 +744,7 @@ function outcomesOf(cells: readonly So5Cell[]): Outcome[] {
   }
   for (const fam of FPAT_FAMILIES) {
     if (!valid.some((c) => c.fpat.has(fam))) continue;
-    outcomes.push({ family: `secondary:fpat_${fam}`, confirmatory: [], values: (c) => (c.valid ? (c.fpat.get(fam)?.weighted ?? 0) : undefined) });
+    outcomes.push({ family: `secondary:fpat_${fam}`, confirmatory: [], values: (c) => fpatValue(c, fam, labelDependent) });
   }
   // ADR-021 SO5-07, X-3: deterministic violations per KLOC, exploratory (valid cells with a LOC count only).
   if (valid.some((c) => c.report !== undefined && c.record.cell?.loc !== undefined)) {
@@ -764,9 +829,12 @@ export function directionalCheck(cells: readonly So5Cell[], judgeModel: string, 
  * the pairwise rows (mean difference with a bootstrap CI that is descriptive only, and Cliff's δ), and, when the
  * judge model is given, the directional self-preference check.
  */
-export function so5Tests(cells: readonly So5Cell[], seeds: { readonly bootstrap: number; readonly permutation: number }, resamples: number, judgeModel?: string): string[][] {
+export function so5Tests(
+  cells: readonly So5Cell[], seeds: { readonly bootstrap: number; readonly permutation: number }, resamples: number, judgeModel?: string,
+  labelDependent: ReadonlySet<FpatFamily> = new Set(),
+): string[][] {
   const rows: string[][] = [];
-  for (const outcome of outcomesOf(cells)) {
+  for (const outcome of outcomesOf(cells, labelDependent)) {
     const obs = cells.flatMap((c) => {
       const v = outcome.values(c);
       return v === undefined || !Number.isFinite(v) ? [] : [{ c, v }];
@@ -822,6 +890,7 @@ function sizeCells(v: ReturnType<typeof so5SizeValues>): string[] {
 
 export function so5Csv(input: AggregateInput, resamples: number): Partial<Record<CsvFile, string>> {
   const cells = so5Cells(input);
+  const labelDependent = labelDependentFamilies(input.so5);
   const cellCols = ['requested_model_id', 'resolved_model_id', 'adapter_id', 'prompt_template_id', 'style', 'spec_level', 'task_id', 'run_index', 'generation_outcome_path', 'generation_status', 'failure_reason', 'file_count', 'file_count_in_range', 'permission_denials'];
   const fpatCols = FPAT_FAMILIES.map((f) => `fpat_${f.slice('FPAT-'.length).toLowerCase().replace(/-/g, '_')}`);
   const grid = cells.map((c) => {
@@ -835,26 +904,33 @@ export function so5Csv(input: AggregateInput, resamples: number): Partial<Record
       c.record.status, r === undefined ? '' : verdictSourceOf(r), f6(r === undefined ? undefined : ahsOf(r, 'ahsDeterministic')),
       f6(r === undefined ? undefined : ahsOf(r, 'ahsCombined')), f6(r === undefined ? undefined : ahsOf(r, 'ahsNeuronal')),
       ...DIMENSION_COLUMNS.map((d) => f6(avr.get(d))),
-      ...FPAT_FAMILIES.map((f) => (c.valid ? f6(c.fpat.get(f)?.weighted ?? 0) : '')),
+      ...FPAT_FAMILIES.map((f) => f6(fpatValue(c, f, labelDependent))),
       cellGenCode(input.so5, cell) ?? '',
       ...sizeCells(so5SizeValues(cell, r)),
     ];
   });
+  // `basis` (ADR-021 item 8.1): `labelled` = TP-class P3 labels weighted 1 / p; `judge` = failing judge units;
+  // `symbolic` = unlabelled symbolic violations per family (the Ch9 profile while P3 is not labelled; no weight);
+  // `gen` = the cell's GEN code.
   const patterns: string[][] = [];
   for (const c of cells) {
     for (const f of FPAT_FAMILIES) {
       const v = c.fpat.get(f);
-      if (v !== undefined) patterns.push([c.record.runId, f, int(v.count), f6(v.weighted)]);
+      if (v !== undefined) patterns.push([c.record.runId, f, int(v.count), f6(v.weighted), labelDependent.has(f) ? 'labelled' : 'judge']);
+    }
+    for (const f of FPAT_FAMILIES) {
+      const n = c.symbolicFpat?.get(f);
+      if (n !== undefined) patterns.push([c.record.runId, f, int(n), '', 'symbolic']);
     }
     const cell = c.record.cell;
     const gen = cell === undefined ? undefined : cellGenCode(input.so5, cell);
-    if (gen !== undefined) patterns.push([c.record.runId, gen, '1', f6(1)]);
+    if (gen !== undefined) patterns.push([c.record.runId, gen, '1', f6(1), 'gen']);
   }
   const seeds = input.plan?.seeds ?? { sampling: 0, bootstrap: 0, permutation: 0 };
   return {
     'so5_grid.csv': csvText([...cellCols, 'status', 'verdict_source', 'ahs_deterministic', 'ahs_combined', 'ahs_neuronal', ...DIMENSION_COLUMNS.map((d) => `avr_${d}`), ...fpatCols, 'gen_code', ...SO5_SIZE_COLUMNS], grid),
-    'so5_patterns.csv': csvText(['run_id', 'code', 'count', 'weighted_count'], patterns),
-    'so5_tests.csv': csvText(SO5_TEST_COLUMNS, so5Tests(cells, seeds, resamples, input.plan?.judge?.model)),
+    'so5_patterns.csv': csvText(['run_id', 'code', 'count', 'weighted_count', 'basis'], patterns),
+    'so5_tests.csv': csvText(SO5_TEST_COLUMNS, so5Tests(cells, seeds, resamples, input.plan?.judge?.model, labelDependent)),
   };
 }
 
@@ -877,30 +953,24 @@ export type { LoadedRunDir } from './lib/report-io.js';
 
 /**
  * The FPAT input of `--labels` (ADR-021 SO5-01): the labeller's `ReconciledLabel[]` converted to P3 rows keyed by the
- * E1 run id (`label-adapters.ts`), or a `LabelledViolation[]` already in that shape. Refused
- * (`AGGREGATE_INPUT_INVALID`) instead of counting zeros: a label that matches no E1 record, and a labels file without
- * any P3 label while an accepted E1 report has symbolic violations.
+ * E1 run id (`label-adapters.ts`), or a `LabelledViolation[]` already in that shape. A label that matches no E1
+ * record is refused (`AGGREGATE_INPUT_INVALID`). A labels file without any P3 label gives no row: P3 is out of live
+ * labelling (ADR-021 item 8.1), so the label-dependent FPAT values are N/A, never 0 (`fpatValue`).
  */
-export function fpatLabelsFromFile(value: unknown, records: readonly RunRecord[], reports: ReadonlyMap<string, EvaluationReport>): LabelledViolation[] {
-  let labels: LabelledViolation[];
+export function fpatLabelsFromFile(value: unknown, records: readonly RunRecord[]): LabelledViolation[] {
   if (isReconciledLabels(value)) {
     const r = fpatLabelsOf(value, records);
     if (!r.ok) throw new Error(`${AGGREGATE_INPUT_INVALID}: ${r.detail}`);
-    labels = r.labels;
-  } else if (Array.isArray(value) && value.every((l) => typeof (l as Partial<LabelledViolation>).runId === 'string' && typeof (l as Partial<LabelledViolation>).functionId === 'string')) {
-    labels = value as LabelledViolation[];
+    return r.labels;
+  }
+  if (Array.isArray(value) && value.every((l) => typeof (l as Partial<LabelledViolation>).runId === 'string' && typeof (l as Partial<LabelledViolation>).functionId === 'string')) {
+    const labels = value as LabelledViolation[];
     const e1 = new Set(records.filter((r) => r.cell !== undefined).map((r) => r.runId));
     const stray = labels.find((l) => !e1.has(l.runId));
     if (stray !== undefined) throw new Error(`${AGGREGATE_INPUT_INVALID}: label of ${stray.functionId} names run ${stray.runId}, which is not an E1 record of --runs`);
-  } else {
-    throw new Error(`${AGGREGATE_INPUT_INVALID}: --labels must be llm-label output (ReconciledLabel[]) or LabelledViolation[]`);
+    return labels;
   }
-  const symbolic = records.some((r) => r.cell !== undefined && r.status === 'accepted'
-    && (reports.get(r.runId)?.violations ?? []).some((v) => v.route !== 'neuronal' && (v as { readonly unitId?: unknown }).unitId === undefined));
-  if (labels.length === 0 && symbolic) {
-    throw new Error(`${AGGREGATE_INPUT_INVALID}: --labels holds no P3 label, but accepted E1 reports have symbolic violations; the FPAT columns would be 0`);
-  }
-  return labels;
+  throw new Error(`${AGGREGATE_INPUT_INVALID}: --labels must be llm-label output (ReconciledLabel[]) or LabelledViolation[]`);
 }
 
 /** Reads a harness output directory (`report-io.ts` `loadRunDir`, errors as `AGGREGATE_INPUT_INVALID`). */
@@ -971,7 +1041,7 @@ export async function main(argv: readonly string[], repoRoot: string, io: Aggreg
       planId: plan?.id ?? records[0]?.planId ?? 'unknown', ...(plan !== undefined && { plan }), records, reports, so5: so5.codes,
       ...(opts.has('score') && { score: readJsonFile(resolve(repoRoot, opts.get('score') ?? '')) as GoldenScoreJson }),
       ...(opts.has('sensitivity') && { sensitivity: readJsonFile(resolve(repoRoot, opts.get('sensitivity') ?? '')) as FunctionSensitivityResult[] }),
-      ...(opts.has('labels') && { labels: fpatLabelsFromFile(readJsonFile(resolve(repoRoot, opts.get('labels') ?? '')), records, reports) }),
+      ...(opts.has('labels') && { labels: fpatLabelsFromFile(readJsonFile(resolve(repoRoot, opts.get('labels') ?? '')), records) }),
       ...(opts.has('labelling') && { labelling: readJsonFile(resolve(repoRoot, opts.get('labelling') ?? '')) as LabellingOutputs }),
       ...(twinOf !== undefined && { twinOf }),
       ...(corpusTiers !== undefined && { corpusTiers }),

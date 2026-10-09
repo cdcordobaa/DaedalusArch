@@ -64,7 +64,15 @@ describe('registry (BR-U5b-51)', () => {
       'corpus/frozen-instrument.json', 'Docs/e7-spec-rule.md', 'scripts/generate-e7-specs.ts',
       'corpus/label-plan-config.json',
       'specs/clean-arch.yaml', 'tests/fixtures/u5a/layered/firewall.spec.yaml', 'presets/*.yaml',
+      'Docs/DiagnosticRuns/u5a-site-feasibility.json', 'Docs/DiagnosticRuns/u5a-base-typecheck.json', 'Docs/DiagnosticRuns/e7-spec-generation.json',
+      'corpus/selections/*.json', 'scripts/generate-e7-specs-cli.ts', 'scripts/migrate-corpus-spec.ts', 'scripts/migrate-corpus-spec-cli.ts',
+      'scripts/remap-domain-layer.ts', 'scripts/remap-domain-layer-cli.ts', 'scripts/corpus-rubric-u4.ts', 'scripts/corpus-rubric-u4-cli.ts',
+      'Docs/threats-to-validity.md', 'Docs/labeller-route.md',
     ]);
+    // ADR-021 item 5 (P-U6): the count inputs are registered; other diagnostic runs are not.
+    expect(isRegisteredPath('corpus/selections/v-aguiar__valex.json')).toBe(true);
+    expect(isRegisteredPath('Docs/DiagnosticRuns/u5a-site-feasibility.md')).toBe(false);
+    expect(isRegisteredPath('Docs/threats-to-validity.md')).toBe(true);
     // ADR-021 item 6 (SO3-2): the label-plan sizes are registered.
     expect(isRegisteredPath('corpus/label-plan-config.json')).toBe(true);
     // ADR-021 SO5-03 / THR-8: the E1 generator plan is registered; another experiment's generator plan is not.

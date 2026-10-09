@@ -12,7 +12,6 @@ import {
 import type { LabelPlanFile, LabellerPrompt } from '../../../../scripts/llm-label.js';
 import type { ItemKind, LabelItem } from '../../../../scripts/lib/label-context.js';
 import { fpatLabelsFromFile } from '../../../../scripts/aggregate.js';
-import type { EvaluationReport } from '../../../../src/shared/types/evaluation.js';
 import type { RunRecord } from '../../../../scripts/lib/report-io.js';
 
 function label(over: Partial<LabelView> & Pick<LabelView, 'itemId' | 'population' | 'label'>): LabelView {
@@ -72,14 +71,12 @@ describe('aggregate --labels adapter (SO5-01)', () => {
     expect(!nofn.ok && nofn.detail).toContain('no function id');
   });
 
-  it('aggregate refuses labels that would give zero FPAT counts instead of writing zeros', () => {
+  it('aggregate --labels: no P3 label gives no row (label-dependent FPAT values N/A, ADR-021 item 8.1); stray labels refused', () => {
     const rec = (runId: string, cell: boolean): RunRecord => ({ runId, projectId: runId, planId: 'e1-grid', status: 'accepted', ...(cell && { cell: {} }) } as unknown as RunRecord);
-    const report = { violations: [{ functionId: 'FF-S01', route: 'symbolic', filePath: 'a.ts' }] } as unknown as EvaluationReport;
-    const reports = new Map([['r1', report]]);
-    expect(() => fpatLabelsFromFile([label({ itemId: 'z', population: 'P2', label: 'TP', functionId: 'F' })], [rec('r1', true)], reports)).toThrow('holds no P3 label');
-    expect(() => fpatLabelsFromFile([{ runId: 'nope', functionId: 'F', label: 'TP' }], [rec('r1', true)], reports)).toThrow('not an E1 record');
-    expect(() => fpatLabelsFromFile({ a: 1 }, [rec('r1', true)], reports)).toThrow('--labels must be');
-    expect(fpatLabelsFromFile([label({ itemId: 'x', population: 'P3', label: 'TP', projectId: 'r1', functionId: 'FF-S01' })], [rec('r1', true)], reports))
+    expect(fpatLabelsFromFile([label({ itemId: 'z', population: 'P2', label: 'TP', functionId: 'F' })], [rec('r1', true)])).toEqual([]);
+    expect(() => fpatLabelsFromFile([{ runId: 'nope', functionId: 'F', label: 'TP' }], [rec('r1', true)])).toThrow('not an E1 record');
+    expect(() => fpatLabelsFromFile({ a: 1 }, [rec('r1', true)])).toThrow('--labels must be');
+    expect(fpatLabelsFromFile([label({ itemId: 'x', population: 'P3', label: 'TP', projectId: 'r1', functionId: 'FF-S01' })], [rec('r1', true)]))
       .toEqual([{ runId: 'r1', functionId: 'FF-S01', label: 'TP', inclusionProbability: 1 }]);
     expect(isReconciledLabels([])).toBe(true);
   });

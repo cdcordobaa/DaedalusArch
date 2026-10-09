@@ -10,6 +10,11 @@
 > recall unit (§5, item 3), symbolic-only SO4 (§2, item 5), descriptive pairwise CIs (§6, item 6), self-preference
 > rows and the directional check (§3, §6, item 7), the E7 stratum (§3, item 8) and the reporting duties (§10, item 9).
 > §11 lists every change.
+> **Amended 2026-10-09 (ADR-021, pre-registration P-U6, `corpus/prereg.json` version 4)**, after the U6 lanes and before
+> any so4-heldout, e7-corpus, e1-grid, apg-ablation or live-labelling run: the held-out set and the E7 bases named in
+> the plans and the `apg-ablation` plan (§2); the SO2 outputs, gate source and NFR-07 source, the SO4 N outcome and
+> per-style rows (§3); the label-size corrections of ADR-021 item 8 (§4, §5, §6); the SO4 precision and F1 intervals
+> (§5); rejected pairs (§8). §11 lists every change.
 > **Requirements**: FR-v1.2E-25, 27, 36; SO1–SO5 (ADR-017 items 1–3, 6, 7); ADR-015 items 1, 2, 5, 10; ADR-016 b, e.
 > **Design source**: `aidlc-docs/construction/v1.2E-u5b-scoring-harness/functional-design/business-rules.md`
 > (BR-U5b-20, 30, 33, 34, 45..49, 53, 54, 61..65, 78). The matching of seeds to violations is `Docs/matching-rule.md`
@@ -134,9 +139,10 @@ pre-registration gate (BR-U5b-50). Judge modes pin the judge of `Docs/judge-prer
 | `fixtures` | fixtures | `full` | the five C16 fixtures (`fixtures/correct-reference`, `fixtures/variant-a-structural`, `-b-pattern`, `-c-everything`, `-d-subtle`) with `specs/clean-arch.yaml` | 1101 / 1102 / 1103 |
 | `latency-gate` | latency-gate | `symbolic-only` | ghostfolio `apps/api` with `corpus/specs/ghostfolio-test.yaml` | 2101 / 2102 / 2103 |
 | `sensitivity` | sensitivity | `symbolic-only` | none yet; `fixAttempts: []` | 3101 / 3102 / 3103 |
-| `so4-heldout` | SO4 | `symbolic-only` (ADR-020 item 5; was `full`) | none yet | 4101 / 4102 / 4103 |
+| `so4-heldout` | SO4 | `symbolic-only` (ADR-020 item 5; was `full`) | the seven frozen held-out bases as baseline entries, each with its corpus spec (P-U6, ADR-021 item 5): `realworld-test`, `ghostfolio-test` `apps/api`, `truthy-demo`, `dry-run-test`, `zhuravlevma__nestjs-active-record`, `nestjslatam__ddd`, `v-aguiar__valex`; the seeded entries follow `mutate` (below) | 4101 / 4102 / 4103 |
 | `e1-grid` | E1 | `full` | the `e1` block: 3 models × 3 spec levels × 2 tasks × 3 runs = 54 cells | 5101 / 5102 / 5103 |
-| `e7-corpus` | E7 | `full` | the four core projects whose corpus spec exists (`realworld-test`, `ghostfolio-test` `apps/api`, `truthy-demo`, `dry-run-test`) | 7101 / 7102 / 7103 |
+| `e7-corpus` | E7 | `full` | the four core projects (`realworld-test`, `ghostfolio-test` `apps/api`, `truthy-demo`, `dry-run-test`) and the three frozen E7 bases (P-U6, ADR-021 item 5): `zhuravlevma__nestjs-active-record`, `nestjslatam__ddd`, `v-aguiar__valex` | 7101 / 7102 / 7103 |
+| `apg-ablation` | SO2 ablation (ADR-021 SO2-5, X-2, item 8) | `symbolic-only` | 18 entries: the full arm and the `ast-only` arm (`graphMode`, the IMPORTS / DECLARES / CONTAINS allow-list over the full extraction) of the four core bases and the five fixtures; MO-DF01 seeded copies are not added (P-U6 decision, `Docs/threats-to-validity.md` TV-96) | 8101 / 8102 / 8103 |
 
 **Paths.** Corpus projects are read from `../daedalus-corpus/<name>` relative to the repository root, the
 destination of `fetch-corpus --dest ../daedalus-corpus` (pinned SHA, overlays and install policy of
@@ -152,22 +158,26 @@ BR-U5b-53, U4 CTX-07). The model pins are confirmed at the generator-protocol fr
 after the pilot); a different pin is a version bump of this file and of `experiments/e1-grid/plan.json` with a
 reason, before the first E1 run.
 
-**Entries added later.** The SO4 seeded and baseline entries (`seed` references to U5a manifests and baseline
-reports) and the SP-* probe entries of `sensitivity` exist only after Build and Test has run the FR-18 re-baseline,
-`prepare-bases` and `mutate`. The E7 entries of `dev-nest` and the added projects need their corpus specs (OI-12).
-Each addition is registered as a new `corpus/prereg.json` version with a reason before the first run of that plan;
-it adds entries and changes no other field of a registered plan.
+**Entries added later.** The SO4 seeded entries (`seed` references to the U5a manifest) and the SP-* probe entries
+of `sensitivity` exist only after Build and Test has run the FR-18 re-baseline, `prepare-bases` and `mutate`. A
+seeded `so4-heldout` entry names `seed.baselineReportPath = reports/<runId>.json` of the baseline entry of the same
+base, `runId = runIdOf('so4-heldout', entry)` (ADR-021 item 9, SO4-04), and the case is built by
+`build-score-case-cli`. `dev-nest` (10 type errors), `eryzerz__nestjs-ddd` (type errors) and `MarvinRF__nest-docfy`
+(excluded for good from SO4, ADR-021 item 5) are not entries. Each addition is registered as a new
+`corpus/prereg.json` version with a reason before the first run of that plan; it adds entries and changes no other
+field of a registered plan.
 
 ## 3. Outcomes per objective
 
 | Objective | Primary outcome | Secondary outcomes (exploratory unless stated) | Output |
 |---|---|---|---|
 | SO4 instrument validity | seeded differential precision (FP-labelled, `Docs/matching-rule.md` MAT-10 1.1.0), recall and F1 on `split = held-out` seeded instances, overall and per function, dimension, tag (with the `structural / data-flow` sub-row) and project; recall intervals per §5 (cell unit); the pooled E7 row (`base_kind = corpus-e7`, the only unseen stratum) next to the all-bases figure (ADR-020 item 8) | **registered secondary: SO4 baseline precision** (ADR-020 item 1), per function, per corpus tier and overall: the Horvitz–Thompson weighted share of P2 items labelled TP-class (`TP`, `unseeded-TP`), each weighing 1 / p, `uncertain` kept in the denominator as non-TP, with the §5 interval rule; reported beside the differential precision wherever a precision is quoted. Exploratory: precision FP-strict and incl. twins; recall in coverage; twin specificity; `corpus-core` rows; `dev` rows (never pooled with held-out); the neural column `neural_new` (never in symbolic P/R/F1, MAT-19 1.1.0) | `prf_*.csv`, `precision_baseline.csv`, `precision_figure.csv`, `instances.csv`, `twins.csv` |
-| SO4 FP / FN analysis | weighted counts per `RC-*` root cause (P1–P3, missed seeds) | mechanical vs labeller FN causes | `fp_fn_taxonomy.csv` |
+| SO4 N against the floor (ADR-021 SO4-05) | the golden-set count N = scored held-out golden instances (matched + missed) against the registered 80–120 floor; with `--golden-registered 85` the catalogue's registered total at k = 2 (the 85-vs-80 margin); the overall row carries the ADR-019 item 1 statement (k frozen, actual N, any shortfall a Ch7 deviation, no other lever) | the count per stage (in the case, rejected as a pair, not applicable, site invalid, scored); every seed and every manifest rejection with its stage and reason (the coverage table, MAT-12 step 1) | `golden_instances.csv`, `seed_coverage.csv` |
+| SO4 FP / FN analysis | weighted counts per `RC-*` root cause (P1, P2, missed seeds; P3 is not labelled, §4) | mechanical vs labeller FN causes | `fp_fn_taxonomy.csv` |
 | SO3 report | per project, the AHS field named by `scoring.verdictSource` of the run's mode, with its verdict | the other AHS fields present; per-dimension AVR; leave-one-dimension-out deltas; sensitivity-only sweeps | `ahs_by_project.csv`, `rescore_*.csv` |
 | SO3 neural | judge vs panel agreement on P4 E1 units (weighted, judges of another model family; `headline = true`; ADR-020 item 7) | the same agreement per source (`e1`, `fixture`) and pooled, per E1 generator model, and with `uncertain` kept as a category; run vs run (order sensitivity, §10 B3); panel vs audit (sanity check, B6); judge repetition reliability; judge-probe detection conditional on selection | `agreement.csv`, `judge_probe.csv` |
-| SO2 | parse coverage and resolution counts per run; latency gate result | stage times; FLOWS_TO evidence per MO-DF01 seed and twin | `coverage.csv`, `latency.csv`, `edge_evidence.csv` |
-| SO1 | denominators per run (declared, ADR-derived, compiled, disabled, dropped, skipped by mode, executed, failed), identities I1 and I2 | per-style P/R/F1 rows | `denominators.csv` |
+| SO2 | parse coverage and resolution counts per run; the H13 latency gate decision per plan, from `so2-metrics tables` `gate.json` (the only registered gate source; every RunRecord counts, rejected ones included: a cycle-query timeout is `fallback-required`, an unreadable run `inconclusive`; ADR-021 SO2-1) | per-run latency (`so2/latency.csv`, both cycle queries apart) and the NFR-07 table (`so2/nfr07_latency.csv`, with `profile.csv`); graph size per project by node and edge type and `FLOWS_TO` edges per resolved import (`so2/graph_coverage.csv`, `flows_to_stores.csv`; ADR-021 SO2-4, X-4); the APG-full vs AST-only ablation (`apg_ablation.csv`, `apg_ablation_summary.csv`, descriptive: functions that lose detection; pre-run check `apg_arms.csv`); stage times (aggregate `latency.csv`, descriptive); FLOWS_TO evidence per MO-DF01 seed and twin | `results/<plan>/so2/*` (`scripts/so2-metrics-cli.ts`), `coverage.csv`, `latency.csv`, `edge_evidence.csv` |
+| SO1 | denominators per run (declared, ADR-derived, compiled, disabled, dropped, skipped by mode, executed, failed), identities I1 and I2 | per-style P/R/F1 rows: the `style-<s>` strata rows of the `prf_*` files, `s` = the spec's `architecture.style` (the style the instrument evaluates with); the corpus style is a column of `denominators.csv`, `prf_by_project.csv`, `seed_coverage.csv` and `golden_instances.csv`, so the style mismatches (`zhuravlevma__nestjs-active-record`: corpus `layered`, spec `nestjs`) are reported, not hidden (ADR-021 SO1-C, item 9) | `denominators.csv`, `prf_*.csv` |
 | SO1 instrument (ADR-021 SO1-E, X-7) | per spec group (corpus, fixture, preset): validator first-pass rate with its Wilson 95 % interval; per built-in style library: template coverage (declared functions with a template ÷ declared) | current pass rate; first-failure error codes; compiled ÷ declared per spec style (ratio of sums); spec line counts (total, blank, comment, content), descriptive only | `so1-metrics-<sha>.json` (`scripts/so1-metrics-cli.ts`) |
 | SO5 (E1) | the `verdictSource` AHS of each valid cell (§6); for the model effect, `ahsDeterministic` is co-primary (ADR-020 item 7) | the directional self-preference check (§6, registered); other AHS fields, per-dimension AVR, `FPAT-*` weighted family counts (rule-family profile), valid-generation yield, judge fail share, deterministic violations per KLOC (exploratory, ADR-021 SO5-07, X-3); descriptive per-cell columns: LOC, all violations per KLOC, generation time, turns and cost, instrument time; the open-coding input (§6, exploratory) | `so5_grid.csv`, `so5_patterns.csv`, `so5_tests.csv`; `open-coding-input.json`, `open-coding-key.csv` |
 | ADR-016 b | one pass / fail per SP-* probe; exclusion only after a failed probe and a recorded fix attempt | line confirmation | `function_sensitivity.csv` |
@@ -194,6 +204,28 @@ violations, judge violations included, descriptive only. Both are empty for a ce
 report's `timings.totalMs`, the sum of the pipeline stage times). The latency columns are descriptive; no test is run
 on them.
 
+SO2 sources and definitions (ADR-021 SO2, item 8; registered 2026-10-09 for P-U6). The SO2 tables are written by
+`scripts/so2-metrics-cli.ts` from harness output directories and the extractor, never by hand: `tables --run-dir
+results/latency-gate` gives `latency.csv` (one row per RunRecord, rejected and not-run included), `graph_coverage.csv`
+and `gate.json`. **The NFR-07 table** is `nfr07_latency.csv` of `tables --run-dir results/latency-gate --run-dir
+results/apg-ablation` (B&T plan Step 25): both plans are symbolic-only and run right after P-U6; the full-APG arm of
+`apg-ablation` covers the three in-scope bases (≤ 300 files), the AST-only arm is left out (`nfr07Rows`), and the
+PROFILE timings (`profile.csv`) give the per-query split. **The gate source** is `results/latency-gate/so2/gate.json`
+only. The aggregate's `latency.csv` is descriptive: accepted runs only, one row per report stage, `total_ms` the
+pipeline total (`timings.totalMs`), the universal cycle metric's sub-stage row marked `within_stage = compute-scores`
+(it is inside that stage, never summed with it), `cycle_queries_sum_ms` the sum of both cycle queries, and
+`gate_result_unregistered` a per-run indication that is not the H13 gate. **Graph size** counts the evaluated graph:
+every extraction applies the spec's `default_exclude_paths` (`readSpecExcludePaths`), as the pipeline does.
+**`FLOWS_TO` per resolved import** = `FLOWS_TO` edges ÷ `importResolution.resolvedInternal`, descriptive. **The
+ablation** compares, per base, the violations of the full arm and the `ast-only` arm (the IMPORTS / DECLARES /
+CONTAINS edges and the Package nodes they target, a post-filter over the unchanged full extraction; import
+resolution and the counts are the full extraction's), and lists the functions that lose detection; descriptive, no
+test. `so2-metrics arms` exits 1 before the run when any base's pair of arms is identical. **Type-resolution rate**
+(X-4): not defined as a separate metric. The APG records import resolution (`coverage.csv`: resolved internal,
+external, out-of-root alias, unresolved, dropped, dynamic) and the type-checker edges (CALLS, EXTENDS, IMPLEMENTS,
+CONSTRUCTOR_INJECTS) without a per-reference resolution outcome, so a rate would have no measured denominator; the
+proposal's rate is declared dropped and replaced by the import-resolution counts (`Docs/threats-to-validity.md` §3).
+
 Probe rows (`split = probe`) never enter a P/R/F1 table (BR-U5b-20, 78). `dev` is never pooled with `held-out`; the
 headline SO4 table is `held-out`, reported per `baseKind` (`corpus`, `generated`), per corpus tier (`corpus-core`,
 `corpus-e7`) and as a held-out total. The core corpus was seen during development (`Docs/corpus.md`; ADR-015 item 7,
@@ -212,7 +244,7 @@ uses the plan's `sampling` seed (BR-U5b-33, 63).
 |---|---|---|---|
 | P1 | FP-strict and twin-FP violations of seeded copies | — | exhaustive |
 | P2 | corpus baseline violations | (project, function) | 20 |
-| P3 | E1 generated-project violations | (cell, function) | 20 |
+| P3 | E1 generated-project violations (out of live labelling since P-U6, ADR-021 item 8.1) | (cell, function) | 20 (live: 0) |
 | P4 | judge units of run index 0 of every valid E1 cell and of the five fixtures in full mode | (cell, dimension) | 10 |
 | missed seed | FN seeds that no mechanical rule (`Docs/matching-rule.md` §7) resolves | — | exhaustive |
 
@@ -234,33 +266,39 @@ run index 0 of a cell with `generationStatus = 'ok'` and gives `source = 'e1'` a
 report's `judge.model`. A hand-supplied `--judge-verdicts` file is refused (`LABEL_VERDICT_SOURCE_MISSING`) when any
 verdict lacks `source`, so the E1 headline row and the B3 row never fall back to the pooled set silently.
 
-**Registered live sizes (ADR-021 item 6, amended 2026-10-09 for P-U6).** The agy route (`Docs/labeller-route.md`)
-allows about 180 label calls a week, so the live plan is sized explicitly by `corpus/label-plan-config.json` (a
-registered artefact) instead of by the cap-derived bound above; the 4000 calls of `corpus/prereg.json` stay a
-ceiling, not a target.
+**Registered live sizes (ADR-021 items 6 and 8, amended 2026-10-09 for P-U6).** The agy route
+(`Docs/labeller-route.md`) allows about 180 label calls a week, so the live plan is sized explicitly by
+`corpus/label-plan-config.json` (version 2, a registered artefact) instead of by the cap-derived bound above; the 4000
+calls of `corpus/prereg.json` stay a ceiling, not a target.
 
 | Item | Registered value |
 |---|---|
-| Call ceiling, both runs and re-asks included | 300 (`budgetCalls`), of which 30 are held back for the one re-ask per answer |
-| P4 | 1 unit per (cell, dimension) stratum, at most 46 items: (18 run-0 cells + 5 fixtures) × 2 dimensions |
-| P2 | 1 violation per (project, function) stratum, at most 20 items |
-| P3 | 1 violation per (cell, function) stratum, at most 10 items |
-| P1 + missed seeds | exhaustive, planned at no more than 59 items: (46 + 20 + 10 + 59) × 2 + 30 = 300 |
-| Priority when the budget binds | P4, then P2, then P3: ceilings are lowered in the order P3, P2, P4 (ADR-021 item 7) |
-| Context ceiling | 6 000 characters per item (the 31-line window or the unit source, the rule text, the options) |
+| Call ceiling, both runs, re-asks and retries included | 300 (`budgetCalls`), of which 30 are held back for the one re-ask per answer and the provider retries; the budget counts **agy invocations**, retries included (item 8.7), and no call is sent unless two invocations still fit |
+| P4 | 1 unit per (cell, dimension) stratum, at most 46 items: (18 run-0 cells + 5 fixtures) × 2 dimensions; stratum draw SRS when they do not all fit |
+| P2 | 1 violation per (project, function) stratum, at most 30 items (P3's 10 calls moved here, item 8.1); stratum draw **PPS by stratum size** (item 8.3) |
+| P3 | 0: out of live labelling (item 8.1); its strata stay in the plan with their sizes |
+| P1 + missed seeds | exhaustive, planned at no more than 59 items: (46 + 30 + 0 + 59) × 2 + 30 = 300. Basis (item 8.2): the FR-24 freeze gate on the fixture (22 positive and 11 twin rows on `correct-reference`) gave 0 new keys outside the expected keys and declared collateral, so 0 FP-strict items per fixture instance; no corpus FP count exists before the so4-heldout run; 59 allows 0.69 items per held-out instance (85) |
+| Escalation (item 8.2) | if P1 + MS exceed the 135 items of 300 calls, the budget becomes the smallest whole number of weeks × 180 calls (from 2 weeks, 360 calls) whose capacity holds P1 + MS and the sampled ceilings, at most `maxWeeks` = 4 (720 calls); only then are sampled ceilings lowered; past 4 weeks P1 + MS are thinned by one seeded simple random sample with p = capacity / (P1 + MS) and the gap is a limitation. No plan is refused for its size |
+| Priority when the budget binds | P4, then P2, then P3: ceilings are lowered in the order P3, P2, P4 (ADR-021 item 7); P4 (judge-vs-panel agreement) takes priority over P2, and P2 over P3 |
+| Context ceiling per item kind (item 8.6) | violation and missed-seed items 6 000 characters (the 31-line window, the rule text, the options); judge units 32 000 characters (the judge's `codeSnippet` budget of 8 000 tokens × 4 characters: the unit source and the rubric); `build-label-plan` reports `context.cut` by kind |
 | Quota schedule | at least 2 weeks at 180 calls a week |
-| Seeds | stratum draw 6101, run-1 order and option permutations 6103, agreement bootstrap 6102 |
+| Seeds | stratum draw 6101, run-1 order and option permutations 6103, agreement bootstrap 6102, blinded audit draw 6105 (`seeds.audit`, item 8.5) |
 
 When a population has more strata than its ceiling allows, `m = ⌊maxItems / perStratum⌋` of its `M` strata are
-drawn by a seeded simple random sample (seed 6101), then `min(perStratum, N_h)` items inside each drawn stratum by the
-within-stratum draw of BR-U5b-33 under the `sampling` seed of the plan that produced the run (`e7-corpus` for P2,
-`e1-grid` for P3 and E1 units, `fixtures` for fixture units; P1 and missed seeds are censuses and are not
-sampled). The inclusion probability is `p = (m / M) · min(perStratum, N_h) / N_h`. If P1 and missed seeds alone
-exceed the 135 items the budget pays for, the plan is refused (`LABEL_PLAN_OVER_BUDGET`) and the gap is reported as a
-limitation. The precision these sizes allow is stated before any run: with n = 46 P4 items the Wilson 95 %
-half-width at nominal n is ±0.139 at p = 0.5 and ±0.103 at p = 0.85; with n = 20 P2 items it is ±0.201 at p = 0.5;
-P3 (n ≤ 10) and per-function rows report counts only. Unequal weights lower the effective size (Kish), so these are
-lower bounds on the widths. `build-label-plan` prints the same statement for the real plan.
+drawn, then `min(perStratum, N_h)` items inside each drawn stratum by the within-stratum draw of BR-U5b-33 under the
+`sampling` seed of the plan that produced the run (`e7-corpus` for P2, `e1-grid` for E1 units, `fixtures` for
+fixture units; P1 and missed seeds are censuses and are not sampled). The stratum draw is SRS (seed 6101, `pi_h =
+m / M`) for P4 and **PPS** for P2: strata with `m N_h / N ≥ 1` are taken with certainty, the others are drawn by
+systematic PPS over a seeded order with `pi_h = m' N_h / N'`, so with one item per stratum every non-certain P2 item
+has the same inclusion probability `m' / N'` and the sample is self-weighting. The inclusion probability is `p = pi_h
+· min(perStratum, N_h) / N_h`. **Precision stated before any run (item 8.3).** `build-label-plan` prints, per row, the
+nominal n, the Kish effective n `n_eff = (Σw)² / Σw²` of the design weights w = 1 / p, and the Wilson 95 % half-width
+at `n_eff` (at p = 0.5 and 0.85; counts only when `n_eff < 10`): the P4 judge-vs-panel E1 headline (the E1 units, at
+most 36 = 18 run-0 cells × 2 dimensions; with equal weights n_eff = 36 gives ±0.155 at p = 0.5 and ±0.116 at
+p = 0.85), the P4 fixtures (at most 10), P4 per E1 generator model (at most 12 each), P2 overall (30: n_eff ≤ 30 when
+every stratum is kept with p = 1 / N_h, = 30 for a PPS draw without certainty strata: ±0.168 at p = 0.5), and the P1
+and MS censuses. Unequal weights lower n_eff, so the printed widths are those of the real plan, not lower bounds.
+The FP/FN taxonomy and the agreement statistics are reported with these widths.
 
 **Plan producer (ADR-021 SO3-2, SO4-02, SO3-3).** `scripts/build-label-plan-cli.ts` builds the label plan from stored
 outputs only: P1 items and the `missed` instances from `score-golden --label-items` on the `so4-heldout` case; the
@@ -272,11 +310,14 @@ model is called. `llm-label` reads the plan's labeller route (`agy`, `gemini-3.1
 its budget, stops at the budget (`LABEL_BUDGET_STOP`), and `llm-label --usage` reports the measured input tokens per
 call from the recorded cassettes. Its output (`ReconciledLabel[]`) is read directly by `score-golden --labels` (P1;
 every P1 item of the score must carry a label, `SCORE_LABELS_MISSING`) and by `aggregate --labels` (P3, keyed by the
-E1 run id; a label that matches no E1 record, or a labels file without P3 labels while E1 reports have symbolic
-violations, is refused). `instances.csv` `fn_root_cause` / `fn_cause_source` take the mechanical cause, else the
+E1 run id; a label that matches no E1 record is refused; a labels file without P3 labels gives no row, so the
+label-dependent FPAT values are N/A, item 8.1). `instances.csv` `fn_root_cause` / `fn_cause_source` take the mechanical cause, else the
 reconciled missed-seed label (`labeller`).
 
 The 30-item blinded audit, its floor of 3 per stratum and its round-robin allocation are `Docs/matching-rule.md` §8.
+Since P-U6 (item 8.8) it is drawn from the label plan before the live labelling run, stratified by item kind ×
+population, with the registered audit seed 6105 (`llm-label --allocate-audit` refuses another seed and refuses
+labels); `uncertain` items are no longer excluded.
 
 ## 5. Interval rule
 
@@ -300,6 +341,18 @@ in any stratum, the cell interval is the only primary recall interval. The insta
 "if independent" bound. Per-function rows use the seeds for which the function is applicable. The n < 10 rule
 applies to instances.
 
+**SO4 precision and F1 (ADR-021 SO4-06, item 9; registered 2026-10-09 for P-U6).** The unit is the (project,
+operator) cell, not the project. A row with 10 or more cells gets the cell percentile bootstrap as its primary
+interval for both precision (`precision_ci_*`) and F1 (`f1_ci_*`); this is expected for the overall held-out row
+(about 40 cells at k = 2, 85 instances) and for most dimension and tag rows. A row with fewer than 10 cells (the
+per-project rows and some per-function rows) gets Wilson on the pooled precision with n = cells (Clopper–Pearson at
+0 or 1) and no primary F1 interval: F1 is not a binomial proportion and never gets a Wilson interval. With 7 held-out
+projects the project cluster bootstrap stays descriptive in every row. Wilson on the TP + FP violations is reported
+only as the "if independent" bound of precision. Precision counts the cells with TP + FP > 0 and F1 the cells with
+TP + FP + FN > 0; below n = 10 cells, counts only. The basis is the labelled mode (FP-labelled) when labels exist,
+on every row including the per-project rows (rebuilt from the instances' item labels), else strict
+(`precision_f1_ci_basis`).
+
 **Weighted proportions (ADR-020 item 1, B3).** The baseline precision and the weighted P2–P4 estimates are
 Horvitz–Thompson ratios Σ w·y / Σ w with w = 1 / p. With 10 or more project clusters the cluster bootstrap is primary;
 with fewer, Wilson on the Kish effective size n_eff = (Σw)² / Σw² (`wilson-kish`; `clopper-pearson-kish` on ⌊n_eff⌋
@@ -307,7 +360,13 @@ at 0 or 1), the bootstrap as sensitivity. The judge-vs-panel and panel-vs-audit 
 bootstrap (ADR-021 THR-6, amended 2026-10-09 for P-U6): items are resampled with replacement (10 000 resamples, the
 label plan's bootstrap seed 6102), the statistic is the weighted agreement Σ w·[a = b] / Σ w, and the interval is
 the 2.5 and 97.5 percentiles (`weighted-item-bootstrap`); a row with fewer than 10 pairs reports counts only
-(`counts-only`). The unweighted run-vs-run row keeps Wilson. Judge repetition reliability groups cassette entries by
+(`counts-only`). The unweighted run-vs-run row keeps Wilson. **κ and AC1 intervals (ADR-021 item 8.4,
+P-U6):** every pairwise agreement row with 10 or more pairs (run vs run, judge vs panel, panel vs audit) gets 95 %
+percentile intervals of Cohen's κ and Gwet's AC1 from the same item bootstrap (the bootstrap seed 6102, 10 000
+resamples, each resample's weighted table; a resample whose κ is undefined is skipped): `kappa_ci_low`,
+`kappa_ci_high`, `ac1_ci_low`, `ac1_ci_high`. The labeller validity criterion (ADR-021 SO3) is judged on the run-vs-run
+κ **point estimate**: κ ≥ 0.60 keeps the FP/FN taxonomy as registered, κ < 0.60 makes it descriptive only
+(`taxonomy_rule` = `as-registered` / `descriptive-only`); the interval is reported beside it. Judge repetition reliability groups cassette entries by
 (function, project, unit, request hash), so units of different projects never pool (ADR-021 SO3-5).
 
 ## 6. SO5 factors, tests and Holm families
@@ -346,7 +405,12 @@ the 2.5 and 97.5 percentiles (`weighted-item-bootstrap`); a row with fewer than 
   rests on the Holm-corrected permutation p-values and Cliff's δ.
 - **Significance level**: α = 0.05 after Holm.
 - **Family counts** (`FPAT-*`, §1): TP-class violations (`TP`, `unseeded-TP`) weighted by 1 / p of P3 (ADR-020 item 2;
-  was: `TP` weight 1), failing judge units by dimension. No labeller assigns a pattern code.
+  was: `TP` weight 1), failing judge units by dimension. No labeller assigns a pattern code. **P3 is out of live
+  labelling (ADR-021 item 8.1, P-U6):** without P3 labels the label-dependent families (the eight template families)
+  are **N/A** per cell (an empty `so5_grid.csv` `fpat_*` value, never 0) and enter no test; the two judge families
+  are counted as before. Ch9 reports the FPAT profile from the **symbolic counts**: `so5_patterns.csv` rows with
+  `basis = symbolic` count every symbolic violation of a cell in its function's family, unlabelled and unweighted
+  (`basis` is `labelled`, `judge`, `symbolic` or `gen`).
 - **Exploratory open coding (registered 2026-10-09 for P-U6, ADR-021 SO5-07; Fable B4).** A data-derived failure
   taxonomy beside the FPAT profile, **exploratory only**: it never enters a test, a Holm family or a confirmatory
   claim, and it never changes the FPAT counts.
@@ -405,8 +469,10 @@ Flags are recorded on every row and never exclude it by themselves:
   successful generation: a model or spec level that fails more often is compared on its surviving projects only. The
   mitigation is the valid-generation yield family (§6, every coordinate in the denominator, `GEN-*` codes included),
   reported beside every AHS effect, and the stratified permutations of §6.
-- **SO4**: a seed pair whose baseline or seeded report is rejected yields no score and is listed with its reason;
-  not-applicable and site-invalid seeds are kept out of recall (`Docs/matching-rule.md`).
+- **SO4**: a seed pair whose baseline or seeded report is rejected yields no score and is listed with its reason in
+  `rejectedPairs` and in `seed_coverage.csv` (stage `pair`; ADR-021 SO4-03); the other pairs are still scored, and the
+  case is refused only when every pair is rejected or the operator collateral is unkeyed. Not-applicable and
+  site-invalid seeds are kept out of recall (`Docs/matching-rule.md`).
 - **Functions**: a function is excluded from a table only after a failed SP-* probe and a recorded fix attempt, with
   the function disabled in a later registered spec version (BR-U5b-78); ghostfolio is never excluded or stratified
   for latency; a failed latency gate triggers the Tarjan fallback in Build and Test (BR-U5b-49).
@@ -476,3 +542,10 @@ These statements are registered: every report of the corresponding figure carrie
 | 2026-10-09 (P-U6) | §6 | Main-effect permutations within task × the other factor; directional check within (task, spec level) | ADR-021 THR-4 |
 | 2026-10-09 (P-U6) | §6, §10 | Exploratory open coding of the E1 rationales (agy panel proposes, author consolidates, declared non-blind); generator temperature and seed deviation | ADR-021 SO5-07; Fable B4 |
 | 2026-10-09 (P-U6) | §8 | Selection on generation success registered as a threat, the valid-generation yield as its mitigation | ADR-021 THR-4 |
+| 2026-10-09 (P-U6) | §2 | `so4-heldout` names the seven held-out bases; `e7-corpus` adds the three E7 bases; `apg-ablation` registered (18 entries, MO-DF01 seeds not added); the seeded-entry form | ADR-021 item 5 (Major 1), items 8, 9; SO2-5, X-2, SO4-04 |
+| 2026-10-09 (P-U6) | §3 | SO2: `gate.json` the only gate source, the NFR-07 source, graph size, `FLOWS_TO` per resolved import, the ablation, the aggregate `latency.csv` columns; type-resolution rate declared dropped | ADR-021 SO2-1..5, X-2, X-4, item 8 |
+| 2026-10-09 (P-U6) | §3 | SO4 N against the floor (`golden_instances.csv`, `seed_coverage.csv`); SO1 per-style rows are the spec-style strata, corpus style a column | ADR-021 SO4-05, SO1-C, item 9 |
+| 2026-10-09 (P-U6) | §4 | Label-size corrections: P3 out of live labelling (P2 30, PPS), escalation by whole weeks up to 4 (no refusal), stated P1 + MS basis, Kish effective n per row, per-kind context ceilings, agy invocations counted, registered audit seed, the audit drawn from the plan | ADR-021 items 8.1–8.3, 8.5–8.8 |
+| 2026-10-09 (P-U6) | §5 | κ and AC1 intervals from the item bootstrap, the κ < 0.60 rule on the point estimate; SO4 precision and F1 intervals per cell count | ADR-021 item 8.4, SO4-06, item 9 |
+| 2026-10-09 (P-U6) | §6 | Label-dependent FPAT values N/A without P3 labels; the profile from symbolic counts (`so5_patterns.csv` `basis`) | ADR-021 item 8.1 |
+| 2026-10-09 (P-U6) | §8 | Rejected pairs listed and the rest scored | ADR-021 SO4-03 |
