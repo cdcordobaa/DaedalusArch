@@ -1196,3 +1196,11 @@ Plan checkboxes ticked. Auto-approved under standing approval; no blocking or ma
 **Context**: CONSTRUCTION — Build and Test, ADR-019 item 4; live labelling halted, author to pick the route. No snapshot change, no CHANGES.md line, judge ledger unchanged.
 
 ---
+
+## Construction — ADR-020 (P-2) methodology corrections, implementation lane (PR #17, draft)
+**Timestamp**: 2026-10-09T06:45:00Z
+**User Input**: "Implement ADR-020 (P-2) in a worktree on v1.2e-p2-methodology: commit the Fable adversarial review verbatim, implement items A1-A3, A5-A8 and the B1-B7 reporting duties, then bump the pre-registration after P-1 has landed on v1.2e (wait up to 3 h), rerun --check-prereg for every plan, and merge once CI is green." (Orchestrator task under the standing approval.)
+**AI Response**: "Review committed as Docs/DiagnosticRuns/methodology-review-2026-10-08.md (eb4a9c1). Code (860f4de, 0a17cb7, 098be2d, 314d586, 8749914): baseline precision (scripts/lib/baseline-precision.ts; precision_baseline.csv, precision_figure.csv, precision_baseline columns); MAT-10 TP-class subtraction and TP-class FPAT weighting 1/p; cell-level recall intervals (ci_* = (project, operator) cell, ci_project_* co-primary, ci_independent_* bound); MAT-19 neural_new column; descriptive pairwise CIs, ahsDeterministic co-primary, directional self-preference check; agreement rows per source and generator model with the E1 headline and uncertain as a category; corpus-core / corpus-e7 strata; register-prereg --matching-rule-version. Docs (2b0f904): analysis-plan §10 Reporting duties and §11 amendments, matching-rule MAT-04/10/19/20 text, so4-heldout symbolic-only, dated BR-U5b-10/19/20/43/61/64/65 and U4 notes. Gates: T 5/5 clean; U 2916/207 with 2 load-induced timing failures that pass when rerun alone; L 497 errors (unchanged); B 80, 0 TS2688; G 80/7, snapshot hashes unchanged; U5b --self-test CLIs exit 1; PR CI green. P-1 (prereg v2, PR #20) had not landed on origin/v1.2e after 3 h of polling, so the P-2 bump (matching rule 1.1.0, prereg v3) was not made and PR #17 stays draft."
+**Context**: CONSTRUCTION — ADR-020 P-2, awaiting P-1. Open: merge origin/v1.2e after P-1, set the machine block and expected.canonical ruleVersion to 1.1.0, bump with --matching-rule-version 1.1.0 and per-artefact reasons, run --check-prereg on every plan, mark ready, merge.
+
+---
