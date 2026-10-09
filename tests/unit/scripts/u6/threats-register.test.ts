@@ -79,7 +79,7 @@ describe('threats-to-validity register (THR-9)', () => {
     expect(items('ADR-018').sort()).toEqual(range(6).sort());
     expect(items('ADR-019').sort()).toEqual(range(6).sort());
     expect(items('ADR-020').sort()).toEqual(range(9).sort());
-    expect(items('ADR-021').sort()).toEqual(range(5).sort());
+    expect(items('ADR-021').sort()).toEqual(range(8).sort());
     expect(items('Fable review').sort()).toEqual([...range(8).map((n) => `A${n}`), ...range(7).map((n) => `B${n}`)].sort());
     const thr = AUDIT.map((f) => f.id).filter((id) => id.startsWith('THR-')).sort();
     expect(thr.length).toBeGreaterThan(0);
