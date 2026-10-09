@@ -857,21 +857,37 @@ export type SensitivityOutcome =
  * `pass: null`. `excludedAfterFail` only for a failed probe whose function a later spec disables, with the fix
  * attempt named; a later-disabled function without a failed probe and a recorded fix attempt is refused.
  */
+/**
+ * The declared key of an SP-* probe (BR-U5a-30; `Docs/operator-catalogue.md` §5): an expected key of its target, except
+ * FF-S02, declared by the `cycle` site collateral key (BR-U5a-14 i), and FF-C06, declared by the keyless
+ * `project-metric` collateral entry (BR-U5a-14 iv), both reserved to collateral by BR-U5a-20. For those two the target
+ * is the probe id without its `SP-` prefix; a keyless declaration passes on any new row of the target.
+ */
+function probeDeclaration(row: ManifestRow): { readonly functionId: string; readonly keys: readonly ExpectedKey[]; readonly keyless: boolean } {
+  const expected = row.expected.functionIds[0];
+  if (expected !== undefined) return { functionId: expected, keys: row.expected.keys.filter((k) => k.functionId === expected), keyless: false };
+  const target = row.operatorId.startsWith('SP-FF-') ? row.operatorId.slice('SP-'.length) : '';
+  const own = row.expected.collateral.filter((c) => c.functionId === target && (c.cause === 'cycle' || c.cause === 'project-metric'));
+  const keys = own.flatMap((c) => (c.cause === 'cycle' && c.key !== undefined ? [c.key] : []));
+  return { functionId: target, keys, keyless: own.some((c) => c.cause === 'project-metric' && c.key === undefined) };
+}
+
 export function scoreSensitivity(input: SensitivityInput): SensitivityOutcome {
   const results: FunctionSensitivityResult[] = [];
   const fix = new Map((input.fixAttempts ?? []).map((f) => [f.functionId, f.ref] as const));
   for (const seed of [...input.probes].sort((a, b) => (a.row.seedId < b.row.seedId ? -1 : a.row.seedId > b.row.seedId ? 1 : 0))) {
     const row = seed.row;
     if (row.split !== 'probe') return { ok: false, code: SCORE_INPUT_REJECTED, detail: `${row.seedId}: split ${row.split} is not a probe row` };
-    const functionId = row.expected.functionIds[0] ?? '';
+    const declared = probeDeclaration(row);
+    const functionId = declared.functionId;
     const acc = acceptPair(seed, input.pinnedJudge);
     if (!acc.ok) {
       results.push({ probeId: row.operatorId, functionId, pass: null, lineConfirmed: null, excludedAfterFail: false, rejectedReason: acc.reason });
       continue;
     }
     const diff = diffPair(acc.pair.baseline, acc.pair.seeded);
-    const keys = new Map(row.expected.keys.filter((k) => k.functionId === functionId).map((k) => [expectedMatchKey(k), k] as const));
-    const hits = diff.fresh.filter((o) => o.v.functionId === functionId && keys.has(o.key));
+    const keys = new Map(declared.keys.map((k) => [expectedMatchKey(k), k] as const));
+    const hits = diff.fresh.filter((o) => o.v.functionId === functionId && (declared.keyless || keys.has(o.key)));
     const lineChecks = hits.flatMap((o) => {
       const k = keys.get(o.key);
       return k === undefined || k.lineRule === 'none' || k.line === undefined || o.v.line === undefined ? [] : [o.v.line === k.line];
