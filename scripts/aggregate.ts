@@ -13,7 +13,17 @@
  *   The precision columns are the seeded differential precision; the SO4 baseline precision (ADR-020 item 1, the HT
  *   share of TP-class P2 labels) is `precision_baseline` beside it and has its own file `precision_baseline.csv`;
  *   `precision_figure.csv` holds both in figure-ready long form. Neural new violations are the `neural_new` column
- *   (MAT-19 1.1.0, ADR-020 item 5). Corpus-tier strata (`corpus-core`, `corpus-e7`) come from the score (item 8).
+ *   (MAT-19 1.1.0, ADR-020 item 5). Corpus-tier strata (`corpus-core`, `corpus-e7`) come from the score (item 8), and
+ *   so do the style strata `style-<s>` of the spec's `architecture.style` (ADR-021 SO1-C).
+ * - Precision and F1 intervals (ADR-021 SO4-06) are the trailing `PRF_INTERVAL_COLUMNS` of every P/R/F1 file, under the
+ *   recall unit rule: (project, operator) cells, cell bootstrap primary from 10 cells (precision: Wilson on the cells
+ *   below), the project cluster bootstrap descriptive below 10 projects, and for precision the Wilson interval on the
+ *   violations as the "if independent" bound. F1 gets no Wilson interval. The basis is the labelled mode when the score
+ *   is labelled, else strict (`precision_f1_ci_basis`).
+ * - SO4 coverage (ADR-021 SO4-03, 05): `seed_coverage.csv` lists every seed (scored, or rejected as a pair with its
+ *   reason) and every manifest rejection; `golden_instances.csv` gives the golden N per stage and the scored N against
+ *   the 80-120 floor with the ADR-019 item 1 shortfall statement (`scripts/lib/so4-coverage.ts`).
+ * - `denominators.csv` and `prf_by_project.csv` carry the corpus style and the spec style (ADR-021 SO1-C).
  * - SO5 (BR-U5b-64, 65): `so5_grid.csv` has one row per E1 cell including `not-run` (GEN code, flags), the AHS fields,
  *   per-dimension AVR and the weighted FPAT family counts (from the `Docs/analysis-plan.md` table only: violations
  *   labelled `TP` or `unseeded-TP` weigh the inverse of their P3 inclusion probability (ADR-020 item 2), failing judge
@@ -41,13 +51,17 @@ import type { CorpusTier } from './lib/mutation/types.js';
 import {
   cliffsDelta, createRng, holm, permutationFactorTest, permutationInteractionTest, permutationTest, proportionInterval, recallIntervals,
 } from './lib/stats.js';
-import type { RecallCell } from './lib/stats.js';
+import { precisionF1Intervals } from './lib/stats.js';
+import type { ConfusionCell, RecallCell } from './lib/stats.js';
+import { goldenNRows, GOLDEN_N_COLUMNS, SEED_COVERAGE_COLUMNS, seedCoverageRows } from './lib/so4-coverage.js';
 import { ablationCsv, rescoreReport, sensitivityCsv } from './rescore.js';
 import type { RescoreOutput } from './rescore.js';
 import { cycleQueryTimes, latencyGate, runIdOf } from './run-experiment.js';
 import type { ExperimentPlan } from './run-experiment.js';
-import { DATA_FLOW_SUB_ROW, DATA_FLOW_TEMPLATE, denominatorRow, readCorpusTiers, strataOf } from './score-golden.js';
-import type { DenominatorRow, EdgeEvidence, FunctionSensitivityResult, InstanceResult, JudgeProbeResult } from './score-golden.js';
+import { DATA_FLOW_SUB_ROW, DATA_FLOW_TEMPLATE, denominatorRow, readCorpusStyles, readCorpusTiers, strataOf } from './score-golden.js';
+import type {
+  DenominatorRow, EdgeEvidence, FpItemRef, FunctionSensitivityResult, InstanceResult, JudgeProbeResult, ManifestRejectionRef, RejectedPair,
+} from './score-golden.js';
 import { labellingTables } from './llm-label.js';
 import { fnCauseColumns, fpatLabelsOf, isReconciledLabels } from './lib/label-adapters.js';
 import type { LabellingOutputs } from './llm-label.js';
@@ -57,7 +71,7 @@ export const AGGREGATE_INPUT_INVALID = 'AGGREGATE_INPUT_INVALID';
 /** domain-entities §10, in file order. */
 export const CSV_FILES = [
   'prf_by_function.csv', 'prf_by_dimension.csv', 'prf_by_tag.csv', 'prf_overall.csv', 'prf_by_project.csv',
-  'precision_baseline.csv', 'precision_figure.csv', 'instances.csv', 'twins.csv', 'edge_evidence.csv', 'judge_probe.csv', 'fp_fn_taxonomy.csv', 'denominators.csv',
+  'precision_baseline.csv', 'precision_figure.csv', 'instances.csv', 'seed_coverage.csv', 'golden_instances.csv', 'twins.csv', 'edge_evidence.csv', 'judge_probe.csv', 'fp_fn_taxonomy.csv', 'denominators.csv',
   'latency.csv', 'coverage.csv', 'ahs_by_project.csv', 'rescore_ablation.csv', 'rescore_sensitivity.csv',
   'function_sensitivity.csv', 'so5_grid.csv', 'so5_patterns.csv', 'so5_tests.csv', 'agreement.csv',
   'audit_allocation.csv', 'label_budget.csv', 'runs.csv',
@@ -69,6 +83,18 @@ export const COMMON_PRF_COLUMNS = [
   'plan_id', 'split', 'base_kind', 'coverage', 'tp', 'fp_strict', 'fp_labelled', 'fp_uncertain', 'fn', 'precision_strict',
   'precision_labelled', 'precision_incl_twins', 'recall', 'f1_labelled', 'ci_low', 'ci_high', 'ci_method', 'n_clusters',
   'ci_project_low', 'ci_project_high', 'ci_project_method', 'n_projects', 'ci_project_descriptive', 'ci_independent_low', 'ci_independent_high', 'ci_independent_method',
+] as const;
+/** Precision and F1 interval columns, appended to every P/R/F1 file (ADR-021 SO4-06). */
+export const PRF_INTERVAL_COLUMNS = [
+  'precision_f1_ci_basis', 'precision_ci_low', 'precision_ci_high', 'precision_ci_method', 'precision_n_cells',
+  'precision_ci_project_low', 'precision_ci_project_high', 'precision_ci_project_method', 'precision_ci_project_descriptive',
+  'precision_ci_independent_low', 'precision_ci_independent_high', 'precision_ci_independent_method',
+  'f1_ci_low', 'f1_ci_high', 'f1_ci_method', 'f1_n_cells', 'f1_ci_project_low', 'f1_ci_project_high', 'f1_ci_project_method',
+  'f1_ci_project_descriptive',
+] as const;
+export const DENOMINATOR_COLUMNS = [
+  'run_id', 'declared', 'adr_derived', 'compiled', 'disabled', 'dropped', 'dropped_ids', 'skipped_by_mode', 'executed', 'failed',
+  'not_applicable', 'metric_key_excluded', 'identity_ok', 'project_id', 'corpus_style', 'spec_style',
 ] as const;
 export const BASELINE_PRECISION_COLUMNS = [
   'plan_id', 'scope', 'key', 'n_items', 'n_tp_class', 'n_uncertain', 'weighted_tp_class', 'weighted_total', 'n_effective',
@@ -115,6 +141,9 @@ export interface GoldenScoreJson {
   readonly edgeEvidence: readonly EdgeEvidence[];
   readonly judgeProbe: readonly JudgeProbeResult[];
   readonly denominators: readonly DenominatorRow[];
+  /** ADR-021 SO4-03, 05; absent in scores written before. */
+  readonly rejectedPairs?: readonly RejectedPair[];
+  readonly manifestRejections?: readonly ManifestRejectionRef[];
 }
 
 /** A reconciled label of one new violation in an E1 cell (P3 population; BR-U5b-64 FPAT counting). */
@@ -142,6 +171,10 @@ export interface AggregateInput {
   readonly twinOf?: ReadonlyMap<string, string>;
   /** Corpus project id → tier, for the baseline-precision tier rows (ADR-020 item 8; `corpusTiers` of corpus.json). */
   readonly corpusTiers?: ReadonlyMap<string, CorpusTier>;
+  /** Corpus project id → style (`corpus/corpus.json`), for the style columns (ADR-021 SO1-C). */
+  readonly corpusStyles?: ReadonlyMap<string, string>;
+  /** The catalogue's frozen held-out golden total (`golden_instances.csv` `n_registered`; ADR-021 SO4-05). */
+  readonly registeredGoldenN?: number;
   /** Bootstrap and permutation resamples (default 10 000). */
   readonly resamples?: number;
 }
@@ -195,6 +228,60 @@ function ciCells(cells: readonly RecallCell[], tp: number, fn: number, seed: num
     ? [f6(r.project.ciLow), f6(r.project.ciHigh), r.project.ciMethod ?? '', int(r.nProjects), r.project.descriptive === null ? '' : String(r.project.descriptive)]
     : ['', '', '', '', ''];
   return [...cellCols, ...projectCols, f6(r.independent.ciLow), f6(r.independent.ciHigh), r.independent.ciMethod ?? ''];
+}
+
+/**
+ * (project, operator) confusion cells of a stratum (ADR-021 SO4-06): TP / FN from the instances `keep` selects (TP when
+ * `detected`), FP from the instance's FP-strict items that `fpOf` selects, without TP-class labels in labelled mode.
+ */
+export function confusionCells(
+  instances: readonly InstanceResult[],
+  stratum: string,
+  keep: (i: InstanceResult) => boolean,
+  detected: (i: InstanceResult) => boolean,
+  fpOf: (f: FpItemRef) => boolean,
+  labelled: boolean,
+): ConfusionCell[] | undefined {
+  const byCell = new Map<string, { project: string; operator: string; tp: number; fp: number; fn: number }>();
+  for (const i of instances) {
+    if (!counted(i) || !strataOf(i).includes(stratum)) continue;
+    if (i.fpItems === undefined) return undefined; // a score written before SO4-06: no cells
+    const key = JSON.stringify([i.projectId, i.operatorId]);
+    const c = byCell.get(key) ?? { project: i.projectId, operator: i.operatorId, tp: 0, fp: 0, fn: 0 };
+    if (keep(i)) {
+      if (detected(i)) c.tp += 1;
+      else c.fn += 1;
+    }
+    c.fp += i.fpItems.filter((f) => fpOf(f) && (!labelled || !isTpClass(f.label ?? 'uncertain'))).length;
+    byCell.set(key, c);
+  }
+  return [...byCell.keys()].sort().map((k) => byCell.get(k) ?? { project: '', operator: '', tp: 0, fp: 0, fn: 0 });
+}
+
+/**
+ * The `PRF_INTERVAL_COLUMNS` of a row (ADR-021 SO4-06). The basis is labelled when the row has a labelled mode, else
+ * strict; the cells must reproduce the row's TP, FP and FN in that basis, or only the basis is written.
+ */
+function prfIntervalCells(
+  m: PrfModesJson, cellsOf: (labelled: boolean) => ConfusionCell[] | undefined, seed: number, resamples: number,
+): string[] {
+  const labelled = m.labelled !== null;
+  const target = m.labelled ?? m.strict;
+  const basis = labelled ? 'labelled' : 'strict';
+  const cells = cellsOf(labelled);
+  const sum = (cells ?? []).reduce((a, c) => ({ tp: a.tp + c.tp, fp: a.fp + c.fp, fn: a.fn + c.fn }), { tp: 0, fp: 0, fn: 0 });
+  const blank = (): string[] => [basis, ...PRF_INTERVAL_COLUMNS.slice(1).map(() => '')];
+  if (cells === undefined || sum.tp !== target.tp || sum.fp !== target.fp || sum.fn !== target.fn) return blank();
+  const r = precisionF1Intervals(cells, { seed, resamples });
+  const p = r.precision;
+  const f = r.f1;
+  return [
+    basis, f6(p.cell.ciLow), f6(p.cell.ciHigh), p.cell.ciMethod ?? '', int(r.nPrecisionCells),
+    f6(p.project.ciLow), f6(p.project.ciHigh), p.project.ciMethod ?? '', bool(p.project.descriptive),
+    f6(p.independent.ciLow), f6(p.independent.ciHigh), p.independent.ciMethod ?? '',
+    f6(f.cell.ciLow), f6(f.cell.ciHigh), f.cell.ciMethod ?? '', int(r.nF1Cells),
+    f6(f.project.ciLow), f6(f.project.ciHigh), f.project.ciMethod ?? '', bool(f.project.descriptive),
+  ];
 }
 
 function prfCells(planId: string, stratum: string, m: PrfModesJson, ci: string[]): string[] {
@@ -264,20 +351,27 @@ function prfFiles(input: AggregateInput, seed: number, resamples: number): Parti
       for (const [fid, m] of fns) {
         const md = meta.get(fid);
         const cells = instanceCells(inst, stratum, (i) => applicableOf(i).includes(fid), (i) => i.detectedBy.includes(fid));
-        fnRows.push([...prfCells(pid, stratum, m, ciCells(cells, m.strict.tp, m.strict.fn, seed, resamples)), fid, md?.dimension ?? '', md?.tag ?? '', int(na.get(fid) ?? 0), int(coll.get(fid) ?? 0), int(mke.get(fid) ?? 0), int(neural.get(fid) ?? 0), baselineOf('function', fid)]);
+        const pf = prfIntervalCells(m, (lab) => confusionCells(inst, stratum, (i) => applicableOf(i).includes(fid), (i) => i.detectedBy.includes(fid), (f) => f.functionId === fid, lab), seed, resamples);
+        fnRows.push([...prfCells(pid, stratum, m, ciCells(cells, m.strict.tp, m.strict.fn, seed, resamples)), fid, md?.dimension ?? '', md?.tag ?? '', int(na.get(fid) ?? 0), int(coll.get(fid) ?? 0), int(mke.get(fid) ?? 0), int(neural.get(fid) ?? 0), baselineOf('function', fid), ...pf]);
       }
     }
     for (const [stratum, dims] of s.perDimension) {
-      for (const [dim, m] of dims) dimRows.push([...prfCells(pid, stratum, m, ciCells(instanceCells(inst, stratum, (i) => i.dimension === dim), m.strict.tp, m.strict.fn, seed, resamples)), dim]);
+      for (const [dim, m] of dims) {
+        const pf = prfIntervalCells(m, (lab) => confusionCells(inst, stratum, (i) => i.dimension === dim, (i) => i.status === 'matched', (f) => f.dimension === dim, lab), seed, resamples);
+        dimRows.push([...prfCells(pid, stratum, m, ciCells(instanceCells(inst, stratum, (i) => i.dimension === dim), m.strict.tp, m.strict.fn, seed, resamples)), dim, ...pf]);
+      }
     }
     for (const [stratum, tags] of s.perTag) {
       for (const [tag, m] of tags) {
         const sub = tag === DATA_FLOW_SUB_ROW;
         const base = sub ? DATA_FLOW_SUB_ROW.split('/')[0] ?? tag : tag;
-        const cells = sub
-          ? instanceCells(inst, stratum, (i) => i.tags.includes(base) && applicableOf(i).some((f) => meta.get(f)?.name === DATA_FLOW_TEMPLATE))
-          : instanceCells(inst, stratum, (i) => i.tags.includes(tag));
-        tagRows.push([...prfCells(pid, stratum, m, ciCells(cells, m.strict.tp, m.strict.fn, seed, resamples)), base, sub ? DATA_FLOW_SUB_ROW.split('/')[1] ?? '' : '']);
+        const keepTag = sub
+          ? (i: InstanceResult): boolean => i.tags.includes(base) && applicableOf(i).some((f) => meta.get(f)?.name === DATA_FLOW_TEMPLATE)
+          : (i: InstanceResult): boolean => i.tags.includes(tag);
+        const fpTag = sub ? (f: FpItemRef): boolean => f.template === DATA_FLOW_TEMPLATE : (f: FpItemRef): boolean => f.tag === tag;
+        const cells = instanceCells(inst, stratum, keepTag);
+        const pf = prfIntervalCells(m, (lab) => confusionCells(inst, stratum, keepTag, (i) => i.status === 'matched', fpTag, lab), seed, resamples);
+        tagRows.push([...prfCells(pid, stratum, m, ciCells(cells, m.strict.tp, m.strict.fn, seed, resamples)), base, sub ? DATA_FLOW_SUB_ROW.split('/')[1] ?? '' : '', ...pf]);
       }
     }
     const overall = new Map(s.overall);
@@ -285,7 +379,8 @@ function prfFiles(input: AggregateInput, seed: number, resamples: number): Parti
       const [split, baseKind] = stratumParts(stratum);
       const inCov = overall.get(JSON.stringify([split, baseKind, 'in']));
       const all = overall.get(JSON.stringify([split, baseKind, 'all']));
-      overallRows.push([...prfCells(pid, stratum, m, ciCells(instanceCells(inst, stratum), m.strict.tp, m.strict.fn, seed, resamples)), f6(inCov?.strict.recall), f6(all?.strict.recall), baselineOf('overall', '')]);
+      const pf = prfIntervalCells(m, (lab) => confusionCells(inst, stratum, () => true, (i) => i.status === 'matched', () => true, lab), seed, resamples);
+      overallRows.push([...prfCells(pid, stratum, m, ciCells(instanceCells(inst, stratum), m.strict.tp, m.strict.fn, seed, resamples)), f6(inCov?.strict.recall), f6(all?.strict.recall), baselineOf('overall', ''), ...pf]);
     }
     for (const [stratum] of s.overall) {
       const projects = [...new Set(inst.filter((i) => strataOf(i).includes(stratum)).map((i) => i.projectId))].sort();
@@ -298,15 +393,17 @@ function prfFiles(input: AggregateInput, seed: number, resamples: number): Parti
           strict: { tp, fp, fn, precision: tp + fp === 0 ? null : tp / (tp + fp), recall: tp + fn === 0 ? null : tp / (tp + fn), f1: null },
           labelled: null, inclTwins: null, fpUncertain: 0,
         };
-        projectRows.push([...prfCells(pid, stratum, m, ciCells(instanceCells(inst, stratum, (i) => i.projectId === p), tp, fn, seed, resamples)), p]);
+        const pf = prfIntervalCells(m, (lab) => confusionCells(inst, stratum, (i) => i.projectId === p, (i) => i.status === 'matched', () => true, lab)?.filter((c) => c.project === p), seed, resamples);
+        const styleOf = rows.find((i) => i.specStyle !== undefined)?.specStyle ?? '';
+        projectRows.push([...prfCells(pid, stratum, m, ciCells(instanceCells(inst, stratum, (i) => i.projectId === p), tp, fn, seed, resamples)), p, input.corpusStyles?.get(p) ?? rows[0]?.corpusStyle ?? '', styleOf, ...pf]);
       }
     }
   }
-  out['prf_by_function.csv'] = csvText([...COMMON_PRF_COLUMNS, 'function_id', 'dimension', 'tag', 'not_applicable', 'collateral', 'metric_key_excluded', 'neural_new', 'precision_baseline'], fnRows);
-  out['prf_by_dimension.csv'] = csvText([...COMMON_PRF_COLUMNS, 'dimension'], dimRows);
-  out['prf_by_tag.csv'] = csvText([...COMMON_PRF_COLUMNS, 'tag', 'sub_row'], tagRows);
-  out['prf_overall.csv'] = csvText([...COMMON_PRF_COLUMNS, 'recall_in_coverage', 'recall_overall', 'precision_baseline'], overallRows);
-  out['prf_by_project.csv'] = csvText([...COMMON_PRF_COLUMNS, 'project_id'], projectRows);
+  out['prf_by_function.csv'] = csvText([...COMMON_PRF_COLUMNS, 'function_id', 'dimension', 'tag', 'not_applicable', 'collateral', 'metric_key_excluded', 'neural_new', 'precision_baseline', ...PRF_INTERVAL_COLUMNS], fnRows);
+  out['prf_by_dimension.csv'] = csvText([...COMMON_PRF_COLUMNS, 'dimension', ...PRF_INTERVAL_COLUMNS], dimRows);
+  out['prf_by_tag.csv'] = csvText([...COMMON_PRF_COLUMNS, 'tag', 'sub_row', ...PRF_INTERVAL_COLUMNS], tagRows);
+  out['prf_overall.csv'] = csvText([...COMMON_PRF_COLUMNS, 'recall_in_coverage', 'recall_overall', 'precision_baseline', ...PRF_INTERVAL_COLUMNS], overallRows);
+  out['prf_by_project.csv'] = csvText([...COMMON_PRF_COLUMNS, 'project_id', 'corpus_style', 'spec_style', ...PRF_INTERVAL_COLUMNS], projectRows);
   out['precision_baseline.csv'] = csvText(BASELINE_PRECISION_COLUMNS, baseline.map((b) => [
     pid, b.scope, b.key, int(b.n), int(b.nTpClass), int(b.nUncertain), f6(b.weightedTpClass), f6(b.weightedTotal), f6(b.nEffective),
     f6(b.estimate), f6(b.ciLow), f6(b.ciHigh), b.ciMethod ?? '', int(b.nClusters),
@@ -334,6 +431,12 @@ function prfFiles(input: AggregateInput, seed: number, resamples: number): Parti
       ...(i.status === 'missed' ? fnCauseColumns(i.seedId, input.labelling?.fnCauses ?? [], input.labelling?.labels ?? []) : ['', '']), i.corpusTier ?? '',
     ]),
   );
+  const coverage = {
+    instances: inst, rejectedPairs: s?.rejectedPairs ?? [], manifestRejections: s?.manifestRejections ?? [],
+    ...(input.corpusStyles !== undefined && { corpusStyles: input.corpusStyles }),
+  };
+  out['seed_coverage.csv'] = csvText(SEED_COVERAGE_COLUMNS, s === undefined ? [] : seedCoverageRows(pid, coverage));
+  out['golden_instances.csv'] = csvText(GOLDEN_N_COLUMNS, s === undefined ? [] : goldenNRows(pid, coverage, input.registeredGoldenN));
   const twins = inst.filter((i) => i.status === 'twin-clean' || i.status === 'twin-fired');
   const spec = s?.twinSpecificity;
   out['twins.csv'] = csvText(['seed_id', 'twin_of', 'status', 'undeclared_new'], [
@@ -378,9 +481,17 @@ function runFiles(input: AggregateInput): Partial<Record<CsvFile, string>> {
   const denoms: DenominatorRow[] = input.score?.denominators !== undefined && input.score.denominators.length > 0
     ? [...input.score.denominators]
     : acc.map(({ record, report }) => denominatorRow(record.seed?.seedId ?? null, record.runId, report, 0, 0));
+  const projectOfRun = new Map(input.records.map((r) => [r.runId, r.projectId] as const));
   out['denominators.csv'] = csvText(
-    ['run_id', 'declared', 'adr_derived', 'compiled', 'disabled', 'dropped', 'dropped_ids', 'skipped_by_mode', 'executed', 'failed', 'not_applicable', 'metric_key_excluded', 'identity_ok'],
-    denoms.map((d) => [d.runId, int(d.declared), int(d.adrDerived), int(d.compiled), int(d.disabled), int(d.dropped), d.droppedIds.join(';'), int(d.skippedByMode), int(d.executed), int(d.failed), int(d.notApplicable), int(d.metricKeyExcluded), bool(d.identityOk)]),
+    DENOMINATOR_COLUMNS,
+    denoms.map((d) => {
+      const project = projectOfRun.get(d.runId) ?? '';
+      return [
+        d.runId, int(d.declared), int(d.adrDerived), int(d.compiled), int(d.disabled), int(d.dropped), d.droppedIds.join(';'), int(d.skippedByMode),
+        int(d.executed), int(d.failed), int(d.notApplicable), int(d.metricKeyExcluded), bool(d.identityOk),
+        project, input.corpusStyles?.get(project) ?? '', d.specStyle ?? '',
+      ];
+    }),
   );
   const latencyRows: string[][] = [];
   for (const { record, report } of acc) {
@@ -757,6 +868,7 @@ export function loadRunDir(dir: string): LoadedRunDir {
 export const AGGREGATE_USAGE = [
   'Usage: npx tsx scripts/aggregate-cli.ts --runs <dir> --out <dir> [--plan <plan.json>] [--score <golden.json>]',
   '         [--manifest <manifest.json>] [--sensitivity <results.json>] [--labels <labels.json>] [--labelling <labelling.json>] [--resamples <n>] [--no-figures]',
+  '         [--golden-registered <n>]   (the catalogue\'s frozen held-out golden total, for golden_instances.csv)',
   '       npx tsx scripts/aggregate-cli.ts --self-test',
 ].join('\n');
 
@@ -809,6 +921,9 @@ export async function main(argv: readonly string[], repoRoot: string, io: Aggreg
     }
     const resamples = opts.get('resamples');
     const corpusTiers = readCorpusTiers(repoRoot);
+    const corpusStyles = readCorpusStyles(repoRoot);
+    const registered = opts.get('golden-registered');
+    if (registered !== undefined && !/^\d+$/.test(registered)) throw new Error(`${AGGREGATE_INPUT_INVALID}: --golden-registered must be a non-negative integer`);
     const input: AggregateInput = {
       planId: plan?.id ?? records[0]?.planId ?? 'unknown', ...(plan !== undefined && { plan }), records, reports, so5: so5.codes,
       ...(opts.has('score') && { score: readJsonFile(resolve(repoRoot, opts.get('score') ?? '')) as GoldenScoreJson }),
@@ -817,6 +932,8 @@ export async function main(argv: readonly string[], repoRoot: string, io: Aggreg
       ...(opts.has('labelling') && { labelling: readJsonFile(resolve(repoRoot, opts.get('labelling') ?? '')) as LabellingOutputs }),
       ...(twinOf !== undefined && { twinOf }),
       ...(corpusTiers !== undefined && { corpusTiers }),
+      ...(corpusStyles !== undefined && { corpusStyles }),
+      ...(registered !== undefined && { registeredGoldenN: Number(registered) }),
       ...(resamples !== undefined && { resamples: Number(resamples) }),
     };
     const out = resolve(repoRoot, outDir);
