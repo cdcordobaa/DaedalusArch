@@ -25,7 +25,22 @@ export { PREREG_FILE };
 export const PREREG_SCHEMA_PATH = 'scripts/lib/schemas/prereg.schema.json';
 export const PREREG_REFUSED = 'PREREG_REFUSED';
 
-/** BR-U5b-51: the registered artefacts, as repository path patterns (`*` within a segment, `**` across). */
+/**
+ * Specs a plan may evaluate with (BR-U5b-51): the corpus specs and the fixture specs, i.e. the spec of the C16
+ * suite and the layered fixture spec of the SP-FF-S03 probe and MO-S03 (OI-U5b-P2-4; U5a catalogue §SP).
+ */
+export const CORPUS_SPEC_PATTERN = 'corpus/specs/*.yaml';
+export const FIXTURE_SPECS: readonly string[] = Object.freeze(['specs/clean-arch.yaml', 'tests/fixtures/u5a/layered/firewall.spec.yaml']);
+
+/** The style presets (`presets/*.yaml`), the library instances a corpus spec is copied from (ADR-021 SO1-D). */
+export const PRESET_PATTERN = 'presets/*.yaml';
+
+/**
+ * BR-U5b-51: the registered artefacts, as repository path patterns (`*` within a segment, `**` across).
+ * ADR-021 SO1-D adds the fixture specs (the evaluator spec of every fixture run and all E1 cells, and the layered
+ * fixture spec of SP-FF-S03 and MO-S03) and the style presets, so every spec a plan may evaluate with is hashed.
+ * A registration made before the addition stays valid (its paths are a subset); the P-U6 bump hashes the new ones.
+ */
 export const REGISTERED_ARTEFACTS: readonly string[] = Object.freeze([
   'Docs/matching-rule.md',
   'Docs/analysis-plan.md',
@@ -36,7 +51,7 @@ export const REGISTERED_ARTEFACTS: readonly string[] = Object.freeze([
   'Docs/labeller-prompts/*',
   'corpus/corpus.json',
   'corpus/overlays/**',
-  'corpus/specs/*.yaml',
+  CORPUS_SPEC_PATTERN,
   'experiments/*/plan.json',
   // ADR-021 SO5-03 / THR-8: the E1 generator plan (pinned model ids, orderSeed, allowBash, timeoutMs, outRoot).
   'experiments/e1-grid/generator-plan.json',
@@ -46,14 +61,9 @@ export const REGISTERED_ARTEFACTS: readonly string[] = Object.freeze([
   'scripts/generate-e7-specs.ts',
   // ADR-021 item 6 (SO3-2): the registered label-plan sizes, seeds, call ceiling and labeller route.
   'corpus/label-plan-config.json',
+  ...FIXTURE_SPECS,
+  PRESET_PATTERN,
 ]);
-
-/**
- * Specs a plan may evaluate with (BR-U5b-51): the corpus specs and the fixture specs, i.e. the spec of the C16
- * suite and the layered fixture spec of the SP-FF-S03 probe and MO-S03 (OI-U5b-P2-4; U5a catalogue §SP).
- */
-export const CORPUS_SPEC_PATTERN = 'corpus/specs/*.yaml';
-export const FIXTURE_SPECS: readonly string[] = Object.freeze(['specs/clean-arch.yaml', 'tests/fixtures/u5a/layered/firewall.spec.yaml']);
 
 export interface PreRegistration {
   readonly version: number;
