@@ -174,7 +174,7 @@ describe('CompileCommand (BR-U3-52, BR-U3-56)', () => {
     expect(res.success).toBe(true);
     // U1's merged CompiledFunctions exposes no dropped ids, so the set difference is the only source.
     expect(context.getCompiledFunctions()).not.toHaveProperty('droppedFunctions');
-    expect(holder.facts).toEqual({ declared: spec.fitnessFunctions.length + 2, adrDerived: 0, dropped: ['FF-N09', 'FF-X01'] });
+    expect(holder.facts).toEqual({ declared: spec.fitnessFunctions.length + 2, adrDerived: 0, dropped: ['FF-N09', 'FF-X01'], instrumentVersion: 2 });
     expect(context.warnings.filter((w) => w.code === 'COMPILER_002').map((w) => w.context?.functionId)).toEqual(['FF-X01']);
   });
 

@@ -72,6 +72,8 @@ export interface RunRecord {
   readonly reportPath?: string;
   readonly specSha: string; readonly cliCommit: string;
   readonly preregVersion: number; readonly frozenHashes: Readonly<Record<string, string>>;
+  /** Symbolic instrument version of the run (ADR-026); absent in records written before instrument v2. */
+  readonly instrumentVersion?: 1 | 2;
   readonly envRecordId: string;
   readonly startedAt: string; readonly wallMs: number;
   readonly cell?: GenerationCell; readonly seed?: SeedRef;

@@ -212,6 +212,7 @@ describe('CompileCommand', () => {
         layerModel: expect.any(Object),
         scoringWeights: expect.any(Object),
       }),
+      { instrumentVersion: 2 }, // ADR-026 default
     );
     expect(context.getCompiledFunctions()).toBe(compiled);
   });
@@ -314,6 +315,6 @@ describe('U3-R9 warning routing and compile facts', () => {
 
     await new CompileCommand(holder).execute(context);
 
-    expect(holder.facts).toEqual({ declared: 4, adrDerived: 0, dropped: ['FF-A', 'FF-B'] });
+    expect(holder.facts).toEqual({ declared: 4, adrDerived: 0, dropped: ['FF-A', 'FF-B'], instrumentVersion: 2 });
   });
 });

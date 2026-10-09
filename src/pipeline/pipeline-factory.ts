@@ -155,7 +155,7 @@ export function createPipeline(config: PipelineConfig): PipelineBundle {
   // ---- Stage 3: Compile fitness functions -----------------------------
   // CompileCommand records the declared-side counts that AssembleReportCommand reads (BR-U3-52).
   const compileFacts: CompileFactsHolder = {};
-  commands.push(new CompileCommand(compileFacts));
+  commands.push(new CompileCommand(compileFacts, config.instrumentVersion));
 
   // ---- Stage 4: Evaluate (mode-dependent) -----------------------------
   switch (config.evaluationMode) {

@@ -2,6 +2,7 @@ import type { EvaluationMode, PipelineMode, OverallVerdict } from '../shared/typ
 import type { CommitSha } from '../shared/types/value-objects.js';
 import type { LLMProviderConfig } from '../shared/types/llm-config.js';
 import type { GraphMode } from '../apg-extractor/types.js';
+import type { InstrumentVersion } from '../fitness-compiler/role-exemptions.js';
 
 export interface PipelineConfig {
   readonly projectPath: string;
@@ -19,6 +20,8 @@ export interface PipelineConfig {
   readonly apgStorePath: string;
   /** Extractor graph mode (default `full`); `ast-only` is the APG ablation arm (ADR-021 SO2). */
   readonly graphMode?: GraphMode | undefined;
+  /** Symbolic instrument version (ADR-026): 1 = no role exemptions; default 2. */
+  readonly instrumentVersion?: InstrumentVersion | undefined;
 }
 
 export type OutputFormat = 'json' | 'human' | 'csv';

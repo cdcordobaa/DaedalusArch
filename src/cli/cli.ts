@@ -1,4 +1,6 @@
 import { Command } from 'commander';
+import { parseInstrumentVersion } from '../fitness-compiler/role-exemptions.js';
+import type { InstrumentVersion } from '../fitness-compiler/role-exemptions.js';
 import { config as loadDotenv } from 'dotenv';
 import { createPipeline } from '../pipeline/pipeline-factory.js';
 import type { PipelineConfig, OutputFormat } from '../pipeline/types.js';
@@ -41,6 +43,15 @@ function resolveEvaluationMode(symbolicOnly: boolean, neuronalOnly: boolean): Ev
 function resolveGraphMode(value: string): GraphMode | undefined {
   if ((GRAPH_MODES as readonly string[]).includes(value)) return value as GraphMode;
   process.stderr.write(`Error: --graph-mode must be one of ${GRAPH_MODES.join(' | ')}\n`);
+  process.exitCode = 2;
+  return undefined;
+}
+
+/** `--instrument` value (ADR-026): `v1` or `v2`; anything else exits 2. */
+function resolveInstrument(value: string): InstrumentVersion | undefined {
+  const v = parseInstrumentVersion(value);
+  if (v !== undefined) return v;
+  process.stderr.write('Error: --instrument must be one of v1 | v2\n');
   process.exitCode = 2;
   return undefined;
 }
@@ -147,6 +158,7 @@ withLLMOptions(program
   .option('--diff', 'Compare against latest snapshot', false)
   .option('--baseline <path>', 'Compare against baseline violations file')
   .option('--graph-mode <mode>', 'Graph mode: full | ast-only (APG ablation arm: IMPORTS, DECLARES and CONTAINS edges only)', 'full')
+  .option('--instrument <version>', 'Symbolic instrument: v2 (role exemptions, default) | v1 (ADR-026)', 'v2')
   .action(async (opts: LLMCliOpts & {
     project: string;
     spec: string;
@@ -159,10 +171,13 @@ withLLMOptions(program
     diff: boolean;
     baseline?: string;
     graphMode: string;
+    instrument: string;
   }) => {
     const evaluationMode = resolveEvaluationMode(opts.symbolicOnly, opts.neuronalOnly);
     const graphMode = resolveGraphMode(opts.graphMode);
     if (graphMode === undefined) return;
+    const instrumentVersion = resolveInstrument(opts.instrument);
+    if (instrumentVersion === undefined) return;
     // BR-U3-80: no default password; stop before any connection.
     const neo4jPassword = requireEnvForCli('NEO4J_PASSWORD');
     if (neo4jPassword === undefined) return;
@@ -184,6 +199,7 @@ withLLMOptions(program
       apgStorePath: process.env['APG_STORE_PATH'] ?? '.apg-store',
       llmConfig,
       ...(graphMode !== 'full' && { graphMode }),
+      instrumentVersion,
     };
 
     const { executor, cleanup } = createPipeline(config);

@@ -5,6 +5,7 @@
 import * as path from 'node:path';
 import { CYPHER_TEMPLATES } from '../../../src/fitness-compiler/cypher-templates.js';
 import { EXCLUDE_MARKER_RE } from '../../../src/fitness-compiler/exclude-injector.js';
+import { ROLE_EXEMPTIONS } from '../../../src/fitness-compiler/role-exemptions.js';
 import { compileFunctions } from '../../../src/fitness-compiler/fitness-compiler.js';
 import { compilerInputFromSpec } from '../../../src/fitness-compiler/compiler-input.js';
 import type { CompilerInput } from '../../../src/fitness-compiler/types.js';
@@ -54,10 +55,10 @@ describe('exclude anchors (BR-U1-32)', () => {
     }
   });
 
-  it('without excludes no anchor survives compilation and no excludePatterns is bound', async () => {
+  it('without excludes no anchor survives compilation and no excludePatterns is bound (role-exempt templates aside, ADR-026)', async () => {
     const compiled = compileFunctions(await goldenInput());
     if (!compiled.success) throw new Error('golden spec did not compile');
-    for (const q of compiled.data.symbolicQueries) {
+    for (const q of compiled.data.symbolicQueries.filter((c) => !(c.name in ROLE_EXEMPTIONS))) {
       expect({ id: String(q.functionId), marker: q.cypher.includes('/*EXCLUDE:') }).toEqual({ id: String(q.functionId), marker: false });
       expect(q.params).not.toHaveProperty('excludePatterns');
     }

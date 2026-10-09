@@ -57,6 +57,7 @@ const WHITELISTED_SRC = new Set([
   'src/fitness-compiler/cypher-templates.ts',      // MAX_CYCLE_LENGTH, CYCLE_ROW_CAP, getTemplateTag, listTemplatesByTag
   'src/fitness-compiler/template-applicability.ts', // isTemplateApplicable
   'src/fitness-compiler/layer-binding.ts',         // bindLayerParams (applicability input)
+  'src/fitness-compiler/role-exemptions.ts',       // INSTRUMENT_VERSION, ROLE_EXEMPTIONS (frozen-instrument roleExemptions, ADR-026)
   'src/spec-parser/spec-schema.ts',                // PATTERN_GRAMMAR
   // Step 14 (BR-U5b-55 "ProcessRunner, buildChildEnv"; BR-U5b-70 C10 `scrubDeep`): the subprocess boundary.
   'src/shared/interfaces/process-runner.ts',       // ProcessRunner port (type)

@@ -99,5 +99,8 @@ describe('frozen-instrument exporter (BR-U5b-52)', () => {
     });
     // Step 2 readiness flags (both true).
     expect(fi.metricKeyReadiness).toEqual({ projectLevelKeys: true, rowFilters: true });
+    // ADR-026: instrument v2 role exemptions are part of the frozen instrument.
+    expect(fi.roleExemptions.instrumentVersion).toBe(2);
+    expect(Object.keys(fi.roleExemptions.templates).sort()).toEqual(['component-instability', 'module-fan-out', 'test-file-pairing']);
   });
 });

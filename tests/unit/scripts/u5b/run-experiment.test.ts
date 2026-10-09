@@ -143,7 +143,8 @@ describe('run harness (BR-U5b-46..48)', () => {
     expect(call?.args).toEqual(expect.arrayContaining(['--llm-provider', 'claude-cli', '--llm-model', 'claude-opus-5-5']));
     expect(call?.args[0]).toBe('bin/firewall.ts');
     expect(Object.keys(call?.options.env ?? {}).sort()).toEqual(['NEO4J_PASSWORD', 'PATH']);
-    expect(cliArgv(plan([proj('a')]), { index: 0, projectId: 'a', path: 'p/a', specPath: 's.yaml' })).toEqual(['evaluate', '--project', 'p/a', '--spec', 's.yaml', '--format', 'json', '--symbolic-only']);
+    expect(cliArgv(plan([proj('a')]), { index: 0, projectId: 'a', path: 'p/a', specPath: 's.yaml' })).toEqual(['evaluate', '--project', 'p/a', '--spec', 's.yaml', '--format', 'json', '--symbolic-only', '--instrument', 'v2']);
+    expect(cliArgv(plan([proj('a')]), { index: 0, projectId: 'a', path: 'p/a', specPath: 's.yaml' }, 1).slice(-2)).toEqual(['--instrument', 'v1']); // ADR-026
   });
 
   it('every written artefact is scrubbed of the known secrets (BR-U5b-70)', async () => {

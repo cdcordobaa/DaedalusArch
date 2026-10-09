@@ -275,7 +275,7 @@ calls of `corpus/prereg.json` stay a ceiling, not a target.
 |---|---|
 | Call ceiling, both runs, re-asks and retries included | 300 (`budgetCalls`), of which 30 are held back for the one re-ask per answer and the provider retries; the budget counts **agy invocations**, retries included (item 8.7), and no call is sent unless two invocations still fit |
 | P4 | 1 unit per (cell, dimension) stratum, at most 46 items: (18 run-0 cells + 5 fixtures) × 2 dimensions; stratum draw SRS when they do not all fit |
-| P2 | 1 violation per (project, function) stratum, at most 30 items (P3's 10 calls moved here, item 8.1); stratum draw **PPS by stratum size** (item 8.3) |
+| P2 | 1 violation per (project, function) stratum, at most 30 items (P3's 10 calls moved here, item 8.1); stratum draw **PPS by stratum size** (item 8.3); since ADR-026, 24 from the v2 population and 6 from the v1-only exempted rows (§10 B8) |
 | P3 | 0: out of live labelling (item 8.1); its strata stay in the plan with their sizes |
 | P1 + missed seeds | exhaustive, planned at no more than 59 items: (46 + 30 + 0 + 59) × 2 + 30 = 300. Basis (item 8.2): the FR-24 freeze gate on the fixture (22 positive and 11 twin rows on `correct-reference`) gave 0 new keys outside the expected keys and declared collateral, so 0 FP-strict items per fixture instance; no corpus FP count exists before the so4-heldout run; 59 allows 0.69 items per held-out instance (85) |
 | Escalation (item 8.2) | if P1 + MS exceed the 135 items of 300 calls, the budget becomes the smallest whole number of weeks × 180 calls (from 2 weeks, 360 calls) whose capacity holds P1 + MS and the sampled ceilings, at most `maxWeeks` = 4 (720 calls); only then are sampled ceilings lowered; past 4 weeks P1 + MS are thinned by one seeded simple random sample with p = capacity / (P1 + MS) and the gap is a limitation. No plan is refused for its size |
@@ -520,6 +520,35 @@ These statements are registered: every report of the corresponding figure carrie
   `correct-reference`, and the fixture units it judges are also P4 items; the ghostfolio repair was post-hoc; the
   number of pairs rejected under MAT-25 because a cycle function was truncated is reported (`runs.csv` reason
   counts); every secondary SO5 family is exploratory.
+- **B8 Instrument v1 and v2 (ADR-026, POST-HOC).** Instrument v2 adds library-level role exemptions to three proxy
+  rules (FF-CV05: declaration-only files and composition roots; FF-C02 and FF-C03: composition roots;
+  `corpus/frozen-instrument.json` `roleExemptions`), decided after the SO4 results and the 2026-10-09 baseline spot
+  check were seen. `firewall evaluate --instrument v1|v2` and `run-experiment-cli --instrument v1|v2` select it (v1
+  empties the table and reproduces the registered v1 reports; the last v1 commit is `febc918`); every report and
+  RunRecord carries `instrumentVersion`. Both versions are reported and neither replaces the other:
+  - **Every table** that carries symbolic counts, AHS or verdicts names its instrument version in a column or caption.
+  - **SO4 and SO2** (run under v1 before v2 existed): the registered v1 results (`results/so4-heldout/` strict and
+    corrected, `results/apg-ablation/`) stay the primary report. The v2 re-runs (`results/so4-heldout/v2/`,
+    `results/apg-ablation/v2/`) are reported beside them, labelled post hoc, with the baseline counts v1 → v2 per
+    function and per exemption glob. v2 changes no seeded detection (TP, FN, FP, every seed's status), but it does
+    change aggregate files that depend on baseline counts or AHS: `ahs_by_project.csv` (29 rows, all
+    `zhuravlevma__nestjs-active-record`: AHS 0.538 → 0.571 through the coupling AVR; no verdict changes),
+    `rescore_ablation.csv` (145 rows, 56 with a different verdict), `rescore_sensitivity.csv` (58 rows, 25 verdicts),
+    `instances.csv` (7 rows, FF-CV05 collateral keys), `prf_by_function.csv` (5 rows, FF-CV05 collateral 26 → 13), and
+    `runs.csv` / `latency.csv` (run ids, commit and timings in every row). Each is reported with its version.
+  - **SO4 baseline precision (P2)** is drawn from the accepted `e7-corpus` runs, which run under v2 (§4). The P2
+    frame has two disjoint parts: the **v2 population** (the v2 violations, strata (project, function)) and a
+    **v1-only stratum set** (the violations a v1 symbolic-only re-evaluation of the same stored code adds, i.e. the
+    exempted rows, strata (project, function)). Of the 30 P2 items, 24 go to the v2 population and 6 to the v1-only
+    set, each by the §4 PPS rule with its own inclusion probabilities. The **v2 estimate** uses the 24 v2 items over
+    the v2 population: n = 24, n_eff ≤ 24 (= 24 for a PPS draw without certainty strata; Wilson ±0.19 at p = 0.5).
+    The **v1 estimate** is the stratified Horvitz–Thompson combination of both parts over the v1 population
+    (v2 ∪ v1-only): n = 30, n_eff = Kish over the combined weights, below 30 when the weights differ. The v1-only part
+    alone (n = 6, n_eff ≤ 6) is reported as counts only. `build-label-plan` prints n and n_eff per version before any
+    live call; the v1-only stratum needs that producer change before labelling.
+  - **E7, E1 and SO5** (not yet run): v2 is the instrument, registered before these runs. Any symbolic count they
+    report (violations, violations per KLOC, FPAT profile, AHS) also gets a v1 sensitivity row from a symbolic-only
+    re-evaluation of the same stored code with `--instrument v1`; no generation or judge call is repeated for it.
 
 ## 11. Amendments
 
@@ -549,3 +578,4 @@ These statements are registered: every report of the corresponding figure carrie
 | 2026-10-09 (P-U6) | §5 | κ and AC1 intervals from the item bootstrap, the κ < 0.60 rule on the point estimate; SO4 precision and F1 intervals per cell count | ADR-021 item 8.4, SO4-06, item 9 |
 | 2026-10-09 (P-U6) | §6 | Label-dependent FPAT values N/A without P3 labels; the profile from symbolic counts (`so5_patterns.csv` `basis`) | ADR-021 item 8.1 |
 | 2026-10-09 (P-U6) | §8 | Rejected pairs listed and the rest scored | ADR-021 SO4-03 |
+| 2026-10-09 (ADR-026, POST-HOC) | §4, §10 | B8: instrument v2 role exemptions (FF-CV05, FF-C02, FF-C03) and the `--instrument v1 / v2` switch; every table names its version; v1 primary for SO4 and SO2 with v2 beside, the differing aggregate files listed; P2 drawn from the v2 `e7-corpus` population (24) plus a v1-only exempted stratum set (6), n and n_eff per version; v2 the instrument for E7, E1 and SO5 with a v1 symbolic sensitivity row | ADR-026 |

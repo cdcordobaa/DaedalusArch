@@ -325,7 +325,7 @@ export interface ReportScoring {
 // FR-13, FR-14: what the scoring stage produces; run-level fields are added by the report builder (U3)
 export type ScoredReport = Omit<EvaluationReport,
   'warnings' | 'functionExecution' | 'functionResults' | 'graphStats' | 'layerAnnotation' |
-  'parseCoverage' | 'importResolution' | 'timings' | 'judge' | 'disabledFunctions' | 'neuralResults'>;
+  'parseCoverage' | 'importResolution' | 'timings' | 'judge' | 'disabledFunctions' | 'neuralResults' | 'instrumentVersion'>;
 
 export interface EvaluationReport {
   readonly runId: RunId;
@@ -353,6 +353,8 @@ export interface EvaluationReport {
   readonly timings: StageTimings;
   readonly droppedDimensions: readonly DroppedDimension[];
   readonly judge: JudgeProvenance;
+  /** Symbolic instrument version (ADR-026): 1 = no role exemptions, 2 = role exemptions; absent in reports before v2. */
+  readonly instrumentVersion?: 1 | 2;
   // FR-33: present in full and neuronal-only modes, absent in symbolic-only (schema if/then, BR-U3-65; C10 row 14)
   readonly neuralResults?: readonly NeuralResultRow[];
 }
