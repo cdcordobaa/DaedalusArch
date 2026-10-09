@@ -220,7 +220,7 @@ export function renderReport(input: ReportInput): string {
     lines.push('**Cross-check of the counting against live runs**:', '');
     for (const c of input.crossChecks) {
       const p = input.projects.find((x) => x.label === c.label);
-      const ok = p !== undefined && p.fileUnits === c.fileUnits && p.moduleUnits === c.moduleUnits;
+      const ok = p?.fileUnits === c.fileUnits && p.moduleUnits === c.moduleUnits;
       lines.push(`- ${c.label}: recorded ${String(c.fileUnits)} file units and ${String(c.moduleUnits)} module units; counted ${p === undefined ? 'n/a' : `${String(p.fileUnits)} and ${String(p.moduleUnits)}`}: **${ok ? 'equal' : 'different'}**.`);
     }
     lines.push('');
@@ -243,7 +243,7 @@ export function renderReport(input: ReportInput): string {
   lines.push('- The evidence is narrow: three pilot projects, one model (`claude-opus-5-5`) and one task (`task-management`), plus the fixture. Sonnet, Haiku and `order-fulfilment` trees may differ in size; the cap ceiling bounds every case.');
   lines.push('- Before the E1 run, the measured calls per window (from the pilot or the first E1 window) are compared against this estimate, as `Docs/judge-preregistration.md` requires; that comparison is dated there, not here.');
   lines.push('');
-  return `${lines.join('\n')}`;
+  return lines.join('\n');
 }
 
 // ---------------------------------------------------------------------------------------------
