@@ -64,6 +64,8 @@ export interface LabelItem<K extends ItemKind = ItemKind> {
   readonly functionId?: string;
   readonly dimension?: string;
   readonly seedId?: string;
+  /** P2..P4 items: the run whose report holds the violation or unit (ADR-021 SO5-01; FPAT rows key on it). */
+  readonly runId?: string;
   /** Built by `buildContext`; never judge output (BR-U5b-35). */
   readonly context: string;
 }
@@ -91,6 +93,8 @@ interface CandidateBase {
   readonly stratumOwner: string;
   /** Root of the source tree the context is read from. */
   readonly sourceRoot: string;
+  /** The run whose report gave the candidate (P2..P4), carried into the item. */
+  readonly runId?: string;
 }
 export interface ViolationCandidate extends CandidateBase {
   readonly kind: 'violation';
@@ -169,6 +173,7 @@ export interface ReportSource {
   readonly sourceRoot: string;
   /** Function id → description (from the compiled spec, never from the report). */
   readonly describe: (functionId: string) => string;
+  readonly runId?: string;
 }
 
 /**
@@ -184,7 +189,7 @@ export function violationCandidates(report: unknown, source: ReportSource): Viol
   }
   return [...byKey.entries()].map(([key, v]) => ({
     kind: 'violation', population: source.population, projectId: source.projectId, treeSha: source.treeSha,
-    stratumOwner: source.stratumOwner, sourceRoot: source.sourceRoot, key,
+    stratumOwner: source.stratumOwner, sourceRoot: source.sourceRoot, key, ...(source.runId !== undefined && { runId: source.runId }),
     fields: {
       functionId: v.functionId, functionDescription: source.describe(v.functionId), filePath: v.filePath,
       ...(v.line !== undefined && { line: v.line }), ...(v.target !== undefined && v.target !== '' && { target: v.target }),
@@ -225,6 +230,7 @@ export interface JudgeUnitSource {
   readonly stratumOwner: string;
   readonly sourceRoot: string;
   readonly view: JudgeGraphView;
+  readonly runId?: string;
 }
 
 /**
@@ -247,6 +253,7 @@ export function judgeUnitCandidates(report: unknown, source: JudgeUnitSource): J
       out.push({
         kind: 'judge-unit', population: 'P4', projectId: source.projectId, treeSha: source.treeSha,
         stratumOwner: source.stratumOwner, sourceRoot: source.sourceRoot, functionId, dimension, view: source.view,
+        ...(source.runId !== undefined && { runId: source.runId }),
         unit: {
           id: u.unitId, kind, layer: typeof u.layer === 'string' ? u.layer : '', filePaths,
           sizeTokens: 0, singleFile: filePaths.length === 1,
@@ -403,6 +410,7 @@ export function buildItems(samples: readonly StratumSample[]): { ok: true; items
           ? { unitId: c.unit.id, functionId: c.functionId, dimension: c.dimension }
           : { key: c.key, functionId: c.fields.functionId }),
         ...(c.kind === 'missed-seed' && { seedId: c.seedId }),
+        ...(c.runId !== undefined && { runId: c.runId }),
         context: ctx.context,
       });
     }

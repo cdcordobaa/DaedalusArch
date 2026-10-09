@@ -2,11 +2,11 @@
  * U5b Step 29: audit allocation, blinding and agreement statistics (FR-27, ADR-017 item 7; BR-U5b-40..43; exit
  * criterion 4). Inputs: the committed Mock labeller fixture (Step 28) and U4's committed judge cassettes.
  */
-import { mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
+import { existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import {
-  AUDIT_MODIFIED, agreementStats, allocateAudit, auditView, checkAuditLock, labellingTables, loadLabellerPrompts, main, pairAgreement,
+  AUDIT_ALLOCATION_EXPOSED, AUDIT_MODIFIED, AUDIT_UNCOMMITTED, agreementStats, allocateAudit, auditView, auditViewKey, checkAuditLock, labellingTables, loadLabellerPrompts, main, pairAgreement,
 } from '../../../../scripts/llm-label.js';
 import type { AnyLabel, AuditFile, JudgeUnitVerdict, LabelPlanFile, LabellerPrompt, LabellingOutputs, ReconciledLabel } from '../../../../scripts/llm-label.js';
 import type { ItemKind } from '../../../../scripts/lib/label-context.js';
@@ -70,13 +70,27 @@ describe('audit allocation (BR-U5b-41)', () => {
     expect(allocateAudit(labels, 11)).toEqual(a);
   });
 
-  it('projects alternate within a stratum (round-robin in a seeded order)', () => {
+  it('projects alternate within a stratum (round-robin selection in a seeded order)', () => {
     const a = allocateAudit(labels, 11);
     const project = new Map(labels.map((l) => [l.itemId, l.projectId]));
     const tp = a.itemIds.filter((id) => id.startsWith('violation-TP-')).map((id) => project.get(id));
     expect(tp.length).toBeGreaterThanOrEqual(3);
-    for (let i = 1; i < tp.length; i += 1) expect(tp[i]).not.toBe(tp[i - 1]);
-    expect(new Set(tp.slice(0, 3)).size).toBe(3);
+    // Round-robin over the seeded project order: the selected TP items spread over min(allocated, projects) projects.
+    expect(new Set(tp).size).toBe(Math.min(tp.length, new Set(labels.filter((l) => l.itemId.startsWith('violation-TP-')).map((l) => l.projectId)).size));
+  });
+
+  it('THR-3: the view order is a seeded order independent of the strata (no contiguous label blocks)', () => {
+    const a = allocateAudit(labels, 11);
+    const labelOf = new Map(labels.map((l) => [l.itemId, `${l.kind}|${l.label}`]));
+    // The order is the sha256([seed, 'audit-view', itemId]) order, hand-checkable item by item.
+    const keys = a.itemIds.map((id) => auditViewKey(11, id));
+    expect([...keys].sort()).toEqual(keys);
+    // Grouping by stratum would give one run per non-empty stratum; the blinded order has many more label changes.
+    const runs = a.itemIds.reduce((n, id, i) => n + (i > 0 && labelOf.get(id) !== labelOf.get(a.itemIds[i - 1] ?? '') ? 1 : 0), 1);
+    expect(runs).toBeGreaterThan(a.strata.filter((x) => x.allocated > 0).length);
+    // Another seed gives another order of the same allocated items.
+    const b = allocateAudit(labels, 12);
+    expect(b.itemIds).not.toEqual(a.itemIds);
   });
 });
 
@@ -205,15 +219,30 @@ describe('labeller tables in aggregate and the CLI (exit criterion 4)', () => {
       const labelsOut = join(dir, 'labels.json');
       expect(await main(['--plan', plan, '--mode', 'replay', '--provider', 'mock', '--cassette-dir', LABEL_CASSETTE_DIR, '--model', FIXTURE_MODEL, '--out', labelsOut], ROOT, io().io)).toBe(0);
       expect(JSON.parse(readFileSync(labelsOut, 'utf8'))).toEqual(fixtureLabels());
-      expect(await main(['--allocate-audit', '--plan', plan, '--labels', labelsOut, '--plan-id', 'fixtures', '--seed', '5', '--out', dir], ROOT, io().io)).toBe(0);
-      const alloc = JSON.parse(readFileSync(join(dir, 'fixtures.allocation.json'), 'utf8')) as { itemIds: string[] };
-      const view = JSON.parse(readFileSync(join(dir, 'fixtures.view.json'), 'utf8')) as unknown[];
-      expect(view).toHaveLength(alloc.itemIds.length);
+      const viewDir = join(dir, 'view');
+      const sealed = join(dir, 'sealed', 'fixtures.allocation.json');
+      // THR-3: the allocation may not be written next to the author's view.
+      const exposed = io();
+      expect(await main(['--allocate-audit', '--plan', plan, '--labels', labelsOut, '--plan-id', 'fixtures', '--seed', '5', '--out', viewDir, '--allocation-out', join(viewDir, 'a.json')], ROOT, exposed.io)).toBe(1);
+      expect(exposed.err.join('')).toContain(AUDIT_ALLOCATION_EXPOSED);
+      mkdirSync(join(dir, 'sealed'), { recursive: true });
+      mkdirSync(viewDir, { recursive: true });
+      expect(await main(['--allocate-audit', '--plan', plan, '--labels', labelsOut, '--plan-id', 'fixtures', '--seed', '5', '--out', viewDir, '--allocation-out', sealed], ROOT, io().io)).toBe(0);
+      expect(existsSync(join(viewDir, 'fixtures.allocation.json'))).toBe(false);
+      const alloc = JSON.parse(readFileSync(sealed, 'utf8')) as { itemIds: string[] };
+      const view = JSON.parse(readFileSync(join(viewDir, 'fixtures.view.json'), 'utf8')) as { itemId: string }[];
+      expect(view.map((v) => v.itemId)).toEqual(alloc.itemIds);
+      for (const v of view) expect(Object.keys(v).sort()).toEqual(['context', 'itemId', 'kind', 'options', 'projectId', 'rootCauses']);
       const auditPath = join(dir, 'fixtures.json');
       writeFileSync(auditPath, JSON.stringify({ version: 1, planId: 'fixtures', records: alloc.itemIds.map((id) => ({ itemId: id, label: 'TP', recordedAt: '2026-10-08T00:00:00Z' })) }));
-      const args = ['--agreement', '--plan', plan, '--labels', labelsOut, '--model', FIXTURE_MODEL, '--allocation', join(dir, 'fixtures.allocation.json'), '--audit', auditPath, '--judge-cassettes', JUDGE_CASSETTES, '--out', join(dir, 'labelling.json')];
-      expect(await main(args, ROOT, io().io)).toBe(0);
-      expect(await main(args, ROOT, io().io)).toBe(0);
+      const args = ['--agreement', '--plan', plan, '--labels', labelsOut, '--model', FIXTURE_MODEL, '--allocation', sealed, '--audit', auditPath, '--judge-cassettes', JUDGE_CASSETTES, '--resamples', '200', '--out', join(dir, 'labelling.json')];
+      // THR-3: an audit file that is not committed is refused before any comparison.
+      const uncommitted = io();
+      expect(await main(args, ROOT, uncommitted.io)).toBe(1);
+      expect(uncommitted.err.join('')).toContain(AUDIT_UNCOMMITTED);
+      const committed = { auditCommitted: (): boolean => true };
+      expect(await main(args, ROOT, io().io, committed)).toBe(0);
+      expect(await main(args, ROOT, io().io, committed)).toBe(0);
       const outputs = JSON.parse(readFileSync(join(dir, 'labelling.json'), 'utf8')) as LabellingOutputs;
       expect(outputs.agreement?.map((r) => r.comparison)).toEqual(['run-vs-run', 'judge-vs-panel', 'judge-vs-panel', 'panel-vs-audit', 'judge-repetition', 'judge-repetition']);
       const t = labellingTables(outputs);
@@ -222,7 +251,7 @@ describe('labeller tables in aggregate and the CLI (exit criterion 4)', () => {
       expect(t['fp_fn_taxonomy.csv'].rows.length).toBeGreaterThan(0);
       writeFileSync(auditPath, JSON.stringify({ version: 1, planId: 'fixtures', records: [] }));
       const refused = io();
-      expect(await main(args, ROOT, refused.io)).toBe(1);
+      expect(await main(args, ROOT, refused.io, committed)).toBe(1);
       expect(refused.err.join('')).toContain(AUDIT_MODIFIED);
     } finally {
       rmSync(dir, { recursive: true, force: true });

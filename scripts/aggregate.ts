@@ -48,6 +48,7 @@ import type { ExperimentPlan } from './run-experiment.js';
 import { DATA_FLOW_SUB_ROW, DATA_FLOW_TEMPLATE, denominatorRow, readCorpusTiers, strataOf } from './score-golden.js';
 import type { DenominatorRow, EdgeEvidence, FunctionSensitivityResult, InstanceResult, JudgeProbeResult } from './score-golden.js';
 import { labellingTables } from './llm-label.js';
+import { fnCauseColumns, fpatLabelsOf, isReconciledLabels } from './lib/label-adapters.js';
 import type { LabellingOutputs } from './llm-label.js';
 
 export const AGGREGATE_INPUT_INVALID = 'AGGREGATE_INPUT_INVALID';
@@ -328,7 +329,8 @@ function prfFiles(input: AggregateInput, seed: number, resamples: number): Parti
   out['instances.csv'] = csvText(
     ['seed_id', 'project_id', 'operator_id', 'status', 'detected_by', 'line_confirmed', 'collateral_keys', 'undeclared_new', 'fn_root_cause', 'fn_cause_source', 'corpus_tier'],
     inst.filter((i) => i.status !== 'twin-clean' && i.status !== 'twin-fired').map((i) => [
-      i.seedId, i.projectId, i.operatorId, i.status, i.detectedBy.join(';'), bool(i.lineConfirmed), JSON.stringify(i.collateral), JSON.stringify(i.undeclaredNew), '', '', i.corpusTier ?? '',
+      i.seedId, i.projectId, i.operatorId, i.status, i.detectedBy.join(';'), bool(i.lineConfirmed), JSON.stringify(i.collateral), JSON.stringify(i.undeclaredNew),
+      ...(i.status === 'missed' ? fnCauseColumns(i.seedId, input.labelling?.fnCauses ?? [], input.labelling?.labels ?? []) : ['', '']), i.corpusTier ?? '',
     ]),
   );
   const twins = inst.filter((i) => i.status === 'twin-clean' || i.status === 'twin-fired');
@@ -683,6 +685,34 @@ export function aggregate(input: AggregateInput): Map<CsvFile, string> {
 
 export type { LoadedRunDir } from './lib/report-io.js';
 
+/**
+ * The FPAT input of `--labels` (ADR-021 SO5-01): the labeller's `ReconciledLabel[]` converted to P3 rows keyed by the
+ * E1 run id (`label-adapters.ts`), or a `LabelledViolation[]` already in that shape. Refused
+ * (`AGGREGATE_INPUT_INVALID`) instead of counting zeros: a label that matches no E1 record, and a labels file without
+ * any P3 label while an accepted E1 report has symbolic violations.
+ */
+export function fpatLabelsFromFile(value: unknown, records: readonly RunRecord[], reports: ReadonlyMap<string, EvaluationReport>): LabelledViolation[] {
+  let labels: LabelledViolation[];
+  if (isReconciledLabels(value)) {
+    const r = fpatLabelsOf(value, records);
+    if (!r.ok) throw new Error(`${AGGREGATE_INPUT_INVALID}: ${r.detail}`);
+    labels = r.labels;
+  } else if (Array.isArray(value) && value.every((l) => typeof (l as Partial<LabelledViolation>).runId === 'string' && typeof (l as Partial<LabelledViolation>).functionId === 'string')) {
+    labels = value as LabelledViolation[];
+    const e1 = new Set(records.filter((r) => r.cell !== undefined).map((r) => r.runId));
+    const stray = labels.find((l) => !e1.has(l.runId));
+    if (stray !== undefined) throw new Error(`${AGGREGATE_INPUT_INVALID}: label of ${stray.functionId} names run ${stray.runId}, which is not an E1 record of --runs`);
+  } else {
+    throw new Error(`${AGGREGATE_INPUT_INVALID}: --labels must be llm-label output (ReconciledLabel[]) or LabelledViolation[]`);
+  }
+  const symbolic = records.some((r) => r.cell !== undefined && r.status === 'accepted'
+    && (reports.get(r.runId)?.violations ?? []).some((v) => v.route !== 'neuronal' && (v as { readonly unitId?: unknown }).unitId === undefined));
+  if (labels.length === 0 && symbolic) {
+    throw new Error(`${AGGREGATE_INPUT_INVALID}: --labels holds no P3 label, but accepted E1 reports have symbolic violations; the FPAT columns would be 0`);
+  }
+  return labels;
+}
+
 /** Reads a harness output directory (`report-io.ts` `loadRunDir`, errors as `AGGREGATE_INPUT_INVALID`). */
 export function loadRunDir(dir: string): LoadedRunDir {
   return loadRunDirOf(dir, AGGREGATE_INPUT_INVALID);
@@ -747,7 +777,7 @@ export async function main(argv: readonly string[], repoRoot: string, io: Aggreg
       planId: plan?.id ?? records[0]?.planId ?? 'unknown', ...(plan !== undefined && { plan }), records, reports, so5: so5.codes,
       ...(opts.has('score') && { score: readJsonFile(resolve(repoRoot, opts.get('score') ?? '')) as GoldenScoreJson }),
       ...(opts.has('sensitivity') && { sensitivity: readJsonFile(resolve(repoRoot, opts.get('sensitivity') ?? '')) as FunctionSensitivityResult[] }),
-      ...(opts.has('labels') && { labels: readJsonFile(resolve(repoRoot, opts.get('labels') ?? '')) as LabelledViolation[] }),
+      ...(opts.has('labels') && { labels: fpatLabelsFromFile(readJsonFile(resolve(repoRoot, opts.get('labels') ?? '')), records, reports) }),
       ...(opts.has('labelling') && { labelling: readJsonFile(resolve(repoRoot, opts.get('labelling') ?? '')) as LabellingOutputs }),
       ...(twinOf !== undefined && { twinOf }),
       ...(corpusTiers !== undefined && { corpusTiers }),

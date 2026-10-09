@@ -62,7 +62,10 @@ describe('registry (BR-U5b-51)', () => {
       'scripts/generator/prompts/*.md', 'Docs/corpus-criteria.md', 'Docs/labeller-prompts/*', 'corpus/corpus.json',
       'corpus/overlays/**', 'corpus/specs/*.yaml', 'experiments/*/plan.json', 'experiments/e1-grid/generator-plan.json',
       'corpus/frozen-instrument.json', 'Docs/e7-spec-rule.md', 'scripts/generate-e7-specs.ts',
+      'corpus/label-plan-config.json',
     ]);
+    // ADR-021 item 6 (SO3-2): the label-plan sizes are registered.
+    expect(isRegisteredPath('corpus/label-plan-config.json')).toBe(true);
     // ADR-021 SO5-03 / THR-8: the E1 generator plan is registered; another experiment's generator plan is not.
     expect(isRegisteredPath('experiments/e1-grid/generator-plan.json')).toBe(true);
     expect(isRegisteredPath('experiments/e7-corpus/generator-plan.json')).toBe(false);
