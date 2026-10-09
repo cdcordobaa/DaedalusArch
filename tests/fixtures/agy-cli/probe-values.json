@@ -1,0 +1,255 @@
+{
+  "date": "2026-10-09",
+  "adr": "ADR-019 item 4 as amended (1185a1f); ADR-021 SO3-1, SO3-4",
+  "outcome": "PASS: isolation holds. Tools are registered but inert (every tool class is denied by settings rules, and any tool that completes is a provider stop). The home holds no MCP server, plugin, agent, hook or rule file. The ambient-rule channels are controlled by a neutral cwd and the home check. The model id was verified in the init event. The version is pinned and auto-update is disabled.",
+  "cli": {
+    "binary": "/opt/homebrew/bin/agy (Mach-O arm64)",
+    "caskVersion": "antigravity-cli 1.1.23",
+    "versionAtProbe": "1.3.2",
+    "pinnedVersion": "1.3.2",
+    "note": "the binary self-updated in place before this probe (Oct 8 21:05 local; the cask record still says 1.1.23); the pin is the observed 1.3.2"
+  },
+  "autoUpdate": {
+    "mechanism": "environment variable AGY_CLI_DISABLE_AUTO_UPDATE=true",
+    "evidence": "with a stale last_check.timestamp, AGY_CLI_DISABLE_AUTO_UPDATE=1 still logged 'Spawned background update process' (auto_updater.go:334); =true logged 'Auto-update disabled via environment variable AGY_CLI_DISABLE_AUTO_UPDATE' (auto_updater.go:247)",
+    "value": "true"
+  },
+  "headless": "prompt on stdin, no -p value; --output-format stream-json (init, step_update, result events) or json (one envelope)",
+  "argv": [
+    "--output-format",
+    "stream-json",
+    "--model",
+    "<id>",
+    "--json-schema",
+    "<schema text>",
+    "--sandbox",
+    "--disable-slash-commands",
+    "--print-timeout",
+    "<n>s"
+  ],
+  "argvNotes": [
+    "--mode plan has no effect with --disable-slash-commands (CLI warning), so it is not used",
+    "agy has no system-prompt, temperature, seed or max-token flag; the persona is prepended to the prompt; temperature 0 cannot be set (ADR-021 amendment to the determinism rule)",
+    "--effort is not passed; the -high suffix of the model id carries the reasoning level"
+  ],
+  "env": {
+    "allow": [
+      "PATH",
+      "USER",
+      "LOGNAME",
+      "TMPDIR",
+      "LANG"
+    ],
+    "set": {
+      "HOME": "<HOME>/.firewall/labeller-agy-home",
+      "AGY_CLI_DISABLE_AUTO_UPDATE": "true",
+      "LANG": "en_US.UTF-8"
+    }
+  },
+  "auth": "Google OAuth signed in by the author inside the dedicated home (token file names listed, never read); an empty HOME gives status ERROR 'authentication failed or timed out', exit 1",
+  "model": {
+    "id": "gemini-3.1-pro-high",
+    "verifiedBy": "agy models lists 'gemini-3.1-pro-high Gemini 3.1 Pro (High)'; every stream-json init event of the probe reports model gemini-3.1-pro-high",
+    "why": "the strongest generally available Gemini Pro listed: 3.1 Pro is the only Pro family offered (the 3.6/3.7/3.8 entries are Flash), and High is its higher reasoning level; it is of a different family from the Claude judge and generator (BR-U5b-40)",
+    "resultCarriesModel": false
+  },
+  "structuredOutput": {
+    "field": "structured_output",
+    "present": true,
+    "note": "with --json-schema the agent answers through a finish tool; response may also carry fenced JSON text; structured_output is read first"
+  },
+  "listings": {
+    "mcp list": "No MCP servers configured.",
+    "plugin list": "No imported plugins.",
+    "agents": "(none)",
+    "/hooks": "[]",
+    "/skills": "2 builtin skills (agy-customizations, antigravity-guide), disabled with slash-command and skill expansion by --disable-slash-commands"
+  },
+  "tools": {
+    "initToolCount": 60,
+    "removable": false,
+    "strictOnly": "toolPermission strict alone denied run_command but view_file on the cwd and on a path outside the workspace reported DONE (stream-tools-strict-only.ndjson): not sufficient",
+    "withDenyRules": "strict plus permissions.deny [command(*), read_file(*), read_file(/), write_file(*), write_file(/), mcp(*), read_url(*)]: ls, view_file (cwd and outside), echo, read_url_content and write_to_file all ERROR 'Matches user-configured deny rule'; no file written; no canary value in the answer (stream-tools-denied.ndjson)",
+    "spontaneousAttempts": "the model attempts view_file / run_command even on self-contained prompts (stream-memory-*.ndjson); denied attempts are allowed, a completed tool step other than finish is a stop (LLM_CLI_ISOLATION)"
+  },
+  "settingsRewrite": "agy rewrites settings.json and drops keys equal to their defaults (allowNonWorkspaceAccess false, artifactReviewPolicy, notifications); the check therefore requires only the non-default keys",
+  "canary": {
+    "positiveControl": {
+      "file": "stream-canary-positive.ndjson",
+      "planted": [
+        "<root>/GEMINI.md (ancestor, no git)",
+        "<root>/a/AGENTS.md (ancestor, no git)",
+        "cwd AGENTS.md",
+        "cwd .agents/rules/canary.md",
+        "home .gemini/GEMINI.md",
+        "home .gemini/config/GEMINI.md"
+      ],
+      "fired": [
+        "CANARY-CWD-AGT-2W",
+        "CANARY-HOME-GEMINI-1H",
+        "CANARY-HOME-CONFIG-9P"
+      ],
+      "notFired": [
+        "CANARY-ANCESTOR-GEM-4R",
+        "CANARY-ANCESTOR-AGT-8T",
+        "CANARY-CWD-DOTAGENTS-6M"
+      ]
+    },
+    "negative": {
+      "file": "stream-canary-negative.ndjson",
+      "cwd": "fresh mkdtemp, planted files removed",
+      "tokensFound": []
+    },
+    "controls": "fresh empty mkdtemp cwd per call, outside any git repository, no GEMINI.md, AGENTS.md, .agents/.agent/_agents/_agent or .git on its ancestor chain; home check forbids GEMINI.md, AGENTS.md, rules, skills, plugins, agents, workflows and hooks outside agy's builtin dir",
+    "memory": "a plant call asked to remember MEMCANARY-5X; a later fresh call reported NONE (stream-memory-*.ndjson). No positive control exists (the /learn command is disabled by --disable-slash-commands): residual"
+  },
+  "errorClasses": {
+    "timeout": {
+      "file": "envelope-print-timeout.json",
+      "exit": 0,
+      "status": "SUCCESS",
+      "response": "",
+      "stderr": "[agy] print timeout after 2s with turn in progress; returning partial output",
+      "class": "LLM_CLI_TIMEOUT (retry)"
+    },
+    "auth": {
+      "file": "envelope-auth.json",
+      "exit": 1,
+      "status": "ERROR",
+      "error": "authentication failed or timed out",
+      "class": "LLM_AUTH (stop)"
+    },
+    "unknownModel": {
+      "file": "envelope-unknown-model.json",
+      "exit": 1,
+      "status": "ERROR",
+      "class": "LLM_NOT_CONFIGURED (stop)"
+    },
+    "deniedOnly": {
+      "file": "envelope-denied-read.json",
+      "exit": 0,
+      "status": "SUCCESS",
+      "response": "",
+      "denied_actions": "[read_file]",
+      "class": "LLM_CLI_EXIT (retry): empty answer"
+    },
+    "usageLimit": "not observed; patterns RESOURCE_EXHAUSTED, MODEL_CAPACITY_EXHAUSTED, quota, rate limit, usage limit, 429 are unverified"
+  },
+  "exitCodeRule": "never classify from the exit code alone: a print timeout and a denied-only turn both exit 0 with status SUCCESS",
+  "quota": {
+    "source": "/usage (no model turn)",
+    "geminiWeeklyRemaining": {
+      "before": 0.97456,
+      "after": 0.96996
+    },
+    "geminiCallsBetween": 8,
+    "perCallWeeklyFraction": "about 0.0006 for a ~13k-input-token call",
+    "note": "a rough reading: about 1 700 such calls per weekly window at the author's tier; label prompts carry larger contexts",
+    "labelSmoke": {
+      "plan": "smoke-plan.json (fixture P1 item, 2 runs)",
+      "calls": 2,
+      "inputTokens": [
+        73674,
+        123620
+      ],
+      "outputTokens": [
+        5725,
+        4646
+      ],
+      "durationMs": [
+        64110,
+        58776
+      ],
+      "geminiWeeklyRemaining": {
+        "before": 0.96996,
+        "after": 0.9589
+      },
+      "gemini5hRemaining": {
+        "before": 0.9899,
+        "after": 0.96356
+      },
+      "perCallWeeklyFraction": "about 0.0055",
+      "perCall5hFraction": "about 0.013",
+      "reading": "about 180 label calls per weekly window and about 75 per 5-hour window at the author's tier; the registered budget of 4000 calls would need about 22 weekly windows"
+    }
+  },
+  "probeCalls": {
+    "budget": 15,
+    "modelCalls": 10,
+    "list": [
+      {
+        "n": 1,
+        "id": "c01",
+        "what": "json output, stdin prompt, --json-schema, --mode plan, --sandbox, --disable-slash-commands",
+        "evidence": "envelope-json-schema.json"
+      },
+      {
+        "n": 2,
+        "id": "c02",
+        "what": "stream-json init event (model, 60 tools, permission_mode)",
+        "evidence": "stream-json-clean.ndjson"
+      },
+      {
+        "n": 3,
+        "id": "c03",
+        "what": "unintended: '/config' became a model prompt once disableSlashCommands was set; read_file auto-denied",
+        "evidence": "envelope-denied-read.json"
+      },
+      {
+        "n": 4,
+        "id": "c04",
+        "what": "tool prompt under toolPermission strict only",
+        "evidence": "stream-tools-strict-only.ndjson"
+      },
+      {
+        "n": 5,
+        "id": "c05",
+        "what": "tool prompt under strict plus deny rules",
+        "evidence": "stream-tools-denied.ndjson"
+      },
+      {
+        "n": 6,
+        "id": "c06",
+        "what": "canary positive control",
+        "evidence": "stream-canary-positive.ndjson"
+      },
+      {
+        "n": 7,
+        "id": "c07",
+        "what": "canary negative",
+        "evidence": "stream-canary-negative.ndjson"
+      },
+      {
+        "n": 8,
+        "id": "c09",
+        "what": "print timeout 2s",
+        "evidence": "envelope-print-timeout.json"
+      },
+      {
+        "n": 9,
+        "id": "c11",
+        "what": "memory plant",
+        "evidence": "stream-memory-plant.ndjson"
+      },
+      {
+        "n": 10,
+        "id": "c12",
+        "what": "memory probe",
+        "evidence": "stream-memory-probe.ndjson"
+      }
+    ],
+    "notModelCalls": [
+      "agy --version",
+      "agy models",
+      "agy mcp list",
+      "agy plugin list",
+      "agy agents",
+      "agy changelog",
+      "slash commands /config /permissions /hooks /help /skills /usage /agents (num_turns 0, zero tokens)",
+      "c08 unknown model (rejected before a turn)",
+      "c10 empty HOME (auth failed before a turn)"
+    ],
+    "smokeCalls": 2,
+    "totalModelCalls": 12
+  }
+}

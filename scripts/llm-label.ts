@@ -20,8 +20,9 @@ import { join, resolve } from 'node:path';
 import { parse as parseYaml } from 'yaml';
 import { listCassetteKeys, readCassetteEntry } from '../src/llm-critic/cassette-manager.js';
 import { CassetteLLMProvider } from '../src/llm-critic/cassette-provider.js';
-import type { Interpretation } from '../src/llm-critic/cassette-provider.js';
-import type { LLMProvider } from '../src/shared/interfaces/llm-provider.js';
+import type { ArgvFlagSource, Interpretation } from '../src/llm-critic/cassette-provider.js';
+import { buildAgyArgs } from '../src/llm-critic/agy-cli-provider.js';
+import type { LLMOptions, LLMProvider } from '../src/shared/interfaces/llm-provider.js';
 import type { VCRMode } from '../src/shared/types/llm-config.js';
 import { ROOT_CAUSE_CODES } from './lib/matching-rule.js';
 import type { RootCauseCode } from './lib/matching-rule.js';
@@ -88,6 +89,8 @@ export interface LabellerConfig {
   /** Values scrubbed from every cassette (default: `knownSecretsOf(process.env)`). */
   readonly knownSecrets?: readonly string[];
   readonly now?: () => string;
+  /** Run provenance of a CLI route's record-mode pre-flight (agy: version, probe and listing hashes). */
+  readonly cassetteProvenance?: { readonly cliVersion?: string; readonly isolationProbeSha256?: string; readonly configListingSha256?: string };
 }
 
 export const LABELLER_MODEL_UNPINNED = 'LABELLER_MODEL_UNPINNED';
@@ -98,6 +101,8 @@ export const LABELLER_STOPPED = 'LABELLER_STOPPED';
 export const LABELLER_PROMPT_DIR = 'Docs/labeller-prompts';
 export const LABELLER_MAX_TOKENS = 1024;
 export const LABELLER_TEMPERATURE = 0;
+/** `--provider` values; `agy` is the registered panel route (ADR-019 item 4 as amended), `gemini` the API route. */
+export const LABEL_PROVIDERS: readonly string[] = ['agy', 'gemini', 'mock'];
 
 /** Response schema (canonical JSON text); Gemini receives its supported subset through U4's provider. */
 export const LABEL_SCHEMA_TEXT = JSON.stringify({
@@ -331,6 +336,7 @@ export async function labelItems(items: readonly LabelItem[], config: LabellerCo
     mode: config.mode, dir: config.cassetteDir, interpret: interpretLabelAnswer,
     knownSecrets: config.knownSecrets ?? knownSecretsOf(process.env),
     ...(config.now !== undefined && { now: config.now }),
+    ...config.cassetteProvenance,
   });
   const options = { model: config.model, maxTokens: config.maxTokens ?? LABELLER_MAX_TOKENS, temperature: LABELLER_TEMPERATURE };
   const sent: string[] = [];
@@ -422,7 +428,7 @@ export function estimatePlan(plan: LabelPlanFile): { exitCode: 0 | 1; line: stri
 export const LABEL_USAGE = [
   'usage: npx tsx scripts/llm-label-cli.ts --plan <label-plan.json> --estimate',
   '       npx tsx scripts/llm-label-cli.ts --plan <label-plan.json> --mode record|replay --cassette-dir <dir> --model <pinned id>',
-  '                                        [--provider gemini|mock] --out <labels.json>',
+  '                                        [--provider agy|gemini|mock] --out <labels.json>',
   '       npx tsx scripts/llm-label-cli.ts --allocate-audit --plan <file> --labels <labels.json> --plan-id <id> --seed <n> --out <dir>',
   '       npx tsx scripts/llm-label-cli.ts --agreement --plan <file> --labels <labels.json> --model <pinned id> [--allocation <file>',
   '                                        --audit audit/<plan-id>.json] [--judge-verdicts <file>] [--judge-cassettes <dir>] --out <labelling.json>',
@@ -438,6 +444,11 @@ export interface LabelMainIo {
 export interface LabelMainDeps {
   /** Builds the live provider for `--provider gemini` (record mode only; never constructed in tests). */
   readonly gemini?: (model: string) => LLMProvider;
+  /**
+   * Builds the live provider for `--provider agy` (ADR-019 item 4 as amended; record mode only). A provider
+   * with `prepare()` runs its isolation pre-flight before the first call; a failed pre-flight stops the run.
+   */
+  readonly agy?: (model: string) => LLMProvider & { prepare?: () => Promise<{ success: boolean; data?: { cliVersion: string; isolationProbeSha256: string; configListingSha256: string }; errors?: readonly { code: string; message: string }[] }> };
   readonly mock?: () => LLMProvider;
 }
 
@@ -524,17 +535,34 @@ export async function main(argv: readonly string[], repoRoot: string, io: LabelM
     return 1;
   }
   const providerName = args.get('provider') ?? 'gemini';
-  const disabled: LLMProvider = {
+  if (!LABEL_PROVIDERS.includes(providerName)) {
+    io.err(`--provider must be one of ${LABEL_PROVIDERS.join(', ')}\n${LABEL_USAGE}`);
+    return 2;
+  }
+  // Replay keys on the provider name, so the disabled stand-in must report the requested one.
+  // agy keys also carry its non-content argv flags, so the stand-in exposes the same flags.
+  const disabled: LLMProvider & Partial<ArgvFlagSource> = {
     name: 'disabled',
-    describe: () => ({ provider: providerName === 'mock' ? 'mock' : 'gemini', model }),
+    describe: () => ({ provider: providerName === 'mock' ? 'mock' : providerName === 'agy' ? 'agy' : 'gemini', model }),
     evaluate: () => Promise.reject(new Error('replay mode: the provider is disabled')),
+    ...(providerName === 'agy' && { requestArgvFlags: (o: LLMOptions) => buildAgyArgs({ model: o.model, schema: '' }).argvFlags }),
   };
   let provider: LLMProvider = disabled;
+  let cassetteProvenance: LabellerConfig['cassetteProvenance'];
   if (mode === 'record') {
-    const made = providerName === 'mock' ? deps.mock?.() : providerName === 'gemini' ? deps.gemini?.(model) : undefined;
+    const made = providerName === 'mock' ? deps.mock?.() : providerName === 'gemini' ? deps.gemini?.(model) : deps.agy?.(model);
     if (made === undefined) {
       io.err(`--provider ${providerName} is not available in record mode\n`);
       return 2;
+    }
+    if ('prepare' in made && typeof made.prepare === 'function') {
+      const prepared = await made.prepare();
+      if (!prepared.success || prepared.data === undefined) {
+        const e = prepared.errors?.[0];
+        io.err(`${LABELLER_STOPPED}: ${e?.code ?? 'PREFLIGHT'}: ${e?.message ?? 'pre-flight failed'}\n`);
+        return 1;
+      }
+      cassetteProvenance = { ...prepared.data };
     }
     provider = made;
   }
@@ -545,7 +573,7 @@ export async function main(argv: readonly string[], repoRoot: string, io: LabelM
   }
   const r = await labelItems(plan.items, {
     provider, model, runs: 2, mode, cassetteDir: resolve(repoRoot, cassetteDir), permutationSeed: plan.permutationSeed,
-    budgetCalls: plan.budgetCalls,
+    budgetCalls: plan.budgetCalls, ...(cassetteProvenance !== undefined && { cassetteProvenance }),
   }, prompts.prompts);
   if (!r.ok) {
     io.err(`${r.code}: ${r.detail}\n`);
