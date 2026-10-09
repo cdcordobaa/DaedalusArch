@@ -140,3 +140,18 @@ describe('ISO-01 a and VRD-09 source checks', () => {
     expect(grep('gemini-2.0-flash', ['src/llm-critic/', 'src/cli/llm-options.ts'])).toBe('');
   });
 });
+
+describe('--judge-cli: the pinned judge binary under its own prefix (ADR-022 item 5; ADR-018 pin)', () => {
+  const pinned = path.join(HOME, '.firewall/judge-cli/node_modules/.bin/claude');
+
+  it('defaults to the private pinned binary when it exists, else to claude on PATH', () => {
+    expect(ok(parseLLMOptions([], {}, { homeDir: HOME, exists: (f) => f === pinned })).claudeCli?.binary).toBe(pinned);
+    expect(ok(parseLLMOptions([], {}, { homeDir: HOME, exists: () => false })).claudeCli?.binary).toBe('claude');
+  });
+
+  it('an explicit --judge-cli wins: a path is ~-expanded and resolved, a bare name is kept for PATH lookup', () => {
+    expect(ok(parseLLMOptions(['--judge-cli', '~/bin/claude-2.1.294'], {}, { homeDir: HOME, exists: () => true })).claudeCli?.binary).toBe(path.join(HOME, 'bin/claude-2.1.294'));
+    expect(ok(parseLLMOptions(['--judge-cli=claude'], {}, { homeDir: HOME, exists: () => true })).claudeCli?.binary).toBe('claude');
+    expect(errorOf(parseLLMOptions(['--judge-cli'], {}, { homeDir: HOME }))).toContain('--judge-cli needs a value');
+  });
+});
