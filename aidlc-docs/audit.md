@@ -1180,3 +1180,11 @@ Plan checkboxes ticked. Auto-approved under standing approval; no blocking or ma
 **Context**: CONSTRUCTION — Build and Test stopped at Step 49 with E-1 (pending author decision (a), BR-U5a-37 CAT_SHORTFALL 69 < 80; BR-U5a-40) and E-2 (SEN-01 FF-N02 35 calls needed, 20 of 40 left) open; the orchestrator escalates both, plus pending decision (b). Resume order in the summary §12.
 
 ---
+
+## Build and Test — author decisions on E-1 and the labeller route
+**Timestamp**: 2026-10-08T22:30:00Z
+**User Input**: "Labeller: Gemini CLI on Google login. SO4 floor: Add E7 projects, then report." (The author chose the CLI route for the panel; for SO4, freeze five E7 projects and recount, and if still below 80, run with the actual N and report the deviation.)
+**AI Response**: "Recorded as ADR-019 with the orchestrator settlements: base-preparation rule for ghostfolio, E7 specs as a dated additive registration, live-call budget 200 for E-2, E1 orderSeed 20261008. Build and Test resumes."
+**Context**: CONSTRUCTION, Build and Test, escalations E-1/E-2
+
+---

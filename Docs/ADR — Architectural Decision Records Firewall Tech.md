@@ -838,6 +838,36 @@ i. **U2 derived settlements** S-1 to S-7 and S-9 (U2 `business-rules.md` §14.1)
 
 ---
 
+## ADR-019: Build and Test escalations E-1, E-2 and the labeller route (v1.2)
+
+**Status**: Accepted. Items 1 and 4 are the author's decisions of 2026-10-08. Items 2, 3, 5 and 6 are orchestrator settlements under the standing approval.
+
+**Date**: 2026-10-08
+
+**Context**: Build and Test stopped at Step 49 with three issues open:
+- **E-1:** SO4 held-out capacity is 69 at k = 3, below the floor of 80 (BR-U5a-37 `CAT_SHORTFALL`). ghostfolio-test fails its type-check, so the usable count is 54.
+- **E-2:** SEN-01 for FF-N02 needs 35 live calls, but the orchestrator's session cap of 40 calls leaves too few.
+- **Labeller route:** the Gemini API key in `.env` is rejected (`API key not valid`).
+
+**Decision**:
+
+1. **SO4 floor (author).** Freeze E7 at the maximum of five projects, selected under the dated `Docs/corpus-criteria.md`. Give each a spec before any run, then recount under BR-U5a-37 as written, which already counts frozen E7 bases. If the total at k = 3 is still below 80, freeze k = 3, run SO4 with the actual N, and report the shortfall as a deviation in Ch7. No other lever is used: no k = 4 and no relaxed counting.
+2. **Base preparation.** An excluded base may be repaired only by a documented, deterministic preparation step that changes no source file, applied before the catalogue freeze. For ghostfolio-test this means `prisma generate` and the monorepo-root `tsconfig.base.json`. If the base still does not type-check, it stays excluded (BR-U5a-07) and does not count toward k.
+3. **E7 specs (OI-12).** E7 specs are written from the style presets under the ADR-015 item 1 rule. The additive `prereg.json` bump that registers them is a dated registration, not a deviation, provided it is committed before any run on those projects.
+4. **Labeller route (author).** The panel runs through the installed Gemini CLI, signed in with the author's Google account, in place of the API. This needs:
+   - a CLI adapter with the same strict-verdict contract as the API provider;
+   - an isolation probe modelled on Gate H: no tools, no extensions or MCP servers, no ambient `GEMINI.md`, a dedicated config home, a pinned CLI version, and a model id verified on the CLI;
+   - cassettes in record and replay modes.
+
+   If the CLI cannot be isolated, live labelling halts and the author picks the route.
+5. **E-2.** The 40-call cap was an orchestrator budget, not a design rule. Build and Test's live-call budget is raised to 200 judge calls, logged in the live-call ledger. SEN-01 runs in full and excludes no function (ADR-016 b).
+6. **Remaining settlements.**
+   - **E1 `orderSeed` (OI-BT-F3):** fixed at the catalogue freeze as `20261008`.
+   - **The ancestor-`CLAUDE.md` channel (OI-BT-F1):** blocked only by the ISO-05 neutral-cwd check. This is recorded as a threat to validity; no code changes.
+   - **realworld-test install (OI-BT-C1):** the mirror failure is recorded. The base type-checks and passes parity, so it stays in.
+
+---
+
 ## Decision Log Summary
 
 | **ADR** | **Decision** | **Status** | **Spike Validated** |
@@ -861,3 +891,4 @@ i. **U2 derived settlements** S-1 to S-7 and S-9 (U2 `business-rules.md` §14.1)
 | 014 | Node.js + TypeScript implementation | Accepted | ✅ All spikes |
 | 017 | v1.2 scope/requirement amendments for results (corpus core+E7, SO5 in scope, E1 grid, SO4 remap, FR-11/25/27) | Accepted | — |
 | 018 | v1.2 U4 judge config-dir allow-list, CLI pin 2.1.294, settings.json content rule | Accepted | — |
+| 019 | v1.2 B&T escalations: SO4 floor via E7 then report, base prep rule, E7 specs, Gemini CLI labeller, live-call budget | Accepted | — |
