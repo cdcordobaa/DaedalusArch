@@ -206,6 +206,48 @@ run index 0 of a cell with `generationStatus = 'ok'` and gives `source = 'e1'` a
 report's `judge.model`. A hand-supplied `--judge-verdicts` file is refused (`LABEL_VERDICT_SOURCE_MISSING`) when any
 verdict lacks `source`, so the E1 headline row and the B3 row never fall back to the pooled set silently.
 
+**Registered live sizes (ADR-021 item 6, amended 2026-10-09 for P-U6).** The agy route (`Docs/labeller-route.md`)
+allows about 180 label calls a week, so the live plan is sized explicitly by `corpus/label-plan-config.json` (a
+registered artefact) instead of by the cap-derived bound above; the 4000 calls of `corpus/prereg.json` stay a
+ceiling, not a target.
+
+| Item | Registered value |
+|---|---|
+| Call ceiling, both runs and re-asks included | 300 (`budgetCalls`), of which 30 are held back for the one re-ask per answer |
+| P4 | 1 unit per (cell, dimension) stratum, at most 46 items: (18 run-0 cells + 5 fixtures) × 2 dimensions |
+| P2 | 1 violation per (project, function) stratum, at most 20 items |
+| P3 | 1 violation per (cell, function) stratum, at most 10 items |
+| P1 + missed seeds | exhaustive, planned at no more than 59 items: (46 + 20 + 10 + 59) × 2 + 30 = 300 |
+| Priority when the budget binds | P4, then P2, then P3: ceilings are lowered in the order P3, P2, P4 (ADR-021 item 7) |
+| Context ceiling | 6 000 characters per item (the 31-line window or the unit source, the rule text, the options) |
+| Quota schedule | at least 2 weeks at 180 calls a week |
+| Seeds | stratum draw 6101, run-1 order and option permutations 6103, agreement bootstrap 6102 |
+
+When a population has more strata than its ceiling allows, `m = ⌊maxItems / perStratum⌋` of its `M` strata are
+drawn by a seeded simple random sample (seed 6101), then `min(perStratum, N_h)` items inside each drawn stratum by the
+within-stratum draw of BR-U5b-33 under the `sampling` seed of the plan that produced the run (`e7-corpus` for P2,
+`e1-grid` for P3 and E1 units, `fixtures` for fixture units; P1 and missed seeds are censuses and are not
+sampled). The inclusion probability is `p = (m / M) · min(perStratum, N_h) / N_h`. If P1 and missed seeds alone
+exceed the 135 items the budget pays for, the plan is refused (`LABEL_PLAN_OVER_BUDGET`) and the gap is reported as a
+limitation. The precision these sizes allow is stated before any run: with n = 46 P4 items the Wilson 95 %
+half-width at nominal n is ±0.139 at p = 0.5 and ±0.103 at p = 0.85; with n = 20 P2 items it is ±0.201 at p = 0.5;
+P3 (n ≤ 10) and per-function rows report counts only. Unequal weights lower the effective size (Kish), so these are
+lower bounds on the widths. `build-label-plan` prints the same statement for the real plan.
+
+**Plan producer (ADR-021 SO3-2, SO4-02, SO3-3).** `scripts/build-label-plan-cli.ts` builds the label plan from stored
+outputs only: P1 items and the `missed` instances from `score-golden --label-items` on the `so4-heldout` case; the
+mechanical FN causes of `Docs/matching-rule.md` §7 (written to `fn-causes.json`, the remainder becoming missed-seed
+items); P2 from the accepted `e7-corpus` runs; P3 and P4 from the accepted `e1-grid` runs and P4 also from the
+`fixtures` runs; and the P4 judge verdicts (`judge-verdicts.json`, the `--judge-verdicts` input, with `source` and
+`generator_model` as above). Contexts are read from the stored source trees; no project is re-extracted and no
+model is called. `llm-label` reads the plan's labeller route (`agy`, `gemini-3.1-pro-high`), its permutation seed and
+its budget, stops at the budget (`LABEL_BUDGET_STOP`), and `llm-label --usage` reports the measured input tokens per
+call from the recorded cassettes. Its output (`ReconciledLabel[]`) is read directly by `score-golden --labels` (P1;
+every P1 item of the score must carry a label, `SCORE_LABELS_MISSING`) and by `aggregate --labels` (P3, keyed by the
+E1 run id; a label that matches no E1 record, or a labels file without P3 labels while E1 reports have symbolic
+violations, is refused). `instances.csv` `fn_root_cause` / `fn_cause_source` take the mechanical cause, else the
+reconciled missed-seed label (`labeller`).
+
 The 30-item blinded audit, its floor of 3 per stratum and its round-robin allocation are `Docs/matching-rule.md` §8.
 
 ## 5. Interval rule
@@ -233,8 +275,12 @@ applies to instances.
 **Weighted proportions (ADR-020 item 1, B3).** The baseline precision and the weighted P2–P4 estimates are
 Horvitz–Thompson ratios Σ w·y / Σ w with w = 1 / p. With 10 or more project clusters the cluster bootstrap is primary;
 with fewer, Wilson on the Kish effective size n_eff = (Σw)² / Σw² (`wilson-kish`; `clopper-pearson-kish` on ⌊n_eff⌋
-at 0 or 1), the bootstrap as sensitivity. The judge-vs-panel and panel-vs-audit agreement CIs remain Wilson on the
-weighted proportion and are labelled approximate (`wilson-weighted-approximate`).
+at 0 or 1), the bootstrap as sensitivity. The judge-vs-panel and panel-vs-audit agreement CIs are a weighted item
+bootstrap (ADR-021 THR-6, amended 2026-10-09 for P-U6): items are resampled with replacement (10 000 resamples, the
+label plan's bootstrap seed 6102), the statistic is the weighted agreement Σ w·[a = b] / Σ w, and the interval is
+the 2.5 and 97.5 percentiles (`weighted-item-bootstrap`); a row with fewer than 10 pairs reports counts only
+(`counts-only`). The unweighted run-vs-run row keeps Wilson. Judge repetition reliability groups cassette entries by
+(function, project, unit, request hash), so units of different projects never pool (ADR-021 SO3-5).
 
 ## 6. SO5 factors, tests and Holm families
 
@@ -361,3 +407,5 @@ These statements are registered: every report of the corresponding figure carrie
 | 2026-10-08 | §10 | Reporting duties B1–B7 | ADR-020 item 9 |
 | 2026-10-09 | §4 | P4 judge verdicts derived from the run records (`source`, `generator_model`); verdict files without `source` refused | ADR-020 item 7, B3 |
 | 2026-10-09 | §5, §7 | Project cluster bootstrap co-primary only with ≥ 10 projects, else descriptive (`ci_project_descriptive`) | ADR-020 item 3; BR-U5b-61 |
+| 2026-10-09 (P-U6) | §4 | Registered live label sizes (`corpus/label-plan-config.json`, 300 calls), two-stage sampling, the plan producer and the label-shape adapters | ADR-021 item 6; SO3-2, SO3-3, SO4-01, SO4-02, SO5-01 |
+| 2026-10-09 (P-U6) | §5 | Weighted agreement CIs: weighted item bootstrap, counts only below 10 pairs; reliability subjects keyed by project | ADR-021 THR-6, SO3-5 |

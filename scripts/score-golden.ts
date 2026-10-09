@@ -50,6 +50,7 @@ import type { BaseKind, CorpusTier, Coverage, ExpectedKey, LineShift } from './l
 import { corpusTiers as corpusTiersOf } from './lib/corpus.js';
 import type { CorpusFile } from './lib/corpus.js';
 import { isTpClass } from './lib/baseline-precision.js';
+import { p1LabelsOf, unlabelledItems } from './lib/label-adapters.js';
 
 export type { MatchingRule };
 
@@ -180,7 +181,20 @@ export interface P1Item {
   readonly inclusionProbability: 1;
   readonly key: MatchKey;
   readonly twin: boolean;
+  /** Line of the new violation in the seeded copy, for the labeller context. */
+  readonly line?: number;
 }
+
+/** `--label-items` output: the P1 items and the missed seeds of the score, for `build-label-plan` (ADR-021 SO4-02). */
+export interface LabelItemsFile {
+  readonly version: 1;
+  readonly ruleVersion: string;
+  readonly p1: readonly P1Item[];
+  /** Seed ids whose instance status is `missed` (held-out and dev alike; the label plan filters). */
+  readonly missed: readonly string[];
+}
+
+export const SCORE_LABELS_MISSING = 'SCORE_LABELS_MISSING';
 
 export interface ScoredRun {
   /** Parsed report JSON (validated by `acceptReport`). */
@@ -407,6 +421,11 @@ interface SeedOutcome {
   readonly info: ReadonlyMap<string, FunctionInfo>;
 }
 
+/** `{ line }` of a violation when it has one (P1 item context). */
+function lineOf(v: Violation): { line?: number } {
+  return typeof v.line === 'number' ? { line: v.line } : {};
+}
+
 function p1ItemId(row: ManifestRow, key: MatchKey): string {
   return createHash('sha256').update(JSON.stringify(['violation', row.projectId, row.baseTreeSha, key])).digest('hex');
 }
@@ -580,7 +599,7 @@ function classifySeed(pair: AcceptedPair, ctx: ClassifyContext): SeedOutcome {
         undeclared.push(o.key);
         const itemId = p1ItemId(row, o.key);
         twinFps.push({ itemId, functionId: o.v.functionId });
-        items.push({ itemId, kind: 'violation', population: 'P1', projectId: row.projectId, seedId: row.seedId, functionId: o.v.functionId, stratum: `${row.projectId}, ${o.v.functionId}`, inclusionProbability: 1, key: o.key, twin: true });
+        items.push({ itemId, kind: 'violation', population: 'P1', projectId: row.projectId, seedId: row.seedId, functionId: o.v.functionId, stratum: `${row.projectId}, ${o.v.functionId}`, inclusionProbability: 1, key: o.key, twin: true, ...lineOf(o.v) });
       }
     }
     return {
@@ -624,11 +643,11 @@ function classifySeed(pair: AcceptedPair, ctx: ClassifyContext): SeedOutcome {
   // (6) Detection, collateral, FP-strict.
   const fps: CountedItem[] = [];
   const items: P1Item[] = [];
-  const addFp = (key: MatchKey, functionId: string): void => {
+  const addFp = (key: MatchKey, functionId: string, v?: Violation): void => {
     undeclared.push(key);
     const itemId = p1ItemId(row, key);
     fps.push({ itemId, functionId });
-    items.push({ itemId, kind: 'violation', population: 'P1', projectId: row.projectId, seedId: row.seedId, functionId, stratum: `${row.projectId}, ${functionId}`, inclusionProbability: 1, key, twin: false });
+    items.push({ itemId, kind: 'violation', population: 'P1', projectId: row.projectId, seedId: row.seedId, functionId, stratum: `${row.projectId}, ${functionId}`, inclusionProbability: 1, key, twin: false, ...(v !== undefined && lineOf(v)) });
   };
   const sccExpected = applicableKeys.filter(([, k]) => k.discriminator[0] === 'scc');
   for (const o of diff.fresh) {
@@ -652,7 +671,7 @@ function classifySeed(pair: AcceptedPair, ctx: ClassifyContext): SeedOutcome {
       excluded.push(fid);
       continue;
     }
-    addFp(o.key, fid);
+    addFp(o.key, fid, o.v);
   }
   const detected = sortStrings(detectedBy);
   return {
@@ -1124,16 +1143,30 @@ export function readCorpusTiers(repoRoot: string): Map<string, CorpusTier> | und
   return existsSync(f) ? corpusTiersOf(readJson(f) as CorpusFile) : undefined;
 }
 
+/** The `--label-items` file of a score: P1 items (one per item id, first occurrence) and the missed seeds. */
+export function labelItemsFile(score: GoldenScore, items: readonly P1Item[]): LabelItemsFile {
+  const seen = new Set<string>();
+  const p1 = items.filter((i) => (seen.has(i.itemId) ? false : (seen.add(i.itemId), true)));
+  return {
+    version: 1, ruleVersion: score.ruleVersion, p1,
+    missed: score.perInstance.filter((i) => i.status === 'missed').map((i) => i.seedId).sort(),
+  };
+}
+
 // ---------------------------------------------------------------------------------------------
 // CLI main (BR-U5b-73; entry file `scripts/score-golden-cli.ts`)
 
 export const SCORE_USAGE = [
-  'usage: npx tsx scripts/score-golden-cli.ts --case <dir> [--labels <labels.json>] [--out <file>]',
+  'usage: npx tsx scripts/score-golden-cli.ts --case <dir> [--labels <labels.json>] [--label-items <file>] [--out <file>]',
   '       npx tsx scripts/score-golden-cli.ts --self-test | --help',
   '',
   'Scores the seeded copies of a case directory (manifest.json, reports/*.json with reports/*.run.json) under',
   'Docs/matching-rule.md and writes the canonical GoldenScore (stdout, or --out).',
-  'Exit: 0 scored; 1 refused (SCORE_RULE_MISMATCH, SCORE_INPUT_REJECTED, SCORE_COLLATERAL_UNKEYED, …); 2 usage or input error.',
+  '--labels takes the llm-label output (ReconciledLabel[]; P1 items are read) or an itemId -> label object; every P1',
+  'item of the score must have a label (SCORE_LABELS_MISSING). --label-items writes the P1 items and the missed seeds',
+  'for build-label-plan (ADR-021 SO4-02).',
+  'Exit: 0 scored; 1 refused (SCORE_RULE_MISMATCH, SCORE_INPUT_REJECTED, SCORE_COLLATERAL_UNKEYED, SCORE_LABELS_MISSING, …);',
+  '2 usage or input error.',
   '',
 ].join('\n');
 
@@ -1151,7 +1184,7 @@ function parseArgs(argv: readonly string[]): Map<string, string | true> | string
       args.set(a, true);
       continue;
     }
-    if (a === '--case' || a === '--labels' || a === '--out') {
+    if (a === '--case' || a === '--labels' || a === '--out' || a === '--label-items') {
       const v = argv[i + 1];
       if (v === undefined || v.startsWith('--')) return `${a} needs a value`;
       args.set(a, v);
@@ -1199,7 +1232,12 @@ export async function main(argv: readonly string[], repoRoot: string, io: ScoreM
     loaded = loadCase(repoRoot, caseDir);
     const labelsFile = args.get('--labels');
     if (typeof labelsFile === 'string') {
-      labels = new Map(Object.entries(readJson(labelsFile) as Record<string, ReconciledP1Label>));
+      const read = p1LabelsOf(readJson(labelsFile));
+      if (!read.ok) {
+        io.err(`${read.detail}\n`);
+        return 1;
+      }
+      labels = read.labels;
     }
   } catch (e) {
     io.err(`input error: ${e instanceof Error ? e.message : String(e)}\n`);
@@ -1226,6 +1264,15 @@ export async function main(argv: readonly string[], repoRoot: string, io: ScoreM
     io.err(`${result.code}: ${result.detail}\n`);
     return 1;
   }
+  if (labels !== undefined) {
+    const missing = unlabelledItems(result.labelItems.map((i) => i.itemId), labels);
+    if (missing.length > 0) {
+      io.err(`${SCORE_LABELS_MISSING}: ${String(missing.length)} P1 item(s) of the score have no label (first ${missing[0] ?? ''}); label the plan built from --label-items\n`);
+      return 1;
+    }
+  }
+  const itemsFile = args.get('--label-items');
+  if (typeof itemsFile === 'string') io.writeFile(itemsFile, `${JSON.stringify(labelItemsFile(result.score, result.labelItems), null, 2)}\n`);
   const text = canonicalGoldenScore(result.score);
   const outFile = args.get('--out');
   if (typeof outFile === 'string') io.writeFile(outFile, text);

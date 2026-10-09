@@ -44,6 +44,8 @@ export const REGISTERED_ARTEFACTS: readonly string[] = Object.freeze([
   // ADR-019 item 3 with the methodology constraint (Build and Test Step 55): the mechanical E7 spec rule and its generator.
   'Docs/e7-spec-rule.md',
   'scripts/generate-e7-specs.ts',
+  // ADR-021 item 6 (SO3-2): the registered label-plan sizes, seeds, call ceiling and labeller route.
+  'corpus/label-plan-config.json',
 ]);
 
 /**
