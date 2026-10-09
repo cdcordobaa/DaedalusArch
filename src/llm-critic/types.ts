@@ -41,7 +41,11 @@ export interface NeuronalRunOptions {
 export interface JudgeRunSettings {
   readonly llm: LLMOptions;                 // { model, effort, maxTokens: 8192 } (OPS-01)
   readonly repetition: number;
-  readonly cassette: { readonly mode: VCRMode; readonly dir: string; readonly omitPrompt: boolean };
+  readonly cassette: {
+    readonly mode: VCRMode; readonly dir: string; readonly omitPrompt: boolean;
+    /** --cassette-project-id: written on every entry, so repetition reliability keys on the project (ADR-021 SO3-5). */
+    readonly projectId?: string;
+  };
   readonly baselineReport?: string;         // --judge-baseline-report
 }
 

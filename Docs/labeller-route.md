@@ -51,9 +51,11 @@ A label call takes about 60 s and uses 74k–124k input tokens, because the agen
 
 ## 6. Call count (`llm-label --estimate`)
 
-There is no real label plan yet: the P1–P4 / MS plan producer is a U6 item, and its inputs come from the so4-heldout, e7-corpus and e1-grid runs. Today the estimate can run only on fixtures:
+The P1–P4 / MS plan producer exists (`scripts/build-label-plan-cli.ts`, ADR-021 SO3-2). Its inputs come from the so4-heldout, e7-corpus and e1-grid runs, which have not run yet, so today the estimate still runs only on fixtures:
 
 - `tests/fixtures/u5b/labels/plan.json`: `estimate: 40 calls <= budget 200 (caps P2 20, P3 20, P4 10)`; that 200 is the fixture's own `budgetCalls`.
 - `tests/fixtures/agy-cli/smoke-plan.json`: `estimate: 2 calls <= budget 4`.
 
-The registered ceiling is `labellingBudgetCalls` 4000 (`corpus/prereg.json`). At the measured quota (§5), that ceiling exceeds what the route can deliver in a reasonable time, so the author must decide on the budget before live labelling. Registration of this document and of the amendment above belongs to P-U6; `corpus/prereg.json` is not bumped here.
+**Budget decision (ADR-021 item 6).** The live plan is sized by `corpus/label-plan-config.json` (registered in P-U6): at most 300 calls with both runs and a 30-call re-ask reserve, P4 46, P2 20 and P3 10 items at most, P1 plus missed seeds planned at no more than 59, spread over at least two weeks of quota. A plan built by `build-label-plan` carries `sizing: "registered"`, so `--estimate` checks `items × 2 + reserve <= 300`, and `llm-label` stops at the budget (`LABEL_BUDGET_STOP`). The plan also names the route (`agy`, `gemini-3.1-pro-high`), so `--provider` and `--model` default to it and a contradicting flag is refused (`LABEL_PROVIDER_CONFLICT`). The registered `labellingBudgetCalls` of 4000 stays a ceiling.
+
+**Context and tokens.** Each item's context is cut at 6 000 characters (the 31-line window or the unit source, the rule text and the options; the verdict schema travels as the response schema). The agent turn's own system prompt dominates the 74k–124k input tokens measured in §5, so the measured count, not the context size, is what matters for the quota: after a record run, `llm-label --usage --cassette-dir <dir>` reports the input tokens per call (min, median, max, mean) from the cassettes, and the figure is recorded here.
