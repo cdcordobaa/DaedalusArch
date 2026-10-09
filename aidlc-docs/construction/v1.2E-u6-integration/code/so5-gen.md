@@ -22,8 +22,8 @@
 ## Registered artefacts touched (the P-U6 bump must cover them)
 
 1. `experiments/e1-grid/generator-plan.json`: new, matched by the new `REGISTERED_ARTEFACTS` entry, and not yet in `corpus/prereg.json`. Until it is registered, `run-experiment` refuses the E1 plan (`plan-unregistered`), and `generate-projects` warns.
-2. `Docs/generator-protocol.md`: §11 added. Its hash changes, so until the bump the gate refuses every plan with `artefact-changed`. The P-1 bump will pick it up if P-1 is registered after this merge.
-3. `REGISTERED_ARTEFACTS` (code, `scripts/lib/prereg.ts`) gains `experiments/e1-grid/generator-plan.json`.
+2. `Docs/generator-protocol.md`: §11 added. Its hash changes, so until the bump the gate refuses every plan with `artefact-changed`. P-1 (prereg v2, a258db0) merged first and hashed the pre-§11 text, so P-U6 must re-hash it.
+3. `REGISTERED_ARTEFACTS` (code, `scripts/lib/prereg.ts`) gains `experiments/e1-grid/generator-plan.json`. After the merge with P-1 the list also keeps P-1's `Docs/e7-spec-rule.md` and `scripts/generate-e7-specs.ts`.
 
 ## Open items
 

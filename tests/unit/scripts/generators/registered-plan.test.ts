@@ -124,7 +124,9 @@ describe('guardE1Plan and generate-main (SO5-03)', () => {
     expect(copy.ok ? '' : copy.detail).toContain(`start the grid from ${E1_GENERATOR_PLAN}`);
     const pilotCopy = guardE1Plan(path.join(tmp, 'p.json'), { ...r.data, outRoot: path.join(r.data.outRoot, 'pilot') }, REPO, undefined, sha);
     expect(pilotCopy.ok).toBe(false);
-    expect(guardE1Plan(REG_FILE, r.data, REPO, undefined, sha)).toEqual({ ok: true, e1: true, warning: expect.stringContaining('P-U6') });
+    const unregistered = guardE1Plan(REG_FILE, r.data, REPO, undefined, sha);
+    expect(unregistered).toMatchObject({ ok: true, e1: true });
+    expect(unregistered.ok ? unregistered.warning : '').toContain('P-U6');
     expect(guardE1Plan(REG_FILE, r.data, REPO, 'f'.repeat(64), sha)).toEqual({ ok: true, e1: true });
     const changed = guardE1Plan(REG_FILE, r.data, REPO, 'a'.repeat(64), sha);
     expect(changed.ok ? '' : changed.detail).toContain('changed since its registration');
