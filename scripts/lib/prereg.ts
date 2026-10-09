@@ -38,6 +38,8 @@ export const REGISTERED_ARTEFACTS: readonly string[] = Object.freeze([
   'corpus/overlays/**',
   'corpus/specs/*.yaml',
   'experiments/*/plan.json',
+  // ADR-021 SO5-03 / THR-8: the E1 generator plan (pinned model ids, orderSeed, allowBash, timeoutMs, outRoot).
+  'experiments/e1-grid/generator-plan.json',
   'corpus/frozen-instrument.json',
 ]);
 
