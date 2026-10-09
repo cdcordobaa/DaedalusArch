@@ -81,7 +81,7 @@ describe('threats-to-validity register (THR-9)', () => {
     expect(items('ADR-018').sort()).toEqual(range(6).sort());
     expect(items('ADR-019').sort()).toEqual(range(6).sort());
     expect(items('ADR-020').sort()).toEqual(range(9).sort());
-    expect(items('ADR-021').sort()).toEqual(range(9).sort());
+    expect(items('ADR-021').sort()).toEqual(range(10).sort());
     // Docs/generator-protocol.md sections §1–§11 (THR-9 follow-up: the E1 generator isolation residual).
     const sections = [...TEXT_PROTOCOL.matchAll(/^## (\d+)\. /gm)].map((m) => m[1] ?? '');
     expect(sections).toEqual(range(11));

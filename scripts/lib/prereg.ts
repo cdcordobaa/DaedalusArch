@@ -40,6 +40,8 @@ export const PRESET_PATTERN = 'presets/*.yaml';
  * ADR-021 SO1-D adds the fixture specs (the evaluator spec of every fixture run and all E1 cells, and the layered
  * fixture spec of SP-FF-S03 and MO-S03) and the style presets, so every spec a plan may evaluate with is hashed.
  * A registration made before the addition stays valid (its paths are a subset); the P-U6 bump hashes the new ones.
+ * P-U6 (prereg v4) also adds the count inputs and spec-chain tools (ADR-021 item 5), the threats register (THR-9) and
+ * the labeller route (SO3).
  */
 export const REGISTERED_ARTEFACTS: readonly string[] = Object.freeze([
   'Docs/matching-rule.md',
@@ -63,6 +65,23 @@ export const REGISTERED_ARTEFACTS: readonly string[] = Object.freeze([
   'corpus/label-plan-config.json',
   ...FIXTURE_SPECS,
   PRESET_PATTERN,
+  // ADR-021 item 5 (P-U6, Fable verification of P-1, Major 2 and minor): the inputs of the single feasibility count,
+  // registered without a recount, and the tools of the spec chain.
+  'Docs/DiagnosticRuns/u5a-site-feasibility.json',
+  'Docs/DiagnosticRuns/u5a-base-typecheck.json',
+  'Docs/DiagnosticRuns/e7-spec-generation.json',
+  'corpus/selections/*.json',
+  'scripts/generate-e7-specs-cli.ts',
+  'scripts/migrate-corpus-spec.ts',
+  'scripts/migrate-corpus-spec-cli.ts',
+  'scripts/remap-domain-layer.ts',
+  'scripts/remap-domain-layer-cli.ts',
+  'scripts/corpus-rubric-u4.ts',
+  'scripts/corpus-rubric-u4-cli.ts',
+  // ADR-021 THR-9 (P-U6): the threats-to-validity register (deviation entries, degradation-ladder rules).
+  'Docs/threats-to-validity.md',
+  // ADR-021 SO3 (P-U6): the labeller route, model id and CLI version.
+  'Docs/labeller-route.md',
 ]);
 
 export interface PreRegistration {
