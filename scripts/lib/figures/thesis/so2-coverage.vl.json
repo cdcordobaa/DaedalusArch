@@ -1,0 +1,105 @@
+{
+  "$schema": "https://vega.github.io/schema/vega-lite/v6.json",
+  "description": "FIG-06 SO2 parse coverage and import-resolution shares per run (scripts/figures.ts; ADR-021 X-5).",
+  "usermeta": {
+    "figure": "so2-coverage"
+  },
+  "resolve": {
+    "scale": {
+      "color": "independent"
+    }
+  },
+  "hconcat": [
+    {
+      "width": 200,
+      "height": {
+        "step": 18
+      },
+      "transform": [
+        {
+          "filter": "datum.kind === 'parse'"
+        }
+      ],
+      "mark": "bar",
+      "encoding": {
+        "y": {
+          "field": "run_id",
+          "type": "nominal",
+          "sort": null,
+          "title": "run"
+        },
+        "x": {
+          "field": "share",
+          "type": "quantitative",
+          "scale": {
+            "domain": [
+              0,
+              1
+            ]
+          },
+          "title": "parse coverage"
+        }
+      }
+    },
+    {
+      "width": 260,
+      "height": {
+        "step": 18
+      },
+      "transform": [
+        {
+          "filter": "datum.kind === 'import'"
+        }
+      ],
+      "mark": "bar",
+      "encoding": {
+        "y": {
+          "field": "run_id",
+          "type": "nominal",
+          "sort": null,
+          "title": null
+        },
+        "x": {
+          "field": "share",
+          "type": "quantitative",
+          "stack": "normalize",
+          "title": "share of imports"
+        },
+        "color": {
+          "field": "measure",
+          "type": "nominal",
+          "title": "import outcome",
+          "sort": [
+            "resolved_internal",
+            "external",
+            "external_out_of_root_alias",
+            "unresolved",
+            "dropped_no_file_node",
+            "unsupported_dynamic"
+          ],
+          "legend": {
+            "labelLimit": 240
+          }
+        },
+        "order": {
+          "field": "measure"
+        },
+        "tooltip": [
+          {
+            "field": "run_id"
+          },
+          {
+            "field": "measure"
+          },
+          {
+            "field": "count"
+          },
+          {
+            "field": "share",
+            "format": ".3f"
+          }
+        ]
+      }
+    }
+  ]
+}

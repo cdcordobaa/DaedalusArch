@@ -1,0 +1,82 @@
+{
+  "$schema": "https://vega.github.io/schema/vega-lite/v6.json",
+  "description": "FIG-03 SO5 mean AHS per model x spec level, both co-primary outcomes (scripts/figures.ts; ADR-021 X-5).",
+  "usermeta": {
+    "figure": "so5-grid-heatmap"
+  },
+  "facet": {
+    "column": {
+      "field": "outcome",
+      "type": "nominal",
+      "sort": [
+        "verdict-source AHS",
+        "ahsDeterministic"
+      ],
+      "title": null
+    }
+  },
+  "spec": {
+    "width": {
+      "step": 90
+    },
+    "height": {
+      "step": 40
+    },
+    "encoding": {
+      "x": {
+        "field": "spec_level",
+        "type": "ordinal",
+        "sort": {
+          "field": "spec_level_order",
+          "op": "min"
+        },
+        "title": "spec level",
+        "axis": {
+          "labelAngle": 0
+        }
+      },
+      "y": {
+        "field": "model",
+        "type": "nominal",
+        "title": "generator model"
+      }
+    },
+    "layer": [
+      {
+        "mark": "rect",
+        "encoding": {
+          "color": {
+            "field": "mean",
+            "type": "quantitative",
+            "scale": {
+              "domain": [
+                0,
+                1
+              ],
+              "scheme": "blues"
+            },
+            "title": "mean AHS"
+          }
+        }
+      },
+      {
+        "mark": {
+          "type": "text",
+          "fontSize": 10
+        },
+        "encoding": {
+          "text": {
+            "field": "label"
+          },
+          "color": {
+            "condition": {
+              "test": "datum.mean !== null && datum.mean > 0.6",
+              "value": "white"
+            },
+            "value": "black"
+          }
+        }
+      }
+    ]
+  }
+}

@@ -23,7 +23,7 @@ Sources: U4 functional design `aidlc-docs/construction/v1.2E-u4-neural-path/func
 2. E7 `unitCap` 20 → 10, for both functions, on every E7 project.
 3. Effort `high` → `medium`, with a full re-record of every experiment recorded at `high`.
 
-The ladder is triggered only by measured calls per usage window, compared against the pre-run volume estimate. A step is decided at a usage-window boundary, before any affected score is viewed, and is applied to a whole experiment. Each applied step gets a dated line below, older than the first run it affects. The judge model, `runsPerEvaluation`, the rubric, the E1 `unitCap` and the aggregation thresholds never change mid-study.
+The governing rules of this ladder (allowed steps, trigger, timing, scope, record) are registered in `Docs/threats-to-validity.md` §4 (ADR-021, THR-9); this file keeps the dated lines. The ladder is triggered only by measured calls per usage window, compared against the pre-run volume estimate. A step is decided at a usage-window boundary, before any affected score is viewed, and is applied to a whole experiment. Each applied step gets a dated line below, older than the first run it affects. The judge model, `runsPerEvaluation`, the rubric, the E1 `unitCap` and the aggregation thresholds never change mid-study.
 
 ## Probe record (Part 2, OI-U4-1)
 
