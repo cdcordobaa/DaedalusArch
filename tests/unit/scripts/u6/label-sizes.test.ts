@@ -203,3 +203,27 @@ describe('aggregate latency.csv after the SO2 follow-up (ADR-021 item 8)', () =>
     expect(rows.map((x) => [x.stage, x.within_stage, x.total_ms])).toEqual([['extract', '', '900'], [UNIVERSAL_CYCLE_STAGE, 'compute-scores', '900'], ['compute-scores', '', '900']]);
   });
 });
+
+describe('the labeller-shaped Mock of `llm-label --provider mock` (P-U6 dry run)', () => {
+  it('answers by option name in the presented order: TP / pass / FN with RC-OTHER; both runs reconcile to the label', async () => {
+    const { MockLabellerProvider, mockLabelAnswer } = await import('../../../../scripts/lib/mock-labeller.js');
+    const p = '## Item\nx\n  ## Label options\n  1. FP\n  2. TP\n  3. unseeded-TP\n  ## Root causes\n  1. RC-LAYER-MAP\n  2. RC-OTHER\n';
+    expect(mockLabelAnswer(p)).toMatchObject({ option: 2, rootCause: null });
+    expect(mockLabelAnswer('  ## Label options\n  1. FN\n  ## Root causes\n  1. RC-LAYER-MAP\n  2. RC-OTHER\n')).toMatchObject({ option: 1, rootCause: 2 });
+    expect(mockLabelAnswer('  ## Label options\n  1. fail\n  2. pass\n')).toMatchObject({ option: 2, rootCause: null });
+    const dir = mkdtempSync(join(tmpdir(), 'u6-mock-labeller-'));
+    try {
+      const loaded = loadLabellerPrompts(ROOT);
+      if (!loaded.ok) throw new Error(loaded.detail);
+      const item: LabelItem = { itemId: 'm1', kind: 'violation', population: 'P2', projectId: 'p', stratum: 's', inclusionProbability: 1, key: 'k', functionId: 'FF-S01', context: 'Function: FF-S01' };
+      const r = await labelItems([item], {
+        provider: new MockLabellerProvider(), model: 'gemini-3.1-pro-high', runs: 2, mode: 'record', cassetteDir: dir, permutationSeed: 6103, budgetCalls: 10, knownSecrets: [], now: () => '2026-10-09T00:00:00.000Z',
+      }, loaded.prompts);
+      if (!r.ok) throw new Error(r.detail);
+      expect(r.labels[0]?.label).toBe('TP');
+      expect(r.calls).toBe(2);
+    } finally {
+      rmSync(dir, { recursive: true, force: true });
+    }
+  });
+});

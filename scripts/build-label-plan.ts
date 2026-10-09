@@ -353,7 +353,7 @@ export function seededCopyRoot(copies: string, row: Pick<ManifestRow, 'seedId' |
 
 export const BUILD_LABEL_PLAN_USAGE = [
   'usage: npx tsx scripts/build-label-plan-cli.ts --out <dir> [--config corpus/label-plan-config.json]',
-  '         [--case <score case dir> --label-items <file> --copies <seeded copies root> --bases <prepared-bases.json>]',
+  '         [--case <score case dir> --label-items <file> --copies <seeded copies root> [--bases <prepared-bases.json>]]',
   '         [--corpus-runs <dir>[,<dir>...]] [--e1-runs <dir>[,<dir>...]] [--fixture-runs <dir>[,<dir>...]]',
   '         [--specs <spec>[,<spec>...]] [--root-map <from>=<to>[,...]]',
   '       npx tsx scripts/build-label-plan-cli.ts --self-test | --help',
@@ -426,9 +426,11 @@ export async function main(argv: readonly string[], repoRoot: string, io: BuildM
     io.err(`--out is required\n${BUILD_LABEL_PLAN_USAGE}`);
     return 2;
   }
-  const so4Flags = ['case', 'label-items', 'copies', 'bases'].filter((f) => args.has(f));
-  if (so4Flags.length !== 0 && so4Flags.length !== 4) {
-    io.err(`--case, --label-items, --copies and --bases go together\n${BUILD_LABEL_PLAN_USAGE}`);
+  // --bases is read only when a missed seed needs its prepared base's tsconfig (the FN rules); a case without
+  // missed seeds, or a fixture case, needs none.
+  const so4Flags = ['case', 'label-items', 'copies'].filter((f) => args.has(f));
+  if ((so4Flags.length !== 0 && so4Flags.length !== 3) || (args.has('bases') && so4Flags.length === 0)) {
+    io.err(`--case, --label-items and --copies go together (--bases with them)\n${BUILD_LABEL_PLAN_USAGE}`);
     return 2;
   }
   const at = (p: string): string => resolve(repoRoot, p);
@@ -480,11 +482,12 @@ export async function main(argv: readonly string[], repoRoot: string, io: BuildM
       }
     }
     let so4: So4Inputs | undefined;
-    if (so4Flags.length === 4) {
+    if (so4Flags.length === 3) {
       const caseDir = at(args.get('case') ?? '');
       const manifest = loadManifest(repoRoot, join(caseDir, 'manifest.json'));
       if (!manifest.success) throw new Error(`${LABEL_PLAN_INPUT_INVALID}: ${manifest.errors.map((e) => e.message).join('; ')}`);
-      const bases = loadBases(at(args.get('bases') ?? ''));
+      const basesFile = args.get('bases');
+      const bases = basesFile === undefined ? [] : loadBases(at(basesFile));
       if (typeof bases === 'string') throw new Error(`${LABEL_PLAN_INPUT_INVALID}: --bases: ${bases}`);
       const reportsDir = join(caseDir, 'reports');
       const seededPath = new Map<string, string>();

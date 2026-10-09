@@ -206,6 +206,8 @@ describe('build-label-plan from run directories (P2, P3, P4, judge verdicts)', (
     expect(await buildMain(['--self-test'], ROOT, b.io)).toBe(1);
     expect(b.err.join('')).toContain('budgetCalls');
     expect(await buildMain(['--out', 'x', '--case', 'y'], ROOT, io().io)).toBe(2);
+    // --bases goes only with a case (it is read only when a missed seed needs its prepared base).
+    expect(await buildMain(['--out', 'x', '--bases', 'b.json'], ROOT, io().io)).toBe(2);
   });
 });
 
