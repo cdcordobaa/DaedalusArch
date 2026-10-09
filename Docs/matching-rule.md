@@ -1,7 +1,7 @@
 # Matching Rule — Differential Scoring of Seeded Copies
 
 > **Status**: final, version `1.0.0` (U5b Step 31, 2026-10-08); registered with `corpus/prereg.json` version 1 (U5b Step 32). This file is a registered artefact (BR-U5b-51). Any change to it is a pre-registration version bump with a reason (BR-U5b-50).
-> **Amended 2026-10-08 to version `1.1.0` (ADR-020, pre-registration P-2)**: MAT-10 (TP-class labels leave FP-labelled, item 2), MAT-19 (neural new violations in their own column, item 5), MAT-20 (corpus-tier strata, item 8), and a note to MAT-04 (`remapLine`, B7). §9 lists the changes; every run registered under version 1.0.0 keeps its own `preregVersion`.
+> **Amended 2026-10-08 to version `1.1.0` (ADR-020, pre-registration P-2)**: MAT-10 (TP-class labels leave FP-labelled, item 2), MAT-19 (neural new violations in their own column, item 5), MAT-20 (corpus-tier strata, item 8), and a note to MAT-04 (`remapLine`, B7). §9 lists the changes; registered with `corpus/prereg.json` version 3; every run registered under version 1.0.0 keeps its own `preregVersion`.
 > **Version**: the machine block below (`version`) is what `scripts/lib/matching-rule.ts` loads. The scorer refuses to run when the block is missing or its version differs from the registered version in `corpus/prereg.json` (`SCORE_RULE_MISMATCH`, BR-U5b-01).
 > **Requirements**: FR-v1.2E-25 (matching rule dated in git before the first run; per instance, function, dimension and tag), FR-v1.2E-27 (root-cause list, mechanical FN causes, audit allocation); ADR-015 items 1, 2, 5, 9, 10; ADR-016 b; ADR-017 items 6, 7.
 > **Design source**: `aidlc-docs/construction/v1.2E-u5b-scoring-harness/functional-design/business-rules.md` (BR-U5b-01..30, 38, 41, 78). Rule ids are cited so each rule can be traced to its test.
@@ -13,7 +13,7 @@
 The scorer reads only this block. Every other section is the human-readable statement of the same rule.
 
 ```yaml matching-rule
-version: 1.0.0
+version: 1.1.0
 lineTolerance: 0
 multiDetection: count-once
 collateralSource: manifest
