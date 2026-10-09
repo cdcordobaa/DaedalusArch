@@ -170,6 +170,20 @@ export function packageDirOnResolutionPath(fromAbs: string, packageName: string)
 }
 
 /**
+ * The first existing ancestor of `target` (itself included), resolved through links, must lie inside the copy;
+ * otherwise a write there would land outside it (BR-U5a-04: a sub-path base's `node_modules` may be a link to the
+ * clone's root packages, ADR-019 item 2). Returns the offending ancestor (POSIX, relative to the copy) or undefined.
+ */
+export function writesOutsideCopy(copyRoot: string, target: string): string | undefined {
+  const root = fs.realpathSync(copyRoot);
+  let probe = target;
+  while (!fs.existsSync(probe) && path.dirname(probe) !== probe) probe = path.dirname(probe);
+  const real = fs.realpathSync(probe);
+  const rel = path.relative(root, real);
+  return rel.startsWith('..') || path.isAbsolute(rel) ? toPosixRel(copyRoot, probe) : undefined;
+}
+
+/**
  * Writes a stub for every bare specifier whose resolution fails from an importing file and that has no package
  * directory on that file's resolution path; returns `provisionedStubs[]` sorted by specifier.
  */
@@ -201,6 +215,10 @@ export function provisionStubs(copyRoot: string, tsconfigRel: string, uses: read
   const stubs: ProvisionedStub[] = [];
   for (const p of plans) {
     const dir = path.join(copyRoot, 'node_modules', ...p.specifier.split('/'));
+    const outside = writesOutsideCopy(copyRoot, dir);
+    if (outside !== undefined) {
+      return DomainResult.fail([{ code: 'MUT_STUB_OUTSIDE_COPY', message: `stub for ${p.specifier} would be written through a link out of the copy (${outside})` }]);
+    }
     const sorted = [...p.uses].sort((a, b) => cmp(a.form, b.form) || cmp(a.name ?? '', b.name ?? ''));
     fs.mkdirSync(dir, { recursive: true });
     fs.writeFileSync(path.join(dir, 'package.json'), packageJsonContent(p.specifier), { flag: 'wx' });

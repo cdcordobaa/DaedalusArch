@@ -33,6 +33,13 @@
         "specPath": { "$ref": "#/definitions/relPath" },
         "subPath": { "$ref": "#/definitions/relPath" },
         "tsconfigPath": { "$ref": "#/definitions/relPath" },
+        "preparation": {
+          "$comment": "ADR-019 item 2: deterministic base-preparation steps that change no source file, run by prepare-bases (scripts/lib/base-preparation.ts).",
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": { "type": "string", "enum": ["prisma-generate", "monorepo-context"] }
+        },
         "overlays": {
           "type": "array",
           "items": {
