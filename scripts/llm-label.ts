@@ -28,7 +28,9 @@ import type { RootCauseCode } from './lib/matching-rule.js';
 import { allocateBudget, estimateExit } from './lib/label-context.js';
 import type { ItemKind, LabelItem, Population, SampledPopulation } from './lib/label-context.js';
 import { cohenKappa, createRng, fleissKappa, gwetAC1, shuffle, wilson } from './lib/stats.js';
-import { knownSecretsOf } from './lib/report-io.js';
+import { judgeVerdictsFromRuns, missingSource } from './lib/judge-verdicts.js';
+import type { JudgeUnitVerdict } from './lib/judge-verdicts.js';
+import { knownSecretsOf, loadRunDir } from './lib/report-io.js';
 
 export type { ItemKind, LabelItem, Population, RootCauseCode };
 
@@ -425,7 +427,8 @@ export const LABEL_USAGE = [
   '                                        [--provider gemini|mock] --out <labels.json>',
   '       npx tsx scripts/llm-label-cli.ts --allocate-audit --plan <file> --labels <labels.json> --plan-id <id> --seed <n> --out <dir>',
   '       npx tsx scripts/llm-label-cli.ts --agreement --plan <file> --labels <labels.json> --model <pinned id> [--allocation <file>',
-  '                                        --audit audit/<plan-id>.json] [--judge-verdicts <file>] [--judge-cassettes <dir>] --out <labelling.json>',
+  '                                        --audit audit/<plan-id>.json] [--judge-runs <dir>[,<dir>...]] [--judge-verdicts <file>]',
+  '                                        [--judge-cassettes <dir>] --out <labelling.json>',
   '       npx tsx scripts/llm-label-cli.ts --self-test',
   '',
 ].join('\n');
@@ -443,7 +446,7 @@ export interface LabelMainDeps {
 
 function parseArgs(argv: readonly string[]): Map<string, string> | string {
   const flags = new Set(['--estimate', '--self-test', '--help', '--allocate-audit', '--agreement']);
-  const valued = new Set(['--plan', '--mode', '--cassette-dir', '--model', '--provider', '--out', '--labels', '--plan-id', '--seed', '--allocation', '--audit', '--judge-verdicts', '--judge-cassettes']);
+  const valued = new Set(['--plan', '--mode', '--cassette-dir', '--model', '--provider', '--out', '--labels', '--plan-id', '--seed', '--allocation', '--audit', '--judge-verdicts', '--judge-runs', '--judge-cassettes']);
   const out = new Map<string, string>();
   for (let i = 0; i < argv.length; i += 1) {
     const a = argv[i] ?? '';
@@ -728,18 +731,7 @@ export interface AgreementStats {
 
 export type AgreementSource = 'all' | 'e1' | 'fixture';
 
-/** A stored judge verdict for a P4 unit (read only at comparison time, never into a context). */
-export interface JudgeUnitVerdict {
-  readonly projectId: string;
-  readonly functionId: string;
-  readonly unitId: string;
-  readonly verdict: 'pass' | 'fail';
-  readonly judgeModel: string;
-  /** Where the unit comes from (ADR-020 item 7): an E1 cell or one of the five dev fixtures; absent = unknown. */
-  readonly source?: 'e1' | 'fixture';
-  /** The model that generated the E1 project of the unit (self-preference strata). */
-  readonly generatorModel?: string;
-}
+export type { JudgeUnitVerdict } from './lib/judge-verdicts.js';
 
 /** Row context of `pairAgreement` (ADR-020 item 7, B3); defaults: pooled source, no generator, not headline. */
 export interface AgreementRowContext {
@@ -985,6 +977,31 @@ function allocateAuditMain(args: Map<string, string>, repoRoot: string, io: Labe
   return 0;
 }
 
+/**
+ * The P4 judge verdicts of `--judge-runs` (derived from the stored runs, ADR-020 item 7) and `--judge-verdicts` (a
+ * hand-supplied file, refused when any verdict lacks `source`: the E1 headline row needs it); `undefined` when
+ * neither flag is given, a refusal message otherwise.
+ */
+function judgeVerdictsOf(args: Map<string, string>, repoRoot: string): JudgeUnitVerdict[] | string | undefined {
+  const runs = args.get('judge-runs');
+  const file = args.get('judge-verdicts');
+  if (runs === undefined && file === undefined) return undefined;
+  const out: JudgeUnitVerdict[] = [];
+  for (const dir of (runs ?? '').split(',').filter((d) => d !== '')) {
+    const { records, reports } = loadRunDir(resolve(repoRoot, dir), 'LABEL_JUDGE_RUNS_INVALID');
+    out.push(...judgeVerdictsFromRuns(records, reports));
+  }
+  if (file !== undefined) {
+    const given = readJson(repoRoot, file) as JudgeUnitVerdict[];
+    const missing = missingSource(given);
+    if (missing.length > 0) {
+      return `LABEL_VERDICT_SOURCE_MISSING: ${file}: ${String(missing.length)} verdict(s) without source (first index ${String(missing[0])}); derive them with --judge-runs (ADR-020 item 7)`;
+    }
+    out.push(...given);
+  }
+  return out;
+}
+
 function agreementMain(args: Map<string, string>, repoRoot: string, io: LabelMainIo, plan: LabelPlanFile): number {
   const labelsPath = args.get('labels');
   const out = args.get('out');
@@ -1021,7 +1038,11 @@ function agreementMain(args: Map<string, string>, repoRoot: string, io: LabelMai
     if (checked.first) io.writeFile(lockPath, `${JSON.stringify(checked.lock, null, 2)}\n`);
     audit = JSON.parse(bytes.toString('utf8')) as AuditFile;
   }
-  const verdictsPath = args.get('judge-verdicts');
+  const verdicts = judgeVerdictsOf(args, repoRoot);
+  if (typeof verdicts === 'string') {
+    io.err(`${verdicts}\n`);
+    return 1;
+  }
   const cassettes = args.get('judge-cassettes');
   const judgeEntries = cassettes === undefined ? [] : listCassetteKeys(resolve(repoRoot, cassettes)).flatMap((k) => {
     const e = readCassetteEntry(resolve(repoRoot, cassettes), k);
@@ -1029,7 +1050,7 @@ function agreementMain(args: Map<string, string>, repoRoot: string, io: LabelMai
   });
   const agreement = agreementStats({
     labels, prompts: prompts.prompts, labellerModel: model, judgeEntries,
-    ...(verdictsPath !== undefined && { judgeVerdicts: readJson(repoRoot, verdictsPath) as JudgeUnitVerdict[] }),
+    ...(verdicts !== undefined && { judgeVerdicts: verdicts }),
     ...(allocation !== undefined && { allocation }), ...(audit !== undefined && { audit }),
   });
   const outputs: LabellingOutputs = { plan: { strata: plan.strata }, labels, agreement, ...(allocation !== undefined && { allocation }) };

@@ -197,6 +197,15 @@ remaining 1 180 items or more go to P2 and P3. `llm-label --estimate` is run on 
 call; it refuses (exit 1) when P1 and missed seeds alone exceed the capacity, and a larger budget is then a version
 bump with a reason, before live labelling.
 
+**P4 judge verdicts (ADR-020 item 7).** The judge verdicts compared with the panel are derived from the stored runs,
+never typed by hand: `llm-label --agreement --judge-runs results/e1-grid,results/fixtures`
+(`scripts/lib/judge-verdicts.ts`). A run counts when it is `accepted` with a stored report; an E1 run counts only as
+run index 0 of a cell with `generationStatus = 'ok'` and gives `source = 'e1'` and `generator_model` = the cell's
+`requestedModelId`; a run of the `fixtures` plan gives `source = 'fixture'`; no other run is a P4 source. Each
+`neuralResults[]` unit with `status = 'valid'` and verdict `pass` or `fail` is one verdict, its judge model the
+report's `judge.model`. A hand-supplied `--judge-verdicts` file is refused (`LABEL_VERDICT_SOURCE_MISSING`) when any
+verdict lacks `source`, so the E1 headline row and the B3 row never fall back to the pooled set silently.
+
 The 30-item blinded audit, its floor of 3 per stratum and its round-robin allocation are `Docs/matching-rule.md` §8.
 
 ## 5. Interval rule
@@ -350,4 +359,5 @@ These statements are registered: every report of the corresponding figure carrie
 | 2026-10-08 | §3, §7 | Judge-vs-panel rows per source (E1 headline) and per generator model; `uncertain` as a category | ADR-020 item 7, B3 |
 | 2026-10-08 | §3 | E7 the only unseen stratum; E7 specs from the registered rule, declared floor-motivated | ADR-020 items 4, 8 |
 | 2026-10-08 | §10 | Reporting duties B1–B7 | ADR-020 item 9 |
+| 2026-10-09 | §4 | P4 judge verdicts derived from the run records (`source`, `generator_model`); verdict files without `source` refused | ADR-020 item 7, B3 |
 | 2026-10-09 | §5, §7 | Project cluster bootstrap co-primary only with ≥ 10 projects, else descriptive (`ci_project_descriptive`) | ADR-020 item 3; BR-U5b-61 |

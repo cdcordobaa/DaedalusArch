@@ -25,12 +25,13 @@
  * - Files whose inputs come from the labeller (`fp_fn_taxonomy`, `agreement`, `audit_allocation`, `label_budget`) are
  *   the `llm-label.ts` tables of the `--labelling` outputs (header only when none are given).
  */
-import { existsSync, readdirSync, readFileSync } from 'node:fs';
+import { readFileSync } from 'node:fs';
 import { join, resolve } from 'node:path';
 import type { EvaluationReport } from '../src/shared/types/evaluation.js';
 import { drawFigures } from './lib/figures/draw.js';
 import { loadManifest } from './lib/manifest.js';
-import type { RunRecord } from './lib/report-io.js';
+import { loadRunDir as loadRunDirOf } from './lib/report-io.js';
+import type { LoadedRunDir, RunRecord } from './lib/report-io.js';
 import { ANALYSIS_PLAN_DOC, familyOf, FPAT_FAMILIES, genCodeOf, loadSo5Codes } from './lib/so5-codes.js';
 import type { FpatFamily, So5Codes } from './lib/so5-codes.js';
 import { baselineLabelsOf, baselinePrecision, isTpClass } from './lib/baseline-precision.js';
@@ -680,21 +681,11 @@ export function aggregate(input: AggregateInput): Map<CsvFile, string> {
   }));
 }
 
-export interface LoadedRunDir { readonly records: RunRecord[]; readonly reports: Map<string, EvaluationReport> }
+export type { LoadedRunDir } from './lib/report-io.js';
 
-/** Reads a harness output directory: `runs/*.run.json` and the stored reports they reference. */
+/** Reads a harness output directory (`report-io.ts` `loadRunDir`, errors as `AGGREGATE_INPUT_INVALID`). */
 export function loadRunDir(dir: string): LoadedRunDir {
-  const runsDir = join(dir, 'runs');
-  if (!existsSync(runsDir)) throw new Error(`${AGGREGATE_INPUT_INVALID}: ${runsDir} not found`);
-  const records = readdirSync(runsDir).filter((f) => f.endsWith('.run.json')).sort()
-    .map((f) => JSON.parse(readFileSync(join(runsDir, f), 'utf8')) as RunRecord);
-  const reports = new Map<string, EvaluationReport>();
-  for (const r of records) {
-    if (r.reportPath === undefined) continue;
-    const p = join(dir, r.reportPath);
-    if (existsSync(p)) reports.set(r.runId, JSON.parse(readFileSync(p, 'utf8')) as EvaluationReport);
-  }
-  return { records, reports };
+  return loadRunDirOf(dir, AGGREGATE_INPUT_INVALID);
 }
 
 export const AGGREGATE_USAGE = [
