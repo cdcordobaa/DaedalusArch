@@ -41,6 +41,9 @@ export const REGISTERED_ARTEFACTS: readonly string[] = Object.freeze([
   // ADR-021 SO5-03 / THR-8: the E1 generator plan (pinned model ids, orderSeed, allowBash, timeoutMs, outRoot).
   'experiments/e1-grid/generator-plan.json',
   'corpus/frozen-instrument.json',
+  // ADR-019 item 3 with the methodology constraint (Build and Test Step 55): the mechanical E7 spec rule and its generator.
+  'Docs/e7-spec-rule.md',
+  'scripts/generate-e7-specs.ts',
 ]);
 
 /**
