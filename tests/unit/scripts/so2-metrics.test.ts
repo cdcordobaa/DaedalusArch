@@ -11,15 +11,15 @@ import { UNIVERSAL_CYCLE_STAGE } from '../../../src/scoring-engine/universal-met
 import type { APGResult } from '../../../src/shared/types/apg.js';
 import type { PreregCheck } from '../../../scripts/lib/prereg.js';
 import type { RunRecord } from '../../../scripts/lib/report-io.js';
-import { cliArgv, cycleQueryTimes, loadPlan, runPlan } from '../../../scripts/run-experiment.js';
+import { cliArgv, cycleQueryTimes, loadPlan, runPlan, UNIVERSAL_CYCLE_STAGE as HARNESS_CYCLE_STAGE } from '../../../scripts/run-experiment.js';
 import type { ExperimentPlan, HarnessDeps } from '../../../scripts/run-experiment.js';
 import { f6 } from '../../../scripts/aggregate.js';
 import {
-  ablationChange, ablationCsvRows, ablationRows, ablationSummaryRows, ffS02Observation, flowsToPerResolvedImport, flowsToStoreRow,
+  ablationChange, ablationCsvRows, ablationRows, ablationSummaryRows, ARMS_COLUMNS, armsRow, ffS02Observation, flowsToPerResolvedImport, flowsToStoreRow,
   graphCoverageRows, latencyGateOf, latencyRows, nfr07Rows, planGate, profileRows, sccRows, totalDbHits, universalCycleObservation,
 } from '../../../scripts/lib/so2.js';
 import type { So2Report, So2Run } from '../../../scripts/lib/so2.js';
-import { gateSummary, main } from '../../../scripts/so2-metrics.js';
+import { gateSummary, main, SO2_ARMS_IDENTICAL } from '../../../scripts/so2-metrics.js';
 import type { ProfileBackend, So2Deps } from '../../../scripts/so2-metrics.js';
 
 const ROOT = join(__dirname, '../../..');
@@ -27,6 +27,12 @@ const read = (p: string): string => readFileSync(p, 'utf8');
 const OK_REPORT = read(join(ROOT, 'tests/fixtures/u5b/reports/correct-reference.json'));
 const FAILED_REPORT = read(join(ROOT, 'tests/fixtures/u5b/injected/function-failed.json'));
 const TIMEOUT_CODE_NEO = 'Neo.ClientError.Transaction.TransactionTimedOutClientConfiguration';
+
+function capture(): { out: (t: string) => void; err: (t: string) => void; writeFile: (p: string, t: string) => void; text: () => string; files: Map<string, string> } {
+  let s = '';
+  const files = new Map<string, string>();
+  return { out: (t) => { s += t; }, err: (t) => { s += t; }, writeFile: (p, t) => { files.set(p, t); }, text: () => s, files };
+}
 
 // ---------------------------------------------------------------------------------------------
 // Hand-made reports
@@ -180,6 +186,14 @@ describe('rows (hand-computed)', () => {
     expect(rows[1]?.[5]).toBe('false');
   });
 
+  it('nfr07_latency.csv leaves out the AST-only arm of an apg-ablation run', () => {
+    const ablation: So2Run[] = [
+      { record: rec({ runId: 'apg-ablation-004', planId: 'apg-ablation', projectId: 'truthy-demo' }), report: report(30, 20, { parseCoverage: { total: 250, percentage: 100 } }) },
+      { record: rec({ runId: 'apg-ablation-005', planId: 'apg-ablation', projectId: 'truthy-demo@ast-only' }), report: report(10, 5) },
+    ];
+    expect(nfr07Rows(ablation).map((r) => [r[0], r[1], r[5], r[11]])).toEqual([['truthy-demo', 'apg-ablation', 'true', '30']]);
+  });
+
   it('graph_coverage.csv: by-type counts and FLOWS_TO per resolved import (3 / 12 = 0.25)', () => {
     const r = report(1, 1, {
       importResolution: { resolvedInternal: 12 },
@@ -270,11 +284,6 @@ describe('PROFILE and SCC rows (Steps 23, 25)', () => {
 });
 
 describe('so2-metrics CLI', () => {
-  const capture = (): { out: (t: string) => void; err: (t: string) => void; writeFile: (p: string, t: string) => void; text: () => string; files: Map<string, string> } => {
-    let s = '';
-    const files = new Map<string, string>();
-    return { out: (t) => { s += t; }, err: (t) => { s += t; }, writeFile: (p, t) => { files.set(p, t); }, text: () => s, files };
-  };
 
   it('--self-test runs a known-bad input (missing run directory) and exits 1', async () => {
     const io = capture();
@@ -343,5 +352,49 @@ describe('apg-ablation plan and the --graph-mode argument (audit SO2-5)', () => 
     expect(cliArgv(plan, { index: 0, projectId: 'a@ast-only', path: 'p', specPath: 's', graphMode: 'ast-only' }))
       .toEqual(['evaluate', '--project', 'p', '--spec', 's', '--format', 'json', '--symbolic-only', '--graph-mode', 'ast-only']);
     expect(cliArgv(plan, { index: 0, projectId: 'a', path: 'p', specPath: 's', graphMode: 'full' })).not.toContain('--graph-mode');
+  });
+});
+
+describe('apg_arms.csv: the two arms differ (ADR-021 item 8; audit SO2-5, X-2)', () => {
+  const g = (types: string[], resolvedInternal: number): APGResult =>
+    ({ edges: types.map((type) => ({ type })), importResolution: { resolvedInternal } }) as unknown as APGResult;
+  // Full: IMPORTS 2, DECLARES 1, CONTAINS 1, CALLS 2, FLOWS_TO 1, RE_EXPORTS 1 = 8; ast-only keeps 4: removed 4
+  // (RE_EXPORTS 1, CALLS 2, FLOWS_TO 1), resolved internal 2 in both.
+  const full = g(['IMPORTS', 'IMPORTS', 'RE_EXPORTS', 'DECLARES', 'CONTAINS', 'CALLS', 'CALLS', 'FLOWS_TO'], 2);
+  const ast = g(['IMPORTS', 'IMPORTS', 'DECLARES', 'CONTAINS'], 2);
+
+  it('armsRow counts removed edges per type', () => {
+    const row = armsRow('b', full, ast);
+    const col = (c: string): string | undefined => row[ARMS_COLUMNS.indexOf(c)];
+    expect(row).toHaveLength(ARMS_COLUMNS.length);
+    expect([col('edges_full'), col('edges_ast_only'), col('edges_removed')]).toEqual(['8', '4', '4']);
+    expect([col('removed_imports'), col('removed_re_exports'), col('removed_calls'), col('removed_flows_to'), col('removed_contains')]).toEqual(['0', '1', '2', '1', '0']);
+    expect([col('resolved_internal_full'), col('resolved_internal_ast_only'), col('arms_differ')]).toEqual(['2', '2', 'true']);
+  });
+
+  it('identical arms give arms_differ false', () => {
+    expect(armsRow('b', ast, ast).at(-1)).toBe('false');
+  });
+
+  it('arms extracts both arms of each pair of the apg-ablation plan (injected extractor)', async () => {
+    const io = capture();
+    const seen: string[] = [];
+    const deps: So2Deps = { extract: (_p, mode) => { seen.push(mode); return Promise.resolve(mode === 'full' ? full : ast); } };
+    expect(await main(['arms', '--plan', 'experiments/apg-ablation/plan.json', '--out', '/o'], ROOT, io, deps)).toBe(0);
+    expect(seen).toHaveLength(18);
+    const csv = (io.files.get('/o/apg_arms.csv') ?? '').trim().split('\n');
+    expect(csv).toHaveLength(10);
+    expect(csv[1]?.startsWith('realworld-test,8,4,4,')).toBe(true);
+  });
+
+  it('arms exits 1 with SO2_ARMS_IDENTICAL when no pair differs', async () => {
+    const io = capture();
+    const deps: So2Deps = { extract: () => Promise.resolve(ast) };
+    expect(await main(['arms', '--plan', 'experiments/apg-ablation/plan.json', '--out', '/o'], ROOT, io, deps)).toBe(1);
+    expect(io.text()).toContain(SO2_ARMS_IDENTICAL);
+  });
+
+  it('the harness cycle stage name equals the C8 UNIVERSAL_CYCLE_STAGE (BR-U5b-55 keeps them apart)', () => {
+    expect(HARNESS_CYCLE_STAGE).toBe(UNIVERSAL_CYCLE_STAGE);
   });
 });

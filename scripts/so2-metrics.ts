@@ -8,6 +8,8 @@
  *   (the plan-level gate decision per plan id, ADR-016 e).
  * - `ablation --run-dir <dir> --out <dir>`: `apg_ablation.csv` and `apg_ablation_summary.csv` from an `apg-ablation`
  *   plan run (full arm `projectId`, AST-only arm `projectId@ast-only`).
+ * - `arms --plan <plan.json> --out <dir>`: `apg_arms.csv`, the pre-run check that each base's full and `ast-only` arms
+ *   differ (extraction only, no database; ADR-021 item 8). Exit 1 (`SO2_ARMS_IDENTICAL`) when no pair differs.
  * - `flows-to --plan <plan.json> --out <dir>`: `flows_to_stores.csv`, the extractor's FLOWS_TO store accounting for
  *   every `full` entry of a plan (extraction only, no database, no evaluation).
  * - `profile --project <path> --spec <spec> --project-id <id> --out <dir> [--reps 3] [--timeout-ms 120000]`: ingests
@@ -37,7 +39,7 @@ import type { APGResult } from '../src/shared/types/apg.js';
 import { csvText, f6, loadRunDir } from './aggregate.js';
 import type { ExperimentPlan } from './run-experiment.js';
 import {
-  ABLATION_COLUMNS, ABLATION_SUMMARY_COLUMNS, ablationCsvRows, ablationRows, ablationSummaryRows, FLOWS_TO_STORE_COLUMNS,
+  ABLATION_COLUMNS, ABLATION_SUMMARY_COLUMNS, ablationCsvRows, ablationRows, ablationSummaryRows, ARMS_COLUMNS, armsRow, AST_ONLY_SUFFIX, FLOWS_TO_STORE_COLUMNS,
   flowsToStoreRow, GRAPH_COVERAGE_COLUMNS, graphCoverageRows, LATENCY_COLUMNS, latencyGateOf, latencyRows, NFR07_COLUMNS,
   nfr07Rows, planGate, PROFILE_COLUMNS, profileRows, SCC_COLUMNS, sccRows,
 } from './lib/so2.js';
@@ -46,10 +48,12 @@ import { FF_S02_TEMPLATE, TIMEOUT_MARKER, totalDbHits } from './lib/so2.js';
 import { knownSecretsOf, scrubbedJson } from './lib/report-io.js';
 
 export const SO2_INPUT_INVALID = 'SO2_INPUT_INVALID';
+export const SO2_ARMS_IDENTICAL = 'SO2_ARMS_IDENTICAL';
 
 export const SO2_USAGE = [
   'Usage: npx tsx scripts/so2-metrics-cli.ts tables --run-dir <dir> [--run-dir <dir> ...] --out <dir>',
   '       npx tsx scripts/so2-metrics-cli.ts ablation --run-dir <dir> --out <dir>',
+  '       npx tsx scripts/so2-metrics-cli.ts arms --plan <plan.json> --out <dir>',
   '       npx tsx scripts/so2-metrics-cli.ts flows-to --plan <plan.json> --out <dir>',
   '       npx tsx scripts/so2-metrics-cli.ts profile --project <path> --spec <spec> --project-id <id> --out <dir> [--reps <n>] [--timeout-ms <ms>]',
   '       npx tsx scripts/so2-metrics-cli.ts --self-test',
@@ -158,6 +162,26 @@ export async function main(argv: readonly string[], repoRoot: string, io: So2Mai
         io.writeFile(join(outDir, 'apg_ablation.csv'), csvText(ABLATION_COLUMNS, ablationCsvRows(rows)));
         io.writeFile(join(outDir, 'apg_ablation_summary.csv'), csvText(ABLATION_SUMMARY_COLUMNS, ablationSummaryRows(rows)));
         io.out(`${String(rows.length)} function rows: apg_ablation.csv, apg_ablation_summary.csv in ${outDir}\n`);
+        return 0;
+      }
+      case 'arms': {
+        const planFile = one(parsed.opts, 'plan');
+        if (planFile === undefined) throw new Error(`${SO2_INPUT_INVALID}: arms needs --plan`);
+        const plan = JSON.parse(readFileSync(resolve(repoRoot, planFile), 'utf8')) as ExperimentPlan;
+        const rows: string[][] = [];
+        for (const a of plan.projects.filter((x) => x.graphMode === 'ast-only')) {
+          const baseId = a.projectId.endsWith(AST_ONLY_SUFFIX) ? a.projectId.slice(0, -AST_ONLY_SUFFIX.length) : a.projectId;
+          const f = plan.projects.find((x) => x.projectId === baseId && (x.graphMode ?? 'full') === 'full');
+          if (f?.path !== a.path) throw new Error(`${SO2_INPUT_INVALID}: ${a.projectId} has no full arm ${baseId} on the same path`);
+          rows.push(armsRow(baseId, await deps.extract(resolve(repoRoot, f.path), 'full'), await deps.extract(resolve(repoRoot, a.path), 'ast-only')));
+        }
+        io.writeFile(join(outDir, 'apg_arms.csv'), csvText(ARMS_COLUMNS, rows));
+        const differ = rows.filter((r) => r[r.length - 1] === 'true').length;
+        io.out(`${String(rows.length)} pairs, ${String(differ)} differ: apg_arms.csv in ${outDir}\n`);
+        if (rows.length > 0 && differ === 0) {
+          io.err(`${SO2_ARMS_IDENTICAL}: no pair of arms differs; the ablation cannot show a loss\n`);
+          return 1;
+        }
         return 0;
       }
       case 'flows-to': {

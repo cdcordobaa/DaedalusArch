@@ -18,8 +18,7 @@
  */
 import { EDGE_TYPES, NODE_TYPES } from '../../src/shared/types/enums.js';
 import type { FlowsToStats } from '../../src/shared/types/apg.js';
-import { UNIVERSAL_CYCLE_STAGE } from '../../src/scoring-engine/index.js';
-import { LATENCY_GATE_MS } from '../run-experiment.js';
+import { LATENCY_GATE_MS, UNIVERSAL_CYCLE_STAGE } from '../run-experiment.js';
 import type { RunRecord } from './report-io.js';
 
 /** Template name of FF-S02 (`no-cyclic-deps`, U1 cypher-templates). */
@@ -200,9 +199,11 @@ export const NFR07_COLUMNS = [
 /**
  * `nfr07_latency.csv`, the NFR-07 latency table: one row per run that wrote a report, sorted by project then
  * plan then run. `within_budget` is true only when both cycle queries were timed and neither exceeded the budget.
+ * The AST-only arm of an `apg-ablation` run (`projectId` ending in `AST_ONLY_SUFFIX`) is not the product's graph
+ * and is left out, so `--run-dir results/apg-ablation` contributes only its full-APG runs (B&T plan Step 25).
  */
 export function nfr07Rows(runs: readonly So2Run[], budgetMs = LATENCY_GATE_MS): string[][] {
-  const rows = withReport(runs).map(({ record, report: rep }) => {
+  const rows = withReport(runs).filter(({ record }) => !record.projectId.endsWith(AST_ONLY_SUFFIX)).map(({ record, report: rep }) => {
     const g = latencyGateOf(record, rep, budgetMs);
     const times = [g.ffS02.ms, g.universal.ms].filter((x): x is number => x !== null);
     const max = times.length === 0 ? null : Math.max(...times);
@@ -332,6 +333,37 @@ export function ablationRows(runs: readonly So2Run[]): AblationRow[] {
     }
   }
   return out;
+}
+
+/** The parts of an extraction the arm check reads (an `APGResult` satisfies it). */
+export interface ArmGraph {
+  readonly edges: readonly { readonly type: string }[];
+  readonly importResolution: { readonly resolvedInternal: number };
+}
+
+export const ARMS_COLUMNS = [
+  'project_id', 'edges_full', 'edges_ast_only', 'edges_removed', ...EDGE_TYPES.map((t) => `removed_${t.toLowerCase()}`),
+  'resolved_internal_full', 'resolved_internal_ast_only', 'arms_differ',
+] as const;
+
+/**
+ * `apg_arms.csv` (ADR-021 item 8; audit SO2-5, X-2): the pre-run check that the two arms of one base differ, by
+ * extraction only. Removed edges are counted per edge type; `arms_differ` is true when at least one edge is
+ * removed. The resolved-internal counts must be equal (the allow-list does not ablate import resolution).
+ */
+export function armsRow(projectId: string, full: ArmGraph, ast: ArmGraph): string[] {
+  const countBy = (g: ArmGraph): Map<string, number> => {
+    const m = new Map<string, number>();
+    for (const e of g.edges) m.set(e.type, (m.get(e.type) ?? 0) + 1);
+    return m;
+  };
+  const f = countBy(full);
+  const a = countBy(ast);
+  const removed = full.edges.length - ast.edges.length;
+  return [
+    projectId, int(full.edges.length), int(ast.edges.length), int(removed), ...EDGE_TYPES.map((t) => int((f.get(t) ?? 0) - (a.get(t) ?? 0))),
+    int(full.importResolution.resolvedInternal), int(ast.importResolution.resolvedInternal), bool(removed > 0),
+  ];
 }
 
 export const ABLATION_COLUMNS = [

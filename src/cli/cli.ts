@@ -141,7 +141,7 @@ withLLMOptions(program
   .option('--persist', 'Save snapshot after evaluation', false)
   .option('--diff', 'Compare against latest snapshot', false)
   .option('--baseline <path>', 'Compare against baseline violations file')
-  .option('--graph-mode <mode>', 'Graph mode: full | ast-only (APG ablation arm: no FLOWS_TO, RE_EXPORTS or alias resolution)', 'full')
+  .option('--graph-mode <mode>', 'Graph mode: full | ast-only (APG ablation arm: IMPORTS, DECLARES and CONTAINS edges only)', 'full')
   .action(async (opts: LLMCliOpts & {
     project: string;
     spec: string;
