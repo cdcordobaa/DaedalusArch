@@ -5,7 +5,7 @@
  */
 import { join } from 'node:path';
 import {
-  E1_CELLS, candidatesOf, estimateE1, judgeHours, main, projectVolume, readTree, renderReport, specLayers, windowsNeeded,
+  E1_CELLS, candidatesOf, e7BaseVolume, estimateE1, judgeHours, main, projectVolume, readTree, renderReport, specLayers, windowsNeeded,
 } from '../../../../scripts/e1-judge-volume.js';
 import type { TreeFile } from '../../../../scripts/e1-judge-volume.js';
 import { readFileSync } from 'node:fs';
@@ -84,5 +84,36 @@ describe('CLI', () => {
     expect(main(['--spec', 'specs/clean-arch.yaml', '--project', 'pilot-ref=fixtures/correct-reference', '--date', '2026-10-08', '--out', 'x.md'], ROOT, io)).toBe(0);
     expect(written[0]).toContain(`| Central (pilot mean × 54) | ${String(43 * 54)} |`);
     expect(written[0]).not.toContain('--out');
+  });
+});
+
+describe('--e7 mode (runbook stage 0c)', () => {
+  const sel = (n01: number, n02: number): Parameters<typeof e7BaseVolume>[2] => ({
+    projectId: 'p',
+    functions: [
+      { functionId: 'FF-N01', candidateUnitIds: Array.from({ length: n01 + 3 }, (_, i) => `m${String(i)}`), selectedUnitIds: Array.from({ length: n01 }, (_, i) => `m${String(i)}`) },
+      { functionId: 'FF-N02', candidateUnitIds: Array.from({ length: n02 }, (_, i) => `f${String(i)}`), selectedUnitIds: Array.from({ length: n02 }, (_, i) => `f${String(i)}`) },
+    ],
+  });
+
+  it('calls = 1 init probe + 3 × (selected FF-N01 + selected FF-N02); selected is capped at 20; a wrong id or missing function is undefined', () => {
+    expect(e7BaseVolume('p', 's.yaml', sel(5, 19))?.calls).toBe(1 + 3 * 24);
+    expect(e7BaseVolume('p', 's.yaml', sel(25, 20))).toMatchObject({ n01: { candidates: 28, selected: 20 }, calls: 1 + 3 * 40 });
+    expect(e7BaseVolume('q', 's.yaml', sel(1, 1))).toBeUndefined();
+    expect(e7BaseVolume('p', 's.yaml', { projectId: 'p', functions: [] })).toBeUndefined();
+  });
+
+  it('the registered e7-corpus plan with corpus/selections: 7 bases, sum and ceiling rows; a symbolic-only plan and a missing selection are refused', () => {
+    const written: string[] = [];
+    const err: string[] = [];
+    const io = { out: () => undefined, err: (t: string) => err.push(t), writeFile: (_f: string, t: string) => written.push(t) };
+    expect(main(['--e7', '--plan', 'experiments/e7-corpus/plan.json', '--selections', 'corpus/selections', '--date', '2026-10-09', '--out', 'x.md'], ROOT, io)).toBe(0);
+    expect(written[0]).toContain('| Cap ceiling (7 × (1 + 3 × 2 × 20)) | 847 |');
+    expect(written[0]?.match(/^\| [a-zA-Z_-]+ \| `corpus\/specs\//gm)).toHaveLength(7);
+    expect(main(['--e7', '--plan', 'experiments/latency-gate/plan.json', '--selections', 'corpus/selections'], ROOT, io)).toBe(1);
+    expect(err.at(-1)).toContain('is not full mode');
+    expect(main(['--e7', '--plan', 'experiments/e7-corpus/plan.json', '--selections', 'tests'], ROOT, io)).toBe(1);
+    expect(err.at(-1)).toContain('not estimable');
+    expect(main(['--e7', '--plan', 'experiments/e7-corpus/plan.json'], ROOT, io)).toBe(2);
   });
 });

@@ -1,6 +1,6 @@
 # Experiment runbook — v1.2E registered runs (after P-U6)
 
-**Date**: 2026-10-09. **Registration**: `corpus/prereg.json` version 4 (P-U6; ADR-021 items 4, 5, 7, 8, 10). **Owner**:
+**Date**: 2026-10-09; examiner-review fixes (stages 0b and 0c, 1.3, `../daedalus-so4`) 2026-10-09. **Registration**: `corpus/prereg.json` version 4 (P-U6; ADR-021 items 4, 5, 7, 8, 10). **Owner**:
 Build and Test (BT-B, BT-D, BT-E, BT-F resume only after P-U6, ADR-021 item 7). This is the command sequence the
 registered experiments follow, stage by stage. Each stage reads only what the stage before it wrote. The P-U6
 dry run (§3) ran the whole chain on fixtures, with the Mock judge and the Mock labeller, in a scratch output
@@ -23,8 +23,34 @@ directory.
   stage 9, with the `agy` route, which counts invocations against the plan budget. Every other stage makes no model
   call.
 - **Paths.** Corpus clones are at `../daedalus-corpus` (`fetch-corpus`). E1 outcomes are at
-  `../daedalus-e1-outcomes`. Results go to `results/<plan-id>/`. Seeded copies and prepared bases go to `$SCRATCH`
-  and are never committed.
+  `../daedalus-e1-outcomes`. SP-* probe copies are at `../daedalus-sp-probes`. The SO4 prepared bases, manifest and
+  seeded copies are at `../daedalus-so4` (§3). All of these are durable sibling directories, outside every checkout
+  and never committed. A registered plan refers to them only by repository-relative paths (`../daedalus-…`), never by
+  a scratch or `/private/tmp` path: `so4-plan-entries` refuses an absolute `--manifest` or `--copies` (exit 2).
+  Results go to `results/<plan-id>/`. The sealed audit allocation (6.2) goes to `../daedalus-sealed/`, durable and
+  not opened before the 6.3 commit, because a session scratch directory can be wiped between sessions. `$SCRATCH`
+  holds only throwaway files that no stage reads.
+
+## 0b. Judge freeze (P-4) — before any full-mode run
+
+The symbolic-only stages, §1 (SO2) and §3 (SO4), may run before this stage. §2 (sensitivity) is symbolic-only too,
+but it is registered by its own bump (P-3). No full-mode plan (`fixtures`, §4 `e7-corpus`, §5 `e1-grid`) runs before
+all of the following are committed:
+1. **Rubric freeze**: `src/llm-critic/rubric.ts` with `FROZEN_SHA256` set, and its test green (B&T Step 44).
+2. **`Docs/judge-preregistration.md`** has left DRAFT. Its frozen rows (judge, CLI pin, effort, `unitCap`,
+   `runsPerEvaluation`, the degradation ladder) equal the code.
+3. **The final frozen-instrument export**: `export-frozen-instrument-cli.ts --final`, committed together with
+   **P-4** (`register-prereg-cli.ts --reason "P-4 = judge freeze …"`). `--check-prereg` then prints the P-4 version
+   for every plan (B&T Step 45).
+4. **The full-mode golden lane L0** has passed at the P-4 commit (B&T Step 46).
+
+## 0c. Pre-run E7 judge-volume estimate — before §4
+
+`e1-judge-volume-cli.ts --e7 --plan experiments/e7-corpus/plan.json --selections corpus/selections --out Docs/DiagnosticRuns/e7-judge-volume.md`.
+It gives the per-base calls (1 init probe + 3 × the selected FF-N01 and FF-N02 units of the base's stored
+selection), the sum and the cap ceiling. It is committed before §4, and the E7 ladder trigger compares measured
+calls per window against it (`Docs/judge-preregistration.md`). The E1 counterpart is
+`Docs/DiagnosticRuns/e1-judge-volume-estimate.md`.
 
 ## 1. SO2: latency gate and APG ablation (symbolic-only, no model call)
 
@@ -32,7 +58,7 @@ directory.
 |---|---|---|---|
 | 1.1 | `run-experiment-cli.ts experiments/latency-gate/plan.json --neo4j-container daedalus-neo4j-bt` | `results/latency-gate/{runs,reports}` | 1.2 |
 | 1.2 | `so2-metrics-cli.ts tables --run-dir results/latency-gate --out results/latency-gate/so2` | `latency.csv`, `graph_coverage.csv`, `gate.json` (the **only** H13 gate source) | B&T Step 24 (ADR-016 e; P-2 if the strategy flips) |
-| 1.3 | `so2-metrics-cli.ts profile --project <path> --spec <spec> --project-id <id> --out results/latency-gate/so2` (per in-scope base) | `profile.csv`, `scc_components.csv` | 1.6 |
+| 1.3 | per in-scope base: `so2-metrics-cli.ts profile --project <path> --spec <spec> --project-id <projectId> --reps 3 --out results/latency-gate/so2/profile-<projectId>` (lane lock: it ingests). There is one directory per base, because the file names are fixed. It refuses an `--out` that already holds `profile.csv` or `scc_components.csv` | `profile-<projectId>/profile.csv`, `profile-<projectId>/scc_components.csv` | 1.6 |
 | 1.4 | `so2-metrics-cli.ts arms --plan experiments/apg-ablation/plan.json --out results/apg-ablation/so2` (exit 1 if a base's arms are identical) | `apg_arms.csv` | 1.5 |
 | 1.5 | `run-experiment-cli.ts experiments/apg-ablation/plan.json …`, then `so2-metrics-cli.ts ablation --run-dir results/apg-ablation --out results/apg-ablation/so2` | `apg_ablation.csv`, `apg_ablation_summary.csv` | Ch8.1 |
 | 1.6 | `so2-metrics-cli.ts tables --run-dir results/latency-gate --run-dir results/apg-ablation --out results/so2` | `nfr07_latency.csv` (the NFR-07 table) | figures (`--so2-dir`) |
@@ -47,9 +73,9 @@ before the plan runs. Then: `run-experiment-cli.ts experiments/sensitivity/plan.
 
 | # | Command | Writes | Hands to |
 |---|---|---|---|
-| 3.1 | `prepare-bases-cli.ts --clones ../daedalus-corpus --selections corpus/selections --only realworld-test,ghostfolio-test,truthy-demo,dry-run-test,zhuravlevma__nestjs-active-record,nestjslatam__ddd,v-aguiar__valex --out $SCRATCH/prepared-bases-7.json` | prepared bases (scratch) | 3.2, 6.1 |
-| 3.2 | per catalogue operator: `mutate.ts --base $SCRATCH/prepared-bases-7.json --spec <corpus spec> --operator <id> --manifest $SCRATCH/so4/manifest.json --out $SCRATCH/so4/copies --split held-out` (k = 2, frozen) | manifest rows and rejections, seeded copies | 3.3 |
-| 3.3 | `so4-plan-entries-cli.ts --plan experiments/so4-heldout/plan.json --manifest <manifest> --copies <copies root> --out experiments/so4-heldout/plan.json` | the seeded entries (ADR-021 item 9 form) after the seven baseline entries | 3.4 |
+| 3.1 | `prepare-bases-cli.ts --clones ../daedalus-corpus --selections corpus/selections --only realworld-test,ghostfolio-test,truthy-demo,dry-run-test,zhuravlevma__nestjs-active-record,nestjslatam__ddd,v-aguiar__valex --out ../daedalus-so4/prepared-bases-7.json` | prepared bases (`../daedalus-so4`, durable, never committed) | 3.2, 6.1 |
+| 3.2 | per catalogue operator: `mutate.ts --base ../daedalus-so4/prepared-bases-7.json --spec <corpus spec> --operator <id> --manifest ../daedalus-so4/manifest.json --out ../daedalus-so4/copies --split held-out --k 2` (k = 2, frozen) | manifest rows and rejections, seeded copies (`../daedalus-so4`) | 3.3 |
+| 3.3 | `so4-plan-entries-cli.ts --plan experiments/so4-heldout/plan.json --manifest ../daedalus-so4/manifest.json --copies ../daedalus-so4/copies --out experiments/so4-heldout/plan.json` (repository-relative; an absolute path is refused) | the seeded entries (ADR-021 item 9 form) after the seven baseline entries | 3.4 |
 | 3.4 | commit the plan, then `register-prereg-cli.ts --reason "…so4-heldout seeded entries…"`, then `--check-prereg` | `corpus/prereg.json` v<N+1> | 3.5 |
 | 3.5 | `run-experiment-cli.ts experiments/so4-heldout/plan.json --neo4j-container daedalus-neo4j-bt` | baseline and seeded runs | 3.6 |
 | 3.6 | `build-score-case-cli.ts --runs results/so4-heldout --out results/so4-heldout/case` | score case (`manifest.json`, `reports/`) | 3.7 |
@@ -57,11 +83,15 @@ before the plan runs. Then: `run-experiment-cli.ts experiments/sensitivity/plan.
 
 ## 4. E7 corpus (full mode, live judge)
 
+**Needs** stage 0b (P-4) and stage 0c (the committed E7 judge-volume estimate).
+
 `run-experiment-cli.ts experiments/e7-corpus/plan.json --neo4j-container daedalus-neo4j-bt` → `results/e7-corpus`.
 These seven bases are the P2 source (6.1). Apply the degradation ladder only by its registered rules
 (`Docs/threats-to-validity.md` §4).
 
 ## 5. E1 grid (live generator, then live judge)
+
+**Needs** stage 0b (P-4). Step 3, the `fixtures` full-mode run, needs it too.
 
 1. `generate-projects.ts --plan experiments/e1-grid/generator-plan.json` (the registered generator plan; it writes
    `../daedalus-e1-outcomes/<model>/<task>/<level>/run-<i>/`; a stopped cell is restarted atomically).
@@ -73,12 +103,12 @@ These seven bases are the P2 source (6.1). Apply the degradation ladder only by 
 
 | # | Command | Writes | Hands to |
 |---|---|---|---|
-| 6.1 | `build-label-plan-cli.ts --out results/labels --case results/so4-heldout/case --label-items results/so4-heldout/label-items.json --copies $SCRATCH/so4/copies --bases $SCRATCH/prepared-bases-7.json --corpus-runs results/e7-corpus --e1-runs results/e1-grid --fixture-runs results/fixtures` | `label-plan.json` (budget, `auditSeed` 6105), `fn-causes.json`, `judge-verdicts.json`, `label-plan-summary.json` (Kish n_eff per row, context cut by kind, escalation if any) | 6.2–6.6 |
-| 6.2 | `llm-label-cli.ts --allocate-audit --plan results/labels/label-plan.json --plan-id <id> --out audit/view --allocation-out $SCRATCH/sealed/<id>.allocation.json` (**before** 6.4; label-blind, kind × population) | the audit view; the sealed allocation | 6.3 |
+| 6.1 | `build-label-plan-cli.ts --out results/labels --case results/so4-heldout/case --label-items results/so4-heldout/label-items.json --copies ../daedalus-so4/copies --bases ../daedalus-so4/prepared-bases-7.json --corpus-runs results/e7-corpus --e1-runs results/e1-grid --fixture-runs results/fixtures` | `label-plan.json` (budget, `auditSeed` 6105), `fn-causes.json`, `judge-verdicts.json`, `label-plan-summary.json` (Kish n_eff per row, context cut by kind, escalation if any) | 6.2–6.6 |
+| 6.2 | `llm-label-cli.ts --allocate-audit --plan results/labels/label-plan.json --plan-id <id> --out audit/view --allocation-out ../daedalus-sealed/<id>.allocation.json` (**before** 6.4; label-blind, kind × population) | the audit view; the sealed allocation | 6.3 |
 | 6.3 | The author labels the view and commits `audit/<id>.json`. Do not open the allocation or any labels before this commit. | the committed audit | 6.6 |
 | 6.4 | `llm-label-cli.ts --plan results/labels/label-plan.json --estimate`, then `--mode record --cassette-dir experiments/labels/cassettes --out results/labels/labels.json` (route `agy`, model `gemini-3.1-pro-high` from the plan; split over ≥ 2 weeks of quota; `LABEL_BUDGET_STOP` before any call that could exceed the budget) | labels, cassettes | 6.5, 6.6, 7 |
 | 6.5 | `llm-label-cli.ts --usage --cassette-dir experiments/labels/cassettes` → record the input tokens per call in `Docs/labeller-route.md` §6 (registered: this is a bump) | token figures | — |
-| 6.6 | `llm-label-cli.ts --agreement --plan results/labels/label-plan.json --labels results/labels/labels.json --allocation $SCRATCH/sealed/<id>.allocation.json --audit audit/<id>.json --judge-verdicts results/labels/judge-verdicts.json --fn-causes results/labels/fn-causes.json --out results/labels/labelling.json` | agreement rows (κ / AC1 intervals, `taxonomy_rule`), audit allocation, label budget, FP/FN taxonomy | 7 |
+| 6.6 | `llm-label-cli.ts --agreement --plan results/labels/label-plan.json --labels results/labels/labels.json --allocation ../daedalus-sealed/<id>.allocation.json --audit audit/<id>.json --judge-verdicts results/labels/judge-verdicts.json --fn-causes results/labels/fn-causes.json --out results/labels/labelling.json` | agreement rows (κ / AC1 intervals, `taxonomy_rule`), audit allocation, label budget, FP/FN taxonomy | 7 |
 | 6.7 | `score-golden-cli.ts --case results/so4-heldout/case --labels results/labels/labels.json --out results/so4-heldout/score.json` | labelled score (FP-labelled) | 7 |
 | 6.8 | (exploratory) `so5-open-coding-cli.ts --labels results/labels/labels.json --runs results/e1-grid --out results/e1-grid/open-coding` | open-coding input and key | Ch9 |
 
