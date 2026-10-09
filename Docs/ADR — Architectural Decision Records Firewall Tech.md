@@ -1078,6 +1078,36 @@ On the fixtures, extraction and ingestion produce exactly the predicted edges (v
 
 ---
 
+## ADR-024: SO4 seeding typecheck losses diagnosed; no operator defect, golden N = 75 (pre-run, declared post-hoc)
+
+**Status**: Accepted (author, 2026-10-09: "Diagnose operators first")
+
+**Date**: 2026-10-09
+
+**Context**: The SO4 held-out seeding (runbook 3.2, frozen k = 2, `masterSeed` 20261008, `../daedalus-so4/manifest.json`) produced 75 golden held-out instances against the 85 counted by the site-feasibility table (`Docs/DiagnosticRuns/u5a-site-feasibility.json`) and the floor of 80 (BR-U5a-37; ADR-019 item 1). Ten golden applications were `typecheck` rejections (BR-U5a-09): MO-SO02 5, MO-X01 2, MO-P01 1, MO-SO01 1, MO-DF01 1. The feasibility table counted eligible sites; it never compiled the mutants. This entry is a pre-run instrument review, declared post-hoc because the failures were seen during seeding, before any so4-heldout evaluation.
+
+**Diagnosis**: each of the ten applications was reproduced with the same seed and site in a scratch copy, with the pinned tsc of the base; error codes and counts match the manifest. A failure is an operator defect if the code produces invalid TypeScript that a correct implementation of the catalogue text (§1, §2) would not; it is a legitimate infeasibility if the site cannot host the construct the catalogue describes.
+
+| Operator | Base (k) | tsc | Cause | Verdict |
+|---|---|---|---|---|
+| MO-SO02 | ghostfolio-test (1), truthy-demo (0), nestjslatam__ddd (0, 1), v-aguiar__valex (1) | TS2740, TS2345 | the interface is a data shape (`Settings`, `UniqueValidationArguments`, `IShippingAddressProps`, `IOrderItemProps`, `CreateCardReturn`) whose values are object literals in returns, arguments or test fixtures; the catalogue adds required `extraQuery<i>(): number;` signatures and completes class implementers only, so every literal of the type loses assignability | infeasible |
+| MO-X01 | dry-run-test (0, 1) | TS2345, TS2741, TS2322 | the first class of the domain file (`Session`, `User`) is a data class built from spreads and persistence entities by mappers; the catalogue's added method becomes a required member those values lack | infeasible |
+| MO-DF01 | dry-run-test (1) | TS2322, TS2345 | the same data classes; the catalogue's `private readonly repo = new <InfraClass>()` makes the class nominal, so structural values no longer assign | infeasible |
+| MO-SO01 | truthy-demo (0) | TS2740 | `ChangePasswordDto` is assigned object literals in a unit test included by the base tsconfig; the catalogue's appended methods are required members | infeasible |
+| MO-P01 | truthy-demo (1) | TS1259 | `express` resolves to `@types/express` (`export =`) and the base compiles without `esModuleInterop`; the catalogue's default import `import <local> from '<package>'` is invalid there, and the BR-U5a-10 stub applies only to unresolvable packages | infeasible |
+
+A reading of "implementers completed" (MO-SO02) that also rewrites every object literal contextually typed by the interface would change the catalogue's edit and implementer definition; the catalogue is frozen, so that reading is not adopted. Twin rejections (MO-C04n TS6133, MO-SO02n, MO-DF01n TS2674) do not count toward the golden N and are not changed here; MO-DF01n TS2674 (a protected constructor passing `type-shape`) is noted as a precondition gap for future work, since a precondition change would alter site selection.
+
+**Decision**:
+1. No operator code changes. The catalogue, k = 2, the seeds and the site selection are unchanged; a rejected application is never re-drawn (BR-U5a-17), so re-seeding the unchanged instrument reproduces the manifest, and the golden held-out N is **75** (85 → 75: ten typecheck losses, causes above). SO4 proceeds with N = 75 and reports the shortfall against the floor of 80 (ADR-019 item 1).
+2. Runbook corrections (documentation only, no registered artefact): step 3.2 now splits `prepared-bases-7.json` into `../daedalus-so4/bases/<projectId>.json` and runs `mutate --base` once per base, because `--base` takes one prepared base; step 1.6 writes to `results/apg-ablation/so2` and the flows-to step (new runbook 1.7; `performance-test-instructions.md` §7) runs on `experiments/apg-ablation/plan.json` into `results/apg-ablation/so2`, because `results/so2/` and `results/e7-corpus/` (no RunRecord before E7) are refused by the results guard (BR-U5b-56).
+3. No registered artefact changes, so no pre-registration bump is made for this entry; the next dated version is the runbook 3.4 bump that records the seeded so4-heldout entries.
+4. Ch7 reports that the feasibility count over-estimated the golden set by 10 (12 %), all from data-shape types that cannot take added required members, and that seeding by structural edits to data classes and props interfaces is a threat to validity for the SOLID-proxy and data-flow operators.
+
+**Rationale**: A fix that makes these sites compile would change what the operators seed, against a frozen catalogue. Reporting the attrition keeps the instrument as registered.
+
+---
+
 ## Decision Log Summary
 
 | **ADR** | **Decision** | **Status** | **Spike Validated** |
@@ -1106,3 +1136,4 @@ On the fixtures, extraction and ingestion produce exactly the predicted edges (v
 | 021 | v1.2 objectives-readiness audit (44 verified gaps) and the U6 integration unit; latency gate moved to U6; P-U6 bump | Accepted | — |
 | 022 | v1.2 B&T sensitivity outcome: FF-CV01, FF-CV04 excluded (presets, specs, E7 regenerated by the registered generator), FF-CV06 template fix, post-hoc tooling fixes declared; P-E bump | Accepted | — |
 | 023 | FLOWS_TO near-empty on real DI-style code: reported as an SO2 limitation, instrument unchanged | Accepted | — |
+| 024 | SO4 seeding typecheck losses (10) diagnosed as site infeasibility, no operator defect; golden N = 75 reported against the floor; runbook 3.2, 1.6, flows-to paths fixed | Accepted | — |

@@ -61,7 +61,8 @@ calls per window against it (`Docs/judge-preregistration.md`). The E1 counterpar
 | 1.3 | per in-scope base: `so2-metrics-cli.ts profile --project <path> --spec <spec> --project-id <projectId> --reps 3 --out results/latency-gate/so2/profile-<projectId>` (lane lock: it ingests). There is one directory per base, because the file names are fixed. It refuses an `--out` that already holds `profile.csv` or `scc_components.csv` | `profile-<projectId>/profile.csv`, `profile-<projectId>/scc_components.csv` | 1.6 |
 | 1.4 | `so2-metrics-cli.ts arms --plan experiments/apg-ablation/plan.json --out results/apg-ablation/so2` (exit 1 if a base's arms are identical) | `apg_arms.csv` | 1.5 |
 | 1.5 | `run-experiment-cli.ts experiments/apg-ablation/plan.json …`, then `so2-metrics-cli.ts ablation --run-dir results/apg-ablation --out results/apg-ablation/so2` | `apg_ablation.csv`, `apg_ablation_summary.csv` | Ch8.1 |
-| 1.6 | `so2-metrics-cli.ts tables --run-dir results/latency-gate --run-dir results/apg-ablation --out results/so2` | `nfr07_latency.csv` (the NFR-07 table) | figures (`--so2-dir`) |
+| 1.6 | `so2-metrics-cli.ts tables --run-dir results/latency-gate --run-dir results/apg-ablation --out results/apg-ablation/so2` (not `results/so2`: the results guard BR-U5b-56 allows only `results/pre-tag/` and `results/<registered plan id>/`; ADR-024 item 2) | `nfr07_latency.csv` (the NFR-07 table) | figures (`--so2-dir`) |
+| 1.7 | `so2-metrics-cli.ts flows-to --plan experiments/apg-ablation/plan.json --out results/apg-ablation/so2` (extraction only, no database; not `results/e7-corpus/so2`, which holds no RunRecord before §4 and is refused by the results guard; ADR-024 item 2) | `flows_to_stores.csv` | Ch8.1 |
 
 ## 2. Sensitivity (BT-E)
 
@@ -74,7 +75,7 @@ before the plan runs. Then: `run-experiment-cli.ts experiments/sensitivity/plan.
 | # | Command | Writes | Hands to |
 |---|---|---|---|
 | 3.1 | `prepare-bases-cli.ts --clones ../daedalus-corpus --selections corpus/selections --only realworld-test,ghostfolio-test,truthy-demo,dry-run-test,zhuravlevma__nestjs-active-record,nestjslatam__ddd,v-aguiar__valex --out ../daedalus-so4/prepared-bases-7.json` | prepared bases (`../daedalus-so4`, durable, never committed) | 3.2, 6.1 |
-| 3.2 | per catalogue operator: `mutate.ts --base ../daedalus-so4/prepared-bases-7.json --spec <corpus spec> --operator <id> --manifest ../daedalus-so4/manifest.json --out ../daedalus-so4/copies --split held-out --k 2` (k = 2, frozen) | manifest rows and rejections, seeded copies (`../daedalus-so4`) | 3.3 |
+| 3.2 | split the prepared bases, one file per base: `node -e` over `../daedalus-so4/prepared-bases-7.json` writing each element to `../daedalus-so4/bases/<projectId>.json`; then per base × catalogue operator: `mutate.ts --base ../daedalus-so4/bases/<projectId>.json --spec corpus/specs/<projectId>.yaml --operator <id> --manifest ../daedalus-so4/manifest.json --out ../daedalus-so4/copies --split held-out --k 2` (k = 2, frozen; `--base` takes one prepared base, not the 7-base array; ADR-024 item 2) | manifest rows and rejections, seeded copies (`../daedalus-so4`) | 3.3 |
 | 3.3 | `so4-plan-entries-cli.ts --plan experiments/so4-heldout/plan.json --manifest ../daedalus-so4/manifest.json --copies ../daedalus-so4/copies --out experiments/so4-heldout/plan.json` (repository-relative; an absolute path is refused) | the seeded entries (ADR-021 item 9 form) after the seven baseline entries | 3.4 |
 | 3.4 | commit the plan, then `register-prereg-cli.ts --reason "…so4-heldout seeded entries…"`, then `--check-prereg` | `corpus/prereg.json` v<N+1> | 3.5 |
 | 3.5 | `run-experiment-cli.ts experiments/so4-heldout/plan.json --neo4j-container daedalus-neo4j-bt` | baseline and seeded runs | 3.6 |
@@ -119,7 +120,7 @@ These seven bases are the P2 source (6.1). Apply the degradation ladder only by 
 | 7.1 | `aggregate-cli.ts --runs results/so4-heldout --plan experiments/so4-heldout/plan.json --score results/so4-heldout/score.json --manifest results/so4-heldout/case/manifest.json --labelling results/labels/labelling.json --golden-registered 85 --out results/so4-heldout/agg` | `prf_*.csv`, `precision_*.csv`, `golden_instances.csv`, `seed_coverage.csv`, labeller tables |
 | 7.2 | `aggregate-cli.ts --runs results/e1-grid --plan experiments/e1-grid/plan.json --labels results/labels/labels.json --labelling results/labels/labelling.json --out results/e1-grid/agg` (no P3 label: label-dependent `fpat_*` are N/A; the profile is in `so5_patterns.csv` `basis = symbolic`) | `so5_grid.csv`, `so5_patterns.csv`, `so5_tests.csv` |
 | 7.3 | `aggregate-cli.ts --runs results/e7-corpus --plan experiments/e7-corpus/plan.json --out results/e7-corpus/agg`; the same for `fixtures`, `latency-gate`, `apg-ablation` | per-plan tables (`latency.csv` is descriptive; the gate is `gate.json`) |
-| 7.4 | `figures-cli.ts --csv-dir <plan agg dir> --so2-dir results/so2 --out results/<plan>/figures [--split held-out]` | thesis figures |
+| 7.4 | `figures-cli.ts --csv-dir <plan agg dir> --so2-dir results/apg-ablation/so2 --out results/<plan>/figures [--split held-out]` | thesis figures |
 | 7.5 | `so1-metrics-cli.ts --out results/pre-tag/so1-metrics-<sha>.json` | SO1 instrument metrics |
 
 ## 8. P-U6 dry run (2026-10-09, fixtures only, Mock, scratch)

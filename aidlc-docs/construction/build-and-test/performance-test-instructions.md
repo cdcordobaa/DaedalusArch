@@ -63,7 +63,7 @@ Repeat §4 on the other prepared corpus bases (`realworld-test`, `truthy-demo`, 
 ## 7. Structural coverage and the APG ablation (SO2; audit SO2-4, SO2-5, X-2, X-4)
 
 ```bash
-npx tsx scripts/so2-metrics-cli.ts flows-to --plan experiments/e7-corpus/plan.json --out results/e7-corpus/so2       # extraction only, no database
+npx tsx scripts/so2-metrics-cli.ts flows-to --plan experiments/apg-ablation/plan.json --out results/apg-ablation/so2  # extraction only, no database (results guard BR-U5b-56; ADR-024 item 2)
 npx tsx scripts/so2-metrics-cli.ts arms --plan experiments/apg-ablation/plan.json --out results/apg-ablation/so2     # before the run: exit 1 if any base's arms are identical
 npx tsx scripts/so2-metrics-cli.ts ablation --run-dir results/apg-ablation --out results/apg-ablation/so2            # after the apg-ablation plan run
 ```
