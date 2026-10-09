@@ -860,6 +860,7 @@ i. **U2 derived settlements** S-1 to S-7 and S-9 (U2 `business-rules.md` §14.1)
    - cassettes in record and replay modes.
 
    If the CLI cannot be isolated, live labelling halts and the author picks the route.
+   - **Amendment (2026-10-08, the same day):** the `gemini` CLI 0.46.0 is refused for this account (`IneligibleTierError: This client is no longer supported for Gemini Code Assist for individuals`). The route is therefore the Antigravity CLI (`agy`, Homebrew cask `antigravity-cli` 1.1.23). Its flags are `-p`, `--model`, `--output-format json`, `--json-schema` and `--print-timeout`, and `agy models` lists `gemini-3.1-pro-high`. The author signed in with Google OAuth into the dedicated home `~/.firewall/labeller-agy-home` (mode 700). A clean `HOME` cannot see the author's `~/.gemini`, so it holds no ambient `GEMINI.md`, plugins or MCP servers. A headless call under `env -i` with that `HOME` and a neutral cwd returned `SUCCESS`. The isolation probe, the canary and the version pin still apply before any labelling.
 5. **E-2.** The 40-call cap was an orchestrator budget, not a design rule. Build and Test's live-call budget is raised to 200 judge calls, logged in the live-call ledger. SEN-01 runs in full and excludes no function (ADR-016 b).
 6. **Remaining settlements.**
    - **E1 `orderSeed` (OI-BT-F3):** fixed at the catalogue freeze as `20261008`.
