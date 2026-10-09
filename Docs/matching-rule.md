@@ -162,6 +162,13 @@ Routed extractor warnings (`EXTRACTOR_009` for rule 2, `EXTRACTOR_002` on the si
 
 The author audits **30** reconciled labels. Allocation across (kind, label) strata is proportional to stratum size, with a floor of `min(3, size)` per non-empty stratum and every kind represented; `uncertain` items are excluded. Within a stratum, items are taken round-robin by `projectId` in a seeded order. The allocation table is published as `audit_allocation.csv`. The audit view shows only the context the labeller saw, never the panel label, run rationales or root cause; the author's label and root cause are written to `audit/<plan-id>.json` before any comparison, and the comparison runs by script afterwards.
 
+**Blinding by order and by file (ADR-021 THR-3, amended 2026-10-09 for P-U6).** Field-level blinding is not enough: an order that groups items by stratum, or an allocation file next to the view, gives the panel label back. Therefore:
+
+1. The view lists the allocated items in the order of `sha256([seed, 'audit-view', itemId])`, which no stratum enters; the allocation file keeps the same order, so neither file has blocks by label.
+2. `llm-label --allocate-audit` writes the view into `--out` and the allocation into `--allocation-out`, which must lie outside the view directory (`AUDIT_ALLOCATION_EXPOSED`). The author opens neither the allocation file nor the labels file (`labels.json`) before the audit is committed.
+3. `audit/<plan-id>.json` is committed before the first comparison. `llm-label --agreement --audit` refuses (`AUDIT_UNCOMMITTED`) an audit file that is untracked or differs from `HEAD`, and the hash lock (`AUDIT_MODIFIED`) then refuses any later change.
+4. The audit is completed and committed before any SO3 or SO4 result table that uses labels (`prf_*.csv` with FP-labelled, `precision_baseline.csv`, `agreement.csv`, `label_budget.csv`, `fp_fn_taxonomy.csv`) is produced.
+
 ## 9. Amendments
 
 | Date | Version | Rule | Change | Source |
@@ -170,5 +177,6 @@ The author audits **30** reconciled labels. Allocation across (kind, label) stra
 | 2026-10-08 | 1.1.0 | MAT-19 | Neural new violations outside judge collateral go to `neuralNewByFunction`, never FP-strict or a symbolic P/R/F1 table (was: FP-strict and P1). | ADR-020 item 5; review A5 |
 | 2026-10-08 | 1.1.0 | MAT-20 | Corpus-tier strata `corpus-core` / `corpus-e7` (pooled E7 row). | ADR-020 item 8; review A8 |
 | 2026-10-08 | 1.1.0 | MAT-04 | Note: `remapLine` is not called (keys are stored in seeded coordinates). No rule change. | ADR-020 item 9 (B7) |
+| 2026-10-09 | 1.1.0 (no count change; registered with P-U6) | §8 | Audit blinding by order and by file: seeded view order independent of the strata, the allocation sealed outside the view directory, the audit committed before any comparison and before any labelled SO3 / SO4 table. | ADR-021 THR-3 |
 
 The recall interval unit (the (project, operator) cell) is an analysis rule, registered in `Docs/analysis-plan.md` §5; it does not change any count of this document.

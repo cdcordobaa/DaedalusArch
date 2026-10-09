@@ -15,10 +15,12 @@ import { disallowedImportsUnder } from './import-whitelist.js';
 const ROOT = resolve(__dirname, '../../../..');
 
 /** The U5b-owned script files (plan "Files"; CLI entries are `<name>-cli.ts`). */
-const U5B_LIB = ['report-io', 'stats', 'label-context', 'prereg', 'canonical-json', 'matching-rule', 'so5-codes'];
+const U5B_LIB = ['report-io', 'stats', 'label-context', 'prereg', 'canonical-json', 'matching-rule', 'so5-codes', 'label-plan', 'label-adapters'];
 const U5B_SCRIPTS = [
   'score-golden', 'rescore', 'llm-label', 'run-experiment', 'aggregate', 'select-corpus', 'fetch-corpus',
   'prepare-bases', 'record-env', 'export-frozen-instrument', 'remap-domain-layer',
+  // ADR-021 SO3-2 (U6 Labels): the label-plan producer joins the whitelist check.
+  'build-label-plan',
 ];
 
 export function u5bScriptFiles(root: string = ROOT): string[] {

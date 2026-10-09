@@ -179,3 +179,16 @@ Dated amendments after the Fable adversarial review (`Docs/DiagnosticRuns/method
 
 New registered outcome (no superseded rule): **SO4 baseline precision** (ADR-020 item 1), the Horvitz–Thompson weighted share of TP-class P2 labels per function, per corpus tier and overall (`scripts/lib/baseline-precision.ts`; `precision_baseline.csv`, `precision_figure.csv`). The reporting duties B1–B7 are `Docs/analysis-plan.md` §10.
 
+
+## Amendments 2026-10-09 (ADR-021, U6 Labels lane; registered with P-U6)
+
+The superseded text stays in the rows above. The registered statements are `Docs/analysis-plan.md` §4, §5 and `Docs/matching-rule.md` §8 as amended for P-U6, and `corpus/label-plan-config.json`.
+
+| Rule | Superseded | Now | ADR-021 | Test |
+|---|---|---|---|---|
+| BR-U5b-33, 34 | per-stratum caps P2 20, P3 20, P4 10, lowered by one common factor under 4000 calls | registered live sizes (P4 1 per (cell, dimension) up to 46, P2 1 per stratum up to 20, P3 1 per stratum up to 10), two-stage sampling with p = (m / M) · min(perStratum, N_h) / N_h, 300 calls with a 30-call re-ask reserve, ceilings lowered P3, then P2, then P4; produced by `build-label-plan` from stored outputs | item 6; SO3-2, SO4-02 | `u6/label-plan.test.ts`, `u6/build-label-plan.test.ts` |
+| BR-U5b-38 | mechanical causes computed, never written | `fn-causes.json` from the plan producer; `instances.csv` `fn_root_cause` / `fn_cause_source` filled (mechanical, else the MS label) | SO4-02 | `u6/build-label-plan.test.ts`, `u6/label-adapters.test.ts` |
+| BR-U5b-42 | blinding by field only; lock file as the only order check | view in a seeded order independent of the strata; allocation sealed outside the view directory; audit committed before any comparison (`AUDIT_UNCOMMITTED`) | THR-3 | `u5b/label-audit.test.ts` THR-3 cases |
+| BR-U5b-43 | weighted CI `wilson-weighted-approximate`; reliability subjects (function, unit) | weighted item bootstrap (`weighted-item-bootstrap`, counts only below 10 pairs); reliability subjects (function, project, unit, request hash), the project id written on every judge cassette entry (`--cassette-project-id`) | THR-6, SO3-5 | `u6/label-adapters.test.ts`, `llm-critic/cassette-project-id.test.ts` |
+| BR-U5b-10 (input) | `score-golden --labels` read an itemId → label map | reads `llm-label` output (`ReconciledLabel[]`, P1 items); every P1 item of the score must carry a label (`SCORE_LABELS_MISSING`) | SO4-01 | `u6/build-label-plan.test.ts` |
+| BR-U5b-64 (input) | `aggregate --labels` read `{runId, functionId, label}` rows | reads `llm-label` output; P3 labels keyed by the E1 run id; refused instead of zero counts | SO5-01 | `u6/label-adapters.test.ts`, `u6/build-label-plan.test.ts` |
