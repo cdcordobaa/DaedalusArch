@@ -6,7 +6,8 @@
  */
 
 export { APGExtractor, extractAPG } from './apg-extractor.js';
-export type { ExtractorOptions, ExtractorError, ExtractorErrorCode } from './types.js';
+export type { ExtractorOptions, ExtractorError, ExtractorErrorCode, GraphMode } from './types.js';
+export { GRAPH_MODES } from './types.js';
 export {
   NODE_BUILTIN_MODULES,
   PackageNodeRegistry,

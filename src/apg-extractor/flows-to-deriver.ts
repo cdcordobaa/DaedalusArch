@@ -1,6 +1,6 @@
 import { Node, SyntaxKind } from 'ts-morph';
 import type { ClassDeclaration, Expression, Type } from 'ts-morph';
-import type { APGEdge, FlowsToEdgeProperties } from '../shared/types/apg.js';
+import type { APGEdge, FlowsToEdgeProperties, FlowsToStats } from '../shared/types/apg.js';
 import type { NodeLookup } from './types.js';
 import { generateEdgeId, normalizeFilePath } from './id-generator.js';
 
@@ -24,6 +24,8 @@ interface FlowsToCandidate {
  * arguments are never inspected, self-loops are dropped, and the target must be an extracted
  * Class or Interface. One edge per target: the minimum `(line, field)` candidate with its `via`.
  * No FLOWS_TO-specific warning is emitted; `_addWarning` is kept for the C1 method contract.
+ * When `tally` is given, every considered store is counted by outcome (ADR-021 SO2; audit SO2-4), so the
+ * skips become measurable; the derived edges do not depend on it.
  */
 export function deriveFlowsToEdges(
   cls: ClassDeclaration,
@@ -31,15 +33,29 @@ export function deriveFlowsToEdges(
   lookup: NodeLookup,
   projectRoot: string,
   _addWarning?: (filePath: string, code: string, message: string) => void,
+  tally?: FlowsToTally,
 ): readonly APGEdge[] {
   const instanceFields = collectInstanceFields(cls);
   if (instanceFields.size === 0) return [];
 
   const candidates: FlowsToCandidate[] = [];
   const consider = (field: string, via: FlowsToCandidate['via'], valueExpr: Expression, line: number): void => {
-    const targetId = resolveTarget(valueExpr.getType(), lookup, projectRoot);
-    if (targetId === undefined || targetId === classNodeId) return; // not extracted, or self-loop
-    candidates.push({ field, via, line, targetId });
+    const target = resolveTarget(valueExpr.getType(), lookup, projectRoot);
+    if (tally !== undefined) tally.stores++;
+    if (target.kind === 'union-or-intersection') {
+      if (tally !== undefined) tally.skippedUnionOrIntersection++;
+      return;
+    }
+    if (target.kind === 'unextracted') {
+      if (tally !== undefined) tally.skippedUnextractedTarget++;
+      return;
+    }
+    if (target.targetId === classNodeId) {
+      if (tally !== undefined) tally.skippedSelfLoop++;
+      return;
+    }
+    if (tally !== undefined) tally.candidates++;
+    candidates.push({ field, via, line, targetId: target.targetId });
   };
 
   // (1) Instance property initialisers `f = new T(...)`.
@@ -79,6 +95,7 @@ export function deriveFlowsToEdges(
     }
   }
 
+  if (tally !== undefined) tally.edges += kept.size;
   return [...kept.values()]
     .sort((a, b) => a.line - b.line || compare(a.field, b.field) || compare(a.targetId, b.targetId))
     .map(c => {
@@ -91,6 +108,13 @@ export function deriveFlowsToEdges(
         properties: { ...properties },
       };
     });
+}
+
+/** Mutable counters behind `FlowsToStats`, accumulated over the classes of one extraction. */
+export type FlowsToTally = { -readonly [K in keyof FlowsToStats]: number };
+
+export function emptyFlowsToTally(): FlowsToTally {
+  return { stores: 0, candidates: 0, skippedUnionOrIntersection: 0, skippedUnextractedTarget: 0, skippedSelfLoop: 0, edges: 0 };
 }
 
 // ── Helpers ──────────────────────────────────────────────────────────────────
@@ -149,17 +173,23 @@ function isInstanceMemberOf(container: Node, cls: ClassDeclaration): boolean {
   return false;
 }
 
-/** The extracted Class/Interface node of a value type, or undefined (unions, intersections, unextracted types). */
-function resolveTarget(type: Type, lookup: NodeLookup, projectRoot: string): string | undefined {
-  if (type.isUnion() || type.isIntersection()) return undefined; // no unwrapping (Q9 A)
+type TargetResolution =
+  | { readonly kind: 'target'; readonly targetId: string }
+  | { readonly kind: 'union-or-intersection' }
+  | { readonly kind: 'unextracted' };
+
+/** The extracted Class/Interface node of a value type; unions and intersections, and unextracted types, are skipped. */
+function resolveTarget(type: Type, lookup: NodeLookup, projectRoot: string): TargetResolution {
+  if (type.isUnion() || type.isIntersection()) return { kind: 'union-or-intersection' }; // no unwrapping (Q9 A)
   const symbol = type.getSymbol() ?? type.getAliasSymbol();
   const decl = symbol?.getDeclarations()[0];
-  if (decl === undefined) return undefined;
-  if (!Node.isClassDeclaration(decl) && !Node.isInterfaceDeclaration(decl)) return undefined;
+  if (decl === undefined) return { kind: 'unextracted' };
+  if (!Node.isClassDeclaration(decl) && !Node.isInterfaceDeclaration(decl)) return { kind: 'unextracted' };
   const name = decl.getName();
-  if (name === undefined) return undefined;
+  if (name === undefined) return { kind: 'unextracted' };
   const targetPath = normalizeFilePath(decl.getSourceFile().getFilePath(), projectRoot);
-  return lookup.typeNodes.get(`${name.toLowerCase()}@${targetPath}`);
+  const targetId = lookup.typeNodes.get(`${name.toLowerCase()}@${targetPath}`);
+  return targetId === undefined ? { kind: 'unextracted' } : { kind: 'target', targetId };
 }
 
 function compare(a: string, b: string): number {

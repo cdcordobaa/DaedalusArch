@@ -187,6 +187,7 @@ describe('extractEdges wiring (BR-U2-03, 15, 17..24)', () => {
     expect(extractEdges([], lookup, ROOT)).toEqual({
       edges: [], warnings: [], packageNodes: [],
       importResolution: { resolvedInternal: 0, external: 0, externalOutOfRootAlias: 0, unresolved: 0, droppedNoFileNode: 0, unsupportedDynamic: 0 },
+      flowsTo: { stores: 0, candidates: 0, skippedUnionOrIntersection: 0, skippedUnextractedTarget: 0, skippedSelfLoop: 0, edges: 0 },
     });
   });
 });

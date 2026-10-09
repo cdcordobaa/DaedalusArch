@@ -89,6 +89,11 @@ function makeBlockReport() {
   };
 }
 
+/** The config of the first `createPipeline` call (typed view of the mock's argument). */
+function firstPipelineConfig(): { readonly graphMode?: string | undefined } {
+  return jest.mocked(createPipeline).mock.calls[0]?.[0] ?? {};
+}
+
 // Capture process.exit / process.exitCode without actually exiting
 let exitCodeSpy: jest.SpyInstance;
 let stderrSpy: jest.SpyInstance;
@@ -176,6 +181,37 @@ describe('CLI', () => {
 
       const config = (createPipeline as jest.Mock).mock.calls[0][0];
       expect(config.evaluationMode).toBe('symbolic-only');
+    });
+
+    it('--graph-mode defaults to full and is not passed to the pipeline (ADR-021 SO2)', async () => {
+      const program = loadProgram();
+      await program.parseAsync([
+        'node', 'firewall', 'evaluate', '--project', '/p', '--spec', 's.yaml', '--symbolic-only',
+      ]);
+
+      const config = firstPipelineConfig();
+      expect(config.graphMode).toBeUndefined();
+    });
+
+    it('--graph-mode ast-only sets the extractor graph mode (ADR-021 SO2, APG ablation arm)', async () => {
+      const program = loadProgram();
+      await program.parseAsync([
+        'node', 'firewall', 'evaluate', '--project', '/p', '--spec', 's.yaml', '--symbolic-only', '--graph-mode', 'ast-only',
+      ]);
+
+      const config = firstPipelineConfig();
+      expect(config.graphMode).toBe('ast-only');
+    });
+
+    it('an unknown --graph-mode exits 2 before any pipeline is built', async () => {
+      const program = loadProgram();
+      await program.parseAsync([
+        'node', 'firewall', 'evaluate', '--project', '/p', '--spec', 's.yaml', '--symbolic-only', '--graph-mode', 'cpg',
+      ]);
+
+      expect(createPipeline).not.toHaveBeenCalled();
+      expect(process.exitCode).toBe(2);
+      process.exitCode = undefined;
     });
 
     it('--neuronal-only sets evaluationMode to neuronal-only', async () => {

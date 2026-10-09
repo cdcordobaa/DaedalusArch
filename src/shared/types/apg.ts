@@ -67,6 +67,22 @@ export interface APGResult {
   readonly parseCoverage: ParseCoverage;
   readonly warnings: readonly ExtractorWarning[];
   readonly importResolution: ImportResolutionStats;
+  /** FLOWS_TO store accounting of the extraction (ADR-021 SO2; audit SO2-4). Not part of the report. */
+  readonly flowsTo?: FlowsToStats;
+}
+
+/**
+ * FLOWS_TO store accounting (ADR-021 SO2; audit SO2-4): every store the D8 scope considers (BR-U2-27..29),
+ * by outcome. `stores = candidates + skippedUnionOrIntersection + skippedUnextractedTarget + skippedSelfLoop`;
+ * `edges` counts the edges kept after the one-edge-per-target rule, so `edges <= candidates`.
+ */
+export interface FlowsToStats {
+  readonly stores: number;
+  readonly candidates: number;
+  readonly skippedUnionOrIntersection: number;
+  readonly skippedUnextractedTarget: number;
+  readonly skippedSelfLoop: number;
+  readonly edges: number;
 }
 
 export interface ParseCoverage {

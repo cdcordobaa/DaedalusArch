@@ -16,7 +16,7 @@ export { avrScore, ahsScore, confidence, commitSha, functionId, runId } from './
 export type {
   APGNode, APGEdge, APGResult, ParseCoverage, SkippedFile, ExtractorWarning,
   ImportEdgeProperties, ReExportEdgeProperties, FlowsToEdgeProperties, PackageNodeProperties,
-  ImportResolutionStats,
+  ImportResolutionStats, FlowsToStats,
 } from './types/apg.js';
 
 // Spec
