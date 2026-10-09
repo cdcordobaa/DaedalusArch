@@ -28,7 +28,7 @@ what Ch7–9 must state, and with which output. A row may have both.
 - `P-M`: implemented and registered by the ADR-020 bump (named P-M by ADR-021 item 2).
 - `pending <id>`: owned by U6 under ADR-021 and registered by P-U6. The id is the audit finding in
   `Docs/DiagnosticRuns/so-readiness-audit-2026-10-08.json`.
-- `P-1` / `P-4`: carried by that Build and Test bump.
+- `P-4`: carried by that Build and Test bump. P-1 is committed (prereg v2, `a258db0`), so its rows read `in place (P-1, …)`.
 - `residual`: there is no mitigation, so the reporting duty is the whole handling.
 - `open`: needs an author decision.
 
@@ -63,8 +63,8 @@ main section is elsewhere.
 | TV-05 | R | The labeller route, model id and CLI version are not registered. agy has no temperature setting, so the registered determinism rule (temperature 0) cannot hold. | THR-5; SO3-4; ADR-019 item 4; ADR-021 SO3 | M: register the route `agy`, model `gemini-3.1-pro-high`, CLI 1.1.23 and the determinism amendment. D: run-vs-run agreement under default sampling measures stochastic consistency, not validity. | `corpus/prereg.json`; agreement rows | pending SO3-4 | 7.5; 8.4 |
 | TV-06 | I | The ghostfolio-test repair is post hoc. | ADR-019 item 2; Fable B7 | M: only a documented, deterministic preparation step that changes no source file, before the catalogue freeze; the base stays excluded if it still fails its type-check (BR-U5a-07). D: declared as post hoc. | `Docs/corpus.md` "Fetched and prepared bases" | in place | 7.1 |
 | TV-07 | I | Specs were corrected after the fixtures were seen: the FF-CV02 pattern, `repository-pattern`, the NestJS controller binding and the domain-layer remap. | U1 §8 items 7, 8, 12; ADR-015 item 1; ADR-017 item 4 | M: the fix/observe rule. Each correction is dated before the first corpus run, scripted, and applied uniformly to every corpus spec. D: reported as construct corrections, not tuning; the remap is declared floor-motivated (ADR-020 item 4). | `Docs/corpus.md` §5; git dates | in place | 7.1 |
-| TV-08 | I | E7 specs are an unregistered lever on N and recall: eligibility is a function of the domain glob alone. | Fable A4; ADR-019 item 3; ADR-020 item 4 | M: a registered, mechanical directory-to-layer rule, committed before a single feasibility count; one count; no spec edit afterwards. D: the E7 specs are declared floor-motivated. | `Docs/e7-spec-rule.md`; `Docs/corpus.md` | P-M; P-1 | 7.1 |
-| TV-09 | I | Registered artefacts hold draft text: the catalogue (`sitesPerOperator` TBD) is hashed in v1, and the judge pre-registration stays DRAFT until SEN-01 passes. | Fable B7 | M: the catalogue freeze (P-1); the judge freeze dated after a passing SEN-01 (P-4, BR-U4-POL-01). | `Docs/operator-catalogue.md`; `Docs/judge-preregistration.md` "Dated lines" | P-1; P-4 | 7.5 |
+| TV-08 | I | E7 specs are an unregistered lever on N and recall: eligibility is a function of the domain glob alone. | Fable A4; ADR-019 item 3; ADR-020 item 4 | M: a registered, mechanical directory-to-layer rule, committed before a single feasibility count; one count; no spec edit afterwards. D: the E7 specs are declared floor-motivated. | `Docs/e7-spec-rule.md`; `Docs/corpus.md` | P-M; in place (P-1, prereg v2) | 7.1 |
+| TV-09 | I | Registered artefacts hold draft text: the catalogue (`sitesPerOperator` TBD) is hashed in v1, and the judge pre-registration stays DRAFT until SEN-01 passes. | Fable B7 | M: the catalogue freeze (P-1); the judge freeze dated after a passing SEN-01 (P-4, BR-U4-POL-01). | `Docs/operator-catalogue.md`; `Docs/judge-preregistration.md` "Dated lines" | in place (catalogue, P-1, prereg v2); P-4 | 7.5 |
 
 ### 2.2 SO4 construct validity (golden dataset)
 
@@ -77,7 +77,7 @@ main section is elsewhere.
 | TV-14 | C | Correlated checks: one domain-to-infrastructure injection fires FF-S01, FF-S04 and FF-P06. | U3 §11 item 1 | M: SO4 counts the seeded instance once. D: AHS penalises it two or three times, and this is stated with the AHS figures. | `instances.csv`; `ahs_by_project.csv` | in place | 8.1 |
 | TV-15 | C | Predicted collateral firings (cycles, metric crossings, test pairing, project metrics) are neutralised, so the FP count depends on the collateral predictor. | Fable A1 evidence; `Docs/matching-rule.md` | D: collateral and metric-key exclusions are reported per function. | `prf_by_function.csv` `collateral`, `metric_key_excluded` | in place | 8.1 |
 | TV-16 | S | One rejected or incomplete seed pair stops the whole SO4 score; a truncated cycle function rejects a whole pair (MAT-25). | SO4-03; Fable B7 | M: a rejected pair is listed with its reason and does not stop the run (ADR-021 SO4). D: MAT-25 rejection counts. | `runs.csv`; `instances.csv` | pending SO4-03 | 8.1 |
-| TV-17 | S | The SO4 floor of 80–120 held-out instances may not be met (69 at k = 3 before E7). | ADR-019 item 1; SO4-05; BR-U5a-37 | M: freeze E7 at its maximum and recount under BR-U5a-37 as written. No k = 4 and no relaxed counting. D: an N-vs-floor output; any shortfall is a deviation (§3). | N-vs-floor output (ADR-021 SO4) | pending SO4-05 | 7.1; 8.4 |
+| TV-17 | S | The SO4 floor of 80–120 held-out instances may not be met (69 at k = 3 before E7). After E7 and the P-1 freeze (prereg v2) the catalogue is frozen at k = 2 with 85 held-out instances, so the floor is met. | ADR-019 item 1; SO4-05; BR-U5a-37 | M: freeze E7 at its maximum and recount under BR-U5a-37 as written. No k = 4 and no relaxed counting. D: an N-vs-floor output; any shortfall is a deviation (§3). | N-vs-floor output (ADR-021 SO4) | pending SO4-05 | 7.1; 8.4 |
 | TV-18 | C | In full mode, new neural-judge violations enter symbolic P/R/F1 as FP-strict, but can never be TP. | Fable A5; SO4-07; ADR-020 item 5 | M: `so4-heldout` runs symbolic-only; neural results go in their own column. | `experiments/so4-heldout/plan.json` | P-M | 8.1 |
 | TV-19 | E | The held-out core corpus is not unseen: it shaped the specs and the remap. | Fable A8; ADR-020 item 8 | M: E7 is the only unseen stratum. D: a pooled E7 row beside the all-bases figure. | `prf_overall.csv` (E7 stratum) | P-M | 8.1; 9.2 |
 | TV-20 | E | The `layered` style library has held-out P/R only if an E7 project is layered. | U5a §6 SO1 row; SO1-B; SO1-C | M: the FR-20 layered acceptance run on a public layered E7 project, and a style column in the strata (ADR-021 SO1). | `results/pre-tag/`; `denominators.csv` style column | pending SO1-B, SO1-C | 8.1 |
@@ -87,7 +87,7 @@ main section is elsewhere.
 
 | ID | Type | Threat | Sources | Handling | Output / evidence | Status | Report |
 |---|---|---|---|---|---|---|---|
-| TV-22 | S | The k = 3 copies of an operator on one base are treated as independent, so the instance Wilson interval is about √3 too narrow. | Fable A3; ADR-020 item 3 | M: the (project, operator) cell is the recall unit (cell recall = detected / k); the project cluster bootstrap is co-primary; the instance Wilson interval is shown only as the "if independent" bound. | `prf_*.csv` `ci_*` | P-M | 7.5; 8.1 |
+| TV-22 | S | The k copies (k = 2 since the P-1 freeze) of an operator on one base are treated as independent, so the instance Wilson interval is about √k too narrow. | Fable A3; ADR-020 item 3 | M: the (project, operator) cell is the recall unit (cell recall = detected / k); the project cluster bootstrap is co-primary; the instance Wilson interval is shown only as the "if independent" bound. | `prf_*.csv` `ci_*` | P-M | 7.5; 8.1 |
 | TV-23 | S | Only recall has an interval; precision and F1 have none. | SO4-06 | M: cluster bootstrap intervals, with Wilson for precision as the "if independent" bound (ADR-021 SO4). D: the SO4 figure draws an interval only where the CSV carries one. | `prf_*.csv`; `so4-prf-*.svg` | pending SO4-06 | 8.1 |
 | TV-24 | S | SO5 pairwise bootstrap CIs are degenerate (3 replicates per cell), and the pairwise rows have no multiplicity control. | Fable A6; ADR-020 item 6 | M: pairwise CIs are descriptive only; inference rests on Holm-corrected permutation p-values and Cliff's δ. | `so5_tests.csv` | P-M | 7.5; 8.2 |
 | TV-25 | S | The SO5 permutation test permutes within task only. Unbalanced valid cells leak the spec-level effect into the model test, and the reverse. | THR-4 | M: permute within the strata of the other factor (ADR-021 SO5). | `so5_tests.csv` | pending THR-4 | 7.5 |
@@ -202,7 +202,7 @@ version) | threat rows (TV-…) | report section`.
 | The 3×3 / 135-project design is replaced by the 54-project parametric E1 grid | ADR-017 item 3 (ADR-011 superseded) | TV-28, TV-80 | 7.3 |
 | A single labeller, so no labeller-vs-labeller agreement | ADR-017 item 7 | TV-31 | 7.5 |
 | The labeller route is agy with no temperature setting | ADR-019 item 4; ADR-021 SO3 | TV-05 | 7.5 |
-| SO4 is run with the actual N if the floor is not met | ADR-019 item 1 (conditional) | TV-17 | 7.1; 8.4 |
+| SO4 is run with the actual N if the floor is not met (not triggered: P-1 froze k = 2 with N = 85 ≥ 80) | ADR-019 item 1 (conditional) | TV-17 | 7.1; 8.4 |
 | FPAT is a profile; open coding is exploratory | ADR-020 item 9; ADR-021 SO5 | TV-77 | 8.2 |
 | The controlled developer study is not run | none yet (open) | TV-84 | 9.2 |
 
