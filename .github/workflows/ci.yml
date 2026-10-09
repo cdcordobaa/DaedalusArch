@@ -102,6 +102,16 @@ jobs:
           NEO4J_PASSWORD: test-password
           GOLDEN_REQUIRED: '1'
 
+      - name: Full-mode golden lane (L0, Mock replay)
+        # FR-30 (U4 Q16 A), BR-U4-CAS-10, CAS-11 (Build and Test Step 46): Mock judge in replay with PATH emptied, zero live
+        # calls; a replay miss fails with "re-record: <n> missing keys"
+        run: npm run test:golden:full
+        env:
+          NEO4J_URI: bolt://localhost:7687
+          NEO4J_USER: neo4j
+          NEO4J_PASSWORD: test-password
+          GOLDEN_REQUIRED: '1'
+
       - name: Golden change log
         # BR-U1-41 / D-U1-5, widened by BR-U3-91 (D-U3-6) and Build and Test Step 5 (BT grammar): U1, U3, U4 and
         # Build and Test PRs; the self-test must fail to prove the CLI entry runs (D-U1-15)

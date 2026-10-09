@@ -1,0 +1,40 @@
+{
+  "attempts": 1,
+  "durationMs": 0,
+  "effort": null,
+  "functionId": "FF-N02",
+  "ignoredOptions": [
+    "model",
+    "effort",
+    "maxTokens"
+  ],
+  "key": "09dafd3e7aed7b1d4a89a6e6b59a260fcd5fffd05cd307edbbf1220623013996-r0-0",
+  "model": "claude-opus-5-5",
+  "outcome": {
+    "kind": "valid"
+  },
+  "parsedVerdict": {
+    "confidence": 0.9,
+    "evidence": [
+      "scripted evidence"
+    ],
+    "pass": true,
+    "reasoning": "Scripted fixture verdict: pass",
+    "violations": []
+  },
+  "prompt": "## Rule\nThe unit's responsibilities match the role of its declared layer.\n\n## Rubric\nPass: Every responsibility in the file belongs to the role and kind of its declared layer, and agrees with any ADR prose given.\nFail: The file carries a responsibility that belongs to a different layer kind, for example persistence, transport or framework logic in a domain file, or business rules in an infrastructure or presentation file.\nEvidence required: Name the file and cite the function, method or statement that carries the misplaced responsibility, and the layer kind it belongs to.\nOut of scope: import direction and layer-dependency rules, which are checked symbolically.\n\n## Layer model\n- domain (kind: domain): src/domain/**\n- application (kind: application): src/application/**\n- infrastructure (kind: infrastructure): src/infrastructure/**\n\n## Unit\nKind: file\nId: src/domain/repositories/ITaskRepository.ts\nLayer: domain\nUnit files:\n- src/domain/repositories/ITaskRepository.ts\n\n## Source\n=====SOURCE-BEGIN src/domain/repositories/ITaskRepository.ts=====\nimport { Task } from '../entities/Task';\n\nexport interface ITaskRepository {\n  findById(id: string): Promise<Task | null>;\n  findAll(): Promise<Task[]>;\n  save(task: Task): Promise<Task>;\n  delete(id: string): Promise<void>;\n}\n\n=====SOURCE-END=====\n\n## Graph excerpt\n{\"edges\":[{\"from\":\"CreateTaskUseCase@src/application/use-cases/CreateTaskUseCase.ts\",\"to\":\"ITaskRepository@src/domain/repositories/ITaskRepository.ts\",\"type\":\"CONSTRUCTOR_INJECTS\"},{\"from\":\"InMemoryTaskRepository@src/infrastructure/repositories/InMemoryTaskRepository.ts\",\"to\":\"ITaskRepository@src/domain/repositories/ITaskRepository.ts\",\"type\":\"IMPLEMENTS\"},{\"from\":\"src/application/use-cases/CreateTaskUseCase.ts\",\"to\":\"src/domain/repositories/ITaskRepository.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/domain/repositories/ITaskRepository.ts\",\"to\":\"src/domain/entities/Task.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/infrastructure/repositories/InMemoryTaskRepository.ts\",\"to\":\"src/domain/repositories/ITaskRepository.ts\",\"type\":\"IMPORTS\"}],\"nodes\":[{\"kind\":\"Class\",\"layer\":\"application\",\"name\":\"CreateTaskUseCase\",\"path\":\"src/application/use-cases/CreateTaskUseCase.ts\"},{\"kind\":\"Class\",\"layer\":\"infrastructure\",\"name\":\"InMemoryTaskRepository\",\"path\":\"src/infrastructure/repositories/InMemoryTaskRepository.ts\"},{\"kind\":\"File\",\"layer\":\"application\",\"path\":\"src/application/use-cases/CreateTaskUseCase.ts\"},{\"kind\":\"File\",\"layer\":\"domain\",\"path\":\"src/domain/entities/Task.ts\"},{\"kind\":\"File\",\"layer\":\"domain\",\"path\":\"src/domain/repositories/ITaskRepository.ts\"},{\"kind\":\"File\",\"layer\":\"infrastructure\",\"path\":\"src/infrastructure/repositories/InMemoryTaskRepository.ts\"},{\"kind\":\"Interface\",\"layer\":\"domain\",\"name\":\"ITaskRepository\",\"path\":\"src/domain/repositories/ITaskRepository.ts\"}]}\n\n## Instructions\nJudge the unit against the rule and rubric. Return the JSON object the schema requires. Set pass to false if any file of the unit fails the rubric.\n",
+  "provider": "mock",
+  "recordedAt": "2026-10-08T23:45:35.045Z",
+  "repetition": 0,
+  "requestHash": "09dafd3e7aed7b1d4a89a6e6b59a260fcd5fffd05cd307edbbf1220623013996",
+  "resolvedModel": "mock-model",
+  "response": "{\"pass\":true,\"confidence\":0.9,\"reasoning\":\"Scripted fixture verdict: pass\",\"evidence\":[\"scripted evidence\"],\"violations\":[]}",
+  "runIndex": 0,
+  "schemaVersion": 2,
+  "unitId": "src/domain/repositories/ITaskRepository.ts",
+  "usage": {
+    "inputTokens": 741,
+    "outputTokens": 31
+  },
+  "usedOptions": {}
+}

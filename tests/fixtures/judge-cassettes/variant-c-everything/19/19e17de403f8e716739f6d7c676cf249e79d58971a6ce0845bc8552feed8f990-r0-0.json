@@ -1,0 +1,40 @@
+{
+  "attempts": 1,
+  "durationMs": 0,
+  "effort": null,
+  "functionId": "FF-N01",
+  "ignoredOptions": [
+    "model",
+    "effort",
+    "maxTokens"
+  ],
+  "key": "19e17de403f8e716739f6d7c676cf249e79d58971a6ce0845bc8552feed8f990-r0-0",
+  "model": "claude-opus-5-5",
+  "outcome": {
+    "kind": "valid"
+  },
+  "parsedVerdict": {
+    "confidence": 0.9,
+    "evidence": [
+      "scripted evidence"
+    ],
+    "pass": true,
+    "reasoning": "Scripted fixture verdict: pass",
+    "violations": []
+  },
+  "prompt": "## Rule\nThe module's files form one coherent unit with a consistent abstraction and boundary.\n\n## Rubric\nPass: The files serve one cohesive concern, use the module's abstractions consistently, and keep each rule or invariant in one place.\nFail: The files split into unrelated concerns, duplicate a rule or invariant that should live in one place, or bypass the module's own abstractions.\nEvidence required: Name each file involved and cite the declarations that show the split, the duplication or the bypass.\nOut of scope: import direction and layer-dependency rules, which are checked symbolically.\n\n## Layer model\n- domain (kind: domain): src/domain/**\n- application (kind: application): src/application/**\n- infrastructure (kind: infrastructure): src/infrastructure/**\n\n## Unit\nKind: module\nId: src/domain/entities\nLayer: domain\nUnit files:\n- src/domain/entities/GodTask.ts\n- src/domain/entities/Task.ts\n\n## Source\n=====SOURCE-BEGIN src/domain/entities/GodTask.ts=====\n// VIOLATION: God class with 15 public methods — SRP proxy violation\nexport class GodTask {\n  constructor(\n    public id: string,\n    public title: string,\n    public description: string,\n    public completed: boolean,\n    public categoryId: string,\n    public priority: string,\n    public tags: string[]\n  ) {}\n\n  complete(): void { this.completed = true; }\n  uncomplete(): void { this.completed = false; }\n  updateTitle(t: string): void { this.title = t; }\n  updateDescription(d: string): void { this.description = d; }\n  updatePriority(p: string): void { this.priority = p; }\n  addTag(tag: string): void { this.tags.push(tag); }\n  removeTag(tag: string): void { this.tags = this.tags.filter(t => t !== tag); }\n  isValid(): boolean { return this.title.length > 0; }\n  isHighPriority(): boolean { return this.priority === 'high'; }\n  isCompleted(): boolean { return this.completed; }\n  hasCategory(): boolean { return !!this.categoryId; }\n  serialize(): string { return JSON.stringify(this); }\n  clone(): GodTask { return Object.assign(new GodTask('','','',false,'','',[]), this); }\n  equals(other: GodTask): boolean { return this.id === other.id; }\n  toString(): string { return `Task(${this.id}): ${this.title}`; }\n}\n\n=====SOURCE-END=====\n\n=====SOURCE-BEGIN src/domain/entities/Task.ts=====\n// VIOLATIONS: imports @nestjs/common AND express in domain layer\nimport { Injectable } from '@nestjs/common';\nimport * as express from 'express';\n\n@Injectable()\nexport class Task {\n  constructor(\n    public readonly id: string,\n    public readonly title: string,\n    public readonly description: string,\n    public readonly completed: boolean,\n    public readonly categoryId: string,\n    public readonly createdAt: Date\n  ) {}\n\n  complete(): Task {\n    return new Task(this.id, this.title, this.description, true, this.categoryId, this.createdAt);\n  }\n\n  isValid(): boolean {\n    return this.title.length > 0;\n  }\n}\n\n=====SOURCE-END=====\n\n## Exported signatures\n// src/domain/entities/GodTask.ts\nexport class GodTask {\n  constructor(\n    public id: string,\n    public title: string,\n    public description: string,\n    public completed: boolean,\n    public categoryId: string,\n    public priority: string,\n    public tags: string[]\n  );\n  complete(): void;\n  uncomplete(): void;\n  updateTitle(t: string): void;\n  updateDescription(d: string): void;\n  updatePriority(p: string): void;\n  addTag(tag: string): void;\n  removeTag(tag: string): void;\n  isValid(): boolean;\n  isHighPriority(): boolean;\n  isCompleted(): boolean;\n  hasCategory(): boolean;\n  serialize(): string;\n  clone(): GodTask;\n  equals(other: GodTask): boolean;\n  toString(): string;\n}\n\n// src/domain/entities/Task.ts\nexport class Task {\n  constructor(\n    public readonly id: string,\n    public readonly title: string,\n    public readonly description: string,\n    public readonly completed: boolean,\n    public readonly categoryId: string,\n    public readonly createdAt: Date\n  );\n  complete(): Task;\n  isValid(): boolean;\n}\n\n## Incoming\n- src/application/use-cases/CreateTaskUseCase.ts\n- src/domain/repositories/ITaskRepository.ts\n- src/infrastructure/repositories/InMemoryTaskRepository.ts\n\n## Outgoing\n- @nestjs/common\n- express\n\n## Graph excerpt\n{\"edges\":[{\"from\":\"src/application/use-cases/CreateTaskUseCase.ts\",\"to\":\"src/domain/entities/Task.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/domain/entities/Task.ts\",\"to\":\"@nestjs/common\",\"type\":\"IMPORTS\"},{\"from\":\"src/domain/entities/Task.ts\",\"to\":\"express\",\"type\":\"IMPORTS\"},{\"from\":\"src/domain/repositories/ITaskRepository.ts\",\"to\":\"src/domain/entities/Task.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/infrastructure/repositories/InMemoryTaskRepository.ts\",\"to\":\"src/domain/entities/Task.ts\",\"type\":\"IMPORTS\"}],\"nodes\":[{\"kind\":\"Class\",\"layer\":\"domain\",\"name\":\"GodTask\",\"path\":\"src/domain/entities/GodTask.ts\"},{\"kind\":\"Class\",\"layer\":\"domain\",\"name\":\"Task\",\"path\":\"src/domain/entities/Task.ts\"},{\"kind\":\"File\",\"layer\":\"application\",\"path\":\"src/application/use-cases/CreateTaskUseCase.ts\"},{\"kind\":\"File\",\"layer\":\"domain\",\"path\":\"src/domain/entities/GodTask.ts\"},{\"kind\":\"File\",\"layer\":\"domain\",\"path\":\"src/domain/entities/Task.ts\"},{\"kind\":\"File\",\"layer\":\"domain\",\"path\":\"src/domain/repositories/ITaskRepository.ts\"},{\"kind\":\"File\",\"layer\":\"infrastructure\",\"path\":\"src/infrastructure/repositories/InMemoryTaskRepository.ts\"},{\"kind\":\"Package\",\"layer\":null,\"path\":\"@nestjs/common\"},{\"kind\":\"Package\",\"layer\":null,\"path\":\"express\"}]}\n\n## Instructions\nJudge the unit against the rule and rubric. Return the JSON object the schema requires. Set pass to false if any file of the unit fails the rubric.\n",
+  "provider": "mock",
+  "recordedAt": "2026-10-08T23:45:34.527Z",
+  "repetition": 0,
+  "requestHash": "19e17de403f8e716739f6d7c676cf249e79d58971a6ce0845bc8552feed8f990",
+  "resolvedModel": "mock-model",
+  "response": "{\"pass\":true,\"confidence\":0.9,\"reasoning\":\"Scripted fixture verdict: pass\",\"evidence\":[\"scripted evidence\"],\"violations\":[]}",
+  "runIndex": 0,
+  "schemaVersion": 2,
+  "unitId": "src/domain/entities",
+  "usage": {
+    "inputTokens": 1392,
+    "outputTokens": 31
+  },
+  "usedOptions": {}
+}

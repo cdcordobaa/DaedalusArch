@@ -9,6 +9,7 @@ const base = require('./jest.config.cjs');
 module.exports = {
   ...base,
   roots: ['<rootDir>/tests/golden'],
-  testPathIgnorePatterns: ['/node_modules/'],
+  // The full-mode lane L0 has its own config and CI step (jest.golden-full.config.cjs, Build and Test Step 46).
+  testPathIgnorePatterns: ['/node_modules/', '<rootDir>/tests/golden/full-mode-lane.test.ts'],
   testTimeout: 120000,
 };

@@ -1,0 +1,45 @@
+{
+  "attempts": 1,
+  "durationMs": 0,
+  "effort": null,
+  "functionId": "FF-N02",
+  "ignoredOptions": [
+    "model",
+    "effort",
+    "maxTokens"
+  ],
+  "key": "76887ba3263307fc9287652f5c6d6c6e994d2f0a72e0234b2abb1863b91b5676-r0-0",
+  "model": "claude-opus-5-5",
+  "outcome": {
+    "kind": "valid"
+  },
+  "parsedVerdict": {
+    "confidence": 0.8,
+    "evidence": [
+      "scripted evidence"
+    ],
+    "pass": false,
+    "reasoning": "Scripted fixture verdict: fail",
+    "violations": [
+      {
+        "filePath": "src/infrastructure/utils/InfraFormatters.ts",
+        "message": "Scripted fixture violation"
+      }
+    ]
+  },
+  "prompt": "## Rule\nThe unit's responsibilities match the role of its declared layer.\n\n## Rubric\nPass: Every responsibility in the file belongs to the role and kind of its declared layer, and agrees with any ADR prose given.\nFail: The file carries a responsibility that belongs to a different layer kind, for example persistence, transport or framework logic in a domain file, or business rules in an infrastructure or presentation file.\nEvidence required: Name the file and cite the function, method or statement that carries the misplaced responsibility, and the layer kind it belongs to.\nOut of scope: import direction and layer-dependency rules, which are checked symbolically.\n\n## Layer model\n- domain (kind: domain): src/domain/**\n- application (kind: application): src/application/**\n- infrastructure (kind: infrastructure): src/infrastructure/**\n\n## Unit\nKind: file\nId: src/infrastructure/utils/InfraFormatters.ts\nLayer: infrastructure\nUnit files:\n- src/infrastructure/utils/InfraFormatters.ts\n\n## Source\n=====SOURCE-BEGIN src/infrastructure/utils/InfraFormatters.ts=====\nexport function formatDate(date: Date): string {\n  return date.toISOString().split('T')[0];\n}\n\n=====SOURCE-END=====\n\n## Graph excerpt\n{\"edges\":[{\"from\":\"src/application/utils/TaskUtils.ts\",\"to\":\"src/infrastructure/utils/InfraFormatters.ts\",\"type\":\"RE_EXPORTS\"}],\"nodes\":[{\"kind\":\"File\",\"layer\":\"application\",\"path\":\"src/application/utils/TaskUtils.ts\"},{\"kind\":\"File\",\"layer\":\"infrastructure\",\"path\":\"src/infrastructure/utils/InfraFormatters.ts\"}]}\n\n## Instructions\nJudge the unit against the rule and rubric. Return the JSON object the schema requires. Set pass to false if any file of the unit fails the rubric.\n",
+  "provider": "mock",
+  "recordedAt": "2026-10-08T23:45:35.048Z",
+  "repetition": 0,
+  "requestHash": "76887ba3263307fc9287652f5c6d6c6e994d2f0a72e0234b2abb1863b91b5676",
+  "resolvedModel": "mock-model",
+  "response": "{\"pass\":false,\"confidence\":0.8,\"reasoning\":\"Scripted fixture verdict: fail\",\"evidence\":[\"scripted evidence\"],\"violations\":[{\"filePath\":\"src/infrastructure/utils/InfraFormatters.ts\",\"message\":\"Scripted fixture violation\"}]}",
+  "runIndex": 0,
+  "schemaVersion": 2,
+  "unitId": "src/infrastructure/utils/InfraFormatters.ts",
+  "usage": {
+    "inputTokens": 421,
+    "outputTokens": 56
+  },
+  "usedOptions": {}
+}

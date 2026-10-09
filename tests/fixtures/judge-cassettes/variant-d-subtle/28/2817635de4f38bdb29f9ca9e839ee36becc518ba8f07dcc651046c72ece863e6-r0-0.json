@@ -1,0 +1,40 @@
+{
+  "attempts": 1,
+  "durationMs": 0,
+  "effort": null,
+  "functionId": "FF-N02",
+  "ignoredOptions": [
+    "model",
+    "effort",
+    "maxTokens"
+  ],
+  "key": "2817635de4f38bdb29f9ca9e839ee36becc518ba8f07dcc651046c72ece863e6-r0-0",
+  "model": "claude-opus-5-5",
+  "outcome": {
+    "kind": "valid"
+  },
+  "parsedVerdict": {
+    "confidence": 0.9,
+    "evidence": [
+      "scripted evidence"
+    ],
+    "pass": true,
+    "reasoning": "Scripted fixture verdict: pass",
+    "violations": []
+  },
+  "prompt": "## Rule\nThe unit's responsibilities match the role of its declared layer.\n\n## Rubric\nPass: Every responsibility in the file belongs to the role and kind of its declared layer, and agrees with any ADR prose given.\nFail: The file carries a responsibility that belongs to a different layer kind, for example persistence, transport or framework logic in a domain file, or business rules in an infrastructure or presentation file.\nEvidence required: Name the file and cite the function, method or statement that carries the misplaced responsibility, and the layer kind it belongs to.\nOut of scope: import direction and layer-dependency rules, which are checked symbolically.\n\n## Layer model\n- domain (kind: domain): src/domain/**\n- application (kind: application): src/application/**\n- infrastructure (kind: infrastructure): src/infrastructure/**\n\n## Unit\nKind: file\nId: src/application/utils/TaskUtils.ts\nLayer: application\nUnit files:\n- src/application/utils/TaskUtils.ts\n\n## Source\n=====SOURCE-BEGIN src/application/utils/TaskUtils.ts=====\n// Re-exports from infra — this is the \"bridge\" that creates the subtle violation\n// Looks innocent from domain's perspective, but carries an infra dependency.\nexport { formatDate } from '../../infrastructure/utils/InfraFormatters';\n\nexport function normalizeTitle(title: string): string {\n  return title.trim().toLowerCase();\n}\n\n=====SOURCE-END=====\n\n## Graph excerpt\n{\"edges\":[{\"from\":\"src/application/utils/TaskUtils.ts\",\"to\":\"src/infrastructure/utils/InfraFormatters.ts\",\"type\":\"RE_EXPORTS\"},{\"from\":\"src/domain/entities/Task.ts\",\"to\":\"src/application/utils/TaskUtils.ts\",\"type\":\"IMPORTS\"}],\"nodes\":[{\"kind\":\"File\",\"layer\":\"application\",\"path\":\"src/application/utils/TaskUtils.ts\"},{\"kind\":\"File\",\"layer\":\"domain\",\"path\":\"src/domain/entities/Task.ts\"},{\"kind\":\"File\",\"layer\":\"infrastructure\",\"path\":\"src/infrastructure/utils/InfraFormatters.ts\"}]}\n\n## Instructions\nJudge the unit against the rule and rubric. Return the JSON object the schema requires. Set pass to false if any file of the unit fails the rubric.\n",
+  "provider": "mock",
+  "recordedAt": "2026-10-08T23:45:35.043Z",
+  "repetition": 0,
+  "requestHash": "2817635de4f38bdb29f9ca9e839ee36becc518ba8f07dcc651046c72ece863e6",
+  "resolvedModel": "mock-model",
+  "response": "{\"pass\":true,\"confidence\":0.9,\"reasoning\":\"Scripted fixture verdict: pass\",\"evidence\":[\"scripted evidence\"],\"violations\":[]}",
+  "runIndex": 0,
+  "schemaVersion": 2,
+  "unitId": "src/application/utils/TaskUtils.ts",
+  "usage": {
+    "inputTokens": 514,
+    "outputTokens": 31
+  },
+  "usedOptions": {}
+}
