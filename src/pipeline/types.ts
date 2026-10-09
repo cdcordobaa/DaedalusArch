@@ -1,6 +1,7 @@
 import type { EvaluationMode, PipelineMode, OverallVerdict } from '../shared/types/enums.js';
 import type { CommitSha } from '../shared/types/value-objects.js';
 import type { LLMProviderConfig } from '../shared/types/llm-config.js';
+import type { GraphMode } from '../apg-extractor/types.js';
 
 export interface PipelineConfig {
   readonly projectPath: string;
@@ -16,6 +17,8 @@ export interface PipelineConfig {
   readonly llmConfig?: LLMProviderConfig | undefined;
   readonly verbose: boolean;
   readonly apgStorePath: string;
+  /** Extractor graph mode (default `full`); `ast-only` is the APG ablation arm (ADR-021 SO2). */
+  readonly graphMode?: GraphMode | undefined;
 }
 
 export type OutputFormat = 'json' | 'human' | 'csv';

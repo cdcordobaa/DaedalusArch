@@ -8,6 +8,7 @@ import type { FunctionId } from '../../shared/types/value-objects.js';
 import type { PipelineWarning } from '../../shared/errors/domain-result.js';
 import { DomainResult } from '../../shared/errors/domain-result.js';
 import { computeScoredReport } from '../../scoring-engine/index.js';
+import type { CycleMetricTiming } from '../../scoring-engine/index.js';
 import { toPipelineError, toPipelineWarning } from './map-helpers.js';
 
 export interface ScoreCommandConfig {
@@ -20,6 +21,8 @@ export interface ScoreCommandConfig {
   readonly specVersion: string;
   /** Spec functions in scope, enabled or not: declared counts by dimension (BR-U3-34). */
   readonly fitnessFunctions: readonly FitnessFunction[];
+  /** Receives the universal cycle metric's own timing (ADR-016 e; ADR-021 SO2; audit SO2-2). */
+  readonly onCycleMetricTiming?: (timing: CycleMetricTiming) => void;
 }
 
 /** U4's warning for a neural function with zero selected units (U4 BR-U4-AGG-09). */
@@ -62,6 +65,7 @@ export class ScoreCommand implements PipelineCommand {
       compiled: context.getCompiledFunctions(),
       noJudgeUnits: noJudgeUnitIds(context.warnings),
       ...(apg !== undefined && { apg }),
+      ...(this.config.onCycleMetricTiming !== undefined && { onCycleMetricTiming: this.config.onCycleMetricTiming }),
     });
 
     if (!result.success) {

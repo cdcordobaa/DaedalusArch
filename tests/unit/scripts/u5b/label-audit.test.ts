@@ -115,7 +115,8 @@ describe('agreement (BR-U5b-40, 43)', () => {
 
   it('agreement.csv has exactly the three panel comparisons plus the judge-reliability rows', () => {
     const rows = agreementStats({ labels, prompts: prompts(), labellerModel: FIXTURE_MODEL, judgeVerdicts: headline, allocation, audit, judgeEntries: judgeEntries() });
-    expect(rows.map((r) => r.comparison)).toEqual(['run-vs-run', 'judge-vs-panel', 'panel-vs-audit', 'judge-repetition', 'judge-repetition']);
+    // Verdicts without a source: the pooled judge row and its uncertain-as-category twin (ADR-020 items 7, 9 B3).
+    expect(rows.map((r) => r.comparison)).toEqual(['run-vs-run', 'judge-vs-panel', 'judge-vs-panel', 'panel-vs-audit', 'judge-repetition', 'judge-repetition']);
     expect(rows.filter((r) => r.comparison === 'judge-repetition').map((r) => r.scope)).toEqual(['FF-N01', 'FF-N02']);
     for (const r of rows.filter((x) => x.comparison === 'judge-repetition')) {
       expect(r.percentAgreement).toBe(1); // the Mock fixture judge is consistent across its three samples
@@ -124,11 +125,12 @@ describe('agreement (BR-U5b-40, 43)', () => {
     const rr = rows[0];
     expect(rr?.n).toBe(labels.filter((l) => l.runs.every((r) => r.label !== null)).length);
     expect(rr?.uncertain).toBe(labels.filter((l) => l.label === 'uncertain').length);
-    expect(rows[1]).toMatchObject({ comparison: 'judge-vs-panel', scope: 'claude-opus-5-5', weighted: true, sameFamily: false, n: p4.filter((l) => l.label !== 'uncertain').length });
-    expect(rows[2]).toMatchObject({ comparison: 'panel-vs-audit', weighted: true, n: allocation.itemIds.length });
-    expect((rows[2]?.percentAgreement ?? 0)).toBeLessThan(1);
+    expect(rows[1]).toMatchObject({ comparison: 'judge-vs-panel', scope: 'claude-opus-5-5', weighted: true, sameFamily: false, n: p4.filter((l) => l.label !== 'uncertain').length, source: 'all', headline: false, uncertainAsCategory: false });
+    expect(rows[2]).toMatchObject({ comparison: 'judge-vs-panel', source: 'all', uncertainAsCategory: true, n: p4.length });
+    expect(rows[3]).toMatchObject({ comparison: 'panel-vs-audit', weighted: true, n: allocation.itemIds.length, ciMethod: 'wilson-weighted-approximate' });
+    expect((rows[3]?.percentAgreement ?? 0)).toBeLessThan(1);
     const t = labellingTables({ agreement: rows })['agreement.csv'];
-    expect(csvText(t.header, t.rows).trim().split('\n')).toHaveLength(1 + 5);
+    expect(csvText(t.header, t.rows).trim().split('\n')).toHaveLength(1 + 6);
   });
 
   it('a judge-vs-panel cross-check on the labeller model gives a sameFamily row absent from the headline row', () => {
@@ -136,10 +138,40 @@ describe('agreement (BR-U5b-40, 43)', () => {
     const base = agreementStats({ labels, prompts: prompts(), labellerModel: FIXTURE_MODEL, judgeVerdicts: headline });
     const rows = agreementStats({ labels, prompts: prompts(), labellerModel: FIXTURE_MODEL, judgeVerdicts: [...headline, ...cross] });
     const judge = rows.filter((r) => r.comparison === 'judge-vs-panel');
-    expect(judge).toHaveLength(2);
+    expect(judge).toHaveLength(3);
     expect(judge[0]).toEqual(base.find((r) => r.comparison === 'judge-vs-panel'));
     expect(judge[0]?.sameFamily).toBe(false);
-    expect(judge[1]).toMatchObject({ scope: FIXTURE_MODEL, sameFamily: true });
+    expect(judge[1]).toMatchObject({ uncertainAsCategory: true, sameFamily: false });
+    expect(judge[2]).toMatchObject({ scope: FIXTURE_MODEL, sameFamily: true, headline: false });
+  });
+
+  it('ADR-020 item 7: per-source and per-generator rows, the E1 row is the only headline; uncertain kept as a category (B3)', () => {
+    // Hand fixture: four P4 units; the judge agrees with the panel on E1 units u1 (opus) and u2 (haiku), disagrees on
+    // fixture unit u3; unit u4 (E1, haiku) is uncertain on the panel.
+    const unit = (id: string, project: string, label: 'pass' | 'fail' | 'uncertain'): ReconciledLabel => ({
+      itemId: `i-${id}`, projectId: project, kind: 'judge-unit', population: 'P4', stratum: `${project}, semantic`, inclusionProbability: 1,
+      unitId: id, functionId: 'FF-N02', label,
+      runs: ([0, 1] as const).map((runIndex) => ({ runIndex, label: label === 'uncertain' ? null : label, rationale: 'r', cassetteKey: 'k', attempts: 1 })) as unknown as ReconciledLabel['runs'],
+    });
+    const ls = [unit('u1', 'cell-a', 'fail'), unit('u2', 'cell-b', 'pass'), unit('u3', 'fixtures/variant-a', 'pass'), unit('u4', 'cell-b', 'uncertain')];
+    const v = (id: string, project: string, verdict: 'pass' | 'fail', source: 'e1' | 'fixture', generatorModel?: string): JudgeUnitVerdict => ({
+      projectId: project, functionId: 'FF-N02', unitId: id, verdict, judgeModel: 'claude-opus-5-5', source, ...(generatorModel !== undefined && { generatorModel }),
+    });
+    const verdicts = [v('u1', 'cell-a', 'fail', 'e1', 'claude-opus-5-5'), v('u2', 'cell-b', 'pass', 'e1', 'claude-haiku-4-5'), v('u3', 'fixtures/variant-a', 'fail', 'fixture'), v('u4', 'cell-b', 'fail', 'e1', 'claude-haiku-4-5')];
+    const rows = agreementStats({ labels: ls, prompts: prompts(), labellerModel: FIXTURE_MODEL, judgeVerdicts: verdicts }).filter((r) => r.comparison === 'judge-vs-panel');
+    expect(rows.map((r) => [r.source, r.generatorModel, r.headline, r.uncertainAsCategory, r.n, r.percentAgreement])).toEqual([
+      ['all', '', false, false, 3, 2 / 3],
+      ['e1', '', true, false, 2, 1],
+      ['fixture', '', false, false, 1, 0],
+      ['e1', 'claude-haiku-4-5', false, false, 1, 1],
+      ['e1', 'claude-opus-5-5', false, false, 1, 1],
+      // u4 enters as (fail, uncertain): 2 of 3 agree.
+      ['e1', '', false, true, 3, 2 / 3],
+    ]);
+    expect(rows.filter((r) => r.headline)).toHaveLength(1);
+    const t = labellingTables({ agreement: rows })['agreement.csv'];
+    expect(t.header.slice(-4)).toEqual(['source', 'generator_model', 'headline', 'uncertain_as_category']);
+    expect(t.rows[1]?.slice(-4)).toEqual(['e1', '', 'true', 'false']);
   });
 
   it('a known 2x2 table reproduces the hand-computed kappa and AC1 to 6 dp; weights enter the table', () => {
@@ -183,7 +215,7 @@ describe('labeller tables in aggregate and the CLI (exit criterion 4)', () => {
       expect(await main(args, ROOT, io().io)).toBe(0);
       expect(await main(args, ROOT, io().io)).toBe(0);
       const outputs = JSON.parse(readFileSync(join(dir, 'labelling.json'), 'utf8')) as LabellingOutputs;
-      expect(outputs.agreement?.map((r) => r.comparison)).toEqual(['run-vs-run', 'judge-vs-panel', 'panel-vs-audit', 'judge-repetition', 'judge-repetition']);
+      expect(outputs.agreement?.map((r) => r.comparison)).toEqual(['run-vs-run', 'judge-vs-panel', 'judge-vs-panel', 'panel-vs-audit', 'judge-repetition', 'judge-repetition']);
       const t = labellingTables(outputs);
       expect(t['label_budget.csv'].rows.length).toBe(fixturePlanFile().strata.length);
       expect(t['audit_allocation.csv'].rows.length).toBeGreaterThan(0);

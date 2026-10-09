@@ -5,6 +5,7 @@ import type { EvaluationMode } from '../shared/types/enums.js';
 import type { PipelineError } from '../shared/errors/domain-result.js';
 import type { GraphRepository } from '../shared/interfaces/graph-repository.js';
 import type { APGResult } from '../shared/types/apg.js';
+import type { CycleMetricTiming } from './universal-metrics.js';
 
 /** domain-entities.md §4.1 (U3-owned). */
 export interface ScoringInput {
@@ -21,6 +22,8 @@ export interface ScoringInput {
   readonly compiled: CompiledFunctions;                    // disabled counts by dimension
   readonly noJudgeUnits: readonly FunctionId[];            // `no-judge-units` drop reason (BR-U3-34)
   readonly apg?: APGResult;                                // context.getApgResult(); read only when CYCLE_STRATEGY === 'scc' (BR-U3-45)
+  /** Receives the universal cycle metric's own timing (ADR-016 e; ADR-021 SO2; audit SO2-2). */
+  readonly onCycleMetricTiming?: (timing: CycleMetricTiming) => void;
 }
 
 export type ScoringErrorCode =

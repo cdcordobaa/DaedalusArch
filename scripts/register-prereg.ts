@@ -11,10 +11,16 @@
  * - `corpus/prereg.json` is missing, invalid, or differs from its committed blob (`prereg-unreadable`,
  *   `prereg-uncommitted`).
  * The caller commits the written file; the `--check-prereg` gate (BR-U5b-50) then applies unchanged.
+ *
+ * `--matching-rule-version <x.y.z>` (ADR-020, P-2: MAT-10 and MAT-19 change the rule to 1.1.0) registers a new
+ * matching-rule version; it is refused (`rule-version-mismatch`) unless the committed `Docs/matching-rule.md` machine
+ * block carries that version, so the registration and the scorer's `SCORE_RULE_MISMATCH` check (BR-U5b-01) agree.
+ * Without it the current version is kept.
  */
 import { execFileSync } from 'node:child_process';
-import { writeFileSync } from 'node:fs';
+import { existsSync, readFileSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
+import { MATCHING_RULE_DOC, machineBlockText } from './lib/matching-rule.js';
 import {
   buildPreRegistration, isRegisteredPath, loadPreRegistration, PREREG_FILE, validatePreRegistration,
 } from './lib/prereg.js';
@@ -22,7 +28,7 @@ import type { PreRegistration } from './lib/prereg.js';
 
 export const PREREG_BUMP_REFUSED = 'PREREG_BUMP_REFUSED';
 
-export type BumpRefusal = 'reason-empty' | 'artefacts-uncommitted' | 'prereg-unreadable' | 'prereg-uncommitted' | 'prereg-invalid';
+export type BumpRefusal = 'reason-empty' | 'artefacts-uncommitted' | 'prereg-unreadable' | 'prereg-uncommitted' | 'prereg-invalid' | 'rule-version-mismatch';
 
 export type BumpResult =
   | { readonly ok: true; readonly value: PreRegistration; readonly text: string }
@@ -33,6 +39,16 @@ export interface BumpOptions {
   readonly now: Date;
   /** Where the prereg schema is read from (default `repoRoot`). */
   readonly schemaRoot?: string;
+  /** A new registered matching-rule version; must equal the machine block of `Docs/matching-rule.md`. */
+  readonly matchingRuleVersion?: string;
+}
+
+/** The `version` of the `Docs/matching-rule.md` machine block under `repoRoot`, else `undefined`. */
+export function documentRuleVersion(repoRoot: string): string | undefined {
+  const file = join(repoRoot, MATCHING_RULE_DOC);
+  if (!existsSync(file)) return undefined;
+  const block = machineBlockText(readFileSync(file, 'utf8'));
+  return block === undefined ? undefined : /^version:\s*['"]?([0-9]+\.[0-9]+\.[0-9]+)['"]?\s*$/m.exec(block)?.[1];
 }
 
 function git(repoRoot: string, args: readonly string[]): string {
@@ -83,11 +99,17 @@ export function bumpPreRegistration(repoRoot: string, options: BumpOptions): Bum
   }
   if (commit === '') return refuse('prereg-uncommitted', `no commit wrote ${PREREG_FILE}`);
 
+  if (options.matchingRuleVersion !== undefined) {
+    const doc = documentRuleVersion(repoRoot);
+    if (doc !== options.matchingRuleVersion) {
+      return refuse('rule-version-mismatch', `--matching-rule-version ${options.matchingRuleVersion} != ${MATCHING_RULE_DOC} machine block version ${doc ?? '(none)'}`);
+    }
+  }
   const value = buildPreRegistration(repoRoot, {
     version: current.version + 1,
     registeredAt: registeredAtOf(options.now),
     reason,
-    matchingRuleVersion: current.matchingRuleVersion,
+    matchingRuleVersion: options.matchingRuleVersion ?? current.matchingRuleVersion,
     labellingBudgetCalls: current.labellingBudgetCalls,
     previous: [...(current.previous ?? []), { version: current.version, commit }],
   });
@@ -104,11 +126,12 @@ export interface BumpMainIo {
   readonly schemaRoot?: string;
 }
 
-const USAGE = `usage: npx tsx scripts/register-prereg-cli.ts --reason <text> [--dry-run]
+const USAGE = `usage: npx tsx scripts/register-prereg-cli.ts --reason <text> [--matching-rule-version <x.y.z>] [--dry-run]
        npx tsx scripts/register-prereg-cli.ts --self-test | --help
 
 Writes corpus/prereg.json version + 1 over every committed registered artefact, with the reason and
-previous[] += {version, commit}. Commit the file afterwards (BR-U5b-50).
+previous[] += {version, commit}. --matching-rule-version registers a new rule version (it must equal the
+Docs/matching-rule.md machine block). Commit the file afterwards (BR-U5b-50).
 Exit: 0 written (or printed with --dry-run); 1 refused (PREREG_BUMP_REFUSED); 2 usage error.
 `;
 
@@ -130,16 +153,24 @@ function run(argv: readonly string[], repoRoot: string, io: BumpMainIo): number 
     return 0;
   }
   let reason: string | undefined;
+  let ruleVersion: string | undefined;
   let dryRun = false;
   for (let i = 0; i < argv.length; i++) {
     const a = argv[i];
     if (a === '--reason') { reason = argv[++i]; continue; }
+    if (a === '--matching-rule-version') {
+      ruleVersion = argv[++i];
+      if (ruleVersion === undefined) { io.err(`--matching-rule-version needs a value\n${USAGE}`); return 2; }
+      continue;
+    }
     if (a === '--dry-run') { dryRun = true; continue; }
     io.err(`unknown argument ${String(a)}\n${USAGE}`);
     return 2;
   }
   if (reason === undefined) { io.err(`--reason is required\n${USAGE}`); return 2; }
-  const r = bumpPreRegistration(repoRoot, { reason, now: io.now(), ...(io.schemaRoot !== undefined && { schemaRoot: io.schemaRoot }) });
+  const r = bumpPreRegistration(repoRoot, {
+    reason, now: io.now(), ...(io.schemaRoot !== undefined && { schemaRoot: io.schemaRoot }), ...(ruleVersion !== undefined && { matchingRuleVersion: ruleVersion }),
+  });
   if (!r.ok) { io.err(`${r.code} ${r.refusal}: ${r.detail}\n`); return 1; }
   if (dryRun) { io.out(r.text); return 0; }
   writeFileSync(join(repoRoot, PREREG_FILE), r.text);

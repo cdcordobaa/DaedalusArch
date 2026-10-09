@@ -1,14 +1,15 @@
 import { resolve, dirname } from 'node:path';
 import { SourceFile, SyntaxKind, Node } from 'ts-morph';
-import type { APGEdge, APGNode, ImportResolutionStats } from '../shared/types/apg.js';
+import type { APGEdge, APGNode, FlowsToStats, ImportResolutionStats } from '../shared/types/apg.js';
 import type { ExtractorWarning } from '../shared/types/apg.js';
 import type { EdgeType } from '../shared/types/enums.js';
 import type { ExtractorOptions, NodeLookup } from './types.js';
 import { DEFAULT_OPTIONS, DI_DECORATORS, PRIMITIVE_TYPES } from './types.js';
 import { generateEdgeId, normalizeFilePath } from './id-generator.js';
 import { ImportEdgeMerger } from './import-edge-merger.js';
-import { deriveFlowsToEdges } from './flows-to-deriver.js';
+import { deriveFlowsToEdges, emptyFlowsToTally } from './flows-to-deriver.js';
 import { PackageNodeRegistry } from './package-node-factory.js';
+import { restrictToGraphMode } from './graph-mode.js';
 import {
   buildImportResolutionContext,
   countUnsupportedDynamicImports,
@@ -28,6 +29,8 @@ export interface EdgeExtractionResult {
   readonly packageNodes: readonly APGNode[];
   /** Partition counts over the counted statements (FR-14, BR-U2-14). */
   readonly importResolution: ImportResolutionStats;
+  /** FLOWS_TO store accounting of the full extraction (ADR-021 SO2; audit SO2-4), in every graph mode. */
+  readonly flowsTo: FlowsToStats;
 }
 
 /**
@@ -35,6 +38,10 @@ export interface EdgeExtractionResult {
  * IMPORTS and RE_EXPORTS come from import resolution and the FR-10 merger and are
  * emitted first (IMPORTS, then RE_EXPORTS, each in first-occurrence order); the
  * other types follow in insertion order.
+ *
+ * `graphMode: 'ast-only'` (ADR-021 SO2-5, X-2) is the ablation arm: the full extraction runs unchanged
+ * and `restrictToGraphMode` then keeps only IMPORTS, DECLARES and CONTAINS edges (and the Package nodes
+ * they still target). Import resolution and the counts are the full extraction's.
  */
 export function extractEdges(
   sourceFiles: SourceFile[],
@@ -46,9 +53,10 @@ export function extractEdges(
   const edgeSet = new Map<string, APGEdge>(); // key=(type+sourceId+targetId) for dedup, non-import types only
   const warnings: ExtractorWarning[] = [];
   const counts = { resolvedInternal: 0, external: 0, externalOutOfRootAlias: 0, unresolved: 0, droppedNoFileNode: 0, unsupportedDynamic: 0 };
+  const flowsTo = emptyFlowsToTally();
 
   const project = sourceFiles[0]?.getProject();
-  if (project === undefined) return { edges: [], warnings, packageNodes: [], importResolution: counts };
+  if (project === undefined) return { edges: [], warnings, packageNodes: [], importResolution: counts, flowsTo };
 
   // Keep-first insertion for every type except IMPORTS / RE_EXPORTS, which the merger owns (BR-U2-17).
   const addEdge = (edge: APGEdge): void => {
@@ -233,7 +241,7 @@ export function extractEdges(
       }
 
       // FLOWS_TO (Class → Class | Interface), D8 scope (FR-21; BR-U2-27..29)
-      for (const edge of deriveFlowsToEdges(cls, clsNodeId, lookup, projectRoot, addWarning)) addEdge(edge);
+      for (const edge of deriveFlowsToEdges(cls, clsNodeId, lookup, projectRoot, addWarning, flowsTo)) addEdge(edge);
 
       // CALLS (cross-boundary Method → Method)
       for (const method of cls.getMethods()) {
@@ -295,12 +303,16 @@ export function extractEdges(
   }
 
   const importEdges = merger.edges();
-  const edges = [
-    ...importEdges.filter(e => e.type === 'IMPORTS'),
-    ...importEdges.filter(e => e.type === 'RE_EXPORTS'),
-    ...edgeSet.values(),
-  ];
-  return { edges, warnings, packageNodes: packages.nodes(), importResolution: counts };
+  const full = {
+    edges: [
+      ...importEdges.filter(e => e.type === 'IMPORTS'),
+      ...importEdges.filter(e => e.type === 'RE_EXPORTS'),
+      ...edgeSet.values(),
+    ],
+    packageNodes: packages.nodes(),
+  };
+  const view = restrictToGraphMode(full, opts.graphMode);
+  return { edges: [...view.edges], warnings, packageNodes: view.packageNodes, importResolution: counts, flowsTo };
 }
 
 // ── Helpers ──────────────────────────────────────────────────────────────────

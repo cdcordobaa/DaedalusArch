@@ -5,6 +5,7 @@
  * - `validateCorpus` checks a value against `scripts/lib/schemas/corpus.schema.json`, then every overlay's `sha256`
  *   against the committed patch file (an entry whose overlay hash differs from its patch is rejected, BR-U5b-66).
  * - `parseCriteria` reads the ```yaml corpus-criteria machine block of `Docs/corpus-criteria.md` (BR-U5b-68).
+ * - `corpusTiers` maps each entry to its reporting tier, `core` or `e7` (ADR-020 item 8).
  */
 import { createHash } from 'node:crypto';
 import { existsSync, readFileSync } from 'node:fs';
@@ -12,6 +13,7 @@ import { join, resolve } from 'node:path';
 import { Ajv } from 'ajv';
 import type { ValidateFunction } from 'ajv';
 import { parse as parseYaml } from 'yaml';
+import type { CorpusTier } from './mutation/types.js';
 
 export const CORPUS_SCHEMA = 'scripts/lib/schemas/corpus.schema.json';
 export const CORPUS_FILE = 'corpus/corpus.json';
@@ -124,6 +126,11 @@ export function loadCorpus(path: string, repoRoot: string, patchRoot: string = r
   }
   const errors = validateCorpus(value, repoRoot, patchRoot);
   return errors.length === 0 ? { ok: true, corpus: value as CorpusFile } : { ok: false, errors };
+}
+
+/** Project name → corpus tier: `core` for the five `core: true` entries, `e7` for every added entry (ADR-020 item 8). */
+export function corpusTiers(file: Pick<CorpusFile, 'entries'>): Map<string, CorpusTier> {
+  return new Map(file.entries.map((e) => [e.name, e.core ? 'core' : 'e7'] as const));
 }
 
 const BLOCK = /^```yaml corpus-criteria[ \t]*\r?\n([\s\S]*?)^```[ \t]*$/gm;

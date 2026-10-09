@@ -18,6 +18,8 @@ import * as path from 'node:path';
 import type { LLMProviderConfig } from '../shared/types/llm-config.js';
 import { parseLLMOptions } from './llm-options.js';
 import { JUDGE_RUN_INCOMPLETE } from '../llm-critic/judge-stage.js';
+import { GRAPH_MODES } from '../apg-extractor/types.js';
+import type { GraphMode } from '../apg-extractor/types.js';
 
 // Load .env before anything else
 loadDotenv();
@@ -33,6 +35,14 @@ function resolveEvaluationMode(symbolicOnly: boolean, neuronalOnly: boolean): Ev
   if (symbolicOnly) return 'symbolic-only';
   if (neuronalOnly) return 'neuronal-only';
   return 'full';
+}
+
+/** `--graph-mode` value (ADR-021 SO2): `full` (default) or the `ast-only` ablation arm; anything else exits 2. */
+function resolveGraphMode(value: string): GraphMode | undefined {
+  if ((GRAPH_MODES as readonly string[]).includes(value)) return value as GraphMode;
+  process.stderr.write(`Error: --graph-mode must be one of ${GRAPH_MODES.join(' | ')}\n`);
+  process.exitCode = 2;
+  return undefined;
 }
 
 /**
@@ -131,6 +141,7 @@ withLLMOptions(program
   .option('--persist', 'Save snapshot after evaluation', false)
   .option('--diff', 'Compare against latest snapshot', false)
   .option('--baseline <path>', 'Compare against baseline violations file')
+  .option('--graph-mode <mode>', 'Graph mode: full | ast-only (APG ablation arm: IMPORTS, DECLARES and CONTAINS edges only)', 'full')
   .action(async (opts: LLMCliOpts & {
     project: string;
     spec: string;
@@ -142,8 +153,11 @@ withLLMOptions(program
     persist: boolean;
     diff: boolean;
     baseline?: string;
+    graphMode: string;
   }) => {
     const evaluationMode = resolveEvaluationMode(opts.symbolicOnly, opts.neuronalOnly);
+    const graphMode = resolveGraphMode(opts.graphMode);
+    if (graphMode === undefined) return;
     // BR-U3-80: no default password; stop before any connection.
     const neo4jPassword = requireEnvForCli('NEO4J_PASSWORD');
     if (neo4jPassword === undefined) return;
@@ -164,6 +178,7 @@ withLLMOptions(program
       verbose: opts.verbose,
       apgStorePath: process.env['APG_STORE_PATH'] ?? '.apg-store',
       llmConfig,
+      ...(graphMode !== 'full' && { graphMode }),
     };
 
     const { executor, cleanup } = createPipeline(config);
