@@ -1,39 +1,37 @@
 # U6 lane Docs — threats register, thesis figures, bump naming (ADR-021)
 
-**Date**: 2026-10-08. **Branch**: `v1.2e-u6-docs` (worktree `DaedalusArch-wt-docs`, from `origin/v1.2e` `961ec81`).
+**Dates**: first attempt 2026-10-08; resumes and follow-up 2026-10-09. **Branches**: `v1.2e-u6-docs` (PR #19, merged
+`684e3df`) and the follow-up `v1.2e-u6-docs-followup` (worktree `DaedalusArch-wt-docs`, from `origin/v1.2e` `684e3df`).
 **Findings closed**: THR-9, X-5, X-6. **Live LLM calls**: 0. No experiment run.
+
+This header, the Findings table, Files and Tests give the final state (after Resume 2 and the follow-up). The Resume
+sections below are the history; where they disagree with an earlier draft of this header, the header is current.
 
 ## Findings
 
 | Finding | What closes it |
 |---|---|
-| THR-9 | `Docs/threats-to-validity.md`: 89 rows (TV-01..TV-89; TV-86..89 added on resume for ADR-021 item 5). Each maps a threat to a mitigation (`M:`) or a reporting duty (`D:`), with its output file, a status (`in place`, `P-M`, `pending <finding>`, `P-1` / `P-3` / `P-4`, `residual`, `open`) and its Kap7–9 section. Also: §3, the registered home of the BR-U5b-50 / ADR-015 item 2 deviation entries, plus the declared pre-run deviations; §4, the judge degradation-ladder governing rules (steps, trigger, timing, scope, record), as the audit's verify note asked; §5, a source trace that covers U1 §8, U3 §11, U4 §11, B&T summary §8, ADR-018..021, Fable A1–B7 and every THR-* finding. TV-35 restates the U4 §11 self-preference mitigation (the cited "Phase 5 Gemini cross-check" is not planned). `Docs/judge-preregistration.md` now points to §4 for the ladder rules (that file is not registered). |
-| X-5 | `scripts/figures.ts` (pure rules FIG-01..07, typed `FigureDef` registry, `main` with `--list` and `--self-test`) and `scripts/figures-cli.ts` (D-U5a-13 (a) form). Seven Vega-Lite specs in `scripts/lib/figures/thesis/`: SO4 P/R/F1 per function and per tag, with intervals where the CSV carries them; the SO5 model × spec-level heatmap (n valid / n cells) and interaction plot, both on the verdict-source AHS and on `ahsDeterministic` (ADR-020 item 7); SO2 latency against the 30 s budget, and coverage; the threshold sweep, whose caption carries "sensitivity-only, not tuning" (BR-U5b-60) and which refuses any row whose purpose is not `sensitivity-only`. Schemas come from `aggregate.ts` / `rescore.ts` headers (a test checks them against `aggregate()` output). `aggregate.ts` is not edited. `scripts/lib/figures/draw.ts` gains `renderSvgValues`; `renderSvg` delegates to it, with unchanged bytes. |
-| X-6 | B&T plan bump table and glossary: P-M is the ADR-020 bump, P-2 stays the conditional cycle-strategy flip, and P-U6 is added. Committed in the main checkout as `2585b29` (explicit-path, only that hunk via `git apply --cached`); the same content is on `origin/v1.2e` (B&T plan lines 79–82), so this branch no longer differs from `v1.2e` in the plan. |
+| THR-9 | `Docs/threats-to-validity.md`: 95 rows (TV-01..TV-95). Each maps a threat to a mitigation (`M:`) or a reporting duty (`D:`), with its output file, a status (`in place`, `in place (P-M, prereg v3)`, `in place (PR #n); registered by P-U6`, `pending <finding>`, `P-U6`, `P-3` / `P-4`, `residual`, `open`) and its Kap7–9 section. Also: §3, the registered home of the BR-U5b-50 / ADR-015 item 2 deviation entries, plus the declared pre-run deviations; §4, the judge degradation-ladder governing rules (steps, trigger, timing, scope, record); §5, a source trace that covers U1 §8, U3 §11, U4 §11, B&T summary §8, ADR-018..021, the generator protocol §1–§11 (with BR-U5a-41..44), Fable A1–B7 and every THR-* finding. TV-35 restates the U4 §11 self-preference mitigation. TV-36 is the judge canary residual and TV-95 the E1 generator isolation residual (both halves of the THR-9 "generator and judge canary residuals"). `Docs/judge-preregistration.md` points to §4 for the ladder rules. |
+| X-5 | `scripts/figures.ts` (pure rules FIG-01..08, typed `FigureDef` registry, `main` with `--list` and `--self-test`) and `scripts/figures-cli.ts` (D-U5a-13 (a) form). Eight Vega-Lite specs in `scripts/lib/figures/thesis/`: SO4 P/R/F1 per function and per tag (recall with the cell interval solid, the project cluster interval dashed and the "if independent" instance Wilson bound faint, TV-22); SO4 precision (FIG-08, `precision_figure.csv`); the SO5 model × spec-level heatmap and interaction plot, both on the verdict-source AHS and on `ahsDeterministic`; SO2 latency from the so2-metrics `latency.csv` against the 30 s budget, and coverage; the threshold sweep ("sensitivity-only, not tuning", BR-U5b-60). `aggregate.ts` is not edited. `scripts/lib/figures/draw.ts` gains `renderSvgValues`. |
+| X-6 | B&T plan bump table and glossary: P-M is the ADR-020 bump, P-2 stays the conditional cycle-strategy flip, and P-U6 is added. The content is on `origin/v1.2e` (B&T plan lines 79–82). |
 
 ## Files
 
-- New: `Docs/threats-to-validity.md`, `scripts/figures.ts`, `scripts/figures-cli.ts`, `scripts/lib/figures/thesis/*.vl.json` (7), `tests/fixtures/u6/figures/*.csv` (6), `tests/unit/scripts/u6/figures.test.ts`, `tests/unit/scripts/u6/threats-register.test.ts`, this note.
-- Second resume (2026-10-09): new `scripts/lib/figures/thesis/so4-precision.vl.json`, `tests/fixtures/u6/figures/precision_figure.csv`, `tests/fixtures/u6/figures/so2/latency.csv` (the aggregate-schema `latency.csv` fixture is removed).
-- Edited: `scripts/lib/figures/draw.ts` (`renderSvgValues`), `tests/unit/scripts/u5b/imports.test.ts` (`figures` under the U5b import whitelist), `Docs/judge-preregistration.md` (pointer line).
+- New (PR #19): `Docs/threats-to-validity.md`, `scripts/figures.ts`, `scripts/figures-cli.ts`, `scripts/lib/figures/thesis/*.vl.json` (8), `tests/fixtures/u6/figures/*.csv` (6) and `tests/fixtures/u6/figures/so2/latency.csv`, `tests/unit/scripts/u6/figures.test.ts`, `tests/unit/scripts/u6/threats-register.test.ts`, this note.
+- Edited (PR #19): `scripts/lib/figures/draw.ts` (`renderSvgValues`), `tests/unit/scripts/u5b/imports.test.ts` (`figures` under the U5b import whitelist), `Docs/judge-preregistration.md` (pointer line).
+- Follow-up: `Docs/threats-to-validity.md` (TV-95; TV-22, TV-36, TV-50, TV-61; §5 trace), `scripts/figures.ts` and `so4-prf-by-{function,tag}.vl.json` (the independent bound), `tests/fixtures/u6/figures/prf_by_{function,tag}.csv` (distinct cell and independent intervals), both U6 test files, this note.
 
 ## Tests
 
-+33 tests, 2 suites:
-- `figures.test.ts`: 27 tests. These cover the hand-computed fixtures for FIG-01..07, header equality with `aggregate()`, registry ↔ spec files, caption wrap, `--self-test` exit 1 (`FIG_SENSITIVITY_PURPOSE`), and the tsx CLI. The CLI test draws 7 byte-identical SVGs and skips header-only and absent CSVs.
-- `threats-register.test.ts`: 6 tests, REG-01..04. They check the row structure, consecutive ids, source-trace completeness and that every audit id named in the register exists.
+- `figures.test.ts`: 30 tests on hand-computed fixtures for FIG-01..08 (the FF-S01 recall row carries the cell Wilson on 4 cells [0.300642, 0.954413] and the instance Wilson 6 / 8 [0.409275, 0.928521], arithmetic in the test), header equality with `aggregate()`, registry ↔ spec files, the three FIG-02 interval layers, caption wrap, `--self-test` exit 1 (`FIG_SENSITIVITY_PURPOSE`), and the tsx CLI (8 byte-identical SVGs; header-only and absent CSVs skipped).
+- `threats-register.test.ts`: 7 tests, REG-01..04: row structure, consecutive ids, source-trace completeness (now also the generator protocol §1–§11 and BR-U5a-41..44), the generator isolation row's content, and that every audit id named in the register exists. A mutation check (the `Generator protocol` trace line removed) fails 2 tests.
 
-Gates:
-- T: clean.
-- U: 2936 / 205, 0 failed (2939 / 205 after the resume merge).
-- L: 497, and 0 errors in the new or edited `scripts/**` and test files.
-- B: 80, 0 `TS2688`.
-- G: 80 / 7, 0 skipped, on lane Neo4j 7697. The snapshot hashes equal `BT_SNAPSHOT_HASHES`, so there is no `CHANGES.md` line.
+Gates (final, follow-up head): see "Follow-up" below. Earlier gates: G 80 / 7 on the shared `daedalus-neo4j-bt` 7693 (Resume 2).
 
 ## Registered artefacts
 
 No registered artefact is touched (`corpus/prereg.json` unchanged). **P-U6 must cover**:
-- add `Docs/threats-to-validity.md` to `REGISTERED_ARTEFACTS` (BR-U5b-51 list and its unit test), after turning the remaining `pending <finding>` statuses (SO1-C, SO3-4, SO3 κ criterion, SO4-03/05/06, SO5-07, THR-4, X-3, the latency-gate run) into their final state;
+- add `Docs/threats-to-validity.md` to `REGISTERED_ARTEFACTS` (BR-U5b-51 list and its unit test), after turning the remaining `pending <finding>` statuses into their final state; TV-95 must be in the hashed version;
 - optionally `Docs/judge-preregistration.md`, which is not needed now that the ladder rules live in the register.
 
 The figure specs and `scripts/figures.ts` are derived views, so they need no registration (X-5).
@@ -52,10 +50,17 @@ The first attempt stopped after the two lane commits. On resume: X-6 cherry-pick
 - Tests now: `figures.test.ts` 29, `threats-register.test.ts` 6.
 - Gates (head before the lane commit): T clean (five tsconfigs); U 3149 / 226, 0 failed (3139 / 225 in the full run plus `neural-result-rows.test.ts` 10 / 1 re-run alone after the known Jest-worker `SIGSEGV`, TV-85); after the PR #27 merge U 3173 / 228, 0 failed, and G holds (that merge changes no `src/` file and no snapshot); L 496 errors (ratchet 497), 0 in the new or edited `scripts/**` (under `tsconfig.scripts.json`) and test files; B 80, 0 `TS2688`; G 80 / 7, 0 skipped, on the shared `daedalus-neo4j-bt` 7693 under `~/.daedalus-7693.lock`, no snapshot change, no `CHANGES.md` line. `figures-cli --self-test` exit 1 (`FIG_SENSITIVITY_PURPOSE`).
 
+## Follow-up (2026-10-09, branch `v1.2e-u6-docs-followup`, after PR #19)
+
+- TV-95 (E1 generator isolation, generator protocol trace, REG-03 coverage); TV-61 names the so2-metrics gate source (item 8).
+- FIG-02 draws the `ci_independent` recall bound as a faint third interval (TV-22), then, after PR #28 (SO4-06), the precision and F1 intervals on the plotted basis. TV-16, TV-17, TV-20, TV-23 updated in place after PR #28; the TV-89 defect fixed; ADR-021 item 9 traced.
+- Merged `origin/v1.2e` up to `cc02c0e` (PR #29 SO2 arms, PR #30 SO5-gen fix) without conflicts; TV-75 now names the per-base `so2-metrics arms` check (PR #29).
+- Gates (follow-up head, after that merge): T clean (five tsconfigs); U 3215 / 231, 0 failed; L 496 errors (ratchet 497), 0 in the lane's `scripts/**` and test files; B 80, 0 `TS2688`; G 80 / 7, 0 skipped, on the shared `daedalus-neo4j-bt` 7693 under `~/.daedalus-7693.lock`, no snapshot change, no `CHANGES.md` line.
+
 ## Open items
 
 - TV-84: the proposal's controlled developer study (Kap7 §4, Kap8 §3) is out of v1.2E scope, and no ADR records that. This needs an author decision.
-- SO4-06 (still open on another lane): precision intervals now come from `precision_figure.csv` (FIG-08). If SO4-06 adds precision or F1 interval columns to `prf_*.csv`, FIG-02 must read them by their actual names (`prepareSo4Prf`).
+- SO4-06: closed by PR #28; FIG-02 reads its precision and F1 interval columns (follow-up).
 - ADR-021 item 8 leaves the aggregate's `latency.csv` (`cycle_query_ms`, `gate_result`, the double-counted sub-stage row) to P-U6 or P-M; FIG-05 no longer depends on it.
 - Row statuses `pending <finding>` and `P-M` must be updated to `in place` as those lanes merge, before P-U6 registers this file.
 - The main checkout's local `v1.2e` is 8 commits behind `origin/v1.2e`, with the author's own uncommitted plan and audit edits; `2585b29` is no longer on its branch (the glossary is on `origin/v1.2e`). Nothing to push from there.

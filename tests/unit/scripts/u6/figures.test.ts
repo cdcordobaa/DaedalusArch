@@ -77,12 +77,15 @@ describe('FIG-01 schema and cell readers', () => {
   });
 });
 
-const NO_PROJECT = { ci_project_low: null, ci_project_high: null, ci_project_method: '', ci_project_descriptive: null };
+const NO_PROJECT = {
+  ci_project_low: null, ci_project_high: null, ci_project_method: '', ci_project_descriptive: null,
+  ci_independent_low: null, ci_independent_high: null, ci_independent_method: '',
+};
 
 describe('FIG-02 SO4 P/R/F1', () => {
   it('keeps the held-out all/all rows; precision labelled-else-strict, baseline beside it; recall with both intervals; F1 labelled-else-strict', () => {
     const rows = prepareSo4Prf(table('prf_by_function.csv'), DEFAULT_FIGURE_OPTIONS, 'function_id');
-    const counts = { ...NO_PROJECT, ci_project_method: 'counts' };
+    const counts = { ...NO_PROJECT, ci_project_method: 'counts', ci_independent_method: 'counts' };
     expect(rows).toEqual([
       { group: 'FF-C01', metric: 'seeded differential precision', value: 1, basis: 'labelled', ci_low: null, ci_high: null, ci_method: '', ...NO_PROJECT, n_seeded: 4 },
       { group: 'FF-C01', metric: 'baseline precision', value: 0.666667, basis: 'baseline', ci_low: null, ci_high: null, ci_method: '', ...NO_PROJECT, n_seeded: 4 },
@@ -93,9 +96,18 @@ describe('FIG-02 SO4 P/R/F1', () => {
       { group: 'FF-S01', metric: 'seeded differential precision', value: 1, basis: 'strict', ci_low: null, ci_high: null, ci_method: '', ...NO_PROJECT, n_seeded: 8 },
       { group: 'FF-S01', metric: 'baseline precision', value: 0.9, basis: 'baseline', ci_low: null, ci_high: null, ci_method: '', ...NO_PROJECT, n_seeded: 8 },
       // 3 projects: the project cluster interval is drawn and flagged descriptive (2..9 projects, ADR-020 item 3).
+      // Wilson with z = 1.959964 (z^2 = 3.841459).
+      // Cell interval: 4 (project, operator) cells at k = 2, recall 0.75, Wilson n = 4:
+      //   centre (0.75 + z^2/8) / (1 + z^2/4) = 1.230182 / 1.960365 = 0.627527,
+      //   half z * sqrt(0.75 * 0.25 / 4 + z^2/64) / 1.960365 = 0.326885 -> [0.300642, 0.954413].
+      // If-independent bound (TV-22): instance Wilson 6 / 8:
+      //   centre (0.75 + z^2/16) / (1 + z^2/8) = 0.990091 / 1.480182 = 0.668898,
+      //   half z * sqrt(0.75 * 0.25 / 8 + z^2/256) / 1.480182 = 0.259623 -> [0.409275, 0.928521].
+      // The independent bound is narrower than the cell interval, as the √k argument of TV-22 predicts.
       {
-        group: 'FF-S01', metric: 'recall', value: 0.75, basis: 'strict', ci_low: 0.409, ci_high: 0.9285, ci_method: 'wilson',
-        ci_project_low: 0.35, ci_project_high: 0.95, ci_project_method: 'cluster-bootstrap', ci_project_descriptive: true, n_seeded: 8,
+        group: 'FF-S01', metric: 'recall', value: 0.75, basis: 'strict', ci_low: 0.300642, ci_high: 0.954413, ci_method: 'wilson',
+        ci_project_low: 0.35, ci_project_high: 0.95, ci_project_method: 'cluster-bootstrap', ci_project_descriptive: true,
+        ci_independent_low: 0.409275, ci_independent_high: 0.928521, ci_independent_method: 'wilson', n_seeded: 8,
       },
       // 2 * 1 * 0.75 / 1.75 = 0.857142857 -> 0.857143
       { group: 'FF-S01', metric: 'F1', value: 0.857143, basis: 'strict', ci_low: null, ci_high: null, ci_method: '', ...NO_PROJECT, n_seeded: 8 },
@@ -114,7 +126,36 @@ describe('FIG-02 SO4 P/R/F1', () => {
     expect(prepareSo4Prf(t, DEFAULT_FIGURE_OPTIONS, 'function_id').find((r) => r.metric === 'F1')?.value).toBe(0);
   });
 
-  it('no precision or F1 interval is invented: those rows carry none even when recall has both', () => {
+  it('both P/R/F1 specs draw the cell, project and if-independent intervals as three rule layers (TV-22)', () => {
+    for (const id of ['so4-prf-by-function', 'so4-prf-by-tag']) {
+      const layers = loadThesisSpec(ROOT, def(id)).layer as { mark: { type: string }; encoding?: { x?: { field?: string }; x2?: { field?: string } } }[];
+      const rules = layers.filter((l) => l.mark.type === 'rule').map((l) => [l.encoding?.x?.field, l.encoding?.x2?.field]);
+      expect({ id, rules }).toEqual({ id, rules: [['ci_independent_low', 'ci_independent_high'], ['ci_low', 'ci_high'], ['ci_project_low', 'ci_project_high']] });
+      expect(def(id).caption).toContain('TV-22');
+    }
+  });
+
+  it('precision and F1 take their PRF_INTERVAL_COLUMNS intervals on the plotted basis; F1 has no if-independent bound (SO4-06)', () => {
+    const rows = prepareSo4Prf(table('prf_by_tag.csv'), DEFAULT_FIGURE_OPTIONS, 'tag').filter((r) => r.group === 'structural');
+    const pick = (m: string): unknown[] => {
+      const r = rows.find((x) => x.metric === m);
+      return [r?.basis, r?.ci_low, r?.ci_high, r?.ci_method, r?.ci_project_low, r?.ci_project_high, r?.ci_project_descriptive, r?.ci_independent_low, r?.ci_independent_high, r?.ci_independent_method];
+    };
+    // tp 8, fp 2 on 5 cells (strict): precision 0.8; cell Wilson n = 5 [0.375535, 0.963776]; Wilson 8 / 10 [0.490162, 0.943318].
+    expect(pick('seeded differential precision')).toEqual(['strict', 0.375535, 0.963776, 'wilson-cells', 0.6, 1, true, 0.490162, 0.943318, 'wilson']);
+    // F1 = 2 * 0.8 * 0.8 / 1.6 = 0.8; 5 < 10 cells, so no cell interval, only the descriptive project bootstrap.
+    expect(rows.find((x) => x.metric === 'F1')?.value).toBe(0.8);
+    expect(pick('F1')).toEqual(['strict', null, null, '', 0.55, 0.95, true, null, null, '']);
+  });
+
+  it('an interval of another basis than the plotted point is not attached (FF-C01: labelled point, strict interval columns)', () => {
+    const rows = prepareSo4Prf(table('prf_by_function.csv'), DEFAULT_FIGURE_OPTIONS, 'function_id').filter((r) => r.group === 'FF-C01' && (r.metric === 'seeded differential precision' || r.metric === 'F1'));
+    expect(rows.map((r) => [r.metric, r.basis, r.ci_low, r.ci_high, r.ci_project_low, r.ci_project_high])).toEqual([
+      ['seeded differential precision', 'labelled', null, null, null, null], ['F1', 'labelled', null, null, null, null],
+    ]);
+  });
+
+  it('no precision or F1 interval is invented: blank interval columns (n < 10) give none even when recall has all three', () => {
     const rows = prepareSo4Prf(table('prf_by_function.csv'), DEFAULT_FIGURE_OPTIONS, 'function_id').filter((r) => r.group === 'FF-S01' && r.metric !== 'recall');
     expect(rows.map((r) => [r.ci_low, r.ci_high, r.ci_project_low, r.ci_project_high])).toEqual([[null, null, null, null], [null, null, null, null], [null, null, null, null]]);
   });
@@ -133,6 +174,10 @@ describe('FIG-02 SO4 P/R/F1', () => {
     expect(r.ok && r.rows.find((x) => x.group === 'structural' && x.metric === 'F1')?.value).toBe(0.8);
     expect(r.ok && r.rows.some((x) => x.metric === 'baseline precision')).toBe(false);
     expect(r.ok && r.rows.find((x) => x.group === 'structural' && x.metric === 'recall')?.ci_project_high).toBe(0.95);
+    // 5 cells, recall 0.8: Wilson n = 5, centre 1.184146 / 1.768292 = 0.669655, half 0.294121 -> [0.375535, 0.963776];
+    // if independent, Wilson 8 / 10: centre 0.992073 / 1.384146 = 0.716740, half 0.226578 -> [0.490162, 0.943318] (narrower).
+    const rec = r.ok ? r.rows.find((x) => x.group === 'structural' && x.metric === 'recall') : undefined;
+    expect([rec?.ci_low, rec?.ci_high, rec?.ci_independent_low, rec?.ci_independent_high]).toEqual([0.375535, 0.963776, 0.490162, 0.943318]);
   });
 });
 
