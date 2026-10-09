@@ -1342,6 +1342,7 @@ export function labelItemsFile(score: GoldenScore, items: readonly P1Item[]): La
 
 export const SCORE_USAGE = [
   'usage: npx tsx scripts/score-golden-cli.ts --case <dir> [--labels <labels.json>] [--label-items <file>] [--out <file>]',
+  '         [--sensitivity <results.json> [--plan <sensitivity plan.json>] [--later-disabled <FF-id,...>]]',
   '       npx tsx scripts/score-golden-cli.ts --self-test | --help',
   '',
   'Scores the seeded copies of a case directory (manifest.json, reports/*.json with reports/*.run.json) under',
@@ -1351,6 +1352,8 @@ export const SCORE_USAGE = [
   '--labels takes the llm-label output (ReconciledLabel[]; P1 items are read) or an itemId -> label object; every P1',
   'item of the score must have a label (SCORE_LABELS_MISSING). --label-items writes the P1 items and the missed seeds',
   'for build-label-plan (ADR-021 SO4-02).',
+  '--sensitivity writes the SP-* probe results (scoreSensitivity, BR-U5b-78) of the same case for aggregate --sensitivity;',
+  '--plan supplies the plan\'s fixAttempts and --later-disabled the functions a later registered spec disables (ADR-016 b).',
   'Exit: 0 scored; 1 refused (SCORE_RULE_MISMATCH, SCORE_INPUT_REJECTED for every pair, SCORE_COLLATERAL_UNKEYED,',
   'SCORE_LABELS_MISSING, …);',
   '2 usage or input error.',
@@ -1371,7 +1374,7 @@ function parseArgs(argv: readonly string[]): Map<string, string | true> | string
       args.set(a, true);
       continue;
     }
-    if (a === '--case' || a === '--labels' || a === '--out' || a === '--label-items') {
+    if (a === '--case' || a === '--labels' || a === '--out' || a === '--label-items' || a === '--sensitivity' || a === '--plan' || a === '--later-disabled') {
       const v = argv[i + 1];
       if (v === undefined || v.startsWith('--')) return `${a} needs a value`;
       args.set(a, v);
@@ -1461,6 +1464,22 @@ export async function main(argv: readonly string[], repoRoot: string, io: ScoreM
     }
   }
   for (const r of result.score.rejectedPairs) io.err(`rejected pair ${r.seedId}: ${r.code}: ${r.reason}\n`);
+  const sensitivityFile = args.get('--sensitivity');
+  if (typeof sensitivityFile === 'string') {
+    const planFile = args.get('--plan');
+    const plan = typeof planFile === 'string' ? (readJson(planFile) as { readonly fixAttempts?: readonly { readonly functionId: string; readonly ref: string }[] }) : undefined;
+    const disabled = args.get('--later-disabled');
+    const sens = scoreSensitivity({
+      rule: rule.rule, probes: loaded.value.seeds.filter((x) => x.row.split === 'probe'),
+      ...(plan?.fixAttempts !== undefined && { fixAttempts: plan.fixAttempts }),
+      ...(typeof disabled === 'string' && { laterDisabled: new Set(disabled.split(',').filter((x) => x !== '')) }),
+    });
+    if (!sens.ok) {
+      io.err(`${sens.code}: ${sens.detail}\n`);
+      return 1;
+    }
+    io.writeFile(sensitivityFile, `${JSON.stringify(sens.results, null, 2)}\n`);
+  }
   const itemsFile = args.get('--label-items');
   if (typeof itemsFile === 'string') io.writeFile(itemsFile, `${JSON.stringify(labelItemsFile(result.score, result.labelItems), null, 2)}\n`);
   const text = canonicalGoldenScore(result.score);
