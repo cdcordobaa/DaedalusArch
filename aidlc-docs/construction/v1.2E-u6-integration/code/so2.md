@@ -74,3 +74,19 @@ P-1 is on `origin/v1.2e` (prereg now v3, after P-M). `npx tsx scripts/run-experi
 - Files: new `src/spec-parser/exclude-paths.ts`, `tests/unit/spec-parser/exclude-paths.test.ts` (6 cases). Changed `src/spec-parser/index.ts`, `src/pipeline/pipeline-factory.ts`, `scripts/so2-metrics.ts`, `tests/unit/scripts/so2-metrics.test.ts` (injected extractor asserts the spec excludes for flows-to, arms and profile; unreadable spec; tables error code), ADR-021 item 8, `performance-test-instructions.md` §1, §7.
 - Registered artefacts for P-U6: none new. `experiments/apg-ablation/plan.json` unchanged (still to hash). Analysis-plan §3 SO2 must also say that SO2 extractions use the spec's `default_exclude_paths`.
 - No live LLM call, no Neo4j use, no registered run, no `results/` file. Pipeline behaviour unchanged (same exclude list), so no golden change.
+
+## Follow-up 3 (2026-10-09, branch `v1.2e-u6-so2-arms`, second re-review of PRs #23 and #24)
+
+**Findings closed**: SO2-5 / X-2 (pre-run arms check is now per base). All other issues of the re-review were already closed on `origin/v1.2e` by PR #24 (`a12b265`) and were verified there, not redone.
+
+| Issue | Disposition |
+|---|---|
+| 1, major: SO2 extractions ignore the spec's `default_exclude_paths` | **Already fixed by PR #24** (follow-up 2): `readSpecExcludePaths` shared by `pipeline-factory` and `so2-metrics` `specExcludesOf`; injected-extractor tests assert the excludes for `flows-to`, `arms`, `profile`. |
+| 2, major: `ast-only` is a partial ablation; no check that the arms differ | **Already fixed by PR #24** (allow-list post-filter `restrictToGraphMode`, ADR-021 item 8). **Tightened here:** `arms` exited 1 only when *no* pair differed; it now exits 1 (`SO2_ARMS_IDENTICAL`) when *any* base's pair is identical and names the bases, so a single no-op base cannot slip into the ablation. New test (8 of 9 differ → exit 1 naming truthy-demo). |
+| 3, minor: `nfr07Rows` takes `@ast-only` rows | **Already fixed by PR #24** (filter + test). |
+| 4, minor: Targets row / NFR-07 run-directory decision | **Already fixed by PR #24**; decision SO2-3 (a') in ADR-021 item 8. |
+| 5, minor: `AGGREGATE_INPUT_INVALID` on a bad `--run-dir` | **Already fixed by PR #24** (`loadRunDir(dir, SO2_INPUT_INVALID)` + test). |
+
+- Files: `scripts/so2-metrics.ts` (`arms` exit rule, header), `tests/unit/scripts/so2-metrics.test.ts` (+1), ADR-021 item 8 (one sentence), `performance-test-instructions.md` §6 command comment.
+- Registered artefacts for P-U6: none new; still `experiments/apg-ablation/plan.json` (to hash) and the analysis-plan §3 SO2 text listed above, which should say the `apg_arms.csv` check is per base.
+- No live LLM call, no Neo4j container, no registered run, no `results/` file, no golden change (pipeline untouched).
