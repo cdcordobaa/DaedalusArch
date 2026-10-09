@@ -54,6 +54,9 @@ export const REGISTERED_ARTEFACTS: readonly string[] = Object.freeze([
   CORPUS_SPEC_PATTERN,
   'experiments/*/plan.json',
   'corpus/frozen-instrument.json',
+  // ADR-019 item 3 with the methodology constraint (Build and Test Step 55): the mechanical E7 spec rule and its generator.
+  'Docs/e7-spec-rule.md',
+  'scripts/generate-e7-specs.ts',
   ...FIXTURE_SPECS,
   PRESET_PATTERN,
 ]);
