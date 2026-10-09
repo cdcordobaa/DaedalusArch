@@ -60,7 +60,7 @@ export async function extractAPG(
     const { nodes, lookup, skipped } = extractNodes(sourceFiles, absoluteProjectPath, opts);
 
     // ── 4. Edge extraction pass ───────────────────────────────────────────────
-    const { edges, warnings, packageNodes, importResolution } = extractEdges(sourceFiles, lookup, absoluteProjectPath, opts);
+    const { edges, warnings, packageNodes, importResolution, flowsTo } = extractEdges(sourceFiles, lookup, absoluteProjectPath, opts);
 
     // ── 5. Parse coverage ────────────────────────────────────────────────────
     const parsedFiles = totalFiles - skipped.length;
@@ -77,7 +77,7 @@ export async function extractAPG(
 
     // Extracted nodes first (unchanged order), then Package nodes by name (domain-entities.md §2.6).
     // No warnings argument: extractor warnings stay in APGResult.warnings (BR-U2-26, Q15 A).
-    return DR.ok<APGResult>({ nodes: [...nodes, ...packageNodes], edges, parseCoverage, warnings, importResolution });
+    return DR.ok<APGResult>({ nodes: [...nodes, ...packageNodes], edges, parseCoverage, warnings, importResolution, flowsTo });
 
   } catch (err) {
     return DR.fromError<APGResult>(err);

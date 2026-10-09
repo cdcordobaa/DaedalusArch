@@ -17,7 +17,7 @@ import type { So5Codes } from '../../../../scripts/lib/so5-codes.js';
 import { createRng, permuteWithinBlocks } from '../../../../scripts/lib/stats.js';
 import { parseCsv } from '../../../../scripts/lib/figures/draw.js';
 import {
-  aggregate, CSV_FILES, fpatCounts, loadRunDir, primaryOutcome, so5Csv, so5Tests,
+  aggregate, CSV_FILES, fpatCounts, loadRunDir, primaryOutcome, so5Cells, so5Csv, so5Records, so5Tests,
 } from '../../../../scripts/aggregate.js';
 import type { AggregateInput, GoldenScoreJson, So5Cell } from '../../../../scripts/aggregate.js';
 import { runPlan } from '../../../../scripts/run-experiment.js';
@@ -181,7 +181,11 @@ describe('SO5 analysis (BR-U5b-54, 64, 65)', () => {
     const pair = rows.find((r) => r[0] === 'model:m1-m3' && r[4] === 'primary:ahsCombined');
     expect(Number(pair?.[5])).toBeCloseTo(-0.4, 2);
     expect(Number(pair?.[8])).toBe(-1);
-    expect(rows.filter((r) => r[4] !== 'primary:ahsCombined').every((r) => r[9] === 'true')).toBe(true);
+    // ADR-020 item 7: ahsDeterministic is co-primary for the model effect only; every other family stays exploratory.
+    expect(rows.filter((r) => r[4] !== 'primary:ahsCombined' && !(r[4] === 'co-primary:ahsDeterministic' && (r[0] === 'model' || r[0]?.startsWith('model:') === true))).every((r) => r[9] === 'true')).toBe(true);
+    expect(rows.filter((r) => r[4] === 'co-primary:ahsDeterministic' && r[0] === 'model').map((r) => r[9])).toEqual(['false']);
+    // ADR-020 item 6: pairwise rows (effect size and bootstrap CI) are descriptive.
+    expect(rows.filter((r) => r[5] !== '').every((r) => r[10] === 'true')).toBe(true);
     for (const c of cells) if (c.report !== undefined) expect(primaryOutcome(c.report)).toEqual({ field: 'ahsCombined', value: (c.report as unknown as { ahsCombined: number }).ahsCombined });
   });
 
@@ -237,5 +241,68 @@ describe('SO5 analysis (BR-U5b-54, 64, 65)', () => {
     for (const c of fpat) expect(rc.has(c) || gen.has(c)).toBe(false);
     for (const c of gen) expect(rc.has(c)).toBe(false);
     expect(rc.size + fpat.size + gen.size).toBe(new Set([...rc, ...fpat, ...gen]).size);
+  });
+});
+
+describe('SO5 grid completeness over the registered E1 grid (ADR-021 SO5-05)', () => {
+  // Grid: models m1, m2 × level none × task task-management × runs 0, 1 = four coordinates (projects: none, so the
+  // grid entries have indices 0..3). Hand-computed expectations:
+  //   0 m1/run-0  accepted, ok                         → gen_code ''
+  //   1 m1/run-1  not-run record, missing (join)        → GEN-MISSING
+  //   2 m2/run-0  not-run record, protocol-mismatch     → GEN-PROTOCOL-MISMATCH
+  //   3 m2/run-1  no record at all                      → synthesised, GEN-MISSING, run id e1t-003-m2_task-management_none_run-1
+  // plus one record with a cell outside the grid (m9), kept after the grid rows, and one record without a cell, ignored.
+  const grid = {
+    outcomesRoot: 'gen', style: 'clean-architecture', models: ['m1', 'm2'], specLevels: ['none' as const],
+    tasks: [{ taskId: 'task-management', specPath: 'specs/task-management.yaml' }], runs: 2,
+  };
+  const plan: ExperimentPlan = { ...PLAN, id: 'e1t', experiment: 'E1', projects: [], e1: grid, seeds: { sampling: 1, bootstrap: 2, permutation: 3 } };
+  const rec = (runId: string, status: RunRecord['status'], cell?: GenerationCell): RunRecord => ({
+    runId, planId: 'e1t', projectId: runId, status, ...(status === 'not-run' && { reasonCode: 'generation-failed' as const }), attempt: 1,
+    specSha: 'e'.repeat(64), cliCommit: 'f'.repeat(40), preregVersion: 2, frozenHashes: {}, envRecordId: 'env-x', startedAt: '2026-10-09T00:00:00Z', wallMs: 1,
+    ...(cell !== undefined && { cell }),
+  });
+  const records = [
+    rec('e1t-002-m2_task-management_none_run-0', 'not-run', cellOf('m2', 'none', 'task-management', 0, { generationStatus: 'protocol-mismatch', fileCount: 0, fileCountInRange: false })),
+    rec('e1t-000-m1_task-management_none_run-0', 'accepted', cellOf('m1', 'none', 'task-management', 0)),
+    rec('e1t-009-m9', 'accepted', cellOf('m9', 'none', 'task-management', 0)),
+    rec('e1t-001-m1_task-management_none_run-1', 'not-run', cellOf('m1', 'none', 'task-management', 1, { generationStatus: 'missing', fileCount: 0, fileCountInRange: false })),
+    rec('no-cell', 'accepted'),
+  ];
+  const reports = new Map([['e1t-000-m1_task-management_none_run-0', fakeReport(0.7)], ['e1t-009-m9', fakeReport(0.6)]]);
+  const inp: AggregateInput = { planId: 'e1t', plan, records, reports, so5, resamples: 50 };
+
+  it('so5_grid.csv has one row per coordinate in coordinate order, then the off-grid cell; join codes in gen_code', () => {
+    const rows = parseCsv(so5Csv(inp, 50)['so5_grid.csv'] ?? '').rows;
+    expect(rows.map((r) => [r.requested_model_id, r.run_index, r.status, r.generation_status, r.gen_code])).toEqual([
+      ['m1', '0', 'accepted', 'ok', ''],
+      ['m1', '1', 'not-run', 'missing', 'GEN-MISSING'],
+      ['m2', '0', 'not-run', 'protocol-mismatch', 'GEN-PROTOCOL-MISMATCH'],
+      ['m2', '1', 'not-run', 'missing', 'GEN-MISSING'],
+      ['m9', '0', 'accepted', 'ok', ''],
+    ]);
+    expect(rows[3]).toMatchObject({ generation_outcome_path: 'gen/m2/task-management/none/run-1/generation.json', file_count: '0', file_count_in_range: 'false', adapter_id: 'claude-code-cli', prompt_template_id: 'none/task-management', ahs_combined: '' });
+  });
+
+  it('so5_patterns.csv has one GEN row per not-run coordinate, including the synthesised one', () => {
+    const rows = parseCsv(so5Csv(inp, 50)['so5_patterns.csv'] ?? '').rows;
+    expect(rows).toEqual([
+      { run_id: 'e1t-001-m1_task-management_none_run-1', code: 'GEN-MISSING', count: '1', weighted_count: '1.000000' },
+      { run_id: 'e1t-002-m2_task-management_none_run-0', code: 'GEN-PROTOCOL-MISMATCH', count: '1', weighted_count: '1.000000' },
+      { run_id: 'e1t-003-m2_task-management_none_run-1', code: 'GEN-MISSING', count: '1', weighted_count: '1.000000' },
+    ]);
+  });
+
+  it('the valid-generation-yield denominator counts every coordinate (2 valid of 5 cells)', () => {
+    const cells = so5Cells(inp);
+    expect(cells.map((c) => c.valid)).toEqual([true, false, false, false, true]);
+    expect(so5Records(inp)[3]).toMatchObject({ runId: 'e1t-003-m2_task-management_none_run-1', projectId: 'm2/task-management/none/run-1', status: 'not-run', reasonCode: 'generation-failed' });
+  });
+
+  it('a plan without an e1 block keeps every record that has a cell, in record order', () => {
+    const { e1: _grid, ...noGrid } = plan;
+    expect(so5Records({ ...inp, plan: noGrid }).map((r) => r.runId)).toEqual([
+      'e1t-002-m2_task-management_none_run-0', 'e1t-000-m1_task-management_none_run-0', 'e1t-009-m9', 'e1t-001-m1_task-management_none_run-1',
+    ]);
   });
 });

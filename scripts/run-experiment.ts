@@ -62,13 +62,29 @@ export const CLI_ENV_ALLOW: readonly string[] = Object.freeze([
   'PATH', 'HOME', 'TMPDIR', 'LANG', 'LC_ALL', 'NEO4J_URI', 'NEO4J_USER', 'NEO4J_PASSWORD', 'GEMINI_API_KEY',
 ]);
 
-export type ExperimentKind = 'E1' | 'E7' | 'SO4' | 'latency-gate' | 'sensitivity' | 'fixtures';
+/**
+ * Extractor graph mode of a plan entry: the values of C1 `GraphMode` (`src/apg-extractor/types.ts`, ADR-021 SO2),
+ * restated here because the harness imports no C1 module (BR-U5b-55); a unit test keeps the two equal.
+ */
+export const PLAN_GRAPH_MODES = ['full', 'ast-only'] as const;
+
+/**
+ * Report stage name of the timed universal cycle metric: the value of C8 `UNIVERSAL_CYCLE_STAGE`
+ * (`src/scoring-engine/universal-metrics.ts`, ADR-021 SO2-2), re-declared here because BR-U5b-55 does not list that
+ * C8 symbol; a test keeps the two equal (ADR-021 item 8).
+ */
+export const UNIVERSAL_CYCLE_STAGE = 'universal-metric:cyclicDependencyCount';
+export type GraphMode = (typeof PLAN_GRAPH_MODES)[number];
+
+export type ExperimentKind = 'E1' | 'E7' | 'SO4' | 'latency-gate' | 'sensitivity' | 'fixtures' | 'apg-ablation';
 export type PlanMode = 'symbolic-only' | 'neuronal-only' | 'full';
 export type SpecLevel = GenerationCell['specLevel'];
 
 export interface PlanProject {
   readonly projectId: string; readonly path: string; readonly specPath: string;
   readonly cell?: GenerationCell; readonly seed?: SeedRef;
+  /** Extractor graph mode of this entry (default `full`); `ast-only` is the APG ablation arm (ADR-021 SO2). */
+  readonly graphMode?: GraphMode;
 }
 export interface E1Grid {
   readonly outcomesRoot: string;
@@ -100,6 +116,7 @@ export interface PlanEntry {
   readonly specPath: string;
   readonly cell?: GenerationCell;
   readonly seed?: SeedRef;
+  readonly graphMode?: GraphMode;
   readonly grid?: { readonly modelId: string; readonly taskId: string; readonly specLevel: SpecLevel; readonly runIndex: number; readonly outcomeDir: string };
 }
 
@@ -162,6 +179,7 @@ export function expandPlan(plan: ExperimentPlan, repoRoot: string): { ok: true; 
   const entries: PlanEntry[] = plan.projects.map((p, index) => ({
     index, projectId: p.projectId, path: p.path, specPath: p.specPath,
     ...(p.cell !== undefined && { cell: p.cell }), ...(p.seed !== undefined && { seed: p.seed }),
+    ...(p.graphMode !== undefined && { graphMode: p.graphMode }),
   }));
   if (plan.e1 !== undefined) {
     for (const c of e1Coordinates(plan.e1)) {
@@ -308,14 +326,30 @@ export function e1ProtocolOf(
 
 export type LatencyGateResult = 'pass' | 'fallback-required';
 
-/** A cycle query over 30 s, or a function timeout on the project, requires the Tarjan fallback. */
+/**
+ * A cycle query over 30 s, or a function timeout on the project, requires the Tarjan fallback. This is the
+ * per-report rule for an accepted report; the gate over every RunRecord of the latency-gate plan, including
+ * rejected runs whose cycle query timed out, is `latencyGateOf` in `scripts/lib/so2.ts` (ADR-021 SO2; audit SO2-1).
+ */
 export function latencyGate(cycleQueryMs: readonly number[], functionTimeout = false): LatencyGateResult {
   return functionTimeout || cycleQueryMs.some((ms) => ms > LATENCY_GATE_MS) ? 'fallback-required' : 'pass';
 }
 
-/** Cycle query times of a report: the `no-cyclic-deps` function rows (`executionTimeMs`). */
-export function cycleQueryTimes(report: { readonly functionResults?: readonly { readonly name?: string; readonly executionTimeMs?: number }[] }): number[] {
-  return (report.functionResults ?? []).filter((r) => r.name === 'no-cyclic-deps' && typeof r.executionTimeMs === 'number').map((r) => r.executionTimeMs ?? 0);
+/** Report fields the cycle query times are read from. */
+export interface CycleTimedReport {
+  readonly functionResults?: readonly { readonly name?: string; readonly executionTimeMs?: number }[];
+  readonly timings?: { readonly stages?: readonly { readonly name: string; readonly durationMs: number }[] };
+}
+
+/**
+ * Cycle query times of a report (ADR-016 e: both cycle queries): the `no-cyclic-deps` function rows
+ * (`executionTimeMs`, FF-S02) and the universal cycle metric's timing entry (`UNIVERSAL_CYCLE_STAGE`,
+ * ADR-021 SO2; audit SO2-2), in that order.
+ */
+export function cycleQueryTimes(report: CycleTimedReport): number[] {
+  const template = (report.functionResults ?? []).filter((r) => r.name === 'no-cyclic-deps' && typeof r.executionTimeMs === 'number').map((r) => r.executionTimeMs ?? 0);
+  const metric = (report.timings?.stages ?? []).filter((st) => st.name === UNIVERSAL_CYCLE_STAGE).map((st) => st.durationMs);
+  return [...template, ...metric];
 }
 
 // ---------------------------------------------------------------------------------------------
@@ -331,6 +365,7 @@ export function modeFlags(mode: PlanMode): string[] {
  */
 export function cliArgv(plan: ExperimentPlan, entry: PlanEntry): string[] {
   const argv = ['evaluate', '--project', entry.path, '--spec', entry.specPath, '--format', 'json', ...modeFlags(plan.mode)];
+  if (entry.graphMode !== undefined && entry.graphMode !== 'full') argv.push('--graph-mode', entry.graphMode);
   if (plan.mode !== 'symbolic-only') {
     if (plan.judge !== undefined) argv.push('--llm-provider', plan.judge.provider, '--llm-model', plan.judge.model);
     argv.push('--cassette-dir', plan.cassetteDir);

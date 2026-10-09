@@ -17,6 +17,13 @@ export type { Dimension, ParsedSpec, SeededRng };
 
 export type BaseKind = 'fixture' | 'corpus' | 'generated';
 
+/**
+ * Corpus tier of a `corpus` base (ADR-020 item 8): `core` is one of the five projects of `Docs/corpus.md` (seen during
+ * development, `corpus/corpus.json` `core: true`), `e7` an added project, the only unseen stratum. It is a reporting
+ * stratum derived from `corpus/corpus.json`, not a manifest field: `BaseKind` and the manifest schema are unchanged.
+ */
+export type CorpusTier = 'core' | 'e7';
+
 /** Label-free projection of U4 `BaselineSelection` (U4 domain-entities §2.4; BR-U5a-27). */
 export interface JudgeSelection {
   readonly template: 'intent-alignment' | 'architectural-integrity';

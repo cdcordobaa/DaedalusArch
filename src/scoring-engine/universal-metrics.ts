@@ -6,6 +6,10 @@
  * item 8), the abstraction ratio, and the U2 §10 orphan predicate verbatim (no layer filter, ADR-016 g).
  * A failed query sets its metric to `null` with one scrubbed `METRIC_001 {metric, code}`; an undefined
  * ratio is `null` with one `METRIC_002 {metric, reason}`; `null` never appears without one of them.
+ *
+ * The cycle metric is one of the two cycle queries of the H13 latency gate (ADR-016 e; ADR-021 SO2; audit
+ * SO2-2): it runs alone, before the other five (which still run concurrently), and its wall time is returned
+ * as `cycleTiming` (the report carries it as the `UNIVERSAL_CYCLE_STAGE` timing entry).
  */
 import type { GraphRepository } from '../shared/interfaces/graph-repository.js';
 import type { UniversalHealthMetrics } from '../shared/types/evaluation.js';
@@ -22,7 +26,19 @@ export type UniversalMetric = keyof UniversalHealthMetrics;
 export interface UniversalMetricsOutput {
   readonly metrics: UniversalHealthMetrics;
   readonly warnings: readonly DomainWarning[];   // METRIC_001 (failure), METRIC_002 (undefined ratio)
+  /** Wall time of the cycle metric alone (Cypher query or in-memory SCC); `failed` when it is `null` + METRIC_001. */
+  readonly cycleTiming: CycleMetricTiming;
 }
+
+export interface CycleMetricTiming {
+  readonly durationMs: number;
+  readonly failed: boolean;
+  /** The failure code (e.g. `EVAL_002`-style timeout codes of the repository, `APG_MISSING`), when failed. */
+  readonly code?: string;
+}
+
+/** Stage name of the cycle-metric timing entry in `report.timings.stages` (a sub-stage of `compute-scores`). */
+export const UNIVERSAL_CYCLE_STAGE = 'universal-metric:cyclicDependencyCount';
 
 /** `METRIC_002` reasons (BR-U3-42, BR-U3-70 item 2). */
 export const NO_CLASSES_OR_INTERFACES = 'no classes or interfaces';
@@ -64,6 +80,7 @@ export async function computeUniversalMetrics(
   graphRepo: GraphRepository,
   strategy: CycleStrategy = CYCLE_STRATEGY,
   apg?: Pick<APGResult, 'nodes' | 'edges'>,
+  now: () => number = () => performance.now(),
 ): Promise<DomainResult<UniversalMetricsOutput>> {
   const first = async (metric: UniversalMetric, field: string): Promise<Cell> => {
     const result = await graphRepo.executeQuery(UNIVERSAL_METRIC_QUERIES[metric]);
@@ -79,8 +96,15 @@ export async function computeUniversalMetrics(
     return first('cyclicDependencyCount', 'cnt');
   };
 
-  const [cyc, fanOut, fanIn, ratio, instability, orphans] = await Promise.all([
-    cycles(),
+  // The cycle metric alone, timed (ADR-016 e: each cycle query is measured on its own).
+  const cycleStart = now();
+  const cyc = await cycles();
+  const cycleMs = Math.max(0, Math.round(now() - cycleStart));
+  const cycleTiming: CycleMetricTiming = cyc.kind === 'failed'
+    ? { durationMs: cycleMs, failed: true, code: cyc.code }
+    : { durationMs: cycleMs, failed: false };
+
+  const [fanOut, fanIn, ratio, instability, orphans] = await Promise.all([
     first('maxFanOut', 'val'),
     first('maxFanIn', 'val'),
     first('abstractionRatio', 'val'),
@@ -119,5 +143,5 @@ export async function computeUniversalMetrics(
     averageInstability: ratioOf('averageInstability', instability, NO_FILE_TO_FILE_IMPORTS),
     orphanFileCount: count('orphanFileCount', orphans),
   };
-  return DomainResult.ok({ metrics, warnings });
+  return DomainResult.ok({ metrics, warnings, cycleTiming });
 }

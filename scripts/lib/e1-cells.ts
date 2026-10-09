@@ -10,7 +10,7 @@
  *   valid-generation-yield denominator): one cell per coordinate, in coordinate order, taken from the record that
  *   carries it, or synthesised as `missing` when no record does (a run that stopped before the entry, or an older
  *   record without a `cell`). `synthesised` counts those; `extra` lists record cells that match no coordinate.
- *   This is the helper lane SO5-agg calls from `aggregate.ts` instead of filtering on `r.cell !== undefined`.
+ *   `aggregate.ts` `so5Records` calls it for a plan with an `e1` block (SO5-05 follow-up).
  */
 import { join } from 'node:path';
 import { cellOutputDir } from './generators/schedule.js';

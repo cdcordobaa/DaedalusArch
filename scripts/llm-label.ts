@@ -20,15 +20,19 @@ import { join, resolve } from 'node:path';
 import { parse as parseYaml } from 'yaml';
 import { listCassetteKeys, readCassetteEntry } from '../src/llm-critic/cassette-manager.js';
 import { CassetteLLMProvider } from '../src/llm-critic/cassette-provider.js';
-import type { Interpretation } from '../src/llm-critic/cassette-provider.js';
-import type { LLMProvider } from '../src/shared/interfaces/llm-provider.js';
+import type { ArgvFlagSource, Interpretation } from '../src/llm-critic/cassette-provider.js';
+import { buildAgyArgs } from '../src/llm-critic/agy-cli-provider.js';
+import type { DomainResult } from '../src/shared/errors/domain-result.js';
+import type { LLMOptions, LLMProvider } from '../src/shared/interfaces/llm-provider.js';
 import type { VCRMode } from '../src/shared/types/llm-config.js';
 import { ROOT_CAUSE_CODES } from './lib/matching-rule.js';
 import type { RootCauseCode } from './lib/matching-rule.js';
 import { allocateBudget, estimateExit } from './lib/label-context.js';
 import type { ItemKind, LabelItem, Population, SampledPopulation } from './lib/label-context.js';
 import { cohenKappa, createRng, fleissKappa, gwetAC1, shuffle, wilson } from './lib/stats.js';
-import { knownSecretsOf } from './lib/report-io.js';
+import { judgeVerdictsFromRuns, missingSource } from './lib/judge-verdicts.js';
+import type { JudgeUnitVerdict } from './lib/judge-verdicts.js';
+import { knownSecretsOf, loadRunDir } from './lib/report-io.js';
 
 export type { ItemKind, LabelItem, Population, RootCauseCode };
 
@@ -88,6 +92,8 @@ export interface LabellerConfig {
   /** Values scrubbed from every cassette (default: `knownSecretsOf(process.env)`). */
   readonly knownSecrets?: readonly string[];
   readonly now?: () => string;
+  /** Run provenance of a CLI route's record-mode pre-flight (agy: version, probe and listing hashes). */
+  readonly cassetteProvenance?: { readonly cliVersion?: string; readonly isolationProbeSha256?: string; readonly configListingSha256?: string };
 }
 
 export const LABELLER_MODEL_UNPINNED = 'LABELLER_MODEL_UNPINNED';
@@ -98,6 +104,8 @@ export const LABELLER_STOPPED = 'LABELLER_STOPPED';
 export const LABELLER_PROMPT_DIR = 'Docs/labeller-prompts';
 export const LABELLER_MAX_TOKENS = 1024;
 export const LABELLER_TEMPERATURE = 0;
+/** `--provider` values; `agy` is the registered panel route (ADR-019 item 4 as amended), `gemini` the API route. */
+export const LABEL_PROVIDERS: readonly string[] = ['agy', 'gemini', 'mock'];
 
 /** Response schema (canonical JSON text); Gemini receives its supported subset through U4's provider. */
 export const LABEL_SCHEMA_TEXT = JSON.stringify({
@@ -331,6 +339,7 @@ export async function labelItems(items: readonly LabelItem[], config: LabellerCo
     mode: config.mode, dir: config.cassetteDir, interpret: interpretLabelAnswer,
     knownSecrets: config.knownSecrets ?? knownSecretsOf(process.env),
     ...(config.now !== undefined && { now: config.now }),
+    ...config.cassetteProvenance,
   });
   const options = { model: config.model, maxTokens: config.maxTokens ?? LABELLER_MAX_TOKENS, temperature: LABELLER_TEMPERATURE };
   const sent: string[] = [];
@@ -422,10 +431,11 @@ export function estimatePlan(plan: LabelPlanFile): { exitCode: 0 | 1; line: stri
 export const LABEL_USAGE = [
   'usage: npx tsx scripts/llm-label-cli.ts --plan <label-plan.json> --estimate',
   '       npx tsx scripts/llm-label-cli.ts --plan <label-plan.json> --mode record|replay --cassette-dir <dir> --model <pinned id>',
-  '                                        [--provider gemini|mock] --out <labels.json>',
+  '                                        [--provider agy|gemini|mock] --out <labels.json>',
   '       npx tsx scripts/llm-label-cli.ts --allocate-audit --plan <file> --labels <labels.json> --plan-id <id> --seed <n> --out <dir>',
   '       npx tsx scripts/llm-label-cli.ts --agreement --plan <file> --labels <labels.json> --model <pinned id> [--allocation <file>',
-  '                                        --audit audit/<plan-id>.json] [--judge-verdicts <file>] [--judge-cassettes <dir>] --out <labelling.json>',
+  '                                        --audit audit/<plan-id>.json] [--judge-runs <dir>[,<dir>...]] [--judge-verdicts <file>]',
+  '                                        [--judge-cassettes <dir>] --out <labelling.json>',
   '       npx tsx scripts/llm-label-cli.ts --self-test',
   '',
 ].join('\n');
@@ -435,15 +445,25 @@ export interface LabelMainIo {
   err(text: string): void;
   writeFile(path: string, text: string): void;
 }
+/** A live provider with an isolation pre-flight (agy): its facts become the cassettes' run provenance. */
+export type PreparableProvider = LLMProvider & {
+  readonly prepare?: () => Promise<DomainResult<{ readonly cliVersion: string; readonly isolationProbeSha256: string; readonly configListingSha256: string }>>;
+};
+
 export interface LabelMainDeps {
   /** Builds the live provider for `--provider gemini` (record mode only; never constructed in tests). */
   readonly gemini?: (model: string) => LLMProvider;
+  /**
+   * Builds the live provider for `--provider agy` (ADR-019 item 4 as amended; record mode only). A provider
+   * with `prepare()` runs its isolation pre-flight before the first call; a failed pre-flight stops the run.
+   */
+  readonly agy?: (model: string) => PreparableProvider;
   readonly mock?: () => LLMProvider;
 }
 
 function parseArgs(argv: readonly string[]): Map<string, string> | string {
   const flags = new Set(['--estimate', '--self-test', '--help', '--allocate-audit', '--agreement']);
-  const valued = new Set(['--plan', '--mode', '--cassette-dir', '--model', '--provider', '--out', '--labels', '--plan-id', '--seed', '--allocation', '--audit', '--judge-verdicts', '--judge-cassettes']);
+  const valued = new Set(['--plan', '--mode', '--cassette-dir', '--model', '--provider', '--out', '--labels', '--plan-id', '--seed', '--allocation', '--audit', '--judge-verdicts', '--judge-runs', '--judge-cassettes']);
   const out = new Map<string, string>();
   for (let i = 0; i < argv.length; i += 1) {
     const a = argv[i] ?? '';
@@ -524,17 +544,34 @@ export async function main(argv: readonly string[], repoRoot: string, io: LabelM
     return 1;
   }
   const providerName = args.get('provider') ?? 'gemini';
-  const disabled: LLMProvider = {
+  if (!LABEL_PROVIDERS.includes(providerName)) {
+    io.err(`--provider must be one of ${LABEL_PROVIDERS.join(', ')}\n${LABEL_USAGE}`);
+    return 2;
+  }
+  // Replay keys on the provider name, so the disabled stand-in must report the requested one.
+  // agy keys also carry its non-content argv flags, so the stand-in exposes the same flags.
+  const disabled: LLMProvider & Partial<ArgvFlagSource> = {
     name: 'disabled',
-    describe: () => ({ provider: providerName === 'mock' ? 'mock' : 'gemini', model }),
+    describe: () => ({ provider: providerName === 'mock' ? 'mock' : providerName === 'agy' ? 'agy' : 'gemini', model }),
     evaluate: () => Promise.reject(new Error('replay mode: the provider is disabled')),
+    ...(providerName === 'agy' && { requestArgvFlags: (o: LLMOptions) => buildAgyArgs({ model: o.model, schema: '' }).argvFlags }),
   };
   let provider: LLMProvider = disabled;
+  let cassetteProvenance: LabellerConfig['cassetteProvenance'];
   if (mode === 'record') {
-    const made = providerName === 'mock' ? deps.mock?.() : providerName === 'gemini' ? deps.gemini?.(model) : undefined;
+    const made: PreparableProvider | undefined = providerName === 'mock' ? deps.mock?.() : providerName === 'gemini' ? deps.gemini?.(model) : deps.agy?.(model);
     if (made === undefined) {
       io.err(`--provider ${providerName} is not available in record mode\n`);
       return 2;
+    }
+    if (made.prepare !== undefined) {
+      const prepared = await made.prepare();
+      if (!prepared.success) {
+        const e = prepared.errors[0];
+        io.err(`${LABELLER_STOPPED}: ${e?.code ?? 'PREFLIGHT'}: ${e?.message ?? 'pre-flight failed'}\n`);
+        return 1;
+      }
+      cassetteProvenance = { ...prepared.data };
     }
     provider = made;
   }
@@ -545,7 +582,7 @@ export async function main(argv: readonly string[], repoRoot: string, io: LabelM
   }
   const r = await labelItems(plan.items, {
     provider, model, runs: 2, mode, cassetteDir: resolve(repoRoot, cassetteDir), permutationSeed: plan.permutationSeed,
-    budgetCalls: plan.budgetCalls,
+    budgetCalls: plan.budgetCalls, ...(cassetteProvenance !== undefined && { cassetteProvenance }),
   }, prompts.prompts);
   if (!r.ok) {
     io.err(`${r.code}: ${r.detail}\n`);
@@ -716,15 +753,26 @@ export interface AgreementStats {
   readonly fleissKappa: number | null;
   readonly uncertain: number;
   readonly sameFamily: boolean;
+  /** Judge-vs-panel rows (ADR-020 item 7): the P4 source (`e1`, `fixture`, or `all` pooled); `all` elsewhere. */
+  readonly source: AgreementSource;
+  /** E1 rows split by generator model; `''` otherwise. */
+  readonly generatorModel: string;
+  /** True only on the registered headline row: judge vs panel on E1 units, judges of another family. */
+  readonly headline: boolean;
+  /** True when `uncertain` panel labels are kept as a third category instead of being dropped (B3). */
+  readonly uncertainAsCategory: boolean;
 }
 
-/** A stored judge verdict for a P4 unit (read only at comparison time, never into a context). */
-export interface JudgeUnitVerdict {
-  readonly projectId: string;
-  readonly functionId: string;
-  readonly unitId: string;
-  readonly verdict: 'pass' | 'fail';
-  readonly judgeModel: string;
+export type AgreementSource = 'all' | 'e1' | 'fixture';
+
+export type { JudgeUnitVerdict } from './lib/judge-verdicts.js';
+
+/** Row context of `pairAgreement` (ADR-020 item 7, B3); defaults: pooled source, no generator, not headline. */
+export interface AgreementRowContext {
+  readonly source?: AgreementSource;
+  readonly generatorModel?: string;
+  readonly headline?: boolean;
+  readonly uncertainAsCategory?: boolean;
 }
 
 const finite = (x: number): number | null => (Number.isFinite(x) ? x : null);
@@ -738,10 +786,15 @@ export function pairAgreement(
   weighted: boolean,
   uncertain: number,
   sameFamilyFlag = false,
+  context: AgreementRowContext = {},
 ): AgreementStats {
   const cats = [...new Set([...categories, ...pairs.flatMap((p) => [p.a, p.b])])];
   if (cats.length < 2) cats.push('__other__');
-  const empty = { comparison, scope, n: pairs.length, weighted, uncertain, sameFamily: sameFamilyFlag, fleissKappa: null };
+  const empty = {
+    comparison, scope, n: pairs.length, weighted, uncertain, sameFamily: sameFamilyFlag, fleissKappa: null,
+    source: context.source ?? 'all', generatorModel: context.generatorModel ?? '', headline: context.headline ?? false,
+    uncertainAsCategory: context.uncertainAsCategory ?? false,
+  };
   if (pairs.length === 0) return { ...empty, percentAgreement: null, ci: null, ciMethod: 'none', cohensKappa: null, gwetAc1: null };
   const idx = new Map(cats.map((c, i) => [c, i]));
   const table = cats.map(() => cats.map(() => 0));
@@ -755,7 +808,8 @@ export function pairAgreement(
   const k = Math.round(po * pairs.length);
   const ci = wilson(k, pairs.length);
   return {
-    ...empty, percentAgreement: po, ci: [ci.low, ci.high], ciMethod: weighted ? 'wilson-on-weighted-proportion' : 'wilson',
+    // B3 (ADR-020 item 9): Wilson on a weighted proportion ignores the weight variance, so the CI is approximate.
+    ...empty, percentAgreement: po, ci: [ci.low, ci.high], ciMethod: weighted ? 'wilson-weighted-approximate' : 'wilson',
     cohensKappa: finite(cohenKappa(table)), gwetAc1: finite(gwetAC1(table)),
   };
 }
@@ -773,10 +827,12 @@ export interface AgreementInput {
 }
 
 /**
- * `agreement.csv` rows: run vs run (all items), judge vs panel (P4, weighted by 1 / inclusion probability; one
- * headline row over judges of another family, and one row per same-family cross-check model, flagged and excluded
- * from the headline), panel vs audit (weighted by 1 / stratum sampling fraction), and judge reliability per judge
- * function from cassettes (Fleiss κ over the valid samples of each unit). No labeller-vs-labeller statistic exists.
+ * `agreement.csv` rows: run vs run (all items; with one model run twice this is order sensitivity, B3), judge vs panel
+ * (P4, weighted by 1 / inclusion probability) over judges of another family: the pooled row, one row per source with
+ * the E1 row as the registered headline, one row per E1 generator model, and the headline set with `uncertain` kept
+ * as a category (ADR-020 items 7, 9); one row per same-family cross-check model, flagged and never a headline; panel
+ * vs audit (weighted by 1 / stratum sampling fraction); judge reliability per judge function from cassettes (Fleiss κ
+ * over the valid samples of each unit). No labeller-vs-labeller statistic exists.
  */
 export function agreementStats(input: AgreementInput): AgreementStats[] {
   const out: AgreementStats[] = [];
@@ -792,12 +848,26 @@ export function agreementStats(input: AgreementInput): AgreementStats[] {
   const p4 = input.labels.filter((l) => l.kind === 'judge-unit');
   const p4Uncertain = p4.filter((l) => l.label === 'uncertain').length;
   const verdicts = input.judgeVerdicts ?? [];
-  const pairsFor = (vs: readonly JudgeUnitVerdict[]): { a: string; b: string; w: number }[] => vs.flatMap((v) => {
-    const l = p4.find((x) => x.projectId === v.projectId && x.label !== 'uncertain' && unitMatches(x, v));
+  const pairsFor = (vs: readonly JudgeUnitVerdict[], keepUncertain = false): { a: string; b: string; w: number }[] => vs.flatMap((v) => {
+    const l = p4.find((x) => x.projectId === v.projectId && (keepUncertain || x.label !== 'uncertain') && unitMatches(x, v));
     return l === undefined ? [] : [{ a: v.verdict, b: l.label, w: 1 / Math.max(l.inclusionProbability, Number.EPSILON) }];
   });
-  const headline = verdicts.filter((v) => !sameFamily(input.labellerModel, v.judgeModel));
-  out.push(pairAgreement('judge-vs-panel', [...new Set(headline.map((v) => v.judgeModel))].sort().join('+') || 'none', pairsFor(headline), ['pass', 'fail'], true, p4Uncertain));
+  const other = verdicts.filter((v) => !sameFamily(input.labellerModel, v.judgeModel));
+  const scopeOf = (vs: readonly JudgeUnitVerdict[]): string => [...new Set(vs.map((v) => v.judgeModel))].sort().join('+') || 'none';
+  const judgeRow = (vs: readonly JudgeUnitVerdict[], context: AgreementRowContext): AgreementStats =>
+    pairAgreement('judge-vs-panel', scopeOf(vs), pairsFor(vs, context.uncertainAsCategory === true), context.uncertainAsCategory === true ? ['pass', 'fail', 'uncertain'] : ['pass', 'fail'], true, p4Uncertain, false, context);
+  out.push(judgeRow(other, { source: 'all' }));
+  // ADR-020 item 7: per source, the E1 row being the headline (the fixtures are dev material); per E1 generator model.
+  const e1 = other.filter((v) => v.source === 'e1');
+  for (const source of ['e1', 'fixture'] as const) {
+    const vs = other.filter((v) => v.source === source);
+    if (vs.length > 0) out.push(judgeRow(vs, { source, headline: source === 'e1' }));
+  }
+  for (const g of [...new Set(e1.flatMap((v) => (v.generatorModel === undefined ? [] : [v.generatorModel])))].sort()) {
+    out.push(judgeRow(e1.filter((v) => v.generatorModel === g), { source: 'e1', generatorModel: g }));
+  }
+  // B3: the headline set (E1 when present, else pooled) with `uncertain` kept as a category.
+  out.push(judgeRow(e1.length > 0 ? e1 : other, { source: e1.length > 0 ? 'e1' : 'all', uncertainAsCategory: true }));
   for (const model of [...new Set(verdicts.filter((v) => sameFamily(input.labellerModel, v.judgeModel)).map((v) => v.judgeModel))].sort()) {
     out.push(pairAgreement('judge-vs-panel', model, pairsFor(verdicts.filter((v) => v.judgeModel === model)), ['pass', 'fail'], true, p4Uncertain, true));
   }
@@ -833,6 +903,7 @@ export function agreementStats(input: AgreementInput): AgreementStats[] {
     out.push({
       comparison: 'judge-repetition', scope: fn, n: usable.length, weighted: false, percentAgreement: pBar, ci: null, ciMethod: 'none',
       cohensKappa: null, gwetAc1: null, fleissKappa: finite(fleissKappa(counts)), uncertain: 0, sameFamily: false,
+      source: 'all', generatorModel: '', headline: false, uncertainAsCategory: false,
     });
   }
   return out;
@@ -846,7 +917,10 @@ function unitMatches(l: ReconciledLabel, v: JudgeUnitVerdict): boolean {
 // ---------------------------------------------------------------------------------------------
 // Labeller-fed CSV tables (aggregate.ts writes them; domain-entities §10)
 
-export const AGREEMENT_COLUMNS = ['comparison', 'scope', 'n', 'weighted', 'percent_agreement', 'ci_low', 'ci_high', 'ci_method', 'cohens_kappa', 'gwet_ac1', 'fleiss_kappa', 'uncertain', 'same_family'] as const;
+export const AGREEMENT_COLUMNS = [
+  'comparison', 'scope', 'n', 'weighted', 'percent_agreement', 'ci_low', 'ci_high', 'ci_method', 'cohens_kappa', 'gwet_ac1', 'fleiss_kappa', 'uncertain', 'same_family',
+  'source', 'generator_model', 'headline', 'uncertain_as_category',
+] as const;
 export const AUDIT_ALLOCATION_COLUMNS = ['kind', 'label', 'size', 'allocated', 'sampling_fraction', 'seed'] as const;
 export const LABEL_BUDGET_COLUMNS = ['population', 'stratum', 'size', 'cap', 'sampled', 'inclusion_probability', 'uncertain', 'calls'] as const;
 export const TAXONOMY_COLUMNS = ['population', 'root_cause', 'count', 'weighted_count', 'source'] as const;
@@ -889,7 +963,10 @@ export function labellingTables(o: LabellingOutputs): Record<'agreement.csv' | '
   return {
     'agreement.csv': {
       header: AGREEMENT_COLUMNS,
-      rows: (o.agreement ?? []).map((a) => [a.comparison, a.scope, String(a.n), String(a.weighted), fx(a.percentAgreement), fx(a.ci?.[0]), fx(a.ci?.[1]), a.ciMethod, fx(a.cohensKappa), fx(a.gwetAc1), fx(a.fleissKappa), String(a.uncertain), String(a.sameFamily)]),
+      rows: (o.agreement ?? []).map((a) => [
+        a.comparison, a.scope, String(a.n), String(a.weighted), fx(a.percentAgreement), fx(a.ci?.[0]), fx(a.ci?.[1]), a.ciMethod, fx(a.cohensKappa), fx(a.gwetAc1), fx(a.fleissKappa), String(a.uncertain), String(a.sameFamily),
+        a.source, a.generatorModel, String(a.headline), String(a.uncertainAsCategory),
+      ]),
     },
     'audit_allocation.csv': {
       header: AUDIT_ALLOCATION_COLUMNS,
@@ -934,6 +1011,31 @@ function allocateAuditMain(args: Map<string, string>, repoRoot: string, io: Labe
   return 0;
 }
 
+/**
+ * The P4 judge verdicts of `--judge-runs` (derived from the stored runs, ADR-020 item 7) and `--judge-verdicts` (a
+ * hand-supplied file, refused when any verdict lacks `source`: the E1 headline row needs it); `undefined` when
+ * neither flag is given, a refusal message otherwise.
+ */
+function judgeVerdictsOf(args: Map<string, string>, repoRoot: string): JudgeUnitVerdict[] | string | undefined {
+  const runs = args.get('judge-runs');
+  const file = args.get('judge-verdicts');
+  if (runs === undefined && file === undefined) return undefined;
+  const out: JudgeUnitVerdict[] = [];
+  for (const dir of (runs ?? '').split(',').filter((d) => d !== '')) {
+    const { records, reports } = loadRunDir(resolve(repoRoot, dir), 'LABEL_JUDGE_RUNS_INVALID');
+    out.push(...judgeVerdictsFromRuns(records, reports));
+  }
+  if (file !== undefined) {
+    const given = readJson(repoRoot, file) as JudgeUnitVerdict[];
+    const missing = missingSource(given);
+    if (missing.length > 0) {
+      return `LABEL_VERDICT_SOURCE_MISSING: ${file}: ${String(missing.length)} verdict(s) without source (first index ${String(missing[0])}); derive them with --judge-runs (ADR-020 item 7)`;
+    }
+    out.push(...given);
+  }
+  return out;
+}
+
 function agreementMain(args: Map<string, string>, repoRoot: string, io: LabelMainIo, plan: LabelPlanFile): number {
   const labelsPath = args.get('labels');
   const out = args.get('out');
@@ -970,7 +1072,11 @@ function agreementMain(args: Map<string, string>, repoRoot: string, io: LabelMai
     if (checked.first) io.writeFile(lockPath, `${JSON.stringify(checked.lock, null, 2)}\n`);
     audit = JSON.parse(bytes.toString('utf8')) as AuditFile;
   }
-  const verdictsPath = args.get('judge-verdicts');
+  const verdicts = judgeVerdictsOf(args, repoRoot);
+  if (typeof verdicts === 'string') {
+    io.err(`${verdicts}\n`);
+    return 1;
+  }
   const cassettes = args.get('judge-cassettes');
   const judgeEntries = cassettes === undefined ? [] : listCassetteKeys(resolve(repoRoot, cassettes)).flatMap((k) => {
     const e = readCassetteEntry(resolve(repoRoot, cassettes), k);
@@ -978,7 +1084,7 @@ function agreementMain(args: Map<string, string>, repoRoot: string, io: LabelMai
   });
   const agreement = agreementStats({
     labels, prompts: prompts.prompts, labellerModel: model, judgeEntries,
-    ...(verdictsPath !== undefined && { judgeVerdicts: readJson(repoRoot, verdictsPath) as JudgeUnitVerdict[] }),
+    ...(verdicts !== undefined && { judgeVerdicts: verdicts }),
     ...(allocation !== undefined && { allocation }), ...(audit !== undefined && { audit }),
   });
   const outputs: LabellingOutputs = { plan: { strata: plan.strata }, labels, agreement, ...(allocation !== undefined && { allocation }) };

@@ -1,0 +1,33 @@
+[
+  {
+    "itemId": "33f8c7c36eff9cf832d84988a369acdaefeae0f32a4360b660877527ca54068d",
+    "projectId": "correct-reference",
+    "kind": "violation",
+    "population": "P1",
+    "stratum": "correct-reference, FF-S01",
+    "inclusionProbability": 1,
+    "runs": [
+      {
+        "runIndex": 0,
+        "cassetteKey": "460eae4f3cf4acad83e25624125f4b62c5d4f69a467d22eb19d1e29f21a9403b-r0-0",
+        "attempts": 1,
+        "label": "FP",
+        "rationale": "The file Task.ts contains no imports or references to the target file; line 1 is merely a comment.",
+        "rootCause": "RC-OTHER",
+        "note": "No dependency exists in the source code. The tool likely inverted the dependency or hallucinates it."
+      },
+      {
+        "runIndex": 1,
+        "cassetteKey": "47f7d0799dcec21a1705faf677968cec85ad64d685a8cb7d8730a0b9198faa59-r0-1",
+        "attempts": 1,
+        "permutationSeed": 3794487510,
+        "label": "FP",
+        "rationale": "The source code for Task.ts is a pure domain entity that contains no import statements or references to InMemoryTaskRepository.ts.",
+        "rootCause": "RC-OTHER",
+        "note": "The tool reported a dependency where none exists, likely due to a bug such as reversing the direction of the dependency edge."
+      }
+    ],
+    "label": "FP",
+    "rootCause": "RC-OTHER"
+  }
+]

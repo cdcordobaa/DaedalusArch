@@ -154,7 +154,7 @@
 
 | Parameter | Value | Rule | Threat to validity |
 |---|---|---|---|
-| Judge model | `claude-opus-5-5`; actual-model rule | VRD-07, VRD-09 | Self-preference on Claude-generated E1 projects (AD-6), mitigated only by the Phase 5 Gemini cross-check; a substituted model invalidates the call |
+| Judge model | `claude-opus-5-5`; actual-model rule | VRD-07, VRD-09 | Self-preference on Claude-generated E1 projects (AD-6), mitigated only by the Phase 5 Gemini cross-check; a substituted model invalidates the call. **Amended 2026-10-08 (ADR-020 item 7):** U5b also reports judge-vs-panel agreement per generator model and per source (E1 the headline), makes `ahsDeterministic` co-primary for the SO5 model effect and registers a one-sided directional check (`Docs/analysis-plan.md` §6) |
 | Effort | `high` (or `medium` from the pre-freeze timing probe) | OPS-01, OPS-04 | Effort affects verdicts; changed only by ladder step 3 with full re-record |
 | `JUDGE_MAX_TOKENS` | 8192 | OPS-01 | Ignored by the CLI; truncated Gemini answers become `PARSE_FAILURE` if too low |
 | Isolation (config dir, argv, env, probe, entry allow-list with state-path patterns) | §2; entry list per ADR-018 and pass condition from the 2026-10-08 probe (`config-allowlist.json`, `init-clean.json`) | ISO-02..06 | CLI behaviour can change between versions; isolation is checked per run and by the canary |
