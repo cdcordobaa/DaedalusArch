@@ -91,7 +91,7 @@ Hand-off greps (H8–H11, OI-U4-8, OI-U5a-5, OI-U5a-17, BR-U3-66) all confirmed 
 | Judge isolation (ADR-018) | CLI `2.1.294` = pin; judge config dir passes the allow-list (14 items, names only); `DISABLE_AUTOUPDATER=1` in the child |
 | ISO-07 canary (Step 35, 3 calls) | neutral-cwd negative clean (rule condition met). Under the judge argv from an ancestor cwd the ancestor `CLAUDE.md` token appeared, unlike U4: that channel is closed only by BR-U4-ISO-05 (fresh neutral cwd, fail closed on an ancestor `CLAUDE.md`/`.claude`), which the production path always applies (**OI-BT-F1**) |
 | Generator confinement (SECURITY-11, ADR-017 item 8; Step 39) | 5 / 5 probes pass (escape write, `node_modules` overwrite, tsc flag injection, command chaining, allowed command); the Bash protocol stands |
-| Stale credentials in docs (Step 7) | the quoted `daedalus-dev` password replaced by a placeholder in `.claude/commands/firewall-init.md` and `Docs/Use Agent Playbook.md` (both now 0 matches) |
+| Stale credentials in docs (Step 7) | the quoted former compose-default password replaced by a placeholder in `.claude/commands/firewall-init.md` and `Docs/Use Agent Playbook.md` (both now 0 matches) |
 
 ## 5. Contracts and live-call ledgers
 
@@ -149,7 +149,7 @@ Ten entries fetched outside every checkout (`../daedalus-corpus`); all ten HEADs
 | OI-BT-F1 | Ancestor `CLAUDE.md` channel closed only by BR-U4-ISO-05, not by the judge argv | threats section | Step 35 |
 | OI-BT-F2 | On the unmodified `correct-reference` the FF-N01 `src/application/use-cases` unit fails (ports not declared via `implements`; `CreateTaskUseCase.execute` signature differs from its port). It covers no seeded file, so SEN-01 is unaffected | rubric or fixture reading, before the freeze | Step 37 |
 | OI-BT-F3 | The E1 `orderSeed` is not set anywhere yet (0 used as a probe/pilot placeholder) | E1 | Step 39 |
-| — | Rotate the local `.env` Neo4j password (U0 residual: equals the former compose default) | — | U0 summary |
+| — | **Rotate the local `.env` Neo4j password** (U0 residual: it equals the former compose default, which is still a token in tracked files; DV-BT-G2) | — | U0 summary; Step 49 Gate P |
 | — | Author-install `DISABLE_AUTOUPDATER` switch (BR-U4-ISO-09): not set in the author shell, install-level setting unverified | — | Step 34 |
 | — | A logged-in throwaway config dir, to positively control the user `CLAUDE.md` and `UserPromptSubmit` canary channels | — | Step 35 |
 | — | Audit step promotion: done as a separate blocking triaged gate (DV-BT-8); the plain `npm audit --audit-level=high` step stays report-only because the accepted residual still counts as high there. Confirm or change | — | Step 6 |
@@ -199,6 +199,7 @@ Ten entries fetched outside every checkout (`../daedalus-corpus`); all ten HEADs
 | DV-BT-E1 | 27 | The layered spec is admitted, not hashed as a registered artefact (OI-BT-E1) |
 | DV-BT-F1 | 34–38 | The ISO-06 init probe of each record-mode run is counted as a judge call |
 | DV-BT-F2 | 46 | The full-mode lane is its own suite; `N_G` stays 80 / 7 |
+| DV-BT-G2 | 49 | Gate P counted 1 on the first summary commit `bf31fc8`: the main `.env` password equals the former compose default, and the summary named that token (already present in 8 tracked files at `BT_BASE`). The next commit removes it from the summary; the branch is not rewritten (no force-push). Rotating the password is the author action that closes this |
 | DV-BT-G1 | 48 | H13 is not closed in Step 48, as the plan expected, because Step 24 is held by E-1; its row says "Open, held by E-1" |
 
 ## 10. Record-owner items (not Build and Test)
