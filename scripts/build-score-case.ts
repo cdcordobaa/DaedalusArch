@@ -20,7 +20,7 @@ import { copyFileSync, existsSync, mkdirSync, readdirSync, writeFileSync } from 
 import { dirname, join, resolve } from 'node:path';
 import { loadManifest } from './lib/manifest.js';
 import type { ManifestRow } from './lib/manifest.js';
-import { loadRunDir } from './lib/report-io.js';
+import { loadRunRecords } from './lib/report-io.js';
 import type { RunRecord } from './lib/report-io.js';
 import { pairRuns } from './score-golden.js';
 
@@ -159,7 +159,7 @@ export function main(argv: readonly string[], repoRoot: string, io: CaseMainIo):
   }
   let records: RunRecord[];
   try {
-    records = loadRunDir(runDir, CASE_INPUT_INVALID).records;
+    records = loadRunRecords(runDir, CASE_INPUT_INVALID); // records only: planScoreCase needs existence checks, not parsed reports
   } catch (e) {
     io.err(`input error: ${e instanceof Error ? e.message : String(e)}\n`);
     return 2;

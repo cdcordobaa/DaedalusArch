@@ -40,6 +40,8 @@ export interface CoverageRejectedPair {
   readonly split: string;
   readonly baseKind: string;
   readonly golden: boolean;
+  /** The spec style of the row, when declared (absent on a score written before the field existed). */
+  readonly specStyle?: string;
   readonly code: string;
   readonly reason: string;
 }
@@ -81,7 +83,7 @@ export function seedCoverageRows(planId: string, input: CoverageInput): string[]
       String(isGoldenInstance(i)), 'scored', i.status, '',
     ]),
     ...input.rejectedPairs.map((r) => [
-      planId, r.seedId, r.projectId, r.operatorId, r.split, r.baseKind, corpusStyle(r.projectId), '', String(r.golden), 'pair', 'rejected', `${r.code}: ${r.reason}`,
+      planId, r.seedId, r.projectId, r.operatorId, r.split, r.baseKind, corpusStyle(r.projectId), r.specStyle ?? '', String(r.golden), 'pair', 'rejected', `${r.code}: ${r.reason}`,
     ]),
   ].sort((a, b) => byText(a[1] ?? '', b[1] ?? ''));
   const mutate = input.manifestRejections.map((r) => [
@@ -141,7 +143,7 @@ export function goldenNRows(planId: string, input: CoverageInput, nRegistered?: 
   }
   for (const r of input.rejectedPairs) {
     if (!r.golden) continue;
-    for (const [scope, key] of keysOf(r.projectId, undefined, input.corpusStyles?.get(r.projectId))) {
+    for (const [scope, key] of keysOf(r.projectId, r.specStyle, input.corpusStyles?.get(r.projectId))) {
       const t = tally(scope, key);
       t.golden += 1;
       t.pairRejected += 1;

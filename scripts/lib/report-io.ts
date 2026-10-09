@@ -73,12 +73,17 @@ export interface RunRecord {
 
 export interface LoadedRunDir { readonly records: RunRecord[]; readonly reports: Map<string, EvaluationReport> }
 
-/** Reads a harness output directory: `runs/*.run.json` and the stored reports they reference. */
-export function loadRunDir(dir: string, errorCode = 'RUN_DIR_INVALID'): LoadedRunDir {
+/** Reads only the run records (`runs/*.run.json`) of a harness output directory, sorted by file name; no report is parsed. */
+export function loadRunRecords(dir: string, errorCode = 'RUN_DIR_INVALID'): RunRecord[] {
   const runsDir = join(dir, 'runs');
   if (!existsSync(runsDir)) throw new Error(`${errorCode}: ${runsDir} not found`);
-  const records = readdirSync(runsDir).filter((f) => f.endsWith('.run.json')).sort()
+  return readdirSync(runsDir).filter((f) => f.endsWith('.run.json')).sort()
     .map((f) => JSON.parse(readFileSync(join(runsDir, f), 'utf8')) as RunRecord);
+}
+
+/** Reads a harness output directory: `runs/*.run.json` and the stored reports they reference. */
+export function loadRunDir(dir: string, errorCode = 'RUN_DIR_INVALID'): LoadedRunDir {
+  const records = loadRunRecords(dir, errorCode);
   const reports = new Map<string, EvaluationReport>();
   for (const r of records) {
     if (r.reportPath === undefined) continue;
