@@ -1,6 +1,8 @@
 # Judge Pre-registration (U4 neural path)
 
-> **Status: DRAFT until BR-U4-SEN-01 passes.** None of the lines below is frozen yet. The freeze commit (the BR-U4 §11 table plus `src/llm-critic/frozen.ts`) must be dated after the passing SEN-01 run and before the first `experiments/*/cassettes` commit (BR-U4-POL-01). After the freeze, a value changes only through a dated ladder line (BR-U4-OPS-04) or a new dated ADR with a full re-record of every affected experiment.
+> **Status: FROZEN 2026-10-09** (Build and Test Step 44; BR-U4-RUB-01, POL-01, SEN-01). BR-U4-SEN-01 passed for both neural functions by the unit-level criterion: FF-N01 on 2026-10-08 (`eec1e72`, live cassettes `tests/fixtures/judge-cassettes-live/correct-reference/`) and FF-N02 on 2026-10-09 (`bbc9526`, 35 calls with the pinned CLI `2.1.294`, ADR-022 item 5). The rubric text did not change after either run, so `FROZEN_SHA256` stays `f8b2dabb…eac5a` (`src/llm-critic/frozen.ts`, asserted by `tests/unit/llm-critic/frozen.test.ts`) and RUB-03 is not re-run. The freeze is dated after the passing SEN-01 runs and before the first `experiments/*/cassettes` commit or any measured full-mode run (BR-U4-POL-01). From here on a value changes only as a registered ladder step (BR-U4-OPS-04, `Docs/threats-to-validity.md` §4) or through a new dated ADR with a full re-record.
+>
+> Until 2026-10-09 this file read: **Status: DRAFT until BR-U4-SEN-01 passes.** None of the lines below is frozen yet. The freeze commit (the BR-U4 §11 table plus `src/llm-critic/frozen.ts`) must be dated after the passing SEN-01 run and before the first `experiments/*/cassettes` commit (BR-U4-POL-01). After the freeze, a value changes only through a dated ladder line (BR-U4-OPS-04) or a new dated ADR with a full re-record of every affected experiment.
 
 Sources: U4 functional design `aidlc-docs/construction/v1.2E-u4-neural-path/functional-design/business-rules.md` §1, §9 and §11; ADR-017 item 9; ADR-018; the U4 code-generation plan, Step 6 Done note (Gate H).
 
@@ -9,7 +11,7 @@ Sources: U4 functional design `aidlc-docs/construction/v1.2E-u4-neural-path/func
 | Item | Value | Rule |
 |---|---|---|
 | Judge model | `claude-opus-5-5`, actual-model rule (the resolved `modelUsage` key and init `model` must equal it) | BR-U4-VRD-07, VRD-09 |
-| Effort | `high` (draft). Pre-freeze timing probe: `high` median `duration_ms` 6570, `medium` 5736, over five prompts of 2.2k–19.3k characters. Switching to `medium` is possible before the freeze, and afterwards only as ladder step 3 | BR-U4-OPS-01, OPS-04 |
+| Effort | `high` (frozen 2026-10-09). Pre-freeze timing probe: `high` median `duration_ms` 6570, `medium` 5736, over five prompts of 2.2k–19.3k characters. Switching to `medium` is possible before the freeze, and afterwards only as ladder step 3 | BR-U4-OPS-01, OPS-04 |
 | Claude CLI version | `PINNED_CLI_VERSION` = **2.1.294**. Record mode stops before any call on a `claude --version` mismatch (`LLM_CLI_VERSION_DRIFT`) | BR-U4-ISO-09; ADR-018 item 4 |
 | Auto-update switch | Environment variable `DISABLE_AUTOUPDATER=1`. It is in `JUDGE_ENV_ALLOW` and is set in the judge child env. The judge config dir's `settings.json` may hold only `theme` and `env.DISABLE_AUTOUPDATER` | BR-U4-ISO-09; ADR-018 items 3, 4 |
 | Auto-update on the author's install | **Open (AUTHOR ACTION)**: the switch has not been applied to the author's global install yet. It must be applied before the first measured run | BR-U4-ISO-09 |
