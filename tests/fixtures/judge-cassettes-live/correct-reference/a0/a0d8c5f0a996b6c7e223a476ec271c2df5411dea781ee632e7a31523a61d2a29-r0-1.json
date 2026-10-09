@@ -1,0 +1,46 @@
+{
+  "attempts": 1,
+  "cliVersion": "2.1.294",
+  "configListingSha256": "47aa04258852fab9a706f3f0c14cee22306d69fbb6fdfbde8c11854bd54997bc",
+  "durationMs": 6162,
+  "effort": "high",
+  "functionId": "FF-N02",
+  "ignoredOptions": [
+    "maxTokens"
+  ],
+  "isolationProbeSha256": "97a2e2d0af1100c13c55e028c1a0c71f069093c3d08705af122aaeb302f1a641",
+  "key": "a0d8c5f0a996b6c7e223a476ec271c2df5411dea781ee632e7a31523a61d2a29-r0-1",
+  "model": "claude-opus-5-5",
+  "outcome": {
+    "kind": "valid"
+  },
+  "parsedVerdict": {
+    "confidence": 0.95,
+    "evidence": [
+      "src/domain/repositories/ITaskRepository.ts declares only `export interface ITaskRepository` with findById, findAll, findByCategory, save and delete. These are abstract signatures with no implementation.",
+      "The only import is the domain entity Task from '../entities/Task'. There are no persistence, transport or framework imports.",
+      "Graph: InMemoryTaskRepository (infrastructure) IMPLEMENTS ITaskRepository, and CreateTaskUseCase and CompleteTaskUseCase (application) CONSTRUCTOR_INJECTS it."
+    ],
+    "pass": true,
+    "reasoning": "The file only declares a repository port interface. It is written in domain terms (Task entity, ids, category) and has no persistence technology, transport, framework or business-rule implementation in it. Putting repository interfaces in the domain layer is standard practice in DDD and Clean Architecture. The graph shows the interface is implemented in infrastructure (InMemoryTaskRepository) and used by application use cases, which is consistent with a domain-owned port.",
+    "violations": []
+  },
+  "prompt": "## Rule\nThe unit's responsibilities match the role of its declared layer.\n\n## Rubric\nPass: Every responsibility in the file belongs to the role and kind of its declared layer, and agrees with any ADR prose given.\nFail: The file carries a responsibility that belongs to a different layer kind, for example persistence, transport or framework logic in a domain file, or business rules in an infrastructure or presentation file.\nEvidence required: Name the file and cite the function, method or statement that carries the misplaced responsibility, and the layer kind it belongs to.\nOut of scope: import direction and layer-dependency rules, which are checked symbolically.\n\n## Layer model\n- domain (kind: domain): src/domain/**\n- application (kind: application): src/application/**\n- infrastructure (kind: infrastructure): src/infrastructure/**\n\n## Unit\nKind: file\nId: src/domain/repositories/ITaskRepository.ts\nLayer: domain\nUnit files:\n- src/domain/repositories/ITaskRepository.ts\n\n## Source\n=====SOURCE-BEGIN src/domain/repositories/ITaskRepository.ts=====\nimport { Task } from '../entities/Task';\n\nexport interface ITaskRepository {\n  findById(id: string): Promise<Task | null>;\n  findAll(): Promise<Task[]>;\n  findByCategory(categoryId: string): Promise<Task[]>;\n  save(task: Task): Promise<Task>;\n  delete(id: string): Promise<void>;\n}\n\n=====SOURCE-END=====\n\n## Graph excerpt\n{\"edges\":[{\"from\":\"CompleteTaskUseCase@src/application/use-cases/CompleteTaskUseCase.ts\",\"to\":\"ITaskRepository@src/domain/repositories/ITaskRepository.ts\",\"type\":\"CONSTRUCTOR_INJECTS\"},{\"from\":\"CreateTaskUseCase@src/application/use-cases/CreateTaskUseCase.ts\",\"to\":\"ITaskRepository@src/domain/repositories/ITaskRepository.ts\",\"type\":\"CONSTRUCTOR_INJECTS\"},{\"from\":\"InMemoryTaskRepository@src/infrastructure/repositories/InMemoryTaskRepository.ts\",\"to\":\"ITaskRepository@src/domain/repositories/ITaskRepository.ts\",\"type\":\"IMPLEMENTS\"},{\"from\":\"src/application/use-cases/CompleteTaskUseCase.ts\",\"to\":\"src/domain/repositories/ITaskRepository.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/application/use-cases/CreateTaskUseCase.ts\",\"to\":\"src/domain/repositories/ITaskRepository.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/domain/repositories/ITaskRepository.ts\",\"to\":\"src/domain/entities/Task.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/infrastructure/repositories/InMemoryTaskRepository.ts\",\"to\":\"src/domain/repositories/ITaskRepository.ts\",\"type\":\"IMPORTS\"}],\"nodes\":[{\"kind\":\"Class\",\"layer\":\"application\",\"name\":\"CompleteTaskUseCase\",\"path\":\"src/application/use-cases/CompleteTaskUseCase.ts\"},{\"kind\":\"Class\",\"layer\":\"application\",\"name\":\"CreateTaskUseCase\",\"path\":\"src/application/use-cases/CreateTaskUseCase.ts\"},{\"kind\":\"Class\",\"layer\":\"infrastructure\",\"name\":\"InMemoryTaskRepository\",\"path\":\"src/infrastructure/repositories/InMemoryTaskRepository.ts\"},{\"kind\":\"File\",\"layer\":\"application\",\"path\":\"src/application/use-cases/CompleteTaskUseCase.ts\"},{\"kind\":\"File\",\"layer\":\"application\",\"path\":\"src/application/use-cases/CreateTaskUseCase.ts\"},{\"kind\":\"File\",\"layer\":\"domain\",\"path\":\"src/domain/entities/Task.ts\"},{\"kind\":\"File\",\"layer\":\"domain\",\"path\":\"src/domain/repositories/ITaskRepository.ts\"},{\"kind\":\"File\",\"layer\":\"infrastructure\",\"path\":\"src/infrastructure/repositories/InMemoryTaskRepository.ts\"},{\"kind\":\"Interface\",\"layer\":\"domain\",\"name\":\"ITaskRepository\",\"path\":\"src/domain/repositories/ITaskRepository.ts\"}]}\n\n## Instructions\nJudge the unit against the rule and rubric. Return the JSON object the schema requires. Set pass to false if any file of the unit fails the rubric.\n",
+  "provider": "claude-cli",
+  "recordedAt": "2026-10-09T17:12:04.544Z",
+  "repetition": 0,
+  "requestHash": "a0d8c5f0a996b6c7e223a476ec271c2df5411dea781ee632e7a31523a61d2a29",
+  "resolvedModel": "claude-opus-5-5",
+  "response": "{\"is_error\":false,\"modelUsage\":{\"claude-opus-5-5\":{\"inputTokens\":2,\"outputTokens\":479}},\"result\":\"{\\\"pass\\\":true,\\\"confidence\\\":0.95,\\\"reasoning\\\":\\\"The file only declares a repository port interface. It is written in domain terms (Task entity, ids, category) and has no persistence technology, transport, framework or business-rule implementation in it. Putting repository interfaces in the domain layer is standard practice in DDD and Clean Architecture. The graph shows the interface is implemented in infrastructure (InMemoryTaskRepository) and used by application use cases, which is consistent with a domain-owned port.\\\",\\\"evidence\\\":[\\\"src/domain/repositories/ITaskRepository.ts declares only `export interface ITaskRepository` with findById, findAll, findByCategory, save and delete. These are abstract signatures with no implementation.\\\",\\\"The only import is the domain entity Task from '../entities/Task'. There are no persistence, transport or framework imports.\\\",\\\"Graph: InMemoryTaskRepository (infrastructure) IMPLEMENTS ITaskRepository, and CreateTaskUseCase and CompleteTaskUseCase (application) CONSTRUCTOR_INJECTS it.\\\"],\\\"violations\\\":[]}\",\"structured_output\":{\"confidence\":0.95,\"evidence\":[\"src/domain/repositories/ITaskRepository.ts declares only `export interface ITaskRepository` with findById, findAll, findByCategory, save and delete. These are abstract signatures with no implementation.\",\"The only import is the domain entity Task from '../entities/Task'. There are no persistence, transport or framework imports.\",\"Graph: InMemoryTaskRepository (infrastructure) IMPLEMENTS ITaskRepository, and CreateTaskUseCase and CompleteTaskUseCase (application) CONSTRUCTOR_INJECTS it.\"],\"pass\":true,\"reasoning\":\"The file only declares a repository port interface. It is written in domain terms (Task entity, ids, category) and has no persistence technology, transport, framework or business-rule implementation in it. Putting repository interfaces in the domain layer is standard practice in DDD and Clean Architecture. The graph shows the interface is implemented in infrastructure (InMemoryTaskRepository) and used by application use cases, which is consistent with a domain-owned port.\",\"violations\":[]}}",
+  "runIndex": 1,
+  "schemaVersion": 2,
+  "unitId": "src/domain/repositories/ITaskRepository.ts",
+  "usage": {
+    "inputTokens": 3009,
+    "outputTokens": 479
+  },
+  "usedOptions": {
+    "effort": "high",
+    "model": "claude-opus-5-5"
+  }
+}

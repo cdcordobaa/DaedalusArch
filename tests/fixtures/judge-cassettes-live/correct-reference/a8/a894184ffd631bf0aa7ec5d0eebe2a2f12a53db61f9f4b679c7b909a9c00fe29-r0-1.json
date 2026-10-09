@@ -1,0 +1,46 @@
+{
+  "attempts": 1,
+  "cliVersion": "2.1.294",
+  "configListingSha256": "47aa04258852fab9a706f3f0c14cee22306d69fbb6fdfbde8c11854bd54997bc",
+  "durationMs": 6165,
+  "effort": "high",
+  "functionId": "FF-N02",
+  "ignoredOptions": [
+    "maxTokens"
+  ],
+  "isolationProbeSha256": "97a2e2d0af1100c13c55e028c1a0c71f069093c3d08705af122aaeb302f1a641",
+  "key": "a894184ffd631bf0aa7ec5d0eebe2a2f12a53db61f9f4b679c7b909a9c00fe29-r0-1",
+  "model": "claude-opus-5-5",
+  "outcome": {
+    "kind": "valid"
+  },
+  "parsedVerdict": {
+    "confidence": 0.93,
+    "evidence": [
+      "src/infrastructure/controllers/TaskController.ts: createTask(title, description, categoryId) only returns this.createTaskUseCase.execute(title, description, categoryId)",
+      "src/infrastructure/controllers/TaskController.ts: completeTask(id) only returns this.completeTaskUseCase.execute(id)",
+      "Constructor injects ICreateTaskUseCase and ICompleteTaskUseCase; the class holds no other state or logic"
+    ],
+    "pass": true,
+    "reasoning": "TaskController lives in the infrastructure layer and works as a thin inbound adapter. Its only job is to take arguments and pass them to the injected application use-case interfaces. It has no business rules, validation, domain decisions or persistence logic. Delegating to use cases is the expected role for an infrastructure or presentation adapter. No ADR prose was given that would say otherwise.",
+    "violations": []
+  },
+  "prompt": "## Rule\nThe unit's responsibilities match the role of its declared layer.\n\n## Rubric\nPass: Every responsibility in the file belongs to the role and kind of its declared layer, and agrees with any ADR prose given.\nFail: The file carries a responsibility that belongs to a different layer kind, for example persistence, transport or framework logic in a domain file, or business rules in an infrastructure or presentation file.\nEvidence required: Name the file and cite the function, method or statement that carries the misplaced responsibility, and the layer kind it belongs to.\nOut of scope: import direction and layer-dependency rules, which are checked symbolically.\n\n## Layer model\n- domain (kind: domain): src/domain/**\n- application (kind: application): src/application/**\n- infrastructure (kind: infrastructure): src/infrastructure/**\n\n## Unit\nKind: file\nId: src/infrastructure/controllers/TaskController.ts\nLayer: infrastructure\nUnit files:\n- src/infrastructure/controllers/TaskController.ts\n\n## Source\n=====SOURCE-BEGIN src/infrastructure/controllers/TaskController.ts=====\nimport { ICreateTaskUseCase } from '../../application/use-cases/ICreateTaskUseCase';\nimport { ICompleteTaskUseCase } from '../../application/use-cases/ICompleteTaskUseCase';\n\nexport class TaskController {\n  constructor(\n    private readonly createTaskUseCase: ICreateTaskUseCase,\n    private readonly completeTaskUseCase: ICompleteTaskUseCase\n  ) {}\n\n  async createTask(title: string, description: string, categoryId: string) {\n    return this.createTaskUseCase.execute(title, description, categoryId);\n  }\n\n  async completeTask(id: string) {\n    return this.completeTaskUseCase.execute(id);\n  }\n}\n\n=====SOURCE-END=====\n\n## Graph excerpt\n{\"edges\":[{\"from\":\"TaskController@src/infrastructure/controllers/TaskController.ts\",\"to\":\"ICompleteTaskUseCase@src/application/use-cases/ICompleteTaskUseCase.ts\",\"type\":\"CONSTRUCTOR_INJECTS\"},{\"from\":\"TaskController@src/infrastructure/controllers/TaskController.ts\",\"to\":\"ICreateTaskUseCase@src/application/use-cases/ICreateTaskUseCase.ts\",\"type\":\"CONSTRUCTOR_INJECTS\"},{\"from\":\"src/infrastructure/controllers/TaskController.ts\",\"to\":\"src/application/use-cases/ICompleteTaskUseCase.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/infrastructure/controllers/TaskController.ts\",\"to\":\"src/application/use-cases/ICreateTaskUseCase.ts\",\"type\":\"IMPORTS\"}],\"nodes\":[{\"kind\":\"Class\",\"layer\":\"infrastructure\",\"name\":\"TaskController\",\"path\":\"src/infrastructure/controllers/TaskController.ts\"},{\"kind\":\"File\",\"layer\":\"application\",\"path\":\"src/application/use-cases/ICompleteTaskUseCase.ts\"},{\"kind\":\"File\",\"layer\":\"application\",\"path\":\"src/application/use-cases/ICreateTaskUseCase.ts\"},{\"kind\":\"File\",\"layer\":\"infrastructure\",\"path\":\"src/infrastructure/controllers/TaskController.ts\"},{\"kind\":\"Interface\",\"layer\":\"application\",\"name\":\"ICompleteTaskUseCase\",\"path\":\"src/application/use-cases/ICompleteTaskUseCase.ts\"},{\"kind\":\"Interface\",\"layer\":\"application\",\"name\":\"ICreateTaskUseCase\",\"path\":\"src/application/use-cases/ICreateTaskUseCase.ts\"}]}\n\n## Instructions\nJudge the unit against the rule and rubric. Return the JSON object the schema requires. Set pass to false if any file of the unit fails the rubric.\n",
+  "provider": "claude-cli",
+  "recordedAt": "2026-10-09T17:12:10.711Z",
+  "repetition": 0,
+  "requestHash": "a894184ffd631bf0aa7ec5d0eebe2a2f12a53db61f9f4b679c7b909a9c00fe29",
+  "resolvedModel": "claude-opus-5-5",
+  "response": "{\"is_error\":false,\"modelUsage\":{\"claude-opus-5-5\":{\"inputTokens\":2,\"outputTokens\":420}},\"result\":\"{\\\"pass\\\":true,\\\"confidence\\\":0.93,\\\"reasoning\\\":\\\"TaskController lives in the infrastructure layer and works as a thin inbound adapter. Its only job is to take arguments and pass them to the injected application use-case interfaces. It has no business rules, validation, domain decisions or persistence logic. Delegating to use cases is the expected role for an infrastructure or presentation adapter. No ADR prose was given that would say otherwise.\\\",\\\"evidence\\\":[\\\"src/infrastructure/controllers/TaskController.ts: createTask(title, description, categoryId) only returns this.createTaskUseCase.execute(title, description, categoryId)\\\",\\\"src/infrastructure/controllers/TaskController.ts: completeTask(id) only returns this.completeTaskUseCase.execute(id)\\\",\\\"Constructor injects ICreateTaskUseCase and ICompleteTaskUseCase; the class holds no other state or logic\\\"],\\\"violations\\\":[]}\",\"structured_output\":{\"confidence\":0.93,\"evidence\":[\"src/infrastructure/controllers/TaskController.ts: createTask(title, description, categoryId) only returns this.createTaskUseCase.execute(title, description, categoryId)\",\"src/infrastructure/controllers/TaskController.ts: completeTask(id) only returns this.completeTaskUseCase.execute(id)\",\"Constructor injects ICreateTaskUseCase and ICompleteTaskUseCase; the class holds no other state or logic\"],\"pass\":true,\"reasoning\":\"TaskController lives in the infrastructure layer and works as a thin inbound adapter. Its only job is to take arguments and pass them to the injected application use-case interfaces. It has no business rules, validation, domain decisions or persistence logic. Delegating to use cases is the expected role for an infrastructure or presentation adapter. No ADR prose was given that would say otherwise.\",\"violations\":[]}}",
+  "runIndex": 1,
+  "schemaVersion": 2,
+  "unitId": "src/infrastructure/controllers/TaskController.ts",
+  "usage": {
+    "inputTokens": 2787,
+    "outputTokens": 420
+  },
+  "usedOptions": {
+    "effort": "high",
+    "model": "claude-opus-5-5"
+  }
+}

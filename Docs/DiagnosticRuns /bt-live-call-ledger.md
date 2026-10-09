@@ -37,6 +37,8 @@ Totals: Step 35 (3) + FF-N01 (17) + FF-N02 (35) = **55 > 40**. **E-2 confirmed**
 | — | 2026-10-08 | 38 | SEN-01 FF-N02 **not started**: needs 35 (Step 36), remaining 20; **E-2 open** | 0 | 20 |
 | — | 2026-10-09 | — | ADR-019 item 5: cap raised to 200, so E-2 is resolved | 0 | 20 |
 | 4 | 2026-10-09 | ADR-022 item 5 | Pinned judge CLI check: dedicated `2.1.294` at `~/.firewall/judge-cli` (the author's install is now `2.1.295`), keychain auth through the judge config dir. 1 init probe (pass: tools `[StructuredOutput]`, `mcp_servers` `[]`, `apiKeySource` none, model `claude-opus-5-5`) + 1 judge call (`INIT_PROBE_PROMPT`, `is_error` false, resolved `claude-opus-5-5`). Beforehand, the allow-list check failed closed on 4 entries left by a non-judge session at 04:12: `history.jsonl`, `plugins/` and its cache file, and a session transcript under `projects/<DaedalusArch cwd>/`. The operator moved them to `~/.firewall/judge-config-quarantine-2026-10-09/` (mode 700; ADR-018 item 1 remedy, nothing deleted), and the listing then passed. | 2 (no retry) | 22 |
+| 5 | 2026-10-09 | 38 | SEN-01 FF-N02, base copy (scratch spec with FF-N01 off, DV-BT-3, under the current specs): 1 init probe + 10 file units × 3 | 31 (30 cassette attempts, no retry, + 1 probe) | 53 |
+| 6 | 2026-10-09 | 38 | SEN-01 FF-N02, S copy (same cassette dir; 9 base units hit): 1 init probe + `Task.ts` × 3 | 4 (3 cassette attempts, no retry, + 1 probe) | **57** |
 
 ## Generator (cap 11 sessions + 3 retries; not judge calls)
 
