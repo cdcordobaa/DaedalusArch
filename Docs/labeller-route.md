@@ -24,7 +24,10 @@
 - **Cross-conversation memory**: a planted codeword was not recalled by a later call. There is no positive control, because `/learn` is disabled: **residual**.
 - **No system channel**: the persona is prepended to the prompt.
 
-## 3. Determinism-rule amendment (ADR-021 SO3-4)
+## 3. Determinism-rule amendment (ADR-021 SO3-4, THR-5)
+
+**Amendment.** On the agy route, BR-U5b-31's "temperature 0" rule becomes: *temperature cannot be set; the run is fixed instead by the pinned CLI version, the pinned model id, the frozen argv and the dedicated home, and its variability is measured rather than suppressed.*
+
 
 agy has no temperature, seed or max-token setting. BR-U5b-31's "temperature 0" therefore cannot be honoured on this route. The labeller still sends `temperature: 0`, and every cassette records it under `ignoredOptions`. The two runs per item (BR-U5b-32) and the run-vs-run agreement measure the resulting variability. **Validity criterion (ADR-021)**: if run-vs-run κ < 0.60, the FP/FN taxonomy is reported as descriptive only.
 
@@ -45,3 +48,12 @@ The exit code is never trusted on its own.
 ## 5. Capacity
 
 A label call takes about 60 s and uses 74k–124k input tokens, because the agent turn resends its large system prompt. On the author's tier, the 2-call smoke consumed about 1.1 % of the weekly Gemini quota and 2.6 % of the 5-hour quota. That allows roughly 180 label calls per week and 75 per 5-hour window. The registered `labellingBudgetCalls` of 4000 would need about 22 weekly windows. This is escalated to the author; see the ledger.
+
+## 6. Call count (`llm-label --estimate`)
+
+There is no real label plan yet: the P1–P4 / MS plan producer is a U6 item, and its inputs come from the so4-heldout, e7-corpus and e1-grid runs. Today the estimate can run only on fixtures:
+
+- `tests/fixtures/u5b/labels/plan.json`: `estimate: 40 calls <= budget 200 (caps P2 20, P3 20, P4 10)`; that 200 is the fixture's own `budgetCalls`.
+- `tests/fixtures/agy-cli/smoke-plan.json`: `estimate: 2 calls <= budget 4`.
+
+The registered ceiling is `labellingBudgetCalls` 4000 (`corpus/prereg.json`). At the measured quota (§5), that ceiling exceeds what the route can deliver in a reasonable time, so the author must decide on the budget before live labelling. Registration of this document and of the amendment above belongs to P-U6; `corpus/prereg.json` is not bumped here.

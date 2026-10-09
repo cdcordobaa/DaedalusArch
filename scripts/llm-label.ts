@@ -22,6 +22,7 @@ import { listCassetteKeys, readCassetteEntry } from '../src/llm-critic/cassette-
 import { CassetteLLMProvider } from '../src/llm-critic/cassette-provider.js';
 import type { ArgvFlagSource, Interpretation } from '../src/llm-critic/cassette-provider.js';
 import { buildAgyArgs } from '../src/llm-critic/agy-cli-provider.js';
+import type { DomainResult } from '../src/shared/errors/domain-result.js';
 import type { LLMOptions, LLMProvider } from '../src/shared/interfaces/llm-provider.js';
 import type { VCRMode } from '../src/shared/types/llm-config.js';
 import { ROOT_CAUSE_CODES } from './lib/matching-rule.js';
@@ -441,6 +442,11 @@ export interface LabelMainIo {
   err(text: string): void;
   writeFile(path: string, text: string): void;
 }
+/** A live provider with an isolation pre-flight (agy): its facts become the cassettes' run provenance. */
+export type PreparableProvider = LLMProvider & {
+  readonly prepare?: () => Promise<DomainResult<{ readonly cliVersion: string; readonly isolationProbeSha256: string; readonly configListingSha256: string }>>;
+};
+
 export interface LabelMainDeps {
   /** Builds the live provider for `--provider gemini` (record mode only; never constructed in tests). */
   readonly gemini?: (model: string) => LLMProvider;
@@ -448,7 +454,7 @@ export interface LabelMainDeps {
    * Builds the live provider for `--provider agy` (ADR-019 item 4 as amended; record mode only). A provider
    * with `prepare()` runs its isolation pre-flight before the first call; a failed pre-flight stops the run.
    */
-  readonly agy?: (model: string) => LLMProvider & { prepare?: () => Promise<{ success: boolean; data?: { cliVersion: string; isolationProbeSha256: string; configListingSha256: string }; errors?: readonly { code: string; message: string }[] }> };
+  readonly agy?: (model: string) => PreparableProvider;
   readonly mock?: () => LLMProvider;
 }
 
@@ -550,15 +556,15 @@ export async function main(argv: readonly string[], repoRoot: string, io: LabelM
   let provider: LLMProvider = disabled;
   let cassetteProvenance: LabellerConfig['cassetteProvenance'];
   if (mode === 'record') {
-    const made = providerName === 'mock' ? deps.mock?.() : providerName === 'gemini' ? deps.gemini?.(model) : deps.agy?.(model);
+    const made: PreparableProvider | undefined = providerName === 'mock' ? deps.mock?.() : providerName === 'gemini' ? deps.gemini?.(model) : deps.agy?.(model);
     if (made === undefined) {
       io.err(`--provider ${providerName} is not available in record mode\n`);
       return 2;
     }
-    if ('prepare' in made && typeof made.prepare === 'function') {
+    if (made.prepare !== undefined) {
       const prepared = await made.prepare();
-      if (!prepared.success || prepared.data === undefined) {
-        const e = prepared.errors?.[0];
+      if (!prepared.success) {
+        const e = prepared.errors[0];
         io.err(`${LABELLER_STOPPED}: ${e?.code ?? 'PREFLIGHT'}: ${e?.message ?? 'pre-flight failed'}\n`);
         return 1;
       }

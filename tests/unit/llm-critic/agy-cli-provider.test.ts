@@ -20,6 +20,14 @@ const FIX = path.resolve(__dirname, '../../fixtures/agy-cli');
 const REPO = path.resolve(__dirname, '../../..');
 const text = (name: string): string => fs.readFileSync(path.join(FIX, name), 'utf8');
 
+function firstError<T>(r: DomainResult<T>): { code: string; message: string } | undefined {
+  return r.success ? undefined : r.errors[0];
+}
+function dataOf<T>(r: DomainResult<T>): T {
+  if (!r.success) throw new Error(`expected success, got ${r.errors[0]?.code ?? '?'}`);
+  return r.data;
+}
+
 const roots: string[] = [];
 function tmpDir(prefix = 'agy-test-'): string {
   const dir = fs.mkdtempSync(path.join(os.tmpdir(), prefix));
@@ -50,8 +58,9 @@ function stubRunner(answers: readonly ((args: readonly string[]) => ProcessResul
 }
 
 /** The pre-flight answers: version, MCP list, plugin list. */
+const VERSION_OK = (): ProcessResult => proc(`${AGY_PINNED_VERSION}\n`);
 const PREFLIGHT = [
-  (): ProcessResult => proc(`${AGY_PINNED_VERSION}\n`),
+  VERSION_OK,
   (): ProcessResult => proc('No MCP servers configured.\n'),
   (): ProcessResult => proc('No imported plugins.\n'),
 ];
@@ -177,7 +186,7 @@ describe('agy home and cwd checks', () => {
     fs.writeFileSync(path.join(root, 'AGENTS.md'), 'rule');
     const bad = createAgyNeutralCwd(root);
     expect(bad.success).toBe(false);
-    expect(bad.errors[0]?.code).toBe('LLM_CLI_ISOLATION');
+    expect(firstError(bad)?.code).toBe('LLM_CLI_ISOLATION');
     expect(fs.readdirSync(root).filter((n) => n.startsWith('daedalus-labeller-'))).toHaveLength(1);
   });
 });
@@ -186,20 +195,20 @@ describe('agy pre-flight', () => {
   it('passes on the pin, a clean home and empty MCP and plugin listings', async () => {
     const r = await checkAgyIsolation({ runner: stubRunner(PREFLIGHT), home: cleanHome(), parentEnv: { PATH: '/bin' }, tmpRoot: tmpDir() });
     expect(r.success).toBe(true);
-    expect(r.data.cliVersion).toBe(AGY_PINNED_VERSION);
-    expect(r.data.isolationProbeSha256).toMatch(/^[0-9a-f]{64}$/);
+    expect(dataOf(r).cliVersion).toBe(AGY_PINNED_VERSION);
+    expect(dataOf(r).isolationProbeSha256).toMatch(/^[0-9a-f]{64}$/);
   });
 
   it('stops on version drift, a bad home and configured MCP servers', async () => {
     const env = { PATH: '/bin' };
     const drift = await checkAgyIsolation({ runner: stubRunner([() => proc('1.4.0\n')]), home: cleanHome(), parentEnv: env, tmpRoot: tmpDir() });
-    expect(drift.errors[0]?.code).toBe('LLM_CLI_VERSION_DRIFT');
+    expect(firstError(drift)?.code).toBe('LLM_CLI_VERSION_DRIFT');
     const home = cleanHome();
     fs.writeFileSync(path.join(home, '.gemini/AGENTS.md'), 'rule');
     const bad = await checkAgyIsolation({ runner: stubRunner(PREFLIGHT), home, parentEnv: env, tmpRoot: tmpDir() });
-    expect(bad.errors[0]?.code).toBe('LLM_CLI_ISOLATION');
-    const mcp = await checkAgyIsolation({ runner: stubRunner([PREFLIGHT[0]!, () => proc('x  stdio  on\n')]), home: cleanHome(), parentEnv: env, tmpRoot: tmpDir() });
-    expect(mcp.errors[0]?.message).toMatch(/mcp list/);
+    expect(firstError(bad)?.code).toBe('LLM_CLI_ISOLATION');
+    const mcp = await checkAgyIsolation({ runner: stubRunner([VERSION_OK, () => proc('x  stdio  on\n')]), home: cleanHome(), parentEnv: env, tmpRoot: tmpDir() });
+    expect(firstError(mcp)?.message).toMatch(/mcp list/);
   });
 });
 
@@ -209,10 +218,11 @@ describe('AgyCliProvider', () => {
     const p = new AgyCliProvider({ home: cleanHome() }, { runner, parentEnv: { PATH: '/bin' }, tmpRoot: tmpDir() });
     const r = await p.evaluate('QUESTION', OPTIONS, CALL);
     expect(r.success).toBe(true);
-    expect(JSON.parse(r.data.content)).toHaveProperty('option', 1);
-    expect(r.data.model).toBe('gemini-3.1-pro-high');
-    expect(r.data.ignoredOptions).toEqual(['temperature', 'maxTokens']);
-    const call = runner.seen[3]!;
+    expect(JSON.parse(dataOf(r).content)).toHaveProperty('option', 1);
+    expect(dataOf(r).model).toBe('gemini-3.1-pro-high');
+    expect(dataOf(r).ignoredOptions).toEqual(['temperature', 'maxTokens']);
+    const call = runner.seen[3];
+    if (call === undefined) throw new Error('no model call was made');
     expect(call.options.stdin).toBe('PERSONA\n\nQUESTION');
     expect(call.args).not.toContain('QUESTION');
     expect(call.cwdExisted).toBe(true);
@@ -223,7 +233,7 @@ describe('AgyCliProvider', () => {
   it('returns the pre-flight stop and never spawns a model call in replay mode', async () => {
     const runner = stubRunner([() => proc('9.9.9\n')]);
     const p = new AgyCliProvider({ home: cleanHome() }, { runner, tmpRoot: tmpDir() });
-    expect((await p.evaluate('Q', OPTIONS, CALL)).errors[0]?.code).toBe('LLM_CLI_VERSION_DRIFT');
+    expect(firstError(await p.evaluate('Q', OPTIONS, CALL))?.code).toBe('LLM_CLI_VERSION_DRIFT');
     const replay = new AgyCliProvider({ home: cleanHome(), mode: 'replay' }, { runner: stubRunner([]), tmpRoot: tmpDir() });
     expect((await replay.prepare()).success).toBe(false);
   });
