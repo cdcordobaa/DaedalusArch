@@ -145,6 +145,8 @@ export interface RejectedPair {
   readonly baseKind: BaseKind;
   /** The row is a golden-set instance (held-out positive symbolic, not a judge probe; BR-U5a-01). */
   readonly golden: boolean;
+  /** The spec's `architecture.style` at the row's `specSha256`, when declared (ADR-021 SO1-C), as on `InstanceResult`. */
+  readonly specStyle?: string;
   readonly code: typeof SCORE_INPUT_REJECTED | typeof EDGE_EVIDENCE_UNAVAILABLE;
   readonly reason: string;
 }
@@ -965,10 +967,11 @@ function increment(m: Map<string, number>, k: string): void {
   m.set(k, (m.get(k) ?? 0) + 1);
 }
 
-function rejectedPair(row: ManifestRow, code: RejectedPair['code'], reason: string): RejectedPair {
+function rejectedPair(row: ManifestRow, code: RejectedPair['code'], reason: string, specStyles: ReadonlyMap<string, string> | undefined): RejectedPair {
+  const specStyle = specStyles?.get(row.specSha256);
   return {
     seedId: row.seedId, projectId: row.projectId, operatorId: row.operatorId, split: row.split, baseKind: row.baseKind,
-    golden: isGoldenRow(row), code, reason,
+    golden: isGoldenRow(row), ...(specStyle !== undefined && { specStyle }), code, reason,
   };
 }
 
@@ -976,7 +979,7 @@ function rejectedPair(row: ManifestRow, code: RejectedPair['code'], reason: stri
  * Scores the seeds (BR-U5b-02..25; SP-* probe rows are left to `scoreSensitivity`). A rejected pair is listed in
  * `rejectedPairs` and the rest are scored (ADR-021 SO4-03); a keyless operator collateral entry is a defect of the
  * frozen instrument and still refuses the whole score (`SCORE_COLLATERAL_UNKEYED`), as does a case in which every
- * pair is rejected (the code of the first rejection, every reason in the detail).
+ * pair is rejected and no SP-* probe pair was accepted (the code of the first rejection, every reason in the detail).
  */
 export function scoreDifferential(input: ScoreInput): ScoreOutcome {
   const pairs: AcceptedPair[] = [];
@@ -986,7 +989,7 @@ export function scoreDifferential(input: ScoreInput): ScoreOutcome {
     if (unkeyed !== undefined) return { ok: false, code: SCORE_COLLATERAL_UNKEYED, detail: unkeyed };
     const acc = acceptPair(seed, input.pinnedJudge);
     if (!acc.ok) {
-      rejected.push(rejectedPair(seed.row, SCORE_INPUT_REJECTED, acc.reason));
+      rejected.push(rejectedPair(seed.row, SCORE_INPUT_REJECTED, acc.reason, input.specStyles));
       continue;
     }
     pairs.push(acc.pair);
@@ -1003,7 +1006,7 @@ export function scoreDifferential(input: ScoreInput): ScoreOutcome {
     if (p.row.split === 'probe') continue; // SP-* probes: scoreSensitivity only (BR-U5b-20, 78)
     const edges = edgeEvidenceOf(p);
     if (!edges.ok) {
-      rejected.push(rejectedPair(p.row, EDGE_EVIDENCE_UNAVAILABLE, edges.detail));
+      rejected.push(rejectedPair(p.row, EDGE_EVIDENCE_UNAVAILABLE, edges.detail, input.specStyles));
       continue;
     }
     edgeEvidence.push(...edges.value);
@@ -1014,8 +1017,10 @@ export function scoreDifferential(input: ScoreInput): ScoreOutcome {
     }
     scored.push(p);
   }
+  // Refused only when nothing at all is usable: accepted SP-* probe pairs still count, since scoreSensitivity uses them.
+  const acceptedProbes = pairs.filter((p) => p.row.split === 'probe').length;
   const [firstRejected] = rejected;
-  if (firstRejected !== undefined && scored.length === 0 && judgeProbe.length === 0) {
+  if (firstRejected !== undefined && scored.length === 0 && judgeProbe.length === 0 && acceptedProbes === 0) {
     return { ok: false, code: firstRejected.code, detail: rejected.map((r) => r.reason).join('; ') };
   }
   const readiness = input.metricKeyReadiness;
