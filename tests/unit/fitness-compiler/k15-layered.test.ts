@@ -17,6 +17,7 @@ import { LAYERED_TEMPLATE, resolveTemplate } from '../../../src/spec-parser/temp
 import { FUNCTION_FIELD_KEYS } from '../../../src/spec-parser/function-fields.js';
 import type { ParsedSpec } from '../../../src/shared/types/spec.js';
 import type { CompiledFunctions } from '../../../src/shared/types/evaluation.js';
+import { reenableAdr016b } from './adr016b.js';
 
 const ROOT = path.resolve(__dirname, '../../..');
 const LAYERED = path.join(ROOT, 'presets/layered.yaml');
@@ -37,7 +38,7 @@ const LAYERED_APPLICABLE = [
 async function parsed(file: string): Promise<{ spec: ParsedSpec; warnings: readonly { code: string; message: string }[] }> {
   const r = await parseSpec({ specFilePath: file }, { strictMode: true });
   if (!r.success) throw new Error(`spec did not parse: ${r.errors.map((e) => e.message).join('; ')}`);
-  return { spec: r.data, warnings: r.warnings ?? [] };
+  return { spec: reenableAdr016b(r.data), warnings: r.warnings ?? [] }; // ADR-016 b exclusions re-enabled (adr016b.ts)
 }
 
 function compiled(spec: ParsedSpec): CompiledFunctions {

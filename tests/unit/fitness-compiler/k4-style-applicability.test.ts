@@ -15,6 +15,7 @@ import { parseSpec } from '../../../src/spec-parser/spec-parser.js';
 import type { LayerKind } from '../../../src/shared/types/enums.js';
 import type { LayerModel, ParsedSpec } from '../../../src/shared/types/spec.js';
 import type { CompiledFunctions } from '../../../src/shared/types/evaluation.js';
+import { reenableAdr016b } from './adr016b.js';
 
 const ROOT = path.resolve(__dirname, '../../..');
 const TMP = fs.mkdtempSync(path.join(os.tmpdir(), 'u1-k4-'));
@@ -87,7 +88,7 @@ describe('BR-U1-18 (a): applicability table (business-rules.md §3.1, frozen)', 
 async function load(rel: string): Promise<ParsedSpec> {
   const r = await parseSpec({ specFilePath: path.join(ROOT, rel) });
   if (!r.success) throw new Error(`${rel} did not parse`);
-  return r.data;
+  return reenableAdr016b(r.data); // ADR-016 b exclusions re-enabled for the style rules (adr016b.ts)
 }
 
 function compile(spec: ParsedSpec): CompiledFunctions {

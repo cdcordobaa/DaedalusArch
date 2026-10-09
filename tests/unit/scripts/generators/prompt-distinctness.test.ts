@@ -5,6 +5,7 @@
  * statement or threshold; `minimal-prose` has every layer name, a dependency-direction statement, 120–180 words, no
  * rule id and no numeric threshold; `full-aac` has rule ids and numeric thresholds.
  */
+import { execFileSync } from 'node:child_process';
 import * as fs from 'node:fs';
 import * as path from 'node:path';
 import { loadPromptTemplate } from '../../../../scripts/lib/generators/prompt.js';
@@ -12,6 +13,17 @@ import { TASK_IDS } from '../../../../scripts/lib/generators/schedule.js';
 import type { SpecLevel, TaskId } from '../../../../scripts/lib/generators/types.js';
 
 const REPO = process.cwd();
+
+/**
+ * The preset as it was when the registered full-aac prompt was last written (the generator protocol is frozen, B&T
+ * Step 41). The working preset may change later (BT-E1: FF-CV01 and FF-CV04 disabled, ADR-016 b) without touching the
+ * frozen prompt; ADR-022 records that the full-aac prompt keeps the frozen preset text. Needs full history (CI
+ * fetch-depth 0).
+ */
+function frozenPreset(): string {
+  const commit = execFileSync('git', ['log', '-1', '--format=%H', '--', 'scripts/generator/prompts/full-aac.md'], { cwd: REPO, encoding: 'utf8' }).trim();
+  return execFileSync('git', ['show', `${commit}:presets/clean-architecture.yaml`], { cwd: REPO, encoding: 'utf8' });
+}
 const FOLDER_SENTENCE = 'Organise the source code under src/ in exactly three folders: src/domain, src/application and src/infrastructure.';
 const LAYER_NAMES = ['domain', 'application', 'infrastructure'];
 const LAYER = new RegExp(`\\b(?:${LAYER_NAMES.join('|')})\\b`, 'i');
@@ -74,6 +86,6 @@ describe.each(TASK_IDS)('prompt templates for %s (BR-U5a-52)', (task) => {
     const block = levelBlock('full-aac', task);
     expect(block).toMatch(RULE_ID);
     expect(block).toMatch(NUMBER);
-    expect(block).toContain(fs.readFileSync(path.join(REPO, 'presets/clean-architecture.yaml'), 'utf8').trimEnd());
+    expect(block).toContain(frozenPreset().trimEnd());
   });
 });

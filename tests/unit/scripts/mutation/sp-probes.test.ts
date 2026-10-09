@@ -41,6 +41,7 @@ import { CLEAN_SPEC, CORRECT_DIR, LAYERED_SPEC, NOW, REPO, fixtureBase } from '.
 
 jest.setTimeout(900_000);
 
+const ADR016B: readonly string[] = ['FF-CV01', 'FF-CV04'];
 const CATEGORY = 'src/domain/entities/Category.ts';
 const ICAT = 'src/domain/repositories/ICategoryRepository.ts';
 const CREATE = 'src/application/use-cases/CreateTaskUseCase.ts';
@@ -99,11 +100,15 @@ afterAll(() => {
 });
 
 describe('SP target set (BR-U5a-30)', () => {
-  it('equals the compiled symbolic set of clean-arch plus FF-S03 under the layered spec; every probe resolves (FF-P06 since U3)', async () => {
+  it('equals the compiled symbolic set of clean-arch plus FF-S03 under the layered spec plus the two ADR-016 b exclusions; every probe resolves (FF-P06 since U3)', async () => {
     const clean = await spec(CLEAN_SPEC);
     const layered = await spec(LAYERED_SPEC);
     const expected = new Set([...clean.enabled.values()].flat().map((f) => f.functionId));
-    expect(expected.size).toBe(24);
+    // BT-E1 (ADR-016 b): FF-CV01 and FF-CV04 failed their frozen probes and are disabled with a reason; the frozen probe
+    // set still targets them and resolves them through the disabled list.
+    expect(expected.size).toBe(22);
+    for (const id of ADR016B) expect([...clean.disabled.values()].flat().map((d) => d.functionId)).toContain(id);
+    for (const id of ADR016B) expected.add(id);
     expect(expected.has('FF-P06')).toBe(true);
     expect(expected.has('FF-S03')).toBe(false);
     expect((layered.enabled.get('no-layer-skip') ?? []).map((f) => f.functionId)).toEqual(['FF-S03']);
@@ -111,7 +116,8 @@ describe('SP target set (BR-U5a-30)', () => {
     const resolved = new Set<string>();
     const unresolved: string[] = [];
     for (const p of SP_PROBES) {
-      const ids = ((await spec(p.spec)).enabled.get(p.targetTemplate) ?? []).map((f) => f.functionId);
+      const c = await spec(p.spec);
+      const ids = [...(c.enabled.get(p.targetTemplate) ?? []), ...(c.disabled.get(p.targetTemplate) ?? []).filter((d) => ADR016B.includes(d.functionId))].map((f) => f.functionId);
       if (ids.length === 0) unresolved.push(p.op.id);
       for (const id of ids) {
         resolved.add(id);
@@ -165,6 +171,12 @@ describe('each probe applies to its fixture and type-checks', () => {
       // BR-U3-22: the injection row has no line; key (site, target, [class, targetName, 'CONSTRUCTOR_INJECTS', parameter]).
       expect(row.expected.functionIds).toEqual(['FF-P06']);
       expect(row.expected.keys.map((k) => [k.functionId, k.lineRule, k.discriminator[2]])).toEqual([['FF-P06', 'none', 'CONSTRUCTOR_INJECTS']]);
+    } else if (ADR016B.includes(target)) {
+      // BT-E1 (ADR-016 b): the target is disabled with its reason, so the row expects no key of it.
+      expect(row.expected.functionIds).toEqual([]);
+      const disabled = (row.expected as { readonly disabledFunctionIds: readonly { readonly functionId: string; readonly reason: string }[] }).disabledFunctionIds;
+      expect(disabled.map((d) => d.functionId)).toEqual([target]);
+      expect(disabled[0]?.reason).toContain('ADR-016 b');
     } else {
       expect(row.expected.functionIds).toEqual([target]);
       expect(row.expected.keys.map((k) => k.functionId)).toEqual([target]);
@@ -191,9 +203,9 @@ describe('probe edits (worked values on correct-reference)', () => {
     expect(keyOf('SP-FF-P04')).toEqual([[CREATE, '', ['CreateTaskUseCase'], 'none']]);
     expect(keyOf('SP-FF-P05')).toEqual([[CTRL, '', ['TaskController', 'ProbeEntity'], 'none']]);
     expect(keyOf('SP-FF-SO03')).toEqual([['src/application/use-cases/ProbeHierarchy.ts', '', ['ProbeLevel4'], 'none']]);
-    expect(keyOf('SP-FF-CV01')).toEqual([[CATEGORY, '', ['category_probe'], 'site-line']]);
+    expect(keyOf('SP-FF-CV01')).toEqual([]); // BT-E1: disabled (ADR-016 b); was [[CATEGORY, '', ['category_probe'], 'site-line']]
     expect(keyOf('SP-FF-CV03')).toEqual([[IMPL, '', ['InMemoryTaskRepositoryImpl'], 'site-line']]);
-    expect(keyOf('SP-FF-CV04')).toEqual([[CTRL, '', ['TaskHandler'], 'site-line']]);
+    expect(keyOf('SP-FF-CV04')).toEqual([]); // BT-E1: disabled (ADR-016 b); was [[CTRL, '', ['TaskHandler'], 'site-line']]
     expect(keyOf('SP-FF-CV06')).toEqual([['src/domain/entities/index.ts', '', [], 'none']]);
     expect(keyOf('SP-FF-S04')).toEqual([[CATEGORY, ICREATE, ['IMPORTS'], 'site-line']]);
   });

@@ -106,25 +106,25 @@ describe('MO-CV02 rename list (BR-U5a-23)', () => {
     }
   });
 
-  it('MO-CV02 on CreateTaskUseCase: drawn positive name, naming-services key and keyed naming-conventions collateral', async () => {
+  it('MO-CV02 on CreateTaskUseCase: drawn positive name, naming-services key; no naming-conventions collateral (FF-CV01 disabled, ADR-016 b, BT-E1)', async () => {
     const r = await applyForced(scratch, ALL, 'MO-CV02', clean(), { filePath: CREATE, detail: { class: 'CreateTaskUseCase' } });
     const renamed = r.row?.expected.keys[0]?.discriminator[0] ?? '';
     expect(positiveNames('CreateTaskUseCase')).toContain(renamed);
     expect(regex.test(renamed)).toBe(false);
     expect(keyTuples(r.row?.expected.keys ?? [])).toEqual([['FF-CV02', CREATE, '', [renamed], 'site-line', 10]]);
-    expect(collateralTuples(r.row)).toEqual([['operator', 'declared', 'FF-CV01', CREATE, '', [renamed]]]);
+    expect(collateralTuples(r.row)).toEqual([]); // BT-E1: FF-CV01 is disabled in specs/clean-arch.yaml (ADR-016 b), so its declared collateral is not expected
     expect(fs.readFileSync(path.join(r.copy, CREATE), 'utf8')).toContain(`export class ${renamed} {`);
     expect(fs.existsSync(path.join(r.copy, CREATE))).toBe(true);
     expect(r.row?.lineShifts).toEqual([]);
     expect(r.row?.typecheck.mutantErrors).toBe(0);
   });
 
-  it('MO-CV02n: conforming name, negative with the keyed naming-conventions collateral', async () => {
+  it('MO-CV02n: conforming name, negative; no naming-conventions collateral (FF-CV01 disabled, ADR-016 b, BT-E1)', async () => {
     const r = await applyForced(scratch, ALL, 'MO-CV02n', clean(), { filePath: CREATE, detail: { class: 'CreateTaskUseCase' } });
-    const renamed = r.row?.expected.collateral[0]?.key?.discriminator[0] ?? '';
+    const renamed = /export class (\w+) \{/.exec(fs.readFileSync(path.join(r.copy, CREATE), 'utf8'))?.[1] ?? '';
     expect(twinNames('CreateTaskUseCase')).toContain(renamed);
     expect(regex.test(renamed)).toBe(true);
     expect(r.row?.expected).toMatchObject({ negative: true, twinOf: 'MO-CV02', keys: [] });
-    expect(collateralTuples(r.row)).toEqual([['operator', 'declared', 'FF-CV01', CREATE, '', [renamed]]]);
+    expect(collateralTuples(r.row)).toEqual([]); // BT-E1: FF-CV01 disabled (ADR-016 b)
   });
 });

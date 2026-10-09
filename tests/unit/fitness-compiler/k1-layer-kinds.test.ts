@@ -9,6 +9,7 @@ import { validateSpecSchema } from '../../../src/spec-parser/spec-validator.js';
 import type { FitnessFunction, LayerModel, ParsedSpec } from '../../../src/shared/types/spec.js';
 import type { CompiledFunctions } from '../../../src/shared/types/evaluation.js';
 import { functionId } from '../../../src/shared/types/value-objects.js';
+import { reenableAdr016b } from './adr016b.js';
 
 const ROOT = path.resolve(__dirname, '../../..');
 const TMP = fs.mkdtempSync(path.join(os.tmpdir(), 'u1-k1-'));
@@ -32,7 +33,7 @@ async function parseInline(layersYaml: string, functionsYaml: string): Promise<P
 async function parseShipped(rel: string): Promise<ParsedSpec> {
   const result = await parseSpec({ specFilePath: path.join(ROOT, rel) });
   if (!result.success) throw new Error(`${rel} did not parse`);
-  return result.data;
+  return reenableAdr016b(result.data); // ADR-016 b exclusions re-enabled for the kind rules (adr016b.ts)
 }
 
 function compile(spec: ParsedSpec): CompiledFunctions {

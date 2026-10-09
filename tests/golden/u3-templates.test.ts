@@ -326,11 +326,11 @@ describeU3('U3-R9 one assembly point (BR-U3-50, 55, 56, 64)', () => {
     }
   }, RUN_TIMEOUT_MS);
 
-  it.each(GOLDEN_CASES.map((g) => g.id))('%s: one COMPILER_004 naming FF-S03; disabledFunctions lists FF-S03; last stage assemble-report', async (id) => {
+  it.each(GOLDEN_CASES.map((g) => g.id))('%s: one COMPILER_004 naming FF-S03; disabledFunctions lists FF-CV01, FF-CV04 (ADR-016 b, BT-E1) and FF-S03; last stage assemble-report', async (id) => {
     const r = await run(id);
     const c004 = r.report.warnings.filter((w) => w.code === 'COMPILER_004');
     expect(c004.map((w) => w.message.includes('FF-S03'))).toEqual([true]);
-    expect(r.report.disabledFunctions.map((d) => String(d.functionId))).toEqual(['FF-S03']);
+    expect(r.report.disabledFunctions.map((d) => String(d.functionId))).toEqual(['FF-CV01', 'FF-CV04', 'FF-S03']); // BT-E1: ADR-016 b exclusions
     expect(r.report.functionExecution.failed).toEqual([]);
     expect(r.report.timings.stages.map((s) => s.name)).not.toContain('assemble-report');
     expect(r.report.timings.stages.at(-1)?.name).toBe('compute-scores');
