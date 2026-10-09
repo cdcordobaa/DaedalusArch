@@ -20,7 +20,13 @@
  * | `--judge-baseline-report <path>`| none                                      |
  * | `--cassette-omit-prompt`        | off                                       |
  * | `--cassette-project-id <id>`    | none (entries carry no `projectId`)       |
+ * | `--judge-cli <path>`            | `~/.firewall/judge-cli/node_modules/.bin/claude` when it exists, else `claude` |
+ *
+ * The judge binary is the pinned CLI installed under its own prefix (ADR-022 item 5; ADR-018 pin), so the author's
+ * own `claude` install can update without moving the judge. `ClaudeCliProvider` still refuses any other version
+ * (`LLM_CLI_VERSION_DRIFT`).
  */
+import * as fs from 'node:fs';
 import * as os from 'node:os';
 import * as path from 'node:path';
 import type { LLMEffort } from '../shared/interfaces/llm-provider.js';
@@ -49,14 +55,19 @@ export interface LLMOptionsContext {
   readonly projectRoot?: string;
   /** Home directory for `~` expansion (default `os.homedir()`; never read from `env`). */
   readonly homeDir?: string;
+  /** Existence check for the default judge binary (tests inject it; default `fs.existsSync`). */
+  readonly exists?: (file: string) => boolean;
 }
+
+/** The pinned judge CLI under its private prefix (ADR-022 item 5). */
+export const JUDGE_CLI_DEFAULT = '~/.firewall/judge-cli/node_modules/.bin/claude';
 
 const PROVIDERS: readonly LLMProviderName[] = ['claude-cli', 'gemini', 'mock'];
 const EFFORTS: readonly LLMEffort[] = ['low', 'medium', 'high', 'xhigh', 'max'];
 const MODES: readonly VCRMode[] = ['record', 'replay'];
 const VALUE_OPTIONS = [
   '--llm-provider', '--llm-model', '--llm-effort', '--cassette-mode', '--cassette-dir',
-  '--judge-repetition', '--judge-config-dir', '--judge-baseline-report', '--cassette-project-id',
+  '--judge-repetition', '--judge-config-dir', '--judge-baseline-report', '--cassette-project-id', '--judge-cli',
 ] as const;
 const FLAG_OPTIONS = ['--cassette-omit-prompt'] as const;
 
@@ -136,6 +147,10 @@ export function parseLLMOptions(
     const problem = configDirPlacementProblem(judgeConfigDir, context.projectRoot);
     if (problem !== null) return configError(`--judge-config-dir: ${problem}`);
   }
+  const pinnedDefault = expandHome(JUDGE_CLI_DEFAULT, homeDir);
+  const judgeCli = values['--judge-cli'] !== undefined
+    ? (values['--judge-cli'].includes('/') ? expandHome(values['--judge-cli'], homeDir) : values['--judge-cli'])
+    : ((context.exists ?? fs.existsSync)(pinnedDefault) ? pinnedDefault : 'claude');
 
   let gemini: LLMProviderConfig['gemini'];
   if (provider === 'gemini') {
@@ -150,7 +165,7 @@ export function parseLLMOptions(
     provider,
     ...(gemini !== undefined ? { gemini } : {}),
     ...(provider === 'claude-cli'
-      ? { claudeCli: { binary: 'claude', model, effort, timeoutMs: JUDGE_TIMEOUT_MS, neutralCwd: os.tmpdir() } }
+      ? { claudeCli: { binary: judgeCli, model, effort, timeoutMs: JUDGE_TIMEOUT_MS, neutralCwd: os.tmpdir() } }
       : {}),
     cassette,
     judgeConfigDir,

@@ -6,6 +6,7 @@ Pre-tag development outputs. **These are development numbers, not thesis numbers
 |---|---|---|
 | `fixtures-<sha>.json` | FR-18 re-baseline: the five C16 fixtures, `specs/clean-arch.yaml`, `--symbolic-only`, one schema-valid report per fixture (scrubbed; `projectPath` repository-relative) with the extract, ingest and total stage timings | Build and Test Steps 10–11 |
 | `layered-<sha>.json`, `layered-<sha>.report.json` | SO1 FR-20 layered acceptance on a public layered E7 project | `scripts/so1-layered-acceptance.ts` (ADR-021 SO1) |
+| `so1-metrics-<sha>.json` | SO1 instrument metrics: spec validator first-pass rate, template coverage per library, spec line counts | `scripts/so1-metrics-cli.ts` (ADR-021 SO1; runbook 7.5) |
 
 `<sha>` is the 12-digit tool commit the run was built from.
 
@@ -44,3 +45,7 @@ The cause is BT-E1 (`4e94cea`, ADR-022 item 1): FF-CV01 and FF-CV04 are `enabled
 | variant-c-everything | 0.391 | 0.387 | hard-block | 644 |
 
 The measured-verdict comment in the `specs/clean-arch.yaml` header still quotes the `0c6a0de` values, labelled with that commit. It is left unchanged, so that the registered spec does not need another bump for a comment. The current values are this table.
+
+## SO1 rerun at the post-freeze commit (`53cfaed4a313`, 2026-10-09)
+
+`layered-53cfaed4a313.{json,report.json}` and `so1-metrics-53cfaed4a313.json` were rerun after the ADR-016 b exclusions, P-4 (prereg v7) and the L0 baseline, as asked for by the U6 SO1 minor. On `v-aguiar__valex` the layered acceptance passes: declared 27, compiled 18, disabled 9, skipped by mode 2, executed 16, failed 0. The `8d0a37b41009` files stay as the pre-freeze record.

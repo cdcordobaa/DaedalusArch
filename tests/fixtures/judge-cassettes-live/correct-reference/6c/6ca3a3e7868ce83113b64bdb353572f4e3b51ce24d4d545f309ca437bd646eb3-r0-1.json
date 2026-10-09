@@ -1,0 +1,45 @@
+{
+  "attempts": 1,
+  "cliVersion": "2.1.294",
+  "configListingSha256": "47aa04258852fab9a706f3f0c14cee22306d69fbb6fdfbde8c11854bd54997bc",
+  "durationMs": 5571,
+  "effort": "high",
+  "functionId": "FF-N02",
+  "ignoredOptions": [
+    "maxTokens"
+  ],
+  "isolationProbeSha256": "97a2e2d0af1100c13c55e028c1a0c71f069093c3d08705af122aaeb302f1a641",
+  "key": "6ca3a3e7868ce83113b64bdb353572f4e3b51ce24d4d545f309ca437bd646eb3-r0-1",
+  "model": "claude-opus-5-5",
+  "outcome": {
+    "kind": "valid"
+  },
+  "parsedVerdict": {
+    "confidence": 0.95,
+    "evidence": [
+      "src/domain/repositories/ICategoryRepository.ts declares only `export interface ICategoryRepository` with findById, findAll, save and delete signatures typed against the domain entity Category.",
+      "The file contains no implementation code, database or ORM references, HTTP handling, or framework decorators."
+    ],
+    "pass": true,
+    "reasoning": "The file only declares a repository port, ICategoryRepository, as a domain abstraction written in domain terms (the Category entity, string ids, Promises). It contains no persistence implementation, no transport or framework code, and no application orchestration. A repository interface is a standard domain-layer responsibility in a ports-and-adapters or DDD design, so it fits the domain layer's role.",
+    "violations": []
+  },
+  "prompt": "## Rule\nThe unit's responsibilities match the role of its declared layer.\n\n## Rubric\nPass: Every responsibility in the file belongs to the role and kind of its declared layer, and agrees with any ADR prose given.\nFail: The file carries a responsibility that belongs to a different layer kind, for example persistence, transport or framework logic in a domain file, or business rules in an infrastructure or presentation file.\nEvidence required: Name the file and cite the function, method or statement that carries the misplaced responsibility, and the layer kind it belongs to.\nOut of scope: import direction and layer-dependency rules, which are checked symbolically.\n\n## Layer model\n- domain (kind: domain): src/domain/**\n- application (kind: application): src/application/**\n- infrastructure (kind: infrastructure): src/infrastructure/**\n\n## Unit\nKind: file\nId: src/domain/repositories/ICategoryRepository.ts\nLayer: domain\nUnit files:\n- src/domain/repositories/ICategoryRepository.ts\n\n## Source\n=====SOURCE-BEGIN src/domain/repositories/ICategoryRepository.ts=====\nimport { Category } from '../entities/Category';\n\nexport interface ICategoryRepository {\n  findById(id: string): Promise<Category | null>;\n  findAll(): Promise<Category[]>;\n  save(category: Category): Promise<Category>;\n  delete(id: string): Promise<void>;\n}\n\n=====SOURCE-END=====\n\n## Graph excerpt\n{\"edges\":[{\"from\":\"src/domain/repositories/ICategoryRepository.ts\",\"to\":\"src/domain/entities/Category.ts\",\"type\":\"IMPORTS\"}],\"nodes\":[{\"kind\":\"File\",\"layer\":\"domain\",\"path\":\"src/domain/entities/Category.ts\"},{\"kind\":\"File\",\"layer\":\"domain\",\"path\":\"src/domain/repositories/ICategoryRepository.ts\"},{\"kind\":\"Interface\",\"layer\":\"domain\",\"name\":\"ICategoryRepository\",\"path\":\"src/domain/repositories/ICategoryRepository.ts\"}]}\n\n## Instructions\nJudge the unit against the rule and rubric. Return the JSON object the schema requires. Set pass to false if any file of the unit fails the rubric.\n",
+  "provider": "claude-cli",
+  "recordedAt": "2026-10-09T17:11:58.381Z",
+  "repetition": 0,
+  "requestHash": "6ca3a3e7868ce83113b64bdb353572f4e3b51ce24d4d545f309ca437bd646eb3",
+  "resolvedModel": "claude-opus-5-5",
+  "response": "{\"is_error\":false,\"modelUsage\":{\"claude-opus-5-5\":{\"inputTokens\":2,\"outputTokens\":363}},\"result\":\"{\\\"pass\\\":true,\\\"confidence\\\":0.95,\\\"reasoning\\\":\\\"The file only declares a repository port, ICategoryRepository, as a domain abstraction written in domain terms (the Category entity, string ids, Promises). It contains no persistence implementation, no transport or framework code, and no application orchestration. A repository interface is a standard domain-layer responsibility in a ports-and-adapters or DDD design, so it fits the domain layer's role.\\\",\\\"evidence\\\":[\\\"src/domain/repositories/ICategoryRepository.ts declares only `export interface ICategoryRepository` with findById, findAll, save and delete signatures typed against the domain entity Category.\\\",\\\"The file contains no implementation code, database or ORM references, HTTP handling, or framework decorators.\\\"],\\\"violations\\\":[]}\",\"structured_output\":{\"confidence\":0.95,\"evidence\":[\"src/domain/repositories/ICategoryRepository.ts declares only `export interface ICategoryRepository` with findById, findAll, save and delete signatures typed against the domain entity Category.\",\"The file contains no implementation code, database or ORM references, HTTP handling, or framework decorators.\"],\"pass\":true,\"reasoning\":\"The file only declares a repository port, ICategoryRepository, as a domain abstraction written in domain terms (the Category entity, string ids, Promises). It contains no persistence implementation, no transport or framework code, and no application orchestration. A repository interface is a standard domain-layer responsibility in a ports-and-adapters or DDD design, so it fits the domain layer's role.\",\"violations\":[]}}",
+  "runIndex": 1,
+  "schemaVersion": 2,
+  "unitId": "src/domain/repositories/ICategoryRepository.ts",
+  "usage": {
+    "inputTokens": 2217,
+    "outputTokens": 363
+  },
+  "usedOptions": {
+    "effort": "high",
+    "model": "claude-opus-5-5"
+  }
+}
