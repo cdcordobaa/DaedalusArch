@@ -133,6 +133,11 @@ export function corpusTiers(file: Pick<CorpusFile, 'entries'>): Map<string, Corp
   return new Map(file.entries.map((e) => [e.name, e.core ? 'core' : 'e7'] as const));
 }
 
+/** Project name → corpus `style` for the entries that record one (ADR-021 SO1-C). */
+export function corpusStyles(file: Pick<CorpusFile, 'entries'>): Map<string, CorpusStyle> {
+  return new Map(file.entries.flatMap((e) => (e.style === undefined ? [] : [[e.name, e.style] as const])));
+}
+
 const BLOCK = /^```yaml corpus-criteria[ \t]*\r?\n([\s\S]*?)^```[ \t]*$/gm;
 
 /** Parses the single machine block of `Docs/corpus-criteria.md`; throws on a missing, duplicated or malformed block. */
