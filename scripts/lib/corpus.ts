@@ -57,6 +57,8 @@ export interface CorpusEntry extends CorpusCandidate {
   readonly subPath?: string;
   /** Relative to the project directory; default `tsconfig.json`. */
   readonly tsconfigPath?: string;
+  /** ADR-019 item 2 base-preparation steps, run by `prepare-bases` (`scripts/lib/base-preparation.ts`). */
+  readonly preparation?: readonly ('prisma-generate' | 'monorepo-context')[];
 }
 
 export interface CorpusFile { readonly version: number; readonly entries: readonly CorpusEntry[] }

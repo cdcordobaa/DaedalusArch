@@ -1,8 +1,8 @@
 # U5a site-feasibility table (BR-U5a-36 c, BR-U5a-37)
 
-Measured 2026-10-08T22:23:47.089Z. findSites + preconditions per operator per prepared base; no RNG, no detector, no edit.
+Measured 2026-10-09T02:54:15.788Z. findSites + preconditions per operator per prepared base; no RNG, no detector, no edit.
 
-Held-out golden totals: k = 2 → 47, k = 3 → 69. Rule: no k: CAT_SHORTFALL: held-out golden total at k = 3 is 69 < 80; no k chosen (author decision, BR-U5a-37).
+Held-out golden totals: k = 2 → 85, k = 3 → 126. Rule: k = 2 (held-out golden total 85).
 
 ## Golden-instance operators (counted)
 
@@ -44,6 +44,33 @@ Held-out golden totals: k = 2 → 47, k = 3 → 69. Rule: no k: CAT_SHORTFALL: h
 | dry-run-test | held-out | MO-X01 | 120 | — | 120 | 2 | 3 |
 | dry-run-test | held-out | MO-SO02 | 0 | — | 0 | 0 | 0 |
 | dry-run-test | held-out | MO-S03 | 444 | style-disabled 444 | 0 | 0 | 0 |
+| zhuravlevma__nestjs-active-record | held-out | MO-S01 | 4 | — | 4 | 2 | 3 |
+| zhuravlevma__nestjs-active-record | held-out | MO-P01 | 8 | already-imported 2 | 6 | 2 | 3 |
+| zhuravlevma__nestjs-active-record | held-out | MO-C04 | 6 | — | 6 | 2 | 3 |
+| zhuravlevma__nestjs-active-record | held-out | MO-SO01 | 24 | — | 24 | 2 | 3 |
+| zhuravlevma__nestjs-active-record | held-out | MO-CV02 | 10 | — | 10 | 2 | 3 |
+| zhuravlevma__nestjs-active-record | held-out | MO-DF01 | 4 | type-shape 4 | 0 | 0 | 0 |
+| zhuravlevma__nestjs-active-record | held-out | MO-X01 | 4 | — | 4 | 2 | 3 |
+| zhuravlevma__nestjs-active-record | held-out | MO-SO02 | 0 | — | 0 | 0 | 0 |
+| zhuravlevma__nestjs-active-record | held-out | MO-S03 | 8 | style-disabled 8 | 0 | 0 | 0 |
+| nestjslatam__ddd | held-out | MO-S01 | 188 | — | 188 | 2 | 3 |
+| nestjslatam__ddd | held-out | MO-P01 | 188 | — | 188 | 2 | 3 |
+| nestjslatam__ddd | held-out | MO-C04 | 47 | — | 47 | 2 | 3 |
+| nestjslatam__ddd | held-out | MO-SO01 | 131 | metric-already-violating 5 | 126 | 2 | 3 |
+| nestjslatam__ddd | held-out | MO-CV02 | 13 | — | 13 | 2 | 3 |
+| nestjslatam__ddd | held-out | MO-DF01 | 192 | type-shape 96 | 96 | 2 | 3 |
+| nestjslatam__ddd | held-out | MO-X01 | 152 | threshold-arithmetic 20 | 132 | 2 | 3 |
+| nestjslatam__ddd | held-out | MO-SO02 | 12 | — | 12 | 2 | 3 |
+| nestjslatam__ddd | held-out | MO-S03 | 0 | — | 0 | 0 | 0 |
+| v-aguiar__valex | held-out | MO-S01 | 18 | edge-exists 9 | 9 | 2 | 3 |
+| v-aguiar__valex | held-out | MO-P01 | 12 | — | 12 | 2 | 3 |
+| v-aguiar__valex | held-out | MO-C04 | 5 | — | 5 | 2 | 3 |
+| v-aguiar__valex | held-out | MO-SO01 | 0 | — | 0 | 0 | 0 |
+| v-aguiar__valex | held-out | MO-CV02 | 0 | — | 0 | 0 | 0 |
+| v-aguiar__valex | held-out | MO-DF01 | 0 | — | 0 | 0 | 0 |
+| v-aguiar__valex | held-out | MO-X01 | 0 | — | 0 | 0 | 0 |
+| v-aguiar__valex | held-out | MO-SO02 | 10 | — | 10 | 2 | 3 |
+| v-aguiar__valex | held-out | MO-S03 | 54 | edge-exists 1 | 53 | 2 | 3 |
 
 ## Twins and judge probes (sampled with the same k, not counted)
 
@@ -101,3 +128,42 @@ Held-out golden totals: k = 2 → 47, k = 3 → 69. Rule: no k: CAT_SHORTFALL: h
 | dry-run-test | held-out | MO-X03 | 0 | — | 0 | 0 | 0 |
 | dry-run-test | held-out | MO-X03n | 0 | — | 0 | 0 | 0 |
 | dry-run-test | held-out | MO-S03n | 185 | style-disabled 185 | 0 | 0 | 0 |
+| zhuravlevma__nestjs-active-record | held-out | MO-S01n | 4 | edge-exists 2 | 2 | 2 | 2 |
+| zhuravlevma__nestjs-active-record | held-out | MO-P01n | 8 | already-imported 2 | 6 | 2 | 3 |
+| zhuravlevma__nestjs-active-record | held-out | MO-C04n | 68 | — | 68 | 2 | 3 |
+| zhuravlevma__nestjs-active-record | held-out | MO-SO01n | 24 | — | 24 | 2 | 3 |
+| zhuravlevma__nestjs-active-record | held-out | MO-CV02n | 10 | — | 10 | 2 | 3 |
+| zhuravlevma__nestjs-active-record | held-out | MO-DF01n | 4 | edge-exists 2 | 2 | 2 | 2 |
+| zhuravlevma__nestjs-active-record | held-out | MO-X01n | 4 | edge-exists 2 | 2 | 2 | 2 |
+| zhuravlevma__nestjs-active-record | held-out | MO-X02 | 0 | — | 0 | 0 | 0 |
+| zhuravlevma__nestjs-active-record | held-out | MO-X02n | 8 | — | 8 | 2 | 3 |
+| zhuravlevma__nestjs-active-record | held-out | MO-SO02n | 0 | — | 0 | 0 | 0 |
+| zhuravlevma__nestjs-active-record | held-out | MO-X03 | 0 | — | 0 | 0 | 0 |
+| zhuravlevma__nestjs-active-record | held-out | MO-X03n | 0 | — | 0 | 0 | 0 |
+| zhuravlevma__nestjs-active-record | held-out | MO-S03n | 8 | style-disabled 8 | 0 | 0 | 0 |
+| nestjslatam__ddd | held-out | MO-S01n | 507 | edge-exists 2, controller-or-entity 78 | 427 | 2 | 3 |
+| nestjslatam__ddd | held-out | MO-P01n | 52 | controller-or-entity 8 | 44 | 2 | 3 |
+| nestjslatam__ddd | held-out | MO-C04n | 3315 | — | 3315 | 2 | 3 |
+| nestjslatam__ddd | held-out | MO-SO01n | 131 | metric-already-violating 5, threshold-arithmetic 2 | 124 | 2 | 3 |
+| nestjslatam__ddd | held-out | MO-CV02n | 13 | — | 13 | 2 | 3 |
+| nestjslatam__ddd | held-out | MO-DF01n | 192 | type-shape 82, controller-or-entity 96 | 14 | 2 | 3 |
+| nestjslatam__ddd | held-out | MO-X01n | 156 | edge-exists 2, controller-or-entity 78 | 76 | 2 | 3 |
+| nestjslatam__ddd | held-out | MO-X02 | 112 | not-removable-guard 112 | 0 | 0 | 0 |
+| nestjslatam__ddd | held-out | MO-X02n | 0 | — | 0 | 0 | 0 |
+| nestjslatam__ddd | held-out | MO-SO02n | 12 | — | 12 | 2 | 3 |
+| nestjslatam__ddd | held-out | MO-X03 | 7 | not-removable-guard 7 | 0 | 0 | 0 |
+| nestjslatam__ddd | held-out | MO-X03n | 7 | threshold-arithmetic 7 | 0 | 0 | 0 |
+| nestjslatam__ddd | held-out | MO-S03n | 0 | — | 0 | 0 | 0 |
+| v-aguiar__valex | held-out | MO-S01n | 7 | edge-exists 1 | 6 | 2 | 3 |
+| v-aguiar__valex | held-out | MO-P01n | 28 | — | 28 | 2 | 3 |
+| v-aguiar__valex | held-out | MO-C04n | 37 | — | 37 | 2 | 3 |
+| v-aguiar__valex | held-out | MO-SO01n | 0 | — | 0 | 0 | 0 |
+| v-aguiar__valex | held-out | MO-CV02n | 0 | — | 0 | 0 | 0 |
+| v-aguiar__valex | held-out | MO-DF01n | 0 | — | 0 | 0 | 0 |
+| v-aguiar__valex | held-out | MO-X01n | 0 | — | 0 | 0 | 0 |
+| v-aguiar__valex | held-out | MO-X02 | 0 | — | 0 | 0 | 0 |
+| v-aguiar__valex | held-out | MO-X02n | 0 | — | 0 | 0 | 0 |
+| v-aguiar__valex | held-out | MO-SO02n | 10 | — | 10 | 2 | 3 |
+| v-aguiar__valex | held-out | MO-X03 | 0 | — | 0 | 0 | 0 |
+| v-aguiar__valex | held-out | MO-X03n | 0 | — | 0 | 0 | 0 |
+| v-aguiar__valex | held-out | MO-S03n | 9 | edge-exists 1 | 8 | 2 | 3 |

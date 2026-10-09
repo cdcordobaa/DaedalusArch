@@ -900,6 +900,74 @@ i. **U2 derived settlements** S-1 to S-7 and S-9 (U2 `business-rules.md` §14.1)
 
 ---
 
+## ADR-021: Objectives-readiness audit and the U6 integration unit (v1.2)
+
+**Status**: Accepted (orchestrator, standing approval 2026-10-08)
+
+**Date**: 2026-10-08
+
+**Context**: A read-only audit ran six lenses (SO1–SO5 and threats), adversarially verified each finding, then ran a completeness critic. It confirmed 44 gaps: 10 blocking, 30 major, 4 minor. The verified list, with evidence, is `Docs/DiagnosticRuns/so-readiness-audit-2026-10-08.json`. Most gaps are missing connections between pipeline stages that already exist. Without them the promised Ch7–9 outputs cannot be produced.
+
+**Decision**:
+
+1. **New unit U6, Integration.** It owns every audit finding except the ones ADR-020 (P-M) already covers: SO4-07 = A5; SO5-06 and THR-1 = A7; X-1, which P-M implements. U6 also integrates the agy labeller adapter (SO3-1, SO4-08, SO5-09), together with the labeller lane.
+2. **Settlements:**
+   - **SO1.**
+     - Add the FR-20 layered acceptance run on a public layered E7 project, written to `results/pre-tag/`.
+     - Add a style column to the strata and to `denominators.csv`.
+     - Register `specs/clean-arch.yaml`, the layered fixture spec and `presets/*.yaml` as artefacts.
+     - Register SO1 metrics, all scripted: spec validator first-pass rate, template coverage per library, spec line counts.
+   - **SO2.**
+     - A cycle-query timeout counts as `fallback-required`.
+     - Time the universal cycle metric.
+     - `latency.csv` and the NFR-07 table are written by script.
+     - Register a data-flow edge coverage metric, `FLOWS_TO` edges per resolved import, plus per-project graph-size rows.
+     - The APG-full vs AST-only ablation is delivered cheaply: an extractor flag that drops `FLOWS_TO`, `RE_EXPORTS` and alias resolution, then the violation difference on the corpus and the fixtures.
+   - **SO3.**
+     - Build a label-plan producer covering P1–P4 and MS items.
+     - Build a `--judge-verdicts` producer.
+     - Fix the label-shape adapters (SO4-01, SO5-01).
+     - Add `projectId` to the judge repetition keys.
+     - Register the labeller route, model id and CLI version.
+     - Labeller validity criterion: if run-vs-run κ < 0.60, the FP/FN taxonomy is reported as descriptive only.
+     - agy offers no temperature setting, which is recorded as an amendment to the determinism rule.
+     - The audit view hides panel labels and is shuffled with a seed (THR-3).
+     - Weighted-agreement CIs use a weighted item bootstrap (THR-6).
+   - **SO4.**
+     - Add a run-to-score-case adapter.
+     - A rejected pair is listed with its reason and does not stop the run.
+     - Register the 80–120 floor and the ADR-019 shortfall reporting, with an N-vs-floor output.
+     - Precision and F1 get intervals: cluster bootstrap, with Wilson for precision as the "if independent" bound.
+   - **SO5.**
+     - Commit and hash the generator plan, including `orderSeed` 20261008 and the pinned model ids.
+     - Resume mid-cell by an atomic restart of the cell.
+     - A missing cell is recorded as not-run with a GEN code.
+     - Add LOC, density per KLOC and per-project latency.
+     - Register an exploratory open-coding procedure: the agy panel proposes codes from the rationales, and the author, declared non-blind, consolidates them. It is never confirmatory.
+     - Make a pre-run judge-volume estimate for E1.
+     - Permutations are restricted within the strata of the other factor (THR-4).
+   - **Docs.**
+     - A registered threats-to-validity register (THR-9).
+     - Figure specs for SO2, SO4, SO5 and the threshold sweep (X-5).
+     - Naming (X-6): the ADR-020 bump is "P-M"; "P-2" stays the B&T cycle-strategy flip.
+3. **The H13 latency gate (BT-D) moves to U6**, so the gate's fixes come before its first run.
+4. **Registration.** Every U6 change to a registered artefact goes into one dated bump, P-U6, after P-1 and P-M and before any so4-heldout, e7-corpus, e1-grid or live-labelling run. The final pre-run check of P-U6 is reviewed by a Fable adversarial verifier.
+5. **P-U6 additions from the Fable verification of P-1 (2026-10-09; verdict PASS with no blocking issues; the record is `Docs/DiagnosticRuns/p1-verification-2026-10-09.md`).**
+   - **Major 1:** the registered plans must name the held-out set.
+     - Write the seven held-out `{projectId, path, specPath}` entries into `experiments/so4-heldout/plan.json`: realworld, ghostfolio, truthy-demo, dry-run-test, zhuravlevma, nestjslatam, valex.
+     - Add the three E7 bases to `experiments/e7-corpus/plan.json`.
+     - Update the run list in `Docs/analysis-plan.md`, and add its Reporting duties section if P-M has not already done so.
+   - **Major 2:** register the count inputs. Commit the `--bases` list used for the count, or record the exact command lines in `u5a-site-feasibility.md`. Add these to `REGISTERED_ARTEFACTS`, without rerunning any count:
+     - `Docs/DiagnosticRuns/u5a-site-feasibility.json`
+     - `u5a-base-typecheck.json`
+     - `e7-spec-generation.json`
+     - `corpus/selections/*.json`
+   - **Minor:** also register `presets/*.yaml`, `generate-e7-specs-cli.ts` and the three chain tools (`migrate-corpus-spec`, `remap-domain-layer`, `corpus-rubric-u4`).
+   - **MarvinRF stays excluded from SO4 for good.** Re-admitting it would need a second feasibility count. If the zero-judge-units schema defect is fixed, MarvinRF may be reported only as an exploratory extra.
+   - **Ch7 reporting duties 1–9 from that verification are binding.** They cover the full capacity history (29/42, then 47/69, then 85/126), the three floor-motivated decisions with their arithmetic, the counterfactual (N = 111 at k = 3 on six bases without the ghostfolio repair), the exclusions by name, the style mismatches and imbalance, the vocabulary written after the projects were known, and the 85-vs-80 margin.
+
+---
+
 ## Decision Log Summary
 
 | **ADR** | **Decision** | **Status** | **Spike Validated** |
@@ -925,3 +993,4 @@ i. **U2 derived settlements** S-1 to S-7 and S-9 (U2 `business-rules.md` §14.1)
 | 018 | v1.2 U4 judge config-dir allow-list, CLI pin 2.1.294, settings.json content rule | Accepted | — |
 | 019 | v1.2 B&T escalations: SO4 floor via E7 then report, base prep rule, E7 specs, Gemini CLI labeller, live-call budget | Accepted | — |
 | 020 | v1.2 methodology corrections before runs (baseline precision, label semantics, cell-level recall unit, symbolic-only SO4, SO5 inference, self-preference rows, E7 stratum, reporting duties) | Accepted | — |
+| 021 | v1.2 objectives-readiness audit (44 verified gaps) and the U6 integration unit; latency gate moved to U6; P-U6 bump | Accepted | — |
