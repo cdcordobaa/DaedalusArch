@@ -1,0 +1,113 @@
+{
+  "date": "2026-10-08",
+  "adr": "ADR-019 item 4",
+  "cliVersion": "0.46.0",
+  "cliPath": "<HOME>/.nvm/versions/node/v24.5.0/bin/gemini (npm global, @google/gemini-cli)",
+  "outcome": "HALT: the Google-account route is refused by the Code Assist backend before any model request (IneligibleTierError, reasonCode UNSUPPORTED_CLIENT, tierId free-tier, tierName 'Gemini Code Assist for individuals'). The refusal comes from the account tier and client (server side); isolation itself held up to the tier check.",
+  "probeSpawns": 5,
+  "probeSpawnsReachingAuth": 3,
+  "modelRequests": 0,
+  "probeBudget": 15,
+  "calls": [
+    {
+      "n": 1,
+      "argv": "gemini --version",
+      "exit": 0,
+      "stdout": "0.46.0",
+      "modelRequest": false,
+      "authReached": false
+    },
+    {
+      "n": 2,
+      "argv": "gemini --list-extensions",
+      "exit": 0,
+      "stdout": "",
+      "stderrClass": "IneligibleTierError UNSUPPORTED_CLIENT",
+      "modelRequest": false,
+      "authReached": true,
+      "note": "run in a first dedicated home that was removed by a concurrent process before its files were saved; result re-observed in call 5"
+    },
+    {
+      "n": 3,
+      "argv": "gemini --extensions none --list-extensions",
+      "exit": 0,
+      "stdout": "",
+      "stderrClass": "IneligibleTierError UNSUPPORTED_CLIENT",
+      "modelRequest": false,
+      "authReached": true,
+      "note": "as call 2"
+    },
+    {
+      "n": 4,
+      "argv": "gemini --version",
+      "exit": 0,
+      "stdout": "0.46.0",
+      "modelRequest": false,
+      "authReached": false
+    },
+    {
+      "n": 5,
+      "argv": "gemini --model gemini-2.5-pro --output-format json --extensions none --allowed-mcp-server-names __none__ (prompt on stdin)",
+      "exit": 1,
+      "stdoutBytes": 0,
+      "stderrFile": "headless-ineligible-tier.stderr.txt",
+      "stderrClass": "IneligibleTierError UNSUPPORTED_CLIENT",
+      "modelRequest": false,
+      "authReached": true,
+      "durationMs": 4511
+    }
+  ],
+  "headless": {
+    "mode": "non-interactive when stdin is not a TTY or -p is given; prompt read from stdin (-p appends to stdin)",
+    "outputFormats": [
+      "text",
+      "json",
+      "stream-json"
+    ],
+    "jsonErrorEnvelope": "none on an auth/tier failure: stdout empty, exit 1, error on stderr"
+  },
+  "isolation": {
+    "configHome": "GEMINI_CLI_HOME=<HOME>/.firewall/labeller-gemini/home (also HOME, so os.homedir() lookups stay inside it); env -i with an allow-list",
+    "credentialReuse": "supported without copying: fetchCachedCredentials() tries <GEMINI_CLI_HOME>/.gemini/oauth_creds.json, then the path in GOOGLE_APPLICATION_CREDENTIALS; the child gets GOOGLE_APPLICATION_CREDENTIALS=<HOME>/.gemini/oauth_creds.json and GOOGLE_GENAI_USE_GCA=true. The CLI reads the file; the probe never read, copied or edited it (size and mtime unchanged before/after).",
+    "credentialRefreshHazard": "on a token refresh the CLI writes the refreshed tokens (no refresh_token) to <GEMINI_CLI_HOME>/.gemini/oauth_creds.json, which is tried first on the next call; a provider would have to remove that file (names only) before each call. Not observed in this probe (no refresh happened).",
+    "systemSettings": "GEMINI_CLI_SYSTEM_SETTINGS_PATH -> isolation-settings.json (highest precedence); GEMINI_CLI_SYSTEM_DEFAULTS_PATH -> a non-existent file",
+    "tools": "tools.core = [] (truthy, so createToolRegistry registers no built-in tool, AgentTool included); experimental.enableAgents false; useWriteTodos false; skills.enabled false",
+    "extensionsAndMcp": "--extensions none; admin.extensions.enabled false; extensions.disabled = bundled builtin extensions antigravity-support and skill-creator; admin.mcp.enabled false; mcpServers {}; mcp.allowed []; --allowed-mcp-server-names __none__",
+    "contextFiles": "neutral mktemp cwd; context.fileName = DAEDALUS-NO-CONTEXT.md; includeDirectoryTree false; user-level GEMINI.md lives under GEMINI_CLI_HOME (empty); advanced.ignoreLocalEnv true",
+    "systemPrompt": "GEMINI_SYSTEM_MD=<persona file> replaces the built-in coding-agent system prompt (substitutions of ${...} placeholders apply)",
+    "authSource": "oauth-personal (Login with Google) via GOOGLE_GENAI_USE_GCA=true and security.auth.selectedType; GEMINI_API_KEY must stay out of the child env (it would select API-key auth)",
+    "autoUpdate": "general.enableAutoUpdate false and enableAutoUpdateNotification false in the system settings; pin by checking gemini --version == 0.46.0",
+    "notVerified": "tool, MCP and GEMINI.md canaries with positive controls, model id, JSON envelope shape (stats.models), error classes other than the tier refusal: no model request was possible"
+  },
+  "dedicatedHomeWrites": [
+    "<HOME>",
+    "<HOME>/.gemini",
+    "<HOME>/.gemini/google_accounts.json",
+    "<HOME>/.gemini/projects.json.<UUID>.tmp",
+    "<HOME>/.gemini/projects.json",
+    "<HOME>/.gemini/history",
+    "<HOME>/.gemini/projects.json.<UUID>.tmp",
+    "<HOME>/.gemini/tmp",
+    "<HOME>/.gemini/history/daedalus-labeller-<RAND>",
+    "<HOME>/.gemini/tmp/daedalus-labeller-<RAND>",
+    "<HOME>/.gemini/history/daedalus-labeller-<RAND>/.project_root",
+    "<HOME>/.gemini/tmp/daedalus-labeller-<RAND>/.project_root",
+    "<HOME>/.gemini/tmp/daedalus-labeller-<RAND>/logs",
+    "<HOME>/.gemini/tmp/daedalus-labeller-<RAND>/chats",
+    "<HOME>/.gemini/tmp/daedalus-labeller-<RAND>/chats/session-<STAMP>-<ID>.jsonl"
+  ],
+  "modelChoice": {
+    "candidate": "gemini-2.5-pro",
+    "reason": "strongest generally available Pro id the 0.46.0 CLI knows (DEFAULT_GEMINI_MODEL); gemini-3-pro-preview and gemini-3.1-pro-preview are preview ids",
+    "verifiedOnCli": false
+  },
+  "errorClasses": {
+    "INELIGIBLE_TIER": {
+      "observed": true,
+      "exit": 1,
+      "stdout": "",
+      "stderrPattern": "IneligibleTierError|UNSUPPORTED_CLIENT|no longer supported for Gemini Code Assist for individuals",
+      "stop": "route unavailable (author action)"
+    }
+  }
+}
