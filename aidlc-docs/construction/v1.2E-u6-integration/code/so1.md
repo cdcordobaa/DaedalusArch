@@ -13,7 +13,7 @@
 ## Files
 
 - New: `scripts/lib/layered-acceptance.ts`, `scripts/so1-layered-acceptance.ts`, `scripts/so1-layered-acceptance-cli.ts`, `scripts/lib/so1-metrics.ts`, `scripts/so1-metrics.ts`, `scripts/so1-metrics-cli.ts`, `results/pre-tag/layered-8d0a37b41009.json`, `results/pre-tag/layered-8d0a37b41009.report.json`, this note.
-- Changed: `scripts/lib/prereg.ts`, `Docs/analysis-plan.md` (one table row and one paragraph; when merging with P-M's ADR-020 item 7 SO5 row, both rows were kept).
+- Changed: `scripts/lib/prereg.ts`, the BR-U5b-51 row of `aidlc-docs/construction/v1.2E-u5b-scoring-harness/functional-design/business-rules.md` (it lists the registry again, incl. `corpus/label-plan-config.json`; not a registered artefact), `Docs/analysis-plan.md` (one table row and one paragraph; when merging with P-M's ADR-020 item 7 SO5 row, both rows were kept).
 - Tests: new `tests/unit/scripts/u6/layered-acceptance.test.ts` (7) and `tests/unit/scripts/u6/so1-metrics.test.ts` (14), both with hand-computed fixtures. `tests/unit/scripts/u5b/prereg.test.ts` gains 3 cases: the registry list, a registration without them staying valid, and a changed fixture spec being refused once registered.
 - Gates: T clean; U `npm test -- --maxWorkers=2` 222 suites / 3103 tests passed; L no new errors (the lane's test files lint clean, and the CLIs sit outside `eslint src tests` like the other `scripts/*-cli.ts`); G `GOLDEN_REQUIRED=1 npm run test:golden` 80 / 7 passed under the lane lock, no snapshot change and no `CHANGES.md` line. Both `--self-test` runs exit 1, as expected.
 
