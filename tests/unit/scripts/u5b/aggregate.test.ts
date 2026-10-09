@@ -181,7 +181,11 @@ describe('SO5 analysis (BR-U5b-54, 64, 65)', () => {
     const pair = rows.find((r) => r[0] === 'model:m1-m3' && r[4] === 'primary:ahsCombined');
     expect(Number(pair?.[5])).toBeCloseTo(-0.4, 2);
     expect(Number(pair?.[8])).toBe(-1);
-    expect(rows.filter((r) => r[4] !== 'primary:ahsCombined').every((r) => r[9] === 'true')).toBe(true);
+    // ADR-020 item 7: ahsDeterministic is co-primary for the model effect only; every other family stays exploratory.
+    expect(rows.filter((r) => r[4] !== 'primary:ahsCombined' && !(r[4] === 'co-primary:ahsDeterministic' && (r[0] === 'model' || r[0]?.startsWith('model:') === true))).every((r) => r[9] === 'true')).toBe(true);
+    expect(rows.filter((r) => r[4] === 'co-primary:ahsDeterministic' && r[0] === 'model').map((r) => r[9])).toEqual(['false']);
+    // ADR-020 item 6: pairwise rows (effect size and bootstrap CI) are descriptive.
+    expect(rows.filter((r) => r[5] !== '').every((r) => r[10] === 'true')).toBe(true);
     for (const c of cells) if (c.report !== undefined) expect(primaryOutcome(c.report)).toEqual({ field: 'ahsCombined', value: (c.report as unknown as { ahsCombined: number }).ahsCombined });
   });
 
