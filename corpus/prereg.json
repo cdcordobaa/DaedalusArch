@@ -1,7 +1,7 @@
 {
-  "version": 9,
-  "registeredAt": "2026-10-09T21:20:22Z",
-  "reason": "ADR-025 (POST-HOC, found after the SO4 strict results): Docs/matching-rule.md 1.1.0 -> 1.2.0, MAT-04a class-rename identity (baseline discriminators of a renamed class mapped to the new name before the MAT-03 difference; SO4 strict FP 13 were all MO-CV02 re-keys) and a MAT-13 note (style-guarded expected functions are disabledFunctionIds; MO-S01 under layered). No other registered artefact changes: operator catalogue, specs and plans unchanged; MO-S01 guard and MO-DF01 constructor scope live in unregistered scripts/lib/mutation. Runs under v8 keep their preregVersion; score-strict.json stays the 1.1.0 score.",
+  "version": 10,
+  "registeredAt": "2026-10-09T23:38:02Z",
+  "reason": "ADR-026 (POST-HOC, found after the SO4 results and the 2026-10-09 baseline spot check; Fable review of PR #42: MERGE WITH FIXES, fixes applied): instrument v2. Per artefact: (1) corpus/frozen-instrument.json - new key roleExemptions {instrumentVersion 2; test-file-pairing: declaration-only files (*.dto.ts, dto/, dtos/, *.interface.ts, *.type.ts, *.types.ts, *.enum.ts) and composition roots (main.ts, *.module.ts); module-fan-out and component-instability: composition roots; no index.ts}, all other keys byte-identical; (2) Docs/analysis-plan.md - section 10 B8 (instrument versions in every table; --instrument v1 or v2, last v1 commit febc918; v1 primary for SO4 and SO2 with v2 beside and the differing aggregate files listed; P2 from the v2 e7-corpus population, 24 items, plus a v1-only exempted stratum set, 6 items, n and n_eff per version; v2 the instrument for E7, E1 and SO5 with a v1 symbolic sensitivity row), section 4 P2 row, section 11 row; (3) Docs/threats-to-validity.md - TV-97 (post-hoc instrument tuning) and its source trace. No spec, preset, plan, operator catalogue or matching rule changes (matching rule stays 1.2.0). The draft v10 of 8c046dc was reverted unused. Runs registered under v9 keep their preregVersion; the v2 re-runs (results/so4-heldout/v2, results/apg-ablation/v2) run under this v10.",
   "matchingRuleVersion": "1.2.0",
   "artefacts": [
     {
@@ -18,7 +18,7 @@
     },
     {
       "path": "Docs/analysis-plan.md",
-      "sha256": "032f86e88da7c68d03cb8241a552c2b0fb7ad2fe443ada2e70c83ce3d2bbf869"
+      "sha256": "77c3c8153a9056ecccab29531014921eec875960e88e6db31d26bc496c82b753"
     },
     {
       "path": "Docs/corpus-criteria.md",
@@ -58,7 +58,7 @@
     },
     {
       "path": "Docs/threats-to-validity.md",
-      "sha256": "ab05a5be7fd123f7740cfd8c5c2f6a90a2d2d1f0a3d5a4d4633e1fe2d987a2b0"
+      "sha256": "667fd2cf63e30a494fba639baac8d963e1a242bce9b72bfec1a6dc21e0402de9"
     },
     {
       "path": "corpus/corpus.json",
@@ -66,7 +66,7 @@
     },
     {
       "path": "corpus/frozen-instrument.json",
-      "sha256": "d6a62cb11c0c731c895c642e6ba7f6faec466fdf27e2580f58dcfe412510f37f"
+      "sha256": "6672293d6d2e02052436fd77e6e33aab600d4d449053dc170b255ad09c7341da"
     },
     {
       "path": "corpus/label-plan-config.json",
@@ -304,6 +304,10 @@
     {
       "version": 8,
       "commit": "81c1d31958337b7a66275e22493037f700c63258"
+    },
+    {
+      "version": 9,
+      "commit": "4ddba721def9f96fb7a96c80d849543c97d7bd55"
     }
   ]
 }
