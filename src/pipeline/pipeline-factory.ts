@@ -244,12 +244,22 @@ export function cycleMetricStage(t: CycleMetricTiming): StageTimingEntry {
   return { name: UNIVERSAL_CYCLE_STAGE, durationMs: t.durationMs, status: t.failed ? 'error' : 'success' };
 }
 
+/** The executor stage that contains the cycle-metric sub-stage (`ScoreCommand.name`). */
+export const CYCLE_METRIC_PARENT_STAGE = 'compute-scores';
+
 /**
- * Executor timings plus sub-stage entries, appended after the top-level stages. `totalMs` stays the
- * sum of the top-level stages: a sub-stage is already inside its parent stage's duration.
+ * Executor timings plus sub-stage entries, each placed immediately before its parent stage (`parent`, default
+ * `compute-scores`), so the last entry stays the last executor stage (U3-R9, BR-U3-50: the last stage is
+ * `compute-scores`). Without the parent the sub-stages are appended. `totalMs` stays the sum of the top-level
+ * stages: a sub-stage is already inside its parent stage's duration.
  */
-export function withSubStages(timings: StageTimings, subStages: readonly StageTimingEntry[]): StageTimings {
-  return subStages.length === 0 ? timings : { stages: [...timings.stages, ...subStages], totalMs: timings.totalMs };
+export function withSubStages(timings: StageTimings, subStages: readonly StageTimingEntry[], parent: string = CYCLE_METRIC_PARENT_STAGE): StageTimings {
+  if (subStages.length === 0) return timings;
+  const at = timings.stages.findIndex((st) => st.name === parent);
+  const stages = at < 0
+    ? [...timings.stages, ...subStages]
+    : [...timings.stages.slice(0, at), ...subStages, ...timings.stages.slice(at)];
+  return { stages, totalMs: timings.totalMs };
 }
 
 // ======================================================================

@@ -3,6 +3,7 @@
  * RE_EXPORTS, no alias resolution: no `paths` / `baseUrl`, no barrel following).
  */
 import { Project } from 'ts-morph';
+import type { CompilerOptions } from 'ts-morph';
 import { extractNodes } from '../../../src/apg-extractor/node-extractor.js';
 import { extractEdges } from '../../../src/apg-extractor/edge-extractor.js';
 import { withoutAliasResolution } from '../../../src/apg-extractor/import-resolver.js';
@@ -15,7 +16,7 @@ import type { APGNode } from '../../../src/shared/types/apg.js';
 const ROOT = '/proj';
 const lines = (...ls: string[]): string => ls.join('\n');
 
-function run(files: Record<string, string>, graphMode: GraphMode, compilerOptions: Record<string, unknown> = {}): { nodes: APGNode[]; r: EdgeExtractionResult } {
+function run(files: Record<string, string>, graphMode: GraphMode, compilerOptions: CompilerOptions = {}): { nodes: APGNode[]; r: EdgeExtractionResult } {
   const project = new Project({ useInMemoryFileSystem: true, skipFileDependencyResolution: true, compilerOptions });
   for (const [fp, content] of Object.entries(files)) project.createSourceFile(fp, content);
   const sfs = project.getSourceFiles();

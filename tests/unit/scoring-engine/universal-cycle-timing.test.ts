@@ -71,10 +71,17 @@ describe('cycle-metric sub-stage in report timings', () => {
     expect(cycleMetricStage({ durationMs: 30_001, failed: true, code: 'x' })).toEqual({ name: UNIVERSAL_CYCLE_STAGE, durationMs: 30_001, status: 'error' });
   });
 
-  it('appends sub-stages after the executor stages and keeps totalMs (a sub-stage is inside its parent)', () => {
+  it('places sub-stages just before their parent stage, so compute-scores stays last (U3-R9), and keeps totalMs', () => {
     const t = { stages: [{ name: 'extract-apg', durationMs: 40, status: 'success' as const }, { name: 'compute-scores', durationMs: 900, status: 'success' as const }], totalMs: 940 };
     const sub = [{ name: UNIVERSAL_CYCLE_STAGE, durationMs: 812, status: 'success' as const }];
-    expect(withSubStages(t, sub)).toEqual({ stages: [...t.stages, ...sub], totalMs: 940 });
+    expect(withSubStages(t, sub)).toEqual({ stages: [t.stages[0], sub[0], t.stages[1]], totalMs: 940 });
+    expect(withSubStages(t, sub).stages.at(-1)?.name).toBe('compute-scores');
     expect(withSubStages(t, [])).toBe(t);
+  });
+
+  it('without the parent stage (the score stage did not run) the sub-stages are appended', () => {
+    const t = { stages: [{ name: 'extract-apg', durationMs: 40, status: 'success' as const }], totalMs: 40 };
+    const sub = [{ name: UNIVERSAL_CYCLE_STAGE, durationMs: 7, status: 'error' as const }];
+    expect(withSubStages(t, sub)).toEqual({ stages: [t.stages[0], sub[0]], totalMs: 40 });
   });
 });
