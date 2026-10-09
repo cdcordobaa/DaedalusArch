@@ -1204,3 +1204,11 @@ Plan checkboxes ticked. Auto-approved under standing approval; no blocking or ma
 **Context**: CONSTRUCTION — ADR-020 P-2, awaiting P-1. Open: merge origin/v1.2e after P-1, set the machine block and expected.canonical ruleVersion to 1.1.0, bump with --matching-rule-version 1.1.0 and per-artefact reasons, run --check-prereg on every plan, mark ready, merge.
 
 ---
+
+## Construction — ADR-020 P-M (registered as P-2 in the task) bump and merge, PR #17 merged (auto-approved)
+**Timestamp**: 2026-10-09T09:51:00Z
+**User Input**: "Restart the P-2 work, mindful of memory: after P-1 has landed, merge origin/v1.2e, keep the prereg bump after P-1, rerun --check-prereg for every plan, mark PR #17 ready and merge it once CI is green." (Orchestrator task under the standing approval.)
+**AI Response**: "Resumed the existing lane (worktree DaedalusArch-wt-p2). P-1 had landed (prereg v2, 02fbb2f, PR #20); the P-M bump a83de82 (prereg v3, matching rule 1.1.0; per-artefact reasons in Docs/prereg-reasons.md section P-M) was already on the branch above it. Merged origin/v1.2e (50ed187, SO5-gen PR #18) cleanly as 364a588. Gates at 364a588: T clean; U 2988 / 214 suites, 0 failed; L 497 errors (= L_BT), changed scripts/** 0 errors; B 80, 0 TS2688; G 80 / 7, 0 skipped, snapshot hashes = BT_SNAPSHOT_HASHES; all 11 U5b --self-test CLIs exit 1. --check-prereg: all six plans refuse on Docs/generator-protocol.md only, which 44e6dd4 (SO5-gen, its §11 'carried by the P-U6 bump') changed after P-1; ADR-021 item 4 orders P-1, P-M, P-U6, so this file is P-U6's to register. With that file at its registered bytes (445a09b) all six plans print 'pre-registration v3 ok: 36 registered artefacts unchanged'. PR #17 marked ready, CI green (runs 37913078158, 37913086353), merged as 0d7a271; main untouched."
+**Context**: CONSTRUCTION — ADR-020 P-M done. Open for P-U6: register Docs/generator-protocol.md (and experiments/e1-grid/generator-plan.json) in the next bump; until then --check-prereg refuses every plan (PREREG_REFUSED artefact-changed). Stale uncommitted audit/plan edits of the closed PR #16 lane were found in this checkout, stashed for the rebase and restored uncommitted.
+
+---
