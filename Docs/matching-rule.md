@@ -1,6 +1,7 @@
 # Matching Rule — Differential Scoring of Seeded Copies
 
 > **Status**: final, version `1.0.0` (U5b Step 31, 2026-10-08); registered with `corpus/prereg.json` version 1 (U5b Step 32). This file is a registered artefact (BR-U5b-51). Any change to it is a pre-registration version bump with a reason (BR-U5b-50).
+> **Amended 2026-10-08 to version `1.1.0` (ADR-020, pre-registration P-2)**: MAT-10 (TP-class labels leave FP-labelled, item 2), MAT-19 (neural new violations in their own column, item 5), MAT-20 (corpus-tier strata, item 8), and a note to MAT-04 (`remapLine`, B7). §9 lists the changes; registered with `corpus/prereg.json` version 3; every run registered under version 1.0.0 keeps its own `preregVersion`.
 > **Version**: the machine block below (`version`) is what `scripts/lib/matching-rule.ts` loads. The scorer refuses to run when the block is missing or its version differs from the registered version in `corpus/prereg.json` (`SCORE_RULE_MISMATCH`, BR-U5b-01).
 > **Requirements**: FR-v1.2E-25 (matching rule dated in git before the first run; per instance, function, dimension and tag), FR-v1.2E-27 (root-cause list, mechanical FN causes, audit allocation); ADR-015 items 1, 2, 5, 9, 10; ADR-016 b; ADR-017 items 6, 7.
 > **Design source**: `aidlc-docs/construction/v1.2E-u5b-scoring-harness/functional-design/business-rules.md` (BR-U5b-01..30, 38, 41, 78). Rule ids are cited so each rule can be traced to its test.
@@ -12,7 +13,7 @@
 The scorer reads only this block. Every other section is the human-readable statement of the same rule.
 
 ```yaml matching-rule
-version: 1.0.0
+version: 1.1.0
 lineTolerance: 0
 multiDetection: count-once
 collateralSource: manifest
@@ -63,6 +64,8 @@ rootCauses:
 
 **MAT-04 Detection (BR-U5b-04)**: a seed is TP when at least one new violation from a function in its applicable `expected.functionIds` has a key in the row's `expected.keys[]`. `line` is confirmatory only (`lineTolerance = 0`) under the template's line rule (`site-line`, `first-edge-line`, `none`): the baseline is first remapped through `lineShifts` (`afterLine`, `delta`), and a mismatch is recorded as `lineConfirmed = false` without changing TP/FN. Rows without a line (injection rows, metric and project-level rows, line rule `none`) are matched by key alone with `lineConfirmed = null`.
 
+*Note (1.1.0, B7).* U5a stores `expected.keys[].line` already in seeded-copy coordinates, so line confirmation compares the seeded violation's line with the stored key line directly, and the baseline remap is never needed: `remapLine` in `scripts/score-golden.ts` is that transformation, kept and unit-tested, but not called by the scorer. Line confirmation never changes TP / FN either way.
+
 **MAT-05 Count-once (BR-U5b-05)**: instance, dimension, tag and overall tables count each seed once: TP if any applicable expected function detects it, else FN, whatever the number of detecting functions. `detectedBy` lists every detecting function id, sorted.
 
 **MAT-06 Per-function rows (BR-U5b-06)**: for each applicable expected function of a seed, TP when that function detects the seed, else FN in that function's row.
@@ -73,7 +76,7 @@ rootCauses:
 
 **MAT-09 FP-strict (BR-U5b-09)**: every new violation that is neither a detection of the row's seed nor declared collateral is FP-strict and becomes a labeller item of population P1.
 
-**MAT-10 FP-labelled (BR-U5b-10)**: FP-labelled = FP-strict minus the items reconciled as `unseeded-TP`. `uncertain` items stay in FP-labelled and are counted in `fpUncertain`. Headline precision uses FP-labelled; FP-strict precision is always reported beside it. Before labels exist FP-labelled is `null`, never FP-strict.
+**MAT-10 FP-labelled (BR-U5b-10 as amended 2026-10-08, ADR-020 item 2)**: FP-labelled = FP-strict minus the items reconciled **TP-class**, that is labelled `TP` or `unseeded-TP`. The labeller sees a line window and cannot tell a deliberately introduced construct from an existing one, so both labels mean "a real violation" and neither is a false positive. `uncertain` items stay in FP-labelled and are counted in `fpUncertain`. Headline precision uses FP-labelled; FP-strict precision is always reported beside it. Before labels exist FP-labelled is `null`, never FP-strict. These precisions are the **seeded differential precision**; wherever one is quoted, the SO4 baseline precision (`Docs/analysis-plan.md` §3, ADR-020 item 1) is reported beside it. (1.0.0 subtracted `unseeded-TP` only.)
 
 **MAT-11 P/R/F1 (BR-U5b-11)**: precision = TP / (TP + FP), recall = TP / (TP + FN), F1 = 2PR / (P + R). A zero denominator gives `null` (empty CSV cell), never 0 or NaN.
 
@@ -101,11 +104,11 @@ Status ∈ `matched`, `missed`, `not-applicable`, `site-invalid`, `twin-clean`, 
 
 **MAT-18 SCC mode (BR-U5b-18)**: when cycle rows come from the Tarjan fallback (key: `filePath` = smallest member, discriminator `["scc"]`, evidence `cycle=<JSON>`), a cycle violation matches a baseline violation or a seed when their member sets overlap. A seeded SCC whose smallest member changed is matched by overlap and counted in `sccOverlapMatches`.
 
-**MAT-19 Neural violations (BR-U5b-19)**: never seeds in P/R. In differential accounting they match by `(functionId, filePath, [unitId])`, line-independent. Units added by the variant (`addedByVariant`) or re-judged because the seed changed their excerpt are judge collateral: listed per run (`judgeCollateral`), never FP-strict.
+**MAT-19 Neural violations (BR-U5b-19 as amended 2026-10-08, ADR-020 item 5)**: never seeds in P/R. In differential accounting they match by `(functionId, filePath, [unitId])`, line-independent. Units added by the variant (`addedByVariant`) or re-judged because the seed changed their excerpt are judge collateral: listed per run (`judgeCollateral`), never FP-strict. Every other neural new violation is counted per function in its own column (`neuralNewByFunction`; `neural_new` in `prf_by_function.csv`). It is never FP-strict, never a P1 item and never enters a symbolic P/R/F1 table. (1.0.0 counted it as FP-strict.) The registered SO4 plan `so4-heldout` runs `symbolic-only`, so the column is empty there.
 
 ## 5. Strata and evidence (MAT)
 
-**MAT-20 Strata (BR-U5b-20)**: every P/R/F1 table is computed per `split` (`dev`, `held-out`) and, inside `held-out`, per `baseKind` plus a held-out total. `dev` is never pooled with `held-out`. `probe` rows (SP-*) never enter any P/R/F1 table (MAT-27). The headline SO4 table is `split = held-out`.
+**MAT-20 Strata (BR-U5b-20 as amended 2026-10-08, ADR-020 item 8)**: every P/R/F1 table is computed per `split` (`dev`, `held-out`) and, inside `held-out`, per `baseKind` plus a held-out total. Corpus instances also enter a **corpus-tier** stratum, `corpus-core` (the five core projects of `Docs/corpus.md`, seen during development) or `corpus-e7` (the added E7 projects, the only unseen stratum; the pooled E7 row). The tier comes from `corpus/corpus.json` (`core`); stratum key `[split, "corpus-<tier>", "all"]`. `dev` is never pooled with `held-out`. `probe` rows (SP-*) never enter any P/R/F1 table (MAT-27). The headline SO4 table is `split = held-out`, with the pooled E7 row next to the all-bases figure.
 
 **MAT-21 Coverage (BR-U5b-21)**: rows with `expected.coverage = 'outside'` are scored like any seed and reported in an `outside` stratum; recall is reported in-coverage and overall.
 
@@ -157,4 +160,24 @@ Routed extractor warnings (`EXTRACTOR_009` for rule 2, `EXTRACTOR_002` on the si
 
 ## 8. Audit allocation (BR-U5b-41, 42)
 
-The author audits **30** reconciled labels. Allocation across (kind, label) strata is proportional to stratum size, with a floor of `min(3, size)` per non-empty stratum and every kind represented; `uncertain` items are excluded. Within a stratum, items are taken round-robin by `projectId` in a seeded order. The allocation table is published as `audit_allocation.csv`. The audit view shows only the context the labeller saw, never the panel label, run rationales or root cause; the author's label and root cause are written to `audit/<plan-id>.json` before any comparison, and the comparison runs by script afterwards.
+The author audits **30** items of the label plan. **Amended 2026-10-09 (ADR-021 item 8.8, P-U6):** the audit is drawn **from the plan, before the live labelling run**, so it is label-blind by construction: allocation across (kind, population) strata is proportional to stratum size, with a floor of `min(3, size)` per non-empty stratum and every kind represented; no item is excluded for its later panel label (an `uncertain` panel label is a category of the panel-vs-audit comparison). Within a stratum, items are taken round-robin by `projectId` in a seeded order. The seed is the registered `seeds.audit` of `corpus/label-plan-config.json` (6105), carried into the plan as `auditSeed`; `llm-label --allocate-audit` refuses another `--seed` (`AUDIT_SEED_MISMATCH`, item 8.5) and refuses `--labels` (`AUDIT_NOT_LABEL_BLIND`). (Before: (kind, label) strata of the reconciled labels, `uncertain` excluded.) The allocation table is published as `audit_allocation.csv`. The audit view shows only the context the labeller saw, never the panel label, run rationales or root cause; the author's label and root cause are written to `audit/<plan-id>.json` before any comparison, and the comparison runs by script afterwards.
+
+**Blinding by order and by file (ADR-021 THR-3, amended 2026-10-09 for P-U6).** Field-level blinding is not enough: an order that groups items by stratum, or an allocation file next to the view, gives the panel label back. Therefore:
+
+1. The view lists the allocated items in the order of `sha256([seed, 'audit-view', itemId])`, which no stratum enters; the allocation file keeps the same order, so neither file has blocks by label.
+2. `llm-label --allocate-audit` writes the view into `--out` and the allocation into `--allocation-out`, which must lie outside the view directory (`AUDIT_ALLOCATION_EXPOSED`). The author opens neither the allocation file nor the labels file (`labels.json`) before the audit is committed.
+3. `audit/<plan-id>.json` is committed before the first comparison. `llm-label --agreement --audit` refuses (`AUDIT_UNCOMMITTED`) an audit file that is untracked or differs from `HEAD`, and the hash lock (`AUDIT_MODIFIED`) then refuses any later change.
+4. The audit is completed and committed before any SO3 or SO4 result table that uses labels (`prf_*.csv` with FP-labelled, `precision_baseline.csv`, `agreement.csv`, `label_budget.csv`, `fp_fn_taxonomy.csv`) is produced.
+
+## 9. Amendments
+
+| Date | Version | Rule | Change | Source |
+|---|---|---|---|---|
+| 2026-10-08 | 1.1.0 | MAT-10 | FP-labelled = FP-strict minus {TP, unseeded-TP} (was: minus unseeded-TP). Named seeded differential precision; baseline precision reported beside it. | ADR-020 items 1, 2; review A1, A2 |
+| 2026-10-08 | 1.1.0 | MAT-19 | Neural new violations outside judge collateral go to `neuralNewByFunction`, never FP-strict or a symbolic P/R/F1 table (was: FP-strict and P1). | ADR-020 item 5; review A5 |
+| 2026-10-08 | 1.1.0 | MAT-20 | Corpus-tier strata `corpus-core` / `corpus-e7` (pooled E7 row). | ADR-020 item 8; review A8 |
+| 2026-10-08 | 1.1.0 | MAT-04 | Note: `remapLine` is not called (keys are stored in seeded coordinates). No rule change. | ADR-020 item 9 (B7) |
+| 2026-10-09 | 1.1.0 (no count change; registered with P-U6) | §8 | Audit blinding by order and by file: seeded view order independent of the strata, the allocation sealed outside the view directory, the audit committed before any comparison and before any labelled SO3 / SO4 table. | ADR-021 THR-3 |
+| 2026-10-09 | 1.1.0 (no count change; registered with P-U6) | §8 | The audit is drawn from the label plan before the live run, strata kind × population (was: kind × panel label, `uncertain` excluded); registered audit seed 6105. | ADR-021 items 8.5, 8.8 |
+
+The recall interval unit (the (project, operator) cell) is an analysis rule, registered in `Docs/analysis-plan.md` §5; it does not change any count of this document.

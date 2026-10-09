@@ -6,36 +6,68 @@
  * domain-entities §10. Every float is written with `toFixed(6)`; every RNG use takes a seed from the plan (bootstrap,
  * permutation); two runs over the same inputs give the same bytes (BR-U5b-63).
  *
- * - P/R/F1 files carry the common columns; recall intervals follow BR-U5b-61 with projects as clusters (instance
- *   counts per project), Wilson / Clopper–Pearson below 10 clusters and counts only below n = 10.
+ * - P/R/F1 files carry the common columns. Recall intervals (ADR-020 item 3) take the (project, operator) cell as the
+ *   unit: `ci_low` / `ci_high` / `ci_method` / `n_clusters` are the cell interval (cell bootstrap from 10 cells, Wilson
+ *   on the cell count below), `ci_project_*` the project cluster bootstrap (co-primary from 10 projects,
+ *   `ci_project_descriptive = true` with 2..9 projects) and `ci_independent_*` the instance Wilson interval, the bound that holds only if the copies were independent; counts only below n = 10.
+ *   The precision columns are the seeded differential precision; the SO4 baseline precision (ADR-020 item 1, the HT
+ *   share of TP-class P2 labels) is `precision_baseline` beside it and has its own file `precision_baseline.csv`;
+ *   `precision_figure.csv` holds both in figure-ready long form. Neural new violations are the `neural_new` column
+ *   (MAT-19 1.1.0, ADR-020 item 5). Corpus-tier strata (`corpus-core`, `corpus-e7`) come from the score (item 8), and
+ *   so do the style strata `style-<s>` of the spec's `architecture.style` (ADR-021 SO1-C).
+ * - Precision and F1 intervals (ADR-021 SO4-06) are the trailing `PRF_INTERVAL_COLUMNS` of every P/R/F1 file, under the
+ *   recall unit rule: (project, operator) cells, cell bootstrap primary from 10 cells (precision: Wilson on the cells
+ *   below), the project cluster bootstrap descriptive below 10 projects, and for precision the Wilson interval on the
+ *   violations as the "if independent" bound. F1 gets no Wilson interval. The basis is the labelled mode when the score
+ *   is labelled, else strict (`precision_f1_ci_basis`); project rows rebuild their labelled mode from the instances'
+ *   item labels (`projectModes`), so they share the basis of the other rows.
+ * - SO4 coverage (ADR-021 SO4-03, 05): `seed_coverage.csv` lists every seed (scored, or rejected as a pair with its
+ *   reason) and every manifest rejection; `golden_instances.csv` gives the golden N per stage and the scored N against
+ *   the 80-120 floor with the ADR-019 item 1 shortfall statement (`scripts/lib/so4-coverage.ts`).
+ * - `denominators.csv` and `prf_by_project.csv` carry the corpus style and the spec style (ADR-021 SO1-C).
  * - SO5 (BR-U5b-64, 65): `so5_grid.csv` has one row per E1 cell including `not-run` (GEN code, flags), the AHS fields,
- *   per-dimension AVR and the weighted FPAT family counts (from the `Docs/analysis-plan.md` table only: violations
- *   labelled `TP` weigh 1, `unseeded-TP` the inverse of their P3 inclusion probability, failing judge units by
- *   dimension; nothing else counts). `so5_tests.csv`: permutation tests of the model and spec-level main effects and
- *   their interaction on the verdict-source AHS, task as block, Holm across the three; pairwise mean differences with
- *   bootstrap CIs (runs resampled within cells) and Cliff's δ; secondary outcomes Holm-corrected within their own
- *   family and marked exploratory.
+ *   per-dimension AVR, the weighted FPAT family counts (from the `Docs/analysis-plan.md` table only: violations
+ *   labelled `TP` or `unseeded-TP` weigh the inverse of their P3 inclusion probability (ADR-020 item 2), failing judge
+ *   units by dimension; nothing else counts), and the exploratory size and latency columns (ADR-021 SO5-07, X-3;
+ *   `scripts/lib/so5-size.ts`: LOC, violations per KLOC, generation time, turns and cost, instrument total time).
+ *   `so5_tests.csv`: permutation tests of the model and spec-level main effects (labels permuted within task × the
+ *   other factor's level, ADR-021 THR-4) and their interaction (task blocks) on the verdict-source AHS, Holm across the three; `ahsDeterministic`
+ *   co-primary for the model effect (ADR-020 item 7); pairwise mean differences with bootstrap CIs (runs resampled
+ *   within cells; descriptive only, ADR-020 item 6) and Cliff's δ; the pre-registered directional self-preference
+ *   check; secondary outcomes Holm-corrected within their own family and marked exploratory.
  * - Files whose inputs come from the labeller (`fp_fn_taxonomy`, `agreement`, `audit_allocation`, `label_budget`) are
  *   the `llm-label.ts` tables of the `--labelling` outputs (header only when none are given).
  */
-import { existsSync, readdirSync, readFileSync } from 'node:fs';
+import { readFileSync } from 'node:fs';
 import { join, resolve } from 'node:path';
 import type { EvaluationReport } from '../src/shared/types/evaluation.js';
 import { drawFigures } from './lib/figures/draw.js';
 import { loadManifest } from './lib/manifest.js';
-import type { RunRecord } from './lib/report-io.js';
-import { ANALYSIS_PLAN_DOC, familyOf, FPAT_FAMILIES, genCodeOf, loadSo5Codes } from './lib/so5-codes.js';
+import { loadRunDir as loadRunDirOf } from './lib/report-io.js';
+import type { GenerationCell, LoadedRunDir, RunRecord } from './lib/report-io.js';
+import { ANALYSIS_PLAN_DOC, cellGenCode, familyOf, FPAT_FAMILIES, JOIN_GEN_CODES, loadSo5Codes } from './lib/so5-codes.js';
+import { completeE1Cells, e1ProjectId } from './lib/e1-cells.js';
 import type { FpatFamily, So5Codes } from './lib/so5-codes.js';
+import { SO5_SIZE_COLUMNS, so5SizeValues } from './lib/so5-size.js';
+import { baselineLabelsOf, baselinePrecision, isTpClass } from './lib/baseline-precision.js';
+import type { BaselinePrecisionRow } from './lib/baseline-precision.js';
+import type { CorpusTier } from './lib/mutation/types.js';
 import {
-  cliffsDelta, createRng, holm, permutationFactorTest, permutationInteractionTest, proportionInterval,
+  cliffsDelta, createRng, holm, permutationFactorTest, permutationInteractionTest, permutationTest, proportionInterval, recallIntervals,
 } from './lib/stats.js';
+import { precisionF1Intervals } from './lib/stats.js';
+import type { ConfusionCell, RecallCell } from './lib/stats.js';
+import { goldenNRows, GOLDEN_N_COLUMNS, SEED_COVERAGE_COLUMNS, seedCoverageRows } from './lib/so4-coverage.js';
 import { ablationCsv, rescoreReport, sensitivityCsv } from './rescore.js';
 import type { RescoreOutput } from './rescore.js';
-import { cycleQueryTimes, latencyGate } from './run-experiment.js';
+import { cycleQueryTimes, latencyGate, runIdOf } from './run-experiment.js';
 import type { ExperimentPlan } from './run-experiment.js';
-import { DATA_FLOW_SUB_ROW, denominatorRow, strataOf } from './score-golden.js';
-import type { DenominatorRow, EdgeEvidence, FunctionSensitivityResult, InstanceResult, JudgeProbeResult } from './score-golden.js';
+import { computePrf, DATA_FLOW_SUB_ROW, DATA_FLOW_TEMPLATE, denominatorRow, readCorpusStyles, readCorpusTiers, strataOf } from './score-golden.js';
+import type {
+  DenominatorRow, EdgeEvidence, FpItemRef, FunctionSensitivityResult, InstanceResult, JudgeProbeResult, ManifestRejectionRef, RejectedPair,
+} from './score-golden.js';
 import { labellingTables } from './llm-label.js';
+import { fnCauseColumns, fpatLabelsOf, isReconciledLabels } from './lib/label-adapters.js';
 import type { LabellingOutputs } from './llm-label.js';
 
 export const AGGREGATE_INPUT_INVALID = 'AGGREGATE_INPUT_INVALID';
@@ -43,7 +75,7 @@ export const AGGREGATE_INPUT_INVALID = 'AGGREGATE_INPUT_INVALID';
 /** domain-entities §10, in file order. */
 export const CSV_FILES = [
   'prf_by_function.csv', 'prf_by_dimension.csv', 'prf_by_tag.csv', 'prf_overall.csv', 'prf_by_project.csv',
-  'instances.csv', 'twins.csv', 'edge_evidence.csv', 'judge_probe.csv', 'fp_fn_taxonomy.csv', 'denominators.csv',
+  'precision_baseline.csv', 'precision_figure.csv', 'instances.csv', 'seed_coverage.csv', 'golden_instances.csv', 'twins.csv', 'edge_evidence.csv', 'judge_probe.csv', 'fp_fn_taxonomy.csv', 'denominators.csv',
   'latency.csv', 'coverage.csv', 'ahs_by_project.csv', 'rescore_ablation.csv', 'rescore_sensitivity.csv',
   'function_sensitivity.csv', 'so5_grid.csv', 'so5_patterns.csv', 'so5_tests.csv', 'agreement.csv',
   'audit_allocation.csv', 'label_budget.csv', 'runs.csv',
@@ -54,7 +86,25 @@ export const DIMENSION_COLUMNS = ['structural', 'coupling', 'pattern', 'solid', 
 export const COMMON_PRF_COLUMNS = [
   'plan_id', 'split', 'base_kind', 'coverage', 'tp', 'fp_strict', 'fp_labelled', 'fp_uncertain', 'fn', 'precision_strict',
   'precision_labelled', 'precision_incl_twins', 'recall', 'f1_labelled', 'ci_low', 'ci_high', 'ci_method', 'n_clusters',
+  'ci_project_low', 'ci_project_high', 'ci_project_method', 'n_projects', 'ci_project_descriptive', 'ci_independent_low', 'ci_independent_high', 'ci_independent_method',
 ] as const;
+/** Precision and F1 interval columns, appended to every P/R/F1 file (ADR-021 SO4-06). */
+export const PRF_INTERVAL_COLUMNS = [
+  'precision_f1_ci_basis', 'precision_ci_low', 'precision_ci_high', 'precision_ci_method', 'precision_n_cells',
+  'precision_ci_project_low', 'precision_ci_project_high', 'precision_ci_project_method', 'precision_ci_project_descriptive',
+  'precision_ci_independent_low', 'precision_ci_independent_high', 'precision_ci_independent_method',
+  'f1_ci_low', 'f1_ci_high', 'f1_ci_method', 'f1_n_cells', 'f1_ci_project_low', 'f1_ci_project_high', 'f1_ci_project_method',
+  'f1_ci_project_descriptive',
+] as const;
+export const DENOMINATOR_COLUMNS = [
+  'run_id', 'declared', 'adr_derived', 'compiled', 'disabled', 'dropped', 'dropped_ids', 'skipped_by_mode', 'executed', 'failed',
+  'not_applicable', 'metric_key_excluded', 'identity_ok', 'project_id', 'corpus_style', 'spec_style',
+] as const;
+export const BASELINE_PRECISION_COLUMNS = [
+  'plan_id', 'scope', 'key', 'n_items', 'n_tp_class', 'n_uncertain', 'weighted_tp_class', 'weighted_total', 'n_effective',
+  'precision_baseline', 'ci_low', 'ci_high', 'ci_method', 'n_clusters',
+] as const;
+export const PRECISION_FIGURE_COLUMNS = ['plan_id', 'scope', 'function_id', 'measure', 'estimate', 'ci_low', 'ci_high', 'ci_method', 'n'] as const;
 
 // ---------------------------------------------------------------------------------------------
 // CSV primitives (BR-U5b-63)
@@ -87,12 +137,17 @@ export interface GoldenScoreJson {
   readonly perTag: Pairs<Pairs<PrfModesJson>>;
   readonly overall: Pairs<PrfModesJson>;
   readonly collateralByFunction: Pairs<number>;
+  /** MAT-19 1.1.0; absent in scores written before ADR-020. */
+  readonly neuralNewByFunction?: Pairs<number>;
   readonly notApplicable: Pairs<number>;
   readonly metricKeyExclusions: Pairs<number>;
   readonly twinSpecificity: { readonly clean: number; readonly scored: number };
   readonly edgeEvidence: readonly EdgeEvidence[];
   readonly judgeProbe: readonly JudgeProbeResult[];
   readonly denominators: readonly DenominatorRow[];
+  /** ADR-021 SO4-03, 05; absent in scores written before. */
+  readonly rejectedPairs?: readonly RejectedPair[];
+  readonly manifestRejections?: readonly ManifestRejectionRef[];
 }
 
 /** A reconciled label of one new violation in an E1 cell (P3 population; BR-U5b-64 FPAT counting). */
@@ -100,7 +155,7 @@ export interface LabelledViolation {
   readonly runId: string;
   readonly functionId: string;
   readonly label: 'TP' | 'unseeded-TP' | 'FP' | 'uncertain';
-  /** P3 inclusion probability of an `unseeded-TP` (weight = 1 / p); 1 when absent. */
+  /** P3 inclusion probability of a TP-class label (weight = 1 / p, ADR-020 item 2); 1 when absent. */
   readonly inclusionProbability?: number;
 }
 
@@ -118,6 +173,12 @@ export interface AggregateInput {
   readonly labelling?: LabellingOutputs;
   /** Seed id → twin-of seed id (from the manifest). */
   readonly twinOf?: ReadonlyMap<string, string>;
+  /** Corpus project id → tier, for the baseline-precision tier rows (ADR-020 item 8; `corpusTiers` of corpus.json). */
+  readonly corpusTiers?: ReadonlyMap<string, CorpusTier>;
+  /** Corpus project id → style (`corpus/corpus.json`), for the style columns (ADR-021 SO1-C). */
+  readonly corpusStyles?: ReadonlyMap<string, string>;
+  /** The catalogue's frozen held-out golden total (`golden_instances.csv` `n_registered`; ADR-021 SO4-05). */
+  readonly registeredGoldenN?: number;
   /** Bootstrap and permutation resamples (default 10 000). */
   readonly resamples?: number;
 }
@@ -133,26 +194,98 @@ function stratumParts(key: string): [string, string, string] {
 
 const counted = (i: InstanceResult): boolean => i.status === 'matched' || i.status === 'missed';
 
-/** Per-project instance clusters `{num: matched, den: matched + missed}` of a stratum (projects as clusters). */
-export function instanceClusters(instances: readonly InstanceResult[], stratum: string, keep: (i: InstanceResult) => boolean = () => true): { num: number; den: number }[] {
-  const byProject = new Map<string, { num: number; den: number }>();
+/**
+ * (project, operator) recall cells of a stratum (ADR-020 item 3): `num` detected of `den` scored copies. `keep` selects
+ * the instances of the row; `detected` decides TP (default: the instance is `matched`; per-function rows: the function
+ * is in `detectedBy`).
+ */
+export function instanceCells(
+  instances: readonly InstanceResult[],
+  stratum: string,
+  keep: (i: InstanceResult) => boolean = () => true,
+  detected: (i: InstanceResult) => boolean = (i) => i.status === 'matched',
+): RecallCell[] {
+  const byCell = new Map<string, RecallCell & { num: number; den: number }>();
   for (const i of instances) {
     if (!counted(i) || !keep(i) || !strataOf(i).includes(stratum)) continue;
-    const c = byProject.get(i.projectId) ?? { num: 0, den: 0 };
-    c.num += i.status === 'matched' ? 1 : 0;
+    const key = JSON.stringify([i.projectId, i.operatorId]);
+    const c = byCell.get(key) ?? { project: i.projectId, operator: i.operatorId, num: 0, den: 0 };
+    c.num += detected(i) ? 1 : 0;
     c.den += 1;
-    byProject.set(i.projectId, c);
+    byCell.set(key, c);
   }
-  return [...byProject.keys()].sort().map((k) => byProject.get(k) ?? { num: 0, den: 0 });
+  return [...byCell.keys()].sort().map((k) => byCell.get(k) ?? { project: '', operator: '', num: 0, den: 0 });
 }
 
-function ciCells(clusters: readonly { num: number; den: number }[], tp: number, fn: number, seed: number, resamples: number): string[] {
-  const sum = clusters.reduce((a, c) => ({ num: a.num + c.num, den: a.den + c.den }), { num: 0, den: 0 });
-  // Clusters must reproduce the row's counts; otherwise the row's counts are one cluster (DV-U5b-16).
-  const use = sum.num === tp && sum.den === tp + fn && clusters.length > 0 ? clusters : [{ num: tp, den: tp + fn }];
-  if (tp + fn === 0) return ['', '', '', int(use.length)];
-  const cell = proportionInterval(use, { seed, resamples });
-  return [f6(cell.ciLow), f6(cell.ciHigh), cell.ciMethod ?? '', int(cell.nClusters)];
+/**
+ * The interval columns of a recall row (ADR-020 item 3). Cells must reproduce the row's counts; when they do not
+ * (an older score without `applicable`, or a sub-row without template names), only the "if independent" instance
+ * interval is written and the cell columns stay empty (DV-U5b-16).
+ */
+function ciCells(cells: readonly RecallCell[], tp: number, fn: number, seed: number, resamples: number): string[] {
+  const sum = cells.reduce((a, c) => ({ num: a.num + c.num, den: a.den + c.den }), { num: 0, den: 0 });
+  const reproduces = cells.length > 0 && sum.num === tp && sum.den === tp + fn;
+  if (tp + fn === 0) return ['', '', '', int(cells.length), '', '', '', '', '', '', '', ''];
+  const r = recallIntervals(reproduces ? cells : [{ project: '', operator: '', num: tp, den: tp + fn }], { seed, resamples });
+  const cellCols = reproduces ? [f6(r.cell.ciLow), f6(r.cell.ciHigh), r.cell.ciMethod ?? '', int(r.nCells)] : ['', '', '', ''];
+  const projectCols = reproduces
+    ? [f6(r.project.ciLow), f6(r.project.ciHigh), r.project.ciMethod ?? '', int(r.nProjects), r.project.descriptive === null ? '' : String(r.project.descriptive)]
+    : ['', '', '', '', ''];
+  return [...cellCols, ...projectCols, f6(r.independent.ciLow), f6(r.independent.ciHigh), r.independent.ciMethod ?? ''];
+}
+
+/**
+ * (project, operator) confusion cells of a stratum (ADR-021 SO4-06): TP / FN from the instances `keep` selects (TP when
+ * `detected`), FP from the instance's FP-strict items that `fpOf` selects, without TP-class labels in labelled mode.
+ */
+export function confusionCells(
+  instances: readonly InstanceResult[],
+  stratum: string,
+  keep: (i: InstanceResult) => boolean,
+  detected: (i: InstanceResult) => boolean,
+  fpOf: (f: FpItemRef) => boolean,
+  labelled: boolean,
+): ConfusionCell[] | undefined {
+  const byCell = new Map<string, { project: string; operator: string; tp: number; fp: number; fn: number }>();
+  for (const i of instances) {
+    if (!counted(i) || !strataOf(i).includes(stratum)) continue;
+    if (i.fpItems === undefined) return undefined; // a score written before SO4-06: no cells
+    const key = JSON.stringify([i.projectId, i.operatorId]);
+    const c = byCell.get(key) ?? { project: i.projectId, operator: i.operatorId, tp: 0, fp: 0, fn: 0 };
+    if (keep(i)) {
+      if (detected(i)) c.tp += 1;
+      else c.fn += 1;
+    }
+    c.fp += i.fpItems.filter((f) => fpOf(f) && (!labelled || !isTpClass(f.label ?? 'uncertain'))).length;
+    byCell.set(key, c);
+  }
+  return [...byCell.keys()].sort().map((k) => byCell.get(k) ?? { project: '', operator: '', tp: 0, fp: 0, fn: 0 });
+}
+
+/**
+ * The `PRF_INTERVAL_COLUMNS` of a row (ADR-021 SO4-06). The basis is labelled when the row has a labelled mode, else
+ * strict; the cells must reproduce the row's TP, FP and FN in that basis, or only the basis is written.
+ */
+function prfIntervalCells(
+  m: PrfModesJson, cellsOf: (labelled: boolean) => ConfusionCell[] | undefined, seed: number, resamples: number,
+): string[] {
+  const labelled = m.labelled !== null;
+  const target = m.labelled ?? m.strict;
+  const basis = labelled ? 'labelled' : 'strict';
+  const cells = cellsOf(labelled);
+  const sum = (cells ?? []).reduce((a, c) => ({ tp: a.tp + c.tp, fp: a.fp + c.fp, fn: a.fn + c.fn }), { tp: 0, fp: 0, fn: 0 });
+  const blank = (): string[] => [basis, ...PRF_INTERVAL_COLUMNS.slice(1).map(() => '')];
+  if (cells === undefined || sum.tp !== target.tp || sum.fp !== target.fp || sum.fn !== target.fn) return blank();
+  const r = precisionF1Intervals(cells, { seed, resamples });
+  const p = r.precision;
+  const f = r.f1;
+  return [
+    basis, f6(p.cell.ciLow), f6(p.cell.ciHigh), p.cell.ciMethod ?? '', int(r.nPrecisionCells),
+    f6(p.project.ciLow), f6(p.project.ciHigh), p.project.ciMethod ?? '', bool(p.project.descriptive),
+    f6(p.independent.ciLow), f6(p.independent.ciHigh), p.independent.ciMethod ?? '',
+    f6(f.cell.ciLow), f6(f.cell.ciHigh), f.cell.ciMethod ?? '', int(r.nF1Cells),
+    f6(f.project.ciLow), f6(f.project.ciHigh), f.project.ciMethod ?? '', bool(f.project.descriptive),
+  ];
 }
 
 function prfCells(planId: string, stratum: string, m: PrfModesJson, ci: string[]): string[] {
@@ -177,10 +310,54 @@ export function functionMeta(reports: Iterable<EvaluationReport>): Map<string, F
   return meta;
 }
 
+/** The SO4 baseline-precision rows of the labelling outputs (ADR-020 item 1); empty without P2 labels. */
+export function baselineRows(input: AggregateInput, seed: number, resamples: number): BaselinePrecisionRow[] {
+  const labels = baselineLabelsOf(input.labelling?.labels ?? []);
+  const tiers = input.corpusTiers;
+  return baselinePrecision(labels, { seed, resamples, ...(tiers !== undefined && { tierOf: (p: string) => tiers.get(p) }) });
+}
+
+/** Seeded differential precision rows of the figure (held-out total stratum; Wilson / CP on items, BR-U5b-61). */
+function differentialFigureRows(pid: string, scope: 'overall' | 'function', fid: string, m: PrfModesJson, seed: number, resamples: number): string[][] {
+  const rows: string[][] = [];
+  for (const [measure, prf] of [['seeded-differential-labelled', m.labelled], ['seeded-differential-strict', m.strict]] as const) {
+    if (prf === null) continue;
+    const n = prf.tp + prf.fp;
+    const cell = n === 0 ? undefined : proportionInterval([{ num: prf.tp, den: n }], { seed, resamples });
+    rows.push([pid, scope, fid, measure, f6(prf.precision), f6(cell?.ciLow), f6(cell?.ciHigh), cell?.ciMethod ?? '', int(n)]);
+  }
+  return rows;
+}
+
+/**
+ * The P/R/F1 modes of one project's counted instances in a stratum (`prf_by_project.csv`). Strict FP is the
+ * instances' undeclared new items. When the score is labelled (`labelled`, from the stratum's overall row) and every
+ * instance carries `fpItems`, the labelled mode is rebuilt from the item labels as `score-golden` does (MAT-10 1.1.0:
+ * TP-class labels leave FP; an unlabelled item counts as `uncertain`), so the project row's interval basis matches
+ * the overall, function, dimension and tag rows. "Incl. twins" stays `null` on project rows: twin items are not
+ * carried per instance. A score without `fpItems` keeps the strict basis.
+ */
+export function projectModes(rows: readonly InstanceResult[], labelled: boolean): PrfModesJson {
+  const tp = rows.filter((i) => i.status === 'matched').length;
+  const fn = rows.length - tp;
+  const fp = rows.reduce((a, i) => a + i.undeclaredNew.length, 0);
+  const strict = { tp, fp, fn, precision: tp + fp === 0 ? null : tp / (tp + fp), recall: tp + fn === 0 ? null : tp / (tp + fn), f1: null };
+  if (!labelled || rows.some((i) => i.fpItems === undefined)) return { strict, labelled: null, inclTwins: null, fpUncertain: 0 };
+  const items = rows.flatMap((i) => i.fpItems ?? []);
+  const fpLabelled = items.filter((f) => !isTpClass(f.label ?? 'uncertain')).length;
+  const fpUncertain = items.filter((f) => f.label === 'uncertain').length;
+  return { strict, labelled: computePrf({ tp, fp: fpLabelled, fn }), inclTwins: null, fpUncertain };
+}
+
+/** Stratum of the headline SO4 figure: the held-out total (BR-U5b-20). */
+export const HEADLINE_STRATUM = JSON.stringify(['held-out', 'all', 'all']);
+
 function prfFiles(input: AggregateInput, seed: number, resamples: number): Partial<Record<CsvFile, string>> {
   const s = input.score;
   const pid = input.planId;
   const meta = functionMeta(input.reports.values());
+  const baseline = baselineRows(input, seed, resamples);
+  const baselineOf = (scope: 'overall' | 'function', key: string): string => f6(baseline.find((b) => b.scope === scope && b.key === key)?.estimate);
   const out: Partial<Record<CsvFile, string>> = {};
   const fnRows: string[][] = [];
   const dimRows: string[][] = [];
@@ -192,21 +369,33 @@ function prfFiles(input: AggregateInput, seed: number, resamples: number): Parti
     const na = new Map(s.notApplicable);
     const coll = new Map(s.collateralByFunction);
     const mke = new Map(s.metricKeyExclusions);
+    const neural = new Map(s.neuralNewByFunction ?? []);
+    const applicableOf = (i: InstanceResult): readonly string[] => (i as Partial<InstanceResult>).applicable ?? [];
     for (const [stratum, fns] of s.perFunction) {
       for (const [fid, m] of fns) {
         const md = meta.get(fid);
-        fnRows.push([...prfCells(pid, stratum, m, ciCells([], m.strict.tp, m.strict.fn, seed, resamples)), fid, md?.dimension ?? '', md?.tag ?? '', int(na.get(fid) ?? 0), int(coll.get(fid) ?? 0), int(mke.get(fid) ?? 0)]);
+        const cells = instanceCells(inst, stratum, (i) => applicableOf(i).includes(fid), (i) => i.detectedBy.includes(fid));
+        const pf = prfIntervalCells(m, (lab) => confusionCells(inst, stratum, (i) => applicableOf(i).includes(fid), (i) => i.detectedBy.includes(fid), (f) => f.functionId === fid, lab), seed, resamples);
+        fnRows.push([...prfCells(pid, stratum, m, ciCells(cells, m.strict.tp, m.strict.fn, seed, resamples)), fid, md?.dimension ?? '', md?.tag ?? '', int(na.get(fid) ?? 0), int(coll.get(fid) ?? 0), int(mke.get(fid) ?? 0), int(neural.get(fid) ?? 0), baselineOf('function', fid), ...pf]);
       }
     }
     for (const [stratum, dims] of s.perDimension) {
-      for (const [dim, m] of dims) dimRows.push([...prfCells(pid, stratum, m, ciCells(instanceClusters(inst, stratum, (i) => i.dimension === dim), m.strict.tp, m.strict.fn, seed, resamples)), dim]);
+      for (const [dim, m] of dims) {
+        const pf = prfIntervalCells(m, (lab) => confusionCells(inst, stratum, (i) => i.dimension === dim, (i) => i.status === 'matched', (f) => f.dimension === dim, lab), seed, resamples);
+        dimRows.push([...prfCells(pid, stratum, m, ciCells(instanceCells(inst, stratum, (i) => i.dimension === dim), m.strict.tp, m.strict.fn, seed, resamples)), dim, ...pf]);
+      }
     }
     for (const [stratum, tags] of s.perTag) {
       for (const [tag, m] of tags) {
         const sub = tag === DATA_FLOW_SUB_ROW;
         const base = sub ? DATA_FLOW_SUB_ROW.split('/')[0] ?? tag : tag;
-        const clusters = sub ? [] : instanceClusters(inst, stratum, (i) => i.tags.includes(tag));
-        tagRows.push([...prfCells(pid, stratum, m, ciCells(clusters, m.strict.tp, m.strict.fn, seed, resamples)), base, sub ? DATA_FLOW_SUB_ROW.split('/')[1] ?? '' : '']);
+        const keepTag = sub
+          ? (i: InstanceResult): boolean => i.tags.includes(base) && applicableOf(i).some((f) => meta.get(f)?.name === DATA_FLOW_TEMPLATE)
+          : (i: InstanceResult): boolean => i.tags.includes(tag);
+        const fpTag = sub ? (f: FpItemRef): boolean => f.template === DATA_FLOW_TEMPLATE : (f: FpItemRef): boolean => f.tag === tag;
+        const cells = instanceCells(inst, stratum, keepTag);
+        const pf = prfIntervalCells(m, (lab) => confusionCells(inst, stratum, keepTag, (i) => i.status === 'matched', fpTag, lab), seed, resamples);
+        tagRows.push([...prfCells(pid, stratum, m, ciCells(cells, m.strict.tp, m.strict.fn, seed, resamples)), base, sub ? DATA_FLOW_SUB_ROW.split('/')[1] ?? '' : '', ...pf]);
       }
     }
     const overall = new Map(s.overall);
@@ -214,36 +403,58 @@ function prfFiles(input: AggregateInput, seed: number, resamples: number): Parti
       const [split, baseKind] = stratumParts(stratum);
       const inCov = overall.get(JSON.stringify([split, baseKind, 'in']));
       const all = overall.get(JSON.stringify([split, baseKind, 'all']));
-      overallRows.push([...prfCells(pid, stratum, m, ciCells(instanceClusters(inst, stratum), m.strict.tp, m.strict.fn, seed, resamples)), f6(inCov?.strict.recall), f6(all?.strict.recall)]);
+      const pf = prfIntervalCells(m, (lab) => confusionCells(inst, stratum, () => true, (i) => i.status === 'matched', () => true, lab), seed, resamples);
+      overallRows.push([...prfCells(pid, stratum, m, ciCells(instanceCells(inst, stratum), m.strict.tp, m.strict.fn, seed, resamples)), f6(inCov?.strict.recall), f6(all?.strict.recall), baselineOf('overall', ''), ...pf]);
     }
-    for (const [stratum] of s.overall) {
+    for (const [stratum, om] of s.overall) {
       const projects = [...new Set(inst.filter((i) => strataOf(i).includes(stratum)).map((i) => i.projectId))].sort();
       for (const p of projects) {
         const rows = inst.filter((i) => i.projectId === p && strataOf(i).includes(stratum) && counted(i));
-        const tp = rows.filter((i) => i.status === 'matched').length;
-        const fn = rows.length - tp;
-        const fp = rows.reduce((a, i) => a + i.undeclaredNew.length, 0);
-        const m: PrfModesJson = {
-          strict: { tp, fp, fn, precision: tp + fp === 0 ? null : tp / (tp + fp), recall: tp + fn === 0 ? null : tp / (tp + fn), f1: null },
-          labelled: null, inclTwins: null, fpUncertain: 0,
-        };
-        projectRows.push([...prfCells(pid, stratum, m, ciCells([{ num: tp, den: tp + fn }], tp, fn, seed, resamples)), p]);
+        const m = projectModes(rows, om.labelled !== null);
+        const pf = prfIntervalCells(m, (lab) => confusionCells(inst, stratum, (i) => i.projectId === p, (i) => i.status === 'matched', () => true, lab)?.filter((c) => c.project === p), seed, resamples);
+        const styleOf = rows.find((i) => i.specStyle !== undefined)?.specStyle ?? '';
+        projectRows.push([...prfCells(pid, stratum, m, ciCells(instanceCells(inst, stratum, (i) => i.projectId === p), m.strict.tp, m.strict.fn, seed, resamples)), p, input.corpusStyles?.get(p) ?? rows[0]?.corpusStyle ?? '', styleOf, ...pf]);
       }
     }
   }
-  out['prf_by_function.csv'] = csvText([...COMMON_PRF_COLUMNS, 'function_id', 'dimension', 'tag', 'not_applicable', 'collateral', 'metric_key_excluded'], fnRows);
-  out['prf_by_dimension.csv'] = csvText([...COMMON_PRF_COLUMNS, 'dimension'], dimRows);
-  out['prf_by_tag.csv'] = csvText([...COMMON_PRF_COLUMNS, 'tag', 'sub_row'], tagRows);
-  out['prf_overall.csv'] = csvText([...COMMON_PRF_COLUMNS, 'recall_in_coverage', 'recall_overall'], overallRows);
-  out['prf_by_project.csv'] = csvText([...COMMON_PRF_COLUMNS, 'project_id'], projectRows);
+  out['prf_by_function.csv'] = csvText([...COMMON_PRF_COLUMNS, 'function_id', 'dimension', 'tag', 'not_applicable', 'collateral', 'metric_key_excluded', 'neural_new', 'precision_baseline', ...PRF_INTERVAL_COLUMNS], fnRows);
+  out['prf_by_dimension.csv'] = csvText([...COMMON_PRF_COLUMNS, 'dimension', ...PRF_INTERVAL_COLUMNS], dimRows);
+  out['prf_by_tag.csv'] = csvText([...COMMON_PRF_COLUMNS, 'tag', 'sub_row', ...PRF_INTERVAL_COLUMNS], tagRows);
+  out['prf_overall.csv'] = csvText([...COMMON_PRF_COLUMNS, 'recall_in_coverage', 'recall_overall', 'precision_baseline', ...PRF_INTERVAL_COLUMNS], overallRows);
+  out['prf_by_project.csv'] = csvText([...COMMON_PRF_COLUMNS, 'project_id', 'corpus_style', 'spec_style', ...PRF_INTERVAL_COLUMNS], projectRows);
+  out['precision_baseline.csv'] = csvText(BASELINE_PRECISION_COLUMNS, baseline.map((b) => [
+    pid, b.scope, b.key, int(b.n), int(b.nTpClass), int(b.nUncertain), f6(b.weightedTpClass), f6(b.weightedTotal), f6(b.nEffective),
+    f6(b.estimate), f6(b.ciLow), f6(b.ciHigh), b.ciMethod ?? '', int(b.nClusters),
+  ]));
+  // Figure-ready long form (ADR-020 item 1): seeded differential precision (held-out total) beside baseline precision.
+  const figure: string[][] = [];
+  const headline = s === undefined ? undefined : new Map(s.overall).get(HEADLINE_STRATUM);
+  const headlineFns = s === undefined ? undefined : new Map(new Map(s.perFunction).get(HEADLINE_STRATUM) ?? []);
+  const baselineFigure = (b: BaselinePrecisionRow | undefined, scope: 'overall' | 'function', fid: string): string[][] => (b === undefined ? [] : [[pid, scope, fid, 'baseline', f6(b.estimate), f6(b.ciLow), f6(b.ciHigh), b.ciMethod ?? '', int(b.n)]]);
+  if (headline !== undefined) figure.push(...differentialFigureRows(pid, 'overall', '', headline, seed, resamples));
+  figure.push(...baselineFigure(baseline.find((b) => b.scope === 'overall'), 'overall', ''));
+  const figureFns = [...new Set([...(headlineFns?.keys() ?? []), ...baseline.filter((b) => b.scope === 'function').map((b) => b.key)])].sort();
+  for (const fid of figureFns) {
+    const m = headlineFns?.get(fid);
+    if (m !== undefined) figure.push(...differentialFigureRows(pid, 'function', fid, m, seed, resamples));
+    figure.push(...baselineFigure(baseline.find((b) => b.scope === 'function' && b.key === fid), 'function', fid));
+  }
+  out['precision_figure.csv'] = csvText(PRECISION_FIGURE_COLUMNS, figure);
 
   const inst = s?.perInstance ?? [];
   out['instances.csv'] = csvText(
-    ['seed_id', 'project_id', 'operator_id', 'status', 'detected_by', 'line_confirmed', 'collateral_keys', 'undeclared_new', 'fn_root_cause', 'fn_cause_source'],
+    ['seed_id', 'project_id', 'operator_id', 'status', 'detected_by', 'line_confirmed', 'collateral_keys', 'undeclared_new', 'fn_root_cause', 'fn_cause_source', 'corpus_tier'],
     inst.filter((i) => i.status !== 'twin-clean' && i.status !== 'twin-fired').map((i) => [
-      i.seedId, i.projectId, i.operatorId, i.status, i.detectedBy.join(';'), bool(i.lineConfirmed), JSON.stringify(i.collateral), JSON.stringify(i.undeclaredNew), '', '',
+      i.seedId, i.projectId, i.operatorId, i.status, i.detectedBy.join(';'), bool(i.lineConfirmed), JSON.stringify(i.collateral), JSON.stringify(i.undeclaredNew),
+      ...(i.status === 'missed' ? fnCauseColumns(i.seedId, input.labelling?.fnCauses ?? [], input.labelling?.labels ?? []) : ['', '']), i.corpusTier ?? '',
     ]),
   );
+  const coverage = {
+    instances: inst, rejectedPairs: s?.rejectedPairs ?? [], manifestRejections: s?.manifestRejections ?? [],
+    ...(input.corpusStyles !== undefined && { corpusStyles: input.corpusStyles }),
+  };
+  out['seed_coverage.csv'] = csvText(SEED_COVERAGE_COLUMNS, s === undefined ? [] : seedCoverageRows(pid, coverage));
+  out['golden_instances.csv'] = csvText(GOLDEN_N_COLUMNS, s === undefined ? [] : goldenNRows(pid, coverage, input.registeredGoldenN));
   const twins = inst.filter((i) => i.status === 'twin-clean' || i.status === 'twin-fired');
   const spec = s?.twinSpecificity;
   out['twins.csv'] = csvText(['seed_id', 'twin_of', 'status', 'undeclared_new'], [
@@ -282,28 +493,58 @@ function verdictSourceOf(r: EvaluationReport): 'ahsDeterministic' | 'ahsCombined
   return r.evaluationMode === 'full' ? 'ahsCombined' : r.evaluationMode === 'neuronal-only' ? 'ahsNeuronal' : 'ahsDeterministic';
 }
 
+/**
+ * Sub-stages of `report.timings.stages` and the stage that already contains them (ADR-021 item 8, SO2 follow-up):
+ * the universal cycle metric runs inside `compute-scores`, so its row is marked and never summed with its parent.
+ * Equal to `run-experiment.ts` `UNIVERSAL_CYCLE_STAGE` and C8's stage name (tested).
+ */
+export const NESTED_STAGES: Readonly<Record<string, string>> = Object.freeze({ 'universal-metric:cyclicDependencyCount': 'compute-scores' });
+
+/**
+ * The aggregate's `latency.csv` columns (descriptive, accepted runs only; ADR-021 item 8). `total_ms` is the pipeline
+ * total (`timings.totalMs`, the sum of the top-level stages; the report's `durationMs` before P-U6 was the scoring
+ * time); `within_stage` names the parent of a nested sub-stage row; `cycle_queries_sum_ms` sums both cycle queries
+ * (FF-S02 and the universal metric); `gate_result_unregistered` is not the H13 gate: the registered gate source is
+ * `so2-metrics tables` `gate.json` (rejected runs included).
+ */
+export const AGGREGATE_LATENCY_COLUMNS = [
+  'run_id', 'project_id', 'file_count', 'total_ms', 'stage', 'stage_ms', 'within_stage', 'cycle_queries_sum_ms', 'gate_result_unregistered',
+] as const;
+
 function runFiles(input: AggregateInput): Partial<Record<CsvFile, string>> {
   const out: Partial<Record<CsvFile, string>> = {};
   const acc = acceptedReports(input);
   const denoms: DenominatorRow[] = input.score?.denominators !== undefined && input.score.denominators.length > 0
     ? [...input.score.denominators]
     : acc.map(({ record, report }) => denominatorRow(record.seed?.seedId ?? null, record.runId, report, 0, 0));
+  const projectOfRun = new Map(input.records.map((r) => [r.runId, r.projectId] as const));
   out['denominators.csv'] = csvText(
-    ['run_id', 'declared', 'adr_derived', 'compiled', 'disabled', 'dropped', 'dropped_ids', 'skipped_by_mode', 'executed', 'failed', 'not_applicable', 'metric_key_excluded', 'identity_ok'],
-    denoms.map((d) => [d.runId, int(d.declared), int(d.adrDerived), int(d.compiled), int(d.disabled), int(d.dropped), d.droppedIds.join(';'), int(d.skippedByMode), int(d.executed), int(d.failed), int(d.notApplicable), int(d.metricKeyExcluded), bool(d.identityOk)]),
+    DENOMINATOR_COLUMNS,
+    denoms.map((d) => {
+      const project = projectOfRun.get(d.runId) ?? '';
+      return [
+        d.runId, int(d.declared), int(d.adrDerived), int(d.compiled), int(d.disabled), int(d.dropped), d.droppedIds.join(';'), int(d.skippedByMode),
+        int(d.executed), int(d.failed), int(d.notApplicable), int(d.metricKeyExcluded), bool(d.identityOk),
+        project, input.corpusStyles?.get(project) ?? '', d.specStyle ?? '',
+      ];
+    }),
   );
   const latencyRows: string[][] = [];
   for (const { record, report } of acc) {
     const cycles = cycleQueryTimes(report);
     const timeout = report.functionExecution.failed.some((f) => f.code === 'EVAL_002');
     const gate = latencyGate(cycles, timeout);
-    const stages = (report as unknown as { timings?: { stages?: { name: string; durationMs: number }[] } }).timings?.stages ?? [];
-    const total = (report as unknown as { durationMs?: number }).durationMs;
+    const timings = (report as unknown as { timings?: { totalMs?: number; stages?: { name: string; durationMs: number }[] } }).timings;
+    const stages = timings?.stages ?? [];
+    const total = timings?.totalMs ?? (report as unknown as { durationMs?: number }).durationMs;
     for (const st of stages.length > 0 ? stages : [{ name: '', durationMs: Number.NaN }]) {
-      latencyRows.push([record.runId, record.projectId, int(report.parseCoverage.total), int(total), st.name, Number.isFinite(st.durationMs) ? int(st.durationMs) : '', int(cycles.reduce((a, b) => a + b, 0)), gate]);
+      latencyRows.push([
+        record.runId, record.projectId, int(report.parseCoverage.total), int(total), st.name, Number.isFinite(st.durationMs) ? int(st.durationMs) : '',
+        NESTED_STAGES[st.name] ?? '', int(cycles.reduce((a, b) => a + b, 0)), gate,
+      ]);
     }
   }
-  out['latency.csv'] = csvText(['run_id', 'project_id', 'file_count', 'total_ms', 'stage', 'stage_ms', 'cycle_query_ms', 'gate_result'], latencyRows);
+  out['latency.csv'] = csvText(AGGREGATE_LATENCY_COLUMNS, latencyRows);
   out['coverage.csv'] = csvText(
     ['run_id', 'parse_coverage', 'resolved_internal', 'external', 'external_out_of_root_alias', 'unresolved', 'dropped_no_file_node', 'unsupported_dynamic'],
     acc.map(({ record, report }) => {
@@ -349,7 +590,7 @@ function runFiles(input: AggregateInput): Partial<Record<CsvFile, string>> {
 // ---------------------------------------------------------------------------------------------
 // SO5 (BR-U5b-64, 65)
 
-/** Weighted FPAT family counts of one cell (BR-U5b-64): labelled TP / unseeded-TP violations and failing judge units. */
+/** Weighted FPAT family counts of one cell (BR-U5b-64 as amended by ADR-020 item 2): TP-class labels weigh 1 / p; failing judge units 1. */
 export function fpatCounts(runId: string, report: EvaluationReport | undefined, labels: readonly LabelledViolation[], so5: So5Codes): Map<FpatFamily, { count: number; weighted: number }> {
   const out = new Map<FpatFamily, { count: number; weighted: number }>();
   const add = (fam: FpatFamily | undefined, w: number): void => {
@@ -361,13 +602,38 @@ export function fpatCounts(runId: string, report: EvaluationReport | undefined, 
   };
   const names = new Map((report?.functionResults ?? []).map((r) => [String(r.functionId), r.name]));
   for (const l of labels) {
-    if (l.runId !== runId || (l.label !== 'TP' && l.label !== 'unseeded-TP')) continue;
-    const p = l.label === 'unseeded-TP' ? (l.inclusionProbability ?? 1) : 1;
+    if (l.runId !== runId || !isTpClass(l.label)) continue;
+    // ADR-020 item 2: every TP-class label is weighted 1 / p (P3 seeds nothing, so TP and unseeded-TP are one class).
+    const p = l.inclusionProbability ?? 1;
     if (!(p > 0 && p <= 1)) throw new Error(`${AGGREGATE_INPUT_INVALID}: inclusion probability ${String(p)} for ${l.functionId} in ${runId}`);
     add(familyOf(so5, names.get(l.functionId) ?? l.functionId), 1 / p);
   }
   for (const row of report?.neuralResults ?? []) {
     for (const u of row.unitResults) if (u.status === 'valid' && u.verdict === 'fail') add(familyOf(so5, row.dimension), 1);
+  }
+  return out;
+}
+
+/**
+ * The FPAT families whose per-cell value depends on labels (ADR-021 item 8.1): the families of compiled template
+ * functions (counted on TP-class P3 labels). The judge families count failing judge units and need no label.
+ */
+export function labelDependentFamilies(so5: So5Codes): Set<FpatFamily> {
+  const judge = new Set<string>(Object.values(so5.judgeDimensions as Record<string, string>));
+  return new Set((Object.values(so5.functionFamilies as Record<string, FpatFamily>)).filter((f) => !judge.has(f)));
+}
+
+/**
+ * Symbolic FPAT profile of one cell (ADR-021 item 8.1): every symbolic violation of the report counted once in its
+ * function's family, unlabelled and unweighted. This is the profile Ch9 reports while P3 is out of live labelling.
+ */
+export function symbolicFpatCounts(report: EvaluationReport | undefined, so5: So5Codes): Map<FpatFamily, number> {
+  const out = new Map<FpatFamily, number>();
+  const names = new Map((report?.functionResults ?? []).map((r) => [String(r.functionId), r.name]));
+  for (const v of report?.violations ?? []) {
+    if (v.route === 'neuronal' || (v as { readonly unitId?: unknown }).unitId !== undefined) continue;
+    const fam = familyOf(so5, names.get(String(v.functionId)) ?? String(v.functionId));
+    if (fam !== undefined) out.set(fam, (out.get(fam) ?? 0) + 1);
   }
   return out;
 }
@@ -381,10 +647,53 @@ export interface So5Cell {
   readonly taskId: string;
   readonly runIndex: number;
   readonly fpat: Map<FpatFamily, { count: number; weighted: number }>;
+  /**
+   * False when no P3 label exists (P3 is out of live labelling, ADR-021 item 8.1): the label-dependent families are
+   * then N/A for the cell (undefined, never 0). Absent = labelled (cells built before P-U6).
+   */
+  readonly fpatLabelled?: boolean;
+  /** Symbolic FPAT profile of the cell (`symbolicFpatCounts`). */
+  readonly symbolicFpat?: Map<FpatFamily, number>;
+}
+
+/**
+ * The not-run record of an E1 grid coordinate that no RunRecord carries (ADR-021 SO5-05): a run that stopped before
+ * the entry, or an older record without a `cell`. It exists only inside the SO5 outputs and is never written; its
+ * `runId` is the one `run-experiment.ts` gives the entry (projects first, then the grid in coordinate order).
+ */
+export function missingE1Record(plan: ExperimentPlan, coordinateIndex: number, cell: GenerationCell): RunRecord {
+  const projectId = e1ProjectId({ modelId: cell.requestedModelId, taskId: cell.taskId, specLevel: cell.specLevel, runIndex: cell.runIndex });
+  const runId = runIdOf(plan.id, { index: plan.projects.length + coordinateIndex, projectId, path: '', specPath: '' });
+  return {
+    runId, planId: plan.id, projectId, status: 'not-run', reasonCode: 'generation-failed',
+    reasonDetail: `${JOIN_GEN_CODES.missing}: no RunRecord for the grid coordinate`, attempt: 1,
+    specSha: '', cliCommit: '', preregVersion: 0, frozenHashes: {}, envRecordId: '', startedAt: '', wallMs: 0, cell,
+  };
+}
+
+/**
+ * The records the SO5 outputs read. For a plan with an `e1` grid: one record per grid coordinate in coordinate order
+ * (`completeE1Cells`; a coordinate no record carries gets `missingE1Record`), then the record cells that match no
+ * coordinate, so nothing is dropped (analysis-plan §8). Otherwise every record with a `cell`.
+ */
+export function so5Records(input: AggregateInput): RunRecord[] {
+  const withCell = input.records.filter((r) => r.cell !== undefined);
+  const grid = input.plan?.e1;
+  if (input.plan === undefined || grid === undefined) return withCell;
+  const plan = input.plan;
+  const byCell = new Map<GenerationCell, RunRecord>(withCell.flatMap((r) => (r.cell === undefined ? [] : [[r.cell, r] as const])));
+  const complete = completeE1Cells(withCell, grid);
+  const out = complete.cells.map((cell, i) => byCell.get(cell) ?? missingE1Record(plan, i, cell));
+  for (const cell of complete.extra) {
+    const r = byCell.get(cell);
+    if (r !== undefined) out.push(r);
+  }
+  return out;
 }
 
 export function so5Cells(input: AggregateInput): So5Cell[] {
-  return input.records.filter((r) => r.cell !== undefined).map((record) => {
+  const labelled = (input.labels ?? []).length > 0;
+  return so5Records(input).map((record) => {
     const cell = record.cell;
     if (cell === undefined) throw new Error('unreachable');
     const report = record.status === 'accepted' ? input.reports.get(record.runId) : undefined;
@@ -392,6 +701,7 @@ export function so5Cells(input: AggregateInput): So5Cell[] {
       record, ...(report !== undefined && { report }), valid: report !== undefined,
       model: cell.requestedModelId, specLevel: cell.specLevel, taskId: cell.taskId, runIndex: cell.runIndex,
       fpat: fpatCounts(record.runId, report, input.labels ?? [], input.so5),
+      fpatLabelled: labelled, symbolicFpat: symbolicFpatCounts(report, input.so5),
     };
   });
 }
@@ -402,29 +712,48 @@ export function primaryOutcome(report: EvaluationReport): { field: string; value
   return { field, value: ahsOf(report, field) };
 }
 
-interface Outcome { readonly family: string; readonly exploratory: boolean; readonly values: (c: So5Cell) => number | undefined }
+/** One SO5 outcome family; `confirmatory` lists the effects whose rows are confirmatory (the rest are exploratory). */
+interface Outcome { readonly family: string; readonly confirmatory: readonly string[]; readonly values: (c: So5Cell) => number | undefined }
 
-function outcomesOf(cells: readonly So5Cell[]): Outcome[] {
+const ALL_EFFECTS = ['model', 'spec-level', 'model×spec-level'] as const;
+
+/**
+ * A cell's weighted FPAT value of one family: undefined for an invalid cell and, without P3 labels, for a
+ * label-dependent family (N/A, never 0; ADR-021 item 8.1); else the weighted count (0 when none).
+ */
+export function fpatValue(c: So5Cell, fam: FpatFamily, labelDependent: ReadonlySet<FpatFamily>): number | undefined {
+  if (!c.valid) return undefined;
+  if (c.fpatLabelled === false && labelDependent.has(fam)) return undefined;
+  return c.fpat.get(fam)?.weighted ?? 0;
+}
+
+function outcomesOf(cells: readonly So5Cell[], labelDependent: ReadonlySet<FpatFamily> = new Set()): Outcome[] {
   const valid = cells.filter((c) => c.report !== undefined);
   const first = valid[0]?.report;
   const primaryField = first === undefined ? 'ahsDeterministic' : verdictSourceOf(first);
-  const outcomes: Outcome[] = [{ family: `primary:${primaryField}`, exploratory: false, values: (c) => (c.report === undefined ? undefined : primaryOutcome(c.report).value) }];
+  const outcomes: Outcome[] = [{ family: `primary:${primaryField}`, confirmatory: ALL_EFFECTS, values: (c) => (c.report === undefined ? undefined : primaryOutcome(c.report).value) }];
   for (const f of ['ahsDeterministic', 'ahsCombined', 'ahsNeuronal'] as const) {
     if (f === primaryField || !valid.some((c) => c.report !== undefined && ahsOf(c.report, f) !== undefined)) continue;
-    outcomes.push({ family: `secondary:${f}`, exploratory: true, values: (c) => (c.report === undefined ? undefined : ahsOf(c.report, f)) });
+    // ADR-020 item 7: ahsDeterministic is co-primary for the model effect (its own Holm family of three).
+    const coPrimary = f === 'ahsDeterministic';
+    outcomes.push({ family: `${coPrimary ? 'co-primary' : 'secondary'}:${f}`, confirmatory: coPrimary ? ['model'] : [], values: (c) => (c.report === undefined ? undefined : ahsOf(c.report, f)) });
   }
   for (const d of DIMENSION_COLUMNS) {
     if (!valid.some((c) => c.report !== undefined && avrMap(c.report).has(d))) continue;
-    outcomes.push({ family: `secondary:avr_${d}`, exploratory: true, values: (c) => (c.report === undefined ? undefined : avrMap(c.report).get(d)) });
+    outcomes.push({ family: `secondary:avr_${d}`, confirmatory: [], values: (c) => (c.report === undefined ? undefined : avrMap(c.report).get(d)) });
   }
   for (const fam of FPAT_FAMILIES) {
     if (!valid.some((c) => c.fpat.has(fam))) continue;
-    outcomes.push({ family: `secondary:fpat_${fam}`, exploratory: true, values: (c) => (c.valid ? (c.fpat.get(fam)?.weighted ?? 0) : undefined) });
+    outcomes.push({ family: `secondary:fpat_${fam}`, confirmatory: [], values: (c) => fpatValue(c, fam, labelDependent) });
   }
-  outcomes.push({ family: 'secondary:valid_generation_yield', exploratory: true, values: (c) => (c.valid ? 1 : 0) });
+  // ADR-021 SO5-07, X-3: deterministic violations per KLOC, exploratory (valid cells with a LOC count only).
+  if (valid.some((c) => c.report !== undefined && c.record.cell?.loc !== undefined)) {
+    outcomes.push({ family: 'secondary:violations_per_kloc', confirmatory: [], values: (c) => (c.record.cell === undefined ? undefined : so5SizeValues(c.record.cell, c.report).violationsPerKloc) });
+  }
+  outcomes.push({ family: 'secondary:valid_generation_yield', confirmatory: [], values: (c) => (c.valid ? 1 : 0) });
   if (valid.some((c) => (c.report?.neuralResults ?? []).length > 0)) {
     outcomes.push({
-      family: 'secondary:judge_fail_share', exploratory: true, values: (c) => {
+      family: 'secondary:judge_fail_share', confirmatory: [], values: (c) => {
         const units = (c.report?.neuralResults ?? []).flatMap((r) => r.unitResults).filter((u) => u.status === 'valid');
         return units.length === 0 ? undefined : units.filter((u) => u.verdict === 'fail').length / units.length;
       },
@@ -463,12 +792,49 @@ function stratifiedMeanDiffCi(obs: readonly { cell: string; group: 'A' | 'B'; va
   return [q(0.025), q(0.975)];
 }
 
-export const SO5_TEST_COLUMNS = ['effect', 'statistic', 'p_raw', 'p_holm', 'family', 'effect_size', 'ci_low', 'ci_high', 'cliffs_delta', 'exploratory'] as const;
+/**
+ * The permutation stratum of an SO5 main-effect test (ADR-021 THR-4): task × the level of the other factor. Model
+ * labels are permuted within (task, spec level), spec-level labels within (task, model).
+ */
+export function so5Stratum(taskId: string, otherLevel: string): string {
+  return JSON.stringify([taskId, otherLevel]);
+}
 
-/** `so5_tests.csv` rows (BR-U5b-65). */
-export function so5Tests(cells: readonly So5Cell[], seeds: { readonly bootstrap: number; readonly permutation: number }, resamples: number): string[][] {
+export const SO5_TEST_COLUMNS = ['effect', 'statistic', 'p_raw', 'p_holm', 'family', 'effect_size', 'ci_low', 'ci_high', 'cliffs_delta', 'exploratory', 'descriptive'] as const;
+
+/** Family of the pre-registered directional self-preference check (ADR-020 item 7). */
+export const DIRECTIONAL_FAMILY = 'directional:ahsNeuronal-minus-ahsDeterministic';
+
+/**
+ * The directional self-preference check (ADR-020 item 7): per valid cell d = ahsNeuronal − ahsDeterministic; the
+ * statistic is mean(d | model = judge model) − mean(d | other models), tested one-sided (greater) by permutation of
+ * the model labels within (task × spec level) (THR-4), with Cliff's δ of the two d samples. `undefined` when either
+ * group is empty.
+ */
+export function directionalCheck(cells: readonly So5Cell[], judgeModel: string, seed: number, resamples: number): string[] | undefined {
+  const obs = cells.flatMap((c) => {
+    const n = c.report === undefined ? undefined : ahsOf(c.report, 'ahsNeuronal');
+    const d = c.report === undefined ? undefined : ahsOf(c.report, 'ahsDeterministic');
+    return n === undefined || d === undefined ? [] : [{ block: so5Stratum(c.taskId, c.specLevel), group: c.model === judgeModel ? 'A' as const : 'B' as const, value: n - d }];
+  });
+  const a = obs.filter((o) => o.group === 'A').map((o) => o.value);
+  const b = obs.filter((o) => o.group === 'B').map((o) => o.value);
+  if (a.length === 0 || b.length === 0) return undefined;
+  const r = permutationTest(obs, { seed, resamples, alternative: 'greater' });
+  return [`directional:${judgeModel}-vs-others`, f6(r.statistic), f6(r.p), f6(r.p), DIRECTIONAL_FAMILY, f6(r.statistic), '', '', f6(cliffsDelta(a, b)), 'false', 'false'];
+}
+
+/**
+ * `so5_tests.csv` rows (BR-U5b-65 as amended by ADR-020 items 6, 7): the three permutation tests per outcome family,
+ * the pairwise rows (mean difference with a bootstrap CI that is descriptive only, and Cliff's δ), and, when the
+ * judge model is given, the directional self-preference check.
+ */
+export function so5Tests(
+  cells: readonly So5Cell[], seeds: { readonly bootstrap: number; readonly permutation: number }, resamples: number, judgeModel?: string,
+  labelDependent: ReadonlySet<FpatFamily> = new Set(),
+): string[][] {
   const rows: string[][] = [];
-  for (const outcome of outcomesOf(cells)) {
+  for (const outcome of outcomesOf(cells, labelDependent)) {
     const obs = cells.flatMap((c) => {
       const v = outcome.values(c);
       return v === undefined || !Number.isFinite(v) ? [] : [{ c, v }];
@@ -477,13 +843,15 @@ export function so5Tests(cells: readonly So5Cell[], seeds: { readonly bootstrap:
     const levels = [...new Set(obs.map((o) => o.c.specLevel))].sort();
     if (models.length < 2 || levels.length < 2) continue;
     const opts = { seed: seeds.permutation, resamples };
+    // THR-4: each main effect permutes its labels within (task × the other factor's level), so an unbalanced count of
+    // valid cells cannot carry one factor's effect into the other's test. The interaction keeps task blocks.
     const tests = [
-      { effect: 'model', r: permutationFactorTest(obs.map((o) => ({ block: o.c.taskId, level: o.c.model, value: o.v })), opts) },
-      { effect: 'spec-level', r: permutationFactorTest(obs.map((o) => ({ block: o.c.taskId, level: o.c.specLevel, value: o.v })), opts) },
+      { effect: 'model', r: permutationFactorTest(obs.map((o) => ({ block: so5Stratum(o.c.taskId, o.c.specLevel), level: o.c.model, value: o.v })), opts) },
+      { effect: 'spec-level', r: permutationFactorTest(obs.map((o) => ({ block: so5Stratum(o.c.taskId, o.c.model), level: o.c.specLevel, value: o.v })), opts) },
       { effect: 'model×spec-level', r: permutationInteractionTest(obs.map((o) => ({ block: o.c.taskId, a: o.c.model, b: o.c.specLevel, value: o.v })), opts) },
     ];
     const adjusted = holm(tests.map((t) => t.r.p));
-    tests.forEach((t, i) => rows.push([t.effect, f6(t.r.statistic), f6(t.r.p), f6(adjusted[i]), outcome.family, '', '', '', '', String(outcome.exploratory)]));
+    tests.forEach((t, i) => rows.push([t.effect, f6(t.r.statistic), f6(t.r.p), f6(adjusted[i]), outcome.family, '', '', '', '', String(!outcome.confirmatory.includes(t.effect)), 'false']));
     for (const [factor, list, key] of [['model', models, (c: So5Cell) => c.model], ['spec-level', levels, (c: So5Cell) => c.specLevel]] as const) {
       for (let i = 0; i < list.length; i++) {
         for (let j = i + 1; j < list.length; j++) {
@@ -497,16 +865,32 @@ export function so5Tests(cells: readonly So5Cell[], seeds: { readonly bootstrap:
             cell: JSON.stringify([o.c.model, o.c.specLevel, o.c.taskId]), group: key(o.c) === a ? 'A' as const : 'B' as const, value: o.v,
           }));
           const [lo, hi] = stratifiedMeanDiffCi(pair, seeds.bootstrap, resamples);
-          rows.push([`${factor}:${a}-${b}`, '', '', '', outcome.family, f6(mean(xa) - mean(xb)), f6(lo), f6(hi), f6(cliffsDelta(xa, xb)), String(outcome.exploratory)]);
+          // ADR-020 item 6: the pairwise CI resamples three replicates within each cell and has no multiplicity
+          // control, so it is descriptive only; inference rests on the Holm-corrected permutation p and Cliff's δ.
+          rows.push([`${factor}:${a}-${b}`, '', '', '', outcome.family, f6(mean(xa) - mean(xb)), f6(lo), f6(hi), f6(cliffsDelta(xa, xb)), String(!outcome.confirmatory.includes(factor)), 'true']);
         }
       }
     }
   }
+  if (judgeModel !== undefined) {
+    const d = directionalCheck(cells, judgeModel, seeds.permutation, resamples);
+    if (d !== undefined) rows.push(d);
+  }
   return rows;
+}
+
+/** The `SO5_SIZE_COLUMNS` cells of one grid row: counts and milliseconds as integers when whole, the rest `f6`. */
+function sizeCells(v: ReturnType<typeof so5SizeValues>): string[] {
+  const n = (x: number | undefined): string => (x === undefined ? '' : Number.isInteger(x) ? String(x) : f6(x));
+  return [
+    int(v.loc), int(v.violationsDeterministic), int(v.violationsTotal), f6(v.violationsPerKloc), f6(v.violationsTotalPerKloc),
+    n(v.generationMs), int(v.generationTurns), f6(v.generationCostUsd), n(v.evalTotalMs),
+  ];
 }
 
 export function so5Csv(input: AggregateInput, resamples: number): Partial<Record<CsvFile, string>> {
   const cells = so5Cells(input);
+  const labelDependent = labelDependentFamilies(input.so5);
   const cellCols = ['requested_model_id', 'resolved_model_id', 'adapter_id', 'prompt_template_id', 'style', 'spec_level', 'task_id', 'run_index', 'generation_outcome_path', 'generation_status', 'failure_reason', 'file_count', 'file_count_in_range', 'permission_denials'];
   const fpatCols = FPAT_FAMILIES.map((f) => `fpat_${f.slice('FPAT-'.length).toLowerCase().replace(/-/g, '_')}`);
   const grid = cells.map((c) => {
@@ -520,25 +904,33 @@ export function so5Csv(input: AggregateInput, resamples: number): Partial<Record
       c.record.status, r === undefined ? '' : verdictSourceOf(r), f6(r === undefined ? undefined : ahsOf(r, 'ahsDeterministic')),
       f6(r === undefined ? undefined : ahsOf(r, 'ahsCombined')), f6(r === undefined ? undefined : ahsOf(r, 'ahsNeuronal')),
       ...DIMENSION_COLUMNS.map((d) => f6(avr.get(d))),
-      ...FPAT_FAMILIES.map((f) => (c.valid ? f6(c.fpat.get(f)?.weighted ?? 0) : '')),
-      genCodeOf(input.so5, cell.generationStatus, cell.failureReason) ?? '',
+      ...FPAT_FAMILIES.map((f) => f6(fpatValue(c, f, labelDependent))),
+      cellGenCode(input.so5, cell) ?? '',
+      ...sizeCells(so5SizeValues(cell, r)),
     ];
   });
+  // `basis` (ADR-021 item 8.1): `labelled` = TP-class P3 labels weighted 1 / p; `judge` = failing judge units;
+  // `symbolic` = unlabelled symbolic violations per family (the Ch9 profile while P3 is not labelled; no weight);
+  // `gen` = the cell's GEN code.
   const patterns: string[][] = [];
   for (const c of cells) {
     for (const f of FPAT_FAMILIES) {
       const v = c.fpat.get(f);
-      if (v !== undefined) patterns.push([c.record.runId, f, int(v.count), f6(v.weighted)]);
+      if (v !== undefined) patterns.push([c.record.runId, f, int(v.count), f6(v.weighted), labelDependent.has(f) ? 'labelled' : 'judge']);
+    }
+    for (const f of FPAT_FAMILIES) {
+      const n = c.symbolicFpat?.get(f);
+      if (n !== undefined) patterns.push([c.record.runId, f, int(n), '', 'symbolic']);
     }
     const cell = c.record.cell;
-    const gen = cell === undefined ? undefined : genCodeOf(input.so5, cell.generationStatus, cell.failureReason);
-    if (gen !== undefined) patterns.push([c.record.runId, gen, '1', f6(1)]);
+    const gen = cell === undefined ? undefined : cellGenCode(input.so5, cell);
+    if (gen !== undefined) patterns.push([c.record.runId, gen, '1', f6(1), 'gen']);
   }
   const seeds = input.plan?.seeds ?? { sampling: 0, bootstrap: 0, permutation: 0 };
   return {
-    'so5_grid.csv': csvText([...cellCols, 'status', 'verdict_source', 'ahs_deterministic', 'ahs_combined', 'ahs_neuronal', ...DIMENSION_COLUMNS.map((d) => `avr_${d}`), ...fpatCols, 'gen_code'], grid),
-    'so5_patterns.csv': csvText(['run_id', 'code', 'count', 'weighted_count'], patterns),
-    'so5_tests.csv': csvText(SO5_TEST_COLUMNS, so5Tests(cells, seeds, resamples)),
+    'so5_grid.csv': csvText([...cellCols, 'status', 'verdict_source', 'ahs_deterministic', 'ahs_combined', 'ahs_neuronal', ...DIMENSION_COLUMNS.map((d) => `avr_${d}`), ...fpatCols, 'gen_code', ...SO5_SIZE_COLUMNS], grid),
+    'so5_patterns.csv': csvText(['run_id', 'code', 'count', 'weighted_count', 'basis'], patterns),
+    'so5_tests.csv': csvText(SO5_TEST_COLUMNS, so5Tests(cells, seeds, resamples, input.plan?.judge?.model, labelDependent)),
   };
 }
 
@@ -557,26 +949,39 @@ export function aggregate(input: AggregateInput): Map<CsvFile, string> {
   }));
 }
 
-export interface LoadedRunDir { readonly records: RunRecord[]; readonly reports: Map<string, EvaluationReport> }
+export type { LoadedRunDir } from './lib/report-io.js';
 
-/** Reads a harness output directory: `runs/*.run.json` and the stored reports they reference. */
-export function loadRunDir(dir: string): LoadedRunDir {
-  const runsDir = join(dir, 'runs');
-  if (!existsSync(runsDir)) throw new Error(`${AGGREGATE_INPUT_INVALID}: ${runsDir} not found`);
-  const records = readdirSync(runsDir).filter((f) => f.endsWith('.run.json')).sort()
-    .map((f) => JSON.parse(readFileSync(join(runsDir, f), 'utf8')) as RunRecord);
-  const reports = new Map<string, EvaluationReport>();
-  for (const r of records) {
-    if (r.reportPath === undefined) continue;
-    const p = join(dir, r.reportPath);
-    if (existsSync(p)) reports.set(r.runId, JSON.parse(readFileSync(p, 'utf8')) as EvaluationReport);
+/**
+ * The FPAT input of `--labels` (ADR-021 SO5-01): the labeller's `ReconciledLabel[]` converted to P3 rows keyed by the
+ * E1 run id (`label-adapters.ts`), or a `LabelledViolation[]` already in that shape. A label that matches no E1
+ * record is refused (`AGGREGATE_INPUT_INVALID`). A labels file without any P3 label gives no row: P3 is out of live
+ * labelling (ADR-021 item 8.1), so the label-dependent FPAT values are N/A, never 0 (`fpatValue`).
+ */
+export function fpatLabelsFromFile(value: unknown, records: readonly RunRecord[]): LabelledViolation[] {
+  if (isReconciledLabels(value)) {
+    const r = fpatLabelsOf(value, records);
+    if (!r.ok) throw new Error(`${AGGREGATE_INPUT_INVALID}: ${r.detail}`);
+    return r.labels;
   }
-  return { records, reports };
+  if (Array.isArray(value) && value.every((l) => typeof (l as Partial<LabelledViolation>).runId === 'string' && typeof (l as Partial<LabelledViolation>).functionId === 'string')) {
+    const labels = value as LabelledViolation[];
+    const e1 = new Set(records.filter((r) => r.cell !== undefined).map((r) => r.runId));
+    const stray = labels.find((l) => !e1.has(l.runId));
+    if (stray !== undefined) throw new Error(`${AGGREGATE_INPUT_INVALID}: label of ${stray.functionId} names run ${stray.runId}, which is not an E1 record of --runs`);
+    return labels;
+  }
+  throw new Error(`${AGGREGATE_INPUT_INVALID}: --labels must be llm-label output (ReconciledLabel[]) or LabelledViolation[]`);
+}
+
+/** Reads a harness output directory (`report-io.ts` `loadRunDir`, errors as `AGGREGATE_INPUT_INVALID`). */
+export function loadRunDir(dir: string): LoadedRunDir {
+  return loadRunDirOf(dir, AGGREGATE_INPUT_INVALID);
 }
 
 export const AGGREGATE_USAGE = [
   'Usage: npx tsx scripts/aggregate-cli.ts --runs <dir> --out <dir> [--plan <plan.json>] [--score <golden.json>]',
   '         [--manifest <manifest.json>] [--sensitivity <results.json>] [--labels <labels.json>] [--labelling <labelling.json>] [--resamples <n>] [--no-figures]',
+  '         [--golden-registered <n>]   (the catalogue\'s frozen held-out golden total, for golden_instances.csv)',
   '       npx tsx scripts/aggregate-cli.ts --self-test',
 ].join('\n');
 
@@ -628,13 +1033,20 @@ export async function main(argv: readonly string[], repoRoot: string, io: Aggreg
       twinOf = new Map(m.data.rows.flatMap((r) => ('twinOf' in r.expected && typeof r.expected.twinOf === 'string' ? [[r.seedId, r.expected.twinOf] as const] : [])));
     }
     const resamples = opts.get('resamples');
+    const corpusTiers = readCorpusTiers(repoRoot);
+    const corpusStyles = readCorpusStyles(repoRoot);
+    const registered = opts.get('golden-registered');
+    if (registered !== undefined && !/^\d+$/.test(registered)) throw new Error(`${AGGREGATE_INPUT_INVALID}: --golden-registered must be a non-negative integer`);
     const input: AggregateInput = {
       planId: plan?.id ?? records[0]?.planId ?? 'unknown', ...(plan !== undefined && { plan }), records, reports, so5: so5.codes,
       ...(opts.has('score') && { score: readJsonFile(resolve(repoRoot, opts.get('score') ?? '')) as GoldenScoreJson }),
       ...(opts.has('sensitivity') && { sensitivity: readJsonFile(resolve(repoRoot, opts.get('sensitivity') ?? '')) as FunctionSensitivityResult[] }),
-      ...(opts.has('labels') && { labels: readJsonFile(resolve(repoRoot, opts.get('labels') ?? '')) as LabelledViolation[] }),
+      ...(opts.has('labels') && { labels: fpatLabelsFromFile(readJsonFile(resolve(repoRoot, opts.get('labels') ?? '')), records) }),
       ...(opts.has('labelling') && { labelling: readJsonFile(resolve(repoRoot, opts.get('labelling') ?? '')) as LabellingOutputs }),
       ...(twinOf !== undefined && { twinOf }),
+      ...(corpusTiers !== undefined && { corpusTiers }),
+      ...(corpusStyles !== undefined && { corpusStyles }),
+      ...(registered !== undefined && { registeredGoldenN: Number(registered) }),
       ...(resamples !== undefined && { resamples: Number(resamples) }),
     };
     const out = resolve(repoRoot, outDir);

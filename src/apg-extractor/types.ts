@@ -2,11 +2,21 @@ import type { PipelineError } from '../shared/errors/domain-result.js';
 
 // ── Public API Types ─────────────────────────────────────────────────────────
 
+/**
+ * Graph construction mode (ADR-021 SO2-5, X-2). `full` is the APG. `ast-only` is the register's
+ * ablation arm: an edge-type allow-list of IMPORTS, DECLARES and CONTAINS applied to the full
+ * extraction (`restrictToGraphMode`, `graph-mode.ts`). Import resolution (`paths`, `baseUrl`, barrels)
+ * is kept; CALLS, EXTENDS, IMPLEMENTS, CONSTRUCTOR_INJECTS, FLOWS_TO and RE_EXPORTS are removed.
+ */
+export type GraphMode = 'full' | 'ast-only';
+export const GRAPH_MODES: readonly GraphMode[] = Object.freeze(['full', 'ast-only']);
+
 export interface ExtractorOptions {
   lenientMode?: boolean;        // default: true
   includeDecorators?: boolean;  // default: true
   maxBarrelDepth?: number;      // default: 10
   excludePatterns?: string[];   // additional globs beyond defaults
+  graphMode?: GraphMode;        // default: 'full'
 }
 
 export type ExtractorErrorCode =
@@ -88,4 +98,5 @@ export const DEFAULT_OPTIONS: Required<ExtractorOptions> = {
   includeDecorators: true,
   maxBarrelDepth: 10,
   excludePatterns: [],
+  graphMode: 'full',
 };

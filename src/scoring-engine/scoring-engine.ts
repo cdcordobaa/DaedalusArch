@@ -46,7 +46,8 @@ export async function computeScoredReport(input: ScoringInput): Promise<DomainRe
   // Universal metrics (BR-U3-40..42): a failed metric is null + METRIC_001, never a silent 0.
   const metricsResult = await computeUniversalMetrics(input.graphRepository, CYCLE_STRATEGY, input.apg);
   if (!metricsResult.success) return DomainResult.fail(metricsResult.errors, metricsResult.warnings);
-  const { metrics: universalMetrics, warnings: metricWarnings } = metricsResult.data;
+  const { metrics: universalMetrics, warnings: metricWarnings, cycleTiming } = metricsResult.data;
+  input.onCycleMetricTiming?.(cycleTiming);
 
   // Violations of executed functions only: a failed function contributes none (BR-U3-53), and a hybrid
   // symbolic half that found violations counts no neural result.

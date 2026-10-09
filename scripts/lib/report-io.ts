@@ -3,7 +3,8 @@
  *
  * - `RunRecord` and the harness types of domain-entities §6 (the ajv schema for `RunRecord` arrives with
  *   the harness, Step 14; here a record is checked for the fields acceptance and provenance read).
- * - `loadRun(reportPath, recordPath)` reads a stored report with its `RunRecord`.
+ * - `loadRun(reportPath, recordPath)` reads a stored report with its `RunRecord`; `loadRunDir(dir)` reads a harness
+ *   output directory (`runs/*.run.json` and the stored reports they reference).
  * - `acceptReport(report, options)` applies BR-U5b-45: schema validity against the frozen
  *   `schemas/report.schema.json` (C8 `validateReport`, Ajv over the embedded frozen schema), failed and
  *   timed-out functions (`EVAL_001` / `EVAL_002`), truncation (`truncated` rows or `EVAL_003`), failed
@@ -13,8 +14,8 @@
  *   `RunRecord`s, `EnvironmentRecord`s, stored reports, subprocess output) goes through C10 `scrubDeep` with the
  *   known secrets (`NEO4J_PASSWORD`, `GEMINI_API_KEY` values of the parent environment) first.
  */
-import { mkdirSync, readFileSync, writeFileSync } from 'node:fs';
-import { dirname } from 'node:path';
+import { existsSync, mkdirSync, readdirSync, readFileSync, writeFileSync } from 'node:fs';
+import { dirname, join } from 'node:path';
 import { validateReport } from '../../src/scoring-engine/report-schema-validator.js';
 import { scrubDeep } from '../../src/shared/errors/scrub.js';
 import type { EvaluationReport } from '../../src/shared/types/evaluation.js';
@@ -32,10 +33,20 @@ export interface GenerationCell {
   readonly requestedModelId: string; readonly resolvedModelId?: string; readonly adapterId: string;
   readonly promptTemplateId: string; readonly style: string; readonly specLevel: 'none' | 'minimal-prose' | 'full-aac';
   readonly taskId: string; readonly runIndex: 0 | 1 | 2; readonly generationOutcomePath: string;
-  readonly generationStatus: 'ok' | 'failed-typecheck' | 'failed-agent';
+  /**
+   * U5a's status, or a U5b join status (ADR-021 SO5-03, SO5-05): `missing` = no `generation.json` for the grid
+   * coordinate; `protocol-mismatch` = an outcome that breaks the registered generator plan. Both are not-run cells.
+   */
+  readonly generationStatus: 'ok' | 'failed-typecheck' | 'failed-agent' | 'missing' | 'protocol-mismatch';
   readonly failureReason?: 'typecheck' | 'agent-error' | 'model-mismatch' | 'skeleton-tampered'
     | 'infrastructure' | 'envelope-unreadable' | 'timeout';
   readonly fileCount: number; readonly fileCountInRange: boolean; readonly permissionDenials: number;
+  /**
+   * ADR-021 SO5-07, X-3 (`scripts/lib/so5-size.ts`): non-blank lines of the `src/**\/*.ts` files of the evaluated
+   * tree, and the generation effort (`generation.json` `durationMs`, envelope `num_turns`, `total_cost_usd`). Set by
+   * `joinOutcome` on a joined outcome only; absent on `missing` and `protocol-mismatch` cells and on older records.
+   */
+  readonly loc?: number; readonly generationDurationMs?: number; readonly numTurns?: number; readonly totalCostUsd?: number;
 }
 
 export interface SeedRef {
@@ -64,6 +75,28 @@ export interface RunRecord {
   readonly envRecordId: string;
   readonly startedAt: string; readonly wallMs: number;
   readonly cell?: GenerationCell; readonly seed?: SeedRef;
+}
+
+export interface LoadedRunDir { readonly records: RunRecord[]; readonly reports: Map<string, EvaluationReport> }
+
+/** Reads only the run records (`runs/*.run.json`) of a harness output directory, sorted by file name; no report is parsed. */
+export function loadRunRecords(dir: string, errorCode = 'RUN_DIR_INVALID'): RunRecord[] {
+  const runsDir = join(dir, 'runs');
+  if (!existsSync(runsDir)) throw new Error(`${errorCode}: ${runsDir} not found`);
+  return readdirSync(runsDir).filter((f) => f.endsWith('.run.json')).sort()
+    .map((f) => JSON.parse(readFileSync(join(runsDir, f), 'utf8')) as RunRecord);
+}
+
+/** Reads a harness output directory: `runs/*.run.json` and the stored reports they reference. */
+export function loadRunDir(dir: string, errorCode = 'RUN_DIR_INVALID'): LoadedRunDir {
+  const records = loadRunRecords(dir, errorCode);
+  const reports = new Map<string, EvaluationReport>();
+  for (const r of records) {
+    if (r.reportPath === undefined) continue;
+    const p = join(dir, r.reportPath);
+    if (existsSync(p)) reports.set(r.runId, JSON.parse(readFileSync(p, 'utf8')) as EvaluationReport);
+  }
+  return { records, reports };
 }
 
 // ---------------------------------------------------------------------------------------------

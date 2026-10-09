@@ -25,7 +25,24 @@ export { PREREG_FILE };
 export const PREREG_SCHEMA_PATH = 'scripts/lib/schemas/prereg.schema.json';
 export const PREREG_REFUSED = 'PREREG_REFUSED';
 
-/** BR-U5b-51: the registered artefacts, as repository path patterns (`*` within a segment, `**` across). */
+/**
+ * Specs a plan may evaluate with (BR-U5b-51): the corpus specs and the fixture specs, i.e. the spec of the C16
+ * suite and the layered fixture spec of the SP-FF-S03 probe and MO-S03 (OI-U5b-P2-4; U5a catalogue §SP).
+ */
+export const CORPUS_SPEC_PATTERN = 'corpus/specs/*.yaml';
+export const FIXTURE_SPECS: readonly string[] = Object.freeze(['specs/clean-arch.yaml', 'tests/fixtures/u5a/layered/firewall.spec.yaml']);
+
+/** The style presets (`presets/*.yaml`), the library instances a corpus spec is copied from (ADR-021 SO1-D). */
+export const PRESET_PATTERN = 'presets/*.yaml';
+
+/**
+ * BR-U5b-51: the registered artefacts, as repository path patterns (`*` within a segment, `**` across).
+ * ADR-021 SO1-D adds the fixture specs (the evaluator spec of every fixture run and all E1 cells, and the layered
+ * fixture spec of SP-FF-S03 and MO-S03) and the style presets, so every spec a plan may evaluate with is hashed.
+ * A registration made before the addition stays valid (its paths are a subset); the P-U6 bump hashes the new ones.
+ * P-U6 (prereg v4) also adds the count inputs and spec-chain tools (ADR-021 item 5), the threats register (THR-9) and
+ * the labeller route (SO3).
+ */
 export const REGISTERED_ARTEFACTS: readonly string[] = Object.freeze([
   'Docs/matching-rule.md',
   'Docs/analysis-plan.md',
@@ -36,20 +53,36 @@ export const REGISTERED_ARTEFACTS: readonly string[] = Object.freeze([
   'Docs/labeller-prompts/*',
   'corpus/corpus.json',
   'corpus/overlays/**',
-  'corpus/specs/*.yaml',
+  CORPUS_SPEC_PATTERN,
   'experiments/*/plan.json',
+  // ADR-021 SO5-03 / THR-8: the E1 generator plan (pinned model ids, orderSeed, allowBash, timeoutMs, outRoot).
+  'experiments/e1-grid/generator-plan.json',
   'corpus/frozen-instrument.json',
   // ADR-019 item 3 with the methodology constraint (Build and Test Step 55): the mechanical E7 spec rule and its generator.
   'Docs/e7-spec-rule.md',
   'scripts/generate-e7-specs.ts',
+  // ADR-021 item 6 (SO3-2): the registered label-plan sizes, seeds, call ceiling and labeller route.
+  'corpus/label-plan-config.json',
+  ...FIXTURE_SPECS,
+  PRESET_PATTERN,
+  // ADR-021 item 5 (P-U6, Fable verification of P-1, Major 2 and minor): the inputs of the single feasibility count,
+  // registered without a recount, and the tools of the spec chain.
+  'Docs/DiagnosticRuns/u5a-site-feasibility.json',
+  'Docs/DiagnosticRuns/u5a-base-typecheck.json',
+  'Docs/DiagnosticRuns/e7-spec-generation.json',
+  'corpus/selections/*.json',
+  'scripts/generate-e7-specs-cli.ts',
+  'scripts/migrate-corpus-spec.ts',
+  'scripts/migrate-corpus-spec-cli.ts',
+  'scripts/remap-domain-layer.ts',
+  'scripts/remap-domain-layer-cli.ts',
+  'scripts/corpus-rubric-u4.ts',
+  'scripts/corpus-rubric-u4-cli.ts',
+  // ADR-021 THR-9 (P-U6): the threats-to-validity register (deviation entries, degradation-ladder rules).
+  'Docs/threats-to-validity.md',
+  // ADR-021 SO3 (P-U6): the labeller route, model id and CLI version.
+  'Docs/labeller-route.md',
 ]);
-
-/**
- * Specs a plan may evaluate with (BR-U5b-51): the corpus specs and the fixture specs, i.e. the spec of the C16
- * suite and the layered fixture spec of the SP-FF-S03 probe and MO-S03 (OI-U5b-P2-4; U5a catalogue §SP).
- */
-export const CORPUS_SPEC_PATTERN = 'corpus/specs/*.yaml';
-export const FIXTURE_SPECS: readonly string[] = Object.freeze(['specs/clean-arch.yaml', 'tests/fixtures/u5a/layered/firewall.spec.yaml']);
 
 export interface PreRegistration {
   readonly version: number;

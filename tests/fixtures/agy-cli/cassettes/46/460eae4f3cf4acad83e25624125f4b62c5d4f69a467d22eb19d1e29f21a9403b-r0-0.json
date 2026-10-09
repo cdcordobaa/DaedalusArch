@@ -1,0 +1,35 @@
+{
+  "attempts": 1,
+  "cliVersion": "1.3.2",
+  "configListingSha256": "b8cce56d63afd9cebbf745ed20c888d9ab0007207a513029027cc10be9494345",
+  "durationMs": 64110,
+  "effort": null,
+  "functionId": "label:violation:33f8c7c36eff9cf832d84988a369acdaefeae0f32a4360b660877527ca54068d",
+  "ignoredOptions": [
+    "temperature",
+    "maxTokens"
+  ],
+  "isolationProbeSha256": "e3e335eb64e5ae507ca6484a4f75d0443b1afef89d42854818fa51bd02d68423",
+  "key": "460eae4f3cf4acad83e25624125f4b62c5d4f69a467d22eb19d1e29f21a9403b-r0-0",
+  "model": "gemini-3.1-pro-high",
+  "outcome": {
+    "kind": "valid"
+  },
+  "parsedVerdict": null,
+  "prompt": "Decide whether the finding below is a real violation of the rule as described.\n- TP: the code violates the rule at this location.\n- FP: the code does not violate the rule; give the root cause of the false finding.\n- unseeded-TP: the code violates the rule, but the violation is part of the original design rather than a\n  deliberate change; give the root cause (use RC-GENUINE-UNSEEDED when the violation is simply real).\n\n## Item\n## Violation\n  Function: FF-S01\n  Description: fitness function FF-S01 of specs/clean-arch.yaml\n  File: src/domain/entities/Task.ts\n  Line: 1\n  Target: src/infrastructure/repositories/InMemoryTaskRepository.ts\n  \n  ## Source\n      1 | // Task — pure domain entity, zero violations\n      2 | export class Task {\n      3 |   constructor(\n      4 |     public readonly id: string,\n      5 |     public readonly title: string,\n      6 |     public readonly description: string,\n      7 |     public readonly completed: boolean,\n      8 |     public readonly categoryId: string,\n      9 |     public readonly createdAt: Date\n     10 |   ) {}\n     11 | \n     12 |   complete(): Task {\n     13 |     return new Task(this.id, this.title, this.description, true, this.categoryId, this.createdAt);\n     14 |   }\n     15 | \n     16 |   isValid(): boolean {\n\n## Label options\n1. TP\n  2. FP\n  3. unseeded-TP\n\n## Root causes\n1. RC-LAYER-MAP\n  2. RC-EXTRACT-ALIAS\n  3. RC-EXTRACT-BARREL\n  4. RC-DYNAMIC-IMPORT\n  5. RC-TYPE-ONLY\n  6. RC-TEMPLATE-OVERAPPROX\n  7. RC-STYLE-INAPPLICABLE\n  8. RC-SPEC-PARAM\n  9. RC-GENERATED-CODE\n  10. RC-TEST-CODE\n  11. RC-GENUINE-UNSEEDED\n  12. RC-OTHER\n\nAnswer with one JSON object: {\"option\": <number of the label option>, \"rootCause\": <number of the root cause or null>, \"note\": \"<text, required with RC-OTHER>\", \"rationale\": \"<one or two sentences citing the code>\"}.",
+  "provider": "agy",
+  "recordedAt": "2026-10-09T08:58:13.433Z",
+  "repetition": 0,
+  "requestHash": "460eae4f3cf4acad83e25624125f4b62c5d4f69a467d22eb19d1e29f21a9403b",
+  "resolvedModel": "gemini-3.1-pro-high",
+  "response": "{\"note\":\"No dependency exists in the source code. The tool likely inverted the dependency or hallucinates it.\",\"option\":2,\"rationale\":\"The file Task.ts contains no imports or references to the target file; line 1 is merely a comment.\",\"rootCause\":12}",
+  "runIndex": 0,
+  "schemaVersion": 2,
+  "usage": {
+    "inputTokens": 73674,
+    "outputTokens": 5725
+  },
+  "usedOptions": {
+    "model": "gemini-3.1-pro-high"
+  }
+}

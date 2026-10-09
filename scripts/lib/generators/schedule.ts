@@ -8,8 +8,10 @@
  *   block r. Deterministic per `orderSeed`.
  * - `cellOutputDir` = `<outRoot>/<modelId>/<taskId>/<specLevel>/run-<i>/`; `requestForCell` builds the
  *   `GenerationRequest` (`pilot` = `outRoot` ends in `pilot`, BR-U5a-52).
- * - `loadGeneratorPlanFile(file, repoRoot)`: the JSON plan file of `scripts/generate-projects.ts --plan`. Pinned model
- *   ids and `orderSeed` come only from this file, never from code defaults (BR-U5a-51).
+ * - `loadGeneratorPlanFile(file, repoRoot, local?)`: the JSON plan file of `scripts/generate-projects.ts --plan`. Pinned
+ *   model ids and `orderSeed` come only from this file, never from code defaults (BR-U5a-51). A `"<local>"` `binary` or
+ *   `harnessRoot` (the registered E1 plan, `registered-plan.ts`) is filled from `local`; a relative `outRoot` is
+ *   resolved against the repository root.
  */
 import * as fs from 'node:fs';
 import * as path from 'node:path';
@@ -17,6 +19,8 @@ import { DomainResult } from '../../../src/shared/errors/domain-result.js';
 import type { DomainError } from '../../../src/shared/errors/domain-result.js';
 import { mulberry32 } from '../mutation/rng.js';
 import { isInsideOrEqual, runIdFor } from './config.js';
+import { resolvePlanFields } from './registered-plan.js';
+import type { LocalPaths } from './registered-plan.js';
 import { CLAUDE_CODE_ADAPTER_ID, FILE_RANGE, SPEC_LEVELS } from './types.js';
 import type { GenerationCell, GenerationRequest, GridPlan, SpecLevel, TaskId } from './types.js';
 
@@ -142,15 +146,17 @@ function isRecord(v: unknown): v is Record<string, unknown> {
 }
 
 /** Reads and validates the plan file (JSON). */
-export function loadGeneratorPlanFile(file: string, repoRoot: string): DomainResult<GeneratorPlanFile> {
-  let raw: unknown;
+export function loadGeneratorPlanFile(file: string, repoRoot: string, local: LocalPaths = {}): DomainResult<GeneratorPlanFile> {
+  let parsed: unknown;
   try {
-    raw = JSON.parse(fs.readFileSync(file, 'utf8')) as unknown;
+    parsed = JSON.parse(fs.readFileSync(file, 'utf8')) as unknown;
   } catch (e) {
     return DomainResult.fail([err(`cannot read the plan file: ${e instanceof Error ? e.message : String(e)}`)]);
   }
-  if (!isRecord(raw)) return DomainResult.fail([err('the plan file must hold a JSON object')]);
-  const errors: DomainError[] = [];
+  if (!isRecord(parsed)) return DomainResult.fail([err('the plan file must hold a JSON object')]);
+  const resolved = resolvePlanFields(parsed, repoRoot, local);
+  const raw = resolved.plan;
+  const errors: DomainError[] = resolved.problems.map((m) => err(m));
   const allowed = ['adapters', 'tasks', 'style', 'levels', 'runs', 'outRoot', 'orderSeed', 'binary', 'harnessRoot', 'timeoutMs', 'allowBash'];
   for (const k of Object.keys(raw)) if (!allowed.includes(k)) errors.push(err('unknown plan field', { field: k }));
   for (const k of ['binary', 'harnessRoot']) {

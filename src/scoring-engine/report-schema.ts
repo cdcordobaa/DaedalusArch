@@ -11,7 +11,7 @@ export const REPORT_SCHEMA_ID = 'https://daedalus-arch.local/schemas/report.sche
 export const REPORT_SCHEMA = {
   "$schema": "http://json-schema.org/draft-07/schema#",
   "$id": "https://daedalus-arch.local/schemas/report.schema.json",
-  "$comment": "FROZEN at U3-R10 (FR-14, FR-36; U3 BR-U3-59, 60, 65; domain-entities.md §7). Embedded as REPORT_SCHEMA in src/scoring-engine/report-schema.ts (deep-equal test); validateReport runs it on every assembled report. Version = $id + the CLI commit (no reportSchemaVersion). A change reopens U3 as a reviewed patch. Enums mirror NODE_TYPES, EDGE_TYPES, DIMENSIONS (src/shared/types/enums.ts) and BUILT_IN_VIOLATION_TYPES; neuralResults rows are U4 NeuralResultRow (U4 DE §4.8).",
+  "$comment": "FROZEN at U3-R10 (FR-14, FR-36; U3 BR-U3-59, 60, 65; domain-entities.md §7). Amended 2026-10-09 (ADR-021 item 9, zero judge units): full mode requires ahsNeuronal unless droppedDimensions lists both semantic and integrity. Embedded as REPORT_SCHEMA in src/scoring-engine/report-schema.ts (deep-equal test); validateReport runs it on every assembled report. Version = $id + the CLI commit (no reportSchemaVersion). A change reopens U3 as a reviewed patch. Enums mirror NODE_TYPES, EDGE_TYPES, DIMENSIONS (src/shared/types/enums.ts) and BUILT_IN_VIOLATION_TYPES; neuralResults rows are U4 NeuralResultRow (U4 DE §4.8).",
   "title": "DaedalusArch evaluation report",
   "type": "object",
   "additionalProperties": false,
@@ -76,8 +76,54 @@ export const REPORT_SCHEMA = {
       "then": {
         "required": [
           "ahsCombined",
-          "ahsNeuronal",
           "neuralResults"
+        ],
+        "anyOf": [
+          {
+            "required": [
+              "ahsNeuronal"
+            ]
+          },
+          {
+            "required": [
+              "droppedDimensions"
+            ],
+            "properties": {
+              "droppedDimensions": {
+                "type": "array",
+                "allOf": [
+                  {
+                    "type": "array",
+                    "contains": {
+                      "type": "object",
+                      "required": [
+                        "dimension"
+                      ],
+                      "properties": {
+                        "dimension": {
+                          "const": "semantic"
+                        }
+                      }
+                    }
+                  },
+                  {
+                    "type": "array",
+                    "contains": {
+                      "type": "object",
+                      "required": [
+                        "dimension"
+                      ],
+                      "properties": {
+                        "dimension": {
+                          "const": "integrity"
+                        }
+                      }
+                    }
+                  }
+                ]
+              }
+            }
+          }
         ]
       }
     },
@@ -1004,6 +1050,7 @@ export const REPORT_SCHEMA = {
           "enum": [
             "claude-cli",
             "gemini",
+            "agy",
             "mock",
             "null",
             "none"

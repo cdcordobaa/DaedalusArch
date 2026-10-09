@@ -1,14 +1,14 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
   "$id": "https://daedalus-arch.local/scripts/lib/schemas/experiment-plan.schema.json",
-  "$comment": "U5b ExperimentPlan (domain-entities §6; BR-U5b-53, 54, 56, 78). `e1` holds the registered E1 grid parameters that expand into the plan entries (DV-U5b-14); `projects` lists every other entry. Paths are repository-relative.",
+  "$comment": "U5b ExperimentPlan (domain-entities §6; BR-U5b-53, 54, 56, 78). `e1` holds the registered E1 grid parameters that expand into the plan entries (DV-U5b-14); `projects` lists every other entry. Paths are repository-relative. `projects[].graphMode` selects the extractor graph mode of an entry (ADR-021 SO2: `ast-only` is the APG ablation arm).",
   "title": "DaedalusArch experiment plan",
   "type": "object",
   "additionalProperties": false,
   "required": ["id", "experiment", "mode", "seeds", "cassetteDir", "outDir", "projects"],
   "properties": {
     "id": { "type": "string", "pattern": "^[a-z0-9][a-z0-9._-]*$" },
-    "experiment": { "enum": ["E1", "E7", "SO4", "latency-gate", "sensitivity", "fixtures"] },
+    "experiment": { "enum": ["E1", "E7", "SO4", "latency-gate", "sensitivity", "fixtures", "apg-ablation"] },
     "mode": { "enum": ["symbolic-only", "neuronal-only", "full"] },
     "judge": {
       "type": "object",
@@ -48,7 +48,8 @@
           "path": { "type": "string", "minLength": 1 },
           "specPath": { "type": "string", "minLength": 1 },
           "cell": { "$ref": "run-record.schema.json#/definitions/generationCell" },
-          "seed": { "$ref": "run-record.schema.json#/definitions/seedRef" }
+          "seed": { "$ref": "run-record.schema.json#/definitions/seedRef" },
+          "graphMode": { "enum": ["full", "ast-only"] }
         }
       }
     },

@@ -1,0 +1,6 @@
+run_id,plan_id,project_id,status,reason_code,file_count,total_ms,stages,ff_s02_ms,ff_s02_status,universal_cycle_ms,universal_cycle_status,budget_ms,gate_result,gate_cause
+r1,latency-gate,proj-a,accepted,,120,4500,parse:1000;compute-scores:3000,1200,ok,800,ok,30000,pass,both cycle queries within 30000 ms
+r2,latency-gate,proj-b,rejected,EVAL_TIMEOUT,800,61000,parse:5000,,timeout,31000,ok,30000,fallback-required,FF-S02 timed out (QUERY_TIMEOUT); universal cycle metric 31000 ms > 30000
+r3,latency-gate,proj-c,accepted,,50,,,30000,ok,,absent,,inconclusive,universal cycle metric absent
+r4,latency-gate,proj-d,not-run,PREREG_REFUSED,,,,,absent,,absent,30000,inconclusive,"no report (not-run, PREREG_REFUSED): cycle query times unknown"
+r5,apg-ablation,proj-a@ast-only,accepted,,120,3000,,500,ok,400,ok,30000,pass,both cycle queries within 30000 ms

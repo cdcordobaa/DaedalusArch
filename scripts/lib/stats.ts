@@ -5,12 +5,18 @@
  * created with so callers can record it (BR-U5b-63). Values are returned at full precision; rounding
  * happens only at display (`toFixed(6)` in CSVs, BR-U5b-63).
  *
- * - `wilson`, `clopperPearson`: binomial proportion intervals (two-sided, default 95 %).
+ * - `wilson`, `clopperPearson`: binomial proportion intervals (two-sided, default 95 %); `wilsonProportion` for a
+ *   proportion on a non-integer size (Kish effective n, cell count).
  * - `clusterBootstrap`: cluster percentile bootstrap of any statistic over clusters (default 10 000 resamples).
- * - `permutationTest`: two-sided permutation test of a difference in means, labels permuted within blocks.
+ * - `permutationTest`: two-sided (or one-sided `greater`) permutation test of a difference in means, labels permuted
+ *   within blocks.
  * - `cohenKappa`, `gwetAC1` (square contingency tables), `fleissKappa` (subjects × categories counts).
  * - `holm`: Holm step-down adjusted p-values. `cliffsDelta`: dominance effect size.
  * - `selectIntervalMethod`, `proportionInterval`: the BR-U5b-61 interval rule.
+ * - `weightedProportionInterval`, `kishEffectiveN`: the BR-U5b-61 rule for a Horvitz–Thompson weighted proportion
+ *   (SO4 baseline precision, ADR-020 item 1).
+ * - `recallIntervals`: recall with the (project, operator) cell as the unit, the project bootstrap co-primary from
+ *   10 projects (descriptive below) and the instance Wilson interval as the "if independent" bound (ADR-020 item 3).
  */
 
 /** Two-sided standard normal quantile for 95 %. */
@@ -89,7 +95,17 @@ function checkCounts(k: number, n: number): void {
 /** Wilson score interval for k successes out of n. */
 export function wilson(k: number, n: number, z = Z_95): Interval {
   checkCounts(k, n);
-  const p = k / n;
+  return wilsonProportion(k / n, n, z);
+}
+
+/**
+ * Wilson score interval for a proportion `p` observed on a (possibly non-integer) sample size `n > 0`: the
+ * effective size of a weighted proportion (Kish) or the number of (project, operator) cells (ADR-020 items 1, 3).
+ */
+export function wilsonProportion(p: number, n: number, z = Z_95): Interval {
+  if (!(n > 0) || !Number.isFinite(n) || !(p >= 0 && p <= 1)) {
+    throw new RangeError(`stats: need 0 <= p <= 1 and a finite n > 0 (p=${String(p)}, n=${String(n)})`);
+  }
   const z2 = z * z;
   const denom = 1 + z2 / n;
   const centre = (p + z2 / (2 * n)) / denom;
@@ -236,7 +252,7 @@ export interface PermutationObservation {
 export interface PermutationResult {
   /** Observed mean(A) - mean(B). */
   readonly statistic: number;
-  /** Two-sided p = (1 + #{|T*| >= |T|}) / (1 + resamples). */
+  /** Two-sided p = (1 + #{|T*| >= |T|}) / (1 + resamples); one-sided (`greater`) p = (1 + #{T* >= T}) / (1 + resamples). */
   readonly p: number;
   readonly resamples: number;
   readonly seed: number;
@@ -251,11 +267,16 @@ function meanDiff(obs: readonly PermutationObservation[], groups: readonly ('A' 
   return sa / na - sb / nb;
 }
 
-/** Two-sided permutation test of mean(A) - mean(B); group labels are permuted within each block. */
+/**
+ * Permutation test of mean(A) - mean(B); group labels are permuted within each block. Two-sided by default;
+ * `alternative: 'greater'` is the one-sided test of mean(A) > mean(B), p = (1 + #{T* >= T}) / (1 + resamples)
+ * (the pre-registered directional self-preference check, ADR-020 item 7).
+ */
 export function permutationTest(
   observations: readonly PermutationObservation[],
-  options: { readonly seed: number; readonly resamples?: number },
+  options: { readonly seed: number; readonly resamples?: number; readonly alternative?: 'two-sided' | 'greater' },
 ): PermutationResult {
+  const greater = options.alternative === 'greater';
   const resamples = options.resamples ?? 10_000;
   const rng = createRng(options.seed);
   const labels = observations.map((o) => o.group);
@@ -274,7 +295,8 @@ export function permutationTest(
       const shuffled = shuffle(idx.map((i) => pick(labels, i)), rng);
       idx.forEach((i, j) => { permuted[i] = pick(shuffled, j); });
     }
-    if (Math.abs(meanDiff(observations, permuted)) >= Math.abs(observed) - eps) extreme += 1;
+    const t = meanDiff(observations, permuted);
+    if (greater ? t >= observed - eps : Math.abs(t) >= Math.abs(observed) - eps) extreme += 1;
   }
   return { statistic: observed, p: (extreme + 1) / (resamples + 1), resamples, seed: options.seed };
 }
@@ -537,4 +559,307 @@ export function proportionInterval(
   }
   const iv = method === 'wilson' ? wilson(k, n) : clopperPearson(k, n);
   return { k, n, nClusters, estimate: k / n, ciLow: iv.low, ciHigh: iv.high, ciMethod: method, sensitivity: boot(), seed: options.seed };
+}
+
+// ---------------------------------------------------------------------------------------------
+// Weighted proportions (ADR-020 item 1: Horvitz–Thompson baseline precision under BR-U5b-61)
+
+/** One labelled item: its design weight (1 / inclusion probability) and whether it is a success. */
+export interface WeightedObservation {
+  readonly weight: number;
+  readonly success: boolean;
+}
+
+/** Kish effective sample size (Σw)² / Σw² (= n for equal weights; 0 for no weights). */
+export function kishEffectiveN(weights: readonly number[]): number {
+  let s = 0;
+  let s2 = 0;
+  for (const w of weights) {
+    if (!(w > 0) || !Number.isFinite(w)) throw new RangeError(`stats: weights must be finite and > 0, got ${String(w)}`);
+    s += w;
+    s2 += w * w;
+  }
+  return s2 === 0 ? 0 : (s * s) / s2;
+}
+
+export type WeightedCiMethod = 'cluster-bootstrap' | 'wilson-kish' | 'clopper-pearson-kish';
+
+export interface WeightedProportionCell {
+  /** Labelled items (unweighted count). */
+  readonly n: number;
+  readonly nClusters: number;
+  /** Kish effective sample size of all items. */
+  readonly nEffective: number;
+  /** Σ w over successes and over all items. */
+  readonly weightedSuccesses: number;
+  readonly weightedTotal: number;
+  /** HT ratio Σ w·y / Σ w; `null` when n < 10 (counts only). */
+  readonly estimate: number | null;
+  readonly ciLow: number | null;
+  readonly ciHigh: number | null;
+  readonly ciMethod: WeightedCiMethod | null;
+  /** Kish-Wilson primary cells carry the cluster bootstrap as a sensitivity column. */
+  readonly sensitivity?: BootstrapResult;
+  readonly seed?: number;
+}
+
+/**
+ * A weighted (Horvitz–Thompson ratio) proportion under the BR-U5b-61 rule: n < 10 items → counts only; ≥ 10
+ * clusters → cluster percentile bootstrap of Σ w·y / Σ w; otherwise Wilson on the Kish effective size n_eff with the
+ * weighted estimate (Clopper–Pearson on ⌊n_eff⌋ when the estimate is 0 or 1), the bootstrap as sensitivity. The Kish
+ * size makes the interval account for unequal weights, which a Wilson interval on the raw item count ignores.
+ */
+export function weightedProportionInterval(
+  clusters: readonly (readonly WeightedObservation[])[],
+  options: { readonly seed: number; readonly resamples?: number },
+): WeightedProportionCell {
+  const items = clusters.flat();
+  const n = items.length;
+  const nonEmpty = clusters.filter((c) => c.length > 0);
+  const nClusters = nonEmpty.length;
+  const nEffective = kishEffectiveN(items.map((i) => i.weight));
+  const weightedTotal = items.reduce((s, i) => s + i.weight, 0);
+  const weightedSuccesses = items.reduce((s, i) => s + (i.success ? i.weight : 0), 0);
+  const base = { n, nClusters, nEffective, weightedSuccesses, weightedTotal };
+  if (n < MIN_INTERVAL_N) return { ...base, estimate: null, ciLow: null, ciHigh: null, ciMethod: null };
+  const estimate = weightedSuccesses / weightedTotal;
+  const asRatio = nonEmpty.map((c) => ({ num: c.reduce((s, i) => s + (i.success ? i.weight : 0), 0), den: c.reduce((s, i) => s + i.weight, 0) }));
+  const boot = (): BootstrapResult => clusterBootstrap(asRatio, ratioOfSums, {
+    seed: options.seed, ...(options.resamples !== undefined && { resamples: options.resamples }),
+  });
+  if (nClusters >= MIN_BOOTSTRAP_CLUSTERS) {
+    const b = boot();
+    return { ...base, estimate, ciLow: b.low, ciHigh: b.high, ciMethod: 'cluster-bootstrap', seed: options.seed };
+  }
+  const extreme = weightedSuccesses === 0 || weightedSuccesses === weightedTotal;
+  const m = Math.max(1, Math.floor(nEffective));
+  const iv = extreme ? clopperPearson(weightedSuccesses === 0 ? 0 : m, m) : wilsonProportion(estimate, nEffective);
+  return {
+    ...base, estimate, ciLow: iv.low, ciHigh: iv.high, ciMethod: extreme ? 'clopper-pearson-kish' : 'wilson-kish',
+    sensitivity: boot(), seed: options.seed,
+  };
+}
+
+// ---------------------------------------------------------------------------------------------
+// Recall intervals with the (project, operator) cell as the unit (ADR-020 item 3)
+
+/** One (project, operator) cell: `num` detected of its `den` scored copies (cell recall = num / den). */
+export interface RecallCell {
+  readonly project: string;
+  readonly operator: string;
+  readonly num: number;
+  readonly den: number;
+}
+
+export type CellCiMethod = 'cell-bootstrap' | 'wilson-cells' | 'clopper-pearson-cells';
+
+export interface IntervalColumns<M extends string> {
+  readonly ciLow: number | null;
+  readonly ciHigh: number | null;
+  readonly ciMethod: M | null;
+}
+
+export interface RecallIntervals {
+  readonly k: number;
+  readonly n: number;
+  readonly nCells: number;
+  readonly nProjects: number;
+  /** k / n; `null` when n < 10 (counts only, BR-U5b-61). */
+  readonly estimate: number | null;
+  /** Primary: the cell is the unit. ≥ 10 cells → cell bootstrap; else Wilson with n = cells (CP at 0 or n). */
+  readonly cell: IntervalColumns<CellCiMethod>;
+  /**
+   * Project cluster bootstrap, reported from 2 projects. Co-primary only with ≥ 10 projects (BR-U5b-61);
+   * with 2..9 projects a percentile bootstrap over so few clusters undercovers, so it is descriptive.
+   */
+  readonly project: IntervalColumns<'cluster-bootstrap'> & {
+    /** `true` with 2..9 projects (descriptive), `false` with ≥ 10 (co-primary), `null` when no interval is reported. */
+    readonly descriptive: boolean | null;
+  };
+  /** The "if independent" bound: Wilson on instances (Clopper–Pearson at 0 or n). */
+  readonly independent: IntervalColumns<'wilson' | 'clopper-pearson'>;
+  readonly seed: number;
+}
+
+const NO_INTERVAL = { ciLow: null, ciHigh: null, ciMethod: null } as const;
+const NO_PROJECT_INTERVAL = { ...NO_INTERVAL, descriptive: null } as const;
+
+/**
+ * Recall intervals of ADR-020 item 3. The k copies of one operator on one base are not independent, so the
+ * (project, operator) cell is the unit: with ≥ 10 cells the cluster bootstrap over cells is primary; with fewer,
+ * Wilson on the pooled recall with n = the number of cells (Clopper–Pearson when every cell or none detects).
+ * The project cluster bootstrap is reported from 2 projects and is co-primary only with ≥ 10 projects (the BR-U5b-61
+ * cluster floor); below that it is flagged `descriptive`. The instance Wilson interval is reported only as the bound
+ * that would hold if the copies were independent. Cells with `den = 0` are ignored.
+ */
+export function recallIntervals(cells: readonly RecallCell[], options: { readonly seed: number; readonly resamples?: number }): RecallIntervals {
+  const used = cells.filter((c) => c.den > 0);
+  const k = used.reduce((s, c) => s + c.num, 0);
+  const n = used.reduce((s, c) => s + c.den, 0);
+  const byProject = new Map<string, { num: number; den: number }>();
+  for (const c of used) {
+    const p = byProject.get(c.project) ?? { num: 0, den: 0 };
+    p.num += c.num;
+    p.den += c.den;
+    byProject.set(c.project, p);
+  }
+  const projects = [...byProject.keys()].sort().map((p) => byProject.get(p) ?? { num: 0, den: 0 });
+  const base = { k, n, nCells: used.length, nProjects: projects.length, seed: options.seed };
+  if (n < MIN_INTERVAL_N) return { ...base, estimate: null, cell: NO_INTERVAL, project: NO_PROJECT_INTERVAL, independent: NO_INTERVAL };
+  const resamples = options.resamples !== undefined ? { resamples: options.resamples } : {};
+  const estimate = k / n;
+  const extreme = k === 0 || k === n;
+  let cell: IntervalColumns<CellCiMethod>;
+  if (used.length >= MIN_BOOTSTRAP_CLUSTERS) {
+    const key = (c: RecallCell): string => JSON.stringify([c.project, c.operator]);
+    const sorted = [...used].sort((a, b) => (key(a) < key(b) ? -1 : key(a) > key(b) ? 1 : 0));
+    const b = clusterBootstrap(sorted, ratioOfSums, { seed: options.seed, ...resamples });
+    cell = { ciLow: b.low, ciHigh: b.high, ciMethod: 'cell-bootstrap' };
+  } else {
+    const iv = extreme ? clopperPearson(k === 0 ? 0 : used.length, used.length) : wilsonProportion(estimate, used.length);
+    cell = { ciLow: iv.low, ciHigh: iv.high, ciMethod: extreme ? 'clopper-pearson-cells' : 'wilson-cells' };
+  }
+  let project: RecallIntervals['project'] = NO_PROJECT_INTERVAL;
+  if (projects.length >= 2) {
+    const b = clusterBootstrap(projects, ratioOfSums, { seed: options.seed, ...resamples });
+    project = { ciLow: b.low, ciHigh: b.high, ciMethod: 'cluster-bootstrap', descriptive: projects.length < MIN_BOOTSTRAP_CLUSTERS };
+  }
+  const ind = extreme ? clopperPearson(k, n) : wilson(k, n);
+  return { ...base, estimate, cell, project, independent: { ciLow: ind.low, ciHigh: ind.high, ciMethod: extreme ? 'clopper-pearson' : 'wilson' } };
+}
+
+// ---------------------------------------------------------------------------------------------
+// Precision and F1 intervals with the (project, operator) cell as the unit (ADR-021 SO4-06)
+
+/** One (project, operator) cell of a P/R/F1 row: its TP, FP and FN counts. */
+export interface ConfusionCell {
+  readonly project: string;
+  readonly operator: string;
+  readonly tp: number;
+  readonly fp: number;
+  readonly fn: number;
+}
+
+/** Interval columns of a project cluster bootstrap, with the BR-U5b-61 floor flag (ADR-020 item 3 amendment). */
+export type ProjectIntervalColumns = IntervalColumns<'cluster-bootstrap'> & { readonly descriptive: boolean | null };
+
+export interface PrecisionF1Intervals {
+  readonly tp: number;
+  readonly fp: number;
+  readonly fn: number;
+  /** Cells with TP + FP > 0 (the precision units) and with TP + FP + FN > 0 (the F1 units). */
+  readonly nPrecisionCells: number;
+  readonly nF1Cells: number;
+  readonly nProjects: number;
+  readonly precision: {
+    /** TP / (TP + FP); `null` when TP + FP < 10 (counts only, BR-U5b-61). */
+    readonly estimate: number | null;
+    /** Primary: ≥ 10 cells → cell bootstrap; else Wilson on the pooled precision with n = cells (CP at 0 or 1). */
+    readonly cell: IntervalColumns<CellCiMethod>;
+    /** Project cluster bootstrap from 2 projects; co-primary only with ≥ 10 projects, else descriptive. */
+    readonly project: ProjectIntervalColumns;
+    /** The "if independent" bound: Wilson on the TP + FP violations (Clopper–Pearson at 0 or n). */
+    readonly independent: IntervalColumns<'wilson' | 'clopper-pearson'>;
+  };
+  readonly f1: {
+    /** 2TP / (2TP + FP + FN); `null` when TP + FP < 10 or TP + FN < 10 (counts only). */
+    readonly estimate: number | null;
+    /** ≥ 10 cells → cell bootstrap; F1 is not a binomial proportion, so below 10 cells there is no cell interval. */
+    readonly cell: IntervalColumns<'cell-bootstrap'>;
+    readonly project: ProjectIntervalColumns;
+  };
+  readonly seed: number;
+}
+
+/** Pooled F1 of a sample of cells: 2TP / (2TP + FP + FN), `NaN` when precision or recall is undefined. */
+export function f1OfSums(sample: readonly { readonly tp: number; readonly fp: number; readonly fn: number }[]): number {
+  let tp = 0;
+  let fp = 0;
+  let fn = 0;
+  for (const c of sample) {
+    tp += c.tp;
+    fp += c.fp;
+    fn += c.fn;
+  }
+  return tp + fp === 0 || tp + fn === 0 ? Number.NaN : (2 * tp) / (2 * tp + fp + fn);
+}
+
+function byCellKey<T extends { readonly project: string; readonly operator: string }>(cells: readonly T[]): T[] {
+  const key = (c: T): string => JSON.stringify([c.project, c.operator]);
+  return [...cells].sort((a, b) => (key(a) < key(b) ? -1 : key(a) > key(b) ? 1 : 0));
+}
+
+function projectSums(cells: readonly ConfusionCell[]): { tp: number; fp: number; fn: number }[] {
+  const by = new Map<string, { tp: number; fp: number; fn: number }>();
+  for (const c of cells) {
+    const p = by.get(c.project) ?? { tp: 0, fp: 0, fn: 0 };
+    p.tp += c.tp;
+    p.fp += c.fp;
+    p.fn += c.fn;
+    by.set(c.project, p);
+  }
+  return [...by.keys()].sort().map((p) => by.get(p) ?? { tp: 0, fp: 0, fn: 0 });
+}
+
+/**
+ * Precision and F1 intervals (ADR-021 SO4-06), under the same unit rule as `recallIntervals` (ADR-020 item 3 and its
+ * amendment). Precision: with ≥ 10 cells (TP + FP > 0) the cell bootstrap of Σ TP / Σ (TP + FP) is primary; with fewer,
+ * Wilson on the pooled precision with n = the number of such cells (Clopper–Pearson when it is 0 or 1). The project
+ * cluster bootstrap is reported from 2 projects, co-primary only with ≥ 10 projects and `descriptive` below. Wilson on
+ * the TP + FP violations is reported only as the "if independent" bound: FP counts are violations, several per copy,
+ * so they are not independent trials. F1 is not a binomial proportion: it gets the cell bootstrap (≥ 10 cells) and the
+ * project cluster bootstrap (descriptive below 10 projects), never a Wilson interval. Below n = 10 (TP + FP for
+ * precision; TP + FP and TP + FN for F1) only counts are reported (BR-U5b-61).
+ */
+export function precisionF1Intervals(cells: readonly ConfusionCell[], options: { readonly seed: number; readonly resamples?: number }): PrecisionF1Intervals {
+  const f1Cells = byCellKey(cells.filter((c) => c.tp + c.fp + c.fn > 0));
+  const pCells = f1Cells.filter((c) => c.tp + c.fp > 0);
+  const tp = f1Cells.reduce((s, c) => s + c.tp, 0);
+  const fp = f1Cells.reduce((s, c) => s + c.fp, 0);
+  const fn = f1Cells.reduce((s, c) => s + c.fn, 0);
+  const resamples = options.resamples !== undefined ? { resamples: options.resamples } : {};
+  const boot = <T>(units: readonly T[], stat: (s: readonly T[]) => number): BootstrapResult => clusterBootstrap(units, stat, { seed: options.seed, ...resamples });
+  const asRatio = (c: { tp: number; fp: number }): { num: number; den: number } => ({ num: c.tp, den: c.tp + c.fp });
+  const projectCols = (n: number, run: () => BootstrapResult): ProjectIntervalColumns => {
+    if (n < 2) return NO_PROJECT_INTERVAL;
+    const b = run();
+    return { ciLow: b.low, ciHigh: b.high, ciMethod: 'cluster-bootstrap', descriptive: n < MIN_BOOTSTRAP_CLUSTERS };
+  };
+
+  let precision: PrecisionF1Intervals['precision'] = { estimate: null, cell: NO_INTERVAL, project: NO_PROJECT_INTERVAL, independent: NO_INTERVAL };
+  const nP = tp + fp;
+  if (nP >= MIN_INTERVAL_N) {
+    const estimate = tp / nP;
+    const extreme = tp === 0 || tp === nP;
+    let cell: IntervalColumns<CellCiMethod>;
+    if (pCells.length >= MIN_BOOTSTRAP_CLUSTERS) {
+      const b = boot(pCells.map(asRatio), ratioOfSums);
+      cell = { ciLow: b.low, ciHigh: b.high, ciMethod: 'cell-bootstrap' };
+    } else {
+      const m = pCells.length;
+      const iv = extreme ? clopperPearson(tp === 0 ? 0 : m, m) : wilsonProportion(estimate, m);
+      cell = { ciLow: iv.low, ciHigh: iv.high, ciMethod: extreme ? 'clopper-pearson-cells' : 'wilson-cells' };
+    }
+    const pProjects = projectSums(pCells).map(asRatio);
+    const ind = extreme ? clopperPearson(tp, nP) : wilson(tp, nP);
+    precision = {
+      estimate, cell, project: projectCols(pProjects.length, () => boot(pProjects, ratioOfSums)),
+      independent: { ciLow: ind.low, ciHigh: ind.high, ciMethod: extreme ? 'clopper-pearson' : 'wilson' },
+    };
+  }
+
+  let f1: PrecisionF1Intervals['f1'] = { estimate: null, cell: NO_INTERVAL, project: NO_PROJECT_INTERVAL };
+  if (nP >= MIN_INTERVAL_N && tp + fn >= MIN_INTERVAL_N) {
+    let cell: IntervalColumns<'cell-bootstrap'> = NO_INTERVAL;
+    if (f1Cells.length >= MIN_BOOTSTRAP_CLUSTERS) {
+      const b = boot(f1Cells, f1OfSums);
+      cell = { ciLow: b.low, ciHigh: b.high, ciMethod: 'cell-bootstrap' };
+    }
+    const projects = projectSums(f1Cells);
+    f1 = { estimate: f1OfSums(f1Cells), cell, project: projectCols(projects.length, () => boot(projects, f1OfSums)) };
+  }
+  return {
+    tp, fp, fn, nPrecisionCells: pCells.length, nF1Cells: f1Cells.length, nProjects: projectSums(f1Cells).length,
+    precision, f1, seed: options.seed,
+  };
 }

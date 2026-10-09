@@ -9,16 +9,25 @@
  * (Step 27), with the C7 values those calls need: the token budget, the frozen rubric and the cassette store reader.
  */
 import { existsSync, readdirSync, readFileSync } from 'node:fs';
-import { dirname, join, relative, resolve } from 'node:path';
-import { Node, Project, SyntaxKind } from 'ts-morph';
+import { join, resolve } from 'node:path';
+import { disallowedImportsUnder } from './import-whitelist.js';
 
 const ROOT = resolve(__dirname, '../../../..');
 
 /** The U5b-owned script files (plan "Files"; CLI entries are `<name>-cli.ts`). */
-const U5B_LIB = ['report-io', 'stats', 'label-context', 'prereg', 'canonical-json', 'matching-rule', 'so5-codes'];
+const U5B_LIB = [
+  'report-io', 'stats', 'label-context', 'prereg', 'canonical-json', 'matching-rule', 'so5-codes', 'label-plan', 'label-adapters',
+  // ADR-021 SO4-05 (U6 SO4): the seed coverage and golden-N rows.
+  'so4-coverage',
+];
 const U5B_SCRIPTS = [
   'score-golden', 'rescore', 'llm-label', 'run-experiment', 'aggregate', 'select-corpus', 'fetch-corpus',
   'prepare-bases', 'record-env', 'export-frozen-instrument', 'remap-domain-layer',
+  'figures', // U6 Docs lane (ADR-021 X-5): same import whitelist as the U5b scripts
+  // ADR-021 SO3-2 (U6 Labels): the label-plan producer joins the whitelist check.
+  'build-label-plan',
+  // ADR-021 SO4-04 (U6 SO4): the run-to-score-case adapter.
+  'build-score-case',
 ];
 
 export function u5bScriptFiles(root: string = ROOT): string[] {
@@ -64,57 +73,14 @@ const WHITELISTED_SRC = new Set([
   'src/llm-critic/types.ts',                       // CassetteEntry
   'src/llm-critic/gemini-provider.ts',             // GeminiProvider (record mode only, BR-U5b-44)
   'src/llm-critic/mock-provider.ts',               // MockLLMProvider (fixture recording)
+  'src/llm-critic/agy-cli-provider.ts',           // AgyCliProvider, the labeller route (ADR-019 item 4 as amended; ADR-021 SO3-1)
   'src/shared/interfaces/llm-provider.ts',         // LLMProvider port (type)
   'src/shared/errors/domain-result.ts',            // DomainResult (provider answers)
 ]);
 
-interface ImportUse {
-  readonly specifier: string;
-  readonly typeOnly: boolean;
-}
-
-function importsOf(fileName: string, text: string): ImportUse[] {
-  const project = new Project({ useInMemoryFileSystem: true, skipAddingFilesFromTsConfig: true });
-  const sf = project.createSourceFile(fileName, text);
-  const uses: ImportUse[] = [];
-  for (const d of sf.getImportDeclarations()) {
-    const typeOnly = d.isTypeOnly() || (d.getNamedImports().length > 0 && d.getDefaultImport() === undefined
-      && d.getNamespaceImport() === undefined && d.getNamedImports().every((n) => n.isTypeOnly()));
-    uses.push({ specifier: d.getModuleSpecifierValue(), typeOnly });
-  }
-  for (const d of sf.getExportDeclarations()) {
-    const spec = d.getModuleSpecifierValue();
-    if (spec !== undefined) uses.push({ specifier: spec, typeOnly: d.isTypeOnly() });
-  }
-  sf.forEachDescendant((node) => {
-    if (!Node.isCallExpression(node)) return;
-    const callee = node.getExpression();
-    const isDynamicImport = callee.getKind() === SyntaxKind.ImportKeyword;
-    const isRequire = Node.isIdentifier(callee) && callee.getText() === 'require';
-    if (!isDynamicImport && !isRequire) return;
-    const arg = node.getArguments()[0];
-    uses.push({ specifier: arg !== undefined && Node.isStringLiteral(arg) ? arg.getLiteralValue() : `<non-literal ${arg?.getText() ?? ''}>`, typeOnly: false });
-  });
-  return uses;
-}
-
 /** Returns the disallowed imports of one file (repo-relative `file`, its `text`). */
 export function disallowedImports(file: string, text: string, root: string = ROOT): string[] {
-  const bad: string[] = [];
-  for (const { specifier, typeOnly } of importsOf(file, text)) {
-    if (specifier.startsWith('node:')) continue;
-    if (!specifier.startsWith('.')) {
-      const pkg = specifier.startsWith('@') ? specifier.split('/').slice(0, 2).join('/') : (specifier.split('/')[0] ?? specifier);
-      if (!ALLOWED_PACKAGES.has(pkg)) bad.push(`${file}: package ${specifier}`);
-      continue;
-    }
-    const target = relative(root, resolve(root, dirname(file), specifier)).replace(/\.js$/, '.ts');
-    if (target.startsWith('scripts/')) continue;
-    if (WHITELISTED_SRC.has(target)) continue;
-    if (typeOnly && target.startsWith('src/shared/types/')) continue;
-    bad.push(`${file}: ${typeOnly ? 'type-only ' : ''}${target}`);
-  }
-  return bad;
+  return disallowedImportsUnder({ packages: ALLOWED_PACKAGES, src: WHITELISTED_SRC }, file, text, root);
 }
 
 describe('U5b static import whitelist (BR-U5b-55)', () => {

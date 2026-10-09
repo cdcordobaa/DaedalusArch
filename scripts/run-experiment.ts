@@ -9,7 +9,12 @@
  * 4. one environment record per plan run (the recorder is injected; `record-env.ts`, Step 15);
  * 5. expansion: the plan's `projects`, plus the E1 grid (models × spec levels × tasks × runs, BR-U5b-54) joined to
  *    U5a's `GenerationOutcome` under U5a's field names; an E1 plan whose entries of one task carry different
- *    evaluator `specSha` is refused (BR-U5b-53);
+ *    evaluator `specSha` is refused (BR-U5b-53). An E1 grid also needs its registered generator plan
+ *    (`experiments/<id>/generator-plan.json`, SO5-03): unregistered → `prereg-refused`; different from the grid →
+ *    `E1_GENERATOR_PLAN_MISMATCH`. Each outcome is checked against it (`orderSeed`, `pilot`, template sha, adapter
+ *    and grid coordinates, and `schedule.json`); a breach is a not-run `protocol-mismatch` cell
+ *    (`GEN-PROTOCOL-MISMATCH`), and a coordinate without `generation.json` is a not-run `missing` cell
+ *    (`GEN-MISSING`, SO5-05), so every grid coordinate yields a record with a `cell`;
  * 6. per entry: `not-run` when the generation status is not `ok` (`GEN-*` code from the `failureReason`, file range
  *    and permission denials are flags only); otherwise the built CLI as a subprocess (`ProcessRunner`,
  *    `buildChildEnv`, BR-U5b-55) with the experiment's cassette directory for judge modes (BR-U5b-56); one retry
@@ -29,18 +34,23 @@ import type { ValidateFunction } from 'ajv';
 import addFormats from 'ajv-formats';
 import type { ProcessResult, ProcessRunner } from '../src/shared/interfaces/process-runner.js';
 import { buildChildEnv, NodeProcessRunner } from '../src/shared/process/node-process-runner.js';
-import { cellOutputDir } from './lib/generators/schedule.js';
+import { e1Coordinates, e1ProjectId, missingE1Cell } from './lib/e1-cells.js';
+import { loadPromptTemplate } from './lib/generators/prompt.js';
+import { e1GridMismatches, generatorPlanPathFor, outcomeProtocolMismatches, readRegisteredPlan } from './lib/generators/registered-plan.js';
+import { SCHEDULE_JSON } from './lib/generators/schedule.js';
 import { checkPreRegistration, repoRelative } from './lib/prereg.js';
 import type { PreregCheck, PreregCheckInput } from './lib/prereg.js';
 import { acceptReport, knownSecretsOf, scrubbedJson, writeScrubbedJson } from './lib/report-io.js';
 import type { GenerationCell, PinnedJudge, ReasonCode, RunRecord, RunStatus, SeedRef } from './lib/report-io.js';
-import { genCodeOf, loadSo5Codes } from './lib/so5-codes.js';
-import type { GenCode, So5Codes } from './lib/so5-codes.js';
+import { cellGenCode, JOIN_GEN_CODES, loadSo5Codes } from './lib/so5-codes.js';
+import { readGenerationEffort, treeLoc } from './lib/so5-size.js';
+import type { So5Codes } from './lib/so5-codes.js';
 
 export const RUN_RECORD_SCHEMA = 'scripts/lib/schemas/run-record.schema.json';
 export const PLAN_SCHEMA = 'scripts/lib/schemas/experiment-plan.schema.json';
 export const PLAN_INVALID = 'PLAN_INVALID';
 export const E1_SPEC_MISMATCH = 'E1_SPEC_MISMATCH';
+export const E1_GENERATOR_PLAN_MISMATCH = 'E1_GENERATOR_PLAN_MISMATCH';
 /** ADR-015 item 5 / ADR-016 e: a cycle query over 30 s requires the Tarjan fallback. */
 export const LATENCY_GATE_MS = 30_000;
 export const USAGE_LIMIT_EXIT = 3;
@@ -53,13 +63,29 @@ export const CLI_ENV_ALLOW: readonly string[] = Object.freeze([
   'PATH', 'HOME', 'TMPDIR', 'LANG', 'LC_ALL', 'NEO4J_URI', 'NEO4J_USER', 'NEO4J_PASSWORD', 'GEMINI_API_KEY',
 ]);
 
-export type ExperimentKind = 'E1' | 'E7' | 'SO4' | 'latency-gate' | 'sensitivity' | 'fixtures';
+/**
+ * Extractor graph mode of a plan entry: the values of C1 `GraphMode` (`src/apg-extractor/types.ts`, ADR-021 SO2),
+ * restated here because the harness imports no C1 module (BR-U5b-55); a unit test keeps the two equal.
+ */
+export const PLAN_GRAPH_MODES = ['full', 'ast-only'] as const;
+
+/**
+ * Report stage name of the timed universal cycle metric: the value of C8 `UNIVERSAL_CYCLE_STAGE`
+ * (`src/scoring-engine/universal-metrics.ts`, ADR-021 SO2-2), re-declared here because BR-U5b-55 does not list that
+ * C8 symbol; a test keeps the two equal (ADR-021 item 8).
+ */
+export const UNIVERSAL_CYCLE_STAGE = 'universal-metric:cyclicDependencyCount';
+export type GraphMode = (typeof PLAN_GRAPH_MODES)[number];
+
+export type ExperimentKind = 'E1' | 'E7' | 'SO4' | 'latency-gate' | 'sensitivity' | 'fixtures' | 'apg-ablation';
 export type PlanMode = 'symbolic-only' | 'neuronal-only' | 'full';
 export type SpecLevel = GenerationCell['specLevel'];
 
 export interface PlanProject {
   readonly projectId: string; readonly path: string; readonly specPath: string;
   readonly cell?: GenerationCell; readonly seed?: SeedRef;
+  /** Extractor graph mode of this entry (default `full`); `ast-only` is the APG ablation arm (ADR-021 SO2). */
+  readonly graphMode?: GraphMode;
 }
 export interface E1Grid {
   readonly outcomesRoot: string;
@@ -91,6 +117,7 @@ export interface PlanEntry {
   readonly specPath: string;
   readonly cell?: GenerationCell;
   readonly seed?: SeedRef;
+  readonly graphMode?: GraphMode;
   readonly grid?: { readonly modelId: string; readonly taskId: string; readonly specLevel: SpecLevel; readonly runIndex: number; readonly outcomeDir: string };
 }
 
@@ -153,23 +180,14 @@ export function expandPlan(plan: ExperimentPlan, repoRoot: string): { ok: true; 
   const entries: PlanEntry[] = plan.projects.map((p, index) => ({
     index, projectId: p.projectId, path: p.path, specPath: p.specPath,
     ...(p.cell !== undefined && { cell: p.cell }), ...(p.seed !== undefined && { seed: p.seed }),
+    ...(p.graphMode !== undefined && { graphMode: p.graphMode }),
   }));
   if (plan.e1 !== undefined) {
-    const g = plan.e1;
-    for (const modelId of g.models) {
-      for (const specLevel of g.specLevels) {
-        for (const task of g.tasks) {
-          for (let runIndex = 0; runIndex < g.runs; runIndex++) {
-            const outcomeDir = cellOutputDir(g.outcomesRoot, { modelId, taskId: task.taskId as never, specLevel, runIndex });
-            entries.push({
-              index: entries.length,
-              projectId: `${modelId}/${task.taskId}/${specLevel}/run-${String(runIndex)}`,
-              path: outcomeDir, specPath: task.specPath,
-              grid: { modelId, taskId: task.taskId, specLevel, runIndex, outcomeDir },
-            });
-          }
-        }
-      }
+    for (const c of e1Coordinates(plan.e1)) {
+      entries.push({
+        index: entries.length, projectId: e1ProjectId(c), path: c.outcomeDir, specPath: c.specPath,
+        grid: { modelId: c.modelId, taskId: c.taskId, specLevel: c.specLevel, runIndex: c.runIndex, outcomeDir: c.outcomeDir },
+      });
     }
   }
   if (plan.experiment === 'E1') {
@@ -200,26 +218,119 @@ interface OutcomeFile {
 
 export const GENERATION_JSON = 'generation.json';
 
-/** Joins a grid entry to U5a's `generation.json` under U5a's field names (BR-U5a-48, BR-U5b-53). */
-export function joinOutcome(entry: PlanEntry, style: string, repoRoot: string): { ok: true; cell: GenerationCell } | { ok: false; detail: string } {
+/** The registered generator protocol an E1 outcome is checked against (SO5-03). */
+export interface E1Protocol {
+  readonly orderSeed: number;
+  /** The committed template sha of `<specLevel>/<taskId>`; `undefined` when unreadable. */
+  readonly templateSha: (specLevel: SpecLevel, taskId: string) => string | undefined;
+  /** Set when `<outcomesRoot>/schedule.json` is missing or disagrees with the registered plan. */
+  readonly scheduleProblem?: string;
+}
+
+export type JoinResult =
+  | { readonly ok: true; readonly cell: GenerationCell }
+  /** `cell` is the not-run cell of a grid entry (`missing` or `protocol-mismatch`); `detail` starts with its GEN code. */
+  | { readonly ok: false; readonly detail: string; readonly cell?: GenerationCell };
+
+/**
+ * Joins a grid entry to U5a's `generation.json` under U5a's field names (BR-U5a-48, BR-U5b-53). With `protocol`
+ * (every E1 run), the outcome must also conform to the registered generator plan (SO5-03); a missing outcome is a
+ * `missing` cell (SO5-05).
+ */
+export function joinOutcome(entry: PlanEntry, style: string, repoRoot: string, protocol?: E1Protocol): JoinResult {
   if (entry.grid === undefined) return entry.cell !== undefined ? { ok: true, cell: entry.cell } : { ok: false, detail: 'entry has no generation cell' };
-  const outcomePath = join(entry.grid.outcomeDir, GENERATION_JSON);
+  const g = entry.grid;
+  const outcomePath = join(g.outcomeDir, GENERATION_JSON);
+  const coord = { modelId: g.modelId, specLevel: g.specLevel, taskId: g.taskId, specPath: entry.specPath, runIndex: g.runIndex, outcomeDir: g.outcomeDir };
   const file = resolve(repoRoot, outcomePath);
-  if (!existsSync(file)) return { ok: false, detail: `generation outcome ${outcomePath} missing` };
-  const o = JSON.parse(readFileSync(file, 'utf8')) as OutcomeFile;
+  if (!existsSync(file)) {
+    return { ok: false, detail: `${JOIN_GEN_CODES.missing}: generation outcome ${outcomePath} missing`, cell: missingE1Cell(coord, style, outcomePath) };
+  }
+  // A protocol-mismatch cell sits at the grid entry's own coordinate (model, task, level, run, template id, style,
+  // adapter): the outcome's declared coordinates are what the check distrusts, so only its counts are kept as
+  // evidence (SO5-03, SO5-05 "one row per E1 cell").
+  const mismatch = (why: string, evidence?: GenerationCell): JoinResult => {
+    const cell: GenerationCell = {
+      ...missingE1Cell(coord, style, outcomePath),
+      generationStatus: 'protocol-mismatch',
+      ...(evidence !== undefined && typeof evidence.fileCount === 'number' && { fileCount: evidence.fileCount }),
+      ...(evidence !== undefined && typeof evidence.fileCountInRange === 'boolean' && { fileCountInRange: evidence.fileCountInRange }),
+      ...(evidence !== undefined && typeof evidence.permissionDenials === 'number' && { permissionDenials: evidence.permissionDenials }),
+    };
+    return { ok: false, detail: `${JOIN_GEN_CODES['protocol-mismatch']}: generation outcome ${outcomePath}: ${why}`, cell };
+  };
+  let raw: unknown;
+  try {
+    raw = JSON.parse(readFileSync(file, 'utf8')) as unknown;
+  } catch {
+    return mismatch('not JSON');
+  }
+  if (typeof raw !== 'object' || raw === null || Array.isArray(raw)) return mismatch('not a JSON object');
+  const o = raw as OutcomeFile;
   const runIndex = o.runIndex;
-  if (runIndex !== 0 && runIndex !== 1 && runIndex !== 2) return { ok: false, detail: `generation outcome ${outcomePath}: runIndex ${String(runIndex)}` };
-  return {
-    ok: true,
-    cell: {
+  if (runIndex !== 0 && runIndex !== 1 && runIndex !== 2) return mismatch(`runIndex ${String(runIndex)}`);
+  const joined: GenerationCell = {
       requestedModelId: o.requestedModelId,
       ...(o.resolvedModelId !== undefined && { resolvedModelId: o.resolvedModelId }),
       adapterId: o.adapterId, promptTemplateId: o.promptTemplateId, style, specLevel: o.specLevel, taskId: o.taskId, runIndex,
       generationOutcomePath: outcomePath, generationStatus: o.status,
       ...(o.failureReason !== undefined && { failureReason: o.failureReason }),
       fileCount: o.fileCount, fileCountInRange: o.fileCountInRange, permissionDenials: o.permissionDenials,
-    },
   };
+  if (protocol !== undefined) {
+    const problems = [
+      ...(protocol.scheduleProblem !== undefined ? [protocol.scheduleProblem] : []),
+      ...outcomeProtocolMismatches(raw as Record<string, unknown>, {
+        modelId: g.modelId, taskId: g.taskId, specLevel: g.specLevel, runIndex: g.runIndex, orderSeed: protocol.orderSeed,
+        adapterId: 'claude-code-cli', promptTemplateSha256: protocol.templateSha(g.specLevel, g.taskId),
+      }),
+    ];
+    if (problems.length > 0) return mismatch(problems.join('; '), joined);
+  }
+  // ADR-021 SO5-07, X-3: LOC of the tree this entry evaluates and the generation effort, on a joined outcome only.
+  const outcomeDir = resolve(repoRoot, g.outcomeDir);
+  return { ok: true, cell: { ...joined, loc: treeLoc(outcomeDir), ...readGenerationEffort(outcomeDir, raw as Record<string, unknown>) } };
+}
+
+/**
+ * The registered generator protocol of an E1 plan (SO5-03): the generator plan beside the experiment plan must be a
+ * registered artefact (`frozenHashes`) and agree with the `e1` block; `schedule.json` under `outcomesRoot` must carry
+ * the registered `orderSeed` and the plan file's sha256.
+ */
+export function e1ProtocolOf(
+  plan: ExperimentPlan, planFile: string, repoRoot: string, frozenHashes: Readonly<Record<string, string>>,
+): { ok: true; protocol: E1Protocol } | { ok: false; refusal: 'plan-unregistered' | 'mismatch' | 'invalid'; detail: string } {
+  const grid = plan.e1;
+  if (grid === undefined) return { ok: false, refusal: 'invalid', detail: 'plan has no e1 block' };
+  const genRel = generatorPlanPathFor(repoRelative(repoRoot, planFile));
+  const registeredSha = frozenHashes[genRel];
+  if (registeredSha === undefined) return { ok: false, refusal: 'plan-unregistered', detail: `E1 generator plan ${genRel} is not a registered artefact` };
+  const reg = readRegisteredPlan(resolve(repoRoot, genRel), repoRoot);
+  if (!reg.ok) return { ok: false, refusal: 'invalid', detail: reg.detail };
+  const diff = e1GridMismatches(reg.plan, grid, repoRoot);
+  if (diff.length > 0) return { ok: false, refusal: 'mismatch', detail: `${genRel} differs from the e1 block in ${diff.join(', ')}` };
+  const scheduleFile = join(resolve(repoRoot, grid.outcomesRoot), SCHEDULE_JSON);
+  let scheduleProblem: string | undefined;
+  if (!existsSync(scheduleFile)) scheduleProblem = `${SCHEDULE_JSON} missing under outcomesRoot`;
+  else {
+    try {
+      const sched = JSON.parse(readFileSync(scheduleFile, 'utf8')) as { orderSeed?: unknown; generatorPlan?: { sha256?: unknown } };
+      if (sched.orderSeed !== reg.plan.orderSeed) scheduleProblem = `${SCHEDULE_JSON} orderSeed ${JSON.stringify(sched.orderSeed ?? null)} != ${String(reg.plan.orderSeed)}`;
+      else if (sched.generatorPlan?.sha256 !== registeredSha) scheduleProblem = `${SCHEDULE_JSON} was not written from the registered ${genRel}`;
+    } catch {
+      scheduleProblem = `${SCHEDULE_JSON} is not JSON`;
+    }
+  }
+  const shas = new Map<string, string | undefined>();
+  const templateSha = (specLevel: SpecLevel, taskId: string): string | undefined => {
+    const k = `${specLevel}/${taskId}`;
+    if (!shas.has(k)) {
+      const t = loadPromptTemplate(repoRoot, specLevel, taskId as never);
+      shas.set(k, t.success ? t.data.promptTemplateSha256 : undefined);
+    }
+    return shas.get(k);
+  };
+  return { ok: true, protocol: { orderSeed: reg.plan.orderSeed, templateSha, ...(scheduleProblem !== undefined ? { scheduleProblem } : {}) } };
 }
 
 // ---------------------------------------------------------------------------------------------
@@ -227,14 +338,30 @@ export function joinOutcome(entry: PlanEntry, style: string, repoRoot: string): 
 
 export type LatencyGateResult = 'pass' | 'fallback-required';
 
-/** A cycle query over 30 s, or a function timeout on the project, requires the Tarjan fallback. */
+/**
+ * A cycle query over 30 s, or a function timeout on the project, requires the Tarjan fallback. This is the
+ * per-report rule for an accepted report; the gate over every RunRecord of the latency-gate plan, including
+ * rejected runs whose cycle query timed out, is `latencyGateOf` in `scripts/lib/so2.ts` (ADR-021 SO2; audit SO2-1).
+ */
 export function latencyGate(cycleQueryMs: readonly number[], functionTimeout = false): LatencyGateResult {
   return functionTimeout || cycleQueryMs.some((ms) => ms > LATENCY_GATE_MS) ? 'fallback-required' : 'pass';
 }
 
-/** Cycle query times of a report: the `no-cyclic-deps` function rows (`executionTimeMs`). */
-export function cycleQueryTimes(report: { readonly functionResults?: readonly { readonly name?: string; readonly executionTimeMs?: number }[] }): number[] {
-  return (report.functionResults ?? []).filter((r) => r.name === 'no-cyclic-deps' && typeof r.executionTimeMs === 'number').map((r) => r.executionTimeMs ?? 0);
+/** Report fields the cycle query times are read from. */
+export interface CycleTimedReport {
+  readonly functionResults?: readonly { readonly name?: string; readonly executionTimeMs?: number }[];
+  readonly timings?: { readonly stages?: readonly { readonly name: string; readonly durationMs: number }[] };
+}
+
+/**
+ * Cycle query times of a report (ADR-016 e: both cycle queries): the `no-cyclic-deps` function rows
+ * (`executionTimeMs`, FF-S02) and the universal cycle metric's timing entry (`UNIVERSAL_CYCLE_STAGE`,
+ * ADR-021 SO2; audit SO2-2), in that order.
+ */
+export function cycleQueryTimes(report: CycleTimedReport): number[] {
+  const template = (report.functionResults ?? []).filter((r) => r.name === 'no-cyclic-deps' && typeof r.executionTimeMs === 'number').map((r) => r.executionTimeMs ?? 0);
+  const metric = (report.timings?.stages ?? []).filter((st) => st.name === UNIVERSAL_CYCLE_STAGE).map((st) => st.durationMs);
+  return [...template, ...metric];
 }
 
 // ---------------------------------------------------------------------------------------------
@@ -250,9 +377,11 @@ export function modeFlags(mode: PlanMode): string[] {
  */
 export function cliArgv(plan: ExperimentPlan, entry: PlanEntry): string[] {
   const argv = ['evaluate', '--project', entry.path, '--spec', entry.specPath, '--format', 'json', ...modeFlags(plan.mode)];
+  if (entry.graphMode !== undefined && entry.graphMode !== 'full') argv.push('--graph-mode', entry.graphMode);
   if (plan.mode !== 'symbolic-only') {
     if (plan.judge !== undefined) argv.push('--llm-provider', plan.judge.provider, '--llm-model', plan.judge.model);
-    argv.push('--cassette-dir', plan.cassetteDir);
+    // ADR-021 SO3-5: the judge cassette entries carry the run's project id (repetition reliability keys on it).
+    argv.push('--cassette-dir', plan.cassetteDir, '--cassette-project-id', entry.projectId);
   }
   return argv;
 }
@@ -361,17 +490,29 @@ export async function runPlan(plan: ExperimentPlan, planFile: string, repoRoot: 
     records: existingRecords(outDir).filter((r) => r.planId === plan.id), now: deps.now(),
   });
   const specShaOf = (spec: string): string => sha256Of(resolve(repoRoot, spec));
-  if (!gate.ok) {
+  const refuseAll = (refusal: string, detail: string): RunPlanResult => {
     for (const entry of entries) {
       emit({
         runId: runIdOf(plan.id, entry), planId: plan.id, projectId: entry.projectId, status: 'rejected',
-        reasonCode: 'prereg-refused', reasonDetail: `${gate.refusal}: ${gate.detail}`, attempt: 1,
+        reasonCode: 'prereg-refused', reasonDetail: `${refusal}: ${detail}`, attempt: 1,
         specSha: specShaOf(entry.specPath), cliCommit: deps.cliCommit, preregVersion: 0, frozenHashes: {},
         envRecordId: 'none (pre-registration refused)', startedAt: deps.now().toISOString(), wallMs: 0,
         ...(entry.seed !== undefined && { seed: entry.seed }),
       });
     }
-    return { ok: false, code: gate.code, detail: gate.detail, records, outDir };
+    return { ok: false, code: 'PREREG_REFUSED', detail, records, outDir };
+  };
+  if (!gate.ok) return refuseAll(gate.refusal, gate.detail);
+
+  // SO5-03: an E1 grid runs only against its registered generator plan.
+  let e1Protocol: E1Protocol | undefined;
+  if (plan.e1 !== undefined) {
+    const proto = e1ProtocolOf(plan, planFile, repoRoot, gate.frozenHashes);
+    if (!proto.ok) {
+      if (proto.refusal === 'plan-unregistered') return refuseAll(proto.refusal, proto.detail);
+      return { ok: false, code: proto.refusal === 'mismatch' ? E1_GENERATOR_PLAN_MISMATCH : PLAN_INVALID, detail: proto.detail, records, outDir };
+    }
+    e1Protocol = proto.protocol;
   }
 
   const so5 = loadSo5Codes(repoRoot);
@@ -386,6 +527,7 @@ export async function runPlan(plan: ExperimentPlan, planFile: string, repoRoot: 
     const record = await runEntry(plan, entry, {
       repoRoot, deps, so5: so5.codes, envRecordId: env.id, preregVersion: gate.prereg.version,
       frozenHashes: gate.frozenHashes, pinnedJudge, childEnv, outDir, scrub, secrets, specSha: specShaOf(entry.specPath),
+      ...(e1Protocol !== undefined && { e1Protocol }),
     });
     emit(record);
   }
@@ -405,6 +547,7 @@ interface EntryContext {
   readonly scrub: <T>(v: T) => T;
   readonly secrets: readonly string[];
   readonly specSha: string;
+  readonly e1Protocol?: E1Protocol;
 }
 
 async function runEntry(plan: ExperimentPlan, entry: PlanEntry, ctx: EntryContext): Promise<RunRecord> {
@@ -412,8 +555,11 @@ async function runEntry(plan: ExperimentPlan, entry: PlanEntry, ctx: EntryContex
   const runId = runIdOf(plan.id, entry);
   let cell: GenerationCell | undefined = entry.cell;
   if (entry.grid !== undefined) {
-    const joined = joinOutcome(entry, plan.e1?.style ?? 'unknown', ctx.repoRoot);
-    if (!joined.ok) return base('not-run', 'generation-failed', joined.detail, 1);
+    const joined = joinOutcome(entry, plan.e1?.style ?? 'unknown', ctx.repoRoot, ctx.e1Protocol);
+    if (!joined.ok) {
+      cell = joined.cell;
+      return base('not-run', 'generation-failed', joined.detail, 1);
+    }
     cell = joined.cell;
   }
   function base(status: RunStatus, reasonCode: ReasonCode | undefined, reasonDetail: string | undefined, attempt: 1 | 2, reportPath?: string): RunRecord {
@@ -427,7 +573,7 @@ async function runEntry(plan: ExperimentPlan, entry: PlanEntry, ctx: EntryContex
     };
   }
   if (cell !== undefined && cell.generationStatus !== 'ok') {
-    const gen: GenCode | undefined = genCodeOf(ctx.so5, cell.generationStatus, cell.failureReason);
+    const gen = cellGenCode(ctx.so5, cell);
     return base('not-run', 'generation-failed', gen ?? `generation ${cell.generationStatus} without failureReason`, 1);
   }
 

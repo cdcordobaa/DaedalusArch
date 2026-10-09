@@ -56,3 +56,30 @@ Gemini CLI 0.46.0 under a dedicated `GEMINI_CLI_HOME` (`<HOME>/.firewall/labelle
 | 1 | 2026-10-08 | `--version` ×2, `--list-extensions` ×2, one headless `--output-format json` call | 5 | 3 | 0 | 3 / 15 |
 
 Every spawn that reached auth stopped at the Code Assist tier check (`IneligibleTierError`, `UNSUPPORTED_CLIENT`, free tier "Gemini Code Assist for individuals") before any model request. The probe stopped there (ADR-019 item 4 halt). Judge total unchanged.
+
+**Correction (2026-10-09; review of the probe):**
+- **Route closed, no author decision pending.** ADR-019 item 4 as amended (commit `1185a1f`, the parent of the probe commit `aae310a`) already records this refusal and binds the route to the Antigravity CLI (`agy`, cask `antigravity-cli` 1.1.23, dedicated home `<HOME>/.firewall/labeller-agy-home`, model `gemini-3.1-pro-high`). The Gemini CLI route is not resumed. The next step is the agy isolation probe under the amendment: no tools, extensions or MCP servers, no ambient `GEMINI.md`, the dedicated home, version pin 1.1.23, canaries with positive controls, the model-id check and cassettes. Escalate only if agy cannot be isolated.
+- **Credential reuse is not repeated.** Pointing `GOOGLE_APPLICATION_CREDENTIALS` at the author's ambient `<HOME>/.gemini/oauth_creds.json` tied the dedicated home to `~/.gemini`. Any CLI route signs in inside its own dedicated home, as the amendment does.
+- **Exit code depends on the mode.** The tier refusal exited 1 only in the headless call (5); the non-headless `--list-extensions` calls (2, 3) exited 0 with the refusal on stderr. Calls 2 and 3 are unevidenced: their home was gone before their files were saved (cause not established), so their auth-reached count rests on notes. Evidenced spawns reaching auth: 1 (call 5).
+- **The two 200s are unrelated.** `llm-label --estimate` on `tests/fixtures/u5b/labels/plan.json` (40 calls <= 200) uses that fixture plan's own `budgetCalls`; it is not the ADR-019 item 5 judge-call budget above. The registered labelling budget is `labellingBudgetCalls` 4000 in `corpus/prereg.json`.
+
+## Labeller route probe, agy (ADR-019 item 4 as amended; probe cap about 15; not judge calls)
+
+agy 1.3.2 (`/opt/homebrew/bin/agy`; the cask records 1.1.23, but the binary had updated itself in place), dedicated `HOME` `<HOME>/.firewall/labeller-agy-home`, `env -i` allow-list, `AGY_CLI_DISABLE_AUTO_UPDATE=true`, a fresh neutral `mktemp` cwd per call, model `gemini-3.1-pro-high`. Evidence: `tests/fixtures/agy-cli/probe-values.json`. A model call is one agy turn. `--version`, `models`, `mcp list`, `plugin list`, `agents`, `changelog`, read-only slash commands (`num_turns` 0) and runs rejected before a turn (unknown model, empty HOME) are not counted.
+
+| # | Date | Run | Model calls | Running total |
+|---|---|---|---|---|
+| 1 | 2026-10-09 | c01 json + schema; c02 stream-json init; c03 unintended `/config` prompt (slash commands disabled) | 3 | 3 |
+| 2 | 2026-10-09 | c04 tools under `strict` only; c05 tools under `strict` + deny rules | 2 | 5 |
+| 3 | 2026-10-09 | c06 canary positive control; c07 canary negative | 2 | 7 |
+| 4 | 2026-10-09 | c09 print timeout 2 s | 1 | 8 |
+| 5 | 2026-10-09 | c11 memory plant; c12 memory probe | 2 | 10 |
+| 6 | 2026-10-09 | smoke: `llm-label --provider agy --mode record` on `tests/fixtures/agy-cli/smoke-plan.json` (1 fixture item × 2 runs, no retry) | 2 | **12** |
+
+Outcome: isolation **PASS** (see `Docs/labeller-route.md` §2). Judge total unchanged.
+
+**Capacity (escalated).** A label call uses 74k–124k input tokens and takes about 60 s. On the author's tier the two smoke calls used about 1.1 % of the weekly Gemini quota and 2.6 % of the 5-hour quota, so roughly 180 label calls fit in a week. The registered `labellingBudgetCalls` of 4000 would need about 22 weekly windows.
+
+**Estimate.** No real label plan exists yet: the P1–P4 / MS plan producer is a U6 item (ADR-021), and its inputs come from the so4-heldout, e7-corpus and e1-grid runs. `llm-label --estimate` on the fixture plan `tests/fixtures/u5b/labels/plan.json` prints `40 calls <= budget 200` (that 200 is the fixture's own `budgetCalls`). The registered ceiling is 4000 calls.
+
+**Gemini CLI probe attribution (correction to the section above).** The first dedicated Gemini home (`<HOME>/.firewall/labeller-gemini`) and its probe directory were removed by this labeller session, on the coordinator's clean-up instruction after the route change. That removal explains why the stderr of calls 2 and 3 was never saved. The cause is now established; there was no concurrent process.

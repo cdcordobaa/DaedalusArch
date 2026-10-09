@@ -299,14 +299,13 @@ export function appendRejection(
  * rows, and rejections never count.
  */
 export function countGoldenInstances(m: Manifest): number {
+  return m.rows.filter(isGoldenRow).length;
+}
+
+/** One row of the golden set (BR-U5a-01; the rule of `countGoldenInstances`). */
+export function isGoldenRow(r: Pick<ManifestRow, 'split' | 'expected'>): boolean {
   const symbolic: readonly string[] = SYMBOLIC_DIMENSIONS;
-  return m.rows.filter(
-    (r) =>
-      r.split === 'held-out' &&
-      r.expected.negative !== true &&
-      r.expected.judgeProbe === undefined &&
-      symbolic.includes(r.expected.dimension),
-  ).length;
+  return r.split === 'held-out' && r.expected.negative !== true && r.expected.judgeProbe === undefined && symbolic.includes(r.expected.dimension);
 }
 
 const SECRET_ENV_NAME = /(KEY|TOKEN|SECRET|PASSWORD|PASS|AUTH)/i;

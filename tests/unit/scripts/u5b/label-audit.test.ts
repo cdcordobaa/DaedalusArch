@@ -2,14 +2,15 @@
  * U5b Step 29: audit allocation, blinding and agreement statistics (FR-27, ADR-017 item 7; BR-U5b-40..43; exit
  * criterion 4). Inputs: the committed Mock labeller fixture (Step 28) and U4's committed judge cassettes.
  */
-import { mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
+import { existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import {
-  AUDIT_MODIFIED, agreementStats, allocateAudit, auditView, checkAuditLock, labellingTables, loadLabellerPrompts, main, pairAgreement,
+  AUDIT_ALLOCATION_EXPOSED, AUDIT_MODIFIED, AUDIT_NOT_LABEL_BLIND, AUDIT_SEED_MISMATCH, AUDIT_UNCOMMITTED, agreementStats, allocateAudit, auditSeedOf, auditView,
+  auditViewKey, checkAuditLock, labellingTables, loadLabellerPrompts, main, pairAgreement,
 } from '../../../../scripts/llm-label.js';
-import type { AnyLabel, AuditFile, JudgeUnitVerdict, LabelPlanFile, LabellerPrompt, LabellingOutputs, ReconciledLabel } from '../../../../scripts/llm-label.js';
-import type { ItemKind } from '../../../../scripts/lib/label-context.js';
+import type { AuditFile, AuditPlanItem, JudgeUnitVerdict, LabelPlanFile, LabellerPrompt, LabellingOutputs, ReconciledLabel } from '../../../../scripts/llm-label.js';
+import type { ItemKind, Population } from '../../../../scripts/lib/label-context.js';
 import { csvText } from '../../../../scripts/aggregate.js';
 import { listCassetteKeys, readCassetteEntry } from '../../../../src/llm-critic/cassette-manager.js';
 import { FIXTURE_MODEL, LABEL_CASSETTE_DIR, LABEL_FIXTURE_DIR } from './label-fixture.js';
@@ -36,47 +37,64 @@ function judgeEntries(): NonNullable<Parameters<typeof agreementStats>[0]['judge
   });
 }
 
-/** Synthetic reconciled labels: `n` items of (kind, label) spread over three projects. */
-function synthetic(kind: ItemKind, label: string, n: number): ReconciledLabel[] {
-  return Array.from({ length: n }, (_, i) => ({
-    itemId: `${kind}-${label}-${String(i).padStart(4, '0')}`, projectId: `p${String(i % 3)}`, kind, population: kind === 'judge-unit' ? 'P4' : kind === 'missed-seed' ? 'MS' : 'P2',
-    stratum: 's', inclusionProbability: 1, label: label as ReconciledLabel['label'],
-    runs: [
-      { runIndex: 0, label: label as AnyLabel, rationale: 'PANEL-RATIONALE', cassetteKey: 'k0', attempts: 1 },
-      { runIndex: 1, label: label as AnyLabel, rationale: 'PANEL-RATIONALE', cassetteKey: 'k1', attempts: 1 },
-    ],
-  }));
+/** Synthetic plan items: `n` items of (kind, population) spread over three projects (no label exists yet). */
+function synthetic(kind: ItemKind, population: Population, n: number): AuditPlanItem[] {
+  return Array.from({ length: n }, (_, i) => ({ itemId: `${kind}-${population}-${String(i).padStart(4, '0')}`, projectId: `p${String(i % 3)}`, kind, population }));
 }
 
-describe('audit allocation (BR-U5b-41)', () => {
-  const labels = [
-    ...synthetic('violation', 'TP', 200), ...synthetic('violation', 'FP', 40), ...synthetic('violation', 'unseeded-TP', 2),
-    ...synthetic('judge-unit', 'fail', 30), ...synthetic('judge-unit', 'pass', 70), ...synthetic('missed-seed', 'FN', 5),
-    ...synthetic('violation', 'uncertain', 9),
+describe('audit allocation (BR-U5b-41 as amended by ADR-021 item 8.8: drawn from the plan, kind x population)', () => {
+  const items = [
+    ...synthetic('violation', 'P1', 40), ...synthetic('violation', 'P2', 200), ...synthetic('violation', 'P3', 2),
+    ...synthetic('judge-unit', 'P4', 100), ...synthetic('missed-seed', 'MS', 5),
   ];
 
-  it('strata {TP 200, FP 40, unseeded-TP 2, fail 30, pass 70, missed-seed 5}: floors kept, total 30, every kind, uncertain excluded', () => {
-    const a = allocateAudit(labels, 11);
-    const by = new Map(a.strata.map((s) => [`${s.kind}|${s.label}`, s]));
-    expect(a.strata).toHaveLength(6);
-    expect(by.has('violation|uncertain')).toBe(false);
+  it('strata {P1 40, P2 200, P3 2, P4 100, MS 5}: floors kept, total 30, every kind; label-free', () => {
+    const a = allocateAudit(items, 11);
+    const by = new Map(a.strata.map((s) => [`${s.kind}|${s.population}`, s]));
+    expect(a.strata).toHaveLength(5);
     expect(a.strata.reduce((s, x) => s + x.allocated, 0)).toBe(30);
     expect(a.itemIds).toHaveLength(30);
     for (const s of a.strata) expect(s.allocated).toBeGreaterThanOrEqual(Math.min(3, s.size));
-    expect(by.get('violation|unseeded-TP')?.allocated).toBe(2);
-    expect(by.get('violation|TP')?.allocated).toBeGreaterThan(by.get('judge-unit|pass')?.allocated ?? 0);
+    expect(by.get('violation|P3')?.allocated).toBe(2);
+    expect(by.get('violation|P2')?.allocated).toBeGreaterThan(by.get('judge-unit|P4')?.allocated ?? 0);
     expect(new Set(a.strata.filter((s) => s.allocated > 0).map((s) => s.kind))).toEqual(new Set(['violation', 'judge-unit', 'missed-seed']));
-    expect(by.get('violation|FP')?.samplingFraction).toBeCloseTo((by.get('violation|FP')?.allocated ?? 0) / 40, 12);
-    expect(allocateAudit(labels, 11)).toEqual(a);
+    expect(by.get('violation|P1')?.samplingFraction).toBeCloseTo((by.get('violation|P1')?.allocated ?? 0) / 40, 12);
+    expect(allocateAudit(items, 11)).toEqual(a);
+    // Duplicated plan rows count once.
+    expect(allocateAudit([...items, ...items.slice(0, 5)], 11)).toEqual(a);
   });
 
-  it('projects alternate within a stratum (round-robin in a seeded order)', () => {
-    const a = allocateAudit(labels, 11);
-    const project = new Map(labels.map((l) => [l.itemId, l.projectId]));
-    const tp = a.itemIds.filter((id) => id.startsWith('violation-TP-')).map((id) => project.get(id));
-    expect(tp.length).toBeGreaterThanOrEqual(3);
-    for (let i = 1; i < tp.length; i += 1) expect(tp[i]).not.toBe(tp[i - 1]);
-    expect(new Set(tp.slice(0, 3)).size).toBe(3);
+  it('hand-computed proportional allocation: P2 120, P4 60 of 180 -> 20 and 10', () => {
+    const a = allocateAudit([...synthetic('violation', 'P2', 120), ...synthetic('judge-unit', 'P4', 60)], 3);
+    expect(a.strata.map((s) => [s.kind, s.population, s.size, s.allocated])).toEqual([['judge-unit', 'P4', 60, 10], ['violation', 'P2', 120, 20]]);
+  });
+
+  it('projects alternate within a stratum (round-robin selection in a seeded order)', () => {
+    const a = allocateAudit(items, 11);
+    const project = new Map(items.map((l) => [l.itemId, l.projectId]));
+    const p2 = a.itemIds.filter((id) => id.startsWith('violation-P2-')).map((id) => project.get(id));
+    expect(p2.length).toBeGreaterThanOrEqual(3);
+    expect(new Set(p2).size).toBe(Math.min(p2.length, 3));
+  });
+
+  it('THR-3: the view order is a seeded order independent of the strata (no contiguous blocks)', () => {
+    const a = allocateAudit(items, 11);
+    const stratumOf = new Map(items.map((l) => [l.itemId, `${l.kind}|${l.population}`]));
+    const keys = a.itemIds.map((id) => auditViewKey(11, id));
+    expect([...keys].sort()).toEqual(keys);
+    const runs = a.itemIds.reduce((n, id, i) => n + (i > 0 && stratumOf.get(id) !== stratumOf.get(a.itemIds[i - 1] ?? '') ? 1 : 0), 1);
+    expect(runs).toBeGreaterThan(a.strata.filter((x) => x.allocated > 0).length);
+    expect(allocateAudit(items, 12).itemIds).not.toEqual(a.itemIds);
+  });
+
+  it('ADR-021 item 8.5: the plan\'s registered audit seed is used; another --seed is refused', () => {
+    expect(auditSeedOf({ auditSeed: 6104 }, undefined)).toEqual({ ok: true, seed: 6104 });
+    expect(auditSeedOf({ auditSeed: 6104 }, '6104')).toEqual({ ok: true, seed: 6104 });
+    const bad = auditSeedOf({ auditSeed: 6104 }, '5');
+    expect(bad.ok).toBe(false);
+    expect(bad.ok ? '' : bad.detail).toContain(AUDIT_SEED_MISMATCH);
+    expect(auditSeedOf({}, '5')).toEqual({ ok: true, seed: 5 });
+    expect(auditSeedOf({}, undefined).ok).toBe(false);
   });
 });
 
@@ -84,7 +102,7 @@ describe('blinding (BR-U5b-42)', () => {
   it('the audit view model has no panel label, rationale or root-cause field', () => {
     const labels = fixtureLabels();
     const plan = fixturePlanFile();
-    const view = auditView(allocateAudit(labels, 5), plan.items, prompts());
+    const view = auditView(allocateAudit(plan.items, 5), plan.items, prompts());
     expect(view.length).toBeGreaterThan(0);
     for (const v of view) {
       expect(Object.keys(v).sort()).toEqual(['context', 'itemId', 'kind', 'options', 'projectId', 'rootCauses']);
@@ -106,7 +124,7 @@ describe('agreement (BR-U5b-40, 43)', () => {
   const labels = fixtureLabels();
   const p4 = labels.filter((l) => l.kind === 'judge-unit');
   const headline: JudgeUnitVerdict[] = p4.map((l, i) => ({ projectId: l.projectId, functionId: l.functionId ?? '', unitId: l.unitId ?? '', verdict: i === 0 ? 'pass' : 'fail', judgeModel: 'claude-opus-5-5' }));
-  const allocation = allocateAudit(labels, 5);
+  const allocation = allocateAudit(fixturePlanFile().items, 5);
   const byId = new Map(labels.map((l) => [l.itemId, l]));
   const audit: AuditFile = {
     version: 1, planId: 'fixtures',
@@ -115,7 +133,8 @@ describe('agreement (BR-U5b-40, 43)', () => {
 
   it('agreement.csv has exactly the three panel comparisons plus the judge-reliability rows', () => {
     const rows = agreementStats({ labels, prompts: prompts(), labellerModel: FIXTURE_MODEL, judgeVerdicts: headline, allocation, audit, judgeEntries: judgeEntries() });
-    expect(rows.map((r) => r.comparison)).toEqual(['run-vs-run', 'judge-vs-panel', 'panel-vs-audit', 'judge-repetition', 'judge-repetition']);
+    // Verdicts without a source: the pooled judge row and its uncertain-as-category twin (ADR-020 items 7, 9 B3).
+    expect(rows.map((r) => r.comparison)).toEqual(['run-vs-run', 'judge-vs-panel', 'judge-vs-panel', 'panel-vs-audit', 'judge-repetition', 'judge-repetition']);
     expect(rows.filter((r) => r.comparison === 'judge-repetition').map((r) => r.scope)).toEqual(['FF-N01', 'FF-N02']);
     for (const r of rows.filter((x) => x.comparison === 'judge-repetition')) {
       expect(r.percentAgreement).toBe(1); // the Mock fixture judge is consistent across its three samples
@@ -124,11 +143,13 @@ describe('agreement (BR-U5b-40, 43)', () => {
     const rr = rows[0];
     expect(rr?.n).toBe(labels.filter((l) => l.runs.every((r) => r.label !== null)).length);
     expect(rr?.uncertain).toBe(labels.filter((l) => l.label === 'uncertain').length);
-    expect(rows[1]).toMatchObject({ comparison: 'judge-vs-panel', scope: 'claude-opus-5-5', weighted: true, sameFamily: false, n: p4.filter((l) => l.label !== 'uncertain').length });
-    expect(rows[2]).toMatchObject({ comparison: 'panel-vs-audit', weighted: true, n: allocation.itemIds.length });
-    expect((rows[2]?.percentAgreement ?? 0)).toBeLessThan(1);
+    expect(rows[1]).toMatchObject({ comparison: 'judge-vs-panel', scope: 'claude-opus-5-5', weighted: true, sameFamily: false, n: p4.filter((l) => l.label !== 'uncertain').length, source: 'all', headline: false, uncertainAsCategory: false });
+    expect(rows[2]).toMatchObject({ comparison: 'judge-vs-panel', source: 'all', uncertainAsCategory: true, n: p4.length });
+    // ADR-021 item 8.8: no exclusion of uncertain panel labels; they are a category of the comparison.
+    expect(rows[3]).toMatchObject({ comparison: 'panel-vs-audit', weighted: true, n: allocation.itemIds.length, ciMethod: 'wilson-weighted-approximate', uncertainAsCategory: true });
+    expect((rows[3]?.percentAgreement ?? 0)).toBeLessThan(1);
     const t = labellingTables({ agreement: rows })['agreement.csv'];
-    expect(csvText(t.header, t.rows).trim().split('\n')).toHaveLength(1 + 5);
+    expect(csvText(t.header, t.rows).trim().split('\n')).toHaveLength(1 + 6);
   });
 
   it('a judge-vs-panel cross-check on the labeller model gives a sameFamily row absent from the headline row', () => {
@@ -136,10 +157,41 @@ describe('agreement (BR-U5b-40, 43)', () => {
     const base = agreementStats({ labels, prompts: prompts(), labellerModel: FIXTURE_MODEL, judgeVerdicts: headline });
     const rows = agreementStats({ labels, prompts: prompts(), labellerModel: FIXTURE_MODEL, judgeVerdicts: [...headline, ...cross] });
     const judge = rows.filter((r) => r.comparison === 'judge-vs-panel');
-    expect(judge).toHaveLength(2);
+    expect(judge).toHaveLength(3);
     expect(judge[0]).toEqual(base.find((r) => r.comparison === 'judge-vs-panel'));
     expect(judge[0]?.sameFamily).toBe(false);
-    expect(judge[1]).toMatchObject({ scope: FIXTURE_MODEL, sameFamily: true });
+    expect(judge[1]).toMatchObject({ uncertainAsCategory: true, sameFamily: false });
+    expect(judge[2]).toMatchObject({ scope: FIXTURE_MODEL, sameFamily: true, headline: false });
+  });
+
+  it('ADR-020 item 7: per-source and per-generator rows, the E1 row is the only headline; uncertain kept as a category (B3)', () => {
+    // Hand fixture: four P4 units; the judge agrees with the panel on E1 units u1 (opus) and u2 (haiku), disagrees on
+    // fixture unit u3; unit u4 (E1, haiku) is uncertain on the panel.
+    const unit = (id: string, project: string, label: 'pass' | 'fail' | 'uncertain'): ReconciledLabel => ({
+      itemId: `i-${id}`, projectId: project, kind: 'judge-unit', population: 'P4', stratum: `${project}, semantic`, inclusionProbability: 1,
+      unitId: id, functionId: 'FF-N02', label,
+      runs: ([0, 1] as const).map((runIndex) => ({ runIndex, label: label === 'uncertain' ? null : label, rationale: 'r', cassetteKey: 'k', attempts: 1 })) as unknown as ReconciledLabel['runs'],
+    });
+    const ls = [unit('u1', 'cell-a', 'fail'), unit('u2', 'cell-b', 'pass'), unit('u3', 'fixtures/variant-a', 'pass'), unit('u4', 'cell-b', 'uncertain')];
+    const v = (id: string, project: string, verdict: 'pass' | 'fail', source: 'e1' | 'fixture', generatorModel?: string): JudgeUnitVerdict => ({
+      projectId: project, functionId: 'FF-N02', unitId: id, verdict, judgeModel: 'claude-opus-5-5', source, ...(generatorModel !== undefined && { generatorModel }),
+    });
+    const verdicts = [v('u1', 'cell-a', 'fail', 'e1', 'claude-opus-5-5'), v('u2', 'cell-b', 'pass', 'e1', 'claude-haiku-4-5'), v('u3', 'fixtures/variant-a', 'fail', 'fixture'), v('u4', 'cell-b', 'fail', 'e1', 'claude-haiku-4-5')];
+    const rows = agreementStats({ labels: ls, prompts: prompts(), labellerModel: FIXTURE_MODEL, judgeVerdicts: verdicts }).filter((r) => r.comparison === 'judge-vs-panel');
+    expect(rows.map((r) => [r.source, r.generatorModel, r.headline, r.uncertainAsCategory, r.n, r.percentAgreement])).toEqual([
+      ['all', '', false, false, 3, 2 / 3],
+      ['e1', '', true, false, 2, 1],
+      ['fixture', '', false, false, 1, 0],
+      ['e1', 'claude-haiku-4-5', false, false, 1, 1],
+      ['e1', 'claude-opus-5-5', false, false, 1, 1],
+      // u4 enters as (fail, uncertain): 2 of 3 agree.
+      ['e1', '', false, true, 3, 2 / 3],
+    ]);
+    expect(rows.filter((r) => r.headline)).toHaveLength(1);
+    const t = labellingTables({ agreement: rows })['agreement.csv'];
+    const at = t.header.indexOf('source');
+    expect(t.header.slice(at, at + 4)).toEqual(['source', 'generator_model', 'headline', 'uncertain_as_category']);
+    expect(t.rows[1]?.slice(at, at + 4)).toEqual(['e1', '', 'true', 'false']);
   });
 
   it('a known 2x2 table reproduces the hand-computed kappa and AC1 to 6 dp; weights enter the table', () => {
@@ -173,24 +225,43 @@ describe('labeller tables in aggregate and the CLI (exit criterion 4)', () => {
       const labelsOut = join(dir, 'labels.json');
       expect(await main(['--plan', plan, '--mode', 'replay', '--provider', 'mock', '--cassette-dir', LABEL_CASSETTE_DIR, '--model', FIXTURE_MODEL, '--out', labelsOut], ROOT, io().io)).toBe(0);
       expect(JSON.parse(readFileSync(labelsOut, 'utf8'))).toEqual(fixtureLabels());
-      expect(await main(['--allocate-audit', '--plan', plan, '--labels', labelsOut, '--plan-id', 'fixtures', '--seed', '5', '--out', dir], ROOT, io().io)).toBe(0);
-      const alloc = JSON.parse(readFileSync(join(dir, 'fixtures.allocation.json'), 'utf8')) as { itemIds: string[] };
-      const view = JSON.parse(readFileSync(join(dir, 'fixtures.view.json'), 'utf8')) as unknown[];
-      expect(view).toHaveLength(alloc.itemIds.length);
+      const viewDir = join(dir, 'view');
+      const sealed = join(dir, 'sealed', 'fixtures.allocation.json');
+      // THR-3: the allocation may not be written next to the author's view.
+      const exposed = io();
+      expect(await main(['--allocate-audit', '--plan', plan, '--plan-id', 'fixtures', '--seed', '5', '--out', viewDir, '--allocation-out', join(viewDir, 'a.json')], ROOT, exposed.io)).toBe(1);
+      expect(exposed.err.join('')).toContain(AUDIT_ALLOCATION_EXPOSED);
+      mkdirSync(join(dir, 'sealed'), { recursive: true });
+      mkdirSync(viewDir, { recursive: true });
+      // ADR-021 item 8.8: the audit is drawn from the plan, before labelling; labels are refused.
+      const blind = io();
+      expect(await main(['--allocate-audit', '--plan', plan, '--labels', labelsOut, '--plan-id', 'fixtures', '--seed', '5', '--out', viewDir, '--allocation-out', sealed], ROOT, blind.io)).toBe(1);
+      expect(blind.err.join('')).toContain(AUDIT_NOT_LABEL_BLIND);
+      expect(await main(['--allocate-audit', '--plan', plan, '--plan-id', 'fixtures', '--seed', '5', '--out', viewDir, '--allocation-out', sealed], ROOT, io().io)).toBe(0);
+      expect(existsSync(join(viewDir, 'fixtures.allocation.json'))).toBe(false);
+      const alloc = JSON.parse(readFileSync(sealed, 'utf8')) as { itemIds: string[] };
+      const view = JSON.parse(readFileSync(join(viewDir, 'fixtures.view.json'), 'utf8')) as { itemId: string }[];
+      expect(view.map((v) => v.itemId)).toEqual(alloc.itemIds);
+      for (const v of view) expect(Object.keys(v).sort()).toEqual(['context', 'itemId', 'kind', 'options', 'projectId', 'rootCauses']);
       const auditPath = join(dir, 'fixtures.json');
       writeFileSync(auditPath, JSON.stringify({ version: 1, planId: 'fixtures', records: alloc.itemIds.map((id) => ({ itemId: id, label: 'TP', recordedAt: '2026-10-08T00:00:00Z' })) }));
-      const args = ['--agreement', '--plan', plan, '--labels', labelsOut, '--model', FIXTURE_MODEL, '--allocation', join(dir, 'fixtures.allocation.json'), '--audit', auditPath, '--judge-cassettes', JUDGE_CASSETTES, '--out', join(dir, 'labelling.json')];
-      expect(await main(args, ROOT, io().io)).toBe(0);
-      expect(await main(args, ROOT, io().io)).toBe(0);
+      const args = ['--agreement', '--plan', plan, '--labels', labelsOut, '--model', FIXTURE_MODEL, '--allocation', sealed, '--audit', auditPath, '--judge-cassettes', JUDGE_CASSETTES, '--resamples', '200', '--out', join(dir, 'labelling.json')];
+      // THR-3: an audit file that is not committed is refused before any comparison.
+      const uncommitted = io();
+      expect(await main(args, ROOT, uncommitted.io)).toBe(1);
+      expect(uncommitted.err.join('')).toContain(AUDIT_UNCOMMITTED);
+      const committed = { auditCommitted: (): boolean => true };
+      expect(await main(args, ROOT, io().io, committed)).toBe(0);
+      expect(await main(args, ROOT, io().io, committed)).toBe(0);
       const outputs = JSON.parse(readFileSync(join(dir, 'labelling.json'), 'utf8')) as LabellingOutputs;
-      expect(outputs.agreement?.map((r) => r.comparison)).toEqual(['run-vs-run', 'judge-vs-panel', 'panel-vs-audit', 'judge-repetition', 'judge-repetition']);
+      expect(outputs.agreement?.map((r) => r.comparison)).toEqual(['run-vs-run', 'judge-vs-panel', 'judge-vs-panel', 'panel-vs-audit', 'judge-repetition', 'judge-repetition']);
       const t = labellingTables(outputs);
       expect(t['label_budget.csv'].rows.length).toBe(fixturePlanFile().strata.length);
       expect(t['audit_allocation.csv'].rows.length).toBeGreaterThan(0);
       expect(t['fp_fn_taxonomy.csv'].rows.length).toBeGreaterThan(0);
       writeFileSync(auditPath, JSON.stringify({ version: 1, planId: 'fixtures', records: [] }));
       const refused = io();
-      expect(await main(args, ROOT, refused.io)).toBe(1);
+      expect(await main(args, ROOT, refused.io, committed)).toBe(1);
       expect(refused.err.join('')).toContain(AUDIT_MODIFIED);
     } finally {
       rmSync(dir, { recursive: true, force: true });

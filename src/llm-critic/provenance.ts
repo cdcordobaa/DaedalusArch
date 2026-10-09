@@ -38,7 +38,7 @@ function mostFrequent(values: readonly (string | undefined)[]): { value: string 
 }
 
 function isProviderName(value: string | undefined): value is JudgeProviderName {
-  return value === 'claude-cli' || value === 'gemini' || value === 'mock' || value === 'null' || value === 'none';
+  return value === 'claude-cli' || value === 'gemini' || value === 'agy' || value === 'mock' || value === 'null' || value === 'none';
 }
 
 function isEffort(value: string | undefined): value is LLMEffort {

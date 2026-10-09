@@ -1,0 +1,105 @@
+{
+  "$schema": "https://vega.github.io/schema/vega-lite/v6.json",
+  "description": "FIG-07 verdict under threshold bands and neural aggregation variants; sensitivity-only, not tuning (BR-U5b-60; scripts/figures.ts; ADR-021 X-5).",
+  "usermeta": {
+    "figure": "threshold-sensitivity"
+  },
+  "facet": {
+    "column": {
+      "field": "kind",
+      "type": "nominal",
+      "sort": [
+        "threshold band",
+        "neural aggregation"
+      ],
+      "title": null
+    }
+  },
+  "resolve": {
+    "scale": {
+      "x": "independent"
+    }
+  },
+  "spec": {
+    "width": {
+      "step": 110
+    },
+    "height": {
+      "step": 20
+    },
+    "encoding": {
+      "x": {
+        "field": "scenario_label",
+        "type": "nominal",
+        "sort": null,
+        "title": "scenario",
+        "axis": {
+          "labelAngle": 0
+        }
+      },
+      "y": {
+        "field": "row_label",
+        "type": "nominal",
+        "sort": null,
+        "title": "run \u00b7 AHS field"
+      }
+    },
+    "layer": [
+      {
+        "mark": "rect",
+        "encoding": {
+          "color": {
+            "field": "verdict",
+            "type": "nominal",
+            "title": "verdict",
+            "scale": {
+              "domain": [
+                "pass",
+                "warning",
+                "soft-block",
+                "hard-block"
+              ],
+              "range": [
+                "#2e7d32",
+                "#f9a825",
+                "#ef6c00",
+                "#c62828"
+              ]
+            }
+          },
+          "tooltip": [
+            {
+              "field": "scenario"
+            },
+            {
+              "field": "row_label"
+            },
+            {
+              "field": "verdict"
+            },
+            {
+              "field": "ahs",
+              "format": ".3f"
+            }
+          ]
+        }
+      },
+      {
+        "mark": {
+          "type": "text",
+          "fontSize": 9
+        },
+        "encoding": {
+          "text": {
+            "field": "ahs",
+            "type": "quantitative",
+            "format": ".3f"
+          },
+          "color": {
+            "value": "black"
+          }
+        }
+      }
+    ]
+  }
+}

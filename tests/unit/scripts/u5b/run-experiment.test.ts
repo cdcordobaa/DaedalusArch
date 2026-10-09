@@ -11,8 +11,9 @@ import { buildPreRegistration, PREREG_FILE } from '../../../../scripts/lib/prere
 import type { PreregCheck } from '../../../../scripts/lib/prereg.js';
 import type { GenerationCell, RunRecord } from '../../../../scripts/lib/report-io.js';
 import { FAILURE_REASONS, genCodeOf, loadSo5Codes, parseSo5Codes, SO5_CODES_INVALID } from '../../../../scripts/lib/so5-codes.js';
+import { loadPromptTemplate } from '../../../../scripts/lib/generators/prompt.js';
 import {
-  cliArgv, cycleQueryTimes, E1_SPEC_MISMATCH, expandPlan, latencyGate, loadPlan, main, runPlan, validateRunRecord,
+  cliArgv, cycleQueryTimes, E1_GENERATOR_PLAN_MISMATCH, E1_SPEC_MISMATCH, expandPlan, latencyGate, loadPlan, main, runPlan, sha256Of, validateRunRecord,
 } from '../../../../scripts/run-experiment.js';
 import type { ExperimentPlan, HarnessDeps } from '../../../../scripts/run-experiment.js';
 import { ROOT } from './score-fixture.js';
@@ -182,35 +183,209 @@ describe('E1 cells (BR-U5b-53, 54, 64)', () => {
   });
 
   it('a grid entry is joined to U5a generation.json under U5a field names', async () => {
-    const root = mkdtempSync(join(tmpdir(), 'u5b-e1-'));
+    const e = e1Repo(2);
     try {
-      mkdirSync(join(root, 'specs'), { recursive: true });
-      copyFileSync(join(ROOT, 'specs/clean-arch.yaml'), join(root, 'specs/clean-arch.yaml'));
-      mkdirSync(join(root, 'Docs'), { recursive: true });
-      copyFileSync(join(ROOT, 'Docs/analysis-plan.md'), join(root, 'Docs/analysis-plan.md'));
-      const outcome = (dir: string, over: Record<string, unknown>): void => {
-        mkdirSync(join(root, dir), { recursive: true });
-        writeFileSync(join(root, dir, 'generation.json'), JSON.stringify({
-          status: 'ok', adapterId: 'claude-code-cli', taskId: 'task-management', specLevel: 'none', runIndex: 0, requestedModelId: 'm1',
-          resolvedModelId: 'm1-2026', promptTemplateId: 'none/task-management', fileCount: 25, fileCountInRange: true, permissionDenials: 2, ...over,
-        }));
-      };
-      outcome('gen/m1/task-management/none/run-0', {});
-      outcome('gen/m1/task-management/none/run-1', { runIndex: 1, status: 'failed-agent', failureReason: 'timeout' });
-      const p = plan([], {
-        experiment: 'E1', e1: { outcomesRoot: 'gen', style: 'clean-architecture', models: ['m1'], specLevels: ['none'], tasks: [{ taskId: 'task-management', specPath: 'specs/clean-arch.yaml' }], runs: 2 },
-      });
+      e.outcome(0, {});
+      e.outcome(1, { status: 'failed-agent', failureReason: 'timeout' });
       const runner = new FakeRunner(() => ({ stdout: OK_REPORT }));
-      const r = await runPlan(p, 'experiments/t/plan.json', root, deps(runner, { schemaRoot: ROOT }));
+      const r = await runPlan(e.plan, 'experiments/t/plan.json', e.root, deps(runner, { schemaRoot: ROOT, gate: e.gate }));
       expect(r.records.map((x) => [x.status, x.reasonDetail ?? null])).toEqual([['accepted', null], ['not-run', 'GEN-TIMEOUT']]);
       expect(r.records[0]?.cell).toEqual({
         requestedModelId: 'm1', resolvedModelId: 'm1-2026', adapterId: 'claude-code-cli', promptTemplateId: 'none/task-management', style: 'clean-architecture',
         specLevel: 'none', taskId: 'task-management', runIndex: 0, generationOutcomePath: 'gen/m1/task-management/none/run-0/generation.json',
-        generationStatus: 'ok', fileCount: 25, fileCountInRange: true, permissionDenials: 2,
+        generationStatus: 'ok', fileCount: 25, fileCountInRange: true, permissionDenials: 2, loc: 0,
       });
       expect(runner.calls).toHaveLength(1);
     } finally {
-      rmSync(root, { recursive: true, force: true });
+      e.cleanup();
+    }
+  });
+
+  it('ADR-021 SO5-07, X-3: a joined cell carries the LOC of its src/**/*.ts tree and the generation effort', async () => {
+    // Hand-computed: src/a.ts "x\n\n  y\n" → 2 non-blank lines; src/b/c.ts "z" → 1; src/d.js and src/node_modules/e.ts
+    // are not counted → loc 3. generation.json durationMs 159340.5; envelope num_turns 43, total_cost_usd 0.6668696.
+    // Run 1 has no envelope: only the duration is kept.
+    const e = e1Repo(2);
+    try {
+      e.outcome(0, { durationMs: 159340.5, envelopePath: 'envelope.json' });
+      e.outcome(1, { durationMs: 1000 });
+      const dir = join(e.root, 'gen/m1/task-management/none/run-0');
+      mkdirSync(join(dir, 'src/b'), { recursive: true });
+      mkdirSync(join(dir, 'src/node_modules'), { recursive: true });
+      writeFileSync(join(dir, 'src/a.ts'), 'x\n\n  y\n');
+      writeFileSync(join(dir, 'src/b/c.ts'), 'z');
+      writeFileSync(join(dir, 'src/d.js'), 'q\nq\n');
+      writeFileSync(join(dir, 'src/node_modules/e.ts'), 'q\n');
+      writeFileSync(join(dir, 'envelope.json'), JSON.stringify({ num_turns: 43, total_cost_usd: 0.6668696, duration_ms: 158326 }));
+      const runner = new FakeRunner(() => ({ stdout: OK_REPORT }));
+      const r = await runPlan(e.plan, 'experiments/t/plan.json', e.root, deps(runner, { schemaRoot: ROOT, gate: e.gate }));
+      expect(r.records[0]?.cell).toMatchObject({ loc: 3, generationDurationMs: 159340.5, numTurns: 43, totalCostUsd: 0.6668696 });
+      expect(r.records[1]?.cell).toMatchObject({ loc: 0, generationDurationMs: 1000 });
+      expect(r.records[1]?.cell?.numTurns).toBeUndefined();
+      for (const rec of records()) expect(validateRunRecord(rec, ROOT)).toEqual([]);
+    } finally {
+      e.cleanup();
+    }
+  });
+});
+
+/**
+ * ADR-021 SO5-03 / SO5-05: an E1 temp repository with a registered generator plan (`experiments/t/generator-plan.json`),
+ * the committed templates, and `gen/schedule.json` written from that plan. `outcome(i, over)` writes run i's
+ * generation.json with the registered protocol fields (orderSeed 20261008, pilot false, real template sha).
+ */
+function e1Repo(runs: number, genOver: Record<string, unknown> = {}): {
+  root: string; plan: ExperimentPlan; gate: () => PreregCheck; outcome: (i: number, over: Record<string, unknown>) => void;
+  schedule: (over: Record<string, unknown>) => void; cleanup: () => void;
+} {
+  const root = mkdtempSync(join(tmpdir(), 'u5b-e1-'));
+  for (const f of ['specs/clean-arch.yaml', 'Docs/analysis-plan.md', 'scripts/generator/prompts/none.md']) {
+    mkdirSync(dirname(join(root, f)), { recursive: true });
+    copyFileSync(join(ROOT, f), join(root, f));
+  }
+  const genPlan = {
+    adapters: [{ adapterId: 'claude-code-cli', modelId: 'm1' }], tasks: ['task-management'], style: 'clean-architecture', levels: ['none'],
+    runs, orderSeed: 20261008, outRoot: 'gen', binary: '<local>', harnessRoot: '<local>', timeoutMs: 1200000, allowBash: true, ...genOver,
+  };
+  mkdirSync(join(root, 'experiments/t'), { recursive: true });
+  writeFileSync(join(root, 'experiments/t/generator-plan.json'), JSON.stringify(genPlan));
+  const genSha = sha256Of(join(root, 'experiments/t/generator-plan.json'));
+  const schedule = (over: Record<string, unknown>): void => {
+    mkdirSync(join(root, 'gen'), { recursive: true });
+    writeFileSync(join(root, 'gen/schedule.json'), JSON.stringify({ orderSeed: 20261008, runs, generatorPlan: { path: 'experiments/t/generator-plan.json', sha256: genSha }, cells: [], ...over }));
+  };
+  schedule({});
+  const t = loadPromptTemplate(root, 'none', 'task-management');
+  if (!t.success) throw new Error('template');
+  const outcome = (i: number, over: Record<string, unknown>): void => {
+    const dir = join(root, `gen/m1/task-management/none/run-${String(i)}`);
+    mkdirSync(dir, { recursive: true });
+    writeFileSync(join(dir, 'generation.json'), JSON.stringify({
+      status: 'ok', adapterId: 'claude-code-cli', taskId: 'task-management', specLevel: 'none', runIndex: i, requestedModelId: 'm1',
+      resolvedModelId: 'm1-2026', promptTemplateId: 'none/task-management', promptTemplateSha256: t.data.promptTemplateSha256,
+      orderSeed: 20261008, pilot: false, fileCount: 25, fileCountInRange: true, permissionDenials: 2, ...over,
+    }));
+  };
+  const p = plan([], {
+    experiment: 'E1', e1: { outcomesRoot: 'gen', style: 'clean-architecture', models: ['m1'], specLevels: ['none'], tasks: [{ taskId: 'task-management', specPath: 'specs/clean-arch.yaml' }], runs },
+  });
+  const gate = (): PreregCheck => {
+    const g = PASS_GATE();
+    return g.ok ? { ...g, frozenHashes: { ...g.frozenHashes, 'experiments/t/generator-plan.json': genSha } } : g;
+  };
+  return { root, plan: p, gate, outcome, schedule, cleanup: () => { rmSync(root, { recursive: true, force: true }); } };
+}
+
+describe('E1 registered generator plan and missing cells (ADR-021 SO5-03, SO5-05)', () => {
+  it('SO5-05: a coordinate without generation.json is a not-run GEN-MISSING record with a missing cell; 3 coordinates → 3 cells', async () => {
+    const e = e1Repo(3);
+    try {
+      e.outcome(0, {});
+      e.outcome(2, { status: 'failed-typecheck', failureReason: 'typecheck' });
+      const runner = new FakeRunner(() => ({ stdout: OK_REPORT }));
+      const r = await runPlan(e.plan, 'experiments/t/plan.json', e.root, deps(runner, { schemaRoot: ROOT, gate: e.gate }));
+      expect(r.records.map((x) => [x.projectId, x.status, x.reasonDetail?.split(':')[0] ?? null])).toEqual([
+        ['m1/task-management/none/run-0', 'accepted', null],
+        ['m1/task-management/none/run-1', 'not-run', 'GEN-MISSING'],
+        ['m1/task-management/none/run-2', 'not-run', 'GEN-TYPECHECK'],
+      ]);
+      expect(r.records[1]?.cell).toEqual({
+        requestedModelId: 'm1', adapterId: 'claude-code-cli', promptTemplateId: 'none/task-management', style: 'clean-architecture',
+        specLevel: 'none', taskId: 'task-management', runIndex: 1, generationOutcomePath: 'gen/m1/task-management/none/run-1/generation.json',
+        generationStatus: 'missing', fileCount: 0, fileCountInRange: false, permissionDenials: 0,
+      });
+      expect(r.records.every((x) => x.cell !== undefined)).toBe(true);
+      for (const rec of records()) expect(validateRunRecord(rec, ROOT)).toEqual([]);
+      expect(runner.calls).toHaveLength(1);
+    } finally {
+      e.cleanup();
+    }
+  });
+
+  it('SO5-03: an outcome off the registered protocol is a not-run GEN-PROTOCOL-MISMATCH cell naming the field', async () => {
+    const e = e1Repo(3);
+    try {
+      e.outcome(0, { orderSeed: 0 });
+      e.outcome(1, { pilot: true });
+      e.outcome(2, { promptTemplateSha256: 'a'.repeat(64), status: 'failed-agent', failureReason: 'timeout' });
+      const runner = new FakeRunner(() => { throw new Error('must not run'); });
+      const r = await runPlan(e.plan, 'experiments/t/plan.json', e.root, deps(runner, { schemaRoot: ROOT, gate: e.gate }));
+      expect(r.records.map((x) => x.status)).toEqual(['not-run', 'not-run', 'not-run']);
+      expect(r.records[0]?.reasonDetail).toMatch(/^GEN-PROTOCOL-MISMATCH: .*orderSeed 0 != 20261008/);
+      expect(r.records[1]?.reasonDetail).toMatch(/pilot true != false/);
+      expect(r.records[2]?.reasonDetail).toMatch(/promptTemplateSha256/);
+      expect(r.records[2]?.cell).toMatchObject({ generationStatus: 'protocol-mismatch', fileCount: 25 });
+      expect(r.records[2]?.cell?.failureReason).toBeUndefined();
+      expect(runner.calls).toHaveLength(0);
+    } finally {
+      e.cleanup();
+    }
+  });
+
+  it('SO5-03/SO5-05: an outcome declaring another task, model or run is a mismatch cell at its directory\'s own coordinate', async () => {
+    // Hand-computed: run-0 declares task order-fulfilment (and its template id), run-1 declares model m9, run-2
+    // declares run 0. Each is GEN-PROTOCOL-MISMATCH naming the field; each cell carries the grid coordinate
+    // (m1 / task-management / none / its own run, template none/task-management) and the outcome's counts (25, true, 2).
+    const e = e1Repo(3);
+    try {
+      e.outcome(0, { taskId: 'order-fulfilment', promptTemplateId: 'none/order-fulfilment' });
+      e.outcome(1, { requestedModelId: 'm9', resolvedModelId: 'm9-2026', adapterId: 'other-cli' });
+      e.outcome(2, { runIndex: 0 });
+      const runner = new FakeRunner(() => { throw new Error('must not run'); });
+      const r = await runPlan(e.plan, 'experiments/t/plan.json', e.root, deps(runner, { schemaRoot: ROOT, gate: e.gate }));
+      expect(r.records).toHaveLength(3);
+      expect(r.records[0]?.reasonDetail).toMatch(/^GEN-PROTOCOL-MISMATCH: .*taskId "order-fulfilment" != "task-management"/);
+      expect(r.records[1]?.reasonDetail).toMatch(/requestedModelId "m9" != "m1"/);
+      expect(r.records[2]?.reasonDetail).toMatch(/runIndex 0 != 2/);
+      r.records.forEach((rec, i) => {
+        expect(rec.projectId).toBe(`m1/task-management/none/run-${String(i)}`);
+        expect(rec.cell).toEqual({
+          requestedModelId: 'm1', adapterId: 'claude-code-cli', promptTemplateId: 'none/task-management', style: 'clean-architecture',
+          specLevel: 'none', taskId: 'task-management', runIndex: i, generationOutcomePath: `gen/m1/task-management/none/run-${String(i)}/generation.json`,
+          generationStatus: 'protocol-mismatch', fileCount: 25, fileCountInRange: true, permissionDenials: 2,
+        });
+      });
+      for (const rec of records()) expect(validateRunRecord(rec, ROOT)).toEqual([]);
+      expect(runner.calls).toHaveLength(0);
+    } finally {
+      e.cleanup();
+    }
+  });
+
+  it('SO5-03: a schedule.json from another plan or seed marks every present outcome as a protocol mismatch', async () => {
+    const e = e1Repo(1);
+    try {
+      e.outcome(0, {});
+      e.schedule({ generatorPlan: { path: 'scratch.json', sha256: 'b'.repeat(64) } });
+      const r1 = await runPlan(e.plan, 'experiments/t/plan.json', e.root, deps(new FakeRunner(() => ({ stdout: OK_REPORT })), { schemaRoot: ROOT, gate: e.gate }));
+      expect(r1.records[0]?.reasonDetail).toMatch(/schedule\.json was not written from the registered experiments\/t\/generator-plan\.json/);
+      e.schedule({ orderSeed: 0 });
+      const r2 = await runPlan(e.plan, 'experiments/t/plan.json', e.root, deps(new FakeRunner(() => ({ stdout: OK_REPORT })), { schemaRoot: ROOT, gate: e.gate }));
+      expect(r2.records[0]?.reasonDetail).toMatch(/schedule\.json orderSeed 0 != 20261008/);
+    } finally {
+      e.cleanup();
+    }
+  });
+
+  it('SO5-03: an unregistered generator plan is a prereg refusal; one that differs from the e1 block is refused', async () => {
+    const e = e1Repo(2);
+    try {
+      const runner = new FakeRunner(() => { throw new Error('must not run'); });
+      const r = await runPlan(e.plan, 'experiments/t/plan.json', e.root, deps(runner, { schemaRoot: ROOT }));
+      expect(r).toMatchObject({ ok: false, code: 'PREREG_REFUSED' });
+      expect(r.records.map((x) => [x.status, x.reasonCode])).toEqual([['rejected', 'prereg-refused'], ['rejected', 'prereg-refused']]);
+      expect(r.records[0]?.reasonDetail).toMatch(/^plan-unregistered: E1 generator plan experiments\/t\/generator-plan\.json/);
+    } finally {
+      e.cleanup();
+    }
+    const f = e1Repo(2, { runs: 3 });
+    try {
+      const r = await runPlan(f.plan, 'experiments/t/plan.json', f.root, deps(new FakeRunner(() => ({ stdout: OK_REPORT })), { schemaRoot: ROOT, gate: f.gate }));
+      expect(r).toMatchObject({ ok: false, code: E1_GENERATOR_PLAN_MISMATCH });
+      expect(r.detail).toContain('runs');
+      expect(r.records).toHaveLength(0);
+    } finally {
+      f.cleanup();
     }
   });
 });

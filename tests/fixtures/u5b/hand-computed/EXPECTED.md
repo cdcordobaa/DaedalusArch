@@ -93,4 +93,23 @@ Denominators (BR-U5b-24): one row per report (baseline `seedId: null`, then each
 
 ## 6. Canonical form of `expected.canonical.json`
 
-Written with `scripts/lib/canonical-json.ts` (`canonicalize`, BR-U5b-26) from a hand-written value holding the numbers above: object keys sorted; maps (`perFunction`, `perDimension`, `perTag`, `overall`, `collateralByFunction`, `notApplicable`, `metricKeyExclusions`) as `[key, value]` arrays sorted by key; stratum keys `JSON.stringify([split, baseKind, coverage])`; match keys `JSON.stringify([functionId, filePath, target, discriminator])`; ratios with six decimals; `perInstance` and `edgeEvidence` sorted by `seedId`; `detectedBy`, `tags` and `collateral` sorted; `null` kept. Fields: `ruleVersion` (`1.0.0`), `perInstance`, `perFunction`, `perDimension`, `perTag`, `overall`, `executedFunctions`, `preExistingIgnored`, `collateralByFunction`, `notApplicable`, `siteInvalid`, `metricCrossings`, `metricKeyExclusions`, `sccOverlapMatches`, `judgeCollateral`, `twinSpecificity`, `edgeEvidence`, `judgeProbe`, `denominators`.
+Written with `scripts/lib/canonical-json.ts` (`canonicalize`, BR-U5b-26) from a hand-written value holding the numbers above: object keys sorted; maps (`perFunction`, `perDimension`, `perTag`, `overall`, `collateralByFunction`, `notApplicable`, `metricKeyExclusions`) as `[key, value]` arrays sorted by key; stratum keys `JSON.stringify([split, baseKind, coverage])`; match keys `JSON.stringify([functionId, filePath, target, discriminator])`; ratios with six decimals; `perInstance` and `edgeEvidence` sorted by `seedId`; `detectedBy`, `tags` and `collateral` sorted; `null` kept. Fields: `ruleVersion` (`1.1.0`; `1.0.0` before prereg v3), `perInstance`, `perFunction`, `perDimension`, `perTag`, `overall`, `executedFunctions`, `preExistingIgnored`, `collateralByFunction`, `notApplicable`, `siteInvalid`, `metricCrossings`, `metricKeyExclusions`, `sccOverlapMatches`, `judgeCollateral`, `twinSpecificity`, `edgeEvidence`, `judgeProbe`, `denominators`.
+
+## 7. Amendment 2026-10-08 (ADR-020 items 2, 3, 5; matching rule 1.1.0)
+
+No count above changes. The scorer output gained two fields, added to `expected.canonical.json` by hand from §4:
+
+- `perInstance[].applicable`: the applicable expected functions of each seed, sorted (BR-U5b-13): MO-C04 `[FF-C04]` (§4.2), MO-DF01 `[FF-P06]` (§4.3), MO-S01 `[FF-S01, FF-S04]` (§4.1), the twin MO-DF01n `[]`. They give the (project, operator) recall cells of the per-function rows (ADR-020 item 3).
+- `neuralNewByFunction`: `[]`. The reports are symbolic-only, so no neural new violation exists (MAT-19 1.1.0, ADR-020 item 5).
+
+No case is labelled and no base is a corpus base, so MAT-10 1.1.0 (TP-class labels leave FP-labelled) and the corpus-tier strata do not change any value. `ruleVersion` is `1.1.0` from the commit that registers matching rule 1.1.0 (`corpus/prereg.json` version 3, ADR-020); no other value changes.
+
+## 8. Amendment 2026-10-09 (ADR-021 SO4-03, SO4-05, SO4-06, SO1-C)
+
+No count above changes. The scorer output gained three fields, added to `expected.canonical.json` from §4 and §5:
+
+- `perInstance[].fpItems`: the FP-strict items of each scored instance, for the (project, operator) precision and F1 cells (SO4-06). No copy has an undeclared new violation (§5, FP-strict 0), so every list is `[]`; the twin MO-DF01n has `[]` too (its items are twin FPs, which are not counted in precision).
+- `rejectedPairs`: `[]`. Every pair is accepted (§2), so no pair is listed as rejected (SO4-03).
+- `manifestRejections`: `[]`. The manifest has no rejection (§1), so nothing is carried into the coverage table (SO4-05).
+
+The scorer is called here without spec or corpus styles, so no `style-<s>` stratum, `specStyle`, `corpusStyle` or denominator `specStyle` appears (SO1-C). With the CLI, `specs/clean-arch.yaml` would add the `["dev","style-clean-architecture","all"]` stratum with the same values as `["dev","all","all"]`.

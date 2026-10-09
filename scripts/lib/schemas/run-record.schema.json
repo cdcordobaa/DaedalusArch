@@ -48,11 +48,15 @@
         "taskId": { "type": "string", "minLength": 1 },
         "runIndex": { "enum": [0, 1, 2] },
         "generationOutcomePath": { "type": "string", "minLength": 1 },
-        "generationStatus": { "enum": ["ok", "failed-typecheck", "failed-agent"] },
+        "generationStatus": { "enum": ["ok", "failed-typecheck", "failed-agent", "missing", "protocol-mismatch"] },
         "failureReason": { "enum": ["typecheck", "agent-error", "model-mismatch", "skeleton-tampered", "infrastructure", "envelope-unreadable", "timeout"] },
         "fileCount": { "type": "integer", "minimum": 0 },
         "fileCountInRange": { "type": "boolean" },
-        "permissionDenials": { "type": "integer", "minimum": 0 }
+        "permissionDenials": { "type": "integer", "minimum": 0 },
+        "loc": { "type": "integer", "minimum": 0, "$comment": "ADR-021 SO5-07, X-3: non-blank lines of src/**/*.ts of the evaluated tree" },
+        "generationDurationMs": { "type": "number", "minimum": 0 },
+        "numTurns": { "type": "integer", "minimum": 0 },
+        "totalCostUsd": { "type": "number", "minimum": 0 }
       }
     },
     "seedRef": {

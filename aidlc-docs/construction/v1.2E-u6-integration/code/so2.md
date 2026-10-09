@@ -1,0 +1,92 @@
+# U6 lane SO2 (ADR-021)
+
+**Date**: 2026-10-09. **Branch**: `v1.2e-u6-so2`. **Findings closed**: SO2-1, SO2-2, SO2-3, SO2-4, SO2-5, X-2, X-4 (`Docs/DiagnosticRuns/so-readiness-audit-2026-10-08.json`), in code and scripts. The registration half of SO2-3, SO2-4, SO2-5, X-2 and X-4 (analysis-plan text, the new plan's hash) goes into P-U6. No live LLM call. No so4-heldout, e7-corpus, e1-grid, apg-ablation or live-labelling run.
+
+## What changed
+
+| Finding | Change |
+|---|---|
+| SO2-1 | `latencyGateOf` (`scripts/lib/so2.ts`) computes the H13 gate from **every** RunRecord of a plan, rejected ones included. An FF-S02 `EVAL_002` (`function-timeout`) or a universal-cycle-metric `METRIC_001` with a transaction timeout (`metric-failed`) gives `fallback-required`. So does a measured cycle query over `LATENCY_GATE_MS`, where 30 000 ms itself still passes. A run whose cycle times cannot be read (no report, a non-timeout failure, a missing query) gives `inconclusive`, which is escalated and never treated as a pass. A timeout of any other function is named in the cause but does not decide the gate. `planGate` checks in this order: any fallback, then any inconclusive or no run at all, else pass. `aggregate.ts` is **not edited**. Its accepted-only `latency.csv` stays as it is, and the gate's output is the SO2 script's. |
+| SO2-2 | `computeUniversalMetrics` runs the cycle metric on its own and first, times it (`cycleTiming {durationMs, failed, code}`), and then runs the other five concurrently. The pipeline writes that timing as the report stage `universal-metric:cyclicDependencyCount` (`UNIVERSAL_CYCLE_STAGE`). It sits just before its parent `compute-scores`, so the last stage is still `compute-scores` (U3-R9), and `totalMs` stays the sum of the top-level stages. `cycleQueryTimes` (`run-experiment.ts`) now returns both cycle queries, so the per-report `latencyGate` sees both too. The manual PROFILE snippet is replaced by `so2-metrics profile`, which writes `profile.csv` and `scc_components.csv` under `results/`. |
+| SO2-3 | `scripts/so2-metrics.ts` + `scripts/so2-metrics-cli.ts` (D-U5a-13 (a) form, `--self-test` exit 1). `tables --run-dir … --out …` writes `latency.csv` (one row per RunRecord, with both cycle times and statuses, the stage list, gate result and cause), `nfr07_latency.csv` (the NFR-07 table: runs with a report, the ≤ 300-file scope flag, node and edge counts, max cycle query, within-budget), `graph_coverage.csv` and `gate.json` (the decision per plan id). `run-experiment` still writes no CSV. The plan and `performance-test-instructions.md` now name the script step. |
+| SO2-4, X-4 | `deriveFlowsToEdges` counts every store it considers, by outcome: `FlowsToStats {stores, candidates, skippedUnionOrIntersection, skippedUnextractedTarget, skippedSelfLoop, edges}`, carried on `APGResult.flowsTo` and not added to the report schema. The derived edges are unchanged. `graph_coverage.csv` gives per run the file count, parse coverage, node and edge counts, layer coverage, per-node-type and per-edge-type columns (including `edges_flows_to` and `edges_constructor_injects`), `resolved_internal`, and the data-flow edge coverage metric `flows_to_per_resolved_import` (empty when no import resolved). `flows-to --plan …` writes `flows_to_stores.csv` by extraction only: the store accounting, yield (edges / candidates) and FLOWS_TO per resolved import. No database is used. |
+| SO2-5, X-2 | Extractor option `graphMode: 'full' | 'ast-only'` (`ExtractorOptions`, `PipelineConfig`, CLI `evaluate --graph-mode`; an unknown value exits 2). **Superseded by the follow-up below (ADR-021 item 8):** `ast-only` is now the register's edge-type allow-list. The first version (no FLOWS_TO, no RE_EXPORTS, no alias resolution or barrel following) and `withoutAliasResolution` are removed. `experiments/apg-ablation/plan.json` (new, symbolic-only) has the four core bases and the five fixtures, each twice: `<id>` full and `<id>@ast-only` with `graphMode: ast-only`. The harness passes `--graph-mode ast-only` for that arm (`PlanProject.graphMode`, schema `projects[].graphMode`, experiment kind `apg-ablation`). `ablation --run-dir … --out …` writes `apg_ablation.csv` (per function: violations full and AST-only, detected in each arm, change `same/lost/gained/fewer/more/not-run`, lost and gained violation ids) and `apg_ablation_summary.csv` (per project). |
+
+Smoke check on the lane DB (fixture `correct-reference`, scratch output only, nothing committed): `evaluate --graph-mode ast-only` and full both exit 0, and the report has the `universal-metric:cyclicDependencyCount` stage before `compute-scores`. `so2-metrics profile --reps 1` wrote 4 PROFILE rows (FF-S02 91 db hits, 0 rows; metric 55 db hits, 1 row) and 0 SCC components.
+
+## H13 latency gate (BT-D, Steps 21–25): not run, deferred to after P-U6
+
+P-1 is on `origin/v1.2e` (prereg now v3, after P-M). `npx tsx scripts/run-experiment-cli.ts --check-prereg experiments/latency-gate/plan.json` on this lane at the merge with `origin/v1.2e` `a1d31c0` gives exit 1, `PREREG_REFUSED (artefact-changed): registered artefact Docs/generator-protocol.md changed`. The change is the SO5-gen lane's §11 (PR #18, `44e6dd4`), which merged after P-1 hashed the file. Following the lane instruction, the gate runs **after P-U6**. Nothing was run under the registered plan: no `results/latency-gate/`, no ADR-016 e decision, `CYCLE_STRATEGY` stays `'cypher'` by default and not by a gate result, no P-2, and no `CHANGES.md` line. After P-U6, run plan Steps 21–25 as `performance-test-instructions.md` §3–§6 now describe.
+
+## Files
+
+- New: `scripts/lib/so2.ts`, `scripts/so2-metrics.ts`, `scripts/so2-metrics-cli.ts`, `experiments/apg-ablation/plan.json`.
+- Changed: `src/apg-extractor/{types,index,apg-extractor,edge-extractor,flows-to-deriver,import-resolver}.ts`, `src/shared/types/apg.ts`, `src/shared/index.ts`, `src/scoring-engine/{universal-metrics,scoring-engine,types,index}.ts`, `src/pipeline/{pipeline-factory,types}.ts`, `src/pipeline/commands/{extract-command,score-command}.ts`, `src/cli/cli.ts`, `scripts/run-experiment.ts` (graph mode, both cycle times), `scripts/lib/schemas/experiment-plan.schema.json`, `aidlc-docs/construction/build-and-test/performance-test-instructions.md` (§3–§7 scripted).
+- Tests: new `tests/unit/scripts/so2-metrics.test.ts` (28 cases, hand-computed: gate cases including the rejected-timeout harness path, all row builders, ablation, PROFILE and SCC rows, CLI), `tests/unit/apg-extractor/graph-mode-ast-only.test.ts` (9: store accounting, barrel, alias, RE_EXPORTS, mode lists equal), `tests/unit/scoring-engine/universal-cycle-timing.test.ts` (6). Updated: `tests/unit/cli/cli.test.ts` (+3 `--graph-mode`), `tests/unit/apg-extractor/import-resolution-stats.test.ts` (empty `flowsTo`).
+- Gates: T clean (incl. `tsconfig.scripts.json`). U **3054 / 218**, 0 failed. L 497 (= `L_BT`; 0 errors on changed lines; new and edited `scripts/**` 0 under `tsconfig.scripts.json`). B 80, 0 `TS2688`. G 80 / 7, 0 skipped, snapshot hashes = `BT_SNAPSHOT_HASHES` (no snapshot change, no `CHANGES.md` line).
+
+## Registered artefacts touched (the P-U6 bump must cover them)
+
+1. `experiments/apg-ablation/plan.json`: new and matched by `experiments/*/plan.json`, but not in `corpus/prereg.json`, so `run-experiment` refuses it (`plan-unregistered`) until P-U6 hashes it.
+2. `Docs/analysis-plan.md` is **not edited** here. P-U6 must add this text to §3 SO2:
+   - The outputs `results/<plan>/so2/latency.csv`, `nfr07_latency.csv`, `graph_coverage.csv` and `gate.json`, written by `so2-metrics-cli tables`. The gate rule includes rejected runs: timeout = `fallback-required`, unreadable = `inconclusive`.
+   - The secondary outcomes: graph size per project, FLOWS_TO per resolved import, and `flows_to_stores.csv`.
+   - The APG-full vs AST-only ablation (`apg-ablation` plan, `apg_ablation.csv`, descriptive: functions that lose detection).
+   - The NFR-07 table source (`nfr07_latency.csv` plus `profile.csv`).
+   - Type-resolution rate (X-4): either define it or declare it dropped. This lane does not define it.
+   - Add `apg-ablation` to the run list.
+3. Not registered but checked in by the bump reviewer: `scripts/lib/schemas/experiment-plan.schema.json` (`graphMode`, `apg-ablation`).
+
+## Open items
+
+- The H13 gate run, the ADR-016 e decision, and P-2 if the strategy flips. These come after P-U6 (see above).
+- The `apg-ablation` run, then `so2-metrics ablation`. It is symbolic-only with 18 entries, and runs after P-U6.
+- Docs lane (PR #19): `so2-latency.vl.json` reads the **aggregate** `latency.csv` (one row per stage). Two things follow. The SO2 gate's `latency.csv` is a different file, under `so2/`. And the aggregate's per-stage rows now include the `universal-metric:cyclicDependencyCount` sub-stage, which is already inside `compute-scores`, so a figure that sums `stage_ms` must exclude it. Also, the aggregate's `cycle_query_ms` now sums both cycle queries.
+- `aggregate.ts` keeps its accepted-only gate (P-M lane's file). Make the SO2 script's `gate.json` the registered decision source in the P-U6 analysis-plan text.
+
+## Follow-up (2026-10-09, branch `v1.2e-u6-so2-followup`, review of PR #23)
+
+**Findings closed**: the four review issues on PR #23, recorded as ADR-021 item 8 (SO2-5 and X-2 definition; SO2-3 a source named in the plan; SO2-1 and SO2-3 gate source recorded for P-U6/P-M; the BR-U5b-55 exemption).
+
+| Issue | Disposition |
+|---|---|
+| 1, major: `ast-only` ≠ the register's ablation | **Fixed, option (a).** New `src/apg-extractor/graph-mode.ts`: `AST_ONLY_EDGE_TYPES = [IMPORTS, DECLARES, CONTAINS]` and the pure `restrictToGraphMode(view, mode)`, applied at the end of `extractEdges` to the unchanged full extraction. It keeps the allowed edges in their order, with the same ids, and the Package nodes a kept edge targets. `import-resolver.ts` is restored to its pre-PR-#23 form (no `withoutAliasResolution`, no `followBarrels`). Import resolution and the FLOWS_TO accounting are the full extraction's. New `so2-metrics arms --plan …` (extraction only) writes `apg_arms.csv` and exits 1 (`SO2_ARMS_IDENTICAL`) when no pair differs. **Measured 2026-10-09** on `experiments/apg-ablation/plan.json` (scratch output, not committed): all 9 pairs differ. Edges full → AST-only: realworld-test 257 → 225, ghostfolio-test 3666 → 2654, truthy-demo 1167 → 1023, dry-run-test 1140 → 981, fixtures 4–7 removed each. resolvedInternal is equal in both arms (realworld 72, ghostfolio 1023, truthy-demo 398, dry-run 409). MO-DF01 seeds are not added; P-U6 decides (ADR-021 item 8). |
+| 2, medium: NFR-07 source | **Fixed in the plan text.** B&T plan Step 25 and `performance-test-instructions.md` §6 name `tables --run-dir results/latency-gate --run-dir results/apg-ablation --out results/latency-gate/so2-nfr07`. `nfr07Rows` leaves out `@ast-only` runs. **Still open for P-U6 (SO2-3 a):** analysis-plan §3 SO2 must name this source. |
+| 3, minor: aggregate `latency.csv` meaning | **Recorded for P-U6 / P-M**, not fixed here (`scripts/aggregate.ts` is the P-M lane's file). ADR-021 item 8 and `performance-test-instructions.md` name `results/latency-gate/so2/gate.json` as the only gate source. Still to do: mark or exclude the `universal-metric:cyclicDependencyCount` sub-stage row, rename or document `cycle_query_ms`, and drop or label `gate_result`. |
+| 4, minor: BR-U5b-55 | **Fixed.** The exemption for `scripts/so2-metrics.ts` is recorded in ADR-021 item 8. New `tests/unit/scripts/so2-imports.test.ts` gives each file its own whitelist: `so2.ts` and `so2-metrics-cli.ts` get scripts, `node:*` and the C10 enums; `so2-metrics.ts` gets the measurement list plus `neo4j-driver`. The import check moved into `tests/unit/scripts/u5b/import-whitelist.ts`, which both tests share; the U5b test is unchanged in effect. `run-experiment.ts` re-declares `UNIVERSAL_CYCLE_STAGE`, with an equality test against C8. `so2.ts` takes the constant from the harness. |
+
+- Files: new `src/apg-extractor/graph-mode.ts`, `tests/unit/scripts/so2-imports.test.ts`, `tests/unit/scripts/u5b/import-whitelist.ts`. Changed `src/apg-extractor/{edge-extractor,import-resolver,types,index}.ts`, `src/cli/cli.ts` (help text), `scripts/run-experiment.ts`, `scripts/lib/so2.ts` (`armsRow`, `ARMS_COLUMNS`, the `nfr07Rows` filter), `scripts/so2-metrics.ts` (`arms`), `tests/unit/apg-extractor/graph-mode-ast-only.test.ts` (rewritten: a hand-listed 18-edge fixture with all nine types, of which `ast-only` keeps 10, plus pure filter cases), `tests/unit/scripts/so2-metrics.test.ts` (+6), `tests/unit/scripts/u5b/imports.test.ts` (uses the shared helper), ADR-021 (item 8, item 2 SO2 bullet), B&T plan Step 25, `performance-test-instructions.md` §6–§7.
+- Registered artefacts for P-U6: `experiments/apg-ablation/plan.json` (unchanged here, still unregistered). Its meaning changed with the `ast-only` definition, so P-U6 hashes it after this merge. The analysis-plan §3 SO2 text listed above now also needs: the `ast-only` definition (the allow-list), `apg_arms.csv` as the pre-run check, the NFR-07 source (SO2-3 a) and `so2/gate.json` as the only gate source. `scripts/lib/schemas/experiment-plan.schema.json` is unchanged.
+- No live LLM call, no Neo4j use, no registered run, no `results/` file. No golden change: the `full` mode output is byte-identical (the filter returns its input).
+
+## Follow-up 2 (2026-10-09, same branch, re-review of PR #23 and of this follow-up)
+
+**Findings closed**: SO2-3, SO2-4 / X-4 (measured graph = evaluated graph), SO2-5 / X-2 (verified, see above), SO2-3 NFR-07 source in the Targets row; SO2 CLI error code.
+
+| Issue | Disposition |
+|---|---|
+| 1, major: SO2 extractions ignore the spec's `default_exclude_paths` | **Fixed.** New pure C3 helper `src/spec-parser/exclude-paths.ts` (`specExcludePathsFromYaml`, `readSpecExcludePaths`), exported from `src/spec-parser/index.ts` and now used by `pipeline-factory` (same lenient behaviour: unreadable spec → `[]`, `ParseCommand` reports it) and by `so2-metrics` (`specExcludesOf`: strict, `SO2_INPUT_INVALID`). `So2Deps.extract` takes the exclude patterns; `flows-to` and `arms` pass each plan entry's `specPath` excludes, `profile` its `--spec`. Measured with extraction only: truthy-demo now 1009 edges, 307 resolved internal, 0 FLOWS_TO, which equals `graph_coverage.csv` of the evaluated run. The earlier figures in the table above (truthy-demo 1167 → 1023, resolvedInternal 398; dry-run-test 1140 → 981) were taken without excludes; with them: truthy-demo 1009 → 867 (142 removed), dry-run-test 1136 → 977 (159), the others unchanged; all 9 pairs still differ. ADR-021 item 8 is corrected and gains the bullet. |
+| 2, major: `ast-only` is a partial ablation | **Fixed by the first follow-up** (allow-list post-filter, `arms` pre-run check); verified here: 9 of 9 pairs differ under spec excludes. |
+| 3, minor: `nfr07Rows` takes `@ast-only` rows | **Fixed by the first follow-up** (filter + test `nfr07Rows` in `so2-metrics.test.ts`). |
+| 4, minor: Targets row names the markdown file | **Fixed.** `performance-test-instructions.md` §1 NFR-07 row names `results/latency-gate/so2-nfr07/nfr07_latency.csv` and `results/latency-gate/so2/profile-<projectId>/profile.csv`; the markdown only cites them. The run-directory decision is SO2-3 option (a'), stated in ADR-021 item 8: `results/latency-gate` plus the full-APG arm of `results/apg-ablation` (no e7-corpus dependency, latency-gate plan not extended). P-U6 copies it into analysis-plan §3 SO2. |
+| 5, minor: bad `--run-dir` reports `AGGREGATE_INPUT_INVALID` | **Fixed.** `loadSo2Runs` calls `report-io` `loadRunDir(dir, SO2_INPUT_INVALID)`; self-test now prints `SO2_INPUT_INVALID: …/does-not-exist/runs not found`, exit 1. |
+
+- Files: new `src/spec-parser/exclude-paths.ts`, `tests/unit/spec-parser/exclude-paths.test.ts` (6 cases). Changed `src/spec-parser/index.ts`, `src/pipeline/pipeline-factory.ts`, `scripts/so2-metrics.ts`, `tests/unit/scripts/so2-metrics.test.ts` (injected extractor asserts the spec excludes for flows-to, arms and profile; unreadable spec; tables error code), ADR-021 item 8, `performance-test-instructions.md` §1, §7.
+- Registered artefacts for P-U6: none new. `experiments/apg-ablation/plan.json` unchanged (still to hash). Analysis-plan §3 SO2 must also say that SO2 extractions use the spec's `default_exclude_paths`.
+- No live LLM call, no Neo4j use, no registered run, no `results/` file. Pipeline behaviour unchanged (same exclude list), so no golden change.
+
+## Follow-up 3 (2026-10-09, branch `v1.2e-u6-so2-arms`, second re-review of PRs #23 and #24)
+
+**Findings closed**: SO2-5 / X-2 (pre-run arms check is now per base). All other issues of the re-review were already closed on `origin/v1.2e` by PR #24 (`a12b265`) and were verified there, not redone.
+
+| Issue | Disposition |
+|---|---|
+| 1, major: SO2 extractions ignore the spec's `default_exclude_paths` | **Already fixed by PR #24** (follow-up 2): `readSpecExcludePaths` shared by `pipeline-factory` and `so2-metrics` `specExcludesOf`; injected-extractor tests assert the excludes for `flows-to`, `arms`, `profile`. |
+| 2, major: `ast-only` is a partial ablation; no check that the arms differ | **Already fixed by PR #24** (allow-list post-filter `restrictToGraphMode`, ADR-021 item 8). **Tightened here:** `arms` exited 1 only when *no* pair differed; it now exits 1 (`SO2_ARMS_IDENTICAL`) when *any* base's pair is identical and names the bases, so a single no-op base cannot slip into the ablation. New test (8 of 9 differ → exit 1 naming truthy-demo). |
+| 3, minor: `nfr07Rows` takes `@ast-only` rows | **Already fixed by PR #24** (filter + test). |
+| 4, minor: Targets row / NFR-07 run-directory decision | **Already fixed by PR #24**; decision SO2-3 (a') in ADR-021 item 8. |
+| 5, minor: `AGGREGATE_INPUT_INVALID` on a bad `--run-dir` | **Already fixed by PR #24** (`loadRunDir(dir, SO2_INPUT_INVALID)` + test). |
+
+- Files: `scripts/so2-metrics.ts` (`arms` exit rule, header), `tests/unit/scripts/so2-metrics.test.ts` (+1), ADR-021 item 8 (one sentence), `performance-test-instructions.md` §6 command comment.
+- Registered artefacts for P-U6: none new; still `experiments/apg-ablation/plan.json` (to hash) and the analysis-plan §3 SO2 text listed above, which should say the `apg_arms.csv` check is per base.
+- No live LLM call, no Neo4j container, no registered run, no `results/` file, no golden change (pipeline untouched).

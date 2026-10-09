@@ -14,7 +14,8 @@
  *   computes the tree's git tree sha, then builds the outcome through `makeGenerationOutcome`.
  * - `makeGenerationOutcome(fields)`: the factory enforcing the §5 invariants (`status = ok` ⇔ no `failureReason`;
  *   `failed-typecheck` ⇒ `typecheck.errors > 0`; `fileCountInRange` = 20 ≤ `fileCount` ≤ 100).
- * - `writeGenerationJson(dir, outcome)`: `<dir>/generation.json`.
+ * - `writeGenerationJson(dir, outcome)`: `<dir>/generation.json`, written atomically (a temp file renamed into place),
+ *   so a `generation.json` that exists is always complete: it is the commit marker of a cell (SO5-04).
  */
 import * as fs from 'node:fs';
 import * as path from 'node:path';
@@ -76,11 +77,20 @@ function listTree(root: string, rel: string, skip: (rel: string) => boolean, out
   }
 }
 
-/** BR-U5a-48: `.ts` files under `<cwd>/src` (the skeleton lives outside `src`; symlinks and `node_modules` skipped). */
-export function countSourceFiles(cwd: string): number {
+/**
+ * BR-U5a-48: the `.ts` files under `<cwd>/src` (the skeleton lives outside `src`; symlinks and `node_modules`
+ * skipped), as `src`-relative POSIX paths in sorted order. The file set of `fileCount` and of the E1 LOC count
+ * (ADR-021 SO5-07, X-3; `scripts/lib/so5-size.ts`).
+ */
+export function sourceFilePaths(cwd: string): readonly string[] {
   const files: string[] = [];
   listTree(path.join(cwd, 'src'), '', (r) => r.split('/').includes('node_modules'), files);
-  return files.filter((f) => f.endsWith('.ts') && fs.lstatSync(path.join(cwd, 'src', ...f.split('/'))).isFile()).length;
+  return files.filter((f) => f.endsWith('.ts') && fs.lstatSync(path.join(cwd, 'src', ...f.split('/'))).isFile()).sort(cmp);
+}
+
+/** BR-U5a-48: the number of `sourceFilePaths`. */
+export function countSourceFiles(cwd: string): number {
+  return sourceFilePaths(cwd).length;
 }
 
 export function isFileCountInRange(count: number): boolean {
@@ -223,7 +233,9 @@ export function generationJsonPath(dir: string): string {
 export function writeGenerationJson(dir: string, outcome: GenerationOutcome): string {
   const file = generationJsonPath(dir);
   fs.mkdirSync(dir, { recursive: true });
-  fs.writeFileSync(file, `${JSON.stringify(outcome, null, 2)}\n`);
+  const tmp = `${file}.tmp-${String(process.pid)}`;
+  fs.writeFileSync(tmp, `${JSON.stringify(outcome, null, 2)}\n`);
+  fs.renameSync(tmp, file);
   return file;
 }
 
