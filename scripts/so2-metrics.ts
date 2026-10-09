@@ -9,7 +9,8 @@
  * - `ablation --run-dir <dir> --out <dir>`: `apg_ablation.csv` and `apg_ablation_summary.csv` from an `apg-ablation`
  *   plan run (full arm `projectId`, AST-only arm `projectId@ast-only`).
  * - `arms --plan <plan.json> --out <dir>`: `apg_arms.csv`, the pre-run check that each base's full and `ast-only` arms
- *   differ (extraction only, no database; ADR-021 item 8). Exit 1 (`SO2_ARMS_IDENTICAL`) when no pair differs.
+ *   differ (extraction only, no database; ADR-021 item 8). Exit 1 (`SO2_ARMS_IDENTICAL`) when any base's
+ *   pair is identical (that base would contribute no ablation contrast).
  * - `flows-to --plan <plan.json> --out <dir>`: `flows_to_stores.csv`, the extractor's FLOWS_TO store accounting for
  *   every `full` entry of a plan (extraction only, no database, no evaluation).
  * - `profile --project <path> --spec <spec> --project-id <id> --out <dir> [--reps 3] [--timeout-ms 120000]`: ingests
@@ -194,10 +195,10 @@ export async function main(argv: readonly string[], repoRoot: string, io: So2Mai
           rows.push(armsRow(baseId, await deps.extract(resolve(repoRoot, f.path), 'full', excludes), await deps.extract(resolve(repoRoot, a.path), 'ast-only', specExcludesOf(repoRoot, a.specPath))));
         }
         io.writeFile(join(outDir, 'apg_arms.csv'), csvText(ARMS_COLUMNS, rows));
-        const differ = rows.filter((r) => r[r.length - 1] === 'true').length;
-        io.out(`${String(rows.length)} pairs, ${String(differ)} differ: apg_arms.csv in ${outDir}\n`);
-        if (rows.length > 0 && differ === 0) {
-          io.err(`${SO2_ARMS_IDENTICAL}: no pair of arms differs; the ablation cannot show a loss\n`);
+        const identical = rows.filter((r) => r[r.length - 1] !== 'true').map((r) => r[0] ?? '');
+        io.out(`${String(rows.length)} pairs, ${String(rows.length - identical.length)} differ: apg_arms.csv in ${outDir}\n`);
+        if (identical.length > 0) {
+          io.err(`${SO2_ARMS_IDENTICAL}: identical arms for ${identical.join(', ')}; the ablation cannot show a loss there\n`);
           return 1;
         }
         return 0;

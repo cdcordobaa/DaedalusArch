@@ -245,9 +245,18 @@ export function joinOutcome(entry: PlanEntry, style: string, repoRoot: string, p
   if (!existsSync(file)) {
     return { ok: false, detail: `${JOIN_GEN_CODES.missing}: generation outcome ${outcomePath} missing`, cell: missingE1Cell(coord, style, outcomePath) };
   }
-  const mismatch = (why: string, base?: GenerationCell): JoinResult => {
-    const { failureReason: _dropped, ...rest } = base ?? missingE1Cell(coord, style, outcomePath);
-    return { ok: false, detail: `${JOIN_GEN_CODES['protocol-mismatch']}: generation outcome ${outcomePath}: ${why}`, cell: { ...rest, generationStatus: 'protocol-mismatch' } };
+  // A protocol-mismatch cell sits at the grid entry's own coordinate (model, task, level, run, template id, style,
+  // adapter): the outcome's declared coordinates are what the check distrusts, so only its counts are kept as
+  // evidence (SO5-03, SO5-05 "one row per E1 cell").
+  const mismatch = (why: string, evidence?: GenerationCell): JoinResult => {
+    const cell: GenerationCell = {
+      ...missingE1Cell(coord, style, outcomePath),
+      generationStatus: 'protocol-mismatch',
+      ...(evidence !== undefined && typeof evidence.fileCount === 'number' && { fileCount: evidence.fileCount }),
+      ...(evidence !== undefined && typeof evidence.fileCountInRange === 'boolean' && { fileCountInRange: evidence.fileCountInRange }),
+      ...(evidence !== undefined && typeof evidence.permissionDenials === 'number' && { permissionDenials: evidence.permissionDenials }),
+    };
+    return { ok: false, detail: `${JOIN_GEN_CODES['protocol-mismatch']}: generation outcome ${outcomePath}: ${why}`, cell };
   };
   let raw: unknown;
   try {
