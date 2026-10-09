@@ -49,7 +49,7 @@ describe('Docs/matching-rule.md machine block (BR-U5b-01)', () => {
     expect(r.ok).toBe(false);
     if (r.ok) return;
     expect(r.code).toBe(SCORE_RULE_MISMATCH);
-    expect(r.detail).toContain('1.1.0 != registered 1.1.1');
+    expect(r.detail).toContain('1.2.0 != registered 1.1.1');
     // The 1.0.0 label of prereg v1 / v2 no longer loads the 1.1.0 document (ADR-020 items 2, 5, 8).
     expect(parseMatchingRule(DOC, DRAFT_RULE_VERSION).ok).toBe(false);
   });
@@ -61,7 +61,7 @@ describe('Docs/matching-rule.md machine block (BR-U5b-01)', () => {
     expect(r.ok).toBe(true);
     if (!r.ok) return;
     expect(named[named.length - 1]).toBe(r.rule.version);
-    expect(r.rule.version).toBe('1.1.0');
+    expect(r.rule.version).toBe('1.2.0');
   });
 
   it('a changed constant in the block is refused', () => {

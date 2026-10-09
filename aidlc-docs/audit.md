@@ -1236,3 +1236,11 @@ Plan checkboxes ticked. Auto-approved under standing approval; no blocking or ma
 **Context**: CONSTRUCTION — Build and Test, runbook stage 3 (3.3-3.7) plus strict aggregate (results/so4-heldout/agg-strict). Committed from worktree ../DaedalusArch-wt-ops on branch v1.2e-so4-heldout; the main checkout's uncommitted files untouched.
 
 ---
+
+## Build and Test — SO4 scoring fixes (ADR-025, POST-HOC), prereg v9, corrected re-score, baseline spot check
+**Timestamp**: 2026-10-09T21:40:00Z
+**User Input**: "Fix scoring, spot-check, then decide E7: wire the MAT-04 remap for MO-CV02 renames (or amend minimally), add the MO-S01 style guard as an expectation, fix the MO-DF01n constructor precondition, record ADR-025 POST-HOC with one prereg bump, re-score SO4 from the existing runs beside the strict score, and spot-check ~20 baseline violations; no E7, E1, full mode or live LLM."
+**AI Response**: "MAT-04's registered remap moves lines only (line is not in the key), so it cannot cover class-name re-keying; matching rule 1.2.0 adds MAT-04a (baseline discriminators of the renamed class mapped to the new name before the difference), with a unit test reproducing truthy-demo:MO-CV02:0. MO-S01 under layered: dependency-direction expected disabled (expectation guard; catalogue untouched). constructorLiterals rejects private/protected constructors. Prereg v9 (matching rule only); --check-prereg ok on all 7 plans. Re-score from the stored runs: strict TP 67 / FN 8 / FP 13 (R 0.893, P 0.838, F1 0.865, N 75) vs corrected TP 67 / FN 6 / FP 0 (R 0.918, P 1.000, F1 0.957, N 73); twins 60/73 vs 68/73. Spot check (agent-only, informal, seed 20261009): 6 real, 6 false alarm, 8 debatable of 20; false alarms from FF-CV05, FF-C03, FF-SO01 on controllers, FF-C02 on Nest modules."
+**Context**: CONSTRUCTION — Build and Test, post-SO4 scoring correction (results/so4-heldout/score-corrected.json, agg-corrected/, case-corrected/; strict files unchanged). Worktree ../DaedalusArch-wt-score, branch v1.2e-fix-scoring; main checkout's uncommitted files untouched. E7 decision pending with the author.
+
+---

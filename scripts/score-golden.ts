@@ -355,10 +355,12 @@ export function remapLine(line: number, filePath: string, shifts: readonly LineS
 export interface ClassRename { readonly filePath: string; readonly from: string; readonly to: string }
 
 export function classRenameOf(row: Pick<ManifestRow, 'site'>, baseline: EvaluationReport, seeded: EvaluationReport): ClassRename | undefined {
-  if (row.site.kind !== 'class-rename') return undefined;
-  const from = row.site.detail.class;
+  // Synthetic rows written before 1.2.0 may carry no site; they are not renames.
+  const site = (row as { readonly site?: ManifestRow['site'] }).site;
+  if (site?.kind !== 'class-rename') return undefined;
+  const from = site.detail.class;
   if (!from) return undefined;
-  const filePath = row.site.filePath;
+  const filePath = site.filePath;
   const candidates = new Set([...positiveNames(from), ...twinNames(from)]);
   const onFile = (r: EvaluationReport): Set<string> =>
     new Set(r.violations.filter((v) => isSymbolic(v) && v.filePath === filePath).flatMap((v) => [...(v.discriminator ?? [])]));
