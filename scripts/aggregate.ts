@@ -26,10 +26,12 @@
  *   the 80-120 floor with the ADR-019 item 1 shortfall statement (`scripts/lib/so4-coverage.ts`).
  * - `denominators.csv` and `prf_by_project.csv` carry the corpus style and the spec style (ADR-021 SO1-C).
  * - SO5 (BR-U5b-64, 65): `so5_grid.csv` has one row per E1 cell including `not-run` (GEN code, flags), the AHS fields,
- *   per-dimension AVR and the weighted FPAT family counts (from the `Docs/analysis-plan.md` table only: violations
+ *   per-dimension AVR, the weighted FPAT family counts (from the `Docs/analysis-plan.md` table only: violations
  *   labelled `TP` or `unseeded-TP` weigh the inverse of their P3 inclusion probability (ADR-020 item 2), failing judge
- *   units by dimension; nothing else counts). `so5_tests.csv`: permutation tests of the model and spec-level main
- *   effects and their interaction on the verdict-source AHS, task as block, Holm across the three; `ahsDeterministic`
+ *   units by dimension; nothing else counts), and the exploratory size and latency columns (ADR-021 SO5-07, X-3;
+ *   `scripts/lib/so5-size.ts`: LOC, violations per KLOC, generation time, turns and cost, instrument total time).
+ *   `so5_tests.csv`: permutation tests of the model and spec-level main effects (labels permuted within task × the
+ *   other factor's level, ADR-021 THR-4) and their interaction (task blocks) on the verdict-source AHS, Holm across the three; `ahsDeterministic`
  *   co-primary for the model effect (ADR-020 item 7); pairwise mean differences with bootstrap CIs (runs resampled
  *   within cells; descriptive only, ADR-020 item 6) and Cliff's δ; the pre-registered directional self-preference
  *   check; secondary outcomes Holm-corrected within their own family and marked exploratory.
@@ -46,6 +48,7 @@ import type { GenerationCell, LoadedRunDir, RunRecord } from './lib/report-io.js
 import { ANALYSIS_PLAN_DOC, cellGenCode, familyOf, FPAT_FAMILIES, JOIN_GEN_CODES, loadSo5Codes } from './lib/so5-codes.js';
 import { completeE1Cells, e1ProjectId } from './lib/e1-cells.js';
 import type { FpatFamily, So5Codes } from './lib/so5-codes.js';
+import { SO5_SIZE_COLUMNS, so5SizeValues } from './lib/so5-size.js';
 import { baselineLabelsOf, baselinePrecision, isTpClass } from './lib/baseline-precision.js';
 import type { BaselinePrecisionRow } from './lib/baseline-precision.js';
 import type { CorpusTier } from './lib/mutation/types.js';
@@ -678,6 +681,10 @@ function outcomesOf(cells: readonly So5Cell[]): Outcome[] {
     if (!valid.some((c) => c.fpat.has(fam))) continue;
     outcomes.push({ family: `secondary:fpat_${fam}`, confirmatory: [], values: (c) => (c.valid ? (c.fpat.get(fam)?.weighted ?? 0) : undefined) });
   }
+  // ADR-021 SO5-07, X-3: deterministic violations per KLOC, exploratory (valid cells with a LOC count only).
+  if (valid.some((c) => c.report !== undefined && c.record.cell?.loc !== undefined)) {
+    outcomes.push({ family: 'secondary:violations_per_kloc', confirmatory: [], values: (c) => (c.record.cell === undefined ? undefined : so5SizeValues(c.record.cell, c.report).violationsPerKloc) });
+  }
   outcomes.push({ family: 'secondary:valid_generation_yield', confirmatory: [], values: (c) => (c.valid ? 1 : 0) });
   if (valid.some((c) => (c.report?.neuralResults ?? []).length > 0)) {
     outcomes.push({
@@ -720,6 +727,14 @@ function stratifiedMeanDiffCi(obs: readonly { cell: string; group: 'A' | 'B'; va
   return [q(0.025), q(0.975)];
 }
 
+/**
+ * The permutation stratum of an SO5 main-effect test (ADR-021 THR-4): task × the level of the other factor. Model
+ * labels are permuted within (task, spec level), spec-level labels within (task, model).
+ */
+export function so5Stratum(taskId: string, otherLevel: string): string {
+  return JSON.stringify([taskId, otherLevel]);
+}
+
 export const SO5_TEST_COLUMNS = ['effect', 'statistic', 'p_raw', 'p_holm', 'family', 'effect_size', 'ci_low', 'ci_high', 'cliffs_delta', 'exploratory', 'descriptive'] as const;
 
 /** Family of the pre-registered directional self-preference check (ADR-020 item 7). */
@@ -728,13 +743,14 @@ export const DIRECTIONAL_FAMILY = 'directional:ahsNeuronal-minus-ahsDeterministi
 /**
  * The directional self-preference check (ADR-020 item 7): per valid cell d = ahsNeuronal − ahsDeterministic; the
  * statistic is mean(d | model = judge model) − mean(d | other models), tested one-sided (greater) by permutation of
- * the model labels within task, with Cliff's δ of the two d samples. `undefined` when either group is empty.
+ * the model labels within (task × spec level) (THR-4), with Cliff's δ of the two d samples. `undefined` when either
+ * group is empty.
  */
 export function directionalCheck(cells: readonly So5Cell[], judgeModel: string, seed: number, resamples: number): string[] | undefined {
   const obs = cells.flatMap((c) => {
     const n = c.report === undefined ? undefined : ahsOf(c.report, 'ahsNeuronal');
     const d = c.report === undefined ? undefined : ahsOf(c.report, 'ahsDeterministic');
-    return n === undefined || d === undefined ? [] : [{ block: c.taskId, group: c.model === judgeModel ? 'A' as const : 'B' as const, value: n - d }];
+    return n === undefined || d === undefined ? [] : [{ block: so5Stratum(c.taskId, c.specLevel), group: c.model === judgeModel ? 'A' as const : 'B' as const, value: n - d }];
   });
   const a = obs.filter((o) => o.group === 'A').map((o) => o.value);
   const b = obs.filter((o) => o.group === 'B').map((o) => o.value);
@@ -759,9 +775,11 @@ export function so5Tests(cells: readonly So5Cell[], seeds: { readonly bootstrap:
     const levels = [...new Set(obs.map((o) => o.c.specLevel))].sort();
     if (models.length < 2 || levels.length < 2) continue;
     const opts = { seed: seeds.permutation, resamples };
+    // THR-4: each main effect permutes its labels within (task × the other factor's level), so an unbalanced count of
+    // valid cells cannot carry one factor's effect into the other's test. The interaction keeps task blocks.
     const tests = [
-      { effect: 'model', r: permutationFactorTest(obs.map((o) => ({ block: o.c.taskId, level: o.c.model, value: o.v })), opts) },
-      { effect: 'spec-level', r: permutationFactorTest(obs.map((o) => ({ block: o.c.taskId, level: o.c.specLevel, value: o.v })), opts) },
+      { effect: 'model', r: permutationFactorTest(obs.map((o) => ({ block: so5Stratum(o.c.taskId, o.c.specLevel), level: o.c.model, value: o.v })), opts) },
+      { effect: 'spec-level', r: permutationFactorTest(obs.map((o) => ({ block: so5Stratum(o.c.taskId, o.c.model), level: o.c.specLevel, value: o.v })), opts) },
       { effect: 'model×spec-level', r: permutationInteractionTest(obs.map((o) => ({ block: o.c.taskId, a: o.c.model, b: o.c.specLevel, value: o.v })), opts) },
     ];
     const adjusted = holm(tests.map((t) => t.r.p));
@@ -793,6 +811,15 @@ export function so5Tests(cells: readonly So5Cell[], seeds: { readonly bootstrap:
   return rows;
 }
 
+/** The `SO5_SIZE_COLUMNS` cells of one grid row: counts and milliseconds as integers when whole, the rest `f6`. */
+function sizeCells(v: ReturnType<typeof so5SizeValues>): string[] {
+  const n = (x: number | undefined): string => (x === undefined ? '' : Number.isInteger(x) ? String(x) : f6(x));
+  return [
+    int(v.loc), int(v.violationsDeterministic), int(v.violationsTotal), f6(v.violationsPerKloc), f6(v.violationsTotalPerKloc),
+    n(v.generationMs), int(v.generationTurns), f6(v.generationCostUsd), n(v.evalTotalMs),
+  ];
+}
+
 export function so5Csv(input: AggregateInput, resamples: number): Partial<Record<CsvFile, string>> {
   const cells = so5Cells(input);
   const cellCols = ['requested_model_id', 'resolved_model_id', 'adapter_id', 'prompt_template_id', 'style', 'spec_level', 'task_id', 'run_index', 'generation_outcome_path', 'generation_status', 'failure_reason', 'file_count', 'file_count_in_range', 'permission_denials'];
@@ -810,6 +837,7 @@ export function so5Csv(input: AggregateInput, resamples: number): Partial<Record
       ...DIMENSION_COLUMNS.map((d) => f6(avr.get(d))),
       ...FPAT_FAMILIES.map((f) => (c.valid ? f6(c.fpat.get(f)?.weighted ?? 0) : '')),
       cellGenCode(input.so5, cell) ?? '',
+      ...sizeCells(so5SizeValues(cell, r)),
     ];
   });
   const patterns: string[][] = [];
@@ -824,7 +852,7 @@ export function so5Csv(input: AggregateInput, resamples: number): Partial<Record
   }
   const seeds = input.plan?.seeds ?? { sampling: 0, bootstrap: 0, permutation: 0 };
   return {
-    'so5_grid.csv': csvText([...cellCols, 'status', 'verdict_source', 'ahs_deterministic', 'ahs_combined', 'ahs_neuronal', ...DIMENSION_COLUMNS.map((d) => `avr_${d}`), ...fpatCols, 'gen_code'], grid),
+    'so5_grid.csv': csvText([...cellCols, 'status', 'verdict_source', 'ahs_deterministic', 'ahs_combined', 'ahs_neuronal', ...DIMENSION_COLUMNS.map((d) => `avr_${d}`), ...fpatCols, 'gen_code', ...SO5_SIZE_COLUMNS], grid),
     'so5_patterns.csv': csvText(['run_id', 'code', 'count', 'weighted_count'], patterns),
     'so5_tests.csv': csvText(SO5_TEST_COLUMNS, so5Tests(cells, seeds, resamples, input.plan?.judge?.model)),
   };

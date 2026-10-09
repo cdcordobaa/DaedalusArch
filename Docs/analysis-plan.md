@@ -60,6 +60,11 @@ flagged.
 | `envelope-unreadable` | `GEN-ENVELOPE-UNREADABLE` |
 | `timeout` | `GEN-TIMEOUT` |
 
+**Join codes (amended 2026-10-09 for P-U6, ADR-021 SO5-03, SO5-05).** Two not-run codes come from the join of a grid
+coordinate with its outcome, not from a U5a `failureReason`, so they sit outside the table and the block:
+`GEN-MISSING` (no `generation.json` for the coordinate, or no RunRecord at all) and `GEN-PROTOCOL-MISMATCH` (an
+outcome that breaks the registered generator plan). Both appear in `so5_grid.csv` `gen_code` and `so5_patterns.csv`.
+
 The block below is the machine-readable form that `scripts/lib/so5-codes.ts` loads. The tables above and the
 block are equal (tested); the GEN mapping and the FPAT counting of `scripts/aggregate.ts` read only the block.
 
@@ -164,7 +169,7 @@ it adds entries and changes no other field of a registered plan.
 | SO2 | parse coverage and resolution counts per run; latency gate result | stage times; FLOWS_TO evidence per MO-DF01 seed and twin | `coverage.csv`, `latency.csv`, `edge_evidence.csv` |
 | SO1 | denominators per run (declared, ADR-derived, compiled, disabled, dropped, skipped by mode, executed, failed), identities I1 and I2 | per-style P/R/F1 rows | `denominators.csv` |
 | SO1 instrument (ADR-021 SO1-E, X-7) | per spec group (corpus, fixture, preset): validator first-pass rate with its Wilson 95 % interval; per built-in style library: template coverage (declared functions with a template ÷ declared) | current pass rate; first-failure error codes; compiled ÷ declared per spec style (ratio of sums); spec line counts (total, blank, comment, content), descriptive only | `so1-metrics-<sha>.json` (`scripts/so1-metrics-cli.ts`) |
-| SO5 (E1) | the `verdictSource` AHS of each valid cell (§6); for the model effect, `ahsDeterministic` is co-primary (ADR-020 item 7) | the directional self-preference check (§6, registered); other AHS fields, per-dimension AVR, `FPAT-*` weighted family counts (rule-family profile), valid-generation yield, judge fail share (exploratory) | `so5_grid.csv`, `so5_patterns.csv`, `so5_tests.csv` |
+| SO5 (E1) | the `verdictSource` AHS of each valid cell (§6); for the model effect, `ahsDeterministic` is co-primary (ADR-020 item 7) | the directional self-preference check (§6, registered); other AHS fields, per-dimension AVR, `FPAT-*` weighted family counts (rule-family profile), valid-generation yield, judge fail share, deterministic violations per KLOC (exploratory, ADR-021 SO5-07, X-3); descriptive per-cell columns: LOC, all violations per KLOC, generation time, turns and cost, instrument time; the open-coding input (§6, exploratory) | `so5_grid.csv`, `so5_patterns.csv`, `so5_tests.csv`; `open-coding-input.json`, `open-coding-key.csv` |
 | ADR-016 b | one pass / fail per SP-* probe; exclusion only after a failed probe and a recorded fix attempt | line confirmation | `function_sensitivity.csv` |
 
 SO1 instrument definitions (ADR-021 SO1-E, X-7; `scripts/lib/so1-metrics.ts`). The population is every committed
@@ -175,6 +180,19 @@ needs the project checkout and is left out. A spec passes *first time* when the 
 passes the check of the registered instrument; a spec not yet committed counts by its working-tree text. A function
 *has a template* when it has a Cypher template (symbolic), a rubric (neuronal), or both (hybrid). A *content line* is a
 non-blank line that is not only a YAML comment. These are descriptive SO1 outcomes; no test is run on them.
+
+SO5 size, density and latency definitions (ADR-021 SO5-07, X-3; amended 2026-10-09 for P-U6;
+`scripts/lib/so5-size.ts`). The proposal's SO5 metrics "violation density per 1K LOC" and "latency per generated
+project" are exploratory columns of `so5_grid.csv`. *LOC* (`loc`) is the number of non-blank lines (a line with at
+least one non-whitespace character; comments count) of the `src/**/*.ts` files that `file_count` counts (BR-U5a-48),
+measured by `run-experiment` over the tree it evaluates and stored in the cell. *Density* is violations × 1000 / LOC:
+`violations_per_kloc` on the deterministic violations of the report (`Violation.deterministic`), the exploratory
+secondary family `secondary:violations_per_kloc` of `so5_tests.csv` (§6); `violations_total_per_kloc` on all report
+violations, judge violations included, descriptive only. Both are empty for a cell without a report or with LOC 0.
+*Generation latency* is `generation_ms` (`generation.json` `durationMs`, the harness wall time of the cell), with
+`generation_turns` and `generation_cost_usd` from the CLI envelope; *instrument latency* is `eval_total_ms` (the
+report's `timings.totalMs`, the sum of the pipeline stage times). The latency columns are descriptive; no test is run
+on them.
 
 Probe rows (`split = probe`) never enter a P/R/F1 table (BR-U5b-20, 78). `dev` is never pooled with `held-out`; the
 headline SO4 table is `held-out`, reported per `baseKind` (`corpus`, `generated`), per corpus tier (`corpus-core`,
@@ -298,8 +316,16 @@ the 2.5 and 97.5 percentiles (`weighted-item-bootstrap`); a row with fewer than 
 - **Primary outcome**: the AHS field named by the E1 plan mode's `scoring.verdictSource` (`ahsCombined` in `full`
   mode). The other AHS fields are reported as values and analysed as secondary outcomes (BR-U5b-65).
 - **Factors**: model (3 levels) and spec level (3 levels); task is a blocking factor; the three runs are replicates.
-- **Tests**: permutation tests, 10 000 permutations with the plan's `permutation` seed, permutations restricted
-  within task, for the model main effect, the spec-level main effect and the model × spec-level interaction.
+  The generator (Claude Code headless) has no temperature or seed setting, so the proposal's "fixed temperature and
+  seed" cannot hold: the three runs are replicates of a stochastic generator and their spread is part of the
+  within-cell variance (declared deviation, ADR-021 SO5-07; `Docs/threats-to-validity.md` TV-78).
+- **Tests**: permutation tests, 10 000 permutations with the plan's `permutation` seed, for the model main effect, the
+  spec-level main effect and the model × spec-level interaction. **Strata (amended 2026-10-09 for P-U6, ADR-021
+  THR-4)**: each main effect permutes its labels within the strata of task × the other factor, model labels within
+  (task, spec level) and spec-level labels within (task, model), so an unequal number of valid replicates across the
+  18 cells cannot carry one factor's effect into the other factor's test. The statistic is unchanged (the
+  between-level sum of squares of the tested factor). The interaction test keeps task as its only block (was: every
+  test restricted within task).
 - **Holm families**: the primary outcome's three tests form one family (Holm-corrected, confirmatory). Each
   secondary outcome (each other AHS field, each per-dimension AVR, each `FPAT-*` weighted family count, the
   valid-generation yield, the judge fail share) forms its own family of three tests, Holm-corrected within that
@@ -311,7 +337,7 @@ the 2.5 and 97.5 percentiles (`weighted-item-bootstrap`); a row with fewer than 
   as a model effect.
 - **Directional self-preference check (registered, ADR-020 item 7)**: per valid cell d = `ahsNeuronal` −
   `ahsDeterministic`; statistic = mean(d | model = the judge model `claude-opus-5-5`) − mean(d | other models);
-  one-sided permutation test (greater), model labels permuted within task, 10 000 permutations with the plan's
+  one-sided permutation test (greater), model labels permuted within (task, spec level) (THR-4; was: within task), 10 000 permutations with the plan's
   `permutation` seed, α = 0.05, a family of one; Cliff's δ of the two d samples. A positive significant result is
   reported as evidence of judge self-preference; `so5_tests.csv` family `directional:ahsNeuronal-minus-ahsDeterministic`.
 - **Effect sizes**: pairwise mean-AHS differences between factor levels with cluster-bootstrap 95 % intervals
@@ -321,6 +347,26 @@ the 2.5 and 97.5 percentiles (`weighted-item-bootstrap`); a row with fewer than 
 - **Significance level**: α = 0.05 after Holm.
 - **Family counts** (`FPAT-*`, §1): TP-class violations (`TP`, `unseeded-TP`) weighted by 1 / p of P3 (ADR-020 item 2;
   was: `TP` weight 1), failing judge units by dimension. No labeller assigns a pattern code.
+- **Exploratory open coding (registered 2026-10-09 for P-U6, ADR-021 SO5-07; Fable B4).** A data-derived failure
+  taxonomy beside the FPAT profile, **exploratory only**: it never enters a test, a Holm family or a confirmatory
+  claim, and it never changes the FPAT counts.
+  1. *Input.* `scripts/so5-open-coding-cli.ts --labels <reconciled.json> --runs results/e1-grid --out <dir>` prepares
+     it from stored outputs only (`scripts/lib/so5-open-coding.ts`). Items: the reconciled labeller items of E1 runs
+     whose label says a violation is present, P3 violations labelled `TP` or `unseeded-TP` and P4 judge units labelled
+     `fail`; each gives its rule (template name, else function id), its kind and the non-empty rationales of the two
+     labeller runs. The items are blind to the condition: model, spec level, task, run, project and item ids are not
+     in the input; inside the rationales every E1 model id, task id and spec level (except the word `none`) and the
+     item's run and project ids are replaced by `[redacted]`; the order is a seeded shuffle (seed 6104) of the items
+     sorted by item id, and the coding ids `OC-0001…` follow it. `open-coding-key.csv` maps each coding id to its
+     item, run, cell, rule, FPAT family and weight 1 / p.
+  2. *Proposal.* The agy panel (the labeller route, `Docs/labeller-route.md`) reads the input and proposes short
+     failure-pattern codes with a one-line definition and the coding ids each covers. The proposal is recorded as
+     produced; it uses calls of the registered label budget (§4) only if budget remains after P1–P4.
+  3. *Consolidation.* The author merges, splits and names the proposed codes into a final code book and assigns every
+     item one or more codes. The author has seen the rules and the E1 design, so is **declared non-blind**; the key is
+     read only after the code book is fixed.
+  4. *Reporting.* Code frequencies, raw and weighted by 1 / p, per model and spec level, descriptive only, next to
+     the FPAT profile and labelled exploratory. No interval and no test.
 
 ## 7. Flag columns
 
@@ -354,6 +400,11 @@ Flags are recorded on every row and never exclude it by themselves:
 - **AHS analyses** use valid cells or projects only; the number of valid replicates per (model, spec level, task)
   cell is reported beside every SO5 test. No cell is re-generated to replace a failed one, and no imputation is
   done.
+- **Selection on generation success (registered threat, ADR-021 THR-4; `Docs/threats-to-validity.md` TV-30).** AHS
+  exists only for generated projects that type-check and are accepted, so every AHS effect is conditional on
+  successful generation: a model or spec level that fails more often is compared on its surviving projects only. The
+  mitigation is the valid-generation yield family (§6, every coordinate in the denominator, `GEN-*` codes included),
+  reported beside every AHS effect, and the stratified permutations of §6.
 - **SO4**: a seed pair whose baseline or seeded report is rejected yields no score and is listed with its reason;
   not-applicable and site-invalid seeds are kept out of recall (`Docs/matching-rule.md`).
 - **Functions**: a function is excluded from a table only after a failed SP-* probe and a recorded fix attempt, with
@@ -388,7 +439,8 @@ These statements are registered: every report of the corresponding figure carrie
 - **B4 FPAT is a rule-family profile.** The `FPAT-*` counts are a fixed function-to-family map (§1), with judge fails
   counted from the judge's own verdict at weight 1: a **pre-specified rule-family profile**, not a derived taxonomy.
   A derived taxonomy needs an exploratory coding of the labeller rationales, pre-registered with this file, with the
-  author declared as a non-blind coder; none is registered now.
+  author declared as a non-blind coder; it is registered in §6 ("Exploratory open coding", P-U6) and is reported as
+  exploratory, never as a confirmatory taxonomy.
 - **B5 Spec-level and tier confounds.** In `full-aac` the generator receives the evaluator spec verbatim
   (`scripts/generator/prompts/full-aac.md`), so the spec level is confounded with knowledge of the test and with
   prompt length; the model tier is confounded with the model generation (`claude-haiku-4-5` vs the `-5-5` models);
@@ -419,3 +471,8 @@ These statements are registered: every report of the corresponding figure carrie
 | 2026-10-09 | §5, §7 | Project cluster bootstrap co-primary only with ≥ 10 projects, else descriptive (`ci_project_descriptive`) | ADR-020 item 3; BR-U5b-61 |
 | 2026-10-09 (P-U6) | §4 | Registered live label sizes (`corpus/label-plan-config.json`, 300 calls), two-stage sampling, the plan producer and the label-shape adapters | ADR-021 item 6; SO3-2, SO3-3, SO4-01, SO4-02, SO5-01 |
 | 2026-10-09 (P-U6) | §5 | Weighted agreement CIs: weighted item bootstrap, counts only below 10 pairs; reliability subjects keyed by project | ADR-021 THR-6, SO3-5 |
+| 2026-10-09 (P-U6) | §1 | Join codes `GEN-MISSING`, `GEN-PROTOCOL-MISMATCH` documented beside the table (the block is unchanged) | ADR-021 SO5-03, SO5-05 |
+| 2026-10-09 (P-U6) | §3 | SO5 LOC, violations per KLOC (deterministic: exploratory secondary; all: descriptive), generation and instrument latency columns | ADR-021 SO5-07, X-3 |
+| 2026-10-09 (P-U6) | §6 | Main-effect permutations within task × the other factor; directional check within (task, spec level) | ADR-021 THR-4 |
+| 2026-10-09 (P-U6) | §6, §10 | Exploratory open coding of the E1 rationales (agy panel proposes, author consolidates, declared non-blind); generator temperature and seed deviation | ADR-021 SO5-07; Fable B4 |
+| 2026-10-09 (P-U6) | §8 | Selection on generation success registered as a threat, the valid-generation yield as its mitigation | ADR-021 THR-4 |

@@ -193,9 +193,36 @@ describe('E1 cells (BR-U5b-53, 54, 64)', () => {
       expect(r.records[0]?.cell).toEqual({
         requestedModelId: 'm1', resolvedModelId: 'm1-2026', adapterId: 'claude-code-cli', promptTemplateId: 'none/task-management', style: 'clean-architecture',
         specLevel: 'none', taskId: 'task-management', runIndex: 0, generationOutcomePath: 'gen/m1/task-management/none/run-0/generation.json',
-        generationStatus: 'ok', fileCount: 25, fileCountInRange: true, permissionDenials: 2,
+        generationStatus: 'ok', fileCount: 25, fileCountInRange: true, permissionDenials: 2, loc: 0,
       });
       expect(runner.calls).toHaveLength(1);
+    } finally {
+      e.cleanup();
+    }
+  });
+
+  it('ADR-021 SO5-07, X-3: a joined cell carries the LOC of its src/**/*.ts tree and the generation effort', async () => {
+    // Hand-computed: src/a.ts "x\n\n  y\n" → 2 non-blank lines; src/b/c.ts "z" → 1; src/d.js and src/node_modules/e.ts
+    // are not counted → loc 3. generation.json durationMs 159340.5; envelope num_turns 43, total_cost_usd 0.6668696.
+    // Run 1 has no envelope: only the duration is kept.
+    const e = e1Repo(2);
+    try {
+      e.outcome(0, { durationMs: 159340.5, envelopePath: 'envelope.json' });
+      e.outcome(1, { durationMs: 1000 });
+      const dir = join(e.root, 'gen/m1/task-management/none/run-0');
+      mkdirSync(join(dir, 'src/b'), { recursive: true });
+      mkdirSync(join(dir, 'src/node_modules'), { recursive: true });
+      writeFileSync(join(dir, 'src/a.ts'), 'x\n\n  y\n');
+      writeFileSync(join(dir, 'src/b/c.ts'), 'z');
+      writeFileSync(join(dir, 'src/d.js'), 'q\nq\n');
+      writeFileSync(join(dir, 'src/node_modules/e.ts'), 'q\n');
+      writeFileSync(join(dir, 'envelope.json'), JSON.stringify({ num_turns: 43, total_cost_usd: 0.6668696, duration_ms: 158326 }));
+      const runner = new FakeRunner(() => ({ stdout: OK_REPORT }));
+      const r = await runPlan(e.plan, 'experiments/t/plan.json', e.root, deps(runner, { schemaRoot: ROOT, gate: e.gate }));
+      expect(r.records[0]?.cell).toMatchObject({ loc: 3, generationDurationMs: 159340.5, numTurns: 43, totalCostUsd: 0.6668696 });
+      expect(r.records[1]?.cell).toMatchObject({ loc: 0, generationDurationMs: 1000 });
+      expect(r.records[1]?.cell?.numTurns).toBeUndefined();
+      for (const rec of records()) expect(validateRunRecord(rec, ROOT)).toEqual([]);
     } finally {
       e.cleanup();
     }
