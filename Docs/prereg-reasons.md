@@ -98,3 +98,11 @@ Also named (not registered artefacts):
 - The frozen E1 `full-aac` prompt keeps its freeze-commit preset text (`3049e78`).
 - `specs/daedalus-arch.yaml` (the self-spec) carries the same exclusion.
 - `corpus/frozen-instrument.json` re-exports byte-identically.
+
+## P-4 — prereg v7 (Build and Test Steps 44–45, judge freeze, 2026-10-09)
+
+Previous: v6 (P-E), commit `65ae471`. No full-mode plan (`fixtures`, `e7-corpus`, `e1-grid`) and no live labelling has run under any version. This is runbook stage 0b.
+
+| Artefact | Change | Reason | Post-hoc risk |
+|---|---|---|---|
+| (none of the 65 hashes change) | — | **Judge freeze.** SEN-01 passed for FF-N01 (`eec1e72`) and FF-N02 (`bbc9526`) by the unit-level criterion. `Docs/judge-preregistration.md` left DRAFT in `e8a2caf`. `FROZEN_SHA256` = `f8b2dabb…eac5a` is unchanged because no rubric text changed after either run. `export-frozen-instrument-cli.ts --final` succeeds and is byte-identical to the committed `corpus/frozen-instrument.json`, whose `judgeFreeze` block already carries that hash. The bump dates the registration point after which full-mode plans may run (BR-U4-POL-01; runbook 0b). The pinned judge CLI is `2.1.294` under `~/.firewall/judge-cli` (ADR-022 item 5). | None. The rubric is frozen before any measured full-mode run. |
