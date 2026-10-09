@@ -362,7 +362,8 @@ export function cliArgv(plan: ExperimentPlan, entry: PlanEntry): string[] {
   if (entry.graphMode !== undefined && entry.graphMode !== 'full') argv.push('--graph-mode', entry.graphMode);
   if (plan.mode !== 'symbolic-only') {
     if (plan.judge !== undefined) argv.push('--llm-provider', plan.judge.provider, '--llm-model', plan.judge.model);
-    argv.push('--cassette-dir', plan.cassetteDir);
+    // ADR-021 SO3-5: the judge cassette entries carry the run's project id (repetition reliability keys on it).
+    argv.push('--cassette-dir', plan.cassetteDir, '--cassette-project-id', entry.projectId);
   }
   return argv;
 }

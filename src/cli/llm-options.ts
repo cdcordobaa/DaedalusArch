@@ -19,6 +19,7 @@
  * | `--judge-config-dir <dir>`      | `~/.firewall/judge-claude-config`         |
  * | `--judge-baseline-report <path>`| none                                      |
  * | `--cassette-omit-prompt`        | off                                       |
+ * | `--cassette-project-id <id>`    | none (entries carry no `projectId`)       |
  */
 import * as os from 'node:os';
 import * as path from 'node:path';
@@ -55,7 +56,7 @@ const EFFORTS: readonly LLMEffort[] = ['low', 'medium', 'high', 'xhigh', 'max'];
 const MODES: readonly VCRMode[] = ['record', 'replay'];
 const VALUE_OPTIONS = [
   '--llm-provider', '--llm-model', '--llm-effort', '--cassette-mode', '--cassette-dir',
-  '--judge-repetition', '--judge-config-dir', '--judge-baseline-report',
+  '--judge-repetition', '--judge-config-dir', '--judge-baseline-report', '--cassette-project-id',
 ] as const;
 const FLAG_OPTIONS = ['--cassette-omit-prompt'] as const;
 
@@ -156,7 +157,10 @@ export function parseLLMOptions(
     run: {
       llm: { model, effort, maxTokens: JUDGE_MAX_TOKENS },
       repetition,
-      cassette: { ...cassette, omitPrompt: flags.has('--cassette-omit-prompt') },
+      cassette: {
+        ...cassette, omitPrompt: flags.has('--cassette-omit-prompt'),
+        ...(values['--cassette-project-id'] !== undefined ? { projectId: values['--cassette-project-id'] } : {}),
+      },
       ...(baselineReport !== undefined ? { baselineReport } : {}),
     },
   });

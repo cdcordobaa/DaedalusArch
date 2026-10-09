@@ -103,7 +103,11 @@ export async function prepareJudgeStage(
   spec: ParsedSpec | undefined,
 ): Promise<DomainResult<PreparedJudgeStage>> {
   const { run } = settings;
-  const wrapped = await wrapJudgeProvider(inner, run.cassette, { omitPrompt: run.cassette.omitPrompt, knownSecrets: settings.knownSecrets });
+  const wrapped = await wrapJudgeProvider(inner, run.cassette, {
+    omitPrompt: run.cassette.omitPrompt, knownSecrets: settings.knownSecrets,
+    // ADR-021 SO3-5: the project id keys judge repetition reliability; unit ids alone repeat across projects.
+    ...(run.cassette.projectId !== undefined ? { projectId: run.cassette.projectId } : {}),
+  });
   if (!wrapped.success) return DomainResult.fail(wrapped.errors);
 
   let baseline: NeuronalRunOptions['baseline'];
