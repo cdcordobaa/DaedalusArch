@@ -1252,3 +1252,11 @@ Plan checkboxes ticked. Auto-approved under standing approval; no blocking or ma
 **Context**: CONSTRUCTION — Build and Test, post-SO4 instrument v2 (ADR-026 draft). Worktree ../DaedalusArch-wt-tune, branch v1.2e-instrument-v2; v1 results untouched; draft PR, not merged.
 
 ---
+
+## Build and Test — ADR-026 Fable review fixes, prereg v10, final v2 re-runs, merge
+**Timestamp**: 2026-10-10T00:30:00Z
+**User Input**: "Fable review of PR #42 is MERGE WITH FIXES (author approved merge once fixed): drop the index.ts glob; per-glob FF-CV05 breakdown; name the known-cost files; --instrument v1|v2 switch stamped into reports and RunRecords, v1 identical to the registered v1 reports, febc918 the last v1 commit; fix the B8/§3 P2 contradiction (P2 from v2 plus a v1-only stratum, n and n_eff per version); re-run SO4 v2 and apg-ablation v2 under the final prereg; disclose AHS/verdict drift and the differing agg files; TV row; Ch7 reporting duties in ADR-026; then ready, CI green, merge, remove the worktree."
+**AI Response**: "index.ts glob dropped (twin specificity 68/73 as v1; three nestjslatam twin rows explained as a twin-site artefact; two empty index.ts files named as residual noise). --instrument v1|v2 added to firewall evaluate and run-experiment-cli; instrumentVersion stamped into reports and RunRecords (schemas amended, optional). SO4 plan under --instrument v1: 163/163 reports with the same violations, AHS and verdict as the registered v1 reports. Draft v10 reverted; v10 registered over frozen-instrument.json, analysis-plan.md (B8, P2 row 24 v2 + 6 v1-only) and threats-to-validity.md (TV-97). Final v2 runs under v10 into results/so4-heldout/v2 and results/apg-ablation/v2 (the earlier sibling dirs violated the results guard and were removed): TP 67, FN 6, FP 0 unchanged; baseline all 7 1066 -> 826, core 4 758 -> 546; CV05 removed per glob module 102, dto 76+1, interface 11, type 2, enum 1; AHS drift only zhuravlevma 0.538 -> 0.571 (29 ahs_by_project rows, no report verdict change; rescore files differ). Spot check redrawn on the final reports: REAL 6, FALSE 5, DEBATABLE 9 (informal). Zero live calls."
+**Context**: CONSTRUCTION — Build and Test, ADR-026 accepted after review; worktree ../DaedalusArch-wt-tune, branch v1.2e-instrument-v2, PR #42.
+
+---
