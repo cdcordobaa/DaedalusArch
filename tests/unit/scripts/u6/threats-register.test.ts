@@ -4,8 +4,9 @@
  * - REG-01 every register row has a type key, a handling with a mitigation (`M:`) or a reporting duty (`D:`), a status
  *   and report sections that are §1 keys (or `—` for engineering residuals);
  * - REG-02 row ids are unique and consecutive;
- * - REG-03 the §5 trace covers every item of each source (U1 §8, U3 §11, ADR-018..021, the Fable review A1–A8 / B1–B7,
- *   every THR-* finding of the audit) and points only at existing rows; every row is reached by the trace or names
+ * - REG-03 the §5 trace covers every item of each source (U1 §8, U3 §11, ADR-018..021, the generator protocol §1–§11
+ *   and its isolation rules BR-U5a-41..44, the Fable review A1–A8 / B1–B7, every THR-* finding of the audit) and
+ *   points only at existing rows; every row is reached by the trace or names
  *   an audit finding id itself;
  * - REG-04 the §1 section keys are the Kap7–9 section numbers the register uses.
  */
@@ -14,6 +15,7 @@ import { join, resolve } from 'node:path';
 
 const ROOT = resolve(__dirname, '../../../..');
 const TEXT = readFileSync(join(ROOT, 'Docs/threats-to-validity.md'), 'utf8');
+const TEXT_PROTOCOL = readFileSync(join(ROOT, 'Docs/generator-protocol.md'), 'utf8');
 const AUDIT = JSON.parse(readFileSync(join(ROOT, 'Docs/DiagnosticRuns/so-readiness-audit-2026-10-08.json'), 'utf8')) as { id: string }[];
 
 interface Row { id: string; type: string; handling: string; status: string; report: string; sources: string }
@@ -80,6 +82,11 @@ describe('threats-to-validity register (THR-9)', () => {
     expect(items('ADR-019').sort()).toEqual(range(6).sort());
     expect(items('ADR-020').sort()).toEqual(range(9).sort());
     expect(items('ADR-021').sort()).toEqual(range(8).sort());
+    // Docs/generator-protocol.md sections §1–§11 (THR-9 follow-up: the E1 generator isolation residual).
+    const sections = [...TEXT_PROTOCOL.matchAll(/^## (\d+)\. /gm)].map((m) => m[1] ?? '');
+    expect(sections).toEqual(range(11));
+    expect(items('Generator protocol').sort()).toEqual(sections.sort());
+    expect(items('Other rules')).toEqual(expect.arrayContaining(['BR-U5a-41', 'BR-U5a-42', 'BR-U5a-43', 'BR-U5a-44']));
     expect(items('Fable review').sort()).toEqual([...range(8).map((n) => `A${n}`), ...range(7).map((n) => `B${n}`)].sort());
     const thr = AUDIT.map((f) => f.id).filter((id) => id.startsWith('THR-')).sort();
     expect(thr.length).toBeGreaterThan(0);
@@ -105,6 +112,17 @@ describe('threats-to-validity register (THR-9)', () => {
       const citesFinding = auditIds.some((id) => r.sources.includes(id) || r.status.includes(id));
       expect({ id: r.id, reached: traced.has(r.id) || citesFinding }).toEqual({ id: r.id, reached: true });
     }
+  });
+
+  it('REG-03 the generator isolation row names the passed-through HOME, the confinement argv, the probes and the fallback', () => {
+    const targets = new Set(['1', '2'].flatMap((n) => TRACE.get('Generator protocol')?.get(n) ?? []));
+    expect(targets.size).toBe(1);
+    const row = TEXT.split('\n').find((l) => l.startsWith(`| ${[...targets][0] ?? ''} |`)) ?? '';
+    for (const needle of ['`HOME`', '--safe-mode', '--restricted', '--strict-mcp-config', 'BR-U5a-43', 'allowBash: false', 'Step 39']) {
+      expect({ needle, found: row.includes(needle) }).toEqual({ needle, found: true });
+    }
+    expect(cells(row)[6]).toBe('residual');
+    expect(cells(row)[7]).toContain('8.4');
   });
 
   it('REG-03 every audit finding a row names exists in the audit', () => {
