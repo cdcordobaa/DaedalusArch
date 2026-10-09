@@ -30,3 +30,17 @@ The run used `npm run build`, then `main()` of `dist/cli/index.js` with `evaluat
 - **variant-d-subtle, soft-block where `MANIFEST.md` expects warning (0.65–0.79).** The seeded FF-P02 dependency-inversion and transitive FF-S01 violations are found (FF-P02 1, FF-S01 3). The same unseeded convention and coupling rows apply: FF-CV05 (7), FF-C03 (2), FF-C01 and FF-C06 (1 each). They lower the score by one band.
 - **FF-SO02 acceptance (ADR-016 f).** FF-SO02 fails on variant-b and variant-c (one violation each, `src/domain/repositories/ITaskRepository.ts`). The variant-b `ITaskRepository -[:CONTAINS]-> Method` count is 8 (golden `u2-ingestion` test 4). So the BR-U1-39 exclusion does not apply.
 - **Cycle strategy.** The run used the current default. The cycle-strategy decision (ADR-016 e) moved with the H13 latency gate to U6 under ADR-021 item 3. If it flips, P-2 is bumped and these rows are rerun.
+
+## Addendum, ADR-016 b exclusions (`fixtures-bf2855d87212.json`, 2026-10-09)
+
+The cause is BT-E1 (`4e94cea`, ADR-022 item 1): FF-CV01 and FF-CV04 are `enabled: false` in `specs/clean-arch.yaml` after their frozen probes failed. Their two vacuous passes leave the convention dimension (`functionCount` 6 → 4), so every AHS falls by 0.004 and every verdict is unchanged. The FF-CV06 template fix (`165ec73`) changes no fixture, since none has an `index.ts`.
+
+| Fixture | `fixtures-0c6a0de0b4e1` | `fixtures-bf2855d87212` | Verdict | Total (ms) |
+|---|---|---|---|---|
+| correct-reference | 0.958 | 0.954 | pass | 630 |
+| variant-d-subtle | 0.558 | 0.554 | soft-block | 599 |
+| variant-b-pattern | 0.575 | 0.571 | soft-block | 575 |
+| variant-a-structural | 0.442 | 0.438 | hard-block | 611 |
+| variant-c-everything | 0.391 | 0.387 | hard-block | 644 |
+
+The measured-verdict comment in the `specs/clean-arch.yaml` header still quotes the `0c6a0de` values, labelled with that commit. It is left unchanged, so that the registered spec does not need another bump for a comment. The current values are this table.
