@@ -19,6 +19,10 @@ Previous: v1, commit `84bd30c`. No run of any registered plan has happened under
 | `Docs/e7-spec-rule.md` (new) | — | `ace1f6de…` | The mechanical directory-to-layer rule (methodology constraint, ADR-020 item 4), committed in `ef89bf3` before any spec was generated. | None beyond the floor motivation it declares. |
 | `scripts/generate-e7-specs.ts` (new) | — | `ebb262a7…` | The generator that applies the rule (`36d067f`). Registered so that the spec bytes are reproducible from registered inputs. | None. |
 
+Style mismatches between the rule output and the query-derived `style` in `corpus/corpus.json` (criterion C4): `zhuravlevma__nestjs-active-record` is nestjs by the rule and layered in `corpus.json`; `MarvinRF__nest-docfy` is layered by the rule and clean-architecture in `corpus.json`. The rule output wins, because it is the registered mechanism. The `corpus.json` styles are not edited.
+
+MarvinRF exclusion: a **suspected report-schema defect** (the full-mode report of a project with zero judge units lacks `ahsNeuronal`), not a property of the project. It is assigned to U6. Re-admission needs a dated registered decision before any run.
+
 Registry change: `Docs/e7-spec-rule.md` and `scripts/generate-e7-specs.ts` join the BR-U5b-51 registry (`scripts/lib/prereg.ts`, `ef89bf3`).
 
 Changes covered by this bump that are not registered artefacts (named for completeness):
