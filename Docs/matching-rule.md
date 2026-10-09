@@ -2,6 +2,7 @@
 
 > **Status**: final, version `1.0.0` (U5b Step 31, 2026-10-08); registered with `corpus/prereg.json` version 1 (U5b Step 32). This file is a registered artefact (BR-U5b-51). Any change to it is a pre-registration version bump with a reason (BR-U5b-50).
 > **Amended 2026-10-08 to version `1.1.0` (ADR-020, pre-registration P-2)**: MAT-10 (TP-class labels leave FP-labelled, item 2), MAT-19 (neural new violations in their own column, item 5), MAT-20 (corpus-tier strata, item 8), and a note to MAT-04 (`remapLine`, B7). §9 lists the changes; registered with `corpus/prereg.json` version 3; every run registered under version 1.0.0 keeps its own `preregVersion`.
+> **Amended 2026-10-09 to version `1.2.0` (ADR-025, POST-HOC, pre-registration v9)**: MAT-04a (class-rename identity) and an expectation note to MAT-13. Both defects were found after the SO4 strict results were seen; the strict score under 1.1.0 is kept and reported beside the corrected one. §9 lists the changes.
 > **Version**: the machine block below (`version`) is what `scripts/lib/matching-rule.ts` loads. The scorer refuses to run when the block is missing or its version differs from the registered version in `corpus/prereg.json` (`SCORE_RULE_MISMATCH`, BR-U5b-01).
 > **Requirements**: FR-v1.2E-25 (matching rule dated in git before the first run; per instance, function, dimension and tag), FR-v1.2E-27 (root-cause list, mechanical FN causes, audit allocation); ADR-015 items 1, 2, 5, 9, 10; ADR-016 b; ADR-017 items 6, 7.
 > **Design source**: `aidlc-docs/construction/v1.2E-u5b-scoring-harness/functional-design/business-rules.md` (BR-U5b-01..30, 38, 41, 78). Rule ids are cited so each rule can be traced to its test.
@@ -13,7 +14,7 @@
 The scorer reads only this block. Every other section is the human-readable statement of the same rule.
 
 ```yaml matching-rule
-version: 1.1.0
+version: 1.2.0
 lineTolerance: 0
 multiDetection: count-once
 collateralSource: manifest
@@ -66,6 +67,8 @@ rootCauses:
 
 *Note (1.1.0, B7).* U5a stores `expected.keys[].line` already in seeded-copy coordinates, so line confirmation compares the seeded violation's line with the stored key line directly, and the baseline remap is never needed: `remapLine` in `scripts/score-golden.ts` is that transformation, kept and unit-tested, but not called by the scorer. Line confirmation never changes TP / FN either way.
 
+**MAT-04a Class-rename identity (1.2.0, ADR-025, POST-HOC)**: MAT-04's remap moves baseline *lines* only, and `line` is not in the key (MAT-02), so it never re-keys a violation. A `class-rename` seed (MO-CV02, MO-CV02n) changes a key element instead: violations of the renamed class carry its name as a discriminator element. Before the MAT-03 difference, every baseline symbolic violation on the site file (`site.filePath`) has each discriminator element equal to the stored old name (`site.detail.class`) replaced by the new name. The new name is the one candidate of the frozen rename list (`Docs/operator-catalogue.md` §3, positive suffixes and twin prefixes of the old name) that a seeded symbolic violation on the site file carries and no baseline violation on that file carries; with zero or several such candidates no remap applies. Nothing is re-derived from source. A pre-existing violation re-keyed by the rename is therefore pre-existing (`preExistingIgnored`), not FP-strict; the expected key (new name) is unaffected. The same mapping applies to SP probes (MAT-28).
+
 **MAT-05 Count-once (BR-U5b-05)**: instance, dimension, tag and overall tables count each seed once: TP if any applicable expected function detects it, else FN, whatever the number of detecting functions. `detectedBy` lists every detecting function id, sorted.
 
 **MAT-06 Per-function rows (BR-U5b-06)**: for each applicable expected function of a seed, TP when that function detects the seed, else FN in that function's row.
@@ -92,7 +95,7 @@ rootCauses:
 
 Status ∈ `matched`, `missed`, `not-applicable`, `site-invalid`, `twin-clean`, `twin-fired`.
 
-**MAT-13 Not-applicable (BR-U5b-13)**: an expected function is not applicable when (a) it is in `expected.disabledFunctionIds`; (b) its template is in `expected.absentTemplates`; (c) it is in the seeded report's `disabledFunctions`; or (d) it has no row in the seeded report's `functionResults[]` (matched on `functionId`; a function skipped by mode or dropped at compile has no row). `functionExecution.executed` is a count and never a membership test. A report with a function in `functionExecution.failed[]` is rejected before this rule (MAT-25). Not-applicable functions leave the seed's per-function rows; a seed with no applicable expected function is `not-applicable`, leaves every recall denominator and is counted per function.
+**MAT-13 Not-applicable (BR-U5b-13)**: an expected function is not applicable when (a) it is in `expected.disabledFunctionIds`; (b) its template is in `expected.absentTemplates`; (c) it is in the seeded report's `disabledFunctions`; or (d) it has no row in the seeded report's `functionResults[]` (matched on `functionId`; a function skipped by mode or dropped at compile has no row). `functionExecution.executed` is a count and never a membership test. A report with a function in `functionExecution.failed[]` is rejected before this rule (MAT-25). *Note (1.2.0, ADR-025).* U5a's expectation may list an enabled function under `disabledFunctionIds` when the spec's style allows the seeded construct (the style guard of `scripts/lib/mutation/expected.ts`: MO-S01 `dependency-direction` under `layered`); (a) then applies unchanged. Not-applicable functions leave the seed's per-function rows; a seed with no applicable expected function is `not-applicable`, leaves every recall denominator and is counted per function.
 
 **MAT-14 Site-invalid (BR-U5b-14)**: a non-metric seed whose expected key already occurs in the baseline report is `site-invalid`, excluded from P/R and counted. A non-zero count is an instrument finding.
 
@@ -179,5 +182,8 @@ The author audits **30** items of the label plan. **Amended 2026-10-09 (ADR-021 
 | 2026-10-08 | 1.1.0 | MAT-04 | Note: `remapLine` is not called (keys are stored in seeded coordinates). No rule change. | ADR-020 item 9 (B7) |
 | 2026-10-09 | 1.1.0 (no count change; registered with P-U6) | §8 | Audit blinding by order and by file: seeded view order independent of the strata, the allocation sealed outside the view directory, the audit committed before any comparison and before any labelled SO3 / SO4 table. | ADR-021 THR-3 |
 | 2026-10-09 | 1.1.0 (no count change; registered with P-U6) | §8 | The audit is drawn from the label plan before the live run, strata kind × population (was: kind × panel label, `uncertain` excluded); registered audit seed 6105. | ADR-021 items 8.5, 8.8 |
+
+| 2026-10-09 | 1.2.0 | MAT-04a | POST-HOC. Class-rename identity: baseline discriminator elements equal to the renamed class's old name, on the site file, are mapped to its new name (taken from the frozen rename list as seen in the seeded report) before the MAT-03 difference. MAT-04's line remap (`remapLine`) is unchanged and still not needed. | ADR-025 item 1; SO4 strict FP 13 |
+| 2026-10-09 | 1.2.0 | MAT-13 | POST-HOC. Note only: a style-guarded expected function is recorded under `disabledFunctionIds` and is not applicable by (a). | ADR-025 item 2 |
 
 The recall interval unit (the (project, operator) cell) is an analysis rule, registered in `Docs/analysis-plan.md` §5; it does not change any count of this document.
