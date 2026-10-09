@@ -27,7 +27,8 @@ import type { CallOutcome, CassetteEntry, CriticVerdict, SourcePointer, StopCaus
 
 // ── Request and key (CAS-01..03) ─────────────────────────────────────────────────────────
 
-export type JudgeProvider = 'claude-cli' | 'gemini' | 'mock';
+/** `agy` is the labeller panel's CLI route (ADR-019 item 4 as amended; ADR-021 SO3-1). */
+export type JudgeProvider = 'claude-cli' | 'gemini' | 'agy' | 'mock';
 
 export interface JudgeRequest {
   readonly prompt: string;
@@ -59,10 +60,10 @@ function hasArgvFlags(provider: LLMProvider): provider is LLMProvider & ArgvFlag
 
 export function judgeProviderOf(description: ProviderDescription): JudgeProvider | null {
   const p = description.provider;
-  return p === 'claude-cli' || p === 'gemini' || p === 'mock' ? p : null;
+  return p === 'claude-cli' || p === 'gemini' || p === 'agy' || p === 'mock' ? p : null;
 }
 
-/** Builds the canonical request (DE §3.5): effort only for the CLI, flags only from the provider. */
+/** Builds the canonical request (DE §3.5): effort only for the Claude CLI, argv flags only for the CLI providers. */
 export function buildJudgeRequest(
   provider: JudgeProvider,
   prompt: string,
@@ -78,7 +79,7 @@ export function buildJudgeRequest(
     model: options.model,
     effort: provider === 'claude-cli' ? options.effort ?? null : null,
     maxTokens: options.maxTokens,
-    argvFlags: provider === 'claude-cli' ? [...argvFlags].sort() : [],
+    argvFlags: provider === 'claude-cli' || provider === 'agy' ? [...argvFlags].sort() : [],
   };
 }
 

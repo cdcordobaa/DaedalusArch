@@ -257,13 +257,13 @@ export interface StageTimings {
 }
 
 // FR-23: judge provenance; 'none' = no provider built (symbolic-only)
-export type JudgeProviderName = 'claude-cli' | 'gemini' | 'mock' | 'null' | 'none';
+export type JudgeProviderName = 'claude-cli' | 'gemini' | 'agy' | 'mock' | 'null' | 'none';
 
 export interface ProviderDescription {
   readonly provider: JudgeProviderName;
   readonly model: string;                // 'none' when provider is 'none'
   readonly effort?: LLMEffort;
-  readonly cliVersion?: string;          // claude-cli only
+  readonly cliVersion?: string;          // claude-cli and agy
 }
 
 export interface JudgeProvenance extends ProviderDescription {
