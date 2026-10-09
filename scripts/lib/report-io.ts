@@ -41,6 +41,12 @@ export interface GenerationCell {
   readonly failureReason?: 'typecheck' | 'agent-error' | 'model-mismatch' | 'skeleton-tampered'
     | 'infrastructure' | 'envelope-unreadable' | 'timeout';
   readonly fileCount: number; readonly fileCountInRange: boolean; readonly permissionDenials: number;
+  /**
+   * ADR-021 SO5-07, X-3 (`scripts/lib/so5-size.ts`): non-blank lines of the `src/**\/*.ts` files of the evaluated
+   * tree, and the generation effort (`generation.json` `durationMs`, envelope `num_turns`, `total_cost_usd`). Set by
+   * `joinOutcome` on a joined outcome only; absent on `missing` and `protocol-mismatch` cells and on older records.
+   */
+  readonly loc?: number; readonly generationDurationMs?: number; readonly numTurns?: number; readonly totalCostUsd?: number;
 }
 
 export interface SeedRef {

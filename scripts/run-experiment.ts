@@ -43,6 +43,7 @@ import type { PreregCheck, PreregCheckInput } from './lib/prereg.js';
 import { acceptReport, knownSecretsOf, scrubbedJson, writeScrubbedJson } from './lib/report-io.js';
 import type { GenerationCell, PinnedJudge, ReasonCode, RunRecord, RunStatus, SeedRef } from './lib/report-io.js';
 import { cellGenCode, JOIN_GEN_CODES, loadSo5Codes } from './lib/so5-codes.js';
+import { readGenerationEffort, treeLoc } from './lib/so5-size.js';
 import type { So5Codes } from './lib/so5-codes.js';
 
 export const RUN_RECORD_SCHEMA = 'scripts/lib/schemas/run-record.schema.json';
@@ -286,7 +287,9 @@ export function joinOutcome(entry: PlanEntry, style: string, repoRoot: string, p
     ];
     if (problems.length > 0) return mismatch(problems.join('; '), joined);
   }
-  return { ok: true, cell: joined };
+  // ADR-021 SO5-07, X-3: LOC of the tree this entry evaluates and the generation effort, on a joined outcome only.
+  const outcomeDir = resolve(repoRoot, g.outcomeDir);
+  return { ok: true, cell: { ...joined, loc: treeLoc(outcomeDir), ...readGenerationEffort(outcomeDir, raw as Record<string, unknown>) } };
 }
 
 /**
