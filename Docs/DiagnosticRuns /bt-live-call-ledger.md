@@ -46,3 +46,13 @@ Generator plan file used for Steps 39–41 (scratch, not committed; outside the 
 | 1 | 2026-10-08 | 39 | confinement probes (`confinement-cli.ts`, opus, Bash set): 5 / 5 pass | 5 | 0 | 5 |
 | 2 | 2026-10-08 | 40 | model-usage envelopes (Bash set), one per pinned id: opus, sonnet, haiku; all model-valid | 3 | 0 | 8 |
 | 3 | 2026-10-08 | 41 | pilot (`generate-projects.ts --pilot`): opus, task-management, none / minimal-prose / full-aac; 3 ok | 3 | 0 | **11** (cap reached; 0 of 3 retries used) |
+
+## Labeller route probe (ADR-019 item 4; probe cap 15; not judge calls)
+
+Gemini CLI 0.46.0 under a dedicated `GEMINI_CLI_HOME` (`<HOME>/.firewall/labeller-gemini/home`), `env -i` allow-list, neutral `mktemp` cwd, credentials reused in place through `GOOGLE_APPLICATION_CREDENTIALS` (never read or copied). Evidence: `tests/fixtures/gemini-cli/probe-values.json`.
+
+| # | Date | Run | CLI spawns | Spawns reaching auth | Model requests | Running total (spawns reaching auth) |
+|---|---|---|---|---|---|---|
+| 1 | 2026-10-08 | `--version` ×2, `--list-extensions` ×2, one headless `--output-format json` call | 5 | 3 | 0 | 3 / 15 |
+
+Every spawn that reached auth stopped at the Code Assist tier check (`IneligibleTierError`, `UNSUPPORTED_CLIENT`, free tier "Gemini Code Assist for individuals") before any model request. The probe stopped there (ADR-019 item 4 halt). Judge total unchanged.
