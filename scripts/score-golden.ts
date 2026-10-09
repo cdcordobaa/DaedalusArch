@@ -24,10 +24,18 @@
  *   FP-strict or a symbolic P/R/F1 table (MAT-19 1.1.0, ADR-020 item 5);
  * - FP-labelled = FP-strict minus the items reconciled TP-class (`TP` or `unseeded-TP`; MAT-10 1.1.0, ADR-020 item 2);
  * - strata `split` × `baseKind` × `coverage` (split total, base-kind and coverage strata, plus the corpus-tier strata
- *   `corpus-core` / `corpus-e7` when the corpus tiers are given, ADR-020 item 8; never pooled across splits;
+ *   `corpus-core` / `corpus-e7` when the corpus tiers are given, ADR-020 item 8, and the style strata `style-<s>` of
+ *   the spec's `architecture.style` when the spec styles are given, ADR-021 SO1-C; never pooled across splits;
  *   SP-* probe rows only through `scoreSensitivity` into `FunctionSensitivityResult`, BR-U5b-20, 21, 78); FLOWS_TO
  *   edge evidence (`EDGE_EVIDENCE_UNAVAILABLE` on `{}`, BR-U5b-22); judge probes overall and conditional on the
  *   baseline selection (BR-U5b-23); one `denominators` row per report with U3's identities I1 / I2 (BR-U5b-24).
+ *
+ * - a pair that fails acceptance or provenance (`SCORE_INPUT_REJECTED`), whose run is missing or not accepted, or whose
+ *   FLOWS_TO evidence is unavailable (`EDGE_EVIDENCE_UNAVAILABLE`) yields no score and is listed in `rejectedPairs`
+ *   with its reason; the other pairs are still scored (MAT-25, analysis-plan §8; ADR-021 SO4-03). Only a case in which
+ *   every pair is rejected is refused. Manifest rejections are carried in `manifestRejections` for the N accounting
+ *   (MAT-12 step 1, ADR-021 SO4-05); each scored instance carries its FP-strict items (`fpItems`) so the aggregate can
+ *   form (project, operator) precision and F1 cells (ADR-021 SO4-06).
  *
  * The output is a `GoldenScore`; `canonicalGoldenScore` writes it in the canonical form (BR-U5b-26).
  */
@@ -38,7 +46,7 @@ import type { EvaluationReport } from '../src/shared/types/evaluation.js';
 import type { Dimension } from '../src/shared/types/enums.js';
 import { parseEvidence } from '../src/evaluation-engine/evidence.js';
 import { canonicalize, ratio } from './lib/canonical-json.js';
-import { loadManifest } from './lib/manifest.js';
+import { isGoldenRow, loadManifest } from './lib/manifest.js';
 import type { Manifest, ManifestRejection, ManifestRow, Split } from './lib/manifest.js';
 import type { MatchingRule, RuleLoad } from './lib/matching-rule.js';
 import { acceptReport, baselineSelectionProblems, checkRunRecord } from './lib/report-io.js';
@@ -47,8 +55,8 @@ import { compiledThresholds, loadCompiledSpec } from './lib/mutation/expected.js
 import { isMetricTemplate } from './lib/mutation/metrics.js';
 import { loadCatalogueRegistry } from './lib/mutation/operators/index.js';
 import type { BaseKind, CorpusTier, Coverage, ExpectedKey, LineShift } from './lib/mutation/types.js';
-import { corpusTiers as corpusTiersOf } from './lib/corpus.js';
-import type { CorpusFile } from './lib/corpus.js';
+import { corpusStyles as corpusStylesOf, corpusTiers as corpusTiersOf } from './lib/corpus.js';
+import type { CorpusFile, CorpusStyle } from './lib/corpus.js';
 import { isTpClass } from './lib/baseline-precision.js';
 import { p1LabelsOf, unlabelledItems } from './lib/label-adapters.js';
 
@@ -90,6 +98,17 @@ export interface PrfModes {
   readonly fpUncertain: number;
 }
 
+/** One FP-strict item of a scored instance (ADR-021 SO4-06): the P1 item id, its function and, when labelled, its label. */
+export interface FpItemRef {
+  readonly itemId: string;
+  readonly functionId: string;
+  readonly dimension?: string;
+  readonly tag?: string;
+  readonly template?: string;
+  /** Reconciled P1 label when the score was given labels (BR-U5b-10). */
+  readonly label?: ReconciledP1Label;
+}
+
 export interface InstanceResult {
   readonly seedId: string;
   readonly projectId: string;
@@ -104,11 +123,38 @@ export interface InstanceResult {
   readonly applicable: readonly string[];
   /** Corpus tier of a `corpus` base when the corpus tiers are known (ADR-020 item 8); absent otherwise. */
   readonly corpusTier?: CorpusTier;
+  /** `architecture.style` of the row's spec when the spec styles are known (ADR-021 SO1-C); absent otherwise. */
+  readonly specStyle?: string;
+  /** `style` of the corpus entry (`corpus/corpus.json`) of a corpus base when known (ADR-021 SO1-C); absent otherwise. */
+  readonly corpusStyle?: CorpusStyle;
   readonly status: InstanceStatus;
   readonly detectedBy: readonly string[];
   readonly lineConfirmed: boolean | null;
   readonly collateral: readonly MatchKey[];
   readonly undeclaredNew: readonly MatchKey[];
+  /** FP-strict items of a scored positive (empty otherwise); absent in scores written before ADR-021 SO4-06. */
+  readonly fpItems?: readonly FpItemRef[];
+}
+
+/** A seed pair that yields no score, with its reason (MAT-25, analysis-plan §8; ADR-021 SO4-03). */
+export interface RejectedPair {
+  readonly seedId: string;
+  readonly projectId: string;
+  readonly operatorId: string;
+  readonly split: Split;
+  readonly baseKind: BaseKind;
+  /** The row is a golden-set instance (held-out positive symbolic, not a judge probe; BR-U5a-01). */
+  readonly golden: boolean;
+  readonly code: typeof SCORE_INPUT_REJECTED | typeof EDGE_EVIDENCE_UNAVAILABLE;
+  readonly reason: string;
+}
+
+/** A manifest rejection as the score carries it (counted in the coverage table only; MAT-12 step 1). */
+export interface ManifestRejectionRef {
+  readonly projectId: string;
+  readonly operatorId: string;
+  readonly reason: string;
+  readonly detail: string;
 }
 
 export interface EdgeEvidence {
@@ -138,6 +184,8 @@ export interface DenominatorRow {
   readonly dropped: number; readonly droppedIds: readonly string[]; readonly skippedByMode: number;
   readonly executed: number; readonly failed: number; readonly notApplicable: number; readonly metricKeyExcluded: number;
   readonly identityOk: boolean;
+  /** `architecture.style` of the evaluated spec when known (ADR-021 SO1-C). */
+  readonly specStyle?: string;
 }
 
 export interface GoldenScore {
@@ -167,6 +215,10 @@ export interface GoldenScore {
   readonly edgeEvidence: readonly EdgeEvidence[];
   readonly judgeProbe: readonly JudgeProbeResult[];
   readonly denominators: readonly DenominatorRow[];
+  /** Pairs that yield no score, sorted by seed id (ADR-021 SO4-03). */
+  readonly rejectedPairs: readonly RejectedPair[];
+  /** The manifest's rejections, in manifest order (ADR-021 SO4-05). */
+  readonly manifestRejections: readonly ManifestRejectionRef[];
 }
 
 /** A P1 labeller item (BR-U5b-09, 33): one per FP-strict new violation; the context is built at labelling time. */
@@ -201,6 +253,8 @@ export interface ScoredRun {
   readonly report: unknown;
   /** Absent → the pair is rejected (BR-U5b-25). */
   readonly record: RunRecord | undefined;
+  /** Set when the run cannot be read (no run, no report file); the pair is rejected with this reason (SO4-03). */
+  readonly unavailable?: string;
 }
 export interface SeedInput {
   readonly row: ManifestRow;
@@ -230,6 +284,10 @@ export interface ScoreInput {
   readonly judgeProbeOperators?: ReadonlyMap<string, JudgeProbeKind>;
   /** Corpus project id → tier (`corpusTiers` of `corpus/corpus.json`); adds the tier strata (ADR-020 item 8). */
   readonly corpusTiers?: ReadonlyMap<string, CorpusTier>;
+  /** Spec sha256 → `architecture.style` (lower-cased by C3); adds the style strata (ADR-021 SO1-C). */
+  readonly specStyles?: ReadonlyMap<string, string>;
+  /** Corpus project id → `style` of `corpus/corpus.json` (ADR-021 SO1-C). */
+  readonly corpusStyles?: ReadonlyMap<string, CorpusStyle>;
 }
 
 export type ScoreOutcome =
@@ -317,9 +375,14 @@ export function acceptPair(seed: SeedInput, pinnedJudge?: PinnedJudge): { ok: tr
   const reports: EvaluationReport[] = [];
   const records: RunRecord[] = [];
   for (const [role, run] of runs) {
+    if (run.unavailable !== undefined) return { ok: false, reason: `${id}: ${role} run unavailable (${run.unavailable})` };
     if (run.record === undefined) return { ok: false, reason: `${id}: ${role} report without its RunRecord` };
     const problems = checkRunRecord(run.record);
     if (problems.length > 0) return { ok: false, reason: `${id}: ${role} RunRecord invalid (${problems.join('; ')})` };
+    const rec = run.record;
+    if (rec.status !== 'accepted') {
+      return { ok: false, reason: `${id}: ${role} run ${rec.status}${rec.reasonCode === undefined ? '' : ` (${rec.reasonCode}${rec.reasonDetail === undefined ? '' : `: ${rec.reasonDetail}`})`}` };
+    }
     const acc = acceptReport(run.report, pinnedJudge === undefined ? {} : { pinnedJudge });
     if (!acc.accepted) return { ok: false, reason: `${id}: ${role} report rejected (${acc.reasonCode}: ${acc.reasonDetail})` };
     reports.push(acc.report);
@@ -449,6 +512,9 @@ interface ClassifyContext {
   readonly excludedFunctions: ReadonlySet<string>;
   readonly thresholds: ReadonlyMap<string, Readonly<Record<string, number>>> | undefined;
   readonly corpusTiers: ReadonlyMap<string, CorpusTier> | undefined;
+  readonly specStyles: ReadonlyMap<string, string> | undefined;
+  readonly corpusStyles: ReadonlyMap<string, CorpusStyle> | undefined;
+  readonly labels: ReadonlyMap<string, ReconciledP1Label> | undefined;
 }
 
 /** A new symbolic violation occurrence (one per multiset count) with a sample violation of its key. */
@@ -575,9 +641,12 @@ function classifySeed(pair: AcceptedPair, ctx: ClassifyContext): SeedOutcome {
   let metricCrossing = false;
 
   const tier = row.baseKind === 'corpus' ? ctx.corpusTiers?.get(row.projectId) : undefined;
+  const specStyle = ctx.specStyles?.get(row.specSha256);
+  const corpusStyle = row.baseKind === 'corpus' ? ctx.corpusStyles?.get(row.projectId) : undefined;
   const base = {
     seedId: row.seedId, projectId: row.projectId, operatorId: row.operatorId, split: row.split, baseKind: row.baseKind,
     coverage: expected.coverage, ...(tier !== undefined && { corpusTier: tier }),
+    ...(specStyle !== undefined && { specStyle }), ...(corpusStyle !== undefined && { corpusStyle }),
   };
   const empty = {
     perFunction: [], fps: [], twinFps: [], items: [], neuralNew, metricKeyExcluded: [], metricCrossing: false,
@@ -606,7 +675,7 @@ function classifySeed(pair: AcceptedPair, ctx: ClassifyContext): SeedOutcome {
       ...empty,
       instance: {
         ...base, dimension: null, tags: [], applicable: [], status: twinFps.length === 0 ? 'twin-clean' : 'twin-fired', detectedBy: [], lineConfirmed: null,
-        collateral: sortStrings(collateral), undeclaredNew: sortStrings(undeclared),
+        collateral: sortStrings(collateral), undeclaredNew: sortStrings(undeclared), fpItems: [],
       },
       twinFps, items, collateralFunctions, notApplicable: [], metricKeyExcluded: excluded,
     };
@@ -615,7 +684,7 @@ function classifySeed(pair: AcceptedPair, ctx: ClassifyContext): SeedOutcome {
   const dimension = expected.dimension;
   // (2) Not-applicable.
   if (applicable.length === 0) {
-    return { ...empty, instance: { ...base, dimension, tags: [], applicable: [], status: 'not-applicable', detectedBy: [], lineConfirmed: null, collateral: [], undeclaredNew: [] }, collateralFunctions: [], notApplicable };
+    return { ...empty, instance: { ...base, dimension, tags: [], applicable: [], status: 'not-applicable', detectedBy: [], lineConfirmed: null, collateral: [], undeclaredNew: [], fpItems: [] }, collateralFunctions: [], notApplicable };
   }
   const tags = tagsOf(applicable);
   const applicableSorted = sortStrings(applicable);
@@ -623,7 +692,7 @@ function classifySeed(pair: AcceptedPair, ctx: ClassifyContext): SeedOutcome {
   const applicableKeys = [...expectedKeys].filter(([, k]) => applicable.includes(k.functionId));
   // (3) Site-invalid: a non-metric seed whose expected key is already in the baseline.
   if (!isMetricSeed && applicableKeys.some(([k]) => diff.baselineKeys.has(k))) {
-    return { ...empty, instance: { ...base, dimension, tags, applicable: applicableSorted, status: 'site-invalid', detectedBy: [], lineConfirmed: null, collateral: [], undeclaredNew: [] }, collateralFunctions: [], notApplicable };
+    return { ...empty, instance: { ...base, dimension, tags, applicable: applicableSorted, status: 'site-invalid', detectedBy: [], lineConfirmed: null, collateral: [], undeclaredNew: [], fpItems: [] }, collateralFunctions: [], notApplicable };
   }
   // (4) Metric threshold crossing on a pre-existing key (BR-U5b-15).
   if (isMetricSeed) {
@@ -674,11 +743,20 @@ function classifySeed(pair: AcceptedPair, ctx: ClassifyContext): SeedOutcome {
     addFp(o.key, fid, o.v);
   }
   const detected = sortStrings(detectedBy);
+  const fpItems: FpItemRef[] = fps.map((f) => {
+    const fi = info.get(f.functionId);
+    const label = ctx.labels?.get(f.itemId);
+    return {
+      itemId: f.itemId, functionId: f.functionId, ...(fi !== undefined && { dimension: fi.dimension }),
+      ...(fi?.tag !== undefined && { tag: fi.tag }), ...(fi?.template !== undefined && { template: fi.template }),
+      ...(label !== undefined && { label }),
+    };
+  });
   return {
     instance: {
       ...base, dimension, tags, applicable: applicableSorted, status: detected.length > 0 ? 'matched' : 'missed', detectedBy: detected,
       lineConfirmed: lineChecks.length === 0 ? null : lineChecks.every(Boolean),
-      collateral: sortStrings(collateral), undeclaredNew: sortStrings(undeclared),
+      collateral: sortStrings(collateral), undeclaredNew: sortStrings(undeclared), fpItems,
     },
     perFunction: applicable.map((functionId) => ({ functionId, detected: detectedBy.has(functionId) })),
     fps, twinFps: [], items, neuralNew, collateralFunctions, notApplicable, metricKeyExcluded: excluded, metricCrossing,
@@ -740,14 +818,16 @@ function judgeProbeResult(p: AcceptedPair, probe: JudgeProbeKind): JudgeProbeRes
 }
 
 /** A `denominators.csv` row with U3's identities I1 and I2 (BR-U5b-24). */
-export function denominatorRow(seedId: string | null, runId: string, r: EvaluationReport, notApplicable: number, metricKeyExcluded: number): DenominatorRow {
+export function denominatorRow(
+  seedId: string | null, runId: string, r: EvaluationReport, notApplicable: number, metricKeyExcluded: number, specStyle?: string,
+): DenominatorRow {
   const fe = r.functionExecution;
   const i1 = fe.declared + fe.adrDerived === fe.compiled + fe.disabled + fe.dropped.length;
   const i2 = fe.compiled === fe.executed + fe.failed.length + fe.skippedByMode;
   return {
     seedId, runId, declared: fe.declared, adrDerived: fe.adrDerived, compiled: fe.compiled, disabled: fe.disabled,
     dropped: fe.dropped.length, droppedIds: sortStrings(fe.dropped), skippedByMode: fe.skippedByMode, executed: fe.executed,
-    failed: fe.failed.length, notApplicable, metricKeyExcluded, identityOk: i1 && i2,
+    failed: fe.failed.length, notApplicable, metricKeyExcluded, identityOk: i1 && i2, ...(specStyle !== undefined && { specStyle }),
   };
 }
 
@@ -860,13 +940,20 @@ export function corpusTierStratum(tier: CorpusTier): string {
   return `corpus-${tier}`;
 }
 
+/** Base-kind label of the style strata (ADR-021 SO1-C): `style-<architecture.style of the spec>`. */
+export function styleStratum(style: string): string {
+  return `style-${style}`;
+}
+
 /** Stratum keys a scored (non-probe) instance contributes to. */
-export function strataOf(i: Pick<InstanceResult, 'split' | 'baseKind' | 'coverage' | 'corpusTier'>): string[] {
+export function strataOf(i: Pick<InstanceResult, 'split' | 'baseKind' | 'coverage' | 'corpusTier' | 'specStyle'>): string[] {
   // BR-U5b-20, 21: the split total, the base-kind stratum and the coverage stratum; never across splits.
   // ADR-020 item 8: a corpus instance with a known tier also enters `[split, corpus-<tier>, all]`.
+  // ADR-021 SO1-C: an instance whose spec style is known also enters `[split, style-<style>, all]`.
   return [
     JSON.stringify([i.split, 'all', 'all']), JSON.stringify([i.split, i.baseKind, 'all']), JSON.stringify([i.split, 'all', i.coverage]),
     ...(i.corpusTier === undefined ? [] : [JSON.stringify([i.split, corpusTierStratum(i.corpusTier), 'all'])]),
+    ...(i.specStyle === undefined ? [] : [JSON.stringify([i.split, styleStratum(i.specStyle), 'all'])]),
   ];
 }
 
@@ -878,14 +965,30 @@ function increment(m: Map<string, number>, k: string): void {
   m.set(k, (m.get(k) ?? 0) + 1);
 }
 
-/** Scores the seeds (BR-U5b-02..25; SP-* probe rows are left to `scoreSensitivity`). */
+function rejectedPair(row: ManifestRow, code: RejectedPair['code'], reason: string): RejectedPair {
+  return {
+    seedId: row.seedId, projectId: row.projectId, operatorId: row.operatorId, split: row.split, baseKind: row.baseKind,
+    golden: isGoldenRow(row), code, reason,
+  };
+}
+
+/**
+ * Scores the seeds (BR-U5b-02..25; SP-* probe rows are left to `scoreSensitivity`). A rejected pair is listed in
+ * `rejectedPairs` and the rest are scored (ADR-021 SO4-03); a keyless operator collateral entry is a defect of the
+ * frozen instrument and still refuses the whole score (`SCORE_COLLATERAL_UNKEYED`), as does a case in which every
+ * pair is rejected (the code of the first rejection, every reason in the detail).
+ */
 export function scoreDifferential(input: ScoreInput): ScoreOutcome {
   const pairs: AcceptedPair[] = [];
+  const rejected: RejectedPair[] = [];
   for (const seed of input.seeds) {
     const unkeyed = checkCollateral(seed.row);
     if (unkeyed !== undefined) return { ok: false, code: SCORE_COLLATERAL_UNKEYED, detail: unkeyed };
     const acc = acceptPair(seed, input.pinnedJudge);
-    if (!acc.ok) return { ok: false, code: SCORE_INPUT_REJECTED, detail: acc.reason };
+    if (!acc.ok) {
+      rejected.push(rejectedPair(seed.row, SCORE_INPUT_REJECTED, acc.reason));
+      continue;
+    }
     pairs.push(acc.pair);
   }
   const probeOps = new Map(input.judgeProbeOperators ?? []);
@@ -899,7 +1002,10 @@ export function scoreDifferential(input: ScoreInput): ScoreOutcome {
   for (const p of pairs) {
     if (p.row.split === 'probe') continue; // SP-* probes: scoreSensitivity only (BR-U5b-20, 78)
     const edges = edgeEvidenceOf(p);
-    if (!edges.ok) return { ok: false, code: EDGE_EVIDENCE_UNAVAILABLE, detail: edges.detail };
+    if (!edges.ok) {
+      rejected.push(rejectedPair(p.row, EDGE_EVIDENCE_UNAVAILABLE, edges.detail));
+      continue;
+    }
     edgeEvidence.push(...edges.value);
     const probe = judgeProbeOf(p);
     if (probe !== undefined) {
@@ -908,12 +1014,19 @@ export function scoreDifferential(input: ScoreInput): ScoreOutcome {
     }
     scored.push(p);
   }
+  const [firstRejected] = rejected;
+  if (firstRejected !== undefined && scored.length === 0 && judgeProbe.length === 0) {
+    return { ok: false, code: firstRejected.code, detail: rejected.map((r) => r.reason).join('; ') };
+  }
   const readiness = input.metricKeyReadiness;
   const ctx: ClassifyContext = {
     excludedFunctions: new Set(input.rule.metricKeyExclusions),
     excludedTemplates: new Set(readiness === undefined || (readiness.projectLevelKeys && readiness.rowFilters) ? [] : METRIC_KEY_TEMPLATES),
     thresholds: input.thresholds,
     corpusTiers: input.corpusTiers,
+    specStyles: input.specStyles,
+    corpusStyles: input.corpusStyles,
+    labels: input.labels,
   };
   const perFunction = new Map<string, Map<string, Cell>>();
   const perDimension = new Map<string, Map<string, Cell>>();
@@ -934,8 +1047,9 @@ export function scoreDifferential(input: ScoreInput): ScoreOutcome {
   const twins = { clean: 0, scored: 0 };
   for (const pair of [...scored].sort((a, b) => (a.row.seedId < b.row.seedId ? -1 : a.row.seedId > b.row.seedId ? 1 : 0))) {
     const o = classifySeed(pair, ctx);
-    if (!denominators.has(pair.baselineRecord.runId)) denominators.set(pair.baselineRecord.runId, denominatorRow(null, pair.baselineRecord.runId, pair.baseline, 0, 0));
-    denominators.set(`${pair.row.seedId}\u0000${pair.seededRecord.runId}`, denominatorRow(pair.row.seedId, pair.seededRecord.runId, pair.seeded, o.notApplicable.length, o.metricKeyExcluded.length));
+    const specStyle = ctx.specStyles?.get(pair.row.specSha256);
+    if (!denominators.has(pair.baselineRecord.runId)) denominators.set(pair.baselineRecord.runId, denominatorRow(null, pair.baselineRecord.runId, pair.baseline, 0, 0, specStyle));
+    denominators.set(`${pair.row.seedId}\u0000${pair.seededRecord.runId}`, denominatorRow(pair.row.seedId, pair.seededRecord.runId, pair.seeded, o.notApplicable.length, o.metricKeyExcluded.length, specStyle));
     const i = o.instance;
     instances.push(i);
     items.push(...o.items);
@@ -1017,6 +1131,8 @@ export function scoreDifferential(input: ScoreInput): ScoreOutcome {
         const kb = `${b.seedId ?? ''}\u0000${b.runId}`;
         return ka < kb ? -1 : ka > kb ? 1 : 0;
       }),
+      rejectedPairs: [...rejected].sort((a, b) => (a.seedId < b.seedId ? -1 : a.seedId > b.seedId ? 1 : 0)),
+      manifestRejections: (input.rejections ?? []).map((r) => ({ projectId: r.projectId, operatorId: r.operatorId, reason: r.reason, detail: r.detail })),
     },
   };
 }
@@ -1058,17 +1174,32 @@ export async function metricThresholds(
   repoRoot: string,
   rows: readonly ManifestRow[],
 ): Promise<{ ok: true; value: Map<string, Record<string, number>> } | { ok: false; detail: string }> {
-  const out = new Map<string, Record<string, number>>();
+  const info = await specInfo(repoRoot, rows);
+  return info.ok ? { ok: true, value: info.thresholds } : info;
+}
+
+/**
+ * The compiled thresholds (BR-U5b-15) and the `architecture.style` (ADR-021 SO1-C) of every spec of the rows, by
+ * `specSha256`, from one parse per spec; a spec without a declared style has no entry in `styles`.
+ */
+export async function specInfo(
+  repoRoot: string,
+  rows: readonly ManifestRow[],
+): Promise<{ ok: true; thresholds: Map<string, Record<string, number>>; styles: Map<string, string> } | { ok: false; detail: string }> {
+  const thresholds = new Map<string, Record<string, number>>();
+  const styles = new Map<string, string>();
   for (const row of rows) {
-    if (out.has(row.specSha256)) continue;
+    if (thresholds.has(row.specSha256)) continue;
     const compiled = await loadCompiledSpec(repoRoot, row.specPath);
     if (!compiled.success) return { ok: false, detail: `${row.seedId}: spec ${row.specPath}: ${compiled.errors.map((e) => e.message).join('; ')}` };
     if (compiled.data.specSha256 !== row.specSha256) {
       return { ok: false, detail: `${row.seedId}: spec ${row.specPath} sha256 ${compiled.data.specSha256} != recorded ${row.specSha256}` };
     }
-    out.set(row.specSha256, compiledThresholds(compiled.data));
+    thresholds.set(row.specSha256, compiledThresholds(compiled.data));
+    const style = compiled.data.spec.style;
+    if (style !== undefined) styles.set(row.specSha256, style);
   }
-  return { ok: true, value: out };
+  return { ok: true, thresholds, styles };
 }
 
 // ---------------------------------------------------------------------------------------------
@@ -1094,31 +1225,73 @@ function readJson(file: string): unknown {
   return JSON.parse(readFileSync(file, 'utf8')) as unknown;
 }
 
+/** The run-dir path of a run's stored report (`run-experiment` writes `reports/<runId>.json`). */
+export function reportPathOfRun(runId: string): string {
+  return `reports/${runId}.json`;
+}
+
+/**
+ * Pairs every manifest row with its seeded and baseline runs (ADR-021 SO4-03, 04). The seeded run is the record whose
+ * `seed.seedId` is the row's; its `seed.baselineReportPath` names the baseline, whose record is the one with that
+ * `reportPath` or, for a baseline that stored no report, the one whose `reportPathOfRun(runId)` it is. A missing run,
+ * record or report file never stops the case: that side is marked `unavailable` with the reason, and `acceptPair`
+ * rejects the pair. `readReport` reads a path relative to the case or run directory (`undefined` when absent).
+ */
+export function pairRuns(
+  rows: readonly ManifestRow[], records: readonly RunRecord[], readReport: (relPath: string) => unknown,
+): SeedInput[] {
+  const byReportPath = new Map<string, RunRecord>();
+  for (const r of records) {
+    byReportPath.set(reportPathOfRun(r.runId), r);
+    if (r.reportPath !== undefined) byReportPath.set(r.reportPath, r);
+  }
+  const side = (rec: RunRecord | undefined, path: string | undefined, missing: string): ScoredRun => {
+    if (rec === undefined) return { report: undefined, record: undefined, unavailable: missing };
+    if (path === undefined || rec.reportPath === undefined) {
+      return rec.status === 'accepted'
+        ? { report: undefined, record: rec, unavailable: `run ${rec.runId} stored no report` }
+        : { report: undefined, record: rec };
+    }
+    const report = readReport(path);
+    return report === undefined ? { report: undefined, record: rec, unavailable: `report ${path} of run ${rec.runId} not found` } : { report, record: rec };
+  };
+  return rows.map((row) => {
+    const seededRecords = records.filter((r) => r.seed?.seedId === row.seedId);
+    const rec = seededRecords.length === 1 ? seededRecords[0] : undefined;
+    if (rec === undefined) {
+      const why = seededRecords.length === 0 ? 'no seeded run' : `${String(seededRecords.length)} seeded runs`;
+      return { row, seeded: { report: undefined, record: undefined, unavailable: why }, baseline: { report: undefined, record: undefined, unavailable: why } };
+    }
+    const basePath = rec.seed?.baselineReportPath ?? '';
+    const baseRec = byReportPath.get(basePath);
+    return {
+      row,
+      seeded: side(rec, rec.reportPath, 'no seeded run'),
+      baseline: side(baseRec, baseRec === undefined ? undefined : basePath, `no baseline run with report path ${basePath}`),
+    };
+  });
+}
+
+function optionalJson(file: string): unknown {
+  return existsSync(file) ? readJson(file) : undefined;
+}
+
 /**
  * Loads a scoring case. Every `*.run.json` record under `reports/` is read; a record with `seed` is the seeded run
  * of that manifest row, and its `seed.baselineReportPath` names the baseline report (relative to the case
- * directory), whose record is the one with that `reportPath`.
+ * directory), whose record is the one with that `reportPath` (`pairRuns`). A row without a usable pair is kept and
+ * rejected by the scorer with its reason (ADR-021 SO4-03).
  */
 export function loadCase(repoRoot: string, caseDir: string): { ok: true; value: LoadedCase } | { ok: false; detail: string } {
   const dir = resolve(caseDir);
   const manifest = loadManifest(repoRoot, join(dir, 'manifest.json'));
   if (!manifest.success) return { ok: false, detail: manifest.errors.map((e) => e.message).join('; ') };
-  const records = readdirSync(join(dir, 'reports'))
+  const reportsDir = join(dir, 'reports');
+  const records = (existsSync(reportsDir) ? readdirSync(reportsDir) : [])
     .filter((f) => f.endsWith('.run.json'))
     .sort()
-    .map((f) => readJson(join(dir, 'reports', f)) as RunRecord);
-  const byReportPath = new Map(records.flatMap((r) => (r.reportPath === undefined ? [] : [[r.reportPath, r] as const])));
-  const seeds: SeedInput[] = [];
-  for (const row of manifest.data.rows) {
-    const rec = records.find((r) => r.seed?.seedId === row.seedId);
-    if (rec?.reportPath === undefined || rec.seed === undefined) return { ok: false, detail: `no seeded run for ${row.seedId}` };
-    const baseRec = byReportPath.get(rec.seed.baselineReportPath);
-    seeds.push({
-      row,
-      seeded: { report: readJson(join(dir, rec.reportPath)), record: rec },
-      baseline: { report: readJson(join(dir, rec.seed.baselineReportPath)), record: baseRec },
-    });
-  }
+    .map((f) => readJson(join(reportsDir, f)) as RunRecord);
+  const seeds = pairRuns(manifest.data.rows, records, (rel) => optionalJson(join(dir, rel)));
   const metricKeyReadiness = readReadiness(repoRoot, dir);
   return { ok: true, value: { manifest: manifest.data, seeds, ...(metricKeyReadiness !== undefined && { metricKeyReadiness }) } };
 }
@@ -1143,6 +1316,12 @@ export function readCorpusTiers(repoRoot: string): Map<string, CorpusTier> | und
   return existsSync(f) ? corpusTiersOf(readJson(f) as CorpusFile) : undefined;
 }
 
+/** Corpus styles of `corpus/corpus.json` when the file exists (ADR-021 SO1-C), else `undefined`. */
+export function readCorpusStyles(repoRoot: string): Map<string, CorpusStyle> | undefined {
+  const f = join(repoRoot, 'corpus/corpus.json');
+  return existsSync(f) ? corpusStylesOf(readJson(f) as CorpusFile) : undefined;
+}
+
 /** The `--label-items` file of a score: P1 items (one per item id, first occurrence) and the missed seeds. */
 export function labelItemsFile(score: GoldenScore, items: readonly P1Item[]): LabelItemsFile {
   const seen = new Set<string>();
@@ -1161,11 +1340,14 @@ export const SCORE_USAGE = [
   '       npx tsx scripts/score-golden-cli.ts --self-test | --help',
   '',
   'Scores the seeded copies of a case directory (manifest.json, reports/*.json with reports/*.run.json) under',
-  'Docs/matching-rule.md and writes the canonical GoldenScore (stdout, or --out).',
+  'Docs/matching-rule.md and writes the canonical GoldenScore (stdout, or --out). A pair that is rejected or has no usable',
+  'run yields no score and is listed in rejectedPairs and on stderr; the other pairs are scored (MAT-25, ADR-021 SO4-03).',
+  'A harness output directory becomes a case with scripts/build-score-case-cli.ts (ADR-021 SO4-04).',
   '--labels takes the llm-label output (ReconciledLabel[]; P1 items are read) or an itemId -> label object; every P1',
   'item of the score must have a label (SCORE_LABELS_MISSING). --label-items writes the P1 items and the missed seeds',
   'for build-label-plan (ADR-021 SO4-02).',
-  'Exit: 0 scored; 1 refused (SCORE_RULE_MISMATCH, SCORE_INPUT_REJECTED, SCORE_COLLATERAL_UNKEYED, SCORE_LABELS_MISSING, …);',
+  'Exit: 0 scored; 1 refused (SCORE_RULE_MISMATCH, SCORE_INPUT_REJECTED for every pair, SCORE_COLLATERAL_UNKEYED,',
+  'SCORE_LABELS_MISSING, …);',
   '2 usage or input error.',
   '',
 ].join('\n');
@@ -1247,16 +1429,18 @@ export async function main(argv: readonly string[], repoRoot: string, io: ScoreM
     io.err(`input error: ${loaded.detail}\n`);
     return 2;
   }
-  const thresholds = await metricThresholds(repoRoot, loaded.value.manifest.rows);
-  if (!thresholds.ok) {
-    io.err(`${SCORE_INPUT_REJECTED}: ${thresholds.detail}\n`);
+  const spec = await specInfo(repoRoot, loaded.value.manifest.rows);
+  if (!spec.ok) {
+    io.err(`${SCORE_INPUT_REJECTED}: ${spec.detail}\n`);
     return 1;
   }
   const tiers = readCorpusTiers(repoRoot);
+  const corpusStyles = readCorpusStyles(repoRoot);
   const result = scoreDifferential({
-    rule: rule.rule, seeds: loaded.value.seeds, rejections: loaded.value.manifest.rejections, thresholds: thresholds.value,
-    judgeProbeOperators: judgeProbeOperators(repoRoot),
+    rule: rule.rule, seeds: loaded.value.seeds, rejections: loaded.value.manifest.rejections, thresholds: spec.thresholds,
+    judgeProbeOperators: judgeProbeOperators(repoRoot), specStyles: spec.styles,
     ...(tiers !== undefined && { corpusTiers: tiers }),
+    ...(corpusStyles !== undefined && { corpusStyles }),
     ...(loaded.value.metricKeyReadiness !== undefined && { metricKeyReadiness: loaded.value.metricKeyReadiness }),
     ...(labels !== undefined && { labels }),
   });
@@ -1271,6 +1455,7 @@ export async function main(argv: readonly string[], repoRoot: string, io: ScoreM
       return 1;
     }
   }
+  for (const r of result.score.rejectedPairs) io.err(`rejected pair ${r.seedId}: ${r.code}: ${r.reason}\n`);
   const itemsFile = args.get('--label-items');
   if (typeof itemsFile === 'string') io.writeFile(itemsFile, `${JSON.stringify(labelItemsFile(result.score, result.labelItems), null, 2)}\n`);
   const text = canonicalGoldenScore(result.score);
