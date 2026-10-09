@@ -3,7 +3,8 @@
  *
  * - `RunRecord` and the harness types of domain-entities §6 (the ajv schema for `RunRecord` arrives with
  *   the harness, Step 14; here a record is checked for the fields acceptance and provenance read).
- * - `loadRun(reportPath, recordPath)` reads a stored report with its `RunRecord`.
+ * - `loadRun(reportPath, recordPath)` reads a stored report with its `RunRecord`; `loadRunDir(dir)` reads a harness
+ *   output directory (`runs/*.run.json` and the stored reports they reference).
  * - `acceptReport(report, options)` applies BR-U5b-45: schema validity against the frozen
  *   `schemas/report.schema.json` (C8 `validateReport`, Ajv over the embedded frozen schema), failed and
  *   timed-out functions (`EVAL_001` / `EVAL_002`), truncation (`truncated` rows or `EVAL_003`), failed
@@ -13,8 +14,8 @@
  *   `RunRecord`s, `EnvironmentRecord`s, stored reports, subprocess output) goes through C10 `scrubDeep` with the
  *   known secrets (`NEO4J_PASSWORD`, `GEMINI_API_KEY` values of the parent environment) first.
  */
-import { mkdirSync, readFileSync, writeFileSync } from 'node:fs';
-import { dirname } from 'node:path';
+import { existsSync, mkdirSync, readdirSync, readFileSync, writeFileSync } from 'node:fs';
+import { dirname, join } from 'node:path';
 import { validateReport } from '../../src/scoring-engine/report-schema-validator.js';
 import { scrubDeep } from '../../src/shared/errors/scrub.js';
 import type { EvaluationReport } from '../../src/shared/types/evaluation.js';
@@ -68,6 +69,23 @@ export interface RunRecord {
   readonly envRecordId: string;
   readonly startedAt: string; readonly wallMs: number;
   readonly cell?: GenerationCell; readonly seed?: SeedRef;
+}
+
+export interface LoadedRunDir { readonly records: RunRecord[]; readonly reports: Map<string, EvaluationReport> }
+
+/** Reads a harness output directory: `runs/*.run.json` and the stored reports they reference. */
+export function loadRunDir(dir: string, errorCode = 'RUN_DIR_INVALID'): LoadedRunDir {
+  const runsDir = join(dir, 'runs');
+  if (!existsSync(runsDir)) throw new Error(`${errorCode}: ${runsDir} not found`);
+  const records = readdirSync(runsDir).filter((f) => f.endsWith('.run.json')).sort()
+    .map((f) => JSON.parse(readFileSync(join(runsDir, f), 'utf8')) as RunRecord);
+  const reports = new Map<string, EvaluationReport>();
+  for (const r of records) {
+    if (r.reportPath === undefined) continue;
+    const p = join(dir, r.reportPath);
+    if (existsSync(p)) reports.set(r.runId, JSON.parse(readFileSync(p, 'utf8')) as EvaluationReport);
+  }
+  return { records, reports };
 }
 
 // ---------------------------------------------------------------------------------------------

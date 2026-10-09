@@ -20,8 +20,11 @@
  *   `parseEvidence` and the spec threshold at `specSha256` (BR-U5b-15); metric-key exclusions from the frozen
  *   instrument's readiness flags (BR-U5b-16); twins, specificity and "incl. twins" precision (BR-U5b-17); SCC
  *   member-overlap matching (BR-U5b-18); neural rows by `(functionId, filePath, [unitId])` with judge collateral
- *   (BR-U5b-19);
- * - strata `split` × `baseKind` × `coverage` (split total, base-kind and coverage strata; never pooled across splits;
+ *   (BR-U5b-19); every other neural new violation goes to its own column (`neuralNewByFunction`), never into
+ *   FP-strict or a symbolic P/R/F1 table (MAT-19 1.1.0, ADR-020 item 5);
+ * - FP-labelled = FP-strict minus the items reconciled TP-class (`TP` or `unseeded-TP`; MAT-10 1.1.0, ADR-020 item 2);
+ * - strata `split` × `baseKind` × `coverage` (split total, base-kind and coverage strata, plus the corpus-tier strata
+ *   `corpus-core` / `corpus-e7` when the corpus tiers are given, ADR-020 item 8; never pooled across splits;
  *   SP-* probe rows only through `scoreSensitivity` into `FunctionSensitivityResult`, BR-U5b-20, 21, 78); FLOWS_TO
  *   edge evidence (`EDGE_EVIDENCE_UNAVAILABLE` on `{}`, BR-U5b-22); judge probes overall and conditional on the
  *   baseline selection (BR-U5b-23); one `denominators` row per report with U3's identities I1 / I2 (BR-U5b-24).
@@ -43,7 +46,10 @@ import type { PinnedJudge, RunRecord } from './lib/report-io.js';
 import { compiledThresholds, loadCompiledSpec } from './lib/mutation/expected.js';
 import { isMetricTemplate } from './lib/mutation/metrics.js';
 import { loadCatalogueRegistry } from './lib/mutation/operators/index.js';
-import type { BaseKind, Coverage, ExpectedKey, LineShift } from './lib/mutation/types.js';
+import type { BaseKind, CorpusTier, Coverage, ExpectedKey, LineShift } from './lib/mutation/types.js';
+import { corpusTiers as corpusTiersOf } from './lib/corpus.js';
+import type { CorpusFile } from './lib/corpus.js';
+import { isTpClass } from './lib/baseline-precision.js';
 
 export type { MatchingRule };
 
@@ -93,6 +99,10 @@ export interface InstanceResult {
   /** `null` for twins (the negative expected block has no dimension; DV-U5b-9). */
   readonly dimension: Dimension | null;
   readonly tags: readonly string[];
+  /** Applicable expected functions, sorted (empty for twins and not-applicable seeds); per-function recall cells. */
+  readonly applicable: readonly string[];
+  /** Corpus tier of a `corpus` base when the corpus tiers are known (ADR-020 item 8); absent otherwise. */
+  readonly corpusTier?: CorpusTier;
   readonly status: InstanceStatus;
   readonly detectedBy: readonly string[];
   readonly lineConfirmed: boolean | null;
@@ -141,6 +151,11 @@ export interface GoldenScore {
   readonly executedFunctions: number;
   readonly preExistingIgnored: number;
   readonly collateralByFunction: ReadonlyMap<string, number>;
+  /**
+   * Neural new violations that are not judge collateral, per function: their own column, never FP-strict and never in
+   * a symbolic P/R/F1 table (MAT-19 1.1.0, ADR-020 item 5).
+   */
+  readonly neuralNewByFunction: ReadonlyMap<string, number>;
   readonly notApplicable: ReadonlyMap<string, number>;
   readonly siteInvalid: number;
   readonly metricCrossings: number;
@@ -199,6 +214,8 @@ export interface ScoreInput {
    * BR-U5b-23). Positive judge-probe rows are recognised by `expected.judgeProbe`; their operator ids are added.
    */
   readonly judgeProbeOperators?: ReadonlyMap<string, JudgeProbeKind>;
+  /** Corpus project id → tier (`corpusTiers` of `corpus/corpus.json`); adds the tier strata (ADR-020 item 8). */
+  readonly corpusTiers?: ReadonlyMap<string, CorpusTier>;
 }
 
 export type ScoreOutcome =
@@ -378,6 +395,8 @@ interface SeedOutcome {
   readonly fps: readonly CountedItem[];
   readonly twinFps: readonly CountedItem[];
   readonly items: readonly P1Item[];
+  /** Function ids of neural new violations outside judge collateral (one entry per violation; MAT-19 1.1.0). */
+  readonly neuralNew: readonly string[];
   readonly collateralFunctions: readonly string[];
   readonly notApplicable: readonly string[];
   readonly metricKeyExcluded: readonly string[];
@@ -410,6 +429,7 @@ interface ClassifyContext {
   readonly excludedTemplates: ReadonlySet<string>;
   readonly excludedFunctions: ReadonlySet<string>;
   readonly thresholds: ReadonlyMap<string, Readonly<Record<string, number>>> | undefined;
+  readonly corpusTiers: ReadonlyMap<string, CorpusTier> | undefined;
 }
 
 /** A new symbolic violation occurrence (one per multiset count) with a sample violation of its key. */
@@ -498,7 +518,8 @@ function classifySeed(pair: AcceptedPair, ctx: ClassifyContext): SeedOutcome {
   const diff = diffPair(baseline, seeded);
   const judgeUnits = judgeCollateralUnits(seeded, row);
   const judgeCollateral = diff.neuralNew.filter((v) => v.unitId !== undefined && judgeUnits.has(v.unitId)).length;
-  const neuralFp = diff.neuralNew.filter((v) => v.unitId === undefined || !judgeUnits.has(v.unitId));
+  // MAT-19 1.1.0 (ADR-020 item 5): neural new violations outside judge collateral form their own column.
+  const neuralNew = diff.neuralNew.filter((v) => v.unitId === undefined || !judgeUnits.has(v.unitId)).map((v) => v.functionId);
 
   // Not-applicable expected functions (BR-U5b-13).
   const disabledInReport = new Set(seeded.disabledFunctions.map((d) => String(d.functionId)));
@@ -534,12 +555,13 @@ function classifySeed(pair: AcceptedPair, ctx: ClassifyContext): SeedOutcome {
   let sccOverlapMatches = diff.sccOverlap;
   let metricCrossing = false;
 
+  const tier = row.baseKind === 'corpus' ? ctx.corpusTiers?.get(row.projectId) : undefined;
   const base = {
     seedId: row.seedId, projectId: row.projectId, operatorId: row.operatorId, split: row.split, baseKind: row.baseKind,
-    coverage: expected.coverage,
+    coverage: expected.coverage, ...(tier !== undefined && { corpusTier: tier }),
   };
   const empty = {
-    perFunction: [], fps: [], twinFps: [], items: [], metricKeyExcluded: [], metricCrossing: false,
+    perFunction: [], fps: [], twinFps: [], items: [], neuralNew, metricKeyExcluded: [], metricCrossing: false,
     sccOverlapMatches: diff.sccOverlap, judgeCollateral, preExisting: diff.preExisting, info,
   };
   const tagsOf = (fns: readonly string[]): string[] => sortStrings(new Set(fns.flatMap((f) => { const t = info.get(f)?.tag; return t === undefined ? [] : [t]; })));
@@ -561,17 +583,10 @@ function classifySeed(pair: AcceptedPair, ctx: ClassifyContext): SeedOutcome {
         items.push({ itemId, kind: 'violation', population: 'P1', projectId: row.projectId, seedId: row.seedId, functionId: o.v.functionId, stratum: `${row.projectId}, ${o.v.functionId}`, inclusionProbability: 1, key: o.key, twin: true });
       }
     }
-    for (const v of neuralFp) {
-      const k = neuralMatchKey(v);
-      undeclared.push(k);
-      const itemId = p1ItemId(row, k);
-      twinFps.push({ itemId, functionId: v.functionId });
-      items.push({ itemId, kind: 'violation', population: 'P1', projectId: row.projectId, seedId: row.seedId, functionId: v.functionId, stratum: `${row.projectId}, ${v.functionId}`, inclusionProbability: 1, key: k, twin: true });
-    }
     return {
       ...empty,
       instance: {
-        ...base, dimension: null, tags: [], status: twinFps.length === 0 ? 'twin-clean' : 'twin-fired', detectedBy: [], lineConfirmed: null,
+        ...base, dimension: null, tags: [], applicable: [], status: twinFps.length === 0 ? 'twin-clean' : 'twin-fired', detectedBy: [], lineConfirmed: null,
         collateral: sortStrings(collateral), undeclaredNew: sortStrings(undeclared),
       },
       twinFps, items, collateralFunctions, notApplicable: [], metricKeyExcluded: excluded,
@@ -581,14 +596,15 @@ function classifySeed(pair: AcceptedPair, ctx: ClassifyContext): SeedOutcome {
   const dimension = expected.dimension;
   // (2) Not-applicable.
   if (applicable.length === 0) {
-    return { ...empty, instance: { ...base, dimension, tags: [], status: 'not-applicable', detectedBy: [], lineConfirmed: null, collateral: [], undeclaredNew: [] }, collateralFunctions: [], notApplicable };
+    return { ...empty, instance: { ...base, dimension, tags: [], applicable: [], status: 'not-applicable', detectedBy: [], lineConfirmed: null, collateral: [], undeclaredNew: [] }, collateralFunctions: [], notApplicable };
   }
   const tags = tagsOf(applicable);
+  const applicableSorted = sortStrings(applicable);
   const isMetricSeed = applicable.every((f) => isMetricTemplate(info.get(f)?.template ?? ''));
   const applicableKeys = [...expectedKeys].filter(([, k]) => applicable.includes(k.functionId));
   // (3) Site-invalid: a non-metric seed whose expected key is already in the baseline.
   if (!isMetricSeed && applicableKeys.some(([k]) => diff.baselineKeys.has(k))) {
-    return { ...empty, instance: { ...base, dimension, tags, status: 'site-invalid', detectedBy: [], lineConfirmed: null, collateral: [], undeclaredNew: [] }, collateralFunctions: [], notApplicable };
+    return { ...empty, instance: { ...base, dimension, tags, applicable: applicableSorted, status: 'site-invalid', detectedBy: [], lineConfirmed: null, collateral: [], undeclaredNew: [] }, collateralFunctions: [], notApplicable };
   }
   // (4) Metric threshold crossing on a pre-existing key (BR-U5b-15).
   if (isMetricSeed) {
@@ -638,16 +654,15 @@ function classifySeed(pair: AcceptedPair, ctx: ClassifyContext): SeedOutcome {
     }
     addFp(o.key, fid);
   }
-  for (const v of neuralFp) addFp(neuralMatchKey(v), v.functionId);
   const detected = sortStrings(detectedBy);
   return {
     instance: {
-      ...base, dimension, tags, status: detected.length > 0 ? 'matched' : 'missed', detectedBy: detected,
+      ...base, dimension, tags, applicable: applicableSorted, status: detected.length > 0 ? 'matched' : 'missed', detectedBy: detected,
       lineConfirmed: lineChecks.length === 0 ? null : lineChecks.every(Boolean),
       collateral: sortStrings(collateral), undeclaredNew: sortStrings(undeclared),
     },
     perFunction: applicable.map((functionId) => ({ functionId, detected: detectedBy.has(functionId) })),
-    fps, twinFps: [], items, collateralFunctions, notApplicable, metricKeyExcluded: excluded, metricCrossing,
+    fps, twinFps: [], items, neuralNew, collateralFunctions, notApplicable, metricKeyExcluded: excluded, metricCrossing,
     sccOverlapMatches, judgeCollateral, preExisting: diff.preExisting, info,
   };
 }
@@ -804,8 +819,10 @@ function bump(map: Map<string, Map<string, Cell>>, stratum: string, key: string)
 function modesOf(cell: Cell, labels: ReadonlyMap<string, ReconciledP1Label> | undefined): PrfModes {
   const strict = computePrf({ tp: cell.tp, fp: cell.fpItems.length, fn: cell.fn });
   if (labels === undefined) return { strict, labelled: null, inclTwins: null, fpUncertain: 0 };
-  const fpLabelled = cell.fpItems.filter((id) => labels.get(id) !== 'unseeded-TP').length;
-  const twinLabelled = cell.twinFpItems.filter((id) => labels.get(id) !== 'unseeded-TP').length;
+  // MAT-10 1.1.0 (ADR-020 item 2): every TP-class label (TP, unseeded-TP) leaves FP-labelled.
+  const stillFp = (id: string): boolean => !isTpClass(labels.get(id) ?? 'uncertain');
+  const fpLabelled = cell.fpItems.filter(stillFp).length;
+  const twinLabelled = cell.twinFpItems.filter(stillFp).length;
   const fpUncertain = cell.fpItems.filter((id) => labels.get(id) === 'uncertain').length;
   return {
     strict,
@@ -819,10 +836,19 @@ function freeze(map: Map<string, Map<string, Cell>>, labels: ReadonlyMap<string,
   return new Map([...map].map(([s, inner]) => [s, new Map([...inner].map(([k, c]) => [k, modesOf(c, labels)]))]));
 }
 
+/** Base-kind label of the corpus-tier strata (ADR-020 item 8): `corpus-core`, `corpus-e7` (the pooled E7 row). */
+export function corpusTierStratum(tier: CorpusTier): string {
+  return `corpus-${tier}`;
+}
+
 /** Stratum keys a scored (non-probe) instance contributes to. */
-export function strataOf(i: Pick<InstanceResult, 'split' | 'baseKind' | 'coverage'>): string[] {
+export function strataOf(i: Pick<InstanceResult, 'split' | 'baseKind' | 'coverage' | 'corpusTier'>): string[] {
   // BR-U5b-20, 21: the split total, the base-kind stratum and the coverage stratum; never across splits.
-  return [JSON.stringify([i.split, 'all', 'all']), JSON.stringify([i.split, i.baseKind, 'all']), JSON.stringify([i.split, 'all', i.coverage])];
+  // ADR-020 item 8: a corpus instance with a known tier also enters `[split, corpus-<tier>, all]`.
+  return [
+    JSON.stringify([i.split, 'all', 'all']), JSON.stringify([i.split, i.baseKind, 'all']), JSON.stringify([i.split, 'all', i.coverage]),
+    ...(i.corpusTier === undefined ? [] : [JSON.stringify([i.split, corpusTierStratum(i.corpusTier), 'all'])]),
+  ];
 }
 
 function tagRows(tags: readonly string[], templates: readonly (string | undefined)[]): string[] {
@@ -868,12 +894,14 @@ export function scoreDifferential(input: ScoreInput): ScoreOutcome {
     excludedFunctions: new Set(input.rule.metricKeyExclusions),
     excludedTemplates: new Set(readiness === undefined || (readiness.projectLevelKeys && readiness.rowFilters) ? [] : METRIC_KEY_TEMPLATES),
     thresholds: input.thresholds,
+    corpusTiers: input.corpusTiers,
   };
   const perFunction = new Map<string, Map<string, Cell>>();
   const perDimension = new Map<string, Map<string, Cell>>();
   const perTag = new Map<string, Map<string, Cell>>();
   const overall = new Map<string, Map<string, Cell>>();
   const collateralByFunction = new Map<string, number>();
+  const neuralNewByFunction = new Map<string, number>();
   const notApplicable = new Map<string, number>();
   const metricKeyExclusions = new Map<string, number>();
   const instances: InstanceResult[] = [];
@@ -897,6 +925,7 @@ export function scoreDifferential(input: ScoreInput): ScoreOutcome {
     judgeCollateral += o.judgeCollateral;
     executedFunctions = Math.max(executedFunctions, pair.seeded.functionExecution.executed);
     for (const f of o.collateralFunctions) increment(collateralByFunction, f);
+    for (const f of o.neuralNew) increment(neuralNewByFunction, f);
     for (const f of o.notApplicable) increment(notApplicable, f);
     for (const f of o.metricKeyExcluded) increment(metricKeyExclusions, f);
     if (i.status === 'site-invalid') siteInvalid += 1;
@@ -954,6 +983,7 @@ export function scoreDifferential(input: ScoreInput): ScoreOutcome {
       executedFunctions,
       preExistingIgnored,
       collateralByFunction,
+      neuralNewByFunction,
       notApplicable,
       siteInvalid,
       metricCrossings,
@@ -1088,6 +1118,12 @@ export function judgeProbeOperators(repoRoot: string): Map<string, JudgeProbeKin
   return out;
 }
 
+/** Corpus tiers of `corpus/corpus.json` when the file exists (ADR-020 item 8), else `undefined`. */
+export function readCorpusTiers(repoRoot: string): Map<string, CorpusTier> | undefined {
+  const f = join(repoRoot, 'corpus/corpus.json');
+  return existsSync(f) ? corpusTiersOf(readJson(f) as CorpusFile) : undefined;
+}
+
 // ---------------------------------------------------------------------------------------------
 // CLI main (BR-U5b-73; entry file `scripts/score-golden-cli.ts`)
 
@@ -1178,9 +1214,11 @@ export async function main(argv: readonly string[], repoRoot: string, io: ScoreM
     io.err(`${SCORE_INPUT_REJECTED}: ${thresholds.detail}\n`);
     return 1;
   }
+  const tiers = readCorpusTiers(repoRoot);
   const result = scoreDifferential({
     rule: rule.rule, seeds: loaded.value.seeds, rejections: loaded.value.manifest.rejections, thresholds: thresholds.value,
     judgeProbeOperators: judgeProbeOperators(repoRoot),
+    ...(tiers !== undefined && { corpusTiers: tiers }),
     ...(loaded.value.metricKeyReadiness !== undefined && { metricKeyReadiness: loaded.value.metricKeyReadiness }),
     ...(labels !== undefined && { labels }),
   });

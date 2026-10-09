@@ -8,7 +8,7 @@ import { tmpdir } from 'node:os';
 import { dirname, join } from 'node:path';
 import { buildPreRegistration, checkPreRegistration, PREREG_FILE } from '../../../../scripts/lib/prereg.js';
 import type { PreRegistration } from '../../../../scripts/lib/prereg.js';
-import { bumpPreRegistration, main, registeredAtOf, uncommittedRegisteredPaths } from '../../../../scripts/register-prereg.js';
+import { bumpPreRegistration, documentRuleVersion, main, registeredAtOf, uncommittedRegisteredPaths } from '../../../../scripts/register-prereg.js';
 import { ROOT } from './score-fixture.js';
 
 const T0 = Date.parse('2026-10-01T00:00:00Z');
@@ -95,6 +95,22 @@ describe('bumpPreRegistration (BR-U5b-50)', () => {
     // A second bump refuses while v2 is uncommitted, and otherwise chains previous.
     const v3 = bumpPreRegistration(repo, { reason: 'P-2', now: new Date(T0 + 1000), schemaRoot: ROOT });
     expect(v3.ok ? v3.value.previous?.map((p) => p.version) : []).toEqual([1, 2]);
+  });
+
+  it('ADR-020 P-2: --matching-rule-version registers 1.1.0 only when the committed machine block carries it', async () => {
+    put('Docs/matching-rule.md', '# rule\n\n```yaml matching-rule\nversion: 1.1.0\nlineTolerance: 0\n```\n');
+    git(['add', '-A']);
+    git(['commit', '-q', '-m', 'rule 1.1.0'], T0 - 30_000);
+    expect(documentRuleVersion(repo)).toBe('1.1.0');
+    const wrong = bumpPreRegistration(repo, { reason: 'x', now: new Date(T0), schemaRoot: ROOT, matchingRuleVersion: '1.2.0' });
+    expect(wrong).toMatchObject({ ok: false, refusal: 'rule-version-mismatch' });
+    const kept = bumpPreRegistration(repo, { reason: 'x', now: new Date(T0), schemaRoot: ROOT });
+    expect(kept.ok ? kept.value.matchingRuleVersion : '').toBe('1.0.0');
+    let printed = '';
+    const io = { out: (t: string): void => { printed += t; }, err: (): void => undefined, now: () => new Date(T0), schemaRoot: ROOT };
+    expect(await main(['--reason', 'P-2', '--matching-rule-version', '1.1.0', '--dry-run'], repo, io)).toBe(0);
+    expect((JSON.parse(printed) as PreRegistration)).toMatchObject({ version: 2, matchingRuleVersion: '1.1.0', reason: 'P-2' });
+    expect(await main(['--reason', 'P-2', '--matching-rule-version'], repo, io)).toBe(2);
   });
 
   it('refuses when corpus/prereg.json differs from its committed blob', () => {
