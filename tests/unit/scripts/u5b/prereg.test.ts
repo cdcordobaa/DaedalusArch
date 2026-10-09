@@ -48,7 +48,7 @@ beforeEach(() => {
   put('Docs/analysis-plan.md', '# plan\n');
   put('corpus/specs/realworld-test.yaml', 'spec_version: "1.0.0"\n');
   put(PLAN, '{"id":"fixtures"}\n');
-  put('specs/clean-arch.yaml', 'not registered\n');
+  put('specs/clean-arch.yaml', 'fixture spec\n');
   put('README.md', 'not registered\n');
   git(['add', '-A']);
   git(['commit', '-q', '-m', 'artefacts'], T0 - 60_000);
@@ -61,16 +61,48 @@ describe('registry (BR-U5b-51)', () => {
       'Docs/matching-rule.md', 'Docs/analysis-plan.md', 'Docs/operator-catalogue.md', 'Docs/generator-protocol.md',
       'scripts/generator/prompts/*.md', 'Docs/corpus-criteria.md', 'Docs/labeller-prompts/*', 'corpus/corpus.json',
       'corpus/overlays/**', 'corpus/specs/*.yaml', 'experiments/*/plan.json', 'corpus/frozen-instrument.json',
+      'specs/clean-arch.yaml', 'tests/fixtures/u5a/layered/firewall.spec.yaml', 'presets/*.yaml',
     ]);
     expect(REGISTERED_ARTEFACTS).toContain('Docs/matching-rule.md');
     expect(REGISTERED_ARTEFACTS).toContain('Docs/analysis-plan.md');
     expect(isRegisteredPath('corpus/overlays/realworld-test/config.patch')).toBe(true);
     expect(isRegisteredPath('corpus/specs/nested/x.yaml')).toBe(false);
-    expect(isRegisteredPath('specs/clean-arch.yaml')).toBe(false);
+    expect(isRegisteredPath('specs/daedalus-arch.yaml')).toBe(false);
+  });
+
+  it('registers both fixture specs and the style presets (ADR-021 SO1-D)', () => {
+    for (const spec of FIXTURE_SPECS) expect(isRegisteredPath(spec)).toBe(true);
+    expect(isRegisteredPath('specs/clean-arch.yaml')).toBe(true);
+    expect(isRegisteredPath('tests/fixtures/u5a/layered/firewall.spec.yaml')).toBe(true);
+    for (const preset of ['presets/clean-architecture.yaml', 'presets/layered.yaml', 'presets/nestjs.yaml']) expect(isRegisteredPath(preset)).toBe(true);
+    expect(isRegisteredPath('presets/nested/x.yaml')).toBe(false);
+    expect(isRegisteredPath('presets/README.md')).toBe(false);
+    expect(isRegisteredPath('tests/fixtures/u5a/no-domain/firewall.spec.yaml')).toBe(false);
+  });
+
+  it('build hashes the fixture specs and presets; a registration without them stays valid (ADR-021 SO1-D)', () => {
+    const before = register(1, T0);
+    expect(before.artefacts.map((a) => a.path)).toContain('specs/clean-arch.yaml');
+    put('presets/layered.yaml', 'spec_version: "1.0.0"\n');
+    put('tests/fixtures/u5a/layered/firewall.spec.yaml', 'spec_version: "1.0.0"\n');
+    git(['add', '-A']);
+    git(['commit', '-q', '-m', 'presets'], T0 + 1000);
+    const paths = buildPreRegistration(repo, { version: 2, registeredAt: new Date(T0).toISOString(), matchingRuleVersion: '1.0.0', labellingBudgetCalls: 1 }).artefacts.map((a) => a.path);
+    expect(paths).toEqual(expect.arrayContaining(['specs/clean-arch.yaml', 'presets/layered.yaml', 'tests/fixtures/u5a/layered/firewall.spec.yaml']));
+    const subset = { ...before, artefacts: before.artefacts.filter((a) => a.path !== 'specs/clean-arch.yaml') };
+    expect(validatePreRegistration(subset, ROOT)).toEqual([]);
+  });
+
+  it('a changed fixture spec is refused once registered (ADR-021 SO1-D)', () => {
+    register(1, T0);
+    put('specs/clean-arch.yaml', 'changed\n');
+    const out = check();
+    expect(out).toMatchObject({ ok: false, refusal: 'artefact-changed' });
+    if (!out.ok) expect(out.detail).toContain('specs/clean-arch.yaml');
   });
 
   it('build hashes the committed registered files only', () => {
-    expect(registeredArtefactPaths(repo)).toEqual(['Docs/analysis-plan.md', 'Docs/matching-rule.md', PLAN, 'corpus/specs/realworld-test.yaml'].sort());
+    expect(registeredArtefactPaths(repo)).toEqual(['Docs/analysis-plan.md', 'Docs/matching-rule.md', PLAN, 'corpus/specs/realworld-test.yaml', 'specs/clean-arch.yaml'].sort());
     const p = register(1, T0);
     expect(p.artefacts.map((a) => a.path)).not.toContain('README.md');
     expect(loadPreRegistration(repo, ROOT)).toEqual({ ok: true, value: p });
