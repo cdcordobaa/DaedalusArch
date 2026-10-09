@@ -1,0 +1,112 @@
+{
+  "$schema": "https://vega.github.io/schema/vega-lite/v6.json",
+  "description": "FIG-02 SO4 P/R/F1 per function (scripts/figures.ts; ADR-021 X-5).",
+  "usermeta": {
+    "figure": "so4-prf-by-function"
+  },
+  "width": 420,
+  "height": {
+    "step": 42
+  },
+  "encoding": {
+    "y": {
+      "field": "group",
+      "type": "nominal",
+      "sort": "ascending",
+      "title": "function"
+    },
+    "yOffset": {
+      "field": "metric",
+      "type": "nominal",
+      "sort": [
+        "seeded differential precision",
+        "recall",
+        "F1"
+      ]
+    },
+    "color": {
+      "field": "metric",
+      "type": "nominal",
+      "sort": [
+        "seeded differential precision",
+        "recall",
+        "F1"
+      ],
+      "title": "metric",
+      "legend": {
+        "labelLimit": 240
+      }
+    }
+  },
+  "layer": [
+    {
+      "transform": [
+        {
+          "filter": "datum.ci_low !== null && datum.ci_high !== null"
+        }
+      ],
+      "mark": {
+        "type": "rule",
+        "strokeWidth": 1.5
+      },
+      "encoding": {
+        "x": {
+          "field": "ci_low",
+          "type": "quantitative"
+        },
+        "x2": {
+          "field": "ci_high"
+        }
+      }
+    },
+    {
+      "mark": {
+        "type": "point",
+        "filled": true,
+        "size": 50
+      },
+      "encoding": {
+        "x": {
+          "field": "value",
+          "type": "quantitative",
+          "scale": {
+            "domain": [
+              0,
+              1
+            ]
+          },
+          "title": "value (interval only where the CSV carries one)"
+        },
+        "tooltip": [
+          {
+            "field": "group"
+          },
+          {
+            "field": "metric"
+          },
+          {
+            "field": "value",
+            "format": ".3f"
+          },
+          {
+            "field": "basis"
+          },
+          {
+            "field": "ci_low",
+            "format": ".3f"
+          },
+          {
+            "field": "ci_high",
+            "format": ".3f"
+          },
+          {
+            "field": "ci_method"
+          },
+          {
+            "field": "n_seeded"
+          }
+        ]
+      }
+    }
+  ]
+}

@@ -1,0 +1,113 @@
+{
+  "$schema": "https://vega.github.io/schema/vega-lite/v6.json",
+  "description": "FIG-05 SO2 latency per run against the 30 s H13 budget (scripts/figures.ts; ADR-021 X-5).",
+  "usermeta": {
+    "figure": "so2-latency"
+  },
+  "resolve": {
+    "scale": {
+      "color": "independent"
+    },
+    "legend": {
+      "color": "independent"
+    }
+  },
+  "hconcat": [
+    {
+      "width": 260,
+      "height": 200,
+      "mark": {
+        "type": "point",
+        "filled": true,
+        "size": 50
+      },
+      "encoding": {
+        "x": {
+          "field": "file_count",
+          "type": "quantitative",
+          "title": "files"
+        },
+        "y": {
+          "field": "total_s",
+          "type": "quantitative",
+          "title": "total evaluation time (s)"
+        },
+        "color": {
+          "field": "gate_result",
+          "type": "nominal",
+          "title": "H13 gate"
+        },
+        "tooltip": [
+          {
+            "field": "run_id"
+          },
+          {
+            "field": "project_id"
+          },
+          {
+            "field": "file_count"
+          },
+          {
+            "field": "total_s",
+            "format": ".1f"
+          }
+        ]
+      }
+    },
+    {
+      "width": 260,
+      "height": 200,
+      "layer": [
+        {
+          "mark": "bar",
+          "encoding": {
+            "x": {
+              "field": "run_id",
+              "type": "nominal",
+              "sort": null,
+              "title": "run",
+              "axis": {
+                "labelAngle": 0
+              }
+            },
+            "y": {
+              "field": "cycle_query_s",
+              "type": "quantitative",
+              "title": "cycle query time (s)"
+            },
+            "color": {
+              "field": "over_budget",
+              "type": "nominal",
+              "title": "over budget"
+            },
+            "tooltip": [
+              {
+                "field": "project_id"
+              },
+              {
+                "field": "cycle_query_s",
+                "format": ".2f"
+              }
+            ]
+          }
+        },
+        {
+          "mark": {
+            "type": "rule",
+            "strokeDash": [
+              4,
+              3
+            ]
+          },
+          "encoding": {
+            "y": {
+              "aggregate": "max",
+              "field": "gate_s",
+              "type": "quantitative"
+            }
+          }
+        }
+      ]
+    }
+  ]
+}

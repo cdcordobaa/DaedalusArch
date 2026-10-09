@@ -1,0 +1,75 @@
+{
+  "$schema": "https://vega.github.io/schema/vega-lite/v6.json",
+  "description": "FIG-04 SO5 model x spec-level interaction (scripts/figures.ts; ADR-021 X-5).",
+  "usermeta": {
+    "figure": "so5-interaction"
+  },
+  "facet": {
+    "column": {
+      "field": "outcome",
+      "type": "nominal",
+      "sort": [
+        "verdict-source AHS",
+        "ahsDeterministic"
+      ],
+      "title": null
+    }
+  },
+  "spec": {
+    "width": 240,
+    "height": 200,
+    "encoding": {
+      "x": {
+        "field": "spec_level",
+        "type": "ordinal",
+        "sort": {
+          "field": "spec_level_order",
+          "op": "min"
+        },
+        "title": "spec level",
+        "axis": {
+          "labelAngle": 0
+        }
+      },
+      "color": {
+        "field": "model",
+        "type": "nominal",
+        "title": "generator model"
+      }
+    },
+    "layer": [
+      {
+        "mark": {
+          "type": "point",
+          "opacity": 0.45
+        },
+        "encoding": {
+          "y": {
+            "field": "value",
+            "type": "quantitative",
+            "scale": {
+              "domain": [
+                0,
+                1
+              ]
+            },
+            "title": "AHS"
+          }
+        }
+      },
+      {
+        "mark": {
+          "type": "line",
+          "point": true
+        },
+        "encoding": {
+          "y": {
+            "aggregate": "mean",
+            "field": "value",
+            "type": "quantitative"
+          }
+        }
+      }
+    ]
+  }
+}
