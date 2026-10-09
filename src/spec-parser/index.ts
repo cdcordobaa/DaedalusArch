@@ -1,6 +1,7 @@
 export { SpecParserStage, parseSpec, parseADRs } from './spec-parser.js';
 export { resolveTemplate, TEMPLATE_REGISTRY } from './template-registry.js';
 export { validateSpecSchema, validateBusinessRules, validateSpecAgainstProject } from './spec-validator.js';
+export { readSpecExcludePaths, specExcludePathsFromYaml } from './exclude-paths.js';
 export { loadPreset, mergeSpecs, listPresets } from './preset-loader.js';
 export type { SpecOverrides, LayerOverride, FFOverride } from './preset-loader.js';
 export type {

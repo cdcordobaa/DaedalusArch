@@ -9,6 +9,7 @@ import { generateEdgeId, normalizeFilePath } from './id-generator.js';
 import { ImportEdgeMerger } from './import-edge-merger.js';
 import { deriveFlowsToEdges, emptyFlowsToTally } from './flows-to-deriver.js';
 import { PackageNodeRegistry } from './package-node-factory.js';
+import { restrictToGraphMode } from './graph-mode.js';
 import {
   buildImportResolutionContext,
   countUnsupportedDynamicImports,
@@ -28,7 +29,7 @@ export interface EdgeExtractionResult {
   readonly packageNodes: readonly APGNode[];
   /** Partition counts over the counted statements (FR-14, BR-U2-14). */
   readonly importResolution: ImportResolutionStats;
-  /** FLOWS_TO store accounting (ADR-021 SO2; audit SO2-4); all zero in the `ast-only` graph mode. */
+  /** FLOWS_TO store accounting of the full extraction (ADR-021 SO2; audit SO2-4), in every graph mode. */
   readonly flowsTo: FlowsToStats;
 }
 
@@ -38,9 +39,9 @@ export interface EdgeExtractionResult {
  * emitted first (IMPORTS, then RE_EXPORTS, each in first-occurrence order); the
  * other types follow in insertion order.
  *
- * `graphMode: 'ast-only'` (ADR-021 SO2; audit SO2-5) is the ablation arm: no FLOWS_TO derivation, no
- * re-export statement is resolved or counted (no RE_EXPORTS edge), and the import context resolves no
- * alias and follows no barrel (`buildImportResolutionContext`).
+ * `graphMode: 'ast-only'` (ADR-021 SO2-5, X-2) is the ablation arm: the full extraction runs unchanged
+ * and `restrictToGraphMode` then keeps only IMPORTS, DECLARES and CONTAINS edges (and the Package nodes
+ * they still target). Import resolution and the counts are the full extraction's.
  */
 export function extractEdges(
   sourceFiles: SourceFile[],
@@ -53,7 +54,6 @@ export function extractEdges(
   const warnings: ExtractorWarning[] = [];
   const counts = { resolvedInternal: 0, external: 0, externalOutOfRootAlias: 0, unresolved: 0, droppedNoFileNode: 0, unsupportedDynamic: 0 };
   const flowsTo = emptyFlowsToTally();
-  const astOnly = opts.graphMode === 'ast-only';
 
   const project = sourceFiles[0]?.getProject();
   if (project === undefined) return { edges: [], warnings, packageNodes: [], importResolution: counts, flowsTo };
@@ -84,7 +84,7 @@ export function extractEdges(
         resolution = resolveImportTargets(stmt, importCtx);
       } else if (Node.isImportEqualsDeclaration(stmt) && importEqualsSpecifier(stmt) !== undefined) {
         resolution = resolveImportTargets(stmt, importCtx);
-      } else if (!astOnly && Node.isExportDeclaration(stmt) && stmt.getModuleSpecifierValue() !== undefined) {
+      } else if (Node.isExportDeclaration(stmt) && stmt.getModuleSpecifierValue() !== undefined) {
         resolution = resolveReExportTargets(stmt, importCtx);
       } else {
         continue;
@@ -241,9 +241,7 @@ export function extractEdges(
       }
 
       // FLOWS_TO (Class → Class | Interface), D8 scope (FR-21; BR-U2-27..29)
-      if (!astOnly) {
-        for (const edge of deriveFlowsToEdges(cls, clsNodeId, lookup, projectRoot, addWarning, flowsTo)) addEdge(edge);
-      }
+      for (const edge of deriveFlowsToEdges(cls, clsNodeId, lookup, projectRoot, addWarning, flowsTo)) addEdge(edge);
 
       // CALLS (cross-boundary Method → Method)
       for (const method of cls.getMethods()) {
@@ -305,12 +303,16 @@ export function extractEdges(
   }
 
   const importEdges = merger.edges();
-  const edges = [
-    ...importEdges.filter(e => e.type === 'IMPORTS'),
-    ...importEdges.filter(e => e.type === 'RE_EXPORTS'),
-    ...edgeSet.values(),
-  ];
-  return { edges, warnings, packageNodes: packages.nodes(), importResolution: counts, flowsTo };
+  const full = {
+    edges: [
+      ...importEdges.filter(e => e.type === 'IMPORTS'),
+      ...importEdges.filter(e => e.type === 'RE_EXPORTS'),
+      ...edgeSet.values(),
+    ],
+    packageNodes: packages.nodes(),
+  };
+  const view = restrictToGraphMode(full, opts.graphMode);
+  return { edges: [...view.edges], warnings, packageNodes: view.packageNodes, importResolution: counts, flowsTo };
 }
 
 // ── Helpers ──────────────────────────────────────────────────────────────────

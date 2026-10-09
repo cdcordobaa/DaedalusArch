@@ -43,7 +43,6 @@ import type { PreregCheck, PreregCheckInput } from './lib/prereg.js';
 import { acceptReport, knownSecretsOf, scrubbedJson, writeScrubbedJson } from './lib/report-io.js';
 import type { GenerationCell, PinnedJudge, ReasonCode, RunRecord, RunStatus, SeedRef } from './lib/report-io.js';
 import { cellGenCode, JOIN_GEN_CODES, loadSo5Codes } from './lib/so5-codes.js';
-import { UNIVERSAL_CYCLE_STAGE } from '../src/scoring-engine/index.js';
 import type { So5Codes } from './lib/so5-codes.js';
 
 export const RUN_RECORD_SCHEMA = 'scripts/lib/schemas/run-record.schema.json';
@@ -68,6 +67,13 @@ export const CLI_ENV_ALLOW: readonly string[] = Object.freeze([
  * restated here because the harness imports no C1 module (BR-U5b-55); a unit test keeps the two equal.
  */
 export const PLAN_GRAPH_MODES = ['full', 'ast-only'] as const;
+
+/**
+ * Report stage name of the timed universal cycle metric: the value of C8 `UNIVERSAL_CYCLE_STAGE`
+ * (`src/scoring-engine/universal-metrics.ts`, ADR-021 SO2-2), re-declared here because BR-U5b-55 does not list that
+ * C8 symbol; a test keeps the two equal (ADR-021 item 8).
+ */
+export const UNIVERSAL_CYCLE_STAGE = 'universal-metric:cyclicDependencyCount';
 export type GraphMode = (typeof PLAN_GRAPH_MODES)[number];
 
 export type ExperimentKind = 'E1' | 'E7' | 'SO4' | 'latency-gate' | 'sensitivity' | 'fixtures' | 'apg-ablation';

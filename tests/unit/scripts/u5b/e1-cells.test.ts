@@ -1,6 +1,6 @@
 /**
  * E1 cell enumeration and missing cells (ADR-021 SO5-05): `e1Coordinates`, `missingE1Cell`, `completeE1Cells` (the
- * helper lane SO5-agg calls from `aggregate.ts`) and the join GEN codes (`cellGenCode`). Hand-computed fixtures.
+ * helper `aggregate.ts` `so5Records` calls) and the join GEN codes (`cellGenCode`). Hand-computed fixtures.
  */
 import { completeE1Cells, e1Coordinates, e1ProjectId, missingE1Cell } from '../../../../scripts/lib/e1-cells.js';
 import type { E1GridBlock } from '../../../../scripts/lib/e1-cells.js';
