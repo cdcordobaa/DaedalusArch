@@ -6,6 +6,7 @@
  * - the applicability table: `isTemplateApplicable` over every compiled template × the four style columns of
  *   U1 BR-U1-18 (clean-architecture, nestjs, layered, no style), each with the U1 K4 layer model of that column;
  * - `tags`: `getTemplateTag` over every template (operational tag definitions, ADR-015 item 9);
+ * - `roleExemptions`: the instrument version and the library-level role exemptions per template (ADR-026);
  * - the self-spec deviations of BR-U1-16, values read from `specs/daedalus-arch.yaml`;
  * - U3's frozen verdict source per mode and the `ahsNeuronal` weight rule (BR-U3-70 item 4), from C8;
  * - U4's judge freeze: `FROZEN_VALUES` of `src/llm-critic/frozen.ts` verbatim with its `FROZEN_SHA256` anchor
@@ -28,6 +29,7 @@ import { FROZEN_SHA256, FROZEN_VALUES } from '../src/llm-critic/frozen.js';
 import type { EvaluationMode, LayerKind, TemplateTag } from '../src/shared/types/enums.js';
 import type { LayerModel } from '../src/shared/types/spec.js';
 import { canonicalize } from './lib/canonical-json.js';
+import { INSTRUMENT_VERSION, ROLE_EXEMPTIONS } from '../src/fitness-compiler/role-exemptions.js';
 
 export const SELF_SPEC = 'specs/daedalus-arch.yaml';
 export const FROZEN_INSTRUMENT_FILE = 'corpus/frozen-instrument.json';
@@ -53,6 +55,8 @@ export interface FrozenInstrument {
   /** U4 Section 5.2 values verbatim (`{ frozenSha256, values }`); `null` only when a caller supplies none. */
   readonly judgeFreeze: unknown;
   readonly metricKeyReadiness: MetricKeyReadiness;
+  /** Instrument v2 role exemptions (ADR-026): the instrument version and the exemption globs per template. */
+  readonly roleExemptions: { readonly instrumentVersion: number; readonly templates: Readonly<Record<string, readonly string[]>> };
 }
 
 // ---------------------------------------------------------------------------------------------
@@ -188,6 +192,7 @@ export function exportFrozenInstrument(repoRoot: string, judge: unknown = judgeF
       scoringFreeze: scoringFreeze(),
       judgeFreeze: judge,
       metricKeyReadiness: metricKeyReadiness(),
+      roleExemptions: { instrumentVersion: INSTRUMENT_VERSION, templates: ROLE_EXEMPTIONS },
     },
   };
 }
