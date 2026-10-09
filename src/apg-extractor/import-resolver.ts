@@ -65,21 +65,6 @@ export interface ImportResolutionContext {
   readonly isInstalledPackage: (fromDir: string, root: string) => boolean;
   readonly project: Project;
   readonly host: ts.ModuleResolutionHost;
-  /**
-   * Imported names are followed through barrels to their declaring file (BR-U2-24). False in the
-   * `ast-only` graph mode (ADR-021 SO2): every IMPORTS occurrence then targets the module file itself.
-   */
-  readonly followBarrels: boolean;
-}
-
-/**
- * `compilerOptions` without alias resolution (`ast-only` graph mode, ADR-021 SO2): `paths` and `baseUrl`
- * removed, so a project alias resolves like a bare specifier. Relative specifiers are unaffected.
- */
-export function withoutAliasResolution(options: ts.CompilerOptions): ts.CompilerOptions {
-  // `pathsBasePath` is TypeScript's internal companion of `paths`.
-  const { paths: _paths, baseUrl: _baseUrl, pathsBasePath: _pathsBasePath, ...rest } = options as ts.CompilerOptions & { readonly pathsBasePath?: unknown };
-  return rest;
 }
 
 // ── Classification (BR-U2-01) ────────────────────────────────────────────────
@@ -162,8 +147,7 @@ export function buildImportResolutionContext(
   addWarning: AddWarning,
   packages: PackageNodeRegistry,
 ): ImportResolutionContext {
-  const astOnly = (opts.graphMode ?? DEFAULT_OPTIONS.graphMode) === 'ast-only';
-  const compilerOptions = astOnly ? withoutAliasResolution(project.getCompilerOptions()) : project.getCompilerOptions();
+  const compilerOptions = project.getCompilerOptions();
   const host = project.getModuleResolutionHost();
   const root = projectRoot.endsWith('/') && projectRoot.length > 1 ? projectRoot.slice(0, -1) : projectRoot;
   return {
@@ -177,7 +161,6 @@ export function buildImportResolutionContext(
     isInstalledPackage: makeIsInstalledPackage(host),
     project,
     host,
-    followBarrels: !astOnly,
   };
 }
 
@@ -469,7 +452,7 @@ export function resolveImportTargets(
   const routed = new Map<string, { target: OccurrenceTarget; specs: NameSpec[] }>();
   for (const spec of specs) {
     let target: OccurrenceTarget | undefined;
-    if (spec.name === '*' || !ctx.followBarrels) {
+    if (spec.name === '*') {
       target = moduleTarget;
     } else {
       const followed = followExportedName(spec.name, resolution.sourceFile, specifier, warnFile, ctx);

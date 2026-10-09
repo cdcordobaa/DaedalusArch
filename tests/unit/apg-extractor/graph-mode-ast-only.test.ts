@@ -1,17 +1,18 @@
 /**
- * ADR-021 SO2; audit SO2-4, SO2-5, X-2: FLOWS_TO store accounting and the `ast-only` graph mode (no FLOWS_TO, no
- * RE_EXPORTS, no alias resolution: no `paths` / `baseUrl`, no barrel following).
+ * ADR-021 SO2; audit SO2-4, SO2-5, X-2: FLOWS_TO store accounting and the `ast-only` graph mode, the register's
+ * edge-type allow-list (IMPORTS, DECLARES, CONTAINS) over the full extraction (ADR-021 item 8).
  */
 import { Project } from 'ts-morph';
 import type { CompilerOptions } from 'ts-morph';
 import { extractNodes } from '../../../src/apg-extractor/node-extractor.js';
 import { extractEdges } from '../../../src/apg-extractor/edge-extractor.js';
-import { withoutAliasResolution } from '../../../src/apg-extractor/import-resolver.js';
+import { AST_ONLY_EDGE_TYPES, edgeTypesOf, restrictToGraphMode } from '../../../src/apg-extractor/graph-mode.js';
 import type { EdgeExtractionResult } from '../../../src/apg-extractor/edge-extractor.js';
 import type { GraphMode } from '../../../src/apg-extractor/types.js';
 import { GRAPH_MODES } from '../../../src/apg-extractor/types.js';
 import { PLAN_GRAPH_MODES } from '../../../scripts/run-experiment.js';
-import type { APGNode } from '../../../src/shared/types/apg.js';
+import type { APGEdge, APGNode } from '../../../src/shared/types/apg.js';
+import type { EdgeType } from '../../../src/shared/types/enums.js';
 
 const ROOT = '/proj';
 const lines = (...ls: string[]): string => ls.join('\n');
@@ -69,56 +70,106 @@ describe('FLOWS_TO store accounting (audit SO2-4)', () => {
     expect(r.flowsTo).toEqual({ stores: 1, candidates: 0, skippedUnionOrIntersection: 1, skippedUnextractedTarget: 0, skippedSelfLoop: 0, edges: 0 });
   });
 
-  it('the ast-only mode derives no FLOWS_TO edge and counts no store', () => {
+  it('the ast-only mode keeps the full extraction\'s store accounting but no FLOWS_TO edge', () => {
     const { nodes, r } = run(files, 'ast-only');
     expect(edgeList(nodes, r, ['FLOWS_TO'])).toEqual([]);
-    expect(r.flowsTo.stores).toBe(0);
+    expect(r.flowsTo).toEqual({ stores: 5, candidates: 3, skippedUnionOrIntersection: 0, skippedUnextractedTarget: 1, skippedSelfLoop: 1, edges: 2 });
   });
 });
 
-describe('ast-only graph mode (audit SO2-5, X-2)', () => {
-  const barrel = {
-    '/proj/src/a.ts': 'export class A {}',
-    '/proj/src/index.ts': "export { A } from './a';",
-    '/proj/src/b.ts': lines("import { A } from './index';", 'export class B { a?: A; }'),
+describe('ast-only graph mode = edge-type allow-list IMPORTS, DECLARES, CONTAINS (audit SO2-5, X-2)', () => {
+  // One fixture with every edge type. Hand list of the full graph (18 edges):
+  //   IMPORTS 3: svc.ts -> base.ts and -> repo.ts (alias `@dom/index` via `paths`, then followed through the barrel), svc.ts -> fs
+  //   RE_EXPORTS 3: index.ts -> base.ts, -> repo.ts, -> ext-lib
+  //   DECLARES 4: base.ts -> Base, repo.ts -> Repo, svc.ts -> Impl, svc.ts -> Svc
+  //   CONTAINS 3: Repo -> Repo.save, Impl -> Impl.save, Svc -> Svc.run
+  //   EXTENDS Impl -> Base; IMPLEMENTS Impl -> Repo; CONSTRUCTOR_INJECTS Svc -> Repo; FLOWS_TO Svc -> Impl; CALLS Svc.run -> Impl.save
+  // ast-only keeps 3 + 4 + 3 = 10 edges; Package ext-lib is targeted only by a RE_EXPORTS edge and is dropped, fs stays.
+  const all = {
+    '/proj/src/domain/repo.ts': 'export interface Repo { save(): void; }',
+    '/proj/src/domain/base.ts': 'export class Base {}',
+    '/proj/src/domain/index.ts': lines("export { Base } from './base';", "export { Repo } from './repo';", "export { chunk } from 'ext-lib';"),
+    '/proj/src/app/svc.ts': lines(
+      "import { Base, Repo } from '@dom/index';",
+      "import { readFileSync } from 'node:fs';",
+      'export class Impl extends Base implements Repo { save(): void {} }',
+      'export class Svc {',
+      '  private impl = new Impl();',
+      '  constructor(private readonly repo: Repo) {}',
+      '  run(): void { this.impl.save(); }',
+      '}',
+    ),
   };
+  const aliasOptions = { baseUrl: '/proj', paths: { '@dom/*': ['src/domain/*'] } };
+  const KEPT = [
+    'CONTAINS Impl -> Impl.save', 'CONTAINS Repo -> Repo.save', 'CONTAINS Svc -> Svc.run',
+    'DECLARES src/app/svc.ts -> Impl', 'DECLARES src/app/svc.ts -> Svc', 'DECLARES src/domain/base.ts -> Base', 'DECLARES src/domain/repo.ts -> Repo',
+    'IMPORTS src/app/svc.ts -> fs', 'IMPORTS src/app/svc.ts -> src/domain/base.ts', 'IMPORTS src/app/svc.ts -> src/domain/repo.ts',
+  ];
+  const ALL_TYPES = ['IMPORTS', 'RE_EXPORTS', 'DECLARES', 'CONTAINS', 'EXTENDS', 'IMPLEMENTS', 'CONSTRUCTOR_INJECTS', 'FLOWS_TO', 'CALLS'];
 
-  it('full: the import follows the barrel to a.ts and the re-export is a RE_EXPORTS edge', () => {
-    const { nodes, r } = run(barrel, 'full');
-    expect(edgeList(nodes, r, ['IMPORTS', 'RE_EXPORTS'])).toEqual(['IMPORTS src/b.ts -> src/a.ts', 'RE_EXPORTS src/index.ts -> src/a.ts']);
-    expect(r.importResolution.resolvedInternal).toBe(2);
+  it('full: all nine edge types, 18 edges', () => {
+    const { nodes, r } = run(all, 'full', aliasOptions);
+    expect(edgeList(nodes, r, ALL_TYPES)).toEqual([
+      ...KEPT.slice(0, 7),
+      'CALLS Svc.run -> Impl.save', 'CONSTRUCTOR_INJECTS Svc -> Repo', 'EXTENDS Impl -> Base', 'FLOWS_TO Svc -> Impl', 'IMPLEMENTS Impl -> Repo',
+      ...KEPT.slice(7),
+      'RE_EXPORTS src/domain/index.ts -> ext-lib', 'RE_EXPORTS src/domain/index.ts -> src/domain/base.ts', 'RE_EXPORTS src/domain/index.ts -> src/domain/repo.ts',
+    ].sort());
+    expect(r.packageNodes.map((n) => n.name)).toEqual(['ext-lib', 'fs']);
   });
 
-  it('ast-only: the import targets the barrel file, no RE_EXPORTS edge, the re-export statement is not counted', () => {
-    const { nodes, r } = run(barrel, 'ast-only');
-    expect(edgeList(nodes, r, ['IMPORTS', 'RE_EXPORTS'])).toEqual(['IMPORTS src/b.ts -> src/index.ts']);
-    expect(r.importResolution.resolvedInternal).toBe(1);
+  it('ast-only: exactly the IMPORTS, DECLARES and CONTAINS edges of the full graph (10), alias and barrel resolution kept', () => {
+    const { nodes, r } = run(all, 'ast-only', aliasOptions);
+    expect(edgeList(nodes, r, ALL_TYPES)).toEqual(KEPT);
+    expect(r.packageNodes.map((n) => n.name)).toEqual(['fs']);
   });
 
-  const aliased = {
-    '/proj/src/domain/a.ts': 'export class A {}',
-    '/proj/src/app/b.ts': lines("import { A } from '@app/domain/a';", 'export class B { a?: A; }'),
-  };
-  const aliasOptions = { baseUrl: '/proj', paths: { '@app/*': ['src/*'] } };
-
-  it('full: a `paths` alias resolves to the project file', () => {
-    const { nodes, r } = run(aliased, 'full', aliasOptions);
-    expect(edgeList(nodes, r, ['IMPORTS'])).toEqual(['IMPORTS src/app/b.ts -> src/domain/a.ts']);
-    expect(r.importResolution).toMatchObject({ resolvedInternal: 1, external: 0 });
+  it('ast-only: the import-resolution counts equal the full extraction (resolution is not ablated)', () => {
+    const full = run(all, 'full', aliasOptions).r;
+    const ast = run(all, 'ast-only', aliasOptions).r;
+    expect(ast.importResolution).toEqual(full.importResolution);
+    expect(full.importResolution).toMatchObject({ resolvedInternal: 3, external: 2, unresolved: 0 });
   });
 
-  it('ast-only: the alias is not resolved and becomes a bare Package import (external)', () => {
-    const { nodes, r } = run(aliased, 'ast-only', aliasOptions);
-    expect(edgeList(nodes, r, ['IMPORTS'])).toEqual(['IMPORTS src/app/b.ts -> @app/domain']);
-    expect(r.importResolution).toMatchObject({ resolvedInternal: 0, external: 1 });
+  it('ast-only edges are the full edges filtered, in the same order and with the same ids', () => {
+    const full = run(all, 'full', aliasOptions).r;
+    const ast = run(all, 'ast-only', aliasOptions).r;
+    expect(ast.edges).toEqual(full.edges.filter((e) => (AST_ONLY_EDGE_TYPES as readonly string[]).includes(e.type)));
   });
 
-  it('withoutAliasResolution drops paths, baseUrl and pathsBasePath only', () => {
-    const options = { baseUrl: '/p', paths: { '@x/*': ['x/*'] }, strict: true, pathsBasePath: '/p' };
-    expect(withoutAliasResolution(options)).toEqual({ strict: true });
+  it('the two arms differ on this fixture (8 edges removed), so the ablation can show a loss', () => {
+    const full = run(all, 'full', aliasOptions).r;
+    const ast = run(all, 'ast-only', aliasOptions).r;
+    expect(full.edges.length - ast.edges.length).toBe(8);
   });
 
   it('the harness graph modes equal the C1 graph modes (BR-U5b-55 keeps them apart)', () => {
     expect([...PLAN_GRAPH_MODES]).toEqual([...GRAPH_MODES]);
+  });
+});
+
+describe('restrictToGraphMode (pure)', () => {
+  const e = (id: string, type: EdgeType, targetId: string): APGEdge => ({ id, type, sourceId: 's', targetId, properties: {} });
+  const pkg = (id: string): APGNode => ({ id, type: 'Package', name: id, properties: {} }) as unknown as APGNode;
+  const view = {
+    edges: [e('1', 'IMPORTS', 'p1'), e('2', 'RE_EXPORTS', 'p2'), e('3', 'CALLS', 'm'), e('4', 'CONTAINS', 'm'), e('5', 'DECLARES', 'c'), e('6', 'FLOWS_TO', 'c')],
+    packageNodes: [pkg('p1'), pkg('p2')],
+  };
+
+  it('full returns the view unchanged', () => {
+    expect(restrictToGraphMode(view, 'full')).toBe(view);
+    expect(edgeTypesOf('full')).toBeUndefined();
+  });
+
+  it('ast-only keeps edges 1, 4, 5 in order and the Package a kept edge targets', () => {
+    const r = restrictToGraphMode(view, 'ast-only');
+    expect(r.edges.map((x) => x.id)).toEqual(['1', '4', '5']);
+    expect(r.packageNodes.map((n) => n.id)).toEqual(['p1']);
+  });
+
+  it('the allow-list is the register\'s: IMPORTS, DECLARES, CONTAINS', () => {
+    expect([...AST_ONLY_EDGE_TYPES]).toEqual(['IMPORTS', 'DECLARES', 'CONTAINS']);
+    expect(edgeTypesOf('ast-only')).toBe(AST_ONLY_EDGE_TYPES);
   });
 });
