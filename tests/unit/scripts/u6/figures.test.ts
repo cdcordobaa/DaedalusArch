@@ -135,7 +135,27 @@ describe('FIG-02 SO4 P/R/F1', () => {
     }
   });
 
-  it('no precision or F1 interval is invented: those rows carry none even when recall has both', () => {
+  it('precision and F1 take their PRF_INTERVAL_COLUMNS intervals on the plotted basis; F1 has no if-independent bound (SO4-06)', () => {
+    const rows = prepareSo4Prf(table('prf_by_tag.csv'), DEFAULT_FIGURE_OPTIONS, 'tag').filter((r) => r.group === 'structural');
+    const pick = (m: string): unknown[] => {
+      const r = rows.find((x) => x.metric === m);
+      return [r?.basis, r?.ci_low, r?.ci_high, r?.ci_method, r?.ci_project_low, r?.ci_project_high, r?.ci_project_descriptive, r?.ci_independent_low, r?.ci_independent_high, r?.ci_independent_method];
+    };
+    // tp 8, fp 2 on 5 cells (strict): precision 0.8; cell Wilson n = 5 [0.375535, 0.963776]; Wilson 8 / 10 [0.490162, 0.943318].
+    expect(pick('seeded differential precision')).toEqual(['strict', 0.375535, 0.963776, 'wilson-cells', 0.6, 1, true, 0.490162, 0.943318, 'wilson']);
+    // F1 = 2 * 0.8 * 0.8 / 1.6 = 0.8; 5 < 10 cells, so no cell interval, only the descriptive project bootstrap.
+    expect(rows.find((x) => x.metric === 'F1')?.value).toBe(0.8);
+    expect(pick('F1')).toEqual(['strict', null, null, '', 0.55, 0.95, true, null, null, '']);
+  });
+
+  it('an interval of another basis than the plotted point is not attached (FF-C01: labelled point, strict interval columns)', () => {
+    const rows = prepareSo4Prf(table('prf_by_function.csv'), DEFAULT_FIGURE_OPTIONS, 'function_id').filter((r) => r.group === 'FF-C01' && (r.metric === 'seeded differential precision' || r.metric === 'F1'));
+    expect(rows.map((r) => [r.metric, r.basis, r.ci_low, r.ci_high, r.ci_project_low, r.ci_project_high])).toEqual([
+      ['seeded differential precision', 'labelled', null, null, null, null], ['F1', 'labelled', null, null, null, null],
+    ]);
+  });
+
+  it('no precision or F1 interval is invented: blank interval columns (n < 10) give none even when recall has all three', () => {
     const rows = prepareSo4Prf(table('prf_by_function.csv'), DEFAULT_FIGURE_OPTIONS, 'function_id').filter((r) => r.group === 'FF-S01' && r.metric !== 'recall');
     expect(rows.map((r) => [r.ci_low, r.ci_high, r.ci_project_low, r.ci_project_high])).toEqual([[null, null, null, null], [null, null, null, null], [null, null, null, null]]);
   });
