@@ -103,7 +103,7 @@ export function main(argv: readonly string[], repoRoot: string, io: LayeredMainI
     ...layeredAcceptance(report, {
       projectId, originUrl: entry.originUrl, projectCommit: entry.commitSha, style: entry.style ?? 'none', specPath: entry.specPath,
       specSha256: sha256Hex(specText), toolCommit,
-      command: `NEO4J_PASSWORD=*** node dist/cli/index.js evaluate --project ../daedalus-corpus/${projectId} --spec ${entry.specPath} --symbolic-only --format json`,
+      command: `NEO4J_PASSWORD=*** npx tsx bin/firewall.ts evaluate --project ../daedalus-corpus/${projectId} --spec ${entry.specPath} --symbolic-only --format json`,
       rejection: accepted.accepted ? null : `${accepted.reasonCode}: ${accepted.reasonDetail}`,
     }),
     reportFile: `${base}.report.json`,
