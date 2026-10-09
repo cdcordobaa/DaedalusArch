@@ -9,6 +9,7 @@ import { buildGeneratorArgs, typecheckCommand } from '../../../../scripts/lib/ge
 import { GENERATOR_ENV_ALLOW } from '../../../../scripts/lib/generators/env.js';
 import { main } from '../../../../scripts/lib/generators/generate-main.js';
 import type { GenerateMainDeps } from '../../../../scripts/lib/generators/generate-main.js';
+import { stagingDirFor } from '../../../../scripts/lib/generators/cell-restart.js';
 import { ClaudeCodeAdapter, runGenerationGrid } from '../../../../scripts/lib/generators/grid.js';
 import { GENERATION_JSON, makeGenerationOutcome } from '../../../../scripts/lib/generators/outcome.js';
 import { SCHEDULE_JSON, cellOutputDir, requestForCell, scheduleGrid, validateGridPlan } from '../../../../scripts/lib/generators/schedule.js';
@@ -201,7 +202,8 @@ describe('ClaudeCodeAdapter over ProcessRunner', () => {
     const p = prompts(req, typecheckCommand(h.harnessRoot, req.runId));
     if (!p.success) throw new Error('prompt');
     expect(call?.args).toEqual(buildGeneratorArgs(h.config, req, p.data.prompt));
-    expect(call?.options.cwd).toBe(req.outputDir);
+    // SO5-04: the CLI runs in the cell's staging directory; the finished cell is renamed into place.
+    expect(call?.options.cwd).toBe(stagingDirFor(h.outRoot, req.runId));
     expect(call?.options.timeoutMs).toBe(1_200_000);
     expect(Object.keys(call?.options.env ?? {}).sort()).toEqual(['HOME', 'PATH']);
     expect(Object.keys(call?.options.env ?? {}).every((k) => GENERATOR_ENV_ALLOW.includes(k))).toBe(true);
@@ -209,6 +211,7 @@ describe('ClaudeCodeAdapter over ProcessRunner', () => {
     expect(o?.status).toBe('ok');
     expect(o?.promptTemplateId).toBe('none/task-management');
     expect(fs.existsSync(path.join(req.outputDir, GENERATION_JSON))).toBe(true);
+    expect(fs.existsSync(stagingDirFor(h.outRoot, req.runId))).toBe(false);
     expect(fs.existsSync(path.join(h.harnessRoot, 'runs', ...req.runId.split('/'), 'tsconfig.json'))).toBe(true);
   });
 
