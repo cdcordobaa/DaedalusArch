@@ -1,12 +1,24 @@
 {
-  "version": 3,
-  "registeredAt": "2026-10-09T08:54:11Z",
-  "reason": "P-M = ADR-020 P-2 (BR-U5b-50, 51; BR-U5b-01): ADR-020 methodology corrections before any run; per-artefact reasons in Docs/prereg-reasons.md section P-M. analysis-plan: baseline precision secondary (item 1), TP-class FPAT weights (item 2), cell-unit recall CIs with project bootstrap co-primary only from 10 projects (item 3, BR-U5b-61), so4-heldout symbolic-only (item 5), descriptive pairwise CIs (item 6), ahsDeterministic co-primary, directional self-preference check, judge-vs-panel per source and generator derived from run records (item 7, B3), E7 stratum (item 8), reporting duties B1-B7 (item 9); matching-rule 1.0.0 -> 1.1.0: MAT-10 (item 2), MAT-19 (item 5), MAT-20 (item 8), MAT-04 note (B7); experiments/so4-heldout/plan.json mode symbolic-only (item 5).",
+  "version": 4,
+  "registeredAt": "2026-10-09T15:35:42Z",
+  "reason": "P-U6 = ADR-021 item 4 (BR-U5b-50, 51): every U6 change to a registered artefact, after P-1 (v2) and P-M (v3), before any so4-heldout, e7-corpus, e1-grid, apg-ablation or live-labelling run; per-artefact reasons in Docs/prereg-reasons.md section P-U6. analysis-plan: held-out and E7 run list, apg-ablation (item 5 Major 1; SO2-5, X-2), SO2 gate/NFR-07/graph-size/ablation text and type-resolution rate dropped (SO2-1..5, X-4, item 8), SO4 N vs floor and per-style rows (SO4-05, SO1-C), label-size corrections, kappa CIs, FPAT N/A (item 8), SO4 precision/F1 intervals (SO4-06, item 9), rejected pairs (SO4-03), SO5 size/latency, permutation strata, open coding (SO5-07, X-3, THR-4); generator-protocol section 11 and experiments/e1-grid/generator-plan.json (SO5-03, THR-8, item 7); matching-rule section 8 audit drawn from the plan (item 8.8, THR-3; no count change, 1.1.0); so4-heldout seven held-out entries, e7-corpus three E7 bases (item 5); apg-ablation plan new (SO2-5, X-2); label-plan-config v2 (items 6, 8); specs/clean-arch.yaml, layered fixture spec, presets (SO1-D); count inputs and spec-chain tools (item 5 Major 2, minor); threats register (THR-9); labeller route (SO3).",
   "matchingRuleVersion": "1.1.0",
   "artefacts": [
     {
+      "path": "Docs/DiagnosticRuns/e7-spec-generation.json",
+      "sha256": "0838a18744cd52d7acb74197c3e3c9e12512d3457027ced3402e506e3b99ead1"
+    },
+    {
+      "path": "Docs/DiagnosticRuns/u5a-base-typecheck.json",
+      "sha256": "f24576607085b6b96e6708c526eb47293a61e18401616692df5fafb6f57117de"
+    },
+    {
+      "path": "Docs/DiagnosticRuns/u5a-site-feasibility.json",
+      "sha256": "0c14ea47e47ddbe193068ec3af181411198528de2a1903ee0bca288f3a9e4589"
+    },
+    {
       "path": "Docs/analysis-plan.md",
-      "sha256": "4c5974526b972805ff7b90f39f5f76f6d8e6d43fa02488465ef1cf7854e93cc5"
+      "sha256": "032f86e88da7c68d03cb8241a552c2b0fb7ad2fe443ada2e70c83ce3d2bbf869"
     },
     {
       "path": "Docs/corpus-criteria.md",
@@ -18,7 +30,7 @@
     },
     {
       "path": "Docs/generator-protocol.md",
-      "sha256": "72044ed0d2e2b173c2562ac3032092703e88f96e8c6959ed99d7996cf1998dd2"
+      "sha256": "a5c76eb6fc62d4de3133b7717d6342a203d9b724c54de3f9a7bd1d901956e929"
     },
     {
       "path": "Docs/labeller-prompts/judge-unit.md",
@@ -33,12 +45,20 @@
       "sha256": "f01da66e8345505a09509b012076e5e3e679636d8ebcca4ac2622c4bda073bb4"
     },
     {
+      "path": "Docs/labeller-route.md",
+      "sha256": "72c557ca37f02453dcdd8ee52ecbea797d64cfec0eae9164652ca9ef102eb79a"
+    },
+    {
       "path": "Docs/matching-rule.md",
-      "sha256": "728b8192bfac03b32c60fe5da27e189302082acd752cb00e1aacfd8ceedd5808"
+      "sha256": "b0f2848598a02f5c8d2f65045d3963edcacd2d506684003ece921b944898e691"
     },
     {
       "path": "Docs/operator-catalogue.md",
       "sha256": "f764e1ba10edd57a149acd262d4dc5464d924d9979bb1648290cb1e3651be183"
+    },
+    {
+      "path": "Docs/threats-to-validity.md",
+      "sha256": "ab05a5be7fd123f7740cfd8c5c2f6a90a2d2d1f0a3d5a4d4633e1fe2d987a2b0"
     },
     {
       "path": "corpus/corpus.json",
@@ -47,6 +67,10 @@
     {
       "path": "corpus/frozen-instrument.json",
       "sha256": "d6a62cb11c0c731c895c642e6ba7f6faec466fdf27e2580f58dcfe412510f37f"
+    },
+    {
+      "path": "corpus/label-plan-config.json",
+      "sha256": "efdbf5891c0316ed43e6d8b723a3d446defcf6c8fef0cd73fc5206593c27fc88"
     },
     {
       "path": "corpus/overlays/dry-run-test/tsconfig.patch",
@@ -67,6 +91,42 @@
     {
       "path": "corpus/overlays/truthy-demo/package-lock.patch",
       "sha256": "5c171979d68f9f1a8fef4b2f19a90432e35c67e33534506ee4047e52470ea2dd"
+    },
+    {
+      "path": "corpus/selections/dev-nest.json",
+      "sha256": "67a63c6c45f0418a81eff21dcfb7f5cab28ef121f6e8a6b8c16c3c23855419ca"
+    },
+    {
+      "path": "corpus/selections/dry-run-test.json",
+      "sha256": "c9e99184f4b86514aa2e8a4ddb105c355e33f756e6a38373dda9e6bc5106fcae"
+    },
+    {
+      "path": "corpus/selections/eryzerz__nestjs-ddd.json",
+      "sha256": "29d0b31b13c8c6a7212ef6948cf01f1c8871672d0d4a45df334d0fa74f7815e2"
+    },
+    {
+      "path": "corpus/selections/ghostfolio-test.json",
+      "sha256": "738577cea293ad2f953a61275b41f1faf5cb23e80db7dcb20dd26a214d36b5df"
+    },
+    {
+      "path": "corpus/selections/nestjslatam__ddd.json",
+      "sha256": "92d3d17ac14efe90a3d7075a7ff10d06e49777d1a191385efb4477a68ca0049c"
+    },
+    {
+      "path": "corpus/selections/realworld-test.json",
+      "sha256": "ad42fd1951f375cba4873684af1e03b1fcb9577fde4b52cdf6c97541f478dc37"
+    },
+    {
+      "path": "corpus/selections/truthy-demo.json",
+      "sha256": "af21624ecec4bb30e5368c487630b6ba339e262c8211ac40487fc172aa351e97"
+    },
+    {
+      "path": "corpus/selections/v-aguiar__valex.json",
+      "sha256": "5e09fca34d57ca58049d920f1c8482a71cf93d263681e4eed958f833c648cd99"
+    },
+    {
+      "path": "corpus/selections/zhuravlevma__nestjs-active-record.json",
+      "sha256": "68633e1890a922db84605d77ac5d82b9a9b5cde381cdb5ef8309bdd4c172d10a"
     },
     {
       "path": "corpus/specs/MarvinRF__nest-docfy.yaml",
@@ -109,12 +169,20 @@
       "sha256": "8c1c80522488c177915f7bbd89b29edcb2a0f31cf375847d8ac26e59941a6064"
     },
     {
+      "path": "experiments/apg-ablation/plan.json",
+      "sha256": "8e726e94761930f13c0f9dcbf2fd1e07db29f2e4b8cc40eaa0a79bf6c025b933"
+    },
+    {
+      "path": "experiments/e1-grid/generator-plan.json",
+      "sha256": "9032124bcae7ea40fdd16769b3f4bd9fb4c472659e17adf4f717921eb205f9c7"
+    },
+    {
       "path": "experiments/e1-grid/plan.json",
       "sha256": "7d6490dd273cdb201afe1f6c2270d651f5d2dc93ed32b0f20670c4e61b655e69"
     },
     {
       "path": "experiments/e7-corpus/plan.json",
-      "sha256": "d3ed0998f23e1c6a2e7c3d1aca1791f9ced8812bc5c10ea698e5d20eb80c7aa1"
+      "sha256": "6a922b513ee5ea112877418de1f5481120b84a85fc6096a33b2ff89de8d256ae"
     },
     {
       "path": "experiments/fixtures/plan.json",
@@ -130,7 +198,31 @@
     },
     {
       "path": "experiments/so4-heldout/plan.json",
-      "sha256": "e1b492b47a1901944a07e46ae467ee8c3a72a5fe30af7c94ef7fd7a89c012311"
+      "sha256": "3ef0a97206cc52796dff5061ec771909ced138e940e55753c641c51211235a78"
+    },
+    {
+      "path": "presets/clean-architecture.yaml",
+      "sha256": "663f83cbef993c69a792ce8b87a0aa0b0f26e81d16680b111989d9d2d6a86178"
+    },
+    {
+      "path": "presets/layered.yaml",
+      "sha256": "05ff62ee97dce53b307c3a3d7101108670a243848e19903b681084a42597aa3d"
+    },
+    {
+      "path": "presets/nestjs.yaml",
+      "sha256": "00c9136f10086ef41a7da05e89d7208bb26cf4766d4568f0b14e331ca844fc89"
+    },
+    {
+      "path": "scripts/corpus-rubric-u4-cli.ts",
+      "sha256": "0137f7922c9195c7401e6371cf1a5d079fb723789d3f4afe4a5965dffc6ba281"
+    },
+    {
+      "path": "scripts/corpus-rubric-u4.ts",
+      "sha256": "cb701491562fa04450c8ce9d3f247347a81bb5334d756242fbbc8a24171b1b93"
+    },
+    {
+      "path": "scripts/generate-e7-specs-cli.ts",
+      "sha256": "92ecc716e3a1cffec90b6596eb39ef0fd1d705f5e2e3a2796dbd7c085a741e0b"
     },
     {
       "path": "scripts/generate-e7-specs.ts",
@@ -147,6 +239,30 @@
     {
       "path": "scripts/generator/prompts/none.md",
       "sha256": "cc49003c5384c6f5f65f40d688082a1a1334662756994a32d139ec82b6245895"
+    },
+    {
+      "path": "scripts/migrate-corpus-spec-cli.ts",
+      "sha256": "82e9e79387cddb58cc045dd12ee04ef223e852ff76db5df9a61731ae3db96b28"
+    },
+    {
+      "path": "scripts/migrate-corpus-spec.ts",
+      "sha256": "ee1a97dbb471da622ff2cad818308c152b99c19a2b686f1cda2b8b0a9b5f5504"
+    },
+    {
+      "path": "scripts/remap-domain-layer-cli.ts",
+      "sha256": "4fd513e8b5c8b26662810dca47c54a187b64d1334153062c3abb3df0b43ee843"
+    },
+    {
+      "path": "scripts/remap-domain-layer.ts",
+      "sha256": "774fedc310782a72e9d3e93d79b251b0d1653ce3d8a74aa738b24a0935eac990"
+    },
+    {
+      "path": "specs/clean-arch.yaml",
+      "sha256": "d14189f05fac7694d006946a5668b52c05893b2a3f66b1dc149391ad2b938503"
+    },
+    {
+      "path": "tests/fixtures/u5a/layered/firewall.spec.yaml",
+      "sha256": "cebbeb626fbaa46985caeaf0bfa32e95bad52543e11a878d08f56b025434b10c"
     }
   ],
   "labellingBudgetCalls": 4000,
@@ -164,6 +280,10 @@
     {
       "version": 2,
       "commit": "02fbb2f248540af29b3b10d4fd16e099c41d97f7"
+    },
+    {
+      "version": 3,
+      "commit": "a83de82779091fdc55014fc07e00c0f293d7a84d"
     }
   ]
 }
