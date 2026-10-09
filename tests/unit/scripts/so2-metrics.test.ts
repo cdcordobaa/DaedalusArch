@@ -406,7 +406,7 @@ describe('apg-ablation plan and the --graph-mode argument (audit SO2-5)', () => 
   it('an ast-only entry passes --graph-mode ast-only; a full entry passes nothing', () => {
     const plan = { mode: 'symbolic-only' } as ExperimentPlan;
     expect(cliArgv(plan, { index: 0, projectId: 'a@ast-only', path: 'p', specPath: 's', graphMode: 'ast-only' }))
-      .toEqual(['evaluate', '--project', 'p', '--spec', 's', '--format', 'json', '--symbolic-only', '--graph-mode', 'ast-only']);
+      .toEqual(['evaluate', '--project', 'p', '--spec', 's', '--format', 'json', '--symbolic-only', '--graph-mode', 'ast-only', '--instrument', 'v2']);
     expect(cliArgv(plan, { index: 0, projectId: 'a', path: 'p', specPath: 's', graphMode: 'full' })).not.toContain('--graph-mode');
   });
 });

@@ -5,6 +5,8 @@ import { DomainResult } from '../../shared/errors/domain-result.js';
 import { compileFunctions } from '../../fitness-compiler/index.js';
 import { compilerInputFromSpec } from '../../fitness-compiler/compiler-input.js';
 import type { DomainWarning } from '../../shared/errors/domain-result.js';
+import { INSTRUMENT_VERSION } from '../../fitness-compiler/role-exemptions.js';
+import type { InstrumentVersion } from '../../fitness-compiler/role-exemptions.js';
 import { compileFactsOf } from '../../scoring-engine/report-builder.js';
 import type { CompileFacts } from '../../scoring-engine/report-builder.js';
 import { toPipelineError, toPipelineWarning } from './map-helpers.js';
@@ -21,12 +23,15 @@ export interface CompileFactsHolder {
 export class CompileCommand implements PipelineCommand {
   readonly name = 'compile-functions';
 
-  constructor(private readonly factsHolder: CompileFactsHolder = {}) {}
+  constructor(
+    private readonly factsHolder: CompileFactsHolder = {},
+    private readonly instrumentVersion: InstrumentVersion = INSTRUMENT_VERSION,
+  ) {}
 
   async execute(context: FirewallContext): Promise<DomainResultType<void>> {
     const parsedSpec = context.getParsedSpec();
 
-    const result = compileFunctions(compilerInputFromSpec(parsedSpec));
+    const result = compileFunctions(compilerInputFromSpec(parsedSpec), { instrumentVersion: this.instrumentVersion });
 
     if (!result.success) {
       return DomainResult.fail<void>(
@@ -36,7 +41,7 @@ export class CompileCommand implements PipelineCommand {
 
     context.setCompiledFunctions(result.data);
     // BR-U3-52: declared, adrDerived and dropped ids by id sets, computed where the spec is at hand.
-    this.factsHolder.facts = compileFactsOf(parsedSpec.fitnessFunctions, result.data);
+    this.factsHolder.facts = compileFactsOf(parsedSpec.fitnessFunctions, result.data, this.instrumentVersion);
 
     // Compiler warnings travel in CompiledFunctions.warnings; route them to the context so
     // COMPILER_004 for style- and kind-disabled functions reaches the report (BR-U3-56, ADR-016 c).

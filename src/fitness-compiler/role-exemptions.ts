@@ -15,8 +15,20 @@
  */
 import { globToRegex } from './glob-to-regex.js';
 
-/** Instrument version of the symbolic rule set. v1 = no role exemptions (prereg v9 and before). */
-export const INSTRUMENT_VERSION = 2;
+/** Instrument version of the symbolic rule set: 1 = no role exemptions (prereg v9 and before), 2 = this table. */
+export type InstrumentVersion = 1 | 2;
+
+/** The default instrument version (ADR-026). `--instrument v1` reproduces the v1 rule set. */
+export const INSTRUMENT_VERSION: InstrumentVersion = 2;
+
+/** The last commit whose code is instrument v1 (ADR-026): the merge of PR #41. */
+export const INSTRUMENT_V1_LAST_COMMIT = 'febc918';
+
+/** `v1` / `v2` (or `1` / `2`) as an instrument version; undefined for anything else. */
+export function parseInstrumentVersion(value: string): InstrumentVersion | undefined {
+  const v = value.trim().toLowerCase().replace(/^v/, '');
+  return v === '1' ? 1 : v === '2' ? 2 : undefined;
+}
 
 /**
  * Composition roots: the NestJS bootstrap file and `@Module` DI declaration files. They import what they wire
@@ -28,8 +40,9 @@ export const COMPOSITION_ROOT_GLOBS: readonly string[] = Object.freeze([
 ]);
 
 /**
- * Declaration-only files: data-transfer objects, type declarations and barrels, which carry no behaviour of
- * their own to unit-test (the template already skips graph-detected barrels, `NOT src.isBarrel`).
+ * Declaration-only files: data-transfer objects and type declarations, which carry no behaviour of their own to
+ * unit-test. Barrels are not listed: the template already skips graph-detected barrels (`NOT src.isBarrel`).
+ * Known cost: a few files with these names do hold functions (ADR-026 item 6).
  */
 export const DECLARATION_ONLY_GLOBS: readonly string[] = Object.freeze([
   '**/*.dto.ts',
@@ -39,7 +52,6 @@ export const DECLARATION_ONLY_GLOBS: readonly string[] = Object.freeze([
   '**/*.type.ts',
   '**/*.types.ts',
   '**/*.enum.ts',
-  '**/index.ts',
 ]);
 
 /** Role exemptions per template name (instrument v2). A template absent here has none. */
@@ -49,12 +61,12 @@ export const ROLE_EXEMPTIONS: Readonly<Record<string, readonly string[]>> = Obje
   'component-instability': COMPOSITION_ROOT_GLOBS,
 });
 
-/** The role-exemption globs of `templateName` (empty when it has none). */
-export function roleExemptionGlobs(templateName: string): readonly string[] {
-  return ROLE_EXEMPTIONS[templateName] ?? [];
+/** The role-exemption globs of `templateName` under `version` (empty when it has none, and always under v1). */
+export function roleExemptionGlobs(templateName: string, version: InstrumentVersion = INSTRUMENT_VERSION): readonly string[] {
+  return version === 1 ? [] : ROLE_EXEMPTIONS[templateName] ?? [];
 }
 
-/** The role-exemption globs of `templateName` as anchored regexes for `$excludePatterns`. */
-export function roleExemptionPatterns(templateName: string): string[] {
-  return roleExemptionGlobs(templateName).map((g) => globToRegex(g, { segmentGlobstar: true }));
+/** The role-exemption globs of `templateName` under `version` as anchored regexes for `$excludePatterns`. */
+export function roleExemptionPatterns(templateName: string, version: InstrumentVersion = INSTRUMENT_VERSION): string[] {
+  return roleExemptionGlobs(templateName, version).map((g) => globToRegex(g, { segmentGlobstar: true }));
 }

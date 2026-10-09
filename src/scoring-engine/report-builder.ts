@@ -26,12 +26,16 @@ import { DomainResult } from '../shared/errors/domain-result.js';
 import { scrubWarning } from '../shared/errors/scrub.js';
 import { getTemplateTag } from '../fitness-compiler/cypher-templates.js';
 import { mergeWarnings, REPORT_STAGE } from './warning-merge.js';
+import { INSTRUMENT_VERSION } from '../fitness-compiler/role-exemptions.js';
+import type { InstrumentVersion } from '../fitness-compiler/role-exemptions.js';
 
 /** Declared-side counts computed in `CompileCommand` (U3 hunk at R9; BR-U3-52). */
 export interface CompileFacts {
   readonly declared: number;
   readonly adrDerived: number;
   readonly dropped: readonly FunctionId[];
+  /** Symbolic instrument version the functions were compiled under (ADR-026); default `INSTRUMENT_VERSION`. */
+  readonly instrumentVersion?: InstrumentVersion;
 }
 
 /** Everything the builder reads besides the scored report (domain-entities.md §6.1). */
@@ -108,7 +112,11 @@ export function compiledEntries(compiled: CompiledFunctions): ReadonlyMap<string
  * BR-U3-52: `declared` = spec functions in scope (enabled or not); `adrDerived` = compiled functions
  * with source `adr`; `dropped` = declared ids − (compiled ids − ADR ids) − disabled ids, ascending.
  */
-export function compileFactsOf(fitnessFunctions: readonly FitnessFunction[], compiled: CompiledFunctions): CompileFacts {
+export function compileFactsOf(
+  fitnessFunctions: readonly FitnessFunction[],
+  compiled: CompiledFunctions,
+  instrumentVersion: InstrumentVersion = INSTRUMENT_VERSION,
+): CompileFacts {
   const entries = [...compiledEntries(compiled).values()];
   const specCompiled = new Set(entries.filter((e) => !e.adr).map((e) => e.functionId));
   const disabled = new Set(compiled.disabledFunctions.map((d) => String(d.id)));
@@ -120,6 +128,7 @@ export function compileFactsOf(fitnessFunctions: readonly FitnessFunction[], com
     declared: fitnessFunctions.length,
     adrDerived: entries.filter((e) => e.adr).length,
     dropped: [...new Set(dropped)],
+    instrumentVersion,
   };
 }
 
@@ -294,6 +303,7 @@ export function buildEvaluationReport(scored: ScoredReport, facts: RunFacts): Do
     importResolution: facts.apg.importResolution,
     timings: facts.timings,
     judge: facts.judge,
+    instrumentVersion: facts.compileFacts.instrumentVersion ?? INSTRUMENT_VERSION,
     ...(neuralResults !== undefined ? { neuralResults } : {}),
   };
   return DomainResult.ok(report);

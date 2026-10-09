@@ -67,7 +67,7 @@ export async function scoreAndAssemble(input: ScoringInput): Promise<DomainResul
       layerAnnotationSummary: { mapped: 1, unmapped: 0, unmappedFiles: [] },
     },
     compiled,
-    compileFacts: { declared: compiled.totalCompiled + compiled.disabledFunctions.length, adrDerived: 0, dropped: [] },
+    compileFacts: { declared: compiled.totalCompiled + compiled.disabledFunctions.length, adrDerived: 0, dropped: [], instrumentVersion: 2 },
     evaluation: ev,
     timings: { stages: [{ name: 'compute-scores', durationMs: 1, status: 'success' }], totalMs: 1 },
     pipelineWarnings: (scored.warnings ?? []).map((w) => ({ ...w, stage: 'compute-scores' })),

@@ -39,6 +39,8 @@ import { loadPromptTemplate } from './lib/generators/prompt.js';
 import { e1GridMismatches, generatorPlanPathFor, outcomeProtocolMismatches, readRegisteredPlan } from './lib/generators/registered-plan.js';
 import { SCHEDULE_JSON } from './lib/generators/schedule.js';
 import { checkPreRegistration, repoRelative } from './lib/prereg.js';
+import { INSTRUMENT_VERSION, parseInstrumentVersion } from '../src/fitness-compiler/role-exemptions.js';
+import type { InstrumentVersion } from '../src/fitness-compiler/role-exemptions.js';
 import type { PreregCheck, PreregCheckInput } from './lib/prereg.js';
 import { acceptReport, knownSecretsOf, scrubbedJson, writeScrubbedJson } from './lib/report-io.js';
 import type { GenerationCell, PinnedJudge, ReasonCode, RunRecord, RunStatus, SeedRef } from './lib/report-io.js';
@@ -375,9 +377,10 @@ export function modeFlags(mode: PlanMode): string[] {
  * The CLI arguments of one entry. Judge modes add the plan's pinned judge and the experiment's cassette directory
  * (BR-U5b-56); a symbolic-only run makes no judge call and passes neither (DV-U5b-15).
  */
-export function cliArgv(plan: ExperimentPlan, entry: PlanEntry): string[] {
+export function cliArgv(plan: ExperimentPlan, entry: PlanEntry, instrumentVersion: InstrumentVersion = INSTRUMENT_VERSION): string[] {
   const argv = ['evaluate', '--project', entry.path, '--spec', entry.specPath, '--format', 'json', ...modeFlags(plan.mode)];
   if (entry.graphMode !== undefined && entry.graphMode !== 'full') argv.push('--graph-mode', entry.graphMode);
+  argv.push('--instrument', `v${String(instrumentVersion)}`); // ADR-026
   if (plan.mode !== 'symbolic-only') {
     if (plan.judge !== undefined) argv.push('--llm-provider', plan.judge.provider, '--llm-model', plan.judge.model);
     // ADR-021 SO3-5: the judge cassette entries carry the run's project id (repetition reliability keys on it).
@@ -436,6 +439,8 @@ export interface HarnessDeps {
   readonly schemaRoot?: string;
   /** Overrides the plan's `outDir` (tests write to a temp directory, BR-U5b-56). */
   readonly outDir?: string;
+  /** Symbolic instrument version passed to every child and stamped into every RunRecord (ADR-026; default 2). */
+  readonly instrumentVersion?: InstrumentVersion;
   readonly timeoutMs?: number;
   /** Working directory of the CLI child (default the repository root). */
   readonly cwd?: string;
@@ -514,6 +519,7 @@ export async function runPlan(plan: ExperimentPlan, planFile: string, repoRoot: 
         runId: runIdOf(plan.id, entry), planId: plan.id, projectId: entry.projectId, status: 'rejected',
         reasonCode: 'prereg-refused', reasonDetail: `${refusal}: ${detail}`, attempt: 1,
         specSha: specShaOf(entry.specPath), cliCommit: deps.cliCommit, preregVersion: 0, frozenHashes: {},
+        instrumentVersion: deps.instrumentVersion ?? INSTRUMENT_VERSION,
         envRecordId: 'none (pre-registration refused)', startedAt: deps.now().toISOString(), wallMs: 0,
         ...(entry.seed !== undefined && { seed: entry.seed }),
       });
@@ -586,6 +592,7 @@ async function runEntry(plan: ExperimentPlan, entry: PlanEntry, ctx: EntryContex
       ...(reasonCode !== undefined && { reasonCode }), ...(reasonDetail !== undefined && { reasonDetail }),
       attempt, ...(reportPath !== undefined && { reportPath }),
       specSha: ctx.specSha, cliCommit: ctx.deps.cliCommit, preregVersion: ctx.preregVersion, frozenHashes: ctx.frozenHashes,
+      instrumentVersion: ctx.deps.instrumentVersion ?? INSTRUMENT_VERSION,
       envRecordId: ctx.envRecordId, startedAt: startedAt.toISOString(), wallMs: Math.max(0, ctx.deps.now().getTime() - startedAt.getTime()),
       ...(cell !== undefined && { cell }), ...(entry.seed !== undefined && { seed: entry.seed }),
     };
@@ -595,7 +602,7 @@ async function runEntry(plan: ExperimentPlan, entry: PlanEntry, ctx: EntryContex
     return base('not-run', 'generation-failed', gen ?? `generation ${cell.generationStatus} without failureReason`, 1);
   }
 
-  const argv = [...ctx.deps.cli.args, ...cliArgv(plan, entry)];
+  const argv = [...ctx.deps.cli.args, ...cliArgv(plan, entry, ctx.deps.instrumentVersion ?? INSTRUMENT_VERSION)];
   let attempt: 1 | 2 = 1;
   let outcome: AttemptOutcome;
   for (;;) {
@@ -631,7 +638,7 @@ async function runEntry(plan: ExperimentPlan, entry: PlanEntry, ctx: EntryContex
 // CLI
 
 export const RUN_USAGE = [
-  'Usage: npx tsx scripts/run-experiment-cli.ts <plan.json> [--out-dir <dir>] [--neo4j-container <name>]',
+  'Usage: npx tsx scripts/run-experiment-cli.ts <plan.json> [--out-dir <dir>] [--neo4j-container <name>] [--instrument v1|v2]',
   '       npx tsx scripts/run-experiment-cli.ts --check-prereg <plan.json>   (gate only; exit 0 / 1)',
   '       npx tsx scripts/run-experiment-cli.ts --dry-run <plan.json>        (print the expansion)',
   '       npx tsx scripts/run-experiment-cli.ts --self-test',
@@ -705,11 +712,16 @@ export async function main(
   }
   let outDir: string | undefined;
   let neo4jContainer: string | undefined;
+  let instrumentVersion: InstrumentVersion | undefined;
   for (let i = 1; i < argv.length; i++) {
     const a = argv[i];
     const v = argv[i + 1];
     if (a === '--out-dir' && v !== undefined) outDir = argv[++i];
     else if (a === '--neo4j-container' && v !== undefined) neo4jContainer = argv[++i];
+    else if (a === '--instrument' && v !== undefined && parseInstrumentVersion(v) !== undefined) {
+      instrumentVersion = parseInstrumentVersion(v);
+      i++;
+    }
     else {
       io.err(`${RUN_USAGE}\n`);
       return 2;
@@ -718,7 +730,9 @@ export async function main(
   const l = loadAt(first);
   if (!l.ok) return 1;
   const deps = makeDeps(neo4jContainer !== undefined ? { neo4jContainer } : {});
-  const result = await runPlan(l.plan, l.file, repoRoot, { ...deps, schemaRoot, ...(outDir !== undefined && { outDir }) });
+  const result = await runPlan(l.plan, l.file, repoRoot, {
+    ...deps, schemaRoot, ...(outDir !== undefined && { outDir }), ...(instrumentVersion !== undefined && { instrumentVersion }),
+  });
   if (!result.ok) {
     io.err(`${result.code ?? 'RUN_FAILED'}: ${result.detail ?? ''}\n`);
     return 1;

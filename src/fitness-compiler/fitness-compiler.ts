@@ -12,7 +12,8 @@ import { bindLayerParams } from './layer-binding.js';
 import { isTemplateApplicable } from './template-applicability.js';
 import { hasExcludeMarker, replaceExcludeMarkers } from './exclude-injector.js';
 import { globToRegex } from './glob-to-regex.js';
-import { roleExemptionPatterns } from './role-exemptions.js';
+import { INSTRUMENT_VERSION, roleExemptionPatterns } from './role-exemptions.js';
+import type { InstrumentVersion } from './role-exemptions.js';
 import { compilerInputFromSpec } from './compiler-input.js';
 import { compilePattern } from './pattern-compiler.js';
 import { checkBoundParameters } from './bound-param-checker.js';
@@ -36,7 +37,13 @@ export function filterEnabled(
   return { enabled, disabled };
 }
 
-export function compileFunctions(input: CompilerInput): DomainResult<CompiledFunctions> {
+/** Compiler options: `instrumentVersion` 1 drops the role exemptions (ADR-026); default `INSTRUMENT_VERSION`. */
+export interface CompileOptions {
+  readonly instrumentVersion?: InstrumentVersion;
+}
+
+export function compileFunctions(input: CompilerInput, options: CompileOptions = {}): DomainResult<CompiledFunctions> {
+  const instrumentVersion = options.instrumentVersion ?? INSTRUMENT_VERSION;
   const { fitnessFunctions, adrRules, layerModel } = input;
   const symbolicQueries: CypherQuery[] = [];
   const neuronalInstructions: NeuronalInstruction[] = [];
@@ -90,7 +97,7 @@ export function compileFunctions(input: CompilerInput): DomainResult<CompiledFun
 
     switch (ff.route) {
       case 'symbolic': {
-        const result = compileSymbolic(ff, layerModel, binding, warnings);
+        const result = compileSymbolic(ff, layerModel, binding, warnings, instrumentVersion);
         if (result) symbolicQueries.push(result);
         break;
       }
@@ -100,7 +107,7 @@ export function compileFunctions(input: CompilerInput): DomainResult<CompiledFun
         break;
       }
       case 'hybrid': {
-        const sym = compileSymbolic(ff, layerModel, binding, warnings);
+        const sym = compileSymbolic(ff, layerModel, binding, warnings, instrumentVersion);
         const neur = compileNeuronal(ff, false);
         if (sym && neur) {
           hybridPairs.push({ functionId: ff.id, symbolicQuery: sym, neuronalInstruction: neur });
@@ -175,6 +182,7 @@ function compileSymbolic(
   layerModel: LayerModel,
   binding: LayerKindBinding,
   warnings: CompilerWarning[],
+  instrumentVersion: InstrumentVersion = INSTRUMENT_VERSION,
 ): CypherQuery | undefined {
   const template = CYPHER_TEMPLATES.get(ff.name);
 
@@ -190,7 +198,7 @@ function compileSymbolic(
   const params = buildParams(ff, layerModel, binding);
   // C9: excludePatterns is appended to the map last (BR-U1-32, NFR-02): the function's own exclude_paths, then
   // the template's instrument v2 role exemptions (ADR-026).
-  const excludePatterns = [...ff.excludePaths.map((g) => globToRegex(g)), ...roleExemptionPatterns(template.functionName)];
+  const excludePatterns = [...ff.excludePaths.map((g) => globToRegex(g)), ...roleExemptionPatterns(template.functionName, instrumentVersion)];
   if (excludePatterns.length > 0) params.excludePatterns = excludePatterns;
   const cypher = instantiateTemplate(template, params);
 

@@ -219,7 +219,8 @@ describe('functionExecution on the golden shape (BR-U3-51, BR-U3-52)', () => {
       { id: functionId('FF-S01'), name: 'dependency-direction', dimension: 'structural', severity: 'major', route: 'symbolic', isBuiltIn: true, validated: true, enabled: true, excludePaths: [] },
     ];
     const c = compiledOf({ symbolicQueries: [query('FF-S01', 'dependency-direction', 'structural')] });
-    expect(compileFactsOf(declared, c)).toEqual({ declared: 3, adrDerived: 0, dropped: ['FF-N09', 'FF-X01'] });
+    expect(compileFactsOf(declared, c)).toEqual({ declared: 3, adrDerived: 0, dropped: ['FF-N09', 'FF-X01'], instrumentVersion: 2 });
+    expect(compileFactsOf(declared, c, 1).instrumentVersion).toBe(1); // ADR-026 --instrument v1
   });
 });
 

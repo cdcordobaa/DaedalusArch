@@ -9,8 +9,8 @@ import { compileFunctions } from '../../../src/fitness-compiler/fitness-compiler
 import { compilerInputFromSpec } from '../../../src/fitness-compiler/compiler-input.js';
 import { globToRegex } from '../../../src/fitness-compiler/glob-to-regex.js';
 import {
-  COMPOSITION_ROOT_GLOBS, DECLARATION_ONLY_GLOBS, INSTRUMENT_VERSION, ROLE_EXEMPTIONS,
-  roleExemptionGlobs, roleExemptionPatterns,
+  COMPOSITION_ROOT_GLOBS, DECLARATION_ONLY_GLOBS, INSTRUMENT_V1_LAST_COMMIT, INSTRUMENT_VERSION, ROLE_EXEMPTIONS,
+  parseInstrumentVersion, roleExemptionGlobs, roleExemptionPatterns,
 } from '../../../src/fitness-compiler/role-exemptions.js';
 import { parseSpec } from '../../../src/spec-parser/spec-parser.js';
 import type { CypherQuery } from '../../../src/shared/types/evaluation.js';
@@ -52,7 +52,7 @@ describe('role exemptions (instrument v2, ADR-026)', () => {
     ['test-file-pairing', 'src/orders/order.interface.ts', true],
     ['test-file-pairing', 'src/shared/money.types.ts', true],
     ['test-file-pairing', 'src/shared/status.enum.ts', true],
-    ['test-file-pairing', 'src/orders/index.ts', true],
+    ['test-file-pairing', 'src/orders/index.ts', false], // barrels: the template's own isBarrel test (review fix 1)
     ['test-file-pairing', 'src/app.module.ts', true],
     ['test-file-pairing', 'src/main.ts', true],
     ['test-file-pairing', 'src/article/article.service.ts', false],
@@ -100,5 +100,34 @@ describe('role exemptions (instrument v2, ADR-026)', () => {
       expect(byName(name).params.excludePatterns).toEqual(roleExemptionPatterns(name));
     }
     expect(byName('single-responsibility-proxy').params).not.toHaveProperty('excludePatterns');
+  });
+
+  it('declares no index.ts glob (barrels stay with the template, ADR-026 review fix 1)', () => {
+    expect(DECLARATION_ONLY_GLOBS).not.toContain('**/index.ts');
+  });
+
+  it('parses the --instrument values and names the last v1 commit', () => {
+    expect([parseInstrumentVersion('v1'), parseInstrumentVersion('V2'), parseInstrumentVersion('2'), parseInstrumentVersion('v3')])
+      .toEqual([1, 2, 2, undefined]);
+    expect(INSTRUMENT_V1_LAST_COMMIT).toBe('febc918');
+  });
+
+  it('instrument v1 empties every exemption and compiles exactly the v1 queries', async () => {
+    for (const name of Object.keys(ROLE_EXEMPTIONS)) expect(roleExemptionGlobs(name, 1)).toEqual([]);
+    const parsed = await parseSpec({ specFilePath: path.join(ROOT, 'corpus/specs/realworld-test.yaml') });
+    if (!parsed.success) throw new Error('realworld spec did not parse');
+    const v1 = compileFunctions(compilerInputFromSpec(parsed.data), { instrumentVersion: 1 });
+    const v2 = compileFunctions(compilerInputFromSpec(parsed.data), { instrumentVersion: 2 });
+    if (!v1.success || !v2.success) throw new Error('did not compile');
+    for (const [a, b] of v1.data.symbolicQueries.map((q, i) => [q, v2.data.symbolicQueries[i]] as const)) {
+      if (b === undefined) throw new Error('query count differs');
+      if (a.name in ROLE_EXEMPTIONS) {
+        // v1: the function's own exclude_paths only (none for these three in the corpus specs), so no predicate.
+        expect({ name: a.name, params: a.params }).toEqual({ name: a.name, params: Object.fromEntries(Object.entries(b.params).filter(([k]) => k !== 'excludePatterns')) });
+        expect(a.cypher).not.toContain('$excludePatterns');
+      } else {
+        expect(a).toEqual(b);
+      }
+    }
   });
 });
