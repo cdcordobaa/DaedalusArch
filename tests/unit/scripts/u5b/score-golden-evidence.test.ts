@@ -195,8 +195,8 @@ describe('function sensitivity probes (BR-U5b-78)', () => {
       rule: rule(),
       probes: [
         seed(s02, await report([]), await report([cycleV])),
-        seed({ ...c06, seedId: 'p:SP-FF-C06:0' } as typeof c06, await report([]), await report([{ functionId: 'FF-C06', filePath: '' }])),
-        seed({ ...c06, seedId: 'p:SP-FF-C06:1' } as typeof c06, await report([]), await report([{ functionId: 'FF-C04', filePath: 'src/x.ts' }])),
+        seed({ ...c06, seedId: 'p:SP-FF-C06:0' }, await report([]), await report([{ functionId: 'FF-C06', filePath: '' }])),
+        seed({ ...c06, seedId: 'p:SP-FF-C06:1' }, await report([]), await report([{ functionId: 'FF-C04', filePath: 'src/x.ts' }])),
       ],
     });
     if (!o.ok) throw new Error(o.detail);
