@@ -350,6 +350,24 @@ describe('so2-metrics CLI', () => {
     expect((io.files.get('/o/scc_components.csv') ?? '').trim().split('\n')[1]).toBe('g,0,2,false,a.ts');
   });
 
+  it('profile refuses an --out that already holds profile.csv, before any extraction or database call', async () => {
+    const calls: string[] = [];
+    const deps: So2Deps = {
+      extract: () => { calls.push('extract'); return Promise.reject(new Error('unreachable')); },
+      profileBackend: () => { calls.push('backend'); return Promise.reject(new Error('unreachable')); },
+    };
+    const dir = mkdtempSync(join(tmpdir(), 'so2-profile-out-'));
+    try {
+      writeFileSync(join(dir, 'profile.csv'), 'x\n');
+      const io = capture();
+      expect(await main(['profile', '--project', 'p', '--spec', 'specs/clean-arch.yaml', '--project-id', 'g', '--out', dir], ROOT, io, deps)).toBe(1);
+      expect(io.text()).toContain('SO2_INPUT_INVALID: profile.csv already in');
+      expect(calls).toEqual([]);
+    } finally {
+      rmSync(dir, { recursive: true, force: true });
+    }
+  });
+
   it('profile with an unreadable spec is SO2_INPUT_INVALID before any extraction or database call', async () => {
     const io = capture();
     const calls: string[] = [];

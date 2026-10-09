@@ -3,7 +3,7 @@
  */
 import { mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
-import { join } from 'node:path';
+import { join, relative } from 'node:path';
 import {
   SO4_PLAN_BASELINE_MISSING, SO4_PLAN_SEED_INVALID, SO4_PLAN_SPEC_MISMATCH, seedK, seededPlan, so4RunIdOf,
 } from '../../../../scripts/lib/so4-plan-entries.js';
@@ -69,7 +69,11 @@ describe('seeded SO4 plan entries (ADR-021 item 9)', () => {
       // A manifest that fails its schema writes nothing.
       writeFileSync(join(dir, 'bad.json'), JSON.stringify({ schemaVersion: 1, rows: [] }));
       const before = files.size;
-      expect(main(['--plan', 'experiments/fixtures/plan.json', '--manifest', join(dir, 'bad.json'), '--copies', 'c', '--out', join(dir, 'x.json')], ROOT, io)).toBe(1);
+      expect(main(['--plan', 'experiments/fixtures/plan.json', '--manifest', relative(ROOT, join(dir, 'bad.json')), '--copies', 'c', '--out', join(dir, 'x.json')], ROOT, io)).toBe(1);
+      expect(files.size).toBe(before);
+      // Runbook 3.2: an absolute --manifest or --copies (a scratch path) would land in the registered plan; usage error, nothing written.
+      expect(main(['--plan', 'experiments/fixtures/plan.json', '--manifest', join(ROOT, 'tests/fixtures/u5b/hand-computed/manifest.json'), '--copies', '/private/tmp/so4/copies', '--out', join(dir, 'y.json')], ROOT, io)).toBe(2);
+      expect(errs.at(-1)).toContain('--manifest and --copies must be repository-relative');
       expect(files.size).toBe(before);
     } finally {
       rmSync(dir, { recursive: true, force: true });

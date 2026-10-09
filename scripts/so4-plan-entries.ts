@@ -4,7 +4,7 @@
  * the result against the plan schema and writes it. The written plan is a registered artefact: it is committed and
  * registered by a dated pre-registration bump before the first so4-heldout run (analysis plan §2).
  */
-import { resolve } from 'node:path';
+import { isAbsolute, resolve } from 'node:path';
 import { loadManifest } from './lib/manifest.js';
 import { SO4_PLAN_BASELINE_MISSING, seededPlan } from './lib/so4-plan-entries.js';
 import type { So4PlanLike } from './lib/so4-plan-entries.js';
@@ -16,7 +16,8 @@ export const SO4_PLAN_ENTRIES_USAGE = [
   '',
   'Keeps the plan\'s baseline entries and writes one seeded entry per manifest row after them: the copy',
   '<copies>/<projectId>/<operatorId>/k-<k>, the baseline\'s spec, and a seed reference whose baselineReportPath is',
-  'reports/<runId of the baseline entry>.json (ADR-021 item 9). --manifest and --copies are written as given.',
+  'reports/<runId of the baseline entry>.json (ADR-021 item 9). --manifest and --copies are written as given and must be\n' +
+  'repository-relative (exit 2 otherwise).',
   `Exit: 0 written; 1 refused (${SO4_PLAN_BASELINE_MISSING}, SO4_PLAN_SPEC_MISMATCH, SO4_PLAN_SEED_INVALID, PLAN_INVALID); 2 usage.`,
   '',
 ].join('\n');
@@ -53,6 +54,12 @@ export function main(argv: readonly string[], repoRoot: string, io: So4PlanEntri
   const [planPath, manifestPath, copies, out] = ['plan', 'manifest', 'copies', 'out'].map((k) => args.get(k));
   if (planPath === undefined || manifestPath === undefined || copies === undefined || out === undefined) {
     io.err(`--plan, --manifest, --copies and --out are required\n${SO4_PLAN_ENTRIES_USAGE}`);
+    return 2;
+  }
+  // The written paths go into a registered plan: repository-relative only (runbook 3.2, `../daedalus-so4/`), never a scratch path.
+  const absolute = [['--manifest', manifestPath], ['--copies', copies]].filter(([, v]) => isAbsolute(v ?? ''));
+  if (absolute.length > 0) {
+    io.err(`${absolute.map(([k]) => k).join(' and ')} must be repository-relative (e.g. ../daedalus-so4/manifest.json); the plan records them as given\n`);
     return 2;
   }
   const loaded = loadPlan(resolve(repoRoot, planPath), repoRoot);

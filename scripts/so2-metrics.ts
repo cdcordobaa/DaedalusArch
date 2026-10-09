@@ -16,13 +16,14 @@
  * - `profile --project <path> --spec <spec> --project-id <id> --out <dir> [--reps 3] [--timeout-ms 120000]`: ingests
  *   the project into the lane database (credentials from the environment), then PROFILEs the FF-S02 template and
  *   the universal cycle metric through a direct driver session, one warm-up and `--reps` repetitions
- *   (`profile.csv`), and writes the SCC component sizes (`scc_components.csv`).
+ *   (`profile.csv`), and writes the SCC component sizes (`scc_components.csv`). It refuses an `--out` that already holds
+ *   either file (one directory per base).
  * - `--self-test`: a known-bad input (a run directory that does not exist) and exit 1 (BR-U5b-73).
  *
  * The aggregate's `latency.csv` reads accepted reports only; this script's `latency.csv` is the SO2 output named
  * in the lane note (ADR-021 SO2; the analysis plan names it after P-U6).
  */
-import { mkdtempSync, readFileSync, rmSync } from 'node:fs';
+import { existsSync, mkdtempSync, readFileSync, rmSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join, resolve } from 'node:path';
 import neo4j from 'neo4j-driver';
@@ -242,6 +243,11 @@ async function profile(opts: Map<string, string[]>, repoRoot: string, outDir: st
     throw new Error(`${SO2_INPUT_INVALID}: --reps and --timeout-ms must be positive integers`);
   }
   if (deps.profileBackend === undefined) throw new Error(`${SO2_INPUT_INVALID}: no database backend for profile`);
+  // One base per --out directory: profile.csv and scc_components.csv have fixed names, so a second base must not overwrite the first.
+  const existing = ['profile.csv', 'scc_components.csv'].filter((f) => existsSync(join(outDir, f)));
+  if (existing.length > 0) {
+    throw new Error(`${SO2_INPUT_INVALID}: ${existing.join(', ')} already in ${outDir}; use one --out per base (results/latency-gate/so2/profile-<projectId>)`);
+  }
   const specPath = resolve(repoRoot, spec);
   const apg = await deps.extract(resolve(repoRoot, project), 'full', specExcludesOf(repoRoot, specPath));
   const backend = await deps.profileBackend();

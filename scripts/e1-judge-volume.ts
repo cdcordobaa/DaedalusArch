@@ -13,7 +13,15 @@
  * of the pilot projects, low = min, high = max, and the cap ceiling `54 × (1 + 3 × 2 × 20)`. Time is calls × the
  * measured median `duration_ms` (6570 ms at effort `high`, Gate H), sequential and at `maxConcurrency`.
  *
+ * `--e7` mode (runbook stage 0c, before §4): for each project of a full-mode plan (`experiments/e7-corpus/plan.json`)
+ * the judged units come from that base's stored baseline selection (`corpus/selections/<projectId>.json`, OI-11;
+ * U4's own builders on the registered corpus spec, `selectedUnitIds` already capped at `unitCap`), so the calls of
+ * one evaluation are `initProbes + runsPerEvaluation × (selected FF-N01 + selected FF-N02)`; a base without a stored
+ * selection is listed as not estimable and the run stops (exit 1).
+ *
  * Usage (repository root):
+ *   npx tsx scripts/e1-judge-volume-cli.ts --e7 --plan experiments/e7-corpus/plan.json --selections corpus/selections
+ *       [--date YYYY-MM-DD] [--out <file.md>]
  *   npx tsx scripts/e1-judge-volume-cli.ts --spec specs/clean-arch.yaml --project <label>=<dir> [...]
  *       [--cross-check <label>=<fileUnits>,<moduleUnits>] [--date YYYY-MM-DD] [--out <file.md>]
  *   npx tsx scripts/e1-judge-volume-cli.ts --self-test   (known-bad input: must fail)
@@ -247,11 +255,119 @@ export function renderReport(input: ReportInput): string {
 }
 
 // ---------------------------------------------------------------------------------------------
+// E7 (runbook stage 0c): judged units from the stored baseline selections
+
+export interface E7BaseVolume {
+  readonly projectId: string;
+  readonly specPath: string;
+  readonly n01: { readonly candidates: number; readonly selected: number };
+  readonly n02: { readonly candidates: number; readonly selected: number };
+  readonly calls: number;
+}
+
+interface StoredSelection {
+  readonly projectId: string;
+  readonly functions: readonly { readonly functionId: string; readonly candidateUnitIds: readonly string[]; readonly selectedUnitIds: readonly string[] }[];
+}
+
+/** One base's calls per full-mode evaluation from its stored selection; undefined when a function is missing. */
+export function e7BaseVolume(projectId: string, specPath: string, sel: StoredSelection): E7BaseVolume | undefined {
+  const fn = (id: string): { candidates: number; selected: number } | undefined => {
+    const f = sel.functions.find((x) => x.functionId === id);
+    return f === undefined ? undefined : { candidates: f.candidateUnitIds.length, selected: Math.min(UNIT_CAP, f.selectedUnitIds.length) };
+  };
+  const n01 = fn('FF-N01');
+  const n02 = fn('FF-N02');
+  if (n01 === undefined || n02 === undefined || sel.projectId !== projectId) return undefined;
+  return { projectId, specPath, n01, n02, calls: INIT_PROBES_PER_EVALUATION + RUNS_PER_EVALUATION * (n01.selected + n02.selected) };
+}
+
+export function renderE7Report(input: { readonly date: string; readonly planPath: string; readonly bases: readonly E7BaseVolume[]; readonly command: string }): string {
+  const total = input.bases.reduce((a, b) => a + b.calls, 0);
+  const ceiling = input.bases.length * (INIT_PROBES_PER_EVALUATION + RUNS_PER_EVALUATION * 2 * UNIT_CAP);
+  const lines: string[] = [];
+  lines.push('# E7 judge-volume estimate (pre-run)', '');
+  lines.push(`> **Status**: pre-run estimate, ${input.date} (runbook stage 0c; BR-U4-OPS-04). Written by \`scripts/e1-judge-volume-cli.ts --e7\` from the stored baseline selections; no judge call was made. It is the figure the E7 run (runbook §4) is compared against per usage window. Not a result.`, '');
+  lines.push(`Reproduce from the repository root: \`${input.command}\``, '');
+  lines.push('## Method', '');
+  lines.push(`- Plan \`${input.planPath}\`: one full-mode evaluation per base, judge \`claude-cli\` / \`claude-opus-5-5\`, no cassette hit assumed (every E7 entry is new).`);
+  lines.push(`- Judged units per function = the base's stored baseline selection (\`corpus/selections/<projectId>.json\`, OI-11): U4's own unit builders on the registered corpus spec, \`selectedUnitIds\` capped at \`unitCap\` ${String(UNIT_CAP)} (BR-U4-SEL-04).`);
+  lines.push(`- Calls per evaluation = ${String(INIT_PROBES_PER_EVALUATION)} init probe + \`runsPerEvaluation\` ${String(RUNS_PER_EVALUATION)} × (FF-N01 + FF-N02 selected units), the SEN-01 ledger shape.`);
+  lines.push(`- Time = calls × the measured median \`duration_ms\` ${String(MEDIAN_JUDGE_MS)} ms (effort \`high\`, Gate H), sequential and at \`maxConcurrency\` ${String(MAX_CONCURRENCY)}.`, '');
+  lines.push('## Per base', '');
+  lines.push('| Base | Spec | FF-N01 module units (selected) | FF-N02 file units (selected) | Calls per evaluation |');
+  lines.push('|---|---|---|---|---|');
+  for (const b of input.bases) {
+    lines.push(`| ${b.projectId} | \`${b.specPath}\` | ${String(b.n01.candidates)} (${String(b.n01.selected)}) | ${String(b.n02.candidates)} (${String(b.n02.selected)}) | ${String(b.calls)} |`);
+  }
+  lines.push('');
+  lines.push('## E7 estimate', '');
+  lines.push(`| Case | Judge calls | Sequential judge time (h) | At concurrency ${String(MAX_CONCURRENCY)} (h) |`);
+  lines.push('|---|---|---|---|');
+  lines.push(`| Estimate (sum over ${String(input.bases.length)} bases) | ${String(total)} | ${f1(judgeHours(total))} | ${f1(judgeHours(total, MEDIAN_JUDGE_MS, MAX_CONCURRENCY))} |`);
+  lines.push(`| Cap ceiling (${String(input.bases.length)} × (1 + 3 × 2 × ${String(UNIT_CAP)})) | ${String(ceiling)} | ${f1(judgeHours(ceiling))} | ${f1(judgeHours(ceiling, MEDIAN_JUDGE_MS, MAX_CONCURRENCY))} |`);
+  lines.push('');
+  lines.push('## Usage-window risk', '');
+  lines.push('Calls per usage window are **unmeasured** (build-and-test summary §8). Windows needed under hypothetical window sizes:', '');
+  lines.push(`| Calls per window | Estimate (${String(total)} calls) | Ceiling (${String(ceiling)} calls) |`);
+  lines.push('|---|---|---|');
+  for (const w of WINDOW_HYPOTHESES) lines.push(`| ${String(w)} | ${String(windowsNeeded(total, w))} | ${String(windowsNeeded(ceiling, w))} |`);
+  lines.push('');
+  lines.push('- The E7 degradation ladder applies only by its registered rules (`Docs/judge-preregistration.md`; `Docs/threats-to-validity.md` §4). Its step 2 (E7 `unitCap` 20 → 10) roughly halves the per-base unit term; the trigger compares measured calls per window against this estimate, dated in `Docs/judge-preregistration.md`, not here.');
+  lines.push('- A usage stop inside an evaluation ends that entry `incomplete` (`usage-limit`), which is resumable; it is not a rejection.');
+  lines.push('');
+  return lines.join('\n');
+}
+
+function mainE7(argv: readonly string[], repoRoot: string, io: VolumeMainIo): number {
+  const opts = new Map<string, string>();
+  for (let i = 0; i < argv.length; i += 2) {
+    const a = argv[i] ?? '';
+    const v = argv[i + 1];
+    if (!['--plan', '--selections', '--date', '--out'].includes(a) || v === undefined || v.startsWith('--')) {
+      io.err(`${VOLUME_USAGE}\n`);
+      return 2;
+    }
+    opts.set(a.slice(2), v);
+  }
+  const planPath = opts.get('plan');
+  const selDir = opts.get('selections');
+  if (planPath === undefined || selDir === undefined) {
+    io.err(`${VOLUME_USAGE}\n(--e7 needs --plan and --selections)\n`);
+    return 2;
+  }
+  const plan = JSON.parse(readFileSync(resolve(repoRoot, planPath), 'utf8')) as { readonly mode?: string; readonly projects: readonly { readonly projectId: string; readonly specPath: string }[] };
+  if (plan.mode !== 'full') {
+    io.err(`plan ${planPath} is not full mode: no judge call to estimate\n`);
+    return 1;
+  }
+  const bases: E7BaseVolume[] = [];
+  const missing: string[] = [];
+  for (const p of plan.projects) {
+    const f = resolve(repoRoot, selDir, `${p.projectId}.json`);
+    const v = existsSync(f) ? e7BaseVolume(p.projectId, p.specPath, JSON.parse(readFileSync(f, 'utf8')) as StoredSelection) : undefined;
+    if (v === undefined) missing.push(p.projectId);
+    else bases.push(v);
+  }
+  if (missing.length > 0) {
+    io.err(`no usable stored baseline selection for ${missing.join(', ')} in ${selDir}: not estimable\n`);
+    return 1;
+  }
+  const command = ['npx tsx scripts/e1-judge-volume-cli.ts --e7', ...argv.filter((_, i) => argv[i - 1] !== '--out' && argv[i] !== '--out')].join(' ');
+  const text = renderE7Report({ date: opts.get('date') ?? new Date().toISOString().slice(0, 10), planPath, bases, command });
+  const out = opts.get('out');
+  if (out !== undefined) io.writeFile(resolve(repoRoot, out), text);
+  else io.out(text);
+  return 0;
+}
+
+// ---------------------------------------------------------------------------------------------
 // CLI
 
 export const VOLUME_USAGE = [
   'Usage: npx tsx scripts/e1-judge-volume-cli.ts --spec <spec.yaml> --project <label>=<dir> [--project ...]',
   '         [--cross-check <label>=<fileUnits>,<moduleUnits>] [--date YYYY-MM-DD] [--out <file.md>]',
+  '       npx tsx scripts/e1-judge-volume-cli.ts --e7 --plan <full-mode plan.json> --selections <dir> [--date YYYY-MM-DD] [--out <file.md>]',
   '       npx tsx scripts/e1-judge-volume-cli.ts --self-test',
 ].join('\n');
 
@@ -267,6 +383,7 @@ export function main(argv: readonly string[], repoRoot: string, io: VolumeMainIo
     const code = main(['--spec', 'specs/clean-arch.yaml', '--project', 'pilot-x=does-not-exist'], repoRoot, io);
     return code === 0 ? 0 : 1;
   }
+  if (argv[0] === '--e7') return mainE7(argv.slice(1), repoRoot, io);
   let spec: string | undefined;
   let outFile: string | undefined;
   let date = new Date().toISOString().slice(0, 10);
