@@ -1,0 +1,53 @@
+{
+  "attempts": 1,
+  "cliVersion": "2.1.294",
+  "configListingSha256": "47aa04258852fab9a706f3f0c14cee22306d69fbb6fdfbde8c11854bd54997bc",
+  "durationMs": 9698,
+  "effort": "high",
+  "functionId": "FF-N02",
+  "ignoredOptions": [
+    "maxTokens"
+  ],
+  "isolationProbeSha256": "97a2e2d0af1100c13c55e028c1a0c71f069093c3d08705af122aaeb302f1a641",
+  "key": "70ee008afba67767dbdd0b6a0629c5ca3b792b9a606131025cb9b276c4c499ca-r0-0",
+  "model": "claude-opus-5-5",
+  "outcome": {
+    "kind": "valid"
+  },
+  "parsedVerdict": {
+    "confidence": 0.72,
+    "evidence": [
+      "src/cart/payment/models/payment.model.ts: `@Entity('payments', { schema: 'cart' })` on class Payment names the database table and schema, which is a persistence (infrastructure) concern.",
+      "src/cart/payment/models/payment.model.ts: `@PrimaryGeneratedColumn('uuid') id` hands identity generation to the database/ORM, which is an infrastructure concern.",
+      "src/cart/payment/models/payment.model.ts: `@Column({ type: 'bool' })`, `@Column({ type: 'uuid' })` and `@Column({ type: 'text' })` set storage column types, which is persistence mapping (infrastructure).",
+      "The class has no domain behaviour or invariants. It works only as an ORM table mapping."
+    ],
+    "pass": false,
+    "reasoning": "The file is declared as domain, but its only content is a TypeORM persistence mapping. `@Entity('payments', { schema: 'cart' })` ties the class to a database table and schema. `@PrimaryGeneratedColumn('uuid')` hands id generation to the database. `@Column({ type: 'bool' | 'uuid' | 'text' })` sets the storage column types. Those are persistence responsibilities, which belong to the infrastructure layer. The class has no business rules or behaviour, so it is an ORM table mapping placed in the domain layer. Many NestJS/TypeORM projects do this, but under the rubric, persistence mapping in a domain file is a misplaced responsibility.",
+    "violations": [
+      {
+        "filePath": "src/cart/payment/models/payment.model.ts",
+        "message": "Class Payment is a TypeORM persistence mapping: `@Entity('payments', { schema: 'cart' })`, `@PrimaryGeneratedColumn('uuid')` and `@Column({ type: ... })` define the table, schema, id generation and column storage types. This is an infrastructure (persistence) responsibility, but it sits in a domain-layer file."
+      }
+    ]
+  },
+  "projectId": "zhuravlevma__typescript-ddd-architecture",
+  "prompt": "## Rule\nThe unit's responsibilities match the role of its declared layer.\n\n## Rubric\nPass: Every responsibility in the file belongs to the role and kind of its declared layer, and agrees with any ADR prose given.\nFail: The file carries a responsibility that belongs to a different layer kind, for example persistence, transport or framework logic in a domain file, or business rules in an infrastructure or presentation file.\nEvidence required: Name the file and cite the function, method or statement that carries the misplaced responsibility, and the layer kind it belongs to.\nOut of scope: import direction and layer-dependency rules, which are checked symbolically.\n\n## Layer model\n- domain (kind: domain): src/domain/**, src/core/**, src/entities/**, src/models/**, **/domain/**, **/entities/**, **/models/**; file patterns: **/*.entity.ts, **/*.model.ts\n- infrastructure (kind: infrastructure): src/infrastructure/**, src/persistence/**, src/adapters/**, src/prisma/**, src/lib/**, src/common/middleware/**, src/common/filters/**, src/common/pipes/**, **/dal/**; file patterns: **/*.repository.ts, **/*.worker.ts, **/workers/**, **/strategies/**\n- application (kind: application): src/application/**, src/use-cases/**, src/services/**, **/dtos/**, **/queries/**, **/services/**; file patterns: **/*.service.ts, **/*.processor.ts, **/dto/**, **/*.dto.ts, **/*.query.ts\n- presentation (kind: presentation): src/controllers/**, src/gateways/**, src/common/guards/**, src/common/interceptors/**, **/controllers/**; file patterns: **/*.controller.ts, **/*.module.ts, **/*.guard.ts, **/*.interceptor.ts, **/*.gateway.ts\n\n## Unit\nKind: file\nId: src/cart/payment/models/payment.model.ts\nLayer: domain\nUnit files:\n- src/cart/payment/models/payment.model.ts\n\n## Source\n=====SOURCE-BEGIN src/cart/payment/models/payment.model.ts=====\nimport { Entity, PrimaryGeneratedColumn, Column } from 'typeorm';\n\n@Entity('payments', { schema: 'cart' })\nexport class Payment {\n  @PrimaryGeneratedColumn('uuid')\n  id: string;\n\n  @Column({ type: 'bool' })\n  completed: boolean;\n\n  @Column({ type: 'uuid' })\n  orderId: string;\n\n  @Column({ type: 'text' })\n  userId: string;\n\n  @Column({ type: 'uuid' })\n  correlationId: string;\n}\n\n=====SOURCE-END=====\n\n## Graph excerpt\n{\"edges\":[{\"from\":\"src/app.module.ts\",\"to\":\"src/cart/payment/models/payment.model.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/cart/payment/models/payment.model.ts\",\"to\":\"typeorm\",\"type\":\"IMPORTS\"},{\"from\":\"src/cart/payment/payment.module.ts\",\"to\":\"src/cart/payment/models/payment.model.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/cart/payment/services/payment.service.ts\",\"to\":\"src/cart/payment/models/payment.model.ts\",\"type\":\"IMPORTS\"}],\"nodes\":[{\"kind\":\"Class\",\"layer\":\"domain\",\"name\":\"Payment\",\"path\":\"src/cart/payment/models/payment.model.ts\"},{\"kind\":\"File\",\"layer\":\"application\",\"path\":\"src/cart/payment/services/payment.service.ts\"},{\"kind\":\"File\",\"layer\":\"domain\",\"path\":\"src/cart/payment/models/payment.model.ts\"},{\"kind\":\"File\",\"layer\":\"presentation\",\"path\":\"src/app.module.ts\"},{\"kind\":\"File\",\"layer\":\"presentation\",\"path\":\"src/cart/payment/payment.module.ts\"},{\"kind\":\"Package\",\"layer\":null,\"path\":\"typeorm\"}]}\n\n## Instructions\nJudge the unit against the rule and rubric. Return the JSON object the schema requires. Set pass to false if any file of the unit fails the rubric.\n",
+  "provider": "claude-cli",
+  "recordedAt": "2026-10-10T03:25:10.024Z",
+  "repetition": 0,
+  "requestHash": "70ee008afba67767dbdd0b6a0629c5ca3b792b9a606131025cb9b276c4c499ca",
+  "resolvedModel": "claude-opus-5-5",
+  "response": "{\"is_error\":false,\"modelUsage\":{\"claude-opus-5-5\":{\"inputTokens\":2,\"outputTokens\":931}},\"result\":\"{\\\"pass\\\":false,\\\"confidence\\\":0.72,\\\"reasoning\\\":\\\"The file is declared as domain, but its only content is a TypeORM persistence mapping. `@Entity('payments', { schema: 'cart' })` ties the class to a database table and schema. `@PrimaryGeneratedColumn('uuid')` hands id generation to the database. `@Column({ type: 'bool' | 'uuid' | 'text' })` sets the storage column types. Those are persistence responsibilities, which belong to the infrastructure layer. The class has no business rules or behaviour, so it is an ORM table mapping placed in the domain layer. Many NestJS/TypeORM projects do this, but under the rubric, persistence mapping in a domain file is a misplaced responsibility.\\\",\\\"evidence\\\":[\\\"src/cart/payment/models/payment.model.ts: `@Entity('payments', { schema: 'cart' })` on class Payment names the database table and schema, which is a persistence (infrastructure) concern.\\\",\\\"src/cart/payment/models/payment.model.ts: `@PrimaryGeneratedColumn('uuid') id` hands identity generation to the database/ORM, which is an infrastructure concern.\\\",\\\"src/cart/payment/models/payment.model.ts: `@Column({ type: 'bool' })`, `@Column({ type: 'uuid' })` and `@Column({ type: 'text' })` set storage column types, which is persistence mapping (infrastructure).\\\",\\\"The class has no domain behaviour or invariants. It works only as an ORM table mapping.\\\"],\\\"violations\\\":[{\\\"filePath\\\":\\\"src/cart/payment/models/payment.model.ts\\\",\\\"message\\\":\\\"Class Payment is a TypeORM persistence mapping: `@Entity('payments', { schema: 'cart' })`, `@PrimaryGeneratedColumn('uuid')` and `@Column({ type: ... })` define the table, schema, id generation and column storage types. This is an infrastructure (persistence) responsibility, but it sits in a domain-layer file.\\\"}]}\",\"structured_output\":{\"confidence\":0.72,\"evidence\":[\"src/cart/payment/models/payment.model.ts: `@Entity('payments', { schema: 'cart' })` on class Payment names the database table and schema, which is a persistence (infrastructure) concern.\",\"src/cart/payment/models/payment.model.ts: `@PrimaryGeneratedColumn('uuid') id` hands identity generation to the database/ORM, which is an infrastructure concern.\",\"src/cart/payment/models/payment.model.ts: `@Column({ type: 'bool' })`, `@Column({ type: 'uuid' })` and `@Column({ type: 'text' })` set storage column types, which is persistence mapping (infrastructure).\",\"The class has no domain behaviour or invariants. It works only as an ORM table mapping.\"],\"pass\":false,\"reasoning\":\"The file is declared as domain, but its only content is a TypeORM persistence mapping. `@Entity('payments', { schema: 'cart' })` ties the class to a database table and schema. `@PrimaryGeneratedColumn('uuid')` hands id generation to the database. `@Column({ type: 'bool' | 'uuid' | 'text' })` sets the storage column types. Those are persistence responsibilities, which belong to the infrastructure layer. The class has no business rules or behaviour, so it is an ORM table mapping placed in the domain layer. Many NestJS/TypeORM projects do this, but under the rubric, persistence mapping in a domain file is a misplaced responsibility.\",\"violations\":[{\"filePath\":\"src/cart/payment/models/payment.model.ts\",\"message\":\"Class Payment is a TypeORM persistence mapping: `@Entity('payments', { schema: 'cart' })`, `@PrimaryGeneratedColumn('uuid')` and `@Column({ type: ... })` define the table, schema, id generation and column storage types. This is an infrastructure (persistence) responsibility, but it sits in a domain-layer file.\"}]}}",
+  "runIndex": 0,
+  "schemaVersion": 2,
+  "unitId": "src/cart/payment/models/payment.model.ts",
+  "usage": {
+    "inputTokens": 2882,
+    "outputTokens": 931
+  },
+  "usedOptions": {
+    "effort": "high",
+    "model": "claude-opus-5-5"
+  }
+}

@@ -1,0 +1,47 @@
+{
+  "attempts": 1,
+  "cliVersion": "2.1.294",
+  "configListingSha256": "47aa04258852fab9a706f3f0c14cee22306d69fbb6fdfbde8c11854bd54997bc",
+  "durationMs": 7288,
+  "effort": "high",
+  "functionId": "FF-N02",
+  "ignoredOptions": [
+    "maxTokens"
+  ],
+  "isolationProbeSha256": "97a2e2d0af1100c13c55e028c1a0c71f069093c3d08705af122aaeb302f1a641",
+  "key": "ea0150e696d451a1d136ffe297496c3aafc7834f0553bdcde9c1a9444abdfc88-r0-0",
+  "model": "claude-opus-5-5",
+  "outcome": {
+    "kind": "valid"
+  },
+  "parsedVerdict": {
+    "confidence": 0.85,
+    "evidence": [
+      "src/delivery/tracking/tracking.module.ts: @Module({ imports: [TypeOrmModule.forFeature([Route])], controllers: [TrackingController], providers: [TrackingService, ExternalTrackingApi] }) is declarative wiring only",
+      "export class Tracking {} has no methods or logic",
+      "The layer model assigns **/*.module.ts to presentation, so NestJS module wiring belongs to the role defined for that layer"
+    ],
+    "pass": true,
+    "reasoning": "This file passes. src/delivery/tracking/tracking.module.ts is a NestJS module declaration, and the layer model places **/*.module.ts files in the presentation layer. The file only does composition and wiring. It registers the Route entity repository with TypeOrmModule.forFeature, declares TrackingController as a controller, and lists TrackingService and ExternalTrackingApi as providers. Making these declarations is exactly what a NestJS module file is for. The file has no persistence queries, transport calls, framework middleware logic or business rules. TypeOrmModule.forFeature only registers a repository for injection; it does no persistence work in this file. No ADR prose was given that would contradict this. Import direction concerns are out of scope.",
+    "violations": []
+  },
+  "projectId": "zhuravlevma__typescript-ddd-architecture",
+  "prompt": "## Rule\nThe unit's responsibilities match the role of its declared layer.\n\n## Rubric\nPass: Every responsibility in the file belongs to the role and kind of its declared layer, and agrees with any ADR prose given.\nFail: The file carries a responsibility that belongs to a different layer kind, for example persistence, transport or framework logic in a domain file, or business rules in an infrastructure or presentation file.\nEvidence required: Name the file and cite the function, method or statement that carries the misplaced responsibility, and the layer kind it belongs to.\nOut of scope: import direction and layer-dependency rules, which are checked symbolically.\n\n## Layer model\n- domain (kind: domain): src/domain/**, src/core/**, src/entities/**, src/models/**, **/domain/**, **/entities/**, **/models/**; file patterns: **/*.entity.ts, **/*.model.ts\n- infrastructure (kind: infrastructure): src/infrastructure/**, src/persistence/**, src/adapters/**, src/prisma/**, src/lib/**, src/common/middleware/**, src/common/filters/**, src/common/pipes/**, **/dal/**; file patterns: **/*.repository.ts, **/*.worker.ts, **/workers/**, **/strategies/**\n- application (kind: application): src/application/**, src/use-cases/**, src/services/**, **/dtos/**, **/queries/**, **/services/**; file patterns: **/*.service.ts, **/*.processor.ts, **/dto/**, **/*.dto.ts, **/*.query.ts\n- presentation (kind: presentation): src/controllers/**, src/gateways/**, src/common/guards/**, src/common/interceptors/**, **/controllers/**; file patterns: **/*.controller.ts, **/*.module.ts, **/*.guard.ts, **/*.interceptor.ts, **/*.gateway.ts\n\n## Unit\nKind: file\nId: src/delivery/tracking/tracking.module.ts\nLayer: presentation\nUnit files:\n- src/delivery/tracking/tracking.module.ts\n\n## Source\n=====SOURCE-BEGIN src/delivery/tracking/tracking.module.ts=====\nimport { Module } from '@nestjs/common';\nimport { TypeOrmModule } from '@nestjs/typeorm';\nimport { Route } from './models/route.model';\nimport { TrackingController } from './controllers/tracking.controller';\nimport { TrackingService } from './services/tracking.service';\nimport { ExternalTrackingApi } from './api/external-tracking-api';\n\n@Module({\n  imports: [TypeOrmModule.forFeature([Route])],\n  controllers: [TrackingController],\n  providers: [TrackingService, ExternalTrackingApi],\n})\nexport class Tracking {}\n\n=====SOURCE-END=====\n\n## Graph excerpt\n{\"edges\":[{\"from\":\"src/delivery/delivery.module.ts\",\"to\":\"src/delivery/tracking/tracking.module.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/delivery/tracking/tracking.module.ts\",\"to\":\"@nestjs/common\",\"type\":\"IMPORTS\"},{\"from\":\"src/delivery/tracking/tracking.module.ts\",\"to\":\"@nestjs/typeorm\",\"type\":\"IMPORTS\"},{\"from\":\"src/delivery/tracking/tracking.module.ts\",\"to\":\"src/delivery/tracking/api/external-tracking-api.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/delivery/tracking/tracking.module.ts\",\"to\":\"src/delivery/tracking/controllers/tracking.controller.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/delivery/tracking/tracking.module.ts\",\"to\":\"src/delivery/tracking/models/route.model.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/delivery/tracking/tracking.module.ts\",\"to\":\"src/delivery/tracking/services/tracking.service.ts\",\"type\":\"IMPORTS\"}],\"nodes\":[{\"kind\":\"Class\",\"layer\":\"presentation\",\"name\":\"Tracking\",\"path\":\"src/delivery/tracking/tracking.module.ts\"},{\"kind\":\"File\",\"layer\":\"application\",\"path\":\"src/delivery/tracking/services/tracking.service.ts\"},{\"kind\":\"File\",\"layer\":\"domain\",\"path\":\"src/delivery/tracking/models/route.model.ts\"},{\"kind\":\"File\",\"layer\":\"presentation\",\"path\":\"src/delivery/delivery.module.ts\"},{\"kind\":\"File\",\"layer\":\"presentation\",\"path\":\"src/delivery/tracking/controllers/tracking.controller.ts\"},{\"kind\":\"File\",\"layer\":\"presentation\",\"path\":\"src/delivery/tracking/tracking.module.ts\"},{\"kind\":\"File\",\"layer\":null,\"path\":\"src/delivery/tracking/api/external-tracking-api.ts\"},{\"kind\":\"Package\",\"layer\":null,\"path\":\"@nestjs/common\"},{\"kind\":\"Package\",\"layer\":null,\"path\":\"@nestjs/typeorm\"}]}\n\n## Instructions\nJudge the unit against the rule and rubric. Return the JSON object the schema requires. Set pass to false if any file of the unit fails the rubric.\n",
+  "provider": "claude-cli",
+  "recordedAt": "2026-10-10T03:26:09.201Z",
+  "repetition": 0,
+  "requestHash": "ea0150e696d451a1d136ffe297496c3aafc7834f0553bdcde9c1a9444abdfc88",
+  "resolvedModel": "claude-opus-5-5",
+  "response": "{\"is_error\":false,\"modelUsage\":{\"claude-opus-5-5\":{\"inputTokens\":2,\"outputTokens\":621}},\"result\":\"{\\\"pass\\\":true,\\\"confidence\\\":0.85,\\\"reasoning\\\":\\\"This file passes. src/delivery/tracking/tracking.module.ts is a NestJS module declaration, and the layer model places **/*.module.ts files in the presentation layer. The file only does composition and wiring. It registers the Route entity repository with TypeOrmModule.forFeature, declares TrackingController as a controller, and lists TrackingService and ExternalTrackingApi as providers. Making these declarations is exactly what a NestJS module file is for. The file has no persistence queries, transport calls, framework middleware logic or business rules. TypeOrmModule.forFeature only registers a repository for injection; it does no persistence work in this file. No ADR prose was given that would contradict this. Import direction concerns are out of scope.\\\",\\\"evidence\\\":[\\\"src/delivery/tracking/tracking.module.ts: @Module({ imports: [TypeOrmModule.forFeature([Route])], controllers: [TrackingController], providers: [TrackingService, ExternalTrackingApi] }) is declarative wiring only\\\",\\\"export class Tracking {} has no methods or logic\\\",\\\"The layer model assigns **/*.module.ts to presentation, so NestJS module wiring belongs to the role defined for that layer\\\"],\\\"violations\\\":[]}\",\"structured_output\":{\"confidence\":0.85,\"evidence\":[\"src/delivery/tracking/tracking.module.ts: @Module({ imports: [TypeOrmModule.forFeature([Route])], controllers: [TrackingController], providers: [TrackingService, ExternalTrackingApi] }) is declarative wiring only\",\"export class Tracking {} has no methods or logic\",\"The layer model assigns **/*.module.ts to presentation, so NestJS module wiring belongs to the role defined for that layer\"],\"pass\":true,\"reasoning\":\"This file passes. src/delivery/tracking/tracking.module.ts is a NestJS module declaration, and the layer model places **/*.module.ts files in the presentation layer. The file only does composition and wiring. It registers the Route entity repository with TypeOrmModule.forFeature, declares TrackingController as a controller, and lists TrackingService and ExternalTrackingApi as providers. Making these declarations is exactly what a NestJS module file is for. The file has no persistence queries, transport calls, framework middleware logic or business rules. TypeOrmModule.forFeature only registers a repository for injection; it does no persistence work in this file. No ADR prose was given that would contradict this. Import direction concerns are out of scope.\",\"violations\":[]}}",
+  "runIndex": 0,
+  "schemaVersion": 2,
+  "unitId": "src/delivery/tracking/tracking.module.ts",
+  "usage": {
+    "inputTokens": 3228,
+    "outputTokens": 621
+  },
+  "usedOptions": {
+    "effort": "high",
+    "model": "claude-opus-5-5"
+  }
+}

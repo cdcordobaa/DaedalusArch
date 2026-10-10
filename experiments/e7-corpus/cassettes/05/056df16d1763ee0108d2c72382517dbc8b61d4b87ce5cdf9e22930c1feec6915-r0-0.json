@@ -1,0 +1,48 @@
+{
+  "attempts": 1,
+  "cliVersion": "2.1.294",
+  "configListingSha256": "47aa04258852fab9a706f3f0c14cee22306d69fbb6fdfbde8c11854bd54997bc",
+  "durationMs": 9213,
+  "effort": "high",
+  "functionId": "FF-N02",
+  "ignoredOptions": [
+    "maxTokens"
+  ],
+  "isolationProbeSha256": "97a2e2d0af1100c13c55e028c1a0c71f069093c3d08705af122aaeb302f1a641",
+  "key": "056df16d1763ee0108d2c72382517dbc8b61d4b87ce5cdf9e22930c1feec6915-r0-0",
+  "model": "claude-opus-5-5",
+  "outcome": {
+    "kind": "valid"
+  },
+  "parsedVerdict": {
+    "confidence": 0.68,
+    "evidence": [
+      "src/middlewares/apiKeyValidator.ts: `const apiKey = req.headers[\"x-api-key\"]` reads the key from the HTTP request, which is transport concern (presentation).",
+      "src/middlewares/apiKeyValidator.ts: `await companyRepository.findByApiKey(apiKey.toString())` hands the lookup to the repository and contains no persistence logic itself.",
+      "src/middlewares/apiKeyValidator.ts: `throw { name: \"unauthorized\", ... }` / `next()` is the middleware's access-control flow, which belongs in presentation.",
+      "The graph shows the file is used by src/routes/cardsRouter.ts and src/routes/statementsRouter.ts as route middleware."
+    ],
+    "pass": true,
+    "reasoning": "The file is an Express middleware. It has one job: authenticating requests at the transport boundary. It reads the `x-api-key` header, checks that the key belongs to a known company, and either throws an unauthorized error or calls `next()`. Guarding access with header-based authentication is a standard responsibility for the presentation layer. The file holds no domain rules such as card or statement logic. It also does no persistence work itself: there are no queries, SQL or ORM code. The lookup is delegated to `companyRepository.findByApiKey`. Calling the repository directly instead of going through a service is an import or layer-dependency question, and that is out of scope here. One could argue that \"a valid API key maps to an existing company\" is a business rule. But it is a plain existence check used to gate access, which is a normal authentication concern for middleware, so it does not count as misplaced domain logic. The file's responsibilities match its declared layer.",
+    "violations": []
+  },
+  "projectId": "v-aguiar__valex",
+  "prompt": "## Rule\nThe unit's responsibilities match the role of its declared layer.\n\n## Rubric\nPass: Every responsibility in the file belongs to the role and kind of its declared layer, and agrees with any ADR prose given.\nFail: The file carries a responsibility that belongs to a different layer kind, for example persistence, transport or framework logic in a domain file, or business rules in an infrastructure or presentation file.\nEvidence required: Name the file and cite the function, method or statement that carries the misplaced responsibility, and the layer kind it belongs to.\nOut of scope: import direction and layer-dependency rules, which are checked symbolically.\n\n## Layer model\n- persistence (kind: infrastructure): src/persistence/**, **/repositories/**\n- business (kind: domain): src/business/**, **/services/**, **/domain/**; file patterns: **/*.entity.ts\n- presentation (kind: presentation): src/presentation/**, **/controllers/**, **/middlewares/**, **/routes/**\n\n## Unit\nKind: file\nId: src/middlewares/apiKeyValidator.ts\nLayer: presentation\nUnit files:\n- src/middlewares/apiKeyValidator.ts\n\n## Source\n=====SOURCE-BEGIN src/middlewares/apiKeyValidator.ts=====\n﻿import { NextFunction, Request, Response } from \"express\";\n\nimport * as companyRepository from \"../repositories/companyRepository.js\";\n\nexport default async function apiKeyValidator(req: Request, res: Response, next: NextFunction) {\n  const apiKey = req.headers[\"x-api-key\"];\n\n  const company = await companyRepository.findByApiKey(apiKey.toString());\n\n  if (!company) {\n    throw {\n      name: \"unauthorized\",\n      message: \"⚠ You don't have access to this API!\",\n    };\n  }\n  next();\n}\n\n=====SOURCE-END=====\n\n## Graph excerpt\n{\"edges\":[{\"from\":\"src/middlewares/apiKeyValidator.ts\",\"to\":\"express\",\"type\":\"IMPORTS\"},{\"from\":\"src/middlewares/apiKeyValidator.ts\",\"to\":\"src/repositories/companyRepository.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/routes/cardsRouter.ts\",\"to\":\"src/middlewares/apiKeyValidator.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/routes/statementsRouter.ts\",\"to\":\"src/middlewares/apiKeyValidator.ts\",\"type\":\"IMPORTS\"}],\"nodes\":[{\"kind\":\"File\",\"layer\":\"persistence\",\"path\":\"src/repositories/companyRepository.ts\"},{\"kind\":\"File\",\"layer\":\"presentation\",\"path\":\"src/middlewares/apiKeyValidator.ts\"},{\"kind\":\"File\",\"layer\":\"presentation\",\"path\":\"src/routes/cardsRouter.ts\"},{\"kind\":\"File\",\"layer\":\"presentation\",\"path\":\"src/routes/statementsRouter.ts\"},{\"kind\":\"Package\",\"layer\":null,\"path\":\"express\"}]}\n\n## Instructions\nJudge the unit against the rule and rubric. Return the JSON object the schema requires. Set pass to false if any file of the unit fails the rubric.\n",
+  "provider": "claude-cli",
+  "recordedAt": "2026-10-10T03:18:12.557Z",
+  "repetition": 0,
+  "requestHash": "056df16d1763ee0108d2c72382517dbc8b61d4b87ce5cdf9e22930c1feec6915",
+  "resolvedModel": "claude-opus-5-5",
+  "response": "{\"is_error\":false,\"modelUsage\":{\"claude-opus-5-5\":{\"inputTokens\":2,\"outputTokens\":845}},\"result\":\"{\\\"pass\\\":true,\\\"confidence\\\":0.68,\\\"reasoning\\\":\\\"The file is an Express middleware. It has one job: authenticating requests at the transport boundary. It reads the `x-api-key` header, checks that the key belongs to a known company, and either throws an unauthorized error or calls `next()`. Guarding access with header-based authentication is a standard responsibility for the presentation layer. The file holds no domain rules such as card or statement logic. It also does no persistence work itself: there are no queries, SQL or ORM code. The lookup is delegated to `companyRepository.findByApiKey`. Calling the repository directly instead of going through a service is an import or layer-dependency question, and that is out of scope here. One could argue that \\\\\\\"a valid API key maps to an existing company\\\\\\\" is a business rule. But it is a plain existence check used to gate access, which is a normal authentication concern for middleware, so it does not count as misplaced domain logic. The file's responsibilities match its declared layer.\\\",\\\"evidence\\\":[\\\"src/middlewares/apiKeyValidator.ts: `const apiKey = req.headers[\\\\\\\"x-api-key\\\\\\\"]` reads the key from the HTTP request, which is transport concern (presentation).\\\",\\\"src/middlewares/apiKeyValidator.ts: `await companyRepository.findByApiKey(apiKey.toString())` hands the lookup to the repository and contains no persistence logic itself.\\\",\\\"src/middlewares/apiKeyValidator.ts: `throw { name: \\\\\\\"unauthorized\\\\\\\", ... }` / `next()` is the middleware's access-control flow, which belongs in presentation.\\\",\\\"The graph shows the file is used by src/routes/cardsRouter.ts and src/routes/statementsRouter.ts as route middleware.\\\"],\\\"violations\\\":[]}\",\"structured_output\":{\"confidence\":0.68,\"evidence\":[\"src/middlewares/apiKeyValidator.ts: `const apiKey = req.headers[\\\"x-api-key\\\"]` reads the key from the HTTP request, which is transport concern (presentation).\",\"src/middlewares/apiKeyValidator.ts: `await companyRepository.findByApiKey(apiKey.toString())` hands the lookup to the repository and contains no persistence logic itself.\",\"src/middlewares/apiKeyValidator.ts: `throw { name: \\\"unauthorized\\\", ... }` / `next()` is the middleware's access-control flow, which belongs in presentation.\",\"The graph shows the file is used by src/routes/cardsRouter.ts and src/routes/statementsRouter.ts as route middleware.\"],\"pass\":true,\"reasoning\":\"The file is an Express middleware. It has one job: authenticating requests at the transport boundary. It reads the `x-api-key` header, checks that the key belongs to a known company, and either throws an unauthorized error or calls `next()`. Guarding access with header-based authentication is a standard responsibility for the presentation layer. The file holds no domain rules such as card or statement logic. It also does no persistence work itself: there are no queries, SQL or ORM code. The lookup is delegated to `companyRepository.findByApiKey`. Calling the repository directly instead of going through a service is an import or layer-dependency question, and that is out of scope here. One could argue that \\\"a valid API key maps to an existing company\\\" is a business rule. But it is a plain existence check used to gate access, which is a normal authentication concern for middleware, so it does not count as misplaced domain logic. The file's responsibilities match its declared layer.\",\"violations\":[]}}",
+  "runIndex": 0,
+  "schemaVersion": 2,
+  "unitId": "src/middlewares/apiKeyValidator.ts",
+  "usage": {
+    "inputTokens": 2538,
+    "outputTokens": 845
+  },
+  "usedOptions": {
+    "effort": "high",
+    "model": "claude-opus-5-5"
+  }
+}

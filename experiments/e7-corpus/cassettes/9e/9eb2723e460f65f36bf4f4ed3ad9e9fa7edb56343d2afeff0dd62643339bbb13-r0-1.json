@@ -1,0 +1,47 @@
+{
+  "attempts": 1,
+  "cliVersion": "2.1.294",
+  "configListingSha256": "47aa04258852fab9a706f3f0c14cee22306d69fbb6fdfbde8c11854bd54997bc",
+  "durationMs": 6134,
+  "effort": "high",
+  "functionId": "FF-N02",
+  "ignoredOptions": [
+    "maxTokens"
+  ],
+  "isolationProbeSha256": "97a2e2d0af1100c13c55e028c1a0c71f069093c3d08705af122aaeb302f1a641",
+  "key": "9eb2723e460f65f36bf4f4ed3ad9e9fa7edb56343d2afeff0dd62643339bbb13-r0-1",
+  "model": "claude-opus-5-5",
+  "outcome": {
+    "kind": "valid"
+  },
+  "parsedVerdict": {
+    "confidence": 0.9,
+    "evidence": [
+      "src/repositories/companyRepository.ts: findByApiKey runs `connection.query(\"SELECT * FROM companies WHERE \\\"apiKey\\\"=$1\", [apiKey])` and returns result.rows[0], which is plain data access.",
+      "src/repositories/companyRepository.ts: interface Company { id; name; apiKey? } is a row-shape data type with no behavior.",
+      "No validation, authorization or HTTP/request handling appears in the file. The apiKeyValidator middleware (presentation) is the caller and holds that logic."
+    ],
+    "pass": true,
+    "reasoning": "The file sits in the persistence layer, which is an infrastructure kind. It does only persistence work: it declares a row-shape interface (Company) and one data-access function (findByApiKey) that runs a parameterized SQL query and returns the first row. It has no business rules (for example, no checks for a missing or invalid key and no authorization decisions), no transport or HTTP handling, and no framework or presentation logic. Every responsibility fits the infrastructure/persistence role. Import direction is out of scope.",
+    "violations": []
+  },
+  "projectId": "v-aguiar__valex",
+  "prompt": "## Rule\nThe unit's responsibilities match the role of its declared layer.\n\n## Rubric\nPass: Every responsibility in the file belongs to the role and kind of its declared layer, and agrees with any ADR prose given.\nFail: The file carries a responsibility that belongs to a different layer kind, for example persistence, transport or framework logic in a domain file, or business rules in an infrastructure or presentation file.\nEvidence required: Name the file and cite the function, method or statement that carries the misplaced responsibility, and the layer kind it belongs to.\nOut of scope: import direction and layer-dependency rules, which are checked symbolically.\n\n## Layer model\n- persistence (kind: infrastructure): src/persistence/**, **/repositories/**\n- business (kind: domain): src/business/**, **/services/**, **/domain/**; file patterns: **/*.entity.ts\n- presentation (kind: presentation): src/presentation/**, **/controllers/**, **/middlewares/**, **/routes/**\n\n## Unit\nKind: file\nId: src/repositories/companyRepository.ts\nLayer: persistence\nUnit files:\n- src/repositories/companyRepository.ts\n\n## Source\n=====SOURCE-BEGIN src/repositories/companyRepository.ts=====\nimport { connection } from \"../config/database.js\";\n\nexport interface Company {\n  id: number;\n  name: string;\n  apiKey?: string;\n}\n\nexport async function findByApiKey(apiKey: string) {\n  const result = await connection.query<Company, [string]>(`SELECT * FROM companies WHERE \"apiKey\"=$1`, [\n    apiKey,\n  ]);\n\n  return result.rows[0];\n}\n\n=====SOURCE-END=====\n\n## Graph excerpt\n{\"edges\":[{\"from\":\"src/middlewares/apiKeyValidator.ts\",\"to\":\"src/repositories/companyRepository.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/repositories/companyRepository.ts\",\"to\":\"src/config/database.ts\",\"type\":\"IMPORTS\"}],\"nodes\":[{\"kind\":\"File\",\"layer\":\"persistence\",\"path\":\"src/repositories/companyRepository.ts\"},{\"kind\":\"File\",\"layer\":\"presentation\",\"path\":\"src/middlewares/apiKeyValidator.ts\"},{\"kind\":\"File\",\"layer\":null,\"path\":\"src/config/database.ts\"},{\"kind\":\"Interface\",\"layer\":\"persistence\",\"name\":\"Company\",\"path\":\"src/repositories/companyRepository.ts\"}]}\n\n## Instructions\nJudge the unit against the rule and rubric. Return the JSON object the schema requires. Set pass to false if any file of the unit fails the rubric.\n",
+  "provider": "claude-cli",
+  "recordedAt": "2026-10-10T03:18:52.512Z",
+  "repetition": 0,
+  "requestHash": "9eb2723e460f65f36bf4f4ed3ad9e9fa7edb56343d2afeff0dd62643339bbb13",
+  "resolvedModel": "claude-opus-5-5",
+  "response": "{\"is_error\":false,\"modelUsage\":{\"claude-opus-5-5\":{\"inputTokens\":2,\"outputTokens\":492}},\"result\":\"{\\\"pass\\\":true,\\\"confidence\\\":0.9,\\\"reasoning\\\":\\\"The file sits in the persistence layer, which is an infrastructure kind. It does only persistence work: it declares a row-shape interface (Company) and one data-access function (findByApiKey) that runs a parameterized SQL query and returns the first row. It has no business rules (for example, no checks for a missing or invalid key and no authorization decisions), no transport or HTTP handling, and no framework or presentation logic. Every responsibility fits the infrastructure/persistence role. Import direction is out of scope.\\\",\\\"evidence\\\":[\\\"src/repositories/companyRepository.ts: findByApiKey runs `connection.query(\\\\\\\"SELECT * FROM companies WHERE \\\\\\\\\\\\\\\"apiKey\\\\\\\\\\\\\\\"=$1\\\\\\\", [apiKey])` and returns result.rows[0], which is plain data access.\\\",\\\"src/repositories/companyRepository.ts: interface Company { id; name; apiKey? } is a row-shape data type with no behavior.\\\",\\\"No validation, authorization or HTTP/request handling appears in the file. The apiKeyValidator middleware (presentation) is the caller and holds that logic.\\\"],\\\"violations\\\":[]}\",\"structured_output\":{\"confidence\":0.9,\"evidence\":[\"src/repositories/companyRepository.ts: findByApiKey runs `connection.query(\\\"SELECT * FROM companies WHERE \\\\\\\"apiKey\\\\\\\"=$1\\\", [apiKey])` and returns result.rows[0], which is plain data access.\",\"src/repositories/companyRepository.ts: interface Company { id; name; apiKey? } is a row-shape data type with no behavior.\",\"No validation, authorization or HTTP/request handling appears in the file. The apiKeyValidator middleware (presentation) is the caller and holds that logic.\"],\"pass\":true,\"reasoning\":\"The file sits in the persistence layer, which is an infrastructure kind. It does only persistence work: it declares a row-shape interface (Company) and one data-access function (findByApiKey) that runs a parameterized SQL query and returns the first row. It has no business rules (for example, no checks for a missing or invalid key and no authorization decisions), no transport or HTTP handling, and no framework or presentation logic. Every responsibility fits the infrastructure/persistence role. Import direction is out of scope.\",\"violations\":[]}}",
+  "runIndex": 1,
+  "schemaVersion": 2,
+  "unitId": "src/repositories/companyRepository.ts",
+  "usage": {
+    "inputTokens": 2356,
+    "outputTokens": 492
+  },
+  "usedOptions": {
+    "effort": "high",
+    "model": "claude-opus-5-5"
+  }
+}

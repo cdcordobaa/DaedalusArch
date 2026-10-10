@@ -1,0 +1,47 @@
+{
+  "attempts": 1,
+  "cliVersion": "2.1.294",
+  "configListingSha256": "47aa04258852fab9a706f3f0c14cee22306d69fbb6fdfbde8c11854bd54997bc",
+  "durationMs": 7724,
+  "effort": "high",
+  "functionId": "FF-N02",
+  "ignoredOptions": [
+    "maxTokens"
+  ],
+  "isolationProbeSha256": "97a2e2d0af1100c13c55e028c1a0c71f069093c3d08705af122aaeb302f1a641",
+  "key": "52159d7004e13d5f3be83fddb842020517198aeb48b6bd89a8c8ea0a93a5b6a0-r0-1",
+  "model": "claude-opus-5-5",
+  "outcome": {
+    "kind": "valid"
+  },
+  "parsedVerdict": {
+    "confidence": 0.85,
+    "evidence": [
+      "src/cart/cart/domain/ports/out/create-saga.out-port.ts: `export abstract class CreateSagaOutPort { abstract createSaga(checkSagaApiDto: CheckSagaApiDto): Promise<string>; }` is a pure port contract with no implementation.",
+      "src/cart/cart/domain/ports/out/create-saga.out-port.ts: `export class CheckSagaApiDto { correlationId: string; }` is a plain data shape with no transport or framework behaviour.",
+      "Graph: ExternalSagaApi (src/cart/cart/api/external-saga-api.ts) IMPLEMENTS CreateSagaOutPort, so the actual external calls are made outside the domain file."
+    ],
+    "pass": true,
+    "reasoning": "The file declares an outbound port for the domain layer. It contains an abstract class, CreateSagaOutPort, with one abstract method, createSaga, and a plain data class, CheckSagaApiDto, that holds only a correlationId. In hexagonal architecture, outbound port interfaces belong in the domain. Here, a domain interactor (CreateCartInteractor) injects the port and an outside adapter (ExternalSagaApi) implements it. The file has no persistence, transport, HTTP or framework logic, and no infrastructure concerns. The 'ApiDto' name hints at transport, but the class is only a plain data shape with no behaviour, so it doesn't move transport responsibility into the domain. Every responsibility in the file fits the domain layer.",
+    "violations": []
+  },
+  "projectId": "zhuravlevma__typescript-ddd-architecture",
+  "prompt": "## Rule\nThe unit's responsibilities match the role of its declared layer.\n\n## Rubric\nPass: Every responsibility in the file belongs to the role and kind of its declared layer, and agrees with any ADR prose given.\nFail: The file carries a responsibility that belongs to a different layer kind, for example persistence, transport or framework logic in a domain file, or business rules in an infrastructure or presentation file.\nEvidence required: Name the file and cite the function, method or statement that carries the misplaced responsibility, and the layer kind it belongs to.\nOut of scope: import direction and layer-dependency rules, which are checked symbolically.\n\n## Layer model\n- domain (kind: domain): src/domain/**, src/core/**, src/entities/**, src/models/**, **/domain/**, **/entities/**, **/models/**; file patterns: **/*.entity.ts, **/*.model.ts\n- infrastructure (kind: infrastructure): src/infrastructure/**, src/persistence/**, src/adapters/**, src/prisma/**, src/lib/**, src/common/middleware/**, src/common/filters/**, src/common/pipes/**, **/dal/**; file patterns: **/*.repository.ts, **/*.worker.ts, **/workers/**, **/strategies/**\n- application (kind: application): src/application/**, src/use-cases/**, src/services/**, **/dtos/**, **/queries/**, **/services/**; file patterns: **/*.service.ts, **/*.processor.ts, **/dto/**, **/*.dto.ts, **/*.query.ts\n- presentation (kind: presentation): src/controllers/**, src/gateways/**, src/common/guards/**, src/common/interceptors/**, **/controllers/**; file patterns: **/*.controller.ts, **/*.module.ts, **/*.guard.ts, **/*.interceptor.ts, **/*.gateway.ts\n\n## Unit\nKind: file\nId: src/cart/cart/domain/ports/out/create-saga.out-port.ts\nLayer: domain\nUnit files:\n- src/cart/cart/domain/ports/out/create-saga.out-port.ts\n\n## Source\n=====SOURCE-BEGIN src/cart/cart/domain/ports/out/create-saga.out-port.ts=====\nexport class CheckSagaApiDto {\n  correlationId: string;\n}\nexport abstract class CreateSagaOutPort {\n  abstract createSaga(checkSagaApiDto: CheckSagaApiDto): Promise<string>;\n}\n\n=====SOURCE-END=====\n\n## Graph excerpt\n{\"edges\":[{\"from\":\"CreateCartInteractor@src/cart/cart/domain/interactors/create-cart.interactor.ts\",\"to\":\"CreateSagaOutPort@src/cart/cart/domain/ports/out/create-saga.out-port.ts\",\"type\":\"CONSTRUCTOR_INJECTS\"},{\"from\":\"ExternalSagaApi@src/cart/cart/api/external-saga-api.ts\",\"to\":\"CreateSagaOutPort@src/cart/cart/domain/ports/out/create-saga.out-port.ts\",\"type\":\"IMPLEMENTS\"},{\"from\":\"src/cart/cart/api/external-saga-api.ts\",\"to\":\"src/cart/cart/domain/ports/out/create-saga.out-port.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/cart/cart/cart.module.ts\",\"to\":\"src/cart/cart/domain/ports/out/create-saga.out-port.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/cart/cart/domain/interactors/create-cart.interactor.ts\",\"to\":\"src/cart/cart/domain/ports/out/create-saga.out-port.ts\",\"type\":\"IMPORTS\"}],\"nodes\":[{\"kind\":\"Class\",\"layer\":\"domain\",\"name\":\"CheckSagaApiDto\",\"path\":\"src/cart/cart/domain/ports/out/create-saga.out-port.ts\"},{\"kind\":\"Class\",\"layer\":\"domain\",\"name\":\"CreateCartInteractor\",\"path\":\"src/cart/cart/domain/interactors/create-cart.interactor.ts\"},{\"kind\":\"Class\",\"layer\":\"domain\",\"name\":\"CreateSagaOutPort\",\"path\":\"src/cart/cart/domain/ports/out/create-saga.out-port.ts\"},{\"kind\":\"Class\",\"layer\":null,\"name\":\"ExternalSagaApi\",\"path\":\"src/cart/cart/api/external-saga-api.ts\"},{\"kind\":\"File\",\"layer\":\"domain\",\"path\":\"src/cart/cart/domain/interactors/create-cart.interactor.ts\"},{\"kind\":\"File\",\"layer\":\"domain\",\"path\":\"src/cart/cart/domain/ports/out/create-saga.out-port.ts\"},{\"kind\":\"File\",\"layer\":\"presentation\",\"path\":\"src/cart/cart/cart.module.ts\"},{\"kind\":\"File\",\"layer\":null,\"path\":\"src/cart/cart/api/external-saga-api.ts\"}]}\n\n## Instructions\nJudge the unit against the rule and rubric. Return the JSON object the schema requires. Set pass to false if any file of the unit fails the rubric.\n",
+  "provider": "claude-cli",
+  "recordedAt": "2026-10-10T03:25:00.338Z",
+  "repetition": 0,
+  "requestHash": "52159d7004e13d5f3be83fddb842020517198aeb48b6bd89a8c8ea0a93a5b6a0",
+  "resolvedModel": "claude-opus-5-5",
+  "response": "{\"is_error\":false,\"modelUsage\":{\"claude-opus-5-5\":{\"inputTokens\":2,\"outputTokens\":734}},\"result\":\"{\\\"pass\\\":true,\\\"confidence\\\":0.85,\\\"reasoning\\\":\\\"The file declares an outbound port for the domain layer. It contains an abstract class, CreateSagaOutPort, with one abstract method, createSaga, and a plain data class, CheckSagaApiDto, that holds only a correlationId. In hexagonal architecture, outbound port interfaces belong in the domain. Here, a domain interactor (CreateCartInteractor) injects the port and an outside adapter (ExternalSagaApi) implements it. The file has no persistence, transport, HTTP or framework logic, and no infrastructure concerns. The 'ApiDto' name hints at transport, but the class is only a plain data shape with no behaviour, so it doesn't move transport responsibility into the domain. Every responsibility in the file fits the domain layer.\\\",\\\"evidence\\\":[\\\"src/cart/cart/domain/ports/out/create-saga.out-port.ts: `export abstract class CreateSagaOutPort { abstract createSaga(checkSagaApiDto: CheckSagaApiDto): Promise<string>; }` is a pure port contract with no implementation.\\\",\\\"src/cart/cart/domain/ports/out/create-saga.out-port.ts: `export class CheckSagaApiDto { correlationId: string; }` is a plain data shape with no transport or framework behaviour.\\\",\\\"Graph: ExternalSagaApi (src/cart/cart/api/external-saga-api.ts) IMPLEMENTS CreateSagaOutPort, so the actual external calls are made outside the domain file.\\\"],\\\"violations\\\":[]}\",\"structured_output\":{\"confidence\":0.85,\"evidence\":[\"src/cart/cart/domain/ports/out/create-saga.out-port.ts: `export abstract class CreateSagaOutPort { abstract createSaga(checkSagaApiDto: CheckSagaApiDto): Promise<string>; }` is a pure port contract with no implementation.\",\"src/cart/cart/domain/ports/out/create-saga.out-port.ts: `export class CheckSagaApiDto { correlationId: string; }` is a plain data shape with no transport or framework behaviour.\",\"Graph: ExternalSagaApi (src/cart/cart/api/external-saga-api.ts) IMPLEMENTS CreateSagaOutPort, so the actual external calls are made outside the domain file.\"],\"pass\":true,\"reasoning\":\"The file declares an outbound port for the domain layer. It contains an abstract class, CreateSagaOutPort, with one abstract method, createSaga, and a plain data class, CheckSagaApiDto, that holds only a correlationId. In hexagonal architecture, outbound port interfaces belong in the domain. Here, a domain interactor (CreateCartInteractor) injects the port and an outside adapter (ExternalSagaApi) implements it. The file has no persistence, transport, HTTP or framework logic, and no infrastructure concerns. The 'ApiDto' name hints at transport, but the class is only a plain data shape with no behaviour, so it doesn't move transport responsibility into the domain. Every responsibility in the file fits the domain layer.\",\"violations\":[]}}",
+  "runIndex": 1,
+  "schemaVersion": 2,
+  "unitId": "src/cart/cart/domain/ports/out/create-saga.out-port.ts",
+  "usage": {
+    "inputTokens": 3213,
+    "outputTokens": 734
+  },
+  "usedOptions": {
+    "effort": "high",
+    "model": "claude-opus-5-5"
+  }
+}

@@ -1,0 +1,47 @@
+{
+  "attempts": 1,
+  "cliVersion": "2.1.294",
+  "configListingSha256": "47aa04258852fab9a706f3f0c14cee22306d69fbb6fdfbde8c11854bd54997bc",
+  "durationMs": 8911,
+  "effort": "high",
+  "functionId": "FF-N02",
+  "ignoredOptions": [
+    "maxTokens"
+  ],
+  "isolationProbeSha256": "97a2e2d0af1100c13c55e028c1a0c71f069093c3d08705af122aaeb302f1a641",
+  "key": "aa006655cf770a7cb9d5ddc96d85221965f8de6206c685592073220bb4ad2450-r0-1",
+  "model": "claude-opus-5-5",
+  "outcome": {
+    "kind": "valid"
+  },
+  "parsedVerdict": {
+    "confidence": 0.72,
+    "evidence": [
+      "src/__infrastructure__/context/context.module.ts: the ContextModule class has @Global() and @Module({ providers: [...], exports: [CONTEXT_STORAGE] }), which is only DI/module wiring.",
+      "The provider entry { provide: CONTEXT_STORAGE, useValue: new AsyncLocalStorage<Map<string, string>>() } is a provider binding with no business or persistence logic.",
+      "The ContextModule class body is empty, so the file contains no methods with domain, application or persistence behaviour."
+    ],
+    "pass": true,
+    "reasoning": "This file is in the presentation layer because it matches the **/*.module.ts pattern. In this layer model, NestJS modules are framework wiring files, and the file does only that job. It declares a @Global() @Module that registers one provider under the CONTEXT_STORAGE token, set to a new AsyncLocalStorage instance, and exports that token. It has no business rules, persistence, queries or request-handling logic. Creating an AsyncLocalStorage inline as a useValue is a dependency-injection binding, which is what module files are for. It does not put infrastructure behaviour in the wrong layer. The folder name __infrastructure__ differs from the presentation classification, but that comes from how the layer patterns are set up. Nothing in the file's own content belongs to another layer. No ADR prose was provided to contradict this.",
+    "violations": []
+  },
+  "projectId": "zhuravlevma__typescript-ddd-architecture",
+  "prompt": "## Rule\nThe unit's responsibilities match the role of its declared layer.\n\n## Rubric\nPass: Every responsibility in the file belongs to the role and kind of its declared layer, and agrees with any ADR prose given.\nFail: The file carries a responsibility that belongs to a different layer kind, for example persistence, transport or framework logic in a domain file, or business rules in an infrastructure or presentation file.\nEvidence required: Name the file and cite the function, method or statement that carries the misplaced responsibility, and the layer kind it belongs to.\nOut of scope: import direction and layer-dependency rules, which are checked symbolically.\n\n## Layer model\n- domain (kind: domain): src/domain/**, src/core/**, src/entities/**, src/models/**, **/domain/**, **/entities/**, **/models/**; file patterns: **/*.entity.ts, **/*.model.ts\n- infrastructure (kind: infrastructure): src/infrastructure/**, src/persistence/**, src/adapters/**, src/prisma/**, src/lib/**, src/common/middleware/**, src/common/filters/**, src/common/pipes/**, **/dal/**; file patterns: **/*.repository.ts, **/*.worker.ts, **/workers/**, **/strategies/**\n- application (kind: application): src/application/**, src/use-cases/**, src/services/**, **/dtos/**, **/queries/**, **/services/**; file patterns: **/*.service.ts, **/*.processor.ts, **/dto/**, **/*.dto.ts, **/*.query.ts\n- presentation (kind: presentation): src/controllers/**, src/gateways/**, src/common/guards/**, src/common/interceptors/**, **/controllers/**; file patterns: **/*.controller.ts, **/*.module.ts, **/*.guard.ts, **/*.interceptor.ts, **/*.gateway.ts\n\n## Unit\nKind: file\nId: src/__infrastructure__/context/context.module.ts\nLayer: presentation\nUnit files:\n- src/__infrastructure__/context/context.module.ts\n\n## Source\n=====SOURCE-BEGIN src/__infrastructure__/context/context.module.ts=====\nimport { AsyncLocalStorage } from 'async_hooks';\n\nimport { Global, Module } from '@nestjs/common';\n\nimport { CONTEXT_STORAGE } from './constants';\n\n@Global()\n@Module({\n  providers: [\n    {\n      provide: CONTEXT_STORAGE,\n      useValue: new AsyncLocalStorage<Map<string, string>>(),\n    },\n  ],\n  exports: [CONTEXT_STORAGE],\n})\nexport class ContextModule {}\n\n=====SOURCE-END=====\n\n## Graph excerpt\n{\"edges\":[{\"from\":\"src/__infrastructure__/context/context.module.ts\",\"to\":\"@nestjs/common\",\"type\":\"IMPORTS\"},{\"from\":\"src/__infrastructure__/context/context.module.ts\",\"to\":\"async_hooks\",\"type\":\"IMPORTS\"},{\"from\":\"src/__infrastructure__/context/context.module.ts\",\"to\":\"src/__infrastructure__/context/constants.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/__infrastructure__/correlation/correlation.module.ts\",\"to\":\"src/__infrastructure__/context/context.module.ts\",\"type\":\"IMPORTS\"}],\"nodes\":[{\"kind\":\"Class\",\"layer\":\"presentation\",\"name\":\"ContextModule\",\"path\":\"src/__infrastructure__/context/context.module.ts\"},{\"kind\":\"File\",\"layer\":\"presentation\",\"path\":\"src/__infrastructure__/context/context.module.ts\"},{\"kind\":\"File\",\"layer\":\"presentation\",\"path\":\"src/__infrastructure__/correlation/correlation.module.ts\"},{\"kind\":\"File\",\"layer\":null,\"path\":\"src/__infrastructure__/context/constants.ts\"},{\"kind\":\"Package\",\"layer\":null,\"path\":\"@nestjs/common\"},{\"kind\":\"Package\",\"layer\":null,\"path\":\"async_hooks\"}]}\n\n## Instructions\nJudge the unit against the rule and rubric. Return the JSON object the schema requires. Set pass to false if any file of the unit fails the rubric.\n",
+  "provider": "claude-cli",
+  "recordedAt": "2026-10-10T03:24:07.518Z",
+  "repetition": 0,
+  "requestHash": "aa006655cf770a7cb9d5ddc96d85221965f8de6206c685592073220bb4ad2450",
+  "resolvedModel": "claude-opus-5-5",
+  "response": "{\"is_error\":false,\"modelUsage\":{\"claude-opus-5-5\":{\"inputTokens\":2,\"outputTokens\":788}},\"result\":\"{\\\"pass\\\":true,\\\"confidence\\\":0.72,\\\"reasoning\\\":\\\"This file is in the presentation layer because it matches the **/*.module.ts pattern. In this layer model, NestJS modules are framework wiring files, and the file does only that job. It declares a @Global() @Module that registers one provider under the CONTEXT_STORAGE token, set to a new AsyncLocalStorage instance, and exports that token. It has no business rules, persistence, queries or request-handling logic. Creating an AsyncLocalStorage inline as a useValue is a dependency-injection binding, which is what module files are for. It does not put infrastructure behaviour in the wrong layer. The folder name __infrastructure__ differs from the presentation classification, but that comes from how the layer patterns are set up. Nothing in the file's own content belongs to another layer. No ADR prose was provided to contradict this.\\\",\\\"evidence\\\":[\\\"src/__infrastructure__/context/context.module.ts: the ContextModule class has @Global() and @Module({ providers: [...], exports: [CONTEXT_STORAGE] }), which is only DI/module wiring.\\\",\\\"The provider entry { provide: CONTEXT_STORAGE, useValue: new AsyncLocalStorage<Map<string, string>>() } is a provider binding with no business or persistence logic.\\\",\\\"The ContextModule class body is empty, so the file contains no methods with domain, application or persistence behaviour.\\\"],\\\"violations\\\":[]}\",\"structured_output\":{\"confidence\":0.72,\"evidence\":[\"src/__infrastructure__/context/context.module.ts: the ContextModule class has @Global() and @Module({ providers: [...], exports: [CONTEXT_STORAGE] }), which is only DI/module wiring.\",\"The provider entry { provide: CONTEXT_STORAGE, useValue: new AsyncLocalStorage<Map<string, string>>() } is a provider binding with no business or persistence logic.\",\"The ContextModule class body is empty, so the file contains no methods with domain, application or persistence behaviour.\"],\"pass\":true,\"reasoning\":\"This file is in the presentation layer because it matches the **/*.module.ts pattern. In this layer model, NestJS modules are framework wiring files, and the file does only that job. It declares a @Global() @Module that registers one provider under the CONTEXT_STORAGE token, set to a new AsyncLocalStorage instance, and exports that token. It has no business rules, persistence, queries or request-handling logic. Creating an AsyncLocalStorage inline as a useValue is a dependency-injection binding, which is what module files are for. It does not put infrastructure behaviour in the wrong layer. The folder name __infrastructure__ differs from the presentation classification, but that comes from how the layer patterns are set up. Nothing in the file's own content belongs to another layer. No ADR prose was provided to contradict this.\",\"violations\":[]}}",
+  "runIndex": 1,
+  "schemaVersion": 2,
+  "unitId": "src/__infrastructure__/context/context.module.ts",
+  "usage": {
+    "inputTokens": 2894,
+    "outputTokens": 788
+  },
+  "usedOptions": {
+    "effort": "high",
+    "model": "claude-opus-5-5"
+  }
+}

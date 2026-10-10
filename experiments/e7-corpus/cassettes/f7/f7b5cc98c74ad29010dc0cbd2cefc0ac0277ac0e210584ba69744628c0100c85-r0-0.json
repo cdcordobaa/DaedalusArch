@@ -1,0 +1,48 @@
+{
+  "attempts": 1,
+  "cliVersion": "2.1.294",
+  "configListingSha256": "47aa04258852fab9a706f3f0c14cee22306d69fbb6fdfbde8c11854bd54997bc",
+  "durationMs": 9395,
+  "effort": "high",
+  "functionId": "FF-N02",
+  "ignoredOptions": [
+    "maxTokens"
+  ],
+  "isolationProbeSha256": "97a2e2d0af1100c13c55e028c1a0c71f069093c3d08705af122aaeb302f1a641",
+  "key": "f7b5cc98c74ad29010dc0cbd2cefc0ac0277ac0e210584ba69744628c0100c85-r0-0",
+  "model": "claude-opus-5-5",
+  "outcome": {
+    "kind": "valid"
+  },
+  "parsedVerdict": {
+    "confidence": 0.92,
+    "evidence": [
+      "src/accounting/verification/dtos/create-verification.dto.ts: class CreateVerificationDto only declares fields (reportId, reportNumber, isFull, description) with class-validator decorators, so it is a pure input contract.",
+      "There are no repository calls, HTTP handling, framework wiring or business logic in the file.",
+      "Other files use it as a contract: verfication.controller.ts (presentation) and verification.service.ts (application) both import it.",
+      "Out of scope but worth noting: isFull is typed as boolean but decorated with @IsString(). This is a validation bug, not a layer-role violation."
+    ],
+    "pass": true,
+    "reasoning": "CreateVerificationDto is a plain data transfer object. It has four fields, each with a class-validator decorator that checks its shape. Defining input contracts with structural validation is the job of the application layer, and the layer model maps both **/dtos/** and **/*.dto.ts to that layer. The file holds no persistence, transport handling, framework wiring or business rules. One thing is wrong but outside this rule: `isFull` is typed as `boolean` but decorated with `@IsString()`. That is a validation bug, not a misplaced responsibility.",
+    "violations": []
+  },
+  "projectId": "zhuravlevma__typescript-ddd-architecture",
+  "prompt": "## Rule\nThe unit's responsibilities match the role of its declared layer.\n\n## Rubric\nPass: Every responsibility in the file belongs to the role and kind of its declared layer, and agrees with any ADR prose given.\nFail: The file carries a responsibility that belongs to a different layer kind, for example persistence, transport or framework logic in a domain file, or business rules in an infrastructure or presentation file.\nEvidence required: Name the file and cite the function, method or statement that carries the misplaced responsibility, and the layer kind it belongs to.\nOut of scope: import direction and layer-dependency rules, which are checked symbolically.\n\n## Layer model\n- domain (kind: domain): src/domain/**, src/core/**, src/entities/**, src/models/**, **/domain/**, **/entities/**, **/models/**; file patterns: **/*.entity.ts, **/*.model.ts\n- infrastructure (kind: infrastructure): src/infrastructure/**, src/persistence/**, src/adapters/**, src/prisma/**, src/lib/**, src/common/middleware/**, src/common/filters/**, src/common/pipes/**, **/dal/**; file patterns: **/*.repository.ts, **/*.worker.ts, **/workers/**, **/strategies/**\n- application (kind: application): src/application/**, src/use-cases/**, src/services/**, **/dtos/**, **/queries/**, **/services/**; file patterns: **/*.service.ts, **/*.processor.ts, **/dto/**, **/*.dto.ts, **/*.query.ts\n- presentation (kind: presentation): src/controllers/**, src/gateways/**, src/common/guards/**, src/common/interceptors/**, **/controllers/**; file patterns: **/*.controller.ts, **/*.module.ts, **/*.guard.ts, **/*.interceptor.ts, **/*.gateway.ts\n\n## Unit\nKind: file\nId: src/accounting/verification/dtos/create-verification.dto.ts\nLayer: application\nUnit files:\n- src/accounting/verification/dtos/create-verification.dto.ts\n\n## Source\n=====SOURCE-BEGIN src/accounting/verification/dtos/create-verification.dto.ts=====\nimport { IsNumber, IsString } from 'class-validator';\n\nexport class CreateVerificationDto {\n  @IsString()\n  reportId: string;\n\n  @IsNumber()\n  reportNumber: number;\n\n  @IsString()\n  isFull: boolean;\n\n  @IsString()\n  description: string;\n}\n\n=====SOURCE-END=====\n\n## Graph excerpt\n{\"edges\":[{\"from\":\"src/accounting/verification/controllers/verfication.controller.ts\",\"to\":\"src/accounting/verification/dtos/create-verification.dto.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/accounting/verification/dtos/create-verification.dto.ts\",\"to\":\"class-validator\",\"type\":\"IMPORTS\"},{\"from\":\"src/accounting/verification/services/verification.service.ts\",\"to\":\"src/accounting/verification/dtos/create-verification.dto.ts\",\"type\":\"IMPORTS\"}],\"nodes\":[{\"kind\":\"Class\",\"layer\":\"application\",\"name\":\"CreateVerificationDto\",\"path\":\"src/accounting/verification/dtos/create-verification.dto.ts\"},{\"kind\":\"File\",\"layer\":\"application\",\"path\":\"src/accounting/verification/dtos/create-verification.dto.ts\"},{\"kind\":\"File\",\"layer\":\"application\",\"path\":\"src/accounting/verification/services/verification.service.ts\"},{\"kind\":\"File\",\"layer\":\"presentation\",\"path\":\"src/accounting/verification/controllers/verfication.controller.ts\"},{\"kind\":\"Package\",\"layer\":null,\"path\":\"class-validator\"}]}\n\n## Instructions\nJudge the unit against the rule and rubric. Return the JSON object the schema requires. Set pass to false if any file of the unit fails the rubric.\n",
+  "provider": "claude-cli",
+  "recordedAt": "2026-10-10T03:24:22.612Z",
+  "repetition": 0,
+  "requestHash": "f7b5cc98c74ad29010dc0cbd2cefc0ac0277ac0e210584ba69744628c0100c85",
+  "resolvedModel": "claude-opus-5-5",
+  "response": "{\"is_error\":false,\"modelUsage\":{\"claude-opus-5-5\":{\"inputTokens\":2,\"outputTokens\":644}},\"result\":\"{\\\"pass\\\":true,\\\"confidence\\\":0.92,\\\"reasoning\\\":\\\"CreateVerificationDto is a plain data transfer object. It has four fields, each with a class-validator decorator that checks its shape. Defining input contracts with structural validation is the job of the application layer, and the layer model maps both **/dtos/** and **/*.dto.ts to that layer. The file holds no persistence, transport handling, framework wiring or business rules. One thing is wrong but outside this rule: `isFull` is typed as `boolean` but decorated with `@IsString()`. That is a validation bug, not a misplaced responsibility.\\\",\\\"evidence\\\":[\\\"src/accounting/verification/dtos/create-verification.dto.ts: class CreateVerificationDto only declares fields (reportId, reportNumber, isFull, description) with class-validator decorators, so it is a pure input contract.\\\",\\\"There are no repository calls, HTTP handling, framework wiring or business logic in the file.\\\",\\\"Other files use it as a contract: verfication.controller.ts (presentation) and verification.service.ts (application) both import it.\\\",\\\"Out of scope but worth noting: isFull is typed as boolean but decorated with @IsString(). This is a validation bug, not a layer-role violation.\\\"],\\\"violations\\\":[]}\",\"structured_output\":{\"confidence\":0.92,\"evidence\":[\"src/accounting/verification/dtos/create-verification.dto.ts: class CreateVerificationDto only declares fields (reportId, reportNumber, isFull, description) with class-validator decorators, so it is a pure input contract.\",\"There are no repository calls, HTTP handling, framework wiring or business logic in the file.\",\"Other files use it as a contract: verfication.controller.ts (presentation) and verification.service.ts (application) both import it.\",\"Out of scope but worth noting: isFull is typed as boolean but decorated with @IsString(). This is a validation bug, not a layer-role violation.\"],\"pass\":true,\"reasoning\":\"CreateVerificationDto is a plain data transfer object. It has four fields, each with a class-validator decorator that checks its shape. Defining input contracts with structural validation is the job of the application layer, and the layer model maps both **/dtos/** and **/*.dto.ts to that layer. The file holds no persistence, transport handling, framework wiring or business rules. One thing is wrong but outside this rule: `isFull` is typed as `boolean` but decorated with `@IsString()`. That is a validation bug, not a misplaced responsibility.\",\"violations\":[]}}",
+  "runIndex": 0,
+  "schemaVersion": 2,
+  "unitId": "src/accounting/verification/dtos/create-verification.dto.ts",
+  "usage": {
+    "inputTokens": 2793,
+    "outputTokens": 644
+  },
+  "usedOptions": {
+    "effort": "high",
+    "model": "claude-opus-5-5"
+  }
+}

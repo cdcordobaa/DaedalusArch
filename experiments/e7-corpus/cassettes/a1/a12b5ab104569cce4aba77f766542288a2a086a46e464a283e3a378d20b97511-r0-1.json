@@ -1,0 +1,48 @@
+{
+  "attempts": 1,
+  "cliVersion": "2.1.294",
+  "configListingSha256": "47aa04258852fab9a706f3f0c14cee22306d69fbb6fdfbde8c11854bd54997bc",
+  "durationMs": 7009,
+  "effort": "high",
+  "functionId": "FF-N02",
+  "ignoredOptions": [
+    "maxTokens"
+  ],
+  "isolationProbeSha256": "97a2e2d0af1100c13c55e028c1a0c71f069093c3d08705af122aaeb302f1a641",
+  "key": "a12b5ab104569cce4aba77f766542288a2a086a46e464a283e3a378d20b97511-r0-1",
+  "model": "claude-opus-5-5",
+  "outcome": {
+    "kind": "valid"
+  },
+  "parsedVerdict": {
+    "confidence": 0.93,
+    "evidence": [
+      "findByCardId runs `SELECT * FROM recharges WHERE \"cardId\"=$1` and returns result.rows, which is a pure persistence query",
+      "insert runs `INSERT INTO recharges (\"cardId\", amount) VALUES ($1, $2)`, which is a pure persistence write",
+      "Recharge / RechargeInsertData only describe the table row shape; they contain no business logic",
+      "No validation, business rules, HTTP or request handling appears anywhere in the file"
+    ],
+    "pass": true,
+    "reasoning": "src/repositories/rechargeRepository.ts belongs to the persistence (infrastructure) layer, and everything in it is data access. It declares the shape of a row in the recharges table (the Recharge interface and RechargeInsertData) and has two SQL functions: findByCardId runs a SELECT and insert runs an INSERT. It contains no business rules (no limits, validation or card-state checks), no transport or HTTP handling and no presentation logic. Defining the row type in the repository is normal for a persistence module. One thing to note: insert does not await connection.query. That is a correctness bug, not a responsibility in the wrong layer, so it does not affect this rule.",
+    "violations": []
+  },
+  "projectId": "v-aguiar__valex",
+  "prompt": "## Rule\nThe unit's responsibilities match the role of its declared layer.\n\n## Rubric\nPass: Every responsibility in the file belongs to the role and kind of its declared layer, and agrees with any ADR prose given.\nFail: The file carries a responsibility that belongs to a different layer kind, for example persistence, transport or framework logic in a domain file, or business rules in an infrastructure or presentation file.\nEvidence required: Name the file and cite the function, method or statement that carries the misplaced responsibility, and the layer kind it belongs to.\nOut of scope: import direction and layer-dependency rules, which are checked symbolically.\n\n## Layer model\n- persistence (kind: infrastructure): src/persistence/**, **/repositories/**\n- business (kind: domain): src/business/**, **/services/**, **/domain/**; file patterns: **/*.entity.ts\n- presentation (kind: presentation): src/presentation/**, **/controllers/**, **/middlewares/**, **/routes/**\n\n## Unit\nKind: file\nId: src/repositories/rechargeRepository.ts\nLayer: persistence\nUnit files:\n- src/repositories/rechargeRepository.ts\n\n## Source\n=====SOURCE-BEGIN src/repositories/rechargeRepository.ts=====\nimport { connection } from \"../config/database.js\";\n\nexport interface Recharge {\n  id: number;\n  cardId: number;\n  timestamp: Date;\n  amount: number;\n}\nexport type RechargeInsertData = Omit<Recharge, \"id\" | \"timestamp\">;\n\nexport async function findByCardId(cardId: number) {\n  const result = await connection.query<Recharge, [number]>(`SELECT * FROM recharges WHERE \"cardId\"=$1`, [\n    cardId,\n  ]);\n\n  return result.rows;\n}\n\nexport async function insert(rechargeData: RechargeInsertData) {\n  const { cardId, amount } = rechargeData;\n\n  connection.query<any, [number, number]>(`INSERT INTO recharges (\"cardId\", amount) VALUES ($1, $2)`, [\n    cardId,\n    amount,\n  ]);\n}\n\n=====SOURCE-END=====\n\n## Graph excerpt\n{\"edges\":[{\"from\":\"src/repositories/rechargeRepository.ts\",\"to\":\"src/config/database.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/services/cardServices.ts\",\"to\":\"src/repositories/rechargeRepository.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/services/rechargeService.ts\",\"to\":\"src/repositories/rechargeRepository.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/utils/cardUtils.ts\",\"to\":\"src/repositories/rechargeRepository.ts\",\"type\":\"IMPORTS\"}],\"nodes\":[{\"kind\":\"File\",\"layer\":\"business\",\"path\":\"src/services/cardServices.ts\"},{\"kind\":\"File\",\"layer\":\"business\",\"path\":\"src/services/rechargeService.ts\"},{\"kind\":\"File\",\"layer\":\"persistence\",\"path\":\"src/repositories/rechargeRepository.ts\"},{\"kind\":\"File\",\"layer\":null,\"path\":\"src/config/database.ts\"},{\"kind\":\"File\",\"layer\":null,\"path\":\"src/utils/cardUtils.ts\"},{\"kind\":\"Interface\",\"layer\":\"persistence\",\"name\":\"Recharge\",\"path\":\"src/repositories/rechargeRepository.ts\"}]}\n\n## Instructions\nJudge the unit against the rule and rubric. Return the JSON object the schema requires. Set pass to false if any file of the unit fails the rubric.\n",
+  "provider": "claude-cli",
+  "recordedAt": "2026-10-10T03:19:19.153Z",
+  "repetition": 0,
+  "requestHash": "a12b5ab104569cce4aba77f766542288a2a086a46e464a283e3a378d20b97511",
+  "resolvedModel": "claude-opus-5-5",
+  "response": "{\"is_error\":false,\"modelUsage\":{\"claude-opus-5-5\":{\"inputTokens\":2,\"outputTokens\":584}},\"result\":\"{\\\"pass\\\":true,\\\"confidence\\\":0.93,\\\"reasoning\\\":\\\"src/repositories/rechargeRepository.ts belongs to the persistence (infrastructure) layer, and everything in it is data access. It declares the shape of a row in the recharges table (the Recharge interface and RechargeInsertData) and has two SQL functions: findByCardId runs a SELECT and insert runs an INSERT. It contains no business rules (no limits, validation or card-state checks), no transport or HTTP handling and no presentation logic. Defining the row type in the repository is normal for a persistence module. One thing to note: insert does not await connection.query. That is a correctness bug, not a responsibility in the wrong layer, so it does not affect this rule.\\\",\\\"evidence\\\":[\\\"findByCardId runs `SELECT * FROM recharges WHERE \\\\\\\"cardId\\\\\\\"=$1` and returns result.rows, which is a pure persistence query\\\",\\\"insert runs `INSERT INTO recharges (\\\\\\\"cardId\\\\\\\", amount) VALUES ($1, $2)`, which is a pure persistence write\\\",\\\"Recharge / RechargeInsertData only describe the table row shape; they contain no business logic\\\",\\\"No validation, business rules, HTTP or request handling appears anywhere in the file\\\"],\\\"violations\\\":[]}\",\"structured_output\":{\"confidence\":0.93,\"evidence\":[\"findByCardId runs `SELECT * FROM recharges WHERE \\\"cardId\\\"=$1` and returns result.rows, which is a pure persistence query\",\"insert runs `INSERT INTO recharges (\\\"cardId\\\", amount) VALUES ($1, $2)`, which is a pure persistence write\",\"Recharge / RechargeInsertData only describe the table row shape; they contain no business logic\",\"No validation, business rules, HTTP or request handling appears anywhere in the file\"],\"pass\":true,\"reasoning\":\"src/repositories/rechargeRepository.ts belongs to the persistence (infrastructure) layer, and everything in it is data access. It declares the shape of a row in the recharges table (the Recharge interface and RechargeInsertData) and has two SQL functions: findByCardId runs a SELECT and insert runs an INSERT. It contains no business rules (no limits, validation or card-state checks), no transport or HTTP handling and no presentation logic. Defining the row type in the repository is normal for a persistence module. One thing to note: insert does not await connection.query. That is a correctness bug, not a responsibility in the wrong layer, so it does not affect this rule.\",\"violations\":[]}}",
+  "runIndex": 1,
+  "schemaVersion": 2,
+  "unitId": "src/repositories/rechargeRepository.ts",
+  "usage": {
+    "inputTokens": 2667,
+    "outputTokens": 584
+  },
+  "usedOptions": {
+    "effort": "high",
+    "model": "claude-opus-5-5"
+  }
+}
