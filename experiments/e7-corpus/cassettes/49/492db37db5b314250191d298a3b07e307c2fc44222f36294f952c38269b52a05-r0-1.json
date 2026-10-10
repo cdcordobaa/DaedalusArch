@@ -1,0 +1,47 @@
+{
+  "attempts": 1,
+  "cliVersion": "2.1.294",
+  "configListingSha256": "47aa04258852fab9a706f3f0c14cee22306d69fbb6fdfbde8c11854bd54997bc",
+  "durationMs": 6106,
+  "effort": "high",
+  "functionId": "FF-N02",
+  "ignoredOptions": [
+    "maxTokens"
+  ],
+  "isolationProbeSha256": "97a2e2d0af1100c13c55e028c1a0c71f069093c3d08705af122aaeb302f1a641",
+  "key": "492db37db5b314250191d298a3b07e307c2fc44222f36294f952c38269b52a05-r0-1",
+  "model": "claude-opus-5-5",
+  "outcome": {
+    "kind": "valid"
+  },
+  "parsedVerdict": {
+    "confidence": 0.95,
+    "evidence": [
+      "src/delivery/curiers/curier/domain/ports/out/create-curier.out-port.ts: `export abstract class CreateCurierOutPort { abstract createCurier(curier: CurierEntity): Promise<CurierEntity>; }` is only an abstract contract, with no implementation",
+      "Graph: CurierRepository (infrastructure) IMPLEMENTS CreateCurierOutPort; CreateCurierInteractor (domain) CONSTRUCTOR_INJECTS it, which is the port/adapter pattern",
+      "The only import is the domain CurierEntity; there is no ORM, HTTP or framework code"
+    ],
+    "pass": true,
+    "reasoning": "This file is a domain outbound port: an abstract class that declares one persistence contract in domain terms (CurierEntity in, Promise<CurierEntity> out). It contains no persistence code, no transport or framework logic, and no business rules that belong elsewhere. The graph shows that the infrastructure CurierRepository implements this port and the domain interactor injects it, which is the expected hexagonal pattern. Defining a port is a valid domain responsibility.",
+    "violations": []
+  },
+  "projectId": "zhuravlevma__typescript-ddd-architecture",
+  "prompt": "## Rule\nThe unit's responsibilities match the role of its declared layer.\n\n## Rubric\nPass: Every responsibility in the file belongs to the role and kind of its declared layer, and agrees with any ADR prose given.\nFail: The file carries a responsibility that belongs to a different layer kind, for example persistence, transport or framework logic in a domain file, or business rules in an infrastructure or presentation file.\nEvidence required: Name the file and cite the function, method or statement that carries the misplaced responsibility, and the layer kind it belongs to.\nOut of scope: import direction and layer-dependency rules, which are checked symbolically.\n\n## Layer model\n- domain (kind: domain): src/domain/**, src/core/**, src/entities/**, src/models/**, **/domain/**, **/entities/**, **/models/**; file patterns: **/*.entity.ts, **/*.model.ts\n- infrastructure (kind: infrastructure): src/infrastructure/**, src/persistence/**, src/adapters/**, src/prisma/**, src/lib/**, src/common/middleware/**, src/common/filters/**, src/common/pipes/**, **/dal/**; file patterns: **/*.repository.ts, **/*.worker.ts, **/workers/**, **/strategies/**\n- application (kind: application): src/application/**, src/use-cases/**, src/services/**, **/dtos/**, **/queries/**, **/services/**; file patterns: **/*.service.ts, **/*.processor.ts, **/dto/**, **/*.dto.ts, **/*.query.ts\n- presentation (kind: presentation): src/controllers/**, src/gateways/**, src/common/guards/**, src/common/interceptors/**, **/controllers/**; file patterns: **/*.controller.ts, **/*.module.ts, **/*.guard.ts, **/*.interceptor.ts, **/*.gateway.ts\n\n## Unit\nKind: file\nId: src/delivery/curiers/curier/domain/ports/out/create-curier.out-port.ts\nLayer: domain\nUnit files:\n- src/delivery/curiers/curier/domain/ports/out/create-curier.out-port.ts\n\n## Source\n=====SOURCE-BEGIN src/delivery/curiers/curier/domain/ports/out/create-curier.out-port.ts=====\nimport { CurierEntity } from '../../entities/curier.entity';\n\nexport abstract class CreateCurierOutPort {\n  abstract createCurier(curier: CurierEntity): Promise<CurierEntity>;\n}\n\n=====SOURCE-END=====\n\n## Graph excerpt\n{\"edges\":[{\"from\":\"CreateCurierInteractor@src/delivery/curiers/curier/domain/interactors/create-curier.interactor.ts\",\"to\":\"CreateCurierOutPort@src/delivery/curiers/curier/domain/ports/out/create-curier.out-port.ts\",\"type\":\"CONSTRUCTOR_INJECTS\"},{\"from\":\"CurierRepository@src/delivery/curiers/curier/dal/curier.repository.ts\",\"to\":\"CreateCurierOutPort@src/delivery/curiers/curier/domain/ports/out/create-curier.out-port.ts\",\"type\":\"IMPLEMENTS\"},{\"from\":\"src/delivery/curiers/curier/dal/curier.repository.ts\",\"to\":\"src/delivery/curiers/curier/domain/ports/out/create-curier.out-port.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/delivery/curiers/curier/domain/interactors/create-curier.interactor.ts\",\"to\":\"src/delivery/curiers/curier/domain/ports/out/create-curier.out-port.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/delivery/curiers/curier/domain/ports/out/create-curier.out-port.ts\",\"to\":\"src/delivery/curiers/curier/domain/entities/curier.entity.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/delivery/curiers/curiers.module.ts\",\"to\":\"src/delivery/curiers/curier/domain/ports/out/create-curier.out-port.ts\",\"type\":\"IMPORTS\"}],\"nodes\":[{\"kind\":\"Class\",\"layer\":\"domain\",\"name\":\"CreateCurierInteractor\",\"path\":\"src/delivery/curiers/curier/domain/interactors/create-curier.interactor.ts\"},{\"kind\":\"Class\",\"layer\":\"domain\",\"name\":\"CreateCurierOutPort\",\"path\":\"src/delivery/curiers/curier/domain/ports/out/create-curier.out-port.ts\"},{\"kind\":\"Class\",\"layer\":\"infrastructure\",\"name\":\"CurierRepository\",\"path\":\"src/delivery/curiers/curier/dal/curier.repository.ts\"},{\"kind\":\"File\",\"layer\":\"domain\",\"path\":\"src/delivery/curiers/curier/domain/entities/curier.entity.ts\"},{\"kind\":\"File\",\"layer\":\"domain\",\"path\":\"src/delivery/curiers/curier/domain/interactors/create-curier.interactor.ts\"},{\"kind\":\"File\",\"layer\":\"domain\",\"path\":\"src/delivery/curiers/curier/domain/ports/out/create-curier.out-port.ts\"},{\"kind\":\"File\",\"layer\":\"infrastructure\",\"path\":\"src/delivery/curiers/curier/dal/curier.repository.ts\"},{\"kind\":\"File\",\"layer\":\"presentation\",\"path\":\"src/delivery/curiers/curiers.module.ts\"}]}\n\n## Instructions\nJudge the unit against the rule and rubric. Return the JSON object the schema requires. Set pass to false if any file of the unit fails the rubric.\n",
+  "provider": "claude-cli",
+  "recordedAt": "2026-10-10T03:25:49.140Z",
+  "repetition": 0,
+  "requestHash": "492db37db5b314250191d298a3b07e307c2fc44222f36294f952c38269b52a05",
+  "resolvedModel": "claude-opus-5-5",
+  "response": "{\"is_error\":false,\"modelUsage\":{\"claude-opus-5-5\":{\"inputTokens\":2,\"outputTokens\":504}},\"result\":\"{\\\"pass\\\":true,\\\"confidence\\\":0.95,\\\"reasoning\\\":\\\"This file is a domain outbound port: an abstract class that declares one persistence contract in domain terms (CurierEntity in, Promise<CurierEntity> out). It contains no persistence code, no transport or framework logic, and no business rules that belong elsewhere. The graph shows that the infrastructure CurierRepository implements this port and the domain interactor injects it, which is the expected hexagonal pattern. Defining a port is a valid domain responsibility.\\\",\\\"evidence\\\":[\\\"src/delivery/curiers/curier/domain/ports/out/create-curier.out-port.ts: `export abstract class CreateCurierOutPort { abstract createCurier(curier: CurierEntity): Promise<CurierEntity>; }` is only an abstract contract, with no implementation\\\",\\\"Graph: CurierRepository (infrastructure) IMPLEMENTS CreateCurierOutPort; CreateCurierInteractor (domain) CONSTRUCTOR_INJECTS it, which is the port/adapter pattern\\\",\\\"The only import is the domain CurierEntity; there is no ORM, HTTP or framework code\\\"],\\\"violations\\\":[]}\",\"structured_output\":{\"confidence\":0.95,\"evidence\":[\"src/delivery/curiers/curier/domain/ports/out/create-curier.out-port.ts: `export abstract class CreateCurierOutPort { abstract createCurier(curier: CurierEntity): Promise<CurierEntity>; }` is only an abstract contract, with no implementation\",\"Graph: CurierRepository (infrastructure) IMPLEMENTS CreateCurierOutPort; CreateCurierInteractor (domain) CONSTRUCTOR_INJECTS it, which is the port/adapter pattern\",\"The only import is the domain CurierEntity; there is no ORM, HTTP or framework code\"],\"pass\":true,\"reasoning\":\"This file is a domain outbound port: an abstract class that declares one persistence contract in domain terms (CurierEntity in, Promise<CurierEntity> out). It contains no persistence code, no transport or framework logic, and no business rules that belong elsewhere. The graph shows that the infrastructure CurierRepository implements this port and the domain interactor injects it, which is the expected hexagonal pattern. Defining a port is a valid domain responsibility.\",\"violations\":[]}}",
+  "runIndex": 1,
+  "schemaVersion": 2,
+  "unitId": "src/delivery/curiers/curier/domain/ports/out/create-curier.out-port.ts",
+  "usage": {
+    "inputTokens": 3370,
+    "outputTokens": 504
+  },
+  "usedOptions": {
+    "effort": "high",
+    "model": "claude-opus-5-5"
+  }
+}

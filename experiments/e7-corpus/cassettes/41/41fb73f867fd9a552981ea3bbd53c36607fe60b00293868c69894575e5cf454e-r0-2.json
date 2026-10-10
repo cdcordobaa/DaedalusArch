@@ -1,0 +1,47 @@
+{
+  "attempts": 1,
+  "cliVersion": "2.1.294",
+  "configListingSha256": "47aa04258852fab9a706f3f0c14cee22306d69fbb6fdfbde8c11854bd54997bc",
+  "durationMs": 5448,
+  "effort": "high",
+  "functionId": "FF-N01",
+  "ignoredOptions": [
+    "maxTokens"
+  ],
+  "isolationProbeSha256": "97a2e2d0af1100c13c55e028c1a0c71f069093c3d08705af122aaeb302f1a641",
+  "key": "41fb73f867fd9a552981ea3bbd53c36607fe60b00293868c69894575e5cf454e-r0-2",
+  "model": "claude-opus-5-5",
+  "outcome": {
+    "kind": "valid"
+  },
+  "parsedVerdict": {
+    "confidence": 0.9,
+    "evidence": [
+      "src/refresh-token/entities/refresh-token.entity.ts declares only `export class RefreshToken extends BaseEntity` with the columns id, userId, ip, userAgent, browser, os, isRevoked and expires.",
+      "There are no methods or validation logic, so no invariant is duplicated.",
+      "The file declares nothing besides the entity, so there's no split into unrelated concerns."
+    ],
+    "pass": true,
+    "reasoning": "The unit is a single file holding one TypeORM entity, RefreshToken. It covers one concern: storing refresh-token records. It has no business logic of its own, so it can't duplicate a rule or invariant, and it doesn't go around any module abstraction. Its use of TypeORM decorators and BaseEntity is a framework-coupling or layer question, which is out of scope here.",
+    "violations": []
+  },
+  "projectId": "truthy-demo",
+  "prompt": "## Rule\nThe module's files form one coherent unit with a consistent abstraction and boundary.\n\n## Rubric\nPass: The files serve one cohesive concern, use the module's abstractions consistently, and keep each rule or invariant in one place.\nFail: The files split into unrelated concerns, duplicate a rule or invariant that should live in one place, or bypass the module's own abstractions.\nEvidence required: Name each file involved and cite the declarations that show the split, the duplication or the bypass.\nOut of scope: import direction and layer-dependency rules, which are checked symbolically.\n\n## Layer model\n- domain (kind: domain): src/domain/**, src/core/**, src/entities/**, src/models/**, **/domain/**; file patterns: **/*.entity.ts\n- infrastructure (kind: infrastructure): src/infrastructure/**, src/persistence/**, src/adapters/**, src/prisma/**, src/lib/**, src/common/middleware/**, src/common/filters/**, src/common/pipes/**; file patterns: **/*.repository.ts, **/*.worker.ts, **/workers/**, **/strategies/**\n- application (kind: application): src/application/**, src/use-cases/**, src/services/**; file patterns: **/*.service.ts, **/*.processor.ts, **/dto/**, **/*.dto.ts\n- presentation (kind: presentation): src/controllers/**, src/gateways/**, src/common/guards/**, src/common/interceptors/**; file patterns: **/*.controller.ts, **/*.module.ts, **/*.guard.ts, **/*.interceptor.ts, **/*.gateway.ts\n\n## Unit\nKind: module\nId: src/refresh-token/entities\nLayer: domain\nUnit files:\n- src/refresh-token/entities/refresh-token.entity.ts\n\n## Source\n=====SOURCE-BEGIN src/refresh-token/entities/refresh-token.entity.ts=====\nimport {\n  BaseEntity,\n  Column,\n  Entity,\n  Index,\n  PrimaryGeneratedColumn\n} from 'typeorm';\n\n@Entity({\n  name: 'refresh_token'\n})\nexport class RefreshToken extends BaseEntity {\n  @PrimaryGeneratedColumn()\n  id: number;\n\n  @Column()\n  userId: number;\n\n  @Column()\n  ip: string;\n\n  @Column()\n  userAgent: string;\n\n  @Index()\n  @Column({\n    nullable: true\n  })\n  browser: string;\n\n  @Index()\n  @Column({\n    nullable: true\n  })\n  os: string;\n\n  @Column()\n  isRevoked: boolean;\n\n  @Column()\n  expires: Date;\n}\n\n=====SOURCE-END=====\n\n## Exported signatures\n// src/refresh-token/entities/refresh-token.entity.ts\nexport class RefreshToken extends BaseEntity {\n  @PrimaryGeneratedColumn()\n  id: number;\n  @Column()\n  userId: number;\n  @Column()\n  ip: string;\n  @Column()\n  userAgent: string;\n  @Index()\n  @Column({\n    nullable: true\n  })\n  browser: string;\n  @Index()\n  @Column({\n    nullable: true\n  })\n  os: string;\n  @Column()\n  isRevoked: boolean;\n  @Column()\n  expires: Date;\n}\n\n## Incoming\n- src/auth/auth.controller.ts\n- src/auth/auth.service.ts\n- src/refresh-token/refresh-token.repository.ts\n- src/refresh-token/refresh-token.service.ts\n\n## Outgoing\n- typeorm\n\n## Graph excerpt\n{\"edges\":[{\"from\":\"src/auth/auth.controller.ts\",\"to\":\"src/refresh-token/entities/refresh-token.entity.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/auth/auth.service.ts\",\"to\":\"src/refresh-token/entities/refresh-token.entity.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/refresh-token/entities/refresh-token.entity.ts\",\"to\":\"typeorm\",\"type\":\"IMPORTS\"},{\"from\":\"src/refresh-token/refresh-token.repository.ts\",\"to\":\"src/refresh-token/entities/refresh-token.entity.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/refresh-token/refresh-token.service.ts\",\"to\":\"src/refresh-token/entities/refresh-token.entity.ts\",\"type\":\"IMPORTS\"}],\"nodes\":[{\"kind\":\"Class\",\"layer\":\"domain\",\"name\":\"RefreshToken\",\"path\":\"src/refresh-token/entities/refresh-token.entity.ts\"},{\"kind\":\"File\",\"layer\":\"application\",\"path\":\"src/auth/auth.service.ts\"},{\"kind\":\"File\",\"layer\":\"application\",\"path\":\"src/refresh-token/refresh-token.service.ts\"},{\"kind\":\"File\",\"layer\":\"domain\",\"path\":\"src/refresh-token/entities/refresh-token.entity.ts\"},{\"kind\":\"File\",\"layer\":\"infrastructure\",\"path\":\"src/refresh-token/refresh-token.repository.ts\"},{\"kind\":\"File\",\"layer\":\"presentation\",\"path\":\"src/auth/auth.controller.ts\"},{\"kind\":\"Package\",\"layer\":null,\"path\":\"typeorm\"}]}\n\n## Instructions\nJudge the unit against the rule and rubric. Return the JSON object the schema requires. Set pass to false if any file of the unit fails the rubric.\n",
+  "provider": "claude-cli",
+  "recordedAt": "2026-10-10T02:54:32.114Z",
+  "repetition": 0,
+  "requestHash": "41fb73f867fd9a552981ea3bbd53c36607fe60b00293868c69894575e5cf454e",
+  "resolvedModel": "claude-opus-5-5",
+  "response": "{\"is_error\":false,\"modelUsage\":{\"claude-opus-5-5\":{\"inputTokens\":2,\"outputTokens\":396}},\"result\":\"{\\\"pass\\\":true,\\\"confidence\\\":0.9,\\\"reasoning\\\":\\\"The unit is a single file holding one TypeORM entity, RefreshToken. It covers one concern: storing refresh-token records. It has no business logic of its own, so it can't duplicate a rule or invariant, and it doesn't go around any module abstraction. Its use of TypeORM decorators and BaseEntity is a framework-coupling or layer question, which is out of scope here.\\\",\\\"evidence\\\":[\\\"src/refresh-token/entities/refresh-token.entity.ts declares only `export class RefreshToken extends BaseEntity` with the columns id, userId, ip, userAgent, browser, os, isRevoked and expires.\\\",\\\"There are no methods or validation logic, so no invariant is duplicated.\\\",\\\"The file declares nothing besides the entity, so there's no split into unrelated concerns.\\\"],\\\"violations\\\":[]}\",\"structured_output\":{\"confidence\":0.9,\"evidence\":[\"src/refresh-token/entities/refresh-token.entity.ts declares only `export class RefreshToken extends BaseEntity` with the columns id, userId, ip, userAgent, browser, os, isRevoked and expires.\",\"There are no methods or validation logic, so no invariant is duplicated.\",\"The file declares nothing besides the entity, so there's no split into unrelated concerns.\"],\"pass\":true,\"reasoning\":\"The unit is a single file holding one TypeORM entity, RefreshToken. It covers one concern: storing refresh-token records. It has no business logic of its own, so it can't duplicate a rule or invariant, and it doesn't go around any module abstraction. Its use of TypeORM decorators and BaseEntity is a framework-coupling or layer question, which is out of scope here.\",\"violations\":[]}}",
+  "runIndex": 2,
+  "schemaVersion": 2,
+  "unitId": "src/refresh-token/entities",
+  "usage": {
+    "inputTokens": 3300,
+    "outputTokens": 396
+  },
+  "usedOptions": {
+    "effort": "high",
+    "model": "claude-opus-5-5"
+  }
+}

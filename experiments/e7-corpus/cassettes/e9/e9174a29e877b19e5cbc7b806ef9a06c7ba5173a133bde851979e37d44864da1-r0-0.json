@@ -1,0 +1,48 @@
+{
+  "attempts": 1,
+  "cliVersion": "2.1.294",
+  "configListingSha256": "47aa04258852fab9a706f3f0c14cee22306d69fbb6fdfbde8c11854bd54997bc",
+  "durationMs": 10415,
+  "effort": "high",
+  "functionId": "FF-N02",
+  "ignoredOptions": [
+    "maxTokens"
+  ],
+  "isolationProbeSha256": "97a2e2d0af1100c13c55e028c1a0c71f069093c3d08705af122aaeb302f1a641",
+  "key": "e9174a29e877b19e5cbc7b806ef9a06c7ba5173a133bde851979e37d44864da1-r0-0",
+  "model": "claude-opus-5-5",
+  "outcome": {
+    "kind": "valid"
+  },
+  "parsedVerdict": {
+    "confidence": 0.9,
+    "evidence": [
+      "src/delivery/deliveryman/dtos/change-deliverymans-status.dto.ts declares only `export class ChangeDeliverymansStatusDto` with one field, `isActive`, and two input-validation decorators: @IsString() and @IsNotEmpty().",
+      "The file has no database access, no HTTP or routing code and no domain rules.",
+      "The path matches the application-layer patterns **/dtos/** and **/*.dto.ts.",
+      "Not a layer issue, but worth fixing: `isActive: boolean` is decorated with @IsString() instead of @IsBoolean()."
+    ],
+    "pass": true,
+    "reasoning": "This file holds one DTO class, ChangeDeliverymansStatusDto. Its only job is to describe the input for changing a deliveryman's status, using class-validator decorators. That is a normal job for a DTO in the application layer, and the project's layer model lists **/dtos/** and **/*.dto.ts under that layer. The file has no persistence, transport, framework wiring or business logic. One unrelated problem: the `isActive` field is typed `boolean` but decorated with @IsString(). That is a validation bug, not a responsibility in the wrong layer, so the file passes this rule.",
+    "violations": []
+  },
+  "projectId": "zhuravlevma__nestjs-active-record",
+  "prompt": "## Rule\nThe unit's responsibilities match the role of its declared layer.\n\n## Rubric\nPass: Every responsibility in the file belongs to the role and kind of its declared layer, and agrees with any ADR prose given.\nFail: The file carries a responsibility that belongs to a different layer kind, for example persistence, transport or framework logic in a domain file, or business rules in an infrastructure or presentation file.\nEvidence required: Name the file and cite the function, method or statement that carries the misplaced responsibility, and the layer kind it belongs to.\nOut of scope: import direction and layer-dependency rules, which are checked symbolically.\n\n## Layer model\n- domain (kind: domain): src/domain/**, src/core/**, src/entities/**, src/models/**, **/domain/**; file patterns: **/*.model.ts, **/*.entity.ts\n- infrastructure (kind: infrastructure): src/infrastructure/**, src/persistence/**, src/adapters/**, src/prisma/**, src/lib/**, src/common/middleware/**, src/common/filters/**, src/common/pipes/**, **/dal/**; file patterns: **/*.repository.ts, **/*.worker.ts, **/workers/**, **/strategies/**\n- application (kind: application): src/application/**, src/use-cases/**, src/services/**, **/dtos/**, **/services/**; file patterns: **/*.service.ts, **/*.processor.ts, **/dto/**, **/*.dto.ts\n- presentation (kind: presentation): src/controllers/**, src/gateways/**, src/common/guards/**, src/common/interceptors/**; file patterns: **/*.controller.ts, **/*.module.ts, **/*.guard.ts, **/*.interceptor.ts, **/*.gateway.ts\n\n## Unit\nKind: file\nId: src/delivery/deliveryman/dtos/change-deliverymans-status.dto.ts\nLayer: application\nUnit files:\n- src/delivery/deliveryman/dtos/change-deliverymans-status.dto.ts\n\n## Source\n=====SOURCE-BEGIN src/delivery/deliveryman/dtos/change-deliverymans-status.dto.ts=====\nimport { IsString, IsNotEmpty } from 'class-validator';\n\nexport class ChangeDeliverymansStatusDto {\n  @IsString()\n  @IsNotEmpty()\n  isActive: boolean;\n}\n\n=====SOURCE-END=====\n\n## Graph excerpt\n{\"edges\":[{\"from\":\"src/delivery/deliveryman/deliveryman.controller.ts\",\"to\":\"src/delivery/deliveryman/dtos/change-deliverymans-status.dto.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/delivery/deliveryman/dtos/change-deliverymans-status.dto.ts\",\"to\":\"class-validator\",\"type\":\"IMPORTS\"},{\"from\":\"src/delivery/deliveryman/services/change-deliverymans-status.ts\",\"to\":\"src/delivery/deliveryman/dtos/change-deliverymans-status.dto.ts\",\"type\":\"IMPORTS\"}],\"nodes\":[{\"kind\":\"Class\",\"layer\":\"application\",\"name\":\"ChangeDeliverymansStatusDto\",\"path\":\"src/delivery/deliveryman/dtos/change-deliverymans-status.dto.ts\"},{\"kind\":\"File\",\"layer\":\"application\",\"path\":\"src/delivery/deliveryman/dtos/change-deliverymans-status.dto.ts\"},{\"kind\":\"File\",\"layer\":\"application\",\"path\":\"src/delivery/deliveryman/services/change-deliverymans-status.ts\"},{\"kind\":\"File\",\"layer\":\"presentation\",\"path\":\"src/delivery/deliveryman/deliveryman.controller.ts\"},{\"kind\":\"Package\",\"layer\":null,\"path\":\"class-validator\"}]}\n\n## Instructions\nJudge the unit against the rule and rubric. Return the JSON object the schema requires. Set pass to false if any file of the unit fails the rubric.\n",
+  "provider": "claude-cli",
+  "recordedAt": "2026-10-10T03:07:43.763Z",
+  "repetition": 0,
+  "requestHash": "e9174a29e877b19e5cbc7b806ef9a06c7ba5173a133bde851979e37d44864da1",
+  "resolvedModel": "claude-opus-5-5",
+  "response": "{\"is_error\":false,\"modelUsage\":{\"claude-opus-5-5\":{\"inputTokens\":2,\"outputTokens\":580}},\"result\":\"{\\\"pass\\\":true,\\\"confidence\\\":0.9,\\\"reasoning\\\":\\\"This file holds one DTO class, ChangeDeliverymansStatusDto. Its only job is to describe the input for changing a deliveryman's status, using class-validator decorators. That is a normal job for a DTO in the application layer, and the project's layer model lists **/dtos/** and **/*.dto.ts under that layer. The file has no persistence, transport, framework wiring or business logic. One unrelated problem: the `isActive` field is typed `boolean` but decorated with @IsString(). That is a validation bug, not a responsibility in the wrong layer, so the file passes this rule.\\\",\\\"evidence\\\":[\\\"src/delivery/deliveryman/dtos/change-deliverymans-status.dto.ts declares only `export class ChangeDeliverymansStatusDto` with one field, `isActive`, and two input-validation decorators: @IsString() and @IsNotEmpty().\\\",\\\"The file has no database access, no HTTP or routing code and no domain rules.\\\",\\\"The path matches the application-layer patterns **/dtos/** and **/*.dto.ts.\\\",\\\"Not a layer issue, but worth fixing: `isActive: boolean` is decorated with @IsString() instead of @IsBoolean().\\\"],\\\"violations\\\":[]}\",\"structured_output\":{\"confidence\":0.9,\"evidence\":[\"src/delivery/deliveryman/dtos/change-deliverymans-status.dto.ts declares only `export class ChangeDeliverymansStatusDto` with one field, `isActive`, and two input-validation decorators: @IsString() and @IsNotEmpty().\",\"The file has no database access, no HTTP or routing code and no domain rules.\",\"The path matches the application-layer patterns **/dtos/** and **/*.dto.ts.\",\"Not a layer issue, but worth fixing: `isActive: boolean` is decorated with @IsString() instead of @IsBoolean().\"],\"pass\":true,\"reasoning\":\"This file holds one DTO class, ChangeDeliverymansStatusDto. Its only job is to describe the input for changing a deliveryman's status, using class-validator decorators. That is a normal job for a DTO in the application layer, and the project's layer model lists **/dtos/** and **/*.dto.ts under that layer. The file has no persistence, transport, framework wiring or business logic. One unrelated problem: the `isActive` field is typed `boolean` but decorated with @IsString(). That is a validation bug, not a responsibility in the wrong layer, so the file passes this rule.\",\"violations\":[]}}",
+  "runIndex": 0,
+  "schemaVersion": 2,
+  "unitId": "src/delivery/deliveryman/dtos/change-deliverymans-status.dto.ts",
+  "usage": {
+    "inputTokens": 2818,
+    "outputTokens": 580
+  },
+  "usedOptions": {
+    "effort": "high",
+    "model": "claude-opus-5-5"
+  }
+}

@@ -1,0 +1,46 @@
+{
+  "attempts": 1,
+  "cliVersion": "2.1.294",
+  "configListingSha256": "47aa04258852fab9a706f3f0c14cee22306d69fbb6fdfbde8c11854bd54997bc",
+  "durationMs": 5245,
+  "effort": "high",
+  "functionId": "FF-N02",
+  "ignoredOptions": [
+    "maxTokens"
+  ],
+  "isolationProbeSha256": "97a2e2d0af1100c13c55e028c1a0c71f069093c3d08705af122aaeb302f1a641",
+  "key": "05c1272c0cd13d21d6cefdc7625c5485ee995a435906c310952a7531d3d31f08-r0-0",
+  "model": "claude-opus-5-5",
+  "outcome": {
+    "kind": "valid"
+  },
+  "parsedVerdict": {
+    "confidence": 0.95,
+    "evidence": [
+      "src/delivery/delivery.module.ts: @Module({ imports: [CuriersModule, BoardModule, Tracking] }) only composes modules",
+      "export class DeliveryModule {} has no body or logic"
+    ],
+    "pass": true,
+    "reasoning": "The file only declares a NestJS module, DeliveryModule, that pulls together its submodules (CuriersModule, BoardModule and Tracking). Wiring modules together is framework composition, and the layer model puts *.module.ts files in the presentation layer, so this is the expected job for that layer. The file has no business rules, persistence or transport handling, and no other logic that belongs to a different layer.",
+    "violations": []
+  },
+  "projectId": "zhuravlevma__typescript-ddd-architecture",
+  "prompt": "## Rule\nThe unit's responsibilities match the role of its declared layer.\n\n## Rubric\nPass: Every responsibility in the file belongs to the role and kind of its declared layer, and agrees with any ADR prose given.\nFail: The file carries a responsibility that belongs to a different layer kind, for example persistence, transport or framework logic in a domain file, or business rules in an infrastructure or presentation file.\nEvidence required: Name the file and cite the function, method or statement that carries the misplaced responsibility, and the layer kind it belongs to.\nOut of scope: import direction and layer-dependency rules, which are checked symbolically.\n\n## Layer model\n- domain (kind: domain): src/domain/**, src/core/**, src/entities/**, src/models/**, **/domain/**, **/entities/**, **/models/**; file patterns: **/*.entity.ts, **/*.model.ts\n- infrastructure (kind: infrastructure): src/infrastructure/**, src/persistence/**, src/adapters/**, src/prisma/**, src/lib/**, src/common/middleware/**, src/common/filters/**, src/common/pipes/**, **/dal/**; file patterns: **/*.repository.ts, **/*.worker.ts, **/workers/**, **/strategies/**\n- application (kind: application): src/application/**, src/use-cases/**, src/services/**, **/dtos/**, **/queries/**, **/services/**; file patterns: **/*.service.ts, **/*.processor.ts, **/dto/**, **/*.dto.ts, **/*.query.ts\n- presentation (kind: presentation): src/controllers/**, src/gateways/**, src/common/guards/**, src/common/interceptors/**, **/controllers/**; file patterns: **/*.controller.ts, **/*.module.ts, **/*.guard.ts, **/*.interceptor.ts, **/*.gateway.ts\n\n## Unit\nKind: file\nId: src/delivery/delivery.module.ts\nLayer: presentation\nUnit files:\n- src/delivery/delivery.module.ts\n\n## Source\n=====SOURCE-BEGIN src/delivery/delivery.module.ts=====\nimport { Module } from '@nestjs/common';\nimport { BoardModule } from './board/board.module';\nimport { CuriersModule } from './curiers/curiers.module';\nimport { Tracking } from './tracking/tracking.module';\n\n@Module({\n  imports: [CuriersModule, BoardModule, Tracking],\n})\nexport class DeliveryModule {}\n\n=====SOURCE-END=====\n\n## Graph excerpt\n{\"edges\":[{\"from\":\"src/app.module.ts\",\"to\":\"src/delivery/delivery.module.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/delivery/delivery.module.ts\",\"to\":\"@nestjs/common\",\"type\":\"IMPORTS\"},{\"from\":\"src/delivery/delivery.module.ts\",\"to\":\"src/delivery/board/board.module.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/delivery/delivery.module.ts\",\"to\":\"src/delivery/curiers/curiers.module.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/delivery/delivery.module.ts\",\"to\":\"src/delivery/tracking/tracking.module.ts\",\"type\":\"IMPORTS\"}],\"nodes\":[{\"kind\":\"Class\",\"layer\":\"presentation\",\"name\":\"DeliveryModule\",\"path\":\"src/delivery/delivery.module.ts\"},{\"kind\":\"File\",\"layer\":\"presentation\",\"path\":\"src/app.module.ts\"},{\"kind\":\"File\",\"layer\":\"presentation\",\"path\":\"src/delivery/board/board.module.ts\"},{\"kind\":\"File\",\"layer\":\"presentation\",\"path\":\"src/delivery/curiers/curiers.module.ts\"},{\"kind\":\"File\",\"layer\":\"presentation\",\"path\":\"src/delivery/delivery.module.ts\"},{\"kind\":\"File\",\"layer\":\"presentation\",\"path\":\"src/delivery/tracking/tracking.module.ts\"},{\"kind\":\"Package\",\"layer\":null,\"path\":\"@nestjs/common\"}]}\n\n## Instructions\nJudge the unit against the rule and rubric. Return the JSON object the schema requires. Set pass to false if any file of the unit fails the rubric.\n",
+  "provider": "claude-cli",
+  "recordedAt": "2026-10-10T03:25:51.340Z",
+  "repetition": 0,
+  "requestHash": "05c1272c0cd13d21d6cefdc7625c5485ee995a435906c310952a7531d3d31f08",
+  "resolvedModel": "claude-opus-5-5",
+  "response": "{\"is_error\":false,\"modelUsage\":{\"claude-opus-5-5\":{\"inputTokens\":2,\"outputTokens\":343}},\"result\":\"{\\\"pass\\\":true,\\\"confidence\\\":0.95,\\\"reasoning\\\":\\\"The file only declares a NestJS module, DeliveryModule, that pulls together its submodules (CuriersModule, BoardModule and Tracking). Wiring modules together is framework composition, and the layer model puts *.module.ts files in the presentation layer, so this is the expected job for that layer. The file has no business rules, persistence or transport handling, and no other logic that belongs to a different layer.\\\",\\\"evidence\\\":[\\\"src/delivery/delivery.module.ts: @Module({ imports: [CuriersModule, BoardModule, Tracking] }) only composes modules\\\",\\\"export class DeliveryModule {} has no body or logic\\\"],\\\"violations\\\":[]}\",\"structured_output\":{\"confidence\":0.95,\"evidence\":[\"src/delivery/delivery.module.ts: @Module({ imports: [CuriersModule, BoardModule, Tracking] }) only composes modules\",\"export class DeliveryModule {} has no body or logic\"],\"pass\":true,\"reasoning\":\"The file only declares a NestJS module, DeliveryModule, that pulls together its submodules (CuriersModule, BoardModule and Tracking). Wiring modules together is framework composition, and the layer model puts *.module.ts files in the presentation layer, so this is the expected job for that layer. The file has no business rules, persistence or transport handling, and no other logic that belongs to a different layer.\",\"violations\":[]}}",
+  "runIndex": 0,
+  "schemaVersion": 2,
+  "unitId": "src/delivery/delivery.module.ts",
+  "usage": {
+    "inputTokens": 2899,
+    "outputTokens": 343
+  },
+  "usedOptions": {
+    "effort": "high",
+    "model": "claude-opus-5-5"
+  }
+}

@@ -1,0 +1,47 @@
+{
+  "attempts": 1,
+  "cliVersion": "2.1.294",
+  "configListingSha256": "47aa04258852fab9a706f3f0c14cee22306d69fbb6fdfbde8c11854bd54997bc",
+  "durationMs": 6286,
+  "effort": "high",
+  "functionId": "FF-N02",
+  "ignoredOptions": [
+    "maxTokens"
+  ],
+  "isolationProbeSha256": "97a2e2d0af1100c13c55e028c1a0c71f069093c3d08705af122aaeb302f1a641",
+  "key": "0a7ffa4aec14a39fa284d29bb2457e1736cfa1b94c610189addb341762dee9fd-r0-0",
+  "model": "claude-opus-5-5",
+  "outcome": {
+    "kind": "valid"
+  },
+  "parsedVerdict": {
+    "confidence": 0.95,
+    "evidence": [
+      "src/routes/cardsRouter.ts: `const cardsRouter = Router();` creates an Express router, which is presentation/transport work",
+      "src/routes/cardsRouter.ts: `cardsRouter.post(\"/create\", apiKeyValidator, bodySchemaValidator(createCardSchema), create);` maps an HTTP route to middlewares and a controller handler",
+      "src/routes/cardsRouter.ts: the routes /activate, /block and /unblock only hand requests on to controller functions and contain no inline business or persistence logic"
+    ],
+    "pass": true,
+    "reasoning": "src/routes/cardsRouter.ts sits in the presentation layer. All it does is define Express routes: it maps HTTP paths and methods to controller handlers and attaches middlewares for API-key checks and request-body schema validation. Routing and request validation are presentation and transport work. The file has no business rules and no persistence logic.",
+    "violations": []
+  },
+  "projectId": "v-aguiar__valex",
+  "prompt": "## Rule\nThe unit's responsibilities match the role of its declared layer.\n\n## Rubric\nPass: Every responsibility in the file belongs to the role and kind of its declared layer, and agrees with any ADR prose given.\nFail: The file carries a responsibility that belongs to a different layer kind, for example persistence, transport or framework logic in a domain file, or business rules in an infrastructure or presentation file.\nEvidence required: Name the file and cite the function, method or statement that carries the misplaced responsibility, and the layer kind it belongs to.\nOut of scope: import direction and layer-dependency rules, which are checked symbolically.\n\n## Layer model\n- persistence (kind: infrastructure): src/persistence/**, **/repositories/**\n- business (kind: domain): src/business/**, **/services/**, **/domain/**; file patterns: **/*.entity.ts\n- presentation (kind: presentation): src/presentation/**, **/controllers/**, **/middlewares/**, **/routes/**\n\n## Unit\nKind: file\nId: src/routes/cardsRouter.ts\nLayer: presentation\nUnit files:\n- src/routes/cardsRouter.ts\n\n## Source\n=====SOURCE-BEGIN src/routes/cardsRouter.ts=====\n﻿import { Router } from \"express\";\n\nimport { activate, blockCard, unblockCard, create, createVirtual } from \"../controllers/cardsController.js\";\n\nimport apiKeyValidator from \"../middlewares/apiKeyValidator.js\";\nimport bodySchemaValidator from \"../middlewares/bodySchemaValidator.js\";\n\nimport activateCardSchema from \"../schemas/activateCardSchema.js\";\nimport blockCardSchema from \"../schemas/blockCardSchema.js\";\nimport createCardSchema from \"../schemas/createCardSchema.js\";\nimport createVirtualCardSchema from \"../schemas/createVirtualCardSchema.js\";\n\nconst cardsRouter = Router();\n\ncardsRouter.post(\"/create\", apiKeyValidator, bodySchemaValidator(createCardSchema), create);\ncardsRouter.post(\"/create/virtual\", bodySchemaValidator(createVirtualCardSchema), createVirtual);\n\ncardsRouter.put(\"/activate\", bodySchemaValidator(activateCardSchema), activate);\ncardsRouter.put(\"/block\", bodySchemaValidator(blockCardSchema), blockCard);\ncardsRouter.put(\"/unblock\", bodySchemaValidator(blockCardSchema), unblockCard);\n\nexport default cardsRouter;\n\n=====SOURCE-END=====\n\n## Graph excerpt\n{\"edges\":[{\"from\":\"src/routes/cardsRouter.ts\",\"to\":\"express\",\"type\":\"IMPORTS\"},{\"from\":\"src/routes/cardsRouter.ts\",\"to\":\"src/controllers/cardsController.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/routes/cardsRouter.ts\",\"to\":\"src/middlewares/apiKeyValidator.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/routes/cardsRouter.ts\",\"to\":\"src/middlewares/bodySchemaValidator.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/routes/cardsRouter.ts\",\"to\":\"src/schemas/activateCardSchema.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/routes/cardsRouter.ts\",\"to\":\"src/schemas/blockCardSchema.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/routes/cardsRouter.ts\",\"to\":\"src/schemas/createCardSchema.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/routes/cardsRouter.ts\",\"to\":\"src/schemas/createVirtualCardSchema.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/routes/router.ts\",\"to\":\"src/routes/cardsRouter.ts\",\"type\":\"IMPORTS\"}],\"nodes\":[{\"kind\":\"File\",\"layer\":\"presentation\",\"path\":\"src/controllers/cardsController.ts\"},{\"kind\":\"File\",\"layer\":\"presentation\",\"path\":\"src/middlewares/apiKeyValidator.ts\"},{\"kind\":\"File\",\"layer\":\"presentation\",\"path\":\"src/middlewares/bodySchemaValidator.ts\"},{\"kind\":\"File\",\"layer\":\"presentation\",\"path\":\"src/routes/cardsRouter.ts\"},{\"kind\":\"File\",\"layer\":\"presentation\",\"path\":\"src/routes/router.ts\"},{\"kind\":\"File\",\"layer\":null,\"path\":\"src/schemas/activateCardSchema.ts\"},{\"kind\":\"File\",\"layer\":null,\"path\":\"src/schemas/blockCardSchema.ts\"},{\"kind\":\"File\",\"layer\":null,\"path\":\"src/schemas/createCardSchema.ts\"},{\"kind\":\"File\",\"layer\":null,\"path\":\"src/schemas/createVirtualCardSchema.ts\"},{\"kind\":\"Package\",\"layer\":null,\"path\":\"express\"}]}\n\n## Instructions\nJudge the unit against the rule and rubric. Return the JSON object the schema requires. Set pass to false if any file of the unit fails the rubric.\n",
+  "provider": "claude-cli",
+  "recordedAt": "2026-10-10T03:19:22.294Z",
+  "repetition": 0,
+  "requestHash": "0a7ffa4aec14a39fa284d29bb2457e1736cfa1b94c610189addb341762dee9fd",
+  "resolvedModel": "claude-opus-5-5",
+  "response": "{\"is_error\":false,\"modelUsage\":{\"claude-opus-5-5\":{\"inputTokens\":2,\"outputTokens\":434}},\"result\":\"{\\\"pass\\\":true,\\\"confidence\\\":0.95,\\\"reasoning\\\":\\\"src/routes/cardsRouter.ts sits in the presentation layer. All it does is define Express routes: it maps HTTP paths and methods to controller handlers and attaches middlewares for API-key checks and request-body schema validation. Routing and request validation are presentation and transport work. The file has no business rules and no persistence logic.\\\",\\\"evidence\\\":[\\\"src/routes/cardsRouter.ts: `const cardsRouter = Router();` creates an Express router, which is presentation/transport work\\\",\\\"src/routes/cardsRouter.ts: `cardsRouter.post(\\\\\\\"/create\\\\\\\", apiKeyValidator, bodySchemaValidator(createCardSchema), create);` maps an HTTP route to middlewares and a controller handler\\\",\\\"src/routes/cardsRouter.ts: the routes /activate, /block and /unblock only hand requests on to controller functions and contain no inline business or persistence logic\\\"],\\\"violations\\\":[]}\",\"structured_output\":{\"confidence\":0.95,\"evidence\":[\"src/routes/cardsRouter.ts: `const cardsRouter = Router();` creates an Express router, which is presentation/transport work\",\"src/routes/cardsRouter.ts: `cardsRouter.post(\\\"/create\\\", apiKeyValidator, bodySchemaValidator(createCardSchema), create);` maps an HTTP route to middlewares and a controller handler\",\"src/routes/cardsRouter.ts: the routes /activate, /block and /unblock only hand requests on to controller functions and contain no inline business or persistence logic\"],\"pass\":true,\"reasoning\":\"src/routes/cardsRouter.ts sits in the presentation layer. All it does is define Express routes: it maps HTTP paths and methods to controller handlers and attaches middlewares for API-key checks and request-body schema validation. Routing and request validation are presentation and transport work. The file has no business rules and no persistence logic.\",\"violations\":[]}}",
+  "runIndex": 0,
+  "schemaVersion": 2,
+  "unitId": "src/routes/cardsRouter.ts",
+  "usage": {
+    "inputTokens": 3200,
+    "outputTokens": 434
+  },
+  "usedOptions": {
+    "effort": "high",
+    "model": "claude-opus-5-5"
+  }
+}

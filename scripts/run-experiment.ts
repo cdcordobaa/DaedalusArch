@@ -61,8 +61,10 @@ export const DEFAULT_CLI_TIMEOUT_MS = 1_800_000;
 /** stdout cap of the CLI child (a corpus report can exceed the runner's 10 MiB default). */
 export const MAX_REPORT_BYTES = 256 * 1024 * 1024;
 /** Variables the CLI child sees (NFR-08); `buildChildEnv` copies only those defined in the parent. */
+// USER and LOGNAME: the judge child (JUDGE_ENV_ALLOW) needs them to reach its macOS keychain login; without them
+// the pinned CLI reports "Not logged in" at the init probe (E7 first attempt, 2026-10-09).
 export const CLI_ENV_ALLOW: readonly string[] = Object.freeze([
-  'PATH', 'HOME', 'TMPDIR', 'LANG', 'LC_ALL', 'NEO4J_URI', 'NEO4J_USER', 'NEO4J_PASSWORD', 'GEMINI_API_KEY',
+  'PATH', 'HOME', 'USER', 'LOGNAME', 'TMPDIR', 'LANG', 'LC_ALL', 'NEO4J_URI', 'NEO4J_USER', 'NEO4J_PASSWORD', 'GEMINI_API_KEY',
 ]);
 
 /**

@@ -1,0 +1,48 @@
+{
+  "attempts": 1,
+  "cliVersion": "2.1.294",
+  "configListingSha256": "47aa04258852fab9a706f3f0c14cee22306d69fbb6fdfbde8c11854bd54997bc",
+  "durationMs": 6259,
+  "effort": "high",
+  "functionId": "FF-N02",
+  "ignoredOptions": [
+    "maxTokens"
+  ],
+  "isolationProbeSha256": "97a2e2d0af1100c13c55e028c1a0c71f069093c3d08705af122aaeb302f1a641",
+  "key": "e23bae1bc2f044ea34a44601dba13f9bd446e9029d10ed0eaef359862319c855-r0-0",
+  "model": "claude-opus-5-5",
+  "outcome": {
+    "kind": "valid"
+  },
+  "parsedVerdict": {
+    "confidence": 0.95,
+    "evidence": [
+      "create: pulls employeeId and cardType from req.body, calls cardServices.createCard, then res.status(201).send(...)",
+      "activate, blockCard, unblockCard: pull fields from req.body, call the matching service function, then res.sendStatus(200)",
+      "getStatement: parseInt(req.params.cardId) is HTTP parameter conversion; the logic itself is handed to cardServices.getCardStatement",
+      "createVirtual: passes the request to cardServices.createVirtualCard and returns 201"
+    ],
+    "pass": true,
+    "reasoning": "The file sits in the presentation layer, and every function in it is a thin Express handler. Each one reads input from req.body or req.params, passes it to cardServices (the business layer), and sends an HTTP status and body back. The handlers contain no business rules, no persistence and no domain checks. The only processing is parseInt on a route parameter, which is ordinary transport-level input conversion.",
+    "violations": []
+  },
+  "projectId": "v-aguiar__valex",
+  "prompt": "## Rule\nThe unit's responsibilities match the role of its declared layer.\n\n## Rubric\nPass: Every responsibility in the file belongs to the role and kind of its declared layer, and agrees with any ADR prose given.\nFail: The file carries a responsibility that belongs to a different layer kind, for example persistence, transport or framework logic in a domain file, or business rules in an infrastructure or presentation file.\nEvidence required: Name the file and cite the function, method or statement that carries the misplaced responsibility, and the layer kind it belongs to.\nOut of scope: import direction and layer-dependency rules, which are checked symbolically.\n\n## Layer model\n- persistence (kind: infrastructure): src/persistence/**, **/repositories/**\n- business (kind: domain): src/business/**, **/services/**, **/domain/**; file patterns: **/*.entity.ts\n- presentation (kind: presentation): src/presentation/**, **/controllers/**, **/middlewares/**, **/routes/**\n\n## Unit\nKind: file\nId: src/controllers/cardsController.ts\nLayer: presentation\nUnit files:\n- src/controllers/cardsController.ts\n\n## Source\n=====SOURCE-BEGIN src/controllers/cardsController.ts=====\n﻿import { Request, Response } from \"express\";\n\nimport cardServices from \"../services/cardServices.js\";\n\nexport async function create(req: Request, res: Response) {\n  const { employeeId, cardType } = req.body;\n\n  const newCardData = await cardServices.createCard(employeeId, cardType);\n\n  res.status(201).send(newCardData);\n}\n\nexport async function activate(req: Request, res: Response) {\n  const { cardId, password, securityCode } = req.body;\n\n  await cardServices.activateCard(cardId, password, securityCode);\n\n  res.sendStatus(200);\n}\n\nexport async function getStatement(req: Request, res: Response) {\n  const { cardId } = req.params;\n\n  const statement = await cardServices.getCardStatement(parseInt(cardId));\n\n  res.send(statement);\n}\n\nexport async function blockCard(req: Request, res: Response) {\n  const { cardId, password } = req.body;\n\n  await cardServices.blockCard(cardId, password);\n\n  res.sendStatus(200);\n}\n\nexport async function unblockCard(req: Request, res: Response) {\n  const { cardId, password } = req.body;\n\n  await cardServices.unblockCard(cardId, password);\n\n  res.sendStatus(200);\n}\n\nexport async function createVirtual(req: Request, res: Response) {\n  const { cardId, password } = req.body;\n\n  const newCardData = await cardServices.createVirtualCard(cardId, password);\n\n  res.status(201).send(newCardData);\n}\n\n=====SOURCE-END=====\n\n## Graph excerpt\n{\"edges\":[{\"from\":\"src/controllers/cardsController.ts\",\"to\":\"express\",\"type\":\"IMPORTS\"},{\"from\":\"src/controllers/cardsController.ts\",\"to\":\"src/services/cardServices.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/routes/cardsRouter.ts\",\"to\":\"src/controllers/cardsController.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/routes/statementsRouter.ts\",\"to\":\"src/controllers/cardsController.ts\",\"type\":\"IMPORTS\"}],\"nodes\":[{\"kind\":\"File\",\"layer\":\"business\",\"path\":\"src/services/cardServices.ts\"},{\"kind\":\"File\",\"layer\":\"presentation\",\"path\":\"src/controllers/cardsController.ts\"},{\"kind\":\"File\",\"layer\":\"presentation\",\"path\":\"src/routes/cardsRouter.ts\"},{\"kind\":\"File\",\"layer\":\"presentation\",\"path\":\"src/routes/statementsRouter.ts\"},{\"kind\":\"Package\",\"layer\":null,\"path\":\"express\"}]}\n\n## Instructions\nJudge the unit against the rule and rubric. Return the JSON object the schema requires. Set pass to false if any file of the unit fails the rubric.\n",
+  "provider": "claude-cli",
+  "recordedAt": "2026-10-10T03:17:48.965Z",
+  "repetition": 0,
+  "requestHash": "e23bae1bc2f044ea34a44601dba13f9bd446e9029d10ed0eaef359862319c855",
+  "resolvedModel": "claude-opus-5-5",
+  "response": "{\"is_error\":false,\"modelUsage\":{\"claude-opus-5-5\":{\"inputTokens\":2,\"outputTokens\":434}},\"result\":\"{\\\"pass\\\":true,\\\"confidence\\\":0.95,\\\"reasoning\\\":\\\"The file sits in the presentation layer, and every function in it is a thin Express handler. Each one reads input from req.body or req.params, passes it to cardServices (the business layer), and sends an HTTP status and body back. The handlers contain no business rules, no persistence and no domain checks. The only processing is parseInt on a route parameter, which is ordinary transport-level input conversion.\\\",\\\"evidence\\\":[\\\"create: pulls employeeId and cardType from req.body, calls cardServices.createCard, then res.status(201).send(...)\\\",\\\"activate, blockCard, unblockCard: pull fields from req.body, call the matching service function, then res.sendStatus(200)\\\",\\\"getStatement: parseInt(req.params.cardId) is HTTP parameter conversion; the logic itself is handed to cardServices.getCardStatement\\\",\\\"createVirtual: passes the request to cardServices.createVirtualCard and returns 201\\\"],\\\"violations\\\":[]}\",\"structured_output\":{\"confidence\":0.95,\"evidence\":[\"create: pulls employeeId and cardType from req.body, calls cardServices.createCard, then res.status(201).send(...)\",\"activate, blockCard, unblockCard: pull fields from req.body, call the matching service function, then res.sendStatus(200)\",\"getStatement: parseInt(req.params.cardId) is HTTP parameter conversion; the logic itself is handed to cardServices.getCardStatement\",\"createVirtual: passes the request to cardServices.createVirtualCard and returns 201\"],\"pass\":true,\"reasoning\":\"The file sits in the presentation layer, and every function in it is a thin Express handler. Each one reads input from req.body or req.params, passes it to cardServices (the business layer), and sends an HTTP status and body back. The handlers contain no business rules, no persistence and no domain checks. The only processing is parseInt on a route parameter, which is ordinary transport-level input conversion.\",\"violations\":[]}}",
+  "runIndex": 0,
+  "schemaVersion": 2,
+  "unitId": "src/controllers/cardsController.ts",
+  "usage": {
+    "inputTokens": 2789,
+    "outputTokens": 434
+  },
+  "usedOptions": {
+    "effort": "high",
+    "model": "claude-opus-5-5"
+  }
+}

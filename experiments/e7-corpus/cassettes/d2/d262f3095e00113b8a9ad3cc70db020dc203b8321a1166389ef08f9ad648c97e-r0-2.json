@@ -1,0 +1,48 @@
+{
+  "attempts": 1,
+  "cliVersion": "2.1.294",
+  "configListingSha256": "47aa04258852fab9a706f3f0c14cee22306d69fbb6fdfbde8c11854bd54997bc",
+  "durationMs": 6262,
+  "effort": "high",
+  "functionId": "FF-N02",
+  "ignoredOptions": [
+    "maxTokens"
+  ],
+  "isolationProbeSha256": "97a2e2d0af1100c13c55e028c1a0c71f069093c3d08705af122aaeb302f1a641",
+  "key": "d262f3095e00113b8a9ad3cc70db020dc203b8321a1166389ef08f9ad648c97e-r0-2",
+  "model": "claude-opus-5-5",
+  "outcome": {
+    "kind": "valid"
+  },
+  "parsedVerdict": {
+    "confidence": 0.9,
+    "evidence": [
+      "ProductStatusValidator.addRules() checks that status exists and is a valid ProductStatus: domain invariant validation",
+      "Business rule `status === ProductStatus.ACTIVE && this.subject.props.price.getValue() === 0` -> addBrokenRule: a domain rule on the aggregate",
+      "No database, HTTP, controller or other framework code in the file",
+      "Extends AbstractRuleValidator<Product> from a DDD library: a domain-modeling base class"
+    ],
+    "pass": true,
+    "reasoning": "The file belongs to the domain layer, and everything it does is domain work: it checks invariants on the Product aggregate. addRules() checks that a status is present, that the status is a valid ProductStatus value, and enforces one business rule: an ACTIVE product cannot have a zero price. It has no persistence, transport, HTTP, framework wiring or application orchestration. It extends AbstractRuleValidator from @nestjslatam/ddd-lib, a DDD building-block base class used to express domain rules, not infrastructure logic. Whether that import is allowed is out of scope here.",
+    "violations": []
+  },
+  "projectId": "nestjslatam__ddd",
+  "prompt": "## Rule\nThe unit's responsibilities match the role of its declared layer.\n\n## Rubric\nPass: Every responsibility in the file belongs to the role and kind of its declared layer, and agrees with any ADR prose given.\nFail: The file carries a responsibility that belongs to a different layer kind, for example persistence, transport or framework logic in a domain file, or business rules in an infrastructure or presentation file.\nEvidence required: Name the file and cite the function, method or statement that carries the misplaced responsibility, and the layer kind it belongs to.\nOut of scope: import direction and layer-dependency rules, which are checked symbolically.\n\n## Layer model\n- domain (kind: domain): src/domain/**, **/domain/**, **/entities/**, **/value-objects/**, **/valueobjects/**; file patterns: **/*.entity.ts, **/*.vo.ts\n- application (kind: application): src/application/**, **/application/**, **/dtos/**, **/queries/**, **/use-cases/**; file patterns: **/*.command.ts, **/*.dto.ts, **/*.query.ts, **/*.service.ts\n- infrastructure (kind: infrastructure): src/infrastructure/**, **/infrastructure/**, **/presentation/**, **/repositories/**; file patterns: **/*.controller.ts, **/*.repository.ts\n\n## Unit\nKind: file\nId: src/products/domain/product-aggregate/validators/product-status.validator.ts\nLayer: domain\nUnit files:\n- src/products/domain/product-aggregate/validators/product-status.validator.ts\n\n## Source\n=====SOURCE-BEGIN src/products/domain/product-aggregate/validators/product-status.validator.ts=====\nimport { AbstractRuleValidator } from '@nestjslatam/ddd-lib';\nimport { Product } from '../product';\nimport { ProductStatus } from '../product.status';\n\nexport class ProductStatusValidator extends AbstractRuleValidator<Product> {\n  constructor(subject: Product) {\n    super(subject);\n  }\n\n  public addRules(): void {\n    const status = this.subject.props.status;\n\n    if (!status) {\n      this.addBrokenRule('props.status', 'Product status is required');\n      return;\n    }\n\n    // Validar que el status sea un valor válido\n    const validStatuses = Object.values(ProductStatus);\n    if (!validStatuses.includes(status)) {\n      this.addBrokenRule(\n        'props.status',\n        `Invalid product status. Must be one of: ${validStatuses.join(', ')}`,\n      );\n    }\n\n    // Regla de negocio: un producto con precio 0 no puede estar activo\n    if (\n      status === ProductStatus.ACTIVE &&\n      this.subject.props.price.getValue() === 0\n    ) {\n      this.addBrokenRule(\n        'props.status',\n        'Cannot activate product with zero price',\n      );\n    }\n  }\n}\n\n=====SOURCE-END=====\n\n## Graph excerpt\n{\"edges\":[{\"from\":\"ProductStatusValidator@src/products/domain/product-aggregate/validators/product-status.validator.ts\",\"to\":\"Product@src/products/domain/product-aggregate/product.ts\",\"type\":\"CONSTRUCTOR_INJECTS\"},{\"from\":\"src/products/domain/product-aggregate/product.ts\",\"to\":\"src/products/domain/product-aggregate/validators/product-status.validator.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/products/domain/product-aggregate/validators/index.ts\",\"to\":\"src/products/domain/product-aggregate/validators/product-status.validator.ts\",\"type\":\"RE_EXPORTS\"},{\"from\":\"src/products/domain/product-aggregate/validators/product-status.validator.ts\",\"to\":\"@nestjslatam/ddd-lib\",\"type\":\"IMPORTS\"},{\"from\":\"src/products/domain/product-aggregate/validators/product-status.validator.ts\",\"to\":\"src/products/domain/product-aggregate/product.status.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/products/domain/product-aggregate/validators/product-status.validator.ts\",\"to\":\"src/products/domain/product-aggregate/product.ts\",\"type\":\"IMPORTS\"}],\"nodes\":[{\"kind\":\"Class\",\"layer\":\"domain\",\"name\":\"Product\",\"path\":\"src/products/domain/product-aggregate/product.ts\"},{\"kind\":\"Class\",\"layer\":\"domain\",\"name\":\"ProductStatusValidator\",\"path\":\"src/products/domain/product-aggregate/validators/product-status.validator.ts\"},{\"kind\":\"File\",\"layer\":\"domain\",\"path\":\"src/products/domain/product-aggregate/product.status.ts\"},{\"kind\":\"File\",\"layer\":\"domain\",\"path\":\"src/products/domain/product-aggregate/product.ts\"},{\"kind\":\"File\",\"layer\":\"domain\",\"path\":\"src/products/domain/product-aggregate/validators/index.ts\"},{\"kind\":\"File\",\"layer\":\"domain\",\"path\":\"src/products/domain/product-aggregate/validators/product-status.validator.ts\"},{\"kind\":\"Package\",\"layer\":null,\"path\":\"@nestjslatam/ddd-lib\"}]}\n\n## Instructions\nJudge the unit against the rule and rubric. Return the JSON object the schema requires. Set pass to false if any file of the unit fails the rubric.\n",
+  "provider": "claude-cli",
+  "recordedAt": "2026-10-10T03:16:13.057Z",
+  "repetition": 0,
+  "requestHash": "d262f3095e00113b8a9ad3cc70db020dc203b8321a1166389ef08f9ad648c97e",
+  "resolvedModel": "claude-opus-5-5",
+  "response": "{\"is_error\":false,\"modelUsage\":{\"claude-opus-5-5\":{\"inputTokens\":2,\"outputTokens\":534}},\"result\":\"{\\\"pass\\\":true,\\\"confidence\\\":0.9,\\\"reasoning\\\":\\\"The file belongs to the domain layer, and everything it does is domain work: it checks invariants on the Product aggregate. addRules() checks that a status is present, that the status is a valid ProductStatus value, and enforces one business rule: an ACTIVE product cannot have a zero price. It has no persistence, transport, HTTP, framework wiring or application orchestration. It extends AbstractRuleValidator from @nestjslatam/ddd-lib, a DDD building-block base class used to express domain rules, not infrastructure logic. Whether that import is allowed is out of scope here.\\\",\\\"evidence\\\":[\\\"ProductStatusValidator.addRules() checks that status exists and is a valid ProductStatus: domain invariant validation\\\",\\\"Business rule `status === ProductStatus.ACTIVE && this.subject.props.price.getValue() === 0` -> addBrokenRule: a domain rule on the aggregate\\\",\\\"No database, HTTP, controller or other framework code in the file\\\",\\\"Extends AbstractRuleValidator<Product> from a DDD library: a domain-modeling base class\\\"],\\\"violations\\\":[]}\",\"structured_output\":{\"confidence\":0.9,\"evidence\":[\"ProductStatusValidator.addRules() checks that status exists and is a valid ProductStatus: domain invariant validation\",\"Business rule `status === ProductStatus.ACTIVE && this.subject.props.price.getValue() === 0` -> addBrokenRule: a domain rule on the aggregate\",\"No database, HTTP, controller or other framework code in the file\",\"Extends AbstractRuleValidator<Product> from a DDD library: a domain-modeling base class\"],\"pass\":true,\"reasoning\":\"The file belongs to the domain layer, and everything it does is domain work: it checks invariants on the Product aggregate. addRules() checks that a status is present, that the status is a valid ProductStatus value, and enforces one business rule: an ACTIVE product cannot have a zero price. It has no persistence, transport, HTTP, framework wiring or application orchestration. It extends AbstractRuleValidator from @nestjslatam/ddd-lib, a DDD building-block base class used to express domain rules, not infrastructure logic. Whether that import is allowed is out of scope here.\",\"violations\":[]}}",
+  "runIndex": 2,
+  "schemaVersion": 2,
+  "unitId": "src/products/domain/product-aggregate/validators/product-status.validator.ts",
+  "usage": {
+    "inputTokens": 3262,
+    "outputTokens": 534
+  },
+  "usedOptions": {
+    "effort": "high",
+    "model": "claude-opus-5-5"
+  }
+}

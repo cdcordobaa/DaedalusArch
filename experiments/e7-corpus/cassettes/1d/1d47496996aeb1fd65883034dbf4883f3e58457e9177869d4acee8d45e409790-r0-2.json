@@ -1,0 +1,47 @@
+{
+  "attempts": 1,
+  "cliVersion": "2.1.294",
+  "configListingSha256": "47aa04258852fab9a706f3f0c14cee22306d69fbb6fdfbde8c11854bd54997bc",
+  "durationMs": 6879,
+  "effort": "high",
+  "functionId": "FF-N02",
+  "ignoredOptions": [
+    "maxTokens"
+  ],
+  "isolationProbeSha256": "97a2e2d0af1100c13c55e028c1a0c71f069093c3d08705af122aaeb302f1a641",
+  "key": "1d47496996aeb1fd65883034dbf4883f3e58457e9177869d4acee8d45e409790-r0-2",
+  "model": "claude-opus-5-5",
+  "outcome": {
+    "kind": "valid"
+  },
+  "parsedVerdict": {
+    "confidence": 0.88,
+    "evidence": [
+      "src/permission/permissions.module.ts: the @Module({ imports, exports, controllers, providers }) decorator is pure dependency-injection wiring",
+      "src/permission/permissions.module.ts: `export class PermissionsModule {}` has no methods or logic",
+      "src/permission/permissions.module.ts: TypeOrmModule.forFeature([PermissionRepository]) registers a provider and runs no persistence operations"
+    ],
+    "pass": true,
+    "reasoning": "src/permission/permissions.module.ts holds only NestJS module wiring: a @Module decorator listing imports, exports, controllers and providers, plus an empty class. The layer model puts **/*.module.ts files in the presentation layer, and declaring this kind of framework composition is what such a module is for. TypeOrmModule.forFeature([PermissionRepository]) only registers a repository for dependency injection. It runs no queries and has no persistence logic. The file has no business rules, validation logic, data access or transport handling, so it carries no responsibility that belongs to another layer.",
+    "violations": []
+  },
+  "projectId": "truthy-demo",
+  "prompt": "## Rule\nThe unit's responsibilities match the role of its declared layer.\n\n## Rubric\nPass: Every responsibility in the file belongs to the role and kind of its declared layer, and agrees with any ADR prose given.\nFail: The file carries a responsibility that belongs to a different layer kind, for example persistence, transport or framework logic in a domain file, or business rules in an infrastructure or presentation file.\nEvidence required: Name the file and cite the function, method or statement that carries the misplaced responsibility, and the layer kind it belongs to.\nOut of scope: import direction and layer-dependency rules, which are checked symbolically.\n\n## Layer model\n- domain (kind: domain): src/domain/**, src/core/**, src/entities/**, src/models/**, **/domain/**; file patterns: **/*.entity.ts\n- infrastructure (kind: infrastructure): src/infrastructure/**, src/persistence/**, src/adapters/**, src/prisma/**, src/lib/**, src/common/middleware/**, src/common/filters/**, src/common/pipes/**; file patterns: **/*.repository.ts, **/*.worker.ts, **/workers/**, **/strategies/**\n- application (kind: application): src/application/**, src/use-cases/**, src/services/**; file patterns: **/*.service.ts, **/*.processor.ts, **/dto/**, **/*.dto.ts\n- presentation (kind: presentation): src/controllers/**, src/gateways/**, src/common/guards/**, src/common/interceptors/**; file patterns: **/*.controller.ts, **/*.module.ts, **/*.guard.ts, **/*.interceptor.ts, **/*.gateway.ts\n\n## Unit\nKind: file\nId: src/permission/permissions.module.ts\nLayer: presentation\nUnit files:\n- src/permission/permissions.module.ts\n\n## Source\n=====SOURCE-BEGIN src/permission/permissions.module.ts=====\nimport { Module } from '@nestjs/common';\nimport { TypeOrmModule } from '@nestjs/typeorm';\n\nimport { PermissionsService } from 'src/permission/permissions.service';\nimport { PermissionsController } from 'src/permission/permissions.controller';\nimport { PermissionRepository } from 'src/permission/permission.repository';\nimport { UniqueValidatorPipe } from 'src/common/pipes/unique-validator.pipe';\nimport { AuthModule } from 'src/auth/auth.module';\n\n@Module({\n  imports: [TypeOrmModule.forFeature([PermissionRepository]), AuthModule],\n  exports: [PermissionsService],\n  controllers: [PermissionsController],\n  providers: [PermissionsService, UniqueValidatorPipe]\n})\nexport class PermissionsModule {}\n\n=====SOURCE-END=====\n\n## Graph excerpt\n{\"edges\":[{\"from\":\"src/app.module.ts\",\"to\":\"src/permission/permissions.module.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/permission/permissions.module.ts\",\"to\":\"@nestjs/common\",\"type\":\"IMPORTS\"},{\"from\":\"src/permission/permissions.module.ts\",\"to\":\"@nestjs/typeorm\",\"type\":\"IMPORTS\"},{\"from\":\"src/permission/permissions.module.ts\",\"to\":\"src/auth/auth.module.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/permission/permissions.module.ts\",\"to\":\"src/common/pipes/unique-validator.pipe.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/permission/permissions.module.ts\",\"to\":\"src/permission/permission.repository.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/permission/permissions.module.ts\",\"to\":\"src/permission/permissions.controller.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/permission/permissions.module.ts\",\"to\":\"src/permission/permissions.service.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/role/roles.module.ts\",\"to\":\"src/permission/permissions.module.ts\",\"type\":\"IMPORTS\"}],\"nodes\":[{\"kind\":\"Class\",\"layer\":\"presentation\",\"name\":\"PermissionsModule\",\"path\":\"src/permission/permissions.module.ts\"},{\"kind\":\"File\",\"layer\":\"application\",\"path\":\"src/permission/permissions.service.ts\"},{\"kind\":\"File\",\"layer\":\"infrastructure\",\"path\":\"src/common/pipes/unique-validator.pipe.ts\"},{\"kind\":\"File\",\"layer\":\"infrastructure\",\"path\":\"src/permission/permission.repository.ts\"},{\"kind\":\"File\",\"layer\":\"presentation\",\"path\":\"src/app.module.ts\"},{\"kind\":\"File\",\"layer\":\"presentation\",\"path\":\"src/auth/auth.module.ts\"},{\"kind\":\"File\",\"layer\":\"presentation\",\"path\":\"src/permission/permissions.controller.ts\"},{\"kind\":\"File\",\"layer\":\"presentation\",\"path\":\"src/permission/permissions.module.ts\"},{\"kind\":\"File\",\"layer\":\"presentation\",\"path\":\"src/role/roles.module.ts\"},{\"kind\":\"Package\",\"layer\":null,\"path\":\"@nestjs/common\"},{\"kind\":\"Package\",\"layer\":null,\"path\":\"@nestjs/typeorm\"}]}\n\n## Instructions\nJudge the unit against the rule and rubric. Return the JSON object the schema requires. Set pass to false if any file of the unit fails the rubric.\n",
+  "provider": "claude-cli",
+  "recordedAt": "2026-10-10T02:57:25.399Z",
+  "repetition": 0,
+  "requestHash": "1d47496996aeb1fd65883034dbf4883f3e58457e9177869d4acee8d45e409790",
+  "resolvedModel": "claude-opus-5-5",
+  "response": "{\"is_error\":false,\"modelUsage\":{\"claude-opus-5-5\":{\"inputTokens\":2,\"outputTokens\":572}},\"result\":\"{\\\"pass\\\":true,\\\"confidence\\\":0.88,\\\"reasoning\\\":\\\"src/permission/permissions.module.ts holds only NestJS module wiring: a @Module decorator listing imports, exports, controllers and providers, plus an empty class. The layer model puts **/*.module.ts files in the presentation layer, and declaring this kind of framework composition is what such a module is for. TypeOrmModule.forFeature([PermissionRepository]) only registers a repository for dependency injection. It runs no queries and has no persistence logic. The file has no business rules, validation logic, data access or transport handling, so it carries no responsibility that belongs to another layer.\\\",\\\"evidence\\\":[\\\"src/permission/permissions.module.ts: the @Module({ imports, exports, controllers, providers }) decorator is pure dependency-injection wiring\\\",\\\"src/permission/permissions.module.ts: `export class PermissionsModule {}` has no methods or logic\\\",\\\"src/permission/permissions.module.ts: TypeOrmModule.forFeature([PermissionRepository]) registers a provider and runs no persistence operations\\\"],\\\"violations\\\":[]}\",\"structured_output\":{\"confidence\":0.88,\"evidence\":[\"src/permission/permissions.module.ts: the @Module({ imports, exports, controllers, providers }) decorator is pure dependency-injection wiring\",\"src/permission/permissions.module.ts: `export class PermissionsModule {}` has no methods or logic\",\"src/permission/permissions.module.ts: TypeOrmModule.forFeature([PermissionRepository]) registers a provider and runs no persistence operations\"],\"pass\":true,\"reasoning\":\"src/permission/permissions.module.ts holds only NestJS module wiring: a @Module decorator listing imports, exports, controllers and providers, plus an empty class. The layer model puts **/*.module.ts files in the presentation layer, and declaring this kind of framework composition is what such a module is for. TypeOrmModule.forFeature([PermissionRepository]) only registers a repository for dependency injection. It runs no queries and has no persistence logic. The file has no business rules, validation logic, data access or transport handling, so it carries no responsibility that belongs to another layer.\",\"violations\":[]}}",
+  "runIndex": 2,
+  "schemaVersion": 2,
+  "unitId": "src/permission/permissions.module.ts",
+  "usage": {
+    "inputTokens": 3291,
+    "outputTokens": 572
+  },
+  "usedOptions": {
+    "effort": "high",
+    "model": "claude-opus-5-5"
+  }
+}

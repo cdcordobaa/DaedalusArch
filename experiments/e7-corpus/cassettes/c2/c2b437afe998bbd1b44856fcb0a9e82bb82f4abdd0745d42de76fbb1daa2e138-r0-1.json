@@ -1,0 +1,46 @@
+{
+  "attempts": 1,
+  "cliVersion": "2.1.294",
+  "configListingSha256": "47aa04258852fab9a706f3f0c14cee22306d69fbb6fdfbde8c11854bd54997bc",
+  "durationMs": 5258,
+  "effort": "high",
+  "functionId": "FF-N02",
+  "ignoredOptions": [
+    "maxTokens"
+  ],
+  "isolationProbeSha256": "97a2e2d0af1100c13c55e028c1a0c71f069093c3d08705af122aaeb302f1a641",
+  "key": "c2b437afe998bbd1b44856fcb0a9e82bb82f4abdd0745d42de76fbb1daa2e138-r0-1",
+  "model": "claude-opus-5-5",
+  "outcome": {
+    "kind": "valid"
+  },
+  "parsedVerdict": {
+    "confidence": 0.95,
+    "evidence": [
+      "src/article/dto/create-article.dto.ts: class CreateArticleDto only declares readonly fields title, description, body and tagList, with no methods or logic",
+      "The graph excerpt shows article.controller.ts (presentation) and article.service.ts (application) import it, which fits the role of an application-layer DTO"
+    ],
+    "pass": true,
+    "reasoning": "The file only declares CreateArticleDto, a plain data-transfer class with four readonly fields. It has no persistence, transport or framework logic and no business rules. Carrying input data between the presentation layer (controller) and the application layer (service) is exactly what an application-layer DTO is for.",
+    "violations": []
+  },
+  "projectId": "realworld-test",
+  "prompt": "## Rule\nThe unit's responsibilities match the role of its declared layer.\n\n## Rubric\nPass: Every responsibility in the file belongs to the role and kind of its declared layer, and agrees with any ADR prose given.\nFail: The file carries a responsibility that belongs to a different layer kind, for example persistence, transport or framework logic in a domain file, or business rules in an infrastructure or presentation file.\nEvidence required: Name the file and cite the function, method or statement that carries the misplaced responsibility, and the layer kind it belongs to.\nOut of scope: import direction and layer-dependency rules, which are checked symbolically.\n\n## Layer model\n- domain (kind: domain): src/domain/**, src/core/**, src/entities/**, src/models/**, **/domain/**; file patterns: **/*.entity.ts\n- infrastructure (kind: infrastructure): src/infrastructure/**, src/persistence/**, src/adapters/**, src/prisma/**, src/lib/**, src/common/middleware/**, src/common/filters/**, src/common/pipes/**; file patterns: **/*.repository.ts, **/*.worker.ts, **/workers/**, **/strategies/**\n- application (kind: application): src/application/**, src/use-cases/**, src/services/**; file patterns: **/*.service.ts, **/*.processor.ts, **/dto/**, **/*.dto.ts\n- presentation (kind: presentation): src/controllers/**, src/gateways/**, src/common/guards/**, src/common/interceptors/**; file patterns: **/*.controller.ts, **/*.module.ts, **/*.guard.ts, **/*.interceptor.ts, **/*.gateway.ts\n\n## Unit\nKind: file\nId: src/article/dto/create-article.dto.ts\nLayer: application\nUnit files:\n- src/article/dto/create-article.dto.ts\n\n## Source\n=====SOURCE-BEGIN src/article/dto/create-article.dto.ts=====\nexport class CreateArticleDto {\n  readonly title: string;\n  readonly description: string;\n  readonly body: string;\n  readonly tagList: string[];\n}\n\n=====SOURCE-END=====\n\n## Graph excerpt\n{\"edges\":[{\"from\":\"src/article/article.controller.ts\",\"to\":\"src/article/dto/create-article.dto.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/article/article.service.ts\",\"to\":\"src/article/dto/create-article.dto.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/article/dto/index.ts\",\"to\":\"src/article/dto/create-article.dto.ts\",\"type\":\"RE_EXPORTS\"}],\"nodes\":[{\"kind\":\"Class\",\"layer\":\"application\",\"name\":\"CreateArticleDto\",\"path\":\"src/article/dto/create-article.dto.ts\"},{\"kind\":\"File\",\"layer\":\"application\",\"path\":\"src/article/article.service.ts\"},{\"kind\":\"File\",\"layer\":\"application\",\"path\":\"src/article/dto/create-article.dto.ts\"},{\"kind\":\"File\",\"layer\":\"application\",\"path\":\"src/article/dto/index.ts\"},{\"kind\":\"File\",\"layer\":\"presentation\",\"path\":\"src/article/article.controller.ts\"}]}\n\n## Instructions\nJudge the unit against the rule and rubric. Return the JSON object the schema requires. Set pass to false if any file of the unit fails the rubric.\n",
+  "provider": "claude-cli",
+  "recordedAt": "2026-10-10T02:39:57.671Z",
+  "repetition": 0,
+  "requestHash": "c2b437afe998bbd1b44856fcb0a9e82bb82f4abdd0745d42de76fbb1daa2e138",
+  "resolvedModel": "claude-opus-5-5",
+  "response": "{\"is_error\":false,\"modelUsage\":{\"claude-opus-5-5\":{\"inputTokens\":2,\"outputTokens\":341}},\"result\":\"{\\\"pass\\\":true,\\\"confidence\\\":0.95,\\\"reasoning\\\":\\\"The file only declares CreateArticleDto, a plain data-transfer class with four readonly fields. It has no persistence, transport or framework logic and no business rules. Carrying input data between the presentation layer (controller) and the application layer (service) is exactly what an application-layer DTO is for.\\\",\\\"evidence\\\":[\\\"src/article/dto/create-article.dto.ts: class CreateArticleDto only declares readonly fields title, description, body and tagList, with no methods or logic\\\",\\\"The graph excerpt shows article.controller.ts (presentation) and article.service.ts (application) import it, which fits the role of an application-layer DTO\\\"],\\\"violations\\\":[]}\",\"structured_output\":{\"confidence\":0.95,\"evidence\":[\"src/article/dto/create-article.dto.ts: class CreateArticleDto only declares readonly fields title, description, body and tagList, with no methods or logic\",\"The graph excerpt shows article.controller.ts (presentation) and article.service.ts (application) import it, which fits the role of an application-layer DTO\"],\"pass\":true,\"reasoning\":\"The file only declares CreateArticleDto, a plain data-transfer class with four readonly fields. It has no persistence, transport or framework logic and no business rules. Carrying input data between the presentation layer (controller) and the application layer (service) is exactly what an application-layer DTO is for.\",\"violations\":[]}}",
+  "runIndex": 1,
+  "schemaVersion": 2,
+  "unitId": "src/article/dto/create-article.dto.ts",
+  "usage": {
+    "inputTokens": 2601,
+    "outputTokens": 341
+  },
+  "usedOptions": {
+    "effort": "high",
+    "model": "claude-opus-5-5"
+  }
+}

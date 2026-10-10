@@ -1,0 +1,48 @@
+{
+  "attempts": 1,
+  "cliVersion": "2.1.294",
+  "configListingSha256": "47aa04258852fab9a706f3f0c14cee22306d69fbb6fdfbde8c11854bd54997bc",
+  "durationMs": 6256,
+  "effort": "high",
+  "functionId": "FF-N02",
+  "ignoredOptions": [
+    "maxTokens"
+  ],
+  "isolationProbeSha256": "97a2e2d0af1100c13c55e028c1a0c71f069093c3d08705af122aaeb302f1a641",
+  "key": "fdbb34f5d2da263b6b20504c64edd8f4f8c4af9bbfc13a437e685adbf66ed1f8-r0-2",
+  "model": "claude-opus-5-5",
+  "outcome": {
+    "kind": "valid"
+  },
+  "parsedVerdict": {
+    "confidence": 0.95,
+    "evidence": [
+      "OrderOrmEntity is decorated with @Entity('orders', { schema: 'warehouse' }), which is ORM persistence mapping and belongs in infrastructure.",
+      "The fields use @PrimaryGeneratedColumn, @Column, @ManyToOne and @JoinColumn. These are only database schema declarations.",
+      "The class has no methods, so there are no business rules or transport logic in it.",
+      "The graph shows warehouse.mapper.ts (in dal) consuming this entity, which matches a separate persistence model mapped to the domain."
+    ],
+    "pass": true,
+    "reasoning": "The file is a TypeORM persistence entity inside a dal/ folder, which is declared as the infrastructure layer. Its only job is to map database tables: the @Entity schema/table mapping, the column definitions and the ManyToOne relation with a JoinColumn. Persistence mapping is an infrastructure responsibility. The file contains no business rules, no validation logic beyond column types, no transport code and no presentation code. The 'isValid' field is only a stored column, not a computed rule.",
+    "violations": []
+  },
+  "projectId": "zhuravlevma__typescript-ddd-architecture",
+  "prompt": "## Rule\nThe unit's responsibilities match the role of its declared layer.\n\n## Rubric\nPass: Every responsibility in the file belongs to the role and kind of its declared layer, and agrees with any ADR prose given.\nFail: The file carries a responsibility that belongs to a different layer kind, for example persistence, transport or framework logic in a domain file, or business rules in an infrastructure or presentation file.\nEvidence required: Name the file and cite the function, method or statement that carries the misplaced responsibility, and the layer kind it belongs to.\nOut of scope: import direction and layer-dependency rules, which are checked symbolically.\n\n## Layer model\n- domain (kind: domain): src/domain/**, src/core/**, src/entities/**, src/models/**, **/domain/**, **/entities/**, **/models/**; file patterns: **/*.entity.ts, **/*.model.ts\n- infrastructure (kind: infrastructure): src/infrastructure/**, src/persistence/**, src/adapters/**, src/prisma/**, src/lib/**, src/common/middleware/**, src/common/filters/**, src/common/pipes/**, **/dal/**; file patterns: **/*.repository.ts, **/*.worker.ts, **/workers/**, **/strategies/**\n- application (kind: application): src/application/**, src/use-cases/**, src/services/**, **/dtos/**, **/queries/**, **/services/**; file patterns: **/*.service.ts, **/*.processor.ts, **/dto/**, **/*.dto.ts, **/*.query.ts\n- presentation (kind: presentation): src/controllers/**, src/gateways/**, src/common/guards/**, src/common/interceptors/**, **/controllers/**; file patterns: **/*.controller.ts, **/*.module.ts, **/*.guard.ts, **/*.interceptor.ts, **/*.gateway.ts\n\n## Unit\nKind: file\nId: src/warehouse/order-management/warehouse/dal/orm-entities/order.orm-entity.ts\nLayer: infrastructure\nUnit files:\n- src/warehouse/order-management/warehouse/dal/orm-entities/order.orm-entity.ts\n\n## Source\n=====SOURCE-BEGIN src/warehouse/order-management/warehouse/dal/orm-entities/order.orm-entity.ts=====\nimport {\n  Entity,\n  Column,\n  PrimaryGeneratedColumn,\n  JoinColumn,\n  ManyToOne,\n} from 'typeorm';\nimport { WarehouseOrmEntity } from './warehouse.orm-entity';\n\n@Entity('orders', {\n  schema: 'warehouse',\n})\nexport class OrderOrmEntity {\n  @PrimaryGeneratedColumn('uuid')\n  id: string;\n\n  @Column()\n  name: string;\n\n  @Column({ type: 'bool' })\n  isValid: boolean;\n\n  @Column({ type: 'uuid' })\n  warehouseId: string;\n\n  @ManyToOne(() => WarehouseOrmEntity, (warehouse) => warehouse.orders)\n  @JoinColumn({ name: 'warehouseId', referencedColumnName: 'id' })\n  warehouse: WarehouseOrmEntity;\n}\n\n=====SOURCE-END=====\n\n## Graph excerpt\n{\"edges\":[{\"from\":\"src/app.module.ts\",\"to\":\"src/warehouse/order-management/warehouse/dal/orm-entities/order.orm-entity.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/warehouse/order-management/order-managment.module.ts\",\"to\":\"src/warehouse/order-management/warehouse/dal/orm-entities/order.orm-entity.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/warehouse/order-management/warehouse/dal/orm-entities/order.orm-entity.ts\",\"to\":\"src/warehouse/order-management/warehouse/dal/orm-entities/warehouse.orm-entity.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/warehouse/order-management/warehouse/dal/orm-entities/order.orm-entity.ts\",\"to\":\"typeorm\",\"type\":\"IMPORTS\"},{\"from\":\"src/warehouse/order-management/warehouse/dal/orm-entities/warehouse.orm-entity.ts\",\"to\":\"src/warehouse/order-management/warehouse/dal/orm-entities/order.orm-entity.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/warehouse/order-management/warehouse/dal/warehouse.mapper.ts\",\"to\":\"src/warehouse/order-management/warehouse/dal/orm-entities/order.orm-entity.ts\",\"type\":\"IMPORTS\"}],\"nodes\":[{\"kind\":\"Class\",\"layer\":\"infrastructure\",\"name\":\"OrderOrmEntity\",\"path\":\"src/warehouse/order-management/warehouse/dal/orm-entities/order.orm-entity.ts\"},{\"kind\":\"File\",\"layer\":\"infrastructure\",\"path\":\"src/warehouse/order-management/warehouse/dal/orm-entities/order.orm-entity.ts\"},{\"kind\":\"File\",\"layer\":\"infrastructure\",\"path\":\"src/warehouse/order-management/warehouse/dal/orm-entities/warehouse.orm-entity.ts\"},{\"kind\":\"File\",\"layer\":\"infrastructure\",\"path\":\"src/warehouse/order-management/warehouse/dal/warehouse.mapper.ts\"},{\"kind\":\"File\",\"layer\":\"presentation\",\"path\":\"src/app.module.ts\"},{\"kind\":\"File\",\"layer\":\"presentation\",\"path\":\"src/warehouse/order-management/order-managment.module.ts\"},{\"kind\":\"Package\",\"layer\":null,\"path\":\"typeorm\"}]}\n\n## Instructions\nJudge the unit against the rule and rubric. Return the JSON object the schema requires. Set pass to false if any file of the unit fails the rubric.\n",
+  "provider": "claude-cli",
+  "recordedAt": "2026-10-10T03:26:27.359Z",
+  "repetition": 0,
+  "requestHash": "fdbb34f5d2da263b6b20504c64edd8f4f8c4af9bbfc13a437e685adbf66ed1f8",
+  "resolvedModel": "claude-opus-5-5",
+  "response": "{\"is_error\":false,\"modelUsage\":{\"claude-opus-5-5\":{\"inputTokens\":2,\"outputTokens\":485}},\"result\":\"{\\\"pass\\\":true,\\\"confidence\\\":0.95,\\\"reasoning\\\":\\\"The file is a TypeORM persistence entity inside a dal/ folder, which is declared as the infrastructure layer. Its only job is to map database tables: the @Entity schema/table mapping, the column definitions and the ManyToOne relation with a JoinColumn. Persistence mapping is an infrastructure responsibility. The file contains no business rules, no validation logic beyond column types, no transport code and no presentation code. The 'isValid' field is only a stored column, not a computed rule.\\\",\\\"evidence\\\":[\\\"OrderOrmEntity is decorated with @Entity('orders', { schema: 'warehouse' }), which is ORM persistence mapping and belongs in infrastructure.\\\",\\\"The fields use @PrimaryGeneratedColumn, @Column, @ManyToOne and @JoinColumn. These are only database schema declarations.\\\",\\\"The class has no methods, so there are no business rules or transport logic in it.\\\",\\\"The graph shows warehouse.mapper.ts (in dal) consuming this entity, which matches a separate persistence model mapped to the domain.\\\"],\\\"violations\\\":[]}\",\"structured_output\":{\"confidence\":0.95,\"evidence\":[\"OrderOrmEntity is decorated with @Entity('orders', { schema: 'warehouse' }), which is ORM persistence mapping and belongs in infrastructure.\",\"The fields use @PrimaryGeneratedColumn, @Column, @ManyToOne and @JoinColumn. These are only database schema declarations.\",\"The class has no methods, so there are no business rules or transport logic in it.\",\"The graph shows warehouse.mapper.ts (in dal) consuming this entity, which matches a separate persistence model mapped to the domain.\"],\"pass\":true,\"reasoning\":\"The file is a TypeORM persistence entity inside a dal/ folder, which is declared as the infrastructure layer. Its only job is to map database tables: the @Entity schema/table mapping, the column definitions and the ManyToOne relation with a JoinColumn. Persistence mapping is an infrastructure responsibility. The file contains no business rules, no validation logic beyond column types, no transport code and no presentation code. The 'isValid' field is only a stored column, not a computed rule.\",\"violations\":[]}}",
+  "runIndex": 2,
+  "schemaVersion": 2,
+  "unitId": "src/warehouse/order-management/warehouse/dal/orm-entities/order.orm-entity.ts",
+  "usage": {
+    "inputTokens": 3474,
+    "outputTokens": 485
+  },
+  "usedOptions": {
+    "effort": "high",
+    "model": "claude-opus-5-5"
+  }
+}

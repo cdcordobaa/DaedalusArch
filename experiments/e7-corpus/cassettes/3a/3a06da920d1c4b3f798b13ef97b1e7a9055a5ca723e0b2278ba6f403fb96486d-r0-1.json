@@ -1,0 +1,47 @@
+{
+  "attempts": 1,
+  "cliVersion": "2.1.294",
+  "configListingSha256": "47aa04258852fab9a706f3f0c14cee22306d69fbb6fdfbde8c11854bd54997bc",
+  "durationMs": 6025,
+  "effort": "high",
+  "functionId": "FF-N01",
+  "ignoredOptions": [
+    "maxTokens"
+  ],
+  "isolationProbeSha256": "97a2e2d0af1100c13c55e028c1a0c71f069093c3d08705af122aaeb302f1a641",
+  "key": "3a06da920d1c4b3f798b13ef97b1e7a9055a5ca723e0b2278ba6f403fb96486d-r0-1",
+  "model": "claude-opus-5-5",
+  "outcome": {
+    "kind": "valid"
+  },
+  "parsedVerdict": {
+    "confidence": 0.93,
+    "evidence": [
+      "src/home/home.service.ts: the only class is HomeService, with a single method, appInfo().",
+      "src/home/home.service.ts: appInfo() uses this.configService.get('app.name', { infer: true }), the typed ConfigService<AllConfigType>, and does not read process.env directly.",
+      "src/home/home.service.ts: no other declarations or unrelated concerns are present; HomeController and HomeModule are its only consumers."
+    ],
+    "pass": true,
+    "reasoning": "The unit has a single file, src/home/home.service.ts. It declares HomeService, which has one method, appInfo(). That method reads the application name through the typed ConfigService<AllConfigType> abstraction. The file covers one concern: giving the home endpoint its app info. No rule or invariant appears twice, and the file uses the config abstraction properly instead of reading process.env directly. Nothing indicates a split into unrelated concerns.",
+    "violations": []
+  },
+  "projectId": "dry-run-test",
+  "prompt": "## Rule\nThe module's files form one coherent unit with a consistent abstraction and boundary.\n\n## Rubric\nPass: The files serve one cohesive concern, use the module's abstractions consistently, and keep each rule or invariant in one place.\nFail: The files split into unrelated concerns, duplicate a rule or invariant that should live in one place, or bypass the module's own abstractions.\nEvidence required: Name each file involved and cite the declarations that show the split, the duplication or the bypass.\nOut of scope: import direction and layer-dependency rules, which are checked symbolically.\n\n## Layer model\n- domain (kind: domain): src/domain/**, src/core/**, src/entities/**, src/models/**, **/domain/**; file patterns: **/*.entity.ts\n- infrastructure (kind: infrastructure): src/infrastructure/**, src/persistence/**, src/adapters/**, src/prisma/**, src/lib/**, src/common/middleware/**, src/common/filters/**, src/common/pipes/**; file patterns: **/*.repository.ts, **/*.worker.ts, **/workers/**, **/strategies/**\n- application (kind: application): src/application/**, src/use-cases/**, src/services/**; file patterns: **/*.service.ts, **/*.processor.ts, **/dto/**, **/*.dto.ts\n- presentation (kind: presentation): src/controllers/**, src/gateways/**, src/common/guards/**, src/common/interceptors/**; file patterns: **/*.controller.ts, **/*.module.ts, **/*.guard.ts, **/*.interceptor.ts, **/*.gateway.ts\n\n## Unit\nKind: module\nId: src/home#application\nLayer: application\nUnit files:\n- src/home/home.service.ts\n\n## Source\n=====SOURCE-BEGIN src/home/home.service.ts=====\nimport { Injectable } from '@nestjs/common';\nimport { ConfigService } from '@nestjs/config';\nimport { AllConfigType } from '../config/config.type';\n\n@Injectable()\nexport class HomeService {\n  constructor(private readonly configService: ConfigService<AllConfigType>) {}\n\n  appInfo() {\n    return { name: this.configService.get('app.name', { infer: true }) };\n  }\n}\n\n=====SOURCE-END=====\n\n## Exported signatures\n// src/home/home.service.ts\nexport class HomeService {\n  constructor(private readonly configService: ConfigService<AllConfigType>);\n  appInfo();\n}\n\n## Incoming\n- src/home/home.controller.ts\n- src/home/home.module.ts\n\n## Outgoing\n- @nestjs/common\n- @nestjs/config\n- src/config/config.type.ts\n\n## Graph excerpt\n{\"edges\":[{\"from\":\"HomeController@src/home/home.controller.ts\",\"to\":\"HomeService@src/home/home.service.ts\",\"type\":\"CONSTRUCTOR_INJECTS\"},{\"from\":\"src/home/home.controller.ts\",\"to\":\"src/home/home.service.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/home/home.module.ts\",\"to\":\"src/home/home.service.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/home/home.service.ts\",\"to\":\"@nestjs/common\",\"type\":\"IMPORTS\"},{\"from\":\"src/home/home.service.ts\",\"to\":\"@nestjs/config\",\"type\":\"IMPORTS\"},{\"from\":\"src/home/home.service.ts\",\"to\":\"src/config/config.type.ts\",\"type\":\"IMPORTS\"}],\"nodes\":[{\"kind\":\"Class\",\"layer\":\"application\",\"name\":\"HomeService\",\"path\":\"src/home/home.service.ts\"},{\"kind\":\"Class\",\"layer\":\"presentation\",\"name\":\"HomeController\",\"path\":\"src/home/home.controller.ts\"},{\"kind\":\"File\",\"layer\":\"application\",\"path\":\"src/home/home.service.ts\"},{\"kind\":\"File\",\"layer\":\"presentation\",\"path\":\"src/home/home.controller.ts\"},{\"kind\":\"File\",\"layer\":\"presentation\",\"path\":\"src/home/home.module.ts\"},{\"kind\":\"File\",\"layer\":null,\"path\":\"src/config/config.type.ts\"},{\"kind\":\"Package\",\"layer\":null,\"path\":\"@nestjs/common\"},{\"kind\":\"Package\",\"layer\":null,\"path\":\"@nestjs/config\"}]}\n\n## Instructions\nJudge the unit against the rule and rubric. Return the JSON object the schema requires. Set pass to false if any file of the unit fails the rubric.\n",
+  "provider": "claude-cli",
+  "recordedAt": "2026-10-10T02:59:28.857Z",
+  "repetition": 0,
+  "requestHash": "3a06da920d1c4b3f798b13ef97b1e7a9055a5ca723e0b2278ba6f403fb96486d",
+  "resolvedModel": "claude-opus-5-5",
+  "response": "{\"is_error\":false,\"modelUsage\":{\"claude-opus-5-5\":{\"inputTokens\":2,\"outputTokens\":429}},\"result\":\"{\\\"pass\\\":true,\\\"confidence\\\":0.93,\\\"reasoning\\\":\\\"The unit has a single file, src/home/home.service.ts. It declares HomeService, which has one method, appInfo(). That method reads the application name through the typed ConfigService<AllConfigType> abstraction. The file covers one concern: giving the home endpoint its app info. No rule or invariant appears twice, and the file uses the config abstraction properly instead of reading process.env directly. Nothing indicates a split into unrelated concerns.\\\",\\\"evidence\\\":[\\\"src/home/home.service.ts: the only class is HomeService, with a single method, appInfo().\\\",\\\"src/home/home.service.ts: appInfo() uses this.configService.get('app.name', { infer: true }), the typed ConfigService<AllConfigType>, and does not read process.env directly.\\\",\\\"src/home/home.service.ts: no other declarations or unrelated concerns are present; HomeController and HomeModule are its only consumers.\\\"],\\\"violations\\\":[]}\",\"structured_output\":{\"confidence\":0.93,\"evidence\":[\"src/home/home.service.ts: the only class is HomeService, with a single method, appInfo().\",\"src/home/home.service.ts: appInfo() uses this.configService.get('app.name', { infer: true }), the typed ConfigService<AllConfigType>, and does not read process.env directly.\",\"src/home/home.service.ts: no other declarations or unrelated concerns are present; HomeController and HomeModule are its only consumers.\"],\"pass\":true,\"reasoning\":\"The unit has a single file, src/home/home.service.ts. It declares HomeService, which has one method, appInfo(). That method reads the application name through the typed ConfigService<AllConfigType> abstraction. The file covers one concern: giving the home endpoint its app info. No rule or invariant appears twice, and the file uses the config abstraction properly instead of reading process.env directly. Nothing indicates a split into unrelated concerns.\",\"violations\":[]}}",
+  "runIndex": 1,
+  "schemaVersion": 2,
+  "unitId": "src/home#application",
+  "usage": {
+    "inputTokens": 2969,
+    "outputTokens": 429
+  },
+  "usedOptions": {
+    "effort": "high",
+    "model": "claude-opus-5-5"
+  }
+}

@@ -1,0 +1,46 @@
+{
+  "attempts": 1,
+  "cliVersion": "2.1.294",
+  "configListingSha256": "47aa04258852fab9a706f3f0c14cee22306d69fbb6fdfbde8c11854bd54997bc",
+  "durationMs": 5050,
+  "effort": "high",
+  "functionId": "FF-N02",
+  "ignoredOptions": [
+    "maxTokens"
+  ],
+  "isolationProbeSha256": "97a2e2d0af1100c13c55e028c1a0c71f069093c3d08705af122aaeb302f1a641",
+  "key": "8955be8150322e7b2141d60afdb0ceea92d0ea62ce1ab36e27ecb50ef3e88911-r0-0",
+  "model": "claude-opus-5-5",
+  "outcome": {
+    "kind": "valid"
+  },
+  "parsedVerdict": {
+    "confidence": 0.97,
+    "evidence": [
+      "src/routes/router.ts: `const router = Router();` creates an Express router, which is presentation/transport wiring",
+      "src/routes/router.ts: `router.use(cardsRouter); router.use(statementsRouter);` only combines sub-routers and has no domain or persistence logic"
+    ],
+    "pass": true,
+    "reasoning": "src/routes/router.ts is in the presentation layer. It only creates an Express Router and mounts two sub-routers (cardsRouter and statementsRouter). Combining routes is a transport and presentation job. The file contains no business rules and no persistence logic, so its responsibilities fit its declared layer.",
+    "violations": []
+  },
+  "projectId": "v-aguiar__valex",
+  "prompt": "## Rule\nThe unit's responsibilities match the role of its declared layer.\n\n## Rubric\nPass: Every responsibility in the file belongs to the role and kind of its declared layer, and agrees with any ADR prose given.\nFail: The file carries a responsibility that belongs to a different layer kind, for example persistence, transport or framework logic in a domain file, or business rules in an infrastructure or presentation file.\nEvidence required: Name the file and cite the function, method or statement that carries the misplaced responsibility, and the layer kind it belongs to.\nOut of scope: import direction and layer-dependency rules, which are checked symbolically.\n\n## Layer model\n- persistence (kind: infrastructure): src/persistence/**, **/repositories/**\n- business (kind: domain): src/business/**, **/services/**, **/domain/**; file patterns: **/*.entity.ts\n- presentation (kind: presentation): src/presentation/**, **/controllers/**, **/middlewares/**, **/routes/**\n\n## Unit\nKind: file\nId: src/routes/router.ts\nLayer: presentation\nUnit files:\n- src/routes/router.ts\n\n## Source\n=====SOURCE-BEGIN src/routes/router.ts=====\n﻿import { Router } from \"express\";\n\nimport cardsRouter from \"./cardsRouter.js\";\nimport statementsRouter from \"./statementsRouter.js\";\n\nconst router = Router();\n\nrouter.use(cardsRouter);\nrouter.use(statementsRouter);\n\nexport default router;\n\n=====SOURCE-END=====\n\n## Graph excerpt\n{\"edges\":[{\"from\":\"src/index.ts\",\"to\":\"src/routes/router.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/routes/router.ts\",\"to\":\"express\",\"type\":\"IMPORTS\"},{\"from\":\"src/routes/router.ts\",\"to\":\"src/routes/cardsRouter.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/routes/router.ts\",\"to\":\"src/routes/statementsRouter.ts\",\"type\":\"IMPORTS\"}],\"nodes\":[{\"kind\":\"File\",\"layer\":\"presentation\",\"path\":\"src/routes/cardsRouter.ts\"},{\"kind\":\"File\",\"layer\":\"presentation\",\"path\":\"src/routes/router.ts\"},{\"kind\":\"File\",\"layer\":\"presentation\",\"path\":\"src/routes/statementsRouter.ts\"},{\"kind\":\"File\",\"layer\":null,\"path\":\"src/index.ts\"},{\"kind\":\"Package\",\"layer\":null,\"path\":\"express\"}]}\n\n## Instructions\nJudge the unit against the rule and rubric. Return the JSON object the schema requires. Set pass to false if any file of the unit fails the rubric.\n",
+  "provider": "claude-cli",
+  "recordedAt": "2026-10-10T03:19:27.346Z",
+  "repetition": 0,
+  "requestHash": "8955be8150322e7b2141d60afdb0ceea92d0ea62ce1ab36e27ecb50ef3e88911",
+  "resolvedModel": "claude-opus-5-5",
+  "response": "{\"is_error\":false,\"modelUsage\":{\"claude-opus-5-5\":{\"inputTokens\":2,\"outputTokens\":337}},\"result\":\"{\\\"pass\\\":true,\\\"confidence\\\":0.97,\\\"reasoning\\\":\\\"src/routes/router.ts is in the presentation layer. It only creates an Express Router and mounts two sub-routers (cardsRouter and statementsRouter). Combining routes is a transport and presentation job. The file contains no business rules and no persistence logic, so its responsibilities fit its declared layer.\\\",\\\"evidence\\\":[\\\"src/routes/router.ts: `const router = Router();` creates an Express router, which is presentation/transport wiring\\\",\\\"src/routes/router.ts: `router.use(cardsRouter); router.use(statementsRouter);` only combines sub-routers and has no domain or persistence logic\\\"],\\\"violations\\\":[]}\",\"structured_output\":{\"confidence\":0.97,\"evidence\":[\"src/routes/router.ts: `const router = Router();` creates an Express router, which is presentation/transport wiring\",\"src/routes/router.ts: `router.use(cardsRouter); router.use(statementsRouter);` only combines sub-routers and has no domain or persistence logic\"],\"pass\":true,\"reasoning\":\"src/routes/router.ts is in the presentation layer. It only creates an Express Router and mounts two sub-routers (cardsRouter and statementsRouter). Combining routes is a transport and presentation job. The file contains no business rules and no persistence logic, so its responsibilities fit its declared layer.\",\"violations\":[]}}",
+  "runIndex": 0,
+  "schemaVersion": 2,
+  "unitId": "src/routes/router.ts",
+  "usage": {
+    "inputTokens": 2356,
+    "outputTokens": 337
+  },
+  "usedOptions": {
+    "effort": "high",
+    "model": "claude-opus-5-5"
+  }
+}

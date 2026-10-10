@@ -1,0 +1,48 @@
+{
+  "attempts": 1,
+  "cliVersion": "2.1.294",
+  "configListingSha256": "47aa04258852fab9a706f3f0c14cee22306d69fbb6fdfbde8c11854bd54997bc",
+  "durationMs": 8305,
+  "effort": "high",
+  "functionId": "FF-N02",
+  "ignoredOptions": [
+    "maxTokens"
+  ],
+  "isolationProbeSha256": "97a2e2d0af1100c13c55e028c1a0c71f069093c3d08705af122aaeb302f1a641",
+  "key": "e85aab53d00a3fdfcc6ede44000fcff4daee0c5b939983ee2abda85297fd0a51-r0-1",
+  "model": "claude-opus-5-5",
+  "outcome": {
+    "kind": "valid"
+  },
+  "parsedVerdict": {
+    "confidence": 0.93,
+    "evidence": [
+      "src/delivery/deliveryman/dtos/create-order.dto.ts: class CreateOrderDto declares only `name` and `description` fields",
+      "Its only decorators are @IsString and @IsNotEmpty, which check input shape and contain no business rules",
+      "It has no persistence calls, HTTP handling or domain logic",
+      "It is imported by add-order-to-deliveryman.service.ts and deliveryman.controller.ts, which is how a DTO is normally used"
+    ],
+    "pass": true,
+    "reasoning": "This file is a plain DTO in the application layer. It declares two string fields and puts class-validator rules on them that check input shape (IsString, IsNotEmpty). Defining the input contract for a use case and checking its shape is a normal application-layer job. The file has no persistence, transport handling, framework routing or business rules, so it has no responsibility that belongs to another layer.",
+    "violations": []
+  },
+  "projectId": "zhuravlevma__nestjs-active-record",
+  "prompt": "## Rule\nThe unit's responsibilities match the role of its declared layer.\n\n## Rubric\nPass: Every responsibility in the file belongs to the role and kind of its declared layer, and agrees with any ADR prose given.\nFail: The file carries a responsibility that belongs to a different layer kind, for example persistence, transport or framework logic in a domain file, or business rules in an infrastructure or presentation file.\nEvidence required: Name the file and cite the function, method or statement that carries the misplaced responsibility, and the layer kind it belongs to.\nOut of scope: import direction and layer-dependency rules, which are checked symbolically.\n\n## Layer model\n- domain (kind: domain): src/domain/**, src/core/**, src/entities/**, src/models/**, **/domain/**; file patterns: **/*.model.ts, **/*.entity.ts\n- infrastructure (kind: infrastructure): src/infrastructure/**, src/persistence/**, src/adapters/**, src/prisma/**, src/lib/**, src/common/middleware/**, src/common/filters/**, src/common/pipes/**, **/dal/**; file patterns: **/*.repository.ts, **/*.worker.ts, **/workers/**, **/strategies/**\n- application (kind: application): src/application/**, src/use-cases/**, src/services/**, **/dtos/**, **/services/**; file patterns: **/*.service.ts, **/*.processor.ts, **/dto/**, **/*.dto.ts\n- presentation (kind: presentation): src/controllers/**, src/gateways/**, src/common/guards/**, src/common/interceptors/**; file patterns: **/*.controller.ts, **/*.module.ts, **/*.guard.ts, **/*.interceptor.ts, **/*.gateway.ts\n\n## Unit\nKind: file\nId: src/delivery/deliveryman/dtos/create-order.dto.ts\nLayer: application\nUnit files:\n- src/delivery/deliveryman/dtos/create-order.dto.ts\n\n## Source\n=====SOURCE-BEGIN src/delivery/deliveryman/dtos/create-order.dto.ts=====\nimport { IsString, IsNotEmpty } from 'class-validator';\n\nexport class CreateOrderDto {\n  @IsString()\n  @IsNotEmpty()\n  name: string;\n\n  @IsString()\n  @IsNotEmpty()\n  description: string;\n}\n\n=====SOURCE-END=====\n\n## Graph excerpt\n{\"edges\":[{\"from\":\"src/delivery/deliveryman/deliveryman.controller.ts\",\"to\":\"src/delivery/deliveryman/dtos/create-order.dto.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/delivery/deliveryman/dtos/create-order.dto.ts\",\"to\":\"class-validator\",\"type\":\"IMPORTS\"},{\"from\":\"src/delivery/deliveryman/services/add-order-to-deliveryman.service.ts\",\"to\":\"src/delivery/deliveryman/dtos/create-order.dto.ts\",\"type\":\"IMPORTS\"}],\"nodes\":[{\"kind\":\"Class\",\"layer\":\"application\",\"name\":\"CreateOrderDto\",\"path\":\"src/delivery/deliveryman/dtos/create-order.dto.ts\"},{\"kind\":\"File\",\"layer\":\"application\",\"path\":\"src/delivery/deliveryman/dtos/create-order.dto.ts\"},{\"kind\":\"File\",\"layer\":\"application\",\"path\":\"src/delivery/deliveryman/services/add-order-to-deliveryman.service.ts\"},{\"kind\":\"File\",\"layer\":\"presentation\",\"path\":\"src/delivery/deliveryman/deliveryman.controller.ts\"},{\"kind\":\"Package\",\"layer\":null,\"path\":\"class-validator\"}]}\n\n## Instructions\nJudge the unit against the rule and rubric. Return the JSON object the schema requires. Set pass to false if any file of the unit fails the rubric.\n",
+  "provider": "claude-cli",
+  "recordedAt": "2026-10-10T03:07:52.070Z",
+  "repetition": 0,
+  "requestHash": "e85aab53d00a3fdfcc6ede44000fcff4daee0c5b939983ee2abda85297fd0a51",
+  "resolvedModel": "claude-opus-5-5",
+  "response": "{\"is_error\":false,\"modelUsage\":{\"claude-opus-5-5\":{\"inputTokens\":2,\"outputTokens\":415}},\"result\":\"{\\\"pass\\\":true,\\\"confidence\\\":0.93,\\\"reasoning\\\":\\\"This file is a plain DTO in the application layer. It declares two string fields and puts class-validator rules on them that check input shape (IsString, IsNotEmpty). Defining the input contract for a use case and checking its shape is a normal application-layer job. The file has no persistence, transport handling, framework routing or business rules, so it has no responsibility that belongs to another layer.\\\",\\\"evidence\\\":[\\\"src/delivery/deliveryman/dtos/create-order.dto.ts: class CreateOrderDto declares only `name` and `description` fields\\\",\\\"Its only decorators are @IsString and @IsNotEmpty, which check input shape and contain no business rules\\\",\\\"It has no persistence calls, HTTP handling or domain logic\\\",\\\"It is imported by add-order-to-deliveryman.service.ts and deliveryman.controller.ts, which is how a DTO is normally used\\\"],\\\"violations\\\":[]}\",\"structured_output\":{\"confidence\":0.93,\"evidence\":[\"src/delivery/deliveryman/dtos/create-order.dto.ts: class CreateOrderDto declares only `name` and `description` fields\",\"Its only decorators are @IsString and @IsNotEmpty, which check input shape and contain no business rules\",\"It has no persistence calls, HTTP handling or domain logic\",\"It is imported by add-order-to-deliveryman.service.ts and deliveryman.controller.ts, which is how a DTO is normally used\"],\"pass\":true,\"reasoning\":\"This file is a plain DTO in the application layer. It declares two string fields and puts class-validator rules on them that check input shape (IsString, IsNotEmpty). Defining the input contract for a use case and checking its shape is a normal application-layer job. The file has no persistence, transport handling, framework routing or business rules, so it has no responsibility that belongs to another layer.\",\"violations\":[]}}",
+  "runIndex": 1,
+  "schemaVersion": 2,
+  "unitId": "src/delivery/deliveryman/dtos/create-order.dto.ts",
+  "usage": {
+    "inputTokens": 2785,
+    "outputTokens": 415
+  },
+  "usedOptions": {
+    "effort": "high",
+    "model": "claude-opus-5-5"
+  }
+}

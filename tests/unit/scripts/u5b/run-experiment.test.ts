@@ -505,3 +505,10 @@ function existsSyncSafe(p: string): boolean {
     return false;
   }
 }
+
+describe('CLI_ENV_ALLOW (judge keychain login)', () => {
+  it('passes USER and LOGNAME through to the CLI child', async () => {
+    const { CLI_ENV_ALLOW } = await import('../../../../scripts/run-experiment');
+    expect(CLI_ENV_ALLOW).toEqual(expect.arrayContaining(['USER', 'LOGNAME']));
+  });
+});

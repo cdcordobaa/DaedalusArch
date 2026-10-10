@@ -1,0 +1,46 @@
+{
+  "attempts": 1,
+  "cliVersion": "2.1.294",
+  "configListingSha256": "47aa04258852fab9a706f3f0c14cee22306d69fbb6fdfbde8c11854bd54997bc",
+  "durationMs": 7285,
+  "effort": "high",
+  "functionId": "FF-N02",
+  "ignoredOptions": [
+    "maxTokens"
+  ],
+  "isolationProbeSha256": "97a2e2d0af1100c13c55e028c1a0c71f069093c3d08705af122aaeb302f1a641",
+  "key": "9d2e0d97a8f61615c803ab52a06b1b4dc07c550d859f7ae8bf8a8354f85244ce-r0-1",
+  "model": "claude-opus-5-5",
+  "outcome": {
+    "kind": "valid"
+  },
+  "parsedVerdict": {
+    "confidence": 0.95,
+    "evidence": [
+      "src/dashboard/entities/dashboard.entity.ts: `export class Dashboard {}` is an empty class with no methods, decorators or dependencies",
+      "Graph excerpt shows no edges from this file"
+    ],
+    "pass": true,
+    "reasoning": "The file declares only an empty domain entity class, `Dashboard`. It has no persistence, transport, framework or business logic, so no responsibility belongs to a different layer kind. An empty entity is consistent with the domain layer.",
+    "violations": []
+  },
+  "projectId": "truthy-demo",
+  "prompt": "## Rule\nThe unit's responsibilities match the role of its declared layer.\n\n## Rubric\nPass: Every responsibility in the file belongs to the role and kind of its declared layer, and agrees with any ADR prose given.\nFail: The file carries a responsibility that belongs to a different layer kind, for example persistence, transport or framework logic in a domain file, or business rules in an infrastructure or presentation file.\nEvidence required: Name the file and cite the function, method or statement that carries the misplaced responsibility, and the layer kind it belongs to.\nOut of scope: import direction and layer-dependency rules, which are checked symbolically.\n\n## Layer model\n- domain (kind: domain): src/domain/**, src/core/**, src/entities/**, src/models/**, **/domain/**; file patterns: **/*.entity.ts\n- infrastructure (kind: infrastructure): src/infrastructure/**, src/persistence/**, src/adapters/**, src/prisma/**, src/lib/**, src/common/middleware/**, src/common/filters/**, src/common/pipes/**; file patterns: **/*.repository.ts, **/*.worker.ts, **/workers/**, **/strategies/**\n- application (kind: application): src/application/**, src/use-cases/**, src/services/**; file patterns: **/*.service.ts, **/*.processor.ts, **/dto/**, **/*.dto.ts\n- presentation (kind: presentation): src/controllers/**, src/gateways/**, src/common/guards/**, src/common/interceptors/**; file patterns: **/*.controller.ts, **/*.module.ts, **/*.guard.ts, **/*.interceptor.ts, **/*.gateway.ts\n\n## Unit\nKind: file\nId: src/dashboard/entities/dashboard.entity.ts\nLayer: domain\nUnit files:\n- src/dashboard/entities/dashboard.entity.ts\n\n## Source\n=====SOURCE-BEGIN src/dashboard/entities/dashboard.entity.ts=====\nexport class Dashboard {}\n\n=====SOURCE-END=====\n\n## Graph excerpt\n{\"edges\":[],\"nodes\":[{\"kind\":\"Class\",\"layer\":\"domain\",\"name\":\"Dashboard\",\"path\":\"src/dashboard/entities/dashboard.entity.ts\"},{\"kind\":\"File\",\"layer\":\"domain\",\"path\":\"src/dashboard/entities/dashboard.entity.ts\"}]}\n\n## Instructions\nJudge the unit against the rule and rubric. Return the JSON object the schema requires. Set pass to false if any file of the unit fails the rubric.\n",
+  "provider": "claude-cli",
+  "recordedAt": "2026-10-10T02:56:56.425Z",
+  "repetition": 0,
+  "requestHash": "9d2e0d97a8f61615c803ab52a06b1b4dc07c550d859f7ae8bf8a8354f85244ce",
+  "resolvedModel": "claude-opus-5-5",
+  "response": "{\"is_error\":false,\"modelUsage\":{\"claude-opus-5-5\":{\"inputTokens\":2,\"outputTokens\":287}},\"result\":\"{\\\"pass\\\":true,\\\"confidence\\\":0.95,\\\"reasoning\\\":\\\"The file declares only an empty domain entity class, `Dashboard`. It has no persistence, transport, framework or business logic, so no responsibility belongs to a different layer kind. An empty entity is consistent with the domain layer.\\\",\\\"evidence\\\":[\\\"src/dashboard/entities/dashboard.entity.ts: `export class Dashboard {}` is an empty class with no methods, decorators or dependencies\\\",\\\"Graph excerpt shows no edges from this file\\\"],\\\"violations\\\":[]}\",\"structured_output\":{\"confidence\":0.95,\"evidence\":[\"src/dashboard/entities/dashboard.entity.ts: `export class Dashboard {}` is an empty class with no methods, decorators or dependencies\",\"Graph excerpt shows no edges from this file\"],\"pass\":true,\"reasoning\":\"The file declares only an empty domain entity class, `Dashboard`. It has no persistence, transport, framework or business logic, so no responsibility belongs to a different layer kind. An empty entity is consistent with the domain layer.\",\"violations\":[]}}",
+  "runIndex": 1,
+  "schemaVersion": 2,
+  "unitId": "src/dashboard/entities/dashboard.entity.ts",
+  "usage": {
+    "inputTokens": 2341,
+    "outputTokens": 287
+  },
+  "usedOptions": {
+    "effort": "high",
+    "model": "claude-opus-5-5"
+  }
+}

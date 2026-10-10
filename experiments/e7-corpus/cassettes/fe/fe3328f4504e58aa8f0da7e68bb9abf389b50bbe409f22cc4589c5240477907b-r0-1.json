@@ -1,0 +1,48 @@
+{
+  "attempts": 1,
+  "cliVersion": "2.1.294",
+  "configListingSha256": "47aa04258852fab9a706f3f0c14cee22306d69fbb6fdfbde8c11854bd54997bc",
+  "durationMs": 7069,
+  "effort": "high",
+  "functionId": "FF-N02",
+  "ignoredOptions": [
+    "maxTokens"
+  ],
+  "isolationProbeSha256": "97a2e2d0af1100c13c55e028c1a0c71f069093c3d08705af122aaeb302f1a641",
+  "key": "fe3328f4504e58aa8f0da7e68bb9abf389b50bbe409f22cc4589c5240477907b-r0-1",
+  "model": "claude-opus-5-5",
+  "outcome": {
+    "kind": "valid"
+  },
+  "parsedVerdict": {
+    "confidence": 0.9,
+    "evidence": [
+      "beforeApplicationShutdown(signal) sets a safety timeout that calls process.exit(1): process and runtime control, which is infrastructure work",
+      "onApplicationShutdown() clears the timeout and logs completion: a framework lifecycle hook, which is infrastructure work",
+      "The class implements ApplicationLifecyclePort and exposes the isShuttingDown getter: an adapter implementing a domain port, as expected for infrastructure",
+      "GRACEFUL_SHUTDOWN_TIMEOUT = 15000 is an operational setting, not a business rule"
+    ],
+    "pass": true,
+    "reasoning": "ShutdownService belongs to the infrastructure layer, and everything it does is infrastructure work. It hooks into NestJS lifecycle events (BeforeApplicationShutdown and OnApplicationShutdown), controls the process directly (setTimeout, unref, process.exit), and logs through the framework. It also provides the infrastructure implementation of a domain-defined port (ApplicationLifecyclePort), which is the expected job of an adapter. The file contains no business rules or domain decisions. The 15000ms shutdown timeout is an operational setting, not domain logic.",
+    "violations": []
+  },
+  "projectId": "raouf-b-dev__ecommerce-store-api",
+  "prompt": "## Rule\nThe unit's responsibilities match the role of its declared layer.\n\n## Rubric\nPass: Every responsibility in the file belongs to the role and kind of its declared layer, and agrees with any ADR prose given.\nFail: The file carries a responsibility that belongs to a different layer kind, for example persistence, transport or framework logic in a domain file, or business rules in an infrastructure or presentation file.\nEvidence required: Name the file and cite the function, method or statement that carries the misplaced responsibility, and the layer kind it belongs to.\nOut of scope: import direction and layer-dependency rules, which are checked symbolically.\n\n## Layer model\n- domain (kind: domain): src/domain/**, **/core/**, **/domain/**, **/entities/**, **/value-objects/**; file patterns: **/*.entity.ts\n- application (kind: application): src/application/**, **/application/**, **/commands/**, **/dto/**, **/queries/**, **/services/**, **/usecases/**; file patterns: **/*.command.ts, **/*.dto.ts, **/*.handler.ts, **/*.query.ts, **/*.service.ts, **/*.usecase.ts\n- infrastructure (kind: infrastructure): src/infrastructure/**, **/adapters/**, **/database/**, **/gateways/**, **/infrastructure/**, **/orm/**, **/persistence/**, **/repositories/**; file patterns: **/*.controller.ts, **/*.gateway.ts, **/*.repository.ts\n\n## Unit\nKind: file\nId: src/infrastructure/shutdown/shutdown.service.ts\nLayer: infrastructure\nUnit files:\n- src/infrastructure/shutdown/shutdown.service.ts\n\n## Source\n=====SOURCE-BEGIN src/infrastructure/shutdown/shutdown.service.ts=====\nimport {\n  Injectable,\n  Logger,\n  BeforeApplicationShutdown,\n  OnApplicationShutdown,\n} from '@nestjs/common';\nimport { ApplicationLifecyclePort } from '../../shared-kernel/domain/interfaces/application-lifecycle.port';\n\n@Injectable()\nexport class ShutdownService\n  implements\n    ApplicationLifecyclePort,\n    BeforeApplicationShutdown,\n    OnApplicationShutdown\n{\n  private readonly logger = new Logger(ShutdownService.name);\n  private readonly GRACEFUL_SHUTDOWN_TIMEOUT = 15000;\n  private shuttingDown = false;\n  private shutdownTimeout: NodeJS.Timeout | null = null;\n\n  get isShuttingDown(): boolean {\n    return this.shuttingDown;\n  }\n\n  beforeApplicationShutdown(signal?: string) {\n    if (this.shuttingDown) return;\n    this.shuttingDown = true;\n\n    this.logger.log(`Received ${signal}. Starting graceful shutdown...`);\n\n    // Start a safety timeout to force exit if NestJS shutdown stalls\n    this.shutdownTimeout = setTimeout(() => {\n      this.logger.error(\n        `Graceful shutdown took longer than ${this.GRACEFUL_SHUTDOWN_TIMEOUT}ms. Forcing process exit.`,\n      );\n      process.exit(1);\n    }, this.GRACEFUL_SHUTDOWN_TIMEOUT);\n\n    // Don't keep the process alive just for this timeout\n    if (this.shutdownTimeout.unref) {\n      this.shutdownTimeout.unref();\n    }\n  }\n\n  onApplicationShutdown() {\n    // If we reach here, NestJS finished closing all providers correctly\n    if (this.shutdownTimeout) {\n      clearTimeout(this.shutdownTimeout);\n      this.shutdownTimeout = null;\n    }\n    this.logger.log('Graceful shutdown completed successfully.');\n  }\n}\n\n=====SOURCE-END=====\n\n## Graph excerpt\n{\"edges\":[{\"from\":\"ShutdownService@src/infrastructure/shutdown/shutdown.service.ts\",\"to\":\"ApplicationLifecyclePort@src/shared-kernel/domain/interfaces/application-lifecycle.port.ts\",\"type\":\"IMPLEMENTS\"},{\"from\":\"src/infrastructure/shutdown/shutdown.module.ts\",\"to\":\"src/infrastructure/shutdown/shutdown.service.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/infrastructure/shutdown/shutdown.service.ts\",\"to\":\"@nestjs/common\",\"type\":\"IMPORTS\"},{\"from\":\"src/infrastructure/shutdown/shutdown.service.ts\",\"to\":\"src/shared-kernel/domain/interfaces/application-lifecycle.port.ts\",\"type\":\"IMPORTS\"}],\"nodes\":[{\"kind\":\"Class\",\"layer\":\"domain\",\"name\":\"ApplicationLifecyclePort\",\"path\":\"src/shared-kernel/domain/interfaces/application-lifecycle.port.ts\"},{\"kind\":\"Class\",\"layer\":\"infrastructure\",\"name\":\"ShutdownService\",\"path\":\"src/infrastructure/shutdown/shutdown.service.ts\"},{\"kind\":\"File\",\"layer\":\"domain\",\"path\":\"src/shared-kernel/domain/interfaces/application-lifecycle.port.ts\"},{\"kind\":\"File\",\"layer\":\"infrastructure\",\"path\":\"src/infrastructure/shutdown/shutdown.module.ts\"},{\"kind\":\"File\",\"layer\":\"infrastructure\",\"path\":\"src/infrastructure/shutdown/shutdown.service.ts\"},{\"kind\":\"Package\",\"layer\":null,\"path\":\"@nestjs/common\"}]}\n\n## Instructions\nJudge the unit against the rule and rubric. Return the JSON object the schema requires. Set pass to false if any file of the unit fails the rubric.\n",
+  "provider": "claude-cli",
+  "recordedAt": "2026-10-10T03:31:56.419Z",
+  "repetition": 0,
+  "requestHash": "fe3328f4504e58aa8f0da7e68bb9abf389b50bbe409f22cc4589c5240477907b",
+  "resolvedModel": "claude-opus-5-5",
+  "response": "{\"is_error\":false,\"modelUsage\":{\"claude-opus-5-5\":{\"inputTokens\":2,\"outputTokens\":572}},\"result\":\"{\\\"pass\\\":true,\\\"confidence\\\":0.9,\\\"reasoning\\\":\\\"ShutdownService belongs to the infrastructure layer, and everything it does is infrastructure work. It hooks into NestJS lifecycle events (BeforeApplicationShutdown and OnApplicationShutdown), controls the process directly (setTimeout, unref, process.exit), and logs through the framework. It also provides the infrastructure implementation of a domain-defined port (ApplicationLifecyclePort), which is the expected job of an adapter. The file contains no business rules or domain decisions. The 15000ms shutdown timeout is an operational setting, not domain logic.\\\",\\\"evidence\\\":[\\\"beforeApplicationShutdown(signal) sets a safety timeout that calls process.exit(1): process and runtime control, which is infrastructure work\\\",\\\"onApplicationShutdown() clears the timeout and logs completion: a framework lifecycle hook, which is infrastructure work\\\",\\\"The class implements ApplicationLifecyclePort and exposes the isShuttingDown getter: an adapter implementing a domain port, as expected for infrastructure\\\",\\\"GRACEFUL_SHUTDOWN_TIMEOUT = 15000 is an operational setting, not a business rule\\\"],\\\"violations\\\":[]}\",\"structured_output\":{\"confidence\":0.9,\"evidence\":[\"beforeApplicationShutdown(signal) sets a safety timeout that calls process.exit(1): process and runtime control, which is infrastructure work\",\"onApplicationShutdown() clears the timeout and logs completion: a framework lifecycle hook, which is infrastructure work\",\"The class implements ApplicationLifecyclePort and exposes the isShuttingDown getter: an adapter implementing a domain port, as expected for infrastructure\",\"GRACEFUL_SHUTDOWN_TIMEOUT = 15000 is an operational setting, not a business rule\"],\"pass\":true,\"reasoning\":\"ShutdownService belongs to the infrastructure layer, and everything it does is infrastructure work. It hooks into NestJS lifecycle events (BeforeApplicationShutdown and OnApplicationShutdown), controls the process directly (setTimeout, unref, process.exit), and logs through the framework. It also provides the infrastructure implementation of a domain-defined port (ApplicationLifecyclePort), which is the expected job of an adapter. The file contains no business rules or domain decisions. The 15000ms shutdown timeout is an operational setting, not domain logic.\",\"violations\":[]}}",
+  "runIndex": 1,
+  "schemaVersion": 2,
+  "unitId": "src/infrastructure/shutdown/shutdown.service.ts",
+  "usage": {
+    "inputTokens": 3465,
+    "outputTokens": 572
+  },
+  "usedOptions": {
+    "effort": "high",
+    "model": "claude-opus-5-5"
+  }
+}

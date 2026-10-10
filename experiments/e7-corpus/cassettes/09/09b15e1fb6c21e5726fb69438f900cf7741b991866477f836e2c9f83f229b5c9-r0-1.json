@@ -1,0 +1,47 @@
+{
+  "attempts": 1,
+  "cliVersion": "2.1.294",
+  "configListingSha256": "47aa04258852fab9a706f3f0c14cee22306d69fbb6fdfbde8c11854bd54997bc",
+  "durationMs": 8156,
+  "effort": "high",
+  "functionId": "FF-N02",
+  "ignoredOptions": [
+    "maxTokens"
+  ],
+  "isolationProbeSha256": "97a2e2d0af1100c13c55e028c1a0c71f069093c3d08705af122aaeb302f1a641",
+  "key": "09b15e1fb6c21e5726fb69438f900cf7741b991866477f836e2c9f83f229b5c9-r0-1",
+  "model": "claude-opus-5-5",
+  "outcome": {
+    "kind": "valid"
+  },
+  "parsedVerdict": {
+    "confidence": 0.85,
+    "evidence": [
+      "src/warehouse/order-management/warehouse/controllers/dtos/add-order.dto.ts: `export class AddOrderDto` only declares fields with decorators and has no methods or behaviour.",
+      "The decorators used are IsString, IsNotEmpty and IsBoolean (input validation) and ApiProperty (API documentation). None of them adds persistence, business rules or request handling.",
+      "The layer model lists **/dtos/** and **/*.dto.ts as application, which matches what this file contains."
+    ],
+    "pass": true,
+    "reasoning": "The file has one responsibility. It defines AddOrderDto, a data shape for input with three fields (name, orderId, isValid). Input checks on the fields come from class-validator decorators (IsString, IsNotEmpty, IsBoolean), and API documentation comes from @nestjs/swagger ApiProperty decorators. The layer model puts **/dtos/** and **/*.dto.ts files in the application layer, so declaring and validating a DTO fits that layer. The file has no persistence logic, no business rules or domain behaviour, and no request handling or routing. The ApiProperty metadata touches the API surface, but it is the standard NestJS way to describe a DTO and doesn't add a separate transport responsibility. The DTO sits under a controllers/ folder, but that location is an import or layer-placement question, which is out of scope for this rule.",
+    "violations": []
+  },
+  "projectId": "zhuravlevma__typescript-ddd-architecture",
+  "prompt": "## Rule\nThe unit's responsibilities match the role of its declared layer.\n\n## Rubric\nPass: Every responsibility in the file belongs to the role and kind of its declared layer, and agrees with any ADR prose given.\nFail: The file carries a responsibility that belongs to a different layer kind, for example persistence, transport or framework logic in a domain file, or business rules in an infrastructure or presentation file.\nEvidence required: Name the file and cite the function, method or statement that carries the misplaced responsibility, and the layer kind it belongs to.\nOut of scope: import direction and layer-dependency rules, which are checked symbolically.\n\n## Layer model\n- domain (kind: domain): src/domain/**, src/core/**, src/entities/**, src/models/**, **/domain/**, **/entities/**, **/models/**; file patterns: **/*.entity.ts, **/*.model.ts\n- infrastructure (kind: infrastructure): src/infrastructure/**, src/persistence/**, src/adapters/**, src/prisma/**, src/lib/**, src/common/middleware/**, src/common/filters/**, src/common/pipes/**, **/dal/**; file patterns: **/*.repository.ts, **/*.worker.ts, **/workers/**, **/strategies/**\n- application (kind: application): src/application/**, src/use-cases/**, src/services/**, **/dtos/**, **/queries/**, **/services/**; file patterns: **/*.service.ts, **/*.processor.ts, **/dto/**, **/*.dto.ts, **/*.query.ts\n- presentation (kind: presentation): src/controllers/**, src/gateways/**, src/common/guards/**, src/common/interceptors/**, **/controllers/**; file patterns: **/*.controller.ts, **/*.module.ts, **/*.guard.ts, **/*.interceptor.ts, **/*.gateway.ts\n\n## Unit\nKind: file\nId: src/warehouse/order-management/warehouse/controllers/dtos/add-order.dto.ts\nLayer: application\nUnit files:\n- src/warehouse/order-management/warehouse/controllers/dtos/add-order.dto.ts\n\n## Source\n=====SOURCE-BEGIN src/warehouse/order-management/warehouse/controllers/dtos/add-order.dto.ts=====\nimport { ApiProperty } from '@nestjs/swagger';\nimport { IsString, IsNotEmpty, IsBoolean } from 'class-validator';\n\nexport class AddOrderDto {\n  @ApiProperty({ type: 'string' })\n  @IsString()\n  @IsNotEmpty()\n  name: string;\n\n  @ApiProperty({ type: 'string', format: 'uuid' })\n  @IsString()\n  @IsNotEmpty()\n  orderId: string;\n\n  @ApiProperty({ type: 'boolean' })\n  @IsBoolean()\n  @IsNotEmpty()\n  isValid: boolean;\n}\n\n=====SOURCE-END=====\n\n## Graph excerpt\n{\"edges\":[{\"from\":\"src/warehouse/order-management/warehouse/controllers/dtos/add-order.dto.ts\",\"to\":\"@nestjs/swagger\",\"type\":\"IMPORTS\"},{\"from\":\"src/warehouse/order-management/warehouse/controllers/dtos/add-order.dto.ts\",\"to\":\"class-validator\",\"type\":\"IMPORTS\"}],\"nodes\":[{\"kind\":\"Class\",\"layer\":\"application\",\"name\":\"AddOrderDto\",\"path\":\"src/warehouse/order-management/warehouse/controllers/dtos/add-order.dto.ts\"},{\"kind\":\"File\",\"layer\":\"application\",\"path\":\"src/warehouse/order-management/warehouse/controllers/dtos/add-order.dto.ts\"},{\"kind\":\"Package\",\"layer\":null,\"path\":\"@nestjs/swagger\"},{\"kind\":\"Package\",\"layer\":null,\"path\":\"class-validator\"}]}\n\n## Instructions\nJudge the unit against the rule and rubric. Return the JSON object the schema requires. Set pass to false if any file of the unit fails the rubric.\n",
+  "provider": "claude-cli",
+  "recordedAt": "2026-10-10T03:26:17.527Z",
+  "repetition": 0,
+  "requestHash": "09b15e1fb6c21e5726fb69438f900cf7741b991866477f836e2c9f83f229b5c9",
+  "resolvedModel": "claude-opus-5-5",
+  "response": "{\"is_error\":false,\"modelUsage\":{\"claude-opus-5-5\":{\"inputTokens\":2,\"outputTokens\":686}},\"result\":\"{\\\"pass\\\":true,\\\"confidence\\\":0.85,\\\"reasoning\\\":\\\"The file has one responsibility. It defines AddOrderDto, a data shape for input with three fields (name, orderId, isValid). Input checks on the fields come from class-validator decorators (IsString, IsNotEmpty, IsBoolean), and API documentation comes from @nestjs/swagger ApiProperty decorators. The layer model puts **/dtos/** and **/*.dto.ts files in the application layer, so declaring and validating a DTO fits that layer. The file has no persistence logic, no business rules or domain behaviour, and no request handling or routing. The ApiProperty metadata touches the API surface, but it is the standard NestJS way to describe a DTO and doesn't add a separate transport responsibility. The DTO sits under a controllers/ folder, but that location is an import or layer-placement question, which is out of scope for this rule.\\\",\\\"evidence\\\":[\\\"src/warehouse/order-management/warehouse/controllers/dtos/add-order.dto.ts: `export class AddOrderDto` only declares fields with decorators and has no methods or behaviour.\\\",\\\"The decorators used are IsString, IsNotEmpty and IsBoolean (input validation) and ApiProperty (API documentation). None of them adds persistence, business rules or request handling.\\\",\\\"The layer model lists **/dtos/** and **/*.dto.ts as application, which matches what this file contains.\\\"],\\\"violations\\\":[]}\",\"structured_output\":{\"confidence\":0.85,\"evidence\":[\"src/warehouse/order-management/warehouse/controllers/dtos/add-order.dto.ts: `export class AddOrderDto` only declares fields with decorators and has no methods or behaviour.\",\"The decorators used are IsString, IsNotEmpty and IsBoolean (input validation) and ApiProperty (API documentation). None of them adds persistence, business rules or request handling.\",\"The layer model lists **/dtos/** and **/*.dto.ts as application, which matches what this file contains.\"],\"pass\":true,\"reasoning\":\"The file has one responsibility. It defines AddOrderDto, a data shape for input with three fields (name, orderId, isValid). Input checks on the fields come from class-validator decorators (IsString, IsNotEmpty, IsBoolean), and API documentation comes from @nestjs/swagger ApiProperty decorators. The layer model puts **/dtos/** and **/*.dto.ts files in the application layer, so declaring and validating a DTO fits that layer. The file has no persistence logic, no business rules or domain behaviour, and no request handling or routing. The ApiProperty metadata touches the API surface, but it is the standard NestJS way to describe a DTO and doesn't add a separate transport responsibility. The DTO sits under a controllers/ folder, but that location is an import or layer-placement question, which is out of scope for this rule.\",\"violations\":[]}}",
+  "runIndex": 1,
+  "schemaVersion": 2,
+  "unitId": "src/warehouse/order-management/warehouse/controllers/dtos/add-order.dto.ts",
+  "usage": {
+    "inputTokens": 2849,
+    "outputTokens": 686
+  },
+  "usedOptions": {
+    "effort": "high",
+    "model": "claude-opus-5-5"
+  }
+}

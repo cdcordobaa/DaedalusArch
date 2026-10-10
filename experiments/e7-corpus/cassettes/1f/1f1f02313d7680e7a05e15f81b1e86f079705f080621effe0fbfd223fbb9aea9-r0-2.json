@@ -1,0 +1,48 @@
+{
+  "attempts": 1,
+  "cliVersion": "2.1.294",
+  "configListingSha256": "47aa04258852fab9a706f3f0c14cee22306d69fbb6fdfbde8c11854bd54997bc",
+  "durationMs": 7392,
+  "effort": "high",
+  "functionId": "FF-N02",
+  "ignoredOptions": [
+    "maxTokens"
+  ],
+  "isolationProbeSha256": "97a2e2d0af1100c13c55e028c1a0c71f069093c3d08705af122aaeb302f1a641",
+  "key": "1f1f02313d7680e7a05e15f81b1e86f079705f080621effe0fbfd223fbb9aea9-r0-2",
+  "model": "claude-opus-5-5",
+  "outcome": {
+    "kind": "valid"
+  },
+  "parsedVerdict": {
+    "confidence": 0.96,
+    "evidence": [
+      "src/routes/statementsRouter.ts: `const statementsRouter = Router();` creates an Express router, which is presentation/transport wiring.",
+      "src/routes/statementsRouter.ts: `statementsRouter.get(\"/statement/:cardId\", getStatement);` maps a route to a controller handler.",
+      "src/routes/statementsRouter.ts: `statementsRouter.post(\"/recharge\", apiKeyValidator, bodySchemaValidator(rechargeSchema), recharge);` chains auth and request-validation middleware, which are presentation concerns.",
+      "No database access, repository calls or business logic appear anywhere in the file."
+    ],
+    "pass": true,
+    "reasoning": "This file is a plain Express router in the presentation layer, and every responsibility it has belongs there. It creates a Router, maps HTTP verbs and paths to controller handlers, and chains the transport-level middleware for API-key checks and request-body validation. It contains no business rules, no persistence or data-access logic, and no domain calculations. Choosing which schema validates each route is input validation at the transport level, which is a normal presentation concern. No ADR text was provided to check against.",
+    "violations": []
+  },
+  "projectId": "v-aguiar__valex",
+  "prompt": "## Rule\nThe unit's responsibilities match the role of its declared layer.\n\n## Rubric\nPass: Every responsibility in the file belongs to the role and kind of its declared layer, and agrees with any ADR prose given.\nFail: The file carries a responsibility that belongs to a different layer kind, for example persistence, transport or framework logic in a domain file, or business rules in an infrastructure or presentation file.\nEvidence required: Name the file and cite the function, method or statement that carries the misplaced responsibility, and the layer kind it belongs to.\nOut of scope: import direction and layer-dependency rules, which are checked symbolically.\n\n## Layer model\n- persistence (kind: infrastructure): src/persistence/**, **/repositories/**\n- business (kind: domain): src/business/**, **/services/**, **/domain/**; file patterns: **/*.entity.ts\n- presentation (kind: presentation): src/presentation/**, **/controllers/**, **/middlewares/**, **/routes/**\n\n## Unit\nKind: file\nId: src/routes/statementsRouter.ts\nLayer: presentation\nUnit files:\n- src/routes/statementsRouter.ts\n\n## Source\n=====SOURCE-BEGIN src/routes/statementsRouter.ts=====\n﻿import { Router } from \"express\";\n\nimport { recharge } from \"../controllers/rechargeController.js\";\nimport { buyOnPointOfSale, buyOnline } from \"../controllers/paymentsController.js\";\nimport { getStatement } from \"../controllers/cardsController.js\";\n\nimport apiKeyValidator from \"../middlewares/apiKeyValidator.js\";\nimport bodySchemaValidator from \"../middlewares/bodySchemaValidator.js\";\nimport rechargeSchema from \"../schemas/rechargeSchema.js\";\nimport paymentSchema from \"../schemas/paymentSchema.js\";\nimport onlinePaymentSchema from \"../schemas/onlinePaymentSchema.js\";\n\nconst statementsRouter = Router();\n\nstatementsRouter.get(\"/statement/:cardId\", getStatement);\nstatementsRouter.post(\"/recharge\", apiKeyValidator, bodySchemaValidator(rechargeSchema), recharge);\nstatementsRouter.post(\"/buy\", bodySchemaValidator(paymentSchema), buyOnPointOfSale);\nstatementsRouter.post(\"/buy/online\", bodySchemaValidator(onlinePaymentSchema), buyOnline);\n\nexport default statementsRouter;\n\n=====SOURCE-END=====\n\n## Graph excerpt\n{\"edges\":[{\"from\":\"src/routes/router.ts\",\"to\":\"src/routes/statementsRouter.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/routes/statementsRouter.ts\",\"to\":\"express\",\"type\":\"IMPORTS\"},{\"from\":\"src/routes/statementsRouter.ts\",\"to\":\"src/controllers/cardsController.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/routes/statementsRouter.ts\",\"to\":\"src/controllers/paymentsController.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/routes/statementsRouter.ts\",\"to\":\"src/controllers/rechargeController.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/routes/statementsRouter.ts\",\"to\":\"src/middlewares/apiKeyValidator.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/routes/statementsRouter.ts\",\"to\":\"src/middlewares/bodySchemaValidator.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/routes/statementsRouter.ts\",\"to\":\"src/schemas/onlinePaymentSchema.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/routes/statementsRouter.ts\",\"to\":\"src/schemas/paymentSchema.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/routes/statementsRouter.ts\",\"to\":\"src/schemas/rechargeSchema.ts\",\"type\":\"IMPORTS\"}],\"nodes\":[{\"kind\":\"File\",\"layer\":\"presentation\",\"path\":\"src/controllers/cardsController.ts\"},{\"kind\":\"File\",\"layer\":\"presentation\",\"path\":\"src/controllers/paymentsController.ts\"},{\"kind\":\"File\",\"layer\":\"presentation\",\"path\":\"src/controllers/rechargeController.ts\"},{\"kind\":\"File\",\"layer\":\"presentation\",\"path\":\"src/middlewares/apiKeyValidator.ts\"},{\"kind\":\"File\",\"layer\":\"presentation\",\"path\":\"src/middlewares/bodySchemaValidator.ts\"},{\"kind\":\"File\",\"layer\":\"presentation\",\"path\":\"src/routes/router.ts\"},{\"kind\":\"File\",\"layer\":\"presentation\",\"path\":\"src/routes/statementsRouter.ts\"},{\"kind\":\"File\",\"layer\":null,\"path\":\"src/schemas/onlinePaymentSchema.ts\"},{\"kind\":\"File\",\"layer\":null,\"path\":\"src/schemas/paymentSchema.ts\"},{\"kind\":\"File\",\"layer\":null,\"path\":\"src/schemas/rechargeSchema.ts\"},{\"kind\":\"Package\",\"layer\":null,\"path\":\"express\"}]}\n\n## Instructions\nJudge the unit against the rule and rubric. Return the JSON object the schema requires. Set pass to false if any file of the unit fails the rubric.\n",
+  "provider": "claude-cli",
+  "recordedAt": "2026-10-10T03:19:39.569Z",
+  "repetition": 0,
+  "requestHash": "1f1f02313d7680e7a05e15f81b1e86f079705f080621effe0fbfd223fbb9aea9",
+  "resolvedModel": "claude-opus-5-5",
+  "response": "{\"is_error\":false,\"modelUsage\":{\"claude-opus-5-5\":{\"inputTokens\":2,\"outputTokens\":514}},\"result\":\"{\\\"pass\\\":true,\\\"confidence\\\":0.96,\\\"reasoning\\\":\\\"This file is a plain Express router in the presentation layer, and every responsibility it has belongs there. It creates a Router, maps HTTP verbs and paths to controller handlers, and chains the transport-level middleware for API-key checks and request-body validation. It contains no business rules, no persistence or data-access logic, and no domain calculations. Choosing which schema validates each route is input validation at the transport level, which is a normal presentation concern. No ADR text was provided to check against.\\\",\\\"evidence\\\":[\\\"src/routes/statementsRouter.ts: `const statementsRouter = Router();` creates an Express router, which is presentation/transport wiring.\\\",\\\"src/routes/statementsRouter.ts: `statementsRouter.get(\\\\\\\"/statement/:cardId\\\\\\\", getStatement);` maps a route to a controller handler.\\\",\\\"src/routes/statementsRouter.ts: `statementsRouter.post(\\\\\\\"/recharge\\\\\\\", apiKeyValidator, bodySchemaValidator(rechargeSchema), recharge);` chains auth and request-validation middleware, which are presentation concerns.\\\",\\\"No database access, repository calls or business logic appear anywhere in the file.\\\"],\\\"violations\\\":[]}\",\"structured_output\":{\"confidence\":0.96,\"evidence\":[\"src/routes/statementsRouter.ts: `const statementsRouter = Router();` creates an Express router, which is presentation/transport wiring.\",\"src/routes/statementsRouter.ts: `statementsRouter.get(\\\"/statement/:cardId\\\", getStatement);` maps a route to a controller handler.\",\"src/routes/statementsRouter.ts: `statementsRouter.post(\\\"/recharge\\\", apiKeyValidator, bodySchemaValidator(rechargeSchema), recharge);` chains auth and request-validation middleware, which are presentation concerns.\",\"No database access, repository calls or business logic appear anywhere in the file.\"],\"pass\":true,\"reasoning\":\"This file is a plain Express router in the presentation layer, and every responsibility it has belongs there. It creates a Router, maps HTTP verbs and paths to controller handlers, and chains the transport-level middleware for API-key checks and request-body validation. It contains no business rules, no persistence or data-access logic, and no domain calculations. Choosing which schema validates each route is input validation at the transport level, which is a normal presentation concern. No ADR text was provided to check against.\",\"violations\":[]}}",
+  "runIndex": 2,
+  "schemaVersion": 2,
+  "unitId": "src/routes/statementsRouter.ts",
+  "usage": {
+    "inputTokens": 3256,
+    "outputTokens": 514
+  },
+  "usedOptions": {
+    "effort": "high",
+    "model": "claude-opus-5-5"
+  }
+}

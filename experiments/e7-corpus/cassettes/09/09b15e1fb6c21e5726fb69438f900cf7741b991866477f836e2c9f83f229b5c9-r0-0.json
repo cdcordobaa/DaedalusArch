@@ -1,0 +1,48 @@
+{
+  "attempts": 1,
+  "cliVersion": "2.1.294",
+  "configListingSha256": "47aa04258852fab9a706f3f0c14cee22306d69fbb6fdfbde8c11854bd54997bc",
+  "durationMs": 8752,
+  "effort": "high",
+  "functionId": "FF-N02",
+  "ignoredOptions": [
+    "maxTokens"
+  ],
+  "isolationProbeSha256": "97a2e2d0af1100c13c55e028c1a0c71f069093c3d08705af122aaeb302f1a641",
+  "key": "09b15e1fb6c21e5726fb69438f900cf7741b991866477f836e2c9f83f229b5c9-r0-0",
+  "model": "claude-opus-5-5",
+  "outcome": {
+    "kind": "valid"
+  },
+  "parsedVerdict": {
+    "confidence": 0.82,
+    "evidence": [
+      "src/warehouse/order-management/warehouse/controllers/dtos/add-order.dto.ts: AddOrderDto declares only the fields name, orderId and isValid, with no methods or behavior",
+      "Fields carry class-validator decorators (@IsString, @IsNotEmpty, @IsBoolean), which are input-shape validation appropriate to an application DTO",
+      "@ApiProperty decorators are declarative schema metadata, with no transport or persistence logic",
+      "No persistence, HTTP handling or business-rule logic is present"
+    ],
+    "pass": true,
+    "reasoning": "The file is in the application layer because it matches the **/dtos/** and **/*.dto.ts patterns. It declares one data transfer object, AddOrderDto, with three fields (name, orderId, isValid). The fields carry input-shape validation from class-validator (@IsString, @IsNotEmpty, @IsBoolean) and API schema metadata from @nestjs/swagger (@ApiProperty). Describing the shape of input data and validating it is the normal job of an application-layer DTO. The file has no persistence, no transport handling (routes, request or response objects), no business rules and no domain logic. The swagger decorators are declarative metadata that sit close to presentation, but putting them on DTOs is standard NestJS practice, and they add no behavioral responsibility. They also do not move a domain or business concern into the wrong layer. No ADR prose was given that would say otherwise.",
+    "violations": []
+  },
+  "projectId": "zhuravlevma__typescript-ddd-architecture",
+  "prompt": "## Rule\nThe unit's responsibilities match the role of its declared layer.\n\n## Rubric\nPass: Every responsibility in the file belongs to the role and kind of its declared layer, and agrees with any ADR prose given.\nFail: The file carries a responsibility that belongs to a different layer kind, for example persistence, transport or framework logic in a domain file, or business rules in an infrastructure or presentation file.\nEvidence required: Name the file and cite the function, method or statement that carries the misplaced responsibility, and the layer kind it belongs to.\nOut of scope: import direction and layer-dependency rules, which are checked symbolically.\n\n## Layer model\n- domain (kind: domain): src/domain/**, src/core/**, src/entities/**, src/models/**, **/domain/**, **/entities/**, **/models/**; file patterns: **/*.entity.ts, **/*.model.ts\n- infrastructure (kind: infrastructure): src/infrastructure/**, src/persistence/**, src/adapters/**, src/prisma/**, src/lib/**, src/common/middleware/**, src/common/filters/**, src/common/pipes/**, **/dal/**; file patterns: **/*.repository.ts, **/*.worker.ts, **/workers/**, **/strategies/**\n- application (kind: application): src/application/**, src/use-cases/**, src/services/**, **/dtos/**, **/queries/**, **/services/**; file patterns: **/*.service.ts, **/*.processor.ts, **/dto/**, **/*.dto.ts, **/*.query.ts\n- presentation (kind: presentation): src/controllers/**, src/gateways/**, src/common/guards/**, src/common/interceptors/**, **/controllers/**; file patterns: **/*.controller.ts, **/*.module.ts, **/*.guard.ts, **/*.interceptor.ts, **/*.gateway.ts\n\n## Unit\nKind: file\nId: src/warehouse/order-management/warehouse/controllers/dtos/add-order.dto.ts\nLayer: application\nUnit files:\n- src/warehouse/order-management/warehouse/controllers/dtos/add-order.dto.ts\n\n## Source\n=====SOURCE-BEGIN src/warehouse/order-management/warehouse/controllers/dtos/add-order.dto.ts=====\nimport { ApiProperty } from '@nestjs/swagger';\nimport { IsString, IsNotEmpty, IsBoolean } from 'class-validator';\n\nexport class AddOrderDto {\n  @ApiProperty({ type: 'string' })\n  @IsString()\n  @IsNotEmpty()\n  name: string;\n\n  @ApiProperty({ type: 'string', format: 'uuid' })\n  @IsString()\n  @IsNotEmpty()\n  orderId: string;\n\n  @ApiProperty({ type: 'boolean' })\n  @IsBoolean()\n  @IsNotEmpty()\n  isValid: boolean;\n}\n\n=====SOURCE-END=====\n\n## Graph excerpt\n{\"edges\":[{\"from\":\"src/warehouse/order-management/warehouse/controllers/dtos/add-order.dto.ts\",\"to\":\"@nestjs/swagger\",\"type\":\"IMPORTS\"},{\"from\":\"src/warehouse/order-management/warehouse/controllers/dtos/add-order.dto.ts\",\"to\":\"class-validator\",\"type\":\"IMPORTS\"}],\"nodes\":[{\"kind\":\"Class\",\"layer\":\"application\",\"name\":\"AddOrderDto\",\"path\":\"src/warehouse/order-management/warehouse/controllers/dtos/add-order.dto.ts\"},{\"kind\":\"File\",\"layer\":\"application\",\"path\":\"src/warehouse/order-management/warehouse/controllers/dtos/add-order.dto.ts\"},{\"kind\":\"Package\",\"layer\":null,\"path\":\"@nestjs/swagger\"},{\"kind\":\"Package\",\"layer\":null,\"path\":\"class-validator\"}]}\n\n## Instructions\nJudge the unit against the rule and rubric. Return the JSON object the schema requires. Set pass to false if any file of the unit fails the rubric.\n",
+  "provider": "claude-cli",
+  "recordedAt": "2026-10-10T03:26:17.956Z",
+  "repetition": 0,
+  "requestHash": "09b15e1fb6c21e5726fb69438f900cf7741b991866477f836e2c9f83f229b5c9",
+  "resolvedModel": "claude-opus-5-5",
+  "response": "{\"is_error\":false,\"modelUsage\":{\"claude-opus-5-5\":{\"inputTokens\":2,\"outputTokens\":730}},\"result\":\"{\\\"pass\\\":true,\\\"confidence\\\":0.82,\\\"reasoning\\\":\\\"The file is in the application layer because it matches the **/dtos/** and **/*.dto.ts patterns. It declares one data transfer object, AddOrderDto, with three fields (name, orderId, isValid). The fields carry input-shape validation from class-validator (@IsString, @IsNotEmpty, @IsBoolean) and API schema metadata from @nestjs/swagger (@ApiProperty). Describing the shape of input data and validating it is the normal job of an application-layer DTO. The file has no persistence, no transport handling (routes, request or response objects), no business rules and no domain logic. The swagger decorators are declarative metadata that sit close to presentation, but putting them on DTOs is standard NestJS practice, and they add no behavioral responsibility. They also do not move a domain or business concern into the wrong layer. No ADR prose was given that would say otherwise.\\\",\\\"evidence\\\":[\\\"src/warehouse/order-management/warehouse/controllers/dtos/add-order.dto.ts: AddOrderDto declares only the fields name, orderId and isValid, with no methods or behavior\\\",\\\"Fields carry class-validator decorators (@IsString, @IsNotEmpty, @IsBoolean), which are input-shape validation appropriate to an application DTO\\\",\\\"@ApiProperty decorators are declarative schema metadata, with no transport or persistence logic\\\",\\\"No persistence, HTTP handling or business-rule logic is present\\\"],\\\"violations\\\":[]}\",\"structured_output\":{\"confidence\":0.82,\"evidence\":[\"src/warehouse/order-management/warehouse/controllers/dtos/add-order.dto.ts: AddOrderDto declares only the fields name, orderId and isValid, with no methods or behavior\",\"Fields carry class-validator decorators (@IsString, @IsNotEmpty, @IsBoolean), which are input-shape validation appropriate to an application DTO\",\"@ApiProperty decorators are declarative schema metadata, with no transport or persistence logic\",\"No persistence, HTTP handling or business-rule logic is present\"],\"pass\":true,\"reasoning\":\"The file is in the application layer because it matches the **/dtos/** and **/*.dto.ts patterns. It declares one data transfer object, AddOrderDto, with three fields (name, orderId, isValid). The fields carry input-shape validation from class-validator (@IsString, @IsNotEmpty, @IsBoolean) and API schema metadata from @nestjs/swagger (@ApiProperty). Describing the shape of input data and validating it is the normal job of an application-layer DTO. The file has no persistence, no transport handling (routes, request or response objects), no business rules and no domain logic. The swagger decorators are declarative metadata that sit close to presentation, but putting them on DTOs is standard NestJS practice, and they add no behavioral responsibility. They also do not move a domain or business concern into the wrong layer. No ADR prose was given that would say otherwise.\",\"violations\":[]}}",
+  "runIndex": 0,
+  "schemaVersion": 2,
+  "unitId": "src/warehouse/order-management/warehouse/controllers/dtos/add-order.dto.ts",
+  "usage": {
+    "inputTokens": 2849,
+    "outputTokens": 730
+  },
+  "usedOptions": {
+    "effort": "high",
+    "model": "claude-opus-5-5"
+  }
+}

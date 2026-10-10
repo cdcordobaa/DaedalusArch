@@ -1,0 +1,47 @@
+{
+  "attempts": 1,
+  "cliVersion": "2.1.294",
+  "configListingSha256": "47aa04258852fab9a706f3f0c14cee22306d69fbb6fdfbde8c11854bd54997bc",
+  "durationMs": 6271,
+  "effort": "high",
+  "functionId": "FF-N01",
+  "ignoredOptions": [
+    "maxTokens"
+  ],
+  "isolationProbeSha256": "97a2e2d0af1100c13c55e028c1a0c71f069093c3d08705af122aaeb302f1a641",
+  "key": "2928f8bf407ea767b9105de33300a2d5ea12092bf2e75fa04dc8cf51a5f533ba-r0-2",
+  "model": "claude-opus-5-5",
+  "outcome": {
+    "kind": "valid"
+  },
+  "parsedVerdict": {
+    "confidence": 0.93,
+    "evidence": [
+      "src/tag/tag.service.ts declares a single class, TagService, with a single method, findAll(): Promise<TagEntity[]>, which only returns this.tagRepository.find().",
+      "The constructor injects one dependency, @InjectRepository(TagEntity) tagRepository: Repository<TagEntity>, and every data access goes through it.",
+      "The file contains no other concerns and repeats no business rule or invariant."
+    ],
+    "pass": true,
+    "reasoning": "The unit has one file, src/tag/tag.service.ts. It declares one class, TagService, which has one concern: reading tags. It reaches TagEntity only through the injected Repository<TagEntity>. No rule or invariant is repeated and the module's abstractions are not bypassed. The file uses a TypeORM repository directly instead of a domain port. That is a layering question, which another tool checks, so it is out of scope for this rule.",
+    "violations": []
+  },
+  "projectId": "realworld-test",
+  "prompt": "## Rule\nThe module's files form one coherent unit with a consistent abstraction and boundary.\n\n## Rubric\nPass: The files serve one cohesive concern, use the module's abstractions consistently, and keep each rule or invariant in one place.\nFail: The files split into unrelated concerns, duplicate a rule or invariant that should live in one place, or bypass the module's own abstractions.\nEvidence required: Name each file involved and cite the declarations that show the split, the duplication or the bypass.\nOut of scope: import direction and layer-dependency rules, which are checked symbolically.\n\n## Layer model\n- domain (kind: domain): src/domain/**, src/core/**, src/entities/**, src/models/**, **/domain/**; file patterns: **/*.entity.ts\n- infrastructure (kind: infrastructure): src/infrastructure/**, src/persistence/**, src/adapters/**, src/prisma/**, src/lib/**, src/common/middleware/**, src/common/filters/**, src/common/pipes/**; file patterns: **/*.repository.ts, **/*.worker.ts, **/workers/**, **/strategies/**\n- application (kind: application): src/application/**, src/use-cases/**, src/services/**; file patterns: **/*.service.ts, **/*.processor.ts, **/dto/**, **/*.dto.ts\n- presentation (kind: presentation): src/controllers/**, src/gateways/**, src/common/guards/**, src/common/interceptors/**; file patterns: **/*.controller.ts, **/*.module.ts, **/*.guard.ts, **/*.interceptor.ts, **/*.gateway.ts\n\n## Unit\nKind: module\nId: src/tag#application\nLayer: application\nUnit files:\n- src/tag/tag.service.ts\n\n## Source\n=====SOURCE-BEGIN src/tag/tag.service.ts=====\nimport { Injectable} from '@nestjs/common';\nimport { InjectRepository } from '@nestjs/typeorm';\nimport { Repository } from 'typeorm';\nimport { TagEntity } from './tag.entity';\n\n@Injectable()\nexport class TagService {\n  constructor(\n    @InjectRepository(TagEntity)\n    private readonly tagRepository: Repository<TagEntity>\n  ) {}\n\n  async findAll(): Promise<TagEntity[]> {\n    return await this.tagRepository.find();\n  }\n\n}\n\n=====SOURCE-END=====\n\n## Exported signatures\n// src/tag/tag.service.ts\nexport class TagService {\n  constructor(\n    @InjectRepository(TagEntity)\n    private readonly tagRepository: Repository<TagEntity>\n  );\n  async findAll(): Promise<TagEntity[]>;\n}\n\n## Incoming\n- src/tag/tag.controller.ts\n- src/tag/tag.module.ts\n\n## Outgoing\n- @nestjs/common\n- @nestjs/typeorm\n- src/tag/tag.entity.ts\n- typeorm\n\n## Graph excerpt\n{\"edges\":[{\"from\":\"TagController@src/tag/tag.controller.ts\",\"to\":\"TagService@src/tag/tag.service.ts\",\"type\":\"CONSTRUCTOR_INJECTS\"},{\"from\":\"src/tag/tag.controller.ts\",\"to\":\"src/tag/tag.service.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/tag/tag.module.ts\",\"to\":\"src/tag/tag.service.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/tag/tag.service.ts\",\"to\":\"@nestjs/common\",\"type\":\"IMPORTS\"},{\"from\":\"src/tag/tag.service.ts\",\"to\":\"@nestjs/typeorm\",\"type\":\"IMPORTS\"},{\"from\":\"src/tag/tag.service.ts\",\"to\":\"src/tag/tag.entity.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/tag/tag.service.ts\",\"to\":\"typeorm\",\"type\":\"IMPORTS\"}],\"nodes\":[{\"kind\":\"Class\",\"layer\":\"application\",\"name\":\"TagService\",\"path\":\"src/tag/tag.service.ts\"},{\"kind\":\"Class\",\"layer\":\"presentation\",\"name\":\"TagController\",\"path\":\"src/tag/tag.controller.ts\"},{\"kind\":\"File\",\"layer\":\"application\",\"path\":\"src/tag/tag.service.ts\"},{\"kind\":\"File\",\"layer\":\"domain\",\"path\":\"src/tag/tag.entity.ts\"},{\"kind\":\"File\",\"layer\":\"presentation\",\"path\":\"src/tag/tag.controller.ts\"},{\"kind\":\"File\",\"layer\":\"presentation\",\"path\":\"src/tag/tag.module.ts\"},{\"kind\":\"Package\",\"layer\":null,\"path\":\"@nestjs/common\"},{\"kind\":\"Package\",\"layer\":null,\"path\":\"@nestjs/typeorm\"},{\"kind\":\"Package\",\"layer\":null,\"path\":\"typeorm\"}]}\n\n## Instructions\nJudge the unit against the rule and rubric. Return the JSON object the schema requires. Set pass to false if any file of the unit fails the rubric.\n",
+  "provider": "claude-cli",
+  "recordedAt": "2026-10-10T02:37:41.529Z",
+  "repetition": 0,
+  "requestHash": "2928f8bf407ea767b9105de33300a2d5ea12092bf2e75fa04dc8cf51a5f533ba",
+  "resolvedModel": "claude-opus-5-5",
+  "response": "{\"is_error\":false,\"modelUsage\":{\"claude-opus-5-5\":{\"inputTokens\":2,\"outputTokens\":423}},\"result\":\"{\\\"pass\\\":true,\\\"confidence\\\":0.93,\\\"reasoning\\\":\\\"The unit has one file, src/tag/tag.service.ts. It declares one class, TagService, which has one concern: reading tags. It reaches TagEntity only through the injected Repository<TagEntity>. No rule or invariant is repeated and the module's abstractions are not bypassed. The file uses a TypeORM repository directly instead of a domain port. That is a layering question, which another tool checks, so it is out of scope for this rule.\\\",\\\"evidence\\\":[\\\"src/tag/tag.service.ts declares a single class, TagService, with a single method, findAll(): Promise<TagEntity[]>, which only returns this.tagRepository.find().\\\",\\\"The constructor injects one dependency, @InjectRepository(TagEntity) tagRepository: Repository<TagEntity>, and every data access goes through it.\\\",\\\"The file contains no other concerns and repeats no business rule or invariant.\\\"],\\\"violations\\\":[]}\",\"structured_output\":{\"confidence\":0.93,\"evidence\":[\"src/tag/tag.service.ts declares a single class, TagService, with a single method, findAll(): Promise<TagEntity[]>, which only returns this.tagRepository.find().\",\"The constructor injects one dependency, @InjectRepository(TagEntity) tagRepository: Repository<TagEntity>, and every data access goes through it.\",\"The file contains no other concerns and repeats no business rule or invariant.\"],\"pass\":true,\"reasoning\":\"The unit has one file, src/tag/tag.service.ts. It declares one class, TagService, which has one concern: reading tags. It reaches TagEntity only through the injected Repository<TagEntity>. No rule or invariant is repeated and the module's abstractions are not bypassed. The file uses a TypeORM repository directly instead of a domain port. That is a layering question, which another tool checks, so it is out of scope for this rule.\",\"violations\":[]}}",
+  "runIndex": 2,
+  "schemaVersion": 2,
+  "unitId": "src/tag#application",
+  "usage": {
+    "inputTokens": 3165,
+    "outputTokens": 423
+  },
+  "usedOptions": {
+    "effort": "high",
+    "model": "claude-opus-5-5"
+  }
+}

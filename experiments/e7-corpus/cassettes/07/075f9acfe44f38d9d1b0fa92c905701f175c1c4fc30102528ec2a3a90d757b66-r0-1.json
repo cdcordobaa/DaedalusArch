@@ -1,0 +1,47 @@
+{
+  "attempts": 1,
+  "cliVersion": "2.1.294",
+  "configListingSha256": "47aa04258852fab9a706f3f0c14cee22306d69fbb6fdfbde8c11854bd54997bc",
+  "durationMs": 6202,
+  "effort": "high",
+  "functionId": "FF-N02",
+  "ignoredOptions": [
+    "maxTokens"
+  ],
+  "isolationProbeSha256": "97a2e2d0af1100c13c55e028c1a0c71f069093c3d08705af122aaeb302f1a641",
+  "key": "075f9acfe44f38d9d1b0fa92c905701f175c1c4fc30102528ec2a3a90d757b66-r0-1",
+  "model": "claude-opus-5-5",
+  "outcome": {
+    "kind": "valid"
+  },
+  "parsedVerdict": {
+    "confidence": 0.93,
+    "evidence": [
+      "src/repositories/businessRepository.ts: findById runs connection.query(\"SELECT * FROM businesses WHERE id=$1\", [id]) and returns result.rows[0]. This is pure persistence access.",
+      "src/repositories/businessRepository.ts: interface Business { id; name; type } is a row-shape type with no behavior.",
+      "The file has no conditionals, no domain rules, no HTTP or framework handling, and no error mapping."
+    ],
+    "pass": true,
+    "reasoning": "The file belongs to the persistence (infrastructure) layer. Its only job is data access. It declares a row-shape interface (Business) and a single query function (findById) that runs a parameterized SELECT through the database connection and returns the first row. The file has no business rules, validation, transport handling or presentation logic. The Business interface is a plain record type that matches the table columns, which is normal for a repository. Every responsibility fits the infrastructure/persistence role.",
+    "violations": []
+  },
+  "projectId": "v-aguiar__valex",
+  "prompt": "## Rule\nThe unit's responsibilities match the role of its declared layer.\n\n## Rubric\nPass: Every responsibility in the file belongs to the role and kind of its declared layer, and agrees with any ADR prose given.\nFail: The file carries a responsibility that belongs to a different layer kind, for example persistence, transport or framework logic in a domain file, or business rules in an infrastructure or presentation file.\nEvidence required: Name the file and cite the function, method or statement that carries the misplaced responsibility, and the layer kind it belongs to.\nOut of scope: import direction and layer-dependency rules, which are checked symbolically.\n\n## Layer model\n- persistence (kind: infrastructure): src/persistence/**, **/repositories/**\n- business (kind: domain): src/business/**, **/services/**, **/domain/**; file patterns: **/*.entity.ts\n- presentation (kind: presentation): src/presentation/**, **/controllers/**, **/middlewares/**, **/routes/**\n\n## Unit\nKind: file\nId: src/repositories/businessRepository.ts\nLayer: persistence\nUnit files:\n- src/repositories/businessRepository.ts\n\n## Source\n=====SOURCE-BEGIN src/repositories/businessRepository.ts=====\nimport { connection } from \"../config/database.js\";\nimport { TransactionTypes } from \"./cardRepository.js\";\n\nexport interface Business {\n  id: number;\n  name: string;\n  type: TransactionTypes;\n}\n\nexport async function findById(id: number) {\n  const result = await connection.query<Business, [number]>(\"SELECT * FROM businesses WHERE id=$1\", [id]);\n\n  return result.rows[0];\n}\n\n=====SOURCE-END=====\n\n## Graph excerpt\n{\"edges\":[{\"from\":\"src/repositories/businessRepository.ts\",\"to\":\"src/config/database.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/repositories/businessRepository.ts\",\"to\":\"src/repositories/cardRepository.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/services/paymentServices.ts\",\"to\":\"src/repositories/businessRepository.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/utils/paymentUtils.ts\",\"to\":\"src/repositories/businessRepository.ts\",\"type\":\"IMPORTS\"}],\"nodes\":[{\"kind\":\"File\",\"layer\":\"business\",\"path\":\"src/services/paymentServices.ts\"},{\"kind\":\"File\",\"layer\":\"persistence\",\"path\":\"src/repositories/businessRepository.ts\"},{\"kind\":\"File\",\"layer\":\"persistence\",\"path\":\"src/repositories/cardRepository.ts\"},{\"kind\":\"File\",\"layer\":null,\"path\":\"src/config/database.ts\"},{\"kind\":\"File\",\"layer\":null,\"path\":\"src/utils/paymentUtils.ts\"},{\"kind\":\"Interface\",\"layer\":\"persistence\",\"name\":\"Business\",\"path\":\"src/repositories/businessRepository.ts\"}]}\n\n## Instructions\nJudge the unit against the rule and rubric. Return the JSON object the schema requires. Set pass to false if any file of the unit fails the rubric.\n",
+  "provider": "claude-cli",
+  "recordedAt": "2026-10-10T03:18:34.491Z",
+  "repetition": 0,
+  "requestHash": "075f9acfe44f38d9d1b0fa92c905701f175c1c4fc30102528ec2a3a90d757b66",
+  "resolvedModel": "claude-opus-5-5",
+  "response": "{\"is_error\":false,\"modelUsage\":{\"claude-opus-5-5\":{\"inputTokens\":2,\"outputTokens\":439}},\"result\":\"{\\\"pass\\\":true,\\\"confidence\\\":0.93,\\\"reasoning\\\":\\\"The file belongs to the persistence (infrastructure) layer. Its only job is data access. It declares a row-shape interface (Business) and a single query function (findById) that runs a parameterized SELECT through the database connection and returns the first row. The file has no business rules, validation, transport handling or presentation logic. The Business interface is a plain record type that matches the table columns, which is normal for a repository. Every responsibility fits the infrastructure/persistence role.\\\",\\\"evidence\\\":[\\\"src/repositories/businessRepository.ts: findById runs connection.query(\\\\\\\"SELECT * FROM businesses WHERE id=$1\\\\\\\", [id]) and returns result.rows[0]. This is pure persistence access.\\\",\\\"src/repositories/businessRepository.ts: interface Business { id; name; type } is a row-shape type with no behavior.\\\",\\\"The file has no conditionals, no domain rules, no HTTP or framework handling, and no error mapping.\\\"],\\\"violations\\\":[]}\",\"structured_output\":{\"confidence\":0.93,\"evidence\":[\"src/repositories/businessRepository.ts: findById runs connection.query(\\\"SELECT * FROM businesses WHERE id=$1\\\", [id]) and returns result.rows[0]. This is pure persistence access.\",\"src/repositories/businessRepository.ts: interface Business { id; name; type } is a row-shape type with no behavior.\",\"The file has no conditionals, no domain rules, no HTTP or framework handling, and no error mapping.\"],\"pass\":true,\"reasoning\":\"The file belongs to the persistence (infrastructure) layer. Its only job is data access. It declares a row-shape interface (Business) and a single query function (findById) that runs a parameterized SELECT through the database connection and returns the first row. The file has no business rules, validation, transport handling or presentation logic. The Business interface is a plain record type that matches the table columns, which is normal for a repository. Every responsibility fits the infrastructure/persistence role.\",\"violations\":[]}}",
+  "runIndex": 1,
+  "schemaVersion": 2,
+  "unitId": "src/repositories/businessRepository.ts",
+  "usage": {
+    "inputTokens": 2510,
+    "outputTokens": 439
+  },
+  "usedOptions": {
+    "effort": "high",
+    "model": "claude-opus-5-5"
+  }
+}
