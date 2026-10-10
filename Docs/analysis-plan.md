@@ -19,6 +19,11 @@
 > before any E1 (`e1-grid`) run: the proportional neural aggregation variant as a registered sensitivity analysis and
 > the judge diagnostics as a registered exploratory explanation analysis (§12, §3, §10 B9). The registered rule stays
 > primary. §11 lists the change.
+> **Amended 2026-10-10 (ADR-028 Fable review fixes, `corpus/prereg.json` version 15)**, after the v14 E7 re-score and
+> before any E1 run: the variant is undefined for SEL-07 baseline reuse, its bias toward clean and the confidence-free
+> share are declared (§12.2); the judge-effect decomposition and the any-fail companion are registered (§12.3, B9);
+> coding frame 1.1.0 with message-only primary coding, a guarded reasoning coding, a discrimination statistic and
+> `rules_also_flag` (§12.4); wording rules (B9). §11 lists the change.
 > **Requirements**: FR-v1.2E-25, 27, 36; SO1–SO5 (ADR-017 items 1–3, 6, 7); ADR-015 items 1, 2, 5, 10; ADR-016 b, e.
 > **Design source**: `aidlc-docs/construction/v1.2E-u5b-scoring-harness/functional-design/business-rules.md`
 > (BR-U5b-20, 30, 33, 34, 45..49, 53, 54, 61..65, 78). The matching of seeds to violations is `Docs/matching-rule.md`
@@ -585,6 +590,16 @@ These statements are registered: every report of the corresponding figure carrie
   recorded cassettes, zero new judge calls) and is labelled so; the E1 variant reading is pre-registered and comes from
   the same judge calls as the registered reading. The judge diagnostics (§12.4) are exploratory and descriptive. Every
   judge claim, under either rule, stays conditional on the panel validation of FR-27.
+  **Amended v15 (Fable review).** Every such table also carries the judge-effect decomposition of §12.3
+  (`delta_dilution`, `delta_judge`, `verdict_judge_blind`, `judge_mattered`, the bound −W_n) and the `any-fail` verdict
+  beside the proportional one. Wording rules: (i) "the combined AHS stays above the rules-only AHS" is never presented
+  as evidence about the judge: it is an artefact of the judge dimensions' weight (W_n = 0.08 in every registered spec,
+  `delta_dilution` ≈ W_n · weighted mean symbolic AVR > 0 whenever a symbolic rule fails). (ii) "The proportional
+  variant moves no verdict" is always reported together with the any-fail result (E7: the any-fail rule moves one,
+  `dry-run-test`, soft-block → hard-block). (iii) The judge's algebraic bound is stated with every judge effect: with
+  every neural AVR in [0, 1], `delta_judge` lies in [−W_n, 0], so the judge can lower `ahsCombined` by at most W_n = 0.08
+  and can never raise it above the judge-blind value; a verdict can move only when the judge-blind AHS lies within
+  W_n of a threshold. The ADR-028 implementation note follows the same rules.
 
 ## 11. Amendments
 
@@ -618,6 +633,7 @@ These statements are registered: every report of the corresponding figure carrie
 | 2026-10-09 (ADR-026, label-plan producer) | §4, §10 | B8: the P2 v1-only stratum set implemented in `build-label-plan` (`--corpus-v1-runs`; config version 3, `v1OnlyMaxItems` 6); refusals, no reallocation, the lowering split ⌊6 L / 30⌋; precision rows per version (v2, v1 combined, v1-only counts only) | ADR-026 (implementation note) |
 | 2026-10-10 (ADR-026, v1 side registered; prereg v13) | §2, §10 | `e7-corpus-v1sym` registered (symbolic-only, `instrument: v1`, the `e7-corpus` entries, seeds 7201..7203); B8 implementation rule for mode pairing (v1 `symbolic-only` with v2 `full` or `symbolic-only`, pair by project and spec, symbolic rows only); the v2 baseline-precision rows drop the `v1-only: ` strata | ADR-026 (implementation note) |
 | 2026-10-10 (ADR-028, prereg v14) | §3, §10, §12 | The proportional neural aggregation variant (`proportional-inclusion-weighted-v1`) registered as a sensitivity analysis before any E1 run, the registered rule primary; the judge diagnostics (per-unit extraction and the fixed `judge-coding-frame`) registered as an exploratory explanation analysis; reporting duty B9; E7's variant reading declared post hoc | ADR-028 |
+| 2026-10-10 (ADR-028 review fixes, prereg v15) | §10, §12 | Variant undefined for SEL-07 baseline reuse; bias toward clean and the confidence-free share; SRS within a layer, no variance; the judge-effect decomposition (W_n, bound, judge-blind verdict, judge_mattered) and the any-fail companion; derived `reading`; E1 two-pass procedure; coding frame 1.1.0 (message-only primary, guarded reasoning, discrimination ≥ 0.3, `rules_also_flag`), its E7 reading post hoc; B9 wording rules | ADR-028; Fable review of PR #47 |
 
 ## 12. Neural aggregation variant and judge diagnostics (ADR-028)
 
@@ -654,8 +670,12 @@ inclusion-weighted share of failed judged units:
   weighs N_h / V_h, V_h being the valid judged units of layer h. Without a cap and with every unit valid, every weight
   is 1 and the share is the plain mean of the unit scores. Without the weights, the round-robin would over-represent
   small layers whenever a large layer is capped. N_h is persisted per function as `neuralResults[].candidatesByLayer`.
-  On a variant run that reuses a baseline selection (BR-U4-SEL-07) the same post-stratified formula is used with the
-  run's own candidate counts.
+  Hash order inside a layer is treated as simple random sampling (the seeded hash is a fixed permutation, not a random
+  draw per run); no variance or interval is reported for `share_f`.
+- **Undefined for baseline reuse (v15).** The variant is **undefined** for a run that reuses a baseline selection
+  (BR-U4-SEL-07, `selection.source = baseline`): its `addedByVariant` units are judged with probability 1, so N_h / V_h
+  is not an inclusion weight. `evaluate --neural-aggregation proportional` refuses such a run
+  (`NEURAL_AGGREGATION_UNDEFINED`, no score) and `rescore` writes no `neural:proportional` row for it.
 - **Unit score and confidence.** y_u = the U3 confidence weight of the unit's own confidence when the unit's vote is
   `fail` (the unit confidence is the mean confidence of the runs voting with its verdict, AGG-01; 1.0 / 0.7 / 0.3 by the
   spec's `confidence_thresholds`, 0.2 when the unit is flagged unstable); y_u = 0 for a `pass` unit. Rationale: the
@@ -663,7 +683,11 @@ inclusion-weighted share of failed judged units:
   threshold); the confidence treatment of BR-U3-32 is kept and applied at the level where the judgement is made, so a
   difference between the two readings is due to the aggregation and not to a new use of confidence. Confidence is not
   used as a continuous probability: it is not calibrated, and FR-27 validation is pending. When every judged unit fails
-  with confidence at or above `high`, both rules give 1; when none fails, both give 0.
+  with confidence at or above `high`, both rules give 1; when none fails, both give 0. **Bias toward clean (v15):** the
+  confidence weight is asymmetric. A failed unit is discounted by its confidence (0.3–1.0) while a passing unit scores
+  0 whatever its confidence, so low-confidence fails pull `share_f` down and nothing pulls it up; `share_f` is biased
+  toward clean relative to the fail share. The confidence-free share Σ_h N_h · failed_h / V_h / Σ_h N_h is therefore
+  reported beside it (`neural_contributions.csv` `proportional_share_confidence_free`), descriptive only.
 - **Split votes.** A unit whose valid runs have no strict majority (its vote is `warning`, e.g. one pass and one fail
   of two valid runs) scores 0 and stays in the denominator. Rationale: there is no majority for fail; the registered
   rule also gives a warning no contribution, and U4 forms no violation for it (VIO-01); a fractional score would add a
@@ -694,6 +718,27 @@ the number of verdicts the variant changes and the mean and range of the AHS dif
 the registered rule only; under the variant the per-cell AHS and the verdict-change counts are reported descriptively,
 with no test and no Holm family. E7 rows carry the POST-HOC label (§10 B9).
 
+**Judge-effect decomposition (registered v15).** A pure function of the stored registered report, no re-run
+(`scripts/compare-aggregations.ts` `judgeDecomposition`), per project or cell:
+
+- W_n = the renormalised full-mode weight of the executed judge dimensions (`w_neural`; 0.08 in every registered
+  spec) and the bound `judge_bound` = −W_n;
+- `ahs_combined_judge_blind` = `ahsCombined` recomputed with every neural AVR set to 0, and `verdict_judge_blind` its
+  verdict;
+- `delta_dilution` = judge-blind `ahsCombined` − `ahsDeterministic`: the weighting artefact. It equals
+  W_n · (1 − `ahsDeterministic`) = W_n · weighted mean symbolic AVR when the full-mode symbolic weights are proportional
+  to the symbolic-only ones, and approximately so otherwise (`dilution_identity`);
+- `delta_judge_<rule>` = `ahsCombined` under the rule − judge-blind `ahsCombined`, in [−W_n, 0]; `judge_mattered_<rule>`
+  = (`verdict_judge_blind` ≠ the rule's verdict);
+- `verdict_any_fail`: the BR-U5b-60 `any-fail` re-score (a function fails when one valid unit fails) beside the
+  proportional verdict, with `any_fail_changed`.
+
+`reading` is derived from the registered run (`post-hoc` when its `preregVersion` < 14, else `pre-registered`) and a
+contradicting `--reading` is refused; both prereg versions are columns. E1 two-pass procedure: record under the
+registered rule through the registered plan (`results/e1-grid/`), then replay the same plan with `--cassette-mode replay
+--neural-aggregation proportional --out-dir results/e1-grid/agg-proportional` (never the registered `outDir`), then
+`compare-aggregations` (experiment runbook).
+
 ### 12.4 Judge diagnostics (registered exploratory explanation analysis)
 
 Descriptive and exploratory: what the judge reports that the rules cannot see. No judge call is made.
@@ -706,22 +751,45 @@ Descriptive and exploratory: what the judge reports that the rules cannot see. N
   carry). One row per judged unit goes to `judge_units.csv`, with the vote recomputed from the cassettes and a flag when
   it differs from the report.
 - **Coding frame (fixed, mechanical).** The criteria are the fail clauses of the frozen rubrics (`src/llm-critic/rubric.ts`
-  FF-N01, FF-N02). Each criterion is a list of case-insensitive regular expressions; a rationale is coded with every
-  criterion of its own function that has at least one match (multi-label); a rationale with none is `JC-UNCODED`. The
+  FF-N01, FF-N02). Each criterion is a list of case-insensitive regular expressions; a text is coded with every
+  criterion of its own function that has at least one match (multi-label); a text with none is `JC-UNCODED`. The
   frame is the machine block below, read by `scripts/lib/judge-coding-frame.ts`; it is not edited after registration
-  (a change is a version bump with a reason). It was written from the rubric text before any rationale was read.
-- **Counts.** `judge_criteria.csv`: per function × project × verdict × criterion, the number of coded units, and for
-  failing units the share of failing units of that function and project; the same pooled over projects. Failing units
-  are the primary population (their rationale explains a fail); passing units are counted too, as a negation-noise
-  indicator (the frame does not handle negation, so "no duplication" matches `JC-N01-DUP`). Per function and project
-  the counts of fail, pass, split-vote and invalid units, mean confidence and unstable units are given beside them.
+  (a change is a version bump with a reason). Frame 1.0.0 (v14) was written from the rubric text before any rationale
+  was read; on E7 it did not separate fail from pass rationales (the judge's reasoning walks every rubric criterion
+  and negates most of them).
+- **Frame 1.1.0 (v15, Fable review).** Same criteria and patterns. (a) **Primary coding** uses the carrier run's
+  violation messages only (`primary.textFields: [violations.message]`): on E7 they are present on 73 of 73 failing
+  carriers and on 0 of 258 passing carriers, so the primary codes describe what the judge states as a violation.
+  (b) A **secondary coding** of the reasoning drops a match when one of the guard tokens `no`, `not`, `without`, `none`,
+  `neither`, `avoids` or the phrase `free of` is among the 5 tokens before it. (c) The pre-declared **discrimination**
+  of a code is its share among failing units' messages minus its guarded share among passing units' reasoning; a code
+  is **informative** when it is ≥ 0.3 (`judge_discrimination.csv`). (d) The non-text column `rules_also_flag`: whether
+  any file of the unit carries a symbolic violation in the same report (mechanical join on `filePath`). **Frame 1.1.0's
+  reading of E7 is post hoc** (the E7 rationales and the 1.0.0 counts were read before it was written); its reading
+  of E1 is pre-registered.
+- **Counts.** `judge_criteria.csv`: per function × project × verdict × criterion, the units coded by the primary and by
+  the guarded secondary coding and their shares; the same pooled over projects (`*`). Failing units are the primary
+  population. Per function and project, `judge_summary.csv` gives the counts of fail, pass, split-vote and invalid
+  units, mean confidence, unstable units, failing units uncoded, with messages and also flagged by rules.
 - **Limits (stated with every use).** The frame is a pre-specified keyword map, not a validated taxonomy; it is written
   by the author (non-blind); keywords miss paraphrases and match negations; a code says what the judge wrote, not that
   it is correct (FR-27). It is distinct from the §6 open coding of the E1 labeller rationales.
 
 ```yaml judge-coding-frame
-version: 1.0.0
-textFields: [reasoning, violations.message]
+version: 1.1.0
+primary:
+  textFields: [violations.message]
+  population: failing units (carrier run)
+secondary:
+  textFields: [reasoning]
+  negationGuard:
+    window: 5
+    tokens: [no, not, without, none, neither, avoids, free of]
+discrimination:
+  statistic: share of failing units whose messages match minus guarded share of passing units whose reasoning matches
+  informativeThreshold: 0.3
+nonText:
+  rulesAlsoFlag: a symbolic violation of the same report on one of the unit's files
 carrierRun: highest confidence among the valid runs voting with the unit verdict; ties lowest runIndex
 uncoded: JC-UNCODED
 functions:
