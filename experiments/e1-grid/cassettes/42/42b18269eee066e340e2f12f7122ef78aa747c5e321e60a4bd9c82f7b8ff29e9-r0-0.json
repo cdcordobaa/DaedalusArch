@@ -1,0 +1,47 @@
+{
+  "attempts": 1,
+  "cliVersion": "2.1.294",
+  "configListingSha256": "47aa04258852fab9a706f3f0c14cee22306d69fbb6fdfbde8c11854bd54997bc",
+  "durationMs": 7677,
+  "effort": "high",
+  "functionId": "FF-N01",
+  "ignoredOptions": [
+    "maxTokens"
+  ],
+  "isolationProbeSha256": "97a2e2d0af1100c13c55e028c1a0c71f069093c3d08705af122aaeb302f1a641",
+  "key": "42b18269eee066e340e2f12f7122ef78aa747c5e321e60a4bd9c82f7b8ff29e9-r0-0",
+  "model": "claude-opus-5-5",
+  "outcome": {
+    "kind": "valid"
+  },
+  "parsedVerdict": {
+    "confidence": 0.85,
+    "evidence": [
+      "src/infrastructure/main.ts: function main() only builds and starts the app: loadEnvironment(), buildContainer(), createHttpApp({ ...container, staffApiKey: environment.staffApiKey }).",
+      "src/infrastructure/main.ts: the code for app.listen, server.on('error'), and the shutdown handlers on SIGINT/SIGTERM is all part of the same process-lifecycle job.",
+      "src/infrastructure/main.ts: the generated-key decision is read from environment.staffApiKeyGenerated and is not re-derived here, so no invariant is duplicated."
+    ],
+    "pass": true,
+    "reasoning": "The unit is one file, src/infrastructure/main.ts, and it does one job: it is the composition root that starts the process. It does not build its own pieces. It uses the module's helpers for configuration (loadEnvironment), dependency wiring (buildContainer) and HTTP app creation (createHttpApp). Everything else in the file is process lifecycle: starting the server, logging, handling server errors and shutting down on signals. No rule or invariant is repeated here. For example, the decision about whether the staff key was generated lives in the environment module and is only read here through environment.staffApiKeyGenerated. Writing the generated staff key to the console is a security concern, not a cohesion or boundary problem, so it is out of scope for this rule.",
+    "violations": []
+  },
+  "projectId": "claude-opus-5-5/order-fulfilment/full-aac/run-1",
+  "prompt": "## Rule\nThe module's files form one coherent unit with a consistent abstraction and boundary.\n\n## Rubric\nPass: The files serve one cohesive concern, use the module's abstractions consistently, and keep each rule or invariant in one place.\nFail: The files split into unrelated concerns, duplicate a rule or invariant that should live in one place, or bypass the module's own abstractions.\nEvidence required: Name each file involved and cite the declarations that show the split, the duplication or the bypass.\nOut of scope: import direction and layer-dependency rules, which are checked symbolically.\n\n## Layer model\n- domain (kind: domain): src/domain/**\n- application (kind: application): src/application/**\n- infrastructure (kind: infrastructure): src/infrastructure/**\n\n## Unit\nKind: module\nId: src/infrastructure\nLayer: infrastructure\nUnit files:\n- src/infrastructure/main.ts\n\n## Source\n=====SOURCE-BEGIN src/infrastructure/main.ts=====\nimport { buildContainer } from './config/container';\nimport { loadEnvironment } from './config/environment';\nimport { createHttpApp } from './http/createHttpApp';\n\nfunction main(): void {\n  const environment = loadEnvironment();\n  const container = buildContainer();\n  const app = createHttpApp({ ...container, staffApiKey: environment.staffApiKey });\n\n  const server = app.listen(environment.port, () => {\n    console.log(`Order fulfilment API listening on port ${environment.port}`);\n    if (environment.staffApiKeyGenerated) {\n      console.warn(\n        `STAFF_API_KEY is not set; generated a temporary staff key for this run: ${environment.staffApiKey}`,\n      );\n    }\n  });\n  server.on('error', (error) => {\n    console.error('HTTP server failed:', error);\n    process.exitCode = 1;\n  });\n\n  const shutdown = (): void => {\n    server.close(() => process.exit(0));\n  };\n  process.once('SIGINT', shutdown);\n  process.once('SIGTERM', shutdown);\n}\n\nmain();\n\n=====SOURCE-END=====\n\n## Exported signatures\n(none)\n\n## Incoming\n(none)\n\n## Outgoing\n- src/infrastructure/config/container.ts\n- src/infrastructure/config/environment.ts\n- src/infrastructure/http/createHttpApp.ts\n\n## Graph excerpt\n{\"edges\":[{\"from\":\"src/infrastructure/main.ts\",\"to\":\"src/infrastructure/config/container.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/infrastructure/main.ts\",\"to\":\"src/infrastructure/config/environment.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/infrastructure/main.ts\",\"to\":\"src/infrastructure/http/createHttpApp.ts\",\"type\":\"IMPORTS\"}],\"nodes\":[{\"kind\":\"File\",\"layer\":\"infrastructure\",\"path\":\"src/infrastructure/config/container.ts\"},{\"kind\":\"File\",\"layer\":\"infrastructure\",\"path\":\"src/infrastructure/config/environment.ts\"},{\"kind\":\"File\",\"layer\":\"infrastructure\",\"path\":\"src/infrastructure/http/createHttpApp.ts\"},{\"kind\":\"File\",\"layer\":\"infrastructure\",\"path\":\"src/infrastructure/main.ts\"}]}\n\n## Instructions\nJudge the unit against the rule and rubric. Return the JSON object the schema requires. Set pass to false if any file of the unit fails the rubric.\n",
+  "provider": "claude-cli",
+  "recordedAt": "2026-10-10T22:17:48.023Z",
+  "repetition": 0,
+  "requestHash": "42b18269eee066e340e2f12f7122ef78aa747c5e321e60a4bd9c82f7b8ff29e9",
+  "resolvedModel": "claude-opus-5-5",
+  "response": "{\"is_error\":false,\"modelUsage\":{\"claude-opus-5-5\":{\"inputTokens\":2,\"outputTokens\":662}},\"result\":\"{\\\"pass\\\":true,\\\"confidence\\\":0.85,\\\"reasoning\\\":\\\"The unit is one file, src/infrastructure/main.ts, and it does one job: it is the composition root that starts the process. It does not build its own pieces. It uses the module's helpers for configuration (loadEnvironment), dependency wiring (buildContainer) and HTTP app creation (createHttpApp). Everything else in the file is process lifecycle: starting the server, logging, handling server errors and shutting down on signals. No rule or invariant is repeated here. For example, the decision about whether the staff key was generated lives in the environment module and is only read here through environment.staffApiKeyGenerated. Writing the generated staff key to the console is a security concern, not a cohesion or boundary problem, so it is out of scope for this rule.\\\",\\\"evidence\\\":[\\\"src/infrastructure/main.ts: function main() only builds and starts the app: loadEnvironment(), buildContainer(), createHttpApp({ ...container, staffApiKey: environment.staffApiKey }).\\\",\\\"src/infrastructure/main.ts: the code for app.listen, server.on('error'), and the shutdown handlers on SIGINT/SIGTERM is all part of the same process-lifecycle job.\\\",\\\"src/infrastructure/main.ts: the generated-key decision is read from environment.staffApiKeyGenerated and is not re-derived here, so no invariant is duplicated.\\\"],\\\"violations\\\":[]}\",\"structured_output\":{\"confidence\":0.85,\"evidence\":[\"src/infrastructure/main.ts: function main() only builds and starts the app: loadEnvironment(), buildContainer(), createHttpApp({ ...container, staffApiKey: environment.staffApiKey }).\",\"src/infrastructure/main.ts: the code for app.listen, server.on('error'), and the shutdown handlers on SIGINT/SIGTERM is all part of the same process-lifecycle job.\",\"src/infrastructure/main.ts: the generated-key decision is read from environment.staffApiKeyGenerated and is not re-derived here, so no invariant is duplicated.\"],\"pass\":true,\"reasoning\":\"The unit is one file, src/infrastructure/main.ts, and it does one job: it is the composition root that starts the process. It does not build its own pieces. It uses the module's helpers for configuration (loadEnvironment), dependency wiring (buildContainer) and HTTP app creation (createHttpApp). Everything else in the file is process lifecycle: starting the server, logging, handling server errors and shutting down on signals. No rule or invariant is repeated here. For example, the decision about whether the staff key was generated lives in the environment module and is only read here through environment.staffApiKeyGenerated. Writing the generated staff key to the console is a security concern, not a cohesion or boundary problem, so it is out of scope for this rule.\",\"violations\":[]}}",
+  "runIndex": 0,
+  "schemaVersion": 2,
+  "unitId": "src/infrastructure",
+  "usage": {
+    "inputTokens": 2638,
+    "outputTokens": 662
+  },
+  "usedOptions": {
+    "effort": "high",
+    "model": "claude-opus-5-5"
+  }
+}

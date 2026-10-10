@@ -1,0 +1,47 @@
+{
+  "attempts": 1,
+  "cliVersion": "2.1.294",
+  "configListingSha256": "47aa04258852fab9a706f3f0c14cee22306d69fbb6fdfbde8c11854bd54997bc",
+  "durationMs": 6353,
+  "effort": "high",
+  "functionId": "FF-N02",
+  "ignoredOptions": [
+    "maxTokens"
+  ],
+  "isolationProbeSha256": "97a2e2d0af1100c13c55e028c1a0c71f069093c3d08705af122aaeb302f1a641",
+  "key": "c5a895864182ac95a0abafe3343f0630aba1763f7425146f62ed771335993145-r0-2",
+  "model": "claude-opus-5-5",
+  "outcome": {
+    "kind": "valid"
+  },
+  "parsedVerdict": {
+    "confidence": 0.95,
+    "evidence": [
+      "src/application/dto/ProjectDto.ts: `export interface ProjectDto { id: string; name: string; }` is a plain application DTO with no framework or transport annotations.",
+      "src/application/dto/ProjectDto.ts: `toProjectDto(project: Project)` only copies id and name, which is a domain-to-DTO mapping that fits the application layer.",
+      "Graph: the only files that use it are application use cases and services (CreateProjectService, CreateProjectUseCase, ListProjectsService, ListProjectsUseCase)."
+    ],
+    "pass": true,
+    "reasoning": "The file defines an application-layer data transfer object (the ProjectDto interface) and a mapper (toProjectDto) that turns a domain Project into that DTO. Defining DTOs and mapping from domain to DTO for use cases is standard application-layer work. The file has no persistence, transport, framework or business-rule logic. It only copies the id and name fields across.",
+    "violations": []
+  },
+  "projectId": "claude-opus-5-5/task-management/full-aac/run-1",
+  "prompt": "## Rule\nThe unit's responsibilities match the role of its declared layer.\n\n## Rubric\nPass: Every responsibility in the file belongs to the role and kind of its declared layer, and agrees with any ADR prose given.\nFail: The file carries a responsibility that belongs to a different layer kind, for example persistence, transport or framework logic in a domain file, or business rules in an infrastructure or presentation file.\nEvidence required: Name the file and cite the function, method or statement that carries the misplaced responsibility, and the layer kind it belongs to.\nOut of scope: import direction and layer-dependency rules, which are checked symbolically.\n\n## Layer model\n- domain (kind: domain): src/domain/**\n- application (kind: application): src/application/**\n- infrastructure (kind: infrastructure): src/infrastructure/**\n\n## Unit\nKind: file\nId: src/application/dto/ProjectDto.ts\nLayer: application\nUnit files:\n- src/application/dto/ProjectDto.ts\n\n## Source\n=====SOURCE-BEGIN src/application/dto/ProjectDto.ts=====\nimport { Project } from '../../domain/project/Project';\n\nexport interface ProjectDto {\n  id: string;\n  name: string;\n}\n\nexport function toProjectDto(project: Project): ProjectDto {\n  return { id: project.id, name: project.name };\n}\n\n=====SOURCE-END=====\n\n## Graph excerpt\n{\"edges\":[{\"from\":\"src/application/dto/ProjectDto.ts\",\"to\":\"src/domain/project/Project.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/application/project/CreateProjectService.ts\",\"to\":\"src/application/dto/ProjectDto.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/application/project/CreateProjectUseCase.ts\",\"to\":\"src/application/dto/ProjectDto.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/application/project/ListProjectsService.ts\",\"to\":\"src/application/dto/ProjectDto.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/application/project/ListProjectsUseCase.ts\",\"to\":\"src/application/dto/ProjectDto.ts\",\"type\":\"IMPORTS\"}],\"nodes\":[{\"kind\":\"File\",\"layer\":\"application\",\"path\":\"src/application/dto/ProjectDto.ts\"},{\"kind\":\"File\",\"layer\":\"application\",\"path\":\"src/application/project/CreateProjectService.ts\"},{\"kind\":\"File\",\"layer\":\"application\",\"path\":\"src/application/project/CreateProjectUseCase.ts\"},{\"kind\":\"File\",\"layer\":\"application\",\"path\":\"src/application/project/ListProjectsService.ts\"},{\"kind\":\"File\",\"layer\":\"application\",\"path\":\"src/application/project/ListProjectsUseCase.ts\"},{\"kind\":\"File\",\"layer\":\"domain\",\"path\":\"src/domain/project/Project.ts\"},{\"kind\":\"Interface\",\"layer\":\"application\",\"name\":\"ProjectDto\",\"path\":\"src/application/dto/ProjectDto.ts\"}]}\n\n## Instructions\nJudge the unit against the rule and rubric. Return the JSON object the schema requires. Set pass to false if any file of the unit fails the rubric.\n",
+  "provider": "claude-cli",
+  "recordedAt": "2026-10-10T22:05:34.851Z",
+  "repetition": 0,
+  "requestHash": "c5a895864182ac95a0abafe3343f0630aba1763f7425146f62ed771335993145",
+  "resolvedModel": "claude-opus-5-5",
+  "response": "{\"is_error\":false,\"modelUsage\":{\"claude-opus-5-5\":{\"inputTokens\":2,\"outputTokens\":441}},\"result\":\"{\\\"pass\\\":true,\\\"confidence\\\":0.95,\\\"reasoning\\\":\\\"The file defines an application-layer data transfer object (the ProjectDto interface) and a mapper (toProjectDto) that turns a domain Project into that DTO. Defining DTOs and mapping from domain to DTO for use cases is standard application-layer work. The file has no persistence, transport, framework or business-rule logic. It only copies the id and name fields across.\\\",\\\"evidence\\\":[\\\"src/application/dto/ProjectDto.ts: `export interface ProjectDto { id: string; name: string; }` is a plain application DTO with no framework or transport annotations.\\\",\\\"src/application/dto/ProjectDto.ts: `toProjectDto(project: Project)` only copies id and name, which is a domain-to-DTO mapping that fits the application layer.\\\",\\\"Graph: the only files that use it are application use cases and services (CreateProjectService, CreateProjectUseCase, ListProjectsService, ListProjectsUseCase).\\\"],\\\"violations\\\":[]}\",\"structured_output\":{\"confidence\":0.95,\"evidence\":[\"src/application/dto/ProjectDto.ts: `export interface ProjectDto { id: string; name: string; }` is a plain application DTO with no framework or transport annotations.\",\"src/application/dto/ProjectDto.ts: `toProjectDto(project: Project)` only copies id and name, which is a domain-to-DTO mapping that fits the application layer.\",\"Graph: the only files that use it are application use cases and services (CreateProjectService, CreateProjectUseCase, ListProjectsService, ListProjectsUseCase).\"],\"pass\":true,\"reasoning\":\"The file defines an application-layer data transfer object (the ProjectDto interface) and a mapper (toProjectDto) that turns a domain Project into that DTO. Defining DTOs and mapping from domain to DTO for use cases is standard application-layer work. The file has no persistence, transport, framework or business-rule logic. It only copies the id and name fields across.\",\"violations\":[]}}",
+  "runIndex": 2,
+  "schemaVersion": 2,
+  "unitId": "src/application/dto/ProjectDto.ts",
+  "usage": {
+    "inputTokens": 2535,
+    "outputTokens": 441
+  },
+  "usedOptions": {
+    "effort": "high",
+    "model": "claude-opus-5-5"
+  }
+}

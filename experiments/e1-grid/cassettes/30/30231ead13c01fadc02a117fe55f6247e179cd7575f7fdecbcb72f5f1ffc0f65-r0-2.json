@@ -1,0 +1,47 @@
+{
+  "attempts": 1,
+  "cliVersion": "2.1.294",
+  "configListingSha256": "47aa04258852fab9a706f3f0c14cee22306d69fbb6fdfbde8c11854bd54997bc",
+  "durationMs": 7753,
+  "effort": "high",
+  "functionId": "FF-N02",
+  "ignoredOptions": [
+    "maxTokens"
+  ],
+  "isolationProbeSha256": "97a2e2d0af1100c13c55e028c1a0c71f069093c3d08705af122aaeb302f1a641",
+  "key": "30231ead13c01fadc02a117fe55f6247e179cd7575f7fdecbcb72f5f1ffc0f65-r0-2",
+  "model": "claude-opus-5-5",
+  "outcome": {
+    "kind": "valid"
+  },
+  "parsedVerdict": {
+    "confidence": 0.93,
+    "evidence": [
+      "Constructor wires Express routes: this.router.post('/projects', this.create) and this.router.get('/projects', this.list), which is HTTP transport work.",
+      "create: asFields(req.body) and requiredString(body, 'name') parse the request at the transport level, then the method calls this.createProject.execute and sends res.status(201).json(project).",
+      "list: hands off to this.listProjects.execute() and serializes the result with res.json, with no business logic."
+    ],
+    "pass": true,
+    "reasoning": "ProjectController is a thin HTTP adapter, which is what an infrastructure layer should hold. It registers Express routes, reads request bodies through shared requestFields helpers, hands work to the injected application use cases, and writes the HTTP responses (201/json). Checking that the 'name' field is a required string is transport-level input validation, not a business rule. The file has no domain logic, persistence or business decisions, so every responsibility fits the infrastructure layer.",
+    "violations": []
+  },
+  "projectId": "claude-opus-5-5/task-management/full-aac/run-1",
+  "prompt": "## Rule\nThe unit's responsibilities match the role of its declared layer.\n\n## Rubric\nPass: Every responsibility in the file belongs to the role and kind of its declared layer, and agrees with any ADR prose given.\nFail: The file carries a responsibility that belongs to a different layer kind, for example persistence, transport or framework logic in a domain file, or business rules in an infrastructure or presentation file.\nEvidence required: Name the file and cite the function, method or statement that carries the misplaced responsibility, and the layer kind it belongs to.\nOut of scope: import direction and layer-dependency rules, which are checked symbolically.\n\n## Layer model\n- domain (kind: domain): src/domain/**\n- application (kind: application): src/application/**\n- infrastructure (kind: infrastructure): src/infrastructure/**\n\n## Unit\nKind: file\nId: src/infrastructure/http/controllers/ProjectController.ts\nLayer: infrastructure\nUnit files:\n- src/infrastructure/http/controllers/ProjectController.ts\n\n## Source\n=====SOURCE-BEGIN src/infrastructure/http/controllers/ProjectController.ts=====\nimport { Request, Response, Router } from 'express';\nimport { CreateProjectUseCase } from '../../../application/project/CreateProjectUseCase';\nimport { ListProjectsUseCase } from '../../../application/project/ListProjectsUseCase';\nimport { asFields, requiredString } from '../requestFields';\n\nexport class ProjectController {\n  readonly router = Router();\n\n  constructor(\n    private readonly createProject: CreateProjectUseCase,\n    private readonly listProjects: ListProjectsUseCase,\n  ) {\n    this.router.post('/projects', this.create);\n    this.router.get('/projects', this.list);\n  }\n\n  private readonly create = async (req: Request, res: Response): Promise<void> => {\n    const body = asFields(req.body);\n    const project = await this.createProject.execute({ name: requiredString(body, 'name') });\n    res.status(201).json(project);\n  };\n\n  private readonly list = async (_req: Request, res: Response): Promise<void> => {\n    res.json(await this.listProjects.execute());\n  };\n}\n\n=====SOURCE-END=====\n\n## Graph excerpt\n{\"edges\":[{\"from\":\"ProjectController@src/infrastructure/http/controllers/ProjectController.ts\",\"to\":\"CreateProjectUseCase@src/application/project/CreateProjectUseCase.ts\",\"type\":\"CONSTRUCTOR_INJECTS\"},{\"from\":\"ProjectController@src/infrastructure/http/controllers/ProjectController.ts\",\"to\":\"ListProjectsUseCase@src/application/project/ListProjectsUseCase.ts\",\"type\":\"CONSTRUCTOR_INJECTS\"},{\"from\":\"src/infrastructure/composition/projectModule.ts\",\"to\":\"src/infrastructure/http/controllers/ProjectController.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/infrastructure/http/controllers/ProjectController.ts\",\"to\":\"express\",\"type\":\"IMPORTS\"},{\"from\":\"src/infrastructure/http/controllers/ProjectController.ts\",\"to\":\"src/application/project/CreateProjectUseCase.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/infrastructure/http/controllers/ProjectController.ts\",\"to\":\"src/application/project/ListProjectsUseCase.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/infrastructure/http/controllers/ProjectController.ts\",\"to\":\"src/infrastructure/http/requestFields.ts\",\"type\":\"IMPORTS\"}],\"nodes\":[{\"kind\":\"Class\",\"layer\":\"infrastructure\",\"name\":\"ProjectController\",\"path\":\"src/infrastructure/http/controllers/ProjectController.ts\"},{\"kind\":\"File\",\"layer\":\"application\",\"path\":\"src/application/project/CreateProjectUseCase.ts\"},{\"kind\":\"File\",\"layer\":\"application\",\"path\":\"src/application/project/ListProjectsUseCase.ts\"},{\"kind\":\"File\",\"layer\":\"infrastructure\",\"path\":\"src/infrastructure/composition/projectModule.ts\"},{\"kind\":\"File\",\"layer\":\"infrastructure\",\"path\":\"src/infrastructure/http/controllers/ProjectController.ts\"},{\"kind\":\"File\",\"layer\":\"infrastructure\",\"path\":\"src/infrastructure/http/requestFields.ts\"},{\"kind\":\"Interface\",\"layer\":\"application\",\"name\":\"CreateProjectUseCase\",\"path\":\"src/application/project/CreateProjectUseCase.ts\"},{\"kind\":\"Interface\",\"layer\":\"application\",\"name\":\"ListProjectsUseCase\",\"path\":\"src/application/project/ListProjectsUseCase.ts\"},{\"kind\":\"Package\",\"layer\":null,\"path\":\"express\"}]}\n\n## Instructions\nJudge the unit against the rule and rubric. Return the JSON object the schema requires. Set pass to false if any file of the unit fails the rubric.\n",
+  "provider": "claude-cli",
+  "recordedAt": "2026-10-10T22:07:14.123Z",
+  "repetition": 0,
+  "requestHash": "30231ead13c01fadc02a117fe55f6247e179cd7575f7fdecbcb72f5f1ffc0f65",
+  "resolvedModel": "claude-opus-5-5",
+  "response": "{\"is_error\":false,\"modelUsage\":{\"claude-opus-5-5\":{\"inputTokens\":2,\"outputTokens\":440}},\"result\":\"{\\\"pass\\\":true,\\\"confidence\\\":0.93,\\\"reasoning\\\":\\\"ProjectController is a thin HTTP adapter, which is what an infrastructure layer should hold. It registers Express routes, reads request bodies through shared requestFields helpers, hands work to the injected application use cases, and writes the HTTP responses (201/json). Checking that the 'name' field is a required string is transport-level input validation, not a business rule. The file has no domain logic, persistence or business decisions, so every responsibility fits the infrastructure layer.\\\",\\\"evidence\\\":[\\\"Constructor wires Express routes: this.router.post('/projects', this.create) and this.router.get('/projects', this.list), which is HTTP transport work.\\\",\\\"create: asFields(req.body) and requiredString(body, 'name') parse the request at the transport level, then the method calls this.createProject.execute and sends res.status(201).json(project).\\\",\\\"list: hands off to this.listProjects.execute() and serializes the result with res.json, with no business logic.\\\"],\\\"violations\\\":[]}\",\"structured_output\":{\"confidence\":0.93,\"evidence\":[\"Constructor wires Express routes: this.router.post('/projects', this.create) and this.router.get('/projects', this.list), which is HTTP transport work.\",\"create: asFields(req.body) and requiredString(body, 'name') parse the request at the transport level, then the method calls this.createProject.execute and sends res.status(201).json(project).\",\"list: hands off to this.listProjects.execute() and serializes the result with res.json, with no business logic.\"],\"pass\":true,\"reasoning\":\"ProjectController is a thin HTTP adapter, which is what an infrastructure layer should hold. It registers Express routes, reads request bodies through shared requestFields helpers, hands work to the injected application use cases, and writes the HTTP responses (201/json). Checking that the 'name' field is a required string is transport-level input validation, not a business rule. The file has no domain logic, persistence or business decisions, so every responsibility fits the infrastructure layer.\",\"violations\":[]}}",
+  "runIndex": 2,
+  "schemaVersion": 2,
+  "unitId": "src/infrastructure/http/controllers/ProjectController.ts",
+  "usage": {
+    "inputTokens": 3150,
+    "outputTokens": 440
+  },
+  "usedOptions": {
+    "effort": "high",
+    "model": "claude-opus-5-5"
+  }
+}

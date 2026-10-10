@@ -1,0 +1,47 @@
+{
+  "attempts": 1,
+  "cliVersion": "2.1.294",
+  "configListingSha256": "47aa04258852fab9a706f3f0c14cee22306d69fbb6fdfbde8c11854bd54997bc",
+  "durationMs": 6399,
+  "effort": "high",
+  "functionId": "FF-N02",
+  "ignoredOptions": [
+    "maxTokens"
+  ],
+  "isolationProbeSha256": "97a2e2d0af1100c13c55e028c1a0c71f069093c3d08705af122aaeb302f1a641",
+  "key": "620a14a50da65f1aebd70a9aa097f7f30b294d8fbb244c2ed5822ab0047c262a-r0-2",
+  "model": "claude-opus-5-5",
+  "outcome": {
+    "kind": "valid"
+  },
+  "parsedVerdict": {
+    "confidence": 0.93,
+    "evidence": [
+      "src/domain/order.ts: NEXT_STATE and CANCELLABLE encode the order lifecycle rules, which are domain business rules",
+      "src/domain/order.ts: advance() and cancel() enforce the allowed state changes and throw DomainError, which is domain behaviour",
+      "src/domain/order.ts: Order/OrderLine interfaces and ORDER_STATES define domain entity shapes; there is no database, HTTP or framework code"
+    ],
+    "pass": true,
+    "reasoning": "src/domain/order.ts holds only domain work. It defines the Order and OrderLine entity shapes, the order lifecycle states, a type guard for valid states, and the rules for moving between states (advance, cancel), which raise a DomainError when a move isn't allowed. It does no persistence, transport/HTTP handling, framework work, or application orchestration. The 'conflict' code passed to DomainError is a domain error category, not an HTTP status mapping. Every responsibility in the file fits the domain layer.",
+    "violations": []
+  },
+  "projectId": "claude-sonnet-5-5/order-fulfilment/none/run-0",
+  "prompt": "## Rule\nThe unit's responsibilities match the role of its declared layer.\n\n## Rubric\nPass: Every responsibility in the file belongs to the role and kind of its declared layer, and agrees with any ADR prose given.\nFail: The file carries a responsibility that belongs to a different layer kind, for example persistence, transport or framework logic in a domain file, or business rules in an infrastructure or presentation file.\nEvidence required: Name the file and cite the function, method or statement that carries the misplaced responsibility, and the layer kind it belongs to.\nOut of scope: import direction and layer-dependency rules, which are checked symbolically.\n\n## Layer model\n- domain (kind: domain): src/domain/**\n- application (kind: application): src/application/**\n- infrastructure (kind: infrastructure): src/infrastructure/**\n\n## Unit\nKind: file\nId: src/domain/order.ts\nLayer: domain\nUnit files:\n- src/domain/order.ts\n\n## Source\n=====SOURCE-BEGIN src/domain/order.ts=====\nimport { DomainError } from \"./errors\";\n\nexport const ORDER_STATES = [\"placed\", \"paid\", \"packed\", \"shipped\", \"delivered\", \"cancelled\"] as const;\nexport type OrderState = (typeof ORDER_STATES)[number];\n\nexport interface OrderLine {\n  readonly productId: string;\n  readonly quantity: number;\n}\n\nexport interface Order {\n  readonly id: string;\n  readonly customerId: string;\n  readonly lines: readonly OrderLine[];\n  state: OrderState;\n  readonly createdAt: Date;\n}\n\nconst NEXT_STATE: Partial<Record<OrderState, OrderState>> = {\n  placed: \"paid\",\n  paid: \"packed\",\n  packed: \"shipped\",\n  shipped: \"delivered\",\n};\n\nconst CANCELLABLE: readonly OrderState[] = [\"placed\", \"paid\", \"packed\"];\n\nexport function isOrderState(value: string): value is OrderState {\n  return (ORDER_STATES as readonly string[]).includes(value);\n}\n\nexport function advance(order: Order, target: OrderState): void {\n  if (NEXT_STATE[order.state] !== target) {\n    throw new DomainError(\"conflict\", `Cannot move order ${order.id} from ${order.state} to ${target}`);\n  }\n  order.state = target;\n}\n\nexport function cancel(order: Order): void {\n  if (!CANCELLABLE.includes(order.state)) {\n    throw new DomainError(\"conflict\", `Cannot cancel order ${order.id} in state ${order.state}`);\n  }\n  order.state = \"cancelled\";\n}\n\n=====SOURCE-END=====\n\n## Graph excerpt\n{\"edges\":[{\"from\":\"src/application/fulfilment-service.ts\",\"to\":\"src/domain/order.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/application/ports.ts\",\"to\":\"src/domain/order.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/domain/order.ts\",\"to\":\"src/domain/errors.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/infrastructure/http-app.ts\",\"to\":\"src/domain/order.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/infrastructure/in-memory-repositories.ts\",\"to\":\"src/domain/order.ts\",\"type\":\"IMPORTS\"}],\"nodes\":[{\"kind\":\"File\",\"layer\":\"application\",\"path\":\"src/application/fulfilment-service.ts\"},{\"kind\":\"File\",\"layer\":\"application\",\"path\":\"src/application/ports.ts\"},{\"kind\":\"File\",\"layer\":\"domain\",\"path\":\"src/domain/errors.ts\"},{\"kind\":\"File\",\"layer\":\"domain\",\"path\":\"src/domain/order.ts\"},{\"kind\":\"File\",\"layer\":\"infrastructure\",\"path\":\"src/infrastructure/http-app.ts\"},{\"kind\":\"File\",\"layer\":\"infrastructure\",\"path\":\"src/infrastructure/in-memory-repositories.ts\"},{\"kind\":\"Interface\",\"layer\":\"domain\",\"name\":\"Order\",\"path\":\"src/domain/order.ts\"},{\"kind\":\"Interface\",\"layer\":\"domain\",\"name\":\"OrderLine\",\"path\":\"src/domain/order.ts\"}]}\n\n## Instructions\nJudge the unit against the rule and rubric. Return the JSON object the schema requires. Set pass to false if any file of the unit fails the rubric.\n",
+  "provider": "claude-cli",
+  "recordedAt": "2026-10-10T22:31:01.402Z",
+  "repetition": 0,
+  "requestHash": "620a14a50da65f1aebd70a9aa097f7f30b294d8fbb244c2ed5822ab0047c262a",
+  "resolvedModel": "claude-opus-5-5",
+  "response": "{\"is_error\":false,\"modelUsage\":{\"claude-opus-5-5\":{\"inputTokens\":2,\"outputTokens\":460}},\"result\":\"{\\\"pass\\\":true,\\\"confidence\\\":0.93,\\\"reasoning\\\":\\\"src/domain/order.ts holds only domain work. It defines the Order and OrderLine entity shapes, the order lifecycle states, a type guard for valid states, and the rules for moving between states (advance, cancel), which raise a DomainError when a move isn't allowed. It does no persistence, transport/HTTP handling, framework work, or application orchestration. The 'conflict' code passed to DomainError is a domain error category, not an HTTP status mapping. Every responsibility in the file fits the domain layer.\\\",\\\"evidence\\\":[\\\"src/domain/order.ts: NEXT_STATE and CANCELLABLE encode the order lifecycle rules, which are domain business rules\\\",\\\"src/domain/order.ts: advance() and cancel() enforce the allowed state changes and throw DomainError, which is domain behaviour\\\",\\\"src/domain/order.ts: Order/OrderLine interfaces and ORDER_STATES define domain entity shapes; there is no database, HTTP or framework code\\\"],\\\"violations\\\":[]}\",\"structured_output\":{\"confidence\":0.93,\"evidence\":[\"src/domain/order.ts: NEXT_STATE and CANCELLABLE encode the order lifecycle rules, which are domain business rules\",\"src/domain/order.ts: advance() and cancel() enforce the allowed state changes and throw DomainError, which is domain behaviour\",\"src/domain/order.ts: Order/OrderLine interfaces and ORDER_STATES define domain entity shapes; there is no database, HTTP or framework code\"],\"pass\":true,\"reasoning\":\"src/domain/order.ts holds only domain work. It defines the Order and OrderLine entity shapes, the order lifecycle states, a type guard for valid states, and the rules for moving between states (advance, cancel), which raise a DomainError when a move isn't allowed. It does no persistence, transport/HTTP handling, framework work, or application orchestration. The 'conflict' code passed to DomainError is a domain error category, not an HTTP status mapping. Every responsibility in the file fits the domain layer.\",\"violations\":[]}}",
+  "runIndex": 2,
+  "schemaVersion": 2,
+  "unitId": "src/domain/order.ts",
+  "usage": {
+    "inputTokens": 2925,
+    "outputTokens": 460
+  },
+  "usedOptions": {
+    "effort": "high",
+    "model": "claude-opus-5-5"
+  }
+}

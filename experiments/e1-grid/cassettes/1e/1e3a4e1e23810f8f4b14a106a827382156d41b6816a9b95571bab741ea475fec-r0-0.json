@@ -1,0 +1,48 @@
+{
+  "attempts": 1,
+  "cliVersion": "2.1.294",
+  "configListingSha256": "47aa04258852fab9a706f3f0c14cee22306d69fbb6fdfbde8c11854bd54997bc",
+  "durationMs": 6269,
+  "effort": "high",
+  "functionId": "FF-N02",
+  "ignoredOptions": [
+    "maxTokens"
+  ],
+  "isolationProbeSha256": "97a2e2d0af1100c13c55e028c1a0c71f069093c3d08705af122aaeb302f1a641",
+  "key": "1e3a4e1e23810f8f4b14a106a827382156d41b6816a9b95571bab741ea475fec-r0-0",
+  "model": "claude-opus-5-5",
+  "outcome": {
+    "kind": "valid"
+  },
+  "parsedVerdict": {
+    "confidence": 0.95,
+    "evidence": [
+      "src/application/complete-task-use-case.ts: execute() loads the task through this.tasks.findById(taskId), which goes through the TaskRepository port. It contains no database or storage code.",
+      "src/application/complete-task-use-case.ts: the state change goes to the domain through task.markDone(), so the business rule is not in the use case.",
+      "src/application/complete-task-use-case.ts: `if (!task) throw new NotFoundError(...)` is application-level orchestration. It is not transport logic such as HTTP status codes.",
+      "The graph shows TaskRepository is constructor-injected, and TaskController in infrastructure is the one that calls the use case, so transport code stays outside this file."
+    ],
+    "pass": true,
+    "reasoning": "CompleteTaskUseCase.execute only orchestrates. It loads the task through the injected TaskRepository port, raises a domain NotFoundError when the task is missing, hands the state change to the domain entity (task.markDone()), saves the task through the port and returns it. The file contains no persistence code, no HTTP or transport handling and no framework logic. The business rule for completing a task sits in the domain entity, not here. Every responsibility fits the application layer's role.",
+    "violations": []
+  },
+  "projectId": "claude-sonnet-5-5/task-management/minimal-prose/run-0",
+  "prompt": "## Rule\nThe unit's responsibilities match the role of its declared layer.\n\n## Rubric\nPass: Every responsibility in the file belongs to the role and kind of its declared layer, and agrees with any ADR prose given.\nFail: The file carries a responsibility that belongs to a different layer kind, for example persistence, transport or framework logic in a domain file, or business rules in an infrastructure or presentation file.\nEvidence required: Name the file and cite the function, method or statement that carries the misplaced responsibility, and the layer kind it belongs to.\nOut of scope: import direction and layer-dependency rules, which are checked symbolically.\n\n## Layer model\n- domain (kind: domain): src/domain/**\n- application (kind: application): src/application/**\n- infrastructure (kind: infrastructure): src/infrastructure/**\n\n## Unit\nKind: file\nId: src/application/complete-task-use-case.ts\nLayer: application\nUnit files:\n- src/application/complete-task-use-case.ts\n\n## Source\n=====SOURCE-BEGIN src/application/complete-task-use-case.ts=====\nimport { NotFoundError } from \"../domain/domain-error\";\nimport { Task } from \"../domain/task\";\nimport { TaskRepository } from \"../domain/task-repository\";\n\nexport class CompleteTaskUseCase {\n  constructor(private readonly tasks: TaskRepository) {}\n\n  async execute(taskId: string): Promise<Task> {\n    const task = await this.tasks.findById(taskId);\n    if (!task) throw new NotFoundError(\"task not found\");\n    task.markDone();\n    await this.tasks.save(task);\n    return task;\n  }\n}\n\n=====SOURCE-END=====\n\n## Graph excerpt\n{\"edges\":[{\"from\":\"CompleteTaskUseCase@src/application/complete-task-use-case.ts\",\"to\":\"TaskRepository@src/domain/task-repository.ts\",\"type\":\"CONSTRUCTOR_INJECTS\"},{\"from\":\"TaskController@src/infrastructure/task-controller.ts\",\"to\":\"CompleteTaskUseCase@src/application/complete-task-use-case.ts\",\"type\":\"CONSTRUCTOR_INJECTS\"},{\"from\":\"src/application/complete-task-use-case.ts\",\"to\":\"src/domain/domain-error.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/application/complete-task-use-case.ts\",\"to\":\"src/domain/task-repository.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/application/complete-task-use-case.ts\",\"to\":\"src/domain/task.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/infrastructure/app.ts\",\"to\":\"src/application/complete-task-use-case.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/infrastructure/task-controller.ts\",\"to\":\"src/application/complete-task-use-case.ts\",\"type\":\"IMPORTS\"}],\"nodes\":[{\"kind\":\"Class\",\"layer\":\"application\",\"name\":\"CompleteTaskUseCase\",\"path\":\"src/application/complete-task-use-case.ts\"},{\"kind\":\"Class\",\"layer\":\"infrastructure\",\"name\":\"TaskController\",\"path\":\"src/infrastructure/task-controller.ts\"},{\"kind\":\"File\",\"layer\":\"application\",\"path\":\"src/application/complete-task-use-case.ts\"},{\"kind\":\"File\",\"layer\":\"domain\",\"path\":\"src/domain/domain-error.ts\"},{\"kind\":\"File\",\"layer\":\"domain\",\"path\":\"src/domain/task-repository.ts\"},{\"kind\":\"File\",\"layer\":\"domain\",\"path\":\"src/domain/task.ts\"},{\"kind\":\"File\",\"layer\":\"infrastructure\",\"path\":\"src/infrastructure/app.ts\"},{\"kind\":\"File\",\"layer\":\"infrastructure\",\"path\":\"src/infrastructure/task-controller.ts\"},{\"kind\":\"Interface\",\"layer\":\"domain\",\"name\":\"TaskRepository\",\"path\":\"src/domain/task-repository.ts\"}]}\n\n## Instructions\nJudge the unit against the rule and rubric. Return the JSON object the schema requires. Set pass to false if any file of the unit fails the rubric.\n",
+  "provider": "claude-cli",
+  "recordedAt": "2026-10-10T22:36:17.791Z",
+  "repetition": 0,
+  "requestHash": "1e3a4e1e23810f8f4b14a106a827382156d41b6816a9b95571bab741ea475fec",
+  "resolvedModel": "claude-opus-5-5",
+  "response": "{\"is_error\":false,\"modelUsage\":{\"claude-opus-5-5\":{\"inputTokens\":2,\"outputTokens\":520}},\"result\":\"{\\\"pass\\\":true,\\\"confidence\\\":0.95,\\\"reasoning\\\":\\\"CompleteTaskUseCase.execute only orchestrates. It loads the task through the injected TaskRepository port, raises a domain NotFoundError when the task is missing, hands the state change to the domain entity (task.markDone()), saves the task through the port and returns it. The file contains no persistence code, no HTTP or transport handling and no framework logic. The business rule for completing a task sits in the domain entity, not here. Every responsibility fits the application layer's role.\\\",\\\"evidence\\\":[\\\"src/application/complete-task-use-case.ts: execute() loads the task through this.tasks.findById(taskId), which goes through the TaskRepository port. It contains no database or storage code.\\\",\\\"src/application/complete-task-use-case.ts: the state change goes to the domain through task.markDone(), so the business rule is not in the use case.\\\",\\\"src/application/complete-task-use-case.ts: `if (!task) throw new NotFoundError(...)` is application-level orchestration. It is not transport logic such as HTTP status codes.\\\",\\\"The graph shows TaskRepository is constructor-injected, and TaskController in infrastructure is the one that calls the use case, so transport code stays outside this file.\\\"],\\\"violations\\\":[]}\",\"structured_output\":{\"confidence\":0.95,\"evidence\":[\"src/application/complete-task-use-case.ts: execute() loads the task through this.tasks.findById(taskId), which goes through the TaskRepository port. It contains no database or storage code.\",\"src/application/complete-task-use-case.ts: the state change goes to the domain through task.markDone(), so the business rule is not in the use case.\",\"src/application/complete-task-use-case.ts: `if (!task) throw new NotFoundError(...)` is application-level orchestration. It is not transport logic such as HTTP status codes.\",\"The graph shows TaskRepository is constructor-injected, and TaskController in infrastructure is the one that calls the use case, so transport code stays outside this file.\"],\"pass\":true,\"reasoning\":\"CompleteTaskUseCase.execute only orchestrates. It loads the task through the injected TaskRepository port, raises a domain NotFoundError when the task is missing, hands the state change to the domain entity (task.markDone()), saves the task through the port and returns it. The file contains no persistence code, no HTTP or transport handling and no framework logic. The business rule for completing a task sits in the domain entity, not here. Every responsibility fits the application layer's role.\",\"violations\":[]}}",
+  "runIndex": 0,
+  "schemaVersion": 2,
+  "unitId": "src/application/complete-task-use-case.ts",
+  "usage": {
+    "inputTokens": 2843,
+    "outputTokens": 520
+  },
+  "usedOptions": {
+    "effort": "high",
+    "model": "claude-opus-5-5"
+  }
+}

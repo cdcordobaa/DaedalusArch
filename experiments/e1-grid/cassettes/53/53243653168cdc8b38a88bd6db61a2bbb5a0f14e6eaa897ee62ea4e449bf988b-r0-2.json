@@ -1,0 +1,47 @@
+{
+  "attempts": 1,
+  "cliVersion": "2.1.294",
+  "configListingSha256": "47aa04258852fab9a706f3f0c14cee22306d69fbb6fdfbde8c11854bd54997bc",
+  "durationMs": 6490,
+  "effort": "high",
+  "functionId": "FF-N02",
+  "ignoredOptions": [
+    "maxTokens"
+  ],
+  "isolationProbeSha256": "97a2e2d0af1100c13c55e028c1a0c71f069093c3d08705af122aaeb302f1a641",
+  "key": "53243653168cdc8b38a88bd6db61a2bbb5a0f14e6eaa897ee62ea4e449bf988b-r0-2",
+  "model": "claude-opus-5-5",
+  "outcome": {
+    "kind": "valid"
+  },
+  "parsedVerdict": {
+    "confidence": 0.95,
+    "evidence": [
+      "src/application/ports.ts declares `export interface ProductRepository { get; list; save }`, which is an abstract port with no implementation.",
+      "src/application/ports.ts declares `export interface OrderRepository { get; list(state?); save; nextId }`, which is an abstract port with no persistence details.",
+      "Graph: FulfilmentService (application) has OrderRepository and ProductRepository injected through its constructor (CONSTRUCTOR_INJECTS); InMemoryOrderRepository and InMemoryProductRepository (infrastructure) implement them (IMPLEMENTS)."
+    ],
+    "pass": true,
+    "reasoning": "src/application/ports.ts only declares two repository port interfaces, ProductRepository and OrderRepository. Their signatures use domain types. The file has no implementation, persistence, transport or framework logic, and no business rules. Declaring the outbound ports that application services depend on, which infrastructure then implements, is a standard application-layer responsibility in a ports-and-adapters design. The graph agrees: FulfilmentService (application) has these ports injected through its constructor, and the InMemory* classes (infrastructure) implement them.",
+    "violations": []
+  },
+  "projectId": "claude-sonnet-5-5/order-fulfilment/none/run-0",
+  "prompt": "## Rule\nThe unit's responsibilities match the role of its declared layer.\n\n## Rubric\nPass: Every responsibility in the file belongs to the role and kind of its declared layer, and agrees with any ADR prose given.\nFail: The file carries a responsibility that belongs to a different layer kind, for example persistence, transport or framework logic in a domain file, or business rules in an infrastructure or presentation file.\nEvidence required: Name the file and cite the function, method or statement that carries the misplaced responsibility, and the layer kind it belongs to.\nOut of scope: import direction and layer-dependency rules, which are checked symbolically.\n\n## Layer model\n- domain (kind: domain): src/domain/**\n- application (kind: application): src/application/**\n- infrastructure (kind: infrastructure): src/infrastructure/**\n\n## Unit\nKind: file\nId: src/application/ports.ts\nLayer: application\nUnit files:\n- src/application/ports.ts\n\n## Source\n=====SOURCE-BEGIN src/application/ports.ts=====\nimport { Order, OrderState } from \"../domain/order\";\nimport { Product } from \"../domain/product\";\n\nexport interface ProductRepository {\n  get(id: string): Product | undefined;\n  list(): Product[];\n  save(product: Product): void;\n}\n\nexport interface OrderRepository {\n  get(id: string): Order | undefined;\n  list(state?: OrderState): Order[];\n  save(order: Order): void;\n  nextId(): string;\n}\n\n=====SOURCE-END=====\n\n## Graph excerpt\n{\"edges\":[{\"from\":\"FulfilmentService@src/application/fulfilment-service.ts\",\"to\":\"OrderRepository@src/application/ports.ts\",\"type\":\"CONSTRUCTOR_INJECTS\"},{\"from\":\"FulfilmentService@src/application/fulfilment-service.ts\",\"to\":\"ProductRepository@src/application/ports.ts\",\"type\":\"CONSTRUCTOR_INJECTS\"},{\"from\":\"InMemoryOrderRepository@src/infrastructure/in-memory-repositories.ts\",\"to\":\"OrderRepository@src/application/ports.ts\",\"type\":\"IMPLEMENTS\"},{\"from\":\"InMemoryProductRepository@src/infrastructure/in-memory-repositories.ts\",\"to\":\"ProductRepository@src/application/ports.ts\",\"type\":\"IMPLEMENTS\"},{\"from\":\"src/application/fulfilment-service.ts\",\"to\":\"src/application/ports.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/application/ports.ts\",\"to\":\"src/domain/order.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/application/ports.ts\",\"to\":\"src/domain/product.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/infrastructure/in-memory-repositories.ts\",\"to\":\"src/application/ports.ts\",\"type\":\"IMPORTS\"}],\"nodes\":[{\"kind\":\"Class\",\"layer\":\"application\",\"name\":\"FulfilmentService\",\"path\":\"src/application/fulfilment-service.ts\"},{\"kind\":\"Class\",\"layer\":\"infrastructure\",\"name\":\"InMemoryOrderRepository\",\"path\":\"src/infrastructure/in-memory-repositories.ts\"},{\"kind\":\"Class\",\"layer\":\"infrastructure\",\"name\":\"InMemoryProductRepository\",\"path\":\"src/infrastructure/in-memory-repositories.ts\"},{\"kind\":\"File\",\"layer\":\"application\",\"path\":\"src/application/fulfilment-service.ts\"},{\"kind\":\"File\",\"layer\":\"application\",\"path\":\"src/application/ports.ts\"},{\"kind\":\"File\",\"layer\":\"domain\",\"path\":\"src/domain/order.ts\"},{\"kind\":\"File\",\"layer\":\"domain\",\"path\":\"src/domain/product.ts\"},{\"kind\":\"File\",\"layer\":\"infrastructure\",\"path\":\"src/infrastructure/in-memory-repositories.ts\"},{\"kind\":\"Interface\",\"layer\":\"application\",\"name\":\"OrderRepository\",\"path\":\"src/application/ports.ts\"},{\"kind\":\"Interface\",\"layer\":\"application\",\"name\":\"ProductRepository\",\"path\":\"src/application/ports.ts\"}]}\n\n## Instructions\nJudge the unit against the rule and rubric. Return the JSON object the schema requires. Set pass to false if any file of the unit fails the rubric.\n",
+  "provider": "claude-cli",
+  "recordedAt": "2026-10-10T22:30:48.010Z",
+  "repetition": 0,
+  "requestHash": "53243653168cdc8b38a88bd6db61a2bbb5a0f14e6eaa897ee62ea4e449bf988b",
+  "resolvedModel": "claude-opus-5-5",
+  "response": "{\"is_error\":false,\"modelUsage\":{\"claude-opus-5-5\":{\"inputTokens\":2,\"outputTokens\":513}},\"result\":\"{\\\"pass\\\":true,\\\"confidence\\\":0.95,\\\"reasoning\\\":\\\"src/application/ports.ts only declares two repository port interfaces, ProductRepository and OrderRepository. Their signatures use domain types. The file has no implementation, persistence, transport or framework logic, and no business rules. Declaring the outbound ports that application services depend on, which infrastructure then implements, is a standard application-layer responsibility in a ports-and-adapters design. The graph agrees: FulfilmentService (application) has these ports injected through its constructor, and the InMemory* classes (infrastructure) implement them.\\\",\\\"evidence\\\":[\\\"src/application/ports.ts declares `export interface ProductRepository { get; list; save }`, which is an abstract port with no implementation.\\\",\\\"src/application/ports.ts declares `export interface OrderRepository { get; list(state?); save; nextId }`, which is an abstract port with no persistence details.\\\",\\\"Graph: FulfilmentService (application) has OrderRepository and ProductRepository injected through its constructor (CONSTRUCTOR_INJECTS); InMemoryOrderRepository and InMemoryProductRepository (infrastructure) implement them (IMPLEMENTS).\\\"],\\\"violations\\\":[]}\",\"structured_output\":{\"confidence\":0.95,\"evidence\":[\"src/application/ports.ts declares `export interface ProductRepository { get; list; save }`, which is an abstract port with no implementation.\",\"src/application/ports.ts declares `export interface OrderRepository { get; list(state?); save; nextId }`, which is an abstract port with no persistence details.\",\"Graph: FulfilmentService (application) has OrderRepository and ProductRepository injected through its constructor (CONSTRUCTOR_INJECTS); InMemoryOrderRepository and InMemoryProductRepository (infrastructure) implement them (IMPLEMENTS).\"],\"pass\":true,\"reasoning\":\"src/application/ports.ts only declares two repository port interfaces, ProductRepository and OrderRepository. Their signatures use domain types. The file has no implementation, persistence, transport or framework logic, and no business rules. Declaring the outbound ports that application services depend on, which infrastructure then implements, is a standard application-layer responsibility in a ports-and-adapters design. The graph agrees: FulfilmentService (application) has these ports injected through its constructor, and the InMemory* classes (infrastructure) implement them.\",\"violations\":[]}}",
+  "runIndex": 2,
+  "schemaVersion": 2,
+  "unitId": "src/application/ports.ts",
+  "usage": {
+    "inputTokens": 2900,
+    "outputTokens": 513
+  },
+  "usedOptions": {
+    "effort": "high",
+    "model": "claude-opus-5-5"
+  }
+}

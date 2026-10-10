@@ -1,0 +1,47 @@
+{
+  "attempts": 1,
+  "cliVersion": "2.1.294",
+  "configListingSha256": "47aa04258852fab9a706f3f0c14cee22306d69fbb6fdfbde8c11854bd54997bc",
+  "durationMs": 5595,
+  "effort": "high",
+  "functionId": "FF-N02",
+  "ignoredOptions": [
+    "maxTokens"
+  ],
+  "isolationProbeSha256": "97a2e2d0af1100c13c55e028c1a0c71f069093c3d08705af122aaeb302f1a641",
+  "key": "8abc85978ab7b5f7a132dbfa4ccdddc0ea3e1478d5f36776345498d362b8cfae-r0-1",
+  "model": "claude-opus-5-5",
+  "outcome": {
+    "kind": "valid"
+  },
+  "parsedVerdict": {
+    "confidence": 0.95,
+    "evidence": [
+      "src/application/task/ListTasksUseCase.ts declares interface ListTasksInput { projectId; status?; assigneeId? }: this is the use-case input contract.",
+      "src/application/task/ListTasksUseCase.ts declares interface ListTasksUseCase { execute(input): Promise<TaskDto[]> }: this is the application input port.",
+      "Graph: ListTasksService (application) IMPLEMENTS ListTasksUseCase; TaskController (infrastructure) CONSTRUCTOR_INJECTS it."
+    ],
+    "pass": true,
+    "reasoning": "The file declares an input port for a use case: an input type (ListTasksInput) and a use-case interface (ListTasksUseCase) that returns application DTOs. Defining use-case contracts is a core job of the application layer. The file has no persistence, transport, framework or business-rule logic. In the graph, an application service implements the interface and an infrastructure controller injects it, which fits its role as an application port.",
+    "violations": []
+  },
+  "projectId": "claude-opus-5-5/task-management/full-aac/run-1",
+  "prompt": "## Rule\nThe unit's responsibilities match the role of its declared layer.\n\n## Rubric\nPass: Every responsibility in the file belongs to the role and kind of its declared layer, and agrees with any ADR prose given.\nFail: The file carries a responsibility that belongs to a different layer kind, for example persistence, transport or framework logic in a domain file, or business rules in an infrastructure or presentation file.\nEvidence required: Name the file and cite the function, method or statement that carries the misplaced responsibility, and the layer kind it belongs to.\nOut of scope: import direction and layer-dependency rules, which are checked symbolically.\n\n## Layer model\n- domain (kind: domain): src/domain/**\n- application (kind: application): src/application/**\n- infrastructure (kind: infrastructure): src/infrastructure/**\n\n## Unit\nKind: file\nId: src/application/task/ListTasksUseCase.ts\nLayer: application\nUnit files:\n- src/application/task/ListTasksUseCase.ts\n\n## Source\n=====SOURCE-BEGIN src/application/task/ListTasksUseCase.ts=====\nimport { TaskDto } from '../dto/TaskDto';\n\nexport interface ListTasksInput {\n  projectId: string;\n  status?: string;\n  assigneeId?: string;\n}\n\nexport interface ListTasksUseCase {\n  execute(input: ListTasksInput): Promise<TaskDto[]>;\n}\n\n=====SOURCE-END=====\n\n## Graph excerpt\n{\"edges\":[{\"from\":\"ListTasksService@src/application/task/ListTasksService.ts\",\"to\":\"ListTasksUseCase@src/application/task/ListTasksUseCase.ts\",\"type\":\"IMPLEMENTS\"},{\"from\":\"TaskController@src/infrastructure/http/controllers/TaskController.ts\",\"to\":\"ListTasksUseCase@src/application/task/ListTasksUseCase.ts\",\"type\":\"CONSTRUCTOR_INJECTS\"},{\"from\":\"src/application/task/ListTasksService.ts\",\"to\":\"src/application/task/ListTasksUseCase.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/application/task/ListTasksUseCase.ts\",\"to\":\"src/application/dto/TaskDto.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/infrastructure/http/controllers/TaskController.ts\",\"to\":\"src/application/task/ListTasksUseCase.ts\",\"type\":\"IMPORTS\"}],\"nodes\":[{\"kind\":\"Class\",\"layer\":\"application\",\"name\":\"ListTasksService\",\"path\":\"src/application/task/ListTasksService.ts\"},{\"kind\":\"Class\",\"layer\":\"infrastructure\",\"name\":\"TaskController\",\"path\":\"src/infrastructure/http/controllers/TaskController.ts\"},{\"kind\":\"File\",\"layer\":\"application\",\"path\":\"src/application/dto/TaskDto.ts\"},{\"kind\":\"File\",\"layer\":\"application\",\"path\":\"src/application/task/ListTasksService.ts\"},{\"kind\":\"File\",\"layer\":\"application\",\"path\":\"src/application/task/ListTasksUseCase.ts\"},{\"kind\":\"File\",\"layer\":\"infrastructure\",\"path\":\"src/infrastructure/http/controllers/TaskController.ts\"},{\"kind\":\"Interface\",\"layer\":\"application\",\"name\":\"ListTasksInput\",\"path\":\"src/application/task/ListTasksUseCase.ts\"},{\"kind\":\"Interface\",\"layer\":\"application\",\"name\":\"ListTasksUseCase\",\"path\":\"src/application/task/ListTasksUseCase.ts\"}]}\n\n## Instructions\nJudge the unit against the rule and rubric. Return the JSON object the schema requires. Set pass to false if any file of the unit fails the rubric.\n",
+  "provider": "claude-cli",
+  "recordedAt": "2026-10-10T22:06:02.505Z",
+  "repetition": 0,
+  "requestHash": "8abc85978ab7b5f7a132dbfa4ccdddc0ea3e1478d5f36776345498d362b8cfae",
+  "resolvedModel": "claude-opus-5-5",
+  "response": "{\"is_error\":false,\"modelUsage\":{\"claude-opus-5-5\":{\"inputTokens\":2,\"outputTokens\":452}},\"result\":\"{\\\"pass\\\":true,\\\"confidence\\\":0.95,\\\"reasoning\\\":\\\"The file declares an input port for a use case: an input type (ListTasksInput) and a use-case interface (ListTasksUseCase) that returns application DTOs. Defining use-case contracts is a core job of the application layer. The file has no persistence, transport, framework or business-rule logic. In the graph, an application service implements the interface and an infrastructure controller injects it, which fits its role as an application port.\\\",\\\"evidence\\\":[\\\"src/application/task/ListTasksUseCase.ts declares interface ListTasksInput { projectId; status?; assigneeId? }: this is the use-case input contract.\\\",\\\"src/application/task/ListTasksUseCase.ts declares interface ListTasksUseCase { execute(input): Promise<TaskDto[]> }: this is the application input port.\\\",\\\"Graph: ListTasksService (application) IMPLEMENTS ListTasksUseCase; TaskController (infrastructure) CONSTRUCTOR_INJECTS it.\\\"],\\\"violations\\\":[]}\",\"structured_output\":{\"confidence\":0.95,\"evidence\":[\"src/application/task/ListTasksUseCase.ts declares interface ListTasksInput { projectId; status?; assigneeId? }: this is the use-case input contract.\",\"src/application/task/ListTasksUseCase.ts declares interface ListTasksUseCase { execute(input): Promise<TaskDto[]> }: this is the application input port.\",\"Graph: ListTasksService (application) IMPLEMENTS ListTasksUseCase; TaskController (infrastructure) CONSTRUCTOR_INJECTS it.\"],\"pass\":true,\"reasoning\":\"The file declares an input port for a use case: an input type (ListTasksInput) and a use-case interface (ListTasksUseCase) that returns application DTOs. Defining use-case contracts is a core job of the application layer. The file has no persistence, transport, framework or business-rule logic. In the graph, an application service implements the interface and an infrastructure controller injects it, which fits its role as an application port.\",\"violations\":[]}}",
+  "runIndex": 1,
+  "schemaVersion": 2,
+  "unitId": "src/application/task/ListTasksUseCase.ts",
+  "usage": {
+    "inputTokens": 2712,
+    "outputTokens": 452
+  },
+  "usedOptions": {
+    "effort": "high",
+    "model": "claude-opus-5-5"
+  }
+}

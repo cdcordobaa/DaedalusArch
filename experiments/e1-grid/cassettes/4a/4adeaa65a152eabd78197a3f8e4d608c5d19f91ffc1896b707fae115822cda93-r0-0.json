@@ -1,0 +1,47 @@
+{
+  "attempts": 1,
+  "cliVersion": "2.1.294",
+  "configListingSha256": "47aa04258852fab9a706f3f0c14cee22306d69fbb6fdfbde8c11854bd54997bc",
+  "durationMs": 5588,
+  "effort": "high",
+  "functionId": "FF-N02",
+  "ignoredOptions": [
+    "maxTokens"
+  ],
+  "isolationProbeSha256": "97a2e2d0af1100c13c55e028c1a0c71f069093c3d08705af122aaeb302f1a641",
+  "key": "4adeaa65a152eabd78197a3f8e4d608c5d19f91ffc1896b707fae115822cda93-r0-0",
+  "model": "claude-opus-5-5",
+  "outcome": {
+    "kind": "valid"
+  },
+  "parsedVerdict": {
+    "confidence": 0.9,
+    "evidence": [
+      "toCatalogueItemDto(product) only copies id, name, priceCents and available from the domain entity into a DTO",
+      "toStockLevelDto(product) reads product.toSnapshot() and product.available and does no calculation of its own",
+      "The graph shows it is imported only by application use cases: AddProductUseCase, ListCatalogueUseCase and ListStockLevelsUseCase"
+    ],
+    "pass": true,
+    "reasoning": "ProductMapper.ts converts domain Product entities into application DTOs (CatalogueItemDto, StockLevelDto). Mapping domain objects to use-case output DTOs is a normal application-layer job. The file has no persistence, transport or framework logic. It also adds no business rules of its own: 'available' comes from the domain entity, not from a calculation in the mapper. Its only consumers are application use cases.",
+    "violations": []
+  },
+  "projectId": "claude-opus-5-5/order-fulfilment/full-aac/run-1",
+  "prompt": "## Rule\nThe unit's responsibilities match the role of its declared layer.\n\n## Rubric\nPass: Every responsibility in the file belongs to the role and kind of its declared layer, and agrees with any ADR prose given.\nFail: The file carries a responsibility that belongs to a different layer kind, for example persistence, transport or framework logic in a domain file, or business rules in an infrastructure or presentation file.\nEvidence required: Name the file and cite the function, method or statement that carries the misplaced responsibility, and the layer kind it belongs to.\nOut of scope: import direction and layer-dependency rules, which are checked symbolically.\n\n## Layer model\n- domain (kind: domain): src/domain/**\n- application (kind: application): src/application/**\n- infrastructure (kind: infrastructure): src/infrastructure/**\n\n## Unit\nKind: file\nId: src/application/catalogue/ProductMapper.ts\nLayer: application\nUnit files:\n- src/application/catalogue/ProductMapper.ts\n\n## Source\n=====SOURCE-BEGIN src/application/catalogue/ProductMapper.ts=====\nimport type { Product } from '../../domain/entities/Product';\nimport type { CatalogueItemDto, StockLevelDto } from './ProductDtos';\n\nexport function toCatalogueItemDto(product: Product): CatalogueItemDto {\n  return {\n    id: product.id,\n    name: product.name,\n    priceCents: product.priceCents,\n    available: product.available,\n  };\n}\n\nexport function toStockLevelDto(product: Product): StockLevelDto {\n  const snapshot = product.toSnapshot();\n  return {\n    productId: snapshot.id,\n    name: snapshot.name,\n    onHand: snapshot.onHand,\n    reserved: snapshot.reserved,\n    available: product.available,\n  };\n}\n\n=====SOURCE-END=====\n\n## Graph excerpt\n{\"edges\":[{\"from\":\"src/application/catalogue/AddProductUseCase.ts\",\"to\":\"src/application/catalogue/ProductMapper.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/application/catalogue/ListCatalogueUseCase.ts\",\"to\":\"src/application/catalogue/ProductMapper.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/application/catalogue/ListStockLevelsUseCase.ts\",\"to\":\"src/application/catalogue/ProductMapper.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/application/catalogue/ProductMapper.ts\",\"to\":\"src/application/catalogue/ProductDtos.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/application/catalogue/ProductMapper.ts\",\"to\":\"src/domain/entities/Product.ts\",\"type\":\"IMPORTS\"}],\"nodes\":[{\"kind\":\"File\",\"layer\":\"application\",\"path\":\"src/application/catalogue/AddProductUseCase.ts\"},{\"kind\":\"File\",\"layer\":\"application\",\"path\":\"src/application/catalogue/ListCatalogueUseCase.ts\"},{\"kind\":\"File\",\"layer\":\"application\",\"path\":\"src/application/catalogue/ListStockLevelsUseCase.ts\"},{\"kind\":\"File\",\"layer\":\"application\",\"path\":\"src/application/catalogue/ProductDtos.ts\"},{\"kind\":\"File\",\"layer\":\"application\",\"path\":\"src/application/catalogue/ProductMapper.ts\"},{\"kind\":\"File\",\"layer\":\"domain\",\"path\":\"src/domain/entities/Product.ts\"}]}\n\n## Instructions\nJudge the unit against the rule and rubric. Return the JSON object the schema requires. Set pass to false if any file of the unit fails the rubric.\n",
+  "provider": "claude-cli",
+  "recordedAt": "2026-10-10T22:19:15.185Z",
+  "repetition": 0,
+  "requestHash": "4adeaa65a152eabd78197a3f8e4d608c5d19f91ffc1896b707fae115822cda93",
+  "resolvedModel": "claude-opus-5-5",
+  "response": "{\"is_error\":false,\"modelUsage\":{\"claude-opus-5-5\":{\"inputTokens\":2,\"outputTokens\":407}},\"result\":\"{\\\"pass\\\":true,\\\"confidence\\\":0.9,\\\"reasoning\\\":\\\"ProductMapper.ts converts domain Product entities into application DTOs (CatalogueItemDto, StockLevelDto). Mapping domain objects to use-case output DTOs is a normal application-layer job. The file has no persistence, transport or framework logic. It also adds no business rules of its own: 'available' comes from the domain entity, not from a calculation in the mapper. Its only consumers are application use cases.\\\",\\\"evidence\\\":[\\\"toCatalogueItemDto(product) only copies id, name, priceCents and available from the domain entity into a DTO\\\",\\\"toStockLevelDto(product) reads product.toSnapshot() and product.available and does no calculation of its own\\\",\\\"The graph shows it is imported only by application use cases: AddProductUseCase, ListCatalogueUseCase and ListStockLevelsUseCase\\\"],\\\"violations\\\":[]}\",\"structured_output\":{\"confidence\":0.9,\"evidence\":[\"toCatalogueItemDto(product) only copies id, name, priceCents and available from the domain entity into a DTO\",\"toStockLevelDto(product) reads product.toSnapshot() and product.available and does no calculation of its own\",\"The graph shows it is imported only by application use cases: AddProductUseCase, ListCatalogueUseCase and ListStockLevelsUseCase\"],\"pass\":true,\"reasoning\":\"ProductMapper.ts converts domain Product entities into application DTOs (CatalogueItemDto, StockLevelDto). Mapping domain objects to use-case output DTOs is a normal application-layer job. The file has no persistence, transport or framework logic. It also adds no business rules of its own: 'available' comes from the domain entity, not from a calculation in the mapper. Its only consumers are application use cases.\",\"violations\":[]}}",
+  "runIndex": 0,
+  "schemaVersion": 2,
+  "unitId": "src/application/catalogue/ProductMapper.ts",
+  "usage": {
+    "inputTokens": 2695,
+    "outputTokens": 407
+  },
+  "usedOptions": {
+    "effort": "high",
+    "model": "claude-opus-5-5"
+  }
+}

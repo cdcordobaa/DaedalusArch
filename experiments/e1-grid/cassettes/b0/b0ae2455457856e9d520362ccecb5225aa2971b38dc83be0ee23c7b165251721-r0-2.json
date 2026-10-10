@@ -1,0 +1,48 @@
+{
+  "attempts": 1,
+  "cliVersion": "2.1.294",
+  "configListingSha256": "47aa04258852fab9a706f3f0c14cee22306d69fbb6fdfbde8c11854bd54997bc",
+  "durationMs": 9438,
+  "effort": "high",
+  "functionId": "FF-N02",
+  "ignoredOptions": [
+    "maxTokens"
+  ],
+  "isolationProbeSha256": "97a2e2d0af1100c13c55e028c1a0c71f069093c3d08705af122aaeb302f1a641",
+  "key": "b0ae2455457856e9d520362ccecb5225aa2971b38dc83be0ee23c7b165251721-r0-2",
+  "model": "claude-opus-5-5",
+  "outcome": {
+    "kind": "valid"
+  },
+  "parsedVerdict": {
+    "confidence": 0.88,
+    "evidence": [
+      "createRouter() builds an Express Router and registers routes with router.get/router.post. This is transport/framework wiring, which fits infrastructure.",
+      "Routes such as router.post('/staff/orders/:id/ship', staffOnly, orders.changeStatus('ship')) only pass an action name to the controller. The file does no state-transition logic itself.",
+      "staffOnly is a RequestHandler injected from outside. The file only attaches it to routes and does not decide how authorization works.",
+      "The Controllers interface is a plain grouping of HTTP controllers with no behaviour."
+    ],
+    "pass": true,
+    "reasoning": "The file passes. src/infrastructure/http/routes.ts only wires HTTP transport. It builds an Express Router, maps HTTP verbs and paths to controller handlers, and adds the injected staffOnly middleware to the /staff routes. All of that is framework and transport work, which belongs in the infrastructure layer. The file has no domain logic: no validation, no checks on order state transitions, no pricing or stock rules, and no persistence. The calls to orders.changeStatus('pay'|'cancel'|...) only pass an action name, and the actual work is left to the controllers. Choosing which routes need the staff key is a route-level access-control decision made with injected middleware. That is a normal transport concern, not a business rule built into this file.",
+    "violations": []
+  },
+  "projectId": "claude-opus-5-5/order-fulfilment/full-aac/run-1",
+  "prompt": "## Rule\nThe unit's responsibilities match the role of its declared layer.\n\n## Rubric\nPass: Every responsibility in the file belongs to the role and kind of its declared layer, and agrees with any ADR prose given.\nFail: The file carries a responsibility that belongs to a different layer kind, for example persistence, transport or framework logic in a domain file, or business rules in an infrastructure or presentation file.\nEvidence required: Name the file and cite the function, method or statement that carries the misplaced responsibility, and the layer kind it belongs to.\nOut of scope: import direction and layer-dependency rules, which are checked symbolically.\n\n## Layer model\n- domain (kind: domain): src/domain/**\n- application (kind: application): src/application/**\n- infrastructure (kind: infrastructure): src/infrastructure/**\n\n## Unit\nKind: file\nId: src/infrastructure/http/routes.ts\nLayer: infrastructure\nUnit files:\n- src/infrastructure/http/routes.ts\n\n## Source\n=====SOURCE-BEGIN src/infrastructure/http/routes.ts=====\nimport { Router, type RequestHandler } from 'express';\nimport type { CatalogueController } from './controllers/CatalogueController';\nimport type { OrderController } from './controllers/OrderController';\n\nexport interface Controllers {\n  readonly orders: OrderController;\n  readonly catalogue: CatalogueController;\n}\n\n/**\n * Customer routes are open; warehouse operations and stock/order overviews\n * sit under /staff and require the staff key.\n */\nexport function createRouter(controllers: Controllers, staffOnly: RequestHandler): Router {\n  const { orders, catalogue } = controllers;\n  const router = Router();\n\n  router.get('/products', catalogue.listCatalogue);\n  router.post('/orders', orders.place);\n  router.get('/orders/:id', orders.get);\n  router.post('/orders/:id/pay', orders.changeStatus('pay'));\n  router.post('/orders/:id/cancel', orders.changeStatus('cancel'));\n\n  router.get('/staff/orders', staffOnly, orders.list);\n  router.post('/staff/orders/:id/pack', staffOnly, orders.changeStatus('pack'));\n  router.post('/staff/orders/:id/ship', staffOnly, orders.changeStatus('ship'));\n  router.post('/staff/orders/:id/deliver', staffOnly, orders.changeStatus('deliver'));\n  router.post('/staff/orders/:id/cancel', staffOnly, orders.changeStatus('cancel'));\n  router.get('/staff/stock', staffOnly, catalogue.listStockLevels);\n  router.post('/staff/products', staffOnly, catalogue.addProduct);\n\n  return router;\n}\n\n=====SOURCE-END=====\n\n## Graph excerpt\n{\"edges\":[{\"from\":\"src/infrastructure/http/createHttpApp.ts\",\"to\":\"src/infrastructure/http/routes.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/infrastructure/http/routes.ts\",\"to\":\"express\",\"type\":\"IMPORTS\"},{\"from\":\"src/infrastructure/http/routes.ts\",\"to\":\"src/infrastructure/http/controllers/CatalogueController.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/infrastructure/http/routes.ts\",\"to\":\"src/infrastructure/http/controllers/OrderController.ts\",\"type\":\"IMPORTS\"}],\"nodes\":[{\"kind\":\"File\",\"layer\":\"infrastructure\",\"path\":\"src/infrastructure/http/controllers/CatalogueController.ts\"},{\"kind\":\"File\",\"layer\":\"infrastructure\",\"path\":\"src/infrastructure/http/controllers/OrderController.ts\"},{\"kind\":\"File\",\"layer\":\"infrastructure\",\"path\":\"src/infrastructure/http/createHttpApp.ts\"},{\"kind\":\"File\",\"layer\":\"infrastructure\",\"path\":\"src/infrastructure/http/routes.ts\"},{\"kind\":\"Interface\",\"layer\":\"infrastructure\",\"name\":\"Controllers\",\"path\":\"src/infrastructure/http/routes.ts\"},{\"kind\":\"Package\",\"layer\":null,\"path\":\"express\"}]}\n\n## Instructions\nJudge the unit against the rule and rubric. Return the JSON object the schema requires. Set pass to false if any file of the unit fails the rubric.\n",
+  "provider": "claude-cli",
+  "recordedAt": "2026-10-10T22:21:03.209Z",
+  "repetition": 0,
+  "requestHash": "b0ae2455457856e9d520362ccecb5225aa2971b38dc83be0ee23c7b165251721",
+  "resolvedModel": "claude-opus-5-5",
+  "response": "{\"is_error\":false,\"modelUsage\":{\"claude-opus-5-5\":{\"inputTokens\":2,\"outputTokens\":685}},\"result\":\"{\\\"pass\\\":true,\\\"confidence\\\":0.88,\\\"reasoning\\\":\\\"The file passes. src/infrastructure/http/routes.ts only wires HTTP transport. It builds an Express Router, maps HTTP verbs and paths to controller handlers, and adds the injected staffOnly middleware to the /staff routes. All of that is framework and transport work, which belongs in the infrastructure layer. The file has no domain logic: no validation, no checks on order state transitions, no pricing or stock rules, and no persistence. The calls to orders.changeStatus('pay'|'cancel'|...) only pass an action name, and the actual work is left to the controllers. Choosing which routes need the staff key is a route-level access-control decision made with injected middleware. That is a normal transport concern, not a business rule built into this file.\\\",\\\"evidence\\\":[\\\"createRouter() builds an Express Router and registers routes with router.get/router.post. This is transport/framework wiring, which fits infrastructure.\\\",\\\"Routes such as router.post('/staff/orders/:id/ship', staffOnly, orders.changeStatus('ship')) only pass an action name to the controller. The file does no state-transition logic itself.\\\",\\\"staffOnly is a RequestHandler injected from outside. The file only attaches it to routes and does not decide how authorization works.\\\",\\\"The Controllers interface is a plain grouping of HTTP controllers with no behaviour.\\\"],\\\"violations\\\":[]}\",\"structured_output\":{\"confidence\":0.88,\"evidence\":[\"createRouter() builds an Express Router and registers routes with router.get/router.post. This is transport/framework wiring, which fits infrastructure.\",\"Routes such as router.post('/staff/orders/:id/ship', staffOnly, orders.changeStatus('ship')) only pass an action name to the controller. The file does no state-transition logic itself.\",\"staffOnly is a RequestHandler injected from outside. The file only attaches it to routes and does not decide how authorization works.\",\"The Controllers interface is a plain grouping of HTTP controllers with no behaviour.\"],\"pass\":true,\"reasoning\":\"The file passes. src/infrastructure/http/routes.ts only wires HTTP transport. It builds an Express Router, maps HTTP verbs and paths to controller handlers, and adds the injected staffOnly middleware to the /staff routes. All of that is framework and transport work, which belongs in the infrastructure layer. The file has no domain logic: no validation, no checks on order state transitions, no pricing or stock rules, and no persistence. The calls to orders.changeStatus('pay'|'cancel'|...) only pass an action name, and the actual work is left to the controllers. Choosing which routes need the staff key is a route-level access-control decision made with injected middleware. That is a normal transport concern, not a business rule built into this file.\",\"violations\":[]}}",
+  "runIndex": 2,
+  "schemaVersion": 2,
+  "unitId": "src/infrastructure/http/routes.ts",
+  "usage": {
+    "inputTokens": 2943,
+    "outputTokens": 685
+  },
+  "usedOptions": {
+    "effort": "high",
+    "model": "claude-opus-5-5"
+  }
+}

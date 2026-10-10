@@ -1,0 +1,47 @@
+{
+  "attempts": 1,
+  "cliVersion": "2.1.294",
+  "configListingSha256": "47aa04258852fab9a706f3f0c14cee22306d69fbb6fdfbde8c11854bd54997bc",
+  "durationMs": 5219,
+  "effort": "high",
+  "functionId": "FF-N02",
+  "ignoredOptions": [
+    "maxTokens"
+  ],
+  "isolationProbeSha256": "97a2e2d0af1100c13c55e028c1a0c71f069093c3d08705af122aaeb302f1a641",
+  "key": "08061a67e716b7ea1bb8e9cb8ce90c8aaba89ddda7b2e43c9978a311508a8715-r0-0",
+  "model": "claude-opus-5-5",
+  "outcome": {
+    "kind": "valid"
+  },
+  "parsedVerdict": {
+    "confidence": 0.93,
+    "evidence": [
+      "src/domain/task-status.ts: TASK_STATUSES and TaskStatus define the domain value set for task status",
+      "src/domain/task-status.ts: parseTaskStatus enforces the invariant that a status must be one of the allowed values, and throws the domain ValidationError",
+      "src/domain/task-status.ts: no I/O, HTTP, database or framework code is present"
+    ],
+    "pass": true,
+    "reasoning": "The file sets up the TaskStatus value type: the allowed status values, the type built from them, and a parse function that enforces that domain invariant. It raises a domain ValidationError. The file has no persistence, transport, framework or orchestration logic. Checking incoming values against the allowed statuses is a domain rule, so every responsibility fits the domain layer.",
+    "violations": []
+  },
+  "projectId": "claude-sonnet-5-5/task-management/minimal-prose/run-0",
+  "prompt": "## Rule\nThe unit's responsibilities match the role of its declared layer.\n\n## Rubric\nPass: Every responsibility in the file belongs to the role and kind of its declared layer, and agrees with any ADR prose given.\nFail: The file carries a responsibility that belongs to a different layer kind, for example persistence, transport or framework logic in a domain file, or business rules in an infrastructure or presentation file.\nEvidence required: Name the file and cite the function, method or statement that carries the misplaced responsibility, and the layer kind it belongs to.\nOut of scope: import direction and layer-dependency rules, which are checked symbolically.\n\n## Layer model\n- domain (kind: domain): src/domain/**\n- application (kind: application): src/application/**\n- infrastructure (kind: infrastructure): src/infrastructure/**\n\n## Unit\nKind: file\nId: src/domain/task-status.ts\nLayer: domain\nUnit files:\n- src/domain/task-status.ts\n\n## Source\n=====SOURCE-BEGIN src/domain/task-status.ts=====\nimport { ValidationError } from \"./domain-error\";\n\nexport const TASK_STATUSES = [\"todo\", \"in_progress\", \"done\"] as const;\nexport type TaskStatus = (typeof TASK_STATUSES)[number];\n\nexport function parseTaskStatus(value: unknown): TaskStatus {\n  if (typeof value === \"string\" && (TASK_STATUSES as readonly string[]).includes(value)) {\n    return value as TaskStatus;\n  }\n  throw new ValidationError(`status must be one of: ${TASK_STATUSES.join(\", \")}`);\n}\n\n=====SOURCE-END=====\n\n## Graph excerpt\n{\"edges\":[{\"from\":\"src/application/create-task-use-case.ts\",\"to\":\"src/domain/task-status.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/application/dtos.ts\",\"to\":\"src/domain/task-status.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/application/list-tasks-use-case.ts\",\"to\":\"src/domain/task-status.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/domain/task-repository.ts\",\"to\":\"src/domain/task-status.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/domain/task-status.ts\",\"to\":\"src/domain/domain-error.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/domain/task.ts\",\"to\":\"src/domain/task-status.ts\",\"type\":\"IMPORTS\"}],\"nodes\":[{\"kind\":\"File\",\"layer\":\"application\",\"path\":\"src/application/create-task-use-case.ts\"},{\"kind\":\"File\",\"layer\":\"application\",\"path\":\"src/application/dtos.ts\"},{\"kind\":\"File\",\"layer\":\"application\",\"path\":\"src/application/list-tasks-use-case.ts\"},{\"kind\":\"File\",\"layer\":\"domain\",\"path\":\"src/domain/domain-error.ts\"},{\"kind\":\"File\",\"layer\":\"domain\",\"path\":\"src/domain/task-repository.ts\"},{\"kind\":\"File\",\"layer\":\"domain\",\"path\":\"src/domain/task-status.ts\"},{\"kind\":\"File\",\"layer\":\"domain\",\"path\":\"src/domain/task.ts\"}]}\n\n## Instructions\nJudge the unit against the rule and rubric. Return the JSON object the schema requires. Set pass to false if any file of the unit fails the rubric.\n",
+  "provider": "claude-cli",
+  "recordedAt": "2026-10-10T22:37:28.878Z",
+  "repetition": 0,
+  "requestHash": "08061a67e716b7ea1bb8e9cb8ce90c8aaba89ddda7b2e43c9978a311508a8715",
+  "resolvedModel": "claude-opus-5-5",
+  "response": "{\"is_error\":false,\"modelUsage\":{\"claude-opus-5-5\":{\"inputTokens\":2,\"outputTokens\":382}},\"result\":\"{\\\"pass\\\":true,\\\"confidence\\\":0.93,\\\"reasoning\\\":\\\"The file sets up the TaskStatus value type: the allowed status values, the type built from them, and a parse function that enforces that domain invariant. It raises a domain ValidationError. The file has no persistence, transport, framework or orchestration logic. Checking incoming values against the allowed statuses is a domain rule, so every responsibility fits the domain layer.\\\",\\\"evidence\\\":[\\\"src/domain/task-status.ts: TASK_STATUSES and TaskStatus define the domain value set for task status\\\",\\\"src/domain/task-status.ts: parseTaskStatus enforces the invariant that a status must be one of the allowed values, and throws the domain ValidationError\\\",\\\"src/domain/task-status.ts: no I/O, HTTP, database or framework code is present\\\"],\\\"violations\\\":[]}\",\"structured_output\":{\"confidence\":0.93,\"evidence\":[\"src/domain/task-status.ts: TASK_STATUSES and TaskStatus define the domain value set for task status\",\"src/domain/task-status.ts: parseTaskStatus enforces the invariant that a status must be one of the allowed values, and throws the domain ValidationError\",\"src/domain/task-status.ts: no I/O, HTTP, database or framework code is present\"],\"pass\":true,\"reasoning\":\"The file sets up the TaskStatus value type: the allowed status values, the type built from them, and a parse function that enforces that domain invariant. It raises a domain ValidationError. The file has no persistence, transport, framework or orchestration logic. Checking incoming values against the allowed statuses is a domain rule, so every responsibility fits the domain layer.\",\"violations\":[]}}",
+  "runIndex": 0,
+  "schemaVersion": 2,
+  "unitId": "src/domain/task-status.ts",
+  "usage": {
+    "inputTokens": 2590,
+    "outputTokens": 382
+  },
+  "usedOptions": {
+    "effort": "high",
+    "model": "claude-opus-5-5"
+  }
+}

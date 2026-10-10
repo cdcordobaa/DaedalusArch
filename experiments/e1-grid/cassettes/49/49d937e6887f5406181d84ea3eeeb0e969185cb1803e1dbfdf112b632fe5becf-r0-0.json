@@ -1,0 +1,47 @@
+{
+  "attempts": 1,
+  "cliVersion": "2.1.294",
+  "configListingSha256": "47aa04258852fab9a706f3f0c14cee22306d69fbb6fdfbde8c11854bd54997bc",
+  "durationMs": 5295,
+  "effort": "high",
+  "functionId": "FF-N02",
+  "ignoredOptions": [
+    "maxTokens"
+  ],
+  "isolationProbeSha256": "97a2e2d0af1100c13c55e028c1a0c71f069093c3d08705af122aaeb302f1a641",
+  "key": "49d937e6887f5406181d84ea3eeeb0e969185cb1803e1dbfdf112b632fe5becf-r0-0",
+  "model": "claude-opus-5-5",
+  "outcome": {
+    "kind": "valid"
+  },
+  "parsedVerdict": {
+    "confidence": 0.97,
+    "evidence": [
+      "src/infrastructure/system/RandomIdGenerator.ts: class RandomIdGenerator implements IdGenerator, which is an adapter for an application port",
+      "src/infrastructure/system/RandomIdGenerator.ts: next() only returns randomUUID() from node:crypto, a platform/system capability",
+      "The file contains no business rules or orchestration logic"
+    ],
+    "pass": true,
+    "reasoning": "RandomIdGenerator is an infrastructure adapter. It implements the application port IdGenerator by delegating to node:crypto's randomUUID. Wrapping a system or platform capability behind a port is a normal infrastructure job. The file holds no business rules, domain invariants, application orchestration or presentation logic. Import direction is out of scope.",
+    "violations": []
+  },
+  "projectId": "claude-opus-5-5/order-fulfilment/full-aac/run-1",
+  "prompt": "## Rule\nThe unit's responsibilities match the role of its declared layer.\n\n## Rubric\nPass: Every responsibility in the file belongs to the role and kind of its declared layer, and agrees with any ADR prose given.\nFail: The file carries a responsibility that belongs to a different layer kind, for example persistence, transport or framework logic in a domain file, or business rules in an infrastructure or presentation file.\nEvidence required: Name the file and cite the function, method or statement that carries the misplaced responsibility, and the layer kind it belongs to.\nOut of scope: import direction and layer-dependency rules, which are checked symbolically.\n\n## Layer model\n- domain (kind: domain): src/domain/**\n- application (kind: application): src/application/**\n- infrastructure (kind: infrastructure): src/infrastructure/**\n\n## Unit\nKind: file\nId: src/infrastructure/system/RandomIdGenerator.ts\nLayer: infrastructure\nUnit files:\n- src/infrastructure/system/RandomIdGenerator.ts\n\n## Source\n=====SOURCE-BEGIN src/infrastructure/system/RandomIdGenerator.ts=====\nimport { randomUUID } from 'node:crypto';\nimport type { IdGenerator } from '../../application/ports/IdGenerator';\n\nexport class RandomIdGenerator implements IdGenerator {\n  next(): string {\n    return randomUUID();\n  }\n}\n\n=====SOURCE-END=====\n\n## Graph excerpt\n{\"edges\":[{\"from\":\"RandomIdGenerator@src/infrastructure/system/RandomIdGenerator.ts\",\"to\":\"IdGenerator@src/application/ports/IdGenerator.ts\",\"type\":\"IMPLEMENTS\"},{\"from\":\"src/infrastructure/config/container.ts\",\"to\":\"src/infrastructure/system/RandomIdGenerator.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/infrastructure/system/RandomIdGenerator.ts\",\"to\":\"crypto\",\"type\":\"IMPORTS\"},{\"from\":\"src/infrastructure/system/RandomIdGenerator.ts\",\"to\":\"src/application/ports/IdGenerator.ts\",\"type\":\"IMPORTS\"}],\"nodes\":[{\"kind\":\"Class\",\"layer\":\"infrastructure\",\"name\":\"RandomIdGenerator\",\"path\":\"src/infrastructure/system/RandomIdGenerator.ts\"},{\"kind\":\"File\",\"layer\":\"application\",\"path\":\"src/application/ports/IdGenerator.ts\"},{\"kind\":\"File\",\"layer\":\"infrastructure\",\"path\":\"src/infrastructure/config/container.ts\"},{\"kind\":\"File\",\"layer\":\"infrastructure\",\"path\":\"src/infrastructure/system/RandomIdGenerator.ts\"},{\"kind\":\"Interface\",\"layer\":\"application\",\"name\":\"IdGenerator\",\"path\":\"src/application/ports/IdGenerator.ts\"},{\"kind\":\"Package\",\"layer\":null,\"path\":\"crypto\"}]}\n\n## Instructions\nJudge the unit against the rule and rubric. Return the JSON object the schema requires. Set pass to false if any file of the unit fails the rubric.\n",
+  "provider": "claude-cli",
+  "recordedAt": "2026-10-10T22:21:12.181Z",
+  "repetition": 0,
+  "requestHash": "49d937e6887f5406181d84ea3eeeb0e969185cb1803e1dbfdf112b632fe5becf",
+  "resolvedModel": "claude-opus-5-5",
+  "response": "{\"is_error\":false,\"modelUsage\":{\"claude-opus-5-5\":{\"inputTokens\":2,\"outputTokens\":380}},\"result\":\"{\\\"pass\\\":true,\\\"confidence\\\":0.97,\\\"reasoning\\\":\\\"RandomIdGenerator is an infrastructure adapter. It implements the application port IdGenerator by delegating to node:crypto's randomUUID. Wrapping a system or platform capability behind a port is a normal infrastructure job. The file holds no business rules, domain invariants, application orchestration or presentation logic. Import direction is out of scope.\\\",\\\"evidence\\\":[\\\"src/infrastructure/system/RandomIdGenerator.ts: class RandomIdGenerator implements IdGenerator, which is an adapter for an application port\\\",\\\"src/infrastructure/system/RandomIdGenerator.ts: next() only returns randomUUID() from node:crypto, a platform/system capability\\\",\\\"The file contains no business rules or orchestration logic\\\"],\\\"violations\\\":[]}\",\"structured_output\":{\"confidence\":0.97,\"evidence\":[\"src/infrastructure/system/RandomIdGenerator.ts: class RandomIdGenerator implements IdGenerator, which is an adapter for an application port\",\"src/infrastructure/system/RandomIdGenerator.ts: next() only returns randomUUID() from node:crypto, a platform/system capability\",\"The file contains no business rules or orchestration logic\"],\"pass\":true,\"reasoning\":\"RandomIdGenerator is an infrastructure adapter. It implements the application port IdGenerator by delegating to node:crypto's randomUUID. Wrapping a system or platform capability behind a port is a normal infrastructure job. The file holds no business rules, domain invariants, application orchestration or presentation logic. Import direction is out of scope.\",\"violations\":[]}}",
+  "runIndex": 0,
+  "schemaVersion": 2,
+  "unitId": "src/infrastructure/system/RandomIdGenerator.ts",
+  "usage": {
+    "inputTokens": 2522,
+    "outputTokens": 380
+  },
+  "usedOptions": {
+    "effort": "high",
+    "model": "claude-opus-5-5"
+  }
+}

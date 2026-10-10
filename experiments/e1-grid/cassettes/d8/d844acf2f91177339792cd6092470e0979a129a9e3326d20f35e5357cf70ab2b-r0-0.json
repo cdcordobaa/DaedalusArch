@@ -1,0 +1,47 @@
+{
+  "attempts": 1,
+  "cliVersion": "2.1.294",
+  "configListingSha256": "47aa04258852fab9a706f3f0c14cee22306d69fbb6fdfbde8c11854bd54997bc",
+  "durationMs": 6480,
+  "effort": "high",
+  "functionId": "FF-N02",
+  "ignoredOptions": [
+    "maxTokens"
+  ],
+  "isolationProbeSha256": "97a2e2d0af1100c13c55e028c1a0c71f069093c3d08705af122aaeb302f1a641",
+  "key": "d844acf2f91177339792cd6092470e0979a129a9e3326d20f35e5357cf70ab2b-r0-0",
+  "model": "claude-opus-5-5",
+  "outcome": {
+    "kind": "valid"
+  },
+  "parsedVerdict": {
+    "confidence": 0.95,
+    "evidence": [
+      "src/domain/user/UserRepository.ts: `export interface UserRepository { save(user: User): Promise<void>; findById(id: string): Promise<User | undefined>; findAll(): Promise<User[]>; }` declares a port and contains no implementation.",
+      "The graph excerpt shows that InMemoryUserRepository in src/infrastructure/persistence implements UserRepository, so the persistence code lives in the infrastructure layer.",
+      "The only import is './User', a domain entity."
+    ],
+    "pass": true,
+    "reasoning": "src/domain/user/UserRepository.ts only declares a repository port, the UserRepository interface with save, findById and findAll, and every signature uses domain types. It has no persistence implementation, transport code, framework code or business logic. Putting a repository interface in the domain layer is standard practice. The graph excerpt agrees: InMemoryUserRepository in the infrastructure layer implements it, and application services receive it through their constructors. So the file's only responsibility belongs in the domain layer.",
+    "violations": []
+  },
+  "projectId": "claude-opus-5-5/task-management/full-aac/run-1",
+  "prompt": "## Rule\nThe unit's responsibilities match the role of its declared layer.\n\n## Rubric\nPass: Every responsibility in the file belongs to the role and kind of its declared layer, and agrees with any ADR prose given.\nFail: The file carries a responsibility that belongs to a different layer kind, for example persistence, transport or framework logic in a domain file, or business rules in an infrastructure or presentation file.\nEvidence required: Name the file and cite the function, method or statement that carries the misplaced responsibility, and the layer kind it belongs to.\nOut of scope: import direction and layer-dependency rules, which are checked symbolically.\n\n## Layer model\n- domain (kind: domain): src/domain/**\n- application (kind: application): src/application/**\n- infrastructure (kind: infrastructure): src/infrastructure/**\n\n## Unit\nKind: file\nId: src/domain/user/UserRepository.ts\nLayer: domain\nUnit files:\n- src/domain/user/UserRepository.ts\n\n## Source\n=====SOURCE-BEGIN src/domain/user/UserRepository.ts=====\nimport { User } from './User';\n\nexport interface UserRepository {\n  save(user: User): Promise<void>;\n  findById(id: string): Promise<User | undefined>;\n  findAll(): Promise<User[]>;\n}\n\n=====SOURCE-END=====\n\n## Graph excerpt\n{\"edges\":[{\"from\":\"AssignTaskService@src/application/task/AssignTaskService.ts\",\"to\":\"UserRepository@src/domain/user/UserRepository.ts\",\"type\":\"CONSTRUCTOR_INJECTS\"},{\"from\":\"CreateUserService@src/application/user/CreateUserService.ts\",\"to\":\"UserRepository@src/domain/user/UserRepository.ts\",\"type\":\"CONSTRUCTOR_INJECTS\"},{\"from\":\"InMemoryUserRepository@src/infrastructure/persistence/InMemoryUserRepository.ts\",\"to\":\"UserRepository@src/domain/user/UserRepository.ts\",\"type\":\"IMPLEMENTS\"},{\"from\":\"ListUsersService@src/application/user/ListUsersService.ts\",\"to\":\"UserRepository@src/domain/user/UserRepository.ts\",\"type\":\"CONSTRUCTOR_INJECTS\"},{\"from\":\"src/application/task/AssignTaskService.ts\",\"to\":\"src/domain/user/UserRepository.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/application/user/CreateUserService.ts\",\"to\":\"src/domain/user/UserRepository.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/application/user/ListUsersService.ts\",\"to\":\"src/domain/user/UserRepository.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/domain/user/UserRepository.ts\",\"to\":\"src/domain/user/User.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/infrastructure/composition/createRepositories.ts\",\"to\":\"src/domain/user/UserRepository.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/infrastructure/persistence/InMemoryUserRepository.ts\",\"to\":\"src/domain/user/UserRepository.ts\",\"type\":\"IMPORTS\"}],\"nodes\":[{\"kind\":\"Class\",\"layer\":\"application\",\"name\":\"AssignTaskService\",\"path\":\"src/application/task/AssignTaskService.ts\"},{\"kind\":\"Class\",\"layer\":\"application\",\"name\":\"CreateUserService\",\"path\":\"src/application/user/CreateUserService.ts\"},{\"kind\":\"Class\",\"layer\":\"application\",\"name\":\"ListUsersService\",\"path\":\"src/application/user/ListUsersService.ts\"},{\"kind\":\"Class\",\"layer\":\"infrastructure\",\"name\":\"InMemoryUserRepository\",\"path\":\"src/infrastructure/persistence/InMemoryUserRepository.ts\"},{\"kind\":\"File\",\"layer\":\"application\",\"path\":\"src/application/task/AssignTaskService.ts\"},{\"kind\":\"File\",\"layer\":\"application\",\"path\":\"src/application/user/CreateUserService.ts\"},{\"kind\":\"File\",\"layer\":\"application\",\"path\":\"src/application/user/ListUsersService.ts\"},{\"kind\":\"File\",\"layer\":\"domain\",\"path\":\"src/domain/user/User.ts\"},{\"kind\":\"File\",\"layer\":\"domain\",\"path\":\"src/domain/user/UserRepository.ts\"},{\"kind\":\"File\",\"layer\":\"infrastructure\",\"path\":\"src/infrastructure/composition/createRepositories.ts\"},{\"kind\":\"File\",\"layer\":\"infrastructure\",\"path\":\"src/infrastructure/persistence/InMemoryUserRepository.ts\"},{\"kind\":\"Interface\",\"layer\":\"domain\",\"name\":\"UserRepository\",\"path\":\"src/domain/user/UserRepository.ts\"}]}\n\n## Instructions\nJudge the unit against the rule and rubric. Return the JSON object the schema requires. Set pass to false if any file of the unit fails the rubric.\n",
+  "provider": "claude-cli",
+  "recordedAt": "2026-10-10T22:06:53.116Z",
+  "repetition": 0,
+  "requestHash": "d844acf2f91177339792cd6092470e0979a129a9e3326d20f35e5357cf70ab2b",
+  "resolvedModel": "claude-opus-5-5",
+  "response": "{\"is_error\":false,\"modelUsage\":{\"claude-opus-5-5\":{\"inputTokens\":2,\"outputTokens\":465}},\"result\":\"{\\\"pass\\\":true,\\\"confidence\\\":0.95,\\\"reasoning\\\":\\\"src/domain/user/UserRepository.ts only declares a repository port, the UserRepository interface with save, findById and findAll, and every signature uses domain types. It has no persistence implementation, transport code, framework code or business logic. Putting a repository interface in the domain layer is standard practice. The graph excerpt agrees: InMemoryUserRepository in the infrastructure layer implements it, and application services receive it through their constructors. So the file's only responsibility belongs in the domain layer.\\\",\\\"evidence\\\":[\\\"src/domain/user/UserRepository.ts: `export interface UserRepository { save(user: User): Promise<void>; findById(id: string): Promise<User | undefined>; findAll(): Promise<User[]>; }` declares a port and contains no implementation.\\\",\\\"The graph excerpt shows that InMemoryUserRepository in src/infrastructure/persistence implements UserRepository, so the persistence code lives in the infrastructure layer.\\\",\\\"The only import is './User', a domain entity.\\\"],\\\"violations\\\":[]}\",\"structured_output\":{\"confidence\":0.95,\"evidence\":[\"src/domain/user/UserRepository.ts: `export interface UserRepository { save(user: User): Promise<void>; findById(id: string): Promise<User | undefined>; findAll(): Promise<User[]>; }` declares a port and contains no implementation.\",\"The graph excerpt shows that InMemoryUserRepository in src/infrastructure/persistence implements UserRepository, so the persistence code lives in the infrastructure layer.\",\"The only import is './User', a domain entity.\"],\"pass\":true,\"reasoning\":\"src/domain/user/UserRepository.ts only declares a repository port, the UserRepository interface with save, findById and findAll, and every signature uses domain types. It has no persistence implementation, transport code, framework code or business logic. Putting a repository interface in the domain layer is standard practice. The graph excerpt agrees: InMemoryUserRepository in the infrastructure layer implements it, and application services receive it through their constructors. So the file's only responsibility belongs in the domain layer.\",\"violations\":[]}}",
+  "runIndex": 0,
+  "schemaVersion": 2,
+  "unitId": "src/domain/user/UserRepository.ts",
+  "usage": {
+    "inputTokens": 3122,
+    "outputTokens": 465
+  },
+  "usedOptions": {
+    "effort": "high",
+    "model": "claude-opus-5-5"
+  }
+}

@@ -1,0 +1,48 @@
+{
+  "attempts": 1,
+  "cliVersion": "2.1.294",
+  "configListingSha256": "47aa04258852fab9a706f3f0c14cee22306d69fbb6fdfbde8c11854bd54997bc",
+  "durationMs": 6996,
+  "effort": "high",
+  "functionId": "FF-N02",
+  "ignoredOptions": [
+    "maxTokens"
+  ],
+  "isolationProbeSha256": "97a2e2d0af1100c13c55e028c1a0c71f069093c3d08705af122aaeb302f1a641",
+  "key": "9051adf0e72a9ca8ab69b6c7df32d343472ca0cb2e9ab0c88e994c0ee6e7cdfd-r0-2",
+  "model": "claude-opus-5-5",
+  "outcome": {
+    "kind": "valid"
+  },
+  "parsedVerdict": {
+    "confidence": 0.92,
+    "evidence": [
+      "InMemoryProductRepository: get/list/save only read and write a private Map<string, Product>, so it is pure storage.",
+      "InMemoryOrderRepository.list(state?) uses `all.filter((o) => o.state === state)`. This is a query filter, not domain logic.",
+      "InMemoryOrderRepository.nextId() increments a counter and returns `ord-${counter}`. Generating persistence IDs is an infrastructure concern.",
+      "Both classes implement application ports (IMPLEMENTS edges to OrderRepository and ProductRepository), which is the expected adapter role."
+    ],
+    "pass": true,
+    "reasoning": "src/infrastructure/in-memory-repositories.ts holds only persistence adapters: two Map-backed repositories that implement the application-layer ports ProductRepository and OrderRepository. Every method does storage work and nothing else: get, list, save and nextId. InMemoryOrderRepository.list(state) filters by OrderState, which is an ordinary query criterion, not a business rule. nextId() generates identifiers, which is a normal job for a persistence adapter. No method enforces domain invariants, changes order state, calculates prices or applies business policy. All of these responsibilities belong in the infrastructure layer.",
+    "violations": []
+  },
+  "projectId": "claude-sonnet-5-5/order-fulfilment/none/run-0",
+  "prompt": "## Rule\nThe unit's responsibilities match the role of its declared layer.\n\n## Rubric\nPass: Every responsibility in the file belongs to the role and kind of its declared layer, and agrees with any ADR prose given.\nFail: The file carries a responsibility that belongs to a different layer kind, for example persistence, transport or framework logic in a domain file, or business rules in an infrastructure or presentation file.\nEvidence required: Name the file and cite the function, method or statement that carries the misplaced responsibility, and the layer kind it belongs to.\nOut of scope: import direction and layer-dependency rules, which are checked symbolically.\n\n## Layer model\n- domain (kind: domain): src/domain/**\n- application (kind: application): src/application/**\n- infrastructure (kind: infrastructure): src/infrastructure/**\n\n## Unit\nKind: file\nId: src/infrastructure/in-memory-repositories.ts\nLayer: infrastructure\nUnit files:\n- src/infrastructure/in-memory-repositories.ts\n\n## Source\n=====SOURCE-BEGIN src/infrastructure/in-memory-repositories.ts=====\nimport { OrderRepository, ProductRepository } from \"../application/ports\";\nimport { Order, OrderState } from \"../domain/order\";\nimport { Product } from \"../domain/product\";\n\nexport class InMemoryProductRepository implements ProductRepository {\n  private readonly items = new Map<string, Product>();\n\n  get(id: string): Product | undefined {\n    return this.items.get(id);\n  }\n\n  list(): Product[] {\n    return [...this.items.values()];\n  }\n\n  save(product: Product): void {\n    this.items.set(product.id, product);\n  }\n}\n\nexport class InMemoryOrderRepository implements OrderRepository {\n  private readonly items = new Map<string, Order>();\n  private counter = 0;\n\n  get(id: string): Order | undefined {\n    return this.items.get(id);\n  }\n\n  list(state?: OrderState): Order[] {\n    const all = [...this.items.values()];\n    return state ? all.filter((o) => o.state === state) : all;\n  }\n\n  save(order: Order): void {\n    this.items.set(order.id, order);\n  }\n\n  nextId(): string {\n    this.counter += 1;\n    return `ord-${this.counter}`;\n  }\n}\n\n=====SOURCE-END=====\n\n## Graph excerpt\n{\"edges\":[{\"from\":\"InMemoryOrderRepository@src/infrastructure/in-memory-repositories.ts\",\"to\":\"OrderRepository@src/application/ports.ts\",\"type\":\"IMPLEMENTS\"},{\"from\":\"InMemoryProductRepository@src/infrastructure/in-memory-repositories.ts\",\"to\":\"ProductRepository@src/application/ports.ts\",\"type\":\"IMPLEMENTS\"},{\"from\":\"src/infrastructure/in-memory-repositories.ts\",\"to\":\"src/application/ports.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/infrastructure/in-memory-repositories.ts\",\"to\":\"src/domain/order.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/infrastructure/in-memory-repositories.ts\",\"to\":\"src/domain/product.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/infrastructure/server.ts\",\"to\":\"src/infrastructure/in-memory-repositories.ts\",\"type\":\"IMPORTS\"}],\"nodes\":[{\"kind\":\"Class\",\"layer\":\"infrastructure\",\"name\":\"InMemoryOrderRepository\",\"path\":\"src/infrastructure/in-memory-repositories.ts\"},{\"kind\":\"Class\",\"layer\":\"infrastructure\",\"name\":\"InMemoryProductRepository\",\"path\":\"src/infrastructure/in-memory-repositories.ts\"},{\"kind\":\"File\",\"layer\":\"application\",\"path\":\"src/application/ports.ts\"},{\"kind\":\"File\",\"layer\":\"domain\",\"path\":\"src/domain/order.ts\"},{\"kind\":\"File\",\"layer\":\"domain\",\"path\":\"src/domain/product.ts\"},{\"kind\":\"File\",\"layer\":\"infrastructure\",\"path\":\"src/infrastructure/in-memory-repositories.ts\"},{\"kind\":\"File\",\"layer\":\"infrastructure\",\"path\":\"src/infrastructure/server.ts\"},{\"kind\":\"Interface\",\"layer\":\"application\",\"name\":\"OrderRepository\",\"path\":\"src/application/ports.ts\"},{\"kind\":\"Interface\",\"layer\":\"application\",\"name\":\"ProductRepository\",\"path\":\"src/application/ports.ts\"}]}\n\n## Instructions\nJudge the unit against the rule and rubric. Return the JSON object the schema requires. Set pass to false if any file of the unit fails the rubric.\n",
+  "provider": "claude-cli",
+  "recordedAt": "2026-10-10T22:31:25.740Z",
+  "repetition": 0,
+  "requestHash": "9051adf0e72a9ca8ab69b6c7df32d343472ca0cb2e9ab0c88e994c0ee6e7cdfd",
+  "resolvedModel": "claude-opus-5-5",
+  "response": "{\"is_error\":false,\"modelUsage\":{\"claude-opus-5-5\":{\"inputTokens\":2,\"outputTokens\":593}},\"result\":\"{\\\"pass\\\":true,\\\"confidence\\\":0.92,\\\"reasoning\\\":\\\"src/infrastructure/in-memory-repositories.ts holds only persistence adapters: two Map-backed repositories that implement the application-layer ports ProductRepository and OrderRepository. Every method does storage work and nothing else: get, list, save and nextId. InMemoryOrderRepository.list(state) filters by OrderState, which is an ordinary query criterion, not a business rule. nextId() generates identifiers, which is a normal job for a persistence adapter. No method enforces domain invariants, changes order state, calculates prices or applies business policy. All of these responsibilities belong in the infrastructure layer.\\\",\\\"evidence\\\":[\\\"InMemoryProductRepository: get/list/save only read and write a private Map<string, Product>, so it is pure storage.\\\",\\\"InMemoryOrderRepository.list(state?) uses `all.filter((o) => o.state === state)`. This is a query filter, not domain logic.\\\",\\\"InMemoryOrderRepository.nextId() increments a counter and returns `ord-${counter}`. Generating persistence IDs is an infrastructure concern.\\\",\\\"Both classes implement application ports (IMPLEMENTS edges to OrderRepository and ProductRepository), which is the expected adapter role.\\\"],\\\"violations\\\":[]}\",\"structured_output\":{\"confidence\":0.92,\"evidence\":[\"InMemoryProductRepository: get/list/save only read and write a private Map<string, Product>, so it is pure storage.\",\"InMemoryOrderRepository.list(state?) uses `all.filter((o) => o.state === state)`. This is a query filter, not domain logic.\",\"InMemoryOrderRepository.nextId() increments a counter and returns `ord-${counter}`. Generating persistence IDs is an infrastructure concern.\",\"Both classes implement application ports (IMPLEMENTS edges to OrderRepository and ProductRepository), which is the expected adapter role.\"],\"pass\":true,\"reasoning\":\"src/infrastructure/in-memory-repositories.ts holds only persistence adapters: two Map-backed repositories that implement the application-layer ports ProductRepository and OrderRepository. Every method does storage work and nothing else: get, list, save and nextId. InMemoryOrderRepository.list(state) filters by OrderState, which is an ordinary query criterion, not a business rule. nextId() generates identifiers, which is a normal job for a persistence adapter. No method enforces domain invariants, changes order state, calculates prices or applies business policy. All of these responsibilities belong in the infrastructure layer.\",\"violations\":[]}}",
+  "runIndex": 2,
+  "schemaVersion": 2,
+  "unitId": "src/infrastructure/in-memory-repositories.ts",
+  "usage": {
+    "inputTokens": 3021,
+    "outputTokens": 593
+  },
+  "usedOptions": {
+    "effort": "high",
+    "model": "claude-opus-5-5"
+  }
+}

@@ -1,0 +1,47 @@
+{
+  "attempts": 1,
+  "cliVersion": "2.1.294",
+  "configListingSha256": "47aa04258852fab9a706f3f0c14cee22306d69fbb6fdfbde8c11854bd54997bc",
+  "durationMs": 5758,
+  "effort": "high",
+  "functionId": "FF-N02",
+  "ignoredOptions": [
+    "maxTokens"
+  ],
+  "isolationProbeSha256": "97a2e2d0af1100c13c55e028c1a0c71f069093c3d08705af122aaeb302f1a641",
+  "key": "d44f4aa99f5d33e2c9cbabe7c98a7ca5984c9364e39cd0ab72885085a0179476-r0-0",
+  "model": "claude-opus-5-5",
+  "outcome": {
+    "kind": "valid"
+  },
+  "parsedVerdict": {
+    "confidence": 0.95,
+    "evidence": [
+      "src/infrastructure/uuid-id-generator.ts: class UuidIdGenerator implements IdGenerator (the domain port), so it is an infrastructure adapter.",
+      "src/infrastructure/uuid-id-generator.ts: next() only returns randomUUID() from 'crypto', which is a platform/technical concern and fits the infrastructure layer.",
+      "No business rules or decision logic are present in the file."
+    ],
+    "pass": true,
+    "reasoning": "The file is in the infrastructure layer. Its only job is to provide a concrete adapter for the domain port IdGenerator, and it does this by delegating to Node's crypto.randomUUID. Wrapping a platform or library capability behind a domain-defined interface is exactly what an infrastructure layer is for. The file contains no business rules, no domain logic and no orchestration that belongs in the application layer.",
+    "violations": []
+  },
+  "projectId": "claude-sonnet-5-5/task-management/minimal-prose/run-0",
+  "prompt": "## Rule\nThe unit's responsibilities match the role of its declared layer.\n\n## Rubric\nPass: Every responsibility in the file belongs to the role and kind of its declared layer, and agrees with any ADR prose given.\nFail: The file carries a responsibility that belongs to a different layer kind, for example persistence, transport or framework logic in a domain file, or business rules in an infrastructure or presentation file.\nEvidence required: Name the file and cite the function, method or statement that carries the misplaced responsibility, and the layer kind it belongs to.\nOut of scope: import direction and layer-dependency rules, which are checked symbolically.\n\n## Layer model\n- domain (kind: domain): src/domain/**\n- application (kind: application): src/application/**\n- infrastructure (kind: infrastructure): src/infrastructure/**\n\n## Unit\nKind: file\nId: src/infrastructure/uuid-id-generator.ts\nLayer: infrastructure\nUnit files:\n- src/infrastructure/uuid-id-generator.ts\n\n## Source\n=====SOURCE-BEGIN src/infrastructure/uuid-id-generator.ts=====\nimport { randomUUID } from \"crypto\";\nimport { IdGenerator } from \"../domain/id-generator\";\n\nexport class UuidIdGenerator implements IdGenerator {\n  next(): string {\n    return randomUUID();\n  }\n}\n\n=====SOURCE-END=====\n\n## Graph excerpt\n{\"edges\":[{\"from\":\"UuidIdGenerator@src/infrastructure/uuid-id-generator.ts\",\"to\":\"IdGenerator@src/domain/id-generator.ts\",\"type\":\"IMPLEMENTS\"},{\"from\":\"src/infrastructure/app.ts\",\"to\":\"src/infrastructure/uuid-id-generator.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/infrastructure/uuid-id-generator.ts\",\"to\":\"crypto\",\"type\":\"IMPORTS\"},{\"from\":\"src/infrastructure/uuid-id-generator.ts\",\"to\":\"src/domain/id-generator.ts\",\"type\":\"IMPORTS\"}],\"nodes\":[{\"kind\":\"Class\",\"layer\":\"infrastructure\",\"name\":\"UuidIdGenerator\",\"path\":\"src/infrastructure/uuid-id-generator.ts\"},{\"kind\":\"File\",\"layer\":\"domain\",\"path\":\"src/domain/id-generator.ts\"},{\"kind\":\"File\",\"layer\":\"infrastructure\",\"path\":\"src/infrastructure/app.ts\"},{\"kind\":\"File\",\"layer\":\"infrastructure\",\"path\":\"src/infrastructure/uuid-id-generator.ts\"},{\"kind\":\"Interface\",\"layer\":\"domain\",\"name\":\"IdGenerator\",\"path\":\"src/domain/id-generator.ts\"},{\"kind\":\"Package\",\"layer\":null,\"path\":\"crypto\"}]}\n\n## Instructions\nJudge the unit against the rule and rubric. Return the JSON object the schema requires. Set pass to false if any file of the unit fails the rubric.\n",
+  "provider": "claude-cli",
+  "recordedAt": "2026-10-10T22:38:26.820Z",
+  "repetition": 0,
+  "requestHash": "d44f4aa99f5d33e2c9cbabe7c98a7ca5984c9364e39cd0ab72885085a0179476",
+  "resolvedModel": "claude-opus-5-5",
+  "response": "{\"is_error\":false,\"modelUsage\":{\"claude-opus-5-5\":{\"inputTokens\":2,\"outputTokens\":413}},\"result\":\"{\\\"pass\\\":true,\\\"confidence\\\":0.95,\\\"reasoning\\\":\\\"The file is in the infrastructure layer. Its only job is to provide a concrete adapter for the domain port IdGenerator, and it does this by delegating to Node's crypto.randomUUID. Wrapping a platform or library capability behind a domain-defined interface is exactly what an infrastructure layer is for. The file contains no business rules, no domain logic and no orchestration that belongs in the application layer.\\\",\\\"evidence\\\":[\\\"src/infrastructure/uuid-id-generator.ts: class UuidIdGenerator implements IdGenerator (the domain port), so it is an infrastructure adapter.\\\",\\\"src/infrastructure/uuid-id-generator.ts: next() only returns randomUUID() from 'crypto', which is a platform/technical concern and fits the infrastructure layer.\\\",\\\"No business rules or decision logic are present in the file.\\\"],\\\"violations\\\":[]}\",\"structured_output\":{\"confidence\":0.95,\"evidence\":[\"src/infrastructure/uuid-id-generator.ts: class UuidIdGenerator implements IdGenerator (the domain port), so it is an infrastructure adapter.\",\"src/infrastructure/uuid-id-generator.ts: next() only returns randomUUID() from 'crypto', which is a platform/technical concern and fits the infrastructure layer.\",\"No business rules or decision logic are present in the file.\"],\"pass\":true,\"reasoning\":\"The file is in the infrastructure layer. Its only job is to provide a concrete adapter for the domain port IdGenerator, and it does this by delegating to Node's crypto.randomUUID. Wrapping a platform or library capability behind a domain-defined interface is exactly what an infrastructure layer is for. The file contains no business rules, no domain logic and no orchestration that belongs in the application layer.\",\"violations\":[]}}",
+  "runIndex": 0,
+  "schemaVersion": 2,
+  "unitId": "src/infrastructure/uuid-id-generator.ts",
+  "usage": {
+    "inputTokens": 2467,
+    "outputTokens": 413
+  },
+  "usedOptions": {
+    "effort": "high",
+    "model": "claude-opus-5-5"
+  }
+}

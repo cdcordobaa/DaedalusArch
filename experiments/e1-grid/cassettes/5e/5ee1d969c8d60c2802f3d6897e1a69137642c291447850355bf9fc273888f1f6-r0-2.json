@@ -1,0 +1,47 @@
+{
+  "attempts": 1,
+  "cliVersion": "2.1.294",
+  "configListingSha256": "47aa04258852fab9a706f3f0c14cee22306d69fbb6fdfbde8c11854bd54997bc",
+  "durationMs": 5421,
+  "effort": "high",
+  "functionId": "FF-N02",
+  "ignoredOptions": [
+    "maxTokens"
+  ],
+  "isolationProbeSha256": "97a2e2d0af1100c13c55e028c1a0c71f069093c3d08705af122aaeb302f1a641",
+  "key": "5ee1d969c8d60c2802f3d6897e1a69137642c291447850355bf9fc273888f1f6-r0-2",
+  "model": "claude-opus-5-5",
+  "outcome": {
+    "kind": "valid"
+  },
+  "parsedVerdict": {
+    "confidence": 0.96,
+    "evidence": [
+      "src/domain/value-objects/Quantity.ts: `static of(value)` checks the invariant `Number.isInteger(value) && 1 <= value <= Quantity.MAX`. This is a domain business rule.",
+      "src/domain/value-objects/Quantity.ts: throws `InvalidValueError` from '../errors/DomainError', which is a domain-layer error type.",
+      "src/domain/value-objects/Quantity.ts: the private constructor with a readonly value is an immutable value-object pattern. There are no I/O, persistence or framework calls."
+    ],
+    "pass": true,
+    "reasoning": "Quantity is a domain value object. It has a private constructor, a static factory `of` that enforces an invariant (an integer between 1 and MAX), and it throws a domain error type. All of these are domain responsibilities. The file has no persistence, transport, framework or orchestration logic.",
+    "violations": []
+  },
+  "projectId": "claude-opus-5-5/order-fulfilment/full-aac/run-1",
+  "prompt": "## Rule\nThe unit's responsibilities match the role of its declared layer.\n\n## Rubric\nPass: Every responsibility in the file belongs to the role and kind of its declared layer, and agrees with any ADR prose given.\nFail: The file carries a responsibility that belongs to a different layer kind, for example persistence, transport or framework logic in a domain file, or business rules in an infrastructure or presentation file.\nEvidence required: Name the file and cite the function, method or statement that carries the misplaced responsibility, and the layer kind it belongs to.\nOut of scope: import direction and layer-dependency rules, which are checked symbolically.\n\n## Layer model\n- domain (kind: domain): src/domain/**\n- application (kind: application): src/application/**\n- infrastructure (kind: infrastructure): src/infrastructure/**\n\n## Unit\nKind: file\nId: src/domain/value-objects/Quantity.ts\nLayer: domain\nUnit files:\n- src/domain/value-objects/Quantity.ts\n\n## Source\n=====SOURCE-BEGIN src/domain/value-objects/Quantity.ts=====\nimport { InvalidValueError } from '../errors/DomainError';\n\n/** A positive whole number of units of a product. */\nexport class Quantity {\n  static readonly MAX = 10_000;\n\n  private constructor(readonly value: number) {}\n\n  static of(value: number): Quantity {\n    if (!Number.isInteger(value) || value < 1 || value > Quantity.MAX) {\n      throw new InvalidValueError(\n        `Quantity must be an integer between 1 and ${Quantity.MAX}, got ${value}`,\n      );\n    }\n    return new Quantity(value);\n  }\n}\n\n=====SOURCE-END=====\n\n## Graph excerpt\n{\"edges\":[{\"from\":\"OrderLine@src/domain/value-objects/OrderLine.ts\",\"to\":\"Quantity@src/domain/value-objects/Quantity.ts\",\"type\":\"CONSTRUCTOR_INJECTS\"},{\"from\":\"src/domain/entities/Product.ts\",\"to\":\"src/domain/value-objects/Quantity.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/domain/value-objects/OrderLine.ts\",\"to\":\"src/domain/value-objects/Quantity.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/domain/value-objects/Quantity.ts\",\"to\":\"src/domain/errors/DomainError.ts\",\"type\":\"IMPORTS\"}],\"nodes\":[{\"kind\":\"Class\",\"layer\":\"domain\",\"name\":\"OrderLine\",\"path\":\"src/domain/value-objects/OrderLine.ts\"},{\"kind\":\"Class\",\"layer\":\"domain\",\"name\":\"Quantity\",\"path\":\"src/domain/value-objects/Quantity.ts\"},{\"kind\":\"File\",\"layer\":\"domain\",\"path\":\"src/domain/entities/Product.ts\"},{\"kind\":\"File\",\"layer\":\"domain\",\"path\":\"src/domain/errors/DomainError.ts\"},{\"kind\":\"File\",\"layer\":\"domain\",\"path\":\"src/domain/value-objects/OrderLine.ts\"},{\"kind\":\"File\",\"layer\":\"domain\",\"path\":\"src/domain/value-objects/Quantity.ts\"}]}\n\n## Instructions\nJudge the unit against the rule and rubric. Return the JSON object the schema requires. Set pass to false if any file of the unit fails the rubric.\n",
+  "provider": "claude-cli",
+  "recordedAt": "2026-10-10T22:20:40.824Z",
+  "repetition": 0,
+  "requestHash": "5ee1d969c8d60c2802f3d6897e1a69137642c291447850355bf9fc273888f1f6",
+  "resolvedModel": "claude-opus-5-5",
+  "response": "{\"is_error\":false,\"modelUsage\":{\"claude-opus-5-5\":{\"inputTokens\":2,\"outputTokens\":419}},\"result\":\"{\\\"pass\\\":true,\\\"confidence\\\":0.96,\\\"reasoning\\\":\\\"Quantity is a domain value object. It has a private constructor, a static factory `of` that enforces an invariant (an integer between 1 and MAX), and it throws a domain error type. All of these are domain responsibilities. The file has no persistence, transport, framework or orchestration logic.\\\",\\\"evidence\\\":[\\\"src/domain/value-objects/Quantity.ts: `static of(value)` checks the invariant `Number.isInteger(value) && 1 <= value <= Quantity.MAX`. This is a domain business rule.\\\",\\\"src/domain/value-objects/Quantity.ts: throws `InvalidValueError` from '../errors/DomainError', which is a domain-layer error type.\\\",\\\"src/domain/value-objects/Quantity.ts: the private constructor with a readonly value is an immutable value-object pattern. There are no I/O, persistence or framework calls.\\\"],\\\"violations\\\":[]}\",\"structured_output\":{\"confidence\":0.96,\"evidence\":[\"src/domain/value-objects/Quantity.ts: `static of(value)` checks the invariant `Number.isInteger(value) && 1 <= value <= Quantity.MAX`. This is a domain business rule.\",\"src/domain/value-objects/Quantity.ts: throws `InvalidValueError` from '../errors/DomainError', which is a domain-layer error type.\",\"src/domain/value-objects/Quantity.ts: the private constructor with a readonly value is an immutable value-object pattern. There are no I/O, persistence or framework calls.\"],\"pass\":true,\"reasoning\":\"Quantity is a domain value object. It has a private constructor, a static factory `of` that enforces an invariant (an integer between 1 and MAX), and it throws a domain error type. All of these are domain responsibilities. The file has no persistence, transport, framework or orchestration logic.\",\"violations\":[]}}",
+  "runIndex": 2,
+  "schemaVersion": 2,
+  "unitId": "src/domain/value-objects/Quantity.ts",
+  "usage": {
+    "inputTokens": 2600,
+    "outputTokens": 419
+  },
+  "usedOptions": {
+    "effort": "high",
+    "model": "claude-opus-5-5"
+  }
+}

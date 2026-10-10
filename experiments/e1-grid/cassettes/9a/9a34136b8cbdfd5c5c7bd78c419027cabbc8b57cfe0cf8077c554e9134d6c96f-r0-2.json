@@ -1,0 +1,48 @@
+{
+  "attempts": 1,
+  "cliVersion": "2.1.294",
+  "configListingSha256": "47aa04258852fab9a706f3f0c14cee22306d69fbb6fdfbde8c11854bd54997bc",
+  "durationMs": 6458,
+  "effort": "high",
+  "functionId": "FF-N02",
+  "ignoredOptions": [
+    "maxTokens"
+  ],
+  "isolationProbeSha256": "97a2e2d0af1100c13c55e028c1a0c71f069093c3d08705af122aaeb302f1a641",
+  "key": "9a34136b8cbdfd5c5c7bd78c419027cabbc8b57cfe0cf8077c554e9134d6c96f-r0-2",
+  "model": "claude-opus-5-5",
+  "outcome": {
+    "kind": "valid"
+  },
+  "parsedVerdict": {
+    "confidence": 0.95,
+    "evidence": [
+      "createHttpApp: express() setup, app.disable('x-powered-by') and express.json({ limit: '100kb' }) are framework and transport configuration, which belongs in infrastructure",
+      "app.get('/health', ...) returns a static { status: 'ok' } with no business logic",
+      "Controllers are built from injected deps.orderUseCases and deps.catalogueUseCases, so business behaviour is passed on to the application layer",
+      "app.use(notFoundHandler) and app.use(errorHandler) register transport-level middleware"
+    ],
+    "pass": true,
+    "reasoning": "This file is in the infrastructure layer, and everything it does is HTTP transport and framework wiring. It creates an Express app, turns off the x-powered-by header, sets up JSON body parsing with a size limit, adds a health endpoint, builds controllers from injected application use cases, mounts the router with staff-auth middleware, and registers the not-found and error handlers. It contains no business rules, domain logic or orchestration that belongs in the application layer. The health check only returns a static status.",
+    "violations": []
+  },
+  "projectId": "claude-opus-5-5/order-fulfilment/full-aac/run-1",
+  "prompt": "## Rule\nThe unit's responsibilities match the role of its declared layer.\n\n## Rubric\nPass: Every responsibility in the file belongs to the role and kind of its declared layer, and agrees with any ADR prose given.\nFail: The file carries a responsibility that belongs to a different layer kind, for example persistence, transport or framework logic in a domain file, or business rules in an infrastructure or presentation file.\nEvidence required: Name the file and cite the function, method or statement that carries the misplaced responsibility, and the layer kind it belongs to.\nOut of scope: import direction and layer-dependency rules, which are checked symbolically.\n\n## Layer model\n- domain (kind: domain): src/domain/**\n- application (kind: application): src/application/**\n- infrastructure (kind: infrastructure): src/infrastructure/**\n\n## Unit\nKind: file\nId: src/infrastructure/http/createHttpApp.ts\nLayer: infrastructure\nUnit files:\n- src/infrastructure/http/createHttpApp.ts\n\n## Source\n=====SOURCE-BEGIN src/infrastructure/http/createHttpApp.ts=====\nimport express, { type Express } from 'express';\nimport type { CatalogueUseCases } from '../../application/catalogue/CatalogueModule';\nimport type { OrderUseCases } from '../../application/orders/OrderModule';\nimport { CatalogueController } from './controllers/CatalogueController';\nimport { OrderController } from './controllers/OrderController';\nimport { errorHandler, notFoundHandler } from './middleware/errorHandler';\nimport { requireStaff } from './middleware/staffAuth';\nimport { createRouter } from './routes';\n\nexport interface HttpAppDependencies {\n  readonly orderUseCases: OrderUseCases;\n  readonly catalogueUseCases: CatalogueUseCases;\n  readonly staffApiKey: string;\n}\n\nexport function createHttpApp(deps: HttpAppDependencies): Express {\n  const app = express();\n  app.disable('x-powered-by');\n  app.use(express.json({ limit: '100kb' }));\n\n  app.get('/health', (_req, res) => {\n    res.json({ status: 'ok' });\n  });\n  app.use(\n    createRouter(\n      {\n        orders: new OrderController(deps.orderUseCases),\n        catalogue: new CatalogueController(deps.catalogueUseCases),\n      },\n      requireStaff(deps.staffApiKey),\n    ),\n  );\n\n  app.use(notFoundHandler);\n  app.use(errorHandler);\n  return app;\n}\n\n=====SOURCE-END=====\n\n## Graph excerpt\n{\"edges\":[{\"from\":\"src/infrastructure/http/createHttpApp.ts\",\"to\":\"express\",\"type\":\"IMPORTS\"},{\"from\":\"src/infrastructure/http/createHttpApp.ts\",\"to\":\"src/application/catalogue/CatalogueModule.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/infrastructure/http/createHttpApp.ts\",\"to\":\"src/application/orders/OrderModule.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/infrastructure/http/createHttpApp.ts\",\"to\":\"src/infrastructure/http/controllers/CatalogueController.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/infrastructure/http/createHttpApp.ts\",\"to\":\"src/infrastructure/http/controllers/OrderController.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/infrastructure/http/createHttpApp.ts\",\"to\":\"src/infrastructure/http/middleware/errorHandler.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/infrastructure/http/createHttpApp.ts\",\"to\":\"src/infrastructure/http/middleware/staffAuth.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/infrastructure/http/createHttpApp.ts\",\"to\":\"src/infrastructure/http/routes.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/infrastructure/main.ts\",\"to\":\"src/infrastructure/http/createHttpApp.ts\",\"type\":\"IMPORTS\"}],\"nodes\":[{\"kind\":\"File\",\"layer\":\"application\",\"path\":\"src/application/catalogue/CatalogueModule.ts\"},{\"kind\":\"File\",\"layer\":\"application\",\"path\":\"src/application/orders/OrderModule.ts\"},{\"kind\":\"File\",\"layer\":\"infrastructure\",\"path\":\"src/infrastructure/http/controllers/CatalogueController.ts\"},{\"kind\":\"File\",\"layer\":\"infrastructure\",\"path\":\"src/infrastructure/http/controllers/OrderController.ts\"},{\"kind\":\"File\",\"layer\":\"infrastructure\",\"path\":\"src/infrastructure/http/createHttpApp.ts\"},{\"kind\":\"File\",\"layer\":\"infrastructure\",\"path\":\"src/infrastructure/http/middleware/errorHandler.ts\"},{\"kind\":\"File\",\"layer\":\"infrastructure\",\"path\":\"src/infrastructure/http/middleware/staffAuth.ts\"},{\"kind\":\"File\",\"layer\":\"infrastructure\",\"path\":\"src/infrastructure/http/routes.ts\"},{\"kind\":\"File\",\"layer\":\"infrastructure\",\"path\":\"src/infrastructure/main.ts\"},{\"kind\":\"Interface\",\"layer\":\"infrastructure\",\"name\":\"HttpAppDependencies\",\"path\":\"src/infrastructure/http/createHttpApp.ts\"},{\"kind\":\"Package\",\"layer\":null,\"path\":\"express\"}]}\n\n## Instructions\nJudge the unit against the rule and rubric. Return the JSON object the schema requires. Set pass to false if any file of the unit fails the rubric.\n",
+  "provider": "claude-cli",
+  "recordedAt": "2026-10-10T22:20:47.646Z",
+  "repetition": 0,
+  "requestHash": "9a34136b8cbdfd5c5c7bd78c419027cabbc8b57cfe0cf8077c554e9134d6c96f",
+  "resolvedModel": "claude-opus-5-5",
+  "response": "{\"is_error\":false,\"modelUsage\":{\"claude-opus-5-5\":{\"inputTokens\":2,\"outputTokens\":474}},\"result\":\"{\\\"pass\\\":true,\\\"confidence\\\":0.95,\\\"reasoning\\\":\\\"This file is in the infrastructure layer, and everything it does is HTTP transport and framework wiring. It creates an Express app, turns off the x-powered-by header, sets up JSON body parsing with a size limit, adds a health endpoint, builds controllers from injected application use cases, mounts the router with staff-auth middleware, and registers the not-found and error handlers. It contains no business rules, domain logic or orchestration that belongs in the application layer. The health check only returns a static status.\\\",\\\"evidence\\\":[\\\"createHttpApp: express() setup, app.disable('x-powered-by') and express.json({ limit: '100kb' }) are framework and transport configuration, which belongs in infrastructure\\\",\\\"app.get('/health', ...) returns a static { status: 'ok' } with no business logic\\\",\\\"Controllers are built from injected deps.orderUseCases and deps.catalogueUseCases, so business behaviour is passed on to the application layer\\\",\\\"app.use(notFoundHandler) and app.use(errorHandler) register transport-level middleware\\\"],\\\"violations\\\":[]}\",\"structured_output\":{\"confidence\":0.95,\"evidence\":[\"createHttpApp: express() setup, app.disable('x-powered-by') and express.json({ limit: '100kb' }) are framework and transport configuration, which belongs in infrastructure\",\"app.get('/health', ...) returns a static { status: 'ok' } with no business logic\",\"Controllers are built from injected deps.orderUseCases and deps.catalogueUseCases, so business behaviour is passed on to the application layer\",\"app.use(notFoundHandler) and app.use(errorHandler) register transport-level middleware\"],\"pass\":true,\"reasoning\":\"This file is in the infrastructure layer, and everything it does is HTTP transport and framework wiring. It creates an Express app, turns off the x-powered-by header, sets up JSON body parsing with a size limit, adds a health endpoint, builds controllers from injected application use cases, mounts the router with staff-auth middleware, and registers the not-found and error handlers. It contains no business rules, domain logic or orchestration that belongs in the application layer. The health check only returns a static status.\",\"violations\":[]}}",
+  "runIndex": 2,
+  "schemaVersion": 2,
+  "unitId": "src/infrastructure/http/createHttpApp.ts",
+  "usage": {
+    "inputTokens": 3375,
+    "outputTokens": 474
+  },
+  "usedOptions": {
+    "effort": "high",
+    "model": "claude-opus-5-5"
+  }
+}

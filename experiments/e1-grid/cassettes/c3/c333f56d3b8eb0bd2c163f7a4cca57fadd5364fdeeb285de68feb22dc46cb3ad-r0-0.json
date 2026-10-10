@@ -1,0 +1,46 @@
+{
+  "attempts": 1,
+  "cliVersion": "2.1.294",
+  "configListingSha256": "47aa04258852fab9a706f3f0c14cee22306d69fbb6fdfbde8c11854bd54997bc",
+  "durationMs": 5695,
+  "effort": "high",
+  "functionId": "FF-N02",
+  "ignoredOptions": [
+    "maxTokens"
+  ],
+  "isolationProbeSha256": "97a2e2d0af1100c13c55e028c1a0c71f069093c3d08705af122aaeb302f1a641",
+  "key": "c333f56d3b8eb0bd2c163f7a4cca57fadd5364fdeeb285de68feb22dc46cb3ad-r0-0",
+  "model": "claude-opus-5-5",
+  "outcome": {
+    "kind": "valid"
+  },
+  "parsedVerdict": {
+    "confidence": 0.95,
+    "evidence": [
+      "src/application/dto/StockLevelDto.ts: interface StockLevelDto is a plain data-transfer shape, which is an application-layer job",
+      "src/application/dto/StockLevelDto.ts: toStockLevelDto(product) only maps fields (id, name, stockLevel) with no business rules or infrastructure concerns"
+    ],
+    "pass": true,
+    "reasoning": "The file declares an application-layer DTO (StockLevelDto) and a plain mapper (toStockLevelDto) that copies fields from the domain Product into the DTO. Mapping domain objects to output DTOs is a normal application-layer job. The file has no persistence, transport, framework or presentation logic, and no business rules: the mapper copies product.stockLevel without computing or validating anything. Every responsibility fits the application layer.",
+    "violations": []
+  },
+  "projectId": "claude-opus-5-5/order-fulfilment/full-aac/run-0",
+  "prompt": "## Rule\nThe unit's responsibilities match the role of its declared layer.\n\n## Rubric\nPass: Every responsibility in the file belongs to the role and kind of its declared layer, and agrees with any ADR prose given.\nFail: The file carries a responsibility that belongs to a different layer kind, for example persistence, transport or framework logic in a domain file, or business rules in an infrastructure or presentation file.\nEvidence required: Name the file and cite the function, method or statement that carries the misplaced responsibility, and the layer kind it belongs to.\nOut of scope: import direction and layer-dependency rules, which are checked symbolically.\n\n## Layer model\n- domain (kind: domain): src/domain/**\n- application (kind: application): src/application/**\n- infrastructure (kind: infrastructure): src/infrastructure/**\n\n## Unit\nKind: file\nId: src/application/dto/StockLevelDto.ts\nLayer: application\nUnit files:\n- src/application/dto/StockLevelDto.ts\n\n## Source\n=====SOURCE-BEGIN src/application/dto/StockLevelDto.ts=====\nimport { Product } from '../../domain/product/Product';\n\nexport interface StockLevelDto {\n  productId: string;\n  name: string;\n  stockLevel: number;\n}\n\nexport function toStockLevelDto(product: Product): StockLevelDto {\n  return { productId: product.id, name: product.name, stockLevel: product.stockLevel };\n}\n\n=====SOURCE-END=====\n\n## Graph excerpt\n{\"edges\":[{\"from\":\"src/application/dto/StockLevelDto.ts\",\"to\":\"src/domain/product/Product.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/application/use-cases/ListStockLevelsUseCase.ts\",\"to\":\"src/application/dto/StockLevelDto.ts\",\"type\":\"IMPORTS\"}],\"nodes\":[{\"kind\":\"File\",\"layer\":\"application\",\"path\":\"src/application/dto/StockLevelDto.ts\"},{\"kind\":\"File\",\"layer\":\"application\",\"path\":\"src/application/use-cases/ListStockLevelsUseCase.ts\"},{\"kind\":\"File\",\"layer\":\"domain\",\"path\":\"src/domain/product/Product.ts\"},{\"kind\":\"Interface\",\"layer\":\"application\",\"name\":\"StockLevelDto\",\"path\":\"src/application/dto/StockLevelDto.ts\"}]}\n\n## Instructions\nJudge the unit against the rule and rubric. Return the JSON object the schema requires. Set pass to false if any file of the unit fails the rubric.\n",
+  "provider": "claude-cli",
+  "recordedAt": "2026-10-10T22:13:57.441Z",
+  "repetition": 0,
+  "requestHash": "c333f56d3b8eb0bd2c163f7a4cca57fadd5364fdeeb285de68feb22dc46cb3ad",
+  "resolvedModel": "claude-opus-5-5",
+  "response": "{\"is_error\":false,\"modelUsage\":{\"claude-opus-5-5\":{\"inputTokens\":2,\"outputTokens\":396}},\"result\":\"{\\\"pass\\\":true,\\\"confidence\\\":0.95,\\\"reasoning\\\":\\\"The file declares an application-layer DTO (StockLevelDto) and a plain mapper (toStockLevelDto) that copies fields from the domain Product into the DTO. Mapping domain objects to output DTOs is a normal application-layer job. The file has no persistence, transport, framework or presentation logic, and no business rules: the mapper copies product.stockLevel without computing or validating anything. Every responsibility fits the application layer.\\\",\\\"evidence\\\":[\\\"src/application/dto/StockLevelDto.ts: interface StockLevelDto is a plain data-transfer shape, which is an application-layer job\\\",\\\"src/application/dto/StockLevelDto.ts: toStockLevelDto(product) only maps fields (id, name, stockLevel) with no business rules or infrastructure concerns\\\"],\\\"violations\\\":[]}\",\"structured_output\":{\"confidence\":0.95,\"evidence\":[\"src/application/dto/StockLevelDto.ts: interface StockLevelDto is a plain data-transfer shape, which is an application-layer job\",\"src/application/dto/StockLevelDto.ts: toStockLevelDto(product) only maps fields (id, name, stockLevel) with no business rules or infrastructure concerns\"],\"pass\":true,\"reasoning\":\"The file declares an application-layer DTO (StockLevelDto) and a plain mapper (toStockLevelDto) that copies fields from the domain Product into the DTO. Mapping domain objects to output DTOs is a normal application-layer job. The file has no persistence, transport, framework or presentation logic, and no business rules: the mapper copies product.stockLevel without computing or validating anything. Every responsibility fits the application layer.\",\"violations\":[]}}",
+  "runIndex": 0,
+  "schemaVersion": 2,
+  "unitId": "src/application/dto/StockLevelDto.ts",
+  "usage": {
+    "inputTokens": 2312,
+    "outputTokens": 396
+  },
+  "usedOptions": {
+    "effort": "high",
+    "model": "claude-opus-5-5"
+  }
+}

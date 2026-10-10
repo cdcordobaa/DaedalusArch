@@ -1,0 +1,48 @@
+{
+  "attempts": 1,
+  "cliVersion": "2.1.294",
+  "configListingSha256": "47aa04258852fab9a706f3f0c14cee22306d69fbb6fdfbde8c11854bd54997bc",
+  "durationMs": 6594,
+  "effort": "high",
+  "functionId": "FF-N02",
+  "ignoredOptions": [
+    "maxTokens"
+  ],
+  "isolationProbeSha256": "97a2e2d0af1100c13c55e028c1a0c71f069093c3d08705af122aaeb302f1a641",
+  "key": "90735daf43964660206241eb1c0f0073b04fd99f342034ba5945eee8474d0fc4-r0-1",
+  "model": "claude-opus-5-5",
+  "outcome": {
+    "kind": "valid"
+  },
+  "parsedVerdict": {
+    "confidence": 0.85,
+    "evidence": [
+      "seedCatalogue(products: ProductRepository) loops over CATALOGUE and calls products.save(...): this loads the starting data into the store, which is persistence/bootstrapping work.",
+      "Product.create(entry.id, entry.name, entry.stock) leaves building and checking products to the domain, so no business rule is copied into this file.",
+      "CATALOGUE is a fixed list of seed entries (id, name, stock) with no decision logic.",
+      "Graph: the only caller is src/infrastructure/config/createApp.ts, which is the app's setup and wiring code."
+    ],
+    "pass": true,
+    "reasoning": "The file seeds the in-memory product store with starting data when the app is wired up in createApp.ts. Loading initial data into a store is a persistence and bootstrapping job, which belongs in infrastructure. The file contains no business rules. It builds products only through the domain factory Product.create, so any validation stays in the domain, and it saves them through the ProductRepository port. The CATALOGUE constant is fixture data, not domain logic. There is no transport or presentation code. Every responsibility fits the infrastructure layer.",
+    "violations": []
+  },
+  "projectId": "claude-opus-5-5/order-fulfilment/full-aac/run-0",
+  "prompt": "## Rule\nThe unit's responsibilities match the role of its declared layer.\n\n## Rubric\nPass: Every responsibility in the file belongs to the role and kind of its declared layer, and agrees with any ADR prose given.\nFail: The file carries a responsibility that belongs to a different layer kind, for example persistence, transport or framework logic in a domain file, or business rules in an infrastructure or presentation file.\nEvidence required: Name the file and cite the function, method or statement that carries the misplaced responsibility, and the layer kind it belongs to.\nOut of scope: import direction and layer-dependency rules, which are checked symbolically.\n\n## Layer model\n- domain (kind: domain): src/domain/**\n- application (kind: application): src/application/**\n- infrastructure (kind: infrastructure): src/infrastructure/**\n\n## Unit\nKind: file\nId: src/infrastructure/persistence/seedCatalogue.ts\nLayer: infrastructure\nUnit files:\n- src/infrastructure/persistence/seedCatalogue.ts\n\n## Source\n=====SOURCE-BEGIN src/infrastructure/persistence/seedCatalogue.ts=====\nimport { Product } from '../../domain/product/Product';\nimport { ProductRepository } from '../../domain/product/ProductRepository';\n\nconst CATALOGUE: ReadonlyArray<{ id: string; name: string; stock: number }> = [\n  { id: 'SKU-001', name: 'Espresso beans 1kg', stock: 50 },\n  { id: 'SKU-002', name: 'Ceramic mug', stock: 120 },\n  { id: 'SKU-003', name: 'Pour-over kettle', stock: 15 },\n  { id: 'SKU-004', name: 'Burr grinder', stock: 8 },\n];\n\n/** Loads the starting catalogue into the in-memory product store. */\nexport function seedCatalogue(products: ProductRepository): void {\n  for (const entry of CATALOGUE) {\n    products.save(Product.create(entry.id, entry.name, entry.stock));\n  }\n}\n\n=====SOURCE-END=====\n\n## Graph excerpt\n{\"edges\":[{\"from\":\"src/infrastructure/config/createApp.ts\",\"to\":\"src/infrastructure/persistence/seedCatalogue.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/infrastructure/persistence/seedCatalogue.ts\",\"to\":\"src/domain/product/Product.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/infrastructure/persistence/seedCatalogue.ts\",\"to\":\"src/domain/product/ProductRepository.ts\",\"type\":\"IMPORTS\"}],\"nodes\":[{\"kind\":\"File\",\"layer\":\"domain\",\"path\":\"src/domain/product/Product.ts\"},{\"kind\":\"File\",\"layer\":\"domain\",\"path\":\"src/domain/product/ProductRepository.ts\"},{\"kind\":\"File\",\"layer\":\"infrastructure\",\"path\":\"src/infrastructure/config/createApp.ts\"},{\"kind\":\"File\",\"layer\":\"infrastructure\",\"path\":\"src/infrastructure/persistence/seedCatalogue.ts\"}]}\n\n## Instructions\nJudge the unit against the rule and rubric. Return the JSON object the schema requires. Set pass to false if any file of the unit fails the rubric.\n",
+  "provider": "claude-cli",
+  "recordedAt": "2026-10-10T22:15:54.929Z",
+  "repetition": 0,
+  "requestHash": "90735daf43964660206241eb1c0f0073b04fd99f342034ba5945eee8474d0fc4",
+  "resolvedModel": "claude-opus-5-5",
+  "response": "{\"is_error\":false,\"modelUsage\":{\"claude-opus-5-5\":{\"inputTokens\":2,\"outputTokens\":552}},\"result\":\"{\\\"pass\\\":true,\\\"confidence\\\":0.85,\\\"reasoning\\\":\\\"The file seeds the in-memory product store with starting data when the app is wired up in createApp.ts. Loading initial data into a store is a persistence and bootstrapping job, which belongs in infrastructure. The file contains no business rules. It builds products only through the domain factory Product.create, so any validation stays in the domain, and it saves them through the ProductRepository port. The CATALOGUE constant is fixture data, not domain logic. There is no transport or presentation code. Every responsibility fits the infrastructure layer.\\\",\\\"evidence\\\":[\\\"seedCatalogue(products: ProductRepository) loops over CATALOGUE and calls products.save(...): this loads the starting data into the store, which is persistence/bootstrapping work.\\\",\\\"Product.create(entry.id, entry.name, entry.stock) leaves building and checking products to the domain, so no business rule is copied into this file.\\\",\\\"CATALOGUE is a fixed list of seed entries (id, name, stock) with no decision logic.\\\",\\\"Graph: the only caller is src/infrastructure/config/createApp.ts, which is the app's setup and wiring code.\\\"],\\\"violations\\\":[]}\",\"structured_output\":{\"confidence\":0.85,\"evidence\":[\"seedCatalogue(products: ProductRepository) loops over CATALOGUE and calls products.save(...): this loads the starting data into the store, which is persistence/bootstrapping work.\",\"Product.create(entry.id, entry.name, entry.stock) leaves building and checking products to the domain, so no business rule is copied into this file.\",\"CATALOGUE is a fixed list of seed entries (id, name, stock) with no decision logic.\",\"Graph: the only caller is src/infrastructure/config/createApp.ts, which is the app's setup and wiring code.\"],\"pass\":true,\"reasoning\":\"The file seeds the in-memory product store with starting data when the app is wired up in createApp.ts. Loading initial data into a store is a persistence and bootstrapping job, which belongs in infrastructure. The file contains no business rules. It builds products only through the domain factory Product.create, so any validation stays in the domain, and it saves them through the ProductRepository port. The CATALOGUE constant is fixture data, not domain logic. There is no transport or presentation code. Every responsibility fits the infrastructure layer.\",\"violations\":[]}}",
+  "runIndex": 1,
+  "schemaVersion": 2,
+  "unitId": "src/infrastructure/persistence/seedCatalogue.ts",
+  "usage": {
+    "inputTokens": 2579,
+    "outputTokens": 552
+  },
+  "usedOptions": {
+    "effort": "high",
+    "model": "claude-opus-5-5"
+  }
+}

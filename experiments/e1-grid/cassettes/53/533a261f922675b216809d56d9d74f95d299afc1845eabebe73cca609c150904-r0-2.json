@@ -1,0 +1,47 @@
+{
+  "attempts": 1,
+  "cliVersion": "2.1.294",
+  "configListingSha256": "47aa04258852fab9a706f3f0c14cee22306d69fbb6fdfbde8c11854bd54997bc",
+  "durationMs": 6218,
+  "effort": "high",
+  "functionId": "FF-N02",
+  "ignoredOptions": [
+    "maxTokens"
+  ],
+  "isolationProbeSha256": "97a2e2d0af1100c13c55e028c1a0c71f069093c3d08705af122aaeb302f1a641",
+  "key": "533a261f922675b216809d56d9d74f95d299afc1845eabebe73cca609c150904-r0-2",
+  "model": "claude-opus-5-5",
+  "outcome": {
+    "kind": "valid"
+  },
+  "parsedVerdict": {
+    "confidence": 0.93,
+    "evidence": [
+      "createProject enforces a domain invariant: it throws ValidationError(\"Project name is required\") when the name is empty, and it trims the name. This is a business rule, so it belongs in the domain layer.",
+      "ProjectRepository is an abstract port interface (save, findById, findAll) with no storage code. The infrastructure class InMemoryProjectRepository implements it.",
+      "Project is a readonly entity interface with no framework or transport concerns."
+    ],
+    "pass": true,
+    "reasoning": "src/domain/project.ts holds only domain responsibilities. It has an entity type (Project), a factory function with an invariant check (createProject checks that the name is not empty and trims it), and a repository port interface (ProjectRepository) that the infrastructure layer implements (InMemoryProjectRepository IMPLEMENTS it). The repository is declared as an abstract interface with no storage details, which is the usual way for a domain layer to describe its persistence needs. The file has no persistence code, transport or framework logic, or application orchestration.",
+    "violations": []
+  },
+  "projectId": "claude-sonnet-5-5/task-management/none/run-0",
+  "prompt": "## Rule\nThe unit's responsibilities match the role of its declared layer.\n\n## Rubric\nPass: Every responsibility in the file belongs to the role and kind of its declared layer, and agrees with any ADR prose given.\nFail: The file carries a responsibility that belongs to a different layer kind, for example persistence, transport or framework logic in a domain file, or business rules in an infrastructure or presentation file.\nEvidence required: Name the file and cite the function, method or statement that carries the misplaced responsibility, and the layer kind it belongs to.\nOut of scope: import direction and layer-dependency rules, which are checked symbolically.\n\n## Layer model\n- domain (kind: domain): src/domain/**\n- application (kind: application): src/application/**\n- infrastructure (kind: infrastructure): src/infrastructure/**\n\n## Unit\nKind: file\nId: src/domain/project.ts\nLayer: domain\nUnit files:\n- src/domain/project.ts\n\n## Source\n=====SOURCE-BEGIN src/domain/project.ts=====\nimport { ValidationError } from \"./errors\";\n\nexport interface Project {\n  readonly id: string;\n  readonly name: string;\n}\n\nexport function createProject(id: string, name: string): Project {\n  if (typeof name !== \"string\" || name.trim() === \"\") {\n    throw new ValidationError(\"Project name is required\");\n  }\n  return { id, name: name.trim() };\n}\n\nexport interface ProjectRepository {\n  save(project: Project): void;\n  findById(id: string): Project | undefined;\n  findAll(): Project[];\n}\n\n=====SOURCE-END=====\n\n## Graph excerpt\n{\"edges\":[{\"from\":\"InMemoryProjectRepository@src/infrastructure/inMemoryRepositories.ts\",\"to\":\"ProjectRepository@src/domain/project.ts\",\"type\":\"IMPLEMENTS\"},{\"from\":\"TaskManagementService@src/application/services.ts\",\"to\":\"ProjectRepository@src/domain/project.ts\",\"type\":\"CONSTRUCTOR_INJECTS\"},{\"from\":\"src/application/services.ts\",\"to\":\"src/domain/project.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/domain/project.ts\",\"to\":\"src/domain/errors.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/infrastructure/inMemoryRepositories.ts\",\"to\":\"src/domain/project.ts\",\"type\":\"IMPORTS\"}],\"nodes\":[{\"kind\":\"Class\",\"layer\":\"application\",\"name\":\"TaskManagementService\",\"path\":\"src/application/services.ts\"},{\"kind\":\"Class\",\"layer\":\"infrastructure\",\"name\":\"InMemoryProjectRepository\",\"path\":\"src/infrastructure/inMemoryRepositories.ts\"},{\"kind\":\"File\",\"layer\":\"application\",\"path\":\"src/application/services.ts\"},{\"kind\":\"File\",\"layer\":\"domain\",\"path\":\"src/domain/errors.ts\"},{\"kind\":\"File\",\"layer\":\"domain\",\"path\":\"src/domain/project.ts\"},{\"kind\":\"File\",\"layer\":\"infrastructure\",\"path\":\"src/infrastructure/inMemoryRepositories.ts\"},{\"kind\":\"Interface\",\"layer\":\"domain\",\"name\":\"Project\",\"path\":\"src/domain/project.ts\"},{\"kind\":\"Interface\",\"layer\":\"domain\",\"name\":\"ProjectRepository\",\"path\":\"src/domain/project.ts\"}]}\n\n## Instructions\nJudge the unit against the rule and rubric. Return the JSON object the schema requires. Set pass to false if any file of the unit fails the rubric.\n",
+  "provider": "claude-cli",
+  "recordedAt": "2026-10-10T22:25:51.214Z",
+  "repetition": 0,
+  "requestHash": "533a261f922675b216809d56d9d74f95d299afc1845eabebe73cca609c150904",
+  "resolvedModel": "claude-opus-5-5",
+  "response": "{\"is_error\":false,\"modelUsage\":{\"claude-opus-5-5\":{\"inputTokens\":2,\"outputTokens\":463}},\"result\":\"{\\\"pass\\\":true,\\\"confidence\\\":0.93,\\\"reasoning\\\":\\\"src/domain/project.ts holds only domain responsibilities. It has an entity type (Project), a factory function with an invariant check (createProject checks that the name is not empty and trims it), and a repository port interface (ProjectRepository) that the infrastructure layer implements (InMemoryProjectRepository IMPLEMENTS it). The repository is declared as an abstract interface with no storage details, which is the usual way for a domain layer to describe its persistence needs. The file has no persistence code, transport or framework logic, or application orchestration.\\\",\\\"evidence\\\":[\\\"createProject enforces a domain invariant: it throws ValidationError(\\\\\\\"Project name is required\\\\\\\") when the name is empty, and it trims the name. This is a business rule, so it belongs in the domain layer.\\\",\\\"ProjectRepository is an abstract port interface (save, findById, findAll) with no storage code. The infrastructure class InMemoryProjectRepository implements it.\\\",\\\"Project is a readonly entity interface with no framework or transport concerns.\\\"],\\\"violations\\\":[]}\",\"structured_output\":{\"confidence\":0.93,\"evidence\":[\"createProject enforces a domain invariant: it throws ValidationError(\\\"Project name is required\\\") when the name is empty, and it trims the name. This is a business rule, so it belongs in the domain layer.\",\"ProjectRepository is an abstract port interface (save, findById, findAll) with no storage code. The infrastructure class InMemoryProjectRepository implements it.\",\"Project is a readonly entity interface with no framework or transport concerns.\"],\"pass\":true,\"reasoning\":\"src/domain/project.ts holds only domain responsibilities. It has an entity type (Project), a factory function with an invariant check (createProject checks that the name is not empty and trims it), and a repository port interface (ProjectRepository) that the infrastructure layer implements (InMemoryProjectRepository IMPLEMENTS it). The repository is declared as an abstract interface with no storage details, which is the usual way for a domain layer to describe its persistence needs. The file has no persistence code, transport or framework logic, or application orchestration.\",\"violations\":[]}}",
+  "runIndex": 2,
+  "schemaVersion": 2,
+  "unitId": "src/domain/project.ts",
+  "usage": {
+    "inputTokens": 2647,
+    "outputTokens": 463
+  },
+  "usedOptions": {
+    "effort": "high",
+    "model": "claude-opus-5-5"
+  }
+}

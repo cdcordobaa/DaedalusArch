@@ -1,0 +1,49 @@
+{
+  "attempts": 1,
+  "cliVersion": "2.1.294",
+  "configListingSha256": "47aa04258852fab9a706f3f0c14cee22306d69fbb6fdfbde8c11854bd54997bc",
+  "durationMs": 6132,
+  "effort": "high",
+  "functionId": "FF-N02",
+  "ignoredOptions": [
+    "maxTokens"
+  ],
+  "isolationProbeSha256": "97a2e2d0af1100c13c55e028c1a0c71f069093c3d08705af122aaeb302f1a641",
+  "key": "89f29d38ddf2ce8fcadbfcf7d528024f71c1a067031af1bf30916dcfa2560609-r0-2",
+  "model": "claude-opus-5-5",
+  "outcome": {
+    "kind": "valid"
+  },
+  "parsedVerdict": {
+    "confidence": 0.95,
+    "evidence": [
+      "FULFILMENT_SEQUENCE and the OrderStatus type define the domain lifecycle vocabulary",
+      "nextStatus(current) enforces the business rule for how an order may progress",
+      "isCancellable(status) uses CANCELLABLE to apply the business rule that orders can only be cancelled before they ship",
+      "parseOrderStatus(value) validates input into the domain type and throws the domain ValidationError",
+      "The file has no I/O, persistence, HTTP or framework code"
+    ],
+    "pass": true,
+    "reasoning": "src/domain/order/OrderStatus.ts holds only domain responsibilities. It defines the order lifecycle as a value type, lists the allowed statuses, enforces the progression invariant (nextStatus), applies the cancellation business rule (isCancellable), and validates raw values into the domain type (parseOrderStatus), throwing a domain ValidationError when a value is unknown. None of this is persistence, transport, framework or orchestration logic. Parsing a string into a domain value type is a normal domain-level smart constructor. It is not transport or serialization concern.",
+    "violations": []
+  },
+  "projectId": "claude-opus-5-5/order-fulfilment/full-aac/run-0",
+  "prompt": "## Rule\nThe unit's responsibilities match the role of its declared layer.\n\n## Rubric\nPass: Every responsibility in the file belongs to the role and kind of its declared layer, and agrees with any ADR prose given.\nFail: The file carries a responsibility that belongs to a different layer kind, for example persistence, transport or framework logic in a domain file, or business rules in an infrastructure or presentation file.\nEvidence required: Name the file and cite the function, method or statement that carries the misplaced responsibility, and the layer kind it belongs to.\nOut of scope: import direction and layer-dependency rules, which are checked symbolically.\n\n## Layer model\n- domain (kind: domain): src/domain/**\n- application (kind: application): src/application/**\n- infrastructure (kind: infrastructure): src/infrastructure/**\n\n## Unit\nKind: file\nId: src/domain/order/OrderStatus.ts\nLayer: domain\nUnit files:\n- src/domain/order/OrderStatus.ts\n\n## Source\n=====SOURCE-BEGIN src/domain/order/OrderStatus.ts=====\nimport { ValidationError } from '../errors/DomainError';\n\n/** The fulfilment lifecycle, in the only order an order may progress. */\nexport const FULFILMENT_SEQUENCE = ['placed', 'paid', 'packed', 'shipped', 'delivered'] as const;\n\nexport type FulfilmentStatus = (typeof FULFILMENT_SEQUENCE)[number];\nexport type OrderStatus = FulfilmentStatus | 'cancelled';\n\nconst ALL_STATUSES: readonly OrderStatus[] = [...FULFILMENT_SEQUENCE, 'cancelled'];\n\n/** Statuses from which an order may still be cancelled (i.e. before it is shipped). */\nconst CANCELLABLE: readonly OrderStatus[] = ['placed', 'paid', 'packed'];\n\nexport function parseOrderStatus(value: string): OrderStatus {\n  const match = ALL_STATUSES.find((status) => status === value);\n  if (!match) {\n    throw new ValidationError(`Unknown order status '${value}'. Expected one of: ${ALL_STATUSES.join(', ')}`);\n  }\n  return match;\n}\n\n/** Returns the single status that may follow the given one, or undefined at the end of the lifecycle. */\nexport function nextStatus(current: OrderStatus): FulfilmentStatus | undefined {\n  if (current === 'cancelled') {\n    return undefined;\n  }\n  return FULFILMENT_SEQUENCE[FULFILMENT_SEQUENCE.indexOf(current) + 1];\n}\n\nexport function isCancellable(status: OrderStatus): boolean {\n  return CANCELLABLE.includes(status);\n}\n\n=====SOURCE-END=====\n\n## Graph excerpt\n{\"edges\":[{\"from\":\"src/application/use-cases/AdvanceOrderUseCase.ts\",\"to\":\"src/domain/order/OrderStatus.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/application/use-cases/ListOrdersByStateUseCase.ts\",\"to\":\"src/domain/order/OrderStatus.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/domain/order/Order.ts\",\"to\":\"src/domain/order/OrderStatus.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/domain/order/OrderRepository.ts\",\"to\":\"src/domain/order/OrderStatus.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/domain/order/OrderStatus.ts\",\"to\":\"src/domain/errors/DomainError.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/infrastructure/persistence/InMemoryOrderRepository.ts\",\"to\":\"src/domain/order/OrderStatus.ts\",\"type\":\"IMPORTS\"}],\"nodes\":[{\"kind\":\"File\",\"layer\":\"application\",\"path\":\"src/application/use-cases/AdvanceOrderUseCase.ts\"},{\"kind\":\"File\",\"layer\":\"application\",\"path\":\"src/application/use-cases/ListOrdersByStateUseCase.ts\"},{\"kind\":\"File\",\"layer\":\"domain\",\"path\":\"src/domain/errors/DomainError.ts\"},{\"kind\":\"File\",\"layer\":\"domain\",\"path\":\"src/domain/order/Order.ts\"},{\"kind\":\"File\",\"layer\":\"domain\",\"path\":\"src/domain/order/OrderRepository.ts\"},{\"kind\":\"File\",\"layer\":\"domain\",\"path\":\"src/domain/order/OrderStatus.ts\"},{\"kind\":\"File\",\"layer\":\"infrastructure\",\"path\":\"src/infrastructure/persistence/InMemoryOrderRepository.ts\"}]}\n\n## Instructions\nJudge the unit against the rule and rubric. Return the JSON object the schema requires. Set pass to false if any file of the unit fails the rubric.\n",
+  "provider": "claude-cli",
+  "recordedAt": "2026-10-10T22:15:11.215Z",
+  "repetition": 0,
+  "requestHash": "89f29d38ddf2ce8fcadbfcf7d528024f71c1a067031af1bf30916dcfa2560609",
+  "resolvedModel": "claude-opus-5-5",
+  "response": "{\"is_error\":false,\"modelUsage\":{\"claude-opus-5-5\":{\"inputTokens\":2,\"outputTokens\":489}},\"result\":\"{\\\"pass\\\":true,\\\"confidence\\\":0.95,\\\"reasoning\\\":\\\"src/domain/order/OrderStatus.ts holds only domain responsibilities. It defines the order lifecycle as a value type, lists the allowed statuses, enforces the progression invariant (nextStatus), applies the cancellation business rule (isCancellable), and validates raw values into the domain type (parseOrderStatus), throwing a domain ValidationError when a value is unknown. None of this is persistence, transport, framework or orchestration logic. Parsing a string into a domain value type is a normal domain-level smart constructor. It is not transport or serialization concern.\\\",\\\"evidence\\\":[\\\"FULFILMENT_SEQUENCE and the OrderStatus type define the domain lifecycle vocabulary\\\",\\\"nextStatus(current) enforces the business rule for how an order may progress\\\",\\\"isCancellable(status) uses CANCELLABLE to apply the business rule that orders can only be cancelled before they ship\\\",\\\"parseOrderStatus(value) validates input into the domain type and throws the domain ValidationError\\\",\\\"The file has no I/O, persistence, HTTP or framework code\\\"],\\\"violations\\\":[]}\",\"structured_output\":{\"confidence\":0.95,\"evidence\":[\"FULFILMENT_SEQUENCE and the OrderStatus type define the domain lifecycle vocabulary\",\"nextStatus(current) enforces the business rule for how an order may progress\",\"isCancellable(status) uses CANCELLABLE to apply the business rule that orders can only be cancelled before they ship\",\"parseOrderStatus(value) validates input into the domain type and throws the domain ValidationError\",\"The file has no I/O, persistence, HTTP or framework code\"],\"pass\":true,\"reasoning\":\"src/domain/order/OrderStatus.ts holds only domain responsibilities. It defines the order lifecycle as a value type, lists the allowed statuses, enforces the progression invariant (nextStatus), applies the cancellation business rule (isCancellable), and validates raw values into the domain type (parseOrderStatus), throwing a domain ValidationError when a value is unknown. None of this is persistence, transport, framework or orchestration logic. Parsing a string into a domain value type is a normal domain-level smart constructor. It is not transport or serialization concern.\",\"violations\":[]}}",
+  "runIndex": 2,
+  "schemaVersion": 2,
+  "unitId": "src/domain/order/OrderStatus.ts",
+  "usage": {
+    "inputTokens": 3112,
+    "outputTokens": 489
+  },
+  "usedOptions": {
+    "effort": "high",
+    "model": "claude-opus-5-5"
+  }
+}

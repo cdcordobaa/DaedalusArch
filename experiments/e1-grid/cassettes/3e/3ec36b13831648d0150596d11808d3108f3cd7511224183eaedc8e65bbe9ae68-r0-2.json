@@ -1,0 +1,49 @@
+{
+  "attempts": 1,
+  "cliVersion": "2.1.294",
+  "configListingSha256": "47aa04258852fab9a706f3f0c14cee22306d69fbb6fdfbde8c11854bd54997bc",
+  "durationMs": 8408,
+  "effort": "high",
+  "functionId": "FF-N02",
+  "ignoredOptions": [
+    "maxTokens"
+  ],
+  "isolationProbeSha256": "97a2e2d0af1100c13c55e028c1a0c71f069093c3d08705af122aaeb302f1a641",
+  "key": "3ec36b13831648d0150596d11808d3108f3cd7511224183eaedc8e65bbe9ae68-r0-2",
+  "model": "claude-opus-5-5",
+  "outcome": {
+    "kind": "valid"
+  },
+  "parsedVerdict": {
+    "confidence": 0.95,
+    "evidence": [
+      "execute() coordinates the work: this.tasks.findById(input.taskId) -> task.markDone() -> this.tasks.save(task) -> toTaskDto(task)",
+      "The business state change is handed to the domain entity through task.markDone(), with no inline status logic",
+      "The TaskRepository abstraction is injected through the constructor, and the file contains no database or ORM code",
+      "The NotFoundError guard is a lookup failure check at the application level, not a business invariant",
+      "No HTTP, request or response handling appears. The HTTP route in src/infrastructure/http/routes/taskRoutes.ts consumes this use case"
+    ],
+    "pass": true,
+    "reasoning": "This file is a standard application-layer use case. It loads the aggregate through a repository abstraction that is injected, raises a domain error when the task is missing, and leaves the state change to the domain entity (task.markDone()). It then saves the task through the abstraction and maps the result to a DTO. The file contains no persistence code, no transport or HTTP handling, no framework code, and no business rules written inline. The rule for marking a task done lives in the entity, not here.",
+    "violations": []
+  },
+  "projectId": "claude-opus-5-5/task-management/full-aac/run-0",
+  "prompt": "## Rule\nThe unit's responsibilities match the role of its declared layer.\n\n## Rubric\nPass: Every responsibility in the file belongs to the role and kind of its declared layer, and agrees with any ADR prose given.\nFail: The file carries a responsibility that belongs to a different layer kind, for example persistence, transport or framework logic in a domain file, or business rules in an infrastructure or presentation file.\nEvidence required: Name the file and cite the function, method or statement that carries the misplaced responsibility, and the layer kind it belongs to.\nOut of scope: import direction and layer-dependency rules, which are checked symbolically.\n\n## Layer model\n- domain (kind: domain): src/domain/**\n- application (kind: application): src/application/**\n- infrastructure (kind: infrastructure): src/infrastructure/**\n\n## Unit\nKind: file\nId: src/application/use-cases/MarkTaskDoneUseCase.ts\nLayer: application\nUnit files:\n- src/application/use-cases/MarkTaskDoneUseCase.ts\n\n## Source\n=====SOURCE-BEGIN src/application/use-cases/MarkTaskDoneUseCase.ts=====\nimport { NotFoundError } from '../../domain/errors/NotFoundError';\nimport { TaskRepository } from '../../domain/repositories/TaskRepository';\nimport { TaskDto, toTaskDto } from '../dto/TaskDto';\nimport { MarkTaskDoneInput } from '../dto/TaskInputs';\nimport { UseCase } from '../ports/UseCase';\n\nexport class MarkTaskDoneUseCase implements UseCase<MarkTaskDoneInput, TaskDto> {\n  constructor(private readonly tasks: TaskRepository) {}\n\n  async execute(input: MarkTaskDoneInput): Promise<TaskDto> {\n    const task = await this.tasks.findById(input.taskId);\n    if (task === undefined) {\n      throw new NotFoundError('Task', input.taskId);\n    }\n\n    task.markDone();\n    await this.tasks.save(task);\n    return toTaskDto(task);\n  }\n}\n\n=====SOURCE-END=====\n\n## Graph excerpt\n{\"edges\":[{\"from\":\"MarkTaskDoneUseCase@src/application/use-cases/MarkTaskDoneUseCase.ts\",\"to\":\"TaskRepository@src/domain/repositories/TaskRepository.ts\",\"type\":\"CONSTRUCTOR_INJECTS\"},{\"from\":\"MarkTaskDoneUseCase@src/application/use-cases/MarkTaskDoneUseCase.ts\",\"to\":\"UseCase@src/application/ports/UseCase.ts\",\"type\":\"IMPLEMENTS\"},{\"from\":\"src/application/use-cases/MarkTaskDoneUseCase.ts\",\"to\":\"src/application/dto/TaskDto.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/application/use-cases/MarkTaskDoneUseCase.ts\",\"to\":\"src/application/dto/TaskInputs.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/application/use-cases/MarkTaskDoneUseCase.ts\",\"to\":\"src/application/ports/UseCase.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/application/use-cases/MarkTaskDoneUseCase.ts\",\"to\":\"src/domain/errors/NotFoundError.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/application/use-cases/MarkTaskDoneUseCase.ts\",\"to\":\"src/domain/repositories/TaskRepository.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/infrastructure/http/routes/taskRoutes.ts\",\"to\":\"src/application/use-cases/MarkTaskDoneUseCase.ts\",\"type\":\"IMPORTS\"}],\"nodes\":[{\"kind\":\"Class\",\"layer\":\"application\",\"name\":\"MarkTaskDoneUseCase\",\"path\":\"src/application/use-cases/MarkTaskDoneUseCase.ts\"},{\"kind\":\"File\",\"layer\":\"application\",\"path\":\"src/application/dto/TaskDto.ts\"},{\"kind\":\"File\",\"layer\":\"application\",\"path\":\"src/application/dto/TaskInputs.ts\"},{\"kind\":\"File\",\"layer\":\"application\",\"path\":\"src/application/ports/UseCase.ts\"},{\"kind\":\"File\",\"layer\":\"application\",\"path\":\"src/application/use-cases/MarkTaskDoneUseCase.ts\"},{\"kind\":\"File\",\"layer\":\"domain\",\"path\":\"src/domain/errors/NotFoundError.ts\"},{\"kind\":\"File\",\"layer\":\"domain\",\"path\":\"src/domain/repositories/TaskRepository.ts\"},{\"kind\":\"File\",\"layer\":\"infrastructure\",\"path\":\"src/infrastructure/http/routes/taskRoutes.ts\"},{\"kind\":\"Interface\",\"layer\":\"application\",\"name\":\"UseCase\",\"path\":\"src/application/ports/UseCase.ts\"},{\"kind\":\"Interface\",\"layer\":\"domain\",\"name\":\"TaskRepository\",\"path\":\"src/domain/repositories/TaskRepository.ts\"}]}\n\n## Instructions\nJudge the unit against the rule and rubric. Return the JSON object the schema requires. Set pass to false if any file of the unit fails the rubric.\n",
+  "provider": "claude-cli",
+  "recordedAt": "2026-10-10T22:01:42.954Z",
+  "repetition": 0,
+  "requestHash": "3ec36b13831648d0150596d11808d3108f3cd7511224183eaedc8e65bbe9ae68",
+  "resolvedModel": "claude-opus-5-5",
+  "response": "{\"is_error\":false,\"modelUsage\":{\"claude-opus-5-5\":{\"inputTokens\":2,\"outputTokens\":494}},\"result\":\"{\\\"pass\\\":true,\\\"confidence\\\":0.95,\\\"reasoning\\\":\\\"This file is a standard application-layer use case. It loads the aggregate through a repository abstraction that is injected, raises a domain error when the task is missing, and leaves the state change to the domain entity (task.markDone()). It then saves the task through the abstraction and maps the result to a DTO. The file contains no persistence code, no transport or HTTP handling, no framework code, and no business rules written inline. The rule for marking a task done lives in the entity, not here.\\\",\\\"evidence\\\":[\\\"execute() coordinates the work: this.tasks.findById(input.taskId) -> task.markDone() -> this.tasks.save(task) -> toTaskDto(task)\\\",\\\"The business state change is handed to the domain entity through task.markDone(), with no inline status logic\\\",\\\"The TaskRepository abstraction is injected through the constructor, and the file contains no database or ORM code\\\",\\\"The NotFoundError guard is a lookup failure check at the application level, not a business invariant\\\",\\\"No HTTP, request or response handling appears. The HTTP route in src/infrastructure/http/routes/taskRoutes.ts consumes this use case\\\"],\\\"violations\\\":[]}\",\"structured_output\":{\"confidence\":0.95,\"evidence\":[\"execute() coordinates the work: this.tasks.findById(input.taskId) -> task.markDone() -> this.tasks.save(task) -> toTaskDto(task)\",\"The business state change is handed to the domain entity through task.markDone(), with no inline status logic\",\"The TaskRepository abstraction is injected through the constructor, and the file contains no database or ORM code\",\"The NotFoundError guard is a lookup failure check at the application level, not a business invariant\",\"No HTTP, request or response handling appears. The HTTP route in src/infrastructure/http/routes/taskRoutes.ts consumes this use case\"],\"pass\":true,\"reasoning\":\"This file is a standard application-layer use case. It loads the aggregate through a repository abstraction that is injected, raises a domain error when the task is missing, and leaves the state change to the domain entity (task.markDone()). It then saves the task through the abstraction and maps the result to a DTO. The file contains no persistence code, no transport or HTTP handling, no framework code, and no business rules written inline. The rule for marking a task done lives in the entity, not here.\",\"violations\":[]}}",
+  "runIndex": 2,
+  "schemaVersion": 2,
+  "unitId": "src/application/use-cases/MarkTaskDoneUseCase.ts",
+  "usage": {
+    "inputTokens": 3247,
+    "outputTokens": 494
+  },
+  "usedOptions": {
+    "effort": "high",
+    "model": "claude-opus-5-5"
+  }
+}

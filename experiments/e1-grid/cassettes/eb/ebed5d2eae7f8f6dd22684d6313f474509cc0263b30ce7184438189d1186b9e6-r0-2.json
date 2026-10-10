@@ -1,0 +1,48 @@
+{
+  "attempts": 1,
+  "cliVersion": "2.1.294",
+  "configListingSha256": "47aa04258852fab9a706f3f0c14cee22306d69fbb6fdfbde8c11854bd54997bc",
+  "durationMs": 7226,
+  "effort": "high",
+  "functionId": "FF-N02",
+  "ignoredOptions": [
+    "maxTokens"
+  ],
+  "isolationProbeSha256": "97a2e2d0af1100c13c55e028c1a0c71f069093c3d08705af122aaeb302f1a641",
+  "key": "ebed5d2eae7f8f6dd22684d6313f474509cc0263b30ce7184438189d1186b9e6-r0-2",
+  "model": "claude-opus-5-5",
+  "outcome": {
+    "kind": "valid"
+  },
+  "parsedVerdict": {
+    "confidence": 0.85,
+    "evidence": [
+      "`const service = new OrderService(new InMemoryProductRepository(), new InMemoryOrderRepository());` connects the in-memory adapters to the application service. This is composition-root wiring, which is an infrastructure concern.",
+      "`const port = Number(process.env.PORT ?? 3000);` reads process environment configuration, which is runtime/framework work.",
+      "`createApp(service).listen(port, ...)` starts the HTTP transport, which is infrastructure.",
+      "`service.addProduct(\"widget\", \"Widget\", 100);` loads startup seed data through the application API without adding any business rule logic of its own."
+    ],
+    "pass": true,
+    "reasoning": "src/infrastructure/server.ts is a composition root and process entry point. It builds OrderService with in-memory repository adapters, adds seed data, reads the PORT environment variable and starts the HTTP listener. Wiring dependencies, reading process configuration and starting the server are framework and runtime concerns, so they belong in the infrastructure layer. The two service.addProduct calls load bootstrap seed data through the application service's public API. The file does not define any business rule itself: there is no validation, pricing or order logic in it. No responsibility here belongs to the domain or application layer.",
+    "violations": []
+  },
+  "projectId": "claude-sonnet-5-5/order-fulfilment/none/run-2",
+  "prompt": "## Rule\nThe unit's responsibilities match the role of its declared layer.\n\n## Rubric\nPass: Every responsibility in the file belongs to the role and kind of its declared layer, and agrees with any ADR prose given.\nFail: The file carries a responsibility that belongs to a different layer kind, for example persistence, transport or framework logic in a domain file, or business rules in an infrastructure or presentation file.\nEvidence required: Name the file and cite the function, method or statement that carries the misplaced responsibility, and the layer kind it belongs to.\nOut of scope: import direction and layer-dependency rules, which are checked symbolically.\n\n## Layer model\n- domain (kind: domain): src/domain/**\n- application (kind: application): src/application/**\n- infrastructure (kind: infrastructure): src/infrastructure/**\n\n## Unit\nKind: file\nId: src/infrastructure/server.ts\nLayer: infrastructure\nUnit files:\n- src/infrastructure/server.ts\n\n## Source\n=====SOURCE-BEGIN src/infrastructure/server.ts=====\nimport { OrderService } from \"../application/order-service\";\nimport { createApp } from \"./http-app\";\nimport { InMemoryOrderRepository, InMemoryProductRepository } from \"./in-memory-repositories\";\n\nconst service = new OrderService(new InMemoryProductRepository(), new InMemoryOrderRepository());\nservice.addProduct(\"widget\", \"Widget\", 100);\nservice.addProduct(\"gadget\", \"Gadget\", 25);\n\nconst port = Number(process.env.PORT ?? 3000);\ncreateApp(service).listen(port, () => {\n  console.log(`order fulfilment API listening on ${port}`);\n});\n\n=====SOURCE-END=====\n\n## Graph excerpt\n{\"edges\":[{\"from\":\"src/infrastructure/server.ts\",\"to\":\"src/application/order-service.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/infrastructure/server.ts\",\"to\":\"src/infrastructure/http-app.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/infrastructure/server.ts\",\"to\":\"src/infrastructure/in-memory-repositories.ts\",\"type\":\"IMPORTS\"}],\"nodes\":[{\"kind\":\"File\",\"layer\":\"application\",\"path\":\"src/application/order-service.ts\"},{\"kind\":\"File\",\"layer\":\"infrastructure\",\"path\":\"src/infrastructure/http-app.ts\"},{\"kind\":\"File\",\"layer\":\"infrastructure\",\"path\":\"src/infrastructure/in-memory-repositories.ts\"},{\"kind\":\"File\",\"layer\":\"infrastructure\",\"path\":\"src/infrastructure/server.ts\"}]}\n\n## Instructions\nJudge the unit against the rule and rubric. Return the JSON object the schema requires. Set pass to false if any file of the unit fails the rubric.\n",
+  "provider": "claude-cli",
+  "recordedAt": "2026-10-10T22:35:18.567Z",
+  "repetition": 0,
+  "requestHash": "ebed5d2eae7f8f6dd22684d6313f474509cc0263b30ce7184438189d1186b9e6",
+  "resolvedModel": "claude-opus-5-5",
+  "response": "{\"is_error\":false,\"modelUsage\":{\"claude-opus-5-5\":{\"inputTokens\":2,\"outputTokens\":595}},\"result\":\"{\\\"pass\\\":true,\\\"confidence\\\":0.85,\\\"reasoning\\\":\\\"src/infrastructure/server.ts is a composition root and process entry point. It builds OrderService with in-memory repository adapters, adds seed data, reads the PORT environment variable and starts the HTTP listener. Wiring dependencies, reading process configuration and starting the server are framework and runtime concerns, so they belong in the infrastructure layer. The two service.addProduct calls load bootstrap seed data through the application service's public API. The file does not define any business rule itself: there is no validation, pricing or order logic in it. No responsibility here belongs to the domain or application layer.\\\",\\\"evidence\\\":[\\\"`const service = new OrderService(new InMemoryProductRepository(), new InMemoryOrderRepository());` connects the in-memory adapters to the application service. This is composition-root wiring, which is an infrastructure concern.\\\",\\\"`const port = Number(process.env.PORT ?? 3000);` reads process environment configuration, which is runtime/framework work.\\\",\\\"`createApp(service).listen(port, ...)` starts the HTTP transport, which is infrastructure.\\\",\\\"`service.addProduct(\\\\\\\"widget\\\\\\\", \\\\\\\"Widget\\\\\\\", 100);` loads startup seed data through the application API without adding any business rule logic of its own.\\\"],\\\"violations\\\":[]}\",\"structured_output\":{\"confidence\":0.85,\"evidence\":[\"`const service = new OrderService(new InMemoryProductRepository(), new InMemoryOrderRepository());` connects the in-memory adapters to the application service. This is composition-root wiring, which is an infrastructure concern.\",\"`const port = Number(process.env.PORT ?? 3000);` reads process environment configuration, which is runtime/framework work.\",\"`createApp(service).listen(port, ...)` starts the HTTP transport, which is infrastructure.\",\"`service.addProduct(\\\"widget\\\", \\\"Widget\\\", 100);` loads startup seed data through the application API without adding any business rule logic of its own.\"],\"pass\":true,\"reasoning\":\"src/infrastructure/server.ts is a composition root and process entry point. It builds OrderService with in-memory repository adapters, adds seed data, reads the PORT environment variable and starts the HTTP listener. Wiring dependencies, reading process configuration and starting the server are framework and runtime concerns, so they belong in the infrastructure layer. The two service.addProduct calls load bootstrap seed data through the application service's public API. The file does not define any business rule itself: there is no validation, pricing or order logic in it. No responsibility here belongs to the domain or application layer.\",\"violations\":[]}}",
+  "runIndex": 2,
+  "schemaVersion": 2,
+  "unitId": "src/infrastructure/server.ts",
+  "usage": {
+    "inputTokens": 2406,
+    "outputTokens": 595
+  },
+  "usedOptions": {
+    "effort": "high",
+    "model": "claude-opus-5-5"
+  }
+}

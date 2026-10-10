@@ -1,0 +1,48 @@
+{
+  "attempts": 1,
+  "cliVersion": "2.1.294",
+  "configListingSha256": "47aa04258852fab9a706f3f0c14cee22306d69fbb6fdfbde8c11854bd54997bc",
+  "durationMs": 7030,
+  "effort": "high",
+  "functionId": "FF-N02",
+  "ignoredOptions": [
+    "maxTokens"
+  ],
+  "isolationProbeSha256": "97a2e2d0af1100c13c55e028c1a0c71f069093c3d08705af122aaeb302f1a641",
+  "key": "4089809d48eb2d18f8c060345af5a4a5fbae00995226d5bba45c60eae91057cf-r0-2",
+  "model": "claude-opus-5-5",
+  "outcome": {
+    "kind": "valid"
+  },
+  "parsedVerdict": {
+    "confidence": 0.93,
+    "evidence": [
+      "src/infrastructure/persistence/InMemoryProductRepository.ts: `private readonly records = new Map<string, ProductSnapshot>()`: an in-memory store, which is a storage (infrastructure) concern",
+      "findById / findAll call `Product.restore(record)`: they rebuild entities from stored records, which is the repository's mapping job",
+      "save calls `this.records.set(product.id, product.toSnapshot())`: it writes a snapshot of the entity and applies no business rule",
+      "No business rules, validation or use-case orchestration appear in the file"
+    ],
+    "pass": true,
+    "reasoning": "InMemoryProductRepository only does persistence work, which belongs in the infrastructure layer. It stores product snapshots in a Map keyed by id, returns entities rebuilt with Product.restore, and turns entities back into records with product.toSnapshot(). It contains no business rules, validation, pricing, invariants or use-case orchestration. Its only design choice, storing snapshots so callers never share mutable state with the store, is a storage concern. The file imports from '../../application/ports/persistence' while the graph shows its dependencies in src/domain. Import direction is out of scope for this rule, so that mismatch does not affect the verdict.",
+    "violations": []
+  },
+  "projectId": "claude-opus-5-5/order-fulfilment/full-aac/run-1",
+  "prompt": "## Rule\nThe unit's responsibilities match the role of its declared layer.\n\n## Rubric\nPass: Every responsibility in the file belongs to the role and kind of its declared layer, and agrees with any ADR prose given.\nFail: The file carries a responsibility that belongs to a different layer kind, for example persistence, transport or framework logic in a domain file, or business rules in an infrastructure or presentation file.\nEvidence required: Name the file and cite the function, method or statement that carries the misplaced responsibility, and the layer kind it belongs to.\nOut of scope: import direction and layer-dependency rules, which are checked symbolically.\n\n## Layer model\n- domain (kind: domain): src/domain/**\n- application (kind: application): src/application/**\n- infrastructure (kind: infrastructure): src/infrastructure/**\n\n## Unit\nKind: file\nId: src/infrastructure/persistence/InMemoryProductRepository.ts\nLayer: infrastructure\nUnit files:\n- src/infrastructure/persistence/InMemoryProductRepository.ts\n\n## Source\n=====SOURCE-BEGIN src/infrastructure/persistence/InMemoryProductRepository.ts=====\nimport {\n  Product,\n  type ProductRepository,\n  type ProductSnapshot,\n} from '../../application/ports/persistence';\n\n/** Keeps products as snapshots so callers never share mutable state with the store. */\nexport class InMemoryProductRepository implements ProductRepository {\n  private readonly records = new Map<string, ProductSnapshot>();\n\n  findById(id: string): Product | undefined {\n    const record = this.records.get(id);\n    return record === undefined ? undefined : Product.restore(record);\n  }\n\n  findAll(): Product[] {\n    return [...this.records.values()].map((record) => Product.restore(record));\n  }\n\n  save(product: Product): void {\n    this.records.set(product.id, product.toSnapshot());\n  }\n}\n\n=====SOURCE-END=====\n\n## Graph excerpt\n{\"edges\":[{\"from\":\"InMemoryProductRepository@src/infrastructure/persistence/InMemoryProductRepository.ts\",\"to\":\"ProductRepository@src/domain/repositories/ProductRepository.ts\",\"type\":\"IMPLEMENTS\"},{\"from\":\"src/infrastructure/config/container.ts\",\"to\":\"src/infrastructure/persistence/InMemoryProductRepository.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/infrastructure/persistence/InMemoryProductRepository.ts\",\"to\":\"src/domain/entities/Product.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/infrastructure/persistence/InMemoryProductRepository.ts\",\"to\":\"src/domain/repositories/ProductRepository.ts\",\"type\":\"IMPORTS\"}],\"nodes\":[{\"kind\":\"Class\",\"layer\":\"infrastructure\",\"name\":\"InMemoryProductRepository\",\"path\":\"src/infrastructure/persistence/InMemoryProductRepository.ts\"},{\"kind\":\"File\",\"layer\":\"domain\",\"path\":\"src/domain/entities/Product.ts\"},{\"kind\":\"File\",\"layer\":\"domain\",\"path\":\"src/domain/repositories/ProductRepository.ts\"},{\"kind\":\"File\",\"layer\":\"infrastructure\",\"path\":\"src/infrastructure/config/container.ts\"},{\"kind\":\"File\",\"layer\":\"infrastructure\",\"path\":\"src/infrastructure/persistence/InMemoryProductRepository.ts\"},{\"kind\":\"Interface\",\"layer\":\"domain\",\"name\":\"ProductRepository\",\"path\":\"src/domain/repositories/ProductRepository.ts\"}]}\n\n## Instructions\nJudge the unit against the rule and rubric. Return the JSON object the schema requires. Set pass to false if any file of the unit fails the rubric.\n",
+  "provider": "claude-cli",
+  "recordedAt": "2026-10-10T22:21:10.240Z",
+  "repetition": 0,
+  "requestHash": "4089809d48eb2d18f8c060345af5a4a5fbae00995226d5bba45c60eae91057cf",
+  "resolvedModel": "claude-opus-5-5",
+  "response": "{\"is_error\":false,\"modelUsage\":{\"claude-opus-5-5\":{\"inputTokens\":2,\"outputTokens\":617}},\"result\":\"{\\\"pass\\\":true,\\\"confidence\\\":0.93,\\\"reasoning\\\":\\\"InMemoryProductRepository only does persistence work, which belongs in the infrastructure layer. It stores product snapshots in a Map keyed by id, returns entities rebuilt with Product.restore, and turns entities back into records with product.toSnapshot(). It contains no business rules, validation, pricing, invariants or use-case orchestration. Its only design choice, storing snapshots so callers never share mutable state with the store, is a storage concern. The file imports from '../../application/ports/persistence' while the graph shows its dependencies in src/domain. Import direction is out of scope for this rule, so that mismatch does not affect the verdict.\\\",\\\"evidence\\\":[\\\"src/infrastructure/persistence/InMemoryProductRepository.ts: `private readonly records = new Map<string, ProductSnapshot>()`: an in-memory store, which is a storage (infrastructure) concern\\\",\\\"findById / findAll call `Product.restore(record)`: they rebuild entities from stored records, which is the repository's mapping job\\\",\\\"save calls `this.records.set(product.id, product.toSnapshot())`: it writes a snapshot of the entity and applies no business rule\\\",\\\"No business rules, validation or use-case orchestration appear in the file\\\"],\\\"violations\\\":[]}\",\"structured_output\":{\"confidence\":0.93,\"evidence\":[\"src/infrastructure/persistence/InMemoryProductRepository.ts: `private readonly records = new Map<string, ProductSnapshot>()`: an in-memory store, which is a storage (infrastructure) concern\",\"findById / findAll call `Product.restore(record)`: they rebuild entities from stored records, which is the repository's mapping job\",\"save calls `this.records.set(product.id, product.toSnapshot())`: it writes a snapshot of the entity and applies no business rule\",\"No business rules, validation or use-case orchestration appear in the file\"],\"pass\":true,\"reasoning\":\"InMemoryProductRepository only does persistence work, which belongs in the infrastructure layer. It stores product snapshots in a Map keyed by id, returns entities rebuilt with Product.restore, and turns entities back into records with product.toSnapshot(). It contains no business rules, validation, pricing, invariants or use-case orchestration. Its only design choice, storing snapshots so callers never share mutable state with the store, is a storage concern. The file imports from '../../application/ports/persistence' while the graph shows its dependencies in src/domain. Import direction is out of scope for this rule, so that mismatch does not affect the verdict.\",\"violations\":[]}}",
+  "runIndex": 2,
+  "schemaVersion": 2,
+  "unitId": "src/infrastructure/persistence/InMemoryProductRepository.ts",
+  "usage": {
+    "inputTokens": 2743,
+    "outputTokens": 617
+  },
+  "usedOptions": {
+    "effort": "high",
+    "model": "claude-opus-5-5"
+  }
+}

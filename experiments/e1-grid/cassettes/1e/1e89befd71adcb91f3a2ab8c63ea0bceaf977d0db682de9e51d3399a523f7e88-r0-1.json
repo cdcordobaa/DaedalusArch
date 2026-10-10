@@ -1,0 +1,48 @@
+{
+  "attempts": 1,
+  "cliVersion": "2.1.294",
+  "configListingSha256": "47aa04258852fab9a706f3f0c14cee22306d69fbb6fdfbde8c11854bd54997bc",
+  "durationMs": 6803,
+  "effort": "high",
+  "functionId": "FF-N02",
+  "ignoredOptions": [
+    "maxTokens"
+  ],
+  "isolationProbeSha256": "97a2e2d0af1100c13c55e028c1a0c71f069093c3d08705af122aaeb302f1a641",
+  "key": "1e89befd71adcb91f3a2ab8c63ea0bceaf977d0db682de9e51d3399a523f7e88-r0-1",
+  "model": "claude-opus-5-5",
+  "outcome": {
+    "kind": "valid"
+  },
+  "parsedVerdict": {
+    "confidence": 0.86,
+    "evidence": [
+      "`new FulfilmentService(new InMemoryProductRepository(), new InMemoryOrderRepository())` connects concrete adapters to the service, which is normal composition-root work for infrastructure.",
+      "`Number(process.env.PORT ?? 3000)` reads environment and runtime configuration, which belongs in infrastructure.",
+      "`createApp(service).listen(port, ...)` starts the HTTP transport, which belongs in infrastructure.",
+      "`service.addProduct(\"widget\", \"Widget\", 100)` loads seed data through the application API and contains no business rules."
+    ],
+    "pass": true,
+    "reasoning": "src/infrastructure/server.ts passes. It is the app's composition and bootstrap root, and that work belongs in infrastructure. It wires concrete adapters (the in-memory repositories) into the application service, reads the port from process.env, and starts the HTTP listener. All of this is framework, runtime and transport setup. The two service.addProduct calls load demo data through the application service's public API. They don't add any business rules, invariants or domain decisions to this file. No domain logic or application-level orchestration has been put here by mistake.",
+    "violations": []
+  },
+  "projectId": "claude-sonnet-5-5/order-fulfilment/none/run-0",
+  "prompt": "## Rule\nThe unit's responsibilities match the role of its declared layer.\n\n## Rubric\nPass: Every responsibility in the file belongs to the role and kind of its declared layer, and agrees with any ADR prose given.\nFail: The file carries a responsibility that belongs to a different layer kind, for example persistence, transport or framework logic in a domain file, or business rules in an infrastructure or presentation file.\nEvidence required: Name the file and cite the function, method or statement that carries the misplaced responsibility, and the layer kind it belongs to.\nOut of scope: import direction and layer-dependency rules, which are checked symbolically.\n\n## Layer model\n- domain (kind: domain): src/domain/**\n- application (kind: application): src/application/**\n- infrastructure (kind: infrastructure): src/infrastructure/**\n\n## Unit\nKind: file\nId: src/infrastructure/server.ts\nLayer: infrastructure\nUnit files:\n- src/infrastructure/server.ts\n\n## Source\n=====SOURCE-BEGIN src/infrastructure/server.ts=====\nimport { FulfilmentService } from \"../application/fulfilment-service\";\nimport { createApp } from \"./http-app\";\nimport { InMemoryOrderRepository, InMemoryProductRepository } from \"./in-memory-repositories\";\n\nconst service = new FulfilmentService(new InMemoryProductRepository(), new InMemoryOrderRepository());\nservice.addProduct(\"widget\", \"Widget\", 100);\nservice.addProduct(\"gadget\", \"Gadget\", 50);\n\nconst port = Number(process.env.PORT ?? 3000);\ncreateApp(service).listen(port, () => {\n  console.log(`Order fulfilment API listening on port ${port}`);\n});\n\n=====SOURCE-END=====\n\n## Graph excerpt\n{\"edges\":[{\"from\":\"src/infrastructure/server.ts\",\"to\":\"src/application/fulfilment-service.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/infrastructure/server.ts\",\"to\":\"src/infrastructure/http-app.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/infrastructure/server.ts\",\"to\":\"src/infrastructure/in-memory-repositories.ts\",\"type\":\"IMPORTS\"}],\"nodes\":[{\"kind\":\"File\",\"layer\":\"application\",\"path\":\"src/application/fulfilment-service.ts\"},{\"kind\":\"File\",\"layer\":\"infrastructure\",\"path\":\"src/infrastructure/http-app.ts\"},{\"kind\":\"File\",\"layer\":\"infrastructure\",\"path\":\"src/infrastructure/in-memory-repositories.ts\"},{\"kind\":\"File\",\"layer\":\"infrastructure\",\"path\":\"src/infrastructure/server.ts\"}]}\n\n## Instructions\nJudge the unit against the rule and rubric. Return the JSON object the schema requires. Set pass to false if any file of the unit fails the rubric.\n",
+  "provider": "claude-cli",
+  "recordedAt": "2026-10-10T22:31:31.347Z",
+  "repetition": 0,
+  "requestHash": "1e89befd71adcb91f3a2ab8c63ea0bceaf977d0db682de9e51d3399a523f7e88",
+  "resolvedModel": "claude-opus-5-5",
+  "response": "{\"is_error\":false,\"modelUsage\":{\"claude-opus-5-5\":{\"inputTokens\":2,\"outputTokens\":566}},\"result\":\"{\\\"pass\\\":true,\\\"confidence\\\":0.86,\\\"reasoning\\\":\\\"src/infrastructure/server.ts passes. It is the app's composition and bootstrap root, and that work belongs in infrastructure. It wires concrete adapters (the in-memory repositories) into the application service, reads the port from process.env, and starts the HTTP listener. All of this is framework, runtime and transport setup. The two service.addProduct calls load demo data through the application service's public API. They don't add any business rules, invariants or domain decisions to this file. No domain logic or application-level orchestration has been put here by mistake.\\\",\\\"evidence\\\":[\\\"`new FulfilmentService(new InMemoryProductRepository(), new InMemoryOrderRepository())` connects concrete adapters to the service, which is normal composition-root work for infrastructure.\\\",\\\"`Number(process.env.PORT ?? 3000)` reads environment and runtime configuration, which belongs in infrastructure.\\\",\\\"`createApp(service).listen(port, ...)` starts the HTTP transport, which belongs in infrastructure.\\\",\\\"`service.addProduct(\\\\\\\"widget\\\\\\\", \\\\\\\"Widget\\\\\\\", 100)` loads seed data through the application API and contains no business rules.\\\"],\\\"violations\\\":[]}\",\"structured_output\":{\"confidence\":0.86,\"evidence\":[\"`new FulfilmentService(new InMemoryProductRepository(), new InMemoryOrderRepository())` connects concrete adapters to the service, which is normal composition-root work for infrastructure.\",\"`Number(process.env.PORT ?? 3000)` reads environment and runtime configuration, which belongs in infrastructure.\",\"`createApp(service).listen(port, ...)` starts the HTTP transport, which belongs in infrastructure.\",\"`service.addProduct(\\\"widget\\\", \\\"Widget\\\", 100)` loads seed data through the application API and contains no business rules.\"],\"pass\":true,\"reasoning\":\"src/infrastructure/server.ts passes. It is the app's composition and bootstrap root, and that work belongs in infrastructure. It wires concrete adapters (the in-memory repositories) into the application service, reads the port from process.env, and starts the HTTP listener. All of this is framework, runtime and transport setup. The two service.addProduct calls load demo data through the application service's public API. They don't add any business rules, invariants or domain decisions to this file. No domain logic or application-level orchestration has been put here by mistake.\",\"violations\":[]}}",
+  "runIndex": 1,
+  "schemaVersion": 2,
+  "unitId": "src/infrastructure/server.ts",
+  "usage": {
+    "inputTokens": 2428,
+    "outputTokens": 566
+  },
+  "usedOptions": {
+    "effort": "high",
+    "model": "claude-opus-5-5"
+  }
+}

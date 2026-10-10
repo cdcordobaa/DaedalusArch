@@ -1,0 +1,47 @@
+{
+  "attempts": 1,
+  "cliVersion": "2.1.294",
+  "configListingSha256": "47aa04258852fab9a706f3f0c14cee22306d69fbb6fdfbde8c11854bd54997bc",
+  "durationMs": 6296,
+  "effort": "high",
+  "functionId": "FF-N02",
+  "ignoredOptions": [
+    "maxTokens"
+  ],
+  "isolationProbeSha256": "97a2e2d0af1100c13c55e028c1a0c71f069093c3d08705af122aaeb302f1a641",
+  "key": "a30f4d012c912ed824dca1d714f5057c6f096f961f88aae2d9100cb91f6e0213-r0-2",
+  "model": "claude-opus-5-5",
+  "outcome": {
+    "kind": "valid"
+  },
+  "parsedVerdict": {
+    "confidence": 0.93,
+    "evidence": [
+      "Task.markDone() enforces the 'already done' invariant by throwing ConflictError. This is a business rule, which belongs in the domain layer.",
+      "Task.assignTo() and the getters only manage entity state.",
+      "The file imports only ./domain-error and ./task-status, both in the domain layer. It has no I/O, persistence or framework code."
+    ],
+    "pass": true,
+    "reasoning": "src/domain/task.ts declares a Task entity with props, getters and state-transition behavior. These are domain responsibilities. markDone enforces a business invariant: a task that is already done can't be completed again, so it throws ConflictError. assignTo is a plain state mutation. The file has no persistence, transport, serialization or framework logic. ConflictError comes from the domain's own error module. Its name sounds a bit like HTTP, but it is defined in the domain and only expresses a rule violation, so it is not transport logic. No ADR prose was given to check against.",
+    "violations": []
+  },
+  "projectId": "claude-sonnet-5-5/task-management/minimal-prose/run-0",
+  "prompt": "## Rule\nThe unit's responsibilities match the role of its declared layer.\n\n## Rubric\nPass: Every responsibility in the file belongs to the role and kind of its declared layer, and agrees with any ADR prose given.\nFail: The file carries a responsibility that belongs to a different layer kind, for example persistence, transport or framework logic in a domain file, or business rules in an infrastructure or presentation file.\nEvidence required: Name the file and cite the function, method or statement that carries the misplaced responsibility, and the layer kind it belongs to.\nOut of scope: import direction and layer-dependency rules, which are checked symbolically.\n\n## Layer model\n- domain (kind: domain): src/domain/**\n- application (kind: application): src/application/**\n- infrastructure (kind: infrastructure): src/infrastructure/**\n\n## Unit\nKind: file\nId: src/domain/task.ts\nLayer: domain\nUnit files:\n- src/domain/task.ts\n\n## Source\n=====SOURCE-BEGIN src/domain/task.ts=====\nimport { ConflictError } from \"./domain-error\";\nimport { TaskStatus } from \"./task-status\";\n\nexport interface TaskProps {\n  id: string;\n  projectId: string;\n  title: string;\n  description: string;\n  dueDate?: Date;\n  status: TaskStatus;\n  assigneeId?: string;\n}\n\nexport class Task {\n  constructor(private props: TaskProps) {}\n\n  get id(): string { return this.props.id; }\n  get projectId(): string { return this.props.projectId; }\n  get title(): string { return this.props.title; }\n  get description(): string { return this.props.description; }\n  get dueDate(): Date | undefined { return this.props.dueDate; }\n  get status(): TaskStatus { return this.props.status; }\n  get assigneeId(): string | undefined { return this.props.assigneeId; }\n\n  assignTo(userId: string): void {\n    this.props.assigneeId = userId;\n  }\n\n  markDone(): void {\n    if (this.props.status === \"done\") {\n      throw new ConflictError(\"task is already done\");\n    }\n    this.props.status = \"done\";\n  }\n}\n\n=====SOURCE-END=====\n\n## Graph excerpt\n{\"edges\":[{\"from\":\"Task@src/domain/task.ts\",\"to\":\"TaskProps@src/domain/task.ts\",\"type\":\"CONSTRUCTOR_INJECTS\"},{\"from\":\"src/application/assign-task-use-case.ts\",\"to\":\"src/domain/task.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/application/complete-task-use-case.ts\",\"to\":\"src/domain/task.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/application/create-task-use-case.ts\",\"to\":\"src/domain/task.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/application/dtos.ts\",\"to\":\"src/domain/task.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/application/list-tasks-use-case.ts\",\"to\":\"src/domain/task.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/domain/task-repository.ts\",\"to\":\"src/domain/task.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/domain/task.ts\",\"to\":\"src/domain/domain-error.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/domain/task.ts\",\"to\":\"src/domain/task-status.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/infrastructure/in-memory-task-repository.ts\",\"to\":\"src/domain/task.ts\",\"type\":\"IMPORTS\"}],\"nodes\":[{\"kind\":\"Class\",\"layer\":\"domain\",\"name\":\"Task\",\"path\":\"src/domain/task.ts\"},{\"kind\":\"File\",\"layer\":\"application\",\"path\":\"src/application/assign-task-use-case.ts\"},{\"kind\":\"File\",\"layer\":\"application\",\"path\":\"src/application/complete-task-use-case.ts\"},{\"kind\":\"File\",\"layer\":\"application\",\"path\":\"src/application/create-task-use-case.ts\"},{\"kind\":\"File\",\"layer\":\"application\",\"path\":\"src/application/dtos.ts\"},{\"kind\":\"File\",\"layer\":\"application\",\"path\":\"src/application/list-tasks-use-case.ts\"},{\"kind\":\"File\",\"layer\":\"domain\",\"path\":\"src/domain/domain-error.ts\"},{\"kind\":\"File\",\"layer\":\"domain\",\"path\":\"src/domain/task-repository.ts\"},{\"kind\":\"File\",\"layer\":\"domain\",\"path\":\"src/domain/task-status.ts\"},{\"kind\":\"File\",\"layer\":\"domain\",\"path\":\"src/domain/task.ts\"},{\"kind\":\"File\",\"layer\":\"infrastructure\",\"path\":\"src/infrastructure/in-memory-task-repository.ts\"},{\"kind\":\"Interface\",\"layer\":\"domain\",\"name\":\"TaskProps\",\"path\":\"src/domain/task.ts\"}]}\n\n## Instructions\nJudge the unit against the rule and rubric. Return the JSON object the schema requires. Set pass to false if any file of the unit fails the rubric.\n",
+  "provider": "claude-cli",
+  "recordedAt": "2026-10-10T22:37:41.456Z",
+  "repetition": 0,
+  "requestHash": "a30f4d012c912ed824dca1d714f5057c6f096f961f88aae2d9100cb91f6e0213",
+  "resolvedModel": "claude-opus-5-5",
+  "response": "{\"is_error\":false,\"modelUsage\":{\"claude-opus-5-5\":{\"inputTokens\":2,\"outputTokens\":438}},\"result\":\"{\\\"pass\\\":true,\\\"confidence\\\":0.93,\\\"reasoning\\\":\\\"src/domain/task.ts declares a Task entity with props, getters and state-transition behavior. These are domain responsibilities. markDone enforces a business invariant: a task that is already done can't be completed again, so it throws ConflictError. assignTo is a plain state mutation. The file has no persistence, transport, serialization or framework logic. ConflictError comes from the domain's own error module. Its name sounds a bit like HTTP, but it is defined in the domain and only expresses a rule violation, so it is not transport logic. No ADR prose was given to check against.\\\",\\\"evidence\\\":[\\\"Task.markDone() enforces the 'already done' invariant by throwing ConflictError. This is a business rule, which belongs in the domain layer.\\\",\\\"Task.assignTo() and the getters only manage entity state.\\\",\\\"The file imports only ./domain-error and ./task-status, both in the domain layer. It has no I/O, persistence or framework code.\\\"],\\\"violations\\\":[]}\",\"structured_output\":{\"confidence\":0.93,\"evidence\":[\"Task.markDone() enforces the 'already done' invariant by throwing ConflictError. This is a business rule, which belongs in the domain layer.\",\"Task.assignTo() and the getters only manage entity state.\",\"The file imports only ./domain-error and ./task-status, both in the domain layer. It has no I/O, persistence or framework code.\"],\"pass\":true,\"reasoning\":\"src/domain/task.ts declares a Task entity with props, getters and state-transition behavior. These are domain responsibilities. markDone enforces a business invariant: a task that is already done can't be completed again, so it throws ConflictError. assignTo is a plain state mutation. The file has no persistence, transport, serialization or framework logic. ConflictError comes from the domain's own error module. Its name sounds a bit like HTTP, but it is defined in the domain and only expresses a rule violation, so it is not transport logic. No ADR prose was given to check against.\",\"violations\":[]}}",
+  "runIndex": 2,
+  "schemaVersion": 2,
+  "unitId": "src/domain/task.ts",
+  "usage": {
+    "inputTokens": 3128,
+    "outputTokens": 438
+  },
+  "usedOptions": {
+    "effort": "high",
+    "model": "claude-opus-5-5"
+  }
+}

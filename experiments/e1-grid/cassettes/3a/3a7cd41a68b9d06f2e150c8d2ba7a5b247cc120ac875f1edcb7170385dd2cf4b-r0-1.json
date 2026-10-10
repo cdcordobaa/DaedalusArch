@@ -1,0 +1,46 @@
+{
+  "attempts": 1,
+  "cliVersion": "2.1.294",
+  "configListingSha256": "47aa04258852fab9a706f3f0c14cee22306d69fbb6fdfbde8c11854bd54997bc",
+  "durationMs": 6850,
+  "effort": "high",
+  "functionId": "FF-N02",
+  "ignoredOptions": [
+    "maxTokens"
+  ],
+  "isolationProbeSha256": "97a2e2d0af1100c13c55e028c1a0c71f069093c3d08705af122aaeb302f1a641",
+  "key": "3a7cd41a68b9d06f2e150c8d2ba7a5b247cc120ac875f1edcb7170385dd2cf4b-r0-1",
+  "model": "claude-opus-5-5",
+  "outcome": {
+    "kind": "valid"
+  },
+  "parsedVerdict": {
+    "confidence": 0.95,
+    "evidence": [
+      "src/domain/errors.ts: the class DomainError extends Error and has a readonly code field limited to domain failure categories (\"not_found\" | \"invalid_input\" | \"insufficient_stock\" | \"invalid_transition\").",
+      "src/domain/errors.ts has no HTTP status codes, persistence, serialization or framework-specific logic."
+    ],
+    "pass": true,
+    "reasoning": "src/domain/errors.ts has only one thing in it: the DomainError class. That class takes a code from a closed set of business error categories (not_found, invalid_input, insufficient_stock, invalid_transition) plus a message. These codes describe domain failures, so this is domain vocabulary. The file has no transport logic: no HTTP status codes, no response formatting. It also has no persistence code and no framework code. Mapping these errors to HTTP is presumably done in infrastructure, since src/infrastructure/http-app.ts imports this file, and that is where the mapping belongs. The file's job fits the domain layer.",
+    "violations": []
+  },
+  "projectId": "claude-sonnet-5-5/order-fulfilment/none/run-1",
+  "prompt": "## Rule\nThe unit's responsibilities match the role of its declared layer.\n\n## Rubric\nPass: Every responsibility in the file belongs to the role and kind of its declared layer, and agrees with any ADR prose given.\nFail: The file carries a responsibility that belongs to a different layer kind, for example persistence, transport or framework logic in a domain file, or business rules in an infrastructure or presentation file.\nEvidence required: Name the file and cite the function, method or statement that carries the misplaced responsibility, and the layer kind it belongs to.\nOut of scope: import direction and layer-dependency rules, which are checked symbolically.\n\n## Layer model\n- domain (kind: domain): src/domain/**\n- application (kind: application): src/application/**\n- infrastructure (kind: infrastructure): src/infrastructure/**\n\n## Unit\nKind: file\nId: src/domain/errors.ts\nLayer: domain\nUnit files:\n- src/domain/errors.ts\n\n## Source\n=====SOURCE-BEGIN src/domain/errors.ts=====\nexport class DomainError extends Error {\n  constructor(\n    readonly code: \"not_found\" | \"invalid_input\" | \"insufficient_stock\" | \"invalid_transition\",\n    message: string,\n  ) {\n    super(message);\n    this.name = \"DomainError\";\n  }\n}\n\n=====SOURCE-END=====\n\n## Graph excerpt\n{\"edges\":[{\"from\":\"src/application/order-service.ts\",\"to\":\"src/domain/errors.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/domain/order.ts\",\"to\":\"src/domain/errors.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/domain/product.ts\",\"to\":\"src/domain/errors.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/infrastructure/http-app.ts\",\"to\":\"src/domain/errors.ts\",\"type\":\"IMPORTS\"}],\"nodes\":[{\"kind\":\"Class\",\"layer\":\"domain\",\"name\":\"DomainError\",\"path\":\"src/domain/errors.ts\"},{\"kind\":\"File\",\"layer\":\"application\",\"path\":\"src/application/order-service.ts\"},{\"kind\":\"File\",\"layer\":\"domain\",\"path\":\"src/domain/errors.ts\"},{\"kind\":\"File\",\"layer\":\"domain\",\"path\":\"src/domain/order.ts\"},{\"kind\":\"File\",\"layer\":\"domain\",\"path\":\"src/domain/product.ts\"},{\"kind\":\"File\",\"layer\":\"infrastructure\",\"path\":\"src/infrastructure/http-app.ts\"}]}\n\n## Instructions\nJudge the unit against the rule and rubric. Return the JSON object the schema requires. Set pass to false if any file of the unit fails the rubric.\n",
+  "provider": "claude-cli",
+  "recordedAt": "2026-10-10T22:32:49.468Z",
+  "repetition": 0,
+  "requestHash": "3a7cd41a68b9d06f2e150c8d2ba7a5b247cc120ac875f1edcb7170385dd2cf4b",
+  "resolvedModel": "claude-opus-5-5",
+  "response": "{\"is_error\":false,\"modelUsage\":{\"claude-opus-5-5\":{\"inputTokens\":2,\"outputTokens\":463}},\"result\":\"{\\\"pass\\\":true,\\\"confidence\\\":0.95,\\\"reasoning\\\":\\\"src/domain/errors.ts has only one thing in it: the DomainError class. That class takes a code from a closed set of business error categories (not_found, invalid_input, insufficient_stock, invalid_transition) plus a message. These codes describe domain failures, so this is domain vocabulary. The file has no transport logic: no HTTP status codes, no response formatting. It also has no persistence code and no framework code. Mapping these errors to HTTP is presumably done in infrastructure, since src/infrastructure/http-app.ts imports this file, and that is where the mapping belongs. The file's job fits the domain layer.\\\",\\\"evidence\\\":[\\\"src/domain/errors.ts: the class DomainError extends Error and has a readonly code field limited to domain failure categories (\\\\\\\"not_found\\\\\\\" | \\\\\\\"invalid_input\\\\\\\" | \\\\\\\"insufficient_stock\\\\\\\" | \\\\\\\"invalid_transition\\\\\\\").\\\",\\\"src/domain/errors.ts has no HTTP status codes, persistence, serialization or framework-specific logic.\\\"],\\\"violations\\\":[]}\",\"structured_output\":{\"confidence\":0.95,\"evidence\":[\"src/domain/errors.ts: the class DomainError extends Error and has a readonly code field limited to domain failure categories (\\\"not_found\\\" | \\\"invalid_input\\\" | \\\"insufficient_stock\\\" | \\\"invalid_transition\\\").\",\"src/domain/errors.ts has no HTTP status codes, persistence, serialization or framework-specific logic.\"],\"pass\":true,\"reasoning\":\"src/domain/errors.ts has only one thing in it: the DomainError class. That class takes a code from a closed set of business error categories (not_found, invalid_input, insufficient_stock, invalid_transition) plus a message. These codes describe domain failures, so this is domain vocabulary. The file has no transport logic: no HTTP status codes, no response formatting. It also has no persistence code and no framework code. Mapping these errors to HTTP is presumably done in infrastructure, since src/infrastructure/http-app.ts imports this file, and that is where the mapping belongs. The file's job fits the domain layer.\",\"violations\":[]}}",
+  "runIndex": 1,
+  "schemaVersion": 2,
+  "unitId": "src/domain/errors.ts",
+  "usage": {
+    "inputTokens": 2358,
+    "outputTokens": 463
+  },
+  "usedOptions": {
+    "effort": "high",
+    "model": "claude-opus-5-5"
+  }
+}

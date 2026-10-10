@@ -1,0 +1,48 @@
+{
+  "attempts": 1,
+  "cliVersion": "2.1.294",
+  "configListingSha256": "47aa04258852fab9a706f3f0c14cee22306d69fbb6fdfbde8c11854bd54997bc",
+  "durationMs": 6122,
+  "effort": "high",
+  "functionId": "FF-N02",
+  "ignoredOptions": [
+    "maxTokens"
+  ],
+  "isolationProbeSha256": "97a2e2d0af1100c13c55e028c1a0c71f069093c3d08705af122aaeb302f1a641",
+  "key": "dd5ecfc26fbe38a74d81da38f53c2dbbcf8de213c3c8ece47fc2d780a3af60d0-r0-2",
+  "model": "claude-opus-5-5",
+  "outcome": {
+    "kind": "valid"
+  },
+  "parsedVerdict": {
+    "confidence": 0.9,
+    "evidence": [
+      "STATUS_BY_KIND maps ErrorKind values to HTTP status codes, which is transport work for the infrastructure layer.",
+      "clientHttpStatus checks the status and expose properties that Express sets on errors, which is framework-specific handling.",
+      "notFoundHandler and errorHandler are Express RequestHandler and ErrorRequestHandler functions that write HTTP responses.",
+      "Error classification is handed to classifyError in the application layer instead of being done in this file."
+    ],
+    "pass": true,
+    "reasoning": "This file is Express error-handling middleware in the infrastructure layer. Everything it does is transport work. It maps error kinds to HTTP status codes, detects Express's own client errors (such as malformed JSON), builds JSON error responses, handles unmatched routes, and logs internal errors. It doesn't decide which errors are business errors. It passes that job to classifyError in the application layer and only turns the result into an HTTP response. No domain rules or persistence logic appear in the file.",
+    "violations": []
+  },
+  "projectId": "claude-opus-5-5/order-fulfilment/full-aac/run-1",
+  "prompt": "## Rule\nThe unit's responsibilities match the role of its declared layer.\n\n## Rubric\nPass: Every responsibility in the file belongs to the role and kind of its declared layer, and agrees with any ADR prose given.\nFail: The file carries a responsibility that belongs to a different layer kind, for example persistence, transport or framework logic in a domain file, or business rules in an infrastructure or presentation file.\nEvidence required: Name the file and cite the function, method or statement that carries the misplaced responsibility, and the layer kind it belongs to.\nOut of scope: import direction and layer-dependency rules, which are checked symbolically.\n\n## Layer model\n- domain (kind: domain): src/domain/**\n- application (kind: application): src/application/**\n- infrastructure (kind: infrastructure): src/infrastructure/**\n\n## Unit\nKind: file\nId: src/infrastructure/http/middleware/errorHandler.ts\nLayer: infrastructure\nUnit files:\n- src/infrastructure/http/middleware/errorHandler.ts\n\n## Source\n=====SOURCE-BEGIN src/infrastructure/http/middleware/errorHandler.ts=====\nimport type { ErrorRequestHandler, RequestHandler } from 'express';\nimport { classifyError, type ErrorKind } from '../../../application/errors/errorClassification';\n\nconst STATUS_BY_KIND: Readonly<Record<ErrorKind, number>> = {\n  validation: 400,\n  not_found: 404,\n  conflict: 409,\n  internal: 500,\n};\n\n/** Errors raised by Express itself (e.g. malformed JSON) carry a client status and are safe to expose. */\nfunction clientHttpStatus(error: unknown): number | undefined {\n  if (typeof error !== 'object' || error === null) {\n    return undefined;\n  }\n  const { status, expose } = error as { status?: unknown; expose?: unknown };\n  return typeof status === 'number' && status >= 400 && status < 500 && expose === true\n    ? status\n    : undefined;\n}\n\nexport const notFoundHandler: RequestHandler = (req, res) => {\n  res.status(404).json({\n    error: { code: 'NOT_FOUND', message: `No route for ${req.method} ${req.path}` },\n  });\n};\n\nexport const errorHandler: ErrorRequestHandler = (error: unknown, _req, res, next) => {\n  if (res.headersSent) {\n    next(error);\n    return;\n  }\n  const clientStatus = clientHttpStatus(error);\n  if (clientStatus !== undefined) {\n    res.status(clientStatus).json({\n      error: { code: 'BAD_REQUEST', message: (error as Error).message },\n    });\n    return;\n  }\n  const classified = classifyError(error);\n  if (classified.kind === 'internal') {\n    console.error(error);\n  }\n  res.status(STATUS_BY_KIND[classified.kind]).json({\n    error: { code: classified.code, message: classified.message, details: classified.details },\n  });\n};\n\n=====SOURCE-END=====\n\n## Graph excerpt\n{\"edges\":[{\"from\":\"src/infrastructure/http/createHttpApp.ts\",\"to\":\"src/infrastructure/http/middleware/errorHandler.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/infrastructure/http/middleware/errorHandler.ts\",\"to\":\"express\",\"type\":\"IMPORTS\"},{\"from\":\"src/infrastructure/http/middleware/errorHandler.ts\",\"to\":\"src/application/errors/errorClassification.ts\",\"type\":\"IMPORTS\"}],\"nodes\":[{\"kind\":\"File\",\"layer\":\"application\",\"path\":\"src/application/errors/errorClassification.ts\"},{\"kind\":\"File\",\"layer\":\"infrastructure\",\"path\":\"src/infrastructure/http/createHttpApp.ts\"},{\"kind\":\"File\",\"layer\":\"infrastructure\",\"path\":\"src/infrastructure/http/middleware/errorHandler.ts\"},{\"kind\":\"Package\",\"layer\":null,\"path\":\"express\"}]}\n\n## Instructions\nJudge the unit against the rule and rubric. Return the JSON object the schema requires. Set pass to false if any file of the unit fails the rubric.\n",
+  "provider": "claude-cli",
+  "recordedAt": "2026-10-10T22:20:53.770Z",
+  "repetition": 0,
+  "requestHash": "dd5ecfc26fbe38a74d81da38f53c2dbbcf8de213c3c8ece47fc2d780a3af60d0",
+  "resolvedModel": "claude-opus-5-5",
+  "response": "{\"is_error\":false,\"modelUsage\":{\"claude-opus-5-5\":{\"inputTokens\":2,\"outputTokens\":457}},\"result\":\"{\\\"pass\\\":true,\\\"confidence\\\":0.9,\\\"reasoning\\\":\\\"This file is Express error-handling middleware in the infrastructure layer. Everything it does is transport work. It maps error kinds to HTTP status codes, detects Express's own client errors (such as malformed JSON), builds JSON error responses, handles unmatched routes, and logs internal errors. It doesn't decide which errors are business errors. It passes that job to classifyError in the application layer and only turns the result into an HTTP response. No domain rules or persistence logic appear in the file.\\\",\\\"evidence\\\":[\\\"STATUS_BY_KIND maps ErrorKind values to HTTP status codes, which is transport work for the infrastructure layer.\\\",\\\"clientHttpStatus checks the status and expose properties that Express sets on errors, which is framework-specific handling.\\\",\\\"notFoundHandler and errorHandler are Express RequestHandler and ErrorRequestHandler functions that write HTTP responses.\\\",\\\"Error classification is handed to classifyError in the application layer instead of being done in this file.\\\"],\\\"violations\\\":[]}\",\"structured_output\":{\"confidence\":0.9,\"evidence\":[\"STATUS_BY_KIND maps ErrorKind values to HTTP status codes, which is transport work for the infrastructure layer.\",\"clientHttpStatus checks the status and expose properties that Express sets on errors, which is framework-specific handling.\",\"notFoundHandler and errorHandler are Express RequestHandler and ErrorRequestHandler functions that write HTTP responses.\",\"Error classification is handed to classifyError in the application layer instead of being done in this file.\"],\"pass\":true,\"reasoning\":\"This file is Express error-handling middleware in the infrastructure layer. Everything it does is transport work. It maps error kinds to HTTP status codes, detects Express's own client errors (such as malformed JSON), builds JSON error responses, handles unmatched routes, and logs internal errors. It doesn't decide which errors are business errors. It passes that job to classifyError in the application layer and only turns the result into an HTTP response. No domain rules or persistence logic appear in the file.\",\"violations\":[]}}",
+  "runIndex": 2,
+  "schemaVersion": 2,
+  "unitId": "src/infrastructure/http/middleware/errorHandler.ts",
+  "usage": {
+    "inputTokens": 2873,
+    "outputTokens": 457
+  },
+  "usedOptions": {
+    "effort": "high",
+    "model": "claude-opus-5-5"
+  }
+}

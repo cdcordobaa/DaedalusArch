@@ -1,0 +1,47 @@
+{
+  "attempts": 1,
+  "cliVersion": "2.1.294",
+  "configListingSha256": "47aa04258852fab9a706f3f0c14cee22306d69fbb6fdfbde8c11854bd54997bc",
+  "durationMs": 5811,
+  "effort": "high",
+  "functionId": "FF-N02",
+  "ignoredOptions": [
+    "maxTokens"
+  ],
+  "isolationProbeSha256": "97a2e2d0af1100c13c55e028c1a0c71f069093c3d08705af122aaeb302f1a641",
+  "key": "ce3bd869b1e8f20e3e5b9f14c1e4e4fb306e8edab640560035e250bd242ec12d-r0-0",
+  "model": "claude-opus-5-5",
+  "outcome": {
+    "kind": "valid"
+  },
+  "parsedVerdict": {
+    "confidence": 0.95,
+    "evidence": [
+      "src/domain/order/OrderLine.ts: OrderLine.of checks domain invariants (non-empty productId, positive integer quantity) and throws the domain ValidationError",
+      "src/domain/order/OrderLine.ts: OrderLine.consolidate applies the domain rule that each product appears once per order, using only in-memory Map logic",
+      "src/domain/order/OrderLine.ts: the only import is ../errors/DomainError (domain); there is no I/O, HTTP, ORM, or framework code"
+    ],
+    "pass": true,
+    "reasoning": "OrderLine.ts is a pure domain value object. It enforces invariants (the product id must not be empty and the quantity must be a positive integer), throws a domain ValidationError, and does the domain operation of consolidating lines per product. It has no persistence, transport, framework, or orchestration logic. Everything in the file fits the domain layer.",
+    "violations": []
+  },
+  "projectId": "claude-opus-5-5/order-fulfilment/full-aac/run-0",
+  "prompt": "## Rule\nThe unit's responsibilities match the role of its declared layer.\n\n## Rubric\nPass: Every responsibility in the file belongs to the role and kind of its declared layer, and agrees with any ADR prose given.\nFail: The file carries a responsibility that belongs to a different layer kind, for example persistence, transport or framework logic in a domain file, or business rules in an infrastructure or presentation file.\nEvidence required: Name the file and cite the function, method or statement that carries the misplaced responsibility, and the layer kind it belongs to.\nOut of scope: import direction and layer-dependency rules, which are checked symbolically.\n\n## Layer model\n- domain (kind: domain): src/domain/**\n- application (kind: application): src/application/**\n- infrastructure (kind: infrastructure): src/infrastructure/**\n\n## Unit\nKind: file\nId: src/domain/order/OrderLine.ts\nLayer: domain\nUnit files:\n- src/domain/order/OrderLine.ts\n\n## Source\n=====SOURCE-BEGIN src/domain/order/OrderLine.ts=====\nimport { ValidationError } from '../errors/DomainError';\n\n/** Value object: a requested quantity of one catalogue product. */\nexport class OrderLine {\n  private constructor(\n    readonly productId: string,\n    readonly quantity: number,\n  ) {}\n\n  static of(productId: string, quantity: number): OrderLine {\n    if (productId.trim() === '') {\n      throw new ValidationError('Order line product id must not be empty');\n    }\n    if (!Number.isInteger(quantity) || quantity <= 0) {\n      throw new ValidationError(`Quantity for product '${productId}' must be a positive integer`);\n    }\n    return new OrderLine(productId, quantity);\n  }\n\n  /** Combines lines for the same product so each product appears once per order. */\n  static consolidate(lines: readonly OrderLine[]): OrderLine[] {\n    const totals = new Map<string, number>();\n    for (const line of lines) {\n      totals.set(line.productId, (totals.get(line.productId) ?? 0) + line.quantity);\n    }\n    return [...totals].map(([productId, quantity]) => new OrderLine(productId, quantity));\n  }\n}\n\n=====SOURCE-END=====\n\n## Graph excerpt\n{\"edges\":[{\"from\":\"src/application/use-cases/PlaceOrderUseCase.ts\",\"to\":\"src/domain/order/OrderLine.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/domain/order/Order.ts\",\"to\":\"src/domain/order/OrderLine.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/domain/order/OrderLine.ts\",\"to\":\"src/domain/errors/DomainError.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/domain/services/StockReservationService.ts\",\"to\":\"src/domain/order/OrderLine.ts\",\"type\":\"IMPORTS\"}],\"nodes\":[{\"kind\":\"Class\",\"layer\":\"domain\",\"name\":\"OrderLine\",\"path\":\"src/domain/order/OrderLine.ts\"},{\"kind\":\"File\",\"layer\":\"application\",\"path\":\"src/application/use-cases/PlaceOrderUseCase.ts\"},{\"kind\":\"File\",\"layer\":\"domain\",\"path\":\"src/domain/errors/DomainError.ts\"},{\"kind\":\"File\",\"layer\":\"domain\",\"path\":\"src/domain/order/Order.ts\"},{\"kind\":\"File\",\"layer\":\"domain\",\"path\":\"src/domain/order/OrderLine.ts\"},{\"kind\":\"File\",\"layer\":\"domain\",\"path\":\"src/domain/services/StockReservationService.ts\"}]}\n\n## Instructions\nJudge the unit against the rule and rubric. Return the JSON object the schema requires. Set pass to false if any file of the unit fails the rubric.\n",
+  "provider": "claude-cli",
+  "recordedAt": "2026-10-10T22:14:51.487Z",
+  "repetition": 0,
+  "requestHash": "ce3bd869b1e8f20e3e5b9f14c1e4e4fb306e8edab640560035e250bd242ec12d",
+  "resolvedModel": "claude-opus-5-5",
+  "response": "{\"is_error\":false,\"modelUsage\":{\"claude-opus-5-5\":{\"inputTokens\":2,\"outputTokens\":423}},\"result\":\"{\\\"pass\\\":true,\\\"confidence\\\":0.95,\\\"reasoning\\\":\\\"OrderLine.ts is a pure domain value object. It enforces invariants (the product id must not be empty and the quantity must be a positive integer), throws a domain ValidationError, and does the domain operation of consolidating lines per product. It has no persistence, transport, framework, or orchestration logic. Everything in the file fits the domain layer.\\\",\\\"evidence\\\":[\\\"src/domain/order/OrderLine.ts: OrderLine.of checks domain invariants (non-empty productId, positive integer quantity) and throws the domain ValidationError\\\",\\\"src/domain/order/OrderLine.ts: OrderLine.consolidate applies the domain rule that each product appears once per order, using only in-memory Map logic\\\",\\\"src/domain/order/OrderLine.ts: the only import is ../errors/DomainError (domain); there is no I/O, HTTP, ORM, or framework code\\\"],\\\"violations\\\":[]}\",\"structured_output\":{\"confidence\":0.95,\"evidence\":[\"src/domain/order/OrderLine.ts: OrderLine.of checks domain invariants (non-empty productId, positive integer quantity) and throws the domain ValidationError\",\"src/domain/order/OrderLine.ts: OrderLine.consolidate applies the domain rule that each product appears once per order, using only in-memory Map logic\",\"src/domain/order/OrderLine.ts: the only import is ../errors/DomainError (domain); there is no I/O, HTTP, ORM, or framework code\"],\"pass\":true,\"reasoning\":\"OrderLine.ts is a pure domain value object. It enforces invariants (the product id must not be empty and the quantity must be a positive integer), throws a domain ValidationError, and does the domain operation of consolidating lines per product. It has no persistence, transport, framework, or orchestration logic. Everything in the file fits the domain layer.\",\"violations\":[]}}",
+  "runIndex": 0,
+  "schemaVersion": 2,
+  "unitId": "src/domain/order/OrderLine.ts",
+  "usage": {
+    "inputTokens": 2743,
+    "outputTokens": 423
+  },
+  "usedOptions": {
+    "effort": "high",
+    "model": "claude-opus-5-5"
+  }
+}

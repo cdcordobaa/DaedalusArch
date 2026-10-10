@@ -1,0 +1,47 @@
+{
+  "attempts": 1,
+  "cliVersion": "2.1.294",
+  "configListingSha256": "47aa04258852fab9a706f3f0c14cee22306d69fbb6fdfbde8c11854bd54997bc",
+  "durationMs": 7289,
+  "effort": "high",
+  "functionId": "FF-N02",
+  "ignoredOptions": [
+    "maxTokens"
+  ],
+  "isolationProbeSha256": "97a2e2d0af1100c13c55e028c1a0c71f069093c3d08705af122aaeb302f1a641",
+  "key": "8abf1bf3effa322e7d36dedc4844a88aac190e2b557e281aa71e1b59cc54e89d-r0-2",
+  "model": "claude-opus-5-5",
+  "outcome": {
+    "kind": "valid"
+  },
+  "parsedVerdict": {
+    "confidence": 0.9,
+    "evidence": [
+      "src/domain/domain-error.ts: `export class ValidationError extends Error {}` is a plain domain error type with no behaviour.",
+      "src/domain/domain-error.ts: `export class NotFoundError extends Error {}` and `export class ConflictError extends Error {}` carry no HTTP status codes and no transport mapping.",
+      "The graph shows src/infrastructure/error-middleware.ts consumes these errors, which suggests the transport mapping lives in infrastructure."
+    ],
+    "pass": true,
+    "reasoning": "The file only declares three plain Error subclasses: ValidationError, NotFoundError and ConflictError. These are domain-level error types that describe failure categories. The file has no persistence, transport, framework or HTTP logic: no status codes, no response shaping, no I/O. The names NotFoundError and ConflictError loosely echo HTTP status names, but in this file they only express domain conditions (an entity is missing, or an invariant conflicts). Mapping them to transport responses belongs to src/infrastructure/error-middleware.ts, which is the right layer for that work. The file's responsibilities match the domain layer's role.",
+    "violations": []
+  },
+  "projectId": "claude-sonnet-5-5/task-management/minimal-prose/run-0",
+  "prompt": "## Rule\nThe unit's responsibilities match the role of its declared layer.\n\n## Rubric\nPass: Every responsibility in the file belongs to the role and kind of its declared layer, and agrees with any ADR prose given.\nFail: The file carries a responsibility that belongs to a different layer kind, for example persistence, transport or framework logic in a domain file, or business rules in an infrastructure or presentation file.\nEvidence required: Name the file and cite the function, method or statement that carries the misplaced responsibility, and the layer kind it belongs to.\nOut of scope: import direction and layer-dependency rules, which are checked symbolically.\n\n## Layer model\n- domain (kind: domain): src/domain/**\n- application (kind: application): src/application/**\n- infrastructure (kind: infrastructure): src/infrastructure/**\n\n## Unit\nKind: file\nId: src/domain/domain-error.ts\nLayer: domain\nUnit files:\n- src/domain/domain-error.ts\n\n## Source\n=====SOURCE-BEGIN src/domain/domain-error.ts=====\nexport class ValidationError extends Error {}\nexport class NotFoundError extends Error {}\nexport class ConflictError extends Error {}\n\n=====SOURCE-END=====\n\n## Graph excerpt\n{\"edges\":[{\"from\":\"src/application/assign-task-use-case.ts\",\"to\":\"src/domain/domain-error.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/application/complete-task-use-case.ts\",\"to\":\"src/domain/domain-error.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/application/create-project-use-case.ts\",\"to\":\"src/domain/domain-error.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/application/create-task-use-case.ts\",\"to\":\"src/domain/domain-error.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/application/create-user-use-case.ts\",\"to\":\"src/domain/domain-error.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/application/list-tasks-use-case.ts\",\"to\":\"src/domain/domain-error.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/domain/task-status.ts\",\"to\":\"src/domain/domain-error.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/domain/task.ts\",\"to\":\"src/domain/domain-error.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/infrastructure/error-middleware.ts\",\"to\":\"src/domain/domain-error.ts\",\"type\":\"IMPORTS\"}],\"nodes\":[{\"kind\":\"Class\",\"layer\":\"domain\",\"name\":\"ConflictError\",\"path\":\"src/domain/domain-error.ts\"},{\"kind\":\"Class\",\"layer\":\"domain\",\"name\":\"NotFoundError\",\"path\":\"src/domain/domain-error.ts\"},{\"kind\":\"Class\",\"layer\":\"domain\",\"name\":\"ValidationError\",\"path\":\"src/domain/domain-error.ts\"},{\"kind\":\"File\",\"layer\":\"application\",\"path\":\"src/application/assign-task-use-case.ts\"},{\"kind\":\"File\",\"layer\":\"application\",\"path\":\"src/application/complete-task-use-case.ts\"},{\"kind\":\"File\",\"layer\":\"application\",\"path\":\"src/application/create-project-use-case.ts\"},{\"kind\":\"File\",\"layer\":\"application\",\"path\":\"src/application/create-task-use-case.ts\"},{\"kind\":\"File\",\"layer\":\"application\",\"path\":\"src/application/create-user-use-case.ts\"},{\"kind\":\"File\",\"layer\":\"application\",\"path\":\"src/application/list-tasks-use-case.ts\"},{\"kind\":\"File\",\"layer\":\"domain\",\"path\":\"src/domain/domain-error.ts\"},{\"kind\":\"File\",\"layer\":\"domain\",\"path\":\"src/domain/task-status.ts\"},{\"kind\":\"File\",\"layer\":\"domain\",\"path\":\"src/domain/task.ts\"},{\"kind\":\"File\",\"layer\":\"infrastructure\",\"path\":\"src/infrastructure/error-middleware.ts\"}]}\n\n## Instructions\nJudge the unit against the rule and rubric. Return the JSON object the schema requires. Set pass to false if any file of the unit fails the rubric.\n",
+  "provider": "claude-cli",
+  "recordedAt": "2026-10-10T22:37:15.266Z",
+  "repetition": 0,
+  "requestHash": "8abf1bf3effa322e7d36dedc4844a88aac190e2b557e281aa71e1b59cc54e89d",
+  "resolvedModel": "claude-opus-5-5",
+  "response": "{\"is_error\":false,\"modelUsage\":{\"claude-opus-5-5\":{\"inputTokens\":2,\"outputTokens\":566}},\"result\":\"{\\\"pass\\\":true,\\\"confidence\\\":0.9,\\\"reasoning\\\":\\\"The file only declares three plain Error subclasses: ValidationError, NotFoundError and ConflictError. These are domain-level error types that describe failure categories. The file has no persistence, transport, framework or HTTP logic: no status codes, no response shaping, no I/O. The names NotFoundError and ConflictError loosely echo HTTP status names, but in this file they only express domain conditions (an entity is missing, or an invariant conflicts). Mapping them to transport responses belongs to src/infrastructure/error-middleware.ts, which is the right layer for that work. The file's responsibilities match the domain layer's role.\\\",\\\"evidence\\\":[\\\"src/domain/domain-error.ts: `export class ValidationError extends Error {}` is a plain domain error type with no behaviour.\\\",\\\"src/domain/domain-error.ts: `export class NotFoundError extends Error {}` and `export class ConflictError extends Error {}` carry no HTTP status codes and no transport mapping.\\\",\\\"The graph shows src/infrastructure/error-middleware.ts consumes these errors, which suggests the transport mapping lives in infrastructure.\\\"],\\\"violations\\\":[]}\",\"structured_output\":{\"confidence\":0.9,\"evidence\":[\"src/domain/domain-error.ts: `export class ValidationError extends Error {}` is a plain domain error type with no behaviour.\",\"src/domain/domain-error.ts: `export class NotFoundError extends Error {}` and `export class ConflictError extends Error {}` carry no HTTP status codes and no transport mapping.\",\"The graph shows src/infrastructure/error-middleware.ts consumes these errors, which suggests the transport mapping lives in infrastructure.\"],\"pass\":true,\"reasoning\":\"The file only declares three plain Error subclasses: ValidationError, NotFoundError and ConflictError. These are domain-level error types that describe failure categories. The file has no persistence, transport, framework or HTTP logic: no status codes, no response shaping, no I/O. The names NotFoundError and ConflictError loosely echo HTTP status names, but in this file they only express domain conditions (an entity is missing, or an invariant conflicts). Mapping them to transport responses belongs to src/infrastructure/error-middleware.ts, which is the right layer for that work. The file's responsibilities match the domain layer's role.\",\"violations\":[]}}",
+  "runIndex": 2,
+  "schemaVersion": 2,
+  "unitId": "src/domain/domain-error.ts",
+  "usage": {
+    "inputTokens": 2838,
+    "outputTokens": 566
+  },
+  "usedOptions": {
+    "effort": "high",
+    "model": "claude-opus-5-5"
+  }
+}

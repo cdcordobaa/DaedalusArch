@@ -1,0 +1,48 @@
+{
+  "attempts": 1,
+  "cliVersion": "2.1.294",
+  "configListingSha256": "47aa04258852fab9a706f3f0c14cee22306d69fbb6fdfbde8c11854bd54997bc",
+  "durationMs": 7536,
+  "effort": "high",
+  "functionId": "FF-N01",
+  "ignoredOptions": [
+    "maxTokens"
+  ],
+  "isolationProbeSha256": "97a2e2d0af1100c13c55e028c1a0c71f069093c3d08705af122aaeb302f1a641",
+  "key": "f7b00fa2e3eefcb772cbbf1ab8d6ce1a6235ce7e194cc26244e7b442969e6e3e-r0-0",
+  "model": "claude-opus-5-5",
+  "outcome": {
+    "kind": "valid"
+  },
+  "parsedVerdict": {
+    "confidence": 0.9,
+    "evidence": [
+      "src/domain/errors/DomainError.ts: `export type DomainErrorKind = 'validation' | 'conflict';` is the only definition of the error classification.",
+      "src/domain/errors/DomainError.ts: `class InvalidValueError extends DomainError` calls `super(message, 'validation')`, so it goes through the base abstraction.",
+      "src/domain/errors/DomainError.ts: `class TaskAlreadyDoneError extends DomainError` calls `super(..., 'conflict')`, so it also goes through the base abstraction.",
+      "Graph: both subclasses have EXTENDS edges to DomainError, and the file has no outgoing dependencies, so the module is self-contained."
+    ],
+    "pass": true,
+    "reasoning": "This unit has one file, src/domain/errors/DomainError.ts, and it covers a single concern: the domain error hierarchy. A base class, DomainError, takes a closed DomainErrorKind union ('validation' | 'conflict'). Two subclasses, InvalidValueError and TaskAlreadyDoneError, extend it, and each passes a fixed kind to super(). No rule is defined twice. The kind classification lives only in DomainErrorKind, and each subclass sets its own name and kind once. Both subclasses go through the base constructor, so neither bypasses the module's abstraction. Nothing in the file does anything unrelated to errors. The file is a single cohesive unit.",
+    "violations": []
+  },
+  "projectId": "claude-opus-5-5/task-management/full-aac/run-2",
+  "prompt": "## Rule\nThe module's files form one coherent unit with a consistent abstraction and boundary.\n\n## Rubric\nPass: The files serve one cohesive concern, use the module's abstractions consistently, and keep each rule or invariant in one place.\nFail: The files split into unrelated concerns, duplicate a rule or invariant that should live in one place, or bypass the module's own abstractions.\nEvidence required: Name each file involved and cite the declarations that show the split, the duplication or the bypass.\nOut of scope: import direction and layer-dependency rules, which are checked symbolically.\n\n## Layer model\n- domain (kind: domain): src/domain/**\n- application (kind: application): src/application/**\n- infrastructure (kind: infrastructure): src/infrastructure/**\n\n## Unit\nKind: module\nId: src/domain\nLayer: domain\nUnit files:\n- src/domain/errors/DomainError.ts\n\n## Source\n=====SOURCE-BEGIN src/domain/errors/DomainError.ts=====\nexport type DomainErrorKind = 'validation' | 'conflict';\n\n/** Raised when a domain invariant is violated. */\nexport class DomainError extends Error {\n  constructor(\n    message: string,\n    readonly kind: DomainErrorKind,\n  ) {\n    super(message);\n    this.name = 'DomainError';\n  }\n}\n\nexport class InvalidValueError extends DomainError {\n  constructor(message: string) {\n    super(message, 'validation');\n    this.name = 'InvalidValueError';\n  }\n}\n\nexport class TaskAlreadyDoneError extends DomainError {\n  constructor(taskId: string) {\n    super(`Task ${taskId} is already done`, 'conflict');\n    this.name = 'TaskAlreadyDoneError';\n  }\n}\n\n=====SOURCE-END=====\n\n## Exported signatures\n// src/domain/errors/DomainError.ts\nexport type DomainErrorKind = 'validation' | 'conflict';\nexport class DomainError extends Error {\n  constructor(\n    message: string,\n    readonly kind: DomainErrorKind,\n  );\n}\nexport class InvalidValueError extends DomainError {\n  constructor(message: string);\n}\nexport class TaskAlreadyDoneError extends DomainError {\n  constructor(taskId: string);\n}\n\n## Incoming\n- src/application/errors/ErrorClassification.ts\n- src/domain/entities/Task.ts\n- src/domain/value-objects/DueDate.ts\n- src/domain/value-objects/RequiredText.ts\n- src/domain/value-objects/TaskStatus.ts\n\n## Outgoing\n(none)\n\n## Graph excerpt\n{\"edges\":[{\"from\":\"InvalidValueError@src/domain/errors/DomainError.ts\",\"to\":\"DomainError@src/domain/errors/DomainError.ts\",\"type\":\"EXTENDS\"},{\"from\":\"TaskAlreadyDoneError@src/domain/errors/DomainError.ts\",\"to\":\"DomainError@src/domain/errors/DomainError.ts\",\"type\":\"EXTENDS\"},{\"from\":\"src/application/errors/ErrorClassification.ts\",\"to\":\"src/domain/errors/DomainError.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/domain/entities/Task.ts\",\"to\":\"src/domain/errors/DomainError.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/domain/value-objects/DueDate.ts\",\"to\":\"src/domain/errors/DomainError.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/domain/value-objects/RequiredText.ts\",\"to\":\"src/domain/errors/DomainError.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/domain/value-objects/TaskStatus.ts\",\"to\":\"src/domain/errors/DomainError.ts\",\"type\":\"IMPORTS\"}],\"nodes\":[{\"kind\":\"Class\",\"layer\":\"domain\",\"name\":\"DomainError\",\"path\":\"src/domain/errors/DomainError.ts\"},{\"kind\":\"Class\",\"layer\":\"domain\",\"name\":\"InvalidValueError\",\"path\":\"src/domain/errors/DomainError.ts\"},{\"kind\":\"Class\",\"layer\":\"domain\",\"name\":\"TaskAlreadyDoneError\",\"path\":\"src/domain/errors/DomainError.ts\"},{\"kind\":\"File\",\"layer\":\"application\",\"path\":\"src/application/errors/ErrorClassification.ts\"},{\"kind\":\"File\",\"layer\":\"domain\",\"path\":\"src/domain/entities/Task.ts\"},{\"kind\":\"File\",\"layer\":\"domain\",\"path\":\"src/domain/errors/DomainError.ts\"},{\"kind\":\"File\",\"layer\":\"domain\",\"path\":\"src/domain/value-objects/DueDate.ts\"},{\"kind\":\"File\",\"layer\":\"domain\",\"path\":\"src/domain/value-objects/RequiredText.ts\"},{\"kind\":\"File\",\"layer\":\"domain\",\"path\":\"src/domain/value-objects/TaskStatus.ts\"}]}\n\n## Instructions\nJudge the unit against the rule and rubric. Return the JSON object the schema requires. Set pass to false if any file of the unit fails the rubric.\n",
+  "provider": "claude-cli",
+  "recordedAt": "2026-10-10T22:08:33.421Z",
+  "repetition": 0,
+  "requestHash": "f7b00fa2e3eefcb772cbbf1ab8d6ce1a6235ce7e194cc26244e7b442969e6e3e",
+  "resolvedModel": "claude-opus-5-5",
+  "response": "{\"is_error\":false,\"modelUsage\":{\"claude-opus-5-5\":{\"inputTokens\":2,\"outputTokens\":600}},\"result\":\"{\\\"pass\\\":true,\\\"confidence\\\":0.9,\\\"reasoning\\\":\\\"This unit has one file, src/domain/errors/DomainError.ts, and it covers a single concern: the domain error hierarchy. A base class, DomainError, takes a closed DomainErrorKind union ('validation' | 'conflict'). Two subclasses, InvalidValueError and TaskAlreadyDoneError, extend it, and each passes a fixed kind to super(). No rule is defined twice. The kind classification lives only in DomainErrorKind, and each subclass sets its own name and kind once. Both subclasses go through the base constructor, so neither bypasses the module's abstraction. Nothing in the file does anything unrelated to errors. The file is a single cohesive unit.\\\",\\\"evidence\\\":[\\\"src/domain/errors/DomainError.ts: `export type DomainErrorKind = 'validation' | 'conflict';` is the only definition of the error classification.\\\",\\\"src/domain/errors/DomainError.ts: `class InvalidValueError extends DomainError` calls `super(message, 'validation')`, so it goes through the base abstraction.\\\",\\\"src/domain/errors/DomainError.ts: `class TaskAlreadyDoneError extends DomainError` calls `super(..., 'conflict')`, so it also goes through the base abstraction.\\\",\\\"Graph: both subclasses have EXTENDS edges to DomainError, and the file has no outgoing dependencies, so the module is self-contained.\\\"],\\\"violations\\\":[]}\",\"structured_output\":{\"confidence\":0.9,\"evidence\":[\"src/domain/errors/DomainError.ts: `export type DomainErrorKind = 'validation' | 'conflict';` is the only definition of the error classification.\",\"src/domain/errors/DomainError.ts: `class InvalidValueError extends DomainError` calls `super(message, 'validation')`, so it goes through the base abstraction.\",\"src/domain/errors/DomainError.ts: `class TaskAlreadyDoneError extends DomainError` calls `super(..., 'conflict')`, so it also goes through the base abstraction.\",\"Graph: both subclasses have EXTENDS edges to DomainError, and the file has no outgoing dependencies, so the module is self-contained.\"],\"pass\":true,\"reasoning\":\"This unit has one file, src/domain/errors/DomainError.ts, and it covers a single concern: the domain error hierarchy. A base class, DomainError, takes a closed DomainErrorKind union ('validation' | 'conflict'). Two subclasses, InvalidValueError and TaskAlreadyDoneError, extend it, and each passes a fixed kind to super(). No rule is defined twice. The kind classification lives only in DomainErrorKind, and each subclass sets its own name and kind once. Both subclasses go through the base constructor, so neither bypasses the module's abstraction. Nothing in the file does anything unrelated to errors. The file is a single cohesive unit.\",\"violations\":[]}}",
+  "runIndex": 0,
+  "schemaVersion": 2,
+  "unitId": "src/domain",
+  "usage": {
+    "inputTokens": 3179,
+    "outputTokens": 600
+  },
+  "usedOptions": {
+    "effort": "high",
+    "model": "claude-opus-5-5"
+  }
+}

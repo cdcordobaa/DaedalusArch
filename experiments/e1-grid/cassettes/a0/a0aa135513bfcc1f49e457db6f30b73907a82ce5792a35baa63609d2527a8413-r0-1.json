@@ -1,0 +1,47 @@
+{
+  "attempts": 1,
+  "cliVersion": "2.1.294",
+  "configListingSha256": "47aa04258852fab9a706f3f0c14cee22306d69fbb6fdfbde8c11854bd54997bc",
+  "durationMs": 6244,
+  "effort": "high",
+  "functionId": "FF-N02",
+  "ignoredOptions": [
+    "maxTokens"
+  ],
+  "isolationProbeSha256": "97a2e2d0af1100c13c55e028c1a0c71f069093c3d08705af122aaeb302f1a641",
+  "key": "a0aa135513bfcc1f49e457db6f30b73907a82ce5792a35baa63609d2527a8413-r0-1",
+  "model": "claude-opus-5-5",
+  "outcome": {
+    "kind": "valid"
+  },
+  "parsedVerdict": {
+    "confidence": 0.93,
+    "evidence": [
+      "src/domain/task/TaskCriteria.ts: class TaskCriteria has a constructor with only readonly fields: projectId, status?: TaskStatus, assigneeId?: string. This is a domain value object.",
+      "src/domain/task/TaskCriteria.ts: matches(task: Task): boolean is a pure in-memory predicate over domain entity fields, with no SQL, ORM, HTTP or framework code.",
+      "The only imports are domain types (./Task, ./TaskStatus)."
+    ],
+    "pass": true,
+    "reasoning": "TaskCriteria is a domain specification/value object. It holds immutable filter criteria (projectId, status, assigneeId) and a pure matches(task) predicate that uses domain concepts (Task, TaskStatus). It has no persistence, transport, framework, query-language or I/O logic. Encoding which tasks satisfy a criterion is domain logic, so it fits the domain layer. The fact that the repository port and an in-memory infrastructure adapter use it is consistent with a domain specification pattern.",
+    "violations": []
+  },
+  "projectId": "claude-opus-5-5/task-management/full-aac/run-1",
+  "prompt": "## Rule\nThe unit's responsibilities match the role of its declared layer.\n\n## Rubric\nPass: Every responsibility in the file belongs to the role and kind of its declared layer, and agrees with any ADR prose given.\nFail: The file carries a responsibility that belongs to a different layer kind, for example persistence, transport or framework logic in a domain file, or business rules in an infrastructure or presentation file.\nEvidence required: Name the file and cite the function, method or statement that carries the misplaced responsibility, and the layer kind it belongs to.\nOut of scope: import direction and layer-dependency rules, which are checked symbolically.\n\n## Layer model\n- domain (kind: domain): src/domain/**\n- application (kind: application): src/application/**\n- infrastructure (kind: infrastructure): src/infrastructure/**\n\n## Unit\nKind: file\nId: src/domain/task/TaskCriteria.ts\nLayer: domain\nUnit files:\n- src/domain/task/TaskCriteria.ts\n\n## Source\n=====SOURCE-BEGIN src/domain/task/TaskCriteria.ts=====\nimport { Task } from './Task';\nimport { TaskStatus } from './TaskStatus';\n\nexport class TaskCriteria {\n  constructor(\n    readonly projectId: string,\n    readonly status?: TaskStatus,\n    readonly assigneeId?: string,\n  ) {}\n\n  matches(task: Task): boolean {\n    return (\n      task.projectId === this.projectId &&\n      (this.status === undefined || task.status === this.status) &&\n      (this.assigneeId === undefined || task.assigneeId === this.assigneeId)\n    );\n  }\n}\n\n=====SOURCE-END=====\n\n## Graph excerpt\n{\"edges\":[{\"from\":\"src/application/task/ListTasksService.ts\",\"to\":\"src/domain/task/TaskCriteria.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/domain/task/TaskCriteria.ts\",\"to\":\"src/domain/task/Task.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/domain/task/TaskCriteria.ts\",\"to\":\"src/domain/task/TaskStatus.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/domain/task/TaskRepository.ts\",\"to\":\"src/domain/task/TaskCriteria.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/infrastructure/persistence/InMemoryTaskRepository.ts\",\"to\":\"src/domain/task/TaskCriteria.ts\",\"type\":\"IMPORTS\"}],\"nodes\":[{\"kind\":\"Class\",\"layer\":\"domain\",\"name\":\"TaskCriteria\",\"path\":\"src/domain/task/TaskCriteria.ts\"},{\"kind\":\"File\",\"layer\":\"application\",\"path\":\"src/application/task/ListTasksService.ts\"},{\"kind\":\"File\",\"layer\":\"domain\",\"path\":\"src/domain/task/Task.ts\"},{\"kind\":\"File\",\"layer\":\"domain\",\"path\":\"src/domain/task/TaskCriteria.ts\"},{\"kind\":\"File\",\"layer\":\"domain\",\"path\":\"src/domain/task/TaskRepository.ts\"},{\"kind\":\"File\",\"layer\":\"domain\",\"path\":\"src/domain/task/TaskStatus.ts\"},{\"kind\":\"File\",\"layer\":\"infrastructure\",\"path\":\"src/infrastructure/persistence/InMemoryTaskRepository.ts\"}]}\n\n## Instructions\nJudge the unit against the rule and rubric. Return the JSON object the schema requires. Set pass to false if any file of the unit fails the rubric.\n",
+  "provider": "claude-cli",
+  "recordedAt": "2026-10-10T22:06:46.421Z",
+  "repetition": 0,
+  "requestHash": "a0aa135513bfcc1f49e457db6f30b73907a82ce5792a35baa63609d2527a8413",
+  "resolvedModel": "claude-opus-5-5",
+  "response": "{\"is_error\":false,\"modelUsage\":{\"claude-opus-5-5\":{\"inputTokens\":2,\"outputTokens\":476}},\"result\":\"{\\\"pass\\\":true,\\\"confidence\\\":0.93,\\\"reasoning\\\":\\\"TaskCriteria is a domain specification/value object. It holds immutable filter criteria (projectId, status, assigneeId) and a pure matches(task) predicate that uses domain concepts (Task, TaskStatus). It has no persistence, transport, framework, query-language or I/O logic. Encoding which tasks satisfy a criterion is domain logic, so it fits the domain layer. The fact that the repository port and an in-memory infrastructure adapter use it is consistent with a domain specification pattern.\\\",\\\"evidence\\\":[\\\"src/domain/task/TaskCriteria.ts: class TaskCriteria has a constructor with only readonly fields: projectId, status?: TaskStatus, assigneeId?: string. This is a domain value object.\\\",\\\"src/domain/task/TaskCriteria.ts: matches(task: Task): boolean is a pure in-memory predicate over domain entity fields, with no SQL, ORM, HTTP or framework code.\\\",\\\"The only imports are domain types (./Task, ./TaskStatus).\\\"],\\\"violations\\\":[]}\",\"structured_output\":{\"confidence\":0.93,\"evidence\":[\"src/domain/task/TaskCriteria.ts: class TaskCriteria has a constructor with only readonly fields: projectId, status?: TaskStatus, assigneeId?: string. This is a domain value object.\",\"src/domain/task/TaskCriteria.ts: matches(task: Task): boolean is a pure in-memory predicate over domain entity fields, with no SQL, ORM, HTTP or framework code.\",\"The only imports are domain types (./Task, ./TaskStatus).\"],\"pass\":true,\"reasoning\":\"TaskCriteria is a domain specification/value object. It holds immutable filter criteria (projectId, status, assigneeId) and a pure matches(task) predicate that uses domain concepts (Task, TaskStatus). It has no persistence, transport, framework, query-language or I/O logic. Encoding which tasks satisfy a criterion is domain logic, so it fits the domain layer. The fact that the repository port and an in-memory infrastructure adapter use it is consistent with a domain specification pattern.\",\"violations\":[]}}",
+  "runIndex": 1,
+  "schemaVersion": 2,
+  "unitId": "src/domain/task/TaskCriteria.ts",
+  "usage": {
+    "inputTokens": 2663,
+    "outputTokens": 476
+  },
+  "usedOptions": {
+    "effort": "high",
+    "model": "claude-opus-5-5"
+  }
+}

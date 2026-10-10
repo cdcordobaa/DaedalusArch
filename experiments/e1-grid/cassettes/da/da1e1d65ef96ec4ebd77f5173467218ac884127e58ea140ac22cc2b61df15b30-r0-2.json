@@ -1,0 +1,47 @@
+{
+  "attempts": 1,
+  "cliVersion": "2.1.294",
+  "configListingSha256": "47aa04258852fab9a706f3f0c14cee22306d69fbb6fdfbde8c11854bd54997bc",
+  "durationMs": 5953,
+  "effort": "high",
+  "functionId": "FF-N02",
+  "ignoredOptions": [
+    "maxTokens"
+  ],
+  "isolationProbeSha256": "97a2e2d0af1100c13c55e028c1a0c71f069093c3d08705af122aaeb302f1a641",
+  "key": "da1e1d65ef96ec4ebd77f5173467218ac884127e58ea140ac22cc2b61df15b30-r0-2",
+  "model": "claude-opus-5-5",
+  "outcome": {
+    "kind": "valid"
+  },
+  "parsedVerdict": {
+    "confidence": 0.93,
+    "evidence": [
+      "src/application/services/requireOrder.ts: requireOrder() calls orders.findById(orderId) through the OrderRepository port. It does not access storage directly.",
+      "src/application/services/requireOrder.ts: the `if (!order) throw new NotFoundError('Order', orderId)` statement is a use-case precondition check, which is application-level orchestration.",
+      "Graph: AdvanceOrderUseCase, CancelOrderUseCase and GetOrderUseCase import it, so it is a shared helper for application use cases."
+    ],
+    "pass": true,
+    "reasoning": "The file has a single job: it is an application-layer helper that loads an aggregate through the domain's repository port (OrderRepository) and throws a domain NotFoundError when the order is missing. Several use cases share it. That is application orchestration. It has no persistence code: it calls only the port interface. It also has no transport or HTTP handling, no framework code, and no business invariants that belong in the domain. Its responsibilities match the application layer.",
+    "violations": []
+  },
+  "projectId": "claude-opus-5-5/order-fulfilment/full-aac/run-0",
+  "prompt": "## Rule\nThe unit's responsibilities match the role of its declared layer.\n\n## Rubric\nPass: Every responsibility in the file belongs to the role and kind of its declared layer, and agrees with any ADR prose given.\nFail: The file carries a responsibility that belongs to a different layer kind, for example persistence, transport or framework logic in a domain file, or business rules in an infrastructure or presentation file.\nEvidence required: Name the file and cite the function, method or statement that carries the misplaced responsibility, and the layer kind it belongs to.\nOut of scope: import direction and layer-dependency rules, which are checked symbolically.\n\n## Layer model\n- domain (kind: domain): src/domain/**\n- application (kind: application): src/application/**\n- infrastructure (kind: infrastructure): src/infrastructure/**\n\n## Unit\nKind: file\nId: src/application/services/requireOrder.ts\nLayer: application\nUnit files:\n- src/application/services/requireOrder.ts\n\n## Source\n=====SOURCE-BEGIN src/application/services/requireOrder.ts=====\nimport { NotFoundError } from '../../domain/errors/DomainError';\nimport { Order } from '../../domain/order/Order';\nimport { OrderRepository } from '../../domain/order/OrderRepository';\n\n/** Loads an order or fails with a not-found error; shared by the order use cases. */\nexport function requireOrder(orders: OrderRepository, orderId: string): Order {\n  const order = orders.findById(orderId);\n  if (!order) {\n    throw new NotFoundError('Order', orderId);\n  }\n  return order;\n}\n\n=====SOURCE-END=====\n\n## Graph excerpt\n{\"edges\":[{\"from\":\"src/application/services/requireOrder.ts\",\"to\":\"src/domain/errors/DomainError.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/application/services/requireOrder.ts\",\"to\":\"src/domain/order/Order.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/application/services/requireOrder.ts\",\"to\":\"src/domain/order/OrderRepository.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/application/use-cases/AdvanceOrderUseCase.ts\",\"to\":\"src/application/services/requireOrder.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/application/use-cases/CancelOrderUseCase.ts\",\"to\":\"src/application/services/requireOrder.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/application/use-cases/GetOrderUseCase.ts\",\"to\":\"src/application/services/requireOrder.ts\",\"type\":\"IMPORTS\"}],\"nodes\":[{\"kind\":\"File\",\"layer\":\"application\",\"path\":\"src/application/services/requireOrder.ts\"},{\"kind\":\"File\",\"layer\":\"application\",\"path\":\"src/application/use-cases/AdvanceOrderUseCase.ts\"},{\"kind\":\"File\",\"layer\":\"application\",\"path\":\"src/application/use-cases/CancelOrderUseCase.ts\"},{\"kind\":\"File\",\"layer\":\"application\",\"path\":\"src/application/use-cases/GetOrderUseCase.ts\"},{\"kind\":\"File\",\"layer\":\"domain\",\"path\":\"src/domain/errors/DomainError.ts\"},{\"kind\":\"File\",\"layer\":\"domain\",\"path\":\"src/domain/order/Order.ts\"},{\"kind\":\"File\",\"layer\":\"domain\",\"path\":\"src/domain/order/OrderRepository.ts\"}]}\n\n## Instructions\nJudge the unit against the rule and rubric. Return the JSON object the schema requires. Set pass to false if any file of the unit fails the rubric.\n",
+  "provider": "claude-cli",
+  "recordedAt": "2026-10-10T22:14:09.701Z",
+  "repetition": 0,
+  "requestHash": "da1e1d65ef96ec4ebd77f5173467218ac884127e58ea140ac22cc2b61df15b30",
+  "resolvedModel": "claude-opus-5-5",
+  "response": "{\"is_error\":false,\"modelUsage\":{\"claude-opus-5-5\":{\"inputTokens\":2,\"outputTokens\":457}},\"result\":\"{\\\"pass\\\":true,\\\"confidence\\\":0.93,\\\"reasoning\\\":\\\"The file has a single job: it is an application-layer helper that loads an aggregate through the domain's repository port (OrderRepository) and throws a domain NotFoundError when the order is missing. Several use cases share it. That is application orchestration. It has no persistence code: it calls only the port interface. It also has no transport or HTTP handling, no framework code, and no business invariants that belong in the domain. Its responsibilities match the application layer.\\\",\\\"evidence\\\":[\\\"src/application/services/requireOrder.ts: requireOrder() calls orders.findById(orderId) through the OrderRepository port. It does not access storage directly.\\\",\\\"src/application/services/requireOrder.ts: the `if (!order) throw new NotFoundError('Order', orderId)` statement is a use-case precondition check, which is application-level orchestration.\\\",\\\"Graph: AdvanceOrderUseCase, CancelOrderUseCase and GetOrderUseCase import it, so it is a shared helper for application use cases.\\\"],\\\"violations\\\":[]}\",\"structured_output\":{\"confidence\":0.93,\"evidence\":[\"src/application/services/requireOrder.ts: requireOrder() calls orders.findById(orderId) through the OrderRepository port. It does not access storage directly.\",\"src/application/services/requireOrder.ts: the `if (!order) throw new NotFoundError('Order', orderId)` statement is a use-case precondition check, which is application-level orchestration.\",\"Graph: AdvanceOrderUseCase, CancelOrderUseCase and GetOrderUseCase import it, so it is a shared helper for application use cases.\"],\"pass\":true,\"reasoning\":\"The file has a single job: it is an application-layer helper that loads an aggregate through the domain's repository port (OrderRepository) and throws a domain NotFoundError when the order is missing. Several use cases share it. That is application orchestration. It has no persistence code: it calls only the port interface. It also has no transport or HTTP handling, no framework code, and no business invariants that belong in the domain. Its responsibilities match the application layer.\",\"violations\":[]}}",
+  "runIndex": 2,
+  "schemaVersion": 2,
+  "unitId": "src/application/services/requireOrder.ts",
+  "usage": {
+    "inputTokens": 2675,
+    "outputTokens": 457
+  },
+  "usedOptions": {
+    "effort": "high",
+    "model": "claude-opus-5-5"
+  }
+}

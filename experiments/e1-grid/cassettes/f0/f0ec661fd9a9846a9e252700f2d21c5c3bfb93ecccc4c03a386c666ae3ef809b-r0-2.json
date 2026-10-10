@@ -1,0 +1,47 @@
+{
+  "attempts": 1,
+  "cliVersion": "2.1.294",
+  "configListingSha256": "47aa04258852fab9a706f3f0c14cee22306d69fbb6fdfbde8c11854bd54997bc",
+  "durationMs": 6128,
+  "effort": "high",
+  "functionId": "FF-N02",
+  "ignoredOptions": [
+    "maxTokens"
+  ],
+  "isolationProbeSha256": "97a2e2d0af1100c13c55e028c1a0c71f069093c3d08705af122aaeb302f1a641",
+  "key": "f0ec661fd9a9846a9e252700f2d21c5c3bfb93ecccc4c03a386c666ae3ef809b-r0-2",
+  "model": "claude-opus-5-5",
+  "outcome": {
+    "kind": "valid"
+  },
+  "parsedVerdict": {
+    "confidence": 0.95,
+    "evidence": [
+      "src/domain/project-repository.ts declares only `export interface ProjectRepository { save(project: Project): Promise<void>; findById(id: string): Promise<Project | undefined>; }`. These are abstract signatures with no implementation.",
+      "Graph: InMemoryProjectRepository@src/infrastructure/in-memory-project-repository.ts IMPLEMENTS ProjectRepository, so the persistence implementation is in infrastructure.",
+      "Graph: CreateProjectUseCase, CreateTaskUseCase and ListTasksUseCase CONSTRUCTOR_INJECTS ProjectRepository, so the application layer uses it as a domain port."
+    ],
+    "pass": true,
+    "reasoning": "The file declares only a repository port interface (ProjectRepository) with abstract save/findById signatures typed in domain terms (Project). It has no persistence implementation, transport, or framework logic. A repository interface defined in the domain is a domain-layer responsibility in ports-and-adapters/DDD. The concrete implementation is in infrastructure (InMemoryProjectRepository implements it), and application use cases receive it through constructor injection, which matches this layering.",
+    "violations": []
+  },
+  "projectId": "claude-sonnet-5-5/task-management/minimal-prose/run-0",
+  "prompt": "## Rule\nThe unit's responsibilities match the role of its declared layer.\n\n## Rubric\nPass: Every responsibility in the file belongs to the role and kind of its declared layer, and agrees with any ADR prose given.\nFail: The file carries a responsibility that belongs to a different layer kind, for example persistence, transport or framework logic in a domain file, or business rules in an infrastructure or presentation file.\nEvidence required: Name the file and cite the function, method or statement that carries the misplaced responsibility, and the layer kind it belongs to.\nOut of scope: import direction and layer-dependency rules, which are checked symbolically.\n\n## Layer model\n- domain (kind: domain): src/domain/**\n- application (kind: application): src/application/**\n- infrastructure (kind: infrastructure): src/infrastructure/**\n\n## Unit\nKind: file\nId: src/domain/project-repository.ts\nLayer: domain\nUnit files:\n- src/domain/project-repository.ts\n\n## Source\n=====SOURCE-BEGIN src/domain/project-repository.ts=====\nimport { Project } from \"./project\";\n\nexport interface ProjectRepository {\n  save(project: Project): Promise<void>;\n  findById(id: string): Promise<Project | undefined>;\n}\n\n=====SOURCE-END=====\n\n## Graph excerpt\n{\"edges\":[{\"from\":\"CreateProjectUseCase@src/application/create-project-use-case.ts\",\"to\":\"ProjectRepository@src/domain/project-repository.ts\",\"type\":\"CONSTRUCTOR_INJECTS\"},{\"from\":\"CreateTaskUseCase@src/application/create-task-use-case.ts\",\"to\":\"ProjectRepository@src/domain/project-repository.ts\",\"type\":\"CONSTRUCTOR_INJECTS\"},{\"from\":\"InMemoryProjectRepository@src/infrastructure/in-memory-project-repository.ts\",\"to\":\"ProjectRepository@src/domain/project-repository.ts\",\"type\":\"IMPLEMENTS\"},{\"from\":\"ListTasksUseCase@src/application/list-tasks-use-case.ts\",\"to\":\"ProjectRepository@src/domain/project-repository.ts\",\"type\":\"CONSTRUCTOR_INJECTS\"},{\"from\":\"src/application/create-project-use-case.ts\",\"to\":\"src/domain/project-repository.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/application/create-task-use-case.ts\",\"to\":\"src/domain/project-repository.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/application/list-tasks-use-case.ts\",\"to\":\"src/domain/project-repository.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/domain/project-repository.ts\",\"to\":\"src/domain/project.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/infrastructure/in-memory-project-repository.ts\",\"to\":\"src/domain/project-repository.ts\",\"type\":\"IMPORTS\"}],\"nodes\":[{\"kind\":\"Class\",\"layer\":\"application\",\"name\":\"CreateProjectUseCase\",\"path\":\"src/application/create-project-use-case.ts\"},{\"kind\":\"Class\",\"layer\":\"application\",\"name\":\"CreateTaskUseCase\",\"path\":\"src/application/create-task-use-case.ts\"},{\"kind\":\"Class\",\"layer\":\"application\",\"name\":\"ListTasksUseCase\",\"path\":\"src/application/list-tasks-use-case.ts\"},{\"kind\":\"Class\",\"layer\":\"infrastructure\",\"name\":\"InMemoryProjectRepository\",\"path\":\"src/infrastructure/in-memory-project-repository.ts\"},{\"kind\":\"File\",\"layer\":\"application\",\"path\":\"src/application/create-project-use-case.ts\"},{\"kind\":\"File\",\"layer\":\"application\",\"path\":\"src/application/create-task-use-case.ts\"},{\"kind\":\"File\",\"layer\":\"application\",\"path\":\"src/application/list-tasks-use-case.ts\"},{\"kind\":\"File\",\"layer\":\"domain\",\"path\":\"src/domain/project-repository.ts\"},{\"kind\":\"File\",\"layer\":\"domain\",\"path\":\"src/domain/project.ts\"},{\"kind\":\"File\",\"layer\":\"infrastructure\",\"path\":\"src/infrastructure/in-memory-project-repository.ts\"},{\"kind\":\"Interface\",\"layer\":\"domain\",\"name\":\"ProjectRepository\",\"path\":\"src/domain/project-repository.ts\"}]}\n\n## Instructions\nJudge the unit against the rule and rubric. Return the JSON object the schema requires. Set pass to false if any file of the unit fails the rubric.\n",
+  "provider": "claude-cli",
+  "recordedAt": "2026-10-10T22:37:21.394Z",
+  "repetition": 0,
+  "requestHash": "f0ec661fd9a9846a9e252700f2d21c5c3bfb93ecccc4c03a386c666ae3ef809b",
+  "resolvedModel": "claude-opus-5-5",
+  "response": "{\"is_error\":false,\"modelUsage\":{\"claude-opus-5-5\":{\"inputTokens\":2,\"outputTokens\":519}},\"result\":\"{\\\"pass\\\":true,\\\"confidence\\\":0.95,\\\"reasoning\\\":\\\"The file declares only a repository port interface (ProjectRepository) with abstract save/findById signatures typed in domain terms (Project). It has no persistence implementation, transport, or framework logic. A repository interface defined in the domain is a domain-layer responsibility in ports-and-adapters/DDD. The concrete implementation is in infrastructure (InMemoryProjectRepository implements it), and application use cases receive it through constructor injection, which matches this layering.\\\",\\\"evidence\\\":[\\\"src/domain/project-repository.ts declares only `export interface ProjectRepository { save(project: Project): Promise<void>; findById(id: string): Promise<Project | undefined>; }`. These are abstract signatures with no implementation.\\\",\\\"Graph: InMemoryProjectRepository@src/infrastructure/in-memory-project-repository.ts IMPLEMENTS ProjectRepository, so the persistence implementation is in infrastructure.\\\",\\\"Graph: CreateProjectUseCase, CreateTaskUseCase and ListTasksUseCase CONSTRUCTOR_INJECTS ProjectRepository, so the application layer uses it as a domain port.\\\"],\\\"violations\\\":[]}\",\"structured_output\":{\"confidence\":0.95,\"evidence\":[\"src/domain/project-repository.ts declares only `export interface ProjectRepository { save(project: Project): Promise<void>; findById(id: string): Promise<Project | undefined>; }`. These are abstract signatures with no implementation.\",\"Graph: InMemoryProjectRepository@src/infrastructure/in-memory-project-repository.ts IMPLEMENTS ProjectRepository, so the persistence implementation is in infrastructure.\",\"Graph: CreateProjectUseCase, CreateTaskUseCase and ListTasksUseCase CONSTRUCTOR_INJECTS ProjectRepository, so the application layer uses it as a domain port.\"],\"pass\":true,\"reasoning\":\"The file declares only a repository port interface (ProjectRepository) with abstract save/findById signatures typed in domain terms (Project). It has no persistence implementation, transport, or framework logic. A repository interface defined in the domain is a domain-layer responsibility in ports-and-adapters/DDD. The concrete implementation is in infrastructure (InMemoryProjectRepository implements it), and application use cases receive it through constructor injection, which matches this layering.\",\"violations\":[]}}",
+  "runIndex": 2,
+  "schemaVersion": 2,
+  "unitId": "src/domain/project-repository.ts",
+  "usage": {
+    "inputTokens": 2973,
+    "outputTokens": 519
+  },
+  "usedOptions": {
+    "effort": "high",
+    "model": "claude-opus-5-5"
+  }
+}

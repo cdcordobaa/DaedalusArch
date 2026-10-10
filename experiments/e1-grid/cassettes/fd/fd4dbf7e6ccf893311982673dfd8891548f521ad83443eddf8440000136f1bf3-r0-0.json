@@ -1,0 +1,48 @@
+{
+  "attempts": 1,
+  "cliVersion": "2.1.294",
+  "configListingSha256": "47aa04258852fab9a706f3f0c14cee22306d69fbb6fdfbde8c11854bd54997bc",
+  "durationMs": 7342,
+  "effort": "high",
+  "functionId": "FF-N02",
+  "ignoredOptions": [
+    "maxTokens"
+  ],
+  "isolationProbeSha256": "97a2e2d0af1100c13c55e028c1a0c71f069093c3d08705af122aaeb302f1a641",
+  "key": "fd4dbf7e6ccf893311982673dfd8891548f521ad83443eddf8440000136f1bf3-r0-0",
+  "model": "claude-opus-5-5",
+  "outcome": {
+    "kind": "valid"
+  },
+  "parsedVerdict": {
+    "confidence": 0.85,
+    "evidence": [
+      "src/application/catalogue/productCommandParsers.ts: parseAddProductCommand(input: unknown) only checks the input's shape with requireRecord, requireString and requireInteger, and returns an AddProductCommand DTO.",
+      "No HTTP or transport objects (req, res, status codes), framework calls, persistence or I/O appear in the file.",
+      "No domain invariants (e.g. price > 0, stock limits) are encoded; the checks are type and shape checks only.",
+      "In the graph excerpt, src/infrastructure/http/controllers/CatalogueController.ts imports this parser, so the transport adapter calls an application-level input mapper."
+    ],
+    "pass": true,
+    "reasoning": "The file has one function, parseAddProductCommand. It turns untrusted input into an AddProductCommand DTO by checking that the input is a record and that each field has the right shape (string or integer). Checking command input at the application boundary is a normal application-layer job. The function doesn't touch HTTP requests, responses or status codes, and it uses no framework, persistence or I/O. It also contains no domain business rules: there are no invariants such as a non-negative price or a stock limit, only shape checks. An infrastructure controller calls it, which fits an application-level entry point. No responsibility in the file belongs to a different layer kind.",
+    "violations": []
+  },
+  "projectId": "claude-opus-5-5/order-fulfilment/full-aac/run-1",
+  "prompt": "## Rule\nThe unit's responsibilities match the role of its declared layer.\n\n## Rubric\nPass: Every responsibility in the file belongs to the role and kind of its declared layer, and agrees with any ADR prose given.\nFail: The file carries a responsibility that belongs to a different layer kind, for example persistence, transport or framework logic in a domain file, or business rules in an infrastructure or presentation file.\nEvidence required: Name the file and cite the function, method or statement that carries the misplaced responsibility, and the layer kind it belongs to.\nOut of scope: import direction and layer-dependency rules, which are checked symbolically.\n\n## Layer model\n- domain (kind: domain): src/domain/**\n- application (kind: application): src/application/**\n- infrastructure (kind: infrastructure): src/infrastructure/**\n\n## Unit\nKind: file\nId: src/application/catalogue/productCommandParsers.ts\nLayer: application\nUnit files:\n- src/application/catalogue/productCommandParsers.ts\n\n## Source\n=====SOURCE-BEGIN src/application/catalogue/productCommandParsers.ts=====\nimport { requireInteger, requireRecord, requireString } from '../validation/inputGuards';\nimport type { AddProductCommand } from './ProductDtos';\n\nexport function parseAddProductCommand(input: unknown): AddProductCommand {\n  const body = requireRecord(input, 'Product');\n  return {\n    id: requireString(body, 'id'),\n    name: requireString(body, 'name'),\n    priceCents: requireInteger(body, 'priceCents'),\n    initialStock: requireInteger(body, 'initialStock'),\n  };\n}\n\n=====SOURCE-END=====\n\n## Graph excerpt\n{\"edges\":[{\"from\":\"src/application/catalogue/productCommandParsers.ts\",\"to\":\"src/application/catalogue/ProductDtos.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/application/catalogue/productCommandParsers.ts\",\"to\":\"src/application/validation/inputGuards.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/infrastructure/http/controllers/CatalogueController.ts\",\"to\":\"src/application/catalogue/productCommandParsers.ts\",\"type\":\"IMPORTS\"}],\"nodes\":[{\"kind\":\"File\",\"layer\":\"application\",\"path\":\"src/application/catalogue/ProductDtos.ts\"},{\"kind\":\"File\",\"layer\":\"application\",\"path\":\"src/application/catalogue/productCommandParsers.ts\"},{\"kind\":\"File\",\"layer\":\"application\",\"path\":\"src/application/validation/inputGuards.ts\"},{\"kind\":\"File\",\"layer\":\"infrastructure\",\"path\":\"src/infrastructure/http/controllers/CatalogueController.ts\"}]}\n\n## Instructions\nJudge the unit against the rule and rubric. Return the JSON object the schema requires. Set pass to false if any file of the unit fails the rubric.\n",
+  "provider": "claude-cli",
+  "recordedAt": "2026-10-10T22:19:22.726Z",
+  "repetition": 0,
+  "requestHash": "fd4dbf7e6ccf893311982673dfd8891548f521ad83443eddf8440000136f1bf3",
+  "resolvedModel": "claude-opus-5-5",
+  "response": "{\"is_error\":false,\"modelUsage\":{\"claude-opus-5-5\":{\"inputTokens\":2,\"outputTokens\":620}},\"result\":\"{\\\"pass\\\":true,\\\"confidence\\\":0.85,\\\"reasoning\\\":\\\"The file has one function, parseAddProductCommand. It turns untrusted input into an AddProductCommand DTO by checking that the input is a record and that each field has the right shape (string or integer). Checking command input at the application boundary is a normal application-layer job. The function doesn't touch HTTP requests, responses or status codes, and it uses no framework, persistence or I/O. It also contains no domain business rules: there are no invariants such as a non-negative price or a stock limit, only shape checks. An infrastructure controller calls it, which fits an application-level entry point. No responsibility in the file belongs to a different layer kind.\\\",\\\"evidence\\\":[\\\"src/application/catalogue/productCommandParsers.ts: parseAddProductCommand(input: unknown) only checks the input's shape with requireRecord, requireString and requireInteger, and returns an AddProductCommand DTO.\\\",\\\"No HTTP or transport objects (req, res, status codes), framework calls, persistence or I/O appear in the file.\\\",\\\"No domain invariants (e.g. price > 0, stock limits) are encoded; the checks are type and shape checks only.\\\",\\\"In the graph excerpt, src/infrastructure/http/controllers/CatalogueController.ts imports this parser, so the transport adapter calls an application-level input mapper.\\\"],\\\"violations\\\":[]}\",\"structured_output\":{\"confidence\":0.85,\"evidence\":[\"src/application/catalogue/productCommandParsers.ts: parseAddProductCommand(input: unknown) only checks the input's shape with requireRecord, requireString and requireInteger, and returns an AddProductCommand DTO.\",\"No HTTP or transport objects (req, res, status codes), framework calls, persistence or I/O appear in the file.\",\"No domain invariants (e.g. price > 0, stock limits) are encoded; the checks are type and shape checks only.\",\"In the graph excerpt, src/infrastructure/http/controllers/CatalogueController.ts imports this parser, so the transport adapter calls an application-level input mapper.\"],\"pass\":true,\"reasoning\":\"The file has one function, parseAddProductCommand. It turns untrusted input into an AddProductCommand DTO by checking that the input is a record and that each field has the right shape (string or integer). Checking command input at the application boundary is a normal application-layer job. The function doesn't touch HTTP requests, responses or status codes, and it uses no framework, persistence or I/O. It also contains no domain business rules: there are no invariants such as a non-negative price or a stock limit, only shape checks. An infrastructure controller calls it, which fits an application-level entry point. No responsibility in the file belongs to a different layer kind.\",\"violations\":[]}}",
+  "runIndex": 0,
+  "schemaVersion": 2,
+  "unitId": "src/application/catalogue/productCommandParsers.ts",
+  "usage": {
+    "inputTokens": 2448,
+    "outputTokens": 620
+  },
+  "usedOptions": {
+    "effort": "high",
+    "model": "claude-opus-5-5"
+  }
+}
