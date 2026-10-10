@@ -90,6 +90,10 @@ before the plan runs. Then: `run-experiment-cli.ts experiments/sensitivity/plan.
 These seven bases are the P2 source (6.1). Apply the degradation ladder only by its registered rules
 (`Docs/threats-to-validity.md` §4).
 
+Then the P2 v1 side (analysis plan §10 B8; symbolic-only, no model call; lane lock):
+`run-experiment-cli.ts experiments/e7-corpus-v1sym/plan.json --neo4j-container daedalus-neo4j-bt` →
+`results/e7-corpus-v1sym` (the plan registers `instrument: v1`; no `--instrument` flag is needed).
+
 ## 5. E1 grid (live generator, then live judge)
 
 **Needs** stage 0b (P-4). Step 3, the `fixtures` full-mode run, needs it too.
@@ -104,7 +108,7 @@ These seven bases are the P2 source (6.1). Apply the degradation ladder only by 
 
 | # | Command | Writes | Hands to |
 |---|---|---|---|
-| 6.1 | `build-label-plan-cli.ts --out results/labels --case results/so4-heldout/case --label-items results/so4-heldout/label-items.json --copies ../daedalus-so4/copies --bases ../daedalus-so4/prepared-bases-7.json --corpus-runs results/e7-corpus --e1-runs results/e1-grid --fixture-runs results/fixtures` | `label-plan.json` (budget, `auditSeed` 6105), `fn-causes.json`, `judge-verdicts.json`, `label-plan-summary.json` (Kish n_eff per row, context cut by kind, escalation if any) | 6.2–6.6 |
+| 6.1 | `build-label-plan-cli.ts --out results/labels --case results/so4-heldout/case --label-items results/so4-heldout/label-items.json --copies ../daedalus-so4/copies --bases ../daedalus-so4/prepared-bases-7.json --corpus-runs results/e7-corpus --corpus-v1-runs results/e7-corpus-v1sym --e1-runs results/e1-grid --fixture-runs results/fixtures` | `label-plan.json` (budget, `auditSeed` 6105), `fn-causes.json`, `judge-verdicts.json`, `label-plan-summary.json` (Kish n_eff per row, context cut by kind, escalation if any) | 6.2–6.6 |
 | 6.2 | `llm-label-cli.ts --allocate-audit --plan results/labels/label-plan.json --plan-id <id> --out audit/view --allocation-out ../daedalus-sealed/<id>.allocation.json` (**before** 6.4; label-blind, kind × population) | the audit view; the sealed allocation | 6.3 |
 | 6.3 | The author labels the view and commits `audit/<id>.json`. Do not open the allocation or any labels before this commit. | the committed audit | 6.6 |
 | 6.4 | `llm-label-cli.ts --plan results/labels/label-plan.json --estimate`, then `--mode record --cassette-dir experiments/labels/cassettes --out results/labels/labels.json` (route `agy`, model `gemini-3.1-pro-high` from the plan; split over ≥ 2 weeks of quota; `LABEL_BUDGET_STOP` before any call that could exceed the budget) | labels, cassettes | 6.5, 6.6, 7 |

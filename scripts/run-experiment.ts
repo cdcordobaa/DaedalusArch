@@ -103,6 +103,11 @@ export interface ExperimentPlan {
   readonly id: string;
   readonly experiment: ExperimentKind;
   readonly mode: PlanMode;
+  /**
+   * Registered symbolic instrument version of every entry (ADR-026; default v2). A plan that registers `v1` (the
+   * `e7-corpus-v1sym` re-evaluation, analysis plan §10 B8) runs v1 without a CLI flag; `--instrument` may only repeat it.
+   */
+  readonly instrument?: 'v1' | 'v2';
   readonly judge?: { readonly provider: string; readonly model: string };
   readonly seeds: { readonly sampling: number; readonly bootstrap: number; readonly permutation: number };
   readonly cassetteDir: string;
@@ -490,7 +495,22 @@ export function existingRecords(outDir: string): RunRecord[] {
   return readdirSync(dir).filter((f) => f.endsWith('.run.json')).sort().map((f) => JSON.parse(readFileSync(join(dir, f), 'utf8')) as RunRecord);
 }
 
-export async function runPlan(plan: ExperimentPlan, planFile: string, repoRoot: string, deps: HarnessDeps): Promise<RunPlanResult> {
+/**
+ * The instrument version of a plan run: the plan's registered `instrument`, else the caller's (`--instrument`), else
+ * the default. A caller version that differs from the registered one is a refusal (`detail`), never an override.
+ */
+export function planInstrumentVersion(plan: ExperimentPlan, requested: InstrumentVersion | undefined): { ok: true; version: InstrumentVersion } | { ok: false; detail: string } {
+  const registered = plan.instrument === undefined ? undefined : parseInstrumentVersion(plan.instrument);
+  if (registered !== undefined && requested !== undefined && registered !== requested) {
+    return { ok: false, detail: `plan ${plan.id} registers instrument v${String(registered)}; --instrument v${String(requested)} cannot override it (ADR-026)` };
+  }
+  return { ok: true, version: registered ?? requested ?? INSTRUMENT_VERSION };
+}
+
+export async function runPlan(plan: ExperimentPlan, planFile: string, repoRoot: string, callerDeps: HarnessDeps): Promise<RunPlanResult> {
+  const instrument = planInstrumentVersion(plan, callerDeps.instrumentVersion);
+  if (!instrument.ok) return { ok: false, code: PLAN_INVALID, detail: instrument.detail, records: [], outDir: resolve(repoRoot, callerDeps.outDir ?? plan.outDir) };
+  const deps: HarnessDeps = { ...callerDeps, instrumentVersion: instrument.version };
   const schemaRoot = deps.schemaRoot ?? repoRoot;
   const outDir = resolve(repoRoot, deps.outDir ?? plan.outDir);
   const secrets = knownSecrets(deps.parentEnv);

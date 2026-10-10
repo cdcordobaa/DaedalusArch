@@ -254,12 +254,18 @@ function snapshotCase(file: string): string {
   return file.slice((snapshotDirOf(file) ?? '').length).replace(/\.json$/, '');
 }
 
+/**
+ * The label-plan directory of experiment-runbook stage 6 (`build-label-plan --out results/labels`, then the labels and
+ * agreement outputs). It holds no RunRecord: its inputs are the registered run directories.
+ */
+export const LABELS_RESULTS_DIR = 'labels';
+
 /** BR-U1-42 as re-scoped by Build and Test (BR-U5b-56): the only paths allowed under `results/`. */
 export function resultsPathAllowed(file: string, registeredPlanIds: readonly string[]): boolean {
   const m = /^results\/([^/]+)\/.+/.exec(file);
   if (m === null) return false;
   const top = m[1] ?? '';
-  return top === 'pre-tag' || registeredPlanIds.includes(top);
+  return top === 'pre-tag' || top === LABELS_RESULTS_DIR || registeredPlanIds.includes(top);
 }
 
 /** Exactly-one rule of a `BT-` snapshot commit: problems per changed case (0 or more than one line). */

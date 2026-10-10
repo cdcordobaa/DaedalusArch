@@ -54,6 +54,33 @@ describe('baseline precision (ADR-020 item 1)', () => {
       { population: 'P1', kind: 'violation', projectId: 'X', stratum: 'X, FF-S01', inclusionProbability: 1, label: 'FP' },
       { population: 'P4', kind: 'judge-unit', projectId: 'c', stratum: 'c, semantic', inclusionProbability: 1, label: 'pass' },
     ]);
-    expect(out).toEqual([{ projectId: 'X', functionId: 'FF-S01', label: 'TP', inclusionProbability: 0.5 }]);
+    expect(out).toEqual([{ projectId: 'X', functionId: 'FF-S01', label: 'TP', inclusionProbability: 0.5, frame: 'v2' }]);
+  });
+
+  it('ADR-026 B8: the v2 rows drop the v1-only strata (p2FrameOf); a v1 overall row pools both frames; v1-only is counts only', () => {
+    // v1-only set: Y, FF-C02, 4 labels at p = 1/4 (w 4): 2 TP, 2 FP. Strata carry the `v1-only: ` prefix.
+    const v1OnlyViews = [
+      ...Array.from({ length: 2 }, () => ({ population: 'P2', kind: 'violation', projectId: 'Y', stratum: 'v1-only: Y, FF-C02', inclusionProbability: 0.25, label: 'TP' })),
+      ...Array.from({ length: 2 }, () => ({ population: 'P2', kind: 'violation', projectId: 'Y', stratum: 'v1-only: Y, FF-C02', inclusionProbability: 0.25, label: 'FP' })),
+    ];
+    const v1Only = baselineLabelsOf(v1OnlyViews);
+    expect(v1Only.every((l) => l.frame === 'v1-only' && l.functionId === 'FF-C02')).toBe(true);
+    const v2Only = baselinePrecision(LABELS, { seed: 9, resamples: 200 });
+    const rows = baselinePrecision([...LABELS, ...v1Only], { seed: 9, resamples: 200 });
+    // Every v2 row equals the row without the v1-only labels (the v1-only rows only follow them).
+    const v2Rows = rows.filter((r) => r.instrument === 'v2');
+    expect(v2Rows).toEqual(v2Only);
+    expect(v2Rows.some((r) => r.key === 'FF-C02')).toBe(false);
+    expect(v2Rows.find((r) => r.scope === 'project' && r.key === 'Y')).toMatchObject({ n: 5, weightedTotal: 5 });
+    expect(v2Rows[0]).toMatchObject({ instrument: 'v2', scope: 'overall', n: 25, weightedTpClass: 31, weightedTotal: 45 });
+    // v1 (both frames): Σw = 45 + 16 = 61, Σw·y = 31 + 8 = 39 -> 39 / 61.
+    const v1 = rows.find((r) => r.instrument === 'v1');
+    expect(v1).toMatchObject({ scope: 'overall', key: '', n: 29, nTpClass: 18, weightedTpClass: 39, weightedTotal: 61, nClusters: 2 });
+    expect(v1?.estimate?.toFixed(6)).toBe('0.639344');
+    expect(rows.find((r) => r.instrument === 'v1-only')).toMatchObject({ scope: 'overall', n: 4, nTpClass: 2, weightedTotal: 16, estimate: null, ciLow: null, ciHigh: null, ciMethod: null });
+    expect(rows.map((r) => r.instrument).slice(-2)).toEqual(['v1', 'v1-only']);
+    // Without v1-only labels there is no v1 or v1-only row; v1-only labels alone give no v2 row.
+    expect(v2Only.every((r) => r.instrument === 'v2')).toBe(true);
+    expect(baselinePrecision(v1Only, { seed: 9 }).map((r) => r.instrument)).toEqual(['v1', 'v1-only']);
   });
 });
