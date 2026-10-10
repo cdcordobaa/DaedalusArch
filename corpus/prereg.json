@@ -1,7 +1,7 @@
 {
-  "version": 10,
-  "registeredAt": "2026-10-09T23:38:02Z",
-  "reason": "ADR-026 (POST-HOC, found after the SO4 results and the 2026-10-09 baseline spot check; Fable review of PR #42: MERGE WITH FIXES, fixes applied): instrument v2. Per artefact: (1) corpus/frozen-instrument.json - new key roleExemptions {instrumentVersion 2; test-file-pairing: declaration-only files (*.dto.ts, dto/, dtos/, *.interface.ts, *.type.ts, *.types.ts, *.enum.ts) and composition roots (main.ts, *.module.ts); module-fan-out and component-instability: composition roots; no index.ts}, all other keys byte-identical; (2) Docs/analysis-plan.md - section 10 B8 (instrument versions in every table; --instrument v1 or v2, last v1 commit febc918; v1 primary for SO4 and SO2 with v2 beside and the differing aggregate files listed; P2 from the v2 e7-corpus population, 24 items, plus a v1-only exempted stratum set, 6 items, n and n_eff per version; v2 the instrument for E7, E1 and SO5 with a v1 symbolic sensitivity row), section 4 P2 row, section 11 row; (3) Docs/threats-to-validity.md - TV-97 (post-hoc instrument tuning) and its source trace. No spec, preset, plan, operator catalogue or matching rule changes (matching rule stays 1.2.0). The draft v10 of 8c046dc was reverted unused. Runs registered under v9 keep their preregVersion; the v2 re-runs (results/so4-heldout/v2, results/apg-ablation/v2) run under this v10.",
+  "version": 11,
+  "registeredAt": "2026-10-10T02:13:27Z",
+  "reason": "ADR-027 (E7-x corpus extension; drafted after the API-only candidate research of Docs/DiagnosticRuns/e7-candidate-research-2026-10-09.md, committed 8f93521 before the candidate list, before any clone or firewall run on a candidate; author decisions 2026-10-09). Per artefact: (1) Docs/corpus-criteria.md - section 7 and the machine-block extension (Q7-Q10, attributes E/H/F/R with A recorded only, tiered seeded draw, owner cap 1 per round, C2 20-800, C5 npm-only because fetch-corpus/prepare-bases support no pnpm or yarn install, addMax 6, corpus-duplicate); round-1 keys unchanged, selection.json still reproduces; (2) corpus/corpus.json - two E7-x entries appended (zhuravlevma__typescript-ddd-architecture, raouf-b-dev__ecommerce-store-api: recorded SHA, npm-ci-ignore-scripts lock sha256, project tsc), from corpus/selection-e7x.json; (3) corpus/specs/zhuravlevma__typescript-ddd-architecture.yaml and corpus/specs/raouf-b-dev__ecommerce-store-api.yaml - byte output of the registered generator, no hand edit; (4) Docs/e7-spec-rule.md - the two names appended to projects and a dated note on the six E7-x generations, rule version 1 unchanged and every earlier spec byte-identical under --check; (5) corpus/selections/<the two>.json - Mock-derived baseline selections (DV-BT-2, zero live calls); (6) experiments/e7-corpus/plan.json - the two bases appended (E7 only; SO4 plans, golden set, feasibility count and u5a-base-typecheck.json unchanged); (7) Docs/threats-to-validity.md - TV-98 (extension drafted after the research) and TV-99 (author overlap, owner cap within the round). Four selected projects excluded without repair (permacoop spec invalid; khusenov, pvarentsov, DanielAraldi type-check). No instrument, rubric, preset, operator catalogue or matching-rule change (rule stays 1.2.0). Runs registered under v10 keep their preregVersion.",
   "matchingRuleVersion": "1.2.0",
   "artefacts": [
     {
@@ -22,11 +22,11 @@
     },
     {
       "path": "Docs/corpus-criteria.md",
-      "sha256": "ae39ede5f6d524fef947fc5186bf37d79787dbae719d6d8caf0efd714292392d"
+      "sha256": "62764d157dfd16a6cf5fffd1d0b59e7a877538185028567eac538622a8cf5963"
     },
     {
       "path": "Docs/e7-spec-rule.md",
-      "sha256": "ace1f6de73a04eabb31f2fabebab76798064d349ddba16811a7c81338ff9bd34"
+      "sha256": "0a338bb0489ba2bc9a97fdf9ce407bcad494369440f65663986d571d810bd486"
     },
     {
       "path": "Docs/generator-protocol.md",
@@ -58,11 +58,11 @@
     },
     {
       "path": "Docs/threats-to-validity.md",
-      "sha256": "667fd2cf63e30a494fba639baac8d963e1a242bce9b72bfec1a6dc21e0402de9"
+      "sha256": "f6650fd697a007546e9475eb2abda2094e91b09f9afac3f0ddb90807b67e01e0"
     },
     {
       "path": "corpus/corpus.json",
-      "sha256": "2554dece0ab4c186be58d86b6fa437159c3dbaa1a100be8a9b643958fd0d8517"
+      "sha256": "294027ab2b1158373f559a0af840d648dd8bc6e10736d8e09c49d58bbe56bb74"
     },
     {
       "path": "corpus/frozen-instrument.json",
@@ -113,6 +113,10 @@
       "sha256": "92d3d17ac14efe90a3d7075a7ff10d06e49777d1a191385efb4477a68ca0049c"
     },
     {
+      "path": "corpus/selections/raouf-b-dev__ecommerce-store-api.json",
+      "sha256": "19f5e557d0be06c185ce399915d328db46fc6e2a655f83a4be5353020f009d26"
+    },
+    {
       "path": "corpus/selections/realworld-test.json",
       "sha256": "ad42fd1951f375cba4873684af1e03b1fcb9577fde4b52cdf6c97541f478dc37"
     },
@@ -127,6 +131,10 @@
     {
       "path": "corpus/selections/zhuravlevma__nestjs-active-record.json",
       "sha256": "68633e1890a922db84605d77ac5d82b9a9b5cde381cdb5ef8309bdd4c172d10a"
+    },
+    {
+      "path": "corpus/selections/zhuravlevma__typescript-ddd-architecture.json",
+      "sha256": "99e8dcbac44b874606851f089d731be4f27dbab5501e85461976569d8fd64041"
     },
     {
       "path": "corpus/specs/MarvinRF__nest-docfy.yaml",
@@ -153,6 +161,10 @@
       "sha256": "86e057f0e543484470eeac9383f0b3a8b324c11f05dbe44bcf447b48a32c4e7b"
     },
     {
+      "path": "corpus/specs/raouf-b-dev__ecommerce-store-api.yaml",
+      "sha256": "ce73c4639264ac2a05a89ceb8b24eaee9061004984205d1fbf778f262ac4839c"
+    },
+    {
       "path": "corpus/specs/realworld-test.yaml",
       "sha256": "c806b925602b48ea45e1a885bdfddedd597350c3e1c7d3d8cad25214cdbfd4e8"
     },
@@ -169,6 +181,10 @@
       "sha256": "532905a184bdd5acd5b42c15a9d1e5fae47e75f4569565ebe7e869cee4b80ab4"
     },
     {
+      "path": "corpus/specs/zhuravlevma__typescript-ddd-architecture.yaml",
+      "sha256": "4dbdf333b1c05b3cf64e6241f47a684ecac02c8977dcebc9920c18693047d4c8"
+    },
+    {
       "path": "experiments/apg-ablation/plan.json",
       "sha256": "8e726e94761930f13c0f9dcbf2fd1e07db29f2e4b8cc40eaa0a79bf6c025b933"
     },
@@ -182,7 +198,7 @@
     },
     {
       "path": "experiments/e7-corpus/plan.json",
-      "sha256": "6a922b513ee5ea112877418de1f5481120b84a85fc6096a33b2ff89de8d256ae"
+      "sha256": "466db3635ea680796c83f8ab15f92d4001e0219696d0aa6ab1bb09efe11396c8"
     },
     {
       "path": "experiments/fixtures/plan.json",
@@ -308,6 +324,10 @@
     {
       "version": 9,
       "commit": "4ddba721def9f96fb7a96c80d849543c97d7bd55"
+    },
+    {
+      "version": 10,
+      "commit": "58e5236471a36dba797ca51b483d6d11ac050070"
     }
   ]
 }
