@@ -127,3 +127,13 @@ Previous: v12, commit `4c88edf`. This bump comes before any `e7-corpus-v1sym` ru
 | `Docs/analysis-plan.md` | `678babba…` → `bf4aff86…` | §2 plan row. §10 B8 gains an implementation rule for mode pairing: v1 is `symbolic-only` and v2 is `full` or `symbolic-only`; pairs match by project and spec sha only; only symbolic rows are compared and drawn; a pair that breaks the rule is refused; the v1-only strata take the v1 plan's sampling seed; the v2 baseline-precision rows drop the `v1-only: ` strata (`p2FrameOf`), and the v1 overall and v1-only counts-only rows follow. §11 gains a dated row. | Low. No estimand, size, seed of an existing plan, interval rule or label-plan config changes. The rule makes explicit what B8's "same project and spec" pairing already implies for a full-mode v2 run. |
 
 All other 69 hashes are unchanged.
+
+## P-LU — prereg v14 (runbook 6.5, labeller token figures, 2026-10-10)
+
+Previous: v13, commit `11c8f09` line. The live labelling (runbook 6.4) has run: 66 items, 142 agy invocations, labels in `results/labels/labels.json`. Runbook 6.5 registers the measured token figures as a bump.
+
+| Artefact | v13 → v14 sha256 | Change and reason | Post-hoc risk |
+|---|---|---|---|
+| `Docs/labeller-route.md` | `72c557ca…` → `18d747c4…` | §6 gains the measured input tokens per call from `llm-label --usage` (median 14 024, max 124 846) and the invocation count (142, 3 retries). | None. Descriptive capacity figures only; no estimand, seed, size, prompt or route changes. |
+
+All other hashes are unchanged.
