@@ -1,0 +1,47 @@
+{
+  "attempts": 1,
+  "cliVersion": "2.1.294",
+  "configListingSha256": "47aa04258852fab9a706f3f0c14cee22306d69fbb6fdfbde8c11854bd54997bc",
+  "durationMs": 6119,
+  "effort": "high",
+  "functionId": "FF-N01",
+  "ignoredOptions": [
+    "maxTokens"
+  ],
+  "isolationProbeSha256": "97a2e2d0af1100c13c55e028c1a0c71f069093c3d08705af122aaeb302f1a641",
+  "key": "abd540d1c355419e4c82ac435b4414517e66418d849befd991a127827b11c0fc-r0-1",
+  "model": "claude-opus-5-5",
+  "outcome": {
+    "kind": "valid"
+  },
+  "parsedVerdict": {
+    "confidence": 0.9,
+    "evidence": [
+      "src/application/ports/IdGenerator.ts declares only `export interface IdGenerator { generate(): string; }`, a single cohesive port abstraction.",
+      "Graph edges: AddTaskToProjectUseCase, CreateProjectUseCase and CreateUserUseCase each have a CONSTRUCTOR_INJECTS edge to IdGenerator, so callers use the abstraction rather than a concrete generator.",
+      "Graph edge: UuidIdGenerator (src/infrastructure/ids/UuidIdGenerator.ts) IMPLEMENTS IdGenerator, so the concrete adapter sits outside the port."
+    ],
+    "pass": true,
+    "reasoning": "The unit has a single file, src/application/ports/IdGenerator.ts. It declares one port interface, IdGenerator, with one method, generate(): string. That is one cohesive concern: ID generation as an application-layer port. Because there is only one declaration, the unit cannot split into unrelated concerns, duplicate a rule or invariant, or bypass its own abstractions. The graph shows the three use cases depend on this port through constructor injection, and UuidIdGenerator in infrastructure implements it. That fits the port-and-adapter boundary the module intends.",
+    "violations": []
+  },
+  "projectId": "claude-opus-5-5/task-management/minimal-prose/run-1",
+  "prompt": "## Rule\nThe module's files form one coherent unit with a consistent abstraction and boundary.\n\n## Rubric\nPass: The files serve one cohesive concern, use the module's abstractions consistently, and keep each rule or invariant in one place.\nFail: The files split into unrelated concerns, duplicate a rule or invariant that should live in one place, or bypass the module's own abstractions.\nEvidence required: Name each file involved and cite the declarations that show the split, the duplication or the bypass.\nOut of scope: import direction and layer-dependency rules, which are checked symbolically.\n\n## Layer model\n- domain (kind: domain): src/domain/**\n- application (kind: application): src/application/**\n- infrastructure (kind: infrastructure): src/infrastructure/**\n\n## Unit\nKind: module\nId: src/application\nLayer: application\nUnit files:\n- src/application/ports/IdGenerator.ts\n\n## Source\n=====SOURCE-BEGIN src/application/ports/IdGenerator.ts=====\nexport interface IdGenerator {\n  generate(): string;\n}\n\n=====SOURCE-END=====\n\n## Exported signatures\n// src/application/ports/IdGenerator.ts\nexport interface IdGenerator {\n  generate(): string;\n}\n\n## Incoming\n- src/application/use-cases/AddTaskToProjectUseCase.ts\n- src/application/use-cases/CreateProjectUseCase.ts\n- src/application/use-cases/CreateUserUseCase.ts\n- src/infrastructure/ids/UuidIdGenerator.ts\n\n## Outgoing\n(none)\n\n## Graph excerpt\n{\"edges\":[{\"from\":\"AddTaskToProjectUseCase@src/application/use-cases/AddTaskToProjectUseCase.ts\",\"to\":\"IdGenerator@src/application/ports/IdGenerator.ts\",\"type\":\"CONSTRUCTOR_INJECTS\"},{\"from\":\"CreateProjectUseCase@src/application/use-cases/CreateProjectUseCase.ts\",\"to\":\"IdGenerator@src/application/ports/IdGenerator.ts\",\"type\":\"CONSTRUCTOR_INJECTS\"},{\"from\":\"CreateUserUseCase@src/application/use-cases/CreateUserUseCase.ts\",\"to\":\"IdGenerator@src/application/ports/IdGenerator.ts\",\"type\":\"CONSTRUCTOR_INJECTS\"},{\"from\":\"UuidIdGenerator@src/infrastructure/ids/UuidIdGenerator.ts\",\"to\":\"IdGenerator@src/application/ports/IdGenerator.ts\",\"type\":\"IMPLEMENTS\"},{\"from\":\"src/application/use-cases/AddTaskToProjectUseCase.ts\",\"to\":\"src/application/ports/IdGenerator.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/application/use-cases/CreateProjectUseCase.ts\",\"to\":\"src/application/ports/IdGenerator.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/application/use-cases/CreateUserUseCase.ts\",\"to\":\"src/application/ports/IdGenerator.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/infrastructure/ids/UuidIdGenerator.ts\",\"to\":\"src/application/ports/IdGenerator.ts\",\"type\":\"IMPORTS\"}],\"nodes\":[{\"kind\":\"Class\",\"layer\":\"application\",\"name\":\"AddTaskToProjectUseCase\",\"path\":\"src/application/use-cases/AddTaskToProjectUseCase.ts\"},{\"kind\":\"Class\",\"layer\":\"application\",\"name\":\"CreateProjectUseCase\",\"path\":\"src/application/use-cases/CreateProjectUseCase.ts\"},{\"kind\":\"Class\",\"layer\":\"application\",\"name\":\"CreateUserUseCase\",\"path\":\"src/application/use-cases/CreateUserUseCase.ts\"},{\"kind\":\"Class\",\"layer\":\"infrastructure\",\"name\":\"UuidIdGenerator\",\"path\":\"src/infrastructure/ids/UuidIdGenerator.ts\"},{\"kind\":\"File\",\"layer\":\"application\",\"path\":\"src/application/ports/IdGenerator.ts\"},{\"kind\":\"File\",\"layer\":\"application\",\"path\":\"src/application/use-cases/AddTaskToProjectUseCase.ts\"},{\"kind\":\"File\",\"layer\":\"application\",\"path\":\"src/application/use-cases/CreateProjectUseCase.ts\"},{\"kind\":\"File\",\"layer\":\"application\",\"path\":\"src/application/use-cases/CreateUserUseCase.ts\"},{\"kind\":\"File\",\"layer\":\"infrastructure\",\"path\":\"src/infrastructure/ids/UuidIdGenerator.ts\"},{\"kind\":\"Interface\",\"layer\":\"application\",\"name\":\"IdGenerator\",\"path\":\"src/application/ports/IdGenerator.ts\"}]}\n\n## Instructions\nJudge the unit against the rule and rubric. Return the JSON object the schema requires. Set pass to false if any file of the unit fails the rubric.\n",
+  "provider": "claude-cli",
+  "recordedAt": "2026-10-10T21:39:21.651Z",
+  "repetition": 0,
+  "requestHash": "abd540d1c355419e4c82ac435b4414517e66418d849befd991a127827b11c0fc",
+  "resolvedModel": "claude-opus-5-5",
+  "response": "{\"is_error\":false,\"modelUsage\":{\"claude-opus-5-5\":{\"inputTokens\":2,\"outputTokens\":543}},\"result\":\"{\\\"pass\\\":true,\\\"confidence\\\":0.9,\\\"reasoning\\\":\\\"The unit has a single file, src/application/ports/IdGenerator.ts. It declares one port interface, IdGenerator, with one method, generate(): string. That is one cohesive concern: ID generation as an application-layer port. Because there is only one declaration, the unit cannot split into unrelated concerns, duplicate a rule or invariant, or bypass its own abstractions. The graph shows the three use cases depend on this port through constructor injection, and UuidIdGenerator in infrastructure implements it. That fits the port-and-adapter boundary the module intends.\\\",\\\"evidence\\\":[\\\"src/application/ports/IdGenerator.ts declares only `export interface IdGenerator { generate(): string; }`, a single cohesive port abstraction.\\\",\\\"Graph edges: AddTaskToProjectUseCase, CreateProjectUseCase and CreateUserUseCase each have a CONSTRUCTOR_INJECTS edge to IdGenerator, so callers use the abstraction rather than a concrete generator.\\\",\\\"Graph edge: UuidIdGenerator (src/infrastructure/ids/UuidIdGenerator.ts) IMPLEMENTS IdGenerator, so the concrete adapter sits outside the port.\\\"],\\\"violations\\\":[]}\",\"structured_output\":{\"confidence\":0.9,\"evidence\":[\"src/application/ports/IdGenerator.ts declares only `export interface IdGenerator { generate(): string; }`, a single cohesive port abstraction.\",\"Graph edges: AddTaskToProjectUseCase, CreateProjectUseCase and CreateUserUseCase each have a CONSTRUCTOR_INJECTS edge to IdGenerator, so callers use the abstraction rather than a concrete generator.\",\"Graph edge: UuidIdGenerator (src/infrastructure/ids/UuidIdGenerator.ts) IMPLEMENTS IdGenerator, so the concrete adapter sits outside the port.\"],\"pass\":true,\"reasoning\":\"The unit has a single file, src/application/ports/IdGenerator.ts. It declares one port interface, IdGenerator, with one method, generate(): string. That is one cohesive concern: ID generation as an application-layer port. Because there is only one declaration, the unit cannot split into unrelated concerns, duplicate a rule or invariant, or bypass its own abstractions. The graph shows the three use cases depend on this port through constructor injection, and UuidIdGenerator in infrastructure implements it. That fits the port-and-adapter boundary the module intends.\",\"violations\":[]}}",
+  "runIndex": 1,
+  "schemaVersion": 2,
+  "unitId": "src/application",
+  "usage": {
+    "inputTokens": 3145,
+    "outputTokens": 543
+  },
+  "usedOptions": {
+    "effort": "high",
+    "model": "claude-opus-5-5"
+  }
+}

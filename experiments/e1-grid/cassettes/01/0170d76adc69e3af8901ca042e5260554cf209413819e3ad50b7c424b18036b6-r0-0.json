@@ -1,0 +1,47 @@
+{
+  "attempts": 1,
+  "cliVersion": "2.1.294",
+  "configListingSha256": "47aa04258852fab9a706f3f0c14cee22306d69fbb6fdfbde8c11854bd54997bc",
+  "durationMs": 4857,
+  "effort": "high",
+  "functionId": "FF-N02",
+  "ignoredOptions": [
+    "maxTokens"
+  ],
+  "isolationProbeSha256": "97a2e2d0af1100c13c55e028c1a0c71f069093c3d08705af122aaeb302f1a641",
+  "key": "0170d76adc69e3af8901ca042e5260554cf209413819e3ad50b7c424b18036b6-r0-0",
+  "model": "claude-opus-5-5",
+  "outcome": {
+    "kind": "valid"
+  },
+  "parsedVerdict": {
+    "confidence": 0.95,
+    "evidence": [
+      "src/application/dtos/ProjectDto.ts: interface CreateProjectInput is a use-case input contract (application)",
+      "src/application/dtos/ProjectDto.ts: interface ProjectDto is an output data shape (application)",
+      "src/application/dtos/ProjectDto.ts: function toProjectDto copies fields from Project into the DTO and holds no business rules or I/O"
+    ],
+    "pass": true,
+    "reasoning": "The file only holds application-layer data transfer contracts: an input DTO and an output DTO, plus a plain mapping function from the domain entity to the DTO. It has no persistence, transport or framework logic, and no business rules. Mapping between domain entities and DTOs is a normal application-layer job.",
+    "violations": []
+  },
+  "projectId": "claude-opus-5-5/task-management/minimal-prose/run-2",
+  "prompt": "## Rule\nThe unit's responsibilities match the role of its declared layer.\n\n## Rubric\nPass: Every responsibility in the file belongs to the role and kind of its declared layer, and agrees with any ADR prose given.\nFail: The file carries a responsibility that belongs to a different layer kind, for example persistence, transport or framework logic in a domain file, or business rules in an infrastructure or presentation file.\nEvidence required: Name the file and cite the function, method or statement that carries the misplaced responsibility, and the layer kind it belongs to.\nOut of scope: import direction and layer-dependency rules, which are checked symbolically.\n\n## Layer model\n- domain (kind: domain): src/domain/**\n- application (kind: application): src/application/**\n- infrastructure (kind: infrastructure): src/infrastructure/**\n\n## Unit\nKind: file\nId: src/application/dtos/ProjectDto.ts\nLayer: application\nUnit files:\n- src/application/dtos/ProjectDto.ts\n\n## Source\n=====SOURCE-BEGIN src/application/dtos/ProjectDto.ts=====\nimport { Project } from '../../domain/entities/Project';\n\nexport interface CreateProjectInput {\n  name: string;\n  description?: string;\n}\n\nexport interface ProjectDto {\n  id: string;\n  name: string;\n  description: string;\n}\n\nexport function toProjectDto(project: Project): ProjectDto {\n  return { id: project.id, name: project.name, description: project.description };\n}\n\n=====SOURCE-END=====\n\n## Graph excerpt\n{\"edges\":[{\"from\":\"src/application/dtos/ProjectDto.ts\",\"to\":\"src/domain/entities/Project.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/application/use-cases/CreateProjectUseCase.ts\",\"to\":\"src/application/dtos/ProjectDto.ts\",\"type\":\"IMPORTS\"}],\"nodes\":[{\"kind\":\"File\",\"layer\":\"application\",\"path\":\"src/application/dtos/ProjectDto.ts\"},{\"kind\":\"File\",\"layer\":\"application\",\"path\":\"src/application/use-cases/CreateProjectUseCase.ts\"},{\"kind\":\"File\",\"layer\":\"domain\",\"path\":\"src/domain/entities/Project.ts\"},{\"kind\":\"Interface\",\"layer\":\"application\",\"name\":\"CreateProjectInput\",\"path\":\"src/application/dtos/ProjectDto.ts\"},{\"kind\":\"Interface\",\"layer\":\"application\",\"name\":\"ProjectDto\",\"path\":\"src/application/dtos/ProjectDto.ts\"}]}\n\n## Instructions\nJudge the unit against the rule and rubric. Return the JSON object the schema requires. Set pass to false if any file of the unit fails the rubric.\n",
+  "provider": "claude-cli",
+  "recordedAt": "2026-10-10T21:45:18.276Z",
+  "repetition": 0,
+  "requestHash": "0170d76adc69e3af8901ca042e5260554cf209413819e3ad50b7c424b18036b6",
+  "resolvedModel": "claude-opus-5-5",
+  "response": "{\"is_error\":false,\"modelUsage\":{\"claude-opus-5-5\":{\"inputTokens\":2,\"outputTokens\":369}},\"result\":\"{\\\"pass\\\":true,\\\"confidence\\\":0.95,\\\"reasoning\\\":\\\"The file only holds application-layer data transfer contracts: an input DTO and an output DTO, plus a plain mapping function from the domain entity to the DTO. It has no persistence, transport or framework logic, and no business rules. Mapping between domain entities and DTOs is a normal application-layer job.\\\",\\\"evidence\\\":[\\\"src/application/dtos/ProjectDto.ts: interface CreateProjectInput is a use-case input contract (application)\\\",\\\"src/application/dtos/ProjectDto.ts: interface ProjectDto is an output data shape (application)\\\",\\\"src/application/dtos/ProjectDto.ts: function toProjectDto copies fields from Project into the DTO and holds no business rules or I/O\\\"],\\\"violations\\\":[]}\",\"structured_output\":{\"confidence\":0.95,\"evidence\":[\"src/application/dtos/ProjectDto.ts: interface CreateProjectInput is a use-case input contract (application)\",\"src/application/dtos/ProjectDto.ts: interface ProjectDto is an output data shape (application)\",\"src/application/dtos/ProjectDto.ts: function toProjectDto copies fields from Project into the DTO and holds no business rules or I/O\"],\"pass\":true,\"reasoning\":\"The file only holds application-layer data transfer contracts: an input DTO and an output DTO, plus a plain mapping function from the domain entity to the DTO. It has no persistence, transport or framework logic, and no business rules. Mapping between domain entities and DTOs is a normal application-layer job.\",\"violations\":[]}}",
+  "runIndex": 0,
+  "schemaVersion": 2,
+  "unitId": "src/application/dtos/ProjectDto.ts",
+  "usage": {
+    "inputTokens": 2371,
+    "outputTokens": 369
+  },
+  "usedOptions": {
+    "effort": "high",
+    "model": "claude-opus-5-5"
+  }
+}

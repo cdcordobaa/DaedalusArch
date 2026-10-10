@@ -1,0 +1,48 @@
+{
+  "attempts": 1,
+  "cliVersion": "2.1.294",
+  "configListingSha256": "47aa04258852fab9a706f3f0c14cee22306d69fbb6fdfbde8c11854bd54997bc",
+  "durationMs": 6113,
+  "effort": "high",
+  "functionId": "FF-N02",
+  "ignoredOptions": [
+    "maxTokens"
+  ],
+  "isolationProbeSha256": "97a2e2d0af1100c13c55e028c1a0c71f069093c3d08705af122aaeb302f1a641",
+  "key": "38afc3a0083cc858c2093b1773568a1fdd2ef706b9ee3b459d1d7627a6e2990f-r0-2",
+  "model": "claude-opus-5-5",
+  "outcome": {
+    "kind": "valid"
+  },
+  "parsedVerdict": {
+    "confidence": 0.93,
+    "evidence": [
+      "src/application/OrderDtoMapper.ts: toOrderDto(order: Order): OrderDto is a pure mapping from the domain entity to the application DTO shape",
+      "The statements order.placedAt.toISOString() and l.quantity.value only format and unwrap data for the DTO; they contain no business rules",
+      "The graph shows only application use cases (PlaceOrder, GetOrder, ListOrders, CancelOrder, AdvanceOrder) import this file",
+      "No persistence, transport or framework calls appear in the file"
+    ],
+    "pass": true,
+    "reasoning": "The file only maps the domain Order entity to an application-level OrderDto. That's a normal application-layer job: shaping output data at the use-case boundary. It has no persistence, transport, framework or HTTP logic, and no business rules. Turning dates into ISO strings and unwrapping the quantity value object is simple DTO formatting, not domain logic. The application use cases are the only code that imports this file, which fits its role.",
+    "violations": []
+  },
+  "projectId": "claude-opus-5-5/order-fulfilment/minimal-prose/run-0",
+  "prompt": "## Rule\nThe unit's responsibilities match the role of its declared layer.\n\n## Rubric\nPass: Every responsibility in the file belongs to the role and kind of its declared layer, and agrees with any ADR prose given.\nFail: The file carries a responsibility that belongs to a different layer kind, for example persistence, transport or framework logic in a domain file, or business rules in an infrastructure or presentation file.\nEvidence required: Name the file and cite the function, method or statement that carries the misplaced responsibility, and the layer kind it belongs to.\nOut of scope: import direction and layer-dependency rules, which are checked symbolically.\n\n## Layer model\n- domain (kind: domain): src/domain/**\n- application (kind: application): src/application/**\n- infrastructure (kind: infrastructure): src/infrastructure/**\n\n## Unit\nKind: file\nId: src/application/OrderDtoMapper.ts\nLayer: application\nUnit files:\n- src/application/OrderDtoMapper.ts\n\n## Source\n=====SOURCE-BEGIN src/application/OrderDtoMapper.ts=====\nimport { Order } from '../domain/Order';\nimport { OrderDto } from './dtos';\n\nexport function toOrderDto(order: Order): OrderDto {\n  return {\n    id: order.id,\n    customerId: order.customerId,\n    status: order.status,\n    lines: order.lines.map((l) => ({ productId: l.productId, quantity: l.quantity.value })),\n    placedAt: order.placedAt.toISOString(),\n    updatedAt: order.updatedAt.toISOString(),\n  };\n}\n\n=====SOURCE-END=====\n\n## Graph excerpt\n{\"edges\":[{\"from\":\"src/application/AdvanceOrderUseCase.ts\",\"to\":\"src/application/OrderDtoMapper.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/application/CancelOrderUseCase.ts\",\"to\":\"src/application/OrderDtoMapper.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/application/GetOrderUseCase.ts\",\"to\":\"src/application/OrderDtoMapper.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/application/ListOrdersUseCase.ts\",\"to\":\"src/application/OrderDtoMapper.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/application/OrderDtoMapper.ts\",\"to\":\"src/application/dtos.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/application/OrderDtoMapper.ts\",\"to\":\"src/domain/Order.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/application/PlaceOrderUseCase.ts\",\"to\":\"src/application/OrderDtoMapper.ts\",\"type\":\"IMPORTS\"}],\"nodes\":[{\"kind\":\"File\",\"layer\":\"application\",\"path\":\"src/application/AdvanceOrderUseCase.ts\"},{\"kind\":\"File\",\"layer\":\"application\",\"path\":\"src/application/CancelOrderUseCase.ts\"},{\"kind\":\"File\",\"layer\":\"application\",\"path\":\"src/application/GetOrderUseCase.ts\"},{\"kind\":\"File\",\"layer\":\"application\",\"path\":\"src/application/ListOrdersUseCase.ts\"},{\"kind\":\"File\",\"layer\":\"application\",\"path\":\"src/application/OrderDtoMapper.ts\"},{\"kind\":\"File\",\"layer\":\"application\",\"path\":\"src/application/PlaceOrderUseCase.ts\"},{\"kind\":\"File\",\"layer\":\"application\",\"path\":\"src/application/dtos.ts\"},{\"kind\":\"File\",\"layer\":\"domain\",\"path\":\"src/domain/Order.ts\"}]}\n\n## Instructions\nJudge the unit against the rule and rubric. Return the JSON object the schema requires. Set pass to false if any file of the unit fails the rubric.\n",
+  "provider": "claude-cli",
+  "recordedAt": "2026-10-10T21:48:51.036Z",
+  "repetition": 0,
+  "requestHash": "38afc3a0083cc858c2093b1773568a1fdd2ef706b9ee3b459d1d7627a6e2990f",
+  "resolvedModel": "claude-opus-5-5",
+  "response": "{\"is_error\":false,\"modelUsage\":{\"claude-opus-5-5\":{\"inputTokens\":2,\"outputTokens\":454}},\"result\":\"{\\\"pass\\\":true,\\\"confidence\\\":0.93,\\\"reasoning\\\":\\\"The file only maps the domain Order entity to an application-level OrderDto. That's a normal application-layer job: shaping output data at the use-case boundary. It has no persistence, transport, framework or HTTP logic, and no business rules. Turning dates into ISO strings and unwrapping the quantity value object is simple DTO formatting, not domain logic. The application use cases are the only code that imports this file, which fits its role.\\\",\\\"evidence\\\":[\\\"src/application/OrderDtoMapper.ts: toOrderDto(order: Order): OrderDto is a pure mapping from the domain entity to the application DTO shape\\\",\\\"The statements order.placedAt.toISOString() and l.quantity.value only format and unwrap data for the DTO; they contain no business rules\\\",\\\"The graph shows only application use cases (PlaceOrder, GetOrder, ListOrders, CancelOrder, AdvanceOrder) import this file\\\",\\\"No persistence, transport or framework calls appear in the file\\\"],\\\"violations\\\":[]}\",\"structured_output\":{\"confidence\":0.93,\"evidence\":[\"src/application/OrderDtoMapper.ts: toOrderDto(order: Order): OrderDto is a pure mapping from the domain entity to the application DTO shape\",\"The statements order.placedAt.toISOString() and l.quantity.value only format and unwrap data for the DTO; they contain no business rules\",\"The graph shows only application use cases (PlaceOrder, GetOrder, ListOrders, CancelOrder, AdvanceOrder) import this file\",\"No persistence, transport or framework calls appear in the file\"],\"pass\":true,\"reasoning\":\"The file only maps the domain Order entity to an application-level OrderDto. That's a normal application-layer job: shaping output data at the use-case boundary. It has no persistence, transport, framework or HTTP logic, and no business rules. Turning dates into ISO strings and unwrapping the quantity value object is simple DTO formatting, not domain logic. The application use cases are the only code that imports this file, which fits its role.\",\"violations\":[]}}",
+  "runIndex": 2,
+  "schemaVersion": 2,
+  "unitId": "src/application/OrderDtoMapper.ts",
+  "usage": {
+    "inputTokens": 2735,
+    "outputTokens": 454
+  },
+  "usedOptions": {
+    "effort": "high",
+    "model": "claude-opus-5-5"
+  }
+}

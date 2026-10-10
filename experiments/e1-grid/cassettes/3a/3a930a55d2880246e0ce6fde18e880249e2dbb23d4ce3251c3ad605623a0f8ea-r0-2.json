@@ -1,0 +1,47 @@
+{
+  "attempts": 1,
+  "cliVersion": "2.1.294",
+  "configListingSha256": "47aa04258852fab9a706f3f0c14cee22306d69fbb6fdfbde8c11854bd54997bc",
+  "durationMs": 7882,
+  "effort": "high",
+  "functionId": "FF-N02",
+  "ignoredOptions": [
+    "maxTokens"
+  ],
+  "isolationProbeSha256": "97a2e2d0af1100c13c55e028c1a0c71f069093c3d08705af122aaeb302f1a641",
+  "key": "3a930a55d2880246e0ce6fde18e880249e2dbb23d4ce3251c3ad605623a0f8ea-r0-2",
+  "model": "claude-opus-5-5",
+  "outcome": {
+    "kind": "valid"
+  },
+  "parsedVerdict": {
+    "confidence": 0.93,
+    "evidence": [
+      "src/infrastructure/http/controllers/ProjectController.ts: create() reads req.body through RequestReader.requiredString('name') and optionalString('description'). This is transport-level input parsing.",
+      "src/infrastructure/http/controllers/ProjectController.ts: create() hands the work to this.createProject.execute(...), which is the application use case.",
+      "src/infrastructure/http/controllers/ProjectController.ts: res.status(201).json(project) maps the result to an HTTP response. This is transport work."
+    ],
+    "pass": true,
+    "reasoning": "ProjectController is an HTTP transport adapter, so it sits correctly in the infrastructure layer. Its create handler does only adapter work. It reads the request body through RequestReader, which checks the shape of the input (a required name string and an optional description string). It hands the work to CreateProjectUseCase.execute and then maps the result to an HTTP 201 JSON response. The file contains no business rules, no persistence and no domain logic. Checking that request fields are present and are strings counts as transport-level input validation, which belongs in infrastructure.",
+    "violations": []
+  },
+  "projectId": "claude-opus-5-5/task-management/minimal-prose/run-2",
+  "prompt": "## Rule\nThe unit's responsibilities match the role of its declared layer.\n\n## Rubric\nPass: Every responsibility in the file belongs to the role and kind of its declared layer, and agrees with any ADR prose given.\nFail: The file carries a responsibility that belongs to a different layer kind, for example persistence, transport or framework logic in a domain file, or business rules in an infrastructure or presentation file.\nEvidence required: Name the file and cite the function, method or statement that carries the misplaced responsibility, and the layer kind it belongs to.\nOut of scope: import direction and layer-dependency rules, which are checked symbolically.\n\n## Layer model\n- domain (kind: domain): src/domain/**\n- application (kind: application): src/application/**\n- infrastructure (kind: infrastructure): src/infrastructure/**\n\n## Unit\nKind: file\nId: src/infrastructure/http/controllers/ProjectController.ts\nLayer: infrastructure\nUnit files:\n- src/infrastructure/http/controllers/ProjectController.ts\n\n## Source\n=====SOURCE-BEGIN src/infrastructure/http/controllers/ProjectController.ts=====\nimport { Request, Response } from 'express';\nimport { CreateProjectUseCase } from '../../../application/use-cases/CreateProjectUseCase';\nimport { RequestReader } from '../RequestReader';\n\nexport class ProjectController {\n  constructor(private readonly createProject: CreateProjectUseCase) {}\n\n  create = async (req: Request, res: Response): Promise<void> => {\n    const body = new RequestReader(req.body);\n    const project = await this.createProject.execute({\n      name: body.requiredString('name'),\n      description: body.optionalString('description'),\n    });\n    res.status(201).json(project);\n  };\n}\n\n=====SOURCE-END=====\n\n## Graph excerpt\n{\"edges\":[{\"from\":\"ProjectController@src/infrastructure/http/controllers/ProjectController.ts\",\"to\":\"CreateProjectUseCase@src/application/use-cases/CreateProjectUseCase.ts\",\"type\":\"CONSTRUCTOR_INJECTS\"},{\"from\":\"src/infrastructure/container.ts\",\"to\":\"src/infrastructure/http/controllers/ProjectController.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/infrastructure/http/controllers/ProjectController.ts\",\"to\":\"express\",\"type\":\"IMPORTS\"},{\"from\":\"src/infrastructure/http/controllers/ProjectController.ts\",\"to\":\"src/application/use-cases/CreateProjectUseCase.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/infrastructure/http/controllers/ProjectController.ts\",\"to\":\"src/infrastructure/http/RequestReader.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/infrastructure/http/createApp.ts\",\"to\":\"src/infrastructure/http/controllers/ProjectController.ts\",\"type\":\"IMPORTS\"}],\"nodes\":[{\"kind\":\"Class\",\"layer\":\"application\",\"name\":\"CreateProjectUseCase\",\"path\":\"src/application/use-cases/CreateProjectUseCase.ts\"},{\"kind\":\"Class\",\"layer\":\"infrastructure\",\"name\":\"ProjectController\",\"path\":\"src/infrastructure/http/controllers/ProjectController.ts\"},{\"kind\":\"File\",\"layer\":\"application\",\"path\":\"src/application/use-cases/CreateProjectUseCase.ts\"},{\"kind\":\"File\",\"layer\":\"infrastructure\",\"path\":\"src/infrastructure/container.ts\"},{\"kind\":\"File\",\"layer\":\"infrastructure\",\"path\":\"src/infrastructure/http/RequestReader.ts\"},{\"kind\":\"File\",\"layer\":\"infrastructure\",\"path\":\"src/infrastructure/http/controllers/ProjectController.ts\"},{\"kind\":\"File\",\"layer\":\"infrastructure\",\"path\":\"src/infrastructure/http/createApp.ts\"},{\"kind\":\"Package\",\"layer\":null,\"path\":\"express\"}]}\n\n## Instructions\nJudge the unit against the rule and rubric. Return the JSON object the schema requires. Set pass to false if any file of the unit fails the rubric.\n",
+  "provider": "claude-cli",
+  "recordedAt": "2026-10-10T21:46:53.470Z",
+  "repetition": 0,
+  "requestHash": "3a930a55d2880246e0ce6fde18e880249e2dbb23d4ce3251c3ad605623a0f8ea",
+  "resolvedModel": "claude-opus-5-5",
+  "response": "{\"is_error\":false,\"modelUsage\":{\"claude-opus-5-5\":{\"inputTokens\":2,\"outputTokens\":488}},\"result\":\"{\\\"pass\\\":true,\\\"confidence\\\":0.93,\\\"reasoning\\\":\\\"ProjectController is an HTTP transport adapter, so it sits correctly in the infrastructure layer. Its create handler does only adapter work. It reads the request body through RequestReader, which checks the shape of the input (a required name string and an optional description string). It hands the work to CreateProjectUseCase.execute and then maps the result to an HTTP 201 JSON response. The file contains no business rules, no persistence and no domain logic. Checking that request fields are present and are strings counts as transport-level input validation, which belongs in infrastructure.\\\",\\\"evidence\\\":[\\\"src/infrastructure/http/controllers/ProjectController.ts: create() reads req.body through RequestReader.requiredString('name') and optionalString('description'). This is transport-level input parsing.\\\",\\\"src/infrastructure/http/controllers/ProjectController.ts: create() hands the work to this.createProject.execute(...), which is the application use case.\\\",\\\"src/infrastructure/http/controllers/ProjectController.ts: res.status(201).json(project) maps the result to an HTTP response. This is transport work.\\\"],\\\"violations\\\":[]}\",\"structured_output\":{\"confidence\":0.93,\"evidence\":[\"src/infrastructure/http/controllers/ProjectController.ts: create() reads req.body through RequestReader.requiredString('name') and optionalString('description'). This is transport-level input parsing.\",\"src/infrastructure/http/controllers/ProjectController.ts: create() hands the work to this.createProject.execute(...), which is the application use case.\",\"src/infrastructure/http/controllers/ProjectController.ts: res.status(201).json(project) maps the result to an HTTP response. This is transport work.\"],\"pass\":true,\"reasoning\":\"ProjectController is an HTTP transport adapter, so it sits correctly in the infrastructure layer. Its create handler does only adapter work. It reads the request body through RequestReader, which checks the shape of the input (a required name string and an optional description string). It hands the work to CreateProjectUseCase.execute and then maps the result to an HTTP 201 JSON response. The file contains no business rules, no persistence and no domain logic. Checking that request fields are present and are strings counts as transport-level input validation, which belongs in infrastructure.\",\"violations\":[]}}",
+  "runIndex": 2,
+  "schemaVersion": 2,
+  "unitId": "src/infrastructure/http/controllers/ProjectController.ts",
+  "usage": {
+    "inputTokens": 2864,
+    "outputTokens": 488
+  },
+  "usedOptions": {
+    "effort": "high",
+    "model": "claude-opus-5-5"
+  }
+}

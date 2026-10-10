@@ -1,0 +1,47 @@
+{
+  "attempts": 1,
+  "cliVersion": "2.1.294",
+  "configListingSha256": "47aa04258852fab9a706f3f0c14cee22306d69fbb6fdfbde8c11854bd54997bc",
+  "durationMs": 6249,
+  "effort": "high",
+  "functionId": "FF-N02",
+  "ignoredOptions": [
+    "maxTokens"
+  ],
+  "isolationProbeSha256": "97a2e2d0af1100c13c55e028c1a0c71f069093c3d08705af122aaeb302f1a641",
+  "key": "e315c92e5cbfc5a48337a8a4cd324f45f54258d607934d9dad09f712a2447ab8-r0-0",
+  "model": "claude-opus-5-5",
+  "outcome": {
+    "kind": "valid"
+  },
+  "parsedVerdict": {
+    "confidence": 0.93,
+    "evidence": [
+      "src/application/dtos/TaskDto.ts: the interfaces CreateTaskInput, AssignTaskInput, ListProjectTasksInput and TaskDto are use-case input and output contracts, which belong in the application layer",
+      "src/application/dtos/TaskDto.ts: toTaskDto(task: Task) only maps entity fields to the DTO (dueDate.toIso(), status.value), with no business decisions",
+      "The file has no database, HTTP or framework code, and no domain invariants"
+    ],
+    "pass": true,
+    "reasoning": "The file sets out the input and output DTOs that application use cases work with (CreateTaskInput, AssignTaskInput, ListProjectTasksInput, TaskDto). It also has a mapper, toTaskDto, that turns a domain Task entity into a plain DTO. Both are normal application-layer jobs: they define the data contracts at the use-case boundary and map domain objects to them. The file holds no persistence, transport, HTTP or framework logic, and no business rules or invariants. Formatting the due date as an ISO string with toIso() is simple serialization for the boundary, not domain logic.",
+    "violations": []
+  },
+  "projectId": "claude-opus-5-5/task-management/minimal-prose/run-2",
+  "prompt": "## Rule\nThe unit's responsibilities match the role of its declared layer.\n\n## Rubric\nPass: Every responsibility in the file belongs to the role and kind of its declared layer, and agrees with any ADR prose given.\nFail: The file carries a responsibility that belongs to a different layer kind, for example persistence, transport or framework logic in a domain file, or business rules in an infrastructure or presentation file.\nEvidence required: Name the file and cite the function, method or statement that carries the misplaced responsibility, and the layer kind it belongs to.\nOut of scope: import direction and layer-dependency rules, which are checked symbolically.\n\n## Layer model\n- domain (kind: domain): src/domain/**\n- application (kind: application): src/application/**\n- infrastructure (kind: infrastructure): src/infrastructure/**\n\n## Unit\nKind: file\nId: src/application/dtos/TaskDto.ts\nLayer: application\nUnit files:\n- src/application/dtos/TaskDto.ts\n\n## Source\n=====SOURCE-BEGIN src/application/dtos/TaskDto.ts=====\nimport { Task } from '../../domain/entities/Task';\nimport { TaskStatusValue } from '../../domain/value-objects/TaskStatus';\n\nexport interface CreateTaskInput {\n  projectId: string;\n  title: string;\n  description: string;\n  dueDate?: string;\n  status?: string;\n  assigneeId?: string;\n}\n\nexport interface AssignTaskInput {\n  taskId: string;\n  userId: string;\n}\n\nexport interface ListProjectTasksInput {\n  projectId: string;\n  status?: string;\n  assigneeId?: string;\n}\n\nexport interface TaskDto {\n  id: string;\n  projectId: string;\n  title: string;\n  description: string;\n  dueDate: string | null;\n  status: TaskStatusValue;\n  assigneeId: string | null;\n}\n\nexport function toTaskDto(task: Task): TaskDto {\n  return {\n    id: task.id,\n    projectId: task.projectId,\n    title: task.title,\n    description: task.description,\n    dueDate: task.dueDate === null ? null : task.dueDate.toIso(),\n    status: task.status.value,\n    assigneeId: task.assigneeId,\n  };\n}\n\n=====SOURCE-END=====\n\n## Graph excerpt\n{\"edges\":[{\"from\":\"src/application/dtos/TaskDto.ts\",\"to\":\"src/domain/entities/Task.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/application/dtos/TaskDto.ts\",\"to\":\"src/domain/value-objects/TaskStatus.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/application/use-cases/AssignTaskUseCase.ts\",\"to\":\"src/application/dtos/TaskDto.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/application/use-cases/CompleteTaskUseCase.ts\",\"to\":\"src/application/dtos/TaskDto.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/application/use-cases/CreateTaskUseCase.ts\",\"to\":\"src/application/dtos/TaskDto.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/application/use-cases/ListProjectTasksUseCase.ts\",\"to\":\"src/application/dtos/TaskDto.ts\",\"type\":\"IMPORTS\"}],\"nodes\":[{\"kind\":\"File\",\"layer\":\"application\",\"path\":\"src/application/dtos/TaskDto.ts\"},{\"kind\":\"File\",\"layer\":\"application\",\"path\":\"src/application/use-cases/AssignTaskUseCase.ts\"},{\"kind\":\"File\",\"layer\":\"application\",\"path\":\"src/application/use-cases/CompleteTaskUseCase.ts\"},{\"kind\":\"File\",\"layer\":\"application\",\"path\":\"src/application/use-cases/CreateTaskUseCase.ts\"},{\"kind\":\"File\",\"layer\":\"application\",\"path\":\"src/application/use-cases/ListProjectTasksUseCase.ts\"},{\"kind\":\"File\",\"layer\":\"domain\",\"path\":\"src/domain/entities/Task.ts\"},{\"kind\":\"File\",\"layer\":\"domain\",\"path\":\"src/domain/value-objects/TaskStatus.ts\"},{\"kind\":\"Interface\",\"layer\":\"application\",\"name\":\"AssignTaskInput\",\"path\":\"src/application/dtos/TaskDto.ts\"},{\"kind\":\"Interface\",\"layer\":\"application\",\"name\":\"CreateTaskInput\",\"path\":\"src/application/dtos/TaskDto.ts\"},{\"kind\":\"Interface\",\"layer\":\"application\",\"name\":\"ListProjectTasksInput\",\"path\":\"src/application/dtos/TaskDto.ts\"},{\"kind\":\"Interface\",\"layer\":\"application\",\"name\":\"TaskDto\",\"path\":\"src/application/dtos/TaskDto.ts\"}]}\n\n## Instructions\nJudge the unit against the rule and rubric. Return the JSON object the schema requires. Set pass to false if any file of the unit fails the rubric.\n",
+  "provider": "claude-cli",
+  "recordedAt": "2026-10-10T21:45:26.231Z",
+  "repetition": 0,
+  "requestHash": "e315c92e5cbfc5a48337a8a4cd324f45f54258d607934d9dad09f712a2447ab8",
+  "resolvedModel": "claude-opus-5-5",
+  "response": "{\"is_error\":false,\"modelUsage\":{\"claude-opus-5-5\":{\"inputTokens\":2,\"outputTokens\":505}},\"result\":\"{\\\"pass\\\":true,\\\"confidence\\\":0.93,\\\"reasoning\\\":\\\"The file sets out the input and output DTOs that application use cases work with (CreateTaskInput, AssignTaskInput, ListProjectTasksInput, TaskDto). It also has a mapper, toTaskDto, that turns a domain Task entity into a plain DTO. Both are normal application-layer jobs: they define the data contracts at the use-case boundary and map domain objects to them. The file holds no persistence, transport, HTTP or framework logic, and no business rules or invariants. Formatting the due date as an ISO string with toIso() is simple serialization for the boundary, not domain logic.\\\",\\\"evidence\\\":[\\\"src/application/dtos/TaskDto.ts: the interfaces CreateTaskInput, AssignTaskInput, ListProjectTasksInput and TaskDto are use-case input and output contracts, which belong in the application layer\\\",\\\"src/application/dtos/TaskDto.ts: toTaskDto(task: Task) only maps entity fields to the DTO (dueDate.toIso(), status.value), with no business decisions\\\",\\\"The file has no database, HTTP or framework code, and no domain invariants\\\"],\\\"violations\\\":[]}\",\"structured_output\":{\"confidence\":0.93,\"evidence\":[\"src/application/dtos/TaskDto.ts: the interfaces CreateTaskInput, AssignTaskInput, ListProjectTasksInput and TaskDto are use-case input and output contracts, which belong in the application layer\",\"src/application/dtos/TaskDto.ts: toTaskDto(task: Task) only maps entity fields to the DTO (dueDate.toIso(), status.value), with no business decisions\",\"The file has no database, HTTP or framework code, and no domain invariants\"],\"pass\":true,\"reasoning\":\"The file sets out the input and output DTOs that application use cases work with (CreateTaskInput, AssignTaskInput, ListProjectTasksInput, TaskDto). It also has a mapper, toTaskDto, that turns a domain Task entity into a plain DTO. Both are normal application-layer jobs: they define the data contracts at the use-case boundary and map domain objects to them. The file holds no persistence, transport, HTTP or framework logic, and no business rules or invariants. Formatting the due date as an ISO string with toIso() is simple serialization for the boundary, not domain logic.\",\"violations\":[]}}",
+  "runIndex": 0,
+  "schemaVersion": 2,
+  "unitId": "src/application/dtos/TaskDto.ts",
+  "usage": {
+    "inputTokens": 3122,
+    "outputTokens": 505
+  },
+  "usedOptions": {
+    "effort": "high",
+    "model": "claude-opus-5-5"
+  }
+}

@@ -1,0 +1,47 @@
+{
+  "attempts": 1,
+  "cliVersion": "2.1.294",
+  "configListingSha256": "47aa04258852fab9a706f3f0c14cee22306d69fbb6fdfbde8c11854bd54997bc",
+  "durationMs": 6131,
+  "effort": "high",
+  "functionId": "FF-N02",
+  "ignoredOptions": [
+    "maxTokens"
+  ],
+  "isolationProbeSha256": "97a2e2d0af1100c13c55e028c1a0c71f069093c3d08705af122aaeb302f1a641",
+  "key": "d97b78a71512ba682d60e079527710d4703aaa1dd47202dc8f9154d3d3f05ec9-r0-0",
+  "model": "claude-opus-5-5",
+  "outcome": {
+    "kind": "valid"
+  },
+  "parsedVerdict": {
+    "confidence": 0.93,
+    "evidence": [
+      "src/application/OrderLookupService.ts: require(orderId) calls this.orders.findById(orderId), which goes through the domain OrderRepository abstraction. It does not touch a database or any persistence technology.",
+      "src/application/OrderLookupService.ts: throws NotFoundError from './errors' when the order is missing. This is application-level error mapping, not HTTP status handling.",
+      "Graph: the class is injected into AdvanceOrderUseCase, CancelOrderUseCase and GetOrderUseCase, so it works as a shared application helper."
+    ],
+    "pass": true,
+    "reasoning": "OrderLookupService is an application service. It loads an order through the domain OrderRepository port and turns a missing order into an application-level NotFoundError. Loading an aggregate and handling a missing result for the use cases that call it is application work. The file has no persistence code, no transport or HTTP handling and no framework logic. It also holds no domain business rules or state changes that belong in the domain layer. Every responsibility in the file fits the application layer.",
+    "violations": []
+  },
+  "projectId": "claude-opus-5-5/order-fulfilment/minimal-prose/run-2",
+  "prompt": "## Rule\nThe unit's responsibilities match the role of its declared layer.\n\n## Rubric\nPass: Every responsibility in the file belongs to the role and kind of its declared layer, and agrees with any ADR prose given.\nFail: The file carries a responsibility that belongs to a different layer kind, for example persistence, transport or framework logic in a domain file, or business rules in an infrastructure or presentation file.\nEvidence required: Name the file and cite the function, method or statement that carries the misplaced responsibility, and the layer kind it belongs to.\nOut of scope: import direction and layer-dependency rules, which are checked symbolically.\n\n## Layer model\n- domain (kind: domain): src/domain/**\n- application (kind: application): src/application/**\n- infrastructure (kind: infrastructure): src/infrastructure/**\n\n## Unit\nKind: file\nId: src/application/OrderLookupService.ts\nLayer: application\nUnit files:\n- src/application/OrderLookupService.ts\n\n## Source\n=====SOURCE-BEGIN src/application/OrderLookupService.ts=====\nimport { Order } from '../domain/Order';\nimport { OrderRepository } from '../domain/OrderRepository';\nimport { NotFoundError } from './errors';\n\nexport class OrderLookupService {\n  constructor(private readonly orders: OrderRepository) {}\n\n  require(orderId: string): Order {\n    const order = this.orders.findById(orderId);\n    if (!order) {\n      throw new NotFoundError(`Order ${orderId} not found`);\n    }\n    return order;\n  }\n}\n\n=====SOURCE-END=====\n\n## Graph excerpt\n{\"edges\":[{\"from\":\"AdvanceOrderUseCase@src/application/AdvanceOrderUseCase.ts\",\"to\":\"OrderLookupService@src/application/OrderLookupService.ts\",\"type\":\"CONSTRUCTOR_INJECTS\"},{\"from\":\"CancelOrderUseCase@src/application/CancelOrderUseCase.ts\",\"to\":\"OrderLookupService@src/application/OrderLookupService.ts\",\"type\":\"CONSTRUCTOR_INJECTS\"},{\"from\":\"GetOrderUseCase@src/application/GetOrderUseCase.ts\",\"to\":\"OrderLookupService@src/application/OrderLookupService.ts\",\"type\":\"CONSTRUCTOR_INJECTS\"},{\"from\":\"OrderLookupService@src/application/OrderLookupService.ts\",\"to\":\"OrderRepository@src/domain/OrderRepository.ts\",\"type\":\"CONSTRUCTOR_INJECTS\"},{\"from\":\"src/application/AdvanceOrderUseCase.ts\",\"to\":\"src/application/OrderLookupService.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/application/CancelOrderUseCase.ts\",\"to\":\"src/application/OrderLookupService.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/application/GetOrderUseCase.ts\",\"to\":\"src/application/OrderLookupService.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/application/OrderLookupService.ts\",\"to\":\"src/application/errors.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/application/OrderLookupService.ts\",\"to\":\"src/domain/Order.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/application/OrderLookupService.ts\",\"to\":\"src/domain/OrderRepository.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/infrastructure/app.ts\",\"to\":\"src/application/OrderLookupService.ts\",\"type\":\"IMPORTS\"}],\"nodes\":[{\"kind\":\"Class\",\"layer\":\"application\",\"name\":\"AdvanceOrderUseCase\",\"path\":\"src/application/AdvanceOrderUseCase.ts\"},{\"kind\":\"Class\",\"layer\":\"application\",\"name\":\"CancelOrderUseCase\",\"path\":\"src/application/CancelOrderUseCase.ts\"},{\"kind\":\"Class\",\"layer\":\"application\",\"name\":\"GetOrderUseCase\",\"path\":\"src/application/GetOrderUseCase.ts\"},{\"kind\":\"Class\",\"layer\":\"application\",\"name\":\"OrderLookupService\",\"path\":\"src/application/OrderLookupService.ts\"},{\"kind\":\"File\",\"layer\":\"application\",\"path\":\"src/application/AdvanceOrderUseCase.ts\"},{\"kind\":\"File\",\"layer\":\"application\",\"path\":\"src/application/CancelOrderUseCase.ts\"},{\"kind\":\"File\",\"layer\":\"application\",\"path\":\"src/application/GetOrderUseCase.ts\"},{\"kind\":\"File\",\"layer\":\"application\",\"path\":\"src/application/OrderLookupService.ts\"},{\"kind\":\"File\",\"layer\":\"application\",\"path\":\"src/application/errors.ts\"},{\"kind\":\"File\",\"layer\":\"domain\",\"path\":\"src/domain/Order.ts\"},{\"kind\":\"File\",\"layer\":\"domain\",\"path\":\"src/domain/OrderRepository.ts\"},{\"kind\":\"File\",\"layer\":\"infrastructure\",\"path\":\"src/infrastructure/app.ts\"},{\"kind\":\"Interface\",\"layer\":\"domain\",\"name\":\"OrderRepository\",\"path\":\"src/domain/OrderRepository.ts\"}]}\n\n## Instructions\nJudge the unit against the rule and rubric. Return the JSON object the schema requires. Set pass to false if any file of the unit fails the rubric.\n",
+  "provider": "claude-cli",
+  "recordedAt": "2026-10-10T21:57:12.108Z",
+  "repetition": 0,
+  "requestHash": "d97b78a71512ba682d60e079527710d4703aaa1dd47202dc8f9154d3d3f05ec9",
+  "resolvedModel": "claude-opus-5-5",
+  "response": "{\"is_error\":false,\"modelUsage\":{\"claude-opus-5-5\":{\"inputTokens\":2,\"outputTokens\":468}},\"result\":\"{\\\"pass\\\":true,\\\"confidence\\\":0.93,\\\"reasoning\\\":\\\"OrderLookupService is an application service. It loads an order through the domain OrderRepository port and turns a missing order into an application-level NotFoundError. Loading an aggregate and handling a missing result for the use cases that call it is application work. The file has no persistence code, no transport or HTTP handling and no framework logic. It also holds no domain business rules or state changes that belong in the domain layer. Every responsibility in the file fits the application layer.\\\",\\\"evidence\\\":[\\\"src/application/OrderLookupService.ts: require(orderId) calls this.orders.findById(orderId), which goes through the domain OrderRepository abstraction. It does not touch a database or any persistence technology.\\\",\\\"src/application/OrderLookupService.ts: throws NotFoundError from './errors' when the order is missing. This is application-level error mapping, not HTTP status handling.\\\",\\\"Graph: the class is injected into AdvanceOrderUseCase, CancelOrderUseCase and GetOrderUseCase, so it works as a shared application helper.\\\"],\\\"violations\\\":[]}\",\"structured_output\":{\"confidence\":0.93,\"evidence\":[\"src/application/OrderLookupService.ts: require(orderId) calls this.orders.findById(orderId), which goes through the domain OrderRepository abstraction. It does not touch a database or any persistence technology.\",\"src/application/OrderLookupService.ts: throws NotFoundError from './errors' when the order is missing. This is application-level error mapping, not HTTP status handling.\",\"Graph: the class is injected into AdvanceOrderUseCase, CancelOrderUseCase and GetOrderUseCase, so it works as a shared application helper.\"],\"pass\":true,\"reasoning\":\"OrderLookupService is an application service. It loads an order through the domain OrderRepository port and turns a missing order into an application-level NotFoundError. Loading an aggregate and handling a missing result for the use cases that call it is application work. The file has no persistence code, no transport or HTTP handling and no framework logic. It also holds no domain business rules or state changes that belong in the domain layer. Every responsibility in the file fits the application layer.\",\"violations\":[]}}",
+  "runIndex": 0,
+  "schemaVersion": 2,
+  "unitId": "src/application/OrderLookupService.ts",
+  "usage": {
+    "inputTokens": 3257,
+    "outputTokens": 468
+  },
+  "usedOptions": {
+    "effort": "high",
+    "model": "claude-opus-5-5"
+  }
+}

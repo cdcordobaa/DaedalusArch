@@ -1,0 +1,49 @@
+{
+  "attempts": 1,
+  "cliVersion": "2.1.294",
+  "configListingSha256": "47aa04258852fab9a706f3f0c14cee22306d69fbb6fdfbde8c11854bd54997bc",
+  "durationMs": 6304,
+  "effort": "high",
+  "functionId": "FF-N02",
+  "ignoredOptions": [
+    "maxTokens"
+  ],
+  "isolationProbeSha256": "97a2e2d0af1100c13c55e028c1a0c71f069093c3d08705af122aaeb302f1a641",
+  "key": "dcce155c93492f4e9f6fdba3a15b61fb012bb58410c35176744f0de996981132-r0-0",
+  "model": "claude-opus-5-5",
+  "outcome": {
+    "kind": "valid"
+  },
+  "parsedVerdict": {
+    "confidence": 0.93,
+    "evidence": [
+      "execute() calls this.tasks.findById(input.taskId), which uses the domain repository abstraction for loading. This is orchestration, not persistence code.",
+      "The `if (task === null) throw new NotFoundError('Task', input.taskId)` check is an application-level guard for a missing resource.",
+      "`await this.assignment.assign(task, input.userId)` hands the business rule to the domain service TaskAssignmentService.",
+      "`await this.tasks.save(task)` saves through the repository port, a normal application-layer step.",
+      "`return toTaskDto(task)` maps the result to an application DTO at the use-case boundary."
+    ],
+    "pass": true,
+    "reasoning": "AssignTaskUseCase is a plain application-layer orchestrator. It loads the aggregate through a repository abstraction, throws a not-found error when the task is missing, hands the assignment rule to the domain service TaskAssignmentService, saves the task through the repository port and maps the result to a DTO. The file has no persistence code, no transport or HTTP handling, no framework logic and no business rules of its own (the assignment rule sits in the domain service). Every responsibility fits the application layer's role.",
+    "violations": []
+  },
+  "projectId": "claude-opus-5-5/task-management/minimal-prose/run-2",
+  "prompt": "## Rule\nThe unit's responsibilities match the role of its declared layer.\n\n## Rubric\nPass: Every responsibility in the file belongs to the role and kind of its declared layer, and agrees with any ADR prose given.\nFail: The file carries a responsibility that belongs to a different layer kind, for example persistence, transport or framework logic in a domain file, or business rules in an infrastructure or presentation file.\nEvidence required: Name the file and cite the function, method or statement that carries the misplaced responsibility, and the layer kind it belongs to.\nOut of scope: import direction and layer-dependency rules, which are checked symbolically.\n\n## Layer model\n- domain (kind: domain): src/domain/**\n- application (kind: application): src/application/**\n- infrastructure (kind: infrastructure): src/infrastructure/**\n\n## Unit\nKind: file\nId: src/application/use-cases/AssignTaskUseCase.ts\nLayer: application\nUnit files:\n- src/application/use-cases/AssignTaskUseCase.ts\n\n## Source\n=====SOURCE-BEGIN src/application/use-cases/AssignTaskUseCase.ts=====\nimport { NotFoundError } from '../../domain/errors/DomainErrors';\nimport { TaskRepository } from '../../domain/repositories/TaskRepository';\nimport { TaskAssignmentService } from '../../domain/services/TaskAssignmentService';\nimport { AssignTaskInput, TaskDto, toTaskDto } from '../dtos/TaskDto';\n\nexport class AssignTaskUseCase {\n  constructor(\n    private readonly tasks: TaskRepository,\n    private readonly assignment: TaskAssignmentService,\n  ) {}\n\n  async execute(input: AssignTaskInput): Promise<TaskDto> {\n    const task = await this.tasks.findById(input.taskId);\n    if (task === null) {\n      throw new NotFoundError('Task', input.taskId);\n    }\n    await this.assignment.assign(task, input.userId);\n    await this.tasks.save(task);\n    return toTaskDto(task);\n  }\n}\n\n=====SOURCE-END=====\n\n## Graph excerpt\n{\"edges\":[{\"from\":\"AssignTaskUseCase@src/application/use-cases/AssignTaskUseCase.ts\",\"to\":\"TaskAssignmentService@src/domain/services/TaskAssignmentService.ts\",\"type\":\"CONSTRUCTOR_INJECTS\"},{\"from\":\"AssignTaskUseCase@src/application/use-cases/AssignTaskUseCase.ts\",\"to\":\"TaskRepository@src/domain/repositories/TaskRepository.ts\",\"type\":\"CONSTRUCTOR_INJECTS\"},{\"from\":\"src/application/use-cases/AssignTaskUseCase.ts\",\"to\":\"src/application/dtos/TaskDto.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/application/use-cases/AssignTaskUseCase.ts\",\"to\":\"src/domain/errors/DomainErrors.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/application/use-cases/AssignTaskUseCase.ts\",\"to\":\"src/domain/repositories/TaskRepository.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/application/use-cases/AssignTaskUseCase.ts\",\"to\":\"src/domain/services/TaskAssignmentService.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/infrastructure/container.ts\",\"to\":\"src/application/use-cases/AssignTaskUseCase.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/infrastructure/http/controllers/TaskController.ts\",\"to\":\"src/application/use-cases/AssignTaskUseCase.ts\",\"type\":\"IMPORTS\"}],\"nodes\":[{\"kind\":\"Class\",\"layer\":\"application\",\"name\":\"AssignTaskUseCase\",\"path\":\"src/application/use-cases/AssignTaskUseCase.ts\"},{\"kind\":\"Class\",\"layer\":\"domain\",\"name\":\"TaskAssignmentService\",\"path\":\"src/domain/services/TaskAssignmentService.ts\"},{\"kind\":\"File\",\"layer\":\"application\",\"path\":\"src/application/dtos/TaskDto.ts\"},{\"kind\":\"File\",\"layer\":\"application\",\"path\":\"src/application/use-cases/AssignTaskUseCase.ts\"},{\"kind\":\"File\",\"layer\":\"domain\",\"path\":\"src/domain/errors/DomainErrors.ts\"},{\"kind\":\"File\",\"layer\":\"domain\",\"path\":\"src/domain/repositories/TaskRepository.ts\"},{\"kind\":\"File\",\"layer\":\"domain\",\"path\":\"src/domain/services/TaskAssignmentService.ts\"},{\"kind\":\"File\",\"layer\":\"infrastructure\",\"path\":\"src/infrastructure/container.ts\"},{\"kind\":\"File\",\"layer\":\"infrastructure\",\"path\":\"src/infrastructure/http/controllers/TaskController.ts\"},{\"kind\":\"Interface\",\"layer\":\"domain\",\"name\":\"TaskRepository\",\"path\":\"src/domain/repositories/TaskRepository.ts\"}]}\n\n## Instructions\nJudge the unit against the rule and rubric. Return the JSON object the schema requires. Set pass to false if any file of the unit fails the rubric.\n",
+  "provider": "claude-cli",
+  "recordedAt": "2026-10-10T21:45:38.818Z",
+  "repetition": 0,
+  "requestHash": "dcce155c93492f4e9f6fdba3a15b61fb012bb58410c35176744f0de996981132",
+  "resolvedModel": "claude-opus-5-5",
+  "response": "{\"is_error\":false,\"modelUsage\":{\"claude-opus-5-5\":{\"inputTokens\":2,\"outputTokens\":509}},\"result\":\"{\\\"pass\\\":true,\\\"confidence\\\":0.93,\\\"reasoning\\\":\\\"AssignTaskUseCase is a plain application-layer orchestrator. It loads the aggregate through a repository abstraction, throws a not-found error when the task is missing, hands the assignment rule to the domain service TaskAssignmentService, saves the task through the repository port and maps the result to a DTO. The file has no persistence code, no transport or HTTP handling, no framework logic and no business rules of its own (the assignment rule sits in the domain service). Every responsibility fits the application layer's role.\\\",\\\"evidence\\\":[\\\"execute() calls this.tasks.findById(input.taskId), which uses the domain repository abstraction for loading. This is orchestration, not persistence code.\\\",\\\"The `if (task === null) throw new NotFoundError('Task', input.taskId)` check is an application-level guard for a missing resource.\\\",\\\"`await this.assignment.assign(task, input.userId)` hands the business rule to the domain service TaskAssignmentService.\\\",\\\"`await this.tasks.save(task)` saves through the repository port, a normal application-layer step.\\\",\\\"`return toTaskDto(task)` maps the result to an application DTO at the use-case boundary.\\\"],\\\"violations\\\":[]}\",\"structured_output\":{\"confidence\":0.93,\"evidence\":[\"execute() calls this.tasks.findById(input.taskId), which uses the domain repository abstraction for loading. This is orchestration, not persistence code.\",\"The `if (task === null) throw new NotFoundError('Task', input.taskId)` check is an application-level guard for a missing resource.\",\"`await this.assignment.assign(task, input.userId)` hands the business rule to the domain service TaskAssignmentService.\",\"`await this.tasks.save(task)` saves through the repository port, a normal application-layer step.\",\"`return toTaskDto(task)` maps the result to an application DTO at the use-case boundary.\"],\"pass\":true,\"reasoning\":\"AssignTaskUseCase is a plain application-layer orchestrator. It loads the aggregate through a repository abstraction, throws a not-found error when the task is missing, hands the assignment rule to the domain service TaskAssignmentService, saves the task through the repository port and maps the result to a DTO. The file has no persistence code, no transport or HTTP handling, no framework logic and no business rules of its own (the assignment rule sits in the domain service). Every responsibility fits the application layer's role.\",\"violations\":[]}}",
+  "runIndex": 0,
+  "schemaVersion": 2,
+  "unitId": "src/application/use-cases/AssignTaskUseCase.ts",
+  "usage": {
+    "inputTokens": 3233,
+    "outputTokens": 509
+  },
+  "usedOptions": {
+    "effort": "high",
+    "model": "claude-opus-5-5"
+  }
+}

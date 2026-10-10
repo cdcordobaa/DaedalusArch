@@ -1,0 +1,47 @@
+{
+  "attempts": 1,
+  "cliVersion": "2.1.294",
+  "configListingSha256": "47aa04258852fab9a706f3f0c14cee22306d69fbb6fdfbde8c11854bd54997bc",
+  "durationMs": 7141,
+  "effort": "high",
+  "functionId": "FF-N02",
+  "ignoredOptions": [
+    "maxTokens"
+  ],
+  "isolationProbeSha256": "97a2e2d0af1100c13c55e028c1a0c71f069093c3d08705af122aaeb302f1a641",
+  "key": "f74b6e7ae402c2710e3d6e1aca8a179351826247e6c43c4e159bb69046ee6f68-r0-2",
+  "model": "claude-opus-5-5",
+  "outcome": {
+    "kind": "valid"
+  },
+  "parsedVerdict": {
+    "confidence": 0.93,
+    "evidence": [
+      "src/infrastructure/http/requestParsing.ts: asFields() turns an unknown request payload into a record. This is generic transport input normalization.",
+      "src/infrastructure/http/requestParsing.ts: requireString() and optionalString() only check the type of request fields and throw RequestValidationError. This is HTTP boundary validation, not a business rule.",
+      "Graph: the only things that import it are ProjectController, TaskController and UserController in src/infrastructure/http/controllers."
+    ],
+    "pass": true,
+    "reasoning": "This file belongs to the infrastructure layer, under the HTTP transport adapter. Its job is to parse raw request bodies at the transport boundary. It checks the shape and type of untyped input (object vs. non-object, string vs. other) and throws a transport-specific RequestValidationError. That is transport-level input validation. None of these checks are domain invariants or business policy: there are no rules about entity state, value ranges or workflows. It also has no persistence logic. The graph shows that only HTTP controllers in the same infrastructure/http module use it. Every responsibility here fits the infrastructure (transport adapter) role.",
+    "violations": []
+  },
+  "projectId": "claude-opus-5-5/task-management/minimal-prose/run-1",
+  "prompt": "## Rule\nThe unit's responsibilities match the role of its declared layer.\n\n## Rubric\nPass: Every responsibility in the file belongs to the role and kind of its declared layer, and agrees with any ADR prose given.\nFail: The file carries a responsibility that belongs to a different layer kind, for example persistence, transport or framework logic in a domain file, or business rules in an infrastructure or presentation file.\nEvidence required: Name the file and cite the function, method or statement that carries the misplaced responsibility, and the layer kind it belongs to.\nOut of scope: import direction and layer-dependency rules, which are checked symbolically.\n\n## Layer model\n- domain (kind: domain): src/domain/**\n- application (kind: application): src/application/**\n- infrastructure (kind: infrastructure): src/infrastructure/**\n\n## Unit\nKind: file\nId: src/infrastructure/http/requestParsing.ts\nLayer: infrastructure\nUnit files:\n- src/infrastructure/http/requestParsing.ts\n\n## Source\n=====SOURCE-BEGIN src/infrastructure/http/requestParsing.ts=====\nimport { RequestValidationError } from './RequestValidationError';\n\ntype Fields = Record<string, unknown>;\n\nfunction asFields(source: unknown): Fields {\n  if (typeof source !== 'object' || source === null || Array.isArray(source)) {\n    return {};\n  }\n  return source as Fields;\n}\n\nexport function requireString(source: unknown, field: string): string {\n  const value = asFields(source)[field];\n  if (typeof value !== 'string') {\n    throw new RequestValidationError(`Field \"${field}\" is required and must be a string`);\n  }\n  return value;\n}\n\nexport function optionalString(source: unknown, field: string): string | undefined {\n  const value = asFields(source)[field];\n  if (value === undefined || value === null) {\n    return undefined;\n  }\n  if (typeof value !== 'string') {\n    throw new RequestValidationError(`Field \"${field}\" must be a string`);\n  }\n  return value;\n}\n\n=====SOURCE-END=====\n\n## Graph excerpt\n{\"edges\":[{\"from\":\"src/infrastructure/http/controllers/ProjectController.ts\",\"to\":\"src/infrastructure/http/requestParsing.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/infrastructure/http/controllers/TaskController.ts\",\"to\":\"src/infrastructure/http/requestParsing.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/infrastructure/http/controllers/UserController.ts\",\"to\":\"src/infrastructure/http/requestParsing.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/infrastructure/http/requestParsing.ts\",\"to\":\"src/infrastructure/http/RequestValidationError.ts\",\"type\":\"IMPORTS\"}],\"nodes\":[{\"kind\":\"File\",\"layer\":\"infrastructure\",\"path\":\"src/infrastructure/http/RequestValidationError.ts\"},{\"kind\":\"File\",\"layer\":\"infrastructure\",\"path\":\"src/infrastructure/http/controllers/ProjectController.ts\"},{\"kind\":\"File\",\"layer\":\"infrastructure\",\"path\":\"src/infrastructure/http/controllers/TaskController.ts\"},{\"kind\":\"File\",\"layer\":\"infrastructure\",\"path\":\"src/infrastructure/http/controllers/UserController.ts\"},{\"kind\":\"File\",\"layer\":\"infrastructure\",\"path\":\"src/infrastructure/http/requestParsing.ts\"}]}\n\n## Instructions\nJudge the unit against the rule and rubric. Return the JSON object the schema requires. Set pass to false if any file of the unit fails the rubric.\n",
+  "provider": "claude-cli",
+  "recordedAt": "2026-10-10T21:43:04.924Z",
+  "repetition": 0,
+  "requestHash": "f74b6e7ae402c2710e3d6e1aca8a179351826247e6c43c4e159bb69046ee6f68",
+  "resolvedModel": "claude-opus-5-5",
+  "response": "{\"is_error\":false,\"modelUsage\":{\"claude-opus-5-5\":{\"inputTokens\":2,\"outputTokens\":504}},\"result\":\"{\\\"pass\\\":true,\\\"confidence\\\":0.93,\\\"reasoning\\\":\\\"This file belongs to the infrastructure layer, under the HTTP transport adapter. Its job is to parse raw request bodies at the transport boundary. It checks the shape and type of untyped input (object vs. non-object, string vs. other) and throws a transport-specific RequestValidationError. That is transport-level input validation. None of these checks are domain invariants or business policy: there are no rules about entity state, value ranges or workflows. It also has no persistence logic. The graph shows that only HTTP controllers in the same infrastructure/http module use it. Every responsibility here fits the infrastructure (transport adapter) role.\\\",\\\"evidence\\\":[\\\"src/infrastructure/http/requestParsing.ts: asFields() turns an unknown request payload into a record. This is generic transport input normalization.\\\",\\\"src/infrastructure/http/requestParsing.ts: requireString() and optionalString() only check the type of request fields and throw RequestValidationError. This is HTTP boundary validation, not a business rule.\\\",\\\"Graph: the only things that import it are ProjectController, TaskController and UserController in src/infrastructure/http/controllers.\\\"],\\\"violations\\\":[]}\",\"structured_output\":{\"confidence\":0.93,\"evidence\":[\"src/infrastructure/http/requestParsing.ts: asFields() turns an unknown request payload into a record. This is generic transport input normalization.\",\"src/infrastructure/http/requestParsing.ts: requireString() and optionalString() only check the type of request fields and throw RequestValidationError. This is HTTP boundary validation, not a business rule.\",\"Graph: the only things that import it are ProjectController, TaskController and UserController in src/infrastructure/http/controllers.\"],\"pass\":true,\"reasoning\":\"This file belongs to the infrastructure layer, under the HTTP transport adapter. Its job is to parse raw request bodies at the transport boundary. It checks the shape and type of untyped input (object vs. non-object, string vs. other) and throws a transport-specific RequestValidationError. That is transport-level input validation. None of these checks are domain invariants or business policy: there are no rules about entity state, value ranges or workflows. It also has no persistence logic. The graph shows that only HTTP controllers in the same infrastructure/http module use it. Every responsibility here fits the infrastructure (transport adapter) role.\",\"violations\":[]}}",
+  "runIndex": 2,
+  "schemaVersion": 2,
+  "unitId": "src/infrastructure/http/requestParsing.ts",
+  "usage": {
+    "inputTokens": 2694,
+    "outputTokens": 504
+  },
+  "usedOptions": {
+    "effort": "high",
+    "model": "claude-opus-5-5"
+  }
+}

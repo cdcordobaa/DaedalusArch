@@ -1,0 +1,47 @@
+{
+  "attempts": 1,
+  "cliVersion": "2.1.294",
+  "configListingSha256": "47aa04258852fab9a706f3f0c14cee22306d69fbb6fdfbde8c11854bd54997bc",
+  "durationMs": 5889,
+  "effort": "high",
+  "functionId": "FF-N02",
+  "ignoredOptions": [
+    "maxTokens"
+  ],
+  "isolationProbeSha256": "97a2e2d0af1100c13c55e028c1a0c71f069093c3d08705af122aaeb302f1a641",
+  "key": "ab344811e602b95317b1c3432c64fb5b23280fa6afaeb66db80bd21cc1d8c353-r0-0",
+  "model": "claude-opus-5-5",
+  "outcome": {
+    "kind": "valid"
+  },
+  "parsedVerdict": {
+    "confidence": 0.95,
+    "evidence": [
+      "src/application/dto/PlaceOrderCommand.ts declares only `interface PlaceOrderLineInput { productId; quantity }` and `interface PlaceOrderCommand { customerId; lines }` with readonly fields and no behaviour.",
+      "The file has no HTTP/framework types, no persistence calls and no validation or business rules.",
+      "The graph shows PlaceOrderUseCase (application) uses it as the use-case input, which matches the application-layer role."
+    ],
+    "pass": true,
+    "reasoning": "The file only declares plain, readonly input DTO interfaces (a command plus its line items) for the PlaceOrder use case. An application-layer command DTO is supposed to describe use-case input like this. The file contains no persistence, transport, framework, or business-rule logic. Infrastructure code (requestParsing.ts) depends on it, which fits it being an application-level input contract. Import direction is out of scope for this rule.",
+    "violations": []
+  },
+  "projectId": "claude-opus-5-5/order-fulfilment/minimal-prose/run-1",
+  "prompt": "## Rule\nThe unit's responsibilities match the role of its declared layer.\n\n## Rubric\nPass: Every responsibility in the file belongs to the role and kind of its declared layer, and agrees with any ADR prose given.\nFail: The file carries a responsibility that belongs to a different layer kind, for example persistence, transport or framework logic in a domain file, or business rules in an infrastructure or presentation file.\nEvidence required: Name the file and cite the function, method or statement that carries the misplaced responsibility, and the layer kind it belongs to.\nOut of scope: import direction and layer-dependency rules, which are checked symbolically.\n\n## Layer model\n- domain (kind: domain): src/domain/**\n- application (kind: application): src/application/**\n- infrastructure (kind: infrastructure): src/infrastructure/**\n\n## Unit\nKind: file\nId: src/application/dto/PlaceOrderCommand.ts\nLayer: application\nUnit files:\n- src/application/dto/PlaceOrderCommand.ts\n\n## Source\n=====SOURCE-BEGIN src/application/dto/PlaceOrderCommand.ts=====\nexport interface PlaceOrderLineInput {\n  readonly productId: string;\n  readonly quantity: number;\n}\n\nexport interface PlaceOrderCommand {\n  readonly customerId: string;\n  readonly lines: readonly PlaceOrderLineInput[];\n}\n\n=====SOURCE-END=====\n\n## Graph excerpt\n{\"edges\":[{\"from\":\"src/application/use-cases/PlaceOrderUseCase.ts\",\"to\":\"src/application/dto/PlaceOrderCommand.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/infrastructure/http/requestParsing.ts\",\"to\":\"src/application/dto/PlaceOrderCommand.ts\",\"type\":\"IMPORTS\"}],\"nodes\":[{\"kind\":\"File\",\"layer\":\"application\",\"path\":\"src/application/dto/PlaceOrderCommand.ts\"},{\"kind\":\"File\",\"layer\":\"application\",\"path\":\"src/application/use-cases/PlaceOrderUseCase.ts\"},{\"kind\":\"File\",\"layer\":\"infrastructure\",\"path\":\"src/infrastructure/http/requestParsing.ts\"},{\"kind\":\"Interface\",\"layer\":\"application\",\"name\":\"PlaceOrderCommand\",\"path\":\"src/application/dto/PlaceOrderCommand.ts\"},{\"kind\":\"Interface\",\"layer\":\"application\",\"name\":\"PlaceOrderLineInput\",\"path\":\"src/application/dto/PlaceOrderCommand.ts\"}]}\n\n## Instructions\nJudge the unit against the rule and rubric. Return the JSON object the schema requires. Set pass to false if any file of the unit fails the rubric.\n",
+  "provider": "claude-cli",
+  "recordedAt": "2026-10-10T21:53:28.986Z",
+  "repetition": 0,
+  "requestHash": "ab344811e602b95317b1c3432c64fb5b23280fa6afaeb66db80bd21cc1d8c353",
+  "resolvedModel": "claude-opus-5-5",
+  "response": "{\"is_error\":false,\"modelUsage\":{\"claude-opus-5-5\":{\"inputTokens\":2,\"outputTokens\":435}},\"result\":\"{\\\"pass\\\":true,\\\"confidence\\\":0.95,\\\"reasoning\\\":\\\"The file only declares plain, readonly input DTO interfaces (a command plus its line items) for the PlaceOrder use case. An application-layer command DTO is supposed to describe use-case input like this. The file contains no persistence, transport, framework, or business-rule logic. Infrastructure code (requestParsing.ts) depends on it, which fits it being an application-level input contract. Import direction is out of scope for this rule.\\\",\\\"evidence\\\":[\\\"src/application/dto/PlaceOrderCommand.ts declares only `interface PlaceOrderLineInput { productId; quantity }` and `interface PlaceOrderCommand { customerId; lines }` with readonly fields and no behaviour.\\\",\\\"The file has no HTTP/framework types, no persistence calls and no validation or business rules.\\\",\\\"The graph shows PlaceOrderUseCase (application) uses it as the use-case input, which matches the application-layer role.\\\"],\\\"violations\\\":[]}\",\"structured_output\":{\"confidence\":0.95,\"evidence\":[\"src/application/dto/PlaceOrderCommand.ts declares only `interface PlaceOrderLineInput { productId; quantity }` and `interface PlaceOrderCommand { customerId; lines }` with readonly fields and no behaviour.\",\"The file has no HTTP/framework types, no persistence calls and no validation or business rules.\",\"The graph shows PlaceOrderUseCase (application) uses it as the use-case input, which matches the application-layer role.\"],\"pass\":true,\"reasoning\":\"The file only declares plain, readonly input DTO interfaces (a command plus its line items) for the PlaceOrder use case. An application-layer command DTO is supposed to describe use-case input like this. The file contains no persistence, transport, framework, or business-rule logic. Infrastructure code (requestParsing.ts) depends on it, which fits it being an application-level input contract. Import direction is out of scope for this rule.\",\"violations\":[]}}",
+  "runIndex": 0,
+  "schemaVersion": 2,
+  "unitId": "src/application/dto/PlaceOrderCommand.ts",
+  "usage": {
+    "inputTokens": 2384,
+    "outputTokens": 435
+  },
+  "usedOptions": {
+    "effort": "high",
+    "model": "claude-opus-5-5"
+  }
+}

@@ -1,0 +1,47 @@
+{
+  "attempts": 1,
+  "cliVersion": "2.1.294",
+  "configListingSha256": "47aa04258852fab9a706f3f0c14cee22306d69fbb6fdfbde8c11854bd54997bc",
+  "durationMs": 6002,
+  "effort": "high",
+  "functionId": "FF-N02",
+  "ignoredOptions": [
+    "maxTokens"
+  ],
+  "isolationProbeSha256": "97a2e2d0af1100c13c55e028c1a0c71f069093c3d08705af122aaeb302f1a641",
+  "key": "50b021a72165c8f6faa357859c407020c956047655472372025f330cd86a7875-r0-2",
+  "model": "claude-opus-5-5",
+  "outcome": {
+    "kind": "valid"
+  },
+  "parsedVerdict": {
+    "confidence": 0.96,
+    "evidence": [
+      "src/domain/shared/Quantity.ts: static of(value) checks the domain invariant Number.isInteger(value) && value > 0 and throws the domain ValidationError if it fails, which is a domain responsibility",
+      "src/domain/shared/Quantity.ts: add(other) is pure value-object arithmetic and returns a new Quantity",
+      "src/domain/shared/Quantity.ts: the private constructor with a readonly value gives the class immutable value-object semantics; the file has no I/O, framework, persistence or transport code"
+    ],
+    "pass": true,
+    "reasoning": "Quantity.ts is a pure domain value object. It enforces an invariant (a quantity must be a positive integer) and provides value semantics through add(). It has no persistence, transport, framework or presentation logic. The only thing it depends on is a domain error type. Every responsibility in the file fits the domain layer.",
+    "violations": []
+  },
+  "projectId": "claude-opus-5-5/order-fulfilment/minimal-prose/run-1",
+  "prompt": "## Rule\nThe unit's responsibilities match the role of its declared layer.\n\n## Rubric\nPass: Every responsibility in the file belongs to the role and kind of its declared layer, and agrees with any ADR prose given.\nFail: The file carries a responsibility that belongs to a different layer kind, for example persistence, transport or framework logic in a domain file, or business rules in an infrastructure or presentation file.\nEvidence required: Name the file and cite the function, method or statement that carries the misplaced responsibility, and the layer kind it belongs to.\nOut of scope: import direction and layer-dependency rules, which are checked symbolically.\n\n## Layer model\n- domain (kind: domain): src/domain/**\n- application (kind: application): src/application/**\n- infrastructure (kind: infrastructure): src/infrastructure/**\n\n## Unit\nKind: file\nId: src/domain/shared/Quantity.ts\nLayer: domain\nUnit files:\n- src/domain/shared/Quantity.ts\n\n## Source\n=====SOURCE-BEGIN src/domain/shared/Quantity.ts=====\nimport { ValidationError } from '../errors/DomainErrors';\n\n/** A strictly positive whole number of product units. */\nexport class Quantity {\n  private constructor(readonly value: number) {}\n\n  static of(value: number): Quantity {\n    if (!Number.isInteger(value) || value <= 0) {\n      throw new ValidationError(`Quantity must be a positive integer, got ${String(value)}`);\n    }\n    return new Quantity(value);\n  }\n\n  add(other: Quantity): Quantity {\n    return new Quantity(this.value + other.value);\n  }\n}\n\n=====SOURCE-END=====\n\n## Graph excerpt\n{\"edges\":[{\"from\":\"OrderLine@src/domain/order/OrderLine.ts\",\"to\":\"Quantity@src/domain/shared/Quantity.ts\",\"type\":\"CONSTRUCTOR_INJECTS\"},{\"from\":\"src/application/services/StockAllocationService.ts\",\"to\":\"src/domain/shared/Quantity.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/application/use-cases/PlaceOrderUseCase.ts\",\"to\":\"src/domain/shared/Quantity.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/domain/inventory/StockReservationService.ts\",\"to\":\"src/domain/shared/Quantity.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/domain/order/Order.ts\",\"to\":\"src/domain/shared/Quantity.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/domain/order/OrderLine.ts\",\"to\":\"src/domain/shared/Quantity.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/domain/product/Product.ts\",\"to\":\"src/domain/shared/Quantity.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/domain/shared/Quantity.ts\",\"to\":\"src/domain/errors/DomainErrors.ts\",\"type\":\"IMPORTS\"}],\"nodes\":[{\"kind\":\"Class\",\"layer\":\"domain\",\"name\":\"OrderLine\",\"path\":\"src/domain/order/OrderLine.ts\"},{\"kind\":\"Class\",\"layer\":\"domain\",\"name\":\"Quantity\",\"path\":\"src/domain/shared/Quantity.ts\"},{\"kind\":\"File\",\"layer\":\"application\",\"path\":\"src/application/services/StockAllocationService.ts\"},{\"kind\":\"File\",\"layer\":\"application\",\"path\":\"src/application/use-cases/PlaceOrderUseCase.ts\"},{\"kind\":\"File\",\"layer\":\"domain\",\"path\":\"src/domain/errors/DomainErrors.ts\"},{\"kind\":\"File\",\"layer\":\"domain\",\"path\":\"src/domain/inventory/StockReservationService.ts\"},{\"kind\":\"File\",\"layer\":\"domain\",\"path\":\"src/domain/order/Order.ts\"},{\"kind\":\"File\",\"layer\":\"domain\",\"path\":\"src/domain/order/OrderLine.ts\"},{\"kind\":\"File\",\"layer\":\"domain\",\"path\":\"src/domain/product/Product.ts\"},{\"kind\":\"File\",\"layer\":\"domain\",\"path\":\"src/domain/shared/Quantity.ts\"}]}\n\n## Instructions\nJudge the unit against the rule and rubric. Return the JSON object the schema requires. Set pass to false if any file of the unit fails the rubric.\n",
+  "provider": "claude-cli",
+  "recordedAt": "2026-10-10T21:54:51.566Z",
+  "repetition": 0,
+  "requestHash": "50b021a72165c8f6faa357859c407020c956047655472372025f330cd86a7875",
+  "resolvedModel": "claude-opus-5-5",
+  "response": "{\"is_error\":false,\"modelUsage\":{\"claude-opus-5-5\":{\"inputTokens\":2,\"outputTokens\":420}},\"result\":\"{\\\"pass\\\":true,\\\"confidence\\\":0.96,\\\"reasoning\\\":\\\"Quantity.ts is a pure domain value object. It enforces an invariant (a quantity must be a positive integer) and provides value semantics through add(). It has no persistence, transport, framework or presentation logic. The only thing it depends on is a domain error type. Every responsibility in the file fits the domain layer.\\\",\\\"evidence\\\":[\\\"src/domain/shared/Quantity.ts: static of(value) checks the domain invariant Number.isInteger(value) && value > 0 and throws the domain ValidationError if it fails, which is a domain responsibility\\\",\\\"src/domain/shared/Quantity.ts: add(other) is pure value-object arithmetic and returns a new Quantity\\\",\\\"src/domain/shared/Quantity.ts: the private constructor with a readonly value gives the class immutable value-object semantics; the file has no I/O, framework, persistence or transport code\\\"],\\\"violations\\\":[]}\",\"structured_output\":{\"confidence\":0.96,\"evidence\":[\"src/domain/shared/Quantity.ts: static of(value) checks the domain invariant Number.isInteger(value) && value > 0 and throws the domain ValidationError if it fails, which is a domain responsibility\",\"src/domain/shared/Quantity.ts: add(other) is pure value-object arithmetic and returns a new Quantity\",\"src/domain/shared/Quantity.ts: the private constructor with a readonly value gives the class immutable value-object semantics; the file has no I/O, framework, persistence or transport code\"],\"pass\":true,\"reasoning\":\"Quantity.ts is a pure domain value object. It enforces an invariant (a quantity must be a positive integer) and provides value semantics through add(). It has no persistence, transport, framework or presentation logic. The only thing it depends on is a domain error type. Every responsibility in the file fits the domain layer.\",\"violations\":[]}}",
+  "runIndex": 2,
+  "schemaVersion": 2,
+  "unitId": "src/domain/shared/Quantity.ts",
+  "usage": {
+    "inputTokens": 2924,
+    "outputTokens": 420
+  },
+  "usedOptions": {
+    "effort": "high",
+    "model": "claude-opus-5-5"
+  }
+}

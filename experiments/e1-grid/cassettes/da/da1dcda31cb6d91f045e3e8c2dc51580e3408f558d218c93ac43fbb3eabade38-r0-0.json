@@ -1,0 +1,47 @@
+{
+  "attempts": 1,
+  "cliVersion": "2.1.294",
+  "configListingSha256": "47aa04258852fab9a706f3f0c14cee22306d69fbb6fdfbde8c11854bd54997bc",
+  "durationMs": 7590,
+  "effort": "high",
+  "functionId": "FF-N02",
+  "ignoredOptions": [
+    "maxTokens"
+  ],
+  "isolationProbeSha256": "97a2e2d0af1100c13c55e028c1a0c71f069093c3d08705af122aaeb302f1a641",
+  "key": "da1dcda31cb6d91f045e3e8c2dc51580e3408f558d218c93ac43fbb3eabade38-r0-0",
+  "model": "claude-opus-5-5",
+  "outcome": {
+    "kind": "valid"
+  },
+  "parsedVerdict": {
+    "confidence": 0.93,
+    "evidence": [
+      "src/infrastructure/middleware/errorHandler.ts: errorHandler(error, _req, res, _next) has the Express error-middleware signature and calls res.status(status).json(...), which is HTTP transport work.",
+      "src/infrastructure/middleware/errorHandler.ts: statusFor maps ValidationError/InvalidRequestError/SyntaxError to 400, NotFoundError to 404 and ConflictError to 409, translating errors into HTTP status codes.",
+      "src/infrastructure/middleware/errorHandler.ts: for 500 errors it logs with console.error and returns the generic message 'Internal server error', which is presentation and operations work, not a business rule."
+    ],
+    "pass": true,
+    "reasoning": "This file passes. It is an Express error-handling middleware. Everything it does is transport or framework work, which belongs in the infrastructure layer. statusFor maps error types to HTTP status codes. errorHandler logs server errors, hides internal error messages from clients and writes the JSON error response. None of this is a business rule: it only reads the error's type and turns it into an HTTP response, and it does not make any domain decisions. It reads domain error classes, but only to translate them into HTTP terms, which is a normal adapter job. Import direction is checked by other tools and was not judged here.",
+    "violations": []
+  },
+  "projectId": "claude-opus-5-5/task-management/minimal-prose/run-0",
+  "prompt": "## Rule\nThe unit's responsibilities match the role of its declared layer.\n\n## Rubric\nPass: Every responsibility in the file belongs to the role and kind of its declared layer, and agrees with any ADR prose given.\nFail: The file carries a responsibility that belongs to a different layer kind, for example persistence, transport or framework logic in a domain file, or business rules in an infrastructure or presentation file.\nEvidence required: Name the file and cite the function, method or statement that carries the misplaced responsibility, and the layer kind it belongs to.\nOut of scope: import direction and layer-dependency rules, which are checked symbolically.\n\n## Layer model\n- domain (kind: domain): src/domain/**\n- application (kind: application): src/application/**\n- infrastructure (kind: infrastructure): src/infrastructure/**\n\n## Unit\nKind: file\nId: src/infrastructure/middleware/errorHandler.ts\nLayer: infrastructure\nUnit files:\n- src/infrastructure/middleware/errorHandler.ts\n\n## Source\n=====SOURCE-BEGIN src/infrastructure/middleware/errorHandler.ts=====\nimport { NextFunction, Request, Response } from 'express';\nimport {\n  ConflictError,\n  NotFoundError,\n  ValidationError,\n} from '../../domain/errors/DomainError';\nimport { InvalidRequestError } from '../http/RequestParser';\n\nfunction statusFor(error: unknown): number {\n  if (error instanceof ValidationError || error instanceof InvalidRequestError) return 400;\n  if (error instanceof NotFoundError) return 404;\n  if (error instanceof ConflictError) return 409;\n  if (error instanceof SyntaxError) return 400; // malformed JSON body\n  return 500;\n}\n\nexport function errorHandler(\n  error: unknown,\n  _req: Request,\n  res: Response,\n  _next: NextFunction,\n): void {\n  const status = statusFor(error);\n  if (status === 500) {\n    console.error(error);\n  }\n  const message =\n    status === 500 || !(error instanceof Error) ? 'Internal server error' : error.message;\n  res.status(status).json({ error: message });\n}\n\n=====SOURCE-END=====\n\n## Graph excerpt\n{\"edges\":[{\"from\":\"src/infrastructure/http/createApp.ts\",\"to\":\"src/infrastructure/middleware/errorHandler.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/infrastructure/middleware/errorHandler.ts\",\"to\":\"express\",\"type\":\"IMPORTS\"},{\"from\":\"src/infrastructure/middleware/errorHandler.ts\",\"to\":\"src/domain/errors/DomainError.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/infrastructure/middleware/errorHandler.ts\",\"to\":\"src/infrastructure/http/RequestParser.ts\",\"type\":\"IMPORTS\"}],\"nodes\":[{\"kind\":\"File\",\"layer\":\"domain\",\"path\":\"src/domain/errors/DomainError.ts\"},{\"kind\":\"File\",\"layer\":\"infrastructure\",\"path\":\"src/infrastructure/http/RequestParser.ts\"},{\"kind\":\"File\",\"layer\":\"infrastructure\",\"path\":\"src/infrastructure/http/createApp.ts\"},{\"kind\":\"File\",\"layer\":\"infrastructure\",\"path\":\"src/infrastructure/middleware/errorHandler.ts\"},{\"kind\":\"Package\",\"layer\":null,\"path\":\"express\"}]}\n\n## Instructions\nJudge the unit against the rule and rubric. Return the JSON object the schema requires. Set pass to false if any file of the unit fails the rubric.\n",
+  "provider": "claude-cli",
+  "recordedAt": "2026-10-10T21:38:49.483Z",
+  "repetition": 0,
+  "requestHash": "da1dcda31cb6d91f045e3e8c2dc51580e3408f558d218c93ac43fbb3eabade38",
+  "resolvedModel": "claude-opus-5-5",
+  "response": "{\"is_error\":false,\"modelUsage\":{\"claude-opus-5-5\":{\"inputTokens\":2,\"outputTokens\":598}},\"result\":\"{\\\"pass\\\":true,\\\"confidence\\\":0.93,\\\"reasoning\\\":\\\"This file passes. It is an Express error-handling middleware. Everything it does is transport or framework work, which belongs in the infrastructure layer. statusFor maps error types to HTTP status codes. errorHandler logs server errors, hides internal error messages from clients and writes the JSON error response. None of this is a business rule: it only reads the error's type and turns it into an HTTP response, and it does not make any domain decisions. It reads domain error classes, but only to translate them into HTTP terms, which is a normal adapter job. Import direction is checked by other tools and was not judged here.\\\",\\\"evidence\\\":[\\\"src/infrastructure/middleware/errorHandler.ts: errorHandler(error, _req, res, _next) has the Express error-middleware signature and calls res.status(status).json(...), which is HTTP transport work.\\\",\\\"src/infrastructure/middleware/errorHandler.ts: statusFor maps ValidationError/InvalidRequestError/SyntaxError to 400, NotFoundError to 404 and ConflictError to 409, translating errors into HTTP status codes.\\\",\\\"src/infrastructure/middleware/errorHandler.ts: for 500 errors it logs with console.error and returns the generic message 'Internal server error', which is presentation and operations work, not a business rule.\\\"],\\\"violations\\\":[]}\",\"structured_output\":{\"confidence\":0.93,\"evidence\":[\"src/infrastructure/middleware/errorHandler.ts: errorHandler(error, _req, res, _next) has the Express error-middleware signature and calls res.status(status).json(...), which is HTTP transport work.\",\"src/infrastructure/middleware/errorHandler.ts: statusFor maps ValidationError/InvalidRequestError/SyntaxError to 400, NotFoundError to 404 and ConflictError to 409, translating errors into HTTP status codes.\",\"src/infrastructure/middleware/errorHandler.ts: for 500 errors it logs with console.error and returns the generic message 'Internal server error', which is presentation and operations work, not a business rule.\"],\"pass\":true,\"reasoning\":\"This file passes. It is an Express error-handling middleware. Everything it does is transport or framework work, which belongs in the infrastructure layer. statusFor maps error types to HTTP status codes. errorHandler logs server errors, hides internal error messages from clients and writes the JSON error response. None of this is a business rule: it only reads the error's type and turns it into an HTTP response, and it does not make any domain decisions. It reads domain error classes, but only to translate them into HTTP terms, which is a normal adapter job. Import direction is checked by other tools and was not judged here.\",\"violations\":[]}}",
+  "runIndex": 0,
+  "schemaVersion": 2,
+  "unitId": "src/infrastructure/middleware/errorHandler.ts",
+  "usage": {
+    "inputTokens": 2680,
+    "outputTokens": 598
+  },
+  "usedOptions": {
+    "effort": "high",
+    "model": "claude-opus-5-5"
+  }
+}

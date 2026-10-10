@@ -1,0 +1,48 @@
+{
+  "attempts": 1,
+  "cliVersion": "2.1.294",
+  "configListingSha256": "47aa04258852fab9a706f3f0c14cee22306d69fbb6fdfbde8c11854bd54997bc",
+  "durationMs": 7333,
+  "effort": "high",
+  "functionId": "FF-N02",
+  "ignoredOptions": [
+    "maxTokens"
+  ],
+  "isolationProbeSha256": "97a2e2d0af1100c13c55e028c1a0c71f069093c3d08705af122aaeb302f1a641",
+  "key": "e748bf7c6994a0c1d7866a4dc4917707346ef09e72c1cd262a29b45e4b555ccc-r0-2",
+  "model": "claude-opus-5-5",
+  "outcome": {
+    "kind": "valid"
+  },
+  "parsedVerdict": {
+    "confidence": 0.9,
+    "evidence": [
+      "src/domain/errors.ts: DomainError is an abstract base class with an abstract readonly code: string. It has no framework or transport dependencies.",
+      "src/domain/errors.ts: InsufficientStockError carries productId, requested and available, which express a business invariant violation.",
+      "src/domain/errors.ts: InvalidTransitionError (code 'INVALID_TRANSITION') represents a domain state-machine rule violation.",
+      "Codes such as 'NOT_FOUND' and 'VALIDATION_ERROR' are symbolic strings, not HTTP status codes. Mapping them to HTTP is left to src/infrastructure/http.ts."
+    ],
+    "pass": true,
+    "reasoning": "The file defines a hierarchy of domain error types: an abstract DomainError with a symbolic code, plus ValidationError, NotFoundError, InsufficientStockError and InvalidTransitionError. These model business failure conditions such as insufficient stock and invalid state transitions, so they belong in the domain layer. The file has no persistence, transport, framework or HTTP logic. The codes are plain symbolic strings, not HTTP status codes, so mapping them to transport is left to the infrastructure layer (src/infrastructure/http.ts imports this file). NotFoundError is arguably more of an application-level concern, but a domain-level 'not found' error is a common and acceptable pattern. It does not count as a responsibility from another layer kind.",
+    "violations": []
+  },
+  "projectId": "claude-opus-5-5/order-fulfilment/none/run-1",
+  "prompt": "## Rule\nThe unit's responsibilities match the role of its declared layer.\n\n## Rubric\nPass: Every responsibility in the file belongs to the role and kind of its declared layer, and agrees with any ADR prose given.\nFail: The file carries a responsibility that belongs to a different layer kind, for example persistence, transport or framework logic in a domain file, or business rules in an infrastructure or presentation file.\nEvidence required: Name the file and cite the function, method or statement that carries the misplaced responsibility, and the layer kind it belongs to.\nOut of scope: import direction and layer-dependency rules, which are checked symbolically.\n\n## Layer model\n- domain (kind: domain): src/domain/**\n- application (kind: application): src/application/**\n- infrastructure (kind: infrastructure): src/infrastructure/**\n\n## Unit\nKind: file\nId: src/domain/errors.ts\nLayer: domain\nUnit files:\n- src/domain/errors.ts\n\n## Source\n=====SOURCE-BEGIN src/domain/errors.ts=====\nexport abstract class DomainError extends Error {\n  abstract readonly code: string;\n\n  constructor(message: string) {\n    super(message);\n    this.name = new.target.name;\n  }\n}\n\nexport class ValidationError extends DomainError {\n  readonly code = \"VALIDATION_ERROR\";\n}\n\nexport class NotFoundError extends DomainError {\n  readonly code = \"NOT_FOUND\";\n}\n\nexport class InsufficientStockError extends DomainError {\n  readonly code = \"INSUFFICIENT_STOCK\";\n\n  constructor(\n    readonly productId: string,\n    readonly requested: number,\n    readonly available: number,\n  ) {\n    super(\n      `Insufficient stock for product ${productId}: requested ${requested}, available ${available}`,\n    );\n  }\n}\n\nexport class InvalidTransitionError extends DomainError {\n  readonly code = \"INVALID_TRANSITION\";\n}\n\n=====SOURCE-END=====\n\n## Graph excerpt\n{\"edges\":[{\"from\":\"InsufficientStockError@src/domain/errors.ts\",\"to\":\"DomainError@src/domain/errors.ts\",\"type\":\"EXTENDS\"},{\"from\":\"InvalidTransitionError@src/domain/errors.ts\",\"to\":\"DomainError@src/domain/errors.ts\",\"type\":\"EXTENDS\"},{\"from\":\"NotFoundError@src/domain/errors.ts\",\"to\":\"DomainError@src/domain/errors.ts\",\"type\":\"EXTENDS\"},{\"from\":\"ValidationError@src/domain/errors.ts\",\"to\":\"DomainError@src/domain/errors.ts\",\"type\":\"EXTENDS\"},{\"from\":\"src/application/catalogue-service.ts\",\"to\":\"src/domain/errors.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/application/order-service.ts\",\"to\":\"src/domain/errors.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/domain/order.ts\",\"to\":\"src/domain/errors.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/domain/product.ts\",\"to\":\"src/domain/errors.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/infrastructure/http.ts\",\"to\":\"src/domain/errors.ts\",\"type\":\"IMPORTS\"}],\"nodes\":[{\"kind\":\"Class\",\"layer\":\"domain\",\"name\":\"DomainError\",\"path\":\"src/domain/errors.ts\"},{\"kind\":\"Class\",\"layer\":\"domain\",\"name\":\"InsufficientStockError\",\"path\":\"src/domain/errors.ts\"},{\"kind\":\"Class\",\"layer\":\"domain\",\"name\":\"InvalidTransitionError\",\"path\":\"src/domain/errors.ts\"},{\"kind\":\"Class\",\"layer\":\"domain\",\"name\":\"NotFoundError\",\"path\":\"src/domain/errors.ts\"},{\"kind\":\"Class\",\"layer\":\"domain\",\"name\":\"ValidationError\",\"path\":\"src/domain/errors.ts\"},{\"kind\":\"File\",\"layer\":\"application\",\"path\":\"src/application/catalogue-service.ts\"},{\"kind\":\"File\",\"layer\":\"application\",\"path\":\"src/application/order-service.ts\"},{\"kind\":\"File\",\"layer\":\"domain\",\"path\":\"src/domain/errors.ts\"},{\"kind\":\"File\",\"layer\":\"domain\",\"path\":\"src/domain/order.ts\"},{\"kind\":\"File\",\"layer\":\"domain\",\"path\":\"src/domain/product.ts\"},{\"kind\":\"File\",\"layer\":\"infrastructure\",\"path\":\"src/infrastructure/http.ts\"}]}\n\n## Instructions\nJudge the unit against the rule and rubric. Return the JSON object the schema requires. Set pass to false if any file of the unit fails the rubric.\n",
+  "provider": "claude-cli",
+  "recordedAt": "2026-10-10T21:31:53.461Z",
+  "repetition": 0,
+  "requestHash": "e748bf7c6994a0c1d7866a4dc4917707346ef09e72c1cd262a29b45e4b555ccc",
+  "resolvedModel": "claude-opus-5-5",
+  "response": "{\"is_error\":false,\"modelUsage\":{\"claude-opus-5-5\":{\"inputTokens\":2,\"outputTokens\":674}},\"result\":\"{\\\"pass\\\":true,\\\"confidence\\\":0.9,\\\"reasoning\\\":\\\"The file defines a hierarchy of domain error types: an abstract DomainError with a symbolic code, plus ValidationError, NotFoundError, InsufficientStockError and InvalidTransitionError. These model business failure conditions such as insufficient stock and invalid state transitions, so they belong in the domain layer. The file has no persistence, transport, framework or HTTP logic. The codes are plain symbolic strings, not HTTP status codes, so mapping them to transport is left to the infrastructure layer (src/infrastructure/http.ts imports this file). NotFoundError is arguably more of an application-level concern, but a domain-level 'not found' error is a common and acceptable pattern. It does not count as a responsibility from another layer kind.\\\",\\\"evidence\\\":[\\\"src/domain/errors.ts: DomainError is an abstract base class with an abstract readonly code: string. It has no framework or transport dependencies.\\\",\\\"src/domain/errors.ts: InsufficientStockError carries productId, requested and available, which express a business invariant violation.\\\",\\\"src/domain/errors.ts: InvalidTransitionError (code 'INVALID_TRANSITION') represents a domain state-machine rule violation.\\\",\\\"Codes such as 'NOT_FOUND' and 'VALIDATION_ERROR' are symbolic strings, not HTTP status codes. Mapping them to HTTP is left to src/infrastructure/http.ts.\\\"],\\\"violations\\\":[]}\",\"structured_output\":{\"confidence\":0.9,\"evidence\":[\"src/domain/errors.ts: DomainError is an abstract base class with an abstract readonly code: string. It has no framework or transport dependencies.\",\"src/domain/errors.ts: InsufficientStockError carries productId, requested and available, which express a business invariant violation.\",\"src/domain/errors.ts: InvalidTransitionError (code 'INVALID_TRANSITION') represents a domain state-machine rule violation.\",\"Codes such as 'NOT_FOUND' and 'VALIDATION_ERROR' are symbolic strings, not HTTP status codes. Mapping them to HTTP is left to src/infrastructure/http.ts.\"],\"pass\":true,\"reasoning\":\"The file defines a hierarchy of domain error types: an abstract DomainError with a symbolic code, plus ValidationError, NotFoundError, InsufficientStockError and InvalidTransitionError. These model business failure conditions such as insufficient stock and invalid state transitions, so they belong in the domain layer. The file has no persistence, transport, framework or HTTP logic. The codes are plain symbolic strings, not HTTP status codes, so mapping them to transport is left to the infrastructure layer (src/infrastructure/http.ts imports this file). NotFoundError is arguably more of an application-level concern, but a domain-level 'not found' error is a common and acceptable pattern. It does not count as a responsibility from another layer kind.\",\"violations\":[]}}",
+  "runIndex": 2,
+  "schemaVersion": 2,
+  "unitId": "src/domain/errors.ts",
+  "usage": {
+    "inputTokens": 3022,
+    "outputTokens": 674
+  },
+  "usedOptions": {
+    "effort": "high",
+    "model": "claude-opus-5-5"
+  }
+}

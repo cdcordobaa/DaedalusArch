@@ -1,0 +1,47 @@
+{
+  "attempts": 1,
+  "cliVersion": "2.1.294",
+  "configListingSha256": "47aa04258852fab9a706f3f0c14cee22306d69fbb6fdfbde8c11854bd54997bc",
+  "durationMs": 6109,
+  "effort": "high",
+  "functionId": "FF-N02",
+  "ignoredOptions": [
+    "maxTokens"
+  ],
+  "isolationProbeSha256": "97a2e2d0af1100c13c55e028c1a0c71f069093c3d08705af122aaeb302f1a641",
+  "key": "1107f4b5d97da9eeed46f43784882d32704f58f4711183b7c17c82894c6f59f4-r0-1",
+  "model": "claude-opus-5-5",
+  "outcome": {
+    "kind": "valid"
+  },
+  "parsedVerdict": {
+    "confidence": 0.95,
+    "evidence": [
+      "src/application/GetOrderUseCase.ts: the constructor takes the application service OrderLookupService through dependency injection, which is how an application layer coordinates its work.",
+      "src/application/GetOrderUseCase.ts: execute(orderId) returns toOrderDto(this.lookup.require(orderId)). This is use-case orchestration plus DTO mapping, both application responsibilities.",
+      "src/application/GetOrderUseCase.ts: the file contains no database, HTTP, or framework code, and no domain business rules."
+    ],
+    "pass": true,
+    "reasoning": "GetOrderUseCase is a thin application-layer use case. It gets an injected application service (OrderLookupService), uses it to fetch an order, and maps the result to a DTO with toOrderDto. Coordinating a use case and mapping to a DTO are both application-layer jobs. The file has no persistence, transport/HTTP, or framework logic, and it doesn't hold business rules that belong in the domain.",
+    "violations": []
+  },
+  "projectId": "claude-opus-5-5/order-fulfilment/minimal-prose/run-2",
+  "prompt": "## Rule\nThe unit's responsibilities match the role of its declared layer.\n\n## Rubric\nPass: Every responsibility in the file belongs to the role and kind of its declared layer, and agrees with any ADR prose given.\nFail: The file carries a responsibility that belongs to a different layer kind, for example persistence, transport or framework logic in a domain file, or business rules in an infrastructure or presentation file.\nEvidence required: Name the file and cite the function, method or statement that carries the misplaced responsibility, and the layer kind it belongs to.\nOut of scope: import direction and layer-dependency rules, which are checked symbolically.\n\n## Layer model\n- domain (kind: domain): src/domain/**\n- application (kind: application): src/application/**\n- infrastructure (kind: infrastructure): src/infrastructure/**\n\n## Unit\nKind: file\nId: src/application/GetOrderUseCase.ts\nLayer: application\nUnit files:\n- src/application/GetOrderUseCase.ts\n\n## Source\n=====SOURCE-BEGIN src/application/GetOrderUseCase.ts=====\nimport { OrderDto } from './dto';\nimport { toOrderDto } from './DtoMapper';\nimport { OrderLookupService } from './OrderLookupService';\n\nexport class GetOrderUseCase {\n  constructor(private readonly lookup: OrderLookupService) {}\n\n  execute(orderId: string): OrderDto {\n    return toOrderDto(this.lookup.require(orderId));\n  }\n}\n\n=====SOURCE-END=====\n\n## Graph excerpt\n{\"edges\":[{\"from\":\"GetOrderUseCase@src/application/GetOrderUseCase.ts\",\"to\":\"OrderLookupService@src/application/OrderLookupService.ts\",\"type\":\"CONSTRUCTOR_INJECTS\"},{\"from\":\"src/application/GetOrderUseCase.ts\",\"to\":\"src/application/DtoMapper.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/application/GetOrderUseCase.ts\",\"to\":\"src/application/OrderLookupService.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/application/GetOrderUseCase.ts\",\"to\":\"src/application/dto.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/infrastructure/app.ts\",\"to\":\"src/application/GetOrderUseCase.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/infrastructure/http/OrderController.ts\",\"to\":\"src/application/GetOrderUseCase.ts\",\"type\":\"IMPORTS\"}],\"nodes\":[{\"kind\":\"Class\",\"layer\":\"application\",\"name\":\"GetOrderUseCase\",\"path\":\"src/application/GetOrderUseCase.ts\"},{\"kind\":\"Class\",\"layer\":\"application\",\"name\":\"OrderLookupService\",\"path\":\"src/application/OrderLookupService.ts\"},{\"kind\":\"File\",\"layer\":\"application\",\"path\":\"src/application/DtoMapper.ts\"},{\"kind\":\"File\",\"layer\":\"application\",\"path\":\"src/application/GetOrderUseCase.ts\"},{\"kind\":\"File\",\"layer\":\"application\",\"path\":\"src/application/OrderLookupService.ts\"},{\"kind\":\"File\",\"layer\":\"application\",\"path\":\"src/application/dto.ts\"},{\"kind\":\"File\",\"layer\":\"infrastructure\",\"path\":\"src/infrastructure/app.ts\"},{\"kind\":\"File\",\"layer\":\"infrastructure\",\"path\":\"src/infrastructure/http/OrderController.ts\"}]}\n\n## Instructions\nJudge the unit against the rule and rubric. Return the JSON object the schema requires. Set pass to false if any file of the unit fails the rubric.\n",
+  "provider": "claude-cli",
+  "recordedAt": "2026-10-10T21:57:00.913Z",
+  "repetition": 0,
+  "requestHash": "1107f4b5d97da9eeed46f43784882d32704f58f4711183b7c17c82894c6f59f4",
+  "resolvedModel": "claude-opus-5-5",
+  "response": "{\"is_error\":false,\"modelUsage\":{\"claude-opus-5-5\":{\"inputTokens\":2,\"outputTokens\":452}},\"result\":\"{\\\"pass\\\":true,\\\"confidence\\\":0.95,\\\"reasoning\\\":\\\"GetOrderUseCase is a thin application-layer use case. It gets an injected application service (OrderLookupService), uses it to fetch an order, and maps the result to a DTO with toOrderDto. Coordinating a use case and mapping to a DTO are both application-layer jobs. The file has no persistence, transport/HTTP, or framework logic, and it doesn't hold business rules that belong in the domain.\\\",\\\"evidence\\\":[\\\"src/application/GetOrderUseCase.ts: the constructor takes the application service OrderLookupService through dependency injection, which is how an application layer coordinates its work.\\\",\\\"src/application/GetOrderUseCase.ts: execute(orderId) returns toOrderDto(this.lookup.require(orderId)). This is use-case orchestration plus DTO mapping, both application responsibilities.\\\",\\\"src/application/GetOrderUseCase.ts: the file contains no database, HTTP, or framework code, and no domain business rules.\\\"],\\\"violations\\\":[]}\",\"structured_output\":{\"confidence\":0.95,\"evidence\":[\"src/application/GetOrderUseCase.ts: the constructor takes the application service OrderLookupService through dependency injection, which is how an application layer coordinates its work.\",\"src/application/GetOrderUseCase.ts: execute(orderId) returns toOrderDto(this.lookup.require(orderId)). This is use-case orchestration plus DTO mapping, both application responsibilities.\",\"src/application/GetOrderUseCase.ts: the file contains no database, HTTP, or framework code, and no domain business rules.\"],\"pass\":true,\"reasoning\":\"GetOrderUseCase is a thin application-layer use case. It gets an injected application service (OrderLookupService), uses it to fetch an order, and maps the result to a DTO with toOrderDto. Coordinating a use case and mapping to a DTO are both application-layer jobs. The file has no persistence, transport/HTTP, or framework logic, and it doesn't hold business rules that belong in the domain.\",\"violations\":[]}}",
+  "runIndex": 1,
+  "schemaVersion": 2,
+  "unitId": "src/application/GetOrderUseCase.ts",
+  "usage": {
+    "inputTokens": 2686,
+    "outputTokens": 452
+  },
+  "usedOptions": {
+    "effort": "high",
+    "model": "claude-opus-5-5"
+  }
+}

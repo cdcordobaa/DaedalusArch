@@ -1,0 +1,48 @@
+{
+  "attempts": 1,
+  "cliVersion": "2.1.294",
+  "configListingSha256": "47aa04258852fab9a706f3f0c14cee22306d69fbb6fdfbde8c11854bd54997bc",
+  "durationMs": 7223,
+  "effort": "high",
+  "functionId": "FF-N02",
+  "ignoredOptions": [
+    "maxTokens"
+  ],
+  "isolationProbeSha256": "97a2e2d0af1100c13c55e028c1a0c71f069093c3d08705af122aaeb302f1a641",
+  "key": "0d994a788f552ce787f3bec4322319792b62efcf35bf38f69201fa6081b46704-r0-1",
+  "model": "claude-opus-5-5",
+  "outcome": {
+    "kind": "valid"
+  },
+  "parsedVerdict": {
+    "confidence": 0.93,
+    "evidence": [
+      "src/infrastructure/InMemoryOrderRepository.ts: class InMemoryOrderRepository implements OrderRepository, which is an adapter for a domain port and so belongs in infrastructure.",
+      "save(order) stores order.toSnapshot() in a private Map. This is persistence, which belongs in infrastructure.",
+      "findById/findAll/findByStatus rebuild entities from stored rows through Order.restore(row). This is persistence-side rehydration of stored data.",
+      "findByStatus filters on row.status === status. This is a data query by attribute, not a domain rule."
+    ],
+    "pass": true,
+    "reasoning": "InMemoryOrderRepository is an in-memory implementation of the domain-declared OrderRepository port, and every one of its responsibilities is persistence. The class only does four things: it keeps snapshots in a Map, rebuilds entities through Order.restore, turns entities back into snapshots through order.toSnapshot, and runs simple lookups. The status filter in findByStatus is a query by an attribute. It is not a business rule or state-transition rule. The file has no domain invariants, no orchestration logic and no transport or presentation code, so it fits the infrastructure layer.",
+    "violations": []
+  },
+  "projectId": "claude-opus-5-5/order-fulfilment/minimal-prose/run-0",
+  "prompt": "## Rule\nThe unit's responsibilities match the role of its declared layer.\n\n## Rubric\nPass: Every responsibility in the file belongs to the role and kind of its declared layer, and agrees with any ADR prose given.\nFail: The file carries a responsibility that belongs to a different layer kind, for example persistence, transport or framework logic in a domain file, or business rules in an infrastructure or presentation file.\nEvidence required: Name the file and cite the function, method or statement that carries the misplaced responsibility, and the layer kind it belongs to.\nOut of scope: import direction and layer-dependency rules, which are checked symbolically.\n\n## Layer model\n- domain (kind: domain): src/domain/**\n- application (kind: application): src/application/**\n- infrastructure (kind: infrastructure): src/infrastructure/**\n\n## Unit\nKind: file\nId: src/infrastructure/InMemoryOrderRepository.ts\nLayer: infrastructure\nUnit files:\n- src/infrastructure/InMemoryOrderRepository.ts\n\n## Source\n=====SOURCE-BEGIN src/infrastructure/InMemoryOrderRepository.ts=====\nimport { Order, OrderSnapshot } from '../domain/Order';\nimport { OrderRepository } from '../domain/OrderRepository';\nimport { OrderStatus } from '../domain/OrderStatus';\n\n/** Stores snapshots so callers never share mutable entity instances. */\nexport class InMemoryOrderRepository implements OrderRepository {\n  private readonly rows = new Map<string, OrderSnapshot>();\n\n  findById(id: string): Order | undefined {\n    const row = this.rows.get(id);\n    return row ? Order.restore(row) : undefined;\n  }\n\n  findByStatus(status: OrderStatus): Order[] {\n    return [...this.rows.values()].filter((row) => row.status === status).map((row) => Order.restore(row));\n  }\n\n  findAll(): Order[] {\n    return [...this.rows.values()].map((row) => Order.restore(row));\n  }\n\n  save(order: Order): void {\n    this.rows.set(order.id, order.toSnapshot());\n  }\n}\n\n=====SOURCE-END=====\n\n## Graph excerpt\n{\"edges\":[{\"from\":\"InMemoryOrderRepository@src/infrastructure/InMemoryOrderRepository.ts\",\"to\":\"OrderRepository@src/domain/OrderRepository.ts\",\"type\":\"IMPLEMENTS\"},{\"from\":\"src/infrastructure/InMemoryOrderRepository.ts\",\"to\":\"src/domain/Order.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/infrastructure/InMemoryOrderRepository.ts\",\"to\":\"src/domain/OrderRepository.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/infrastructure/InMemoryOrderRepository.ts\",\"to\":\"src/domain/OrderStatus.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/infrastructure/app.ts\",\"to\":\"src/infrastructure/InMemoryOrderRepository.ts\",\"type\":\"IMPORTS\"}],\"nodes\":[{\"kind\":\"Class\",\"layer\":\"infrastructure\",\"name\":\"InMemoryOrderRepository\",\"path\":\"src/infrastructure/InMemoryOrderRepository.ts\"},{\"kind\":\"File\",\"layer\":\"domain\",\"path\":\"src/domain/Order.ts\"},{\"kind\":\"File\",\"layer\":\"domain\",\"path\":\"src/domain/OrderRepository.ts\"},{\"kind\":\"File\",\"layer\":\"domain\",\"path\":\"src/domain/OrderStatus.ts\"},{\"kind\":\"File\",\"layer\":\"infrastructure\",\"path\":\"src/infrastructure/InMemoryOrderRepository.ts\"},{\"kind\":\"File\",\"layer\":\"infrastructure\",\"path\":\"src/infrastructure/app.ts\"},{\"kind\":\"Interface\",\"layer\":\"domain\",\"name\":\"OrderRepository\",\"path\":\"src/domain/OrderRepository.ts\"}]}\n\n## Instructions\nJudge the unit against the rule and rubric. Return the JSON object the schema requires. Set pass to false if any file of the unit fails the rubric.\n",
+  "provider": "claude-cli",
+  "recordedAt": "2026-10-10T21:49:58.557Z",
+  "repetition": 0,
+  "requestHash": "0d994a788f552ce787f3bec4322319792b62efcf35bf38f69201fa6081b46704",
+  "resolvedModel": "claude-opus-5-5",
+  "response": "{\"is_error\":false,\"modelUsage\":{\"claude-opus-5-5\":{\"inputTokens\":2,\"outputTokens\":559}},\"result\":\"{\\\"pass\\\":true,\\\"confidence\\\":0.93,\\\"reasoning\\\":\\\"InMemoryOrderRepository is an in-memory implementation of the domain-declared OrderRepository port, and every one of its responsibilities is persistence. The class only does four things: it keeps snapshots in a Map, rebuilds entities through Order.restore, turns entities back into snapshots through order.toSnapshot, and runs simple lookups. The status filter in findByStatus is a query by an attribute. It is not a business rule or state-transition rule. The file has no domain invariants, no orchestration logic and no transport or presentation code, so it fits the infrastructure layer.\\\",\\\"evidence\\\":[\\\"src/infrastructure/InMemoryOrderRepository.ts: class InMemoryOrderRepository implements OrderRepository, which is an adapter for a domain port and so belongs in infrastructure.\\\",\\\"save(order) stores order.toSnapshot() in a private Map. This is persistence, which belongs in infrastructure.\\\",\\\"findById/findAll/findByStatus rebuild entities from stored rows through Order.restore(row). This is persistence-side rehydration of stored data.\\\",\\\"findByStatus filters on row.status === status. This is a data query by attribute, not a domain rule.\\\"],\\\"violations\\\":[]}\",\"structured_output\":{\"confidence\":0.93,\"evidence\":[\"src/infrastructure/InMemoryOrderRepository.ts: class InMemoryOrderRepository implements OrderRepository, which is an adapter for a domain port and so belongs in infrastructure.\",\"save(order) stores order.toSnapshot() in a private Map. This is persistence, which belongs in infrastructure.\",\"findById/findAll/findByStatus rebuild entities from stored rows through Order.restore(row). This is persistence-side rehydration of stored data.\",\"findByStatus filters on row.status === status. This is a data query by attribute, not a domain rule.\"],\"pass\":true,\"reasoning\":\"InMemoryOrderRepository is an in-memory implementation of the domain-declared OrderRepository port, and every one of its responsibilities is persistence. The class only does four things: it keeps snapshots in a Map, rebuilds entities through Order.restore, turns entities back into snapshots through order.toSnapshot, and runs simple lookups. The status filter in findByStatus is a query by an attribute. It is not a business rule or state-transition rule. The file has no domain invariants, no orchestration logic and no transport or presentation code, so it fits the infrastructure layer.\",\"violations\":[]}}",
+  "runIndex": 1,
+  "schemaVersion": 2,
+  "unitId": "src/infrastructure/InMemoryOrderRepository.ts",
+  "usage": {
+    "inputTokens": 2868,
+    "outputTokens": 559
+  },
+  "usedOptions": {
+    "effort": "high",
+    "model": "claude-opus-5-5"
+  }
+}

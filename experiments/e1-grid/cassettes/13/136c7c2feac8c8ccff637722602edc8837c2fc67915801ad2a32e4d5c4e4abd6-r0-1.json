@@ -1,0 +1,48 @@
+{
+  "attempts": 1,
+  "cliVersion": "2.1.294",
+  "configListingSha256": "47aa04258852fab9a706f3f0c14cee22306d69fbb6fdfbde8c11854bd54997bc",
+  "durationMs": 9422,
+  "effort": "high",
+  "functionId": "FF-N02",
+  "ignoredOptions": [
+    "maxTokens"
+  ],
+  "isolationProbeSha256": "97a2e2d0af1100c13c55e028c1a0c71f069093c3d08705af122aaeb302f1a641",
+  "key": "136c7c2feac8c8ccff637722602edc8837c2fc67915801ad2a32e4d5c4e4abd6-r0-1",
+  "model": "claude-opus-5-5",
+  "outcome": {
+    "kind": "valid"
+  },
+  "parsedVerdict": {
+    "confidence": 0.93,
+    "evidence": [
+      "DomainError is documented as 'Base class for all business-rule violations raised by the domain' and extends only the built-in Error.",
+      "InsufficientStockError and InvalidStateTransitionError describe domain invariants (stock availability, order state machine) and contain no HTTP codes or framework references.",
+      "NotFoundError takes an entity name and id only, with no repository or database logic.",
+      "The file has no imports at all, so it does not depend on any framework, I/O or transport code."
+    ],
+    "pass": true,
+    "reasoning": "src/domain/errors.ts only defines domain error types: an abstract DomainError base class and subclasses for validation failures, missing entities, insufficient stock and invalid order state transitions. These describe business-rule violations in domain terms. The file contains no persistence, transport, HTTP status mapping, framework logic or application orchestration. The messages and fields (productId, requested, available, from/to states) use domain language. Its responsibilities fit the domain layer.",
+    "violations": []
+  },
+  "projectId": "claude-opus-5-5/order-fulfilment/minimal-prose/run-0",
+  "prompt": "## Rule\nThe unit's responsibilities match the role of its declared layer.\n\n## Rubric\nPass: Every responsibility in the file belongs to the role and kind of its declared layer, and agrees with any ADR prose given.\nFail: The file carries a responsibility that belongs to a different layer kind, for example persistence, transport or framework logic in a domain file, or business rules in an infrastructure or presentation file.\nEvidence required: Name the file and cite the function, method or statement that carries the misplaced responsibility, and the layer kind it belongs to.\nOut of scope: import direction and layer-dependency rules, which are checked symbolically.\n\n## Layer model\n- domain (kind: domain): src/domain/**\n- application (kind: application): src/application/**\n- infrastructure (kind: infrastructure): src/infrastructure/**\n\n## Unit\nKind: file\nId: src/domain/errors.ts\nLayer: domain\nUnit files:\n- src/domain/errors.ts\n\n## Source\n=====SOURCE-BEGIN src/domain/errors.ts=====\n/**\n * Base class for all business-rule violations raised by the domain.\n */\nexport abstract class DomainError extends Error {\n  protected constructor(message: string) {\n    super(message);\n    this.name = new.target.name;\n  }\n}\n\nexport class ValidationError extends DomainError {\n  constructor(message: string) {\n    super(message);\n  }\n}\n\nexport class NotFoundError extends DomainError {\n  constructor(entity: string, id: string) {\n    super(`${entity} '${id}' was not found`);\n  }\n}\n\nexport class InsufficientStockError extends DomainError {\n  constructor(\n    readonly productId: string,\n    readonly requested: number,\n    readonly available: number,\n  ) {\n    super(\n      `Insufficient stock for product '${productId}': requested ${requested}, available ${available}`,\n    );\n  }\n}\n\nexport class InvalidStateTransitionError extends DomainError {\n  constructor(from: string, to: string) {\n    super(`Order cannot move from '${from}' to '${to}'`);\n  }\n}\n\n=====SOURCE-END=====\n\n## Graph excerpt\n{\"edges\":[{\"from\":\"InsufficientStockError@src/domain/errors.ts\",\"to\":\"DomainError@src/domain/errors.ts\",\"type\":\"EXTENDS\"},{\"from\":\"InvalidStateTransitionError@src/domain/errors.ts\",\"to\":\"DomainError@src/domain/errors.ts\",\"type\":\"EXTENDS\"},{\"from\":\"NotFoundError@src/domain/errors.ts\",\"to\":\"DomainError@src/domain/errors.ts\",\"type\":\"EXTENDS\"},{\"from\":\"ValidationError@src/domain/errors.ts\",\"to\":\"DomainError@src/domain/errors.ts\",\"type\":\"EXTENDS\"},{\"from\":\"src/application/OrderLoader.ts\",\"to\":\"src/domain/errors.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/domain/Order.ts\",\"to\":\"src/domain/errors.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/domain/Product.ts\",\"to\":\"src/domain/errors.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/domain/Quantity.ts\",\"to\":\"src/domain/errors.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/domain/StockReservationService.ts\",\"to\":\"src/domain/errors.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/infrastructure/errorHandler.ts\",\"to\":\"src/domain/errors.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/infrastructure/requestParsers.ts\",\"to\":\"src/domain/errors.ts\",\"type\":\"IMPORTS\"}],\"nodes\":[{\"kind\":\"Class\",\"layer\":\"domain\",\"name\":\"DomainError\",\"path\":\"src/domain/errors.ts\"},{\"kind\":\"Class\",\"layer\":\"domain\",\"name\":\"InsufficientStockError\",\"path\":\"src/domain/errors.ts\"},{\"kind\":\"Class\",\"layer\":\"domain\",\"name\":\"InvalidStateTransitionError\",\"path\":\"src/domain/errors.ts\"},{\"kind\":\"Class\",\"layer\":\"domain\",\"name\":\"NotFoundError\",\"path\":\"src/domain/errors.ts\"},{\"kind\":\"Class\",\"layer\":\"domain\",\"name\":\"ValidationError\",\"path\":\"src/domain/errors.ts\"},{\"kind\":\"File\",\"layer\":\"application\",\"path\":\"src/application/OrderLoader.ts\"},{\"kind\":\"File\",\"layer\":\"domain\",\"path\":\"src/domain/Order.ts\"},{\"kind\":\"File\",\"layer\":\"domain\",\"path\":\"src/domain/Product.ts\"},{\"kind\":\"File\",\"layer\":\"domain\",\"path\":\"src/domain/Quantity.ts\"},{\"kind\":\"File\",\"layer\":\"domain\",\"path\":\"src/domain/StockReservationService.ts\"},{\"kind\":\"File\",\"layer\":\"domain\",\"path\":\"src/domain/errors.ts\"},{\"kind\":\"File\",\"layer\":\"infrastructure\",\"path\":\"src/infrastructure/errorHandler.ts\"},{\"kind\":\"File\",\"layer\":\"infrastructure\",\"path\":\"src/infrastructure/requestParsers.ts\"}]}\n\n## Instructions\nJudge the unit against the rule and rubric. Return the JSON object the schema requires. Set pass to false if any file of the unit fails the rubric.\n",
+  "provider": "claude-cli",
+  "recordedAt": "2026-10-10T21:49:51.333Z",
+  "repetition": 0,
+  "requestHash": "136c7c2feac8c8ccff637722602edc8837c2fc67915801ad2a32e4d5c4e4abd6",
+  "resolvedModel": "claude-opus-5-5",
+  "response": "{\"is_error\":false,\"modelUsage\":{\"claude-opus-5-5\":{\"inputTokens\":2,\"outputTokens\":445}},\"result\":\"{\\\"pass\\\":true,\\\"confidence\\\":0.93,\\\"reasoning\\\":\\\"src/domain/errors.ts only defines domain error types: an abstract DomainError base class and subclasses for validation failures, missing entities, insufficient stock and invalid order state transitions. These describe business-rule violations in domain terms. The file contains no persistence, transport, HTTP status mapping, framework logic or application orchestration. The messages and fields (productId, requested, available, from/to states) use domain language. Its responsibilities fit the domain layer.\\\",\\\"evidence\\\":[\\\"DomainError is documented as 'Base class for all business-rule violations raised by the domain' and extends only the built-in Error.\\\",\\\"InsufficientStockError and InvalidStateTransitionError describe domain invariants (stock availability, order state machine) and contain no HTTP codes or framework references.\\\",\\\"NotFoundError takes an entity name and id only, with no repository or database logic.\\\",\\\"The file has no imports at all, so it does not depend on any framework, I/O or transport code.\\\"],\\\"violations\\\":[]}\",\"structured_output\":{\"confidence\":0.93,\"evidence\":[\"DomainError is documented as 'Base class for all business-rule violations raised by the domain' and extends only the built-in Error.\",\"InsufficientStockError and InvalidStateTransitionError describe domain invariants (stock availability, order state machine) and contain no HTTP codes or framework references.\",\"NotFoundError takes an entity name and id only, with no repository or database logic.\",\"The file has no imports at all, so it does not depend on any framework, I/O or transport code.\"],\"pass\":true,\"reasoning\":\"src/domain/errors.ts only defines domain error types: an abstract DomainError base class and subclasses for validation failures, missing entities, insufficient stock and invalid order state transitions. These describe business-rule violations in domain terms. The file contains no persistence, transport, HTTP status mapping, framework logic or application orchestration. The messages and fields (productId, requested, available, from/to states) use domain language. Its responsibilities fit the domain layer.\",\"violations\":[]}}",
+  "runIndex": 1,
+  "schemaVersion": 2,
+  "unitId": "src/domain/errors.ts",
+  "usage": {
+    "inputTokens": 3248,
+    "outputTokens": 445
+  },
+  "usedOptions": {
+    "effort": "high",
+    "model": "claude-opus-5-5"
+  }
+}

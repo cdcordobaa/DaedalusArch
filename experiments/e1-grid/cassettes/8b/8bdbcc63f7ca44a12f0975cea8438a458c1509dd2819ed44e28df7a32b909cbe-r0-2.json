@@ -1,0 +1,47 @@
+{
+  "attempts": 1,
+  "cliVersion": "2.1.294",
+  "configListingSha256": "47aa04258852fab9a706f3f0c14cee22306d69fbb6fdfbde8c11854bd54997bc",
+  "durationMs": 6238,
+  "effort": "high",
+  "functionId": "FF-N02",
+  "ignoredOptions": [
+    "maxTokens"
+  ],
+  "isolationProbeSha256": "97a2e2d0af1100c13c55e028c1a0c71f069093c3d08705af122aaeb302f1a641",
+  "key": "8bdbcc63f7ca44a12f0975cea8438a458c1509dd2819ed44e28df7a32b909cbe-r0-2",
+  "model": "claude-opus-5-5",
+  "outcome": {
+    "kind": "valid"
+  },
+  "parsedVerdict": {
+    "confidence": 0.93,
+    "evidence": [
+      "src/application/OrderLoader.ts: loadOrder(orders: OrderRepository, orderId) calls orders.findById(orderId), going through the repository abstraction rather than a concrete persistence technology.",
+      "src/application/OrderLoader.ts: `if (!order) throw new NotFoundError('Order', orderId);` signals a missing order with a domain error. This is a use-case guard, not a business invariant.",
+      "Graph: AdvanceOrderUseCase, CancelOrderUseCase and GetOrderUseCase all import OrderLoader.ts, which supports its role as a shared application helper."
+    ],
+    "pass": true,
+    "reasoning": "src/application/OrderLoader.ts is a small application-layer helper. Its one function, loadOrder, fetches an order through the OrderRepository abstraction (a domain port) and throws a domain NotFoundError when no order comes back. This is standard application work: it coordinates a lookup that several use cases share. The file has no persistence code, no transport or framework logic and no business rules or state changes that belong in the domain. No ADR prose was given.",
+    "violations": []
+  },
+  "projectId": "claude-opus-5-5/order-fulfilment/minimal-prose/run-0",
+  "prompt": "## Rule\nThe unit's responsibilities match the role of its declared layer.\n\n## Rubric\nPass: Every responsibility in the file belongs to the role and kind of its declared layer, and agrees with any ADR prose given.\nFail: The file carries a responsibility that belongs to a different layer kind, for example persistence, transport or framework logic in a domain file, or business rules in an infrastructure or presentation file.\nEvidence required: Name the file and cite the function, method or statement that carries the misplaced responsibility, and the layer kind it belongs to.\nOut of scope: import direction and layer-dependency rules, which are checked symbolically.\n\n## Layer model\n- domain (kind: domain): src/domain/**\n- application (kind: application): src/application/**\n- infrastructure (kind: infrastructure): src/infrastructure/**\n\n## Unit\nKind: file\nId: src/application/OrderLoader.ts\nLayer: application\nUnit files:\n- src/application/OrderLoader.ts\n\n## Source\n=====SOURCE-BEGIN src/application/OrderLoader.ts=====\nimport { NotFoundError } from '../domain/errors';\nimport { Order } from '../domain/Order';\nimport { OrderRepository } from '../domain/OrderRepository';\n\nexport function loadOrder(orders: OrderRepository, orderId: string): Order {\n  const order = orders.findById(orderId);\n  if (!order) throw new NotFoundError('Order', orderId);\n  return order;\n}\n\n=====SOURCE-END=====\n\n## Graph excerpt\n{\"edges\":[{\"from\":\"src/application/AdvanceOrderUseCase.ts\",\"to\":\"src/application/OrderLoader.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/application/CancelOrderUseCase.ts\",\"to\":\"src/application/OrderLoader.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/application/GetOrderUseCase.ts\",\"to\":\"src/application/OrderLoader.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/application/OrderLoader.ts\",\"to\":\"src/domain/Order.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/application/OrderLoader.ts\",\"to\":\"src/domain/OrderRepository.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/application/OrderLoader.ts\",\"to\":\"src/domain/errors.ts\",\"type\":\"IMPORTS\"}],\"nodes\":[{\"kind\":\"File\",\"layer\":\"application\",\"path\":\"src/application/AdvanceOrderUseCase.ts\"},{\"kind\":\"File\",\"layer\":\"application\",\"path\":\"src/application/CancelOrderUseCase.ts\"},{\"kind\":\"File\",\"layer\":\"application\",\"path\":\"src/application/GetOrderUseCase.ts\"},{\"kind\":\"File\",\"layer\":\"application\",\"path\":\"src/application/OrderLoader.ts\"},{\"kind\":\"File\",\"layer\":\"domain\",\"path\":\"src/domain/Order.ts\"},{\"kind\":\"File\",\"layer\":\"domain\",\"path\":\"src/domain/OrderRepository.ts\"},{\"kind\":\"File\",\"layer\":\"domain\",\"path\":\"src/domain/errors.ts\"}]}\n\n## Instructions\nJudge the unit against the rule and rubric. Return the JSON object the schema requires. Set pass to false if any file of the unit fails the rubric.\n",
+  "provider": "claude-cli",
+  "recordedAt": "2026-10-10T21:48:57.276Z",
+  "repetition": 0,
+  "requestHash": "8bdbcc63f7ca44a12f0975cea8438a458c1509dd2819ed44e28df7a32b909cbe",
+  "resolvedModel": "claude-opus-5-5",
+  "response": "{\"is_error\":false,\"modelUsage\":{\"claude-opus-5-5\":{\"inputTokens\":2,\"outputTokens\":489}},\"result\":\"{\\\"pass\\\":true,\\\"confidence\\\":0.93,\\\"reasoning\\\":\\\"src/application/OrderLoader.ts is a small application-layer helper. Its one function, loadOrder, fetches an order through the OrderRepository abstraction (a domain port) and throws a domain NotFoundError when no order comes back. This is standard application work: it coordinates a lookup that several use cases share. The file has no persistence code, no transport or framework logic and no business rules or state changes that belong in the domain. No ADR prose was given.\\\",\\\"evidence\\\":[\\\"src/application/OrderLoader.ts: loadOrder(orders: OrderRepository, orderId) calls orders.findById(orderId), going through the repository abstraction rather than a concrete persistence technology.\\\",\\\"src/application/OrderLoader.ts: `if (!order) throw new NotFoundError('Order', orderId);` signals a missing order with a domain error. This is a use-case guard, not a business invariant.\\\",\\\"Graph: AdvanceOrderUseCase, CancelOrderUseCase and GetOrderUseCase all import OrderLoader.ts, which supports its role as a shared application helper.\\\"],\\\"violations\\\":[]}\",\"structured_output\":{\"confidence\":0.93,\"evidence\":[\"src/application/OrderLoader.ts: loadOrder(orders: OrderRepository, orderId) calls orders.findById(orderId), going through the repository abstraction rather than a concrete persistence technology.\",\"src/application/OrderLoader.ts: `if (!order) throw new NotFoundError('Order', orderId);` signals a missing order with a domain error. This is a use-case guard, not a business invariant.\",\"Graph: AdvanceOrderUseCase, CancelOrderUseCase and GetOrderUseCase all import OrderLoader.ts, which supports its role as a shared application helper.\"],\"pass\":true,\"reasoning\":\"src/application/OrderLoader.ts is a small application-layer helper. Its one function, loadOrder, fetches an order through the OrderRepository abstraction (a domain port) and throws a domain NotFoundError when no order comes back. This is standard application work: it coordinates a lookup that several use cases share. The file has no persistence code, no transport or framework logic and no business rules or state changes that belong in the domain. No ADR prose was given.\",\"violations\":[]}}",
+  "runIndex": 2,
+  "schemaVersion": 2,
+  "unitId": "src/application/OrderLoader.ts",
+  "usage": {
+    "inputTokens": 2571,
+    "outputTokens": 489
+  },
+  "usedOptions": {
+    "effort": "high",
+    "model": "claude-opus-5-5"
+  }
+}
