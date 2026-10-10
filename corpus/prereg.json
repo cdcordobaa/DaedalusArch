@@ -1,7 +1,7 @@
 {
-  "version": 18,
-  "registeredAt": "2026-10-10T19:01:14Z",
-  "reason": "ADR-029 Codex arm (author approval 2026-10-10), registered before any e1-grid run and before any Codex cell (no E1 RunRecord, no Codex grid cell; only the 3-cell pilot under <outRoot>/pilot, never joined). Per artefact: (1) experiments/e1-grid/generator-plan-codex.json (new): the Codex arm plan, adapter codex-cli / gpt-5.6-terra (the strongest generally available coding model on the ChatGPT plan; gpt-6-sol refused for the account), both tasks, the three levels, runs 3, its own orderSeed 20261010 and schedule file schedule-codex-cli.json, outRoot shared, timeoutMs 1200000, allowBash true (sandboxed shell), codex block: CLI 0.162.1, reasoning effort medium (catalog default), pinned catalog path and sha256. (2) scripts/generator/codex/model-catalog.json (new): the plan catalog entry of gpt-5.6-terra with multi_agent_version removed (no sub-agent tools); it fixes the base instructions and tool configuration the model sees. (3) experiments/e1-grid/plan.json: e1.models appends gpt-5.6-terra (72 coordinates, the Claude ones first and in their old order); no seed or other field changes. (4) Docs/generator-protocol.md: dated change of 2026-10-10 (section 11): the Codex invocation, environment, Seatbelt profile, locked context, model verification from the rollout, envelope and error classes, version pin, join check, the 10-call Gate probe (all SECURITY-11 probes pass; two probe-harness defects declared) and the pilot (3/3 ok, 0 type errors, 7/13/9 files flagged). Sections 1-10 unchanged. (5) Docs/analysis-plan.md: header note, section 2 row and Codex-arm paragraph, section 3 SO5 and SO3 rows, new section 6.1 (registered SO5 analyses stay on the 54 Claude cells; the vendor contrast, exploratory; the registered vendor self-preference check on ahsNeuronal - ahsDeterministic, one-sided, vendor permuted within task x spec level), section 9 grid shape, B5 note, new B10, section 11 row. (6) Docs/threats-to-validity.md: TV-100 (vendor confounds), TV-101 (Codex isolation residuals), TV-102 (free-plan usage), TV-103 (cross-vendor judge self-preference) and the ADR-029 trace. experiments/e1-grid/generator-plan.json (the Claude arm) is unchanged. e1Grid: models 4, arms claude-code-cli 3, codex-cli 1. All other 64 artefacts are unchanged.",
+  "version": 19,
+  "registeredAt": "2026-10-10T20:20:46Z",
+  "reason": "ADR-030 tool comparison and real fix-commit pairs (author request 2026-10-10), registered before either experiment runs: no tool-comparison or real-pairs RunRecord exists, no dependency-cruiser run on any seeded copy or pair commit, no DaedalusArch run on any pair commit. Known before registration and declared: the DaedalusArch SO4 v2 outcomes of the comparable operators (MO-S01 8/8, MO-S03 2/2, MO-P01 13/13, MO-C04 14/14 matched, MO-X01 0/6); the five pairs were mined by the author before this registration (e7-candidate-research 2026-10-09 section 4, commit messages and file lists only) and DaedalusArch had run on both pair projects at their pinned later commits (e7-corpus); one dependency-cruiser smoke run of the realworld-test config on the unseeded realworld-test base (5 FF-P01, 2 FF-S02) while writing the translator. Per artefact: (1) experiments/tool-comparison/plan.json (new): symbolic-only, instrument v2, the 7 SO4 held-out bases and the 87 so4-heldout seeded entries of MO-S01, MO-S03, MO-P01, MO-C04, MO-X01 and their twins, unchanged apart from baselineReportPath, seeds 9101..9103. (2) experiments/real-pairs/plan.json (new): symbolic-only, instrument v2, before and after of the 5 pairs in corpus/real-violation-pairs.json, exported by git archive to ../daedalus-realpairs, each with its project's E7 spec, seeds 9201..9203. (3) scripts/depcruise-translate.ts (new): the mechanical spec to dependency-cruiser translation T1..T10, version 1.0.0 (layer membership as layer-annotator, picomatch-equivalent star-height-1 globs, FF-S01, S03, S04, P01, S02, C04; excludes; type-only imports; inactive functions; the untranslatable list). (4) experiments/tool-comparison/depcruise/package.json and package-lock.json (new): dependency-cruiser 18.4.0 and typescript 5.9.3, exact, locked. (5) Docs/analysis-plan.md: header note, section list, section 11 row, new section 13 (shared key, Experiment A outcomes with instance Wilson bounds, baseline volume and overlap, runtime; Experiment B resolved-finding rule, strict secondary, n = 5 descriptive; what was known). (6) Docs/threats-to-validity.md: TV-104 (comparison built by the DaedalusArch author, import-graph rules only), TV-105 (runtime confounds), TV-106 (n = 5 author-mined pairs, churn), TV-107 (known results), ADR-030 trace. Registry gains the translator and the two depcruise package files. All other 70 artefacts are unchanged.",
   "matchingRuleVersion": "1.2.0",
   "artefacts": [
     {
@@ -18,7 +18,7 @@
     },
     {
       "path": "Docs/analysis-plan.md",
-      "sha256": "8082724b6eef6e8ea6cd1b046d419236ba6434175388d3822636144b26cdc7a8"
+      "sha256": "21de24e5e1895bd028c179fb06d739352bd5bb1453bf81de3789b8ddb90d69c4"
     },
     {
       "path": "Docs/corpus-criteria.md",
@@ -58,7 +58,7 @@
     },
     {
       "path": "Docs/threats-to-validity.md",
-      "sha256": "77d22488a256778afdd7a372ddd64a6e586d2197fb3aa7efeaf7995b69ad26a7"
+      "sha256": "57d40431d946a4b74ef7f133676d4d38f959717241c37ea2a1e3dd346cbae604"
     },
     {
       "path": "corpus/corpus.json",
@@ -217,12 +217,28 @@
       "sha256": "18c341d132e5931562edbb6d8c32abfb5ef5064053d4322502e131aa5ae736c2"
     },
     {
+      "path": "experiments/real-pairs/plan.json",
+      "sha256": "95e02a3c01963641024a364b130ddb72f34cc3f6a291ed64f70da792b6d68ad6"
+    },
+    {
       "path": "experiments/sensitivity/plan.json",
       "sha256": "54425f4ffb2ca29f72b7df5f1779488575ad24360498570ff732ed44d9bc6566"
     },
     {
       "path": "experiments/so4-heldout/plan.json",
       "sha256": "72208c0bbe54d1c129fcb5461174d13f70d5cc81252c21e2194c4aa9c18990ba"
+    },
+    {
+      "path": "experiments/tool-comparison/depcruise/package-lock.json",
+      "sha256": "1972704d8c6a6716ad33f760cb17ec20c72aecf325c03cff4042ee2f53493de4"
+    },
+    {
+      "path": "experiments/tool-comparison/depcruise/package.json",
+      "sha256": "99cff4d2ee42d5cd8c043d0929f9bc11896aac736b18cc111ea9efa77dafe95a"
+    },
+    {
+      "path": "experiments/tool-comparison/plan.json",
+      "sha256": "600f1284bf9acc1daacbdbc3124f0c84368c61a6520fadefba663b4650626ee4"
     },
     {
       "path": "presets/clean-architecture.yaml",
@@ -243,6 +259,10 @@
     {
       "path": "scripts/corpus-rubric-u4.ts",
       "sha256": "cb701491562fa04450c8ce9d3f247347a81bb5334d756242fbbc8a24171b1b93"
+    },
+    {
+      "path": "scripts/depcruise-translate.ts",
+      "sha256": "f20f77b9107a52e7a31bcb0c0b999ced0dff4024bc9627304fbd4136fa08583f"
     },
     {
       "path": "scripts/generate-e7-specs-cli.ts",
@@ -372,6 +392,10 @@
     {
       "version": 17,
       "commit": "247cb54814bad72fdb2da9c13a910523717c4b97"
+    },
+    {
+      "version": 18,
+      "commit": "941ebd0f8b0826c7ab031ed117e2ed9de533a30e"
     }
   ]
 }

@@ -34,6 +34,11 @@
 > Every registered SO5 analysis of §6 stays as registered on the 54 Claude cells. The Codex cells enter new families:
 > the vendor contrast and the vendor self-preference check (§6.1), the per-model judge-vs-panel rows read per
 > vendor (§3), and reporting duty B10. §11 lists the change.
+> **Amended 2026-10-10 (ADR-030, `corpus/prereg.json` version 19)**, before either experiment runs: two symbolic-only
+> experiments, `tool-comparison` (DaedalusArch against dependency-cruiser 18.4.0 on the SO4 held-out seeds of the
+> comparable operators and the seven bases) and `real-pairs` (five before/after fix-commit pairs), with their metrics
+> (§13). The SO4 DaedalusArch results were known and the pairs were mined before this amendment (§13.4). §11 lists
+> the change.
 > **Requirements**: FR-v1.2E-25, 27, 36; SO1–SO5 (ADR-017 items 1–3, 6, 7); ADR-015 items 1, 2, 5, 10; ADR-016 b, e.
 > **Design source**: `aidlc-docs/construction/v1.2E-u5b-scoring-harness/functional-design/business-rules.md`
 > (BR-U5b-20, 30, 33, 34, 45..49, 53, 54, 61..65, 78). The matching of seeds to violations is `Docs/matching-rule.md`
@@ -43,7 +48,8 @@
 Sections: §1 the SO5 code tables (machine block); §2 registered plans and seeds; §3 outcomes per objective; §4
 labelling populations, caps and budget; §5 interval rule; §6 SO5 factors, tests and Holm families; §7 flag columns;
 §8 missingness and exclusions; §9 what is fixed by registration; §10 reporting duties; §11 amendments; §12 the
-neural aggregation variant, the judge diagnostics and the judge-weighted variant (ADR-028).
+neural aggregation variant, the judge diagnostics and the judge-weighted variant (ADR-028); §13 the tool comparison and
+the real fix-commit pairs (ADR-030).
 
 ## 1. SO5 code tables (frozen at registration)
 
@@ -703,6 +709,7 @@ These statements are registered: every report of the corresponding figure carrie
 | 2026-10-10 (ADR-028 review fixes, prereg v15) | §10, §12 | Variant undefined for SEL-07 baseline reuse; bias toward clean and the confidence-free share; SRS within a layer, no variance; the judge-effect decomposition (W_n, bound, judge-blind verdict, judge_mattered) and the any-fail companion; derived `reading`; E1 two-pass procedure; coding frame 1.1.0 (message-only primary, guarded reasoning, discrimination ≥ 0.3, `rules_also_flag`), its E7 reading post hoc; B9 wording rules | ADR-028; Fable review of PR #47 |
 | 2026-10-10 (ADR-029 Codex arm, prereg v18) | §2, §3, §6.1, §9, §10 | E1 gains the Codex arm (`gpt-5.6-terra`, 18 cells, own plan and `orderSeed` 20261010) before any E1 or Codex cell runs; every registered SO5 analysis stays on the 54 Claude cells; the vendor contrast (exploratory) and the registered vendor self-preference check (§6.1); the per-model agreement rows read per vendor; grid shape 4 × 3 × 2 × 3; B5 note and B10 | ADR-029 (author, 2026-10-10) |
 | 2026-10-10 (ADR-028 judge-weighted variant, prereg v17) | §10, §12 | The registered spec weights stay primary (W_n = 0.08); the judge-weighted sensitivity variant `judge-weighted-v1` registered before any E1 run (judge dimensions 2/7, symbolic 5/7, each group proportional, same thresholds; under the registered, proportional and any-fail aggregations; a pure function of the stored reports); its E7 reading post hoc, its E1 reading pre-registered; B9 wording rules (iv), (v) | ADR-028 (author, 2026-10-10: "Keep 8%, add weighted variant") |
+| 2026-10-10 (ADR-030, prereg v19) | §13 | `tool-comparison` and `real-pairs` registered before either runs: the dependency-cruiser translation (T1..T10), the shared finding key, per-operator recall and twin fire rates with instance Wilson bounds, baseline volume and overlap per rule, runtime, and the real-pair detection rule (primary resolved-finding, strict secondary), descriptive at n = 5; what was known before (§13.4) | ADR-030 |
 
 ## 12. Neural aggregation variant and judge diagnostics (ADR-028)
 
@@ -924,3 +931,52 @@ registered weights), `verdict_changed_jw_<rule>`, `delta_judge_jw_<rule>` (minus
 `judge_mattered_jw_<rule>`. Totals: per aggregation, the number of verdicts the reweighting moves and the number the
 judge moves (`judge_mattered_jw`). Descriptive only, no test, no Holm family; every judge claim stays conditional on the
 FR-27 panel validation. B9 wording rules (iv) and (v) apply.
+
+## 13. Tool comparison and real fix-commit pairs (ADR-030, registered v19)
+
+Both experiments are symbolic-only and make no LLM call. DaedalusArch runs through the registered harness with
+instrument v2; dependency-cruiser (`dependency-cruiser` 18.4.0, `typescript` 5.9.3, pinned and locked in
+`experiments/tool-comparison/depcruise/`) runs with the config that `scripts/depcruise-translate.ts` (translation
+1.0.0, ADR-030 item 2) derives from the same spec. Every table names both versions. The scorer is
+`scripts/tool-comparison.ts` (`score-comparison`, `score-pairs`), a pure function of the stored reports and runs.
+
+### 13.1 Shared finding key and comparable rules
+
+The comparable rules are the translated functions: FF-S01, FF-S02, FF-S03 (layered only), FF-S04 (clean-architecture
+and nestjs), FF-P01 and FF-C04, each counted only where the function is active for the spec (ADR-030 T10). A finding
+is keyed (function, source file, target): an edge target is a file path or, for a package, its package name; an orphan
+has an empty target; a cycle is keyed by its canonical node sequence only. Lines never enter the key.
+
+### 13.2 Experiment A (`tool-comparison`)
+
+| Outcome | Definition | Unit and interval |
+|---|---|---|
+| Seed recall per operator (MO-S01, MO-S03, MO-P01, MO-C04, MO-X01) and per tool | Seeded copy minus that tool's own baseline (multiset on the key); TP when a new finding of a translated function has a key of the row's `expected.keys` restricted to translated functions | Seeds scored by the registered SO4 v2 score (`matched` / `missed`); instance Wilson 95 % as the "if independent" bound (§5), no cell-level interval (one or two seeds per cell) |
+| Agreement on seeds | Seeds detected by both, by DaedalusArch only, by dependency-cruiser only | Counts |
+| Twin fire rate per twin operator and per tool | A new translated-function finding on an edited or created file of the twin | Twins scored `twin-clean` / `twin-fired` by SO4 v2; Wilson as above |
+| Other new findings on seeded copies | New translated-function findings that are not an expected key | Counts per tool (descriptive) |
+| Baseline volume per rule | Unique keys per tool on each of the 7 unseeded bases; overlap; unique to each tool; the keys listed | Counts per project and in total (descriptive; no precision claim, nothing is labelled) |
+| Runtime | Process wall time per run, start to exit, for both tools; DaedalusArch also in-process `durationMs` | Median and total over the 94 runs; indicative only (shared machine, TV-105) |
+
+The in-coverage pooled recall (MO-S01, MO-S03, MO-P01, MO-C04) and the all-seed pooled recall (adding MO-X01) are
+reported beside the per-operator rows. There is no hypothesis test: with this n a difference of a few seeds is not
+inferential evidence, and the expected difference (MO-X01, dynamic `import()`) is stated in ADR-030 before the run.
+
+### 13.3 Experiment B (`real-pairs`)
+
+For each pair, before (first parent) and after commits, both tools, the project's E7 spec. A finding is **on a touched
+file** when its source, its target file or any cycle member is a touched file (before: the old path of a renamed file).
+A tool **detects the real fix** (primary) when at least one finding on a touched file before the fix has no equal key
+after it, with renamed paths mapped to their new names. The **strict** reading (findings on touched files before, none
+after) is secondary. Rows: dependency-cruiser; DaedalusArch symbolic-only v2 with all symbolic functions (its primary
+row); DaedalusArch restricted to the translated functions. Each row lists the counts before and after, the resolved
+findings and their functions. Reported as counts out of 5 with the per-pair table; no rate interval and no test
+(n = 5, four pairs from one repository, TV-106).
+
+### 13.4 What was known before registration
+
+The DaedalusArch SO4 v2 outcomes of the comparable operators were known (MO-S01 8/8, MO-S03 2/2, MO-P01 13/13, MO-C04
+14/14 matched, MO-X01 0/6), and the five pairs were mined by the author from commit messages and file lists before this
+amendment, with DaedalusArch already run on both projects at their pinned (later) commits by `e7-corpus`. Only one
+dependency-cruiser smoke run on one unseeded base preceded registration (ADR-030). The new evidence is therefore the
+dependency-cruiser arm of Experiment A and both tools' outcomes on the pair commits.

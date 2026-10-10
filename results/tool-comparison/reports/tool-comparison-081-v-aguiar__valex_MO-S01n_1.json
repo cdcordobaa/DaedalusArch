@@ -1,0 +1,1148 @@
+{
+  "runId": "run-1791663986285",
+  "projectPath": "../daedalus-so4/copies/v-aguiar__valex/MO-S01n/k-1",
+  "specVersion": "1.0.0",
+  "ahsDeterministic": 0.553,
+  "verdict": "soft-block",
+  "scoring": {
+    "weights": {
+      "structural": 0.35,
+      "coupling": 0.2,
+      "pattern": 0.3,
+      "solid": 0.1,
+      "convention": 0.05,
+      "semantic": 0,
+      "integrity": 0
+    },
+    "fullModeWeights": {
+      "structural": 0.32,
+      "coupling": 0.18,
+      "pattern": 0.27,
+      "solid": 0.1,
+      "convention": 0.05,
+      "semantic": 0.04,
+      "integrity": 0.04
+    },
+    "thresholds": {
+      "pass": 0.8,
+      "warning": 0.65,
+      "softBlock": 0.5
+    },
+    "confidenceThresholds": {
+      "high": 0.85,
+      "medium": 0.6,
+      "iccMinimum": 0.7
+    },
+    "verdictSource": "ahsDeterministic"
+  },
+  "perDimensionScores": [
+    {
+      "dimension": "structural",
+      "avr": 1,
+      "violatedWeight": 3,
+      "weight": 0.35,
+      "effectiveWeight": 0.35,
+      "violationCount": 3,
+      "functionCount": 3
+    },
+    {
+      "dimension": "coupling",
+      "avr": 0.4,
+      "violatedWeight": 2,
+      "weight": 0.2,
+      "effectiveWeight": 0.2,
+      "violationCount": 2,
+      "functionCount": 5
+    },
+    {
+      "dimension": "pattern",
+      "avr": 0,
+      "violatedWeight": 0,
+      "weight": 0.3,
+      "effectiveWeight": 0.3,
+      "violationCount": 0,
+      "functionCount": 2
+    },
+    {
+      "dimension": "solid",
+      "avr": 0,
+      "violatedWeight": 0,
+      "weight": 0.1,
+      "effectiveWeight": 0.1,
+      "violationCount": 0,
+      "functionCount": 3
+    },
+    {
+      "dimension": "convention",
+      "avr": 0.333,
+      "violatedWeight": 1,
+      "weight": 0.05,
+      "effectiveWeight": 0.05,
+      "violationCount": 1,
+      "functionCount": 3
+    }
+  ],
+  "violations": [
+    {
+      "id": "v-8eac14c7196d5d5f",
+      "type": "LAYER_VIOLATION",
+      "dimension": "structural",
+      "severity": "critical",
+      "functionId": "FF-S01",
+      "route": "symbolic",
+      "filePath": "src/repositories/cardRepository.ts",
+      "message": "src/repositories/cardRepository.ts (persistence) imports from src/services/cardServices.ts (business)",
+      "deterministic": true,
+      "target": "src/services/cardServices.ts",
+      "line": 2,
+      "lines": [
+        2
+      ],
+      "isTypeOnly": false,
+      "discriminator": [
+        "IMPORTS"
+      ],
+      "tag": "structural"
+    },
+    {
+      "id": "v-63eea4c0679a1f59",
+      "type": "LAYER_VIOLATION",
+      "dimension": "structural",
+      "severity": "critical",
+      "functionId": "FF-S01",
+      "route": "symbolic",
+      "filePath": "src/repositories/employeeRepository.ts",
+      "message": "src/repositories/employeeRepository.ts (persistence) imports from src/services/cardServices.ts (business)",
+      "deterministic": true,
+      "target": "src/services/cardServices.ts",
+      "line": 2,
+      "lines": [
+        2
+      ],
+      "isTypeOnly": false,
+      "discriminator": [
+        "IMPORTS"
+      ],
+      "tag": "structural"
+    },
+    {
+      "id": "v-2c3f1806a5c32e5d",
+      "type": "LAYER_VIOLATION",
+      "dimension": "structural",
+      "severity": "critical",
+      "functionId": "FF-S01",
+      "route": "symbolic",
+      "filePath": "src/services/paymentServices.ts",
+      "message": "src/services/paymentServices.ts (business) imports from src/controllers/paymentsController.ts (presentation)",
+      "deterministic": true,
+      "target": "src/controllers/paymentsController.ts",
+      "line": 11,
+      "lines": [
+        11
+      ],
+      "isTypeOnly": false,
+      "discriminator": [
+        "IMPORTS"
+      ],
+      "tag": "structural"
+    },
+    {
+      "id": "v-38a2035c6817e847",
+      "type": "CYCLIC_DEPENDENCY",
+      "dimension": "structural",
+      "severity": "critical",
+      "functionId": "FF-S02",
+      "route": "symbolic",
+      "filePath": "src/controllers/paymentsController.ts,src/services/paymentServices.ts,src/controllers/paymentsController.ts",
+      "message": "Circular dependency: src/controllers/paymentsController.ts,src/services/paymentServices.ts,src/controllers/paymentsController.ts",
+      "deterministic": true,
+      "target": "src/services/paymentServices.ts",
+      "line": 3,
+      "discriminator": [
+        "[\"src/controllers/paymentsController.ts\",\"src/services/paymentServices.ts\",\"src/controllers/paymentsController.ts\"]"
+      ],
+      "tag": "topological"
+    },
+    {
+      "id": "v-3ba856e3d3603b5d",
+      "type": "CYCLIC_DEPENDENCY",
+      "dimension": "structural",
+      "severity": "critical",
+      "functionId": "FF-S02",
+      "route": "symbolic",
+      "filePath": "src/repositories/cardRepository.ts,src/services/cardServices.ts,src/repositories/cardRepository.ts",
+      "message": "Circular dependency: src/repositories/cardRepository.ts,src/services/cardServices.ts,src/repositories/cardRepository.ts",
+      "deterministic": true,
+      "target": "src/services/cardServices.ts",
+      "line": 2,
+      "discriminator": [
+        "[\"src/repositories/cardRepository.ts\",\"src/services/cardServices.ts\",\"src/repositories/cardRepository.ts\"]"
+      ],
+      "tag": "topological"
+    },
+    {
+      "id": "v-d77615ee1c6765c4",
+      "type": "CYCLIC_DEPENDENCY",
+      "dimension": "structural",
+      "severity": "critical",
+      "functionId": "FF-S02",
+      "route": "symbolic",
+      "filePath": "src/repositories/cardRepository.ts,src/services/cardServices.ts,src/utils/cardUtils.ts,src/repositories/cardRepository.ts",
+      "message": "Circular dependency: src/repositories/cardRepository.ts,src/services/cardServices.ts,src/utils/cardUtils.ts,src/repositories/cardRepository.ts",
+      "deterministic": true,
+      "target": "src/services/cardServices.ts",
+      "line": 2,
+      "discriminator": [
+        "[\"src/repositories/cardRepository.ts\",\"src/services/cardServices.ts\",\"src/utils/cardUtils.ts\",\"src/repositories/cardRepository.ts\"]"
+      ],
+      "tag": "topological"
+    },
+    {
+      "id": "v-38c93cfb89a93b0c",
+      "type": "CYCLIC_DEPENDENCY",
+      "dimension": "structural",
+      "severity": "critical",
+      "functionId": "FF-S02",
+      "route": "symbolic",
+      "filePath": "src/repositories/employeeRepository.ts,src/services/cardServices.ts,src/repositories/employeeRepository.ts",
+      "message": "Circular dependency: src/repositories/employeeRepository.ts,src/services/cardServices.ts,src/repositories/employeeRepository.ts",
+      "deterministic": true,
+      "target": "src/services/cardServices.ts",
+      "line": 2,
+      "discriminator": [
+        "[\"src/repositories/employeeRepository.ts\",\"src/services/cardServices.ts\",\"src/repositories/employeeRepository.ts\"]"
+      ],
+      "tag": "topological"
+    },
+    {
+      "id": "v-361d389c260c4f42",
+      "type": "LAYER_SKIP",
+      "dimension": "structural",
+      "severity": "critical",
+      "functionId": "FF-S03",
+      "route": "symbolic",
+      "filePath": "src/middlewares/apiKeyValidator.ts",
+      "message": "src/middlewares/apiKeyValidator.ts (presentation) skips layers to import src/repositories/companyRepository.ts (persistence)",
+      "deterministic": true,
+      "target": "src/repositories/companyRepository.ts",
+      "line": 3,
+      "lines": [
+        3
+      ],
+      "isTypeOnly": false,
+      "discriminator": [
+        "IMPORTS"
+      ],
+      "tag": "structural"
+    },
+    {
+      "id": "v-2109c1a01a5550b7",
+      "type": "LAYER_SKIP",
+      "dimension": "structural",
+      "severity": "critical",
+      "functionId": "FF-S03",
+      "route": "symbolic",
+      "filePath": "src/repositories/cardRepository.ts",
+      "message": "src/repositories/cardRepository.ts (persistence) skips layers to import src/services/cardServices.ts (business)",
+      "deterministic": true,
+      "target": "src/services/cardServices.ts",
+      "line": 2,
+      "lines": [
+        2
+      ],
+      "isTypeOnly": false,
+      "discriminator": [
+        "IMPORTS"
+      ],
+      "tag": "structural"
+    },
+    {
+      "id": "v-2ecd5142cbc3a3ac",
+      "type": "LAYER_SKIP",
+      "dimension": "structural",
+      "severity": "critical",
+      "functionId": "FF-S03",
+      "route": "symbolic",
+      "filePath": "src/repositories/employeeRepository.ts",
+      "message": "src/repositories/employeeRepository.ts (persistence) skips layers to import src/services/cardServices.ts (business)",
+      "deterministic": true,
+      "target": "src/services/cardServices.ts",
+      "line": 2,
+      "lines": [
+        2
+      ],
+      "isTypeOnly": false,
+      "discriminator": [
+        "IMPORTS"
+      ],
+      "tag": "structural"
+    },
+    {
+      "id": "v-06a1c3868f0f259c",
+      "type": "LAYER_SKIP",
+      "dimension": "structural",
+      "severity": "critical",
+      "functionId": "FF-S03",
+      "route": "symbolic",
+      "filePath": "src/services/paymentServices.ts",
+      "message": "src/services/paymentServices.ts (business) skips layers to import src/controllers/paymentsController.ts (presentation)",
+      "deterministic": true,
+      "target": "src/controllers/paymentsController.ts",
+      "line": 11,
+      "lines": [
+        11
+      ],
+      "isTypeOnly": false,
+      "discriminator": [
+        "IMPORTS"
+      ],
+      "tag": "structural"
+    },
+    {
+      "id": "v-7a7878a8938f2aaa",
+      "type": "INSTABILITY_VIOLATION",
+      "dimension": "coupling",
+      "severity": "major",
+      "functionId": "FF-C03",
+      "route": "symbolic",
+      "filePath": "src/routes/cardsRouter.ts",
+      "message": "Violation in src/routes/cardsRouter.ts",
+      "deterministic": true,
+      "discriminator": [],
+      "evidence": [
+        "instability=0.875"
+      ],
+      "tag": "topological"
+    },
+    {
+      "id": "v-26656fbd57f07894",
+      "type": "INSTABILITY_VIOLATION",
+      "dimension": "coupling",
+      "severity": "major",
+      "functionId": "FF-C03",
+      "route": "symbolic",
+      "filePath": "src/routes/statementsRouter.ts",
+      "message": "Violation in src/routes/statementsRouter.ts",
+      "deterministic": true,
+      "discriminator": [],
+      "evidence": [
+        "instability=0.8888888888888888"
+      ],
+      "tag": "topological"
+    },
+    {
+      "id": "v-4b76142b0fe732b5",
+      "type": "INSTABILITY_VIOLATION",
+      "dimension": "coupling",
+      "severity": "major",
+      "functionId": "FF-C03",
+      "route": "symbolic",
+      "filePath": "src/services/paymentServices.ts",
+      "message": "Violation in src/services/paymentServices.ts",
+      "deterministic": true,
+      "discriminator": [],
+      "evidence": [
+        "instability=0.875"
+      ],
+      "tag": "topological"
+    },
+    {
+      "id": "v-bcd3c00335b54b18",
+      "type": "ORPHAN_FILE",
+      "dimension": "coupling",
+      "severity": "minor",
+      "functionId": "FF-C04",
+      "route": "symbolic",
+      "filePath": "src/repositories/index.ts",
+      "message": "Violation in src/repositories/index.ts",
+      "deterministic": true,
+      "discriminator": [],
+      "tag": "topological"
+    },
+    {
+      "id": "v-d39a208cb2676476",
+      "type": "MISSING_TEST_FILE",
+      "dimension": "convention",
+      "severity": "advisory",
+      "functionId": "FF-CV05",
+      "route": "symbolic",
+      "filePath": "src/controllers/cardsController.ts",
+      "message": "Violation in src/controllers/cardsController.ts",
+      "deterministic": true,
+      "discriminator": [],
+      "tag": "pattern-proxy"
+    },
+    {
+      "id": "v-e6f0f15c2d0e8dd8",
+      "type": "MISSING_TEST_FILE",
+      "dimension": "convention",
+      "severity": "advisory",
+      "functionId": "FF-CV05",
+      "route": "symbolic",
+      "filePath": "src/controllers/paymentsController.ts",
+      "message": "Violation in src/controllers/paymentsController.ts",
+      "deterministic": true,
+      "discriminator": [],
+      "tag": "pattern-proxy"
+    },
+    {
+      "id": "v-d4255da9490b9313",
+      "type": "MISSING_TEST_FILE",
+      "dimension": "convention",
+      "severity": "advisory",
+      "functionId": "FF-CV05",
+      "route": "symbolic",
+      "filePath": "src/controllers/rechargeController.ts",
+      "message": "Violation in src/controllers/rechargeController.ts",
+      "deterministic": true,
+      "discriminator": [],
+      "tag": "pattern-proxy"
+    },
+    {
+      "id": "v-434e35e8ecc072f3",
+      "type": "MISSING_TEST_FILE",
+      "dimension": "convention",
+      "severity": "advisory",
+      "functionId": "FF-CV05",
+      "route": "symbolic",
+      "filePath": "src/middlewares/apiKeyValidator.ts",
+      "message": "Violation in src/middlewares/apiKeyValidator.ts",
+      "deterministic": true,
+      "discriminator": [],
+      "tag": "pattern-proxy"
+    },
+    {
+      "id": "v-ec5b369f88fda416",
+      "type": "MISSING_TEST_FILE",
+      "dimension": "convention",
+      "severity": "advisory",
+      "functionId": "FF-CV05",
+      "route": "symbolic",
+      "filePath": "src/middlewares/bodySchemaValidator.ts",
+      "message": "Violation in src/middlewares/bodySchemaValidator.ts",
+      "deterministic": true,
+      "discriminator": [],
+      "tag": "pattern-proxy"
+    },
+    {
+      "id": "v-1efd870d6bc6ef89",
+      "type": "MISSING_TEST_FILE",
+      "dimension": "convention",
+      "severity": "advisory",
+      "functionId": "FF-CV05",
+      "route": "symbolic",
+      "filePath": "src/middlewares/errorHandlerMiddleware.ts",
+      "message": "Violation in src/middlewares/errorHandlerMiddleware.ts",
+      "deterministic": true,
+      "discriminator": [],
+      "tag": "pattern-proxy"
+    },
+    {
+      "id": "v-501f2dbc814d7147",
+      "type": "MISSING_TEST_FILE",
+      "dimension": "convention",
+      "severity": "advisory",
+      "functionId": "FF-CV05",
+      "route": "symbolic",
+      "filePath": "src/repositories/businessRepository.ts",
+      "message": "Violation in src/repositories/businessRepository.ts",
+      "deterministic": true,
+      "discriminator": [],
+      "tag": "pattern-proxy"
+    },
+    {
+      "id": "v-40d06aa80bf184fb",
+      "type": "MISSING_TEST_FILE",
+      "dimension": "convention",
+      "severity": "advisory",
+      "functionId": "FF-CV05",
+      "route": "symbolic",
+      "filePath": "src/repositories/cardRepository.ts",
+      "message": "Violation in src/repositories/cardRepository.ts",
+      "deterministic": true,
+      "discriminator": [],
+      "tag": "pattern-proxy"
+    },
+    {
+      "id": "v-c3c053db211f1263",
+      "type": "MISSING_TEST_FILE",
+      "dimension": "convention",
+      "severity": "advisory",
+      "functionId": "FF-CV05",
+      "route": "symbolic",
+      "filePath": "src/repositories/companyRepository.ts",
+      "message": "Violation in src/repositories/companyRepository.ts",
+      "deterministic": true,
+      "discriminator": [],
+      "tag": "pattern-proxy"
+    },
+    {
+      "id": "v-43fc20ec50dafdec",
+      "type": "MISSING_TEST_FILE",
+      "dimension": "convention",
+      "severity": "advisory",
+      "functionId": "FF-CV05",
+      "route": "symbolic",
+      "filePath": "src/repositories/employeeRepository.ts",
+      "message": "Violation in src/repositories/employeeRepository.ts",
+      "deterministic": true,
+      "discriminator": [],
+      "tag": "pattern-proxy"
+    },
+    {
+      "id": "v-d46c6c51067ebf4c",
+      "type": "MISSING_TEST_FILE",
+      "dimension": "convention",
+      "severity": "advisory",
+      "functionId": "FF-CV05",
+      "route": "symbolic",
+      "filePath": "src/repositories/index.ts",
+      "message": "Violation in src/repositories/index.ts",
+      "deterministic": true,
+      "discriminator": [],
+      "tag": "pattern-proxy"
+    },
+    {
+      "id": "v-b1b6724f551d2efa",
+      "type": "MISSING_TEST_FILE",
+      "dimension": "convention",
+      "severity": "advisory",
+      "functionId": "FF-CV05",
+      "route": "symbolic",
+      "filePath": "src/repositories/paymentRepository.ts",
+      "message": "Violation in src/repositories/paymentRepository.ts",
+      "deterministic": true,
+      "discriminator": [],
+      "tag": "pattern-proxy"
+    },
+    {
+      "id": "v-504eec40009fdf78",
+      "type": "MISSING_TEST_FILE",
+      "dimension": "convention",
+      "severity": "advisory",
+      "functionId": "FF-CV05",
+      "route": "symbolic",
+      "filePath": "src/repositories/rechargeRepository.ts",
+      "message": "Violation in src/repositories/rechargeRepository.ts",
+      "deterministic": true,
+      "discriminator": [],
+      "tag": "pattern-proxy"
+    },
+    {
+      "id": "v-0798f034c90c6ca9",
+      "type": "MISSING_TEST_FILE",
+      "dimension": "convention",
+      "severity": "advisory",
+      "functionId": "FF-CV05",
+      "route": "symbolic",
+      "filePath": "src/routes/cardsRouter.ts",
+      "message": "Violation in src/routes/cardsRouter.ts",
+      "deterministic": true,
+      "discriminator": [],
+      "tag": "pattern-proxy"
+    },
+    {
+      "id": "v-bec4c96c743a6247",
+      "type": "MISSING_TEST_FILE",
+      "dimension": "convention",
+      "severity": "advisory",
+      "functionId": "FF-CV05",
+      "route": "symbolic",
+      "filePath": "src/routes/router.ts",
+      "message": "Violation in src/routes/router.ts",
+      "deterministic": true,
+      "discriminator": [],
+      "tag": "pattern-proxy"
+    },
+    {
+      "id": "v-8adf53f0a93039e9",
+      "type": "MISSING_TEST_FILE",
+      "dimension": "convention",
+      "severity": "advisory",
+      "functionId": "FF-CV05",
+      "route": "symbolic",
+      "filePath": "src/routes/statementsRouter.ts",
+      "message": "Violation in src/routes/statementsRouter.ts",
+      "deterministic": true,
+      "discriminator": [],
+      "tag": "pattern-proxy"
+    },
+    {
+      "id": "v-df730182fa9429d1",
+      "type": "MISSING_TEST_FILE",
+      "dimension": "convention",
+      "severity": "advisory",
+      "functionId": "FF-CV05",
+      "route": "symbolic",
+      "filePath": "src/services/cardServices.ts",
+      "message": "Violation in src/services/cardServices.ts",
+      "deterministic": true,
+      "discriminator": [],
+      "tag": "pattern-proxy"
+    },
+    {
+      "id": "v-8178256d18020176",
+      "type": "MISSING_TEST_FILE",
+      "dimension": "convention",
+      "severity": "advisory",
+      "functionId": "FF-CV05",
+      "route": "symbolic",
+      "filePath": "src/services/paymentServices.ts",
+      "message": "Violation in src/services/paymentServices.ts",
+      "deterministic": true,
+      "discriminator": [],
+      "tag": "pattern-proxy"
+    },
+    {
+      "id": "v-61aa8ecdc1d4545d",
+      "type": "MISSING_TEST_FILE",
+      "dimension": "convention",
+      "severity": "advisory",
+      "functionId": "FF-CV05",
+      "route": "symbolic",
+      "filePath": "src/services/rechargeService.ts",
+      "message": "Violation in src/services/rechargeService.ts",
+      "deterministic": true,
+      "discriminator": [],
+      "tag": "pattern-proxy"
+    }
+  ],
+  "universalMetrics": {
+    "cyclicDependencyCount": 6,
+    "maxFanOut": 8,
+    "maxFanIn": 6,
+    "abstractionRatio": 1,
+    "averageInstability": 0.363,
+    "orphanFileCount": 1
+  },
+  "evaluationMode": "symbolic-only",
+  "durationMs": 12,
+  "droppedDimensions": [],
+  "warnings": [
+    {
+      "code": "SPEC_002",
+      "message": "Template function \"FF-C01\" overridden by spec declaration",
+      "stage": "parse-spec"
+    },
+    {
+      "code": "SPEC_002",
+      "message": "Template function \"FF-C02\" overridden by spec declaration",
+      "stage": "parse-spec"
+    },
+    {
+      "code": "SPEC_002",
+      "message": "Template function \"FF-C03\" overridden by spec declaration",
+      "stage": "parse-spec"
+    },
+    {
+      "code": "SPEC_002",
+      "message": "Template function \"FF-C04\" overridden by spec declaration",
+      "stage": "parse-spec"
+    },
+    {
+      "code": "SPEC_002",
+      "message": "Template function \"FF-C05\" overridden by spec declaration",
+      "stage": "parse-spec"
+    },
+    {
+      "code": "SPEC_002",
+      "message": "Template function \"FF-C06\" overridden by spec declaration",
+      "stage": "parse-spec"
+    },
+    {
+      "code": "SPEC_002",
+      "message": "Template function \"FF-CV01\" overridden by spec declaration",
+      "stage": "parse-spec"
+    },
+    {
+      "code": "SPEC_002",
+      "message": "Template function \"FF-CV02\" overridden by spec declaration",
+      "stage": "parse-spec"
+    },
+    {
+      "code": "SPEC_002",
+      "message": "Template function \"FF-CV03\" overridden by spec declaration",
+      "stage": "parse-spec"
+    },
+    {
+      "code": "SPEC_002",
+      "message": "Template function \"FF-CV04\" overridden by spec declaration",
+      "stage": "parse-spec"
+    },
+    {
+      "code": "SPEC_002",
+      "message": "Template function \"FF-CV05\" overridden by spec declaration",
+      "stage": "parse-spec"
+    },
+    {
+      "code": "SPEC_002",
+      "message": "Template function \"FF-CV06\" overridden by spec declaration",
+      "stage": "parse-spec"
+    },
+    {
+      "code": "SPEC_002",
+      "message": "Template function \"FF-N01\" overridden by spec declaration",
+      "stage": "parse-spec"
+    },
+    {
+      "code": "SPEC_002",
+      "message": "Template function \"FF-N02\" overridden by spec declaration",
+      "stage": "parse-spec"
+    },
+    {
+      "code": "SPEC_002",
+      "message": "Template function \"FF-P01\" overridden by spec declaration",
+      "stage": "parse-spec"
+    },
+    {
+      "code": "SPEC_002",
+      "message": "Template function \"FF-P02\" overridden by spec declaration",
+      "stage": "parse-spec"
+    },
+    {
+      "code": "SPEC_002",
+      "message": "Template function \"FF-P03\" overridden by spec declaration",
+      "stage": "parse-spec"
+    },
+    {
+      "code": "SPEC_002",
+      "message": "Template function \"FF-P04\" overridden by spec declaration",
+      "stage": "parse-spec"
+    },
+    {
+      "code": "SPEC_002",
+      "message": "Template function \"FF-P05\" overridden by spec declaration",
+      "stage": "parse-spec"
+    },
+    {
+      "code": "SPEC_002",
+      "message": "Template function \"FF-P06\" overridden by spec declaration",
+      "stage": "parse-spec"
+    },
+    {
+      "code": "SPEC_002",
+      "message": "Template function \"FF-S01\" overridden by spec declaration",
+      "stage": "parse-spec"
+    },
+    {
+      "code": "SPEC_002",
+      "message": "Template function \"FF-S02\" overridden by spec declaration",
+      "stage": "parse-spec"
+    },
+    {
+      "code": "SPEC_002",
+      "message": "Template function \"FF-S03\" overridden by spec declaration",
+      "stage": "parse-spec"
+    },
+    {
+      "code": "SPEC_002",
+      "message": "Template function \"FF-S04\" overridden by spec declaration",
+      "stage": "parse-spec"
+    },
+    {
+      "code": "SPEC_002",
+      "message": "Template function \"FF-SO01\" overridden by spec declaration",
+      "stage": "parse-spec"
+    },
+    {
+      "code": "SPEC_002",
+      "message": "Template function \"FF-SO02\" overridden by spec declaration",
+      "stage": "parse-spec"
+    },
+    {
+      "code": "SPEC_002",
+      "message": "Template function \"FF-SO03\" overridden by spec declaration",
+      "stage": "parse-spec"
+    },
+    {
+      "code": "COMPILER_004",
+      "message": "FF-C01 (domain-stability) disabled: not applicable to style layered",
+      "context": {
+        "functionId": "FF-C01"
+      },
+      "stage": "compile-functions"
+    },
+    {
+      "code": "COMPILER_004",
+      "message": "FF-CV02 (naming-services) disabled: no application layer",
+      "context": {
+        "functionId": "FF-CV02"
+      },
+      "stage": "compile-functions"
+    },
+    {
+      "code": "COMPILER_004",
+      "message": "FF-P02 (dependency-inversion) disabled: not applicable to style layered",
+      "context": {
+        "functionId": "FF-P02"
+      },
+      "stage": "compile-functions"
+    },
+    {
+      "code": "COMPILER_004",
+      "message": "FF-P03 (repository-pattern) disabled: not applicable to style layered",
+      "context": {
+        "functionId": "FF-P03"
+      },
+      "stage": "compile-functions"
+    },
+    {
+      "code": "COMPILER_004",
+      "message": "FF-P04 (use-case-isolation) disabled: not applicable to style layered",
+      "context": {
+        "functionId": "FF-P04"
+      },
+      "stage": "compile-functions"
+    },
+    {
+      "code": "COMPILER_004",
+      "message": "FF-P05 (controller-no-entity) disabled: not applicable to style layered",
+      "context": {
+        "functionId": "FF-P05"
+      },
+      "stage": "compile-functions"
+    },
+    {
+      "code": "COMPILER_004",
+      "message": "FF-S04 (no-domain-outward-dep) disabled: not applicable to style layered",
+      "context": {
+        "functionId": "FF-S04"
+      },
+      "stage": "compile-functions"
+    }
+  ],
+  "functionExecution": {
+    "declared": 27,
+    "adrDerived": 0,
+    "compiled": 18,
+    "disabled": 9,
+    "dropped": [],
+    "skippedByMode": 2,
+    "noJudgeUnits": [],
+    "executed": 16,
+    "failed": []
+  },
+  "functionResults": [
+    {
+      "functionId": "FF-P06",
+      "name": "domain-state-purity",
+      "dimension": "pattern",
+      "route": "symbolic",
+      "tag": "structural",
+      "passed": true,
+      "violationCount": 0,
+      "executionTimeMs": 1,
+      "truncated": false
+    },
+    {
+      "functionId": "FF-S01",
+      "name": "dependency-direction",
+      "dimension": "structural",
+      "route": "symbolic",
+      "tag": "structural",
+      "passed": false,
+      "violationCount": 3,
+      "executionTimeMs": 2,
+      "truncated": false
+    },
+    {
+      "functionId": "FF-S03",
+      "name": "no-layer-skip",
+      "dimension": "structural",
+      "route": "symbolic",
+      "tag": "structural",
+      "passed": false,
+      "violationCount": 4,
+      "executionTimeMs": 1,
+      "truncated": false
+    },
+    {
+      "functionId": "FF-C02",
+      "name": "module-fan-out",
+      "dimension": "coupling",
+      "route": "symbolic",
+      "tag": "topological",
+      "passed": true,
+      "violationCount": 0,
+      "executionTimeMs": 1,
+      "truncated": false
+    },
+    {
+      "functionId": "FF-C03",
+      "name": "component-instability",
+      "dimension": "coupling",
+      "route": "symbolic",
+      "tag": "topological",
+      "passed": false,
+      "violationCount": 3,
+      "executionTimeMs": 1,
+      "truncated": false
+    },
+    {
+      "functionId": "FF-C04",
+      "name": "no-orphan-files",
+      "dimension": "coupling",
+      "route": "symbolic",
+      "tag": "topological",
+      "passed": false,
+      "violationCount": 1,
+      "executionTimeMs": 1,
+      "truncated": false
+    },
+    {
+      "functionId": "FF-C05",
+      "name": "max-fan-in",
+      "dimension": "coupling",
+      "route": "symbolic",
+      "tag": "topological",
+      "passed": true,
+      "violationCount": 0,
+      "executionTimeMs": 1,
+      "truncated": false
+    },
+    {
+      "functionId": "FF-C06",
+      "name": "abstraction-ratio",
+      "dimension": "coupling",
+      "route": "symbolic",
+      "tag": "topological",
+      "passed": true,
+      "violationCount": 0,
+      "executionTimeMs": 1,
+      "truncated": false
+    },
+    {
+      "functionId": "FF-S02",
+      "name": "no-cyclic-deps",
+      "dimension": "structural",
+      "route": "symbolic",
+      "tag": "topological",
+      "passed": false,
+      "violationCount": 4,
+      "executionTimeMs": 3,
+      "truncated": false
+    },
+    {
+      "functionId": "FF-SO03",
+      "name": "inheritance-depth",
+      "dimension": "solid",
+      "route": "symbolic",
+      "tag": "topological",
+      "passed": true,
+      "violationCount": 0,
+      "executionTimeMs": 1,
+      "truncated": false
+    },
+    {
+      "functionId": "FF-CV03",
+      "name": "naming-repos",
+      "dimension": "convention",
+      "route": "symbolic",
+      "tag": "pattern-proxy",
+      "passed": true,
+      "violationCount": 0,
+      "executionTimeMs": 1,
+      "truncated": false
+    },
+    {
+      "functionId": "FF-CV05",
+      "name": "test-file-pairing",
+      "dimension": "convention",
+      "route": "symbolic",
+      "tag": "pattern-proxy",
+      "passed": false,
+      "violationCount": 19,
+      "executionTimeMs": 2,
+      "truncated": false
+    },
+    {
+      "functionId": "FF-CV06",
+      "name": "no-index-logic",
+      "dimension": "convention",
+      "route": "symbolic",
+      "tag": "pattern-proxy",
+      "passed": true,
+      "violationCount": 0,
+      "executionTimeMs": 1,
+      "truncated": false
+    },
+    {
+      "functionId": "FF-P01",
+      "name": "domain-purity",
+      "dimension": "pattern",
+      "route": "symbolic",
+      "tag": "pattern-proxy",
+      "passed": true,
+      "violationCount": 0,
+      "executionTimeMs": 1,
+      "truncated": false
+    },
+    {
+      "functionId": "FF-SO01",
+      "name": "single-responsibility-proxy",
+      "dimension": "solid",
+      "route": "symbolic",
+      "tag": "pattern-proxy",
+      "passed": true,
+      "violationCount": 0,
+      "executionTimeMs": 0,
+      "truncated": false
+    },
+    {
+      "functionId": "FF-SO02",
+      "name": "interface-segregation-proxy",
+      "dimension": "solid",
+      "route": "symbolic",
+      "tag": "pattern-proxy",
+      "passed": true,
+      "violationCount": 0,
+      "executionTimeMs": 1,
+      "truncated": false
+    }
+  ],
+  "disabledFunctions": [
+    {
+      "functionId": "FF-C01",
+      "name": "domain-stability",
+      "reason": "not applicable to style layered"
+    },
+    {
+      "functionId": "FF-CV01",
+      "name": "naming-conventions",
+      "reason": "ADR-016 b (B&T Step 31): cannot fire; per-layer naming patterns compile to .* and no requirement supplies them (SP-FF-CV01 not fired)"
+    },
+    {
+      "functionId": "FF-CV02",
+      "name": "naming-services",
+      "reason": "no application layer"
+    },
+    {
+      "functionId": "FF-CV04",
+      "name": "naming-controllers",
+      "reason": "ADR-016 b (B&T Step 31): cannot fire; class decorators are not ingested (BR-U2-31), so no controller is selected (SP-FF-CV04 not fired)"
+    },
+    {
+      "functionId": "FF-P02",
+      "name": "dependency-inversion",
+      "reason": "not applicable to style layered"
+    },
+    {
+      "functionId": "FF-P03",
+      "name": "repository-pattern",
+      "reason": "not applicable to style layered"
+    },
+    {
+      "functionId": "FF-P04",
+      "name": "use-case-isolation",
+      "reason": "not applicable to style layered"
+    },
+    {
+      "functionId": "FF-P05",
+      "name": "controller-no-entity",
+      "reason": "not applicable to style layered"
+    },
+    {
+      "functionId": "FF-S04",
+      "name": "no-domain-outward-dep",
+      "reason": "not applicable to style layered"
+    }
+  ],
+  "graphStats": {
+    "nodeCount": 79,
+    "edgeCount": 119,
+    "layerCoverage": 0.59375,
+    "nodeCountByType": {
+      "File": 32,
+      "Class": 0,
+      "Interface": 10,
+      "Method": 0,
+      "Function": 27,
+      "Package": 10
+    },
+    "edgeCountByType": {
+      "IMPORTS": 82,
+      "IMPLEMENTS": 0,
+      "EXTENDS": 0,
+      "CONSTRUCTOR_INJECTS": 0,
+      "CALLS": 0,
+      "DECLARES": 37,
+      "CONTAINS": 0,
+      "FLOWS_TO": 0,
+      "RE_EXPORTS": 0
+    }
+  },
+  "layerAnnotation": {
+    "mapped": 19,
+    "unmapped": 13,
+    "unmappedFiles": [
+      "src/index.ts",
+      "src/config/cryptr.ts",
+      "src/config/database.ts",
+      "src/schemas/activateCardSchema.ts",
+      "src/schemas/blockCardSchema.ts",
+      "src/schemas/createCardSchema.ts",
+      "src/schemas/createVirtualCardSchema.ts",
+      "src/schemas/onlinePaymentSchema.ts",
+      "src/schemas/paymentSchema.ts",
+      "src/schemas/rechargeSchema.ts",
+      "src/utils/cardUtils.ts",
+      "src/utils/paymentUtils.ts",
+      "src/utils/sqlUtils.ts"
+    ]
+  },
+  "parseCoverage": {
+    "total": 32,
+    "parsed": 32,
+    "percentage": 100,
+    "skipped": []
+  },
+  "importResolution": {
+    "resolvedInternal": 58,
+    "external": 27,
+    "externalOutOfRootAlias": 0,
+    "unresolved": 0,
+    "droppedNoFileNode": 0,
+    "unsupportedDynamic": 0
+  },
+  "timings": {
+    "stages": [
+      {
+        "name": "parallel:extract-apg+parse-spec",
+        "durationMs": 463,
+        "status": "success"
+      },
+      {
+        "name": "ingest-apg",
+        "durationMs": 71,
+        "status": "success"
+      },
+      {
+        "name": "compile-functions",
+        "durationMs": 2,
+        "status": "success"
+      },
+      {
+        "name": "evaluate-symbolic",
+        "durationMs": 19,
+        "status": "success"
+      },
+      {
+        "name": "universal-metric:cyclicDependencyCount",
+        "durationMs": 5,
+        "status": "success"
+      },
+      {
+        "name": "compute-scores",
+        "durationMs": 14,
+        "status": "success"
+      }
+    ],
+    "totalMs": 569
+  },
+  "judge": {
+    "provider": "none",
+    "model": "none",
+    "runsPerUnit": 0
+  },
+  "instrumentVersion": 2
+}

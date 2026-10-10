@@ -69,7 +69,12 @@ describe('registry (BR-U5b-51)', () => {
       'corpus/selections/*.json', 'scripts/generate-e7-specs-cli.ts', 'scripts/migrate-corpus-spec.ts', 'scripts/migrate-corpus-spec-cli.ts',
       'scripts/remap-domain-layer.ts', 'scripts/remap-domain-layer-cli.ts', 'scripts/corpus-rubric-u4.ts', 'scripts/corpus-rubric-u4-cli.ts',
       'Docs/threats-to-validity.md', 'Docs/labeller-route.md',
+      'scripts/depcruise-translate.ts', 'experiments/tool-comparison/depcruise/package.json',
+      'experiments/tool-comparison/depcruise/package-lock.json',
     ]);
+    // ADR-030 (v19): the translator and the pinned dependency-cruiser are registered; the scorer is not.
+    expect(isRegisteredPath('scripts/depcruise-translate.ts')).toBe(true);
+    expect(isRegisteredPath('scripts/tool-comparison.ts')).toBe(false);
     // ADR-021 item 5 (P-U6): the count inputs are registered; other diagnostic runs are not.
     expect(isRegisteredPath('corpus/selections/v-aguiar__valex.json')).toBe(true);
     expect(isRegisteredPath('Docs/DiagnosticRuns/u5a-site-feasibility.md')).toBe(false);

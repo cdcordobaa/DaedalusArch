@@ -1,0 +1,130 @@
+{
+ "runId": "tool-comparison-033-dry-run-test_MO-S01_1",
+ "projectId": "dry-run-test:MO-S01:1",
+ "path": "../daedalus-so4/copies/dry-run-test/MO-S01/k-1",
+ "specPath": "corpus/specs/dry-run-test.yaml",
+ "depcruiseVersion": "18.4.0",
+ "translationVersion": "1.0.0",
+ "wallMs": 826,
+ "exitCode": 0,
+ "totalCruised": 201,
+ "findings": [
+  {
+   "functionId": "FF-P01",
+   "filePath": "src/files/infrastructure/persistence/relational/entities/file.entity.ts",
+   "target": "typeorm"
+  },
+  {
+   "functionId": "FF-P01",
+   "filePath": "src/roles/infrastructure/persistence/relational/entities/role.entity.ts",
+   "target": "typeorm"
+  },
+  {
+   "functionId": "FF-P01",
+   "filePath": "src/session/infrastructure/persistence/relational/entities/session.entity.ts",
+   "target": "typeorm"
+  },
+  {
+   "functionId": "FF-P01",
+   "filePath": "src/statuses/infrastructure/persistence/relational/entities/status.entity.ts",
+   "target": "typeorm"
+  },
+  {
+   "functionId": "FF-P01",
+   "filePath": "src/users/infrastructure/persistence/relational/entities/user.entity.ts",
+   "target": "typeorm"
+  },
+  {
+   "functionId": "FF-S01",
+   "filePath": "src/statuses/domain/status.ts",
+   "target": "src/session/infrastructure/persistence/document/repositories/session.repository.ts"
+  },
+  {
+   "functionId": "FF-S01",
+   "filePath": "src/users/infrastructure/persistence/document/repositories/user.repository.ts",
+   "target": "src/users/dto/query-user.dto.ts"
+  },
+  {
+   "functionId": "FF-S01",
+   "filePath": "src/users/infrastructure/persistence/relational/repositories/user.repository.ts",
+   "target": "src/users/dto/query-user.dto.ts"
+  },
+  {
+   "functionId": "FF-S01",
+   "filePath": "src/users/infrastructure/persistence/user.repository.ts",
+   "target": "src/users/dto/query-user.dto.ts"
+  },
+  {
+   "functionId": "FF-S02",
+   "filePath": "src/session/domain/session.ts",
+   "target": "src/session/domain/session.ts > src/users/domain/user.ts > src/statuses/domain/status.ts > src/session/infrastructure/persistence/document/repositories/session.repository.ts",
+   "cycle": [
+    "src/session/domain/session.ts",
+    "src/users/domain/user.ts",
+    "src/statuses/domain/status.ts",
+    "src/session/infrastructure/persistence/document/repositories/session.repository.ts"
+   ]
+  },
+  {
+   "functionId": "FF-S02",
+   "filePath": "src/session/domain/session.ts",
+   "target": "src/session/domain/session.ts > src/users/domain/user.ts > src/statuses/domain/status.ts > src/session/infrastructure/persistence/document/repositories/session.repository.ts > src/session/infrastructure/persistence/document/mappers/session.mapper.ts",
+   "cycle": [
+    "src/session/domain/session.ts",
+    "src/users/domain/user.ts",
+    "src/statuses/domain/status.ts",
+    "src/session/infrastructure/persistence/document/repositories/session.repository.ts",
+    "src/session/infrastructure/persistence/document/mappers/session.mapper.ts"
+   ]
+  },
+  {
+   "functionId": "FF-S02",
+   "filePath": "src/session/infrastructure/persistence/document/mappers/session.mapper.ts",
+   "target": "src/session/infrastructure/persistence/document/mappers/session.mapper.ts > src/users/domain/user.ts > src/statuses/domain/status.ts > src/session/infrastructure/persistence/document/repositories/session.repository.ts",
+   "cycle": [
+    "src/session/infrastructure/persistence/document/mappers/session.mapper.ts",
+    "src/users/domain/user.ts",
+    "src/statuses/domain/status.ts",
+    "src/session/infrastructure/persistence/document/repositories/session.repository.ts"
+   ]
+  },
+  {
+   "functionId": "FF-S02",
+   "filePath": "src/session/infrastructure/persistence/document/repositories/session.repository.ts",
+   "target": "src/session/infrastructure/persistence/document/repositories/session.repository.ts > src/session/infrastructure/persistence/session.repository.ts > src/users/domain/user.ts > src/statuses/domain/status.ts",
+   "cycle": [
+    "src/session/infrastructure/persistence/document/repositories/session.repository.ts",
+    "src/session/infrastructure/persistence/session.repository.ts",
+    "src/users/domain/user.ts",
+    "src/statuses/domain/status.ts"
+   ]
+  },
+  {
+   "functionId": "FF-S02",
+   "filePath": "src/session/infrastructure/persistence/document/repositories/session.repository.ts",
+   "target": "src/session/infrastructure/persistence/document/repositories/session.repository.ts > src/users/domain/user.ts > src/statuses/domain/status.ts",
+   "cycle": [
+    "src/session/infrastructure/persistence/document/repositories/session.repository.ts",
+    "src/users/domain/user.ts",
+    "src/statuses/domain/status.ts"
+   ]
+  },
+  {
+   "functionId": "FF-S02",
+   "filePath": "src/session/domain/session.ts",
+   "target": "src/session/domain/session.ts > src/users/domain/user.ts > src/statuses/domain/status.ts > src/session/infrastructure/persistence/document/repositories/session.repository.ts > src/session/infrastructure/persistence/session.repository.ts",
+   "cycle": [
+    "src/session/domain/session.ts",
+    "src/users/domain/user.ts",
+    "src/statuses/domain/status.ts",
+    "src/session/infrastructure/persistence/document/repositories/session.repository.ts",
+    "src/session/infrastructure/persistence/session.repository.ts"
+   ]
+  },
+  {
+   "functionId": "FF-S04",
+   "filePath": "src/statuses/domain/status.ts",
+   "target": "src/session/infrastructure/persistence/document/repositories/session.repository.ts"
+  }
+ ]
+}

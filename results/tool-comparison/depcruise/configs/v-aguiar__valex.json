@@ -1,0 +1,497 @@
+{
+  "forbidden": [
+    {
+      "name": "FF-S01--persistence--business--00",
+      "severity": "error",
+      "comment": "T2 dependency-direction",
+      "from": {
+        "path": [
+          "^src\\/persistence(?:\\/|$)",
+          "(?:^|\\/)repositories(?:\\/|$)"
+        ]
+      },
+      "to": {
+        "path": [
+          "^src\\/business(?:\\/|$)",
+          "(?:^|\\/)services(?:\\/|$)",
+          "(?:^|\\/)domain(?:\\/|$)"
+        ],
+        "pathNot": [
+          "^src\\/persistence(?:\\/|$)",
+          "(?:^|\\/)repositories(?:\\/|$)",
+          "(^|/)node_modules/"
+        ]
+      }
+    },
+    {
+      "name": "FF-S01--persistence--business--01",
+      "severity": "error",
+      "comment": "T2 dependency-direction",
+      "from": {
+        "path": [
+          "^src\\/persistence(?:\\/|$)",
+          "(?:^|\\/)repositories(?:\\/|$)"
+        ]
+      },
+      "to": {
+        "path": [
+          "(?:^|\\/)[^/]*\\.entity\\.ts$"
+        ],
+        "pathNot": [
+          "^src\\/persistence(?:\\/|$)",
+          "(?:^|\\/)repositories(?:\\/|$)",
+          "^src\\/business(?:\\/|$)",
+          "(?:^|\\/)services(?:\\/|$)",
+          "(?:^|\\/)domain(?:\\/|$)",
+          "^src\\/presentation(?:\\/|$)",
+          "(?:^|\\/)controllers(?:\\/|$)",
+          "(?:^|\\/)middlewares(?:\\/|$)",
+          "(?:^|\\/)routes(?:\\/|$)",
+          "(^|/)node_modules/"
+        ]
+      }
+    },
+    {
+      "name": "FF-S01--persistence--presentation--00",
+      "severity": "error",
+      "comment": "T2 dependency-direction",
+      "from": {
+        "path": [
+          "^src\\/persistence(?:\\/|$)",
+          "(?:^|\\/)repositories(?:\\/|$)"
+        ]
+      },
+      "to": {
+        "path": [
+          "^src\\/presentation(?:\\/|$)",
+          "(?:^|\\/)controllers(?:\\/|$)",
+          "(?:^|\\/)middlewares(?:\\/|$)",
+          "(?:^|\\/)routes(?:\\/|$)"
+        ],
+        "pathNot": [
+          "^src\\/persistence(?:\\/|$)",
+          "(?:^|\\/)repositories(?:\\/|$)",
+          "^src\\/business(?:\\/|$)",
+          "(?:^|\\/)services(?:\\/|$)",
+          "(?:^|\\/)domain(?:\\/|$)",
+          "(^|/)node_modules/"
+        ]
+      }
+    },
+    {
+      "name": "FF-S01--business--presentation--00",
+      "severity": "error",
+      "comment": "T2 dependency-direction",
+      "from": {
+        "path": [
+          "^src\\/business(?:\\/|$)",
+          "(?:^|\\/)services(?:\\/|$)",
+          "(?:^|\\/)domain(?:\\/|$)"
+        ],
+        "pathNot": [
+          "^src\\/persistence(?:\\/|$)",
+          "(?:^|\\/)repositories(?:\\/|$)"
+        ]
+      },
+      "to": {
+        "path": [
+          "^src\\/presentation(?:\\/|$)",
+          "(?:^|\\/)controllers(?:\\/|$)",
+          "(?:^|\\/)middlewares(?:\\/|$)",
+          "(?:^|\\/)routes(?:\\/|$)"
+        ],
+        "pathNot": [
+          "^src\\/persistence(?:\\/|$)",
+          "(?:^|\\/)repositories(?:\\/|$)",
+          "^src\\/business(?:\\/|$)",
+          "(?:^|\\/)services(?:\\/|$)",
+          "(?:^|\\/)domain(?:\\/|$)",
+          "(^|/)node_modules/"
+        ]
+      }
+    },
+    {
+      "name": "FF-S01--business--presentation--10",
+      "severity": "error",
+      "comment": "T2 dependency-direction",
+      "from": {
+        "path": [
+          "(?:^|\\/)[^/]*\\.entity\\.ts$"
+        ],
+        "pathNot": [
+          "^src\\/persistence(?:\\/|$)",
+          "(?:^|\\/)repositories(?:\\/|$)",
+          "^src\\/business(?:\\/|$)",
+          "(?:^|\\/)services(?:\\/|$)",
+          "(?:^|\\/)domain(?:\\/|$)",
+          "^src\\/presentation(?:\\/|$)",
+          "(?:^|\\/)controllers(?:\\/|$)",
+          "(?:^|\\/)middlewares(?:\\/|$)",
+          "(?:^|\\/)routes(?:\\/|$)"
+        ]
+      },
+      "to": {
+        "path": [
+          "^src\\/presentation(?:\\/|$)",
+          "(?:^|\\/)controllers(?:\\/|$)",
+          "(?:^|\\/)middlewares(?:\\/|$)",
+          "(?:^|\\/)routes(?:\\/|$)"
+        ],
+        "pathNot": [
+          "^src\\/persistence(?:\\/|$)",
+          "(?:^|\\/)repositories(?:\\/|$)",
+          "^src\\/business(?:\\/|$)",
+          "(?:^|\\/)services(?:\\/|$)",
+          "(?:^|\\/)domain(?:\\/|$)",
+          "(^|/)node_modules/"
+        ]
+      }
+    },
+    {
+      "name": "FF-S02--cycle",
+      "severity": "error",
+      "comment": "T6 no-cyclic-deps",
+      "from": {},
+      "to": {
+        "circular": true
+      }
+    },
+    {
+      "name": "FF-S03--persistence--business--00",
+      "severity": "error",
+      "comment": "T3 no-layer-skip",
+      "from": {
+        "path": [
+          "^src\\/persistence(?:\\/|$)",
+          "(?:^|\\/)repositories(?:\\/|$)"
+        ]
+      },
+      "to": {
+        "path": [
+          "^src\\/business(?:\\/|$)",
+          "(?:^|\\/)services(?:\\/|$)",
+          "(?:^|\\/)domain(?:\\/|$)"
+        ],
+        "pathNot": [
+          "^src\\/persistence(?:\\/|$)",
+          "(?:^|\\/)repositories(?:\\/|$)",
+          "(^|/)node_modules/"
+        ]
+      }
+    },
+    {
+      "name": "FF-S03--persistence--business--01",
+      "severity": "error",
+      "comment": "T3 no-layer-skip",
+      "from": {
+        "path": [
+          "^src\\/persistence(?:\\/|$)",
+          "(?:^|\\/)repositories(?:\\/|$)"
+        ]
+      },
+      "to": {
+        "path": [
+          "(?:^|\\/)[^/]*\\.entity\\.ts$"
+        ],
+        "pathNot": [
+          "^src\\/persistence(?:\\/|$)",
+          "(?:^|\\/)repositories(?:\\/|$)",
+          "^src\\/business(?:\\/|$)",
+          "(?:^|\\/)services(?:\\/|$)",
+          "(?:^|\\/)domain(?:\\/|$)",
+          "^src\\/presentation(?:\\/|$)",
+          "(?:^|\\/)controllers(?:\\/|$)",
+          "(?:^|\\/)middlewares(?:\\/|$)",
+          "(?:^|\\/)routes(?:\\/|$)",
+          "(^|/)node_modules/"
+        ]
+      }
+    },
+    {
+      "name": "FF-S03--persistence--presentation--00",
+      "severity": "error",
+      "comment": "T3 no-layer-skip",
+      "from": {
+        "path": [
+          "^src\\/persistence(?:\\/|$)",
+          "(?:^|\\/)repositories(?:\\/|$)"
+        ]
+      },
+      "to": {
+        "path": [
+          "^src\\/presentation(?:\\/|$)",
+          "(?:^|\\/)controllers(?:\\/|$)",
+          "(?:^|\\/)middlewares(?:\\/|$)",
+          "(?:^|\\/)routes(?:\\/|$)"
+        ],
+        "pathNot": [
+          "^src\\/persistence(?:\\/|$)",
+          "(?:^|\\/)repositories(?:\\/|$)",
+          "^src\\/business(?:\\/|$)",
+          "(?:^|\\/)services(?:\\/|$)",
+          "(?:^|\\/)domain(?:\\/|$)",
+          "(^|/)node_modules/"
+        ]
+      }
+    },
+    {
+      "name": "FF-S03--business--presentation--00",
+      "severity": "error",
+      "comment": "T3 no-layer-skip",
+      "from": {
+        "path": [
+          "^src\\/business(?:\\/|$)",
+          "(?:^|\\/)services(?:\\/|$)",
+          "(?:^|\\/)domain(?:\\/|$)"
+        ],
+        "pathNot": [
+          "^src\\/persistence(?:\\/|$)",
+          "(?:^|\\/)repositories(?:\\/|$)"
+        ]
+      },
+      "to": {
+        "path": [
+          "^src\\/presentation(?:\\/|$)",
+          "(?:^|\\/)controllers(?:\\/|$)",
+          "(?:^|\\/)middlewares(?:\\/|$)",
+          "(?:^|\\/)routes(?:\\/|$)"
+        ],
+        "pathNot": [
+          "^src\\/persistence(?:\\/|$)",
+          "(?:^|\\/)repositories(?:\\/|$)",
+          "^src\\/business(?:\\/|$)",
+          "(?:^|\\/)services(?:\\/|$)",
+          "(?:^|\\/)domain(?:\\/|$)",
+          "(^|/)node_modules/"
+        ]
+      }
+    },
+    {
+      "name": "FF-S03--business--presentation--10",
+      "severity": "error",
+      "comment": "T3 no-layer-skip",
+      "from": {
+        "path": [
+          "(?:^|\\/)[^/]*\\.entity\\.ts$"
+        ],
+        "pathNot": [
+          "^src\\/persistence(?:\\/|$)",
+          "(?:^|\\/)repositories(?:\\/|$)",
+          "^src\\/business(?:\\/|$)",
+          "(?:^|\\/)services(?:\\/|$)",
+          "(?:^|\\/)domain(?:\\/|$)",
+          "^src\\/presentation(?:\\/|$)",
+          "(?:^|\\/)controllers(?:\\/|$)",
+          "(?:^|\\/)middlewares(?:\\/|$)",
+          "(?:^|\\/)routes(?:\\/|$)"
+        ]
+      },
+      "to": {
+        "path": [
+          "^src\\/presentation(?:\\/|$)",
+          "(?:^|\\/)controllers(?:\\/|$)",
+          "(?:^|\\/)middlewares(?:\\/|$)",
+          "(?:^|\\/)routes(?:\\/|$)"
+        ],
+        "pathNot": [
+          "^src\\/persistence(?:\\/|$)",
+          "(?:^|\\/)repositories(?:\\/|$)",
+          "^src\\/business(?:\\/|$)",
+          "(?:^|\\/)services(?:\\/|$)",
+          "(?:^|\\/)domain(?:\\/|$)",
+          "(^|/)node_modules/"
+        ]
+      }
+    },
+    {
+      "name": "FF-S03--presentation--persistence--00",
+      "severity": "error",
+      "comment": "T3 no-layer-skip",
+      "from": {
+        "path": [
+          "^src\\/presentation(?:\\/|$)",
+          "(?:^|\\/)controllers(?:\\/|$)",
+          "(?:^|\\/)middlewares(?:\\/|$)",
+          "(?:^|\\/)routes(?:\\/|$)"
+        ],
+        "pathNot": [
+          "^src\\/persistence(?:\\/|$)",
+          "(?:^|\\/)repositories(?:\\/|$)",
+          "^src\\/business(?:\\/|$)",
+          "(?:^|\\/)services(?:\\/|$)",
+          "(?:^|\\/)domain(?:\\/|$)"
+        ]
+      },
+      "to": {
+        "path": [
+          "^src\\/persistence(?:\\/|$)",
+          "(?:^|\\/)repositories(?:\\/|$)"
+        ],
+        "pathNot": [
+          "(^|/)node_modules/"
+        ]
+      }
+    },
+    {
+      "name": "FF-P01--business--packages--0",
+      "severity": "error",
+      "comment": "T5 domain-purity",
+      "from": {
+        "path": [
+          "^src\\/business(?:\\/|$)",
+          "(?:^|\\/)services(?:\\/|$)",
+          "(?:^|\\/)domain(?:\\/|$)"
+        ],
+        "pathNot": [
+          "^src\\/persistence(?:\\/|$)",
+          "(?:^|\\/)repositories(?:\\/|$)"
+        ]
+      },
+      "to": {
+        "path": [
+          "(^|/)node_modules/@nestjs/[^/]+(/|$)|^@nestjs/[^/]+(/|$)",
+          "(^|/)node_modules/typeorm(/|$)|^typeorm(/|$)|(^|/)node_modules/@types/typeorm(/|$)",
+          "(^|/)node_modules/express(/|$)|^express(/|$)|(^|/)node_modules/@types/express(/|$)",
+          "(^|/)node_modules/prisma(/|$)|^prisma(/|$)|(^|/)node_modules/@types/prisma(/|$)",
+          "(^|/)node_modules/@prisma/[^/]+(/|$)|^@prisma/[^/]+(/|$)",
+          "(^|/)node_modules/sequelize(/|$)|^sequelize(/|$)|(^|/)node_modules/@types/sequelize(/|$)"
+        ]
+      }
+    },
+    {
+      "name": "FF-P01--business--packages--1",
+      "severity": "error",
+      "comment": "T5 domain-purity",
+      "from": {
+        "path": [
+          "(?:^|\\/)[^/]*\\.entity\\.ts$"
+        ],
+        "pathNot": [
+          "^src\\/persistence(?:\\/|$)",
+          "(?:^|\\/)repositories(?:\\/|$)",
+          "^src\\/business(?:\\/|$)",
+          "(?:^|\\/)services(?:\\/|$)",
+          "(?:^|\\/)domain(?:\\/|$)",
+          "^src\\/presentation(?:\\/|$)",
+          "(?:^|\\/)controllers(?:\\/|$)",
+          "(?:^|\\/)middlewares(?:\\/|$)",
+          "(?:^|\\/)routes(?:\\/|$)"
+        ]
+      },
+      "to": {
+        "path": [
+          "(^|/)node_modules/@nestjs/[^/]+(/|$)|^@nestjs/[^/]+(/|$)",
+          "(^|/)node_modules/typeorm(/|$)|^typeorm(/|$)|(^|/)node_modules/@types/typeorm(/|$)",
+          "(^|/)node_modules/express(/|$)|^express(/|$)|(^|/)node_modules/@types/express(/|$)",
+          "(^|/)node_modules/prisma(/|$)|^prisma(/|$)|(^|/)node_modules/@types/prisma(/|$)",
+          "(^|/)node_modules/@prisma/[^/]+(/|$)|^@prisma/[^/]+(/|$)",
+          "(^|/)node_modules/sequelize(/|$)|^sequelize(/|$)|(^|/)node_modules/@types/sequelize(/|$)"
+        ]
+      }
+    },
+    {
+      "name": "FF-C04--persistence--0",
+      "severity": "error",
+      "comment": "T7 no-orphan-files",
+      "from": {
+        "orphan": true,
+        "path": [
+          "^src\\/persistence(?:\\/|$)",
+          "(?:^|\\/)repositories(?:\\/|$)"
+        ]
+      },
+      "to": {}
+    },
+    {
+      "name": "FF-C04--business--0",
+      "severity": "error",
+      "comment": "T7 no-orphan-files",
+      "from": {
+        "orphan": true,
+        "path": [
+          "^src\\/business(?:\\/|$)",
+          "(?:^|\\/)services(?:\\/|$)",
+          "(?:^|\\/)domain(?:\\/|$)"
+        ],
+        "pathNot": [
+          "^src\\/persistence(?:\\/|$)",
+          "(?:^|\\/)repositories(?:\\/|$)"
+        ]
+      },
+      "to": {}
+    },
+    {
+      "name": "FF-C04--business--1",
+      "severity": "error",
+      "comment": "T7 no-orphan-files",
+      "from": {
+        "orphan": true,
+        "path": [
+          "(?:^|\\/)[^/]*\\.entity\\.ts$"
+        ],
+        "pathNot": [
+          "^src\\/persistence(?:\\/|$)",
+          "(?:^|\\/)repositories(?:\\/|$)",
+          "^src\\/business(?:\\/|$)",
+          "(?:^|\\/)services(?:\\/|$)",
+          "(?:^|\\/)domain(?:\\/|$)",
+          "^src\\/presentation(?:\\/|$)",
+          "(?:^|\\/)controllers(?:\\/|$)",
+          "(?:^|\\/)middlewares(?:\\/|$)",
+          "(?:^|\\/)routes(?:\\/|$)"
+        ]
+      },
+      "to": {}
+    },
+    {
+      "name": "FF-C04--presentation--0",
+      "severity": "error",
+      "comment": "T7 no-orphan-files",
+      "from": {
+        "orphan": true,
+        "path": [
+          "^src\\/presentation(?:\\/|$)",
+          "(?:^|\\/)controllers(?:\\/|$)",
+          "(?:^|\\/)middlewares(?:\\/|$)",
+          "(?:^|\\/)routes(?:\\/|$)"
+        ],
+        "pathNot": [
+          "^src\\/persistence(?:\\/|$)",
+          "(?:^|\\/)repositories(?:\\/|$)",
+          "^src\\/business(?:\\/|$)",
+          "(?:^|\\/)services(?:\\/|$)",
+          "(?:^|\\/)domain(?:\\/|$)"
+        ]
+      },
+      "to": {}
+    }
+  ],
+  "options": {
+    "tsPreCompilationDeps": true,
+    "doNotFollow": {
+      "path": "node_modules"
+    },
+    "exclude": {
+      "path": [
+        "(?:^|\\/)dist(?:\\/|$)",
+        "(?:^|\\/)build(?:\\/|$)",
+        "(?:^|\\/)[^/]*\\.d\\.ts$",
+        "(?:^|\\/)[^/]*\\.spec\\.ts$",
+        "(?:^|\\/)[^/]*\\.test\\.ts$"
+      ]
+    },
+    "tsConfig": {
+      "fileName": "tsconfig.json"
+    },
+    "enhancedResolveOptions": {
+      "extensions": [
+        ".ts",
+        ".tsx",
+        ".d.ts",
+        ".js",
+        ".jsx",
+        ".json"
+      ]
+    }
+  }
+}
