@@ -1296,6 +1296,8 @@ Lock-file check (decision 2): `scripts/fetch-corpus.ts` runs exactly one install
 
 **Consequences**: E1 grows from 54 to 72 cells. Each arm restarts on its own. The SO5 outputs carry the Codex rows after the registered ones (`so5_tests.csv` families `vendor:*` and `directional-vendor:*`; `adapter_id` already gives the vendor). The free plan's 30-day Codex window moved about 5 points per pilot project, so the 18 cells may exceed it and then draw credits (about 2.8 credits per project at the rate card's `gpt-5.6-terra` rates) or pause until the window resets. The pause is recorded as interruptions, never as model failures.
 
+**Concurrency note (2026-10-10)**: the Claude E1 generation grid (another lane, from the unchanged registered plan) was running while this ADR's Gate probe and pilot ran. Their `ensureHarness` calls reinstalled the shared skeleton five times (hash unchanged). The four Claude cells that overlapped a window are all `ok` (`Docs/prereg-reasons.md`, P-CX). Two arms of one `outRoot` share `<H>`, so a harness rebuild must never run while either grid runs.
+
 ---
 
 ## Decision Log Summary

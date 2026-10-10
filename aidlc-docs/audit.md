@@ -1329,3 +1329,11 @@ Plan checkboxes ticked. Auto-approved under standing approval; no blocking or ma
 **Context**: CONSTRUCTION — Build and Test, ADR-029. Worktree ../DaedalusArch-wt-codex, branch v1.2e-codex-arm. Approved by the author on 2026-10-10.
 
 ---
+
+## Build and Test — ADR-029 concurrency finding
+**Timestamp**: 2026-10-10T19:05:00Z
+**User Input**: "(none; finding recorded by the Codex-arm lane)"
+**AI Response**: "After the v18 commit, found the Claude E1 generation grid running in another lane (DaedalusArch-wt-e1, schedule.json 18:20Z). This lane's probe and pilot runs had reinstalled the shared skeleton five times (ensureHarness; hash unchanged). The four overlapping Claude cells are ok with 0 type errors and an intact skeleton; the two failed-typecheck Claude cells fall outside the windows. Recorded in Docs/prereg-reasons.md (P-CX) and ADR-029; no further harness call made."
+**Context**: CONSTRUCTION — Build and Test, ADR-029.
+
+---
