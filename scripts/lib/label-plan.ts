@@ -14,7 +14,11 @@
  * - the planned exhaustive load (P1 plus missed seeds) with its stated basis, and the escalation rule (item 8.2):
  *   when P1 + MS exceed what the base budget pays for, the budget grows in whole weeks of `quota.callsPerWeek` calls
  *   up to `quota.maxWeeks`, before any sampled ceiling is lowered; a plan is never refused for its size;
- * - the context ceiling per item kind (item 8.6) and the seeds, the audit seed included (item 8.5).
+ * - the context ceiling per item kind (item 8.6) and the seeds, the audit seed included (item 8.5);
+ * - since version 3 (ADR-026; `Docs/analysis-plan.md` §10 B8), the P2 split between its two disjoint frames: of the
+ *   `sampled.P2.maxItems` items, `sampled.P2.v1OnlyMaxItems` come from the **v1-only stratum set** (the violations a
+ *   v1 symbolic-only re-evaluation of the same stored code adds, i.e. the rows the v2 role exemptions remove) and the
+ *   rest from the **v2 population**; each frame is drawn by the §4 PPS rule with its own inclusion probabilities.
  *
  * Sampling is two-stage. When a population's strata would give more than its ceiling, `m = floor(maxItems /
  * perStratum)` strata are drawn (SRS: each with `pi_h = m / M`; PPS: `pi_h = m' N_h / N'` after the certainty strata
@@ -31,7 +35,7 @@ import { createRng, kishEffectiveN, shuffle, wilsonProportion } from './stats.js
 import type { SeededRng } from './stats.js';
 
 export const LABEL_PLAN_CONFIG_FILE = 'corpus/label-plan-config.json';
-export const LABEL_PLAN_CONFIG_VERSION = 2;
+export const LABEL_PLAN_CONFIG_VERSION = 3;
 export const LABEL_PLAN_CONFIG_INVALID = 'LABEL_PLAN_CONFIG_INVALID';
 /** Not a refusal since ADR-021 item 8.2: the code names a plan whose P1 + MS exceed even the escalated budget. */
 export const LABEL_PLAN_OVER_BUDGET = 'LABEL_PLAN_OVER_BUDGET';
@@ -49,11 +53,26 @@ export interface PopulationSizing {
   readonly maxItems: number;
   /** Stratum draw when not every stratum fits (default `srs`). */
   readonly strataDraw?: StrataDraw;
+  /**
+   * P2 only (version 3, ADR-026): the items of `maxItems` drawn from the v1-only stratum set; the remaining
+   * `maxItems - v1OnlyMaxItems` are drawn from the v2 population. Required on P2, refused on P3 and P4.
+   */
+  readonly v1OnlyMaxItems?: number;
+}
+
+/** Stratum-name prefix of the v1-only P2 strata (`'v1-only: <project>, <function>'`; ADR-026, analysis plan B8). */
+export const V1_ONLY_STRATUM_PREFIX = 'v1-only: ';
+
+/** The P2 frame of a stratum name: the v1-only stratum set, else the v2 population. */
+export type P2Frame = 'v2' | 'v1-only';
+
+export function p2FrameOf(stratum: string): P2Frame {
+  return stratum.startsWith(V1_ONLY_STRATUM_PREFIX) ? 'v1-only' : 'v2';
 }
 
 /** `corpus/label-plan-config.json` (registered in P-U6). */
 export interface LabelPlanConfig {
-  readonly version: 2;
+  readonly version: 3;
   /** Labeller route and pinned model (ADR-019 item 4 as amended; `Docs/labeller-route.md`). */
   readonly provider: 'agy' | 'gemini' | 'mock';
   readonly model: string;
@@ -99,6 +118,9 @@ export function checkLabelPlanConfig(v: unknown): string[] {
     else {
       const draw: unknown = z.strataDraw;
       if (draw !== undefined && draw !== 'srs' && draw !== 'pps') errs.push(`sampled.${p}.strataDraw must be srs or pps`);
+      const v1 = z.v1OnlyMaxItems;
+      if (p === 'P2' && (typeof v1 !== 'number' || !int(v1) || v1 > z.maxItems)) errs.push('sampled.P2.v1OnlyMaxItems must be an integer in 0..sampled.P2.maxItems (ADR-026)');
+      if (p !== 'P2' && v1 !== undefined) errs.push(`sampled.${p}.v1OnlyMaxItems is a P2 field only`);
     }
   }
   if (!int(c.exhaustivePlanned)) errs.push('exhaustivePlanned must be a non-negative integer');
@@ -177,6 +199,8 @@ export interface Ceilings {
   readonly exhaustiveKept: number;
   /** Final ceiling per population (after lowering), never above what its strata can give. */
   readonly maxItems: Readonly<Record<SampledPopulation, number>>;
+  /** The P2 ceiling split between its frames (`v2 + v1Only = maxItems.P2`; ADR-026). */
+  readonly p2Split: P2Split;
   /** Populations whose ceiling was lowered below the registered one because of the budget. */
   readonly lowered: readonly SampledPopulation[];
   /** Set when P1 + MS exceed the escalated capacity (`LABEL_PLAN_OVER_BUDGET`, a reported limitation). */
@@ -188,18 +212,26 @@ export interface Ceilings {
  * exceed the base capacity the budget escalates first (`escalatedBudget`); then, while the total exceeds the
  * capacity, the last population in priority order is lowered (to 0 if need be) before the next one. If P1 + MS alone
  * exceed the escalated capacity, the sampled ceilings are 0 and the exhaustive populations are thinned to the
- * capacity by a seeded simple random sample (`thinExhaustive`); the plan is never refused.
+ * capacity by a seeded simple random sample (`thinExhaustive`); the plan is never refused. P2's ceiling is the sum of
+ * its two frames (`p2Split`, ADR-026): `v1OnlySizes` are the stratum sizes of the v1-only set, `sizes.P2` those of the
+ * v2 population.
  */
-export function ceilingsFor(c: LabelPlanConfig, exhaustive: number, sizes: Readonly<Record<SampledPopulation, readonly number[]>>): Ceilings {
+export function ceilingsFor(
+  c: LabelPlanConfig,
+  exhaustive: number,
+  sizes: Readonly<Record<SampledPopulation, readonly number[]>>,
+  v1OnlySizes: readonly number[] = [],
+): Ceilings {
   const max: Record<SampledPopulation, number> = { P2: 0, P3: 0, P4: 0 };
   for (const p of SAMPLED_POPULATIONS) max[p] = Math.min(c.sampled[p].maxItems, available(sizes[p], c.sampled[p].perStratum));
+  max.P2 = p2Split(c, Number.POSITIVE_INFINITY, sizes.P2, v1OnlySizes).total;
   const wanted = SAMPLED_POPULATIONS.reduce((s, p) => s + max[p], 0);
   const budget = escalatedBudget(c, exhaustive, wanted);
   const cap = capacityOf(c, budget.budgetCalls);
   const common = { ok: true as const, budgetCalls: budget.budgetCalls, escalated: budget.escalated, capacityItems: cap, exhaustive };
   if (exhaustive > cap) {
     return {
-      ...common, exhaustiveKept: cap, maxItems: { P2: 0, P3: 0, P4: 0 }, lowered: SAMPLED_POPULATIONS.filter((p) => max[p] > 0),
+      ...common, exhaustiveKept: cap, maxItems: { P2: 0, P3: 0, P4: 0 }, p2Split: { v2: 0, v1Only: 0 }, lowered: SAMPLED_POPULATIONS.filter((p) => max[p] > 0),
       detail: `${LABEL_PLAN_OVER_BUDGET}: P1 + missed seeds = ${String(exhaustive)} items exceed the ${String(cap)} items of ${String(budget.budgetCalls)} calls (maxWeeks ${String(c.quota.maxWeeks)}); `
         + `they are thinned to ${String(cap)} by a seeded simple random sample with p = ${String(cap)}/${String(exhaustive)}, and the gap is reported as a limitation (ADR-021 item 8.2)`,
     };
@@ -213,7 +245,37 @@ export function ceilingsFor(c: LabelPlanConfig, exhaustive: number, sizes: Reado
     max[p] -= cut;
     over -= cut;
   }
-  return { ...common, exhaustiveKept: exhaustive, maxItems: max, lowered };
+  const split = p2Split(c, max.P2, sizes.P2, v1OnlySizes);
+  return { ...common, exhaustiveKept: exhaustive, maxItems: { ...max, P2: split.total }, p2Split: { v2: split.v2, v1Only: split.v1Only }, lowered };
+}
+
+export interface P2Split {
+  /** Items drawn from the v2 population. */
+  readonly v2: number;
+  /** Items drawn from the v1-only stratum set. */
+  readonly v1Only: number;
+}
+
+/**
+ * The P2 ceiling split between its two frames (ADR-026; analysis plan §10 B8). Registered: `maxItems -
+ * v1OnlyMaxItems` from the v2 population and `v1OnlyMaxItems` from the v1-only set (24 and 6), each capped by what
+ * its own strata can give; a frame that cannot fill its share leaves it unused (no reallocation, so each frame's
+ * registered size and inclusion probabilities stay its own). When the budget lowers P2 to `limit` below that, the
+ * v1-only share is `floor(limit * v1OnlyMaxItems / maxItems)` (the registered ratio, rounded down) and the v2
+ * population takes the rest; a share one frame cannot use goes to the other only in that lowered case, so the
+ * lowered total is never wasted.
+ */
+export function p2Split(c: LabelPlanConfig, limit: number, v2Sizes: readonly number[], v1OnlySizes: readonly number[]): P2Split & { readonly total: number } {
+  const z = c.sampled.P2;
+  const v1Registered = z.v1OnlyMaxItems ?? 0;
+  const v2Cap = Math.min(z.maxItems - v1Registered, available(v2Sizes, z.perStratum));
+  const v1Cap = Math.min(v1Registered, available(v1OnlySizes, z.perStratum));
+  if (v2Cap + v1Cap <= limit) return { v2: v2Cap, v1Only: v1Cap, total: v2Cap + v1Cap };
+  const l = Math.max(0, limit);
+  let v1Only = Math.min(v1Cap, z.maxItems === 0 ? 0 : Math.floor((l * v1Registered) / z.maxItems));
+  const v2 = Math.min(v2Cap, l - v1Only);
+  v1Only = Math.min(v1Cap, l - v2);
+  return { v2, v1Only, total: v2 + v1Only };
 }
 
 /** Seed of the exhaustive thinning draw (only used past the escalation limit). */
@@ -237,8 +299,10 @@ export function thinExhaustive<C extends Candidate>(samples: readonly StratumSam
 // Two-stage sampling
 
 /** Seed of the stratum draw of one population (independent of every other population). */
-export function stratumDrawSeed(seed: number, population: Population): number {
-  return createHash('sha256').update(JSON.stringify([seed, 'strata', population])).digest().readUInt32BE(0);
+export function stratumDrawSeed(seed: number, population: Population, frame?: string): number {
+  const parts: unknown[] = [seed, 'strata', population];
+  if (frame !== undefined) parts.push(frame);
+  return createHash('sha256').update(JSON.stringify(parts)).digest().readUInt32BE(0);
 }
 
 /**
@@ -298,7 +362,8 @@ export interface RegisteredSample<C extends Candidate = Candidate> extends Strat
  * sorted stratum names, or systematic PPS by stratum size), then `min(perStratum, N_h)` items per kept stratum by a
  * seeded shuffle of the stratum's candidates sorted by item id. Strata not drawn are returned with no sampled items,
  * so their sizes stay in the plan. `itemSeed(stratum)` gives the within-stratum seed (the source plan's `sampling`
- * seed).
+ * seed). `frame` (the v1-only P2 set, ADR-026) gives the frame its own stratum-draw stream, so the v2 draw is the
+ * same with or without it.
  */
 export function sampleRegistered<C extends Candidate>(
   candidates: readonly C[],
@@ -307,6 +372,7 @@ export function sampleRegistered<C extends Candidate>(
   maxItems: number,
   strataSeedValue: number,
   itemSeed: (stratum: string) => number,
+  frame?: string,
 ): RegisteredSample<C>[] {
   const groups = new Map<string, Map<string, C>>();
   for (const c of candidates) {
@@ -322,7 +388,7 @@ export function sampleRegistered<C extends Candidate>(
   const sizeOf = (n: string): number => groups.get(n)?.size ?? 0;
   const fits = available(names.map(sizeOf), perStratum) <= maxItems;
   const m = fits ? M : Math.min(M, Math.floor(maxItems / perStratum));
-  const rng = createRng(stratumDrawSeed(strataSeedValue, population));
+  const rng = createRng(stratumDrawSeed(strataSeedValue, population, frame));
   let pi: Map<string, number>;
   let kept: Set<string>;
   if (fits) {
@@ -383,12 +449,13 @@ export interface PrecisionStatement {
 
 /**
  * The precision a row's sample allows, stated before any run (ADR-021 items 6, 8.3): the Wilson half-width at the
- * Kish effective n of the row's weights (1 / p). Equal weights give n_eff = n.
+ * Kish effective n of the row's weights (1 / p). Equal weights give n_eff = n. `countsOnly` states n and n_eff
+ * without a half-width (the v1-only P2 part, reported as counts only, analysis plan B8).
  */
-export function precisionStatement(row: string, weights: readonly number[]): PrecisionStatement {
+export function precisionStatement(row: string, weights: readonly number[], countsOnly = false): PrecisionStatement {
   const n = weights.length;
   const nEff = n === 0 ? 0 : kishEffectiveN(weights);
-  if (nEff < 10) return { row, n, nEff, halfWidthAt50: null, halfWidthAt85: null };
+  if (countsOnly || nEff < 10) return { row, n, nEff, halfWidthAt50: null, halfWidthAt85: null };
   const hw = (p: number): number => {
     const iv = wilsonProportion(p, nEff);
     return (iv.high - iv.low) / 2;

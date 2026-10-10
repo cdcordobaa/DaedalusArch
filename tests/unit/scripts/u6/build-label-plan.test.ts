@@ -13,11 +13,14 @@ import { join } from 'node:path';
 import { DomainResult } from '../../../../src/shared/errors/domain-result.js';
 import type { LLMCallContext, LLMOptions, LLMProvider, LLMResponse } from '../../../../src/shared/interfaces/llm-provider.js';
 import type { ProviderDescription } from '../../../../src/shared/types/evaluation.js';
-import { LABEL_PLAN_INPUT_INVALID, buildLabelPlan, main as buildMain, seededCopyRoot } from '../../../../scripts/build-label-plan.js';
+import {
+  LABEL_PLAN_INPUT_INVALID, P2_ROW_V1, P2_ROW_V1_ONLY, P2_ROW_V2, buildLabelPlan, main as buildMain, seededCopyRoot,
+} from '../../../../scripts/build-label-plan.js';
 import type { PlanSummary, So4Inputs } from '../../../../scripts/build-label-plan.js';
+import { p2PrecisionRows } from '../../../../scripts/build-label-plan.js';
 import { LABEL_BUDGET_STOP, labelItems, loadLabellerPrompts } from '../../../../scripts/llm-label.js';
 import type { LabelPlanFile, LabellerPrompt, ReconciledLabel } from '../../../../scripts/llm-label.js';
-import type { ItemKind } from '../../../../scripts/lib/label-context.js';
+import type { ItemKind, LabelItem } from '../../../../scripts/lib/label-context.js';
 import type { LabelPlanConfig } from '../../../../scripts/lib/label-plan.js';
 import { fnCauseColumns } from '../../../../scripts/lib/label-adapters.js';
 import type { JudgeUnitVerdict } from '../../../../scripts/lib/judge-verdicts.js';
@@ -38,8 +41,8 @@ const MODEL = 'gemini-3.1-pro-high';
 
 /** A test configuration that still labels P3 (the FPAT labelled path); the registered config has P3 at 0 (item 8.1). */
 const CONFIG: LabelPlanConfig = {
-  version: 2, provider: 'mock', model: MODEL, budgetCalls: 300, reaskReserveCalls: 30, seeds: { strata: 6101, permutation: 6103, bootstrap: 6102, audit: 6105 },
-  priority: ['P4', 'P2', 'P3'], sampled: { P4: { perStratum: 1, maxItems: 46 }, P2: { perStratum: 1, maxItems: 20 }, P3: { perStratum: 1, maxItems: 10 } },
+  version: 3, provider: 'mock', model: MODEL, budgetCalls: 300, reaskReserveCalls: 30, seeds: { strata: 6101, permutation: 6103, bootstrap: 6102, audit: 6105 },
+  priority: ['P4', 'P2', 'P3'], sampled: { P4: { perStratum: 1, maxItems: 46 }, P2: { perStratum: 1, maxItems: 20, v1OnlyMaxItems: 0 }, P3: { perStratum: 1, maxItems: 10 } },
   exhaustivePlanned: 59, exhaustivePlannedBasis: 'test', context: { maxChars: { violation: 6000, 'missed-seed': 6000, 'judge-unit': 32000 } },
   quota: { callsPerWeek: 180, minWeeks: 2, maxWeeks: 4 },
 };
@@ -165,13 +168,19 @@ describe('build-label-plan from run directories (P2, P3, P4, judge verdicts)', (
 
   it('ADR-021 item 8 with the registered config: P3 out of labelling (strata kept), P2 calls, audit seed, precision rows, cut by kind', async () => {
     const corpus = runDir('corpus', { runId: 'e7-corpus-000-variant-a-structural', planId: 'e7-corpus', projectId: 'variant-a-structural' }, 'tests/fixtures/u5b/reports/variant-a-structural.json');
+    // The v1 re-evaluation of the same stored code: here the same report, so the v1-only set is empty.
+    const corpusV1 = runDir('corpus-v1', { runId: 'e7-corpus-v1-000-variant-a-structural', planId: 'e7-corpus', projectId: 'variant-a-structural', instrumentVersion: 1 }, 'tests/fixtures/u5b/reports/variant-a-structural.json');
     const e1 = runDir('e1', { runId: 'e1-grid-000-cell-a', planId: 'e1-grid', projectId: 'cell-a', cell: E1_CELL }, 'tests/fixtures/u5b/reports/full-mode/correct-reference.json');
     const fixtures = runDir('fixtures', { runId: 'fixtures-000-correct-reference', planId: 'fixtures', projectId: 'correct-reference' }, 'tests/fixtures/u5b/reports/full-mode/correct-reference.json');
     const registered = { ...(JSON.parse(readFileSync(join(ROOT, 'corpus/label-plan-config.json'), 'utf8')) as LabelPlanConfig), provider: 'mock' as const };
     writeFileSync(join(tmp, 'config.json'), JSON.stringify(registered));
     const out = join(tmp, 'out');
+    // ADR-026: with the registered v1-only size (6), the P2 frame is refused without the v1 re-evaluation.
+    const refused = io();
+    expect(await buildMain(['--out', out, '--config', join(tmp, 'config.json'), '--corpus-runs', corpus, '--e1-runs', e1, '--fixture-runs', fixtures, '--specs', SPEC], ROOT, refused.io)).toBe(1);
+    expect(refused.err.join('')).toContain(`${LABEL_PLAN_INPUT_INVALID}: the v1-only P2 frame needs the v1 re-evaluation of every v2 corpus run (--corpus-v1-runs, ADR-026)`);
     const a = io();
-    expect(await buildMain(['--out', out, '--config', join(tmp, 'config.json'), '--corpus-runs', corpus, '--e1-runs', e1, '--fixture-runs', fixtures, '--specs', SPEC], ROOT, a.io)).toBe(0);
+    expect(await buildMain(['--out', out, '--config', join(tmp, 'config.json'), '--corpus-runs', corpus, '--corpus-v1-runs', corpusV1, '--e1-runs', e1, '--fixture-runs', fixtures, '--specs', SPEC], ROOT, a.io)).toBe(0);
     const plan = JSON.parse(readFileSync(join(out, 'label-plan.json'), 'utf8')) as LabelPlanFile;
     expect(plan.items.filter((i) => i.population === 'P3')).toHaveLength(0);
     // The two P3 strata stay in the plan with their sizes (so the population is described, never labelled).
@@ -190,9 +199,13 @@ describe('build-label-plan from run directories (P2, P3, P4, judge verdicts)', (
     expect(rows.get('P4 judge-vs-panel agreement, generator claude-haiku-4-5')?.n).toBe(2);
     const p2 = plan.strata.filter((x) => x.population === 'P2').map((x) => x.size);
     const sum = p2.reduce((x, y) => x + y, 0);
-    expect(rows.get('P2 baseline precision, overall')).toMatchObject({ n: 9, halfWidthAt50: null });
-    expect(rows.get('P2 baseline precision, overall')?.nEff).toBeCloseTo((sum * sum) / p2.reduce((x, y) => x + y * y, 0), 12);
-    expect(rows.get('P2 baseline precision, overall')?.nEff).toBeLessThan(9);
+    expect(rows.get(P2_ROW_V2)).toMatchObject({ n: 9, halfWidthAt50: null });
+    expect(rows.get(P2_ROW_V2)?.nEff).toBeCloseTo((sum * sum) / p2.reduce((x, y) => x + y * y, 0), 12);
+    expect(rows.get(P2_ROW_V2)?.nEff).toBeLessThan(9);
+    // No exempted row: the v1 estimate equals the v2 one and the v1-only part is empty.
+    expect(rows.get(P2_ROW_V1)).toEqual({ ...rows.get(P2_ROW_V2), row: P2_ROW_V1 });
+    expect(rows.get(P2_ROW_V1_ONLY)).toEqual({ row: P2_ROW_V1_ONLY, n: 0, nEff: 0, halfWidthAt50: null, halfWidthAt85: null });
+    expect(summary.p2Ceilings).toEqual({ v2: 9, v1Only: 0 });
     expect(a.out.join('')).toContain('cut at the ceiling: violation 0 (6000 chars), judge-unit 0 (32000 chars), missed-seed 0 (6000 chars)');
   });
 
@@ -208,6 +221,133 @@ describe('build-label-plan from run directories (P2, P3, P4, judge verdicts)', (
     expect(await buildMain(['--out', 'x', '--case', 'y'], ROOT, io().io)).toBe(2);
     // --bases goes only with a case (it is read only when a missed seed needs its prepared base).
     expect(await buildMain(['--out', 'x', '--bases', 'b.json'], ROOT, io().io)).toBe(2);
+  });
+});
+
+describe('P2 v1-only stratum set (ADR-026; analysis plan §10 B8)', () => {
+  const PROJECT = 'proj-a';
+  const ROOT_REL = 'fixtures/correct-reference';
+  const v = (functionId: string, filePath: string): Record<string, unknown> => ({ functionId, filePath: `src/${filePath}`, line: 1, route: 'symbolic' });
+  // v2 report: FF-CV05 on 3 files, FF-S01, FF-P01 and FF-C01 on 1 each -> 4 strata, N = 6.
+  const V2 = [
+    v('FF-CV05', 'domain/entities/Task.ts'), v('FF-CV05', 'domain/entities/Category.ts'), v('FF-CV05', 'domain/repositories/ITaskRepository.ts'),
+    v('FF-S01', 'application/use-cases/CreateTaskUseCase.ts'), v('FF-P01', 'domain/entities/Task.ts'), v('FF-C01', 'application/use-cases/CompleteTaskUseCase.ts'),
+  ];
+  // The rows the v2 role exemptions remove (v1 = v2 + these): FF-CV05 on 2 more files and FF-C02 on 2 -> 2 strata, N = 4.
+  const EXEMPTED = [
+    v('FF-CV05', 'domain/repositories/ICategoryRepository.ts'), v('FF-CV05', 'application/use-cases/ICompleteTaskUseCase.ts'),
+    v('FF-C02', 'infrastructure/controllers/TaskController.ts'), v('FF-C02', 'infrastructure/repositories/InMemoryTaskRepository.ts'),
+  ];
+  // m = 3 P2 items: 2 from the v2 population, 1 from the v1-only set.
+  const SMALL: LabelPlanConfig = {
+    ...CONFIG, sampled: { P4: { perStratum: 1, maxItems: 0 }, P2: { perStratum: 1, maxItems: 3, strataDraw: 'pps', v1OnlyMaxItems: 1 }, P3: { perStratum: 1, maxItems: 0 } },
+  };
+
+  function reportRun(name: string, record: Record<string, unknown>, violations: readonly Record<string, unknown>[]): string {
+    const dir = join(tmp, name);
+    mkdirSync(join(dir, 'runs'), { recursive: true });
+    mkdirSync(join(dir, 'reports'), { recursive: true });
+    const runId = String(record.runId);
+    writeFileSync(join(dir, 'reports', `${runId}.json`), JSON.stringify({ projectPath: ROOT_REL, violations }));
+    writeFileSync(join(dir, 'runs', `${runId}.run.json`), JSON.stringify({
+      attempt: 1, status: 'accepted', specSha: SPEC_SHA, cliCommit: 'c'.repeat(40), preregVersion: 11, frozenHashes: {}, envRecordId: 'test',
+      startedAt: '2026-10-09T00:00:00.000Z', wallMs: 1, reportPath: `reports/${runId}.json`, planId: 'e7-corpus', projectId: PROJECT, ...record,
+    }));
+    return dir;
+  }
+
+  async function build(config: LabelPlanConfig, flags: readonly string[]): Promise<{ code: number; a: ReturnType<typeof io>; out: string }> {
+    writeFileSync(join(tmp, 'config.json'), JSON.stringify(config));
+    const out = join(tmp, 'out');
+    const a = io();
+    const code = await buildMain(['--out', out, '--config', join(tmp, 'config.json'), '--specs', SPEC, ...flags], ROOT, a.io);
+    return { code, a, out };
+  }
+
+  it('draws each frame by PPS with its own probabilities; n and Kish n_eff per version (hand-computed)', async () => {
+    const v2 = reportRun('v2', { runId: 'e7-corpus-000-proj-a', instrumentVersion: 2 }, V2);
+    const v1 = reportRun('v1', { runId: 'e7-corpus-v1-000-proj-a', instrumentVersion: 1 }, [...V2, ...EXEMPTED]);
+    const { code, a, out } = await build(SMALL, ['--corpus-runs', v2, '--corpus-v1-runs', v1]);
+    expect(a.err.join('')).toBe('');
+    expect(code).toBe(0);
+    const plan = JSON.parse(readFileSync(join(out, 'label-plan.json'), 'utf8')) as LabelPlanFile;
+    // v2 population, m = 2 over N = 6: FF-CV05 has 2 x 3 / 6 = 1 -> certain (pi 1, recorded as absent); then m' = 1 over
+    // N' = 3: FF-C01, FF-P01, FF-S01 pi 1/3 each. v1-only set, m = 1 over N = 4: FF-C02 and FF-CV05 pi 2/4 = 1/2 each.
+    expect(plan.strata.map((x) => [x.stratum, x.size, x.stratumInclusionProbability ?? 1])).toEqual([
+      ['proj-a, FF-C01', 1, 1 / 3], ['proj-a, FF-CV05', 3, 1], ['proj-a, FF-P01', 1, 1 / 3], ['proj-a, FF-S01', 1, 1 / 3],
+      ['v1-only: proj-a, FF-C02', 2, 0.5], ['v1-only: proj-a, FF-CV05', 2, 0.5],
+    ]);
+    const p2 = plan.items.filter((i) => i.population === 'P2');
+    const v2Items = p2.filter((i) => !i.stratum.startsWith('v1-only: '));
+    const v1Items = p2.filter((i) => i.stratum.startsWith('v1-only: '));
+    // v2 items: FF-CV05 p = 1 x 1/3, the drawn singleton p = 1/3 x 1/1 -> both 1/3 (self-weighting). v1-only: p = 1/2 x 1/2.
+    expect(v2Items).toHaveLength(2);
+    expect(v2Items.some((i) => i.stratum === 'proj-a, FF-CV05')).toBe(true);
+    for (const i of v2Items) expect(i.inclusionProbability).toBeCloseTo(1 / 3, 12);
+    expect(v1Items).toHaveLength(1);
+    expect(v1Items[0]?.inclusionProbability).toBe(0.25);
+    // The v1-only item is an exempted row of the v1 run, never a v2 row.
+    expect(v1Items[0]?.runId).toBe('e7-corpus-v1-000-proj-a');
+    expect(['FF-C02', 'FF-CV05']).toContain(v1Items[0]?.functionId);
+    expect(EXEMPTED.map((e) => e.filePath)).toContain((JSON.parse(v1Items[0]?.key ?? '[]') as unknown[])[1]);
+    expect(v2Items.every((i) => i.runId === 'e7-corpus-000-proj-a')).toBe(true);
+    const summary = JSON.parse(readFileSync(join(out, 'label-plan-summary.json'), 'utf8')) as PlanSummary;
+    expect(summary.p2Items).toEqual({ v2: 2, v1Only: 1 });
+    expect(summary.p2Ceilings).toEqual({ v2: 2, v1Only: 1 });
+    // Weights: v2 3, 3; v1-only 4. v2: n 2, n_eff 36 / 18 = 2. v1 (both frames): n 3, n_eff 10^2 / 34. v1-only: n 1, n_eff 1.
+    const rows = new Map(summary.precision.map((r) => [r.row, r]));
+    expect(rows.get(P2_ROW_V2)?.n).toBe(2);
+    expect(rows.get(P2_ROW_V2)?.nEff).toBeCloseTo(2, 12);
+    expect(rows.get(P2_ROW_V1)?.n).toBe(3);
+    expect(rows.get(P2_ROW_V1)?.nEff).toBeCloseTo(100 / 34, 12);
+    expect(rows.get(P2_ROW_V1_ONLY)).toEqual({ row: P2_ROW_V1_ONLY, n: 1, nEff: 1, halfWidthAt50: null, halfWidthAt85: null });
+    expect(a.out.join('')).toContain('P2 frames (ADR-026): v2 population 2 items, v1-only set 1 items');
+    expect(a.out.join('')).toContain('ceilings: P4 0, P2 3 (v2 2, v1-only 1), P3 0');
+    // Deterministic for the seeds.
+    const again = await build(SMALL, ['--corpus-runs', v2, '--corpus-v1-runs', v1]);
+    expect(again.code).toBe(0);
+    expect(JSON.parse(readFileSync(join(again.out, 'label-plan.json'), 'utf8'))).toEqual(plan);
+  });
+
+  it('registered sizes 24 + 6: v2 n_eff 24; v1 Kish n_eff 27 < 30 because the two frames weigh differently', () => {
+    // A hand-built frame: 24 v2 items with p = 1/2 (w 2) and 6 v1-only items with p = 1/4 (w 4).
+    // v2: n_eff = 48^2 / 96 = 24, Wilson half-width at 24, p = 0.5: 0.185726. v1: (48 + 24)^2 / (96 + 96) = 27,
+    // half-width at 27: 0.176466 (below 30 because the weights differ). v1-only: n 6, n_eff 6, counts only.
+    const item = (stratum: string, p: number): LabelItem => ({ itemId: `${stratum}|${String(p)}`, kind: 'violation', population: 'P2', projectId: 'x', stratum, inclusionProbability: p, context: '' });
+    const items = [...Array.from({ length: 24 }, (_, i) => item(`x, F${String(i)}`, 0.5)), ...Array.from({ length: 6 }, (_, i) => item(`v1-only: x, G${String(i)}`, 0.25))];
+    const [v2, v1, only] = p2PrecisionRows(items);
+    expect(v2).toMatchObject({ row: P2_ROW_V2, n: 24 });
+    expect(v2?.nEff).toBeCloseTo(24, 12);
+    expect(v2?.halfWidthAt50).toBeCloseTo(0.185726, 5);
+    expect(v1).toMatchObject({ row: P2_ROW_V1, n: 30 });
+    expect(v1?.nEff).toBeCloseTo(27, 12);
+    expect(v1?.halfWidthAt50).toBeCloseTo(0.176466, 5);
+    expect(only).toMatchObject({ row: P2_ROW_V1_ONLY, n: 6, halfWidthAt50: null, halfWidthAt85: null });
+    expect(only?.nEff).toBeCloseTo(6, 12);
+  });
+
+  it('refuses a v1 run not stamped v1, a v2 run stamped v1, a v2 row the v1 report lacks, and a v1 run without its v2 pair', async () => {
+    const v2 = reportRun('v2', { runId: 'e7-corpus-000-proj-a', instrumentVersion: 2 }, V2);
+    const unstamped = reportRun('v1-unstamped', { runId: 'e7-corpus-v1-000-proj-a' }, [...V2, ...EXEMPTED]);
+    let r = await build(SMALL, ['--corpus-runs', v2, '--corpus-v1-runs', unstamped]);
+    expect(r.code).toBe(1);
+    expect(r.a.err.join('')).toContain('is not stamped instrumentVersion 1');
+    const v2AsV1 = reportRun('v2-as-v1', { runId: 'e7-corpus-000-proj-a', instrumentVersion: 1 }, V2);
+    const v1 = reportRun('v1', { runId: 'e7-corpus-v1-000-proj-a', instrumentVersion: 1 }, [...V2, ...EXEMPTED]);
+    r = await build(SMALL, ['--corpus-runs', v2AsV1, '--corpus-v1-runs', v1]);
+    expect(r.code).toBe(1);
+    expect(r.a.err.join('')).toContain('is instrument v1; --corpus-runs takes the v2 runs');
+    const lacking = reportRun('v1-lacking', { runId: 'e7-corpus-v1-000-proj-a', instrumentVersion: 1 }, [...V2.slice(1), ...EXEMPTED]);
+    r = await build(SMALL, ['--corpus-runs', v2, '--corpus-v1-runs', lacking]);
+    expect(r.code).toBe(1);
+    expect(r.a.err.join('')).toContain('has 1 violation(s) its v1 re-evaluation e7-corpus-v1-000-proj-a lacks');
+    const other = reportRun('v1-other', { runId: 'e7-corpus-v1-000-proj-b', projectId: 'proj-b', instrumentVersion: 1 }, EXEMPTED);
+    r = await build(SMALL, ['--corpus-runs', v2, '--corpus-v1-runs', `${v1},${other}`]);
+    expect(r.code).toBe(1);
+    expect(r.a.err.join('')).toContain('v1 corpus run e7-corpus-v1-000-proj-b: no accepted v2 corpus run of project proj-b');
+    // With a registered v1-only size of 0 and no v1 runs the v2 population alone is drawn (the test configurations).
+    r = await build({ ...SMALL, sampled: { ...SMALL.sampled, P2: { ...SMALL.sampled.P2, v1OnlyMaxItems: 0 } } }, ['--corpus-runs', v2]);
+    expect(r.code).toBe(0);
   });
 });
 
