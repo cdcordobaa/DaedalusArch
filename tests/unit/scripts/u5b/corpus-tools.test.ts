@@ -10,7 +10,7 @@ import { dirname, join } from 'node:path';
 import type { ProcessResult, ProcessRunner, ProcessRunOptions } from '../../../../src/shared/interfaces/process-runner.js';
 import { buildChildEnv, NodeProcessRunner } from '../../../../src/shared/process/node-process-runner.js';
 import { loadCorpus, parseCriteria, sha256Hex, validateCorpus } from '../../../../scripts/lib/corpus.js';
-import type { CorpusCandidate, CorpusCriteria, CorpusEntry, CorpusFile } from '../../../../scripts/lib/corpus.js';
+import type { CandidateAttributes, CorpusCandidate, CorpusCriteria, CorpusEntry, CorpusFile } from '../../../../scripts/lib/corpus.js';
 import type { PreparedBase } from '../../../../scripts/lib/mutation/types.js';
 import { copyBase } from '../../../../scripts/lib/mutation/prepare.js';
 import {
@@ -20,7 +20,8 @@ import type { FetchOptions } from '../../../../scripts/fetch-corpus.js';
 import { judgeSelectionOf, parseTscVersion, PREP_SELECTION_MISSING, PREP_TSC_MISMATCH, prepareBase } from '../../../../scripts/prepare-bases.js';
 import type { StoredBaselineSelection } from '../../../../scripts/prepare-bases.js';
 import {
-  CORPUS_SHORTFALL, countSourceFiles, exclusionReason, lockTypescriptVersion, resolveAddedEntry, searchCandidates, selectCorpus,
+  CORPUS_SHORTFALL, countSourceFiles, exclusionReason, firstParentChain, lockTypescriptVersion, resolveAddedEntry, searchCandidates,
+  selectCorpus, selectExtension,
 } from '../../../../scripts/select-corpus.js';
 import type { CandidateList } from '../../../../scripts/select-corpus.js';
 import { ROOT } from './score-fixture.js';
@@ -274,6 +275,113 @@ describe('selectCorpus (BR-U5b-68)', () => {
     expect(calls.every((c) => c[0] === 'gh')).toBe(true);
     const e = await resolveAddedEntry(deps, first(l.candidates));
     expect(e).toMatchObject({ name: 'o__l', core: false, install: { policy: 'npm-ci-ignore-scripts', lockSha256: sha256Hex(lock) }, tsc: { kind: 'project', tscVersion: '5.1.6' }, specPath: 'corpus/specs/o__l.yaml' });
+  });
+});
+
+describe('E7-x extension (Docs/corpus-criteria.md §7; ADR-027)', () => {
+  const criteria: CorpusCriteria = parseCriteria(readFileSync(join(ROOT, 'Docs/corpus-criteria.md'), 'utf8'));
+  const attrs = (E: 0 | 1, H: 0 | 1, F: 0 | 1, R: 0 | 1): CandidateAttributes => ({
+    E, H, F, R, P: E + H + F + R, A: [],
+    evidence: { enforcement: [], readmeHexagonal: false, fixCommit: null, commits: 60, contributors: 3, hasTests: true },
+  });
+  /** `a` null = no recorded attributes (an excluded candidate). */
+  const cand = (name: string, extra: Partial<CorpusCandidate> = {}, a: CandidateAttributes | null = attrs(0, 0, 0, 0)): CorpusCandidate => ({
+    name, originUrl: `https://github.com/${name}.git`, licence: 'mit', fileCount: 100, style: 'clean-architecture', commitSha: 'a'.repeat(40),
+    backend: true, hasPackageLock: true, isArchived: false, isFork: false, treeTruncated: false, ...(a === null ? {} : { attributes: a }), ...extra,
+  });
+  const list: CandidateList = {
+    searchedAt: '2026-10-09T00:00:00.000Z', tool: 'test',
+    candidates: [
+      cand('a/top1', {}, attrs(1, 1, 1, 1)), cand('a/top2', {}, attrs(1, 1, 1, 1)),
+      cand('b/three', { fileCount: 790 }, attrs(1, 1, 1, 0)), cand('c/two', {}, attrs(1, 1, 0, 0)),
+      cand('d/two', {}, attrs(0, 1, 0, 1)), cand('e/one', {}, attrs(0, 0, 0, 1)), cand('f/zero'),
+      cand('g/zero'), cand('h/layered', { style: 'layered' }),
+      cand('x/huge', { fileCount: 801 }, null), cand('x/pnpm', { hasPackageLock: false, hasPnpmLock: true }, null),
+      cand('x/round1', {}, null), cand('core/c', {}, null),
+    ],
+  };
+  const core = ['https://github.com/core/c'];
+  const corpus = [...core, 'https://github.com/x/round1.git'];
+
+  it('parses the extension block: C2 20–800, addMax 6, owner cap 1, round-1 keys unchanged', () => {
+    expect(criteria).toMatchObject({ maxFiles: 300, addMax: 5 });
+    expect(criteria.extension).toMatchObject({ id: 'E7-x', minFiles: 20, maxFiles: 800, addMin: 3, addMax: 6, ownerCap: 1, seed: 20261008, hexagonalQueries: ['Q7', 'Q8'] });
+    expect(new RegExp(criteria.extension?.fixMessage ?? '', 'i').test('refactor: move ports out of domain')).toBe(true);
+    expect(new RegExp(criteria.extension?.fixMessage ?? '', 'i').test('fix circular import')).toBe(true);
+    expect(new RegExp(criteria.extension?.fixMessage ?? '', 'i').test('bump deps')).toBe(false);
+    expect(new RegExp(criteria.extension?.hexagonalReadme ?? '', 'i').test('Ports & Adapters')).toBe(true);
+  });
+
+  it('draws the layered candidate first, then tiers top-down, with the owner cap, deterministically', () => {
+    const a = selectExtension(list, criteria, core, corpus);
+    const b = selectExtension({ ...list, candidates: [...list.candidates].reverse() }, criteria, core, corpus);
+    if (!a.ok || !b.ok) throw new Error('selection failed');
+    expect({ ...a.selection, candidatesSha256: '' }).toEqual({ ...b.selection, candidatesSha256: '' });
+    const sel = a.selection.selected;
+    expect(sel).toHaveLength(6);
+    expect(sel[0]).toMatchObject({ name: 'h/layered', via: 'preferLayered' });
+    expect(sel.slice(1).map((s) => s.tier)).toEqual([...sel.slice(1).map((s) => s.tier)].sort((x, y) => y - x));
+    expect(sel.filter((s) => s.name.startsWith('a/'))).toHaveLength(1);
+    expect(sel.map((s) => s.name)).toEqual(expect.arrayContaining(['b/three', 'c/two', 'd/two', 'e/one']));
+    const reasons = Object.fromEntries(a.selection.excluded.map((x) => [x.name, x.reason]));
+    expect(reasons).toMatchObject({ 'x/huge': 'files-out-of-range', 'x/pnpm': 'no-package-lock', 'x/round1': 'corpus-duplicate', 'core/c': 'core-duplicate', 'f/zero': 'not drawn', 'g/zero': 'not drawn' });
+    expect(Object.values(reasons).filter((r) => r === 'owner-cap')).toHaveLength(1);
+    expect(a.selection.excluded.length + sel.length).toBe(list.candidates.length);
+    expect(a.selection.tiers).toEqual([{ P: 4, eligible: 2 }, { P: 3, eligible: 1 }, { P: 2, eligible: 2 }, { P: 1, eligible: 1 }, { P: 0, eligible: 3 }]);
+  });
+
+  it('ends with CORPUS_SHORTFALL below addMin, and refuses an eligible candidate without attributes', () => {
+    const short = selectExtension({ ...list, candidates: list.candidates.slice(0, 2) }, criteria, core, corpus);
+    expect(short).toMatchObject({ ok: false, code: CORPUS_SHORTFALL });
+    expect(() => selectExtension({ ...list, candidates: [cand('z/z', {}, null), ...list.candidates] }, criteria, core, corpus)).toThrow(/no recorded attributes/);
+  });
+
+  it('walks the first-parent chain only', () => {
+    const listing = [
+      { s: 'h', p: 'm', m: 'merge' }, { s: 'b2', p: 'b1', m: 'side: move domain' }, { s: 'm', p: 'r', m: 'main' }, { s: 'b1', p: 'r', m: 'side' }, { s: 'r', p: null, m: 'root' },
+    ];
+    expect(firstParentChain(listing, 'h').map((c) => c.s)).toEqual(['h', 'm', 'r']);
+  });
+
+  it('searchCandidates records lock kinds and computes E, H, F, R, A for eligible candidates only (fake gh)', async () => {
+    const hit = (n: string): Record<string, unknown> => ({ fullName: n, url: `https://github.com/${n}`, license: { key: 'mit' }, isArchived: false, isFork: false, defaultBranch: 'main' });
+    const src = Array.from({ length: 25 }, (_, i) => ({ path: `src/f${String(i)}.ts`, type: 'blob' }));
+    const calls: string[][] = [];
+    const runner: ProcessRunner = {
+      run(_command: string, args: readonly string[], _o: ProcessRunOptions) {
+        calls.push([...args]);
+        let stdout = '[]';
+        let exitCode = 0;
+        const path = args.find((a) => a.startsWith('repos/')) ?? '';
+        if (args[0] === 'search' && args.includes('--topic=hexagonal-architecture') && !args.includes('--topic=nestjs')) stdout = JSON.stringify([hit('o/hex'), hit('o/yarn')]);
+        else if (path.endsWith('/commits/main')) stdout = `${'c'.repeat(40)}\n`;
+        else if (path.includes('/git/trees/')) {
+          const extra = path.startsWith('repos/o/yarn') ? [{ path: 'yarn.lock', type: 'blob' }]
+            : [{ path: 'package-lock.json', type: 'blob' }, { path: '.dependency-cruiser.cjs', type: 'blob' }, { path: 'AGENTS.md', type: 'blob' }, { path: 'src/a.spec.ts', type: 'blob' }];
+          stdout = JSON.stringify({ truncated: false, tree: [{ path: 'package.json', type: 'blob' }, ...extra, ...src] });
+        } else if (path.includes('contents/package.json')) stdout = JSON.stringify({ dependencies: { express: '^4' }, devDependencies: { tsarch: '^5' } });
+        else if (path.includes('/readme')) stdout = 'A clean architecture API';
+        else if (path.includes('/commits?sha=')) {
+          stdout = [{ s: 'c'.repeat(40), p: 'd'.repeat(40), m: 'feat: x' }, { s: 'd'.repeat(40), p: null, m: 'refactor: move port out of domain' }]
+            .map((c) => JSON.stringify(c)).join('\n');
+        } else if (path.includes('/commits/ddd')) stdout = 'src/domain/port.ts\nsrc/application/port.ts\n';
+        else if (path.includes('/contributors')) stdout = '2\n';
+        else exitCode = 0;
+        const data: ProcessResult = { exitCode, stdout, stderr: '', timedOut: false, durationMs: 1 };
+        return Promise.resolve({ success: true as const, data });
+      },
+    };
+    const ext = criteria.extension;
+    if (ext === undefined) throw new Error('no extension');
+    const l = await searchCandidates({ runner, env: {} }, () => new Date('2026-10-09T00:00:00Z'), criteria.backendPackages, { criteria, extension: ext, coreOrigins: [], corpusOrigins: [] });
+    const byName = Object.fromEntries(l.candidates.map((c) => [c.name, c]));
+    expect(byName['o/yarn']).toMatchObject({ hasPackageLock: false, hasYarnLock: true, hasPnpmLock: false, queries: ['Q7'] });
+    expect(byName['o/yarn']?.attributes).toBeUndefined();
+    expect(byName['o/hex']?.attributes).toEqual({
+      E: 1, H: 1, F: 1, R: 0, P: 3, A: ['AGENTS.md'],
+      evidence: { enforcement: ['.dependency-cruiser.cjs', 'package.json:tsarch'], readmeHexagonal: false, fixCommit: { sha: 'd'.repeat(40), subject: 'refactor: move port out of domain' }, commits: 2, contributors: 2, hasTests: true },
+    });
+    expect(calls.some((c) => c.includes('--topic=fastify'))).toBe(true);
   });
 });
 

@@ -1,12 +1,12 @@
 # E7 judge-volume estimate (pre-run)
 
-> **Status**: pre-run estimate, 2026-10-09 (runbook stage 0c; BR-U4-OPS-04). Written by `scripts/e1-judge-volume-cli.ts --e7` from the stored baseline selections; no judge call was made. It is the figure the E7 run (runbook §4) is compared against per usage window. Not a result.
+> **Status**: pre-run estimate, 2026-10-10 (runbook stage 0c; BR-U4-OPS-04). Written by `scripts/e1-judge-volume-cli.ts --e7` from the stored baseline selections; no judge call was made. It is the figure the E7 run (runbook §4) is compared against per usage window. Not a result.
 
-Reproduce from the repository root: `npx tsx scripts/e1-judge-volume-cli.ts --e7 --plan experiments/e7-corpus/plan.json --selections corpus/selections --date 2026-10-09`
+Reproduce from the repository root: `npx tsx scripts/e1-judge-volume-cli.ts --e7 --plan experiments/e7-corpus/plan.json --selections corpus/selections --date 2026-10-10`
 
 ## Method
 
-- Selection provenance: the four core bases from `bd13765` (BT-C Step 15), the three E7 bases from `4f56a1c` (BT-H Step 56). No corpus spec has changed since; each selection is a Mock full-mode baseline with zero live calls.
+- Selection provenance: the four core bases from `bd13765` (BT-C Step 15), the three round-1 E7 bases from `4f56a1c` (BT-H Step 56), the two E7-x bases (ADR-027) from this re-run's commit (2026-10-10; `Docs/DiagnosticRuns/e7x-preparation.json`). Each selection is a Mock full-mode baseline with zero live calls. The 2026-10-09 figure for seven bases was 760 calls (ceiling 847).
 
 - Plan `experiments/e7-corpus/plan.json`: one full-mode evaluation per base, judge `claude-cli` / `claude-opus-5-5`, no cassette hit assumed (every E7 entry is new).
 - Judged units per function = the base's stored baseline selection (`corpus/selections/<projectId>.json`, OI-11): U4's own unit builders on the registered corpus spec, `selectedUnitIds` capped at `unitCap` 20 (BR-U4-SEL-04).
@@ -24,24 +24,27 @@ Reproduce from the repository root: `npx tsx scripts/e1-judge-volume-cli.ts --e7
 | zhuravlevma__nestjs-active-record | `corpus/specs/zhuravlevma__nestjs-active-record.yaml` | 11 (11) | 24 (20) | 94 |
 | nestjslatam__ddd | `corpus/specs/nestjslatam__ddd.yaml` | 39 (20) | 115 (20) | 121 |
 | v-aguiar__valex | `corpus/specs/v-aguiar__valex.yaml` | 5 (5) | 19 (19) | 73 |
+| zhuravlevma__typescript-ddd-architecture | `corpus/specs/zhuravlevma__typescript-ddd-architecture.yaml` | 84 (20) | 162 (20) | 121 |
+| raouf-b-dev__ecommerce-store-api | `corpus/specs/raouf-b-dev__ecommerce-store-api.yaml` | 180 (20) | 555 (20) | 121 |
 
 ## E7 estimate
 
 | Case | Judge calls | Sequential judge time (h) | At concurrency 3 (h) |
 |---|---|---|---|
-| Estimate (sum over 7 bases) | 760 | 1.4 | 0.5 |
-| Cap ceiling (7 × (1 + 3 × 2 × 20)) | 847 | 1.5 | 0.5 |
+| Estimate (sum over 9 bases) | 1002 | 1.8 | 0.6 |
+| Cap ceiling (9 × (1 + 3 × 2 × 20)) | 1089 | 2.0 | 0.7 |
 
 ## Usage-window risk
 
 Calls per usage window are **unmeasured** (build-and-test summary §8). Windows needed under hypothetical window sizes:
 
-| Calls per window | Estimate (760 calls) | Ceiling (847 calls) |
+| Calls per window | Estimate (1002 calls) | Ceiling (1089 calls) |
 |---|---|---|
-| 50 | 16 | 17 |
-| 100 | 8 | 9 |
-| 200 | 4 | 5 |
-| 400 | 2 | 3 |
+| 50 | 21 | 22 |
+| 100 | 11 | 11 |
+| 200 | 6 | 6 |
+| 400 | 3 | 3 |
 
 - The E7 degradation ladder applies only by its registered rules (`Docs/judge-preregistration.md`; `Docs/threats-to-validity.md` §4). Its step 2 (E7 `unitCap` 20 → 10) roughly halves the per-base unit term; the trigger compares measured calls per window against this estimate, dated in `Docs/judge-preregistration.md`, not here.
+- For orientation only (not a ladder decision): under ladder step 2 (`unitCap` 10) the same nine selections would give 534 calls (eight bases at 1 + 3 × 20 = 61, valex 1 + 3 × 15 = 46). The 200-call live-call ledger of ADR-019 item 5 is a Build and Test budget (57 / 200 used); E7 is an experiment run outside it.
 - A usage stop inside an evaluation ends that entry `incomplete` (`usage-limit`), which is resumable; it is not a rejection.

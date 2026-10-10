@@ -12,7 +12,7 @@ const rule = parseRule(readFileSync(join(ROOT, RULE_DOC), 'utf8'));
 describe('E7 spec rule (Docs/e7-spec-rule.md)', () => {
   it('parses the machine block; no word is in two groups', () => {
     expect(rule.version).toBe(1);
-    expect(rule.projects).toHaveLength(6);
+    expect(rule.projects).toHaveLength(8); // six of Build and Test Step 55, two E7-x (ADR-027)
     expect(() => parseRule('```yaml e7-spec-rule\nversion: 1\ngroups:\n  D: { segments: [x], suffixes: [] }\n  A: { segments: [x], suffixes: [] }\n  I: { segments: [], suffixes: [] }\n  P: { segments: [], suffixes: [] }\n```\n')).toThrow(/in groups D and A/);
   });
 

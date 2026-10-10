@@ -4,8 +4,8 @@
 import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { parseCriteria, sha256Hex, validateCorpus } from '../../../../scripts/lib/corpus.js';
-import { selectCorpus } from '../../../../scripts/select-corpus.js';
-import type { CandidateList, Selection } from '../../../../scripts/select-corpus.js';
+import { selectCorpus, selectExtension } from '../../../../scripts/select-corpus.js';
+import type { CandidateList, ExtensionSelection, Selection } from '../../../../scripts/select-corpus.js';
 import type { CorpusFile } from '../../../../scripts/lib/corpus.js';
 import { ROOT } from './score-fixture.js';
 
@@ -60,7 +60,8 @@ describe('corpus/candidates.json and corpus/selection.json (BR-U5b-68)', () => {
   });
 
   it('every selected project is an added corpus entry with commit, licence, install and tsc decisions', () => {
-    const added = corpus.entries.filter((e) => !e.core);
+    const roundOne = new Set(committed.selected.map((c) => c.name.replace('/', '__')));
+    const added = corpus.entries.filter((e) => !e.core && roundOne.has(e.name));
     expect(added.map((e) => e.name)).toEqual(committed.selected.map((s) => s.name.replace('/', '__')));
     const byName = new Map(list.candidates.map((c) => [c.name.replace('/', '__'), c]));
     for (const e of added) {
@@ -69,6 +70,34 @@ describe('corpus/candidates.json and corpus/selection.json (BR-U5b-68)', () => {
       expect(e.licence).toBe(c?.licence);
       expect(e.install.policy).toBe('npm-ci-ignore-scripts');
       expect(e.tsc.kind).toBe('project');
+    }
+  });
+});
+
+describe('corpus/candidates-e7x.json and corpus/selection-e7x.json (ADR-027; corpus-criteria §7)', () => {
+  const list = JSON.parse(readFileSync(join(ROOT, 'corpus/candidates-e7x.json'), 'utf8')) as CandidateList;
+  const committed = JSON.parse(readFileSync(join(ROOT, 'corpus/selection-e7x.json'), 'utf8')) as ExtensionSelection;
+  const roundOne = new Set((JSON.parse(readFileSync(join(ROOT, 'corpus/selection.json'), 'utf8')) as Selection).selected.map((c) => c.name.replace('/', '__')));
+  // The corpus as it was when the E7-x list was drawn: core plus round 1 (the E7-x entries were appended after the draw).
+  const before = corpus.entries.filter((e) => e.core || roundOne.has(e.name));
+
+  it('re-running the E7-x draw over the committed candidates gives the committed selection', () => {
+    const criteria = parseCriteria(readFileSync(join(ROOT, 'Docs/corpus-criteria.md'), 'utf8'));
+    const r = selectExtension(list, criteria, before.filter((e) => e.core).map((e) => e.originUrl), before.map((e) => e.originUrl));
+    if (!r.ok) throw new Error(r.detail);
+    expect(r.selection).toEqual(committed);
+    expect(committed.excluded.length + committed.selected.length).toBe(list.candidates.length);
+  });
+
+  it('every admitted E7-x entry is a selected project, with its recorded commit and an npm install policy', () => {
+    const added = corpus.entries.filter((e) => !e.core && !roundOne.has(e.name));
+    const selected = new Set(committed.selected.map((s) => s.name.replace('/', '__')));
+    const byName = new Map(list.candidates.map((c) => [c.name.replace('/', '__'), c]));
+    expect(added.length).toBeGreaterThan(0);
+    for (const e of added) {
+      expect(selected.has(e.name)).toBe(true);
+      expect(e.commitSha).toBe(byName.get(e.name)?.commitSha);
+      expect(e.install.policy).toBe('npm-ci-ignore-scripts');
     }
   });
 });
