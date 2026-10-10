@@ -182,6 +182,25 @@ export interface AggregateInput {
   readonly registeredGoldenN?: number;
   /** Bootstrap and permutation resamples (default 10 000). */
   readonly resamples?: number;
+  /** ADR-028: the neural aggregation every accepted judge-mode report must carry (`aggregate-cli --neural-aggregation`). */
+  readonly neuralAggregation?: 'registered' | 'proportional';
+}
+
+/** ADR-028: the neural aggregation of a report (`scoring.neuralAggregation`; absent = registered); '' for symbolic-only. */
+export function neuralAggregationOf(report: EvaluationReport): '' | 'registered' | 'proportional' {
+  if (report.evaluationMode === 'symbolic-only') return '';
+  return report.scoring.neuralAggregation ?? 'registered';
+}
+
+/**
+ * ADR-028: refuses (`AGGREGATE_INPUT_INVALID`) a run directory whose accepted judge-mode reports carry another neural
+ * aggregation than `expected`, so one CSV set never mixes the registered and the proportional reading.
+ */
+export function checkNeuralAggregation(reports: ReadonlyMap<string, EvaluationReport>, expected: 'registered' | 'proportional'): void {
+  const other = [...reports].filter(([, r]) => r.evaluationMode !== 'symbolic-only' && neuralAggregationOf(r) !== expected).map(([id]) => id);
+  if (other.length > 0) {
+    throw new Error(`${AGGREGATE_INPUT_INVALID}: --neural-aggregation ${expected}, but ${String(other.length)} report(s) carry another rule: ${other.slice(0, 5).join(', ')}`);
+  }
 }
 
 // ---------------------------------------------------------------------------------------------
@@ -556,13 +575,13 @@ function runFiles(input: AggregateInput): Partial<Record<CsvFile, string>> {
     }),
   );
   out['ahs_by_project.csv'] = csvText(
-    ['run_id', 'project_id', 'evaluation_mode', 'ahs_deterministic', 'ahs_combined', 'ahs_neuronal', 'verdict_source', 'verdict', ...DIMENSION_COLUMNS.map((d) => `avr_${d}`), 'dropped_dimensions'],
+    ['run_id', 'project_id', 'evaluation_mode', 'ahs_deterministic', 'ahs_combined', 'ahs_neuronal', 'verdict_source', 'verdict', ...DIMENSION_COLUMNS.map((d) => `avr_${d}`), 'dropped_dimensions', 'neural_aggregation'],
     acc.map(({ record, report }) => {
       const avr = avrMap(report);
       return [
         record.runId, record.projectId, report.evaluationMode, f6(ahsOf(report, 'ahsDeterministic')), f6(ahsOf(report, 'ahsCombined')), f6(ahsOf(report, 'ahsNeuronal')),
         verdictSourceOf(report), report.verdict, ...DIMENSION_COLUMNS.map((d) => f6(avr.get(d))),
-        report.droppedDimensions.map((d) => d.dimension).join(';'),
+        report.droppedDimensions.map((d) => d.dimension).join(';'), neuralAggregationOf(report),
       ];
     }),
   );
@@ -942,6 +961,7 @@ export function so5Csv(input: AggregateInput, resamples: number): Partial<Record
 
 /** The full CSV set (domain-entities §10), keyed by file name, in `CSV_FILES` order. */
 export function aggregate(input: AggregateInput): Map<CsvFile, string> {
+  if (input.neuralAggregation !== undefined) checkNeuralAggregation(input.reports, input.neuralAggregation);
   const resamples = input.resamples ?? 10_000;
   const seed = input.plan?.seeds.bootstrap ?? 0;
   const parts = { ...prfFiles(input, seed, resamples), ...runFiles(input), ...so5Csv(input, resamples) };
@@ -985,6 +1005,7 @@ export const AGGREGATE_USAGE = [
   'Usage: npx tsx scripts/aggregate-cli.ts --runs <dir> --out <dir> [--plan <plan.json>] [--score <golden.json>]',
   '         [--manifest <manifest.json>] [--sensitivity <results.json>] [--labels <labels.json>] [--labelling <labelling.json>] [--resamples <n>] [--no-figures]',
   '         [--golden-registered <n>]   (the catalogue\'s frozen held-out golden total, for golden_instances.csv)',
+  '         [--neural-aggregation registered|proportional]   (ADR-028: refuse reports of another rule)',
   '       npx tsx scripts/aggregate-cli.ts --self-test',
 ].join('\n');
 
@@ -1040,6 +1061,8 @@ export async function main(argv: readonly string[], repoRoot: string, io: Aggreg
     const corpusStyles = readCorpusStyles(repoRoot);
     const registered = opts.get('golden-registered');
     if (registered !== undefined && !/^\d+$/.test(registered)) throw new Error(`${AGGREGATE_INPUT_INVALID}: --golden-registered must be a non-negative integer`);
+    const rule = opts.get('neural-aggregation');
+    if (rule !== undefined && rule !== 'registered' && rule !== 'proportional') throw new Error(`${AGGREGATE_INPUT_INVALID}: --neural-aggregation must be registered or proportional`);
     const input: AggregateInput = {
       planId: plan?.id ?? records[0]?.planId ?? 'unknown', ...(plan !== undefined && { plan }), records, reports, so5: so5.codes,
       ...(opts.has('score') && { score: readJsonFile(resolve(repoRoot, opts.get('score') ?? '')) as GoldenScoreJson }),
@@ -1051,6 +1074,7 @@ export async function main(argv: readonly string[], repoRoot: string, io: Aggreg
       ...(corpusStyles !== undefined && { corpusStyles }),
       ...(registered !== undefined && { registeredGoldenN: Number(registered) }),
       ...(resamples !== undefined && { resamples: Number(resamples) }),
+      ...(rule !== undefined && { neuralAggregation: rule }),
     };
     const out = resolve(repoRoot, outDir);
     for (const [name, text] of aggregate(input)) io.writeFile(join(out, name), text);

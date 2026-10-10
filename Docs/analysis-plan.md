@@ -15,6 +15,10 @@
 > the plans and the `apg-ablation` plan (§2); the SO2 outputs, gate source and NFR-07 source, the SO4 N outcome and
 > per-style rows (§3); the label-size corrections of ADR-021 item 8 (§4, §5, §6); the SO4 precision and F1 intervals
 > (§5); rejected pairs (§8). §11 lists every change.
+> **Amended 2026-10-10 (ADR-028 Option C, `corpus/prereg.json` version 14)**, after E7 (`e7-corpus`, prereg v11) and
+> before any E1 (`e1-grid`) run: the proportional neural aggregation variant as a registered sensitivity analysis and
+> the judge diagnostics as a registered exploratory explanation analysis (§12, §3, §10 B9). The registered rule stays
+> primary. §11 lists the change.
 > **Requirements**: FR-v1.2E-25, 27, 36; SO1–SO5 (ADR-017 items 1–3, 6, 7); ADR-015 items 1, 2, 5, 10; ADR-016 b, e.
 > **Design source**: `aidlc-docs/construction/v1.2E-u5b-scoring-harness/functional-design/business-rules.md`
 > (BR-U5b-20, 30, 33, 34, 45..49, 53, 54, 61..65, 78). The matching of seeds to violations is `Docs/matching-rule.md`
@@ -23,7 +27,8 @@
 
 Sections: §1 the SO5 code tables (machine block); §2 registered plans and seeds; §3 outcomes per objective; §4
 labelling populations, caps and budget; §5 interval rule; §6 SO5 factors, tests and Holm families; §7 flag columns;
-§8 missingness and exclusions; §9 what is fixed by registration; §10 reporting duties; §11 amendments.
+§8 missingness and exclusions; §9 what is fixed by registration; §10 reporting duties; §11 amendments; §12 the
+neural aggregation variant and the judge diagnostics (ADR-028).
 
 ## 1. SO5 code tables (frozen at registration)
 
@@ -175,7 +180,7 @@ field of a registered plan.
 | SO4 instrument validity | seeded differential precision (FP-labelled, `Docs/matching-rule.md` MAT-10 1.1.0), recall and F1 on `split = held-out` seeded instances, overall and per function, dimension, tag (with the `structural / data-flow` sub-row) and project; recall intervals per §5 (cell unit); the pooled E7 row (`base_kind = corpus-e7`, the only unseen stratum) next to the all-bases figure (ADR-020 item 8) | **registered secondary: SO4 baseline precision** (ADR-020 item 1), per function, per corpus tier and overall: the Horvitz–Thompson weighted share of P2 items labelled TP-class (`TP`, `unseeded-TP`), each weighing 1 / p, `uncertain` kept in the denominator as non-TP, with the §5 interval rule; reported beside the differential precision wherever a precision is quoted. Exploratory: precision FP-strict and incl. twins; recall in coverage; twin specificity; `corpus-core` rows; `dev` rows (never pooled with held-out); the neural column `neural_new` (never in symbolic P/R/F1, MAT-19 1.1.0) | `prf_*.csv`, `precision_baseline.csv`, `precision_figure.csv`, `instances.csv`, `twins.csv` |
 | SO4 N against the floor (ADR-021 SO4-05) | the golden-set count N = scored held-out golden instances (matched + missed) against the registered 80–120 floor; with `--golden-registered 85` the catalogue's registered total at k = 2 (the 85-vs-80 margin); the overall row carries the ADR-019 item 1 statement (k frozen, actual N, any shortfall a Ch7 deviation, no other lever) | the count per stage (in the case, rejected as a pair, not applicable, site invalid, scored); every seed and every manifest rejection with its stage and reason (the coverage table, MAT-12 step 1) | `golden_instances.csv`, `seed_coverage.csv` |
 | SO4 FP / FN analysis | weighted counts per `RC-*` root cause (P1, P2, missed seeds; P3 is not labelled, §4) | mechanical vs labeller FN causes | `fp_fn_taxonomy.csv` |
-| SO3 report | per project, the AHS field named by `scoring.verdictSource` of the run's mode, with its verdict | the other AHS fields present; per-dimension AVR; leave-one-dimension-out deltas; sensitivity-only sweeps | `ahs_by_project.csv`, `rescore_*.csv` |
+| SO3 report | per project, the AHS field named by `scoring.verdictSource` of the run's mode, with its verdict, under the registered neural aggregation (ADR-028 item 1) | the other AHS fields present; per-dimension AVR; leave-one-dimension-out deltas; sensitivity-only sweeps; **registered sensitivity analysis: the proportional neural aggregation variant** (§12.2; AHS and verdict per project under both rules, verdict changes); **registered exploratory explanation analysis: the judge diagnostics** (§12.4) | `ahs_by_project.csv`, `rescore_*.csv`; `ahs_by_aggregation.csv`; `judge_units.csv`, `judge_criteria.csv` |
 | SO3 neural | judge vs panel agreement on P4 E1 units (weighted, judges of another model family; `headline = true`; ADR-020 item 7) | the same agreement per source (`e1`, `fixture`) and pooled, per E1 generator model, and with `uncertain` kept as a category; run vs run (order sensitivity, §10 B3); panel vs audit (sanity check, B6); judge repetition reliability; judge-probe detection conditional on selection | `agreement.csv`, `judge_probe.csv` |
 | SO2 | parse coverage and resolution counts per run; the H13 latency gate decision per plan, from `so2-metrics tables` `gate.json` (the only registered gate source; every RunRecord counts, rejected ones included: a cycle-query timeout is `fallback-required`, an unreadable run `inconclusive`; ADR-021 SO2-1) | per-run latency (`so2/latency.csv`, both cycle queries apart) and the NFR-07 table (`so2/nfr07_latency.csv`, with `profile.csv`); graph size per project by node and edge type and `FLOWS_TO` edges per resolved import (`so2/graph_coverage.csv`, `flows_to_stores.csv`; ADR-021 SO2-4, X-4); the APG-full vs AST-only ablation (`apg_ablation.csv`, `apg_ablation_summary.csv`, descriptive: functions that lose detection; pre-run check `apg_arms.csv`); stage times (aggregate `latency.csv`, descriptive); FLOWS_TO evidence per MO-DF01 seed and twin | `results/<plan>/so2/*` (`scripts/so2-metrics-cli.ts`), `coverage.csv`, `latency.csv`, `edge_evidence.csv` |
 | SO1 | denominators per run (declared, ADR-derived, compiled, disabled, dropped, skipped by mode, executed, failed), identities I1 and I2 | per-style P/R/F1 rows: the `style-<s>` strata rows of the `prf_*` files, `s` = the spec's `architecture.style` (the style the instrument evaluates with); the corpus style is a column of `denominators.csv`, `prf_by_project.csv`, `seed_coverage.csv` and `golden_instances.csv`, so the style mismatches (`zhuravlevma__nestjs-active-record`: corpus `layered`, spec `nestjs`) are reported, not hidden (ADR-021 SO1-C, item 9) | `denominators.csv`, `prf_*.csv` |
@@ -571,6 +576,16 @@ These statements are registered: every report of the corresponding figure carrie
     report (violations, violations per KLOC, FPAT profile, AHS) also gets a v1 sensitivity row from a symbolic-only
     re-evaluation of the same stored code with `--instrument v1`; no generation or judge call is repeated for it.
 
+- **B9 Neural aggregation and judge diagnostics (ADR-028).** Every SO3 and E1 table that carries `ahsCombined`,
+  `ahsNeuronal`, a Semantic or Integrity AVR or a verdict of a judge mode names its neural aggregation (`registered` or
+  `proportional`, column `neural_aggregation` or caption). The registered rule is the primary analysis; the
+  proportional variant is a pre-declared sensitivity analysis (§12.2) and never replaces it. The thesis reports, per
+  project (E7) and per valid cell (E1), how much the variant moves `ahsCombined` (and `ahsNeuronal`) and how many
+  verdicts it changes. The E7 variant reading was computed after the E7 results were known (post hoc, from the
+  recorded cassettes, zero new judge calls) and is labelled so; the E1 variant reading is pre-registered and comes from
+  the same judge calls as the registered reading. The judge diagnostics (§12.4) are exploratory and descriptive. Every
+  judge claim, under either rule, stays conditional on the panel validation of FR-27.
+
 ## 11. Amendments
 
 | Date | Section | Change | Source |
@@ -602,3 +617,135 @@ These statements are registered: every report of the corresponding figure carrie
 | 2026-10-09 (ADR-026, POST-HOC) | §4, §10 | B8: instrument v2 role exemptions (FF-CV05, FF-C02, FF-C03) and the `--instrument v1 / v2` switch; every table names its version; v1 primary for SO4 and SO2 with v2 beside, the differing aggregate files listed; P2 drawn from the v2 `e7-corpus` population (24) plus a v1-only exempted stratum set (6), n and n_eff per version; v2 the instrument for E7, E1 and SO5 with a v1 symbolic sensitivity row | ADR-026 |
 | 2026-10-09 (ADR-026, label-plan producer) | §4, §10 | B8: the P2 v1-only stratum set implemented in `build-label-plan` (`--corpus-v1-runs`; config version 3, `v1OnlyMaxItems` 6); refusals, no reallocation, the lowering split ⌊6 L / 30⌋; precision rows per version (v2, v1 combined, v1-only counts only) | ADR-026 (implementation note) |
 | 2026-10-10 (ADR-026, v1 side registered; prereg v13) | §2, §10 | `e7-corpus-v1sym` registered (symbolic-only, `instrument: v1`, the `e7-corpus` entries, seeds 7201..7203); B8 implementation rule for mode pairing (v1 `symbolic-only` with v2 `full` or `symbolic-only`, pair by project and spec, symbolic rows only); the v2 baseline-precision rows drop the `v1-only: ` strata | ADR-026 (implementation note) |
+| 2026-10-10 (ADR-028, prereg v14) | §3, §10, §12 | The proportional neural aggregation variant (`proportional-inclusion-weighted-v1`) registered as a sensitivity analysis before any E1 run, the registered rule primary; the judge diagnostics (per-unit extraction and the fixed `judge-coding-frame`) registered as an exploratory explanation analysis; reporting duty B9; E7's variant reading declared post hoc | ADR-028 |
+
+## 12. Neural aggregation variant and judge diagnostics (ADR-028)
+
+**Status and timing.** Registered 2026-10-10 with `corpus/prereg.json` version 14, after E7 (`e7-corpus`, 9 of 9 runs
+accepted under prereg v11 and instrument v2) and before any `e1-grid` run. The variant was written from the existing
+design (U4 BR-U4-SEL-04, AGG-01..05, AGG-09; U3 BR-U3-32..35) and is not tuned to E7 values. Declared: the E7
+registered aggregate results (`results/e7-corpus/agg/ahs_by_project.csv`, the BR-U5b-60 `neural:share` rows) and the
+ADR-028 context figures (fail shares per function, the 9-of-20 maximum) were known when it was written; no per-unit E7
+value and no judge rationale was read before this section and its coding frame were fixed. Therefore the **E1 variant
+reading is pre-registered** and the **E7 variant reading is post hoc**. Both readings of a run come from the same judge
+calls; the variant is computed from the recorded cassettes with no new call (`--cassette-mode replay`).
+
+### 12.1 The registered rule (primary, unchanged)
+
+`--neural-aggregation registered` (the default). U4's `majority-of-valid-units-v1` gives the function verdict (fail when
+strictly more than half of the valid units fail; warning when any valid unit fails or is a split vote; else pass). A
+`fail` adds the U3 confidence weight of the function confidence to its dimension's `violatedWeight` (1.0 at or above
+`confidence_thresholds.high`, 0.7 at or above `medium`, else 0.3; 0.2 when flagged unstable; BR-U3-32); a `pass` or
+`warning` adds 0. This is the primary SO3 and E1 analysis.
+
+### 12.2 The proportional variant (registered sensitivity analysis)
+
+`--neural-aggregation proportional`, rule id `proportional-inclusion-weighted-v1` (`corpus/frozen-instrument.json`
+`scoringFreeze.neuralAggregation`). A neural function's contribution to its dimension's `violatedWeight` is the
+inclusion-weighted share of failed judged units:
+
+    share_f = Σ_h N_h · ȳ_h / Σ_{h : V_h > 0} N_h,        ȳ_h = (1 / V_h) · Σ_{u valid in layer h} y_u
+
+- **Strata and weights (capped selections).** The judged units of a function are a layer-stratified sample of its
+  candidate units: a seeded round-robin over the layers up to the cap of 20 (BR-U4-SEL-04), so the per-layer
+  allocation k_h is fixed by the layer sizes and the units inside a layer are taken in seeded hash order. A unit of
+  layer h is included with probability k_h / N_h, where N_h is the number of candidate units of layer h. The share is
+  the Hájek (ratio) Horvitz–Thompson estimate of the candidate-population share: each valid judged unit of layer h
+  weighs N_h / V_h, V_h being the valid judged units of layer h. Without a cap and with every unit valid, every weight
+  is 1 and the share is the plain mean of the unit scores. Without the weights, the round-robin would over-represent
+  small layers whenever a large layer is capped. N_h is persisted per function as `neuralResults[].candidatesByLayer`.
+  On a variant run that reuses a baseline selection (BR-U4-SEL-07) the same post-stratified formula is used with the
+  run's own candidate counts.
+- **Unit score and confidence.** y_u = the U3 confidence weight of the unit's own confidence when the unit's vote is
+  `fail` (the unit confidence is the mean confidence of the runs voting with its verdict, AGG-01; 1.0 / 0.7 / 0.3 by the
+  spec's `confidence_thresholds`, 0.2 when the unit is flagged unstable); y_u = 0 for a `pass` unit. Rationale: the
+  variant changes one thing, the step from unit votes to the function (a proportion instead of a strict-majority
+  threshold); the confidence treatment of BR-U3-32 is kept and applied at the level where the judgement is made, so a
+  difference between the two readings is due to the aggregation and not to a new use of confidence. Confidence is not
+  used as a continuous probability: it is not calibrated, and FR-27 validation is pending. When every judged unit fails
+  with confidence at or above `high`, both rules give 1; when none fails, both give 0.
+- **Split votes.** A unit whose valid runs have no strict majority (its vote is `warning`, e.g. one pass and one fail
+  of two valid runs) scores 0 and stays in the denominator. Rationale: there is no majority for fail; the registered
+  rule also gives a warning no contribution, and U4 forms no violation for it (VIO-01); a fractional score would add a
+  parameter. The number of split-vote units is reported.
+- **Invalid units.** A unit with fewer than 2 valid runs is left out and its layer re-weighted (missingness within a
+  layer is taken as ignorable); a layer with no valid unit drops out of both sums. AGG-05 (fewer than half the
+  selected units valid → function failure, no result) and AGG-09 (no unit → no result) are unchanged, so a function
+  counts in `functionCount` under one rule exactly when it counts under the other.
+- **Everything else is unchanged.** `share_f` lies in [0, 1], the range of a symbolic function's contribution. The
+  per-dimension AVR (`round3(violatedWeight / functionCount)`), the renormalisation over executed dimensions, the three
+  AHS fields, the verdict thresholds and the verdict source are those of the registered rule. A hybrid function (none
+  in any registered spec) contributes 1 when its symbolic half fails, else its neural share. The function verdict,
+  the violations and every `neuralResults[]` row are the same under both rules; only the AHS inputs differ.
+- **Records.** The report's `scoring.neuralAggregation` names the rule (judge modes); the RunRecord carries
+  `neuralAggregation` and `cassetteMode`. `run-experiment-cli --neural-aggregation proportional --cassette-mode replay
+  --out-dir <dir>` produces the variant reading of a plan from its recorded cassettes; `aggregate-cli
+  --neural-aggregation <rule>` refuses a run directory whose reports carry another rule; `rescore` adds a
+  `neural:proportional` sensitivity row to every report whose judged rows carry `candidatesByLayer`.
+- **Relation to the BR-U5b-60 `share` row.** That row (unweighted fail share of valid units, no confidence weight)
+  stays as it was; the variant is its registered, inclusion-weighted and confidence-weighted form.
+
+### 12.3 Reporting of the variant
+
+Per E7 project and per valid E1 cell: `ahsDeterministic` (rules only), `ahsCombined` under each rule with the
+difference, `ahsNeuronal` under each rule, the verdict under each rule and whether it changed, and per judged function
+the registered contribution and `share_f` (`ahs_by_aggregation.csv`, `scripts/compare-aggregations-cli.ts`). Totals:
+the number of verdicts the variant changes and the mean and range of the AHS differences. The §6 SO5 tests run under
+the registered rule only; under the variant the per-cell AHS and the verdict-change counts are reported descriptively,
+with no test and no Holm family. E7 rows carry the POST-HOC label (§10 B9).
+
+### 12.4 Judge diagnostics (registered exploratory explanation analysis)
+
+Descriptive and exploratory: what the judge reports that the rules cannot see. No judge call is made.
+
+- **Extraction.** `scripts/judge-diagnostics-cli.ts --runs <run dir> --cassettes <cassette dir> --out <dir>` reads the
+  accepted reports' `neuralResults[].unitResults` (vote, confidence, its standard deviation, the unstable flag, valid
+  runs) and the cassette entries of each unit (matched by project id, function id, unit id and repetition 0). The
+  unit's **rationale** is the `reasoning` plus the violation messages of its carrier run: the valid run voting with the
+  unit's verdict with the highest confidence, ties to the lowest `runIndex` (a split-vote unit: all its valid runs
+  carry). One row per judged unit goes to `judge_units.csv`, with the vote recomputed from the cassettes and a flag when
+  it differs from the report.
+- **Coding frame (fixed, mechanical).** The criteria are the fail clauses of the frozen rubrics (`src/llm-critic/rubric.ts`
+  FF-N01, FF-N02). Each criterion is a list of case-insensitive regular expressions; a rationale is coded with every
+  criterion of its own function that has at least one match (multi-label); a rationale with none is `JC-UNCODED`. The
+  frame is the machine block below, read by `scripts/lib/judge-coding-frame.ts`; it is not edited after registration
+  (a change is a version bump with a reason). It was written from the rubric text before any rationale was read.
+- **Counts.** `judge_criteria.csv`: per function × project × verdict × criterion, the number of coded units, and for
+  failing units the share of failing units of that function and project; the same pooled over projects. Failing units
+  are the primary population (their rationale explains a fail); passing units are counted too, as a negation-noise
+  indicator (the frame does not handle negation, so "no duplication" matches `JC-N01-DUP`). Per function and project
+  the counts of fail, pass, split-vote and invalid units, mean confidence and unstable units are given beside them.
+- **Limits (stated with every use).** The frame is a pre-specified keyword map, not a validated taxonomy; it is written
+  by the author (non-blind); keywords miss paraphrases and match negations; a code says what the judge wrote, not that
+  it is correct (FR-27). It is distinct from the §6 open coding of the E1 labeller rationales.
+
+```yaml judge-coding-frame
+version: 1.0.0
+textFields: [reasoning, violations.message]
+carrierRun: highest confidence among the valid runs voting with the unit verdict; ties lowest runIndex
+uncoded: JC-UNCODED
+functions:
+  FF-N01:
+    - code: JC-N01-SPLIT
+      rubricClause: the files split into unrelated concerns
+      patterns: ['\bunrelated\b', '\bmix(es|ed|ing)?\b', '\b(multiple|several|distinct|separate|different|two|three) (unrelated )?(concerns|responsibilit(y|ies))\b', '\bdisparate\b', '\bgrab[- ]?bag\b', '\bincoheren', '\b(lacks?|low|weak|no) cohesion\b', '\bnot cohesive\b', '\bsplits?\b']
+    - code: JC-N01-DUP
+      rubricClause: duplicate a rule or invariant that should live in one place
+      patterns: ['\bduplicat', '\brepeat(s|ed|ing)?\b', '\bredundan', '\bcop(y|ies|ied)\b', '\bsame (logic|rule|check|validation|code)\b', '\btwice\b', '\bin (two|both|multiple|several) places\b', '\bre-?implement']
+    - code: JC-N01-BYPASS
+      rubricClause: bypass the module's own abstractions
+      patterns: ['\bbypass', '\bcircumvent', '\bside-?step', '\bdirect(ly)? (access|call|use|instantiat|import)', '\binstead of (using|going through|calling)\b', '\breach(es|ing)? (into|past|around)\b', '\bwork(s|ing)? around\b']
+  FF-N02:
+    - code: JC-N02-PERSISTENCE
+      rubricClause: persistence logic in a file of another layer kind
+      patterns: ['\bpersist', '\bdatabase\b', '\bdb\b', '\brepositor(y|ies)\b', '\borm\b', '\bsql\b', '\bquer(y|ies)\b', '\bprisma\b', '\btypeorm\b', '\bmongoose\b', '\bentity ?manager\b', '\btransaction']
+    - code: JC-N02-TRANSPORT
+      rubricClause: transport logic in a file of another layer kind
+      patterns: ['\bhttp\b', '\brequests?\b', '\bresponses?\b', '\btransport\b', '\brest\b', '\bstatus codes?\b', '\broutes?\b', '\bendpoints?\b', '\bexpress\b', '\bheaders?\b']
+    - code: JC-N02-FRAMEWORK
+      rubricClause: framework logic in a file of another layer kind
+      patterns: ['\bframework', '\bnest(js)?\b', '\bdecorators?\b', '@[a-z]\w*', '\binjectable\b', '\bdependency injection\b', '\bdi container\b']
+    - code: JC-N02-BUSINESS
+      rubricClause: business rules in an infrastructure or presentation file
+      patterns: ['\bbusiness\b', '\bdomain (logic|rules?)\b', '\binvariants?\b', '\bvalidat', '\bcalculat', '\bpolic(y|ies)\b']
+```

@@ -8,6 +8,7 @@ import { scoreDimensions } from './score-computer.js';
 import { determineVerdict } from './verdict.js';
 import { computeUniversalMetrics } from './universal-metrics.js';
 import { CYCLE_STRATEGY } from '../evaluation-engine/scc-cycles.js';
+import { DEFAULT_NEURAL_AGGREGATION } from './neural-aggregation.js';
 
 /**
  * Scoring stage output (business-logic-model.md §6): per-dimension rows, dropped dimensions, the AHS
@@ -27,6 +28,7 @@ export async function computeScoredReport(input: ScoringInput): Promise<DomainRe
     fitnessFunctions: input.fitnessFunctions,
     disabledFunctions: input.compiled.disabledFunctions,
     noJudgeUnits: input.noJudgeUnits,
+    neuralAggregation: input.neuralAggregation ?? DEFAULT_NEURAL_AGGREGATION,
   });
   if (!scored.ok) {
     const error: ScoringError = { code: scored.code, stage: 'scoring-engine', critical: true, message: scored.message };
@@ -70,6 +72,8 @@ export async function computeScoredReport(input: ScoringInput): Promise<DomainRe
     thresholds: input.verdictThresholds,
     confidenceThresholds: input.confidenceThresholds,
     verdictSource,
+    // ADR-028: judge modes name their neural aggregation; symbolic-only has none.
+    ...(input.mode !== 'symbolic-only' && { neuralAggregation: input.neuralAggregation ?? DEFAULT_NEURAL_AGGREGATION }),
   };
 
   return DomainResult.ok<ScoredReport>({

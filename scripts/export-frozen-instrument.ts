@@ -24,6 +24,7 @@ import {
 import { bindLayerParams } from '../src/fitness-compiler/layer-binding.js';
 import { isTemplateApplicable } from '../src/fitness-compiler/template-applicability.js';
 import { inModeDimensions, verdictSourceOf } from '../src/scoring-engine/score-computer.js';
+import { PROPORTIONAL_RULE_ID } from '../src/scoring-engine/neural-aggregation.js';
 import { PATTERN_GRAMMAR } from '../src/spec-parser/spec-schema.js';
 import { FROZEN_SHA256, FROZEN_VALUES } from '../src/llm-critic/frozen.js';
 import type { EvaluationMode, LayerKind, TemplateTag } from '../src/shared/types/enums.js';
@@ -43,6 +44,20 @@ export interface MetricKeyReadiness { readonly projectLevelKeys: boolean; readon
 export interface ScoringFreeze {
   readonly verdictSource: Readonly<Record<EvaluationMode, string>>;
   readonly ahsNeuronal: { readonly weights: 'fullModeWeights'; readonly dimensions: readonly string[]; readonly renormalised: true };
+  /** ADR-028: the registered neural aggregation (primary) and the registered sensitivity variant (`Docs/analysis-plan.md` §12). */
+  readonly neuralAggregation: NeuralAggregationFreeze;
+}
+export interface NeuralAggregationFreeze {
+  readonly primary: 'registered';
+  readonly registeredRule: string;
+  readonly variants: { readonly proportional: {
+    readonly rule: typeof PROPORTIONAL_RULE_ID;
+    readonly strata: 'layer';
+    readonly unitWeight: 'N_h / V_h';
+    readonly failedUnitScore: 'u3-confidence-weight';
+    readonly splitVoteScore: 0;
+    readonly invalidUnits: 'excluded-stratum-reweighted';
+  } };
 }
 export interface FrozenInstrument {
   readonly patternGrammar: string;
@@ -147,6 +162,16 @@ export function scoringFreeze(): ScoringFreeze {
   return {
     verdictSource: Object.fromEntries(modes.map((m) => [m, verdictSourceOf(m)])) as Record<EvaluationMode, string>,
     ahsNeuronal: { weights: 'fullModeWeights', dimensions: [...inModeDimensions('neuronal-only')], renormalised: true },
+    neuralAggregation: {
+      primary: 'registered',
+      registeredRule: String(FROZEN_VALUES.aggregation.rule),
+      variants: {
+        proportional: {
+          rule: PROPORTIONAL_RULE_ID, strata: 'layer', unitWeight: 'N_h / V_h', failedUnitScore: 'u3-confidence-weight',
+          splitVoteScore: 0, invalidUnits: 'excluded-stratum-reweighted',
+        },
+      },
+    },
   };
 }
 

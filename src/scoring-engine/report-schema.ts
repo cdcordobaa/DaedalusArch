@@ -11,7 +11,7 @@ export const REPORT_SCHEMA_ID = 'https://daedalus-arch.local/schemas/report.sche
 export const REPORT_SCHEMA = {
   "$schema": "http://json-schema.org/draft-07/schema#",
   "$id": "https://daedalus-arch.local/schemas/report.schema.json",
-  "$comment": "FROZEN at U3-R10 (FR-14, FR-36; U3 BR-U3-59, 60, 65; domain-entities.md §7). Amended 2026-10-09 (ADR-021 item 9, zero judge units): full mode requires ahsNeuronal unless droppedDimensions lists both semantic and integrity. Amended 2026-10-09 (ADR-026): optional instrumentVersion (1 | 2). Embedded as REPORT_SCHEMA in src/scoring-engine/report-schema.ts (deep-equal test); validateReport runs it on every assembled report. Version = $id + the CLI commit (no reportSchemaVersion). A change reopens U3 as a reviewed patch. Enums mirror NODE_TYPES, EDGE_TYPES, DIMENSIONS (src/shared/types/enums.ts) and BUILT_IN_VIOLATION_TYPES; neuralResults rows are U4 NeuralResultRow (U4 DE §4.8).",
+  "$comment": "FROZEN at U3-R10 (FR-14, FR-36; U3 BR-U3-59, 60, 65; domain-entities.md §7). Amended 2026-10-09 (ADR-021 item 9, zero judge units): full mode requires ahsNeuronal unless droppedDimensions lists both semantic and integrity. Amended 2026-10-09 (ADR-026): optional instrumentVersion (1 | 2). Embedded as REPORT_SCHEMA in src/scoring-engine/report-schema.ts (deep-equal test); validateReport runs it on every assembled report. Version = $id + the CLI commit (no reportSchemaVersion). A change reopens U3 as a reviewed patch. Enums mirror NODE_TYPES, EDGE_TYPES, DIMENSIONS (src/shared/types/enums.ts) and BUILT_IN_VIOLATION_TYPES; neuralResults rows are U4 NeuralResultRow (U4 DE §4.8). Amended 2026-10-10 (ADR-028): optional scoring.neuralAggregation (registered | proportional) and optional neuralResults[].candidatesByLayer.",
   "title": "DaedalusArch evaluation report",
   "type": "object",
   "additionalProperties": false,
@@ -252,7 +252,10 @@ export const REPORT_SCHEMA = {
     },
     "instrumentVersion": {
       "$comment": "Symbolic instrument version (ADR-026): 1 = no role exemptions, 2 = role exemptions. Absent in reports written before instrument v2.",
-      "enum": [1, 2]
+      "enum": [
+        1,
+        2
+      ]
     },
     "neuralResults": {
       "type": "array",
@@ -818,6 +821,13 @@ export const REPORT_SCHEMA = {
             "ahsCombined",
             "ahsNeuronal"
           ]
+        },
+        "neuralAggregation": {
+          "type": "string",
+          "enum": [
+            "registered",
+            "proportional"
+          ]
         }
       }
     },
@@ -1345,6 +1355,12 @@ export const REPORT_SCHEMA = {
           "type": "array",
           "items": {
             "$ref": "#/definitions/neuralUnitRow"
+          }
+        },
+        "candidatesByLayer": {
+          "type": "object",
+          "additionalProperties": {
+            "$ref": "#/definitions/count"
           }
         }
       }

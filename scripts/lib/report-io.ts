@@ -74,6 +74,10 @@ export interface RunRecord {
   readonly preregVersion: number; readonly frozenHashes: Readonly<Record<string, string>>;
   /** Symbolic instrument version of the run (ADR-026); absent in records written before instrument v2. */
   readonly instrumentVersion?: 1 | 2;
+  /** ADR-028: neural aggregation of a judge-mode run (absent before ADR-028 = registered). */
+  readonly neuralAggregation?: 'registered' | 'proportional';
+  /** ADR-028: the cassette mode passed to the child, when the harness was given one (absent = record). */
+  readonly cassetteMode?: 'record' | 'replay';
   readonly envRecordId: string;
   readonly startedAt: string; readonly wallMs: number;
   readonly cell?: GenerationCell; readonly seed?: SeedRef;

@@ -35,7 +35,8 @@ function closedCounts(keys: readonly string[]): Record<string, unknown> {
 
 /**
  * JSON Schema of one row (closed, every field required except `singleFileModules` and a unit's
- * `origin`, which C7 sets only for module units and variant runs). Its `properties` equal the
+ * `origin`, which C7 sets only for module units and variant runs, and `candidatesByLayer` (ADR-028; absent in
+ * reports written before it). Its `properties` equal the
  * `neuralResultRow` / `neuralUnitRow` definitions of U3's frozen report schema (asserted by test).
  */
 export const NEURAL_RESULT_ROW_SCHEMA = Object.freeze({
@@ -73,6 +74,7 @@ export const NEURAL_RESULT_ROW_SCHEMA = Object.freeze({
     excerptTruncatedUnits: { $ref: '#/definitions/count' },
     removedByVariant: { type: 'array', items: { type: 'string' } },
     unitResults: { type: 'array', items: { $ref: '#/definitions/neuralUnitRow' } },
+    candidatesByLayer: { type: 'object', additionalProperties: { $ref: '#/definitions/count' } },
   },
   definitions: {
     count: COUNT,
@@ -169,6 +171,7 @@ export function toNeuralResultRows(results: readonly NeuronalFunctionResult[]): 
         excerptTruncatedUnits: r.excerptTruncatedUnits ?? 0,
         removedByVariant: [...(r.removedByVariant ?? [])],
         unitResults: unitResults.map(unitRow),
+        ...(r.candidatesByLayer !== undefined ? { candidatesByLayer: { ...r.candidatesByLayer } } : {}),
       };
     });
 }
