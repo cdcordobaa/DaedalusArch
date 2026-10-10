@@ -1,7 +1,7 @@
 {
-  "version": 11,
-  "registeredAt": "2026-10-10T02:13:27Z",
-  "reason": "ADR-027 (E7-x corpus extension; drafted after the API-only candidate research of Docs/DiagnosticRuns/e7-candidate-research-2026-10-09.md, committed 8f93521 before the candidate list, before any clone or firewall run on a candidate; author decisions 2026-10-09). Per artefact: (1) Docs/corpus-criteria.md - section 7 and the machine-block extension (Q7-Q10, attributes E/H/F/R with A recorded only, tiered seeded draw, owner cap 1 per round, C2 20-800, C5 npm-only because fetch-corpus/prepare-bases support no pnpm or yarn install, addMax 6, corpus-duplicate); round-1 keys unchanged, selection.json still reproduces; (2) corpus/corpus.json - two E7-x entries appended (zhuravlevma__typescript-ddd-architecture, raouf-b-dev__ecommerce-store-api: recorded SHA, npm-ci-ignore-scripts lock sha256, project tsc), from corpus/selection-e7x.json; (3) corpus/specs/zhuravlevma__typescript-ddd-architecture.yaml and corpus/specs/raouf-b-dev__ecommerce-store-api.yaml - byte output of the registered generator, no hand edit; (4) Docs/e7-spec-rule.md - the two names appended to projects and a dated note on the six E7-x generations, rule version 1 unchanged and every earlier spec byte-identical under --check; (5) corpus/selections/<the two>.json - Mock-derived baseline selections (DV-BT-2, zero live calls); (6) experiments/e7-corpus/plan.json - the two bases appended (E7 only; SO4 plans, golden set, feasibility count and u5a-base-typecheck.json unchanged); (7) Docs/threats-to-validity.md - TV-98 (extension drafted after the research) and TV-99 (author overlap, owner cap within the round). Four selected projects excluded without repair (permacoop spec invalid; khusenov, pvarentsov, DanielAraldi type-check). No instrument, rubric, preset, operator catalogue or matching-rule change (rule stays 1.2.0). Runs registered under v10 keep their preregVersion.",
+  "version": 12,
+  "registeredAt": "2026-10-10T03:56:45Z",
+  "reason": "ADR-026 implementation note (label-plan producer for the P2 v1-only stratum set of Docs/analysis-plan.md section 10 B8). Made before any label-plan build and before any live label call. No E7 result was read; tests use hand-computed fixtures only. Per artefact: (1) corpus/label-plan-config.json - version 2 to 3. It adds sampled.P2.v1OnlyMaxItems = 6 inside the unchanged P2 maxItems 30, which registers the 24 v2 + 6 v1-only split that B8 already specifies. The call arithmetic (46 + 30 + 0 + 59) x 2 + 30 = 300 does not change, and nothing else changes. (2) Docs/analysis-plan.md - section 4 names config version 3. The last B8 sentence (the v1-only stratum needs that producer change) is replaced by the producer rules: --corpus-v1-runs as the paired --instrument v1 re-evaluation, strata 'v1-only: <project>, <function>' with their own seeded draw stream, the refusals, no reallocation, and the lowering split floor(6 L / 30). Section 11 gains a dated row. No estimand, size, seed or interval rule changes. All other artefacts are unchanged.",
   "matchingRuleVersion": "1.2.0",
   "artefacts": [
     {
@@ -18,7 +18,7 @@
     },
     {
       "path": "Docs/analysis-plan.md",
-      "sha256": "77c3c8153a9056ecccab29531014921eec875960e88e6db31d26bc496c82b753"
+      "sha256": "678babba3866d234139cbeddb4d4a5f89823b55576bffe57efba106d974da237"
     },
     {
       "path": "Docs/corpus-criteria.md",
@@ -70,7 +70,7 @@
     },
     {
       "path": "corpus/label-plan-config.json",
-      "sha256": "efdbf5891c0316ed43e6d8b723a3d446defcf6c8fef0cd73fc5206593c27fc88"
+      "sha256": "84e6ab31668977c66b0bdfd672691414b8fb1b27d29d1bdfdaa015de66f2b165"
     },
     {
       "path": "corpus/overlays/dry-run-test/tsconfig.patch",
@@ -328,6 +328,10 @@
     {
       "version": 10,
       "commit": "58e5236471a36dba797ca51b483d6d11ac050070"
+    },
+    {
+      "version": 11,
+      "commit": "087c7e1b5a8980f7ab1cf80004977d19eea11cfa"
     }
   ]
 }
