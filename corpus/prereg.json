@@ -1,7 +1,7 @@
 {
-  "version": 16,
-  "registeredAt": "2026-10-10T18:05:04Z",
-  "reason": "P-LU = runbook 6.5 labeller token figures in Docs/labeller-route.md §6 (live labelling 2026-10-10)",
+  "version": 17,
+  "registeredAt": "2026-10-10T18:22:34Z",
+  "reason": "Author decision 2026-10-10 'Keep 8%, add weighted variant', made after the v15 E7 re-computation (58ecd3b) and the v16 P-LU bump (PR #48), and before any e1-grid run (no E1 RunRecord exists); code 3daf1cc and 1372247, plan text 543ebb6 and 1372247. Per artefact: (1) Docs/analysis-plan.md: new section 12.5 registers the judge-weighted sensitivity variant judge-weighted-v1 (the executed full-mode effective weights rescaled so the judge dimensions together weigh 2/7 and the symbolic dimensions 5/7, each group proportionally, summing to 1; same thresholds, AVRs, AHS formula and verdict source; computed for the registered, proportional and any-fail aggregations as a pure function of the stored reports, no re-run, no LLM call; bound -2/7), its rationale (the author's stated judge role is to diagnose, explain and be able to move verdicts; the registered W_n = 0.08 bound makes the last unreachable), its status as a sensitivity analysis and never the primary (registered spec weights stay primary, no spec weight changes), its E7 reading POST HOC and its E1 reading pre-registered (reading derived: post hoc when the registered run's preregVersion < 17), and its reported columns; section 10 B9 adds wording rules (iv) (a verdict moved by the reweighting is never a judge effect, the judge effect is judge_mattered_jw / delta_judge_jw within [-2/7, 0]) and (v) (E7 POST HOC label); header note, section list and a section 11 row. No estimand of the registered rule or the proportional variant, plan, seed, size, interval rule, matching rule, spec, spec weight, frozen instrument or label-plan config changes. All other 69 artefacts are unchanged.",
   "matchingRuleVersion": "1.2.0",
   "artefacts": [
     {
@@ -18,7 +18,7 @@
     },
     {
       "path": "Docs/analysis-plan.md",
-      "sha256": "d746ab521420eadcbea12ce6d40f8de4a4844e1bb882e578a4acd9ca269ea69c"
+      "sha256": "fcc3fff62fd90ca6499789b8221b2f1887115e2fdc8ff17f815e5ac0efb9c73c"
     },
     {
       "path": "Docs/corpus-criteria.md",
@@ -352,6 +352,10 @@
     {
       "version": 15,
       "commit": "df6f6ae4b949876b128d4e80115b0e93938976f6"
+    },
+    {
+      "version": 16,
+      "commit": "f11ffa4d3456a6da486f1a86bc3ed042d64b4945"
     }
   ]
 }

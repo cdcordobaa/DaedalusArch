@@ -158,3 +158,13 @@ Previous: v15 (ADR-028 Fable review fixes). The live labelling (runbook 6.4) has
 | `Docs/labeller-route.md` | v15 `72c557ca…` → v16 `18d747c4…` | §6 gains the measured input tokens per call from `llm-label --usage` (median 14 024, max 124 846) and the invocation count (142, 3 retries). | None. Descriptive capacity figures only; no estimand, seed, size, prompt or route changes. |
 
 All other hashes are unchanged.
+
+## P-JW — prereg v17 (ADR-028 judge-weighted sensitivity variant, 2026-10-10)
+
+Previous: v16 (P-LU), commit `f11ffa4`. Author decision 2026-10-10: "Keep 8%, add weighted variant". This bump comes after the v15 E7 re-computation (`58ecd3b`), after the code and plan text (`3daf1cc`, `543ebb6`, renumbered in `1372247` when P-LU took v16 in PR #48), and **before any `e1-grid` run** (no E1 RunRecord exists). The registered spec weights (W_n = 0.08) stay the primary analysis; no spec weight changes. `judge-weighted-v1` is a pre-declared sensitivity analysis: **E1's reading is pre-registered**; **E7's reading is post hoc**.
+
+| Artefact | v16 → v17 sha256 | Change and reason | Post-hoc risk |
+|---|---|---|---|
+| `Docs/analysis-plan.md` | `d746ab52…` → `fcc3fff6…` | New §12.5: `judge-weighted-v1`. The executed full-mode effective weights are rescaled so the judge dimensions together weigh 2/7 and the symbolic dimensions 5/7, each group proportionally (Σ = 1). Thresholds, AVRs, the AHS formula and the verdict source are unchanged. It is computed under the registered, proportional and any-fail aggregations as a pure function of the stored reports (no re-run, no LLM call), with bound −2/7 and the reported columns; the reading is derived (post hoc below v17). **Rationale**: the author's stated judge role is to diagnose, explain and be able to move verdicts, and the W_n = 0.08 bound makes the last unreachable. It is a sensitivity analysis and never the primary. §10 B9: wording rules (iv) (a verdict moved by the reweighting is never presented as a judge effect; the judge effect is `judge_mattered_jw` / `delta_judge_jw` in [−2/7, 0]) and (v) (E7 POST HOC). Header note, section list, §11 row. | **E7 reading post hoc**: the variant was chosen after the E7 readings showed that W_n = 0.08 leaves the judge no verdict to move. Mitigation: the registered weights stay primary; the variant has one parameter, 2/7, fixed by the dimension count (2 of 7) and not by any E7 value; it is registered before E1. |
+
+All other 69 hashes are unchanged. Not registered artefacts, named for completeness: `scripts/compare-aggregations.ts` and its tests; the ADR-028 implementation note and the runbook step 4 sentence. Every existing column of `ahs_by_aggregation.csv` is unchanged; the `judge-weighted-v1` columns are appended.

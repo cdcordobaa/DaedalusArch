@@ -24,6 +24,11 @@
 > share are declared (§12.2); the judge-effect decomposition and the any-fail companion are registered (§12.3, B9);
 > coding frame 1.1.0 with message-only primary coding, a guarded reasoning coding, a discrimination statistic and
 > `rules_also_flag` (§12.4); wording rules (B9). §11 lists the change.
+> **Amended 2026-10-10 (ADR-028 judge-weighted variant, `corpus/prereg.json` version 17)**, after the v15 E7
+> re-computation and before any E1 run, on the author's decision of 2026-10-10 ("Keep 8%, add weighted variant"): the
+> registered spec weights stay primary (W_n = 0.08); the judge-weighted sensitivity variant `judge-weighted-v1` (judge
+> dimensions 2/7, symbolic 5/7, same thresholds) is pre-declared (§12.5, B9). Its E7 reading is post hoc; its E1 reading
+> is pre-registered. §11 lists the change.
 > **Requirements**: FR-v1.2E-25, 27, 36; SO1–SO5 (ADR-017 items 1–3, 6, 7); ADR-015 items 1, 2, 5, 10; ADR-016 b, e.
 > **Design source**: `aidlc-docs/construction/v1.2E-u5b-scoring-harness/functional-design/business-rules.md`
 > (BR-U5b-20, 30, 33, 34, 45..49, 53, 54, 61..65, 78). The matching of seeds to violations is `Docs/matching-rule.md`
@@ -33,7 +38,7 @@
 Sections: §1 the SO5 code tables (machine block); §2 registered plans and seeds; §3 outcomes per objective; §4
 labelling populations, caps and budget; §5 interval rule; §6 SO5 factors, tests and Holm families; §7 flag columns;
 §8 missingness and exclusions; §9 what is fixed by registration; §10 reporting duties; §11 amendments; §12 the
-neural aggregation variant and the judge diagnostics (ADR-028).
+neural aggregation variant, the judge diagnostics and the judge-weighted variant (ADR-028).
 
 ## 1. SO5 code tables (frozen at registration)
 
@@ -600,6 +605,13 @@ These statements are registered: every report of the corresponding figure carrie
   every neural AVR in [0, 1], `delta_judge` lies in [−W_n, 0], so the judge can lower `ahsCombined` by at most W_n = 0.08
   and can never raise it above the judge-blind value; a verdict can move only when the judge-blind AHS lies within
   W_n of a threshold. The ADR-028 implementation note follows the same rules.
+  **Amended v17 (judge-weighted variant).** Every such table also carries the `judge-weighted-v1` columns of §12.5
+  beside the registered-weights columns, under the registered, the proportional and the any-fail aggregation, named as a
+  sensitivity analysis (never the primary). Wording rules: (iv) with the judge weighing 2/7 the dilution artefact grows
+  with it (a clean judge dimension raises the AHS by up to 2/7 · (1 − `ahsDeterministic`)), so a verdict that the
+  judge-weighted weights move relative to the registered weights (`verdict_changed_jw_<rule>`) is never presented as a
+  judge effect; the judge effect is `judge_mattered_jw_<rule>` and `delta_judge_jw_<rule>` in [−2/7, 0], stated with the
+  bound. (v) The E7 judge-weighted reading is labelled POST HOC; the E1 reading is pre-registered.
 
 ## 11. Amendments
 
@@ -634,6 +646,7 @@ These statements are registered: every report of the corresponding figure carrie
 | 2026-10-10 (ADR-026, v1 side registered; prereg v13) | §2, §10 | `e7-corpus-v1sym` registered (symbolic-only, `instrument: v1`, the `e7-corpus` entries, seeds 7201..7203); B8 implementation rule for mode pairing (v1 `symbolic-only` with v2 `full` or `symbolic-only`, pair by project and spec, symbolic rows only); the v2 baseline-precision rows drop the `v1-only: ` strata | ADR-026 (implementation note) |
 | 2026-10-10 (ADR-028, prereg v14) | §3, §10, §12 | The proportional neural aggregation variant (`proportional-inclusion-weighted-v1`) registered as a sensitivity analysis before any E1 run, the registered rule primary; the judge diagnostics (per-unit extraction and the fixed `judge-coding-frame`) registered as an exploratory explanation analysis; reporting duty B9; E7's variant reading declared post hoc | ADR-028 |
 | 2026-10-10 (ADR-028 review fixes, prereg v15) | §10, §12 | Variant undefined for SEL-07 baseline reuse; bias toward clean and the confidence-free share; SRS within a layer, no variance; the judge-effect decomposition (W_n, bound, judge-blind verdict, judge_mattered) and the any-fail companion; derived `reading`; E1 two-pass procedure; coding frame 1.1.0 (message-only primary, guarded reasoning, discrimination ≥ 0.3, `rules_also_flag`), its E7 reading post hoc; B9 wording rules | ADR-028; Fable review of PR #47 |
+| 2026-10-10 (ADR-028 judge-weighted variant, prereg v17) | §10, §12 | The registered spec weights stay primary (W_n = 0.08); the judge-weighted sensitivity variant `judge-weighted-v1` registered before any E1 run (judge dimensions 2/7, symbolic 5/7, each group proportional, same thresholds; under the registered, proportional and any-fail aggregations; a pure function of the stored reports); its E7 reading post hoc, its E1 reading pre-registered; B9 wording rules (iv), (v) | ADR-028 (author, 2026-10-10: "Keep 8%, add weighted variant") |
 
 ## 12. Neural aggregation variant and judge diagnostics (ADR-028)
 
@@ -817,3 +830,41 @@ functions:
       rubricClause: business rules in an infrastructure or presentation file
       patterns: ['\bbusiness\b', '\bdomain (logic|rules?)\b', '\binvariants?\b', '\bvalidat', '\bcalculat', '\bpolic(y|ies)\b']
 ```
+
+### 12.5 The judge-weighted variant `judge-weighted-v1` (registered sensitivity analysis, v17)
+
+**Decision and status.** On 2026-10-10 the author decided "Keep 8%, add weighted variant". The registered spec
+weights stay the primary analysis (W_n = 0.08: semantic 0.04, integrity 0.04 in every registered spec; no spec weight
+changes). `judge-weighted-v1` is a pre-declared **sensitivity analysis, not the primary**; it never replaces the
+registered weights in any SO3, SO5 or E1 headline, test or Holm family. Registered with `corpus/prereg.json` version 17,
+after the v15 E7 re-computation (and the v16 labeller-figures bump) and before any `e1-grid` run. **Its E7 reading is post hoc** (written after the E7
+registered, proportional and any-fail readings and the v15 decomposition were known, in particular that W_n = 0.08
+left the judge no verdict to move); **its E1 reading is pre-registered**.
+
+**Rationale.** The author's stated role for the judge (ADR-028) is to diagnose, explain and be able to move verdicts.
+With W_n = 0.08 the judge can lower `ahsCombined` by at most 0.08 (§12.3), so it can move a verdict only when the
+judge-blind AHS lies within 0.08 of a threshold; on E7 it moves none under any aggregation. That bound makes the third
+part of the stated role unreachable by construction. The variant asks what the judge's findings would do if the two
+judge dimensions weighed what they would as 2 of the 7 dimensions, without changing the registered instrument.
+
+**Definition.** From the registered report of a project or cell, take the full-mode effective weights over the executed
+dimensions (the spec's `fullModeWeights` renormalised over the dimensions with `functionCount` > 0, as the scorer does;
+Σ = 1). Rescale them so that the executed judge dimensions together weigh **2/7 (≈ 0.2857)** and the executed symbolic
+dimensions **5/7**, each group proportionally (the ratios inside each group are kept; the weights still sum to 1). With
+all seven dimensions executed this gives semantic = integrity = 1/7 and each symbolic weight w_d · (5/7) / 0.92. The
+variant is undefined (empty cells) when no judge dimension or no symbolic dimension carries weight. AVRs, AVR rounding,
+the AHS formula (`round3(1 − Σ w · AVR)`), the verdict thresholds and the verdict source are unchanged. The variant
+is computed for three aggregations: the **registered** rule (AVRs of the registered report), the **proportional**
+variant (§12.2, AVRs of the proportional report) and the BR-U5b-60 **any-fail** rule (AVRs of the any-fail re-score of
+the registered report). It is a pure function of the stored reports, from the same recordings: no re-run, no judge or
+other LLM call, no Neo4j.
+
+**Reporting** (`scripts/compare-aggregations.ts`, `ahs_by_aggregation.csv`, beside the existing columns): per project
+or cell, `reading_judge_weighted` (`post-hoc` when the registered run's `preregVersion` < 17, else `pre-registered`),
+`w_neural_jw` (2/7), the bound `judge_bound_jw` = −2/7, the judge-blind AHS and verdict under the judge-weighted weights
+(`ahs_combined_jw_judge_blind`, `verdict_jw_judge_blind`), and per aggregation `<rule>` ∈ {registered, proportional,
+any_fail}: `ahs_combined_jw_<rule>`, `verdict_jw_<rule>`, `delta_jw_<rule>` (minus the same aggregation's AHS under the
+registered weights), `verdict_changed_jw_<rule>`, `delta_judge_jw_<rule>` (minus the judge-blind AHS, in [−2/7, 0]) and
+`judge_mattered_jw_<rule>`. Totals: per aggregation, the number of verdicts the reweighting moves and the number the
+judge moves (`judge_mattered_jw`). Descriptive only, no test, no Holm family; every judge claim stays conditional on the
+FR-27 panel validation. B9 wording rules (iv) and (v) apply.
