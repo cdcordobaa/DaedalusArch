@@ -1,0 +1,35 @@
+{
+  "attempts": 1,
+  "cliVersion": "1.3.2",
+  "configListingSha256": "b8cce56d63afd9cebbf745ed20c888d9ab0007207a513029027cc10be9494345",
+  "durationMs": 18205,
+  "effort": null,
+  "functionId": "label:violation:fe24c4150c88130d4dd9d330f0aa2ecca0862274c93a746ffeef7b472c41cbed",
+  "ignoredOptions": [
+    "temperature",
+    "maxTokens"
+  ],
+  "isolationProbeSha256": "e3e335eb64e5ae507ca6484a4f75d0443b1afef89d42854818fa51bd02d68423",
+  "key": "66e90dd0be20f5678274af46e34516ac9c6738cb6a1d11224bb85658cd7a6de9-r0-1",
+  "model": "gemini-3.1-pro-high",
+  "outcome": {
+    "kind": "valid"
+  },
+  "parsedVerdict": null,
+  "prompt": "Decide whether the finding below is a real violation of the rule as described.\n- TP: the code violates the rule at this location.\n- FP: the code does not violate the rule; give the root cause of the false finding.\n- unseeded-TP: the code violates the rule, but the violation is part of the original design rather than a\n  deliberate change; give the root cause (use RC-GENUINE-UNSEEDED when the violation is simply real).\n\n## Item\n## Violation\n  Function: FF-P02\n  Description: dependency-inversion: Checks that application-layer classes inject interfaces, not concrete classes (DIP); violating rows only (BR-U3-11) (threshold 0.85)\n  File: src/delivery/deliveryman/services/update-order.service.ts\n  Line: n/a\n  Target: n/a\n  \n  ## Source\n      1 | import { Injectable } from '@nestjs/common';\n      2 | import { Order } from 'src/delivery/__models__/orders.model';\n      3 | import { OrdersRepository } from 'src/delivery/orders/dal/orders.repository';\n      4 | import { UpdateOrderDto } from 'src/delivery/orders/dtos/update-order.dto';\n      5 | \n      6 | @Injectable()\n      7 | export class UpdateOrderServiceDefault {\n      8 |   constructor(private ordersRepository: OrdersRepository) {}\n      9 | \n     10 |   async updateOrder(\n     11 |     orderId: string,\n     12 |     updateOrderDto: UpdateOrderDto,\n     13 |   ): Promise<Order> {\n     14 |     const order = await this.ordersRepository.findOrderByIdWithDeliveryman(\n     15 |       orderId,\n     16 |     );\n     17 | \n     18 |     updateOrderDto.isActive !== undefined ??\n     19 |       order.changeStatus(updateOrderDto.isActive);\n     20 | \n     21 |     updateOrderDto.description !== undefined ??\n     22 |       order.addInfoToDescription(updateOrderDto.description);\n     23 | \n     24 |     return this.ordersRepository.save(order);\n     25 |   }\n     26 | }\n     27 | \n\n## Label options\n1. FP\n  2. TP\n  3. unseeded-TP\n\n## Root causes\n1. RC-TYPE-ONLY\n  2. RC-STYLE-INAPPLICABLE\n  3. RC-OTHER\n  4. RC-GENERATED-CODE\n  5. RC-DYNAMIC-IMPORT\n  6. RC-EXTRACT-ALIAS\n  7. RC-LAYER-MAP\n  8. RC-TEMPLATE-OVERAPPROX\n  9. RC-TEST-CODE\n  10. RC-GENUINE-UNSEEDED\n  11. RC-SPEC-PARAM\n  12. RC-EXTRACT-BARREL\n\nAnswer with one JSON object: {\"option\": <number of the label option>, \"rootCause\": <number of the root cause or null>, \"note\": \"<text, required with RC-OTHER>\", \"rationale\": \"<one or two sentences citing the code>\"}.",
+  "provider": "agy",
+  "recordedAt": "2026-10-10T16:25:28.718Z",
+  "repetition": 0,
+  "requestHash": "66e90dd0be20f5678274af46e34516ac9c6738cb6a1d11224bb85658cd7a6de9",
+  "resolvedModel": "gemini-3.1-pro-high",
+  "response": "{\"note\":\"\",\"option\":3,\"rationale\":\"The UpdateOrderServiceDefault class directly injects the concrete OrdersRepository from the data access layer, violating the Dependency Inversion Principle, which dictates depending on interfaces.\",\"rootCause\":10}",
+  "runIndex": 1,
+  "schemaVersion": 2,
+  "usage": {
+    "inputTokens": 13951,
+    "outputTokens": 1773
+  },
+  "usedOptions": {
+    "model": "gemini-3.1-pro-high"
+  }
+}

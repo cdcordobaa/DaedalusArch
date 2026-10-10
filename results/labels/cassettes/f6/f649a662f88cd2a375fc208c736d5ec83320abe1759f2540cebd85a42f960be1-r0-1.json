@@ -1,0 +1,35 @@
+{
+  "attempts": 1,
+  "cliVersion": "1.3.2",
+  "configListingSha256": "b8cce56d63afd9cebbf745ed20c888d9ab0007207a513029027cc10be9494345",
+  "durationMs": 33108,
+  "effort": null,
+  "functionId": "label:violation:cf5610e9f6c3cf8d731897c315f6a00d2968f879ae4ccffe3b2ab0befab4f69d",
+  "ignoredOptions": [
+    "temperature",
+    "maxTokens"
+  ],
+  "isolationProbeSha256": "e3e335eb64e5ae507ca6484a4f75d0443b1afef89d42854818fa51bd02d68423",
+  "key": "f649a662f88cd2a375fc208c736d5ec83320abe1759f2540cebd85a42f960be1-r0-1",
+  "model": "gemini-3.1-pro-high",
+  "outcome": {
+    "kind": "valid"
+  },
+  "parsedVerdict": null,
+  "prompt": "Decide whether the finding below is a real violation of the rule as described.\n- TP: the code violates the rule at this location.\n- FP: the code does not violate the rule; give the root cause of the false finding.\n- unseeded-TP: the code violates the rule, but the violation is part of the original design rather than a\n  deliberate change; give the root cause (use RC-GENUINE-UNSEEDED when the violation is simply real).\n\n## Item\n## Violation\n  Function: FF-P04\n  Description: use-case-isolation: Verifies use cases only depend on domain and application layers\n  File: src/delivery/orders/services/find-all-orders.service.ts\n  Line: n/a\n  Target: n/a\n  \n  ## Source\n      1 | import { Injectable } from '@nestjs/common';\n      2 | import { OrdersRepository } from '../dal/orders.repository';\n      3 | import { Order } from 'src/delivery/__models__/orders.model';\n      4 | \n      5 | @Injectable()\n      6 | export class FindAllOrdersServiceDefault {\n      7 |   constructor(private ordersRepository: OrdersRepository) {}\n      8 | \n      9 |   findAll(): Promise<Order[]> {\n     10 |     return this.ordersRepository.findAllOrders();\n     11 |   }\n     12 | }\n     13 | \n\n## Label options\n1. unseeded-TP\n  2. TP\n  3. FP\n\n## Root causes\n1. RC-DYNAMIC-IMPORT\n  2. RC-TEMPLATE-OVERAPPROX\n  3. RC-GENERATED-CODE\n  4. RC-TYPE-ONLY\n  5. RC-OTHER\n  6. RC-LAYER-MAP\n  7. RC-EXTRACT-BARREL\n  8. RC-SPEC-PARAM\n  9. RC-EXTRACT-ALIAS\n  10. RC-TEST-CODE\n  11. RC-STYLE-INAPPLICABLE\n  12. RC-GENUINE-UNSEEDED\n\nAnswer with one JSON object: {\"option\": <number of the label option>, \"rootCause\": <number of the root cause or null>, \"note\": \"<text, required with RC-OTHER>\", \"rationale\": \"<one or two sentences citing the code>\"}.\n\n## Your previous answer was invalid\nprovider outcome TIMEOUT. Answer again with one valid JSON object.",
+  "provider": "agy",
+  "recordedAt": "2026-10-10T17:13:36.465Z",
+  "repetition": 0,
+  "requestHash": "f649a662f88cd2a375fc208c736d5ec83320abe1759f2540cebd85a42f960be1",
+  "resolvedModel": "gemini-3.1-pro-high",
+  "response": "{\"option\":1,\"rationale\":\"The FindAllOrdersServiceDefault acts as a use case but imports OrdersRepository from the dal (Data Access Layer) directory, which genuinely violates the rule that use cases should only depend on domain and application layers.\",\"rootCause\":12}",
+  "runIndex": 1,
+  "schemaVersion": 2,
+  "usage": {
+    "inputTokens": 13750,
+    "outputTokens": 3477
+  },
+  "usedOptions": {
+    "model": "gemini-3.1-pro-high"
+  }
+}

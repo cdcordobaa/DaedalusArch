@@ -1,0 +1,35 @@
+{
+  "attempts": 1,
+  "cliVersion": "1.3.2",
+  "configListingSha256": "b8cce56d63afd9cebbf745ed20c888d9ab0007207a513029027cc10be9494345",
+  "durationMs": 19167,
+  "effort": null,
+  "functionId": "label:violation:1a563c0febc395a886f9155c225d815f31274339e6e3bb53ab25854ae4fecf7a",
+  "ignoredOptions": [
+    "temperature",
+    "maxTokens"
+  ],
+  "isolationProbeSha256": "e3e335eb64e5ae507ca6484a4f75d0443b1afef89d42854818fa51bd02d68423",
+  "key": "105dc6bc114b89b76c46cc7396dc037f3be32cced680155e357b9fc67f23de42-r0-1",
+  "model": "gemini-3.1-pro-high",
+  "outcome": {
+    "kind": "valid"
+  },
+  "parsedVerdict": null,
+  "prompt": "Decide whether the finding below is a real violation of the rule as described.\n- TP: the code violates the rule at this location.\n- FP: the code does not violate the rule; give the root cause of the false finding.\n- unseeded-TP: the code violates the rule, but the violation is part of the original design rather than a\n  deliberate change; give the root cause (use RC-GENUINE-UNSEEDED when the violation is simply real).\n\n## Item\n## Violation\n  Function: FF-CV05\n  Description: test-file-pairing: Detects source files without corresponding test files\n  File: src/delivery/board/offer/controllers/dtos/update-offer.dto.ts\n  Line: n/a\n  Target: n/a\n  \n  ## Source\n      1 | import { ApiProperty } from '@nestjs/swagger';\n      2 | import { IsNotEmpty, IsString } from 'class-validator';\n      3 | \n      4 | export class UpdateOfferDto {\n      5 |   @ApiProperty({ type: 'string', format: 'uuid' })\n      6 |   @IsString()\n      7 |   @IsNotEmpty()\n      8 |   curierId: string;\n      9 | }\n     10 | \n\n## Label options\n1. TP\n  2. unseeded-TP\n  3. FP\n\n## Root causes\n1. RC-GENUINE-UNSEEDED\n  2. RC-TYPE-ONLY\n  3. RC-LAYER-MAP\n  4. RC-GENERATED-CODE\n  5. RC-SPEC-PARAM\n  6. RC-DYNAMIC-IMPORT\n  7. RC-TEMPLATE-OVERAPPROX\n  8. RC-STYLE-INAPPLICABLE\n  9. RC-TEST-CODE\n  10. RC-EXTRACT-BARREL\n  11. RC-OTHER\n  12. RC-EXTRACT-ALIAS\n\nAnswer with one JSON object: {\"option\": <number of the label option>, \"rootCause\": <number of the root cause or null>, \"note\": \"<text, required with RC-OTHER>\", \"rationale\": \"<one or two sentences citing the code>\"}.",
+  "provider": "agy",
+  "recordedAt": "2026-10-10T16:16:40.996Z",
+  "repetition": 0,
+  "requestHash": "105dc6bc114b89b76c46cc7396dc037f3be32cced680155e357b9fc67f23de42",
+  "resolvedModel": "gemini-3.1-pro-high",
+  "response": "{\"note\":\"\",\"option\":3,\"rationale\":\"The file defines a Data Transfer Object (DTO) containing only data structure and validation decorators, which does not contain testable business logic and typically does not require a dedicated test file.\",\"rootCause\":2}",
+  "runIndex": 1,
+  "schemaVersion": 2,
+  "usage": {
+    "inputTokens": 13699,
+    "outputTokens": 1367
+  },
+  "usedOptions": {
+    "model": "gemini-3.1-pro-high"
+  }
+}
