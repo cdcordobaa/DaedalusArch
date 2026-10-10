@@ -1227,6 +1227,27 @@ Lock-file check (decision 2): `scripts/fetch-corpus.ts` runs exactly one install
 
 ---
 
+## ADR-028: Judge aggregation, registered rule primary plus a pre-declared proportional variant (Option C)
+
+**Status**: Accepted (author, 2026-10-10: "I like option C. Yes. Let's keep track of this decision.")
+
+**Date**: 2026-10-10
+
+**Context**: E7 (PR #45) ran 993 judged units across 9 real projects without a single failure. The judge failed 20–24% of units: FF-N01 31/152 and FF-N02 42/179. Under the registered rule-level threshold, however, no neural function ever reached "fail" on any project; the highest was 9 of 20 units. The Semantic and Integrity dimensions therefore score as clean everywhere. As a result the combined AHS is 0.02–0.07 above the rules-only AHS by a weighting side effect, and the judge never changes a verdict. Under the registered aggregation the judge works as a process but has no effect on verdicts.
+
+**Author's statement of the judge's role**: the judge is the part of the instrument that reasons about the semantic connections between components. Its job is to diagnose, expand and explain findings, and also to be able to move verdicts.
+
+**Decision (Option C)**:
+1. **Registered rule stays primary.** The registered rule-level aggregation remains the primary SO3 and E1 analysis. Nothing is replaced.
+2. **A proportional variant is registered before E1, as a pre-declared sensitivity analysis.** In this variant, a neural dimension's violation share equals the inclusion-weighted share of failed judged units in that function. Its exact form, its tie to confidence and its weighting are specified in the analysis plan and are fixed before any E1 run.
+3. **E7 is re-scored under both rules from the recorded judge cassettes, with no new judge calls.** E1 then runs once, and both readings come from the same calls. E7's variant reading is computed after its results are known, and the thesis must state that. E1's variant reading is pre-registered.
+4. **The judge's diagnostic output is a first-class result.** Per-unit verdicts, rationales and confidence feed an explanation analysis of what the judge finds that the rules cannot see. This is descriptive and exploratory. The analysis plan registers how rationales are summarised (for example by a coding scheme) before E1.
+5. **Reporting.** Every SO3 and E1 table names its aggregation. The thesis reports how often and by how much the variant moves scores and verdicts, compared with the registered rule. Every judge claim stays conditional on panel validation (FR-27 labelling).
+
+**Rationale**: This keeps the pre-registration intact, answers the question "what does the judge add?" with evidence, costs no extra judge calls, and matches the author's view that the judge both diagnoses and is able to move verdicts.
+
+---
+
 ## Decision Log Summary
 
 | **ADR** | **Decision** | **Status** | **Spike Validated** |
@@ -1259,3 +1280,4 @@ Lock-file check (decision 2): `scripts/fetch-corpus.ts` runs exactly one install
 | 025 | POST-HOC SO4 scoring fixes: MAT-04a class-rename identity (rule 1.2.0), MO-S01 layered style guard (expectation), MO-DF01n constructor scope; prereg v9; strict and corrected scores side by side | Accepted | — |
 | 026 | POST-HOC instrument v2: library-level role exemptions for FF-CV05, FF-C02, FF-C03 (composition roots, declaration-only files; no index.ts); --instrument v1 / v2 switch; SO4 detection unchanged; v1 primary with v2 beside; P2 drawn v2 + v1-only stratum; prereg v10 | Accepted (after Fable review, MERGE WITH FIXES) | — |
 | 027 | E7-x corpus extension (after the research, before any run): Q7–Q10, attributes E/H/F/R (A recorded only), tiered seeded draw, owner cap 1 per round, C5 npm-only (pnpm/yarn unsupported), C2 20–800 (NFR-v1.2E-07 amended), addMax 6, E7 only; prereg v11 | Accepted | — |
+| 028 | Judge aggregation: registered rule primary + pre-declared proportional variant; judge diagnostics first-class (Option C) | Accepted | — |
