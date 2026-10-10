@@ -1,0 +1,455 @@
+{
+  "projectId": "zhuravlevma__typescript-ddd-architecture",
+  "functions": [
+    {
+      "template": "architectural-integrity",
+      "functionId": "FF-N01",
+      "candidateUnitIds": [
+        "src",
+        "src/__infrastructure__/context",
+        "src/__infrastructure__/correlation#application",
+        "src/__infrastructure__/correlation#presentation",
+        "src/__infrastructure__/rabbitmq",
+        "src/__infrastructure__/uow",
+        "src/__relay__#application",
+        "src/__relay__#presentation",
+        "src/__saga__#application",
+        "src/__saga__#presentation",
+        "src/__saga__/models",
+        "src/accounting",
+        "src/accounting/reports",
+        "src/accounting/reports/report/controllers",
+        "src/accounting/reports/report/controllers/dtos",
+        "src/accounting/reports/report/dal",
+        "src/accounting/reports/report/dal/orm-entities",
+        "src/accounting/reports/report/domain",
+        "src/accounting/reports/report/domain/entities",
+        "src/accounting/reports/report/domain/interactors",
+        "src/accounting/reports/report/domain/ports/in",
+        "src/accounting/reports/report/domain/ports/out",
+        "src/accounting/reports/report/domain/queries",
+        "src/accounting/verification",
+        "src/accounting/verification/controllers",
+        "src/accounting/verification/dtos",
+        "src/accounting/verification/models",
+        "src/accounting/verification/services",
+        "src/cart/cart",
+        "src/cart/cart/controllers",
+        "src/cart/cart/controllers/dtos",
+        "src/cart/cart/dal",
+        "src/cart/cart/dal/orm-entities",
+        "src/cart/cart/domain/entities",
+        "src/cart/cart/domain/events",
+        "src/cart/cart/domain/interactors",
+        "src/cart/cart/domain/ports/in",
+        "src/cart/cart/domain/ports/out",
+        "src/cart/payment",
+        "src/cart/payment/controllers",
+        "src/cart/payment/models",
+        "src/cart/payment/services",
+        "src/delivery",
+        "src/delivery/board",
+        "src/delivery/board/offer/controllers",
+        "src/delivery/board/offer/controllers/dtos",
+        "src/delivery/board/offer/dal",
+        "src/delivery/board/offer/domain",
+        "src/delivery/board/offer/domain/entities",
+        "src/delivery/board/offer/domain/interactors",
+        "src/delivery/board/offer/domain/ports/in",
+        "src/delivery/board/offer/domain/ports/out",
+        "src/delivery/curiers",
+        "src/delivery/curiers/curier/controllers",
+        "src/delivery/curiers/curier/controllers/dtos",
+        "src/delivery/curiers/curier/dal",
+        "src/delivery/curiers/curier/dal/orm-entities",
+        "src/delivery/curiers/curier/domain/entities",
+        "src/delivery/curiers/curier/domain/interactors",
+        "src/delivery/curiers/curier/domain/ports/in",
+        "src/delivery/curiers/curier/domain/ports/out",
+        "src/delivery/curiers/curier/domain/queries",
+        "src/delivery/curiers/curier/domain/read-models",
+        "src/delivery/tracking",
+        "src/delivery/tracking/controllers",
+        "src/delivery/tracking/dtos",
+        "src/delivery/tracking/models",
+        "src/delivery/tracking/services",
+        "src/warehouse",
+        "src/warehouse/order-management",
+        "src/warehouse/order-management/warehouse/controllers",
+        "src/warehouse/order-management/warehouse/controllers/dtos",
+        "src/warehouse/order-management/warehouse/dal",
+        "src/warehouse/order-management/warehouse/dal/orm-entities",
+        "src/warehouse/order-management/warehouse/domain/entities",
+        "src/warehouse/order-management/warehouse/domain/events",
+        "src/warehouse/order-management/warehouse/domain/interactors",
+        "src/warehouse/order-management/warehouse/domain/ports/in",
+        "src/warehouse/order-management/warehouse/domain/ports/out",
+        "src/warehouse/tracking",
+        "src/warehouse/tracking/controllers",
+        "src/warehouse/tracking/dtos",
+        "src/warehouse/tracking/models",
+        "src/warehouse/tracking/services"
+      ],
+      "selectedUnitIds": [
+        "src/__infrastructure__/correlation#application",
+        "src/__saga__#presentation",
+        "src/accounting/reports/report/domain/queries",
+        "src/cart/cart/dal",
+        "src/cart/cart/dal/orm-entities",
+        "src/cart/cart/domain/interactors",
+        "src/cart/cart/domain/ports/in",
+        "src/delivery/board/offer/controllers",
+        "src/delivery/board/offer/dal",
+        "src/delivery/curiers",
+        "src/delivery/curiers/curier/controllers/dtos",
+        "src/delivery/curiers/curier/dal",
+        "src/delivery/curiers/curier/domain/queries",
+        "src/delivery/tracking/controllers",
+        "src/delivery/tracking/dtos",
+        "src/warehouse/order-management/warehouse/controllers/dtos",
+        "src/warehouse/order-management/warehouse/dal/orm-entities",
+        "src/warehouse/order-management/warehouse/domain/ports/out",
+        "src/warehouse/tracking/controllers",
+        "src/warehouse/tracking/dtos"
+      ],
+      "unitFiles": {
+        "src/__infrastructure__/correlation#application": [
+          "src/__infrastructure__/correlation/correlation.service.ts"
+        ],
+        "src/__saga__#presentation": [
+          "src/__saga__/registrator.controller.ts",
+          "src/__saga__/saga.module.ts"
+        ],
+        "src/accounting/reports/report/domain/queries": [
+          "src/accounting/reports/report/domain/queries/find-report-by-id.query.ts",
+          "src/accounting/reports/report/domain/queries/find-report-with-positions.query.ts"
+        ],
+        "src/cart/cart/dal": [
+          "src/cart/cart/dal/cart.mapper.ts",
+          "src/cart/cart/dal/cart.repository.ts"
+        ],
+        "src/cart/cart/dal/orm-entities": [
+          "src/cart/cart/dal/orm-entities/cart-position.orm-entity.ts",
+          "src/cart/cart/dal/orm-entities/cart.orm-entity.ts"
+        ],
+        "src/cart/cart/domain/interactors": [
+          "src/cart/cart/domain/interactors/create-cart.interactor.ts",
+          "src/cart/cart/domain/interactors/update-cart.interactor.ts"
+        ],
+        "src/cart/cart/domain/ports/in": [
+          "src/cart/cart/domain/ports/in/create-cart.in-port.ts",
+          "src/cart/cart/domain/ports/in/update-cart.in-port.ts"
+        ],
+        "src/delivery/board/offer/controllers": [
+          "src/delivery/board/offer/controllers/offer.controller.ts"
+        ],
+        "src/delivery/board/offer/dal": [
+          "src/delivery/board/offer/dal/offer.mapper.ts",
+          "src/delivery/board/offer/dal/offer.repository.ts",
+          "src/delivery/board/offer/dal/orm-entities/offer.orm-entity.ts"
+        ],
+        "src/delivery/curiers": [
+          "src/delivery/curiers/curiers.module.ts"
+        ],
+        "src/delivery/curiers/curier/controllers/dtos": [
+          "src/delivery/curiers/curier/controllers/dtos/add-order-to-curier.dto.ts",
+          "src/delivery/curiers/curier/controllers/dtos/change-curiers-status.dto.ts",
+          "src/delivery/curiers/curier/controllers/dtos/create-curier.dto.ts",
+          "src/delivery/curiers/curier/controllers/dtos/response/saved-curier.response-dto.ts",
+          "src/delivery/curiers/curier/controllers/dtos/update-curiers-info.dto.ts",
+          "src/delivery/curiers/curier/controllers/dtos/update-order-status.dto.ts"
+        ],
+        "src/delivery/curiers/curier/dal": [
+          "src/delivery/curiers/curier/dal/curier.mapper.ts",
+          "src/delivery/curiers/curier/dal/curier.repository.ts"
+        ],
+        "src/delivery/curiers/curier/domain/queries": [
+          "src/delivery/curiers/curier/domain/queries/find-all-curiers.query.ts",
+          "src/delivery/curiers/curier/domain/queries/find-curier-with-count-of-orders.query.ts"
+        ],
+        "src/delivery/tracking/controllers": [
+          "src/delivery/tracking/controllers/tracking.controller.ts"
+        ],
+        "src/delivery/tracking/dtos": [
+          "src/delivery/tracking/dtos/create-route.dto.ts",
+          "src/delivery/tracking/dtos/update-route.dto.ts"
+        ],
+        "src/warehouse/order-management/warehouse/controllers/dtos": [
+          "src/warehouse/order-management/warehouse/controllers/dtos/add-order.dto.ts",
+          "src/warehouse/order-management/warehouse/controllers/dtos/create-warehouse.dto.ts",
+          "src/warehouse/order-management/warehouse/controllers/dtos/response/saved-warehouse.response-dto.ts",
+          "src/warehouse/order-management/warehouse/controllers/dtos/update-order.dto.ts"
+        ],
+        "src/warehouse/order-management/warehouse/dal/orm-entities": [
+          "src/warehouse/order-management/warehouse/dal/orm-entities/order.orm-entity.ts",
+          "src/warehouse/order-management/warehouse/dal/orm-entities/warehouse.orm-entity.ts"
+        ],
+        "src/warehouse/order-management/warehouse/domain/ports/out": [
+          "src/warehouse/order-management/warehouse/domain/ports/out/get-last-wh.out-port.ts",
+          "src/warehouse/order-management/warehouse/domain/ports/out/get-warehouse-with-order.out-port.ts",
+          "src/warehouse/order-management/warehouse/domain/ports/out/get-warehouse-with-orders.out-port.ts",
+          "src/warehouse/order-management/warehouse/domain/ports/out/save-warehouse.out-port.ts"
+        ],
+        "src/warehouse/tracking/controllers": [
+          "src/warehouse/tracking/controllers/tracking.controller.ts"
+        ],
+        "src/warehouse/tracking/dtos": [
+          "src/warehouse/tracking/dtos/create-delivery.dto.ts",
+          "src/warehouse/tracking/dtos/update-delivery.dto.ts"
+        ]
+      }
+    },
+    {
+      "template": "intent-alignment",
+      "functionId": "FF-N02",
+      "candidateUnitIds": [
+        "src/__infrastructure__/context/context.module.ts",
+        "src/__infrastructure__/correlation/correlation.module.ts",
+        "src/__infrastructure__/correlation/correlation.service.ts",
+        "src/__infrastructure__/rabbitmq/rabbitmq.module.ts",
+        "src/__infrastructure__/uow/uow.module.ts",
+        "src/__relay__/relay.module.ts",
+        "src/__relay__/relay.service.ts",
+        "src/__saga__/models/compensation.model.ts",
+        "src/__saga__/models/saga-step.model.ts",
+        "src/__saga__/models/saga.model.ts",
+        "src/__saga__/registrator.controller.ts",
+        "src/__saga__/registrator.service.ts",
+        "src/__saga__/saga.module.ts",
+        "src/accounting/accounting.module.ts",
+        "src/accounting/reports/report/controllers/dtos/response/saved-report.response-dto.ts",
+        "src/accounting/reports/report/controllers/dtos/update-report.dto.ts",
+        "src/accounting/reports/report/controllers/report.controller.ts",
+        "src/accounting/reports/report/dal/orm-entities/report-position.orm-entity.ts",
+        "src/accounting/reports/report/dal/orm-entities/report.orm-entity.ts",
+        "src/accounting/reports/report/dal/report.mapper.ts",
+        "src/accounting/reports/report/dal/report.repository.ts",
+        "src/accounting/reports/report/domain/entities/report-position.entity.ts",
+        "src/accounting/reports/report/domain/entities/report.entity.ts",
+        "src/accounting/reports/report/domain/events/report-validated.event.ts",
+        "src/accounting/reports/report/domain/interactors/create-report.interactor.ts",
+        "src/accounting/reports/report/domain/interactors/update-report.interactor.ts",
+        "src/accounting/reports/report/domain/object-values/amount.object-value.ts",
+        "src/accounting/reports/report/domain/ports/in/create-report.in-port.ts",
+        "src/accounting/reports/report/domain/ports/in/find-report-by-id.in-port.ts",
+        "src/accounting/reports/report/domain/ports/in/find-report-with-positions-by-id.in-port.ts",
+        "src/accounting/reports/report/domain/ports/in/update-report.in-port.ts",
+        "src/accounting/reports/report/domain/ports/out/find-report-by-id.out-port.ts",
+        "src/accounting/reports/report/domain/ports/out/find-report-with-positions-by-id.out-port.ts",
+        "src/accounting/reports/report/domain/ports/out/save-report.out-port.ts",
+        "src/accounting/reports/report/domain/queries/find-report-by-id.query.ts",
+        "src/accounting/reports/report/domain/queries/find-report-with-positions.query.ts",
+        "src/accounting/reports/report/domain/read-models/report.read-model.ts",
+        "src/accounting/reports/reports.module.ts",
+        "src/accounting/verification/controllers/verfication.controller.ts",
+        "src/accounting/verification/dtos/create-verification.dto.ts",
+        "src/accounting/verification/dtos/update-verification.dto.ts",
+        "src/accounting/verification/models/verification.model.ts",
+        "src/accounting/verification/services/verification.service.ts",
+        "src/accounting/verification/verification.module.ts",
+        "src/app.module.ts",
+        "src/cart/cart/cart.module.ts",
+        "src/cart/cart/controllers/cart.controller.ts",
+        "src/cart/cart/controllers/dtos/add-order.dto.ts",
+        "src/cart/cart/controllers/dtos/create-warehouse.dto.ts",
+        "src/cart/cart/controllers/dtos/response/saved-cart.response-dto.ts",
+        "src/cart/cart/controllers/dtos/update-order.dto.ts",
+        "src/cart/cart/dal/cart.mapper.ts",
+        "src/cart/cart/dal/cart.repository.ts",
+        "src/cart/cart/dal/orm-entities/cart-position.orm-entity.ts",
+        "src/cart/cart/dal/orm-entities/cart.orm-entity.ts",
+        "src/cart/cart/domain/entities/cart-position.entity.ts",
+        "src/cart/cart/domain/entities/cart.entity.ts",
+        "src/cart/cart/domain/events/order-cancelled.event.ts",
+        "src/cart/cart/domain/events/order-created.event.ts",
+        "src/cart/cart/domain/interactors/create-cart.interactor.ts",
+        "src/cart/cart/domain/interactors/update-cart.interactor.ts",
+        "src/cart/cart/domain/ports/in/create-cart.in-port.ts",
+        "src/cart/cart/domain/ports/in/update-cart.in-port.ts",
+        "src/cart/cart/domain/ports/out/create-saga.out-port.ts",
+        "src/cart/cart/domain/ports/out/get-cart.out-port.ts",
+        "src/cart/cart/domain/ports/out/save-cart.out-port.ts",
+        "src/cart/payment/controllers/payment.controller.ts",
+        "src/cart/payment/models/payment.model.ts",
+        "src/cart/payment/payment.module.ts",
+        "src/cart/payment/services/payment.service.ts",
+        "src/delivery/board/board.module.ts",
+        "src/delivery/board/offer/controllers/dtos/response/saved-offer.response-dto.ts",
+        "src/delivery/board/offer/controllers/dtos/update-offer.dto.ts",
+        "src/delivery/board/offer/controllers/offer.controller.ts",
+        "src/delivery/board/offer/dal/offer.mapper.ts",
+        "src/delivery/board/offer/dal/offer.repository.ts",
+        "src/delivery/board/offer/dal/orm-entities/offer.orm-entity.ts",
+        "src/delivery/board/offer/domain/entities/offer.entity.ts",
+        "src/delivery/board/offer/domain/events/offer-taked.event.ts",
+        "src/delivery/board/offer/domain/interactors/create-offer.interactor.ts",
+        "src/delivery/board/offer/domain/interactors/update-offer.interactor.ts",
+        "src/delivery/board/offer/domain/ports/in/create-offer.in-port.ts",
+        "src/delivery/board/offer/domain/ports/in/update-offer.in-port.ts",
+        "src/delivery/board/offer/domain/ports/out/find-offer-by-id.out-port.ts",
+        "src/delivery/board/offer/domain/ports/out/find-offer-by-order-id.out-port.ts",
+        "src/delivery/board/offer/domain/ports/out/save-offer.out-port.ts",
+        "src/delivery/curiers/curier/controllers/curier.controller.ts",
+        "src/delivery/curiers/curier/controllers/dtos/add-order-to-curier.dto.ts",
+        "src/delivery/curiers/curier/controllers/dtos/change-curiers-status.dto.ts",
+        "src/delivery/curiers/curier/controllers/dtos/create-curier.dto.ts",
+        "src/delivery/curiers/curier/controllers/dtos/response/saved-curier.response-dto.ts",
+        "src/delivery/curiers/curier/controllers/dtos/update-curiers-info.dto.ts",
+        "src/delivery/curiers/curier/controllers/dtos/update-order-status.dto.ts",
+        "src/delivery/curiers/curier/dal/curier.mapper.ts",
+        "src/delivery/curiers/curier/dal/curier.repository.ts",
+        "src/delivery/curiers/curier/dal/orm-entities/curier.orm-entity.ts",
+        "src/delivery/curiers/curier/dal/orm-entities/orders.orm-entity.ts",
+        "src/delivery/curiers/curier/domain/entities/curier.entity.ts",
+        "src/delivery/curiers/curier/domain/entities/order.entity.ts",
+        "src/delivery/curiers/curier/domain/interactors/add-order-to-curier.interactor.ts",
+        "src/delivery/curiers/curier/domain/interactors/change-curiers-status.interactor.ts",
+        "src/delivery/curiers/curier/domain/interactors/create-curier.interactor.ts",
+        "src/delivery/curiers/curier/domain/interactors/update-curiers-info.interactor.ts",
+        "src/delivery/curiers/curier/domain/interactors/update-order.interactor.ts",
+        "src/delivery/curiers/curier/domain/ports/in/add-order-to-curier.in-port.ts",
+        "src/delivery/curiers/curier/domain/ports/in/change-curiers-status.in-port.ts",
+        "src/delivery/curiers/curier/domain/ports/in/create-curier.in-port.ts",
+        "src/delivery/curiers/curier/domain/ports/in/create-order.in-port.ts",
+        "src/delivery/curiers/curier/domain/ports/in/find-all-curiers.in-port.ts",
+        "src/delivery/curiers/curier/domain/ports/in/find-curiers-with-count-of-orders.in-port.ts",
+        "src/delivery/curiers/curier/domain/ports/in/update-curier-info.in-port.ts",
+        "src/delivery/curiers/curier/domain/ports/in/update-order.in-port.ts",
+        "src/delivery/curiers/curier/domain/ports/out/create-curier.out-port.ts",
+        "src/delivery/curiers/curier/domain/ports/out/find-all-curiers.out-port.ts",
+        "src/delivery/curiers/curier/domain/ports/out/find-count-of-free-curiers.out-port.ts",
+        "src/delivery/curiers/curier/domain/ports/out/find-curier-by-id-with-orders.out-port.ts",
+        "src/delivery/curiers/curier/domain/ports/out/find-curier-order-lading.out-port.ts",
+        "src/delivery/curiers/curier/domain/ports/out/find-curier-with-count-of-orders.out-port.ts",
+        "src/delivery/curiers/curier/domain/ports/out/save-curier.out-port.ts",
+        "src/delivery/curiers/curier/domain/queries/find-all-curiers.query.ts",
+        "src/delivery/curiers/curier/domain/queries/find-curier-with-count-of-orders.query.ts",
+        "src/delivery/curiers/curier/domain/read-models/curier-with-count-of-orders.read-model.ts",
+        "src/delivery/curiers/curier/domain/read-models/order.read-model.ts",
+        "src/delivery/curiers/curiers.module.ts",
+        "src/delivery/delivery.module.ts",
+        "src/delivery/tracking/controllers/tracking.controller.ts",
+        "src/delivery/tracking/dtos/create-route.dto.ts",
+        "src/delivery/tracking/dtos/update-route.dto.ts",
+        "src/delivery/tracking/models/route.model.ts",
+        "src/delivery/tracking/services/tracking.service.ts",
+        "src/delivery/tracking/tracking.module.ts",
+        "src/warehouse/order-management/order-managment.module.ts",
+        "src/warehouse/order-management/warehouse/controllers/dtos/add-order.dto.ts",
+        "src/warehouse/order-management/warehouse/controllers/dtos/create-warehouse.dto.ts",
+        "src/warehouse/order-management/warehouse/controllers/dtos/response/saved-warehouse.response-dto.ts",
+        "src/warehouse/order-management/warehouse/controllers/dtos/update-order.dto.ts",
+        "src/warehouse/order-management/warehouse/controllers/warehouse.controller.ts",
+        "src/warehouse/order-management/warehouse/dal/orm-entities/order.orm-entity.ts",
+        "src/warehouse/order-management/warehouse/dal/orm-entities/warehouse.orm-entity.ts",
+        "src/warehouse/order-management/warehouse/dal/warehouse.mapper.ts",
+        "src/warehouse/order-management/warehouse/dal/warehouse.repository.ts",
+        "src/warehouse/order-management/warehouse/domain/entities/order.entity.ts",
+        "src/warehouse/order-management/warehouse/domain/entities/warehouse.entity.ts",
+        "src/warehouse/order-management/warehouse/domain/events/extend-order-period.event.ts",
+        "src/warehouse/order-management/warehouse/domain/events/order-validated.event.ts",
+        "src/warehouse/order-management/warehouse/domain/interactors/add-order.interactor.ts",
+        "src/warehouse/order-management/warehouse/domain/interactors/create-warehouse.interactor.ts",
+        "src/warehouse/order-management/warehouse/domain/interactors/update-order.interactor.ts",
+        "src/warehouse/order-management/warehouse/domain/ports/in/add-order.in-port.ts",
+        "src/warehouse/order-management/warehouse/domain/ports/in/create-warehouse.in-port.ts",
+        "src/warehouse/order-management/warehouse/domain/ports/in/update-order.in-port.ts",
+        "src/warehouse/order-management/warehouse/domain/ports/out/get-last-wh.out-port.ts",
+        "src/warehouse/order-management/warehouse/domain/ports/out/get-warehouse-with-order.out-port.ts",
+        "src/warehouse/order-management/warehouse/domain/ports/out/get-warehouse-with-orders.out-port.ts",
+        "src/warehouse/order-management/warehouse/domain/ports/out/save-warehouse.out-port.ts",
+        "src/warehouse/tracking/controllers/tracking.controller.ts",
+        "src/warehouse/tracking/dtos/create-delivery.dto.ts",
+        "src/warehouse/tracking/dtos/update-delivery.dto.ts",
+        "src/warehouse/tracking/models/delivery.model.ts",
+        "src/warehouse/tracking/services/tracking.service.ts",
+        "src/warehouse/tracking/tracking.module.ts",
+        "src/warehouse/warehouse.module.ts"
+      ],
+      "selectedUnitIds": [
+        "src/__infrastructure__/context/context.module.ts",
+        "src/accounting/reports/report/dal/orm-entities/report.orm-entity.ts",
+        "src/accounting/verification/dtos/create-verification.dto.ts",
+        "src/app.module.ts",
+        "src/cart/cart/cart.module.ts",
+        "src/cart/cart/controllers/dtos/update-order.dto.ts",
+        "src/cart/cart/domain/ports/out/create-saga.out-port.ts",
+        "src/cart/payment/models/payment.model.ts",
+        "src/delivery/board/offer/domain/ports/in/create-offer.in-port.ts",
+        "src/delivery/curiers/curier/controllers/dtos/update-curiers-info.dto.ts",
+        "src/delivery/curiers/curier/dal/curier.mapper.ts",
+        "src/delivery/curiers/curier/dal/orm-entities/curier.orm-entity.ts",
+        "src/delivery/curiers/curier/domain/ports/out/create-curier.out-port.ts",
+        "src/delivery/delivery.module.ts",
+        "src/delivery/tracking/dtos/update-route.dto.ts",
+        "src/delivery/tracking/tracking.module.ts",
+        "src/warehouse/order-management/warehouse/controllers/dtos/add-order.dto.ts",
+        "src/warehouse/order-management/warehouse/dal/orm-entities/order.orm-entity.ts",
+        "src/warehouse/order-management/warehouse/dal/warehouse.mapper.ts",
+        "src/warehouse/order-management/warehouse/domain/ports/in/create-warehouse.in-port.ts"
+      ],
+      "unitFiles": {
+        "src/__infrastructure__/context/context.module.ts": [
+          "src/__infrastructure__/context/context.module.ts"
+        ],
+        "src/accounting/reports/report/dal/orm-entities/report.orm-entity.ts": [
+          "src/accounting/reports/report/dal/orm-entities/report.orm-entity.ts"
+        ],
+        "src/accounting/verification/dtos/create-verification.dto.ts": [
+          "src/accounting/verification/dtos/create-verification.dto.ts"
+        ],
+        "src/app.module.ts": [
+          "src/app.module.ts"
+        ],
+        "src/cart/cart/cart.module.ts": [
+          "src/cart/cart/cart.module.ts"
+        ],
+        "src/cart/cart/controllers/dtos/update-order.dto.ts": [
+          "src/cart/cart/controllers/dtos/update-order.dto.ts"
+        ],
+        "src/cart/cart/domain/ports/out/create-saga.out-port.ts": [
+          "src/cart/cart/domain/ports/out/create-saga.out-port.ts"
+        ],
+        "src/cart/payment/models/payment.model.ts": [
+          "src/cart/payment/models/payment.model.ts"
+        ],
+        "src/delivery/board/offer/domain/ports/in/create-offer.in-port.ts": [
+          "src/delivery/board/offer/domain/ports/in/create-offer.in-port.ts"
+        ],
+        "src/delivery/curiers/curier/controllers/dtos/update-curiers-info.dto.ts": [
+          "src/delivery/curiers/curier/controllers/dtos/update-curiers-info.dto.ts"
+        ],
+        "src/delivery/curiers/curier/dal/curier.mapper.ts": [
+          "src/delivery/curiers/curier/dal/curier.mapper.ts"
+        ],
+        "src/delivery/curiers/curier/dal/orm-entities/curier.orm-entity.ts": [
+          "src/delivery/curiers/curier/dal/orm-entities/curier.orm-entity.ts"
+        ],
+        "src/delivery/curiers/curier/domain/ports/out/create-curier.out-port.ts": [
+          "src/delivery/curiers/curier/domain/ports/out/create-curier.out-port.ts"
+        ],
+        "src/delivery/delivery.module.ts": [
+          "src/delivery/delivery.module.ts"
+        ],
+        "src/delivery/tracking/dtos/update-route.dto.ts": [
+          "src/delivery/tracking/dtos/update-route.dto.ts"
+        ],
+        "src/delivery/tracking/tracking.module.ts": [
+          "src/delivery/tracking/tracking.module.ts"
+        ],
+        "src/warehouse/order-management/warehouse/controllers/dtos/add-order.dto.ts": [
+          "src/warehouse/order-management/warehouse/controllers/dtos/add-order.dto.ts"
+        ],
+        "src/warehouse/order-management/warehouse/dal/orm-entities/order.orm-entity.ts": [
+          "src/warehouse/order-management/warehouse/dal/orm-entities/order.orm-entity.ts"
+        ],
+        "src/warehouse/order-management/warehouse/dal/warehouse.mapper.ts": [
+          "src/warehouse/order-management/warehouse/dal/warehouse.mapper.ts"
+        ],
+        "src/warehouse/order-management/warehouse/domain/ports/in/create-warehouse.in-port.ts": [
+          "src/warehouse/order-management/warehouse/domain/ports/in/create-warehouse.in-port.ts"
+        ]
+      }
+    }
+  ]
+}
