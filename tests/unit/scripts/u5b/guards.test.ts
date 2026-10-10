@@ -2,7 +2,7 @@
  * U5b CI guards run by the existing scripts-project test step (`npm test`; `.github/**` untouched).
  * BR-U5b-56: no U5b commit adds or changes anything under `results/`. The check reads git history and fails (never
  * skips) when `origin/v1.2e` cannot be resolved. Build and Test re-scoped it (BT Step 5): under `results/`, only
- * `results/pre-tag/**` (FR-18) and `results/<registered plan id>/**` whose `runs/*.run.json` are schema-valid
+ * `results/pre-tag/**` (FR-18), `results/labels/**` (runbook stage 6, the label plan) and `results/<registered plan id>/**` whose `runs/*.run.json` are schema-valid
  * `RunRecord`s of that plan (at least one) are allowed; anything else fails. Checked over the tracked files and the
  * branch diff against `origin/v1.2e`.
  * BR-U5b-44 (Step 28): no test under `tests/unit/scripts/**` constructs the live Gemini provider or imports its
@@ -12,7 +12,7 @@ import { execFileSync } from 'node:child_process';
 import { readdirSync, readFileSync, statSync } from 'node:fs';
 import { join, relative } from 'node:path';
 import { validateRunRecord } from '../../../../scripts/run-experiment.js';
-import { resultsPathAllowed } from '../../../golden/check-changes-log.js';
+import { LABELS_RESULTS_DIR, resultsPathAllowed } from '../../../golden/check-changes-log.js';
 import { ROOT } from './score-fixture.js';
 
 function git(...args: string[]): string {
@@ -31,9 +31,9 @@ export function resultsGuardProblems(
   const problems: string[] = [];
   const plans = new Set<string>();
   for (const f of [...new Set(files)].sort()) {
-    if (!resultsPathAllowed(f, planIds)) { problems.push(`${f}: not under results/pre-tag/ or results/<registered plan id>/`); continue; }
+    if (!resultsPathAllowed(f, planIds)) { problems.push(`${f}: not under results/pre-tag/, results/labels/ or results/<registered plan id>/`); continue; }
     const top = f.split('/')[1] ?? '';
-    if (top !== 'pre-tag') plans.add(top);
+    if (top !== 'pre-tag' && top !== LABELS_RESULTS_DIR) plans.add(top);
   }
   for (const id of [...plans].sort()) {
     const records = files.filter((f) => f.startsWith(`results/${id}/runs/`) && f.endsWith('.run.json'));
@@ -70,10 +70,11 @@ describe('results guard (BR-U5b-56, re-scoped by Build and Test Step 5)', () => 
     expect(resultsGuardProblems(files, registeredPlanIds(), read)).toEqual([]);
   });
 
-  it('allows pre-tag files and a registered plan directory with a schema-valid RunRecord', () => {
+  it('allows pre-tag files, the label-plan directory and a registered plan directory with a schema-valid RunRecord', () => {
     const rec = JSON.parse(readFileSync(join(ROOT, 'tests/fixtures/u5b/reports/correct-reference.run.json'), 'utf8')) as Record<string, unknown>;
     const records: Record<string, unknown> = { 'results/latency-gate/runs/r1.run.json': { ...rec, planId: 'latency-gate' } };
-    const files = ['results/pre-tag/fixtures-abc1234.json', 'results/pre-tag/README.md', 'results/latency-gate/runs/r1.run.json', 'results/latency-gate/latency.csv'];
+    // results/labels/ is the runbook stage 6 label-plan directory (no RunRecord of its own).
+    const files = ['results/pre-tag/fixtures-abc1234.json', 'results/pre-tag/README.md', 'results/latency-gate/runs/r1.run.json', 'results/latency-gate/latency.csv', 'results/labels/label-plan.json'];
     expect(resultsGuardProblems(files, registeredPlanIds(), (f) => records[f])).toEqual([]);
   });
 
