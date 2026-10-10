@@ -1,0 +1,49 @@
+{
+  "attempts": 1,
+  "cliVersion": "2.1.294",
+  "configListingSha256": "47aa04258852fab9a706f3f0c14cee22306d69fbb6fdfbde8c11854bd54997bc",
+  "durationMs": 6287,
+  "effort": "high",
+  "functionId": "FF-N02",
+  "ignoredOptions": [
+    "maxTokens"
+  ],
+  "isolationProbeSha256": "97a2e2d0af1100c13c55e028c1a0c71f069093c3d08705af122aaeb302f1a641",
+  "key": "a488d2b0faf2c3808535d61609cc175f31c1c5a84daf9913216cf4383b4e3b94-r0-1",
+  "model": "claude-opus-5-5",
+  "outcome": {
+    "kind": "valid"
+  },
+  "parsedVerdict": {
+    "confidence": 0.93,
+    "evidence": [
+      "execute() loads the task through this.taskRepository.findById(taskId), using a domain port rather than a concrete persistence class",
+      "task.markDone() leaves the status-change rule to the domain entity",
+      "this.taskRepository.save(task) saves through the port, with no storage details",
+      "The return object maps the entity to TaskDTO, an application-level output model",
+      "The only check in the use case is the not-found guard: if (!task) throw new Error(...)"
+    ],
+    "pass": true,
+    "reasoning": "MarkTaskDoneUseCase.execute does normal application-layer orchestration. It loads the aggregate through a repository port, which is a domain interface. It hands the state change to the domain entity with task.markDone(), saves the result through the port, and maps the entity to an application DTO. The file has no persistence code (no SQL, ORM or storage calls), no transport or framework code (no HTTP, request or response handling), and no business rules beyond the check that the task exists. That check is ordinary use-case guard logic. The DTO mapping, including ISO date serialization, is a reasonable job for the application layer when it builds an output model.",
+    "violations": []
+  },
+  "projectId": "claude-haiku-4-5/task-management/full-aac/run-0",
+  "prompt": "## Rule\nThe unit's responsibilities match the role of its declared layer.\n\n## Rubric\nPass: Every responsibility in the file belongs to the role and kind of its declared layer, and agrees with any ADR prose given.\nFail: The file carries a responsibility that belongs to a different layer kind, for example persistence, transport or framework logic in a domain file, or business rules in an infrastructure or presentation file.\nEvidence required: Name the file and cite the function, method or statement that carries the misplaced responsibility, and the layer kind it belongs to.\nOut of scope: import direction and layer-dependency rules, which are checked symbolically.\n\n## Layer model\n- domain (kind: domain): src/domain/**\n- application (kind: application): src/application/**\n- infrastructure (kind: infrastructure): src/infrastructure/**\n\n## Unit\nKind: file\nId: src/application/MarkTaskDoneUseCase.ts\nLayer: application\nUnit files:\n- src/application/MarkTaskDoneUseCase.ts\n\n## Source\n=====SOURCE-BEGIN src/application/MarkTaskDoneUseCase.ts=====\nimport { ITaskRepository } from \"../domain/ITaskRepository\";\nimport { TaskDTO } from \"./TaskDTO\";\n\nexport class MarkTaskDoneUseCase {\n  constructor(private readonly taskRepository: ITaskRepository) {}\n\n  execute(taskId: string): TaskDTO {\n    const task = this.taskRepository.findById(taskId);\n    if (!task) {\n      throw new Error(`Task with id ${taskId} not found`);\n    }\n\n    task.markDone();\n    this.taskRepository.save(task);\n\n    return {\n      id: task.getId(),\n      projectId: task.getProjectId(),\n      title: task.getTitle(),\n      description: task.getDescription(),\n      status: task.getStatus().getValue(),\n      dueDate: task.getDueDate() ? task.getDueDate()!.toISOString() : null,\n      assigneeId: task.getAssigneeId(),\n    };\n  }\n}\n\n=====SOURCE-END=====\n\n## Graph excerpt\n{\"edges\":[{\"from\":\"MarkTaskDoneUseCase@src/application/MarkTaskDoneUseCase.ts\",\"to\":\"ITaskRepository@src/domain/ITaskRepository.ts\",\"type\":\"CONSTRUCTOR_INJECTS\"},{\"from\":\"TaskController@src/infrastructure/TaskController.ts\",\"to\":\"MarkTaskDoneUseCase@src/application/MarkTaskDoneUseCase.ts\",\"type\":\"FLOWS_TO\"},{\"from\":\"src/application/MarkTaskDoneUseCase.ts\",\"to\":\"src/application/TaskDTO.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/application/MarkTaskDoneUseCase.ts\",\"to\":\"src/domain/ITaskRepository.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/infrastructure/TaskController.ts\",\"to\":\"src/application/MarkTaskDoneUseCase.ts\",\"type\":\"IMPORTS\"}],\"nodes\":[{\"kind\":\"Class\",\"layer\":\"application\",\"name\":\"MarkTaskDoneUseCase\",\"path\":\"src/application/MarkTaskDoneUseCase.ts\"},{\"kind\":\"Class\",\"layer\":\"infrastructure\",\"name\":\"TaskController\",\"path\":\"src/infrastructure/TaskController.ts\"},{\"kind\":\"File\",\"layer\":\"application\",\"path\":\"src/application/MarkTaskDoneUseCase.ts\"},{\"kind\":\"File\",\"layer\":\"application\",\"path\":\"src/application/TaskDTO.ts\"},{\"kind\":\"File\",\"layer\":\"domain\",\"path\":\"src/domain/ITaskRepository.ts\"},{\"kind\":\"File\",\"layer\":\"infrastructure\",\"path\":\"src/infrastructure/TaskController.ts\"},{\"kind\":\"Interface\",\"layer\":\"domain\",\"name\":\"ITaskRepository\",\"path\":\"src/domain/ITaskRepository.ts\"}]}\n\n## Instructions\nJudge the unit against the rule and rubric. Return the JSON object the schema requires. Set pass to false if any file of the unit fails the rubric.\n",
+  "provider": "claude-cli",
+  "recordedAt": "2026-10-10T20:52:49.497Z",
+  "repetition": 0,
+  "requestHash": "a488d2b0faf2c3808535d61609cc175f31c1c5a84daf9913216cf4383b4e3b94",
+  "resolvedModel": "claude-opus-5-5",
+  "response": "{\"is_error\":false,\"modelUsage\":{\"claude-opus-5-5\":{\"inputTokens\":2,\"outputTokens\":525}},\"result\":\"{\\\"pass\\\":true,\\\"confidence\\\":0.93,\\\"reasoning\\\":\\\"MarkTaskDoneUseCase.execute does normal application-layer orchestration. It loads the aggregate through a repository port, which is a domain interface. It hands the state change to the domain entity with task.markDone(), saves the result through the port, and maps the entity to an application DTO. The file has no persistence code (no SQL, ORM or storage calls), no transport or framework code (no HTTP, request or response handling), and no business rules beyond the check that the task exists. That check is ordinary use-case guard logic. The DTO mapping, including ISO date serialization, is a reasonable job for the application layer when it builds an output model.\\\",\\\"evidence\\\":[\\\"execute() loads the task through this.taskRepository.findById(taskId), using a domain port rather than a concrete persistence class\\\",\\\"task.markDone() leaves the status-change rule to the domain entity\\\",\\\"this.taskRepository.save(task) saves through the port, with no storage details\\\",\\\"The return object maps the entity to TaskDTO, an application-level output model\\\",\\\"The only check in the use case is the not-found guard: if (!task) throw new Error(...)\\\"],\\\"violations\\\":[]}\",\"structured_output\":{\"confidence\":0.93,\"evidence\":[\"execute() loads the task through this.taskRepository.findById(taskId), using a domain port rather than a concrete persistence class\",\"task.markDone() leaves the status-change rule to the domain entity\",\"this.taskRepository.save(task) saves through the port, with no storage details\",\"The return object maps the entity to TaskDTO, an application-level output model\",\"The only check in the use case is the not-found guard: if (!task) throw new Error(...)\"],\"pass\":true,\"reasoning\":\"MarkTaskDoneUseCase.execute does normal application-layer orchestration. It loads the aggregate through a repository port, which is a domain interface. It hands the state change to the domain entity with task.markDone(), saves the result through the port, and maps the entity to an application DTO. The file has no persistence code (no SQL, ORM or storage calls), no transport or framework code (no HTTP, request or response handling), and no business rules beyond the check that the task exists. That check is ordinary use-case guard logic. The DTO mapping, including ISO date serialization, is a reasonable job for the application layer when it builds an output model.\",\"violations\":[]}}",
+  "runIndex": 1,
+  "schemaVersion": 2,
+  "unitId": "src/application/MarkTaskDoneUseCase.ts",
+  "usage": {
+    "inputTokens": 2877,
+    "outputTokens": 525
+  },
+  "usedOptions": {
+    "effort": "high",
+    "model": "claude-opus-5-5"
+  }
+}

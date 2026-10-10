@@ -1,0 +1,48 @@
+{
+  "attempts": 1,
+  "cliVersion": "2.1.294",
+  "configListingSha256": "47aa04258852fab9a706f3f0c14cee22306d69fbb6fdfbde8c11854bd54997bc",
+  "durationMs": 9767,
+  "effort": "high",
+  "functionId": "FF-N02",
+  "ignoredOptions": [
+    "maxTokens"
+  ],
+  "isolationProbeSha256": "97a2e2d0af1100c13c55e028c1a0c71f069093c3d08705af122aaeb302f1a641",
+  "key": "355671407a598401e882fc010b30dc3664df9fa7f7905d893c81b5b5cf712f74-r0-2",
+  "model": "claude-opus-5-5",
+  "outcome": {
+    "kind": "valid"
+  },
+  "parsedVerdict": {
+    "confidence": 0.92,
+    "evidence": [
+      "src/infrastructure/server.ts: `new InMemoryProductRepository()` / `new InMemoryOrderRepository()` set up persistence adapters, which is infrastructure work",
+      "src/infrastructure/server.ts: `createApp({ orders: new OrderService(...), inventory: new InventoryService(products) })` wires the app together at the composition root",
+      "src/infrastructure/server.ts: `Number(process.env[\"PORT\"] ?? 3000)` and `app.listen(port, ...)` read the environment and start the HTTP server, both infrastructure concerns",
+      "src/infrastructure/server.ts: no business rules or domain calculations appear anywhere in the file"
+    ],
+    "pass": true,
+    "reasoning": "This file is the app's entry point and wires everything together. It creates the in-memory repositories, seeds the catalogue, builds the application services with their infrastructure adapters (UuidGenerator, SystemClock) and passes them to the HTTP app. It then reads PORT from the environment and starts the server. Wiring, configuration and starting the server are infrastructure jobs. The file contains no business rules, domain logic or use-case coordination. It only calls constructors and seedCatalogue, so nothing in it belongs to a different layer.",
+    "violations": []
+  },
+  "projectId": "claude-opus-5-5/order-fulfilment/none/run-0",
+  "prompt": "## Rule\nThe unit's responsibilities match the role of its declared layer.\n\n## Rubric\nPass: Every responsibility in the file belongs to the role and kind of its declared layer, and agrees with any ADR prose given.\nFail: The file carries a responsibility that belongs to a different layer kind, for example persistence, transport or framework logic in a domain file, or business rules in an infrastructure or presentation file.\nEvidence required: Name the file and cite the function, method or statement that carries the misplaced responsibility, and the layer kind it belongs to.\nOut of scope: import direction and layer-dependency rules, which are checked symbolically.\n\n## Layer model\n- domain (kind: domain): src/domain/**\n- application (kind: application): src/application/**\n- infrastructure (kind: infrastructure): src/infrastructure/**\n\n## Unit\nKind: file\nId: src/infrastructure/server.ts\nLayer: infrastructure\nUnit files:\n- src/infrastructure/server.ts\n\n## Source\n=====SOURCE-BEGIN src/infrastructure/server.ts=====\nimport { InventoryService } from \"../application/inventory-service\";\nimport { OrderService } from \"../application/order-service\";\nimport { createApp } from \"./http\";\nimport {\n  InMemoryOrderRepository,\n  InMemoryProductRepository,\n  SystemClock,\n  UuidGenerator,\n} from \"./in-memory\";\nimport { seedCatalogue } from \"./seed\";\n\nconst products = new InMemoryProductRepository();\nconst orders = new InMemoryOrderRepository();\nseedCatalogue(products);\n\nconst app = createApp({\n  orders: new OrderService(orders, products, new UuidGenerator(), new SystemClock()),\n  inventory: new InventoryService(products),\n});\n\nconst port = Number(process.env[\"PORT\"] ?? 3000);\napp.listen(port, () => {\n  console.log(`Order fulfilment API listening on http://localhost:${port}`);\n});\n\n=====SOURCE-END=====\n\n## Graph excerpt\n{\"edges\":[{\"from\":\"src/infrastructure/server.ts\",\"to\":\"src/application/inventory-service.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/infrastructure/server.ts\",\"to\":\"src/application/order-service.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/infrastructure/server.ts\",\"to\":\"src/infrastructure/http.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/infrastructure/server.ts\",\"to\":\"src/infrastructure/in-memory.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/infrastructure/server.ts\",\"to\":\"src/infrastructure/seed.ts\",\"type\":\"IMPORTS\"}],\"nodes\":[{\"kind\":\"File\",\"layer\":\"application\",\"path\":\"src/application/inventory-service.ts\"},{\"kind\":\"File\",\"layer\":\"application\",\"path\":\"src/application/order-service.ts\"},{\"kind\":\"File\",\"layer\":\"infrastructure\",\"path\":\"src/infrastructure/http.ts\"},{\"kind\":\"File\",\"layer\":\"infrastructure\",\"path\":\"src/infrastructure/in-memory.ts\"},{\"kind\":\"File\",\"layer\":\"infrastructure\",\"path\":\"src/infrastructure/seed.ts\"},{\"kind\":\"File\",\"layer\":\"infrastructure\",\"path\":\"src/infrastructure/server.ts\"}]}\n\n## Instructions\nJudge the unit against the rule and rubric. Return the JSON object the schema requires. Set pass to false if any file of the unit fails the rubric.\n",
+  "provider": "claude-cli",
+  "recordedAt": "2026-10-10T21:30:30.948Z",
+  "repetition": 0,
+  "requestHash": "355671407a598401e882fc010b30dc3664df9fa7f7905d893c81b5b5cf712f74",
+  "resolvedModel": "claude-opus-5-5",
+  "response": "{\"is_error\":false,\"modelUsage\":{\"claude-opus-5-5\":{\"inputTokens\":2,\"outputTokens\":544}},\"result\":\"{\\\"pass\\\":true,\\\"confidence\\\":0.92,\\\"reasoning\\\":\\\"This file is the app's entry point and wires everything together. It creates the in-memory repositories, seeds the catalogue, builds the application services with their infrastructure adapters (UuidGenerator, SystemClock) and passes them to the HTTP app. It then reads PORT from the environment and starts the server. Wiring, configuration and starting the server are infrastructure jobs. The file contains no business rules, domain logic or use-case coordination. It only calls constructors and seedCatalogue, so nothing in it belongs to a different layer.\\\",\\\"evidence\\\":[\\\"src/infrastructure/server.ts: `new InMemoryProductRepository()` / `new InMemoryOrderRepository()` set up persistence adapters, which is infrastructure work\\\",\\\"src/infrastructure/server.ts: `createApp({ orders: new OrderService(...), inventory: new InventoryService(products) })` wires the app together at the composition root\\\",\\\"src/infrastructure/server.ts: `Number(process.env[\\\\\\\"PORT\\\\\\\"] ?? 3000)` and `app.listen(port, ...)` read the environment and start the HTTP server, both infrastructure concerns\\\",\\\"src/infrastructure/server.ts: no business rules or domain calculations appear anywhere in the file\\\"],\\\"violations\\\":[]}\",\"structured_output\":{\"confidence\":0.92,\"evidence\":[\"src/infrastructure/server.ts: `new InMemoryProductRepository()` / `new InMemoryOrderRepository()` set up persistence adapters, which is infrastructure work\",\"src/infrastructure/server.ts: `createApp({ orders: new OrderService(...), inventory: new InventoryService(products) })` wires the app together at the composition root\",\"src/infrastructure/server.ts: `Number(process.env[\\\"PORT\\\"] ?? 3000)` and `app.listen(port, ...)` read the environment and start the HTTP server, both infrastructure concerns\",\"src/infrastructure/server.ts: no business rules or domain calculations appear anywhere in the file\"],\"pass\":true,\"reasoning\":\"This file is the app's entry point and wires everything together. It creates the in-memory repositories, seeds the catalogue, builds the application services with their infrastructure adapters (UuidGenerator, SystemClock) and passes them to the HTTP app. It then reads PORT from the environment and starts the server. Wiring, configuration and starting the server are infrastructure jobs. The file contains no business rules, domain logic or use-case coordination. It only calls constructors and seedCatalogue, so nothing in it belongs to a different layer.\",\"violations\":[]}}",
+  "runIndex": 2,
+  "schemaVersion": 2,
+  "unitId": "src/infrastructure/server.ts",
+  "usage": {
+    "inputTokens": 2640,
+    "outputTokens": 544
+  },
+  "usedOptions": {
+    "effort": "high",
+    "model": "claude-opus-5-5"
+  }
+}

@@ -1,0 +1,46 @@
+{
+  "attempts": 1,
+  "cliVersion": "2.1.294",
+  "configListingSha256": "47aa04258852fab9a706f3f0c14cee22306d69fbb6fdfbde8c11854bd54997bc",
+  "durationMs": 4762,
+  "effort": "high",
+  "functionId": "FF-N02",
+  "ignoredOptions": [
+    "maxTokens"
+  ],
+  "isolationProbeSha256": "97a2e2d0af1100c13c55e028c1a0c71f069093c3d08705af122aaeb302f1a641",
+  "key": "0b10ccef64caa4490b3b4e3c2c6ecd6e89ce2b7d1af7d9f9c4a1feee00a2f25b-r0-1",
+  "model": "claude-opus-5-5",
+  "outcome": {
+    "kind": "valid"
+  },
+  "parsedVerdict": {
+    "confidence": 0.95,
+    "evidence": [
+      "src/application/ProjectDTO.ts: `export interface ProjectDTO { id: string; name: string; }`, a plain DTO with no behaviour",
+      "Graph: imported only by src/application/CreateProjectUseCase.ts, which is in the application layer"
+    ],
+    "pass": true,
+    "reasoning": "src/application/ProjectDTO.ts only declares a plain data-transfer interface (ProjectDTO with id and name). DTOs that carry use-case input and output belong in the application layer. The file has no persistence, transport, framework or business-rule logic. The graph shows it is used only by CreateProjectUseCase in the same layer, which fits its role.",
+    "violations": []
+  },
+  "projectId": "claude-haiku-4-5/task-management/full-aac/run-0",
+  "prompt": "## Rule\nThe unit's responsibilities match the role of its declared layer.\n\n## Rubric\nPass: Every responsibility in the file belongs to the role and kind of its declared layer, and agrees with any ADR prose given.\nFail: The file carries a responsibility that belongs to a different layer kind, for example persistence, transport or framework logic in a domain file, or business rules in an infrastructure or presentation file.\nEvidence required: Name the file and cite the function, method or statement that carries the misplaced responsibility, and the layer kind it belongs to.\nOut of scope: import direction and layer-dependency rules, which are checked symbolically.\n\n## Layer model\n- domain (kind: domain): src/domain/**\n- application (kind: application): src/application/**\n- infrastructure (kind: infrastructure): src/infrastructure/**\n\n## Unit\nKind: file\nId: src/application/ProjectDTO.ts\nLayer: application\nUnit files:\n- src/application/ProjectDTO.ts\n\n## Source\n=====SOURCE-BEGIN src/application/ProjectDTO.ts=====\nexport interface ProjectDTO {\n  id: string;\n  name: string;\n}\n\n=====SOURCE-END=====\n\n## Graph excerpt\n{\"edges\":[{\"from\":\"src/application/CreateProjectUseCase.ts\",\"to\":\"src/application/ProjectDTO.ts\",\"type\":\"IMPORTS\"}],\"nodes\":[{\"kind\":\"File\",\"layer\":\"application\",\"path\":\"src/application/CreateProjectUseCase.ts\"},{\"kind\":\"File\",\"layer\":\"application\",\"path\":\"src/application/ProjectDTO.ts\"},{\"kind\":\"Interface\",\"layer\":\"application\",\"name\":\"ProjectDTO\",\"path\":\"src/application/ProjectDTO.ts\"}]}\n\n## Instructions\nJudge the unit against the rule and rubric. Return the JSON object the schema requires. Set pass to false if any file of the unit fails the rubric.\n",
+  "provider": "claude-cli",
+  "recordedAt": "2026-10-10T20:52:55.165Z",
+  "repetition": 0,
+  "requestHash": "0b10ccef64caa4490b3b4e3c2c6ecd6e89ce2b7d1af7d9f9c4a1feee00a2f25b",
+  "resolvedModel": "claude-opus-5-5",
+  "response": "{\"is_error\":false,\"modelUsage\":{\"claude-opus-5-5\":{\"inputTokens\":2,\"outputTokens\":347}},\"result\":\"{\\\"pass\\\":true,\\\"confidence\\\":0.95,\\\"reasoning\\\":\\\"src/application/ProjectDTO.ts only declares a plain data-transfer interface (ProjectDTO with id and name). DTOs that carry use-case input and output belong in the application layer. The file has no persistence, transport, framework or business-rule logic. The graph shows it is used only by CreateProjectUseCase in the same layer, which fits its role.\\\",\\\"evidence\\\":[\\\"src/application/ProjectDTO.ts: `export interface ProjectDTO { id: string; name: string; }`, a plain DTO with no behaviour\\\",\\\"Graph: imported only by src/application/CreateProjectUseCase.ts, which is in the application layer\\\"],\\\"violations\\\":[]}\",\"structured_output\":{\"confidence\":0.95,\"evidence\":[\"src/application/ProjectDTO.ts: `export interface ProjectDTO { id: string; name: string; }`, a plain DTO with no behaviour\",\"Graph: imported only by src/application/CreateProjectUseCase.ts, which is in the application layer\"],\"pass\":true,\"reasoning\":\"src/application/ProjectDTO.ts only declares a plain data-transfer interface (ProjectDTO with id and name). DTOs that carry use-case input and output belong in the application layer. The file has no persistence, transport, framework or business-rule logic. The graph shows it is used only by CreateProjectUseCase in the same layer, which fits its role.\",\"violations\":[]}}",
+  "runIndex": 1,
+  "schemaVersion": 2,
+  "unitId": "src/application/ProjectDTO.ts",
+  "usage": {
+    "inputTokens": 2112,
+    "outputTokens": 347
+  },
+  "usedOptions": {
+    "effort": "high",
+    "model": "claude-opus-5-5"
+  }
+}

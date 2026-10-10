@@ -1,0 +1,48 @@
+{
+  "attempts": 1,
+  "cliVersion": "2.1.294",
+  "configListingSha256": "47aa04258852fab9a706f3f0c14cee22306d69fbb6fdfbde8c11854bd54997bc",
+  "durationMs": 6718,
+  "effort": "high",
+  "functionId": "FF-N02",
+  "ignoredOptions": [
+    "maxTokens"
+  ],
+  "isolationProbeSha256": "97a2e2d0af1100c13c55e028c1a0c71f069093c3d08705af122aaeb302f1a641",
+  "key": "6c52222f51c680870edec5d0e53428cd44e02e6f4124ceec9562156c4598ae8e-r0-1",
+  "model": "claude-opus-5-5",
+  "outcome": {
+    "kind": "valid"
+  },
+  "parsedVerdict": {
+    "confidence": 0.95,
+    "evidence": [
+      "createProject trims the name and throws ValidationError when it is empty. That is a domain invariant.",
+      "ProjectRepository is an interface only (save, findById, findAll) with no implementation. It is a domain port.",
+      "The graph shows InMemoryProjectRepository in src/infrastructure implementing ProjectRepository, so persistence code sits outside the domain.",
+      "createProject takes `now` as a parameter, so the domain never reads the system clock."
+    ],
+    "pass": true,
+    "reasoning": "src/domain/project.ts holds only domain responsibilities. It declares the Project entity and a factory, createProject, that applies a business invariant: the name must not be empty after trimming. It also declares ProjectRepository as an abstract port interface. A repository port is a normal part of the domain layer. The actual persistence lives in the infrastructure layer (InMemoryProjectRepository implements the port). The file has no persistence code, no transport or framework logic, and no application orchestration. The clock value is passed in as `now` rather than read from the system, which keeps the domain pure.",
+    "violations": []
+  },
+  "projectId": "claude-opus-5-5/task-management/none/run-1",
+  "prompt": "## Rule\nThe unit's responsibilities match the role of its declared layer.\n\n## Rubric\nPass: Every responsibility in the file belongs to the role and kind of its declared layer, and agrees with any ADR prose given.\nFail: The file carries a responsibility that belongs to a different layer kind, for example persistence, transport or framework logic in a domain file, or business rules in an infrastructure or presentation file.\nEvidence required: Name the file and cite the function, method or statement that carries the misplaced responsibility, and the layer kind it belongs to.\nOut of scope: import direction and layer-dependency rules, which are checked symbolically.\n\n## Layer model\n- domain (kind: domain): src/domain/**\n- application (kind: application): src/application/**\n- infrastructure (kind: infrastructure): src/infrastructure/**\n\n## Unit\nKind: file\nId: src/domain/project.ts\nLayer: domain\nUnit files:\n- src/domain/project.ts\n\n## Source\n=====SOURCE-BEGIN src/domain/project.ts=====\nimport { ValidationError } from \"./errors\";\n\nexport interface Project {\n  readonly id: string;\n  readonly name: string;\n  readonly createdAt: Date;\n}\n\nexport function createProject(id: string, name: string, now: Date): Project {\n  const trimmed = name.trim();\n  if (trimmed.length === 0) {\n    throw new ValidationError(\"Project name must not be empty\");\n  }\n  return { id, name: trimmed, createdAt: now };\n}\n\nexport interface ProjectRepository {\n  save(project: Project): void;\n  findById(id: string): Project | undefined;\n  findAll(): Project[];\n}\n\n=====SOURCE-END=====\n\n## Graph excerpt\n{\"edges\":[{\"from\":\"InMemoryProjectRepository@src/infrastructure/in-memory-repositories.ts\",\"to\":\"ProjectRepository@src/domain/project.ts\",\"type\":\"IMPLEMENTS\"},{\"from\":\"ProjectService@src/application/project-service.ts\",\"to\":\"ProjectRepository@src/domain/project.ts\",\"type\":\"CONSTRUCTOR_INJECTS\"},{\"from\":\"TaskService@src/application/task-service.ts\",\"to\":\"ProjectRepository@src/domain/project.ts\",\"type\":\"CONSTRUCTOR_INJECTS\"},{\"from\":\"src/application/dto.ts\",\"to\":\"src/domain/project.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/application/project-service.ts\",\"to\":\"src/domain/project.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/application/task-service.ts\",\"to\":\"src/domain/project.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/domain/index.ts\",\"to\":\"src/domain/project.ts\",\"type\":\"RE_EXPORTS\"},{\"from\":\"src/domain/project.ts\",\"to\":\"src/domain/errors.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/infrastructure/in-memory-repositories.ts\",\"to\":\"src/domain/project.ts\",\"type\":\"IMPORTS\"}],\"nodes\":[{\"kind\":\"Class\",\"layer\":\"application\",\"name\":\"ProjectService\",\"path\":\"src/application/project-service.ts\"},{\"kind\":\"Class\",\"layer\":\"application\",\"name\":\"TaskService\",\"path\":\"src/application/task-service.ts\"},{\"kind\":\"Class\",\"layer\":\"infrastructure\",\"name\":\"InMemoryProjectRepository\",\"path\":\"src/infrastructure/in-memory-repositories.ts\"},{\"kind\":\"File\",\"layer\":\"application\",\"path\":\"src/application/dto.ts\"},{\"kind\":\"File\",\"layer\":\"application\",\"path\":\"src/application/project-service.ts\"},{\"kind\":\"File\",\"layer\":\"application\",\"path\":\"src/application/task-service.ts\"},{\"kind\":\"File\",\"layer\":\"domain\",\"path\":\"src/domain/errors.ts\"},{\"kind\":\"File\",\"layer\":\"domain\",\"path\":\"src/domain/index.ts\"},{\"kind\":\"File\",\"layer\":\"domain\",\"path\":\"src/domain/project.ts\"},{\"kind\":\"File\",\"layer\":\"infrastructure\",\"path\":\"src/infrastructure/in-memory-repositories.ts\"},{\"kind\":\"Interface\",\"layer\":\"domain\",\"name\":\"Project\",\"path\":\"src/domain/project.ts\"},{\"kind\":\"Interface\",\"layer\":\"domain\",\"name\":\"ProjectRepository\",\"path\":\"src/domain/project.ts\"}]}\n\n## Instructions\nJudge the unit against the rule and rubric. Return the JSON object the schema requires. Set pass to false if any file of the unit fails the rubric.\n",
+  "provider": "claude-cli",
+  "recordedAt": "2026-10-10T21:25:17.036Z",
+  "repetition": 0,
+  "requestHash": "6c52222f51c680870edec5d0e53428cd44e02e6f4124ceec9562156c4598ae8e",
+  "resolvedModel": "claude-opus-5-5",
+  "response": "{\"is_error\":false,\"modelUsage\":{\"claude-opus-5-5\":{\"inputTokens\":2,\"outputTokens\":476}},\"result\":\"{\\\"pass\\\":true,\\\"confidence\\\":0.95,\\\"reasoning\\\":\\\"src/domain/project.ts holds only domain responsibilities. It declares the Project entity and a factory, createProject, that applies a business invariant: the name must not be empty after trimming. It also declares ProjectRepository as an abstract port interface. A repository port is a normal part of the domain layer. The actual persistence lives in the infrastructure layer (InMemoryProjectRepository implements the port). The file has no persistence code, no transport or framework logic, and no application orchestration. The clock value is passed in as `now` rather than read from the system, which keeps the domain pure.\\\",\\\"evidence\\\":[\\\"createProject trims the name and throws ValidationError when it is empty. That is a domain invariant.\\\",\\\"ProjectRepository is an interface only (save, findById, findAll) with no implementation. It is a domain port.\\\",\\\"The graph shows InMemoryProjectRepository in src/infrastructure implementing ProjectRepository, so persistence code sits outside the domain.\\\",\\\"createProject takes `now` as a parameter, so the domain never reads the system clock.\\\"],\\\"violations\\\":[]}\",\"structured_output\":{\"confidence\":0.95,\"evidence\":[\"createProject trims the name and throws ValidationError when it is empty. That is a domain invariant.\",\"ProjectRepository is an interface only (save, findById, findAll) with no implementation. It is a domain port.\",\"The graph shows InMemoryProjectRepository in src/infrastructure implementing ProjectRepository, so persistence code sits outside the domain.\",\"createProject takes `now` as a parameter, so the domain never reads the system clock.\"],\"pass\":true,\"reasoning\":\"src/domain/project.ts holds only domain responsibilities. It declares the Project entity and a factory, createProject, that applies a business invariant: the name must not be empty after trimming. It also declares ProjectRepository as an abstract port interface. A repository port is a normal part of the domain layer. The actual persistence lives in the infrastructure layer (InMemoryProjectRepository implements the port). The file has no persistence code, no transport or framework logic, and no application orchestration. The clock value is passed in as `now` rather than read from the system, which keeps the domain pure.\",\"violations\":[]}}",
+  "runIndex": 1,
+  "schemaVersion": 2,
+  "unitId": "src/domain/project.ts",
+  "usage": {
+    "inputTokens": 2986,
+    "outputTokens": 476
+  },
+  "usedOptions": {
+    "effort": "high",
+    "model": "claude-opus-5-5"
+  }
+}

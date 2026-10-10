@@ -1,0 +1,47 @@
+{
+  "attempts": 1,
+  "cliVersion": "2.1.294",
+  "configListingSha256": "47aa04258852fab9a706f3f0c14cee22306d69fbb6fdfbde8c11854bd54997bc",
+  "durationMs": 7798,
+  "effort": "high",
+  "functionId": "FF-N02",
+  "ignoredOptions": [
+    "maxTokens"
+  ],
+  "isolationProbeSha256": "97a2e2d0af1100c13c55e028c1a0c71f069093c3d08705af122aaeb302f1a641",
+  "key": "b21ec46c8db6e7338423d2401410d746f1407d14468395ac18d5a90a88dda379-r0-1",
+  "model": "claude-opus-5-5",
+  "outcome": {
+    "kind": "valid"
+  },
+  "parsedVerdict": {
+    "confidence": 0.85,
+    "evidence": [
+      "seedCatalogue(products: ProductRepository) only creates fixed Product instances and saves them through products.save(product), which is persistence setup work.",
+      "No validation, pricing rules or other domain decisions appear in the file; the numbers are just starting sample data.",
+      "The graph shows src/infrastructure/server.ts importing seed.ts, so it runs as part of infrastructure startup."
+    ],
+    "pass": true,
+    "reasoning": "src/infrastructure/seed.ts does one thing. When the app starts, it fills the store with sample products: seedCatalogue builds three hard-coded Product instances and saves each one through the ProductRepository it is given. Loading starting data is a setup and persistence job, which fits the infrastructure layer. The file has no business rules: it doesn't check prices, apply stock rules or make domain decisions. The price and stock numbers are sample data, not policy. It also has no presentation or application workflow logic. Its only importer is src/infrastructure/server.ts, which fits its role as startup code.",
+    "violations": []
+  },
+  "projectId": "claude-opus-5-5/order-fulfilment/none/run-0",
+  "prompt": "## Rule\nThe unit's responsibilities match the role of its declared layer.\n\n## Rubric\nPass: Every responsibility in the file belongs to the role and kind of its declared layer, and agrees with any ADR prose given.\nFail: The file carries a responsibility that belongs to a different layer kind, for example persistence, transport or framework logic in a domain file, or business rules in an infrastructure or presentation file.\nEvidence required: Name the file and cite the function, method or statement that carries the misplaced responsibility, and the layer kind it belongs to.\nOut of scope: import direction and layer-dependency rules, which are checked symbolically.\n\n## Layer model\n- domain (kind: domain): src/domain/**\n- application (kind: application): src/application/**\n- infrastructure (kind: infrastructure): src/infrastructure/**\n\n## Unit\nKind: file\nId: src/infrastructure/seed.ts\nLayer: infrastructure\nUnit files:\n- src/infrastructure/seed.ts\n\n## Source\n=====SOURCE-BEGIN src/infrastructure/seed.ts=====\nimport { Product } from \"../domain/product\";\nimport type { ProductRepository } from \"../domain/repositories\";\n\nexport function seedCatalogue(products: ProductRepository): void {\n  const catalogue = [\n    new Product(\"sku-widget\", \"Widget\", 1299, 100),\n    new Product(\"sku-gadget\", \"Gadget\", 2499, 25),\n    new Product(\"sku-gizmo\", \"Gizmo\", 499, 0),\n  ];\n  for (const product of catalogue) products.save(product);\n}\n\n=====SOURCE-END=====\n\n## Graph excerpt\n{\"edges\":[{\"from\":\"src/infrastructure/seed.ts\",\"to\":\"src/domain/product.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/infrastructure/seed.ts\",\"to\":\"src/domain/repositories.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/infrastructure/server.ts\",\"to\":\"src/infrastructure/seed.ts\",\"type\":\"IMPORTS\"}],\"nodes\":[{\"kind\":\"File\",\"layer\":\"domain\",\"path\":\"src/domain/product.ts\"},{\"kind\":\"File\",\"layer\":\"domain\",\"path\":\"src/domain/repositories.ts\"},{\"kind\":\"File\",\"layer\":\"infrastructure\",\"path\":\"src/infrastructure/seed.ts\"},{\"kind\":\"File\",\"layer\":\"infrastructure\",\"path\":\"src/infrastructure/server.ts\"}]}\n\n## Instructions\nJudge the unit against the rule and rubric. Return the JSON object the schema requires. Set pass to false if any file of the unit fails the rubric.\n",
+  "provider": "claude-cli",
+  "recordedAt": "2026-10-10T21:30:17.707Z",
+  "repetition": 0,
+  "requestHash": "b21ec46c8db6e7338423d2401410d746f1407d14468395ac18d5a90a88dda379",
+  "resolvedModel": "claude-opus-5-5",
+  "response": "{\"is_error\":false,\"modelUsage\":{\"claude-opus-5-5\":{\"inputTokens\":2,\"outputTokens\":516}},\"result\":\"{\\\"pass\\\":true,\\\"confidence\\\":0.85,\\\"reasoning\\\":\\\"src/infrastructure/seed.ts does one thing. When the app starts, it fills the store with sample products: seedCatalogue builds three hard-coded Product instances and saves each one through the ProductRepository it is given. Loading starting data is a setup and persistence job, which fits the infrastructure layer. The file has no business rules: it doesn't check prices, apply stock rules or make domain decisions. The price and stock numbers are sample data, not policy. It also has no presentation or application workflow logic. Its only importer is src/infrastructure/server.ts, which fits its role as startup code.\\\",\\\"evidence\\\":[\\\"seedCatalogue(products: ProductRepository) only creates fixed Product instances and saves them through products.save(product), which is persistence setup work.\\\",\\\"No validation, pricing rules or other domain decisions appear in the file; the numbers are just starting sample data.\\\",\\\"The graph shows src/infrastructure/server.ts importing seed.ts, so it runs as part of infrastructure startup.\\\"],\\\"violations\\\":[]}\",\"structured_output\":{\"confidence\":0.85,\"evidence\":[\"seedCatalogue(products: ProductRepository) only creates fixed Product instances and saves them through products.save(product), which is persistence setup work.\",\"No validation, pricing rules or other domain decisions appear in the file; the numbers are just starting sample data.\",\"The graph shows src/infrastructure/server.ts importing seed.ts, so it runs as part of infrastructure startup.\"],\"pass\":true,\"reasoning\":\"src/infrastructure/seed.ts does one thing. When the app starts, it fills the store with sample products: seedCatalogue builds three hard-coded Product instances and saves each one through the ProductRepository it is given. Loading starting data is a setup and persistence job, which fits the infrastructure layer. The file has no business rules: it doesn't check prices, apply stock rules or make domain decisions. The price and stock numbers are sample data, not policy. It also has no presentation or application workflow logic. Its only importer is src/infrastructure/server.ts, which fits its role as startup code.\",\"violations\":[]}}",
+  "runIndex": 1,
+  "schemaVersion": 2,
+  "unitId": "src/infrastructure/seed.ts",
+  "usage": {
+    "inputTokens": 2351,
+    "outputTokens": 516
+  },
+  "usedOptions": {
+    "effort": "high",
+    "model": "claude-opus-5-5"
+  }
+}

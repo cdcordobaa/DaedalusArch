@@ -1,0 +1,47 @@
+{
+  "attempts": 1,
+  "cliVersion": "2.1.294",
+  "configListingSha256": "47aa04258852fab9a706f3f0c14cee22306d69fbb6fdfbde8c11854bd54997bc",
+  "durationMs": 5797,
+  "effort": "high",
+  "functionId": "FF-N02",
+  "ignoredOptions": [
+    "maxTokens"
+  ],
+  "isolationProbeSha256": "97a2e2d0af1100c13c55e028c1a0c71f069093c3d08705af122aaeb302f1a641",
+  "key": "ceac0cc3b9e0be38956274070bf669885adad8668296051eb419a853168f6756-r0-2",
+  "model": "claude-opus-5-5",
+  "outcome": {
+    "kind": "valid"
+  },
+  "parsedVerdict": {
+    "confidence": 0.96,
+    "evidence": [
+      "src/infrastructure/system-adapters.ts: UuidGenerator.next() wraps node:crypto randomUUID to implement the IdGenerator port, which is an infrastructure adapter job.",
+      "src/infrastructure/system-adapters.ts: SystemClock.now() wraps new Date() to implement the Clock port, which is an infrastructure adapter job.",
+      "The file contains no business rules, validation, or use-case orchestration."
+    ],
+    "pass": true,
+    "reasoning": "The file has two adapter classes. Each one implements an application port by wrapping a system facility: UuidGenerator wraps node:crypto randomUUID, and SystemClock wraps new Date(). Wrapping system or runtime facilities behind ports is an infrastructure job. The file has no business rules, domain logic, or application orchestration, so every responsibility in it fits the infrastructure layer.",
+    "violations": []
+  },
+  "projectId": "claude-opus-5-5/task-management/none/run-2",
+  "prompt": "## Rule\nThe unit's responsibilities match the role of its declared layer.\n\n## Rubric\nPass: Every responsibility in the file belongs to the role and kind of its declared layer, and agrees with any ADR prose given.\nFail: The file carries a responsibility that belongs to a different layer kind, for example persistence, transport or framework logic in a domain file, or business rules in an infrastructure or presentation file.\nEvidence required: Name the file and cite the function, method or statement that carries the misplaced responsibility, and the layer kind it belongs to.\nOut of scope: import direction and layer-dependency rules, which are checked symbolically.\n\n## Layer model\n- domain (kind: domain): src/domain/**\n- application (kind: application): src/application/**\n- infrastructure (kind: infrastructure): src/infrastructure/**\n\n## Unit\nKind: file\nId: src/infrastructure/system-adapters.ts\nLayer: infrastructure\nUnit files:\n- src/infrastructure/system-adapters.ts\n\n## Source\n=====SOURCE-BEGIN src/infrastructure/system-adapters.ts=====\nimport { randomUUID } from \"node:crypto\";\nimport { Clock, IdGenerator } from \"../application/ports\";\n\nexport class UuidGenerator implements IdGenerator {\n  next(): string {\n    return randomUUID();\n  }\n}\n\nexport class SystemClock implements Clock {\n  now(): Date {\n    return new Date();\n  }\n}\n\n=====SOURCE-END=====\n\n## Graph excerpt\n{\"edges\":[{\"from\":\"SystemClock@src/infrastructure/system-adapters.ts\",\"to\":\"Clock@src/application/ports.ts\",\"type\":\"IMPLEMENTS\"},{\"from\":\"UuidGenerator@src/infrastructure/system-adapters.ts\",\"to\":\"IdGenerator@src/application/ports.ts\",\"type\":\"IMPLEMENTS\"},{\"from\":\"src/infrastructure/server.ts\",\"to\":\"src/infrastructure/system-adapters.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/infrastructure/system-adapters.ts\",\"to\":\"crypto\",\"type\":\"IMPORTS\"},{\"from\":\"src/infrastructure/system-adapters.ts\",\"to\":\"src/application/ports.ts\",\"type\":\"IMPORTS\"}],\"nodes\":[{\"kind\":\"Class\",\"layer\":\"infrastructure\",\"name\":\"SystemClock\",\"path\":\"src/infrastructure/system-adapters.ts\"},{\"kind\":\"Class\",\"layer\":\"infrastructure\",\"name\":\"UuidGenerator\",\"path\":\"src/infrastructure/system-adapters.ts\"},{\"kind\":\"File\",\"layer\":\"application\",\"path\":\"src/application/ports.ts\"},{\"kind\":\"File\",\"layer\":\"infrastructure\",\"path\":\"src/infrastructure/server.ts\"},{\"kind\":\"File\",\"layer\":\"infrastructure\",\"path\":\"src/infrastructure/system-adapters.ts\"},{\"kind\":\"Interface\",\"layer\":\"application\",\"name\":\"Clock\",\"path\":\"src/application/ports.ts\"},{\"kind\":\"Interface\",\"layer\":\"application\",\"name\":\"IdGenerator\",\"path\":\"src/application/ports.ts\"},{\"kind\":\"Package\",\"layer\":null,\"path\":\"crypto\"}]}\n\n## Instructions\nJudge the unit against the rule and rubric. Return the JSON object the schema requires. Set pass to false if any file of the unit fails the rubric.\n",
+  "provider": "claude-cli",
+  "recordedAt": "2026-10-10T21:28:14.136Z",
+  "repetition": 0,
+  "requestHash": "ceac0cc3b9e0be38956274070bf669885adad8668296051eb419a853168f6756",
+  "resolvedModel": "claude-opus-5-5",
+  "response": "{\"is_error\":false,\"modelUsage\":{\"claude-opus-5-5\":{\"inputTokens\":2,\"outputTokens\":419}},\"result\":\"{\\\"pass\\\":true,\\\"confidence\\\":0.96,\\\"reasoning\\\":\\\"The file has two adapter classes. Each one implements an application port by wrapping a system facility: UuidGenerator wraps node:crypto randomUUID, and SystemClock wraps new Date(). Wrapping system or runtime facilities behind ports is an infrastructure job. The file has no business rules, domain logic, or application orchestration, so every responsibility in it fits the infrastructure layer.\\\",\\\"evidence\\\":[\\\"src/infrastructure/system-adapters.ts: UuidGenerator.next() wraps node:crypto randomUUID to implement the IdGenerator port, which is an infrastructure adapter job.\\\",\\\"src/infrastructure/system-adapters.ts: SystemClock.now() wraps new Date() to implement the Clock port, which is an infrastructure adapter job.\\\",\\\"The file contains no business rules, validation, or use-case orchestration.\\\"],\\\"violations\\\":[]}\",\"structured_output\":{\"confidence\":0.96,\"evidence\":[\"src/infrastructure/system-adapters.ts: UuidGenerator.next() wraps node:crypto randomUUID to implement the IdGenerator port, which is an infrastructure adapter job.\",\"src/infrastructure/system-adapters.ts: SystemClock.now() wraps new Date() to implement the Clock port, which is an infrastructure adapter job.\",\"The file contains no business rules, validation, or use-case orchestration.\"],\"pass\":true,\"reasoning\":\"The file has two adapter classes. Each one implements an application port by wrapping a system facility: UuidGenerator wraps node:crypto randomUUID, and SystemClock wraps new Date(). Wrapping system or runtime facilities behind ports is an infrastructure job. The file has no business rules, domain logic, or application orchestration, so every responsibility in it fits the infrastructure layer.\",\"violations\":[]}}",
+  "runIndex": 2,
+  "schemaVersion": 2,
+  "unitId": "src/infrastructure/system-adapters.ts",
+  "usage": {
+    "inputTokens": 2602,
+    "outputTokens": 419
+  },
+  "usedOptions": {
+    "effort": "high",
+    "model": "claude-opus-5-5"
+  }
+}

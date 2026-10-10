@@ -1,0 +1,48 @@
+{
+  "attempts": 1,
+  "cliVersion": "2.1.294",
+  "configListingSha256": "47aa04258852fab9a706f3f0c14cee22306d69fbb6fdfbde8c11854bd54997bc",
+  "durationMs": 7731,
+  "effort": "high",
+  "functionId": "FF-N02",
+  "ignoredOptions": [
+    "maxTokens"
+  ],
+  "isolationProbeSha256": "97a2e2d0af1100c13c55e028c1a0c71f069093c3d08705af122aaeb302f1a641",
+  "key": "d0957150978a8bd675225d08c76309a64e050cce7336bcf2f31ac2f623da93bd-r0-0",
+  "model": "claude-opus-5-5",
+  "outcome": {
+    "kind": "valid"
+  },
+  "parsedVerdict": {
+    "confidence": 0.82,
+    "evidence": [
+      "src/application/CreateProjectUseCase.ts execute(): builds `new Project(id, name)`, calls `this.projectRepository.save(project)` and returns a ProjectDTO. This is use-case orchestration.",
+      "The repository is reached only through the domain interface IProjectRepository, which is injected in the constructor. There is no persistence code in the file.",
+      "generateId() makes an identifier string with Date.now and Math.random. This is a small helper and does not count as a misplaced responsibility, though an ID-generator port would be a cleaner design.",
+      "There are no HTTP, framework or database APIs in the file."
+    ],
+    "pass": true,
+    "reasoning": "CreateProjectUseCase does the normal work of an application layer. It creates the domain entity, saves it through a domain repository interface (IProjectRepository) and maps the result to an application DTO. It contains no persistence, transport or framework code, and no business rules that belong in the domain layer. The private generateId() helper relies on Date.now/Math.random. That could arguably sit behind an ID-generator port, but making identifiers during orchestration is a common and acceptable job for a use case. It is not clearly a responsibility of another layer kind.",
+    "violations": []
+  },
+  "projectId": "claude-haiku-4-5/task-management/full-aac/run-0",
+  "prompt": "## Rule\nThe unit's responsibilities match the role of its declared layer.\n\n## Rubric\nPass: Every responsibility in the file belongs to the role and kind of its declared layer, and agrees with any ADR prose given.\nFail: The file carries a responsibility that belongs to a different layer kind, for example persistence, transport or framework logic in a domain file, or business rules in an infrastructure or presentation file.\nEvidence required: Name the file and cite the function, method or statement that carries the misplaced responsibility, and the layer kind it belongs to.\nOut of scope: import direction and layer-dependency rules, which are checked symbolically.\n\n## Layer model\n- domain (kind: domain): src/domain/**\n- application (kind: application): src/application/**\n- infrastructure (kind: infrastructure): src/infrastructure/**\n\n## Unit\nKind: file\nId: src/application/CreateProjectUseCase.ts\nLayer: application\nUnit files:\n- src/application/CreateProjectUseCase.ts\n\n## Source\n=====SOURCE-BEGIN src/application/CreateProjectUseCase.ts=====\nimport { Project } from \"../domain/Project\";\nimport { IProjectRepository } from \"../domain/IProjectRepository\";\nimport { ProjectDTO } from \"./ProjectDTO\";\n\nexport class CreateProjectUseCase {\n  constructor(private readonly projectRepository: IProjectRepository) {}\n\n  execute(name: string): ProjectDTO {\n    const id = this.generateId();\n    const project = new Project(id, name);\n    this.projectRepository.save(project);\n    return {\n      id: project.getId(),\n      name: project.getName(),\n    };\n  }\n\n  private generateId(): string {\n    return \"proj_\" + Date.now() + \"_\" + Math.random().toString(36).substr(2, 9);\n  }\n}\n\n=====SOURCE-END=====\n\n## Graph excerpt\n{\"edges\":[{\"from\":\"CreateProjectUseCase@src/application/CreateProjectUseCase.ts\",\"to\":\"IProjectRepository@src/domain/IProjectRepository.ts\",\"type\":\"CONSTRUCTOR_INJECTS\"},{\"from\":\"ProjectController@src/infrastructure/ProjectController.ts\",\"to\":\"CreateProjectUseCase@src/application/CreateProjectUseCase.ts\",\"type\":\"FLOWS_TO\"},{\"from\":\"src/application/CreateProjectUseCase.ts\",\"to\":\"src/application/ProjectDTO.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/application/CreateProjectUseCase.ts\",\"to\":\"src/domain/IProjectRepository.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/application/CreateProjectUseCase.ts\",\"to\":\"src/domain/Project.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/infrastructure/ProjectController.ts\",\"to\":\"src/application/CreateProjectUseCase.ts\",\"type\":\"IMPORTS\"}],\"nodes\":[{\"kind\":\"Class\",\"layer\":\"application\",\"name\":\"CreateProjectUseCase\",\"path\":\"src/application/CreateProjectUseCase.ts\"},{\"kind\":\"Class\",\"layer\":\"infrastructure\",\"name\":\"ProjectController\",\"path\":\"src/infrastructure/ProjectController.ts\"},{\"kind\":\"File\",\"layer\":\"application\",\"path\":\"src/application/CreateProjectUseCase.ts\"},{\"kind\":\"File\",\"layer\":\"application\",\"path\":\"src/application/ProjectDTO.ts\"},{\"kind\":\"File\",\"layer\":\"domain\",\"path\":\"src/domain/IProjectRepository.ts\"},{\"kind\":\"File\",\"layer\":\"domain\",\"path\":\"src/domain/Project.ts\"},{\"kind\":\"File\",\"layer\":\"infrastructure\",\"path\":\"src/infrastructure/ProjectController.ts\"},{\"kind\":\"Interface\",\"layer\":\"domain\",\"name\":\"IProjectRepository\",\"path\":\"src/domain/IProjectRepository.ts\"}]}\n\n## Instructions\nJudge the unit against the rule and rubric. Return the JSON object the schema requires. Set pass to false if any file of the unit fails the rubric.\n",
+  "provider": "claude-cli",
+  "recordedAt": "2026-10-10T20:52:32.926Z",
+  "repetition": 0,
+  "requestHash": "d0957150978a8bd675225d08c76309a64e050cce7336bcf2f31ac2f623da93bd",
+  "resolvedModel": "claude-opus-5-5",
+  "response": "{\"is_error\":false,\"modelUsage\":{\"claude-opus-5-5\":{\"inputTokens\":2,\"outputTokens\":599}},\"result\":\"{\\\"pass\\\":true,\\\"confidence\\\":0.82,\\\"reasoning\\\":\\\"CreateProjectUseCase does the normal work of an application layer. It creates the domain entity, saves it through a domain repository interface (IProjectRepository) and maps the result to an application DTO. It contains no persistence, transport or framework code, and no business rules that belong in the domain layer. The private generateId() helper relies on Date.now/Math.random. That could arguably sit behind an ID-generator port, but making identifiers during orchestration is a common and acceptable job for a use case. It is not clearly a responsibility of another layer kind.\\\",\\\"evidence\\\":[\\\"src/application/CreateProjectUseCase.ts execute(): builds `new Project(id, name)`, calls `this.projectRepository.save(project)` and returns a ProjectDTO. This is use-case orchestration.\\\",\\\"The repository is reached only through the domain interface IProjectRepository, which is injected in the constructor. There is no persistence code in the file.\\\",\\\"generateId() makes an identifier string with Date.now and Math.random. This is a small helper and does not count as a misplaced responsibility, though an ID-generator port would be a cleaner design.\\\",\\\"There are no HTTP, framework or database APIs in the file.\\\"],\\\"violations\\\":[]}\",\"structured_output\":{\"confidence\":0.82,\"evidence\":[\"src/application/CreateProjectUseCase.ts execute(): builds `new Project(id, name)`, calls `this.projectRepository.save(project)` and returns a ProjectDTO. This is use-case orchestration.\",\"The repository is reached only through the domain interface IProjectRepository, which is injected in the constructor. There is no persistence code in the file.\",\"generateId() makes an identifier string with Date.now and Math.random. This is a small helper and does not count as a misplaced responsibility, though an ID-generator port would be a cleaner design.\",\"There are no HTTP, framework or database APIs in the file.\"],\"pass\":true,\"reasoning\":\"CreateProjectUseCase does the normal work of an application layer. It creates the domain entity, saves it through a domain repository interface (IProjectRepository) and maps the result to an application DTO. It contains no persistence, transport or framework code, and no business rules that belong in the domain layer. The private generateId() helper relies on Date.now/Math.random. That could arguably sit behind an ID-generator port, but making identifiers during orchestration is a common and acceptable job for a use case. It is not clearly a responsibility of another layer kind.\",\"violations\":[]}}",
+  "runIndex": 0,
+  "schemaVersion": 2,
+  "unitId": "src/application/CreateProjectUseCase.ts",
+  "usage": {
+    "inputTokens": 2850,
+    "outputTokens": 599
+  },
+  "usedOptions": {
+    "effort": "high",
+    "model": "claude-opus-5-5"
+  }
+}

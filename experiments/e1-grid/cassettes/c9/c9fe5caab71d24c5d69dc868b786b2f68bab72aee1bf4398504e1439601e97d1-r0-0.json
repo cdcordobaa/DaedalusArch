@@ -1,0 +1,48 @@
+{
+  "attempts": 1,
+  "cliVersion": "2.1.294",
+  "configListingSha256": "47aa04258852fab9a706f3f0c14cee22306d69fbb6fdfbde8c11854bd54997bc",
+  "durationMs": 6191,
+  "effort": "high",
+  "functionId": "FF-N02",
+  "ignoredOptions": [
+    "maxTokens"
+  ],
+  "isolationProbeSha256": "97a2e2d0af1100c13c55e028c1a0c71f069093c3d08705af122aaeb302f1a641",
+  "key": "c9fe5caab71d24c5d69dc868b786b2f68bab72aee1bf4398504e1439601e97d1-r0-0",
+  "model": "claude-opus-5-5",
+  "outcome": {
+    "kind": "valid"
+  },
+  "parsedVerdict": {
+    "confidence": 0.9,
+    "evidence": [
+      "src/infrastructure/server.ts creates the concrete adapters InMemoryUserRepository, InMemoryProjectRepository, InMemoryTaskRepository, UuidGenerator and SystemClock. This is infrastructure wiring.",
+      "createApp({...}) receives UserService, ProjectService and TaskService built from those adapters. This is composition-root dependency injection with no business logic.",
+      "Number(process.env[\"PORT\"] ?? 3000) reads environment configuration, which is an infrastructure concern.",
+      "app.listen(port, ...) with console.log starts the transport listener and logs, which is an infrastructure concern."
+    ],
+    "pass": true,
+    "reasoning": "server.ts is the composition root and process entry point. Its responsibilities are: creating concrete infrastructure adapters (in-memory repositories, UUID generator, system clock), wiring them into application services, building the HTTP app, reading the PORT from the environment, and starting the HTTP listener. All of these are framework, transport and configuration concerns, which belong in infrastructure. The file contains no business rules, validation or domain decisions. Every responsibility fits the infrastructure layer's role.",
+    "violations": []
+  },
+  "projectId": "claude-opus-5-5/task-management/none/run-2",
+  "prompt": "## Rule\nThe unit's responsibilities match the role of its declared layer.\n\n## Rubric\nPass: Every responsibility in the file belongs to the role and kind of its declared layer, and agrees with any ADR prose given.\nFail: The file carries a responsibility that belongs to a different layer kind, for example persistence, transport or framework logic in a domain file, or business rules in an infrastructure or presentation file.\nEvidence required: Name the file and cite the function, method or statement that carries the misplaced responsibility, and the layer kind it belongs to.\nOut of scope: import direction and layer-dependency rules, which are checked symbolically.\n\n## Layer model\n- domain (kind: domain): src/domain/**\n- application (kind: application): src/application/**\n- infrastructure (kind: infrastructure): src/infrastructure/**\n\n## Unit\nKind: file\nId: src/infrastructure/server.ts\nLayer: infrastructure\nUnit files:\n- src/infrastructure/server.ts\n\n## Source\n=====SOURCE-BEGIN src/infrastructure/server.ts=====\nimport { ProjectService } from \"../application/project-service\";\nimport { TaskService } from \"../application/task-service\";\nimport { UserService } from \"../application/user-service\";\nimport { createApp } from \"./http-app\";\nimport {\n  InMemoryProjectRepository,\n  InMemoryTaskRepository,\n  InMemoryUserRepository,\n} from \"./in-memory-repositories\";\nimport { SystemClock, UuidGenerator } from \"./system-adapters\";\n\nconst users = new InMemoryUserRepository();\nconst projects = new InMemoryProjectRepository();\nconst tasks = new InMemoryTaskRepository();\nconst ids = new UuidGenerator();\nconst clock = new SystemClock();\n\nconst app = createApp({\n  users: new UserService(users, ids),\n  projects: new ProjectService(projects, ids, clock),\n  tasks: new TaskService(tasks, projects, users, ids, clock),\n});\n\nconst port = Number(process.env[\"PORT\"] ?? 3000);\n\napp.listen(port, () => {\n  console.log(`Task management API listening on http://localhost:${port}`);\n});\n\n=====SOURCE-END=====\n\n## Graph excerpt\n{\"edges\":[{\"from\":\"src/infrastructure/server.ts\",\"to\":\"src/application/project-service.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/infrastructure/server.ts\",\"to\":\"src/application/task-service.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/infrastructure/server.ts\",\"to\":\"src/application/user-service.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/infrastructure/server.ts\",\"to\":\"src/infrastructure/http-app.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/infrastructure/server.ts\",\"to\":\"src/infrastructure/in-memory-repositories.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/infrastructure/server.ts\",\"to\":\"src/infrastructure/system-adapters.ts\",\"type\":\"IMPORTS\"}],\"nodes\":[{\"kind\":\"File\",\"layer\":\"application\",\"path\":\"src/application/project-service.ts\"},{\"kind\":\"File\",\"layer\":\"application\",\"path\":\"src/application/task-service.ts\"},{\"kind\":\"File\",\"layer\":\"application\",\"path\":\"src/application/user-service.ts\"},{\"kind\":\"File\",\"layer\":\"infrastructure\",\"path\":\"src/infrastructure/http-app.ts\"},{\"kind\":\"File\",\"layer\":\"infrastructure\",\"path\":\"src/infrastructure/in-memory-repositories.ts\"},{\"kind\":\"File\",\"layer\":\"infrastructure\",\"path\":\"src/infrastructure/server.ts\"},{\"kind\":\"File\",\"layer\":\"infrastructure\",\"path\":\"src/infrastructure/system-adapters.ts\"}]}\n\n## Instructions\nJudge the unit against the rule and rubric. Return the JSON object the schema requires. Set pass to false if any file of the unit fails the rubric.\n",
+  "provider": "claude-cli",
+  "recordedAt": "2026-10-10T21:28:03.559Z",
+  "repetition": 0,
+  "requestHash": "c9fe5caab71d24c5d69dc868b786b2f68bab72aee1bf4398504e1439601e97d1",
+  "resolvedModel": "claude-opus-5-5",
+  "response": "{\"is_error\":false,\"modelUsage\":{\"claude-opus-5-5\":{\"inputTokens\":2,\"outputTokens\":516}},\"result\":\"{\\\"pass\\\":true,\\\"confidence\\\":0.9,\\\"reasoning\\\":\\\"server.ts is the composition root and process entry point. Its responsibilities are: creating concrete infrastructure adapters (in-memory repositories, UUID generator, system clock), wiring them into application services, building the HTTP app, reading the PORT from the environment, and starting the HTTP listener. All of these are framework, transport and configuration concerns, which belong in infrastructure. The file contains no business rules, validation or domain decisions. Every responsibility fits the infrastructure layer's role.\\\",\\\"evidence\\\":[\\\"src/infrastructure/server.ts creates the concrete adapters InMemoryUserRepository, InMemoryProjectRepository, InMemoryTaskRepository, UuidGenerator and SystemClock. This is infrastructure wiring.\\\",\\\"createApp({...}) receives UserService, ProjectService and TaskService built from those adapters. This is composition-root dependency injection with no business logic.\\\",\\\"Number(process.env[\\\\\\\"PORT\\\\\\\"] ?? 3000) reads environment configuration, which is an infrastructure concern.\\\",\\\"app.listen(port, ...) with console.log starts the transport listener and logs, which is an infrastructure concern.\\\"],\\\"violations\\\":[]}\",\"structured_output\":{\"confidence\":0.9,\"evidence\":[\"src/infrastructure/server.ts creates the concrete adapters InMemoryUserRepository, InMemoryProjectRepository, InMemoryTaskRepository, UuidGenerator and SystemClock. This is infrastructure wiring.\",\"createApp({...}) receives UserService, ProjectService and TaskService built from those adapters. This is composition-root dependency injection with no business logic.\",\"Number(process.env[\\\"PORT\\\"] ?? 3000) reads environment configuration, which is an infrastructure concern.\",\"app.listen(port, ...) with console.log starts the transport listener and logs, which is an infrastructure concern.\"],\"pass\":true,\"reasoning\":\"server.ts is the composition root and process entry point. Its responsibilities are: creating concrete infrastructure adapters (in-memory repositories, UUID generator, system clock), wiring them into application services, building the HTTP app, reading the PORT from the environment, and starting the HTTP listener. All of these are framework, transport and configuration concerns, which belong in infrastructure. The file contains no business rules, validation or domain decisions. Every responsibility fits the infrastructure layer's role.\",\"violations\":[]}}",
+  "runIndex": 0,
+  "schemaVersion": 2,
+  "unitId": "src/infrastructure/server.ts",
+  "usage": {
+    "inputTokens": 2795,
+    "outputTokens": 516
+  },
+  "usedOptions": {
+    "effort": "high",
+    "model": "claude-opus-5-5"
+  }
+}

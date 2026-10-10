@@ -1,0 +1,48 @@
+{
+  "attempts": 1,
+  "cliVersion": "2.1.294",
+  "configListingSha256": "47aa04258852fab9a706f3f0c14cee22306d69fbb6fdfbde8c11854bd54997bc",
+  "durationMs": 8926,
+  "effort": "high",
+  "functionId": "FF-N02",
+  "ignoredOptions": [
+    "maxTokens"
+  ],
+  "isolationProbeSha256": "97a2e2d0af1100c13c55e028c1a0c71f069093c3d08705af122aaeb302f1a641",
+  "key": "fa5370a265514806bce83b7d4e6df2308e5aa7a22de26f902b6c37a89d7f7c4f-r0-1",
+  "model": "claude-opus-5-5",
+  "outcome": {
+    "kind": "valid"
+  },
+  "parsedVerdict": {
+    "confidence": 0.9,
+    "evidence": [
+      "src/application/CatalogueService.ts addProduct: builds a Product object and calls catalogue.addProduct, which is use-case orchestration.",
+      "src/application/CatalogueService.ts getProductWithStock: returns null when the product is missing and otherwise combines domain query results into a DTO. The stock figures come from Catalogue methods.",
+      "src/application/CatalogueService.ts getAllProductsWithStock: maps the domain products into a read model and does no calculation itself.",
+      "No database, HTTP, filesystem or framework code anywhere in the file."
+    ],
+    "pass": true,
+    "reasoning": "CatalogueService is a plain application service that coordinates use cases. addProduct builds a Product value and hands it to the domain Catalogue. getProductWithStock and getAllProductsWithStock put together read models by calling Catalogue query methods (getAvailableStock, getReservedStock, getTotalStock). The file contains no persistence, transport, HTTP or framework code. The only logic is a null check and mapping results into DTO shapes, so it carries no business rules or invariants such as stock calculations or reservation logic. Those stay in the domain Catalogue. Every responsibility fits the application layer.",
+    "violations": []
+  },
+  "projectId": "claude-haiku-4-5/order-fulfilment/none/run-1",
+  "prompt": "## Rule\nThe unit's responsibilities match the role of its declared layer.\n\n## Rubric\nPass: Every responsibility in the file belongs to the role and kind of its declared layer, and agrees with any ADR prose given.\nFail: The file carries a responsibility that belongs to a different layer kind, for example persistence, transport or framework logic in a domain file, or business rules in an infrastructure or presentation file.\nEvidence required: Name the file and cite the function, method or statement that carries the misplaced responsibility, and the layer kind it belongs to.\nOut of scope: import direction and layer-dependency rules, which are checked symbolically.\n\n## Layer model\n- domain (kind: domain): src/domain/**\n- application (kind: application): src/application/**\n- infrastructure (kind: infrastructure): src/infrastructure/**\n\n## Unit\nKind: file\nId: src/application/CatalogueService.ts\nLayer: application\nUnit files:\n- src/application/CatalogueService.ts\n\n## Source\n=====SOURCE-BEGIN src/application/CatalogueService.ts=====\nimport { Catalogue } from '../domain/Catalogue';\nimport { Product } from '../domain/Product';\n\nexport class CatalogueService {\n  constructor(private catalogue: Catalogue) {}\n\n  addProduct(id: string, name: string, price: number, stock: number): void {\n    const product: Product = { id, name, price };\n    this.catalogue.addProduct(id, product, stock);\n  }\n\n  getProductWithStock(productId: string): { product: Product; available: number; reserved: number } | null {\n    const product = this.catalogue.getProduct(productId);\n    if (!product) return null;\n\n    return {\n      product,\n      available: this.catalogue.getAvailableStock(productId),\n      reserved: this.catalogue.getReservedStock(productId),\n    };\n  }\n\n  getAllProductsWithStock(): Array<{ product: Product; available: number; reserved: number; total: number }> {\n    return this.catalogue.getAllProducts().map(product => ({\n      product,\n      available: this.catalogue.getAvailableStock(product.id),\n      reserved: this.catalogue.getReservedStock(product.id),\n      total: this.catalogue.getTotalStock(product.id),\n    }));\n  }\n}\n\n=====SOURCE-END=====\n\n## Graph excerpt\n{\"edges\":[{\"from\":\"CatalogueService@src/application/CatalogueService.ts\",\"to\":\"Catalogue@src/domain/Catalogue.ts\",\"type\":\"CONSTRUCTOR_INJECTS\"},{\"from\":\"src/application/CatalogueService.ts\",\"to\":\"src/domain/Catalogue.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/application/CatalogueService.ts\",\"to\":\"src/domain/Product.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/infrastructure/app.ts\",\"to\":\"src/application/CatalogueService.ts\",\"type\":\"IMPORTS\"}],\"nodes\":[{\"kind\":\"Class\",\"layer\":\"application\",\"name\":\"CatalogueService\",\"path\":\"src/application/CatalogueService.ts\"},{\"kind\":\"Class\",\"layer\":\"domain\",\"name\":\"Catalogue\",\"path\":\"src/domain/Catalogue.ts\"},{\"kind\":\"File\",\"layer\":\"application\",\"path\":\"src/application/CatalogueService.ts\"},{\"kind\":\"File\",\"layer\":\"domain\",\"path\":\"src/domain/Catalogue.ts\"},{\"kind\":\"File\",\"layer\":\"domain\",\"path\":\"src/domain/Product.ts\"},{\"kind\":\"File\",\"layer\":\"infrastructure\",\"path\":\"src/infrastructure/app.ts\"}]}\n\n## Instructions\nJudge the unit against the rule and rubric. Return the JSON object the schema requires. Set pass to false if any file of the unit fails the rubric.\n",
+  "provider": "claude-cli",
+  "recordedAt": "2026-10-10T20:50:28.743Z",
+  "repetition": 0,
+  "requestHash": "fa5370a265514806bce83b7d4e6df2308e5aa7a22de26f902b6c37a89d7f7c4f",
+  "resolvedModel": "claude-opus-5-5",
+  "response": "{\"is_error\":false,\"modelUsage\":{\"claude-opus-5-5\":{\"inputTokens\":2,\"outputTokens\":525}},\"result\":\"{\\\"pass\\\":true,\\\"confidence\\\":0.9,\\\"reasoning\\\":\\\"CatalogueService is a plain application service that coordinates use cases. addProduct builds a Product value and hands it to the domain Catalogue. getProductWithStock and getAllProductsWithStock put together read models by calling Catalogue query methods (getAvailableStock, getReservedStock, getTotalStock). The file contains no persistence, transport, HTTP or framework code. The only logic is a null check and mapping results into DTO shapes, so it carries no business rules or invariants such as stock calculations or reservation logic. Those stay in the domain Catalogue. Every responsibility fits the application layer.\\\",\\\"evidence\\\":[\\\"src/application/CatalogueService.ts addProduct: builds a Product object and calls catalogue.addProduct, which is use-case orchestration.\\\",\\\"src/application/CatalogueService.ts getProductWithStock: returns null when the product is missing and otherwise combines domain query results into a DTO. The stock figures come from Catalogue methods.\\\",\\\"src/application/CatalogueService.ts getAllProductsWithStock: maps the domain products into a read model and does no calculation itself.\\\",\\\"No database, HTTP, filesystem or framework code anywhere in the file.\\\"],\\\"violations\\\":[]}\",\"structured_output\":{\"confidence\":0.9,\"evidence\":[\"src/application/CatalogueService.ts addProduct: builds a Product object and calls catalogue.addProduct, which is use-case orchestration.\",\"src/application/CatalogueService.ts getProductWithStock: returns null when the product is missing and otherwise combines domain query results into a DTO. The stock figures come from Catalogue methods.\",\"src/application/CatalogueService.ts getAllProductsWithStock: maps the domain products into a read model and does no calculation itself.\",\"No database, HTTP, filesystem or framework code anywhere in the file.\"],\"pass\":true,\"reasoning\":\"CatalogueService is a plain application service that coordinates use cases. addProduct builds a Product value and hands it to the domain Catalogue. getProductWithStock and getAllProductsWithStock put together read models by calling Catalogue query methods (getAvailableStock, getReservedStock, getTotalStock). The file contains no persistence, transport, HTTP or framework code. The only logic is a null check and mapping results into DTO shapes, so it carries no business rules or invariants such as stock calculations or reservation logic. Those stay in the domain Catalogue. Every responsibility fits the application layer.\",\"violations\":[]}}",
+  "runIndex": 1,
+  "schemaVersion": 2,
+  "unitId": "src/application/CatalogueService.ts",
+  "usage": {
+    "inputTokens": 2738,
+    "outputTokens": 525
+  },
+  "usedOptions": {
+    "effort": "high",
+    "model": "claude-opus-5-5"
+  }
+}
