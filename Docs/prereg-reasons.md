@@ -116,3 +116,14 @@ Previous: v7 (P-4), commit `2ead570`. No so4-heldout run has happened under any 
 | `experiments/so4-heldout/plan.json` | `3ef0a972…` → `72208c0b…` | **Seeded entries** (runbook 3.3; ADR-021 item 9 form): the seven baseline entries unchanged, then 156 seeded entries from `../daedalus-so4/manifest.json` (masterSeed 20261008, k = 2 frozen, catalogue `f764e1ba…`), written by `so4-plan-entries-cli.ts`. 75 of the 156 are golden held-out instances, below the registered floor of 80 (85 counted by the feasibility table; 10 typecheck losses, ADR-024). | Low. The entries are generator output of the frozen catalogue and seeds; no detector output was read. The shortfall is reported, not repaired (ADR-019 item 1). |
 
 All other 64 hashes are unchanged.
+
+## P-V1S — prereg v13 (ADR-026 implementation note, P2 v1 side registered, 2026-10-10)
+
+Previous: v12, commit `4c88edf`. This bump comes before any `e7-corpus-v1sym` run, before any label-plan build on stored results and before any live label call. No label exists. The mode-pairing rule was written from the report fields (`evaluationMode`, `route`), not from any count.
+
+| Artefact | v12 → v13 sha256 | Change and reason | Post-hoc risk |
+|---|---|---|---|
+| `experiments/e7-corpus-v1sym/plan.json` | (new) → `e2723f83…` | A symbolic-only plan with `instrument: v1` and the nine `e7-corpus` entries (same bases, paths and specs; the clones at their `corpus/corpus.json` commits). Seeds 7201 / 7202 / 7203, `outDir` `results/e7-corpus-v1sym`. It is the registered route to the `--corpus-v1-runs` side with no judge call (ADR-026: no judge call is repeated). | Low. The plan is a re-evaluation of stored code that the registered B8 frame already requires. Its only free choice is the seeds, which are fixed here before any draw. |
+| `Docs/analysis-plan.md` | `678babba…` → `bf4aff86…` | §2 plan row. §10 B8 gains an implementation rule for mode pairing: v1 is `symbolic-only` and v2 is `full` or `symbolic-only`; pairs match by project and spec sha only; only symbolic rows are compared and drawn; a pair that breaks the rule is refused; the v1-only strata take the v1 plan's sampling seed; the v2 baseline-precision rows drop the `v1-only: ` strata (`p2FrameOf`), and the v1 overall and v1-only counts-only rows follow. §11 gains a dated row. | Low. No estimand, size, seed of an existing plan, interval rule or label-plan config changes. The rule makes explicit what B8's "same project and spec" pairing already implies for a full-mode v2 run. |
+
+All other 69 hashes are unchanged.
