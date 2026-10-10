@@ -1,0 +1,47 @@
+{
+  "attempts": 1,
+  "cliVersion": "2.1.294",
+  "configListingSha256": "47aa04258852fab9a706f3f0c14cee22306d69fbb6fdfbde8c11854bd54997bc",
+  "durationMs": 14522,
+  "effort": "high",
+  "functionId": "FF-N02",
+  "ignoredOptions": [
+    "maxTokens"
+  ],
+  "isolationProbeSha256": "97a2e2d0af1100c13c55e028c1a0c71f069093c3d08705af122aaeb302f1a641",
+  "key": "ef25b9e3f3b8b2eb5ff302321c22626965f3076dfa654f64451814065511e28d-r0-0",
+  "model": "claude-opus-5-5",
+  "outcome": {
+    "kind": "valid"
+  },
+  "parsedVerdict": {
+    "confidence": 0.7,
+    "evidence": [
+      "create-user.command.ts declares only `export interface CreateUserCommand { firstName: string; lastName: string; email: string; phone?: string | null; }`, with no functions, methods or logic.",
+      "The file contains no persistence, transport, framework or business-rule code.",
+      "The domain label comes from the 'core/' segment matching **/core/**, but the path also matches the application patterns **/application/**, **/commands/** and **/*.command.ts, so the layer label is ambiguous."
+    ],
+    "pass": true,
+    "reasoning": "src/modules/identity/core/application/commands/create-user.command.ts only declares the CreateUserCommand interface, a plain data shape with primitive fields (firstName, lastName, email, optional phone). It has no functions, methods or other statements carrying behaviour, so it contains no persistence, transport, framework logic or business rules. The file is labelled domain only because its path contains 'core/' (matched by the domain glob **/core/**). Its path segments 'application/commands/' and its *.command.ts name also match the application layer's patterns, so the layer label is ambiguous. Conceptually, a command message is a use-case input contract, which is arguably an application concern. But a pure data type with no behaviour carries no responsibility the domain layer cannot hold, so it is not counted as misplaced. The ambiguity is in the layer model, not in this file's code. Confidence is moderate: a stricter reading that treats any use-case input contract as application-only would fail the file.",
+    "violations": []
+  },
+  "projectId": "raouf-b-dev__ecommerce-store-api",
+  "prompt": "## Rule\nThe unit's responsibilities match the role of its declared layer.\n\n## Rubric\nPass: Every responsibility in the file belongs to the role and kind of its declared layer, and agrees with any ADR prose given.\nFail: The file carries a responsibility that belongs to a different layer kind, for example persistence, transport or framework logic in a domain file, or business rules in an infrastructure or presentation file.\nEvidence required: Name the file and cite the function, method or statement that carries the misplaced responsibility, and the layer kind it belongs to.\nOut of scope: import direction and layer-dependency rules, which are checked symbolically.\n\n## Layer model\n- domain (kind: domain): src/domain/**, **/core/**, **/domain/**, **/entities/**, **/value-objects/**; file patterns: **/*.entity.ts\n- application (kind: application): src/application/**, **/application/**, **/commands/**, **/dto/**, **/queries/**, **/services/**, **/usecases/**; file patterns: **/*.command.ts, **/*.dto.ts, **/*.handler.ts, **/*.query.ts, **/*.service.ts, **/*.usecase.ts\n- infrastructure (kind: infrastructure): src/infrastructure/**, **/adapters/**, **/database/**, **/gateways/**, **/infrastructure/**, **/orm/**, **/persistence/**, **/repositories/**; file patterns: **/*.controller.ts, **/*.gateway.ts, **/*.repository.ts\n\n## Unit\nKind: file\nId: src/modules/identity/core/application/commands/create-user.command.ts\nLayer: domain\nUnit files:\n- src/modules/identity/core/application/commands/create-user.command.ts\n\n## Source\n=====SOURCE-BEGIN src/modules/identity/core/application/commands/create-user.command.ts=====\nexport interface CreateUserCommand {\n  firstName: string;\n  lastName: string;\n  email: string;\n  phone?: string | null;\n}\n\n=====SOURCE-END=====\n\n## Graph excerpt\n{\"edges\":[],\"nodes\":[{\"kind\":\"File\",\"layer\":\"domain\",\"path\":\"src/modules/identity/core/application/commands/create-user.command.ts\"},{\"kind\":\"Interface\",\"layer\":\"domain\",\"name\":\"CreateUserCommand\",\"path\":\"src/modules/identity/core/application/commands/create-user.command.ts\"}]}\n\n## Instructions\nJudge the unit against the rule and rubric. Return the JSON object the schema requires. Set pass to false if any file of the unit fails the rubric.\n",
+  "provider": "claude-cli",
+  "recordedAt": "2026-10-10T03:33:06.886Z",
+  "repetition": 0,
+  "requestHash": "ef25b9e3f3b8b2eb5ff302321c22626965f3076dfa654f64451814065511e28d",
+  "resolvedModel": "claude-opus-5-5",
+  "response": "{\"is_error\":false,\"modelUsage\":{\"claude-opus-5-5\":{\"inputTokens\":2,\"outputTokens\":1341}},\"result\":\"{\\\"pass\\\":true,\\\"confidence\\\":0.7,\\\"reasoning\\\":\\\"src/modules/identity/core/application/commands/create-user.command.ts only declares the CreateUserCommand interface, a plain data shape with primitive fields (firstName, lastName, email, optional phone). It has no functions, methods or other statements carrying behaviour, so it contains no persistence, transport, framework logic or business rules. The file is labelled domain only because its path contains 'core/' (matched by the domain glob **/core/**). Its path segments 'application/commands/' and its *.command.ts name also match the application layer's patterns, so the layer label is ambiguous. Conceptually, a command message is a use-case input contract, which is arguably an application concern. But a pure data type with no behaviour carries no responsibility the domain layer cannot hold, so it is not counted as misplaced. The ambiguity is in the layer model, not in this file's code. Confidence is moderate: a stricter reading that treats any use-case input contract as application-only would fail the file.\\\",\\\"evidence\\\":[\\\"create-user.command.ts declares only `export interface CreateUserCommand { firstName: string; lastName: string; email: string; phone?: string | null; }`, with no functions, methods or logic.\\\",\\\"The file contains no persistence, transport, framework or business-rule code.\\\",\\\"The domain label comes from the 'core/' segment matching **/core/**, but the path also matches the application patterns **/application/**, **/commands/** and **/*.command.ts, so the layer label is ambiguous.\\\"],\\\"violations\\\":[]}\",\"structured_output\":{\"confidence\":0.7,\"evidence\":[\"create-user.command.ts declares only `export interface CreateUserCommand { firstName: string; lastName: string; email: string; phone?: string | null; }`, with no functions, methods or logic.\",\"The file contains no persistence, transport, framework or business-rule code.\",\"The domain label comes from the 'core/' segment matching **/core/**, but the path also matches the application patterns **/application/**, **/commands/** and **/*.command.ts, so the layer label is ambiguous.\"],\"pass\":true,\"reasoning\":\"src/modules/identity/core/application/commands/create-user.command.ts only declares the CreateUserCommand interface, a plain data shape with primitive fields (firstName, lastName, email, optional phone). It has no functions, methods or other statements carrying behaviour, so it contains no persistence, transport, framework logic or business rules. The file is labelled domain only because its path contains 'core/' (matched by the domain glob **/core/**). Its path segments 'application/commands/' and its *.command.ts name also match the application layer's patterns, so the layer label is ambiguous. Conceptually, a command message is a use-case input contract, which is arguably an application concern. But a pure data type with no behaviour carries no responsibility the domain layer cannot hold, so it is not counted as misplaced. The ambiguity is in the layer model, not in this file's code. Confidence is moderate: a stricter reading that treats any use-case input contract as application-only would fail the file.\",\"violations\":[]}}",
+  "runIndex": 0,
+  "schemaVersion": 2,
+  "unitId": "src/modules/identity/core/application/commands/create-user.command.ts",
+  "usage": {
+    "inputTokens": 2333,
+    "outputTokens": 1341
+  },
+  "usedOptions": {
+    "effort": "high",
+    "model": "claude-opus-5-5"
+  }
+}

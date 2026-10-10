@@ -1,0 +1,47 @@
+{
+  "attempts": 1,
+  "cliVersion": "2.1.294",
+  "configListingSha256": "47aa04258852fab9a706f3f0c14cee22306d69fbb6fdfbde8c11854bd54997bc",
+  "durationMs": 10669,
+  "effort": "high",
+  "functionId": "FF-N02",
+  "ignoredOptions": [
+    "maxTokens"
+  ],
+  "isolationProbeSha256": "97a2e2d0af1100c13c55e028c1a0c71f069093c3d08705af122aaeb302f1a641",
+  "key": "d60a8b9be30331fb8d8ab66520422d2e9c396188f6f2858719399108d9742d40-r0-2",
+  "model": "claude-opus-5-5",
+  "outcome": {
+    "kind": "valid"
+  },
+  "parsedVerdict": {
+    "confidence": 0.8,
+    "evidence": [
+      "src/shared-kernel/domain/interfaces/current-user.interface.ts declares only `export interface CurrentUserPayload { userId: number; email: string; role: string; mustChangePassword?: boolean; }`.",
+      "The file has no functions, classes, decorators, framework calls, I/O or persistence logic.",
+      "Its importers are current-user.decorator.ts (primary adapter), src/types/express.ts and testing fixtures; the file itself contains no transport or framework handling."
+    ],
+    "pass": true,
+    "reasoning": "The file declares only the interface `CurrentUserPayload` with four fields: `userId`, `email`, `role` and an optional `mustChangePassword`. It has no functions, methods or statements that do persistence, transport handling, framework work, token parsing or request handling. As a data shape it can stand as a shared-kernel domain concept: the authenticated actor, with identity and role. The name (\"Payload\") and its importers (a primary-adapter decorator, the Express type augmentation in `src/types/express.ts`, and test fixtures) suggest it may be an auth or transport shape. Even so, the file carries no transport or framework responsibility itself. Where it sits and who imports it are matters of placement and dependency, which are out of scope here. No misplaced responsibility can be cited, so the unit passes, with moderate confidence because of the naming ambiguity.",
+    "violations": []
+  },
+  "projectId": "raouf-b-dev__ecommerce-store-api",
+  "prompt": "## Rule\nThe unit's responsibilities match the role of its declared layer.\n\n## Rubric\nPass: Every responsibility in the file belongs to the role and kind of its declared layer, and agrees with any ADR prose given.\nFail: The file carries a responsibility that belongs to a different layer kind, for example persistence, transport or framework logic in a domain file, or business rules in an infrastructure or presentation file.\nEvidence required: Name the file and cite the function, method or statement that carries the misplaced responsibility, and the layer kind it belongs to.\nOut of scope: import direction and layer-dependency rules, which are checked symbolically.\n\n## Layer model\n- domain (kind: domain): src/domain/**, **/core/**, **/domain/**, **/entities/**, **/value-objects/**; file patterns: **/*.entity.ts\n- application (kind: application): src/application/**, **/application/**, **/commands/**, **/dto/**, **/queries/**, **/services/**, **/usecases/**; file patterns: **/*.command.ts, **/*.dto.ts, **/*.handler.ts, **/*.query.ts, **/*.service.ts, **/*.usecase.ts\n- infrastructure (kind: infrastructure): src/infrastructure/**, **/adapters/**, **/database/**, **/gateways/**, **/infrastructure/**, **/orm/**, **/persistence/**, **/repositories/**; file patterns: **/*.controller.ts, **/*.gateway.ts, **/*.repository.ts\n\n## Unit\nKind: file\nId: src/shared-kernel/domain/interfaces/current-user.interface.ts\nLayer: domain\nUnit files:\n- src/shared-kernel/domain/interfaces/current-user.interface.ts\n\n## Source\n=====SOURCE-BEGIN src/shared-kernel/domain/interfaces/current-user.interface.ts=====\nexport interface CurrentUserPayload {\n  userId: number;\n  email: string;\n  role: string;\n  mustChangePassword?: boolean;\n}\n\n=====SOURCE-END=====\n\n## Graph excerpt\n{\"edges\":[{\"from\":\"src/modules/identity/primary-adapters/decorators/current-user.decorator.ts\",\"to\":\"src/shared-kernel/domain/interfaces/current-user.interface.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/testing/factories/idempotency.factory.ts\",\"to\":\"src/shared-kernel/domain/interfaces/current-user.interface.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/testing/fixtures/nestjs-context.fixture.ts\",\"to\":\"src/shared-kernel/domain/interfaces/current-user.interface.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/types/express.ts\",\"to\":\"src/shared-kernel/domain/interfaces/current-user.interface.ts\",\"type\":\"IMPORTS\"}],\"nodes\":[{\"kind\":\"File\",\"layer\":\"domain\",\"path\":\"src/shared-kernel/domain/interfaces/current-user.interface.ts\"},{\"kind\":\"File\",\"layer\":null,\"path\":\"src/modules/identity/primary-adapters/decorators/current-user.decorator.ts\"},{\"kind\":\"File\",\"layer\":null,\"path\":\"src/testing/factories/idempotency.factory.ts\"},{\"kind\":\"File\",\"layer\":null,\"path\":\"src/testing/fixtures/nestjs-context.fixture.ts\"},{\"kind\":\"File\",\"layer\":null,\"path\":\"src/types/express.ts\"},{\"kind\":\"Interface\",\"layer\":\"domain\",\"name\":\"CurrentUserPayload\",\"path\":\"src/shared-kernel/domain/interfaces/current-user.interface.ts\"}]}\n\n## Instructions\nJudge the unit against the rule and rubric. Return the JSON object the schema requires. Set pass to false if any file of the unit fails the rubric.\n",
+  "provider": "claude-cli",
+  "recordedAt": "2026-10-10T03:35:20.425Z",
+  "repetition": 0,
+  "requestHash": "d60a8b9be30331fb8d8ab66520422d2e9c396188f6f2858719399108d9742d40",
+  "resolvedModel": "claude-opus-5-5",
+  "response": "{\"is_error\":false,\"modelUsage\":{\"claude-opus-5-5\":{\"inputTokens\":2,\"outputTokens\":885}},\"result\":\"{\\\"pass\\\":true,\\\"confidence\\\":0.8,\\\"reasoning\\\":\\\"The file declares only the interface `CurrentUserPayload` with four fields: `userId`, `email`, `role` and an optional `mustChangePassword`. It has no functions, methods or statements that do persistence, transport handling, framework work, token parsing or request handling. As a data shape it can stand as a shared-kernel domain concept: the authenticated actor, with identity and role. The name (\\\\\\\"Payload\\\\\\\") and its importers (a primary-adapter decorator, the Express type augmentation in `src/types/express.ts`, and test fixtures) suggest it may be an auth or transport shape. Even so, the file carries no transport or framework responsibility itself. Where it sits and who imports it are matters of placement and dependency, which are out of scope here. No misplaced responsibility can be cited, so the unit passes, with moderate confidence because of the naming ambiguity.\\\",\\\"evidence\\\":[\\\"src/shared-kernel/domain/interfaces/current-user.interface.ts declares only `export interface CurrentUserPayload { userId: number; email: string; role: string; mustChangePassword?: boolean; }`.\\\",\\\"The file has no functions, classes, decorators, framework calls, I/O or persistence logic.\\\",\\\"Its importers are current-user.decorator.ts (primary adapter), src/types/express.ts and testing fixtures; the file itself contains no transport or framework handling.\\\"],\\\"violations\\\":[]}\",\"structured_output\":{\"confidence\":0.8,\"evidence\":[\"src/shared-kernel/domain/interfaces/current-user.interface.ts declares only `export interface CurrentUserPayload { userId: number; email: string; role: string; mustChangePassword?: boolean; }`.\",\"The file has no functions, classes, decorators, framework calls, I/O or persistence logic.\",\"Its importers are current-user.decorator.ts (primary adapter), src/types/express.ts and testing fixtures; the file itself contains no transport or framework handling.\"],\"pass\":true,\"reasoning\":\"The file declares only the interface `CurrentUserPayload` with four fields: `userId`, `email`, `role` and an optional `mustChangePassword`. It has no functions, methods or statements that do persistence, transport handling, framework work, token parsing or request handling. As a data shape it can stand as a shared-kernel domain concept: the authenticated actor, with identity and role. The name (\\\"Payload\\\") and its importers (a primary-adapter decorator, the Express type augmentation in `src/types/express.ts`, and test fixtures) suggest it may be an auth or transport shape. Even so, the file carries no transport or framework responsibility itself. Where it sits and who imports it are matters of placement and dependency, which are out of scope here. No misplaced responsibility can be cited, so the unit passes, with moderate confidence because of the naming ambiguity.\",\"violations\":[]}}",
+  "runIndex": 2,
+  "schemaVersion": 2,
+  "unitId": "src/shared-kernel/domain/interfaces/current-user.interface.ts",
+  "usage": {
+    "inputTokens": 2772,
+    "outputTokens": 885
+  },
+  "usedOptions": {
+    "effort": "high",
+    "model": "claude-opus-5-5"
+  }
+}

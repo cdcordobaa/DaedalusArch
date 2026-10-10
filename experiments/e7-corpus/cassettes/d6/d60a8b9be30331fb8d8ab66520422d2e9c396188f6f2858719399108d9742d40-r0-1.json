@@ -1,0 +1,47 @@
+{
+  "attempts": 1,
+  "cliVersion": "2.1.294",
+  "configListingSha256": "47aa04258852fab9a706f3f0c14cee22306d69fbb6fdfbde8c11854bd54997bc",
+  "durationMs": 7021,
+  "effort": "high",
+  "functionId": "FF-N02",
+  "ignoredOptions": [
+    "maxTokens"
+  ],
+  "isolationProbeSha256": "97a2e2d0af1100c13c55e028c1a0c71f069093c3d08705af122aaeb302f1a641",
+  "key": "d60a8b9be30331fb8d8ab66520422d2e9c396188f6f2858719399108d9742d40-r0-1",
+  "model": "claude-opus-5-5",
+  "outcome": {
+    "kind": "valid"
+  },
+  "parsedVerdict": {
+    "confidence": 0.8,
+    "evidence": [
+      "src/shared-kernel/domain/interfaces/current-user.interface.ts declares only `export interface CurrentUserPayload { userId: number; email: string; role: string; mustChangePassword?: boolean; }`",
+      "The file has no imports, decorators, functions or side effects, so it contains no framework, transport or persistence logic.",
+      "Files that import it (current-user.decorator.ts, src/types/express.ts) keep the framework-specific handling outside this file."
+    ],
+    "pass": true,
+    "reasoning": "The file only declares the plain TypeScript interface CurrentUserPayload, which has primitive fields (userId, email, role, mustChangePassword). It has no persistence, transport or framework logic, no decorators, no I/O and no behavior. The shape is used by auth adapters such as the current-user decorator and the Express typings. That suggests it describes an authenticated-principal context, which is arguably closer to an application concern. Still, a framework-free value contract in a shared kernel fits the domain layer's role. Nothing in the file belongs to a different layer kind.",
+    "violations": []
+  },
+  "projectId": "raouf-b-dev__ecommerce-store-api",
+  "prompt": "## Rule\nThe unit's responsibilities match the role of its declared layer.\n\n## Rubric\nPass: Every responsibility in the file belongs to the role and kind of its declared layer, and agrees with any ADR prose given.\nFail: The file carries a responsibility that belongs to a different layer kind, for example persistence, transport or framework logic in a domain file, or business rules in an infrastructure or presentation file.\nEvidence required: Name the file and cite the function, method or statement that carries the misplaced responsibility, and the layer kind it belongs to.\nOut of scope: import direction and layer-dependency rules, which are checked symbolically.\n\n## Layer model\n- domain (kind: domain): src/domain/**, **/core/**, **/domain/**, **/entities/**, **/value-objects/**; file patterns: **/*.entity.ts\n- application (kind: application): src/application/**, **/application/**, **/commands/**, **/dto/**, **/queries/**, **/services/**, **/usecases/**; file patterns: **/*.command.ts, **/*.dto.ts, **/*.handler.ts, **/*.query.ts, **/*.service.ts, **/*.usecase.ts\n- infrastructure (kind: infrastructure): src/infrastructure/**, **/adapters/**, **/database/**, **/gateways/**, **/infrastructure/**, **/orm/**, **/persistence/**, **/repositories/**; file patterns: **/*.controller.ts, **/*.gateway.ts, **/*.repository.ts\n\n## Unit\nKind: file\nId: src/shared-kernel/domain/interfaces/current-user.interface.ts\nLayer: domain\nUnit files:\n- src/shared-kernel/domain/interfaces/current-user.interface.ts\n\n## Source\n=====SOURCE-BEGIN src/shared-kernel/domain/interfaces/current-user.interface.ts=====\nexport interface CurrentUserPayload {\n  userId: number;\n  email: string;\n  role: string;\n  mustChangePassword?: boolean;\n}\n\n=====SOURCE-END=====\n\n## Graph excerpt\n{\"edges\":[{\"from\":\"src/modules/identity/primary-adapters/decorators/current-user.decorator.ts\",\"to\":\"src/shared-kernel/domain/interfaces/current-user.interface.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/testing/factories/idempotency.factory.ts\",\"to\":\"src/shared-kernel/domain/interfaces/current-user.interface.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/testing/fixtures/nestjs-context.fixture.ts\",\"to\":\"src/shared-kernel/domain/interfaces/current-user.interface.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/types/express.ts\",\"to\":\"src/shared-kernel/domain/interfaces/current-user.interface.ts\",\"type\":\"IMPORTS\"}],\"nodes\":[{\"kind\":\"File\",\"layer\":\"domain\",\"path\":\"src/shared-kernel/domain/interfaces/current-user.interface.ts\"},{\"kind\":\"File\",\"layer\":null,\"path\":\"src/modules/identity/primary-adapters/decorators/current-user.decorator.ts\"},{\"kind\":\"File\",\"layer\":null,\"path\":\"src/testing/factories/idempotency.factory.ts\"},{\"kind\":\"File\",\"layer\":null,\"path\":\"src/testing/fixtures/nestjs-context.fixture.ts\"},{\"kind\":\"File\",\"layer\":null,\"path\":\"src/types/express.ts\"},{\"kind\":\"Interface\",\"layer\":\"domain\",\"name\":\"CurrentUserPayload\",\"path\":\"src/shared-kernel/domain/interfaces/current-user.interface.ts\"}]}\n\n## Instructions\nJudge the unit against the rule and rubric. Return the JSON object the schema requires. Set pass to false if any file of the unit fails the rubric.\n",
+  "provider": "claude-cli",
+  "recordedAt": "2026-10-10T03:35:15.338Z",
+  "repetition": 0,
+  "requestHash": "d60a8b9be30331fb8d8ab66520422d2e9c396188f6f2858719399108d9742d40",
+  "resolvedModel": "claude-opus-5-5",
+  "response": "{\"is_error\":false,\"modelUsage\":{\"claude-opus-5-5\":{\"inputTokens\":2,\"outputTokens\":548}},\"result\":\"{\\\"pass\\\":true,\\\"confidence\\\":0.8,\\\"reasoning\\\":\\\"The file only declares the plain TypeScript interface CurrentUserPayload, which has primitive fields (userId, email, role, mustChangePassword). It has no persistence, transport or framework logic, no decorators, no I/O and no behavior. The shape is used by auth adapters such as the current-user decorator and the Express typings. That suggests it describes an authenticated-principal context, which is arguably closer to an application concern. Still, a framework-free value contract in a shared kernel fits the domain layer's role. Nothing in the file belongs to a different layer kind.\\\",\\\"evidence\\\":[\\\"src/shared-kernel/domain/interfaces/current-user.interface.ts declares only `export interface CurrentUserPayload { userId: number; email: string; role: string; mustChangePassword?: boolean; }`\\\",\\\"The file has no imports, decorators, functions or side effects, so it contains no framework, transport or persistence logic.\\\",\\\"Files that import it (current-user.decorator.ts, src/types/express.ts) keep the framework-specific handling outside this file.\\\"],\\\"violations\\\":[]}\",\"structured_output\":{\"confidence\":0.8,\"evidence\":[\"src/shared-kernel/domain/interfaces/current-user.interface.ts declares only `export interface CurrentUserPayload { userId: number; email: string; role: string; mustChangePassword?: boolean; }`\",\"The file has no imports, decorators, functions or side effects, so it contains no framework, transport or persistence logic.\",\"Files that import it (current-user.decorator.ts, src/types/express.ts) keep the framework-specific handling outside this file.\"],\"pass\":true,\"reasoning\":\"The file only declares the plain TypeScript interface CurrentUserPayload, which has primitive fields (userId, email, role, mustChangePassword). It has no persistence, transport or framework logic, no decorators, no I/O and no behavior. The shape is used by auth adapters such as the current-user decorator and the Express typings. That suggests it describes an authenticated-principal context, which is arguably closer to an application concern. Still, a framework-free value contract in a shared kernel fits the domain layer's role. Nothing in the file belongs to a different layer kind.\",\"violations\":[]}}",
+  "runIndex": 1,
+  "schemaVersion": 2,
+  "unitId": "src/shared-kernel/domain/interfaces/current-user.interface.ts",
+  "usage": {
+    "inputTokens": 2772,
+    "outputTokens": 548
+  },
+  "usedOptions": {
+    "effort": "high",
+    "model": "claude-opus-5-5"
+  }
+}
