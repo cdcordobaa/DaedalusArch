@@ -29,6 +29,11 @@
 > registered spec weights stay primary (W_n = 0.08); the judge-weighted sensitivity variant `judge-weighted-v1` (judge
 > dimensions 2/7, symbolic 5/7, same thresholds) is pre-declared (§12.5, B9). Its E7 reading is post hoc; its E1 reading
 > is pre-registered. §11 lists the change.
+> **Amended 2026-10-10 (ADR-029 Codex arm, `corpus/prereg.json` version 18)**, before any E1 run and before any Codex
+> cell: E1 gains an added 18-cell arm, `gpt-5.6-terra` through the Codex CLI (§2), with its own plan and `orderSeed`.
+> Every registered SO5 analysis of §6 stays as registered on the 54 Claude cells. The Codex cells enter new families:
+> the vendor contrast and the vendor self-preference check (§6.1), the per-model judge-vs-panel rows read per
+> vendor (§3), and reporting duty B10. §11 lists the change.
 > **Requirements**: FR-v1.2E-25, 27, 36; SO1–SO5 (ADR-017 items 1–3, 6, 7); ADR-015 items 1, 2, 5, 10; ADR-016 b, e.
 > **Design source**: `aidlc-docs/construction/v1.2E-u5b-scoring-harness/functional-design/business-rules.md`
 > (BR-U5b-20, 30, 33, 34, 45..49, 53, 54, 61..65, 78). The matching of seeds to violations is `Docs/matching-rule.md`
@@ -155,7 +160,7 @@ pre-registration gate (BR-U5b-50). Judge modes pin the judge of `Docs/judge-prer
 | `latency-gate` | latency-gate | `symbolic-only` | ghostfolio `apps/api` with `corpus/specs/ghostfolio-test.yaml` | 2101 / 2102 / 2103 |
 | `sensitivity` | sensitivity | `symbolic-only` | none yet; `fixAttempts: []` | 3101 / 3102 / 3103 |
 | `so4-heldout` | SO4 | `symbolic-only` (ADR-020 item 5; was `full`) | the seven frozen held-out bases as baseline entries, each with its corpus spec (P-U6, ADR-021 item 5): `realworld-test`, `ghostfolio-test` `apps/api`, `truthy-demo`, `dry-run-test`, `zhuravlevma__nestjs-active-record`, `nestjslatam__ddd`, `v-aguiar__valex`; the seeded entries follow `mutate` (below) | 4101 / 4102 / 4103 |
-| `e1-grid` | E1 | `full` | the `e1` block: 3 models × 3 spec levels × 2 tasks × 3 runs = 54 cells | 5101 / 5102 / 5103 |
+| `e1-grid` | E1 | `full` | the `e1` block: 3 models × 3 spec levels × 2 tasks × 3 runs = 54 cells; from v18 (ADR-029) also the Codex arm's model `gpt-5.6-terra` × 3 × 2 × 3 = 18 cells, 72 in all | 5101 / 5102 / 5103 |
 | `e7-corpus` | E7 | `full` | the four core projects (`realworld-test`, `ghostfolio-test` `apps/api`, `truthy-demo`, `dry-run-test`) and the three frozen E7 bases (P-U6, ADR-021 item 5): `zhuravlevma__nestjs-active-record`, `nestjslatam__ddd`, `v-aguiar__valex` | 7101 / 7102 / 7103 |
 | `e7-corpus-v1sym` | E7 (P2 v1 side, §10 B8; registered 2026-10-10, prereg v13) | `symbolic-only`, `instrument: v1` | the same entries as `e7-corpus` (bases, paths and specs; the corpus clones at their `corpus/corpus.json` commits): the `--instrument v1` re-evaluation of the stored code, no judge call | 7201 / 7202 / 7203 |
 | `apg-ablation` | SO2 ablation (ADR-021 SO2-5, X-2, item 8) | `symbolic-only` | 18 entries: the full arm and the `ast-only` arm (`graphMode`, the IMPORTS / DECLARES / CONTAINS allow-list over the full extraction) of the four core bases and the five fixtures; MO-DF01 seeded copies are not added (P-U6 decision, `Docs/threats-to-validity.md` TV-96) | 8101 / 8102 / 8103 |
@@ -173,6 +178,14 @@ style `clean-architecture`. Every spec level of a task is evaluated with one eva
 BR-U5b-53, U4 CTX-07). The model pins are confirmed at the generator-protocol freeze (`Docs/generator-protocol.md`,
 after the pilot); a different pin is a version bump of this file and of `experiments/e1-grid/plan.json` with a
 reason, before the first E1 run.
+**Codex arm (amended v18, ADR-029).** `e1.models` appends `gpt-5.6-terra` (the Codex CLI `0.162.1`, adapter `codex-cli`,
+reasoning effort `medium`, pinned catalog `scripts/generator/codex/model-catalog.json`). Its cells come from
+`experiments/e1-grid/generator-plan-codex.json` (`orderSeed` 20261010, schedule `schedule-codex-cli.json`), with the
+same spec levels, tasks, runs, style, evaluator spec, `outRoot` and frozen prompt templates as the Claude arm
+(`Docs/generator-protocol.md` §11, 2026-10-10). The Claude arm's plan, seed and schedule are unchanged. **Vendor**
+is derived from `adapter_id` (`so5_grid.csv`): `claude-code-cli` → `anthropic`, `codex-cli` → `openai`. The E1 plan's
+seeds (5101 / 5102 / 5103) serve both arms. Coordinates enumerate the Claude models first and `gpt-5.6-terra` last,
+so the Claude coordinates keep their order.
 
 **Entries added later.** The SO4 seeded entries (`seed` references to the U5a manifest) and the SP-* probe entries
 of `sensitivity` exist only after Build and Test has run the FR-18 re-baseline, `prepare-bases` and `mutate`. A
@@ -191,11 +204,11 @@ field of a registered plan.
 | SO4 N against the floor (ADR-021 SO4-05) | the golden-set count N = scored held-out golden instances (matched + missed) against the registered 80–120 floor; with `--golden-registered 85` the catalogue's registered total at k = 2 (the 85-vs-80 margin); the overall row carries the ADR-019 item 1 statement (k frozen, actual N, any shortfall a Ch7 deviation, no other lever) | the count per stage (in the case, rejected as a pair, not applicable, site invalid, scored); every seed and every manifest rejection with its stage and reason (the coverage table, MAT-12 step 1) | `golden_instances.csv`, `seed_coverage.csv` |
 | SO4 FP / FN analysis | weighted counts per `RC-*` root cause (P1, P2, missed seeds; P3 is not labelled, §4) | mechanical vs labeller FN causes | `fp_fn_taxonomy.csv` |
 | SO3 report | per project, the AHS field named by `scoring.verdictSource` of the run's mode, with its verdict, under the registered neural aggregation (ADR-028 item 1) | the other AHS fields present; per-dimension AVR; leave-one-dimension-out deltas; sensitivity-only sweeps; **registered sensitivity analysis: the proportional neural aggregation variant** (§12.2; AHS and verdict per project under both rules, verdict changes); **registered exploratory explanation analysis: the judge diagnostics** (§12.4) | `ahs_by_project.csv`, `rescore_*.csv`; `ahs_by_aggregation.csv`; `judge_units.csv`, `judge_criteria.csv` |
-| SO3 neural | judge vs panel agreement on P4 E1 units (weighted, judges of another model family; `headline = true`; ADR-020 item 7) | the same agreement per source (`e1`, `fixture`) and pooled, per E1 generator model, and with `uncertain` kept as a category; run vs run (order sensitivity, §10 B3); panel vs audit (sanity check, B6); judge repetition reliability; judge-probe detection conditional on selection | `agreement.csv`, `judge_probe.csv` |
+| SO3 neural | judge vs panel agreement on P4 E1 units (weighted, judges of another model family; `headline = true`; ADR-020 item 7) | the same agreement per source (`e1`, `fixture`) and pooled, per E1 generator model (from v18 this row separates the vendors, ADR-029), and with `uncertain` kept as a category; run vs run (order sensitivity, §10 B3); panel vs audit (sanity check, B6); judge repetition reliability; judge-probe detection conditional on selection | `agreement.csv`, `judge_probe.csv` |
 | SO2 | parse coverage and resolution counts per run; the H13 latency gate decision per plan, from `so2-metrics tables` `gate.json` (the only registered gate source; every RunRecord counts, rejected ones included: a cycle-query timeout is `fallback-required`, an unreadable run `inconclusive`; ADR-021 SO2-1) | per-run latency (`so2/latency.csv`, both cycle queries apart) and the NFR-07 table (`so2/nfr07_latency.csv`, with `profile.csv`); graph size per project by node and edge type and `FLOWS_TO` edges per resolved import (`so2/graph_coverage.csv`, `flows_to_stores.csv`; ADR-021 SO2-4, X-4); the APG-full vs AST-only ablation (`apg_ablation.csv`, `apg_ablation_summary.csv`, descriptive: functions that lose detection; pre-run check `apg_arms.csv`); stage times (aggregate `latency.csv`, descriptive); FLOWS_TO evidence per MO-DF01 seed and twin | `results/<plan>/so2/*` (`scripts/so2-metrics-cli.ts`), `coverage.csv`, `latency.csv`, `edge_evidence.csv` |
 | SO1 | denominators per run (declared, ADR-derived, compiled, disabled, dropped, skipped by mode, executed, failed), identities I1 and I2 | per-style P/R/F1 rows: the `style-<s>` strata rows of the `prf_*` files, `s` = the spec's `architecture.style` (the style the instrument evaluates with); the corpus style is a column of `denominators.csv`, `prf_by_project.csv`, `seed_coverage.csv` and `golden_instances.csv`, so the style mismatches (`zhuravlevma__nestjs-active-record`: corpus `layered`, spec `nestjs`) are reported, not hidden (ADR-021 SO1-C, item 9) | `denominators.csv`, `prf_*.csv` |
 | SO1 instrument (ADR-021 SO1-E, X-7) | per spec group (corpus, fixture, preset): validator first-pass rate with its Wilson 95 % interval; per built-in style library: template coverage (declared functions with a template ÷ declared) | current pass rate; first-failure error codes; compiled ÷ declared per spec style (ratio of sums); spec line counts (total, blank, comment, content), descriptive only | `so1-metrics-<sha>.json` (`scripts/so1-metrics-cli.ts`) |
-| SO5 (E1) | the `verdictSource` AHS of each valid cell (§6); for the model effect, `ahsDeterministic` is co-primary (ADR-020 item 7) | the directional self-preference check (§6, registered); other AHS fields, per-dimension AVR, `FPAT-*` weighted family counts (rule-family profile), valid-generation yield, judge fail share, deterministic violations per KLOC (exploratory, ADR-021 SO5-07, X-3); descriptive per-cell columns: LOC, all violations per KLOC, generation time, turns and cost, instrument time; the open-coding input (§6, exploratory) | `so5_grid.csv`, `so5_patterns.csv`, `so5_tests.csv`; `open-coding-input.json`, `open-coding-key.csv` |
+| SO5 (E1) | the `verdictSource` AHS of each valid cell (§6); for the model effect, `ahsDeterministic` is co-primary (ADR-020 item 7) | the directional self-preference check (§6, registered); other AHS fields, per-dimension AVR, `FPAT-*` weighted family counts (rule-family profile), valid-generation yield, judge fail share, deterministic violations per KLOC (exploratory, ADR-021 SO5-07, X-3); descriptive per-cell columns: LOC, all violations per KLOC, generation time, turns and cost, instrument time; the open-coding input (§6, exploratory); **Codex arm (v18, §6.1):** the vendor contrast (exploratory) and the registered vendor self-preference check | `so5_grid.csv`, `so5_patterns.csv`, `so5_tests.csv`; `open-coding-input.json`, `open-coding-key.csv` |
 | ADR-016 b | one pass / fail per SP-* probe; exclusion only after a failed probe and a recorded fix attempt | line confirmation | `function_sensitivity.csv` |
 
 SO1 instrument definitions (ADR-021 SO1-E, X-7; `scripts/lib/so1-metrics.ts`). The population is every committed
@@ -448,6 +461,35 @@ resamples, each resample's weighted table; a resample whose κ is undefined is s
   4. *Reporting.* Code frequencies, raw and weighted by 1 / p, per model and spec level, descriptive only, next to
      the FPAT profile and labelled exploratory. No interval and no test.
 
+### 6.1 The Codex arm (amended v18, ADR-029)
+
+- **Registered analyses unchanged.** Every test, family, stratum, seed and rule above is computed on the **54 Claude
+  cells** (adapter `claude-code-cli`): model at 3 levels, the co-primary rule and the directional check with
+  "other models" meaning the other Claude models. A Codex cell never enters these families. On a Claude-only input the
+  rows are byte-identical to the v17 code's.
+- **Vendor contrast (exploratory).** For the primary field and for `ahsDeterministic`, one permutation test of the
+  vendor factor (levels `anthropic`, `openai`; statistic the between-level sum of squares; vendor labels permuted
+  within (task, spec level); 10 000 permutations with the plan's `permutation` seed), family `vendor:<field>`,
+  `exploratory = true`, no Holm partner. Beside it, `gpt-5.6-terra` against each Claude model: the mean difference with
+  the cluster-bootstrap 95 % interval (runs resampled within cells) and Cliff's δ, **descriptive only**. One OpenAI
+  model makes vendor and model the same contrast (B10), so this is a vendor-and-model contrast, never a vendor effect
+  in general.
+- **Vendor self-preference check (registered).** Per valid cell d = `ahsNeuronal` − `ahsDeterministic`; statistic =
+  mean(d | Claude-written cells) − mean(d | GPT-written cells); one-sided permutation test (greater), vendor labels
+  permuted within (task, spec level), 10 000 permutations with the plan's `permutation` seed, α = 0.05, a family of one;
+  Cliff's δ of the two d samples. Family `directional-vendor:ahsNeuronal-minus-ahsDeterministic`, effect
+  `directional:anthropic-vs-other-vendor`. A positive significant result is reported as evidence that the Claude judge
+  scores Claude-written code more leniently than GPT-written code, beyond what the deterministic rules see. A null
+  result is not evidence of no self-preference: one GPT model and 18 cells give low power (B10). The judge-only
+  difference d removes the deterministic part, so a pure code-quality difference between vendors does not by itself
+  produce a positive d.
+- **Agreement.** The judge-vs-panel rows per E1 generator model (§3 SO3 neural) separate the vendors, because the
+  Codex arm has one model: the `gpt-5.6-terra` row is the GPT-written row (descriptive). A difference between it and
+  the Claude rows is read beside the self-preference check, never as a test.
+- **Missingness.** Codex cells follow §8 unchanged: every Codex coordinate is in the valid-generation yield (its own
+  rows), a missing or protocol-mismatched Codex cell carries its `GEN-*` code, and no Codex cell replaces a Claude
+  cell or the reverse. A Codex usage-limit pause is an interruption, never a failure.
+
 ## 7. Flag columns
 
 Flags are recorded on every row and never exclude it by themselves:
@@ -497,7 +539,8 @@ Flags are recorded on every row and never exclude it by themselves:
 
 The registration (`corpus/prereg.json`) fixes this file, `Docs/matching-rule.md` (1.0.0 in v1, 1.1.0 from P-2), the labeller prompts, the
 corpus files and specs (after the domain-layer remap), the registered plan files with their seeds, the frozen
-instrument export, the labelling budget and the E1 grid shape (3 × 3 × 2 × 3). `run-experiment` refuses a plan when
+instrument export, the labelling budget and the E1 grid shape (3 × 3 × 2 × 3; from v18, ADR-029: 4 models × 3 × 2 × 3,
+`arms` 3 Claude + 1 Codex, the Codex plan and its pinned model catalog). `run-experiment` refuses a plan when
 any registered artefact differs from its registered hash, or when the registration is not older than the plan's
 first run (BR-U5b-50).
 
@@ -526,7 +569,8 @@ These statements are registered: every report of the corresponding figure carrie
 - **B5 Spec-level and tier confounds.** In `full-aac` the generator receives the evaluator spec verbatim
   (`scripts/generator/prompts/full-aac.md`), so the spec level is confounded with knowledge of the test and with
   prompt length; the model tier is confounded with the model generation (`claude-haiku-4-5` vs the `-5-5` models);
-  all generators and the judge are from one vendor. These are stated beside every SO5 effect.
+  all generators and the judge are from one vendor. These are stated beside every SO5 effect. (From v18 the
+  registered SO5 analyses keep this one-vendor statement; the Codex-arm rows carry B10 instead.)
 - **B6 The audit is a sanity check.** The 30-item author audit gives 3 to 10 items per stratum and the author sees the
   function id, so it is not blind to the rule. Panel-vs-audit agreement is reported as a sanity check, not as a
   validity estimate.
@@ -612,6 +656,17 @@ These statements are registered: every report of the corresponding figure carrie
   judge-weighted weights move relative to the registered weights (`verdict_changed_jw_<rule>`) is never presented as a
   judge effect; the judge effect is `judge_mattered_jw_<rule>` and `delta_judge_jw_<rule>` in [−2/7, 0], stated with the
   bound. (v) The E7 judge-weighted reading is labelled POST HOC; the E1 reading is pre-registered.
+- **B10 The Codex arm (ADR-029, v18).** Every vendor row states: (i) one OpenAI model (`gpt-5.6-terra`, the
+  strongest generally available coding model on the author's free ChatGPT plan; flagships are not offered to the
+  account), so the vendor contrast is also a model, tier and harness contrast; (ii) the harnesses differ (Codex CLI
+  with its own base instructions and tools, `exec` / `apply_patch`, versus Claude Code with
+  `Read/Write/Edit/Glob/Grep/Bash`); (iii) confinement differs in mechanism. Both arms deny writes outside `cwd`,
+  installs and tampering, but the Codex agent may run any command inside the OS sandbox, while the Claude agent may
+  run only the exact type-check (`Docs/generator-protocol.md` §11, 2026-10-10); (iv) the reasoning effort is pinned
+  `medium` (the catalog default) and the Claude CLI's effort is its default; (v) the Codex cells run after the Claude
+  cells, so vendor is also confounded with time; (vi) the judge is a Claude model, which is what the vendor
+  self-preference check is about, and its power is low. None of the vendor rows is confirmatory except the registered
+  self-preference check, which is a check, not an SO5 effect.
 
 ## 11. Amendments
 
@@ -646,6 +701,7 @@ These statements are registered: every report of the corresponding figure carrie
 | 2026-10-10 (ADR-026, v1 side registered; prereg v13) | §2, §10 | `e7-corpus-v1sym` registered (symbolic-only, `instrument: v1`, the `e7-corpus` entries, seeds 7201..7203); B8 implementation rule for mode pairing (v1 `symbolic-only` with v2 `full` or `symbolic-only`, pair by project and spec, symbolic rows only); the v2 baseline-precision rows drop the `v1-only: ` strata | ADR-026 (implementation note) |
 | 2026-10-10 (ADR-028, prereg v14) | §3, §10, §12 | The proportional neural aggregation variant (`proportional-inclusion-weighted-v1`) registered as a sensitivity analysis before any E1 run, the registered rule primary; the judge diagnostics (per-unit extraction and the fixed `judge-coding-frame`) registered as an exploratory explanation analysis; reporting duty B9; E7's variant reading declared post hoc | ADR-028 |
 | 2026-10-10 (ADR-028 review fixes, prereg v15) | §10, §12 | Variant undefined for SEL-07 baseline reuse; bias toward clean and the confidence-free share; SRS within a layer, no variance; the judge-effect decomposition (W_n, bound, judge-blind verdict, judge_mattered) and the any-fail companion; derived `reading`; E1 two-pass procedure; coding frame 1.1.0 (message-only primary, guarded reasoning, discrimination ≥ 0.3, `rules_also_flag`), its E7 reading post hoc; B9 wording rules | ADR-028; Fable review of PR #47 |
+| 2026-10-10 (ADR-029 Codex arm, prereg v18) | §2, §3, §6.1, §9, §10 | E1 gains the Codex arm (`gpt-5.6-terra`, 18 cells, own plan and `orderSeed` 20261010) before any E1 or Codex cell runs; every registered SO5 analysis stays on the 54 Claude cells; the vendor contrast (exploratory) and the registered vendor self-preference check (§6.1); the per-model agreement rows read per vendor; grid shape 4 × 3 × 2 × 3; B5 note and B10 | ADR-029 (author, 2026-10-10) |
 | 2026-10-10 (ADR-028 judge-weighted variant, prereg v17) | §10, §12 | The registered spec weights stay primary (W_n = 0.08); the judge-weighted sensitivity variant `judge-weighted-v1` registered before any E1 run (judge dimensions 2/7, symbolic 5/7, each group proportional, same thresholds; under the registered, proportional and any-fail aggregations; a pure function of the stored reports); its E7 reading post hoc, its E1 reading pre-registered; B9 wording rules (iv), (v) | ADR-028 (author, 2026-10-10: "Keep 8%, add weighted variant") |
 
 ## 12. Neural aggregation variant and judge diagnostics (ADR-028)
