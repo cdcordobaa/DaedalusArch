@@ -1300,3 +1300,11 @@ Plan checkboxes ticked. Auto-approved under standing approval; no blocking or ma
 **Context**: CONSTRUCTION — Build and Test, ADR-028. Worktree ../DaedalusArch-wt-adr28, branch v1.2e-adr028-proportional. Auto-approved under the standing approval (2026-10-08).
 
 ---
+
+## Build and Test — ADR-028 Fable review fixes (prereg v15)
+**Timestamp**: 2026-10-10T16:04:54Z
+**User Input**: "Fable review of PR #47: MERGE WITH FIXES. Apply the fixes as follow-up commits (variant undefined for SEL-07, bias toward clean and the confidence-free share, the judge-effect decomposition and any-fail companion, coding frame 1.1.0, provenance columns and derived reading, the E1 two-pass runbook step, report wording), bump prereg v15 after the code and before E1, then mark the PR ready and merge when CI is green."
+**AI Response**: "Code fd4f19f, plan text f03f972, prereg v15 (analysis-plan.md, frozen-instrument.json), --check-prereg ok on all 8 plans. E7 recomputed from stored reports with 0 judge calls: W_n 0.080, delta_judge (registered) 0.000 on all 9 projects, judge_mattered 0 of 9, delta_dilution 0.022-0.072; proportional moves no verdict, any-fail moves one (dry-run-test soft-block to hard-block). Frame 1.1.0 on E7 (post hoc): messages on 73/73 fail and 0/258 pass carriers; informative code JC-N01-DUP only (0.323); rules_also_flag 63 of 73 failing units. No spec weight changed."
+**Context**: CONSTRUCTION — Build and Test, ADR-028 review fixes. Worktree ../DaedalusArch-wt-adr28, branch v1.2e-adr028-proportional.
+
+---
