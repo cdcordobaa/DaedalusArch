@@ -26,7 +26,7 @@ function cells(line: string): string[] {
 }
 
 function registerRows(text: string): Row[] {
-  return text.split('\n').filter((l) => /^\| TV-\d{2} \|/.test(l)).map((l) => {
+  return text.split('\n').filter((l) => /^\| TV-\d{2,3} \|/.test(l)).map((l) => {
     const c = cells(l);
     return { id: c[0] ?? '', type: c[1] ?? '', sources: c[3] ?? '', handling: c[4] ?? '', status: c[6] ?? '', report: c[7] ?? '' };
   });

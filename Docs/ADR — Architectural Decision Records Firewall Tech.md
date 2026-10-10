@@ -1254,6 +1254,52 @@ Lock-file check (decision 2): `scripts/fetch-corpus.ts` runs exactly one install
 
 ---
 
+## ADR-029: Codex as a fourth E1 model (an added arm, registered before its cells run)
+
+**Status**: Accepted (author, 2026-10-10: Codex generator arm for E1 approved)
+
+**Date**: 2026-10-10
+
+**Context**: ADR-017 item 3 replaced ADR-011 with the E1 grid of 3 Claude models × 3 spec levels × 2 tasks × 3 runs = 54 cells, and said "Gemini, Antigravity and Codex adapters are added at the end". The 54-cell grid is registered (`experiments/e1-grid/generator-plan.json`, `orderSeed` 20261008) and has not run. With Claude models only, the E1 model effect is a within-vendor effect, and the judge (`claude-opus-5-5`) judges code from its own vendor (ADR-020 item 7). The Codex CLI `0.162.1` is installed and logged in with the author's ChatGPT plan (a free plan, with a credit balance) in a dedicated `CODEX_HOME`.
+
+**Decision**:
+
+1. **One added arm, registered before it runs.** E1 gains a fourth model, `gpt-5.6-terra` through the Codex CLI (adapter `codex-cli`), with the same 3 spec levels × 2 tasks × 3 runs = **18 cells**, for 72 E1 cells in all. It is an addition made before any of its cells run. **The Claude cells are unchanged**: their plan file keeps its bytes and hash, so its pins, seed, schedule and protocol are the same.
+2. **Own plan, own seed, own schedule.** `experiments/e1-grid/generator-plan-codex.json` (registered) carries the Codex pins: CLI `0.162.1`, `model_reasoning_effort` `medium` (the catalog default, pinned), and the pinned model catalog `scripts/generator/codex/model-catalog.json` (registered, sha256 in the plan). The arm's **`orderSeed` is 20261010**: blocks by run index, order by mulberry32 (`Docs/generator-protocol.md` §9). Its schedule is `<outRoot>/schedule-codex-cli.json`, so the Claude schedule is neither redrawn nor overwritten. It shares `outRoot`, the frozen prompt templates (ADR-022 item 1), the harness tsconfig, the skeleton, the status order, the retries and the usage-limit pause. The Codex grid runs after the Claude grid. Neither runs before the author's "go E1".
+3. **Model choice.** The plan's catalog offers `gpt-6-luna`, `gpt-5.6-terra` and `gpt-5.6-luna` (visible), and `gpt-reserve`, `gpt-5.5` and `codex-auto-review` (hidden). `gpt-6-sol` is refused for a ChatGPT account. `gpt-5.6-terra` is the strongest generally available coding model on the plan: the mid tier, ahead of the small-tier `gpt-6-luna` on third-party coding and terminal-bench scores. Each call is verified from its session rollout (`turn_context.model`, `model_reroute`) under the unchanged pre-registered model-usage rule (BR-U5a-47).
+4. **Confinement (SECURITY-11, ADR-017 item 8) by the OS sandbox.** Codex has no exact-command allow rule (an execpolicy `allow` rule would run a command outside the sandbox). The arm runs every command and patch under a Seatbelt permission profile:
+   - writes only in `cwd`;
+   - `/tmp`, `$TMPDIR` and the skeleton entries read-only;
+   - no network;
+   - reads of the repository, its worktrees, the corpus, other generations and the credential homes denied.
+
+   The context is locked as well: no user config, rules, AGENTS.md, skills, apps, plugins, hooks, MCP, web search, image, browser or sub-agent tools, approval `never`, a dedicated empty `HOME`, and a fail-closed check of `CODEX_HOME`. The Gate probe (10 calls) passed every Claude probe plus `network-install` and `patch-escape` (`Docs/generator-protocol.md` §11, 2026-10-10). Confinement is therefore equivalent on every SECURITY-11 criterion. **Had it not been, the arm would have stopped; there is no weaker fallback arm.** The one asymmetry is declared, not removed: the Codex agent may run any command inside the sandbox (the harness tsc, `node`, `rg`), while the Claude agent may run only the exact tsc command.
+5. **Analysis** (`Docs/analysis-plan.md` §6.1, v18). Every registered SO5 analysis (§6) stays as registered on the **54 Claude cells**: model at 3 levels, the co-primary rule, the directional self-preference check and the Holm families. The Codex cells enter new, separately named families:
+   - the **vendor** contrast (exploratory; vendor permuted within task × spec level; descriptive pairs of `gpt-5.6-terra` against each Claude model);
+   - the registered **vendor self-preference check**: a Claude judge on GPT-written versus Claude-written code, d = `ahsNeuronal` − `ahsDeterministic`, one-sided.
+
+   The per-model judge-vs-panel agreement rows separate the vendors.
+6. **One dated registration.** Prereg v18 registers the Codex plan, the pinned catalog, the E1 plan's fourth model, the generator-protocol dated change, the analysis-plan amendments and the threats rows (TV-100..TV-103), with per-artefact reasons (`Docs/prereg-reasons.md`). `e1Grid` becomes 4 models with `arms` {`claude-code-cli`: 3, `codex-cli`: 1}.
+
+**Rationale**: A second vendor tests whether the E1 model effect and the judge's behaviour hold beyond one vendor, which is the self-preference worry of ADR-020 item 7. Adding it as a separate arm keeps the registered 54-cell design and its analyses byte for byte, and registering it before any Codex cell runs keeps the addition prospective.
+
+**Alternatives considered**:
+
+| Alternative | Why rejected |
+| --- | --- |
+| Add the Codex adapter to the existing plan's `adapters` | Redraws the registered 54-cell schedule (one RNG over 24 cells per block) and changes a registered artefact's frozen fields |
+| `gpt-6-sol` or another flagship | Not supported for a ChatGPT account on this plan |
+| `gpt-6-luna` (newest generation) | Small tier ("fast and affordable"); lower coding scores than `gpt-5.6-terra` |
+| A per-command allow rule (execpolicy) to mirror the exact Bash rule | An `allow` rule runs the command outside the sandbox, which is weaker, not equivalent |
+| No-shell Codex (`allowBash: false`) | Would deny the agent the type-check the Claude agent has, and the sandboxed shell passed every probe |
+| Pool Codex into the registered model factor | Changes registered analyses after registration; vendor would be confounded silently |
+
+**Consequences**: E1 grows from 54 to 72 cells. Each arm restarts on its own. The SO5 outputs carry the Codex rows after the registered ones (`so5_tests.csv` families `vendor:*` and `directional-vendor:*`; `adapter_id` already gives the vendor). The free plan's 30-day Codex window moved about 5 points per pilot project, so the 18 cells may exceed it and then draw credits (about 2.8 credits per project at the rate card's `gpt-5.6-terra` rates) or pause until the window resets. The pause is recorded as interruptions, never as model failures.
+
+**Concurrency note (2026-10-10)**: the Claude E1 generation grid (another lane, from the unchanged registered plan) was running while this ADR's Gate probe and pilot ran. Their `ensureHarness` calls reinstalled the shared skeleton five times (hash unchanged). The four Claude cells that overlapped a window are all `ok` (`Docs/prereg-reasons.md`, P-CX). Two arms of one `outRoot` share `<H>`, so a harness rebuild must never run while either grid runs.
+
+---
+
 ## Decision Log Summary
 
 | **ADR** | **Decision** | **Status** | **Spike Validated** |
@@ -1287,3 +1333,4 @@ Lock-file check (decision 2): `scripts/fetch-corpus.ts` runs exactly one install
 | 026 | POST-HOC instrument v2: library-level role exemptions for FF-CV05, FF-C02, FF-C03 (composition roots, declaration-only files; no index.ts); --instrument v1 / v2 switch; SO4 detection unchanged; v1 primary with v2 beside; P2 drawn v2 + v1-only stratum; prereg v10 | Accepted (after Fable review, MERGE WITH FIXES) | — |
 | 027 | E7-x corpus extension (after the research, before any run): Q7–Q10, attributes E/H/F/R (A recorded only), tiered seeded draw, owner cap 1 per round, C5 npm-only (pnpm/yarn unsupported), C2 20–800 (NFR-v1.2E-07 amended), addMax 6, E7 only; prereg v11 | Accepted | — |
 | 028 | Judge aggregation: registered rule primary + pre-declared proportional variant; judge diagnostics first-class (Option C); judge-weighted sensitivity variant (2/7, prereg v17) | Accepted | — |
+| 029 | Codex as a 4th E1 model: an added 18-cell arm (`gpt-5.6-terra`, CLI 0.162.1, own plan and `orderSeed` 20261010, sandbox confinement, pinned catalog); Claude cells unchanged; vendor contrast and vendor self-preference check; prereg v18 | Accepted | — |

@@ -257,16 +257,25 @@ export interface FinaliseRunInput {
   readonly knownSecrets: readonly string[];
   /** Parent of the throwaway git object store used for `treeSha` (default `os.tmpdir()`). */
   readonly tmpRoot?: string;
+  /** The outcome's `adapterId` (default the Claude arm's; ADR-029 adds `codex-cli`). */
+  readonly adapterId?: string;
+  /** Reads the last call into an envelope (default `parseEnvelope` of stdout; the Codex arm adds its rollout). */
+  readonly parse?: (cli: ProcessResult, knownSecrets: readonly string[]) => DomainResult<ParsedEnvelope>;
 }
 
 /** Writes `envelope.json` (scrubbed) beside the tree and returns the parsed envelope (or `null` when unreadable). */
-function storeEnvelope(cwd: string, cli: ProcessResult | null, knownSecrets: readonly string[]): ParsedEnvelope | null {
+function storeEnvelope(
+  cwd: string,
+  cli: ProcessResult | null,
+  knownSecrets: readonly string[],
+  parse: (cli: ProcessResult, knownSecrets: readonly string[]) => DomainResult<ParsedEnvelope> = (c, k) => parseEnvelope(c.stdout, k),
+): ParsedEnvelope | null {
   const file = path.join(cwd, ENVELOPE_JSON);
   if (cli === null) {
     writeEnvelope(file, { unreadable: true, reason: 'spawn-failed' });
     return null;
   }
-  const parsed = parseEnvelope(cli.stdout, knownSecrets);
+  const parsed = parse(cli, knownSecrets);
   if (parsed.success) {
     writeEnvelope(file, parsed.data.scrubbed);
     return parsed.data;
@@ -292,7 +301,7 @@ export async function finaliseRun(input: FinaliseRunInput): Promise<DomainResult
   const { req, cli } = input;
   const cwd = req.outputDir;
   fs.mkdirSync(cwd, { recursive: true });
-  const envelope = storeEnvelope(cwd, cli, input.knownSecrets);
+  const envelope = storeEnvelope(cwd, cli, input.knownSecrets, input.parse);
   const ranInCwd = cli !== null && !input.infrastructureExhausted;
 
   let typecheck: GenerationOutcome['typecheck'] = null;
@@ -329,7 +338,7 @@ export async function finaliseRun(input: FinaliseRunInput): Promise<DomainResult
   return makeGenerationOutcome({
     status: decision.status,
     ...(decision.failureReason !== undefined ? { failureReason: decision.failureReason } : {}),
-    adapterId: CLAUDE_CODE_ADAPTER_ID,
+    adapterId: input.adapterId ?? CLAUDE_CODE_ADAPTER_ID,
     taskId: req.taskId,
     specLevel: req.specLevel,
     runIndex: req.runIndex,

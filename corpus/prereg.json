@@ -1,7 +1,7 @@
 {
-  "version": 17,
-  "registeredAt": "2026-10-10T18:22:34Z",
-  "reason": "Author decision 2026-10-10 'Keep 8%, add weighted variant', made after the v15 E7 re-computation (58ecd3b) and the v16 P-LU bump (PR #48), and before any e1-grid run (no E1 RunRecord exists); code 3daf1cc and 1372247, plan text 543ebb6 and 1372247. Per artefact: (1) Docs/analysis-plan.md: new section 12.5 registers the judge-weighted sensitivity variant judge-weighted-v1 (the executed full-mode effective weights rescaled so the judge dimensions together weigh 2/7 and the symbolic dimensions 5/7, each group proportionally, summing to 1; same thresholds, AVRs, AHS formula and verdict source; computed for the registered, proportional and any-fail aggregations as a pure function of the stored reports, no re-run, no LLM call; bound -2/7), its rationale (the author's stated judge role is to diagnose, explain and be able to move verdicts; the registered W_n = 0.08 bound makes the last unreachable), its status as a sensitivity analysis and never the primary (registered spec weights stay primary, no spec weight changes), its E7 reading POST HOC and its E1 reading pre-registered (reading derived: post hoc when the registered run's preregVersion < 17), and its reported columns; section 10 B9 adds wording rules (iv) (a verdict moved by the reweighting is never a judge effect, the judge effect is judge_mattered_jw / delta_judge_jw within [-2/7, 0]) and (v) (E7 POST HOC label); header note, section list and a section 11 row. No estimand of the registered rule or the proportional variant, plan, seed, size, interval rule, matching rule, spec, spec weight, frozen instrument or label-plan config changes. All other 69 artefacts are unchanged.",
+  "version": 18,
+  "registeredAt": "2026-10-10T19:01:14Z",
+  "reason": "ADR-029 Codex arm (author approval 2026-10-10), registered before any e1-grid run and before any Codex cell (no E1 RunRecord, no Codex grid cell; only the 3-cell pilot under <outRoot>/pilot, never joined). Per artefact: (1) experiments/e1-grid/generator-plan-codex.json (new): the Codex arm plan, adapter codex-cli / gpt-5.6-terra (the strongest generally available coding model on the ChatGPT plan; gpt-6-sol refused for the account), both tasks, the three levels, runs 3, its own orderSeed 20261010 and schedule file schedule-codex-cli.json, outRoot shared, timeoutMs 1200000, allowBash true (sandboxed shell), codex block: CLI 0.162.1, reasoning effort medium (catalog default), pinned catalog path and sha256. (2) scripts/generator/codex/model-catalog.json (new): the plan catalog entry of gpt-5.6-terra with multi_agent_version removed (no sub-agent tools); it fixes the base instructions and tool configuration the model sees. (3) experiments/e1-grid/plan.json: e1.models appends gpt-5.6-terra (72 coordinates, the Claude ones first and in their old order); no seed or other field changes. (4) Docs/generator-protocol.md: dated change of 2026-10-10 (section 11): the Codex invocation, environment, Seatbelt profile, locked context, model verification from the rollout, envelope and error classes, version pin, join check, the 10-call Gate probe (all SECURITY-11 probes pass; two probe-harness defects declared) and the pilot (3/3 ok, 0 type errors, 7/13/9 files flagged). Sections 1-10 unchanged. (5) Docs/analysis-plan.md: header note, section 2 row and Codex-arm paragraph, section 3 SO5 and SO3 rows, new section 6.1 (registered SO5 analyses stay on the 54 Claude cells; the vendor contrast, exploratory; the registered vendor self-preference check on ahsNeuronal - ahsDeterministic, one-sided, vendor permuted within task x spec level), section 9 grid shape, B5 note, new B10, section 11 row. (6) Docs/threats-to-validity.md: TV-100 (vendor confounds), TV-101 (Codex isolation residuals), TV-102 (free-plan usage), TV-103 (cross-vendor judge self-preference) and the ADR-029 trace. experiments/e1-grid/generator-plan.json (the Claude arm) is unchanged. e1Grid: models 4, arms claude-code-cli 3, codex-cli 1. All other 64 artefacts are unchanged.",
   "matchingRuleVersion": "1.2.0",
   "artefacts": [
     {
@@ -18,7 +18,7 @@
     },
     {
       "path": "Docs/analysis-plan.md",
-      "sha256": "fcc3fff62fd90ca6499789b8221b2f1887115e2fdc8ff17f815e5ac0efb9c73c"
+      "sha256": "8082724b6eef6e8ea6cd1b046d419236ba6434175388d3822636144b26cdc7a8"
     },
     {
       "path": "Docs/corpus-criteria.md",
@@ -30,7 +30,7 @@
     },
     {
       "path": "Docs/generator-protocol.md",
-      "sha256": "a5c76eb6fc62d4de3133b7717d6342a203d9b724c54de3f9a7bd1d901956e929"
+      "sha256": "a2565419defd198b8faeffbaaa84c8e65c7c6f8163dbb87775acbe885b68f21a"
     },
     {
       "path": "Docs/labeller-prompts/judge-unit.md",
@@ -58,7 +58,7 @@
     },
     {
       "path": "Docs/threats-to-validity.md",
-      "sha256": "f6650fd697a007546e9475eb2abda2094e91b09f9afac3f0ddb90807b67e01e0"
+      "sha256": "77d22488a256778afdd7a372ddd64a6e586d2197fb3aa7efeaf7995b69ad26a7"
     },
     {
       "path": "corpus/corpus.json",
@@ -189,12 +189,16 @@
       "sha256": "8e726e94761930f13c0f9dcbf2fd1e07db29f2e4b8cc40eaa0a79bf6c025b933"
     },
     {
+      "path": "experiments/e1-grid/generator-plan-codex.json",
+      "sha256": "39a614f0f3ce3b42d8d6ae30c99f4d24f95aeed91c35b562535f32c359ac81e0"
+    },
+    {
       "path": "experiments/e1-grid/generator-plan.json",
       "sha256": "9032124bcae7ea40fdd16769b3f4bd9fb4c472659e17adf4f717921eb205f9c7"
     },
     {
       "path": "experiments/e1-grid/plan.json",
-      "sha256": "7d6490dd273cdb201afe1f6c2270d651f5d2dc93ed32b0f20670c4e61b655e69"
+      "sha256": "c9b3511326727ff658769fefdefca7aea81ea14d77dccf9d20fa4bb3ef6f5093"
     },
     {
       "path": "experiments/e7-corpus-v1sym/plan.json",
@@ -249,6 +253,10 @@
       "sha256": "ebb262a7787eabc70242c5353bf5d9dbe6af2599cd1c4395117cca03b83c1492"
     },
     {
+      "path": "scripts/generator/codex/model-catalog.json",
+      "sha256": "a35465f4105d76b0e2b30b688dea9f4a3c80a1f006c6a12a505f5b49b9027383"
+    },
+    {
       "path": "scripts/generator/prompts/full-aac.md",
       "sha256": "38c5ec683b45cffba264f6829f7367ba2145ec7c95485f8b2a3b3a9ac2d2b125"
     },
@@ -287,10 +295,14 @@
   ],
   "labellingBudgetCalls": 4000,
   "e1Grid": {
-    "models": 3,
+    "models": 4,
     "specLevels": 3,
     "tasks": 2,
-    "runs": 3
+    "runs": 3,
+    "arms": {
+      "claude-code-cli": 3,
+      "codex-cli": 1
+    }
   },
   "previous": [
     {
@@ -356,6 +368,10 @@
     {
       "version": 16,
       "commit": "f11ffa4d3456a6da486f1a86bc3ed042d64b4945"
+    },
+    {
+      "version": 17,
+      "commit": "247cb54814bad72fdb2da9c13a910523717c4b97"
     }
   ]
 }

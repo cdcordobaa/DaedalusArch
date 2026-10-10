@@ -46,6 +46,9 @@ const REPORT_JSON_NAME = /report[^'"`/]*\.json/i;
  */
 const CLAUDE_MODEL_ID = /claude-(?!code-cli\b)[a-z0-9]/i;
 
+/** BR-U5a-51 for the Codex arm (ADR-029): an OpenAI model id literal (`gpt-…`, `o3`, `codex-mini…`). */
+const OPENAI_MODEL_ID = /\bgpt-[0-9]|\bo[0-9]-|\bcodex-mini/i;
+
 /** D-U5a-13: tokens no U5a script may contain. */
 const BANNED_TOKENS = /import\.meta|__dirname|__filename|\brequire\(/;
 
@@ -57,6 +60,7 @@ const ENTRY_FILES = [
   'scripts/generate-projects.ts',
   'scripts/generator/check-harness-tsconfig.ts',
   'scripts/generator/probes/confinement-cli.ts',
+  'scripts/generator/probes/codex-confinement-cli.ts',
 ] as const;
 
 /** Directories whose `.ts` files U5a creates (D-U5a-13 token ban), plus the entry files above. */
@@ -256,6 +260,13 @@ describe('U5a architecture (BR-U5a-06, 51, 53; D-U5a-13)', () => {
   it('(c) no generator module hard-codes a Claude model id (BR-U5a-51)', () => {
     const offenders = walkTs('scripts/lib/generators').filter((file) => CLAUDE_MODEL_ID.test(read(file)));
     expect(offenders).toEqual([]);
+  });
+
+  it('(c) no generator module or probe hard-codes an OpenAI model id (BR-U5a-51; ADR-029)', () => {
+    const offenders = [...walkTs('scripts/lib/generators'), ...walkTs('scripts/generator/probes')].filter((file) => OPENAI_MODEL_ID.test(read(file)));
+    expect(offenders).toEqual([]);
+    expect(OPENAI_MODEL_ID.test("const m = 'gpt-5.6-terra';")).toBe(true);
+    expect(OPENAI_MODEL_ID.test("const a = 'codex-cli';")).toBe(false);
   });
 
   it('(d) U5a scripts use no import.meta, __dirname, __filename or require( (D-U5a-13)', () => {

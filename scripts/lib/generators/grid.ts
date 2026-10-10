@@ -9,7 +9,8 @@
  * (`runWithRetries`) → `finaliseRun` (envelope, model-usage rule, skeleton integrity, type-check of record, counts,
  * tree sha). `isAvailable()` runs `<binary> --version`.
  *
- * `runGenerationGrid(plan, adapters, hooks)` validates the plan, writes `<outRoot>/schedule.json` (with the generator
+ * `runGenerationGrid(plan, adapters, hooks)` validates the plan, writes `<outRoot>/schedule.json` (a Codex-arm plan:
+ * `schedule-codex-cli.json`, ADR-029; `scheduleFileName`) (with the generator
  * plan file's path and sha256 when `hooks.planProvenance` is given), runs the cells in the seeded blocked order
  * (`scheduleGrid`) and writes each outcome to `generation.json` beside its tree before the next cell. Every outcome is
  * kept: failed generations are recorded and never replaced (BR-U5a-49), so a cell may hold fewer than `runs` valid
@@ -31,7 +32,7 @@ import { writeHarnessTsconfig } from './harness-tsconfig.js';
 import { agentFileCount, attemptDisposition, finaliseRun, generationJsonPath, writeGenerationJson } from './outcome.js';
 import { DEFAULT_RETRY_POLICY, realSleep, runWithRetries, systemClock } from './retry.js';
 import type { Clock, RetryPolicy, Sleeper } from './retry.js';
-import { SCHEDULE_JSON, requestForCell, scheduleGrid, validateGridPlan } from './schedule.js';
+import { requestForCell, scheduleFileName, scheduleGrid, validateGridPlan } from './schedule.js';
 import { commitCell, recoverCell, stagingDirFor } from './cell-restart.js';
 import type { CellRecovery } from './cell-restart.js';
 import { prepareCellDir, removeTree } from './skeleton.js';
@@ -180,7 +181,7 @@ export async function runGenerationGrid(
   const cells = scheduleGrid(plan);
   fs.mkdirSync(plan.outRoot, { recursive: true });
   fs.writeFileSync(
-    path.join(plan.outRoot, SCHEDULE_JSON),
+    path.join(plan.outRoot, scheduleFileName(plan)),
     `${JSON.stringify(
       {
         orderSeed: plan.orderSeed,

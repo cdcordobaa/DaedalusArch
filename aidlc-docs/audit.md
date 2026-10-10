@@ -1321,3 +1321,19 @@ Plan checkboxes ticked. Auto-approved under standing approval; no blocking or ma
 **Context**: CONSTRUCTION — Build and Test, ADR-028 follow-up. Worktree ../DaedalusArch-wt-jw, branch v1.2e-judge-weighted-variant. Auto-approved under the standing approval (2026-10-08).
 
 ---
+
+## Build and Test — ADR-029 Codex generator arm for E1 (prereg v18)
+**Timestamp**: 2026-10-10T19:10:00Z
+**User Input**: "Add a Codex (OpenAI) generator arm to E1 (SO5), approved 2026-10-10 (ADR-017 item 3). Probe the Codex CLI Gate-H style (at most 10 calls), stop if confinement cannot be made equivalent, implement CodexCliGenerator with the same envelope, outcome codes, retries and usage-limit pause, pilot 1 project per spec level, register the arm (ADR-029, generator plan, analysis plan with vendor and self-preference, one dated prereg bump) before any Codex cell runs; do not run the E1 grid."
+**AI Response**: "Gate probe (10 calls, codex-cli 0.162.1): gpt-6-sol refused for a ChatGPT account; gpt-5.6-terra pinned (strongest generally available coding model on the plan; verified per call from the session rollout); locked context checked by debug prompt-input with an AGENTS.md positive control; Seatbelt profile daedalus_gen (writes only in cwd, tmp and skeleton read-only, network off, sibling and credential reads denied); escape-write, node-modules-overwrite, tsc-flag-injection, command-chaining, allowed-command, network-install and patch-escape all pass (two probe-harness defects found, fixed and re-verified). Confinement equivalent; CodexCliAdapter with tests. Pilot 3/3 ok (0 type errors, skeleton intact, model-valid; 7/13/9 files, flagged). Separate arm plan generator-plan-codex.json (orderSeed 20261010, schedule-codex-cli.json); Claude plan untouched; join check and aggregate arm-aware; registered SO5 tests stay on the 54 Claude cells; vendor contrast and vendor self-preference check added. ADR-029, protocol dated change, analysis plan v18 amendments, TV-100..103; prereg v18. E1 grid not run."
+**Context**: CONSTRUCTION — Build and Test, ADR-029. Worktree ../DaedalusArch-wt-codex, branch v1.2e-codex-arm. Approved by the author on 2026-10-10.
+
+---
+
+## Build and Test — ADR-029 concurrency finding
+**Timestamp**: 2026-10-10T19:05:00Z
+**User Input**: "(none; finding recorded by the Codex-arm lane)"
+**AI Response**: "After the v18 commit, found the Claude E1 generation grid running in another lane (DaedalusArch-wt-e1, schedule.json 18:20Z). This lane's probe and pilot runs had reinstalled the shared skeleton five times (ensureHarness; hash unchanged). The four overlapping Claude cells are ok with 0 type errors and an intact skeleton; the two failed-typecheck Claude cells fall outside the windows. Recorded in Docs/prereg-reasons.md (P-CX) and ADR-029; no further harness call made."
+**Context**: CONSTRUCTION — Build and Test, ADR-029.
+
+---

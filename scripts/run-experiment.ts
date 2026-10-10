@@ -41,8 +41,9 @@ import type { ProcessResult, ProcessRunner } from '../src/shared/interfaces/proc
 import { buildChildEnv, NodeProcessRunner } from '../src/shared/process/node-process-runner.js';
 import { e1Coordinates, e1ProjectId, missingE1Cell } from './lib/e1-cells.js';
 import { loadPromptTemplate } from './lib/generators/prompt.js';
-import { e1GridMismatches, generatorPlanPathFor, outcomeProtocolMismatches, readRegisteredPlan } from './lib/generators/registered-plan.js';
-import { SCHEDULE_JSON } from './lib/generators/schedule.js';
+import { armPlanPathsFor, e1ArmsMismatches, generatorPlanPathFor, outcomeProtocolMismatches, readRegisteredPlan } from './lib/generators/registered-plan.js';
+import type { ProtocolFields } from './lib/generators/registered-plan.js';
+import { scheduleFileName } from './lib/generators/schedule.js';
 import { checkPreRegistration, repoRelative } from './lib/prereg.js';
 import { INSTRUMENT_VERSION, parseInstrumentVersion } from '../src/fitness-compiler/role-exemptions.js';
 import type { InstrumentVersion } from '../src/fitness-compiler/role-exemptions.js';
@@ -239,6 +240,18 @@ export interface E1Protocol {
   readonly templateSha: (specLevel: SpecLevel, taskId: string) => string | undefined;
   /** Set when `<outcomesRoot>/schedule.json` is missing or disagrees with the registered plan. */
   readonly scheduleProblem?: string;
+  /**
+   * Per model (ADR-029): the arm's `orderSeed`, adapter id and schedule problem. A model listed here is checked against
+   * its own arm; the top-level fields apply to a model that is not (the single-arm form).
+   */
+  readonly arms?: Readonly<Record<string, E1ArmProtocol>>;
+}
+
+/** One registered arm plan as the join check reads it (ADR-029). */
+export interface E1ArmProtocol {
+  readonly orderSeed: number;
+  readonly adapterId: string;
+  readonly scheduleProblem?: string;
 }
 
 export type JoinResult =
@@ -256,16 +269,18 @@ export function joinOutcome(entry: PlanEntry, style: string, repoRoot: string, p
   const g = entry.grid;
   const outcomePath = join(g.outcomeDir, GENERATION_JSON);
   const coord = { modelId: g.modelId, specLevel: g.specLevel, taskId: g.taskId, specPath: entry.specPath, runIndex: g.runIndex, outcomeDir: g.outcomeDir };
+  const arm = protocol?.arms?.[g.modelId];
+  const armAdapter = arm?.adapterId ?? 'claude-code-cli';
   const file = resolve(repoRoot, outcomePath);
   if (!existsSync(file)) {
-    return { ok: false, detail: `${JOIN_GEN_CODES.missing}: generation outcome ${outcomePath} missing`, cell: missingE1Cell(coord, style, outcomePath) };
+    return { ok: false, detail: `${JOIN_GEN_CODES.missing}: generation outcome ${outcomePath} missing`, cell: missingE1Cell(coord, style, outcomePath, armAdapter) };
   }
   // A protocol-mismatch cell sits at the grid entry's own coordinate (model, task, level, run, template id, style,
   // adapter): the outcome's declared coordinates are what the check distrusts, so only its counts are kept as
   // evidence (SO5-03, SO5-05 "one row per E1 cell").
   const mismatch = (why: string, evidence?: GenerationCell): JoinResult => {
     const cell: GenerationCell = {
-      ...missingE1Cell(coord, style, outcomePath),
+      ...missingE1Cell(coord, style, outcomePath, armAdapter),
       generationStatus: 'protocol-mismatch',
       ...(evidence !== undefined && typeof evidence.fileCount === 'number' && { fileCount: evidence.fileCount }),
       ...(evidence !== undefined && typeof evidence.fileCountInRange === 'boolean' && { fileCountInRange: evidence.fileCountInRange }),
@@ -292,11 +307,12 @@ export function joinOutcome(entry: PlanEntry, style: string, repoRoot: string, p
       fileCount: o.fileCount, fileCountInRange: o.fileCountInRange, permissionDenials: o.permissionDenials,
   };
   if (protocol !== undefined) {
+    const scheduleProblem = arm !== undefined ? arm.scheduleProblem : protocol.scheduleProblem;
     const problems = [
-      ...(protocol.scheduleProblem !== undefined ? [protocol.scheduleProblem] : []),
+      ...(scheduleProblem !== undefined ? [scheduleProblem] : []),
       ...outcomeProtocolMismatches(raw as Record<string, unknown>, {
-        modelId: g.modelId, taskId: g.taskId, specLevel: g.specLevel, runIndex: g.runIndex, orderSeed: protocol.orderSeed,
-        adapterId: 'claude-code-cli', promptTemplateSha256: protocol.templateSha(g.specLevel, g.taskId),
+        modelId: g.modelId, taskId: g.taskId, specLevel: g.specLevel, runIndex: g.runIndex, orderSeed: arm?.orderSeed ?? protocol.orderSeed,
+        adapterId: armAdapter, promptTemplateSha256: protocol.templateSha(g.specLevel, g.taskId),
       }),
     ];
     if (problems.length > 0) return mismatch(problems.join('; '), joined);
@@ -307,9 +323,11 @@ export function joinOutcome(entry: PlanEntry, style: string, repoRoot: string, p
 }
 
 /**
- * The registered generator protocol of an E1 plan (SO5-03): the generator plan beside the experiment plan must be a
- * registered artefact (`frozenHashes`) and agree with the `e1` block; `schedule.json` under `outcomesRoot` must carry
- * the registered `orderSeed` and the plan file's sha256.
+ * The registered generator protocol of an E1 plan (SO5-03; ADR-029): every arm plan beside the experiment plan
+ * (`generator-plan.json`, `generator-plan-<arm>.json`) must be a registered artefact (`frozenHashes`); together they
+ * must agree with the `e1` block (`e1ArmsMismatches`: same levels, tasks, runs, style and `outRoot`; disjoint model
+ * sets covering `e1.models`); each arm's schedule file under `outcomesRoot` (`schedule.json`, or
+ * `schedule-codex-cli.json` for the Codex arm) must carry that arm's `orderSeed` and plan sha256.
  */
 export function e1ProtocolOf(
   plan: ExperimentPlan, planFile: string, repoRoot: string, frozenHashes: Readonly<Record<string, string>>,
@@ -317,24 +335,41 @@ export function e1ProtocolOf(
   const grid = plan.e1;
   if (grid === undefined) return { ok: false, refusal: 'invalid', detail: 'plan has no e1 block' };
   const genRel = generatorPlanPathFor(repoRelative(repoRoot, planFile));
-  const registeredSha = frozenHashes[genRel];
-  if (registeredSha === undefined) return { ok: false, refusal: 'plan-unregistered', detail: `E1 generator plan ${genRel} is not a registered artefact` };
-  const reg = readRegisteredPlan(resolve(repoRoot, genRel), repoRoot);
-  if (!reg.ok) return { ok: false, refusal: 'invalid', detail: reg.detail };
-  const diff = e1GridMismatches(reg.plan, grid, repoRoot);
-  if (diff.length > 0) return { ok: false, refusal: 'mismatch', detail: `${genRel} differs from the e1 block in ${diff.join(', ')}` };
-  const scheduleFile = join(resolve(repoRoot, grid.outcomesRoot), SCHEDULE_JSON);
-  let scheduleProblem: string | undefined;
-  if (!existsSync(scheduleFile)) scheduleProblem = `${SCHEDULE_JSON} missing under outcomesRoot`;
-  else {
+  const armRels = armPlanPathsFor(repoRelative(repoRoot, planFile), repoRoot);
+  const rels = armRels.includes(genRel) ? armRels : [genRel, ...armRels];
+  const arms: { rel: string; sha: string; plan: ProtocolFields }[] = [];
+  for (const rel of rels) {
+    const registeredSha = frozenHashes[rel];
+    if (registeredSha === undefined) return { ok: false, refusal: 'plan-unregistered', detail: `E1 generator plan ${rel} is not a registered artefact` };
+    const reg = readRegisteredPlan(resolve(repoRoot, rel), repoRoot);
+    if (!reg.ok) return { ok: false, refusal: 'invalid', detail: reg.detail };
+    arms.push({ rel, sha: registeredSha, plan: reg.plan });
+  }
+  const diff = e1ArmsMismatches(arms.map((a) => a.plan), grid, repoRoot);
+  if (diff.length > 0) return { ok: false, refusal: 'mismatch', detail: `${rels.join(' + ')} differ from the e1 block in ${diff.join(', ')}` };
+  const scheduleProblemOf = (arm: { rel: string; sha: string; plan: ProtocolFields }): string | undefined => {
+    const name = scheduleFileName(arm.plan);
+    const scheduleFile = join(resolve(repoRoot, grid.outcomesRoot), name);
+    if (!existsSync(scheduleFile)) return `${name} missing under outcomesRoot`;
     try {
       const sched = JSON.parse(readFileSync(scheduleFile, 'utf8')) as { orderSeed?: unknown; generatorPlan?: { sha256?: unknown } };
-      if (sched.orderSeed !== reg.plan.orderSeed) scheduleProblem = `${SCHEDULE_JSON} orderSeed ${JSON.stringify(sched.orderSeed ?? null)} != ${String(reg.plan.orderSeed)}`;
-      else if (sched.generatorPlan?.sha256 !== registeredSha) scheduleProblem = `${SCHEDULE_JSON} was not written from the registered ${genRel}`;
+      if (sched.orderSeed !== arm.plan.orderSeed) return `${name} orderSeed ${JSON.stringify(sched.orderSeed ?? null)} != ${String(arm.plan.orderSeed)}`;
+      if (sched.generatorPlan?.sha256 !== arm.sha) return `${name} was not written from the registered ${arm.rel}`;
+      return undefined;
     } catch {
-      scheduleProblem = `${SCHEDULE_JSON} is not JSON`;
+      return `${name} is not JSON`;
+    }
+  };
+  const armProtocols: Record<string, E1ArmProtocol> = {};
+  for (const arm of arms) {
+    const problem = scheduleProblemOf(arm);
+    for (const a of arm.plan.adapters) {
+      armProtocols[a.modelId] = { orderSeed: arm.plan.orderSeed, adapterId: a.adapterId, ...(problem !== undefined ? { scheduleProblem: problem } : {}) };
     }
   }
+  const first = arms[0];
+  if (first === undefined) return { ok: false, refusal: 'invalid', detail: 'no E1 generator plan' };
+  const scheduleProblem = scheduleProblemOf(first);
   const shas = new Map<string, string | undefined>();
   const templateSha = (specLevel: SpecLevel, taskId: string): string | undefined => {
     const k = `${specLevel}/${taskId}`;
@@ -344,7 +379,7 @@ export function e1ProtocolOf(
     }
     return shas.get(k);
   };
-  return { ok: true, protocol: { orderSeed: reg.plan.orderSeed, templateSha, ...(scheduleProblem !== undefined ? { scheduleProblem } : {}) } };
+  return { ok: true, protocol: { orderSeed: first.plan.orderSeed, templateSha, arms: armProtocols, ...(scheduleProblem !== undefined ? { scheduleProblem } : {}) } };
 }
 
 // ---------------------------------------------------------------------------------------------

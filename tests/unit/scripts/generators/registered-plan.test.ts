@@ -48,7 +48,10 @@ describe('the committed E1 generator plan (THR-8)', () => {
     if (!plan.ok || plan.plan.e1 === undefined) throw new Error('e1 plan');
     const reg = readRegisteredPlan(REG_FILE, REPO);
     if (!reg.ok) throw new Error(reg.detail);
-    expect(e1GridMismatches(reg.plan, plan.plan.e1, REPO)).toEqual([]);
+    // ADR-029: the e1 block also lists the Codex arm's model; the Claude arm agrees with the block minus that arm.
+    const claudeModels = reg.plan.adapters.map((a) => a.modelId);
+    expect(e1GridMismatches(reg.plan, { ...plan.plan.e1, models: plan.plan.e1.models.filter((m) => claudeModels.includes(m)) }, REPO)).toEqual([]);
+    expect(e1GridMismatches(reg.plan, plan.plan.e1, REPO)).toEqual(['models']);
     expect(generatorPlanPathFor('experiments/e1-grid/plan.json')).toBe(E1_GENERATOR_PLAN);
     const tmp = fs.realpathSync(os.tmpdir());
     const loaded = loadGeneratorPlanFile(REG_FILE, REPO, { binary: '/usr/local/bin/claude', harnessRoot: path.join(tmp, 'h') });
@@ -126,7 +129,7 @@ describe('guardE1Plan and generate-main (SO5-03)', () => {
     expect(pilotCopy.ok).toBe(false);
     const unregistered = guardE1Plan(REG_FILE, r.data, REPO, undefined, sha);
     expect(unregistered).toMatchObject({ ok: true, e1: true });
-    expect(unregistered.ok ? unregistered.warning : '').toContain('P-U6');
+    expect(unregistered.ok ? unregistered.warning : '').toContain('not yet listed in corpus/prereg.json');
     expect(guardE1Plan(REG_FILE, r.data, REPO, 'f'.repeat(64), sha)).toEqual({ ok: true, e1: true });
     const changed = guardE1Plan(REG_FILE, r.data, REPO, 'a'.repeat(64), sha);
     expect(changed.ok ? '' : changed.detail).toContain('changed since its registration');
