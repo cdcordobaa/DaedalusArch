@@ -1,7 +1,7 @@
 {
-  "version": 13,
-  "registeredAt": "2026-10-10T05:11:20Z",
-  "reason": "ADR-026 implementation note (P2 v1 side registered; Docs/analysis-plan.md section 10 B8). Made before any e7-corpus-v1sym run, before any label-plan build on stored results and before any live label call. No label exists. The rule was written from the report fields (evaluationMode, route) and not from any count. Per artefact: (1) experiments/e7-corpus-v1sym/plan.json, new. It is a symbolic-only plan with instrument v1 and the same nine entries as e7-corpus (bases, paths and specs; the corpus clones at their corpus/corpus.json commits), seeds 7201/7202/7203, and outDir results/e7-corpus-v1sym. It is the registered route that produces the --corpus-v1-runs side without a judge call (ADR-026: no generation or judge call is repeated). (2) Docs/analysis-plan.md. Section 2 gains the plan row. Section 10 B8 gains the mode-pairing implementation rule: v1 must be symbolic-only and v2 full or symbolic-only; runs pair by project and spec sha only; only symbolic-route rows are compared and drawn; a violating pair is refused; the v1-only strata use the v1 plan's sampling seed; the SO4 baseline-precision v2 rows drop the v1-only strata (p2FrameOf), with a v1 overall row and a v1-only counts-only row. Section 11 gains a dated row. No estimand, size, seed of an existing plan, interval rule or label-plan config changes. All other 69 artefacts are unchanged.",
+  "version": 14,
+  "registeredAt": "2026-10-10T15:38:09Z",
+  "reason": "ADR-028 Option C (author decision 2026-10-10): the proportional neural aggregation variant registered as a sensitivity analysis and the judge diagnostics registered as an exploratory explanation analysis, BEFORE any e1-grid run (no E1 RunRecord exists). The registered rule (majority-of-valid-units-v1 with the U3 confidence weight) stays the primary SO3 and E1 analysis. E7 (e7-corpus, prereg v11) ran before this bump, so its variant reading is POST HOC (computed from its recorded cassettes, zero new judge calls); E1's variant reading is pre-registered. Per artefact: (1) Docs/analysis-plan.md: new section 12 (12.1 the registered rule restated; 12.2 the variant proportional-inclusion-weighted-v1: Hajek share of failed judged units, layer strata weighted N_h / V_h for the capped round-robin selection, a failed unit scores the U3 confidence weight of its own confidence, a split vote scores 0 in the denominator, invalid units left out with the layer re-weighted, AGG-05 and AGG-09 unchanged, AVR, renormalisation, AHS, thresholds and verdict source unchanged; 12.3 its reporting, descriptive only, no SO5 test under the variant; 12.4 the judge diagnostics: per-unit extraction, carrier-run rationale, the fixed judge-coding-frame machine block derived from the FF-N01 and FF-N02 rubric fail clauses, applied mechanically, counts per function, project, verdict and criterion, stated limits); section 3 SO3 row; section 10 B9 reporting duty; section 11 dated row; header amendment note. The frame was written from the rubric text before any judge rationale was read; the E7 registered aggregate results were known (declared in 12). (2) corpus/frozen-instrument.json: scoringFreeze gains neuralAggregation (primary registered, registeredRule majority-of-valid-units-v1, variant proportional-inclusion-weighted-v1 with its strata, unit weight, failed-unit score, split-vote score and invalid-unit rule); re-exported by export-frozen-instrument, no other key changes. No estimand, plan, seed, size, interval rule, matching rule, spec or label-plan config changes. All other 68 artefacts are unchanged.",
   "matchingRuleVersion": "1.2.0",
   "artefacts": [
     {
@@ -18,7 +18,7 @@
     },
     {
       "path": "Docs/analysis-plan.md",
-      "sha256": "bf4aff86ff91347ead199b1503b810ab0789a33f6c47529b340d11cc790e3c21"
+      "sha256": "81ee288b8d42b00a170c16ba181b921234bae477db2f7012db312cfd53356471"
     },
     {
       "path": "Docs/corpus-criteria.md",
@@ -66,7 +66,7 @@
     },
     {
       "path": "corpus/frozen-instrument.json",
-      "sha256": "6672293d6d2e02052436fd77e6e33aab600d4d449053dc170b255ad09c7341da"
+      "sha256": "85ecdbfe01f4b6a85503d34b3dfba58d40001e47ba34ea1c358c5d7c5f0f3528"
     },
     {
       "path": "corpus/label-plan-config.json",
@@ -340,6 +340,10 @@
     {
       "version": 12,
       "commit": "4c88edf467d00888c91d4477f742862e42204aff"
+    },
+    {
+      "version": 13,
+      "commit": "32c2a664ee2bdaeb67934a159b1727f2bbec5208"
     }
   ]
 }
