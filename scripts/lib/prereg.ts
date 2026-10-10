@@ -86,6 +86,10 @@ export const REGISTERED_ARTEFACTS: readonly string[] = Object.freeze([
   'Docs/threats-to-validity.md',
   // ADR-021 SO3 (P-U6): the labeller route, model id and CLI version.
   'Docs/labeller-route.md',
+  // ADR-030 (v19): the spec to dependency-cruiser translation and the pinned baseline tool (exact versions and lockfile).
+  'scripts/depcruise-translate.ts',
+  'experiments/tool-comparison/depcruise/package.json',
+  'experiments/tool-comparison/depcruise/package-lock.json',
 ]);
 
 export interface PreRegistration {
