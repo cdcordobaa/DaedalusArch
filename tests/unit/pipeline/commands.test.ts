@@ -86,8 +86,15 @@ describe('ExtractCommand', () => {
     const result = await cmd.execute(context);
 
     expect(result.success).toBe(true);
-    expect(mockExtractAPG).toHaveBeenCalledWith('/my/project', { excludePatterns: [] });
+    expect(mockExtractAPG).toHaveBeenCalledWith('/my/project', { excludePatterns: [] }, undefined);
     expect(context.getApgResult()).toBe(apg);
+  });
+
+  it('ADR-032: passes an explicit tsconfig through to extractAPG', async () => {
+    mockExtractAPG.mockResolvedValue(DomainResult.ok(stubApgResult()));
+    const cmd = new ExtractCommand('/my/project', [], undefined, '/pinned/tsconfig.json');
+    await cmd.execute(context);
+    expect(mockExtractAPG).toHaveBeenLastCalledWith('/my/project', { excludePatterns: [] }, '/pinned/tsconfig.json');
   });
 
   it('maps errors with stage name', async () => {

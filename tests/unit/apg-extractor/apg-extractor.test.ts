@@ -25,6 +25,41 @@ describe('extractAPG — error cases', () => {
   });
 });
 
+describe('extractAPG — explicit tsconfig (ADR-032)', () => {
+  it('reads only the given tsconfig and ignores the project tsconfig.json', async () => {
+    const { mkdtempSync, mkdirSync, writeFileSync, rmSync } = await import('node:fs');
+    const { tmpdir } = await import('node:os');
+    const { join } = await import('node:path');
+    const root = mkdtempSync(join(tmpdir(), 'adr032-'));
+    try {
+      const proj = join(root, 'cell');
+      mkdirSync(join(proj, 'src'), { recursive: true });
+      mkdirSync(join(proj, 'other'), { recursive: true });
+      writeFileSync(join(proj, 'src/a.ts'), 'export const a = 1;\n');
+      writeFileSync(join(proj, 'other/b.ts'), 'export const b = 2;\n');
+      // The tree's own tsconfig would include other/ only.
+      writeFileSync(join(proj, 'tsconfig.json'), JSON.stringify({ include: ['other/**/*.ts'] }));
+      const pinned = join(root, 'pinned.json');
+      writeFileSync(pinned, JSON.stringify({ compilerOptions: { strict: true }, include: [`${proj}/src/**/*.ts`] }));
+      const files = (r: Awaited<ReturnType<typeof extractAPG>>): string[] =>
+        r.success ? [...new Set(r.data.nodes.map((n) => n.filePath))].sort() : ['FAIL'];
+      const own = await extractAPG(proj);
+      const over = await extractAPG(proj, {}, pinned);
+      expect(files(own).some((f) => f.includes('other/b.ts'))).toBe(true);
+      expect(files(over).some((f) => f.includes('src/a.ts'))).toBe(true);
+      expect(files(over).some((f) => f.includes('other/'))).toBe(false);
+    } finally {
+      rmSync(root, { recursive: true, force: true });
+    }
+  });
+
+  it('an explicit tsconfig lets a tree without tsconfig.json be extracted; a missing one is TSCONFIG_NOT_FOUND', async () => {
+    const r = await extractAPG(CORRECT_REFERENCE, {}, '/nonexistent/tsconfig.json');
+    expect(r.success).toBe(false);
+    if (!r.success) expect(r.errors[0].code).toBe('TSCONFIG_NOT_FOUND');
+  });
+});
+
 describe('extractAPG — successful extraction', () => {
   it('returns DomainResult.ok for correct-reference fixture', async () => {
     const result = await extractAPG(CORRECT_REFERENCE);

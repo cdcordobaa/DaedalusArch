@@ -32,7 +32,8 @@
  * runs; tests pass a temp `--out-dir` (BR-U5b-56).
  */
 import { createHash } from 'node:crypto';
-import { existsSync, readdirSync, readFileSync } from 'node:fs';
+import { existsSync, mkdtempSync, readdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
+import { tmpdir } from 'node:os';
 import { dirname, isAbsolute, join, resolve, sep } from 'node:path';
 import { Ajv } from 'ajv';
 import type { ValidateFunction } from 'ajv';
@@ -41,6 +42,7 @@ import type { ProcessResult, ProcessRunner } from '../src/shared/interfaces/proc
 import { buildChildEnv, NodeProcessRunner } from '../src/shared/process/node-process-runner.js';
 import { e1Coordinates, e1ProjectId, missingE1Cell } from './lib/e1-cells.js';
 import { loadPromptTemplate } from './lib/generators/prompt.js';
+import { harnessTsconfigText } from './lib/generators/harness-tsconfig.js';
 import { armPlanPathsFor, e1ArmsMismatches, generatorPlanPathFor, outcomeProtocolMismatches, readRegisteredPlan } from './lib/generators/registered-plan.js';
 import type { ProtocolFields } from './lib/generators/registered-plan.js';
 import { scheduleFileName } from './lib/generators/schedule.js';
@@ -49,7 +51,7 @@ import { INSTRUMENT_VERSION, parseInstrumentVersion } from '../src/fitness-compi
 import type { InstrumentVersion } from '../src/fitness-compiler/role-exemptions.js';
 import type { PreregCheck, PreregCheckInput } from './lib/prereg.js';
 import { acceptReport, knownSecretsOf, scrubbedJson, writeScrubbedJson } from './lib/report-io.js';
-import type { GenerationCell, PinnedJudge, ReasonCode, RunRecord, RunStatus, SeedRef } from './lib/report-io.js';
+import type { ExtractTsconfigStamp, GenerationCell, PinnedJudge, ReasonCode, RunRecord, RunStatus, SeedRef } from './lib/report-io.js';
 import { cellGenCode, JOIN_GEN_CODES, loadSo5Codes } from './lib/so5-codes.js';
 import { readGenerationEffort, treeLoc } from './lib/so5-size.js';
 import type { So5Codes } from './lib/so5-codes.js';
@@ -436,9 +438,11 @@ export const NEURAL_AGGREGATION_RULES: readonly NeuralAggregationRule[] = ['regi
 
 export function cliArgv(
   plan: ExperimentPlan, entry: PlanEntry, instrumentVersion: InstrumentVersion = INSTRUMENT_VERSION, judge: JudgeRunOptions = {},
+  tsconfigPath?: string,
 ): string[] {
   const argv = ['evaluate', '--project', entry.path, '--spec', entry.specPath, '--format', 'json', ...modeFlags(plan.mode)];
   if (entry.graphMode !== undefined && entry.graphMode !== 'full') argv.push('--graph-mode', entry.graphMode);
+  if (tsconfigPath !== undefined) argv.push('--tsconfig', tsconfigPath); // ADR-032 (E1 cells)
   argv.push('--instrument', `v${String(instrumentVersion)}`); // ADR-026
   if (plan.mode !== 'symbolic-only') {
     if (plan.judge !== undefined) argv.push('--llm-provider', plan.judge.provider, '--llm-model', plan.judge.model);
@@ -661,10 +665,34 @@ export function judgeStamp(plan: ExperimentPlan, judge: JudgeRunOptions | undefi
   };
 }
 
+/** ADR-032: the source label stamped into every E1 RunRecord's `extractTsconfig`. */
+export const E1_TSCONFIG_SOURCE = 'generator-protocol-s3';
+const CWD_TOKEN = '/__daedalus_cell_cwd__';
+
+/**
+ * ADR-032: the pinned per-run tsconfig of `Docs/generator-protocol.md` §3 for an E1 cell, with `<cwd>` = the final
+ * cell directory (absolute). It is the only tsconfig the extractor reads for the cell; the tree's own
+ * `tsconfig.json`, when an agent wrote one, is ignored and never modified. `sha256` is the hash of the §3 template
+ * text (with the literal `<cwd>`), identical for every cell; `ownTsconfigIgnored` records whether the tree has one.
+ */
+export function e1PinnedTsconfig(cellDir: string): { text: string; stamp: ExtractTsconfigStamp } {
+  const abs = resolve(cellDir);
+  const template = harnessTsconfigText(CWD_TOKEN).split(CWD_TOKEN).join('<cwd>');
+  return {
+    text: harnessTsconfigText(abs),
+    stamp: {
+      source: E1_TSCONFIG_SOURCE,
+      sha256: createHash('sha256').update(template).digest('hex'),
+      ownTsconfigIgnored: existsSync(join(abs, 'tsconfig.json')),
+    },
+  };
+}
+
 async function runEntry(plan: ExperimentPlan, entry: PlanEntry, ctx: EntryContext): Promise<RunRecord> {
   const startedAt = ctx.deps.now();
   const runId = runIdOf(plan.id, entry);
   let cell: GenerationCell | undefined = entry.cell;
+  let extractTsconfig: ExtractTsconfigStamp | undefined; // ADR-032, set only when the cell is extracted
   if (entry.grid !== undefined) {
     const joined = joinOutcome(entry, plan.e1?.style ?? 'unknown', ctx.repoRoot, ctx.e1Protocol);
     if (!joined.ok) {
@@ -683,6 +711,7 @@ async function runEntry(plan: ExperimentPlan, entry: PlanEntry, ctx: EntryContex
       ...judgeStamp(plan, ctx.deps.judge),
       envRecordId: ctx.envRecordId, startedAt: startedAt.toISOString(), wallMs: Math.max(0, ctx.deps.now().getTime() - startedAt.getTime()),
       ...(cell !== undefined && { cell }), ...(entry.seed !== undefined && { seed: entry.seed }),
+      ...(extractTsconfig !== undefined && { extractTsconfig }),
     };
   }
   if (cell !== undefined && cell.generationStatus !== 'ok') {
@@ -690,9 +719,20 @@ async function runEntry(plan: ExperimentPlan, entry: PlanEntry, ctx: EntryContex
     return base('not-run', 'generation-failed', gen ?? `generation ${cell.generationStatus} without failureReason`, 1);
   }
 
-  const argv = [...ctx.deps.cli.args, ...cliArgv(plan, entry, ctx.deps.instrumentVersion ?? INSTRUMENT_VERSION, ctx.deps.judge)];
+  // ADR-032: an E1 cell is extracted with the pinned per-run tsconfig, written to a throwaway file outside the tree.
+  let tsconfigDir: string | undefined;
+  let tsconfigFile: string | undefined;
+  if (entry.grid !== undefined) {
+    const pinned = e1PinnedTsconfig(resolve(ctx.repoRoot, entry.path));
+    tsconfigDir = mkdtempSync(join(tmpdir(), 'daedalus-e1-tsconfig-'));
+    tsconfigFile = join(tsconfigDir, 'tsconfig.json');
+    writeFileSync(tsconfigFile, pinned.text, { mode: 0o444 });
+    extractTsconfig = pinned.stamp;
+  }
+  const argv = [...ctx.deps.cli.args, ...cliArgv(plan, entry, ctx.deps.instrumentVersion ?? INSTRUMENT_VERSION, ctx.deps.judge, tsconfigFile)];
   let attempt: 1 | 2 = 1;
   let outcome: AttemptOutcome;
+  try {
   for (;;) {
     const spawned = await ctx.deps.runner.run(ctx.deps.cli.command, argv, {
       cwd: ctx.deps.cwd ?? ctx.repoRoot, env: ctx.childEnv, timeoutMs: ctx.deps.timeoutMs ?? DEFAULT_CLI_TIMEOUT_MS,
@@ -704,6 +744,9 @@ async function runEntry(plan: ExperimentPlan, entry: PlanEntry, ctx: EntryContex
       continue;
     }
     break;
+  }
+  } finally {
+    if (tsconfigDir !== undefined) rmSync(tsconfigDir, { recursive: true, force: true });
   }
   switch (outcome.kind) {
     case 'transport':

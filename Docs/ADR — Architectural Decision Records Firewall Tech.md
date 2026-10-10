@@ -1393,3 +1393,21 @@ Lock-file check (decision 2): `scripts/fetch-corpus.ts` runs exactly one install
 | 028 | Judge aggregation: registered rule primary + pre-declared proportional variant; judge diagnostics first-class (Option C); judge-weighted sensitivity variant (2/7, prereg v17) | Accepted | — |
 | 029 | Codex as a 4th E1 model: an added 18-cell arm (`gpt-5.6-terra`, CLI 0.162.1, own plan and `orderSeed` 20261010, sandbox confinement, pinned catalog); Claude cells unchanged; vendor contrast and vendor self-preference check; prereg v18 | Accepted | — |
 | 030 | Tool comparison with dependency-cruiser 18.4.0 (mechanical spec translation T1..T10 of FF-S01..S04, P01, C04; SO4 comparable seeds and twins, same keys) and five real fix-commit pairs (before/after, resolved-finding rule, n = 5 descriptive); both symbolic-only, registered before they run; prereg v19 | Accepted | — |
+
+## ADR-032: E1 cells are extracted with the pinned per-run tsconfig (operational, post-hoc pipeline fix found during the E1 judge pass)
+
+**Status**: Accepted (coordinator decision 2026-10-10, Option A, under the v1.2E standing approval)
+
+**Date**: 2026-10-10
+
+**Context**: The first E1 judge pass (pass 1, registered aggregation, record mode, prereg v18/v19 code) stopped on a pipeline gap. The APG extractor reads `<project>/tsconfig.json` (`src/apg-extractor/apg-extractor.ts`, `TSCONFIG_NOT_FOUND`), but the registered generator protocol keeps the pinned per-run tsconfig outside the tree, at `<H>/runs/<runId>/tsconfig.json` (`Docs/generator-protocol.md` §3). Nothing registered how an E1 tree gets a tsconfig at evaluation; the P-U6 dry run used fixtures, which ship their own. Of the 72 cells, **9** (all `claude-haiku-4-5`) hold an agent-written `tsconfig.json`; the other 63 hold none. Before the stop, pass 1 wrote 42 `rejected`/`transport-error` records ("No tsconfig.json found"), 5 `not-run` (GEN-TYPECHECK) and **1 `accepted`** record (`claude-haiku-4-5/order-fulfilment/none/run-1`, extracted with its agent-written tsconfig; about 87 cassette files). No E1 record, report or score was read or aggregated; no record was committed. One operational smoke check of the fix ran the symbolic-only CLI on one cell (`claude-opus-5-5/task-management/full-aac/run-0`) to confirm extraction works; its output is not a result and is not kept.
+
+**Decision**:
+1. For every E1 grid cell, `run-experiment` writes the generator protocol §3 tsconfig with `<cwd>` = the final cell directory (absolute) to a throwaway file outside the tree, and passes it to `firewall evaluate --tsconfig <file>`. The extractor then reads only that file (`extractAPG(path, options, tsconfigOverride)`); a tree's own `tsconfig.json` is ignored. The same rule applies to all 72 cells, so the evaluation reads exactly the files the type-check of record covered (`<cwd>/src/**/*.ts`).
+2. No outcome byte changes: the 9 agent-written tsconfigs stay in their trees, untouched and unused.
+3. Every E1 RunRecord whose cell is extracted carries `extractTsconfig` = `{ source: "generator-protocol-s3", sha256, ownTsconfigIgnored }`; `sha256` is the hash of the §3 template text (literal `<cwd>`), `35bf61f2…5e491`, identical for every cell. A `not-run` cell is not extracted and carries no stamp. Non-E1 plans are unchanged (no `--tsconfig`).
+4. Every pass-1 E1 record is discarded, including the accepted one; the cassettes are kept (content-keyed, reused on the re-run). Pass 1 is re-run on all cells under prereg v20, then pass 2 and the rest of the runbook as registered.
+
+**Classification**: operational and **post-hoc** (the gap was found during the registered run). It changes how the instrument locates the files of an E1 tree, not a rule, weight, threshold, judge parameter, selection rule or aggregation. Readers should treat it as a disclosed deviation from the run as first registered (`Docs/prereg-reasons.md` P-TS, prereg v20).
+
+**Consequences**: The tsconfig used at evaluation is the same for every cell and equals the one that decided the valid-yield figure. Cells whose agent wrote root-level files outside `src/` have them excluded from the evaluation exactly as from the type-check of record. The fixtures plan (runbook E1 step 3) is unaffected: its projects ship their own registered tsconfigs and get no `--tsconfig`.

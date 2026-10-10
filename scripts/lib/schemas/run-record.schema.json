@@ -28,7 +28,18 @@
     "startedAt": { "type": "string", "format": "date-time" },
     "wallMs": { "type": "number", "minimum": 0 },
     "cell": { "$ref": "#/definitions/generationCell" },
-    "seed": { "$ref": "#/definitions/seedRef" }
+    "seed": { "$ref": "#/definitions/seedRef" },
+    "extractTsconfig": {
+      "description": "ADR-032: the tsconfig the extractor read for an E1 cell (the pinned per-run tsconfig of Docs/generator-protocol.md section 3, never the tree's own).",
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["source", "sha256", "ownTsconfigIgnored"],
+      "properties": {
+        "source": { "const": "generator-protocol-s3" },
+        "sha256": { "type": "string", "pattern": "^[0-9a-f]{64}$" },
+        "ownTsconfigIgnored": { "type": "boolean" }
+      }
+    }
   },
   "allOf": [
     {
