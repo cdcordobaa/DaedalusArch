@@ -1337,3 +1337,11 @@ Plan checkboxes ticked. Auto-approved under standing approval; no blocking or ma
 **Context**: CONSTRUCTION — Build and Test, ADR-029.
 
 ---
+
+## Build and Test — ADR-030 tool comparison and real fix-commit pairs (prereg v19)
+**Timestamp**: 2026-10-10T20:45:00Z
+**User Input**: "Answer the reviewer objections 'no comparison with existing tools' and 'circular, seeded-only evaluation': compare DaedalusArch v2 with dependency-cruiser through a mechanical spec translation on the SO4 held-out seeds and the bases, and run both on the five real fix-commit pairs. Register first (ADR-030, plans, analysis plan, prereg v19, honest about what was known), then run symbolic-only, pin the tool, write the results and a DiagnosticRuns note, and merge by PR."
+**AI Response**: "Registered ADR-030, the translator (T1..T10), dependency-cruiser 18.4.0 and typescript 5.9.3 (locked), plans tool-comparison (94 entries) and real-pairs (10), analysis plan §13, TV-104..107 and prereg v19 (commits 6f1620b, f3cdc60, pushed before any run). The runs: DaedalusArch 94 + 10 accepted (lane Neo4j, under the lock); dependency-cruiser 104 runs, 0 errors. A, primary: in coverage 37/37 vs 28/37, all seeds 37/43 vs 34/43 (MO-X01 0/6 vs 6/6; MO-P01 13/13 vs 4/13), twins 2/42 for each; median 2.66 s vs 0.76 s. A post-hoc translation defect (the extractor excludes drop package targets that resolve to .d.ts or build/) is declared; the dts sensitivity variant gives dependency-cruiser 42/43. B: both tools detect the same 2 of 5 fixes (p3, p4). No LLM call."
+**Context**: CONSTRUCTION — Build and Test, ADR-030; worktree ../DaedalusArch-wt-cmp, branch v1.2e-exp-comparison.
+
+---

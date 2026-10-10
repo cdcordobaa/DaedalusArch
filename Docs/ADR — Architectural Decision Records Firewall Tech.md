@@ -1350,6 +1350,12 @@ Lock-file check (decision 2): `scripts/fetch-corpus.ts` runs exactly one install
 
 **Consequences**: Two new result directories, `results/tool-comparison/` and `results/real-pairs/`, each with DaedalusArch RunRecords and reports, the dependency-cruiser runs and configs, and the scored tables; a DiagnosticRuns note with the headline tables. The comparison is limited to import-graph rules (TV-104); the runtime comparison is indicative (TV-105); the real pairs are n = 5 (TV-106); the DaedalusArch SO4 behaviour was known (TV-107).
 
+**Results (2026-10-10, prereg v19; `Docs/DiagnosticRuns/tool-comparison-real-pairs-2026-10-10.md`)**:
+- **Experiment A, registered primary.** Seed recall, DaedalusArch vs dependency-cruiser: MO-S01 8/8 vs 8/8; MO-S03 2/2 vs 2/2; MO-P01 13/13 vs 4/13; MO-C04 14/14 vs 14/14; MO-X01 0/6 vs 6/6. In coverage that is 37/37 vs 28/37; over all seeds, 37/43 vs 34/43. Twins fired 2/42 for each tool, on the same twins. Median wall time per run was 2.66 s vs 0.76 s.
+- **POST-HOC translation defect, declared.** T8 applies the extractor excludes to the whole cruise, which also drops package targets that resolve to `*.d.ts` (8 of the 9 MO-P01 misses) or under a `build/` directory (1). This favours DaedalusArch and is not a dependency-cruiser limitation. A sensitivity variant `dts`, chosen after the results, keeps `.d.ts` modules and excludes them as rule sources only. Under it dependency-cruiser scores MO-P01 12/13, in coverage 36/37 and over all seeds 42/43. The registered primary is unchanged and is reported first. Translation 1.0.0 stays the registered version.
+- **Baselines.** The two tools agree on FF-S01, S03 and P01 except on ghostfolio. There, dependency-cruiser leaves the monorepo alias `@ghostfolio/api/*` unresolved: 44 FF-S01 and 33 FF-S04 findings are DaedalusArch only. It also follows `@ghostfolio/common/*` into `libs/`, adding 33 cycles outside the evaluated directory. The cycle counts differ by unit, because DaedalusArch lists simple cycles up to length 10 and dependency-cruiser lists one cycle per module.
+- **Experiment B.** Both tools detect the same 2 of 5 fixes (p3, p4), through the same FF-S01, FF-S04 and FF-P01 findings. Under the strict rule: dependency-cruiser 1, DaedalusArch comparable 1, DaedalusArch all symbolic 0. p1 is invisible under the spec, because `**/core/**` maps both the old and the new location to domain. p5 is a NestJS wiring change that no rule reads.
+
 ---
 
 ## Decision Log Summary

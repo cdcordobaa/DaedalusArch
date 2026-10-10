@@ -14,7 +14,7 @@
 import { spawnSync } from 'node:child_process';
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { basename, dirname, join, resolve } from 'node:path';
-import { functionIdOfRule, normaliseTarget, TRANSLATED_FUNCTIONS, translateSpec } from './depcruise-translate.js';
+import { functionIdOfRule, globRegex, normaliseTarget, TRANSLATED_FUNCTIONS, translateSpec } from './depcruise-translate.js';
 import type { Translation } from './depcruise-translate.js';
 import { expandPlan, loadPlan, runIdOf } from './run-experiment.js';
 import type { ExperimentPlan, PlanEntry } from './run-experiment.js';
@@ -24,6 +24,31 @@ export const DEPCRUISE_BIN = `${DEPCRUISE_DIR}/node_modules/.bin/depcruise`;
 
 /** Comparable functions (ADR-030 item 2). */
 export const COMPARABLE = Object.keys(TRANSLATED_FUNCTIONS).sort();
+
+/**
+ * POST-HOC sensitivity variant `dts` (declared in ADR-030 results, never primary): translation 1.0.0 excludes every
+ * `.d.ts` module from the cruise (T8, the extractor's own exclude), which also removes package targets that resolve to
+ * a declaration file (`node_modules/<stub>/index.d.ts`, `node_modules/@types/...`), so FF-P01 edges to them vanish. The
+ * variant keeps `.d.ts` modules in the graph and excludes them as rule sources instead. Its outputs carry the suffix
+ * `-dts` (`configs-dts/`, `runs-dts/`, `*-dts.csv`).
+ */
+export type Variant = '' | 'dts';
+let VARIANT: Variant = '';
+const sfx = (): string => (VARIANT === '' ? '' : `-${VARIANT}`);
+const DTS = globRegex('**/*.d.ts');
+
+/** The `dts` variant of a translated config (see Variant). */
+export function dtsVariant(config: { forbidden: readonly Record<string, unknown>[]; options: Record<string, unknown> }): typeof config {
+  const options = { ...config.options };
+  const ex = (options['exclude'] as { path: string[] } | undefined)?.path ?? [];
+  options['exclude'] = { path: ex.filter((r) => r !== DTS) };
+  const forbidden = config.forbidden.map((r) => {
+    const from = { ...(r['from'] as Record<string, unknown>) };
+    from['pathNot'] = [...((from['pathNot'] as string[] | undefined) ?? []), DTS];
+    return { ...r, from };
+  });
+  return { forbidden, options };
+}
 
 /** One finding in the shared comparison shape. */
 export interface Finding {
@@ -218,7 +243,7 @@ function plannedEntries(repoRoot: string, planFile: string): { plan: ExperimentP
 }
 
 function configPath(outDir: string, specPath: string): string {
-  return join(outDir, 'depcruise', 'configs', `${basename(specPath, '.yaml')}.json`);
+  return join(outDir, 'depcruise', `configs${sfx()}`, `${basename(specPath, '.yaml')}.json`);
 }
 
 async function cmdTranslate(repoRoot: string, planFile: string): Promise<void> {
@@ -227,11 +252,12 @@ async function cmdTranslate(repoRoot: string, planFile: string): Promise<void> {
   const table: Record<string, Omit<Translation, 'config'> & { readonly ruleCount: number }> = {};
   for (const specPath of [...new Set(entries.map((e) => e.specPath))].sort()) {
     const t = await translateSpec(resolve(repoRoot, specPath));
-    writeOut(configPath(outDir, specPath), JSON.stringify(t.config, null, 2) + '\n');
+    const cfg = VARIANT === 'dts' ? dtsVariant(t.config as unknown as Parameters<typeof dtsVariant>[0]) : t.config;
+    writeOut(configPath(outDir, specPath), JSON.stringify(cfg, null, 2) + '\n');
     const { config, ...rest } = t;
     table[specPath] = { ...rest, ruleCount: config.forbidden.length };
   }
-  writeOut(join(outDir, 'depcruise', 'translation.json'), JSON.stringify(table, null, 2) + '\n');
+  if (VARIANT === '') writeOut(join(outDir, 'depcruise', 'translation.json'), JSON.stringify(table, null, 2) + '\n');
   process.stdout.write(`translated ${String(Object.keys(table).length)} specs into ${plan.outDir}/depcruise/configs\n`);
 }
 
@@ -267,7 +293,7 @@ function cmdRun(repoRoot: string, planFile: string): void {
       translationVersion: translationVersion[e.specPath]?.translationVersion ?? '', wallMs, exitCode: res.status, totalCruised,
       findings, ...(error !== undefined ? { error } : {}),
     };
-    writeOut(join(outDir, 'depcruise', 'runs', `${runId}.json`), JSON.stringify(run, null, 1) + '\n');
+    writeOut(join(outDir, 'depcruise', `runs${sfx()}`, `${runId}.json`), JSON.stringify(run, null, 1) + '\n');
     process.stdout.write(`${runId}\t${String(wallMs)} ms\t${String(findings.length)} findings${error !== undefined ? '\tERROR' : ''}\n`);
   }
 }
@@ -296,7 +322,7 @@ function cmdScoreComparison(repoRoot: string): void {
     const runId = runIdOf(plan.id, e);
     const fns = activeFunctions(outDir, e.specPath);
     const da = loadDa(outDir, runId);
-    const dc = readJson<DepcruiseRun>(join(outDir, 'depcruise', 'runs', `${runId}.json`));
+    const dc = readJson<DepcruiseRun>(join(outDir, 'depcruise', `runs${sfx()}`, `${runId}.json`));
     if (dc.error !== undefined) throw new Error(`${runId}: depcruise error ${dc.error}`);
     return { da: daFindings(da.report, fns), dc: dc.findings.filter((f) => fns.includes(f.functionId)), daWall: da.record.wallMs, daDuration: da.report.durationMs ?? NaN, dcWall: dc.wallMs };
   };
@@ -329,8 +355,8 @@ function cmdScoreComparison(repoRoot: string): void {
       depcruise_other_new: dcNew.filter((x) => !expectedKeys.has(findingKey(x))).length,
     });
   }
-  writeOut(join(outDir, 'seeds.csv'), toCsv(seedRows));
-  writeOut(join(outDir, 'runtime.csv'), toCsv(runtimeRows));
+  writeOut(join(outDir, `seeds${sfx()}.csv`), toCsv(seedRows));
+  writeOut(join(outDir, `runtime${sfx()}.csv`), toCsv(runtimeRows));
 
   // Per comparable rule (expected function of the operator), seeds: recall; twins: fire rate.
   const opRule: Record<string, string> = { 'MO-S01': 'FF-S01', 'MO-X01': 'FF-S01', 'MO-S03': 'FF-S03', 'MO-P01': 'FF-P01', 'MO-C04': 'FF-C04' };
@@ -356,7 +382,7 @@ function cmdScoreComparison(repoRoot: string): void {
   group((r) => r['kind'] === 'seed' && r['operator_id'] !== 'MO-X01', 'in-coverage seeds', 'all', 'seed');
   group((r) => r['kind'] === 'seed', 'all seeds', 'all', 'seed');
   group((r) => r['kind'] === 'twin', 'all twins', 'all', 'twin');
-  writeOut(join(outDir, 'recall.csv'), toCsv(recallRows));
+  writeOut(join(outDir, `recall${sfx()}.csv`), toCsv(recallRows));
 
   // Unseeded baselines: volume per comparable rule.
   const volRows: Record<string, unknown>[] = [];
@@ -379,7 +405,7 @@ function cmdScoreComparison(repoRoot: string): void {
     const t = total[fn] ?? { da: 0, dc: 0, both: 0 };
     volRows.push({ project_id: 'ALL', rule: fn, active: '', da: t.da, depcruise: t.dc, overlap: t.both, da_only: t.da - t.both, depcruise_only: t.dc - t.both });
   }
-  writeOut(join(outDir, 'baseline-volume.csv'), toCsv(volRows));
+  writeOut(join(outDir, `baseline-volume${sfx()}.csv`), toCsv(volRows));
 
   // Unique findings on the baselines, listed (for inspection of the disagreements).
   const diffRows: Record<string, unknown>[] = [];
@@ -390,7 +416,7 @@ function cmdScoreComparison(repoRoot: string): void {
     for (const k of [...da].filter((x) => !dc.has(x)).sort()) diffRows.push({ project_id: e.projectId, only: 'da', key: k });
     for (const k of [...dc].filter((x) => !da.has(x)).sort()) diffRows.push({ project_id: e.projectId, only: 'depcruise', key: k });
   }
-  writeOut(join(outDir, 'baseline-unique-findings.csv'), toCsv(diffRows));
+  writeOut(join(outDir, `baseline-unique-findings${sfx()}.csv`), toCsv(diffRows));
 
   const daW = runtimeRows.map((r) => Number(r['da_wall_ms']));
   const dcW = runtimeRows.map((r) => Number(r['depcruise_wall_ms']));
@@ -403,7 +429,7 @@ function cmdScoreComparison(repoRoot: string): void {
     },
     recall: recallRows, baselineTotals: total,
   };
-  writeOut(join(outDir, 'summary.json'), JSON.stringify(summary, null, 2) + '\n');
+  writeOut(join(outDir, `summary${sfx()}.json`), JSON.stringify(summary, null, 2) + '\n');
   process.stdout.write(`${JSON.stringify(summary.runtime)}\n`);
   for (const r of recallRows) process.stdout.write(`${JSON.stringify(r)}\n`);
   for (const [k, v] of Object.entries(total)) process.stdout.write(`${k} ${JSON.stringify(v)}\n`);
@@ -470,7 +496,7 @@ function cmdScorePairs(repoRoot: string): void {
     const side = (e: PlanEntry): { daAll: Finding[]; daCmp: Finding[]; dc: Finding[] } => {
       const runId = runIdOf(plan.id, e);
       const da = loadDa(outDir, runId);
-      const dc = readJson<DepcruiseRun>(join(outDir, 'depcruise', 'runs', `${runId}.json`));
+      const dc = readJson<DepcruiseRun>(join(outDir, 'depcruise', `runs${sfx()}`, `${runId}.json`));
       if (dc.error !== undefined) throw new Error(`${runId}: depcruise error ${dc.error}`);
       runtimeRows.push({ run_id: runId, da_wall_ms: da.record.wallMs, da_duration_ms: da.report.durationMs ?? '', depcruise_wall_ms: dc.wallMs });
       return { daAll: daFindings(da.report), daCmp: daFindings(da.report, fns), dc: dc.findings.filter((f) => fns.includes(f.functionId)) };
@@ -489,21 +515,23 @@ function cmdScorePairs(repoRoot: string): void {
       for (const f of o.resolved) detail.push({ pair: `p${String(i + 1)}`, tool, key: findingKey(f) });
     }
   });
-  writeOut(join(outDir, 'pairs.csv'), toCsv(rows));
-  writeOut(join(outDir, 'resolved-findings.csv'), toCsv(detail));
-  writeOut(join(outDir, 'runtime.csv'), toCsv(runtimeRows));
+  writeOut(join(outDir, `pairs${sfx()}.csv`), toCsv(rows));
+  writeOut(join(outDir, `resolved-findings${sfx()}.csv`), toCsv(detail));
+  writeOut(join(outDir, `runtime${sfx()}.csv`), toCsv(runtimeRows));
   const count = (tool: string, col: string): number => rows.filter((r) => r['tool'] === tool && r[col] === 1).length;
   const summary = {
     plan: plan.id, depcruiseVersion: depcruiseVersion(repoRoot), pairs: pairs.length,
     detected: Object.fromEntries(['da-symbolic-all', 'da-comparable', 'depcruise'].map((t) => [t, { primary: count(t, 'detects'), strict: count(t, 'detects_strict') }])),
   };
-  writeOut(join(outDir, 'summary.json'), JSON.stringify(summary, null, 2) + '\n');
+  writeOut(join(outDir, `summary${sfx()}.json`), JSON.stringify(summary, null, 2) + '\n');
   for (const r of rows) process.stdout.write(`${JSON.stringify(r)}\n`);
   process.stdout.write(`${JSON.stringify(summary.detected)}\n`);
 }
 
 export async function main(argv: readonly string[], repoRoot: string): Promise<number> {
-  const [cmd, arg] = argv;
+  const vi = argv.indexOf('--variant');
+  if (vi >= 0) { VARIANT = argv[vi + 1] === 'dts' ? 'dts' : ''; }
+  const [cmd, arg] = argv.filter((_, i) => vi < 0 || (i !== vi && i !== vi + 1));
   if (!existsSync(resolve(repoRoot, DEPCRUISE_BIN)) && (cmd === 'run')) {
     process.stderr.write(`dependency-cruiser not installed: run npm ci in ${DEPCRUISE_DIR}\n`);
     return 1;

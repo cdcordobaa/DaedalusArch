@@ -1,0 +1,355 @@
+{
+  "corpus/specs/raouf-b-dev__ecommerce-store-api.yaml": {
+    "translationVersion": "1.0.0",
+    "style": "clean-architecture",
+    "layerOrder": [
+      "domain",
+      "application",
+      "infrastructure"
+    ],
+    "translated": [
+      {
+        "functionId": "FF-S01",
+        "template": "dependency-direction",
+        "rule": "T2 forbidden layer direction (srcIdx < tgtIdx)",
+        "ruleCount": 12
+      },
+      {
+        "functionId": "FF-S02",
+        "template": "no-cyclic-deps",
+        "rule": "T6 circular",
+        "ruleCount": 1
+      },
+      {
+        "functionId": "FF-S04",
+        "template": "no-domain-outward-dep",
+        "rule": "T4 domain to any other mapped layer (clean-architecture, nestjs)",
+        "ruleCount": 8
+      },
+      {
+        "functionId": "FF-P01",
+        "template": "domain-purity",
+        "rule": "T5 domain to forbidden package",
+        "ruleCount": 2
+      },
+      {
+        "functionId": "FF-C04",
+        "template": "no-orphan-files",
+        "rule": "T7 orphan (mapped files)",
+        "ruleCount": 6
+      }
+    ],
+    "skipped": [
+      {
+        "functionId": "FF-S03",
+        "template": "no-layer-skip",
+        "kind": "inactive",
+        "reason": "not applicable to style clean-architecture"
+      },
+      {
+        "functionId": "FF-P02",
+        "template": "dependency-inversion",
+        "kind": "untranslatable",
+        "reason": "ratio of abstract to concrete cross-layer imports against a threshold; needs symbol kinds (interface vs class) of import targets"
+      },
+      {
+        "functionId": "FF-P03",
+        "template": "repository-pattern",
+        "kind": "untranslatable",
+        "reason": "needs class roles and the classes a repository implements; dependency-cruiser sees modules, not classes"
+      },
+      {
+        "functionId": "FF-P04",
+        "template": "use-case-isolation",
+        "kind": "untranslatable",
+        "reason": "use case to use case calls at class level; module paths cannot tell a use case class from other symbols in a file"
+      },
+      {
+        "functionId": "FF-P05",
+        "template": "controller-no-entity",
+        "kind": "untranslatable",
+        "reason": "needs the class role (controller) and the imported symbol kind (entity class)"
+      },
+      {
+        "functionId": "FF-P06",
+        "template": "domain-state-purity",
+        "kind": "untranslatable",
+        "reason": "domain class holding an infrastructure type through constructor injection or a field (FLOWS_TO, CONSTRUCTOR_INJECTS); type-level data flow, not an import edge"
+      },
+      {
+        "functionId": "FF-C01",
+        "template": "domain-stability",
+        "kind": "untranslatable",
+        "reason": "Martin instability metric per layer against a threshold"
+      },
+      {
+        "functionId": "FF-C02",
+        "template": "module-fan-out",
+        "kind": "untranslatable",
+        "reason": "fan-out threshold per file (dependency-cruiser reports metrics but has no fan-out rule)"
+      },
+      {
+        "functionId": "FF-C03",
+        "template": "component-instability",
+        "kind": "untranslatable",
+        "reason": "Martin instability per file against a threshold"
+      },
+      {
+        "functionId": "FF-C05",
+        "template": "max-fan-in",
+        "kind": "untranslatable",
+        "reason": "fan-in threshold; expressible in part (numberOfDependentsMoreThan) but not translated: outside the registered comparison scope"
+      },
+      {
+        "functionId": "FF-C06",
+        "template": "abstraction-ratio",
+        "kind": "untranslatable",
+        "reason": "Martin abstractness (abstract classes and interfaces over all classes) of the domain"
+      },
+      {
+        "functionId": "FF-SO01",
+        "template": "single-responsibility-proxy",
+        "kind": "untranslatable",
+        "reason": "public method and constructor dependency counts per class"
+      },
+      {
+        "functionId": "FF-SO02",
+        "template": "interface-segregation-proxy",
+        "kind": "untranslatable",
+        "reason": "method count per interface"
+      },
+      {
+        "functionId": "FF-SO03",
+        "template": "inheritance-depth",
+        "kind": "untranslatable",
+        "reason": "class inheritance depth"
+      },
+      {
+        "functionId": "FF-CV01",
+        "template": "naming-conventions",
+        "kind": "untranslatable",
+        "reason": "class naming per layer (symbol names, not file paths)"
+      },
+      {
+        "functionId": "FF-CV02",
+        "template": "naming-services",
+        "kind": "untranslatable",
+        "reason": "class naming (symbol names, not file paths)"
+      },
+      {
+        "functionId": "FF-CV03",
+        "template": "naming-repos",
+        "kind": "untranslatable",
+        "reason": "class naming (symbol names, not file paths)"
+      },
+      {
+        "functionId": "FF-CV04",
+        "template": "naming-controllers",
+        "kind": "untranslatable",
+        "reason": "class naming (symbol names, not file paths)"
+      },
+      {
+        "functionId": "FF-CV05",
+        "template": "test-file-pairing",
+        "kind": "untranslatable",
+        "reason": "presence of a sibling test file; no dependency edge exists between a file and its missing test"
+      },
+      {
+        "functionId": "FF-CV06",
+        "template": "no-index-logic",
+        "kind": "untranslatable",
+        "reason": "statement kinds inside index.ts files"
+      },
+      {
+        "functionId": "FF-N01",
+        "template": "architectural-integrity",
+        "kind": "untranslatable",
+        "reason": "LLM judge (neuronal); no symbolic counterpart"
+      },
+      {
+        "functionId": "FF-N02",
+        "template": "intent-alignment",
+        "kind": "untranslatable",
+        "reason": "LLM judge (neuronal); no symbolic counterpart"
+      }
+    ],
+    "ruleCount": 29
+  },
+  "corpus/specs/zhuravlevma__typescript-ddd-architecture.yaml": {
+    "translationVersion": "1.0.0",
+    "style": "nestjs",
+    "layerOrder": [
+      "domain",
+      "infrastructure",
+      "application",
+      "presentation"
+    ],
+    "translated": [
+      {
+        "functionId": "FF-S01",
+        "template": "dependency-direction",
+        "rule": "T2 forbidden layer direction (srcIdx < tgtIdx)",
+        "ruleCount": 24
+      },
+      {
+        "functionId": "FF-S02",
+        "template": "no-cyclic-deps",
+        "rule": "T6 circular",
+        "ruleCount": 1
+      },
+      {
+        "functionId": "FF-S04",
+        "template": "no-domain-outward-dep",
+        "rule": "T4 domain to any other mapped layer (clean-architecture, nestjs)",
+        "ruleCount": 12
+      },
+      {
+        "functionId": "FF-P01",
+        "template": "domain-purity",
+        "rule": "T5 domain to forbidden package",
+        "ruleCount": 2
+      },
+      {
+        "functionId": "FF-C04",
+        "template": "no-orphan-files",
+        "rule": "T7 orphan (mapped files)",
+        "ruleCount": 8
+      }
+    ],
+    "skipped": [
+      {
+        "functionId": "FF-S03",
+        "template": "no-layer-skip",
+        "kind": "inactive",
+        "reason": "not applicable to style nestjs"
+      },
+      {
+        "functionId": "FF-P02",
+        "template": "dependency-inversion",
+        "kind": "untranslatable",
+        "reason": "ratio of abstract to concrete cross-layer imports against a threshold; needs symbol kinds (interface vs class) of import targets"
+      },
+      {
+        "functionId": "FF-P03",
+        "template": "repository-pattern",
+        "kind": "untranslatable",
+        "reason": "needs class roles and the classes a repository implements; dependency-cruiser sees modules, not classes"
+      },
+      {
+        "functionId": "FF-P04",
+        "template": "use-case-isolation",
+        "kind": "untranslatable",
+        "reason": "use case to use case calls at class level; module paths cannot tell a use case class from other symbols in a file"
+      },
+      {
+        "functionId": "FF-P05",
+        "template": "controller-no-entity",
+        "kind": "untranslatable",
+        "reason": "needs the class role (controller) and the imported symbol kind (entity class)"
+      },
+      {
+        "functionId": "FF-P06",
+        "template": "domain-state-purity",
+        "kind": "untranslatable",
+        "reason": "domain class holding an infrastructure type through constructor injection or a field (FLOWS_TO, CONSTRUCTOR_INJECTS); type-level data flow, not an import edge"
+      },
+      {
+        "functionId": "FF-C01",
+        "template": "domain-stability",
+        "kind": "untranslatable",
+        "reason": "Martin instability metric per layer against a threshold"
+      },
+      {
+        "functionId": "FF-C02",
+        "template": "module-fan-out",
+        "kind": "untranslatable",
+        "reason": "fan-out threshold per file (dependency-cruiser reports metrics but has no fan-out rule)"
+      },
+      {
+        "functionId": "FF-C03",
+        "template": "component-instability",
+        "kind": "untranslatable",
+        "reason": "Martin instability per file against a threshold"
+      },
+      {
+        "functionId": "FF-C05",
+        "template": "max-fan-in",
+        "kind": "untranslatable",
+        "reason": "fan-in threshold; expressible in part (numberOfDependentsMoreThan) but not translated: outside the registered comparison scope"
+      },
+      {
+        "functionId": "FF-C06",
+        "template": "abstraction-ratio",
+        "kind": "untranslatable",
+        "reason": "Martin abstractness (abstract classes and interfaces over all classes) of the domain"
+      },
+      {
+        "functionId": "FF-SO01",
+        "template": "single-responsibility-proxy",
+        "kind": "untranslatable",
+        "reason": "public method and constructor dependency counts per class"
+      },
+      {
+        "functionId": "FF-SO02",
+        "template": "interface-segregation-proxy",
+        "kind": "untranslatable",
+        "reason": "method count per interface"
+      },
+      {
+        "functionId": "FF-SO03",
+        "template": "inheritance-depth",
+        "kind": "untranslatable",
+        "reason": "class inheritance depth"
+      },
+      {
+        "functionId": "FF-CV01",
+        "template": "naming-conventions",
+        "kind": "untranslatable",
+        "reason": "class naming per layer (symbol names, not file paths)"
+      },
+      {
+        "functionId": "FF-CV02",
+        "template": "naming-services",
+        "kind": "untranslatable",
+        "reason": "class naming (symbol names, not file paths)"
+      },
+      {
+        "functionId": "FF-CV03",
+        "template": "naming-repos",
+        "kind": "untranslatable",
+        "reason": "class naming (symbol names, not file paths)"
+      },
+      {
+        "functionId": "FF-CV04",
+        "template": "naming-controllers",
+        "kind": "untranslatable",
+        "reason": "class naming (symbol names, not file paths)"
+      },
+      {
+        "functionId": "FF-CV05",
+        "template": "test-file-pairing",
+        "kind": "untranslatable",
+        "reason": "presence of a sibling test file; no dependency edge exists between a file and its missing test"
+      },
+      {
+        "functionId": "FF-CV06",
+        "template": "no-index-logic",
+        "kind": "untranslatable",
+        "reason": "statement kinds inside index.ts files"
+      },
+      {
+        "functionId": "FF-N01",
+        "template": "architectural-integrity",
+        "kind": "untranslatable",
+        "reason": "LLM judge (neuronal); no symbolic counterpart"
+      },
+      {
+        "functionId": "FF-N02",
+        "template": "intent-alignment",
+        "kind": "untranslatable",
+        "reason": "LLM judge (neuronal); no symbolic counterpart"
+      }
+    ],
+    "ruleCount": 47
+  }
+}
