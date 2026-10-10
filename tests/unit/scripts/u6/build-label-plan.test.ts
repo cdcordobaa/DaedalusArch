@@ -243,12 +243,14 @@ describe('P2 v1-only stratum set (ADR-026; analysis plan §10 B8)', () => {
     ...CONFIG, sampled: { P4: { perStratum: 1, maxItems: 0 }, P2: { perStratum: 1, maxItems: 3, strataDraw: 'pps', v1OnlyMaxItems: 1 }, P3: { perStratum: 1, maxItems: 0 } },
   };
 
-  function reportRun(name: string, record: Record<string, unknown>, violations: readonly Record<string, unknown>[]): string {
+  // The B8 mode pairing: a v1 re-evaluation is symbolic-only, the e7-corpus v2 runs are full mode (default by stamp).
+  function reportRun(name: string, record: Record<string, unknown>, violations: readonly Record<string, unknown>[], evaluationMode?: string): string {
     const dir = join(tmp, name);
     mkdirSync(join(dir, 'runs'), { recursive: true });
     mkdirSync(join(dir, 'reports'), { recursive: true });
     const runId = String(record.runId);
-    writeFileSync(join(dir, 'reports', `${runId}.json`), JSON.stringify({ projectPath: ROOT_REL, violations }));
+    const mode = evaluationMode ?? (record.instrumentVersion === 1 ? 'symbolic-only' : 'full');
+    writeFileSync(join(dir, 'reports', `${runId}.json`), JSON.stringify({ projectPath: ROOT_REL, evaluationMode: mode, violations }));
     writeFileSync(join(dir, 'runs', `${runId}.run.json`), JSON.stringify({
       attempt: 1, status: 'accepted', specSha: SPEC_SHA, cliCommit: 'c'.repeat(40), preregVersion: 11, frozenHashes: {}, envRecordId: 'test',
       startedAt: '2026-10-09T00:00:00.000Z', wallMs: 1, reportPath: `reports/${runId}.json`, planId: 'e7-corpus', projectId: PROJECT, ...record,
@@ -348,6 +350,42 @@ describe('P2 v1-only stratum set (ADR-026; analysis plan §10 B8)', () => {
     // With a registered v1-only size of 0 and no v1 runs the v2 population alone is drawn (the test configurations).
     r = await build({ ...SMALL, sampled: { ...SMALL.sampled, P2: { ...SMALL.sampled.P2, v1OnlyMaxItems: 0 } } }, ['--corpus-runs', v2]);
     expect(r.code).toBe(0);
+  });
+
+  it('mode pairing (B8 implementation rule): e7-corpus-v1sym symbolic-only records pair with full-mode e7-corpus runs by project and spec', async () => {
+    // The full-mode v2 report also carries neuronal rows (P4 units): the symbolic-only v1 report has none, and that is
+    // no "v2 row the v1 report lacks".
+    const neural = [{ functionId: 'FF-N01', filePath: 'src/application/use-cases/CreateTaskUseCase.ts', route: 'neuronal' }];
+    const v2 = reportRun('v2-full', { runId: 'e7-corpus-000-proj-a', instrumentVersion: 2 }, [...V2, ...neural], 'full');
+    const v1 = reportRun('v1sym', { runId: 'e7-corpus-v1sym-000-proj-a', planId: 'e7-corpus-v1sym', instrumentVersion: 1 }, [...V2, ...EXEMPTED], 'symbolic-only');
+    const { code, a, out } = await build(SMALL, ['--corpus-runs', v2, '--corpus-v1-runs', v1]);
+    expect(a.err.join('')).toBe('');
+    expect(code).toBe(0);
+    const plan = JSON.parse(readFileSync(join(out, 'label-plan.json'), 'utf8')) as LabelPlanFile;
+    const p2 = plan.items.filter((i) => i.population === 'P2');
+    expect(p2.filter((i) => i.stratum.startsWith('v1-only: ')).map((i) => i.runId)).toEqual(['e7-corpus-v1sym-000-proj-a']);
+    expect(p2.every((i) => i.functionId !== 'FF-N01')).toBe(true);
+    expect(plan.strata.filter((x) => x.stratum.startsWith('v1-only: ')).map((x) => [x.stratum, x.size])).toEqual([['v1-only: proj-a, FF-C02', 2], ['v1-only: proj-a, FF-CV05', 2]]);
+    // A symbolic-only v2 run pairs too (both carry the symbolic rows).
+    const v2Sym = reportRun('v2-sym', { runId: 'e7-corpus-000-proj-a', instrumentVersion: 2 }, V2, 'symbolic-only');
+    expect((await build(SMALL, ['--corpus-runs', v2Sym, '--corpus-v1-runs', v1])).code).toBe(0);
+  });
+
+  it('mode pairing refusals: a v1 report that is not symbolic-only, a neuronal-only or unmarked v2 report', async () => {
+    const v2 = reportRun('v2-full', { runId: 'e7-corpus-000-proj-a', instrumentVersion: 2 }, V2, 'full');
+    const v1Full = reportRun('v1-full', { runId: 'e7-corpus-v1sym-000-proj-a', planId: 'e7-corpus-v1sym', instrumentVersion: 1 }, [...V2, ...EXEMPTED], 'full');
+    let r = await build(SMALL, ['--corpus-runs', v2, '--corpus-v1-runs', v1Full]);
+    expect(r.code).toBe(1);
+    expect(r.a.err.join('')).toContain('v1 corpus run e7-corpus-v1sym-000-proj-a has evaluationMode full; the v1 re-evaluation is symbolic-only');
+    const v1 = reportRun('v1sym', { runId: 'e7-corpus-v1sym-000-proj-a', planId: 'e7-corpus-v1sym', instrumentVersion: 1 }, [...V2, ...EXEMPTED], 'symbolic-only');
+    const v2Neural = reportRun('v2-neural', { runId: 'e7-corpus-000-proj-a', instrumentVersion: 2 }, V2, 'neuronal-only');
+    r = await build(SMALL, ['--corpus-runs', v2Neural, '--corpus-v1-runs', v1]);
+    expect(r.code).toBe(1);
+    expect(r.a.err.join('')).toContain('v2 corpus run e7-corpus-000-proj-a has evaluationMode neuronal-only; a paired v2 run is full or symbolic-only');
+    const v2Unmarked = reportRun('v2-unmarked', { runId: 'e7-corpus-000-proj-a', instrumentVersion: 2 }, V2, '');
+    r = await build(SMALL, ['--corpus-runs', v2Unmarked, '--corpus-v1-runs', v1]);
+    expect(r.code).toBe(1);
+    expect(r.a.err.join('')).toContain('a paired v2 run is full or symbolic-only');
   });
 });
 

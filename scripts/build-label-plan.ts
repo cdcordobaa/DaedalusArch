@@ -213,9 +213,35 @@ function isCorpusP2(run: LoadedRun, role: RunRole = 'corpus'): boolean {
  * its report whose key is absent from the paired v2 `corpus` run (same project and spec) of the same stored code.
  * Strata are `'v1-only: <project>, <function>'`. Refused (`detail`): a v1 run not stamped `instrumentVersion` 1, a v2
  * run stamped 1, a v1 run without its v2 pair or with two, a v2 run without its v1 pair when any v1 run is given or
- * the registered v1-only size is above 0, and a v2 violation that the v1 report lacks (v2 = v1 minus the exempted
- * rows, ADR-026 item 6).
+ * the registered v1-only size is above 0, a pair whose modes break the mode pairing rule (`pairModeProblem`), and a
+ * v2 violation that the v1 report lacks (v2 = v1 minus the exempted rows, ADR-026 item 6).
  */
+/** Evaluation modes a v2 corpus report may have when it is paired: both carry the symbolic rows (B8 mode pairing). */
+export const V2_PAIR_MODES: readonly string[] = Object.freeze(['full', 'symbolic-only']);
+/** The only evaluation mode of a v1 re-evaluation: symbolic-only, no judge call is repeated (ADR-026; B8). */
+export const V1_PAIR_MODE = 'symbolic-only';
+
+/** The report's `evaluationMode`, else `undefined`. */
+function evaluationModeOf(report: unknown): string | undefined {
+  const m = (report as { readonly evaluationMode?: unknown } | null)?.evaluationMode;
+  return typeof m === 'string' ? m : undefined;
+}
+
+/**
+ * The mode pairing rule of analysis plan §10 B8 (implementation rule, 2026-10-10): a v1 report pairs with a v2 report
+ * by project and spec only, never by plan, run id or mode. The v1 side is `symbolic-only` (the `e7-corpus-v1sym`
+ * plan); the v2 side is `full` (the accepted `e7-corpus` runs) or `symbolic-only`. Only symbolic-route rows are
+ * compared and drawn: the neuronal rows of a full-mode v2 report are P4 judge units (`violationCandidates` skips
+ * them) and a symbolic-only report has none. Returns the refusal, else `undefined`.
+ */
+export function pairModeProblem(v1: LoadedRun, v2: LoadedRun): string | undefined {
+  const m1 = evaluationModeOf(v1.report);
+  if (m1 !== V1_PAIR_MODE) return `v1 corpus run ${v1.record.runId} has evaluationMode ${m1 ?? '(none)'}; the v1 re-evaluation is ${V1_PAIR_MODE} (analysis plan §10 B8 mode pairing)`;
+  const m2 = evaluationModeOf(v2.report);
+  if (m2 === undefined || !V2_PAIR_MODES.includes(m2)) return `v2 corpus run ${v2.record.runId} has evaluationMode ${m2 ?? '(none)'}; a paired v2 run is ${V2_PAIR_MODES.join(' or ')} (analysis plan §10 B8 mode pairing)`;
+  return undefined;
+}
+
 export function v1OnlyCandidates(
   runs: readonly LoadedRun[],
   v1OnlyMaxItems: number,
@@ -250,6 +276,8 @@ export function v1OnlyCandidates(
     if (pair.length !== 1 || v2Run === undefined) {
       return { ok: false, detail: `v1 corpus run ${r.record.runId}: ${pair.length === 0 ? 'no' : 'more than one'} accepted v2 corpus run of project ${r.record.projectId} with spec ${r.record.specSha}` };
     }
+    const modeProblem = pairModeProblem(r, v2Run);
+    if (modeProblem !== undefined) return { ok: false, detail: modeProblem };
     const src = { projectId: r.record.projectId, treeSha: r.record.specSha, sourceRoot: r.sourceRoot, describe: r.describe, population: 'P2' as const };
     const v2Keys = new Set(violationCandidates(v2Run.report, { ...src, stratumOwner: r.record.projectId }).map((c) => c.key));
     const v1All = violationCandidates(r.report, { ...src, stratumOwner: `${V1_ONLY_STRATUM_PREFIX}${r.record.projectId}`, runId: r.record.runId });
@@ -473,7 +501,8 @@ export const BUILD_LABEL_PLAN_USAGE = [
   '',
   'Writes <out>/label-plan.json, fn-causes.json, judge-verdicts.json and label-plan-summary.json (ADR-021 SO3-2, SO4-02,',
   'SO3-3, item 6). No model call and no database: contexts are read from the stored source trees. --corpus-v1-runs are',
-  'the --instrument v1 symbolic-only re-evaluations of the --corpus-runs; their extra rows are the v1-only P2 set (ADR-026).',
+  'the --instrument v1 symbolic-only re-evaluations of the --corpus-runs (results/e7-corpus-v1sym, paired by project and',
+  'spec; B8 mode pairing); their extra rows are the v1-only P2 set (ADR-026).',
   'Exit: 0 written (an over-budget P1 + MS escalates the budget, ADR-021 item 8.2); 1 refused (LABEL_PLAN_CONFIG_INVALID,',
   'LABEL_PLAN_INPUT_INVALID, LABEL_CONTEXT_FAILED); 2 usage.',
   '',

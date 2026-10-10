@@ -11,7 +11,8 @@
  *   on the cell count below), `ci_project_*` the project cluster bootstrap (co-primary from 10 projects,
  *   `ci_project_descriptive = true` with 2..9 projects) and `ci_independent_*` the instance Wilson interval, the bound that holds only if the copies were independent; counts only below n = 10.
  *   The precision columns are the seeded differential precision; the SO4 baseline precision (ADR-020 item 1, the HT
- *   share of TP-class P2 labels) is `precision_baseline` beside it and has its own file `precision_baseline.csv`;
+ *   share of TP-class P2 labels, v2 population only; ADR-026 B8) is `precision_baseline` beside it and has its own file
+ *   `precision_baseline.csv` (column `instrument`: the v2 rows, then the v1 and v1-only overall rows when v1-only labels exist);
  *   `precision_figure.csv` holds both in figure-ready long form. Neural new violations are the `neural_new` column
  *   (MAT-19 1.1.0, ADR-020 item 5). Corpus-tier strata (`corpus-core`, `corpus-e7`) come from the score (item 8), and
  *   so do the style strata `style-<s>` of the spec's `architecture.style` (ADR-021 SO1-C).
@@ -101,7 +102,7 @@ export const DENOMINATOR_COLUMNS = [
   'not_applicable', 'metric_key_excluded', 'identity_ok', 'project_id', 'corpus_style', 'spec_style',
 ] as const;
 export const BASELINE_PRECISION_COLUMNS = [
-  'plan_id', 'scope', 'key', 'n_items', 'n_tp_class', 'n_uncertain', 'weighted_tp_class', 'weighted_total', 'n_effective',
+  'plan_id', 'instrument', 'scope', 'key', 'n_items', 'n_tp_class', 'n_uncertain', 'weighted_tp_class', 'weighted_total', 'n_effective',
   'precision_baseline', 'ci_low', 'ci_high', 'ci_method', 'n_clusters',
 ] as const;
 export const PRECISION_FIGURE_COLUMNS = ['plan_id', 'scope', 'function_id', 'measure', 'estimate', 'ci_low', 'ci_high', 'ci_method', 'n'] as const;
@@ -357,7 +358,9 @@ function prfFiles(input: AggregateInput, seed: number, resamples: number): Parti
   const pid = input.planId;
   const meta = functionMeta(input.reports.values());
   const baseline = baselineRows(input, seed, resamples);
-  const baselineOf = (scope: 'overall' | 'function', key: string): string => f6(baseline.find((b) => b.scope === scope && b.key === key)?.estimate);
+  // The PRF columns and the figure carry the v2 baseline rows only (ADR-026, B8): never the v1 or v1-only rows.
+  const baselineV2 = baseline.filter((b) => b.instrument === 'v2');
+  const baselineOf = (scope: 'overall' | 'function', key: string): string => f6(baselineV2.find((b) => b.scope === scope && b.key === key)?.estimate);
   const out: Partial<Record<CsvFile, string>> = {};
   const fnRows: string[][] = [];
   const dimRows: string[][] = [];
@@ -423,7 +426,7 @@ function prfFiles(input: AggregateInput, seed: number, resamples: number): Parti
   out['prf_overall.csv'] = csvText([...COMMON_PRF_COLUMNS, 'recall_in_coverage', 'recall_overall', 'precision_baseline', ...PRF_INTERVAL_COLUMNS], overallRows);
   out['prf_by_project.csv'] = csvText([...COMMON_PRF_COLUMNS, 'project_id', 'corpus_style', 'spec_style', ...PRF_INTERVAL_COLUMNS], projectRows);
   out['precision_baseline.csv'] = csvText(BASELINE_PRECISION_COLUMNS, baseline.map((b) => [
-    pid, b.scope, b.key, int(b.n), int(b.nTpClass), int(b.nUncertain), f6(b.weightedTpClass), f6(b.weightedTotal), f6(b.nEffective),
+    pid, b.instrument, b.scope, b.key, int(b.n), int(b.nTpClass), int(b.nUncertain), f6(b.weightedTpClass), f6(b.weightedTotal), f6(b.nEffective),
     f6(b.estimate), f6(b.ciLow), f6(b.ciHigh), b.ciMethod ?? '', int(b.nClusters),
   ]));
   // Figure-ready long form (ADR-020 item 1): seeded differential precision (held-out total) beside baseline precision.
@@ -432,12 +435,12 @@ function prfFiles(input: AggregateInput, seed: number, resamples: number): Parti
   const headlineFns = s === undefined ? undefined : new Map(new Map(s.perFunction).get(HEADLINE_STRATUM) ?? []);
   const baselineFigure = (b: BaselinePrecisionRow | undefined, scope: 'overall' | 'function', fid: string): string[][] => (b === undefined ? [] : [[pid, scope, fid, 'baseline', f6(b.estimate), f6(b.ciLow), f6(b.ciHigh), b.ciMethod ?? '', int(b.n)]]);
   if (headline !== undefined) figure.push(...differentialFigureRows(pid, 'overall', '', headline, seed, resamples));
-  figure.push(...baselineFigure(baseline.find((b) => b.scope === 'overall'), 'overall', ''));
-  const figureFns = [...new Set([...(headlineFns?.keys() ?? []), ...baseline.filter((b) => b.scope === 'function').map((b) => b.key)])].sort();
+  figure.push(...baselineFigure(baselineV2.find((b) => b.scope === 'overall'), 'overall', ''));
+  const figureFns = [...new Set([...(headlineFns?.keys() ?? []), ...baselineV2.filter((b) => b.scope === 'function').map((b) => b.key)])].sort();
   for (const fid of figureFns) {
     const m = headlineFns?.get(fid);
     if (m !== undefined) figure.push(...differentialFigureRows(pid, 'function', fid, m, seed, resamples));
-    figure.push(...baselineFigure(baseline.find((b) => b.scope === 'function' && b.key === fid), 'function', fid));
+    figure.push(...baselineFigure(baselineV2.find((b) => b.scope === 'function' && b.key === fid), 'function', fid));
   }
   out['precision_figure.csv'] = csvText(PRECISION_FIGURE_COLUMNS, figure);
 

@@ -13,7 +13,7 @@ import type { GenerationCell, RunRecord } from '../../../../scripts/lib/report-i
 import { FAILURE_REASONS, genCodeOf, loadSo5Codes, parseSo5Codes, SO5_CODES_INVALID } from '../../../../scripts/lib/so5-codes.js';
 import { loadPromptTemplate } from '../../../../scripts/lib/generators/prompt.js';
 import {
-  cliArgv, cycleQueryTimes, E1_GENERATOR_PLAN_MISMATCH, E1_SPEC_MISMATCH, expandPlan, latencyGate, loadPlan, main, runPlan, sha256Of, validateRunRecord, relativizePaths,
+  cliArgv, cycleQueryTimes, E1_GENERATOR_PLAN_MISMATCH, E1_SPEC_MISMATCH, expandPlan, latencyGate, loadPlan, main, PLAN_INVALID, planInstrumentVersion, runPlan, sha256Of, validateRunRecord, relativizePaths,
 } from '../../../../scripts/run-experiment.js';
 import type { ExperimentPlan, HarnessDeps } from '../../../../scripts/run-experiment.js';
 import { ROOT } from './score-fixture.js';
@@ -505,6 +505,45 @@ function existsSyncSafe(p: string): boolean {
     return false;
   }
 }
+
+describe('registered instrument version of a plan (ADR-026; analysis plan §10 B8)', () => {
+  it('the plan instrument is the default for every child and RunRecord; a different --instrument is refused before any call', async () => {
+    expect(planInstrumentVersion(plan([]), undefined)).toEqual({ ok: true, version: 2 });
+    expect(planInstrumentVersion(plan([]), 1)).toEqual({ ok: true, version: 1 });
+    expect(planInstrumentVersion(plan([], { instrument: 'v1' }), undefined)).toEqual({ ok: true, version: 1 });
+    expect(planInstrumentVersion(plan([], { instrument: 'v1' }), 1)).toEqual({ ok: true, version: 1 });
+    expect(planInstrumentVersion(plan([], { instrument: 'v1' }), 2)).toMatchObject({ ok: false });
+    const runner = new FakeRunner(() => ({ stdout: OK_REPORT }));
+    const r = await runPlan(plan([proj('ok')], { instrument: 'v1' }), join(ROOT, 'experiments/t/plan.json'), ROOT, deps(runner));
+    expect(r.ok).toBe(true);
+    expect(runner.calls[0]?.args.join(' ')).toContain('--instrument v1');
+    expect(r.records[0]?.instrumentVersion).toBe(1);
+    const refused = new FakeRunner(() => { throw new Error('unexpected call'); });
+    const bad = await runPlan(plan([proj('ok')], { instrument: 'v1' }), join(ROOT, 'experiments/t/plan.json'), ROOT, deps(refused, { instrumentVersion: 2 }));
+    expect(bad).toMatchObject({ ok: false, code: PLAN_INVALID, records: [] });
+    expect(bad.detail).toContain('registers instrument v1');
+    expect(refused.calls).toHaveLength(0);
+  });
+
+  it('experiments/e7-corpus-v1sym/plan.json: symbolic-only, instrument v1, the e7-corpus bases and specs, its own seeds and outDir', () => {
+    const v1 = loadPlan(join(ROOT, 'experiments/e7-corpus-v1sym/plan.json'), ROOT);
+    const e7 = loadPlan(join(ROOT, 'experiments/e7-corpus/plan.json'), ROOT);
+    if (!v1.ok || !e7.ok) throw new Error('plan did not load');
+    expect(v1.plan).toMatchObject({ id: 'e7-corpus-v1sym', experiment: 'E7', mode: 'symbolic-only', instrument: 'v1', outDir: 'results/e7-corpus-v1sym' });
+    expect(v1.plan.judge).toBeUndefined();
+    expect(v1.plan.projects).toEqual(e7.plan.projects);
+    expect(v1.plan.seeds).not.toEqual(e7.plan.seeds);
+    // No judge flag and no cassette directory reach a symbolic-only child.
+    const entry = expandPlan(v1.plan, ROOT);
+    if (!entry.ok) throw new Error(entry.detail);
+    const argv = cliArgv(v1.plan, entry.entries[0] ?? { index: 0, projectId: '', path: '', specPath: '' }, 1);
+    expect(argv).toEqual(expect.arrayContaining(['--symbolic-only', '--instrument', 'v1']));
+    expect(argv).not.toContain('--cassette-dir');
+    const bad = join(out, 'bad-instrument.json');
+    writeFileSync(bad, JSON.stringify(plan([proj('a')], { instrument: 'v3' as 'v1' })));
+    expect(loadPlan(bad, ROOT)).toMatchObject({ ok: false });
+  });
+});
 
 describe('CLI_ENV_ALLOW (judge keychain login)', () => {
   it('passes USER and LOGNAME through to the CLI child', async () => {

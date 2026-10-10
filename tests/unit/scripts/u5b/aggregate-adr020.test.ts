@@ -117,6 +117,27 @@ describe('baseline precision outputs (ADR-020 item 1) and the neural column (ite
     expect([...new Map(score.neuralNewByFunction ?? [])]).toEqual([['FF-N01', 1]]);
   });
 
+  it('ADR-026 B8: v1-only labels never reach the v2 rows, the precision_baseline columns or the figure; v1 rows follow', async () => {
+    const { score } = await cellScore();
+    // 4 v1-only labels on p2 FF-C02 at p = 1/4 (2 TP, 2 FP), strata `v1-only: p2, FF-C02`.
+    const v1Only = [...p2(2, 'p2', 'FF-C02', 'TP', 0.25), ...p2(2, 'p2', 'FF-C02', 'FP', 0.25)].map((l) => ({ ...l, stratum: `v1-only: ${l.stratum}` }));
+    const out = aggregate(base(score, { labelling: { labels: [...P2_LABELS, ...v1Only] } }));
+    const bp = parseCsv(out.get('precision_baseline.csv') ?? '').rows;
+    expect(bp.map((r) => [r.instrument, r.scope, r.key].map(String).join(':'))).toEqual([
+      'v2:overall:', 'v2:function:FF-C04', 'v2:function:FF-S01', 'v2:project:p1', 'v2:project:p2', 'v1:overall:', 'v1-only:overall:',
+    ]);
+    expect(bp[0]).toMatchObject({ n_items: '25', weighted_total: '45.000000', precision_baseline: '0.688889' });
+    // v1: Σw = 45 + 16 = 61, Σw·y = 31 + 8 = 39 → 0.639344; v1-only: counts only.
+    expect(bp[5]).toMatchObject({ n_items: '29', weighted_tp_class: '39.000000', weighted_total: '61.000000', precision_baseline: '0.639344' });
+    expect(bp[6]).toMatchObject({ n_items: '4', n_tp_class: '2', precision_baseline: '', ci_low: '', ci_method: '' });
+    const ho = parseCsv(out.get('prf_overall.csv') ?? '').rows.find((r) => r.split === 'held-out' && r.base_kind === 'all' && r.coverage === 'all');
+    expect(ho).toMatchObject({ precision_baseline: '0.688889' });
+    const fig = parseCsv(out.get('precision_figure.csv') ?? '').rows;
+    expect(fig.filter((r) => r.measure === 'baseline').map((r) => [r.scope, r.function_id, r.estimate, r.n])).toEqual([
+      ['overall', '', '0.688889', '25'], ['function', 'FF-C04', '', '5'], ['function', 'FF-S01', '0.750000', '20'],
+    ]);
+  });
+
   it('without labelling outputs the baseline files are header-only and the columns are empty', async () => {
     const { score } = await cellScore();
     const out = aggregate(base(score, { labelling: {} }));

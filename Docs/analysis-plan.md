@@ -142,6 +142,7 @@ pre-registration gate (BR-U5b-50). Judge modes pin the judge of `Docs/judge-prer
 | `so4-heldout` | SO4 | `symbolic-only` (ADR-020 item 5; was `full`) | the seven frozen held-out bases as baseline entries, each with its corpus spec (P-U6, ADR-021 item 5): `realworld-test`, `ghostfolio-test` `apps/api`, `truthy-demo`, `dry-run-test`, `zhuravlevma__nestjs-active-record`, `nestjslatam__ddd`, `v-aguiar__valex`; the seeded entries follow `mutate` (below) | 4101 / 4102 / 4103 |
 | `e1-grid` | E1 | `full` | the `e1` block: 3 models × 3 spec levels × 2 tasks × 3 runs = 54 cells | 5101 / 5102 / 5103 |
 | `e7-corpus` | E7 | `full` | the four core projects (`realworld-test`, `ghostfolio-test` `apps/api`, `truthy-demo`, `dry-run-test`) and the three frozen E7 bases (P-U6, ADR-021 item 5): `zhuravlevma__nestjs-active-record`, `nestjslatam__ddd`, `v-aguiar__valex` | 7101 / 7102 / 7103 |
+| `e7-corpus-v1sym` | E7 (P2 v1 side, §10 B8; registered 2026-10-10, prereg v13) | `symbolic-only`, `instrument: v1` | the same entries as `e7-corpus` (bases, paths and specs; the corpus clones at their `corpus/corpus.json` commits): the `--instrument v1` re-evaluation of the stored code, no judge call | 7201 / 7202 / 7203 |
 | `apg-ablation` | SO2 ablation (ADR-021 SO2-5, X-2, item 8) | `symbolic-only` | 18 entries: the full arm and the `ast-only` arm (`graphMode`, the IMPORTS / DECLARES / CONTAINS allow-list over the full extraction) of the four core bases and the five fixtures; MO-DF01 seeded copies are not added (P-U6 decision, `Docs/threats-to-validity.md` TV-96) | 8101 / 8102 / 8103 |
 
 **Paths.** Corpus projects are read from `../daedalus-corpus/<name>` relative to the repository root, the
@@ -554,6 +555,18 @@ These statements are registered: every report of the corresponding figure carrie
     or a v2 violation is missing from its v1 report. A frame that cannot fill its share leaves it unused (no
     reallocation). When the budget lowers P2 to L items, the v1-only share is ⌊6 L / 30⌋ and the v2 population takes
     the rest; only then does a share one frame cannot use go to the other.
+    **Implementation rule, mode pairing (2026-10-10, prereg v13):** the v1 side is the registered plan
+    `experiments/e7-corpus-v1sym/plan.json` (`symbolic-only`, `instrument: v1`, the `e7-corpus` entries; a
+    `run-experiment-cli --instrument` that differs from a plan's registered `instrument` is refused). A v1 run pairs
+    with a v2 run by project and spec sha only, never by plan id, run id or mode. The v1 report must be
+    `evaluationMode` `symbolic-only`; the v2 report must be `full` (the accepted `e7-corpus` runs) or
+    `symbolic-only`. Only symbolic-route violations are compared and drawn: the neuronal rows of a full-mode v2 report
+    are P4 judge units, never P2 rows, and a symbolic-only v1 report has none, so their absence from v1 is not a
+    missing v2 row. A pair that breaks this rule is refused (`LABEL_PLAN_INPUT_INVALID`). The v1-only strata take
+    their within-stratum seed from the v1 plan (`sampling` 7201). The SO4 baseline-precision table
+    (`precision_baseline.csv`, column `instrument`) follows the same split. Its **v2 rows** (overall, tier, function,
+    project; also the `precision_baseline` columns and the figure) drop every `v1-only: ` stratum (`p2FrameOf`). The
+    **v1** overall row pools both frames, and the **v1-only** overall row gives counts only.
   - **E7, E1 and SO5** (not yet run): v2 is the instrument, registered before these runs. Any symbolic count they
     report (violations, violations per KLOC, FPAT profile, AHS) also gets a v1 sensitivity row from a symbolic-only
     re-evaluation of the same stored code with `--instrument v1`; no generation or judge call is repeated for it.
@@ -588,3 +601,4 @@ These statements are registered: every report of the corresponding figure carrie
 | 2026-10-09 (P-U6) | §8 | Rejected pairs listed and the rest scored | ADR-021 SO4-03 |
 | 2026-10-09 (ADR-026, POST-HOC) | §4, §10 | B8: instrument v2 role exemptions (FF-CV05, FF-C02, FF-C03) and the `--instrument v1 / v2` switch; every table names its version; v1 primary for SO4 and SO2 with v2 beside, the differing aggregate files listed; P2 drawn from the v2 `e7-corpus` population (24) plus a v1-only exempted stratum set (6), n and n_eff per version; v2 the instrument for E7, E1 and SO5 with a v1 symbolic sensitivity row | ADR-026 |
 | 2026-10-09 (ADR-026, label-plan producer) | §4, §10 | B8: the P2 v1-only stratum set implemented in `build-label-plan` (`--corpus-v1-runs`; config version 3, `v1OnlyMaxItems` 6); refusals, no reallocation, the lowering split ⌊6 L / 30⌋; precision rows per version (v2, v1 combined, v1-only counts only) | ADR-026 (implementation note) |
+| 2026-10-10 (ADR-026, v1 side registered; prereg v13) | §2, §10 | `e7-corpus-v1sym` registered (symbolic-only, `instrument: v1`, the `e7-corpus` entries, seeds 7201..7203); B8 implementation rule for mode pairing (v1 `symbolic-only` with v2 `full` or `symbolic-only`, pair by project and spec, symbolic rows only); the v2 baseline-precision rows drop the `v1-only: ` strata | ADR-026 (implementation note) |
