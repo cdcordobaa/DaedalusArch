@@ -103,6 +103,17 @@ Then the P2 v1 side (analysis plan §10 B8; symbolic-only, no model call; lane l
 2. `run-experiment-cli.ts experiments/e1-grid/plan.json --neo4j-container daedalus-neo4j-bt` → 54 records, one
    per coordinate (a missing or protocol-mismatched cell is `not-run` with its `GEN-*` code).
 3. `run-experiment-cli.ts experiments/fixtures/plan.json …` → the fixture P4 units.
+4. **ADR-028 two-pass step (analysis plan §12.3; prereg v14/v15).** Pass 1 is step 2 itself: the judge calls are recorded
+   under the registered rule (default `--neural-aggregation registered`, `--cassette-mode record`) into the plan's
+   `outDir` `results/e1-grid/`. Pass 2 makes no judge call: `run-experiment-cli.ts experiments/e1-grid/plan.json
+   --neo4j-container daedalus-neo4j-bt --cassette-mode replay --neural-aggregation proportional --out-dir
+   results/e1-grid/agg-proportional`. **`--out-dir` rule:** pass 2 always names its own directory under the plan's
+   results directory and never the registered `outDir`, so the registered records are never overwritten; a cassette
+   miss stops pass 2 (`JUDGE_RUN_INCOMPLETE`) and is never resolved by recording. Check the cassette count is unchanged,
+   then `compare-aggregations-cli.ts --registered results/e1-grid --variant results/e1-grid/agg-proportional --out
+   results/e1-grid/agg-proportional` (`reading` = pre-registered, derived) and `aggregate-cli.ts --runs
+   results/e1-grid/agg-proportional --out results/e1-grid/agg-proportional --neural-aggregation proportional`.
+   A cell whose judge reused a baseline selection (SEL-07) has no proportional reading (`NEURAL_AGGREGATION_UNDEFINED`).
 
 ## 6. Labelling (ADR-021 items 6 and 8; live `agy` only in 6.4)
 

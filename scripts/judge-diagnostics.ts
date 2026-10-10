@@ -7,12 +7,16 @@
  *   its standard deviation, the unstable flag and valid runs; the vote recomputed from the unit's cassette entries
  *   (project id, function id, unit id, repetition 0) with a `vote_matches_report` flag; the carrier run (the valid run
  *   voting with the unit verdict with the highest confidence, ties to the lowest `runIndex`; a split-vote unit: all its
- *   valid runs) and its rationale (`reasoning` and violation messages); the codes of the fixed coding frame
- *   (`scripts/lib/judge-coding-frame.ts`, the analysis-plan machine block).
- * - `judge_criteria.csv`: per function × project (and `*` pooled) × unit verdict × criterion, the coded units, the
- *   units of that group and their share.
+ *   valid runs) and its rationale (`reasoning` and violation messages); the primary codes of the fixed coding frame
+ *   (frame 1.1.0: the violation messages only), the guarded secondary codes of the reasoning
+ *   (`scripts/lib/judge-coding-frame.ts`, the analysis-plan machine block) and `rules_also_flag` (a symbolic violation
+ *   of the same report on one of the unit's files, a mechanical join).
+ * - `judge_criteria.csv`: per function × project (and `*` pooled) × unit verdict × criterion, the units coded by the
+ *   primary and by the guarded secondary coding, the units of that group and both shares.
+ * - `judge_discrimination.csv`: per function × project (and `*`) × criterion, the share of failing units whose messages
+ *   match minus the guarded share of passing units whose reasoning matches; `informative` at the frame's threshold.
  * - `judge_summary.csv`: per function × project (and `*`), units selected, valid, invalid, fail, pass, split vote,
- *   unstable and the mean confidence of the valid units.
+ *   unstable, the mean confidence of the valid units, failing units uncoded, with messages, and also flagged by rules.
  * Every float is `toFixed(6)`; rows are sorted, so two runs over the same inputs give the same bytes.
  */
 import { existsSync, readdirSync, readFileSync, statSync } from 'node:fs';
@@ -21,7 +25,7 @@ import type { EvaluationReport, NeuralUnitRow } from '../src/shared/types/evalua
 import type { CassetteEntry, CriticVerdict } from '../src/llm-critic/types.js';
 import { loadRunDir } from './lib/report-io.js';
 import type { RunRecord } from './lib/report-io.js';
-import { codeRationale, codesOf, loadCodingFrame } from './lib/judge-coding-frame.js';
+import { codeRationale, codeRationaleGuarded, codesOf, loadCodingFrame } from './lib/judge-coding-frame.js';
 import type { CodingFrame } from './lib/judge-coding-frame.js';
 
 export const JUDGE_DIAGNOSTICS_INPUT_INVALID = 'JUDGE_DIAGNOSTICS_INPUT_INVALID';
@@ -29,12 +33,19 @@ export const JUDGE_DIAGNOSTICS_INPUT_INVALID = 'JUDGE_DIAGNOSTICS_INPUT_INVALID'
 export const UNIT_COLUMNS = [
   'run_id', 'project_id', 'function_id', 'dimension', 'unit_id', 'unit_kind', 'layer', 'status', 'verdict', 'confidence',
   'confidence_sd', 'flagged_unstable', 'valid_runs', 'cassette_runs', 'cassette_fail_runs', 'cassette_pass_runs',
-  'vote_matches_report', 'carrier_run_index', 'codes', 'rationale', 'violation_messages',
+  'vote_matches_report', 'carrier_run_index', 'codes', 'codes_reasoning_guarded', 'rules_also_flag', 'rationale', 'violation_messages',
 ] as const;
-export const CRITERIA_COLUMNS = ['function_id', 'project_id', 'verdict', 'criterion', 'units_coded', 'units_in_group', 'share'] as const;
+export const CRITERIA_COLUMNS = [
+  'function_id', 'project_id', 'verdict', 'criterion', 'units_coded', 'units_coded_reasoning_guarded', 'units_in_group', 'share',
+  'share_reasoning_guarded',
+] as const;
+export const DISCRIMINATION_COLUMNS = [
+  'function_id', 'project_id', 'criterion', 'fail_units', 'fail_message_share', 'pass_units', 'pass_reasoning_guarded_share',
+  'discrimination', 'informative',
+] as const;
 export const SUMMARY_COLUMNS = [
   'function_id', 'project_id', 'units_selected', 'units_valid', 'units_invalid', 'units_fail', 'units_pass', 'units_split_vote',
-  'units_unstable', 'mean_confidence_valid', 'units_uncoded_fail',
+  'units_unstable', 'mean_confidence_valid', 'units_uncoded_fail', 'units_fail_with_messages', 'units_fail_rules_also_flag',
 ] as const;
 
 // ---------------------------------------------------------------------------------------------
@@ -125,7 +136,18 @@ export interface UnitDiagnostic {
   readonly voteMatchesReport: boolean;
   readonly rationale: string;
   readonly violationMessages: string;
+  /** Primary codes: the frame's `primary.textFields` (1.1.0: violation messages); empty when that text is empty. */
   readonly codes: readonly string[];
+  /** Secondary codes: `secondary.textFields` (1.1.0: reasoning) with the negation guard; empty when that text is empty. */
+  readonly codesReasoningGuarded: readonly string[];
+  /** A symbolic violation of the same report on one of the unit's files. */
+  readonly rulesAlsoFlag: boolean;
+}
+
+function textOf(fields: readonly string[], v: CriticVerdict | undefined): string {
+  if (v === undefined) return '';
+  return fields.flatMap((f) => (f === 'reasoning' ? [oneLine(v.reasoning)] : v.violations.map((x) => oneLine(x.message))))
+    .filter((t) => t !== '').join('\n');
 }
 
 export function diagnoseUnits(
@@ -135,6 +157,7 @@ export function diagnoseUnits(
 ): UnitDiagnostic[] {
   const out: UnitDiagnostic[] = [];
   for (const { record, report } of accepted) {
+    const symbolicFiles = new Set(report.violations.filter((x) => x.route === 'symbolic').map((x) => x.filePath));
     for (const row of report.neuralResults ?? []) {
       const functionId = String(row.functionId);
       for (const unit of row.unitResults) {
@@ -143,11 +166,14 @@ export function diagnoseUnits(
         const v = vote.carrier?.verdict;
         const rationale = v === undefined ? '' : oneLine(v.reasoning);
         const violationMessages = v === undefined ? '' : v.violations.map((x) => oneLine(x.message)).join(' | ');
-        const text = [rationale, violationMessages].filter((t) => t !== '').join('\n');
+        const primary = unit.status === 'invalid' ? '' : textOf(frame.primaryTextFields, v);
+        const secondary = unit.status === 'invalid' ? '' : textOf(frame.secondaryTextFields, v);
         out.push({
           runId: record.runId, projectId: record.projectId, functionId, dimension: row.dimension, unit, vote,
           voteMatchesReport: vote.verdict === reportVerdict, rationale, violationMessages,
-          codes: unit.status === 'invalid' || text === '' ? [] : codeRationale(frame, functionId, text),
+          codes: primary === '' ? [] : codeRationale(frame, functionId, primary),
+          codesReasoningGuarded: secondary === '' ? [] : codeRationaleGuarded(frame, functionId, secondary),
+          rulesAlsoFlag: unit.filePaths.some((f) => symbolicFiles.has(f)),
         });
       }
     }
@@ -163,7 +189,8 @@ export function unitsCsv(units: readonly UnitDiagnostic[]): string {
     d.runId, d.projectId, d.functionId, d.dimension, d.unit.unitId, d.unit.unitKind, d.unit.layer, d.unit.status, d.unit.verdict,
     f6(d.unit.confidence), f6(d.unit.confidenceStdDev), String(d.unit.flaggedUnstable), String(d.unit.validRunCount),
     String(d.vote.runs), String(d.vote.failRuns), String(d.vote.passRuns), String(d.voteMatchesReport),
-    d.vote.carrier === undefined ? '' : String(d.vote.carrier.runIndex), d.codes.join(';'), d.rationale, d.violationMessages,
+    d.vote.carrier === undefined ? '' : String(d.vote.carrier.runIndex), d.codes.join(';'), d.codesReasoningGuarded.join(';'),
+    String(d.rulesAlsoFlag), d.rationale, d.violationMessages,
   ]));
 }
 
@@ -192,11 +219,31 @@ export function criteriaCsv(units: readonly UnitDiagnostic[], frame: CodingFrame
       if (group.length === 0) continue;
       for (const code of codesOf(frame, fn)) {
         const n = group.filter((d) => d.codes.includes(code)).length;
-        rows.push([fn, project, verdict, code, String(n), String(group.length), f6(n / group.length)]);
+        const g = group.filter((d) => d.codesReasoningGuarded.includes(code)).length;
+        rows.push([fn, project, verdict, code, String(n), String(g), String(group.length), f6(n / group.length), f6(g / group.length)]);
       }
     }
   }
   return csvText(CRITERIA_COLUMNS, rows);
+}
+
+/** Discrimination per code: fail-unit message share − guarded pass-unit reasoning share; informative at the threshold. */
+export function discriminationCsv(units: readonly UnitDiagnostic[], frame: CodingFrame): string {
+  const rows: string[][] = [];
+  for (const [fn, project, list] of groups(units)) {
+    const fails = list.filter((d) => d.unit.status === 'valid' && d.unit.verdict === 'fail');
+    const passes = list.filter((d) => d.unit.status === 'valid' && d.unit.verdict === 'pass');
+    for (const code of codesOf(frame, fn).filter((c) => c !== frame.uncoded)) {
+      const failShare = fails.length === 0 ? undefined : fails.filter((d) => d.codes.includes(code)).length / fails.length;
+      const passShare = passes.length === 0 ? undefined : passes.filter((d) => d.codesReasoningGuarded.includes(code)).length / passes.length;
+      const disc = failShare === undefined || passShare === undefined ? undefined : failShare - passShare;
+      rows.push([
+        fn, project, code, String(fails.length), f6(failShare), String(passes.length), f6(passShare), f6(disc),
+        disc === undefined ? '' : String(disc >= frame.informativeThreshold - 1e-12),
+      ]);
+    }
+  }
+  return csvText(DISCRIMINATION_COLUMNS, rows);
 }
 
 export function summaryCsv(units: readonly UnitDiagnostic[], frame: CodingFrame): string {
@@ -210,6 +257,7 @@ export function summaryCsv(units: readonly UnitDiagnostic[], frame: CodingFrame)
       String(valid.filter((d) => d.unit.verdict === 'pass').length), String(valid.filter((d) => d.unit.verdict === 'warning').length),
       String(valid.filter((d) => d.unit.flaggedUnstable).length), f6(mean),
       String(fails.filter((d) => d.codes.includes(frame.uncoded)).length),
+      String(fails.filter((d) => d.violationMessages !== '').length), String(fails.filter((d) => d.rulesAlsoFlag).length),
     ]);
   }
   return csvText(SUMMARY_COLUMNS, rows);
@@ -238,6 +286,7 @@ export function judgeDiagnostics(runDir: string, cassetteDir: string, frame: Cod
     files: new Map([
       ['judge_units.csv', unitsCsv(units)],
       ['judge_criteria.csv', criteriaCsv(units, frame)],
+      ['judge_discrimination.csv', discriminationCsv(units, frame)],
       ['judge_summary.csv', summaryCsv(units, frame)],
     ]),
     units: units.length,

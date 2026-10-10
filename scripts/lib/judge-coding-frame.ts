@@ -4,7 +4,11 @@
  * The frame is the one fenced machine block ```yaml judge-coding-frame of the analysis plan: per judged function, the
  * criteria derived from the fail clauses of the frozen rubrics, each a list of case-insensitive regular expressions.
  * `codeRationale` applies it mechanically: every criterion of the unit's function with at least one match (frame
- * order, multi-label), else the `uncoded` code. A missing, duplicated or malformed block is refused with
+ * order, multi-label), else the `uncoded` code. Frame 1.1.0 (ADR-028 v15, Fable review): the primary text is the
+ * carrier run's violation messages only (`primary.textFields`); a secondary coding of the reasoning drops a match when
+ * one of the `negationGuard` tokens (single words or a two-word phrase) is among the `window` tokens before it
+ * (`codeRationaleGuarded`); a code is informative when its discrimination (share among failing units' messages minus
+ * the guarded share among passing units' reasoning) is at least `informativeThreshold`. A missing, duplicated or malformed block is refused with
  * `JUDGE_CODING_FRAME_INVALID` naming the file. Pure apart from `loadCodingFrame` reading the plan.
  */
 import { existsSync, readFileSync } from 'node:fs';
@@ -20,9 +24,22 @@ export interface CodingCriterion {
   readonly patterns: readonly RegExp[];
 }
 
+export type TextField = 'reasoning' | 'violations.message';
+export const TEXT_FIELDS: readonly TextField[] = ['reasoning', 'violations.message'];
+
+export interface NegationGuard {
+  readonly window: number;
+  /** Lower-case guard tokens; an entry with a space is a phrase matched as consecutive tokens (e.g. `free of`). */
+  readonly tokens: readonly string[];
+}
+
 export interface CodingFrame {
   readonly version: string;
   readonly uncoded: string;
+  readonly primaryTextFields: readonly TextField[];
+  readonly secondaryTextFields: readonly TextField[];
+  readonly negationGuard: NegationGuard;
+  readonly informativeThreshold: number;
   /** Function id → criteria in frame order. */
   readonly functions: Readonly<Record<string, readonly CodingCriterion[]>>;
 }
@@ -52,9 +69,25 @@ export function parseCodingFrame(doc: string): CodingFrameLoad {
     return refuse(`judge-coding-frame block is not YAML: ${e instanceof Error ? e.message : String(e)}`);
   }
   if (!isRecord(raw)) return refuse('judge-coding-frame block is not a mapping');
-  const { version, uncoded, functions } = raw;
+  const { version, uncoded, functions, primary, secondary, discrimination } = raw;
   if (typeof version !== 'string' || !/^\d+\.\d+\.\d+$/.test(version)) return refuse('version must be x.y.z');
   if (typeof uncoded !== 'string' || uncoded === '') return refuse('uncoded must be a code');
+  const fieldsOf = (v: unknown, name: string): TextField[] | string => {
+    const f = isRecord(v) ? v['textFields'] : undefined;
+    if (!Array.isArray(f) || f.length === 0 || !f.every((x) => (TEXT_FIELDS as readonly unknown[]).includes(x))) return `${name}.textFields must list ${TEXT_FIELDS.join(' / ')}`;
+    return f as TextField[];
+  };
+  const primaryFields = fieldsOf(primary, 'primary');
+  if (typeof primaryFields === 'string') return refuse(primaryFields);
+  const secondaryFields = fieldsOf(secondary, 'secondary');
+  if (typeof secondaryFields === 'string') return refuse(secondaryFields);
+  const guard = isRecord(secondary) ? secondary['negationGuard'] : undefined;
+  if (!isRecord(guard) || !Number.isInteger(guard['window']) || (guard['window'] as number) < 1
+    || !Array.isArray(guard['tokens']) || guard['tokens'].length === 0 || !guard['tokens'].every((t) => typeof t === 'string' && t.trim() !== '')) {
+    return refuse('secondary.negationGuard needs an integer window ≥ 1 and a non-empty token list');
+  }
+  const threshold = isRecord(discrimination) ? discrimination['informativeThreshold'] : undefined;
+  if (typeof threshold !== 'number' || threshold < 0 || threshold > 1) return refuse('discrimination.informativeThreshold must be in [0, 1]');
   if (!isRecord(functions) || Object.keys(functions).length === 0) return refuse('functions must be a non-empty mapping');
   const seen = new Set<string>([uncoded]);
   const out: Record<string, CodingCriterion[]> = {};
@@ -83,7 +116,14 @@ export function parseCodingFrame(doc: string): CodingFrameLoad {
     }
     out[fn] = criteria;
   }
-  return { ok: true, frame: { version, uncoded, functions: out } };
+  return {
+    ok: true,
+    frame: {
+      version, uncoded, functions: out, primaryTextFields: primaryFields, secondaryTextFields: secondaryFields,
+      negationGuard: { window: guard['window'] as number, tokens: (guard['tokens'] as string[]).map((t) => t.trim().toLowerCase()) },
+      informativeThreshold: threshold,
+    },
+  };
 }
 
 export function loadCodingFrame(repoRoot: string): CodingFrameLoad {
@@ -103,5 +143,35 @@ export function codesOf(frame: CodingFrame, functionId: string): readonly string
  */
 export function codeRationale(frame: CodingFrame, functionId: string, text: string): readonly string[] {
   const hits = (frame.functions[functionId] ?? []).filter((c) => c.patterns.some((p) => p.test(text))).map((c) => c.code);
+  return hits.length > 0 ? hits : [frame.uncoded];
+}
+
+const TOKEN = /[a-z0-9'_-]+/g;
+
+/** True when a guard token or phrase is among the `window` tokens before `index` in `text`. */
+export function negatedAt(text: string, index: number, guard: NegationGuard): boolean {
+  const before = text.slice(0, index).toLowerCase().match(TOKEN) ?? [];
+  const win = before.slice(-guard.window);
+  return guard.tokens.some((t) => {
+    const parts = t.split(/\s+/);
+    for (let i = 0; i + parts.length <= win.length; i++) {
+      if (parts.every((p, j) => win[i + j] === p)) return true;
+    }
+    return false;
+  });
+}
+
+/**
+ * Secondary coding (frame 1.1.0): a criterion is coded when at least one of its matches is not negated
+ * (`negatedAt`); `[uncoded]` when none survives.
+ */
+export function codeRationaleGuarded(frame: CodingFrame, functionId: string, text: string): readonly string[] {
+  const hits = (frame.functions[functionId] ?? []).filter((c) => c.patterns.some((p) => {
+    const re = new RegExp(p.source, 'gi');
+    for (const m of text.matchAll(re)) {
+      if (!negatedAt(text, m.index, frame.negationGuard)) return true;
+    }
+    return false;
+  })).map((c) => c.code);
   return hits.length > 0 ? hits : [frame.uncoded];
 }

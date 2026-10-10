@@ -596,11 +596,12 @@ function runFiles(input: AggregateInput): Partial<Record<CsvFile, string>> {
   out['function_sensitivity.csv'] = csvText(['plan_id', 'probe_id', 'function_id', 'pass', 'line_confirmed', 'excluded_after_fail', 'fix_attempt_ref'],
     (input.sensitivity ?? []).map((p) => [input.planId, p.probeId, p.functionId, bool(p.pass), bool(p.lineConfirmed), bool(p.excludedAfterFail), p.fixAttemptRef ?? '']));
   out['runs.csv'] = csvText(
-    ['run_id', 'plan_id', 'project_id', 'status', 'reason_code', 'reason_detail', 'attempt', 'report_path', 'spec_sha', 'cli_commit', 'prereg_version', 'frozen_hashes', 'env_record_id', 'started_at', 'wall_ms', 'cell', 'seed'],
+    ['run_id', 'plan_id', 'project_id', 'status', 'reason_code', 'reason_detail', 'attempt', 'report_path', 'spec_sha', 'cli_commit', 'prereg_version', 'frozen_hashes', 'env_record_id', 'started_at', 'wall_ms', 'cell', 'seed', 'neural_aggregation', 'cassette_mode'],
     input.records.map((r) => [
       r.runId, r.planId, r.projectId, r.status, r.reasonCode ?? '', r.reasonDetail ?? '', int(r.attempt), r.reportPath ?? '', r.specSha, r.cliCommit,
       int(r.preregVersion), JSON.stringify(Object.fromEntries(Object.entries(r.frozenHashes).sort(([a], [b]) => (a < b ? -1 : 1)))), r.envRecordId, r.startedAt, int(r.wallMs),
       r.cell === undefined ? '' : JSON.stringify(r.cell), r.seed === undefined ? '' : JSON.stringify(r.seed),
+      r.neuralAggregation ?? '', r.cassetteMode ?? '', // ADR-028 (v15): absent = registered / record, or a symbolic-only run
     ]),
   );
   // Labeller-fed files (llm-label.ts tables; header only when no labelling outputs are given).

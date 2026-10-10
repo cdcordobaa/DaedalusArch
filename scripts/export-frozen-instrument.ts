@@ -57,6 +57,10 @@ export interface NeuralAggregationFreeze {
     readonly failedUnitScore: 'u3-confidence-weight';
     readonly splitVoteScore: 0;
     readonly invalidUnits: 'excluded-stratum-reweighted';
+    readonly definedFor: 'own-selection';
+    readonly withinLayerSampling: 'hash-order-as-srs';
+    readonly variance: 'not-reported';
+    readonly companionColumn: 'confidence-free-share';
   } };
 }
 export interface FrozenInstrument {
@@ -169,6 +173,9 @@ export function scoringFreeze(): ScoringFreeze {
         proportional: {
           rule: PROPORTIONAL_RULE_ID, strata: 'layer', unitWeight: 'N_h / V_h', failedUnitScore: 'u3-confidence-weight',
           splitVoteScore: 0, invalidUnits: 'excluded-stratum-reweighted',
+          // ADR-028 v15 (Fable review): undefined for SEL-07 baseline reuse; SRS within a layer; no variance.
+          definedFor: 'own-selection', withinLayerSampling: 'hash-order-as-srs', variance: 'not-reported',
+          companionColumn: 'confidence-free-share',
         },
       },
     },

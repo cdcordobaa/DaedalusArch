@@ -25,7 +25,7 @@ import { resolve } from 'node:path';
 import { renormaliseWeights } from '../src/scoring-engine/renormaliser.js';
 import { avrOf, computeAHS, inModeDimensions, tallyDimensions, verdictSourceOf } from '../src/scoring-engine/score-computer.js';
 import { determineVerdict } from '../src/scoring-engine/verdict.js';
-import { proportionalShare } from '../src/scoring-engine/neural-aggregation.js';
+import { proportionalDefinedFor, proportionalShare } from '../src/scoring-engine/neural-aggregation.js';
 import { parseSpec } from '../src/spec-parser/spec-parser.js';
 import type { Dimension, EvaluationMode, OverallVerdict } from '../src/shared/types/enums.js';
 import type {
@@ -344,11 +344,14 @@ export function storedAggregationOf(report: RescorableReport): NeuralAggregation
   return report.scoring?.neuralAggregation === 'proportional' ? 'proportional' : 'majority';
 }
 
-/** True when every judged (route `neuronal`) row carries `candidatesByLayer`, so `proportional` can be recomputed. */
+/**
+ * True when every judged (route `neuronal`) row carries `candidatesByLayer` and selected its own units, so
+ * `proportional` can be recomputed (it is undefined for SEL-07 baseline reuse, ADR-028 v15).
+ */
 export function proportionalAvailable(report: RescorableReport): boolean {
   const routes = new Map(report.functionResults.map((r) => [String(r.functionId), r.route] as const));
   const rows = (report.neuralResults ?? []).filter((row) => routes.get(String(row.functionId)) === 'neuronal');
-  return rows.length > 0 && rows.every((row) => row.candidatesByLayer !== undefined);
+  return rows.length > 0 && rows.every((row) => row.candidatesByLayer !== undefined && proportionalDefinedFor(row.selection));
 }
 
 /** Per judged function (route `neuronal`), the verdict under `rule`; hybrids keep their stored contribution. */

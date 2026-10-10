@@ -16,6 +16,13 @@
  *
  *   Uncapped and all valid, every weight is 1 and the share is the plain mean. Whether a function has a result at
  *   all (AGG-05 too few valid units, AGG-09 no units) is unchanged, so `functionCount` is the same under both rules.
+ *   Hash order inside a layer is treated as simple random sampling; no variance is reported.
+ * - The variant is UNDEFINED for a run that reuses a baseline selection (BR-U4-SEL-07, `selection.source =
+ *   'baseline'`): its `addedByVariant` units are judged with probability 1, so N_h / V_h is not an inclusion weight.
+ *   The scorer refuses such a run (`NEURAL_AGGREGATION_UNDEFINED`) and the re-scorer emits no proportional row.
+ * - Asymmetry (bias toward clean): a failed unit scores at most 1 and is discounted by its confidence, a passing unit
+ *   scores 0 whatever its confidence, so low-confidence fails pull the share down and never up. The confidence-free
+ *   share `Σ N_h · failed_h / V_h / Σ N_h` (`confidenceFreeShare`) is reported beside it.
  * Pure: no I/O.
  */
 import type { ConfidenceThresholds } from '../shared/types/spec.js';
@@ -25,6 +32,11 @@ export const NEURAL_AGGREGATIONS: readonly NeuralAggregation[] = Object.freeze([
 export const DEFAULT_NEURAL_AGGREGATION: NeuralAggregation = 'registered';
 /** Rule id of the variant, as registered in `corpus/frozen-instrument.json` `scoringFreeze.neuralAggregation`. */
 export const PROPORTIONAL_RULE_ID = 'proportional-inclusion-weighted-v1' as const;
+
+/** The variant is defined only for a function that selected its own units (not SEL-07 baseline reuse). */
+export function proportionalDefinedFor(selection: { readonly source?: 'own' | 'baseline' | undefined } | undefined): boolean {
+  return selection?.source !== 'baseline';
+}
 
 export function parseNeuralAggregation(value: string | undefined): NeuralAggregation | undefined {
   if (value === undefined) return DEFAULT_NEURAL_AGGREGATION;
@@ -60,6 +72,8 @@ export interface ProportionalStratum {
 
 export interface ProportionalShare {
   readonly share: number;
+  /** Σ N_h · failed_h / V_h / Σ N_h: the same Hájek share with every failed unit scoring 1 (no confidence weight). */
+  readonly confidenceFreeShare: number;
   readonly strata: readonly ProportionalStratum[];   // sorted by layer
   readonly validUnits: number;
   readonly failedUnits: number;
@@ -98,6 +112,7 @@ export function proportionalShare(
   const layers = [...new Set([...judgedByLayer.keys(), ...Object.keys(candidatesByLayer ?? {})])].sort();
   const strata: ProportionalStratum[] = [];
   let num = 0;
+  let numFree = 0;
   let den = 0;
   for (const layer of layers) {
     const judged = judgedByLayer.get(layer) ?? 0;
@@ -107,8 +122,9 @@ export function proportionalShare(
     strata.push({ layer, candidates, validUnits: s.valid, failedUnits: s.failed, meanScore });
     if (s.valid === 0) continue;
     num += candidates * meanScore;
+    numFree += candidates * (s.failed / s.valid);
     den += candidates;
   }
   const failedUnits = strata.reduce((a, s) => a + s.failedUnits, 0);
-  return { share: den === 0 ? 0 : Math.min(1, num / den), strata, validUnits, failedUnits, warningUnits };
+  return { share: num / den, confidenceFreeShare: numFree / den, strata, validUnits, failedUnits, warningUnits };
 }

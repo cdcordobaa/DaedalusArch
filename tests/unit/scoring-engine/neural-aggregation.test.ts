@@ -4,7 +4,7 @@
  * the comment above it.
  */
 import {
-  confidenceWeight, parseNeuralAggregation, proportionalShare, PROPORTIONAL_RULE_ID,
+  confidenceWeight, parseNeuralAggregation, proportionalDefinedFor, proportionalShare, PROPORTIONAL_RULE_ID,
 } from '../../../src/scoring-engine/neural-aggregation.js';
 import type { ProportionalUnit } from '../../../src/scoring-engine/neural-aggregation.js';
 import { scoreDimensions } from '../../../src/scoring-engine/score-computer.js';
@@ -76,6 +76,22 @@ describe('proportionalShare (ADR-028 §12.2)', () => {
     expect(proportionalShare([], { a: 3 }, T)).toBeUndefined();
     expect(proportionalShare([u('a', 'fail', 0.9), u('b', 'fail', 0.99)], { a: 20, b: 3 }, T)?.share).toBeCloseTo(1, 12);
     expect(proportionalShare([u('a', 'pass', 0.9), u('b', 'warning', 0.5)], { a: 20, b: 3 }, T)?.share).toBe(0);
+  });
+
+  it('the confidence-free share counts every failed unit as 1 (v15 companion column)', () => {
+    // Same strata as the capped case: a (N 10: fail 0.9, pass), b (N 2: fail 0.7 twice).
+    // Confidence-free: (10·1/2 + 2·2/2) / 12 = 7 / 12; the weighted share is 6.4 / 12 (bias toward clean).
+    const p = proportionalShare([u('a', 'fail', 0.9), u('a', 'pass', 0.9), u('b', 'fail', 0.7), u('b', 'fail', 0.7)], { a: 10, b: 2 }, T);
+    expect(p?.confidenceFreeShare).toBeCloseTo(7 / 12, 12);
+    expect(p?.share).toBeLessThan(p?.confidenceFreeShare ?? 0);
+    // A low-confidence fail: weighted 0.3, confidence-free 1.
+    expect(proportionalShare([u('a', 'fail', 0.4)], { a: 1 }, T)).toMatchObject({ share: 0.3, confidenceFreeShare: 1 });
+  });
+
+  it('is defined only for a function that selected its own units (SEL-07 baseline reuse: undefined)', () => {
+    expect(proportionalDefinedFor({ source: 'own' })).toBe(true);
+    expect(proportionalDefinedFor(undefined)).toBe(true);
+    expect(proportionalDefinedFor({ source: 'baseline' })).toBe(false);
   });
 
   it('parses the option values; the rule id is registered', () => {
@@ -151,6 +167,20 @@ describe('scoreDimensions under each neural aggregation (ADR-028)', () => {
     expect(Number(v.ahsNeuronal)).toBeCloseTo(0.425, 3);
     // The rules-only field is the same under both rules.
     expect(Number(v.ahsDeterministic)).toBe(0);
+  });
+});
+
+describe('SEL-07 baseline reuse (ADR-028 v15)', () => {
+  it('proportional scoring of a baseline-reuse run is refused; the registered rule still scores it', () => {
+    const reused = {
+      ...results,
+      neuronalResults: results.neuronalResults.map((r) => ({ ...r, selection: { functionId: r.functionId, candidateUnitIds: [], selectedUnitIds: [], source: 'baseline' as const } })),
+    };
+    const base = { evaluationResults: reused, scoringWeights, fullModeWeights, confidenceThresholds: T, mode: 'full' as const, fitnessFunctions: [], disabledFunctions: [], noJudgeUnits: [] };
+    const prop = scoreDimensions({ ...base, neuralAggregation: 'proportional' });
+    expect(prop).toMatchObject({ ok: false, code: 'NEURAL_AGGREGATION_UNDEFINED' });
+    if (!prop.ok) expect(prop.message).toContain('FF-N02');
+    expect(scoreDimensions({ ...base, neuralAggregation: 'registered' }).ok).toBe(true);
   });
 });
 

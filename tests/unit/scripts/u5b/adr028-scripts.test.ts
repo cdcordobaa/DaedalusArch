@@ -14,9 +14,9 @@ import type { RescorableReport } from '../../../../scripts/rescore.js';
 import { cliArgv, judgeStamp, main as runMain, runPlan, validateRunRecord } from '../../../../scripts/run-experiment.js';
 import type { ExperimentPlan, HarnessDeps } from '../../../../scripts/run-experiment.js';
 import { checkNeuralAggregation, neuralAggregationOf } from '../../../../scripts/aggregate.js';
-import { comparisonCsv, contributionsCsv, pairRuns, summarise } from '../../../../scripts/compare-aggregations.js';
+import { comparisonCsv, contributionsCsv, judgeDecomposition, pairRuns, readingOf, summarise } from '../../../../scripts/compare-aggregations.js';
 import type { Run } from '../../../../scripts/compare-aggregations.js';
-import { codeRationale, codesOf, JUDGE_CODING_FRAME_INVALID, loadCodingFrame, parseCodingFrame } from '../../../../scripts/lib/judge-coding-frame.js';
+import { codeRationale, codeRationaleGuarded, codesOf, JUDGE_CODING_FRAME_INVALID, loadCodingFrame, negatedAt, parseCodingFrame } from '../../../../scripts/lib/judge-coding-frame.js';
 import type { CodingFrame } from '../../../../scripts/lib/judge-coding-frame.js';
 import { cassetteVote, judgeDiagnostics } from '../../../../scripts/judge-diagnostics.js';
 import type { PreregCheck } from '../../../../scripts/lib/prereg.js';
@@ -68,6 +68,12 @@ describe('re-scorer: the neural:proportional row (ADR-028 §12.2)', () => {
     expect(v.get('FF-N01')?.proportionalShare).toBeCloseTo(6.4 / 12, 12);
     expect(v.get('FF-N02')?.proportionalShare).toBeCloseTo(0.25, 12);
     expect(neuralVerdicts(report, 'majority').get('FF-N01')?.verdict).toBe('fail');
+    // v15: undefined for SEL-07 baseline reuse, so no proportional row.
+    const reused = { ...report, neuralResults: (report.neuralResults ?? []).map((r) => ({ ...r, selection: { ...r.selection, source: 'baseline' as const } })) };
+    expect(proportionalAvailable(reused)).toBe(false);
+    const rr = rescoreReport(reused);
+    if (!rr.ok) throw new Error(rr.detail);
+    expect(rr.value.sensitivity.map((x) => x.scenarioId)).not.toContain('neural:proportional');
   });
 
   it('is absent for a report without candidatesByLayer (written before ADR-028)', () => {
@@ -235,44 +241,75 @@ describe('aggregate: one rule per CSV set (ADR-028)', () => {
   });
 });
 
-function run(projectId: string, report: EvaluationReport, runId: string): Run {
+function run(projectId: string, report: EvaluationReport, runId: string, preregVersion = 14): Run {
   const record = {
     runId, planId: 'e7-x', projectId, status: 'accepted', attempt: 1, specSha: 'b'.repeat(64), cliCommit: 'a'.repeat(40),
-    preregVersion: 14, frozenHashes: {}, envRecordId: 'env', startedAt: '2026-10-10T00:00:00Z', wallMs: 1,
+    preregVersion, frozenHashes: {}, envRecordId: 'env', startedAt: '2026-10-10T00:00:00Z', wallMs: 1,
   } as RunRecord;
   return { record, report };
 }
 
+const col = (csv: string, name: string, line = 1): string => {
+  const rows = csv.trimEnd().split('\n').map((l) => l.split(','));
+  return rows[line]?.[rows[0]?.indexOf(name) ?? -1] ?? '';
+};
+
 describe('compare-aggregations (ADR-028 §12.3)', () => {
-  it('pairs by project, checks the rules-only AHS and the judge units, and counts verdict changes', () => {
-    const reg = handReport() as EvaluationReport;
-    const variant = {
-      ...handReport(), scoring: { ...reg.scoring, neuralAggregation: 'proportional' as const },
-      ahsCombined: 0.5 as EvaluationReport['ahsCombined'], verdict: 'soft-block' as const,
-    } as EvaluationReport;
-    const rows = pairRuns([run('a', reg, 'r-a')], [run('a', variant, 'v-a')]);
-    expect(rows).toHaveLength(1);
-    expect(rows[0]).toMatchObject({ projectId: 'a', sameJudgeUnits: true, verdictChanged: reg.verdict !== 'soft-block' });
-    const csv = comparisonCsv(rows, 'post-hoc').trimEnd().split('\n');
-    expect(csv[0]?.split(',')).toContain('verdict_rules_only');
-    expect(csv[1]).toContain(',post-hoc,');
-    expect(csv[1]).toContain(',0.500,');
+  /*
+   * scoredReport: executed dimensions structural (AVR 0), coupling (1), semantic, integrity; full-mode weights
+   * .32 / .18 / .04 / .04 over Σ = .58, so W_n = .08 / .58 = 0.137931.
+   * Registered: integrity 0.7, semantic 0 → ahsCombined = 1 − (.18 + .028) / .58 = 0.641 (soft-block).
+   * Judge-blind: 1 − .18 / .58 = 0.690 (warning) → judge_mattered true; delta_judge = 0.641 − 0.690 = −0.049 ≥ −W_n.
+   * ahsDeterministic = 1 − .2 / .55 = 0.636 → delta_dilution = 0.690 − 0.636 = 0.054; identity W_n · (1 − .636) = 0.050.
+   * Proportional: integrity 0.533, semantic 0.25 → 1 − (.18 + .02132 + .01) / .58 = 0.636 (soft-block).
+   * any-fail: semantic 1 (1 fail at 0.9), integrity 0.7 → 1 − (.18 + .04 + .028) / .58 = 0.572 (soft-block).
+   */
+  it('the decomposition, the any-fail companion and the derived reading, from hand values', async () => {
+    const reg = await scoredReport('registered') as EvaluationReport;
+    const prop = await scoredReport('proportional') as EvaluationReport;
+    const d = judgeDecomposition(reg);
+    expect(d?.wNeural).toBeCloseTo(0.08 / 0.58, 9);
+    expect(d?.ahsCombinedJudgeBlind).toBeCloseTo(0.69, 9);
+    expect(d?.verdictJudgeBlind).toBe('warning');
+    expect(d?.deltaJudge).toBeCloseTo(-0.049, 9);
+    expect(d?.deltaDilution).toBeCloseTo(0.054, 9);
+    expect(d?.dilutionIdentity).toBeCloseTo((0.08 / 0.58) * (1 - 0.636), 9);
+    const rows = pairRuns([run('a', reg, 'r-a')], [run('a', prop, 'v-a')]);
+    const csv = comparisonCsv(rows);
+    expect(col(csv, 'reading')).toBe('pre-registered');
+    expect(col(csv, 'ahs_combined_registered')).toBe('0.641');
+    expect(col(csv, 'ahs_combined_proportional')).toBe('0.636');
+    expect(col(csv, 'verdict_registered')).toBe('soft-block');
+    expect(col(csv, 'verdict_judge_blind')).toBe('warning');
+    expect(col(csv, 'judge_mattered_registered')).toBe('true');
+    expect(col(csv, 'judge_bound')).toBe('-0.138');
+    expect(col(csv, 'delta_judge_proportional')).toBe('-0.054');
+    expect(col(csv, 'ahs_combined_any_fail')).toBe('0.572');
+    expect(col(csv, 'verdict_any_fail')).toBe('soft-block');
+    expect(col(csv, 'any_fail_changed')).toBe('false');
+    expect(col(csv, 'registered_prereg_version')).toBe('14');
+    expect(summarise(rows)).toMatchObject({ judgeMattered: 1, verdictChanges: 0, anyFailChanges: 0 });
+    // Reading: derived from the registered run's preregVersion; a contradicting override is refused.
+    expect(readingOf(run('a', reg, 'r', 11).record)).toBe('post-hoc');
+    expect(col(comparisonCsv(pairRuns([run('a', reg, 'r', 11)], [run('a', prop, 'v')])), 'reading')).toBe('post-hoc');
+    expect(() => pairRuns([run('a', reg, 'r', 11)], [run('a', prop, 'v')], 'pre-registered')).toThrow(/contradicts/);
+    expect(() => pairRuns([run('a', reg, 'r')], [run('a', prop, 'v')], 'pre-registered')).not.toThrow();
+    // Contributions: FF-N01 proportional 0.533333, confidence-free (10·0.5 + 2·1) / 12 = 0.583333.
     const contrib = contributionsCsv(rows).trimEnd().split('\n');
-    // FF-N01: registered 0.7, proportional 0.533333, strata a:10/2/1;b:2/2/2. FF-N02: registered 0, proportional 0.25.
-    expect(contrib.find((l) => l.includes(',FF-N01,'))).toContain(',fail,0.700000,0.533333,');
+    expect(contrib.find((l) => l.includes(',FF-N01,'))).toContain(',fail,0.700000,0.533333,0.583333,');
+    expect(contrib.find((l) => l.includes(',FF-N02,'))).toContain(',warning,0.000000,0.250000,0.250000,');
     expect(contrib.find((l) => l.includes(',FF-N01,'))).toContain('a:10/2/1;b:2/2/2');
-    expect(contrib.find((l) => l.includes(',FF-N02,'))).toContain(',warning,0.000000,0.250000,');
-    expect(summarise(rows).verdictChanges).toBe(reg.verdict !== 'soft-block' ? 1 : 0);
   });
 
-  it('refuses a missing pair, a wrong rule and a different rules-only AHS', () => {
-    const reg = handReport() as EvaluationReport;
-    const prop = { ...reg, scoring: { ...reg.scoring, neuralAggregation: 'proportional' as const } } as EvaluationReport;
+  it('refuses a missing pair, a wrong rule, a different rules-only AHS and a stored AHS that does not reproduce', async () => {
+    const reg = await scoredReport('registered') as EvaluationReport;
+    const prop = await scoredReport('proportional') as EvaluationReport;
     expect(() => pairRuns([run('a', reg, 'r')], [run('b', prop, 'v')])).toThrow(/no accepted variant run for a/);
     expect(() => pairRuns([run('a', reg, 'r')], [run('a', reg, 'v')])).toThrow(/not a proportional-rule report/);
     expect(() => pairRuns([run('a', prop, 'r')], [run('a', prop, 'v')])).toThrow(/not a registered-rule report/);
     const other = { ...prop, ahsDeterministic: 0.1 as EvaluationReport['ahsDeterministic'] } as EvaluationReport;
     expect(() => pairRuns([run('a', reg, 'r')], [run('a', other, 'v')])).toThrow(/rules-only AHS differs/);
+    expect(() => judgeDecomposition({ ...reg, ahsCombined: 0.9 } as EvaluationReport)).toThrow(/does not reproduce/);
     const changedUnits = clone(prop) as MutableReport;
     const rows = (changedUnits.neuralResults ?? []) as (NeuralResultRow & { unitResults: NeuralUnitRow[] })[];
     if (rows[0] !== undefined) rows[0].unitResults = [unit('x', 'a', 'pass', 0.9)];
@@ -283,14 +320,18 @@ describe('compare-aggregations (ADR-028 §12.3)', () => {
 // ---------------------------------------------------------------------------------------------
 // Coding frame and diagnostics
 
-describe('judge coding frame (ADR-028 item 4, §12.4)', () => {
+describe('judge coding frame 1.1.0 (ADR-028 item 4, §12.4)', () => {
   const loaded = loadCodingFrame(ROOT);
   if (!loaded.ok) throw new Error(loaded.detail);
   const frame: CodingFrame = loaded.frame;
 
-  it('the registered frame is one machine block with the rubric criteria of FF-N01 and FF-N02', () => {
-    expect(frame.version).toBe('1.0.0');
+  it('the registered frame: message-only primary, guarded reasoning, threshold 0.3, the rubric criteria', () => {
+    expect(frame.version).toBe('1.1.0');
     expect(frame.uncoded).toBe('JC-UNCODED');
+    expect(frame.primaryTextFields).toEqual(['violations.message']);
+    expect(frame.secondaryTextFields).toEqual(['reasoning']);
+    expect(frame.negationGuard).toEqual({ window: 5, tokens: ['no', 'not', 'without', 'none', 'neither', 'avoids', 'free of'] });
+    expect(frame.informativeThreshold).toBe(0.3);
     expect(codesOf(frame, 'FF-N01')).toEqual(['JC-N01-SPLIT', 'JC-N01-DUP', 'JC-N01-BYPASS', 'JC-UNCODED']);
     expect(codesOf(frame, 'FF-N02')).toEqual(['JC-N02-PERSISTENCE', 'JC-N02-TRANSPORT', 'JC-N02-FRAMEWORK', 'JC-N02-BUSINESS', 'JC-UNCODED']);
   });
@@ -300,30 +341,50 @@ describe('judge coding frame (ADR-028 item 4, §12.4)', () => {
     expect(codeRationale(frame, 'FF-N01', 'The service reaches into the repository and bypasses the facade.')).toEqual(['JC-N01-BYPASS']);
     expect(codeRationale(frame, 'FF-N02', 'Runs a Prisma query and builds the HTTP response with @Injectable.')).toEqual(['JC-N02-PERSISTENCE', 'JC-N02-TRANSPORT', 'JC-N02-FRAMEWORK']);
     expect(codeRationale(frame, 'FF-N02', 'The controller computes the discount, a business rule.')).toEqual(['JC-N02-BUSINESS']);
-    // A persistence word is not an FF-N01 criterion; nested is not nest.
     expect(codeRationale(frame, 'FF-N01', 'Uses the database.')).toEqual(['JC-UNCODED']);
     expect(codeRationale(frame, 'FF-N02', 'deeply nested conditionals')).toEqual(['JC-UNCODED']);
     expect(codeRationale(frame, 'FF-X99', 'anything')).toEqual(['JC-UNCODED']);
   });
 
+  it('the negation guard drops a match with a guard token or phrase among the 5 tokens before it', () => {
+    // "no duplicated rule": "no" is 1 token before → dropped. "is free of any database access" → phrase in window.
+    expect(codeRationaleGuarded(frame, 'FF-N01', 'There is no duplicated rule here.')).toEqual(['JC-UNCODED']);
+    expect(codeRationaleGuarded(frame, 'FF-N02', 'The entity is free of any database access.')).toEqual(['JC-UNCODED']);
+    // 6 tokens between "not" and the match: outside the window → kept.
+    expect(codeRationaleGuarded(frame, 'FF-N01', 'It is not a b c d e duplicated.')).toEqual(['JC-N01-DUP']);
+    // One negated and one plain match of the same criterion → kept.
+    expect(codeRationaleGuarded(frame, 'FF-N02', 'Without a repository here, but the service runs a SQL query.')).toEqual(['JC-N02-PERSISTENCE']);
+    // The unguarded coding keeps the negated match.
+    expect(codeRationale(frame, 'FF-N01', 'There is no duplicated rule here.')).toEqual(['JC-N01-DUP']);
+    expect(negatedAt('it avoids duplication', 10, frame.negationGuard)).toBe(true);
+    expect(negatedAt('Freedom of duplication', 11, frame.negationGuard)).toBe(false);
+  });
+
   it('refuses a missing, doubled or malformed block', () => {
     expect(parseCodingFrame('no block')).toMatchObject({ ok: false, code: JUDGE_CODING_FRAME_INVALID });
     const block = (body: string): string => `\`\`\`yaml judge-coding-frame\n${body}\n\`\`\`\n`;
-    const good = 'version: 1.0.0\nuncoded: JC-UNCODED\nfunctions:\n  FF-N01:\n    - code: JC-A\n      rubricClause: c\n      patterns: [\'\\bx\\b\']';
+    const good = [
+      'version: 1.1.0', 'uncoded: JC-UNCODED', 'primary:', '  textFields: [violations.message]', 'secondary:', '  textFields: [reasoning]',
+      '  negationGuard:', '    window: 5', '    tokens: [no, free of]', 'discrimination:', '  informativeThreshold: 0.3',
+      'functions:', '  FF-N01:', '    - code: JC-A', '      rubricClause: c', "      patterns: ['\\bx\\b']",
+    ].join('\n');
     expect(parseCodingFrame(block(good))).toMatchObject({ ok: true });
     expect(parseCodingFrame(block(good) + block(good))).toMatchObject({ ok: false });
     expect(parseCodingFrame(block(good.replace("'\\bx\\b'", "'(unclosed'")))).toMatchObject({ ok: false });
     expect(parseCodingFrame(block(good.replace('JC-A', 'XX')))).toMatchObject({ ok: false });
     expect(parseCodingFrame(block(good.replace('JC-A', 'JC-UNCODED')))).toMatchObject({ ok: false });
+    expect(parseCodingFrame(block(good.replace('[violations.message]', '[prompt]')))).toMatchObject({ ok: false });
+    expect(parseCodingFrame(block(good.replace('window: 5', 'window: 0')))).toMatchObject({ ok: false });
+    expect(parseCodingFrame(block(good.replace('informativeThreshold: 0.3', 'informativeThreshold: 2')))).toMatchObject({ ok: false });
   });
 });
 
-function entry(projectId: string, functionId: string, unitId: string, runIndex: number, pass: boolean | null, conf: number, reasoning: string): CassetteEntry {
+function entry(projectId: string, functionId: string, unitId: string, runIndex: number, pass: boolean | null, conf: number, reasoning: string, message = `msg ${String(runIndex)}`): CassetteEntry {
   return {
     schemaVersion: 2, key: `k-${unitId}-${String(runIndex)}`, requestHash: 'h', repetition: 0, runIndex, functionId, unitId, projectId,
     provider: 'claude-cli', model: 'claude-opus-5-5', effort: 'high', usedOptions: {}, ignoredOptions: [], attempts: 1,
     outcome: pass === null ? { kind: 'invalid', cause: 'PARSE_FAILURE' } : { kind: 'valid' },
-    response: '', parsedVerdict: pass === null ? null : { pass, confidence: conf, reasoning, evidence: [], violations: pass ? [] : [{ filePath: unitId, message: `msg ${String(runIndex)}` }] },
+    response: '', parsedVerdict: pass === null ? null : { pass, confidence: conf, reasoning, evidence: [], violations: pass ? [] : [{ filePath: unitId, message }] },
     usage: { inputTokens: 0, outputTokens: 0 }, durationMs: 1, recordedAt: '2026-10-10T00:00:00Z',
   };
 }
@@ -337,10 +398,12 @@ describe('judge diagnostics (ADR-028 item 4)', () => {
     expect(cassetteVote([e(0, false, 0.8), e(1, null, 0), e(2, null, 0)]).verdict).toBe('invalid');
   });
 
-  it('writes the unit, criteria and summary tables from a run directory and cassettes, with no judge call', () => {
+  it('writes the unit, criteria, discrimination and summary tables from a run directory and cassettes, with no judge call', () => {
     const dir = mkdtempSync(join(tmpdir(), 'adr028-diag-'));
     try {
-      const report = handReport() as EvaluationReport;
+      const report = clone<MutableReport>(handReport());
+      // One symbolic violation on m/a1 (an FF-N01 unit file) for rules_also_flag.
+      report.violations = [...report.violations, { ...(FULL.violations[0] ?? ({} as never)), route: 'symbolic', filePath: 'm/a1', id: 'sym-1' }];
       const record = run('proj', report, 'e7-x-000-proj').record;
       mkdirSync(join(dir, 'runs/runs'), { recursive: true });
       mkdirSync(join(dir, 'runs/reports'), { recursive: true });
@@ -350,9 +413,12 @@ describe('judge diagnostics (ADR-028 item 4)', () => {
       for (const row of report.neuralResults ?? []) {
         for (const u of row.unitResults) {
           const fail = u.verdict === 'fail';
+          const n01 = String(row.functionId) === 'FF-N01';
           for (let i = 0; i < 3; i++) {
-            const text = String(row.functionId) === 'FF-N01' ? 'Duplicates the invariant in two places.' : 'Persists through a repository query.';
-            entries.push(entry('proj', String(row.functionId), u.unitId, i, !fail, fail ? 0.9 - i * 0.01 : 0.9, fail ? text : 'Clean.'));
+            // Fail messages carry the criterion; pass reasoning names it negated ("no duplication", "without any repository").
+            const reasoning = fail ? 'See the violation.' : n01 ? 'There is no duplication here.' : 'It works without any repository access.';
+            const message = n01 ? 'Duplicates the invariant in two places.' : 'Persists through a repository query.';
+            entries.push(entry('proj', String(row.functionId), u.unitId, i, !fail, fail ? 0.9 - i * 0.01 : 0.9, reasoning, message));
           }
         }
       }
@@ -371,19 +437,25 @@ describe('judge diagnostics (ADR-028 item 4)', () => {
       expect(out.units).toBe(8);
       expect(out.missingCassettes).toBe(0);
       expect(out.voteMismatches).toBe(1);
-      const units = (out.files.get('judge_units.csv') ?? '').trimEnd().split('\n');
-      expect(units).toHaveLength(9);
-      const a1 = units.find((l) => l.includes(',m/a1,')) ?? '';
-      expect(a1).toContain(',fail,');
-      expect(a1).toContain(',JC-N01-DUP,Duplicates the invariant in two places.,msg 0');
-      expect(units.find((l) => l.includes(',f/2,'))).toContain(',false,');
+      const units = out.files.get('judge_units.csv') ?? '';
+      const lines = units.trimEnd().split('\n');
+      expect(lines).toHaveLength(9);
+      const at = (unitId: string, name: string): string => col(units, name, lines.findIndex((l) => l.includes(`,${unitId},`)));
+      expect(at('m/a1', 'codes')).toBe('JC-N01-DUP');
+      expect(at('m/a1', 'rules_also_flag')).toBe('true');
+      expect(at('m/b1', 'rules_also_flag')).toBe('false');
+      // A passing unit has no messages, so no primary code; its guarded reasoning code is uncoded.
+      expect(at('m/a2', 'codes')).toBe('');
+      expect(at('m/a2', 'codes_reasoning_guarded')).toBe('JC-UNCODED');
       const criteria = (out.files.get('judge_criteria.csv') ?? '').trimEnd().split('\n');
-      // FF-N01 failing units pooled: 3 coded JC-N01-DUP of 3 → share 1.
-      expect(criteria).toContain('FF-N01,*,fail,JC-N01-DUP,3,3,1.000000');
-      expect(criteria).toContain('FF-N02,proj,fail,JC-N02-PERSISTENCE,1,1,1.000000');
-      expect(criteria).toContain('FF-N02,proj,pass,JC-UNCODED,3,3,1.000000');
+      expect(criteria).toContain('FF-N01,*,fail,JC-N01-DUP,3,0,3,1.000000,0.000000');
+      expect(criteria).toContain('FF-N02,proj,fail,JC-N02-PERSISTENCE,1,0,1,1.000000,0.000000');
+      const disc = (out.files.get('judge_discrimination.csv') ?? '').trimEnd().split('\n');
+      // FF-N01 DUP: fail message share 3/3 − guarded pass share 0/1 = 1 → informative; SPLIT: 0 − 0 = 0 → not.
+      expect(disc).toContain('FF-N01,*,JC-N01-DUP,3,1.000000,1,0.000000,1.000000,true');
+      expect(disc).toContain('FF-N01,*,JC-N01-SPLIT,3,0.000000,1,0.000000,0.000000,false');
       const summary = (out.files.get('judge_summary.csv') ?? '').trimEnd().split('\n');
-      expect(summary).toContain('FF-N01,proj,4,4,0,3,1,0,0,0.800000,0');
+      expect(summary).toContain('FF-N01,proj,4,4,0,3,1,0,0,0.800000,0,3,1');
     } finally {
       rmSync(dir, { recursive: true, force: true });
     }

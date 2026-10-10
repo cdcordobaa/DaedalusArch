@@ -33,7 +33,8 @@ export type ScoringErrorCode =
   | 'SCORING_FAILED'
   | 'METRICS_QUERY_FAILED'
   | 'SCORING_NO_EXECUTED_WEIGHT'          // BR-U3-37
-  | 'CONFIG_MISSING_FULL_MODE_WEIGHTS';   // BR-U3-37
+  | 'CONFIG_MISSING_FULL_MODE_WEIGHTS'    // BR-U3-37
+  | 'NEURAL_AGGREGATION_UNDEFINED';       // ADR-028: proportional on a SEL-07 baseline-reuse run
 
 export interface ScoringError extends PipelineError {
   readonly code: ScoringErrorCode;

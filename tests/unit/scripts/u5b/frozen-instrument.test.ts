@@ -104,6 +104,8 @@ describe('frozen-instrument exporter (BR-U5b-52)', () => {
           proportional: {
             rule: 'proportional-inclusion-weighted-v1', strata: 'layer', unitWeight: 'N_h / V_h',
             failedUnitScore: 'u3-confidence-weight', splitVoteScore: 0, invalidUnits: 'excluded-stratum-reweighted',
+            definedFor: 'own-selection', withinLayerSampling: 'hash-order-as-srs', variance: 'not-reported',
+            companionColumn: 'confidence-free-share',
           },
         },
       },

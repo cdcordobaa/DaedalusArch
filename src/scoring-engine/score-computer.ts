@@ -18,7 +18,7 @@ import { avrScore, ahsScore } from '../shared/types/value-objects.js';
 import type { AVRScore, AHSScore } from '../shared/types/value-objects.js';
 import { ahsFromEffectiveWeights, dropReasonFor, renormaliseWeights } from './renormaliser.js';
 import type { DimensionDeclaration, DimensionWeights, RenormalisedWeights } from './renormaliser.js';
-import { confidenceWeight, DEFAULT_NEURAL_AGGREGATION, proportionalShare } from './neural-aggregation.js';
+import { confidenceWeight, DEFAULT_NEURAL_AGGREGATION, proportionalDefinedFor, proportionalShare } from './neural-aggregation.js';
 import type { NeuralAggregation } from './neural-aggregation.js';
 
 export type VerdictSource = ReportScoring['verdictSource'];
@@ -168,7 +168,7 @@ export interface DimensionScoringInput {
   readonly neuralAggregation?: NeuralAggregation;
 }
 
-export type DimensionScoringErrorCode = 'SCORING_NO_EXECUTED_WEIGHT' | 'CONFIG_MISSING_FULL_MODE_WEIGHTS';
+export type DimensionScoringErrorCode = 'SCORING_NO_EXECUTED_WEIGHT' | 'CONFIG_MISSING_FULL_MODE_WEIGHTS' | 'NEURAL_AGGREGATION_UNDEFINED';
 
 export interface DimensionScoring {
   readonly perDimensionScores: readonly PerDimensionScore[];
@@ -215,6 +215,17 @@ export function scoreDimensions(input: DimensionScoringInput): DimensionScoringR
     };
   }
 
+  // ADR-028 (v15): the proportional variant is undefined for SEL-07 baseline-reuse runs (addedByVariant units, p = 1).
+  if (input.neuralAggregation === 'proportional') {
+    const reused = input.evaluationResults.neuronalResults.filter((r) => !proportionalDefinedFor(r.selection)).map((r) => String(r.functionId));
+    if (reused.length > 0) {
+      return {
+        ok: false,
+        code: 'NEURAL_AGGREGATION_UNDEFINED',
+        message: `--neural-aggregation proportional is undefined for a baseline-reuse run (SEL-07): ${reused.join(', ')}; no score is produced`,
+      };
+    }
+  }
   const tallies = tallyDimensions(input.evaluationResults, input.confidenceThresholds, input.neuralAggregation);
   const executed: Partial<Record<Dimension, number>> = {};
   const avr: Partial<Record<Dimension, number>> = {};
