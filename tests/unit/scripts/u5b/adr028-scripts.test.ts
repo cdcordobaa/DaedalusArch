@@ -320,7 +320,7 @@ describe('compare-aggregations (ADR-028 §12.3)', () => {
   });
 });
 
-describe('compare-aggregations: judge-weighted sensitivity variant judge-weighted-v1 (§12.5, prereg v16)', () => {
+describe('compare-aggregations: judge-weighted sensitivity variant judge-weighted-v1 (§12.5, prereg v17)', () => {
   const SPEC = { structural: 0.32, coupling: 0.18, pattern: 0.27, solid: 0.1, convention: 0.05, semantic: 0.04, integrity: 0.04 } as const;
 
   it('weights: judge dimensions 2/7 and symbolic 5/7, each group proportional, sum 1; undefined without a judge or symbolic weight', () => {
@@ -404,9 +404,9 @@ describe('compare-aggregations: judge-weighted sensitivity variant judge-weighte
     expect(summarise(rows).judgeWeighted).toEqual({
       registered: { verdictChanges: 0, judgeMattered: 1 }, proportional: { verdictChanges: 0, judgeMattered: 1 }, any_fail: { verdictChanges: 0, judgeMattered: 1 },
     });
-    // Reading: pre-registered from prereg v16 on.
-    expect(judgeWeightedReadingOf(run('a', reg, 'r', 16).record)).toBe('pre-registered');
-    expect(col(comparisonCsv(pairRuns([run('a', reg, 'r', 16)], [run('a', prop, 'v', 16)])), 'reading_judge_weighted')).toBe('pre-registered');
+    // Reading: pre-registered from prereg v17 on.
+    expect(judgeWeightedReadingOf(run('a', reg, 'r', 17).record)).toBe('pre-registered');
+    expect(col(comparisonCsv(pairRuns([run('a', reg, 'r', 17)], [run('a', prop, 'v', 17)])), 'reading_judge_weighted')).toBe('pre-registered');
   });
 });
 

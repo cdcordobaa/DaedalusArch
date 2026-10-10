@@ -114,7 +114,7 @@ Then the P2 v1 side (analysis plan §10 B8; symbolic-only, no model call; lane l
    results/e1-grid/agg-proportional` (`reading` = pre-registered, derived) and `aggregate-cli.ts --runs
    results/e1-grid/agg-proportional --out results/e1-grid/agg-proportional --neural-aggregation proportional`.
    A cell whose judge reused a baseline selection (SEL-07) has no proportional reading (`NEURAL_AGGREGATION_UNDEFINED`).
-   The same `compare-aggregations` call writes the `judge-weighted-v1` columns (analysis plan §12.5, prereg v16;
+   The same `compare-aggregations` call writes the `judge-weighted-v1` columns (analysis plan §12.5, prereg v17;
    `reading_judge_weighted` = pre-registered for E1) from the stored reports, with no further run.
 
 ## 6. Labelling (ADR-021 items 6 and 8; live `agy` only in 6.4)

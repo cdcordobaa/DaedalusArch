@@ -24,14 +24,14 @@
  *   - `verdict_any_fail` (BR-U5b-60 `any-fail` re-score of the registered report) beside the proportional verdict.
  *   `reading` is derived, never chosen: `post-hoc` when the registered run's `preregVersion` < 14 (the ADR-028
  *   registration), else `pre-registered`; a `--reading` that contradicts it is refused. Both prereg versions are columns.
- *   - **judge-weighted sensitivity variant `judge-weighted-v1`** (v16, §12.5; a pure function of the stored reports, no
+ *   - **judge-weighted sensitivity variant `judge-weighted-v1`** (v17, §12.5; a pure function of the stored reports, no
  *     re-run, no LLM): the executed full-mode effective weights rescaled so the executed judge dimensions together weigh
  *     2/7 and the executed symbolic dimensions 5/7, each group proportionally, so they still sum to 1; same thresholds.
  *     Per rule (`registered`, `proportional`, `any_fail`): `ahs_combined_jw_<rule>`, `verdict_jw_<rule>`,
  *     `delta_jw_<rule>` (minus the same rule's AHS under the registered weights), `verdict_changed_jw_<rule>`,
  *     `delta_judge_jw_<rule>` and `judge_mattered_jw_<rule>` (against the judge-blind AHS under the judge-weighted
  *     weights); `w_neural_jw` = 2/7 and `judge_bound_jw` = −2/7. `reading_judge_weighted` is `post-hoc` when the
- *     registered run's `preregVersion` < 16, else `pre-registered`.
+ *     registered run's `preregVersion` < 17, else `pre-registered`.
  * - `neural_contributions.csv`: per project and judged function, the registered contribution (U4 majority verdict and
  *   the U3 confidence weight), the proportional share, the confidence-free share and the strata (`layer:N_h/V_h/failed`).
  */
@@ -51,12 +51,12 @@ export const COMPARE_INPUT_INVALID = 'COMPARE_INPUT_INVALID';
 /** The prereg version that registered the ADR-028 variant: a registered run before it gives a post-hoc reading. */
 export const ADR028_PREREG_VERSION = 14;
 const JUDGE_DIMENSIONS: readonly Dimension[] = ['semantic', 'integrity'];
-/** The judge-weighted sensitivity variant (§12.5, prereg v16). */
+/** The judge-weighted sensitivity variant (§12.5, prereg v17). */
 export const JUDGE_WEIGHTED_VARIANT = 'judge-weighted-v1';
 /** Joint weight of the executed judge dimensions under `judge-weighted-v1`: 2 of the 7 dimensions. */
 export const JUDGE_WEIGHTED_SHARE = 2 / 7;
 /** The prereg version that registered `judge-weighted-v1`: a registered run before it gives a post-hoc reading. */
-export const JUDGE_WEIGHTED_PREREG_VERSION = 16;
+export const JUDGE_WEIGHTED_PREREG_VERSION = 17;
 const JW_RULES = ['registered', 'proportional', 'any_fail'] as const;
 type JwRule = typeof JW_RULES[number];
 
@@ -169,7 +169,7 @@ export function anyFailReading(report: EvaluationReport): AnyFailReading {
 }
 
 // ---------------------------------------------------------------------------------------------
-// Judge-weighted sensitivity variant `judge-weighted-v1` (§12.5, prereg v16; pure, from the stored reports)
+// Judge-weighted sensitivity variant `judge-weighted-v1` (§12.5, prereg v17; pure, from the stored reports)
 
 /**
  * `judge-weighted-v1` weights from the executed effective weights (renormalised, Σ = 1): the executed judge dimensions
@@ -241,7 +241,7 @@ export function judgeWeightedReading(
   return { wNeural, judgeBlind: read(blindAvr), rules };
 }
 
-/** `post-hoc` when the registered run predates the `judge-weighted-v1` registration (prereg v16), else `pre-registered`. */
+/** `post-hoc` when the registered run predates the `judge-weighted-v1` registration (prereg v17), else `pre-registered`. */
 export function judgeWeightedReadingOf(record: RunRecord): 'post-hoc' | 'pre-registered' {
   return record.preregVersion < JUDGE_WEIGHTED_PREREG_VERSION ? 'post-hoc' : 'pre-registered';
 }
