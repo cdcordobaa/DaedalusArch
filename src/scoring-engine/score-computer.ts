@@ -18,6 +18,8 @@ import { avrScore, ahsScore } from '../shared/types/value-objects.js';
 import type { AVRScore, AHSScore } from '../shared/types/value-objects.js';
 import { ahsFromEffectiveWeights, dropReasonFor, renormaliseWeights } from './renormaliser.js';
 import type { DimensionDeclaration, DimensionWeights, RenormalisedWeights } from './renormaliser.js';
+import { confidenceWeight, DEFAULT_NEURAL_AGGREGATION, proportionalDefinedFor, proportionalShare } from './neural-aggregation.js';
+import type { NeuralAggregation } from './neural-aggregation.js';
 
 export type VerdictSource = ReportScoring['verdictSource'];
 
@@ -85,11 +87,22 @@ function executedFunctions(results: EvaluationResults): Map<string, FunctionOutc
   return byId;
 }
 
-/** Contribution of one function to its dimension's `violatedWeight` (BR-U3-32). */
-function contributionOf(fn: FunctionOutcome, confidenceThresholds?: ConfidenceThresholds): number {
+/**
+ * Contribution of one function to its dimension's `violatedWeight` (BR-U3-32). Under the `proportional` variant
+ * (ADR-028) a neural result contributes its inclusion-weighted share of failed judged units instead.
+ */
+function contributionOf(
+  fn: FunctionOutcome,
+  confidenceThresholds?: ConfidenceThresholds,
+  aggregation: NeuralAggregation = DEFAULT_NEURAL_AGGREGATION,
+): number {
   if (fn.symbolic !== undefined && !fn.symbolic.passed) return 1;
-  if (fn.neural?.verdict === 'fail') {
-    return getConfidenceWeight(Number(fn.neural.confidence), fn.neural.flaggedUnstable, confidenceThresholds);
+  if (fn.neural === undefined) return 0;
+  if (aggregation === 'proportional') {
+    return proportionalShare(fn.neural.unitResults, fn.neural.candidatesByLayer, confidenceThresholds)?.share ?? 0;
+  }
+  if (fn.neural.verdict === 'fail') {
+    return confidenceWeight(Number(fn.neural.confidence), fn.neural.flaggedUnstable, confidenceThresholds);
   }
   return 0;
 }
@@ -98,11 +111,12 @@ function contributionOf(fn: FunctionOutcome, confidenceThresholds?: ConfidenceTh
 export function tallyDimensions(
   results: EvaluationResults,
   confidenceThresholds?: ConfidenceThresholds,
+  aggregation: NeuralAggregation = DEFAULT_NEURAL_AGGREGATION,
 ): ReadonlyMap<Dimension, DimensionTally> {
   const tallies = new Map<Dimension, { functionCount: number; violatedWeight: number; violationCount: number }>();
   for (const fn of executedFunctions(results).values()) {
     const t = tallies.get(fn.dimension) ?? { functionCount: 0, violatedWeight: 0, violationCount: 0 };
-    const c = contributionOf(fn, confidenceThresholds);
+    const c = contributionOf(fn, confidenceThresholds, aggregation);
     t.functionCount++;
     t.violatedWeight += c;
     if (c > 0) t.violationCount++;
@@ -150,9 +164,11 @@ export interface DimensionScoringInput {
   readonly fitnessFunctions: readonly FitnessFunction[];
   readonly disabledFunctions: readonly DisabledFunction[];
   readonly noJudgeUnits: readonly (FunctionId | string)[];
+  /** ADR-028: `registered` (default, primary) or the `proportional` sensitivity variant. */
+  readonly neuralAggregation?: NeuralAggregation;
 }
 
-export type DimensionScoringErrorCode = 'SCORING_NO_EXECUTED_WEIGHT' | 'CONFIG_MISSING_FULL_MODE_WEIGHTS';
+export type DimensionScoringErrorCode = 'SCORING_NO_EXECUTED_WEIGHT' | 'CONFIG_MISSING_FULL_MODE_WEIGHTS' | 'NEURAL_AGGREGATION_UNDEFINED';
 
 export interface DimensionScoring {
   readonly perDimensionScores: readonly PerDimensionScore[];
@@ -199,7 +215,18 @@ export function scoreDimensions(input: DimensionScoringInput): DimensionScoringR
     };
   }
 
-  const tallies = tallyDimensions(input.evaluationResults, input.confidenceThresholds);
+  // ADR-028 (v15): the proportional variant is undefined for SEL-07 baseline-reuse runs (addedByVariant units, p = 1).
+  if (input.neuralAggregation === 'proportional') {
+    const reused = input.evaluationResults.neuronalResults.filter((r) => !proportionalDefinedFor(r.selection)).map((r) => String(r.functionId));
+    if (reused.length > 0) {
+      return {
+        ok: false,
+        code: 'NEURAL_AGGREGATION_UNDEFINED',
+        message: `--neural-aggregation proportional is undefined for a baseline-reuse run (SEL-07): ${reused.join(', ')}; no score is produced`,
+      };
+    }
+  }
+  const tallies = tallyDimensions(input.evaluationResults, input.confidenceThresholds, input.neuralAggregation);
   const executed: Partial<Record<Dimension, number>> = {};
   const avr: Partial<Record<Dimension, number>> = {};
   for (const [d, t] of tallies) {
@@ -269,17 +296,4 @@ export function scoreDimensions(input: DimensionScoringInput): DimensionScoringR
       verdictSource,
     },
   };
-}
-
-function getConfidenceWeight(
-  confidence: number,
-  unstable: boolean,
-  thresholds?: ConfidenceThresholds,
-): number {
-  if (unstable) return 0.2;
-  const high = thresholds?.high ?? 0.85;
-  const medium = thresholds?.medium ?? 0.60;
-  if (confidence >= high) return 1.0;
-  if (confidence >= medium) return 0.7;
-  return 0.3;
 }

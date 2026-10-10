@@ -96,6 +96,19 @@ describe('frozen-instrument exporter (BR-U5b-52)', () => {
     expect(fi.scoringFreeze).toEqual({
       verdictSource: { 'symbolic-only': 'ahsDeterministic', 'neuronal-only': 'ahsNeuronal', full: 'ahsCombined' },
       ahsNeuronal: { weights: 'fullModeWeights', dimensions: ['semantic', 'integrity'], renormalised: true },
+      // ADR-028: registered rule primary, the proportional variant registered as a sensitivity analysis.
+      neuralAggregation: {
+        primary: 'registered',
+        registeredRule: 'majority-of-valid-units-v1',
+        variants: {
+          proportional: {
+            rule: 'proportional-inclusion-weighted-v1', strata: 'layer', unitWeight: 'N_h / V_h',
+            failedUnitScore: 'u3-confidence-weight', splitVoteScore: 0, invalidUnits: 'excluded-stratum-reweighted',
+            definedFor: 'own-selection', withinLayerSampling: 'hash-order-as-srs', variance: 'not-reported',
+            companionColumn: 'confidence-free-share',
+          },
+        },
+      },
     });
     // Step 2 readiness flags (both true).
     expect(fi.metricKeyReadiness).toEqual({ projectLevelKeys: true, rowFilters: true });

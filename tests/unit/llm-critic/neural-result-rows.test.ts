@@ -10,7 +10,7 @@ import type { LayerDefinition } from '../../../src/shared/types/spec.js';
 import type { NeuronalInstruction } from '../../../src/shared/types/evaluation.js';
 import { functionId } from '../../../src/shared/types/value-objects.js';
 import { REPORT_SCHEMA } from '../../../src/scoring-engine/report-schema.js';
-import { evaluateNeuronal } from '../../../src/llm-critic/llm-critic.js';
+import { candidatesByLayerOf, evaluateNeuronal } from '../../../src/llm-critic/llm-critic.js';
 import type { NeuronalEvalOutput } from '../../../src/llm-critic/llm-critic.js';
 import type { NeuronalRunOptions } from '../../../src/llm-critic/types.js';
 import { MockLLMProvider } from '../../../src/llm-critic/mock-provider.js';
@@ -162,5 +162,35 @@ describe('NEURAL_RESULT_ROW_SCHEMA', () => {
     for (const name of ['count', 'unitInterval', 'nonNegativeNumber', 'dimension'] as const) {
       expect(NEURAL_RESULT_ROW_SCHEMA.definitions[name]).toEqual(defs[name]);
     }
+  });
+});
+
+describe('candidatesByLayer (ADR-028: N_h of the proportional scoring variant)', () => {
+  it('counts candidate units per layer, keys sorted', () => {
+    expect(candidatesByLayerOf([{ layer: 'infra' }, { layer: 'domain' }, { layer: 'infra' }])).toEqual({ domain: 1, infra: 2 });
+    expect(Object.keys(candidatesByLayerOf([{ layer: 'b' }, { layer: 'a' }]))).toEqual(['a', 'b']);
+    expect(candidatesByLayerOf([])).toEqual({});
+  });
+
+  it('every result carries it, it sums to candidateCount, and the persisted row keeps it and validates', async () => {
+    const out = await mockRun({ unitCap: 3 });
+    for (const r of out.results) {
+      const counts = Object.values(r.candidatesByLayer ?? {});
+      expect(counts.reduce((a, b) => a + b, 0)).toBe(r.candidateCount);
+    }
+    const rows = toNeuralResultRows(out.results);
+    for (const row of rows) {
+      expect(row.candidatesByLayer).toEqual(out.results.find((r) => r.functionId === row.functionId)?.candidatesByLayer);
+      expect(neuralResultRowProblem(row)).toBeNull();
+    }
+    // A capped function (FF-N02: 10 candidates, 3 judged) holds more candidates than judged units in some layer.
+    const n02 = rows.find((r) => String(r.functionId) === 'FF-N02');
+    const judged = new Map<string, number>();
+    for (const u of n02?.unitResults ?? []) judged.set(u.layer, (judged.get(u.layer) ?? 0) + 1);
+    expect(Object.entries(n02?.candidatesByLayer ?? {}).some(([layer, n]) => n > (judged.get(layer) ?? 0))).toBe(true);
+    // Rows written before ADR-028 have no field and still validate.
+    const legacy: Record<string, unknown> = { ...rows[0] };
+    delete legacy.candidatesByLayer;
+    expect(neuralResultRowProblem(legacy)).toBeNull();
   });
 });

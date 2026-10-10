@@ -90,7 +90,7 @@ function makeBlockReport() {
 }
 
 /** The config of the first `createPipeline` call (typed view of the mock's argument). */
-function firstPipelineConfig(): { readonly graphMode?: string | undefined } {
+function firstPipelineConfig(): { readonly graphMode?: string | undefined; readonly neuralAggregation?: string | undefined } {
   return jest.mocked(createPipeline).mock.calls[0]?.[0] ?? {};
 }
 
@@ -209,6 +209,27 @@ describe('CLI', () => {
         'node', 'firewall', 'evaluate', '--project', '/p', '--spec', 's.yaml', '--symbolic-only', '--graph-mode', 'cpg',
       ]);
 
+      expect(createPipeline).not.toHaveBeenCalled();
+      expect(process.exitCode).toBe(2);
+      process.exitCode = undefined;
+    });
+
+    it('--neural-aggregation defaults to registered and passes proportional to the pipeline (ADR-028)', async () => {
+      const program = loadProgram();
+      await program.parseAsync(['node', 'firewall', 'evaluate', '--project', '/p', '--spec', 's.yaml', '--symbolic-only']);
+      expect(firstPipelineConfig().neuralAggregation).toBe('registered');
+      jest.mocked(createPipeline).mockClear();
+      await loadProgram().parseAsync([
+        'node', 'firewall', 'evaluate', '--project', '/p', '--spec', 's.yaml', '--symbolic-only', '--neural-aggregation', 'proportional',
+      ]);
+      expect(firstPipelineConfig().neuralAggregation).toBe('proportional');
+    });
+
+    it('an unknown --neural-aggregation exits 2 before any pipeline is built (ADR-028)', async () => {
+      const program = loadProgram();
+      await program.parseAsync([
+        'node', 'firewall', 'evaluate', '--project', '/p', '--spec', 's.yaml', '--symbolic-only', '--neural-aggregation', 'share',
+      ]);
       expect(createPipeline).not.toHaveBeenCalled();
       expect(process.exitCode).toBe(2);
       process.exitCode = undefined;

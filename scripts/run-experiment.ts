@@ -22,6 +22,11 @@
  *    acceptance by `acceptReport` (BR-U5b-45); a `RunRecord` with full provenance for every entry (BR-U5b-46, 53);
  * 7. every written artefact goes through `scrubDeep` with the known secrets (BR-U5b-70).
  *
+ * ADR-028: `--neural-aggregation registered|proportional` and `--cassette-mode record|replay` pass to every judge-mode
+ * child (`evaluate --neural-aggregation`, `--cassette-mode`); judge-mode RunRecords carry `neuralAggregation` (default
+ * `registered`) and, when given, `cassetteMode`. A replay answers only from the plan's cassettes (a miss stops the run),
+ * so a replayed plan makes no judge call; with `--out-dir` it writes beside the registered results, never over them.
+ *
  * `--check-prereg <plan>` runs only the gate; `--dry-run <plan>` prints the expansion. Neither starts a subprocess
  * or writes a record. Results are written to the plan's `outDir` (`results/<plan-id>/`) only when a registered plan
  * runs; tests pass a temp `--out-dir` (BR-U5b-56).
@@ -384,7 +389,19 @@ export function modeFlags(mode: PlanMode): string[] {
  * The CLI arguments of one entry. Judge modes add the plan's pinned judge and the experiment's cassette directory
  * (BR-U5b-56); a symbolic-only run makes no judge call and passes neither (DV-U5b-15).
  */
-export function cliArgv(plan: ExperimentPlan, entry: PlanEntry, instrumentVersion: InstrumentVersion = INSTRUMENT_VERSION): string[] {
+/** ADR-028 judge-mode options of a plan run (absent = the CLI defaults: record, registered). */
+export interface JudgeRunOptions {
+  readonly cassetteMode?: CassetteMode;
+  readonly neuralAggregation?: NeuralAggregationRule;
+}
+export type CassetteMode = 'record' | 'replay';
+export type NeuralAggregationRule = 'registered' | 'proportional';
+export const CASSETTE_MODES: readonly CassetteMode[] = ['record', 'replay'];
+export const NEURAL_AGGREGATION_RULES: readonly NeuralAggregationRule[] = ['registered', 'proportional'];
+
+export function cliArgv(
+  plan: ExperimentPlan, entry: PlanEntry, instrumentVersion: InstrumentVersion = INSTRUMENT_VERSION, judge: JudgeRunOptions = {},
+): string[] {
   const argv = ['evaluate', '--project', entry.path, '--spec', entry.specPath, '--format', 'json', ...modeFlags(plan.mode)];
   if (entry.graphMode !== undefined && entry.graphMode !== 'full') argv.push('--graph-mode', entry.graphMode);
   argv.push('--instrument', `v${String(instrumentVersion)}`); // ADR-026
@@ -392,6 +409,8 @@ export function cliArgv(plan: ExperimentPlan, entry: PlanEntry, instrumentVersio
     if (plan.judge !== undefined) argv.push('--llm-provider', plan.judge.provider, '--llm-model', plan.judge.model);
     // ADR-021 SO3-5: the judge cassette entries carry the run's project id (repetition reliability keys on it).
     argv.push('--cassette-dir', plan.cassetteDir, '--cassette-project-id', entry.projectId);
+    if (judge.cassetteMode !== undefined) argv.push('--cassette-mode', judge.cassetteMode);
+    if (judge.neuralAggregation !== undefined) argv.push('--neural-aggregation', judge.neuralAggregation);
   }
   return argv;
 }
@@ -448,6 +467,8 @@ export interface HarnessDeps {
   readonly outDir?: string;
   /** Symbolic instrument version passed to every child and stamped into every RunRecord (ADR-026; default 2). */
   readonly instrumentVersion?: InstrumentVersion;
+  /** ADR-028: cassette mode and neural aggregation passed to every judge-mode child and stamped into its RunRecord. */
+  readonly judge?: JudgeRunOptions;
   readonly timeoutMs?: number;
   /** Working directory of the CLI child (default the repository root). */
   readonly cwd?: string;
@@ -596,6 +617,15 @@ interface EntryContext {
   readonly e1Protocol?: E1Protocol;
 }
 
+/** ADR-028 RunRecord fields of a judge-mode plan: the neural aggregation (default registered) and a given cassette mode. */
+export function judgeStamp(plan: ExperimentPlan, judge: JudgeRunOptions | undefined): Pick<RunRecord, 'neuralAggregation' | 'cassetteMode'> {
+  if (plan.mode === 'symbolic-only') return {};
+  return {
+    neuralAggregation: judge?.neuralAggregation ?? 'registered',
+    ...(judge?.cassetteMode !== undefined && { cassetteMode: judge.cassetteMode }),
+  };
+}
+
 async function runEntry(plan: ExperimentPlan, entry: PlanEntry, ctx: EntryContext): Promise<RunRecord> {
   const startedAt = ctx.deps.now();
   const runId = runIdOf(plan.id, entry);
@@ -615,6 +645,7 @@ async function runEntry(plan: ExperimentPlan, entry: PlanEntry, ctx: EntryContex
       attempt, ...(reportPath !== undefined && { reportPath }),
       specSha: ctx.specSha, cliCommit: ctx.deps.cliCommit, preregVersion: ctx.preregVersion, frozenHashes: ctx.frozenHashes,
       instrumentVersion: ctx.deps.instrumentVersion ?? INSTRUMENT_VERSION,
+      ...judgeStamp(plan, ctx.deps.judge),
       envRecordId: ctx.envRecordId, startedAt: startedAt.toISOString(), wallMs: Math.max(0, ctx.deps.now().getTime() - startedAt.getTime()),
       ...(cell !== undefined && { cell }), ...(entry.seed !== undefined && { seed: entry.seed }),
     };
@@ -624,7 +655,7 @@ async function runEntry(plan: ExperimentPlan, entry: PlanEntry, ctx: EntryContex
     return base('not-run', 'generation-failed', gen ?? `generation ${cell.generationStatus} without failureReason`, 1);
   }
 
-  const argv = [...ctx.deps.cli.args, ...cliArgv(plan, entry, ctx.deps.instrumentVersion ?? INSTRUMENT_VERSION)];
+  const argv = [...ctx.deps.cli.args, ...cliArgv(plan, entry, ctx.deps.instrumentVersion ?? INSTRUMENT_VERSION, ctx.deps.judge)];
   let attempt: 1 | 2 = 1;
   let outcome: AttemptOutcome;
   for (;;) {
@@ -661,6 +692,7 @@ async function runEntry(plan: ExperimentPlan, entry: PlanEntry, ctx: EntryContex
 
 export const RUN_USAGE = [
   'Usage: npx tsx scripts/run-experiment-cli.ts <plan.json> [--out-dir <dir>] [--neo4j-container <name>] [--instrument v1|v2]',
+  '         [--neural-aggregation registered|proportional] [--cassette-mode record|replay]   (judge modes, ADR-028)',
   '       npx tsx scripts/run-experiment-cli.ts --check-prereg <plan.json>   (gate only; exit 0 / 1)',
   '       npx tsx scripts/run-experiment-cli.ts --dry-run <plan.json>        (print the expansion)',
   '       npx tsx scripts/run-experiment-cli.ts --self-test',
@@ -735,6 +767,8 @@ export async function main(
   let outDir: string | undefined;
   let neo4jContainer: string | undefined;
   let instrumentVersion: InstrumentVersion | undefined;
+  let cassetteMode: CassetteMode | undefined;
+  let neuralAggregation: NeuralAggregationRule | undefined;
   for (let i = 1; i < argv.length; i++) {
     const a = argv[i];
     const v = argv[i + 1];
@@ -742,6 +776,14 @@ export async function main(
     else if (a === '--neo4j-container' && v !== undefined) neo4jContainer = argv[++i];
     else if (a === '--instrument' && v !== undefined && parseInstrumentVersion(v) !== undefined) {
       instrumentVersion = parseInstrumentVersion(v);
+      i++;
+    }
+    else if (a === '--cassette-mode' && v !== undefined && (CASSETTE_MODES as readonly string[]).includes(v)) {
+      cassetteMode = v as CassetteMode;
+      i++;
+    }
+    else if (a === '--neural-aggregation' && v !== undefined && (NEURAL_AGGREGATION_RULES as readonly string[]).includes(v)) {
+      neuralAggregation = v as NeuralAggregationRule;
       i++;
     }
     else {
@@ -754,6 +796,9 @@ export async function main(
   const deps = makeDeps(neo4jContainer !== undefined ? { neo4jContainer } : {});
   const result = await runPlan(l.plan, l.file, repoRoot, {
     ...deps, schemaRoot, ...(outDir !== undefined && { outDir }), ...(instrumentVersion !== undefined && { instrumentVersion }),
+    ...((cassetteMode !== undefined || neuralAggregation !== undefined) && {
+      judge: { ...(cassetteMode !== undefined && { cassetteMode }), ...(neuralAggregation !== undefined && { neuralAggregation }) },
+    }),
   });
   if (!result.ok) {
     io.err(`${result.code ?? 'RUN_FAILED'}: ${result.detail ?? ''}\n`);

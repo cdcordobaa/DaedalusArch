@@ -7,6 +7,8 @@ import type { PipelineConfig, OutputFormat } from '../pipeline/types.js';
 import type { BatchOptions, DriftOptions } from '../pipeline/types.js';
 import type { EvaluationMode } from '../shared/types/enums.js';
 import { formatJSON, formatHuman, formatCSV, csvHeader } from '../scoring-engine/index.js';
+import { NEURAL_AGGREGATIONS, parseNeuralAggregation } from '../scoring-engine/neural-aggregation.js';
+import type { NeuralAggregation } from '../scoring-engine/neural-aggregation.js';
 import { generateReport } from '../report/report-generator.js';
 import { formatActionableHuman } from '../scoring-engine/report-formatter.js';
 import { runBatch } from './batch-runner.js';
@@ -43,6 +45,15 @@ function resolveEvaluationMode(symbolicOnly: boolean, neuronalOnly: boolean): Ev
 function resolveGraphMode(value: string): GraphMode | undefined {
   if ((GRAPH_MODES as readonly string[]).includes(value)) return value as GraphMode;
   process.stderr.write(`Error: --graph-mode must be one of ${GRAPH_MODES.join(' | ')}\n`);
+  process.exitCode = 2;
+  return undefined;
+}
+
+/** `--neural-aggregation` value (ADR-028): `registered` (default) or `proportional`; anything else exits 2. */
+function resolveNeuralAggregation(value: string): NeuralAggregation | undefined {
+  const v = parseNeuralAggregation(value);
+  if (v !== undefined) return v;
+  process.stderr.write(`Error: --neural-aggregation must be one of ${NEURAL_AGGREGATIONS.join(' | ')}\n`);
   process.exitCode = 2;
   return undefined;
 }
@@ -159,6 +170,7 @@ withLLMOptions(program
   .option('--baseline <path>', 'Compare against baseline violations file')
   .option('--graph-mode <mode>', 'Graph mode: full | ast-only (APG ablation arm: IMPORTS, DECLARES and CONTAINS edges only)', 'full')
   .option('--instrument <version>', 'Symbolic instrument: v2 (role exemptions, default) | v1 (ADR-026)', 'v2')
+  .option('--neural-aggregation <rule>', 'Neural aggregation of the AHS: registered (default, primary) | proportional (ADR-028 sensitivity variant)', 'registered')
   .action(async (opts: LLMCliOpts & {
     project: string;
     spec: string;
@@ -172,12 +184,15 @@ withLLMOptions(program
     baseline?: string;
     graphMode: string;
     instrument: string;
+    neuralAggregation: string;
   }) => {
     const evaluationMode = resolveEvaluationMode(opts.symbolicOnly, opts.neuronalOnly);
     const graphMode = resolveGraphMode(opts.graphMode);
     if (graphMode === undefined) return;
     const instrumentVersion = resolveInstrument(opts.instrument);
     if (instrumentVersion === undefined) return;
+    const neuralAggregation = resolveNeuralAggregation(opts.neuralAggregation);
+    if (neuralAggregation === undefined) return;
     // BR-U3-80: no default password; stop before any connection.
     const neo4jPassword = requireEnvForCli('NEO4J_PASSWORD');
     if (neo4jPassword === undefined) return;
@@ -200,6 +215,7 @@ withLLMOptions(program
       llmConfig,
       ...(graphMode !== 'full' && { graphMode }),
       instrumentVersion,
+      neuralAggregation,
     };
 
     const { executor, cleanup } = createPipeline(config);

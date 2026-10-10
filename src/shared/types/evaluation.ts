@@ -163,6 +163,8 @@ export interface NeuronalFunctionResult {
   readonly removedByVariant?: readonly string[];
   readonly selection?: BaselineSelection;              // written on every run; a baseline run supplies it to its variants
   readonly aggregationRule?: 'majority-of-valid-units-v1'; // FR-33 "stated rule"
+  /** ADR-028: candidate units per layer (N_h of the proportional variant); C7 sets it on every result. */
+  readonly candidatesByLayer?: Readonly<Record<string, number>>;
 }
 
 export interface EvaluationResults {
@@ -311,6 +313,8 @@ export interface NeuralResultRow {
   readonly truncatedUnits: number; readonly excerptTruncatedUnits: number;
   readonly removedByVariant: readonly string[];
   readonly unitResults: readonly NeuralUnitRow[];       // sorted by unitId
+  /** ADR-028: candidate units per layer; absent in reports written before it. */
+  readonly candidatesByLayer?: Readonly<Record<string, number>>;
 }
 
 // FR-26 re-scoring inputs (C10 row 7; U3 DE §4.5)
@@ -320,6 +324,8 @@ export interface ReportScoring {
   readonly thresholds: VerdictThresholds;
   readonly confidenceThresholds: ConfidenceThresholds;
   readonly verdictSource: 'ahsDeterministic' | 'ahsCombined' | 'ahsNeuronal';
+  /** ADR-028: the neural aggregation the AHS fields use; set in judge modes, absent before ADR-028 (= registered). */
+  readonly neuralAggregation?: 'registered' | 'proportional';
 }
 
 // FR-13, FR-14: what the scoring stage produces; run-level fields are added by the report builder (U3)

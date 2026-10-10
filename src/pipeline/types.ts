@@ -3,6 +3,7 @@ import type { CommitSha } from '../shared/types/value-objects.js';
 import type { LLMProviderConfig } from '../shared/types/llm-config.js';
 import type { GraphMode } from '../apg-extractor/types.js';
 import type { InstrumentVersion } from '../fitness-compiler/role-exemptions.js';
+import type { NeuralAggregation } from '../scoring-engine/neural-aggregation.js';
 
 export interface PipelineConfig {
   readonly projectPath: string;
@@ -22,6 +23,8 @@ export interface PipelineConfig {
   readonly graphMode?: GraphMode | undefined;
   /** Symbolic instrument version (ADR-026): 1 = no role exemptions; default 2. */
   readonly instrumentVersion?: InstrumentVersion | undefined;
+  /** Neural aggregation of the AHS fields (ADR-028): `registered` (default, primary) or `proportional`. */
+  readonly neuralAggregation?: NeuralAggregation | undefined;
 }
 
 export type OutputFormat = 'json' | 'human' | 'csv';
