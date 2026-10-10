@@ -14,7 +14,10 @@ import type { RescorableReport } from '../../../../scripts/rescore.js';
 import { cliArgv, judgeStamp, main as runMain, runPlan, validateRunRecord } from '../../../../scripts/run-experiment.js';
 import type { ExperimentPlan, HarnessDeps } from '../../../../scripts/run-experiment.js';
 import { checkNeuralAggregation, neuralAggregationOf } from '../../../../scripts/aggregate.js';
-import { comparisonCsv, contributionsCsv, judgeDecomposition, pairRuns, readingOf, summarise } from '../../../../scripts/compare-aggregations.js';
+import {
+  comparisonCsv, contributionsCsv, judgeDecomposition, judgeWeightedReading, judgeWeightedReadingOf, judgeWeightedWeights, pairRuns, readingOf,
+  summarise,
+} from '../../../../scripts/compare-aggregations.js';
 import type { Run } from '../../../../scripts/compare-aggregations.js';
 import { codeRationale, codeRationaleGuarded, codesOf, JUDGE_CODING_FRAME_INVALID, loadCodingFrame, negatedAt, parseCodingFrame } from '../../../../scripts/lib/judge-coding-frame.js';
 import type { CodingFrame } from '../../../../scripts/lib/judge-coding-frame.js';
@@ -314,6 +317,96 @@ describe('compare-aggregations (ADR-028 §12.3)', () => {
     const rows = (changedUnits.neuralResults ?? []) as (NeuralResultRow & { unitResults: NeuralUnitRow[] })[];
     if (rows[0] !== undefined) rows[0].unitResults = [unit('x', 'a', 'pass', 0.9)];
     expect(pairRuns([run('a', reg, 'r')], [run('a', changedUnits as EvaluationReport, 'v')])[0]?.sameJudgeUnits).toBe(false);
+  });
+});
+
+describe('compare-aggregations: judge-weighted sensitivity variant judge-weighted-v1 (§12.5, prereg v16)', () => {
+  const SPEC = { structural: 0.32, coupling: 0.18, pattern: 0.27, solid: 0.1, convention: 0.05, semantic: 0.04, integrity: 0.04 } as const;
+
+  it('weights: judge dimensions 2/7 and symbolic 5/7, each group proportional, sum 1; undefined without a judge or symbolic weight', () => {
+    // All seven executed (the E7 case): effective = spec weights. Symbolic Σ .92 → structural .32 · (5/7) / .92 = 0.248447.
+    const w = judgeWeightedWeights(new Map(Object.entries(SPEC)) as Map<Dimension, number>);
+    expect(w?.get('semantic')).toBeCloseTo(1 / 7, 12);
+    expect(w?.get('integrity')).toBeCloseTo(1 / 7, 12);
+    expect(w?.get('structural')).toBeCloseTo((0.32 * 5) / 7 / 0.92, 12);
+    expect(w?.get('convention')).toBeCloseTo((0.05 * 5) / 7 / 0.92, 12);
+    expect([...(w?.values() ?? [])].reduce((a, b) => a + b, 0)).toBeCloseTo(1, 12);
+    expect((w?.get('structural') ?? 0) / (w?.get('coupling') ?? 1)).toBeCloseTo(0.32 / 0.18, 12);
+    expect(judgeWeightedWeights(new Map<Dimension, number>([['structural', 0.6], ['coupling', 0.4]]))).toBeUndefined();
+    expect(judgeWeightedWeights(new Map<Dimension, number>([['semantic', 0.5], ['integrity', 0.5]]))).toBeUndefined();
+  });
+
+  /*
+   * Seven executed dimensions, every symbolic AVR 0.4, semantic 0.7, integrity 0; thresholds .8 / .65 / .5.
+   * Registered weights (W_n = .08): 1 − (.92 · .4 + .04 · .7) = 0.604 soft-block; judge-blind 1 − .368 = 0.632
+   * soft-block → the judge moves nothing. judge-weighted-v1: 1 − (5/7 · .4 + 1/7 · .7) = 1 − .285714 − .1 = 0.614
+   * soft-block; judge-blind 1 − .285714 = 0.714 warning → the judge moves the verdict (delta_judge −0.100 ≥ −2/7).
+   */
+  it('a verdict the registered weights cannot move moves under judge-weighted-v1 (hand values)', () => {
+    const r = clone(FULL) as MutableReport;
+    const template = r.perDimensionScores[0];
+    if (template === undefined) throw new Error('fixture has no perDimensionScores');
+    r.perDimensionScores = (Object.keys(SPEC) as Dimension[]).map((d) => ({
+      ...template, dimension: d, functionCount: 1,
+      avr: (d === 'semantic' ? 0.7 : d === 'integrity' ? 0 : 0.4) as EvaluationReport['perDimensionScores'][number]['avr'],
+    }));
+    r.ahsCombined = 0.604 as EvaluationReport['ahsCombined'];
+    r.scoring = { ...r.scoring, fullModeWeights: { ...SPEC }, thresholds: { pass: 0.8, warning: 0.65, softBlock: 0.5 } };
+    const j = judgeWeightedReading(r);
+    expect(j?.wNeural).toBeCloseTo(2 / 7, 12);
+    expect(j?.rules.registered).toEqual({ ahs: 0.614, verdict: 'soft-block' });
+    expect(j?.judgeBlind).toEqual({ ahs: 0.714, verdict: 'warning' });
+    expect(j?.rules.proportional).toBeUndefined();
+    expect(j?.rules.any_fail).toBeUndefined();
+    // Symbolic-only report (no ahsCombined): not defined.
+    const sym = clone(r);
+    delete (sym as Partial<MutableReport>).ahsCombined;
+    expect(judgeWeightedReading(sym as EvaluationReport)).toBeUndefined();
+  });
+
+  /*
+   * The scoredReport pair (executed structural AVR 0, coupling 1, semantic, integrity; effective weights over Σ .58).
+   * judge-weighted-v1: structural (.32 / .50) · 5/7 = 0.457143, coupling (.18 / .50) · 5/7 = 0.257143, semantic and
+   * integrity 1/7 each.
+   * - judge-blind: 1 − .257143 = 0.743 (warning);
+   * - registered (integrity .7, semantic 0): 1 − .257143 − .1 = 0.643 (soft-block); delta_jw vs 0.641 = +0.002;
+   *   delta_judge −0.100; judge_mattered true;
+   * - proportional (integrity .533, semantic .25): 1 − .257143 − (.533 + .25) / 7 = 0.631 (soft-block); vs 0.636 → −0.005;
+   * - any-fail (semantic 1, integrity .7): 1 − .257143 − 1.7 / 7 = 0.500 (soft-block, at the threshold); vs 0.572 → −0.072.
+   */
+  it('writes the judge-weighted columns beside the registered and proportional rows, with the any-fail row (hand values)', async () => {
+    const reg = await scoredReport('registered') as EvaluationReport;
+    const prop = await scoredReport('proportional') as EvaluationReport;
+    const rows = pairRuns([run('a', reg, 'r-a', 15)], [run('a', prop, 'v-a', 15)]);
+    const csv = comparisonCsv(rows);
+    expect(col(csv, 'reading_judge_weighted')).toBe('post-hoc');
+    expect(col(csv, 'w_neural_jw')).toBe('0.286');
+    expect(col(csv, 'judge_bound_jw')).toBe('-0.286');
+    expect(col(csv, 'ahs_combined_jw_judge_blind')).toBe('0.743');
+    expect(col(csv, 'verdict_jw_judge_blind')).toBe('warning');
+    expect(col(csv, 'ahs_combined_jw_registered')).toBe('0.643');
+    expect(col(csv, 'verdict_jw_registered')).toBe('soft-block');
+    expect(col(csv, 'delta_jw_registered')).toBe('0.002');
+    expect(col(csv, 'verdict_changed_jw_registered')).toBe('false');
+    expect(col(csv, 'delta_judge_jw_registered')).toBe('-0.100');
+    expect(col(csv, 'judge_mattered_jw_registered')).toBe('true');
+    expect(col(csv, 'ahs_combined_jw_proportional')).toBe('0.631');
+    expect(col(csv, 'delta_jw_proportional')).toBe('-0.005');
+    expect(col(csv, 'judge_mattered_jw_proportional')).toBe('true');
+    expect(col(csv, 'ahs_combined_jw_any_fail')).toBe('0.500');
+    expect(col(csv, 'verdict_jw_any_fail')).toBe('soft-block');
+    expect(col(csv, 'delta_jw_any_fail')).toBe('-0.072');
+    expect(col(csv, 'delta_judge_jw_any_fail')).toBe('-0.243');
+    expect(col(csv, 'judge_mattered_jw_any_fail')).toBe('true');
+    // The registered columns are unchanged by the variant.
+    expect(col(csv, 'ahs_combined_registered')).toBe('0.641');
+    expect(col(csv, 'ahs_combined_any_fail')).toBe('0.572');
+    expect(summarise(rows).judgeWeighted).toEqual({
+      registered: { verdictChanges: 0, judgeMattered: 1 }, proportional: { verdictChanges: 0, judgeMattered: 1 }, any_fail: { verdictChanges: 0, judgeMattered: 1 },
+    });
+    // Reading: pre-registered from prereg v16 on.
+    expect(judgeWeightedReadingOf(run('a', reg, 'r', 16).record)).toBe('pre-registered');
+    expect(col(comparisonCsv(pairRuns([run('a', reg, 'r', 16)], [run('a', prop, 'v', 16)])), 'reading_judge_weighted')).toBe('pre-registered');
   });
 });
 

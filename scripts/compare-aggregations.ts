@@ -24,6 +24,14 @@
  *   - `verdict_any_fail` (BR-U5b-60 `any-fail` re-score of the registered report) beside the proportional verdict.
  *   `reading` is derived, never chosen: `post-hoc` when the registered run's `preregVersion` < 14 (the ADR-028
  *   registration), else `pre-registered`; a `--reading` that contradicts it is refused. Both prereg versions are columns.
+ *   - **judge-weighted sensitivity variant `judge-weighted-v1`** (v16, §12.5; a pure function of the stored reports, no
+ *     re-run, no LLM): the executed full-mode effective weights rescaled so the executed judge dimensions together weigh
+ *     2/7 and the executed symbolic dimensions 5/7, each group proportionally, so they still sum to 1; same thresholds.
+ *     Per rule (`registered`, `proportional`, `any_fail`): `ahs_combined_jw_<rule>`, `verdict_jw_<rule>`,
+ *     `delta_jw_<rule>` (minus the same rule's AHS under the registered weights), `verdict_changed_jw_<rule>`,
+ *     `delta_judge_jw_<rule>` and `judge_mattered_jw_<rule>` (against the judge-blind AHS under the judge-weighted
+ *     weights); `w_neural_jw` = 2/7 and `judge_bound_jw` = −2/7. `reading_judge_weighted` is `post-hoc` when the
+ *     registered run's `preregVersion` < 16, else `pre-registered`.
  * - `neural_contributions.csv`: per project and judged function, the registered contribution (U4 majority verdict and
  *   the U3 confidence weight), the proportional share, the confidence-free share and the strata (`layer:N_h/V_h/failed`).
  */
@@ -34,6 +42,7 @@ import type { AHSScore, AVRScore } from '../src/shared/types/value-objects.js';
 import { confidenceWeight, proportionalShare } from '../src/scoring-engine/neural-aggregation.js';
 import { computeAHS } from '../src/scoring-engine/score-computer.js';
 import { determineVerdict } from '../src/scoring-engine/verdict.js';
+import { ahsFromEffectiveWeights, renormaliseWeights } from '../src/scoring-engine/renormaliser.js';
 import { loadRunDir } from './lib/report-io.js';
 import type { RunRecord } from './lib/report-io.js';
 import { aggregateUnits, rescoreReport } from './rescore.js';
@@ -42,6 +51,14 @@ export const COMPARE_INPUT_INVALID = 'COMPARE_INPUT_INVALID';
 /** The prereg version that registered the ADR-028 variant: a registered run before it gives a post-hoc reading. */
 export const ADR028_PREREG_VERSION = 14;
 const JUDGE_DIMENSIONS: readonly Dimension[] = ['semantic', 'integrity'];
+/** The judge-weighted sensitivity variant (§12.5, prereg v16). */
+export const JUDGE_WEIGHTED_VARIANT = 'judge-weighted-v1';
+/** Joint weight of the executed judge dimensions under `judge-weighted-v1`: 2 of the 7 dimensions. */
+export const JUDGE_WEIGHTED_SHARE = 2 / 7;
+/** The prereg version that registered `judge-weighted-v1`: a registered run before it gives a post-hoc reading. */
+export const JUDGE_WEIGHTED_PREREG_VERSION = 16;
+const JW_RULES = ['registered', 'proportional', 'any_fail'] as const;
+type JwRule = typeof JW_RULES[number];
 
 export const COMPARISON_COLUMNS = [
   'project_id', 'registered_run_id', 'variant_run_id', 'evaluation_mode', 'reading', 'registered_prereg_version', 'variant_prereg_version',
@@ -52,6 +69,10 @@ export const COMPARISON_COLUMNS = [
   'w_neural', 'judge_bound', 'ahs_combined_judge_blind', 'verdict_judge_blind', 'delta_dilution', 'dilution_identity',
   'delta_judge_registered', 'delta_judge_proportional', 'judge_mattered_registered', 'judge_mattered_proportional',
   'ahs_combined_any_fail', 'verdict_any_fail', 'any_fail_changed',
+  'reading_judge_weighted', 'w_neural_jw', 'judge_bound_jw', 'ahs_combined_jw_judge_blind', 'verdict_jw_judge_blind',
+  ...JW_RULES.flatMap((r) => [
+    `ahs_combined_jw_${r}`, `verdict_jw_${r}`, `delta_jw_${r}`, `verdict_changed_jw_${r}`, `delta_judge_jw_${r}`, `judge_mattered_jw_${r}`,
+  ] as const),
 ] as const;
 export const CONTRIBUTION_COLUMNS = [
   'project_id', 'function_id', 'dimension', 'majority_verdict', 'registered_contribution', 'proportional_share',
@@ -132,12 +153,97 @@ export function judgeDecomposition(report: EvaluationReport): JudgeDecomposition
   };
 }
 
-/** The BR-U5b-60 `any-fail` re-score of a registered report (`ahsCombined` and verdict). */
-export function anyFailReading(report: EvaluationReport): { readonly ahs?: number; readonly verdict: string } {
+export interface AnyFailReading {
+  readonly ahs?: number;
+  readonly verdict: string;
+  /** The per-dimension AVRs of the any-fail re-score (input of the judge-weighted reading). */
+  readonly avr?: ReadonlyMap<Dimension, number>;
+}
+
+/** The BR-U5b-60 `any-fail` re-score of a registered report (`ahsCombined`, verdict and AVRs). */
+export function anyFailReading(report: EvaluationReport): AnyFailReading {
   const r = rescoreReport(report);
   if (!r.ok) throw new Error(`${r.code}: ${r.detail}`);
   const s = r.value.sensitivity.find((x) => x.scenarioId === 'neural:any-fail');
-  return { ...(s?.ahs.ahsCombined !== undefined && { ahs: s.ahs.ahsCombined }), verdict: s?.verdict ?? '' };
+  return { ...(s?.ahs.ahsCombined !== undefined && { ahs: s.ahs.ahsCombined }), verdict: s?.verdict ?? '', ...(s !== undefined && { avr: s.avr }) };
+}
+
+// ---------------------------------------------------------------------------------------------
+// Judge-weighted sensitivity variant `judge-weighted-v1` (§12.5, prereg v16; pure, from the stored reports)
+
+/**
+ * `judge-weighted-v1` weights from the executed effective weights (renormalised, Σ = 1): the executed judge dimensions
+ * scaled to sum to 2/7 and the executed symbolic dimensions to 5/7, each group proportionally. `undefined` when no
+ * judge dimension or no symbolic dimension carries weight (the variant is not defined there).
+ */
+export function judgeWeightedWeights(effective: ReadonlyMap<Dimension, number>): Map<Dimension, number> | undefined {
+  const isJudge = (d: Dimension): boolean => JUDGE_DIMENSIONS.includes(d);
+  const total = [...effective.values()].reduce((a, w) => a + w, 0);
+  const wn = [...effective].filter(([d]) => isJudge(d)).reduce((a, [, w]) => a + w, 0);
+  const ws = total - wn;
+  if (!(total > 0) || !(wn > 0) || !(ws > 0)) return undefined;
+  return new Map([...effective].map(([d, w]) => [d, isJudge(d) ? (w / wn) * JUDGE_WEIGHTED_SHARE : (w / ws) * (1 - JUDGE_WEIGHTED_SHARE)] as const));
+}
+
+/** The full-mode effective weights of a report over its executed dimensions (`functionCount` > 0). */
+export function fullModeEffectiveWeights(report: EvaluationReport): Map<Dimension, number> | undefined {
+  const weights = report.scoring.fullModeWeights;
+  if (weights === undefined) return undefined;
+  const dims = report.perDimensionScores.filter((p) => p.functionCount > 0).map((p) => p.dimension);
+  const r = renormaliseWeights(weights, Object.fromEntries(dims.map((d) => [d, 1])), {}, {}, dims);
+  if (!(r.executedWeight > 0)) return undefined;
+  return new Map(dims.map((d) => [d, r.effectiveWeights[d] ?? 0] as const));
+}
+
+/** `round3(1 − Σ w·AVR)` over the given weights (the scorer's AHS formula). */
+function weightedAhs(weights: ReadonlyMap<Dimension, number>, avr: ReadonlyMap<Dimension, number>): number {
+  return ahsFromEffectiveWeights(Object.fromEntries(weights), Object.fromEntries([...weights.keys()].map((d) => [d, avr.get(d) ?? 0])));
+}
+
+export interface JudgeWeightedRuleReading {
+  readonly ahs: number;
+  readonly verdict: string;
+}
+
+export interface JudgeWeightedReading {
+  /** Effective joint weight of the judge dimensions under `judge-weighted-v1` (2/7). */
+  readonly wNeural: number;
+  readonly judgeBlind: JudgeWeightedRuleReading;
+  readonly rules: Readonly<Partial<Record<JwRule, JudgeWeightedRuleReading>>>;
+}
+
+const avrMapOf = (r: EvaluationReport): Map<Dimension, number> =>
+  new Map(r.perDimensionScores.filter((p) => p.functionCount > 0).map((p) => [p.dimension, Number(p.avr)] as const));
+
+/**
+ * `judge-weighted-v1` for one project or cell: the weights come from the registered report, the AVRs of each rule
+ * from its own reading (the registered report, the proportional report, the any-fail re-score of the registered
+ * report). `undefined` when the registered report is not a full-mode report or the variant is not defined.
+ */
+export function judgeWeightedReading(
+  registered: EvaluationReport, variant?: EvaluationReport, anyFailAvr?: ReadonlyMap<Dimension, number>,
+): JudgeWeightedReading | undefined {
+  if (num(registered.ahsCombined) === undefined) return undefined;
+  const effective = fullModeEffectiveWeights(registered);
+  const weights = effective === undefined ? undefined : judgeWeightedWeights(effective);
+  if (weights === undefined) return undefined;
+  const thresholds = registered.scoring.thresholds;
+  const read = (avr: ReadonlyMap<Dimension, number>): JudgeWeightedRuleReading => {
+    const ahs = weightedAhs(weights, avr);
+    return { ahs, verdict: determineVerdict(ahs as AHSScore, thresholds) };
+  };
+  const regAvr = avrMapOf(registered);
+  const blindAvr = new Map([...regAvr].map(([d, a]) => [d, JUDGE_DIMENSIONS.includes(d) ? 0 : a] as const));
+  const rules: Partial<Record<JwRule, JudgeWeightedRuleReading>> = { registered: read(regAvr) };
+  if (variant !== undefined && num(variant.ahsCombined) !== undefined) rules.proportional = read(avrMapOf(variant));
+  if (anyFailAvr !== undefined) rules.any_fail = read(anyFailAvr);
+  const wNeural = [...weights].filter(([d]) => JUDGE_DIMENSIONS.includes(d)).reduce((a, [, w]) => a + w, 0);
+  return { wNeural, judgeBlind: read(blindAvr), rules };
+}
+
+/** `post-hoc` when the registered run predates the `judge-weighted-v1` registration (prereg v16), else `pre-registered`. */
+export function judgeWeightedReadingOf(record: RunRecord): 'post-hoc' | 'pre-registered' {
+  return record.preregVersion < JUDGE_WEIGHTED_PREREG_VERSION ? 'post-hoc' : 'pre-registered';
 }
 
 /** `post-hoc` when the registered run predates the ADR-028 registration (prereg v14), else `pre-registered`. */
@@ -156,7 +262,8 @@ export interface ComparisonRow {
   readonly verdictChanged: boolean;
   readonly sameJudgeUnits: boolean;
   readonly decomposition?: JudgeDecomposition;
-  readonly anyFail: { readonly ahs?: number; readonly verdict: string };
+  readonly anyFail: AnyFailReading;
+  readonly judgeWeighted?: JudgeWeightedReading;
 }
 
 export function pairRuns(registered: readonly Run[], variant: readonly Run[], readingOverride?: string): ComparisonRow[] {
@@ -178,13 +285,16 @@ export function pairRuns(registered: readonly Run[], variant: readonly Run[], re
     }
     const det = num(reg.report.ahsDeterministic);
     const decomposition = judgeDecomposition(reg.report);
+    const anyFail = anyFailReading(reg.report);
+    const judgeWeighted = judgeWeightedReading(reg.report, v.report, anyFail.avr);
     out.push({
       projectId: reg.record.projectId, registered: reg, variant: v, reading,
       verdictRulesOnly: det === undefined ? '' : determineVerdict(det as AHSScore, reg.report.scoring.thresholds),
       verdictChanged: reg.report.verdict !== v.report.verdict,
       sameJudgeUnits: unitRowsOf(reg.report) === unitRowsOf(v.report),
       ...(decomposition !== undefined && { decomposition }),
-      anyFail: anyFailReading(reg.report),
+      anyFail,
+      ...(judgeWeighted !== undefined && { judgeWeighted }),
     });
   }
   if (variant.length !== registered.length) throw new Error(`${COMPARE_INPUT_INVALID}: ${String(variant.length)} variant runs for ${String(registered.length)} registered runs`);
@@ -210,8 +320,38 @@ export function comparisonCsv(rows: readonly ComparisonRow[]): string {
       f3(d?.deltaDilution), f3(d?.dilutionIdentity), f3(d?.deltaJudge), f3(propDeltaJudge),
       d === undefined ? '' : String(d.verdictJudgeBlind !== r.verdict), d === undefined ? '' : String(d.verdictJudgeBlind !== v.verdict),
       f3(c.anyFail.ahs), c.anyFail.verdict, String(c.anyFail.verdict !== '' && c.anyFail.verdict !== r.verdict),
+      ...judgeWeightedCells(c),
     ];
   }));
+}
+
+/** The registered-weights AHS and verdict of each rule, the baseline of `delta_jw_<rule>`. */
+function registeredWeightsOf(c: ComparisonRow, rule: JwRule): { readonly ahs?: number | undefined; readonly verdict: string } {
+  switch (rule) {
+    case 'registered':
+      return { ahs: num(c.registered.report.ahsCombined), verdict: c.registered.report.verdict };
+    case 'proportional':
+      return { ahs: num(c.variant.report.ahsCombined), verdict: c.variant.report.verdict };
+    case 'any_fail':
+      return c.anyFail;
+  }
+}
+
+function judgeWeightedCells(c: ComparisonRow): string[] {
+  const j = c.judgeWeighted;
+  const head = [
+    judgeWeightedReadingOf(c.registered.record), f3(j?.wNeural), f3(j === undefined ? undefined : -j.wNeural),
+    f3(j?.judgeBlind.ahs), j?.judgeBlind.verdict ?? '',
+  ];
+  return [...head, ...JW_RULES.flatMap((rule) => {
+    const x = j?.rules[rule];
+    if (j === undefined || x === undefined) return ['', '', '', '', '', ''];
+    const base = registeredWeightsOf(c, rule);
+    return [
+      f3(x.ahs), x.verdict, f3(base.ahs === undefined ? undefined : x.ahs - base.ahs), String(base.verdict !== '' && x.verdict !== base.verdict),
+      f3(x.ahs - j.judgeBlind.ahs), String(x.verdict !== j.judgeBlind.verdict),
+    ];
+  })];
 }
 
 /** One row per judged function of the variant report (it carries `candidatesByLayer`). */
@@ -246,6 +386,8 @@ export interface CompareSummary {
   readonly judgeMattered: number;
   readonly deltaCombined: { readonly mean: number; readonly min: number; readonly max: number };
   readonly allSameJudgeUnits: boolean;
+  /** `judge-weighted-v1`, per rule: verdicts moved by the reweighting, and verdicts the judge moves under it. */
+  readonly judgeWeighted: Readonly<Record<JwRule, { readonly verdictChanges: number; readonly judgeMattered: number }>>;
 }
 
 export function summarise(rows: readonly ComparisonRow[]): CompareSummary {
@@ -261,6 +403,16 @@ export function summarise(rows: readonly ComparisonRow[]): CompareSummary {
       max: Math.max(...deltas),
     },
     allSameJudgeUnits: rows.every((c) => c.sameJudgeUnits),
+    judgeWeighted: Object.fromEntries(JW_RULES.map((rule) => {
+      const read = rows.flatMap((c) => {
+        const x = c.judgeWeighted?.rules[rule];
+        return c.judgeWeighted === undefined || x === undefined ? [] : [{ c, x, blind: c.judgeWeighted.judgeBlind }];
+      });
+      return [rule, {
+        verdictChanges: read.filter(({ c, x }) => x.verdict !== registeredWeightsOf(c, rule).verdict).length,
+        judgeMattered: read.filter(({ x, blind }) => x.verdict !== blind.verdict).length,
+      }] as const;
+    })) as Record<JwRule, { verdictChanges: number; judgeMattered: number }>,
   };
 }
 
@@ -309,6 +461,8 @@ export function main(argv: readonly string[], repoRoot: string, io: CompareMainI
     io.out(`${String(s.projects)} projects; proportional verdict changes ${String(s.verdictChanges)}; any-fail verdict changes ${String(s.anyFailChanges)}; `
       + `judge mattered (registered) ${String(s.judgeMattered)}; delta ahsCombined mean ${s.deltaCombined.mean.toFixed(3)} `
       + `(min ${s.deltaCombined.min.toFixed(3)}, max ${s.deltaCombined.max.toFixed(3)}); same judge units ${String(s.allSameJudgeUnits)}\n`);
+    io.out(`${JUDGE_WEIGHTED_VARIANT} (judge weight 2/7): ${JW_RULES.map((rule) => `${rule} verdict changes ${String(s.judgeWeighted[rule].verdictChanges)}, `
+      + `judge mattered ${String(s.judgeWeighted[rule].judgeMattered)}`).join('; ')}\n`);
     return s.allSameJudgeUnits ? 0 : 1;
   } catch (e) {
     io.err(`${e instanceof Error ? e.message : String(e)}\n`);
