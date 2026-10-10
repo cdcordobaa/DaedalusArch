@@ -1,0 +1,35 @@
+{
+  "attempts": 1,
+  "cliVersion": "1.3.2",
+  "configListingSha256": "b8cce56d63afd9cebbf745ed20c888d9ab0007207a513029027cc10be9494345",
+  "durationMs": 18744,
+  "effort": null,
+  "functionId": "label:violation:7a96fc2d75f680da36020203d8bb18dd1e01dc7d83b0e087e919881f33de74aa",
+  "ignoredOptions": [
+    "temperature",
+    "maxTokens"
+  ],
+  "isolationProbeSha256": "e3e335eb64e5ae507ca6484a4f75d0443b1afef89d42854818fa51bd02d68423",
+  "key": "c9c6b4f7ff2c1180afc4b102723db11d3528730b71ddcc99effe444fb9c0a85e-r0-1",
+  "model": "gemini-3.1-pro-high",
+  "outcome": {
+    "kind": "valid"
+  },
+  "parsedVerdict": null,
+  "prompt": "Decide whether the finding below is a real violation of the rule as described.\n- TP: the code violates the rule at this location.\n- FP: the code does not violate the rule; give the root cause of the false finding.\n- unseeded-TP: the code violates the rule, but the violation is part of the original design rather than a\n  deliberate change; give the root cause (use RC-GENUINE-UNSEEDED when the violation is simply real).\n\n## Item\n## Violation\n  Function: FF-CV05\n  Description: test-file-pairing: Detects source files without corresponding test files\n  File: src/modules/authorization/primary-adapter/dto/create-role.dto.ts\n  Line: n/a\n  Target: n/a\n  \n  ## Source\n      1 | import { IsString, IsArray } from 'class-validator';\n      2 | import { ApiProperty } from '@nestjs/swagger';\n      3 | \n      4 | export class CreateRoleDto {\n      5 |   @ApiProperty({ example: 'ADMIN' })\n      6 |   @IsString()\n      7 |   code!: string;\n      8 | \n      9 |   @ApiProperty({ example: 'Administrador' })\n     10 |   @IsString()\n     11 |   name!: string;\n     12 | \n     13 |   @ApiProperty({\n     14 |     example: [\n     15 |       'manage_users',\n     16 |       'view_all_inventory',\n     17 |       'view_all_orders',\n     18 |       'view_all_payments',\n     19 |       'view_all_products',\n     20 |       'view_all_users',\n     21 |     ],\n     22 |     description: 'List of permissions for the role',\n     23 |   })\n     24 |   @IsArray()\n     25 |   @IsString({ each: true })\n     26 |   permissions!: string[];\n     27 | }\n     28 | \n\n## Label options\n1. FP\n  2. unseeded-TP\n  3. TP\n\n## Root causes\n1. RC-LAYER-MAP\n  2. RC-STYLE-INAPPLICABLE\n  3. RC-GENERATED-CODE\n  4. RC-GENUINE-UNSEEDED\n  5. RC-OTHER\n  6. RC-EXTRACT-BARREL\n  7. RC-EXTRACT-ALIAS\n  8. RC-SPEC-PARAM\n  9. RC-TYPE-ONLY\n  10. RC-TEST-CODE\n  11. RC-DYNAMIC-IMPORT\n  12. RC-TEMPLATE-OVERAPPROX\n\nAnswer with one JSON object: {\"option\": <number of the label option>, \"rootCause\": <number of the root cause or null>, \"note\": \"<text, required with RC-OTHER>\", \"rationale\": \"<one or two sentences citing the code>\"}.",
+  "provider": "agy",
+  "recordedAt": "2026-10-10T16:00:58.257Z",
+  "repetition": 0,
+  "requestHash": "c9c6b4f7ff2c1180afc4b102723db11d3528730b71ddcc99effe444fb9c0a85e",
+  "resolvedModel": "gemini-3.1-pro-high",
+  "response": "{\"note\":\"\",\"option\":1,\"rationale\":\"The file is a Data Transfer Object (DTO) containing only properties and declarative decorators, which in this architectural style typically do not require dedicated test files.\",\"rootCause\":2}",
+  "runIndex": 1,
+  "schemaVersion": 2,
+  "usage": {
+    "inputTokens": 13895,
+    "outputTokens": 1762
+  },
+  "usedOptions": {
+    "model": "gemini-3.1-pro-high"
+  }
+}

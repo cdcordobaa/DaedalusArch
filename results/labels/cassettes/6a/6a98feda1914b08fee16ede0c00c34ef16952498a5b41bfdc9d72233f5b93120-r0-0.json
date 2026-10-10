@@ -1,0 +1,35 @@
+{
+  "attempts": 1,
+  "cliVersion": "1.3.2",
+  "configListingSha256": "b8cce56d63afd9cebbf745ed20c888d9ab0007207a513029027cc10be9494345",
+  "durationMs": 24285,
+  "effort": null,
+  "functionId": "label:violation:f08cdabefbe9b906524f2e6469d382f0644c0e0c56785ad8878790882cd63c5a",
+  "ignoredOptions": [
+    "temperature",
+    "maxTokens"
+  ],
+  "isolationProbeSha256": "e3e335eb64e5ae507ca6484a4f75d0443b1afef89d42854818fa51bd02d68423",
+  "key": "6a98feda1914b08fee16ede0c00c34ef16952498a5b41bfdc9d72233f5b93120-r0-0",
+  "model": "gemini-3.1-pro-high",
+  "outcome": {
+    "kind": "valid"
+  },
+  "parsedVerdict": null,
+  "prompt": "Decide whether the finding below is a real violation of the rule as described.\n- TP: the code violates the rule at this location.\n- FP: the code does not violate the rule; give the root cause of the false finding.\n- unseeded-TP: the code violates the rule, but the violation is part of the original design rather than a\n  deliberate change; give the root cause (use RC-GENUINE-UNSEEDED when the violation is simply real).\n\n## Item\n## Violation\n  Function: FF-P04\n  Description: use-case-isolation: Verifies use cases only depend on domain and application layers\n  File: src/permission/permissions.service.ts\n  Line: n/a\n  Target: n/a\n  \n  ## Source\n      1 | import { Injectable, UnprocessableEntityException } from '@nestjs/common';\n      2 | import { Not, ObjectLiteral } from 'typeorm';\n      3 | import { InjectRepository } from '@nestjs/typeorm';\n      4 | \n      5 | import { CreatePermissionDto } from 'src/permission/dto/create-permission.dto';\n      6 | import { UpdatePermissionDto } from 'src/permission/dto/update-permission.dto';\n      7 | import { PermissionRepository } from 'src/permission/permission.repository';\n      8 | import { PermissionFilterDto } from 'src/permission/dto/permission-filter.dto';\n      9 | import { CommonServiceInterface } from 'src/common/interfaces/common-service.interface';\n     10 | import { Permission } from 'src/permission/serializer/permission.serializer';\n     11 | import { PermissionEntity } from 'src/permission/entities/permission.entity';\n     12 | import { basicFieldGroupsForSerializing } from 'src/role/serializer/role.serializer';\n     13 | import { Pagination } from 'src/paginate';\n     14 | import {\n     15 |   PermissionConfiguration,\n     16 |   RoutePayloadInterface\n     17 | } from 'src/config/permission-config';\n     18 | import { LoadPermissionMisc } from 'src/permission/misc/load-permission.misc';\n     19 | \n     20 | @Injectable()\n     21 | export class PermissionsServiceImpl\n     22 |   extends LoadPermissionMisc\n     23 |   implements CommonServiceInterface<Permission>\n     24 | {\n     25 |   constructor(\n     26 |     @InjectRepository(PermissionRepository)\n     27 |     private repository: PermissionRepository\n     28 |   ) {\n     29 |     super();\n     30 |   }\n     31 | \n\n## Label options\n1. TP\n  2. FP\n  3. unseeded-TP\n\n## Root causes\n1. RC-LAYER-MAP\n  2. RC-EXTRACT-ALIAS\n  3. RC-EXTRACT-BARREL\n  4. RC-DYNAMIC-IMPORT\n  5. RC-TYPE-ONLY\n  6. RC-TEMPLATE-OVERAPPROX\n  7. RC-STYLE-INAPPLICABLE\n  8. RC-SPEC-PARAM\n  9. RC-GENERATED-CODE\n  10. RC-TEST-CODE\n  11. RC-GENUINE-UNSEEDED\n  12. RC-OTHER\n\nAnswer with one JSON object: {\"option\": <number of the label option>, \"rootCause\": <number of the root cause or null>, \"note\": \"<text, required with RC-OTHER>\", \"rationale\": \"<one or two sentences citing the code>\"}.",
+  "provider": "agy",
+  "recordedAt": "2026-10-10T15:32:44.591Z",
+  "repetition": 0,
+  "requestHash": "6a98feda1914b08fee16ede0c00c34ef16952498a5b41bfdc9d72233f5b93120",
+  "resolvedModel": "gemini-3.1-pro-high",
+  "response": "{\"note\":\"\",\"option\":3,\"rationale\":\"The PermissionsServiceImpl acts as a use case but directly imports TypeORM and NestJS infrastructure dependencies, violating strict use-case isolation. This is standard in NestJS applications and part of the original design.\",\"rootCause\":11}",
+  "runIndex": 0,
+  "schemaVersion": 2,
+  "usage": {
+    "inputTokens": 14014,
+    "outputTokens": 2225
+  },
+  "usedOptions": {
+    "model": "gemini-3.1-pro-high"
+  }
+}

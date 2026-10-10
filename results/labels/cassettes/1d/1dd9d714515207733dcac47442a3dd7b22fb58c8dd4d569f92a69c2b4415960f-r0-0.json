@@ -1,0 +1,35 @@
+{
+  "attempts": 1,
+  "cliVersion": "1.3.2",
+  "configListingSha256": "b8cce56d63afd9cebbf745ed20c888d9ab0007207a513029027cc10be9494345",
+  "durationMs": 18224,
+  "effort": null,
+  "functionId": "label:violation:da8e55cf46f1d3023b3ef228b766a464cfa6089574314fafe13aede2f0491619",
+  "ignoredOptions": [
+    "temperature",
+    "maxTokens"
+  ],
+  "isolationProbeSha256": "e3e335eb64e5ae507ca6484a4f75d0443b1afef89d42854818fa51bd02d68423",
+  "key": "1dd9d714515207733dcac47442a3dd7b22fb58c8dd4d569f92a69c2b4415960f-r0-0",
+  "model": "gemini-3.1-pro-high",
+  "outcome": {
+    "kind": "valid"
+  },
+  "parsedVerdict": null,
+  "prompt": "Decide whether the finding below is a real violation of the rule as described.\n- TP: the code violates the rule at this location.\n- FP: the code does not violate the rule; give the root cause of the false finding.\n- unseeded-TP: the code violates the rule, but the violation is part of the original design rather than a\n  deliberate change; give the root cause (use RC-GENUINE-UNSEEDED when the violation is simply real).\n\n## Item\n## Violation\n  Function: FF-P02\n  Description: dependency-inversion: Checks that application-layer classes inject interfaces, not concrete classes (DIP); violating rows only (BR-U3-11) (threshold 0.85)\n  File: src/delivery/deliveryman/services/update-deliverymans-info.service.ts\n  Line: n/a\n  Target: n/a\n  \n  ## Source\n      1 | import { Injectable } from '@nestjs/common';\n      2 | import { DeliverymanRepository } from '../dal/deliveryman.repository';\n      3 | import { Deliveryman } from '../../__models__/deliveryman.model';\n      4 | import { UpdateDeliverymansInfoDto } from 'src/delivery/deliveryman/dtos/update-deliverymans-info.dto';\n      5 | \n      6 | @Injectable()\n      7 | export class MainUpdateDeliverymansInfoService {\n      8 |   constructor(private deliverymanRepository: DeliverymanRepository) {}\n      9 | \n     10 |   async updateDeliverymansInfo(\n     11 |     deliverymanId: string,\n     12 |     updateDeliveryManDto: UpdateDeliverymansInfoDto,\n     13 |   ): Promise<Deliveryman> {\n     14 |     try {\n     15 |       const deliverymanWithOrders =\n     16 |         await this.deliverymanRepository.findDeliverymanByIdWithOrders(\n     17 |           deliverymanId,\n     18 |         );\n     19 | \n     20 |       updateDeliveryManDto.firstName !== undefined ??\n     21 |         (deliverymanWithOrders.firstName = updateDeliveryManDto.firstName);\n     22 | \n     23 |       updateDeliveryManDto.lastName !== undefined ??\n     24 |         (deliverymanWithOrders.lastName = updateDeliveryManDto.lastName);\n     25 | \n     26 |       return await this.deliverymanRepository.save(deliverymanWithOrders);\n     27 |     } catch (error) {\n     28 |       return error.message;\n     29 |     }\n     30 |   }\n     31 | }\n\n## Label options\n1. TP\n  2. FP\n  3. unseeded-TP\n\n## Root causes\n1. RC-LAYER-MAP\n  2. RC-EXTRACT-ALIAS\n  3. RC-EXTRACT-BARREL\n  4. RC-DYNAMIC-IMPORT\n  5. RC-TYPE-ONLY\n  6. RC-TEMPLATE-OVERAPPROX\n  7. RC-STYLE-INAPPLICABLE\n  8. RC-SPEC-PARAM\n  9. RC-GENERATED-CODE\n  10. RC-TEST-CODE\n  11. RC-GENUINE-UNSEEDED\n  12. RC-OTHER\n\nAnswer with one JSON object: {\"option\": <number of the label option>, \"rootCause\": <number of the root cause or null>, \"note\": \"<text, required with RC-OTHER>\", \"rationale\": \"<one or two sentences citing the code>\"}.",
+  "provider": "agy",
+  "recordedAt": "2026-10-10T15:35:48.097Z",
+  "repetition": 0,
+  "requestHash": "1dd9d714515207733dcac47442a3dd7b22fb58c8dd4d569f92a69c2b4415960f",
+  "resolvedModel": "gemini-3.1-pro-high",
+  "response": "{\"note\":\"\",\"option\":3,\"rationale\":\"The service MainUpdateDeliverymansInfoService injects the concrete DeliverymanRepository class instead of an interface, which is a genuine unseeded violation of the Dependency Inversion Principle common in standard NestJS code.\",\"rootCause\":11}",
+  "runIndex": 0,
+  "schemaVersion": 2,
+  "usage": {
+    "inputTokens": 14011,
+    "outputTokens": 1772
+  },
+  "usedOptions": {
+    "model": "gemini-3.1-pro-high"
+  }
+}

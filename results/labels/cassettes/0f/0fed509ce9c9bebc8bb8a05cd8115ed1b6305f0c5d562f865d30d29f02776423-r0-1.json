@@ -1,0 +1,35 @@
+{
+  "attempts": 1,
+  "cliVersion": "1.3.2",
+  "configListingSha256": "b8cce56d63afd9cebbf745ed20c888d9ab0007207a513029027cc10be9494345",
+  "durationMs": 23390,
+  "effort": null,
+  "functionId": "label:violation:d503d6ec598b3061532549bc082cd83b0d53e1ec46625f330666ec99f121ede5",
+  "ignoredOptions": [
+    "temperature",
+    "maxTokens"
+  ],
+  "isolationProbeSha256": "e3e335eb64e5ae507ca6484a4f75d0443b1afef89d42854818fa51bd02d68423",
+  "key": "0fed509ce9c9bebc8bb8a05cd8115ed1b6305f0c5d562f865d30d29f02776423-r0-1",
+  "model": "gemini-3.1-pro-high",
+  "outcome": {
+    "kind": "valid"
+  },
+  "parsedVerdict": null,
+  "prompt": "Decide whether the finding below is a real violation of the rule as described.\n- TP: the code violates the rule at this location.\n- FP: the code does not violate the rule; give the root cause of the false finding.\n- unseeded-TP: the code violates the rule, but the violation is part of the original design rather than a\n  deliberate change; give the root cause (use RC-GENUINE-UNSEEDED when the violation is simply real).\n\n## Item\n## Violation\n  Function: FF-CV05\n  Description: test-file-pairing: Detects source files without corresponding test files\n  File: src/services/queues/portfolio-snapshot/portfolio-snapshot.module.ts\n  Line: n/a\n  Target: n/a\n  \n  ## Source\n      1 | import { AccountBalanceModule } from '@ghostfolio/api/app/account-balance/account-balance.module';\n      2 | import { ActivitiesModule } from '@ghostfolio/api/app/activities/activities.module';\n      3 | import { PortfolioCalculatorFactory } from '@ghostfolio/api/app/portfolio/calculator/portfolio-calculator.factory';\n      4 | import { CurrentRateService } from '@ghostfolio/api/app/portfolio/current-rate.service';\n      5 | import { RedisCacheModule } from '@ghostfolio/api/app/redis-cache/redis-cache.module';\n      6 | import { ConfigurationModule } from '@ghostfolio/api/services/configuration/configuration.module';\n      7 | import { DataProviderModule } from '@ghostfolio/api/services/data-provider/data-provider.module';\n      8 | import { ExchangeRateDataModule } from '@ghostfolio/api/services/exchange-rate-data/exchange-rate-data.module';\n      9 | import { MarketDataModule } from '@ghostfolio/api/services/market-data/market-data.module';\n     10 | import { PortfolioSnapshotService } from '@ghostfolio/api/services/queues/portfolio-snapshot/portfolio-snapshot.service';\n     11 | import {\n     12 |   DEFAULT_PROCESSOR_PORTFOLIO_SNAPSHOT_COMPUTATION_TIMEOUT,\n     13 |   PORTFOLIO_SNAPSHOT_COMPUTATION_QUEUE\n     14 | } from '@ghostfolio/common/config';\n     15 | \n     16 | import { BullAdapter } from '@bull-board/api/bullAdapter';\n     17 | import { BullBoardModule } from '@bull-board/nestjs';\n     18 | import { BullModule } from '@nestjs/bull';\n     19 | import { Module } from '@nestjs/common';\n     20 | \n     21 | import { PortfolioSnapshotProcessor } from './portfolio-snapshot.processor';\n     22 | \n     23 | @Module({\n     24 |   exports: [BullModule, PortfolioSnapshotService],\n     25 |   imports: [\n     26 |     AccountBalanceModule,\n     27 |     ActivitiesModule,\n     28 |     ...(process.env.ENABLE_FEATURE_BULL_BOARD === 'true'\n     29 |       ? [\n     30 |           BullBoardModule.forFeature({\n     31 |             adapter: BullAdapter,\n\n## Label options\n1. FP\n  2. TP\n  3. unseeded-TP\n\n## Root causes\n1. RC-OTHER\n  2. RC-EXTRACT-BARREL\n  3. RC-STYLE-INAPPLICABLE\n  4. RC-TYPE-ONLY\n  5. RC-SPEC-PARAM\n  6. RC-GENERATED-CODE\n  7. RC-TEMPLATE-OVERAPPROX\n  8. RC-TEST-CODE\n  9. RC-EXTRACT-ALIAS\n  10. RC-LAYER-MAP\n  11. RC-DYNAMIC-IMPORT\n  12. RC-GENUINE-UNSEEDED\n\nAnswer with one JSON object: {\"option\": <number of the label option>, \"rootCause\": <number of the root cause or null>, \"note\": \"<text, required with RC-OTHER>\", \"rationale\": \"<one or two sentences citing the code>\"}.",
+  "provider": "agy",
+  "recordedAt": "2026-10-10T16:00:39.512Z",
+  "repetition": 0,
+  "requestHash": "0fed509ce9c9bebc8bb8a05cd8115ed1b6305f0c5d562f865d30d29f02776423",
+  "resolvedModel": "gemini-3.1-pro-high",
+  "response": "{\"note\":\"\",\"option\":1,\"rationale\":\"The file is a declarative NestJS module (portfolio-snapshot.module.ts) that configures dependency injection, which by framework convention does not require a corresponding test file.\",\"rootCause\":3}",
+  "runIndex": 1,
+  "schemaVersion": 2,
+  "usage": {
+    "inputTokens": 29011,
+    "outputTokens": 2354
+  },
+  "usedOptions": {
+    "model": "gemini-3.1-pro-high"
+  }
+}

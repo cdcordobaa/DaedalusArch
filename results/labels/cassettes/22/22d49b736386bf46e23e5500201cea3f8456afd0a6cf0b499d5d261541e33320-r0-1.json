@@ -1,0 +1,35 @@
+{
+  "attempts": 1,
+  "cliVersion": "1.3.2",
+  "configListingSha256": "b8cce56d63afd9cebbf745ed20c888d9ab0007207a513029027cc10be9494345",
+  "durationMs": 23360,
+  "effort": null,
+  "functionId": "label:violation:a2dcb250e2ac68d4a64ff9ffd6fe1091cbd58e74963c5e67ae6f5332fac6e0a4",
+  "ignoredOptions": [
+    "temperature",
+    "maxTokens"
+  ],
+  "isolationProbeSha256": "e3e335eb64e5ae507ca6484a4f75d0443b1afef89d42854818fa51bd02d68423",
+  "key": "22d49b736386bf46e23e5500201cea3f8456afd0a6cf0b499d5d261541e33320-r0-1",
+  "model": "gemini-3.1-pro-high",
+  "outcome": {
+    "kind": "valid"
+  },
+  "parsedVerdict": null,
+  "prompt": "Decide whether the finding below is a real violation of the rule as described.\n- TP: the code violates the rule at this location.\n- FP: the code does not violate the rule; give the root cause of the false finding.\n- unseeded-TP: the code violates the rule, but the violation is part of the original design rather than a\n  deliberate change; give the root cause (use RC-GENUINE-UNSEEDED when the violation is simply real).\n\n## Item\n## Violation\n  Function: FF-P03\n  Description: repository-pattern: Verifies infrastructure repositories implement domain interfaces\n  File: src/session/infrastructure/persistence/session.repository.ts\n  Line: n/a\n  Target: n/a\n  \n  ## Source\n      1 | import { User } from '../../../users/domain/user';\n      2 | import { NullableType } from '../../../utils/types/nullable.type';\n      3 | import { Session } from '../../domain/session';\n      4 | \n      5 | export abstract class SessionRepository {\n      6 |   abstract findById(id: Session['id']): Promise<NullableType<Session>>;\n      7 | \n      8 |   abstract create(\n      9 |     data: Omit<Session, 'id' | 'createdAt' | 'updatedAt' | 'deletedAt'>,\n     10 |   ): Promise<Session>;\n     11 | \n     12 |   abstract update(\n     13 |     id: Session['id'],\n     14 |     payload: Partial<\n     15 |       Omit<Session, 'id' | 'createdAt' | 'updatedAt' | 'deletedAt'>\n     16 |     >,\n     17 |   ): Promise<Session | null>;\n     18 | \n     19 |   abstract updateByHash(\n     20 |     conditions: { id: Session['id']; hash: Session['hash'] },\n     21 |     payload: Partial<\n     22 |       Omit<Session, 'id' | 'createdAt' | 'updatedAt' | 'deletedAt'>\n     23 |     >,\n     24 |   ): Promise<Session | null>;\n     25 | \n     26 |   abstract deleteById(id: Session['id']): Promise<void>;\n     27 | \n     28 |   abstract deleteByUserId(conditions: { userId: User['id'] }): Promise<void>;\n     29 | \n     30 |   abstract deleteByUserIdWithExclude(conditions: {\n     31 |     userId: User['id'];\n\n## Label options\n1. unseeded-TP\n  2. FP\n  3. TP\n\n## Root causes\n1. RC-GENERATED-CODE\n  2. RC-OTHER\n  3. RC-SPEC-PARAM\n  4. RC-EXTRACT-ALIAS\n  5. RC-EXTRACT-BARREL\n  6. RC-GENUINE-UNSEEDED\n  7. RC-TEMPLATE-OVERAPPROX\n  8. RC-TYPE-ONLY\n  9. RC-DYNAMIC-IMPORT\n  10. RC-TEST-CODE\n  11. RC-STYLE-INAPPLICABLE\n  12. RC-LAYER-MAP\n\nAnswer with one JSON object: {\"option\": <number of the label option>, \"rootCause\": <number of the root cause or null>, \"note\": \"<text, required with RC-OTHER>\", \"rationale\": \"<one or two sentences citing the code>\"}.",
+  "provider": "agy",
+  "recordedAt": "2026-10-10T16:09:59.415Z",
+  "repetition": 0,
+  "requestHash": "22d49b736386bf46e23e5500201cea3f8456afd0a6cf0b499d5d261541e33320",
+  "resolvedModel": "gemini-3.1-pro-high",
+  "response": "{\"note\":\"\",\"option\":2,\"rationale\":\"The file defines an abstract class that serves as an interface (or DI token) rather than a concrete repository implementation, so the rule requiring it to implement an interface does not apply.\",\"rootCause\":8}",
+  "runIndex": 1,
+  "schemaVersion": 2,
+  "usage": {
+    "inputTokens": 13996,
+    "outputTokens": 2325
+  },
+  "usedOptions": {
+    "model": "gemini-3.1-pro-high"
+  }
+}

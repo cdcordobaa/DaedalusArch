@@ -1,0 +1,35 @@
+{
+  "attempts": 1,
+  "cliVersion": "1.3.2",
+  "configListingSha256": "b8cce56d63afd9cebbf745ed20c888d9ab0007207a513029027cc10be9494345",
+  "durationMs": 82411,
+  "effort": null,
+  "functionId": "label:violation:d4a5cbea0e34ba5e3278e24518034e38780ebe5966011fd1e0c220c9fe18da38",
+  "ignoredOptions": [
+    "temperature",
+    "maxTokens"
+  ],
+  "isolationProbeSha256": "e3e335eb64e5ae507ca6484a4f75d0443b1afef89d42854818fa51bd02d68423",
+  "key": "ccbd47c154bc2f949ea1a83f50a2bb326e2ef5b225e74b393fda699f13fa8e17-r0-0",
+  "model": "gemini-3.1-pro-high",
+  "outcome": {
+    "kind": "valid"
+  },
+  "parsedVerdict": null,
+  "prompt": "Decide whether the finding below is a real violation of the rule as described.\n- TP: the code violates the rule at this location.\n- FP: the code does not violate the rule; give the root cause of the false finding.\n- unseeded-TP: the code violates the rule, but the violation is part of the original design rather than a\n  deliberate change; give the root cause (use RC-GENUINE-UNSEEDED when the violation is simply real).\n\n## Item\n## Violation\n  Function: FF-SO01\n  Description: single-responsibility-proxy: SRP proxy: classes with too many methods or dependencies likely have multiple responsibilities\n  File: src/services/symbol-profile/symbol-profile.service.ts\n  Line: n/a\n  Target: n/a\n  \n  ## Source\n      1 | import { PrismaService } from '@ghostfolio/api/services/prisma/prisma.service';\n      2 | import { UNKNOWN_KEY } from '@ghostfolio/common/config';\n      3 | import {\n      4 |   AssetProfileIdentifier,\n      5 |   EnhancedSymbolProfile,\n      6 |   Holding,\n      7 |   ScraperConfiguration\n      8 | } from '@ghostfolio/common/interfaces';\n      9 | import { Country } from '@ghostfolio/common/interfaces/country.interface';\n     10 | import { Sector } from '@ghostfolio/common/interfaces/sector.interface';\n     11 | \n     12 | import { Injectable } from '@nestjs/common';\n     13 | import { Prisma, SymbolProfile, SymbolProfileOverrides } from '@prisma/client';\n     14 | import { continents, countries } from 'countries-list';\n     15 | \n     16 | @Injectable()\n     17 | export class SymbolProfileServiceCore {\n     18 |   public constructor(private readonly prismaService: PrismaService) {}\n     19 | \n     20 |   public async add(\n     21 |     assetProfile: Prisma.SymbolProfileCreateInput\n     22 |   ): Promise<SymbolProfile | never> {\n     23 |     return this.prismaService.symbolProfile.create({ data: assetProfile });\n     24 |   }\n     25 | \n     26 |   public async delete({ dataSource, symbol }: AssetProfileIdentifier) {\n     27 |     return this.prismaService.symbolProfile.delete({\n     28 |       where: { dataSource_symbol: { dataSource, symbol } }\n     29 |     });\n     30 |   }\n     31 | \n\n## Label options\n1. TP\n  2. FP\n  3. unseeded-TP\n\n## Root causes\n1. RC-LAYER-MAP\n  2. RC-EXTRACT-ALIAS\n  3. RC-EXTRACT-BARREL\n  4. RC-DYNAMIC-IMPORT\n  5. RC-TYPE-ONLY\n  6. RC-TEMPLATE-OVERAPPROX\n  7. RC-STYLE-INAPPLICABLE\n  8. RC-SPEC-PARAM\n  9. RC-GENERATED-CODE\n  10. RC-TEST-CODE\n  11. RC-GENUINE-UNSEEDED\n  12. RC-OTHER\n\nAnswer with one JSON object: {\"option\": <number of the label option>, \"rootCause\": <number of the root cause or null>, \"note\": \"<text, required with RC-OTHER>\", \"rationale\": \"<one or two sentences citing the code>\"}.",
+  "provider": "agy",
+  "recordedAt": "2026-10-10T15:27:25.388Z",
+  "repetition": 0,
+  "requestHash": "ccbd47c154bc2f949ea1a83f50a2bb326e2ef5b225e74b393fda699f13fa8e17",
+  "resolvedModel": "gemini-3.1-pro-high",
+  "response": "{\"note\":\"\",\"option\":2,\"rationale\":\"The SymbolProfileServiceCore class has only two methods and a single injected runtime dependency (PrismaService). The tool falsely flagged it for having too many dependencies because it incorrectly counted the numerous type-only imports (such as AssetProfileIdentifier and Country) as actual dependencies.\",\"rootCause\":5}",
+  "runIndex": 0,
+  "schemaVersion": 2,
+  "usage": {
+    "inputTokens": 55387,
+    "outputTokens": 9684
+  },
+  "usedOptions": {
+    "model": "gemini-3.1-pro-high"
+  }
+}

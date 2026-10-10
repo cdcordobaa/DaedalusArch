@@ -1,0 +1,35 @@
+{
+  "attempts": 1,
+  "cliVersion": "1.3.2",
+  "configListingSha256": "b8cce56d63afd9cebbf745ed20c888d9ab0007207a513029027cc10be9494345",
+  "durationMs": 12627,
+  "effort": null,
+  "functionId": "label:violation:a445aa7156d3ed9dc283ae3cbf0f01d7a91495f306e235c5b1b6c0992ce1e4ee",
+  "ignoredOptions": [
+    "temperature",
+    "maxTokens"
+  ],
+  "isolationProbeSha256": "e3e335eb64e5ae507ca6484a4f75d0443b1afef89d42854818fa51bd02d68423",
+  "key": "f998d1949316b2ac1420d74e4427c1d4e5ef530a9ce54ded987b3722f14c109b-r0-0",
+  "model": "gemini-3.1-pro-high",
+  "outcome": {
+    "kind": "valid"
+  },
+  "parsedVerdict": null,
+  "prompt": "Decide whether the finding below is a real violation of the rule as described.\n- TP: the code violates the rule at this location.\n- FP: the code does not violate the rule; give the root cause of the false finding.\n- unseeded-TP: the code violates the rule, but the violation is part of the original design rather than a\n  deliberate change; give the root cause (use RC-GENUINE-UNSEEDED when the violation is simply real).\n\n## Item\n## Violation\n  Function: FF-SO01\n  Description: single-responsibility-proxy: SRP proxy: classes with too many methods or dependencies likely have multiple responsibilities\n  File: src/modules/inventory/testing/factories/inventory-dto.test.factory.ts\n  Line: n/a\n  Target: n/a\n  \n  ## Source\n      1 | import { AdjustStockCommand } from '../../core/application/commands/adjust-stock.command';\n      2 | import { ReservationInput } from '../../core/domain/repositories/reservation.repository';\n      3 | import { LowStockQuery } from '../../core/domain/repositories/inventory.repository';\n      4 | import { StockAdjustmentType } from '../../core/domain/value-objects/stock-adjustment-type';\n      5 | \n      6 | export class InventoryCommandTestFactory {\n      7 |   static createAdjustStockCommand(\n      8 |     overrides?: Partial<AdjustStockCommand>,\n      9 |   ): AdjustStockCommand {\n     10 |     const baseCommand: AdjustStockCommand = {\n     11 |       productId: 1,\n     12 |       quantity: 50,\n     13 |       type: StockAdjustmentType.ADD,\n     14 |       reason: 'New shipment received',\n     15 |     };\n     16 | \n     17 |     return { ...baseCommand, ...overrides };\n     18 |   }\n     19 | \n     20 |   static createAddStockCommand(quantity: number = 50): AdjustStockCommand {\n     21 |     return this.createAdjustStockCommand({\n     22 |       quantity,\n     23 |       type: StockAdjustmentType.ADD,\n     24 |       reason: 'Restock from supplier',\n     25 |     });\n     26 |   }\n     27 | \n     28 |   static createSubtractStockCommand(quantity: number = 10): AdjustStockCommand {\n     29 |     return this.createAdjustStockCommand({\n     30 |       quantity,\n     31 |       type: StockAdjustmentType.SUBTRACT,\n\n## Label options\n1. TP\n  2. FP\n  3. unseeded-TP\n\n## Root causes\n1. RC-LAYER-MAP\n  2. RC-EXTRACT-ALIAS\n  3. RC-EXTRACT-BARREL\n  4. RC-DYNAMIC-IMPORT\n  5. RC-TYPE-ONLY\n  6. RC-TEMPLATE-OVERAPPROX\n  7. RC-STYLE-INAPPLICABLE\n  8. RC-SPEC-PARAM\n  9. RC-GENERATED-CODE\n  10. RC-TEST-CODE\n  11. RC-GENUINE-UNSEEDED\n  12. RC-OTHER\n\nAnswer with one JSON object: {\"option\": <number of the label option>, \"rootCause\": <number of the root cause or null>, \"note\": \"<text, required with RC-OTHER>\", \"rationale\": \"<one or two sentences citing the code>\"}.",
+  "provider": "agy",
+  "recordedAt": "2026-10-10T15:50:04.935Z",
+  "repetition": 0,
+  "requestHash": "f998d1949316b2ac1420d74e4427c1d4e5ef530a9ce54ded987b3722f14c109b",
+  "resolvedModel": "gemini-3.1-pro-high",
+  "response": "{\"note\":\"\",\"option\":2,\"rationale\":\"The reported violation is in a test factory class within a testing directory, so the architectural rule should not apply to it.\",\"rootCause\":10}",
+  "runIndex": 0,
+  "schemaVersion": 2,
+  "usage": {
+    "inputTokens": 14007,
+    "outputTokens": 777
+  },
+  "usedOptions": {
+    "model": "gemini-3.1-pro-high"
+  }
+}

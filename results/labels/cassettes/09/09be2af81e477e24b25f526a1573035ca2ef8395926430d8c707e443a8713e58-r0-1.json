@@ -1,0 +1,35 @@
+{
+  "attempts": 1,
+  "cliVersion": "1.3.2",
+  "configListingSha256": "b8cce56d63afd9cebbf745ed20c888d9ab0007207a513029027cc10be9494345",
+  "durationMs": 26236,
+  "effort": null,
+  "functionId": "label:violation:6404797773348f6c6736babd62da6912386b7d2cf5feef19d1bda1f05c0232f0",
+  "ignoredOptions": [
+    "temperature",
+    "maxTokens"
+  ],
+  "isolationProbeSha256": "e3e335eb64e5ae507ca6484a4f75d0443b1afef89d42854818fa51bd02d68423",
+  "key": "09be2af81e477e24b25f526a1573035ca2ef8395926430d8c707e443a8713e58-r0-1",
+  "model": "gemini-3.1-pro-high",
+  "outcome": {
+    "kind": "valid"
+  },
+  "parsedVerdict": null,
+  "prompt": "Decide whether the finding below is a real violation of the rule as described.\n- TP: the code violates the rule at this location.\n- FP: the code does not violate the rule; give the root cause of the false finding.\n- unseeded-TP: the code violates the rule, but the violation is part of the original design rather than a\n  deliberate change; give the root cause (use RC-GENUINE-UNSEEDED when the violation is simply real).\n\n## Item\n## Violation\n  Function: FF-P02\n  Description: dependency-inversion: Checks that application-layer classes inject interfaces, not concrete classes (DIP); violating rows only (BR-U3-11) (threshold 0.85)\n  File: src/auth/auth.service.ts\n  Line: n/a\n  Target: n/a\n  \n  ## Source\n      1 | import {\n      2 |   HttpStatus,\n      3 |   Injectable,\n      4 |   NotFoundException,\n      5 |   UnauthorizedException,\n      6 |   UnprocessableEntityException,\n      7 | } from '@nestjs/common';\n      8 | import ms from 'ms';\n      9 | import crypto from 'crypto';\n     10 | import { randomStringGenerator } from '@nestjs/common/utils/random-string-generator.util';\n     11 | import { JwtService } from '@nestjs/jwt';\n     12 | import bcrypt from 'bcryptjs';\n     13 | import { AuthEmailLoginDto } from './dto/auth-email-login.dto';\n     14 | import { AuthUpdateDto } from './dto/auth-update.dto';\n     15 | import { AuthProvidersEnum } from './auth-providers.enum';\n     16 | import { SocialInterface } from '../social/interfaces/social.interface';\n     17 | import { AuthRegisterLoginDto } from './dto/auth-register-login.dto';\n     18 | import { NullableType } from '../utils/types/nullable.type';\n     19 | import { LoginResponseDto } from './dto/login-response.dto';\n     20 | import { ConfigService } from '@nestjs/config';\n     21 | import { JwtRefreshPayloadType } from './strategies/types/jwt-refresh-payload.type';\n     22 | import { JwtPayloadType } from './strategies/types/jwt-payload.type';\n     23 | import { UsersService } from '../users/users.service';\n     24 | import { AllConfigType } from '../config/config.type';\n     25 | import { MailService } from '../mail/mail.service';\n     26 | import { RoleEnum } from '../roles/roles.enum';\n     27 | import { Session } from '../session/domain/session';\n     28 | import { SessionService } from '../session/session.service';\n     29 | import { StatusEnum } from '../statuses/statuses.enum';\n     30 | import { User } from '../users/domain/user';\n     31 | \n\n## Label options\n1. FP\n  2. unseeded-TP\n  3. TP\n\n## Root causes\n1. RC-EXTRACT-ALIAS\n  2. RC-DYNAMIC-IMPORT\n  3. RC-SPEC-PARAM\n  4. RC-TEST-CODE\n  5. RC-TYPE-ONLY\n  6. RC-GENERATED-CODE\n  7. RC-LAYER-MAP\n  8. RC-TEMPLATE-OVERAPPROX\n  9. RC-EXTRACT-BARREL\n  10. RC-GENUINE-UNSEEDED\n  11. RC-STYLE-INAPPLICABLE\n  12. RC-OTHER\n\nAnswer with one JSON object: {\"option\": <number of the label option>, \"rootCause\": <number of the root cause or null>, \"note\": \"<text, required with RC-OTHER>\", \"rationale\": \"<one or two sentences citing the code>\"}.",
+  "provider": "agy",
+  "recordedAt": "2026-10-10T16:17:07.233Z",
+  "repetition": 0,
+  "requestHash": "09be2af81e477e24b25f526a1573035ca2ef8395926430d8c707e443a8713e58",
+  "resolvedModel": "gemini-3.1-pro-high",
+  "response": "{\"note\":\"\",\"option\":2,\"rationale\":\"The source code imports concrete service classes like UsersService, MailService, and SessionService, indicating they are injected directly into AuthService rather than relying on interfaces, which constitutes a genuine unseeded violation of the dependency inversion principle.\",\"rootCause\":10}",
+  "runIndex": 1,
+  "schemaVersion": 2,
+  "usage": {
+    "inputTokens": 44466,
+    "outputTokens": 1900
+  },
+  "usedOptions": {
+    "model": "gemini-3.1-pro-high"
+  }
+}

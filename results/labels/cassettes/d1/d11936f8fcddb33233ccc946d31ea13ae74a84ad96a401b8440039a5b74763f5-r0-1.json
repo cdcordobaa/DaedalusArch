@@ -1,0 +1,35 @@
+{
+  "attempts": 1,
+  "cliVersion": "1.3.2",
+  "configListingSha256": "b8cce56d63afd9cebbf745ed20c888d9ab0007207a513029027cc10be9494345",
+  "durationMs": 16186,
+  "effort": null,
+  "functionId": "label:violation:979951e689c8d5e989c2686ba36faa5b76d047d9ba2910f921ce5ab79c065af3",
+  "ignoredOptions": [
+    "temperature",
+    "maxTokens"
+  ],
+  "isolationProbeSha256": "e3e335eb64e5ae507ca6484a4f75d0443b1afef89d42854818fa51bd02d68423",
+  "key": "d11936f8fcddb33233ccc946d31ea13ae74a84ad96a401b8440039a5b74763f5-r0-1",
+  "model": "gemini-3.1-pro-high",
+  "outcome": {
+    "kind": "valid"
+  },
+  "parsedVerdict": null,
+  "prompt": "Decide whether the finding below is a real violation of the rule as described.\n- TP: the code violates the rule at this location.\n- FP: the code does not violate the rule; give the root cause of the false finding.\n- unseeded-TP: the code violates the rule, but the violation is part of the original design rather than a\n  deliberate change; give the root cause (use RC-GENUINE-UNSEEDED when the violation is simply real).\n\n## Item\n## Violation\n  Function: FF-SO01\n  Description: single-responsibility-proxy: SRP proxy: classes with too many methods or dependencies likely have multiple responsibilities\n  File: src/article/article.service.ts\n  Line: n/a\n  Target: n/a\n  \n  ## Source\n      1 | import { Injectable } from '@nestjs/common';\n      2 | import { InjectRepository } from '@nestjs/typeorm';\n      3 | import { Repository, getRepository, DeleteResult } from 'typeorm';\n      4 | import { ArticleEntity } from './article.entity';\n      5 | import { Comment } from './comment.entity';\n      6 | import { UserEntity } from '../user/user.entity';\n      7 | import { FollowsEntity } from '../profile/follows.entity';\n      8 | import { CreateArticleDto } from './dto';\n      9 | \n     10 | import {ArticleRO, ArticlesRO, CommentsRO} from './article.interface';\n     11 | const slug = require('slug');\n     12 | \n     13 | @Injectable()\n     14 | export class ArticleServiceCore {\n     15 |   constructor(\n     16 |     @InjectRepository(ArticleEntity)\n     17 |     private readonly articleRepository: Repository<ArticleEntity>,\n     18 |     @InjectRepository(Comment)\n     19 |     private readonly commentRepository: Repository<Comment>,\n     20 |     @InjectRepository(UserEntity)\n     21 |     private readonly userRepository: Repository<UserEntity>,\n     22 |     @InjectRepository(FollowsEntity)\n     23 |     private readonly followsRepository: Repository<FollowsEntity>\n     24 |   ) {}\n     25 | \n     26 |   async findAll(query): Promise<ArticlesRO> {\n     27 | \n     28 |     const qb = await getRepository(ArticleEntity)\n     29 |       .createQueryBuilder('article')\n     30 |       .leftJoinAndSelect('article.author', 'author');\n     31 | \n\n## Label options\n1. FP\n  2. TP\n  3. unseeded-TP\n\n## Root causes\n1. RC-EXTRACT-BARREL\n  2. RC-TYPE-ONLY\n  3. RC-TEMPLATE-OVERAPPROX\n  4. RC-OTHER\n  5. RC-LAYER-MAP\n  6. RC-GENERATED-CODE\n  7. RC-TEST-CODE\n  8. RC-EXTRACT-ALIAS\n  9. RC-STYLE-INAPPLICABLE\n  10. RC-DYNAMIC-IMPORT\n  11. RC-GENUINE-UNSEEDED\n  12. RC-SPEC-PARAM\n\nAnswer with one JSON object: {\"option\": <number of the label option>, \"rootCause\": <number of the root cause or null>, \"note\": \"<text, required with RC-OTHER>\", \"rationale\": \"<one or two sentences citing the code>\"}.",
+  "provider": "agy",
+  "recordedAt": "2026-10-10T16:01:14.446Z",
+  "repetition": 0,
+  "requestHash": "d11936f8fcddb33233ccc946d31ea13ae74a84ad96a401b8440039a5b74763f5",
+  "resolvedModel": "gemini-3.1-pro-high",
+  "response": "{\"note\":\"\",\"option\":3,\"rationale\":\"The `ArticleServiceCore` class takes four distinct repository dependencies (`ArticleEntity`, `Comment`, `UserEntity`, `FollowsEntity`), which genuinely indicates it handles multiple responsibilities (such as articles, comments, and user follows) and is a true positive for the SRP proxy rule.\",\"rootCause\":11}",
+  "runIndex": 1,
+  "schemaVersion": 2,
+  "usage": {
+    "inputTokens": 13996,
+    "outputTokens": 1711
+  },
+  "usedOptions": {
+    "model": "gemini-3.1-pro-high"
+  }
+}

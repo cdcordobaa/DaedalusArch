@@ -1,0 +1,35 @@
+{
+  "attempts": 2,
+  "cliVersion": "1.3.2",
+  "configListingSha256": "b8cce56d63afd9cebbf745ed20c888d9ab0007207a513029027cc10be9494345",
+  "durationMs": 546058,
+  "effort": null,
+  "functionId": "label:violation:91146cdd04ba4e65c489581537d74aa356abc29205cefb9908f6be01884804b4",
+  "ignoredOptions": [
+    "temperature",
+    "maxTokens"
+  ],
+  "isolationProbeSha256": "e3e335eb64e5ae507ca6484a4f75d0443b1afef89d42854818fa51bd02d68423",
+  "key": "da55355c87b20caf5b32aef498ccb89e1712b66e7ffd29cdb25dadce0a71b655-r0-1",
+  "model": "gemini-3.1-pro-high",
+  "outcome": {
+    "kind": "valid"
+  },
+  "parsedVerdict": null,
+  "prompt": "Decide whether the finding below is a real violation of the rule as described.\n- TP: the code violates the rule at this location.\n- FP: the code does not violate the rule; give the root cause of the false finding.\n- unseeded-TP: the code violates the rule, but the violation is part of the original design rather than a\n  deliberate change; give the root cause (use RC-GENUINE-UNSEEDED when the violation is simply real).\n\n## Item\n## Violation\n  Function: FF-C03\n  Description: component-instability: Flags files whose instability metric exceeds the threshold (fanOut / (fanIn + fanOut)) (threshold 0.8)\n  File: src/email-template/email-template.controller.ts\n  Line: n/a\n  Target: n/a\n  \n  ## Source\n      1 | import {\n      2 |   Body,\n      3 |   Controller,\n      4 |   Delete,\n      5 |   Get,\n      6 |   HttpCode,\n      7 |   HttpStatus,\n      8 |   Param,\n      9 |   Post,\n     10 |   Put,\n     11 |   Query,\n     12 |   UseGuards\n     13 | } from '@nestjs/common';\n     14 | import { ApiTags } from '@nestjs/swagger';\n     15 | \n     16 | import { EmailTemplateService } from 'src/email-template/email-template.service';\n     17 | import { CreateEmailTemplateDto } from 'src/email-template/dto/create-email-template.dto';\n     18 | import { UpdateEmailTemplateDto } from 'src/email-template/dto/update-email-template.dto';\n     19 | import { PermissionGuard } from 'src/common/guard/permission.guard';\n     20 | import { Pagination } from 'src/paginate';\n     21 | import { EmailTemplate } from 'src/email-template/serializer/email-template.serializer';\n     22 | import { EmailTemplatesSearchFilterDto } from 'src/email-template/dto/email-templates-search-filter.dto';\n     23 | import JwtTwoFactorGuard from 'src/common/guard/jwt-two-factor.guard';\n     24 | \n     25 | @ApiTags('email-templates')\n     26 | @UseGuards(JwtTwoFactorGuard, PermissionGuard)\n     27 | @Controller('email-templates')\n     28 | export class EmailTemplateController {\n     29 |   constructor(private readonly emailTemplateService: EmailTemplateService) {}\n     30 | \n     31 |   @Post()\n\n## Label options\n1. unseeded-TP\n  2. FP\n  3. TP\n\n## Root causes\n1. RC-DYNAMIC-IMPORT\n  2. RC-TYPE-ONLY\n  3. RC-STYLE-INAPPLICABLE\n  4. RC-OTHER\n  5. RC-SPEC-PARAM\n  6. RC-EXTRACT-ALIAS\n  7. RC-GENUINE-UNSEEDED\n  8. RC-EXTRACT-BARREL\n  9. RC-GENERATED-CODE\n  10. RC-TEMPLATE-OVERAPPROX\n  11. RC-TEST-CODE\n  12. RC-LAYER-MAP\n\nAnswer with one JSON object: {\"option\": <number of the label option>, \"rootCause\": <number of the root cause or null>, \"note\": \"<text, required with RC-OTHER>\", \"rationale\": \"<one or two sentences citing the code>\"}.",
+  "provider": "agy",
+  "recordedAt": "2026-10-10T17:22:42.528Z",
+  "repetition": 0,
+  "requestHash": "da55355c87b20caf5b32aef498ccb89e1712b66e7ffd29cdb25dadce0a71b655",
+  "resolvedModel": "gemini-3.1-pro-high",
+  "response": "{\"option\":1,\"rationale\":\"The controller imports numerous services, DTOs, and guards (high fan-out) and is likely only imported by its corresponding module (low fan-in), causing the instability metric to genuinely exceed the 0.8 threshold.\",\"rootCause\":7}",
+  "runIndex": 1,
+  "schemaVersion": 2,
+  "usage": {
+    "inputTokens": 14026,
+    "outputTokens": 1239
+  },
+  "usedOptions": {
+    "model": "gemini-3.1-pro-high"
+  }
+}

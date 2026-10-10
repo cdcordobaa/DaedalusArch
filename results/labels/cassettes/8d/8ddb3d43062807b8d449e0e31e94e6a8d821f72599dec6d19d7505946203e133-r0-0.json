@@ -1,0 +1,35 @@
+{
+  "attempts": 1,
+  "cliVersion": "1.3.2",
+  "configListingSha256": "b8cce56d63afd9cebbf745ed20c888d9ab0007207a513029027cc10be9494345",
+  "durationMs": 30424,
+  "effort": null,
+  "functionId": "label:violation:9b9c5c6d85257293df307a2c1805e990fff807dc413841176438bb52c86ca1a8",
+  "ignoredOptions": [
+    "temperature",
+    "maxTokens"
+  ],
+  "isolationProbeSha256": "e3e335eb64e5ae507ca6484a4f75d0443b1afef89d42854818fa51bd02d68423",
+  "key": "8ddb3d43062807b8d449e0e31e94e6a8d821f72599dec6d19d7505946203e133-r0-0",
+  "model": "gemini-3.1-pro-high",
+  "outcome": {
+    "kind": "valid"
+  },
+  "parsedVerdict": null,
+  "prompt": "Decide whether the finding below is a real violation of the rule as described.\n- TP: the code violates the rule at this location.\n- FP: the code does not violate the rule; give the root cause of the false finding.\n- unseeded-TP: the code violates the rule, but the violation is part of the original design rather than a\n  deliberate change; give the root cause (use RC-GENUINE-UNSEEDED when the violation is simply real).\n\n## Item\n## Violation\n  Function: FF-P02\n  Description: dependency-inversion: Checks that application-layer classes inject interfaces, not concrete classes (DIP); violating rows only (BR-U3-11) (threshold 0.85)\n  File: src/delivery/orders/services/find-all-orders.service.ts\n  Line: n/a\n  Target: n/a\n  \n  ## Source\n      1 | import { Injectable } from '@nestjs/common';\n      2 | import { OrdersRepository } from '../dal/orders.repository';\n      3 | import { Order } from 'src/delivery/__models__/orders.model';\n      4 | \n      5 | @Injectable()\n      6 | export class FindAllOrdersServiceDefault {\n      7 |   constructor(private ordersRepository: OrdersRepository) {}\n      8 | \n      9 |   findAll(): Promise<Order[]> {\n     10 |     return this.ordersRepository.findAllOrders();\n     11 |   }\n     12 | }\n     13 | \n\n## Label options\n1. TP\n  2. FP\n  3. unseeded-TP\n\n## Root causes\n1. RC-LAYER-MAP\n  2. RC-EXTRACT-ALIAS\n  3. RC-EXTRACT-BARREL\n  4. RC-DYNAMIC-IMPORT\n  5. RC-TYPE-ONLY\n  6. RC-TEMPLATE-OVERAPPROX\n  7. RC-STYLE-INAPPLICABLE\n  8. RC-SPEC-PARAM\n  9. RC-GENERATED-CODE\n  10. RC-TEST-CODE\n  11. RC-GENUINE-UNSEEDED\n  12. RC-OTHER\n\nAnswer with one JSON object: {\"option\": <number of the label option>, \"rootCause\": <number of the root cause or null>, \"note\": \"<text, required with RC-OTHER>\", \"rationale\": \"<one or two sentences citing the code>\"}.",
+  "provider": "agy",
+  "recordedAt": "2026-10-10T15:35:05.721Z",
+  "repetition": 0,
+  "requestHash": "8ddb3d43062807b8d449e0e31e94e6a8d821f72599dec6d19d7505946203e133",
+  "resolvedModel": "gemini-3.1-pro-high",
+  "response": "{\"note\":\"\",\"option\":1,\"rationale\":\"The class FindAllOrdersServiceDefault injects OrdersRepository directly in its constructor without an @Inject() token, which in NestJS implies OrdersRepository is a concrete class since interfaces do not exist at runtime and cannot be used for reflection-based dependency injection.\",\"rootCause\":0}",
+  "runIndex": 0,
+  "schemaVersion": 2,
+  "usage": {
+    "inputTokens": 45550,
+    "outputTokens": 2690
+  },
+  "usedOptions": {
+    "model": "gemini-3.1-pro-high"
+  }
+}

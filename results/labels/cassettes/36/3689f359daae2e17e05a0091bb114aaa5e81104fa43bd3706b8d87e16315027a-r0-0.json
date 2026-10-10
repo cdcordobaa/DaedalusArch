@@ -1,0 +1,35 @@
+{
+  "attempts": 1,
+  "cliVersion": "1.3.2",
+  "configListingSha256": "b8cce56d63afd9cebbf745ed20c888d9ab0007207a513029027cc10be9494345",
+  "durationMs": 44421,
+  "effort": null,
+  "functionId": "label:violation:aee879f8102e16482a2ceeef0299120a8035ef7f96fa20045817ccbde74641e1",
+  "ignoredOptions": [
+    "temperature",
+    "maxTokens"
+  ],
+  "isolationProbeSha256": "e3e335eb64e5ae507ca6484a4f75d0443b1afef89d42854818fa51bd02d68423",
+  "key": "3689f359daae2e17e05a0091bb114aaa5e81104fa43bd3706b8d87e16315027a-r0-0",
+  "model": "gemini-3.1-pro-high",
+  "outcome": {
+    "kind": "valid"
+  },
+  "parsedVerdict": null,
+  "prompt": "Decide whether the finding below is a real violation of the rule as described.\n- TP: the code violates the rule at this location.\n- FP: the code does not violate the rule; give the root cause of the false finding.\n- unseeded-TP: the code violates the rule, but the violation is part of the original design rather than a\n  deliberate change; give the root cause (use RC-GENUINE-UNSEEDED when the violation is simply real).\n\n## Item\n## Violation\n  Function: FF-C02\n  Description: module-fan-out: Detects files with excessive outgoing dependencies (threshold 10)\n  File: src/orders/domain/order-aggregate/order.ts\n  Line: n/a\n  Target: n/a\n  \n  ## Source\n      1 | import { NotFoundException } from '@nestjs/common';\n      2 | import {\n      3 |   ArgumentNullException,\n      4 |   DddAggregateRoot,\n      5 |   IdValueObject,\n      6 |   InvalidOperationException,\n      7 |   InvalidStateTransitionException,\n      8 | } from '@nestjslatam/ddd-lib';\n      9 | import { OrderStatus, canTransitionTo } from './order-status.enum';\n     10 | import { OrderItem } from '../entities/order-item.entity';\n     11 | import { Money } from '../value-objects/money.vo';\n     12 | import { CustomerInfo } from '../value-objects/customer-info.vo';\n     13 | import { ShippingAddress } from '../value-objects/shipping-address.vo';\n     14 | import {\n     15 |   OrderCreatedEvent,\n     16 |   OrderItemAddedEvent,\n     17 |   OrderItemRemovedEvent,\n     18 |   OrderItemQuantityChangedEvent,\n     19 |   OrderConfirmedEvent,\n     20 |   OrderStatusChangedEvent,\n     21 |   OrderCancelledEvent,\n     22 |   OrderShippedEvent,\n     23 |   OrderDeliveredEvent,\n     24 | } from '../events/order.events';\n     25 | import {\n     26 |   OrderItemsValidator,\n     27 |   OrderAmountValidator,\n     28 |   OrderStatusValidator,\n     29 |   OrderCustomerValidator,\n     30 |   OrderShippingValidator,\n     31 | } from '../validators';\n\n## Label options\n1. TP\n  2. FP\n  3. unseeded-TP\n\n## Root causes\n1. RC-LAYER-MAP\n  2. RC-EXTRACT-ALIAS\n  3. RC-EXTRACT-BARREL\n  4. RC-DYNAMIC-IMPORT\n  5. RC-TYPE-ONLY\n  6. RC-TEMPLATE-OVERAPPROX\n  7. RC-STYLE-INAPPLICABLE\n  8. RC-SPEC-PARAM\n  9. RC-GENERATED-CODE\n  10. RC-TEST-CODE\n  11. RC-GENUINE-UNSEEDED\n  12. RC-OTHER\n\nAnswer with one JSON object: {\"option\": <number of the label option>, \"rootCause\": <number of the root cause or null>, \"note\": \"<text, required with RC-OTHER>\", \"rationale\": \"<one or two sentences citing the code>\"}.",
+  "provider": "agy",
+  "recordedAt": "2026-10-10T15:45:16.396Z",
+  "repetition": 0,
+  "requestHash": "3689f359daae2e17e05a0091bb114aaa5e81104fa43bd3706b8d87e16315027a",
+  "resolvedModel": "gemini-3.1-pro-high",
+  "response": "{\"note\":\"\",\"option\":2,\"rationale\":\"The file contains exactly 9 module import statements, which is below the threshold of 10. The tool likely reports a violation by incorrectly expanding barrel files (such as '../validators' and '../events/order.events') and counting their re-exported modules as direct dependencies.\",\"rootCause\":3}",
+  "runIndex": 0,
+  "schemaVersion": 2,
+  "usage": {
+    "inputTokens": 34131,
+    "outputTokens": 5034
+  },
+  "usedOptions": {
+    "model": "gemini-3.1-pro-high"
+  }
+}

@@ -1,0 +1,35 @@
+{
+  "attempts": 1,
+  "cliVersion": "1.3.2",
+  "configListingSha256": "b8cce56d63afd9cebbf745ed20c888d9ab0007207a513029027cc10be9494345",
+  "durationMs": 55370,
+  "effort": null,
+  "functionId": "label:violation:25c038ee73ebb66650563dfb0d6ce063a8639ead1ca540c75f777cfe71503304",
+  "ignoredOptions": [
+    "temperature",
+    "maxTokens"
+  ],
+  "isolationProbeSha256": "e3e335eb64e5ae507ca6484a4f75d0443b1afef89d42854818fa51bd02d68423",
+  "key": "309eb3e80fe170f828906e51fb57ed211146cfb4857a33492294ab370dabaeb2-r0-1",
+  "model": "gemini-3.1-pro-high",
+  "outcome": {
+    "kind": "valid"
+  },
+  "parsedVerdict": null,
+  "prompt": "Decide whether the finding below is a real violation of the rule as described.\n- TP: the code violates the rule at this location.\n- FP: the code does not violate the rule; give the root cause of the false finding.\n- unseeded-TP: the code violates the rule, but the violation is part of the original design rather than a\n  deliberate change; give the root cause (use RC-GENUINE-UNSEEDED when the violation is simply real).\n\n## Item\n## Violation\n  Function: FF-CV03\n  Description: naming-repos: Verifies repository classes follow naming pattern\n  File: src/accounting/reports/report/domain/ports/out/find-report-by-id.out-port.ts\n  Line: n/a\n  Target: n/a\n  \n  ## Source\n      1 | import { ReportEntity } from '../../entities/report.entity';\n      2 | \n      3 | export abstract class FindReportByIdOutPort {\n      4 |   abstract findReportById(reportId: string): Promise<ReportEntity>;\n      5 | }\n      6 | \n\n## Label options\n1. unseeded-TP\n  2. TP\n  3. FP\n\n## Root causes\n1. RC-TEST-CODE\n  2. RC-GENUINE-UNSEEDED\n  3. RC-STYLE-INAPPLICABLE\n  4. RC-LAYER-MAP\n  5. RC-DYNAMIC-IMPORT\n  6. RC-EXTRACT-ALIAS\n  7. RC-SPEC-PARAM\n  8. RC-TEMPLATE-OVERAPPROX\n  9. RC-GENERATED-CODE\n  10. RC-EXTRACT-BARREL\n  11. RC-OTHER\n  12. RC-TYPE-ONLY\n\nAnswer with one JSON object: {\"option\": <number of the label option>, \"rootCause\": <number of the root cause or null>, \"note\": \"<text, required with RC-OTHER>\", \"rationale\": \"<one or two sentences citing the code>\"}.",
+  "provider": "agy",
+  "recordedAt": "2026-10-10T15:56:09.353Z",
+  "repetition": 0,
+  "requestHash": "309eb3e80fe170f828906e51fb57ed211146cfb4857a33492294ab370dabaeb2",
+  "resolvedModel": "gemini-3.1-pro-high",
+  "response": "{\"note\":\"The tool incorrectly identifies a domain output port as a repository class.\",\"option\":3,\"rationale\":\"The class `FindReportByIdOutPort` is an output port in the domain layer, not a repository class. The rule incorrectly targets it as a repository, resulting in a false positive.\",\"rootCause\":11}",
+  "runIndex": 1,
+  "schemaVersion": 2,
+  "usage": {
+    "inputTokens": 64093,
+    "outputTokens": 5589
+  },
+  "usedOptions": {
+    "model": "gemini-3.1-pro-high"
+  }
+}

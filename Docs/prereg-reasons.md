@@ -149,3 +149,12 @@ Previous: v14, commit `eeb55bb`. The Fable review of PR #47 returned MERGE WITH 
 | `corpus/frozen-instrument.json` | `85ecdbfe…` → `5b6073b5…` | `scoringFreeze.neuralAggregation.variants.proportional` gains `definedFor: own-selection`, `withinLayerSampling: hash-order-as-srs`, `variance: not-reported`, `companionColumn: confidence-free-share`. Re-exported; no other key changes. | Low; it records the §12.2 facts. |
 
 All other 68 hashes are unchanged.
+## P-LU — prereg v16 (runbook 6.5, labeller token figures, 2026-10-10)
+
+Previous: v15 (ADR-028 Fable review fixes). The live labelling (runbook 6.4) has run: 66 items, 142 agy invocations, labels in `results/labels/labels.json`. Runbook 6.5 registers the measured token figures as a bump.
+
+| Artefact | v13 → v14 sha256 | Change and reason | Post-hoc risk |
+|---|---|---|---|
+| `Docs/labeller-route.md` | v15 `72c557ca…` → v16 `18d747c4…` | §6 gains the measured input tokens per call from `llm-label --usage` (median 14 024, max 124 846) and the invocation count (142, 3 retries). | None. Descriptive capacity figures only; no estimand, seed, size, prompt or route changes. |
+
+All other hashes are unchanged.

@@ -1,0 +1,35 @@
+{
+  "attempts": 1,
+  "cliVersion": "1.3.2",
+  "configListingSha256": "b8cce56d63afd9cebbf745ed20c888d9ab0007207a513029027cc10be9494345",
+  "durationMs": 16554,
+  "effort": null,
+  "functionId": "label:violation:43dd3518ec2fc18f5b4ba3d151f8a9d9e3cfac724aa43d94a2b0d1ee0d84fff6",
+  "ignoredOptions": [
+    "temperature",
+    "maxTokens"
+  ],
+  "isolationProbeSha256": "e3e335eb64e5ae507ca6484a4f75d0443b1afef89d42854818fa51bd02d68423",
+  "key": "87c9777af095b59d8933b92c062e7a7ed7be6ae2e9f07295d0629e28eff51a49-r0-0",
+  "model": "gemini-3.1-pro-high",
+  "outcome": {
+    "kind": "valid"
+  },
+  "parsedVerdict": null,
+  "prompt": "Decide whether the finding below is a real violation of the rule as described.\n- TP: the code violates the rule at this location.\n- FP: the code does not violate the rule; give the root cause of the false finding.\n- unseeded-TP: the code violates the rule, but the violation is part of the original design rather than a\n  deliberate change; give the root cause (use RC-GENUINE-UNSEEDED when the violation is simply real).\n\n## Item\n## Violation\n  Function: FF-CV05\n  Description: test-file-pairing: Detects source files without corresponding test files\n  File: src/delivery/curiers/curier/domain/ports/out/find-curier-with-count-of-orders.out-port.ts\n  Line: n/a\n  Target: n/a\n  \n  ## Source\n      1 | import { CuriernWithCountOfOrdersReadModel } from '../../read-models/curier-with-count-of-orders.read-model';\n      2 | \n      3 | export abstract class FindCurierWithCountOfOrdersOutPort {\n      4 |   abstract findCurierWithCountOfOrdersPort(\n      5 |     curierId: string,\n      6 |   ): Promise<CuriernWithCountOfOrdersReadModel>;\n      7 | }\n      8 | \n\n## Label options\n1. TP\n  2. FP\n  3. unseeded-TP\n\n## Root causes\n1. RC-LAYER-MAP\n  2. RC-EXTRACT-ALIAS\n  3. RC-EXTRACT-BARREL\n  4. RC-DYNAMIC-IMPORT\n  5. RC-TYPE-ONLY\n  6. RC-TEMPLATE-OVERAPPROX\n  7. RC-STYLE-INAPPLICABLE\n  8. RC-SPEC-PARAM\n  9. RC-GENERATED-CODE\n  10. RC-TEST-CODE\n  11. RC-GENUINE-UNSEEDED\n  12. RC-OTHER\n\nAnswer with one JSON object: {\"option\": <number of the label option>, \"rootCause\": <number of the root cause or null>, \"note\": \"<text, required with RC-OTHER>\", \"rationale\": \"<one or two sentences citing the code>\"}.",
+  "provider": "agy",
+  "recordedAt": "2026-10-10T15:53:22.006Z",
+  "repetition": 0,
+  "requestHash": "87c9777af095b59d8933b92c062e7a7ed7be6ae2e9f07295d0629e28eff51a49",
+  "resolvedModel": "gemini-3.1-pro-high",
+  "response": "{\"note\":\"\",\"option\":2,\"rationale\":\"The file contains an abstract class with only an abstract method, serving as an interface/type definition (port), so it has no implementation logic to test.\",\"rootCause\":5}",
+  "runIndex": 0,
+  "schemaVersion": 2,
+  "usage": {
+    "inputTokens": 13719,
+    "outputTokens": 1480
+  },
+  "usedOptions": {
+    "model": "gemini-3.1-pro-high"
+  }
+}

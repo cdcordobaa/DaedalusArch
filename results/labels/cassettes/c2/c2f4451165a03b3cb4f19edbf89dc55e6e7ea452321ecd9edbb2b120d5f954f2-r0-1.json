@@ -1,0 +1,35 @@
+{
+  "attempts": 1,
+  "cliVersion": "1.3.2",
+  "configListingSha256": "b8cce56d63afd9cebbf745ed20c888d9ab0007207a513029027cc10be9494345",
+  "durationMs": 115784,
+  "effort": null,
+  "functionId": "label:violation:3bd0417584c478885d0c12c4439170237de0d3ca53293c3f89d2c2b6f4d9f5eb",
+  "ignoredOptions": [
+    "temperature",
+    "maxTokens"
+  ],
+  "isolationProbeSha256": "e3e335eb64e5ae507ca6484a4f75d0443b1afef89d42854818fa51bd02d68423",
+  "key": "c2f4451165a03b3cb4f19edbf89dc55e6e7ea452321ecd9edbb2b120d5f954f2-r0-1",
+  "model": "gemini-3.1-pro-high",
+  "outcome": {
+    "kind": "valid"
+  },
+  "parsedVerdict": null,
+  "prompt": "Decide whether the finding below is a real violation of the rule as described.\n- TP: the code violates the rule at this location.\n- FP: the code does not violate the rule; give the root cause of the false finding.\n- unseeded-TP: the code violates the rule, but the violation is part of the original design rather than a\n  deliberate change; give the root cause (use RC-GENUINE-UNSEEDED when the violation is simply real).\n\n## Item\n## Violation\n  Function: FF-CV05\n  Description: test-file-pairing: Detects source files without corresponding test files\n  File: src/app/admin/admin.controller.ts\n  Line: n/a\n  Target: n/a\n  \n  ## Source\n      1 | import { HasPermission } from '@ghostfolio/api/decorators/has-permission.decorator';\n      2 | import { HasPermissionGuard } from '@ghostfolio/api/guards/has-permission.guard';\n      3 | import { TransformDataSourceInRequestInterceptor } from '@ghostfolio/api/interceptors/transform-data-source-in-request/transform-data-source-in-request.interceptor';\n      4 | import { ApiService } from '@ghostfolio/api/services/api/api.service';\n      5 | import { ManualService } from '@ghostfolio/api/services/data-provider/manual/manual.service';\n      6 | import { DemoService } from '@ghostfolio/api/services/demo/demo.service';\n      7 | import { DataGatheringService } from '@ghostfolio/api/services/queues/data-gathering/data-gathering.service';\n      8 | import { getIntervalFromDateRange } from '@ghostfolio/common/calculation-helper';\n      9 | import {\n     10 |   DATA_GATHERING_QUEUE_PRIORITY_HIGH,\n     11 |   DATA_GATHERING_QUEUE_PRIORITY_MEDIUM,\n     12 |   GATHER_ASSET_PROFILE_PROCESS_JOB_NAME,\n     13 |   GATHER_ASSET_PROFILE_PROCESS_JOB_OPTIONS\n     14 | } from '@ghostfolio/common/config';\n     15 | import {\n     16 |   UpdateAssetProfileDto,\n     17 |   UpdatePropertyDto\n     18 | } from '@ghostfolio/common/dtos';\n     19 | import { getAssetProfileIdentifier } from '@ghostfolio/common/helper';\n     20 | import {\n     21 |   AdminData,\n     22 |   AdminMarketData,\n     23 |   AdminUserResponse,\n     24 |   AdminUsersResponse,\n     25 |   EnhancedSymbolProfile,\n     26 |   ScraperConfiguration\n     27 | } from '@ghostfolio/common/interfaces';\n     28 | import { permissions } from '@ghostfolio/common/permissions';\n     29 | import type {\n     30 |   DateRange,\n     31 |   MarketDataPreset,\n\n## Label options\n1. FP\n  2. TP\n  3. unseeded-TP\n\n## Root causes\n1. RC-OTHER\n  2. RC-TEMPLATE-OVERAPPROX\n  3. RC-GENERATED-CODE\n  4. RC-EXTRACT-ALIAS\n  5. RC-SPEC-PARAM\n  6. RC-GENUINE-UNSEEDED\n  7. RC-LAYER-MAP\n  8. RC-EXTRACT-BARREL\n  9. RC-STYLE-INAPPLICABLE\n  10. RC-TYPE-ONLY\n  11. RC-DYNAMIC-IMPORT\n  12. RC-TEST-CODE\n\nAnswer with one JSON object: {\"option\": <number of the label option>, \"rootCause\": <number of the root cause or null>, \"note\": \"<text, required with RC-OTHER>\", \"rationale\": \"<one or two sentences citing the code>\"}.",
+  "provider": "agy",
+  "recordedAt": "2026-10-10T16:15:43.592Z",
+  "repetition": 0,
+  "requestHash": "c2f4451165a03b3cb4f19edbf89dc55e6e7ea452321ecd9edbb2b120d5f954f2",
+  "resolvedModel": "gemini-3.1-pro-high",
+  "response": "{\"note\":\"N/A\",\"option\":3,\"rationale\":\"The file admin.controller.ts imports various services and decorators, indicating it contains functional controller logic, and genuinely lacks a corresponding test file.\",\"rootCause\":6}",
+  "runIndex": 1,
+  "schemaVersion": 2,
+  "usage": {
+    "inputTokens": 93695,
+    "outputTokens": 3490
+  },
+  "usedOptions": {
+    "model": "gemini-3.1-pro-high"
+  }
+}
