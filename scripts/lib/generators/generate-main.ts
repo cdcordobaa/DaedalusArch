@@ -24,27 +24,35 @@ import type { ProcessRunner } from '../../../src/shared/interfaces/process-runne
 import { NodeProcessRunner } from '../../../src/shared/process/node-process-runner.js';
 import { scrubSecrets } from '../../../src/shared/errors/scrub.js';
 import { createGeneratorCliConfig } from './config.js';
+import { CodexCliAdapter } from './codex-adapter.js';
+import { CODEX_CLI_ADAPTER_ID } from './codex-cli.js';
+import { codexConfigFromPlan } from './codex-plan.js';
+import type { CodexHomes } from './codex-plan.js';
+import type { CodexCliConfig } from './codex-cli.js';
 import { ClaudeCodeAdapter, runGenerationGrid } from './grid.js';
 import { filePromptProvider } from './prompt.js';
 import { realSleep, systemClock } from './retry.js';
 import type { Clock, Sleeper } from './retry.js';
 import { loadPreRegistration, repoRelative, sha256File } from '../prereg.js';
-import { E1_GENERATOR_PLAN, guardE1Plan } from './registered-plan.js';
+import { E1_CODEX_GENERATOR_PLAN, E1_GENERATOR_PLAN, guardE1Plan } from './registered-plan.js';
 import type { LocalPaths } from './registered-plan.js';
 import { loadGeneratorPlanFile, pilotPlan } from './schedule.js';
 import { ensureHarness } from './skeleton.js';
 import type { SkeletonInstall } from './skeleton.js';
-import type { GenerationOutcome, PromptProvider } from './types.js';
+import type { GenerationOutcome, GeneratorAdapter, GeneratorCliConfig, PromptProvider } from './types.js';
 
 export const GENERATE_USAGE = [
   'usage: npx tsx scripts/generate-projects.ts --plan <plan.json> [--pilot] [--binary <abs>] [--harness-root <abs>]',
+  '                                            [--codex-home <abs>] [--codex-user-home <abs>]',
   '       npx tsx scripts/generate-projects.ts --help',
   '',
-  'Runs the FR-28 generation grid (Claude Code headless, confined argv) described by the plan file:',
-  '{ adapters: [{ adapterId: "claude-code-cli", modelId }], tasks, style, levels, runs, outRoot, orderSeed,',
-  '  binary, harnessRoot, timeoutMs?, allowBash }',
+  'Runs the FR-28 generation grid (Claude Code headless or Codex exec, confined) described by the plan file:',
+  '{ adapters: [{ adapterId: "claude-code-cli" | "codex-cli", modelId }], tasks, style, levels, runs, outRoot, orderSeed,',
+  '  binary, harnessRoot, timeoutMs?, allowBash, codex? }',
   'Pinned model ids and orderSeed come only from the plan file. --pilot: one generation per level under <outRoot>/pilot/.',
-  `The E1 grid and pilot use ${E1_GENERATOR_PLAN}; its "<local>" binary and harnessRoot come from --binary / --harness-root.`,
+  `The E1 grid and pilot use ${E1_GENERATOR_PLAN} (Claude arm) and ${E1_CODEX_GENERATOR_PLAN} (Codex arm, ADR-029);`,
+  'their "<local>" binary and harnessRoot come from --binary / --harness-root. A Codex arm uses CODEX_HOME',
+  '~/.firewall/generator-codex-home and the child HOME ~/.firewall/generator-codex-userhome unless overridden.',
   '',
 ].join('\n');
 
@@ -75,6 +83,7 @@ interface ParsedArgs {
   readonly plan?: string;
   readonly pilot: boolean;
   readonly local: LocalPaths;
+  readonly codexHomes: CodexHomes;
 }
 
 export function parseGenerateArgs(argv: readonly string[]): DomainResult<ParsedArgs> {
@@ -83,6 +92,8 @@ export function parseGenerateArgs(argv: readonly string[]): DomainResult<ParsedA
   let plan: string | undefined;
   let binary: string | undefined;
   let harnessRoot: string | undefined;
+  let codexHome: string | undefined;
+  let codexUserHome: string | undefined;
   const value = (i: number): string | undefined => {
     const v = argv[i + 1];
     return v !== undefined && !v.startsWith('--') ? v : undefined;
@@ -94,11 +105,14 @@ export function parseGenerateArgs(argv: readonly string[]): DomainResult<ParsedA
     else if (a === '--plan' && value(i) !== undefined) plan = argv[++i];
     else if (a === '--binary' && value(i) !== undefined) binary = argv[++i];
     else if (a === '--harness-root' && value(i) !== undefined) harnessRoot = argv[++i];
+    else if (a === '--codex-home' && value(i) !== undefined) codexHome = argv[++i];
+    else if (a === '--codex-user-home' && value(i) !== undefined) codexUserHome = argv[++i];
     else return DomainResult.fail([{ code: 'GEN_USAGE', message: `unexpected argument ${JSON.stringify(a)}` }]);
   }
   if (!help && plan === undefined) return DomainResult.fail([{ code: 'GEN_USAGE', message: '--plan <file> is required' }]);
   const local: LocalPaths = { ...(binary !== undefined ? { binary } : {}), ...(harnessRoot !== undefined ? { harnessRoot } : {}) };
-  return DomainResult.ok({ help, pilot, local, ...(plan !== undefined ? { plan } : {}) });
+  const codexHomes: CodexHomes = { ...(codexHome !== undefined ? { codexHome } : {}), ...(codexUserHome !== undefined ? { userHome: codexUserHome } : {}) };
+  return DomainResult.ok({ help, pilot, local, codexHomes, ...(plan !== undefined ? { plan } : {}) });
 }
 
 function report(deps: GenerateMainDeps, errors: readonly DomainError[]): number {
@@ -134,14 +148,21 @@ export async function main(argv: readonly string[], repoRoot: string, depsIn?: G
   const loaded = loadGeneratorPlanFile(planFile, repoRoot, args.data.local);
   if (!loaded.success) return report(deps, loaded.errors);
   const prereg = loadPreRegistration(repoRoot);
-  const registeredSha = prereg.ok ? prereg.value.artefacts.find((a) => a.path === E1_GENERATOR_PLAN)?.sha256 : undefined;
+  const registeredSha = (rel: string): string | undefined => (prereg.ok ? prereg.value.artefacts.find((a) => a.path === rel)?.sha256 : undefined);
   const guard = guardE1Plan(planFile, loaded.data, repoRoot, registeredSha, sha256File);
   if (!guard.ok) return report(deps, [{ code: 'GEN_PLAN_UNREGISTERED', message: guard.detail }]);
   if (guard.warning !== undefined) deps.err(`warning: ${guard.warning}\n`);
   const plan = args.data.pilot ? pilotPlan(loaded.data) : loaded.data;
 
-  const configs = [];
+  type Built = { readonly kind: 'codex'; readonly config: CodexCliConfig } | { readonly kind: 'claude'; readonly config: GeneratorCliConfig };
+  const built: Built[] = [];
   for (const a of plan.adapters) {
+    if (a.adapterId === CODEX_CLI_ADAPTER_ID) {
+      const c = codexConfigFromPlan(plan, a.modelId, repoRoot, args.data.codexHomes);
+      if (!c.success) return report(deps, c.errors);
+      built.push({ kind: 'codex', config: c.data });
+      continue;
+    }
     const c = createGeneratorCliConfig(
       {
         binary: plan.binary,
@@ -154,27 +175,18 @@ export async function main(argv: readonly string[], repoRoot: string, depsIn?: G
       repoRoot,
     );
     if (!c.success) return report(deps, c.errors);
-    configs.push(c.data);
+    built.push({ kind: 'claude', config: c.data });
   }
   const ready = await ensureHarness(deps.runner, repoRoot, plan.harnessRoot);
   if (!ready.success) return report(deps, ready.errors);
   let install: SkeletonInstall = ready.data.install;
-  const adapters = configs.map(
-    (config) =>
-      new ClaudeCodeAdapter({
-        runner: deps.runner,
-        config,
-        repoRoot,
-        install: () => install,
-        prompts: deps.prompts,
-        parentEnv: deps.parentEnv,
-        clock: deps.clock,
-        sleep: deps.sleep,
-      }),
+  const common = { runner: deps.runner, repoRoot, install: () => install, prompts: deps.prompts, parentEnv: deps.parentEnv, clock: deps.clock, sleep: deps.sleep };
+  const adapters: GeneratorAdapter[] = built.map((b) =>
+    b.kind === 'codex' ? new CodexCliAdapter({ ...common, config: b.config }) : new ClaudeCodeAdapter({ ...common, config: b.config }),
   );
   for (const a of adapters) {
     if (!(await a.isAvailable())) {
-      deps.err('the claude CLI is not available at the plan binary path\n');
+      deps.err(`the ${a.id === CODEX_CLI_ADAPTER_ID ? 'codex CLI (pinned version)' : 'claude CLI'} is not available at the plan binary path\n`);
       return 1;
     }
   }

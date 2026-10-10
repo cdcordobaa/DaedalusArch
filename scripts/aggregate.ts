@@ -40,7 +40,7 @@
  *   the `llm-label.ts` tables of the `--labelling` outputs (header only when none are given).
  */
 import { readFileSync } from 'node:fs';
-import { join, resolve } from 'node:path';
+import { join, relative, resolve } from 'node:path';
 import type { EvaluationReport } from '../src/shared/types/evaluation.js';
 import { drawFigures } from './lib/figures/draw.js';
 import { loadManifest } from './lib/manifest.js';
@@ -48,6 +48,7 @@ import { loadRunDir as loadRunDirOf } from './lib/report-io.js';
 import type { GenerationCell, LoadedRunDir, RunRecord } from './lib/report-io.js';
 import { ANALYSIS_PLAN_DOC, cellGenCode, familyOf, FPAT_FAMILIES, JOIN_GEN_CODES, loadSo5Codes } from './lib/so5-codes.js';
 import { completeE1Cells, e1ProjectId } from './lib/e1-cells.js';
+import { armPlanPathsFor, readRegisteredPlan } from './lib/generators/registered-plan.js';
 import type { FpatFamily, So5Codes } from './lib/so5-codes.js';
 import { SO5_SIZE_COLUMNS, so5SizeValues } from './lib/so5-size.js';
 import { baselineLabelsOf, baselinePrecision, isTpClass } from './lib/baseline-precision.js';
@@ -184,6 +185,8 @@ export interface AggregateInput {
   readonly resamples?: number;
   /** ADR-028: the neural aggregation every accepted judge-mode report must carry (`aggregate-cli --neural-aggregation`). */
   readonly neuralAggregation?: 'registered' | 'proportional';
+  /** ADR-029: model id → adapter id of the registered E1 arm plans beside `--plan` (labels synthesised missing cells). */
+  readonly e1Adapters?: ReadonlyMap<string, string>;
 }
 
 /** ADR-028: the neural aggregation of a report (`scoring.neuralAggregation`; absent = registered); '' for symbolic-only. */
@@ -699,13 +702,24 @@ export function missingE1Record(plan: ExperimentPlan, coordinateIndex: number, c
  * (`completeE1Cells`; a coordinate no record carries gets `missingE1Record`), then the record cells that match no
  * coordinate, so nothing is dropped (analysis-plan §8). Otherwise every record with a `cell`.
  */
+/** Model id → adapter id from the arm plans beside an E1 experiment plan (ADR-029; `armPlanPathsFor`). */
+export function e1ArmAdapters(planFile: string, repoRoot: string): ReadonlyMap<string, string> {
+  const out = new Map<string, string>();
+  for (const rel of armPlanPathsFor(relative(repoRoot, planFile), repoRoot)) {
+    const reg = readRegisteredPlan(resolve(repoRoot, rel), repoRoot);
+    if (reg.ok) for (const a of reg.plan.adapters) out.set(a.modelId, a.adapterId);
+  }
+  return out;
+}
+
 export function so5Records(input: AggregateInput): RunRecord[] {
   const withCell = input.records.filter((r) => r.cell !== undefined);
   const grid = input.plan?.e1;
   if (input.plan === undefined || grid === undefined) return withCell;
   const plan = input.plan;
   const byCell = new Map<GenerationCell, RunRecord>(withCell.flatMap((r) => (r.cell === undefined ? [] : [[r.cell, r] as const])));
-  const complete = completeE1Cells(withCell, grid);
+  const adapters = input.e1Adapters;
+  const complete = completeE1Cells(withCell, grid, adapters === undefined ? undefined : (m) => adapters.get(m));
   const out = complete.cells.map((cell, i) => byCell.get(cell) ?? missingE1Record(plan, i, cell));
   for (const cell of complete.extra) {
     const r = byCell.get(cell);
@@ -847,6 +861,75 @@ export function directionalCheck(cells: readonly So5Cell[], judgeModel: string, 
   return [`directional:${judgeModel}-vs-others`, f6(r.statistic), f6(r.p), f6(r.p), DIRECTIONAL_FAMILY, f6(r.statistic), '', '', f6(cliffsDelta(a, b)), 'false', 'false'];
 }
 
+/** The Claude arm's adapter id; cells of every other adapter are the added arms (ADR-029). */
+export const CLAUDE_ARM_ADAPTER = 'claude-code-cli';
+
+/** Vendor of a cell from its adapter id (ADR-029): `anthropic` (Claude Code), `openai` (Codex), else the adapter id. */
+export function vendorOf(adapterId: string): string {
+  return adapterId === CLAUDE_ARM_ADAPTER ? 'anthropic' : adapterId === 'codex-cli' ? 'openai' : adapterId;
+}
+
+/** Families of the Codex-arm analyses (ADR-029; analysis plan §6.1). */
+export const VENDOR_FAMILY_PREFIX = 'vendor';
+export const VENDOR_DIRECTIONAL_FAMILY = 'directional-vendor:ahsNeuronal-minus-ahsDeterministic';
+
+/**
+ * The Codex-arm rows of `so5_tests.csv` (ADR-029; analysis plan §6.1), appended after the registered Claude-only rows
+ * and empty when no cell of another vendor is valid:
+ * - `vendor:<field>` for the primary field and `ahsDeterministic`: one permutation test of the vendor factor
+ *   (between-level sum of squares), vendor labels permuted within (task, spec level), and the descriptive pairwise rows
+ *   of each non-Claude model against each Claude model (cluster-bootstrap CI, Cliff's δ); exploratory, own family;
+ * - the vendor self-preference check: d = ahsNeuronal − ahsDeterministic, mean(d | Claude-written) −
+ *   mean(d | other vendor), one-sided (greater), vendor labels permuted within (task, spec level), with Cliff's δ;
+ *   a family of one (registered, confirmatory as a check, like ADR-020 item 7's).
+ */
+export function vendorTests(cells: readonly So5Cell[], seeds: { readonly bootstrap: number; readonly permutation: number }, resamples: number): string[][] {
+  const vendorOfCell = (c: So5Cell): string => vendorOf(c.record.cell?.adapterId ?? CLAUDE_ARM_ADAPTER);
+  const valid = cells.filter((c) => c.report !== undefined);
+  if (!valid.some((c) => vendorOfCell(c) !== 'anthropic') || !valid.some((c) => vendorOfCell(c) === 'anthropic')) return [];
+  const rows: string[][] = [];
+  const first = valid[0]?.report;
+  const primaryField = first === undefined ? 'ahsDeterministic' : verdictSourceOf(first);
+  const fields = primaryField === 'ahsDeterministic' ? ['ahsDeterministic'] as const : [primaryField, 'ahsDeterministic'] as const;
+  const opts = { seed: seeds.permutation, resamples };
+  for (const field of fields) {
+    const obs = valid.flatMap((c) => {
+      const v = c.report === undefined ? undefined : field === primaryField ? primaryOutcome(c.report).value : ahsOf(c.report, field);
+      return v === undefined || !Number.isFinite(v) ? [] : [{ c, v }];
+    });
+    const family = `${VENDOR_FAMILY_PREFIX}:${field}`;
+    const r = permutationFactorTest(obs.map((o) => ({ block: so5Stratum(o.c.taskId, o.c.specLevel), level: vendorOfCell(o.c), value: o.v })), opts);
+    rows.push(['vendor', f6(r.statistic), f6(r.p), f6(r.p), family, '', '', '', '', 'true', 'false']);
+    const claudeModels = [...new Set(obs.filter((o) => vendorOfCell(o.c) === 'anthropic').map((o) => o.c.model))].sort();
+    const otherModels = [...new Set(obs.filter((o) => vendorOfCell(o.c) !== 'anthropic').map((o) => o.c.model))].sort();
+    for (const a of otherModels) {
+      for (const b of claudeModels) {
+        const xa = obs.filter((o) => o.c.model === a).map((o) => o.v);
+        const xb = obs.filter((o) => o.c.model === b).map((o) => o.v);
+        if (xa.length === 0 || xb.length === 0) continue;
+        const mean = (x: number[]): number => x.reduce((s, v) => s + v, 0) / x.length;
+        const pair = obs.filter((o) => o.c.model === a || o.c.model === b).map((o) => ({
+          cell: JSON.stringify([o.c.model, o.c.specLevel, o.c.taskId]), group: o.c.model === a ? 'A' as const : 'B' as const, value: o.v,
+        }));
+        const [lo, hi] = stratifiedMeanDiffCi(pair, seeds.bootstrap, resamples);
+        rows.push([`model:${a}-${b}`, '', '', '', family, f6(mean(xa) - mean(xb)), f6(lo), f6(hi), f6(cliffsDelta(xa, xb)), 'true', 'true']);
+      }
+    }
+  }
+  const dObs = valid.flatMap((c) => {
+    const n = c.report === undefined ? undefined : ahsOf(c.report, 'ahsNeuronal');
+    const d = c.report === undefined ? undefined : ahsOf(c.report, 'ahsDeterministic');
+    return n === undefined || d === undefined ? [] : [{ block: so5Stratum(c.taskId, c.specLevel), group: vendorOfCell(c) === 'anthropic' ? 'A' as const : 'B' as const, value: n - d }];
+  });
+  const a = dObs.filter((o) => o.group === 'A').map((o) => o.value);
+  const b = dObs.filter((o) => o.group === 'B').map((o) => o.value);
+  if (a.length > 0 && b.length > 0) {
+    const r = permutationTest(dObs, { seed: seeds.permutation, resamples, alternative: 'greater' });
+    rows.push(['directional:anthropic-vs-other-vendor', f6(r.statistic), f6(r.p), f6(r.p), VENDOR_DIRECTIONAL_FAMILY, f6(r.statistic), '', '', f6(cliffsDelta(a, b)), 'false', 'false']);
+  }
+  return rows;
+}
+
 /**
  * `so5_tests.csv` rows (BR-U5b-65 as amended by ADR-020 items 6, 7): the three permutation tests per outcome family,
  * the pairwise rows (mean difference with a bootstrap CI that is descriptive only, and Cliff's δ), and, when the
@@ -953,7 +1036,11 @@ export function so5Csv(input: AggregateInput, resamples: number): Partial<Record
   return {
     'so5_grid.csv': csvText([...cellCols, 'status', 'verdict_source', 'ahs_deterministic', 'ahs_combined', 'ahs_neuronal', ...DIMENSION_COLUMNS.map((d) => `avr_${d}`), ...fpatCols, 'gen_code', ...SO5_SIZE_COLUMNS], grid),
     'so5_patterns.csv': csvText(['run_id', 'code', 'count', 'weighted_count', 'basis'], patterns),
-    'so5_tests.csv': csvText(SO5_TEST_COLUMNS, so5Tests(cells, seeds, resamples, input.plan?.judge?.model, labelDependent)),
+    // ADR-029: the registered SO5 tests stay on the Claude arm (its 54 cells); the Codex-arm rows follow them.
+    'so5_tests.csv': csvText(SO5_TEST_COLUMNS, [
+      ...so5Tests(cells.filter((c) => (c.record.cell?.adapterId ?? CLAUDE_ARM_ADAPTER) === CLAUDE_ARM_ADAPTER), seeds, resamples, input.plan?.judge?.model, labelDependent),
+      ...vendorTests(cells, seeds, resamples),
+    ]),
   };
 }
 
@@ -1050,6 +1137,7 @@ export async function main(argv: readonly string[], repoRoot: string, io: Aggreg
     const { records, reports } = loadRunDir(resolve(repoRoot, runs));
     const planFile = opts.get('plan');
     const plan = planFile === undefined ? undefined : readJsonFile(resolve(repoRoot, planFile)) as ExperimentPlan;
+    const e1Adapters = planFile === undefined || plan?.e1 === undefined ? undefined : e1ArmAdapters(resolve(repoRoot, planFile), repoRoot);
     const manifestFile = opts.get('manifest');
     let twinOf: Map<string, string> | undefined;
     if (manifestFile !== undefined) {
@@ -1076,6 +1164,7 @@ export async function main(argv: readonly string[], repoRoot: string, io: Aggreg
       ...(registered !== undefined && { registeredGoldenN: Number(registered) }),
       ...(resamples !== undefined && { resamples: Number(resamples) }),
       ...(rule !== undefined && { neuralAggregation: rule }),
+      ...(e1Adapters !== undefined && { e1Adapters }),
     };
     const out = resolve(repoRoot, outDir);
     for (const [name, text] of aggregate(input)) io.writeFile(join(out, name), text);

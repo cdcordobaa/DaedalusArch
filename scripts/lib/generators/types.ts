@@ -15,8 +15,16 @@ export const SPEC_LEVELS: readonly SpecLevel[] = ['none', 'minimal-prose', 'full
 
 export type TaskId = 'task-management' | 'order-fulfilment';
 
-/** The only adapter id of this unit (`GridPlan.adapters[].adapterId`). */
+/** Adapter id of the Claude arm (`GridPlan.adapters[].adapterId`). */
 export const CLAUDE_CODE_ADAPTER_ID = 'claude-code-cli' as const;
+
+/** Adapter id of the Codex arm (ADR-029; `codex-cli.ts`). */
+export const CODEX_CLI_ADAPTER_ID_VALUE = 'codex-cli' as const;
+
+/** Every known adapter id. */
+export const GENERATOR_ADAPTER_IDS: readonly string[] = Object.freeze([CLAUDE_CODE_ADAPTER_ID, CODEX_CLI_ADAPTER_ID_VALUE]);
+
+export type GeneratorAdapterId = typeof CLAUDE_CODE_ADAPTER_ID | typeof CODEX_CLI_ADAPTER_ID_VALUE;
 
 /** Default wall-clock limit of one CLI call (BR-U5a-50: 20 min). */
 export const DEFAULT_GENERATOR_TIMEOUT_MS = 1_200_000;
@@ -69,7 +77,7 @@ export interface GenerationCell {
 }
 
 export interface GridPlan {
-  readonly adapters: readonly { readonly adapterId: typeof CLAUDE_CODE_ADAPTER_ID; readonly modelId: string }[];
+  readonly adapters: readonly { readonly adapterId: GeneratorAdapterId; readonly modelId: string }[];
   readonly tasks: readonly TaskId[];
   readonly style: string;
   readonly levels: readonly SpecLevel[];
@@ -78,7 +86,7 @@ export interface GridPlan {
   readonly orderSeed: number;
 }
 
-/** Tolerant envelope extract (BR-U5a-46): every field optional. */
+/** Tolerant envelope extract (BR-U5a-46): every field optional (the Codex arm fills it from `codex-events.ts`). */
 export interface CliEnvelopeSummary {
   readonly isError?: boolean;
   readonly subtype?: string;

@@ -31,10 +31,13 @@ describe('e1Coordinates', () => {
     expect(c[3]?.specPath).toBe('s.yaml');
   });
 
-  it('the registered E1 plan enumerates 54 coordinates', () => {
+  it('the registered E1 plan enumerates 72 coordinates: the 54 Claude cells first, then the 18 Codex cells (ADR-029)', () => {
     const p = loadPlan(`${ROOT}/experiments/e1-grid/plan.json`, ROOT);
     if (!p.ok || p.plan.e1 === undefined) throw new Error('e1 plan');
-    expect(e1Coordinates(p.plan.e1)).toHaveLength(54);
+    const coords = e1Coordinates(p.plan.e1);
+    expect(coords).toHaveLength(72);
+    expect(new Set(coords.slice(0, 54).map((c) => c.modelId))).toEqual(new Set(p.plan.e1.models.slice(0, 3)));
+    expect(new Set(coords.slice(54).map((c) => c.modelId))).toEqual(new Set(p.plan.e1.models.slice(3)));
   });
 });
 

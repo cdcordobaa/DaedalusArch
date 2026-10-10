@@ -30,10 +30,14 @@
       "additionalProperties": false,
       "required": ["models", "specLevels", "tasks", "runs"],
       "properties": {
-        "models": { "const": 3 },
+        "models": { "enum": [3, 4] },
         "specLevels": { "const": 3 },
         "tasks": { "const": 2 },
-        "runs": { "const": 3 }
+        "runs": { "const": 3 },
+        "arms": {
+          "type": "object",
+          "additionalProperties": { "type": "integer", "minimum": 1 }
+        }
       }
     },
     "previous": {

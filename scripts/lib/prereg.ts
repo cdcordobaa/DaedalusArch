@@ -57,6 +57,10 @@ export const REGISTERED_ARTEFACTS: readonly string[] = Object.freeze([
   'experiments/*/plan.json',
   // ADR-021 SO5-03 / THR-8: the E1 generator plan (pinned model ids, orderSeed, allowBash, timeoutMs, outRoot).
   'experiments/e1-grid/generator-plan.json',
+  // ADR-029: the Codex-arm generator plan (pinned model id, its own orderSeed, the Codex pins) and the pinned model
+  // catalog it names (the model's base instructions and tool configuration, sha256 in the plan).
+  'experiments/e1-grid/generator-plan-codex.json',
+  'scripts/generator/codex/model-catalog.json',
   'corpus/frozen-instrument.json',
   // ADR-019 item 3 with the methodology constraint (Build and Test Step 55): the mechanical E7 spec rule and its generator.
   'Docs/e7-spec-rule.md',
@@ -91,7 +95,17 @@ export interface PreRegistration {
   readonly matchingRuleVersion: string;
   readonly artefacts: readonly { readonly path: string; readonly sha256: string }[];
   readonly labellingBudgetCalls: number;
-  readonly e1Grid: { readonly models: 3; readonly specLevels: 3; readonly tasks: 2; readonly runs: 3 };
+  /**
+   * The E1 grid shape. ADR-029 (v18) adds the Codex arm: 4 models (3 Claude + 1 Codex), `arms` per adapter id;
+   * registrations up to v17 carry `models: 3` and no `arms`.
+   */
+  readonly e1Grid: {
+    readonly models: 3 | 4;
+    readonly specLevels: 3;
+    readonly tasks: 2;
+    readonly runs: 3;
+    readonly arms?: Readonly<Record<string, number>>;
+  };
   readonly previous?: readonly { readonly version: number; readonly commit: string }[];
 }
 
@@ -218,6 +232,11 @@ export interface BuildFields {
   readonly previous?: readonly { readonly version: number; readonly commit: string }[];
 }
 
+/** The registered E1 grid shape (ADR-029: the Claude arm's 3 models and the Codex arm's 1). */
+export const E1_GRID: PreRegistration['e1Grid'] = Object.freeze({
+  models: 4, specLevels: 3, tasks: 2, runs: 3, arms: Object.freeze({ 'claude-code-cli': 3, 'codex-cli': 1 }),
+});
+
 /** The registration value over every committed registered artefact (hashes of the working-tree files). */
 export function buildPreRegistration(repoRoot: string, fields: BuildFields): PreRegistration {
   const artefacts = registeredArtefactPaths(repoRoot).map((path) => ({ path, sha256: sha256File(join(repoRoot, path)) }));
@@ -228,7 +247,7 @@ export function buildPreRegistration(repoRoot: string, fields: BuildFields): Pre
     matchingRuleVersion: fields.matchingRuleVersion,
     artefacts,
     labellingBudgetCalls: fields.labellingBudgetCalls,
-    e1Grid: { models: 3, specLevels: 3, tasks: 2, runs: 3 },
+    e1Grid: E1_GRID,
     ...(fields.previous !== undefined && { previous: fields.previous }),
   };
 }

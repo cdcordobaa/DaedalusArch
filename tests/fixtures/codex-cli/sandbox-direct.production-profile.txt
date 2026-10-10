@@ -1,0 +1,38 @@
+# codex sandbox -P daedalus_gen with the production -c set (no model call)
+# script:
+echo inside > ok.txt && echo W_OK
+mkdir -p src/domain && echo 'export const a = 1;' > src/domain/a.ts && echo SRC_OK
+echo x > ../escape.txt && echo ESCAPE_WROTE
+echo t > /tmp/cxprobe.txt && echo TMP_WROTE
+echo t > "$TMPDIR/cxprobe.txt" && echo TMPDIR_WROTE
+ls ~ >/dev/null 2>&1 && echo HOME_READ
+cat <root>/DaedalusArch-wt-codex/package.json >/dev/null 2>&1 && echo REPO_READ
+ls <root> >/dev/null 2>&1 && echo PARENT_LIST
+cat ~/.firewall/generator-codex-home/auth.json >/dev/null 2>&1 && echo CODEXHOME_READ
+echo x > package.json 2>/dev/null && echo PKG_WROTE
+echo y > node_modules/typescript/lib/tsc.js 2>/dev/null && echo TSC_WROTE
+curl -sS -m 5 https://registry.npmjs.org >/dev/null 2>&1 && echo NET_OK
+<root>/daedalus-gen-harness/bin/tsc --noEmit --incremental false -p <root>/daedalus-gen-harness/runs/gpt-5.6-terra/task-management/none/run-0/tsconfig.json --tsBuildInfoFile ../x; echo tsc_exit=$?
+<root>/daedalus-gen-harness/bin/tsc --noEmit --incremental false -p <root>/daedalus-gen-harness/runs/gpt-5.6-terra/task-management/none/run-0/tsconfig.json; echo tsc_exit=$?
+rm node_modules 2>/dev/null && echo NM_UNLINKED
+ls <root>/DaedalusArch >/dev/null 2>&1 && echo REPO_LIST; cat ~/.claude/settings.json >/dev/null 2>&1 && echo CLAUDE_READ; ~/.nvm/versions/node/v24.5.0/bin/node -e "1" && echo NODE_OK
+ls ../.. >/dev/null 2>&1 && echo SIBLING_CELLS_LIST; cat <root>/daedalus-e1-outcomes/pilot/schedule.json >/dev/null 2>&1 && echo OTHER_GENERATIONS_READ
+
+# output (markers printed only when the action succeeded):
+exit 1
+W_OK
+SRC_OK
+HOME_READ
+PARENT_LIST
+src/probe.ts(1,14): error TS2322: Type 'string' is not assignable to type 'number'.
+tsc_exit=2
+src/probe.ts(1,14): error TS2322: Type 'string' is not assignable to type 'number'.
+tsc_exit=2
+NODE_OK
+SIBLING_CELLS_LIST
+
+<scratch>/sbtest.sh: line 3: ../escape.txt: Operation not permitted
+<scratch>/sbtest.sh: line 4: /tmp/cxprobe.txt: Operation not permitted
+<scratch>/sbtest.sh: line 5: <TMPDIR>//cxprobe.txt: Operation not permitted
+<scratch>/sbtest.sh: line 10: package.json: Operation not permitted
+<scratch>/sbtest.sh: line 11: node_modules/typescript/lib/tsc.js: Operation not permitted

@@ -61,6 +61,7 @@ describe('registry (BR-U5b-51)', () => {
       'Docs/matching-rule.md', 'Docs/analysis-plan.md', 'Docs/operator-catalogue.md', 'Docs/generator-protocol.md',
       'scripts/generator/prompts/*.md', 'Docs/corpus-criteria.md', 'Docs/labeller-prompts/*', 'corpus/corpus.json',
       'corpus/overlays/**', 'corpus/specs/*.yaml', 'experiments/*/plan.json', 'experiments/e1-grid/generator-plan.json',
+      'experiments/e1-grid/generator-plan-codex.json', 'scripts/generator/codex/model-catalog.json',
       'corpus/frozen-instrument.json', 'Docs/e7-spec-rule.md', 'scripts/generate-e7-specs.ts',
       'corpus/label-plan-config.json',
       'specs/clean-arch.yaml', 'tests/fixtures/u5a/layered/firewall.spec.yaml', 'presets/*.yaml',
@@ -78,6 +79,9 @@ describe('registry (BR-U5b-51)', () => {
     // ADR-021 SO5-03 / THR-8: the E1 generator plan is registered; another experiment's generator plan is not.
     expect(isRegisteredPath('experiments/e1-grid/generator-plan.json')).toBe(true);
     expect(isRegisteredPath('experiments/e7-corpus/generator-plan.json')).toBe(false);
+    // ADR-029 (v18): the Codex-arm plan and its pinned model catalog are registered.
+    expect(isRegisteredPath('experiments/e1-grid/generator-plan-codex.json')).toBe(true);
+    expect(isRegisteredPath('scripts/generator/codex/model-catalog.json')).toBe(true);
     expect(REGISTERED_ARTEFACTS).toContain('Docs/matching-rule.md');
     expect(REGISTERED_ARTEFACTS).toContain('Docs/analysis-plan.md');
     expect(isRegisteredPath('corpus/overlays/realworld-test/config.patch')).toBe(true);
@@ -180,7 +184,7 @@ describe('gate (BR-U5b-50)', () => {
   it('version 2 without a reason or previous list → invalid', () => {
     const p = buildPreRegistration(repo, { version: 2, registeredAt: new Date(T0).toISOString(), matchingRuleVersion: '1.0.0', labellingBudgetCalls: 1 });
     expect(validatePreRegistration(p, ROOT)).toEqual(expect.arrayContaining([expect.stringContaining('reason')]));
-    expect(validatePreRegistration({ ...p, e1Grid: { models: 4, specLevels: 3, tasks: 2, runs: 3 } }, ROOT).length).toBeGreaterThan(0);
+    expect(validatePreRegistration({ ...p, e1Grid: { models: 5, specLevels: 3, tasks: 2, runs: 3 } }, ROOT).length).toBeGreaterThan(0);
   });
 
   it('a plan whose spec is outside corpus/specs/ and the fixture specs → refused (BR-U5b-51)', () => {

@@ -21,13 +21,24 @@ import { mulberry32 } from '../mutation/rng.js';
 import { isInsideOrEqual, runIdFor } from './config.js';
 import { resolvePlanFields } from './registered-plan.js';
 import type { LocalPaths } from './registered-plan.js';
-import { CLAUDE_CODE_ADAPTER_ID, FILE_RANGE, SPEC_LEVELS } from './types.js';
+import { CLAUDE_CODE_ADAPTER_ID, CODEX_CLI_ADAPTER_ID_VALUE, FILE_RANGE, GENERATOR_ADAPTER_IDS, SPEC_LEVELS } from './types.js';
 import type { GenerationCell, GenerationRequest, GridPlan, SpecLevel, TaskId } from './types.js';
 
 export const TASK_IDS: readonly TaskId[] = ['task-management', 'order-fulfilment'];
 /** The last path segment of a pilot output root (BR-U5a-52: pilot outputs never join `so5_grid.csv`). */
 export const PILOT_DIR = 'pilot';
 export const SCHEDULE_JSON = 'schedule.json';
+/** Schedule file of a Codex-arm grid (ADR-029): beside the Claude `schedule.json`, never over it. */
+export const CODEX_SCHEDULE_JSON = 'schedule-codex-cli.json';
+
+/**
+ * The schedule file a grid writes under its `outRoot`: `schedule.json` for a plan with only Claude adapters (unchanged since the
+ * freeze), `schedule-codex-cli.json` for a plan with a Codex adapter (ADR-029), so the two arms of one `outRoot`
+ * never overwrite each other's schedule.
+ */
+export function scheduleFileName(plan: Pick<GridPlan, 'adapters'>): string {
+  return plan.adapters.some((a) => a.adapterId === CODEX_CLI_ADAPTER_ID_VALUE) ? CODEX_SCHEDULE_JSON : SCHEDULE_JSON;
+}
 
 const SAFE_MODEL_ID = /^[A-Za-z0-9][A-Za-z0-9._-]*$/;
 
@@ -40,6 +51,36 @@ export interface GeneratorPlanFile extends GridPlan {
   readonly timeoutMs?: number;
   /** Set from the live confinement probes (BR-U5a-43): false = the no-Bash argument set. Required. */
   readonly allowBash: boolean;
+  /** Required when a Codex adapter is listed (ADR-029); absent otherwise. */
+  readonly codex?: CodexPlanBlock;
+}
+
+/** The Codex pins of a plan file (ADR-029; `Docs/generator-protocol.md` §12). */
+export interface CodexPlanBlock {
+  /** Exact `codex --version` (`codex-cli <x.y.z>`). */
+  readonly cliVersion: string;
+  /** `model_reasoning_effort`. */
+  readonly reasoningEffort: string;
+  /** Repository-relative path of the pinned model catalog JSON (`model_catalog_json`). */
+  readonly modelCatalog: string;
+  /** sha256 of that file. */
+  readonly modelCatalogSha256: string;
+}
+
+const CODEX_BLOCK_FIELDS = ['cliVersion', 'reasoningEffort', 'modelCatalog', 'modelCatalogSha256'];
+
+/** Problems of a plan's `codex` block (`present` = a Codex adapter is listed). */
+export function codexBlockProblems(block: unknown, present: boolean): readonly string[] {
+  if (!present) return block === undefined ? [] : ['codex block given but no codex-cli adapter is listed'];
+  if (typeof block !== 'object' || block === null || Array.isArray(block)) return ['a codex-cli adapter needs a codex block'];
+  const b = block as Record<string, unknown>;
+  const out: string[] = [];
+  for (const k of Object.keys(b)) if (!CODEX_BLOCK_FIELDS.includes(k)) out.push(`unknown codex field ${k}`);
+  if (typeof b.cliVersion !== 'string' || !/^\d+\.\d+\.\d+$/.test(b.cliVersion)) out.push('codex.cliVersion must be x.y.z');
+  if (typeof b.reasoningEffort !== 'string' || b.reasoningEffort.length === 0) out.push('codex.reasoningEffort must be a non-empty string');
+  if (typeof b.modelCatalog !== 'string' || b.modelCatalog.length === 0 || path.isAbsolute(b.modelCatalog)) out.push('codex.modelCatalog must be a repository-relative path');
+  if (typeof b.modelCatalogSha256 !== 'string' || !/^[0-9a-f]{64}$/.test(b.modelCatalogSha256)) out.push('codex.modelCatalogSha256 must be sha256 hex');
+  return out;
 }
 
 function err(message: string, context?: Record<string, unknown>): DomainError {
@@ -66,7 +107,9 @@ export function validateGridPlan(plan: GridPlan, repoRoot: string | null): Domai
     const ids = entries.map((a) => a.modelId);
     if (new Set(ids).size !== ids.length) errors.push(err('model ids must be unique (one adapter per pinned model id)'));
     for (const a of entries) {
-      if (a.adapterId !== CLAUDE_CODE_ADAPTER_ID) errors.push(err(`adapterId must be ${CLAUDE_CODE_ADAPTER_ID}`));
+      if (typeof a.adapterId !== 'string' || !GENERATOR_ADAPTER_IDS.includes(a.adapterId)) {
+        errors.push(err(`adapterId must be one of ${GENERATOR_ADAPTER_IDS.join(', ')} (default ${CLAUDE_CODE_ADAPTER_ID})`));
+      }
       if (typeof a.modelId !== 'string' || !SAFE_MODEL_ID.test(a.modelId)) errors.push(err('modelId must match [A-Za-z0-9][A-Za-z0-9._-]*'));
     }
   }
@@ -157,7 +200,7 @@ export function loadGeneratorPlanFile(file: string, repoRoot: string, local: Loc
   const resolved = resolvePlanFields(parsed, repoRoot, local);
   const raw = resolved.plan;
   const errors: DomainError[] = resolved.problems.map((m) => err(m));
-  const allowed = ['adapters', 'tasks', 'style', 'levels', 'runs', 'outRoot', 'orderSeed', 'binary', 'harnessRoot', 'timeoutMs', 'allowBash'];
+  const allowed = ['adapters', 'tasks', 'style', 'levels', 'runs', 'outRoot', 'orderSeed', 'binary', 'harnessRoot', 'timeoutMs', 'allowBash', 'codex'];
   for (const k of Object.keys(raw)) if (!allowed.includes(k)) errors.push(err('unknown plan field', { field: k }));
   for (const k of ['binary', 'harnessRoot']) {
     if (typeof raw[k] !== 'string' || !path.isAbsolute(raw[k])) errors.push(err(`${k} must be an absolute path`));
@@ -167,6 +210,10 @@ export function loadGeneratorPlanFile(file: string, repoRoot: string, local: Loc
     errors.push(err('timeoutMs must be a positive integer'));
   }
   if (!Array.isArray(raw.adapters) || !raw.adapters.every(isRecord)) errors.push(err('adapters must be an array of objects'));
+  else {
+    const hasCodex = raw.adapters.some((a) => isRecord(a) && a.adapterId === CODEX_CLI_ADAPTER_ID_VALUE);
+    for (const m of codexBlockProblems(raw.codex, hasCodex)) errors.push(err(m));
+  }
   if (errors.length > 0) return DomainResult.fail(errors);
   const plan = raw as unknown as GeneratorPlanFile;
   const v = validateGridPlan(plan, repoRoot);

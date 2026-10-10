@@ -23,8 +23,14 @@ import { canonicalPath } from './config.js';
 import { DEFAULT_GENERATOR_TIMEOUT_MS } from './types.js';
 import type { GridPlan } from './types.js';
 
-/** Repository path of the registered E1 generator plan. */
+/** Repository path of the registered E1 generator plan (the Claude arm; unchanged by ADR-029). */
 export const E1_GENERATOR_PLAN = 'experiments/e1-grid/generator-plan.json';
+/** Repository path of the registered Codex-arm generator plan (ADR-029). */
+export const E1_CODEX_GENERATOR_PLAN = 'experiments/e1-grid/generator-plan-codex.json';
+/** Every registered E1 generator plan, one per arm, in run order. */
+export const E1_GENERATOR_PLANS: readonly string[] = [E1_GENERATOR_PLAN, E1_CODEX_GENERATOR_PLAN];
+/** File-name pattern of an arm plan beside its experiment plan (`generator-plan.json`, `generator-plan-<arm>.json`). */
+export const GENERATOR_PLAN_FILE_PATTERN = /^generator-plan(?:-[a-z0-9]+)?\.json$/;
 /** File name of a generator plan beside its experiment plan. */
 export const GENERATOR_PLAN_FILE = 'generator-plan.json';
 /** Placeholder of a machine-local path in a registered plan. */
@@ -72,8 +78,21 @@ export function resolvePlanFields(
   return { plan, problems };
 }
 
+/** Every arm plan beside an experiment plan (`generator-plan.json` first, then `generator-plan-<arm>.json` sorted). */
+export function armPlanPathsFor(experimentPlanPath: string, repoRoot: string): readonly string[] {
+  const dir = path.posix.dirname(experimentPlanPath.split(path.sep).join('/'));
+  let names: string[];
+  try {
+    names = fs.readdirSync(path.resolve(repoRoot, dir)).filter((n) => GENERATOR_PLAN_FILE_PATTERN.test(n));
+  } catch {
+    names = [];
+  }
+  names.sort((a, b) => (a === GENERATOR_PLAN_FILE ? -1 : b === GENERATOR_PLAN_FILE ? 1 : a < b ? -1 : a > b ? 1 : 0));
+  return names.map((n) => path.posix.join(dir, n));
+}
+
 /** The registered plan, read without the local-path checks (placeholders kept, `outRoot` resolved). */
-export function readRegisteredPlan(file: string, repoRoot: string): { ok: true; plan: GridPlan & { readonly allowBash: boolean; readonly timeoutMs?: number } } | { ok: false; detail: string } {
+export function readRegisteredPlan(file: string, repoRoot: string): { ok: true; plan: ProtocolFields } | { ok: false; detail: string } {
   let raw: unknown;
   try {
     raw = JSON.parse(fs.readFileSync(file, 'utf8')) as unknown;
@@ -92,10 +111,11 @@ export function readRegisteredPlan(file: string, repoRoot: string): { ok: true; 
   if (typeof plan.allowBash !== 'boolean') problems.push('allowBash');
   if (plan.timeoutMs !== undefined && !Number.isInteger(plan.timeoutMs)) problems.push('timeoutMs');
   if (problems.length > 0) return { ok: false, detail: `${file}: invalid field(s) ${problems.join(', ')}` };
-  return { ok: true, plan: plan as unknown as GridPlan & { readonly allowBash: boolean; readonly timeoutMs?: number } };
+  return { ok: true, plan: plan as unknown as ProtocolFields };
 }
 
-type ProtocolFields = GridPlan & { readonly allowBash: boolean; readonly timeoutMs?: number };
+/** The frozen fields of a generator plan (`codex` only on a Codex-arm plan, ADR-029). */
+export type ProtocolFields = GridPlan & { readonly allowBash: boolean; readonly timeoutMs?: number; readonly codex?: unknown };
 
 function same(a: readonly unknown[], b: readonly unknown[]): boolean {
   return a.length === b.length && a.every((x, i) => x === b[i]);
@@ -117,6 +137,7 @@ export function protocolMismatches(plan: ProtocolFields, registered: ProtocolFie
   if (plan.allowBash !== registered.allowBash) out.push('allowBash');
   if ((plan.timeoutMs ?? DEFAULT_GENERATOR_TIMEOUT_MS) !== (registered.timeoutMs ?? DEFAULT_GENERATOR_TIMEOUT_MS)) out.push('timeoutMs');
   if (canonicalPath(plan.outRoot) !== canonicalPath(registered.outRoot)) out.push('outRoot');
+  if (JSON.stringify(plan.codex ?? null) !== JSON.stringify(registered.codex ?? null)) out.push('codex');
   return out;
 }
 
@@ -140,6 +161,22 @@ export function e1GridMismatches(registered: ProtocolFields, grid: E1GridFields,
   if (registered.style !== grid.style) out.push('style');
   if (canonicalPath(registered.outRoot) !== canonicalPath(path.resolve(repoRoot, grid.outcomesRoot))) out.push('outRoot');
   return out;
+}
+
+/**
+ * Several registered arm plans against one `e1` block (ADR-029): every arm must match the block's levels, tasks,
+ * runs, style and `outRoot`; the arms' model sets must be disjoint and their union must equal `e1.models`.
+ */
+export function e1ArmsMismatches(arms: readonly ProtocolFields[], grid: E1GridFields, repoRoot: string): readonly string[] {
+  if (arms.length === 0) return ['no arm plan'];
+  const out = new Set<string>();
+  const models: string[] = [];
+  for (const a of arms) {
+    for (const m of e1GridMismatches(a, { ...grid, models: a.adapters.map((x) => x.modelId) }, repoRoot)) out.add(m);
+    models.push(...a.adapters.map((x) => x.modelId));
+  }
+  if (!sameSet(models, grid.models)) out.add('models');
+  return [...out];
 }
 
 /** What a `generation.json` of one grid coordinate must carry. */
@@ -188,7 +225,7 @@ export function guardE1Plan(
   planFile: string,
   plan: ProtocolFields,
   repoRoot: string,
-  registeredSha256: string | undefined,
+  registeredSha256: string | undefined | ((repoPath: string) => string | undefined),
   sha256Of: (file: string) => string,
 ): E1PlanGuard {
   const registeredFile = path.resolve(repoRoot, E1_GENERATOR_PLAN);
@@ -198,15 +235,21 @@ export function guardE1Plan(
   const rel = path.relative(canonicalPath(reg.plan.outRoot), canonicalPath(plan.outRoot));
   const inside = rel === '' || (!rel.startsWith('..') && !path.isAbsolute(rel));
   if (!inside) return { ok: true, e1: false };
-  if (canonicalPath(planFile) !== canonicalPath(registeredFile)) {
-    return { ok: false, detail: `outRoot lies in the E1 outRoot: start the grid from ${E1_GENERATOR_PLAN}, not another plan file` };
+  // The arm plan the grid was started from must be one of the registered E1 plans (ADR-029 adds the Codex arm).
+  const armRel = E1_GENERATOR_PLANS.find((p) => fs.existsSync(path.resolve(repoRoot, p)) && canonicalPath(planFile) === canonicalPath(path.resolve(repoRoot, p)));
+  if (armRel === undefined) {
+    return { ok: false, detail: `outRoot lies in the E1 outRoot: start the grid from ${E1_GENERATOR_PLANS.join(' or ')}, not another plan file` };
   }
-  const mismatches = protocolMismatches(plan, reg.plan);
-  if (mismatches.length > 0) return { ok: false, detail: `the plan differs from ${E1_GENERATOR_PLAN} in ${mismatches.join(', ')}` };
-  const sha = sha256Of(registeredFile);
-  if (registeredSha256 === undefined) {
-    return { ok: true, e1: true, warning: `${E1_GENERATOR_PLAN} is not yet listed in corpus/prereg.json (registered by the P-U6 bump)` };
+  const armFile = path.resolve(repoRoot, armRel);
+  const arm = armRel === E1_GENERATOR_PLAN ? reg : readRegisteredPlan(armFile, repoRoot);
+  if (!arm.ok) return { ok: false, detail: arm.detail };
+  const mismatches = protocolMismatches(plan, arm.plan);
+  if (mismatches.length > 0) return { ok: false, detail: `the plan differs from ${armRel} in ${mismatches.join(', ')}` };
+  const sha = sha256Of(armFile);
+  const expected = typeof registeredSha256 === 'function' ? registeredSha256(armRel) : registeredSha256;
+  if (expected === undefined) {
+    return { ok: true, e1: true, warning: `${armRel} is not yet listed in corpus/prereg.json (registered by a pre-registration bump)` };
   }
-  if (sha !== registeredSha256) return { ok: false, detail: `${E1_GENERATOR_PLAN} changed since its registration (sha256 ${sha} != ${registeredSha256})` };
+  if (sha !== expected) return { ok: false, detail: `${armRel} changed since its registration (sha256 ${sha} != ${expected})` };
   return { ok: true, e1: true };
 }
