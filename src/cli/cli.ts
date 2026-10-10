@@ -171,8 +171,10 @@ withLLMOptions(program
   .option('--graph-mode <mode>', 'Graph mode: full | ast-only (APG ablation arm: IMPORTS, DECLARES and CONTAINS edges only)', 'full')
   .option('--instrument <version>', 'Symbolic instrument: v2 (role exemptions, default) | v1 (ADR-026)', 'v2')
   .option('--neural-aggregation <rule>', 'Neural aggregation of the AHS: registered (default, primary) | proportional (ADR-028 sensitivity variant)', 'registered')
+  .option('--tsconfig <path>', 'Explicit tsconfig for APG extraction; the project\'s own tsconfig.json is then ignored (ADR-032)')
   .action(async (opts: LLMCliOpts & {
     project: string;
+    tsconfig?: string;
     spec: string;
     format: string;
     verbose: boolean;
@@ -214,6 +216,7 @@ withLLMOptions(program
       apgStorePath: process.env['APG_STORE_PATH'] ?? '.apg-store',
       llmConfig,
       ...(graphMode !== 'full' && { graphMode }),
+      ...(opts.tsconfig !== undefined && { tsconfigPath: opts.tsconfig }),
       instrumentVersion,
       neuralAggregation,
     };

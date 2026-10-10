@@ -81,6 +81,17 @@ export interface RunRecord {
   readonly envRecordId: string;
   readonly startedAt: string; readonly wallMs: number;
   readonly cell?: GenerationCell; readonly seed?: SeedRef;
+  /** ADR-032: the tsconfig the extractor read for an E1 cell (absent for non-E1 entries and records before ADR-032). */
+  readonly extractTsconfig?: ExtractTsconfigStamp;
+}
+
+/** ADR-032: provenance of an E1 cell's extraction tsconfig (the pinned per-run tsconfig, never the tree's own). */
+export interface ExtractTsconfigStamp {
+  readonly source: 'generator-protocol-s3';
+  /** sha256 of the generator protocol §3 template text (literal `<cwd>`); identical for every cell. */
+  readonly sha256: string;
+  /** The cell's tree holds its own (agent-written) `tsconfig.json`, which was ignored. */
+  readonly ownTsconfigIgnored: boolean;
 }
 
 export interface LoadedRunDir { readonly records: RunRecord[]; readonly reports: Map<string, EvaluationReport> }

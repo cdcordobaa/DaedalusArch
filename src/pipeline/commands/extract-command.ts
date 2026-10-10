@@ -14,13 +14,15 @@ export class ExtractCommand implements PipelineCommand {
     private readonly excludePatterns: string[] = [],
     /** `ast-only` is the APG ablation arm (ADR-021 SO2); absent = `full`. */
     private readonly graphMode?: GraphMode,
+    /** ADR-032: explicit tsconfig (the project's own `tsconfig.json` is then ignored); absent = `<project>/tsconfig.json`. */
+    private readonly tsconfigPath?: string,
   ) {}
 
   async execute(context: FirewallContext): Promise<DomainResultType<void>> {
     const result = await extractAPG(this.projectPath, {
       excludePatterns: this.excludePatterns,
       ...(this.graphMode !== undefined && { graphMode: this.graphMode }),
-    });
+    }, this.tsconfigPath);
 
     if (!result.success) {
       return DomainResult.fail<void>(

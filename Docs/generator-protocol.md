@@ -55,6 +55,8 @@ Written by the harness to `<H>/runs/<runId>/tsconfig.json` (`<cwd>` absolute). T
 }
 ```
 
+**Evaluation (ADR-032, 2026-10-10, prereg v20; operational, post-hoc).** The same §3 content, with `<cwd>` = the final cell directory `<outRoot>/<modelId>/<taskId>/<specLevel>/run-<i>/`, is the only tsconfig the instrument reads when it evaluates an E1 cell (`run-experiment` writes it to a throwaway file and passes `firewall evaluate --tsconfig`). A tree's own `tsconfig.json`, when the agent wrote one, is ignored and never modified. Each extracted E1 RunRecord carries `extractTsconfig` (`source` `generator-protocol-s3`, the sha256 of the block above, `ownTsconfigIgnored`).
+
 ## 4. Skeleton (BR-U5a-45; SECURITY-10)
 
 `scripts/generator/skeleton/package.json` (sha256 `07b7eb5a78465ba3f4df35c05048e1ab7b106ee778c7cda8ff6a8d112cc80094`) and its own `package-lock.json` (sha256 `cc7900c79c6cf626be9ae79433fc99da96762a5228086067ce557ab9ccb2b523`; lockfileVersion 3, every package from registry.npmjs.org, no install scripts). Pinned versions:

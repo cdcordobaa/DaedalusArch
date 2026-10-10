@@ -19,6 +19,11 @@ import { extractEdges } from './edge-extractor.js';
 export async function extractAPG(
   projectPath: string,
   options: ExtractorOptions = {},
+  /**
+   * ADR-032: an explicit tsconfig file. When given it is the only tsconfig read, and the project's own
+   * `tsconfig.json` (if any) is ignored. E1 cells pass the pinned per-run tsconfig of `Docs/generator-protocol.md` §3.
+   */
+  tsconfigOverride?: string,
 ): Promise<DomainResult<APGResult>> {
   const opts = { ...DEFAULT_OPTIONS, ...options };
   const absoluteProjectPath = resolve(projectPath);
@@ -27,7 +32,7 @@ export async function extractAPG(
     return DR.fail<APGResult>([makeError('PROJECT_NOT_FOUND', `Project path not found: ${absoluteProjectPath}`)]);
   }
 
-  const tsconfigPath = join(absoluteProjectPath, 'tsconfig.json');
+  const tsconfigPath = tsconfigOverride !== undefined ? resolve(tsconfigOverride) : join(absoluteProjectPath, 'tsconfig.json');
   if (!existsSync(tsconfigPath)) {
     return DR.fail<APGResult>([makeError('TSCONFIG_NOT_FOUND', `No tsconfig.json found at: ${tsconfigPath}`)]);
   }

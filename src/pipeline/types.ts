@@ -21,6 +21,8 @@ export interface PipelineConfig {
   readonly apgStorePath: string;
   /** Extractor graph mode (default `full`); `ast-only` is the APG ablation arm (ADR-021 SO2). */
   readonly graphMode?: GraphMode | undefined;
+  /** ADR-032: explicit tsconfig for the extractor (E1 cells: the pinned per-run tsconfig); absent = `<project>/tsconfig.json`. */
+  readonly tsconfigPath?: string | undefined;
   /** Symbolic instrument version (ADR-026): 1 = no role exemptions; default 2. */
   readonly instrumentVersion?: InstrumentVersion | undefined;
   /** Neural aggregation of the AHS fields (ADR-028): `registered` (default, primary) or `proportional`. */

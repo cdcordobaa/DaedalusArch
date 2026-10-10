@@ -102,6 +102,8 @@ Then the P2 v1 side (analysis plan §10 B8; symbolic-only, no model call; lane l
    `../daedalus-e1-outcomes/<model>/<task>/<level>/run-<i>/`; a stopped cell is restarted atomically).
 2. `run-experiment-cli.ts experiments/e1-grid/plan.json --neo4j-container daedalus-neo4j-bt` → 54 records, one
    per coordinate (a missing or protocol-mismatched cell is `not-run` with its `GEN-*` code).
+   Each extracted cell is read with the pinned per-run tsconfig of the generator protocol §3, never the tree's own
+   (ADR-032, prereg v20; the record's `extractTsconfig`).
 3. `run-experiment-cli.ts experiments/fixtures/plan.json …` → the fixture P4 units.
 4. **ADR-028 two-pass step (analysis plan §12.3; prereg v14/v15).** Pass 1 is step 2 itself: the judge calls are recorded
    under the registered rule (default `--neural-aggregation registered`, `--cassette-mode record`) into the plan's

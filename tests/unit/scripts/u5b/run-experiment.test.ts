@@ -12,8 +12,11 @@ import type { PreregCheck } from '../../../../scripts/lib/prereg.js';
 import type { GenerationCell, RunRecord } from '../../../../scripts/lib/report-io.js';
 import { FAILURE_REASONS, genCodeOf, loadSo5Codes, parseSo5Codes, SO5_CODES_INVALID } from '../../../../scripts/lib/so5-codes.js';
 import { loadPromptTemplate } from '../../../../scripts/lib/generators/prompt.js';
+import { harnessTsconfigText } from '../../../../scripts/lib/generators/harness-tsconfig.js';
+import { createHash } from 'node:crypto';
+import { existsSync } from 'node:fs';
 import {
-  cliArgv, cycleQueryTimes, E1_GENERATOR_PLAN_MISMATCH, E1_SPEC_MISMATCH, expandPlan, latencyGate, loadPlan, main, PLAN_INVALID, planInstrumentVersion, runPlan, sha256Of, validateRunRecord, relativizePaths,
+  cliArgv, cycleQueryTimes, e1PinnedTsconfig, E1_TSCONFIG_SOURCE, E1_GENERATOR_PLAN_MISMATCH, E1_SPEC_MISMATCH, expandPlan, latencyGate, loadPlan, main, PLAN_INVALID, planInstrumentVersion, runPlan, sha256Of, validateRunRecord, relativizePaths,
 } from '../../../../scripts/run-experiment.js';
 import type { ExperimentPlan, HarnessDeps } from '../../../../scripts/run-experiment.js';
 import { ROOT } from './score-fixture.js';
@@ -227,6 +230,68 @@ describe('E1 cells (BR-U5b-53, 54, 64)', () => {
     } finally {
       e.cleanup();
     }
+  });
+});
+
+describe('ADR-032: E1 cells are extracted with the pinned per-run tsconfig', () => {
+  const protocolSha = (): string => {
+    const doc = read(join(ROOT, 'Docs/generator-protocol.md'));
+    const m = /<!-- harness-tsconfig -->\n```json\n([\s\S]*?)```/.exec(doc);
+    if (m?.[1] === undefined) throw new Error('protocol §3 block not found');
+    return createHash('sha256').update(m[1]).digest('hex');
+  };
+
+  it('the stamp hashes the generator protocol §3 template, identical for every cell', () => {
+    expect(e1PinnedTsconfig('/a/b').stamp).toEqual({ source: E1_TSCONFIG_SOURCE, sha256: protocolSha(), ownTsconfigIgnored: false });
+    expect(e1PinnedTsconfig('/c').stamp.sha256).toBe(e1PinnedTsconfig('/a/b').stamp.sha256);
+    expect(e1PinnedTsconfig('/a/b').text).toBe(harnessTsconfigText('/a/b'));
+  });
+
+  it('a grid cell gets --tsconfig with the §3 content (<cwd> = the cell dir); a tree tsconfig.json is ignored and untouched', async () => {
+    const e = e1Repo(2);
+    try {
+      e.outcome(0, {});
+      e.outcome(1, {});
+      const cell0 = join(e.root, 'gen/m1/task-management/none/run-0');
+      const own = '{ "compilerOptions": { "strict": false }, "include": ["agent/**/*.ts"] }\n';
+      writeFileSync(join(cell0, 'tsconfig.json'), own);
+      const seen: { path: string; text: string }[] = [];
+      const runner = new FakeRunner((args) => {
+        const i = args.indexOf('--tsconfig');
+        const path = args[i + 1];
+        if (i >= 0 && path !== undefined) seen.push({ path, text: read(path) });
+        return { stdout: OK_REPORT };
+      });
+      const r = await runPlan(e.plan, 'experiments/t/plan.json', e.root, deps(runner, { schemaRoot: ROOT, gate: e.gate }));
+      expect(seen).toHaveLength(2);
+      expect(seen[0]?.text).toBe(harnessTsconfigText(cell0));
+      expect(seen[0]?.path).not.toBe(join(cell0, 'tsconfig.json'));
+      expect(seen[0]?.path.startsWith(cell0)).toBe(false);
+      for (const s of seen) expect(existsSync(s.path)).toBe(false); // the throwaway file is removed after the run
+      expect(read(join(cell0, 'tsconfig.json'))).toBe(own); // no outcome byte changes
+      expect(r.records.map((x) => x.extractTsconfig)).toEqual([
+        { source: E1_TSCONFIG_SOURCE, sha256: protocolSha(), ownTsconfigIgnored: true },
+        { source: E1_TSCONFIG_SOURCE, sha256: protocolSha(), ownTsconfigIgnored: false },
+      ]);
+      for (const rec of records()) expect(validateRunRecord(rec, ROOT)).toEqual([]);
+    } finally {
+      e.cleanup();
+    }
+  });
+
+  it('a not-run cell makes no extraction and carries no stamp; a non-E1 entry gets no --tsconfig', async () => {
+    const e = e1Repo(1);
+    try {
+      e.outcome(0, { status: 'failed-agent', failureReason: 'typecheck' });
+      const runner = new FakeRunner(() => ({ stdout: OK_REPORT }));
+      const r = await runPlan(e.plan, 'experiments/t/plan.json', e.root, deps(runner, { schemaRoot: ROOT, gate: e.gate }));
+      expect(r.records[0]).toMatchObject({ status: 'not-run' });
+      expect(r.records[0]?.extractTsconfig).toBeUndefined();
+    } finally {
+      e.cleanup();
+    }
+    expect(cliArgv(plan([proj('a')]), { index: 0, projectId: 'a', path: 'p/a', specPath: 's.yaml' })).not.toContain('--tsconfig');
+    expect(cliArgv(plan([proj('a')]), { index: 0, projectId: 'a', path: 'p/a', specPath: 's.yaml' }, 2, {}, '/t/tsconfig.json')).toContain('--tsconfig');
   });
 });
 
