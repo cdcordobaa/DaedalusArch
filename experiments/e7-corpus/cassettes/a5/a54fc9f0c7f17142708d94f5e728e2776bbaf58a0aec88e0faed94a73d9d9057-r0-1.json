@@ -1,0 +1,47 @@
+{
+  "attempts": 1,
+  "cliVersion": "2.1.294",
+  "configListingSha256": "47aa04258852fab9a706f3f0c14cee22306d69fbb6fdfbde8c11854bd54997bc",
+  "durationMs": 6725,
+  "effort": "high",
+  "functionId": "FF-N02",
+  "ignoredOptions": [
+    "maxTokens"
+  ],
+  "isolationProbeSha256": "97a2e2d0af1100c13c55e028c1a0c71f069093c3d08705af122aaeb302f1a641",
+  "key": "a54fc9f0c7f17142708d94f5e728e2776bbaf58a0aec88e0faed94a73d9d9057-r0-1",
+  "model": "claude-opus-5-5",
+  "outcome": {
+    "kind": "valid"
+  },
+  "parsedVerdict": {
+    "confidence": 0.97,
+    "evidence": [
+      "src/products/application/use-cases/delete-product/delete-product.command.ts: class DeleteProductCommand only has a readonly productId field set in its constructor",
+      "The file has no I/O, no framework decorators and no domain invariants",
+      "Only application-layer files use it: delete-product.command-handler.ts, delete-product.service.ts and index.ts"
+    ],
+    "pass": true,
+    "reasoning": "The file only declares DeleteProductCommand, a plain data carrier that holds productId for the delete-product use case. A command object is a normal application-layer thing. The file has no persistence, transport or framework logic, and no business rules that should live in the domain.",
+    "violations": []
+  },
+  "projectId": "nestjslatam__ddd",
+  "prompt": "## Rule\nThe unit's responsibilities match the role of its declared layer.\n\n## Rubric\nPass: Every responsibility in the file belongs to the role and kind of its declared layer, and agrees with any ADR prose given.\nFail: The file carries a responsibility that belongs to a different layer kind, for example persistence, transport or framework logic in a domain file, or business rules in an infrastructure or presentation file.\nEvidence required: Name the file and cite the function, method or statement that carries the misplaced responsibility, and the layer kind it belongs to.\nOut of scope: import direction and layer-dependency rules, which are checked symbolically.\n\n## Layer model\n- domain (kind: domain): src/domain/**, **/domain/**, **/entities/**, **/value-objects/**, **/valueobjects/**; file patterns: **/*.entity.ts, **/*.vo.ts\n- application (kind: application): src/application/**, **/application/**, **/dtos/**, **/queries/**, **/use-cases/**; file patterns: **/*.command.ts, **/*.dto.ts, **/*.query.ts, **/*.service.ts\n- infrastructure (kind: infrastructure): src/infrastructure/**, **/infrastructure/**, **/presentation/**, **/repositories/**; file patterns: **/*.controller.ts, **/*.repository.ts\n\n## Unit\nKind: file\nId: src/products/application/use-cases/delete-product/delete-product.command.ts\nLayer: application\nUnit files:\n- src/products/application/use-cases/delete-product/delete-product.command.ts\n\n## Source\n=====SOURCE-BEGIN src/products/application/use-cases/delete-product/delete-product.command.ts=====\nexport class DeleteProductCommand {\n  public readonly productId: string;\n\n  constructor(productId: string) {\n    this.productId = productId;\n  }\n}\n\n=====SOURCE-END=====\n\n## Graph excerpt\n{\"edges\":[{\"from\":\"src/products/application/use-cases/delete-product/delete-product.command-handler.ts\",\"to\":\"src/products/application/use-cases/delete-product/delete-product.command.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/products/application/use-cases/delete-product/delete-product.service.ts\",\"to\":\"src/products/application/use-cases/delete-product/delete-product.command.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/products/application/use-cases/delete-product/index.ts\",\"to\":\"src/products/application/use-cases/delete-product/delete-product.command.ts\",\"type\":\"RE_EXPORTS\"}],\"nodes\":[{\"kind\":\"Class\",\"layer\":\"application\",\"name\":\"DeleteProductCommand\",\"path\":\"src/products/application/use-cases/delete-product/delete-product.command.ts\"},{\"kind\":\"File\",\"layer\":\"application\",\"path\":\"src/products/application/use-cases/delete-product/delete-product.command-handler.ts\"},{\"kind\":\"File\",\"layer\":\"application\",\"path\":\"src/products/application/use-cases/delete-product/delete-product.command.ts\"},{\"kind\":\"File\",\"layer\":\"application\",\"path\":\"src/products/application/use-cases/delete-product/delete-product.service.ts\"},{\"kind\":\"File\",\"layer\":\"application\",\"path\":\"src/products/application/use-cases/delete-product/index.ts\"}]}\n\n## Instructions\nJudge the unit against the rule and rubric. Return the JSON object the schema requires. Set pass to false if any file of the unit fails the rubric.\n",
+  "provider": "claude-cli",
+  "recordedAt": "2026-10-10T03:15:49.862Z",
+  "repetition": 0,
+  "requestHash": "a54fc9f0c7f17142708d94f5e728e2776bbaf58a0aec88e0faed94a73d9d9057",
+  "resolvedModel": "claude-opus-5-5",
+  "response": "{\"is_error\":false,\"modelUsage\":{\"claude-opus-5-5\":{\"inputTokens\":2,\"outputTokens\":340}},\"result\":\"{\\\"pass\\\":true,\\\"confidence\\\":0.97,\\\"reasoning\\\":\\\"The file only declares DeleteProductCommand, a plain data carrier that holds productId for the delete-product use case. A command object is a normal application-layer thing. The file has no persistence, transport or framework logic, and no business rules that should live in the domain.\\\",\\\"evidence\\\":[\\\"src/products/application/use-cases/delete-product/delete-product.command.ts: class DeleteProductCommand only has a readonly productId field set in its constructor\\\",\\\"The file has no I/O, no framework decorators and no domain invariants\\\",\\\"Only application-layer files use it: delete-product.command-handler.ts, delete-product.service.ts and index.ts\\\"],\\\"violations\\\":[]}\",\"structured_output\":{\"confidence\":0.97,\"evidence\":[\"src/products/application/use-cases/delete-product/delete-product.command.ts: class DeleteProductCommand only has a readonly productId field set in its constructor\",\"The file has no I/O, no framework decorators and no domain invariants\",\"Only application-layer files use it: delete-product.command-handler.ts, delete-product.service.ts and index.ts\"],\"pass\":true,\"reasoning\":\"The file only declares DeleteProductCommand, a plain data carrier that holds productId for the delete-product use case. A command object is a normal application-layer thing. The file has no persistence, transport or framework logic, and no business rules that should live in the domain.\",\"violations\":[]}}",
+  "runIndex": 1,
+  "schemaVersion": 2,
+  "unitId": "src/products/application/use-cases/delete-product/delete-product.command.ts",
+  "usage": {
+    "inputTokens": 2630,
+    "outputTokens": 340
+  },
+  "usedOptions": {
+    "effort": "high",
+    "model": "claude-opus-5-5"
+  }
+}

@@ -1,0 +1,47 @@
+{
+  "attempts": 1,
+  "cliVersion": "2.1.294",
+  "configListingSha256": "47aa04258852fab9a706f3f0c14cee22306d69fbb6fdfbde8c11854bd54997bc",
+  "durationMs": 6213,
+  "effort": "high",
+  "functionId": "FF-N02",
+  "ignoredOptions": [
+    "maxTokens"
+  ],
+  "isolationProbeSha256": "97a2e2d0af1100c13c55e028c1a0c71f069093c3d08705af122aaeb302f1a641",
+  "key": "71ff9b188bba6d81e070bb122aca261c60e6495c5ced7b193fa4dc2d5b6d7c62-r0-1",
+  "model": "claude-opus-5-5",
+  "outcome": {
+    "kind": "valid"
+  },
+  "parsedVerdict": {
+    "confidence": 0.9,
+    "evidence": [
+      "OrderCustomerValidator.addRules() only checks invariants on Order.customerInfo (email, name, phone) and records broken rules via addBrokenRule",
+      "No repository, HTTP, controller, DTO or database logic is present in src/orders/domain/validators/order-customer.validator.ts",
+      "Base class AbstractRuleValidator is a DDD domain-validation abstraction, not infrastructure"
+    ],
+    "pass": true,
+    "reasoning": "The file is a domain validator for the Order aggregate. Its only job is to check business invariants on customer info: the email, name and phone must be present, and email and phone must match a valid format. These are domain rules. The file has no persistence, transport, HTTP, ORM or framework wiring. It does extend AbstractRuleValidator from @nestjslatam/ddd-lib, but that is a DDD building-block library meant for domain code, and import/dependency rules are out of scope anyway. Its responsibilities fit the domain layer.",
+    "violations": []
+  },
+  "projectId": "nestjslatam__ddd",
+  "prompt": "## Rule\nThe unit's responsibilities match the role of its declared layer.\n\n## Rubric\nPass: Every responsibility in the file belongs to the role and kind of its declared layer, and agrees with any ADR prose given.\nFail: The file carries a responsibility that belongs to a different layer kind, for example persistence, transport or framework logic in a domain file, or business rules in an infrastructure or presentation file.\nEvidence required: Name the file and cite the function, method or statement that carries the misplaced responsibility, and the layer kind it belongs to.\nOut of scope: import direction and layer-dependency rules, which are checked symbolically.\n\n## Layer model\n- domain (kind: domain): src/domain/**, **/domain/**, **/entities/**, **/value-objects/**, **/valueobjects/**; file patterns: **/*.entity.ts, **/*.vo.ts\n- application (kind: application): src/application/**, **/application/**, **/dtos/**, **/queries/**, **/use-cases/**; file patterns: **/*.command.ts, **/*.dto.ts, **/*.query.ts, **/*.service.ts\n- infrastructure (kind: infrastructure): src/infrastructure/**, **/infrastructure/**, **/presentation/**, **/repositories/**; file patterns: **/*.controller.ts, **/*.repository.ts\n\n## Unit\nKind: file\nId: src/orders/domain/validators/order-customer.validator.ts\nLayer: domain\nUnit files:\n- src/orders/domain/validators/order-customer.validator.ts\n\n## Source\n=====SOURCE-BEGIN src/orders/domain/validators/order-customer.validator.ts=====\nimport { AbstractRuleValidator } from '@nestjslatam/ddd-lib';\nimport { Order } from '../order-aggregate/order';\n\nexport class OrderCustomerValidator extends AbstractRuleValidator<Order> {\n  constructor(subject: Order) {\n    super(subject);\n  }\n\n  public addRules(): void {\n    const customerInfo = this.subject.customerInfo;\n\n    if (!customerInfo) {\n      this.addBrokenRule('customerInfo', 'Customer information is required');\n      return;\n    }\n\n    // Validar email\n    const email = customerInfo.email;\n    if (!email || email.trim().length === 0) {\n      this.addBrokenRule('customerInfo.email', 'Customer email is required');\n    } else if (!/^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$/.test(email)) {\n      this.addBrokenRule('customerInfo.email', 'Invalid email format');\n    }\n\n    // Validar nombre\n    const name = customerInfo.name;\n    if (!name || name.trim().length === 0) {\n      this.addBrokenRule('customerInfo.name', 'Customer name is required');\n    } else if (name.length < 2) {\n      this.addBrokenRule(\n        'customerInfo.name',\n        'Customer name must be at least 2 characters',\n      );\n    }\n\n    // Validar teléfono si existe\n    const phone = customerInfo.phone;\n    if (phone && phone.trim().length > 0) {\n      if (!/^\\+?[\\d\\s\\-()]+$/.test(phone)) {\n        this.addBrokenRule('customerInfo.phone', 'Invalid phone format');\n      }\n    }\n  }\n}\n\n=====SOURCE-END=====\n\n## Graph excerpt\n{\"edges\":[{\"from\":\"OrderCustomerValidator@src/orders/domain/validators/order-customer.validator.ts\",\"to\":\"Order@src/orders/domain/order-aggregate/order.ts\",\"type\":\"CONSTRUCTOR_INJECTS\"},{\"from\":\"src/orders/domain/order-aggregate/order.ts\",\"to\":\"src/orders/domain/validators/order-customer.validator.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/orders/domain/validators/index.ts\",\"to\":\"src/orders/domain/validators/order-customer.validator.ts\",\"type\":\"RE_EXPORTS\"},{\"from\":\"src/orders/domain/validators/order-customer.validator.ts\",\"to\":\"@nestjslatam/ddd-lib\",\"type\":\"IMPORTS\"},{\"from\":\"src/orders/domain/validators/order-customer.validator.ts\",\"to\":\"src/orders/domain/order-aggregate/order.ts\",\"type\":\"IMPORTS\"}],\"nodes\":[{\"kind\":\"Class\",\"layer\":\"domain\",\"name\":\"Order\",\"path\":\"src/orders/domain/order-aggregate/order.ts\"},{\"kind\":\"Class\",\"layer\":\"domain\",\"name\":\"OrderCustomerValidator\",\"path\":\"src/orders/domain/validators/order-customer.validator.ts\"},{\"kind\":\"File\",\"layer\":\"domain\",\"path\":\"src/orders/domain/order-aggregate/order.ts\"},{\"kind\":\"File\",\"layer\":\"domain\",\"path\":\"src/orders/domain/validators/index.ts\"},{\"kind\":\"File\",\"layer\":\"domain\",\"path\":\"src/orders/domain/validators/order-customer.validator.ts\"},{\"kind\":\"Package\",\"layer\":null,\"path\":\"@nestjslatam/ddd-lib\"}]}\n\n## Instructions\nJudge the unit against the rule and rubric. Return the JSON object the schema requires. Set pass to false if any file of the unit fails the rubric.\n",
+  "provider": "claude-cli",
+  "recordedAt": "2026-10-10T03:15:05.185Z",
+  "repetition": 0,
+  "requestHash": "71ff9b188bba6d81e070bb122aca261c60e6495c5ced7b193fa4dc2d5b6d7c62",
+  "resolvedModel": "claude-opus-5-5",
+  "response": "{\"is_error\":false,\"modelUsage\":{\"claude-opus-5-5\":{\"inputTokens\":2,\"outputTokens\":450}},\"result\":\"{\\\"pass\\\":true,\\\"confidence\\\":0.9,\\\"reasoning\\\":\\\"The file is a domain validator for the Order aggregate. Its only job is to check business invariants on customer info: the email, name and phone must be present, and email and phone must match a valid format. These are domain rules. The file has no persistence, transport, HTTP, ORM or framework wiring. It does extend AbstractRuleValidator from @nestjslatam/ddd-lib, but that is a DDD building-block library meant for domain code, and import/dependency rules are out of scope anyway. Its responsibilities fit the domain layer.\\\",\\\"evidence\\\":[\\\"OrderCustomerValidator.addRules() only checks invariants on Order.customerInfo (email, name, phone) and records broken rules via addBrokenRule\\\",\\\"No repository, HTTP, controller, DTO or database logic is present in src/orders/domain/validators/order-customer.validator.ts\\\",\\\"Base class AbstractRuleValidator is a DDD domain-validation abstraction, not infrastructure\\\"],\\\"violations\\\":[]}\",\"structured_output\":{\"confidence\":0.9,\"evidence\":[\"OrderCustomerValidator.addRules() only checks invariants on Order.customerInfo (email, name, phone) and records broken rules via addBrokenRule\",\"No repository, HTTP, controller, DTO or database logic is present in src/orders/domain/validators/order-customer.validator.ts\",\"Base class AbstractRuleValidator is a DDD domain-validation abstraction, not infrastructure\"],\"pass\":true,\"reasoning\":\"The file is a domain validator for the Order aggregate. Its only job is to check business invariants on customer info: the email, name and phone must be present, and email and phone must match a valid format. These are domain rules. The file has no persistence, transport, HTTP, ORM or framework wiring. It does extend AbstractRuleValidator from @nestjslatam/ddd-lib, but that is a DDD building-block library meant for domain code, and import/dependency rules are out of scope anyway. Its responsibilities fit the domain layer.\",\"violations\":[]}}",
+  "runIndex": 1,
+  "schemaVersion": 2,
+  "unitId": "src/orders/domain/validators/order-customer.validator.ts",
+  "usage": {
+    "inputTokens": 3263,
+    "outputTokens": 450
+  },
+  "usedOptions": {
+    "effort": "high",
+    "model": "claude-opus-5-5"
+  }
+}

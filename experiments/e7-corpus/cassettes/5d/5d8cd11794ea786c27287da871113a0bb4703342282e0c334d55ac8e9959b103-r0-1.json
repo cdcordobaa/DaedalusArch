@@ -1,0 +1,47 @@
+{
+  "attempts": 1,
+  "cliVersion": "2.1.294",
+  "configListingSha256": "47aa04258852fab9a706f3f0c14cee22306d69fbb6fdfbde8c11854bd54997bc",
+  "durationMs": 7873,
+  "effort": "high",
+  "functionId": "FF-N02",
+  "ignoredOptions": [
+    "maxTokens"
+  ],
+  "isolationProbeSha256": "97a2e2d0af1100c13c55e028c1a0c71f069093c3d08705af122aaeb302f1a641",
+  "key": "5d8cd11794ea786c27287da871113a0bb4703342282e0c334d55ac8e9959b103-r0-1",
+  "model": "claude-opus-5-5",
+  "outcome": {
+    "kind": "valid"
+  },
+  "parsedVerdict": {
+    "confidence": 0.85,
+    "evidence": [
+      "libs/ddd/src/core/repositories/repository-write.interface.ts declares only the interface IDomainWriteRepository<TKey, TDomain>, which has no implementation logic.",
+      "Its methods insert(entity), insertBatch(entities), update(id, entity) and delete(id) are persistence operations, which fit the infrastructure layer kind.",
+      "The file contains no business rules, validation, transport, HTTP or framework code."
+    ],
+    "pass": true,
+    "reasoning": "The file sits in the infrastructure layer because it matches **/repositories/**. It contains one thing: the TypeScript interface IDomainWriteRepository, a generic persistence contract with four methods: insert, insertBatch, update and delete. All four handle persistence, which fits the infrastructure kind. The file has no business rules, domain invariants, presentation logic, transport handling or framework code. Under classic DDD, a repository interface (a port) is often placed in the domain layer. Here, though, the declared layer is infrastructure and no ADR prose says otherwise. A pure persistence contract does not carry a responsibility that belongs to a different layer kind. Where the file imports from is out of scope for this rule.",
+    "violations": []
+  },
+  "projectId": "nestjslatam__ddd",
+  "prompt": "## Rule\nThe unit's responsibilities match the role of its declared layer.\n\n## Rubric\nPass: Every responsibility in the file belongs to the role and kind of its declared layer, and agrees with any ADR prose given.\nFail: The file carries a responsibility that belongs to a different layer kind, for example persistence, transport or framework logic in a domain file, or business rules in an infrastructure or presentation file.\nEvidence required: Name the file and cite the function, method or statement that carries the misplaced responsibility, and the layer kind it belongs to.\nOut of scope: import direction and layer-dependency rules, which are checked symbolically.\n\n## Layer model\n- domain (kind: domain): src/domain/**, **/domain/**, **/entities/**, **/value-objects/**, **/valueobjects/**; file patterns: **/*.entity.ts, **/*.vo.ts\n- application (kind: application): src/application/**, **/application/**, **/dtos/**, **/queries/**, **/use-cases/**; file patterns: **/*.command.ts, **/*.dto.ts, **/*.query.ts, **/*.service.ts\n- infrastructure (kind: infrastructure): src/infrastructure/**, **/infrastructure/**, **/presentation/**, **/repositories/**; file patterns: **/*.controller.ts, **/*.repository.ts\n\n## Unit\nKind: file\nId: libs/ddd/src/core/repositories/repository-write.interface.ts\nLayer: infrastructure\nUnit files:\n- libs/ddd/src/core/repositories/repository-write.interface.ts\n\n## Source\n=====SOURCE-BEGIN libs/ddd/src/core/repositories/repository-write.interface.ts=====\nimport { DddAggregateRoot } from '../../aggregate-root';\nimport { Primitives } from '../tracking-state';\n\nexport interface IDomainWriteRepository<\n  TKey extends Primitives,\n  TDomain extends DddAggregateRoot<any, any>,\n> {\n  /**\n   * Inserts a single entity into the repository.\n   *\n   * @param entity - The entity to be inserted.\n   * @returns A promise that resolves when the operation is complete.\n   */\n  insert(entity: TDomain): Promise<void>;\n\n  /**\n   * Inserts multiple entities into the repository.\n   *\n   * @param entities - The entities to be inserted.\n   * @returns A promise that resolves when the operation is complete.\n   */\n  insertBatch(entities: TDomain[]): Promise<void>;\n\n  /**\n   * Updates an entity in the repository.\n   *\n   * @param id - The identifier of the entity to be updated.\n   * @param entity - The updated entity.\n   * @returns A promise that resolves when the operation is complete.\n   */\n  update(id: TKey, entity: TDomain): Promise<void>;\n\n  /**\n   * Deletes an entity from the repository.\n   *\n   * @param id - The identifier of the entity to be deleted.\n   * @returns A promise that resolves when the operation is complete.\n   */\n  delete(id: TKey): Promise<void>;\n}\n\n=====SOURCE-END=====\n\n## Graph excerpt\n{\"edges\":[{\"from\":\"libs/ddd/src/core/repositories/index.ts\",\"to\":\"libs/ddd/src/core/repositories/repository-write.interface.ts\",\"type\":\"RE_EXPORTS\"},{\"from\":\"libs/ddd/src/core/repositories/repository-write.interface.ts\",\"to\":\"libs/ddd/src/aggregate-root.ts\",\"type\":\"IMPORTS\"},{\"from\":\"libs/ddd/src/core/repositories/repository-write.interface.ts\",\"to\":\"libs/ddd/src/core/tracking-state/interfaces/idomain-primitive.ts\",\"type\":\"IMPORTS\"}],\"nodes\":[{\"kind\":\"File\",\"layer\":\"infrastructure\",\"path\":\"libs/ddd/src/core/repositories/index.ts\"},{\"kind\":\"File\",\"layer\":\"infrastructure\",\"path\":\"libs/ddd/src/core/repositories/repository-write.interface.ts\"},{\"kind\":\"File\",\"layer\":null,\"path\":\"libs/ddd/src/aggregate-root.ts\"},{\"kind\":\"File\",\"layer\":null,\"path\":\"libs/ddd/src/core/tracking-state/interfaces/idomain-primitive.ts\"},{\"kind\":\"Interface\",\"layer\":\"infrastructure\",\"name\":\"IDomainWriteRepository\",\"path\":\"libs/ddd/src/core/repositories/repository-write.interface.ts\"}]}\n\n## Instructions\nJudge the unit against the rule and rubric. Return the JSON object the schema requires. Set pass to false if any file of the unit fails the rubric.\n",
+  "provider": "claude-cli",
+  "recordedAt": "2026-10-10T03:13:56.122Z",
+  "repetition": 0,
+  "requestHash": "5d8cd11794ea786c27287da871113a0bb4703342282e0c334d55ac8e9959b103",
+  "resolvedModel": "claude-opus-5-5",
+  "response": "{\"is_error\":false,\"modelUsage\":{\"claude-opus-5-5\":{\"inputTokens\":2,\"outputTokens\":677}},\"result\":\"{\\\"pass\\\":true,\\\"confidence\\\":0.85,\\\"reasoning\\\":\\\"The file sits in the infrastructure layer because it matches **/repositories/**. It contains one thing: the TypeScript interface IDomainWriteRepository, a generic persistence contract with four methods: insert, insertBatch, update and delete. All four handle persistence, which fits the infrastructure kind. The file has no business rules, domain invariants, presentation logic, transport handling or framework code. Under classic DDD, a repository interface (a port) is often placed in the domain layer. Here, though, the declared layer is infrastructure and no ADR prose says otherwise. A pure persistence contract does not carry a responsibility that belongs to a different layer kind. Where the file imports from is out of scope for this rule.\\\",\\\"evidence\\\":[\\\"libs/ddd/src/core/repositories/repository-write.interface.ts declares only the interface IDomainWriteRepository<TKey, TDomain>, which has no implementation logic.\\\",\\\"Its methods insert(entity), insertBatch(entities), update(id, entity) and delete(id) are persistence operations, which fit the infrastructure layer kind.\\\",\\\"The file contains no business rules, validation, transport, HTTP or framework code.\\\"],\\\"violations\\\":[]}\",\"structured_output\":{\"confidence\":0.85,\"evidence\":[\"libs/ddd/src/core/repositories/repository-write.interface.ts declares only the interface IDomainWriteRepository<TKey, TDomain>, which has no implementation logic.\",\"Its methods insert(entity), insertBatch(entities), update(id, entity) and delete(id) are persistence operations, which fit the infrastructure layer kind.\",\"The file contains no business rules, validation, transport, HTTP or framework code.\"],\"pass\":true,\"reasoning\":\"The file sits in the infrastructure layer because it matches **/repositories/**. It contains one thing: the TypeScript interface IDomainWriteRepository, a generic persistence contract with four methods: insert, insertBatch, update and delete. All four handle persistence, which fits the infrastructure kind. The file has no business rules, domain invariants, presentation logic, transport handling or framework code. Under classic DDD, a repository interface (a port) is often placed in the domain layer. Here, though, the declared layer is infrastructure and no ADR prose says otherwise. A pure persistence contract does not carry a responsibility that belongs to a different layer kind. Where the file imports from is out of scope for this rule.\",\"violations\":[]}}",
+  "runIndex": 1,
+  "schemaVersion": 2,
+  "unitId": "libs/ddd/src/core/repositories/repository-write.interface.ts",
+  "usage": {
+    "inputTokens": 3048,
+    "outputTokens": 677
+  },
+  "usedOptions": {
+    "effort": "high",
+    "model": "claude-opus-5-5"
+  }
+}

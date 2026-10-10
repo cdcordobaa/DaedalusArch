@@ -1,0 +1,47 @@
+{
+  "attempts": 1,
+  "cliVersion": "2.1.294",
+  "configListingSha256": "47aa04258852fab9a706f3f0c14cee22306d69fbb6fdfbde8c11854bd54997bc",
+  "durationMs": 7713,
+  "effort": "high",
+  "functionId": "FF-N02",
+  "ignoredOptions": [
+    "maxTokens"
+  ],
+  "isolationProbeSha256": "97a2e2d0af1100c13c55e028c1a0c71f069093c3d08705af122aaeb302f1a641",
+  "key": "ac57b5fc38dba200e550378a3fecf843f0fc6ee1b7d32998ac3ff9c6a8146a89-r0-1",
+  "model": "claude-opus-5-5",
+  "outcome": {
+    "kind": "valid"
+  },
+  "parsedVerdict": {
+    "confidence": 0.82,
+    "evidence": [
+      "ProductStatusChangedEvent extends AbstractDomainEvent: a domain event class in the domain layer",
+      "Constructor only assigns readonly domain data (productId, productStatus) and passes metadata to super",
+      "static fromJSON(json: Record<string, unknown>) is a simple named constructor that uses AbstractDomainEvent.extractMetadata/extractEventData, with no I/O, persistence or transport calls"
+    ],
+    "pass": true,
+    "reasoning": "This file is a domain event. ProductStatusChangedEvent extends AbstractDomainEvent and only holds the domain facts: productId and productStatus, plus event metadata. That fits the domain layer.\n\nThe one thing that could look out of place is the static fromJSON factory. It rebuilds the event from a plain record using the base class helpers extractMetadata and extractEventData. It does not touch any persistence, transport, message broker or framework runtime. It is a simple named constructor and a common pattern for domain events in this library, so it is not infrastructure logic.\n\nThe file has no business rules that belong elsewhere, and no persistence or presentation responsibilities. Every responsibility matches the domain layer. Whether the domain is allowed to import '@nestjslatam/ddd-lib' is out of scope here.",
+    "violations": []
+  },
+  "projectId": "nestjslatam__ddd",
+  "prompt": "## Rule\nThe unit's responsibilities match the role of its declared layer.\n\n## Rubric\nPass: Every responsibility in the file belongs to the role and kind of its declared layer, and agrees with any ADR prose given.\nFail: The file carries a responsibility that belongs to a different layer kind, for example persistence, transport or framework logic in a domain file, or business rules in an infrastructure or presentation file.\nEvidence required: Name the file and cite the function, method or statement that carries the misplaced responsibility, and the layer kind it belongs to.\nOut of scope: import direction and layer-dependency rules, which are checked symbolically.\n\n## Layer model\n- domain (kind: domain): src/domain/**, **/domain/**, **/entities/**, **/value-objects/**, **/valueobjects/**; file patterns: **/*.entity.ts, **/*.vo.ts\n- application (kind: application): src/application/**, **/application/**, **/dtos/**, **/queries/**, **/use-cases/**; file patterns: **/*.command.ts, **/*.dto.ts, **/*.query.ts, **/*.service.ts\n- infrastructure (kind: infrastructure): src/infrastructure/**, **/infrastructure/**, **/presentation/**, **/repositories/**; file patterns: **/*.controller.ts, **/*.repository.ts\n\n## Unit\nKind: file\nId: src/products/domain/product-aggregate/events/ProductStatusChanged.ts\nLayer: domain\nUnit files:\n- src/products/domain/product-aggregate/events/ProductStatusChanged.ts\n\n## Source\n=====SOURCE-BEGIN src/products/domain/product-aggregate/events/ProductStatusChanged.ts=====\nimport { AbstractDomainEvent, EventMetadata } from '@nestjslatam/ddd-lib';\n\nexport class ProductStatusChangedEvent extends AbstractDomainEvent {\n  constructor(\n    readonly productId: string,\n    readonly productStatus: string,\n    metadata: EventMetadata,\n  ) {\n    super(metadata);\n\n    this.productId = productId;\n    this.productStatus = productStatus;\n  }\n\n  static fromJSON(json: Record<string, unknown>): ProductStatusChangedEvent {\n    const metadata = AbstractDomainEvent.extractMetadata(json);\n    const eventData = AbstractDomainEvent.extractEventData(json);\n\n    return new ProductStatusChangedEvent(\n      eventData.productId as string,\n      eventData.productStatus as string,\n      metadata,\n    );\n  }\n}\n\n=====SOURCE-END=====\n\n## Graph excerpt\n{\"edges\":[{\"from\":\"src/products/application/events/product-status-changed.event-handler.ts\",\"to\":\"src/products/domain/product-aggregate/events/ProductStatusChanged.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/products/application/sagas/product.saga.ts\",\"to\":\"src/products/domain/product-aggregate/events/ProductStatusChanged.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/products/domain/product-aggregate/events/ProductStatusChanged.ts\",\"to\":\"@nestjslatam/ddd-lib\",\"type\":\"IMPORTS\"},{\"from\":\"src/products/domain/product-aggregate/events/index.ts\",\"to\":\"src/products/domain/product-aggregate/events/ProductStatusChanged.ts\",\"type\":\"RE_EXPORTS\"}],\"nodes\":[{\"kind\":\"Class\",\"layer\":\"domain\",\"name\":\"ProductStatusChangedEvent\",\"path\":\"src/products/domain/product-aggregate/events/ProductStatusChanged.ts\"},{\"kind\":\"File\",\"layer\":\"application\",\"path\":\"src/products/application/events/product-status-changed.event-handler.ts\"},{\"kind\":\"File\",\"layer\":\"application\",\"path\":\"src/products/application/sagas/product.saga.ts\"},{\"kind\":\"File\",\"layer\":\"domain\",\"path\":\"src/products/domain/product-aggregate/events/ProductStatusChanged.ts\"},{\"kind\":\"File\",\"layer\":\"domain\",\"path\":\"src/products/domain/product-aggregate/events/index.ts\"},{\"kind\":\"Package\",\"layer\":null,\"path\":\"@nestjslatam/ddd-lib\"}]}\n\n## Instructions\nJudge the unit against the rule and rubric. Return the JSON object the schema requires. Set pass to false if any file of the unit fails the rubric.\n",
+  "provider": "claude-cli",
+  "recordedAt": "2026-10-10T03:15:57.575Z",
+  "repetition": 0,
+  "requestHash": "ac57b5fc38dba200e550378a3fecf843f0fc6ee1b7d32998ac3ff9c6a8146a89",
+  "resolvedModel": "claude-opus-5-5",
+  "response": "{\"is_error\":false,\"modelUsage\":{\"claude-opus-5-5\":{\"inputTokens\":2,\"outputTokens\":629}},\"result\":\"{\\\"pass\\\":true,\\\"confidence\\\":0.82,\\\"reasoning\\\":\\\"This file is a domain event. ProductStatusChangedEvent extends AbstractDomainEvent and only holds the domain facts: productId and productStatus, plus event metadata. That fits the domain layer.\\\\n\\\\nThe one thing that could look out of place is the static fromJSON factory. It rebuilds the event from a plain record using the base class helpers extractMetadata and extractEventData. It does not touch any persistence, transport, message broker or framework runtime. It is a simple named constructor and a common pattern for domain events in this library, so it is not infrastructure logic.\\\\n\\\\nThe file has no business rules that belong elsewhere, and no persistence or presentation responsibilities. Every responsibility matches the domain layer. Whether the domain is allowed to import '@nestjslatam/ddd-lib' is out of scope here.\\\",\\\"evidence\\\":[\\\"ProductStatusChangedEvent extends AbstractDomainEvent: a domain event class in the domain layer\\\",\\\"Constructor only assigns readonly domain data (productId, productStatus) and passes metadata to super\\\",\\\"static fromJSON(json: Record<string, unknown>) is a simple named constructor that uses AbstractDomainEvent.extractMetadata/extractEventData, with no I/O, persistence or transport calls\\\"],\\\"violations\\\":[]}\",\"structured_output\":{\"confidence\":0.82,\"evidence\":[\"ProductStatusChangedEvent extends AbstractDomainEvent: a domain event class in the domain layer\",\"Constructor only assigns readonly domain data (productId, productStatus) and passes metadata to super\",\"static fromJSON(json: Record<string, unknown>) is a simple named constructor that uses AbstractDomainEvent.extractMetadata/extractEventData, with no I/O, persistence or transport calls\"],\"pass\":true,\"reasoning\":\"This file is a domain event. ProductStatusChangedEvent extends AbstractDomainEvent and only holds the domain facts: productId and productStatus, plus event metadata. That fits the domain layer.\\n\\nThe one thing that could look out of place is the static fromJSON factory. It rebuilds the event from a plain record using the base class helpers extractMetadata and extractEventData. It does not touch any persistence, transport, message broker or framework runtime. It is a simple named constructor and a common pattern for domain events in this library, so it is not infrastructure logic.\\n\\nThe file has no business rules that belong elsewhere, and no persistence or presentation responsibilities. Every responsibility matches the domain layer. Whether the domain is allowed to import '@nestjslatam/ddd-lib' is out of scope here.\",\"violations\":[]}}",
+  "runIndex": 1,
+  "schemaVersion": 2,
+  "unitId": "src/products/domain/product-aggregate/events/ProductStatusChanged.ts",
+  "usage": {
+    "inputTokens": 2968,
+    "outputTokens": 629
+  },
+  "usedOptions": {
+    "effort": "high",
+    "model": "claude-opus-5-5"
+  }
+}

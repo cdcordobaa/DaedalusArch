@@ -1,0 +1,46 @@
+{
+  "attempts": 1,
+  "cliVersion": "2.1.294",
+  "configListingSha256": "47aa04258852fab9a706f3f0c14cee22306d69fbb6fdfbde8c11854bd54997bc",
+  "durationMs": 5206,
+  "effort": "high",
+  "functionId": "FF-N02",
+  "ignoredOptions": [
+    "maxTokens"
+  ],
+  "isolationProbeSha256": "97a2e2d0af1100c13c55e028c1a0c71f069093c3d08705af122aaeb302f1a641",
+  "key": "fd3f0e117203ff773867329c7a3f52f7a39ff57d08bd1b11063fd55413188df5-r0-2",
+  "model": "claude-opus-5-5",
+  "outcome": {
+    "kind": "valid"
+  },
+  "parsedVerdict": {
+    "confidence": 0.95,
+    "evidence": [
+      "src/orders/application/use-cases/deliver-order/deliver-order.command.ts: class DeliverOrderCommand has only a readonly orderId field, which the constructor sets from dto.orderId",
+      "No repository, HTTP, ORM or framework decorators are used, and there is no domain rule logic"
+    ],
+    "pass": true,
+    "reasoning": "The file sits in the application layer. It declares DeliverOrderCommand, a plain command object that copies orderId from DeliverOrderDto. It has no persistence, transport or framework logic and no business rules. Carrying a use-case's input is an application-layer responsibility, so the file fits its declared layer.",
+    "violations": []
+  },
+  "projectId": "nestjslatam__ddd",
+  "prompt": "## Rule\nThe unit's responsibilities match the role of its declared layer.\n\n## Rubric\nPass: Every responsibility in the file belongs to the role and kind of its declared layer, and agrees with any ADR prose given.\nFail: The file carries a responsibility that belongs to a different layer kind, for example persistence, transport or framework logic in a domain file, or business rules in an infrastructure or presentation file.\nEvidence required: Name the file and cite the function, method or statement that carries the misplaced responsibility, and the layer kind it belongs to.\nOut of scope: import direction and layer-dependency rules, which are checked symbolically.\n\n## Layer model\n- domain (kind: domain): src/domain/**, **/domain/**, **/entities/**, **/value-objects/**, **/valueobjects/**; file patterns: **/*.entity.ts, **/*.vo.ts\n- application (kind: application): src/application/**, **/application/**, **/dtos/**, **/queries/**, **/use-cases/**; file patterns: **/*.command.ts, **/*.dto.ts, **/*.query.ts, **/*.service.ts\n- infrastructure (kind: infrastructure): src/infrastructure/**, **/infrastructure/**, **/presentation/**, **/repositories/**; file patterns: **/*.controller.ts, **/*.repository.ts\n\n## Unit\nKind: file\nId: src/orders/application/use-cases/deliver-order/deliver-order.command.ts\nLayer: application\nUnit files:\n- src/orders/application/use-cases/deliver-order/deliver-order.command.ts\n\n## Source\n=====SOURCE-BEGIN src/orders/application/use-cases/deliver-order/deliver-order.command.ts=====\nimport { DeliverOrderDto } from './deliver-order.dto';\n\nexport class DeliverOrderCommand {\n  public readonly orderId: string;\n\n  constructor(dto: DeliverOrderDto) {\n    this.orderId = dto.orderId;\n  }\n}\n\n=====SOURCE-END=====\n\n## Graph excerpt\n{\"edges\":[{\"from\":\"DeliverOrderCommand@src/orders/application/use-cases/deliver-order/deliver-order.command.ts\",\"to\":\"DeliverOrderDto@src/orders/application/use-cases/deliver-order/deliver-order.dto.ts\",\"type\":\"CONSTRUCTOR_INJECTS\"},{\"from\":\"src/orders/application/use-cases/deliver-order/deliver-order.command-handler.ts\",\"to\":\"src/orders/application/use-cases/deliver-order/deliver-order.command.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/orders/application/use-cases/deliver-order/deliver-order.command.ts\",\"to\":\"src/orders/application/use-cases/deliver-order/deliver-order.dto.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/orders/application/use-cases/deliver-order/deliver-order.service.ts\",\"to\":\"src/orders/application/use-cases/deliver-order/deliver-order.command.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/orders/application/use-cases/deliver-order/index.ts\",\"to\":\"src/orders/application/use-cases/deliver-order/deliver-order.command.ts\",\"type\":\"RE_EXPORTS\"}],\"nodes\":[{\"kind\":\"Class\",\"layer\":\"application\",\"name\":\"DeliverOrderCommand\",\"path\":\"src/orders/application/use-cases/deliver-order/deliver-order.command.ts\"},{\"kind\":\"Class\",\"layer\":\"application\",\"name\":\"DeliverOrderDto\",\"path\":\"src/orders/application/use-cases/deliver-order/deliver-order.dto.ts\"},{\"kind\":\"File\",\"layer\":\"application\",\"path\":\"src/orders/application/use-cases/deliver-order/deliver-order.command-handler.ts\"},{\"kind\":\"File\",\"layer\":\"application\",\"path\":\"src/orders/application/use-cases/deliver-order/deliver-order.command.ts\"},{\"kind\":\"File\",\"layer\":\"application\",\"path\":\"src/orders/application/use-cases/deliver-order/deliver-order.dto.ts\"},{\"kind\":\"File\",\"layer\":\"application\",\"path\":\"src/orders/application/use-cases/deliver-order/deliver-order.service.ts\"},{\"kind\":\"File\",\"layer\":\"application\",\"path\":\"src/orders/application/use-cases/deliver-order/index.ts\"}]}\n\n## Instructions\nJudge the unit against the rule and rubric. Return the JSON object the schema requires. Set pass to false if any file of the unit fails the rubric.\n",
+  "provider": "claude-cli",
+  "recordedAt": "2026-10-10T03:14:52.585Z",
+  "repetition": 0,
+  "requestHash": "fd3f0e117203ff773867329c7a3f52f7a39ff57d08bd1b11063fd55413188df5",
+  "resolvedModel": "claude-opus-5-5",
+  "response": "{\"is_error\":false,\"modelUsage\":{\"claude-opus-5-5\":{\"inputTokens\":2,\"outputTokens\":344}},\"result\":\"{\\\"pass\\\":true,\\\"confidence\\\":0.95,\\\"reasoning\\\":\\\"The file sits in the application layer. It declares DeliverOrderCommand, a plain command object that copies orderId from DeliverOrderDto. It has no persistence, transport or framework logic and no business rules. Carrying a use-case's input is an application-layer responsibility, so the file fits its declared layer.\\\",\\\"evidence\\\":[\\\"src/orders/application/use-cases/deliver-order/deliver-order.command.ts: class DeliverOrderCommand has only a readonly orderId field, which the constructor sets from dto.orderId\\\",\\\"No repository, HTTP, ORM or framework decorators are used, and there is no domain rule logic\\\"],\\\"violations\\\":[]}\",\"structured_output\":{\"confidence\":0.95,\"evidence\":[\"src/orders/application/use-cases/deliver-order/deliver-order.command.ts: class DeliverOrderCommand has only a readonly orderId field, which the constructor sets from dto.orderId\",\"No repository, HTTP, ORM or framework decorators are used, and there is no domain rule logic\"],\"pass\":true,\"reasoning\":\"The file sits in the application layer. It declares DeliverOrderCommand, a plain command object that copies orderId from DeliverOrderDto. It has no persistence, transport or framework logic and no business rules. Carrying a use-case's input is an application-layer responsibility, so the file fits its declared layer.\",\"violations\":[]}}",
+  "runIndex": 2,
+  "schemaVersion": 2,
+  "unitId": "src/orders/application/use-cases/deliver-order/deliver-order.command.ts",
+  "usage": {
+    "inputTokens": 3007,
+    "outputTokens": 344
+  },
+  "usedOptions": {
+    "effort": "high",
+    "model": "claude-opus-5-5"
+  }
+}
