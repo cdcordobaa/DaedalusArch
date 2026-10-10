@@ -1,0 +1,473 @@
+{
+  "status": "data only; no pair has been seeded, built, run or evaluated (ADR-027 item 5)",
+  "source": "Docs/DiagnosticRuns/e7-candidate-research-2026-10-09.md section 4",
+  "method": "local clone under ../daedalus-corpus (fetch-corpus); beforeSha = first parent; touchedFiles = git diff-tree -r -M --name-status beforeSha afterSha",
+  "pairs": [
+    {
+      "projectId": "raouf-b-dev__ecommerce-store-api",
+      "repo": "raouf-b-dev/ecommerce-store-api",
+      "afterSha": "acda9e0a91ff74f82d5648508c21bc3ec2c3d3ce",
+      "beforeSha": "987bad7a6f3d61be064477313a006d0fbfd2fabb",
+      "isMerge": false,
+      "commitDate": "2026-04-11T22:15:45+01:00",
+      "subject": "ES-107: Refactor ShippingAddressResolver and related tests: Moved ShippingAddressResolver to the application layer, updated imports across the codebase, and added comprehensive unit tests to ensure correct functionality for resolving shipping addresses from DTOs and customer defaults.",
+      "researchStrength": "strong",
+      "researchNote": "domain service moved to application",
+      "reachableFromPinned": true,
+      "onFirstParentChain": false,
+      "touchedFiles": [
+        {
+          "status": "R",
+          "similarity": 77,
+          "from": "src/modules/orders/core/domain/services/shipping-address-resolver.spec.ts",
+          "path": "src/modules/orders/core/application/services/shipping-address-resolver.spec.ts"
+        },
+        {
+          "status": "R",
+          "similarity": 64,
+          "from": "src/modules/orders/core/domain/services/shipping-address-resolver.ts",
+          "path": "src/modules/orders/core/application/services/shipping-address-resolver.ts"
+        },
+        {
+          "status": "M",
+          "path": "src/modules/orders/core/application/usecases/validate-checkout/validate-checkout.usecase.spec.ts"
+        },
+        {
+          "status": "M",
+          "path": "src/modules/orders/core/application/usecases/validate-checkout/validate-checkout.usecase.ts"
+        },
+        {
+          "status": "M",
+          "path": "src/modules/orders/core/domain/services/index.ts"
+        },
+        {
+          "status": "M",
+          "path": "src/modules/orders/orders.module.ts"
+        }
+      ]
+    },
+    {
+      "projectId": "raouf-b-dev__ecommerce-store-api",
+      "repo": "raouf-b-dev/ecommerce-store-api",
+      "afterSha": "9c2429c5954f9fd83d1783b35f1ce10029b133be",
+      "beforeSha": "1e44098104c47cc46904fde565485fb4968784f2",
+      "isMerge": true,
+      "commitDate": "2026-01-14T21:21:05+01:00",
+      "subject": "Merge pull request #65 from raouf-b-dev/feature/ES-66-decouple-cross-module-dependencies-in-orders",
+      "researchStrength": "strong",
+      "researchNote": "cross-module dependency replaced by a port (merge; first parent)",
+      "reachableFromPinned": true,
+      "onFirstParentChain": false,
+      "touchedFiles": [
+        {
+          "status": "M",
+          "path": "ARCHITECTURE.md"
+        },
+        {
+          "status": "M",
+          "path": "README.md"
+        },
+        {
+          "status": "A",
+          "path": "src/modules/carts/application/ports/inventory.gateway.ts"
+        },
+        {
+          "status": "M",
+          "path": "src/modules/carts/application/usecases/add-cart-item/add-cart-item.usecase.spec.ts"
+        },
+        {
+          "status": "M",
+          "path": "src/modules/carts/application/usecases/add-cart-item/add-cart-item.usecase.ts"
+        },
+        {
+          "status": "M",
+          "path": "src/modules/carts/carts.module.ts"
+        },
+        {
+          "status": "M",
+          "path": "src/modules/carts/carts.token.ts"
+        },
+        {
+          "status": "A",
+          "path": "src/modules/carts/infrastructure/adapters/module-inventory.gateway.ts"
+        },
+        {
+          "status": "A",
+          "path": "src/modules/orders/application/ports/cart.gateway.ts"
+        },
+        {
+          "status": "A",
+          "path": "src/modules/orders/application/ports/customer.gateway.ts"
+        },
+        {
+          "status": "A",
+          "path": "src/modules/orders/application/usecases/create-order-from-cart/create-order-from-cart.usecase.spec.ts"
+        },
+        {
+          "status": "M",
+          "path": "src/modules/orders/application/usecases/create-order-from-cart/create-order-from-cart.usecase.ts"
+        },
+        {
+          "status": "M",
+          "path": "src/modules/orders/application/usecases/validate-checkout/validate-checkout.usecase.spec.ts"
+        },
+        {
+          "status": "M",
+          "path": "src/modules/orders/application/usecases/validate-checkout/validate-checkout.usecase.ts"
+        },
+        {
+          "status": "A",
+          "path": "src/modules/orders/infrastructure/adapters/module-cart.gateway.ts"
+        },
+        {
+          "status": "A",
+          "path": "src/modules/orders/infrastructure/adapters/module-customer.gateway.ts"
+        },
+        {
+          "status": "M",
+          "path": "src/modules/orders/order.token.ts"
+        },
+        {
+          "status": "M",
+          "path": "src/modules/orders/orders.module.ts"
+        }
+      ]
+    },
+    {
+      "projectId": "raouf-b-dev__ecommerce-store-api",
+      "repo": "raouf-b-dev/ecommerce-store-api",
+      "afterSha": "f3333d1ca411103a794b6caa9441686260a3c059",
+      "beforeSha": "0496d2401f637546a19c6ee58ccc2976844770b8",
+      "isMerge": true,
+      "commitDate": "2026-03-01T19:52:38+01:00",
+      "subject": "Merge pull request #72 from raouf-b-dev/feature/ES-102-isolate-bounded-contexts-with-gateway-adapters",
+      "researchStrength": "strong",
+      "researchNote": "bounded contexts isolated with gateway adapters (merge; first parent)",
+      "reachableFromPinned": true,
+      "onFirstParentChain": false,
+      "touchedFiles": [
+        {
+          "status": "M",
+          "path": "package-lock.json"
+        },
+        {
+          "status": "M",
+          "path": "package.json"
+        },
+        {
+          "status": "M",
+          "path": "src/modules/auth/auth.module.ts"
+        },
+        {
+          "status": "M",
+          "path": "src/modules/auth/auth.tokens.ts"
+        },
+        {
+          "status": "A",
+          "path": "src/modules/auth/core/application/ports/customer.gateway.ts"
+        },
+        {
+          "status": "M",
+          "path": "src/modules/auth/core/application/usecases/register-user/register-user.usecase.spec.ts"
+        },
+        {
+          "status": "M",
+          "path": "src/modules/auth/core/application/usecases/register-user/register-user.usecase.ts"
+        },
+        {
+          "status": "A",
+          "path": "src/modules/auth/secondary-adapters/adapters/module-customer.gateway.ts"
+        },
+        {
+          "status": "M",
+          "path": "src/modules/carts/carts.module.ts"
+        },
+        {
+          "status": "M",
+          "path": "src/modules/carts/carts.token.ts"
+        },
+        {
+          "status": "M",
+          "path": "src/modules/carts/core/application/ports/inventory.gateway.ts"
+        },
+        {
+          "status": "A",
+          "path": "src/modules/carts/core/application/ports/product.gateway.ts"
+        },
+        {
+          "status": "M",
+          "path": "src/modules/carts/core/application/usecases/add-cart-item/add-cart-item.usecase.spec.ts"
+        },
+        {
+          "status": "M",
+          "path": "src/modules/carts/core/application/usecases/add-cart-item/add-cart-item.usecase.ts"
+        },
+        {
+          "status": "M",
+          "path": "src/modules/carts/core/application/usecases/update-cart-item/update-cart-item.usecase.spec.ts"
+        },
+        {
+          "status": "M",
+          "path": "src/modules/carts/core/application/usecases/update-cart-item/update-cart-item.usecase.ts"
+        },
+        {
+          "status": "M",
+          "path": "src/modules/carts/secondary-adapters/adapters/module-inventory.gateway.ts"
+        },
+        {
+          "status": "A",
+          "path": "src/modules/carts/secondary-adapters/adapters/module-product.gateway.ts"
+        },
+        {
+          "status": "A",
+          "path": "src/modules/orders/core/application/ports/inventory-reservation.gateway.ts"
+        },
+        {
+          "status": "A",
+          "path": "src/modules/orders/core/application/ports/payment.gateway.ts"
+        },
+        {
+          "status": "M",
+          "path": "src/modules/orders/core/application/usecases/deliver-order/deliver-order.usecase.spec.ts"
+        },
+        {
+          "status": "M",
+          "path": "src/modules/orders/core/application/usecases/deliver-order/deliver-order.usecase.ts"
+        },
+        {
+          "status": "M",
+          "path": "src/modules/orders/core/application/usecases/release-order-stock/release-order-stock.usecase.ts"
+        },
+        {
+          "status": "M",
+          "path": "src/modules/orders/order.token.ts"
+        },
+        {
+          "status": "M",
+          "path": "src/modules/orders/orders.module.ts"
+        },
+        {
+          "status": "A",
+          "path": "src/modules/orders/secondary-adapters/adapters/module-inventory-reservation.gateway.ts"
+        },
+        {
+          "status": "A",
+          "path": "src/modules/orders/secondary-adapters/adapters/module-payment.gateway.ts"
+        }
+      ]
+    },
+    {
+      "projectId": "raouf-b-dev__ecommerce-store-api",
+      "repo": "raouf-b-dev/ecommerce-store-api",
+      "afterSha": "bb0e295add00c59f896f18e65a6b0ff0ace23119",
+      "beforeSha": "f0e4db91b4b644fe75546488edd692ea6c1694f9",
+      "isMerge": false,
+      "commitDate": "2026-05-15T16:41:00+01:00",
+      "subject": "ES-131: refactor(arch): harden DDD boundaries and hexagonal isolation",
+      "researchStrength": "medium",
+      "researchNote": "DDD boundaries and hexagonal isolation hardened",
+      "reachableFromPinned": true,
+      "onFirstParentChain": false,
+      "touchedFiles": [
+        {
+          "status": "M",
+          "path": "src/modules/carts/core/domain/repositories/cart.repository.ts"
+        },
+        {
+          "status": "M",
+          "path": "src/modules/carts/secondary-adapters/repositories/cached-cart-repository/cached.cart-repository.ts"
+        },
+        {
+          "status": "M",
+          "path": "src/modules/carts/secondary-adapters/repositories/postgres-cart-repository/postgres.cart-repository.ts"
+        },
+        {
+          "status": "M",
+          "path": "src/modules/carts/testing/mocks/cart-repository.mock.ts"
+        },
+        {
+          "status": "M",
+          "path": "src/modules/inventory/core/domain/repositories/inventory.repository.ts"
+        },
+        {
+          "status": "M",
+          "path": "src/modules/inventory/core/domain/repositories/reservation.repository.ts"
+        },
+        {
+          "status": "M",
+          "path": "src/modules/inventory/secondary-adapters/repositories/cached-inventory-repository/cached-inventory-repository.ts"
+        },
+        {
+          "status": "M",
+          "path": "src/modules/inventory/secondary-adapters/repositories/postgres-inventory-repository/postgres-inventory-repository.spec.ts"
+        },
+        {
+          "status": "M",
+          "path": "src/modules/inventory/secondary-adapters/repositories/postgres-inventory-repository/postgres-inventory-repository.ts"
+        },
+        {
+          "status": "M",
+          "path": "src/modules/inventory/testing/factories/inventory-dto.test.factory.ts"
+        },
+        {
+          "status": "M",
+          "path": "src/modules/inventory/testing/mocks/inventory-repository.mock.ts"
+        },
+        {
+          "status": "M",
+          "path": "src/modules/inventory/testing/mocks/reservation-repository.mock.factory.ts"
+        },
+        {
+          "status": "D",
+          "path": "src/modules/orders/core/domain/factories/order.factory.spec.ts"
+        },
+        {
+          "status": "M",
+          "path": "src/modules/orders/core/domain/factories/order.factory.ts"
+        },
+        {
+          "status": "M",
+          "path": "src/modules/orders/core/domain/repositories/order-repository.ts"
+        },
+        {
+          "status": "M",
+          "path": "src/modules/orders/core/domain/services/payment-method-policy.ts"
+        },
+        {
+          "status": "M",
+          "path": "src/modules/orders/secondary-adapters/repositories/cached-order-repository/cached.order-repository.spec.ts"
+        },
+        {
+          "status": "M",
+          "path": "src/modules/orders/secondary-adapters/repositories/cached-order-repository/cached.order-repository.ts"
+        },
+        {
+          "status": "M",
+          "path": "src/modules/orders/secondary-adapters/repositories/postgres-order-repository/postgres.order-repository.ts"
+        },
+        {
+          "status": "M",
+          "path": "src/modules/orders/testing/mocks/order-repository.mock.ts"
+        },
+        {
+          "status": "M",
+          "path": "src/modules/products/core/domain/repositories/product-repository.ts"
+        },
+        {
+          "status": "M",
+          "path": "src/modules/products/secondary-adapters/repositories/cached-product-repository/cached.product-repository.spec.ts"
+        },
+        {
+          "status": "M",
+          "path": "src/modules/products/secondary-adapters/repositories/cached-product-repository/cached.product-repository.ts"
+        },
+        {
+          "status": "M",
+          "path": "src/modules/products/secondary-adapters/repositories/postgres-product-repository/postgres.product-repository.spec.ts"
+        },
+        {
+          "status": "M",
+          "path": "src/modules/products/secondary-adapters/repositories/postgres-product-repository/postgres.product-repository.ts"
+        },
+        {
+          "status": "D",
+          "path": "src/modules/products/testing/factories/create-product-dto.factory.ts"
+        },
+        {
+          "status": "A",
+          "path": "src/modules/products/testing/factories/create-product-input.factory.ts"
+        },
+        {
+          "status": "R",
+          "similarity": 63,
+          "from": "src/modules/products/testing/factories/update-product-dto.factory.ts",
+          "path": "src/modules/products/testing/factories/update-product-input.factory.ts"
+        },
+        {
+          "status": "M",
+          "path": "src/modules/products/testing/mocks/product-repository.mock.ts"
+        }
+      ]
+    },
+    {
+      "projectId": "zhuravlevma__typescript-ddd-architecture",
+      "repo": "zhuravlevma/typescript-ddd-architecture",
+      "afterSha": "100deb60d81f1cfa55fece8500ba3bebc28bae3d",
+      "beforeSha": "39b5a39f469e0a46ec186f9559f4746ae7e24bd0",
+      "isMerge": false,
+      "commitDate": "2023-05-02T12:56:56+03:00",
+      "subject": "fix: move typeorm to infra",
+      "researchStrength": "weak",
+      "researchNote": "wiring only: typeorm moved to infra module",
+      "reachableFromPinned": true,
+      "onFirstParentChain": true,
+      "touchedFiles": [
+        {
+          "status": "M",
+          "path": "src/app.module.ts"
+        },
+        {
+          "status": "M",
+          "path": "src/infrastructure/infrastructure.module.ts"
+        }
+      ]
+    }
+  ],
+  "notMined": [
+    {
+      "repo": "fairnesscoop/permacoop",
+      "sha": "1056d6d8a622d484199fb7a9f1b37223cd058dbd",
+      "reason": "project not admitted to E7"
+    },
+    {
+      "repo": "fairnesscoop/permacoop",
+      "sha": "15f753c8e9e5ce5ad58f5f73ef0128b01b8f4b7b",
+      "reason": "project not admitted to E7"
+    },
+    {
+      "repo": "fairnesscoop/permacoop",
+      "sha": "244bf679a1d19e63932a067600b28d63df7d8a3b",
+      "reason": "project not admitted to E7"
+    },
+    {
+      "repo": "nmrusso/node-experience",
+      "sha": "ddb293f391ef381c508c5f02275d6ff396ab1f3e",
+      "reason": "project not admitted to E7"
+    },
+    {
+      "repo": "nmrusso/node-experience",
+      "sha": "4ff72b96f53662b0e109f600a5eead550a2fe2bd",
+      "reason": "project not admitted to E7"
+    },
+    {
+      "repo": "AlbertHernandez/nestjs-hexagonal-architecture-example",
+      "sha": "4911cbfa5f7184d6630a874b8f77ad5e117a5c54",
+      "reason": "project not admitted to E7"
+    },
+    {
+      "repo": "AlbertHernandez/nestjs-hexagonal-architecture-example",
+      "sha": "4e1ab4d7ea0277272bd007851ec63f6187cb2f43",
+      "reason": "project not admitted to E7"
+    },
+    {
+      "repo": "pvarentsov/typescript-clean-architecture",
+      "sha": "15efa381d694105a6458fe94d0a7079797c6bab8",
+      "reason": "project not admitted to E7"
+    },
+    {
+      "repo": "pvarentsov/typescript-clean-architecture",
+      "sha": "574ed3425a7accf7d561ae0164ba6ea61fe80d9e",
+      "reason": "project not admitted to E7"
+    },
+    {
+      "repo": "diego3g/umbriel",
+      "sha": "8f9535a2601ab49dd9f70f902dfc1c29ce3e8496",
+      "reason": "project not admitted to E7"
+    },
+    {
+      "repo": "rmanguinho/clean-ts-api",
+      "sha": "27c56c6395bae5702578dc8fab206f2c6a9e912d",
+      "reason": "project not admitted to E7"
+    }
+  ]
+}
