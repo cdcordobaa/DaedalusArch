@@ -1292,3 +1292,11 @@ Plan checkboxes ticked. Auto-approved under standing approval; no blocking or ma
 **Context**: CONSTRUCTION — Build and Test, labelling preparation. Worktree ../DaedalusArch-wt-lab, branch v1.2e-labelling-prep.
 
 ---
+
+## Build and Test — live labelling (runbook 6.2–6.7, prereg v13 → v14)
+**Timestamp**: 2026-10-10T17:50:00Z
+**User Input**: "Run the registered live labelling (author-approved 2026-10-10) with the agy route, record mode, then the downstream steps that need no author input; prepare but do not fill the 30-item author audit; merge by PR."
+**AI Response**: "Pre-flight passed (agy 1.3.2, auto-update off, no home rule entries, deny rules in effect, MCP and plugins none); --check-prereg v13 ok on all 8 plans. Audit view drawn label-blind before any call (30 items, seed 6105; allocation sealed in ../daedalus-sealed). Labelling: 66 items, 139 cassette entries, 142 invocations (3 retries, 7 re-asks) of 300; no quota pause; replay byte-identical. Run-vs-run kappa 0.774 [0.617, 0.913], n 64: taxonomy as registered. FP-labelled precision 1.0 (67 TP, 0 FP, unchanged from strict). Baseline precision v2 0.328 [0.132, 0.609], v1 0.264 [0.110, 0.510]. Runbook 6.5 bump: prereg v14 (P-LU). Panel-vs-audit rows await the author's audit/v1.2e-labels.json."
+**Context**: CONSTRUCTION — Build and Test, labelling. Worktree ../DaedalusArch-wt-label, branch v1.2e-exp-labelling.
+
+---

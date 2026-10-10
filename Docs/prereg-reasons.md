@@ -130,7 +130,7 @@ All other 69 hashes are unchanged.
 
 ## P-LU — prereg v14 (runbook 6.5, labeller token figures, 2026-10-10)
 
-Previous: v13, commit `11c8f09` line. The live labelling (runbook 6.4) has run: 66 items, 142 agy invocations, labels in `results/labels/labels.json`. Runbook 6.5 registers the measured token figures as a bump.
+Previous: v13, commit `32c2a66`. The live labelling (runbook 6.4) has run: 66 items, 142 agy invocations, labels in `results/labels/labels.json`. Runbook 6.5 registers the measured token figures as a bump.
 
 | Artefact | v13 → v14 sha256 | Change and reason | Post-hoc risk |
 |---|---|---|---|
