@@ -37,6 +37,30 @@ export interface CorpusCandidate {
   readonly isFork?: boolean;
   readonly treeTruncated?: boolean;
   readonly queries?: readonly string[];
+  /** E7-x round only (`Docs/corpus-criteria.md` §7.1): recorded, never satisfies C5. */
+  readonly hasPnpmLock?: boolean;
+  readonly hasYarnLock?: boolean;
+  /** E7-x round only (§7.3): set for a candidate that passes C1–C6 of the round. */
+  readonly attributes?: CandidateAttributes;
+}
+
+/** `Docs/corpus-criteria.md` §7.3 (ADR-027). P = E + H + F + R; `A` is recorded only. */
+export interface CandidateAttributes {
+  readonly E: 0 | 1;
+  readonly H: 0 | 1;
+  readonly F: 0 | 1;
+  readonly R: 0 | 1;
+  readonly P: number;
+  readonly A: readonly string[];
+  readonly evidence: {
+    readonly enforcement: readonly string[];
+    readonly readmeHexagonal: boolean;
+    /** First matching first-parent commit touching `src/` (newest first), if any. */
+    readonly fixCommit: { readonly sha: string; readonly subject: string } | null;
+    readonly commits: number;
+    readonly contributors: number;
+    readonly hasTests: boolean;
+  };
 }
 
 export interface CorpusOverlay { readonly path: string; readonly patchFile: string; readonly sha256: string }
@@ -75,6 +99,28 @@ export interface CorpusCriteria {
   readonly addMin: number;
   readonly addMax: number;
   readonly seed: number;
+  /** Extension E7-x (§7, ADR-027); absent in a round-1-only block. */
+  readonly extension?: CorpusExtension;
+}
+
+export interface CorpusExtension {
+  readonly id: string;
+  readonly registeredOn: string;
+  readonly minFiles: number;
+  readonly maxFiles: number;
+  readonly addMin: number;
+  readonly addMax: number;
+  readonly seed: number;
+  readonly ownerCap: number;
+  readonly hexagonalQueries: readonly string[];
+  readonly hexagonalReadme: string;
+  readonly enforcementFiles: readonly string[];
+  readonly enforcementPackages: readonly string[];
+  readonly fixMessage: string;
+  readonly fixPathPrefix: string;
+  readonly realMinContributors: number;
+  readonly realMinCommits: number;
+  readonly aiFiles: readonly string[];
 }
 
 export const sha256Hex = (data: string | Buffer): string => createHash('sha256').update(data).digest('hex');
@@ -165,5 +211,38 @@ export function parseCriteria(doc: string): CorpusCriteria {
     preferLayered: raw.preferLayered, addMin: num('addMin'), addMax: num('addMax'), seed: num('seed'),
   };
   if (c.minFiles > c.maxFiles || c.addMin > c.addMax || c.addMin < 1) throw new Error(`${CRITERIA_DOC}: inconsistent bounds`);
-  return c;
+  if (raw.extension === undefined) return c;
+  return { ...c, extension: parseExtension(raw.extension) };
+}
+
+function parseExtension(v: unknown): CorpusExtension {
+  if (typeof v !== 'object' || v === null || Array.isArray(v)) throw new Error(`${CRITERIA_DOC}: extension must be a map`);
+  const raw = v as Record<string, unknown>;
+  const num = (k: string): number => {
+    const x = raw[k];
+    if (typeof x !== 'number' || !Number.isInteger(x) || x < 0) throw new Error(`${CRITERIA_DOC}: extension.${k} must be a non-negative integer`);
+    return x;
+  };
+  const str = (k: string): string => {
+    const x = raw[k];
+    // `registeredOn` may be read by YAML as a date-like string; it is always quoted or plain text here.
+    if (typeof x !== 'string' || x.length === 0) throw new Error(`${CRITERIA_DOC}: extension.${k} must be a non-empty string`);
+    return x;
+  };
+  const list = (k: string): string[] => {
+    const x = raw[k];
+    if (!Array.isArray(x) || x.length === 0 || !x.every((y) => typeof y === 'string')) throw new Error(`${CRITERIA_DOC}: extension.${k} must be a non-empty string list`);
+    return x;
+  };
+  const e: CorpusExtension = {
+    id: str('id'), registeredOn: str('registeredOn'), minFiles: num('minFiles'), maxFiles: num('maxFiles'), addMin: num('addMin'),
+    addMax: num('addMax'), seed: num('seed'), ownerCap: num('ownerCap'), hexagonalQueries: list('hexagonalQueries'),
+    hexagonalReadme: str('hexagonalReadme'), enforcementFiles: list('enforcementFiles'), enforcementPackages: list('enforcementPackages'),
+    fixMessage: str('fixMessage'), fixPathPrefix: str('fixPathPrefix'), realMinContributors: num('realMinContributors'),
+    realMinCommits: num('realMinCommits'), aiFiles: list('aiFiles'),
+  };
+  if (e.minFiles > e.maxFiles || e.addMin > e.addMax || e.addMin < 1 || e.ownerCap < 1) throw new Error(`${CRITERIA_DOC}: inconsistent extension bounds`);
+  new RegExp(e.hexagonalReadme, 'i');
+  new RegExp(e.fixMessage, 'i');
+  return e;
 }
