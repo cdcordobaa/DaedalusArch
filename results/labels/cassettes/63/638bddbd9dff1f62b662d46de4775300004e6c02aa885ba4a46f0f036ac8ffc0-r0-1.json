@@ -1,0 +1,35 @@
+{
+  "attempts": 1,
+  "cliVersion": "1.3.2",
+  "configListingSha256": "b8cce56d63afd9cebbf745ed20c888d9ab0007207a513029027cc10be9494345",
+  "durationMs": 17358,
+  "effort": null,
+  "functionId": "label:violation:c2ccb9e36ba02eb43249d7e9889cf36ff34a392a03785fc9bd0298213c63c7c9",
+  "ignoredOptions": [
+    "temperature",
+    "maxTokens"
+  ],
+  "isolationProbeSha256": "e3e335eb64e5ae507ca6484a4f75d0443b1afef89d42854818fa51bd02d68423",
+  "key": "638bddbd9dff1f62b662d46de4775300004e6c02aa885ba4a46f0f036ac8ffc0-r0-1",
+  "model": "gemini-3.1-pro-high",
+  "outcome": {
+    "kind": "valid"
+  },
+  "parsedVerdict": null,
+  "prompt": "Decide whether the finding below is a real violation of the rule as described.\n- TP: the code violates the rule at this location.\n- FP: the code does not violate the rule; give the root cause of the false finding.\n- unseeded-TP: the code violates the rule, but the violation is part of the original design rather than a\n  deliberate change; give the root cause (use RC-GENUINE-UNSEEDED when the violation is simply real).\n\n## Item\n## Violation\n  Function: FF-CV05\n  Description: test-file-pairing: Detects source files without corresponding test files\n  File: src/common/entity/custom-base.entity.ts\n  Line: n/a\n  Target: n/a\n  \n  ## Source\n      1 | import {\n      2 |   BaseEntity,\n      3 |   CreateDateColumn,\n      4 |   PrimaryGeneratedColumn,\n      5 |   UpdateDateColumn\n      6 | } from 'typeorm';\n      7 | \n      8 | /**\n      9 |  * custom base entity\n     10 |  */\n     11 | export abstract class CustomBaseEntity extends BaseEntity {\n     12 |   @PrimaryGeneratedColumn()\n     13 |   id: number;\n     14 | \n     15 |   @CreateDateColumn({\n     16 |     type: 'timestamp',\n     17 |     default: () => 'CURRENT_TIMESTAMP'\n     18 |   })\n     19 |   createdAt: Date;\n     20 | \n     21 |   @UpdateDateColumn({\n     22 |     type: 'timestamp',\n     23 |     default: () => 'CURRENT_TIMESTAMP',\n     24 |     onUpdate: 'CURRENT_TIMESTAMP'\n     25 |   })\n     26 |   updatedAt: Date;\n     27 | }\n     28 | \n\n## Label options\n1. unseeded-TP\n  2. TP\n  3. FP\n\n## Root causes\n1. RC-STYLE-INAPPLICABLE\n  2. RC-SPEC-PARAM\n  3. RC-OTHER\n  4. RC-DYNAMIC-IMPORT\n  5. RC-EXTRACT-BARREL\n  6. RC-GENUINE-UNSEEDED\n  7. RC-TEST-CODE\n  8. RC-TYPE-ONLY\n  9. RC-EXTRACT-ALIAS\n  10. RC-GENERATED-CODE\n  11. RC-LAYER-MAP\n  12. RC-TEMPLATE-OVERAPPROX\n\nAnswer with one JSON object: {\"option\": <number of the label option>, \"rootCause\": <number of the root cause or null>, \"note\": \"<text, required with RC-OTHER>\", \"rationale\": \"<one or two sentences citing the code>\"}.",
+  "provider": "agy",
+  "recordedAt": "2026-10-10T17:22:59.890Z",
+  "repetition": 0,
+  "requestHash": "638bddbd9dff1f62b662d46de4775300004e6c02aa885ba4a46f0f036ac8ffc0",
+  "resolvedModel": "gemini-3.1-pro-high",
+  "response": "{\"note\":\"\",\"option\":1,\"rationale\":\"The file is a source file defining an abstract base entity but lacks a corresponding test file. This genuinely violates the strict test-file-pairing rule, though the omission is likely a pre-existing design choice since such boilerplate entities often lack dedicated tests.\",\"rootCause\":6}",
+  "runIndex": 1,
+  "schemaVersion": 2,
+  "usage": {
+    "inputTokens": 13842,
+    "outputTokens": 1554
+  },
+  "usedOptions": {
+    "model": "gemini-3.1-pro-high"
+  }
+}

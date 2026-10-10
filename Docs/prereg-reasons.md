@@ -149,13 +149,12 @@ Previous: v14, commit `eeb55bb`. The Fable review of PR #47 returned MERGE WITH 
 | `corpus/frozen-instrument.json` | `85ecdbfe…` → `5b6073b5…` | `scoringFreeze.neuralAggregation.variants.proportional` gains `definedFor: own-selection`, `withinLayerSampling: hash-order-as-srs`, `variance: not-reported`, `companionColumn: confidence-free-share`. Re-exported; no other key changes. | Low; it records the §12.2 facts. |
 
 All other 68 hashes are unchanged.
+## P-LU — prereg v16 (runbook 6.5, labeller token figures, 2026-10-10)
 
-## P-JW — prereg v16 (ADR-028 judge-weighted sensitivity variant, 2026-10-10)
+Previous: v15 (ADR-028 Fable review fixes). The live labelling (runbook 6.4) has run: 66 items, 142 agy invocations, labels in `results/labels/labels.json`. Runbook 6.5 registers the measured token figures as a bump.
 
-Previous: v15, commit `df6f6ae`. Author decision 2026-10-10: "Keep 8%, add weighted variant". This bump comes after the v15 E7 re-computation (`58ecd3b`), after the code (`3daf1cc`) and the plan text (`543ebb6`), and **before any `e1-grid` run** (no E1 RunRecord exists). The registered spec weights (W_n = 0.08) stay the primary analysis; no spec weight changes. `judge-weighted-v1` is a pre-declared sensitivity analysis: **E1's reading is pre-registered**; **E7's reading is post hoc**.
-
-| Artefact | v15 → v16 sha256 | Change and reason | Post-hoc risk |
+| Artefact | v13 → v14 sha256 | Change and reason | Post-hoc risk |
 |---|---|---|---|
-| `Docs/analysis-plan.md` | `d746ab52…` → `6eb7ed5c…` | New §12.5: `judge-weighted-v1`. The executed full-mode effective weights are rescaled so the judge dimensions together weigh 2/7 and the symbolic dimensions 5/7, each group proportionally (Σ = 1). Thresholds, AVRs, the AHS formula and the verdict source are unchanged. It is computed under the registered, proportional and any-fail aggregations as a pure function of the stored reports (no re-run, no LLM call), with bound −2/7 and the reported columns. **Rationale**: the author's stated judge role is to diagnose, explain and be able to move verdicts, and the W_n = 0.08 bound makes the last unreachable. It is a sensitivity analysis and never the primary. §10 B9: wording rules (iv) (a verdict moved by the reweighting is never presented as a judge effect; the judge effect is `judge_mattered_jw` / `delta_judge_jw` in [−2/7, 0]) and (v) (E7 POST HOC). Header note, section list, §11 row. | **E7 reading post hoc**: the variant was chosen after the E7 readings showed that W_n = 0.08 leaves the judge no verdict to move. Mitigation: the registered weights stay primary; the variant has one parameter, 2/7, fixed by the dimension count (2 of 7) and not by any E7 value; it is registered before E1. |
+| `Docs/labeller-route.md` | v15 `72c557ca…` → v16 `18d747c4…` | §6 gains the measured input tokens per call from `llm-label --usage` (median 14 024, max 124 846) and the invocation count (142, 3 retries). | None. Descriptive capacity figures only; no estimand, seed, size, prompt or route changes. |
 
-All other 69 hashes are unchanged. Not registered artefacts, named for completeness: `scripts/compare-aggregations.ts` and its tests (`3daf1cc`); the ADR-028 implementation note and the runbook step 4 sentence (`543ebb6`). With the default options every existing column of `ahs_by_aggregation.csv` is unchanged; the `judge-weighted-v1` columns are appended.
+All other hashes are unchanged.

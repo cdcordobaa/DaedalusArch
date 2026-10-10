@@ -1,0 +1,35 @@
+{
+  "attempts": 1,
+  "cliVersion": "1.3.2",
+  "configListingSha256": "b8cce56d63afd9cebbf745ed20c888d9ab0007207a513029027cc10be9494345",
+  "durationMs": 15336,
+  "effort": null,
+  "functionId": "label:violation:d1de5181b9f139c255350420571343115b295612fec42870a940b3c7cd361499",
+  "ignoredOptions": [
+    "temperature",
+    "maxTokens"
+  ],
+  "isolationProbeSha256": "e3e335eb64e5ae507ca6484a4f75d0443b1afef89d42854818fa51bd02d68423",
+  "key": "af110add64d29779fc7ee932b29c09e223482235071395cdd3398b52feff7410-r0-1",
+  "model": "gemini-3.1-pro-high",
+  "outcome": {
+    "kind": "valid"
+  },
+  "parsedVerdict": null,
+  "prompt": "Decide whether the finding below is a real violation of the rule as described.\n- TP: the code violates the rule at this location.\n- FP: the code does not violate the rule; give the root cause of the false finding.\n- unseeded-TP: the code violates the rule, but the violation is part of the original design rather than a\n  deliberate change; give the root cause (use RC-GENUINE-UNSEEDED when the violation is simply real).\n\n## Item\n## Violation\n  Function: FF-CV05\n  Description: test-file-pairing: Detects source files without corresponding test files\n  File: src/files/infrastructure/uploader/s3/files.module.ts\n  Line: n/a\n  Target: n/a\n  \n  ## Source\n      1 | import {\n      2 |   HttpStatus,\n      3 |   Module,\n      4 |   UnprocessableEntityException,\n      5 | } from '@nestjs/common';\n      6 | import { FilesS3Controller } from './files.controller';\n      7 | import { MulterModule } from '@nestjs/platform-express';\n      8 | import { ConfigModule, ConfigService } from '@nestjs/config';\n      9 | import { randomStringGenerator } from '@nestjs/common/utils/random-string-generator.util';\n     10 | import { S3Client } from '@aws-sdk/client-s3';\n     11 | import multerS3 from 'multer-s3';\n     12 | \n     13 | import { FilesS3Service } from './files.service';\n     14 | \n     15 | import { DocumentFilePersistenceModule } from '../../persistence/document/document-persistence.module';\n     16 | import { RelationalFilePersistenceModule } from '../../persistence/relational/relational-persistence.module';\n     17 | import { AllConfigType } from '../../../../config/config.type';\n     18 | import { DatabaseConfig } from '../../../../database/config/database-config.type';\n     19 | import databaseConfig from '../../../../database/config/database.config';\n     20 | \n     21 | // <database-block>\n     22 | const infrastructurePersistenceModule = (databaseConfig() as DatabaseConfig)\n     23 |   .isDocumentDatabase\n     24 |   ? DocumentFilePersistenceModule\n     25 |   : RelationalFilePersistenceModule;\n     26 | // </database-block>\n     27 | \n     28 | @Module({\n     29 |   imports: [\n     30 |     infrastructurePersistenceModule,\n     31 |     MulterModule.registerAsync({\n\n## Label options\n1. unseeded-TP\n  2. TP\n  3. FP\n\n## Root causes\n1. RC-GENUINE-UNSEEDED\n  2. RC-STYLE-INAPPLICABLE\n  3. RC-SPEC-PARAM\n  4. RC-EXTRACT-BARREL\n  5. RC-GENERATED-CODE\n  6. RC-EXTRACT-ALIAS\n  7. RC-LAYER-MAP\n  8. RC-TYPE-ONLY\n  9. RC-DYNAMIC-IMPORT\n  10. RC-TEMPLATE-OVERAPPROX\n  11. RC-OTHER\n  12. RC-TEST-CODE\n\nAnswer with one JSON object: {\"option\": <number of the label option>, \"rootCause\": <number of the root cause or null>, \"note\": \"<text, required with RC-OTHER>\", \"rationale\": \"<one or two sentences citing the code>\"}.",
+  "provider": "agy",
+  "recordedAt": "2026-10-10T15:56:36.892Z",
+  "repetition": 0,
+  "requestHash": "af110add64d29779fc7ee932b29c09e223482235071395cdd3398b52feff7410",
+  "resolvedModel": "gemini-3.1-pro-high",
+  "response": "{\"note\":\"\",\"option\":1,\"rationale\":\"The file files.module.ts is a source file but lacks a corresponding test file, violating the rule. Since module files in NestJS often omit unit tests by default, this is a genuine preexisting violation.\",\"rootCause\":1}",
+  "runIndex": 1,
+  "schemaVersion": 2,
+  "usage": {
+    "inputTokens": 14014,
+    "outputTokens": 1350
+  },
+  "usedOptions": {
+    "model": "gemini-3.1-pro-high"
+  }
+}

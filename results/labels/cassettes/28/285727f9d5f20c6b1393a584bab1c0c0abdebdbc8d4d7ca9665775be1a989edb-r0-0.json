@@ -1,0 +1,35 @@
+{
+  "attempts": 1,
+  "cliVersion": "1.3.2",
+  "configListingSha256": "b8cce56d63afd9cebbf745ed20c888d9ab0007207a513029027cc10be9494345",
+  "durationMs": 15236,
+  "effort": null,
+  "functionId": "label:violation:b01f22e369d72b6520389d08cf885aee73093fed53349ac4caa33ff3bf29a569",
+  "ignoredOptions": [
+    "temperature",
+    "maxTokens"
+  ],
+  "isolationProbeSha256": "e3e335eb64e5ae507ca6484a4f75d0443b1afef89d42854818fa51bd02d68423",
+  "key": "285727f9d5f20c6b1393a584bab1c0c0abdebdbc8d4d7ca9665775be1a989edb-r0-0",
+  "model": "gemini-3.1-pro-high",
+  "outcome": {
+    "kind": "valid"
+  },
+  "parsedVerdict": null,
+  "prompt": "Decide whether the finding below is a real violation of the rule as described.\n- TP: the code violates the rule at this location.\n- FP: the code does not violate the rule; give the root cause of the false finding.\n- unseeded-TP: the code violates the rule, but the violation is part of the original design rather than a\n  deliberate change; give the root cause (use RC-GENUINE-UNSEEDED when the violation is simply real).\n\n## Item\n## Violation\n  Function: FF-C05\n  Description: max-fan-in: Detects files with excessive incoming dependencies (god modules) (threshold 15)\n  File: src/testing/helpers/auth-test.helper.ts\n  Line: n/a\n  Target: n/a\n  \n  ## Source\n      1 | import { HttpStatus } from '@nestjs/common';\n      2 | import { DEFAULT_API_PREFIX } from 'src/infrastructure/http/api-version';\n      3 | import { E2eHttpClient } from './e2e-test-app.helper';\n      4 | \n      5 | export const E2E_API_PREFIX = DEFAULT_API_PREFIX;\n      6 | \n      7 | export interface LoginCredentials {\n      8 |   email: string;\n      9 |   password: string;\n     10 | }\n     11 | \n     12 | export interface RegisterUserInput {\n     13 |   email?: string;\n     14 |   password?: string;\n     15 |   firstName?: string;\n     16 |   lastName?: string;\n     17 | }\n     18 | \n     19 | export interface AuthSession {\n     20 |   email: string;\n     21 |   password: string;\n     22 |   firstName: string;\n     23 |   lastName: string;\n     24 |   userId: number;\n     25 |   accessToken: string;\n     26 |   refreshToken: string;\n     27 | }\n     28 | \n     29 | export class AuthTestHelper {\n     30 |   static readonly password = 'Password123!';\n     31 |   static readonly rotatedPassword = 'UpdatedPassword123!';\n\n## Label options\n1. TP\n  2. FP\n  3. unseeded-TP\n\n## Root causes\n1. RC-LAYER-MAP\n  2. RC-EXTRACT-ALIAS\n  3. RC-EXTRACT-BARREL\n  4. RC-DYNAMIC-IMPORT\n  5. RC-TYPE-ONLY\n  6. RC-TEMPLATE-OVERAPPROX\n  7. RC-STYLE-INAPPLICABLE\n  8. RC-SPEC-PARAM\n  9. RC-GENERATED-CODE\n  10. RC-TEST-CODE\n  11. RC-GENUINE-UNSEEDED\n  12. RC-OTHER\n\nAnswer with one JSON object: {\"option\": <number of the label option>, \"rootCause\": <number of the root cause or null>, \"note\": \"<text, required with RC-OTHER>\", \"rationale\": \"<one or two sentences citing the code>\"}.",
+  "provider": "agy",
+  "recordedAt": "2026-10-10T15:48:59.059Z",
+  "repetition": 0,
+  "requestHash": "285727f9d5f20c6b1393a584bab1c0c0abdebdbc8d4d7ca9665775be1a989edb",
+  "resolvedModel": "gemini-3.1-pro-high",
+  "response": "{\"note\":\"\",\"option\":2,\"rationale\":\"The flagged file is a test helper (src/testing/helpers/auth-test.helper.ts), which is naturally imported by many test files, making the max fan-in rule inapplicable as test code is usually exempt from such constraints.\",\"rootCause\":10}",
+  "runIndex": 0,
+  "schemaVersion": 2,
+  "usage": {
+    "inputTokens": 13921,
+    "outputTokens": 909
+  },
+  "usedOptions": {
+    "model": "gemini-3.1-pro-high"
+  }
+}

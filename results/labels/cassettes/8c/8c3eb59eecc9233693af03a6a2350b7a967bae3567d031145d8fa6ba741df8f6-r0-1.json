@@ -1,0 +1,35 @@
+{
+  "attempts": 1,
+  "cliVersion": "1.3.2",
+  "configListingSha256": "b8cce56d63afd9cebbf745ed20c888d9ab0007207a513029027cc10be9494345",
+  "durationMs": 15211,
+  "effort": null,
+  "functionId": "label:violation:af6e691109f2aa751b037b87eeff637f79a5134666c9abe997a46b717a1cd1f1",
+  "ignoredOptions": [
+    "temperature",
+    "maxTokens"
+  ],
+  "isolationProbeSha256": "e3e335eb64e5ae507ca6484a4f75d0443b1afef89d42854818fa51bd02d68423",
+  "key": "8c3eb59eecc9233693af03a6a2350b7a967bae3567d031145d8fa6ba741df8f6-r0-1",
+  "model": "gemini-3.1-pro-high",
+  "outcome": {
+    "kind": "valid"
+  },
+  "parsedVerdict": null,
+  "prompt": "Decide whether the finding below is a real violation of the rule as described.\n- TP: the code violates the rule at this location.\n- FP: the code does not violate the rule; give the root cause of the false finding.\n- unseeded-TP: the code violates the rule, but the violation is part of the original design rather than a\n  deliberate change; give the root cause (use RC-GENUINE-UNSEEDED when the violation is simply real).\n\n## Item\n## Violation\n  Function: FF-P02\n  Description: dependency-inversion: Checks that application-layer classes inject interfaces, not concrete classes (DIP); violating rows only (BR-U3-11) (threshold 0.85)\n  File: src/mail/mail.service.ts\n  Line: n/a\n  Target: n/a\n  \n  ## Source\n      1 | import { Injectable } from '@nestjs/common';\n      2 | import { Queue } from 'bull';\n      3 | import * as config from 'config';\n      4 | import { InjectQueue } from '@nestjs/bull';\n      5 | \n      6 | import { MailJobInterface } from 'src/mail/interface/mail-job.interface';\n      7 | import { EmailTemplateService } from 'src/email-template/email-template.service';\n      8 | \n      9 | @Injectable()\n     10 | export class MainMailService {\n     11 |   constructor(\n     12 |     @InjectQueue(config.get('mail.queueName'))\n     13 |     private mailQueue: Queue,\n     14 |     private readonly emailTemplateService: EmailTemplateService\n     15 |   ) {}\n     16 | \n     17 |   /**\n     18 |    * Replace place holder\n     19 |    * @param str\n     20 |    * @param obj\n     21 |    */\n     22 |   stringInject(str = '', obj = {}) {\n     23 |     let newStr = str;\n     24 |     Object.keys(obj).forEach((key) => {\n     25 |       const placeHolder = `{{${key}}}`;\n     26 |       if (newStr.includes(placeHolder)) {\n     27 |         newStr = newStr.replace(placeHolder, obj[key] || ' ');\n     28 |       }\n     29 |     });\n     30 |     return newStr;\n     31 |   }\n\n## Label options\n1. TP\n  2. FP\n  3. unseeded-TP\n\n## Root causes\n1. RC-OTHER\n  2. RC-GENUINE-UNSEEDED\n  3. RC-DYNAMIC-IMPORT\n  4. RC-EXTRACT-ALIAS\n  5. RC-LAYER-MAP\n  6. RC-SPEC-PARAM\n  7. RC-STYLE-INAPPLICABLE\n  8. RC-TEST-CODE\n  9. RC-GENERATED-CODE\n  10. RC-EXTRACT-BARREL\n  11. RC-TYPE-ONLY\n  12. RC-TEMPLATE-OVERAPPROX\n\nAnswer with one JSON object: {\"option\": <number of the label option>, \"rootCause\": <number of the root cause or null>, \"note\": \"<text, required with RC-OTHER>\", \"rationale\": \"<one or two sentences citing the code>\"}.",
+  "provider": "agy",
+  "recordedAt": "2026-10-10T15:58:47.067Z",
+  "repetition": 0,
+  "requestHash": "8c3eb59eecc9233693af03a6a2350b7a967bae3567d031145d8fa6ba741df8f6",
+  "resolvedModel": "gemini-3.1-pro-high",
+  "response": "{\"note\":\"\",\"option\":3,\"rationale\":\"MainMailService injects the concrete class EmailTemplateService instead of an interface, which is a real violation of the Dependency Inversion Principle but likely part of the original application design.\",\"rootCause\":2}",
+  "runIndex": 1,
+  "schemaVersion": 2,
+  "usage": {
+    "inputTokens": 13986,
+    "outputTokens": 1427
+  },
+  "usedOptions": {
+    "model": "gemini-3.1-pro-high"
+  }
+}

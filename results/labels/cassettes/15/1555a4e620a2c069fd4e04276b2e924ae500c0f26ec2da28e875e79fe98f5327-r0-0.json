@@ -1,0 +1,35 @@
+{
+  "attempts": 1,
+  "cliVersion": "1.3.2",
+  "configListingSha256": "b8cce56d63afd9cebbf745ed20c888d9ab0007207a513029027cc10be9494345",
+  "durationMs": 35031,
+  "effort": null,
+  "functionId": "label:violation:f39128235c55f643b9334e9df42da4e577bdd492a322c6c2b9c8e762d68c29e3",
+  "ignoredOptions": [
+    "temperature",
+    "maxTokens"
+  ],
+  "isolationProbeSha256": "e3e335eb64e5ae507ca6484a4f75d0443b1afef89d42854818fa51bd02d68423",
+  "key": "1555a4e620a2c069fd4e04276b2e924ae500c0f26ec2da28e875e79fe98f5327-r0-0",
+  "model": "gemini-3.1-pro-high",
+  "outcome": {
+    "kind": "valid"
+  },
+  "parsedVerdict": null,
+  "prompt": "Decide whether the finding below is a real violation of the rule as described.\n- TP: the code violates the rule at this location.\n- FP: the code does not violate the rule; give the root cause of the false finding.\n- unseeded-TP: the code violates the rule, but the violation is part of the original design rather than a\n  deliberate change; give the root cause (use RC-GENUINE-UNSEEDED when the violation is simply real).\n\n## Item\n## Violation\n  Function: FF-SO01\n  Description: single-responsibility-proxy: SRP proxy: classes with too many methods or dependencies likely have multiple responsibilities\n  File: src/services/data-provider/financial-modeling-prep/financial-modeling-prep.service.ts\n  Line: n/a\n  Target: n/a\n  \n  ## Source\n      1 | import { ConfigurationService } from '@ghostfolio/api/services/configuration/configuration.service';\n      2 | import { CryptocurrencyService } from '@ghostfolio/api/services/cryptocurrency/cryptocurrency.service';\n      3 | import {\n      4 |   DataProviderInterface,\n      5 |   GetAssetProfileParams,\n      6 |   GetDividendsParams,\n      7 |   GetHistoricalParams,\n      8 |   GetQuotesParams,\n      9 |   GetSearchParams\n     10 | } from '@ghostfolio/api/services/data-provider/interfaces/data-provider.interface';\n     11 | import { PrismaService } from '@ghostfolio/api/services/prisma/prisma.service';\n     12 | import {\n     13 |   DEFAULT_CURRENCY,\n     14 |   REPLACE_NAME_PARTS\n     15 | } from '@ghostfolio/common/config';\n     16 | import { DATE_FORMAT, isCurrency, parseDate } from '@ghostfolio/common/helper';\n     17 | import {\n     18 |   DataProviderHistoricalResponse,\n     19 |   DataProviderInfo,\n     20 |   DataProviderResponse,\n     21 |   LookupItem,\n     22 |   LookupResponse\n     23 | } from '@ghostfolio/common/interfaces';\n     24 | import { MarketState } from '@ghostfolio/common/types';\n     25 | \n     26 | import { Injectable, Logger, OnModuleInit } from '@nestjs/common';\n     27 | import {\n     28 |   AssetClass,\n     29 |   AssetSubClass,\n     30 |   DataSource,\n     31 |   SymbolProfile\n\n## Label options\n1. TP\n  2. FP\n  3. unseeded-TP\n\n## Root causes\n1. RC-LAYER-MAP\n  2. RC-EXTRACT-ALIAS\n  3. RC-EXTRACT-BARREL\n  4. RC-DYNAMIC-IMPORT\n  5. RC-TYPE-ONLY\n  6. RC-TEMPLATE-OVERAPPROX\n  7. RC-STYLE-INAPPLICABLE\n  8. RC-SPEC-PARAM\n  9. RC-GENERATED-CODE\n  10. RC-TEST-CODE\n  11. RC-GENUINE-UNSEEDED\n  12. RC-OTHER\n\nAnswer with one JSON object: {\"option\": <number of the label option>, \"rootCause\": <number of the root cause or null>, \"note\": \"<text, required with RC-OTHER>\", \"rationale\": \"<one or two sentences citing the code>\"}.",
+  "provider": "agy",
+  "recordedAt": "2026-10-10T15:28:00.420Z",
+  "repetition": 0,
+  "requestHash": "1555a4e620a2c069fd4e04276b2e924ae500c0f26ec2da28e875e79fe98f5327",
+  "resolvedModel": "gemini-3.1-pro-high",
+  "response": "{\"note\":\"\",\"option\":3,\"rationale\":\"The snippet indicates the class implements multiple operations defined by DataProviderInterface (such as retrieving profiles, dividends, and quotes) and injects several services (like ConfigurationService, CryptocurrencyService, and PrismaService), confirming it naturally has many methods and dependencies as per its original design.\",\"rootCause\":11}",
+  "runIndex": 0,
+  "schemaVersion": 2,
+  "usage": {
+    "inputTokens": 59521,
+    "outputTokens": 2734
+  },
+  "usedOptions": {
+    "model": "gemini-3.1-pro-high"
+  }
+}

@@ -1,0 +1,35 @@
+{
+  "attempts": 1,
+  "cliVersion": "1.3.2",
+  "configListingSha256": "b8cce56d63afd9cebbf745ed20c888d9ab0007207a513029027cc10be9494345",
+  "durationMs": 41627,
+  "effort": null,
+  "functionId": "label:violation:b0b46469ae1743b934ccd8d4cb521a06d811e2ef2f3c37ae1deb6f3586a537c5",
+  "ignoredOptions": [
+    "temperature",
+    "maxTokens"
+  ],
+  "isolationProbeSha256": "e3e335eb64e5ae507ca6484a4f75d0443b1afef89d42854818fa51bd02d68423",
+  "key": "b72334a2706265f446df0bd70c01e14cdaabdb10193e59d93005d70487e08e04-r0-1",
+  "model": "gemini-3.1-pro-high",
+  "outcome": {
+    "kind": "valid"
+  },
+  "parsedVerdict": null,
+  "prompt": "Decide whether the finding below is a real violation of the rule as described.\n- TP: the code violates the rule at this location.\n- FP: the code does not violate the rule; give the root cause of the false finding.\n- unseeded-TP: the code violates the rule, but the violation is part of the original design rather than a\n  deliberate change; give the root cause (use RC-GENUINE-UNSEEDED when the violation is simply real).\n\n## Item\n## Violation\n  Function: FF-S01\n  Description: dependency-direction: Detects imports where a lower layer imports from a higher layer (violates dependency direction)\n  File: src/repositories/employeeRepository.ts\n  Line: 2\n  Target: src/services/cardServices.ts\n  \n  ## Source\n      1 | import { connection } from \"../config/database.js\";\n      2 | import { CreateCardReturn } from \"../services/cardServices\";\n      3 | \n      4 | export interface Employee {\n      5 |   id: number;\n      6 |   fullName: string;\n      7 |   cpf: string;\n      8 |   email: string;\n      9 |   companyId: number;\n     10 | }\n     11 | \n     12 | export async function findById(id: number) {\n     13 |   const result = await connection.query<Employee, [number]>(\"SELECT * FROM employees WHERE id=$1\", [id]);\n     14 |   return result.rows[0];\n     15 | }\n     16 | export type CreateCardReturnRef = CreateCardReturn;\n     17 | \n\n## Label options\n1. unseeded-TP\n  2. FP\n  3. TP\n\n## Root causes\n1. RC-SPEC-PARAM\n  2. RC-TEMPLATE-OVERAPPROX\n  3. RC-GENERATED-CODE\n  4. RC-EXTRACT-BARREL\n  5. RC-TYPE-ONLY\n  6. RC-DYNAMIC-IMPORT\n  7. RC-TEST-CODE\n  8. RC-GENUINE-UNSEEDED\n  9. RC-OTHER\n  10. RC-STYLE-INAPPLICABLE\n  11. RC-LAYER-MAP\n  12. RC-EXTRACT-ALIAS\n\nAnswer with one JSON object: {\"option\": <number of the label option>, \"rootCause\": <number of the root cause or null>, \"note\": \"<text, required with RC-OTHER>\", \"rationale\": \"<one or two sentences citing the code>\"}.",
+  "provider": "agy",
+  "recordedAt": "2026-10-10T16:43:18.356Z",
+  "repetition": 0,
+  "requestHash": "b72334a2706265f446df0bd70c01e14cdaabdb10193e59d93005d70487e08e04",
+  "resolvedModel": "gemini-3.1-pro-high",
+  "response": "{\"option\":3,\"rationale\":\"The code imports 'CreateCardReturn' from the higher 'services' layer into the lower 'repositories' layer, introducing an architectural dependency that violates the expected layer direction.\"}",
+  "runIndex": 1,
+  "schemaVersion": 2,
+  "usage": {
+    "inputTokens": 32809,
+    "outputTokens": 4151
+  },
+  "usedOptions": {
+    "model": "gemini-3.1-pro-high"
+  }
+}

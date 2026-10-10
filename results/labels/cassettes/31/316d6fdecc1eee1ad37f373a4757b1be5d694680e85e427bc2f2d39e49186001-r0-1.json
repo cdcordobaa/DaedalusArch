@@ -1,0 +1,35 @@
+{
+  "attempts": 1,
+  "cliVersion": "1.3.2",
+  "configListingSha256": "b8cce56d63afd9cebbf745ed20c888d9ab0007207a513029027cc10be9494345",
+  "durationMs": 50183,
+  "effort": null,
+  "functionId": "label:violation:8494ea1982e3caa1094b2024c4b16f4b363528147f30ae0717b884697a2de6c4",
+  "ignoredOptions": [
+    "temperature",
+    "maxTokens"
+  ],
+  "isolationProbeSha256": "e3e335eb64e5ae507ca6484a4f75d0443b1afef89d42854818fa51bd02d68423",
+  "key": "316d6fdecc1eee1ad37f373a4757b1be5d694680e85e427bc2f2d39e49186001-r0-1",
+  "model": "gemini-3.1-pro-high",
+  "outcome": {
+    "kind": "valid"
+  },
+  "parsedVerdict": null,
+  "prompt": "Decide whether the finding below is a real violation of the rule as described.\n- TP: the code violates the rule at this location.\n- FP: the code does not violate the rule; give the root cause of the false finding.\n- unseeded-TP: the code violates the rule, but the violation is part of the original design rather than a\n  deliberate change; give the root cause (use RC-GENUINE-UNSEEDED when the violation is simply real).\n\n## Item\n## Violation\n  Function: FF-CV05\n  Description: test-file-pairing: Detects source files without corresponding test files\n  File: src/modules/payments/secondary-adapters/persistence/mappers/payment.mapper.ts\n  Line: n/a\n  Target: n/a\n  \n  ## Source\n      1 | import { CreateFromEntity } from '../../../../../infrastructure/mappers/utils/create-from-entity.type';\n      2 | import { Payment, PaymentProps } from '../../../core/domain/entities/payment';\n      3 | import { IPayment } from '../../../core/domain/interfaces/payment.interface';\n      4 | import { PaymentEntity } from '../../orm/payment.schema';\n      5 | import { RefundMapper } from './refund.mapper';\n      6 | \n      7 | type PaymentCreate = CreateFromEntity<PaymentEntity, 'refunds'>;\n      8 | \n      9 | export type PaymentForCache = Omit<\n     10 |   IPayment,\n     11 |   'createdAt' | 'updatedAt' | 'completedAt' | 'refunds'\n     12 | > & {\n     13 |   createdAt: number;\n     14 |   updatedAt: number;\n     15 |   completedAt: number | null;\n     16 |   refunds: Array<\n     17 |     Omit<IPayment['refunds'][number], 'createdAt' | 'updatedAt'> & {\n     18 |       createdAt: number;\n     19 |       updatedAt: number;\n     20 |     }\n     21 |   >;\n     22 | };\n     23 | \n     24 | export class PaymentMapper {\n     25 |   static toDomain(entity: PaymentEntity): Payment {\n     26 |     const props: PaymentProps = {\n     27 |       id: entity.id,\n     28 |       orderId: entity.orderId,\n     29 |       userId: entity.userId,\n     30 |       amount: Number(entity.amount),\n     31 |       currency: entity.currency,\n\n## Label options\n1. FP\n  2. unseeded-TP\n  3. TP\n\n## Root causes\n1. RC-TEMPLATE-OVERAPPROX\n  2. RC-STYLE-INAPPLICABLE\n  3. RC-EXTRACT-BARREL\n  4. RC-OTHER\n  5. RC-GENERATED-CODE\n  6. RC-TYPE-ONLY\n  7. RC-SPEC-PARAM\n  8. RC-GENUINE-UNSEEDED\n  9. RC-LAYER-MAP\n  10. RC-DYNAMIC-IMPORT\n  11. RC-TEST-CODE\n  12. RC-EXTRACT-ALIAS\n\nAnswer with one JSON object: {\"option\": <number of the label option>, \"rootCause\": <number of the root cause or null>, \"note\": \"<text, required with RC-OTHER>\", \"rationale\": \"<one or two sentences citing the code>\"}.",
+  "provider": "agy",
+  "recordedAt": "2026-10-10T16:23:33.259Z",
+  "repetition": 0,
+  "requestHash": "316d6fdecc1eee1ad37f373a4757b1be5d694680e85e427bc2f2d39e49186001",
+  "resolvedModel": "gemini-3.1-pro-high",
+  "response": "{\"note\":\"\",\"option\":1,\"rationale\":\"The flagged code is a layer mapper (PaymentMapper), which translates data between layers and is typically exempt from strict test-file-pairing requirements, making this finding a false positive.\",\"rootCause\":9}",
+  "runIndex": 1,
+  "schemaVersion": 2,
+  "usage": {
+    "inputTokens": 14009,
+    "outputTokens": 6232
+  },
+  "usedOptions": {
+    "model": "gemini-3.1-pro-high"
+  }
+}

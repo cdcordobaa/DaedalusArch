@@ -1,0 +1,35 @@
+{
+  "attempts": 1,
+  "cliVersion": "1.3.2",
+  "configListingSha256": "b8cce56d63afd9cebbf745ed20c888d9ab0007207a513029027cc10be9494345",
+  "durationMs": 29726,
+  "effort": null,
+  "functionId": "label:violation:19184c7e059bcbc8ab75b76cd012f7b88a329d9539f24d6ff0d7e99ff25bd0c7",
+  "ignoredOptions": [
+    "temperature",
+    "maxTokens"
+  ],
+  "isolationProbeSha256": "e3e335eb64e5ae507ca6484a4f75d0443b1afef89d42854818fa51bd02d68423",
+  "key": "22b75e7dbf51e5a6e9a47f1c567a6b5f09b9688acc0c3fefa160dd39f3ccc442-r0-1",
+  "model": "gemini-3.1-pro-high",
+  "outcome": {
+    "kind": "valid"
+  },
+  "parsedVerdict": null,
+  "prompt": "Decide whether the finding below is a real violation of the rule as described.\n- TP: the code violates the rule at this location.\n- FP: the code does not violate the rule; give the root cause of the false finding.\n- unseeded-TP: the code violates the rule, but the violation is part of the original design rather than a\n  deliberate change; give the root cause (use RC-GENUINE-UNSEEDED when the violation is simply real).\n\n## Item\n## Violation\n  Function: FF-S03\n  Description: no-layer-skip: Detects imports that skip intermediate layers (e.g., infrastructure directly importing domain, bypassing application)\n  File: src/repositories/employeeRepository.ts\n  Line: 2\n  Target: src/services/cardServices.ts\n  \n  ## Source\n      1 | import { connection } from \"../config/database.js\";\n      2 | import { CreateCardReturn } from \"../services/cardServices\";\n      3 | \n      4 | export interface Employee {\n      5 |   id: number;\n      6 |   fullName: string;\n      7 |   cpf: string;\n      8 |   email: string;\n      9 |   companyId: number;\n     10 | }\n     11 | \n     12 | export async function findById(id: number) {\n     13 |   const result = await connection.query<Employee, [number]>(\"SELECT * FROM employees WHERE id=$1\", [id]);\n     14 |   return result.rows[0];\n     15 | }\n     16 | export type CreateCardReturnRef = CreateCardReturn;\n     17 | \n\n## Label options\n1. unseeded-TP\n  2. TP\n  3. FP\n\n## Root causes\n1. RC-GENERATED-CODE\n  2. RC-DYNAMIC-IMPORT\n  3. RC-STYLE-INAPPLICABLE\n  4. RC-EXTRACT-ALIAS\n  5. RC-TEST-CODE\n  6. RC-SPEC-PARAM\n  7. RC-EXTRACT-BARREL\n  8. RC-GENUINE-UNSEEDED\n  9. RC-TYPE-ONLY\n  10. RC-OTHER\n  11. RC-TEMPLATE-OVERAPPROX\n  12. RC-LAYER-MAP\n\nAnswer with one JSON object: {\"option\": <number of the label option>, \"rootCause\": <number of the root cause or null>, \"note\": \"<text, required with RC-OTHER>\", \"rationale\": \"<one or two sentences citing the code>\"}.",
+  "provider": "agy",
+  "recordedAt": "2026-10-10T16:22:33.392Z",
+  "repetition": 0,
+  "requestHash": "22b75e7dbf51e5a6e9a47f1c567a6b5f09b9688acc0c3fefa160dd39f3ccc442",
+  "resolvedModel": "gemini-3.1-pro-high",
+  "response": "{\"note\":\"\",\"option\":3,\"rationale\":\"The imported `CreateCardReturn` is used exclusively as a type alias on line 16, which is erased at runtime and thus does not create an actual architectural dependency.\",\"rootCause\":9}",
+  "runIndex": 1,
+  "schemaVersion": 2,
+  "usage": {
+    "inputTokens": 13790,
+    "outputTokens": 2855
+  },
+  "usedOptions": {
+    "model": "gemini-3.1-pro-high"
+  }
+}

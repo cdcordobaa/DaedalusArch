@@ -1,0 +1,35 @@
+{
+  "attempts": 1,
+  "cliVersion": "1.3.2",
+  "configListingSha256": "b8cce56d63afd9cebbf745ed20c888d9ab0007207a513029027cc10be9494345",
+  "durationMs": 30782,
+  "effort": null,
+  "functionId": "label:violation:1bca7a6fa7a34af1298c4a5f7bb261e88993300a4297a87c32acd342618fa770",
+  "ignoredOptions": [
+    "temperature",
+    "maxTokens"
+  ],
+  "isolationProbeSha256": "e3e335eb64e5ae507ca6484a4f75d0443b1afef89d42854818fa51bd02d68423",
+  "key": "bd0cb47961ec0a57ea25243d9ab18502ea9d82222748f262744f6e1ed8f98d40-r0-1",
+  "model": "gemini-3.1-pro-high",
+  "outcome": {
+    "kind": "valid"
+  },
+  "parsedVerdict": null,
+  "prompt": "Decide whether the finding below is a real violation of the rule as described.\n- TP: the code violates the rule at this location.\n- FP: the code does not violate the rule; give the root cause of the false finding.\n- unseeded-TP: the code violates the rule, but the violation is part of the original design rather than a\n  deliberate change; give the root cause (use RC-GENUINE-UNSEEDED when the violation is simply real).\n\n## Item\n## Violation\n  Function: FF-P04\n  Description: use-case-isolation: Verifies use cases only depend on domain and application layers\n  File: src/delivery/orders/services/find-all-orders.service.ts\n  Line: n/a\n  Target: n/a\n  \n  ## Source\n      1 | import { Injectable } from '@nestjs/common';\n      2 | import { OrdersRepository } from '../dal/orders.repository';\n      3 | import { Order } from 'src/delivery/__models__/orders.model';\n      4 | \n      5 | @Injectable()\n      6 | export class CoreFindAllOrdersService {\n      7 |   constructor(private ordersRepository: OrdersRepository) {}\n      8 | \n      9 |   findAll(): Promise<Order[]> {\n     10 |     return this.ordersRepository.findAllOrders();\n     11 |   }\n     12 | }\n     13 | \n\n## Label options\n1. TP\n  2. FP\n  3. unseeded-TP\n\n## Root causes\n1. RC-GENERATED-CODE\n  2. RC-OTHER\n  3. RC-STYLE-INAPPLICABLE\n  4. RC-LAYER-MAP\n  5. RC-GENUINE-UNSEEDED\n  6. RC-EXTRACT-BARREL\n  7. RC-TYPE-ONLY\n  8. RC-DYNAMIC-IMPORT\n  9. RC-EXTRACT-ALIAS\n  10. RC-TEST-CODE\n  11. RC-SPEC-PARAM\n  12. RC-TEMPLATE-OVERAPPROX\n\nAnswer with one JSON object: {\"option\": <number of the label option>, \"rootCause\": <number of the root cause or null>, \"note\": \"<text, required with RC-OTHER>\", \"rationale\": \"<one or two sentences citing the code>\"}.",
+  "provider": "agy",
+  "recordedAt": "2026-10-10T16:09:36.053Z",
+  "repetition": 0,
+  "requestHash": "bd0cb47961ec0a57ea25243d9ab18502ea9d82222748f262744f6e1ed8f98d40",
+  "resolvedModel": "gemini-3.1-pro-high",
+  "response": "{\"note\":\"\",\"option\":3,\"rationale\":\"The service acts as a use case but directly imports from the NestJS framework (@nestjs/common) and the data access layer (dal), violating strict isolation as part of the original application design.\",\"rootCause\":5}",
+  "runIndex": 1,
+  "schemaVersion": 2,
+  "usage": {
+    "inputTokens": 13738,
+    "outputTokens": 3192
+  },
+  "usedOptions": {
+    "model": "gemini-3.1-pro-high"
+  }
+}

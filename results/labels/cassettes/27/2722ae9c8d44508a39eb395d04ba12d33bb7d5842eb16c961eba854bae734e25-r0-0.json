@@ -1,0 +1,35 @@
+{
+  "attempts": 1,
+  "cliVersion": "1.3.2",
+  "configListingSha256": "b8cce56d63afd9cebbf745ed20c888d9ab0007207a513029027cc10be9494345",
+  "durationMs": 19512,
+  "effort": null,
+  "functionId": "label:violation:2ea7c34e437df75152e63e55077244169a4bb4c39f2b7cb3c48968d7f61faab1",
+  "ignoredOptions": [
+    "temperature",
+    "maxTokens"
+  ],
+  "isolationProbeSha256": "e3e335eb64e5ae507ca6484a4f75d0443b1afef89d42854818fa51bd02d68423",
+  "key": "2722ae9c8d44508a39eb395d04ba12d33bb7d5842eb16c961eba854bae734e25-r0-0",
+  "model": "gemini-3.1-pro-high",
+  "outcome": {
+    "kind": "valid"
+  },
+  "parsedVerdict": null,
+  "prompt": "Decide whether the finding below is a real violation of the rule as described.\n- TP: the code violates the rule at this location.\n- FP: the code does not violate the rule; give the root cause of the false finding.\n- unseeded-TP: the code violates the rule, but the violation is part of the original design rather than a\n  deliberate change; give the root cause (use RC-GENUINE-UNSEEDED when the violation is simply real).\n\n## Item\n## Violation\n  Function: FF-P04\n  Description: use-case-isolation: Verifies use cases only depend on domain and application layers\n  File: src/files/files.service.ts\n  Line: n/a\n  Target: n/a\n  \n  ## Source\n      1 | import { Injectable } from '@nestjs/common';\n      2 | \n      3 | import { FileRepository } from './infrastructure/persistence/file.repository';\n      4 | import { FileType } from './domain/file';\n      5 | import { NullableType } from '../utils/types/nullable.type';\n      6 | \n      7 | @Injectable()\n      8 | export class FilesService {\n      9 |   constructor(private readonly fileRepository: FileRepository) {}\n     10 | \n     11 |   findById(id: FileType['id']): Promise<NullableType<FileType>> {\n     12 |     return this.fileRepository.findById(id);\n     13 |   }\n     14 | \n     15 |   findByIds(ids: FileType['id'][]): Promise<FileType[]> {\n     16 |     return this.fileRepository.findByIds(ids);\n     17 |   }\n     18 | }\n     19 | \n\n## Label options\n1. TP\n  2. FP\n  3. unseeded-TP\n\n## Root causes\n1. RC-LAYER-MAP\n  2. RC-EXTRACT-ALIAS\n  3. RC-EXTRACT-BARREL\n  4. RC-DYNAMIC-IMPORT\n  5. RC-TYPE-ONLY\n  6. RC-TEMPLATE-OVERAPPROX\n  7. RC-STYLE-INAPPLICABLE\n  8. RC-SPEC-PARAM\n  9. RC-GENERATED-CODE\n  10. RC-TEST-CODE\n  11. RC-GENUINE-UNSEEDED\n  12. RC-OTHER\n\nAnswer with one JSON object: {\"option\": <number of the label option>, \"rootCause\": <number of the root cause or null>, \"note\": \"<text, required with RC-OTHER>\", \"rationale\": \"<one or two sentences citing the code>\"}.",
+  "provider": "agy",
+  "recordedAt": "2026-10-10T15:42:54.159Z",
+  "repetition": 0,
+  "requestHash": "2722ae9c8d44508a39eb395d04ba12d33bb7d5842eb16c961eba854bae734e25",
+  "resolvedModel": "gemini-3.1-pro-high",
+  "response": "{\"note\":\"\",\"option\":3,\"rationale\":\"The FilesService imports FileRepository from the infrastructure layer, violating the rule that use cases must not depend on infrastructure. This is a genuine violation present in the original code.\",\"rootCause\":11}",
+  "runIndex": 0,
+  "schemaVersion": 2,
+  "usage": {
+    "inputTokens": 13815,
+    "outputTokens": 1636
+  },
+  "usedOptions": {
+    "model": "gemini-3.1-pro-high"
+  }
+}

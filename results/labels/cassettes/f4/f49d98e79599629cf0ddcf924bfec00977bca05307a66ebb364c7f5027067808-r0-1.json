@@ -1,0 +1,35 @@
+{
+  "attempts": 1,
+  "cliVersion": "1.3.2",
+  "configListingSha256": "b8cce56d63afd9cebbf745ed20c888d9ab0007207a513029027cc10be9494345",
+  "durationMs": 9673,
+  "effort": null,
+  "functionId": "label:violation:f66bfdcf3c04419c304d9e0758b5dfaabfc896185a7a7155be80ad8a08ce442e",
+  "ignoredOptions": [
+    "temperature",
+    "maxTokens"
+  ],
+  "isolationProbeSha256": "e3e335eb64e5ae507ca6484a4f75d0443b1afef89d42854818fa51bd02d68423",
+  "key": "f49d98e79599629cf0ddcf924bfec00977bca05307a66ebb364c7f5027067808-r0-1",
+  "model": "gemini-3.1-pro-high",
+  "outcome": {
+    "kind": "valid"
+  },
+  "parsedVerdict": null,
+  "prompt": "Decide whether the finding below is a real violation of the rule as described.\n- TP: the code violates the rule at this location.\n- FP: the code does not violate the rule; give the root cause of the false finding.\n- unseeded-TP: the code violates the rule, but the violation is part of the original design rather than a\n  deliberate change; give the root cause (use RC-GENUINE-UNSEEDED when the violation is simply real).\n\n## Item\n## Violation\n  Function: FF-P02\n  Description: dependency-inversion: Checks that application-layer classes inject interfaces, not concrete classes (DIP); violating rows only (BR-U3-11) (threshold 0.85)\n  File: src/permission/permissions.service.ts\n  Line: n/a\n  Target: n/a\n  \n  ## Source\n      1 | import { Injectable, UnprocessableEntityException } from '@nestjs/common';\n      2 | import { Not, ObjectLiteral } from 'typeorm';\n      3 | import { InjectRepository } from '@nestjs/typeorm';\n      4 | \n      5 | import { CreatePermissionDto } from 'src/permission/dto/create-permission.dto';\n      6 | import { UpdatePermissionDto } from 'src/permission/dto/update-permission.dto';\n      7 | import { PermissionRepository } from 'src/permission/permission.repository';\n      8 | import { PermissionFilterDto } from 'src/permission/dto/permission-filter.dto';\n      9 | import { CommonServiceInterface } from 'src/common/interfaces/common-service.interface';\n     10 | import { Permission } from 'src/permission/serializer/permission.serializer';\n     11 | import { PermissionEntity } from 'src/permission/entities/permission.entity';\n     12 | import { basicFieldGroupsForSerializing } from 'src/role/serializer/role.serializer';\n     13 | import { Pagination } from 'src/paginate';\n     14 | import {\n     15 |   PermissionConfiguration,\n     16 |   RoutePayloadInterface\n     17 | } from 'src/config/permission-config';\n     18 | import { LoadPermissionMisc } from 'src/permission/misc/load-permission.misc';\n     19 | \n     20 | @Injectable()\n     21 | export class PermissionsServiceImpl\n     22 |   extends LoadPermissionMisc\n     23 |   implements CommonServiceInterface<Permission>\n     24 | {\n     25 |   constructor(\n     26 |     @InjectRepository(PermissionRepository)\n     27 |     private repository: PermissionRepository\n     28 |   ) {\n     29 |     super();\n     30 |   }\n     31 | \n\n## Label options\n1. TP\n  2. unseeded-TP\n  3. FP\n\n## Root causes\n1. RC-DYNAMIC-IMPORT\n  2. RC-STYLE-INAPPLICABLE\n  3. RC-EXTRACT-BARREL\n  4. RC-OTHER\n  5. RC-TEST-CODE\n  6. RC-TEMPLATE-OVERAPPROX\n  7. RC-GENUINE-UNSEEDED\n  8. RC-GENERATED-CODE\n  9. RC-SPEC-PARAM\n  10. RC-LAYER-MAP\n  11. RC-TYPE-ONLY\n  12. RC-EXTRACT-ALIAS\n\nAnswer with one JSON object: {\"option\": <number of the label option>, \"rootCause\": <number of the root cause or null>, \"note\": \"<text, required with RC-OTHER>\", \"rationale\": \"<one or two sentences citing the code>\"}.",
+  "provider": "agy",
+  "recordedAt": "2026-10-10T16:22:43.074Z",
+  "repetition": 0,
+  "requestHash": "f49d98e79599629cf0ddcf924bfec00977bca05307a66ebb364c7f5027067808",
+  "resolvedModel": "gemini-3.1-pro-high",
+  "response": "{\"note\":\"\",\"option\":2,\"rationale\":\"The PermissionsServiceImpl class injects PermissionRepository, which is a concrete class used as an injection token rather than an interface, violating the Dependency Inversion Principle.\",\"rootCause\":7}",
+  "runIndex": 1,
+  "schemaVersion": 2,
+  "usage": {
+    "inputTokens": 14045,
+    "outputTokens": 661
+  },
+  "usedOptions": {
+    "model": "gemini-3.1-pro-high"
+  }
+}
