@@ -1,7 +1,7 @@
 {
-  "version": 14,
-  "registeredAt": "2026-10-10T15:38:09Z",
-  "reason": "ADR-028 Option C (author decision 2026-10-10): the proportional neural aggregation variant registered as a sensitivity analysis and the judge diagnostics registered as an exploratory explanation analysis, BEFORE any e1-grid run (no E1 RunRecord exists). The registered rule (majority-of-valid-units-v1 with the U3 confidence weight) stays the primary SO3 and E1 analysis. E7 (e7-corpus, prereg v11) ran before this bump, so its variant reading is POST HOC (computed from its recorded cassettes, zero new judge calls); E1's variant reading is pre-registered. Per artefact: (1) Docs/analysis-plan.md: new section 12 (12.1 the registered rule restated; 12.2 the variant proportional-inclusion-weighted-v1: Hajek share of failed judged units, layer strata weighted N_h / V_h for the capped round-robin selection, a failed unit scores the U3 confidence weight of its own confidence, a split vote scores 0 in the denominator, invalid units left out with the layer re-weighted, AGG-05 and AGG-09 unchanged, AVR, renormalisation, AHS, thresholds and verdict source unchanged; 12.3 its reporting, descriptive only, no SO5 test under the variant; 12.4 the judge diagnostics: per-unit extraction, carrier-run rationale, the fixed judge-coding-frame machine block derived from the FF-N01 and FF-N02 rubric fail clauses, applied mechanically, counts per function, project, verdict and criterion, stated limits); section 3 SO3 row; section 10 B9 reporting duty; section 11 dated row; header amendment note. The frame was written from the rubric text before any judge rationale was read; the E7 registered aggregate results were known (declared in 12). (2) corpus/frozen-instrument.json: scoringFreeze gains neuralAggregation (primary registered, registeredRule majority-of-valid-units-v1, variant proportional-inclusion-weighted-v1 with its strata, unit weight, failed-unit score, split-vote score and invalid-unit rule); re-exported by export-frozen-instrument, no other key changes. No estimand, plan, seed, size, interval rule, matching rule, spec or label-plan config changes. All other 68 artefacts are unchanged.",
+  "version": 15,
+  "registeredAt": "2026-10-10T16:03:46Z",
+  "reason": "ADR-028 Fable review of PR #47 (MERGE WITH FIXES), made after the code (fd4f19f) and before any e1-grid run (no E1 RunRecord exists). Per artefact: (1) Docs/analysis-plan.md: section 12.2 declares the proportional variant UNDEFINED for SEL-07 baseline-reuse runs (addedByVariant units have p = 1; the scorer refuses with NEURAL_AGGREGATION_UNDEFINED) and deletes the earlier 'same post-stratified formula' sentence; names the confidence asymmetry as a bias toward clean and adds the confidence-free Hajek share as a reported column; states that hash order is treated as SRS within a layer and that no variance is reported. Section 12.3 registers the judge-effect decomposition (W_n, the bound -W_n, the judge-blind ahsCombined and verdict, delta_dilution and its identity, delta_judge, judge_mattered), the any-fail verdict beside the proportional one, the derived reading (post hoc when the registered run's preregVersion < 14, a contradicting override refused) and the E1 two-pass procedure with the --out-dir rule. Section 12.4 and the machine block: coding frame 1.1.0 (same criteria and patterns; primary coding on violation messages only; a secondary reasoning coding with a 5-token negation guard; the discrimination statistic, informative at >= 0.3; the non-text rules_also_flag join); frame 1.1.0's reading of E7 is POST HOC because the E7 rationales and the 1.0.0 counts were read, its reading of E1 is pre-registered. Section 10 B9: the decomposition columns and the wording rules (combined above rules-only is a W_n = 0.08 weighting artefact, never judge evidence; 'the proportional variant moves no verdict' always with 'the any-fail rule moves one, dry-run-test soft-block to hard-block'; the bound on the judge's effect). Header note and section 11 row. (2) corpus/frozen-instrument.json: scoringFreeze.neuralAggregation.variants.proportional gains definedFor own-selection, withinLayerSampling hash-order-as-srs, variance not-reported, companionColumn confidence-free-share; re-exported, no other key changes. No estimand of the registered rule, plan, seed, size, interval rule, matching rule, spec, spec weight or label-plan config changes. All other 68 artefacts are unchanged.",
   "matchingRuleVersion": "1.2.0",
   "artefacts": [
     {
@@ -18,7 +18,7 @@
     },
     {
       "path": "Docs/analysis-plan.md",
-      "sha256": "81ee288b8d42b00a170c16ba181b921234bae477db2f7012db312cfd53356471"
+      "sha256": "d746ab521420eadcbea12ce6d40f8de4a4844e1bb882e578a4acd9ca269ea69c"
     },
     {
       "path": "Docs/corpus-criteria.md",
@@ -66,7 +66,7 @@
     },
     {
       "path": "corpus/frozen-instrument.json",
-      "sha256": "85ecdbfe01f4b6a85503d34b3dfba58d40001e47ba34ea1c358c5d7c5f0f3528"
+      "sha256": "5b6073b5dc0c4dedf8a62bf519d58cbfa2e2c7c317dd28ec45406d30f0ee539c"
     },
     {
       "path": "corpus/label-plan-config.json",
@@ -344,6 +344,10 @@
     {
       "version": 13,
       "commit": "32c2a664ee2bdaeb67934a159b1727f2bbec5208"
+    },
+    {
+      "version": 14,
+      "commit": "eeb55bb35cb99b0fb8f202b5655dfe94926b23b1"
     }
   ]
 }
