@@ -1246,6 +1246,8 @@ Lock-file check (decision 2): `scripts/fetch-corpus.ts` runs exactly one install
 
 **Rationale**: This keeps the pre-registration intact, answers the question "what does the judge add?" with evidence, costs no extra judge calls, and matches the author's view that the judge both diagnoses and is able to move verdicts.
 
+**Implementation (2026-10-10, prereg v14)**: the variant is `proportional-inclusion-weighted-v1` (`Docs/analysis-plan.md` §12.2): the Hájek share of failed judged units, layer strata weighted N_h / V_h for the capped round-robin selection, a failed unit scoring the U3 confidence weight of its own confidence, a split vote scoring 0, invalid units left out. It is selected with `--neural-aggregation proportional` (`evaluate`, `run-experiment-cli`, `aggregate-cli`) and is stamped in `scoring.neuralAggregation` and the RunRecord. The judge diagnostics are in §12.4 (`scripts/judge-diagnostics-cli.ts`, the `judge-coding-frame` block). E7 was re-scored from its cassettes in replay mode with no judge call (`results/e7-corpus/agg-proportional/`, POST HOC): 0 of 9 verdicts change.
+
 ---
 
 ## Decision Log Summary
