@@ -415,6 +415,14 @@ function aggregateFunction(
     ...(selection.selection.source === 'baseline' ? { removedByVariant: selection.removedByVariant } : {}),
     selection: selection.selection,
     aggregationRule: aggregation.aggregationRule,
+    candidatesByLayer: candidatesByLayerOf(candidates.units),
   };
   return { kind: 'result', result, warnings };
+}
+
+/** ADR-028: candidate units per layer (N_h of the proportional scoring variant), keys sorted. */
+export function candidatesByLayerOf(units: readonly { readonly layer: string }[]): Record<string, number> {
+  const counts = new Map<string, number>();
+  for (const u of units) counts.set(u.layer, (counts.get(u.layer) ?? 0) + 1);
+  return Object.fromEntries([...counts].sort(([a], [b]) => (a < b ? -1 : a > b ? 1 : 0)));
 }

@@ -1292,3 +1292,19 @@ Plan checkboxes ticked. Auto-approved under standing approval; no blocking or ma
 **Context**: CONSTRUCTION — Build and Test, labelling preparation. Worktree ../DaedalusArch-wt-lab, branch v1.2e-labelling-prep.
 
 ---
+
+## Build and Test — ADR-028 Option C implementation (proportional variant, judge diagnostics, prereg v14, E7 replay)
+**Timestamp**: 2026-10-10T15:43:07Z
+**User Input**: "Implement ADR-028 Option C: a proportional neural aggregation variant beside the registered rule (registered stays default and primary), the judge diagnostics as a pre-specified descriptive analysis with a mechanical coding frame, re-score E7 from the recorded cassettes only in replay mode with zero new judge calls into results/e7-corpus/agg-proportional/, a dated prereg v14 bump registered before E1, and a draft PR for Fable review."
+**AI Response**: "Variant proportional-inclusion-weighted-v1 (analysis plan section 12.2): Hajek share of failed judged units, layer strata weighted N_h / V_h for the capped round-robin selection, failed unit = its own U3 confidence weight (0.2 unstable), split vote 0 in the denominator, invalid units left out; AGG-05/09, AVR, renormalisation, AHS, thresholds and verdict source unchanged. --neural-aggregation on evaluate, run-experiment (with --cassette-mode), aggregate; stamped in scoring.neuralAggregation and RunRecord neuralAggregation/cassetteMode; candidatesByLayer persisted; rescore neural:proportional row. Judge diagnostics: scripts/judge-diagnostics(-cli).ts with the registered judge-coding-frame block (1.0.0). Prereg v14 (analysis-plan.md, frozen-instrument.json), --check-prereg ok on all 8 plans. E7 replay: registered replay reproduced all 9 stored reports (AHS, verdicts, judge units, violation ids); proportional replay 9/9 accepted; cassettes 993 files, fingerprint unchanged, 0 judge calls; verdict changes 0 of 9; ahsCombined delta -0.005 to -0.021. Diagnostics: 331 units, 0 vote mismatches; the keyword frame does not separate fail from pass rationales (negation noise), reported as a limitation. Draft PR into v1.2e, do not merge until Fable review."
+**Context**: CONSTRUCTION — Build and Test, ADR-028. Worktree ../DaedalusArch-wt-adr28, branch v1.2e-adr028-proportional. Auto-approved under the standing approval (2026-10-08).
+
+---
+
+## Build and Test — ADR-028 Fable review fixes (prereg v15)
+**Timestamp**: 2026-10-10T16:04:54Z
+**User Input**: "Fable review of PR #47: MERGE WITH FIXES. Apply the fixes as follow-up commits (variant undefined for SEL-07, bias toward clean and the confidence-free share, the judge-effect decomposition and any-fail companion, coding frame 1.1.0, provenance columns and derived reading, the E1 two-pass runbook step, report wording), bump prereg v15 after the code and before E1, then mark the PR ready and merge when CI is green."
+**AI Response**: "Code fd4f19f, plan text f03f972, prereg v15 (analysis-plan.md, frozen-instrument.json), --check-prereg ok on all 8 plans. E7 recomputed from stored reports with 0 judge calls: W_n 0.080, delta_judge (registered) 0.000 on all 9 projects, judge_mattered 0 of 9, delta_dilution 0.022-0.072; proportional moves no verdict, any-fail moves one (dry-run-test soft-block to hard-block). Frame 1.1.0 on E7 (post hoc): messages on 73/73 fail and 0/258 pass carriers; informative code JC-N01-DUP only (0.323); rules_also_flag 63 of 73 failing units. No spec weight changed."
+**Context**: CONSTRUCTION — Build and Test, ADR-028 review fixes. Worktree ../DaedalusArch-wt-adr28, branch v1.2e-adr028-proportional.
+
+---

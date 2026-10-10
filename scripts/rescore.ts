@@ -14,8 +14,10 @@
  *   recomputed over the remaining executed dimensions; the row is marked `ablated`. `droppedDimensions` stays the
  *   report's (U3 reasons only).
  * - Sensitivity only (BR-U5b-60): threshold band sweeps and the neural aggregation variants (`majority`,
- *   `any-fail`, `share`) recomputed from the persisted `neuralResults[].unitResults`. Confidence thresholds are
- *   not swept (only stored AVR inputs are re-weighted); every such row is `purpose = 'sensitivity-only'`.
+ *   `any-fail`, `share`, and ADR-028 `proportional` when every judged row carries `candidatesByLayer`) recomputed
+ *   from the persisted `neuralResults[].unitResults`. The stored contribution that a variant replaces is the one of
+ *   the report's own `scoring.neuralAggregation` (`majority` for `registered` or absent, `proportional`). Confidence
+ *   thresholds are not swept (only stored AVR inputs are re-weighted); every such row is `purpose = 'sensitivity-only'`.
  */
 import { createHash } from 'node:crypto';
 import { existsSync, readFileSync } from 'node:fs';
@@ -23,6 +25,7 @@ import { resolve } from 'node:path';
 import { renormaliseWeights } from '../src/scoring-engine/renormaliser.js';
 import { avrOf, computeAHS, inModeDimensions, tallyDimensions, verdictSourceOf } from '../src/scoring-engine/score-computer.js';
 import { determineVerdict } from '../src/scoring-engine/verdict.js';
+import { proportionalDefinedFor, proportionalShare } from '../src/scoring-engine/neural-aggregation.js';
 import { parseSpec } from '../src/spec-parser/spec-parser.js';
 import type { Dimension, EvaluationMode, OverallVerdict } from '../src/shared/types/enums.js';
 import type {
@@ -42,8 +45,8 @@ const MODEL_JUDGED_DIMENSIONS = inModeDimensions('neuronal-only');
 export type AhsField = ReportScoring['verdictSource'];
 /** Stored AHS fields in report order (U3 §4.6; there is no `ahs` field). */
 export const AHS_FIELDS: readonly AhsField[] = ['ahsDeterministic', 'ahsCombined', 'ahsNeuronal'];
-export type NeuralAggregation = 'majority' | 'any-fail' | 'share';
-export const NEURAL_AGGREGATIONS: readonly NeuralAggregation[] = ['majority', 'any-fail', 'share'];
+export type NeuralAggregation = 'majority' | 'any-fail' | 'share' | 'proportional';
+export const NEURAL_AGGREGATIONS: readonly NeuralAggregation[] = ['majority', 'any-fail', 'share', 'proportional'];
 
 /** Default threshold band offsets of the sensitivity sweep, applied to all three shipped thresholds. */
 export const DEFAULT_THRESHOLD_BANDS: readonly number[] = [-0.05, 0.05];
@@ -295,6 +298,8 @@ export interface AggregatedFunction {
   readonly flaggedUnstable: boolean;
   /** Valid units failing / valid units (the `share` contribution). */
   readonly failShare: number;
+  /** ADR-028 inclusion-weighted share (the `proportional` contribution); set only for that rule. */
+  readonly proportionalShare?: number;
 }
 
 const mean = (xs: readonly number[]): number => (xs.length === 0 ? 0 : xs.reduce((a, b) => a + b, 0) / xs.length);
@@ -334,36 +339,67 @@ function contributionOf(dimension: Dimension, agg: AggregatedFunction, threshold
   return tallyDimensions({ symbolicResults: [], neuronalResults: [fn] }, thresholds).get(dimension)?.violatedWeight ?? 0;
 }
 
+/** The aggregation whose contribution the stored `violatedWeight` holds (ADR-028; absent = registered = `majority`). */
+export function storedAggregationOf(report: RescorableReport): NeuralAggregation {
+  return report.scoring?.neuralAggregation === 'proportional' ? 'proportional' : 'majority';
+}
+
+/**
+ * True when every judged (route `neuronal`) row carries `candidatesByLayer` and selected its own units, so
+ * `proportional` can be recomputed (it is undefined for SEL-07 baseline reuse, ADR-028 v15).
+ */
+export function proportionalAvailable(report: RescorableReport): boolean {
+  const routes = new Map(report.functionResults.map((r) => [String(r.functionId), r.route] as const));
+  const rows = (report.neuralResults ?? []).filter((row) => routes.get(String(row.functionId)) === 'neuronal');
+  return rows.length > 0 && rows.every((row) => row.candidatesByLayer !== undefined && proportionalDefinedFor(row.selection));
+}
+
 /** Per judged function (route `neuronal`), the verdict under `rule`; hybrids keep their stored contribution. */
-export function neuralVerdicts(report: RescorableReport, rule: NeuralAggregation): ReadonlyMap<string, AggregatedFunction> {
+export function neuralVerdicts(
+  report: RescorableReport, rule: NeuralAggregation, thresholds?: ConfidenceThresholds,
+): ReadonlyMap<string, AggregatedFunction> {
   const routes = new Map(report.functionResults.map((r) => [String(r.functionId), r.route] as const));
   const out = new Map<string, AggregatedFunction>();
   for (const row of report.neuralResults ?? []) {
     if (routes.get(String(row.functionId)) !== 'neuronal') continue;
-    const agg = aggregateUnits(row.unitResults, rule);
-    if (agg !== undefined) out.set(String(row.functionId), agg);
+    const agg = aggregateUnits(row.unitResults, rule === 'proportional' ? 'majority' : rule);
+    if (agg === undefined) continue;
+    if (rule === 'proportional') {
+      const p = proportionalShare(row.unitResults, row.candidatesByLayer, thresholds ?? report.scoring?.confidenceThresholds);
+      out.set(String(row.functionId), { ...agg, proportionalShare: p?.share ?? 0 });
+    } else {
+      out.set(String(row.functionId), agg);
+    }
   }
   return out;
 }
 
+function variantContributionOf(rule: NeuralAggregation, d: Dimension, v: AggregatedFunction, thresholds: ConfidenceThresholds): number {
+  if (rule === 'share') return v.failShare;
+  if (rule === 'proportional') return v.proportionalShare ?? 0;
+  return contributionOf(d, v, thresholds);
+}
+
 /**
- * Dimension inputs with the judged functions' contributions recomputed under `rule`: the `majority` contribution
- * (which equals the stored one, U4 AGG-04) is replaced by the variant's. Confidence thresholds stay the shipped ones.
+ * Dimension inputs with the judged functions' contributions recomputed under `rule`: the stored contribution (that of
+ * `storedAggregationOf(report)`: `majority`, which equals U4 AGG-04 under the registered rule, or `proportional`) is
+ * replaced by the variant's. Confidence thresholds stay the shipped ones.
  */
 export function aggregatedInputs(report: RescorableReport, inputs: RescoreInputs, rule: NeuralAggregation): DimensionInputs {
   const base = new Map<Dimension, { violatedWeight: number; functionCount: number }>(
     [...dimensionInputs(report)].map(([d, x]) => [d, { violatedWeight: x.violatedWeight, functionCount: x.functionCount }]),
   );
-  const majority = neuralVerdicts(report, 'majority');
-  const variant = neuralVerdicts(report, rule);
+  const storedRule = storedAggregationOf(report);
+  const stored = neuralVerdicts(report, storedRule, inputs.confidenceThresholds);
+  const variant = neuralVerdicts(report, rule, inputs.confidenceThresholds);
   const dims = new Map((report.neuralResults ?? []).map((r) => [String(r.functionId), r.dimension] as const));
-  for (const [id, m] of majority) {
+  for (const [id, m] of stored) {
     const d = dims.get(id);
     const v = variant.get(id);
     const entry = d === undefined ? undefined : base.get(d);
     if (d === undefined || v === undefined || entry === undefined) continue;
-    const variantContribution = rule === 'share' ? v.failShare : contributionOf(d, v, inputs.confidenceThresholds);
-    entry.violatedWeight += variantContribution - contributionOf(d, m, inputs.confidenceThresholds);
+    entry.violatedWeight += variantContributionOf(rule, d, v, inputs.confidenceThresholds)
+      - variantContributionOf(storedRule, d, m, inputs.confidenceThresholds);
   }
   return base;
 }
@@ -408,11 +444,14 @@ export function rescoreReport(report: RescorableReport, options: RescoreOptions 
     sensitivity.push(runScenario(report, inputs, dims, fields, { id: `thresholds:${thresholdsLabel(t)}`, purpose: 'sensitivity-only', thresholds: t }));
   }
   if ((report.neuralResults ?? []).length > 0) {
+    const storedRule = storedAggregationOf(report);
+    const withProportional = proportionalAvailable(report);
     for (const rule of NEURAL_AGGREGATIONS) {
+      if (rule === 'proportional' && !withProportional) continue;
       const r = runScenario(report, inputs, aggregatedInputs(report, inputs, rule), fields, {
         id: `neural:${rule}`, purpose: 'sensitivity-only', thresholds: shipped, neuralAggregation: rule,
       });
-      sensitivity.push(rule === 'majority' ? { ...r, reproducesStored: reproductionMismatches(report, inputs, r).length === 0 } : r);
+      sensitivity.push(rule === storedRule ? { ...r, reproducesStored: reproductionMismatches(report, inputs, r).length === 0 } : r);
     }
   }
   return { ok: true, value: { runId: report.runId, inputSource: inputs.source, reproduction, ablations, sensitivity } };

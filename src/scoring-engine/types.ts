@@ -6,6 +6,7 @@ import type { PipelineError } from '../shared/errors/domain-result.js';
 import type { GraphRepository } from '../shared/interfaces/graph-repository.js';
 import type { APGResult } from '../shared/types/apg.js';
 import type { CycleMetricTiming } from './universal-metrics.js';
+import type { NeuralAggregation } from './neural-aggregation.js';
 
 /** domain-entities.md §4.1 (U3-owned). */
 export interface ScoringInput {
@@ -24,13 +25,16 @@ export interface ScoringInput {
   readonly apg?: APGResult;                                // context.getApgResult(); read only when CYCLE_STRATEGY === 'scc' (BR-U3-45)
   /** Receives the universal cycle metric's own timing (ADR-016 e; ADR-021 SO2; audit SO2-2). */
   readonly onCycleMetricTiming?: (timing: CycleMetricTiming) => void;
+  /** ADR-028: neural aggregation of the AHS fields (default `registered`); stamped in judge modes. */
+  readonly neuralAggregation?: NeuralAggregation;
 }
 
 export type ScoringErrorCode =
   | 'SCORING_FAILED'
   | 'METRICS_QUERY_FAILED'
   | 'SCORING_NO_EXECUTED_WEIGHT'          // BR-U3-37
-  | 'CONFIG_MISSING_FULL_MODE_WEIGHTS';   // BR-U3-37
+  | 'CONFIG_MISSING_FULL_MODE_WEIGHTS'    // BR-U3-37
+  | 'NEURAL_AGGREGATION_UNDEFINED';       // ADR-028: proportional on a SEL-07 baseline-reuse run
 
 export interface ScoringError extends PipelineError {
   readonly code: ScoringErrorCode;

@@ -19,6 +19,8 @@ const U5B_LIB = [
   'report-io', 'stats', 'label-context', 'prereg', 'canonical-json', 'matching-rule', 'so5-codes', 'label-plan', 'label-adapters',
   // ADR-021 SO4-05 (U6 SO4): the seed coverage and golden-N rows.
   'so4-coverage',
+  // ADR-028 item 4: the judge-diagnostics coding frame loader.
+  'judge-coding-frame',
 ];
 const U5B_SCRIPTS = [
   'score-golden', 'rescore', 'llm-label', 'run-experiment', 'aggregate', 'select-corpus', 'fetch-corpus',
@@ -28,6 +30,8 @@ const U5B_SCRIPTS = [
   'build-label-plan',
   // ADR-021 SO4-04 (U6 SO4): the run-to-score-case adapter.
   'build-score-case',
+  // ADR-028: the registered-vs-proportional comparison and the judge diagnostics.
+  'compare-aggregations', 'judge-diagnostics',
 ];
 
 export function u5bScriptFiles(root: string = ROOT): string[] {
@@ -50,6 +54,7 @@ const WHITELISTED_SRC = new Set([
   'src/evaluation-engine/evidence.ts',       // C6 formatEvidence / parseEvidence
   'src/scoring-engine/renormaliser.ts',      // C8 renormaliseWeights
   'src/scoring-engine/score-computer.ts',    // C8 computeAHS
+  'src/scoring-engine/neural-aggregation.ts', // C8 proportionalShare (ADR-028 variant; rescore, frozen-instrument scoringFreeze)
   'src/scoring-engine/verdict.ts',           // C8 determineVerdict
   'src/scoring-engine/report-schema-validator.ts', // C8 parseReport / validateReport
   'src/scoring-engine/index.ts',

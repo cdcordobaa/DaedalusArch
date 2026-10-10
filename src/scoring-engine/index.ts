@@ -8,6 +8,11 @@ export {
 export type { DimensionTally, DimensionScoring, DimensionScoringInput, VerdictSource } from './score-computer.js';
 export { determineVerdict } from './verdict.js';
 export {
+  confidenceWeight, proportionalShare, proportionalDefinedFor, parseNeuralAggregation, NEURAL_AGGREGATIONS, DEFAULT_NEURAL_AGGREGATION,
+  PROPORTIONAL_RULE_ID,
+} from './neural-aggregation.js';
+export type { NeuralAggregation, ProportionalShare, ProportionalStratum, ProportionalUnit } from './neural-aggregation.js';
+export {
   computeUniversalMetrics, UNIVERSAL_METRIC_QUERIES, NO_CLASSES_OR_INTERFACES, NO_FILE_TO_FILE_IMPORTS, APG_MISSING,
   UNIVERSAL_CYCLE_STAGE,
 } from './universal-metrics.js';

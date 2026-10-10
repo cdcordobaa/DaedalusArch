@@ -1,7 +1,7 @@
 {
-  "version": 13,
-  "registeredAt": "2026-10-10T05:11:20Z",
-  "reason": "ADR-026 implementation note (P2 v1 side registered; Docs/analysis-plan.md section 10 B8). Made before any e7-corpus-v1sym run, before any label-plan build on stored results and before any live label call. No label exists. The rule was written from the report fields (evaluationMode, route) and not from any count. Per artefact: (1) experiments/e7-corpus-v1sym/plan.json, new. It is a symbolic-only plan with instrument v1 and the same nine entries as e7-corpus (bases, paths and specs; the corpus clones at their corpus/corpus.json commits), seeds 7201/7202/7203, and outDir results/e7-corpus-v1sym. It is the registered route that produces the --corpus-v1-runs side without a judge call (ADR-026: no generation or judge call is repeated). (2) Docs/analysis-plan.md. Section 2 gains the plan row. Section 10 B8 gains the mode-pairing implementation rule: v1 must be symbolic-only and v2 full or symbolic-only; runs pair by project and spec sha only; only symbolic-route rows are compared and drawn; a violating pair is refused; the v1-only strata use the v1 plan's sampling seed; the SO4 baseline-precision v2 rows drop the v1-only strata (p2FrameOf), with a v1 overall row and a v1-only counts-only row. Section 11 gains a dated row. No estimand, size, seed of an existing plan, interval rule or label-plan config changes. All other 69 artefacts are unchanged.",
+  "version": 15,
+  "registeredAt": "2026-10-10T16:03:46Z",
+  "reason": "ADR-028 Fable review of PR #47 (MERGE WITH FIXES), made after the code (fd4f19f) and before any e1-grid run (no E1 RunRecord exists). Per artefact: (1) Docs/analysis-plan.md: section 12.2 declares the proportional variant UNDEFINED for SEL-07 baseline-reuse runs (addedByVariant units have p = 1; the scorer refuses with NEURAL_AGGREGATION_UNDEFINED) and deletes the earlier 'same post-stratified formula' sentence; names the confidence asymmetry as a bias toward clean and adds the confidence-free Hajek share as a reported column; states that hash order is treated as SRS within a layer and that no variance is reported. Section 12.3 registers the judge-effect decomposition (W_n, the bound -W_n, the judge-blind ahsCombined and verdict, delta_dilution and its identity, delta_judge, judge_mattered), the any-fail verdict beside the proportional one, the derived reading (post hoc when the registered run's preregVersion < 14, a contradicting override refused) and the E1 two-pass procedure with the --out-dir rule. Section 12.4 and the machine block: coding frame 1.1.0 (same criteria and patterns; primary coding on violation messages only; a secondary reasoning coding with a 5-token negation guard; the discrimination statistic, informative at >= 0.3; the non-text rules_also_flag join); frame 1.1.0's reading of E7 is POST HOC because the E7 rationales and the 1.0.0 counts were read, its reading of E1 is pre-registered. Section 10 B9: the decomposition columns and the wording rules (combined above rules-only is a W_n = 0.08 weighting artefact, never judge evidence; 'the proportional variant moves no verdict' always with 'the any-fail rule moves one, dry-run-test soft-block to hard-block'; the bound on the judge's effect). Header note and section 11 row. (2) corpus/frozen-instrument.json: scoringFreeze.neuralAggregation.variants.proportional gains definedFor own-selection, withinLayerSampling hash-order-as-srs, variance not-reported, companionColumn confidence-free-share; re-exported, no other key changes. No estimand of the registered rule, plan, seed, size, interval rule, matching rule, spec, spec weight or label-plan config changes. All other 68 artefacts are unchanged.",
   "matchingRuleVersion": "1.2.0",
   "artefacts": [
     {
@@ -18,7 +18,7 @@
     },
     {
       "path": "Docs/analysis-plan.md",
-      "sha256": "bf4aff86ff91347ead199b1503b810ab0789a33f6c47529b340d11cc790e3c21"
+      "sha256": "d746ab521420eadcbea12ce6d40f8de4a4844e1bb882e578a4acd9ca269ea69c"
     },
     {
       "path": "Docs/corpus-criteria.md",
@@ -66,7 +66,7 @@
     },
     {
       "path": "corpus/frozen-instrument.json",
-      "sha256": "6672293d6d2e02052436fd77e6e33aab600d4d449053dc170b255ad09c7341da"
+      "sha256": "5b6073b5dc0c4dedf8a62bf519d58cbfa2e2c7c317dd28ec45406d30f0ee539c"
     },
     {
       "path": "corpus/label-plan-config.json",
@@ -340,6 +340,14 @@
     {
       "version": 12,
       "commit": "4c88edf467d00888c91d4477f742862e42204aff"
+    },
+    {
+      "version": 13,
+      "commit": "32c2a664ee2bdaeb67934a159b1727f2bbec5208"
+    },
+    {
+      "version": 14,
+      "commit": "eeb55bb35cb99b0fb8f202b5655dfe94926b23b1"
     }
   ]
 }

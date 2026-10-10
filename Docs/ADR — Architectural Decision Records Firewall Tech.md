@@ -1246,6 +1246,10 @@ Lock-file check (decision 2): `scripts/fetch-corpus.ts` runs exactly one install
 
 **Rationale**: This keeps the pre-registration intact, answers the question "what does the judge add?" with evidence, costs no extra judge calls, and matches the author's view that the judge both diagnoses and is able to move verdicts.
 
+**Implementation (2026-10-10, prereg v14)**: the variant is `proportional-inclusion-weighted-v1` (`Docs/analysis-plan.md` §12.2): the Hájek share of failed judged units, layer strata weighted N_h / V_h for the capped round-robin selection, a failed unit scoring the U3 confidence weight of its own confidence, a split vote scoring 0, invalid units left out. It is selected with `--neural-aggregation proportional` (`evaluate`, `run-experiment-cli`, `aggregate-cli`) and is stamped in `scoring.neuralAggregation` and the RunRecord. The judge diagnostics are in §12.4 (`scripts/judge-diagnostics-cli.ts`, the `judge-coding-frame` block). E7 was re-scored from its cassettes in replay mode with no judge call (`results/e7-corpus/agg-proportional/`, POST HOC). The proportional variant moves no verdict (0 of 9); the any-fail rule (BR-U5b-60) moves one (`dry-run-test`, soft-block → hard-block).
+
+**Review fixes (2026-10-10, prereg v15, Fable review of PR #47)**: the variant is undefined for SEL-07 baseline reuse; its confidence weighting is biased toward clean, so the confidence-free share is reported beside it; hash order is treated as SRS within a layer and no variance is reported. The judge-effect decomposition is registered (§12.3). The judge dimensions weigh W_n = 0.08 in every registered spec, so the judge can lower `ahsCombined` by at most 0.08 and never raise it above the judge-blind value; on E7 the registered judge contribution is 0 everywhere and no verdict depends on the judge. That the combined AHS stays above the rules-only AHS is a weighting artefact of W_n (`delta_dilution`), not evidence about the judge. Coding frame 1.1.0 codes the violation messages only, with a guarded reasoning coding and a pre-declared discrimination statistic; its E7 reading is post hoc.
+
 ---
 
 ## Decision Log Summary

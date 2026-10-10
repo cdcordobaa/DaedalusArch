@@ -8,7 +8,7 @@ import type { FunctionId } from '../../shared/types/value-objects.js';
 import type { PipelineWarning } from '../../shared/errors/domain-result.js';
 import { DomainResult } from '../../shared/errors/domain-result.js';
 import { computeScoredReport } from '../../scoring-engine/index.js';
-import type { CycleMetricTiming } from '../../scoring-engine/index.js';
+import type { CycleMetricTiming, NeuralAggregation } from '../../scoring-engine/index.js';
 import { toPipelineError, toPipelineWarning } from './map-helpers.js';
 
 export interface ScoreCommandConfig {
@@ -23,6 +23,8 @@ export interface ScoreCommandConfig {
   readonly fitnessFunctions: readonly FitnessFunction[];
   /** Receives the universal cycle metric's own timing (ADR-016 e; ADR-021 SO2; audit SO2-2). */
   readonly onCycleMetricTiming?: (timing: CycleMetricTiming) => void;
+  /** ADR-028: `registered` (default) or `proportional`. */
+  readonly neuralAggregation?: NeuralAggregation;
 }
 
 /** U4's warning for a neural function with zero selected units (U4 BR-U4-AGG-09). */
@@ -66,6 +68,7 @@ export class ScoreCommand implements PipelineCommand {
       noJudgeUnits: noJudgeUnitIds(context.warnings),
       ...(apg !== undefined && { apg }),
       ...(this.config.onCycleMetricTiming !== undefined && { onCycleMetricTiming: this.config.onCycleMetricTiming }),
+      ...(this.config.neuralAggregation !== undefined && { neuralAggregation: this.config.neuralAggregation }),
     });
 
     if (!result.success) {

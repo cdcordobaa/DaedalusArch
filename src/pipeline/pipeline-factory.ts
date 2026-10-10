@@ -287,6 +287,7 @@ class LazyScoreCommand implements PipelineCommand {
       specVersion: parsedSpec.specVersion,
       fitnessFunctions: parsedSpec.fitnessFunctions,
       ...(this.onCycleMetricTiming !== undefined && { onCycleMetricTiming: this.onCycleMetricTiming }),
+      ...(this.config.neuralAggregation !== undefined && { neuralAggregation: this.config.neuralAggregation }),
     });
 
     return scoreCmd.execute(context);
