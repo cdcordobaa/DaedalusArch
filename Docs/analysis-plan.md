@@ -268,7 +268,7 @@ verdict lacks `source`, so the E1 headline row and the B3 row never fall back to
 
 **Registered live sizes (ADR-021 items 6 and 8, amended 2026-10-09 for P-U6).** The agy route
 (`Docs/labeller-route.md`) allows about 180 label calls a week, so the live plan is sized explicitly by
-`corpus/label-plan-config.json` (version 2, a registered artefact) instead of by the cap-derived bound above; the 4000
+`corpus/label-plan-config.json` (version 3 since ADR-026, a registered artefact) instead of by the cap-derived bound above; the 4000
 calls of `corpus/prereg.json` stay a ceiling, not a target.
 
 | Item | Registered value |
@@ -545,7 +545,15 @@ These statements are registered: every report of the corresponding figure carrie
     The **v1 estimate** is the stratified Horvitz–Thompson combination of both parts over the v1 population
     (v2 ∪ v1-only): n = 30, n_eff = Kish over the combined weights, below 30 when the weights differ. The v1-only part
     alone (n = 6, n_eff ≤ 6) is reported as counts only. `build-label-plan` prints n and n_eff per version before any
-    live call; the v1-only stratum needs that producer change before labelling.
+    live call. **Producer (2026-10-09, label-plan config version 3):** the split is registered as
+    `sampled.P2.maxItems` 30 with `sampled.P2.v1OnlyMaxItems` 6; the v1-only set comes from `--corpus-v1-runs`, the
+    `--instrument v1` symbolic-only re-evaluation of every accepted `e7-corpus` run (RunRecord `instrumentVersion` 1),
+    as the rows of each v1 report that its v2 report (same project and spec) lacks; its strata are named
+    `v1-only: <project>, <function>` and its stratum draw has its own seeded stream. The plan is refused
+    (`LABEL_PLAN_INPUT_INVALID`) when a v2 run has no v1 re-evaluation, a v1 run has no single v2 pair or no v1 stamp,
+    or a v2 violation is missing from its v1 report. A frame that cannot fill its share leaves it unused (no
+    reallocation). When the budget lowers P2 to L items, the v1-only share is ⌊6 L / 30⌋ and the v2 population takes
+    the rest; only then does a share one frame cannot use go to the other.
   - **E7, E1 and SO5** (not yet run): v2 is the instrument, registered before these runs. Any symbolic count they
     report (violations, violations per KLOC, FPAT profile, AHS) also gets a v1 sensitivity row from a symbolic-only
     re-evaluation of the same stored code with `--instrument v1`; no generation or judge call is repeated for it.
@@ -579,3 +587,4 @@ These statements are registered: every report of the corresponding figure carrie
 | 2026-10-09 (P-U6) | §6 | Label-dependent FPAT values N/A without P3 labels; the profile from symbolic counts (`so5_patterns.csv` `basis`) | ADR-021 item 8.1 |
 | 2026-10-09 (P-U6) | §8 | Rejected pairs listed and the rest scored | ADR-021 SO4-03 |
 | 2026-10-09 (ADR-026, POST-HOC) | §4, §10 | B8: instrument v2 role exemptions (FF-CV05, FF-C02, FF-C03) and the `--instrument v1 / v2` switch; every table names its version; v1 primary for SO4 and SO2 with v2 beside, the differing aggregate files listed; P2 drawn from the v2 `e7-corpus` population (24) plus a v1-only exempted stratum set (6), n and n_eff per version; v2 the instrument for E7, E1 and SO5 with a v1 symbolic sensitivity row | ADR-026 |
+| 2026-10-09 (ADR-026, label-plan producer) | §4, §10 | B8: the P2 v1-only stratum set implemented in `build-label-plan` (`--corpus-v1-runs`; config version 3, `v1OnlyMaxItems` 6); refusals, no reallocation, the lowering split ⌊6 L / 30⌋; precision rows per version (v2, v1 combined, v1-only counts only) | ADR-026 (implementation note) |

@@ -4,8 +4,9 @@
 import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import {
-  CONTEXT_CUT_MARKER, LABEL_PLAN_CONFIG_FILE, LABEL_PLAN_OVER_BUDGET, available, capacityItems, capacityOf, ceilingsFor, checkLabelPlanConfig,
-  escalatedBudget, ppsInclusion, ppsSystematic, precisionStatement, sampleRegistered, thinExhaustive, trimContext, weeksNeeded,
+  CONTEXT_CUT_MARKER, LABEL_PLAN_CONFIG_FILE, LABEL_PLAN_OVER_BUDGET, V1_ONLY_STRATUM_PREFIX, available, capacityItems, capacityOf, ceilingsFor,
+  checkLabelPlanConfig, escalatedBudget, p2FrameOf, p2Split, ppsInclusion, ppsSystematic, precisionStatement, sampleRegistered, stratumDrawSeed,
+  thinExhaustive, trimContext, weeksNeeded,
 } from '../../../../scripts/lib/label-plan.js';
 import type { LabelPlanConfig } from '../../../../scripts/lib/label-plan.js';
 import type { StratumSample, ViolationCandidate } from '../../../../scripts/lib/label-context.js';
@@ -26,7 +27,7 @@ function vc(owner: string, functionId: string, n: number): ViolationCandidate {
   };
 }
 
-describe('registered config (corpus/label-plan-config.json, version 2)', () => {
+describe('registered config (corpus/label-plan-config.json, version 3)', () => {
   it('is valid: agy route, 300 calls, (46 + 30 + 0 + 59) x 2 + 30 = 300, P3 out of labelling, P2 PPS, audit seed 6105', () => {
     const c = registered();
     expect(checkLabelPlanConfig(c)).toEqual([]);
@@ -36,7 +37,9 @@ describe('registered config (corpus/label-plan-config.json, version 2)', () => {
     expect((c.sampled.P4.maxItems + c.sampled.P2.maxItems + c.sampled.P3.maxItems + c.exhaustivePlanned) * 2 + c.reaskReserveCalls).toBe(300);
     // ADR-021 item 8.1: P3 out of live labelling, its calls go to P2 (20 + 10 = 30).
     expect(c.sampled.P3.maxItems).toBe(0);
-    expect(c.sampled.P2).toEqual({ perStratum: 1, maxItems: 30, strataDraw: 'pps' });
+    // ADR-026 (analysis plan §10 B8): of the 30 P2 items, 6 come from the v1-only stratum set and 24 from the v2 population.
+    expect(c.version).toBe(3);
+    expect(c.sampled.P2).toEqual({ perStratum: 1, maxItems: 30, strataDraw: 'pps', v1OnlyMaxItems: 6 });
     // Item 8.2: whole weeks of 180 calls up to 4 weeks (720 calls); the P1 + MS basis is stated.
     expect(c.quota).toEqual({ callsPerWeek: 180, minWeeks: 2, maxWeeks: 4 });
     expect(c.exhaustivePlannedBasis).toContain('u5a-freeze-gate-a');
@@ -51,48 +54,59 @@ describe('registered config (corpus/label-plan-config.json, version 2)', () => {
     expect(checkLabelPlanConfig({ ...registered(), budgetCalls: 400 }).join(';')).toContain('budgetCalls');
     expect(checkLabelPlanConfig({ ...registered(), exhaustivePlanned: 60 }).join(';')).toContain('need 272 calls + reserve 30 > budget 300');
     expect(checkLabelPlanConfig({ ...registered(), priority: ['P4', 'P4', 'P3'] }).join(';')).toContain('priority');
-    expect(checkLabelPlanConfig({ ...registered(), version: 1 }).join(';')).toContain('version must be 2');
+    expect(checkLabelPlanConfig({ ...registered(), version: 2 }).join(';')).toContain('version must be 3');
     expect(checkLabelPlanConfig({ ...registered(), exhaustivePlannedBasis: ' ' }).join(';')).toContain('exhaustivePlannedBasis');
     expect(checkLabelPlanConfig({ ...registered(), seeds: { strata: 1, permutation: 2, bootstrap: 3 } }).join(';')).toContain('seeds.audit');
     expect(checkLabelPlanConfig({ ...registered(), quota: { callsPerWeek: 180, minWeeks: 2, maxWeeks: 1 } }).join(';')).toContain('maxWeeks');
     expect(checkLabelPlanConfig({ ...registered(), context: { maxChars: { violation: 6000 } } }).join(';')).toContain('context.maxChars.judge-unit');
     expect(checkLabelPlanConfig({ ...registered(), sampled: { ...registered().sampled, P2: { perStratum: 1, maxItems: 30, strataDraw: 'x' } } }).join(';')).toContain('strataDraw');
+    // ADR-026: the v1-only size is required on P2, at most P2's ceiling, and a P2 field only.
+    const sampled = registered().sampled;
+    expect(checkLabelPlanConfig({ ...registered(), sampled: { ...sampled, P2: { perStratum: 1, maxItems: 30, strataDraw: 'pps' } } }).join(';')).toContain('sampled.P2.v1OnlyMaxItems');
+    expect(checkLabelPlanConfig({ ...registered(), sampled: { ...sampled, P2: { ...sampled.P2, v1OnlyMaxItems: 31 } } }).join(';')).toContain('sampled.P2.v1OnlyMaxItems');
+    expect(checkLabelPlanConfig({ ...registered(), sampled: { ...sampled, P4: { ...sampled.P4, v1OnlyMaxItems: 1 } } }).join(';')).toContain('sampled.P4.v1OnlyMaxItems is a P2 field only');
     expect(checkLabelPlanConfig(null)).toEqual(['config is not an object']);
   });
 });
 
 describe('ceilings under the budget (priority P4 > P2 > P3) and the escalation rule (item 8.2)', () => {
   const sizes = { P4: Array<number>(46).fill(1), P2: Array<number>(30).fill(4), P3: Array<number>(15).fill(2) };
+  // The v1-only P2 set: 10 strata of 2, so P2 wants 24 (v2) + 6 (v1-only) = 30 and the sampled total stays 76.
+  const v1 = Array<number>(10).fill(2);
 
   it('P1 + MS within 135: no escalation; lowers P3 (0), then P2, then P4 until 135 items fit', () => {
     // exhaustive 100; P4 46, P2 30, P3 0 (registered) -> 176, 41 over: P2 -30, P4 -11.
-    const c = ceilingsFor(registered(), 100, sizes);
+    const c = ceilingsFor(registered(), 100, sizes, v1);
     expect(c).toMatchObject({ ok: true, budgetCalls: 300, escalated: false, capacityItems: 135, exhaustiveKept: 100 });
     expect(c.maxItems).toEqual({ P4: 35, P2: 0, P3: 0 });
+    expect(c.p2Split).toEqual({ v2: 0, v1Only: 0 });
     expect(c.lowered).toEqual(['P2', 'P4']);
   });
 
   it('keeps the registered ceilings when everything fits, and caps them by what the strata can give', () => {
-    const c = ceilingsFor(registered(), 10, { P4: [1, 1, 1], P2: Array<number>(30).fill(4), P3: [5] });
+    const c = ceilingsFor(registered(), 10, { P4: [1, 1, 1], P2: Array<number>(30).fill(4), P3: [5] }, v1);
     expect(c.maxItems).toEqual({ P4: 3, P2: 30, P3: 0 });
+    expect(c.p2Split).toEqual({ v2: 24, v1Only: 6 });
     expect(c.lowered).toEqual([]);
+    // Without a v1-only set the v2 population still gets only its registered 24 (no reallocation, ADR-026).
+    expect(ceilingsFor(registered(), 10, { P4: [1, 1, 1], P2: Array<number>(30).fill(4), P3: [5] }).maxItems.P2).toBe(24);
   });
 
   it('P1 + MS = 136 > 135: whole weeks, 360 (165 items) too small for 136 + 76, 540 (255 items) holds them, nothing lowered', () => {
     expect(capacityOf(registered(), 360)).toBe(165);
     expect(capacityOf(registered(), 540)).toBe(255);
     expect(escalatedBudget(registered(), 136, 76)).toEqual({ budgetCalls: 540, escalated: true });
-    const c = ceilingsFor(registered(), 136, sizes);
+    const c = ceilingsFor(registered(), 136, sizes, v1);
     expect(c).toMatchObject({ ok: true, budgetCalls: 540, escalated: true, capacityItems: 255, exhaustiveKept: 136, lowered: [] });
     expect(c.maxItems).toEqual({ P4: 46, P2: 30, P3: 0 });
   });
 
   it('P1 + MS = 300: the limit of 4 weeks (720 calls, 345 items), then P2 -30 and P4 -1; = 400: thinned, never refused', () => {
     expect(escalatedBudget(registered(), 200, 76)).toEqual({ budgetCalls: 720, escalated: true });
-    const c = ceilingsFor(registered(), 300, sizes);
+    const c = ceilingsFor(registered(), 300, sizes, v1);
     expect(c).toMatchObject({ budgetCalls: 720, capacityItems: 345, exhaustiveKept: 300 });
     expect(c.maxItems).toEqual({ P4: 45, P2: 0, P3: 0 });
-    const over = ceilingsFor(registered(), 400, sizes);
+    const over = ceilingsFor(registered(), 400, sizes, v1);
     expect(over).toMatchObject({ ok: true, budgetCalls: 720, exhaustiveKept: 345, maxItems: { P4: 0, P2: 0, P3: 0 } });
     expect(over.detail).toContain(LABEL_PLAN_OVER_BUDGET);
     expect(over.detail).toContain('p = 345/400');
@@ -197,6 +211,53 @@ describe('PPS stratum draw (ADR-021 item 8.3: P2 self-weighting)', () => {
       expect(k.sampled[0]?.inclusionProbability).toBeCloseTo(k.stratum === 'D, F' ? 1 / 14 : 1 / 6, 12);
     }
     expect(new Map(s.map((x) => [x.stratum, x.stratumInclusionProbability])).get('C, F')).toBeCloseTo(0.5, 12);
+  });
+});
+
+describe('P2 frames: v2 population and v1-only stratum set (ADR-026; analysis plan §10 B8)', () => {
+  const many = Array<number>(40).fill(3);
+
+  it('registered split 24 / 6, each capped by what its own strata give, a short frame not refilled', () => {
+    expect(p2Split(registered(), Number.POSITIVE_INFINITY, many, Array<number>(10).fill(2))).toEqual({ v2: 24, v1Only: 6, total: 30 });
+    // Two v1-only strata of one item: 2 items, the 4 unused slots stay unused.
+    expect(p2Split(registered(), Number.POSITIVE_INFINITY, many, [1, 1])).toEqual({ v2: 24, v1Only: 2, total: 26 });
+    // Three v2 strata: 3 items; v1-only keeps its 6.
+    expect(p2Split(registered(), Number.POSITIVE_INFINITY, [5, 5, 5], Array<number>(10).fill(2))).toEqual({ v2: 3, v1Only: 6, total: 9 });
+    expect(p2Split(registered(), Number.POSITIVE_INFINITY, [], [])).toEqual({ v2: 0, v1Only: 0, total: 0 });
+  });
+
+  it('lowered by the budget: v1-only floor(L x 6 / 30), v2 the rest; a share one frame cannot use goes to the other', () => {
+    // L = 10: v1-only floor(60 / 30) = 2, v2 8.
+    expect(p2Split(registered(), 10, many, Array<number>(10).fill(2))).toEqual({ v2: 8, v1Only: 2, total: 10 });
+    // L = 4: v1-only floor(24 / 30) = 0, v2 4.
+    expect(p2Split(registered(), 4, many, Array<number>(10).fill(2))).toEqual({ v2: 4, v1Only: 0, total: 4 });
+    // L = 10 with one v1-only stratum: v1-only 1, v2 9.
+    expect(p2Split(registered(), 10, many, [3])).toEqual({ v2: 9, v1Only: 1, total: 10 });
+    // L = 5 with three v2 strata: v1-only floor(30 / 30) = 1, v2 min(3, 4) = 3, then v1-only min(6, 5 - 3) = 2.
+    expect(p2Split(registered(), 5, [5, 5, 5], Array<number>(10).fill(2))).toEqual({ v2: 3, v1Only: 2, total: 5 });
+  });
+
+  it('frame of a stratum name; the v1-only frame has its own stratum-draw stream, the v2 stream is unchanged', () => {
+    expect(p2FrameOf('proj, FF-CV05')).toBe('v2');
+    expect(p2FrameOf(`${V1_ONLY_STRATUM_PREFIX}proj, FF-CV05`)).toBe('v1-only');
+    expect(stratumDrawSeed(6101, 'P2', 'v1-only')).not.toBe(stratumDrawSeed(6101, 'P2'));
+    expect(stratumDrawSeed(6101, 'P2', undefined)).toBe(stratumDrawSeed(6101, 'P2'));
+  });
+
+  it('PPS on the v1-only set by hand: X 2, Y 2 (N = 4), m = 1 -> pi 1/2 each, p = 1/2 x 1/2 = 1/4', () => {
+    const cands = [vc(`${V1_ONLY_STRATUM_PREFIX}A`, 'FF-CV05', 0), vc(`${V1_ONLY_STRATUM_PREFIX}A`, 'FF-CV05', 1), vc(`${V1_ONLY_STRATUM_PREFIX}A`, 'FF-C02', 2), vc(`${V1_ONLY_STRATUM_PREFIX}A`, 'FF-C02', 3)];
+    const s = sampleRegistered(cands, 'P2', { perStratum: 1, maxItems: 1, strataDraw: 'pps' }, 1, 6101, () => 7101, 'v1-only');
+    expect(s.map((x) => [x.stratum, x.size, x.stratumInclusionProbability])).toEqual([
+      ['v1-only: A, FF-C02', 2, 0.5], ['v1-only: A, FF-CV05', 2, 0.5],
+    ]);
+    const kept = s.flatMap((x) => x.sampled);
+    expect(kept).toHaveLength(1);
+    expect(kept[0]?.inclusionProbability).toBe(0.25);
+  });
+
+  it('precision statements: v1-only counts only even at n_eff >= 10', () => {
+    const r = precisionStatement('v1-only', Array<number>(12).fill(1), true);
+    expect(r).toEqual({ row: 'v1-only', n: 12, nEff: 12, halfWidthAt50: null, halfWidthAt85: null });
   });
 });
 

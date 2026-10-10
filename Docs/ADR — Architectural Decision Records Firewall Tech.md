@@ -1194,6 +1194,13 @@ A reading of "implementers completed" (MO-SO02) that also rewrites every object 
 
 **Threat**: TV-97. The exempted classes were chosen after seeing which rules were noisy; the spot check names the rules, and the conventions decide where each rule's boundary lies. Both spot checks are informal; the registered P2 labelling remains the precision measurement.
 
+**Implementation note (2026-10-09, label-plan producer; prereg v12).** The P2 v1-only stratum set of analysis plan §10 B8 is built by `build-label-plan` (`scripts/build-label-plan.ts`, `scripts/lib/label-plan.ts`) before any live call, from test fixtures only (no E7 output was read). Design questions answered by the ADR-015 criterion (does the choice change whether the result can be produced and defended?):
+1. *Registered size*: `corpus/label-plan-config.json` version 3 adds `sampled.P2.v1OnlyMaxItems` = 6 inside the unchanged `maxItems` 30, so the call arithmetic (46 + 30 + 0 + 59) × 2 + 30 = 300 is unchanged.
+2. *Source of the frame*: the paired `--instrument v1` symbolic-only re-evaluation of each accepted `e7-corpus` run (`--corpus-v1-runs`, RunRecord `instrumentVersion` 1). The v1-only rows are the v1 report's violation keys absent from the v2 report of the same project and spec. A v2 key missing from v1 refuses the plan (item 6: v2 = v1 minus the exempted rows), as do an unpaired run on either side and, with `v1OnlyMaxItems` > 0, a missing v1 re-evaluation, so a v2-only P2 cannot be labelled by accident.
+3. *Strata and draws*: strata are named `v1-only: <project>, <function>`, which keeps the plan's (population, stratum) keys unique and lets `stratumFunctionId` still read the function. Each frame is drawn by the §4 PPS rule with its own m (24 and 6) and its own probabilities; the v1-only stratum draw uses its own seeded stream, so the v2 draw is unchanged by the v1-only set.
+4. *No reallocation*: a frame with fewer strata than its share leaves the share unused, so each estimate keeps its registered design. When the budget lowers P2 to L items, the v1-only share is ⌊6 L / 30⌋ and the v2 population takes the rest. Only in that case does a share one frame cannot use go to the other.
+5. *Precision rows*: `P2 baseline precision, instrument v2` (the v2 items), `instrument v1` (all P2 items, each weighed by 1 / p of its own frame, with Kish n_eff over the combined weights) and `v1-only set alone` (always counts only). The downstream SO4 baseline-precision table must split the reconciled P2 labels the same way, by the `v1-only: ` stratum prefix (`p2FrameOf`), before the v2 row is reported.
+
 ---
 
 ## ADR-027: E7-x corpus extension: extra queries, recorded attributes, tiered seeded draw, owner cap, C5 unchanged, C2 to 800 files
