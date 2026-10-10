@@ -103,13 +103,13 @@ describe('--e7 mode (runbook stage 0c)', () => {
     expect(e7BaseVolume('p', 's.yaml', { projectId: 'p', functions: [] })).toBeUndefined();
   });
 
-  it('the registered e7-corpus plan with corpus/selections: 7 bases, sum and ceiling rows; a symbolic-only plan and a missing selection are refused', () => {
+  it('the registered e7-corpus plan with corpus/selections: 9 bases (ADR-027), sum and ceiling rows; a symbolic-only plan and a missing selection are refused', () => {
     const written: string[] = [];
     const err: string[] = [];
     const io = { out: () => undefined, err: (t: string) => err.push(t), writeFile: (_f: string, t: string) => written.push(t) };
     expect(main(['--e7', '--plan', 'experiments/e7-corpus/plan.json', '--selections', 'corpus/selections', '--date', '2026-10-09', '--out', 'x.md'], ROOT, io)).toBe(0);
-    expect(written[0]).toContain('| Cap ceiling (7 × (1 + 3 × 2 × 20)) | 847 |');
-    expect(written[0]?.match(/^\| [a-zA-Z_-]+ \| `corpus\/specs\//gm)).toHaveLength(7);
+    expect(written[0]).toContain('| Cap ceiling (9 × (1 + 3 × 2 × 20)) | 1089 |');
+    expect(written[0]?.match(/^\| [a-zA-Z_-]+ \| `corpus\/specs\//gm)).toHaveLength(9);
     expect(main(['--e7', '--plan', 'experiments/latency-gate/plan.json', '--selections', 'corpus/selections'], ROOT, io)).toBe(1);
     expect(err.at(-1)).toContain('is not full mode');
     expect(main(['--e7', '--plan', 'experiments/e7-corpus/plan.json', '--selections', 'tests'], ROOT, io)).toBe(1);
