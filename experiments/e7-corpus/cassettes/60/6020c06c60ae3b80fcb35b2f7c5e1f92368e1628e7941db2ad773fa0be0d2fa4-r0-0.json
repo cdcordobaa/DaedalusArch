@@ -1,0 +1,53 @@
+{
+  "attempts": 1,
+  "cliVersion": "2.1.294",
+  "configListingSha256": "47aa04258852fab9a706f3f0c14cee22306d69fbb6fdfbde8c11854bd54997bc",
+  "durationMs": 11805,
+  "effort": "high",
+  "functionId": "FF-N02",
+  "ignoredOptions": [
+    "maxTokens"
+  ],
+  "isolationProbeSha256": "97a2e2d0af1100c13c55e028c1a0c71f069093c3d08705af122aaeb302f1a641",
+  "key": "6020c06c60ae3b80fcb35b2f7c5e1f92368e1628e7941db2ad773fa0be0d2fa4-r0-0",
+  "model": "claude-opus-5-5",
+  "outcome": {
+    "kind": "valid"
+  },
+  "parsedVerdict": {
+    "confidence": 0.65,
+    "evidence": [
+      "src/profile/follows.entity.ts: `@Entity('follows')` on class FollowsEntity maps the class to the database table 'follows'. This is persistence (infrastructure) work.",
+      "src/profile/follows.entity.ts: `@PrimaryGeneratedColumn() id: number;` hands key generation to the database. This is persistence (infrastructure) work.",
+      "src/profile/follows.entity.ts: `@Column() followerId` and `@Column() followingId` are foreign-key-style columns of a join table: storage structure with no domain behaviour or invariants.",
+      "The class has no methods or business rules. Its whole content is the TypeORM schema definition."
+    ],
+    "pass": false,
+    "reasoning": "The layer model puts src/profile/follows.entity.ts in the domain layer through the **/*.entity.ts pattern. Its only job, though, is to map a database table with TypeORM: `@Entity('follows')` names the table, `@PrimaryGeneratedColumn()` sets a database-generated key, and `@Column()` maps the followerId and followingId columns. The class has no domain behaviour, rules or invariants. It is a join-table row, the storage form of the follower/following relationship. Mapping a table and generating keys in the database are persistence work, which belongs to the infrastructure layer. The rubric names persistence logic in a domain file as a failure. Some projects accept ORM-annotated entities as domain objects, which is why confidence is moderate. Here the class adds nothing beyond the storage mapping.",
+    "violations": [
+      {
+        "filePath": "src/profile/follows.entity.ts",
+        "message": "FollowsEntity is a TypeORM persistence mapping: @Entity('follows') names the table, @PrimaryGeneratedColumn() sets a database-generated id, and @Column() maps the followerId and followingId columns of a join table. It is placed in the domain layer, but table and column mapping and database key generation belong to the infrastructure (persistence) layer. The class has no domain behaviour."
+      }
+    ]
+  },
+  "projectId": "realworld-test",
+  "prompt": "## Rule\nThe unit's responsibilities match the role of its declared layer.\n\n## Rubric\nPass: Every responsibility in the file belongs to the role and kind of its declared layer, and agrees with any ADR prose given.\nFail: The file carries a responsibility that belongs to a different layer kind, for example persistence, transport or framework logic in a domain file, or business rules in an infrastructure or presentation file.\nEvidence required: Name the file and cite the function, method or statement that carries the misplaced responsibility, and the layer kind it belongs to.\nOut of scope: import direction and layer-dependency rules, which are checked symbolically.\n\n## Layer model\n- domain (kind: domain): src/domain/**, src/core/**, src/entities/**, src/models/**, **/domain/**; file patterns: **/*.entity.ts\n- infrastructure (kind: infrastructure): src/infrastructure/**, src/persistence/**, src/adapters/**, src/prisma/**, src/lib/**, src/common/middleware/**, src/common/filters/**, src/common/pipes/**; file patterns: **/*.repository.ts, **/*.worker.ts, **/workers/**, **/strategies/**\n- application (kind: application): src/application/**, src/use-cases/**, src/services/**; file patterns: **/*.service.ts, **/*.processor.ts, **/dto/**, **/*.dto.ts\n- presentation (kind: presentation): src/controllers/**, src/gateways/**, src/common/guards/**, src/common/interceptors/**; file patterns: **/*.controller.ts, **/*.module.ts, **/*.guard.ts, **/*.interceptor.ts, **/*.gateway.ts\n\n## Unit\nKind: file\nId: src/profile/follows.entity.ts\nLayer: domain\nUnit files:\n- src/profile/follows.entity.ts\n\n## Source\n=====SOURCE-BEGIN src/profile/follows.entity.ts=====\nimport { Entity, PrimaryGeneratedColumn, Column } from \"typeorm\";\n\n@Entity('follows')\nexport class FollowsEntity {\n\n  @PrimaryGeneratedColumn()\n  id: number;\n\n  @Column()\n  followerId: number;\n\n  @Column()\n  followingId: number;\n\n}\n\n=====SOURCE-END=====\n\n## Graph excerpt\n{\"edges\":[{\"from\":\"src/article/article.module.ts\",\"to\":\"src/profile/follows.entity.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/article/article.service.ts\",\"to\":\"src/profile/follows.entity.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/profile/follows.entity.ts\",\"to\":\"typeorm\",\"type\":\"IMPORTS\"},{\"from\":\"src/profile/profile.module.ts\",\"to\":\"src/profile/follows.entity.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/profile/profile.service.ts\",\"to\":\"src/profile/follows.entity.ts\",\"type\":\"IMPORTS\"}],\"nodes\":[{\"kind\":\"Class\",\"layer\":\"domain\",\"name\":\"FollowsEntity\",\"path\":\"src/profile/follows.entity.ts\"},{\"kind\":\"File\",\"layer\":\"application\",\"path\":\"src/article/article.service.ts\"},{\"kind\":\"File\",\"layer\":\"application\",\"path\":\"src/profile/profile.service.ts\"},{\"kind\":\"File\",\"layer\":\"domain\",\"path\":\"src/profile/follows.entity.ts\"},{\"kind\":\"File\",\"layer\":\"presentation\",\"path\":\"src/article/article.module.ts\"},{\"kind\":\"File\",\"layer\":\"presentation\",\"path\":\"src/profile/profile.module.ts\"},{\"kind\":\"Package\",\"layer\":null,\"path\":\"typeorm\"}]}\n\n## Instructions\nJudge the unit against the rule and rubric. Return the JSON object the schema requires. Set pass to false if any file of the unit fails the rubric.\n",
+  "provider": "claude-cli",
+  "recordedAt": "2026-10-10T02:40:14.987Z",
+  "repetition": 0,
+  "requestHash": "6020c06c60ae3b80fcb35b2f7c5e1f92368e1628e7941db2ad773fa0be0d2fa4",
+  "resolvedModel": "claude-opus-5-5",
+  "response": "{\"is_error\":false,\"modelUsage\":{\"claude-opus-5-5\":{\"inputTokens\":2,\"outputTokens\":1119}},\"result\":\"{\\\"pass\\\":false,\\\"confidence\\\":0.65,\\\"reasoning\\\":\\\"The layer model puts src/profile/follows.entity.ts in the domain layer through the **/*.entity.ts pattern. Its only job, though, is to map a database table with TypeORM: `@Entity('follows')` names the table, `@PrimaryGeneratedColumn()` sets a database-generated key, and `@Column()` maps the followerId and followingId columns. The class has no domain behaviour, rules or invariants. It is a join-table row, the storage form of the follower/following relationship. Mapping a table and generating keys in the database are persistence work, which belongs to the infrastructure layer. The rubric names persistence logic in a domain file as a failure. Some projects accept ORM-annotated entities as domain objects, which is why confidence is moderate. Here the class adds nothing beyond the storage mapping.\\\",\\\"evidence\\\":[\\\"src/profile/follows.entity.ts: `@Entity('follows')` on class FollowsEntity maps the class to the database table 'follows'. This is persistence (infrastructure) work.\\\",\\\"src/profile/follows.entity.ts: `@PrimaryGeneratedColumn() id: number;` hands key generation to the database. This is persistence (infrastructure) work.\\\",\\\"src/profile/follows.entity.ts: `@Column() followerId` and `@Column() followingId` are foreign-key-style columns of a join table: storage structure with no domain behaviour or invariants.\\\",\\\"The class has no methods or business rules. Its whole content is the TypeORM schema definition.\\\"],\\\"violations\\\":[{\\\"filePath\\\":\\\"src/profile/follows.entity.ts\\\",\\\"message\\\":\\\"FollowsEntity is a TypeORM persistence mapping: @Entity('follows') names the table, @PrimaryGeneratedColumn() sets a database-generated id, and @Column() maps the followerId and followingId columns of a join table. It is placed in the domain layer, but table and column mapping and database key generation belong to the infrastructure (persistence) layer. The class has no domain behaviour.\\\"}]}\",\"structured_output\":{\"confidence\":0.65,\"evidence\":[\"src/profile/follows.entity.ts: `@Entity('follows')` on class FollowsEntity maps the class to the database table 'follows'. This is persistence (infrastructure) work.\",\"src/profile/follows.entity.ts: `@PrimaryGeneratedColumn() id: number;` hands key generation to the database. This is persistence (infrastructure) work.\",\"src/profile/follows.entity.ts: `@Column() followerId` and `@Column() followingId` are foreign-key-style columns of a join table: storage structure with no domain behaviour or invariants.\",\"The class has no methods or business rules. Its whole content is the TypeORM schema definition.\"],\"pass\":false,\"reasoning\":\"The layer model puts src/profile/follows.entity.ts in the domain layer through the **/*.entity.ts pattern. Its only job, though, is to map a database table with TypeORM: `@Entity('follows')` names the table, `@PrimaryGeneratedColumn()` sets a database-generated key, and `@Column()` maps the followerId and followingId columns. The class has no domain behaviour, rules or invariants. It is a join-table row, the storage form of the follower/following relationship. Mapping a table and generating keys in the database are persistence work, which belongs to the infrastructure layer. The rubric names persistence logic in a domain file as a failure. Some projects accept ORM-annotated entities as domain objects, which is why confidence is moderate. Here the class adds nothing beyond the storage mapping.\",\"violations\":[{\"filePath\":\"src/profile/follows.entity.ts\",\"message\":\"FollowsEntity is a TypeORM persistence mapping: @Entity('follows') names the table, @PrimaryGeneratedColumn() sets a database-generated id, and @Column() maps the followerId and followingId columns of a join table. It is placed in the domain layer, but table and column mapping and database key generation belong to the infrastructure (persistence) layer. The class has no domain behaviour.\"}]}}",
+  "runIndex": 0,
+  "schemaVersion": 2,
+  "unitId": "src/profile/follows.entity.ts",
+  "usage": {
+    "inputTokens": 2768,
+    "outputTokens": 1119
+  },
+  "usedOptions": {
+    "effort": "high",
+    "model": "claude-opus-5-5"
+  }
+}

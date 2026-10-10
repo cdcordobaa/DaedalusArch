@@ -1,0 +1,48 @@
+{
+  "attempts": 1,
+  "cliVersion": "2.1.294",
+  "configListingSha256": "47aa04258852fab9a706f3f0c14cee22306d69fbb6fdfbde8c11854bd54997bc",
+  "durationMs": 6146,
+  "effort": "high",
+  "functionId": "FF-N02",
+  "ignoredOptions": [
+    "maxTokens"
+  ],
+  "isolationProbeSha256": "97a2e2d0af1100c13c55e028c1a0c71f069093c3d08705af122aaeb302f1a641",
+  "key": "43e2a66c24fdd270b4b0ffe11a5f9162e91b442bb39a63b75689acf058faa2b4-r0-2",
+  "model": "claude-opus-5-5",
+  "outcome": {
+    "kind": "valid"
+  },
+  "parsedVerdict": {
+    "confidence": 0.92,
+    "evidence": [
+      "getLogoByDataSourceAndSymbol: binds the route parameters, calls logoService.getLogoByDataSourceAndSymbol, and sets the content type and body on the response",
+      "getLogoByUrl: binds the query parameter, calls logoService.getLogoByUrl, and writes the HTTP response",
+      "Both catch blocks only turn errors into HttpStatus.NOT_FOUND, which is a transport concern",
+      "@UseInterceptors(TransformDataSourceInRequestInterceptor) is framework request handling, which belongs in the presentation layer"
+    ],
+    "pass": true,
+    "reasoning": "LogoController only does presentation work. It maps routes, binds parameters, applies an interceptor, hands each request to LogoService and turns the result into an HTTP response (content type, body, 404 on error). It holds no business rules, persistence or fetching logic. Importing the DataSource type from @prisma/client is about dependencies, which this rule does not cover.",
+    "violations": []
+  },
+  "projectId": "ghostfolio-test",
+  "prompt": "## Rule\nThe unit's responsibilities match the role of its declared layer.\n\n## Rubric\nPass: Every responsibility in the file belongs to the role and kind of its declared layer, and agrees with any ADR prose given.\nFail: The file carries a responsibility that belongs to a different layer kind, for example persistence, transport or framework logic in a domain file, or business rules in an infrastructure or presentation file.\nEvidence required: Name the file and cite the function, method or statement that carries the misplaced responsibility, and the layer kind it belongs to.\nOut of scope: import direction and layer-dependency rules, which are checked symbolically.\n\n## Layer model\n- domain (kind: domain): src/domain/**, src/core/**, src/entities/**, src/models/**, **/domain/**; file patterns: **/*.entity.ts\n- infrastructure (kind: infrastructure): src/infrastructure/**, src/persistence/**, src/adapters/**, src/prisma/**, src/lib/**, src/common/middleware/**, src/common/filters/**, src/common/pipes/**; file patterns: **/*.repository.ts, **/*.worker.ts, **/workers/**, **/strategies/**\n- application (kind: application): src/application/**, src/use-cases/**, src/services/**; file patterns: **/*.service.ts, **/*.processor.ts, **/dto/**, **/*.dto.ts\n- presentation (kind: presentation): src/controllers/**, src/gateways/**, src/common/guards/**, src/common/interceptors/**; file patterns: **/*.controller.ts, **/*.module.ts, **/*.guard.ts, **/*.interceptor.ts, **/*.gateway.ts\n\n## Unit\nKind: file\nId: src/app/logo/logo.controller.ts\nLayer: presentation\nUnit files:\n- src/app/logo/logo.controller.ts\n\n## Source\n=====SOURCE-BEGIN src/app/logo/logo.controller.ts=====\nimport { TransformDataSourceInRequestInterceptor } from '@ghostfolio/api/interceptors/transform-data-source-in-request/transform-data-source-in-request.interceptor';\n\nimport {\n  Controller,\n  Get,\n  HttpStatus,\n  Param,\n  Query,\n  Res,\n  UseInterceptors\n} from '@nestjs/common';\nimport { DataSource } from '@prisma/client';\nimport { Response } from 'express';\n\nimport { LogoService } from './logo.service';\n\n@Controller('logo')\nexport class LogoController {\n  public constructor(private readonly logoService: LogoService) {}\n\n  @Get(':dataSource/:symbol')\n  @UseInterceptors(TransformDataSourceInRequestInterceptor)\n  public async getLogoByDataSourceAndSymbol(\n    @Param('dataSource') dataSource: DataSource,\n    @Param('symbol') symbol: string,\n    @Res() response: Response\n  ) {\n    try {\n      const { buffer, type } =\n        await this.logoService.getLogoByDataSourceAndSymbol({\n          dataSource,\n          symbol\n        });\n\n      response.contentType(type);\n      response.send(buffer);\n    } catch {\n      response.status(HttpStatus.NOT_FOUND).send();\n    }\n  }\n\n  @Get()\n  public async getLogoByUrl(\n    @Query('url') url: string,\n    @Res() response: Response\n  ) {\n    try {\n      const { buffer, type } = await this.logoService.getLogoByUrl(url);\n\n      response.contentType(type);\n      response.send(buffer);\n    } catch {\n      response.status(HttpStatus.NOT_FOUND).send();\n    }\n  }\n}\n\n=====SOURCE-END=====\n\n## Graph excerpt\n{\"edges\":[{\"from\":\"LogoController@src/app/logo/logo.controller.ts\",\"to\":\"LogoService@src/app/logo/logo.service.ts\",\"type\":\"CONSTRUCTOR_INJECTS\"},{\"from\":\"src/app/logo/logo.controller.ts\",\"to\":\"@nestjs/common\",\"type\":\"IMPORTS\"},{\"from\":\"src/app/logo/logo.controller.ts\",\"to\":\"@prisma/client\",\"type\":\"IMPORTS\"},{\"from\":\"src/app/logo/logo.controller.ts\",\"to\":\"express\",\"type\":\"IMPORTS\"},{\"from\":\"src/app/logo/logo.controller.ts\",\"to\":\"src/app/logo/logo.service.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/app/logo/logo.controller.ts\",\"to\":\"src/interceptors/transform-data-source-in-request/transform-data-source-in-request.interceptor.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/app/logo/logo.module.ts\",\"to\":\"src/app/logo/logo.controller.ts\",\"type\":\"IMPORTS\"}],\"nodes\":[{\"kind\":\"Class\",\"layer\":\"application\",\"name\":\"LogoService\",\"path\":\"src/app/logo/logo.service.ts\"},{\"kind\":\"Class\",\"layer\":\"presentation\",\"name\":\"LogoController\",\"path\":\"src/app/logo/logo.controller.ts\"},{\"kind\":\"File\",\"layer\":\"application\",\"path\":\"src/app/logo/logo.service.ts\"},{\"kind\":\"File\",\"layer\":\"presentation\",\"path\":\"src/app/logo/logo.controller.ts\"},{\"kind\":\"File\",\"layer\":\"presentation\",\"path\":\"src/app/logo/logo.module.ts\"},{\"kind\":\"File\",\"layer\":\"presentation\",\"path\":\"src/interceptors/transform-data-source-in-request/transform-data-source-in-request.interceptor.ts\"},{\"kind\":\"Package\",\"layer\":null,\"path\":\"@nestjs/common\"},{\"kind\":\"Package\",\"layer\":null,\"path\":\"@prisma/client\"},{\"kind\":\"Package\",\"layer\":null,\"path\":\"express\"}]}\n\n## Instructions\nJudge the unit against the rule and rubric. Return the JSON object the schema requires. Set pass to false if any file of the unit fails the rubric.\n",
+  "provider": "claude-cli",
+  "recordedAt": "2026-10-10T02:48:12.503Z",
+  "repetition": 0,
+  "requestHash": "43e2a66c24fdd270b4b0ffe11a5f9162e91b442bb39a63b75689acf058faa2b4",
+  "resolvedModel": "claude-opus-5-5",
+  "response": "{\"is_error\":false,\"modelUsage\":{\"claude-opus-5-5\":{\"inputTokens\":2,\"outputTokens\":449}},\"result\":\"{\\\"pass\\\":true,\\\"confidence\\\":0.92,\\\"reasoning\\\":\\\"LogoController only does presentation work. It maps routes, binds parameters, applies an interceptor, hands each request to LogoService and turns the result into an HTTP response (content type, body, 404 on error). It holds no business rules, persistence or fetching logic. Importing the DataSource type from @prisma/client is about dependencies, which this rule does not cover.\\\",\\\"evidence\\\":[\\\"getLogoByDataSourceAndSymbol: binds the route parameters, calls logoService.getLogoByDataSourceAndSymbol, and sets the content type and body on the response\\\",\\\"getLogoByUrl: binds the query parameter, calls logoService.getLogoByUrl, and writes the HTTP response\\\",\\\"Both catch blocks only turn errors into HttpStatus.NOT_FOUND, which is a transport concern\\\",\\\"@UseInterceptors(TransformDataSourceInRequestInterceptor) is framework request handling, which belongs in the presentation layer\\\"],\\\"violations\\\":[]}\",\"structured_output\":{\"confidence\":0.92,\"evidence\":[\"getLogoByDataSourceAndSymbol: binds the route parameters, calls logoService.getLogoByDataSourceAndSymbol, and sets the content type and body on the response\",\"getLogoByUrl: binds the query parameter, calls logoService.getLogoByUrl, and writes the HTTP response\",\"Both catch blocks only turn errors into HttpStatus.NOT_FOUND, which is a transport concern\",\"@UseInterceptors(TransformDataSourceInRequestInterceptor) is framework request handling, which belongs in the presentation layer\"],\"pass\":true,\"reasoning\":\"LogoController only does presentation work. It maps routes, binds parameters, applies an interceptor, hands each request to LogoService and turns the result into an HTTP response (content type, body, 404 on error). It holds no business rules, persistence or fetching logic. Importing the DataSource type from @prisma/client is about dependencies, which this rule does not cover.\",\"violations\":[]}}",
+  "runIndex": 2,
+  "schemaVersion": 2,
+  "unitId": "src/app/logo/logo.controller.ts",
+  "usage": {
+    "inputTokens": 3485,
+    "outputTokens": 449
+  },
+  "usedOptions": {
+    "effort": "high",
+    "model": "claude-opus-5-5"
+  }
+}

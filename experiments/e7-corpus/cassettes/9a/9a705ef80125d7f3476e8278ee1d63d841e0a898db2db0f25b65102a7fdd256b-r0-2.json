@@ -1,0 +1,49 @@
+{
+  "attempts": 1,
+  "cliVersion": "2.1.294",
+  "configListingSha256": "47aa04258852fab9a706f3f0c14cee22306d69fbb6fdfbde8c11854bd54997bc",
+  "durationMs": 7601,
+  "effort": "high",
+  "functionId": "FF-N01",
+  "ignoredOptions": [
+    "maxTokens"
+  ],
+  "isolationProbeSha256": "97a2e2d0af1100c13c55e028c1a0c71f069093c3d08705af122aaeb302f1a641",
+  "key": "9a705ef80125d7f3476e8278ee1d63d841e0a898db2db0f25b65102a7fdd256b-r0-2",
+  "model": "claude-opus-5-5",
+  "outcome": {
+    "kind": "valid"
+  },
+  "parsedVerdict": {
+    "confidence": 0.88,
+    "evidence": [
+      "src/article/dto/create-article.dto.ts declares CreateArticleDto { title, description, body, tagList }, a read-only data shape for creating an article",
+      "src/article/dto/create-comment.ts declares CreateCommentDto { body }, a read-only data shape for creating a comment on an article",
+      "Both files are re-exported by src/article/dto/index.ts and used by src/article/article.controller.ts, which shows they are used as one DTO module",
+      "Neither file contains validation decorators or logic, so no invariant is duplicated across them",
+      "Minor: create-comment.ts lacks the `.dto.ts` suffix used by create-article.dto.ts. This is a naming inconsistency, not a cohesion failure"
+    ],
+    "pass": true,
+    "reasoning": "This unit holds input DTOs for the article feature, and both files fit that one concern. Neither class contains validation or behaviour, so no rule or invariant is duplicated. Both have a `body` field, but that is just a shared data field, not a duplicated rule. Neither file goes around a module abstraction, and both are re-exported together through `src/article/dto/index.ts`. One small inconsistency: `create-comment.ts` does not use the `.dto.ts` suffix that `create-article.dto.ts` uses. That is a naming convention issue, not a split in concerns, so it does not fail the rubric.",
+    "violations": []
+  },
+  "projectId": "realworld-test",
+  "prompt": "## Rule\nThe module's files form one coherent unit with a consistent abstraction and boundary.\n\n## Rubric\nPass: The files serve one cohesive concern, use the module's abstractions consistently, and keep each rule or invariant in one place.\nFail: The files split into unrelated concerns, duplicate a rule or invariant that should live in one place, or bypass the module's own abstractions.\nEvidence required: Name each file involved and cite the declarations that show the split, the duplication or the bypass.\nOut of scope: import direction and layer-dependency rules, which are checked symbolically.\n\n## Layer model\n- domain (kind: domain): src/domain/**, src/core/**, src/entities/**, src/models/**, **/domain/**; file patterns: **/*.entity.ts\n- infrastructure (kind: infrastructure): src/infrastructure/**, src/persistence/**, src/adapters/**, src/prisma/**, src/lib/**, src/common/middleware/**, src/common/filters/**, src/common/pipes/**; file patterns: **/*.repository.ts, **/*.worker.ts, **/workers/**, **/strategies/**\n- application (kind: application): src/application/**, src/use-cases/**, src/services/**; file patterns: **/*.service.ts, **/*.processor.ts, **/dto/**, **/*.dto.ts\n- presentation (kind: presentation): src/controllers/**, src/gateways/**, src/common/guards/**, src/common/interceptors/**; file patterns: **/*.controller.ts, **/*.module.ts, **/*.guard.ts, **/*.interceptor.ts, **/*.gateway.ts\n\n## Unit\nKind: module\nId: src/article/dto\nLayer: application\nUnit files:\n- src/article/dto/create-article.dto.ts\n- src/article/dto/create-comment.ts\n\n## Source\n=====SOURCE-BEGIN src/article/dto/create-article.dto.ts=====\nexport class CreateArticleDto {\n  readonly title: string;\n  readonly description: string;\n  readonly body: string;\n  readonly tagList: string[];\n}\n\n=====SOURCE-END=====\n\n=====SOURCE-BEGIN src/article/dto/create-comment.ts=====\nexport class CreateCommentDto {\n  readonly body: string;\n}\n=====SOURCE-END=====\n\n## Exported signatures\n// src/article/dto/create-article.dto.ts\nexport class CreateArticleDto {\n  readonly title: string;\n  readonly description: string;\n  readonly body: string;\n  readonly tagList: string[];\n}\n\n// src/article/dto/create-comment.ts\nexport class CreateCommentDto {\n  readonly body: string;\n}\n\n## Incoming\n- src/article/article.controller.ts\n- src/article/article.service.ts\n- src/article/dto/index.ts\n\n## Outgoing\n(none)\n\n## Graph excerpt\n{\"edges\":[{\"from\":\"src/article/article.controller.ts\",\"to\":\"src/article/dto/create-article.dto.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/article/article.controller.ts\",\"to\":\"src/article/dto/create-comment.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/article/article.service.ts\",\"to\":\"src/article/dto/create-article.dto.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/article/dto/index.ts\",\"to\":\"src/article/dto/create-article.dto.ts\",\"type\":\"RE_EXPORTS\"},{\"from\":\"src/article/dto/index.ts\",\"to\":\"src/article/dto/create-comment.ts\",\"type\":\"RE_EXPORTS\"}],\"nodes\":[{\"kind\":\"Class\",\"layer\":\"application\",\"name\":\"CreateArticleDto\",\"path\":\"src/article/dto/create-article.dto.ts\"},{\"kind\":\"Class\",\"layer\":\"application\",\"name\":\"CreateCommentDto\",\"path\":\"src/article/dto/create-comment.ts\"},{\"kind\":\"File\",\"layer\":\"application\",\"path\":\"src/article/article.service.ts\"},{\"kind\":\"File\",\"layer\":\"application\",\"path\":\"src/article/dto/create-article.dto.ts\"},{\"kind\":\"File\",\"layer\":\"application\",\"path\":\"src/article/dto/create-comment.ts\"},{\"kind\":\"File\",\"layer\":\"application\",\"path\":\"src/article/dto/index.ts\"},{\"kind\":\"File\",\"layer\":\"presentation\",\"path\":\"src/article/article.controller.ts\"}]}\n\n## Instructions\nJudge the unit against the rule and rubric. Return the JSON object the schema requires. Set pass to false if any file of the unit fails the rubric.\n",
+  "provider": "claude-cli",
+  "recordedAt": "2026-10-10T02:36:50.939Z",
+  "repetition": 0,
+  "requestHash": "9a705ef80125d7f3476e8278ee1d63d841e0a898db2db0f25b65102a7fdd256b",
+  "resolvedModel": "claude-opus-5-5",
+  "response": "{\"is_error\":false,\"modelUsage\":{\"claude-opus-5-5\":{\"inputTokens\":2,\"outputTokens\":653}},\"result\":\"{\\\"pass\\\":true,\\\"confidence\\\":0.88,\\\"reasoning\\\":\\\"This unit holds input DTOs for the article feature, and both files fit that one concern. Neither class contains validation or behaviour, so no rule or invariant is duplicated. Both have a `body` field, but that is just a shared data field, not a duplicated rule. Neither file goes around a module abstraction, and both are re-exported together through `src/article/dto/index.ts`. One small inconsistency: `create-comment.ts` does not use the `.dto.ts` suffix that `create-article.dto.ts` uses. That is a naming convention issue, not a split in concerns, so it does not fail the rubric.\\\",\\\"evidence\\\":[\\\"src/article/dto/create-article.dto.ts declares CreateArticleDto { title, description, body, tagList }, a read-only data shape for creating an article\\\",\\\"src/article/dto/create-comment.ts declares CreateCommentDto { body }, a read-only data shape for creating a comment on an article\\\",\\\"Both files are re-exported by src/article/dto/index.ts and used by src/article/article.controller.ts, which shows they are used as one DTO module\\\",\\\"Neither file contains validation decorators or logic, so no invariant is duplicated across them\\\",\\\"Minor: create-comment.ts lacks the `.dto.ts` suffix used by create-article.dto.ts. This is a naming inconsistency, not a cohesion failure\\\"],\\\"violations\\\":[]}\",\"structured_output\":{\"confidence\":0.88,\"evidence\":[\"src/article/dto/create-article.dto.ts declares CreateArticleDto { title, description, body, tagList }, a read-only data shape for creating an article\",\"src/article/dto/create-comment.ts declares CreateCommentDto { body }, a read-only data shape for creating a comment on an article\",\"Both files are re-exported by src/article/dto/index.ts and used by src/article/article.controller.ts, which shows they are used as one DTO module\",\"Neither file contains validation decorators or logic, so no invariant is duplicated across them\",\"Minor: create-comment.ts lacks the `.dto.ts` suffix used by create-article.dto.ts. This is a naming inconsistency, not a cohesion failure\"],\"pass\":true,\"reasoning\":\"This unit holds input DTOs for the article feature, and both files fit that one concern. Neither class contains validation or behaviour, so no rule or invariant is duplicated. Both have a `body` field, but that is just a shared data field, not a duplicated rule. Neither file goes around a module abstraction, and both are re-exported together through `src/article/dto/index.ts`. One small inconsistency: `create-comment.ts` does not use the `.dto.ts` suffix that `create-article.dto.ts` uses. That is a naming convention issue, not a split in concerns, so it does not fail the rubric.\",\"violations\":[]}}",
+  "runIndex": 2,
+  "schemaVersion": 2,
+  "unitId": "src/article/dto",
+  "usage": {
+    "inputTokens": 3000,
+    "outputTokens": 653
+  },
+  "usedOptions": {
+    "effort": "high",
+    "model": "claude-opus-5-5"
+  }
+}

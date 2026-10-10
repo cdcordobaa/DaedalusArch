@@ -1,0 +1,53 @@
+{
+  "attempts": 1,
+  "cliVersion": "2.1.294",
+  "configListingSha256": "47aa04258852fab9a706f3f0c14cee22306d69fbb6fdfbde8c11854bd54997bc",
+  "durationMs": 10033,
+  "effort": "high",
+  "functionId": "FF-N02",
+  "ignoredOptions": [
+    "maxTokens"
+  ],
+  "isolationProbeSha256": "97a2e2d0af1100c13c55e028c1a0c71f069093c3d08705af122aaeb302f1a641",
+  "key": "563bf9dc1b03a5a69dfff983b1113839fb769c9fb93b6f128fa2636684637d8d-r0-0",
+  "model": "claude-opus-5-5",
+  "outcome": {
+    "kind": "valid"
+  },
+  "parsedVerdict": {
+    "confidence": 0.72,
+    "evidence": [
+      "src/tag/tag.entity.ts: `@Entity('tag')` on class TagEntity maps the class to the database table 'tag'. This is persistence (infrastructure) work.",
+      "src/tag/tag.entity.ts: `@PrimaryGeneratedColumn()` on `id: number` sets a database-generated primary key. This is a persistence schema concern.",
+      "src/tag/tag.entity.ts: `@Column()` on `tag: string` is a database column mapping. This is persistence (infrastructure) work.",
+      "TagEntity has no domain behaviour, invariants or business rules. Its only job is ORM mapping."
+    ],
+    "pass": false,
+    "reasoning": "src/tag/tag.entity.ts is in the domain layer because it matches the **/*.entity.ts pattern. All it contains is TypeORM persistence mapping. The class is a plain data holder. It has no domain behaviour or invariants. Its decorators handle object-relational mapping: they bind the class to the 'tag' database table and set a database-generated primary key and column mappings. That is persistence work, which belongs to the infrastructure layer, so the rubric's 'persistence logic in a domain file' case applies. This is the usual NestJS/TypeORM pattern, but under the declared layer model the file still mixes a database schema concern into a domain unit. Import direction is not part of this judgment. The finding is about the mapping work the decorators do, not about the typeorm import.",
+    "violations": [
+      {
+        "filePath": "src/tag/tag.entity.ts",
+        "message": "The TypeORM decorators on domain class TagEntity (`@Entity('tag')`, `@PrimaryGeneratedColumn()` on id, `@Column()` on tag) do persistence mapping (table, primary key generation and columns). That work belongs to the infrastructure layer, not the domain layer."
+      }
+    ]
+  },
+  "projectId": "realworld-test",
+  "prompt": "## Rule\nThe unit's responsibilities match the role of its declared layer.\n\n## Rubric\nPass: Every responsibility in the file belongs to the role and kind of its declared layer, and agrees with any ADR prose given.\nFail: The file carries a responsibility that belongs to a different layer kind, for example persistence, transport or framework logic in a domain file, or business rules in an infrastructure or presentation file.\nEvidence required: Name the file and cite the function, method or statement that carries the misplaced responsibility, and the layer kind it belongs to.\nOut of scope: import direction and layer-dependency rules, which are checked symbolically.\n\n## Layer model\n- domain (kind: domain): src/domain/**, src/core/**, src/entities/**, src/models/**, **/domain/**; file patterns: **/*.entity.ts\n- infrastructure (kind: infrastructure): src/infrastructure/**, src/persistence/**, src/adapters/**, src/prisma/**, src/lib/**, src/common/middleware/**, src/common/filters/**, src/common/pipes/**; file patterns: **/*.repository.ts, **/*.worker.ts, **/workers/**, **/strategies/**\n- application (kind: application): src/application/**, src/use-cases/**, src/services/**; file patterns: **/*.service.ts, **/*.processor.ts, **/dto/**, **/*.dto.ts\n- presentation (kind: presentation): src/controllers/**, src/gateways/**, src/common/guards/**, src/common/interceptors/**; file patterns: **/*.controller.ts, **/*.module.ts, **/*.guard.ts, **/*.interceptor.ts, **/*.gateway.ts\n\n## Unit\nKind: file\nId: src/tag/tag.entity.ts\nLayer: domain\nUnit files:\n- src/tag/tag.entity.ts\n\n## Source\n=====SOURCE-BEGIN src/tag/tag.entity.ts=====\nimport { Entity, PrimaryGeneratedColumn, Column } from 'typeorm';\n\n@Entity('tag')\nexport class TagEntity {\n\n  @PrimaryGeneratedColumn()\n  id: number;\n\n  @Column()\n  tag: string;\n\n}\n\n=====SOURCE-END=====\n\n## Graph excerpt\n{\"edges\":[{\"from\":\"src/tag/tag.controller.ts\",\"to\":\"src/tag/tag.entity.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/tag/tag.entity.ts\",\"to\":\"typeorm\",\"type\":\"IMPORTS\"},{\"from\":\"src/tag/tag.module.ts\",\"to\":\"src/tag/tag.entity.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/tag/tag.service.ts\",\"to\":\"src/tag/tag.entity.ts\",\"type\":\"IMPORTS\"}],\"nodes\":[{\"kind\":\"Class\",\"layer\":\"domain\",\"name\":\"TagEntity\",\"path\":\"src/tag/tag.entity.ts\"},{\"kind\":\"File\",\"layer\":\"application\",\"path\":\"src/tag/tag.service.ts\"},{\"kind\":\"File\",\"layer\":\"domain\",\"path\":\"src/tag/tag.entity.ts\"},{\"kind\":\"File\",\"layer\":\"presentation\",\"path\":\"src/tag/tag.controller.ts\"},{\"kind\":\"File\",\"layer\":\"presentation\",\"path\":\"src/tag/tag.module.ts\"},{\"kind\":\"Package\",\"layer\":null,\"path\":\"typeorm\"}]}\n\n## Instructions\nJudge the unit against the rule and rubric. Return the JSON object the schema requires. Set pass to false if any file of the unit fails the rubric.\n",
+  "provider": "claude-cli",
+  "recordedAt": "2026-10-10T02:40:54.686Z",
+  "repetition": 0,
+  "requestHash": "563bf9dc1b03a5a69dfff983b1113839fb769c9fb93b6f128fa2636684637d8d",
+  "resolvedModel": "claude-opus-5-5",
+  "response": "{\"is_error\":false,\"modelUsage\":{\"claude-opus-5-5\":{\"inputTokens\":2,\"outputTokens\":933}},\"result\":\"{\\\"pass\\\":false,\\\"confidence\\\":0.72,\\\"reasoning\\\":\\\"src/tag/tag.entity.ts is in the domain layer because it matches the **/*.entity.ts pattern. All it contains is TypeORM persistence mapping. The class is a plain data holder. It has no domain behaviour or invariants. Its decorators handle object-relational mapping: they bind the class to the 'tag' database table and set a database-generated primary key and column mappings. That is persistence work, which belongs to the infrastructure layer, so the rubric's 'persistence logic in a domain file' case applies. This is the usual NestJS/TypeORM pattern, but under the declared layer model the file still mixes a database schema concern into a domain unit. Import direction is not part of this judgment. The finding is about the mapping work the decorators do, not about the typeorm import.\\\",\\\"evidence\\\":[\\\"src/tag/tag.entity.ts: `@Entity('tag')` on class TagEntity maps the class to the database table 'tag'. This is persistence (infrastructure) work.\\\",\\\"src/tag/tag.entity.ts: `@PrimaryGeneratedColumn()` on `id: number` sets a database-generated primary key. This is a persistence schema concern.\\\",\\\"src/tag/tag.entity.ts: `@Column()` on `tag: string` is a database column mapping. This is persistence (infrastructure) work.\\\",\\\"TagEntity has no domain behaviour, invariants or business rules. Its only job is ORM mapping.\\\"],\\\"violations\\\":[{\\\"filePath\\\":\\\"src/tag/tag.entity.ts\\\",\\\"message\\\":\\\"The TypeORM decorators on domain class TagEntity (`@Entity('tag')`, `@PrimaryGeneratedColumn()` on id, `@Column()` on tag) do persistence mapping (table, primary key generation and columns). That work belongs to the infrastructure layer, not the domain layer.\\\"}]}\",\"structured_output\":{\"confidence\":0.72,\"evidence\":[\"src/tag/tag.entity.ts: `@Entity('tag')` on class TagEntity maps the class to the database table 'tag'. This is persistence (infrastructure) work.\",\"src/tag/tag.entity.ts: `@PrimaryGeneratedColumn()` on `id: number` sets a database-generated primary key. This is a persistence schema concern.\",\"src/tag/tag.entity.ts: `@Column()` on `tag: string` is a database column mapping. This is persistence (infrastructure) work.\",\"TagEntity has no domain behaviour, invariants or business rules. Its only job is ORM mapping.\"],\"pass\":false,\"reasoning\":\"src/tag/tag.entity.ts is in the domain layer because it matches the **/*.entity.ts pattern. All it contains is TypeORM persistence mapping. The class is a plain data holder. It has no domain behaviour or invariants. Its decorators handle object-relational mapping: they bind the class to the 'tag' database table and set a database-generated primary key and column mappings. That is persistence work, which belongs to the infrastructure layer, so the rubric's 'persistence logic in a domain file' case applies. This is the usual NestJS/TypeORM pattern, but under the declared layer model the file still mixes a database schema concern into a domain unit. Import direction is not part of this judgment. The finding is about the mapping work the decorators do, not about the typeorm import.\",\"violations\":[{\"filePath\":\"src/tag/tag.entity.ts\",\"message\":\"The TypeORM decorators on domain class TagEntity (`@Entity('tag')`, `@PrimaryGeneratedColumn()` on id, `@Column()` on tag) do persistence mapping (table, primary key generation and columns). That work belongs to the infrastructure layer, not the domain layer.\"}]}}",
+  "runIndex": 0,
+  "schemaVersion": 2,
+  "unitId": "src/tag/tag.entity.ts",
+  "usage": {
+    "inputTokens": 2683,
+    "outputTokens": 933
+  },
+  "usedOptions": {
+    "effort": "high",
+    "model": "claude-opus-5-5"
+  }
+}

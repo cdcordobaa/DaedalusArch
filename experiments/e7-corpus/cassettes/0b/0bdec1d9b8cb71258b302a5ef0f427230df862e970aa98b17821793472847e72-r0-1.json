@@ -1,0 +1,47 @@
+{
+  "attempts": 1,
+  "cliVersion": "2.1.294",
+  "configListingSha256": "47aa04258852fab9a706f3f0c14cee22306d69fbb6fdfbde8c11854bd54997bc",
+  "durationMs": 6214,
+  "effort": "high",
+  "functionId": "FF-N02",
+  "ignoredOptions": [
+    "maxTokens"
+  ],
+  "isolationProbeSha256": "97a2e2d0af1100c13c55e028c1a0c71f069093c3d08705af122aaeb302f1a641",
+  "key": "0bdec1d9b8cb71258b302a5ef0f427230df862e970aa98b17821793472847e72-r0-1",
+  "model": "claude-opus-5-5",
+  "outcome": {
+    "kind": "valid"
+  },
+  "parsedVerdict": {
+    "confidence": 0.9,
+    "evidence": [
+      "src/user/dto/login-user.dto.ts declares only `export class LoginUserDto` with `readonly email: string` and `readonly password: string`.",
+      "The only behaviour is declarative `@IsNotEmpty()` validation from class-validator. This is input-shape validation, which is normal for an application DTO.",
+      "The file has no repository or database calls, no HTTP or transport handling, and no domain business logic."
+    ],
+    "pass": true,
+    "reasoning": "The file only declares LoginUserDto, a plain data transfer object for login input (email, password). Its class-validator decorators are declarative shape checks for input. That is the normal job of an application-layer DTO, and the layer model lists **/*.dto.ts under application. The file has no persistence, transport, HTTP or framework handling logic, and no business rules such as password hashing or authentication decisions. Every responsibility fits the application layer.",
+    "violations": []
+  },
+  "projectId": "realworld-test",
+  "prompt": "## Rule\nThe unit's responsibilities match the role of its declared layer.\n\n## Rubric\nPass: Every responsibility in the file belongs to the role and kind of its declared layer, and agrees with any ADR prose given.\nFail: The file carries a responsibility that belongs to a different layer kind, for example persistence, transport or framework logic in a domain file, or business rules in an infrastructure or presentation file.\nEvidence required: Name the file and cite the function, method or statement that carries the misplaced responsibility, and the layer kind it belongs to.\nOut of scope: import direction and layer-dependency rules, which are checked symbolically.\n\n## Layer model\n- domain (kind: domain): src/domain/**, src/core/**, src/entities/**, src/models/**, **/domain/**; file patterns: **/*.entity.ts\n- infrastructure (kind: infrastructure): src/infrastructure/**, src/persistence/**, src/adapters/**, src/prisma/**, src/lib/**, src/common/middleware/**, src/common/filters/**, src/common/pipes/**; file patterns: **/*.repository.ts, **/*.worker.ts, **/workers/**, **/strategies/**\n- application (kind: application): src/application/**, src/use-cases/**, src/services/**; file patterns: **/*.service.ts, **/*.processor.ts, **/dto/**, **/*.dto.ts\n- presentation (kind: presentation): src/controllers/**, src/gateways/**, src/common/guards/**, src/common/interceptors/**; file patterns: **/*.controller.ts, **/*.module.ts, **/*.guard.ts, **/*.interceptor.ts, **/*.gateway.ts\n\n## Unit\nKind: file\nId: src/user/dto/login-user.dto.ts\nLayer: application\nUnit files:\n- src/user/dto/login-user.dto.ts\n\n## Source\n=====SOURCE-BEGIN src/user/dto/login-user.dto.ts=====\nimport { IsNotEmpty } from 'class-validator';\n\nexport class LoginUserDto {\n\n  @IsNotEmpty()\n  readonly email: string;\n\n  @IsNotEmpty()\n  readonly password: string;\n}\n=====SOURCE-END=====\n\n## Graph excerpt\n{\"edges\":[{\"from\":\"src/user/dto/index.ts\",\"to\":\"src/user/dto/login-user.dto.ts\",\"type\":\"RE_EXPORTS\"},{\"from\":\"src/user/dto/login-user.dto.ts\",\"to\":\"class-validator\",\"type\":\"IMPORTS\"},{\"from\":\"src/user/user.controller.ts\",\"to\":\"src/user/dto/login-user.dto.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/user/user.service.ts\",\"to\":\"src/user/dto/login-user.dto.ts\",\"type\":\"IMPORTS\"}],\"nodes\":[{\"kind\":\"Class\",\"layer\":\"application\",\"name\":\"LoginUserDto\",\"path\":\"src/user/dto/login-user.dto.ts\"},{\"kind\":\"File\",\"layer\":\"application\",\"path\":\"src/user/dto/index.ts\"},{\"kind\":\"File\",\"layer\":\"application\",\"path\":\"src/user/dto/login-user.dto.ts\"},{\"kind\":\"File\",\"layer\":\"application\",\"path\":\"src/user/user.service.ts\"},{\"kind\":\"File\",\"layer\":\"presentation\",\"path\":\"src/user/user.controller.ts\"},{\"kind\":\"Package\",\"layer\":null,\"path\":\"class-validator\"}]}\n\n## Instructions\nJudge the unit against the rule and rubric. Return the JSON object the schema requires. Set pass to false if any file of the unit fails the rubric.\n",
+  "provider": "claude-cli",
+  "recordedAt": "2026-10-10T02:41:22.619Z",
+  "repetition": 0,
+  "requestHash": "0bdec1d9b8cb71258b302a5ef0f427230df862e970aa98b17821793472847e72",
+  "resolvedModel": "claude-opus-5-5",
+  "response": "{\"is_error\":false,\"modelUsage\":{\"claude-opus-5-5\":{\"inputTokens\":2,\"outputTokens\":465}},\"result\":\"{\\\"pass\\\":true,\\\"confidence\\\":0.9,\\\"reasoning\\\":\\\"The file only declares LoginUserDto, a plain data transfer object for login input (email, password). Its class-validator decorators are declarative shape checks for input. That is the normal job of an application-layer DTO, and the layer model lists **/*.dto.ts under application. The file has no persistence, transport, HTTP or framework handling logic, and no business rules such as password hashing or authentication decisions. Every responsibility fits the application layer.\\\",\\\"evidence\\\":[\\\"src/user/dto/login-user.dto.ts declares only `export class LoginUserDto` with `readonly email: string` and `readonly password: string`.\\\",\\\"The only behaviour is declarative `@IsNotEmpty()` validation from class-validator. This is input-shape validation, which is normal for an application DTO.\\\",\\\"The file has no repository or database calls, no HTTP or transport handling, and no domain business logic.\\\"],\\\"violations\\\":[]}\",\"structured_output\":{\"confidence\":0.9,\"evidence\":[\"src/user/dto/login-user.dto.ts declares only `export class LoginUserDto` with `readonly email: string` and `readonly password: string`.\",\"The only behaviour is declarative `@IsNotEmpty()` validation from class-validator. This is input-shape validation, which is normal for an application DTO.\",\"The file has no repository or database calls, no HTTP or transport handling, and no domain business logic.\"],\"pass\":true,\"reasoning\":\"The file only declares LoginUserDto, a plain data transfer object for login input (email, password). Its class-validator decorators are declarative shape checks for input. That is the normal job of an application-layer DTO, and the layer model lists **/*.dto.ts under application. The file has no persistence, transport, HTTP or framework handling logic, and no business rules such as password hashing or authentication decisions. Every responsibility fits the application layer.\",\"violations\":[]}}",
+  "runIndex": 1,
+  "schemaVersion": 2,
+  "unitId": "src/user/dto/login-user.dto.ts",
+  "usage": {
+    "inputTokens": 2687,
+    "outputTokens": 465
+  },
+  "usedOptions": {
+    "effort": "high",
+    "model": "claude-opus-5-5"
+  }
+}

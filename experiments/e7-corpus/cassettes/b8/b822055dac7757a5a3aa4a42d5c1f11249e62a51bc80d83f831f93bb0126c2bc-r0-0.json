@@ -1,0 +1,48 @@
+{
+  "attempts": 1,
+  "cliVersion": "2.1.294",
+  "configListingSha256": "47aa04258852fab9a706f3f0c14cee22306d69fbb6fdfbde8c11854bd54997bc",
+  "durationMs": 8687,
+  "effort": "high",
+  "functionId": "FF-N01",
+  "ignoredOptions": [
+    "maxTokens"
+  ],
+  "isolationProbeSha256": "97a2e2d0af1100c13c55e028c1a0c71f069093c3d08705af122aaeb302f1a641",
+  "key": "b822055dac7757a5a3aa4a42d5c1f11249e62a51bc80d83f831f93bb0126c2bc-r0-0",
+  "model": "claude-opus-5-5",
+  "outcome": {
+    "kind": "valid"
+  },
+  "parsedVerdict": {
+    "confidence": 0.72,
+    "evidence": [
+      "src/shared/base.controller.ts declares a single class, BaseController, with one member, protected getUserIdFromToken(authorization).",
+      "getUserIdFromToken splits the authorization header, calls jwt.verify(token, SECRET) and returns decoded.id. That is one cohesive concern: finding the authenticated user for controllers.",
+      "The unit has only one file, so it cannot split into unrelated concerns, and nothing in it duplicates a rule found elsewhere in the unit.",
+      "Incoming: (none). Within the provided material, nothing shows the module's abstraction being bypassed."
+    ],
+    "pass": true,
+    "reasoning": "The src/shared module has one file, src/shared/base.controller.ts, with one class, BaseController. That class has one protected helper, getUserIdFromToken, which reads the user id from a Bearer [REDACTED] header. The whole module serves one concern: shared controller support for finding the authenticated user. The provided material shows no other files in the unit, so I found nothing duplicated inside it and nothing that goes around the module's own abstractions. Verifying a JWT inside a base controller is arguably an auth concern, and authentication might belong somewhere else. But that is a placement or layering question. Within this unit, the token-reading rule lives in exactly one place. I can't see whether other controllers repeat this logic instead of extending BaseController, because the unit has no incoming references. That cross-module duplication is outside what I can judge here. The module's dependencies on jsonwebtoken and src/config are import-direction matters, which are out of scope.",
+    "violations": []
+  },
+  "projectId": "realworld-test",
+  "prompt": "## Rule\nThe module's files form one coherent unit with a consistent abstraction and boundary.\n\n## Rubric\nPass: The files serve one cohesive concern, use the module's abstractions consistently, and keep each rule or invariant in one place.\nFail: The files split into unrelated concerns, duplicate a rule or invariant that should live in one place, or bypass the module's own abstractions.\nEvidence required: Name each file involved and cite the declarations that show the split, the duplication or the bypass.\nOut of scope: import direction and layer-dependency rules, which are checked symbolically.\n\n## Layer model\n- domain (kind: domain): src/domain/**, src/core/**, src/entities/**, src/models/**, **/domain/**; file patterns: **/*.entity.ts\n- infrastructure (kind: infrastructure): src/infrastructure/**, src/persistence/**, src/adapters/**, src/prisma/**, src/lib/**, src/common/middleware/**, src/common/filters/**, src/common/pipes/**; file patterns: **/*.repository.ts, **/*.worker.ts, **/workers/**, **/strategies/**\n- application (kind: application): src/application/**, src/use-cases/**, src/services/**; file patterns: **/*.service.ts, **/*.processor.ts, **/dto/**, **/*.dto.ts\n- presentation (kind: presentation): src/controllers/**, src/gateways/**, src/common/guards/**, src/common/interceptors/**; file patterns: **/*.controller.ts, **/*.module.ts, **/*.guard.ts, **/*.interceptor.ts, **/*.gateway.ts\n\n## Unit\nKind: module\nId: src/shared\nLayer: presentation\nUnit files:\n- src/shared/base.controller.ts\n\n## Source\n=====SOURCE-BEGIN src/shared/base.controller.ts=====\nimport { SECRET } from '../config';\nimport * as jwt from 'jsonwebtoken';\n\nexport class BaseController {\n\n  constructor() {}\n\n  protected getUserIdFromToken(authorization) {\n    if (!authorization) return null;\n\n    const token = authorization.split(' ')[1];\n    const decoded: any = jwt.verify(token, SECRET);\n    return decoded.id;\n  }\n}\n=====SOURCE-END=====\n\n## Exported signatures\n// src/shared/base.controller.ts\nexport class BaseController {\n  constructor();\n  protected getUserIdFromToken(authorization);\n}\n\n## Incoming\n(none)\n\n## Outgoing\n- jsonwebtoken\n- src/config.ts\n\n## Graph excerpt\n{\"edges\":[{\"from\":\"src/shared/base.controller.ts\",\"to\":\"jsonwebtoken\",\"type\":\"IMPORTS\"},{\"from\":\"src/shared/base.controller.ts\",\"to\":\"src/config.ts\",\"type\":\"IMPORTS\"}],\"nodes\":[{\"kind\":\"Class\",\"layer\":\"presentation\",\"name\":\"BaseController\",\"path\":\"src/shared/base.controller.ts\"},{\"kind\":\"File\",\"layer\":\"presentation\",\"path\":\"src/shared/base.controller.ts\"},{\"kind\":\"File\",\"layer\":null,\"path\":\"src/config.ts\"},{\"kind\":\"Package\",\"layer\":null,\"path\":\"jsonwebtoken\"}]}\n\n## Instructions\nJudge the unit against the rule and rubric. Return the JSON object the schema requires. Set pass to false if any file of the unit fails the rubric.\n",
+  "provider": "claude-cli",
+  "recordedAt": "2026-10-10T02:37:32.928Z",
+  "repetition": 0,
+  "requestHash": "b822055dac7757a5a3aa4a42d5c1f11249e62a51bc80d83f831f93bb0126c2bc",
+  "resolvedModel": "claude-opus-5-5",
+  "response": "{\"is_error\":false,\"modelUsage\":{\"claude-opus-5-5\":{\"inputTokens\":2,\"outputTokens\":736}},\"result\":\"{\\\"pass\\\":true,\\\"confidence\\\":0.72,\\\"reasoning\\\":\\\"The src/shared module has one file, src/shared/base.controller.ts, with one class, BaseController. That class has one protected helper, getUserIdFromToken, which reads the user id from a Bearer [REDACTED] header. The whole module serves one concern: shared controller support for finding the authenticated user. The provided material shows no other files in the unit, so I found nothing duplicated inside it and nothing that goes around the module's own abstractions. Verifying a JWT inside a base controller is arguably an auth concern, and authentication might belong somewhere else. But that is a placement or layering question. Within this unit, the token-reading rule lives in exactly one place. I can't see whether other controllers repeat this logic instead of extending BaseController, because the unit has no incoming references. That cross-module duplication is outside what I can judge here. The module's dependencies on jsonwebtoken and src/config are import-direction matters, which are out of scope.\\\",\\\"evidence\\\":[\\\"src/shared/base.controller.ts declares a single class, BaseController, with one member, protected getUserIdFromToken(authorization).\\\",\\\"getUserIdFromToken splits the authorization header, calls jwt.verify(token, SECRET) and returns decoded.id. That is one cohesive concern: finding the authenticated user for controllers.\\\",\\\"The unit has only one file, so it cannot split into unrelated concerns, and nothing in it duplicates a rule found elsewhere in the unit.\\\",\\\"Incoming: (none). Within the provided material, nothing shows the module's abstraction being bypassed.\\\"],\\\"violations\\\":[]}\",\"structured_output\":{\"confidence\":0.72,\"evidence\":[\"src/shared/base.controller.ts declares a single class, BaseController, with one member, protected getUserIdFromToken(authorization).\",\"getUserIdFromToken splits the authorization header, calls jwt.verify(token, SECRET) and returns decoded.id. That is one cohesive concern: finding the authenticated user for controllers.\",\"The unit has only one file, so it cannot split into unrelated concerns, and nothing in it duplicates a rule found elsewhere in the unit.\",\"Incoming: (none). Within the provided material, nothing shows the module's abstraction being bypassed.\"],\"pass\":true,\"reasoning\":\"The src/shared module has one file, src/shared/base.controller.ts, with one class, BaseController. That class has one protected helper, getUserIdFromToken, which reads the user id from a Bearer [REDACTED] header. The whole module serves one concern: shared controller support for finding the authenticated user. The provided material shows no other files in the unit, so I found nothing duplicated inside it and nothing that goes around the module's own abstractions. Verifying a JWT inside a base controller is arguably an auth concern, and authentication might belong somewhere else. But that is a placement or layering question. Within this unit, the token-reading rule lives in exactly one place. I can't see whether other controllers repeat this logic instead of extending BaseController, because the unit has no incoming references. That cross-module duplication is outside what I can judge here. The module's dependencies on jsonwebtoken and src/config are import-direction matters, which are out of scope.\",\"violations\":[]}}",
+  "runIndex": 0,
+  "schemaVersion": 2,
+  "unitId": "src/shared",
+  "usage": {
+    "inputTokens": 2623,
+    "outputTokens": 736
+  },
+  "usedOptions": {
+    "effort": "high",
+    "model": "claude-opus-5-5"
+  }
+}

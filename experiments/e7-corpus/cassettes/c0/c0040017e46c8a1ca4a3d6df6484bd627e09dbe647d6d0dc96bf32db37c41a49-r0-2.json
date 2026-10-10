@@ -1,0 +1,48 @@
+{
+  "attempts": 1,
+  "cliVersion": "2.1.294",
+  "configListingSha256": "47aa04258852fab9a706f3f0c14cee22306d69fbb6fdfbde8c11854bd54997bc",
+  "durationMs": 6322,
+  "effort": "high",
+  "functionId": "FF-N01",
+  "ignoredOptions": [
+    "maxTokens"
+  ],
+  "isolationProbeSha256": "97a2e2d0af1100c13c55e028c1a0c71f069093c3d08705af122aaeb302f1a641",
+  "key": "c0040017e46c8a1ca4a3d6df6484bd627e09dbe647d6d0dc96bf32db37c41a49-r0-2",
+  "model": "claude-opus-5-5",
+  "outcome": {
+    "kind": "valid"
+  },
+  "parsedVerdict": {
+    "confidence": 0.93,
+    "evidence": [
+      "src/models/interfaces/evaluation-result.interface.ts declares `export interface EvaluationResult { evaluation: string; value: boolean; }`, which is the result type of a rule evaluation.",
+      "src/models/interfaces/rule.interface.ts declares `RuleInterface<T extends RuleSettings>` with `evaluate(aRuleSettings: T): EvaluationResult` and `getSettings(aUserSettings: UserSettings): T`, reusing EvaluationResult through `import { EvaluationResult } from './evaluation-result.interface'`.",
+      "In the graph, Rule@src/models/rule.ts IMPLEMENTS RuleInterface, so both interfaces serve the single rule-evaluation contract.",
+      "Neither file duplicates a declaration or invariant."
+    ],
+    "pass": true,
+    "reasoning": "Both files in the module cover one concern: the contract for portfolio rules. RuleInterface<T extends RuleSettings> defines evaluate() and getSettings(), and evaluate() returns EvaluationResult. rule.interface.ts uses EvaluationResult by importing it from './evaluation-result.interface' rather than redeclaring its shape. Neither file repeats a rule or invariant, and neither works around the module's own abstractions. The only consumer is src/models/rule.ts, which implements RuleInterface, so the module's boundary is consistent. The import from '@ghostfolio/common' is an import-direction question, which is out of scope.",
+    "violations": []
+  },
+  "projectId": "ghostfolio-test",
+  "prompt": "## Rule\nThe module's files form one coherent unit with a consistent abstraction and boundary.\n\n## Rubric\nPass: The files serve one cohesive concern, use the module's abstractions consistently, and keep each rule or invariant in one place.\nFail: The files split into unrelated concerns, duplicate a rule or invariant that should live in one place, or bypass the module's own abstractions.\nEvidence required: Name each file involved and cite the declarations that show the split, the duplication or the bypass.\nOut of scope: import direction and layer-dependency rules, which are checked symbolically.\n\n## Layer model\n- domain (kind: domain): src/domain/**, src/core/**, src/entities/**, src/models/**, **/domain/**; file patterns: **/*.entity.ts\n- infrastructure (kind: infrastructure): src/infrastructure/**, src/persistence/**, src/adapters/**, src/prisma/**, src/lib/**, src/common/middleware/**, src/common/filters/**, src/common/pipes/**; file patterns: **/*.repository.ts, **/*.worker.ts, **/workers/**, **/strategies/**\n- application (kind: application): src/application/**, src/use-cases/**, src/services/**; file patterns: **/*.service.ts, **/*.processor.ts, **/dto/**, **/*.dto.ts\n- presentation (kind: presentation): src/controllers/**, src/gateways/**, src/common/guards/**, src/common/interceptors/**; file patterns: **/*.controller.ts, **/*.module.ts, **/*.guard.ts, **/*.interceptor.ts, **/*.gateway.ts\n\n## Unit\nKind: module\nId: src/models/interfaces\nLayer: domain\nUnit files:\n- src/models/interfaces/evaluation-result.interface.ts\n- src/models/interfaces/rule.interface.ts\n\n## Source\n=====SOURCE-BEGIN src/models/interfaces/evaluation-result.interface.ts=====\nexport interface EvaluationResult {\n  evaluation: string;\n  value: boolean;\n}\n\n=====SOURCE-END=====\n\n=====SOURCE-BEGIN src/models/interfaces/rule.interface.ts=====\nimport { RuleSettings, UserSettings } from '@ghostfolio/common/interfaces';\n\nimport { EvaluationResult } from './evaluation-result.interface';\n\nexport interface RuleInterface<T extends RuleSettings> {\n  evaluate(aRuleSettings: T): EvaluationResult;\n\n  getSettings(aUserSettings: UserSettings): T;\n}\n\n=====SOURCE-END=====\n\n## Exported signatures\n// src/models/interfaces/evaluation-result.interface.ts\nexport interface EvaluationResult {\n  evaluation: string;\n  value: boolean;\n}\n\n// src/models/interfaces/rule.interface.ts\nexport interface RuleInterface<T extends RuleSettings> {\n  evaluate(aRuleSettings: T): EvaluationResult;\n\n  getSettings(aUserSettings: UserSettings): T;\n}\n\n## Incoming\n- src/models/rule.ts\n\n## Outgoing\n- @ghostfolio/common\n\n## Graph excerpt\n{\"edges\":[{\"from\":\"Rule@src/models/rule.ts\",\"to\":\"RuleInterface@src/models/interfaces/rule.interface.ts\",\"type\":\"IMPLEMENTS\"},{\"from\":\"src/models/interfaces/rule.interface.ts\",\"to\":\"@ghostfolio/common\",\"type\":\"IMPORTS\"},{\"from\":\"src/models/interfaces/rule.interface.ts\",\"to\":\"src/models/interfaces/evaluation-result.interface.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/models/rule.ts\",\"to\":\"src/models/interfaces/evaluation-result.interface.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/models/rule.ts\",\"to\":\"src/models/interfaces/rule.interface.ts\",\"type\":\"IMPORTS\"}],\"nodes\":[{\"kind\":\"Class\",\"layer\":\"domain\",\"name\":\"Rule\",\"path\":\"src/models/rule.ts\"},{\"kind\":\"File\",\"layer\":\"domain\",\"path\":\"src/models/interfaces/evaluation-result.interface.ts\"},{\"kind\":\"File\",\"layer\":\"domain\",\"path\":\"src/models/interfaces/rule.interface.ts\"},{\"kind\":\"File\",\"layer\":\"domain\",\"path\":\"src/models/rule.ts\"},{\"kind\":\"Interface\",\"layer\":\"domain\",\"name\":\"EvaluationResult\",\"path\":\"src/models/interfaces/evaluation-result.interface.ts\"},{\"kind\":\"Interface\",\"layer\":\"domain\",\"name\":\"RuleInterface\",\"path\":\"src/models/interfaces/rule.interface.ts\"},{\"kind\":\"Package\",\"layer\":null,\"path\":\"@ghostfolio/common\"}]}\n\n## Instructions\nJudge the unit against the rule and rubric. Return the JSON object the schema requires. Set pass to false if any file of the unit fails the rubric.\n",
+  "provider": "claude-cli",
+  "recordedAt": "2026-10-10T02:44:48.645Z",
+  "repetition": 0,
+  "requestHash": "c0040017e46c8a1ca4a3d6df6484bd627e09dbe647d6d0dc96bf32db37c41a49",
+  "resolvedModel": "claude-opus-5-5",
+  "response": "{\"is_error\":false,\"modelUsage\":{\"claude-opus-5-5\":{\"inputTokens\":2,\"outputTokens\":622}},\"result\":\"{\\\"pass\\\":true,\\\"confidence\\\":0.93,\\\"reasoning\\\":\\\"Both files in the module cover one concern: the contract for portfolio rules. RuleInterface<T extends RuleSettings> defines evaluate() and getSettings(), and evaluate() returns EvaluationResult. rule.interface.ts uses EvaluationResult by importing it from './evaluation-result.interface' rather than redeclaring its shape. Neither file repeats a rule or invariant, and neither works around the module's own abstractions. The only consumer is src/models/rule.ts, which implements RuleInterface, so the module's boundary is consistent. The import from '@ghostfolio/common' is an import-direction question, which is out of scope.\\\",\\\"evidence\\\":[\\\"src/models/interfaces/evaluation-result.interface.ts declares `export interface EvaluationResult { evaluation: string; value: boolean; }`, which is the result type of a rule evaluation.\\\",\\\"src/models/interfaces/rule.interface.ts declares `RuleInterface<T extends RuleSettings>` with `evaluate(aRuleSettings: T): EvaluationResult` and `getSettings(aUserSettings: UserSettings): T`, reusing EvaluationResult through `import { EvaluationResult } from './evaluation-result.interface'`.\\\",\\\"In the graph, Rule@src/models/rule.ts IMPLEMENTS RuleInterface, so both interfaces serve the single rule-evaluation contract.\\\",\\\"Neither file duplicates a declaration or invariant.\\\"],\\\"violations\\\":[]}\",\"structured_output\":{\"confidence\":0.93,\"evidence\":[\"src/models/interfaces/evaluation-result.interface.ts declares `export interface EvaluationResult { evaluation: string; value: boolean; }`, which is the result type of a rule evaluation.\",\"src/models/interfaces/rule.interface.ts declares `RuleInterface<T extends RuleSettings>` with `evaluate(aRuleSettings: T): EvaluationResult` and `getSettings(aUserSettings: UserSettings): T`, reusing EvaluationResult through `import { EvaluationResult } from './evaluation-result.interface'`.\",\"In the graph, Rule@src/models/rule.ts IMPLEMENTS RuleInterface, so both interfaces serve the single rule-evaluation contract.\",\"Neither file duplicates a declaration or invariant.\"],\"pass\":true,\"reasoning\":\"Both files in the module cover one concern: the contract for portfolio rules. RuleInterface<T extends RuleSettings> defines evaluate() and getSettings(), and evaluate() returns EvaluationResult. rule.interface.ts uses EvaluationResult by importing it from './evaluation-result.interface' rather than redeclaring its shape. Neither file repeats a rule or invariant, and neither works around the module's own abstractions. The only consumer is src/models/rule.ts, which implements RuleInterface, so the module's boundary is consistent. The import from '@ghostfolio/common' is an import-direction question, which is out of scope.\",\"violations\":[]}}",
+  "runIndex": 2,
+  "schemaVersion": 2,
+  "unitId": "src/models/interfaces",
+  "usage": {
+    "inputTokens": 3160,
+    "outputTokens": 622
+  },
+  "usedOptions": {
+    "effort": "high",
+    "model": "claude-opus-5-5"
+  }
+}
