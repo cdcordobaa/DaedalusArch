@@ -29,7 +29,7 @@ import { scoreAndAssemble } from '../../scoring-engine/assembled-report-fixture.
 import { DomainResult } from '../../../../src/shared/errors/domain-result.js';
 import type { JudgeUnitResult, NeuronalFunctionResult } from '../../../../src/shared/types/evaluation.js';
 import type { Dimension } from '../../../../src/shared/types/enums.js';
-import { confidence, functionId } from '../../../../src/shared/types/value-objects.js';
+import { ahsScore, confidence, functionId } from '../../../../src/shared/types/value-objects.js';
 
 const FULL = JSON.parse(readFileSync(join(ROOT, 'tests/fixtures/u5b/reports/full-mode/correct-reference.json'), 'utf8')) as EvaluationReport;
 
@@ -350,7 +350,7 @@ describe('compare-aggregations: judge-weighted sensitivity variant judge-weighte
       ...template, dimension: d, functionCount: 1,
       avr: (d === 'semantic' ? 0.7 : d === 'integrity' ? 0 : 0.4) as EvaluationReport['perDimensionScores'][number]['avr'],
     }));
-    r.ahsCombined = 0.604 as EvaluationReport['ahsCombined'];
+    r.ahsCombined = ahsScore(0.604);
     r.scoring = { ...r.scoring, fullModeWeights: { ...SPEC }, thresholds: { pass: 0.8, warning: 0.65, softBlock: 0.5 } };
     const j = judgeWeightedReading(r);
     expect(j?.wNeural).toBeCloseTo(2 / 7, 12);
