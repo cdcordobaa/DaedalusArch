@@ -4,6 +4,7 @@ import type { LLMProviderConfig } from '../shared/types/llm-config.js';
 import type { CompiledFunctions, JudgeProvenance, NeuralResultRow } from '../shared/types/evaluation.js';
 import type { EvaluationMode } from '../shared/types/enums.js';
 import type { ParsedSpec } from '../shared/types/spec.js';
+import type { DomainError } from '../shared/errors/domain-result.js';
 import { DomainResult } from '../shared/errors/domain-result.js';
 import { DEFAULT_CASSETTE_DIR, JUDGE_EFFORT, JUDGE_MAX_TOKENS, JUDGE_MODEL } from './frozen.js';
 import { sha256Hex } from './canonical-json.js';
@@ -97,6 +98,22 @@ export function specShaOf(specFilePath: string): string {
   }
 }
 
+/**
+ * A usage limit during the record-mode pre-flight (the ISO-06 init probe) is the `USAGE_LIMIT` stop, not a
+ * configuration failure: it becomes `JUDGE_RUN_INCOMPLETE` (exit 3) so the run harness records the entry
+ * `incomplete` / `usage-limit` and the registered pause and resume apply. No judge call was made, so there is no
+ * manifest to write; a rerun in record mode starts the run again. Every other pre-flight error is kept (exit 2).
+ */
+export function preflightErrors(errors: readonly DomainError[]): DomainError[] {
+  const usage = errors.find((e) => e.code === 'LLM_USAGE_LIMIT');
+  if (usage === undefined) return [...errors];
+  return [{
+    code: JUDGE_RUN_INCOMPLETE,
+    message: `Judge run incomplete (USAGE_LIMIT): ${usage.message}; no judge call was made; rerun in record mode to resume. No report is written.`,
+    context: { stop: 'USAGE_LIMIT', outstanding: 0, preflight: true },
+  }];
+}
+
 export async function prepareJudgeStage(
   inner: LLMProvider,
   settings: JudgeStageSettings,
@@ -108,7 +125,7 @@ export async function prepareJudgeStage(
     // ADR-021 SO3-5: the project id keys judge repetition reliability; unit ids alone repeat across projects.
     ...(run.cassette.projectId !== undefined ? { projectId: run.cassette.projectId } : {}),
   });
-  if (!wrapped.success) return DomainResult.fail(wrapped.errors);
+  if (!wrapped.success) return DomainResult.fail(preflightErrors(wrapped.errors));
 
   let baseline: NeuronalRunOptions['baseline'];
   if (run.baselineReport !== undefined) {
