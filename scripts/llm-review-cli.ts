@@ -28,6 +28,7 @@ import {
   treeDigest,
 } from './llm-review.js';
 import type { ReviewPlan } from './llm-review.js';
+import { checkPreRegistration } from './lib/prereg.js';
 
 function readJson<T>(file: string): T {
   return JSON.parse(fs.readFileSync(file, 'utf8')) as T;
@@ -117,6 +118,12 @@ async function main(argv: readonly string[], repoRoot: string): Promise<number> 
     return 0;
   }
   if (cmd === 'run') {
+    const gate = checkPreRegistration({ repoRoot, planPath: 'experiments/llm-review/plan.json', specPaths: [...new Set(plan.trees.map((t) => t.specPath))], records: [], now: new Date() });
+    if (!gate.ok) {
+      process.stderr.write(`${gate.code} (${gate.refusal}): ${gate.detail}\n`);
+      return 1;
+    }
+    process.stdout.write(`pre-registration v${String(gate.prereg.version)} ok\n`);
     const i = rest.indexOf('--only');
     const only = i >= 0 && rest[i + 1] !== undefined ? { treeId: (rest[i + 1] as string).split(':')[0] as string, run: Number((rest[i + 1] as string).split(':')[1]) } : undefined;
     const home = os.homedir();
