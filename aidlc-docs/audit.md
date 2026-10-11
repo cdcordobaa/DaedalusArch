@@ -1369,3 +1369,11 @@ Plan checkboxes ticked. Auto-approved under standing approval; no blocking or ma
 **Context**: CONSTRUCTION — Build and Test, E1 follow-up; worktree ../DaedalusArch-wt-size, branch v1.2e-e1-size.
 
 ---
+
+## Harness fix: usage limit at the judge init probe
+**Timestamp**: 2026-10-11T04:49:55Z
+**User Input**: "Fix the harness so a usage limit hit at the judge's init probe (E1 pass 1, recorded as transport-error) is classified USAGE_LIMIT and the registered pause/resume applies, for any judge or generator step; add tests that reproduce it; change no registered artefact."
+**AI Response**: "Cause: the init-probe stop was read only from an is_error result event, and any pre-flight failure (including LLM_USAGE_LIMIT) ended the evaluate child with exit 2, which the harness reads as transport-error. Fix: C14 `initProbeStop` matches the frozen CLASSIFIER_PATTERNS (and HTTP 429) on the result text, stderr and non-JSON stdout of any erroring probe (is_error, non-zero exit or no init event); a judge call without an envelope also matches its stdout; `prepareJudgeStage` maps a pre-flight LLM_USAGE_LIMIT to JUDGE_RUN_INCOMPLETE (exit 3, stop USAGE_LIMIT, no manifest since no call was made); `classifyAttempt` reads a non-zero exit without a report whose stderr names LLM_USAGE_LIMIT or a frozen pattern (restated, test-pinned) as incomplete/usage-limit; the Claude generator's limit text adds the frozen pattern \"You've hit your limit\". Tests: 8 provider/judge-stage cases, 6 harness/generator cases; unit 3436/244 green. frozen.ts and FROZEN_SHA256 unchanged; --check-prereg v21 ok (77 artefacts unchanged), so no prereg bump."
+**Context**: v1.2e maintenance, branch v1.2e-usage-limit-fix.
+
+---

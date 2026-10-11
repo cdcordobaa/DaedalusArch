@@ -12,8 +12,10 @@ import {
   ClaudeCliProvider, buildClaudeCliArgs, buildJudgeChildEnv, checkConfigListing, checkJudgeIsolation, checkSettingsJson,
   classifyProcessResult, classifyStop, configDirPlacementProblem, createNeutralCwd, evaluateInitEvent,
   interpretClaudeEnvelope, isolationProbeSha256Of, modelMatches, parseCliVersion, readStreamEvents, reduceEnvelope,
-  resolveActualModel,
+  resolveActualModel, initProbeStop,
 } from '../../../src/llm-critic/claude-cli-provider.js';
+import { JUDGE_RUN_INCOMPLETE, preflightErrors, prepareJudgeStage } from '../../../src/llm-critic/judge-stage.js';
+import type { JudgeStageSettings } from '../../../src/llm-critic/judge-stage.js';
 import type { ClaudeCliEnvelope, InitEvent } from '../../../src/llm-critic/claude-cli-provider.js';
 import { CassetteLLMProvider, buildJudgeRequest } from '../../../src/llm-critic/cassette-provider.js';
 import { listCassetteKeys, readCassetteEntry } from '../../../src/llm-critic/cassette-manager.js';
@@ -640,5 +642,74 @@ describe('OPS-03 auth and usage-limit stops (ADR-018 item 5)', () => {
       expect(result.verdict?.confidence).toBe(0.95);
     }
     inner.dispose();
+  });
+});
+
+// ── Usage limit at the init probe (E1 pass 1, 2026-10-10; ADR-018 item 5) ──────────────
+// A usage limit hit while the init probe ran ended the evaluate child with exit 2 (a pre-flight failure), so the
+// harness recorded transport-error and the registered usage-limit pause never applied. These cases reproduce it.
+
+describe('init-probe usage limit → LLM_USAGE_LIMIT → JUDGE_RUN_INCOMPLETE (exit 3)', () => {
+  const LIMIT_TEXT = "You've hit your limit · resets 5pm (Europe/Berlin)";
+
+  async function probeWith(answer: ProcessResult): Promise<string | null> {
+    const r = await checkJudgeIsolation({
+      runner: new StubRunner({ init: DomainResult.ok(answer) }), judgeConfigDir: cleanConfigDir(), parentEnv: {}, tmpRoot: tmpDir(),
+    });
+    return r.success ? null : r.errors[0]?.code ?? null;
+  }
+
+  it('an is_error result event with the limit text → LLM_USAGE_LIMIT', async () => {
+    const result = { type: 'result', is_error: true, subtype: 'success', result: LIMIT_TEXT };
+    expect(await probeWith(proc(streamJson(INIT_CLEAN, result), { exitCode: 1 }))).toBe('LLM_USAGE_LIMIT');
+  });
+
+  it('a limit before the init event (no JSON, non-zero exit) → LLM_USAGE_LIMIT, not LLM_CLI_ISOLATION', async () => {
+    expect(await probeWith(proc('', { exitCode: 1, stderr: 'Claude AI usage limit reached|1791500000' }))).toBe('LLM_USAGE_LIMIT');
+    expect(await probeWith(proc(`${LIMIT_TEXT}\n`, { exitCode: 1 }))).toBe('LLM_USAGE_LIMIT');
+  });
+
+  it('an init event, a non-zero exit and no result event, limit on stderr → LLM_USAGE_LIMIT', async () => {
+    expect(await probeWith(proc(`${JSON.stringify(INIT_CLEAN)}\n`, { exitCode: 1, stderr: LIMIT_TEXT }))).toBe('LLM_USAGE_LIMIT');
+  });
+
+  it('HTTP 429 on the result event → LLM_USAGE_LIMIT', async () => {
+    const result = { type: 'result', is_error: true, result: 'API Error', api_error_status: 429 };
+    expect(await probeWith(proc(streamJson(INIT_CLEAN, result), { exitCode: 1 }))).toBe('LLM_USAGE_LIMIT');
+  });
+
+  it('a clean probe still passes, and a no-init probe without limit text stays LLM_CLI_ISOLATION', async () => {
+    expect(await probeWith(proc(streamJson(INIT_CLEAN)))).toBeNull();
+    expect(await probeWith(proc('not json\n'))).toBe('LLM_CLI_ISOLATION');
+    // limit-like text in a successful probe is not an error call
+    expect(await probeWith(proc(streamJson(INIT_CLEAN, { type: 'result', is_error: false, result: 'Usage limit reached is a phrase' })))).toBeNull();
+  });
+
+  it('initProbeStop reads only erroring probes', () => {
+    const events = { init: INIT_CLEAN, result: { is_error: false, result: LIMIT_TEXT } };
+    expect(initProbeStop({ exitCode: 0, stdout: '', stderr: '' }, events)).toBeNull();
+    expect(initProbeStop({ exitCode: 1, stdout: '', stderr: '' }, events)).toBe('LLM_USAGE_LIMIT');
+  });
+
+  it('a plain-text limit on stdout of a judge call (no envelope) → LLM_USAGE_LIMIT', () => {
+    expect(classifyProcessResult(proc(`${LIMIT_TEXT}\n`, { exitCode: 1 }), []).error?.code).toBe('LLM_USAGE_LIMIT');
+  });
+
+  it('prepareJudgeStage turns the init-probe usage limit into JUDGE_RUN_INCOMPLETE (stop USAGE_LIMIT), other pre-flight errors unchanged', async () => {
+    const settings = (): JudgeStageSettings => ({
+      projectRoot: tmpDir('u4-proj-'), specSha: 'x', knownSecrets: [], holder: {},
+      run: { llm: OPTIONS, repetition: 0, cassette: { mode: 'record', dir: tmpDir('u4-cas-'), omitPrompt: false } },
+    });
+    const limited = provider(new StubRunner({ init: DomainResult.ok(proc('', { exitCode: 1, stderr: LIMIT_TEXT })) }));
+    const stopped = await prepareJudgeStage(limited, settings(), undefined);
+    expect(stopped.success).toBe(false);
+    if (!stopped.success) {
+      expect(stopped.errors.map((e) => e.code)).toEqual([JUDGE_RUN_INCOMPLETE]);
+      expect(stopped.errors[0]?.context).toMatchObject({ stop: 'USAGE_LIMIT' });
+    }
+    const drift = provider(new StubRunner({ version: DomainResult.ok(proc('2.1.293 (Claude Code)\n')) }));
+    const refused = await prepareJudgeStage(drift, settings(), undefined);
+    expect(refused.success ? null : refused.errors[0]?.code).toBe('LLM_CLI_VERSION_DRIFT');
+    expect(preflightErrors([{ code: 'LLM_AUTH', message: 'x' }])).toEqual([{ code: 'LLM_AUTH', message: 'x' }]);
   });
 });
