@@ -26,6 +26,8 @@ export interface ImportOccurrence {
   readonly names: readonly string[];
   /** Decided per target from the specifiers routed to it (Q7 A). */
   readonly isTypeOnly: boolean;
+  /** v1.3 `dynamicImports`: the occurrence is an `import()` / `require()` call. Absent = a static statement. */
+  readonly dynamic?: boolean;
 }
 
 interface SlotOccurrence {
@@ -34,6 +36,7 @@ interface SlotOccurrence {
   readonly seq: number;
   readonly names: readonly string[];
   readonly isTypeOnly: boolean;
+  readonly dynamic: boolean;
 }
 
 interface MergeSlot {
@@ -152,6 +155,7 @@ export class ImportEdgeMerger {
       seq: this.seq++,
       names: occ.names,
       isTypeOnly: occ.isTypeOnly,
+      dynamic: occ.dynamic === true,
     });
   }
 
@@ -160,8 +164,10 @@ export class ImportEdgeMerger {
       .sort((a, b) => a.firstSeen - b.firstSeen)
       .map(slot => {
         const { names, ...common } = fromOccurrences(slot.occurrences);
+        // `dynamic: true` only when no static statement reaches the target: the edge then exists because of the call.
+        const dynamic = slot.occurrences.every(o => o.dynamic);
         const properties: ImportEdgeProperties | ReExportEdgeProperties = slot.edgeType === 'IMPORTS'
-          ? { ...common, importedNames: names }
+          ? { ...common, importedNames: names, ...(dynamic ? { dynamic: true as const } : {}) }
           : { ...common, exportedNames: names };
         return {
           id: generateEdgeId(slot.edgeType, slot.sourceId, slot.targetId),

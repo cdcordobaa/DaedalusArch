@@ -12,7 +12,7 @@
 import { dirname, isAbsolute, join, relative } from 'node:path';
 import { Node, SyntaxKind, ts } from 'ts-morph';
 import type {
-  ExportDeclaration, ImportDeclaration, ImportEqualsDeclaration, Project, SourceFile, Symbol as MorphSymbol,
+  CallExpression, ExportDeclaration, ImportDeclaration, ImportEqualsDeclaration, Project, SourceFile, Symbol as MorphSymbol,
 } from 'ts-morph';
 import type { ExtractorOptions, NodeLookup } from './types.js';
 import { DEFAULT_OPTIONS } from './types.js';
@@ -508,17 +508,59 @@ export function resolveReExportTargets(statement: ExportDeclaration, ctx: Import
   };
 }
 
+/** One `import()` or `require()` call; `specifier` is set only for a string-literal first argument. */
+export interface DynamicImportCall {
+  readonly call: CallExpression;
+  readonly specifier: string | undefined;
+}
+
 /**
- * `import()` and `require()` call occurrences in one file (BR-U2-25). Import-equals
- * declarations, `import('x').T` type references and `require.resolve()` are not calls
- * of this form and are not counted.
+ * The `import(...)` and `require(...)` call expressions of a file, in source order. `import x = require()`
+ * declarations, `import('x').T` type references and `require.resolve()` are not calls of this form.
  */
-export function countUnsupportedDynamicImports(sf: SourceFile): number {
-  let count = 0;
+export function findDynamicImportCalls(sf: SourceFile): DynamicImportCall[] {
+  const calls: DynamicImportCall[] = [];
   for (const call of sf.getDescendantsOfKind(SyntaxKind.CallExpression)) {
     const callee = call.getExpression();
-    if (callee.getKind() === SyntaxKind.ImportKeyword) count++;
-    else if (Node.isIdentifier(callee) && callee.getText() === 'require') count++;
+    const isDynamic = callee.getKind() === SyntaxKind.ImportKeyword
+      || (Node.isIdentifier(callee) && callee.getText() === 'require');
+    if (!isDynamic) continue;
+    const arg = call.getArguments()[0];
+    const literal = arg !== undefined && (Node.isStringLiteral(arg) || Node.isNoSubstitutionTemplateLiteral(arg));
+    calls.push({ call, specifier: literal ? arg.getLiteralText() : undefined });
   }
-  return count;
+  return calls;
+}
+
+/**
+ * Counts `import()` / `require()` calls that are not modelled (BR-U2-25). With `modelLiterals` (the v1.3
+ * `dynamicImports` option) the string-literal calls are modelled by {@link resolveDynamicImportTargets} and
+ * are not counted; the remaining calls (computed specifiers) still are.
+ */
+export function countUnsupportedDynamicImports(sf: SourceFile, modelLiterals = false): number {
+  const calls = findDynamicImportCalls(sf);
+  return modelLiterals ? calls.filter(c => c.specifier === undefined).length : calls.length;
+}
+
+/**
+ * v1.3 (`dynamicImports`): IMPORTS occurrences of the string-literal `import()` / `require()` calls of one file,
+ * resolved like static imports (`resolveModule`) but to the module itself (no per-name barrel routing). They carry
+ * `dynamic: true`, names `['*']` and the call's line. They are outside the statement partition counters.
+ */
+export function resolveDynamicImportTargets(sf: SourceFile, ctx: ImportResolutionContext): ImportOccurrence[] {
+  const sourceFileNodeId = sourceFileNodeIdOf(sf, ctx);
+  const occurrences: ImportOccurrence[] = [];
+  for (const { call, specifier } of findDynamicImportCalls(sf)) {
+    if (specifier === undefined) continue;
+    const resolution = resolveModule(specifier, sf, ctx);
+    let target: OccurrenceTarget;
+    if (resolution.kind === 'project-file') target = { kind: 'file', fileNodeId: resolution.fileNodeId };
+    else if (resolution.kind === 'package') target = { kind: 'package', root: resolution.root };
+    else continue;
+    occurrences.push({
+      edgeType: 'IMPORTS', sourceFileNodeId, target, specifier, line: call.getStartLineNumber(),
+      names: ['*'], isTypeOnly: false, dynamic: true,
+    });
+  }
+  return occurrences;
 }

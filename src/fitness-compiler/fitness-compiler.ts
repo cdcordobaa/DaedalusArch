@@ -8,6 +8,7 @@ import type { FirewallContext } from '../shared/context/firewall-context.js';
 import { DomainResult } from '../shared/errors/domain-result.js';
 import type { CompilerInput, CompilerError, CompilerWarning, CypherTemplate, LayerKindBinding } from './types.js';
 import { CYPHER_TEMPLATES } from './cypher-templates.js';
+import { V13_CYPHER_TEMPLATES } from './v13-templates.js';
 import { bindLayerParams } from './layer-binding.js';
 import { isTemplateApplicable } from './template-applicability.js';
 import { hasExcludeMarker, replaceExcludeMarkers } from './exclude-injector.js';
@@ -40,10 +41,17 @@ export function filterEnabled(
 /** Compiler options: `instrumentVersion` 1 drops the role exemptions (ADR-026); default `INSTRUMENT_VERSION`. */
 export interface CompileOptions {
   readonly instrumentVersion?: InstrumentVersion;
+  /** v1.3, OFF by default: also resolve the `V13_CYPHER_TEMPLATES` (module-wiring examples). */
+  readonly v13Templates?: boolean;
 }
+
+type TemplateCatalogue = ReadonlyMap<string, CypherTemplate>;
 
 export function compileFunctions(input: CompilerInput, options: CompileOptions = {}): DomainResult<CompiledFunctions> {
   const instrumentVersion = options.instrumentVersion ?? INSTRUMENT_VERSION;
+  const templates: TemplateCatalogue = options.v13Templates === true
+    ? new Map([...CYPHER_TEMPLATES, ...V13_CYPHER_TEMPLATES])
+    : CYPHER_TEMPLATES;
   const { fitnessFunctions, adrRules, layerModel } = input;
   const symbolicQueries: CypherQuery[] = [];
   const neuronalInstructions: NeuronalInstruction[] = [];
@@ -74,14 +82,14 @@ export function compileFunctions(input: CompilerInput, options: CompileOptions =
   const binding = bindLayerParams(layerModel.layers);
 
   // C7: exclude_paths needs an exclude anchor in the template (BR-U1-32); always fatal.
-  const anchorErrors = checkExcludeAnchors(enabledFunctions, input.style, binding, layerModel);
+  const anchorErrors = checkExcludeAnchors(enabledFunctions, input.style, binding, layerModel, templates);
   if (anchorErrors.length > 0) return DomainResult.fail<CompiledFunctions>(anchorErrors);
 
   // Compile enabled fitness functions by route
   for (const ff of enabledFunctions) {
     // C5: applicability (style, layer kinds, no-layer-skip layer count) for symbolic/hybrid functions
     // with a template; a disabled function is skipped downstream (BR-U1-10, BR-U1-15, BR-U1-18).
-    const template = ff.route === 'neuronal' ? undefined : CYPHER_TEMPLATES.get(ff.name);
+    const template = ff.route === 'neuronal' ? undefined : templates.get(ff.name);
     if (template) {
       const applicability = isTemplateApplicable(template, input.style, binding, layerModel);
       if (!applicability.applicable) {
@@ -97,7 +105,7 @@ export function compileFunctions(input: CompilerInput, options: CompileOptions =
 
     switch (ff.route) {
       case 'symbolic': {
-        const result = compileSymbolic(ff, layerModel, binding, warnings, instrumentVersion);
+        const result = compileSymbolic(ff, layerModel, binding, warnings, instrumentVersion, templates);
         if (result) symbolicQueries.push(result);
         break;
       }
@@ -107,7 +115,7 @@ export function compileFunctions(input: CompilerInput, options: CompileOptions =
         break;
       }
       case 'hybrid': {
-        const sym = compileSymbolic(ff, layerModel, binding, warnings, instrumentVersion);
+        const sym = compileSymbolic(ff, layerModel, binding, warnings, instrumentVersion, templates);
         const neur = compileNeuronal(ff, false);
         if (sym && neur) {
           hybridPairs.push({ functionId: ff.id, symbolicQuery: sym, neuronalInstruction: neur });
@@ -162,11 +170,12 @@ function checkExcludeAnchors(
   style: string | undefined,
   binding: LayerKindBinding,
   layerModel: LayerModel,
+  templates: TemplateCatalogue = CYPHER_TEMPLATES,
 ): CompilerError[] {
   const errors: CompilerError[] = [];
   for (const ff of functions) {
     if (ff.route === 'neuronal' || ff.excludePaths.length === 0) continue;
-    const template = CYPHER_TEMPLATES.get(ff.name);
+    const template = templates.get(ff.name);
     if (!template || !isTemplateApplicable(template, style, binding, layerModel).applicable) continue;
     if (!hasExcludeMarker(template.template)) {
       errors.push(compilerError('COMPILATION_FAILED', `${String(ff.id)}: exclude_paths not supported by template ${template.functionName}`));
@@ -183,8 +192,9 @@ function compileSymbolic(
   binding: LayerKindBinding,
   warnings: CompilerWarning[],
   instrumentVersion: InstrumentVersion = INSTRUMENT_VERSION,
+  templates: TemplateCatalogue = CYPHER_TEMPLATES,
 ): CypherQuery | undefined {
-  const template = CYPHER_TEMPLATES.get(ff.name);
+  const template = templates.get(ff.name);
 
   if (!template) {
     if (ff.route === 'neuronal') {
@@ -195,7 +205,7 @@ function compileSymbolic(
     return undefined;
   }
 
-  const params = buildParams(ff, layerModel, binding);
+  const params = buildParams(ff, layerModel, binding, templates);
   // C9: excludePatterns is appended to the map last (BR-U1-32, NFR-02): the function's own exclude_paths, then
   // the template's instrument v2 role exemptions (ADR-026).
   const excludePatterns = [...ff.excludePaths.map((g) => globToRegex(g)), ...roleExemptionPatterns(template.functionName, instrumentVersion)];
@@ -311,6 +321,7 @@ export function buildParams(
   ff: FitnessFunction,
   layerModel: LayerModel,
   binding: LayerKindBinding,
+  templates: TemplateCatalogue = CYPHER_TEMPLATES,
 ): Record<string, unknown> {
   const candidates: Record<string, unknown> = {};
   const layers = layerModel.layers;
@@ -358,7 +369,7 @@ export function buildParams(
   candidates.infraPattern = '.*';
 
   // Restriction (BR-U1-33): only the template's declared parameters, required first, in declared order.
-  const template = CYPHER_TEMPLATES.get(ff.name);
+  const template = templates.get(ff.name);
   const params: Record<string, unknown> = {};
   if (!template) return params;
   for (const name of [...template.requiredParams, ...template.optionalParams]) {

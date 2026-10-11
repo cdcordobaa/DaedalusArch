@@ -17,6 +17,16 @@ export interface ExtractorOptions {
   maxBarrelDepth?: number;      // default: 10
   excludePatterns?: string[];   // additional globs beyond defaults
   graphMode?: GraphMode;        // default: 'full'
+  /**
+   * v1.3, OFF by default (the frozen v1.2E instrument never sets it). Model `import('x')` and `require('x')`
+   * calls with a string-literal argument as IMPORTS edges carrying `dynamic: true`, resolved like static imports.
+   */
+  dynamicImports?: boolean;
+  /**
+   * v1.3, OFF by default. Extract the NestJS `@Module({ imports, providers, controllers, exports })` metadata as
+   * MODULE_IMPORTS, MODULE_PROVIDES and MODULE_EXPORTS edges between Class nodes.
+   */
+  moduleWiring?: boolean;
 }
 
 export type ExtractorErrorCode =
@@ -99,4 +109,6 @@ export const DEFAULT_OPTIONS: Required<ExtractorOptions> = {
   maxBarrelDepth: 10,
   excludePatterns: [],
   graphMode: 'full',
+  dynamicImports: false,
+  moduleWiring: false,
 };
