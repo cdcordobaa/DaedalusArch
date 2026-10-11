@@ -1,0 +1,47 @@
+{
+  "attempts": 1,
+  "cliVersion": "2.1.294",
+  "configListingSha256": "47aa04258852fab9a706f3f0c14cee22306d69fbb6fdfbde8c11854bd54997bc",
+  "durationMs": 5069,
+  "effort": "high",
+  "functionId": "FF-N02",
+  "ignoredOptions": [
+    "maxTokens"
+  ],
+  "isolationProbeSha256": "97a2e2d0af1100c13c55e028c1a0c71f069093c3d08705af122aaeb302f1a641",
+  "key": "d6c462c2258e30cee62d93fea31eb8c199aa1adeae483d247e1b6f5ee79cf50a-r0-2",
+  "model": "claude-opus-5-5",
+  "outcome": {
+    "kind": "valid"
+  },
+  "parsedVerdict": {
+    "confidence": 0.95,
+    "evidence": [
+      "Quantity.create validates the domain invariants that the value must be positive and an integer",
+      "Quantity.subtract enforces the 'Insufficient quantity' business rule",
+      "add, isLessThan, isGreaterThanOrEqual and equals are pure value-object operations with no I/O or framework use"
+    ],
+    "pass": true,
+    "reasoning": "src/domain/Quantity.ts is a pure value object. It enforces domain invariants: a quantity must be a positive integer and cannot go negative on subtraction. It also provides value arithmetic and comparison operations. It has no persistence, transport, framework or orchestration logic, so every responsibility belongs to the domain layer.",
+    "violations": []
+  },
+  "projectId": "claude-haiku-4-5/order-fulfilment/minimal-prose/run-1",
+  "prompt": "## Rule\nThe unit's responsibilities match the role of its declared layer.\n\n## Rubric\nPass: Every responsibility in the file belongs to the role and kind of its declared layer, and agrees with any ADR prose given.\nFail: The file carries a responsibility that belongs to a different layer kind, for example persistence, transport or framework logic in a domain file, or business rules in an infrastructure or presentation file.\nEvidence required: Name the file and cite the function, method or statement that carries the misplaced responsibility, and the layer kind it belongs to.\nOut of scope: import direction and layer-dependency rules, which are checked symbolically.\n\n## Layer model\n- domain (kind: domain): src/domain/**\n- application (kind: application): src/application/**\n- infrastructure (kind: infrastructure): src/infrastructure/**\n\n## Unit\nKind: file\nId: src/domain/Quantity.ts\nLayer: domain\nUnit files:\n- src/domain/Quantity.ts\n\n## Source\n=====SOURCE-BEGIN src/domain/Quantity.ts=====\nexport class Quantity {\n  private constructor(readonly value: number) {}\n\n  static create(value: number): Quantity {\n    if (value <= 0) {\n      throw new Error('Quantity must be greater than 0');\n    }\n    if (!Number.isInteger(value)) {\n      throw new Error('Quantity must be an integer');\n    }\n    return new Quantity(value);\n  }\n\n  add(other: Quantity): Quantity {\n    return new Quantity(this.value + other.value);\n  }\n\n  subtract(other: Quantity): Quantity {\n    const result = this.value - other.value;\n    if (result < 0) {\n      throw new Error('Insufficient quantity');\n    }\n    return new Quantity(result);\n  }\n\n  isLessThan(other: Quantity): boolean {\n    return this.value < other.value;\n  }\n\n  isGreaterThanOrEqual(other: Quantity): boolean {\n    return this.value >= other.value;\n  }\n\n  equals(other: Quantity): boolean {\n    return this.value === other.value;\n  }\n}\n\n=====SOURCE-END=====\n\n## Graph excerpt\n{\"edges\":[{\"from\":\"OrderItem@src/domain/OrderItem.ts\",\"to\":\"Quantity@src/domain/Quantity.ts\",\"type\":\"CONSTRUCTOR_INJECTS\"},{\"from\":\"Product@src/domain/Product.ts\",\"to\":\"Quantity@src/domain/Quantity.ts\",\"type\":\"CONSTRUCTOR_INJECTS\"},{\"from\":\"Product@src/domain/Product.ts\",\"to\":\"Quantity@src/domain/Quantity.ts\",\"type\":\"FLOWS_TO\"},{\"from\":\"src/application/CancelOrderUseCase.ts\",\"to\":\"src/domain/Quantity.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/application/PlaceOrderUseCase.ts\",\"to\":\"src/domain/Quantity.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/domain/OrderItem.ts\",\"to\":\"src/domain/Quantity.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/domain/Product.ts\",\"to\":\"src/domain/Quantity.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/infrastructure/app.ts\",\"to\":\"src/domain/Quantity.ts\",\"type\":\"IMPORTS\"}],\"nodes\":[{\"kind\":\"Class\",\"layer\":\"domain\",\"name\":\"OrderItem\",\"path\":\"src/domain/OrderItem.ts\"},{\"kind\":\"Class\",\"layer\":\"domain\",\"name\":\"Product\",\"path\":\"src/domain/Product.ts\"},{\"kind\":\"Class\",\"layer\":\"domain\",\"name\":\"Quantity\",\"path\":\"src/domain/Quantity.ts\"},{\"kind\":\"File\",\"layer\":\"application\",\"path\":\"src/application/CancelOrderUseCase.ts\"},{\"kind\":\"File\",\"layer\":\"application\",\"path\":\"src/application/PlaceOrderUseCase.ts\"},{\"kind\":\"File\",\"layer\":\"domain\",\"path\":\"src/domain/OrderItem.ts\"},{\"kind\":\"File\",\"layer\":\"domain\",\"path\":\"src/domain/Product.ts\"},{\"kind\":\"File\",\"layer\":\"domain\",\"path\":\"src/domain/Quantity.ts\"},{\"kind\":\"File\",\"layer\":\"infrastructure\",\"path\":\"src/infrastructure/app.ts\"}]}\n\n## Instructions\nJudge the unit against the rule and rubric. Return the JSON object the schema requires. Set pass to false if any file of the unit fails the rubric.\n",
+  "provider": "claude-cli",
+  "recordedAt": "2026-10-11T02:47:34.071Z",
+  "repetition": 0,
+  "requestHash": "d6c462c2258e30cee62d93fea31eb8c199aa1adeae483d247e1b6f5ee79cf50a",
+  "resolvedModel": "claude-opus-5-5",
+  "response": "{\"is_error\":false,\"modelUsage\":{\"claude-opus-5-5\":{\"inputTokens\":2,\"outputTokens\":349}},\"result\":\"{\\\"pass\\\":true,\\\"confidence\\\":0.95,\\\"reasoning\\\":\\\"src/domain/Quantity.ts is a pure value object. It enforces domain invariants: a quantity must be a positive integer and cannot go negative on subtraction. It also provides value arithmetic and comparison operations. It has no persistence, transport, framework or orchestration logic, so every responsibility belongs to the domain layer.\\\",\\\"evidence\\\":[\\\"Quantity.create validates the domain invariants that the value must be positive and an integer\\\",\\\"Quantity.subtract enforces the 'Insufficient quantity' business rule\\\",\\\"add, isLessThan, isGreaterThanOrEqual and equals are pure value-object operations with no I/O or framework use\\\"],\\\"violations\\\":[]}\",\"structured_output\":{\"confidence\":0.95,\"evidence\":[\"Quantity.create validates the domain invariants that the value must be positive and an integer\",\"Quantity.subtract enforces the 'Insufficient quantity' business rule\",\"add, isLessThan, isGreaterThanOrEqual and equals are pure value-object operations with no I/O or framework use\"],\"pass\":true,\"reasoning\":\"src/domain/Quantity.ts is a pure value object. It enforces domain invariants: a quantity must be a positive integer and cannot go negative on subtraction. It also provides value arithmetic and comparison operations. It has no persistence, transport, framework or orchestration logic, so every responsibility belongs to the domain layer.\",\"violations\":[]}}",
+  "runIndex": 2,
+  "schemaVersion": 2,
+  "unitId": "src/domain/Quantity.ts",
+  "usage": {
+    "inputTokens": 2995,
+    "outputTokens": 349
+  },
+  "usedOptions": {
+    "effort": "high",
+    "model": "claude-opus-5-5"
+  }
+}

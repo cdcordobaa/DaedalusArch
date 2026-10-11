@@ -1,0 +1,47 @@
+{
+  "attempts": 1,
+  "cliVersion": "2.1.294",
+  "configListingSha256": "47aa04258852fab9a706f3f0c14cee22306d69fbb6fdfbde8c11854bd54997bc",
+  "durationMs": 4890,
+  "effort": "high",
+  "functionId": "FF-N02",
+  "ignoredOptions": [
+    "maxTokens"
+  ],
+  "isolationProbeSha256": "97a2e2d0af1100c13c55e028c1a0c71f069093c3d08705af122aaeb302f1a641",
+  "key": "9c79f8044a2a07e873d7ca4e6f60c4983d72fe65652ba6f3b434ff547af5db9c-r0-1",
+  "model": "claude-opus-5-5",
+  "outcome": {
+    "kind": "valid"
+  },
+  "parsedVerdict": {
+    "confidence": 0.95,
+    "evidence": [
+      "src/domain/order-status.ts: `orderStatuses` and `OrderStatus` define the domain value set for order status.",
+      "src/domain/order-status.ts: `nextStatus` map and `canTransition(from, to)` hold the order lifecycle rule, which is a domain business rule.",
+      "No I/O, storage, HTTP, framework or use-case orchestration code is present in the file."
+    ],
+    "pass": true,
+    "reasoning": "The file holds only domain concepts: the order statuses, a derived type, and the state-transition rule (canTransition). These are pure business invariants with no persistence, transport, framework or orchestration logic, so they fit the domain layer.",
+    "violations": []
+  },
+  "projectId": "gpt-5.6-terra/order-fulfilment/minimal-prose/run-0",
+  "prompt": "## Rule\nThe unit's responsibilities match the role of its declared layer.\n\n## Rubric\nPass: Every responsibility in the file belongs to the role and kind of its declared layer, and agrees with any ADR prose given.\nFail: The file carries a responsibility that belongs to a different layer kind, for example persistence, transport or framework logic in a domain file, or business rules in an infrastructure or presentation file.\nEvidence required: Name the file and cite the function, method or statement that carries the misplaced responsibility, and the layer kind it belongs to.\nOut of scope: import direction and layer-dependency rules, which are checked symbolically.\n\n## Layer model\n- domain (kind: domain): src/domain/**\n- application (kind: application): src/application/**\n- infrastructure (kind: infrastructure): src/infrastructure/**\n\n## Unit\nKind: file\nId: src/domain/order-status.ts\nLayer: domain\nUnit files:\n- src/domain/order-status.ts\n\n## Source\n=====SOURCE-BEGIN src/domain/order-status.ts=====\nexport const orderStatuses = [\"placed\", \"paid\", \"packed\", \"shipped\", \"delivered\", \"cancelled\"] as const;\n\nexport type OrderStatus = (typeof orderStatuses)[number];\n\nconst nextStatus: Readonly<Record<Exclude<OrderStatus, \"delivered\" | \"cancelled\">, OrderStatus>> = {\n  placed: \"paid\",\n  paid: \"packed\",\n  packed: \"shipped\",\n  shipped: \"delivered\",\n};\n\nexport function canTransition(from: OrderStatus, to: OrderStatus): boolean {\n  return from in nextStatus && nextStatus[from as keyof typeof nextStatus] === to;\n}\n\n=====SOURCE-END=====\n\n## Graph excerpt\n{\"edges\":[{\"from\":\"src/application/dtos.ts\",\"to\":\"src/domain/order-status.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/application/order-service.ts\",\"to\":\"src/domain/order-status.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/domain/order.ts\",\"to\":\"src/domain/order-status.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/domain/repositories.ts\",\"to\":\"src/domain/order-status.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/infrastructure/in-memory-repositories.ts\",\"to\":\"src/domain/order-status.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/infrastructure/order-controller.ts\",\"to\":\"src/domain/order-status.ts\",\"type\":\"IMPORTS\"}],\"nodes\":[{\"kind\":\"File\",\"layer\":\"application\",\"path\":\"src/application/dtos.ts\"},{\"kind\":\"File\",\"layer\":\"application\",\"path\":\"src/application/order-service.ts\"},{\"kind\":\"File\",\"layer\":\"domain\",\"path\":\"src/domain/order-status.ts\"},{\"kind\":\"File\",\"layer\":\"domain\",\"path\":\"src/domain/order.ts\"},{\"kind\":\"File\",\"layer\":\"domain\",\"path\":\"src/domain/repositories.ts\"},{\"kind\":\"File\",\"layer\":\"infrastructure\",\"path\":\"src/infrastructure/in-memory-repositories.ts\"},{\"kind\":\"File\",\"layer\":\"infrastructure\",\"path\":\"src/infrastructure/order-controller.ts\"}]}\n\n## Instructions\nJudge the unit against the rule and rubric. Return the JSON object the schema requires. Set pass to false if any file of the unit fails the rubric.\n",
+  "provider": "claude-cli",
+  "recordedAt": "2026-10-11T03:18:40.386Z",
+  "repetition": 0,
+  "requestHash": "9c79f8044a2a07e873d7ca4e6f60c4983d72fe65652ba6f3b434ff547af5db9c",
+  "resolvedModel": "claude-opus-5-5",
+  "response": "{\"is_error\":false,\"modelUsage\":{\"claude-opus-5-5\":{\"inputTokens\":2,\"outputTokens\":346}},\"result\":\"{\\\"pass\\\":true,\\\"confidence\\\":0.95,\\\"reasoning\\\":\\\"The file holds only domain concepts: the order statuses, a derived type, and the state-transition rule (canTransition). These are pure business invariants with no persistence, transport, framework or orchestration logic, so they fit the domain layer.\\\",\\\"evidence\\\":[\\\"src/domain/order-status.ts: `orderStatuses` and `OrderStatus` define the domain value set for order status.\\\",\\\"src/domain/order-status.ts: `nextStatus` map and `canTransition(from, to)` hold the order lifecycle rule, which is a domain business rule.\\\",\\\"No I/O, storage, HTTP, framework or use-case orchestration code is present in the file.\\\"],\\\"violations\\\":[]}\",\"structured_output\":{\"confidence\":0.95,\"evidence\":[\"src/domain/order-status.ts: `orderStatuses` and `OrderStatus` define the domain value set for order status.\",\"src/domain/order-status.ts: `nextStatus` map and `canTransition(from, to)` hold the order lifecycle rule, which is a domain business rule.\",\"No I/O, storage, HTTP, framework or use-case orchestration code is present in the file.\"],\"pass\":true,\"reasoning\":\"The file holds only domain concepts: the order statuses, a derived type, and the state-transition rule (canTransition). These are pure business invariants with no persistence, transport, framework or orchestration logic, so they fit the domain layer.\",\"violations\":[]}}",
+  "runIndex": 1,
+  "schemaVersion": 2,
+  "unitId": "src/domain/order-status.ts",
+  "usage": {
+    "inputTokens": 2632,
+    "outputTokens": 346
+  },
+  "usedOptions": {
+    "effort": "high",
+    "model": "claude-opus-5-5"
+  }
+}

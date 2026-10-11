@@ -1,0 +1,47 @@
+{
+  "attempts": 1,
+  "cliVersion": "2.1.294",
+  "configListingSha256": "47aa04258852fab9a706f3f0c14cee22306d69fbb6fdfbde8c11854bd54997bc",
+  "durationMs": 5838,
+  "effort": "high",
+  "functionId": "FF-N02",
+  "ignoredOptions": [
+    "maxTokens"
+  ],
+  "isolationProbeSha256": "97a2e2d0af1100c13c55e028c1a0c71f069093c3d08705af122aaeb302f1a641",
+  "key": "c5e6b51fbf127774172d0442512053711e26453e1321e5dc56248807f7aa9bf0-r0-1",
+  "model": "claude-opus-5-5",
+  "outcome": {
+    "kind": "valid"
+  },
+  "parsedVerdict": {
+    "confidence": 0.95,
+    "evidence": [
+      "src/infrastructure/http/RequestValidationError.ts: class RequestValidationError extends Error only sets message and name; it contains no business logic.",
+      "Doc comment: 'The HTTP request is malformed (wrong shape or types), independent of business rules.' This is a transport concern.",
+      "Graph: only src/infrastructure/http/middleware/errorHandler.ts and src/infrastructure/http/requestParsing.ts import it, and both are infrastructure HTTP files."
+    ],
+    "pass": true,
+    "reasoning": "The file declares one HTTP-transport error type, RequestValidationError. Its doc comment says it represents a malformed HTTP request (wrong shape or types), independent of business rules. Checking request shape belongs to the transport/infrastructure layer. The file holds no business rules, domain logic or orchestration. Only infrastructure HTTP files use it (errorHandler middleware and requestParsing), which fits its role in the infrastructure layer.",
+    "violations": []
+  },
+  "projectId": "claude-opus-5-5/task-management/minimal-prose/run-1",
+  "prompt": "## Rule\nThe unit's responsibilities match the role of its declared layer.\n\n## Rubric\nPass: Every responsibility in the file belongs to the role and kind of its declared layer, and agrees with any ADR prose given.\nFail: The file carries a responsibility that belongs to a different layer kind, for example persistence, transport or framework logic in a domain file, or business rules in an infrastructure or presentation file.\nEvidence required: Name the file and cite the function, method or statement that carries the misplaced responsibility, and the layer kind it belongs to.\nOut of scope: import direction and layer-dependency rules, which are checked symbolically.\n\n## Layer model\n- domain (kind: domain): src/domain/**\n- application (kind: application): src/application/**\n- infrastructure (kind: infrastructure): src/infrastructure/**\n\n## Unit\nKind: file\nId: src/infrastructure/http/RequestValidationError.ts\nLayer: infrastructure\nUnit files:\n- src/infrastructure/http/RequestValidationError.ts\n\n## Source\n=====SOURCE-BEGIN src/infrastructure/http/RequestValidationError.ts=====\n/** The HTTP request is malformed (wrong shape or types), independent of business rules. */\nexport class RequestValidationError extends Error {\n  constructor(message: string) {\n    super(message);\n    this.name = 'RequestValidationError';\n  }\n}\n\n=====SOURCE-END=====\n\n## Graph excerpt\n{\"edges\":[{\"from\":\"src/infrastructure/http/middleware/errorHandler.ts\",\"to\":\"src/infrastructure/http/RequestValidationError.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/infrastructure/http/requestParsing.ts\",\"to\":\"src/infrastructure/http/RequestValidationError.ts\",\"type\":\"IMPORTS\"}],\"nodes\":[{\"kind\":\"Class\",\"layer\":\"infrastructure\",\"name\":\"RequestValidationError\",\"path\":\"src/infrastructure/http/RequestValidationError.ts\"},{\"kind\":\"File\",\"layer\":\"infrastructure\",\"path\":\"src/infrastructure/http/RequestValidationError.ts\"},{\"kind\":\"File\",\"layer\":\"infrastructure\",\"path\":\"src/infrastructure/http/middleware/errorHandler.ts\"},{\"kind\":\"File\",\"layer\":\"infrastructure\",\"path\":\"src/infrastructure/http/requestParsing.ts\"}]}\n\n## Instructions\nJudge the unit against the rule and rubric. Return the JSON object the schema requires. Set pass to false if any file of the unit fails the rubric.\n",
+  "provider": "claude-cli",
+  "recordedAt": "2026-10-10T21:42:49.666Z",
+  "repetition": 0,
+  "requestHash": "c5e6b51fbf127774172d0442512053711e26453e1321e5dc56248807f7aa9bf0",
+  "resolvedModel": "claude-opus-5-5",
+  "response": "{\"is_error\":false,\"modelUsage\":{\"claude-opus-5-5\":{\"inputTokens\":2,\"outputTokens\":449}},\"result\":\"{\\\"pass\\\":true,\\\"confidence\\\":0.95,\\\"reasoning\\\":\\\"The file declares one HTTP-transport error type, RequestValidationError. Its doc comment says it represents a malformed HTTP request (wrong shape or types), independent of business rules. Checking request shape belongs to the transport/infrastructure layer. The file holds no business rules, domain logic or orchestration. Only infrastructure HTTP files use it (errorHandler middleware and requestParsing), which fits its role in the infrastructure layer.\\\",\\\"evidence\\\":[\\\"src/infrastructure/http/RequestValidationError.ts: class RequestValidationError extends Error only sets message and name; it contains no business logic.\\\",\\\"Doc comment: 'The HTTP request is malformed (wrong shape or types), independent of business rules.' This is a transport concern.\\\",\\\"Graph: only src/infrastructure/http/middleware/errorHandler.ts and src/infrastructure/http/requestParsing.ts import it, and both are infrastructure HTTP files.\\\"],\\\"violations\\\":[]}\",\"structured_output\":{\"confidence\":0.95,\"evidence\":[\"src/infrastructure/http/RequestValidationError.ts: class RequestValidationError extends Error only sets message and name; it contains no business logic.\",\"Doc comment: 'The HTTP request is malformed (wrong shape or types), independent of business rules.' This is a transport concern.\",\"Graph: only src/infrastructure/http/middleware/errorHandler.ts and src/infrastructure/http/requestParsing.ts import it, and both are infrastructure HTTP files.\"],\"pass\":true,\"reasoning\":\"The file declares one HTTP-transport error type, RequestValidationError. Its doc comment says it represents a malformed HTTP request (wrong shape or types), independent of business rules. Checking request shape belongs to the transport/infrastructure layer. The file holds no business rules, domain logic or orchestration. Only infrastructure HTTP files use it (errorHandler middleware and requestParsing), which fits its role in the infrastructure layer.\",\"violations\":[]}}",
+  "runIndex": 1,
+  "schemaVersion": 2,
+  "unitId": "src/infrastructure/http/RequestValidationError.ts",
+  "usage": {
+    "inputTokens": 2329,
+    "outputTokens": 449
+  },
+  "usedOptions": {
+    "effort": "high",
+    "model": "claude-opus-5-5"
+  }
+}

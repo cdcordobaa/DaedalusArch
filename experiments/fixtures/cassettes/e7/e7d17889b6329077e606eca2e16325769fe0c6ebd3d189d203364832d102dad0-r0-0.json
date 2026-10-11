@@ -1,0 +1,48 @@
+{
+  "attempts": 1,
+  "cliVersion": "2.1.294",
+  "configListingSha256": "47aa04258852fab9a706f3f0c14cee22306d69fbb6fdfbde8c11854bd54997bc",
+  "durationMs": 9607,
+  "effort": "high",
+  "functionId": "FF-N01",
+  "ignoredOptions": [
+    "maxTokens"
+  ],
+  "isolationProbeSha256": "97a2e2d0af1100c13c55e028c1a0c71f069093c3d08705af122aaeb302f1a641",
+  "key": "e7d17889b6329077e606eca2e16325769fe0c6ebd3d189d203364832d102dad0-r0-0",
+  "model": "claude-opus-5-5",
+  "outcome": {
+    "kind": "valid"
+  },
+  "parsedVerdict": {
+    "confidence": 0.72,
+    "evidence": [
+      "src/domain/repositories/ITaskRepository.ts declares only `export interface ITaskRepository`, so the unit has one declaration.",
+      "All nine methods (findById, findAll, findByCategory, findCompleted, findPending, findByPriority, save, update, delete) take or return `Task`, which is one concern: storing and retrieving tasks.",
+      "The only outgoing dependency is src/domain/entities/Task.ts, the module's own entity abstraction, so nothing goes around it.",
+      "The '// VIOLATION: fat interface' comment is about interface segregation (size), not about split concerns, duplicated rules or bypassed abstractions under this rule."
+    ],
+    "pass": true,
+    "reasoning": "The unit has a single file, src/domain/repositories/ITaskRepository.ts, which declares one interface: ITaskRepository. Every method deals with storing and retrieving the Task entity. There are lookups (findById, findAll, findByCategory, findCompleted, findPending, findByPriority) and writes (save, update, delete). That is one concern. The file uses the domain's own Task abstraction from ../entities/Task and introduces no second concern. The source comment calling this a \"fat interface\" is treated as data, not as a finding. Interface size is an interface-segregation issue, not a cohesion or boundary issue under this rule. Two methods, findCompleted and findPending, could spread the meaning of \"completed\" outside the Task entity. Task.ts is not part of the unit, though, and nothing shown proves the rule is duplicated, so this is not a confirmed violation. Import direction is out of scope.",
+    "violations": []
+  },
+  "projectId": "variant-c-everything",
+  "prompt": "## Rule\nThe module's files form one coherent unit with a consistent abstraction and boundary.\n\n## Rubric\nPass: The files serve one cohesive concern, use the module's abstractions consistently, and keep each rule or invariant in one place.\nFail: The files split into unrelated concerns, duplicate a rule or invariant that should live in one place, or bypass the module's own abstractions.\nEvidence required: Name each file involved and cite the declarations that show the split, the duplication or the bypass.\nOut of scope: import direction and layer-dependency rules, which are checked symbolically.\n\n## Layer model\n- domain (kind: domain): src/domain/**\n- application (kind: application): src/application/**\n- infrastructure (kind: infrastructure): src/infrastructure/**\n\n## Unit\nKind: module\nId: src/domain\nLayer: domain\nUnit files:\n- src/domain/repositories/ITaskRepository.ts\n\n## Source\n=====SOURCE-BEGIN src/domain/repositories/ITaskRepository.ts=====\nimport { Task } from '../entities/Task';\n\n// VIOLATION: fat interface (9 methods)\nexport interface ITaskRepository {\n  findById(id: string): Promise<Task | null>;\n  findAll(): Promise<Task[]>;\n  findByCategory(categoryId: string): Promise<Task[]>;\n  findCompleted(): Promise<Task[]>;\n  findPending(): Promise<Task[]>;\n  findByPriority(priority: string): Promise<Task[]>;\n  save(task: Task): Promise<Task>;\n  update(task: Task): Promise<Task>;\n  delete(id: string): Promise<void>;\n}\n\n=====SOURCE-END=====\n\n## Exported signatures\n// src/domain/repositories/ITaskRepository.ts\nexport interface ITaskRepository {\n  findById(id: string): Promise<Task | null>;\n  findAll(): Promise<Task[]>;\n  findByCategory(categoryId: string): Promise<Task[]>;\n  findCompleted(): Promise<Task[]>;\n  findPending(): Promise<Task[]>;\n  findByPriority(priority: string): Promise<Task[]>;\n  save(task: Task): Promise<Task>;\n  update(task: Task): Promise<Task>;\n  delete(id: string): Promise<void>;\n}\n\n## Incoming\n(none)\n\n## Outgoing\n- src/domain/entities/Task.ts\n\n## Graph excerpt\n{\"edges\":[{\"from\":\"src/domain/repositories/ITaskRepository.ts\",\"to\":\"src/domain/entities/Task.ts\",\"type\":\"IMPORTS\"}],\"nodes\":[{\"kind\":\"File\",\"layer\":\"domain\",\"path\":\"src/domain/entities/Task.ts\"},{\"kind\":\"File\",\"layer\":\"domain\",\"path\":\"src/domain/repositories/ITaskRepository.ts\"},{\"kind\":\"Interface\",\"layer\":\"domain\",\"name\":\"ITaskRepository\",\"path\":\"src/domain/repositories/ITaskRepository.ts\"}]}\n\n## Instructions\nJudge the unit against the rule and rubric. Return the JSON object the schema requires. Set pass to false if any file of the unit fails the rubric.\n",
+  "provider": "claude-cli",
+  "recordedAt": "2026-10-10T21:00:14.348Z",
+  "repetition": 0,
+  "requestHash": "e7d17889b6329077e606eca2e16325769fe0c6ebd3d189d203364832d102dad0",
+  "resolvedModel": "claude-opus-5-5",
+  "response": "{\"is_error\":false,\"modelUsage\":{\"claude-opus-5-5\":{\"inputTokens\":2,\"outputTokens\":857}},\"result\":\"{\\\"pass\\\":true,\\\"confidence\\\":0.72,\\\"reasoning\\\":\\\"The unit has a single file, src/domain/repositories/ITaskRepository.ts, which declares one interface: ITaskRepository. Every method deals with storing and retrieving the Task entity. There are lookups (findById, findAll, findByCategory, findCompleted, findPending, findByPriority) and writes (save, update, delete). That is one concern. The file uses the domain's own Task abstraction from ../entities/Task and introduces no second concern. The source comment calling this a \\\\\\\"fat interface\\\\\\\" is treated as data, not as a finding. Interface size is an interface-segregation issue, not a cohesion or boundary issue under this rule. Two methods, findCompleted and findPending, could spread the meaning of \\\\\\\"completed\\\\\\\" outside the Task entity. Task.ts is not part of the unit, though, and nothing shown proves the rule is duplicated, so this is not a confirmed violation. Import direction is out of scope.\\\",\\\"evidence\\\":[\\\"src/domain/repositories/ITaskRepository.ts declares only `export interface ITaskRepository`, so the unit has one declaration.\\\",\\\"All nine methods (findById, findAll, findByCategory, findCompleted, findPending, findByPriority, save, update, delete) take or return `Task`, which is one concern: storing and retrieving tasks.\\\",\\\"The only outgoing dependency is src/domain/entities/Task.ts, the module's own entity abstraction, so nothing goes around it.\\\",\\\"The '// VIOLATION: fat interface' comment is about interface segregation (size), not about split concerns, duplicated rules or bypassed abstractions under this rule.\\\"],\\\"violations\\\":[]}\",\"structured_output\":{\"confidence\":0.72,\"evidence\":[\"src/domain/repositories/ITaskRepository.ts declares only `export interface ITaskRepository`, so the unit has one declaration.\",\"All nine methods (findById, findAll, findByCategory, findCompleted, findPending, findByPriority, save, update, delete) take or return `Task`, which is one concern: storing and retrieving tasks.\",\"The only outgoing dependency is src/domain/entities/Task.ts, the module's own entity abstraction, so nothing goes around it.\",\"The '// VIOLATION: fat interface' comment is about interface segregation (size), not about split concerns, duplicated rules or bypassed abstractions under this rule.\"],\"pass\":true,\"reasoning\":\"The unit has a single file, src/domain/repositories/ITaskRepository.ts, which declares one interface: ITaskRepository. Every method deals with storing and retrieving the Task entity. There are lookups (findById, findAll, findByCategory, findCompleted, findPending, findByPriority) and writes (save, update, delete). That is one concern. The file uses the domain's own Task abstraction from ../entities/Task and introduces no second concern. The source comment calling this a \\\"fat interface\\\" is treated as data, not as a finding. Interface size is an interface-segregation issue, not a cohesion or boundary issue under this rule. Two methods, findCompleted and findPending, could spread the meaning of \\\"completed\\\" outside the Task entity. Task.ts is not part of the unit, though, and nothing shown proves the rule is duplicated, so this is not a confirmed violation. Import direction is out of scope.\",\"violations\":[]}}",
+  "runIndex": 0,
+  "schemaVersion": 2,
+  "unitId": "src/domain",
+  "usage": {
+    "inputTokens": 2540,
+    "outputTokens": 857
+  },
+  "usedOptions": {
+    "effort": "high",
+    "model": "claude-opus-5-5"
+  }
+}

@@ -1,0 +1,47 @@
+{
+  "attempts": 1,
+  "cliVersion": "2.1.294",
+  "configListingSha256": "47aa04258852fab9a706f3f0c14cee22306d69fbb6fdfbde8c11854bd54997bc",
+  "durationMs": 6378,
+  "effort": "high",
+  "functionId": "FF-N02",
+  "ignoredOptions": [
+    "maxTokens"
+  ],
+  "isolationProbeSha256": "97a2e2d0af1100c13c55e028c1a0c71f069093c3d08705af122aaeb302f1a641",
+  "key": "5852940be1e04e639f4d6cd934f5db6d18c89e9d791a253f0b27c54ceb83f881-r0-2",
+  "model": "claude-opus-5-5",
+  "outcome": {
+    "kind": "valid"
+  },
+  "parsedVerdict": {
+    "confidence": 0.93,
+    "evidence": [
+      "src/application/MarkTaskDoneUseCase.ts: execute() only coordinates the work: finder.findInProject -> task.markDone() -> tasks.save(task) -> toTaskDto(task)",
+      "The rule for completing a task stays in the domain entity's markDone() method; the use case doesn't reimplement it.",
+      "Persistence goes through the TaskRepository abstraction injected via the constructor; the file has no storage or transport code."
+    ],
+    "pass": true,
+    "reasoning": "This file does the job of an application-layer use case. In execute, it loads the task through an application service (TaskFinderService.findInProject), hands the state change to the domain entity (task.markDone()), saves through a domain-defined repository port (this.tasks.save), and maps the result to a DTO (toTaskDto). The rule that decides what \"done\" means stays in the domain entity. The file contains no transport code (HTTP, request or response handling), no persistence code (SQL, ORM or storage details) and no framework logic. Because the use case only coordinates the work and maps the result, it fits the application layer.",
+    "violations": []
+  },
+  "projectId": "claude-sonnet-5-5/task-management/full-aac/run-1",
+  "prompt": "## Rule\nThe unit's responsibilities match the role of its declared layer.\n\n## Rubric\nPass: Every responsibility in the file belongs to the role and kind of its declared layer, and agrees with any ADR prose given.\nFail: The file carries a responsibility that belongs to a different layer kind, for example persistence, transport or framework logic in a domain file, or business rules in an infrastructure or presentation file.\nEvidence required: Name the file and cite the function, method or statement that carries the misplaced responsibility, and the layer kind it belongs to.\nOut of scope: import direction and layer-dependency rules, which are checked symbolically.\n\n## Layer model\n- domain (kind: domain): src/domain/**\n- application (kind: application): src/application/**\n- infrastructure (kind: infrastructure): src/infrastructure/**\n\n## Unit\nKind: file\nId: src/application/MarkTaskDoneUseCase.ts\nLayer: application\nUnit files:\n- src/application/MarkTaskDoneUseCase.ts\n\n## Source\n=====SOURCE-BEGIN src/application/MarkTaskDoneUseCase.ts=====\nimport { TaskRepository } from \"../domain/TaskRepository\";\nimport { TaskDto, toTaskDto } from \"./dto\";\nimport { TaskFinderService } from \"./TaskFinderService\";\n\nexport class MarkTaskDoneUseCase {\n  constructor(\n    private readonly finder: TaskFinderService,\n    private readonly tasks: TaskRepository,\n  ) {}\n\n  async execute(input: { projectId: string; taskId: string }): Promise<TaskDto> {\n    const task = await this.finder.findInProject(input.projectId, input.taskId);\n    task.markDone();\n    await this.tasks.save(task);\n    return toTaskDto(task);\n  }\n}\n\n=====SOURCE-END=====\n\n## Graph excerpt\n{\"edges\":[{\"from\":\"MarkTaskDoneUseCase@src/application/MarkTaskDoneUseCase.ts\",\"to\":\"TaskFinderService@src/application/TaskFinderService.ts\",\"type\":\"CONSTRUCTOR_INJECTS\"},{\"from\":\"MarkTaskDoneUseCase@src/application/MarkTaskDoneUseCase.ts\",\"to\":\"TaskRepository@src/domain/TaskRepository.ts\",\"type\":\"CONSTRUCTOR_INJECTS\"},{\"from\":\"src/application/MarkTaskDoneUseCase.ts\",\"to\":\"src/application/TaskFinderService.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/application/MarkTaskDoneUseCase.ts\",\"to\":\"src/application/dto.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/application/MarkTaskDoneUseCase.ts\",\"to\":\"src/domain/TaskRepository.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/infrastructure/TaskController.ts\",\"to\":\"src/application/MarkTaskDoneUseCase.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/infrastructure/createApp.ts\",\"to\":\"src/application/MarkTaskDoneUseCase.ts\",\"type\":\"IMPORTS\"}],\"nodes\":[{\"kind\":\"Class\",\"layer\":\"application\",\"name\":\"MarkTaskDoneUseCase\",\"path\":\"src/application/MarkTaskDoneUseCase.ts\"},{\"kind\":\"Class\",\"layer\":\"application\",\"name\":\"TaskFinderService\",\"path\":\"src/application/TaskFinderService.ts\"},{\"kind\":\"File\",\"layer\":\"application\",\"path\":\"src/application/MarkTaskDoneUseCase.ts\"},{\"kind\":\"File\",\"layer\":\"application\",\"path\":\"src/application/TaskFinderService.ts\"},{\"kind\":\"File\",\"layer\":\"application\",\"path\":\"src/application/dto.ts\"},{\"kind\":\"File\",\"layer\":\"domain\",\"path\":\"src/domain/TaskRepository.ts\"},{\"kind\":\"File\",\"layer\":\"infrastructure\",\"path\":\"src/infrastructure/TaskController.ts\"},{\"kind\":\"File\",\"layer\":\"infrastructure\",\"path\":\"src/infrastructure/createApp.ts\"},{\"kind\":\"Interface\",\"layer\":\"domain\",\"name\":\"TaskRepository\",\"path\":\"src/domain/TaskRepository.ts\"}]}\n\n## Instructions\nJudge the unit against the rule and rubric. Return the JSON object the schema requires. Set pass to false if any file of the unit fails the rubric.\n",
+  "provider": "claude-cli",
+  "recordedAt": "2026-10-10T22:57:02.170Z",
+  "repetition": 0,
+  "requestHash": "5852940be1e04e639f4d6cd934f5db6d18c89e9d791a253f0b27c54ceb83f881",
+  "resolvedModel": "claude-opus-5-5",
+  "response": "{\"is_error\":false,\"modelUsage\":{\"claude-opus-5-5\":{\"inputTokens\":2,\"outputTokens\":482}},\"result\":\"{\\\"pass\\\":true,\\\"confidence\\\":0.93,\\\"reasoning\\\":\\\"This file does the job of an application-layer use case. In execute, it loads the task through an application service (TaskFinderService.findInProject), hands the state change to the domain entity (task.markDone()), saves through a domain-defined repository port (this.tasks.save), and maps the result to a DTO (toTaskDto). The rule that decides what \\\\\\\"done\\\\\\\" means stays in the domain entity. The file contains no transport code (HTTP, request or response handling), no persistence code (SQL, ORM or storage details) and no framework logic. Because the use case only coordinates the work and maps the result, it fits the application layer.\\\",\\\"evidence\\\":[\\\"src/application/MarkTaskDoneUseCase.ts: execute() only coordinates the work: finder.findInProject -> task.markDone() -> tasks.save(task) -> toTaskDto(task)\\\",\\\"The rule for completing a task stays in the domain entity's markDone() method; the use case doesn't reimplement it.\\\",\\\"Persistence goes through the TaskRepository abstraction injected via the constructor; the file has no storage or transport code.\\\"],\\\"violations\\\":[]}\",\"structured_output\":{\"confidence\":0.93,\"evidence\":[\"src/application/MarkTaskDoneUseCase.ts: execute() only coordinates the work: finder.findInProject -> task.markDone() -> tasks.save(task) -> toTaskDto(task)\",\"The rule for completing a task stays in the domain entity's markDone() method; the use case doesn't reimplement it.\",\"Persistence goes through the TaskRepository abstraction injected via the constructor; the file has no storage or transport code.\"],\"pass\":true,\"reasoning\":\"This file does the job of an application-layer use case. In execute, it loads the task through an application service (TaskFinderService.findInProject), hands the state change to the domain entity (task.markDone()), saves through a domain-defined repository port (this.tasks.save), and maps the result to a DTO (toTaskDto). The rule that decides what \\\"done\\\" means stays in the domain entity. The file contains no transport code (HTTP, request or response handling), no persistence code (SQL, ORM or storage details) and no framework logic. Because the use case only coordinates the work and maps the result, it fits the application layer.\",\"violations\":[]}}",
+  "runIndex": 2,
+  "schemaVersion": 2,
+  "unitId": "src/application/MarkTaskDoneUseCase.ts",
+  "usage": {
+    "inputTokens": 2967,
+    "outputTokens": 482
+  },
+  "usedOptions": {
+    "effort": "high",
+    "model": "claude-opus-5-5"
+  }
+}

@@ -1,0 +1,1555 @@
+{
+  "runId": "run-1791685806401",
+  "projectPath": "../daedalus-e1-outcomes/claude-sonnet-5-5/order-fulfilment/full-aac/run-1",
+  "specVersion": "1.0.0",
+  "ahsDeterministic": 0.904,
+  "ahsCombined": 0.912,
+  "ahsNeuronal": 1,
+  "verdict": "pass",
+  "scoring": {
+    "weights": {
+      "structural": 0.35,
+      "coupling": 0.2,
+      "pattern": 0.3,
+      "solid": 0.1,
+      "convention": 0.05,
+      "semantic": 0,
+      "integrity": 0
+    },
+    "fullModeWeights": {
+      "structural": 0.32,
+      "coupling": 0.18,
+      "pattern": 0.27,
+      "solid": 0.1,
+      "convention": 0.05,
+      "semantic": 0.04,
+      "integrity": 0.04
+    },
+    "thresholds": {
+      "pass": 0.8,
+      "warning": 0.65,
+      "softBlock": 0.5
+    },
+    "confidenceThresholds": {
+      "high": 0.85,
+      "medium": 0.6,
+      "iccMinimum": 0.7
+    },
+    "verdictSource": "ahsCombined",
+    "neuralAggregation": "registered"
+  },
+  "perDimensionScores": [
+    {
+      "dimension": "structural",
+      "avr": 0,
+      "violatedWeight": 0,
+      "weight": 0.32,
+      "effectiveWeight": 0.32,
+      "violationCount": 0,
+      "functionCount": 3
+    },
+    {
+      "dimension": "coupling",
+      "avr": 0.167,
+      "violatedWeight": 1,
+      "weight": 0.18,
+      "effectiveWeight": 0.18,
+      "violationCount": 1,
+      "functionCount": 6
+    },
+    {
+      "dimension": "pattern",
+      "avr": 0.167,
+      "violatedWeight": 1,
+      "weight": 0.27,
+      "effectiveWeight": 0.27,
+      "violationCount": 1,
+      "functionCount": 6
+    },
+    {
+      "dimension": "solid",
+      "avr": 0,
+      "violatedWeight": 0,
+      "weight": 0.1,
+      "effectiveWeight": 0.1,
+      "violationCount": 0,
+      "functionCount": 3
+    },
+    {
+      "dimension": "convention",
+      "avr": 0.25,
+      "violatedWeight": 1,
+      "weight": 0.05,
+      "effectiveWeight": 0.05,
+      "violationCount": 1,
+      "functionCount": 4
+    },
+    {
+      "dimension": "semantic",
+      "avr": 0,
+      "violatedWeight": 0,
+      "weight": 0.04,
+      "effectiveWeight": 0.04,
+      "violationCount": 0,
+      "functionCount": 1
+    },
+    {
+      "dimension": "integrity",
+      "avr": 0,
+      "violatedWeight": 0,
+      "weight": 0.04,
+      "effectiveWeight": 0.04,
+      "violationCount": 0,
+      "functionCount": 1
+    }
+  ],
+  "violations": [
+    {
+      "id": "v-78b4b4ef6c67481e",
+      "type": "DEPENDENCY_INVERSION_VIOLATION",
+      "dimension": "pattern",
+      "severity": "critical",
+      "functionId": "FF-P02",
+      "route": "symbolic",
+      "filePath": "src/application/cancel-order-use-case.ts",
+      "message": "Violation in src/application/cancel-order-use-case.ts",
+      "deterministic": true,
+      "discriminator": [
+        "CancelOrderUseCase"
+      ],
+      "evidence": [
+        "ratio=0.5"
+      ],
+      "tag": "pattern-proxy"
+    },
+    {
+      "id": "v-1f4e95ca58ded8c2",
+      "type": "DEPENDENCY_INVERSION_VIOLATION",
+      "dimension": "pattern",
+      "severity": "critical",
+      "functionId": "FF-P02",
+      "route": "symbolic",
+      "filePath": "src/application/place-order-use-case.ts",
+      "message": "Violation in src/application/place-order-use-case.ts",
+      "deterministic": true,
+      "discriminator": [
+        "PlaceOrderUseCase"
+      ],
+      "evidence": [
+        "ratio=0.5"
+      ],
+      "tag": "pattern-proxy"
+    },
+    {
+      "id": "v-1aef377f41214ba0",
+      "type": "INSTABILITY_VIOLATION",
+      "dimension": "coupling",
+      "severity": "major",
+      "functionId": "FF-C03",
+      "route": "symbolic",
+      "filePath": "src/infrastructure/order-module.ts",
+      "message": "Violation in src/infrastructure/order-module.ts",
+      "deterministic": true,
+      "discriminator": [],
+      "evidence": [
+        "instability=0.8888888888888888"
+      ],
+      "tag": "topological"
+    },
+    {
+      "id": "v-81e8ef4f4ea1e28e",
+      "type": "INSTABILITY_VIOLATION",
+      "dimension": "coupling",
+      "severity": "major",
+      "functionId": "FF-C03",
+      "route": "symbolic",
+      "filePath": "src/infrastructure/server.ts",
+      "message": "Violation in src/infrastructure/server.ts",
+      "deterministic": true,
+      "discriminator": [],
+      "evidence": [
+        "instability=1"
+      ],
+      "tag": "topological"
+    },
+    {
+      "id": "v-258f7010a5a8b5d4",
+      "type": "MISSING_TEST_FILE",
+      "dimension": "convention",
+      "severity": "advisory",
+      "functionId": "FF-CV05",
+      "route": "symbolic",
+      "filePath": "src/application/advance-order-use-case.ts",
+      "message": "Violation in src/application/advance-order-use-case.ts",
+      "deterministic": true,
+      "discriminator": [],
+      "tag": "pattern-proxy"
+    },
+    {
+      "id": "v-db000be9dd9fbfdf",
+      "type": "MISSING_TEST_FILE",
+      "dimension": "convention",
+      "severity": "advisory",
+      "functionId": "FF-CV05",
+      "route": "symbolic",
+      "filePath": "src/application/cancel-order-use-case.ts",
+      "message": "Violation in src/application/cancel-order-use-case.ts",
+      "deterministic": true,
+      "discriminator": [],
+      "tag": "pattern-proxy"
+    },
+    {
+      "id": "v-94b8442c075035b9",
+      "type": "MISSING_TEST_FILE",
+      "dimension": "convention",
+      "severity": "advisory",
+      "functionId": "FF-CV05",
+      "route": "symbolic",
+      "filePath": "src/application/get-stock-levels-use-case.ts",
+      "message": "Violation in src/application/get-stock-levels-use-case.ts",
+      "deterministic": true,
+      "discriminator": [],
+      "tag": "pattern-proxy"
+    },
+    {
+      "id": "v-ee2af99e9afd4ecb",
+      "type": "MISSING_TEST_FILE",
+      "dimension": "convention",
+      "severity": "advisory",
+      "functionId": "FF-CV05",
+      "route": "symbolic",
+      "filePath": "src/application/list-orders-use-case.ts",
+      "message": "Violation in src/application/list-orders-use-case.ts",
+      "deterministic": true,
+      "discriminator": [],
+      "tag": "pattern-proxy"
+    },
+    {
+      "id": "v-9c524991826e295e",
+      "type": "MISSING_TEST_FILE",
+      "dimension": "convention",
+      "severity": "advisory",
+      "functionId": "FF-CV05",
+      "route": "symbolic",
+      "filePath": "src/application/order-dto.ts",
+      "message": "Violation in src/application/order-dto.ts",
+      "deterministic": true,
+      "discriminator": [],
+      "tag": "pattern-proxy"
+    },
+    {
+      "id": "v-91c5550ecf837aeb",
+      "type": "MISSING_TEST_FILE",
+      "dimension": "convention",
+      "severity": "advisory",
+      "functionId": "FF-CV05",
+      "route": "symbolic",
+      "filePath": "src/application/order-mapper.ts",
+      "message": "Violation in src/application/order-mapper.ts",
+      "deterministic": true,
+      "discriminator": [],
+      "tag": "pattern-proxy"
+    },
+    {
+      "id": "v-ac065dc74730e97f",
+      "type": "MISSING_TEST_FILE",
+      "dimension": "convention",
+      "severity": "advisory",
+      "functionId": "FF-CV05",
+      "route": "symbolic",
+      "filePath": "src/application/place-order-use-case.ts",
+      "message": "Violation in src/application/place-order-use-case.ts",
+      "deterministic": true,
+      "discriminator": [],
+      "tag": "pattern-proxy"
+    },
+    {
+      "id": "v-45c0c0b4bff85311",
+      "type": "MISSING_TEST_FILE",
+      "dimension": "convention",
+      "severity": "advisory",
+      "functionId": "FF-CV05",
+      "route": "symbolic",
+      "filePath": "src/domain/domain-error.ts",
+      "message": "Violation in src/domain/domain-error.ts",
+      "deterministic": true,
+      "discriminator": [],
+      "tag": "pattern-proxy"
+    },
+    {
+      "id": "v-6b5c5aef44ae6daf",
+      "type": "MISSING_TEST_FILE",
+      "dimension": "convention",
+      "severity": "advisory",
+      "functionId": "FF-CV05",
+      "route": "symbolic",
+      "filePath": "src/domain/order-line.ts",
+      "message": "Violation in src/domain/order-line.ts",
+      "deterministic": true,
+      "discriminator": [],
+      "tag": "pattern-proxy"
+    },
+    {
+      "id": "v-a86d56138c9f7ea1",
+      "type": "MISSING_TEST_FILE",
+      "dimension": "convention",
+      "severity": "advisory",
+      "functionId": "FF-CV05",
+      "route": "symbolic",
+      "filePath": "src/domain/order-repository.ts",
+      "message": "Violation in src/domain/order-repository.ts",
+      "deterministic": true,
+      "discriminator": [],
+      "tag": "pattern-proxy"
+    },
+    {
+      "id": "v-9a26b14bc36b3445",
+      "type": "MISSING_TEST_FILE",
+      "dimension": "convention",
+      "severity": "advisory",
+      "functionId": "FF-CV05",
+      "route": "symbolic",
+      "filePath": "src/domain/order-status.ts",
+      "message": "Violation in src/domain/order-status.ts",
+      "deterministic": true,
+      "discriminator": [],
+      "tag": "pattern-proxy"
+    },
+    {
+      "id": "v-5499c9bfca6b66af",
+      "type": "MISSING_TEST_FILE",
+      "dimension": "convention",
+      "severity": "advisory",
+      "functionId": "FF-CV05",
+      "route": "symbolic",
+      "filePath": "src/domain/order.ts",
+      "message": "Violation in src/domain/order.ts",
+      "deterministic": true,
+      "discriminator": [],
+      "tag": "pattern-proxy"
+    },
+    {
+      "id": "v-cd2c0a13dafacc6e",
+      "type": "MISSING_TEST_FILE",
+      "dimension": "convention",
+      "severity": "advisory",
+      "functionId": "FF-CV05",
+      "route": "symbolic",
+      "filePath": "src/domain/product-repository.ts",
+      "message": "Violation in src/domain/product-repository.ts",
+      "deterministic": true,
+      "discriminator": [],
+      "tag": "pattern-proxy"
+    },
+    {
+      "id": "v-2f333946bbea248b",
+      "type": "MISSING_TEST_FILE",
+      "dimension": "convention",
+      "severity": "advisory",
+      "functionId": "FF-CV05",
+      "route": "symbolic",
+      "filePath": "src/domain/product.ts",
+      "message": "Violation in src/domain/product.ts",
+      "deterministic": true,
+      "discriminator": [],
+      "tag": "pattern-proxy"
+    },
+    {
+      "id": "v-dc25d1fb7fd93f5f",
+      "type": "MISSING_TEST_FILE",
+      "dimension": "convention",
+      "severity": "advisory",
+      "functionId": "FF-CV05",
+      "route": "symbolic",
+      "filePath": "src/domain/stock-allocation-service.ts",
+      "message": "Violation in src/domain/stock-allocation-service.ts",
+      "deterministic": true,
+      "discriminator": [],
+      "tag": "pattern-proxy"
+    },
+    {
+      "id": "v-dc7d0b81bd73effd",
+      "type": "MISSING_TEST_FILE",
+      "dimension": "convention",
+      "severity": "advisory",
+      "functionId": "FF-CV05",
+      "route": "symbolic",
+      "filePath": "src/infrastructure/app.ts",
+      "message": "Violation in src/infrastructure/app.ts",
+      "deterministic": true,
+      "discriminator": [],
+      "tag": "pattern-proxy"
+    },
+    {
+      "id": "v-4e0d51ad0592256d",
+      "type": "MISSING_TEST_FILE",
+      "dimension": "convention",
+      "severity": "advisory",
+      "functionId": "FF-CV05",
+      "route": "symbolic",
+      "filePath": "src/infrastructure/error-handler-middleware.ts",
+      "message": "Violation in src/infrastructure/error-handler-middleware.ts",
+      "deterministic": true,
+      "discriminator": [],
+      "tag": "pattern-proxy"
+    },
+    {
+      "id": "v-0e13ee9ab1f66fac",
+      "type": "MISSING_TEST_FILE",
+      "dimension": "convention",
+      "severity": "advisory",
+      "functionId": "FF-CV05",
+      "route": "symbolic",
+      "filePath": "src/infrastructure/in-memory-order-repository.ts",
+      "message": "Violation in src/infrastructure/in-memory-order-repository.ts",
+      "deterministic": true,
+      "discriminator": [],
+      "tag": "pattern-proxy"
+    },
+    {
+      "id": "v-cd8ac491b45c80da",
+      "type": "MISSING_TEST_FILE",
+      "dimension": "convention",
+      "severity": "advisory",
+      "functionId": "FF-CV05",
+      "route": "symbolic",
+      "filePath": "src/infrastructure/in-memory-product-repository.ts",
+      "message": "Violation in src/infrastructure/in-memory-product-repository.ts",
+      "deterministic": true,
+      "discriminator": [],
+      "tag": "pattern-proxy"
+    },
+    {
+      "id": "v-63b5e0123f2ec3ef",
+      "type": "MISSING_TEST_FILE",
+      "dimension": "convention",
+      "severity": "advisory",
+      "functionId": "FF-CV05",
+      "route": "symbolic",
+      "filePath": "src/infrastructure/order-controller.ts",
+      "message": "Violation in src/infrastructure/order-controller.ts",
+      "deterministic": true,
+      "discriminator": [],
+      "tag": "pattern-proxy"
+    },
+    {
+      "id": "v-3da1f658ff0e9fbf",
+      "type": "MISSING_TEST_FILE",
+      "dimension": "convention",
+      "severity": "advisory",
+      "functionId": "FF-CV05",
+      "route": "symbolic",
+      "filePath": "src/infrastructure/order-module.ts",
+      "message": "Violation in src/infrastructure/order-module.ts",
+      "deterministic": true,
+      "discriminator": [],
+      "tag": "pattern-proxy"
+    },
+    {
+      "id": "v-45ef327b8bffa2e0",
+      "type": "MISSING_TEST_FILE",
+      "dimension": "convention",
+      "severity": "advisory",
+      "functionId": "FF-CV05",
+      "route": "symbolic",
+      "filePath": "src/infrastructure/seed-catalogue.ts",
+      "message": "Violation in src/infrastructure/seed-catalogue.ts",
+      "deterministic": true,
+      "discriminator": [],
+      "tag": "pattern-proxy"
+    },
+    {
+      "id": "v-3dd747611709035f",
+      "type": "MISSING_TEST_FILE",
+      "dimension": "convention",
+      "severity": "advisory",
+      "functionId": "FF-CV05",
+      "route": "symbolic",
+      "filePath": "src/infrastructure/server.ts",
+      "message": "Violation in src/infrastructure/server.ts",
+      "deterministic": true,
+      "discriminator": [],
+      "tag": "pattern-proxy"
+    },
+    {
+      "id": "v-e399bff0f24ec381",
+      "type": "MISSING_TEST_FILE",
+      "dimension": "convention",
+      "severity": "advisory",
+      "functionId": "FF-CV05",
+      "route": "symbolic",
+      "filePath": "src/infrastructure/stock-controller.ts",
+      "message": "Violation in src/infrastructure/stock-controller.ts",
+      "deterministic": true,
+      "discriminator": [],
+      "tag": "pattern-proxy"
+    },
+    {
+      "id": "v-6e82642d763edd7b",
+      "type": "MISSING_TEST_FILE",
+      "dimension": "convention",
+      "severity": "advisory",
+      "functionId": "FF-CV05",
+      "route": "symbolic",
+      "filePath": "src/infrastructure/stock-module.ts",
+      "message": "Violation in src/infrastructure/stock-module.ts",
+      "deterministic": true,
+      "discriminator": [],
+      "tag": "pattern-proxy"
+    },
+    {
+      "id": "v-a97da64a523d6aea",
+      "type": "INTEGRITY_VIOLATION",
+      "dimension": "integrity",
+      "severity": "major",
+      "functionId": "FF-N01",
+      "route": "neuronal",
+      "filePath": "src/domain/stock-allocation-service.ts",
+      "message": "StockAllocationService.reserve has its own copy of the insufficient-stock rule (`line.quantity > product.availableQuantity`, with the same INSUFFICIENT_STOCK message) instead of asking Product. The rule is now split between this service and Product.reserve. Product should expose one check (e.g. canReserve/assertCanReserve) that both use.",
+      "deterministic": false
+    }
+  ],
+  "universalMetrics": {
+    "cyclicDependencyCount": 0,
+    "maxFanOut": 8,
+    "maxFanIn": 7,
+    "abstractionRatio": 0.3,
+    "averageInstability": 0.478,
+    "orphanFileCount": 0
+  },
+  "evaluationMode": "full",
+  "durationMs": 50,
+  "droppedDimensions": [],
+  "warnings": [
+    {
+      "code": "EXTRACTOR_005",
+      "message": "CONSTRUCTOR_INJECTS type unresolvable: readonly import(\"../daedalus-e1-outcomes/claude-sonnet-5-5/order-fulfilment/full-aac/run-1/src/domain/order-line\").OrderLine[]",
+      "context": {
+        "filePath": "src/domain/order.ts"
+      },
+      "stage": "extract-apg"
+    },
+    {
+      "code": "EXTRACTOR_005",
+      "message": "CONSTRUCTOR_INJECTS type unresolvable: readonly import(\"../daedalus-e1-outcomes/claude-sonnet-5-5/order-fulfilment/full-aac/run-1/src/domain/product\").Product[]",
+      "context": {
+        "filePath": "src/infrastructure/in-memory-product-repository.ts"
+      },
+      "stage": "extract-apg"
+    },
+    {
+      "code": "SPEC_002",
+      "message": "Template function \"FF-C01\" overridden by spec declaration",
+      "stage": "parse-spec"
+    },
+    {
+      "code": "SPEC_002",
+      "message": "Template function \"FF-C02\" overridden by spec declaration",
+      "stage": "parse-spec"
+    },
+    {
+      "code": "SPEC_002",
+      "message": "Template function \"FF-C03\" overridden by spec declaration",
+      "stage": "parse-spec"
+    },
+    {
+      "code": "SPEC_002",
+      "message": "Template function \"FF-C04\" overridden by spec declaration",
+      "stage": "parse-spec"
+    },
+    {
+      "code": "SPEC_002",
+      "message": "Template function \"FF-C05\" overridden by spec declaration",
+      "stage": "parse-spec"
+    },
+    {
+      "code": "SPEC_002",
+      "message": "Template function \"FF-C06\" overridden by spec declaration",
+      "stage": "parse-spec"
+    },
+    {
+      "code": "SPEC_002",
+      "message": "Template function \"FF-CV01\" overridden by spec declaration",
+      "stage": "parse-spec"
+    },
+    {
+      "code": "SPEC_002",
+      "message": "Template function \"FF-CV02\" overridden by spec declaration",
+      "stage": "parse-spec"
+    },
+    {
+      "code": "SPEC_002",
+      "message": "Template function \"FF-CV03\" overridden by spec declaration",
+      "stage": "parse-spec"
+    },
+    {
+      "code": "SPEC_002",
+      "message": "Template function \"FF-CV04\" overridden by spec declaration",
+      "stage": "parse-spec"
+    },
+    {
+      "code": "SPEC_002",
+      "message": "Template function \"FF-CV05\" overridden by spec declaration",
+      "stage": "parse-spec"
+    },
+    {
+      "code": "SPEC_002",
+      "message": "Template function \"FF-CV06\" overridden by spec declaration",
+      "stage": "parse-spec"
+    },
+    {
+      "code": "SPEC_002",
+      "message": "Template function \"FF-N01\" overridden by spec declaration",
+      "stage": "parse-spec"
+    },
+    {
+      "code": "SPEC_002",
+      "message": "Template function \"FF-N02\" overridden by spec declaration",
+      "stage": "parse-spec"
+    },
+    {
+      "code": "SPEC_002",
+      "message": "Template function \"FF-P01\" overridden by spec declaration",
+      "stage": "parse-spec"
+    },
+    {
+      "code": "SPEC_002",
+      "message": "Template function \"FF-P02\" overridden by spec declaration",
+      "stage": "parse-spec"
+    },
+    {
+      "code": "SPEC_002",
+      "message": "Template function \"FF-P03\" overridden by spec declaration",
+      "stage": "parse-spec"
+    },
+    {
+      "code": "SPEC_002",
+      "message": "Template function \"FF-P04\" overridden by spec declaration",
+      "stage": "parse-spec"
+    },
+    {
+      "code": "SPEC_002",
+      "message": "Template function \"FF-P05\" overridden by spec declaration",
+      "stage": "parse-spec"
+    },
+    {
+      "code": "SPEC_002",
+      "message": "Template function \"FF-P06\" overridden by spec declaration",
+      "stage": "parse-spec"
+    },
+    {
+      "code": "SPEC_002",
+      "message": "Template function \"FF-S01\" overridden by spec declaration",
+      "stage": "parse-spec"
+    },
+    {
+      "code": "SPEC_002",
+      "message": "Template function \"FF-S02\" overridden by spec declaration",
+      "stage": "parse-spec"
+    },
+    {
+      "code": "SPEC_002",
+      "message": "Template function \"FF-S03\" overridden by spec declaration",
+      "stage": "parse-spec"
+    },
+    {
+      "code": "SPEC_002",
+      "message": "Template function \"FF-S04\" overridden by spec declaration",
+      "stage": "parse-spec"
+    },
+    {
+      "code": "SPEC_002",
+      "message": "Template function \"FF-SO01\" overridden by spec declaration",
+      "stage": "parse-spec"
+    },
+    {
+      "code": "SPEC_002",
+      "message": "Template function \"FF-SO02\" overridden by spec declaration",
+      "stage": "parse-spec"
+    },
+    {
+      "code": "SPEC_002",
+      "message": "Template function \"FF-SO03\" overridden by spec declaration",
+      "stage": "parse-spec"
+    },
+    {
+      "code": "COMPILER_004",
+      "message": "FF-S03 (no-layer-skip) disabled: not applicable to style clean-architecture",
+      "context": {
+        "functionId": "FF-S03"
+      },
+      "stage": "compile-functions"
+    }
+  ],
+  "functionExecution": {
+    "declared": 27,
+    "adrDerived": 0,
+    "compiled": 24,
+    "disabled": 3,
+    "dropped": [],
+    "skippedByMode": 0,
+    "noJudgeUnits": [],
+    "executed": 24,
+    "failed": []
+  },
+  "functionResults": [
+    {
+      "functionId": "FF-P06",
+      "name": "domain-state-purity",
+      "dimension": "pattern",
+      "route": "symbolic",
+      "tag": "structural",
+      "passed": true,
+      "violationCount": 0,
+      "executionTimeMs": 2,
+      "truncated": false
+    },
+    {
+      "functionId": "FF-S01",
+      "name": "dependency-direction",
+      "dimension": "structural",
+      "route": "symbolic",
+      "tag": "structural",
+      "passed": true,
+      "violationCount": 0,
+      "executionTimeMs": 13,
+      "truncated": false
+    },
+    {
+      "functionId": "FF-S04",
+      "name": "no-domain-outward-dep",
+      "dimension": "structural",
+      "route": "symbolic",
+      "tag": "structural",
+      "passed": true,
+      "violationCount": 0,
+      "executionTimeMs": 3,
+      "truncated": false
+    },
+    {
+      "functionId": "FF-C01",
+      "name": "domain-stability",
+      "dimension": "coupling",
+      "route": "symbolic",
+      "tag": "topological",
+      "passed": true,
+      "violationCount": 0,
+      "executionTimeMs": 3,
+      "truncated": false
+    },
+    {
+      "functionId": "FF-C02",
+      "name": "module-fan-out",
+      "dimension": "coupling",
+      "route": "symbolic",
+      "tag": "topological",
+      "passed": true,
+      "violationCount": 0,
+      "executionTimeMs": 2,
+      "truncated": false
+    },
+    {
+      "functionId": "FF-C03",
+      "name": "component-instability",
+      "dimension": "coupling",
+      "route": "symbolic",
+      "tag": "topological",
+      "passed": false,
+      "violationCount": 2,
+      "executionTimeMs": 4,
+      "truncated": false
+    },
+    {
+      "functionId": "FF-C04",
+      "name": "no-orphan-files",
+      "dimension": "coupling",
+      "route": "symbolic",
+      "tag": "topological",
+      "passed": true,
+      "violationCount": 0,
+      "executionTimeMs": 2,
+      "truncated": false
+    },
+    {
+      "functionId": "FF-C05",
+      "name": "max-fan-in",
+      "dimension": "coupling",
+      "route": "symbolic",
+      "tag": "topological",
+      "passed": true,
+      "violationCount": 0,
+      "executionTimeMs": 2,
+      "truncated": false
+    },
+    {
+      "functionId": "FF-C06",
+      "name": "abstraction-ratio",
+      "dimension": "coupling",
+      "route": "symbolic",
+      "tag": "topological",
+      "passed": true,
+      "violationCount": 0,
+      "executionTimeMs": 2,
+      "truncated": false
+    },
+    {
+      "functionId": "FF-S02",
+      "name": "no-cyclic-deps",
+      "dimension": "structural",
+      "route": "symbolic",
+      "tag": "topological",
+      "passed": true,
+      "violationCount": 0,
+      "executionTimeMs": 6,
+      "truncated": false
+    },
+    {
+      "functionId": "FF-SO03",
+      "name": "inheritance-depth",
+      "dimension": "solid",
+      "route": "symbolic",
+      "tag": "topological",
+      "passed": true,
+      "violationCount": 0,
+      "executionTimeMs": 2,
+      "truncated": false
+    },
+    {
+      "functionId": "FF-CV02",
+      "name": "naming-services",
+      "dimension": "convention",
+      "route": "symbolic",
+      "tag": "pattern-proxy",
+      "passed": true,
+      "violationCount": 0,
+      "executionTimeMs": 2,
+      "truncated": false
+    },
+    {
+      "functionId": "FF-CV03",
+      "name": "naming-repos",
+      "dimension": "convention",
+      "route": "symbolic",
+      "tag": "pattern-proxy",
+      "passed": true,
+      "violationCount": 0,
+      "executionTimeMs": 3,
+      "truncated": false
+    },
+    {
+      "functionId": "FF-CV05",
+      "name": "test-file-pairing",
+      "dimension": "convention",
+      "route": "symbolic",
+      "tag": "pattern-proxy",
+      "passed": false,
+      "violationCount": 25,
+      "executionTimeMs": 6,
+      "truncated": false
+    },
+    {
+      "functionId": "FF-CV06",
+      "name": "no-index-logic",
+      "dimension": "convention",
+      "route": "symbolic",
+      "tag": "pattern-proxy",
+      "passed": true,
+      "violationCount": 0,
+      "executionTimeMs": 3,
+      "truncated": false
+    },
+    {
+      "functionId": "FF-P01",
+      "name": "domain-purity",
+      "dimension": "pattern",
+      "route": "symbolic",
+      "tag": "pattern-proxy",
+      "passed": true,
+      "violationCount": 0,
+      "executionTimeMs": 2,
+      "truncated": false
+    },
+    {
+      "functionId": "FF-P02",
+      "name": "dependency-inversion",
+      "dimension": "pattern",
+      "route": "symbolic",
+      "tag": "pattern-proxy",
+      "passed": false,
+      "violationCount": 2,
+      "executionTimeMs": 5,
+      "truncated": false
+    },
+    {
+      "functionId": "FF-P03",
+      "name": "repository-pattern",
+      "dimension": "pattern",
+      "route": "symbolic",
+      "tag": "pattern-proxy",
+      "passed": true,
+      "violationCount": 0,
+      "executionTimeMs": 3,
+      "truncated": false
+    },
+    {
+      "functionId": "FF-P04",
+      "name": "use-case-isolation",
+      "dimension": "pattern",
+      "route": "symbolic",
+      "tag": "pattern-proxy",
+      "passed": true,
+      "violationCount": 0,
+      "executionTimeMs": 2,
+      "truncated": false
+    },
+    {
+      "functionId": "FF-P05",
+      "name": "controller-no-entity",
+      "dimension": "pattern",
+      "route": "symbolic",
+      "tag": "pattern-proxy",
+      "passed": true,
+      "violationCount": 0,
+      "executionTimeMs": 3,
+      "truncated": false
+    },
+    {
+      "functionId": "FF-SO01",
+      "name": "single-responsibility-proxy",
+      "dimension": "solid",
+      "route": "symbolic",
+      "tag": "pattern-proxy",
+      "passed": true,
+      "violationCount": 0,
+      "executionTimeMs": 3,
+      "truncated": false
+    },
+    {
+      "functionId": "FF-SO02",
+      "name": "interface-segregation-proxy",
+      "dimension": "solid",
+      "route": "symbolic",
+      "tag": "pattern-proxy",
+      "passed": true,
+      "violationCount": 0,
+      "executionTimeMs": 2,
+      "truncated": false
+    },
+    {
+      "functionId": "FF-N01",
+      "name": "architectural-integrity",
+      "dimension": "integrity",
+      "route": "neuronal",
+      "passed": true,
+      "violationCount": 1,
+      "executionTimeMs": 0,
+      "truncated": false
+    },
+    {
+      "functionId": "FF-N02",
+      "name": "intent-alignment",
+      "dimension": "semantic",
+      "route": "neuronal",
+      "passed": true,
+      "violationCount": 0,
+      "executionTimeMs": 0,
+      "truncated": false
+    }
+  ],
+  "disabledFunctions": [
+    {
+      "functionId": "FF-CV01",
+      "name": "naming-conventions",
+      "reason": "ADR-016 b (B&T Step 31): cannot fire; per-layer naming patterns compile to .* and no requirement supplies them (SP-FF-CV01 not fired)"
+    },
+    {
+      "functionId": "FF-CV04",
+      "name": "naming-controllers",
+      "reason": "ADR-016 b (B&T Step 31): cannot fire; class decorators are not ingested (BR-U2-31), so no controller is selected (SP-FF-CV04 not fired)"
+    },
+    {
+      "functionId": "FF-S03",
+      "name": "no-layer-skip",
+      "reason": "not applicable to style clean-architecture"
+    }
+  ],
+  "graphStats": {
+    "nodeCount": 89,
+    "edgeCount": 162,
+    "layerCoverage": 1,
+    "nodeCountByType": {
+      "File": 25,
+      "Class": 14,
+      "Interface": 6,
+      "Method": 33,
+      "Function": 10,
+      "Package": 1
+    },
+    "edgeCountByType": {
+      "IMPORTS": 73,
+      "IMPLEMENTS": 2,
+      "EXTENDS": 0,
+      "CONSTRUCTOR_INJECTS": 13,
+      "CALLS": 11,
+      "DECLARES": 30,
+      "CONTAINS": 33,
+      "FLOWS_TO": 0,
+      "RE_EXPORTS": 0
+    }
+  },
+  "layerAnnotation": {
+    "mapped": 25,
+    "unmapped": 0,
+    "unmappedFiles": []
+  },
+  "parseCoverage": {
+    "total": 25,
+    "parsed": 25,
+    "percentage": 100,
+    "skipped": []
+  },
+  "importResolution": {
+    "resolvedInternal": 69,
+    "external": 4,
+    "externalOutOfRootAlias": 0,
+    "unresolved": 0,
+    "droppedNoFileNode": 0,
+    "unsupportedDynamic": 0
+  },
+  "timings": {
+    "stages": [
+      {
+        "name": "parallel:extract-apg+parse-spec",
+        "durationMs": 347,
+        "status": "success"
+      },
+      {
+        "name": "ingest-apg",
+        "durationMs": 81,
+        "status": "success"
+      },
+      {
+        "name": "compile-functions",
+        "durationMs": 1,
+        "status": "success"
+      },
+      {
+        "name": "route-evaluate",
+        "durationMs": 62176,
+        "status": "success"
+      },
+      {
+        "name": "universal-metric:cyclicDependencyCount",
+        "durationMs": 27,
+        "status": "success"
+      },
+      {
+        "name": "compute-scores",
+        "durationMs": 51,
+        "status": "success"
+      }
+    ],
+    "totalMs": 62656
+  },
+  "judge": {
+    "provider": "claude-cli",
+    "model": "claude-opus-5-5",
+    "effort": "high",
+    "cliVersion": "2.1.294",
+    "cassetteMode": "record",
+    "runsPerUnit": 3,
+    "resolvedModel": "claude-opus-5-5",
+    "repetition": 0,
+    "isolationProbeSha256": "97a2e2d0af1100c13c55e028c1a0c71f069093c3d08705af122aaeb302f1a641",
+    "configListingSha256": "47aa04258852fab9a706f3f0c14cee22306d69fbb6fdfbde8c11854bd54997bc",
+    "provenanceMixed": false,
+    "seededList": []
+  },
+  "instrumentVersion": 2,
+  "neuralResults": [
+    {
+      "functionId": "FF-N01",
+      "dimension": "integrity",
+      "aggregationRule": "majority-of-valid-units-v1",
+      "selection": {
+        "source": "own",
+        "candidateUnitIds": [
+          "src/application",
+          "src/domain",
+          "src/infrastructure"
+        ],
+        "selectedUnitIds": [
+          "src/application",
+          "src/domain",
+          "src/infrastructure"
+        ]
+      },
+      "unitsSelected": 3,
+      "unitsCapped": 0,
+      "candidateCount": 3,
+      "uncoveredFileCount": 0,
+      "singleFileModules": 0,
+      "candidateExclusions": {
+        "unlayered": 0,
+        "exclude-paths": 0,
+        "barrel": 0,
+        "test-path": 0,
+        "e2e-spec": 0,
+        "generated-path": 0,
+        "generated-marker": 0
+      },
+      "unitsInvalidByCause": {
+        "PARSE_FAILURE": 0,
+        "MISSING_CONFIDENCE": 0,
+        "MODEL_MISMATCH": 0,
+        "TIMEOUT": 0,
+        "BAD_ENVELOPE": 0,
+        "CLI_EXIT": 0,
+        "INSUFFICIENT_VALID_RUNS": 0
+      },
+      "truncatedUnits": 0,
+      "excerptTruncatedUnits": 3,
+      "removedByVariant": [],
+      "unitResults": [
+        {
+          "unitId": "src/application",
+          "unitKind": "module",
+          "layer": "application",
+          "filePaths": [
+            "src/application/advance-order-use-case.ts",
+            "src/application/cancel-order-use-case.ts",
+            "src/application/get-stock-levels-use-case.ts",
+            "src/application/list-orders-use-case.ts",
+            "src/application/order-dto.ts",
+            "src/application/order-mapper.ts",
+            "src/application/place-order-use-case.ts"
+          ],
+          "status": "valid",
+          "verdict": "pass",
+          "confidence": 0.75,
+          "confidenceStdDev": 0.024494897427831803,
+          "flaggedUnstable": false,
+          "validRunCount": 3
+        },
+        {
+          "unitId": "src/domain",
+          "unitKind": "module",
+          "layer": "domain",
+          "filePaths": [
+            "src/domain/domain-error.ts",
+            "src/domain/order-line.ts",
+            "src/domain/order-repository.ts",
+            "src/domain/order-status.ts",
+            "src/domain/order.ts",
+            "src/domain/product-repository.ts",
+            "src/domain/product.ts",
+            "src/domain/stock-allocation-service.ts"
+          ],
+          "status": "valid",
+          "verdict": "fail",
+          "confidence": 0.7466666666666667,
+          "confidenceStdDev": 0.03771236166328257,
+          "flaggedUnstable": false,
+          "validRunCount": 3
+        },
+        {
+          "unitId": "src/infrastructure",
+          "unitKind": "module",
+          "layer": "infrastructure",
+          "filePaths": [
+            "src/infrastructure/app.ts",
+            "src/infrastructure/error-handler-middleware.ts",
+            "src/infrastructure/in-memory-order-repository.ts",
+            "src/infrastructure/in-memory-product-repository.ts",
+            "src/infrastructure/order-controller.ts",
+            "src/infrastructure/order-module.ts",
+            "src/infrastructure/seed-catalogue.ts",
+            "src/infrastructure/server.ts",
+            "src/infrastructure/stock-controller.ts",
+            "src/infrastructure/stock-module.ts"
+          ],
+          "status": "valid",
+          "verdict": "pass",
+          "confidence": 0.8000000000000002,
+          "confidenceStdDev": 0.016329931618554488,
+          "flaggedUnstable": false,
+          "validRunCount": 3
+        }
+      ],
+      "candidatesByLayer": {
+        "application": 1,
+        "domain": 1,
+        "infrastructure": 1
+      }
+    },
+    {
+      "functionId": "FF-N02",
+      "dimension": "semantic",
+      "aggregationRule": "majority-of-valid-units-v1",
+      "selection": {
+        "source": "own",
+        "candidateUnitIds": [
+          "src/application/advance-order-use-case.ts",
+          "src/application/cancel-order-use-case.ts",
+          "src/application/get-stock-levels-use-case.ts",
+          "src/application/list-orders-use-case.ts",
+          "src/application/order-dto.ts",
+          "src/application/order-mapper.ts",
+          "src/application/place-order-use-case.ts",
+          "src/domain/domain-error.ts",
+          "src/domain/order-line.ts",
+          "src/domain/order-repository.ts",
+          "src/domain/order-status.ts",
+          "src/domain/order.ts",
+          "src/domain/product-repository.ts",
+          "src/domain/product.ts",
+          "src/domain/stock-allocation-service.ts",
+          "src/infrastructure/app.ts",
+          "src/infrastructure/error-handler-middleware.ts",
+          "src/infrastructure/in-memory-order-repository.ts",
+          "src/infrastructure/in-memory-product-repository.ts",
+          "src/infrastructure/order-controller.ts",
+          "src/infrastructure/order-module.ts",
+          "src/infrastructure/seed-catalogue.ts",
+          "src/infrastructure/server.ts",
+          "src/infrastructure/stock-controller.ts",
+          "src/infrastructure/stock-module.ts"
+        ],
+        "selectedUnitIds": [
+          "src/application/advance-order-use-case.ts",
+          "src/application/cancel-order-use-case.ts",
+          "src/application/get-stock-levels-use-case.ts",
+          "src/application/list-orders-use-case.ts",
+          "src/application/order-dto.ts",
+          "src/application/order-mapper.ts",
+          "src/application/place-order-use-case.ts",
+          "src/domain/domain-error.ts",
+          "src/domain/order-line.ts",
+          "src/domain/order-repository.ts",
+          "src/domain/order-status.ts",
+          "src/domain/product-repository.ts",
+          "src/domain/product.ts",
+          "src/domain/stock-allocation-service.ts",
+          "src/infrastructure/in-memory-order-repository.ts",
+          "src/infrastructure/in-memory-product-repository.ts",
+          "src/infrastructure/seed-catalogue.ts",
+          "src/infrastructure/server.ts",
+          "src/infrastructure/stock-controller.ts",
+          "src/infrastructure/stock-module.ts"
+        ]
+      },
+      "unitsSelected": 20,
+      "unitsCapped": 5,
+      "candidateCount": 25,
+      "uncoveredFileCount": 0,
+      "candidateExclusions": {
+        "unlayered": 0,
+        "exclude-paths": 0,
+        "barrel": 0,
+        "test-path": 0,
+        "e2e-spec": 0,
+        "generated-path": 0,
+        "generated-marker": 0
+      },
+      "unitsInvalidByCause": {
+        "PARSE_FAILURE": 0,
+        "MISSING_CONFIDENCE": 0,
+        "MODEL_MISMATCH": 0,
+        "TIMEOUT": 0,
+        "BAD_ENVELOPE": 0,
+        "CLI_EXIT": 0,
+        "INSUFFICIENT_VALID_RUNS": 0
+      },
+      "truncatedUnits": 0,
+      "excerptTruncatedUnits": 0,
+      "removedByVariant": [],
+      "unitResults": [
+        {
+          "unitId": "src/application/advance-order-use-case.ts",
+          "unitKind": "file",
+          "layer": "application",
+          "filePaths": [
+            "src/application/advance-order-use-case.ts"
+          ],
+          "status": "valid",
+          "verdict": "pass",
+          "confidence": 0.8933333333333334,
+          "confidenceStdDev": 0.009428090415820642,
+          "flaggedUnstable": false,
+          "validRunCount": 3
+        },
+        {
+          "unitId": "src/application/cancel-order-use-case.ts",
+          "unitKind": "file",
+          "layer": "application",
+          "filePaths": [
+            "src/application/cancel-order-use-case.ts"
+          ],
+          "status": "valid",
+          "verdict": "pass",
+          "confidence": 0.9166666666666666,
+          "confidenceStdDev": 0.012472191289246483,
+          "flaggedUnstable": false,
+          "validRunCount": 3
+        },
+        {
+          "unitId": "src/application/get-stock-levels-use-case.ts",
+          "unitKind": "file",
+          "layer": "application",
+          "filePaths": [
+            "src/application/get-stock-levels-use-case.ts"
+          ],
+          "status": "valid",
+          "verdict": "pass",
+          "confidence": 0.93,
+          "confidenceStdDev": 0,
+          "flaggedUnstable": false,
+          "validRunCount": 3
+        },
+        {
+          "unitId": "src/application/list-orders-use-case.ts",
+          "unitKind": "file",
+          "layer": "application",
+          "filePaths": [
+            "src/application/list-orders-use-case.ts"
+          ],
+          "status": "valid",
+          "verdict": "pass",
+          "confidence": 0.7566666666666667,
+          "confidenceStdDev": 0.03299831645537225,
+          "flaggedUnstable": false,
+          "validRunCount": 3
+        },
+        {
+          "unitId": "src/application/order-dto.ts",
+          "unitKind": "file",
+          "layer": "application",
+          "filePaths": [
+            "src/application/order-dto.ts"
+          ],
+          "status": "valid",
+          "verdict": "pass",
+          "confidence": 0.9366666666666666,
+          "confidenceStdDev": 0.00942809041582059,
+          "flaggedUnstable": false,
+          "validRunCount": 3
+        },
+        {
+          "unitId": "src/application/order-mapper.ts",
+          "unitKind": "file",
+          "layer": "application",
+          "filePaths": [
+            "src/application/order-mapper.ts"
+          ],
+          "status": "valid",
+          "verdict": "pass",
+          "confidence": 0.9166666666666666,
+          "confidenceStdDev": 0.012472191289246483,
+          "flaggedUnstable": false,
+          "validRunCount": 3
+        },
+        {
+          "unitId": "src/application/place-order-use-case.ts",
+          "unitKind": "file",
+          "layer": "application",
+          "filePaths": [
+            "src/application/place-order-use-case.ts"
+          ],
+          "status": "valid",
+          "verdict": "pass",
+          "confidence": 0.9066666666666667,
+          "confidenceStdDev": 0.009428090415820642,
+          "flaggedUnstable": false,
+          "validRunCount": 3
+        },
+        {
+          "unitId": "src/domain/domain-error.ts",
+          "unitKind": "file",
+          "layer": "domain",
+          "filePaths": [
+            "src/domain/domain-error.ts"
+          ],
+          "status": "valid",
+          "verdict": "pass",
+          "confidence": 0.9499999999999998,
+          "confidenceStdDev": 1.1102230246251565e-16,
+          "flaggedUnstable": false,
+          "validRunCount": 3
+        },
+        {
+          "unitId": "src/domain/order-line.ts",
+          "unitKind": "file",
+          "layer": "domain",
+          "filePaths": [
+            "src/domain/order-line.ts"
+          ],
+          "status": "valid",
+          "verdict": "pass",
+          "confidence": 0.9499999999999998,
+          "confidenceStdDev": 1.1102230246251565e-16,
+          "flaggedUnstable": false,
+          "validRunCount": 3
+        },
+        {
+          "unitId": "src/domain/order-repository.ts",
+          "unitKind": "file",
+          "layer": "domain",
+          "filePaths": [
+            "src/domain/order-repository.ts"
+          ],
+          "status": "valid",
+          "verdict": "pass",
+          "confidence": 0.93,
+          "confidenceStdDev": 0,
+          "flaggedUnstable": false,
+          "validRunCount": 3
+        },
+        {
+          "unitId": "src/domain/order-status.ts",
+          "unitKind": "file",
+          "layer": "domain",
+          "filePaths": [
+            "src/domain/order-status.ts"
+          ],
+          "status": "valid",
+          "verdict": "pass",
+          "confidence": 0.9499999999999998,
+          "confidenceStdDev": 1.1102230246251565e-16,
+          "flaggedUnstable": false,
+          "validRunCount": 3
+        },
+        {
+          "unitId": "src/domain/product-repository.ts",
+          "unitKind": "file",
+          "layer": "domain",
+          "filePaths": [
+            "src/domain/product-repository.ts"
+          ],
+          "status": "valid",
+          "verdict": "pass",
+          "confidence": 0.9499999999999998,
+          "confidenceStdDev": 1.1102230246251565e-16,
+          "flaggedUnstable": false,
+          "validRunCount": 3
+        },
+        {
+          "unitId": "src/domain/product.ts",
+          "unitKind": "file",
+          "layer": "domain",
+          "filePaths": [
+            "src/domain/product.ts"
+          ],
+          "status": "valid",
+          "verdict": "pass",
+          "confidence": 0.9499999999999998,
+          "confidenceStdDev": 1.1102230246251565e-16,
+          "flaggedUnstable": false,
+          "validRunCount": 3
+        },
+        {
+          "unitId": "src/domain/stock-allocation-service.ts",
+          "unitKind": "file",
+          "layer": "domain",
+          "filePaths": [
+            "src/domain/stock-allocation-service.ts"
+          ],
+          "status": "valid",
+          "verdict": "pass",
+          "confidence": 0.7733333333333334,
+          "confidenceStdDev": 0.03771236166328257,
+          "flaggedUnstable": false,
+          "validRunCount": 3
+        },
+        {
+          "unitId": "src/infrastructure/in-memory-order-repository.ts",
+          "unitKind": "file",
+          "layer": "infrastructure",
+          "filePaths": [
+            "src/infrastructure/in-memory-order-repository.ts"
+          ],
+          "status": "valid",
+          "verdict": "pass",
+          "confidence": 0.93,
+          "confidenceStdDev": 0,
+          "flaggedUnstable": false,
+          "validRunCount": 3
+        },
+        {
+          "unitId": "src/infrastructure/in-memory-product-repository.ts",
+          "unitKind": "file",
+          "layer": "infrastructure",
+          "filePaths": [
+            "src/infrastructure/in-memory-product-repository.ts"
+          ],
+          "status": "valid",
+          "verdict": "pass",
+          "confidence": 0.9499999999999998,
+          "confidenceStdDev": 1.1102230246251565e-16,
+          "flaggedUnstable": false,
+          "validRunCount": 3
+        },
+        {
+          "unitId": "src/infrastructure/seed-catalogue.ts",
+          "unitKind": "file",
+          "layer": "infrastructure",
+          "filePaths": [
+            "src/infrastructure/seed-catalogue.ts"
+          ],
+          "status": "valid",
+          "verdict": "pass",
+          "confidence": 0.84,
+          "confidenceStdDev": 0.014142135623730963,
+          "flaggedUnstable": false,
+          "validRunCount": 3
+        },
+        {
+          "unitId": "src/infrastructure/server.ts",
+          "unitKind": "file",
+          "layer": "infrastructure",
+          "filePaths": [
+            "src/infrastructure/server.ts"
+          ],
+          "status": "valid",
+          "verdict": "pass",
+          "confidence": 0.93,
+          "confidenceStdDev": 0,
+          "flaggedUnstable": false,
+          "validRunCount": 3
+        },
+        {
+          "unitId": "src/infrastructure/stock-controller.ts",
+          "unitKind": "file",
+          "layer": "infrastructure",
+          "filePaths": [
+            "src/infrastructure/stock-controller.ts"
+          ],
+          "status": "valid",
+          "verdict": "pass",
+          "confidence": 0.9366666666666666,
+          "confidenceStdDev": 0.00942809041582059,
+          "flaggedUnstable": false,
+          "validRunCount": 3
+        },
+        {
+          "unitId": "src/infrastructure/stock-module.ts",
+          "unitKind": "file",
+          "layer": "infrastructure",
+          "filePaths": [
+            "src/infrastructure/stock-module.ts"
+          ],
+          "status": "valid",
+          "verdict": "pass",
+          "confidence": 0.93,
+          "confidenceStdDev": 0,
+          "flaggedUnstable": false,
+          "validRunCount": 3
+        }
+      ],
+      "candidatesByLayer": {
+        "application": 7,
+        "domain": 8,
+        "infrastructure": 10
+      }
+    }
+  ]
+}

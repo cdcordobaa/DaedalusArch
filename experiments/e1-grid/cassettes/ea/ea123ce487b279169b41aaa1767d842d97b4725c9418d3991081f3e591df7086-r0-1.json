@@ -1,0 +1,47 @@
+{
+  "attempts": 1,
+  "cliVersion": "2.1.294",
+  "configListingSha256": "47aa04258852fab9a706f3f0c14cee22306d69fbb6fdfbde8c11854bd54997bc",
+  "durationMs": 6473,
+  "effort": "high",
+  "functionId": "FF-N02",
+  "ignoredOptions": [
+    "maxTokens"
+  ],
+  "isolationProbeSha256": "97a2e2d0af1100c13c55e028c1a0c71f069093c3d08705af122aaeb302f1a641",
+  "key": "ea123ce487b279169b41aaa1767d842d97b4725c9418d3991081f3e591df7086-r0-1",
+  "model": "claude-opus-5-5",
+  "outcome": {
+    "kind": "valid"
+  },
+  "parsedVerdict": {
+    "confidence": 0.96,
+    "evidence": [
+      "src/domain/user.ts: User.create(id, name) trims the name and throws DomainValidationError when it is empty. This is a domain invariant, which belongs in the domain layer.",
+      "src/domain/user.ts: the private constructor with readonly id and name gives an immutable entity that can only be built through the factory. This is a domain modelling concern.",
+      "src/domain/user.ts: no database, HTTP, framework or use-case orchestration code appears anywhere in the file."
+    ],
+    "pass": true,
+    "reasoning": "src/domain/user.ts holds a pure domain entity. User has a private constructor, so the only way to build one is the static factory create(). That method enforces a business invariant: the name is trimmed and must not be empty. When the check fails it throws DomainValidationError, which comes from the domain layer. The file has no persistence, transport, framework or orchestration logic, so everything in it fits the domain layer.",
+    "violations": []
+  },
+  "projectId": "claude-sonnet-5-5/task-management/full-aac/run-2",
+  "prompt": "## Rule\nThe unit's responsibilities match the role of its declared layer.\n\n## Rubric\nPass: Every responsibility in the file belongs to the role and kind of its declared layer, and agrees with any ADR prose given.\nFail: The file carries a responsibility that belongs to a different layer kind, for example persistence, transport or framework logic in a domain file, or business rules in an infrastructure or presentation file.\nEvidence required: Name the file and cite the function, method or statement that carries the misplaced responsibility, and the layer kind it belongs to.\nOut of scope: import direction and layer-dependency rules, which are checked symbolically.\n\n## Layer model\n- domain (kind: domain): src/domain/**\n- application (kind: application): src/application/**\n- infrastructure (kind: infrastructure): src/infrastructure/**\n\n## Unit\nKind: file\nId: src/domain/user.ts\nLayer: domain\nUnit files:\n- src/domain/user.ts\n\n## Source\n=====SOURCE-BEGIN src/domain/user.ts=====\nimport { DomainValidationError } from \"./errors\";\n\nexport class User {\n  private constructor(\n    readonly id: string,\n    readonly name: string,\n  ) {}\n\n  static create(id: string, name: string): User {\n    const trimmed = name.trim();\n    if (trimmed.length === 0) {\n      throw new DomainValidationError(\"User name must not be empty\");\n    }\n    return new User(id, trimmed);\n  }\n}\n\n=====SOURCE-END=====\n\n## Graph excerpt\n{\"edges\":[{\"from\":\"src/application/dto/user-dto.ts\",\"to\":\"src/domain/user.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/application/use-cases/create-user-use-case.ts\",\"to\":\"src/domain/user.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/domain/user-repository.ts\",\"to\":\"src/domain/user.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/domain/user.ts\",\"to\":\"src/domain/errors.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/infrastructure/persistence/in-memory-user-repository.ts\",\"to\":\"src/domain/user.ts\",\"type\":\"IMPORTS\"}],\"nodes\":[{\"kind\":\"Class\",\"layer\":\"domain\",\"name\":\"User\",\"path\":\"src/domain/user.ts\"},{\"kind\":\"File\",\"layer\":\"application\",\"path\":\"src/application/dto/user-dto.ts\"},{\"kind\":\"File\",\"layer\":\"application\",\"path\":\"src/application/use-cases/create-user-use-case.ts\"},{\"kind\":\"File\",\"layer\":\"domain\",\"path\":\"src/domain/errors.ts\"},{\"kind\":\"File\",\"layer\":\"domain\",\"path\":\"src/domain/user-repository.ts\"},{\"kind\":\"File\",\"layer\":\"domain\",\"path\":\"src/domain/user.ts\"},{\"kind\":\"File\",\"layer\":\"infrastructure\",\"path\":\"src/infrastructure/persistence/in-memory-user-repository.ts\"}]}\n\n## Instructions\nJudge the unit against the rule and rubric. Return the JSON object the schema requires. Set pass to false if any file of the unit fails the rubric.\n",
+  "provider": "claude-cli",
+  "recordedAt": "2026-10-10T23:01:18.763Z",
+  "repetition": 0,
+  "requestHash": "ea123ce487b279169b41aaa1767d842d97b4725c9418d3991081f3e591df7086",
+  "resolvedModel": "claude-opus-5-5",
+  "response": "{\"is_error\":false,\"modelUsage\":{\"claude-opus-5-5\":{\"inputTokens\":2,\"outputTokens\":426}},\"result\":\"{\\\"pass\\\":true,\\\"confidence\\\":0.96,\\\"reasoning\\\":\\\"src/domain/user.ts holds a pure domain entity. User has a private constructor, so the only way to build one is the static factory create(). That method enforces a business invariant: the name is trimmed and must not be empty. When the check fails it throws DomainValidationError, which comes from the domain layer. The file has no persistence, transport, framework or orchestration logic, so everything in it fits the domain layer.\\\",\\\"evidence\\\":[\\\"src/domain/user.ts: User.create(id, name) trims the name and throws DomainValidationError when it is empty. This is a domain invariant, which belongs in the domain layer.\\\",\\\"src/domain/user.ts: the private constructor with readonly id and name gives an immutable entity that can only be built through the factory. This is a domain modelling concern.\\\",\\\"src/domain/user.ts: no database, HTTP, framework or use-case orchestration code appears anywhere in the file.\\\"],\\\"violations\\\":[]}\",\"structured_output\":{\"confidence\":0.96,\"evidence\":[\"src/domain/user.ts: User.create(id, name) trims the name and throws DomainValidationError when it is empty. This is a domain invariant, which belongs in the domain layer.\",\"src/domain/user.ts: the private constructor with readonly id and name gives an immutable entity that can only be built through the factory. This is a domain modelling concern.\",\"src/domain/user.ts: no database, HTTP, framework or use-case orchestration code appears anywhere in the file.\"],\"pass\":true,\"reasoning\":\"src/domain/user.ts holds a pure domain entity. User has a private constructor, so the only way to build one is the static factory create(). That method enforces a business invariant: the name is trimmed and must not be empty. When the check fails it throws DomainValidationError, which comes from the domain layer. The file has no persistence, transport, framework or orchestration logic, so everything in it fits the domain layer.\",\"violations\":[]}}",
+  "runIndex": 1,
+  "schemaVersion": 2,
+  "unitId": "src/domain/user.ts",
+  "usage": {
+    "inputTokens": 2517,
+    "outputTokens": 426
+  },
+  "usedOptions": {
+    "effort": "high",
+    "model": "claude-opus-5-5"
+  }
+}

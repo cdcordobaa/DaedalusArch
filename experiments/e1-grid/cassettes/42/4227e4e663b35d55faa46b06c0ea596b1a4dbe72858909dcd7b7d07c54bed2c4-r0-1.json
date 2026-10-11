@@ -1,0 +1,47 @@
+{
+  "attempts": 1,
+  "cliVersion": "2.1.294",
+  "configListingSha256": "47aa04258852fab9a706f3f0c14cee22306d69fbb6fdfbde8c11854bd54997bc",
+  "durationMs": 6087,
+  "effort": "high",
+  "functionId": "FF-N02",
+  "ignoredOptions": [
+    "maxTokens"
+  ],
+  "isolationProbeSha256": "97a2e2d0af1100c13c55e028c1a0c71f069093c3d08705af122aaeb302f1a641",
+  "key": "4227e4e663b35d55faa46b06c0ea596b1a4dbe72858909dcd7b7d07c54bed2c4-r0-1",
+  "model": "claude-opus-5-5",
+  "outcome": {
+    "kind": "valid"
+  },
+  "parsedVerdict": {
+    "confidence": 0.95,
+    "evidence": [
+      "src/application/IdGenerator.ts: `export interface IdGenerator { next(): string; }` is a pure port declaration with no implementation",
+      "Graph: CreateProjectUseCase, CreateTaskUseCase and CreateUserUseCase each CONSTRUCTOR_INJECTS IdGenerator (the application layer uses the port)",
+      "Graph: UuidGenerator@src/infrastructure/UuidGenerator.ts IMPLEMENTS IdGenerator (the adapter lives in infrastructure)"
+    ],
+    "pass": true,
+    "reasoning": "src/application/IdGenerator.ts declares only one port interface, IdGenerator, with a single method next(): string. It contains no implementation, no persistence logic, no transport logic and no framework code. Use cases in the application layer inject it through their constructors, and src/infrastructure/UuidGenerator.ts implements it. That makes it an application-layer port whose adapter lives in infrastructure, which fits the role of the application layer. No responsibility in the file belongs to a different layer kind.",
+    "violations": []
+  },
+  "projectId": "claude-sonnet-5-5/task-management/full-aac/run-0",
+  "prompt": "## Rule\nThe unit's responsibilities match the role of its declared layer.\n\n## Rubric\nPass: Every responsibility in the file belongs to the role and kind of its declared layer, and agrees with any ADR prose given.\nFail: The file carries a responsibility that belongs to a different layer kind, for example persistence, transport or framework logic in a domain file, or business rules in an infrastructure or presentation file.\nEvidence required: Name the file and cite the function, method or statement that carries the misplaced responsibility, and the layer kind it belongs to.\nOut of scope: import direction and layer-dependency rules, which are checked symbolically.\n\n## Layer model\n- domain (kind: domain): src/domain/**\n- application (kind: application): src/application/**\n- infrastructure (kind: infrastructure): src/infrastructure/**\n\n## Unit\nKind: file\nId: src/application/IdGenerator.ts\nLayer: application\nUnit files:\n- src/application/IdGenerator.ts\n\n## Source\n=====SOURCE-BEGIN src/application/IdGenerator.ts=====\nexport interface IdGenerator {\n  next(): string;\n}\n\n=====SOURCE-END=====\n\n## Graph excerpt\n{\"edges\":[{\"from\":\"CreateProjectUseCase@src/application/CreateProjectUseCase.ts\",\"to\":\"IdGenerator@src/application/IdGenerator.ts\",\"type\":\"CONSTRUCTOR_INJECTS\"},{\"from\":\"CreateTaskUseCase@src/application/CreateTaskUseCase.ts\",\"to\":\"IdGenerator@src/application/IdGenerator.ts\",\"type\":\"CONSTRUCTOR_INJECTS\"},{\"from\":\"CreateUserUseCase@src/application/CreateUserUseCase.ts\",\"to\":\"IdGenerator@src/application/IdGenerator.ts\",\"type\":\"CONSTRUCTOR_INJECTS\"},{\"from\":\"UuidGenerator@src/infrastructure/UuidGenerator.ts\",\"to\":\"IdGenerator@src/application/IdGenerator.ts\",\"type\":\"IMPLEMENTS\"},{\"from\":\"src/application/CreateProjectUseCase.ts\",\"to\":\"src/application/IdGenerator.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/application/CreateTaskUseCase.ts\",\"to\":\"src/application/IdGenerator.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/application/CreateUserUseCase.ts\",\"to\":\"src/application/IdGenerator.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/infrastructure/UuidGenerator.ts\",\"to\":\"src/application/IdGenerator.ts\",\"type\":\"IMPORTS\"}],\"nodes\":[{\"kind\":\"Class\",\"layer\":\"application\",\"name\":\"CreateProjectUseCase\",\"path\":\"src/application/CreateProjectUseCase.ts\"},{\"kind\":\"Class\",\"layer\":\"application\",\"name\":\"CreateTaskUseCase\",\"path\":\"src/application/CreateTaskUseCase.ts\"},{\"kind\":\"Class\",\"layer\":\"application\",\"name\":\"CreateUserUseCase\",\"path\":\"src/application/CreateUserUseCase.ts\"},{\"kind\":\"Class\",\"layer\":\"infrastructure\",\"name\":\"UuidGenerator\",\"path\":\"src/infrastructure/UuidGenerator.ts\"},{\"kind\":\"File\",\"layer\":\"application\",\"path\":\"src/application/CreateProjectUseCase.ts\"},{\"kind\":\"File\",\"layer\":\"application\",\"path\":\"src/application/CreateTaskUseCase.ts\"},{\"kind\":\"File\",\"layer\":\"application\",\"path\":\"src/application/CreateUserUseCase.ts\"},{\"kind\":\"File\",\"layer\":\"application\",\"path\":\"src/application/IdGenerator.ts\"},{\"kind\":\"File\",\"layer\":\"infrastructure\",\"path\":\"src/infrastructure/UuidGenerator.ts\"},{\"kind\":\"Interface\",\"layer\":\"application\",\"name\":\"IdGenerator\",\"path\":\"src/application/IdGenerator.ts\"}]}\n\n## Instructions\nJudge the unit against the rule and rubric. Return the JSON object the schema requires. Set pass to false if any file of the unit fails the rubric.\n",
+  "provider": "claude-cli",
+  "recordedAt": "2026-10-10T22:53:36.763Z",
+  "repetition": 0,
+  "requestHash": "4227e4e663b35d55faa46b06c0ea596b1a4dbe72858909dcd7b7d07c54bed2c4",
+  "resolvedModel": "claude-opus-5-5",
+  "response": "{\"is_error\":false,\"modelUsage\":{\"claude-opus-5-5\":{\"inputTokens\":2,\"outputTokens\":482}},\"result\":\"{\\\"pass\\\":true,\\\"confidence\\\":0.95,\\\"reasoning\\\":\\\"src/application/IdGenerator.ts declares only one port interface, IdGenerator, with a single method next(): string. It contains no implementation, no persistence logic, no transport logic and no framework code. Use cases in the application layer inject it through their constructors, and src/infrastructure/UuidGenerator.ts implements it. That makes it an application-layer port whose adapter lives in infrastructure, which fits the role of the application layer. No responsibility in the file belongs to a different layer kind.\\\",\\\"evidence\\\":[\\\"src/application/IdGenerator.ts: `export interface IdGenerator { next(): string; }` is a pure port declaration with no implementation\\\",\\\"Graph: CreateProjectUseCase, CreateTaskUseCase and CreateUserUseCase each CONSTRUCTOR_INJECTS IdGenerator (the application layer uses the port)\\\",\\\"Graph: UuidGenerator@src/infrastructure/UuidGenerator.ts IMPLEMENTS IdGenerator (the adapter lives in infrastructure)\\\"],\\\"violations\\\":[]}\",\"structured_output\":{\"confidence\":0.95,\"evidence\":[\"src/application/IdGenerator.ts: `export interface IdGenerator { next(): string; }` is a pure port declaration with no implementation\",\"Graph: CreateProjectUseCase, CreateTaskUseCase and CreateUserUseCase each CONSTRUCTOR_INJECTS IdGenerator (the application layer uses the port)\",\"Graph: UuidGenerator@src/infrastructure/UuidGenerator.ts IMPLEMENTS IdGenerator (the adapter lives in infrastructure)\"],\"pass\":true,\"reasoning\":\"src/application/IdGenerator.ts declares only one port interface, IdGenerator, with a single method next(): string. It contains no implementation, no persistence logic, no transport logic and no framework code. Use cases in the application layer inject it through their constructors, and src/infrastructure/UuidGenerator.ts implements it. That makes it an application-layer port whose adapter lives in infrastructure, which fits the role of the application layer. No responsibility in the file belongs to a different layer kind.\",\"violations\":[]}}",
+  "runIndex": 1,
+  "schemaVersion": 2,
+  "unitId": "src/application/IdGenerator.ts",
+  "usage": {
+    "inputTokens": 2874,
+    "outputTokens": 482
+  },
+  "usedOptions": {
+    "effort": "high",
+    "model": "claude-opus-5-5"
+  }
+}

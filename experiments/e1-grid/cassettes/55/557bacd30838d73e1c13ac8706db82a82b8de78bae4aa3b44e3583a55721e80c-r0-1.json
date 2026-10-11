@@ -1,0 +1,48 @@
+{
+  "attempts": 1,
+  "cliVersion": "2.1.294",
+  "configListingSha256": "47aa04258852fab9a706f3f0c14cee22306d69fbb6fdfbde8c11854bd54997bc",
+  "durationMs": 5398,
+  "effort": "high",
+  "functionId": "FF-N02",
+  "ignoredOptions": [
+    "maxTokens"
+  ],
+  "isolationProbeSha256": "97a2e2d0af1100c13c55e028c1a0c71f069093c3d08705af122aaeb302f1a641",
+  "key": "557bacd30838d73e1c13ac8706db82a82b8de78bae4aa3b44e3583a55721e80c-r0-1",
+  "model": "claude-opus-5-5",
+  "outcome": {
+    "kind": "valid"
+  },
+  "parsedVerdict": {
+    "confidence": 0.95,
+    "evidence": [
+      "ORDER_STATUSES and the OrderStatus type define the domain value set.",
+      "nextStatus() encodes the business rule for the forward fulfilment sequence, which is domain logic.",
+      "isCancellable() encodes the business rule that an order can be cancelled only before it ships, which is domain logic.",
+      "isOrderStatus() is a pure type guard with no I/O or framework code."
+    ],
+    "pass": true,
+    "reasoning": "src/domain/OrderStatus.ts holds only pure domain concepts. It defines the order status value set, a type guard, the fulfilment state sequence and the rules for which statuses can still be cancelled. None of it touches persistence, transport, framework or I/O, and it has no use-case orchestration. All of these responsibilities belong in the domain layer.",
+    "violations": []
+  },
+  "projectId": "claude-opus-5-5/order-fulfilment/full-aac/run-2",
+  "prompt": "## Rule\nThe unit's responsibilities match the role of its declared layer.\n\n## Rubric\nPass: Every responsibility in the file belongs to the role and kind of its declared layer, and agrees with any ADR prose given.\nFail: The file carries a responsibility that belongs to a different layer kind, for example persistence, transport or framework logic in a domain file, or business rules in an infrastructure or presentation file.\nEvidence required: Name the file and cite the function, method or statement that carries the misplaced responsibility, and the layer kind it belongs to.\nOut of scope: import direction and layer-dependency rules, which are checked symbolically.\n\n## Layer model\n- domain (kind: domain): src/domain/**\n- application (kind: application): src/application/**\n- infrastructure (kind: infrastructure): src/infrastructure/**\n\n## Unit\nKind: file\nId: src/domain/OrderStatus.ts\nLayer: domain\nUnit files:\n- src/domain/OrderStatus.ts\n\n## Source\n=====SOURCE-BEGIN src/domain/OrderStatus.ts=====\n/** Every status an order can be in. */\nexport const ORDER_STATUSES = ['placed', 'paid', 'packed', 'shipped', 'delivered', 'cancelled'] as const;\n\nexport type OrderStatus = (typeof ORDER_STATUSES)[number];\n\n/** The only forward path an order may follow, one step at a time. */\nconst FULFILMENT_SEQUENCE: readonly OrderStatus[] = ['placed', 'paid', 'packed', 'shipped', 'delivered'];\n\n/** Statuses from which an order may still be cancelled (anything before shipping). */\nconst CANCELLABLE_STATUSES: readonly OrderStatus[] = ['placed', 'paid', 'packed'];\n\nexport function isOrderStatus(value: string): value is OrderStatus {\n  return (ORDER_STATUSES as readonly string[]).includes(value);\n}\n\n/** The status that directly follows `status` in the fulfilment sequence, if any. */\nexport function nextStatus(status: OrderStatus): OrderStatus | undefined {\n  const index = FULFILMENT_SEQUENCE.indexOf(status);\n  return index === -1 ? undefined : FULFILMENT_SEQUENCE[index + 1];\n}\n\nexport function isCancellable(status: OrderStatus): boolean {\n  return CANCELLABLE_STATUSES.includes(status);\n}\n\n=====SOURCE-END=====\n\n## Graph excerpt\n{\"edges\":[{\"from\":\"src/application/AdvanceOrderUseCase.ts\",\"to\":\"src/domain/OrderStatus.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/application/ListOrdersByStateUseCase.ts\",\"to\":\"src/domain/OrderStatus.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/domain/Order.ts\",\"to\":\"src/domain/OrderStatus.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/domain/OrderRepository.ts\",\"to\":\"src/domain/OrderStatus.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/infrastructure/InMemoryOrderRepository.ts\",\"to\":\"src/domain/OrderStatus.ts\",\"type\":\"IMPORTS\"}],\"nodes\":[{\"kind\":\"File\",\"layer\":\"application\",\"path\":\"src/application/AdvanceOrderUseCase.ts\"},{\"kind\":\"File\",\"layer\":\"application\",\"path\":\"src/application/ListOrdersByStateUseCase.ts\"},{\"kind\":\"File\",\"layer\":\"domain\",\"path\":\"src/domain/Order.ts\"},{\"kind\":\"File\",\"layer\":\"domain\",\"path\":\"src/domain/OrderRepository.ts\"},{\"kind\":\"File\",\"layer\":\"domain\",\"path\":\"src/domain/OrderStatus.ts\"},{\"kind\":\"File\",\"layer\":\"infrastructure\",\"path\":\"src/infrastructure/InMemoryOrderRepository.ts\"}]}\n\n## Instructions\nJudge the unit against the rule and rubric. Return the JSON object the schema requires. Set pass to false if any file of the unit fails the rubric.\n",
+  "provider": "claude-cli",
+  "recordedAt": "2026-10-10T22:23:33.654Z",
+  "repetition": 0,
+  "requestHash": "557bacd30838d73e1c13ac8706db82a82b8de78bae4aa3b44e3583a55721e80c",
+  "resolvedModel": "claude-opus-5-5",
+  "response": "{\"is_error\":false,\"modelUsage\":{\"claude-opus-5-5\":{\"inputTokens\":2,\"outputTokens\":386}},\"result\":\"{\\\"pass\\\":true,\\\"confidence\\\":0.95,\\\"reasoning\\\":\\\"src/domain/OrderStatus.ts holds only pure domain concepts. It defines the order status value set, a type guard, the fulfilment state sequence and the rules for which statuses can still be cancelled. None of it touches persistence, transport, framework or I/O, and it has no use-case orchestration. All of these responsibilities belong in the domain layer.\\\",\\\"evidence\\\":[\\\"ORDER_STATUSES and the OrderStatus type define the domain value set.\\\",\\\"nextStatus() encodes the business rule for the forward fulfilment sequence, which is domain logic.\\\",\\\"isCancellable() encodes the business rule that an order can be cancelled only before it ships, which is domain logic.\\\",\\\"isOrderStatus() is a pure type guard with no I/O or framework code.\\\"],\\\"violations\\\":[]}\",\"structured_output\":{\"confidence\":0.95,\"evidence\":[\"ORDER_STATUSES and the OrderStatus type define the domain value set.\",\"nextStatus() encodes the business rule for the forward fulfilment sequence, which is domain logic.\",\"isCancellable() encodes the business rule that an order can be cancelled only before it ships, which is domain logic.\",\"isOrderStatus() is a pure type guard with no I/O or framework code.\"],\"pass\":true,\"reasoning\":\"src/domain/OrderStatus.ts holds only pure domain concepts. It defines the order status value set, a type guard, the fulfilment state sequence and the rules for which statuses can still be cancelled. None of it touches persistence, transport, framework or I/O, and it has no use-case orchestration. All of these responsibilities belong in the domain layer.\",\"violations\":[]}}",
+  "runIndex": 1,
+  "schemaVersion": 2,
+  "unitId": "src/domain/OrderStatus.ts",
+  "usage": {
+    "inputTokens": 2866,
+    "outputTokens": 386
+  },
+  "usedOptions": {
+    "effort": "high",
+    "model": "claude-opus-5-5"
+  }
+}

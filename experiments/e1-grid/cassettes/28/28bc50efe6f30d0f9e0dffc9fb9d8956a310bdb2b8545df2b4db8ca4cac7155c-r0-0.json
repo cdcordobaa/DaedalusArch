@@ -1,0 +1,47 @@
+{
+  "attempts": 1,
+  "cliVersion": "2.1.294",
+  "configListingSha256": "47aa04258852fab9a706f3f0c14cee22306d69fbb6fdfbde8c11854bd54997bc",
+  "durationMs": 6113,
+  "effort": "high",
+  "functionId": "FF-N02",
+  "ignoredOptions": [
+    "maxTokens"
+  ],
+  "isolationProbeSha256": "97a2e2d0af1100c13c55e028c1a0c71f069093c3d08705af122aaeb302f1a641",
+  "key": "28bc50efe6f30d0f9e0dffc9fb9d8956a310bdb2b8545df2b4db8ca4cac7155c-r0-0",
+  "model": "claude-opus-5-5",
+  "outcome": {
+    "kind": "valid"
+  },
+  "parsedVerdict": {
+    "confidence": 0.95,
+    "evidence": [
+      "src/application/list-stock-levels-use-case.ts: ListStockLevelsUseCase.execute() calls this.products.findAll() on the domain ProductRepository port. This is coordination, not a persistence implementation.",
+      "src/application/list-stock-levels-use-case.ts: all.map(toStockLevelDto) maps domain objects to application DTOs, which is an application-layer responsibility.",
+      "No framework, transport or storage code and no domain business rules appear in the file."
+    ],
+    "pass": true,
+    "reasoning": "This file is a plain application-layer use case. Its execute() method gets every product through the domain ProductRepository port, which is injected through the constructor, and turns each one into a StockLevelDto with the application mapper toStockLevelDto. That is the application layer's job: it coordinates domain ports and returns DTOs. The file has no persistence code, no transport or framework code (no HTTP, ORM or SQL), and no business rules that belong in the domain. It also has no presentation logic.",
+    "violations": []
+  },
+  "projectId": "claude-sonnet-5-5/order-fulfilment/minimal-prose/run-2",
+  "prompt": "## Rule\nThe unit's responsibilities match the role of its declared layer.\n\n## Rubric\nPass: Every responsibility in the file belongs to the role and kind of its declared layer, and agrees with any ADR prose given.\nFail: The file carries a responsibility that belongs to a different layer kind, for example persistence, transport or framework logic in a domain file, or business rules in an infrastructure or presentation file.\nEvidence required: Name the file and cite the function, method or statement that carries the misplaced responsibility, and the layer kind it belongs to.\nOut of scope: import direction and layer-dependency rules, which are checked symbolically.\n\n## Layer model\n- domain (kind: domain): src/domain/**\n- application (kind: application): src/application/**\n- infrastructure (kind: infrastructure): src/infrastructure/**\n\n## Unit\nKind: file\nId: src/application/list-stock-levels-use-case.ts\nLayer: application\nUnit files:\n- src/application/list-stock-levels-use-case.ts\n\n## Source\n=====SOURCE-BEGIN src/application/list-stock-levels-use-case.ts=====\nimport { ProductRepository } from \"../domain/product-repository\";\nimport { StockLevelDto, toStockLevelDto } from \"./dtos\";\n\nexport class ListStockLevelsUseCase {\n  constructor(private readonly products: ProductRepository) {}\n\n  async execute(): Promise<StockLevelDto[]> {\n    const all = await this.products.findAll();\n    return all.map(toStockLevelDto);\n  }\n}\n\n=====SOURCE-END=====\n\n## Graph excerpt\n{\"edges\":[{\"from\":\"ListStockLevelsUseCase@src/application/list-stock-levels-use-case.ts\",\"to\":\"ProductRepository@src/domain/product-repository.ts\",\"type\":\"CONSTRUCTOR_INJECTS\"},{\"from\":\"StockController@src/infrastructure/stock-controller.ts\",\"to\":\"ListStockLevelsUseCase@src/application/list-stock-levels-use-case.ts\",\"type\":\"CONSTRUCTOR_INJECTS\"},{\"from\":\"src/application/list-stock-levels-use-case.ts\",\"to\":\"src/application/dtos.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/application/list-stock-levels-use-case.ts\",\"to\":\"src/domain/product-repository.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/infrastructure/app-factory.ts\",\"to\":\"src/application/list-stock-levels-use-case.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/infrastructure/stock-controller.ts\",\"to\":\"src/application/list-stock-levels-use-case.ts\",\"type\":\"IMPORTS\"}],\"nodes\":[{\"kind\":\"Class\",\"layer\":\"application\",\"name\":\"ListStockLevelsUseCase\",\"path\":\"src/application/list-stock-levels-use-case.ts\"},{\"kind\":\"Class\",\"layer\":\"infrastructure\",\"name\":\"StockController\",\"path\":\"src/infrastructure/stock-controller.ts\"},{\"kind\":\"File\",\"layer\":\"application\",\"path\":\"src/application/dtos.ts\"},{\"kind\":\"File\",\"layer\":\"application\",\"path\":\"src/application/list-stock-levels-use-case.ts\"},{\"kind\":\"File\",\"layer\":\"domain\",\"path\":\"src/domain/product-repository.ts\"},{\"kind\":\"File\",\"layer\":\"infrastructure\",\"path\":\"src/infrastructure/app-factory.ts\"},{\"kind\":\"File\",\"layer\":\"infrastructure\",\"path\":\"src/infrastructure/stock-controller.ts\"},{\"kind\":\"Interface\",\"layer\":\"domain\",\"name\":\"ProductRepository\",\"path\":\"src/domain/product-repository.ts\"}]}\n\n## Instructions\nJudge the unit against the rule and rubric. Return the JSON object the schema requires. Set pass to false if any file of the unit fails the rubric.\n",
+  "provider": "claude-cli",
+  "recordedAt": "2026-10-10T22:50:58.045Z",
+  "repetition": 0,
+  "requestHash": "28bc50efe6f30d0f9e0dffc9fb9d8956a310bdb2b8545df2b4db8ca4cac7155c",
+  "resolvedModel": "claude-opus-5-5",
+  "response": "{\"is_error\":false,\"modelUsage\":{\"claude-opus-5-5\":{\"inputTokens\":2,\"outputTokens\":457}},\"result\":\"{\\\"pass\\\":true,\\\"confidence\\\":0.95,\\\"reasoning\\\":\\\"This file is a plain application-layer use case. Its execute() method gets every product through the domain ProductRepository port, which is injected through the constructor, and turns each one into a StockLevelDto with the application mapper toStockLevelDto. That is the application layer's job: it coordinates domain ports and returns DTOs. The file has no persistence code, no transport or framework code (no HTTP, ORM or SQL), and no business rules that belong in the domain. It also has no presentation logic.\\\",\\\"evidence\\\":[\\\"src/application/list-stock-levels-use-case.ts: ListStockLevelsUseCase.execute() calls this.products.findAll() on the domain ProductRepository port. This is coordination, not a persistence implementation.\\\",\\\"src/application/list-stock-levels-use-case.ts: all.map(toStockLevelDto) maps domain objects to application DTOs, which is an application-layer responsibility.\\\",\\\"No framework, transport or storage code and no domain business rules appear in the file.\\\"],\\\"violations\\\":[]}\",\"structured_output\":{\"confidence\":0.95,\"evidence\":[\"src/application/list-stock-levels-use-case.ts: ListStockLevelsUseCase.execute() calls this.products.findAll() on the domain ProductRepository port. This is coordination, not a persistence implementation.\",\"src/application/list-stock-levels-use-case.ts: all.map(toStockLevelDto) maps domain objects to application DTOs, which is an application-layer responsibility.\",\"No framework, transport or storage code and no domain business rules appear in the file.\"],\"pass\":true,\"reasoning\":\"This file is a plain application-layer use case. Its execute() method gets every product through the domain ProductRepository port, which is injected through the constructor, and turns each one into a StockLevelDto with the application mapper toStockLevelDto. That is the application layer's job: it coordinates domain ports and returns DTOs. The file has no persistence code, no transport or framework code (no HTTP, ORM or SQL), and no business rules that belong in the domain. It also has no presentation logic.\",\"violations\":[]}}",
+  "runIndex": 0,
+  "schemaVersion": 2,
+  "unitId": "src/application/list-stock-levels-use-case.ts",
+  "usage": {
+    "inputTokens": 2764,
+    "outputTokens": 457
+  },
+  "usedOptions": {
+    "effort": "high",
+    "model": "claude-opus-5-5"
+  }
+}

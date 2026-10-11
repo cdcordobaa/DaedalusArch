@@ -1,0 +1,47 @@
+{
+  "attempts": 1,
+  "cliVersion": "2.1.294",
+  "configListingSha256": "47aa04258852fab9a706f3f0c14cee22306d69fbb6fdfbde8c11854bd54997bc",
+  "durationMs": 5931,
+  "effort": "high",
+  "functionId": "FF-N02",
+  "ignoredOptions": [
+    "maxTokens"
+  ],
+  "isolationProbeSha256": "97a2e2d0af1100c13c55e028c1a0c71f069093c3d08705af122aaeb302f1a641",
+  "key": "8dfa15878b9d5889932e95a9c8ea412d2bfdde3a72ab4ce3e0eea7b599ecfa11-r0-0",
+  "model": "claude-opus-5-5",
+  "outcome": {
+    "kind": "valid"
+  },
+  "parsedVerdict": {
+    "confidence": 0.92,
+    "evidence": [
+      "src/infrastructure/ProductController.ts: getStockLevels calls this.getStockLevelsUseCase.execute() and passes the result straight to res.status(200).json(products), with no business logic.",
+      "src/infrastructure/ProductController.ts: the catch block only turns errors into an HTTP 400 response, which is transport-level error handling.",
+      "The file uses Express Request/Response types, which is framework logic that belongs in infrastructure."
+    ],
+    "pass": true,
+    "reasoning": "ProductController is a thin Express HTTP adapter, and it is declared in the infrastructure layer. Its only job is transport. It hands the request to GetStockLevelsUseCase.execute() and maps the result to an HTTP 200 JSON response. It maps errors to an HTTP 400 JSON response. It holds no business rules, no domain calculations and no persistence logic. Framework and transport handling belongs in infrastructure, so the file's responsibilities match its layer kind.",
+    "violations": []
+  },
+  "projectId": "claude-haiku-4-5/order-fulfilment/minimal-prose/run-1",
+  "prompt": "## Rule\nThe unit's responsibilities match the role of its declared layer.\n\n## Rubric\nPass: Every responsibility in the file belongs to the role and kind of its declared layer, and agrees with any ADR prose given.\nFail: The file carries a responsibility that belongs to a different layer kind, for example persistence, transport or framework logic in a domain file, or business rules in an infrastructure or presentation file.\nEvidence required: Name the file and cite the function, method or statement that carries the misplaced responsibility, and the layer kind it belongs to.\nOut of scope: import direction and layer-dependency rules, which are checked symbolically.\n\n## Layer model\n- domain (kind: domain): src/domain/**\n- application (kind: application): src/application/**\n- infrastructure (kind: infrastructure): src/infrastructure/**\n\n## Unit\nKind: file\nId: src/infrastructure/ProductController.ts\nLayer: infrastructure\nUnit files:\n- src/infrastructure/ProductController.ts\n\n## Source\n=====SOURCE-BEGIN src/infrastructure/ProductController.ts=====\nimport { Request, Response } from 'express';\nimport { GetStockLevelsUseCase } from '../application/GetStockLevelsUseCase';\n\nexport class ProductController {\n  constructor(private getStockLevelsUseCase: GetStockLevelsUseCase) {}\n\n  getStockLevels = (req: Request, res: Response): void => {\n    try {\n      const products = this.getStockLevelsUseCase.execute();\n      res.status(200).json(products);\n    } catch (error) {\n      const message = error instanceof Error ? error.message : 'Unknown error';\n      res.status(400).json({ error: message });\n    }\n  };\n}\n\n=====SOURCE-END=====\n\n## Graph excerpt\n{\"edges\":[{\"from\":\"ProductController@src/infrastructure/ProductController.ts\",\"to\":\"GetStockLevelsUseCase@src/application/GetStockLevelsUseCase.ts\",\"type\":\"CONSTRUCTOR_INJECTS\"},{\"from\":\"src/infrastructure/ProductController.ts\",\"to\":\"express\",\"type\":\"IMPORTS\"},{\"from\":\"src/infrastructure/ProductController.ts\",\"to\":\"src/application/GetStockLevelsUseCase.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/infrastructure/app.ts\",\"to\":\"src/infrastructure/ProductController.ts\",\"type\":\"IMPORTS\"}],\"nodes\":[{\"kind\":\"Class\",\"layer\":\"application\",\"name\":\"GetStockLevelsUseCase\",\"path\":\"src/application/GetStockLevelsUseCase.ts\"},{\"kind\":\"Class\",\"layer\":\"infrastructure\",\"name\":\"ProductController\",\"path\":\"src/infrastructure/ProductController.ts\"},{\"kind\":\"File\",\"layer\":\"application\",\"path\":\"src/application/GetStockLevelsUseCase.ts\"},{\"kind\":\"File\",\"layer\":\"infrastructure\",\"path\":\"src/infrastructure/ProductController.ts\"},{\"kind\":\"File\",\"layer\":\"infrastructure\",\"path\":\"src/infrastructure/app.ts\"},{\"kind\":\"Package\",\"layer\":null,\"path\":\"express\"}]}\n\n## Instructions\nJudge the unit against the rule and rubric. Return the JSON object the schema requires. Set pass to false if any file of the unit fails the rubric.\n",
+  "provider": "claude-cli",
+  "recordedAt": "2026-10-11T02:48:00.195Z",
+  "repetition": 0,
+  "requestHash": "8dfa15878b9d5889932e95a9c8ea412d2bfdde3a72ab4ce3e0eea7b599ecfa11",
+  "resolvedModel": "claude-opus-5-5",
+  "response": "{\"is_error\":false,\"modelUsage\":{\"claude-opus-5-5\":{\"inputTokens\":2,\"outputTokens\":449}},\"result\":\"{\\\"pass\\\":true,\\\"confidence\\\":0.92,\\\"reasoning\\\":\\\"ProductController is a thin Express HTTP adapter, and it is declared in the infrastructure layer. Its only job is transport. It hands the request to GetStockLevelsUseCase.execute() and maps the result to an HTTP 200 JSON response. It maps errors to an HTTP 400 JSON response. It holds no business rules, no domain calculations and no persistence logic. Framework and transport handling belongs in infrastructure, so the file's responsibilities match its layer kind.\\\",\\\"evidence\\\":[\\\"src/infrastructure/ProductController.ts: getStockLevels calls this.getStockLevelsUseCase.execute() and passes the result straight to res.status(200).json(products), with no business logic.\\\",\\\"src/infrastructure/ProductController.ts: the catch block only turns errors into an HTTP 400 response, which is transport-level error handling.\\\",\\\"The file uses Express Request/Response types, which is framework logic that belongs in infrastructure.\\\"],\\\"violations\\\":[]}\",\"structured_output\":{\"confidence\":0.92,\"evidence\":[\"src/infrastructure/ProductController.ts: getStockLevels calls this.getStockLevelsUseCase.execute() and passes the result straight to res.status(200).json(products), with no business logic.\",\"src/infrastructure/ProductController.ts: the catch block only turns errors into an HTTP 400 response, which is transport-level error handling.\",\"The file uses Express Request/Response types, which is framework logic that belongs in infrastructure.\"],\"pass\":true,\"reasoning\":\"ProductController is a thin Express HTTP adapter, and it is declared in the infrastructure layer. Its only job is transport. It hands the request to GetStockLevelsUseCase.execute() and maps the result to an HTTP 200 JSON response. It maps errors to an HTTP 400 JSON response. It holds no business rules, no domain calculations and no persistence logic. Framework and transport handling belongs in infrastructure, so the file's responsibilities match its layer kind.\",\"violations\":[]}}",
+  "runIndex": 0,
+  "schemaVersion": 2,
+  "unitId": "src/infrastructure/ProductController.ts",
+  "usage": {
+    "inputTokens": 2592,
+    "outputTokens": 449
+  },
+  "usedOptions": {
+    "effort": "high",
+    "model": "claude-opus-5-5"
+  }
+}

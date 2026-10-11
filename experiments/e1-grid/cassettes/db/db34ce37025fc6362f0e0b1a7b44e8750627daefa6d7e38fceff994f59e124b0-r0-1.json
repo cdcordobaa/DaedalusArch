@@ -1,0 +1,46 @@
+{
+  "attempts": 1,
+  "cliVersion": "2.1.294",
+  "configListingSha256": "47aa04258852fab9a706f3f0c14cee22306d69fbb6fdfbde8c11854bd54997bc",
+  "durationMs": 6177,
+  "effort": "high",
+  "functionId": "FF-N02",
+  "ignoredOptions": [
+    "maxTokens"
+  ],
+  "isolationProbeSha256": "97a2e2d0af1100c13c55e028c1a0c71f069093c3d08705af122aaeb302f1a641",
+  "key": "db34ce37025fc6362f0e0b1a7b44e8750627daefa6d7e38fceff994f59e124b0-r0-1",
+  "model": "claude-opus-5-5",
+  "outcome": {
+    "kind": "valid"
+  },
+  "parsedVerdict": {
+    "confidence": 0.95,
+    "evidence": [
+      "src/application/TaskDTO.ts: `export interface TaskDTO { id: string; projectId: string; ... dueDate: string | null; assigneeId: string | null; }` is a plain data shape with no behaviour.",
+      "Graph: only application use cases import TaskDTO (AssignTaskUseCase, CreateTaskUseCase, ListTasksUseCase, MarkTaskDoneUseCase), which fits a use-case input/output contract."
+    ],
+    "pass": true,
+    "reasoning": "src/application/TaskDTO.ts declares a single data transfer interface, TaskDTO. It has only primitive and serializable fields: ids, title, description, status as a string, and dueDate as a nullable string. Its only consumers are application use cases (AssignTask, CreateTask, ListTasks, MarkTaskDone). Defining the data shapes that use cases return or accept is an application-layer job. The file has no persistence, transport, framework or business-rule logic, so it carries nothing that belongs to another layer.",
+    "violations": []
+  },
+  "projectId": "claude-haiku-4-5/task-management/full-aac/run-0",
+  "prompt": "## Rule\nThe unit's responsibilities match the role of its declared layer.\n\n## Rubric\nPass: Every responsibility in the file belongs to the role and kind of its declared layer, and agrees with any ADR prose given.\nFail: The file carries a responsibility that belongs to a different layer kind, for example persistence, transport or framework logic in a domain file, or business rules in an infrastructure or presentation file.\nEvidence required: Name the file and cite the function, method or statement that carries the misplaced responsibility, and the layer kind it belongs to.\nOut of scope: import direction and layer-dependency rules, which are checked symbolically.\n\n## Layer model\n- domain (kind: domain): src/domain/**\n- application (kind: application): src/application/**\n- infrastructure (kind: infrastructure): src/infrastructure/**\n\n## Unit\nKind: file\nId: src/application/TaskDTO.ts\nLayer: application\nUnit files:\n- src/application/TaskDTO.ts\n\n## Source\n=====SOURCE-BEGIN src/application/TaskDTO.ts=====\nexport interface TaskDTO {\n  id: string;\n  projectId: string;\n  title: string;\n  description: string;\n  status: string;\n  dueDate: string | null;\n  assigneeId: string | null;\n}\n\n=====SOURCE-END=====\n\n## Graph excerpt\n{\"edges\":[{\"from\":\"src/application/AssignTaskUseCase.ts\",\"to\":\"src/application/TaskDTO.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/application/CreateTaskUseCase.ts\",\"to\":\"src/application/TaskDTO.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/application/ListTasksUseCase.ts\",\"to\":\"src/application/TaskDTO.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/application/MarkTaskDoneUseCase.ts\",\"to\":\"src/application/TaskDTO.ts\",\"type\":\"IMPORTS\"}],\"nodes\":[{\"kind\":\"File\",\"layer\":\"application\",\"path\":\"src/application/AssignTaskUseCase.ts\"},{\"kind\":\"File\",\"layer\":\"application\",\"path\":\"src/application/CreateTaskUseCase.ts\"},{\"kind\":\"File\",\"layer\":\"application\",\"path\":\"src/application/ListTasksUseCase.ts\"},{\"kind\":\"File\",\"layer\":\"application\",\"path\":\"src/application/MarkTaskDoneUseCase.ts\"},{\"kind\":\"File\",\"layer\":\"application\",\"path\":\"src/application/TaskDTO.ts\"},{\"kind\":\"Interface\",\"layer\":\"application\",\"name\":\"TaskDTO\",\"path\":\"src/application/TaskDTO.ts\"}]}\n\n## Instructions\nJudge the unit against the rule and rubric. Return the JSON object the schema requires. Set pass to false if any file of the unit fails the rubric.\n",
+  "provider": "claude-cli",
+  "recordedAt": "2026-10-10T20:53:02.496Z",
+  "repetition": 0,
+  "requestHash": "db34ce37025fc6362f0e0b1a7b44e8750627daefa6d7e38fceff994f59e124b0",
+  "resolvedModel": "claude-opus-5-5",
+  "response": "{\"is_error\":false,\"modelUsage\":{\"claude-opus-5-5\":{\"inputTokens\":2,\"outputTokens\":465}},\"result\":\"{\\\"pass\\\":true,\\\"confidence\\\":0.95,\\\"reasoning\\\":\\\"src/application/TaskDTO.ts declares a single data transfer interface, TaskDTO. It has only primitive and serializable fields: ids, title, description, status as a string, and dueDate as a nullable string. Its only consumers are application use cases (AssignTask, CreateTask, ListTasks, MarkTaskDone). Defining the data shapes that use cases return or accept is an application-layer job. The file has no persistence, transport, framework or business-rule logic, so it carries nothing that belongs to another layer.\\\",\\\"evidence\\\":[\\\"src/application/TaskDTO.ts: `export interface TaskDTO { id: string; projectId: string; ... dueDate: string | null; assigneeId: string | null; }` is a plain data shape with no behaviour.\\\",\\\"Graph: only application use cases import TaskDTO (AssignTaskUseCase, CreateTaskUseCase, ListTasksUseCase, MarkTaskDoneUseCase), which fits a use-case input/output contract.\\\"],\\\"violations\\\":[]}\",\"structured_output\":{\"confidence\":0.95,\"evidence\":[\"src/application/TaskDTO.ts: `export interface TaskDTO { id: string; projectId: string; ... dueDate: string | null; assigneeId: string | null; }` is a plain data shape with no behaviour.\",\"Graph: only application use cases import TaskDTO (AssignTaskUseCase, CreateTaskUseCase, ListTasksUseCase, MarkTaskDoneUseCase), which fits a use-case input/output contract.\"],\"pass\":true,\"reasoning\":\"src/application/TaskDTO.ts declares a single data transfer interface, TaskDTO. It has only primitive and serializable fields: ids, title, description, status as a string, and dueDate as a nullable string. Its only consumers are application use cases (AssignTask, CreateTask, ListTasks, MarkTaskDone). Defining the data shapes that use cases return or accept is an application-layer job. The file has no persistence, transport, framework or business-rule logic, so it carries nothing that belongs to another layer.\",\"violations\":[]}}",
+  "runIndex": 1,
+  "schemaVersion": 2,
+  "unitId": "src/application/TaskDTO.ts",
+  "usage": {
+    "inputTokens": 2412,
+    "outputTokens": 465
+  },
+  "usedOptions": {
+    "effort": "high",
+    "model": "claude-opus-5-5"
+  }
+}

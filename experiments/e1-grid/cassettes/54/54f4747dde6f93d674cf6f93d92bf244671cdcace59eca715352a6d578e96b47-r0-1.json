@@ -1,0 +1,48 @@
+{
+  "attempts": 1,
+  "cliVersion": "2.1.294",
+  "configListingSha256": "47aa04258852fab9a706f3f0c14cee22306d69fbb6fdfbde8c11854bd54997bc",
+  "durationMs": 5735,
+  "effort": "high",
+  "functionId": "FF-N02",
+  "ignoredOptions": [
+    "maxTokens"
+  ],
+  "isolationProbeSha256": "97a2e2d0af1100c13c55e028c1a0c71f069093c3d08705af122aaeb302f1a641",
+  "key": "54f4747dde6f93d674cf6f93d92bf244671cdcace59eca715352a6d578e96b47-r0-1",
+  "model": "claude-opus-5-5",
+  "outcome": {
+    "kind": "valid"
+  },
+  "parsedVerdict": {
+    "confidence": 0.93,
+    "evidence": [
+      "src/application/use-cases/ListOrdersByStateUseCase.ts: constructor(private readonly orders: OrderRepository) injects the domain repository port and contains no persistence implementation",
+      "execute(state) calls this.orders.findByStatus(parseOrderStatus(state)).map(toOrderDto), which orchestrates domain calls and maps the results to application DTOs",
+      "Status parsing and validation is left to the domain function parseOrderStatus instead of being done inline",
+      "There is no HTTP, request/response or framework code in the file"
+    ],
+    "pass": true,
+    "reasoning": "This file is a thin application-layer use case. It receives a domain repository port through its constructor and hands status parsing to the domain (parseOrderStatus). It then maps the results into application DTOs (toOrderDto). It has no persistence, transport, HTTP or framework logic, and it doesn't put business rules inline. Orchestrating domain calls and mapping results to DTOs is the job of the application layer.",
+    "violations": []
+  },
+  "projectId": "claude-opus-5-5/order-fulfilment/full-aac/run-0",
+  "prompt": "## Rule\nThe unit's responsibilities match the role of its declared layer.\n\n## Rubric\nPass: Every responsibility in the file belongs to the role and kind of its declared layer, and agrees with any ADR prose given.\nFail: The file carries a responsibility that belongs to a different layer kind, for example persistence, transport or framework logic in a domain file, or business rules in an infrastructure or presentation file.\nEvidence required: Name the file and cite the function, method or statement that carries the misplaced responsibility, and the layer kind it belongs to.\nOut of scope: import direction and layer-dependency rules, which are checked symbolically.\n\n## Layer model\n- domain (kind: domain): src/domain/**\n- application (kind: application): src/application/**\n- infrastructure (kind: infrastructure): src/infrastructure/**\n\n## Unit\nKind: file\nId: src/application/use-cases/ListOrdersByStateUseCase.ts\nLayer: application\nUnit files:\n- src/application/use-cases/ListOrdersByStateUseCase.ts\n\n## Source\n=====SOURCE-BEGIN src/application/use-cases/ListOrdersByStateUseCase.ts=====\nimport { OrderRepository } from '../../domain/order/OrderRepository';\nimport { parseOrderStatus } from '../../domain/order/OrderStatus';\nimport { OrderDto, toOrderDto } from '../dto/OrderDto';\n\nexport class ListOrdersByStateUseCase {\n  constructor(private readonly orders: OrderRepository) {}\n\n  execute(state: string): OrderDto[] {\n    return this.orders.findByStatus(parseOrderStatus(state)).map(toOrderDto);\n  }\n}\n\n=====SOURCE-END=====\n\n## Graph excerpt\n{\"edges\":[{\"from\":\"ListOrdersByStateUseCase@src/application/use-cases/ListOrdersByStateUseCase.ts\",\"to\":\"OrderRepository@src/domain/order/OrderRepository.ts\",\"type\":\"CONSTRUCTOR_INJECTS\"},{\"from\":\"src/application/use-cases/ListOrdersByStateUseCase.ts\",\"to\":\"src/application/dto/OrderDto.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/application/use-cases/ListOrdersByStateUseCase.ts\",\"to\":\"src/domain/order/OrderRepository.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/application/use-cases/ListOrdersByStateUseCase.ts\",\"to\":\"src/domain/order/OrderStatus.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/infrastructure/config/orderModule.ts\",\"to\":\"src/application/use-cases/ListOrdersByStateUseCase.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/infrastructure/http/OrderController.ts\",\"to\":\"src/application/use-cases/ListOrdersByStateUseCase.ts\",\"type\":\"IMPORTS\"}],\"nodes\":[{\"kind\":\"Class\",\"layer\":\"application\",\"name\":\"ListOrdersByStateUseCase\",\"path\":\"src/application/use-cases/ListOrdersByStateUseCase.ts\"},{\"kind\":\"File\",\"layer\":\"application\",\"path\":\"src/application/dto/OrderDto.ts\"},{\"kind\":\"File\",\"layer\":\"application\",\"path\":\"src/application/use-cases/ListOrdersByStateUseCase.ts\"},{\"kind\":\"File\",\"layer\":\"domain\",\"path\":\"src/domain/order/OrderRepository.ts\"},{\"kind\":\"File\",\"layer\":\"domain\",\"path\":\"src/domain/order/OrderStatus.ts\"},{\"kind\":\"File\",\"layer\":\"infrastructure\",\"path\":\"src/infrastructure/config/orderModule.ts\"},{\"kind\":\"File\",\"layer\":\"infrastructure\",\"path\":\"src/infrastructure/http/OrderController.ts\"},{\"kind\":\"Interface\",\"layer\":\"domain\",\"name\":\"OrderRepository\",\"path\":\"src/domain/order/OrderRepository.ts\"}]}\n\n## Instructions\nJudge the unit against the rule and rubric. Return the JSON object the schema requires. Set pass to false if any file of the unit fails the rubric.\n",
+  "provider": "claude-cli",
+  "recordedAt": "2026-10-10T22:14:28.953Z",
+  "repetition": 0,
+  "requestHash": "54f4747dde6f93d674cf6f93d92bf244671cdcace59eca715352a6d578e96b47",
+  "resolvedModel": "claude-opus-5-5",
+  "response": "{\"is_error\":false,\"modelUsage\":{\"claude-opus-5-5\":{\"inputTokens\":2,\"outputTokens\":454}},\"result\":\"{\\\"pass\\\":true,\\\"confidence\\\":0.93,\\\"reasoning\\\":\\\"This file is a thin application-layer use case. It receives a domain repository port through its constructor and hands status parsing to the domain (parseOrderStatus). It then maps the results into application DTOs (toOrderDto). It has no persistence, transport, HTTP or framework logic, and it doesn't put business rules inline. Orchestrating domain calls and mapping results to DTOs is the job of the application layer.\\\",\\\"evidence\\\":[\\\"src/application/use-cases/ListOrdersByStateUseCase.ts: constructor(private readonly orders: OrderRepository) injects the domain repository port and contains no persistence implementation\\\",\\\"execute(state) calls this.orders.findByStatus(parseOrderStatus(state)).map(toOrderDto), which orchestrates domain calls and maps the results to application DTOs\\\",\\\"Status parsing and validation is left to the domain function parseOrderStatus instead of being done inline\\\",\\\"There is no HTTP, request/response or framework code in the file\\\"],\\\"violations\\\":[]}\",\"structured_output\":{\"confidence\":0.93,\"evidence\":[\"src/application/use-cases/ListOrdersByStateUseCase.ts: constructor(private readonly orders: OrderRepository) injects the domain repository port and contains no persistence implementation\",\"execute(state) calls this.orders.findByStatus(parseOrderStatus(state)).map(toOrderDto), which orchestrates domain calls and maps the results to application DTOs\",\"Status parsing and validation is left to the domain function parseOrderStatus instead of being done inline\",\"There is no HTTP, request/response or framework code in the file\"],\"pass\":true,\"reasoning\":\"This file is a thin application-layer use case. It receives a domain repository port through its constructor and hands status parsing to the domain (parseOrderStatus). It then maps the results into application DTOs (toOrderDto). It has no persistence, transport, HTTP or framework logic, and it doesn't put business rules inline. Orchestrating domain calls and mapping results to DTOs is the job of the application layer.\",\"violations\":[]}}",
+  "runIndex": 1,
+  "schemaVersion": 2,
+  "unitId": "src/application/use-cases/ListOrdersByStateUseCase.ts",
+  "usage": {
+    "inputTokens": 2873,
+    "outputTokens": 454
+  },
+  "usedOptions": {
+    "effort": "high",
+    "model": "claude-opus-5-5"
+  }
+}

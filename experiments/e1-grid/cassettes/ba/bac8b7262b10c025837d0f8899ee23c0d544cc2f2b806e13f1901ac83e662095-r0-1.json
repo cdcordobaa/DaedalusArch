@@ -1,0 +1,48 @@
+{
+  "attempts": 1,
+  "cliVersion": "2.1.294",
+  "configListingSha256": "47aa04258852fab9a706f3f0c14cee22306d69fbb6fdfbde8c11854bd54997bc",
+  "durationMs": 6469,
+  "effort": "high",
+  "functionId": "FF-N02",
+  "ignoredOptions": [
+    "maxTokens"
+  ],
+  "isolationProbeSha256": "97a2e2d0af1100c13c55e028c1a0c71f069093c3d08705af122aaeb302f1a641",
+  "key": "bac8b7262b10c025837d0f8899ee23c0d544cc2f2b806e13f1901ac83e662095-r0-1",
+  "model": "claude-opus-5-5",
+  "outcome": {
+    "kind": "valid"
+  },
+  "parsedVerdict": {
+    "confidence": 0.93,
+    "evidence": [
+      "createUser(id, name) checks the name (it must be a non-empty string) and throws ValidationError. This is a business rule, so it belongs in domain.",
+      "interface User { readonly id; readonly name } is a plain immutable domain entity type.",
+      "interface UserRepository { save; findById } is an abstract port that the domain owns. The graph shows InMemoryUserRepository in src/infrastructure/inMemoryRepositories.ts implementing it, so the persistence code lives outside the domain.",
+      "The file contains no I/O, database, HTTP or framework code."
+    ],
+    "pass": true,
+    "reasoning": "src/domain/user.ts holds only domain responsibilities. It has an entity type (User), a factory that enforces the domain invariant that a name is required and gets trimmed (createUser), and a repository port interface (UserRepository) with no implementation. The interface describes no persistence mechanism. Its implementation, InMemoryUserRepository, sits in infrastructure. No code here does transport, framework, persistence or orchestration work.",
+    "violations": []
+  },
+  "projectId": "claude-sonnet-5-5/task-management/none/run-0",
+  "prompt": "## Rule\nThe unit's responsibilities match the role of its declared layer.\n\n## Rubric\nPass: Every responsibility in the file belongs to the role and kind of its declared layer, and agrees with any ADR prose given.\nFail: The file carries a responsibility that belongs to a different layer kind, for example persistence, transport or framework logic in a domain file, or business rules in an infrastructure or presentation file.\nEvidence required: Name the file and cite the function, method or statement that carries the misplaced responsibility, and the layer kind it belongs to.\nOut of scope: import direction and layer-dependency rules, which are checked symbolically.\n\n## Layer model\n- domain (kind: domain): src/domain/**\n- application (kind: application): src/application/**\n- infrastructure (kind: infrastructure): src/infrastructure/**\n\n## Unit\nKind: file\nId: src/domain/user.ts\nLayer: domain\nUnit files:\n- src/domain/user.ts\n\n## Source\n=====SOURCE-BEGIN src/domain/user.ts=====\nimport { ValidationError } from \"./errors\";\n\nexport interface User {\n  readonly id: string;\n  readonly name: string;\n}\n\nexport function createUser(id: string, name: string): User {\n  if (typeof name !== \"string\" || name.trim() === \"\") {\n    throw new ValidationError(\"User name is required\");\n  }\n  return { id, name: name.trim() };\n}\n\nexport interface UserRepository {\n  save(user: User): void;\n  findById(id: string): User | undefined;\n}\n\n=====SOURCE-END=====\n\n## Graph excerpt\n{\"edges\":[{\"from\":\"InMemoryUserRepository@src/infrastructure/inMemoryRepositories.ts\",\"to\":\"UserRepository@src/domain/user.ts\",\"type\":\"IMPLEMENTS\"},{\"from\":\"TaskManagementService@src/application/services.ts\",\"to\":\"UserRepository@src/domain/user.ts\",\"type\":\"CONSTRUCTOR_INJECTS\"},{\"from\":\"UserService@src/application/services.ts\",\"to\":\"UserRepository@src/domain/user.ts\",\"type\":\"CONSTRUCTOR_INJECTS\"},{\"from\":\"src/application/services.ts\",\"to\":\"src/domain/user.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/domain/user.ts\",\"to\":\"src/domain/errors.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/infrastructure/inMemoryRepositories.ts\",\"to\":\"src/domain/user.ts\",\"type\":\"IMPORTS\"}],\"nodes\":[{\"kind\":\"Class\",\"layer\":\"application\",\"name\":\"TaskManagementService\",\"path\":\"src/application/services.ts\"},{\"kind\":\"Class\",\"layer\":\"application\",\"name\":\"UserService\",\"path\":\"src/application/services.ts\"},{\"kind\":\"Class\",\"layer\":\"infrastructure\",\"name\":\"InMemoryUserRepository\",\"path\":\"src/infrastructure/inMemoryRepositories.ts\"},{\"kind\":\"File\",\"layer\":\"application\",\"path\":\"src/application/services.ts\"},{\"kind\":\"File\",\"layer\":\"domain\",\"path\":\"src/domain/errors.ts\"},{\"kind\":\"File\",\"layer\":\"domain\",\"path\":\"src/domain/user.ts\"},{\"kind\":\"File\",\"layer\":\"infrastructure\",\"path\":\"src/infrastructure/inMemoryRepositories.ts\"},{\"kind\":\"Interface\",\"layer\":\"domain\",\"name\":\"User\",\"path\":\"src/domain/user.ts\"},{\"kind\":\"Interface\",\"layer\":\"domain\",\"name\":\"UserRepository\",\"path\":\"src/domain/user.ts\"}]}\n\n## Instructions\nJudge the unit against the rule and rubric. Return the JSON object the schema requires. Set pass to false if any file of the unit fails the rubric.\n",
+  "provider": "claude-cli",
+  "recordedAt": "2026-10-10T22:26:00.668Z",
+  "repetition": 0,
+  "requestHash": "bac8b7262b10c025837d0f8899ee23c0d544cc2f2b806e13f1901ac83e662095",
+  "resolvedModel": "claude-opus-5-5",
+  "response": "{\"is_error\":false,\"modelUsage\":{\"claude-opus-5-5\":{\"inputTokens\":2,\"outputTokens\":468}},\"result\":\"{\\\"pass\\\":true,\\\"confidence\\\":0.93,\\\"reasoning\\\":\\\"src/domain/user.ts holds only domain responsibilities. It has an entity type (User), a factory that enforces the domain invariant that a name is required and gets trimmed (createUser), and a repository port interface (UserRepository) with no implementation. The interface describes no persistence mechanism. Its implementation, InMemoryUserRepository, sits in infrastructure. No code here does transport, framework, persistence or orchestration work.\\\",\\\"evidence\\\":[\\\"createUser(id, name) checks the name (it must be a non-empty string) and throws ValidationError. This is a business rule, so it belongs in domain.\\\",\\\"interface User { readonly id; readonly name } is a plain immutable domain entity type.\\\",\\\"interface UserRepository { save; findById } is an abstract port that the domain owns. The graph shows InMemoryUserRepository in src/infrastructure/inMemoryRepositories.ts implementing it, so the persistence code lives outside the domain.\\\",\\\"The file contains no I/O, database, HTTP or framework code.\\\"],\\\"violations\\\":[]}\",\"structured_output\":{\"confidence\":0.93,\"evidence\":[\"createUser(id, name) checks the name (it must be a non-empty string) and throws ValidationError. This is a business rule, so it belongs in domain.\",\"interface User { readonly id; readonly name } is a plain immutable domain entity type.\",\"interface UserRepository { save; findById } is an abstract port that the domain owns. The graph shows InMemoryUserRepository in src/infrastructure/inMemoryRepositories.ts implementing it, so the persistence code lives outside the domain.\",\"The file contains no I/O, database, HTTP or framework code.\"],\"pass\":true,\"reasoning\":\"src/domain/user.ts holds only domain responsibilities. It has an entity type (User), a factory that enforces the domain invariant that a name is required and gets trimmed (createUser), and a repository port interface (UserRepository) with no implementation. The interface describes no persistence mechanism. Its implementation, InMemoryUserRepository, sits in infrastructure. No code here does transport, framework, persistence or orchestration work.\",\"violations\":[]}}",
+  "runIndex": 1,
+  "schemaVersion": 2,
+  "unitId": "src/domain/user.ts",
+  "usage": {
+    "inputTokens": 2713,
+    "outputTokens": 468
+  },
+  "usedOptions": {
+    "effort": "high",
+    "model": "claude-opus-5-5"
+  }
+}

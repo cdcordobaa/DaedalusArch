@@ -1,0 +1,49 @@
+{
+  "attempts": 1,
+  "cliVersion": "2.1.294",
+  "configListingSha256": "47aa04258852fab9a706f3f0c14cee22306d69fbb6fdfbde8c11854bd54997bc",
+  "durationMs": 7568,
+  "effort": "high",
+  "functionId": "FF-N02",
+  "ignoredOptions": [
+    "maxTokens"
+  ],
+  "isolationProbeSha256": "97a2e2d0af1100c13c55e028c1a0c71f069093c3d08705af122aaeb302f1a641",
+  "key": "becf737dd72ccc04c1f3fd8e1161d7ab5987da81556c8732e37294507fdc3ecc-r0-2",
+  "model": "claude-opus-5-5",
+  "outcome": {
+    "kind": "valid"
+  },
+  "parsedVerdict": {
+    "confidence": 0.85,
+    "evidence": [
+      "new InMemoryProductRepository() / new InMemoryOrderRepository(): creates the concrete adapters (infrastructure wiring)",
+      "new OrderService(orders, products, new UuidGenerator(), new SystemClock()): injects dependencies in the composition root",
+      "Number(process.env[\"PORT\"] ?? 3000): reads environment configuration (infrastructure)",
+      "app.listen(port, ...): starts the transport/server (infrastructure)",
+      "catalogue.addProduct({...}): bootstrap seed data sent through the application service, not business logic defined in this file"
+    ],
+    "pass": true,
+    "reasoning": "src/infrastructure/server.ts is a composition root and process entry point. It creates the concrete in-memory adapters, wires them into the application services, reads the PORT environment variable, builds the HTTP app and starts listening. All of these are infrastructure responsibilities. The seed calls (catalogue.addProduct) are bootstrap or fixture data passed through the application service. They don't put any business rule in this file: pricing, stock and validation logic stays in the application or domain layers. The file holds no domain rules, no use-case orchestration and no business decisions.",
+    "violations": []
+  },
+  "projectId": "claude-opus-5-5/order-fulfilment/none/run-2",
+  "prompt": "## Rule\nThe unit's responsibilities match the role of its declared layer.\n\n## Rubric\nPass: Every responsibility in the file belongs to the role and kind of its declared layer, and agrees with any ADR prose given.\nFail: The file carries a responsibility that belongs to a different layer kind, for example persistence, transport or framework logic in a domain file, or business rules in an infrastructure or presentation file.\nEvidence required: Name the file and cite the function, method or statement that carries the misplaced responsibility, and the layer kind it belongs to.\nOut of scope: import direction and layer-dependency rules, which are checked symbolically.\n\n## Layer model\n- domain (kind: domain): src/domain/**\n- application (kind: application): src/application/**\n- infrastructure (kind: infrastructure): src/infrastructure/**\n\n## Unit\nKind: file\nId: src/infrastructure/server.ts\nLayer: infrastructure\nUnit files:\n- src/infrastructure/server.ts\n\n## Source\n=====SOURCE-BEGIN src/infrastructure/server.ts=====\nimport { CatalogueService } from \"../application/catalogue-service\";\nimport { OrderService } from \"../application/order-service\";\nimport { createApp } from \"./http\";\nimport { InMemoryOrderRepository, InMemoryProductRepository, SystemClock, UuidGenerator } from \"./in-memory\";\n\nconst products = new InMemoryProductRepository();\nconst orders = new InMemoryOrderRepository();\n\nconst catalogue = new CatalogueService(products);\nconst orderService = new OrderService(orders, products, new UuidGenerator(), new SystemClock());\n\n// Seed a small catalogue so the API is usable straight away.\ncatalogue.addProduct({ id: \"widget\", name: \"Widget\", priceCents: 1299, stock: 100 });\ncatalogue.addProduct({ id: \"gadget\", name: \"Gadget\", priceCents: 2499, stock: 25 });\ncatalogue.addProduct({ id: \"gizmo\", name: \"Gizmo\", priceCents: 499, stock: 5 });\n\nconst port = Number(process.env[\"PORT\"] ?? 3000);\nconst app = createApp({ catalogue, orders: orderService });\n\napp.listen(port, () => {\n  console.log(`Order fulfilment API listening on http://localhost:${port}`);\n});\n\n=====SOURCE-END=====\n\n## Graph excerpt\n{\"edges\":[{\"from\":\"src/infrastructure/server.ts\",\"to\":\"src/application/catalogue-service.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/infrastructure/server.ts\",\"to\":\"src/application/order-service.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/infrastructure/server.ts\",\"to\":\"src/infrastructure/http.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/infrastructure/server.ts\",\"to\":\"src/infrastructure/in-memory.ts\",\"type\":\"IMPORTS\"}],\"nodes\":[{\"kind\":\"File\",\"layer\":\"application\",\"path\":\"src/application/catalogue-service.ts\"},{\"kind\":\"File\",\"layer\":\"application\",\"path\":\"src/application/order-service.ts\"},{\"kind\":\"File\",\"layer\":\"infrastructure\",\"path\":\"src/infrastructure/http.ts\"},{\"kind\":\"File\",\"layer\":\"infrastructure\",\"path\":\"src/infrastructure/in-memory.ts\"},{\"kind\":\"File\",\"layer\":\"infrastructure\",\"path\":\"src/infrastructure/server.ts\"}]}\n\n## Instructions\nJudge the unit against the rule and rubric. Return the JSON object the schema requires. Set pass to false if any file of the unit fails the rubric.\n",
+  "provider": "claude-cli",
+  "recordedAt": "2026-10-10T21:34:42.091Z",
+  "repetition": 0,
+  "requestHash": "becf737dd72ccc04c1f3fd8e1161d7ab5987da81556c8732e37294507fdc3ecc",
+  "resolvedModel": "claude-opus-5-5",
+  "response": "{\"is_error\":false,\"modelUsage\":{\"claude-opus-5-5\":{\"inputTokens\":2,\"outputTokens\":571}},\"result\":\"{\\\"pass\\\":true,\\\"confidence\\\":0.85,\\\"reasoning\\\":\\\"src/infrastructure/server.ts is a composition root and process entry point. It creates the concrete in-memory adapters, wires them into the application services, reads the PORT environment variable, builds the HTTP app and starts listening. All of these are infrastructure responsibilities. The seed calls (catalogue.addProduct) are bootstrap or fixture data passed through the application service. They don't put any business rule in this file: pricing, stock and validation logic stays in the application or domain layers. The file holds no domain rules, no use-case orchestration and no business decisions.\\\",\\\"evidence\\\":[\\\"new InMemoryProductRepository() / new InMemoryOrderRepository(): creates the concrete adapters (infrastructure wiring)\\\",\\\"new OrderService(orders, products, new UuidGenerator(), new SystemClock()): injects dependencies in the composition root\\\",\\\"Number(process.env[\\\\\\\"PORT\\\\\\\"] ?? 3000): reads environment configuration (infrastructure)\\\",\\\"app.listen(port, ...): starts the transport/server (infrastructure)\\\",\\\"catalogue.addProduct({...}): bootstrap seed data sent through the application service, not business logic defined in this file\\\"],\\\"violations\\\":[]}\",\"structured_output\":{\"confidence\":0.85,\"evidence\":[\"new InMemoryProductRepository() / new InMemoryOrderRepository(): creates the concrete adapters (infrastructure wiring)\",\"new OrderService(orders, products, new UuidGenerator(), new SystemClock()): injects dependencies in the composition root\",\"Number(process.env[\\\"PORT\\\"] ?? 3000): reads environment configuration (infrastructure)\",\"app.listen(port, ...): starts the transport/server (infrastructure)\",\"catalogue.addProduct({...}): bootstrap seed data sent through the application service, not business logic defined in this file\"],\"pass\":true,\"reasoning\":\"src/infrastructure/server.ts is a composition root and process entry point. It creates the concrete in-memory adapters, wires them into the application services, reads the PORT environment variable, builds the HTTP app and starts listening. All of these are infrastructure responsibilities. The seed calls (catalogue.addProduct) are bootstrap or fixture data passed through the application service. They don't put any business rule in this file: pricing, stock and validation logic stays in the application or domain layers. The file holds no domain rules, no use-case orchestration and no business decisions.\",\"violations\":[]}}",
+  "runIndex": 2,
+  "schemaVersion": 2,
+  "unitId": "src/infrastructure/server.ts",
+  "usage": {
+    "inputTokens": 2685,
+    "outputTokens": 571
+  },
+  "usedOptions": {
+    "effort": "high",
+    "model": "claude-opus-5-5"
+  }
+}

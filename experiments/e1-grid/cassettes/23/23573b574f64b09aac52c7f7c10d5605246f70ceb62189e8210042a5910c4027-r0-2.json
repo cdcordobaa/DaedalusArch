@@ -1,0 +1,47 @@
+{
+  "attempts": 1,
+  "cliVersion": "2.1.294",
+  "configListingSha256": "47aa04258852fab9a706f3f0c14cee22306d69fbb6fdfbde8c11854bd54997bc",
+  "durationMs": 6252,
+  "effort": "high",
+  "functionId": "FF-N02",
+  "ignoredOptions": [
+    "maxTokens"
+  ],
+  "isolationProbeSha256": "97a2e2d0af1100c13c55e028c1a0c71f069093c3d08705af122aaeb302f1a641",
+  "key": "23573b574f64b09aac52c7f7c10d5605246f70ceb62189e8210042a5910c4027-r0-2",
+  "model": "claude-opus-5-5",
+  "outcome": {
+    "kind": "valid"
+  },
+  "parsedVerdict": {
+    "confidence": 0.92,
+    "evidence": [
+      "src/application/GetStockLevelsUseCase.ts: execute() calls this.productRepository.findAll() through the injected domain interface, so the file has no persistence code of its own.",
+      "src/application/GetStockLevelsUseCase.ts: execute() maps each product to the ProductResponse DTO with product.getAvailableStock().value and similar calls. The stock calculations stay in the domain.",
+      "The file contains no HTTP, framework or database code."
+    ],
+    "pass": true,
+    "reasoning": "This file is a use case and does the job an application layer should do. It gets products through the domain's ProductRepository abstraction, which is injected through the constructor, and maps them to an application DTO. It contains no persistence code, no transport or framework logic, and no business rules of its own. The stock values come from domain methods (getAvailableStock, getReservedStock, getTotalStock), and the file only reads them into the response. So it orchestrates and maps, and nothing in it belongs to a different layer.",
+    "violations": []
+  },
+  "projectId": "claude-haiku-4-5/order-fulfilment/minimal-prose/run-1",
+  "prompt": "## Rule\nThe unit's responsibilities match the role of its declared layer.\n\n## Rubric\nPass: Every responsibility in the file belongs to the role and kind of its declared layer, and agrees with any ADR prose given.\nFail: The file carries a responsibility that belongs to a different layer kind, for example persistence, transport or framework logic in a domain file, or business rules in an infrastructure or presentation file.\nEvidence required: Name the file and cite the function, method or statement that carries the misplaced responsibility, and the layer kind it belongs to.\nOut of scope: import direction and layer-dependency rules, which are checked symbolically.\n\n## Layer model\n- domain (kind: domain): src/domain/**\n- application (kind: application): src/application/**\n- infrastructure (kind: infrastructure): src/infrastructure/**\n\n## Unit\nKind: file\nId: src/application/GetStockLevelsUseCase.ts\nLayer: application\nUnit files:\n- src/application/GetStockLevelsUseCase.ts\n\n## Source\n=====SOURCE-BEGIN src/application/GetStockLevelsUseCase.ts=====\nimport { ProductRepository } from '../domain/ProductRepository';\nimport { ProductResponse } from './dto/ProductResponse';\n\nexport class GetStockLevelsUseCase {\n  constructor(private productRepository: ProductRepository) {}\n\n  execute(): ProductResponse[] {\n    const products = this.productRepository.findAll();\n    return products.map((product) => ({\n      id: product.id,\n      name: product.name,\n      availableStock: product.getAvailableStock().value,\n      reservedStock: product.getReservedStock().value,\n      totalStock: product.getTotalStock().value,\n    }));\n  }\n}\n\n=====SOURCE-END=====\n\n## Graph excerpt\n{\"edges\":[{\"from\":\"GetStockLevelsUseCase@src/application/GetStockLevelsUseCase.ts\",\"to\":\"ProductRepository@src/domain/ProductRepository.ts\",\"type\":\"CONSTRUCTOR_INJECTS\"},{\"from\":\"ProductController@src/infrastructure/ProductController.ts\",\"to\":\"GetStockLevelsUseCase@src/application/GetStockLevelsUseCase.ts\",\"type\":\"CONSTRUCTOR_INJECTS\"},{\"from\":\"src/application/GetStockLevelsUseCase.ts\",\"to\":\"src/application/dto/ProductResponse.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/application/GetStockLevelsUseCase.ts\",\"to\":\"src/domain/ProductRepository.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/infrastructure/ProductController.ts\",\"to\":\"src/application/GetStockLevelsUseCase.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/infrastructure/app.ts\",\"to\":\"src/application/GetStockLevelsUseCase.ts\",\"type\":\"IMPORTS\"}],\"nodes\":[{\"kind\":\"Class\",\"layer\":\"application\",\"name\":\"GetStockLevelsUseCase\",\"path\":\"src/application/GetStockLevelsUseCase.ts\"},{\"kind\":\"Class\",\"layer\":\"infrastructure\",\"name\":\"ProductController\",\"path\":\"src/infrastructure/ProductController.ts\"},{\"kind\":\"File\",\"layer\":\"application\",\"path\":\"src/application/GetStockLevelsUseCase.ts\"},{\"kind\":\"File\",\"layer\":\"application\",\"path\":\"src/application/dto/ProductResponse.ts\"},{\"kind\":\"File\",\"layer\":\"domain\",\"path\":\"src/domain/ProductRepository.ts\"},{\"kind\":\"File\",\"layer\":\"infrastructure\",\"path\":\"src/infrastructure/ProductController.ts\"},{\"kind\":\"File\",\"layer\":\"infrastructure\",\"path\":\"src/infrastructure/app.ts\"},{\"kind\":\"Interface\",\"layer\":\"domain\",\"name\":\"ProductRepository\",\"path\":\"src/domain/ProductRepository.ts\"}]}\n\n## Instructions\nJudge the unit against the rule and rubric. Return the JSON object the schema requires. Set pass to false if any file of the unit fails the rubric.\n",
+  "provider": "claude-cli",
+  "recordedAt": "2026-10-11T02:46:00.884Z",
+  "repetition": 0,
+  "requestHash": "23573b574f64b09aac52c7f7c10d5605246f70ceb62189e8210042a5910c4027",
+  "resolvedModel": "claude-opus-5-5",
+  "response": "{\"is_error\":false,\"modelUsage\":{\"claude-opus-5-5\":{\"inputTokens\":2,\"outputTokens\":449}},\"result\":\"{\\\"pass\\\":true,\\\"confidence\\\":0.92,\\\"reasoning\\\":\\\"This file is a use case and does the job an application layer should do. It gets products through the domain's ProductRepository abstraction, which is injected through the constructor, and maps them to an application DTO. It contains no persistence code, no transport or framework logic, and no business rules of its own. The stock values come from domain methods (getAvailableStock, getReservedStock, getTotalStock), and the file only reads them into the response. So it orchestrates and maps, and nothing in it belongs to a different layer.\\\",\\\"evidence\\\":[\\\"src/application/GetStockLevelsUseCase.ts: execute() calls this.productRepository.findAll() through the injected domain interface, so the file has no persistence code of its own.\\\",\\\"src/application/GetStockLevelsUseCase.ts: execute() maps each product to the ProductResponse DTO with product.getAvailableStock().value and similar calls. The stock calculations stay in the domain.\\\",\\\"The file contains no HTTP, framework or database code.\\\"],\\\"violations\\\":[]}\",\"structured_output\":{\"confidence\":0.92,\"evidence\":[\"src/application/GetStockLevelsUseCase.ts: execute() calls this.productRepository.findAll() through the injected domain interface, so the file has no persistence code of its own.\",\"src/application/GetStockLevelsUseCase.ts: execute() maps each product to the ProductResponse DTO with product.getAvailableStock().value and similar calls. The stock calculations stay in the domain.\",\"The file contains no HTTP, framework or database code.\"],\"pass\":true,\"reasoning\":\"This file is a use case and does the job an application layer should do. It gets products through the domain's ProductRepository abstraction, which is injected through the constructor, and maps them to an application DTO. It contains no persistence code, no transport or framework logic, and no business rules of its own. The stock values come from domain methods (getAvailableStock, getReservedStock, getTotalStock), and the file only reads them into the response. So it orchestrates and maps, and nothing in it belongs to a different layer.\",\"violations\":[]}}",
+  "runIndex": 2,
+  "schemaVersion": 2,
+  "unitId": "src/application/GetStockLevelsUseCase.ts",
+  "usage": {
+    "inputTokens": 2852,
+    "outputTokens": 449
+  },
+  "usedOptions": {
+    "effort": "high",
+    "model": "claude-opus-5-5"
+  }
+}

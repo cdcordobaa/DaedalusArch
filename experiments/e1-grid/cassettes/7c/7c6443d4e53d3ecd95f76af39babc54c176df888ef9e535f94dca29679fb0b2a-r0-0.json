@@ -1,0 +1,47 @@
+{
+  "attempts": 1,
+  "cliVersion": "2.1.294",
+  "configListingSha256": "47aa04258852fab9a706f3f0c14cee22306d69fbb6fdfbde8c11854bd54997bc",
+  "durationMs": 4814,
+  "effort": "high",
+  "functionId": "FF-N02",
+  "ignoredOptions": [
+    "maxTokens"
+  ],
+  "isolationProbeSha256": "97a2e2d0af1100c13c55e028c1a0c71f069093c3d08705af122aaeb302f1a641",
+  "key": "7c6443d4e53d3ecd95f76af39babc54c176df888ef9e535f94dca29679fb0b2a-r0-0",
+  "model": "claude-opus-5-5",
+  "outcome": {
+    "kind": "valid"
+  },
+  "parsedVerdict": {
+    "confidence": 0.97,
+    "evidence": [
+      "src/infrastructure/system/SystemClock.ts: class SystemClock implements Clock (application port) — adapter pattern appropriate for infrastructure",
+      "SystemClock.now() returns new Date() — wraps a system/environment resource, an infrastructure concern",
+      "No business rules, validation or use-case orchestration present in the file"
+    ],
+    "pass": true,
+    "reasoning": "SystemClock is an infrastructure adapter. It implements the application port Clock by wrapping the system time source (new Date()). Reading the system clock is an infrastructure concern. The file has no business rules, no orchestration and no presentation logic, so its only responsibility matches the infrastructure layer.",
+    "violations": []
+  },
+  "projectId": "claude-opus-5-5/order-fulfilment/minimal-prose/run-1",
+  "prompt": "## Rule\nThe unit's responsibilities match the role of its declared layer.\n\n## Rubric\nPass: Every responsibility in the file belongs to the role and kind of its declared layer, and agrees with any ADR prose given.\nFail: The file carries a responsibility that belongs to a different layer kind, for example persistence, transport or framework logic in a domain file, or business rules in an infrastructure or presentation file.\nEvidence required: Name the file and cite the function, method or statement that carries the misplaced responsibility, and the layer kind it belongs to.\nOut of scope: import direction and layer-dependency rules, which are checked symbolically.\n\n## Layer model\n- domain (kind: domain): src/domain/**\n- application (kind: application): src/application/**\n- infrastructure (kind: infrastructure): src/infrastructure/**\n\n## Unit\nKind: file\nId: src/infrastructure/system/SystemClock.ts\nLayer: infrastructure\nUnit files:\n- src/infrastructure/system/SystemClock.ts\n\n## Source\n=====SOURCE-BEGIN src/infrastructure/system/SystemClock.ts=====\nimport { Clock } from '../../application/ports/Clock';\n\nexport class SystemClock implements Clock {\n  now(): Date {\n    return new Date();\n  }\n}\n\n=====SOURCE-END=====\n\n## Graph excerpt\n{\"edges\":[{\"from\":\"SystemClock@src/infrastructure/system/SystemClock.ts\",\"to\":\"Clock@src/application/ports/Clock.ts\",\"type\":\"IMPLEMENTS\"},{\"from\":\"src/infrastructure/config/container.ts\",\"to\":\"src/infrastructure/system/SystemClock.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/infrastructure/system/SystemClock.ts\",\"to\":\"src/application/ports/Clock.ts\",\"type\":\"IMPORTS\"}],\"nodes\":[{\"kind\":\"Class\",\"layer\":\"infrastructure\",\"name\":\"SystemClock\",\"path\":\"src/infrastructure/system/SystemClock.ts\"},{\"kind\":\"File\",\"layer\":\"application\",\"path\":\"src/application/ports/Clock.ts\"},{\"kind\":\"File\",\"layer\":\"infrastructure\",\"path\":\"src/infrastructure/config/container.ts\"},{\"kind\":\"File\",\"layer\":\"infrastructure\",\"path\":\"src/infrastructure/system/SystemClock.ts\"},{\"kind\":\"Interface\",\"layer\":\"application\",\"name\":\"Clock\",\"path\":\"src/application/ports/Clock.ts\"}]}\n\n## Instructions\nJudge the unit against the rule and rubric. Return the JSON object the schema requires. Set pass to false if any file of the unit fails the rubric.\n",
+  "provider": "claude-cli",
+  "recordedAt": "2026-10-10T21:55:21.469Z",
+  "repetition": 0,
+  "requestHash": "7c6443d4e53d3ecd95f76af39babc54c176df888ef9e535f94dca29679fb0b2a",
+  "resolvedModel": "claude-opus-5-5",
+  "response": "{\"is_error\":false,\"modelUsage\":{\"claude-opus-5-5\":{\"inputTokens\":2,\"outputTokens\":352}},\"result\":\"{\\\"pass\\\":true,\\\"confidence\\\":0.97,\\\"reasoning\\\":\\\"SystemClock is an infrastructure adapter. It implements the application port Clock by wrapping the system time source (new Date()). Reading the system clock is an infrastructure concern. The file has no business rules, no orchestration and no presentation logic, so its only responsibility matches the infrastructure layer.\\\",\\\"evidence\\\":[\\\"src/infrastructure/system/SystemClock.ts: class SystemClock implements Clock (application port) — adapter pattern appropriate for infrastructure\\\",\\\"SystemClock.now() returns new Date() — wraps a system/environment resource, an infrastructure concern\\\",\\\"No business rules, validation or use-case orchestration present in the file\\\"],\\\"violations\\\":[]}\",\"structured_output\":{\"confidence\":0.97,\"evidence\":[\"src/infrastructure/system/SystemClock.ts: class SystemClock implements Clock (application port) — adapter pattern appropriate for infrastructure\",\"SystemClock.now() returns new Date() — wraps a system/environment resource, an infrastructure concern\",\"No business rules, validation or use-case orchestration present in the file\"],\"pass\":true,\"reasoning\":\"SystemClock is an infrastructure adapter. It implements the application port Clock by wrapping the system time source (new Date()). Reading the system clock is an infrastructure concern. The file has no business rules, no orchestration and no presentation logic, so its only responsibility matches the infrastructure layer.\",\"violations\":[]}}",
+  "runIndex": 0,
+  "schemaVersion": 2,
+  "unitId": "src/infrastructure/system/SystemClock.ts",
+  "usage": {
+    "inputTokens": 2361,
+    "outputTokens": 352
+  },
+  "usedOptions": {
+    "effort": "high",
+    "model": "claude-opus-5-5"
+  }
+}

@@ -1,0 +1,49 @@
+{
+  "attempts": 1,
+  "cliVersion": "2.1.294",
+  "configListingSha256": "47aa04258852fab9a706f3f0c14cee22306d69fbb6fdfbde8c11854bd54997bc",
+  "durationMs": 6488,
+  "effort": "high",
+  "functionId": "FF-N02",
+  "ignoredOptions": [
+    "maxTokens"
+  ],
+  "isolationProbeSha256": "97a2e2d0af1100c13c55e028c1a0c71f069093c3d08705af122aaeb302f1a641",
+  "key": "01757248ab8012dab525d06c6f04bf98000a252e98d4c0cbd9eafffaefed3c56-r0-0",
+  "model": "claude-opus-5-5",
+  "outcome": {
+    "kind": "valid"
+  },
+  "parsedVerdict": {
+    "confidence": 0.95,
+    "evidence": [
+      "class InMemoryUserRepository implements UserRepository: an adapter that fills a domain-defined port, which is an infrastructure job",
+      "private users = new Map<string, User>(): the storage it keeps is persistence state",
+      "save(user) { this.users.set(user.id, user); }: just stores the user, with no business rules",
+      "getById(id) { return this.users.get(id) ?? null; }: just looks the user up",
+      "getAll(): Array.from(this.users.values()): returns every stored user, with no filtering or rules"
+    ],
+    "pass": true,
+    "reasoning": "src/infrastructure/InMemoryUserRepository.ts is an infrastructure file. It is a persistence adapter that implements the domain port UserRepository with an in-memory Map. Its three methods only store and fetch data. There is no validation, no business logic, no use-case orchestration and no presentation logic. Persistence is an infrastructure job, so every responsibility here fits the declared layer.",
+    "violations": []
+  },
+  "projectId": "claude-haiku-4-5/task-management/full-aac/run-2",
+  "prompt": "## Rule\nThe unit's responsibilities match the role of its declared layer.\n\n## Rubric\nPass: Every responsibility in the file belongs to the role and kind of its declared layer, and agrees with any ADR prose given.\nFail: The file carries a responsibility that belongs to a different layer kind, for example persistence, transport or framework logic in a domain file, or business rules in an infrastructure or presentation file.\nEvidence required: Name the file and cite the function, method or statement that carries the misplaced responsibility, and the layer kind it belongs to.\nOut of scope: import direction and layer-dependency rules, which are checked symbolically.\n\n## Layer model\n- domain (kind: domain): src/domain/**\n- application (kind: application): src/application/**\n- infrastructure (kind: infrastructure): src/infrastructure/**\n\n## Unit\nKind: file\nId: src/infrastructure/InMemoryUserRepository.ts\nLayer: infrastructure\nUnit files:\n- src/infrastructure/InMemoryUserRepository.ts\n\n## Source\n=====SOURCE-BEGIN src/infrastructure/InMemoryUserRepository.ts=====\nimport { User } from '../domain/User';\nimport { UserRepository } from '../domain/UserRepository';\n\nexport class InMemoryUserRepository implements UserRepository {\n  private users = new Map<string, User>();\n\n  save(user: User): void {\n    this.users.set(user.id, user);\n  }\n\n  getById(id: string): User | null {\n    return this.users.get(id) ?? null;\n  }\n\n  getAll(): User[] {\n    return Array.from(this.users.values());\n  }\n}\n\n=====SOURCE-END=====\n\n## Graph excerpt\n{\"edges\":[{\"from\":\"InMemoryUserRepository@src/infrastructure/InMemoryUserRepository.ts\",\"to\":\"UserRepository@src/domain/UserRepository.ts\",\"type\":\"IMPLEMENTS\"},{\"from\":\"src/infrastructure/InMemoryUserRepository.ts\",\"to\":\"src/domain/User.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/infrastructure/InMemoryUserRepository.ts\",\"to\":\"src/domain/UserRepository.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/infrastructure/server.ts\",\"to\":\"src/infrastructure/InMemoryUserRepository.ts\",\"type\":\"IMPORTS\"}],\"nodes\":[{\"kind\":\"Class\",\"layer\":\"infrastructure\",\"name\":\"InMemoryUserRepository\",\"path\":\"src/infrastructure/InMemoryUserRepository.ts\"},{\"kind\":\"File\",\"layer\":\"domain\",\"path\":\"src/domain/User.ts\"},{\"kind\":\"File\",\"layer\":\"domain\",\"path\":\"src/domain/UserRepository.ts\"},{\"kind\":\"File\",\"layer\":\"infrastructure\",\"path\":\"src/infrastructure/InMemoryUserRepository.ts\"},{\"kind\":\"File\",\"layer\":\"infrastructure\",\"path\":\"src/infrastructure/server.ts\"},{\"kind\":\"Interface\",\"layer\":\"domain\",\"name\":\"UserRepository\",\"path\":\"src/domain/UserRepository.ts\"}]}\n\n## Instructions\nJudge the unit against the rule and rubric. Return the JSON object the schema requires. Set pass to false if any file of the unit fails the rubric.\n",
+  "provider": "claude-cli",
+  "recordedAt": "2026-10-11T02:55:03.102Z",
+  "repetition": 0,
+  "requestHash": "01757248ab8012dab525d06c6f04bf98000a252e98d4c0cbd9eafffaefed3c56",
+  "resolvedModel": "claude-opus-5-5",
+  "response": "{\"is_error\":false,\"modelUsage\":{\"claude-opus-5-5\":{\"inputTokens\":2,\"outputTokens\":442}},\"result\":\"{\\\"pass\\\":true,\\\"confidence\\\":0.95,\\\"reasoning\\\":\\\"src/infrastructure/InMemoryUserRepository.ts is an infrastructure file. It is a persistence adapter that implements the domain port UserRepository with an in-memory Map. Its three methods only store and fetch data. There is no validation, no business logic, no use-case orchestration and no presentation logic. Persistence is an infrastructure job, so every responsibility here fits the declared layer.\\\",\\\"evidence\\\":[\\\"class InMemoryUserRepository implements UserRepository: an adapter that fills a domain-defined port, which is an infrastructure job\\\",\\\"private users = new Map<string, User>(): the storage it keeps is persistence state\\\",\\\"save(user) { this.users.set(user.id, user); }: just stores the user, with no business rules\\\",\\\"getById(id) { return this.users.get(id) ?? null; }: just looks the user up\\\",\\\"getAll(): Array.from(this.users.values()): returns every stored user, with no filtering or rules\\\"],\\\"violations\\\":[]}\",\"structured_output\":{\"confidence\":0.95,\"evidence\":[\"class InMemoryUserRepository implements UserRepository: an adapter that fills a domain-defined port, which is an infrastructure job\",\"private users = new Map<string, User>(): the storage it keeps is persistence state\",\"save(user) { this.users.set(user.id, user); }: just stores the user, with no business rules\",\"getById(id) { return this.users.get(id) ?? null; }: just looks the user up\",\"getAll(): Array.from(this.users.values()): returns every stored user, with no filtering or rules\"],\"pass\":true,\"reasoning\":\"src/infrastructure/InMemoryUserRepository.ts is an infrastructure file. It is a persistence adapter that implements the domain port UserRepository with an in-memory Map. Its three methods only store and fetch data. There is no validation, no business logic, no use-case orchestration and no presentation logic. Persistence is an infrastructure job, so every responsibility here fits the declared layer.\",\"violations\":[]}}",
+  "runIndex": 0,
+  "schemaVersion": 2,
+  "unitId": "src/infrastructure/InMemoryUserRepository.ts",
+  "usage": {
+    "inputTokens": 2579,
+    "outputTokens": 442
+  },
+  "usedOptions": {
+    "effort": "high",
+    "model": "claude-opus-5-5"
+  }
+}

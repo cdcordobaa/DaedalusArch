@@ -1,0 +1,47 @@
+{
+  "attempts": 1,
+  "cliVersion": "2.1.294",
+  "configListingSha256": "47aa04258852fab9a706f3f0c14cee22306d69fbb6fdfbde8c11854bd54997bc",
+  "durationMs": 6226,
+  "effort": "high",
+  "functionId": "FF-N02",
+  "ignoredOptions": [
+    "maxTokens"
+  ],
+  "isolationProbeSha256": "97a2e2d0af1100c13c55e028c1a0c71f069093c3d08705af122aaeb302f1a641",
+  "key": "d6d55b62be10fbf2f73e741577427a8d00dcd9e53947935e81ddda4b175b28ea-r0-1",
+  "model": "claude-opus-5-5",
+  "outcome": {
+    "kind": "valid"
+  },
+  "parsedVerdict": {
+    "confidence": 0.95,
+    "evidence": [
+      "src/domain/id-generator.ts: `export interface IdGenerator { next(): string; }`, a pure abstraction with no implementation logic",
+      "Graph: UuidIdGenerator@src/infrastructure/uuid-id-generator.ts IMPLEMENTS IdGenerator, so the concrete ID generation lives in infrastructure",
+      "Graph: AddTaskUseCase, CreateProjectUseCase and CreateUserUseCase CONSTRUCTOR_INJECTS IdGenerator, which is consistent with a port the domain owns"
+    ],
+    "pass": true,
+    "reasoning": "src/domain/id-generator.ts declares only a port interface, IdGenerator, with a single method next(): string. Defining an abstraction that the domain owns and infrastructure implements is a normal domain-layer job. The file has no persistence, transport, framework or UUID-library logic. The concrete implementation lives in infrastructure (UuidIdGenerator), and application use cases inject the interface through their constructors. The file's only job fits the domain layer.",
+    "violations": []
+  },
+  "projectId": "claude-sonnet-5-5/task-management/minimal-prose/run-1",
+  "prompt": "## Rule\nThe unit's responsibilities match the role of its declared layer.\n\n## Rubric\nPass: Every responsibility in the file belongs to the role and kind of its declared layer, and agrees with any ADR prose given.\nFail: The file carries a responsibility that belongs to a different layer kind, for example persistence, transport or framework logic in a domain file, or business rules in an infrastructure or presentation file.\nEvidence required: Name the file and cite the function, method or statement that carries the misplaced responsibility, and the layer kind it belongs to.\nOut of scope: import direction and layer-dependency rules, which are checked symbolically.\n\n## Layer model\n- domain (kind: domain): src/domain/**\n- application (kind: application): src/application/**\n- infrastructure (kind: infrastructure): src/infrastructure/**\n\n## Unit\nKind: file\nId: src/domain/id-generator.ts\nLayer: domain\nUnit files:\n- src/domain/id-generator.ts\n\n## Source\n=====SOURCE-BEGIN src/domain/id-generator.ts=====\nexport interface IdGenerator {\n  next(): string;\n}\n\n=====SOURCE-END=====\n\n## Graph excerpt\n{\"edges\":[{\"from\":\"AddTaskUseCase@src/application/add-task-use-case.ts\",\"to\":\"IdGenerator@src/domain/id-generator.ts\",\"type\":\"CONSTRUCTOR_INJECTS\"},{\"from\":\"CreateProjectUseCase@src/application/create-project-use-case.ts\",\"to\":\"IdGenerator@src/domain/id-generator.ts\",\"type\":\"CONSTRUCTOR_INJECTS\"},{\"from\":\"CreateUserUseCase@src/application/create-user-use-case.ts\",\"to\":\"IdGenerator@src/domain/id-generator.ts\",\"type\":\"CONSTRUCTOR_INJECTS\"},{\"from\":\"UuidIdGenerator@src/infrastructure/uuid-id-generator.ts\",\"to\":\"IdGenerator@src/domain/id-generator.ts\",\"type\":\"IMPLEMENTS\"},{\"from\":\"src/application/add-task-use-case.ts\",\"to\":\"src/domain/id-generator.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/application/create-project-use-case.ts\",\"to\":\"src/domain/id-generator.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/application/create-user-use-case.ts\",\"to\":\"src/domain/id-generator.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/infrastructure/uuid-id-generator.ts\",\"to\":\"src/domain/id-generator.ts\",\"type\":\"IMPORTS\"}],\"nodes\":[{\"kind\":\"Class\",\"layer\":\"application\",\"name\":\"AddTaskUseCase\",\"path\":\"src/application/add-task-use-case.ts\"},{\"kind\":\"Class\",\"layer\":\"application\",\"name\":\"CreateProjectUseCase\",\"path\":\"src/application/create-project-use-case.ts\"},{\"kind\":\"Class\",\"layer\":\"application\",\"name\":\"CreateUserUseCase\",\"path\":\"src/application/create-user-use-case.ts\"},{\"kind\":\"Class\",\"layer\":\"infrastructure\",\"name\":\"UuidIdGenerator\",\"path\":\"src/infrastructure/uuid-id-generator.ts\"},{\"kind\":\"File\",\"layer\":\"application\",\"path\":\"src/application/add-task-use-case.ts\"},{\"kind\":\"File\",\"layer\":\"application\",\"path\":\"src/application/create-project-use-case.ts\"},{\"kind\":\"File\",\"layer\":\"application\",\"path\":\"src/application/create-user-use-case.ts\"},{\"kind\":\"File\",\"layer\":\"domain\",\"path\":\"src/domain/id-generator.ts\"},{\"kind\":\"File\",\"layer\":\"infrastructure\",\"path\":\"src/infrastructure/uuid-id-generator.ts\"},{\"kind\":\"Interface\",\"layer\":\"domain\",\"name\":\"IdGenerator\",\"path\":\"src/domain/id-generator.ts\"}]}\n\n## Instructions\nJudge the unit against the rule and rubric. Return the JSON object the schema requires. Set pass to false if any file of the unit fails the rubric.\n",
+  "provider": "claude-cli",
+  "recordedAt": "2026-10-10T22:40:10.556Z",
+  "repetition": 0,
+  "requestHash": "d6d55b62be10fbf2f73e741577427a8d00dcd9e53947935e81ddda4b175b28ea",
+  "resolvedModel": "claude-opus-5-5",
+  "response": "{\"is_error\":false,\"modelUsage\":{\"claude-opus-5-5\":{\"inputTokens\":2,\"outputTokens\":480}},\"result\":\"{\\\"pass\\\":true,\\\"confidence\\\":0.95,\\\"reasoning\\\":\\\"src/domain/id-generator.ts declares only a port interface, IdGenerator, with a single method next(): string. Defining an abstraction that the domain owns and infrastructure implements is a normal domain-layer job. The file has no persistence, transport, framework or UUID-library logic. The concrete implementation lives in infrastructure (UuidIdGenerator), and application use cases inject the interface through their constructors. The file's only job fits the domain layer.\\\",\\\"evidence\\\":[\\\"src/domain/id-generator.ts: `export interface IdGenerator { next(): string; }`, a pure abstraction with no implementation logic\\\",\\\"Graph: UuidIdGenerator@src/infrastructure/uuid-id-generator.ts IMPLEMENTS IdGenerator, so the concrete ID generation lives in infrastructure\\\",\\\"Graph: AddTaskUseCase, CreateProjectUseCase and CreateUserUseCase CONSTRUCTOR_INJECTS IdGenerator, which is consistent with a port the domain owns\\\"],\\\"violations\\\":[]}\",\"structured_output\":{\"confidence\":0.95,\"evidence\":[\"src/domain/id-generator.ts: `export interface IdGenerator { next(): string; }`, a pure abstraction with no implementation logic\",\"Graph: UuidIdGenerator@src/infrastructure/uuid-id-generator.ts IMPLEMENTS IdGenerator, so the concrete ID generation lives in infrastructure\",\"Graph: AddTaskUseCase, CreateProjectUseCase and CreateUserUseCase CONSTRUCTOR_INJECTS IdGenerator, which is consistent with a port the domain owns\"],\"pass\":true,\"reasoning\":\"src/domain/id-generator.ts declares only a port interface, IdGenerator, with a single method next(): string. Defining an abstraction that the domain owns and infrastructure implements is a normal domain-layer job. The file has no persistence, transport, framework or UUID-library logic. The concrete implementation lives in infrastructure (UuidIdGenerator), and application use cases inject the interface through their constructors. The file's only job fits the domain layer.\",\"violations\":[]}}",
+  "runIndex": 1,
+  "schemaVersion": 2,
+  "unitId": "src/domain/id-generator.ts",
+  "usage": {
+    "inputTokens": 2837,
+    "outputTokens": 480
+  },
+  "usedOptions": {
+    "effort": "high",
+    "model": "claude-opus-5-5"
+  }
+}

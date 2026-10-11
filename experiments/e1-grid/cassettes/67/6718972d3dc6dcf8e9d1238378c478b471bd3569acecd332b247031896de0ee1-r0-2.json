@@ -1,0 +1,47 @@
+{
+  "attempts": 1,
+  "cliVersion": "2.1.294",
+  "configListingSha256": "47aa04258852fab9a706f3f0c14cee22306d69fbb6fdfbde8c11854bd54997bc",
+  "durationMs": 5965,
+  "effort": "high",
+  "functionId": "FF-N02",
+  "ignoredOptions": [
+    "maxTokens"
+  ],
+  "isolationProbeSha256": "97a2e2d0af1100c13c55e028c1a0c71f069093c3d08705af122aaeb302f1a641",
+  "key": "6718972d3dc6dcf8e9d1238378c478b471bd3569acecd332b247031896de0ee1-r0-2",
+  "model": "claude-opus-5-5",
+  "outcome": {
+    "kind": "valid"
+  },
+  "parsedVerdict": {
+    "confidence": 0.95,
+    "evidence": [
+      "src/domain/repositories/UserRepository.ts: `export interface UserRepository { save(user: User): Promise<void>; findById(id: string): Promise<User | undefined>; }` declares only an abstract port, with no implementation",
+      "Graph: InMemoryUserRepository@src/infrastructure/persistence/InMemoryUserRepository.ts IMPLEMENTS UserRepository, so the persistence logic lives in the infrastructure layer",
+      "The only import is the domain entity '../entities/User'"
+    ],
+    "pass": true,
+    "reasoning": "The file only declares a repository port (the UserRepository interface). Its methods, save(user: User) and findById(id: string), are written in domain terms and use the domain User entity. The file has no persistence implementation, transport or framework code, and no business logic that belongs in another layer. Defining repository interfaces in the domain layer is a standard domain responsibility (the port in ports and adapters). The graph confirms the concrete implementation, InMemoryUserRepository, lives in infrastructure.",
+    "violations": []
+  },
+  "projectId": "claude-opus-5-5/task-management/full-aac/run-0",
+  "prompt": "## Rule\nThe unit's responsibilities match the role of its declared layer.\n\n## Rubric\nPass: Every responsibility in the file belongs to the role and kind of its declared layer, and agrees with any ADR prose given.\nFail: The file carries a responsibility that belongs to a different layer kind, for example persistence, transport or framework logic in a domain file, or business rules in an infrastructure or presentation file.\nEvidence required: Name the file and cite the function, method or statement that carries the misplaced responsibility, and the layer kind it belongs to.\nOut of scope: import direction and layer-dependency rules, which are checked symbolically.\n\n## Layer model\n- domain (kind: domain): src/domain/**\n- application (kind: application): src/application/**\n- infrastructure (kind: infrastructure): src/infrastructure/**\n\n## Unit\nKind: file\nId: src/domain/repositories/UserRepository.ts\nLayer: domain\nUnit files:\n- src/domain/repositories/UserRepository.ts\n\n## Source\n=====SOURCE-BEGIN src/domain/repositories/UserRepository.ts=====\nimport { User } from '../entities/User';\n\nexport interface UserRepository {\n  save(user: User): Promise<void>;\n  findById(id: string): Promise<User | undefined>;\n}\n\n=====SOURCE-END=====\n\n## Graph excerpt\n{\"edges\":[{\"from\":\"AssignTaskUseCase@src/application/use-cases/AssignTaskUseCase.ts\",\"to\":\"UserRepository@src/domain/repositories/UserRepository.ts\",\"type\":\"CONSTRUCTOR_INJECTS\"},{\"from\":\"CreateUserUseCase@src/application/use-cases/CreateUserUseCase.ts\",\"to\":\"UserRepository@src/domain/repositories/UserRepository.ts\",\"type\":\"CONSTRUCTOR_INJECTS\"},{\"from\":\"InMemoryUserRepository@src/infrastructure/persistence/InMemoryUserRepository.ts\",\"to\":\"UserRepository@src/domain/repositories/UserRepository.ts\",\"type\":\"IMPLEMENTS\"},{\"from\":\"src/application/use-cases/AssignTaskUseCase.ts\",\"to\":\"src/domain/repositories/UserRepository.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/application/use-cases/CreateUserUseCase.ts\",\"to\":\"src/domain/repositories/UserRepository.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/domain/repositories/UserRepository.ts\",\"to\":\"src/domain/entities/User.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/infrastructure/composition/Dependencies.ts\",\"to\":\"src/domain/repositories/UserRepository.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/infrastructure/persistence/InMemoryUserRepository.ts\",\"to\":\"src/domain/repositories/UserRepository.ts\",\"type\":\"IMPORTS\"}],\"nodes\":[{\"kind\":\"Class\",\"layer\":\"application\",\"name\":\"AssignTaskUseCase\",\"path\":\"src/application/use-cases/AssignTaskUseCase.ts\"},{\"kind\":\"Class\",\"layer\":\"application\",\"name\":\"CreateUserUseCase\",\"path\":\"src/application/use-cases/CreateUserUseCase.ts\"},{\"kind\":\"Class\",\"layer\":\"infrastructure\",\"name\":\"InMemoryUserRepository\",\"path\":\"src/infrastructure/persistence/InMemoryUserRepository.ts\"},{\"kind\":\"File\",\"layer\":\"application\",\"path\":\"src/application/use-cases/AssignTaskUseCase.ts\"},{\"kind\":\"File\",\"layer\":\"application\",\"path\":\"src/application/use-cases/CreateUserUseCase.ts\"},{\"kind\":\"File\",\"layer\":\"domain\",\"path\":\"src/domain/entities/User.ts\"},{\"kind\":\"File\",\"layer\":\"domain\",\"path\":\"src/domain/repositories/UserRepository.ts\"},{\"kind\":\"File\",\"layer\":\"infrastructure\",\"path\":\"src/infrastructure/composition/Dependencies.ts\"},{\"kind\":\"File\",\"layer\":\"infrastructure\",\"path\":\"src/infrastructure/persistence/InMemoryUserRepository.ts\"},{\"kind\":\"Interface\",\"layer\":\"domain\",\"name\":\"UserRepository\",\"path\":\"src/domain/repositories/UserRepository.ts\"}]}\n\n## Instructions\nJudge the unit against the rule and rubric. Return the JSON object the schema requires. Set pass to false if any file of the unit fails the rubric.\n",
+  "provider": "claude-cli",
+  "recordedAt": "2026-10-10T22:02:20.018Z",
+  "repetition": 0,
+  "requestHash": "6718972d3dc6dcf8e9d1238378c478b471bd3569acecd332b247031896de0ee1",
+  "resolvedModel": "claude-opus-5-5",
+  "response": "{\"is_error\":false,\"modelUsage\":{\"claude-opus-5-5\":{\"inputTokens\":2,\"outputTokens\":472}},\"result\":\"{\\\"pass\\\":true,\\\"confidence\\\":0.95,\\\"reasoning\\\":\\\"The file only declares a repository port (the UserRepository interface). Its methods, save(user: User) and findById(id: string), are written in domain terms and use the domain User entity. The file has no persistence implementation, transport or framework code, and no business logic that belongs in another layer. Defining repository interfaces in the domain layer is a standard domain responsibility (the port in ports and adapters). The graph confirms the concrete implementation, InMemoryUserRepository, lives in infrastructure.\\\",\\\"evidence\\\":[\\\"src/domain/repositories/UserRepository.ts: `export interface UserRepository { save(user: User): Promise<void>; findById(id: string): Promise<User | undefined>; }` declares only an abstract port, with no implementation\\\",\\\"Graph: InMemoryUserRepository@src/infrastructure/persistence/InMemoryUserRepository.ts IMPLEMENTS UserRepository, so the persistence logic lives in the infrastructure layer\\\",\\\"The only import is the domain entity '../entities/User'\\\"],\\\"violations\\\":[]}\",\"structured_output\":{\"confidence\":0.95,\"evidence\":[\"src/domain/repositories/UserRepository.ts: `export interface UserRepository { save(user: User): Promise<void>; findById(id: string): Promise<User | undefined>; }` declares only an abstract port, with no implementation\",\"Graph: InMemoryUserRepository@src/infrastructure/persistence/InMemoryUserRepository.ts IMPLEMENTS UserRepository, so the persistence logic lives in the infrastructure layer\",\"The only import is the domain entity '../entities/User'\"],\"pass\":true,\"reasoning\":\"The file only declares a repository port (the UserRepository interface). Its methods, save(user: User) and findById(id: string), are written in domain terms and use the domain User entity. The file has no persistence implementation, transport or framework code, and no business logic that belongs in another layer. Defining repository interfaces in the domain layer is a standard domain responsibility (the port in ports and adapters). The graph confirms the concrete implementation, InMemoryUserRepository, lives in infrastructure.\",\"violations\":[]}}",
+  "runIndex": 2,
+  "schemaVersion": 2,
+  "unitId": "src/domain/repositories/UserRepository.ts",
+  "usage": {
+    "inputTokens": 2993,
+    "outputTokens": 472
+  },
+  "usedOptions": {
+    "effort": "high",
+    "model": "claude-opus-5-5"
+  }
+}

@@ -1,0 +1,48 @@
+{
+  "attempts": 1,
+  "cliVersion": "2.1.294",
+  "configListingSha256": "47aa04258852fab9a706f3f0c14cee22306d69fbb6fdfbde8c11854bd54997bc",
+  "durationMs": 7126,
+  "effort": "high",
+  "functionId": "FF-N02",
+  "ignoredOptions": [
+    "maxTokens"
+  ],
+  "isolationProbeSha256": "97a2e2d0af1100c13c55e028c1a0c71f069093c3d08705af122aaeb302f1a641",
+  "key": "30fbd0f6ba78fe6e9dbcc7f5f80b73eb777eba23d2b49b99484ecbf599d77a61-r0-1",
+  "model": "claude-opus-5-5",
+  "outcome": {
+    "kind": "valid"
+  },
+  "parsedVerdict": {
+    "confidence": 0.9,
+    "evidence": [
+      "User.create trims the name and throws ValidationError(\"User name must not be empty\"), which is a domain invariant",
+      "The private constructor plus the static create factory is a standard way for an entity to control how it is built",
+      "toJSON(): UserProps returns { id, name } with no serialization library and no I/O",
+      "The file uses no database, HTTP, framework or repository code"
+    ],
+    "pass": true,
+    "reasoning": "src/domain/user.ts holds only domain logic. It defines the User entity and its props, and the create factory enforces a business invariant (the name is trimmed and must not be empty) by throwing a domain ValidationError. The file has no persistence, transport, HTTP, framework or orchestration logic. toJSON returns a plain copy of the entity's own props. It does no formatting for any particular wire protocol and has no I/O, so it isn't a transport concern. Every responsibility fits the domain layer.",
+    "violations": []
+  },
+  "projectId": "claude-opus-5-5/task-management/none/run-0",
+  "prompt": "## Rule\nThe unit's responsibilities match the role of its declared layer.\n\n## Rubric\nPass: Every responsibility in the file belongs to the role and kind of its declared layer, and agrees with any ADR prose given.\nFail: The file carries a responsibility that belongs to a different layer kind, for example persistence, transport or framework logic in a domain file, or business rules in an infrastructure or presentation file.\nEvidence required: Name the file and cite the function, method or statement that carries the misplaced responsibility, and the layer kind it belongs to.\nOut of scope: import direction and layer-dependency rules, which are checked symbolically.\n\n## Layer model\n- domain (kind: domain): src/domain/**\n- application (kind: application): src/application/**\n- infrastructure (kind: infrastructure): src/infrastructure/**\n\n## Unit\nKind: file\nId: src/domain/user.ts\nLayer: domain\nUnit files:\n- src/domain/user.ts\n\n## Source\n=====SOURCE-BEGIN src/domain/user.ts=====\nimport { ValidationError } from \"./errors\";\n\nexport interface UserProps {\n  readonly id: string;\n  readonly name: string;\n}\n\nexport class User {\n  readonly id: string;\n  readonly name: string;\n\n  private constructor(props: UserProps) {\n    this.id = props.id;\n    this.name = props.name;\n  }\n\n  static create(props: UserProps): User {\n    const name = props.name.trim();\n    if (name.length === 0) {\n      throw new ValidationError(\"User name must not be empty\");\n    }\n    return new User({ id: props.id, name });\n  }\n\n  toJSON(): UserProps {\n    return { id: this.id, name: this.name };\n  }\n}\n\n=====SOURCE-END=====\n\n## Graph excerpt\n{\"edges\":[{\"from\":\"User@src/domain/user.ts\",\"to\":\"UserProps@src/domain/user.ts\",\"type\":\"CONSTRUCTOR_INJECTS\"},{\"from\":\"src/application/user-service.ts\",\"to\":\"src/domain/user.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/domain/repositories.ts\",\"to\":\"src/domain/user.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/domain/user.ts\",\"to\":\"src/domain/errors.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/infrastructure/in-memory-repositories.ts\",\"to\":\"src/domain/user.ts\",\"type\":\"IMPORTS\"}],\"nodes\":[{\"kind\":\"Class\",\"layer\":\"domain\",\"name\":\"User\",\"path\":\"src/domain/user.ts\"},{\"kind\":\"File\",\"layer\":\"application\",\"path\":\"src/application/user-service.ts\"},{\"kind\":\"File\",\"layer\":\"domain\",\"path\":\"src/domain/errors.ts\"},{\"kind\":\"File\",\"layer\":\"domain\",\"path\":\"src/domain/repositories.ts\"},{\"kind\":\"File\",\"layer\":\"domain\",\"path\":\"src/domain/user.ts\"},{\"kind\":\"File\",\"layer\":\"infrastructure\",\"path\":\"src/infrastructure/in-memory-repositories.ts\"},{\"kind\":\"Interface\",\"layer\":\"domain\",\"name\":\"UserProps\",\"path\":\"src/domain/user.ts\"}]}\n\n## Instructions\nJudge the unit against the rule and rubric. Return the JSON object the schema requires. Set pass to false if any file of the unit fails the rubric.\n",
+  "provider": "claude-cli",
+  "recordedAt": "2026-10-10T21:23:16.189Z",
+  "repetition": 0,
+  "requestHash": "30fbd0f6ba78fe6e9dbcc7f5f80b73eb777eba23d2b49b99484ecbf599d77a61",
+  "resolvedModel": "claude-opus-5-5",
+  "response": "{\"is_error\":false,\"modelUsage\":{\"claude-opus-5-5\":{\"inputTokens\":2,\"outputTokens\":452}},\"result\":\"{\\\"pass\\\":true,\\\"confidence\\\":0.9,\\\"reasoning\\\":\\\"src/domain/user.ts holds only domain logic. It defines the User entity and its props, and the create factory enforces a business invariant (the name is trimmed and must not be empty) by throwing a domain ValidationError. The file has no persistence, transport, HTTP, framework or orchestration logic. toJSON returns a plain copy of the entity's own props. It does no formatting for any particular wire protocol and has no I/O, so it isn't a transport concern. Every responsibility fits the domain layer.\\\",\\\"evidence\\\":[\\\"User.create trims the name and throws ValidationError(\\\\\\\"User name must not be empty\\\\\\\"), which is a domain invariant\\\",\\\"The private constructor plus the static create factory is a standard way for an entity to control how it is built\\\",\\\"toJSON(): UserProps returns { id, name } with no serialization library and no I/O\\\",\\\"The file uses no database, HTTP, framework or repository code\\\"],\\\"violations\\\":[]}\",\"structured_output\":{\"confidence\":0.9,\"evidence\":[\"User.create trims the name and throws ValidationError(\\\"User name must not be empty\\\"), which is a domain invariant\",\"The private constructor plus the static create factory is a standard way for an entity to control how it is built\",\"toJSON(): UserProps returns { id, name } with no serialization library and no I/O\",\"The file uses no database, HTTP, framework or repository code\"],\"pass\":true,\"reasoning\":\"src/domain/user.ts holds only domain logic. It defines the User entity and its props, and the create factory enforces a business invariant (the name is trimmed and must not be empty) by throwing a domain ValidationError. The file has no persistence, transport, HTTP, framework or orchestration logic. toJSON returns a plain copy of the entity's own props. It does no formatting for any particular wire protocol and has no I/O, so it isn't a transport concern. Every responsibility fits the domain layer.\",\"violations\":[]}}",
+  "runIndex": 1,
+  "schemaVersion": 2,
+  "unitId": "src/domain/user.ts",
+  "usage": {
+    "inputTokens": 2583,
+    "outputTokens": 452
+  },
+  "usedOptions": {
+    "effort": "high",
+    "model": "claude-opus-5-5"
+  }
+}

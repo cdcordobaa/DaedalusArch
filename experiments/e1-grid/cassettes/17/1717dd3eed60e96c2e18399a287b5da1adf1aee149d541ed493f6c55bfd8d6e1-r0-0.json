@@ -1,0 +1,47 @@
+{
+  "attempts": 1,
+  "cliVersion": "2.1.294",
+  "configListingSha256": "47aa04258852fab9a706f3f0c14cee22306d69fbb6fdfbde8c11854bd54997bc",
+  "durationMs": 6283,
+  "effort": "high",
+  "functionId": "FF-N02",
+  "ignoredOptions": [
+    "maxTokens"
+  ],
+  "isolationProbeSha256": "97a2e2d0af1100c13c55e028c1a0c71f069093c3d08705af122aaeb302f1a641",
+  "key": "1717dd3eed60e96c2e18399a287b5da1adf1aee149d541ed493f6c55bfd8d6e1-r0-0",
+  "model": "claude-opus-5-5",
+  "outcome": {
+    "kind": "valid"
+  },
+  "parsedVerdict": {
+    "confidence": 0.95,
+    "evidence": [
+      "src/domain/entities/User.ts: static create() trims the name and throws ValidationError if it is empty, which is an entity invariant and belongs in the domain.",
+      "src/domain/entities/User.ts: the private constructor with readonly id and name fields is a pure entity state definition, with no I/O or framework code.",
+      "The only import is '../errors/DomainError', a domain-layer error type."
+    ],
+    "pass": true,
+    "reasoning": "src/domain/entities/User.ts is a plain domain entity. It has a private constructor, readonly identity and name fields, and a static factory that enforces one invariant: the trimmed name must not be empty. When that check fails it throws a domain ValidationError. The file contains no persistence, transport, framework or orchestration logic. Validating its own invariant is a domain responsibility, so the file matches its declared domain layer.",
+    "violations": []
+  },
+  "projectId": "claude-opus-5-5/task-management/minimal-prose/run-1",
+  "prompt": "## Rule\nThe unit's responsibilities match the role of its declared layer.\n\n## Rubric\nPass: Every responsibility in the file belongs to the role and kind of its declared layer, and agrees with any ADR prose given.\nFail: The file carries a responsibility that belongs to a different layer kind, for example persistence, transport or framework logic in a domain file, or business rules in an infrastructure or presentation file.\nEvidence required: Name the file and cite the function, method or statement that carries the misplaced responsibility, and the layer kind it belongs to.\nOut of scope: import direction and layer-dependency rules, which are checked symbolically.\n\n## Layer model\n- domain (kind: domain): src/domain/**\n- application (kind: application): src/application/**\n- infrastructure (kind: infrastructure): src/infrastructure/**\n\n## Unit\nKind: file\nId: src/domain/entities/User.ts\nLayer: domain\nUnit files:\n- src/domain/entities/User.ts\n\n## Source\n=====SOURCE-BEGIN src/domain/entities/User.ts=====\nimport { ValidationError } from '../errors/DomainError';\n\nexport class User {\n  private constructor(\n    readonly id: string,\n    readonly name: string,\n  ) {}\n\n  static create(params: { id: string; name: string }): User {\n    const name = params.name.trim();\n    if (name === '') {\n      throw new ValidationError('User name must not be empty');\n    }\n    return new User(params.id, name);\n  }\n}\n\n=====SOURCE-END=====\n\n## Graph excerpt\n{\"edges\":[{\"from\":\"src/application/dtos/UserDto.ts\",\"to\":\"src/domain/entities/User.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/application/use-cases/CreateUserUseCase.ts\",\"to\":\"src/domain/entities/User.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/domain/entities/User.ts\",\"to\":\"src/domain/errors/DomainError.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/domain/repositories/UserRepository.ts\",\"to\":\"src/domain/entities/User.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/infrastructure/persistence/InMemoryUserRepository.ts\",\"to\":\"src/domain/entities/User.ts\",\"type\":\"IMPORTS\"}],\"nodes\":[{\"kind\":\"Class\",\"layer\":\"domain\",\"name\":\"User\",\"path\":\"src/domain/entities/User.ts\"},{\"kind\":\"File\",\"layer\":\"application\",\"path\":\"src/application/dtos/UserDto.ts\"},{\"kind\":\"File\",\"layer\":\"application\",\"path\":\"src/application/use-cases/CreateUserUseCase.ts\"},{\"kind\":\"File\",\"layer\":\"domain\",\"path\":\"src/domain/entities/User.ts\"},{\"kind\":\"File\",\"layer\":\"domain\",\"path\":\"src/domain/errors/DomainError.ts\"},{\"kind\":\"File\",\"layer\":\"domain\",\"path\":\"src/domain/repositories/UserRepository.ts\"},{\"kind\":\"File\",\"layer\":\"infrastructure\",\"path\":\"src/infrastructure/persistence/InMemoryUserRepository.ts\"}]}\n\n## Instructions\nJudge the unit against the rule and rubric. Return the JSON object the schema requires. Set pass to false if any file of the unit fails the rubric.\n",
+  "provider": "claude-cli",
+  "recordedAt": "2026-10-10T21:42:08.466Z",
+  "repetition": 0,
+  "requestHash": "1717dd3eed60e96c2e18399a287b5da1adf1aee149d541ed493f6c55bfd8d6e1",
+  "resolvedModel": "claude-opus-5-5",
+  "response": "{\"is_error\":false,\"modelUsage\":{\"claude-opus-5-5\":{\"inputTokens\":2,\"outputTokens\":406}},\"result\":\"{\\\"pass\\\":true,\\\"confidence\\\":0.95,\\\"reasoning\\\":\\\"src/domain/entities/User.ts is a plain domain entity. It has a private constructor, readonly identity and name fields, and a static factory that enforces one invariant: the trimmed name must not be empty. When that check fails it throws a domain ValidationError. The file contains no persistence, transport, framework or orchestration logic. Validating its own invariant is a domain responsibility, so the file matches its declared domain layer.\\\",\\\"evidence\\\":[\\\"src/domain/entities/User.ts: static create() trims the name and throws ValidationError if it is empty, which is an entity invariant and belongs in the domain.\\\",\\\"src/domain/entities/User.ts: the private constructor with readonly id and name fields is a pure entity state definition, with no I/O or framework code.\\\",\\\"The only import is '../errors/DomainError', a domain-layer error type.\\\"],\\\"violations\\\":[]}\",\"structured_output\":{\"confidence\":0.95,\"evidence\":[\"src/domain/entities/User.ts: static create() trims the name and throws ValidationError if it is empty, which is an entity invariant and belongs in the domain.\",\"src/domain/entities/User.ts: the private constructor with readonly id and name fields is a pure entity state definition, with no I/O or framework code.\",\"The only import is '../errors/DomainError', a domain-layer error type.\"],\"pass\":true,\"reasoning\":\"src/domain/entities/User.ts is a plain domain entity. It has a private constructor, readonly identity and name fields, and a static factory that enforces one invariant: the trimmed name must not be empty. When that check fails it throws a domain ValidationError. The file contains no persistence, transport, framework or orchestration logic. Validating its own invariant is a domain responsibility, so the file matches its declared domain layer.\",\"violations\":[]}}",
+  "runIndex": 0,
+  "schemaVersion": 2,
+  "unitId": "src/domain/entities/User.ts",
+  "usage": {
+    "inputTokens": 2570,
+    "outputTokens": 406
+  },
+  "usedOptions": {
+    "effort": "high",
+    "model": "claude-opus-5-5"
+  }
+}

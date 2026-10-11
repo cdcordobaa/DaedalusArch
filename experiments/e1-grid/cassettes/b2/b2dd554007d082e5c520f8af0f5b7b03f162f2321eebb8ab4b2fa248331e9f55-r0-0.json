@@ -1,0 +1,47 @@
+{
+  "attempts": 1,
+  "cliVersion": "2.1.294",
+  "configListingSha256": "47aa04258852fab9a706f3f0c14cee22306d69fbb6fdfbde8c11854bd54997bc",
+  "durationMs": 6303,
+  "effort": "high",
+  "functionId": "FF-N02",
+  "ignoredOptions": [
+    "maxTokens"
+  ],
+  "isolationProbeSha256": "97a2e2d0af1100c13c55e028c1a0c71f069093c3d08705af122aaeb302f1a641",
+  "key": "b2dd554007d082e5c520f8af0f5b7b03f162f2321eebb8ab4b2fa248331e9f55-r0-0",
+  "model": "claude-opus-5-5",
+  "outcome": {
+    "kind": "valid"
+  },
+  "parsedVerdict": {
+    "confidence": 0.88,
+    "evidence": [
+      "src/application/AddTaskUseCase.ts: execute() builds `new Task(id, projectId, title, description, dueDate, 'todo', null)` and calls `this.taskRepository.save(task)`. This is pure use-case orchestration.",
+      "The constructor injects TaskRepository, an interface defined in the domain layer. The file contains no persistence code.",
+      "The file contains no HTTP, request/response, framework or database code."
+    ],
+    "pass": true,
+    "reasoning": "AddTaskUseCase only orchestrates. It builds a domain Task entity and saves it through the domain-defined TaskRepository abstraction, which is injected through the constructor. The file contains no persistence code, no transport or HTTP handling, no framework code and no real business rules or validation. It does pass the literal initial values 'todo' and null to the Task constructor. That is a small domain default that could live in a Task factory, but it is ordinary setup work for an application-layer use case, not a misplaced responsibility.",
+    "violations": []
+  },
+  "projectId": "claude-haiku-4-5/task-management/full-aac/run-2",
+  "prompt": "## Rule\nThe unit's responsibilities match the role of its declared layer.\n\n## Rubric\nPass: Every responsibility in the file belongs to the role and kind of its declared layer, and agrees with any ADR prose given.\nFail: The file carries a responsibility that belongs to a different layer kind, for example persistence, transport or framework logic in a domain file, or business rules in an infrastructure or presentation file.\nEvidence required: Name the file and cite the function, method or statement that carries the misplaced responsibility, and the layer kind it belongs to.\nOut of scope: import direction and layer-dependency rules, which are checked symbolically.\n\n## Layer model\n- domain (kind: domain): src/domain/**\n- application (kind: application): src/application/**\n- infrastructure (kind: infrastructure): src/infrastructure/**\n\n## Unit\nKind: file\nId: src/application/AddTaskUseCase.ts\nLayer: application\nUnit files:\n- src/application/AddTaskUseCase.ts\n\n## Source\n=====SOURCE-BEGIN src/application/AddTaskUseCase.ts=====\nimport { Task } from '../domain/Task';\nimport { TaskRepository } from '../domain/TaskRepository';\n\nexport class AddTaskUseCase {\n  constructor(private taskRepository: TaskRepository) {}\n\n  execute(\n    id: string,\n    projectId: string,\n    title: string,\n    description: string,\n    dueDate: Date | null,\n  ): Task {\n    const task = new Task(id, projectId, title, description, dueDate, 'todo', null);\n    this.taskRepository.save(task);\n    return task;\n  }\n}\n\n=====SOURCE-END=====\n\n## Graph excerpt\n{\"edges\":[{\"from\":\"AddTaskUseCase@src/application/AddTaskUseCase.ts\",\"to\":\"TaskRepository@src/domain/TaskRepository.ts\",\"type\":\"CONSTRUCTOR_INJECTS\"},{\"from\":\"TaskController@src/infrastructure/TaskController.ts\",\"to\":\"AddTaskUseCase@src/application/AddTaskUseCase.ts\",\"type\":\"CONSTRUCTOR_INJECTS\"},{\"from\":\"src/application/AddTaskUseCase.ts\",\"to\":\"src/domain/Task.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/application/AddTaskUseCase.ts\",\"to\":\"src/domain/TaskRepository.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/infrastructure/TaskController.ts\",\"to\":\"src/application/AddTaskUseCase.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/infrastructure/server.ts\",\"to\":\"src/application/AddTaskUseCase.ts\",\"type\":\"IMPORTS\"}],\"nodes\":[{\"kind\":\"Class\",\"layer\":\"application\",\"name\":\"AddTaskUseCase\",\"path\":\"src/application/AddTaskUseCase.ts\"},{\"kind\":\"Class\",\"layer\":\"infrastructure\",\"name\":\"TaskController\",\"path\":\"src/infrastructure/TaskController.ts\"},{\"kind\":\"File\",\"layer\":\"application\",\"path\":\"src/application/AddTaskUseCase.ts\"},{\"kind\":\"File\",\"layer\":\"domain\",\"path\":\"src/domain/Task.ts\"},{\"kind\":\"File\",\"layer\":\"domain\",\"path\":\"src/domain/TaskRepository.ts\"},{\"kind\":\"File\",\"layer\":\"infrastructure\",\"path\":\"src/infrastructure/TaskController.ts\"},{\"kind\":\"File\",\"layer\":\"infrastructure\",\"path\":\"src/infrastructure/server.ts\"},{\"kind\":\"Interface\",\"layer\":\"domain\",\"name\":\"TaskRepository\",\"path\":\"src/domain/TaskRepository.ts\"}]}\n\n## Instructions\nJudge the unit against the rule and rubric. Return the JSON object the schema requires. Set pass to false if any file of the unit fails the rubric.\n",
+  "provider": "claude-cli",
+  "recordedAt": "2026-10-11T02:53:30.891Z",
+  "repetition": 0,
+  "requestHash": "b2dd554007d082e5c520f8af0f5b7b03f162f2321eebb8ab4b2fa248331e9f55",
+  "resolvedModel": "claude-opus-5-5",
+  "response": "{\"is_error\":false,\"modelUsage\":{\"claude-opus-5-5\":{\"inputTokens\":2,\"outputTokens\":508}},\"result\":\"{\\\"pass\\\":true,\\\"confidence\\\":0.88,\\\"reasoning\\\":\\\"AddTaskUseCase only orchestrates. It builds a domain Task entity and saves it through the domain-defined TaskRepository abstraction, which is injected through the constructor. The file contains no persistence code, no transport or HTTP handling, no framework code and no real business rules or validation. It does pass the literal initial values 'todo' and null to the Task constructor. That is a small domain default that could live in a Task factory, but it is ordinary setup work for an application-layer use case, not a misplaced responsibility.\\\",\\\"evidence\\\":[\\\"src/application/AddTaskUseCase.ts: execute() builds `new Task(id, projectId, title, description, dueDate, 'todo', null)` and calls `this.taskRepository.save(task)`. This is pure use-case orchestration.\\\",\\\"The constructor injects TaskRepository, an interface defined in the domain layer. The file contains no persistence code.\\\",\\\"The file contains no HTTP, request/response, framework or database code.\\\"],\\\"violations\\\":[]}\",\"structured_output\":{\"confidence\":0.88,\"evidence\":[\"src/application/AddTaskUseCase.ts: execute() builds `new Task(id, projectId, title, description, dueDate, 'todo', null)` and calls `this.taskRepository.save(task)`. This is pure use-case orchestration.\",\"The constructor injects TaskRepository, an interface defined in the domain layer. The file contains no persistence code.\",\"The file contains no HTTP, request/response, framework or database code.\"],\"pass\":true,\"reasoning\":\"AddTaskUseCase only orchestrates. It builds a domain Task entity and saves it through the domain-defined TaskRepository abstraction, which is injected through the constructor. The file contains no persistence code, no transport or HTTP handling, no framework code and no real business rules or validation. It does pass the literal initial values 'todo' and null to the Task constructor. That is a small domain default that could live in a Task factory, but it is ordinary setup work for an application-layer use case, not a misplaced responsibility.\",\"violations\":[]}}",
+  "runIndex": 0,
+  "schemaVersion": 2,
+  "unitId": "src/application/AddTaskUseCase.ts",
+  "usage": {
+    "inputTokens": 2769,
+    "outputTokens": 508
+  },
+  "usedOptions": {
+    "effort": "high",
+    "model": "claude-opus-5-5"
+  }
+}

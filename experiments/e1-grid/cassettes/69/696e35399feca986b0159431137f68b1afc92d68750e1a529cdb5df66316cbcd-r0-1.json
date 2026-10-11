@@ -1,0 +1,48 @@
+{
+  "attempts": 1,
+  "cliVersion": "2.1.294",
+  "configListingSha256": "47aa04258852fab9a706f3f0c14cee22306d69fbb6fdfbde8c11854bd54997bc",
+  "durationMs": 7877,
+  "effort": "high",
+  "functionId": "FF-N02",
+  "ignoredOptions": [
+    "maxTokens"
+  ],
+  "isolationProbeSha256": "97a2e2d0af1100c13c55e028c1a0c71f069093c3d08705af122aaeb302f1a641",
+  "key": "696e35399feca986b0159431137f68b1afc92d68750e1a529cdb5df66316cbcd-r0-1",
+  "model": "claude-opus-5-5",
+  "outcome": {
+    "kind": "valid"
+  },
+  "parsedVerdict": {
+    "confidence": 0.85,
+    "evidence": [
+      "execute(): `if (!canCancelOrder(order.state))` hands the cancellation rule to the domain function canCancelOrder in ../domain/Order.",
+      "execute(): `this.orderRepository.getById(orderId)` and `this.orderRepository.save(order)` reach persistence only through the OrderRepository abstraction, with no storage code in this file.",
+      "execute(): `for (const item of order.items) { this.catalog.release(item.productId, item.quantity); }` coordinates the domain Catalog service.",
+      "The file has no HTTP, database, framework or serialization code."
+    ],
+    "pass": true,
+    "reasoning": "src/application/CancelOrderUseCase.ts only coordinates work, which is the job of the application layer. CancelOrderUseCase.execute does four things: it loads the order through the OrderRepository abstraction, asks the domain whether the order can be cancelled, releases reserved stock for each line item, and saves the order. The file has no persistence code, transport handling or framework logic, so it carries no infrastructure responsibility. The cancellation rule is not written here: the use case calls canCancelOrder from the domain. The loop that releases stock calls Catalog.release once per line item, which is coordination between domain objects, not a new business rule. One thing to note: execute never changes the order's state to cancelled before saving it. That looks like a functional gap, but it is not a layer-responsibility violation.",
+    "violations": []
+  },
+  "projectId": "claude-haiku-4-5/order-fulfilment/none/run-0",
+  "prompt": "## Rule\nThe unit's responsibilities match the role of its declared layer.\n\n## Rubric\nPass: Every responsibility in the file belongs to the role and kind of its declared layer, and agrees with any ADR prose given.\nFail: The file carries a responsibility that belongs to a different layer kind, for example persistence, transport or framework logic in a domain file, or business rules in an infrastructure or presentation file.\nEvidence required: Name the file and cite the function, method or statement that carries the misplaced responsibility, and the layer kind it belongs to.\nOut of scope: import direction and layer-dependency rules, which are checked symbolically.\n\n## Layer model\n- domain (kind: domain): src/domain/**\n- application (kind: application): src/application/**\n- infrastructure (kind: infrastructure): src/infrastructure/**\n\n## Unit\nKind: file\nId: src/application/CancelOrderUseCase.ts\nLayer: application\nUnit files:\n- src/application/CancelOrderUseCase.ts\n\n## Source\n=====SOURCE-BEGIN src/application/CancelOrderUseCase.ts=====\nimport { Order, canCancelOrder } from '../domain/Order';\nimport { Catalog } from '../domain/Catalog';\nimport { OrderRepository } from '../domain/OrderRepository';\n\nexport class CancelOrderUseCase {\n  constructor(private catalog: Catalog, private orderRepository: OrderRepository) {}\n\n  execute(orderId: string): Order {\n    const order = this.orderRepository.getById(orderId);\n    if (!order) {\n      throw new Error(`Order ${orderId} not found`);\n    }\n\n    if (!canCancelOrder(order.state)) {\n      throw new Error(`Cannot cancel order in state ${order.state}`);\n    }\n\n    // Release reserved stock\n    for (const item of order.items) {\n      this.catalog.release(item.productId, item.quantity);\n    }\n\n    this.orderRepository.save(order);\n    return order;\n  }\n}\n\n=====SOURCE-END=====\n\n## Graph excerpt\n{\"edges\":[{\"from\":\"CancelOrderUseCase@src/application/CancelOrderUseCase.ts\",\"to\":\"Catalog@src/domain/Catalog.ts\",\"type\":\"CONSTRUCTOR_INJECTS\"},{\"from\":\"CancelOrderUseCase@src/application/CancelOrderUseCase.ts\",\"to\":\"OrderRepository@src/domain/OrderRepository.ts\",\"type\":\"CONSTRUCTOR_INJECTS\"},{\"from\":\"src/application/CancelOrderUseCase.ts\",\"to\":\"src/domain/Catalog.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/application/CancelOrderUseCase.ts\",\"to\":\"src/domain/Order.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/application/CancelOrderUseCase.ts\",\"to\":\"src/domain/OrderRepository.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/infrastructure/dependencies.ts\",\"to\":\"src/application/CancelOrderUseCase.ts\",\"type\":\"IMPORTS\"}],\"nodes\":[{\"kind\":\"Class\",\"layer\":\"application\",\"name\":\"CancelOrderUseCase\",\"path\":\"src/application/CancelOrderUseCase.ts\"},{\"kind\":\"Class\",\"layer\":\"domain\",\"name\":\"Catalog\",\"path\":\"src/domain/Catalog.ts\"},{\"kind\":\"Class\",\"layer\":\"domain\",\"name\":\"OrderRepository\",\"path\":\"src/domain/OrderRepository.ts\"},{\"kind\":\"File\",\"layer\":\"application\",\"path\":\"src/application/CancelOrderUseCase.ts\"},{\"kind\":\"File\",\"layer\":\"domain\",\"path\":\"src/domain/Catalog.ts\"},{\"kind\":\"File\",\"layer\":\"domain\",\"path\":\"src/domain/Order.ts\"},{\"kind\":\"File\",\"layer\":\"domain\",\"path\":\"src/domain/OrderRepository.ts\"},{\"kind\":\"File\",\"layer\":\"infrastructure\",\"path\":\"src/infrastructure/dependencies.ts\"}]}\n\n## Instructions\nJudge the unit against the rule and rubric. Return the JSON object the schema requires. Set pass to false if any file of the unit fails the rubric.\n",
+  "provider": "claude-cli",
+  "recordedAt": "2026-10-11T02:35:41.257Z",
+  "repetition": 0,
+  "requestHash": "696e35399feca986b0159431137f68b1afc92d68750e1a529cdb5df66316cbcd",
+  "resolvedModel": "claude-opus-5-5",
+  "response": "{\"is_error\":false,\"modelUsage\":{\"claude-opus-5-5\":{\"inputTokens\":2,\"outputTokens\":727}},\"result\":\"{\\\"pass\\\":true,\\\"confidence\\\":0.85,\\\"reasoning\\\":\\\"src/application/CancelOrderUseCase.ts only coordinates work, which is the job of the application layer. CancelOrderUseCase.execute does four things: it loads the order through the OrderRepository abstraction, asks the domain whether the order can be cancelled, releases reserved stock for each line item, and saves the order. The file has no persistence code, transport handling or framework logic, so it carries no infrastructure responsibility. The cancellation rule is not written here: the use case calls canCancelOrder from the domain. The loop that releases stock calls Catalog.release once per line item, which is coordination between domain objects, not a new business rule. One thing to note: execute never changes the order's state to cancelled before saving it. That looks like a functional gap, but it is not a layer-responsibility violation.\\\",\\\"evidence\\\":[\\\"execute(): `if (!canCancelOrder(order.state))` hands the cancellation rule to the domain function canCancelOrder in ../domain/Order.\\\",\\\"execute(): `this.orderRepository.getById(orderId)` and `this.orderRepository.save(order)` reach persistence only through the OrderRepository abstraction, with no storage code in this file.\\\",\\\"execute(): `for (const item of order.items) { this.catalog.release(item.productId, item.quantity); }` coordinates the domain Catalog service.\\\",\\\"The file has no HTTP, database, framework or serialization code.\\\"],\\\"violations\\\":[]}\",\"structured_output\":{\"confidence\":0.85,\"evidence\":[\"execute(): `if (!canCancelOrder(order.state))` hands the cancellation rule to the domain function canCancelOrder in ../domain/Order.\",\"execute(): `this.orderRepository.getById(orderId)` and `this.orderRepository.save(order)` reach persistence only through the OrderRepository abstraction, with no storage code in this file.\",\"execute(): `for (const item of order.items) { this.catalog.release(item.productId, item.quantity); }` coordinates the domain Catalog service.\",\"The file has no HTTP, database, framework or serialization code.\"],\"pass\":true,\"reasoning\":\"src/application/CancelOrderUseCase.ts only coordinates work, which is the job of the application layer. CancelOrderUseCase.execute does four things: it loads the order through the OrderRepository abstraction, asks the domain whether the order can be cancelled, releases reserved stock for each line item, and saves the order. The file has no persistence code, transport handling or framework logic, so it carries no infrastructure responsibility. The cancellation rule is not written here: the use case calls canCancelOrder from the domain. The loop that releases stock calls Catalog.release once per line item, which is coordination between domain objects, not a new business rule. One thing to note: execute never changes the order's state to cancelled before saving it. That looks like a functional gap, but it is not a layer-responsibility violation.\",\"violations\":[]}}",
+  "runIndex": 1,
+  "schemaVersion": 2,
+  "unitId": "src/application/CancelOrderUseCase.ts",
+  "usage": {
+    "inputTokens": 2890,
+    "outputTokens": 727
+  },
+  "usedOptions": {
+    "effort": "high",
+    "model": "claude-opus-5-5"
+  }
+}

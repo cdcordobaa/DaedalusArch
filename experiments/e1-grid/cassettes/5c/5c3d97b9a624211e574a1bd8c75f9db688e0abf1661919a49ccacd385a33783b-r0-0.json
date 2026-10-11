@@ -1,0 +1,48 @@
+{
+  "attempts": 1,
+  "cliVersion": "2.1.294",
+  "configListingSha256": "47aa04258852fab9a706f3f0c14cee22306d69fbb6fdfbde8c11854bd54997bc",
+  "durationMs": 6289,
+  "effort": "high",
+  "functionId": "FF-N02",
+  "ignoredOptions": [
+    "maxTokens"
+  ],
+  "isolationProbeSha256": "97a2e2d0af1100c13c55e028c1a0c71f069093c3d08705af122aaeb302f1a641",
+  "key": "5c3d97b9a624211e574a1bd8c75f9db688e0abf1661919a49ccacd385a33783b-r0-0",
+  "model": "claude-opus-5-5",
+  "outcome": {
+    "kind": "valid"
+  },
+  "parsedVerdict": {
+    "confidence": 0.95,
+    "evidence": [
+      "Product.create checks that stock on hand is a non-negative integer, which is a domain invariant",
+      "reserve() throws InsufficientStockError when available stock is too low, which is a business rule",
+      "dispatch() and release() use assertReserved to protect reserved-unit invariants, which is entity behaviour",
+      "The only imports are './errors' and './Quantity', both domain modules. The file has no I/O, serialization or framework code."
+    ],
+    "pass": true,
+    "reasoning": "src/domain/Product.ts holds only domain responsibilities. It is an entity with invariants and stock business rules: the reserve, release and dispatch rules and the available-quantity calculation. It has no persistence, transport, framework or presentation logic. Its only imports are domain errors and the Quantity value object. All of this fits the domain layer.",
+    "violations": []
+  },
+  "projectId": "claude-opus-5-5/order-fulfilment/minimal-prose/run-2",
+  "prompt": "## Rule\nThe unit's responsibilities match the role of its declared layer.\n\n## Rubric\nPass: Every responsibility in the file belongs to the role and kind of its declared layer, and agrees with any ADR prose given.\nFail: The file carries a responsibility that belongs to a different layer kind, for example persistence, transport or framework logic in a domain file, or business rules in an infrastructure or presentation file.\nEvidence required: Name the file and cite the function, method or statement that carries the misplaced responsibility, and the layer kind it belongs to.\nOut of scope: import direction and layer-dependency rules, which are checked symbolically.\n\n## Layer model\n- domain (kind: domain): src/domain/**\n- application (kind: application): src/application/**\n- infrastructure (kind: infrastructure): src/infrastructure/**\n\n## Unit\nKind: file\nId: src/domain/Product.ts\nLayer: domain\nUnit files:\n- src/domain/Product.ts\n\n## Source\n=====SOURCE-BEGIN src/domain/Product.ts=====\nimport { InsufficientStockError, InvalidQuantityError } from './errors';\nimport { Quantity } from './Quantity';\n\n/**\n * A catalogue product and its stock. Units on hand stay in the warehouse\n * until shipped; reserved units are on hand but promised to open orders.\n */\nexport class Product {\n  private constructor(\n    readonly id: string,\n    readonly name: string,\n    private onHandUnits: number,\n    private reservedUnits: number,\n  ) {}\n\n  static create(id: string, name: string, onHand: number): Product {\n    if (!Number.isInteger(onHand) || onHand < 0) {\n      throw new InvalidQuantityError(`Stock on hand must be a non-negative integer, got ${onHand}`);\n    }\n    return new Product(id, name, onHand, 0);\n  }\n\n  get onHand(): number {\n    return this.onHandUnits;\n  }\n\n  get reserved(): number {\n    return this.reservedUnits;\n  }\n\n  get available(): number {\n    return this.onHandUnits - this.reservedUnits;\n  }\n\n  canReserve(quantity: Quantity): boolean {\n    return quantity.value <= this.available;\n  }\n\n  reserve(quantity: Quantity): void {\n    if (!this.canReserve(quantity)) {\n      throw new InsufficientStockError(this.id, quantity.value, this.available);\n    }\n    this.reservedUnits += quantity.value;\n  }\n\n  release(quantity: Quantity): void {\n    this.assertReserved(quantity);\n    this.reservedUnits -= quantity.value;\n  }\n\n  /** Reserved units leave the warehouse. */\n  dispatch(quantity: Quantity): void {\n    this.assertReserved(quantity);\n    this.reservedUnits -= quantity.value;\n    this.onHandUnits -= quantity.value;\n  }\n\n  private assertReserved(quantity: Quantity): void {\n    if (quantity.value > this.reservedUnits) {\n      throw new InvalidQuantityError(\n        `Cannot use ${quantity.value} reserved units of product ${this.id}; only ${this.reservedUnits} reserved`,\n      );\n    }\n  }\n}\n\n=====SOURCE-END=====\n\n## Graph excerpt\n{\"edges\":[{\"from\":\"src/application/DtoMapper.ts\",\"to\":\"src/domain/Product.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/domain/Product.ts\",\"to\":\"src/domain/Quantity.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/domain/Product.ts\",\"to\":\"src/domain/errors.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/domain/ProductRepository.ts\",\"to\":\"src/domain/Product.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/domain/StockReservationService.ts\",\"to\":\"src/domain/Product.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/infrastructure/persistence/InMemoryProductRepository.ts\",\"to\":\"src/domain/Product.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/infrastructure/persistence/catalogueSeed.ts\",\"to\":\"src/domain/Product.ts\",\"type\":\"IMPORTS\"}],\"nodes\":[{\"kind\":\"Class\",\"layer\":\"domain\",\"name\":\"Product\",\"path\":\"src/domain/Product.ts\"},{\"kind\":\"File\",\"layer\":\"application\",\"path\":\"src/application/DtoMapper.ts\"},{\"kind\":\"File\",\"layer\":\"domain\",\"path\":\"src/domain/Product.ts\"},{\"kind\":\"File\",\"layer\":\"domain\",\"path\":\"src/domain/ProductRepository.ts\"},{\"kind\":\"File\",\"layer\":\"domain\",\"path\":\"src/domain/Quantity.ts\"},{\"kind\":\"File\",\"layer\":\"domain\",\"path\":\"src/domain/StockReservationService.ts\"},{\"kind\":\"File\",\"layer\":\"domain\",\"path\":\"src/domain/errors.ts\"},{\"kind\":\"File\",\"layer\":\"infrastructure\",\"path\":\"src/infrastructure/persistence/InMemoryProductRepository.ts\"},{\"kind\":\"File\",\"layer\":\"infrastructure\",\"path\":\"src/infrastructure/persistence/catalogueSeed.ts\"}]}\n\n## Instructions\nJudge the unit against the rule and rubric. Return the JSON object the schema requires. Set pass to false if any file of the unit fails the rubric.\n",
+  "provider": "claude-cli",
+  "recordedAt": "2026-10-10T21:57:49.678Z",
+  "repetition": 0,
+  "requestHash": "5c3d97b9a624211e574a1bd8c75f9db688e0abf1661919a49ccacd385a33783b",
+  "resolvedModel": "claude-opus-5-5",
+  "response": "{\"is_error\":false,\"modelUsage\":{\"claude-opus-5-5\":{\"inputTokens\":2,\"outputTokens\":393}},\"result\":\"{\\\"pass\\\":true,\\\"confidence\\\":0.95,\\\"reasoning\\\":\\\"src/domain/Product.ts holds only domain responsibilities. It is an entity with invariants and stock business rules: the reserve, release and dispatch rules and the available-quantity calculation. It has no persistence, transport, framework or presentation logic. Its only imports are domain errors and the Quantity value object. All of this fits the domain layer.\\\",\\\"evidence\\\":[\\\"Product.create checks that stock on hand is a non-negative integer, which is a domain invariant\\\",\\\"reserve() throws InsufficientStockError when available stock is too low, which is a business rule\\\",\\\"dispatch() and release() use assertReserved to protect reserved-unit invariants, which is entity behaviour\\\",\\\"The only imports are './errors' and './Quantity', both domain modules. The file has no I/O, serialization or framework code.\\\"],\\\"violations\\\":[]}\",\"structured_output\":{\"confidence\":0.95,\"evidence\":[\"Product.create checks that stock on hand is a non-negative integer, which is a domain invariant\",\"reserve() throws InsufficientStockError when available stock is too low, which is a business rule\",\"dispatch() and release() use assertReserved to protect reserved-unit invariants, which is entity behaviour\",\"The only imports are './errors' and './Quantity', both domain modules. The file has no I/O, serialization or framework code.\"],\"pass\":true,\"reasoning\":\"src/domain/Product.ts holds only domain responsibilities. It is an entity with invariants and stock business rules: the reserve, release and dispatch rules and the available-quantity calculation. It has no persistence, transport, framework or presentation logic. Its only imports are domain errors and the Quantity value object. All of this fits the domain layer.\",\"violations\":[]}}",
+  "runIndex": 0,
+  "schemaVersion": 2,
+  "unitId": "src/domain/Product.ts",
+  "usage": {
+    "inputTokens": 3286,
+    "outputTokens": 393
+  },
+  "usedOptions": {
+    "effort": "high",
+    "model": "claude-opus-5-5"
+  }
+}

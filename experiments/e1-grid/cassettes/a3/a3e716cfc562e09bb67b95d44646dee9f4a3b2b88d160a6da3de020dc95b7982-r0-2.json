@@ -1,0 +1,47 @@
+{
+  "attempts": 1,
+  "cliVersion": "2.1.294",
+  "configListingSha256": "47aa04258852fab9a706f3f0c14cee22306d69fbb6fdfbde8c11854bd54997bc",
+  "durationMs": 10262,
+  "effort": "high",
+  "functionId": "FF-N02",
+  "ignoredOptions": [
+    "maxTokens"
+  ],
+  "isolationProbeSha256": "97a2e2d0af1100c13c55e028c1a0c71f069093c3d08705af122aaeb302f1a641",
+  "key": "a3e716cfc562e09bb67b95d44646dee9f4a3b2b88d160a6da3de020dc95b7982-r0-2",
+  "model": "claude-opus-5-5",
+  "outcome": {
+    "kind": "valid"
+  },
+  "parsedVerdict": {
+    "confidence": 0.9,
+    "evidence": [
+      "src/application/GetOrderUseCase.ts: execute(orderId) returns toOrderDto(this.lookup.requireOrder(orderId)), which only coordinates a lookup and maps the result to a DTO.",
+      "The constructor injects EntityLookupService, which is in the application layer. The file has no database, HTTP or framework code.",
+      "The file contains no business rules or domain logic."
+    ],
+    "pass": true,
+    "reasoning": "GetOrderUseCase is a small application-layer use case. Its execute method hands the lookup to an injected application service (EntityLookupService.requireOrder) and maps the result to a DTO with toOrderDto. Coordinating a lookup and shaping the output are normal application-layer work. The file has no persistence, transport or framework code, and it adds no business rules of its own.",
+    "violations": []
+  },
+  "projectId": "claude-opus-5-5/order-fulfilment/full-aac/run-2",
+  "prompt": "## Rule\nThe unit's responsibilities match the role of its declared layer.\n\n## Rubric\nPass: Every responsibility in the file belongs to the role and kind of its declared layer, and agrees with any ADR prose given.\nFail: The file carries a responsibility that belongs to a different layer kind, for example persistence, transport or framework logic in a domain file, or business rules in an infrastructure or presentation file.\nEvidence required: Name the file and cite the function, method or statement that carries the misplaced responsibility, and the layer kind it belongs to.\nOut of scope: import direction and layer-dependency rules, which are checked symbolically.\n\n## Layer model\n- domain (kind: domain): src/domain/**\n- application (kind: application): src/application/**\n- infrastructure (kind: infrastructure): src/infrastructure/**\n\n## Unit\nKind: file\nId: src/application/GetOrderUseCase.ts\nLayer: application\nUnit files:\n- src/application/GetOrderUseCase.ts\n\n## Source\n=====SOURCE-BEGIN src/application/GetOrderUseCase.ts=====\nimport { EntityLookupService } from './EntityLookupService';\nimport { OrderDto, toOrderDto } from './OrderDto';\n\nexport class GetOrderUseCase {\n  constructor(private readonly lookup: EntityLookupService) {}\n\n  execute(orderId: string): OrderDto {\n    return toOrderDto(this.lookup.requireOrder(orderId));\n  }\n}\n\n=====SOURCE-END=====\n\n## Graph excerpt\n{\"edges\":[{\"from\":\"GetOrderUseCase@src/application/GetOrderUseCase.ts\",\"to\":\"EntityLookupService@src/application/EntityLookupService.ts\",\"type\":\"CONSTRUCTOR_INJECTS\"},{\"from\":\"src/application/GetOrderUseCase.ts\",\"to\":\"src/application/EntityLookupService.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/application/GetOrderUseCase.ts\",\"to\":\"src/application/OrderDto.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/infrastructure/OrderController.ts\",\"to\":\"src/application/GetOrderUseCase.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/infrastructure/OrderModule.ts\",\"to\":\"src/application/GetOrderUseCase.ts\",\"type\":\"IMPORTS\"}],\"nodes\":[{\"kind\":\"Class\",\"layer\":\"application\",\"name\":\"EntityLookupService\",\"path\":\"src/application/EntityLookupService.ts\"},{\"kind\":\"Class\",\"layer\":\"application\",\"name\":\"GetOrderUseCase\",\"path\":\"src/application/GetOrderUseCase.ts\"},{\"kind\":\"File\",\"layer\":\"application\",\"path\":\"src/application/EntityLookupService.ts\"},{\"kind\":\"File\",\"layer\":\"application\",\"path\":\"src/application/GetOrderUseCase.ts\"},{\"kind\":\"File\",\"layer\":\"application\",\"path\":\"src/application/OrderDto.ts\"},{\"kind\":\"File\",\"layer\":\"infrastructure\",\"path\":\"src/infrastructure/OrderController.ts\"},{\"kind\":\"File\",\"layer\":\"infrastructure\",\"path\":\"src/infrastructure/OrderModule.ts\"}]}\n\n## Instructions\nJudge the unit against the rule and rubric. Return the JSON object the schema requires. Set pass to false if any file of the unit fails the rubric.\n",
+  "provider": "claude-cli",
+  "recordedAt": "2026-10-10T22:22:54.899Z",
+  "repetition": 0,
+  "requestHash": "a3e716cfc562e09bb67b95d44646dee9f4a3b2b88d160a6da3de020dc95b7982",
+  "resolvedModel": "claude-opus-5-5",
+  "response": "{\"is_error\":false,\"modelUsage\":{\"claude-opus-5-5\":{\"inputTokens\":2,\"outputTokens\":393}},\"result\":\"{\\\"pass\\\":true,\\\"confidence\\\":0.9,\\\"reasoning\\\":\\\"GetOrderUseCase is a small application-layer use case. Its execute method hands the lookup to an injected application service (EntityLookupService.requireOrder) and maps the result to a DTO with toOrderDto. Coordinating a lookup and shaping the output are normal application-layer work. The file has no persistence, transport or framework code, and it adds no business rules of its own.\\\",\\\"evidence\\\":[\\\"src/application/GetOrderUseCase.ts: execute(orderId) returns toOrderDto(this.lookup.requireOrder(orderId)), which only coordinates a lookup and maps the result to a DTO.\\\",\\\"The constructor injects EntityLookupService, which is in the application layer. The file has no database, HTTP or framework code.\\\",\\\"The file contains no business rules or domain logic.\\\"],\\\"violations\\\":[]}\",\"structured_output\":{\"confidence\":0.9,\"evidence\":[\"src/application/GetOrderUseCase.ts: execute(orderId) returns toOrderDto(this.lookup.requireOrder(orderId)), which only coordinates a lookup and maps the result to a DTO.\",\"The constructor injects EntityLookupService, which is in the application layer. The file has no database, HTTP or framework code.\",\"The file contains no business rules or domain logic.\"],\"pass\":true,\"reasoning\":\"GetOrderUseCase is a small application-layer use case. Its execute method hands the lookup to an injected application service (EntityLookupService.requireOrder) and maps the result to a DTO with toOrderDto. Coordinating a lookup and shaping the output are normal application-layer work. The file has no persistence, transport or framework code, and it adds no business rules of its own.\",\"violations\":[]}}",
+  "runIndex": 2,
+  "schemaVersion": 2,
+  "unitId": "src/application/GetOrderUseCase.ts",
+  "usage": {
+    "inputTokens": 2609,
+    "outputTokens": 393
+  },
+  "usedOptions": {
+    "effort": "high",
+    "model": "claude-opus-5-5"
+  }
+}

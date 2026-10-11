@@ -1,0 +1,47 @@
+{
+  "attempts": 1,
+  "cliVersion": "2.1.294",
+  "configListingSha256": "47aa04258852fab9a706f3f0c14cee22306d69fbb6fdfbde8c11854bd54997bc",
+  "durationMs": 5908,
+  "effort": "high",
+  "functionId": "FF-N02",
+  "ignoredOptions": [
+    "maxTokens"
+  ],
+  "isolationProbeSha256": "97a2e2d0af1100c13c55e028c1a0c71f069093c3d08705af122aaeb302f1a641",
+  "key": "0447afcd941fbff4c705004bacdb2d40bd5a5d80855fa2affc35a50c6ab83633-r0-1",
+  "model": "claude-opus-5-5",
+  "outcome": {
+    "kind": "valid"
+  },
+  "parsedVerdict": {
+    "confidence": 0.95,
+    "evidence": [
+      "src/application/dtos.ts declares only type-only interfaces: CreateProductInput, CreateOrderInput, ProductDto and OrderDto",
+      "No functions, classes or statements with runtime behaviour, so there is no persistence, transport or business logic",
+      "Application services (order-service, inventory-service) and the infrastructure controller use these types as the use-case boundary"
+    ],
+    "pass": true,
+    "reasoning": "src/application/dtos.ts only declares the input and output data shapes that application use cases work with: CreateProductInput, CreateOrderInput, ProductDto and OrderDto. These are plain readonly interfaces with no behaviour. The file has no persistence, transport or framework logic and no business rules, so it doesn't take on another layer's job. Declaring the input and output types for use cases is a normal application-layer task. The import of OrderState from the domain is about which way dependencies point, which is out of scope here.",
+    "violations": []
+  },
+  "projectId": "gpt-5.6-terra/order-fulfilment/full-aac/run-0",
+  "prompt": "## Rule\nThe unit's responsibilities match the role of its declared layer.\n\n## Rubric\nPass: Every responsibility in the file belongs to the role and kind of its declared layer, and agrees with any ADR prose given.\nFail: The file carries a responsibility that belongs to a different layer kind, for example persistence, transport or framework logic in a domain file, or business rules in an infrastructure or presentation file.\nEvidence required: Name the file and cite the function, method or statement that carries the misplaced responsibility, and the layer kind it belongs to.\nOut of scope: import direction and layer-dependency rules, which are checked symbolically.\n\n## Layer model\n- domain (kind: domain): src/domain/**\n- application (kind: application): src/application/**\n- infrastructure (kind: infrastructure): src/infrastructure/**\n\n## Unit\nKind: file\nId: src/application/dtos.ts\nLayer: application\nUnit files:\n- src/application/dtos.ts\n\n## Source\n=====SOURCE-BEGIN src/application/dtos.ts=====\nimport { OrderState } from \"../domain/order\";\n\nexport interface CreateProductInput {\n  readonly id: string;\n  readonly name: string;\n  readonly stock: number;\n}\n\nexport interface CreateOrderInput {\n  readonly customerId: string;\n  readonly items: readonly { readonly productId: string; readonly quantity: number }[];\n}\n\nexport interface ProductDto {\n  readonly id: string;\n  readonly name: string;\n  readonly stock: number;\n}\n\nexport interface OrderDto {\n  readonly id: string;\n  readonly customerId: string;\n  readonly state: OrderState;\n  readonly items: readonly { readonly productId: string; readonly quantity: number }[];\n}\n\n=====SOURCE-END=====\n\n## Graph excerpt\n{\"edges\":[{\"from\":\"src/application/dtos.ts\",\"to\":\"src/domain/order.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/application/inventory-service.ts\",\"to\":\"src/application/dtos.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/application/order-service.ts\",\"to\":\"src/application/dtos.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/infrastructure/order-controller.ts\",\"to\":\"src/application/dtos.ts\",\"type\":\"IMPORTS\"}],\"nodes\":[{\"kind\":\"File\",\"layer\":\"application\",\"path\":\"src/application/dtos.ts\"},{\"kind\":\"File\",\"layer\":\"application\",\"path\":\"src/application/inventory-service.ts\"},{\"kind\":\"File\",\"layer\":\"application\",\"path\":\"src/application/order-service.ts\"},{\"kind\":\"File\",\"layer\":\"domain\",\"path\":\"src/domain/order.ts\"},{\"kind\":\"File\",\"layer\":\"infrastructure\",\"path\":\"src/infrastructure/order-controller.ts\"},{\"kind\":\"Interface\",\"layer\":\"application\",\"name\":\"CreateOrderInput\",\"path\":\"src/application/dtos.ts\"},{\"kind\":\"Interface\",\"layer\":\"application\",\"name\":\"CreateProductInput\",\"path\":\"src/application/dtos.ts\"},{\"kind\":\"Interface\",\"layer\":\"application\",\"name\":\"OrderDto\",\"path\":\"src/application/dtos.ts\"},{\"kind\":\"Interface\",\"layer\":\"application\",\"name\":\"ProductDto\",\"path\":\"src/application/dtos.ts\"}]}\n\n## Instructions\nJudge the unit against the rule and rubric. Return the JSON object the schema requires. Set pass to false if any file of the unit fails the rubric.\n",
+  "provider": "claude-cli",
+  "recordedAt": "2026-10-11T03:32:31.405Z",
+  "repetition": 0,
+  "requestHash": "0447afcd941fbff4c705004bacdb2d40bd5a5d80855fa2affc35a50c6ab83633",
+  "resolvedModel": "claude-opus-5-5",
+  "response": "{\"is_error\":false,\"modelUsage\":{\"claude-opus-5-5\":{\"inputTokens\":2,\"outputTokens\":430}},\"result\":\"{\\\"pass\\\":true,\\\"confidence\\\":0.95,\\\"reasoning\\\":\\\"src/application/dtos.ts only declares the input and output data shapes that application use cases work with: CreateProductInput, CreateOrderInput, ProductDto and OrderDto. These are plain readonly interfaces with no behaviour. The file has no persistence, transport or framework logic and no business rules, so it doesn't take on another layer's job. Declaring the input and output types for use cases is a normal application-layer task. The import of OrderState from the domain is about which way dependencies point, which is out of scope here.\\\",\\\"evidence\\\":[\\\"src/application/dtos.ts declares only type-only interfaces: CreateProductInput, CreateOrderInput, ProductDto and OrderDto\\\",\\\"No functions, classes or statements with runtime behaviour, so there is no persistence, transport or business logic\\\",\\\"Application services (order-service, inventory-service) and the infrastructure controller use these types as the use-case boundary\\\"],\\\"violations\\\":[]}\",\"structured_output\":{\"confidence\":0.95,\"evidence\":[\"src/application/dtos.ts declares only type-only interfaces: CreateProductInput, CreateOrderInput, ProductDto and OrderDto\",\"No functions, classes or statements with runtime behaviour, so there is no persistence, transport or business logic\",\"Application services (order-service, inventory-service) and the infrastructure controller use these types as the use-case boundary\"],\"pass\":true,\"reasoning\":\"src/application/dtos.ts only declares the input and output data shapes that application use cases work with: CreateProductInput, CreateOrderInput, ProductDto and OrderDto. These are plain readonly interfaces with no behaviour. The file has no persistence, transport or framework logic and no business rules, so it doesn't take on another layer's job. Declaring the input and output types for use cases is a normal application-layer task. The import of OrderState from the domain is about which way dependencies point, which is out of scope here.\",\"violations\":[]}}",
+  "runIndex": 1,
+  "schemaVersion": 2,
+  "unitId": "src/application/dtos.ts",
+  "usage": {
+    "inputTokens": 2626,
+    "outputTokens": 430
+  },
+  "usedOptions": {
+    "effort": "high",
+    "model": "claude-opus-5-5"
+  }
+}

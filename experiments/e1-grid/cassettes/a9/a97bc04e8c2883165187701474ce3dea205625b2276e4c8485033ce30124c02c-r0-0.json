@@ -1,0 +1,48 @@
+{
+  "attempts": 1,
+  "cliVersion": "2.1.294",
+  "configListingSha256": "47aa04258852fab9a706f3f0c14cee22306d69fbb6fdfbde8c11854bd54997bc",
+  "durationMs": 8427,
+  "effort": "high",
+  "functionId": "FF-N02",
+  "ignoredOptions": [
+    "maxTokens"
+  ],
+  "isolationProbeSha256": "97a2e2d0af1100c13c55e028c1a0c71f069093c3d08705af122aaeb302f1a641",
+  "key": "a97bc04e8c2883165187701474ce3dea205625b2276e4c8485033ce30124c02c-r0-0",
+  "model": "claude-opus-5-5",
+  "outcome": {
+    "kind": "valid"
+  },
+  "parsedVerdict": {
+    "confidence": 0.85,
+    "evidence": [
+      "src/application/CreateUserUseCase.ts: constructor(private userRepository: UserRepository) depends on a domain port, not a concrete persistence implementation",
+      "src/application/CreateUserUseCase.ts: execute(request: CreateUserRequest): CreateUserResponse maps the request DTO to the entity and the entity to the response DTO, which is the application layer's job",
+      "src/application/CreateUserUseCase.ts: this.userRepository.save(user) saves through an abstraction instead of running storage code directly",
+      "src/application/CreateUserUseCase.ts: Math.random().toString(36).substring(2, 11) generates the ID inline. This is a small design point but not a responsibility from another layer kind"
+    ],
+    "pass": true,
+    "reasoning": "CreateUserUseCase.execute is ordinary application-layer orchestration. It takes a request DTO, builds a domain User, saves it through the UserRepository port that comes from the domain and is injected through the constructor, and maps the result to a response DTO. The file holds no persistence code, no transport or HTTP handling, and no framework code. It also holds no substantial business rules that belong in the domain. One small design point: the user ID is generated inline with Math.random(). That could be moved behind an ID-generator port or into a domain factory. It is still not persistence, transport or framework logic, and it is not misplaced business logic, so it does not fail the rubric.",
+    "violations": []
+  },
+  "projectId": "claude-haiku-4-5/task-management/minimal-prose/run-2",
+  "prompt": "## Rule\nThe unit's responsibilities match the role of its declared layer.\n\n## Rubric\nPass: Every responsibility in the file belongs to the role and kind of its declared layer, and agrees with any ADR prose given.\nFail: The file carries a responsibility that belongs to a different layer kind, for example persistence, transport or framework logic in a domain file, or business rules in an infrastructure or presentation file.\nEvidence required: Name the file and cite the function, method or statement that carries the misplaced responsibility, and the layer kind it belongs to.\nOut of scope: import direction and layer-dependency rules, which are checked symbolically.\n\n## Layer model\n- domain (kind: domain): src/domain/**\n- application (kind: application): src/application/**\n- infrastructure (kind: infrastructure): src/infrastructure/**\n\n## Unit\nKind: file\nId: src/application/CreateUserUseCase.ts\nLayer: application\nUnit files:\n- src/application/CreateUserUseCase.ts\n\n## Source\n=====SOURCE-BEGIN src/application/CreateUserUseCase.ts=====\nimport { UserRepository } from '../domain/UserRepository';\nimport { User } from '../domain/User';\nimport { CreateUserRequest, CreateUserResponse } from './dtos';\n\nexport class CreateUserUseCase {\n  constructor(private userRepository: UserRepository) {}\n\n  execute(request: CreateUserRequest): CreateUserResponse {\n    const userId = Math.random().toString(36).substring(2, 11);\n    const user: User = {\n      id: userId,\n      name: request.name,\n    };\n    this.userRepository.save(user);\n\n    return {\n      id: user.id,\n      name: user.name,\n    };\n  }\n}\n\n=====SOURCE-END=====\n\n## Graph excerpt\n{\"edges\":[{\"from\":\"CreateUserUseCase@src/application/CreateUserUseCase.ts\",\"to\":\"UserRepository@src/domain/UserRepository.ts\",\"type\":\"CONSTRUCTOR_INJECTS\"},{\"from\":\"UserController@src/infrastructure/UserController.ts\",\"to\":\"CreateUserUseCase@src/application/CreateUserUseCase.ts\",\"type\":\"CONSTRUCTOR_INJECTS\"},{\"from\":\"src/application/CreateUserUseCase.ts\",\"to\":\"src/application/dtos.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/application/CreateUserUseCase.ts\",\"to\":\"src/domain/User.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/application/CreateUserUseCase.ts\",\"to\":\"src/domain/UserRepository.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/infrastructure/UserController.ts\",\"to\":\"src/application/CreateUserUseCase.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/infrastructure/app.ts\",\"to\":\"src/application/CreateUserUseCase.ts\",\"type\":\"IMPORTS\"}],\"nodes\":[{\"kind\":\"Class\",\"layer\":\"application\",\"name\":\"CreateUserUseCase\",\"path\":\"src/application/CreateUserUseCase.ts\"},{\"kind\":\"Class\",\"layer\":\"infrastructure\",\"name\":\"UserController\",\"path\":\"src/infrastructure/UserController.ts\"},{\"kind\":\"File\",\"layer\":\"application\",\"path\":\"src/application/CreateUserUseCase.ts\"},{\"kind\":\"File\",\"layer\":\"application\",\"path\":\"src/application/dtos.ts\"},{\"kind\":\"File\",\"layer\":\"domain\",\"path\":\"src/domain/User.ts\"},{\"kind\":\"File\",\"layer\":\"domain\",\"path\":\"src/domain/UserRepository.ts\"},{\"kind\":\"File\",\"layer\":\"infrastructure\",\"path\":\"src/infrastructure/UserController.ts\"},{\"kind\":\"File\",\"layer\":\"infrastructure\",\"path\":\"src/infrastructure/app.ts\"},{\"kind\":\"Interface\",\"layer\":\"domain\",\"name\":\"UserRepository\",\"path\":\"src/domain/UserRepository.ts\"}]}\n\n## Instructions\nJudge the unit against the rule and rubric. Return the JSON object the schema requires. Set pass to false if any file of the unit fails the rubric.\n",
+  "provider": "claude-cli",
+  "recordedAt": "2026-10-11T02:42:31.921Z",
+  "repetition": 0,
+  "requestHash": "a97bc04e8c2883165187701474ce3dea205625b2276e4c8485033ce30124c02c",
+  "resolvedModel": "claude-opus-5-5",
+  "response": "{\"is_error\":false,\"modelUsage\":{\"claude-opus-5-5\":{\"inputTokens\":2,\"outputTokens\":710}},\"result\":\"{\\\"pass\\\":true,\\\"confidence\\\":0.85,\\\"reasoning\\\":\\\"CreateUserUseCase.execute is ordinary application-layer orchestration. It takes a request DTO, builds a domain User, saves it through the UserRepository port that comes from the domain and is injected through the constructor, and maps the result to a response DTO. The file holds no persistence code, no transport or HTTP handling, and no framework code. It also holds no substantial business rules that belong in the domain. One small design point: the user ID is generated inline with Math.random(). That could be moved behind an ID-generator port or into a domain factory. It is still not persistence, transport or framework logic, and it is not misplaced business logic, so it does not fail the rubric.\\\",\\\"evidence\\\":[\\\"src/application/CreateUserUseCase.ts: constructor(private userRepository: UserRepository) depends on a domain port, not a concrete persistence implementation\\\",\\\"src/application/CreateUserUseCase.ts: execute(request: CreateUserRequest): CreateUserResponse maps the request DTO to the entity and the entity to the response DTO, which is the application layer's job\\\",\\\"src/application/CreateUserUseCase.ts: this.userRepository.save(user) saves through an abstraction instead of running storage code directly\\\",\\\"src/application/CreateUserUseCase.ts: Math.random().toString(36).substring(2, 11) generates the ID inline. This is a small design point but not a responsibility from another layer kind\\\"],\\\"violations\\\":[]}\",\"structured_output\":{\"confidence\":0.85,\"evidence\":[\"src/application/CreateUserUseCase.ts: constructor(private userRepository: UserRepository) depends on a domain port, not a concrete persistence implementation\",\"src/application/CreateUserUseCase.ts: execute(request: CreateUserRequest): CreateUserResponse maps the request DTO to the entity and the entity to the response DTO, which is the application layer's job\",\"src/application/CreateUserUseCase.ts: this.userRepository.save(user) saves through an abstraction instead of running storage code directly\",\"src/application/CreateUserUseCase.ts: Math.random().toString(36).substring(2, 11) generates the ID inline. This is a small design point but not a responsibility from another layer kind\"],\"pass\":true,\"reasoning\":\"CreateUserUseCase.execute is ordinary application-layer orchestration. It takes a request DTO, builds a domain User, saves it through the UserRepository port that comes from the domain and is injected through the constructor, and maps the result to a response DTO. The file holds no persistence code, no transport or HTTP handling, and no framework code. It also holds no substantial business rules that belong in the domain. One small design point: the user ID is generated inline with Math.random(). That could be moved behind an ID-generator port or into a domain factory. It is still not persistence, transport or framework logic, and it is not misplaced business logic, so it does not fail the rubric.\",\"violations\":[]}}",
+  "runIndex": 0,
+  "schemaVersion": 2,
+  "unitId": "src/application/CreateUserUseCase.ts",
+  "usage": {
+    "inputTokens": 2864,
+    "outputTokens": 710
+  },
+  "usedOptions": {
+    "effort": "high",
+    "model": "claude-opus-5-5"
+  }
+}

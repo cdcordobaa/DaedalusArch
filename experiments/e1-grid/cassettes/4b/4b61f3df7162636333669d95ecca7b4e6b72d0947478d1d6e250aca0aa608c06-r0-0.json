@@ -1,0 +1,47 @@
+{
+  "attempts": 1,
+  "cliVersion": "2.1.294",
+  "configListingSha256": "47aa04258852fab9a706f3f0c14cee22306d69fbb6fdfbde8c11854bd54997bc",
+  "durationMs": 6801,
+  "effort": "high",
+  "functionId": "FF-N02",
+  "ignoredOptions": [
+    "maxTokens"
+  ],
+  "isolationProbeSha256": "97a2e2d0af1100c13c55e028c1a0c71f069093c3d08705af122aaeb302f1a641",
+  "key": "4b61f3df7162636333669d95ecca7b4e6b72d0947478d1d6e250aca0aa608c06-r0-0",
+  "model": "claude-opus-5-5",
+  "outcome": {
+    "kind": "valid"
+  },
+  "parsedVerdict": {
+    "confidence": 0.88,
+    "evidence": [
+      "src/application/errors/ErrorClassification.ts: ErrorCategory = 'not_found' | 'validation' | 'conflict' is a set of categories that doesn't depend on any transport, with no HTTP status codes or framework types",
+      "src/application/errors/ErrorClassification.ts: classifyError(error) only checks the error with instanceof DomainError/ApplicationError and returns { category, message }; it builds no transport response",
+      "Graph: src/infrastructure/http/middleware/ErrorHandlerMiddleware.ts imports ErrorClassification.ts, so the HTTP mapping happens in infrastructure"
+    ],
+    "pass": true,
+    "reasoning": "The file sorts known domain and application errors into categories that don't depend on any transport: 'not_found', 'validation' and 'conflict'. Adapters can then report these errors without knowing their concrete types. This is an application-layer job: it describes the outcomes of use cases as errors. It doesn't map errors to HTTP status codes, build responses, use framework types or touch persistence. Turning these categories into transport-specific responses is left to the infrastructure middleware (ErrorHandlerMiddleware), which imports this file. The file holds no misplaced business rules or infrastructure logic.",
+    "violations": []
+  },
+  "projectId": "claude-opus-5-5/task-management/full-aac/run-2",
+  "prompt": "## Rule\nThe unit's responsibilities match the role of its declared layer.\n\n## Rubric\nPass: Every responsibility in the file belongs to the role and kind of its declared layer, and agrees with any ADR prose given.\nFail: The file carries a responsibility that belongs to a different layer kind, for example persistence, transport or framework logic in a domain file, or business rules in an infrastructure or presentation file.\nEvidence required: Name the file and cite the function, method or statement that carries the misplaced responsibility, and the layer kind it belongs to.\nOut of scope: import direction and layer-dependency rules, which are checked symbolically.\n\n## Layer model\n- domain (kind: domain): src/domain/**\n- application (kind: application): src/application/**\n- infrastructure (kind: infrastructure): src/infrastructure/**\n\n## Unit\nKind: file\nId: src/application/errors/ErrorClassification.ts\nLayer: application\nUnit files:\n- src/application/errors/ErrorClassification.ts\n\n## Source\n=====SOURCE-BEGIN src/application/errors/ErrorClassification.ts=====\nimport { DomainError } from '../../domain/errors/DomainError';\nimport { ApplicationError } from './ApplicationError';\n\nexport type ErrorCategory = 'not_found' | 'validation' | 'conflict';\n\nexport interface ErrorDescription {\n  category: ErrorCategory;\n  message: string;\n}\n\n/** Describes known business errors so that adapters can report them without knowing their types. */\nexport function classifyError(error: unknown): ErrorDescription | null {\n  if (error instanceof DomainError || error instanceof ApplicationError) {\n    return { category: error.kind, message: error.message };\n  }\n  return null;\n}\n\n=====SOURCE-END=====\n\n## Graph excerpt\n{\"edges\":[{\"from\":\"src/application/errors/ErrorClassification.ts\",\"to\":\"src/application/errors/ApplicationError.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/application/errors/ErrorClassification.ts\",\"to\":\"src/domain/errors/DomainError.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/infrastructure/http/middleware/ErrorHandlerMiddleware.ts\",\"to\":\"src/application/errors/ErrorClassification.ts\",\"type\":\"IMPORTS\"}],\"nodes\":[{\"kind\":\"File\",\"layer\":\"application\",\"path\":\"src/application/errors/ApplicationError.ts\"},{\"kind\":\"File\",\"layer\":\"application\",\"path\":\"src/application/errors/ErrorClassification.ts\"},{\"kind\":\"File\",\"layer\":\"domain\",\"path\":\"src/domain/errors/DomainError.ts\"},{\"kind\":\"File\",\"layer\":\"infrastructure\",\"path\":\"src/infrastructure/http/middleware/ErrorHandlerMiddleware.ts\"},{\"kind\":\"Interface\",\"layer\":\"application\",\"name\":\"ErrorDescription\",\"path\":\"src/application/errors/ErrorClassification.ts\"}]}\n\n## Instructions\nJudge the unit against the rule and rubric. Return the JSON object the schema requires. Set pass to false if any file of the unit fails the rubric.\n",
+  "provider": "claude-cli",
+  "recordedAt": "2026-10-10T22:10:11.671Z",
+  "repetition": 0,
+  "requestHash": "4b61f3df7162636333669d95ecca7b4e6b72d0947478d1d6e250aca0aa608c06",
+  "resolvedModel": "claude-opus-5-5",
+  "response": "{\"is_error\":false,\"modelUsage\":{\"claude-opus-5-5\":{\"inputTokens\":2,\"outputTokens\":584}},\"result\":\"{\\\"pass\\\":true,\\\"confidence\\\":0.88,\\\"reasoning\\\":\\\"The file sorts known domain and application errors into categories that don't depend on any transport: 'not_found', 'validation' and 'conflict'. Adapters can then report these errors without knowing their concrete types. This is an application-layer job: it describes the outcomes of use cases as errors. It doesn't map errors to HTTP status codes, build responses, use framework types or touch persistence. Turning these categories into transport-specific responses is left to the infrastructure middleware (ErrorHandlerMiddleware), which imports this file. The file holds no misplaced business rules or infrastructure logic.\\\",\\\"evidence\\\":[\\\"src/application/errors/ErrorClassification.ts: ErrorCategory = 'not_found' | 'validation' | 'conflict' is a set of categories that doesn't depend on any transport, with no HTTP status codes or framework types\\\",\\\"src/application/errors/ErrorClassification.ts: classifyError(error) only checks the error with instanceof DomainError/ApplicationError and returns { category, message }; it builds no transport response\\\",\\\"Graph: src/infrastructure/http/middleware/ErrorHandlerMiddleware.ts imports ErrorClassification.ts, so the HTTP mapping happens in infrastructure\\\"],\\\"violations\\\":[]}\",\"structured_output\":{\"confidence\":0.88,\"evidence\":[\"src/application/errors/ErrorClassification.ts: ErrorCategory = 'not_found' | 'validation' | 'conflict' is a set of categories that doesn't depend on any transport, with no HTTP status codes or framework types\",\"src/application/errors/ErrorClassification.ts: classifyError(error) only checks the error with instanceof DomainError/ApplicationError and returns { category, message }; it builds no transport response\",\"Graph: src/infrastructure/http/middleware/ErrorHandlerMiddleware.ts imports ErrorClassification.ts, so the HTTP mapping happens in infrastructure\"],\"pass\":true,\"reasoning\":\"The file sorts known domain and application errors into categories that don't depend on any transport: 'not_found', 'validation' and 'conflict'. Adapters can then report these errors without knowing their concrete types. This is an application-layer job: it describes the outcomes of use cases as errors. It doesn't map errors to HTTP status codes, build responses, use framework types or touch persistence. Turning these categories into transport-specific responses is left to the infrastructure middleware (ErrorHandlerMiddleware), which imports this file. The file holds no misplaced business rules or infrastructure logic.\",\"violations\":[]}}",
+  "runIndex": 0,
+  "schemaVersion": 2,
+  "unitId": "src/application/errors/ErrorClassification.ts",
+  "usage": {
+    "inputTokens": 2519,
+    "outputTokens": 584
+  },
+  "usedOptions": {
+    "effort": "high",
+    "model": "claude-opus-5-5"
+  }
+}

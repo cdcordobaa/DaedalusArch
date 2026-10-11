@@ -1,0 +1,49 @@
+{
+  "attempts": 1,
+  "cliVersion": "2.1.294",
+  "configListingSha256": "47aa04258852fab9a706f3f0c14cee22306d69fbb6fdfbde8c11854bd54997bc",
+  "durationMs": 8009,
+  "effort": "high",
+  "functionId": "FF-N02",
+  "ignoredOptions": [
+    "maxTokens"
+  ],
+  "isolationProbeSha256": "97a2e2d0af1100c13c55e028c1a0c71f069093c3d08705af122aaeb302f1a641",
+  "key": "e3b08d765976ffb7859809c80978c6b7089bd5872dfc3d6ad8b432ac3122912d-r0-2",
+  "model": "claude-opus-5-5",
+  "outcome": {
+    "kind": "valid"
+  },
+  "parsedVerdict": {
+    "confidence": 0.85,
+    "evidence": [
+      "src/application/CreateUserUseCase.ts: execute(name) creates the entity with `new User(randomUUID(), name)` and saves it with `this.users.save(user)`, which is use-case orchestration.",
+      "Saving goes through the injected UserRepository port declared in src/domain/Repositories.ts, with no storage code in this file.",
+      "No HTTP, request/response, framework or serialization code is in the file.",
+      "No business rules or validation are written inline; entity construction is left to the domain User class.",
+      "randomUUID() from Node's standard 'crypto' module is used only to create an ID, a small utility call rather than infrastructure logic."
+    ],
+    "pass": true,
+    "reasoning": "CreateUserUseCase.execute does application-layer orchestration. It builds a domain entity (new User(...)), saves it through a repository port (this.users.save(user)) and returns the result. It has no SQL or storage code, no HTTP or other framework code, and no business rules or invariants that should live in the domain. The only debatable part is the direct call to randomUUID() from Node's standard 'crypto' module. That could be hidden behind an ID-generator port, but the ID is created as part of running the use case, which is a normal application-layer job, so it is not a responsibility from another layer.",
+    "violations": []
+  },
+  "projectId": "gpt-5.6-terra/task-management/full-aac/run-0",
+  "prompt": "## Rule\nThe unit's responsibilities match the role of its declared layer.\n\n## Rubric\nPass: Every responsibility in the file belongs to the role and kind of its declared layer, and agrees with any ADR prose given.\nFail: The file carries a responsibility that belongs to a different layer kind, for example persistence, transport or framework logic in a domain file, or business rules in an infrastructure or presentation file.\nEvidence required: Name the file and cite the function, method or statement that carries the misplaced responsibility, and the layer kind it belongs to.\nOut of scope: import direction and layer-dependency rules, which are checked symbolically.\n\n## Layer model\n- domain (kind: domain): src/domain/**\n- application (kind: application): src/application/**\n- infrastructure (kind: infrastructure): src/infrastructure/**\n\n## Unit\nKind: file\nId: src/application/CreateUserUseCase.ts\nLayer: application\nUnit files:\n- src/application/CreateUserUseCase.ts\n\n## Source\n=====SOURCE-BEGIN src/application/CreateUserUseCase.ts=====\nimport { randomUUID } from \"crypto\";\nimport { User } from \"../domain/User\";\nimport { UserRepository } from \"../domain/Repositories\";\n\nexport class CreateUserUseCase {\n  public constructor(private readonly users: UserRepository) {}\n\n  public execute(name: string): User {\n    const user = new User(randomUUID(), name);\n    this.users.save(user);\n    return user;\n  }\n}\n\n=====SOURCE-END=====\n\n## Graph excerpt\n{\"edges\":[{\"from\":\"CreateUserUseCase@src/application/CreateUserUseCase.ts\",\"to\":\"UserRepository@src/domain/Repositories.ts\",\"type\":\"CONSTRUCTOR_INJECTS\"},{\"from\":\"src/application/CreateUserUseCase.ts\",\"to\":\"crypto\",\"type\":\"IMPORTS\"},{\"from\":\"src/application/CreateUserUseCase.ts\",\"to\":\"src/domain/Repositories.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/application/CreateUserUseCase.ts\",\"to\":\"src/domain/User.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/infrastructure/TaskController.ts\",\"to\":\"src/application/CreateUserUseCase.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/infrastructure/server.ts\",\"to\":\"src/application/CreateUserUseCase.ts\",\"type\":\"IMPORTS\"}],\"nodes\":[{\"kind\":\"Class\",\"layer\":\"application\",\"name\":\"CreateUserUseCase\",\"path\":\"src/application/CreateUserUseCase.ts\"},{\"kind\":\"File\",\"layer\":\"application\",\"path\":\"src/application/CreateUserUseCase.ts\"},{\"kind\":\"File\",\"layer\":\"domain\",\"path\":\"src/domain/Repositories.ts\"},{\"kind\":\"File\",\"layer\":\"domain\",\"path\":\"src/domain/User.ts\"},{\"kind\":\"File\",\"layer\":\"infrastructure\",\"path\":\"src/infrastructure/TaskController.ts\"},{\"kind\":\"File\",\"layer\":\"infrastructure\",\"path\":\"src/infrastructure/server.ts\"},{\"kind\":\"Interface\",\"layer\":\"domain\",\"name\":\"UserRepository\",\"path\":\"src/domain/Repositories.ts\"},{\"kind\":\"Package\",\"layer\":null,\"path\":\"crypto\"}]}\n\n## Instructions\nJudge the unit against the rule and rubric. Return the JSON object the schema requires. Set pass to false if any file of the unit fails the rubric.\n",
+  "provider": "claude-cli",
+  "recordedAt": "2026-10-11T03:25:02.099Z",
+  "repetition": 0,
+  "requestHash": "e3b08d765976ffb7859809c80978c6b7089bd5872dfc3d6ad8b432ac3122912d",
+  "resolvedModel": "claude-opus-5-5",
+  "response": "{\"is_error\":false,\"modelUsage\":{\"claude-opus-5-5\":{\"inputTokens\":2,\"outputTokens\":628}},\"result\":\"{\\\"pass\\\":true,\\\"confidence\\\":0.85,\\\"reasoning\\\":\\\"CreateUserUseCase.execute does application-layer orchestration. It builds a domain entity (new User(...)), saves it through a repository port (this.users.save(user)) and returns the result. It has no SQL or storage code, no HTTP or other framework code, and no business rules or invariants that should live in the domain. The only debatable part is the direct call to randomUUID() from Node's standard 'crypto' module. That could be hidden behind an ID-generator port, but the ID is created as part of running the use case, which is a normal application-layer job, so it is not a responsibility from another layer.\\\",\\\"evidence\\\":[\\\"src/application/CreateUserUseCase.ts: execute(name) creates the entity with `new User(randomUUID(), name)` and saves it with `this.users.save(user)`, which is use-case orchestration.\\\",\\\"Saving goes through the injected UserRepository port declared in src/domain/Repositories.ts, with no storage code in this file.\\\",\\\"No HTTP, request/response, framework or serialization code is in the file.\\\",\\\"No business rules or validation are written inline; entity construction is left to the domain User class.\\\",\\\"randomUUID() from Node's standard 'crypto' module is used only to create an ID, a small utility call rather than infrastructure logic.\\\"],\\\"violations\\\":[]}\",\"structured_output\":{\"confidence\":0.85,\"evidence\":[\"src/application/CreateUserUseCase.ts: execute(name) creates the entity with `new User(randomUUID(), name)` and saves it with `this.users.save(user)`, which is use-case orchestration.\",\"Saving goes through the injected UserRepository port declared in src/domain/Repositories.ts, with no storage code in this file.\",\"No HTTP, request/response, framework or serialization code is in the file.\",\"No business rules or validation are written inline; entity construction is left to the domain User class.\",\"randomUUID() from Node's standard 'crypto' module is used only to create an ID, a small utility call rather than infrastructure logic.\"],\"pass\":true,\"reasoning\":\"CreateUserUseCase.execute does application-layer orchestration. It builds a domain entity (new User(...)), saves it through a repository port (this.users.save(user)) and returns the result. It has no SQL or storage code, no HTTP or other framework code, and no business rules or invariants that should live in the domain. The only debatable part is the direct call to randomUUID() from Node's standard 'crypto' module. That could be hidden behind an ID-generator port, but the ID is created as part of running the use case, which is a normal application-layer job, so it is not a responsibility from another layer.\",\"violations\":[]}}",
+  "runIndex": 2,
+  "schemaVersion": 2,
+  "unitId": "src/application/CreateUserUseCase.ts",
+  "usage": {
+    "inputTokens": 2651,
+    "outputTokens": 628
+  },
+  "usedOptions": {
+    "effort": "high",
+    "model": "claude-opus-5-5"
+  }
+}

@@ -1,0 +1,47 @@
+{
+  "attempts": 1,
+  "cliVersion": "2.1.294",
+  "configListingSha256": "47aa04258852fab9a706f3f0c14cee22306d69fbb6fdfbde8c11854bd54997bc",
+  "durationMs": 5644,
+  "effort": "high",
+  "functionId": "FF-N02",
+  "ignoredOptions": [
+    "maxTokens"
+  ],
+  "isolationProbeSha256": "97a2e2d0af1100c13c55e028c1a0c71f069093c3d08705af122aaeb302f1a641",
+  "key": "f4ab20b2196d2fa5c36fd3f131be8ca7a5360ed21745e82b1a1e71c2615c003a-r0-2",
+  "model": "claude-opus-5-5",
+  "outcome": {
+    "kind": "valid"
+  },
+  "parsedVerdict": {
+    "confidence": 0.95,
+    "evidence": [
+      "src/infrastructure/UserRepository.ts: class UserRepository implements IUserRepository, so it is a persistence adapter for a domain port, which belongs in infrastructure.",
+      "save(user) only calls this.users.set(user.getId(), user). This is pure storage with no business checks.",
+      "findById and findAll only read from the in-memory Map, which is a data-access responsibility."
+    ],
+    "pass": true,
+    "reasoning": "UserRepository is an in-memory persistence adapter that implements the domain port IUserRepository. All three methods (save, findById, findAll) only store and retrieve data, which is the job of an infrastructure layer. The file has no business rules, validation, use-case orchestration or domain invariants. Its responsibilities match its declared infrastructure layer.",
+    "violations": []
+  },
+  "projectId": "claude-haiku-4-5/task-management/full-aac/run-0",
+  "prompt": "## Rule\nThe unit's responsibilities match the role of its declared layer.\n\n## Rubric\nPass: Every responsibility in the file belongs to the role and kind of its declared layer, and agrees with any ADR prose given.\nFail: The file carries a responsibility that belongs to a different layer kind, for example persistence, transport or framework logic in a domain file, or business rules in an infrastructure or presentation file.\nEvidence required: Name the file and cite the function, method or statement that carries the misplaced responsibility, and the layer kind it belongs to.\nOut of scope: import direction and layer-dependency rules, which are checked symbolically.\n\n## Layer model\n- domain (kind: domain): src/domain/**\n- application (kind: application): src/application/**\n- infrastructure (kind: infrastructure): src/infrastructure/**\n\n## Unit\nKind: file\nId: src/infrastructure/UserRepository.ts\nLayer: infrastructure\nUnit files:\n- src/infrastructure/UserRepository.ts\n\n## Source\n=====SOURCE-BEGIN src/infrastructure/UserRepository.ts=====\nimport { User } from \"../domain/User\";\nimport { IUserRepository } from \"../domain/IUserRepository\";\n\nexport class UserRepository implements IUserRepository {\n  private users: Map<string, User> = new Map();\n\n  save(user: User): void {\n    this.users.set(user.getId(), user);\n  }\n\n  findById(id: string): User | null {\n    return this.users.get(id) || null;\n  }\n\n  findAll(): User[] {\n    return Array.from(this.users.values());\n  }\n}\n\n=====SOURCE-END=====\n\n## Graph excerpt\n{\"edges\":[{\"from\":\"UserRepository@src/infrastructure/UserRepository.ts\",\"to\":\"IUserRepository@src/domain/IUserRepository.ts\",\"type\":\"IMPLEMENTS\"},{\"from\":\"src/infrastructure/UserRepository.ts\",\"to\":\"src/domain/IUserRepository.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/infrastructure/UserRepository.ts\",\"to\":\"src/domain/User.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/infrastructure/app.ts\",\"to\":\"src/infrastructure/UserRepository.ts\",\"type\":\"IMPORTS\"}],\"nodes\":[{\"kind\":\"Class\",\"layer\":\"infrastructure\",\"name\":\"UserRepository\",\"path\":\"src/infrastructure/UserRepository.ts\"},{\"kind\":\"File\",\"layer\":\"domain\",\"path\":\"src/domain/IUserRepository.ts\"},{\"kind\":\"File\",\"layer\":\"domain\",\"path\":\"src/domain/User.ts\"},{\"kind\":\"File\",\"layer\":\"infrastructure\",\"path\":\"src/infrastructure/UserRepository.ts\"},{\"kind\":\"File\",\"layer\":\"infrastructure\",\"path\":\"src/infrastructure/app.ts\"},{\"kind\":\"Interface\",\"layer\":\"domain\",\"name\":\"IUserRepository\",\"path\":\"src/domain/IUserRepository.ts\"}]}\n\n## Instructions\nJudge the unit against the rule and rubric. Return the JSON object the schema requires. Set pass to false if any file of the unit fails the rubric.\n",
+  "provider": "claude-cli",
+  "recordedAt": "2026-10-11T02:52:27.975Z",
+  "repetition": 0,
+  "requestHash": "f4ab20b2196d2fa5c36fd3f131be8ca7a5360ed21745e82b1a1e71c2615c003a",
+  "resolvedModel": "claude-opus-5-5",
+  "response": "{\"is_error\":false,\"modelUsage\":{\"claude-opus-5-5\":{\"inputTokens\":2,\"outputTokens\":383}},\"result\":\"{\\\"pass\\\":true,\\\"confidence\\\":0.95,\\\"reasoning\\\":\\\"UserRepository is an in-memory persistence adapter that implements the domain port IUserRepository. All three methods (save, findById, findAll) only store and retrieve data, which is the job of an infrastructure layer. The file has no business rules, validation, use-case orchestration or domain invariants. Its responsibilities match its declared infrastructure layer.\\\",\\\"evidence\\\":[\\\"src/infrastructure/UserRepository.ts: class UserRepository implements IUserRepository, so it is a persistence adapter for a domain port, which belongs in infrastructure.\\\",\\\"save(user) only calls this.users.set(user.getId(), user). This is pure storage with no business checks.\\\",\\\"findById and findAll only read from the in-memory Map, which is a data-access responsibility.\\\"],\\\"violations\\\":[]}\",\"structured_output\":{\"confidence\":0.95,\"evidence\":[\"src/infrastructure/UserRepository.ts: class UserRepository implements IUserRepository, so it is a persistence adapter for a domain port, which belongs in infrastructure.\",\"save(user) only calls this.users.set(user.getId(), user). This is pure storage with no business checks.\",\"findById and findAll only read from the in-memory Map, which is a data-access responsibility.\"],\"pass\":true,\"reasoning\":\"UserRepository is an in-memory persistence adapter that implements the domain port IUserRepository. All three methods (save, findById, findAll) only store and retrieve data, which is the job of an infrastructure layer. The file has no business rules, validation, use-case orchestration or domain invariants. Its responsibilities match its declared infrastructure layer.\",\"violations\":[]}}",
+  "runIndex": 2,
+  "schemaVersion": 2,
+  "unitId": "src/infrastructure/UserRepository.ts",
+  "usage": {
+    "inputTokens": 2532,
+    "outputTokens": 383
+  },
+  "usedOptions": {
+    "effort": "high",
+    "model": "claude-opus-5-5"
+  }
+}

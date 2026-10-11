@@ -1,0 +1,47 @@
+{
+  "attempts": 1,
+  "cliVersion": "2.1.294",
+  "configListingSha256": "47aa04258852fab9a706f3f0c14cee22306d69fbb6fdfbde8c11854bd54997bc",
+  "durationMs": 6088,
+  "effort": "high",
+  "functionId": "FF-N02",
+  "ignoredOptions": [
+    "maxTokens"
+  ],
+  "isolationProbeSha256": "97a2e2d0af1100c13c55e028c1a0c71f069093c3d08705af122aaeb302f1a641",
+  "key": "099a96383f331bfaf6fe0fa8c6164a65ec1bc1773276e190c306bd9ab490d15d-r0-1",
+  "model": "claude-opus-5-5",
+  "outcome": {
+    "kind": "valid"
+  },
+  "parsedVerdict": {
+    "confidence": 0.9,
+    "evidence": [
+      "routes() creates an Express Router and links POST / and GET / to handlers. This is transport and framework work, which belongs in infrastructure.",
+      "register calls asRecord, requireString and requireNumber to check the shape of the request input, then calls registerProduct.execute and sends res.status(201).json(product). This is input parsing and response mapping, with no business decisions.",
+      "listStock calls listProductStock.execute() and returns the result as JSON. It only passes the call to the application layer."
+    ],
+    "pass": true,
+    "reasoning": "ProductController is an Express HTTP adapter in the infrastructure layer, and everything it does is transport work. It sets up routes, parses and checks the request body using shared helpers, hands the work to application use cases, and maps the results to HTTP status codes and JSON responses. It holds no business rules, such as stock checks or rules on how products are registered. It does no persistence work and contains no domain logic. All of its responsibilities fit the infrastructure layer.",
+    "violations": []
+  },
+  "projectId": "claude-opus-5-5/order-fulfilment/full-aac/run-2",
+  "prompt": "## Rule\nThe unit's responsibilities match the role of its declared layer.\n\n## Rubric\nPass: Every responsibility in the file belongs to the role and kind of its declared layer, and agrees with any ADR prose given.\nFail: The file carries a responsibility that belongs to a different layer kind, for example persistence, transport or framework logic in a domain file, or business rules in an infrastructure or presentation file.\nEvidence required: Name the file and cite the function, method or statement that carries the misplaced responsibility, and the layer kind it belongs to.\nOut of scope: import direction and layer-dependency rules, which are checked symbolically.\n\n## Layer model\n- domain (kind: domain): src/domain/**\n- application (kind: application): src/application/**\n- infrastructure (kind: infrastructure): src/infrastructure/**\n\n## Unit\nKind: file\nId: src/infrastructure/ProductController.ts\nLayer: infrastructure\nUnit files:\n- src/infrastructure/ProductController.ts\n\n## Source\n=====SOURCE-BEGIN src/infrastructure/ProductController.ts=====\nimport { Request, Response, Router } from 'express';\nimport { ListProductStockUseCase } from '../application/ListProductStockUseCase';\nimport { RegisterProductUseCase } from '../application/RegisterProductUseCase';\nimport { asRecord, requireNumber, requireString } from './RequestParsing';\n\nexport interface ProductUseCases {\n  registerProduct: RegisterProductUseCase;\n  listProductStock: ListProductStockUseCase;\n}\n\nexport class ProductController {\n  constructor(private readonly useCases: ProductUseCases) {}\n\n  routes(): Router {\n    const router = Router();\n    router.post('/', this.register);\n    router.get('/', this.listStock);\n    return router;\n  }\n\n  private readonly register = (req: Request, res: Response): void => {\n    const record = asRecord(req.body, 'Request body');\n    const product = this.useCases.registerProduct.execute({\n      productId: requireString(record, 'productId'),\n      name: requireString(record, 'name'),\n      initialStock: requireNumber(record, 'initialStock'),\n    });\n    res.status(201).json(product);\n  };\n\n  private readonly listStock = (_req: Request, res: Response): void => {\n    res.json(this.useCases.listProductStock.execute());\n  };\n}\n\n=====SOURCE-END=====\n\n## Graph excerpt\n{\"edges\":[{\"from\":\"ProductController@src/infrastructure/ProductController.ts\",\"to\":\"ProductUseCases@src/infrastructure/ProductController.ts\",\"type\":\"CONSTRUCTOR_INJECTS\"},{\"from\":\"src/infrastructure/CatalogueModule.ts\",\"to\":\"src/infrastructure/ProductController.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/infrastructure/HttpApp.ts\",\"to\":\"src/infrastructure/ProductController.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/infrastructure/ProductController.ts\",\"to\":\"express\",\"type\":\"IMPORTS\"},{\"from\":\"src/infrastructure/ProductController.ts\",\"to\":\"src/application/ListProductStockUseCase.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/infrastructure/ProductController.ts\",\"to\":\"src/application/RegisterProductUseCase.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/infrastructure/ProductController.ts\",\"to\":\"src/infrastructure/RequestParsing.ts\",\"type\":\"IMPORTS\"}],\"nodes\":[{\"kind\":\"Class\",\"layer\":\"infrastructure\",\"name\":\"ProductController\",\"path\":\"src/infrastructure/ProductController.ts\"},{\"kind\":\"File\",\"layer\":\"application\",\"path\":\"src/application/ListProductStockUseCase.ts\"},{\"kind\":\"File\",\"layer\":\"application\",\"path\":\"src/application/RegisterProductUseCase.ts\"},{\"kind\":\"File\",\"layer\":\"infrastructure\",\"path\":\"src/infrastructure/CatalogueModule.ts\"},{\"kind\":\"File\",\"layer\":\"infrastructure\",\"path\":\"src/infrastructure/HttpApp.ts\"},{\"kind\":\"File\",\"layer\":\"infrastructure\",\"path\":\"src/infrastructure/ProductController.ts\"},{\"kind\":\"File\",\"layer\":\"infrastructure\",\"path\":\"src/infrastructure/RequestParsing.ts\"},{\"kind\":\"Interface\",\"layer\":\"infrastructure\",\"name\":\"ProductUseCases\",\"path\":\"src/infrastructure/ProductController.ts\"},{\"kind\":\"Package\",\"layer\":null,\"path\":\"express\"}]}\n\n## Instructions\nJudge the unit against the rule and rubric. Return the JSON object the schema requires. Set pass to false if any file of the unit fails the rubric.\n",
+  "provider": "claude-cli",
+  "recordedAt": "2026-10-10T22:24:16.647Z",
+  "repetition": 0,
+  "requestHash": "099a96383f331bfaf6fe0fa8c6164a65ec1bc1773276e190c306bd9ab490d15d",
+  "resolvedModel": "claude-opus-5-5",
+  "response": "{\"is_error\":false,\"modelUsage\":{\"claude-opus-5-5\":{\"inputTokens\":2,\"outputTokens\":447}},\"result\":\"{\\\"pass\\\":true,\\\"confidence\\\":0.9,\\\"reasoning\\\":\\\"ProductController is an Express HTTP adapter in the infrastructure layer, and everything it does is transport work. It sets up routes, parses and checks the request body using shared helpers, hands the work to application use cases, and maps the results to HTTP status codes and JSON responses. It holds no business rules, such as stock checks or rules on how products are registered. It does no persistence work and contains no domain logic. All of its responsibilities fit the infrastructure layer.\\\",\\\"evidence\\\":[\\\"routes() creates an Express Router and links POST / and GET / to handlers. This is transport and framework work, which belongs in infrastructure.\\\",\\\"register calls asRecord, requireString and requireNumber to check the shape of the request input, then calls registerProduct.execute and sends res.status(201).json(product). This is input parsing and response mapping, with no business decisions.\\\",\\\"listStock calls listProductStock.execute() and returns the result as JSON. It only passes the call to the application layer.\\\"],\\\"violations\\\":[]}\",\"structured_output\":{\"confidence\":0.9,\"evidence\":[\"routes() creates an Express Router and links POST / and GET / to handlers. This is transport and framework work, which belongs in infrastructure.\",\"register calls asRecord, requireString and requireNumber to check the shape of the request input, then calls registerProduct.execute and sends res.status(201).json(product). This is input parsing and response mapping, with no business decisions.\",\"listStock calls listProductStock.execute() and returns the result as JSON. It only passes the call to the application layer.\"],\"pass\":true,\"reasoning\":\"ProductController is an Express HTTP adapter in the infrastructure layer, and everything it does is transport work. It sets up routes, parses and checks the request body using shared helpers, hands the work to application use cases, and maps the results to HTTP status codes and JSON responses. It holds no business rules, such as stock checks or rules on how products are registered. It does no persistence work and contains no domain logic. All of its responsibilities fit the infrastructure layer.\",\"violations\":[]}}",
+  "runIndex": 1,
+  "schemaVersion": 2,
+  "unitId": "src/infrastructure/ProductController.ts",
+  "usage": {
+    "inputTokens": 3076,
+    "outputTokens": 447
+  },
+  "usedOptions": {
+    "effort": "high",
+    "model": "claude-opus-5-5"
+  }
+}

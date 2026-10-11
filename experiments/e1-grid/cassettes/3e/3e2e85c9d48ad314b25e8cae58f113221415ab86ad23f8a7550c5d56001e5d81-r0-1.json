@@ -1,0 +1,49 @@
+{
+  "attempts": 1,
+  "cliVersion": "2.1.294",
+  "configListingSha256": "47aa04258852fab9a706f3f0c14cee22306d69fbb6fdfbde8c11854bd54997bc",
+  "durationMs": 5891,
+  "effort": "high",
+  "functionId": "FF-N02",
+  "ignoredOptions": [
+    "maxTokens"
+  ],
+  "isolationProbeSha256": "97a2e2d0af1100c13c55e028c1a0c71f069093c3d08705af122aaeb302f1a641",
+  "key": "3e2e85c9d48ad314b25e8cae58f113221415ab86ad23f8a7550c5d56001e5d81-r0-1",
+  "model": "claude-opus-5-5",
+  "outcome": {
+    "kind": "valid"
+  },
+  "parsedVerdict": {
+    "confidence": 0.95,
+    "evidence": [
+      "TaskStatusType union type defines the allowed domain values 'todo' | 'in progress' | 'done'",
+      "Static factories todo(), inProgress(), done() create value objects",
+      "fromString() checks the input against the domain's allowed values and throws on invalid input, which is a domain rule",
+      "isDone() and equals() are value-object behaviours",
+      "No I/O, database, HTTP or framework code appears in the file"
+    ],
+    "pass": true,
+    "reasoning": "src/domain/TaskStatus.ts is a plain domain value object. It defines the allowed status values, has factory methods, checks input in fromString, and provides isDone and equals for value-based comparison. It has no persistence, transport, framework or orchestration logic. Every responsibility in the file fits the domain layer.",
+    "violations": []
+  },
+  "projectId": "claude-haiku-4-5/task-management/full-aac/run-0",
+  "prompt": "## Rule\nThe unit's responsibilities match the role of its declared layer.\n\n## Rubric\nPass: Every responsibility in the file belongs to the role and kind of its declared layer, and agrees with any ADR prose given.\nFail: The file carries a responsibility that belongs to a different layer kind, for example persistence, transport or framework logic in a domain file, or business rules in an infrastructure or presentation file.\nEvidence required: Name the file and cite the function, method or statement that carries the misplaced responsibility, and the layer kind it belongs to.\nOut of scope: import direction and layer-dependency rules, which are checked symbolically.\n\n## Layer model\n- domain (kind: domain): src/domain/**\n- application (kind: application): src/application/**\n- infrastructure (kind: infrastructure): src/infrastructure/**\n\n## Unit\nKind: file\nId: src/domain/TaskStatus.ts\nLayer: domain\nUnit files:\n- src/domain/TaskStatus.ts\n\n## Source\n=====SOURCE-BEGIN src/domain/TaskStatus.ts=====\nexport type TaskStatusType = \"todo\" | \"in progress\" | \"done\";\n\nexport class TaskStatus {\n  constructor(private readonly value: TaskStatusType) {}\n\n  static todo(): TaskStatus {\n    return new TaskStatus(\"todo\");\n  }\n\n  static inProgress(): TaskStatus {\n    return new TaskStatus(\"in progress\");\n  }\n\n  static done(): TaskStatus {\n    return new TaskStatus(\"done\");\n  }\n\n  static fromString(value: string): TaskStatus {\n    if (![\"todo\", \"in progress\", \"done\"].includes(value)) {\n      throw new Error(`Invalid task status: ${value}`);\n    }\n    return new TaskStatus(value as TaskStatusType);\n  }\n\n  getValue(): TaskStatusType {\n    return this.value;\n  }\n\n  isDone(): boolean {\n    return this.value === \"done\";\n  }\n\n  equals(other: TaskStatus): boolean {\n    return this.value === other.value;\n  }\n}\n\n=====SOURCE-END=====\n\n## Graph excerpt\n{\"edges\":[{\"from\":\"Task@src/domain/Task.ts\",\"to\":\"TaskStatus@src/domain/TaskStatus.ts\",\"type\":\"CONSTRUCTOR_INJECTS\"},{\"from\":\"Task@src/domain/Task.ts\",\"to\":\"TaskStatus@src/domain/TaskStatus.ts\",\"type\":\"FLOWS_TO\"},{\"from\":\"src/application/CreateTaskUseCase.ts\",\"to\":\"src/domain/TaskStatus.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/domain/Task.ts\",\"to\":\"src/domain/TaskStatus.ts\",\"type\":\"IMPORTS\"}],\"nodes\":[{\"kind\":\"Class\",\"layer\":\"domain\",\"name\":\"Task\",\"path\":\"src/domain/Task.ts\"},{\"kind\":\"Class\",\"layer\":\"domain\",\"name\":\"TaskStatus\",\"path\":\"src/domain/TaskStatus.ts\"},{\"kind\":\"File\",\"layer\":\"application\",\"path\":\"src/application/CreateTaskUseCase.ts\"},{\"kind\":\"File\",\"layer\":\"domain\",\"path\":\"src/domain/Task.ts\"},{\"kind\":\"File\",\"layer\":\"domain\",\"path\":\"src/domain/TaskStatus.ts\"}]}\n\n## Instructions\nJudge the unit against the rule and rubric. Return the JSON object the schema requires. Set pass to false if any file of the unit fails the rubric.\n",
+  "provider": "claude-cli",
+  "recordedAt": "2026-10-10T20:53:43.787Z",
+  "repetition": 0,
+  "requestHash": "3e2e85c9d48ad314b25e8cae58f113221415ab86ad23f8a7550c5d56001e5d81",
+  "resolvedModel": "claude-opus-5-5",
+  "response": "{\"is_error\":false,\"modelUsage\":{\"claude-opus-5-5\":{\"inputTokens\":2,\"outputTokens\":381}},\"result\":\"{\\\"pass\\\":true,\\\"confidence\\\":0.95,\\\"reasoning\\\":\\\"src/domain/TaskStatus.ts is a plain domain value object. It defines the allowed status values, has factory methods, checks input in fromString, and provides isDone and equals for value-based comparison. It has no persistence, transport, framework or orchestration logic. Every responsibility in the file fits the domain layer.\\\",\\\"evidence\\\":[\\\"TaskStatusType union type defines the allowed domain values 'todo' | 'in progress' | 'done'\\\",\\\"Static factories todo(), inProgress(), done() create value objects\\\",\\\"fromString() checks the input against the domain's allowed values and throws on invalid input, which is a domain rule\\\",\\\"isDone() and equals() are value-object behaviours\\\",\\\"No I/O, database, HTTP or framework code appears in the file\\\"],\\\"violations\\\":[]}\",\"structured_output\":{\"confidence\":0.95,\"evidence\":[\"TaskStatusType union type defines the allowed domain values 'todo' | 'in progress' | 'done'\",\"Static factories todo(), inProgress(), done() create value objects\",\"fromString() checks the input against the domain's allowed values and throws on invalid input, which is a domain rule\",\"isDone() and equals() are value-object behaviours\",\"No I/O, database, HTTP or framework code appears in the file\"],\"pass\":true,\"reasoning\":\"src/domain/TaskStatus.ts is a plain domain value object. It defines the allowed status values, has factory methods, checks input in fromString, and provides isDone and equals for value-based comparison. It has no persistence, transport, framework or orchestration logic. Every responsibility in the file fits the domain layer.\",\"violations\":[]}}",
+  "runIndex": 1,
+  "schemaVersion": 2,
+  "unitId": "src/domain/TaskStatus.ts",
+  "usage": {
+    "inputTokens": 2647,
+    "outputTokens": 381
+  },
+  "usedOptions": {
+    "effort": "high",
+    "model": "claude-opus-5-5"
+  }
+}

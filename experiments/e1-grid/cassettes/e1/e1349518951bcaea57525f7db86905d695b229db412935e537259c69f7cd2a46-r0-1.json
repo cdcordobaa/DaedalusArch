@@ -1,0 +1,47 @@
+{
+  "attempts": 1,
+  "cliVersion": "2.1.294",
+  "configListingSha256": "47aa04258852fab9a706f3f0c14cee22306d69fbb6fdfbde8c11854bd54997bc",
+  "durationMs": 5788,
+  "effort": "high",
+  "functionId": "FF-N02",
+  "ignoredOptions": [
+    "maxTokens"
+  ],
+  "isolationProbeSha256": "97a2e2d0af1100c13c55e028c1a0c71f069093c3d08705af122aaeb302f1a641",
+  "key": "e1349518951bcaea57525f7db86905d695b229db412935e537259c69f7cd2a46-r0-1",
+  "model": "claude-opus-5-5",
+  "outcome": {
+    "kind": "valid"
+  },
+  "parsedVerdict": {
+    "confidence": 0.93,
+    "evidence": [
+      "src/infrastructure/server.ts: `const port = Number(process.env['PORT'] ?? 3000)` reads environment config, which is an infrastructure concern",
+      "src/infrastructure/server.ts: `createInMemoryPersistence()` and `createOrderController(persistence, new RandomIdGenerator(), new SystemClock())` wire dependencies together, which is composition-root work belonging to infrastructure",
+      "src/infrastructure/server.ts: `app.listen(port, ...)` starts the transport/server, which is an infrastructure concern"
+    ],
+    "pass": true,
+    "reasoning": "The file is a composition root and server bootstrap. It reads the PORT environment variable, creates in-memory persistence, wires controllers to infrastructure adapters (RandomIdGenerator, SystemClock), builds the HTTP app and starts listening. All of this is process, framework and transport setup, which fits the infrastructure layer. The file contains no business rules, no domain invariants and no application orchestration logic.",
+    "violations": []
+  },
+  "projectId": "claude-opus-5-5/order-fulfilment/full-aac/run-2",
+  "prompt": "## Rule\nThe unit's responsibilities match the role of its declared layer.\n\n## Rubric\nPass: Every responsibility in the file belongs to the role and kind of its declared layer, and agrees with any ADR prose given.\nFail: The file carries a responsibility that belongs to a different layer kind, for example persistence, transport or framework logic in a domain file, or business rules in an infrastructure or presentation file.\nEvidence required: Name the file and cite the function, method or statement that carries the misplaced responsibility, and the layer kind it belongs to.\nOut of scope: import direction and layer-dependency rules, which are checked symbolically.\n\n## Layer model\n- domain (kind: domain): src/domain/**\n- application (kind: application): src/application/**\n- infrastructure (kind: infrastructure): src/infrastructure/**\n\n## Unit\nKind: file\nId: src/infrastructure/server.ts\nLayer: infrastructure\nUnit files:\n- src/infrastructure/server.ts\n\n## Source\n=====SOURCE-BEGIN src/infrastructure/server.ts=====\nimport { createProductController } from './CatalogueModule';\nimport { createHttpApp } from './HttpApp';\nimport { createOrderController } from './OrderModule';\nimport { createInMemoryPersistence } from './Persistence';\nimport { RandomIdGenerator } from './RandomIdGenerator';\nimport { SystemClock } from './SystemClock';\n\nconst port = Number(process.env['PORT'] ?? 3000);\n\nconst persistence = createInMemoryPersistence();\nconst app = createHttpApp(\n  createOrderController(persistence, new RandomIdGenerator(), new SystemClock()),\n  createProductController(persistence),\n);\n\napp.listen(port, () => {\n  console.log(`Order fulfilment API listening on http://localhost:${port}`);\n});\n\n=====SOURCE-END=====\n\n## Graph excerpt\n{\"edges\":[{\"from\":\"src/infrastructure/server.ts\",\"to\":\"src/infrastructure/CatalogueModule.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/infrastructure/server.ts\",\"to\":\"src/infrastructure/HttpApp.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/infrastructure/server.ts\",\"to\":\"src/infrastructure/OrderModule.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/infrastructure/server.ts\",\"to\":\"src/infrastructure/Persistence.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/infrastructure/server.ts\",\"to\":\"src/infrastructure/RandomIdGenerator.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/infrastructure/server.ts\",\"to\":\"src/infrastructure/SystemClock.ts\",\"type\":\"IMPORTS\"}],\"nodes\":[{\"kind\":\"File\",\"layer\":\"infrastructure\",\"path\":\"src/infrastructure/CatalogueModule.ts\"},{\"kind\":\"File\",\"layer\":\"infrastructure\",\"path\":\"src/infrastructure/HttpApp.ts\"},{\"kind\":\"File\",\"layer\":\"infrastructure\",\"path\":\"src/infrastructure/OrderModule.ts\"},{\"kind\":\"File\",\"layer\":\"infrastructure\",\"path\":\"src/infrastructure/Persistence.ts\"},{\"kind\":\"File\",\"layer\":\"infrastructure\",\"path\":\"src/infrastructure/RandomIdGenerator.ts\"},{\"kind\":\"File\",\"layer\":\"infrastructure\",\"path\":\"src/infrastructure/SystemClock.ts\"},{\"kind\":\"File\",\"layer\":\"infrastructure\",\"path\":\"src/infrastructure/server.ts\"}]}\n\n## Instructions\nJudge the unit against the rule and rubric. Return the JSON object the schema requires. Set pass to false if any file of the unit fails the rubric.\n",
+  "provider": "claude-cli",
+  "recordedAt": "2026-10-10T22:24:30.803Z",
+  "repetition": 0,
+  "requestHash": "e1349518951bcaea57525f7db86905d695b229db412935e537259c69f7cd2a46",
+  "resolvedModel": "claude-opus-5-5",
+  "response": "{\"is_error\":false,\"modelUsage\":{\"claude-opus-5-5\":{\"inputTokens\":2,\"outputTokens\":463}},\"result\":\"{\\\"pass\\\":true,\\\"confidence\\\":0.93,\\\"reasoning\\\":\\\"The file is a composition root and server bootstrap. It reads the PORT environment variable, creates in-memory persistence, wires controllers to infrastructure adapters (RandomIdGenerator, SystemClock), builds the HTTP app and starts listening. All of this is process, framework and transport setup, which fits the infrastructure layer. The file contains no business rules, no domain invariants and no application orchestration logic.\\\",\\\"evidence\\\":[\\\"src/infrastructure/server.ts: `const port = Number(process.env['PORT'] ?? 3000)` reads environment config, which is an infrastructure concern\\\",\\\"src/infrastructure/server.ts: `createInMemoryPersistence()` and `createOrderController(persistence, new RandomIdGenerator(), new SystemClock())` wire dependencies together, which is composition-root work belonging to infrastructure\\\",\\\"src/infrastructure/server.ts: `app.listen(port, ...)` starts the transport/server, which is an infrastructure concern\\\"],\\\"violations\\\":[]}\",\"structured_output\":{\"confidence\":0.93,\"evidence\":[\"src/infrastructure/server.ts: `const port = Number(process.env['PORT'] ?? 3000)` reads environment config, which is an infrastructure concern\",\"src/infrastructure/server.ts: `createInMemoryPersistence()` and `createOrderController(persistence, new RandomIdGenerator(), new SystemClock())` wire dependencies together, which is composition-root work belonging to infrastructure\",\"src/infrastructure/server.ts: `app.listen(port, ...)` starts the transport/server, which is an infrastructure concern\"],\"pass\":true,\"reasoning\":\"The file is a composition root and server bootstrap. It reads the PORT environment variable, creates in-memory persistence, wires controllers to infrastructure adapters (RandomIdGenerator, SystemClock), builds the HTTP app and starts listening. All of this is process, framework and transport setup, which fits the infrastructure layer. The file contains no business rules, no domain invariants and no application orchestration logic.\",\"violations\":[]}}",
+  "runIndex": 1,
+  "schemaVersion": 2,
+  "unitId": "src/infrastructure/server.ts",
+  "usage": {
+    "inputTokens": 2744,
+    "outputTokens": 463
+  },
+  "usedOptions": {
+    "effort": "high",
+    "model": "claude-opus-5-5"
+  }
+}

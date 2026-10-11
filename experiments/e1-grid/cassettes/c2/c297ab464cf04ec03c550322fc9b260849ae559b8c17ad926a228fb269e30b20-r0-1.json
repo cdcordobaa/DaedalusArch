@@ -1,0 +1,48 @@
+{
+  "attempts": 1,
+  "cliVersion": "2.1.294",
+  "configListingSha256": "47aa04258852fab9a706f3f0c14cee22306d69fbb6fdfbde8c11854bd54997bc",
+  "durationMs": 6093,
+  "effort": "high",
+  "functionId": "FF-N02",
+  "ignoredOptions": [
+    "maxTokens"
+  ],
+  "isolationProbeSha256": "97a2e2d0af1100c13c55e028c1a0c71f069093c3d08705af122aaeb302f1a641",
+  "key": "c297ab464cf04ec03c550322fc9b260849ae559b8c17ad926a228fb269e30b20-r0-1",
+  "model": "claude-opus-5-5",
+  "outcome": {
+    "kind": "valid"
+  },
+  "parsedVerdict": {
+    "confidence": 0.95,
+    "evidence": [
+      "createOrder checks that the order id is present, that items are not empty, and that each quantity is a positive integer, then merges duplicate products. These are domain invariants.",
+      "transitionOrder only allows an order to move one step forward through orderStates and blocks changes to a cancelled order. This is a domain state-machine rule.",
+      "cancelOrder blocks cancelling an order that is shipped, delivered or already cancelled. This is a domain business rule.",
+      "There is no I/O, storage, HTTP or framework code anywhere in the file."
+    ],
+    "pass": true,
+    "reasoning": "src/domain/order.ts only holds domain concerns: the Order and OrderItem types, the order state lifecycle, invariant checks when an order is created, the rules for moving between states, and the cancellation rules. It has no persistence, HTTP/transport, framework or orchestration logic. The only import is DomainError from a sibling domain file. All of its responsibilities fit the domain layer.",
+    "violations": []
+  },
+  "projectId": "gpt-5.6-terra/order-fulfilment/none/run-0",
+  "prompt": "## Rule\nThe unit's responsibilities match the role of its declared layer.\n\n## Rubric\nPass: Every responsibility in the file belongs to the role and kind of its declared layer, and agrees with any ADR prose given.\nFail: The file carries a responsibility that belongs to a different layer kind, for example persistence, transport or framework logic in a domain file, or business rules in an infrastructure or presentation file.\nEvidence required: Name the file and cite the function, method or statement that carries the misplaced responsibility, and the layer kind it belongs to.\nOut of scope: import direction and layer-dependency rules, which are checked symbolically.\n\n## Layer model\n- domain (kind: domain): src/domain/**\n- application (kind: application): src/application/**\n- infrastructure (kind: infrastructure): src/infrastructure/**\n\n## Unit\nKind: file\nId: src/domain/order.ts\nLayer: domain\nUnit files:\n- src/domain/order.ts\n\n## Source\n=====SOURCE-BEGIN src/domain/order.ts=====\nimport { DomainError } from \"./product\";\n\nexport const orderStates = [\"placed\", \"paid\", \"packed\", \"shipped\", \"delivered\"] as const;\nexport type OrderState = (typeof orderStates)[number];\n\nexport interface OrderItem {\n  productId: string;\n  quantity: number;\n}\n\nexport interface Order {\n  id: string;\n  items: OrderItem[];\n  state: OrderState;\n  cancelled: boolean;\n}\n\nexport function createOrder(id: string, items: OrderItem[]): Order {\n  if (!id) throw new DomainError(\"Order id is required\");\n  if (items.length === 0) throw new DomainError(\"An order must contain at least one item\");\n  const quantities = new Map<string, number>();\n  for (const item of items) {\n    if (!item.productId.trim()) throw new DomainError(\"Product id is required\");\n    if (!Number.isSafeInteger(item.quantity) || item.quantity <= 0) {\n      throw new DomainError(\"Item quantity must be a positive integer\");\n    }\n    quantities.set(item.productId, (quantities.get(item.productId) ?? 0) + item.quantity);\n  }\n  return {\n    id,\n    items: [...quantities].map(([productId, quantity]) => ({ productId, quantity })),\n    state: \"placed\",\n    cancelled: false,\n  };\n}\n\nexport function transitionOrder(order: Order, state: OrderState): void {\n  if (order.cancelled) throw new DomainError(\"A cancelled order cannot be changed\");\n  const currentIndex = orderStates.indexOf(order.state);\n  if (orderStates[currentIndex + 1] !== state) {\n    throw new DomainError(`Order can only move from ${order.state} to ${orderStates[currentIndex + 1] ?? \"no further state\"}`);\n  }\n  order.state = state;\n}\n\nexport function cancelOrder(order: Order): void {\n  if (order.cancelled) throw new DomainError(\"Order is already cancelled\");\n  if (order.state === \"shipped\" || order.state === \"delivered\") {\n    throw new DomainError(\"A shipped order cannot be cancelled\");\n  }\n  order.cancelled = true;\n}\n\n=====SOURCE-END=====\n\n## Graph excerpt\n{\"edges\":[{\"from\":\"src/application/order-service.ts\",\"to\":\"src/domain/order.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/domain/order.ts\",\"to\":\"src/domain/product.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/infrastructure/http-app.ts\",\"to\":\"src/domain/order.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/infrastructure/in-memory-store.ts\",\"to\":\"src/domain/order.ts\",\"type\":\"IMPORTS\"}],\"nodes\":[{\"kind\":\"File\",\"layer\":\"application\",\"path\":\"src/application/order-service.ts\"},{\"kind\":\"File\",\"layer\":\"domain\",\"path\":\"src/domain/order.ts\"},{\"kind\":\"File\",\"layer\":\"domain\",\"path\":\"src/domain/product.ts\"},{\"kind\":\"File\",\"layer\":\"infrastructure\",\"path\":\"src/infrastructure/http-app.ts\"},{\"kind\":\"File\",\"layer\":\"infrastructure\",\"path\":\"src/infrastructure/in-memory-store.ts\"},{\"kind\":\"Interface\",\"layer\":\"domain\",\"name\":\"Order\",\"path\":\"src/domain/order.ts\"},{\"kind\":\"Interface\",\"layer\":\"domain\",\"name\":\"OrderItem\",\"path\":\"src/domain/order.ts\"}]}\n\n## Instructions\nJudge the unit against the rule and rubric. Return the JSON object the schema requires. Set pass to false if any file of the unit fails the rubric.\n",
+  "provider": "claude-cli",
+  "recordedAt": "2026-10-11T03:07:20.483Z",
+  "repetition": 0,
+  "requestHash": "c297ab464cf04ec03c550322fc9b260849ae559b8c17ad926a228fb269e30b20",
+  "resolvedModel": "claude-opus-5-5",
+  "response": "{\"is_error\":false,\"modelUsage\":{\"claude-opus-5-5\":{\"inputTokens\":2,\"outputTokens\":442}},\"result\":\"{\\\"pass\\\":true,\\\"confidence\\\":0.95,\\\"reasoning\\\":\\\"src/domain/order.ts only holds domain concerns: the Order and OrderItem types, the order state lifecycle, invariant checks when an order is created, the rules for moving between states, and the cancellation rules. It has no persistence, HTTP/transport, framework or orchestration logic. The only import is DomainError from a sibling domain file. All of its responsibilities fit the domain layer.\\\",\\\"evidence\\\":[\\\"createOrder checks that the order id is present, that items are not empty, and that each quantity is a positive integer, then merges duplicate products. These are domain invariants.\\\",\\\"transitionOrder only allows an order to move one step forward through orderStates and blocks changes to a cancelled order. This is a domain state-machine rule.\\\",\\\"cancelOrder blocks cancelling an order that is shipped, delivered or already cancelled. This is a domain business rule.\\\",\\\"There is no I/O, storage, HTTP or framework code anywhere in the file.\\\"],\\\"violations\\\":[]}\",\"structured_output\":{\"confidence\":0.95,\"evidence\":[\"createOrder checks that the order id is present, that items are not empty, and that each quantity is a positive integer, then merges duplicate products. These are domain invariants.\",\"transitionOrder only allows an order to move one step forward through orderStates and blocks changes to a cancelled order. This is a domain state-machine rule.\",\"cancelOrder blocks cancelling an order that is shipped, delivered or already cancelled. This is a domain business rule.\",\"There is no I/O, storage, HTTP or framework code anywhere in the file.\"],\"pass\":true,\"reasoning\":\"src/domain/order.ts only holds domain concerns: the Order and OrderItem types, the order state lifecycle, invariant checks when an order is created, the rules for moving between states, and the cancellation rules. It has no persistence, HTTP/transport, framework or orchestration logic. The only import is DomainError from a sibling domain file. All of its responsibilities fit the domain layer.\",\"violations\":[]}}",
+  "runIndex": 1,
+  "schemaVersion": 2,
+  "unitId": "src/domain/order.ts",
+  "usage": {
+    "inputTokens": 3025,
+    "outputTokens": 442
+  },
+  "usedOptions": {
+    "effort": "high",
+    "model": "claude-opus-5-5"
+  }
+}

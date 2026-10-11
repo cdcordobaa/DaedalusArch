@@ -1,0 +1,48 @@
+{
+  "attempts": 1,
+  "cliVersion": "2.1.294",
+  "configListingSha256": "47aa04258852fab9a706f3f0c14cee22306d69fbb6fdfbde8c11854bd54997bc",
+  "durationMs": 6881,
+  "effort": "high",
+  "functionId": "FF-N02",
+  "ignoredOptions": [
+    "maxTokens"
+  ],
+  "isolationProbeSha256": "97a2e2d0af1100c13c55e028c1a0c71f069093c3d08705af122aaeb302f1a641",
+  "key": "98fa65a68bdb9214a15d0e13e7ce79b05ab36c3794185f809280d74693362661-r0-2",
+  "model": "claude-opus-5-5",
+  "outcome": {
+    "kind": "valid"
+  },
+  "parsedVerdict": {
+    "confidence": 0.9,
+    "evidence": [
+      "src/application/GetProductStockUseCase.ts: constructor(private productRepository: ProductRepository) depends on a repository abstraction, so there is no persistence code here",
+      "execute(): calls productRepository.findById, throws 'Product ${productId} not found' if nothing comes back, and maps the result to a ProductStockResponse DTO. This is application orchestration.",
+      "executeAll(): calls productRepository.all() and maps each product to a DTO with no business calculation",
+      "Stock comes from the domain entity's product.getStock(), so the business rule stays in the domain"
+    ],
+    "pass": true,
+    "reasoning": "The file is in the application layer, and everything it does fits that layer's role. GetProductStockUseCase gets the ProductRepository abstraction through its constructor. It loads products through that abstraction and calls the domain entity's own getStock() method. It throws a \"not found\" error and maps the entities to ProductStockResponse DTOs. That is standard use-case orchestration plus DTO mapping. The file has no persistence code, no transport or HTTP handling and no framework logic, so it carries none of the infrastructure kind's responsibilities. It also doesn't calculate stock itself or enforce any invariants that belong in the domain; it hands that to product.getStock().",
+    "violations": []
+  },
+  "projectId": "claude-haiku-4-5/order-fulfilment/full-aac/run-2",
+  "prompt": "## Rule\nThe unit's responsibilities match the role of its declared layer.\n\n## Rubric\nPass: Every responsibility in the file belongs to the role and kind of its declared layer, and agrees with any ADR prose given.\nFail: The file carries a responsibility that belongs to a different layer kind, for example persistence, transport or framework logic in a domain file, or business rules in an infrastructure or presentation file.\nEvidence required: Name the file and cite the function, method or statement that carries the misplaced responsibility, and the layer kind it belongs to.\nOut of scope: import direction and layer-dependency rules, which are checked symbolically.\n\n## Layer model\n- domain (kind: domain): src/domain/**\n- application (kind: application): src/application/**\n- infrastructure (kind: infrastructure): src/infrastructure/**\n\n## Unit\nKind: file\nId: src/application/GetProductStockUseCase.ts\nLayer: application\nUnit files:\n- src/application/GetProductStockUseCase.ts\n\n## Source\n=====SOURCE-BEGIN src/application/GetProductStockUseCase.ts=====\nimport { ProductRepository } from '../domain/Repository';\nimport { ProductStockResponse } from './DTOs';\n\nexport class GetProductStockUseCase {\n  constructor(private productRepository: ProductRepository) {}\n\n  execute(productId: string): ProductStockResponse {\n    const product = this.productRepository.findById(productId);\n    if (!product) throw new Error(`Product ${productId} not found`);\n\n    return {\n      productId: product.id,\n      name: product.name,\n      stock: product.getStock()\n    };\n  }\n\n  executeAll(): ProductStockResponse[] {\n    const products = this.productRepository.all();\n    return products.map(product => ({\n      productId: product.id,\n      name: product.name,\n      stock: product.getStock()\n    }));\n  }\n}\n\n=====SOURCE-END=====\n\n## Graph excerpt\n{\"edges\":[{\"from\":\"GetProductStockUseCase@src/application/GetProductStockUseCase.ts\",\"to\":\"ProductRepository@src/domain/Repository.ts\",\"type\":\"CONSTRUCTOR_INJECTS\"},{\"from\":\"ProductController@src/infrastructure/ProductController.ts\",\"to\":\"GetProductStockUseCase@src/application/GetProductStockUseCase.ts\",\"type\":\"CONSTRUCTOR_INJECTS\"},{\"from\":\"src/application/GetProductStockUseCase.ts\",\"to\":\"src/application/DTOs.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/application/GetProductStockUseCase.ts\",\"to\":\"src/domain/Repository.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/infrastructure/ProductController.ts\",\"to\":\"src/application/GetProductStockUseCase.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/infrastructure/Server.ts\",\"to\":\"src/application/GetProductStockUseCase.ts\",\"type\":\"IMPORTS\"}],\"nodes\":[{\"kind\":\"Class\",\"layer\":\"application\",\"name\":\"GetProductStockUseCase\",\"path\":\"src/application/GetProductStockUseCase.ts\"},{\"kind\":\"Class\",\"layer\":\"infrastructure\",\"name\":\"ProductController\",\"path\":\"src/infrastructure/ProductController.ts\"},{\"kind\":\"File\",\"layer\":\"application\",\"path\":\"src/application/DTOs.ts\"},{\"kind\":\"File\",\"layer\":\"application\",\"path\":\"src/application/GetProductStockUseCase.ts\"},{\"kind\":\"File\",\"layer\":\"domain\",\"path\":\"src/domain/Repository.ts\"},{\"kind\":\"File\",\"layer\":\"infrastructure\",\"path\":\"src/infrastructure/ProductController.ts\"},{\"kind\":\"File\",\"layer\":\"infrastructure\",\"path\":\"src/infrastructure/Server.ts\"},{\"kind\":\"Interface\",\"layer\":\"domain\",\"name\":\"ProductRepository\",\"path\":\"src/domain/Repository.ts\"}]}\n\n## Instructions\nJudge the unit against the rule and rubric. Return the JSON object the schema requires. Set pass to false if any file of the unit fails the rubric.\n",
+  "provider": "claude-cli",
+  "recordedAt": "2026-10-11T02:59:54.716Z",
+  "repetition": 0,
+  "requestHash": "98fa65a68bdb9214a15d0e13e7ce79b05ab36c3794185f809280d74693362661",
+  "resolvedModel": "claude-opus-5-5",
+  "response": "{\"is_error\":false,\"modelUsage\":{\"claude-opus-5-5\":{\"inputTokens\":2,\"outputTokens\":546}},\"result\":\"{\\\"pass\\\":true,\\\"confidence\\\":0.9,\\\"reasoning\\\":\\\"The file is in the application layer, and everything it does fits that layer's role. GetProductStockUseCase gets the ProductRepository abstraction through its constructor. It loads products through that abstraction and calls the domain entity's own getStock() method. It throws a \\\\\\\"not found\\\\\\\" error and maps the entities to ProductStockResponse DTOs. That is standard use-case orchestration plus DTO mapping. The file has no persistence code, no transport or HTTP handling and no framework logic, so it carries none of the infrastructure kind's responsibilities. It also doesn't calculate stock itself or enforce any invariants that belong in the domain; it hands that to product.getStock().\\\",\\\"evidence\\\":[\\\"src/application/GetProductStockUseCase.ts: constructor(private productRepository: ProductRepository) depends on a repository abstraction, so there is no persistence code here\\\",\\\"execute(): calls productRepository.findById, throws 'Product ${productId} not found' if nothing comes back, and maps the result to a ProductStockResponse DTO. This is application orchestration.\\\",\\\"executeAll(): calls productRepository.all() and maps each product to a DTO with no business calculation\\\",\\\"Stock comes from the domain entity's product.getStock(), so the business rule stays in the domain\\\"],\\\"violations\\\":[]}\",\"structured_output\":{\"confidence\":0.9,\"evidence\":[\"src/application/GetProductStockUseCase.ts: constructor(private productRepository: ProductRepository) depends on a repository abstraction, so there is no persistence code here\",\"execute(): calls productRepository.findById, throws 'Product ${productId} not found' if nothing comes back, and maps the result to a ProductStockResponse DTO. This is application orchestration.\",\"executeAll(): calls productRepository.all() and maps each product to a DTO with no business calculation\",\"Stock comes from the domain entity's product.getStock(), so the business rule stays in the domain\"],\"pass\":true,\"reasoning\":\"The file is in the application layer, and everything it does fits that layer's role. GetProductStockUseCase gets the ProductRepository abstraction through its constructor. It loads products through that abstraction and calls the domain entity's own getStock() method. It throws a \\\"not found\\\" error and maps the entities to ProductStockResponse DTOs. That is standard use-case orchestration plus DTO mapping. The file has no persistence code, no transport or HTTP handling and no framework logic, so it carries none of the infrastructure kind's responsibilities. It also doesn't calculate stock itself or enforce any invariants that belong in the domain; it hands that to product.getStock().\",\"violations\":[]}}",
+  "runIndex": 2,
+  "schemaVersion": 2,
+  "unitId": "src/application/GetProductStockUseCase.ts",
+  "usage": {
+    "inputTokens": 2853,
+    "outputTokens": 546
+  },
+  "usedOptions": {
+    "effort": "high",
+    "model": "claude-opus-5-5"
+  }
+}

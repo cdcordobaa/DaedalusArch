@@ -1,0 +1,48 @@
+{
+  "attempts": 1,
+  "cliVersion": "2.1.294",
+  "configListingSha256": "47aa04258852fab9a706f3f0c14cee22306d69fbb6fdfbde8c11854bd54997bc",
+  "durationMs": 6461,
+  "effort": "high",
+  "functionId": "FF-N02",
+  "ignoredOptions": [
+    "maxTokens"
+  ],
+  "isolationProbeSha256": "97a2e2d0af1100c13c55e028c1a0c71f069093c3d08705af122aaeb302f1a641",
+  "key": "d3c2cfcefea55db269141519f9630cf387206632cda45b36b52163a17f5fdb55-r0-1",
+  "model": "claude-opus-5-5",
+  "outcome": {
+    "kind": "valid"
+  },
+  "parsedVerdict": {
+    "confidence": 0.95,
+    "evidence": [
+      "Task.create validates the title, status and due date and throws the domain ValidationError: these are entity invariants, which belong to the domain layer",
+      "Task.markDone throws TaskAlreadyDoneError when the status is already 'done': a business rule, which belongs to the domain layer",
+      "Task.assignTo changes the entity's state with no I/O or persistence involved",
+      "The file has no database, HTTP, framework or serialization code; it only uses ./errors and ./TaskStatus"
+    ],
+    "pass": true,
+    "reasoning": "src/domain/Task.ts is a pure domain entity. Everything in it is domain work: it checks invariants when a task is created (title required, status valid, due date valid), it changes state through intention-revealing methods (assignTo, markDone), and it enforces a business rule (a task that is already done cannot be marked done again). The file has no persistence, transport, framework, serialization or orchestration logic. Its only collaborators are other domain modules (errors, TaskStatus). All of its responsibilities fit the domain layer.",
+    "violations": []
+  },
+  "projectId": "claude-sonnet-5-5/task-management/full-aac/run-0",
+  "prompt": "## Rule\nThe unit's responsibilities match the role of its declared layer.\n\n## Rubric\nPass: Every responsibility in the file belongs to the role and kind of its declared layer, and agrees with any ADR prose given.\nFail: The file carries a responsibility that belongs to a different layer kind, for example persistence, transport or framework logic in a domain file, or business rules in an infrastructure or presentation file.\nEvidence required: Name the file and cite the function, method or statement that carries the misplaced responsibility, and the layer kind it belongs to.\nOut of scope: import direction and layer-dependency rules, which are checked symbolically.\n\n## Layer model\n- domain (kind: domain): src/domain/**\n- application (kind: application): src/application/**\n- infrastructure (kind: infrastructure): src/infrastructure/**\n\n## Unit\nKind: file\nId: src/domain/Task.ts\nLayer: domain\nUnit files:\n- src/domain/Task.ts\n\n## Source\n=====SOURCE-BEGIN src/domain/Task.ts=====\nimport { TaskAlreadyDoneError, ValidationError } from './errors';\nimport { TaskStatus, isTaskStatus } from './TaskStatus';\n\nexport interface NewTaskProps {\n  id: string;\n  projectId: string;\n  title: string | undefined;\n  description?: string;\n  dueDate?: Date;\n  status?: unknown;\n  assigneeId?: string;\n}\n\nexport class Task {\n  private currentStatus: TaskStatus;\n  private currentAssigneeId: string | null;\n\n  private constructor(\n    readonly id: string,\n    readonly projectId: string,\n    readonly title: string,\n    readonly description: string,\n    readonly dueDate: Date | null,\n    status: TaskStatus,\n    assigneeId: string | null,\n  ) {\n    this.currentStatus = status;\n    this.currentAssigneeId = assigneeId;\n  }\n\n  static create(props: NewTaskProps): Task {\n    const title = props.title?.trim();\n    if (!title) {\n      throw new ValidationError('Task title is required');\n    }\n    const status = props.status ?? 'todo';\n    if (!isTaskStatus(status)) {\n      throw new ValidationError(`Invalid task status '${String(status)}'`);\n    }\n    if (props.dueDate !== undefined && Number.isNaN(props.dueDate.getTime())) {\n      throw new ValidationError('Task due date is invalid');\n    }\n    return new Task(\n      props.id,\n      props.projectId,\n      title,\n      props.description ?? '',\n      props.dueDate ?? null,\n      status,\n      props.assigneeId ?? null,\n    );\n  }\n\n  get status(): TaskStatus {\n    return this.currentStatus;\n  }\n\n  get assigneeId(): string | null {\n    return this.currentAssigneeId;\n  }\n\n  assignTo(userId: string): void {\n    this.currentAssigneeId = userId;\n  }\n\n  markDone(): void {\n    if (this.currentStatus === 'done') {\n      throw new TaskAlreadyDoneError(this.id);\n    }\n    this.currentStatus = 'done';\n  }\n}\n\n=====SOURCE-END=====\n\n## Graph excerpt\n{\"edges\":[{\"from\":\"src/application/CreateTaskUseCase.ts\",\"to\":\"src/domain/Task.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/application/dto.ts\",\"to\":\"src/domain/Task.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/domain/Task.ts\",\"to\":\"src/domain/TaskStatus.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/domain/Task.ts\",\"to\":\"src/domain/errors.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/domain/TaskRepository.ts\",\"to\":\"src/domain/Task.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/infrastructure/InMemoryTaskRepository.ts\",\"to\":\"src/domain/Task.ts\",\"type\":\"IMPORTS\"}],\"nodes\":[{\"kind\":\"Class\",\"layer\":\"domain\",\"name\":\"Task\",\"path\":\"src/domain/Task.ts\"},{\"kind\":\"File\",\"layer\":\"application\",\"path\":\"src/application/CreateTaskUseCase.ts\"},{\"kind\":\"File\",\"layer\":\"application\",\"path\":\"src/application/dto.ts\"},{\"kind\":\"File\",\"layer\":\"domain\",\"path\":\"src/domain/Task.ts\"},{\"kind\":\"File\",\"layer\":\"domain\",\"path\":\"src/domain/TaskRepository.ts\"},{\"kind\":\"File\",\"layer\":\"domain\",\"path\":\"src/domain/TaskStatus.ts\"},{\"kind\":\"File\",\"layer\":\"domain\",\"path\":\"src/domain/errors.ts\"},{\"kind\":\"File\",\"layer\":\"infrastructure\",\"path\":\"src/infrastructure/InMemoryTaskRepository.ts\"},{\"kind\":\"Interface\",\"layer\":\"domain\",\"name\":\"NewTaskProps\",\"path\":\"src/domain/Task.ts\"}]}\n\n## Instructions\nJudge the unit against the rule and rubric. Return the JSON object the schema requires. Set pass to false if any file of the unit fails the rubric.\n",
+  "provider": "claude-cli",
+  "recordedAt": "2026-10-10T22:54:19.382Z",
+  "repetition": 0,
+  "requestHash": "d3c2cfcefea55db269141519f9630cf387206632cda45b36b52163a17f5fdb55",
+  "resolvedModel": "claude-opus-5-5",
+  "response": "{\"is_error\":false,\"modelUsage\":{\"claude-opus-5-5\":{\"inputTokens\":2,\"outputTokens\":467}},\"result\":\"{\\\"pass\\\":true,\\\"confidence\\\":0.95,\\\"reasoning\\\":\\\"src/domain/Task.ts is a pure domain entity. Everything in it is domain work: it checks invariants when a task is created (title required, status valid, due date valid), it changes state through intention-revealing methods (assignTo, markDone), and it enforces a business rule (a task that is already done cannot be marked done again). The file has no persistence, transport, framework, serialization or orchestration logic. Its only collaborators are other domain modules (errors, TaskStatus). All of its responsibilities fit the domain layer.\\\",\\\"evidence\\\":[\\\"Task.create validates the title, status and due date and throws the domain ValidationError: these are entity invariants, which belong to the domain layer\\\",\\\"Task.markDone throws TaskAlreadyDoneError when the status is already 'done': a business rule, which belongs to the domain layer\\\",\\\"Task.assignTo changes the entity's state with no I/O or persistence involved\\\",\\\"The file has no database, HTTP, framework or serialization code; it only uses ./errors and ./TaskStatus\\\"],\\\"violations\\\":[]}\",\"structured_output\":{\"confidence\":0.95,\"evidence\":[\"Task.create validates the title, status and due date and throws the domain ValidationError: these are entity invariants, which belong to the domain layer\",\"Task.markDone throws TaskAlreadyDoneError when the status is already 'done': a business rule, which belongs to the domain layer\",\"Task.assignTo changes the entity's state with no I/O or persistence involved\",\"The file has no database, HTTP, framework or serialization code; it only uses ./errors and ./TaskStatus\"],\"pass\":true,\"reasoning\":\"src/domain/Task.ts is a pure domain entity. Everything in it is domain work: it checks invariants when a task is created (title required, status valid, due date valid), it changes state through intention-revealing methods (assignTo, markDone), and it enforces a business rule (a task that is already done cannot be marked done again). The file has no persistence, transport, framework, serialization or orchestration logic. Its only collaborators are other domain modules (errors, TaskStatus). All of its responsibilities fit the domain layer.\",\"violations\":[]}}",
+  "runIndex": 1,
+  "schemaVersion": 2,
+  "unitId": "src/domain/Task.ts",
+  "usage": {
+    "inputTokens": 3204,
+    "outputTokens": 467
+  },
+  "usedOptions": {
+    "effort": "high",
+    "model": "claude-opus-5-5"
+  }
+}

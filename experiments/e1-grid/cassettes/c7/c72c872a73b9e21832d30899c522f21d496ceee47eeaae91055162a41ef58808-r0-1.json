@@ -1,0 +1,47 @@
+{
+  "attempts": 1,
+  "cliVersion": "2.1.294",
+  "configListingSha256": "47aa04258852fab9a706f3f0c14cee22306d69fbb6fdfbde8c11854bd54997bc",
+  "durationMs": 5385,
+  "effort": "high",
+  "functionId": "FF-N02",
+  "ignoredOptions": [
+    "maxTokens"
+  ],
+  "isolationProbeSha256": "97a2e2d0af1100c13c55e028c1a0c71f069093c3d08705af122aaeb302f1a641",
+  "key": "c72c872a73b9e21832d30899c522f21d496ceee47eeaae91055162a41ef58808-r0-1",
+  "model": "claude-opus-5-5",
+  "outcome": {
+    "kind": "valid"
+  },
+  "parsedVerdict": {
+    "confidence": 0.95,
+    "evidence": [
+      "Product.reserveStock enforces a business invariant: it throws when availableStock.isLessThan(quantity). That is domain logic.",
+      "Product.create, releaseStock and getTotalStock are pure state changes and calculations on the entity, using the Quantity value object.",
+      "The file has no I/O, database, HTTP or framework code. Its only import is './Quantity', which is in the domain layer."
+    ],
+    "pass": true,
+    "reasoning": "src/domain/Product.ts holds only one domain entity, Product. It has a factory method, stock reservation and release rules (including an invariant check against insufficient stock), and accessors. None of its responsibilities belong to persistence, transport, framework code or application orchestration. Its only dependency is the domain value object Quantity. All of its responsibilities fit the domain layer.",
+    "violations": []
+  },
+  "projectId": "claude-haiku-4-5/order-fulfilment/minimal-prose/run-1",
+  "prompt": "## Rule\nThe unit's responsibilities match the role of its declared layer.\n\n## Rubric\nPass: Every responsibility in the file belongs to the role and kind of its declared layer, and agrees with any ADR prose given.\nFail: The file carries a responsibility that belongs to a different layer kind, for example persistence, transport or framework logic in a domain file, or business rules in an infrastructure or presentation file.\nEvidence required: Name the file and cite the function, method or statement that carries the misplaced responsibility, and the layer kind it belongs to.\nOut of scope: import direction and layer-dependency rules, which are checked symbolically.\n\n## Layer model\n- domain (kind: domain): src/domain/**\n- application (kind: application): src/application/**\n- infrastructure (kind: infrastructure): src/infrastructure/**\n\n## Unit\nKind: file\nId: src/domain/Product.ts\nLayer: domain\nUnit files:\n- src/domain/Product.ts\n\n## Source\n=====SOURCE-BEGIN src/domain/Product.ts=====\nimport { Quantity } from './Quantity';\n\nexport class Product {\n  private constructor(\n    readonly id: string,\n    readonly name: string,\n    private availableStock: Quantity,\n    private reservedStock: Quantity,\n  ) {}\n\n  static create(id: string, name: string, availableStock: Quantity): Product {\n    return new Product(id, name, availableStock, Quantity.create(0));\n  }\n\n  reserveStock(quantity: Quantity): void {\n    if (this.availableStock.isLessThan(quantity)) {\n      throw new Error(`Insufficient stock for product ${this.id}`);\n    }\n    this.availableStock = this.availableStock.subtract(quantity);\n    this.reservedStock = this.reservedStock.add(quantity);\n  }\n\n  releaseStock(quantity: Quantity): void {\n    this.reservedStock = this.reservedStock.subtract(quantity);\n    this.availableStock = this.availableStock.add(quantity);\n  }\n\n  getAvailableStock(): Quantity {\n    return this.availableStock;\n  }\n\n  getReservedStock(): Quantity {\n    return this.reservedStock;\n  }\n\n  getTotalStock(): Quantity {\n    return this.availableStock.add(this.reservedStock);\n  }\n}\n\n=====SOURCE-END=====\n\n## Graph excerpt\n{\"edges\":[{\"from\":\"Product@src/domain/Product.ts\",\"to\":\"Quantity@src/domain/Quantity.ts\",\"type\":\"CONSTRUCTOR_INJECTS\"},{\"from\":\"Product@src/domain/Product.ts\",\"to\":\"Quantity@src/domain/Quantity.ts\",\"type\":\"FLOWS_TO\"},{\"from\":\"src/domain/Product.ts\",\"to\":\"src/domain/Quantity.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/domain/ProductRepository.ts\",\"to\":\"src/domain/Product.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/infrastructure/InMemoryProductRepository.ts\",\"to\":\"src/domain/Product.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/infrastructure/app.ts\",\"to\":\"src/domain/Product.ts\",\"type\":\"IMPORTS\"}],\"nodes\":[{\"kind\":\"Class\",\"layer\":\"domain\",\"name\":\"Product\",\"path\":\"src/domain/Product.ts\"},{\"kind\":\"Class\",\"layer\":\"domain\",\"name\":\"Quantity\",\"path\":\"src/domain/Quantity.ts\"},{\"kind\":\"File\",\"layer\":\"domain\",\"path\":\"src/domain/Product.ts\"},{\"kind\":\"File\",\"layer\":\"domain\",\"path\":\"src/domain/ProductRepository.ts\"},{\"kind\":\"File\",\"layer\":\"domain\",\"path\":\"src/domain/Quantity.ts\"},{\"kind\":\"File\",\"layer\":\"infrastructure\",\"path\":\"src/infrastructure/InMemoryProductRepository.ts\"},{\"kind\":\"File\",\"layer\":\"infrastructure\",\"path\":\"src/infrastructure/app.ts\"}]}\n\n## Instructions\nJudge the unit against the rule and rubric. Return the JSON object the schema requires. Set pass to false if any file of the unit fails the rubric.\n",
+  "provider": "claude-cli",
+  "recordedAt": "2026-10-11T02:47:21.827Z",
+  "repetition": 0,
+  "requestHash": "c72c872a73b9e21832d30899c522f21d496ceee47eeaae91055162a41ef58808",
+  "resolvedModel": "claude-opus-5-5",
+  "response": "{\"is_error\":false,\"modelUsage\":{\"claude-opus-5-5\":{\"inputTokens\":2,\"outputTokens\":393}},\"result\":\"{\\\"pass\\\":true,\\\"confidence\\\":0.95,\\\"reasoning\\\":\\\"src/domain/Product.ts holds only one domain entity, Product. It has a factory method, stock reservation and release rules (including an invariant check against insufficient stock), and accessors. None of its responsibilities belong to persistence, transport, framework code or application orchestration. Its only dependency is the domain value object Quantity. All of its responsibilities fit the domain layer.\\\",\\\"evidence\\\":[\\\"Product.reserveStock enforces a business invariant: it throws when availableStock.isLessThan(quantity). That is domain logic.\\\",\\\"Product.create, releaseStock and getTotalStock are pure state changes and calculations on the entity, using the Quantity value object.\\\",\\\"The file has no I/O, database, HTTP or framework code. Its only import is './Quantity', which is in the domain layer.\\\"],\\\"violations\\\":[]}\",\"structured_output\":{\"confidence\":0.95,\"evidence\":[\"Product.reserveStock enforces a business invariant: it throws when availableStock.isLessThan(quantity). That is domain logic.\",\"Product.create, releaseStock and getTotalStock are pure state changes and calculations on the entity, using the Quantity value object.\",\"The file has no I/O, database, HTTP or framework code. Its only import is './Quantity', which is in the domain layer.\"],\"pass\":true,\"reasoning\":\"src/domain/Product.ts holds only one domain entity, Product. It has a factory method, stock reservation and release rules (including an invariant check against insufficient stock), and accessors. None of its responsibilities belong to persistence, transport, framework code or application orchestration. Its only dependency is the domain value object Quantity. All of its responsibilities fit the domain layer.\",\"violations\":[]}}",
+  "runIndex": 1,
+  "schemaVersion": 2,
+  "unitId": "src/domain/Product.ts",
+  "usage": {
+    "inputTokens": 2881,
+    "outputTokens": 393
+  },
+  "usedOptions": {
+    "effort": "high",
+    "model": "claude-opus-5-5"
+  }
+}

@@ -1,0 +1,47 @@
+{
+  "attempts": 1,
+  "cliVersion": "2.1.294",
+  "configListingSha256": "47aa04258852fab9a706f3f0c14cee22306d69fbb6fdfbde8c11854bd54997bc",
+  "durationMs": 6013,
+  "effort": "high",
+  "functionId": "FF-N02",
+  "ignoredOptions": [
+    "maxTokens"
+  ],
+  "isolationProbeSha256": "97a2e2d0af1100c13c55e028c1a0c71f069093c3d08705af122aaeb302f1a641",
+  "key": "9a660323832e5033722ef561d4dbae175c808ccb59cb7ca286ebab23fe9f0433-r0-0",
+  "model": "claude-opus-5-5",
+  "outcome": {
+    "kind": "valid"
+  },
+  "parsedVerdict": {
+    "confidence": 0.95,
+    "evidence": [
+      "src/domain/task.ts: class Task is a pure entity with readonly attributes and private status state",
+      "src/domain/task.ts: markDone() enforces a domain invariant by throwing TaskAlreadyDoneError if the status is already 'done'",
+      "src/domain/task.ts: imports only domain modules (./errors, ./task-status), with no I/O, database, HTTP or framework code"
+    ],
+    "pass": true,
+    "reasoning": "src/domain/task.ts holds only a Task entity: its identity and attributes, the encapsulated status state, and one business invariant in markDone (a task that is already done can't be marked done again). It has no persistence, transport, framework or orchestration logic. Every responsibility in the file fits the domain layer.",
+    "violations": []
+  },
+  "projectId": "gpt-5.6-terra/task-management/full-aac/run-2",
+  "prompt": "## Rule\nThe unit's responsibilities match the role of its declared layer.\n\n## Rubric\nPass: Every responsibility in the file belongs to the role and kind of its declared layer, and agrees with any ADR prose given.\nFail: The file carries a responsibility that belongs to a different layer kind, for example persistence, transport or framework logic in a domain file, or business rules in an infrastructure or presentation file.\nEvidence required: Name the file and cite the function, method or statement that carries the misplaced responsibility, and the layer kind it belongs to.\nOut of scope: import direction and layer-dependency rules, which are checked symbolically.\n\n## Layer model\n- domain (kind: domain): src/domain/**\n- application (kind: application): src/application/**\n- infrastructure (kind: infrastructure): src/infrastructure/**\n\n## Unit\nKind: file\nId: src/domain/task.ts\nLayer: domain\nUnit files:\n- src/domain/task.ts\n\n## Source\n=====SOURCE-BEGIN src/domain/task.ts=====\nimport { TaskAlreadyDoneError } from \"./errors\";\nimport { TaskStatus } from \"./task-status\";\n\nexport class Task {\n  public constructor(\n    public readonly id: string,\n    public readonly projectId: string,\n    public readonly title: string,\n    public readonly description: string,\n    public readonly dueDate: Date | undefined,\n    public readonly assigneeId: string | undefined,\n    private status: TaskStatus = \"todo\",\n  ) {}\n\n  public getStatus(): TaskStatus {\n    return this.status;\n  }\n\n  public markDone(): void {\n    if (this.status === \"done\") {\n      throw new TaskAlreadyDoneError();\n    }\n    this.status = \"done\";\n  }\n}\n\n=====SOURCE-END=====\n\n## Graph excerpt\n{\"edges\":[{\"from\":\"src/application/create-task-use-case.ts\",\"to\":\"src/domain/task.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/application/list-project-tasks-use-case.ts\",\"to\":\"src/domain/task.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/domain/task-repository.ts\",\"to\":\"src/domain/task.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/domain/task.ts\",\"to\":\"src/domain/errors.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/domain/task.ts\",\"to\":\"src/domain/task-status.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/infrastructure/in-memory-task-repository.ts\",\"to\":\"src/domain/task.ts\",\"type\":\"IMPORTS\"}],\"nodes\":[{\"kind\":\"Class\",\"layer\":\"domain\",\"name\":\"Task\",\"path\":\"src/domain/task.ts\"},{\"kind\":\"File\",\"layer\":\"application\",\"path\":\"src/application/create-task-use-case.ts\"},{\"kind\":\"File\",\"layer\":\"application\",\"path\":\"src/application/list-project-tasks-use-case.ts\"},{\"kind\":\"File\",\"layer\":\"domain\",\"path\":\"src/domain/errors.ts\"},{\"kind\":\"File\",\"layer\":\"domain\",\"path\":\"src/domain/task-repository.ts\"},{\"kind\":\"File\",\"layer\":\"domain\",\"path\":\"src/domain/task-status.ts\"},{\"kind\":\"File\",\"layer\":\"domain\",\"path\":\"src/domain/task.ts\"},{\"kind\":\"File\",\"layer\":\"infrastructure\",\"path\":\"src/infrastructure/in-memory-task-repository.ts\"}]}\n\n## Instructions\nJudge the unit against the rule and rubric. Return the JSON object the schema requires. Set pass to false if any file of the unit fails the rubric.\n",
+  "provider": "claude-cli",
+  "recordedAt": "2026-10-11T03:30:38.759Z",
+  "repetition": 0,
+  "requestHash": "9a660323832e5033722ef561d4dbae175c808ccb59cb7ca286ebab23fe9f0433",
+  "resolvedModel": "claude-opus-5-5",
+  "response": "{\"is_error\":false,\"modelUsage\":{\"claude-opus-5-5\":{\"inputTokens\":2,\"outputTokens\":371}},\"result\":\"{\\\"pass\\\":true,\\\"confidence\\\":0.95,\\\"reasoning\\\":\\\"src/domain/task.ts holds only a Task entity: its identity and attributes, the encapsulated status state, and one business invariant in markDone (a task that is already done can't be marked done again). It has no persistence, transport, framework or orchestration logic. Every responsibility in the file fits the domain layer.\\\",\\\"evidence\\\":[\\\"src/domain/task.ts: class Task is a pure entity with readonly attributes and private status state\\\",\\\"src/domain/task.ts: markDone() enforces a domain invariant by throwing TaskAlreadyDoneError if the status is already 'done'\\\",\\\"src/domain/task.ts: imports only domain modules (./errors, ./task-status), with no I/O, database, HTTP or framework code\\\"],\\\"violations\\\":[]}\",\"structured_output\":{\"confidence\":0.95,\"evidence\":[\"src/domain/task.ts: class Task is a pure entity with readonly attributes and private status state\",\"src/domain/task.ts: markDone() enforces a domain invariant by throwing TaskAlreadyDoneError if the status is already 'done'\",\"src/domain/task.ts: imports only domain modules (./errors, ./task-status), with no I/O, database, HTTP or framework code\"],\"pass\":true,\"reasoning\":\"src/domain/task.ts holds only a Task entity: its identity and attributes, the encapsulated status state, and one business invariant in markDone (a task that is already done can't be marked done again). It has no persistence, transport, framework or orchestration logic. Every responsibility in the file fits the domain layer.\",\"violations\":[]}}",
+  "runIndex": 0,
+  "schemaVersion": 2,
+  "unitId": "src/domain/task.ts",
+  "usage": {
+    "inputTokens": 2676,
+    "outputTokens": 371
+  },
+  "usedOptions": {
+    "effort": "high",
+    "model": "claude-opus-5-5"
+  }
+}

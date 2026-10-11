@@ -1,0 +1,47 @@
+{
+  "attempts": 1,
+  "cliVersion": "2.1.294",
+  "configListingSha256": "47aa04258852fab9a706f3f0c14cee22306d69fbb6fdfbde8c11854bd54997bc",
+  "durationMs": 5410,
+  "effort": "high",
+  "functionId": "FF-N02",
+  "ignoredOptions": [
+    "maxTokens"
+  ],
+  "isolationProbeSha256": "97a2e2d0af1100c13c55e028c1a0c71f069093c3d08705af122aaeb302f1a641",
+  "key": "415fc199495b9b50f60fbfbb819566a6886fec919a571b09e19ad7a2df10e0fb-r0-0",
+  "model": "claude-opus-5-5",
+  "outcome": {
+    "kind": "valid"
+  },
+  "parsedVerdict": {
+    "confidence": 0.95,
+    "evidence": [
+      "createRouter builds an Express Router and registers routes such as router.post('/users', users.create) and router.put('/tasks/:taskId/assignee', tasks.assign). This is HTTP transport wiring, which belongs in infrastructure.",
+      "No conditionals, calculations or domain invariants appear in the file. Every handler is passed straight to a controller method.",
+      "The Controllers interface only groups the injected controller instances for the router."
+    ],
+    "pass": true,
+    "reasoning": "The file src/infrastructure/http/routes.ts only defines Express HTTP routes. It maps paths and verbs to controller handlers. That is transport/framework wiring, which is what the infrastructure layer is for. It has no business rules, validation, domain decisions or persistence logic. Its Controllers interface is just a dependency bag for the router.",
+    "violations": []
+  },
+  "projectId": "claude-opus-5-5/task-management/minimal-prose/run-1",
+  "prompt": "## Rule\nThe unit's responsibilities match the role of its declared layer.\n\n## Rubric\nPass: Every responsibility in the file belongs to the role and kind of its declared layer, and agrees with any ADR prose given.\nFail: The file carries a responsibility that belongs to a different layer kind, for example persistence, transport or framework logic in a domain file, or business rules in an infrastructure or presentation file.\nEvidence required: Name the file and cite the function, method or statement that carries the misplaced responsibility, and the layer kind it belongs to.\nOut of scope: import direction and layer-dependency rules, which are checked symbolically.\n\n## Layer model\n- domain (kind: domain): src/domain/**\n- application (kind: application): src/application/**\n- infrastructure (kind: infrastructure): src/infrastructure/**\n\n## Unit\nKind: file\nId: src/infrastructure/http/routes.ts\nLayer: infrastructure\nUnit files:\n- src/infrastructure/http/routes.ts\n\n## Source\n=====SOURCE-BEGIN src/infrastructure/http/routes.ts=====\nimport { Router } from 'express';\nimport { ProjectController } from './controllers/ProjectController';\nimport { TaskController } from './controllers/TaskController';\nimport { UserController } from './controllers/UserController';\n\nexport interface Controllers {\n  users: UserController;\n  projects: ProjectController;\n  tasks: TaskController;\n}\n\nexport function createRouter({ users, projects, tasks }: Controllers): Router {\n  const router = Router();\n\n  router.post('/users', users.create);\n  router.get('/users', users.list);\n\n  router.post('/projects', projects.create);\n  router.get('/projects', projects.list);\n\n  router.post('/projects/:projectId/tasks', tasks.create);\n  router.get('/projects/:projectId/tasks', tasks.listByProject);\n\n  router.put('/tasks/:taskId/assignee', tasks.assign);\n  router.post('/tasks/:taskId/done', tasks.markDone);\n\n  return router;\n}\n\n=====SOURCE-END=====\n\n## Graph excerpt\n{\"edges\":[{\"from\":\"src/infrastructure/container.ts\",\"to\":\"src/infrastructure/http/routes.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/infrastructure/http/app.ts\",\"to\":\"src/infrastructure/http/routes.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/infrastructure/http/routes.ts\",\"to\":\"express\",\"type\":\"IMPORTS\"},{\"from\":\"src/infrastructure/http/routes.ts\",\"to\":\"src/infrastructure/http/controllers/ProjectController.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/infrastructure/http/routes.ts\",\"to\":\"src/infrastructure/http/controllers/TaskController.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/infrastructure/http/routes.ts\",\"to\":\"src/infrastructure/http/controllers/UserController.ts\",\"type\":\"IMPORTS\"}],\"nodes\":[{\"kind\":\"File\",\"layer\":\"infrastructure\",\"path\":\"src/infrastructure/container.ts\"},{\"kind\":\"File\",\"layer\":\"infrastructure\",\"path\":\"src/infrastructure/http/app.ts\"},{\"kind\":\"File\",\"layer\":\"infrastructure\",\"path\":\"src/infrastructure/http/controllers/ProjectController.ts\"},{\"kind\":\"File\",\"layer\":\"infrastructure\",\"path\":\"src/infrastructure/http/controllers/TaskController.ts\"},{\"kind\":\"File\",\"layer\":\"infrastructure\",\"path\":\"src/infrastructure/http/controllers/UserController.ts\"},{\"kind\":\"File\",\"layer\":\"infrastructure\",\"path\":\"src/infrastructure/http/routes.ts\"},{\"kind\":\"Interface\",\"layer\":\"infrastructure\",\"name\":\"Controllers\",\"path\":\"src/infrastructure/http/routes.ts\"},{\"kind\":\"Package\",\"layer\":null,\"path\":\"express\"}]}\n\n## Instructions\nJudge the unit against the rule and rubric. Return the JSON object the schema requires. Set pass to false if any file of the unit fails the rubric.\n",
+  "provider": "claude-cli",
+  "recordedAt": "2026-10-10T21:43:06.358Z",
+  "repetition": 0,
+  "requestHash": "415fc199495b9b50f60fbfbb819566a6886fec919a571b09e19ad7a2df10e0fb",
+  "resolvedModel": "claude-opus-5-5",
+  "response": "{\"is_error\":false,\"modelUsage\":{\"claude-opus-5-5\":{\"inputTokens\":2,\"outputTokens\":398}},\"result\":\"{\\\"pass\\\":true,\\\"confidence\\\":0.95,\\\"reasoning\\\":\\\"The file src/infrastructure/http/routes.ts only defines Express HTTP routes. It maps paths and verbs to controller handlers. That is transport/framework wiring, which is what the infrastructure layer is for. It has no business rules, validation, domain decisions or persistence logic. Its Controllers interface is just a dependency bag for the router.\\\",\\\"evidence\\\":[\\\"createRouter builds an Express Router and registers routes such as router.post('/users', users.create) and router.put('/tasks/:taskId/assignee', tasks.assign). This is HTTP transport wiring, which belongs in infrastructure.\\\",\\\"No conditionals, calculations or domain invariants appear in the file. Every handler is passed straight to a controller method.\\\",\\\"The Controllers interface only groups the injected controller instances for the router.\\\"],\\\"violations\\\":[]}\",\"structured_output\":{\"confidence\":0.95,\"evidence\":[\"createRouter builds an Express Router and registers routes such as router.post('/users', users.create) and router.put('/tasks/:taskId/assignee', tasks.assign). This is HTTP transport wiring, which belongs in infrastructure.\",\"No conditionals, calculations or domain invariants appear in the file. Every handler is passed straight to a controller method.\",\"The Controllers interface only groups the injected controller instances for the router.\"],\"pass\":true,\"reasoning\":\"The file src/infrastructure/http/routes.ts only defines Express HTTP routes. It maps paths and verbs to controller handlers. That is transport/framework wiring, which is what the infrastructure layer is for. It has no business rules, validation, domain decisions or persistence logic. Its Controllers interface is just a dependency bag for the router.\",\"violations\":[]}}",
+  "runIndex": 0,
+  "schemaVersion": 2,
+  "unitId": "src/infrastructure/http/routes.ts",
+  "usage": {
+    "inputTokens": 2855,
+    "outputTokens": 398
+  },
+  "usedOptions": {
+    "effort": "high",
+    "model": "claude-opus-5-5"
+  }
+}

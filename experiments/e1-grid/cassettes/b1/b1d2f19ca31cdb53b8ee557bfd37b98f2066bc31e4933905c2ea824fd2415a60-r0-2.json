@@ -1,0 +1,48 @@
+{
+  "attempts": 1,
+  "cliVersion": "2.1.294",
+  "configListingSha256": "47aa04258852fab9a706f3f0c14cee22306d69fbb6fdfbde8c11854bd54997bc",
+  "durationMs": 12412,
+  "effort": "high",
+  "functionId": "FF-N01",
+  "ignoredOptions": [
+    "maxTokens"
+  ],
+  "isolationProbeSha256": "97a2e2d0af1100c13c55e028c1a0c71f069093c3d08705af122aaeb302f1a641",
+  "key": "b1d2f19ca31cdb53b8ee557bfd37b98f2066bc31e4933905c2ea824fd2415a60-r0-2",
+  "model": "claude-opus-5-5",
+  "outcome": {
+    "kind": "valid"
+  },
+  "parsedVerdict": {
+    "confidence": 0.75,
+    "evidence": [
+      "src/domain/models.ts: `export type TaskStatus = 'todo' | 'in progress' | 'done'` is the single definition of the status values, and Task.status uses it.",
+      "src/domain/models.ts: User, Task and Project are cohesive domain entity interfaces. Task refers to User and Project by assigneeId and projectId.",
+      "src/domain/models.ts: Repository { projects: Map<string, Project>; users: Map<string, User> } describes how the aggregates are stored. It is a concrete storage shape rather than an abstract port, but it stays within the same domain concern.",
+      "src/domain/models.ts: Project.tasks: Task[] and Task.projectId record the same relationship twice. This is a minor modelling redundancy, not a duplicated rule."
+    ],
+    "pass": true,
+    "reasoning": "The module has a single file, src/domain/models.ts, and every declaration in it belongs to the task-management domain model. TaskStatus is a single union type that Task.status reuses, so the status values are defined in one place. User, Task and Project are plain entity shapes that refer to each other by type, so the file uses its own abstractions consistently. There is no behaviour, and no rule or invariant appears more than once inside the unit. No unrelated concern is mixed in. Two minor points do not reach a fail. First, Repository is a concrete store shape built from Maps rather than an abstract port. It is still a domain-facing aggregate container, not a separate concern. Second, the task-to-project relationship appears in both Project.tasks and Task.projectId. That is a data-modelling redundancy, not a duplicated rule.",
+    "violations": []
+  },
+  "projectId": "claude-haiku-4-5/task-management/none/run-0",
+  "prompt": "## Rule\nThe module's files form one coherent unit with a consistent abstraction and boundary.\n\n## Rubric\nPass: The files serve one cohesive concern, use the module's abstractions consistently, and keep each rule or invariant in one place.\nFail: The files split into unrelated concerns, duplicate a rule or invariant that should live in one place, or bypass the module's own abstractions.\nEvidence required: Name each file involved and cite the declarations that show the split, the duplication or the bypass.\nOut of scope: import direction and layer-dependency rules, which are checked symbolically.\n\n## Layer model\n- domain (kind: domain): src/domain/**\n- application (kind: application): src/application/**\n- infrastructure (kind: infrastructure): src/infrastructure/**\n\n## Unit\nKind: module\nId: src/domain\nLayer: domain\nUnit files:\n- src/domain/models.ts\n\n## Source\n=====SOURCE-BEGIN src/domain/models.ts=====\nexport type TaskStatus = 'todo' | 'in progress' | 'done';\n\nexport interface User {\n  id: string;\n  name: string;\n}\n\nexport interface Task {\n  id: string;\n  title: string;\n  description: string;\n  status: TaskStatus;\n  dueDate?: Date;\n  assigneeId?: string;\n  projectId: string;\n}\n\nexport interface Project {\n  id: string;\n  name: string;\n  tasks: Task[];\n}\n\nexport interface Repository {\n  projects: Map<string, Project>;\n  users: Map<string, User>;\n}\n\n=====SOURCE-END=====\n\n## Exported signatures\n// src/domain/models.ts\nexport type TaskStatus = 'todo' | 'in progress' | 'done';\nexport interface User {\n  id: string;\n  name: string;\n}\nexport interface Task {\n  id: string;\n  title: string;\n  description: string;\n  status: TaskStatus;\n  dueDate?: Date;\n  assigneeId?: string;\n  projectId: string;\n}\nexport interface Project {\n  id: string;\n  name: string;\n  tasks: Task[];\n}\nexport interface Repository {\n  projects: Map<string, Project>;\n  users: Map<string, User>;\n}\n\n## Incoming\n- src/application/taskService.ts\n- src/index.ts\n- src/infrastructure/server.ts\n\n## Outgoing\n(none)\n\n## Graph excerpt\n{\"edges\":[{\"from\":\"TaskService@src/application/taskService.ts\",\"to\":\"Repository@src/domain/models.ts\",\"type\":\"CONSTRUCTOR_INJECTS\"},{\"from\":\"src/application/taskService.ts\",\"to\":\"src/domain/models.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/index.ts\",\"to\":\"src/domain/models.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/infrastructure/server.ts\",\"to\":\"src/domain/models.ts\",\"type\":\"IMPORTS\"}],\"nodes\":[{\"kind\":\"Class\",\"layer\":\"application\",\"name\":\"TaskService\",\"path\":\"src/application/taskService.ts\"},{\"kind\":\"File\",\"layer\":\"application\",\"path\":\"src/application/taskService.ts\"},{\"kind\":\"File\",\"layer\":\"domain\",\"path\":\"src/domain/models.ts\"},{\"kind\":\"File\",\"layer\":\"infrastructure\",\"path\":\"src/infrastructure/server.ts\"},{\"kind\":\"File\",\"layer\":null,\"path\":\"src/index.ts\"},{\"kind\":\"Interface\",\"layer\":\"domain\",\"name\":\"Project\",\"path\":\"src/domain/models.ts\"},{\"kind\":\"Interface\",\"layer\":\"domain\",\"name\":\"Repository\",\"path\":\"src/domain/models.ts\"},{\"kind\":\"Interface\",\"layer\":\"domain\",\"name\":\"Task\",\"path\":\"src/domain/models.ts\"},{\"kind\":\"Interface\",\"layer\":\"domain\",\"name\":\"User\",\"path\":\"src/domain/models.ts\"}]}\n\n## Instructions\nJudge the unit against the rule and rubric. Return the JSON object the schema requires. Set pass to false if any file of the unit fails the rubric.\n",
+  "provider": "claude-cli",
+  "recordedAt": "2026-10-11T02:33:54.358Z",
+  "repetition": 0,
+  "requestHash": "b1d2f19ca31cdb53b8ee557bfd37b98f2066bc31e4933905c2ea824fd2415a60",
+  "resolvedModel": "claude-opus-5-5",
+  "response": "{\"is_error\":false,\"modelUsage\":{\"claude-opus-5-5\":{\"inputTokens\":2,\"outputTokens\":1083}},\"result\":\"{\\\"pass\\\":true,\\\"confidence\\\":0.75,\\\"reasoning\\\":\\\"The module has a single file, src/domain/models.ts, and every declaration in it belongs to the task-management domain model. TaskStatus is a single union type that Task.status reuses, so the status values are defined in one place. User, Task and Project are plain entity shapes that refer to each other by type, so the file uses its own abstractions consistently. There is no behaviour, and no rule or invariant appears more than once inside the unit. No unrelated concern is mixed in. Two minor points do not reach a fail. First, Repository is a concrete store shape built from Maps rather than an abstract port. It is still a domain-facing aggregate container, not a separate concern. Second, the task-to-project relationship appears in both Project.tasks and Task.projectId. That is a data-modelling redundancy, not a duplicated rule.\\\",\\\"evidence\\\":[\\\"src/domain/models.ts: `export type TaskStatus = 'todo' | 'in progress' | 'done'` is the single definition of the status values, and Task.status uses it.\\\",\\\"src/domain/models.ts: User, Task and Project are cohesive domain entity interfaces. Task refers to User and Project by assigneeId and projectId.\\\",\\\"src/domain/models.ts: Repository { projects: Map<string, Project>; users: Map<string, User> } describes how the aggregates are stored. It is a concrete storage shape rather than an abstract port, but it stays within the same domain concern.\\\",\\\"src/domain/models.ts: Project.tasks: Task[] and Task.projectId record the same relationship twice. This is a minor modelling redundancy, not a duplicated rule.\\\"],\\\"violations\\\":[]}\",\"structured_output\":{\"confidence\":0.75,\"evidence\":[\"src/domain/models.ts: `export type TaskStatus = 'todo' | 'in progress' | 'done'` is the single definition of the status values, and Task.status uses it.\",\"src/domain/models.ts: User, Task and Project are cohesive domain entity interfaces. Task refers to User and Project by assigneeId and projectId.\",\"src/domain/models.ts: Repository { projects: Map<string, Project>; users: Map<string, User> } describes how the aggregates are stored. It is a concrete storage shape rather than an abstract port, but it stays within the same domain concern.\",\"src/domain/models.ts: Project.tasks: Task[] and Task.projectId record the same relationship twice. This is a minor modelling redundancy, not a duplicated rule.\"],\"pass\":true,\"reasoning\":\"The module has a single file, src/domain/models.ts, and every declaration in it belongs to the task-management domain model. TaskStatus is a single union type that Task.status reuses, so the status values are defined in one place. User, Task and Project are plain entity shapes that refer to each other by type, so the file uses its own abstractions consistently. There is no behaviour, and no rule or invariant appears more than once inside the unit. No unrelated concern is mixed in. Two minor points do not reach a fail. First, Repository is a concrete store shape built from Maps rather than an abstract port. It is still a domain-facing aggregate container, not a separate concern. Second, the task-to-project relationship appears in both Project.tasks and Task.projectId. That is a data-modelling redundancy, not a duplicated rule.\",\"violations\":[]}}",
+  "runIndex": 2,
+  "schemaVersion": 2,
+  "unitId": "src/domain",
+  "usage": {
+    "inputTokens": 2796,
+    "outputTokens": 1083
+  },
+  "usedOptions": {
+    "effort": "high",
+    "model": "claude-opus-5-5"
+  }
+}

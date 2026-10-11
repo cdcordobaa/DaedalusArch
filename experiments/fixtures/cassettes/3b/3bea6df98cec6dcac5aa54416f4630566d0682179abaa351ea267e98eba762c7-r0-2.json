@@ -1,0 +1,47 @@
+{
+  "attempts": 1,
+  "cliVersion": "2.1.294",
+  "configListingSha256": "47aa04258852fab9a706f3f0c14cee22306d69fbb6fdfbde8c11854bd54997bc",
+  "durationMs": 6292,
+  "effort": "high",
+  "functionId": "FF-N02",
+  "ignoredOptions": [
+    "maxTokens"
+  ],
+  "isolationProbeSha256": "97a2e2d0af1100c13c55e028c1a0c71f069093c3d08705af122aaeb302f1a641",
+  "key": "3bea6df98cec6dcac5aa54416f4630566d0682179abaa351ea267e98eba762c7-r0-2",
+  "model": "claude-opus-5-5",
+  "outcome": {
+    "kind": "valid"
+  },
+  "parsedVerdict": {
+    "confidence": 0.88,
+    "evidence": [
+      "src/infrastructure/repositories/CircularHelper.ts: CircularHelper.logSave(id) only calls console.log(`Saved task: ${id}`), which is technical logging and fits the infrastructure layer.",
+      "The file contains no business rules, validation or domain decisions.",
+      "The circular import with InMemoryTaskRepository.ts is an import-direction or dependency concern, which is out of scope for this rule."
+    ],
+    "pass": true,
+    "reasoning": "CircularHelper has one responsibility: logging a save event with console.log. Logging is a technical concern that fits the infrastructure layer. The file contains no business rules or domain invariants, and nothing in it belongs to the presentation layer. The source comment and the graph show a circular import between CircularHelper and InMemoryTaskRepository. That is an import or dependency issue, which this rubric marks out of scope and which other tools check. On the rule \"responsibilities match the declared layer\", the file passes.",
+    "violations": []
+  },
+  "projectId": "variant-a-structural",
+  "prompt": "## Rule\nThe unit's responsibilities match the role of its declared layer.\n\n## Rubric\nPass: Every responsibility in the file belongs to the role and kind of its declared layer, and agrees with any ADR prose given.\nFail: The file carries a responsibility that belongs to a different layer kind, for example persistence, transport or framework logic in a domain file, or business rules in an infrastructure or presentation file.\nEvidence required: Name the file and cite the function, method or statement that carries the misplaced responsibility, and the layer kind it belongs to.\nOut of scope: import direction and layer-dependency rules, which are checked symbolically.\n\n## Layer model\n- domain (kind: domain): src/domain/**\n- application (kind: application): src/application/**\n- infrastructure (kind: infrastructure): src/infrastructure/**\n\n## Unit\nKind: file\nId: src/infrastructure/repositories/CircularHelper.ts\nLayer: infrastructure\nUnit files:\n- src/infrastructure/repositories/CircularHelper.ts\n\n## Source\n=====SOURCE-BEGIN src/infrastructure/repositories/CircularHelper.ts=====\n// VIOLATION #4: circular — CircularHelper imports InMemoryTaskRepository, which imports CircularHelper\nimport { InMemoryTaskRepository } from './InMemoryTaskRepository';\n\nexport class CircularHelper {\n  logSave(id: string): void {\n    console.log(`Saved task: ${id}`);\n  }\n}\n\n=====SOURCE-END=====\n\n## Graph excerpt\n{\"edges\":[{\"from\":\"InMemoryTaskRepository@src/infrastructure/repositories/InMemoryTaskRepository.ts\",\"to\":\"CircularHelper@src/infrastructure/repositories/CircularHelper.ts\",\"type\":\"FLOWS_TO\"},{\"from\":\"src/infrastructure/repositories/CircularHelper.ts\",\"to\":\"src/infrastructure/repositories/InMemoryTaskRepository.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/infrastructure/repositories/InMemoryTaskRepository.ts\",\"to\":\"src/infrastructure/repositories/CircularHelper.ts\",\"type\":\"IMPORTS\"}],\"nodes\":[{\"kind\":\"Class\",\"layer\":\"infrastructure\",\"name\":\"CircularHelper\",\"path\":\"src/infrastructure/repositories/CircularHelper.ts\"},{\"kind\":\"Class\",\"layer\":\"infrastructure\",\"name\":\"InMemoryTaskRepository\",\"path\":\"src/infrastructure/repositories/InMemoryTaskRepository.ts\"},{\"kind\":\"File\",\"layer\":\"infrastructure\",\"path\":\"src/infrastructure/repositories/CircularHelper.ts\"},{\"kind\":\"File\",\"layer\":\"infrastructure\",\"path\":\"src/infrastructure/repositories/InMemoryTaskRepository.ts\"}]}\n\n## Instructions\nJudge the unit against the rule and rubric. Return the JSON object the schema requires. Set pass to false if any file of the unit fails the rubric.\n",
+  "provider": "claude-cli",
+  "recordedAt": "2026-10-10T20:58:21.948Z",
+  "repetition": 0,
+  "requestHash": "3bea6df98cec6dcac5aa54416f4630566d0682179abaa351ea267e98eba762c7",
+  "resolvedModel": "claude-opus-5-5",
+  "response": "{\"is_error\":false,\"modelUsage\":{\"claude-opus-5-5\":{\"inputTokens\":2,\"outputTokens\":515}},\"result\":\"{\\\"pass\\\":true,\\\"confidence\\\":0.88,\\\"reasoning\\\":\\\"CircularHelper has one responsibility: logging a save event with console.log. Logging is a technical concern that fits the infrastructure layer. The file contains no business rules or domain invariants, and nothing in it belongs to the presentation layer. The source comment and the graph show a circular import between CircularHelper and InMemoryTaskRepository. That is an import or dependency issue, which this rubric marks out of scope and which other tools check. On the rule \\\\\\\"responsibilities match the declared layer\\\\\\\", the file passes.\\\",\\\"evidence\\\":[\\\"src/infrastructure/repositories/CircularHelper.ts: CircularHelper.logSave(id) only calls console.log(`Saved task: ${id}`), which is technical logging and fits the infrastructure layer.\\\",\\\"The file contains no business rules, validation or domain decisions.\\\",\\\"The circular import with InMemoryTaskRepository.ts is an import-direction or dependency concern, which is out of scope for this rule.\\\"],\\\"violations\\\":[]}\",\"structured_output\":{\"confidence\":0.88,\"evidence\":[\"src/infrastructure/repositories/CircularHelper.ts: CircularHelper.logSave(id) only calls console.log(`Saved task: ${id}`), which is technical logging and fits the infrastructure layer.\",\"The file contains no business rules, validation or domain decisions.\",\"The circular import with InMemoryTaskRepository.ts is an import-direction or dependency concern, which is out of scope for this rule.\"],\"pass\":true,\"reasoning\":\"CircularHelper has one responsibility: logging a save event with console.log. Logging is a technical concern that fits the infrastructure layer. The file contains no business rules or domain invariants, and nothing in it belongs to the presentation layer. The source comment and the graph show a circular import between CircularHelper and InMemoryTaskRepository. That is an import or dependency issue, which this rubric marks out of scope and which other tools check. On the rule \\\"responsibilities match the declared layer\\\", the file passes.\",\"violations\":[]}}",
+  "runIndex": 2,
+  "schemaVersion": 2,
+  "unitId": "src/infrastructure/repositories/CircularHelper.ts",
+  "usage": {
+    "inputTokens": 2499,
+    "outputTokens": 515
+  },
+  "usedOptions": {
+    "effort": "high",
+    "model": "claude-opus-5-5"
+  }
+}

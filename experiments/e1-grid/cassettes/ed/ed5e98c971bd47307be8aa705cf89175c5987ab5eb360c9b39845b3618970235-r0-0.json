@@ -1,0 +1,47 @@
+{
+  "attempts": 1,
+  "cliVersion": "2.1.294",
+  "configListingSha256": "47aa04258852fab9a706f3f0c14cee22306d69fbb6fdfbde8c11854bd54997bc",
+  "durationMs": 5739,
+  "effort": "high",
+  "functionId": "FF-N02",
+  "ignoredOptions": [
+    "maxTokens"
+  ],
+  "isolationProbeSha256": "97a2e2d0af1100c13c55e028c1a0c71f069093c3d08705af122aaeb302f1a641",
+  "key": "ed5e98c971bd47307be8aa705cf89175c5987ab5eb360c9b39845b3618970235-r0-0",
+  "model": "claude-opus-5-5",
+  "outcome": {
+    "kind": "valid"
+  },
+  "parsedVerdict": {
+    "confidence": 0.93,
+    "evidence": [
+      "src/domain/errors.ts: class DomainError extends Error only sets the message and this.name = new.target.name, with no framework or transport logic",
+      "src/domain/errors.ts: ValidationError, NotFoundError and ConflictError are empty subclasses that name domain error categories",
+      "No HTTP status codes, database code or I/O are present in the file"
+    ],
+    "pass": true,
+    "reasoning": "src/domain/errors.ts only declares a base error class, DomainError, and three subclasses for domain-level error categories: ValidationError, NotFoundError and ConflictError. The file has no persistence, transport, HTTP status mapping or framework code. The error categories don't depend on any framework and fit the domain layer. The infrastructure layer (http-app.ts) imports these errors, but that is out of scope here, and any mapping to HTTP status codes happens in that file, not in this one.",
+    "violations": []
+  },
+  "projectId": "claude-opus-5-5/task-management/none/run-1",
+  "prompt": "## Rule\nThe unit's responsibilities match the role of its declared layer.\n\n## Rubric\nPass: Every responsibility in the file belongs to the role and kind of its declared layer, and agrees with any ADR prose given.\nFail: The file carries a responsibility that belongs to a different layer kind, for example persistence, transport or framework logic in a domain file, or business rules in an infrastructure or presentation file.\nEvidence required: Name the file and cite the function, method or statement that carries the misplaced responsibility, and the layer kind it belongs to.\nOut of scope: import direction and layer-dependency rules, which are checked symbolically.\n\n## Layer model\n- domain (kind: domain): src/domain/**\n- application (kind: application): src/application/**\n- infrastructure (kind: infrastructure): src/infrastructure/**\n\n## Unit\nKind: file\nId: src/domain/errors.ts\nLayer: domain\nUnit files:\n- src/domain/errors.ts\n\n## Source\n=====SOURCE-BEGIN src/domain/errors.ts=====\nexport class DomainError extends Error {\n  constructor(message: string) {\n    super(message);\n    this.name = new.target.name;\n  }\n}\n\nexport class ValidationError extends DomainError {}\n\nexport class NotFoundError extends DomainError {}\n\nexport class ConflictError extends DomainError {}\n\n=====SOURCE-END=====\n\n## Graph excerpt\n{\"edges\":[{\"from\":\"ConflictError@src/domain/errors.ts\",\"to\":\"DomainError@src/domain/errors.ts\",\"type\":\"EXTENDS\"},{\"from\":\"NotFoundError@src/domain/errors.ts\",\"to\":\"DomainError@src/domain/errors.ts\",\"type\":\"EXTENDS\"},{\"from\":\"ValidationError@src/domain/errors.ts\",\"to\":\"DomainError@src/domain/errors.ts\",\"type\":\"EXTENDS\"},{\"from\":\"src/application/project-service.ts\",\"to\":\"src/domain/errors.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/application/task-service.ts\",\"to\":\"src/domain/errors.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/application/user-service.ts\",\"to\":\"src/domain/errors.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/domain/index.ts\",\"to\":\"src/domain/errors.ts\",\"type\":\"RE_EXPORTS\"},{\"from\":\"src/domain/project.ts\",\"to\":\"src/domain/errors.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/domain/task.ts\",\"to\":\"src/domain/errors.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/domain/user.ts\",\"to\":\"src/domain/errors.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/infrastructure/http-app.ts\",\"to\":\"src/domain/errors.ts\",\"type\":\"IMPORTS\"}],\"nodes\":[{\"kind\":\"Class\",\"layer\":\"domain\",\"name\":\"ConflictError\",\"path\":\"src/domain/errors.ts\"},{\"kind\":\"Class\",\"layer\":\"domain\",\"name\":\"DomainError\",\"path\":\"src/domain/errors.ts\"},{\"kind\":\"Class\",\"layer\":\"domain\",\"name\":\"NotFoundError\",\"path\":\"src/domain/errors.ts\"},{\"kind\":\"Class\",\"layer\":\"domain\",\"name\":\"ValidationError\",\"path\":\"src/domain/errors.ts\"},{\"kind\":\"File\",\"layer\":\"application\",\"path\":\"src/application/project-service.ts\"},{\"kind\":\"File\",\"layer\":\"application\",\"path\":\"src/application/task-service.ts\"},{\"kind\":\"File\",\"layer\":\"application\",\"path\":\"src/application/user-service.ts\"},{\"kind\":\"File\",\"layer\":\"domain\",\"path\":\"src/domain/errors.ts\"},{\"kind\":\"File\",\"layer\":\"domain\",\"path\":\"src/domain/index.ts\"},{\"kind\":\"File\",\"layer\":\"domain\",\"path\":\"src/domain/project.ts\"},{\"kind\":\"File\",\"layer\":\"domain\",\"path\":\"src/domain/task.ts\"},{\"kind\":\"File\",\"layer\":\"domain\",\"path\":\"src/domain/user.ts\"},{\"kind\":\"File\",\"layer\":\"infrastructure\",\"path\":\"src/infrastructure/http-app.ts\"}]}\n\n## Instructions\nJudge the unit against the rule and rubric. Return the JSON object the schema requires. Set pass to false if any file of the unit fails the rubric.\n",
+  "provider": "claude-cli",
+  "recordedAt": "2026-10-10T21:25:05.929Z",
+  "repetition": 0,
+  "requestHash": "ed5e98c971bd47307be8aa705cf89175c5987ab5eb360c9b39845b3618970235",
+  "resolvedModel": "claude-opus-5-5",
+  "response": "{\"is_error\":false,\"modelUsage\":{\"claude-opus-5-5\":{\"inputTokens\":2,\"outputTokens\":417}},\"result\":\"{\\\"pass\\\":true,\\\"confidence\\\":0.93,\\\"reasoning\\\":\\\"src/domain/errors.ts only declares a base error class, DomainError, and three subclasses for domain-level error categories: ValidationError, NotFoundError and ConflictError. The file has no persistence, transport, HTTP status mapping or framework code. The error categories don't depend on any framework and fit the domain layer. The infrastructure layer (http-app.ts) imports these errors, but that is out of scope here, and any mapping to HTTP status codes happens in that file, not in this one.\\\",\\\"evidence\\\":[\\\"src/domain/errors.ts: class DomainError extends Error only sets the message and this.name = new.target.name, with no framework or transport logic\\\",\\\"src/domain/errors.ts: ValidationError, NotFoundError and ConflictError are empty subclasses that name domain error categories\\\",\\\"No HTTP status codes, database code or I/O are present in the file\\\"],\\\"violations\\\":[]}\",\"structured_output\":{\"confidence\":0.93,\"evidence\":[\"src/domain/errors.ts: class DomainError extends Error only sets the message and this.name = new.target.name, with no framework or transport logic\",\"src/domain/errors.ts: ValidationError, NotFoundError and ConflictError are empty subclasses that name domain error categories\",\"No HTTP status codes, database code or I/O are present in the file\"],\"pass\":true,\"reasoning\":\"src/domain/errors.ts only declares a base error class, DomainError, and three subclasses for domain-level error categories: ValidationError, NotFoundError and ConflictError. The file has no persistence, transport, HTTP status mapping or framework code. The error categories don't depend on any framework and fit the domain layer. The infrastructure layer (http-app.ts) imports these errors, but that is out of scope here, and any mapping to HTTP status codes happens in that file, not in this one.\",\"violations\":[]}}",
+  "runIndex": 0,
+  "schemaVersion": 2,
+  "unitId": "src/domain/errors.ts",
+  "usage": {
+    "inputTokens": 2920,
+    "outputTokens": 417
+  },
+  "usedOptions": {
+    "effort": "high",
+    "model": "claude-opus-5-5"
+  }
+}

@@ -1,0 +1,47 @@
+{
+  "attempts": 1,
+  "cliVersion": "2.1.294",
+  "configListingSha256": "47aa04258852fab9a706f3f0c14cee22306d69fbb6fdfbde8c11854bd54997bc",
+  "durationMs": 6270,
+  "effort": "high",
+  "functionId": "FF-N02",
+  "ignoredOptions": [
+    "maxTokens"
+  ],
+  "isolationProbeSha256": "97a2e2d0af1100c13c55e028c1a0c71f069093c3d08705af122aaeb302f1a641",
+  "key": "c7d8af465c336c6a661efa3e0d98d09aff47642981af8e89306516058580811d-r0-0",
+  "model": "claude-opus-5-5",
+  "outcome": {
+    "kind": "valid"
+  },
+  "parsedVerdict": {
+    "confidence": 0.92,
+    "evidence": [
+      "src/domain/errors.ts: `export class DomainError extends Error` sets only `message` and `this.name = \"DomainError\"`. It has no other behavior.",
+      "Doc comment: \"A business-rule violation that can safely be returned to an API client.\" This describes intended use and adds no transport logic.",
+      "Graph: domain entities (task.ts, project.ts, user.ts) import errors.ts, which fits a domain error type."
+    ],
+    "pass": true,
+    "reasoning": "src/domain/errors.ts defines only DomainError, a plain Error subclass that stands for a business-rule violation. That is a domain responsibility. The file has no persistence, transport, HTTP status mapping, serialization or framework logic. The doc comment says the error \"can safely be returned to an API client\", but that only describes how the error is meant to be used. It adds no transport behavior to the file, and the actual mapping to a response belongs to the infrastructure controller. The graph shows that file imports the error.",
+    "violations": []
+  },
+  "projectId": "gpt-5.6-terra/task-management/minimal-prose/run-0",
+  "prompt": "## Rule\nThe unit's responsibilities match the role of its declared layer.\n\n## Rubric\nPass: Every responsibility in the file belongs to the role and kind of its declared layer, and agrees with any ADR prose given.\nFail: The file carries a responsibility that belongs to a different layer kind, for example persistence, transport or framework logic in a domain file, or business rules in an infrastructure or presentation file.\nEvidence required: Name the file and cite the function, method or statement that carries the misplaced responsibility, and the layer kind it belongs to.\nOut of scope: import direction and layer-dependency rules, which are checked symbolically.\n\n## Layer model\n- domain (kind: domain): src/domain/**\n- application (kind: application): src/application/**\n- infrastructure (kind: infrastructure): src/infrastructure/**\n\n## Unit\nKind: file\nId: src/domain/errors.ts\nLayer: domain\nUnit files:\n- src/domain/errors.ts\n\n## Source\n=====SOURCE-BEGIN src/domain/errors.ts=====\n/** A business-rule violation that can safely be returned to an API client. */\nexport class DomainError extends Error {\n  public constructor(message: string) {\n    super(message);\n    this.name = \"DomainError\";\n  }\n}\n\n=====SOURCE-END=====\n\n## Graph excerpt\n{\"edges\":[{\"from\":\"src/application/task-service.ts\",\"to\":\"src/domain/errors.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/domain/project.ts\",\"to\":\"src/domain/errors.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/domain/task.ts\",\"to\":\"src/domain/errors.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/domain/user.ts\",\"to\":\"src/domain/errors.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/infrastructure/task-controller.ts\",\"to\":\"src/domain/errors.ts\",\"type\":\"IMPORTS\"}],\"nodes\":[{\"kind\":\"Class\",\"layer\":\"domain\",\"name\":\"DomainError\",\"path\":\"src/domain/errors.ts\"},{\"kind\":\"File\",\"layer\":\"application\",\"path\":\"src/application/task-service.ts\"},{\"kind\":\"File\",\"layer\":\"domain\",\"path\":\"src/domain/errors.ts\"},{\"kind\":\"File\",\"layer\":\"domain\",\"path\":\"src/domain/project.ts\"},{\"kind\":\"File\",\"layer\":\"domain\",\"path\":\"src/domain/task.ts\"},{\"kind\":\"File\",\"layer\":\"domain\",\"path\":\"src/domain/user.ts\"},{\"kind\":\"File\",\"layer\":\"infrastructure\",\"path\":\"src/infrastructure/task-controller.ts\"}]}\n\n## Instructions\nJudge the unit against the rule and rubric. Return the JSON object the schema requires. Set pass to false if any file of the unit fails the rubric.\n",
+  "provider": "claude-cli",
+  "recordedAt": "2026-10-11T03:12:38.727Z",
+  "repetition": 0,
+  "requestHash": "c7d8af465c336c6a661efa3e0d98d09aff47642981af8e89306516058580811d",
+  "resolvedModel": "claude-opus-5-5",
+  "response": "{\"is_error\":false,\"modelUsage\":{\"claude-opus-5-5\":{\"inputTokens\":2,\"outputTokens\":487}},\"result\":\"{\\\"pass\\\":true,\\\"confidence\\\":0.92,\\\"reasoning\\\":\\\"src/domain/errors.ts defines only DomainError, a plain Error subclass that stands for a business-rule violation. That is a domain responsibility. The file has no persistence, transport, HTTP status mapping, serialization or framework logic. The doc comment says the error \\\\\\\"can safely be returned to an API client\\\\\\\", but that only describes how the error is meant to be used. It adds no transport behavior to the file, and the actual mapping to a response belongs to the infrastructure controller. The graph shows that file imports the error.\\\",\\\"evidence\\\":[\\\"src/domain/errors.ts: `export class DomainError extends Error` sets only `message` and `this.name = \\\\\\\"DomainError\\\\\\\"`. It has no other behavior.\\\",\\\"Doc comment: \\\\\\\"A business-rule violation that can safely be returned to an API client.\\\\\\\" This describes intended use and adds no transport logic.\\\",\\\"Graph: domain entities (task.ts, project.ts, user.ts) import errors.ts, which fits a domain error type.\\\"],\\\"violations\\\":[]}\",\"structured_output\":{\"confidence\":0.92,\"evidence\":[\"src/domain/errors.ts: `export class DomainError extends Error` sets only `message` and `this.name = \\\"DomainError\\\"`. It has no other behavior.\",\"Doc comment: \\\"A business-rule violation that can safely be returned to an API client.\\\" This describes intended use and adds no transport logic.\",\"Graph: domain entities (task.ts, project.ts, user.ts) import errors.ts, which fits a domain error type.\"],\"pass\":true,\"reasoning\":\"src/domain/errors.ts defines only DomainError, a plain Error subclass that stands for a business-rule violation. That is a domain responsibility. The file has no persistence, transport, HTTP status mapping, serialization or framework logic. The doc comment says the error \\\"can safely be returned to an API client\\\", but that only describes how the error is meant to be used. It adds no transport behavior to the file, and the actual mapping to a response belongs to the infrastructure controller. The graph shows that file imports the error.\",\"violations\":[]}}",
+  "runIndex": 0,
+  "schemaVersion": 2,
+  "unitId": "src/domain/errors.ts",
+  "usage": {
+    "inputTokens": 2407,
+    "outputTokens": 487
+  },
+  "usedOptions": {
+    "effort": "high",
+    "model": "claude-opus-5-5"
+  }
+}

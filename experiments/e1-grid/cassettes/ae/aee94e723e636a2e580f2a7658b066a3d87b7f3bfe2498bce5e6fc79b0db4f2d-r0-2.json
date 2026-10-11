@@ -1,0 +1,46 @@
+{
+  "attempts": 1,
+  "cliVersion": "2.1.294",
+  "configListingSha256": "47aa04258852fab9a706f3f0c14cee22306d69fbb6fdfbde8c11854bd54997bc",
+  "durationMs": 5929,
+  "effort": "high",
+  "functionId": "FF-N02",
+  "ignoredOptions": [
+    "maxTokens"
+  ],
+  "isolationProbeSha256": "97a2e2d0af1100c13c55e028c1a0c71f069093c3d08705af122aaeb302f1a641",
+  "key": "aee94e723e636a2e580f2a7658b066a3d87b7f3bfe2498bce5e6fc79b0db4f2d-r0-2",
+  "model": "claude-opus-5-5",
+  "outcome": {
+    "kind": "valid"
+  },
+  "parsedVerdict": {
+    "confidence": 0.93,
+    "evidence": [
+      "src/infrastructure/config/orderModule.ts: buildOrderController only creates PlaceOrderUseCase, GetOrderUseCase, ListOrdersByStateUseCase, AdvanceOrderUseCase and CancelOrderUseCase and passes them to new OrderController({...}), which is pure dependency wiring.",
+      "src/infrastructure/config/orderModule.ts: no conditionals, validation, state transitions or persistence logic are present, so no domain or application responsibility is misplaced here."
+    ],
+    "pass": true,
+    "reasoning": "The file is a composition-root module in the infrastructure layer. Its only responsibility is dependency wiring: it builds the application use cases from the injected repository and stock-service abstractions, then passes them to the HTTP controller. Wiring and configuration are infrastructure work. The file contains no business rules, no domain invariants and no use-case orchestration logic that would belong to the domain or application layers. Import direction is out of scope.",
+    "violations": []
+  },
+  "projectId": "claude-opus-5-5/order-fulfilment/full-aac/run-0",
+  "prompt": "## Rule\nThe unit's responsibilities match the role of its declared layer.\n\n## Rubric\nPass: Every responsibility in the file belongs to the role and kind of its declared layer, and agrees with any ADR prose given.\nFail: The file carries a responsibility that belongs to a different layer kind, for example persistence, transport or framework logic in a domain file, or business rules in an infrastructure or presentation file.\nEvidence required: Name the file and cite the function, method or statement that carries the misplaced responsibility, and the layer kind it belongs to.\nOut of scope: import direction and layer-dependency rules, which are checked symbolically.\n\n## Layer model\n- domain (kind: domain): src/domain/**\n- application (kind: application): src/application/**\n- infrastructure (kind: infrastructure): src/infrastructure/**\n\n## Unit\nKind: file\nId: src/infrastructure/config/orderModule.ts\nLayer: infrastructure\nUnit files:\n- src/infrastructure/config/orderModule.ts\n\n## Source\n=====SOURCE-BEGIN src/infrastructure/config/orderModule.ts=====\nimport { AdvanceOrderUseCase } from '../../application/use-cases/AdvanceOrderUseCase';\nimport { CancelOrderUseCase } from '../../application/use-cases/CancelOrderUseCase';\nimport { GetOrderUseCase } from '../../application/use-cases/GetOrderUseCase';\nimport { ListOrdersByStateUseCase } from '../../application/use-cases/ListOrdersByStateUseCase';\nimport { PlaceOrderUseCase } from '../../application/use-cases/PlaceOrderUseCase';\nimport { OrderRepository } from '../../domain/order/OrderRepository';\nimport { StockReservationService } from '../../domain/services/StockReservationService';\nimport { OrderController } from '../http/OrderController';\n\n/** Wires the order use cases into the order controller. */\nexport function buildOrderController(orders: OrderRepository, stock: StockReservationService): OrderController {\n  return new OrderController({\n    placeOrder: new PlaceOrderUseCase(orders, stock),\n    getOrder: new GetOrderUseCase(orders),\n    listOrdersByState: new ListOrdersByStateUseCase(orders),\n    advanceOrder: new AdvanceOrderUseCase(orders),\n    cancelOrder: new CancelOrderUseCase(orders, stock),\n  });\n}\n\n=====SOURCE-END=====\n\n## Graph excerpt\n{\"edges\":[{\"from\":\"src/infrastructure/config/createApp.ts\",\"to\":\"src/infrastructure/config/orderModule.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/infrastructure/config/orderModule.ts\",\"to\":\"src/application/use-cases/AdvanceOrderUseCase.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/infrastructure/config/orderModule.ts\",\"to\":\"src/application/use-cases/CancelOrderUseCase.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/infrastructure/config/orderModule.ts\",\"to\":\"src/application/use-cases/GetOrderUseCase.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/infrastructure/config/orderModule.ts\",\"to\":\"src/application/use-cases/ListOrdersByStateUseCase.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/infrastructure/config/orderModule.ts\",\"to\":\"src/application/use-cases/PlaceOrderUseCase.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/infrastructure/config/orderModule.ts\",\"to\":\"src/domain/order/OrderRepository.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/infrastructure/config/orderModule.ts\",\"to\":\"src/domain/services/StockReservationService.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/infrastructure/config/orderModule.ts\",\"to\":\"src/infrastructure/http/OrderController.ts\",\"type\":\"IMPORTS\"}],\"nodes\":[{\"kind\":\"File\",\"layer\":\"application\",\"path\":\"src/application/use-cases/AdvanceOrderUseCase.ts\"},{\"kind\":\"File\",\"layer\":\"application\",\"path\":\"src/application/use-cases/CancelOrderUseCase.ts\"},{\"kind\":\"File\",\"layer\":\"application\",\"path\":\"src/application/use-cases/GetOrderUseCase.ts\"},{\"kind\":\"File\",\"layer\":\"application\",\"path\":\"src/application/use-cases/ListOrdersByStateUseCase.ts\"},{\"kind\":\"File\",\"layer\":\"application\",\"path\":\"src/application/use-cases/PlaceOrderUseCase.ts\"},{\"kind\":\"File\",\"layer\":\"domain\",\"path\":\"src/domain/order/OrderRepository.ts\"},{\"kind\":\"File\",\"layer\":\"domain\",\"path\":\"src/domain/services/StockReservationService.ts\"},{\"kind\":\"File\",\"layer\":\"infrastructure\",\"path\":\"src/infrastructure/config/createApp.ts\"},{\"kind\":\"File\",\"layer\":\"infrastructure\",\"path\":\"src/infrastructure/config/orderModule.ts\"},{\"kind\":\"File\",\"layer\":\"infrastructure\",\"path\":\"src/infrastructure/http/OrderController.ts\"}]}\n\n## Instructions\nJudge the unit against the rule and rubric. Return the JSON object the schema requires. Set pass to false if any file of the unit fails the rubric.\n",
+  "provider": "claude-cli",
+  "recordedAt": "2026-10-10T22:15:31.039Z",
+  "repetition": 0,
+  "requestHash": "aee94e723e636a2e580f2a7658b066a3d87b7f3bfe2498bce5e6fc79b0db4f2d",
+  "resolvedModel": "claude-opus-5-5",
+  "response": "{\"is_error\":false,\"modelUsage\":{\"claude-opus-5-5\":{\"inputTokens\":2,\"outputTokens\":453}},\"result\":\"{\\\"pass\\\":true,\\\"confidence\\\":0.93,\\\"reasoning\\\":\\\"The file is a composition-root module in the infrastructure layer. Its only responsibility is dependency wiring: it builds the application use cases from the injected repository and stock-service abstractions, then passes them to the HTTP controller. Wiring and configuration are infrastructure work. The file contains no business rules, no domain invariants and no use-case orchestration logic that would belong to the domain or application layers. Import direction is out of scope.\\\",\\\"evidence\\\":[\\\"src/infrastructure/config/orderModule.ts: buildOrderController only creates PlaceOrderUseCase, GetOrderUseCase, ListOrdersByStateUseCase, AdvanceOrderUseCase and CancelOrderUseCase and passes them to new OrderController({...}), which is pure dependency wiring.\\\",\\\"src/infrastructure/config/orderModule.ts: no conditionals, validation, state transitions or persistence logic are present, so no domain or application responsibility is misplaced here.\\\"],\\\"violations\\\":[]}\",\"structured_output\":{\"confidence\":0.93,\"evidence\":[\"src/infrastructure/config/orderModule.ts: buildOrderController only creates PlaceOrderUseCase, GetOrderUseCase, ListOrdersByStateUseCase, AdvanceOrderUseCase and CancelOrderUseCase and passes them to new OrderController({...}), which is pure dependency wiring.\",\"src/infrastructure/config/orderModule.ts: no conditionals, validation, state transitions or persistence logic are present, so no domain or application responsibility is misplaced here.\"],\"pass\":true,\"reasoning\":\"The file is a composition-root module in the infrastructure layer. Its only responsibility is dependency wiring: it builds the application use cases from the injected repository and stock-service abstractions, then passes them to the HTTP controller. Wiring and configuration are infrastructure work. The file contains no business rules, no domain invariants and no use-case orchestration logic that would belong to the domain or application layers. Import direction is out of scope.\",\"violations\":[]}}",
+  "runIndex": 2,
+  "schemaVersion": 2,
+  "unitId": "src/infrastructure/config/orderModule.ts",
+  "usage": {
+    "inputTokens": 3310,
+    "outputTokens": 453
+  },
+  "usedOptions": {
+    "effort": "high",
+    "model": "claude-opus-5-5"
+  }
+}

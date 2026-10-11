@@ -1,0 +1,47 @@
+{
+  "attempts": 1,
+  "cliVersion": "2.1.294",
+  "configListingSha256": "47aa04258852fab9a706f3f0c14cee22306d69fbb6fdfbde8c11854bd54997bc",
+  "durationMs": 5415,
+  "effort": "high",
+  "functionId": "FF-N02",
+  "ignoredOptions": [
+    "maxTokens"
+  ],
+  "isolationProbeSha256": "97a2e2d0af1100c13c55e028c1a0c71f069093c3d08705af122aaeb302f1a641",
+  "key": "e796d749be7265d252edabe6c47ee6efd0c812121a18deb623efc5169f4f766e-r0-2",
+  "model": "claude-opus-5-5",
+  "outcome": {
+    "kind": "valid"
+  },
+  "parsedVerdict": {
+    "confidence": 0.95,
+    "evidence": [
+      "src/domain/Project.ts: class Project has only a constructor with private readonly id and name, plus the getId() and getName() accessors",
+      "src/domain/Project.ts has no imports and no I/O, database, HTTP or framework code",
+      "Graph: the application, domain and infrastructure files all depend on Project, which fits a core domain entity"
+    ],
+    "pass": true,
+    "reasoning": "src/domain/Project.ts declares a plain domain entity, Project. It has two private readonly fields (id and name) and two accessors, getId() and getName(). It has no persistence, transport, framework or presentation logic, and no imports. Everything in the file fits the domain layer's role, so it passes. One note: the entity is anemic, with no business behaviour, but that does not put any responsibility in the wrong layer.",
+    "violations": []
+  },
+  "projectId": "claude-haiku-4-5/task-management/full-aac/run-0",
+  "prompt": "## Rule\nThe unit's responsibilities match the role of its declared layer.\n\n## Rubric\nPass: Every responsibility in the file belongs to the role and kind of its declared layer, and agrees with any ADR prose given.\nFail: The file carries a responsibility that belongs to a different layer kind, for example persistence, transport or framework logic in a domain file, or business rules in an infrastructure or presentation file.\nEvidence required: Name the file and cite the function, method or statement that carries the misplaced responsibility, and the layer kind it belongs to.\nOut of scope: import direction and layer-dependency rules, which are checked symbolically.\n\n## Layer model\n- domain (kind: domain): src/domain/**\n- application (kind: application): src/application/**\n- infrastructure (kind: infrastructure): src/infrastructure/**\n\n## Unit\nKind: file\nId: src/domain/Project.ts\nLayer: domain\nUnit files:\n- src/domain/Project.ts\n\n## Source\n=====SOURCE-BEGIN src/domain/Project.ts=====\nexport class Project {\n  constructor(\n    private readonly id: string,\n    private readonly name: string,\n  ) {}\n\n  getId(): string {\n    return this.id;\n  }\n\n  getName(): string {\n    return this.name;\n  }\n}\n\n=====SOURCE-END=====\n\n## Graph excerpt\n{\"edges\":[{\"from\":\"src/application/CreateProjectUseCase.ts\",\"to\":\"src/domain/Project.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/domain/IProjectRepository.ts\",\"to\":\"src/domain/Project.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/infrastructure/ProjectRepository.ts\",\"to\":\"src/domain/Project.ts\",\"type\":\"IMPORTS\"}],\"nodes\":[{\"kind\":\"Class\",\"layer\":\"domain\",\"name\":\"Project\",\"path\":\"src/domain/Project.ts\"},{\"kind\":\"File\",\"layer\":\"application\",\"path\":\"src/application/CreateProjectUseCase.ts\"},{\"kind\":\"File\",\"layer\":\"domain\",\"path\":\"src/domain/IProjectRepository.ts\"},{\"kind\":\"File\",\"layer\":\"domain\",\"path\":\"src/domain/Project.ts\"},{\"kind\":\"File\",\"layer\":\"infrastructure\",\"path\":\"src/infrastructure/ProjectRepository.ts\"}]}\n\n## Instructions\nJudge the unit against the rule and rubric. Return the JSON object the schema requires. Set pass to false if any file of the unit fails the rubric.\n",
+  "provider": "claude-cli",
+  "recordedAt": "2026-10-10T20:53:32.433Z",
+  "repetition": 0,
+  "requestHash": "e796d749be7265d252edabe6c47ee6efd0c812121a18deb623efc5169f4f766e",
+  "resolvedModel": "claude-opus-5-5",
+  "response": "{\"is_error\":false,\"modelUsage\":{\"claude-opus-5-5\":{\"inputTokens\":2,\"outputTokens\":389}},\"result\":\"{\\\"pass\\\":true,\\\"confidence\\\":0.95,\\\"reasoning\\\":\\\"src/domain/Project.ts declares a plain domain entity, Project. It has two private readonly fields (id and name) and two accessors, getId() and getName(). It has no persistence, transport, framework or presentation logic, and no imports. Everything in the file fits the domain layer's role, so it passes. One note: the entity is anemic, with no business behaviour, but that does not put any responsibility in the wrong layer.\\\",\\\"evidence\\\":[\\\"src/domain/Project.ts: class Project has only a constructor with private readonly id and name, plus the getId() and getName() accessors\\\",\\\"src/domain/Project.ts has no imports and no I/O, database, HTTP or framework code\\\",\\\"Graph: the application, domain and infrastructure files all depend on Project, which fits a core domain entity\\\"],\\\"violations\\\":[]}\",\"structured_output\":{\"confidence\":0.95,\"evidence\":[\"src/domain/Project.ts: class Project has only a constructor with private readonly id and name, plus the getId() and getName() accessors\",\"src/domain/Project.ts has no imports and no I/O, database, HTTP or framework code\",\"Graph: the application, domain and infrastructure files all depend on Project, which fits a core domain entity\"],\"pass\":true,\"reasoning\":\"src/domain/Project.ts declares a plain domain entity, Project. It has two private readonly fields (id and name) and two accessors, getId() and getName(). It has no persistence, transport, framework or presentation logic, and no imports. Everything in the file fits the domain layer's role, so it passes. One note: the entity is anemic, with no business behaviour, but that does not put any responsibility in the wrong layer.\",\"violations\":[]}}",
+  "runIndex": 2,
+  "schemaVersion": 2,
+  "unitId": "src/domain/Project.ts",
+  "usage": {
+    "inputTokens": 2306,
+    "outputTokens": 389
+  },
+  "usedOptions": {
+    "effort": "high",
+    "model": "claude-opus-5-5"
+  }
+}

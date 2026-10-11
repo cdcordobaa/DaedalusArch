@@ -1,0 +1,47 @@
+{
+  "attempts": 1,
+  "cliVersion": "2.1.294",
+  "configListingSha256": "47aa04258852fab9a706f3f0c14cee22306d69fbb6fdfbde8c11854bd54997bc",
+  "durationMs": 5599,
+  "effort": "high",
+  "functionId": "FF-N02",
+  "ignoredOptions": [
+    "maxTokens"
+  ],
+  "isolationProbeSha256": "97a2e2d0af1100c13c55e028c1a0c71f069093c3d08705af122aaeb302f1a641",
+  "key": "41783934df5d9545a90afb1f0061a84f81fbe02d1ee0aff26b014146613b392f-r0-0",
+  "model": "claude-opus-5-5",
+  "outcome": {
+    "kind": "valid"
+  },
+  "parsedVerdict": {
+    "confidence": 0.93,
+    "evidence": [
+      "src/infrastructure/stock-controller.ts: StockController.routes() builds an Express Router and registers GET '/', which is transport/framework wiring and belongs in infrastructure.",
+      "src/infrastructure/stock-controller.ts: the handler calls this.listStock.execute() and passes the result to res.json(levels) without changing it, so there is no business logic in the controller.",
+      "src/infrastructure/stock-controller.ts: errors are passed to the Express next callback, which is framework-level error handling."
+    ],
+    "pass": true,
+    "reasoning": "The file is a thin Express transport adapter in the infrastructure layer. It sets up a router, sends the GET request to the application use case, writes the result as JSON, and forwards errors to Express's next(). It contains no business rules, domain calculations or persistence logic, so every responsibility it carries is transport/framework work that belongs in infrastructure.",
+    "violations": []
+  },
+  "projectId": "claude-sonnet-5-5/order-fulfilment/minimal-prose/run-2",
+  "prompt": "## Rule\nThe unit's responsibilities match the role of its declared layer.\n\n## Rubric\nPass: Every responsibility in the file belongs to the role and kind of its declared layer, and agrees with any ADR prose given.\nFail: The file carries a responsibility that belongs to a different layer kind, for example persistence, transport or framework logic in a domain file, or business rules in an infrastructure or presentation file.\nEvidence required: Name the file and cite the function, method or statement that carries the misplaced responsibility, and the layer kind it belongs to.\nOut of scope: import direction and layer-dependency rules, which are checked symbolically.\n\n## Layer model\n- domain (kind: domain): src/domain/**\n- application (kind: application): src/application/**\n- infrastructure (kind: infrastructure): src/infrastructure/**\n\n## Unit\nKind: file\nId: src/infrastructure/stock-controller.ts\nLayer: infrastructure\nUnit files:\n- src/infrastructure/stock-controller.ts\n\n## Source\n=====SOURCE-BEGIN src/infrastructure/stock-controller.ts=====\nimport { NextFunction, Request, Response, Router } from \"express\";\nimport { ListStockLevelsUseCase } from \"../application/list-stock-levels-use-case\";\n\nexport class StockController {\n  constructor(private readonly listStock: ListStockLevelsUseCase) {}\n\n  routes(): Router {\n    const router = Router();\n    router.get(\"/\", (_req: Request, res: Response, next: NextFunction) => {\n      this.listStock.execute().then((levels) => res.json(levels), next);\n    });\n    return router;\n  }\n}\n\n=====SOURCE-END=====\n\n## Graph excerpt\n{\"edges\":[{\"from\":\"StockController@src/infrastructure/stock-controller.ts\",\"to\":\"ListStockLevelsUseCase@src/application/list-stock-levels-use-case.ts\",\"type\":\"CONSTRUCTOR_INJECTS\"},{\"from\":\"src/infrastructure/app-factory.ts\",\"to\":\"src/infrastructure/stock-controller.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/infrastructure/stock-controller.ts\",\"to\":\"express\",\"type\":\"IMPORTS\"},{\"from\":\"src/infrastructure/stock-controller.ts\",\"to\":\"src/application/list-stock-levels-use-case.ts\",\"type\":\"IMPORTS\"}],\"nodes\":[{\"kind\":\"Class\",\"layer\":\"application\",\"name\":\"ListStockLevelsUseCase\",\"path\":\"src/application/list-stock-levels-use-case.ts\"},{\"kind\":\"Class\",\"layer\":\"infrastructure\",\"name\":\"StockController\",\"path\":\"src/infrastructure/stock-controller.ts\"},{\"kind\":\"File\",\"layer\":\"application\",\"path\":\"src/application/list-stock-levels-use-case.ts\"},{\"kind\":\"File\",\"layer\":\"infrastructure\",\"path\":\"src/infrastructure/app-factory.ts\"},{\"kind\":\"File\",\"layer\":\"infrastructure\",\"path\":\"src/infrastructure/stock-controller.ts\"},{\"kind\":\"Package\",\"layer\":null,\"path\":\"express\"}]}\n\n## Instructions\nJudge the unit against the rule and rubric. Return the JSON object the schema requires. Set pass to false if any file of the unit fails the rubric.\n",
+  "provider": "claude-cli",
+  "recordedAt": "2026-10-10T22:52:10.029Z",
+  "repetition": 0,
+  "requestHash": "41783934df5d9545a90afb1f0061a84f81fbe02d1ee0aff26b014146613b392f",
+  "resolvedModel": "claude-opus-5-5",
+  "response": "{\"is_error\":false,\"modelUsage\":{\"claude-opus-5-5\":{\"inputTokens\":2,\"outputTokens\":423}},\"result\":\"{\\\"pass\\\":true,\\\"confidence\\\":0.93,\\\"reasoning\\\":\\\"The file is a thin Express transport adapter in the infrastructure layer. It sets up a router, sends the GET request to the application use case, writes the result as JSON, and forwards errors to Express's next(). It contains no business rules, domain calculations or persistence logic, so every responsibility it carries is transport/framework work that belongs in infrastructure.\\\",\\\"evidence\\\":[\\\"src/infrastructure/stock-controller.ts: StockController.routes() builds an Express Router and registers GET '/', which is transport/framework wiring and belongs in infrastructure.\\\",\\\"src/infrastructure/stock-controller.ts: the handler calls this.listStock.execute() and passes the result to res.json(levels) without changing it, so there is no business logic in the controller.\\\",\\\"src/infrastructure/stock-controller.ts: errors are passed to the Express next callback, which is framework-level error handling.\\\"],\\\"violations\\\":[]}\",\"structured_output\":{\"confidence\":0.93,\"evidence\":[\"src/infrastructure/stock-controller.ts: StockController.routes() builds an Express Router and registers GET '/', which is transport/framework wiring and belongs in infrastructure.\",\"src/infrastructure/stock-controller.ts: the handler calls this.listStock.execute() and passes the result to res.json(levels) without changing it, so there is no business logic in the controller.\",\"src/infrastructure/stock-controller.ts: errors are passed to the Express next callback, which is framework-level error handling.\"],\"pass\":true,\"reasoning\":\"The file is a thin Express transport adapter in the infrastructure layer. It sets up a router, sends the GET request to the application use case, writes the result as JSON, and forwards errors to Express's next(). It contains no business rules, domain calculations or persistence logic, so every responsibility it carries is transport/framework work that belongs in infrastructure.\",\"violations\":[]}}",
+  "runIndex": 0,
+  "schemaVersion": 2,
+  "unitId": "src/infrastructure/stock-controller.ts",
+  "usage": {
+    "inputTokens": 2568,
+    "outputTokens": 423
+  },
+  "usedOptions": {
+    "effort": "high",
+    "model": "claude-opus-5-5"
+  }
+}

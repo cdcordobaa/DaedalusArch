@@ -1,0 +1,48 @@
+{
+  "attempts": 1,
+  "cliVersion": "2.1.294",
+  "configListingSha256": "47aa04258852fab9a706f3f0c14cee22306d69fbb6fdfbde8c11854bd54997bc",
+  "durationMs": 6218,
+  "effort": "high",
+  "functionId": "FF-N02",
+  "ignoredOptions": [
+    "maxTokens"
+  ],
+  "isolationProbeSha256": "97a2e2d0af1100c13c55e028c1a0c71f069093c3d08705af122aaeb302f1a641",
+  "key": "a8c35e99a3fa21fb05c9b4233bcfe22eda3fd7c22f2d15482c6e4267aeae141e-r0-0",
+  "model": "claude-opus-5-5",
+  "outcome": {
+    "kind": "valid"
+  },
+  "parsedVerdict": {
+    "confidence": 0.95,
+    "evidence": [
+      "src/application/dtos/ProjectDtos.ts: `interface CreateProjectInput { name: string }` is the input contract for a use case, which is an application-layer job",
+      "src/application/dtos/ProjectDtos.ts: `interface ProjectDto { id; name }` is the output contract that application services hand back",
+      "src/application/dtos/ProjectDtos.ts: `toProjectDto(project)` only copies fields from the entity to the DTO, with no business rules, I/O or framework code",
+      "Graph: the only user of this file is src/application/use-cases/CreateProjectUseCase.ts, which is consistent with its application-layer role"
+    ],
+    "pass": true,
+    "reasoning": "The file only holds application-layer DTOs: an input contract (CreateProjectInput), an output contract (ProjectDto), and a plain mapping function (toProjectDto) that turns a domain entity into a DTO. Defining these boundary data contracts and mapping entities to them is the application layer's job. The file has no persistence, transport, framework or HTTP logic, and no business rules that should sit in the domain. No ADR prose was provided to compare against.",
+    "violations": []
+  },
+  "projectId": "claude-opus-5-5/task-management/minimal-prose/run-0",
+  "prompt": "## Rule\nThe unit's responsibilities match the role of its declared layer.\n\n## Rubric\nPass: Every responsibility in the file belongs to the role and kind of its declared layer, and agrees with any ADR prose given.\nFail: The file carries a responsibility that belongs to a different layer kind, for example persistence, transport or framework logic in a domain file, or business rules in an infrastructure or presentation file.\nEvidence required: Name the file and cite the function, method or statement that carries the misplaced responsibility, and the layer kind it belongs to.\nOut of scope: import direction and layer-dependency rules, which are checked symbolically.\n\n## Layer model\n- domain (kind: domain): src/domain/**\n- application (kind: application): src/application/**\n- infrastructure (kind: infrastructure): src/infrastructure/**\n\n## Unit\nKind: file\nId: src/application/dtos/ProjectDtos.ts\nLayer: application\nUnit files:\n- src/application/dtos/ProjectDtos.ts\n\n## Source\n=====SOURCE-BEGIN src/application/dtos/ProjectDtos.ts=====\nimport { Project } from '../../domain/entities/Project';\n\nexport interface CreateProjectInput {\n  name: string;\n}\n\nexport interface ProjectDto {\n  id: string;\n  name: string;\n}\n\nexport function toProjectDto(project: Project): ProjectDto {\n  return { id: project.id, name: project.name };\n}\n\n=====SOURCE-END=====\n\n## Graph excerpt\n{\"edges\":[{\"from\":\"src/application/dtos/ProjectDtos.ts\",\"to\":\"src/domain/entities/Project.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/application/use-cases/CreateProjectUseCase.ts\",\"to\":\"src/application/dtos/ProjectDtos.ts\",\"type\":\"IMPORTS\"}],\"nodes\":[{\"kind\":\"File\",\"layer\":\"application\",\"path\":\"src/application/dtos/ProjectDtos.ts\"},{\"kind\":\"File\",\"layer\":\"application\",\"path\":\"src/application/use-cases/CreateProjectUseCase.ts\"},{\"kind\":\"File\",\"layer\":\"domain\",\"path\":\"src/domain/entities/Project.ts\"},{\"kind\":\"Interface\",\"layer\":\"application\",\"name\":\"CreateProjectInput\",\"path\":\"src/application/dtos/ProjectDtos.ts\"},{\"kind\":\"Interface\",\"layer\":\"application\",\"name\":\"ProjectDto\",\"path\":\"src/application/dtos/ProjectDtos.ts\"}]}\n\n## Instructions\nJudge the unit against the rule and rubric. Return the JSON object the schema requires. Set pass to false if any file of the unit fails the rubric.\n",
+  "provider": "claude-cli",
+  "recordedAt": "2026-10-10T21:37:00.568Z",
+  "repetition": 0,
+  "requestHash": "a8c35e99a3fa21fb05c9b4233bcfe22eda3fd7c22f2d15482c6e4267aeae141e",
+  "resolvedModel": "claude-opus-5-5",
+  "response": "{\"is_error\":false,\"modelUsage\":{\"claude-opus-5-5\":{\"inputTokens\":2,\"outputTokens\":503}},\"result\":\"{\\\"pass\\\":true,\\\"confidence\\\":0.95,\\\"reasoning\\\":\\\"The file only holds application-layer DTOs: an input contract (CreateProjectInput), an output contract (ProjectDto), and a plain mapping function (toProjectDto) that turns a domain entity into a DTO. Defining these boundary data contracts and mapping entities to them is the application layer's job. The file has no persistence, transport, framework or HTTP logic, and no business rules that should sit in the domain. No ADR prose was provided to compare against.\\\",\\\"evidence\\\":[\\\"src/application/dtos/ProjectDtos.ts: `interface CreateProjectInput { name: string }` is the input contract for a use case, which is an application-layer job\\\",\\\"src/application/dtos/ProjectDtos.ts: `interface ProjectDto { id; name }` is the output contract that application services hand back\\\",\\\"src/application/dtos/ProjectDtos.ts: `toProjectDto(project)` only copies fields from the entity to the DTO, with no business rules, I/O or framework code\\\",\\\"Graph: the only user of this file is src/application/use-cases/CreateProjectUseCase.ts, which is consistent with its application-layer role\\\"],\\\"violations\\\":[]}\",\"structured_output\":{\"confidence\":0.95,\"evidence\":[\"src/application/dtos/ProjectDtos.ts: `interface CreateProjectInput { name: string }` is the input contract for a use case, which is an application-layer job\",\"src/application/dtos/ProjectDtos.ts: `interface ProjectDto { id; name }` is the output contract that application services hand back\",\"src/application/dtos/ProjectDtos.ts: `toProjectDto(project)` only copies fields from the entity to the DTO, with no business rules, I/O or framework code\",\"Graph: the only user of this file is src/application/use-cases/CreateProjectUseCase.ts, which is consistent with its application-layer role\"],\"pass\":true,\"reasoning\":\"The file only holds application-layer DTOs: an input contract (CreateProjectInput), an output contract (ProjectDto), and a plain mapping function (toProjectDto) that turns a domain entity into a DTO. Defining these boundary data contracts and mapping entities to them is the application layer's job. The file has no persistence, transport, framework or HTTP logic, and no business rules that should sit in the domain. No ADR prose was provided to compare against.\",\"violations\":[]}}",
+  "runIndex": 0,
+  "schemaVersion": 2,
+  "unitId": "src/application/dtos/ProjectDtos.ts",
+  "usage": {
+    "inputTokens": 2360,
+    "outputTokens": 503
+  },
+  "usedOptions": {
+    "effort": "high",
+    "model": "claude-opus-5-5"
+  }
+}

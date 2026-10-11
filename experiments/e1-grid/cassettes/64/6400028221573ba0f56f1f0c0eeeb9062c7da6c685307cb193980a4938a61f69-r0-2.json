@@ -1,0 +1,47 @@
+{
+  "attempts": 1,
+  "cliVersion": "2.1.294",
+  "configListingSha256": "47aa04258852fab9a706f3f0c14cee22306d69fbb6fdfbde8c11854bd54997bc",
+  "durationMs": 6295,
+  "effort": "high",
+  "functionId": "FF-N02",
+  "ignoredOptions": [
+    "maxTokens"
+  ],
+  "isolationProbeSha256": "97a2e2d0af1100c13c55e028c1a0c71f069093c3d08705af122aaeb302f1a641",
+  "key": "6400028221573ba0f56f1f0c0eeeb9062c7da6c685307cb193980a4938a61f69-r0-2",
+  "model": "claude-opus-5-5",
+  "outcome": {
+    "kind": "valid"
+  },
+  "parsedVerdict": {
+    "confidence": 0.9,
+    "evidence": [
+      "src/infrastructure/ProjectController.ts: routes() registers POST /projects on an express Router, which is framework/transport work for the infrastructure layer",
+      "src/infrastructure/ProjectController.ts: create() calls requiredString(bodyOf(req), \"name\") to parse the request input, passes the work to this.createProject.execute({ name }), and replies with res.status(201).json(project)",
+      "No business rules or persistence logic appear in the file; the use case is reached through constructor injection (CONSTRUCTOR_INJECTS edge to CreateProjectUseCase)"
+    ],
+    "pass": true,
+    "reasoning": "ProjectController is a thin HTTP adapter that lives in the infrastructure layer. Its routes() method sets up an Express router. Its create() method reads and checks the request input with requiredString(bodyOf(req), \"name\"), which is transport-level validation. It then calls CreateProjectUseCase.execute and maps the result to a 201 JSON response. All of these are transport and framework concerns, which belong in the infrastructure layer. The file has no business rules, no domain invariants and no persistence logic. Checking that the name field is a required string is input parsing at the HTTP boundary, not a business rule.",
+    "violations": []
+  },
+  "projectId": "claude-sonnet-5-5/task-management/full-aac/run-1",
+  "prompt": "## Rule\nThe unit's responsibilities match the role of its declared layer.\n\n## Rubric\nPass: Every responsibility in the file belongs to the role and kind of its declared layer, and agrees with any ADR prose given.\nFail: The file carries a responsibility that belongs to a different layer kind, for example persistence, transport or framework logic in a domain file, or business rules in an infrastructure or presentation file.\nEvidence required: Name the file and cite the function, method or statement that carries the misplaced responsibility, and the layer kind it belongs to.\nOut of scope: import direction and layer-dependency rules, which are checked symbolically.\n\n## Layer model\n- domain (kind: domain): src/domain/**\n- application (kind: application): src/application/**\n- infrastructure (kind: infrastructure): src/infrastructure/**\n\n## Unit\nKind: file\nId: src/infrastructure/ProjectController.ts\nLayer: infrastructure\nUnit files:\n- src/infrastructure/ProjectController.ts\n\n## Source\n=====SOURCE-BEGIN src/infrastructure/ProjectController.ts=====\nimport { Request, Response, Router } from \"express\";\nimport { CreateProjectUseCase } from \"../application/CreateProjectUseCase\";\nimport { asyncHandler, bodyOf, requiredString } from \"./httpSupport\";\n\nexport class ProjectController {\n  constructor(private readonly createProject: CreateProjectUseCase) {}\n\n  routes(): Router {\n    const router = Router();\n    router.post(\n      \"/projects\",\n      asyncHandler((req, res) => this.create(req, res)),\n    );\n    return router;\n  }\n\n  private async create(req: Request, res: Response): Promise<void> {\n    const name = requiredString(bodyOf(req), \"name\");\n    const project = await this.createProject.execute({ name });\n    res.status(201).json(project);\n  }\n}\n\n=====SOURCE-END=====\n\n## Graph excerpt\n{\"edges\":[{\"from\":\"ProjectController@src/infrastructure/ProjectController.ts\",\"to\":\"CreateProjectUseCase@src/application/CreateProjectUseCase.ts\",\"type\":\"CONSTRUCTOR_INJECTS\"},{\"from\":\"src/infrastructure/ProjectController.ts\",\"to\":\"express\",\"type\":\"IMPORTS\"},{\"from\":\"src/infrastructure/ProjectController.ts\",\"to\":\"src/application/CreateProjectUseCase.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/infrastructure/ProjectController.ts\",\"to\":\"src/infrastructure/httpSupport.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/infrastructure/createApp.ts\",\"to\":\"src/infrastructure/ProjectController.ts\",\"type\":\"IMPORTS\"}],\"nodes\":[{\"kind\":\"Class\",\"layer\":\"application\",\"name\":\"CreateProjectUseCase\",\"path\":\"src/application/CreateProjectUseCase.ts\"},{\"kind\":\"Class\",\"layer\":\"infrastructure\",\"name\":\"ProjectController\",\"path\":\"src/infrastructure/ProjectController.ts\"},{\"kind\":\"File\",\"layer\":\"application\",\"path\":\"src/application/CreateProjectUseCase.ts\"},{\"kind\":\"File\",\"layer\":\"infrastructure\",\"path\":\"src/infrastructure/ProjectController.ts\"},{\"kind\":\"File\",\"layer\":\"infrastructure\",\"path\":\"src/infrastructure/createApp.ts\"},{\"kind\":\"File\",\"layer\":\"infrastructure\",\"path\":\"src/infrastructure/httpSupport.ts\"},{\"kind\":\"Package\",\"layer\":null,\"path\":\"express\"}]}\n\n## Instructions\nJudge the unit against the rule and rubric. Return the JSON object the schema requires. Set pass to false if any file of the unit fails the rubric.\n",
+  "provider": "claude-cli",
+  "recordedAt": "2026-10-10T22:58:03.519Z",
+  "repetition": 0,
+  "requestHash": "6400028221573ba0f56f1f0c0eeeb9062c7da6c685307cb193980a4938a61f69",
+  "resolvedModel": "claude-opus-5-5",
+  "response": "{\"is_error\":false,\"modelUsage\":{\"claude-opus-5-5\":{\"inputTokens\":2,\"outputTokens\":534}},\"result\":\"{\\\"pass\\\":true,\\\"confidence\\\":0.9,\\\"reasoning\\\":\\\"ProjectController is a thin HTTP adapter that lives in the infrastructure layer. Its routes() method sets up an Express router. Its create() method reads and checks the request input with requiredString(bodyOf(req), \\\\\\\"name\\\\\\\"), which is transport-level validation. It then calls CreateProjectUseCase.execute and maps the result to a 201 JSON response. All of these are transport and framework concerns, which belong in the infrastructure layer. The file has no business rules, no domain invariants and no persistence logic. Checking that the name field is a required string is input parsing at the HTTP boundary, not a business rule.\\\",\\\"evidence\\\":[\\\"src/infrastructure/ProjectController.ts: routes() registers POST /projects on an express Router, which is framework/transport work for the infrastructure layer\\\",\\\"src/infrastructure/ProjectController.ts: create() calls requiredString(bodyOf(req), \\\\\\\"name\\\\\\\") to parse the request input, passes the work to this.createProject.execute({ name }), and replies with res.status(201).json(project)\\\",\\\"No business rules or persistence logic appear in the file; the use case is reached through constructor injection (CONSTRUCTOR_INJECTS edge to CreateProjectUseCase)\\\"],\\\"violations\\\":[]}\",\"structured_output\":{\"confidence\":0.9,\"evidence\":[\"src/infrastructure/ProjectController.ts: routes() registers POST /projects on an express Router, which is framework/transport work for the infrastructure layer\",\"src/infrastructure/ProjectController.ts: create() calls requiredString(bodyOf(req), \\\"name\\\") to parse the request input, passes the work to this.createProject.execute({ name }), and replies with res.status(201).json(project)\",\"No business rules or persistence logic appear in the file; the use case is reached through constructor injection (CONSTRUCTOR_INJECTS edge to CreateProjectUseCase)\"],\"pass\":true,\"reasoning\":\"ProjectController is a thin HTTP adapter that lives in the infrastructure layer. Its routes() method sets up an Express router. Its create() method reads and checks the request input with requiredString(bodyOf(req), \\\"name\\\"), which is transport-level validation. It then calls CreateProjectUseCase.execute and maps the result to a 201 JSON response. All of these are transport and framework concerns, which belong in the infrastructure layer. The file has no business rules, no domain invariants and no persistence logic. Checking that the name field is a required string is input parsing at the HTTP boundary, not a business rule.\",\"violations\":[]}}",
+  "runIndex": 2,
+  "schemaVersion": 2,
+  "unitId": "src/infrastructure/ProjectController.ts",
+  "usage": {
+    "inputTokens": 2733,
+    "outputTokens": 534
+  },
+  "usedOptions": {
+    "effort": "high",
+    "model": "claude-opus-5-5"
+  }
+}

@@ -1,0 +1,49 @@
+{
+  "attempts": 1,
+  "cliVersion": "2.1.294",
+  "configListingSha256": "47aa04258852fab9a706f3f0c14cee22306d69fbb6fdfbde8c11854bd54997bc",
+  "durationMs": 6154,
+  "effort": "high",
+  "functionId": "FF-N02",
+  "ignoredOptions": [
+    "maxTokens"
+  ],
+  "isolationProbeSha256": "97a2e2d0af1100c13c55e028c1a0c71f069093c3d08705af122aaeb302f1a641",
+  "key": "11c181404c4b49c3266ac24b921a05426f4ae356833c2bbef50cb8ccbfebb06f-r0-2",
+  "model": "claude-opus-5-5",
+  "outcome": {
+    "kind": "valid"
+  },
+  "parsedVerdict": {
+    "confidence": 0.95,
+    "evidence": [
+      "constructor: throws DomainError(\"validation\") when onHand is not a non-negative integer. This is a domain invariant.",
+      "get available(): returns onHand - reserved. This is pure domain calculation.",
+      "reserve(quantity): uses canReserve to enforce the business rule against insufficient stock and throws DomainError(\"insufficient_stock\").",
+      "release(quantity): clamps the reserved quantity at zero. This is entity state management.",
+      "The file has no I/O, database, HTTP or framework code. Its only import is ./domain-error."
+    ],
+    "pass": true,
+    "reasoning": "src/domain/product.ts holds only a domain entity, Product. Its responsibilities are domain invariants and business rules: the constructor checks that stock is valid, `available` works out available stock, and canReserve/reserve/release manage stock reservations. The file has no persistence, transport, framework or application orchestration logic. It depends only on DomainError from the same domain layer. Every responsibility fits the domain layer kind.",
+    "violations": []
+  },
+  "projectId": "claude-sonnet-5-5/order-fulfilment/full-aac/run-0",
+  "prompt": "## Rule\nThe unit's responsibilities match the role of its declared layer.\n\n## Rubric\nPass: Every responsibility in the file belongs to the role and kind of its declared layer, and agrees with any ADR prose given.\nFail: The file carries a responsibility that belongs to a different layer kind, for example persistence, transport or framework logic in a domain file, or business rules in an infrastructure or presentation file.\nEvidence required: Name the file and cite the function, method or statement that carries the misplaced responsibility, and the layer kind it belongs to.\nOut of scope: import direction and layer-dependency rules, which are checked symbolically.\n\n## Layer model\n- domain (kind: domain): src/domain/**\n- application (kind: application): src/application/**\n- infrastructure (kind: infrastructure): src/infrastructure/**\n\n## Unit\nKind: file\nId: src/domain/product.ts\nLayer: domain\nUnit files:\n- src/domain/product.ts\n\n## Source\n=====SOURCE-BEGIN src/domain/product.ts=====\nimport { DomainError } from \"./domain-error\";\n\nexport class Product {\n  readonly id: string;\n  readonly name: string;\n  private readonly onHand: number;\n  private reserved: number;\n\n  constructor(id: string, name: string, onHand: number) {\n    if (!Number.isInteger(onHand) || onHand < 0) {\n      throw new DomainError(\"validation\", \"Stock must be a non-negative integer\");\n    }\n    this.id = id;\n    this.name = name;\n    this.onHand = onHand;\n    this.reserved = 0;\n  }\n\n  get available(): number {\n    return this.onHand - this.reserved;\n  }\n\n  get reservedQuantity(): number {\n    return this.reserved;\n  }\n\n  get onHandQuantity(): number {\n    return this.onHand;\n  }\n\n  canReserve(quantity: number): boolean {\n    return quantity <= this.available;\n  }\n\n  reserve(quantity: number): void {\n    if (!this.canReserve(quantity)) {\n      throw new DomainError(\n        \"insufficient_stock\",\n        `Insufficient stock for product ${this.id}: requested ${quantity}, available ${this.available}`,\n      );\n    }\n    this.reserved += quantity;\n  }\n\n  release(quantity: number): void {\n    this.reserved = Math.max(0, this.reserved - quantity);\n  }\n}\n\n=====SOURCE-END=====\n\n## Graph excerpt\n{\"edges\":[{\"from\":\"src/domain/product-repository.ts\",\"to\":\"src/domain/product.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/domain/product.ts\",\"to\":\"src/domain/domain-error.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/domain/stock-reservation.ts\",\"to\":\"src/domain/product.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/infrastructure/catalogue-seed.ts\",\"to\":\"src/domain/product.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/infrastructure/in-memory-product-repository.ts\",\"to\":\"src/domain/product.ts\",\"type\":\"IMPORTS\"}],\"nodes\":[{\"kind\":\"Class\",\"layer\":\"domain\",\"name\":\"Product\",\"path\":\"src/domain/product.ts\"},{\"kind\":\"File\",\"layer\":\"domain\",\"path\":\"src/domain/domain-error.ts\"},{\"kind\":\"File\",\"layer\":\"domain\",\"path\":\"src/domain/product-repository.ts\"},{\"kind\":\"File\",\"layer\":\"domain\",\"path\":\"src/domain/product.ts\"},{\"kind\":\"File\",\"layer\":\"domain\",\"path\":\"src/domain/stock-reservation.ts\"},{\"kind\":\"File\",\"layer\":\"infrastructure\",\"path\":\"src/infrastructure/catalogue-seed.ts\"},{\"kind\":\"File\",\"layer\":\"infrastructure\",\"path\":\"src/infrastructure/in-memory-product-repository.ts\"}]}\n\n## Instructions\nJudge the unit against the rule and rubric. Return the JSON object the schema requires. Set pass to false if any file of the unit fails the rubric.\n",
+  "provider": "claude-cli",
+  "recordedAt": "2026-10-10T23:04:22.244Z",
+  "repetition": 0,
+  "requestHash": "11c181404c4b49c3266ac24b921a05426f4ae356833c2bbef50cb8ccbfebb06f",
+  "resolvedModel": "claude-opus-5-5",
+  "response": "{\"is_error\":false,\"modelUsage\":{\"claude-opus-5-5\":{\"inputTokens\":2,\"outputTokens\":460}},\"result\":\"{\\\"pass\\\":true,\\\"confidence\\\":0.95,\\\"reasoning\\\":\\\"src/domain/product.ts holds only a domain entity, Product. Its responsibilities are domain invariants and business rules: the constructor checks that stock is valid, `available` works out available stock, and canReserve/reserve/release manage stock reservations. The file has no persistence, transport, framework or application orchestration logic. It depends only on DomainError from the same domain layer. Every responsibility fits the domain layer kind.\\\",\\\"evidence\\\":[\\\"constructor: throws DomainError(\\\\\\\"validation\\\\\\\") when onHand is not a non-negative integer. This is a domain invariant.\\\",\\\"get available(): returns onHand - reserved. This is pure domain calculation.\\\",\\\"reserve(quantity): uses canReserve to enforce the business rule against insufficient stock and throws DomainError(\\\\\\\"insufficient_stock\\\\\\\").\\\",\\\"release(quantity): clamps the reserved quantity at zero. This is entity state management.\\\",\\\"The file has no I/O, database, HTTP or framework code. Its only import is ./domain-error.\\\"],\\\"violations\\\":[]}\",\"structured_output\":{\"confidence\":0.95,\"evidence\":[\"constructor: throws DomainError(\\\"validation\\\") when onHand is not a non-negative integer. This is a domain invariant.\",\"get available(): returns onHand - reserved. This is pure domain calculation.\",\"reserve(quantity): uses canReserve to enforce the business rule against insufficient stock and throws DomainError(\\\"insufficient_stock\\\").\",\"release(quantity): clamps the reserved quantity at zero. This is entity state management.\",\"The file has no I/O, database, HTTP or framework code. Its only import is ./domain-error.\"],\"pass\":true,\"reasoning\":\"src/domain/product.ts holds only a domain entity, Product. Its responsibilities are domain invariants and business rules: the constructor checks that stock is valid, `available` works out available stock, and canReserve/reserve/release manage stock reservations. The file has no persistence, transport, framework or application orchestration logic. It depends only on DomainError from the same domain layer. Every responsibility fits the domain layer kind.\",\"violations\":[]}}",
+  "runIndex": 2,
+  "schemaVersion": 2,
+  "unitId": "src/domain/product.ts",
+  "usage": {
+    "inputTokens": 2822,
+    "outputTokens": 460
+  },
+  "usedOptions": {
+    "effort": "high",
+    "model": "claude-opus-5-5"
+  }
+}
