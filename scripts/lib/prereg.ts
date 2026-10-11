@@ -90,6 +90,12 @@ export const REGISTERED_ARTEFACTS: readonly string[] = Object.freeze([
   'scripts/depcruise-translate.ts',
   'experiments/tool-comparison/depcruise/package.json',
   'experiments/tool-comparison/depcruise/package-lock.json',
+  // ADR-036 (v24): the LLM-review pilot's review plan (pins, draw, tree digests, prompt hashes), output schema, prompt
+  // template, and the module that renders the prompts and scores the answers.
+  'experiments/llm-review/review-plan.json',
+  'experiments/llm-review/output-schema.json',
+  'experiments/llm-review/prompt-template.md',
+  'scripts/llm-review.ts',
 ]);
 
 export interface PreRegistration {

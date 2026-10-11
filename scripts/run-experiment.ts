@@ -89,7 +89,13 @@ export const PLAN_GRAPH_MODES = ['full', 'ast-only'] as const;
 export const UNIVERSAL_CYCLE_STAGE = 'universal-metric:cyclicDependencyCount';
 export type GraphMode = (typeof PLAN_GRAPH_MODES)[number];
 
-export type ExperimentKind = 'E1' | 'E7' | 'SO4' | 'latency-gate' | 'sensitivity' | 'fixtures' | 'apg-ablation' | 'tool-comparison' | 'real-pairs';
+export type ExperimentKind = 'E1' | 'E7' | 'SO4' | 'latency-gate' | 'sensitivity' | 'fixtures' | 'apg-ablation' | 'tool-comparison' | 'real-pairs' | 'llm-review';
+
+/**
+ * Kinds whose plan is registered here (so `--check-prereg` gates it) but whose calls are made by their own CLI, never
+ * by `run-experiment` (ADR-036: `scripts/llm-review-cli.ts`).
+ */
+export const EXTERNAL_RUNNER_KINDS: readonly ExperimentKind[] = ['llm-review'];
 export type PlanMode = 'symbolic-only' | 'neuronal-only' | 'full';
 export type SpecLevel = GenerationCell['specLevel'];
 
@@ -890,6 +896,10 @@ export async function main(
   }
   const l = loadAt(first);
   if (!l.ok) return 1;
+  if (EXTERNAL_RUNNER_KINDS.includes(l.plan.experiment)) {
+    io.err(`PLAN_EXTERNAL_RUNNER: plan ${l.plan.id} (${l.plan.experiment}) runs through its own CLI, not run-experiment\n`);
+    return 2;
+  }
   const deps = makeDeps(neo4jContainer !== undefined ? { neo4jContainer } : {});
   const result = await runPlan(l.plan, l.file, repoRoot, {
     ...deps, schemaRoot, ...(outDir !== undefined && { outDir }), ...(instrumentVersion !== undefined && { instrumentVersion }),

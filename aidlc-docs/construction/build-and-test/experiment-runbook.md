@@ -182,3 +182,15 @@ reached. Graph-writing runs held the lane lock on `bolt://localhost:7693`. No li
 the pilot outcomes are `pilot: true`, so P3/P4-E1 and the SO5 tests did not run; live judge and labeller calls;
 missed-seed items (every fixture seed was detected); the escalation path (P1 + MS = 0). These paths are covered by
 the unit tests.
+
+## 9. Plain LLM-review baseline pilot (ADR-036, exploratory; live Codex calls, no Neo4j)
+
+| # | Command | Writes |
+|---|---|---|
+| 9.1 | `npx tsx scripts/llm-review-cli.ts select` (pure, seed 9301) | `experiments/llm-review/review-plan.json` (registered) |
+| 9.2 | `npx tsx scripts/llm-review-cli.ts prepare --pin`, then `prompts --pin` (registration only; afterwards `prepare` without `--pin` re-exports and refuses a changed digest) | `../daedalus-llm-review/trees/<treeId>`, digests and prompt hashes in the review plan, `results/llm-review/prompts/` |
+| 9.3 | `npx tsx scripts/llm-review-cli.ts probe` (confinement probe on a dummy tree) | `experiments/llm-review/probe/` |
+| 9.4 | register (`register-prereg-cli.ts`), `--check-prereg experiments/llm-review/plan.json` | `corpus/prereg.json` v24 |
+| 9.5 | `npx tsx scripts/llm-review-cli.ts run` (42 calls, run-major, 150-credit budget stop; resumable: an existing cassette is never re-called) | `experiments/llm-review/cassettes/`, `../daedalus-llm-review/envelopes/` |
+| 9.6 | `npx tsx scripts/llm-review-cli.ts score` | `results/llm-review/*.csv`, `summary.json` |
+

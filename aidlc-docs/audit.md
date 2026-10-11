@@ -1398,3 +1398,11 @@ Plan checkboxes ticked. Auto-approved under standing approval; no blocking or ma
 **Context**: CONSTRUCTION — Build and Test, runbook 6.4 and 6.6 (P4). Worktree ../DaedalusArch-wt-p4, branch v1.2e-exp-p4.
 
 ---
+
+## Build and Test — extra experiments A, B, C: registration of A (ADR-036, plain LLM-review pilot)
+**Timestamp**: 2026-10-11T20:20:00Z
+**User Input**: "Run three new pre-registered experiments in order (author-approved): A, a plain LLM-review baseline pilot on Codex gpt-5.6-terra (exploratory, about 150 credits at most); B, judge detection of the seeded MO-X02/MO-X03 probes and their twins on the 7 held-out bases at k=2, after a Fable adversarial review; C, judge model robustness (Sonnet against Opus on about 100 recorded units). Register each one before it runs, merge each by PR, and report to main."
+**AI Response**: "B cannot be built as approved: the registered SO4 mutate run placed 0 MO-X02 and 0 MO-X03 seeds on the 7 held-out bases (all no-site; nestjslatam's candidates fail not-removable-guard). A label-free site count on the 5 fixtures gives 3 seeds and 9 twins; with the 8 held-out MO-X02n twins, that is 3 seeds and 17 twins in reach. This was escalated to main with options, and B waits for the author. A is registered as ADR-036 (prereg v24, P-LR): seeded draw (seed 9301) on 5 admitted bases, plus p5 and the drawn p4; 14 pinned trees and prompts; read-only Codex confinement (probe passed, 0.84 credits); 42 calls in run-major order under a 150-credit stop; MAT keys reduced to (rule, file)."
+**Context**: CONSTRUCTION — Build and Test, extra experiments. Worktree ../DaedalusArch-wt-x3, branch v1.2e-exp-extra.
+
+---

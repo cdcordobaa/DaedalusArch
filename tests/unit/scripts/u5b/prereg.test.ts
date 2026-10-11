@@ -71,6 +71,8 @@ describe('registry (BR-U5b-51)', () => {
       'Docs/threats-to-validity.md', 'Docs/labeller-route.md',
       'scripts/depcruise-translate.ts', 'experiments/tool-comparison/depcruise/package.json',
       'experiments/tool-comparison/depcruise/package-lock.json',
+      'experiments/llm-review/review-plan.json', 'experiments/llm-review/output-schema.json',
+      'experiments/llm-review/prompt-template.md', 'scripts/llm-review.ts',
     ]);
     // ADR-030 (v19): the translator and the pinned dependency-cruiser are registered; the scorer is not.
     expect(isRegisteredPath('scripts/depcruise-translate.ts')).toBe(true);
