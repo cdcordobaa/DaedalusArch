@@ -1,0 +1,150 @@
+{
+  "schemaVersion": 1,
+  "treeId": "realworld-test--MO-SO01--k1",
+  "run": 0,
+  "attempt": 0,
+  "startedAt": "2026-10-11T20:22:41.344Z",
+  "durationMs": 178500,
+  "promptSha256": "e3a5c1f5ce8b75cc8062f2598cc398a859d3f565b2bdd82f09c1be7eabbd79e8",
+  "treeDigest": "9ed83c6916e450123a7961cd769b69d36e6927027da00a5c048641fc7b11fde2",
+  "cliVersion": "0.162.1",
+  "model": "gpt-5.6-terra",
+  "servedModels": [
+    "gpt-5.6-terra"
+  ],
+  "reroutes": [],
+  "exitCode": 0,
+  "timedOut": false,
+  "isError": false,
+  "subtype": "success",
+  "valid": true,
+  "findings": [
+    {
+      "file": "src/tag/tag.entity.ts",
+      "rule": "FF-P01",
+      "reason": "TagEntity imports the forbidden typeorm package from the domain layer."
+    },
+    {
+      "file": "src/article/comment.entity.ts",
+      "rule": "FF-P01",
+      "reason": "Comment imports the forbidden typeorm package from the domain layer."
+    },
+    {
+      "file": "src/article/article.entity.ts",
+      "rule": "FF-S02",
+      "reason": "ArticleEntity participates in import cycles with Comment and UserEntity."
+    },
+    {
+      "file": "src/article/article.entity.ts",
+      "rule": "FF-P01",
+      "reason": "ArticleEntity imports the forbidden typeorm package from the domain layer."
+    },
+    {
+      "file": "src/user/user.entity.ts",
+      "rule": "FF-S02",
+      "reason": "UserEntity participates in an import cycle with ArticleEntity."
+    },
+    {
+      "file": "src/user/user.entity.ts",
+      "rule": "FF-P01",
+      "reason": "UserEntity imports the forbidden typeorm package from the domain layer."
+    },
+    {
+      "file": "src/profile/follows.entity.ts",
+      "rule": "FF-P01",
+      "reason": "FollowsEntity imports the forbidden typeorm package from the domain layer."
+    },
+    {
+      "file": "src/article/comment.entity.ts",
+      "rule": "FF-S02",
+      "reason": "Comment participates in an import cycle with ArticleEntity."
+    },
+    {
+      "file": "src/tag/tag.service.ts",
+      "rule": "FF-P02",
+      "reason": "TagService injects the concrete Repository<TagEntity> class rather than an interface or abstract type."
+    },
+    {
+      "file": "src/article/article.service.ts",
+      "rule": "FF-P02",
+      "reason": "ArticleService injects four concrete TypeORM Repository dependencies rather than interfaces or abstract types."
+    },
+    {
+      "file": "src/article/article.service.ts",
+      "rule": "FF-SO01",
+      "reason": "ArticleService declares 12 methods, exceeding the maximum of 10."
+    },
+    {
+      "file": "src/profile/profile.service.ts",
+      "rule": "FF-P02",
+      "reason": "ProfileService injects concrete Repository dependencies rather than interfaces or abstract types."
+    },
+    {
+      "file": "src/user/user.service.ts",
+      "rule": "FF-P02",
+      "reason": "UserService injects the concrete Repository<UserEntity> class rather than an interface or abstract type."
+    },
+    {
+      "file": "src/tag/tag.controller.ts",
+      "rule": "FF-P05",
+      "reason": "TagController directly imports the domain entity TagEntity."
+    },
+    {
+      "file": "src/article/article.controller.ts",
+      "rule": "FF-P05",
+      "reason": "ArticleController reaches the domain entity ArticleEntity through its injected ArticleService."
+    },
+    {
+      "file": "src/article/article.controller.ts",
+      "rule": "FF-SO01",
+      "reason": "ArticleController declares 11 methods, exceeding the maximum of 10."
+    },
+    {
+      "file": "src/profile/profile.controller.ts",
+      "rule": "FF-P05",
+      "reason": "ProfileController reaches the domain entity UserEntity through its injected ProfileService."
+    },
+    {
+      "file": "src/user/user.controller.ts",
+      "rule": "FF-P05",
+      "reason": "UserController reaches the domain entity UserEntity through its injected UserService."
+    },
+    {
+      "file": "src/user/user.controller.ts",
+      "rule": "FF-C03",
+      "reason": "UserController has five outgoing project imports and one incoming project import, giving instability above 0.8."
+    },
+    {
+      "file": "src/user/dto/login-user.dto.ts",
+      "rule": "FF-SO01",
+      "reason": "LoginUserDto declares 11 methods, exceeding the maximum of 10."
+    },
+    {
+      "file": "src/article/article.module.ts",
+      "rule": "FF-C03",
+      "reason": "ArticleModule has eight outgoing project imports and one incoming project import, giving instability above 0.8."
+    },
+    {
+      "file": "src/profile/profile.module.ts",
+      "rule": "FF-C03",
+      "reason": "ProfileModule has six outgoing project imports and one incoming project import, giving instability above 0.8."
+    },
+    {
+      "file": "src/app.module.ts",
+      "rule": "FF-C03",
+      "reason": "ApplicationModule has five outgoing project imports and one incoming project import, giving instability above 0.8."
+    }
+  ],
+  "tokens": {
+    "input": 100161,
+    "cached": 75520,
+    "output": 5922,
+    "reasoning": 4670
+  },
+  "creditsRateCard": 3.38625,
+  "balanceAfter": "1194.9644450000",
+  "toolCalls": 9,
+  "permissionDenials": 1,
+  "envelopeSha256": "de5c48d4fb4b66c20bf2cfaf86fb976256f7800caf5751884440830605fdc2ee",
+  "discardedAttempts": []
+}

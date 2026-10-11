@@ -11,7 +11,7 @@
 import { execFileSync } from 'node:child_process';
 import { readdirSync, readFileSync, statSync } from 'node:fs';
 import { join, relative } from 'node:path';
-import { validateRunRecord } from '../../../../scripts/run-experiment.js';
+import { EXTERNAL_RUNNER_KINDS, validateRunRecord } from '../../../../scripts/run-experiment.js';
 import { LABELS_RESULTS_DIR, resultsPathAllowed } from '../../../golden/check-changes-log.js';
 import { ROOT } from './score-fixture.js';
 
@@ -27,6 +27,7 @@ export function resultsGuardProblems(
   files: readonly string[],
   planIds: readonly string[],
   readRecord: (path: string) => unknown,
+  externalPlanIds: readonly string[] = [],
 ): string[] {
   const problems: string[] = [];
   const plans = new Set<string>();
@@ -36,6 +37,12 @@ export function resultsGuardProblems(
     if (top !== 'pre-tag' && top !== LABELS_RESULTS_DIR) plans.add(top);
   }
   for (const id of [...plans].sort()) {
+    // ADR-036, ADR-038: a plan run by its own CLI (EXTERNAL_RUNNER_KINDS) writes no RunRecord; its scored summary
+    // stands in for one.
+    if (externalPlanIds.includes(id)) {
+      if (!files.includes(`results/${id}/summary.json`)) problems.push(`results/${id}/: no summary.json (external-runner plan)`);
+      continue;
+    }
     const records = files.filter((f) => f.startsWith(`results/${id}/runs/`) && f.endsWith('.run.json'));
     const present = records.map((f) => [f, readRecord(f)] as const).filter(([, v]) => v !== undefined);
     if (present.length === 0) problems.push(`results/${id}/: no RunRecord under runs/`);
@@ -46,6 +53,13 @@ export function resultsGuardProblems(
     }
   }
   return problems;
+}
+
+function externalRunnerPlanIds(): string[] {
+  return registeredPlanIds().filter((d) => {
+    const kind = (JSON.parse(readFileSync(join(ROOT, 'experiments', d, 'plan.json'), 'utf8')) as { experiment?: string }).experiment;
+    return (EXTERNAL_RUNNER_KINDS as readonly string[]).includes(kind ?? '');
+  });
 }
 
 function registeredPlanIds(): string[] {
@@ -67,7 +81,7 @@ describe('results guard (BR-U5b-56, re-scoped by Build and Test Step 5)', () => 
     const read = (f: string): unknown => {
       try { return JSON.parse(readFileSync(join(ROOT, f), 'utf8')) as unknown; } catch { return undefined; }
     };
-    expect(resultsGuardProblems(files, registeredPlanIds(), read)).toEqual([]);
+    expect(resultsGuardProblems(files, registeredPlanIds(), read, externalRunnerPlanIds())).toEqual([]);
   });
 
   it('allows pre-tag files, the label-plan directory and a registered plan directory with a schema-valid RunRecord', () => {

@@ -39,6 +39,9 @@
 > comparable operators and the seven bases) and `real-pairs` (five before/after fix-commit pairs), with their metrics
 > (§13). The SO4 DaedalusArch results were known and the pairs were mined before this amendment (§13.4). §11 lists
 > the change.
+> **Amended 2026-10-11 (ADR-036, `corpus/prereg.json` version 24)**, before any call: the plain LLM-review baseline
+> pilot `llm-review` (Codex `gpt-5.6-terra`, read-only, the spec as prose; 5 SO4 seeded copies with their baselines and
+> 2 real fix pairs, 3 runs each), exploratory, with its scoring (§15). The firewall outcomes on these trees were known.
 > **Requirements**: FR-v1.2E-25, 27, 36; SO1–SO5 (ADR-017 items 1–3, 6, 7); ADR-015 items 1, 2, 5, 10; ADR-016 b, e.
 > **Design source**: `aidlc-docs/construction/v1.2E-u5b-scoring-harness/functional-design/business-rules.md`
 > (BR-U5b-20, 30, 33, 34, 45..49, 53, 54, 61..65, 78). The matching of seeds to violations is `Docs/matching-rule.md`
@@ -49,7 +52,8 @@ Sections: §1 the SO5 code tables (machine block); §2 registered plans and seed
 labelling populations, caps and budget; §5 interval rule; §6 SO5 factors, tests and Holm families; §7 flag columns;
 §8 missingness and exclusions; §9 what is fixed by registration; §10 reporting duties; §11 amendments; §12 the
 neural aggregation variant, the judge diagnostics and the judge-weighted variant (ADR-028); §13 the tool comparison and
-the real fix-commit pairs (ADR-030).
+the real fix-commit pairs (ADR-030); §14 the reproduction-audit corrections (ADR-033); §15 the plain LLM-review baseline
+pilot (ADR-036).
 
 ## 1. SO5 code tables (frozen at registration)
 
@@ -714,6 +718,7 @@ These statements are registered: every report of the corresponding figure carrie
 | 2026-10-10 (ADR-033, reproduction audit, POST-HOC, prereg v21) | §3, §5, §14 | The labelled SO4 reading is MAT-10 over the P1 census (the rule-1.1.0 FP-strict items) on the ADR-025 guarded manifest; a zero-width primary interval is flagged and quoted with its "if independent" bound; the baseline-precision rows carry `uncertain` as TP and excluded as sensitivity rows, filed under the P2 source plan; every interval names its method in each table | ADR-033; `Docs/DiagnosticRuns/reproduction-audit-2026-10-10.md` issues 1–4 |
 | 2026-10-11 (ADR-034, prereg v22) | §7 | The labels gain the `uncertain` reason `tool-use` and the tool-use discard count as a P4 validity metric: agy 1.3.2 cannot deny `search_web`, so a labeller call that completes a tool step is discarded and retried once (operational, found by the fail-closed guard before any P4 label existed) | ADR-034 |
 | 2026-10-11 (ADR-035, prereg v23) | §3, §7 | P4 judge-vs-panel rows come from the Gemini API route (tools off, temperature 0), forced by the ADR-034 stop rule; all 46 P4 items are relabelled there. The P4 run-vs-run row is reported per route. The 8 agy P4 answers are descriptive and reported apart. No estimand, weight or interval method changes | ADR-035 |
+| 2026-10-11 (ADR-036, prereg v24) | §15 | `llm-review` registered before any call: the Codex review pins, the seeded draw (seed 9301) of 5 SO4 seeds on 5 admitted bases and of the second pair, tree export and digests, the prose prompt and its listed rules (no advisory rule), read-only confinement, 3 runs in run-major order under a 150-credit budget stop, and the scoring (MAT keys reduced to (rule, file), real-fix rule with a chance control, consistency, overlap with the firewall, cost); exploratory | ADR-036 |
 
 ## 12. Neural aggregation variant and judge diagnostics (ADR-028)
 
@@ -1017,3 +1022,43 @@ and add no firewall evaluation or model call.
    which stay the reported figure. `plan_id` names the plan whose runs the P2 labels were drawn from (`e7-corpus`;
    `e7-corpus+e7-corpus-v1sym` for the v1 row), and the `precision_baseline` column of a corpus-tier stratum row
    carries that tier's estimate (`precision_baseline_scope`), not the overall one.
+
+## 15. Plain LLM-review baseline pilot (ADR-036, exploratory, registered v24)
+
+**Status.** Registered 2026-10-11 with `corpus/prereg.json` version 24, before any review call on a plan tree. Every
+number of this section is **exploratory**: no hypothesis test, no Holm family, no claim beyond the 12 trees reviewed.
+Known before registration: the firewall's SO4 v2 status of the five drawn seeds (all `matched`), both rule tools'
+outcomes on p4 and p5 (`results/real-pairs/pairs.csv`), and the firewall reports of all 14 trees. The registered
+inputs are `experiments/llm-review/review-plan.json` (pins, draw, tree digests, prompt hashes, seeds and pairs),
+`prompt-template.md`, `output-schema.json` and `scripts/llm-review.ts`; the call records are
+`experiments/llm-review/cassettes/<treeId>/run-<r>.json`.
+
+### 15.1 Keys
+
+A review run answers `violations[]` of (`file`, `rule`, `reason`). Its key set is {(rule upper-cased, file)}: the file
+is made repository-relative (posix, no `./`, no line suffix, the tree's absolute prefix removed), duplicates collapse.
+`reason` never enters a key (MAT-02: messages never key). The rule family of a key is its rule's spec `dimension`. A
+run is **valid** when the call completed, the answer parses under the schema and every served model is
+`gpt-5.6-terra`; only valid runs are scored, and a missing run (invalid or stopped by the budget) is reported.
+
+### 15.2 Outcomes
+
+| Outcome | Definition | Unit and interval |
+|---|---|---|
+| Seed recall (primary) | Seed s detected in run r: the seeded tree's run r lists a key (f, p) with f an applicable expected function of s and p the file of an expected key of f, and the baseline tree's run r does not list (f, p) (MAT-03 difference by run index; MAT-04 with the key reduced to (function, file)) | Detected seed-runs / scored seed-runs over the 5 seeds × 3 runs; Wilson 95 % "if independent" (`wilson-seed-runs-if-independent`), descriptive; per seed the count of detecting runs (0–3) with the firewall's SO4 v2 status beside |
+| Seed recall (secondary) | `presence`: as primary without the baseline difference. `family`: any listed rule of the seed's dimension on an expected file, with the difference | As primary |
+| Real fix (primary) | Run r flags pair p when a key of the before run r on a touched file (old path) has no equal key in the after run r, renamed files mapped to their new path (ADR-030 §13.3) | Runs flagging (0–3) per pair; the resolved keys listed; DaedalusArch and dependency-cruiser outcomes beside |
+| Real fix (strict) | The before run lists a key on a touched file and the after run lists none on a touched file (new path) | As primary |
+| Chance control | The primary real-fix rule applied between two different runs of the unchanged before tree (6 ordered run pairs per pair) | Flagged run pairs / run pairs: how often run-to-run variation alone "resolves" a finding |
+| Consistency | Per tree, the mean pairwise Jaccard of the valid runs' key sets; the union size and the share of union keys listed in every run; findings per run | Per tree and the mean over trees; descriptive |
+| Overlap with the firewall | Each listed key of a valid run is: an exact firewall key (same function and file in the tree's v2 report, restricted to the listed rules); on a file the firewall flags under another listed rule; on a file without a listed-rule firewall finding; or a rule the firewall does not run symbolically (FF-N01, FF-N02, unknown id). The reverse share: firewall keys of listed rules that the run lists | Counts per tree and run and in total; nothing is labelled, so no precision is claimed for either side |
+| Cost | Credits per call from the rollout tokens at the rate card (50 / 5 / 300 per 1M input / cached / output), discarded attempts included; the credit balance after each call; wall time; tool calls | Per call, per valid review (total credits / valid runs) and in total |
+
+### 15.3 Rules fixed here
+
+Calls run in run-major order under the 150-credit budget stop of ADR-036 item 5. A timed-out, erroring or unparsable
+call is retried once and its credits count. A usage or credit limit is a pause, not an attempt. The registered
+outputs are `results/llm-review/seeds.csv`, `recall.csv`, `pairs.csv`, `pair-runs.csv`, `consistency.csv`,
+`overlap.csv`, `cost.csv` and `summary.json`, from `npx tsx scripts/llm-review-cli.ts score`. Every table names its
+reading (`exploratory`) and every interval its method.
+

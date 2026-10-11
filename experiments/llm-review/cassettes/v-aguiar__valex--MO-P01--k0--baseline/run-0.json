@@ -1,0 +1,90 @@
+{
+  "schemaVersion": 1,
+  "treeId": "v-aguiar__valex--MO-P01--k0--baseline",
+  "run": 0,
+  "attempt": 0,
+  "startedAt": "2026-10-11T20:11:36.399Z",
+  "durationMs": 130877,
+  "promptSha256": "25cc23b13532b7e9f66fcd6f718a038ab6fb4e68a0189cd192eaa80d4f98fb7e",
+  "treeDigest": "69b642bdadc2bb369b1f3aa192e5fa638a2e7fab19df5c7c79d2834d16c41df3",
+  "cliVersion": "0.162.1",
+  "model": "gpt-5.6-terra",
+  "servedModels": [
+    "gpt-5.6-terra"
+  ],
+  "reroutes": [],
+  "exitCode": 0,
+  "timedOut": false,
+  "isError": false,
+  "subtype": "success",
+  "valid": true,
+  "findings": [
+    {
+      "file": "src/repositories/cardRepository.ts",
+      "rule": "FF-S01",
+      "reason": "The import of InsertDatabaseResponse from src/services/cardServices.ts makes a persistence-layer file import the later business layer."
+    },
+    {
+      "file": "src/services/paymentServices.ts",
+      "rule": "FF-S01",
+      "reason": "The import of BuyOnlineBody and BuyOnPOSBody from src/controllers/paymentsController.ts makes a business-layer file import the later presentation layer."
+    },
+    {
+      "file": "src/repositories/cardRepository.ts",
+      "rule": "FF-S02",
+      "reason": "cardRepository.ts and src/services/cardServices.ts form an import cycle through InsertDatabaseResponse and the cardRepository imports."
+    },
+    {
+      "file": "src/services/cardServices.ts",
+      "rule": "FF-S02",
+      "reason": "cardServices.ts and src/repositories/cardRepository.ts form an import cycle through InsertDatabaseResponse and the cardRepository imports."
+    },
+    {
+      "file": "src/repositories/cardRepository.ts",
+      "rule": "FF-S03",
+      "reason": "The import of InsertDatabaseResponse from the business-layer cardServices.ts is not an allowed persistence-to-previous-layer import."
+    },
+    {
+      "file": "src/services/paymentServices.ts",
+      "rule": "FF-S03",
+      "reason": "The import of BuyOnlineBody and BuyOnPOSBody from the presentation-layer paymentsController.ts is not an allowed business-to-previous-layer import."
+    },
+    {
+      "file": "src/middlewares/apiKeyValidator.ts",
+      "rule": "FF-S03",
+      "reason": "The import of companyRepository skips the business layer by importing directly from persistence."
+    },
+    {
+      "file": "src/services/paymentServices.ts",
+      "rule": "FF-C03",
+      "reason": "paymentServices.ts has 7 outgoing project imports and 1 incoming project import, giving instability 0.875."
+    },
+    {
+      "file": "src/routes/cardsRouter.ts",
+      "rule": "FF-C03",
+      "reason": "cardsRouter.ts has 7 outgoing project imports and 1 incoming project import, giving instability 0.875."
+    },
+    {
+      "file": "src/routes/statementsRouter.ts",
+      "rule": "FF-C03",
+      "reason": "statementsRouter.ts has 8 outgoing project imports and 1 incoming project import, giving instability about 0.889."
+    },
+    {
+      "file": "src/services/paymentServices.ts",
+      "rule": "FF-N02",
+      "reason": "The business-layer paymentServices module imports the presentation-layer BuyOnlineBody and BuyOnPOSBody transport contracts."
+    }
+  ],
+  "tokens": {
+    "input": 88356,
+    "cached": 59392,
+    "output": 4595,
+    "reasoning": 3558
+  },
+  "creditsRateCard": 3.12366,
+  "balanceAfter": "1216.0575350000",
+  "toolCalls": 9,
+  "permissionDenials": 1,
+  "envelopeSha256": "2c6f902206778f2aa2c78999a67a3484300d40632d0d9639513bc525481b5b1a",
+  "discardedAttempts": []
+}

@@ -1,0 +1,115 @@
+{
+  "schemaVersion": 1,
+  "treeId": "v-aguiar__valex--MO-P01--k0",
+  "run": 0,
+  "attempt": 0,
+  "startedAt": "2026-10-11T20:09:21.809Z",
+  "durationMs": 134580,
+  "promptSha256": "25cc23b13532b7e9f66fcd6f718a038ab6fb4e68a0189cd192eaa80d4f98fb7e",
+  "treeDigest": "cebc79497f236089a64d9199f9fb20a9d826a14008519b11f82947ba1ebc7565",
+  "cliVersion": "0.162.1",
+  "model": "gpt-5.6-terra",
+  "servedModels": [
+    "gpt-5.6-terra"
+  ],
+  "reroutes": [],
+  "exitCode": 0,
+  "timedOut": false,
+  "isError": false,
+  "subtype": "success",
+  "valid": true,
+  "findings": [
+    {
+      "file": "src/middlewares/apiKeyValidator.ts",
+      "rule": "FF-S03",
+      "reason": "The presentation middleware imports `../repositories/companyRepository.js`, skipping the business layer."
+    },
+    {
+      "file": "src/repositories/cardRepository.ts",
+      "rule": "FF-S01",
+      "reason": "The persistence repository imports `../services/cardServices.js` from the later business layer."
+    },
+    {
+      "file": "src/repositories/cardRepository.ts",
+      "rule": "FF-S02",
+      "reason": "`cardRepository.ts` and `cardServices.ts` import each other, forming an import cycle."
+    },
+    {
+      "file": "src/repositories/cardRepository.ts",
+      "rule": "FF-S03",
+      "reason": "The persistence repository imports `../services/cardServices.js`, although persistence has no preceding layer it may import."
+    },
+    {
+      "file": "src/repositories/index.ts",
+      "rule": "FF-C04",
+      "reason": "The empty `index.ts` repository file neither imports nor re-exports another project file and is not imported."
+    },
+    {
+      "file": "src/services/cardServices.ts",
+      "rule": "FF-S02",
+      "reason": "`cardServices.ts` and `cardRepository.ts` import each other, forming an import cycle."
+    },
+    {
+      "file": "src/services/paymentServices.ts",
+      "rule": "FF-S01",
+      "reason": "The business service imports `../controllers/paymentsController.js` from the later presentation layer."
+    },
+    {
+      "file": "src/services/paymentServices.ts",
+      "rule": "FF-S02",
+      "reason": "`paymentServices.ts` and `paymentsController.ts` import each other, forming an import cycle."
+    },
+    {
+      "file": "src/services/paymentServices.ts",
+      "rule": "FF-S03",
+      "reason": "The business service imports `../controllers/paymentsController.js` instead of only importing the preceding persistence layer."
+    },
+    {
+      "file": "src/services/paymentServices.ts",
+      "rule": "FF-C03",
+      "reason": "The file has 7 outgoing and 1 incoming project-file imports, giving instability 0.875."
+    },
+    {
+      "file": "src/services/paymentServices.ts",
+      "rule": "FF-N02",
+      "reason": "The business service imports the transport DTO declarations `BuyOnlineBody` and `BuyOnPOSBody` from `paymentsController.ts`."
+    },
+    {
+      "file": "src/services/rechargeService.ts",
+      "rule": "FF-P01",
+      "reason": "The domain-kind service imports the forbidden `sequelize` package."
+    },
+    {
+      "file": "src/services/rechargeService.ts",
+      "rule": "FF-N02",
+      "reason": "The business service imports and exports the infrastructure ORM reference `sequelizeRef`."
+    },
+    {
+      "file": "src/controllers/paymentsController.ts",
+      "rule": "FF-S02",
+      "reason": "`paymentsController.ts` and `paymentServices.ts` import each other, forming an import cycle."
+    },
+    {
+      "file": "src/routes/cardsRouter.ts",
+      "rule": "FF-C03",
+      "reason": "The file has 7 outgoing and 1 incoming project-file imports, giving instability 0.875."
+    },
+    {
+      "file": "src/routes/statementsRouter.ts",
+      "rule": "FF-C03",
+      "reason": "The file has 8 outgoing and 1 incoming project-file imports, giving instability approximately 0.889."
+    }
+  ],
+  "tokens": {
+    "input": 84461,
+    "cached": 56320,
+    "output": 4486,
+    "reasoning": 3335
+  },
+  "creditsRateCard": 3.03445,
+  "balanceAfter": "1219.0055050000",
+  "toolCalls": 9,
+  "permissionDenials": 1,
+  "envelopeSha256": "7591cdb5c60a9ef2690b91717e5897574fc11ee1c0baa470260ecedb0a851285",
+  "discardedAttempts": []
+}

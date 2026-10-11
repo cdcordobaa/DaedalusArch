@@ -1398,3 +1398,19 @@ Plan checkboxes ticked. Auto-approved under standing approval; no blocking or ma
 **Context**: CONSTRUCTION — Build and Test, runbook 6.4 and 6.6 (P4). Worktree ../DaedalusArch-wt-p4, branch v1.2e-exp-p4.
 
 ---
+
+## Build and Test — extra experiments A, B, C: registration of A (ADR-036, plain LLM-review pilot)
+**Timestamp**: 2026-10-11T20:20:00Z
+**User Input**: "Run three new pre-registered experiments in order (author-approved): A, a plain LLM-review baseline pilot on Codex gpt-5.6-terra (exploratory, about 150 credits at most); B, judge detection of the seeded MO-X02/MO-X03 probes and their twins on the 7 held-out bases at k=2, after a Fable adversarial review; C, judge model robustness (Sonnet against Opus on about 100 recorded units). Register each one before it runs, merge each by PR, and report to main."
+**AI Response**: "B cannot be built as approved: the registered SO4 mutate run placed 0 MO-X02 and 0 MO-X03 seeds on the 7 held-out bases (all no-site; nestjslatam's candidates fail not-removable-guard). A label-free site count on the 5 fixtures gives 3 seeds and 9 twins; with the 8 held-out MO-X02n twins, that is 3 seeds and 17 twins in reach. This was escalated to main with options, and B waits for the author. A is registered as ADR-036 (prereg v24, P-LR): seeded draw (seed 9301) on 5 admitted bases, plus p5 and the drawn p4; 14 pinned trees and prompts; read-only Codex confinement (probe passed, 0.84 credits); 42 calls in run-major order under a 150-credit stop; MAT keys reduced to (rule, file)."
+**Context**: CONSTRUCTION — Build and Test, extra experiments. Worktree ../DaedalusArch-wt-x3, branch v1.2e-exp-extra.
+
+---
+
+## Build and Test — Experiment A (ADR-036) run and scored; B redesigned twice and on hold
+**Timestamp**: 2026-10-11T23:30:00Z
+**User Input**: "Coordinator: the author decided B uses the frozen operators on the E1 cells (count first, pre-stated k rule, Fable review, then register). Later: finish A, score it, PR and merge it; do not register or run B (the author is designing realistic anti-pattern operators); do not run C yet."
+**AI Response**: "A ran under prereg v24 and stopped on its registered 150-credit budget rule. 25 of 42 reviews are valid (run 0 of all 14 trees, run 1 of 11), at 147.96 credits by the rate card (5.92 per review; the balance fell 144.09). Seed-run recall 9/10 (firewall 5/5); p4 flagged in its one run pair, with a chance control of 1/2; p5 flagged by FF-C03 in one run; mean Jaccard 0.727 over the two-run trees. The summary.json mean (0.571) has a declared averaging defect. Of 909 claims, 50.6 % are firewall keys and 23.1 % are on files without a firewall finding. B under the author's E1 design: the pre-stated rule was committed (484c35b) before the label-free count (89359c1); 0 MO-X02 and 0 MO-X03 seeds in 65 cells, 12 twins. This was escalated, and B is on hold for new operators. C (ADR-038) code and sample are ready (100 units, all 1549 eligible requests reproduce their recorded hash) but are not registered."
+**Context**: CONSTRUCTION — Build and Test, extra experiments. Worktree ../DaedalusArch-wt-x3, branch v1.2e-exp-extra.
+
+---

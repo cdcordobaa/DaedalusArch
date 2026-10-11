@@ -1,0 +1,160 @@
+{
+  "schemaVersion": 1,
+  "treeId": "p5-before",
+  "run": 0,
+  "attempt": 0,
+  "startedAt": "2026-10-11T20:40:11.423Z",
+  "durationMs": 96126,
+  "promptSha256": "96c732ec72b3975b20b7c4af37f4ed4601bdaf3c401521de0b793fd572af277a",
+  "treeDigest": "ad5b9591b155ecf1eeee2c322fd1c393875fa3feecdc83fe4b116c678fb53b12",
+  "cliVersion": "0.162.1",
+  "model": "gpt-5.6-terra",
+  "servedModels": [
+    "gpt-5.6-terra"
+  ],
+  "reroutes": [],
+  "exitCode": 0,
+  "timedOut": false,
+  "isError": false,
+  "subtype": "success",
+  "valid": true,
+  "findings": [
+    {
+      "file": "src/app.module.ts",
+      "rule": "FF-C03",
+      "reason": "AppModule has 7 outgoing and 1 incoming project-file imports, giving instability 0.875."
+    },
+    {
+      "file": "src/deliveryman/deliveryman.module.ts",
+      "rule": "FF-C02",
+      "reason": "DeliverymanModule imports 13 distinct project files."
+    },
+    {
+      "file": "src/deliveryman/deliveryman.module.ts",
+      "rule": "FF-C03",
+      "reason": "DeliverymanModule has 13 outgoing and 2 incoming project-file imports, giving instability about 0.867."
+    },
+    {
+      "file": "src/deliveryman/entities/__tests__/deliveryman.spec.ts",
+      "rule": "FF-C03",
+      "reason": "The deliveryman entity test has 2 outgoing and no incoming project-file imports, giving instability 1."
+    },
+    {
+      "file": "src/deliveryman/services/__test__/add-order-to-deliveryman.spec.ts",
+      "rule": "FF-C03",
+      "reason": "The AddOrderToDeliveryman service test has 3 outgoing and no incoming project-file imports, giving instability 1."
+    },
+    {
+      "file": "src/deliveryman/services/update-deliverymans-orders.service.ts",
+      "rule": "FF-C03",
+      "reason": "UpdateDeliverymansOrdersService has 4 outgoing and no incoming project-file imports, giving instability 1."
+    },
+    {
+      "file": "src/infrastructure/dal/mappers/accounting-order.mapper.ts",
+      "rule": "FF-C03",
+      "reason": "AccountingOrderMapper has 5 outgoing and 1 incoming project-file imports, giving instability about 0.833."
+    },
+    {
+      "file": "src/infrastructure/dal/mappers/deliveryman.mapper.ts",
+      "rule": "FF-C03",
+      "reason": "DeliverymanMapper has 6 outgoing and 1 incoming project-file imports, giving instability about 0.857."
+    },
+    {
+      "file": "src/infrastructure/dal/orm-entities/bill-of-lading-position.orm-entity.ts",
+      "rule": "FF-S02",
+      "reason": "BillOfLadingPositionOrmEntity participates in the import cycle with OrderOrmEntity and DeliverymanOrmEntity."
+    },
+    {
+      "file": "src/infrastructure/dal/orm-entities/deliveryman.orm-entity.ts",
+      "rule": "FF-S02",
+      "reason": "DeliverymanOrmEntity participates in the import cycle with OrderOrmEntity and BillOfLadingPositionOrmEntity."
+    },
+    {
+      "file": "src/infrastructure/dal/orm-entities/orders.orm-entity.ts",
+      "rule": "FF-S02",
+      "reason": "OrderOrmEntity participates in the import cycle with DeliverymanOrmEntity and BillOfLadingPositionOrmEntity."
+    },
+    {
+      "file": "src/infrastructure/dal/repositories/accounting-orders.repository.ts",
+      "rule": "FF-P03",
+      "reason": "AccountingOrdersRepository is a repository class that does not implement an interface."
+    },
+    {
+      "file": "src/infrastructure/dal/repositories/deliveryman.repository.ts",
+      "rule": "FF-C03",
+      "reason": "DeliverymanRepository has 9 outgoing and 1 incoming project-file imports, giving instability 0.9."
+    },
+    {
+      "file": "src/infrastructure/infrastructure.module.ts",
+      "rule": "FF-S01",
+      "reason": "InfrastructureModule imports the later-layer AccountingOrderModule and DeliverymanModule."
+    },
+    {
+      "file": "src/infrastructure/infrastructure.module.ts",
+      "rule": "FF-C02",
+      "reason": "InfrastructureModule imports 16 distinct project files."
+    },
+    {
+      "file": "src/infrastructure/infrastructure.module.ts",
+      "rule": "FF-C03",
+      "reason": "InfrastructureModule has 16 outgoing and 1 incoming project-file imports, giving instability about 0.941."
+    },
+    {
+      "file": "src/infrastructure/web/controllers/accounting-orders.controller.ts",
+      "rule": "FF-P05",
+      "reason": "AccountingOrdersController directly imports the domain entity AccountingOrderEntity."
+    },
+    {
+      "file": "src/infrastructure/web/controllers/deliveryman.controller.ts",
+      "rule": "FF-S01",
+      "reason": "DeliverymanController imports UpdateDeliverymansOrdersUseCase from the later application layer."
+    },
+    {
+      "file": "src/infrastructure/web/controllers/deliveryman.controller.ts",
+      "rule": "FF-P05",
+      "reason": "DeliverymanController directly imports the domain entity DeliverymanEntity."
+    },
+    {
+      "file": "src/infrastructure/web/controllers/deliveryman.controller.ts",
+      "rule": "FF-C02",
+      "reason": "DeliverymanController imports 14 distinct project files."
+    },
+    {
+      "file": "src/infrastructure/web/controllers/deliveryman.controller.ts",
+      "rule": "FF-C03",
+      "reason": "DeliverymanController has 14 outgoing and 1 incoming project-file imports, giving instability about 0.933."
+    },
+    {
+      "file": "src/infrastructure/web/controllers/deliveryman.controller.ts",
+      "rule": "FF-SO01",
+      "reason": "DeliverymanController declares seven constructor-injected dependencies."
+    },
+    {
+      "file": "src/infrastructure/web/dtos/update-accounting-order.dto.ts",
+      "rule": "FF-S01",
+      "reason": "UpdateAccountingOrderNestDto imports UpdateAccountingOrderDto from the later application layer."
+    },
+    {
+      "file": "src/infrastructure/web/dtos/update-accounting-order.dto.ts",
+      "rule": "FF-C03",
+      "reason": "UpdateAccountingOrderNestDto has 1 outgoing and no incoming project-file imports, giving instability 1."
+    },
+    {
+      "file": "src/infrastructure/web/dtos/update-deliverymans-orders.dto.ts",
+      "rule": "FF-S01",
+      "reason": "UpdateDeliverymansOrdersNestDto imports UpdateDeliverymansOrdersDto from the later application layer."
+    }
+  ],
+  "tokens": {
+    "input": 169435,
+    "cached": 130560,
+    "output": 9147,
+    "reasoning": 5008
+  },
+  "creditsRateCard": 5.34065,
+  "balanceAfter": "1166.0921550000",
+  "toolCalls": 12,
+  "permissionDenials": 2,
+  "envelopeSha256": "be614d46c2eae1c59da33d6ffd7f1cabe4fee65f3b4be49d1f639b88685d907e",
+  "discardedAttempts": []
+}

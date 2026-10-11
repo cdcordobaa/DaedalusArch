@@ -1,0 +1,215 @@
+{
+  "schemaVersion": 1,
+  "treeId": "p5-after",
+  "run": 0,
+  "attempt": 0,
+  "startedAt": "2026-10-11T20:41:47.561Z",
+  "durationMs": 235374,
+  "promptSha256": "96c732ec72b3975b20b7c4af37f4ed4601bdaf3c401521de0b793fd572af277a",
+  "treeDigest": "64dfdb0bb1e78a2cafaba2f75392c90e9f8294bf483a8469eefec0af2fd29a5e",
+  "cliVersion": "0.162.1",
+  "model": "gpt-5.6-terra",
+  "servedModels": [
+    "gpt-5.6-terra"
+  ],
+  "reroutes": [],
+  "exitCode": 0,
+  "timedOut": false,
+  "isError": false,
+  "subtype": "success",
+  "valid": true,
+  "findings": [
+    {
+      "file": "src/infrastructure/infrastructure.module.ts",
+      "rule": "FF-S01",
+      "reason": "InfrastructureModule imports the presentation-layer AccountingOrderModule."
+    },
+    {
+      "file": "src/infrastructure/infrastructure.module.ts",
+      "rule": "FF-S01",
+      "reason": "InfrastructureModule imports the presentation-layer DeliverymanModule."
+    },
+    {
+      "file": "src/infrastructure/web/controllers/deliveryman.controller.ts",
+      "rule": "FF-S01",
+      "reason": "DeliverymanController imports UpdateDeliverymansOrdersUseCase from the application-layer update-deliverymans-orders.dto.ts file."
+    },
+    {
+      "file": "src/infrastructure/web/dtos/update-accounting-order.dto.ts",
+      "rule": "FF-S01",
+      "reason": "UpdateAccountingOrderNestDto imports UpdateAccountingOrderDto from the application-layer update-order.service.ts file."
+    },
+    {
+      "file": "src/infrastructure/web/dtos/update-deliverymans-orders.dto.ts",
+      "rule": "FF-S01",
+      "reason": "UpdateDeliverymansOrdersNestDto imports UpdateDeliverymansOrdersDto from the application-layer update-deliverymans-orders.dto.ts file."
+    },
+    {
+      "file": "src/infrastructure/dal/orm-entities/orders.orm-entity.ts",
+      "rule": "FF-S02",
+      "reason": "OrderOrmEntity participates in circular imports with DeliverymanOrmEntity and BillOfLadingPositionOrmEntity."
+    },
+    {
+      "file": "src/infrastructure/dal/orm-entities/deliveryman.orm-entity.ts",
+      "rule": "FF-S02",
+      "reason": "DeliverymanOrmEntity imports OrderOrmEntity, which imports DeliverymanOrmEntity."
+    },
+    {
+      "file": "src/infrastructure/dal/orm-entities/bill-of-lading-position.orm-entity.ts",
+      "rule": "FF-S02",
+      "reason": "BillOfLadingPositionOrmEntity imports OrderOrmEntity, which imports BillOfLadingPositionOrmEntity."
+    },
+    {
+      "file": "src/infrastructure/dal/repositories/accounting-orders.repository.ts",
+      "rule": "FF-P03",
+      "reason": "AccountingOrdersRepository does not implement any interface or abstract port."
+    },
+    {
+      "file": "src/infrastructure/web/controllers/accounting-orders.controller.ts",
+      "rule": "FF-P05",
+      "reason": "AccountingOrdersController directly imports the domain entity AccountingOrderEntity."
+    },
+    {
+      "file": "src/infrastructure/web/controllers/deliveryman.controller.ts",
+      "rule": "FF-P05",
+      "reason": "DeliverymanController directly imports the domain entity DeliverymanEntity."
+    },
+    {
+      "file": "src/deliveryman/deliveryman.module.ts",
+      "rule": "FF-C02",
+      "reason": "DeliverymanModule imports 13 distinct project files."
+    },
+    {
+      "file": "src/infrastructure/infrastructure.module.ts",
+      "rule": "FF-C02",
+      "reason": "InfrastructureModule imports 17 distinct project files."
+    },
+    {
+      "file": "src/infrastructure/web/controllers/deliveryman.controller.ts",
+      "rule": "FF-C02",
+      "reason": "DeliverymanController imports 14 distinct project files."
+    },
+    {
+      "file": "src/deliveryman/deliveryman.module.ts",
+      "rule": "FF-C03",
+      "reason": "DeliverymanModule has 13 outgoing and 2 incoming project imports, giving instability above 0.8."
+    },
+    {
+      "file": "src/deliveryman/entities/__tests__/deliveryman.spec.ts",
+      "rule": "FF-C03",
+      "reason": "The domain test file has 2 outgoing and no incoming project imports, giving instability of 1."
+    },
+    {
+      "file": "src/deliveryman/services/__test__/add-order-to-deliveryman.spec.ts",
+      "rule": "FF-C03",
+      "reason": "The application test file has 3 outgoing and no incoming project imports, giving instability of 1."
+    },
+    {
+      "file": "src/deliveryman/services/update-deliverymans-orders.service.ts",
+      "rule": "FF-C03",
+      "reason": "UpdateDeliverymansOrdersService has 4 outgoing and no incoming project imports, giving instability of 1."
+    },
+    {
+      "file": "src/infrastructure/dal/mappers/accounting-order.mapper.ts",
+      "rule": "FF-C03",
+      "reason": "AccountingOrderMapper has 5 outgoing and 1 incoming project import, giving instability above 0.8."
+    },
+    {
+      "file": "src/infrastructure/dal/mappers/deliveryman.mapper.ts",
+      "rule": "FF-C03",
+      "reason": "DeliverymanMapper has 6 outgoing and 1 incoming project import, giving instability above 0.8."
+    },
+    {
+      "file": "src/infrastructure/dal/repositories/deliveryman.repository.ts",
+      "rule": "FF-C03",
+      "reason": "DeliverymanRepository has 9 outgoing and 1 incoming project import, giving instability above 0.8."
+    },
+    {
+      "file": "src/infrastructure/infrastructure.module.ts",
+      "rule": "FF-C03",
+      "reason": "InfrastructureModule has 17 outgoing and 1 incoming project import, giving instability above 0.8."
+    },
+    {
+      "file": "src/infrastructure/web/controllers/deliveryman.controller.ts",
+      "rule": "FF-C03",
+      "reason": "DeliverymanController has 14 outgoing and 1 incoming project import, giving instability above 0.8."
+    },
+    {
+      "file": "src/infrastructure/web/dtos/update-accounting-order.dto.ts",
+      "rule": "FF-C03",
+      "reason": "UpdateAccountingOrderNestDto has 1 outgoing and no incoming project imports, giving instability of 1."
+    },
+    {
+      "file": "src/infrastructure/web/controllers/deliveryman.controller.ts",
+      "rule": "FF-SO01",
+      "reason": "DeliverymanController injects seven constructor dependencies."
+    },
+    {
+      "file": "src/deliveryman/deliveryman.module.ts",
+      "rule": "FF-N01",
+      "reason": "DeliverymanModule binds UpdateDeliverymansOrdersUseCase to UpdateDeliverymansInfoService, bypassing the declared UpdateDeliverymansOrdersService abstraction."
+    },
+    {
+      "file": "src/infrastructure/web/controllers/accounting-orders.controller.ts",
+      "rule": "FF-N02",
+      "reason": "AccountingOrdersController performs presentation transport responsibilities while its path maps it to the infrastructure layer."
+    },
+    {
+      "file": "src/infrastructure/web/controllers/deliveryman.controller.ts",
+      "rule": "FF-N02",
+      "reason": "DeliverymanController performs presentation transport responsibilities while its path maps it to the infrastructure layer."
+    },
+    {
+      "file": "src/infrastructure/web/dtos/add-order-to-deliveryman.dto.ts",
+      "rule": "FF-N02",
+      "reason": "AddOrderToDeliverymanNestDto is a transport validation DTO in the infrastructure layer."
+    },
+    {
+      "file": "src/infrastructure/web/dtos/change-deliverymans-status.dto.ts",
+      "rule": "FF-N02",
+      "reason": "ChangeDeliverymansStatusNestDto is a transport validation DTO in the infrastructure layer."
+    },
+    {
+      "file": "src/infrastructure/web/dtos/create-deliveryman.dto.ts",
+      "rule": "FF-N02",
+      "reason": "CreateDeliverymanNestDto is a transport validation DTO in the infrastructure layer."
+    },
+    {
+      "file": "src/infrastructure/web/dtos/update-accounting-order.dto.ts",
+      "rule": "FF-N02",
+      "reason": "UpdateAccountingOrderNestDto is a transport validation DTO in the infrastructure layer."
+    },
+    {
+      "file": "src/infrastructure/web/dtos/update-deliverymans-info.dto.ts",
+      "rule": "FF-N02",
+      "reason": "UpdateDeliverymansInfoNestDto is a transport validation DTO in the infrastructure layer."
+    },
+    {
+      "file": "src/infrastructure/web/dtos/update-deliverymans-orders.dto.ts",
+      "rule": "FF-N02",
+      "reason": "UpdateDeliverymansOrdersNestDto is a transport validation DTO in the infrastructure layer."
+    },
+    {
+      "file": "src/infrastructure/web/dtos/update-order-status.dto.ts",
+      "rule": "FF-N02",
+      "reason": "UpdateOrderStatusNestDto is a transport validation DTO in the infrastructure layer."
+    },
+    {
+      "file": "src/infrastructure/web/dtos/update-orders.dto.ts",
+      "rule": "FF-N02",
+      "reason": "UpdateOrderNestDto is a transport validation DTO in the infrastructure layer."
+    }
+  ],
+  "tokens": {
+    "input": 303925,
+    "cached": 255744,
+    "output": 10039,
+    "reasoning": 5554
+  },
+  "creditsRateCard": 6.69947,
+  "balanceAfter": "1160.0106050000",
+  "toolCalls": 18,
+  "permissionDenials": 2,
+  "envelopeSha256": "112c766822bedeac0395d80605a38778fefa895aa7bd29a9d76c431615a3b007",
+  "discardedAttempts": []
+}
