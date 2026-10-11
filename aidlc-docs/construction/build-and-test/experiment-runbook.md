@@ -129,18 +129,19 @@ Then the P2 v1 side (analysis plan §10 B8; symbolic-only, no model call; lane l
 | 6.4 | `llm-label-cli.ts --plan results/labels/label-plan.json --estimate`, then `--mode record --cassette-dir experiments/labels/cassettes --out results/labels/labels.json` (route `agy`, model `gemini-3.1-pro-high` from the plan; split over ≥ 2 weeks of quota; `LABEL_BUDGET_STOP` before any call that could exceed the budget) | labels, cassettes | 6.5, 6.6, 7 |
 | 6.5 | `llm-label-cli.ts --usage --cassette-dir experiments/labels/cassettes` → record the input tokens per call in `Docs/labeller-route.md` §6 (registered: this is a bump) | token figures | — |
 | 6.6 | `llm-label-cli.ts --agreement --plan results/labels/label-plan.json --labels results/labels/labels.json --allocation ../daedalus-sealed/<id>.allocation.json --audit audit/<id>.json --judge-verdicts results/labels/judge-verdicts.json --fn-causes results/labels/fn-causes.json --out results/labels/labelling.json` | agreement rows (κ / AC1 intervals, `taxonomy_rule`), audit allocation, label budget, FP/FN taxonomy | 7 |
-| 6.7 | `score-golden-cli.ts --case results/so4-heldout/case --labels results/labels/labels.json --out results/so4-heldout/score.json` | labelled score (FP-labelled) | 7 |
+| 6.7 | `score-golden-cli.ts --case results/so4-heldout/case-corrected --rule-version 1.1.0 --labels results/labels/labels.json --out results/so4-heldout/score.json` (ADR-033, POST-HOC: the guarded manifest, N = 73, with the rule-1.1.0 FP-strict set the P1 labels were drawn from; until v21 this step scored `case` under rule 1.2.0, a hybrid) | labelled score (FP-labelled) | 7 |
 | 6.8 | (exploratory) `so5-open-coding-cli.ts --labels results/labels/labels.json --runs results/e1-grid --out results/e1-grid/open-coding` | open-coding input and key | Ch9 |
 
 ## 7. Aggregation, figures, SO1 and SO2 metrics
 
 | # | Command | Writes |
 |---|---|---|
-| 7.1 | `aggregate-cli.ts --runs results/so4-heldout --plan experiments/so4-heldout/plan.json --score results/so4-heldout/score.json --manifest results/so4-heldout/case/manifest.json --labelling results/labels/labelling.json --golden-registered 85 --out results/so4-heldout/agg` | `prf_*.csv`, `precision_*.csv`, `golden_instances.csv`, `seed_coverage.csv`, labeller tables |
+| 7.1 | `aggregate-cli.ts --runs results/so4-heldout --plan experiments/so4-heldout/plan.json --score results/so4-heldout/score.json --manifest results/so4-heldout/case-corrected/manifest.json --labelling results/labels/labelling.json --golden-registered 85 --out results/so4-heldout/agg` (ADR-033; `agg-strict` / `agg-corrected` / `v2/agg` take `score-strict.json` + `case/`, `score-corrected.json` + `case-corrected/`, `v2/score.json` + `v2/case/`, without `--labelling`) | `prf_*.csv`, `precision_*.csv`, `golden_instances.csv`, `seed_coverage.csv`, labeller tables |
 | 7.2 | `aggregate-cli.ts --runs results/e1-grid --plan experiments/e1-grid/plan.json --labels results/labels/labels.json --labelling results/labels/labelling.json --out results/e1-grid/agg` (no P3 label: label-dependent `fpat_*` are N/A; the profile is in `so5_patterns.csv` `basis = symbolic`) | `so5_grid.csv`, `so5_patterns.csv`, `so5_tests.csv` |
 | 7.3 | `aggregate-cli.ts --runs results/e7-corpus --plan experiments/e7-corpus/plan.json --out results/e7-corpus/agg`; the same for `fixtures`, `latency-gate`, `apg-ablation` | per-plan tables (`latency.csv` is descriptive; the gate is `gate.json`) |
 | 7.4 | `figures-cli.ts --csv-dir <plan agg dir> --so2-dir results/apg-ablation/so2 --out results/<plan>/figures [--split held-out]` | thesis figures |
 | 7.5 | `so1-metrics-cli.ts --out results/pre-tag/so1-metrics-<sha>.json` | SO1 instrument metrics |
+| 7.6 | (ADR-033 provenance) `provenance-cli.ts guard-case --manifest results/so4-heldout/case/manifest.json --out results/so4-heldout/case-corrected/manifest.json`; `provenance-cli.ts v1-sensitivity --v1-runs results/e7-corpus-v1sym --v2-runs results/e7-corpus --out results/e7-corpus/v1/ahs_v1_sensitivity.csv`; `provenance-cli.ts external --check` (or `--write` after a deliberate change of an outside input) | the ADR-025 guarded manifest; the E7 v1 sensitivity table; `results/so4-heldout/external-inputs.json` and `results/sensitivity/external-inputs.json` |
 
 ## 8. P-U6 dry run (2026-10-09, fixtures only, Mock, scratch)
 

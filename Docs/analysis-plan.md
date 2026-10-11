@@ -710,6 +710,7 @@ These statements are registered: every report of the corresponding figure carrie
 | 2026-10-10 (ADR-029 Codex arm, prereg v18) | §2, §3, §6.1, §9, §10 | E1 gains the Codex arm (`gpt-5.6-terra`, 18 cells, own plan and `orderSeed` 20261010) before any E1 or Codex cell runs; every registered SO5 analysis stays on the 54 Claude cells; the vendor contrast (exploratory) and the registered vendor self-preference check (§6.1); the per-model agreement rows read per vendor; grid shape 4 × 3 × 2 × 3; B5 note and B10 | ADR-029 (author, 2026-10-10) |
 | 2026-10-10 (ADR-028 judge-weighted variant, prereg v17) | §10, §12 | The registered spec weights stay primary (W_n = 0.08); the judge-weighted sensitivity variant `judge-weighted-v1` registered before any E1 run (judge dimensions 2/7, symbolic 5/7, each group proportional, same thresholds; under the registered, proportional and any-fail aggregations; a pure function of the stored reports); its E7 reading post hoc, its E1 reading pre-registered; B9 wording rules (iv), (v) | ADR-028 (author, 2026-10-10: "Keep 8%, add weighted variant") |
 | 2026-10-10 (ADR-030, prereg v19) | §13 | `tool-comparison` and `real-pairs` registered before either runs: the dependency-cruiser translation (T1..T10), the shared finding key, per-operator recall and twin fire rates with instance Wilson bounds, baseline volume and overlap per rule, runtime, and the real-pair detection rule (primary resolved-finding, strict secondary), descriptive at n = 5; what was known before (§13.4) | ADR-030 |
+| 2026-10-10 (ADR-033, reproduction audit, POST-HOC, prereg v21) | §3, §5, §14 | The labelled SO4 reading is MAT-10 over the P1 census (the rule-1.1.0 FP-strict items) on the ADR-025 guarded manifest; a zero-width primary interval is flagged and quoted with its "if independent" bound; the baseline-precision rows carry `uncertain` as TP and excluded as sensitivity rows, filed under the P2 source plan; every interval names its method in each table | ADR-033; `Docs/DiagnosticRuns/reproduction-audit-2026-10-10.md` issues 1–4 |
 
 ## 12. Neural aggregation variant and judge diagnostics (ADR-028)
 
@@ -980,3 +981,36 @@ The DaedalusArch SO4 v2 outcomes of the comparable operators were known (MO-S01 
 amendment, with DaedalusArch already run on both projects at their pinned (later) commits by `e7-corpus`. Only one
 dependency-cruiser smoke run on one unseeded base preceded registration (ADR-030). The new evidence is therefore the
 dependency-cruiser arm of Experiment A and both tools' outcomes on the pair commits.
+
+## 14. Reproduction-audit corrections (ADR-033, POST-HOC, registered v21)
+
+The independent reproduction audit of 2026-10-10 (`Docs/DiagnosticRuns/reproduction-audit-2026-10-10.md`) found
+every committed table reproducible but four interpretive defects. The corrections below were made **after** every
+SO4, E7 and labelling result was seen. They are post hoc, change no registered outcome, no rule version and no label,
+and add no firewall evaluation or model call.
+
+1. **The labelled SO4 reading (audit issue 1).** The P1 census was drawn from the FP-strict items of the rule-1.1.0
+   score (34 items: 13 seed FP, 21 twin FP keys). Under rule 1.2.0 (MAT-04a, ADR-025) those 13 seed items are
+   pre-existing and leave FP-strict mechanically, so MAT-10 applied under 1.2.0 subtracts nothing and the labels
+   never enter a precision. The labelled reading is therefore MAT-10 over the census as drawn: `score-golden --case
+   results/so4-heldout/case-corrected --rule-version 1.1.0 --labels results/labels/labels.json`, that is, the ADR-025
+   guarded manifest (N = 73, the same N as the corrected reading) with the rule-1.1.0 diff, FP-labelled = the 13
+   FP-strict seed items minus those labelled TP-class. The three SO4 readings are then: strict (rule 1.1.0, N = 75,
+   registered), corrected (rule 1.2.0, N = 73, ADR-025) and labelled (rule-1.1.0 FP set adjudicated by the P1 labels,
+   N = 73, this section). MAT-04a and the labels are two independent corrections of the same 13 items; the labelled
+   reading is reported beside the corrected one and replaces neither. The earlier labels-based table (unguarded case,
+   N = 75, rule 1.2.0) is withdrawn: it mixed two regimes.
+2. **Degenerate intervals (issue 2).** When every cell is perfect the cell bootstrap returns a zero-width interval.
+   Such an interval is flagged (`ci_degenerate`, `precision_ci_degenerate`, `f1_ci_degenerate`) and is never quoted
+   alone: the row's "if independent" bound (§5; Clopper–Pearson at 0 or n) is quoted beside it, labelled "if
+   independent". F1 has no such bound (§5) and a degenerate F1 interval is reported as degenerate.
+3. **One method per interval column (issue 2).** `precision_figure.csv` carries the §5 primary cell interval of the
+   P/R/F1 files on the same basis (`ci_*`) and the "if independent" bound beside it (`ci_independent_*`), so a seed set
+   carries the same interval method in every SO4 table. The tool-comparison `recall*.csv` names its §13.2 method
+   (`ci_method` = `wilson-instances-if-independent`).
+4. **Baseline precision (issue 3).** `precision_baseline.csv` adds post-hoc sensitivity rows for the `uncertain`
+   rule (`uncertain_rule` `tp`: counted as TP; `excluded`: dropped from numerator and denominator) for the v2 overall
+   and tier rows and the v1 overall row, beside the registered rows (`fp`: kept in the denominator as non-TP, §3),
+   which stay the reported figure. `plan_id` names the plan whose runs the P2 labels were drawn from (`e7-corpus`;
+   `e7-corpus+e7-corpus-v1sym` for the v1 row), and the `precision_baseline` column of a corpus-tier stratum row
+   carries that tier's estimate (`precision_baseline_scope`), not the overall one.

@@ -13,7 +13,7 @@ import type { ReconciledP1Label } from '../../../../scripts/score-golden.js';
 import { loadSo5Codes } from '../../../../scripts/lib/so5-codes.js';
 import type { So5Codes } from '../../../../scripts/lib/so5-codes.js';
 import { parseCsv } from '../../../../scripts/lib/figures/draw.js';
-import { aggregate, directionalCheck, fpatCounts, so5Tests, DIRECTIONAL_FAMILY } from '../../../../scripts/aggregate.js';
+import { aggregate, degenerateCells, degenerateFlag, directionalCheck, fpatCounts, so5Tests, DIRECTIONAL_FAMILY } from '../../../../scripts/aggregate.js';
 import type { AggregateInput, GoldenScoreJson, So5Cell } from '../../../../scripts/aggregate.js';
 import type { ReconciledLabel } from '../../../../scripts/llm-label.js';
 import type { RunRecord } from '../../../../scripts/lib/report-io.js';
@@ -93,17 +93,38 @@ describe('recall intervals per (project, operator) cell (ADR-020 item 3)', () =>
   });
 });
 
+describe('degenerate interval flags (audit 2026-10-10 issue 2)', () => {
+  it('true only for a zero-width interval; empty without an interval; read per prefix from the row', () => {
+    expect([degenerateFlag('1.000000', '1.000000'), degenerateFlag('0.9', '1.0'), degenerateFlag('', '1.0'), degenerateFlag('', '')]).toEqual(['true', 'false', '', '']);
+    const header = ['ci_low', 'ci_high', 'precision_ci_low', 'precision_ci_high', 'f1_ci_low', 'f1_ci_high'];
+    expect(degenerateCells(header, ['0.8', '0.97', '1.000000', '1.000000', '', ''])).toEqual(['false', 'true', '']);
+  });
+});
+
 describe('baseline precision outputs (ADR-020 item 1) and the neural column (item 5)', () => {
   it('precision_baseline.csv, the precision_baseline columns and the figure rows beside the seeded differential precision', async () => {
     const { score } = await cellScore();
     const out = aggregate(base(score, { corpusTiers: new Map([['p1', 'core' as const], ['p2', 'e7' as const]]) }));
-    const bp = parseCsv(out.get('precision_baseline.csv') ?? '').rows;
+    const all = parseCsv(out.get('precision_baseline.csv') ?? '').rows;
+    // Audit 2026-10-10 issue 3: the registered rows first, then the post-hoc uncertain-rule sensitivity rows.
+    expect(all.filter((r) => r.uncertain_rule !== 'fp').map((r) => [r.uncertain_rule, r.reading, r.scope, r.key].join(':'))).toEqual([
+      'tp:sensitivity-post-hoc:overall:', 'tp:sensitivity-post-hoc:tier:core', 'tp:sensitivity-post-hoc:tier:e7',
+      'excluded:sensitivity-post-hoc:overall:', 'excluded:sensitivity-post-hoc:tier:core', 'excluded:sensitivity-post-hoc:tier:e7',
+    ]);
+    const bp = all.filter((r) => r.uncertain_rule === 'fp');
+    expect(bp.every((r) => r.reading === 'registered')).toBe(true);
     // Σw = 20·2 + 5 = 45; Σw·y = 15·2 + 1 = 31 → 0.688889.
     expect(bp[0]).toMatchObject({ plan_id: 'so4-heldout', scope: 'overall', key: '', n_items: '25', n_tp_class: '16', weighted_tp_class: '31.000000', weighted_total: '45.000000', precision_baseline: '0.688889', ci_method: 'wilson-kish', n_clusters: '2' });
     expect(bp.map((r) => [r.scope, r.key].map(String).join(':'))).toEqual(['overall:', 'tier:core', 'tier:e7', 'function:FF-C04', 'function:FF-S01', 'project:p1', 'project:p2']);
     const ho = parseCsv(out.get('prf_overall.csv') ?? '').rows.find((r) => r.split === 'held-out' && r.base_kind === 'all' && r.coverage === 'all');
     // Seeded differential: TP 8, FP-labelled 1 → 0.888889, next to the baseline 0.688889.
-    expect(ho).toMatchObject({ precision_labelled: '0.888889', precision_baseline: '0.688889' });
+    expect(ho).toMatchObject({ precision_labelled: '0.888889', precision_baseline: '0.688889', precision_baseline_scope: 'overall' });
+    // Audit 2026-10-10 issue 3: a corpus-tier stratum carries its own tier's baseline, never the overall one.
+    const tierRows = parseCsv(out.get('prf_overall.csv') ?? '').rows.filter((r) => r.split === 'held-out' && r.coverage === 'all');
+    expect(tierRows.find((r) => r.base_kind === 'corpus-core')).toMatchObject({ precision_baseline: '0.750000', precision_baseline_scope: 'tier:core' });
+    expect(tierRows.find((r) => r.base_kind === 'corpus-e7')).toMatchObject({ precision_baseline: '', precision_baseline_scope: '' });
+    // Degenerate flags: the held-out recall interval (Wilson on 4 cells) has width, so false.
+    expect(ho).toMatchObject({ ci_degenerate: 'false' });
     const fn = parseCsv(out.get('prf_by_function.csv') ?? '').rows.filter((r) => r.split === 'held-out' && r.base_kind === 'all' && r.coverage === 'all');
     expect(fn.find((r) => r.function_id === 'FF-S01')).toMatchObject({ precision_baseline: '0.750000', neural_new: '0' });
     const fig = parseCsv(out.get('precision_figure.csv') ?? '').rows;
@@ -122,7 +143,7 @@ describe('baseline precision outputs (ADR-020 item 1) and the neural column (ite
     // 4 v1-only labels on p2 FF-C02 at p = 1/4 (2 TP, 2 FP), strata `v1-only: p2, FF-C02`.
     const v1Only = [...p2(2, 'p2', 'FF-C02', 'TP', 0.25), ...p2(2, 'p2', 'FF-C02', 'FP', 0.25)].map((l) => ({ ...l, stratum: `v1-only: ${l.stratum}` }));
     const out = aggregate(base(score, { labelling: { labels: [...P2_LABELS, ...v1Only] } }));
-    const bp = parseCsv(out.get('precision_baseline.csv') ?? '').rows;
+    const bp = parseCsv(out.get('precision_baseline.csv') ?? '').rows.filter((r) => r.uncertain_rule === 'fp');
     expect(bp.map((r) => [r.instrument, r.scope, r.key].map(String).join(':'))).toEqual([
       'v2:overall:', 'v2:function:FF-C04', 'v2:function:FF-S01', 'v2:project:p1', 'v2:project:p2', 'v1:overall:', 'v1-only:overall:',
     ]);
