@@ -1,0 +1,47 @@
+{
+  "attempts": 1,
+  "cliVersion": "2.1.294",
+  "configListingSha256": "47aa04258852fab9a706f3f0c14cee22306d69fbb6fdfbde8c11854bd54997bc",
+  "durationMs": 7322,
+  "effort": "high",
+  "functionId": "FF-N02",
+  "ignoredOptions": [
+    "maxTokens"
+  ],
+  "isolationProbeSha256": "97a2e2d0af1100c13c55e028c1a0c71f069093c3d08705af122aaeb302f1a641",
+  "key": "5cd7ae182fe3eaa972ca4b1fe521428ab61fad044e3bbb6720a1eefa3dc8ecf3-r0-1",
+  "model": "claude-opus-5-5",
+  "outcome": {
+    "kind": "valid"
+  },
+  "parsedVerdict": {
+    "confidence": 0.93,
+    "evidence": [
+      "src/application/get-stock-levels-use-case.ts: the class GetStockLevelsUseCase receives the ProductRepository abstraction through its constructor (`constructor(private readonly products: ProductRepository)`), so it depends on the abstraction, not on a persistence implementation.",
+      "src/application/get-stock-levels-use-case.ts: execute() only calls this.products.findAll() and maps each product to StockLevelDto fields (productId, name, available, reserved). It contains no business rule, framework or persistence logic.",
+      "Graph: StockController (infrastructure) calls this use case, which fits the application layer's role as a use-case entry point."
+    ],
+    "pass": true,
+    "reasoning": "GetStockLevelsUseCase is a thin application-layer query use case. It takes a ProductRepository abstraction from the domain layer through constructor injection, loads every product and maps each one to a StockLevelDto. That is application orchestration. The file holds no persistence logic such as SQL or ORM calls, no transport or framework logic such as HTTP or decorators, and no business rules or invariants that belong in the domain. Mapping to a DTO is a normal application-layer job. No ADR prose was given, so there is nothing else to check it against.",
+    "violations": []
+  },
+  "projectId": "claude-sonnet-5-5/order-fulfilment/full-aac/run-1",
+  "prompt": "## Rule\nThe unit's responsibilities match the role of its declared layer.\n\n## Rubric\nPass: Every responsibility in the file belongs to the role and kind of its declared layer, and agrees with any ADR prose given.\nFail: The file carries a responsibility that belongs to a different layer kind, for example persistence, transport or framework logic in a domain file, or business rules in an infrastructure or presentation file.\nEvidence required: Name the file and cite the function, method or statement that carries the misplaced responsibility, and the layer kind it belongs to.\nOut of scope: import direction and layer-dependency rules, which are checked symbolically.\n\n## Layer model\n- domain (kind: domain): src/domain/**\n- application (kind: application): src/application/**\n- infrastructure (kind: infrastructure): src/infrastructure/**\n\n## Unit\nKind: file\nId: src/application/get-stock-levels-use-case.ts\nLayer: application\nUnit files:\n- src/application/get-stock-levels-use-case.ts\n\n## Source\n=====SOURCE-BEGIN src/application/get-stock-levels-use-case.ts=====\nimport { ProductRepository } from \"../domain/product-repository\";\nimport { StockLevelDto } from \"./order-dto\";\n\nexport class GetStockLevelsUseCase {\n  constructor(private readonly products: ProductRepository) {}\n\n  execute(): StockLevelDto[] {\n    return this.products.findAll().map((product) => ({\n      productId: product.id,\n      name: product.name,\n      available: product.availableQuantity,\n      reserved: product.reservedQuantity,\n    }));\n  }\n}\n\n=====SOURCE-END=====\n\n## Graph excerpt\n{\"edges\":[{\"from\":\"GetStockLevelsUseCase@src/application/get-stock-levels-use-case.ts\",\"to\":\"ProductRepository@src/domain/product-repository.ts\",\"type\":\"CONSTRUCTOR_INJECTS\"},{\"from\":\"StockController@src/infrastructure/stock-controller.ts\",\"to\":\"GetStockLevelsUseCase@src/application/get-stock-levels-use-case.ts\",\"type\":\"CONSTRUCTOR_INJECTS\"},{\"from\":\"src/application/get-stock-levels-use-case.ts\",\"to\":\"src/application/order-dto.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/application/get-stock-levels-use-case.ts\",\"to\":\"src/domain/product-repository.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/infrastructure/stock-controller.ts\",\"to\":\"src/application/get-stock-levels-use-case.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/infrastructure/stock-module.ts\",\"to\":\"src/application/get-stock-levels-use-case.ts\",\"type\":\"IMPORTS\"}],\"nodes\":[{\"kind\":\"Class\",\"layer\":\"application\",\"name\":\"GetStockLevelsUseCase\",\"path\":\"src/application/get-stock-levels-use-case.ts\"},{\"kind\":\"Class\",\"layer\":\"infrastructure\",\"name\":\"StockController\",\"path\":\"src/infrastructure/stock-controller.ts\"},{\"kind\":\"File\",\"layer\":\"application\",\"path\":\"src/application/get-stock-levels-use-case.ts\"},{\"kind\":\"File\",\"layer\":\"application\",\"path\":\"src/application/order-dto.ts\"},{\"kind\":\"File\",\"layer\":\"domain\",\"path\":\"src/domain/product-repository.ts\"},{\"kind\":\"File\",\"layer\":\"infrastructure\",\"path\":\"src/infrastructure/stock-controller.ts\"},{\"kind\":\"File\",\"layer\":\"infrastructure\",\"path\":\"src/infrastructure/stock-module.ts\"},{\"kind\":\"Interface\",\"layer\":\"domain\",\"name\":\"ProductRepository\",\"path\":\"src/domain/product-repository.ts\"}]}\n\n## Instructions\nJudge the unit against the rule and rubric. Return the JSON object the schema requires. Set pass to false if any file of the unit fails the rubric.\n",
+  "provider": "claude-cli",
+  "recordedAt": "2026-10-10T23:06:25.942Z",
+  "repetition": 0,
+  "requestHash": "5cd7ae182fe3eaa972ca4b1fe521428ab61fad044e3bbb6720a1eefa3dc8ecf3",
+  "resolvedModel": "claude-opus-5-5",
+  "response": "{\"is_error\":false,\"modelUsage\":{\"claude-opus-5-5\":{\"inputTokens\":2,\"outputTokens\":535}},\"result\":\"{\\\"pass\\\":true,\\\"confidence\\\":0.93,\\\"reasoning\\\":\\\"GetStockLevelsUseCase is a thin application-layer query use case. It takes a ProductRepository abstraction from the domain layer through constructor injection, loads every product and maps each one to a StockLevelDto. That is application orchestration. The file holds no persistence logic such as SQL or ORM calls, no transport or framework logic such as HTTP or decorators, and no business rules or invariants that belong in the domain. Mapping to a DTO is a normal application-layer job. No ADR prose was given, so there is nothing else to check it against.\\\",\\\"evidence\\\":[\\\"src/application/get-stock-levels-use-case.ts: the class GetStockLevelsUseCase receives the ProductRepository abstraction through its constructor (`constructor(private readonly products: ProductRepository)`), so it depends on the abstraction, not on a persistence implementation.\\\",\\\"src/application/get-stock-levels-use-case.ts: execute() only calls this.products.findAll() and maps each product to StockLevelDto fields (productId, name, available, reserved). It contains no business rule, framework or persistence logic.\\\",\\\"Graph: StockController (infrastructure) calls this use case, which fits the application layer's role as a use-case entry point.\\\"],\\\"violations\\\":[]}\",\"structured_output\":{\"confidence\":0.93,\"evidence\":[\"src/application/get-stock-levels-use-case.ts: the class GetStockLevelsUseCase receives the ProductRepository abstraction through its constructor (`constructor(private readonly products: ProductRepository)`), so it depends on the abstraction, not on a persistence implementation.\",\"src/application/get-stock-levels-use-case.ts: execute() only calls this.products.findAll() and maps each product to StockLevelDto fields (productId, name, available, reserved). It contains no business rule, framework or persistence logic.\",\"Graph: StockController (infrastructure) calls this use case, which fits the application layer's role as a use-case entry point.\"],\"pass\":true,\"reasoning\":\"GetStockLevelsUseCase is a thin application-layer query use case. It takes a ProductRepository abstraction from the domain layer through constructor injection, loads every product and maps each one to a StockLevelDto. That is application orchestration. The file holds no persistence logic such as SQL or ORM calls, no transport or framework logic such as HTTP or decorators, and no business rules or invariants that belong in the domain. Mapping to a DTO is a normal application-layer job. No ADR prose was given, so there is nothing else to check it against.\",\"violations\":[]}}",
+  "runIndex": 1,
+  "schemaVersion": 2,
+  "unitId": "src/application/get-stock-levels-use-case.ts",
+  "usage": {
+    "inputTokens": 2790,
+    "outputTokens": 535
+  },
+  "usedOptions": {
+    "effort": "high",
+    "model": "claude-opus-5-5"
+  }
+}

@@ -1,0 +1,48 @@
+{
+  "attempts": 1,
+  "cliVersion": "2.1.294",
+  "configListingSha256": "47aa04258852fab9a706f3f0c14cee22306d69fbb6fdfbde8c11854bd54997bc",
+  "durationMs": 7285,
+  "effort": "high",
+  "functionId": "FF-N02",
+  "ignoredOptions": [
+    "maxTokens"
+  ],
+  "isolationProbeSha256": "97a2e2d0af1100c13c55e028c1a0c71f069093c3d08705af122aaeb302f1a641",
+  "key": "2d58c5fe1dfc4343e372ced93ad5f477b29965949b660492d5a59e6f73e49fe6-r0-2",
+  "model": "claude-opus-5-5",
+  "outcome": {
+    "kind": "valid"
+  },
+  "parsedVerdict": {
+    "confidence": 0.9,
+    "evidence": [
+      "src/application/ListOrdersByStatusUseCase.ts: ListOrdersByStatusUseCase.execute validates input with the domain predicate isOrderStatus(status). The rule is defined in the domain, and the use case only applies it.",
+      "src/application/ListOrdersByStatusUseCase.ts: this.orders.findByStatus(status) goes through the repository port that is injected into the constructor. There is no persistence code here.",
+      "src/application/ListOrdersByStatusUseCase.ts: found.map(toOrderDto) converts domain objects into application DTOs, which is an application-layer job.",
+      "The use case is injected into OrderController (infrastructure), so transport handling stays outside this file."
+    ],
+    "pass": true,
+    "reasoning": "The file's responsibilities fit the application layer: it orchestrates a single use case. It checks the incoming status with the domain predicate isOrderStatus, fetches orders through the OrderRepository port that the domain owns, and maps the results to OrderDto for the caller. It has no persistence details such as SQL or ORM calls, no transport or framework handling such as HTTP requests or status codes, and no business rules of its own. The status check calls a predicate the domain owns, so the rule itself stays in the domain. Throwing a DomainError for invalid input is ordinary application-level guarding. No ADR prose was provided to check against.",
+    "violations": []
+  },
+  "projectId": "claude-sonnet-5-5/order-fulfilment/minimal-prose/run-0",
+  "prompt": "## Rule\nThe unit's responsibilities match the role of its declared layer.\n\n## Rubric\nPass: Every responsibility in the file belongs to the role and kind of its declared layer, and agrees with any ADR prose given.\nFail: The file carries a responsibility that belongs to a different layer kind, for example persistence, transport or framework logic in a domain file, or business rules in an infrastructure or presentation file.\nEvidence required: Name the file and cite the function, method or statement that carries the misplaced responsibility, and the layer kind it belongs to.\nOut of scope: import direction and layer-dependency rules, which are checked symbolically.\n\n## Layer model\n- domain (kind: domain): src/domain/**\n- application (kind: application): src/application/**\n- infrastructure (kind: infrastructure): src/infrastructure/**\n\n## Unit\nKind: file\nId: src/application/ListOrdersByStatusUseCase.ts\nLayer: application\nUnit files:\n- src/application/ListOrdersByStatusUseCase.ts\n\n## Source\n=====SOURCE-BEGIN src/application/ListOrdersByStatusUseCase.ts=====\nimport { DomainError } from \"../domain/DomainError\";\nimport { OrderRepository } from \"../domain/OrderRepository\";\nimport { isOrderStatus } from \"../domain/OrderState\";\nimport { OrderDto, toOrderDto } from \"./dto\";\n\nexport class ListOrdersByStatusUseCase {\n  constructor(private readonly orders: OrderRepository) {}\n\n  async execute(status: unknown): Promise<OrderDto[]> {\n    if (!isOrderStatus(status)) throw new DomainError(\"invalid\", \"Unknown order state\");\n    const found = await this.orders.findByStatus(status);\n    return found.map(toOrderDto);\n  }\n}\n\n=====SOURCE-END=====\n\n## Graph excerpt\n{\"edges\":[{\"from\":\"ListOrdersByStatusUseCase@src/application/ListOrdersByStatusUseCase.ts\",\"to\":\"OrderRepository@src/domain/OrderRepository.ts\",\"type\":\"CONSTRUCTOR_INJECTS\"},{\"from\":\"OrderController@src/infrastructure/OrderController.ts\",\"to\":\"ListOrdersByStatusUseCase@src/application/ListOrdersByStatusUseCase.ts\",\"type\":\"CONSTRUCTOR_INJECTS\"},{\"from\":\"src/application/ListOrdersByStatusUseCase.ts\",\"to\":\"src/application/dto.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/application/ListOrdersByStatusUseCase.ts\",\"to\":\"src/domain/DomainError.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/application/ListOrdersByStatusUseCase.ts\",\"to\":\"src/domain/OrderRepository.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/application/ListOrdersByStatusUseCase.ts\",\"to\":\"src/domain/OrderState.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/infrastructure/OrderController.ts\",\"to\":\"src/application/ListOrdersByStatusUseCase.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/infrastructure/createApp.ts\",\"to\":\"src/application/ListOrdersByStatusUseCase.ts\",\"type\":\"IMPORTS\"}],\"nodes\":[{\"kind\":\"Class\",\"layer\":\"application\",\"name\":\"ListOrdersByStatusUseCase\",\"path\":\"src/application/ListOrdersByStatusUseCase.ts\"},{\"kind\":\"Class\",\"layer\":\"infrastructure\",\"name\":\"OrderController\",\"path\":\"src/infrastructure/OrderController.ts\"},{\"kind\":\"File\",\"layer\":\"application\",\"path\":\"src/application/ListOrdersByStatusUseCase.ts\"},{\"kind\":\"File\",\"layer\":\"application\",\"path\":\"src/application/dto.ts\"},{\"kind\":\"File\",\"layer\":\"domain\",\"path\":\"src/domain/DomainError.ts\"},{\"kind\":\"File\",\"layer\":\"domain\",\"path\":\"src/domain/OrderRepository.ts\"},{\"kind\":\"File\",\"layer\":\"domain\",\"path\":\"src/domain/OrderState.ts\"},{\"kind\":\"File\",\"layer\":\"infrastructure\",\"path\":\"src/infrastructure/OrderController.ts\"},{\"kind\":\"File\",\"layer\":\"infrastructure\",\"path\":\"src/infrastructure/createApp.ts\"},{\"kind\":\"Interface\",\"layer\":\"domain\",\"name\":\"OrderRepository\",\"path\":\"src/domain/OrderRepository.ts\"}]}\n\n## Instructions\nJudge the unit against the rule and rubric. Return the JSON object the schema requires. Set pass to false if any file of the unit fails the rubric.\n",
+  "provider": "claude-cli",
+  "recordedAt": "2026-10-10T22:44:47.209Z",
+  "repetition": 0,
+  "requestHash": "2d58c5fe1dfc4343e372ced93ad5f477b29965949b660492d5a59e6f73e49fe6",
+  "resolvedModel": "claude-opus-5-5",
+  "response": "{\"is_error\":false,\"modelUsage\":{\"claude-opus-5-5\":{\"inputTokens\":2,\"outputTokens\":629}},\"result\":\"{\\\"pass\\\":true,\\\"confidence\\\":0.9,\\\"reasoning\\\":\\\"The file's responsibilities fit the application layer: it orchestrates a single use case. It checks the incoming status with the domain predicate isOrderStatus, fetches orders through the OrderRepository port that the domain owns, and maps the results to OrderDto for the caller. It has no persistence details such as SQL or ORM calls, no transport or framework handling such as HTTP requests or status codes, and no business rules of its own. The status check calls a predicate the domain owns, so the rule itself stays in the domain. Throwing a DomainError for invalid input is ordinary application-level guarding. No ADR prose was provided to check against.\\\",\\\"evidence\\\":[\\\"src/application/ListOrdersByStatusUseCase.ts: ListOrdersByStatusUseCase.execute validates input with the domain predicate isOrderStatus(status). The rule is defined in the domain, and the use case only applies it.\\\",\\\"src/application/ListOrdersByStatusUseCase.ts: this.orders.findByStatus(status) goes through the repository port that is injected into the constructor. There is no persistence code here.\\\",\\\"src/application/ListOrdersByStatusUseCase.ts: found.map(toOrderDto) converts domain objects into application DTOs, which is an application-layer job.\\\",\\\"The use case is injected into OrderController (infrastructure), so transport handling stays outside this file.\\\"],\\\"violations\\\":[]}\",\"structured_output\":{\"confidence\":0.9,\"evidence\":[\"src/application/ListOrdersByStatusUseCase.ts: ListOrdersByStatusUseCase.execute validates input with the domain predicate isOrderStatus(status). The rule is defined in the domain, and the use case only applies it.\",\"src/application/ListOrdersByStatusUseCase.ts: this.orders.findByStatus(status) goes through the repository port that is injected into the constructor. There is no persistence code here.\",\"src/application/ListOrdersByStatusUseCase.ts: found.map(toOrderDto) converts domain objects into application DTOs, which is an application-layer job.\",\"The use case is injected into OrderController (infrastructure), so transport handling stays outside this file.\"],\"pass\":true,\"reasoning\":\"The file's responsibilities fit the application layer: it orchestrates a single use case. It checks the incoming status with the domain predicate isOrderStatus, fetches orders through the OrderRepository port that the domain owns, and maps the results to OrderDto for the caller. It has no persistence details such as SQL or ORM calls, no transport or framework handling such as HTTP requests or status codes, and no business rules of its own. The status check calls a predicate the domain owns, so the rule itself stays in the domain. Throwing a DomainError for invalid input is ordinary application-level guarding. No ADR prose was provided to check against.\",\"violations\":[]}}",
+  "runIndex": 2,
+  "schemaVersion": 2,
+  "unitId": "src/application/ListOrdersByStatusUseCase.ts",
+  "usage": {
+    "inputTokens": 3060,
+    "outputTokens": 629
+  },
+  "usedOptions": {
+    "effort": "high",
+    "model": "claude-opus-5-5"
+  }
+}

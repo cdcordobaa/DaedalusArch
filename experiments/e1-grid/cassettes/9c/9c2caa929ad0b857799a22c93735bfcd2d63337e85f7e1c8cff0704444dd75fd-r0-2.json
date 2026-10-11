@@ -1,0 +1,48 @@
+{
+  "attempts": 1,
+  "cliVersion": "2.1.294",
+  "configListingSha256": "47aa04258852fab9a706f3f0c14cee22306d69fbb6fdfbde8c11854bd54997bc",
+  "durationMs": 6730,
+  "effort": "high",
+  "functionId": "FF-N02",
+  "ignoredOptions": [
+    "maxTokens"
+  ],
+  "isolationProbeSha256": "97a2e2d0af1100c13c55e028c1a0c71f069093c3d08705af122aaeb302f1a641",
+  "key": "9c2caa929ad0b857799a22c93735bfcd2d63337e85f7e1c8cff0704444dd75fd-r0-2",
+  "model": "claude-opus-5-5",
+  "outcome": {
+    "kind": "valid"
+  },
+  "parsedVerdict": {
+    "confidence": 0.93,
+    "evidence": [
+      "src/application/list-stock-levels-use-case.ts: execute() calls this.products.findAll() through the injected ProductRepository port, which is application-level coordination.",
+      "src/application/list-stock-levels-use-case.ts: all.map(...) maps domain Product fields to StockLevelDto. This is output mapping, an application responsibility.",
+      "'available: product.available' reads a value the domain already derives, so no business rule is put into this file.",
+      "The file contains no database, HTTP, or framework code."
+    ],
+    "pass": true,
+    "reasoning": "The file holds a single application use case. ListStockLevelsUseCase.execute fetches products through the ProductRepository port, which comes from the domain and is supplied by constructor injection. It then maps each product to a StockLevelDto. Coordinating a domain port and building output DTOs is the job of the application layer. The derived 'available' value is read from the domain entity (product.available), not worked out here, so no business rule leaks into this file. The file has no persistence, transport, HTTP or framework code.",
+    "violations": []
+  },
+  "projectId": "claude-sonnet-5-5/order-fulfilment/full-aac/run-0",
+  "prompt": "## Rule\nThe unit's responsibilities match the role of its declared layer.\n\n## Rubric\nPass: Every responsibility in the file belongs to the role and kind of its declared layer, and agrees with any ADR prose given.\nFail: The file carries a responsibility that belongs to a different layer kind, for example persistence, transport or framework logic in a domain file, or business rules in an infrastructure or presentation file.\nEvidence required: Name the file and cite the function, method or statement that carries the misplaced responsibility, and the layer kind it belongs to.\nOut of scope: import direction and layer-dependency rules, which are checked symbolically.\n\n## Layer model\n- domain (kind: domain): src/domain/**\n- application (kind: application): src/application/**\n- infrastructure (kind: infrastructure): src/infrastructure/**\n\n## Unit\nKind: file\nId: src/application/list-stock-levels-use-case.ts\nLayer: application\nUnit files:\n- src/application/list-stock-levels-use-case.ts\n\n## Source\n=====SOURCE-BEGIN src/application/list-stock-levels-use-case.ts=====\nimport { ProductRepository } from \"../domain/product-repository\";\nimport { StockLevelDto } from \"./order-dto\";\n\nexport class ListStockLevelsUseCase {\n  constructor(private readonly products: ProductRepository) {}\n\n  async execute(): Promise<StockLevelDto[]> {\n    const all = await this.products.findAll();\n    return all.map((product) => ({\n      productId: product.id,\n      name: product.name,\n      onHand: product.onHandQuantity,\n      reserved: product.reservedQuantity,\n      available: product.available,\n    }));\n  }\n}\n\n=====SOURCE-END=====\n\n## Graph excerpt\n{\"edges\":[{\"from\":\"ListStockLevelsUseCase@src/application/list-stock-levels-use-case.ts\",\"to\":\"ProductRepository@src/domain/product-repository.ts\",\"type\":\"CONSTRUCTOR_INJECTS\"},{\"from\":\"StockController@src/infrastructure/stock-controller.ts\",\"to\":\"ListStockLevelsUseCase@src/application/list-stock-levels-use-case.ts\",\"type\":\"CONSTRUCTOR_INJECTS\"},{\"from\":\"src/application/list-stock-levels-use-case.ts\",\"to\":\"src/application/order-dto.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/application/list-stock-levels-use-case.ts\",\"to\":\"src/domain/product-repository.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/infrastructure/create-app.ts\",\"to\":\"src/application/list-stock-levels-use-case.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/infrastructure/stock-controller.ts\",\"to\":\"src/application/list-stock-levels-use-case.ts\",\"type\":\"IMPORTS\"}],\"nodes\":[{\"kind\":\"Class\",\"layer\":\"application\",\"name\":\"ListStockLevelsUseCase\",\"path\":\"src/application/list-stock-levels-use-case.ts\"},{\"kind\":\"Class\",\"layer\":\"infrastructure\",\"name\":\"StockController\",\"path\":\"src/infrastructure/stock-controller.ts\"},{\"kind\":\"File\",\"layer\":\"application\",\"path\":\"src/application/list-stock-levels-use-case.ts\"},{\"kind\":\"File\",\"layer\":\"application\",\"path\":\"src/application/order-dto.ts\"},{\"kind\":\"File\",\"layer\":\"domain\",\"path\":\"src/domain/product-repository.ts\"},{\"kind\":\"File\",\"layer\":\"infrastructure\",\"path\":\"src/infrastructure/create-app.ts\"},{\"kind\":\"File\",\"layer\":\"infrastructure\",\"path\":\"src/infrastructure/stock-controller.ts\"},{\"kind\":\"Interface\",\"layer\":\"domain\",\"name\":\"ProductRepository\",\"path\":\"src/domain/product-repository.ts\"}]}\n\n## Instructions\nJudge the unit against the rule and rubric. Return the JSON object the schema requires. Set pass to false if any file of the unit fails the rubric.\n",
+  "provider": "claude-cli",
+  "recordedAt": "2026-10-10T23:03:22.588Z",
+  "repetition": 0,
+  "requestHash": "9c2caa929ad0b857799a22c93735bfcd2d63337e85f7e1c8cff0704444dd75fd",
+  "resolvedModel": "claude-opus-5-5",
+  "response": "{\"is_error\":false,\"modelUsage\":{\"claude-opus-5-5\":{\"inputTokens\":2,\"outputTokens\":466}},\"result\":\"{\\\"pass\\\":true,\\\"confidence\\\":0.93,\\\"reasoning\\\":\\\"The file holds a single application use case. ListStockLevelsUseCase.execute fetches products through the ProductRepository port, which comes from the domain and is supplied by constructor injection. It then maps each product to a StockLevelDto. Coordinating a domain port and building output DTOs is the job of the application layer. The derived 'available' value is read from the domain entity (product.available), not worked out here, so no business rule leaks into this file. The file has no persistence, transport, HTTP or framework code.\\\",\\\"evidence\\\":[\\\"src/application/list-stock-levels-use-case.ts: execute() calls this.products.findAll() through the injected ProductRepository port, which is application-level coordination.\\\",\\\"src/application/list-stock-levels-use-case.ts: all.map(...) maps domain Product fields to StockLevelDto. This is output mapping, an application responsibility.\\\",\\\"'available: product.available' reads a value the domain already derives, so no business rule is put into this file.\\\",\\\"The file contains no database, HTTP, or framework code.\\\"],\\\"violations\\\":[]}\",\"structured_output\":{\"confidence\":0.93,\"evidence\":[\"src/application/list-stock-levels-use-case.ts: execute() calls this.products.findAll() through the injected ProductRepository port, which is application-level coordination.\",\"src/application/list-stock-levels-use-case.ts: all.map(...) maps domain Product fields to StockLevelDto. This is output mapping, an application responsibility.\",\"'available: product.available' reads a value the domain already derives, so no business rule is put into this file.\",\"The file contains no database, HTTP, or framework code.\"],\"pass\":true,\"reasoning\":\"The file holds a single application use case. ListStockLevelsUseCase.execute fetches products through the ProductRepository port, which comes from the domain and is supplied by constructor injection. It then maps each product to a StockLevelDto. Coordinating a domain port and building output DTOs is the job of the application layer. The derived 'available' value is read from the domain entity (product.available), not worked out here, so no business rule leaks into this file. The file has no persistence, transport, HTTP or framework code.\",\"violations\":[]}}",
+  "runIndex": 2,
+  "schemaVersion": 2,
+  "unitId": "src/application/list-stock-levels-use-case.ts",
+  "usage": {
+    "inputTokens": 2815,
+    "outputTokens": 466
+  },
+  "usedOptions": {
+    "effort": "high",
+    "model": "claude-opus-5-5"
+  }
+}

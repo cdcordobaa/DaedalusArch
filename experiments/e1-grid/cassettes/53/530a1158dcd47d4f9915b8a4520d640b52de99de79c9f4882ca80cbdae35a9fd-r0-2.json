@@ -1,0 +1,48 @@
+{
+  "attempts": 1,
+  "cliVersion": "2.1.294",
+  "configListingSha256": "47aa04258852fab9a706f3f0c14cee22306d69fbb6fdfbde8c11854bd54997bc",
+  "durationMs": 6293,
+  "effort": "high",
+  "functionId": "FF-N02",
+  "ignoredOptions": [
+    "maxTokens"
+  ],
+  "isolationProbeSha256": "97a2e2d0af1100c13c55e028c1a0c71f069093c3d08705af122aaeb302f1a641",
+  "key": "530a1158dcd47d4f9915b8a4520d640b52de99de79c9f4882ca80cbdae35a9fd-r0-2",
+  "model": "claude-opus-5-5",
+  "outcome": {
+    "kind": "valid"
+  },
+  "parsedVerdict": {
+    "confidence": 0.92,
+    "evidence": [
+      "src/application/list-orders-by-state-use-case.ts: ListOrdersByStateUseCase.execute only validates input, calls the repository and maps results, which is orchestration work for the application layer.",
+      "Input is checked by calling the domain function isOrderState rather than redefining the valid states, so the business rule stays in the domain.",
+      "Data is read through the injected OrderRepository interface (this.orders.findByState), so the file has no persistence code.",
+      "Results are converted with found.map(toOrderDto) into application-layer DTOs, so the file has no transport or HTTP code."
+    ],
+    "pass": true,
+    "reasoning": "This file is a standard application use case. It checks its input by calling a domain predicate (isOrderState), loads orders through a repository interface declared in the domain, and maps the results to application DTOs. It contains no persistence, transport or framework code, and it defines no business rules of its own: the knowledge of which order states are valid lives in the domain. Everything the file does fits the application layer.",
+    "violations": []
+  },
+  "projectId": "claude-sonnet-5-5/order-fulfilment/minimal-prose/run-2",
+  "prompt": "## Rule\nThe unit's responsibilities match the role of its declared layer.\n\n## Rubric\nPass: Every responsibility in the file belongs to the role and kind of its declared layer, and agrees with any ADR prose given.\nFail: The file carries a responsibility that belongs to a different layer kind, for example persistence, transport or framework logic in a domain file, or business rules in an infrastructure or presentation file.\nEvidence required: Name the file and cite the function, method or statement that carries the misplaced responsibility, and the layer kind it belongs to.\nOut of scope: import direction and layer-dependency rules, which are checked symbolically.\n\n## Layer model\n- domain (kind: domain): src/domain/**\n- application (kind: application): src/application/**\n- infrastructure (kind: infrastructure): src/infrastructure/**\n\n## Unit\nKind: file\nId: src/application/list-orders-by-state-use-case.ts\nLayer: application\nUnit files:\n- src/application/list-orders-by-state-use-case.ts\n\n## Source\n=====SOURCE-BEGIN src/application/list-orders-by-state-use-case.ts=====\nimport { ValidationError } from \"../domain/errors\";\nimport { OrderRepository } from \"../domain/order-repository\";\nimport { isOrderState } from \"../domain/order-state\";\nimport { OrderDto, toOrderDto } from \"./dtos\";\n\nexport class ListOrdersByStateUseCase {\n  constructor(private readonly orders: OrderRepository) {}\n\n  async execute(state: unknown): Promise<OrderDto[]> {\n    if (!isOrderState(state)) throw new ValidationError(\"Unknown order state\");\n    const found = await this.orders.findByState(state);\n    return found.map(toOrderDto);\n  }\n}\n\n=====SOURCE-END=====\n\n## Graph excerpt\n{\"edges\":[{\"from\":\"ListOrdersByStateUseCase@src/application/list-orders-by-state-use-case.ts\",\"to\":\"OrderRepository@src/domain/order-repository.ts\",\"type\":\"CONSTRUCTOR_INJECTS\"},{\"from\":\"OrderController@src/infrastructure/order-controller.ts\",\"to\":\"ListOrdersByStateUseCase@src/application/list-orders-by-state-use-case.ts\",\"type\":\"CONSTRUCTOR_INJECTS\"},{\"from\":\"src/application/list-orders-by-state-use-case.ts\",\"to\":\"src/application/dtos.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/application/list-orders-by-state-use-case.ts\",\"to\":\"src/domain/errors.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/application/list-orders-by-state-use-case.ts\",\"to\":\"src/domain/order-repository.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/application/list-orders-by-state-use-case.ts\",\"to\":\"src/domain/order-state.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/infrastructure/app-factory.ts\",\"to\":\"src/application/list-orders-by-state-use-case.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/infrastructure/order-controller.ts\",\"to\":\"src/application/list-orders-by-state-use-case.ts\",\"type\":\"IMPORTS\"}],\"nodes\":[{\"kind\":\"Class\",\"layer\":\"application\",\"name\":\"ListOrdersByStateUseCase\",\"path\":\"src/application/list-orders-by-state-use-case.ts\"},{\"kind\":\"Class\",\"layer\":\"infrastructure\",\"name\":\"OrderController\",\"path\":\"src/infrastructure/order-controller.ts\"},{\"kind\":\"File\",\"layer\":\"application\",\"path\":\"src/application/dtos.ts\"},{\"kind\":\"File\",\"layer\":\"application\",\"path\":\"src/application/list-orders-by-state-use-case.ts\"},{\"kind\":\"File\",\"layer\":\"domain\",\"path\":\"src/domain/errors.ts\"},{\"kind\":\"File\",\"layer\":\"domain\",\"path\":\"src/domain/order-repository.ts\"},{\"kind\":\"File\",\"layer\":\"domain\",\"path\":\"src/domain/order-state.ts\"},{\"kind\":\"File\",\"layer\":\"infrastructure\",\"path\":\"src/infrastructure/app-factory.ts\"},{\"kind\":\"File\",\"layer\":\"infrastructure\",\"path\":\"src/infrastructure/order-controller.ts\"},{\"kind\":\"Interface\",\"layer\":\"domain\",\"name\":\"OrderRepository\",\"path\":\"src/domain/order-repository.ts\"}]}\n\n## Instructions\nJudge the unit against the rule and rubric. Return the JSON object the schema requires. Set pass to false if any file of the unit fails the rubric.\n",
+  "provider": "claude-cli",
+  "recordedAt": "2026-10-10T22:50:58.217Z",
+  "repetition": 0,
+  "requestHash": "530a1158dcd47d4f9915b8a4520d640b52de99de79c9f4882ca80cbdae35a9fd",
+  "resolvedModel": "claude-opus-5-5",
+  "response": "{\"is_error\":false,\"modelUsage\":{\"claude-opus-5-5\":{\"inputTokens\":2,\"outputTokens\":453}},\"result\":\"{\\\"pass\\\":true,\\\"confidence\\\":0.92,\\\"reasoning\\\":\\\"This file is a standard application use case. It checks its input by calling a domain predicate (isOrderState), loads orders through a repository interface declared in the domain, and maps the results to application DTOs. It contains no persistence, transport or framework code, and it defines no business rules of its own: the knowledge of which order states are valid lives in the domain. Everything the file does fits the application layer.\\\",\\\"evidence\\\":[\\\"src/application/list-orders-by-state-use-case.ts: ListOrdersByStateUseCase.execute only validates input, calls the repository and maps results, which is orchestration work for the application layer.\\\",\\\"Input is checked by calling the domain function isOrderState rather than redefining the valid states, so the business rule stays in the domain.\\\",\\\"Data is read through the injected OrderRepository interface (this.orders.findByState), so the file has no persistence code.\\\",\\\"Results are converted with found.map(toOrderDto) into application-layer DTOs, so the file has no transport or HTTP code.\\\"],\\\"violations\\\":[]}\",\"structured_output\":{\"confidence\":0.92,\"evidence\":[\"src/application/list-orders-by-state-use-case.ts: ListOrdersByStateUseCase.execute only validates input, calls the repository and maps results, which is orchestration work for the application layer.\",\"Input is checked by calling the domain function isOrderState rather than redefining the valid states, so the business rule stays in the domain.\",\"Data is read through the injected OrderRepository interface (this.orders.findByState), so the file has no persistence code.\",\"Results are converted with found.map(toOrderDto) into application-layer DTOs, so the file has no transport or HTTP code.\"],\"pass\":true,\"reasoning\":\"This file is a standard application use case. It checks its input by calling a domain predicate (isOrderState), loads orders through a repository interface declared in the domain, and maps the results to application DTOs. It contains no persistence, transport or framework code, and it defines no business rules of its own: the knowledge of which order states are valid lives in the domain. Everything the file does fits the application layer.\",\"violations\":[]}}",
+  "runIndex": 2,
+  "schemaVersion": 2,
+  "unitId": "src/application/list-orders-by-state-use-case.ts",
+  "usage": {
+    "inputTokens": 3007,
+    "outputTokens": 453
+  },
+  "usedOptions": {
+    "effort": "high",
+    "model": "claude-opus-5-5"
+  }
+}

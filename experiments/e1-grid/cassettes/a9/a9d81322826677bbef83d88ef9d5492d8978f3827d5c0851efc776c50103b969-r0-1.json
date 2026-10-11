@@ -1,0 +1,48 @@
+{
+  "attempts": 1,
+  "cliVersion": "2.1.294",
+  "configListingSha256": "47aa04258852fab9a706f3f0c14cee22306d69fbb6fdfbde8c11854bd54997bc",
+  "durationMs": 6078,
+  "effort": "high",
+  "functionId": "FF-N02",
+  "ignoredOptions": [
+    "maxTokens"
+  ],
+  "isolationProbeSha256": "97a2e2d0af1100c13c55e028c1a0c71f069093c3d08705af122aaeb302f1a641",
+  "key": "a9d81322826677bbef83d88ef9d5492d8978f3827d5c0851efc776c50103b969-r0-1",
+  "model": "claude-opus-5-5",
+  "outcome": {
+    "kind": "valid"
+  },
+  "parsedVerdict": {
+    "confidence": 0.95,
+    "evidence": [
+      "FULFILMENT_FLOW and the OrderState/FulfilmentState types define the domain's order lifecycle vocabulary.",
+      "nextState(state) is a pure domain transition rule with no side effects.",
+      "isCancellable(state) and CANCELLABLE encode a business policy, which belongs in the domain.",
+      "isOrderState(value) is a pure validation type guard for domain values. It does no transport parsing and uses no framework."
+    ],
+    "pass": true,
+    "reasoning": "src/domain/order-state.ts holds only domain concepts. It defines the order lifecycle (FULFILMENT_FLOW, FulfilmentState, OrderState), a type guard for valid states (isOrderState), the transition rule (nextState) and the cancellation policy (isCancellable, CANCELLABLE). These are pure business rules with no persistence, transport, framework, I/O or orchestration logic, so every responsibility fits the domain layer.",
+    "violations": []
+  },
+  "projectId": "claude-sonnet-5-5/order-fulfilment/full-aac/run-0",
+  "prompt": "## Rule\nThe unit's responsibilities match the role of its declared layer.\n\n## Rubric\nPass: Every responsibility in the file belongs to the role and kind of its declared layer, and agrees with any ADR prose given.\nFail: The file carries a responsibility that belongs to a different layer kind, for example persistence, transport or framework logic in a domain file, or business rules in an infrastructure or presentation file.\nEvidence required: Name the file and cite the function, method or statement that carries the misplaced responsibility, and the layer kind it belongs to.\nOut of scope: import direction and layer-dependency rules, which are checked symbolically.\n\n## Layer model\n- domain (kind: domain): src/domain/**\n- application (kind: application): src/application/**\n- infrastructure (kind: infrastructure): src/infrastructure/**\n\n## Unit\nKind: file\nId: src/domain/order-state.ts\nLayer: domain\nUnit files:\n- src/domain/order-state.ts\n\n## Source\n=====SOURCE-BEGIN src/domain/order-state.ts=====\nexport const FULFILMENT_FLOW = [\"placed\", \"paid\", \"packed\", \"shipped\", \"delivered\"] as const;\n\nexport type FulfilmentState = (typeof FULFILMENT_FLOW)[number];\nexport type OrderState = FulfilmentState | \"cancelled\";\n\nconst CANCELLABLE: readonly OrderState[] = [\"placed\", \"paid\", \"packed\"];\n\nexport function isOrderState(value: string): value is OrderState {\n  return value === \"cancelled\" || (FULFILMENT_FLOW as readonly string[]).includes(value);\n}\n\nexport function nextState(state: OrderState): FulfilmentState | undefined {\n  if (state === \"cancelled\") return undefined;\n  return FULFILMENT_FLOW[FULFILMENT_FLOW.indexOf(state) + 1];\n}\n\nexport function isCancellable(state: OrderState): boolean {\n  return CANCELLABLE.includes(state);\n}\n\n=====SOURCE-END=====\n\n## Graph excerpt\n{\"edges\":[{\"from\":\"src/application/advance-order-use-case.ts\",\"to\":\"src/domain/order-state.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/application/list-orders-by-state-use-case.ts\",\"to\":\"src/domain/order-state.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/domain/order-repository.ts\",\"to\":\"src/domain/order-state.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/domain/order.ts\",\"to\":\"src/domain/order-state.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/infrastructure/in-memory-order-repository.ts\",\"to\":\"src/domain/order-state.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/infrastructure/order-controller.ts\",\"to\":\"src/domain/order-state.ts\",\"type\":\"IMPORTS\"}],\"nodes\":[{\"kind\":\"File\",\"layer\":\"application\",\"path\":\"src/application/advance-order-use-case.ts\"},{\"kind\":\"File\",\"layer\":\"application\",\"path\":\"src/application/list-orders-by-state-use-case.ts\"},{\"kind\":\"File\",\"layer\":\"domain\",\"path\":\"src/domain/order-repository.ts\"},{\"kind\":\"File\",\"layer\":\"domain\",\"path\":\"src/domain/order-state.ts\"},{\"kind\":\"File\",\"layer\":\"domain\",\"path\":\"src/domain/order.ts\"},{\"kind\":\"File\",\"layer\":\"infrastructure\",\"path\":\"src/infrastructure/in-memory-order-repository.ts\"},{\"kind\":\"File\",\"layer\":\"infrastructure\",\"path\":\"src/infrastructure/order-controller.ts\"}]}\n\n## Instructions\nJudge the unit against the rule and rubric. Return the JSON object the schema requires. Set pass to false if any file of the unit fails the rubric.\n",
+  "provider": "claude-cli",
+  "recordedAt": "2026-10-10T23:04:07.372Z",
+  "repetition": 0,
+  "requestHash": "a9d81322826677bbef83d88ef9d5492d8978f3827d5c0851efc776c50103b969",
+  "resolvedModel": "claude-opus-5-5",
+  "response": "{\"is_error\":false,\"modelUsage\":{\"claude-opus-5-5\":{\"inputTokens\":2,\"outputTokens\":439}},\"result\":\"{\\\"pass\\\":true,\\\"confidence\\\":0.95,\\\"reasoning\\\":\\\"src/domain/order-state.ts holds only domain concepts. It defines the order lifecycle (FULFILMENT_FLOW, FulfilmentState, OrderState), a type guard for valid states (isOrderState), the transition rule (nextState) and the cancellation policy (isCancellable, CANCELLABLE). These are pure business rules with no persistence, transport, framework, I/O or orchestration logic, so every responsibility fits the domain layer.\\\",\\\"evidence\\\":[\\\"FULFILMENT_FLOW and the OrderState/FulfilmentState types define the domain's order lifecycle vocabulary.\\\",\\\"nextState(state) is a pure domain transition rule with no side effects.\\\",\\\"isCancellable(state) and CANCELLABLE encode a business policy, which belongs in the domain.\\\",\\\"isOrderState(value) is a pure validation type guard for domain values. It does no transport parsing and uses no framework.\\\"],\\\"violations\\\":[]}\",\"structured_output\":{\"confidence\":0.95,\"evidence\":[\"FULFILMENT_FLOW and the OrderState/FulfilmentState types define the domain's order lifecycle vocabulary.\",\"nextState(state) is a pure domain transition rule with no side effects.\",\"isCancellable(state) and CANCELLABLE encode a business policy, which belongs in the domain.\",\"isOrderState(value) is a pure validation type guard for domain values. It does no transport parsing and uses no framework.\"],\"pass\":true,\"reasoning\":\"src/domain/order-state.ts holds only domain concepts. It defines the order lifecycle (FULFILMENT_FLOW, FulfilmentState, OrderState), a type guard for valid states (isOrderState), the transition rule (nextState) and the cancellation policy (isCancellable, CANCELLABLE). These are pure business rules with no persistence, transport, framework, I/O or orchestration logic, so every responsibility fits the domain layer.\",\"violations\":[]}}",
+  "runIndex": 1,
+  "schemaVersion": 2,
+  "unitId": "src/domain/order-state.ts",
+  "usage": {
+    "inputTokens": 2754,
+    "outputTokens": 439
+  },
+  "usedOptions": {
+    "effort": "high",
+    "model": "claude-opus-5-5"
+  }
+}

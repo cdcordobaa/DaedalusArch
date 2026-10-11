@@ -1,0 +1,47 @@
+{
+  "attempts": 1,
+  "cliVersion": "2.1.294",
+  "configListingSha256": "47aa04258852fab9a706f3f0c14cee22306d69fbb6fdfbde8c11854bd54997bc",
+  "durationMs": 6236,
+  "effort": "high",
+  "functionId": "FF-N02",
+  "ignoredOptions": [
+    "maxTokens"
+  ],
+  "isolationProbeSha256": "97a2e2d0af1100c13c55e028c1a0c71f069093c3d08705af122aaeb302f1a641",
+  "key": "5cf12cdd79ecc1b5647fd4b6e5f3b07da95584fb14713ff580e9afdc6bb61d63-r0-0",
+  "model": "claude-opus-5-5",
+  "outcome": {
+    "kind": "valid"
+  },
+  "parsedVerdict": {
+    "confidence": 0.97,
+    "evidence": [
+      "src/domain/TaskStatus.ts: TASK_STATUSES lists the allowed values for a domain concept ('todo', 'in_progress', 'done').",
+      "src/domain/TaskStatus.ts: type TaskStatus is the domain value type derived from TASK_STATUSES.",
+      "src/domain/TaskStatus.ts: isTaskStatus(value) is a pure validation type guard for the domain value. It does no I/O and uses no framework."
+    ],
+    "pass": true,
+    "reasoning": "src/domain/TaskStatus.ts defines the domain value set for task status: the allowed values, the type derived from them, and a type guard. These are pure domain concepts. The file has no persistence, transport, framework, or orchestration logic, so everything in it fits the domain layer.",
+    "violations": []
+  },
+  "projectId": "claude-sonnet-5-5/task-management/full-aac/run-0",
+  "prompt": "## Rule\nThe unit's responsibilities match the role of its declared layer.\n\n## Rubric\nPass: Every responsibility in the file belongs to the role and kind of its declared layer, and agrees with any ADR prose given.\nFail: The file carries a responsibility that belongs to a different layer kind, for example persistence, transport or framework logic in a domain file, or business rules in an infrastructure or presentation file.\nEvidence required: Name the file and cite the function, method or statement that carries the misplaced responsibility, and the layer kind it belongs to.\nOut of scope: import direction and layer-dependency rules, which are checked symbolically.\n\n## Layer model\n- domain (kind: domain): src/domain/**\n- application (kind: application): src/application/**\n- infrastructure (kind: infrastructure): src/infrastructure/**\n\n## Unit\nKind: file\nId: src/domain/TaskStatus.ts\nLayer: domain\nUnit files:\n- src/domain/TaskStatus.ts\n\n## Source\n=====SOURCE-BEGIN src/domain/TaskStatus.ts=====\nexport const TASK_STATUSES = ['todo', 'in_progress', 'done'] as const;\n\nexport type TaskStatus = (typeof TASK_STATUSES)[number];\n\nexport function isTaskStatus(value: unknown): value is TaskStatus {\n  return TASK_STATUSES.some((status) => status === value);\n}\n\n=====SOURCE-END=====\n\n## Graph excerpt\n{\"edges\":[{\"from\":\"src/application/ListProjectTasksUseCase.ts\",\"to\":\"src/domain/TaskStatus.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/domain/Task.ts\",\"to\":\"src/domain/TaskStatus.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/domain/TaskRepository.ts\",\"to\":\"src/domain/TaskStatus.ts\",\"type\":\"IMPORTS\"}],\"nodes\":[{\"kind\":\"File\",\"layer\":\"application\",\"path\":\"src/application/ListProjectTasksUseCase.ts\"},{\"kind\":\"File\",\"layer\":\"domain\",\"path\":\"src/domain/Task.ts\"},{\"kind\":\"File\",\"layer\":\"domain\",\"path\":\"src/domain/TaskRepository.ts\"},{\"kind\":\"File\",\"layer\":\"domain\",\"path\":\"src/domain/TaskStatus.ts\"}]}\n\n## Instructions\nJudge the unit against the rule and rubric. Return the JSON object the schema requires. Set pass to false if any file of the unit fails the rubric.\n",
+  "provider": "claude-cli",
+  "recordedAt": "2026-10-10T22:54:30.167Z",
+  "repetition": 0,
+  "requestHash": "5cf12cdd79ecc1b5647fd4b6e5f3b07da95584fb14713ff580e9afdc6bb61d63",
+  "resolvedModel": "claude-opus-5-5",
+  "response": "{\"is_error\":false,\"modelUsage\":{\"claude-opus-5-5\":{\"inputTokens\":2,\"outputTokens\":387}},\"result\":\"{\\\"pass\\\":true,\\\"confidence\\\":0.97,\\\"reasoning\\\":\\\"src/domain/TaskStatus.ts defines the domain value set for task status: the allowed values, the type derived from them, and a type guard. These are pure domain concepts. The file has no persistence, transport, framework, or orchestration logic, so everything in it fits the domain layer.\\\",\\\"evidence\\\":[\\\"src/domain/TaskStatus.ts: TASK_STATUSES lists the allowed values for a domain concept ('todo', 'in_progress', 'done').\\\",\\\"src/domain/TaskStatus.ts: type TaskStatus is the domain value type derived from TASK_STATUSES.\\\",\\\"src/domain/TaskStatus.ts: isTaskStatus(value) is a pure validation type guard for the domain value. It does no I/O and uses no framework.\\\"],\\\"violations\\\":[]}\",\"structured_output\":{\"confidence\":0.97,\"evidence\":[\"src/domain/TaskStatus.ts: TASK_STATUSES lists the allowed values for a domain concept ('todo', 'in_progress', 'done').\",\"src/domain/TaskStatus.ts: type TaskStatus is the domain value type derived from TASK_STATUSES.\",\"src/domain/TaskStatus.ts: isTaskStatus(value) is a pure validation type guard for the domain value. It does no I/O and uses no framework.\"],\"pass\":true,\"reasoning\":\"src/domain/TaskStatus.ts defines the domain value set for task status: the allowed values, the type derived from them, and a type guard. These are pure domain concepts. The file has no persistence, transport, framework, or orchestration logic, so everything in it fits the domain layer.\",\"violations\":[]}}",
+  "runIndex": 0,
+  "schemaVersion": 2,
+  "unitId": "src/domain/TaskStatus.ts",
+  "usage": {
+    "inputTokens": 2315,
+    "outputTokens": 387
+  },
+  "usedOptions": {
+    "effort": "high",
+    "model": "claude-opus-5-5"
+  }
+}

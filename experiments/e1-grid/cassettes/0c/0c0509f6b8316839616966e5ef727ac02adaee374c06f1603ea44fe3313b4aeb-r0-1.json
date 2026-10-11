@@ -1,0 +1,47 @@
+{
+  "attempts": 1,
+  "cliVersion": "2.1.294",
+  "configListingSha256": "47aa04258852fab9a706f3f0c14cee22306d69fbb6fdfbde8c11854bd54997bc",
+  "durationMs": 6291,
+  "effort": "high",
+  "functionId": "FF-N02",
+  "ignoredOptions": [
+    "maxTokens"
+  ],
+  "isolationProbeSha256": "97a2e2d0af1100c13c55e028c1a0c71f069093c3d08705af122aaeb302f1a641",
+  "key": "0c0509f6b8316839616966e5ef727ac02adaee374c06f1603ea44fe3313b4aeb-r0-1",
+  "model": "claude-opus-5-5",
+  "outcome": {
+    "kind": "valid"
+  },
+  "parsedVerdict": {
+    "confidence": 0.95,
+    "evidence": [
+      "src/infrastructure/in-memory-product-repository.ts: class InMemoryProductRepository implements ProductRepository and stores products in a private Map<string, Product>, which is a persistence-adapter responsibility of the infrastructure layer.",
+      "findByIds removes duplicate ids with new Set(ids) and leaves out missing products. This is data lookup, not a business rule.",
+      "findAll and save are plain storage operations, and the class contains no domain invariants or application orchestration."
+    ],
+    "pass": true,
+    "reasoning": "The file has one job: it is a persistence adapter. It implements the domain port ProductRepository with an in-memory Map, which is a normal infrastructure role. It only stores and looks up data (findByIds, findAll, save). Removing duplicate ids with new Set(ids) and skipping missing products are query mechanics, not business rules. Nothing in it carries pricing, validation, policy or other domain or application logic.",
+    "violations": []
+  },
+  "projectId": "claude-sonnet-5-5/order-fulfilment/full-aac/run-0",
+  "prompt": "## Rule\nThe unit's responsibilities match the role of its declared layer.\n\n## Rubric\nPass: Every responsibility in the file belongs to the role and kind of its declared layer, and agrees with any ADR prose given.\nFail: The file carries a responsibility that belongs to a different layer kind, for example persistence, transport or framework logic in a domain file, or business rules in an infrastructure or presentation file.\nEvidence required: Name the file and cite the function, method or statement that carries the misplaced responsibility, and the layer kind it belongs to.\nOut of scope: import direction and layer-dependency rules, which are checked symbolically.\n\n## Layer model\n- domain (kind: domain): src/domain/**\n- application (kind: application): src/application/**\n- infrastructure (kind: infrastructure): src/infrastructure/**\n\n## Unit\nKind: file\nId: src/infrastructure/in-memory-product-repository.ts\nLayer: infrastructure\nUnit files:\n- src/infrastructure/in-memory-product-repository.ts\n\n## Source\n=====SOURCE-BEGIN src/infrastructure/in-memory-product-repository.ts=====\nimport { Product } from \"../domain/product\";\nimport { ProductRepository } from \"../domain/product-repository\";\n\nexport class InMemoryProductRepository implements ProductRepository {\n  private readonly products = new Map<string, Product>();\n\n  constructor(catalogue: readonly Product[] = []) {\n    for (const product of catalogue) {\n      this.products.set(product.id, product);\n    }\n  }\n\n  async findByIds(ids: readonly string[]): Promise<Product[]> {\n    const found: Product[] = [];\n    for (const id of new Set(ids)) {\n      const product = this.products.get(id);\n      if (product) found.push(product);\n    }\n    return found;\n  }\n\n  async findAll(): Promise<Product[]> {\n    return [...this.products.values()];\n  }\n\n  async save(product: Product): Promise<void> {\n    this.products.set(product.id, product);\n  }\n}\n\n=====SOURCE-END=====\n\n## Graph excerpt\n{\"edges\":[{\"from\":\"InMemoryProductRepository@src/infrastructure/in-memory-product-repository.ts\",\"to\":\"ProductRepository@src/domain/product-repository.ts\",\"type\":\"IMPLEMENTS\"},{\"from\":\"src/infrastructure/create-app.ts\",\"to\":\"src/infrastructure/in-memory-product-repository.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/infrastructure/in-memory-product-repository.ts\",\"to\":\"src/domain/product-repository.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/infrastructure/in-memory-product-repository.ts\",\"to\":\"src/domain/product.ts\",\"type\":\"IMPORTS\"}],\"nodes\":[{\"kind\":\"Class\",\"layer\":\"infrastructure\",\"name\":\"InMemoryProductRepository\",\"path\":\"src/infrastructure/in-memory-product-repository.ts\"},{\"kind\":\"File\",\"layer\":\"domain\",\"path\":\"src/domain/product-repository.ts\"},{\"kind\":\"File\",\"layer\":\"domain\",\"path\":\"src/domain/product.ts\"},{\"kind\":\"File\",\"layer\":\"infrastructure\",\"path\":\"src/infrastructure/create-app.ts\"},{\"kind\":\"File\",\"layer\":\"infrastructure\",\"path\":\"src/infrastructure/in-memory-product-repository.ts\"},{\"kind\":\"Interface\",\"layer\":\"domain\",\"name\":\"ProductRepository\",\"path\":\"src/domain/product-repository.ts\"}]}\n\n## Instructions\nJudge the unit against the rule and rubric. Return the JSON object the schema requires. Set pass to false if any file of the unit fails the rubric.\n",
+  "provider": "claude-cli",
+  "recordedAt": "2026-10-10T23:05:01.310Z",
+  "repetition": 0,
+  "requestHash": "0c0509f6b8316839616966e5ef727ac02adaee374c06f1603ea44fe3313b4aeb",
+  "resolvedModel": "claude-opus-5-5",
+  "response": "{\"is_error\":false,\"modelUsage\":{\"claude-opus-5-5\":{\"inputTokens\":2,\"outputTokens\":437}},\"result\":\"{\\\"pass\\\":true,\\\"confidence\\\":0.95,\\\"reasoning\\\":\\\"The file has one job: it is a persistence adapter. It implements the domain port ProductRepository with an in-memory Map, which is a normal infrastructure role. It only stores and looks up data (findByIds, findAll, save). Removing duplicate ids with new Set(ids) and skipping missing products are query mechanics, not business rules. Nothing in it carries pricing, validation, policy or other domain or application logic.\\\",\\\"evidence\\\":[\\\"src/infrastructure/in-memory-product-repository.ts: class InMemoryProductRepository implements ProductRepository and stores products in a private Map<string, Product>, which is a persistence-adapter responsibility of the infrastructure layer.\\\",\\\"findByIds removes duplicate ids with new Set(ids) and leaves out missing products. This is data lookup, not a business rule.\\\",\\\"findAll and save are plain storage operations, and the class contains no domain invariants or application orchestration.\\\"],\\\"violations\\\":[]}\",\"structured_output\":{\"confidence\":0.95,\"evidence\":[\"src/infrastructure/in-memory-product-repository.ts: class InMemoryProductRepository implements ProductRepository and stores products in a private Map<string, Product>, which is a persistence-adapter responsibility of the infrastructure layer.\",\"findByIds removes duplicate ids with new Set(ids) and leaves out missing products. This is data lookup, not a business rule.\",\"findAll and save are plain storage operations, and the class contains no domain invariants or application orchestration.\"],\"pass\":true,\"reasoning\":\"The file has one job: it is a persistence adapter. It implements the domain port ProductRepository with an in-memory Map, which is a normal infrastructure role. It only stores and looks up data (findByIds, findAll, save). Removing duplicate ids with new Set(ids) and skipping missing products are query mechanics, not business rules. Nothing in it carries pricing, validation, policy or other domain or application logic.\",\"violations\":[]}}",
+  "runIndex": 1,
+  "schemaVersion": 2,
+  "unitId": "src/infrastructure/in-memory-product-repository.ts",
+  "usage": {
+    "inputTokens": 2708,
+    "outputTokens": 437
+  },
+  "usedOptions": {
+    "effort": "high",
+    "model": "claude-opus-5-5"
+  }
+}

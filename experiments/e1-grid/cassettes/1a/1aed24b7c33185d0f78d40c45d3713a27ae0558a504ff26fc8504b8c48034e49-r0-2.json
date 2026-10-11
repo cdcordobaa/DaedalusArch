@@ -1,0 +1,48 @@
+{
+  "attempts": 1,
+  "cliVersion": "2.1.294",
+  "configListingSha256": "47aa04258852fab9a706f3f0c14cee22306d69fbb6fdfbde8c11854bd54997bc",
+  "durationMs": 6250,
+  "effort": "high",
+  "functionId": "FF-N02",
+  "ignoredOptions": [
+    "maxTokens"
+  ],
+  "isolationProbeSha256": "97a2e2d0af1100c13c55e028c1a0c71f069093c3d08705af122aaeb302f1a641",
+  "key": "1aed24b7c33185d0f78d40c45d3713a27ae0558a504ff26fc8504b8c48034e49-r0-2",
+  "model": "claude-opus-5-5",
+  "outcome": {
+    "kind": "valid"
+  },
+  "parsedVerdict": {
+    "confidence": 0.88,
+    "evidence": [
+      "src/infrastructure/http/request-fields.ts: requiredString and optionalString only check typeof value === 'string' on fields of the request body, which is transport-level input parsing",
+      "src/infrastructure/http/request-fields.ts: queryString narrows a query parameter to a string, which is HTTP adapter work",
+      "src/infrastructure/http/request-fields.ts: no business rules, no domain invariants and no persistence logic are present",
+      "The file is used only by the HTTP controllers (project-controller, task-controller, user-controller), which fits its role as a transport helper"
+    ],
+    "pass": true,
+    "reasoning": "This file pulls fields out of HTTP request bodies and query strings. It checks whether a value exists and is a string, which is input-shape checking at the transport boundary. That is a normal job for an infrastructure/HTTP adapter. The file has no business rules, no domain invariants and no persistence logic. Throwing ApplicationError('validation') turns a bad request shape into an application-level error, and doing that is part of the adapter's job. Whether infrastructure may import from the application layer is an import-direction question, so it is out of scope here.",
+    "violations": []
+  },
+  "projectId": "claude-sonnet-5-5/task-management/full-aac/run-2",
+  "prompt": "## Rule\nThe unit's responsibilities match the role of its declared layer.\n\n## Rubric\nPass: Every responsibility in the file belongs to the role and kind of its declared layer, and agrees with any ADR prose given.\nFail: The file carries a responsibility that belongs to a different layer kind, for example persistence, transport or framework logic in a domain file, or business rules in an infrastructure or presentation file.\nEvidence required: Name the file and cite the function, method or statement that carries the misplaced responsibility, and the layer kind it belongs to.\nOut of scope: import direction and layer-dependency rules, which are checked symbolically.\n\n## Layer model\n- domain (kind: domain): src/domain/**\n- application (kind: application): src/application/**\n- infrastructure (kind: infrastructure): src/infrastructure/**\n\n## Unit\nKind: file\nId: src/infrastructure/http/request-fields.ts\nLayer: infrastructure\nUnit files:\n- src/infrastructure/http/request-fields.ts\n\n## Source\n=====SOURCE-BEGIN src/infrastructure/http/request-fields.ts=====\nimport { ApplicationError } from \"../../application/errors\";\n\nfunction asRecord(body: unknown): Record<string, unknown> {\n  return typeof body === \"object\" && body !== null\n    ? (body as Record<string, unknown>)\n    : {};\n}\n\nexport function requiredString(body: unknown, key: string): string {\n  const value = asRecord(body)[key];\n  if (typeof value !== \"string\") {\n    throw new ApplicationError(\"validation\", `${key} is required and must be a string`);\n  }\n  return value;\n}\n\nexport function optionalString(body: unknown, key: string): string | undefined {\n  const value = asRecord(body)[key];\n  if (value === undefined || value === null) {\n    return undefined;\n  }\n  if (typeof value !== \"string\") {\n    throw new ApplicationError(\"validation\", `${key} must be a string`);\n  }\n  return value;\n}\n\nexport function queryString(value: unknown): string | undefined {\n  return typeof value === \"string\" ? value : undefined;\n}\n\n=====SOURCE-END=====\n\n## Graph excerpt\n{\"edges\":[{\"from\":\"src/infrastructure/http/project-controller.ts\",\"to\":\"src/infrastructure/http/request-fields.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/infrastructure/http/request-fields.ts\",\"to\":\"src/application/errors.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/infrastructure/http/task-controller.ts\",\"to\":\"src/infrastructure/http/request-fields.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/infrastructure/http/user-controller.ts\",\"to\":\"src/infrastructure/http/request-fields.ts\",\"type\":\"IMPORTS\"}],\"nodes\":[{\"kind\":\"File\",\"layer\":\"application\",\"path\":\"src/application/errors.ts\"},{\"kind\":\"File\",\"layer\":\"infrastructure\",\"path\":\"src/infrastructure/http/project-controller.ts\"},{\"kind\":\"File\",\"layer\":\"infrastructure\",\"path\":\"src/infrastructure/http/request-fields.ts\"},{\"kind\":\"File\",\"layer\":\"infrastructure\",\"path\":\"src/infrastructure/http/task-controller.ts\"},{\"kind\":\"File\",\"layer\":\"infrastructure\",\"path\":\"src/infrastructure/http/user-controller.ts\"}]}\n\n## Instructions\nJudge the unit against the rule and rubric. Return the JSON object the schema requires. Set pass to false if any file of the unit fails the rubric.\n",
+  "provider": "claude-cli",
+  "recordedAt": "2026-10-10T23:01:32.213Z",
+  "repetition": 0,
+  "requestHash": "1aed24b7c33185d0f78d40c45d3713a27ae0558a504ff26fc8504b8c48034e49",
+  "resolvedModel": "claude-opus-5-5",
+  "response": "{\"is_error\":false,\"modelUsage\":{\"claude-opus-5-5\":{\"inputTokens\":2,\"outputTokens\":503}},\"result\":\"{\\\"pass\\\":true,\\\"confidence\\\":0.88,\\\"reasoning\\\":\\\"This file pulls fields out of HTTP request bodies and query strings. It checks whether a value exists and is a string, which is input-shape checking at the transport boundary. That is a normal job for an infrastructure/HTTP adapter. The file has no business rules, no domain invariants and no persistence logic. Throwing ApplicationError('validation') turns a bad request shape into an application-level error, and doing that is part of the adapter's job. Whether infrastructure may import from the application layer is an import-direction question, so it is out of scope here.\\\",\\\"evidence\\\":[\\\"src/infrastructure/http/request-fields.ts: requiredString and optionalString only check typeof value === 'string' on fields of the request body, which is transport-level input parsing\\\",\\\"src/infrastructure/http/request-fields.ts: queryString narrows a query parameter to a string, which is HTTP adapter work\\\",\\\"src/infrastructure/http/request-fields.ts: no business rules, no domain invariants and no persistence logic are present\\\",\\\"The file is used only by the HTTP controllers (project-controller, task-controller, user-controller), which fits its role as a transport helper\\\"],\\\"violations\\\":[]}\",\"structured_output\":{\"confidence\":0.88,\"evidence\":[\"src/infrastructure/http/request-fields.ts: requiredString and optionalString only check typeof value === 'string' on fields of the request body, which is transport-level input parsing\",\"src/infrastructure/http/request-fields.ts: queryString narrows a query parameter to a string, which is HTTP adapter work\",\"src/infrastructure/http/request-fields.ts: no business rules, no domain invariants and no persistence logic are present\",\"The file is used only by the HTTP controllers (project-controller, task-controller, user-controller), which fits its role as a transport helper\"],\"pass\":true,\"reasoning\":\"This file pulls fields out of HTTP request bodies and query strings. It checks whether a value exists and is a string, which is input-shape checking at the transport boundary. That is a normal job for an infrastructure/HTTP adapter. The file has no business rules, no domain invariants and no persistence logic. Throwing ApplicationError('validation') turns a bad request shape into an application-level error, and doing that is part of the adapter's job. Whether infrastructure may import from the application layer is an import-direction question, so it is out of scope here.\",\"violations\":[]}}",
+  "runIndex": 2,
+  "schemaVersion": 2,
+  "unitId": "src/infrastructure/http/request-fields.ts",
+  "usage": {
+    "inputTokens": 2655,
+    "outputTokens": 503
+  },
+  "usedOptions": {
+    "effort": "high",
+    "model": "claude-opus-5-5"
+  }
+}

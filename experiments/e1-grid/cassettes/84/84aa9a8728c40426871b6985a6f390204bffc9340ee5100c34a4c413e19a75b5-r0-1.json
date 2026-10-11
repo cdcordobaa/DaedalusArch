@@ -1,0 +1,49 @@
+{
+  "attempts": 1,
+  "cliVersion": "2.1.294",
+  "configListingSha256": "47aa04258852fab9a706f3f0c14cee22306d69fbb6fdfbde8c11854bd54997bc",
+  "durationMs": 6766,
+  "effort": "high",
+  "functionId": "FF-N02",
+  "ignoredOptions": [
+    "maxTokens"
+  ],
+  "isolationProbeSha256": "97a2e2d0af1100c13c55e028c1a0c71f069093c3d08705af122aaeb302f1a641",
+  "key": "84aa9a8728c40426871b6985a6f390204bffc9340ee5100c34a4c413e19a75b5-r0-1",
+  "model": "claude-opus-5-5",
+  "outcome": {
+    "kind": "valid"
+  },
+  "parsedVerdict": {
+    "confidence": 0.93,
+    "evidence": [
+      "PlaceOrderCommand is an input command contract for the place-order use case, which is an application-layer job.",
+      "OrderDto and StockLevelDto are plain output data shapes with no framework annotations or transport concerns.",
+      "toOrderDto(order) only copies id, customerId, status and lines into a DTO, with no business decisions.",
+      "toStockLevelDto(product) copies id, name, available and reserved one-to-one, with no derived calculations such as available minus reserved.",
+      "The file contains no database access, repository code, HTTP handling or framework code."
+    ],
+    "pass": true,
+    "reasoning": "src/application/dto.ts only defines application-layer data contracts and plain mappers. PlaceOrderCommand is an input command, and OrderDto and StockLevelDto are output DTOs. The two mapping functions, toOrderDto and toStockLevelDto, turn domain objects into these DTOs. Defining use-case input and output shapes and mapping domain entities to them is normal work for the application layer. The file has no persistence, no transport or framework code (no HTTP, serialization framework or ORM), and no business rules. The mappers copy fields one-to-one with no calculations or decisions. Nothing here belongs to a different layer.",
+    "violations": []
+  },
+  "projectId": "claude-sonnet-5-5/order-fulfilment/minimal-prose/run-0",
+  "prompt": "## Rule\nThe unit's responsibilities match the role of its declared layer.\n\n## Rubric\nPass: Every responsibility in the file belongs to the role and kind of its declared layer, and agrees with any ADR prose given.\nFail: The file carries a responsibility that belongs to a different layer kind, for example persistence, transport or framework logic in a domain file, or business rules in an infrastructure or presentation file.\nEvidence required: Name the file and cite the function, method or statement that carries the misplaced responsibility, and the layer kind it belongs to.\nOut of scope: import direction and layer-dependency rules, which are checked symbolically.\n\n## Layer model\n- domain (kind: domain): src/domain/**\n- application (kind: application): src/application/**\n- infrastructure (kind: infrastructure): src/infrastructure/**\n\n## Unit\nKind: file\nId: src/application/dto.ts\nLayer: application\nUnit files:\n- src/application/dto.ts\n\n## Source\n=====SOURCE-BEGIN src/application/dto.ts=====\nimport { Order } from \"../domain/Order\";\nimport { OrderStatus } from \"../domain/OrderState\";\nimport { Product } from \"../domain/Product\";\n\nexport interface PlaceOrderCommand {\n  customerId: string;\n  lines: { productId: string; quantity: number }[];\n}\n\nexport interface OrderDto {\n  id: string;\n  customerId: string;\n  status: OrderStatus;\n  lines: { productId: string; quantity: number }[];\n}\n\nexport interface StockLevelDto {\n  productId: string;\n  name: string;\n  available: number;\n  reserved: number;\n}\n\nexport function toOrderDto(order: Order): OrderDto {\n  return {\n    id: order.id,\n    customerId: order.customerId,\n    status: order.status,\n    lines: order.lines.map((l) => ({ productId: l.productId, quantity: l.quantity })),\n  };\n}\n\nexport function toStockLevelDto(product: Product): StockLevelDto {\n  return {\n    productId: product.id,\n    name: product.name,\n    available: product.available,\n    reserved: product.reserved,\n  };\n}\n\n=====SOURCE-END=====\n\n## Graph excerpt\n{\"edges\":[{\"from\":\"src/application/AdvanceOrderUseCase.ts\",\"to\":\"src/application/dto.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/application/CancelOrderUseCase.ts\",\"to\":\"src/application/dto.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/application/GetStockLevelsUseCase.ts\",\"to\":\"src/application/dto.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/application/ListOrdersByStatusUseCase.ts\",\"to\":\"src/application/dto.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/application/PlaceOrderUseCase.ts\",\"to\":\"src/application/dto.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/application/dto.ts\",\"to\":\"src/domain/Order.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/application/dto.ts\",\"to\":\"src/domain/OrderState.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/application/dto.ts\",\"to\":\"src/domain/Product.ts\",\"type\":\"IMPORTS\"}],\"nodes\":[{\"kind\":\"File\",\"layer\":\"application\",\"path\":\"src/application/AdvanceOrderUseCase.ts\"},{\"kind\":\"File\",\"layer\":\"application\",\"path\":\"src/application/CancelOrderUseCase.ts\"},{\"kind\":\"File\",\"layer\":\"application\",\"path\":\"src/application/GetStockLevelsUseCase.ts\"},{\"kind\":\"File\",\"layer\":\"application\",\"path\":\"src/application/ListOrdersByStatusUseCase.ts\"},{\"kind\":\"File\",\"layer\":\"application\",\"path\":\"src/application/PlaceOrderUseCase.ts\"},{\"kind\":\"File\",\"layer\":\"application\",\"path\":\"src/application/dto.ts\"},{\"kind\":\"File\",\"layer\":\"domain\",\"path\":\"src/domain/Order.ts\"},{\"kind\":\"File\",\"layer\":\"domain\",\"path\":\"src/domain/OrderState.ts\"},{\"kind\":\"File\",\"layer\":\"domain\",\"path\":\"src/domain/Product.ts\"},{\"kind\":\"Interface\",\"layer\":\"application\",\"name\":\"OrderDto\",\"path\":\"src/application/dto.ts\"},{\"kind\":\"Interface\",\"layer\":\"application\",\"name\":\"PlaceOrderCommand\",\"path\":\"src/application/dto.ts\"},{\"kind\":\"Interface\",\"layer\":\"application\",\"name\":\"StockLevelDto\",\"path\":\"src/application/dto.ts\"}]}\n\n## Instructions\nJudge the unit against the rule and rubric. Return the JSON object the schema requires. Set pass to false if any file of the unit fails the rubric.\n",
+  "provider": "claude-cli",
+  "recordedAt": "2026-10-10T22:45:00.534Z",
+  "repetition": 0,
+  "requestHash": "84aa9a8728c40426871b6985a6f390204bffc9340ee5100c34a4c413e19a75b5",
+  "resolvedModel": "claude-opus-5-5",
+  "response": "{\"is_error\":false,\"modelUsage\":{\"claude-opus-5-5\":{\"inputTokens\":2,\"outputTokens\":532}},\"result\":\"{\\\"pass\\\":true,\\\"confidence\\\":0.93,\\\"reasoning\\\":\\\"src/application/dto.ts only defines application-layer data contracts and plain mappers. PlaceOrderCommand is an input command, and OrderDto and StockLevelDto are output DTOs. The two mapping functions, toOrderDto and toStockLevelDto, turn domain objects into these DTOs. Defining use-case input and output shapes and mapping domain entities to them is normal work for the application layer. The file has no persistence, no transport or framework code (no HTTP, serialization framework or ORM), and no business rules. The mappers copy fields one-to-one with no calculations or decisions. Nothing here belongs to a different layer.\\\",\\\"evidence\\\":[\\\"PlaceOrderCommand is an input command contract for the place-order use case, which is an application-layer job.\\\",\\\"OrderDto and StockLevelDto are plain output data shapes with no framework annotations or transport concerns.\\\",\\\"toOrderDto(order) only copies id, customerId, status and lines into a DTO, with no business decisions.\\\",\\\"toStockLevelDto(product) copies id, name, available and reserved one-to-one, with no derived calculations such as available minus reserved.\\\",\\\"The file contains no database access, repository code, HTTP handling or framework code.\\\"],\\\"violations\\\":[]}\",\"structured_output\":{\"confidence\":0.93,\"evidence\":[\"PlaceOrderCommand is an input command contract for the place-order use case, which is an application-layer job.\",\"OrderDto and StockLevelDto are plain output data shapes with no framework annotations or transport concerns.\",\"toOrderDto(order) only copies id, customerId, status and lines into a DTO, with no business decisions.\",\"toStockLevelDto(product) copies id, name, available and reserved one-to-one, with no derived calculations such as available minus reserved.\",\"The file contains no database access, repository code, HTTP handling or framework code.\"],\"pass\":true,\"reasoning\":\"src/application/dto.ts only defines application-layer data contracts and plain mappers. PlaceOrderCommand is an input command, and OrderDto and StockLevelDto are output DTOs. The two mapping functions, toOrderDto and toStockLevelDto, turn domain objects into these DTOs. Defining use-case input and output shapes and mapping domain entities to them is normal work for the application layer. The file has no persistence, no transport or framework code (no HTTP, serialization framework or ORM), and no business rules. The mappers copy fields one-to-one with no calculations or decisions. Nothing here belongs to a different layer.\",\"violations\":[]}}",
+  "runIndex": 1,
+  "schemaVersion": 2,
+  "unitId": "src/application/dto.ts",
+  "usage": {
+    "inputTokens": 3060,
+    "outputTokens": 532
+  },
+  "usedOptions": {
+    "effort": "high",
+    "model": "claude-opus-5-5"
+  }
+}

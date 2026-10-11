@@ -1,0 +1,48 @@
+{
+  "attempts": 1,
+  "cliVersion": "2.1.294",
+  "configListingSha256": "47aa04258852fab9a706f3f0c14cee22306d69fbb6fdfbde8c11854bd54997bc",
+  "durationMs": 6343,
+  "effort": "high",
+  "functionId": "FF-N02",
+  "ignoredOptions": [
+    "maxTokens"
+  ],
+  "isolationProbeSha256": "97a2e2d0af1100c13c55e028c1a0c71f069093c3d08705af122aaeb302f1a641",
+  "key": "91d639d791ce7313e333cb80cead109c08b9c98c24d0f92067814763d865a558-r0-0",
+  "model": "claude-opus-5-5",
+  "outcome": {
+    "kind": "valid"
+  },
+  "parsedVerdict": {
+    "confidence": 0.93,
+    "evidence": [
+      "CreateProjectUseCase.execute coordinates the steps: it gets an ID from this.projects.nextId(), calls Project.create(...), calls this.projects.save(project), and returns toProjectDto(project). This is application-layer coordination.",
+      "The business rules are handed to the domain factory Project.create, so the use case does not apply them itself.",
+      "Saving goes through the ProjectRepository port, an interface declared in the domain. The file holds no storage code of its own.",
+      "translateDomainErrors and toProjectDto are application-layer helpers for mapping errors and DTOs. Neither involves HTTP or a framework."
+    ],
+    "pass": true,
+    "reasoning": "This file is a typical application-layer use case. It coordinates the steps and leaves the real work to other layers. The domain factory (Project.create) creates the aggregate and applies the business rules. The repository port, an interface declared in the domain, handles the ID and saving. Application helpers convert domain errors and map the result to a DTO. The file has no persistence code, no transport or HTTP handling, no framework code, and no business rules of its own. Each responsibility fits the application layer.",
+    "violations": []
+  },
+  "projectId": "claude-sonnet-5-5/task-management/full-aac/run-2",
+  "prompt": "## Rule\nThe unit's responsibilities match the role of its declared layer.\n\n## Rubric\nPass: Every responsibility in the file belongs to the role and kind of its declared layer, and agrees with any ADR prose given.\nFail: The file carries a responsibility that belongs to a different layer kind, for example persistence, transport or framework logic in a domain file, or business rules in an infrastructure or presentation file.\nEvidence required: Name the file and cite the function, method or statement that carries the misplaced responsibility, and the layer kind it belongs to.\nOut of scope: import direction and layer-dependency rules, which are checked symbolically.\n\n## Layer model\n- domain (kind: domain): src/domain/**\n- application (kind: application): src/application/**\n- infrastructure (kind: infrastructure): src/infrastructure/**\n\n## Unit\nKind: file\nId: src/application/use-cases/create-project-use-case.ts\nLayer: application\nUnit files:\n- src/application/use-cases/create-project-use-case.ts\n\n## Source\n=====SOURCE-BEGIN src/application/use-cases/create-project-use-case.ts=====\nimport { Project } from \"../../domain/project\";\nimport type { ProjectRepository } from \"../../domain/project-repository\";\nimport { toProjectDto } from \"../dto/project-dto\";\nimport type { CreateProjectInput, ProjectDto } from \"../dto/project-dto\";\nimport { translateDomainErrors } from \"../errors\";\n\nexport class CreateProjectUseCase {\n  constructor(private readonly projects: ProjectRepository) {}\n\n  execute(input: CreateProjectInput): ProjectDto {\n    const project = translateDomainErrors(() =>\n      Project.create(this.projects.nextId(), input.name),\n    );\n    this.projects.save(project);\n    return toProjectDto(project);\n  }\n}\n\n=====SOURCE-END=====\n\n## Graph excerpt\n{\"edges\":[{\"from\":\"CreateProjectUseCase@src/application/use-cases/create-project-use-case.ts\",\"to\":\"ProjectRepository@src/domain/project-repository.ts\",\"type\":\"CONSTRUCTOR_INJECTS\"},{\"from\":\"ProjectController@src/infrastructure/http/project-controller.ts\",\"to\":\"CreateProjectUseCase@src/application/use-cases/create-project-use-case.ts\",\"type\":\"CONSTRUCTOR_INJECTS\"},{\"from\":\"src/application/use-cases/create-project-use-case.ts\",\"to\":\"src/application/dto/project-dto.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/application/use-cases/create-project-use-case.ts\",\"to\":\"src/application/errors.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/application/use-cases/create-project-use-case.ts\",\"to\":\"src/domain/project-repository.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/application/use-cases/create-project-use-case.ts\",\"to\":\"src/domain/project.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/infrastructure/app.ts\",\"to\":\"src/application/use-cases/create-project-use-case.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/infrastructure/http/project-controller.ts\",\"to\":\"src/application/use-cases/create-project-use-case.ts\",\"type\":\"IMPORTS\"}],\"nodes\":[{\"kind\":\"Class\",\"layer\":\"application\",\"name\":\"CreateProjectUseCase\",\"path\":\"src/application/use-cases/create-project-use-case.ts\"},{\"kind\":\"Class\",\"layer\":\"infrastructure\",\"name\":\"ProjectController\",\"path\":\"src/infrastructure/http/project-controller.ts\"},{\"kind\":\"File\",\"layer\":\"application\",\"path\":\"src/application/dto/project-dto.ts\"},{\"kind\":\"File\",\"layer\":\"application\",\"path\":\"src/application/errors.ts\"},{\"kind\":\"File\",\"layer\":\"application\",\"path\":\"src/application/use-cases/create-project-use-case.ts\"},{\"kind\":\"File\",\"layer\":\"domain\",\"path\":\"src/domain/project-repository.ts\"},{\"kind\":\"File\",\"layer\":\"domain\",\"path\":\"src/domain/project.ts\"},{\"kind\":\"File\",\"layer\":\"infrastructure\",\"path\":\"src/infrastructure/app.ts\"},{\"kind\":\"File\",\"layer\":\"infrastructure\",\"path\":\"src/infrastructure/http/project-controller.ts\"},{\"kind\":\"Interface\",\"layer\":\"domain\",\"name\":\"ProjectRepository\",\"path\":\"src/domain/project-repository.ts\"}]}\n\n## Instructions\nJudge the unit against the rule and rubric. Return the JSON object the schema requires. Set pass to false if any file of the unit fails the rubric.\n",
+  "provider": "claude-cli",
+  "recordedAt": "2026-10-10T23:00:19.626Z",
+  "repetition": 0,
+  "requestHash": "91d639d791ce7313e333cb80cead109c08b9c98c24d0f92067814763d865a558",
+  "resolvedModel": "claude-opus-5-5",
+  "response": "{\"is_error\":false,\"modelUsage\":{\"claude-opus-5-5\":{\"inputTokens\":2,\"outputTokens\":501}},\"result\":\"{\\\"pass\\\":true,\\\"confidence\\\":0.93,\\\"reasoning\\\":\\\"This file is a typical application-layer use case. It coordinates the steps and leaves the real work to other layers. The domain factory (Project.create) creates the aggregate and applies the business rules. The repository port, an interface declared in the domain, handles the ID and saving. Application helpers convert domain errors and map the result to a DTO. The file has no persistence code, no transport or HTTP handling, no framework code, and no business rules of its own. Each responsibility fits the application layer.\\\",\\\"evidence\\\":[\\\"CreateProjectUseCase.execute coordinates the steps: it gets an ID from this.projects.nextId(), calls Project.create(...), calls this.projects.save(project), and returns toProjectDto(project). This is application-layer coordination.\\\",\\\"The business rules are handed to the domain factory Project.create, so the use case does not apply them itself.\\\",\\\"Saving goes through the ProjectRepository port, an interface declared in the domain. The file holds no storage code of its own.\\\",\\\"translateDomainErrors and toProjectDto are application-layer helpers for mapping errors and DTOs. Neither involves HTTP or a framework.\\\"],\\\"violations\\\":[]}\",\"structured_output\":{\"confidence\":0.93,\"evidence\":[\"CreateProjectUseCase.execute coordinates the steps: it gets an ID from this.projects.nextId(), calls Project.create(...), calls this.projects.save(project), and returns toProjectDto(project). This is application-layer coordination.\",\"The business rules are handed to the domain factory Project.create, so the use case does not apply them itself.\",\"Saving goes through the ProjectRepository port, an interface declared in the domain. The file holds no storage code of its own.\",\"translateDomainErrors and toProjectDto are application-layer helpers for mapping errors and DTOs. Neither involves HTTP or a framework.\"],\"pass\":true,\"reasoning\":\"This file is a typical application-layer use case. It coordinates the steps and leaves the real work to other layers. The domain factory (Project.create) creates the aggregate and applies the business rules. The repository port, an interface declared in the domain, handles the ID and saving. Application helpers convert domain errors and map the result to a DTO. The file has no persistence code, no transport or HTTP handling, no framework code, and no business rules of its own. Each responsibility fits the application layer.\",\"violations\":[]}}",
+  "runIndex": 0,
+  "schemaVersion": 2,
+  "unitId": "src/application/use-cases/create-project-use-case.ts",
+  "usage": {
+    "inputTokens": 3034,
+    "outputTokens": 501
+  },
+  "usedOptions": {
+    "effort": "high",
+    "model": "claude-opus-5-5"
+  }
+}

@@ -1,0 +1,48 @@
+{
+  "attempts": 1,
+  "cliVersion": "2.1.294",
+  "configListingSha256": "47aa04258852fab9a706f3f0c14cee22306d69fbb6fdfbde8c11854bd54997bc",
+  "durationMs": 7177,
+  "effort": "high",
+  "functionId": "FF-N02",
+  "ignoredOptions": [
+    "maxTokens"
+  ],
+  "isolationProbeSha256": "97a2e2d0af1100c13c55e028c1a0c71f069093c3d08705af122aaeb302f1a641",
+  "key": "11c59b74a3712c151d44f9022b137841548a3540be03bbe20a3f0aa578740a88-r0-2",
+  "model": "claude-opus-5-5",
+  "outcome": {
+    "kind": "valid"
+  },
+  "parsedVerdict": {
+    "confidence": 0.95,
+    "evidence": [
+      "InMemoryProjectRepository implements ProjectRepository (domain port), the expected job for an infrastructure adapter.",
+      "save(project) only calls this.projects.set(project.id, project), which is pure storage with no business logic.",
+      "findById(id) only calls this.projects.get(id), which is pure retrieval.",
+      "nextId() returns randomUUID() from node:crypto, a technical way to generate IDs that belongs in infrastructure."
+    ],
+    "pass": true,
+    "reasoning": "The file is an infrastructure persistence adapter. It implements the domain ProjectRepository port. Its only jobs are storing Projects in a Map (save, findById) and creating IDs with node:crypto randomUUID (nextId). All of these are persistence and technical concerns, which is the role of the infrastructure layer. The file contains no business rules, validation, or orchestration of use cases.",
+    "violations": []
+  },
+  "projectId": "claude-sonnet-5-5/task-management/full-aac/run-2",
+  "prompt": "## Rule\nThe unit's responsibilities match the role of its declared layer.\n\n## Rubric\nPass: Every responsibility in the file belongs to the role and kind of its declared layer, and agrees with any ADR prose given.\nFail: The file carries a responsibility that belongs to a different layer kind, for example persistence, transport or framework logic in a domain file, or business rules in an infrastructure or presentation file.\nEvidence required: Name the file and cite the function, method or statement that carries the misplaced responsibility, and the layer kind it belongs to.\nOut of scope: import direction and layer-dependency rules, which are checked symbolically.\n\n## Layer model\n- domain (kind: domain): src/domain/**\n- application (kind: application): src/application/**\n- infrastructure (kind: infrastructure): src/infrastructure/**\n\n## Unit\nKind: file\nId: src/infrastructure/persistence/in-memory-project-repository.ts\nLayer: infrastructure\nUnit files:\n- src/infrastructure/persistence/in-memory-project-repository.ts\n\n## Source\n=====SOURCE-BEGIN src/infrastructure/persistence/in-memory-project-repository.ts=====\nimport { randomUUID } from \"node:crypto\";\nimport type { Project } from \"../../domain/project\";\nimport type { ProjectRepository } from \"../../domain/project-repository\";\n\nexport class InMemoryProjectRepository implements ProjectRepository {\n  private readonly projects = new Map<string, Project>();\n\n  nextId(): string {\n    return randomUUID();\n  }\n\n  save(project: Project): void {\n    this.projects.set(project.id, project);\n  }\n\n  findById(id: string): Project | undefined {\n    return this.projects.get(id);\n  }\n}\n\n=====SOURCE-END=====\n\n## Graph excerpt\n{\"edges\":[{\"from\":\"InMemoryProjectRepository@src/infrastructure/persistence/in-memory-project-repository.ts\",\"to\":\"ProjectRepository@src/domain/project-repository.ts\",\"type\":\"IMPLEMENTS\"},{\"from\":\"src/infrastructure/app.ts\",\"to\":\"src/infrastructure/persistence/in-memory-project-repository.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/infrastructure/persistence/in-memory-project-repository.ts\",\"to\":\"crypto\",\"type\":\"IMPORTS\"},{\"from\":\"src/infrastructure/persistence/in-memory-project-repository.ts\",\"to\":\"src/domain/project-repository.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/infrastructure/persistence/in-memory-project-repository.ts\",\"to\":\"src/domain/project.ts\",\"type\":\"IMPORTS\"}],\"nodes\":[{\"kind\":\"Class\",\"layer\":\"infrastructure\",\"name\":\"InMemoryProjectRepository\",\"path\":\"src/infrastructure/persistence/in-memory-project-repository.ts\"},{\"kind\":\"File\",\"layer\":\"domain\",\"path\":\"src/domain/project-repository.ts\"},{\"kind\":\"File\",\"layer\":\"domain\",\"path\":\"src/domain/project.ts\"},{\"kind\":\"File\",\"layer\":\"infrastructure\",\"path\":\"src/infrastructure/app.ts\"},{\"kind\":\"File\",\"layer\":\"infrastructure\",\"path\":\"src/infrastructure/persistence/in-memory-project-repository.ts\"},{\"kind\":\"Interface\",\"layer\":\"domain\",\"name\":\"ProjectRepository\",\"path\":\"src/domain/project-repository.ts\"},{\"kind\":\"Package\",\"layer\":null,\"path\":\"crypto\"}]}\n\n## Instructions\nJudge the unit against the rule and rubric. Return the JSON object the schema requires. Set pass to false if any file of the unit fails the rubric.\n",
+  "provider": "claude-cli",
+  "recordedAt": "2026-10-10T23:01:53.452Z",
+  "repetition": 0,
+  "requestHash": "11c59b74a3712c151d44f9022b137841548a3540be03bbe20a3f0aa578740a88",
+  "resolvedModel": "claude-opus-5-5",
+  "response": "{\"is_error\":false,\"modelUsage\":{\"claude-opus-5-5\":{\"inputTokens\":2,\"outputTokens\":416}},\"result\":\"{\\\"pass\\\":true,\\\"confidence\\\":0.95,\\\"reasoning\\\":\\\"The file is an infrastructure persistence adapter. It implements the domain ProjectRepository port. Its only jobs are storing Projects in a Map (save, findById) and creating IDs with node:crypto randomUUID (nextId). All of these are persistence and technical concerns, which is the role of the infrastructure layer. The file contains no business rules, validation, or orchestration of use cases.\\\",\\\"evidence\\\":[\\\"InMemoryProjectRepository implements ProjectRepository (domain port), the expected job for an infrastructure adapter.\\\",\\\"save(project) only calls this.projects.set(project.id, project), which is pure storage with no business logic.\\\",\\\"findById(id) only calls this.projects.get(id), which is pure retrieval.\\\",\\\"nextId() returns randomUUID() from node:crypto, a technical way to generate IDs that belongs in infrastructure.\\\"],\\\"violations\\\":[]}\",\"structured_output\":{\"confidence\":0.95,\"evidence\":[\"InMemoryProjectRepository implements ProjectRepository (domain port), the expected job for an infrastructure adapter.\",\"save(project) only calls this.projects.set(project.id, project), which is pure storage with no business logic.\",\"findById(id) only calls this.projects.get(id), which is pure retrieval.\",\"nextId() returns randomUUID() from node:crypto, a technical way to generate IDs that belongs in infrastructure.\"],\"pass\":true,\"reasoning\":\"The file is an infrastructure persistence adapter. It implements the domain ProjectRepository port. Its only jobs are storing Projects in a Map (save, findById) and creating IDs with node:crypto randomUUID (nextId). All of these are persistence and technical concerns, which is the role of the infrastructure layer. The file contains no business rules, validation, or orchestration of use cases.\",\"violations\":[]}}",
+  "runIndex": 2,
+  "schemaVersion": 2,
+  "unitId": "src/infrastructure/persistence/in-memory-project-repository.ts",
+  "usage": {
+    "inputTokens": 2707,
+    "outputTokens": 416
+  },
+  "usedOptions": {
+    "effort": "high",
+    "model": "claude-opus-5-5"
+  }
+}

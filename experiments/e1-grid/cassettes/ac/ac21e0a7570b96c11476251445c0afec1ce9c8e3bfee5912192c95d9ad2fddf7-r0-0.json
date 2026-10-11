@@ -1,0 +1,48 @@
+{
+  "attempts": 1,
+  "cliVersion": "2.1.294",
+  "configListingSha256": "47aa04258852fab9a706f3f0c14cee22306d69fbb6fdfbde8c11854bd54997bc",
+  "durationMs": 5286,
+  "effort": "high",
+  "functionId": "FF-N02",
+  "ignoredOptions": [
+    "maxTokens"
+  ],
+  "isolationProbeSha256": "97a2e2d0af1100c13c55e028c1a0c71f069093c3d08705af122aaeb302f1a641",
+  "key": "ac21e0a7570b96c11476251445c0afec1ce9c8e3bfee5912192c95d9ad2fddf7-r0-0",
+  "model": "claude-opus-5-5",
+  "outcome": {
+    "kind": "valid"
+  },
+  "parsedVerdict": {
+    "confidence": 0.95,
+    "evidence": [
+      "src/infrastructure/in-memory-product-repository.ts: class InMemoryProductRepository implements ProductRepository and is a persistence adapter, which is an infrastructure responsibility",
+      "private readonly store = new Map<string, Product>() is a storage mechanism, which belongs in infrastructure",
+      "findById/findAll/save only call this.store.get/values/set, with no domain rules or application logic",
+      "constructor(initial) only fills the store with initial products and has no business rules"
+    ],
+    "pass": true,
+    "reasoning": "The file is an in-memory persistence adapter. It implements the domain ProductRepository port with a Map-backed store, and that is an infrastructure responsibility. Its methods (findById, findAll, save) only store and retrieve data. They contain no business rules, validation, pricing logic or application orchestration. The constructor seeding is a plain storage setup step. Every responsibility fits the infrastructure layer.",
+    "violations": []
+  },
+  "projectId": "claude-sonnet-5-5/order-fulfilment/minimal-prose/run-2",
+  "prompt": "## Rule\nThe unit's responsibilities match the role of its declared layer.\n\n## Rubric\nPass: Every responsibility in the file belongs to the role and kind of its declared layer, and agrees with any ADR prose given.\nFail: The file carries a responsibility that belongs to a different layer kind, for example persistence, transport or framework logic in a domain file, or business rules in an infrastructure or presentation file.\nEvidence required: Name the file and cite the function, method or statement that carries the misplaced responsibility, and the layer kind it belongs to.\nOut of scope: import direction and layer-dependency rules, which are checked symbolically.\n\n## Layer model\n- domain (kind: domain): src/domain/**\n- application (kind: application): src/application/**\n- infrastructure (kind: infrastructure): src/infrastructure/**\n\n## Unit\nKind: file\nId: src/infrastructure/in-memory-product-repository.ts\nLayer: infrastructure\nUnit files:\n- src/infrastructure/in-memory-product-repository.ts\n\n## Source\n=====SOURCE-BEGIN src/infrastructure/in-memory-product-repository.ts=====\nimport { Product } from \"../domain/product\";\nimport { ProductRepository } from \"../domain/product-repository\";\n\nexport class InMemoryProductRepository implements ProductRepository {\n  private readonly store = new Map<string, Product>();\n\n  constructor(initial: readonly Product[] = []) {\n    for (const p of initial) this.store.set(p.id, p);\n  }\n\n  async findById(id: string): Promise<Product | undefined> {\n    return this.store.get(id);\n  }\n\n  async findAll(): Promise<Product[]> {\n    return [...this.store.values()];\n  }\n\n  async save(product: Product): Promise<void> {\n    this.store.set(product.id, product);\n  }\n}\n\n=====SOURCE-END=====\n\n## Graph excerpt\n{\"edges\":[{\"from\":\"InMemoryProductRepository@src/infrastructure/in-memory-product-repository.ts\",\"to\":\"ProductRepository@src/domain/product-repository.ts\",\"type\":\"IMPLEMENTS\"},{\"from\":\"src/infrastructure/app-factory.ts\",\"to\":\"src/infrastructure/in-memory-product-repository.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/infrastructure/in-memory-product-repository.ts\",\"to\":\"src/domain/product-repository.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/infrastructure/in-memory-product-repository.ts\",\"to\":\"src/domain/product.ts\",\"type\":\"IMPORTS\"}],\"nodes\":[{\"kind\":\"Class\",\"layer\":\"infrastructure\",\"name\":\"InMemoryProductRepository\",\"path\":\"src/infrastructure/in-memory-product-repository.ts\"},{\"kind\":\"File\",\"layer\":\"domain\",\"path\":\"src/domain/product-repository.ts\"},{\"kind\":\"File\",\"layer\":\"domain\",\"path\":\"src/domain/product.ts\"},{\"kind\":\"File\",\"layer\":\"infrastructure\",\"path\":\"src/infrastructure/app-factory.ts\"},{\"kind\":\"File\",\"layer\":\"infrastructure\",\"path\":\"src/infrastructure/in-memory-product-repository.ts\"},{\"kind\":\"Interface\",\"layer\":\"domain\",\"name\":\"ProductRepository\",\"path\":\"src/domain/product-repository.ts\"}]}\n\n## Instructions\nJudge the unit against the rule and rubric. Return the JSON object the schema requires. Set pass to false if any file of the unit fails the rubric.\n",
+  "provider": "claude-cli",
+  "recordedAt": "2026-10-10T22:51:57.636Z",
+  "repetition": 0,
+  "requestHash": "ac21e0a7570b96c11476251445c0afec1ce9c8e3bfee5912192c95d9ad2fddf7",
+  "resolvedModel": "claude-opus-5-5",
+  "response": "{\"is_error\":false,\"modelUsage\":{\"claude-opus-5-5\":{\"inputTokens\":2,\"outputTokens\":434}},\"result\":\"{\\\"pass\\\":true,\\\"confidence\\\":0.95,\\\"reasoning\\\":\\\"The file is an in-memory persistence adapter. It implements the domain ProductRepository port with a Map-backed store, and that is an infrastructure responsibility. Its methods (findById, findAll, save) only store and retrieve data. They contain no business rules, validation, pricing logic or application orchestration. The constructor seeding is a plain storage setup step. Every responsibility fits the infrastructure layer.\\\",\\\"evidence\\\":[\\\"src/infrastructure/in-memory-product-repository.ts: class InMemoryProductRepository implements ProductRepository and is a persistence adapter, which is an infrastructure responsibility\\\",\\\"private readonly store = new Map<string, Product>() is a storage mechanism, which belongs in infrastructure\\\",\\\"findById/findAll/save only call this.store.get/values/set, with no domain rules or application logic\\\",\\\"constructor(initial) only fills the store with initial products and has no business rules\\\"],\\\"violations\\\":[]}\",\"structured_output\":{\"confidence\":0.95,\"evidence\":[\"src/infrastructure/in-memory-product-repository.ts: class InMemoryProductRepository implements ProductRepository and is a persistence adapter, which is an infrastructure responsibility\",\"private readonly store = new Map<string, Product>() is a storage mechanism, which belongs in infrastructure\",\"findById/findAll/save only call this.store.get/values/set, with no domain rules or application logic\",\"constructor(initial) only fills the store with initial products and has no business rules\"],\"pass\":true,\"reasoning\":\"The file is an in-memory persistence adapter. It implements the domain ProductRepository port with a Map-backed store, and that is an infrastructure responsibility. Its methods (findById, findAll, save) only store and retrieve data. They contain no business rules, validation, pricing logic or application orchestration. The constructor seeding is a plain storage setup step. Every responsibility fits the infrastructure layer.\",\"violations\":[]}}",
+  "runIndex": 0,
+  "schemaVersion": 2,
+  "unitId": "src/infrastructure/in-memory-product-repository.ts",
+  "usage": {
+    "inputTokens": 2642,
+    "outputTokens": 434
+  },
+  "usedOptions": {
+    "effort": "high",
+    "model": "claude-opus-5-5"
+  }
+}

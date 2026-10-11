@@ -1,0 +1,49 @@
+{
+  "attempts": 1,
+  "cliVersion": "2.1.294",
+  "configListingSha256": "47aa04258852fab9a706f3f0c14cee22306d69fbb6fdfbde8c11854bd54997bc",
+  "durationMs": 6155,
+  "effort": "high",
+  "functionId": "FF-N02",
+  "ignoredOptions": [
+    "maxTokens"
+  ],
+  "isolationProbeSha256": "97a2e2d0af1100c13c55e028c1a0c71f069093c3d08705af122aaeb302f1a641",
+  "key": "8eba0c35c806210ab8439389d315d16cee5d48e09122b0dd6c8d2a449375e2c7-r0-0",
+  "model": "claude-opus-5-5",
+  "outcome": {
+    "kind": "valid"
+  },
+  "parsedVerdict": {
+    "confidence": 0.93,
+    "evidence": [
+      "CreateUserUseCase.execute only orchestrates: it calls this.users.nextId(), User.create(...), this.users.save(user) and toUserDto(user)",
+      "Persistence goes only through the injected UserRepository interface from the domain (a port), not through a concrete storage implementation",
+      "The validation and creation rules are delegated to the domain factory User.create, so there are no inline business rules",
+      "translateDomainErrors turns domain errors into application errors, which is a normal application-layer concern",
+      "No HTTP, request/response or framework code appears in the file"
+    ],
+    "pass": true,
+    "reasoning": "The file is a standard application use case. It handles orchestration only: it gets an id from the repository port, hands entity creation to the domain factory User.create, turns domain errors into application errors, saves the entity through the domain repository interface, and maps the result to a DTO. The business rules stay in the domain. There is no persistence implementation, no transport or HTTP handling and no framework code. Every responsibility fits the application layer.",
+    "violations": []
+  },
+  "projectId": "claude-sonnet-5-5/task-management/full-aac/run-2",
+  "prompt": "## Rule\nThe unit's responsibilities match the role of its declared layer.\n\n## Rubric\nPass: Every responsibility in the file belongs to the role and kind of its declared layer, and agrees with any ADR prose given.\nFail: The file carries a responsibility that belongs to a different layer kind, for example persistence, transport or framework logic in a domain file, or business rules in an infrastructure or presentation file.\nEvidence required: Name the file and cite the function, method or statement that carries the misplaced responsibility, and the layer kind it belongs to.\nOut of scope: import direction and layer-dependency rules, which are checked symbolically.\n\n## Layer model\n- domain (kind: domain): src/domain/**\n- application (kind: application): src/application/**\n- infrastructure (kind: infrastructure): src/infrastructure/**\n\n## Unit\nKind: file\nId: src/application/use-cases/create-user-use-case.ts\nLayer: application\nUnit files:\n- src/application/use-cases/create-user-use-case.ts\n\n## Source\n=====SOURCE-BEGIN src/application/use-cases/create-user-use-case.ts=====\nimport { User } from \"../../domain/user\";\nimport type { UserRepository } from \"../../domain/user-repository\";\nimport { toUserDto } from \"../dto/user-dto\";\nimport type { CreateUserInput, UserDto } from \"../dto/user-dto\";\nimport { translateDomainErrors } from \"../errors\";\n\nexport class CreateUserUseCase {\n  constructor(private readonly users: UserRepository) {}\n\n  execute(input: CreateUserInput): UserDto {\n    const user = translateDomainErrors(() =>\n      User.create(this.users.nextId(), input.name),\n    );\n    this.users.save(user);\n    return toUserDto(user);\n  }\n}\n\n=====SOURCE-END=====\n\n## Graph excerpt\n{\"edges\":[{\"from\":\"CreateUserUseCase@src/application/use-cases/create-user-use-case.ts\",\"to\":\"UserRepository@src/domain/user-repository.ts\",\"type\":\"CONSTRUCTOR_INJECTS\"},{\"from\":\"UserController@src/infrastructure/http/user-controller.ts\",\"to\":\"CreateUserUseCase@src/application/use-cases/create-user-use-case.ts\",\"type\":\"CONSTRUCTOR_INJECTS\"},{\"from\":\"src/application/use-cases/create-user-use-case.ts\",\"to\":\"src/application/dto/user-dto.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/application/use-cases/create-user-use-case.ts\",\"to\":\"src/application/errors.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/application/use-cases/create-user-use-case.ts\",\"to\":\"src/domain/user-repository.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/application/use-cases/create-user-use-case.ts\",\"to\":\"src/domain/user.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/infrastructure/app.ts\",\"to\":\"src/application/use-cases/create-user-use-case.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/infrastructure/http/user-controller.ts\",\"to\":\"src/application/use-cases/create-user-use-case.ts\",\"type\":\"IMPORTS\"}],\"nodes\":[{\"kind\":\"Class\",\"layer\":\"application\",\"name\":\"CreateUserUseCase\",\"path\":\"src/application/use-cases/create-user-use-case.ts\"},{\"kind\":\"Class\",\"layer\":\"infrastructure\",\"name\":\"UserController\",\"path\":\"src/infrastructure/http/user-controller.ts\"},{\"kind\":\"File\",\"layer\":\"application\",\"path\":\"src/application/dto/user-dto.ts\"},{\"kind\":\"File\",\"layer\":\"application\",\"path\":\"src/application/errors.ts\"},{\"kind\":\"File\",\"layer\":\"application\",\"path\":\"src/application/use-cases/create-user-use-case.ts\"},{\"kind\":\"File\",\"layer\":\"domain\",\"path\":\"src/domain/user-repository.ts\"},{\"kind\":\"File\",\"layer\":\"domain\",\"path\":\"src/domain/user.ts\"},{\"kind\":\"File\",\"layer\":\"infrastructure\",\"path\":\"src/infrastructure/app.ts\"},{\"kind\":\"File\",\"layer\":\"infrastructure\",\"path\":\"src/infrastructure/http/user-controller.ts\"},{\"kind\":\"Interface\",\"layer\":\"domain\",\"name\":\"UserRepository\",\"path\":\"src/domain/user-repository.ts\"}]}\n\n## Instructions\nJudge the unit against the rule and rubric. Return the JSON object the schema requires. Set pass to false if any file of the unit fails the rubric.\n",
+  "provider": "claude-cli",
+  "recordedAt": "2026-10-10T23:00:25.783Z",
+  "repetition": 0,
+  "requestHash": "8eba0c35c806210ab8439389d315d16cee5d48e09122b0dd6c8d2a449375e2c7",
+  "resolvedModel": "claude-opus-5-5",
+  "response": "{\"is_error\":false,\"modelUsage\":{\"claude-opus-5-5\":{\"inputTokens\":2,\"outputTokens\":458}},\"result\":\"{\\\"pass\\\":true,\\\"confidence\\\":0.93,\\\"reasoning\\\":\\\"The file is a standard application use case. It handles orchestration only: it gets an id from the repository port, hands entity creation to the domain factory User.create, turns domain errors into application errors, saves the entity through the domain repository interface, and maps the result to a DTO. The business rules stay in the domain. There is no persistence implementation, no transport or HTTP handling and no framework code. Every responsibility fits the application layer.\\\",\\\"evidence\\\":[\\\"CreateUserUseCase.execute only orchestrates: it calls this.users.nextId(), User.create(...), this.users.save(user) and toUserDto(user)\\\",\\\"Persistence goes only through the injected UserRepository interface from the domain (a port), not through a concrete storage implementation\\\",\\\"The validation and creation rules are delegated to the domain factory User.create, so there are no inline business rules\\\",\\\"translateDomainErrors turns domain errors into application errors, which is a normal application-layer concern\\\",\\\"No HTTP, request/response or framework code appears in the file\\\"],\\\"violations\\\":[]}\",\"structured_output\":{\"confidence\":0.93,\"evidence\":[\"CreateUserUseCase.execute only orchestrates: it calls this.users.nextId(), User.create(...), this.users.save(user) and toUserDto(user)\",\"Persistence goes only through the injected UserRepository interface from the domain (a port), not through a concrete storage implementation\",\"The validation and creation rules are delegated to the domain factory User.create, so there are no inline business rules\",\"translateDomainErrors turns domain errors into application errors, which is a normal application-layer concern\",\"No HTTP, request/response or framework code appears in the file\"],\"pass\":true,\"reasoning\":\"The file is a standard application use case. It handles orchestration only: it gets an id from the repository port, hands entity creation to the domain factory User.create, turns domain errors into application errors, saves the entity through the domain repository interface, and maps the result to a DTO. The business rules stay in the domain. There is no persistence implementation, no transport or HTTP handling and no framework code. Every responsibility fits the application layer.\",\"violations\":[]}}",
+  "runIndex": 0,
+  "schemaVersion": 2,
+  "unitId": "src/application/use-cases/create-user-use-case.ts",
+  "usage": {
+    "inputTokens": 3005,
+    "outputTokens": 458
+  },
+  "usedOptions": {
+    "effort": "high",
+    "model": "claude-opus-5-5"
+  }
+}

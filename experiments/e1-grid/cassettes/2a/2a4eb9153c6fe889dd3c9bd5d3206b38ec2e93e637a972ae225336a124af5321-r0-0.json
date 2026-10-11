@@ -1,0 +1,47 @@
+{
+  "attempts": 1,
+  "cliVersion": "2.1.294",
+  "configListingSha256": "47aa04258852fab9a706f3f0c14cee22306d69fbb6fdfbde8c11854bd54997bc",
+  "durationMs": 5887,
+  "effort": "high",
+  "functionId": "FF-N02",
+  "ignoredOptions": [
+    "maxTokens"
+  ],
+  "isolationProbeSha256": "97a2e2d0af1100c13c55e028c1a0c71f069093c3d08705af122aaeb302f1a641",
+  "key": "2a4eb9153c6fe889dd3c9bd5d3206b38ec2e93e637a972ae225336a124af5321-r0-0",
+  "model": "claude-opus-5-5",
+  "outcome": {
+    "kind": "valid"
+  },
+  "parsedVerdict": {
+    "confidence": 0.9,
+    "evidence": [
+      "src/application/order-dto.ts: interfaces OrderLineDto, PlaceOrderCommand, OrderDto and StockLevelDto are plain data shapes for use-case inputs and outputs",
+      "src/application/order-dto.ts: toOrderDto(order) is a pure field-by-field mapping from the domain Order to a DTO, with no business logic",
+      "No HTTP, database or framework code is in the file"
+    ],
+    "pass": true,
+    "reasoning": "The file holds application-layer DTOs and command shapes, plus a pure mapping from the domain Order to OrderDto. Defining use-case input and output contracts and mapping domain objects to them is the application layer's job. The file has no persistence, transport or framework code, and no business rules or invariants. The StockLevelDto 'available' field is only a data shape and contains no logic.",
+    "violations": []
+  },
+  "projectId": "claude-sonnet-5-5/order-fulfilment/full-aac/run-0",
+  "prompt": "## Rule\nThe unit's responsibilities match the role of its declared layer.\n\n## Rubric\nPass: Every responsibility in the file belongs to the role and kind of its declared layer, and agrees with any ADR prose given.\nFail: The file carries a responsibility that belongs to a different layer kind, for example persistence, transport or framework logic in a domain file, or business rules in an infrastructure or presentation file.\nEvidence required: Name the file and cite the function, method or statement that carries the misplaced responsibility, and the layer kind it belongs to.\nOut of scope: import direction and layer-dependency rules, which are checked symbolically.\n\n## Layer model\n- domain (kind: domain): src/domain/**\n- application (kind: application): src/application/**\n- infrastructure (kind: infrastructure): src/infrastructure/**\n\n## Unit\nKind: file\nId: src/application/order-dto.ts\nLayer: application\nUnit files:\n- src/application/order-dto.ts\n\n## Source\n=====SOURCE-BEGIN src/application/order-dto.ts=====\nimport { Order } from \"../domain/order\";\n\nexport interface OrderLineDto {\n  productId: string;\n  quantity: number;\n}\n\nexport interface PlaceOrderCommand {\n  lines: OrderLineDto[];\n}\n\nexport interface OrderDto {\n  id: string;\n  state: string;\n  lines: OrderLineDto[];\n}\n\nexport interface StockLevelDto {\n  productId: string;\n  name: string;\n  onHand: number;\n  reserved: number;\n  available: number;\n}\n\nexport function toOrderDto(order: Order): OrderDto {\n  return {\n    id: order.id,\n    state: order.state,\n    lines: order.lines.map((line) => ({ productId: line.productId, quantity: line.quantity })),\n  };\n}\n\n=====SOURCE-END=====\n\n## Graph excerpt\n{\"edges\":[{\"from\":\"src/application/advance-order-use-case.ts\",\"to\":\"src/application/order-dto.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/application/cancel-order-use-case.ts\",\"to\":\"src/application/order-dto.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/application/get-order-use-case.ts\",\"to\":\"src/application/order-dto.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/application/list-orders-by-state-use-case.ts\",\"to\":\"src/application/order-dto.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/application/list-stock-levels-use-case.ts\",\"to\":\"src/application/order-dto.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/application/order-dto.ts\",\"to\":\"src/domain/order.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/application/place-order-use-case.ts\",\"to\":\"src/application/order-dto.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/infrastructure/order-controller.ts\",\"to\":\"src/application/order-dto.ts\",\"type\":\"IMPORTS\"}],\"nodes\":[{\"kind\":\"File\",\"layer\":\"application\",\"path\":\"src/application/advance-order-use-case.ts\"},{\"kind\":\"File\",\"layer\":\"application\",\"path\":\"src/application/cancel-order-use-case.ts\"},{\"kind\":\"File\",\"layer\":\"application\",\"path\":\"src/application/get-order-use-case.ts\"},{\"kind\":\"File\",\"layer\":\"application\",\"path\":\"src/application/list-orders-by-state-use-case.ts\"},{\"kind\":\"File\",\"layer\":\"application\",\"path\":\"src/application/list-stock-levels-use-case.ts\"},{\"kind\":\"File\",\"layer\":\"application\",\"path\":\"src/application/order-dto.ts\"},{\"kind\":\"File\",\"layer\":\"application\",\"path\":\"src/application/place-order-use-case.ts\"},{\"kind\":\"File\",\"layer\":\"domain\",\"path\":\"src/domain/order.ts\"},{\"kind\":\"File\",\"layer\":\"infrastructure\",\"path\":\"src/infrastructure/order-controller.ts\"},{\"kind\":\"Interface\",\"layer\":\"application\",\"name\":\"OrderDto\",\"path\":\"src/application/order-dto.ts\"},{\"kind\":\"Interface\",\"layer\":\"application\",\"name\":\"OrderLineDto\",\"path\":\"src/application/order-dto.ts\"},{\"kind\":\"Interface\",\"layer\":\"application\",\"name\":\"PlaceOrderCommand\",\"path\":\"src/application/order-dto.ts\"},{\"kind\":\"Interface\",\"layer\":\"application\",\"name\":\"StockLevelDto\",\"path\":\"src/application/order-dto.ts\"}]}\n\n## Instructions\nJudge the unit against the rule and rubric. Return the JSON object the schema requires. Set pass to false if any file of the unit fails the rubric.\n",
+  "provider": "claude-cli",
+  "recordedAt": "2026-10-10T23:03:24.185Z",
+  "repetition": 0,
+  "requestHash": "2a4eb9153c6fe889dd3c9bd5d3206b38ec2e93e637a972ae225336a124af5321",
+  "resolvedModel": "claude-opus-5-5",
+  "response": "{\"is_error\":false,\"modelUsage\":{\"claude-opus-5-5\":{\"inputTokens\":2,\"outputTokens\":403}},\"result\":\"{\\\"pass\\\":true,\\\"confidence\\\":0.9,\\\"reasoning\\\":\\\"The file holds application-layer DTOs and command shapes, plus a pure mapping from the domain Order to OrderDto. Defining use-case input and output contracts and mapping domain objects to them is the application layer's job. The file has no persistence, transport or framework code, and no business rules or invariants. The StockLevelDto 'available' field is only a data shape and contains no logic.\\\",\\\"evidence\\\":[\\\"src/application/order-dto.ts: interfaces OrderLineDto, PlaceOrderCommand, OrderDto and StockLevelDto are plain data shapes for use-case inputs and outputs\\\",\\\"src/application/order-dto.ts: toOrderDto(order) is a pure field-by-field mapping from the domain Order to a DTO, with no business logic\\\",\\\"No HTTP, database or framework code is in the file\\\"],\\\"violations\\\":[]}\",\"structured_output\":{\"confidence\":0.9,\"evidence\":[\"src/application/order-dto.ts: interfaces OrderLineDto, PlaceOrderCommand, OrderDto and StockLevelDto are plain data shapes for use-case inputs and outputs\",\"src/application/order-dto.ts: toOrderDto(order) is a pure field-by-field mapping from the domain Order to a DTO, with no business logic\",\"No HTTP, database or framework code is in the file\"],\"pass\":true,\"reasoning\":\"The file holds application-layer DTOs and command shapes, plus a pure mapping from the domain Order to OrderDto. Defining use-case input and output contracts and mapping domain objects to them is the application layer's job. The file has no persistence, transport or framework code, and no business rules or invariants. The StockLevelDto 'available' field is only a data shape and contains no logic.\",\"violations\":[]}}",
+  "runIndex": 0,
+  "schemaVersion": 2,
+  "unitId": "src/application/order-dto.ts",
+  "usage": {
+    "inputTokens": 3011,
+    "outputTokens": 403
+  },
+  "usedOptions": {
+    "effort": "high",
+    "model": "claude-opus-5-5"
+  }
+}

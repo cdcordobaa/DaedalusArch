@@ -1,0 +1,47 @@
+{
+  "attempts": 1,
+  "cliVersion": "2.1.294",
+  "configListingSha256": "47aa04258852fab9a706f3f0c14cee22306d69fbb6fdfbde8c11854bd54997bc",
+  "durationMs": 6233,
+  "effort": "high",
+  "functionId": "FF-N02",
+  "ignoredOptions": [
+    "maxTokens"
+  ],
+  "isolationProbeSha256": "97a2e2d0af1100c13c55e028c1a0c71f069093c3d08705af122aaeb302f1a641",
+  "key": "525480b17bfc4e6bb248e6d68562426544a0b86618039b496bde04fd8c89eb9a-r0-2",
+  "model": "claude-opus-5-5",
+  "outcome": {
+    "kind": "valid"
+  },
+  "parsedVerdict": {
+    "confidence": 0.92,
+    "evidence": [
+      "src/application/order-mapper.ts: toOrderDto(order: Order): OrderDto only copies fields from the domain Order into OrderDto (id, status, placedAt as an ISO string, lines with productId and quantity).",
+      "The graph shows the mapper is imported only by application use cases (place, cancel, advance and list orders), so it fits the application layer.",
+      "There is no persistence, HTTP or framework code, and no business rule or invariant logic, in the file."
+    ],
+    "pass": true,
+    "reasoning": "The file has one job: it maps the domain Order aggregate to an application-level OrderDto. Turning domain objects into output DTOs is a normal application-layer job, and the graph shows only application use cases import this mapper. The file contains no persistence, transport, framework or HTTP logic, and no business rules. Converting placedAt with toISOString() is part of shaping the DTO, not transport logic. No ADR prose was given.",
+    "violations": []
+  },
+  "projectId": "claude-sonnet-5-5/order-fulfilment/full-aac/run-1",
+  "prompt": "## Rule\nThe unit's responsibilities match the role of its declared layer.\n\n## Rubric\nPass: Every responsibility in the file belongs to the role and kind of its declared layer, and agrees with any ADR prose given.\nFail: The file carries a responsibility that belongs to a different layer kind, for example persistence, transport or framework logic in a domain file, or business rules in an infrastructure or presentation file.\nEvidence required: Name the file and cite the function, method or statement that carries the misplaced responsibility, and the layer kind it belongs to.\nOut of scope: import direction and layer-dependency rules, which are checked symbolically.\n\n## Layer model\n- domain (kind: domain): src/domain/**\n- application (kind: application): src/application/**\n- infrastructure (kind: infrastructure): src/infrastructure/**\n\n## Unit\nKind: file\nId: src/application/order-mapper.ts\nLayer: application\nUnit files:\n- src/application/order-mapper.ts\n\n## Source\n=====SOURCE-BEGIN src/application/order-mapper.ts=====\nimport { Order } from \"../domain/order\";\nimport { OrderDto } from \"./order-dto\";\n\nexport function toOrderDto(order: Order): OrderDto {\n  return {\n    id: order.id,\n    status: order.status,\n    placedAt: order.placedAt.toISOString(),\n    lines: order.lines.map((line) => ({ productId: line.productId, quantity: line.quantity })),\n  };\n}\n\n=====SOURCE-END=====\n\n## Graph excerpt\n{\"edges\":[{\"from\":\"src/application/advance-order-use-case.ts\",\"to\":\"src/application/order-mapper.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/application/cancel-order-use-case.ts\",\"to\":\"src/application/order-mapper.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/application/list-orders-use-case.ts\",\"to\":\"src/application/order-mapper.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/application/order-mapper.ts\",\"to\":\"src/application/order-dto.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/application/order-mapper.ts\",\"to\":\"src/domain/order.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/application/place-order-use-case.ts\",\"to\":\"src/application/order-mapper.ts\",\"type\":\"IMPORTS\"}],\"nodes\":[{\"kind\":\"File\",\"layer\":\"application\",\"path\":\"src/application/advance-order-use-case.ts\"},{\"kind\":\"File\",\"layer\":\"application\",\"path\":\"src/application/cancel-order-use-case.ts\"},{\"kind\":\"File\",\"layer\":\"application\",\"path\":\"src/application/list-orders-use-case.ts\"},{\"kind\":\"File\",\"layer\":\"application\",\"path\":\"src/application/order-dto.ts\"},{\"kind\":\"File\",\"layer\":\"application\",\"path\":\"src/application/order-mapper.ts\"},{\"kind\":\"File\",\"layer\":\"application\",\"path\":\"src/application/place-order-use-case.ts\"},{\"kind\":\"File\",\"layer\":\"domain\",\"path\":\"src/domain/order.ts\"}]}\n\n## Instructions\nJudge the unit against the rule and rubric. Return the JSON object the schema requires. Set pass to false if any file of the unit fails the rubric.\n",
+  "provider": "claude-cli",
+  "recordedAt": "2026-10-10T23:06:48.794Z",
+  "repetition": 0,
+  "requestHash": "525480b17bfc4e6bb248e6d68562426544a0b86618039b496bde04fd8c89eb9a",
+  "resolvedModel": "claude-opus-5-5",
+  "response": "{\"is_error\":false,\"modelUsage\":{\"claude-opus-5-5\":{\"inputTokens\":2,\"outputTokens\":433}},\"result\":\"{\\\"pass\\\":true,\\\"confidence\\\":0.92,\\\"reasoning\\\":\\\"The file has one job: it maps the domain Order aggregate to an application-level OrderDto. Turning domain objects into output DTOs is a normal application-layer job, and the graph shows only application use cases import this mapper. The file contains no persistence, transport, framework or HTTP logic, and no business rules. Converting placedAt with toISOString() is part of shaping the DTO, not transport logic. No ADR prose was given.\\\",\\\"evidence\\\":[\\\"src/application/order-mapper.ts: toOrderDto(order: Order): OrderDto only copies fields from the domain Order into OrderDto (id, status, placedAt as an ISO string, lines with productId and quantity).\\\",\\\"The graph shows the mapper is imported only by application use cases (place, cancel, advance and list orders), so it fits the application layer.\\\",\\\"There is no persistence, HTTP or framework code, and no business rule or invariant logic, in the file.\\\"],\\\"violations\\\":[]}\",\"structured_output\":{\"confidence\":0.92,\"evidence\":[\"src/application/order-mapper.ts: toOrderDto(order: Order): OrderDto only copies fields from the domain Order into OrderDto (id, status, placedAt as an ISO string, lines with productId and quantity).\",\"The graph shows the mapper is imported only by application use cases (place, cancel, advance and list orders), so it fits the application layer.\",\"There is no persistence, HTTP or framework code, and no business rule or invariant logic, in the file.\"],\"pass\":true,\"reasoning\":\"The file has one job: it maps the domain Order aggregate to an application-level OrderDto. Turning domain objects into output DTOs is a normal application-layer job, and the graph shows only application use cases import this mapper. The file contains no persistence, transport, framework or HTTP logic, and no business rules. Converting placedAt with toISOString() is part of shaping the DTO, not transport logic. No ADR prose was given.\",\"violations\":[]}}",
+  "runIndex": 2,
+  "schemaVersion": 2,
+  "unitId": "src/application/order-mapper.ts",
+  "usage": {
+    "inputTokens": 2550,
+    "outputTokens": 433
+  },
+  "usedOptions": {
+    "effort": "high",
+    "model": "claude-opus-5-5"
+  }
+}

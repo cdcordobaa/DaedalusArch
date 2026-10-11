@@ -1,0 +1,47 @@
+{
+  "attempts": 1,
+  "cliVersion": "2.1.294",
+  "configListingSha256": "47aa04258852fab9a706f3f0c14cee22306d69fbb6fdfbde8c11854bd54997bc",
+  "durationMs": 5696,
+  "effort": "high",
+  "functionId": "FF-N02",
+  "ignoredOptions": [
+    "maxTokens"
+  ],
+  "isolationProbeSha256": "97a2e2d0af1100c13c55e028c1a0c71f069093c3d08705af122aaeb302f1a641",
+  "key": "82446dc7eafaafc44169aba24efe15b7878b032111d0a378bb3d9d1fb791ad03-r0-1",
+  "model": "claude-opus-5-5",
+  "outcome": {
+    "kind": "valid"
+  },
+  "parsedVerdict": {
+    "confidence": 0.95,
+    "evidence": [
+      "src/domain/order-line.ts: class OrderLine has readonly productId and quantity fields, which is plain domain entity state",
+      "src/domain/order-line.ts: the constructor enforces the invariant 'Quantity must be a positive integer' with Number.isInteger(quantity) && quantity > 0 and throws DomainError. This is a domain business rule.",
+      "The file contains no I/O, persistence, HTTP or framework code"
+    ],
+    "pass": true,
+    "reasoning": "src/domain/order-line.ts defines a value-like domain entity, OrderLine, with readonly fields. Its only logic is an invariant check in the constructor: quantity must be a positive integer. That is a business rule, and business rules belong in the domain layer. The file has no persistence, transport, framework or orchestration code. Every responsibility fits the domain layer kind.",
+    "violations": []
+  },
+  "projectId": "claude-sonnet-5-5/order-fulfilment/full-aac/run-0",
+  "prompt": "## Rule\nThe unit's responsibilities match the role of its declared layer.\n\n## Rubric\nPass: Every responsibility in the file belongs to the role and kind of its declared layer, and agrees with any ADR prose given.\nFail: The file carries a responsibility that belongs to a different layer kind, for example persistence, transport or framework logic in a domain file, or business rules in an infrastructure or presentation file.\nEvidence required: Name the file and cite the function, method or statement that carries the misplaced responsibility, and the layer kind it belongs to.\nOut of scope: import direction and layer-dependency rules, which are checked symbolically.\n\n## Layer model\n- domain (kind: domain): src/domain/**\n- application (kind: application): src/application/**\n- infrastructure (kind: infrastructure): src/infrastructure/**\n\n## Unit\nKind: file\nId: src/domain/order-line.ts\nLayer: domain\nUnit files:\n- src/domain/order-line.ts\n\n## Source\n=====SOURCE-BEGIN src/domain/order-line.ts=====\nimport { DomainError } from \"./domain-error\";\n\nexport class OrderLine {\n  readonly productId: string;\n  readonly quantity: number;\n\n  constructor(productId: string, quantity: number) {\n    if (!Number.isInteger(quantity) || quantity <= 0) {\n      throw new DomainError(\"validation\", \"Quantity must be a positive integer\");\n    }\n    this.productId = productId;\n    this.quantity = quantity;\n  }\n}\n\n=====SOURCE-END=====\n\n## Graph excerpt\n{\"edges\":[{\"from\":\"src/application/place-order-use-case.ts\",\"to\":\"src/domain/order-line.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/domain/order-line.ts\",\"to\":\"src/domain/domain-error.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/domain/order.ts\",\"to\":\"src/domain/order-line.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/domain/stock-reservation.ts\",\"to\":\"src/domain/order-line.ts\",\"type\":\"IMPORTS\"}],\"nodes\":[{\"kind\":\"Class\",\"layer\":\"domain\",\"name\":\"OrderLine\",\"path\":\"src/domain/order-line.ts\"},{\"kind\":\"File\",\"layer\":\"application\",\"path\":\"src/application/place-order-use-case.ts\"},{\"kind\":\"File\",\"layer\":\"domain\",\"path\":\"src/domain/domain-error.ts\"},{\"kind\":\"File\",\"layer\":\"domain\",\"path\":\"src/domain/order-line.ts\"},{\"kind\":\"File\",\"layer\":\"domain\",\"path\":\"src/domain/order.ts\"},{\"kind\":\"File\",\"layer\":\"domain\",\"path\":\"src/domain/stock-reservation.ts\"}]}\n\n## Instructions\nJudge the unit against the rule and rubric. Return the JSON object the schema requires. Set pass to false if any file of the unit fails the rubric.\n",
+  "provider": "claude-cli",
+  "recordedAt": "2026-10-10T23:03:54.750Z",
+  "repetition": 0,
+  "requestHash": "82446dc7eafaafc44169aba24efe15b7878b032111d0a378bb3d9d1fb791ad03",
+  "resolvedModel": "claude-opus-5-5",
+  "response": "{\"is_error\":false,\"modelUsage\":{\"claude-opus-5-5\":{\"inputTokens\":2,\"outputTokens\":407}},\"result\":\"{\\\"pass\\\":true,\\\"confidence\\\":0.95,\\\"reasoning\\\":\\\"src/domain/order-line.ts defines a value-like domain entity, OrderLine, with readonly fields. Its only logic is an invariant check in the constructor: quantity must be a positive integer. That is a business rule, and business rules belong in the domain layer. The file has no persistence, transport, framework or orchestration code. Every responsibility fits the domain layer kind.\\\",\\\"evidence\\\":[\\\"src/domain/order-line.ts: class OrderLine has readonly productId and quantity fields, which is plain domain entity state\\\",\\\"src/domain/order-line.ts: the constructor enforces the invariant 'Quantity must be a positive integer' with Number.isInteger(quantity) && quantity > 0 and throws DomainError. This is a domain business rule.\\\",\\\"The file contains no I/O, persistence, HTTP or framework code\\\"],\\\"violations\\\":[]}\",\"structured_output\":{\"confidence\":0.95,\"evidence\":[\"src/domain/order-line.ts: class OrderLine has readonly productId and quantity fields, which is plain domain entity state\",\"src/domain/order-line.ts: the constructor enforces the invariant 'Quantity must be a positive integer' with Number.isInteger(quantity) && quantity > 0 and throws DomainError. This is a domain business rule.\",\"The file contains no I/O, persistence, HTTP or framework code\"],\"pass\":true,\"reasoning\":\"src/domain/order-line.ts defines a value-like domain entity, OrderLine, with readonly fields. Its only logic is an invariant check in the constructor: quantity must be a positive integer. That is a business rule, and business rules belong in the domain layer. The file has no persistence, transport, framework or orchestration code. Every responsibility fits the domain layer kind.\",\"violations\":[]}}",
+  "runIndex": 1,
+  "schemaVersion": 2,
+  "unitId": "src/domain/order-line.ts",
+  "usage": {
+    "inputTokens": 2436,
+    "outputTokens": 407
+  },
+  "usedOptions": {
+    "effort": "high",
+    "model": "claude-opus-5-5"
+  }
+}
