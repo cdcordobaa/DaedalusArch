@@ -1370,6 +1370,11 @@ Plan checkboxes ticked. Auto-approved under standing approval; no blocking or ma
 
 ---
 
+## Build and Test — P4 labelling stop and ADR-034 (labeller route completion)
+**Timestamp**: 2026-10-11T05:15:00Z
+**User Input**: "Run the registered P4 live labelling (judge vs panel on E1) within the P4 allocation. Coordinator, after the stop: Option A. A completed tool step is invalid: discard it, retry once, then uncertain/tool-use. Add a 20 % stop rule over at least 10 P4 items, a discard metric and a residual threat. Verify P1/MS/P2. Keep the persona, prompts and timeout. Register as ADR-034 with prereg v22, merge by PR, then resume P4."
+**AI Response**: "Pre-flight passed (agy 1.3.2, AGY_CLI_DISABLE_AUTO_UPDATE=true, home names clean, 7 deny rules, MCP and plugins empty, --check-prereg v21 ok on 10 plans, estimate 224 + 30 <= 300; the 66-item replay gave 142 calls, byte-identical). First P4 call: TIMEOUT x2, then the re-ask completed search_web and the guard stopped the run (LLM_CLI_ISOLATION); 3 invocations, 145/300. Probes (non-label): disabledTools (51 tools) had no effect and search_web completed; deny search_web(*), execute_url(*), browser(*) and edit_file(*) also failed to stop it. 2 accidental /permissions and /config turns ran on the default model. settings.json was restored byte-identical. ADR-034: LLM_CLI_TOOL_USE is a decorator retry class (discardedAttempts recorded, no InvalidCause change); a tool-use final attempt makes the run invalid 'tool-use' with no re-ask, and the item becomes uncertain/tool-use; LABEL_TOOL_USE_STOP; tests added. TV-109, DV-TV-16; labeller-route §2, §4, §7; analysis plan §7 and §11; prereg v22 (P-TU). P1/MS/P2 verified: guard unchanged since 56e77f6, run completed, 139 cassettes = 138 answers + 1 timeout."
+**Context**: CONSTRUCTION — Build and Test, runbook 6.4 (P4). Worktree ../DaedalusArch-wt-p4, branch v1.2e-exp-p4. Under the standing approval (2026-10-08).
 ## Harness fix: usage limit at the judge init probe
 **Timestamp**: 2026-10-11T04:49:55Z
 **User Input**: "Fix the harness so a usage limit hit at the judge's init probe (E1 pass 1, recorded as transport-error) is classified USAGE_LIMIT and the registered pause/resume applies, for any judge or generator step; add tests that reproduce it; change no registered artefact."
