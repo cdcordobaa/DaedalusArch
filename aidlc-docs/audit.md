@@ -1361,3 +1361,11 @@ Plan checkboxes ticked. Auto-approved under standing approval; no blocking or ma
 **Context**: CONSTRUCTION — Build and Test, ADR-033. Worktree ../DaedalusArch-wt-fix, branch v1.2e-audit-fixes. Under the standing approval (2026-10-08).
 
 ---
+
+## Build and Test — E1 size analysis (post hoc, committed data only)
+**Timestamp**: 2026-10-10T23:30:00Z
+**User Input**: "E1 shows a reversed spec-level effect (none best) and no model effect, with none projects much smaller. Using only committed data and no new runs, find what the registered plan says about size-normalised SO5 outcomes, recompute them with the registered procedure, label everything unregistered as post-hoc, break findings down by rule family and spec level, check size vs AHS descriptively, report the Codex arm separately, and merge by PR."
+**AI Response**: "Registered: deterministic violations per KLOC is an exploratory secondary family; LOC, all-violations density and latency are descriptive with no test. scripts/e1-size-analysis.ts reproduces all 27 registered rows (ahsCombined, ahsDeterministic, violations_per_kloc) exactly. The spec effect survives on the registered density (none 27 vs 57-58 per KLOC, Holm p 0.0003, δ 0.97) and, post hoc, on AHS residualised on ln LOC (p 0.0003). Per file it vanishes (post hoc, p 0.95). FF-CV05 test-file-pairing (FPAT-PATTERN) makes 83 % of findings at about one per file, but it fires in every cell, so it adds nothing to the AHS gap. The AHS spec effect comes from FF-C02 module-fan-out and FF-P02 dependency-inversion, which rarely fire on none projects. Size is a mediator, not a confounder. full-aac beats minimal-prose at equal size. Codex arm (exploratory): the opposite AHS pattern. Outputs: results/e1-grid/agg-size/, Docs/DiagnosticRuns/e1-size-analysis-2026-10-10.md. No registered artefact changed and no prereg bump."
+**Context**: CONSTRUCTION — Build and Test, E1 follow-up; worktree ../DaedalusArch-wt-size, branch v1.2e-e1-size.
+
+---
