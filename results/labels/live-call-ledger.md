@@ -20,6 +20,7 @@
 |---|---|---|---|---|---|
 | 1 | 2026-10-10 | `llm-label --mode record --cassette-dir results/labels/cassettes` (both runs, 66 items) | 139 (132 + 7 re-asks) | 142 (3 CLI retries) | **142 / 300** |
 | 2 | 2026-10-11 | P4: `llm-label --plan results/e1-grid/label-plan-p4/label-plan.json --mode record --cassette-dir results/labels/cassettes` (prereg v21; the 66 P1/MS/P2 items replayed, 142 invocations, 0 new) | 1 new (first P4 judge unit, run 0: `TIMEOUT` after 2 attempts, 243 s each) | 3 (2 timed-out attempts + 1 re-ask stopped by `LLM_CLI_ISOLATION`, not recorded) | **145 / 300** |
+| 3 | 2026-10-11 | P4 under ADR-034 (prereg v22), same command (05:22–05:56Z); P1/MS/P2 not reached (plan order puts P4 items 36–45 first) | 11 new (10 P4 items, run 0) | 14 (5 tool-use discards, 2 timeouts) | **159 / 300** (cassettes 158 + the 1 unrecorded stopped re-ask of row 2) |
 
 No quota pause occurred. Replay of the cassettes is byte-identical to `labels.json`. `--usage`: 139 entries, input tokens min 0, median 14 024, max 124 846, mean 24 246; output 329 569 in total.
 
@@ -31,3 +32,5 @@ No quota pause occurred. Replay of the cassettes is byte-identical to `labels.js
 3. Deny rules `search_web(*)`, `execute_url(*)`, `browser(*)` and `edit_file(*)` added to the 7 registered ones, with `gemini-3.1-pro-high`: `search_web` **completed** again (9 citations). `run_command` was refused by `command(*)`, and the browser tools were not offered.
 
 Finding: on agy 1.3.2, `search_web` passes no permission check. Neither `toolPermission: strict`, any deny rule tried, nor `disabledTools` blocks it. The fail-closed `LLM_CLI_ISOLATION` guard is the only control that fires. P1/MS/P2 check: `agy-cli-provider.ts` is unchanged since `56e77f6`, so the guard was active for all 142 invocations. The run completed with no isolation stop, and the 139 cassettes hold 138 valid answers and 1 `TIMEOUT`, so no tool step completed there: **verified**.
+
+**Stop, 2026-10-11 05:56Z (ADR-034 stop rule, `LABEL_TOOL_USE_STOP`).** 2 of the first 10 P4 items (20 %) ended as `uncertain` / `tool-use`, with 5 tool-use discards. Item 37 (`claude-haiku-4-5/order-fulfilment/none/run-0`, integrity) completed `search_web` on both attempts. Item 44 (`claude-haiku-4-5/task-management/none/run-0`, semantic) ran `search_web`, then timed out, then completed `search_web` twice on the re-ask. Item 36 recovered after its timeout (re-ask valid). The other 7 items answered on the first attempt (27–137 s). Both timed-out calls involve web search. No label file was written. As registered, the run does not continue, and the stop is reported to the coordinator. This was not a usage limit.
