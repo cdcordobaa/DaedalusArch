@@ -1,9 +1,10 @@
 # Results report for the thesis director, October 2026
 
 **Thesis**: *Governing AI-Agentic Development: A Spec-Driven Neuro-Symbolic Architectural Firewall* (MSc, Universidad Nacional de Colombia)
-**Tool**: DaedalusArch, branch `v1.2e` at merge commit `1543ba9`
+**Tool**: DaedalusArch, branch `v1.2e` at merge commit `c8848bc`
 **Date of this report**: 2026-10-11
-**Scope**: every result committed on `v1.2e` except E1 (SO5), which is still running (Section 4.8 is a placeholder).
+**Scope**: every result committed on `v1.2e`, including E1 (SO5, Section 4.8) and the reproduction-audit corrections of ADR-033 (prereg v21).
+**Revision**: second version. It adds the E1 results and replaces the withdrawn labelled SO4 table and the single-figure baseline precision with the ADR-033 figures.
 
 **How to read this report**
 
@@ -17,36 +18,44 @@
 
 ## 1. Executive summary
 
-**What was built and frozen.** DaedalusArch compiles an architecture spec into graph queries (Cypher fitness functions) and runs them over an Architectural Property Graph (APG) extracted from TypeScript code. A frozen LLM judge (`claude-opus-5-5`) adds two semantic dimensions. Before any experiment ran, the analysis plan, the operator catalogue, the matching rule, the judge rubric and the corpus were registered under a hash-checked pre-registration. That registration now stands at version 20, with 77 registered artefacts [corpus/prereg.json]. `run-experiment` refuses any plan whose registered artefacts changed [Docs/threats-to-validity.md, TV-01].
+**What was built and frozen.** DaedalusArch compiles an architecture spec into graph queries (Cypher fitness functions) and runs them over an Architectural Property Graph (APG) extracted from TypeScript code. A frozen LLM judge (`claude-opus-5-5`) adds two semantic dimensions. Before any experiment ran, the analysis plan, the operator catalogue, the matching rule, the judge rubric and the corpus were registered under a hash-checked pre-registration. That registration now stands at version 21, with 77 registered artefacts [corpus/prereg.json]. `run-experiment` refuses any plan whose registered artefacts changed [Docs/threats-to-validity.md, TV-01].
 
-**Main findings so far.**
+**Main findings.**
 
 1. **SO4, seeded detection (held-out, symbolic-only).**
    - Strict reading (instrument v1, rule 1.1.0, N = 75, pre-registered): recall 0.893, cell-bootstrap 95% CI 0.787 to 0.974. Seeded differential precision 0.838 (0.719 to 0.970) [results/so4-heldout/agg-strict/prf_overall.csv].
    - Corrected reading (rule 1.2.0, N = 73, post-hoc, ADR-025): recall 0.918 (0.818 to 1.000), precision 1.000, F1 0.957 (0.900 to 1.000) [results/so4-heldout/agg-corrected/prf_overall.csv].
+   - Labelled reading (rule-1.1.0 false positives adjudicated by the P1 labels, N = 73, post-hoc, ADR-033): recall 0.918 (0.818 to 1.000), precision 0.957 (0.893 to 1.000), F1 0.937 (0.878 to 0.986) [results/so4-heldout/score.json; results/so4-heldout/agg/prf_overall.csv]. It replaces the earlier labelled table (N = 75, precision 1.000, F1 0.944), which ADR-033 withdrew because it mixed two regimes.
    - Instrument v2 (post-hoc, ADR-026) gives identical seeded detection [results/so4-heldout/v2/agg/prf_overall.csv].
    - All 6 remaining misses are the dynamic `import()` operator, which is outside the extractor's coverage [results/labels/fn-causes.json].
-2. **The golden set is below its registered floor.** N = 75 scored instances against the floor of 80; 10 of the 85 registered applications failed the type-check [results/so4-heldout/agg/golden_instances.csv].
-3. **Real-code precision is low.** Baseline precision, the share of real (unseeded) findings that the labeller judged real, is 0.328, Kish-Wilson 95% CI 0.132 to 0.609. It rests on n = 24 labelled items, effective n 11.5, under instrument v2 [results/so4-heldout/agg/precision_baseline.csv]. This is the number that answers "how often is a reported violation real". It is far below the seeded differential precision, and the interval is wide.
+2. **The golden set is below its registered floor.** N = 75 scored instances against the floor of 80; 10 of the 85 registered applications failed the type-check [results/so4-heldout/agg-strict/golden_instances.csv]. The corrected and labelled readings have N = 73 [results/so4-heldout/agg/golden_instances.csv].
+3. **Real-code precision is uncertain and depends on how `uncertain` labels count.** Baseline precision is the share of real (unseeded) findings that the labeller judged real. Under instrument v2 (n = 24 labelled items, effective n 11.5), it ranges from 0.328 (registered rule, `uncertain` counted as not real; Kish-Wilson 95% CI 0.132 to 0.609) through 0.608 (`uncertain` excluded, post-hoc; 0.351 to 0.816) to 0.789 (`uncertain` counted as real, post-hoc; 0.500 to 0.933) [results/so4-heldout/agg/precision_baseline.csv]. 8 of the 24 items are `uncertain`, so the rule moves the estimate more than the sampling error does. The registered figure, 0.33, stays the one to quote first. Every reading is below the seeded differential precision, and every interval is wide.
 4. **SO2 (performance).** Every evaluated graph parses completely. On the largest base (ghostfolio, 241 files), the full evaluation takes 5.3 s against a 30 s budget for the cycle queries [results/latency-gate/so2/latency.csv]. The data-flow edge type (FLOWS_TO) is empty on all four real core bases [results/apg-ablation/so2/flows_to_stores.csv], which is a declared limitation (ADR-023).
 5. **SO3 (the LLM judge).** On the 9 E7 projects the judge failed 73 of 331 judged units. Under the registered aggregation it changed **no** verdict and no AHS value [results/e7-corpus/judge-diagnostics/judge_summary.csv; results/e7-corpus/agg-proportional/ahs_by_aggregation.csv]. With the registered judge weight of 0.08, the judge can lower the combined AHS by at most 0.08 and can never raise it. The post-hoc variants let the judge move between 0 and 8 of the 9 verdicts. The judge moves 8 only under the most aggressive one: any-fail with judge weight 2/7.
 6. **Tool comparison.** Against dependency-cruiser on the same seeds, the comparable rules agree except on two points, both explained [results/tool-comparison/recall.csv; Docs/DiagnosticRuns/tool-comparison-real-pairs-2026-10-10.md]:
    - dependency-cruiser finds the 6 dynamic-import seeds that DaedalusArch misses.
    - DaedalusArch's apparent advantage on domain-purity seeds comes from a translation defect, found post-hoc. The defect favours DaedalusArch.
 7. **Real fix commits.** Both tools flag the same 2 of 5 real fix commits through the same rules [results/real-pairs/summary.json].
+8. **SO5 (E1), LLM × spec quality.** 65 of the 72 cells were judged; the 7 others are Claude Haiku cells that failed the type-check (GEN-TYPECHECK) [results/e1-grid/agg/so5_grid.csv]. On the 47 valid Claude cells (pre-registered):
+   - spec level has an effect, Holm p = 0.0003; model has none, Holm p = 0.438; the interaction is significant, Holm p = 0.026 [results/e1-grid/agg/so5_tests.csv];
+   - the direction is reversed: `none` scores best (mean AHS 0.951), `minimal-prose` worst (0.887), `full-aac` between (0.920) [Docs/DiagnosticRuns/e1-size-analysis-2026-10-10.md §3];
+   - every cell passes (minimum AHS 0.852) [results/e1-grid/agg/so5_grid.csv].
 
-**What this supports.** The symbolic engine finds the canonical violation constructs it was designed for, reproducibly, on held-out code, and fast enough for CI use. It matches a mature import-graph checker on the rules both can express. Its extra rule families (patterns, SOLID proxies, metrics, data-flow) have no external comparator yet.
+   The post-hoc size analysis explains the direction. Without a spec, the models build small, flat projects (about 9 files) where two rules, FF-C02 and FF-P02, rarely fire. Findings per file do not differ between levels. At equal size, `full-aac` beats `minimal-prose` (Cliff's δ 0.52; 0.47 after a LOC adjustment) [results/e1-grid/agg-size/size_tests.csv]. The registered directional self-preference check is positive (p = 0.014); the vendor self-preference check is not (p = 0.173) [results/e1-grid/agg/so5_tests.csv]. Under the registered weights the judge changes no E1 verdict [results/e1-grid/agg-proportional/ahs_by_aggregation.csv].
+
+**What this supports.** The symbolic engine finds the canonical violation constructs it was designed for, reproducibly, on held-out code, and fast enough for CI use. It matches a mature import-graph checker on the rules both can express. Its extra rule families (patterns, SOLID proxies, metrics, data-flow) have no external comparator yet. In E1, the spec level changes the structure that the models build, and the AHS registers that change; a vague prose spec gives the worst score.
 
 **What it does not support yet.** It does not support these claims:
 
-- that DaedalusArch's findings on real code are mostly correct (baseline precision 0.33, wide CI);
-- that the LLM judge improves verdicts (no effect under the registered rule, and no panel validation of the judge yet);
-- any SO5 claim about LLMs and spec quality (E1 is running).
+- that DaedalusArch's findings on real code are mostly correct (baseline precision 0.33 registered, 0.33 to 0.79 across the `uncertain` rules, wide CIs);
+- that the LLM judge improves verdicts (no effect under the registered rule in E7 or E1, and no panel validation of the judge yet);
+- that specs make generated architecture worse (the reversed E1 effect runs through project size and structure);
+- any SO5 claim beyond one vendor and two tasks, or about model differences (no model effect).
 
 **Decisions needed from the director** (Section 7):
 
-- the E1 reporting plan;
-- whether to fund the judge-vs-panel labelling (P4) before or after E1;
+- how to frame the reversed E1 spec effect in the thesis, and where the Codex arm goes;
+- when to run the judge-vs-panel labelling (P4), now that its 46 items are drawn;
 - the 30-item author audit;
 - the API-robustness experiments;
 - the split into three papers;
@@ -60,9 +69,9 @@
 |---|---|---|---|
 | SO1 | Spec language and style libraries (Clean, Hexagonal, Layered) that compile to executable checks | **Done for Clean, Layered and a NestJS library; Hexagonal not built.** All 27 declared functions have a template in each of the 3 libraries. A layered acceptance run passed | [results/pre-tag/so1-metrics-53cfaed4a313.json; results/pre-tag/layered-53cfaed4a313.json; ADR-027 context] |
 | SO2 | APG extraction: coverage, latency, value of the graph over a plain AST | **Done.** Latency gate passed. Ablation run. FLOWS_TO limitation declared | [results/latency-gate/so2/gate.json; results/apg-ablation/so2/] |
-| SO3 | Symbolic rules plus a neural judge producing an Architectural Health Score (AHS) and verdicts | **Partly done.** The E7 run is complete (9 of 9 projects). The judge's effect on verdicts is zero under the registered rule. Judge-vs-panel validation (P4) has not run | [results/e7-corpus/agg/; results/e7-corpus/agg-proportional/; results/labels/judge-verdicts.json is empty] |
-| SO4 | P/R/F1 on a seeded golden dataset (80 to 120 instances) | **Done with a shortfall** (N = 75). Strict, corrected and v2 readings committed. Baseline precision labelled. Author audit pending | [results/so4-heldout/] |
-| SO5 | LLM × spec-quality study (E1) | **Running.** 72 cells: 54 Claude cells plus an 18-cell Codex arm. Pass 1 was restarted after ADR-032 | [Docs/analysis-plan.md §2; ADR-029; ADR-032] |
+| SO3 | Symbolic rules plus a neural judge producing an Architectural Health Score (AHS) and verdicts | **Partly done.** E7 (9 of 9 projects) and E1 (65 judged cells) are complete. The judge's effect on verdicts is zero under the registered rule in both. Judge-vs-panel validation (P4) is drawn but not labelled | [results/e7-corpus/agg/; results/e7-corpus/agg-proportional/; results/e1-grid/agg-proportional/; results/e1-grid/label-plan-p4/] |
+| SO4 | P/R/F1 on a seeded golden dataset (80 to 120 instances) | **Done with a shortfall** (N = 75 strict, 73 corrected and labelled). Strict, corrected, labelled and v2 readings committed. Baseline precision labelled, with `uncertain`-rule sensitivity rows. Author audit pending | [results/so4-heldout/; ADR-033] |
+| SO5 | LLM × spec-quality study (E1) | **Run, P4 pending.** 72 cells (54 Claude, 18 Codex); 65 judged, 7 Haiku cells not run (GEN-TYPECHECK). Registered tests, both aggregation passes, judge diagnostics and the post-hoc size analysis are committed. The judge-vs-panel labels (P4) are drawn but not labelled | [results/e1-grid/agg/; results/e1-grid/agg-proportional/; results/e1-grid/agg-size/; results/e1-grid/label-plan-p4/] |
 
 ---
 
@@ -70,7 +79,7 @@
 
 ### 3.1 Pre-registration and the hash gate (pre-registered)
 
-- The analysis plan, threats register, operator catalogue, matching rule, judge pre-registration, plans, specs and seeds are hashed in `corpus/prereg.json`. It is at version 20, with 77 artefacts [corpus/prereg.json].
+- The analysis plan, threats register, operator catalogue, matching rule, judge pre-registration, plans, specs and seeds are hashed in `corpus/prereg.json`. It is at version 21, with 77 artefacts [corpus/prereg.json].
 - `run-experiment` refuses a plan when a registered artefact changed, or when `prereg.json` is uncommitted or newer than the first run. Every result records its `preregVersion` [Docs/threats-to-validity.md, TV-01].
 - CI runs `--check-prereg` on every plan for pull requests to `v1.2e` [Docs/threats-to-validity.md, TV-91].
 - Each bump has a dated reason in `Docs/prereg-reasons.md`. The bumps that matter for this report:
@@ -91,8 +100,9 @@
 | P-CX | v18 | Codex arm |
 | P-TC | v19 | tool comparison |
 | P-TS | v20 | E1 tsconfig fix |
+| P-AUD | v21 | reproduction-audit corrections (post-hoc) |
 
-Sources: [Docs/prereg-reasons.md; ADR-025, ADR-026, ADR-027].
+Sources: [Docs/prereg-reasons.md; ADR-025, ADR-026, ADR-027, ADR-033].
 
 ### 3.2 Versions
 
@@ -189,7 +199,7 @@ They are listed as residual threats [Docs/threats-to-validity.md, TV-36].
 - **MS**: missed seeds without a mechanical cause (2 items).
 - **P2**: baseline violations of the E7 projects (30 items, drawn with probability proportional to stratum size). Of these, 24 come from the v2 population and 6 from the rows only v1 reports.
 - **P3**: 0 items (dropped, ADR-021 item 8.1).
-- **P4**: judge units of E1 (0 items so far, because E1 has not finished).
+- **P4**: judge units of E1 and the fixtures. 46 items are drawn (38 E1, 8 fixtures) but none is labelled yet [results/e1-grid/label-plan-p4/label-plan-summary.json].
 
 **Budget and calls.** The budget is 300 agy invocations, re-asks and retries included. Live labelling used 142 [results/labels/live-call-ledger.md].
 
@@ -211,6 +221,8 @@ Each item below was decided after some outputs were seen. Every one is reported 
 | ADR-028 | Proportional and judge-weighted variants | Their E7 readings are post-hoc. Their E1 readings are pre-registered |
 | ADR-030 | Translation defect found after the run; sensitivity variant `dts` | Tool comparison has a registered and a post-hoc reading |
 | ADR-032 | E1 extraction uses the pinned per-run tsconfig | Operational. All pass-1 E1 records discarded |
+| ADR-033 | Reproduction-audit corrections: labelled SO4 reading at N = 73, degenerate-interval flags, one interval method per table, `uncertain`-rule sensitivity rows for baseline precision | Labelled SO4 precision 1.000 → 0.957 and F1 0.944 → 0.937. Baseline precision reported as a range. No registered outcome changed |
+| (none; diagnostic note) | E1 size analysis: tests on LOC, files, per-file density, density without FF-CV05, AHS residualised on ln LOC, per-function AHS deficit | Explains the reversed E1 spec effect. No registered E1 number changed [Docs/DiagnosticRuns/e1-size-analysis-2026-10-10.md §8] |
 
 ---
 
@@ -293,9 +305,11 @@ Edges removed are from [results/apg-ablation/so2/apg_arms.csv]. On the five fixt
 | Reading | Status | N | TP | FP | FN | Recall (95% CI) | Precision (95% CI) | F1 (95% CI) | Twin specificity | Source |
 |---|---|---|---|---|---|---|---|---|---|---|
 | Strict: instrument v1, rule 1.1.0 | **pre-registered** | 75 | 67 | 13 (strict) | 8 | 0.893 (0.787 to 0.974; 40 cells) | 0.838 (0.719 to 0.970; 36 cells) | 0.865 (0.784 to 0.943) | 60/73 | [results/so4-heldout/agg-strict/prf_overall.csv; results/so4-heldout/score-strict.json] |
-| Labelled: instrument v1, scorer at rule 1.2.0, original case | registered labelling procedure; rule post-hoc | 75 | 67 | 0 (labelled) | 8 | 0.893 (0.787 to 0.974) | 1.000 (cell bootstrap 1.000 to 1.000; Clopper-Pearson if independent 0.946 to 1.000) | 0.944 (0.881 to 0.987) | 68/73 | [results/so4-heldout/agg/prf_overall.csv; results/so4-heldout/agg/twins.csv] |
-| Corrected: instrument v1, rule 1.2.0 plus style guard | **post-hoc** (ADR-025) | 73 | 67 | 0 | 6 | 0.918 (0.818 to 1.000; 39 cells) | 1.000 (bootstrap degenerate; Clopper-Pearson 0.946 to 1.000) | 0.957 (0.900 to 1.000) | 68/73 | [results/so4-heldout/agg-corrected/prf_overall.csv; results/so4-heldout/score-corrected.json] |
+| Corrected: instrument v1, rule 1.2.0 plus style guard | **post-hoc** (ADR-025) | 73 | 67 | 0 | 6 | 0.918 (0.818 to 1.000; 39 cells) | 1.000 (bootstrap degenerate; Clopper-Pearson if independent 0.946 to 1.000) | 0.957 (0.900 to 1.000) | 68/73 | [results/so4-heldout/agg-corrected/prf_overall.csv; results/so4-heldout/agg-corrected/twins.csv; results/so4-heldout/score-corrected.json] |
+| Labelled: instrument v1, guarded case, rule-1.1.0 FP set adjudicated by the P1 labels (MAT-10) | **post-hoc** (ADR-033; labelling procedure registered) | 73 | 67 | 3 (labelled; the 3 `uncertain` items) | 6 | 0.918 (0.818 to 1.000; 39 cells) | 0.957 (0.893 to 1.000; 36 cells; Wilson if independent 0.881 to 0.985) | 0.937 (0.878 to 0.986) | 60/73 | [results/so4-heldout/score.json; results/so4-heldout/agg/prf_overall.csv; results/so4-heldout/agg/twins.csv] |
 | v2: instrument v2, rule 1.2.0 plus style guard | **post-hoc** (ADR-026) | 73 | 67 | 0 | 6 | 0.918 (0.818 to 1.000) | 1.000 | 0.957 (0.900 to 1.000) | 68/73 | [results/so4-heldout/v2/agg/prf_overall.csv; results/so4-heldout/v2/score.json] |
+
+**Withdrawn table.** The first version of this report gave a labelled row at N = 75 with precision 1.000 and F1 0.944. It scored the unguarded case under rule 1.2.0, so the P1 labels never entered a precision. ADR-033 withdrew it; the labelled row above replaces it [ADR-033 item 1; Docs/analysis-plan.md §14 item 1].
 
 **Strata** (corrected reading unless stated) [results/so4-heldout/agg-corrected/prf_overall.csv; results/so4-heldout/agg-strict/prf_overall.csv]:
 
@@ -321,7 +335,7 @@ The project cluster bootstrap is descriptive only, because there are 7 projects 
 | MO-SO02 | 2 | 0 | none |
 | MO-X01 | 0 | 6 | 6 missed |
 
-**N against the floor of 80.** 75 scored golden instances, 5 below the floor. The registered total was 85; 10 yielded no scored instance [results/so4-heldout/agg/golden_instances.csv]. The 10 losses were type-check rejections: MO-SO02 5, MO-X01 2, MO-P01 1, MO-SO01 1, MO-DF01 1. Each was diagnosed as an infeasible site, not an operator defect [ADR-024]. The corrected reading has N = 73 [ADR-025 item 2]. Under ADR-019 item 1, k stays frozen and the shortfall is reported as a deviation.
+**N against the floor of 80.** 75 scored golden instances, 5 below the floor. The registered total was 85; 10 yielded no scored instance [results/so4-heldout/agg-strict/golden_instances.csv]. The 10 losses were type-check rejections: MO-SO02 5, MO-X01 2, MO-P01 1, MO-SO01 1, MO-DF01 1. Each was diagnosed as an infeasible site, not an operator defect [ADR-024]. The corrected and labelled readings have N = 73, 7 below the floor [ADR-025 item 2; results/so4-heldout/agg/golden_instances.csv]. Under ADR-019 item 1, k stays frozen and the shortfall is reported as a deviation.
 
 **Causes of the misses.**
 
@@ -330,32 +344,34 @@ The project cluster bootstrap is descriptive only, because there are 7 projects 
 
 **Twins.**
 
-- **Specificity 68/73 = 0.932** [results/so4-heldout/agg/twins.csv].
+- **Specificity 68/73 = 0.932** under the corrected reading [results/so4-heldout/agg-corrected/twins.csv]. The labelled reading uses the rule-1.1.0 diff and gives 60/73, the same as the strict reading [results/so4-heldout/agg/twins.csv].
 - **Three dirty twins** (FF-CV05 on `index.ts` in nestjslatam__ddd) are a twin-site artefact: the twin edit turns a barrel into a non-barrel [ADR-026 item 3].
 - **Two dirty twins** (valex MO-S01n) are real upward violations under a layered spec, so these twins are not true negatives [ADR-025 effect].
-- **The strict reading's 60/73** is lower because MO-CV02n renames re-keyed old violations [ADR-025 context].
+- **The strict and labelled readings' 60/73** is lower because MO-CV02n renames re-keyed old violations [ADR-025 context].
 - **Registered caveat:** twin specificity holds by construction of the twin preconditions. It is not a false-alarm rate on real code [Docs/analysis-plan.md §10 B2].
 
 **Interpretation.**
 
 - On held-out code, every in-coverage seed is detected under the corrected reading. Under the strict reading, 2 seeds and 13 false positives come from defects in the oracle and scorer, which were fixed after they were seen.
-- The registered strict figures (recall 0.893, precision 0.838) must be quoted first. The corrected figures go beside them, labelled post-hoc.
+- The registered strict figures (recall 0.893, precision 0.838) must be quoted first. The corrected and labelled figures go beside them, labelled post-hoc. They are two independent corrections of the same 13 strict false positives: MAT-04a removes them by rule (precision 1.000), and the labeller judges 10 of them real and leaves 3 `uncertain` (precision 0.957) [ADR-033 item 1].
 - Recall is **construct sensitivity**: whether the query matches the canonical construct that the same author wrote. It is not detection of naturally occurring violations [Docs/analysis-plan.md §10 B1].
 - The unseen E7 stratum has a lower point estimate (0.879) than the core (0.950), with overlapping intervals.
 
 ### 4.4 Real-code precision and the FP/FN taxonomy from labelling
 
-**Baseline precision** (registered secondary outcome; labeller `gemini-3.1-pro-high`; frame = the 9 E7 projects' baseline violations) [results/so4-heldout/agg/precision_baseline.csv]:
+**Baseline precision** (registered secondary outcome; labeller `gemini-3.1-pro-high`; frame = the 9 E7 projects' baseline violations; P2 drawn from plan `e7-corpus`) [results/so4-heldout/agg/precision_baseline.csv]:
 
-| Row | Instrument | n | TP-class | Uncertain | Effective n | Precision | 95% CI (Kish-Wilson) |
+The registered rule counts `uncertain` as not real [Docs/analysis-plan.md §3]. ADR-033 added two post-hoc sensitivity rules: `uncertain` counted as real, and `uncertain` excluded from numerator and denominator [Docs/analysis-plan.md §14 item 4]. A third of the items are `uncertain`, so the estimate should be read as a range.
+
+| Row | Instrument | n | TP-class | Uncertain | Uncertain as not real (**pre-registered**) | Uncertain excluded (**post-hoc**) | Uncertain as real (**post-hoc**) |
 |---|---|---|---|---|---|---|---|
-| Overall | v2 (post-hoc instrument) | 24 | 11 | 8 | 11.5 | 0.328 | 0.132 to 0.609 |
-| Overall | v1 (registered instrument) | 30 | 11 | 11 | 15.8 | 0.264 | 0.110 to 0.510 |
-| Tier: core | v2 | 10 | 7 | 3 | 8.3 | 0.591 | 0.285 to 0.840 |
-| Tier: E7 | v2 | 14 | 4 | 5 | 6.4 | 0.212 | 0.047 to 0.593 |
-| v1-only set alone | v1 | 6 | 0 | 3 | 5.4 | counts only | none |
+| Overall | v2 (post-hoc instrument) | 24 | 11 | 8 | 0.328 (0.132 to 0.609) | 0.608 (0.351 to 0.816; n 16) | 0.789 (0.500 to 0.933) |
+| Overall | v1 (registered instrument) | 30 | 11 | 11 | 0.264 (0.110 to 0.510) | 0.508 (0.287 to 0.725; n 19) | 0.744 (0.498 to 0.895) |
+| Tier: core | v2 | 10 | 7 | 3 | 0.591 (0.285 to 0.840) | counts only (n 7) | 1.000 (Clopper-Pearson-Kish 0.631 to 1.000) |
+| Tier: E7 | v2 | 14 | 4 | 5 | 0.212 (0.047 to 0.593) | counts only (n 9) | 0.696 (0.331 to 0.914) |
+| v1-only set alone | v1 | 6 | 0 | 3 | counts only | none | none |
 
-`uncertain` counts as not real, as registered [Docs/analysis-plan.md §3]. Per-function rows have n ≤ 6 and give counts only.
+Intervals are Kish-Wilson 95% unless stated, on effective n 11.5 (v2 overall), 15.8 (v1 overall), 8.3 (core) and 6.4 (E7). Per-function rows have n ≤ 6 and give counts only. The tier rows now carry the tier estimate, not the overall one (ADR-033 item 4).
 
 **Labeller reliability.** Run-vs-run agreement 0.875, n = 64, Wilson 0.772 to 0.935. Cohen's κ 0.774 (bootstrap 0.617 to 0.913). AC1 0.859. Taxonomy rule: `as-registered` [results/so4-heldout/agg/agreement.csv]. Under the registered wording this is **order sensitivity of one model**, not inter-rater reliability [Docs/analysis-plan.md §10 B3].
 
@@ -390,7 +406,8 @@ The project cluster bootstrap is descriptive only, because there are 7 projects 
 
 **Interpretation.**
 
-- About one in three real-code findings is judged real (0.33 under v2, 0.26 under v1), with intervals that run from about 0.1 to 0.6. Precision on the core tier (0.59) is higher than on the E7 tier (0.21), but n is 10 and 14.
+- Under the registered rule, about one in three real-code findings is judged real (0.33 under v2, 0.26 under v1), with intervals that run from about 0.1 to 0.6. Counting the `uncertain` items as real raises this to 0.79 (v2) and 0.74 (v1); excluding them gives 0.61 and 0.51. The honest summary is "between about a third and about four fifths, depending on the `uncertain` items", and the registered 0.33 is the figure to quote first.
+- Precision on the core tier (0.59) is higher than on the E7 tier (0.21), but n is 10 and 14.
 - The false alarms come from metric and convention proxies, type-only imports, and spec layer mapping, not from the structural import rules.
 - Instrument v2 lowered baseline volume by 22.5% on the 7 bases. That is not a validity gain: v2's precision interval overlaps v1's [ADR-026 rationale; Docs/threats-to-validity.md, TV-97].
 
@@ -509,34 +526,161 @@ Setup: 5 author-mined before/after pairs; 4 from raouf-b-dev__ecommerce-store-ap
 - p5 is a module-wiring change that no rule reads.
 - With four pairs from one repository, this is a set of cases, not an estimate [Docs/threats-to-validity.md, TV-106].
 
-### 4.8 SO5 / E1: placeholder (still running)
+### 4.8 SO5 / E1: LLM generators × spec quality
 
-E1 is not reported here. The run is in progress, and `results/e1-grid` was deliberately not read for this report.
+![E1 mean AHS by model and spec level](figures/fig5-e1-ahs-model-spec.svg)
 
-What is fixed in advance [Docs/analysis-plan.md §2, §6, §6.1, §12; ADR-029; ADR-032]:
+#### 4.8.1 Design and yield (pre-registered)
 
-**Grid.** 72 cells:
+**Grid** [Docs/analysis-plan.md §2, §6, §6.1; ADR-029]:
 
-- 3 Claude models × 3 spec levels (`none`, `minimal-prose`, `full-aac`) × 2 tasks × 3 runs = 54 registered cells;
-- plus 18 Codex cells (`gpt-5.6-terra`), an added arm registered before any of its cells ran.
+- 54 registered Claude cells: 3 models (`claude-haiku-4-5`, `claude-sonnet-5-5`, `claude-opus-5-5`) × 3 spec levels (`none`, `minimal-prose`, `full-aac`) × 2 tasks (`task-management`, `order-fulfilment`) × 3 runs.
+- 18 Codex cells (`gpt-5.6-terra`, Codex CLI 0.162.1), an added arm registered at prereg v18 before any of its cells ran. Every registered test stays on the Claude cells; the Codex cells enter only the vendor families.
+- Evaluation: full mode, instrument v2, registered neural aggregation, under prereg v20 after the ADR-032 tsconfig fix.
 
-**Primary analysis.** The registered AHS of each valid cell. `ahsDeterministic` is co-primary for the model effect. Holm-corrected permutation tests and Cliff's δ are used. The directional self-preference check and the vendor self-preference check are pre-registered.
+**Yield** [results/e1-grid/agg/so5_grid.csv]:
 
-**Pre-registered for E1 (not post-hoc, unlike E7):**
+| Model | Coordinates | Judged (`accepted`) | Not run | Code |
+|---|---|---|---|---|
+| claude-opus-5-5 | 18 | 18 | 0 | none |
+| claude-sonnet-5-5 | 18 | 18 | 0 | none |
+| claude-haiku-4-5 | 18 | 11 | 7 | GEN-TYPECHECK (the generated project failed the type-check of record) |
+| gpt-5.6-terra (Codex arm) | 18 | 18 | 0 | none |
+| **Total** | **72** | **65** | **7** | |
 
-- the proportional and judge-weighted variants;
-- the judge diagnostics, coding frame 1.1.0.
+The valid Claude cells number 47, and the Haiku cells per spec level are 3 (`none`), 4 (`minimal-prose`) and 4 (`full-aac`) [Docs/DiagnosticRuns/e1-size-analysis-2026-10-10.md §3]. Valid-generation yield differs by model (exploratory family, Holm p = 0.0003; Haiku − Opus = −0.39) and not by spec level (Holm p = 1.000) [results/e1-grid/agg/so5_tests.csv, family `secondary:valid_generation_yield`].
 
-**Operational post-hoc fix (ADR-032).** E1 trees are extracted with the pinned per-run tsconfig. All pass-1 records were discarded and pass 1 re-runs under prereg v20.
+**Every judged cell passes.** The lowest `ahsCombined` is 0.852 against the 0.80 pass threshold, and the structural AVR (dependency direction, cycles) is 0 in every cell [results/e1-grid/agg/so5_grid.csv; results/e1-grid/agg/so5_tests.csv, family `secondary:avr_structural`]. E1 is therefore a study of differences inside the pass band, not of pass and fail.
 
-**Known confounds to state with every E1 effect** [Docs/analysis-plan.md §10 B5, B10]:
+#### 4.8.2 Registered tests (Claude arm, n = 47)
 
-- `full-aac` shows the generator the evaluator spec;
-- tier is confounded with model generation;
-- the judge is a Claude model;
-- the Codex arm differs in harness, confinement and time.
+| Outcome | Status | Model, Holm p | Spec level, Holm p | Interaction, Holm p | Source |
+|---|---|---|---|---|---|
+| `ahsCombined` | **pre-registered, primary (confirmatory)** | 0.438 | **0.0003** | **0.026** | [results/e1-grid/agg/so5_tests.csv, family `primary:ahsCombined`] |
+| `ahsDeterministic` | **pre-registered**; co-primary for the model effect, exploratory otherwise | 0.753 | 0.0003 | 0.044 | [same file, family `co-primary:ahsDeterministic`] |
+| `violations_per_kloc` | **pre-registered, exploratory secondary** | 0.146 | 0.0003 | 0.0032 | [same file, family `secondary:violations_per_kloc`] |
 
-*Section to be completed when E1 finishes: valid-generation yield per model × spec level; AHS grid with intervals; registered tests; self-preference checks; judge variants (pre-registered); P4 judge-vs-panel agreement.*
+**Spec-level pairs** (`ahsCombined`; mean difference, descriptive cluster-bootstrap 95% interval, Cliff's δ) [results/e1-grid/agg/so5_tests.csv]:
+
+| Contrast | Difference | 95% interval (descriptive) | Cliff's δ |
+|---|---|---|---|
+| full-aac − none | −0.031 | −0.044 to −0.019 | −0.54 |
+| minimal-prose − none | −0.064 | −0.071 to −0.058 | −0.93 |
+| full-aac − minimal-prose | +0.033 | +0.019 to +0.047 | +0.52 |
+
+**Mean `ahsCombined` per level** (Claude arm): `none` 0.951, `minimal-prose` 0.887, `full-aac` 0.920 [Docs/DiagnosticRuns/e1-size-analysis-2026-10-10.md §3; results/e1-grid/agg-size/size_levels.csv].
+
+**Reading.**
+
+- The spec-level effect is significant, but in the reverse of the hypothesised direction: the projects generated with no spec score best, and the prose spec scores worst.
+- There is no model effect on either co-primary field. Opus, Sonnet and Haiku differ by at most 0.014 in mean `ahsCombined` [results/e1-grid/agg/so5_tests.csv, model pairs].
+- The interaction (p = 0.026) is visible in the figure: Opus and Sonnet follow the order none > full-aac > minimal-prose, while Haiku follows none > minimal-prose > full-aac (0.929, 0.910, 0.895) with wide, overlapping ranges [Docs/DiagnosticRuns/e1-size-analysis-2026-10-10.md §3]. With 3 or 4 Haiku cells per level, this is not interpreted further.
+
+#### 4.8.3 The size analysis (post-hoc, except where marked)
+
+The analysis is a diagnostic note on committed data, with no new run or model call. It reproduces all 27 registered rows of the three families above to the last digit [Docs/DiagnosticRuns/e1-size-analysis-2026-10-10.md §2; results/e1-grid/agg-size/size_tests.csv, `reproduces_registered`]. Every test in it that is not one of those rows is **post-hoc** (decided on 2026-10-10, after the E1 results were known), each in its own Holm family of three with no correction across families [same note, §8].
+
+**1. No-spec projects are small and flat.** On the Claude arm, the mean file count is 9.1 for `none`, 27.4 for `minimal-prose` and 29.6 for `full-aac` [results/e1-grid/agg-size/size_levels.csv]. The spec level changes the file count with Cliff's δ 1.00 (none vs minimal-prose) and 1.00 (none vs full-aac) (post-hoc test, Holm p 0.0003) [results/e1-grid/agg-size/size_tests.csv, outcome `files`].
+
+**2. Two functions drive the gap: FF-C02 (module fan-out) and FF-P02 (dependency inversion).** A function lowers the AHS once when it fires, however many findings it has. So the AHS records which functions fire, not how many findings there are [Docs/DiagnosticRuns/e1-size-analysis-2026-10-10.md §5].
+
+| Function | Fires on `none` | Fires on `minimal-prose` | Fires on `full-aac` | Share of the 0.064 gap, minimal-prose − none | Share of the 0.031 gap, full-aac − none |
+|---|---|---|---|---|---|
+| FF-C02 module fan-out | 0 of 15 | 15 of 16 | 5 of 16 | +0.028 | +0.009 |
+| FF-P02 dependency inversion | 2 of 15 | 11 of 16 | 6 of 16 | +0.025 | +0.011 |
+| FF-C06 abstraction ratio | 0 of 15 | 4 of 16 | 2 of 16 | +0.008 | +0.004 |
+| FF-CV05 test-file pairing | 15 of 15 | 16 of 16 | 16 of 16 | 0 | 0 |
+
+Sources: firing counts [results/e1-grid/agg-size/size_functions.csv, `cells_fired`]; gap shares [Docs/DiagnosticRuns/e1-size-analysis-2026-10-10.md §5, from `size_functions.csv` `ahs_deficit_mean`]. The decomposition is post-hoc. It agrees with the pre-registered exploratory dimension tests: `avr_coupling` spec Holm p 0.0003 and `avr_pattern` 0.009 [results/e1-grid/agg/so5_tests.csv].
+
+**3. Findings per file are the same at every level.** Deterministic findings per file are 1.14 (`none`), 1.15 (`minimal-prose`) and 1.15 (`full-aac`); the post-hoc spec test gives Holm p 0.95 [results/e1-grid/agg-size/size_levels.csv; results/e1-grid/agg-size/size_tests.csv, outcome `violations_deterministic_per_file`]. Without FF-CV05 the result is the same (Holm p 0.77) [same file, outcome `violations_per_file_excl_fpat_pattern`]. Per KLOC (the registered exploratory density), `none` has about half the findings of the other two levels, 27.0 against 58.1 and 57.0, because its files are about twice as long [Docs/DiagnosticRuns/e1-size-analysis-2026-10-10.md §3, §6].
+
+**4. The clean comparison: `full-aac` against `minimal-prose`.** These two levels have nearly the same size (files δ 0.12, LOC δ 0.19, both post-hoc) and the same density (δ −0.09, registered exploratory) [results/e1-grid/agg-size/size_tests.csv]. `full-aac` still scores higher on the registered primary field: +0.033, δ **0.52** [results/e1-grid/agg/so5_tests.csv]. After adjusting the AHS for ln LOC (post-hoc) the gap is +0.034, δ **0.47** [results/e1-grid/agg-size/size_tests.csv, outcome `ahsCombined_resid_lnloc`]. This is the one spec contrast that size cannot explain, and it favours the architecture-as-code spec over the prose spec.
+
+**5. Size is a mechanism, not a confounder.** The spec prompt causes the size difference, so size lies on the causal path and no file-count adjustment is identifiable. After the LOC adjustment the spec effect remains (Holm p 0.0003, post-hoc); `full-aac` − `none` shrinks from δ −0.54 to −0.28 [results/e1-grid/agg-size/size_tests.csv; Docs/DiagnosticRuns/e1-size-analysis-2026-10-10.md §6]. Within a level, size does not predict the AHS consistently: in `full-aac` the larger projects score higher (files–AHS Pearson r +0.59, descriptive) [results/e1-grid/agg-size/size_correlations.csv].
+
+**Recommended framing for the thesis.** The spec level changes the structure that the models build. A spec makes the generator build more modules and layers, which gives the coupling and dependency-inversion rules places to fire; a 9-file `none` project gives them little to check. The AHS scores the smaller structure as cleaner, which does not show that it is the better design. Between the two spec styles, at equal size, the vague prose spec is worst and the architecture-as-code spec is better. The thesis should **not** claim that specs make architecture worse.
+
+#### 4.8.4 Failure profile
+
+Symbolic findings by registered `FPAT-*` family, Claude arm, are unlabelled and unweighted (the P3 labels were dropped, ADR-021 item 8.1) [Docs/analysis-plan.md §6; results/e1-grid/agg/so5_patterns.csv, `basis = symbolic`]:
+
+- **FF-CV05 (test-file pairing) makes 83% of the symbolic findings** on the Claude arm: 1 003 of 1 208 [Docs/DiagnosticRuns/e1-size-analysis-2026-10-10.md §5; results/e1-grid/agg-size/size_functions.csv]. Over both arms the FPAT-PATTERN family, which on E1 holds only FF-CV05, has 1 184 of 1 423 symbolic findings (derived: 1 184 ÷ (1 184 + 183 + 56) = 0.832) [results/e1-grid/agg/so5_patterns.csv].
+- It fires once per source file without a test file: 0.96 findings per file on the Claude arm and 1.00 on the Codex arm [Docs/DiagnosticRuns/e1-size-analysis-2026-10-10.md §5].
+- **It does not move the AHS.** It fires in all 47 Claude cells and costs each one the same 0.0125, so it contributes 0 to every spec contrast [results/e1-grid/agg-size/size_functions.csv, `cells_fired`, `ahs_deficit_mean`].
+- The registered FPAT family label and the AVR dimension disagree for two functions: FF-CV05 is family FPAT-PATTERN but dimension `convention`, and FF-P02 is family FPAT-SOLID but dimension `pattern` [same note, §5]. Raw counts by family therefore mostly count files.
+
+The registered exploratory open coding of labeller rationales (§6) has not run, because it needs the P4 and P3 labels.
+
+#### 4.8.5 The judge in E1
+
+Unlike E7, every judge reading below is **pre-registered** for E1: the proportional variant (§12.2), the judge-weighted variant (§12.5), the any-fail re-score (§12.3) and coding frame 1.1.0 (§12.4) were all registered before any E1 run [Docs/analysis-plan.md §12; results/e1-grid/agg-proportional/ahs_by_aggregation.csv, `reading` and `reading_judge_weighted` = `pre-registered` on all 65 rows]. They are sensitivity analyses: descriptive, with no test and no Holm family.
+
+**Judge effect under every reading and weight** (65 judged cells) [results/e1-grid/agg-proportional/ahs_by_aggregation.csv]:
+
+| Weights | Aggregation | Judge mattered (of 65) | Verdicts after | Range of delta_judge | Bound |
+|---|---|---|---|---|---|
+| Registered (W_n = 0.08) | registered (majority of units) | 0 | 65 pass | −0.029 to 0 | [−0.08, 0] |
+| Registered | proportional | 0 | 65 pass | −0.032 to 0 | [−0.08, 0] |
+| Registered | any-fail | 0 | 65 pass | −0.068 to 0 (derived: any-fail AHS minus judge-blind AHS) | [−0.08, 0] |
+| Judge-weighted (2/7) | registered | 0 | 65 pass | −0.100 to 0 | [−2/7, 0] |
+| Judge-weighted | proportional | 0 | 65 pass | −0.114 to 0 | [−2/7, 0] |
+| Judge-weighted | any-fail | **8** | 57 pass, **8 warning** | −0.243 to 0 | [−2/7, 0] |
+
+The 8 cells that move to warning are 6 Haiku cells (2 per spec level, all `order-fulfilment`) and 2 Codex cells [same file, `judge_mattered_jw_any_fail`]. The registered-vs-proportional comparison changes no verdict. The dilution artefact is at most 0.015 (`delta_dilution`), because the symbolic AVRs are low [same file].
+
+**Judge units and diagnostics** [results/e1-grid/judge-diagnostics/judge_summary.csv]:
+
+- FF-N01 (architectural integrity) judged 300 units and failed 36; FF-N02 (intent alignment) judged 933 and failed 19. No unit was invalid, split or unstable.
+- Every one of the 55 failing units is on a file that a symbolic rule also flags (`units_fail_rules_also_flag`).
+- Fails concentrate on two generators: Haiku 33 of 209 valid units, `gpt-5.6-terra` 18 of 230, Opus 2 of 450, Sonnet 2 of 344 (derived: sums of `units_fail` and `units_valid` by generator).
+- **Coding frame 1.1.0 (pre-registered for E1).** Pooled over cells, **none** of the 7 criteria reaches the pre-declared discrimination threshold of 0.3; the highest is JC-N02-TRANSPORT at 0.258 [results/e1-grid/judge-diagnostics/judge_discrimination.csv, rows `*`]. 25 of 455 per-cell rows pass it (derived from the same file, `informative`). On E7 one criterion passed (JC-N01-DUP, 0.323, post-hoc); on E1 it reaches 0.225.
+- 15 FF-N02 units have no cassette join by project id, because the cassettes are content-keyed and shared across cells [aidlc-docs/audit.md, E1 grid entry].
+
+**Self-preference checks** [results/e1-grid/agg/so5_tests.csv]:
+
+| Check | Status | Statistic (mean d difference) | p (one-sided) | Cliff's δ | Result |
+|---|---|---|---|---|---|
+| Directional: Opus-written vs other Claude-written cells, d = `ahsNeuronal` − `ahsDeterministic` | **pre-registered**, family of one | +0.083 | **0.014** | 0.20 | positive and significant |
+| Vendor: Claude-written vs GPT-written cells | **pre-registered**, family of one | +0.033 | 0.173 | 0.28 | not significant |
+
+- Under the registered wording, the directional result "is reported as evidence of judge self-preference" [Docs/analysis-plan.md §6]: the Opus judge scores Opus-written code more leniently, relative to the rules, than code from the other Claude models.
+- The pattern behind it calls for care. Mean d is +0.083 for Opus, +0.088 for Sonnet and −0.144 for Haiku (derived from [results/e1-grid/agg/so5_grid.csv], `ahs_neuronal` − `ahs_deterministic`). Opus and Sonnet both have `ahsNeuronal` = 1.000 in every cell. The contrast is therefore driven by the Haiku cells, and the data cannot separate a preference for Opus from a judge that sees more problems in Haiku code than the rules do.
+- The vendor check is not significant, and the plan states in advance that a null here is not evidence of no self-preference: one GPT model and 18 cells give low power [Docs/analysis-plan.md §6.1].
+- The model effect on `ahsNeuronal` is large (exploratory, Holm p 0.0003), while the co-primary `ahsDeterministic` shows none (p 0.753). Under ADR-020 item 7, a model effect seen only in the judge-bearing field is not read as a model effect [results/e1-grid/agg/so5_tests.csv; Docs/analysis-plan.md §6].
+
+**Judge validation (P4).** The P4 judge-vs-panel sample is drawn: 46 items (38 E1, 8 fixtures), with a planned half-width of ±0.186 at p = 0.5 for the E1 headline [results/e1-grid/label-plan-p4/label-plan-summary.json]. No item has been labelled, so every judge statement above remains conditional on that validation.
+
+#### 4.8.6 The Codex arm (exploratory)
+
+The Codex arm is one model, `gpt-5.6-terra`, with 18 of 18 cells valid [results/e1-grid/agg/so5_grid.csv]. It enters only the vendor families; its spec-level tests are post-hoc, a family of one each [Docs/analysis-plan.md §6.1; Docs/DiagnosticRuns/e1-size-analysis-2026-10-10.md §7].
+
+| Spec level | Mean `ahsCombined` | Files | Source |
+|---|---|---|---|
+| none | 0.926 | 6.3 | [Docs/DiagnosticRuns/e1-size-analysis-2026-10-10.md §7; results/e1-grid/agg/so5_grid.csv] |
+| minimal-prose | **0.957** | 10.5 | same |
+| full-aac | 0.942 | 13.3 | same |
+
+- **On Codex, `minimal-prose` is best and `none` is worst**: the opposite of the Claude arm. The post-hoc spec test gives p 0.028 [results/e1-grid/agg-size/size_tests.csv, arm `codex`, outcome `ahsCombined`].
+- On `none`, Codex loses AHS through the SOLID proxies (FF-SO01 and FF-SO02, each firing in 2 of 6 cells) and through judge integrity [Docs/DiagnosticRuns/e1-size-analysis-2026-10-10.md §7].
+- Codex projects are smaller and grow less with the spec (6 to 13 files) [same note].
+- The vendor contrast (exploratory) favours `gpt-5.6-terra` over every Claude model: `ahsCombined` p 0.012, differences +0.018 to +0.032 [results/e1-grid/agg/so5_tests.csv, family `vendor:ahsCombined`]. One OpenAI model makes vendor and model the same contrast, so this is not a vendor effect in general [Docs/analysis-plan.md §6.1].
+- With 6 cells per level, the arm shows only that the Claude-arm direction is not universal. It supports no claim.
+
+#### 4.8.7 Limits of E1
+
+1. **n per cell.** At most 3 runs per cell, and 47 valid Claude cells in all. The Haiku cells number 3 or 4 per level, because 7 of its 18 failed the type-check. The pairwise intervals resample 3 replicates within each cell and are descriptive only [Docs/analysis-plan.md §6].
+2. **Two tasks.** Only `task-management` and `order-fulfilment` were generated. Task is a blocking factor, not a sample of tasks, so no claim extends to other tasks.
+3. **A single vendor for the confirmatory tests.** Every registered test is on Claude models, judged by a Claude model. The Codex arm is one model and exploratory [ADR-029; Docs/analysis-plan.md §6.1].
+4. **The ADR-032 tsconfig fix (post-hoc, operational).** Pass 1 first ran without a tsconfig rule for E1 trees: 42 records were rejected, 5 not run and 1 accepted before it was stopped. All pass-1 records were discarded and pass 1 re-ran under prereg v20 with the pinned per-run tsconfig for every cell [ADR-032; Docs/prereg-reasons.md, P-TS].
+5. **The usage-limit misclassification during pass 1.** In the re-run, one usage window was hit at cell 35. The init-probe usage limit was classified as `transport-error`, not as the registered usage-limit pause. The same command was re-run with the cassettes reused, and it gave 72 records: 65 accepted, 7 not run [aidlc-docs/audit.md, E1 grid entry]. No cell was lost, but the stop was not recorded through the registered pause path, and the classifier patterns remain unverified [Docs/threats-to-validity.md, TV-38].
+6. **Known confounds**, stated with every E1 effect [Docs/analysis-plan.md §10 B5, B10]:
+   - `full-aac` shows the generator the evaluator spec;
+   - tier is confounded with model generation (Haiku 4.5 against the 5.5 models);
+   - the judge is a Claude model;
+   - the Codex arm differs in harness, confinement and time.
+7. **Every cell passes.** The AHS differences lie between 0.852 and 0.988, inside the pass band, and the structural rules never fire. The study measures differences in coupling and pattern proxies, not architectural violations that block a merge.
+8. **No panel validation of the judge** (P4 not labelled) and **no open coding** yet.
 
 ---
 
@@ -555,11 +699,11 @@ What is fixed in advance [Docs/analysis-plan.md §2, §6, §6.1, §12; ADR-029; 
    - One Gemini model was run twice. κ 0.774 measures order sensitivity, not agreement between independent raters [results/so4-heldout/agg/agreement.csv; TV-31].
    - The labeller sees a 31-line window. It cannot see the APG excerpt that the judge sees [TV-34, TV-94].
    - The author audit, the only human check, is pending and is not blind to the rule [TV-33].
-4. **The post-hoc fixes.** Matching rule 1.2.0, the style guard, instrument v2, the FF-CV06 template fix, the `dts` translation variant, the E7 judge readings and the ADR-032 extraction fix were all decided after outputs were seen (Section 3.8). The registered readings stay primary and are reported first.
+4. **The post-hoc fixes.** Matching rule 1.2.0, the style guard, instrument v2, the FF-CV06 template fix, the `dts` translation variant, the E7 judge readings, the ADR-032 extraction fix, the ADR-033 audit corrections and the E1 size analysis were all decided after outputs were seen (Section 3.8). The registered readings stay primary and are reported first.
 5. **v1 vs v2.**
    - v2 removes 240 baseline violations on the 7 bases (1066 → 826) by role conventions chosen after a spot check named the noisy rules [ADR-026 item 8; TV-97].
    - It exempts some files that hold real logic: 3 named files, and 17 of 102 `*.module.ts` files [ADR-026 item 5].
-   - SO4 and SO2 report v1 as primary. E7 and E1 run on v2 with a v1 sensitivity row.
+   - SO4 and SO2 report v1 as primary. E7 and E1 run on v2. E7 has a v1 sensitivity row; the E1 v1 density row needs a symbolic re-evaluation and is not produced [Docs/DiagnosticRuns/e1-size-analysis-2026-10-10.md, header].
 6. **The judge weight bound.** With W_n = 0.08 the judge cannot raise an AHS and can lower it by at most 0.08 [Docs/analysis-plan.md §12.3]. Under the registered design the judge therefore cannot fulfil its stated role of moving verdicts. The judge-weighted variant (2/7) is a sensitivity analysis, not a redesign.
 7. **No Hexagonal library.** SO1 promises Clean, Hexagonal and Layered. Only Clean, Layered and NestJS exist, and hexagonal projects are mapped to `clean-architecture` [ADR-027 context; Docs/corpus.md].
 8. **The dynamic-import gap.** The extractor ignores `import()`. All 6 MO-X01 seeds are missed [results/labels/fn-causes.json], and dependency-cruiser finds them [results/tool-comparison/recall.csv]. Real code that loads layers lazily is invisible to DaedalusArch's structural rules.
@@ -571,8 +715,10 @@ What is fixed in advance [Docs/analysis-plan.md §2, §6, §6.1, §12; ADR-029; 
    - Two canary channels of the judge are not positively controlled.
    - Runtimes come from a shared machine.
 
-   Sources: [results/so4-heldout/agg/golden_instances.csv; Docs/analysis-plan.md §5; ADR-023; TV-36, TV-52, TV-105].
-10. **Two stale register entries.** `Docs/threats-to-validity.md` still reads "No run has happened yet" in its §3 deviation table. TV-17 still says the floor is met (N = 85). Both predate the SO4 run. They should be updated by a registered bump before the thesis cites the register.
+   Sources: [results/so4-heldout/agg-strict/golden_instances.csv; Docs/analysis-plan.md §5; ADR-023; TV-36, TV-52, TV-105].
+10. **Baseline precision depends on an unregistered choice.** 8 of the 24 v2 items are `uncertain`. Counting them as not real (registered), excluded or real (both post-hoc) gives 0.33, 0.61 or 0.79 [results/so4-heldout/agg/precision_baseline.csv]. Only the author audit or a second labeller can narrow this.
+11. **E1 limits** (Section 4.8.7): at most 3 runs per cell and 3 or 4 valid Haiku cells per level; 2 tasks; one vendor in the confirmatory tests; the ADR-032 fix; the usage-limit misclassification during pass 1; every cell in the pass band.
+12. **The stale register entries named in the first version are fixed.** ADR-033 item 5 replaced the "No run has happened yet" row of the threats register §3 and corrected TV-17 (floor not met: 75 strict, 73 corrected and labelled). ADR-033 item 6 records ADR-031 as withdrawn [ADR-033; Docs/threats-to-validity.md, TV-17, TV-108].
 
 ---
 
@@ -581,34 +727,40 @@ What is fixed in advance [Docs/analysis-plan.md §2, §6, §6.1, §12; ADR-029; 
 **Supported, with the stated caveats.**
 
 - The registered pipeline (spec → compiled queries → APG → scores) runs reproducibly on 9 real projects and the fixtures. Every run was accepted, and the replays are byte-identical [results/e7-corpus/agg/ahs_by_project.csv; results/labels/live-call-ledger.md].
-- On held-out code, the symbolic rules detect the seeded canonical constructs that are in coverage: recall 0.971 strict and 1.000 corrected [results/so4-heldout/agg-strict/prf_overall.csv; results/so4-heldout/agg-corrected/prf_overall.csv]. They stay silent on most twins (68/73).
+- On held-out code, the symbolic rules detect the seeded canonical constructs that are in coverage: recall 0.971 strict and 1.000 corrected [results/so4-heldout/agg-strict/prf_overall.csv; results/so4-heldout/agg-corrected/prf_overall.csv]. Overall, the registered strict reading gives recall 0.893 and precision 0.838 (N = 75); the post-hoc labelled reading gives recall 0.918, precision 0.957 and F1 0.937 (N = 73) [results/so4-heldout/score.json; results/so4-heldout/agg/prf_overall.csv]. The rules stay silent on most twins (68/73 corrected, 60/73 strict).
 - Latency is compatible with CI use on projects up to about 240 files: 5.3 s total [results/latency-gate/so2/latency.csv].
 - The type-checker edges of the APG are needed for the pattern rules. Without them FF-P02 and FF-P04 stop firing [results/apg-ablation/so2/apg_ablation.csv].
 - On import-graph rules, DaedalusArch is equivalent to dependency-cruiser on the same specs, apart from the dynamic-import gap [results/tool-comparison/recall-dts.csv].
+- In E1, the spec level given to Claude generators changes the AHS of what they build (pre-registered, Holm p 0.0003). The post-hoc size analysis shows that the change runs through project structure: with no spec the models build small, flat projects where the coupling and dependency-inversion rules rarely fire. At equal size, the architecture-as-code spec beats the prose spec (δ 0.52; 0.47 after the LOC adjustment) [results/e1-grid/agg/so5_tests.csv; results/e1-grid/agg-size/size_tests.csv].
+- The E1 generation and evaluation pipeline worked at scale: 72 cells, 65 judged, 1 233 judge units with none invalid [results/e1-grid/agg/so5_grid.csv; results/e1-grid/judge-diagnostics/judge_summary.csv].
 
 **Not supported (yet).**
 
-- That most DaedalusArch findings on real code are correct. Baseline precision is 0.33 (0.13 to 0.61) under v2 [results/so4-heldout/agg/precision_baseline.csv].
-- That the LLM judge improves verdicts or AHS. It has no effect under the registered rule, and only post-hoc readings move verdicts. No panel validation exists.
+- That most DaedalusArch findings on real code are correct. Baseline precision under v2 is 0.33 (0.13 to 0.61) by the registered rule, and 0.61 or 0.79 under the post-hoc `uncertain` rules [results/so4-heldout/agg/precision_baseline.csv]. The range itself is the finding.
+- That the LLM judge improves verdicts or AHS. In E7 and in E1 it changes no verdict under the registered weights. Only the any-fail readings move verdicts: in E7, 1 of 9 projects at registered weights and 8 of 9 at judge-weighted weights (both post-hoc); in E1, only judge-weighted any-fail, 8 of 65 cells to warning (pre-registered). No panel validation exists.
+- That the judge is free of self-preference. The registered directional check is positive (p 0.014), although the contrast is driven by the Haiku cells [results/e1-grid/agg/so5_tests.csv].
 - That DaedalusArch detects real architectural fixes better than an import checker. Both detect 2 of 5, the same two.
 - Anything about the Hexagonal style, non-NestJS frameworks, projects beyond about 800 files, or languages other than TypeScript.
-- Any SO5 conclusion about LLM models or spec levels. E1 is running.
+- That specs make generated architecture worse. The reversed E1 effect is an effect of spec level on project size and structure, which the AHS then scores.
+- Any difference between Claude models (no model effect, Holm p 0.438), or any SO5 claim beyond Claude generators, these two tasks and small projects. The Codex arm reverses the spec order and is exploratory.
 - Recall on naturally occurring violations. SO4 recall is construct sensitivity.
 
 ---
 
 ## 7. Next steps and decisions for the director
 
-**Running now.**
+**E1 (SO5) is complete except P4.** Both passes ran under prereg v20; the aggregates, the judge decomposition, the judge diagnostics and the post-hoc size analysis are committed [results/e1-grid/].
 
-- **E1 (SO5).** Finish pass 1 and pass 2 under prereg v20, then aggregate (runbook 7.2), then run the replays for the registered variants.
-  - *Decision:* whether the Codex arm's 18 cells are reported in the thesis body or in an appendix. They are exploratory except the vendor self-preference check [Docs/analysis-plan.md §6.1].
+- *Decision:* adopt the framing of Section 4.8.3 for the thesis: the registered spec effect is reported first, in its reversed direction, followed by the post-hoc size analysis that explains it and the size-matched `full-aac` vs `minimal-prose` contrast. The thesis does not claim that specs worsen architecture.
+- *Decision:* whether the Codex arm's 18 cells are reported in the thesis body or in an appendix. They are exploratory except the vendor self-preference check [Docs/analysis-plan.md §6.1]. My recommendation is a short body paragraph (it reverses the spec order) with the tables in an appendix.
+- *Decision:* whether to register a follow-up that adds a per-file or size-matched outcome before any new E1-style run. It cannot be applied to the current E1 data as anything but post-hoc.
 
 **Decisions requested.**
 
 1. **P4 judge-vs-panel labelling.** This is the only planned validation of the judge.
-   - Its P4 budget was registered at up to 46 items. With n_eff = 36 the E1 headline has a half-width of about ±0.155 at p = 0.5 [Docs/analysis-plan.md §4]. The weekly quota of about 180 calls allows it within the 300-call ceiling: 158 of the 300 calls remain [results/labels/live-call-ledger.md; derived 300 − 142].
-   - *Decision:* label P4 as soon as E1 run-0 cells exist, before writing any judge claim. Or accept the judge as "unvalidated, diagnostic only" in the thesis.
+   - The P4 sample is now drawn: 46 items, 38 from E1 and 8 from the fixtures. The E1 headline has n_eff 23.9 and a half-width of about ±0.186 at p = 0.5 [results/e1-grid/label-plan-p4/label-plan-summary.json]. Of the 300-call ceiling, 158 calls remain [results/labels/live-call-ledger.md; derived 300 − 142].
+   - The positive self-preference check (Section 4.8.5) makes this validation more pressing: P4 gives per-generator agreement rows that separate the models.
+   - *Decision:* label P4 now, before writing any judge claim. Or accept the judge as "unvalidated, diagnostic only" in the thesis.
 2. **The 30-item author audit.** The view is drawn and the allocation sealed. It needs about one sitting of author time [results/labels/live-call-ledger.md].
    - *Decision:* complete it before the thesis draft, so that the panel-vs-audit row is not empty. It is a sanity check, not a validation (B6).
 3. **API robustness experiments.** These are not yet in any committed plan. *Proposal to register before running:*
@@ -618,17 +770,17 @@ What is fixed in advance [Docs/analysis-plan.md §2, §6, §6.1, §12; ADR-029; 
 
    Each needs its own registered plan and budget.
 4. **Three papers.**
-   - **E1 empirical paper:** LLM × spec quality, after E1. Main risks: the confounds B5 and B10, and the self-preference check.
-   - **Tool paper:** DaedalusArch with SO1, SO2 and SO4, the dependency-cruiser comparison and the real pairs. It must lead with the circularity caveat and the baseline precision of 0.33.
-   - **LLM-judge lessons paper:** a negative result. A registered majority rule with an 8% weight leaves the judge without effect. It covers the algebraic bound, the dilution artefact, the post-hoc variants, and a coding frame in which only 1 of 7 criteria discriminates.
+   - **E1 empirical paper:** LLM × spec quality. Its result is the reversed spec effect, explained through project structure, with the size-matched contrast favouring architecture-as-code. Main risks: the confounds B5 and B10, the post-hoc status of the size analysis, two tasks, and the positive self-preference check.
+   - **Tool paper:** DaedalusArch with SO1, SO2 and SO4, the dependency-cruiser comparison and the real pairs. It must lead with the circularity caveat and the baseline precision range (0.33 registered, up to 0.79 by the `uncertain` rule).
+   - **LLM-judge lessons paper:** a negative result. A registered majority rule with an 8% weight leaves the judge without effect, in E7 (post-hoc readings) and in E1 (pre-registered readings). It covers the algebraic bound, the dilution artefact, the variants, the self-preference result, and a coding frame in which at most 1 of 7 criteria discriminates.
    - *Decision:* order and venues. The judge paper needs the P4 result to say anything about judge validity.
 5. **Extensions.** Neither is in a committed plan; both would be new registrations.
    - **A Grok arm in E1.** It would follow the ADR-029 pattern: its own plan, seed and sandbox confinement, and the vendor families only.
    - **An MCP firewall-in-the-loop.** DaedalusArch served as an MCP tool the generating agent calls during generation, compared with post-hoc evaluation. This is a new experiment with its own isolation design. It cannot reuse the E1 confinement unchanged, because that confinement forbids MCP [ADR-029 item 4; Docs/threats-to-validity.md, TV-95].
    - *Decision:* thesis scope or future work. My recommendation is future work for both, given the time left and the open P4 validation.
 
-**Housekeeping before the thesis draft** (one registered bump):
+**Housekeeping before the thesis draft.**
 
-- Update the stale entries of the threats register (Section 5, item 10).
-- Close the open threat TV-84: the developer study was dropped with no ADR recording it [Docs/threats-to-validity.md, TV-84].
-- Note that ADR-031 does not appear in the ADR file (the numbering jumps from ADR-030 to ADR-032).
+- Done in ADR-033 (prereg v21): the stale threats-register entries and the ADR-031 gap (Section 5, item 12).
+- Still open: close threat TV-84, the developer study dropped with no ADR recording it [Docs/threats-to-validity.md, TV-84].
+- New: add a threats-register entry for the E1 usage-limit misclassification (Section 4.8.7, item 5), which is recorded only in the audit log.
