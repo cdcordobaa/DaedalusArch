@@ -1,0 +1,47 @@
+{
+  "attempts": 1,
+  "cliVersion": "2.1.294",
+  "configListingSha256": "47aa04258852fab9a706f3f0c14cee22306d69fbb6fdfbde8c11854bd54997bc",
+  "durationMs": 10028,
+  "effort": "high",
+  "functionId": "FF-N02",
+  "ignoredOptions": [
+    "maxTokens"
+  ],
+  "isolationProbeSha256": "97a2e2d0af1100c13c55e028c1a0c71f069093c3d08705af122aaeb302f1a641",
+  "key": "469800bc329d81a4833d4fdca2d1609e62e9b0ca6de1eeff63ca52c2c812358c-r0-1",
+  "model": "claude-opus-5-5",
+  "outcome": {
+    "kind": "valid"
+  },
+  "parsedVerdict": {
+    "confidence": 0.85,
+    "evidence": [
+      "src/infrastructure/utils/InfraFormatters.ts: `formatDate(date: Date)` returns `date.toISOString().split('T')[0]`, which is generic, technical date formatting with no business logic.",
+      "No ADR prose is given that would restrict where formatting helpers may live.",
+      "The RE_EXPORTS edge from src/application/utils/TaskUtils.ts is a layer-dependency concern and is out of scope for this rule."
+    ],
+    "pass": true,
+    "reasoning": "src/infrastructure/utils/InfraFormatters.ts contains a single function, formatDate. It turns a Date into an ISO date string using the built-in toISOString. This is a generic, technical formatting helper. It has no business rules, no domain invariants and no application orchestration, so nothing in it clearly belongs to a different layer kind. It is fine for an infrastructure utility module to hold this kind of serialization or formatting helper. The graph shows that src/application/utils/TaskUtils.ts re-exports this file. That is an import-direction or dependency concern, so the rubric puts it out of scope here.",
+    "violations": []
+  },
+  "projectId": "variant-d-subtle",
+  "prompt": "## Rule\nThe unit's responsibilities match the role of its declared layer.\n\n## Rubric\nPass: Every responsibility in the file belongs to the role and kind of its declared layer, and agrees with any ADR prose given.\nFail: The file carries a responsibility that belongs to a different layer kind, for example persistence, transport or framework logic in a domain file, or business rules in an infrastructure or presentation file.\nEvidence required: Name the file and cite the function, method or statement that carries the misplaced responsibility, and the layer kind it belongs to.\nOut of scope: import direction and layer-dependency rules, which are checked symbolically.\n\n## Layer model\n- domain (kind: domain): src/domain/**\n- application (kind: application): src/application/**\n- infrastructure (kind: infrastructure): src/infrastructure/**\n\n## Unit\nKind: file\nId: src/infrastructure/utils/InfraFormatters.ts\nLayer: infrastructure\nUnit files:\n- src/infrastructure/utils/InfraFormatters.ts\n\n## Source\n=====SOURCE-BEGIN src/infrastructure/utils/InfraFormatters.ts=====\nexport function formatDate(date: Date): string {\n  return date.toISOString().split('T')[0];\n}\n\n=====SOURCE-END=====\n\n## Graph excerpt\n{\"edges\":[{\"from\":\"src/application/utils/TaskUtils.ts\",\"to\":\"src/infrastructure/utils/InfraFormatters.ts\",\"type\":\"RE_EXPORTS\"}],\"nodes\":[{\"kind\":\"File\",\"layer\":\"application\",\"path\":\"src/application/utils/TaskUtils.ts\"},{\"kind\":\"File\",\"layer\":\"infrastructure\",\"path\":\"src/infrastructure/utils/InfraFormatters.ts\"}]}\n\n## Instructions\nJudge the unit against the rule and rubric. Return the JSON object the schema requires. Set pass to false if any file of the unit fails the rubric.\n",
+  "provider": "claude-cli",
+  "recordedAt": "2026-10-10T21:04:00.257Z",
+  "repetition": 0,
+  "requestHash": "469800bc329d81a4833d4fdca2d1609e62e9b0ca6de1eeff63ca52c2c812358c",
+  "resolvedModel": "claude-opus-5-5",
+  "response": "{\"is_error\":false,\"modelUsage\":{\"claude-opus-5-5\":{\"inputTokens\":2,\"outputTokens\":591}},\"result\":\"{\\\"pass\\\":true,\\\"confidence\\\":0.85,\\\"reasoning\\\":\\\"src/infrastructure/utils/InfraFormatters.ts contains a single function, formatDate. It turns a Date into an ISO date string using the built-in toISOString. This is a generic, technical formatting helper. It has no business rules, no domain invariants and no application orchestration, so nothing in it clearly belongs to a different layer kind. It is fine for an infrastructure utility module to hold this kind of serialization or formatting helper. The graph shows that src/application/utils/TaskUtils.ts re-exports this file. That is an import-direction or dependency concern, so the rubric puts it out of scope here.\\\",\\\"evidence\\\":[\\\"src/infrastructure/utils/InfraFormatters.ts: `formatDate(date: Date)` returns `date.toISOString().split('T')[0]`, which is generic, technical date formatting with no business logic.\\\",\\\"No ADR prose is given that would restrict where formatting helpers may live.\\\",\\\"The RE_EXPORTS edge from src/application/utils/TaskUtils.ts is a layer-dependency concern and is out of scope for this rule.\\\"],\\\"violations\\\":[]}\",\"structured_output\":{\"confidence\":0.85,\"evidence\":[\"src/infrastructure/utils/InfraFormatters.ts: `formatDate(date: Date)` returns `date.toISOString().split('T')[0]`, which is generic, technical date formatting with no business logic.\",\"No ADR prose is given that would restrict where formatting helpers may live.\",\"The RE_EXPORTS edge from src/application/utils/TaskUtils.ts is a layer-dependency concern and is out of scope for this rule.\"],\"pass\":true,\"reasoning\":\"src/infrastructure/utils/InfraFormatters.ts contains a single function, formatDate. It turns a Date into an ISO date string using the built-in toISOString. This is a generic, technical formatting helper. It has no business rules, no domain invariants and no application orchestration, so nothing in it clearly belongs to a different layer kind. It is fine for an infrastructure utility module to hold this kind of serialization or formatting helper. The graph shows that src/application/utils/TaskUtils.ts re-exports this file. That is an import-direction or dependency concern, so the rubric puts it out of scope here.\",\"violations\":[]}}",
+  "runIndex": 1,
+  "schemaVersion": 2,
+  "unitId": "src/infrastructure/utils/InfraFormatters.ts",
+  "usage": {
+    "inputTokens": 2119,
+    "outputTokens": 591
+  },
+  "usedOptions": {
+    "effort": "high",
+    "model": "claude-opus-5-5"
+  }
+}

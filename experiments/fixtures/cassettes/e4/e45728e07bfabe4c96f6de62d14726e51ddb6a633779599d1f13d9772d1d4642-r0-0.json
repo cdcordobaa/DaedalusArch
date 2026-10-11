@@ -1,0 +1,47 @@
+{
+  "attempts": 1,
+  "cliVersion": "2.1.294",
+  "configListingSha256": "47aa04258852fab9a706f3f0c14cee22306d69fbb6fdfbde8c11854bd54997bc",
+  "durationMs": 6499,
+  "effort": "high",
+  "functionId": "FF-N01",
+  "ignoredOptions": [
+    "maxTokens"
+  ],
+  "isolationProbeSha256": "97a2e2d0af1100c13c55e028c1a0c71f069093c3d08705af122aaeb302f1a641",
+  "key": "e45728e07bfabe4c96f6de62d14726e51ddb6a633779599d1f13d9772d1d4642-r0-0",
+  "model": "claude-opus-5-5",
+  "outcome": {
+    "kind": "valid"
+  },
+  "parsedVerdict": {
+    "confidence": 0.85,
+    "evidence": [
+      "src/infrastructure/config/InfraConfig.ts exports only `InfraConfig`, an object holding DEFAULT_TIMEOUT: 5000 and DB_HOST: 'localhost'. That is one concern: infrastructure settings.",
+      "The unit has no other files, so the module can't split into unrelated concerns or repeat a rule across files.",
+      "The incoming edge src/domain/entities/Task.ts -> InfraConfig.ts is about import direction, which is out of scope here."
+    ],
+    "pass": true,
+    "reasoning": "The unit has one file, src/infrastructure/config/InfraConfig.ts, and that file does one job: it exports a single constant object, InfraConfig, that holds infrastructure settings (DEFAULT_TIMEOUT and DB_HOST). It has no other concerns mixed in, no rule or invariant repeated elsewhere, and no module abstraction it could bypass. The incoming import from src/domain/entities/Task.ts (also hinted at by the file's own comment) is a layer-direction problem, which this rule excludes.",
+    "violations": []
+  },
+  "projectId": "variant-a-structural",
+  "prompt": "## Rule\nThe module's files form one coherent unit with a consistent abstraction and boundary.\n\n## Rubric\nPass: The files serve one cohesive concern, use the module's abstractions consistently, and keep each rule or invariant in one place.\nFail: The files split into unrelated concerns, duplicate a rule or invariant that should live in one place, or bypass the module's own abstractions.\nEvidence required: Name each file involved and cite the declarations that show the split, the duplication or the bypass.\nOut of scope: import direction and layer-dependency rules, which are checked symbolically.\n\n## Layer model\n- domain (kind: domain): src/domain/**\n- application (kind: application): src/application/**\n- infrastructure (kind: infrastructure): src/infrastructure/**\n\n## Unit\nKind: module\nId: src/infrastructure\nLayer: infrastructure\nUnit files:\n- src/infrastructure/config/InfraConfig.ts\n\n## Source\n=====SOURCE-BEGIN src/infrastructure/config/InfraConfig.ts=====\n// Infrastructure config — referenced by domain (violation enabler)\nexport const InfraConfig = {\n  DEFAULT_TIMEOUT: 5000,\n  DB_HOST: 'localhost',\n};\n\n=====SOURCE-END=====\n\n## Exported signatures\n// src/infrastructure/config/InfraConfig.ts\nexport const InfraConfig;\n\n## Incoming\n- src/domain/entities/Task.ts\n\n## Outgoing\n(none)\n\n## Graph excerpt\n{\"edges\":[{\"from\":\"src/domain/entities/Task.ts\",\"to\":\"src/infrastructure/config/InfraConfig.ts\",\"type\":\"IMPORTS\"}],\"nodes\":[{\"kind\":\"File\",\"layer\":\"domain\",\"path\":\"src/domain/entities/Task.ts\"},{\"kind\":\"File\",\"layer\":\"infrastructure\",\"path\":\"src/infrastructure/config/InfraConfig.ts\"}]}\n\n## Instructions\nJudge the unit against the rule and rubric. Return the JSON object the schema requires. Set pass to false if any file of the unit fails the rubric.\n",
+  "provider": "claude-cli",
+  "recordedAt": "2026-10-10T20:57:21.224Z",
+  "repetition": 0,
+  "requestHash": "e45728e07bfabe4c96f6de62d14726e51ddb6a633779599d1f13d9772d1d4642",
+  "resolvedModel": "claude-opus-5-5",
+  "response": "{\"is_error\":false,\"modelUsage\":{\"claude-opus-5-5\":{\"inputTokens\":2,\"outputTokens\":521}},\"result\":\"{\\\"pass\\\":true,\\\"confidence\\\":0.85,\\\"reasoning\\\":\\\"The unit has one file, src/infrastructure/config/InfraConfig.ts, and that file does one job: it exports a single constant object, InfraConfig, that holds infrastructure settings (DEFAULT_TIMEOUT and DB_HOST). It has no other concerns mixed in, no rule or invariant repeated elsewhere, and no module abstraction it could bypass. The incoming import from src/domain/entities/Task.ts (also hinted at by the file's own comment) is a layer-direction problem, which this rule excludes.\\\",\\\"evidence\\\":[\\\"src/infrastructure/config/InfraConfig.ts exports only `InfraConfig`, an object holding DEFAULT_TIMEOUT: 5000 and DB_HOST: 'localhost'. That is one concern: infrastructure settings.\\\",\\\"The unit has no other files, so the module can't split into unrelated concerns or repeat a rule across files.\\\",\\\"The incoming edge src/domain/entities/Task.ts -> InfraConfig.ts is about import direction, which is out of scope here.\\\"],\\\"violations\\\":[]}\",\"structured_output\":{\"confidence\":0.85,\"evidence\":[\"src/infrastructure/config/InfraConfig.ts exports only `InfraConfig`, an object holding DEFAULT_TIMEOUT: 5000 and DB_HOST: 'localhost'. That is one concern: infrastructure settings.\",\"The unit has no other files, so the module can't split into unrelated concerns or repeat a rule across files.\",\"The incoming edge src/domain/entities/Task.ts -> InfraConfig.ts is about import direction, which is out of scope here.\"],\"pass\":true,\"reasoning\":\"The unit has one file, src/infrastructure/config/InfraConfig.ts, and that file does one job: it exports a single constant object, InfraConfig, that holds infrastructure settings (DEFAULT_TIMEOUT and DB_HOST). It has no other concerns mixed in, no rule or invariant repeated elsewhere, and no module abstraction it could bypass. The incoming import from src/domain/entities/Task.ts (also hinted at by the file's own comment) is a layer-direction problem, which this rule excludes.\",\"violations\":[]}}",
+  "runIndex": 0,
+  "schemaVersion": 2,
+  "unitId": "src/infrastructure",
+  "usage": {
+    "inputTokens": 2178,
+    "outputTokens": 521
+  },
+  "usedOptions": {
+    "effort": "high",
+    "model": "claude-opus-5-5"
+  }
+}

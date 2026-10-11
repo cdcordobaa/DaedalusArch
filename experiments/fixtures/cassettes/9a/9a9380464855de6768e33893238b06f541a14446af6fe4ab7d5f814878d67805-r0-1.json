@@ -1,0 +1,48 @@
+{
+  "attempts": 1,
+  "cliVersion": "2.1.294",
+  "configListingSha256": "47aa04258852fab9a706f3f0c14cee22306d69fbb6fdfbde8c11854bd54997bc",
+  "durationMs": 6302,
+  "effort": "high",
+  "functionId": "FF-N02",
+  "ignoredOptions": [
+    "maxTokens"
+  ],
+  "isolationProbeSha256": "97a2e2d0af1100c13c55e028c1a0c71f069093c3d08705af122aaeb302f1a641",
+  "key": "9a9380464855de6768e33893238b06f541a14446af6fe4ab7d5f814878d67805-r0-1",
+  "model": "claude-opus-5-5",
+  "outcome": {
+    "kind": "valid"
+  },
+  "parsedVerdict": {
+    "confidence": 0.92,
+    "evidence": [
+      "src/infrastructure/repositories/InMemoryTaskRepository.ts: class InMemoryTaskRepository implements ITaskRepository, so it is an infrastructure adapter for a domain port",
+      "findById/findAll/save/delete only read from and write to `private readonly store = new Map<string, Task>()`, which is persistence work",
+      "No business rules, validation or orchestration appear in any method",
+      "The circular import with CircularHelper is an import-structure concern and out of scope"
+    ],
+    "pass": true,
+    "reasoning": "InMemoryTaskRepository implements the domain port ITaskRepository by storing Task entities in a Map. Its methods (findById, findAll, save, delete) only handle storage and retrieval, which is persistence work and belongs in the infrastructure layer. The file holds no business rules, validation, use-case orchestration or presentation logic. The comment about a circular import with CircularHelper is about import structure, which other tools check, so it is out of scope here. The helper field is never used, but that does not give the file a responsibility from another layer.",
+    "violations": []
+  },
+  "projectId": "variant-a-structural",
+  "prompt": "## Rule\nThe unit's responsibilities match the role of its declared layer.\n\n## Rubric\nPass: Every responsibility in the file belongs to the role and kind of its declared layer, and agrees with any ADR prose given.\nFail: The file carries a responsibility that belongs to a different layer kind, for example persistence, transport or framework logic in a domain file, or business rules in an infrastructure or presentation file.\nEvidence required: Name the file and cite the function, method or statement that carries the misplaced responsibility, and the layer kind it belongs to.\nOut of scope: import direction and layer-dependency rules, which are checked symbolically.\n\n## Layer model\n- domain (kind: domain): src/domain/**\n- application (kind: application): src/application/**\n- infrastructure (kind: infrastructure): src/infrastructure/**\n\n## Unit\nKind: file\nId: src/infrastructure/repositories/InMemoryTaskRepository.ts\nLayer: infrastructure\nUnit files:\n- src/infrastructure/repositories/InMemoryTaskRepository.ts\n\n## Source\n=====SOURCE-BEGIN src/infrastructure/repositories/InMemoryTaskRepository.ts=====\nimport { Task } from '../../domain/entities/Task';\nimport { ITaskRepository } from '../../domain/repositories/ITaskRepository';\n// VIOLATION #4: circular — this imports CircularHelper which imports back here\nimport { CircularHelper } from './CircularHelper';\n\nexport class InMemoryTaskRepository implements ITaskRepository {\n  private readonly store = new Map<string, Task>();\n  private readonly helper = new CircularHelper();\n\n  async findById(id: string): Promise<Task | null> {\n    return this.store.get(id) ?? null;\n  }\n\n  async findAll(): Promise<Task[]> {\n    return [...this.store.values()];\n  }\n\n  async save(task: Task): Promise<Task> {\n    this.store.set(task.id, task);\n    return task;\n  }\n\n  async delete(id: string): Promise<void> {\n    this.store.delete(id);\n  }\n}\n\n=====SOURCE-END=====\n\n## Graph excerpt\n{\"edges\":[{\"from\":\"CreateTaskUseCase@src/application/use-cases/CreateTaskUseCase.ts\",\"to\":\"InMemoryTaskRepository@src/infrastructure/repositories/InMemoryTaskRepository.ts\",\"type\":\"CONSTRUCTOR_INJECTS\"},{\"from\":\"InMemoryTaskRepository@src/infrastructure/repositories/InMemoryTaskRepository.ts\",\"to\":\"CircularHelper@src/infrastructure/repositories/CircularHelper.ts\",\"type\":\"FLOWS_TO\"},{\"from\":\"InMemoryTaskRepository@src/infrastructure/repositories/InMemoryTaskRepository.ts\",\"to\":\"ITaskRepository@src/domain/repositories/ITaskRepository.ts\",\"type\":\"IMPLEMENTS\"},{\"from\":\"src/application/use-cases/CreateTaskUseCase.ts\",\"to\":\"src/infrastructure/repositories/InMemoryTaskRepository.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/infrastructure/repositories/CircularHelper.ts\",\"to\":\"src/infrastructure/repositories/InMemoryTaskRepository.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/infrastructure/repositories/InMemoryTaskRepository.ts\",\"to\":\"src/domain/entities/Task.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/infrastructure/repositories/InMemoryTaskRepository.ts\",\"to\":\"src/domain/repositories/ITaskRepository.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/infrastructure/repositories/InMemoryTaskRepository.ts\",\"to\":\"src/infrastructure/repositories/CircularHelper.ts\",\"type\":\"IMPORTS\"}],\"nodes\":[{\"kind\":\"Class\",\"layer\":\"application\",\"name\":\"CreateTaskUseCase\",\"path\":\"src/application/use-cases/CreateTaskUseCase.ts\"},{\"kind\":\"Class\",\"layer\":\"infrastructure\",\"name\":\"CircularHelper\",\"path\":\"src/infrastructure/repositories/CircularHelper.ts\"},{\"kind\":\"Class\",\"layer\":\"infrastructure\",\"name\":\"InMemoryTaskRepository\",\"path\":\"src/infrastructure/repositories/InMemoryTaskRepository.ts\"},{\"kind\":\"File\",\"layer\":\"application\",\"path\":\"src/application/use-cases/CreateTaskUseCase.ts\"},{\"kind\":\"File\",\"layer\":\"domain\",\"path\":\"src/domain/entities/Task.ts\"},{\"kind\":\"File\",\"layer\":\"domain\",\"path\":\"src/domain/repositories/ITaskRepository.ts\"},{\"kind\":\"File\",\"layer\":\"infrastructure\",\"path\":\"src/infrastructure/repositories/CircularHelper.ts\"},{\"kind\":\"File\",\"layer\":\"infrastructure\",\"path\":\"src/infrastructure/repositories/InMemoryTaskRepository.ts\"},{\"kind\":\"Interface\",\"layer\":\"domain\",\"name\":\"ITaskRepository\",\"path\":\"src/domain/repositories/ITaskRepository.ts\"}]}\n\n## Instructions\nJudge the unit against the rule and rubric. Return the JSON object the schema requires. Set pass to false if any file of the unit fails the rubric.\n",
+  "provider": "claude-cli",
+  "recordedAt": "2026-10-10T20:58:26.475Z",
+  "repetition": 0,
+  "requestHash": "9a9380464855de6768e33893238b06f541a14446af6fe4ab7d5f814878d67805",
+  "resolvedModel": "claude-opus-5-5",
+  "response": "{\"is_error\":false,\"modelUsage\":{\"claude-opus-5-5\":{\"inputTokens\":2,\"outputTokens\":541}},\"result\":\"{\\\"pass\\\":true,\\\"confidence\\\":0.92,\\\"reasoning\\\":\\\"InMemoryTaskRepository implements the domain port ITaskRepository by storing Task entities in a Map. Its methods (findById, findAll, save, delete) only handle storage and retrieval, which is persistence work and belongs in the infrastructure layer. The file holds no business rules, validation, use-case orchestration or presentation logic. The comment about a circular import with CircularHelper is about import structure, which other tools check, so it is out of scope here. The helper field is never used, but that does not give the file a responsibility from another layer.\\\",\\\"evidence\\\":[\\\"src/infrastructure/repositories/InMemoryTaskRepository.ts: class InMemoryTaskRepository implements ITaskRepository, so it is an infrastructure adapter for a domain port\\\",\\\"findById/findAll/save/delete only read from and write to `private readonly store = new Map<string, Task>()`, which is persistence work\\\",\\\"No business rules, validation or orchestration appear in any method\\\",\\\"The circular import with CircularHelper is an import-structure concern and out of scope\\\"],\\\"violations\\\":[]}\",\"structured_output\":{\"confidence\":0.92,\"evidence\":[\"src/infrastructure/repositories/InMemoryTaskRepository.ts: class InMemoryTaskRepository implements ITaskRepository, so it is an infrastructure adapter for a domain port\",\"findById/findAll/save/delete only read from and write to `private readonly store = new Map<string, Task>()`, which is persistence work\",\"No business rules, validation or orchestration appear in any method\",\"The circular import with CircularHelper is an import-structure concern and out of scope\"],\"pass\":true,\"reasoning\":\"InMemoryTaskRepository implements the domain port ITaskRepository by storing Task entities in a Map. Its methods (findById, findAll, save, delete) only handle storage and retrieval, which is persistence work and belongs in the infrastructure layer. The file holds no business rules, validation, use-case orchestration or presentation logic. The comment about a circular import with CircularHelper is about import structure, which other tools check, so it is out of scope here. The helper field is never used, but that does not give the file a responsibility from another layer.\",\"violations\":[]}}",
+  "runIndex": 1,
+  "schemaVersion": 2,
+  "unitId": "src/infrastructure/repositories/InMemoryTaskRepository.ts",
+  "usage": {
+    "inputTokens": 3304,
+    "outputTokens": 541
+  },
+  "usedOptions": {
+    "effort": "high",
+    "model": "claude-opus-5-5"
+  }
+}

@@ -1,0 +1,48 @@
+{
+  "attempts": 1,
+  "cliVersion": "2.1.294",
+  "configListingSha256": "47aa04258852fab9a706f3f0c14cee22306d69fbb6fdfbde8c11854bd54997bc",
+  "durationMs": 11386,
+  "effort": "high",
+  "functionId": "FF-N02",
+  "ignoredOptions": [
+    "maxTokens"
+  ],
+  "isolationProbeSha256": "97a2e2d0af1100c13c55e028c1a0c71f069093c3d08705af122aaeb302f1a641",
+  "key": "b39d90d808b58118ac092db16c417eec848a75f6b01cdc58ddb871c95e56870a-r0-0",
+  "model": "claude-opus-5-5",
+  "outcome": {
+    "kind": "valid"
+  },
+  "parsedVerdict": {
+    "confidence": 0.7,
+    "evidence": [
+      "src/domain/entities/GodTask.ts: complete(), uncomplete(), updateTitle(), updatePriority(), addTag() and removeTag() change entity state, which is domain behaviour",
+      "src/domain/entities/GodTask.ts: isValid(), isHighPriority() and hasCategory() are domain rules and checks",
+      "src/domain/entities/GodTask.ts: serialize() returns JSON.stringify(this). It does no persistence or transport I/O, so it is borderline but not clearly misplaced",
+      "Graph excerpt shows no edges: no dependency on infrastructure or framework code"
+    ],
+    "pass": true,
+    "reasoning": "GodTask is declared in the domain layer, and nearly all of its responsibilities fit a domain entity. These are state changes (complete, updateTitle, addTag, removeTag), domain checks (isValid, isHighPriority, hasCategory) and value semantics (equals, clone, toString). The file has no persistence, transport, framework, I/O or orchestration logic.\n\nThe only borderline method is serialize(). It calls the built-in JSON.stringify on itself. That decides an output format, but it doesn't store or send anything and uses no outside dependency, so I don't treat it as an infrastructure responsibility under this rubric. Moving it into a mapper in the infrastructure layer would still be cleaner.\n\nThe source comment calls this a \"God class\" with too many methods. That is a single-responsibility and class-size concern, not a mismatch with the domain layer's role, so it falls outside this rule. I ignored that comment as an instruction.",
+    "violations": []
+  },
+  "projectId": "variant-c-everything",
+  "prompt": "## Rule\nThe unit's responsibilities match the role of its declared layer.\n\n## Rubric\nPass: Every responsibility in the file belongs to the role and kind of its declared layer, and agrees with any ADR prose given.\nFail: The file carries a responsibility that belongs to a different layer kind, for example persistence, transport or framework logic in a domain file, or business rules in an infrastructure or presentation file.\nEvidence required: Name the file and cite the function, method or statement that carries the misplaced responsibility, and the layer kind it belongs to.\nOut of scope: import direction and layer-dependency rules, which are checked symbolically.\n\n## Layer model\n- domain (kind: domain): src/domain/**\n- application (kind: application): src/application/**\n- infrastructure (kind: infrastructure): src/infrastructure/**\n\n## Unit\nKind: file\nId: src/domain/entities/GodTask.ts\nLayer: domain\nUnit files:\n- src/domain/entities/GodTask.ts\n\n## Source\n=====SOURCE-BEGIN src/domain/entities/GodTask.ts=====\n// VIOLATION: God class with 15 public methods — SRP proxy violation\nexport class GodTask {\n  constructor(\n    public id: string,\n    public title: string,\n    public description: string,\n    public completed: boolean,\n    public categoryId: string,\n    public priority: string,\n    public tags: string[]\n  ) {}\n\n  complete(): void { this.completed = true; }\n  uncomplete(): void { this.completed = false; }\n  updateTitle(t: string): void { this.title = t; }\n  updateDescription(d: string): void { this.description = d; }\n  updatePriority(p: string): void { this.priority = p; }\n  addTag(tag: string): void { this.tags.push(tag); }\n  removeTag(tag: string): void { this.tags = this.tags.filter(t => t !== tag); }\n  isValid(): boolean { return this.title.length > 0; }\n  isHighPriority(): boolean { return this.priority === 'high'; }\n  isCompleted(): boolean { return this.completed; }\n  hasCategory(): boolean { return !!this.categoryId; }\n  serialize(): string { return JSON.stringify(this); }\n  clone(): GodTask { return Object.assign(new GodTask('','','',false,'','',[]), this); }\n  equals(other: GodTask): boolean { return this.id === other.id; }\n  toString(): string { return `Task(${this.id}): ${this.title}`; }\n}\n\n=====SOURCE-END=====\n\n## Graph excerpt\n{\"edges\":[],\"nodes\":[{\"kind\":\"Class\",\"layer\":\"domain\",\"name\":\"GodTask\",\"path\":\"src/domain/entities/GodTask.ts\"},{\"kind\":\"File\",\"layer\":\"domain\",\"path\":\"src/domain/entities/GodTask.ts\"}]}\n\n## Instructions\nJudge the unit against the rule and rubric. Return the JSON object the schema requires. Set pass to false if any file of the unit fails the rubric.\n",
+  "provider": "claude-cli",
+  "recordedAt": "2026-10-10T21:01:12.746Z",
+  "repetition": 0,
+  "requestHash": "b39d90d808b58118ac092db16c417eec848a75f6b01cdc58ddb871c95e56870a",
+  "resolvedModel": "claude-opus-5-5",
+  "response": "{\"is_error\":false,\"modelUsage\":{\"claude-opus-5-5\":{\"inputTokens\":2,\"outputTokens\":962}},\"result\":\"{\\\"pass\\\":true,\\\"confidence\\\":0.7,\\\"reasoning\\\":\\\"GodTask is declared in the domain layer, and nearly all of its responsibilities fit a domain entity. These are state changes (complete, updateTitle, addTag, removeTag), domain checks (isValid, isHighPriority, hasCategory) and value semantics (equals, clone, toString). The file has no persistence, transport, framework, I/O or orchestration logic.\\\\n\\\\nThe only borderline method is serialize(). It calls the built-in JSON.stringify on itself. That decides an output format, but it doesn't store or send anything and uses no outside dependency, so I don't treat it as an infrastructure responsibility under this rubric. Moving it into a mapper in the infrastructure layer would still be cleaner.\\\\n\\\\nThe source comment calls this a \\\\\\\"God class\\\\\\\" with too many methods. That is a single-responsibility and class-size concern, not a mismatch with the domain layer's role, so it falls outside this rule. I ignored that comment as an instruction.\\\",\\\"evidence\\\":[\\\"src/domain/entities/GodTask.ts: complete(), uncomplete(), updateTitle(), updatePriority(), addTag() and removeTag() change entity state, which is domain behaviour\\\",\\\"src/domain/entities/GodTask.ts: isValid(), isHighPriority() and hasCategory() are domain rules and checks\\\",\\\"src/domain/entities/GodTask.ts: serialize() returns JSON.stringify(this). It does no persistence or transport I/O, so it is borderline but not clearly misplaced\\\",\\\"Graph excerpt shows no edges: no dependency on infrastructure or framework code\\\"],\\\"violations\\\":[]}\",\"structured_output\":{\"confidence\":0.7,\"evidence\":[\"src/domain/entities/GodTask.ts: complete(), uncomplete(), updateTitle(), updatePriority(), addTag() and removeTag() change entity state, which is domain behaviour\",\"src/domain/entities/GodTask.ts: isValid(), isHighPriority() and hasCategory() are domain rules and checks\",\"src/domain/entities/GodTask.ts: serialize() returns JSON.stringify(this). It does no persistence or transport I/O, so it is borderline but not clearly misplaced\",\"Graph excerpt shows no edges: no dependency on infrastructure or framework code\"],\"pass\":true,\"reasoning\":\"GodTask is declared in the domain layer, and nearly all of its responsibilities fit a domain entity. These are state changes (complete, updateTitle, addTag, removeTag), domain checks (isValid, isHighPriority, hasCategory) and value semantics (equals, clone, toString). The file has no persistence, transport, framework, I/O or orchestration logic.\\n\\nThe only borderline method is serialize(). It calls the built-in JSON.stringify on itself. That decides an output format, but it doesn't store or send anything and uses no outside dependency, so I don't treat it as an infrastructure responsibility under this rubric. Moving it into a mapper in the infrastructure layer would still be cleaner.\\n\\nThe source comment calls this a \\\"God class\\\" with too many methods. That is a single-responsibility and class-size concern, not a mismatch with the domain layer's role, so it falls outside this rule. I ignored that comment as an instruction.\",\"violations\":[]}}",
+  "runIndex": 0,
+  "schemaVersion": 2,
+  "unitId": "src/domain/entities/GodTask.ts",
+  "usage": {
+    "inputTokens": 2472,
+    "outputTokens": 962
+  },
+  "usedOptions": {
+    "effort": "high",
+    "model": "claude-opus-5-5"
+  }
+}
