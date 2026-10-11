@@ -1,0 +1,175 @@
+{
+  "schemaVersion": 1,
+  "treeId": "p4-before",
+  "run": 0,
+  "attempt": 0,
+  "startedAt": "2026-10-11T20:34:03.824Z",
+  "durationMs": 178531,
+  "promptSha256": "293a496d962f6320a372913a925b8a469646f4099e68da80b187e810ba8b7d4a",
+  "treeDigest": "f8c0ab847cdf3553d131c5c57be43c7eb615972b6cfa5ec61973bdd793547ffe",
+  "cliVersion": "0.162.1",
+  "model": "gpt-5.6-terra",
+  "servedModels": [
+    "gpt-5.6-terra"
+  ],
+  "reroutes": [],
+  "exitCode": 0,
+  "timedOut": false,
+  "isError": false,
+  "subtype": "success",
+  "valid": true,
+  "findings": [
+    {
+      "file": "src/modules/orders/secondary-adapters/orm/order-item.schema.ts",
+      "rule": "FF-S02",
+      "reason": "Its import of OrderEntity participates in a cycle with order.schema.ts."
+    },
+    {
+      "file": "src/modules/orders/secondary-adapters/orm/order.schema.ts",
+      "rule": "FF-S02",
+      "reason": "Its import of OrderItemEntity participates in a cycle with order-item.schema.ts."
+    },
+    {
+      "file": "src/modules/payments/core/application/ports/stripe-signature-verifier.ts",
+      "rule": "FF-S02",
+      "reason": "Its import of StripeWebhookPayload participates in a cycle with handle-stripe-webhook.usecase.ts."
+    },
+    {
+      "file": "src/modules/payments/core/application/usecases/handle-stripe-webhook/handle-stripe-webhook.usecase.ts",
+      "rule": "FF-S02",
+      "reason": "Its import of StripeSignatureVerifier participates in a cycle with stripe-signature-verifier.ts."
+    },
+    {
+      "file": "src/modules/payments/core/application/ports/paypal-signature-verifier.ts",
+      "rule": "FF-S02",
+      "reason": "Its import of PayPalWebhookPayload participates in a cycle with handle-paypal-webhook.usecase.ts."
+    },
+    {
+      "file": "src/modules/payments/core/application/usecases/handle-paypal-webhook/handle-paypal-webhook.usecase.ts",
+      "rule": "FF-S02",
+      "reason": "Its import of PayPalSignatureVerifier participates in a cycle with paypal-signature-verifier.ts."
+    },
+    {
+      "file": "src/modules/payments/secondary-adapters/orm/refund.schema.ts",
+      "rule": "FF-S02",
+      "reason": "Its import of PaymentEntity participates in a cycle with payment.schema.ts."
+    },
+    {
+      "file": "src/modules/payments/secondary-adapters/orm/payment.schema.ts",
+      "rule": "FF-S02",
+      "reason": "Its import of RefundEntity participates in a cycle with refund.schema.ts."
+    },
+    {
+      "file": "src/modules/auth/secondary-adapters/orm/role-permission.schema.ts",
+      "rule": "FF-S02",
+      "reason": "Its import of RoleEntity participates in a cycle with role.schema.ts."
+    },
+    {
+      "file": "src/modules/auth/secondary-adapters/orm/role.schema.ts",
+      "rule": "FF-S02",
+      "reason": "Its import of RolePermissionEntity participates in a cycle with role-permission.schema.ts."
+    },
+    {
+      "file": "src/modules/customers/secondary-adapters/orm/address.schema.ts",
+      "rule": "FF-S02",
+      "reason": "Its import of CustomerEntity participates in a cycle with customer.schema.ts."
+    },
+    {
+      "file": "src/modules/customers/secondary-adapters/orm/customer.schema.ts",
+      "rule": "FF-S02",
+      "reason": "Its import of AddressEntity participates in a cycle with address.schema.ts."
+    },
+    {
+      "file": "src/modules/carts/secondary-adapters/orm/cart-item.schema.ts",
+      "rule": "FF-S02",
+      "reason": "Its import of CartEntity participates in a cycle with cart.schema.ts."
+    },
+    {
+      "file": "src/modules/carts/secondary-adapters/orm/cart.schema.ts",
+      "rule": "FF-S02",
+      "reason": "Its import of CartItemEntity participates in a cycle with cart-item.schema.ts."
+    },
+    {
+      "file": "src/modules/inventory/secondary-adapters/orm/reservation-item.schema.ts",
+      "rule": "FF-S02",
+      "reason": "Its import of ReservationEntity participates in a cycle with reservation.schema.ts."
+    },
+    {
+      "file": "src/modules/inventory/secondary-adapters/orm/reservation.schema.ts",
+      "rule": "FF-S02",
+      "reason": "Its import of ReservationItemEntity participates in a cycle with reservation-item.schema.ts."
+    },
+    {
+      "file": "src/modules/carts/core/domain/repositories/cart.repository.ts",
+      "rule": "FF-S01",
+      "reason": "The CartRepository declaration imports CreateCartDto from the later application layer."
+    },
+    {
+      "file": "src/modules/carts/core/domain/repositories/cart.repository.ts",
+      "rule": "FF-S04",
+      "reason": "The CartRepository declaration imports CreateCartDto from another layer."
+    },
+    {
+      "file": "src/modules/products/core/domain/repositories/product-repository.ts",
+      "rule": "FF-S01",
+      "reason": "The ProductRepository declaration imports CreateProductDto and UpdateProductDto from the later application layer."
+    },
+    {
+      "file": "src/modules/products/core/domain/repositories/product-repository.ts",
+      "rule": "FF-S04",
+      "reason": "The ProductRepository declaration imports CreateProductDto and UpdateProductDto from another layer."
+    },
+    {
+      "file": "src/modules/auth/core/application/usecases/login-user/login-user.usecase.ts",
+      "rule": "FF-S01",
+      "reason": "The LoginUserUseCase declaration imports JwtSignerService from infrastructure and LoginDto from the later application layer."
+    },
+    {
+      "file": "src/modules/auth/core/application/usecases/login-user/login-user.usecase.ts",
+      "rule": "FF-S04",
+      "reason": "The LoginUserUseCase declaration imports JwtSignerService and LoginDto from other layers."
+    },
+    {
+      "file": "src/modules/auth/core/application/usecases/logout/logout.usecase.ts",
+      "rule": "FF-S01",
+      "reason": "The LogoutUseCase declaration imports JwtVerifierService from infrastructure."
+    },
+    {
+      "file": "src/modules/auth/core/application/usecases/logout/logout.usecase.ts",
+      "rule": "FF-S04",
+      "reason": "The LogoutUseCase declaration imports JwtVerifierService from another layer."
+    },
+    {
+      "file": "src/modules/auth/core/application/usecases/logout-all/logout-all.usecase.ts",
+      "rule": "FF-S01",
+      "reason": "The LogoutAllUseCase declaration imports JwtVerifierService from infrastructure."
+    },
+    {
+      "file": "src/modules/auth/core/application/usecases/logout-all/logout-all.usecase.ts",
+      "rule": "FF-S04",
+      "reason": "The LogoutAllUseCase declaration imports JwtVerifierService from another layer."
+    },
+    {
+      "file": "src/modules/auth/core/application/usecases/refresh-token/refresh-token.usecase.ts",
+      "rule": "FF-S01",
+      "reason": "The RefreshTokenUseCase declaration imports JwtSignerService and JwtVerifierService from infrastructure."
+    },
+    {
+      "file": "src/modules/auth/core/application/usecases/refresh-token/refresh-token.usecase.ts",
+      "rule": "FF-S04",
+      "reason": "The RefreshTokenUseCase declaration imports JwtSignerService and JwtVerifierService from another layer."
+    }
+  ],
+  "tokens": {
+    "input": 343047,
+    "cached": 285440,
+    "output": 8945,
+    "reasoning": 2826
+  },
+  "creditsRateCard": 6.99105,
+  "balanceAfter": "1177.7594750000",
+  "toolCalls": 18,
+  "permissionDenials": 2,
+  "envelopeSha256": "1cb5265caf5641524ce26334feae7a7bc5b1209af4a2399facb5eace2292da3e",
+  "discardedAttempts": []
+}

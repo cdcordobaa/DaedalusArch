@@ -1,0 +1,215 @@
+{
+  "schemaVersion": 1,
+  "treeId": "zhuravlevma__nestjs-active-record--MO-CV02--k0--baseline",
+  "run": 1,
+  "attempt": 0,
+  "startedAt": "2026-10-11T21:19:30.831Z",
+  "durationMs": 176846,
+  "promptSha256": "45f427151397abbff2a7ed550bb64a932dca5f90ab8f9463e71ceffc1e4ada6b",
+  "treeDigest": "02a79b3557676fc55f9664976f2b682ae43456f9ed7483d84ccd5ce2c0724180",
+  "cliVersion": "0.162.1",
+  "model": "gpt-5.6-terra",
+  "servedModels": [
+    "gpt-5.6-terra"
+  ],
+  "reroutes": [],
+  "exitCode": 0,
+  "timedOut": false,
+  "isError": false,
+  "subtype": "success",
+  "valid": true,
+  "findings": [
+    {
+      "file": "src/delivery/__models__/orders.model.ts",
+      "rule": "FF-S02",
+      "reason": "Order imports Deliveryman while deliveryman.model.ts imports Order, forming an import cycle."
+    },
+    {
+      "file": "src/delivery/__models__/deliveryman.model.ts",
+      "rule": "FF-S02",
+      "reason": "Deliveryman imports Order while orders.model.ts imports Deliveryman, forming an import cycle."
+    },
+    {
+      "file": "src/delivery/__models__/orders.model.ts",
+      "rule": "FF-P01",
+      "reason": "The Order domain class imports the typeorm package."
+    },
+    {
+      "file": "src/delivery/__models__/deliveryman.model.ts",
+      "rule": "FF-P01",
+      "reason": "The Deliveryman domain class imports the typeorm package."
+    },
+    {
+      "file": "src/delivery/orders/services/find-all-orders.service.ts",
+      "rule": "FF-S01",
+      "reason": "FindAllOrdersService imports the infrastructure-layer OrdersRepository."
+    },
+    {
+      "file": "src/delivery/orders/services/update-order.service.ts",
+      "rule": "FF-S01",
+      "reason": "UpdateOrderService imports the infrastructure-layer OrdersRepository."
+    },
+    {
+      "file": "src/delivery/orders/services/find-one-order.service.ts",
+      "rule": "FF-S01",
+      "reason": "FindOneOrderService imports the infrastructure-layer OrdersRepository."
+    },
+    {
+      "file": "src/delivery/deliveryman/services/change-deliverymans-status.ts",
+      "rule": "FF-S01",
+      "reason": "ChangeDeliverymansStatusService imports the infrastructure-layer DeliverymanRepository."
+    },
+    {
+      "file": "src/delivery/deliveryman/services/add-order-to-deliveryman.service.ts",
+      "rule": "FF-S01",
+      "reason": "AddOrderToDeliverymanService imports the infrastructure-layer DeliverymanRepository."
+    },
+    {
+      "file": "src/delivery/deliveryman/services/find-all-deliverymans.ts",
+      "rule": "FF-S01",
+      "reason": "FindAllDeliverymansService imports the infrastructure-layer DeliverymanRepository."
+    },
+    {
+      "file": "src/delivery/deliveryman/services/update-deliverymans-info.service.ts",
+      "rule": "FF-S01",
+      "reason": "UpdateDeliverymansInfoService imports the infrastructure-layer DeliverymanRepository."
+    },
+    {
+      "file": "src/delivery/deliveryman/services/update-order.service.ts",
+      "rule": "FF-S01",
+      "reason": "UpdateOrderService imports the infrastructure-layer OrdersRepository."
+    },
+    {
+      "file": "src/delivery/deliveryman/services/create-deliveryman.service.ts",
+      "rule": "FF-S01",
+      "reason": "CreateDeliverymanService imports the infrastructure-layer DeliverymanRepository."
+    },
+    {
+      "file": "src/delivery/deliveryman/services/update-deliverymans-orders.service.ts",
+      "rule": "FF-S01",
+      "reason": "UpdateDeliverymansOrdersService imports the infrastructure-layer DeliverymanRepository."
+    },
+    {
+      "file": "src/delivery/orders/services/find-all-orders.service.ts",
+      "rule": "FF-P02",
+      "reason": "FindAllOrdersService constructor injects the concrete OrdersRepository class."
+    },
+    {
+      "file": "src/delivery/orders/services/update-order.service.ts",
+      "rule": "FF-P02",
+      "reason": "UpdateOrderService constructor injects the concrete OrdersRepository class."
+    },
+    {
+      "file": "src/delivery/orders/services/find-one-order.service.ts",
+      "rule": "FF-P02",
+      "reason": "FindOneOrderService constructor injects the concrete OrdersRepository class."
+    },
+    {
+      "file": "src/delivery/deliveryman/services/change-deliverymans-status.ts",
+      "rule": "FF-P02",
+      "reason": "ChangeDeliverymansStatusService constructor injects the concrete DeliverymanRepository class."
+    },
+    {
+      "file": "src/delivery/deliveryman/services/add-order-to-deliveryman.service.ts",
+      "rule": "FF-P02",
+      "reason": "AddOrderToDeliverymanService constructor injects the concrete DeliverymanRepository class."
+    },
+    {
+      "file": "src/delivery/deliveryman/services/find-all-deliverymans.ts",
+      "rule": "FF-P02",
+      "reason": "FindAllDeliverymansService constructor injects the concrete DeliverymanRepository class."
+    },
+    {
+      "file": "src/delivery/deliveryman/services/update-deliverymans-info.service.ts",
+      "rule": "FF-P02",
+      "reason": "UpdateDeliverymansInfoService constructor injects the concrete DeliverymanRepository class."
+    },
+    {
+      "file": "src/delivery/deliveryman/services/update-order.service.ts",
+      "rule": "FF-P02",
+      "reason": "UpdateOrderService constructor injects the concrete OrdersRepository class."
+    },
+    {
+      "file": "src/delivery/deliveryman/services/create-deliveryman.service.ts",
+      "rule": "FF-P02",
+      "reason": "CreateDeliverymanService constructor injects the concrete DeliverymanRepository class."
+    },
+    {
+      "file": "src/delivery/deliveryman/services/update-deliverymans-orders.service.ts",
+      "rule": "FF-P02",
+      "reason": "UpdateDeliverymansOrdersService constructor injects the concrete DeliverymanRepository class."
+    },
+    {
+      "file": "src/delivery/orders/dal/orders.repository.ts",
+      "rule": "FF-P03",
+      "reason": "OrdersRepository does not implement an interface."
+    },
+    {
+      "file": "src/delivery/deliveryman/dal/deliveryman.repository.ts",
+      "rule": "FF-P03",
+      "reason": "DeliverymanRepository does not implement an interface."
+    },
+    {
+      "file": "src/delivery/orders/orders.controller.ts",
+      "rule": "FF-P05",
+      "reason": "OrdersController directly imports the domain entity Order."
+    },
+    {
+      "file": "src/delivery/deliveryman/deliveryman.controller.ts",
+      "rule": "FF-P05",
+      "reason": "DeliverymanController directly imports the domain entity Deliveryman."
+    },
+    {
+      "file": "src/delivery/delivery.module.ts",
+      "rule": "FF-C02",
+      "reason": "DeliveryModule imports 15 distinct project files."
+    },
+    {
+      "file": "src/delivery/delivery.module.ts",
+      "rule": "FF-C03",
+      "reason": "DeliveryModule has 15 outgoing and 1 incoming project-file import, giving instability above 0.8."
+    },
+    {
+      "file": "src/delivery/deliveryman/deliveryman.controller.ts",
+      "rule": "FF-C03",
+      "reason": "DeliverymanController has 12 outgoing and 1 incoming project-file import, giving instability above 0.8."
+    },
+    {
+      "file": "src/delivery/deliveryman/services/update-order.service.ts",
+      "rule": "FF-C03",
+      "reason": "UpdateOrderService has outgoing project-file imports but no incoming project-file imports, giving instability of 1."
+    },
+    {
+      "file": "src/delivery/deliveryman/deliveryman.controller.ts",
+      "rule": "FF-SO01",
+      "reason": "DeliverymanController constructor injects six dependencies."
+    },
+    {
+      "file": "src/delivery/deliveryman/services/update-order.service.ts",
+      "rule": "FF-N01",
+      "reason": "UpdateOrderService duplicates the update-order responsibility and implementation already declared in orders/services/update-order.service.ts."
+    },
+    {
+      "file": "src/delivery/__models__/orders.model.ts",
+      "rule": "FF-N02",
+      "reason": "The Order domain class contains TypeORM entity and persistence-mapping declarations."
+    },
+    {
+      "file": "src/delivery/__models__/deliveryman.model.ts",
+      "rule": "FF-N02",
+      "reason": "The Deliveryman domain class contains TypeORM entity and persistence-mapping declarations."
+    }
+  ],
+  "tokens": {
+    "input": 87590,
+    "cached": 60416,
+    "output": 6286,
+    "reasoning": 4045
+  },
+  "creditsRateCard": 3.54658,
+  "balanceAfter": "1101.5330650000",
+  "toolCalls": 8,
+  "permissionDenials": 1,
+  "envelopeSha256": "6c2d1acbdda19eede51b99dda8f3ff43ddcbb1484db8673946048a801c26883e",
+  "discardedAttempts": []
+}

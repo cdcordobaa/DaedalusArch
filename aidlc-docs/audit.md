@@ -1406,3 +1406,11 @@ Plan checkboxes ticked. Auto-approved under standing approval; no blocking or ma
 **Context**: CONSTRUCTION — Build and Test, extra experiments. Worktree ../DaedalusArch-wt-x3, branch v1.2e-exp-extra.
 
 ---
+
+## Build and Test — Experiment A (ADR-036) run and scored; B redesigned twice and on hold
+**Timestamp**: 2026-10-11T23:30:00Z
+**User Input**: "Coordinator: the author decided B uses the frozen operators on the E1 cells (count first, pre-stated k rule, Fable review, then register). Later: finish A, score it, PR and merge it; do not register or run B (the author is designing realistic anti-pattern operators); do not run C yet."
+**AI Response**: "A ran under prereg v24 and stopped on its registered 150-credit budget rule. 25 of 42 reviews are valid (run 0 of all 14 trees, run 1 of 11), at 147.96 credits by the rate card (5.92 per review; the balance fell 144.09). Seed-run recall 9/10 (firewall 5/5); p4 flagged in its one run pair, with a chance control of 1/2; p5 flagged by FF-C03 in one run; mean Jaccard 0.727 over the two-run trees. The summary.json mean (0.571) has a declared averaging defect. Of 909 claims, 50.6 % are firewall keys and 23.1 % are on files without a firewall finding. B under the author's E1 design: the pre-stated rule was committed (484c35b) before the label-free count (89359c1); 0 MO-X02 and 0 MO-X03 seeds in 65 cells, 12 twins. This was escalated, and B is on hold for new operators. C (ADR-038) code and sample are ready (100 units, all 1549 eligible requests reproduce their recorded hash) but are not registered."
+**Context**: CONSTRUCTION — Build and Test, extra experiments. Worktree ../DaedalusArch-wt-x3, branch v1.2e-exp-extra.
+
+---

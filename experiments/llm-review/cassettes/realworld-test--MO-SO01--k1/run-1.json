@@ -1,0 +1,175 @@
+{
+  "schemaVersion": 1,
+  "treeId": "realworld-test--MO-SO01--k1",
+  "run": 1,
+  "attempt": 0,
+  "startedAt": "2026-10-11T21:11:51.888Z",
+  "durationMs": 157266,
+  "promptSha256": "e3a5c1f5ce8b75cc8062f2598cc398a859d3f565b2bdd82f09c1be7eabbd79e8",
+  "treeDigest": "9ed83c6916e450123a7961cd769b69d36e6927027da00a5c048641fc7b11fde2",
+  "cliVersion": "0.162.1",
+  "model": "gpt-5.6-terra",
+  "servedModels": [
+    "gpt-5.6-terra"
+  ],
+  "reroutes": [],
+  "exitCode": 0,
+  "timedOut": false,
+  "isError": false,
+  "subtype": "success",
+  "valid": true,
+  "findings": [
+    {
+      "file": "src/article/article.entity.ts",
+      "rule": "FF-S02",
+      "reason": "ArticleEntity imports UserEntity and Comment, which import ArticleEntity back and form import cycles."
+    },
+    {
+      "file": "src/article/comment.entity.ts",
+      "rule": "FF-S02",
+      "reason": "Comment imports ArticleEntity, which imports Comment back."
+    },
+    {
+      "file": "src/user/user.entity.ts",
+      "rule": "FF-S02",
+      "reason": "UserEntity imports ArticleEntity, which imports UserEntity back."
+    },
+    {
+      "file": "src/article/article.entity.ts",
+      "rule": "FF-P01",
+      "reason": "ArticleEntity imports the forbidden domain-layer package typeorm."
+    },
+    {
+      "file": "src/article/comment.entity.ts",
+      "rule": "FF-P01",
+      "reason": "Comment imports the forbidden domain-layer package typeorm."
+    },
+    {
+      "file": "src/profile/follows.entity.ts",
+      "rule": "FF-P01",
+      "reason": "FollowsEntity imports the forbidden domain-layer package typeorm."
+    },
+    {
+      "file": "src/tag/tag.entity.ts",
+      "rule": "FF-P01",
+      "reason": "TagEntity imports the forbidden domain-layer package typeorm."
+    },
+    {
+      "file": "src/user/user.entity.ts",
+      "rule": "FF-P01",
+      "reason": "UserEntity imports the forbidden domain-layer package typeorm."
+    },
+    {
+      "file": "src/article/article.service.ts",
+      "rule": "FF-P02",
+      "reason": "ArticleService injects four concrete Repository dependencies and no interface or abstract dependency."
+    },
+    {
+      "file": "src/profile/profile.service.ts",
+      "rule": "FF-P02",
+      "reason": "ProfileService injects two concrete Repository dependencies and no interface or abstract dependency."
+    },
+    {
+      "file": "src/tag/tag.service.ts",
+      "rule": "FF-P02",
+      "reason": "TagService injects the concrete Repository dependency."
+    },
+    {
+      "file": "src/user/user.service.ts",
+      "rule": "FF-P02",
+      "reason": "UserService injects the concrete Repository dependency."
+    },
+    {
+      "file": "src/article/article.controller.ts",
+      "rule": "FF-P05",
+      "reason": "ArticleController reaches ArticleEntity through its injected ArticleService within two steps."
+    },
+    {
+      "file": "src/profile/profile.controller.ts",
+      "rule": "FF-P05",
+      "reason": "ProfileController reaches UserEntity and FollowsEntity through its injected ProfileService within two steps."
+    },
+    {
+      "file": "src/tag/tag.controller.ts",
+      "rule": "FF-P05",
+      "reason": "TagController directly imports the domain entity TagEntity."
+    },
+    {
+      "file": "src/user/user.controller.ts",
+      "rule": "FF-P05",
+      "reason": "UserController reaches UserEntity through its injected UserService within two steps."
+    },
+    {
+      "file": "src/app.module.ts",
+      "rule": "FF-C03",
+      "reason": "ApplicationModule has instability 5/6, exceeding the maximum of 0.8."
+    },
+    {
+      "file": "src/article/article.module.ts",
+      "rule": "FF-C03",
+      "reason": "ArticleModule has instability 8/9, exceeding the maximum of 0.8."
+    },
+    {
+      "file": "src/profile/profile.module.ts",
+      "rule": "FF-C03",
+      "reason": "ProfileModule has instability 6/7, exceeding the maximum of 0.8."
+    },
+    {
+      "file": "src/shared/base.controller.ts",
+      "rule": "FF-C03",
+      "reason": "BaseController has one outgoing project import and no incoming project imports, giving instability 1."
+    },
+    {
+      "file": "src/user/user.controller.ts",
+      "rule": "FF-C03",
+      "reason": "UserController has instability 5/6, exceeding the maximum of 0.8."
+    },
+    {
+      "file": "src/article/article.controller.ts",
+      "rule": "FF-SO01",
+      "reason": "ArticleController declares 11 methods."
+    },
+    {
+      "file": "src/article/article.service.ts",
+      "rule": "FF-SO01",
+      "reason": "ArticleService declares 12 methods."
+    },
+    {
+      "file": "src/article/article.entity.ts",
+      "rule": "FF-N02",
+      "reason": "ArticleEntity contains TypeORM persistence mapping in a domain-layer file."
+    },
+    {
+      "file": "src/article/comment.entity.ts",
+      "rule": "FF-N02",
+      "reason": "Comment contains TypeORM persistence mapping in a domain-layer file."
+    },
+    {
+      "file": "src/profile/follows.entity.ts",
+      "rule": "FF-N02",
+      "reason": "FollowsEntity contains TypeORM persistence mapping in a domain-layer file."
+    },
+    {
+      "file": "src/tag/tag.entity.ts",
+      "rule": "FF-N02",
+      "reason": "TagEntity contains TypeORM persistence mapping in a domain-layer file."
+    },
+    {
+      "file": "src/user/user.entity.ts",
+      "rule": "FF-N02",
+      "reason": "UserEntity contains TypeORM persistence mapping in a domain-layer file."
+    }
+  ],
+  "tokens": {
+    "input": 192992,
+    "cached": 165632,
+    "output": 7266,
+    "reasoning": 2884
+  },
+  "creditsRateCard": 4.37596,
+  "balanceAfter": "1109.9477650000",
+  "toolCalls": 16,
+  "permissionDenials": 2,
+  "envelopeSha256": "70a00a60feabbae2cef3ab82a1ffdfe809e0154dea1f6a6af7897d601137a2f1",
+  "discardedAttempts": []
+}
