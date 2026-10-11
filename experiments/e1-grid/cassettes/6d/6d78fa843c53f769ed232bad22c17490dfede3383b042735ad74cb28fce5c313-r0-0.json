@@ -1,0 +1,47 @@
+{
+  "attempts": 1,
+  "cliVersion": "2.1.294",
+  "configListingSha256": "47aa04258852fab9a706f3f0c14cee22306d69fbb6fdfbde8c11854bd54997bc",
+  "durationMs": 8083,
+  "effort": "high",
+  "functionId": "FF-N02",
+  "ignoredOptions": [
+    "maxTokens"
+  ],
+  "isolationProbeSha256": "97a2e2d0af1100c13c55e028c1a0c71f069093c3d08705af122aaeb302f1a641",
+  "key": "6d78fa843c53f769ed232bad22c17490dfede3383b042735ad74cb28fce5c313-r0-0",
+  "model": "claude-opus-5-5",
+  "outcome": {
+    "kind": "valid"
+  },
+  "parsedVerdict": {
+    "confidence": 0.8,
+    "evidence": [
+      "src/application/CreateProjectUseCase.ts: execute() coordinates creating the entity (new ProjectEntity), saving it through the ProjectRepository port, and mapping the result to CreateProjectResponse, which is an application-layer job.",
+      "src/application/CreateProjectUseCase.ts: the repository comes in as the domain interface ProjectRepository through the constructor, so the file has no persistence code of its own.",
+      "src/application/CreateProjectUseCase.ts: the file has no HTTP, framework or database code. The only questionable statement is the ID generation with Math.random().toString(36).substring(2, 11), which is a minor design point and not misplaced layer logic."
+    ],
+    "pass": true,
+    "reasoning": "This file passes. CreateProjectUseCase does what an application-layer use case should: it takes a request DTO, builds a domain entity (ProjectEntity), saves it through a repository port declared in the domain (ProjectRepository), and maps the result to a response DTO. It contains no persistence code, no transport or HTTP handling, no framework code and no business rules beyond this coordination. Generating the ID inline with Math.random is a small design weakness: an injected ID-generator port would be cleaner and easier to test. Creating an identifier in a use case is still an accepted application-layer job and does not belong to a different layer kind, so it is not a violation.",
+    "violations": []
+  },
+  "projectId": "claude-haiku-4-5/task-management/minimal-prose/run-2",
+  "prompt": "## Rule\nThe unit's responsibilities match the role of its declared layer.\n\n## Rubric\nPass: Every responsibility in the file belongs to the role and kind of its declared layer, and agrees with any ADR prose given.\nFail: The file carries a responsibility that belongs to a different layer kind, for example persistence, transport or framework logic in a domain file, or business rules in an infrastructure or presentation file.\nEvidence required: Name the file and cite the function, method or statement that carries the misplaced responsibility, and the layer kind it belongs to.\nOut of scope: import direction and layer-dependency rules, which are checked symbolically.\n\n## Layer model\n- domain (kind: domain): src/domain/**\n- application (kind: application): src/application/**\n- infrastructure (kind: infrastructure): src/infrastructure/**\n\n## Unit\nKind: file\nId: src/application/CreateProjectUseCase.ts\nLayer: application\nUnit files:\n- src/application/CreateProjectUseCase.ts\n\n## Source\n=====SOURCE-BEGIN src/application/CreateProjectUseCase.ts=====\nimport { ProjectRepository } from '../domain/ProjectRepository';\nimport { ProjectEntity } from '../domain/Project';\nimport { CreateProjectRequest, CreateProjectResponse } from './dtos';\n\nexport class CreateProjectUseCase {\n  constructor(private projectRepository: ProjectRepository) {}\n\n  execute(request: CreateProjectRequest): CreateProjectResponse {\n    const projectId = Math.random().toString(36).substring(2, 11);\n    const project = new ProjectEntity(projectId, request.name);\n    this.projectRepository.save(project);\n\n    return {\n      id: project.id,\n      name: project.name,\n    };\n  }\n}\n\n=====SOURCE-END=====\n\n## Graph excerpt\n{\"edges\":[{\"from\":\"CreateProjectUseCase@src/application/CreateProjectUseCase.ts\",\"to\":\"ProjectRepository@src/domain/ProjectRepository.ts\",\"type\":\"CONSTRUCTOR_INJECTS\"},{\"from\":\"ProjectController@src/infrastructure/ProjectController.ts\",\"to\":\"CreateProjectUseCase@src/application/CreateProjectUseCase.ts\",\"type\":\"CONSTRUCTOR_INJECTS\"},{\"from\":\"src/application/CreateProjectUseCase.ts\",\"to\":\"src/application/dtos.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/application/CreateProjectUseCase.ts\",\"to\":\"src/domain/Project.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/application/CreateProjectUseCase.ts\",\"to\":\"src/domain/ProjectRepository.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/infrastructure/ProjectController.ts\",\"to\":\"src/application/CreateProjectUseCase.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/infrastructure/app.ts\",\"to\":\"src/application/CreateProjectUseCase.ts\",\"type\":\"IMPORTS\"}],\"nodes\":[{\"kind\":\"Class\",\"layer\":\"application\",\"name\":\"CreateProjectUseCase\",\"path\":\"src/application/CreateProjectUseCase.ts\"},{\"kind\":\"Class\",\"layer\":\"infrastructure\",\"name\":\"ProjectController\",\"path\":\"src/infrastructure/ProjectController.ts\"},{\"kind\":\"File\",\"layer\":\"application\",\"path\":\"src/application/CreateProjectUseCase.ts\"},{\"kind\":\"File\",\"layer\":\"application\",\"path\":\"src/application/dtos.ts\"},{\"kind\":\"File\",\"layer\":\"domain\",\"path\":\"src/domain/Project.ts\"},{\"kind\":\"File\",\"layer\":\"domain\",\"path\":\"src/domain/ProjectRepository.ts\"},{\"kind\":\"File\",\"layer\":\"infrastructure\",\"path\":\"src/infrastructure/ProjectController.ts\"},{\"kind\":\"File\",\"layer\":\"infrastructure\",\"path\":\"src/infrastructure/app.ts\"},{\"kind\":\"Interface\",\"layer\":\"domain\",\"name\":\"ProjectRepository\",\"path\":\"src/domain/ProjectRepository.ts\"}]}\n\n## Instructions\nJudge the unit against the rule and rubric. Return the JSON object the schema requires. Set pass to false if any file of the unit fails the rubric.\n",
+  "provider": "claude-cli",
+  "recordedAt": "2026-10-11T02:42:13.188Z",
+  "repetition": 0,
+  "requestHash": "6d78fa843c53f769ed232bad22c17490dfede3383b042735ad74cb28fce5c313",
+  "resolvedModel": "claude-opus-5-5",
+  "response": "{\"is_error\":false,\"modelUsage\":{\"claude-opus-5-5\":{\"inputTokens\":2,\"outputTokens\":677}},\"result\":\"{\\\"pass\\\":true,\\\"confidence\\\":0.8,\\\"reasoning\\\":\\\"This file passes. CreateProjectUseCase does what an application-layer use case should: it takes a request DTO, builds a domain entity (ProjectEntity), saves it through a repository port declared in the domain (ProjectRepository), and maps the result to a response DTO. It contains no persistence code, no transport or HTTP handling, no framework code and no business rules beyond this coordination. Generating the ID inline with Math.random is a small design weakness: an injected ID-generator port would be cleaner and easier to test. Creating an identifier in a use case is still an accepted application-layer job and does not belong to a different layer kind, so it is not a violation.\\\",\\\"evidence\\\":[\\\"src/application/CreateProjectUseCase.ts: execute() coordinates creating the entity (new ProjectEntity), saving it through the ProjectRepository port, and mapping the result to CreateProjectResponse, which is an application-layer job.\\\",\\\"src/application/CreateProjectUseCase.ts: the repository comes in as the domain interface ProjectRepository through the constructor, so the file has no persistence code of its own.\\\",\\\"src/application/CreateProjectUseCase.ts: the file has no HTTP, framework or database code. The only questionable statement is the ID generation with Math.random().toString(36).substring(2, 11), which is a minor design point and not misplaced layer logic.\\\"],\\\"violations\\\":[]}\",\"structured_output\":{\"confidence\":0.8,\"evidence\":[\"src/application/CreateProjectUseCase.ts: execute() coordinates creating the entity (new ProjectEntity), saving it through the ProjectRepository port, and mapping the result to CreateProjectResponse, which is an application-layer job.\",\"src/application/CreateProjectUseCase.ts: the repository comes in as the domain interface ProjectRepository through the constructor, so the file has no persistence code of its own.\",\"src/application/CreateProjectUseCase.ts: the file has no HTTP, framework or database code. The only questionable statement is the ID generation with Math.random().toString(36).substring(2, 11), which is a minor design point and not misplaced layer logic.\"],\"pass\":true,\"reasoning\":\"This file passes. CreateProjectUseCase does what an application-layer use case should: it takes a request DTO, builds a domain entity (ProjectEntity), saves it through a repository port declared in the domain (ProjectRepository), and maps the result to a response DTO. It contains no persistence code, no transport or HTTP handling, no framework code and no business rules beyond this coordination. Generating the ID inline with Math.random is a small design weakness: an injected ID-generator port would be cleaner and easier to test. Creating an identifier in a use case is still an accepted application-layer job and does not belong to a different layer kind, so it is not a violation.\",\"violations\":[]}}",
+  "runIndex": 0,
+  "schemaVersion": 2,
+  "unitId": "src/application/CreateProjectUseCase.ts",
+  "usage": {
+    "inputTokens": 2922,
+    "outputTokens": 677
+  },
+  "usedOptions": {
+    "effort": "high",
+    "model": "claude-opus-5-5"
+  }
+}

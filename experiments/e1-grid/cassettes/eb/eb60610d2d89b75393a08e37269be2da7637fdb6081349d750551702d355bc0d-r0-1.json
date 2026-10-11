@@ -1,0 +1,47 @@
+{
+  "attempts": 1,
+  "cliVersion": "2.1.294",
+  "configListingSha256": "47aa04258852fab9a706f3f0c14cee22306d69fbb6fdfbde8c11854bd54997bc",
+  "durationMs": 9796,
+  "effort": "high",
+  "functionId": "FF-N02",
+  "ignoredOptions": [
+    "maxTokens"
+  ],
+  "isolationProbeSha256": "97a2e2d0af1100c13c55e028c1a0c71f069093c3d08705af122aaeb302f1a641",
+  "key": "eb60610d2d89b75393a08e37269be2da7637fdb6081349d750551702d355bc0d-r0-1",
+  "model": "claude-opus-5-5",
+  "outcome": {
+    "kind": "valid"
+  },
+  "parsedVerdict": {
+    "confidence": 0.93,
+    "evidence": [
+      "src/domain/Task.ts: TaskEntity.markDone() enforces the domain invariant 'Task is already marked as done', which is a business rule and belongs in the domain layer",
+      "src/domain/Task.ts: TaskEntity.assignToUser(userId) is a domain state transition on the entity",
+      "src/domain/Task.ts: no database, HTTP, framework or use-case orchestration code is present; the only import is './TaskStatus' (domain)"
+    ],
+    "pass": true,
+    "reasoning": "src/domain/Task.ts declares an abstract Task model and a TaskEntity class. Its contents are entity state (id, projectId, title, description, dueDate, status, assignedToUserId), a constructor, and two domain behaviours: markDone() and assignToUser(). markDone() enforces a business invariant: a task that is already done can't be marked done again. These are all domain responsibilities. The file has no persistence, transport, framework, serialization or orchestration logic, and no ADR prose was given. The only import is a sibling domain type (TaskStatus), and import direction is out of scope anyway.",
+    "violations": []
+  },
+  "projectId": "claude-haiku-4-5/task-management/minimal-prose/run-2",
+  "prompt": "## Rule\nThe unit's responsibilities match the role of its declared layer.\n\n## Rubric\nPass: Every responsibility in the file belongs to the role and kind of its declared layer, and agrees with any ADR prose given.\nFail: The file carries a responsibility that belongs to a different layer kind, for example persistence, transport or framework logic in a domain file, or business rules in an infrastructure or presentation file.\nEvidence required: Name the file and cite the function, method or statement that carries the misplaced responsibility, and the layer kind it belongs to.\nOut of scope: import direction and layer-dependency rules, which are checked symbolically.\n\n## Layer model\n- domain (kind: domain): src/domain/**\n- application (kind: application): src/application/**\n- infrastructure (kind: infrastructure): src/infrastructure/**\n\n## Unit\nKind: file\nId: src/domain/Task.ts\nLayer: domain\nUnit files:\n- src/domain/Task.ts\n\n## Source\n=====SOURCE-BEGIN src/domain/Task.ts=====\nimport { TaskStatus } from './TaskStatus';\n\nexport abstract class Task {\n  abstract id: string;\n  abstract projectId: string;\n  abstract title: string;\n  abstract description: string;\n  abstract dueDate: string | null;\n  abstract status: TaskStatus;\n  abstract assignedToUserId: string | null;\n\n  abstract markDone(): void;\n  abstract assignToUser(userId: string): void;\n}\n\nexport class TaskEntity extends Task {\n  id: string;\n  projectId: string;\n  title: string;\n  description: string;\n  dueDate: string | null;\n  status: TaskStatus;\n  assignedToUserId: string | null;\n\n  constructor(\n    id: string,\n    projectId: string,\n    title: string,\n    description: string,\n    dueDate: string | null,\n    status: TaskStatus,\n    assignedToUserId: string | null = null,\n  ) {\n    super();\n    this.id = id;\n    this.projectId = projectId;\n    this.title = title;\n    this.description = description;\n    this.dueDate = dueDate;\n    this.status = status;\n    this.assignedToUserId = assignedToUserId;\n  }\n\n  markDone(): void {\n    if (this.status === 'done') {\n      throw new Error('Task is already marked as done');\n    }\n    this.status = 'done';\n  }\n\n  assignToUser(userId: string): void {\n    this.assignedToUserId = userId;\n  }\n}\n\n=====SOURCE-END=====\n\n## Graph excerpt\n{\"edges\":[{\"from\":\"TaskEntity@src/domain/Task.ts\",\"to\":\"Task@src/domain/Task.ts\",\"type\":\"EXTENDS\"},{\"from\":\"src/application/CreateTaskUseCase.ts\",\"to\":\"src/domain/Task.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/domain/Task.ts\",\"to\":\"src/domain/TaskStatus.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/domain/TaskRepository.ts\",\"to\":\"src/domain/Task.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/infrastructure/InMemoryTaskRepository.ts\",\"to\":\"src/domain/Task.ts\",\"type\":\"IMPORTS\"}],\"nodes\":[{\"kind\":\"Class\",\"layer\":\"domain\",\"name\":\"Task\",\"path\":\"src/domain/Task.ts\"},{\"kind\":\"Class\",\"layer\":\"domain\",\"name\":\"TaskEntity\",\"path\":\"src/domain/Task.ts\"},{\"kind\":\"File\",\"layer\":\"application\",\"path\":\"src/application/CreateTaskUseCase.ts\"},{\"kind\":\"File\",\"layer\":\"domain\",\"path\":\"src/domain/Task.ts\"},{\"kind\":\"File\",\"layer\":\"domain\",\"path\":\"src/domain/TaskRepository.ts\"},{\"kind\":\"File\",\"layer\":\"domain\",\"path\":\"src/domain/TaskStatus.ts\"},{\"kind\":\"File\",\"layer\":\"infrastructure\",\"path\":\"src/infrastructure/InMemoryTaskRepository.ts\"}]}\n\n## Instructions\nJudge the unit against the rule and rubric. Return the JSON object the schema requires. Set pass to false if any file of the unit fails the rubric.\n",
+  "provider": "claude-cli",
+  "recordedAt": "2026-10-11T02:43:22.173Z",
+  "repetition": 0,
+  "requestHash": "eb60610d2d89b75393a08e37269be2da7637fdb6081349d750551702d355bc0d",
+  "resolvedModel": "claude-opus-5-5",
+  "response": "{\"is_error\":false,\"modelUsage\":{\"claude-opus-5-5\":{\"inputTokens\":2,\"outputTokens\":491}},\"result\":\"{\\\"pass\\\":true,\\\"confidence\\\":0.93,\\\"reasoning\\\":\\\"src/domain/Task.ts declares an abstract Task model and a TaskEntity class. Its contents are entity state (id, projectId, title, description, dueDate, status, assignedToUserId), a constructor, and two domain behaviours: markDone() and assignToUser(). markDone() enforces a business invariant: a task that is already done can't be marked done again. These are all domain responsibilities. The file has no persistence, transport, framework, serialization or orchestration logic, and no ADR prose was given. The only import is a sibling domain type (TaskStatus), and import direction is out of scope anyway.\\\",\\\"evidence\\\":[\\\"src/domain/Task.ts: TaskEntity.markDone() enforces the domain invariant 'Task is already marked as done', which is a business rule and belongs in the domain layer\\\",\\\"src/domain/Task.ts: TaskEntity.assignToUser(userId) is a domain state transition on the entity\\\",\\\"src/domain/Task.ts: no database, HTTP, framework or use-case orchestration code is present; the only import is './TaskStatus' (domain)\\\"],\\\"violations\\\":[]}\",\"structured_output\":{\"confidence\":0.93,\"evidence\":[\"src/domain/Task.ts: TaskEntity.markDone() enforces the domain invariant 'Task is already marked as done', which is a business rule and belongs in the domain layer\",\"src/domain/Task.ts: TaskEntity.assignToUser(userId) is a domain state transition on the entity\",\"src/domain/Task.ts: no database, HTTP, framework or use-case orchestration code is present; the only import is './TaskStatus' (domain)\"],\"pass\":true,\"reasoning\":\"src/domain/Task.ts declares an abstract Task model and a TaskEntity class. Its contents are entity state (id, projectId, title, description, dueDate, status, assignedToUserId), a constructor, and two domain behaviours: markDone() and assignToUser(). markDone() enforces a business invariant: a task that is already done can't be marked done again. These are all domain responsibilities. The file has no persistence, transport, framework, serialization or orchestration logic, and no ADR prose was given. The only import is a sibling domain type (TaskStatus), and import direction is out of scope anyway.\",\"violations\":[]}}",
+  "runIndex": 1,
+  "schemaVersion": 2,
+  "unitId": "src/domain/Task.ts",
+  "usage": {
+    "inputTokens": 2875,
+    "outputTokens": 491
+  },
+  "usedOptions": {
+    "effort": "high",
+    "model": "claude-opus-5-5"
+  }
+}

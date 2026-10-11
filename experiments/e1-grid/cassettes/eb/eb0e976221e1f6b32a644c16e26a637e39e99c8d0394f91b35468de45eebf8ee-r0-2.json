@@ -1,0 +1,47 @@
+{
+  "attempts": 1,
+  "cliVersion": "2.1.294",
+  "configListingSha256": "47aa04258852fab9a706f3f0c14cee22306d69fbb6fdfbde8c11854bd54997bc",
+  "durationMs": 6064,
+  "effort": "high",
+  "functionId": "FF-N02",
+  "ignoredOptions": [
+    "maxTokens"
+  ],
+  "isolationProbeSha256": "97a2e2d0af1100c13c55e028c1a0c71f069093c3d08705af122aaeb302f1a641",
+  "key": "eb0e976221e1f6b32a644c16e26a637e39e99c8d0394f91b35468de45eebf8ee-r0-2",
+  "model": "claude-opus-5-5",
+  "outcome": {
+    "kind": "valid"
+  },
+  "parsedVerdict": {
+    "confidence": 0.95,
+    "evidence": [
+      "src/domain/ProductRepository.ts: `export interface ProductRepository { save(product: Product): void; findById(id: string): Product | null; findAll(): Product[]; }` is a pure abstraction with no implementation.",
+      "Graph: InMemoryProductRepository@src/infrastructure/InMemoryProductRepository.ts IMPLEMENTS ProductRepository, so the persistence implementation lives in infrastructure.",
+      "The file's only import is ./Product, a domain entity, and it pulls in no persistence or framework libraries."
+    ],
+    "pass": true,
+    "reasoning": "src/domain/ProductRepository.ts only declares a repository port, an interface, in terms of the domain entity Product. Defining a repository abstraction in the domain layer is a normal domain responsibility in ports-and-adapters design. The file contains no persistence code, no transport or framework logic, and no application orchestration. The concrete persistence lives in InMemoryProductRepository in the infrastructure layer, which implements this interface.",
+    "violations": []
+  },
+  "projectId": "claude-haiku-4-5/order-fulfilment/minimal-prose/run-1",
+  "prompt": "## Rule\nThe unit's responsibilities match the role of its declared layer.\n\n## Rubric\nPass: Every responsibility in the file belongs to the role and kind of its declared layer, and agrees with any ADR prose given.\nFail: The file carries a responsibility that belongs to a different layer kind, for example persistence, transport or framework logic in a domain file, or business rules in an infrastructure or presentation file.\nEvidence required: Name the file and cite the function, method or statement that carries the misplaced responsibility, and the layer kind it belongs to.\nOut of scope: import direction and layer-dependency rules, which are checked symbolically.\n\n## Layer model\n- domain (kind: domain): src/domain/**\n- application (kind: application): src/application/**\n- infrastructure (kind: infrastructure): src/infrastructure/**\n\n## Unit\nKind: file\nId: src/domain/ProductRepository.ts\nLayer: domain\nUnit files:\n- src/domain/ProductRepository.ts\n\n## Source\n=====SOURCE-BEGIN src/domain/ProductRepository.ts=====\nimport { Product } from './Product';\n\nexport interface ProductRepository {\n  save(product: Product): void;\n  findById(id: string): Product | null;\n  findAll(): Product[];\n}\n\n=====SOURCE-END=====\n\n## Graph excerpt\n{\"edges\":[{\"from\":\"CancelOrderUseCase@src/application/CancelOrderUseCase.ts\",\"to\":\"ProductRepository@src/domain/ProductRepository.ts\",\"type\":\"CONSTRUCTOR_INJECTS\"},{\"from\":\"GetStockLevelsUseCase@src/application/GetStockLevelsUseCase.ts\",\"to\":\"ProductRepository@src/domain/ProductRepository.ts\",\"type\":\"CONSTRUCTOR_INJECTS\"},{\"from\":\"InMemoryProductRepository@src/infrastructure/InMemoryProductRepository.ts\",\"to\":\"ProductRepository@src/domain/ProductRepository.ts\",\"type\":\"IMPLEMENTS\"},{\"from\":\"PlaceOrderUseCase@src/application/PlaceOrderUseCase.ts\",\"to\":\"ProductRepository@src/domain/ProductRepository.ts\",\"type\":\"CONSTRUCTOR_INJECTS\"},{\"from\":\"src/application/CancelOrderUseCase.ts\",\"to\":\"src/domain/ProductRepository.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/application/GetStockLevelsUseCase.ts\",\"to\":\"src/domain/ProductRepository.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/application/PlaceOrderUseCase.ts\",\"to\":\"src/domain/ProductRepository.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/domain/ProductRepository.ts\",\"to\":\"src/domain/Product.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/infrastructure/InMemoryProductRepository.ts\",\"to\":\"src/domain/ProductRepository.ts\",\"type\":\"IMPORTS\"}],\"nodes\":[{\"kind\":\"Class\",\"layer\":\"application\",\"name\":\"CancelOrderUseCase\",\"path\":\"src/application/CancelOrderUseCase.ts\"},{\"kind\":\"Class\",\"layer\":\"application\",\"name\":\"GetStockLevelsUseCase\",\"path\":\"src/application/GetStockLevelsUseCase.ts\"},{\"kind\":\"Class\",\"layer\":\"application\",\"name\":\"PlaceOrderUseCase\",\"path\":\"src/application/PlaceOrderUseCase.ts\"},{\"kind\":\"Class\",\"layer\":\"infrastructure\",\"name\":\"InMemoryProductRepository\",\"path\":\"src/infrastructure/InMemoryProductRepository.ts\"},{\"kind\":\"File\",\"layer\":\"application\",\"path\":\"src/application/CancelOrderUseCase.ts\"},{\"kind\":\"File\",\"layer\":\"application\",\"path\":\"src/application/GetStockLevelsUseCase.ts\"},{\"kind\":\"File\",\"layer\":\"application\",\"path\":\"src/application/PlaceOrderUseCase.ts\"},{\"kind\":\"File\",\"layer\":\"domain\",\"path\":\"src/domain/Product.ts\"},{\"kind\":\"File\",\"layer\":\"domain\",\"path\":\"src/domain/ProductRepository.ts\"},{\"kind\":\"File\",\"layer\":\"infrastructure\",\"path\":\"src/infrastructure/InMemoryProductRepository.ts\"},{\"kind\":\"Interface\",\"layer\":\"domain\",\"name\":\"ProductRepository\",\"path\":\"src/domain/ProductRepository.ts\"}]}\n\n## Instructions\nJudge the unit against the rule and rubric. Return the JSON object the schema requires. Set pass to false if any file of the unit fails the rubric.\n",
+  "provider": "claude-cli",
+  "recordedAt": "2026-10-11T02:47:29.000Z",
+  "repetition": 0,
+  "requestHash": "eb0e976221e1f6b32a644c16e26a637e39e99c8d0394f91b35468de45eebf8ee",
+  "resolvedModel": "claude-opus-5-5",
+  "response": "{\"is_error\":false,\"modelUsage\":{\"claude-opus-5-5\":{\"inputTokens\":2,\"outputTokens\":466}},\"result\":\"{\\\"pass\\\":true,\\\"confidence\\\":0.95,\\\"reasoning\\\":\\\"src/domain/ProductRepository.ts only declares a repository port, an interface, in terms of the domain entity Product. Defining a repository abstraction in the domain layer is a normal domain responsibility in ports-and-adapters design. The file contains no persistence code, no transport or framework logic, and no application orchestration. The concrete persistence lives in InMemoryProductRepository in the infrastructure layer, which implements this interface.\\\",\\\"evidence\\\":[\\\"src/domain/ProductRepository.ts: `export interface ProductRepository { save(product: Product): void; findById(id: string): Product | null; findAll(): Product[]; }` is a pure abstraction with no implementation.\\\",\\\"Graph: InMemoryProductRepository@src/infrastructure/InMemoryProductRepository.ts IMPLEMENTS ProductRepository, so the persistence implementation lives in infrastructure.\\\",\\\"The file's only import is ./Product, a domain entity, and it pulls in no persistence or framework libraries.\\\"],\\\"violations\\\":[]}\",\"structured_output\":{\"confidence\":0.95,\"evidence\":[\"src/domain/ProductRepository.ts: `export interface ProductRepository { save(product: Product): void; findById(id: string): Product | null; findAll(): Product[]; }` is a pure abstraction with no implementation.\",\"Graph: InMemoryProductRepository@src/infrastructure/InMemoryProductRepository.ts IMPLEMENTS ProductRepository, so the persistence implementation lives in infrastructure.\",\"The file's only import is ./Product, a domain entity, and it pulls in no persistence or framework libraries.\"],\"pass\":true,\"reasoning\":\"src/domain/ProductRepository.ts only declares a repository port, an interface, in terms of the domain entity Product. Defining a repository abstraction in the domain layer is a normal domain responsibility in ports-and-adapters design. The file contains no persistence code, no transport or framework logic, and no application orchestration. The concrete persistence lives in InMemoryProductRepository in the infrastructure layer, which implements this interface.\",\"violations\":[]}}",
+  "runIndex": 2,
+  "schemaVersion": 2,
+  "unitId": "src/domain/ProductRepository.ts",
+  "usage": {
+    "inputTokens": 3046,
+    "outputTokens": 466
+  },
+  "usedOptions": {
+    "effort": "high",
+    "model": "claude-opus-5-5"
+  }
+}

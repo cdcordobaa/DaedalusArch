@@ -1,0 +1,47 @@
+{
+  "attempts": 1,
+  "cliVersion": "2.1.294",
+  "configListingSha256": "47aa04258852fab9a706f3f0c14cee22306d69fbb6fdfbde8c11854bd54997bc",
+  "durationMs": 5413,
+  "effort": "high",
+  "functionId": "FF-N02",
+  "ignoredOptions": [
+    "maxTokens"
+  ],
+  "isolationProbeSha256": "97a2e2d0af1100c13c55e028c1a0c71f069093c3d08705af122aaeb302f1a641",
+  "key": "5c5a13ed2285fe0ad1854025cab0dd8fe9ce6284915f8e3448790bea28ed81ac-r0-1",
+  "model": "claude-opus-5-5",
+  "outcome": {
+    "kind": "valid"
+  },
+  "parsedVerdict": {
+    "confidence": 0.9,
+    "evidence": [
+      "src/application/dtos.ts declares only interfaces: PlaceOrderRequest, OrderResponse, ProductResponse, OrderListResponse, ProductListResponse",
+      "No functions, classes or executable statements; no persistence, HTTP or framework code",
+      "Imported by application use cases (place-order.ts, list-orders.ts, list-products.ts, cancel-order.ts, transition-order.ts), which fits its role as use-case input/output contracts"
+    ],
+    "pass": true,
+    "reasoning": "The file only declares request/response DTO interfaces that the application use cases use as their input and output contracts. Defining use-case boundary data shapes is an application-layer job. The file has no persistence, transport, framework or business-rule logic. Using string timestamps (createdAt/updatedAt) is a normal DTO serialization choice. It doesn't tie the file to any transport or framework.",
+    "violations": []
+  },
+  "projectId": "claude-haiku-4-5/order-fulfilment/full-aac/run-0",
+  "prompt": "## Rule\nThe unit's responsibilities match the role of its declared layer.\n\n## Rubric\nPass: Every responsibility in the file belongs to the role and kind of its declared layer, and agrees with any ADR prose given.\nFail: The file carries a responsibility that belongs to a different layer kind, for example persistence, transport or framework logic in a domain file, or business rules in an infrastructure or presentation file.\nEvidence required: Name the file and cite the function, method or statement that carries the misplaced responsibility, and the layer kind it belongs to.\nOut of scope: import direction and layer-dependency rules, which are checked symbolically.\n\n## Layer model\n- domain (kind: domain): src/domain/**\n- application (kind: application): src/application/**\n- infrastructure (kind: infrastructure): src/infrastructure/**\n\n## Unit\nKind: file\nId: src/application/dtos.ts\nLayer: application\nUnit files:\n- src/application/dtos.ts\n\n## Source\n=====SOURCE-BEGIN src/application/dtos.ts=====\nimport { OrderState, OrderItem } from '../domain/types';\n\nexport interface PlaceOrderRequest {\n  customerId: string;\n  items: Array<{ productId: string; quantity: number }>;\n}\n\nexport interface OrderResponse {\n  id: string;\n  customerId: string;\n  items: OrderItem[];\n  state: OrderState;\n  createdAt: string;\n  updatedAt: string;\n}\n\nexport interface ProductResponse {\n  id: string;\n  name: string;\n  price: number;\n  stock: number;\n}\n\nexport interface OrderListResponse {\n  orders: OrderResponse[];\n}\n\nexport interface ProductListResponse {\n  products: ProductResponse[];\n}\n\n=====SOURCE-END=====\n\n## Graph excerpt\n{\"edges\":[{\"from\":\"src/application/cancel-order.ts\",\"to\":\"src/application/dtos.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/application/dtos.ts\",\"to\":\"src/domain/types.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/application/list-orders.ts\",\"to\":\"src/application/dtos.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/application/list-products.ts\",\"to\":\"src/application/dtos.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/application/place-order.ts\",\"to\":\"src/application/dtos.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/application/transition-order.ts\",\"to\":\"src/application/dtos.ts\",\"type\":\"IMPORTS\"}],\"nodes\":[{\"kind\":\"File\",\"layer\":\"application\",\"path\":\"src/application/cancel-order.ts\"},{\"kind\":\"File\",\"layer\":\"application\",\"path\":\"src/application/dtos.ts\"},{\"kind\":\"File\",\"layer\":\"application\",\"path\":\"src/application/list-orders.ts\"},{\"kind\":\"File\",\"layer\":\"application\",\"path\":\"src/application/list-products.ts\"},{\"kind\":\"File\",\"layer\":\"application\",\"path\":\"src/application/place-order.ts\"},{\"kind\":\"File\",\"layer\":\"application\",\"path\":\"src/application/transition-order.ts\"},{\"kind\":\"File\",\"layer\":\"domain\",\"path\":\"src/domain/types.ts\"},{\"kind\":\"Interface\",\"layer\":\"application\",\"name\":\"OrderListResponse\",\"path\":\"src/application/dtos.ts\"},{\"kind\":\"Interface\",\"layer\":\"application\",\"name\":\"OrderResponse\",\"path\":\"src/application/dtos.ts\"},{\"kind\":\"Interface\",\"layer\":\"application\",\"name\":\"PlaceOrderRequest\",\"path\":\"src/application/dtos.ts\"},{\"kind\":\"Interface\",\"layer\":\"application\",\"name\":\"ProductListResponse\",\"path\":\"src/application/dtos.ts\"},{\"kind\":\"Interface\",\"layer\":\"application\",\"name\":\"ProductResponse\",\"path\":\"src/application/dtos.ts\"}]}\n\n## Instructions\nJudge the unit against the rule and rubric. Return the JSON object the schema requires. Set pass to false if any file of the unit fails the rubric.\n",
+  "provider": "claude-cli",
+  "recordedAt": "2026-10-11T02:56:42.730Z",
+  "repetition": 0,
+  "requestHash": "5c5a13ed2285fe0ad1854025cab0dd8fe9ce6284915f8e3448790bea28ed81ac",
+  "resolvedModel": "claude-opus-5-5",
+  "response": "{\"is_error\":false,\"modelUsage\":{\"claude-opus-5-5\":{\"inputTokens\":2,\"outputTokens\":420}},\"result\":\"{\\\"pass\\\":true,\\\"confidence\\\":0.9,\\\"reasoning\\\":\\\"The file only declares request/response DTO interfaces that the application use cases use as their input and output contracts. Defining use-case boundary data shapes is an application-layer job. The file has no persistence, transport, framework or business-rule logic. Using string timestamps (createdAt/updatedAt) is a normal DTO serialization choice. It doesn't tie the file to any transport or framework.\\\",\\\"evidence\\\":[\\\"src/application/dtos.ts declares only interfaces: PlaceOrderRequest, OrderResponse, ProductResponse, OrderListResponse, ProductListResponse\\\",\\\"No functions, classes or executable statements; no persistence, HTTP or framework code\\\",\\\"Imported by application use cases (place-order.ts, list-orders.ts, list-products.ts, cancel-order.ts, transition-order.ts), which fits its role as use-case input/output contracts\\\"],\\\"violations\\\":[]}\",\"structured_output\":{\"confidence\":0.9,\"evidence\":[\"src/application/dtos.ts declares only interfaces: PlaceOrderRequest, OrderResponse, ProductResponse, OrderListResponse, ProductListResponse\",\"No functions, classes or executable statements; no persistence, HTTP or framework code\",\"Imported by application use cases (place-order.ts, list-orders.ts, list-products.ts, cancel-order.ts, transition-order.ts), which fits its role as use-case input/output contracts\"],\"pass\":true,\"reasoning\":\"The file only declares request/response DTO interfaces that the application use cases use as their input and output contracts. Defining use-case boundary data shapes is an application-layer job. The file has no persistence, transport, framework or business-rule logic. Using string timestamps (createdAt/updatedAt) is a normal DTO serialization choice. It doesn't tie the file to any transport or framework.\",\"violations\":[]}}",
+  "runIndex": 1,
+  "schemaVersion": 2,
+  "unitId": "src/application/dtos.ts",
+  "usage": {
+    "inputTokens": 2799,
+    "outputTokens": 420
+  },
+  "usedOptions": {
+    "effort": "high",
+    "model": "claude-opus-5-5"
+  }
+}

@@ -1,0 +1,48 @@
+{
+  "attempts": 1,
+  "cliVersion": "2.1.294",
+  "configListingSha256": "47aa04258852fab9a706f3f0c14cee22306d69fbb6fdfbde8c11854bd54997bc",
+  "durationMs": 7355,
+  "effort": "high",
+  "functionId": "FF-N02",
+  "ignoredOptions": [
+    "maxTokens"
+  ],
+  "isolationProbeSha256": "97a2e2d0af1100c13c55e028c1a0c71f069093c3d08705af122aaeb302f1a641",
+  "key": "ce05a301f338a2f4fe517a9e268d6db16a7454e9b136c7480dcc66a9c47e45e6-r0-0",
+  "model": "claude-opus-5-5",
+  "outcome": {
+    "kind": "valid"
+  },
+  "parsedVerdict": {
+    "confidence": 0.92,
+    "evidence": [
+      "src/application/CancelOrderUseCase.ts: execute() calls this.orders.findById / this.orders.save through the domain OrderRepository interface. It does not implement persistence itself.",
+      "src/application/CancelOrderUseCase.ts: order.cancel() leaves the cancellation rule to the domain entity, so the use case holds no business rule.",
+      "src/application/CancelOrderUseCase.ts: return toOrderDto(order) maps the result to an application-layer DTO. It does no transport or response formatting.",
+      "src/application/CancelOrderUseCase.ts: the not-found check that throws DomainError is a use-case precondition, which is normal application orchestration."
+    ],
+    "pass": true,
+    "reasoning": "CancelOrderUseCase.execute only orchestrates the use case. It loads the aggregate through the domain OrderRepository port and throws a not_found error if the order is missing. It then leaves the cancellation rule to the domain (order.cancel()), coordinates the StockService through a domain abstraction, saves through the port, and maps the result to an application DTO. The file has no persistence code, no transport or framework handling (HTTP, SQL, ORM), and no business rules of its own. All of these are application-layer jobs.",
+    "violations": []
+  },
+  "projectId": "claude-sonnet-5-5/order-fulfilment/full-aac/run-2",
+  "prompt": "## Rule\nThe unit's responsibilities match the role of its declared layer.\n\n## Rubric\nPass: Every responsibility in the file belongs to the role and kind of its declared layer, and agrees with any ADR prose given.\nFail: The file carries a responsibility that belongs to a different layer kind, for example persistence, transport or framework logic in a domain file, or business rules in an infrastructure or presentation file.\nEvidence required: Name the file and cite the function, method or statement that carries the misplaced responsibility, and the layer kind it belongs to.\nOut of scope: import direction and layer-dependency rules, which are checked symbolically.\n\n## Layer model\n- domain (kind: domain): src/domain/**\n- application (kind: application): src/application/**\n- infrastructure (kind: infrastructure): src/infrastructure/**\n\n## Unit\nKind: file\nId: src/application/CancelOrderUseCase.ts\nLayer: application\nUnit files:\n- src/application/CancelOrderUseCase.ts\n\n## Source\n=====SOURCE-BEGIN src/application/CancelOrderUseCase.ts=====\nimport { DomainError } from \"../domain/DomainError\";\nimport { OrderRepository } from \"../domain/OrderRepository\";\nimport { StockService } from \"../domain/StockService\";\nimport { OrderDto, toOrderDto } from \"./OrderDto\";\n\nexport class CancelOrderUseCase {\n  constructor(\n    private readonly orders: OrderRepository,\n    private readonly stock: StockService,\n  ) {}\n\n  execute(orderId: string): OrderDto {\n    const order = this.orders.findById(orderId);\n    if (!order) {\n      throw new DomainError(\"not_found\", `Order ${orderId} does not exist`);\n    }\n    order.cancel();\n    this.stock.release(order.lines);\n    this.orders.save(order);\n    return toOrderDto(order);\n  }\n}\n\n=====SOURCE-END=====\n\n## Graph excerpt\n{\"edges\":[{\"from\":\"CancelOrderUseCase@src/application/CancelOrderUseCase.ts\",\"to\":\"OrderRepository@src/domain/OrderRepository.ts\",\"type\":\"CONSTRUCTOR_INJECTS\"},{\"from\":\"CancelOrderUseCase@src/application/CancelOrderUseCase.ts\",\"to\":\"StockService@src/domain/StockService.ts\",\"type\":\"CONSTRUCTOR_INJECTS\"},{\"from\":\"OrderController@src/infrastructure/OrderController.ts\",\"to\":\"CancelOrderUseCase@src/application/CancelOrderUseCase.ts\",\"type\":\"CONSTRUCTOR_INJECTS\"},{\"from\":\"src/application/CancelOrderUseCase.ts\",\"to\":\"src/application/OrderDto.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/application/CancelOrderUseCase.ts\",\"to\":\"src/domain/DomainError.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/application/CancelOrderUseCase.ts\",\"to\":\"src/domain/OrderRepository.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/application/CancelOrderUseCase.ts\",\"to\":\"src/domain/StockService.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/infrastructure/OrderController.ts\",\"to\":\"src/application/CancelOrderUseCase.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/infrastructure/createApp.ts\",\"to\":\"src/application/CancelOrderUseCase.ts\",\"type\":\"IMPORTS\"}],\"nodes\":[{\"kind\":\"Class\",\"layer\":\"application\",\"name\":\"CancelOrderUseCase\",\"path\":\"src/application/CancelOrderUseCase.ts\"},{\"kind\":\"Class\",\"layer\":\"domain\",\"name\":\"StockService\",\"path\":\"src/domain/StockService.ts\"},{\"kind\":\"Class\",\"layer\":\"infrastructure\",\"name\":\"OrderController\",\"path\":\"src/infrastructure/OrderController.ts\"},{\"kind\":\"File\",\"layer\":\"application\",\"path\":\"src/application/CancelOrderUseCase.ts\"},{\"kind\":\"File\",\"layer\":\"application\",\"path\":\"src/application/OrderDto.ts\"},{\"kind\":\"File\",\"layer\":\"domain\",\"path\":\"src/domain/DomainError.ts\"},{\"kind\":\"File\",\"layer\":\"domain\",\"path\":\"src/domain/OrderRepository.ts\"},{\"kind\":\"File\",\"layer\":\"domain\",\"path\":\"src/domain/StockService.ts\"},{\"kind\":\"File\",\"layer\":\"infrastructure\",\"path\":\"src/infrastructure/OrderController.ts\"},{\"kind\":\"File\",\"layer\":\"infrastructure\",\"path\":\"src/infrastructure/createApp.ts\"},{\"kind\":\"Interface\",\"layer\":\"domain\",\"name\":\"OrderRepository\",\"path\":\"src/domain/OrderRepository.ts\"}]}\n\n## Instructions\nJudge the unit against the rule and rubric. Return the JSON object the schema requires. Set pass to false if any file of the unit fails the rubric.\n",
+  "provider": "claude-cli",
+  "recordedAt": "2026-10-11T02:31:22.823Z",
+  "repetition": 0,
+  "requestHash": "ce05a301f338a2f4fe517a9e268d6db16a7454e9b136c7480dcc66a9c47e45e6",
+  "resolvedModel": "claude-opus-5-5",
+  "response": "{\"is_error\":false,\"modelUsage\":{\"claude-opus-5-5\":{\"inputTokens\":2,\"outputTokens\":596}},\"result\":\"{\\\"pass\\\":true,\\\"confidence\\\":0.92,\\\"reasoning\\\":\\\"CancelOrderUseCase.execute only orchestrates the use case. It loads the aggregate through the domain OrderRepository port and throws a not_found error if the order is missing. It then leaves the cancellation rule to the domain (order.cancel()), coordinates the StockService through a domain abstraction, saves through the port, and maps the result to an application DTO. The file has no persistence code, no transport or framework handling (HTTP, SQL, ORM), and no business rules of its own. All of these are application-layer jobs.\\\",\\\"evidence\\\":[\\\"src/application/CancelOrderUseCase.ts: execute() calls this.orders.findById / this.orders.save through the domain OrderRepository interface. It does not implement persistence itself.\\\",\\\"src/application/CancelOrderUseCase.ts: order.cancel() leaves the cancellation rule to the domain entity, so the use case holds no business rule.\\\",\\\"src/application/CancelOrderUseCase.ts: return toOrderDto(order) maps the result to an application-layer DTO. It does no transport or response formatting.\\\",\\\"src/application/CancelOrderUseCase.ts: the not-found check that throws DomainError is a use-case precondition, which is normal application orchestration.\\\"],\\\"violations\\\":[]}\",\"structured_output\":{\"confidence\":0.92,\"evidence\":[\"src/application/CancelOrderUseCase.ts: execute() calls this.orders.findById / this.orders.save through the domain OrderRepository interface. It does not implement persistence itself.\",\"src/application/CancelOrderUseCase.ts: order.cancel() leaves the cancellation rule to the domain entity, so the use case holds no business rule.\",\"src/application/CancelOrderUseCase.ts: return toOrderDto(order) maps the result to an application-layer DTO. It does no transport or response formatting.\",\"src/application/CancelOrderUseCase.ts: the not-found check that throws DomainError is a use-case precondition, which is normal application orchestration.\"],\"pass\":true,\"reasoning\":\"CancelOrderUseCase.execute only orchestrates the use case. It loads the aggregate through the domain OrderRepository port and throws a not_found error if the order is missing. It then leaves the cancellation rule to the domain (order.cancel()), coordinates the StockService through a domain abstraction, saves through the port, and maps the result to an application DTO. The file has no persistence code, no transport or framework handling (HTTP, SQL, ORM), and no business rules of its own. All of these are application-layer jobs.\",\"violations\":[]}}",
+  "runIndex": 0,
+  "schemaVersion": 2,
+  "unitId": "src/application/CancelOrderUseCase.ts",
+  "usage": {
+    "inputTokens": 3152,
+    "outputTokens": 596
+  },
+  "usedOptions": {
+    "effort": "high",
+    "model": "claude-opus-5-5"
+  }
+}

@@ -1,0 +1,47 @@
+{
+  "attempts": 1,
+  "cliVersion": "2.1.294",
+  "configListingSha256": "47aa04258852fab9a706f3f0c14cee22306d69fbb6fdfbde8c11854bd54997bc",
+  "durationMs": 6252,
+  "effort": "high",
+  "functionId": "FF-N02",
+  "ignoredOptions": [
+    "maxTokens"
+  ],
+  "isolationProbeSha256": "97a2e2d0af1100c13c55e028c1a0c71f069093c3d08705af122aaeb302f1a641",
+  "key": "79ae1310e005d6fd5f3fe71a232453153756a07b059c131d5f55f407fa373d1b-r0-2",
+  "model": "claude-opus-5-5",
+  "outcome": {
+    "kind": "valid"
+  },
+  "parsedVerdict": {
+    "confidence": 0.95,
+    "evidence": [
+      "src/domain/OrderRepository.ts declares only `export interface OrderRepository` with the methods save, findById, findByState and findAll, which are typed in domain terms (Order, OrderStateType).",
+      "The file has no concrete storage, I/O or framework code. The implementation lives in src/infrastructure/InMemoryOrderRepository.ts (IMPLEMENTS edge).",
+      "Application use cases (PlaceOrderUseCase, CancelOrderUseCase and others) depend on the port through CONSTRUCTOR_INJECTS edges, which fits a domain-defined abstraction."
+    ],
+    "pass": true,
+    "reasoning": "src/domain/OrderRepository.ts only declares a repository port, the OrderRepository interface. It uses domain types (Order, OrderStateType) and has no implementation code. It contains no persistence mechanism, transport logic or framework code. Defining a repository abstraction in the domain layer is a standard domain responsibility. The graph shows that infrastructure (InMemoryOrderRepository) implements the interface and application use cases inject it, so the port is in the right place. No ADR prose was provided to contradict this.",
+    "violations": []
+  },
+  "projectId": "claude-haiku-4-5/order-fulfilment/minimal-prose/run-1",
+  "prompt": "## Rule\nThe unit's responsibilities match the role of its declared layer.\n\n## Rubric\nPass: Every responsibility in the file belongs to the role and kind of its declared layer, and agrees with any ADR prose given.\nFail: The file carries a responsibility that belongs to a different layer kind, for example persistence, transport or framework logic in a domain file, or business rules in an infrastructure or presentation file.\nEvidence required: Name the file and cite the function, method or statement that carries the misplaced responsibility, and the layer kind it belongs to.\nOut of scope: import direction and layer-dependency rules, which are checked symbolically.\n\n## Layer model\n- domain (kind: domain): src/domain/**\n- application (kind: application): src/application/**\n- infrastructure (kind: infrastructure): src/infrastructure/**\n\n## Unit\nKind: file\nId: src/domain/OrderRepository.ts\nLayer: domain\nUnit files:\n- src/domain/OrderRepository.ts\n\n## Source\n=====SOURCE-BEGIN src/domain/OrderRepository.ts=====\nimport { Order } from './Order';\nimport { OrderStateType } from './OrderState';\n\nexport interface OrderRepository {\n  save(order: Order): void;\n  findById(id: string): Order | null;\n  findByState(state: OrderStateType): Order[];\n  findAll(): Order[];\n}\n\n=====SOURCE-END=====\n\n## Graph excerpt\n{\"edges\":[{\"from\":\"CancelOrderUseCase@src/application/CancelOrderUseCase.ts\",\"to\":\"OrderRepository@src/domain/OrderRepository.ts\",\"type\":\"CONSTRUCTOR_INJECTS\"},{\"from\":\"InMemoryOrderRepository@src/infrastructure/InMemoryOrderRepository.ts\",\"to\":\"OrderRepository@src/domain/OrderRepository.ts\",\"type\":\"IMPLEMENTS\"},{\"from\":\"ListOrdersByStateUseCase@src/application/ListOrdersByStateUseCase.ts\",\"to\":\"OrderRepository@src/domain/OrderRepository.ts\",\"type\":\"CONSTRUCTOR_INJECTS\"},{\"from\":\"PlaceOrderUseCase@src/application/PlaceOrderUseCase.ts\",\"to\":\"OrderRepository@src/domain/OrderRepository.ts\",\"type\":\"CONSTRUCTOR_INJECTS\"},{\"from\":\"UpdateOrderStateUseCase@src/application/UpdateOrderStateUseCase.ts\",\"to\":\"OrderRepository@src/domain/OrderRepository.ts\",\"type\":\"CONSTRUCTOR_INJECTS\"},{\"from\":\"src/application/CancelOrderUseCase.ts\",\"to\":\"src/domain/OrderRepository.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/application/ListOrdersByStateUseCase.ts\",\"to\":\"src/domain/OrderRepository.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/application/PlaceOrderUseCase.ts\",\"to\":\"src/domain/OrderRepository.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/application/UpdateOrderStateUseCase.ts\",\"to\":\"src/domain/OrderRepository.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/domain/OrderRepository.ts\",\"to\":\"src/domain/Order.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/domain/OrderRepository.ts\",\"to\":\"src/domain/OrderState.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/infrastructure/InMemoryOrderRepository.ts\",\"to\":\"src/domain/OrderRepository.ts\",\"type\":\"IMPORTS\"}],\"nodes\":[{\"kind\":\"Class\",\"layer\":\"application\",\"name\":\"CancelOrderUseCase\",\"path\":\"src/application/CancelOrderUseCase.ts\"},{\"kind\":\"Class\",\"layer\":\"application\",\"name\":\"ListOrdersByStateUseCase\",\"path\":\"src/application/ListOrdersByStateUseCase.ts\"},{\"kind\":\"Class\",\"layer\":\"application\",\"name\":\"PlaceOrderUseCase\",\"path\":\"src/application/PlaceOrderUseCase.ts\"},{\"kind\":\"Class\",\"layer\":\"application\",\"name\":\"UpdateOrderStateUseCase\",\"path\":\"src/application/UpdateOrderStateUseCase.ts\"},{\"kind\":\"Class\",\"layer\":\"infrastructure\",\"name\":\"InMemoryOrderRepository\",\"path\":\"src/infrastructure/InMemoryOrderRepository.ts\"},{\"kind\":\"File\",\"layer\":\"application\",\"path\":\"src/application/CancelOrderUseCase.ts\"},{\"kind\":\"File\",\"layer\":\"application\",\"path\":\"src/application/ListOrdersByStateUseCase.ts\"},{\"kind\":\"File\",\"layer\":\"application\",\"path\":\"src/application/PlaceOrderUseCase.ts\"},{\"kind\":\"File\",\"layer\":\"application\",\"path\":\"src/application/UpdateOrderStateUseCase.ts\"},{\"kind\":\"File\",\"layer\":\"domain\",\"path\":\"src/domain/Order.ts\"},{\"kind\":\"File\",\"layer\":\"domain\",\"path\":\"src/domain/OrderRepository.ts\"},{\"kind\":\"File\",\"layer\":\"domain\",\"path\":\"src/domain/OrderState.ts\"},{\"kind\":\"File\",\"layer\":\"infrastructure\",\"path\":\"src/infrastructure/InMemoryOrderRepository.ts\"},{\"kind\":\"Interface\",\"layer\":\"domain\",\"name\":\"OrderRepository\",\"path\":\"src/domain/OrderRepository.ts\"}]}\n\n## Instructions\nJudge the unit against the rule and rubric. Return the JSON object the schema requires. Set pass to false if any file of the unit fails the rubric.\n",
+  "provider": "claude-cli",
+  "recordedAt": "2026-10-11T02:47:10.806Z",
+  "repetition": 0,
+  "requestHash": "79ae1310e005d6fd5f3fe71a232453153756a07b059c131d5f55f407fa373d1b",
+  "resolvedModel": "claude-opus-5-5",
+  "response": "{\"is_error\":false,\"modelUsage\":{\"claude-opus-5-5\":{\"inputTokens\":2,\"outputTokens\":513}},\"result\":\"{\\\"pass\\\":true,\\\"confidence\\\":0.95,\\\"reasoning\\\":\\\"src/domain/OrderRepository.ts only declares a repository port, the OrderRepository interface. It uses domain types (Order, OrderStateType) and has no implementation code. It contains no persistence mechanism, transport logic or framework code. Defining a repository abstraction in the domain layer is a standard domain responsibility. The graph shows that infrastructure (InMemoryOrderRepository) implements the interface and application use cases inject it, so the port is in the right place. No ADR prose was provided to contradict this.\\\",\\\"evidence\\\":[\\\"src/domain/OrderRepository.ts declares only `export interface OrderRepository` with the methods save, findById, findByState and findAll, which are typed in domain terms (Order, OrderStateType).\\\",\\\"The file has no concrete storage, I/O or framework code. The implementation lives in src/infrastructure/InMemoryOrderRepository.ts (IMPLEMENTS edge).\\\",\\\"Application use cases (PlaceOrderUseCase, CancelOrderUseCase and others) depend on the port through CONSTRUCTOR_INJECTS edges, which fits a domain-defined abstraction.\\\"],\\\"violations\\\":[]}\",\"structured_output\":{\"confidence\":0.95,\"evidence\":[\"src/domain/OrderRepository.ts declares only `export interface OrderRepository` with the methods save, findById, findByState and findAll, which are typed in domain terms (Order, OrderStateType).\",\"The file has no concrete storage, I/O or framework code. The implementation lives in src/infrastructure/InMemoryOrderRepository.ts (IMPLEMENTS edge).\",\"Application use cases (PlaceOrderUseCase, CancelOrderUseCase and others) depend on the port through CONSTRUCTOR_INJECTS edges, which fits a domain-defined abstraction.\"],\"pass\":true,\"reasoning\":\"src/domain/OrderRepository.ts only declares a repository port, the OrderRepository interface. It uses domain types (Order, OrderStateType) and has no implementation code. It contains no persistence mechanism, transport logic or framework code. Defining a repository abstraction in the domain layer is a standard domain responsibility. The graph shows that infrastructure (InMemoryOrderRepository) implements the interface and application use cases inject it, so the port is in the right place. No ADR prose was provided to contradict this.\",\"violations\":[]}}",
+  "runIndex": 2,
+  "schemaVersion": 2,
+  "unitId": "src/domain/OrderRepository.ts",
+  "usage": {
+    "inputTokens": 3410,
+    "outputTokens": 513
+  },
+  "usedOptions": {
+    "effort": "high",
+    "model": "claude-opus-5-5"
+  }
+}

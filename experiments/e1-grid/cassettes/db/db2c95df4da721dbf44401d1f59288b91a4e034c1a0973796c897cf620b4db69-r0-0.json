@@ -1,0 +1,48 @@
+{
+  "attempts": 1,
+  "cliVersion": "2.1.294",
+  "configListingSha256": "47aa04258852fab9a706f3f0c14cee22306d69fbb6fdfbde8c11854bd54997bc",
+  "durationMs": 6222,
+  "effort": "high",
+  "functionId": "FF-N02",
+  "ignoredOptions": [
+    "maxTokens"
+  ],
+  "isolationProbeSha256": "97a2e2d0af1100c13c55e028c1a0c71f069093c3d08705af122aaeb302f1a641",
+  "key": "db2c95df4da721dbf44401d1f59288b91a4e034c1a0973796c897cf620b4db69-r0-0",
+  "model": "claude-opus-5-5",
+  "outcome": {
+    "kind": "valid"
+  },
+  "parsedVerdict": {
+    "confidence": 0.93,
+    "evidence": [
+      "DomainError extends Error and only sets the message and name, with no framework or transport concerns",
+      "InsufficientStockError and InvalidStateTransitionError describe business-rule violations, which are domain concepts",
+      "OrderNotFoundError and ProductNotFoundError refer to domain entities by id and carry no HTTP or persistence details such as status codes or table names",
+      "No I/O, database, HTTP or framework logic appears anywhere in the file"
+    ],
+    "pass": true,
+    "reasoning": "src/domain/errors.ts only defines domain error types: a base DomainError and subclasses for business-rule violations (insufficient stock, invalid state transition) and missing aggregates (order or product not found). These errors describe domain concepts in the ubiquitous language. The file contains no persistence, transport, framework, HTTP status codes, serialization or logging. Its responsibilities fit the domain layer.",
+    "violations": []
+  },
+  "projectId": "claude-haiku-4-5/order-fulfilment/full-aac/run-0",
+  "prompt": "## Rule\nThe unit's responsibilities match the role of its declared layer.\n\n## Rubric\nPass: Every responsibility in the file belongs to the role and kind of its declared layer, and agrees with any ADR prose given.\nFail: The file carries a responsibility that belongs to a different layer kind, for example persistence, transport or framework logic in a domain file, or business rules in an infrastructure or presentation file.\nEvidence required: Name the file and cite the function, method or statement that carries the misplaced responsibility, and the layer kind it belongs to.\nOut of scope: import direction and layer-dependency rules, which are checked symbolically.\n\n## Layer model\n- domain (kind: domain): src/domain/**\n- application (kind: application): src/application/**\n- infrastructure (kind: infrastructure): src/infrastructure/**\n\n## Unit\nKind: file\nId: src/domain/errors.ts\nLayer: domain\nUnit files:\n- src/domain/errors.ts\n\n## Source\n=====SOURCE-BEGIN src/domain/errors.ts=====\nexport class DomainError extends Error {\n  constructor(message: string) {\n    super(message);\n    this.name = this.constructor.name;\n  }\n}\n\nexport class InsufficientStockError extends DomainError {\n  constructor(productId: string, requested: number, available: number) {\n    super(`Insufficient stock for product ${productId}. Requested: ${requested}, Available: ${available}`);\n  }\n}\n\nexport class InvalidStateTransitionError extends DomainError {\n  constructor(currentState: string, requestedState: string) {\n    super(`Cannot transition from ${currentState} to ${requestedState}`);\n  }\n}\n\nexport class OrderNotFoundError extends DomainError {\n  constructor(orderId: string) {\n    super(`Order ${orderId} not found`);\n  }\n}\n\nexport class ProductNotFoundError extends DomainError {\n  constructor(productId: string) {\n    super(`Product ${productId} not found`);\n  }\n}\n\n=====SOURCE-END=====\n\n## Graph excerpt\n{\"edges\":[{\"from\":\"InsufficientStockError@src/domain/errors.ts\",\"to\":\"DomainError@src/domain/errors.ts\",\"type\":\"EXTENDS\"},{\"from\":\"InvalidStateTransitionError@src/domain/errors.ts\",\"to\":\"DomainError@src/domain/errors.ts\",\"type\":\"EXTENDS\"},{\"from\":\"OrderNotFoundError@src/domain/errors.ts\",\"to\":\"DomainError@src/domain/errors.ts\",\"type\":\"EXTENDS\"},{\"from\":\"ProductNotFoundError@src/domain/errors.ts\",\"to\":\"DomainError@src/domain/errors.ts\",\"type\":\"EXTENDS\"},{\"from\":\"src/application/cancel-order.ts\",\"to\":\"src/domain/errors.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/application/place-order.ts\",\"to\":\"src/domain/errors.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/application/transition-order.ts\",\"to\":\"src/domain/errors.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/domain/order-service.ts\",\"to\":\"src/domain/errors.ts\",\"type\":\"IMPORTS\"}],\"nodes\":[{\"kind\":\"Class\",\"layer\":\"domain\",\"name\":\"DomainError\",\"path\":\"src/domain/errors.ts\"},{\"kind\":\"Class\",\"layer\":\"domain\",\"name\":\"InsufficientStockError\",\"path\":\"src/domain/errors.ts\"},{\"kind\":\"Class\",\"layer\":\"domain\",\"name\":\"InvalidStateTransitionError\",\"path\":\"src/domain/errors.ts\"},{\"kind\":\"Class\",\"layer\":\"domain\",\"name\":\"OrderNotFoundError\",\"path\":\"src/domain/errors.ts\"},{\"kind\":\"Class\",\"layer\":\"domain\",\"name\":\"ProductNotFoundError\",\"path\":\"src/domain/errors.ts\"},{\"kind\":\"File\",\"layer\":\"application\",\"path\":\"src/application/cancel-order.ts\"},{\"kind\":\"File\",\"layer\":\"application\",\"path\":\"src/application/place-order.ts\"},{\"kind\":\"File\",\"layer\":\"application\",\"path\":\"src/application/transition-order.ts\"},{\"kind\":\"File\",\"layer\":\"domain\",\"path\":\"src/domain/errors.ts\"},{\"kind\":\"File\",\"layer\":\"domain\",\"path\":\"src/domain/order-service.ts\"}]}\n\n## Instructions\nJudge the unit against the rule and rubric. Return the JSON object the schema requires. Set pass to false if any file of the unit fails the rubric.\n",
+  "provider": "claude-cli",
+  "recordedAt": "2026-10-11T02:57:29.346Z",
+  "repetition": 0,
+  "requestHash": "db2c95df4da721dbf44401d1f59288b91a4e034c1a0973796c897cf620b4db69",
+  "resolvedModel": "claude-opus-5-5",
+  "response": "{\"is_error\":false,\"modelUsage\":{\"claude-opus-5-5\":{\"inputTokens\":2,\"outputTokens\":466}},\"result\":\"{\\\"pass\\\":true,\\\"confidence\\\":0.93,\\\"reasoning\\\":\\\"src/domain/errors.ts only defines domain error types: a base DomainError and subclasses for business-rule violations (insufficient stock, invalid state transition) and missing aggregates (order or product not found). These errors describe domain concepts in the ubiquitous language. The file contains no persistence, transport, framework, HTTP status codes, serialization or logging. Its responsibilities fit the domain layer.\\\",\\\"evidence\\\":[\\\"DomainError extends Error and only sets the message and name, with no framework or transport concerns\\\",\\\"InsufficientStockError and InvalidStateTransitionError describe business-rule violations, which are domain concepts\\\",\\\"OrderNotFoundError and ProductNotFoundError refer to domain entities by id and carry no HTTP or persistence details such as status codes or table names\\\",\\\"No I/O, database, HTTP or framework logic appears anywhere in the file\\\"],\\\"violations\\\":[]}\",\"structured_output\":{\"confidence\":0.93,\"evidence\":[\"DomainError extends Error and only sets the message and name, with no framework or transport concerns\",\"InsufficientStockError and InvalidStateTransitionError describe business-rule violations, which are domain concepts\",\"OrderNotFoundError and ProductNotFoundError refer to domain entities by id and carry no HTTP or persistence details such as status codes or table names\",\"No I/O, database, HTTP or framework logic appears anywhere in the file\"],\"pass\":true,\"reasoning\":\"src/domain/errors.ts only defines domain error types: a base DomainError and subclasses for business-rule violations (insufficient stock, invalid state transition) and missing aggregates (order or product not found). These errors describe domain concepts in the ubiquitous language. The file contains no persistence, transport, framework, HTTP status codes, serialization or logging. Its responsibilities fit the domain layer.\",\"violations\":[]}}",
+  "runIndex": 0,
+  "schemaVersion": 2,
+  "unitId": "src/domain/errors.ts",
+  "usage": {
+    "inputTokens": 2978,
+    "outputTokens": 466
+  },
+  "usedOptions": {
+    "effort": "high",
+    "model": "claude-opus-5-5"
+  }
+}

@@ -1,0 +1,48 @@
+{
+  "attempts": 1,
+  "cliVersion": "2.1.294",
+  "configListingSha256": "47aa04258852fab9a706f3f0c14cee22306d69fbb6fdfbde8c11854bd54997bc",
+  "durationMs": 9094,
+  "effort": "high",
+  "functionId": "FF-N02",
+  "ignoredOptions": [
+    "maxTokens"
+  ],
+  "isolationProbeSha256": "97a2e2d0af1100c13c55e028c1a0c71f069093c3d08705af122aaeb302f1a641",
+  "key": "1803a8bd583efa7037035ba95ba3a2b71dffc9ab042d21fc5d41d312a92bee0d-r0-1",
+  "model": "claude-opus-5-5",
+  "outcome": {
+    "kind": "valid"
+  },
+  "parsedVerdict": {
+    "confidence": 0.9,
+    "evidence": [
+      "src/application/list-orders.ts: executeByState/executeAll only call this.orderRepo.getByState/getAll and map the results, which is application coordination.",
+      "src/application/list-orders.ts: the repository is reached through constructor injection of the OrderRepository domain interface, with no concrete persistence code.",
+      "src/application/list-orders.ts: mapToResponse builds an OrderResponse DTO, and the toISOString() calls are part of shaping that DTO, not HTTP or framework handling.",
+      "No business rules, database access or HTTP/framework code appear anywhere in the file."
+    ],
+    "pass": true,
+    "reasoning": "The file passes the rule. ListOrdersUseCase does three things, all of which belong in the application layer: it fetches orders through an injected domain repository abstraction, it coordinates two query use cases (executeByState and executeAll), and it maps domain orders to application response objects (DTOs). The file has no persistence code, no HTTP or framework handling, and no business rules that should live in the domain. Turning dates into ISO strings inside mapToResponse is part of shaping the DTO, which is normal application work and is not transport logic. Typing `order` as `any` is a type-safety problem, not a responsibility in the wrong layer, so it does not count against this rule.",
+    "violations": []
+  },
+  "projectId": "claude-haiku-4-5/order-fulfilment/full-aac/run-0",
+  "prompt": "## Rule\nThe unit's responsibilities match the role of its declared layer.\n\n## Rubric\nPass: Every responsibility in the file belongs to the role and kind of its declared layer, and agrees with any ADR prose given.\nFail: The file carries a responsibility that belongs to a different layer kind, for example persistence, transport or framework logic in a domain file, or business rules in an infrastructure or presentation file.\nEvidence required: Name the file and cite the function, method or statement that carries the misplaced responsibility, and the layer kind it belongs to.\nOut of scope: import direction and layer-dependency rules, which are checked symbolically.\n\n## Layer model\n- domain (kind: domain): src/domain/**\n- application (kind: application): src/application/**\n- infrastructure (kind: infrastructure): src/infrastructure/**\n\n## Unit\nKind: file\nId: src/application/list-orders.ts\nLayer: application\nUnit files:\n- src/application/list-orders.ts\n\n## Source\n=====SOURCE-BEGIN src/application/list-orders.ts=====\nimport { OrderRepository } from '../domain/repositories';\nimport { OrderState } from '../domain/types';\nimport { OrderListResponse, OrderResponse } from './dtos';\n\nexport class ListOrdersUseCase {\n  constructor(private orderRepo: OrderRepository) {}\n\n  executeByState(state: OrderState): OrderListResponse {\n    const orders = this.orderRepo.getByState(state);\n    return {\n      orders: orders.map(order => this.mapToResponse(order)),\n    };\n  }\n\n  executeAll(): OrderListResponse {\n    const orders = this.orderRepo.getAll();\n    return {\n      orders: orders.map(order => this.mapToResponse(order)),\n    };\n  }\n\n  private mapToResponse(order: any): OrderResponse {\n    return {\n      id: order.id,\n      customerId: order.customerId,\n      items: order.items,\n      state: order.state,\n      createdAt: order.createdAt.toISOString(),\n      updatedAt: order.updatedAt.toISOString(),\n    };\n  }\n}\n\n=====SOURCE-END=====\n\n## Graph excerpt\n{\"edges\":[{\"from\":\"ListOrdersUseCase@src/application/list-orders.ts\",\"to\":\"OrderRepository@src/domain/repositories.ts\",\"type\":\"CONSTRUCTOR_INJECTS\"},{\"from\":\"OrderController@src/infrastructure/order-controller.ts\",\"to\":\"ListOrdersUseCase@src/application/list-orders.ts\",\"type\":\"CONSTRUCTOR_INJECTS\"},{\"from\":\"src/application/list-orders.ts\",\"to\":\"src/application/dtos.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/application/list-orders.ts\",\"to\":\"src/domain/repositories.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/application/list-orders.ts\",\"to\":\"src/domain/types.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/infrastructure/order-controller.ts\",\"to\":\"src/application/list-orders.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/infrastructure/server.ts\",\"to\":\"src/application/list-orders.ts\",\"type\":\"IMPORTS\"}],\"nodes\":[{\"kind\":\"Class\",\"layer\":\"application\",\"name\":\"ListOrdersUseCase\",\"path\":\"src/application/list-orders.ts\"},{\"kind\":\"Class\",\"layer\":\"infrastructure\",\"name\":\"OrderController\",\"path\":\"src/infrastructure/order-controller.ts\"},{\"kind\":\"File\",\"layer\":\"application\",\"path\":\"src/application/dtos.ts\"},{\"kind\":\"File\",\"layer\":\"application\",\"path\":\"src/application/list-orders.ts\"},{\"kind\":\"File\",\"layer\":\"domain\",\"path\":\"src/domain/repositories.ts\"},{\"kind\":\"File\",\"layer\":\"domain\",\"path\":\"src/domain/types.ts\"},{\"kind\":\"File\",\"layer\":\"infrastructure\",\"path\":\"src/infrastructure/order-controller.ts\"},{\"kind\":\"File\",\"layer\":\"infrastructure\",\"path\":\"src/infrastructure/server.ts\"},{\"kind\":\"Interface\",\"layer\":\"domain\",\"name\":\"OrderRepository\",\"path\":\"src/domain/repositories.ts\"}]}\n\n## Instructions\nJudge the unit against the rule and rubric. Return the JSON object the schema requires. Set pass to false if any file of the unit fails the rubric.\n",
+  "provider": "claude-cli",
+  "recordedAt": "2026-10-11T02:56:55.882Z",
+  "repetition": 0,
+  "requestHash": "1803a8bd583efa7037035ba95ba3a2b71dffc9ab042d21fc5d41d312a92bee0d",
+  "resolvedModel": "claude-opus-5-5",
+  "response": "{\"is_error\":false,\"modelUsage\":{\"claude-opus-5-5\":{\"inputTokens\":2,\"outputTokens\":620}},\"result\":\"{\\\"pass\\\":true,\\\"confidence\\\":0.9,\\\"reasoning\\\":\\\"The file passes the rule. ListOrdersUseCase does three things, all of which belong in the application layer: it fetches orders through an injected domain repository abstraction, it coordinates two query use cases (executeByState and executeAll), and it maps domain orders to application response objects (DTOs). The file has no persistence code, no HTTP or framework handling, and no business rules that should live in the domain. Turning dates into ISO strings inside mapToResponse is part of shaping the DTO, which is normal application work and is not transport logic. Typing `order` as `any` is a type-safety problem, not a responsibility in the wrong layer, so it does not count against this rule.\\\",\\\"evidence\\\":[\\\"src/application/list-orders.ts: executeByState/executeAll only call this.orderRepo.getByState/getAll and map the results, which is application coordination.\\\",\\\"src/application/list-orders.ts: the repository is reached through constructor injection of the OrderRepository domain interface, with no concrete persistence code.\\\",\\\"src/application/list-orders.ts: mapToResponse builds an OrderResponse DTO, and the toISOString() calls are part of shaping that DTO, not HTTP or framework handling.\\\",\\\"No business rules, database access or HTTP/framework code appear anywhere in the file.\\\"],\\\"violations\\\":[]}\",\"structured_output\":{\"confidence\":0.9,\"evidence\":[\"src/application/list-orders.ts: executeByState/executeAll only call this.orderRepo.getByState/getAll and map the results, which is application coordination.\",\"src/application/list-orders.ts: the repository is reached through constructor injection of the OrderRepository domain interface, with no concrete persistence code.\",\"src/application/list-orders.ts: mapToResponse builds an OrderResponse DTO, and the toISOString() calls are part of shaping that DTO, not HTTP or framework handling.\",\"No business rules, database access or HTTP/framework code appear anywhere in the file.\"],\"pass\":true,\"reasoning\":\"The file passes the rule. ListOrdersUseCase does three things, all of which belong in the application layer: it fetches orders through an injected domain repository abstraction, it coordinates two query use cases (executeByState and executeAll), and it maps domain orders to application response objects (DTOs). The file has no persistence code, no HTTP or framework handling, and no business rules that should live in the domain. Turning dates into ISO strings inside mapToResponse is part of shaping the DTO, which is normal application work and is not transport logic. Typing `order` as `any` is a type-safety problem, not a responsibility in the wrong layer, so it does not count against this rule.\",\"violations\":[]}}",
+  "runIndex": 1,
+  "schemaVersion": 2,
+  "unitId": "src/application/list-orders.ts",
+  "usage": {
+    "inputTokens": 2948,
+    "outputTokens": 620
+  },
+  "usedOptions": {
+    "effort": "high",
+    "model": "claude-opus-5-5"
+  }
+}

@@ -1,0 +1,46 @@
+{
+  "attempts": 1,
+  "cliVersion": "2.1.294",
+  "configListingSha256": "47aa04258852fab9a706f3f0c14cee22306d69fbb6fdfbde8c11854bd54997bc",
+  "durationMs": 5338,
+  "effort": "high",
+  "functionId": "FF-N02",
+  "ignoredOptions": [
+    "maxTokens"
+  ],
+  "isolationProbeSha256": "97a2e2d0af1100c13c55e028c1a0c71f069093c3d08705af122aaeb302f1a641",
+  "key": "9cdb1e7887f3286864b234aa118866462e5ec9d783020bd33e0cc3b3cc172b0d-r0-0",
+  "model": "claude-opus-5-5",
+  "outcome": {
+    "kind": "valid"
+  },
+  "parsedVerdict": {
+    "confidence": 0.95,
+    "evidence": [
+      "src/application/StockLevelDto.ts declares only `export interface StockLevelDto { productId: string; name: string; available: number; reserved: number; }`, a plain data shape with no behaviour.",
+      "The graph shows that src/application/GetStockLevelsUseCase.ts imports the DTO, so it serves as the use case's output contract, which fits the application layer."
+    ],
+    "pass": true,
+    "reasoning": "src/application/StockLevelDto.ts declares only a plain data-transfer interface, StockLevelDto. The interface has four fields: productId, name, available and reserved. A DTO that shapes the output of a use case (GetStockLevelsUseCase imports it) is a normal application-layer responsibility. The file has no persistence, transport or framework logic, and it holds no business rules that would belong in the domain layer.",
+    "violations": []
+  },
+  "projectId": "claude-sonnet-5-5/order-fulfilment/full-aac/run-2",
+  "prompt": "## Rule\nThe unit's responsibilities match the role of its declared layer.\n\n## Rubric\nPass: Every responsibility in the file belongs to the role and kind of its declared layer, and agrees with any ADR prose given.\nFail: The file carries a responsibility that belongs to a different layer kind, for example persistence, transport or framework logic in a domain file, or business rules in an infrastructure or presentation file.\nEvidence required: Name the file and cite the function, method or statement that carries the misplaced responsibility, and the layer kind it belongs to.\nOut of scope: import direction and layer-dependency rules, which are checked symbolically.\n\n## Layer model\n- domain (kind: domain): src/domain/**\n- application (kind: application): src/application/**\n- infrastructure (kind: infrastructure): src/infrastructure/**\n\n## Unit\nKind: file\nId: src/application/StockLevelDto.ts\nLayer: application\nUnit files:\n- src/application/StockLevelDto.ts\n\n## Source\n=====SOURCE-BEGIN src/application/StockLevelDto.ts=====\nexport interface StockLevelDto {\n  productId: string;\n  name: string;\n  available: number;\n  reserved: number;\n}\n\n=====SOURCE-END=====\n\n## Graph excerpt\n{\"edges\":[{\"from\":\"src/application/GetStockLevelsUseCase.ts\",\"to\":\"src/application/StockLevelDto.ts\",\"type\":\"IMPORTS\"}],\"nodes\":[{\"kind\":\"File\",\"layer\":\"application\",\"path\":\"src/application/GetStockLevelsUseCase.ts\"},{\"kind\":\"File\",\"layer\":\"application\",\"path\":\"src/application/StockLevelDto.ts\"},{\"kind\":\"Interface\",\"layer\":\"application\",\"name\":\"StockLevelDto\",\"path\":\"src/application/StockLevelDto.ts\"}]}\n\n## Instructions\nJudge the unit against the rule and rubric. Return the JSON object the schema requires. Set pass to false if any file of the unit fails the rubric.\n",
+  "provider": "claude-cli",
+  "recordedAt": "2026-10-11T02:31:54.500Z",
+  "repetition": 0,
+  "requestHash": "9cdb1e7887f3286864b234aa118866462e5ec9d783020bd33e0cc3b3cc172b0d",
+  "resolvedModel": "claude-opus-5-5",
+  "response": "{\"is_error\":false,\"modelUsage\":{\"claude-opus-5-5\":{\"inputTokens\":2,\"outputTokens\":400}},\"result\":\"{\\\"pass\\\":true,\\\"confidence\\\":0.95,\\\"reasoning\\\":\\\"src/application/StockLevelDto.ts declares only a plain data-transfer interface, StockLevelDto. The interface has four fields: productId, name, available and reserved. A DTO that shapes the output of a use case (GetStockLevelsUseCase imports it) is a normal application-layer responsibility. The file has no persistence, transport or framework logic, and it holds no business rules that would belong in the domain layer.\\\",\\\"evidence\\\":[\\\"src/application/StockLevelDto.ts declares only `export interface StockLevelDto { productId: string; name: string; available: number; reserved: number; }`, a plain data shape with no behaviour.\\\",\\\"The graph shows that src/application/GetStockLevelsUseCase.ts imports the DTO, so it serves as the use case's output contract, which fits the application layer.\\\"],\\\"violations\\\":[]}\",\"structured_output\":{\"confidence\":0.95,\"evidence\":[\"src/application/StockLevelDto.ts declares only `export interface StockLevelDto { productId: string; name: string; available: number; reserved: number; }`, a plain data shape with no behaviour.\",\"The graph shows that src/application/GetStockLevelsUseCase.ts imports the DTO, so it serves as the use case's output contract, which fits the application layer.\"],\"pass\":true,\"reasoning\":\"src/application/StockLevelDto.ts declares only a plain data-transfer interface, StockLevelDto. The interface has four fields: productId, name, available and reserved. A DTO that shapes the output of a use case (GetStockLevelsUseCase imports it) is a normal application-layer responsibility. The file has no persistence, transport or framework logic, and it holds no business rules that would belong in the domain layer.\",\"violations\":[]}}",
+  "runIndex": 0,
+  "schemaVersion": 2,
+  "unitId": "src/application/StockLevelDto.ts",
+  "usage": {
+    "inputTokens": 2131,
+    "outputTokens": 400
+  },
+  "usedOptions": {
+    "effort": "high",
+    "model": "claude-opus-5-5"
+  }
+}
