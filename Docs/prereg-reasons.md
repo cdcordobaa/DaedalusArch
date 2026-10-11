@@ -273,7 +273,7 @@ All other 75 hashes are unchanged. Not registered, named for completeness: `scri
 
 ## P-JR — prereg v25 (ADR-038 judge model robustness, 2026-10-11)
 
-Previous: v24 (P-LR), commit `8c0a5e5`. The author approved C, relayed by the coordinator on 2026-10-11. This bump comes **before any `claude-sonnet-5-5` judge call**. A (`llm-review`) is complete under v24 (PR #70). B (ADR-037) is on hold, and nothing of it is registered. **Known before registration**: the Opus votes of the 100 sampled units (18 fail, 82 pass), the E7 and E1 judge results, and the fact that no E7 verdict depends on the judge under the registered aggregation (ADR-028).
+Previous: v24 (P-LR), commit `a485c6e`. The author approved C, relayed by the coordinator on 2026-10-11. This bump comes **before any `claude-sonnet-5-5` judge call**. A (`llm-review`) is complete under v24 (PR #70). B (ADR-037) is on hold, and nothing of it is registered. **Known before registration**: the Opus votes of the 100 sampled units (18 fail, 82 pass), the E7 and E1 judge results, and the fact that no E7 verdict depends on the judge under the registered aggregation (ADR-028).
 
 | Artefact | v24 → v25 sha256 | Change and reason | Post-hoc risk |
 |---|---|---|---|
