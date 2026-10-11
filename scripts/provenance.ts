@@ -11,7 +11,7 @@
  * - `v1-sensitivity --v1-runs <dir> --v2-runs <dir> --out <csv>`: the E7 v1 symbolic sensitivity table
  *   (`results/e7-corpus/v1/ahs_v1_sensitivity.csv`, analysis plan §10 B8) from the accepted RunRecords and reports of
  *   the v1 symbolic-only re-evaluation and the v2 runs: per project (v2 run order), the v1 row then the v2 row.
- * - `external --write | --check`: `results/external-inputs.json`, the sha256 of the inputs that live outside the
+ * - `external --write | --check`: `results/<plan>/external-inputs.json` (`so4-heldout`, `sensitivity`), the sha256 of the inputs that live outside the
  *   repository (`../daedalus-so4/manifest.json`, `../daedalus-so4/prepared-bases-7.json`,
  *   `../daedalus-sp-probes/manifest.json`) and, for an outside manifest with a committed case copy, whether the copy
  *   equals the outside file once the machine-local `typecheck.tscPath` fields are set aside (`build-score-case` makes
@@ -108,14 +108,15 @@ export function v1SensitivityCsv(v1Dir: string, v2Dir: string): string {
 // ---------------------------------------------------------------------------------------------
 // External inputs
 
-export const EXTERNAL_INPUTS_FILE = 'results/external-inputs.json';
-
-/** Outside inputs (repository-relative paths) and the committed case copies of each, if any. */
-export const EXTERNAL_INPUTS: readonly { readonly path: string; readonly copies: readonly string[]; readonly usedBy: string }[] = [
-  { path: '../daedalus-so4/manifest.json', copies: ['results/so4-heldout/case/manifest.json'], usedBy: 'every seeded so4-heldout RunRecord (seed.manifestPath); build-score-case; build-label-plan' },
-  { path: '../daedalus-so4/prepared-bases-7.json', copies: [], usedBy: 'build-label-plan --bases (runbook 6.1)' },
-  { path: '../daedalus-sp-probes/manifest.json', copies: ['results/sensitivity/case/manifest.json', 'results/sensitivity/step31/case/manifest.json'], usedBy: 'every sensitivity SP-* RunRecord; build-score-case' },
+/** Outside inputs (repository-relative paths), the plan record file that holds each, and its committed case copies. */
+export const EXTERNAL_INPUTS: readonly { readonly path: string; readonly record: string; readonly copies: readonly string[]; readonly usedBy: string }[] = [
+  { path: '../daedalus-so4/manifest.json', record: 'results/so4-heldout/external-inputs.json', copies: ['results/so4-heldout/case/manifest.json'], usedBy: 'every seeded so4-heldout RunRecord (seed.manifestPath); build-score-case; build-label-plan' },
+  { path: '../daedalus-so4/prepared-bases-7.json', record: 'results/so4-heldout/external-inputs.json', copies: [], usedBy: 'build-label-plan --bases (runbook 6.1)' },
+  { path: '../daedalus-sp-probes/manifest.json', record: 'results/sensitivity/external-inputs.json', copies: ['results/sensitivity/case/manifest.json', 'results/sensitivity/step31/case/manifest.json'], usedBy: 'every sensitivity SP-* RunRecord; build-score-case' },
 ];
+
+/** The record files, in first-use order. */
+export const EXTERNAL_INPUT_RECORDS: readonly string[] = [...new Set(EXTERNAL_INPUTS.map((e) => e.record))];
 
 export interface ExternalRecord {
   readonly path: string;
@@ -149,12 +150,17 @@ export function externalRecords(repoRoot: string): ExternalRecord[] {
   });
 }
 
+/** The committed records of every record file, concatenated. */
+export function readExternalRecords(repoRoot: string): ExternalRecord[] {
+  return EXTERNAL_INPUT_RECORDS.flatMap((f) => (JSON.parse(readFileSync(resolve(repoRoot, f), 'utf8')) as { inputs: ExternalRecord[] }).inputs);
+}
+
 /** Problems of the current outside files against the committed record (absent outside files are skipped). */
 export function checkExternal(repoRoot: string, committed: readonly ExternalRecord[]): string[] {
   const problems: string[] = [];
   for (const now of externalRecords(repoRoot)) {
     const was = committed.find((c) => c.path === now.path);
-    if (was === undefined) { problems.push(`${now.path}: not in ${EXTERNAL_INPUTS_FILE}`); continue; }
+    if (was === undefined) { problems.push(`${now.path}: not in its external-inputs.json record`); continue; }
     for (const c of now.copies) {
       const wc = was.copies.find((x) => x.path === c.path);
       if (wc?.sha256 !== c.sha256) problems.push(`${c.path}: sha256 ${c.sha256} != recorded ${wc?.sha256 ?? '(none)'}`);
@@ -215,12 +221,15 @@ export async function main(argv: readonly string[], repoRoot: string, io: Proven
       return 0;
     }
     if (cmd === 'external' && argv.includes('--write')) {
-      write(resolve(repoRoot, EXTERNAL_INPUTS_FILE), `${JSON.stringify({ version: 1, inputs: externalRecords(repoRoot) }, null, 2)}\n`);
+      const all = externalRecords(repoRoot);
+      for (const file of EXTERNAL_INPUT_RECORDS) {
+        const inputs = all.filter((r) => EXTERNAL_INPUTS.find((e) => e.path === r.path)?.record === file);
+        write(resolve(repoRoot, file), `${JSON.stringify({ version: 1, inputs }, null, 2)}\n`);
+      }
       return 0;
     }
     if (cmd === 'external' && argv.includes('--check')) {
-      const committed = JSON.parse(readFileSync(resolve(repoRoot, EXTERNAL_INPUTS_FILE), 'utf8')) as { inputs: ExternalRecord[] };
-      const problems = checkExternal(repoRoot, committed.inputs);
+      const problems = checkExternal(repoRoot, readExternalRecords(repoRoot));
       for (const p of problems) io.err(`${p}\n`);
       for (const r of externalRecords(repoRoot)) io.out(`${r.path}: ${r.sha256 === null ? 'absent (not checked)' : 'present'}\n`);
       return problems.length === 0 ? 0 : 1;

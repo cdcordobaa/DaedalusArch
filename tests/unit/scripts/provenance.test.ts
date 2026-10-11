@@ -4,7 +4,7 @@
  */
 import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
-import { checkExternal, EXTERNAL_INPUTS_FILE, guardManifest, v1SensitivityCsv, withoutTscPath } from '../../../scripts/provenance.js';
+import { checkExternal, EXTERNAL_INPUT_RECORDS, guardManifest, readExternalRecords, v1SensitivityCsv, withoutTscPath } from '../../../scripts/provenance.js';
 import type { ExternalRecord } from '../../../scripts/provenance.js';
 
 const ROOT = join(__dirname, '..', '..', '..');
@@ -24,7 +24,8 @@ describe('provenance producers (audit 2026-10-10 issue 4)', () => {
   it('withoutTscPath drops only tscPath; the committed record checks clean against the committed copies', () => {
     expect(withoutTscPath({ a: 1, typecheck: { tscPath: '/x/tsc', tscVersion: '5' } })).toBe(withoutTscPath({ a: 1, typecheck: { tscPath: 'tsc', tscVersion: '5' } }));
     expect(withoutTscPath({ a: 1 })).not.toBe(withoutTscPath({ a: 2 }));
-    const committed = (JSON.parse(read(EXTERNAL_INPUTS_FILE)) as { inputs: ExternalRecord[] }).inputs;
+    expect(EXTERNAL_INPUT_RECORDS).toEqual(['results/so4-heldout/external-inputs.json', 'results/sensitivity/external-inputs.json']);
+    const committed: ExternalRecord[] = readExternalRecords(ROOT);
     expect(committed.map((c) => c.path)).toEqual(['../daedalus-so4/manifest.json', '../daedalus-so4/prepared-bases-7.json', '../daedalus-sp-probes/manifest.json']);
     expect(checkExternal(ROOT, committed)).toEqual([]);
     const tampered = committed.map((c) => ({ ...c, copies: c.copies.map((x) => ({ ...x, sha256: '0' })) }));

@@ -141,7 +141,7 @@ Then the P2 v1 side (analysis plan §10 B8; symbolic-only, no model call; lane l
 | 7.3 | `aggregate-cli.ts --runs results/e7-corpus --plan experiments/e7-corpus/plan.json --out results/e7-corpus/agg`; the same for `fixtures`, `latency-gate`, `apg-ablation` | per-plan tables (`latency.csv` is descriptive; the gate is `gate.json`) |
 | 7.4 | `figures-cli.ts --csv-dir <plan agg dir> --so2-dir results/apg-ablation/so2 --out results/<plan>/figures [--split held-out]` | thesis figures |
 | 7.5 | `so1-metrics-cli.ts --out results/pre-tag/so1-metrics-<sha>.json` | SO1 instrument metrics |
-| 7.6 | (ADR-033 provenance) `provenance-cli.ts guard-case --manifest results/so4-heldout/case/manifest.json --out results/so4-heldout/case-corrected/manifest.json`; `provenance-cli.ts v1-sensitivity --v1-runs results/e7-corpus-v1sym --v2-runs results/e7-corpus --out results/e7-corpus/v1/ahs_v1_sensitivity.csv`; `provenance-cli.ts external --check` (or `--write` after a deliberate change of an outside input) | the ADR-025 guarded manifest; the E7 v1 sensitivity table; `results/external-inputs.json` |
+| 7.6 | (ADR-033 provenance) `provenance-cli.ts guard-case --manifest results/so4-heldout/case/manifest.json --out results/so4-heldout/case-corrected/manifest.json`; `provenance-cli.ts v1-sensitivity --v1-runs results/e7-corpus-v1sym --v2-runs results/e7-corpus --out results/e7-corpus/v1/ahs_v1_sensitivity.csv`; `provenance-cli.ts external --check` (or `--write` after a deliberate change of an outside input) | the ADR-025 guarded manifest; the E7 v1 sensitivity table; `results/so4-heldout/external-inputs.json` and `results/sensitivity/external-inputs.json` |
 
 ## 8. P-U6 dry run (2026-10-09, fixtures only, Mock, scratch)
 
