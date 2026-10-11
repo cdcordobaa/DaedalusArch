@@ -19,5 +19,8 @@
 | # | Date | Run | Cassette entries | Invocations (retries incl.) | Cumulative |
 |---|---|---|---|---|---|
 | 1 | 2026-10-10 | `llm-label --mode record --cassette-dir results/labels/cassettes` (both runs, 66 items) | 139 (132 + 7 re-asks) | 142 (3 CLI retries) | **142 / 300** |
+| 2 | 2026-10-11 | P4: `llm-label --plan results/e1-grid/label-plan-p4/label-plan.json --mode record --cassette-dir results/labels/cassettes` (prereg v21; the 66 P1/MS/P2 items replayed, 142 invocations, 0 new) | 1 new (first P4 judge unit, run 0: `TIMEOUT` after 2 attempts, 243 s each) | 3 (2 timed-out attempts + 1 re-ask stopped by `LLM_CLI_ISOLATION`, not recorded) | **145 / 300** |
 
 No quota pause occurred. Replay of the cassettes is byte-identical to `labels.json`. `--usage`: 139 entries, input tokens min 0, median 14 024, max 124 846, mean 24 246; output 329 569 in total.
+
+**Stop, 2026-10-11 (P4).** The pre-flight passed (agy 1.3.2, `AGY_CLI_DISABLE_AUTO_UPDATE=true`, no home rule/skill/plugin/agent/workflow/hook entry, all 7 deny rules, `agy mcp list`/`plugin list` empty, `--check-prereg` v21 ok on all 10 plans, estimate 224 + 30 <= 300). The re-ask of the first P4 judge unit completed a `search_web` tool step. `search_web` is not among the registered deny rules (§2 of `Docs/labeller-route.md`), so the provider stopped the run (`LLM_CLI_ISOLATION`). No P4 label exists. Resuming needs a registered change to the deny list (a prereg bump) and is escalated to the author.
