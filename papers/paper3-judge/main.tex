@@ -1,0 +1,463 @@
+% main.tex: "When the Judge Cannot Rule: Lessons from Using an LLM-as-Judge inside an Architectural Conformance Gate"
+% Workshop paper draft (LLM4Code or an AI-for-SE workshop), about 6 pages in this class.
+%
+% Provenance convention: every number in this file carries a LaTeX comment "% src: <path>" naming the committed
+% file it was read from (paths relative to the repository root, at branch v1.2e, commit b7034682). Where a number
+% was derived (a sum, a difference, a count of rows), the comment says "derived" and how. Nothing here comes from an
+% uncommitted file. A path of the form "git show <sha>:<path>" names a committed file at an earlier commit.
+%
+% "Docs/ADR.md" in the comments abbreviates the repository file "Docs/ADR <U+2014> Architectural Decision Records
+% Firewall Tech.md" (its real name contains an em dash, which this draft does not reproduce).
+%
+% Style rules for editors: no em dashes anywhere; model identifiers are named by tier only (see README, open item 3);
+% every judge claim stays conditional on the panel validation of Section 4.7.
+
+\documentclass[10pt,a4paper]{article}
+
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{lmodern}
+\usepackage[margin=2.2cm]{geometry}
+\usepackage{amsmath}
+\usepackage{booktabs}
+\usepackage{tabularx}
+\usepackage{xcolor}
+\usepackage{enumitem}
+\usepackage[hidelinks]{hyperref}
+
+% \citeneeded{key}: a citation written from general knowledge that must be checked before submission.
+\newcommand{\citeneeded}[1]{\cite{#1}\textsuperscript{\textcolor{red}{\tiny[verify]}}}
+% \todo{...}: an open item for the authors (also listed in README.md).
+\newcommand{\todo}[1]{\textcolor{blue}{[TODO: #1]}}
+
+\newcommand{\tool}{DaedalusArch}
+\newcommand{\ff}[1]{\texttt{\small #1}}
+\newcommand{\Wn}{W_n}
+\newcommand{\ahs}[1]{\mathrm{AHS}_{\mathrm{#1}}}
+
+\setlist{itemsep=1pt,topsep=3pt}
+
+\title{When the Judge Cannot Rule:\\Lessons from Using an LLM-as-Judge inside an Architectural Conformance Gate}
+\author{\todo{author list and affiliations}}
+\date{Draft, 2026-10-11}
+
+\begin{document}
+\maketitle
+
+% =====================================================================================================================
+\begin{abstract}
+LLM judges are increasingly placed inside software quality gates, next to deterministic rules. We report eight
+lessons from one such gate: \tool{}, an architectural conformance checker for TypeScript whose score combines 25
+symbolic fitness functions with two rubric-driven LLM judge functions. The evaluation was pre-registered and every
+judge call was recorded. On nine real projects the judge failed about a fifth of the units it saw, yet under the
+registered weight of 8\% it changed no verdict; on 65 agent-generated projects it changed none either. We show why
+with a simple algebraic bound and a judge-blind decomposition, and we show that the aggregation rule and the weight,
+not the judge, decide whether it matters: with a weight of 2/7 and an any-fail rule it moves 8 of 9 real-project
+verdicts. A clean judge dimension even raises the composite score. Coding the judge's rationales over-counts
+criteria because the judge names criteria while negating them. Most judge failures coincide with rule findings, a
+self-preference signal turns out to be confounded with code quality, and a cross-family LLM panel agrees with the
+judge 98.2\% of the time with an AC1 of 0.98 but a $\kappa$ of 0, because the judge never failed a sampled generated
+unit. We close with operational lessons on CLI isolation, an unblockable web-search tool and fail-closed guards, and
+with recommendations for anyone who puts an LLM judge inside a gate.
+\end{abstract}
+% src (abstract): 25 symbolic functions: src/fitness-compiler/cypher-templates.ts (header comment, "25 symbolic fitness functions"); the 2 judge functions:
+% src/llm-critic/rubric.ts (FF-N01, FF-N02). Every other number is repeated with its source in the body:
+% "a fifth" = 73/331 (Sec. 4.1); 65 cells (Sec. 2); 8 of 9 (Sec. 4.2); 98.2%, AC1 0.98, kappa 0 (Sec. 4.7).
+
+% =====================================================================================================================
+\section{Introduction}\label{sec:intro}
+
+Architecture conformance checking compares the code with an intended architecture
+\cite{murphy1995reflexion}, and architectural fitness functions turn that comparison into automated checks
+\citeneeded{ford2017evolutionary}. Rules express structure well (which layer may import which) but say little about
+intent: whether a file's responsibilities fit its layer, or whether a module keeps one invariant in one place. An
+LLM judge is the obvious complement, and LLM-as-a-judge is now a common evaluation pattern
+\cite{zheng2023judging}\citeneeded{liu2023geval,gu2024survey}, also for code \citeneeded{zhuo2024icescore}.
+
+Most reports on LLM judges ask whether the judge agrees with humans. Inside a gate a second question comes first:
+\emph{can the judge change the outcome at all?} A gate turns many signals into one verdict (here pass, warning,
+soft-block or hard-block), and the way the judge's output is aggregated and weighted can make its accuracy
+irrelevant. This paper reports what we learned from one such gate, \tool{}, during a pre-registered evaluation
+\cite{nosek2018prereg}. Every judge call was recorded in a cassette, so every reading below was recomputed from
+the same calls with no new judge call.
+
+Our contribution is a set of eight lessons, each with its evidence: (1) the judge was inert, and a simple bound
+shows why; (2) aggregation and weight decide whether it matters; (3) a clean judge dimension inflates the
+composite score; (4) keyword coding of judge rationales misleads; (5) most judge failures overlap with rule
+findings; (6) a self-preference signal is confounded with code quality; (7) validating the judge with an LLM panel
+gives high agreement but leaves fail detection untested; (8) isolating CLI-based judges and labellers is harder
+than it looks. Section~\ref{sec:recs} turns them into recommendations.
+
+% =====================================================================================================================
+\section{The Gate and the Judge}\label{sec:gate}
+
+\paragraph{Score and verdict.}
+\tool{} compiles an architecture specification into fitness functions over a graph of the code. Each function
+belongs to one of seven dimensions. For a dimension $d$ the Architectural Violation Ratio $\mathrm{AVR}_d \in [0,1]$
+is the confidence-weighted share of its executed functions that fail, and the Architectural Health Score is
+\begin{equation}\label{eq:ahs}
+  \mathrm{AHS} = 1 - \sum_d w_d\, \mathrm{AVR}_d, \qquad \textstyle\sum_d w_d = 1 .
+\end{equation}
+% src: Docs/analysis-plan.md section 12.5 ("the AHS formula (round3(1 - sum w * AVR))")
+$\ahs{det}$ uses the five symbolic dimensions only; $\ahs{comb}$ adds the two judge dimensions, \emph{semantic}
+(\ff{FF-N02}, intent alignment of a file with its layer's role) and \emph{integrity} (\ff{FF-N01}, module coherence:
+no split concern, duplicated invariant or bypassed abstraction), with weight 0.04 each, so the judge dimensions weigh
+$\Wn = 0.08$ in total.
+% src: presets/nestjs.yaml (full_mode_weights: semantic 0.04, integrity 0.04); src/llm-critic/rubric.ts (FF-N01, FF-N02 rule, pass and fail text); Docs/analysis-plan.md section 12.5 ("W_n = 0.08: semantic 0.04, integrity 0.04 in every registered spec")
+The verdict is pass at $\geq 0.80$, warning at $\geq 0.65$, soft-block at $\geq 0.50$ and hard-block below.
+% src: presets/nestjs.yaml (scoring.thresholds: pass 0.80, warning 0.65, soft_block 0.50)
+
+\paragraph{The judge.}
+For each judge function the gate draws up to 20 units per project, round-robin across layers, and asks the judge
+three times per unit; a unit fails by majority. Under the registered rule a judge function fails only when strictly
+more than half of its valid units fail, and only a failing function adds to its dimension's AVR.
+% src: Docs/judge-preregistration.md (degradation ladder: "E7 unitCap 20"); Docs/analysis-plan.md section 12.1 (majority-of-valid-units-v1); Docs/analysis-plan.md section 12.2 ("the cap of 20 (BR-U4-SEL-04)")
+The judge is a pinned Claude model at the top tier, called through the Claude Code CLI at a pinned version with no
+tools, a frozen rubric whose hash is asserted by a test, and a dedicated configuration directory.
+% src: Docs/judge-preregistration.md ("Instrument" table: judge model, effort high, PINNED_CLI_VERSION 2.1.294, --tools "", FROZEN_SHA256)
+The rubric and parameters were frozen on 2026-10-09, before any measured judged run.
+% src: Docs/judge-preregistration.md (Status: FROZEN 2026-10-09)
+
+\paragraph{Data.}
+\emph{E7}: nine real open-source TypeScript projects, 331 judged units (152 integrity, 179 intent), 993 judgements.
+% src: results/e7-corpus/judge-diagnostics/judge_summary.csv (rows "*": FF-N01 152, FF-N02 179); Docs/ADR.md ADR-028 Context ("993 judged units across 9 real projects"; 993 = 331 x 3, derived)
+\emph{E1}: projects generated by coding agents from two tasks at three specification levels, three runs each; 65
+valid cells were judged (47 from three Claude tiers, 18 from one OpenAI model), 1\,233 judged units in total.
+% src: results/e1-grid/agg-proportional/ahs_by_aggregation.csv (65 rows, evaluation_mode full); results/e1-grid/agg/so5_grid.csv (generation_status ok: 18 + 18 + 11 Claude, 18 OpenAI; 7 failed-typecheck, all from the smallest Claude tier); results/e1-grid/judge-diagnostics/judge_summary.csv (rows "*": 300 + 933 = 1233 valid units, derived)
+The E7 readings beyond the registered rule are post hoc; all E1 readings were registered before E1 ran.
+% src: results/e7-corpus/agg-proportional/ahs_by_aggregation.csv (reading post-hoc on 9 rows); results/e1-grid/agg-proportional/ahs_by_aggregation.csv (reading pre-registered on 65 rows); Docs/analysis-plan.md section 12 ("Status and timing")
+
+% =====================================================================================================================
+\section{Related Work}\label{sec:related}
+
+LLM-as-a-judge was popularised for chat evaluation \cite{zheng2023judging} and is known to show position bias
+\citeneeded{wang2023fair}, self-preference \citeneeded{panickssery2024self,wataoka2024selfpref} and sensitivity to
+prompt and model \citeneeded{thakur2024judging}. In software engineering, LLMs have been used to score code
+\citeneeded{zhuo2024icescore} and to replace human annotators \citeneeded{ahmed2025annotation}. These studies
+measure the judge in isolation. We study a judge embedded in a decision procedure, where weighting and aggregation
+mediate its effect. For agreement we follow the kappa paradox literature \cite{feinstein1990high}\citeneeded{byrt1993bias}
+and report Gwet's AC1 \cite{gwet2008ac1} beside Cohen's $\kappa$ \cite{cohen1960}. Isolation of LLM tools connects
+to work on indirect prompt injection \citeneeded{greshake2023injection}.
+\todo{add 2024 to 2026 work on LLMs for architecture conformance or erosion detection, if any.}
+
+% =====================================================================================================================
+\section{Lessons}\label{sec:lessons}
+
+\subsection{Lesson 1: the judge was active but inert}\label{sec:l1}
+
+On E7 the judge failed 31 of 152 integrity units and 42 of 179 intent units, 73 of 331 (22\%). No unit was invalid
+and no unit had a split vote.
+% src: results/e7-corpus/judge-diagnostics/judge_summary.csv (rows "*": FF-N01 31 fail of 152 valid, FF-N02 42 of 179; units_invalid 0; units_split_vote 0); 73/331 = 0.221 derived
+Yet no judge function reached ``fail'' on any project (the most was 9 failing units of 20), so both judge AVRs were
+0 everywhere and the judge changed no verdict. On E1 it failed 55 of 1\,233 units and also changed none of the 65
+verdicts, all of which were pass.
+% src: Docs/ADR.md ADR-028 Context ("the highest was 9 of 20 units"); results/e7-corpus/agg-proportional/ahs_by_aggregation.csv (delta_judge_registered 0.000 and judge_mattered_registered false on 9 rows); results/e1-grid/judge-diagnostics/judge_summary.csv (rows "*": 36 + 19 = 55 fail, derived); results/e1-grid/agg-proportional/ahs_by_aggregation.csv (judge_mattered_registered false on 65 rows; verdict_registered pass on 65 rows)
+
+\paragraph{The bound.}
+Write the combined score as its symbolic part plus the judge part. Let the \emph{judge-blind} score
+$\ahs{blind}$ be $\ahs{comb}$ recomputed with every judge AVR set to 0. From Eq.~\eqref{eq:ahs},
+\begin{equation}\label{eq:bound}
+  \Delta_{\mathrm{judge}} \;=\; \ahs{comb} - \ahs{blind} \;=\; -\sum_{n \in \text{judge}} w_n\, \mathrm{AVR}_n
+  \;\in\; [-\Wn,\, 0] .
+\end{equation}
+The judge can lower the score by at most $\Wn$ and can never raise it. It can therefore move a verdict only when
+$\ahs{blind}$ lies less than $\Wn$ above a threshold. This is a property of the configuration, decidable before any
+judge call.
+% src: Docs/analysis-plan.md section 12.3 (judge-effect decomposition: judge_bound = -W_n, ahs_combined_judge_blind, delta_judge in [-W_n, 0]); Docs/ADR.md ADR-028 "Review fixes (2026-10-10, prereg v15)"
+On E7, only one of nine projects (dry-run, $\ahs{blind} = 0.547$, 0.047 above the soft-block threshold) was
+reachable at $\Wn = 0.08$; five were already hard-blocked and the other three lay 0.09 or more above their
+threshold. On E1, 4 of 65 cells had $\ahs{blind} < 0.88$ and were reachable; the largest drop the judge caused
+under any aggregation was 0.068, and none crossed.
+% src: results/e7-corpus/agg-proportional/ahs_by_aggregation.csv (ahs_combined_judge_blind 0.547, 0.437, 0.411, 0.247, 0.743, 0.441, 0.591, 0.608, 0.443; reachability derived against thresholds 0.80/0.65/0.50 from presets/nestjs.yaml)
+% src: results/e1-grid/agg-proportional/ahs_by_aggregation.csv (ahs_combined_judge_blind min 0.852, 4 rows below 0.88, derived; ahs_combined_any_fail minus ahs_combined_judge_blind min -0.068, derived; delta_judge_registered min -0.029)
+
+\paragraph{The decomposition.}
+We registered a decomposition that is a pure function of the stored report:
+$\ahs{comb} - \ahs{det} = \Delta_{\mathrm{dil}} + \Delta_{\mathrm{judge}}$, where
+$\Delta_{\mathrm{dil}} = \ahs{blind} - \ahs{det}$ is a weighting effect (Lesson 3) and $\Delta_{\mathrm{judge}}$ is
+the judge's own contribution. Table~\ref{tab:e7} shows it for E7: $\Delta_{\mathrm{judge}}$ is exactly 0 on all
+nine projects, so the whole gap between the combined and the rules-only score is weighting.
+% src: Docs/analysis-plan.md section 12.3 (delta_dilution, delta_judge_<rule>); results/e7-corpus/agg-proportional/ahs_by_aggregation.csv
+
+\begin{table}[t]
+\centering
+\small
+\caption{Judge-effect decomposition on E7 (nine real projects; post hoc beyond the registered column). Registered
+weights ($\Wn = 0.08$) unless marked JW (judge-weighted, $\Wn = 2/7$). Verdicts: P pass, W warning, SB soft-block,
+HB hard-block. Prop.: proportional aggregation; any: any-fail rule.}
+\label{tab:e7}
+\begin{tabular}{@{}lrrlrrrlccc@{}}
+\toprule
+ & & & & & \multicolumn{2}{c}{$\Delta_\mathrm{judge}$} & & \multicolumn{3}{c}{JW verdict} \\
+\cmidrule(lr){6-7}\cmidrule(lr){9-11}
+Project & $\ahs{det}$ & $\ahs{comb}$ & Verd. & $\Delta_\mathrm{dil}$ & reg. & prop. & any & reg. & prop. & any \\
+\midrule
+dry-run              & 0.504 & 0.547 & SB & 0.043 & 0 & $-0.016$ & HB & SB & SB & HB \\
+ghostfolio           & 0.387 & 0.437 & HB & 0.050 & 0 & $-0.021$ & HB & SB & HB & HB \\
+nestjslatam/ddd      & 0.354 & 0.411 & HB & 0.057 & 0 & $-0.011$ & HB & SB & SB & HB \\
+ecommerce-store-api  & 0.175 & 0.247 & HB & 0.072 & 0 & $-0.014$ & HB & HB & HB & HB \\
+realworld            & 0.721 & 0.743 & W  & 0.022 & 0 & $-0.020$ & W  & P  & W  & SB \\
+truthy               & 0.387 & 0.441 & HB & 0.054 & 0 & $-0.011$ & HB & SB & SB & HB \\
+valex                & 0.553 & 0.591 & SB & 0.038 & 0 & $-0.005$ & SB & W  & W  & SB \\
+nestjs-active-record & 0.571 & 0.608 & SB & 0.037 & 0 & $-0.005$ & SB & W  & W  & HB \\
+typescript-ddd       & 0.392 & 0.443 & HB & 0.051 & 0 & $-0.006$ & HB & SB & SB & HB \\
+\bottomrule
+\end{tabular}
+% src: results/e7-corpus/agg-proportional/ahs_by_aggregation.csv (columns ahs_deterministic, ahs_combined_registered, verdict_registered, delta_dilution, delta_judge_registered, delta_judge_proportional, verdict_any_fail, verdict_jw_registered, verdict_jw_proportional, verdict_jw_any_fail; one row per project_id)
+\end{table}
+
+\subsection{Lesson 2: aggregation and weight decide whether the judge matters}\label{sec:l2}
+
+Because the registered rule needs a majority of failing units, a judge that fails a fifth of units almost never
+produces a failing function. We registered two alternatives before E1: a \emph{proportional} rule, where a judge
+function contributes the inclusion-weighted (H\'ajek \citeneeded{horvitz1952}) share of failed units, and a
+\emph{judge-weighted} variant that rescales the weights so the two judge dimensions weigh 2/7, as two of seven
+dimensions would; an \emph{any-fail} re-score (one failing unit fails the function) was reported beside them.
+% src: Docs/analysis-plan.md section 12.2 (proportional-inclusion-weighted-v1, Hajek share); section 12.5 (judge-weighted-v1, 2/7 and 5/7); section 12.3 (verdict_any_fail, BR-U5b-60 any-fail re-score); Docs/ADR.md ADR-028 Decision and "Judge-weighted variant"
+Table~\ref{tab:matter} counts the verdicts the judge moves, that is, where the verdict differs from the judge-blind
+verdict under the same weights.
+
+\begin{table}[t]
+\centering
+\small
+\caption{Verdicts moved by the judge (judge-blind verdict differs), by weight and aggregation.}
+\label{tab:matter}
+\begin{tabular}{@{}llccc@{}}
+\toprule
+Weight $\Wn$ & Data & Registered (majority) & Proportional & Any-fail \\
+\midrule
+0.08 & E7 (9 projects, post hoc)  & 0 & 0 & 1 \\
+0.08 & E1 (65 cells, registered)  & 0 & 0 & 0 \\
+2/7  & E7 (9 projects, post hoc)  & 0 & 2 & 8 \\
+2/7  & E1 (65 cells, registered)  & 0 & 0 & 8 \\
+\bottomrule
+\end{tabular}
+% src: results/e7-corpus/agg-proportional/ahs_by_aggregation.csv (judge_mattered_registered 0, judge_mattered_proportional 0, any_fail_changed 1 (dry-run-test); judge_mattered_jw_registered 0, judge_mattered_jw_proportional 2, judge_mattered_jw_any_fail 8; counts of "true" derived)
+% src: results/e1-grid/agg-proportional/ahs_by_aggregation.csv (judge_mattered_registered 0, judge_mattered_proportional 0, any_fail_changed 0; judge_mattered_jw_registered 0, judge_mattered_jw_proportional 0, judge_mattered_jw_any_fail 8 of 65; counts derived)
+\end{table}
+
+The same judge calls give anything from no effect to 8 of 9 moved verdicts. On E7, the any-fail rule at 2/7 moves
+exactly the eight projects the bound leaves reachable (all but the hard-blocked ecommerce-store-api). On E1, the 8
+moved cells are 6 cells from the smallest Claude tier (all on one task) and 2 from the OpenAI model, each moving from
+pass to warning.
+% src: results/e7-corpus/agg-proportional/ahs_by_aggregation.csv (judge_mattered_jw_any_fail false only for raouf-b-dev__ecommerce-store-api; ahs_combined_jw_judge_blind 0.415 hard-block)
+% src: results/e1-grid/agg-proportional/ahs_by_aggregation.csv (project_id of the 8 judge_mattered_jw_any_fail rows: six claude-haiku-4-5/order-fulfilment, two gpt-5.6-terra; verdict_jw_any_fail warning on those 8, pass on 57)
+The judge's measured behaviour did not change between these rows; only the configuration did. A statement such as
+``the judge changed no verdict'' is therefore mostly a statement about the weight and the aggregation rule.
+
+\subsection{Lesson 3: a clean judge dimension raises the score}\label{sec:l3}
+
+Adding a dimension whose AVR is 0 cannot leave the score unchanged: it takes weight away from the symbolic
+dimensions. If the full-mode symbolic weights are the rules-only weights scaled by $1-\Wn$, then
+$\ahs{blind} = (1-\Wn)\,\ahs{det} + \Wn$, so
+\begin{equation}\label{eq:dil}
+  \Delta_{\mathrm{dil}} = \Wn\,(1 - \ahs{det}) \;\geq\; 0 .
+\end{equation}
+% src: Docs/analysis-plan.md section 12.3 ("delta_dilution ... equals W_n * (1 - ahsDeterministic) ... when the full-mode symbolic weights are proportional to the symbolic-only ones, and approximately so otherwise")
+The worse the project, the larger the bonus. On E7 the combined score was 0.022 to 0.072 above the rules-only score
+for this reason alone (Table~\ref{tab:e7}); the identity predicts 0.022 to 0.066, the residue coming from
+renormalisation over executed dimensions. On E1 the effect was at most 0.015, because the symbolic AVRs were low.
+% src: results/e7-corpus/agg-proportional/ahs_by_aggregation.csv (delta_dilution 0.022 to 0.072; dilution_identity 0.022 to 0.066); results/e1-grid/agg-proportional/ahs_by_aggregation.csv (delta_dilution max 0.015)
+The effect grows with the weight. At 2/7, reweighting alone, with the judge contributing nothing, moves 7 of 9 E7
+verdicts upward (for example realworld from warning to pass); the judge-blind score is 0.079 to 0.240 above
+$\ahs{det}$.
+% src: results/e7-corpus/agg-proportional/ahs_by_aggregation.csv (verdict_changed_jw_registered true on 7 rows; realworld-test verdict_registered warning, verdict_jw_registered pass; ahs_combined_jw_judge_blind minus ahs_deterministic, 0.079 to 0.240, derived)
+A reader who sees $\ahs{comb} > \ahs{det}$ might conclude that the judge found the code healthier than the rules
+did. It found nothing of the kind: the gap is arithmetic.
+
+\subsection{Lesson 4: coding judge rationales can mislead}\label{sec:l4}
+
+To learn \emph{what} the judge finds, we registered a mechanical coding frame: each fail clause of the rubric is a
+list of keyword patterns, and a rationale is coded with every clause it matches.
+% src: Docs/analysis-plan.md section 12.4 (coding frame, machine block judge-coding-frame)
+Frame 1.0.0 coded the judge's free-text reasoning. It did not separate failing from passing units, because the judge
+walks through every criterion and negates most of them (``no duplicated rules or invariants, and does not bypass any
+abstraction'' in a passing unit). The duplication code matched 119 of 121 passing integrity units but 30 of 31
+failing ones; the persistence code matched 133 of 137 passing intent units against 35 of 42 failing ones.
+% src: Docs/analysis-plan.md section 12.4 ("Frame 1.0.0 ... did not separate fail from pass rationales (the judge's reasoning walks every rubric criterion and negates most of them)"); results/e7-corpus/judge-diagnostics/judge_units.csv (rationale of dry-run-test, src/session/infrastructure/persistence/relational, verdict pass, quoted); git show 9eda300a:results/e7-corpus/judge-diagnostics/judge_criteria.csv (rows "*": FF-N01 pass JC-N01-DUP 119/121, fail 30/31; FF-N02 pass JC-N02-PERSISTENCE 133/137, fail 35/42)
+Frame 1.1.0 codes only the violation messages, which the judge writes only when it fails a unit: they were present
+on 73 of 73 failing carriers and 0 of 258 passing ones. A guarded coding of the reasoning (drop a match preceded by
+a negation within five tokens) is kept as secondary.
+% src: Docs/analysis-plan.md section 12.4 ("Frame 1.1.0 ... present on 73 of 73 failing carriers and on 0 of 258 passing carriers"; negationGuard window 5)
+The guard is only partial: 78 of 121 passing integrity units still match the duplication code. With the
+pre-declared discrimination statistic (failing-message share minus guarded passing share, informative at
+$\geq 0.3$), one code was informative on E7 (duplication, 0.323, post hoc), and none on E1 (highest 0.258), where the
+reading was pre-registered.
+% src: results/e7-corpus/judge-diagnostics/judge_criteria.csv (FF-N01, *, pass, JC-N01-DUP, units_coded_reasoning_guarded 78 of 121); results/e7-corpus/judge-diagnostics/judge_discrimination.csv (rows "*": JC-N01-DUP 0.323114 informative true, all others false); results/e1-grid/judge-diagnostics/judge_discrimination.csv (rows "*": all informative false, max JC-N02-TRANSPORT 0.258378)
+A frame written from the rubric measures the rubric's vocabulary, which a careful judge repeats whatever its
+verdict. Code what the judge asserts as a violation, not what it discusses.
+
+\subsection{Lesson 5: the judge mostly re-finds what the rules find}\label{sec:l5}
+
+For every failing unit we checked whether any of its files also carries a symbolic violation in the same report (a
+mechanical join on file path). On E7, 63 of 73 judge-failed units were also flagged by the rules (25 of 31 integrity,
+38 of 42 intent); on E1 all 55 were.
+% src: results/e7-corpus/judge-diagnostics/judge_summary.csv (rows "*": units_fail_rules_also_flag 25 and 38; 63 derived); Docs/analysis-plan.md section 12.4 (rules_also_flag, mechanical join on filePath); results/e1-grid/judge-diagnostics/judge_units.csv (rules_also_flag true on all 55 rows with verdict fail, derived)
+The judge's messages are often explanatory: one intent failure reads ``\texttt{FileEntity} is declared domain but
+does persistence work'', a fact the layer rules also see as a forbidden import.
+% src: results/e7-corpus/judge-diagnostics/judge_units.csv (dry-run-test, src/files/infrastructure/persistence/relational/entities/file.entity.ts, violation_messages)
+So the judge's measurable value here lies in the 10 E7 units with no rule finding and in its explanations, not in
+new verdicts. File-level co-location is a coarse join, and it does not show that the judge and the rules flag the
+same \emph{problem}. \todo{qualitative reading of the 10 judge-only E7 units.}
+% src: derived, 73 - 63 = 10, from results/e7-corpus/judge-diagnostics/judge_summary.csv
+
+\subsection{Lesson 6: self-preference signals are confounded with code quality}\label{sec:l6}
+
+The judge is the same model as the top-tier Claude generator in E1, so self-preference is a known risk
+\citeneeded{panickssery2024self}. We pre-registered a directional check: per cell
+$d = \ahs{neur} - \ahs{det}$, comparing the judge's own model with the other Claude tiers.
+% src: Docs/analysis-plan.md section 6 ("Directional self-preference check (registered, ADR-020 item 7)"); Docs/ADR.md ADR-020 item 7
+It came out positive: mean difference $+0.083$, one-sided $p = 0.014$, Cliff's $\delta = 0.20$.
+% src: results/e1-grid/agg/so5_tests.csv (directional:claude-opus-5-5-vs-others: statistic 0.083048, p_raw 0.013699, cliffs_delta 0.197318)
+By the registered wording this is evidence of self-preference. The cells tell a different story. Mean $d$ is
+$+0.083$ for the top tier, $+0.088$ for the middle tier and $-0.144$ for the smallest tier; the two larger tiers
+have $\ahs{neur} = 1.000$ in every cell, while the smallest averages 0.777. Their rules-only scores are alike
+(0.917, 0.912, 0.921), and the model effect on $\ahs{det}$ is null ($p = 0.753$) while that on $\ahs{neur}$ is
+large (Holm $p = 0.0003$).
+% src: results/e1-grid/agg/so5_grid.csv (per requested_model_id: mean of ahs_neuronal - ahs_deterministic, mean ahs_neuronal, mean ahs_deterministic; derived); results/e1-grid/agg/so5_tests.csv (model, co-primary:ahsDeterministic p_holm 0.753225; model, secondary:ahsNeuronal p_holm 0.000300)
+The judge failed 33 of 209 units from the smallest tier, 2 of 450 from the top tier and 2 of 344 from the middle
+tier. The signal is therefore a contrast between the smallest tier and the rest, not a preference for the judge's own
+model: the middle tier scores as well as the top one.
+% src: results/e1-grid/judge-diagnostics/judge_units.csv (verdict fail and unit counts by generator prefix of project_id; derived)
+The data cannot separate a judge that sees real problems in that tier's code from a judge that dislikes it. The
+smallest tier is also an older generation and its 11 valid cells are survivors of a type-check that 7 of its 18
+cells failed. The vendor check (Claude-written against OpenAI-written code) was not significant ($p = 0.173$),
+which with one OpenAI model is not evidence of absence.
+% src: results/e1-grid/agg/so5_grid.csv (claude-haiku-4-5: 11 ok, 7 failed-typecheck); Docs/threats-to-validity.md TV-49 ("Tier is confounded with generation"); results/e1-grid/agg/so5_tests.csv (directional:anthropic-vs-other-vendor p_raw 0.172683); Docs/analysis-plan.md section 6.1 ("A null result is not evidence of no self-preference")
+A self-preference statistic built on the judge's own score needs an external check of whether the judge's
+extra failures are correct.
+
+\subsection{Lesson 7: validating the judge with an LLM panel}\label{sec:l7}
+
+We validated the judge against a panel of a different model family (a Gemini Pro model, temperature 0, two runs
+per item with permuted option order) on 46 sampled judge units: 38 from E1 and 8 from fixtures. It took 92 calls; labels
+were 40 pass, 4 fail and 2 uncertain (the two runs disagreed).
+% src: results/e1-grid/label-plan-p4/label-plan-summary.json (P4 46 items); Docs/DiagnosticRuns/methodology-review-2026-10-08.md B3 ("two runs ... with permuted option order"); results/e1-grid/label-plan-p4-api/labels.json (runs[1].permutationSeed); results/e1-grid/label-plan-p4-api/labelling.json (agreement rows); results/labels/live-call-ledger.md (row 5: 92 calls; labels 40 pass, 4 fail, 2 uncertain); Docs/labeller-route.md section 8 (gemini-3.1-pro-preview, temperature 0); results/e1-grid/label-plan-p4-api/labels.json (38 E1 and 8 fixture items, derived)
+The panel agreed with itself on 95.7\% of items ($\kappa = 0.78$ [0.36, 1.00], AC1 0.95).
+% src: results/e1-grid/label-plan-p4-api/labelling.json (run-vs-run: n 46, percentAgreement 0.957, cohensKappa 0.777 [0.355, 1], gwetAc1 0.955)
+
+\begin{table}[t]
+\centering
+\small
+\caption{Judge-vs-panel agreement (inclusion-weighted; 95\% weighted item bootstrap intervals).}
+\label{tab:p4}
+\begin{tabular}{@{}lrlll@{}}
+\toprule
+Row & $n$ & Agreement & Cohen's $\kappa$ & Gwet's AC1 \\
+\midrule
+E1 (headline, uncertain excluded)  & 36 & 0.982 [0.949, 1.000] & 0.000 [0, 0]      & 0.982 [0.947, 1.000] \\
+E1, uncertain as a category        & 38 & 0.965 [0.920, 0.993] & 0.192 [0, 0.495]  & 0.964 [0.916, 0.993] \\
+Fixtures                           &  8 & 1.000 (counts only)  & 1.000             & 1.000 \\
+Pooled                             & 44 & 0.984 [0.956, 1.000] & 0.742 [0, 1]      & 0.983 [0.951, 1.000] \\
+\bottomrule
+\end{tabular}
+% src: results/e1-grid/label-plan-p4-api/labelling.json (judge-vs-panel rows: source e1 headline true; source e1 uncertainAsCategory true; source fixture; source all; fields n, percentAgreement, ci, cohensKappa, kappaCi, gwetAc1, ac1Ci)
+\end{table}
+
+Table~\ref{tab:p4} shows the prevalence paradox \cite{feinstein1990high}\citeneeded{byrt1993bias} in its purest
+form: on the E1 headline the judge said pass on all 36 items, so its marginal has no variance and $\kappa$ is 0
+however good the agreement. AC1 \cite{gwet2008ac1} is the more informative number here, but it does not rescue the
+real problem. The only E1 unit the judge failed in the sample (smallest tier, integrity) was labelled uncertain by
+the panel and dropped from the headline, so \emph{the judge's fail detection on generated code was never tested}.
+Both disagreements are lenient: the judge passed two integrity units (one from the middle Claude tier, one from the
+OpenAI model, same task and level) that the panel failed in both runs. Only the fixtures, two of them failing,
+exercised agreement on fails.
+% src: results/e1-grid/label-plan-p4-api/labels.json joined with results/e1-grid/judge-diagnostics/judge_units.csv on (projectId, functionId, unitId) (derived: e1 judge pass / panel pass 34, judge pass / panel fail 2, judge fail / panel uncertain 1, judge pass / panel uncertain 1; fixtures panel fail 2, pass 6); aidlc-docs/audit.md (P4 entry, "The judge said pass on all 36 E1 pairs, so kappa is 0 by prevalence. The 2 disagreements are judge pass against panel fail")
+The sample was also small by design: its planned half-width at 50\% agreement was $\pm 0.186$ for the E1 headline,
+and no human audit covers P4 items.
+% src: results/e1-grid/label-plan-p4/label-plan-summary.json (precision row "P4 judge-vs-panel agreement, E1 headline": n 38, nEff 23.87, halfWidthAt50 0.186); results/e1-grid/label-plan-p4-api/labelling.json (panel-vs-audit n 0); Docs/labeller-route.md section 7 ("Audit coverage ... It contains no P4 item")
+When the judge rarely fails, a random validation sample rarely contains a failure. Sampling for validation
+should be stratified by the judge's verdict, and reports should give agreement on fails separately.
+
+\subsection{Lesson 8: operating CLI judges and labellers}\label{sec:l8}
+
+\paragraph{The judge's CLI writes more than you expect.}
+Using a subscription CLI rather than an API brought hidden state. A probe of the judge configuration directory
+found that login had installed a plugin marketplace (about 786 entries), that the CLI creates a
+\texttt{settings.json} and a per-project memory directory on every call even with session persistence off, and
+that the CLI had auto-updated from 2.1.293 to 2.1.294 during login. An authentication error reported the subtype
+``success''.
+% src: Docs/ADR.md ADR-018 Context (plugins/** about 786 entries; settings.json; projects/<cwd>/memory even with --no-session-persistence; auto-update 2.1.293 to 2.1.294) and Decision item 5 ("an auth error reports subtype: success")
+We removed the plugins, allowed only empty memory directories and a two-key settings file, disabled the updater,
+pinned the version and made every run fail closed on a mismatch. One channel (a user-level instruction file) could
+not be positively controlled and remains a residual threat.
+% src: Docs/ADR.md ADR-018 Decision items 1 to 4 and 6; Docs/judge-preregistration.md ("Instrument" table, Isolation and Claude CLI version rows)
+
+\paragraph{A deny rule that does not deny.}
+The panel first ran through an agentic Gemini CLI, with tools made inert by a strict permission mode and seven deny
+rules. Its first validation call timed out twice and its re-ask then completed a web search; a fail-closed guard
+stopped the run before the answer was stored. Probes showed that web search passes no permission check on that CLI
+version: neither a list of 51 disabled tools nor explicit deny rules stopped it.
+% src: Docs/ADR.md ADR-034 Context (two 240 s timeouts, search_web on the re-ask, LLM_CLI_ISOLATION stop; disabledTools of 51 tools, init listed 60; deny rules added, search_web completed again); Docs/labeller-route.md section 7
+Earlier labelling on the same route (142 invocations) had used no tool, so the guard had never been exercised.
+% src: Docs/labeller-route.md section 7 ("P1/MS/P2: verified ... all 142 invocations ... No call there completed a tool step")
+
+\paragraph{Fail closed, and decide in advance when to stop.}
+Rather than patching around the leak, we registered a rule before continuing: a call that completes a tool step is
+discarded and retried once; if 20\% or more of the first ten or more items end as tool use, the run stops and the
+route goes back to the author. It fired: 2 of the first 10 items ended as tool use, after 5 discarded attempts. The
+author moved the panel to the vendor API with no tools and temperature 0, relabelled all 46 items with zero tool use
+and zero retries, and kept the 8 earlier answers apart.
+% src: Docs/ADR.md ADR-034 Decision items 1 to 3; Docs/ADR.md ADR-035 Context ("2 of the first 10 P4 items ended as uncertain / tool-use, with 5 tool-use discards") and Decision items 1, 2, 4; results/labels/live-call-ledger.md (row 5: 0 retries, 0 re-asks, 0 tool use, 0 quota stops)
+The price is a route difference between the panel's earlier labels and the validation labels, which we report as a
+threat.
+% src: Docs/ADR.md ADR-035 Consequences; Docs/labeller-route.md section 8
+Agentic CLIs are built to act, and a judge or labeller must not; the safest configuration is an API with no tools
+offered, and where a CLI is unavoidable, a guard that inspects what the model actually did.
+
+% =====================================================================================================================
+\section{Recommendations for LLM-Judge Gates}\label{sec:recs}
+
+\begin{enumerate}[leftmargin=*]
+  \item \textbf{Compute the reach before the run.} State $\Wn$, the bound $[-\Wn, 0]$ and which items are reachable
+        (Eq.~\ref{eq:bound}). If the intended role of the judge is to move verdicts, check that the configuration
+        allows it (Lessons 1, 2).
+  \item \textbf{Register the aggregation, and a sensitivity set.} Majority, proportional and any-fail rules give
+        different answers from the same calls; report them side by side from recorded calls (Lesson 2).
+  \item \textbf{Report the judge-blind score and the decomposition}, never only $\ahs{comb}$ against $\ahs{det}$
+        (Lessons 1, 3).
+  \item \textbf{Code what the judge asserts}, its violation messages, not its reasoning; measure discrimination
+        against passing units (Lesson 4).
+  \item \textbf{Join judge failures with rule findings} and report the judge-only residue (Lesson 5).
+  \item \textbf{Check self-preference against an external label}, and against a non-self tier of the same family
+        (Lesson 6).
+  \item \textbf{Validate on fails.} Stratify the validation sample by judge verdict; report AC1 beside $\kappa$ and
+        agreement on fails separately (Lesson 7).
+  \item \textbf{Treat isolation as testable.} Pin versions, fail closed on drift, prefer APIs without tools, and
+        pre-register stop rules for when isolation fails (Lesson 8).
+\end{enumerate}
+
+% =====================================================================================================================
+\section{Threats to Validity}\label{sec:threats}
+
+\emph{Construct.} The panel is one model family; no human audited the validation items, and LLM-panel agreement is
+not ground truth \citeneeded{ahmed2025annotation}. The coding frames are keyword maps written by the author.
+% src: results/e1-grid/label-plan-p4-api/labelling.json (panel-vs-audit n 0); Docs/analysis-plan.md section 12.4 ("Limits")
+\emph{Internal.} All E7 readings beyond the registered rule, frame 1.1.0 on E7 and the judge-weighted variant on E7
+were defined after E7 results were known; we mark them post hoc. Generator tier is confounded with model
+generation, and the panel route changed between label sets.
+% src: Docs/analysis-plan.md sections 12 and 12.5 (post-hoc E7 readings); Docs/threats-to-validity.md TV-49; Docs/ADR.md ADR-035 Consequences
+\emph{External.} One gate, one judge model, two rubrics, nine real projects and two generation tasks; the bound
+argument generalises, the counts do not.
+\emph{Conclusion.} Validation samples are small ($n = 36$ on the headline) and its intervals are wide; the
+self-preference check is one test.
+% src: results/e1-grid/label-plan-p4-api/labelling.json (headline n 36)
+Wohlin et al.'s classification guided this section \citeneeded{wohlin2012experimentation}.
+
+% =====================================================================================================================
+\section{Conclusion}\label{sec:conclusion}
+
+An LLM judge inside a gate can be active, plausible and validated by a panel, and still decide nothing. In our gate
+the judge failed about a fifth of real-project units, explained them well and mostly agreed with an independent
+panel, yet the registered weight and aggregation left it no verdict to move, and a clean judge dimension made scores
+look better. Whether the judge ``matters'' was settled by configuration choices that can be analysed before any call
+is made. We recommend that gate designers make those choices explicit, register them with a sensitivity set, report
+the judge-blind decomposition, and validate the judge where it is supposed to act: on the units it fails.
+
+\paragraph{Data availability.} \todo{repository tag or DOI for the replication package (specs, recorded cassettes,
+aggregate tables, scripts).}
+
+\bibliographystyle{plain}
+\bibliography{refs}
+
+\end{document}
