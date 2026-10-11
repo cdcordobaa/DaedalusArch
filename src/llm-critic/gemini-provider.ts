@@ -44,6 +44,11 @@ export function toGeminiResponseSchema(schemaText: string): ResponseSchema {
   return toGeminiSchemaNode(JSON.parse(schemaText)) as ResponseSchema;
 }
 
+/** A response candidate read loosely: it may arrive without content or parts (ADR-035 function-call check). */
+interface LooseCandidate {
+  readonly content?: { readonly parts?: readonly { readonly functionCall?: unknown }[] };
+}
+
 /**
  * LLM provider using Google's Gemini API via the @google/generative-ai SDK (BR-U4-VRD-01,
  * VRD-08, VRD-09, OPS-02). The model is the configured, pinned id (`--llm-model`, no
@@ -55,6 +60,7 @@ export class GeminiProvider implements LLMProvider {
   private readonly client: GoogleGenerativeAI;
   private readonly modelName: string;
   private readonly defaultTemperature: number;
+  private readonly thinkingLevel: 'low' | 'high' | undefined;
   /** Configured cap; every judge call passes `maxTokens` explicitly (D-U0-17), so this is informational. */
   readonly defaultMaxTokens: number;
 
@@ -65,6 +71,7 @@ export class GeminiProvider implements LLMProvider {
     this.client = new GoogleGenerativeAI(config.apiKey);
     this.modelName = config.model;
     this.defaultTemperature = config.temperature;
+    this.thinkingLevel = config.thinkingLevel;
     this.defaultMaxTokens = config.maxTokens;
   }
 
@@ -89,18 +96,29 @@ export class GeminiProvider implements LLMProvider {
           maxOutputTokens: maxTokens,
           responseMimeType: 'application/json',
           responseSchema: toGeminiResponseSchema(call?.responseSchema ?? VERDICT_SCHEMA_TEXT),
+          // ADR-035: Gemini 3 thinking level, only when configured (the request is otherwise unchanged).
+          ...(this.thinkingLevel !== undefined && { thinkingConfig: { thinkingLevel: this.thinkingLevel } }),
         },
+        // No `tools` and no `toolConfig`: the model is offered no tool (ADR-035).
       });
 
       const result = await model.generateContent(prompt);
       const response = result.response;
+      // Fail closed (ADR-034/035): no tool is offered, so a function call in the answer is never accepted.
+      // Read loosely: a candidate may arrive without content or parts.
+      const candidates = (response as { readonly candidates?: readonly LooseCandidate[] }).candidates ?? [];
+      if (candidates.some((c) => (c.content?.parts ?? []).some((part) => part.functionCall !== undefined))) {
+        return DomainResult.fail<LLMResponse>([{ code: 'LLM_CLI_TOOL_USE', message: 'Gemini returned a function call although no tool was offered' }]);
+      }
       const text = response.text();
+      // The served model version (REST `modelVersion`; untyped in SDK 0.24.1), else the configured id.
+      const served = (response as { readonly modelVersion?: unknown }).modelVersion;
       const usage = response.usageMetadata;
       const modelIgnored = options.model !== this.modelName;
 
       return DomainResult.ok<LLMResponse>({
         content: text,
-        model: this.modelName,
+        model: typeof served === 'string' && served !== '' ? served : this.modelName,
         usage: {
           inputTokens: usage?.promptTokenCount ?? Math.ceil(prompt.length / 4),
           outputTokens: usage?.candidatesTokenCount ?? Math.ceil(text.length / 4),
@@ -113,6 +131,11 @@ export class GeminiProvider implements LLMProvider {
       });
     } catch (error) {
       const message = error instanceof Error ? error.message : String(error);
+      const status = (error as { readonly status?: unknown } | null)?.status;
+      // ADR-035: quota, rate limit and overload are stops (never cached); the caller pauses and re-runs.
+      if (status === 429 || status === 503 || /\b(429|503)\b|RESOURCE_EXHAUSTED|UNAVAILABLE|quota|rate limit|overloaded/i.test(message)) {
+        return DomainResult.fail<LLMResponse>([{ code: 'LLM_USAGE_LIMIT', message: `Gemini API limit or overload: ${message}` }]);
+      }
       return DomainResult.fail<LLMResponse>([{
         code: 'LLM_API_ERROR',
         message: `Gemini API error: ${message}`,

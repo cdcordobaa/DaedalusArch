@@ -114,6 +114,36 @@ describe('GeminiProvider request (BR-U4-VRD-01, VRD-08, OPS-02)', () => {
     }
   });
 
+  it('ADR-035: the labeller route sends thinkingLevel high, offers no tool and records the served model version', async () => {
+    mockGenerateContent.mockResolvedValueOnce({
+      response: { text: () => '{"option":1}', modelVersion: 'gemini-3.1-pro-preview', usageMetadata: { promptTokenCount: 10, candidatesTokenCount: 5 } },
+    });
+    const g = new GeminiProvider({ apiKey: 'k', model: 'gemini-3.1-pro-preview', temperature: 0, maxTokens: 65536, thinkingLevel: 'high' });
+    const result = await g.evaluate('prompt', { model: 'gemini-3.1-pro-preview', temperature: 0, maxTokens: 65536 });
+    const calls = mockGetGenerativeModel.mock.calls as unknown[][];
+    const sent = calls[0]?.[0] as Record<string, unknown>;
+    expect(sent.generationConfig).toMatchObject({ temperature: 0, maxOutputTokens: 65536, thinkingConfig: { thinkingLevel: 'high' } });
+    expect(sent).not.toHaveProperty('tools');
+    expect(sent).not.toHaveProperty('toolConfig');
+    expect(result.success && result.data.model).toBe('gemini-3.1-pro-preview');
+  });
+
+  it('ADR-035: a function call in the answer fails closed; quota, rate limit and overload are usage-limit stops', async () => {
+    mockGenerateContent.mockResolvedValueOnce({
+      response: { text: () => '', candidates: [{ content: { parts: [{ functionCall: { name: 'search', args: {} } }] } }] },
+    });
+    const tool = await makeGemini().evaluate('prompt', CRITIC_OPTIONS);
+    expect(!tool.success && tool.errors[0]?.code).toBe('LLM_CLI_TOOL_USE');
+    for (const e of [Object.assign(new Error('[429 Too Many Requests] RESOURCE_EXHAUSTED'), { status: 429 }), new Error('[503 Service Unavailable] The model is overloaded')]) {
+      mockGenerateContent.mockRejectedValueOnce(e);
+      const r = await makeGemini().evaluate('prompt', CRITIC_OPTIONS);
+      expect(!r.success && r.errors[0]?.code).toBe('LLM_USAGE_LIMIT');
+    }
+    mockGenerateContent.mockRejectedValueOnce(new Error('[500 Internal Server Error] boom'));
+    const other = await makeGemini().evaluate('prompt', CRITIC_OPTIONS);
+    expect(!other.success && other.errors[0]?.code).toBe('LLM_API_ERROR');
+  });
+
   it('refuses an empty model id (no default Gemini id, VRD-09)', () => {
     expect(() => new GeminiProvider({ apiKey: 'k', model: '', temperature: 0, maxTokens: 1 })).toThrow(/--llm-model/);
   });
