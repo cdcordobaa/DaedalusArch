@@ -1,0 +1,48 @@
+{
+  "attempts": 1,
+  "cliVersion": "2.1.294",
+  "configListingSha256": "47aa04258852fab9a706f3f0c14cee22306d69fbb6fdfbde8c11854bd54997bc",
+  "durationMs": 5895,
+  "effort": "high",
+  "functionId": "FF-N02",
+  "ignoredOptions": [
+    "maxTokens"
+  ],
+  "isolationProbeSha256": "97a2e2d0af1100c13c55e028c1a0c71f069093c3d08705af122aaeb302f1a641",
+  "key": "75e533ab94de3a6f55833541cc9a7749bd6fbfe8e3bafc3b6680fd29e5cff6bc-r0-0",
+  "model": "claude-opus-5-5",
+  "outcome": {
+    "kind": "valid"
+  },
+  "parsedVerdict": {
+    "confidence": 0.95,
+    "evidence": [
+      "src/domain/product.ts: the Product constructor checks entity invariants (id and name required, stock a non-negative integer) and throws DomainError. This is a domain responsibility.",
+      "src/domain/product.ts: reserve(quantity) enforces the insufficient-stock rule and lowers stock. This is a domain business rule.",
+      "src/domain/product.ts: release(quantity) and assertQuantity validate quantities and adjust stock. This is domain logic.",
+      "src/domain/product.ts: there is no database, HTTP, framework, or I/O code; the only import is ./errors (DomainError)."
+    ],
+    "pass": true,
+    "reasoning": "src/domain/product.ts holds a pure domain entity. Product checks its own invariants: id and name are required, and stock must be a non-negative integer. It also carries the stock business rules, reserve and release, and both reject quantities that are not positive integers. Its only import is the domain-local DomainError. The file has no persistence, transport, framework, logging or orchestration code. Every responsibility fits the domain layer kind.",
+    "violations": []
+  },
+  "projectId": "gpt-5.6-terra/order-fulfilment/none/run-2",
+  "prompt": "## Rule\nThe unit's responsibilities match the role of its declared layer.\n\n## Rubric\nPass: Every responsibility in the file belongs to the role and kind of its declared layer, and agrees with any ADR prose given.\nFail: The file carries a responsibility that belongs to a different layer kind, for example persistence, transport or framework logic in a domain file, or business rules in an infrastructure or presentation file.\nEvidence required: Name the file and cite the function, method or statement that carries the misplaced responsibility, and the layer kind it belongs to.\nOut of scope: import direction and layer-dependency rules, which are checked symbolically.\n\n## Layer model\n- domain (kind: domain): src/domain/**\n- application (kind: application): src/application/**\n- infrastructure (kind: infrastructure): src/infrastructure/**\n\n## Unit\nKind: file\nId: src/domain/product.ts\nLayer: domain\nUnit files:\n- src/domain/product.ts\n\n## Source\n=====SOURCE-BEGIN src/domain/product.ts=====\nimport { DomainError } from \"./errors\";\n\nexport class Product {\n  public constructor(\n    public readonly id: string,\n    public readonly name: string,\n    private stock: number,\n  ) {\n    if (!id.trim()) throw new DomainError(\"A product id is required.\");\n    if (!name.trim()) throw new DomainError(\"A product name is required.\");\n    if (!Number.isSafeInteger(stock) || stock < 0) {\n      throw new DomainError(\"Product stock must be a non-negative integer.\");\n    }\n  }\n\n  public get availableStock(): number {\n    return this.stock;\n  }\n\n  public reserve(quantity: number): void {\n    this.assertQuantity(quantity);\n    if (this.stock < quantity) {\n      throw new DomainError(`Insufficient stock for product '${this.id}'.`);\n    }\n    this.stock -= quantity;\n  }\n\n  public release(quantity: number): void {\n    this.assertQuantity(quantity);\n    this.stock += quantity;\n  }\n\n  private assertQuantity(quantity: number): void {\n    if (!Number.isSafeInteger(quantity) || quantity <= 0) {\n      throw new DomainError(\"Quantity must be a positive integer.\");\n    }\n  }\n}\n\n=====SOURCE-END=====\n\n## Graph excerpt\n{\"edges\":[{\"from\":\"src/application/fulfilment-service.ts\",\"to\":\"src/domain/product.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/domain/product.ts\",\"to\":\"src/domain/errors.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/domain/repositories.ts\",\"to\":\"src/domain/product.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/infrastructure/in-memory-repositories.ts\",\"to\":\"src/domain/product.ts\",\"type\":\"IMPORTS\"}],\"nodes\":[{\"kind\":\"Class\",\"layer\":\"domain\",\"name\":\"Product\",\"path\":\"src/domain/product.ts\"},{\"kind\":\"File\",\"layer\":\"application\",\"path\":\"src/application/fulfilment-service.ts\"},{\"kind\":\"File\",\"layer\":\"domain\",\"path\":\"src/domain/errors.ts\"},{\"kind\":\"File\",\"layer\":\"domain\",\"path\":\"src/domain/product.ts\"},{\"kind\":\"File\",\"layer\":\"domain\",\"path\":\"src/domain/repositories.ts\"},{\"kind\":\"File\",\"layer\":\"infrastructure\",\"path\":\"src/infrastructure/in-memory-repositories.ts\"}]}\n\n## Instructions\nJudge the unit against the rule and rubric. Return the JSON object the schema requires. Set pass to false if any file of the unit fails the rubric.\n",
+  "provider": "claude-cli",
+  "recordedAt": "2026-10-11T03:11:08.371Z",
+  "repetition": 0,
+  "requestHash": "75e533ab94de3a6f55833541cc9a7749bd6fbfe8e3bafc3b6680fd29e5cff6bc",
+  "resolvedModel": "claude-opus-5-5",
+  "response": "{\"is_error\":false,\"modelUsage\":{\"claude-opus-5-5\":{\"inputTokens\":2,\"outputTokens\":477}},\"result\":\"{\\\"pass\\\":true,\\\"confidence\\\":0.95,\\\"reasoning\\\":\\\"src/domain/product.ts holds a pure domain entity. Product checks its own invariants: id and name are required, and stock must be a non-negative integer. It also carries the stock business rules, reserve and release, and both reject quantities that are not positive integers. Its only import is the domain-local DomainError. The file has no persistence, transport, framework, logging or orchestration code. Every responsibility fits the domain layer kind.\\\",\\\"evidence\\\":[\\\"src/domain/product.ts: the Product constructor checks entity invariants (id and name required, stock a non-negative integer) and throws DomainError. This is a domain responsibility.\\\",\\\"src/domain/product.ts: reserve(quantity) enforces the insufficient-stock rule and lowers stock. This is a domain business rule.\\\",\\\"src/domain/product.ts: release(quantity) and assertQuantity validate quantities and adjust stock. This is domain logic.\\\",\\\"src/domain/product.ts: there is no database, HTTP, framework, or I/O code; the only import is ./errors (DomainError).\\\"],\\\"violations\\\":[]}\",\"structured_output\":{\"confidence\":0.95,\"evidence\":[\"src/domain/product.ts: the Product constructor checks entity invariants (id and name required, stock a non-negative integer) and throws DomainError. This is a domain responsibility.\",\"src/domain/product.ts: reserve(quantity) enforces the insufficient-stock rule and lowers stock. This is a domain business rule.\",\"src/domain/product.ts: release(quantity) and assertQuantity validate quantities and adjust stock. This is domain logic.\",\"src/domain/product.ts: there is no database, HTTP, framework, or I/O code; the only import is ./errors (DomainError).\"],\"pass\":true,\"reasoning\":\"src/domain/product.ts holds a pure domain entity. Product checks its own invariants: id and name are required, and stock must be a non-negative integer. It also carries the stock business rules, reserve and release, and both reject quantities that are not positive integers. Its only import is the domain-local DomainError. The file has no persistence, transport, framework, logging or orchestration code. Every responsibility fits the domain layer kind.\",\"violations\":[]}}",
+  "runIndex": 0,
+  "schemaVersion": 2,
+  "unitId": "src/domain/product.ts",
+  "usage": {
+    "inputTokens": 2686,
+    "outputTokens": 477
+  },
+  "usedOptions": {
+    "effort": "high",
+    "model": "claude-opus-5-5"
+  }
+}

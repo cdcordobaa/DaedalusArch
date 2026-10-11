@@ -1,0 +1,48 @@
+{
+  "attempts": 1,
+  "cliVersion": "2.1.294",
+  "configListingSha256": "47aa04258852fab9a706f3f0c14cee22306d69fbb6fdfbde8c11854bd54997bc",
+  "durationMs": 6528,
+  "effort": "high",
+  "functionId": "FF-N02",
+  "ignoredOptions": [
+    "maxTokens"
+  ],
+  "isolationProbeSha256": "97a2e2d0af1100c13c55e028c1a0c71f069093c3d08705af122aaeb302f1a641",
+  "key": "2a0f0b79244c1d02e2babe16ef3c123c0008273ff9a2f44fba6ac855371f8801-r0-2",
+  "model": "claude-opus-5-5",
+  "outcome": {
+    "kind": "valid"
+  },
+  "parsedVerdict": {
+    "confidence": 0.93,
+    "evidence": [
+      "InMemoryProductRepository: findById/save/list just read and write a Map<string, Product>, which is persistence work.",
+      "InMemoryOrderRepository: findById/save/list just read and write a Map<string, Order>, which is persistence work.",
+      "InMemoryOrderRepository.list(state?) filters on `order.state === state`. This is a query condition passed in by the caller, not a business rule.",
+      "Both classes implement the domain interfaces OrderRepository and ProductRepository (IMPLEMENTS edges), which fits an infrastructure adapter."
+    ],
+    "pass": true,
+    "reasoning": "This file only handles persistence, which is the job of the infrastructure layer. InMemoryProductRepository and InMemoryOrderRepository implement the repository interfaces declared in the domain layer. They store, fetch and list entities in Map-based storage. InMemoryOrderRepository.list(state?) filters by order state, but that is a query condition passed in by the caller. It does not make business decisions, check invariants or change state. The file contains no business rules, presentation code or orchestration logic.",
+    "violations": []
+  },
+  "projectId": "gpt-5.6-terra/order-fulfilment/none/run-2",
+  "prompt": "## Rule\nThe unit's responsibilities match the role of its declared layer.\n\n## Rubric\nPass: Every responsibility in the file belongs to the role and kind of its declared layer, and agrees with any ADR prose given.\nFail: The file carries a responsibility that belongs to a different layer kind, for example persistence, transport or framework logic in a domain file, or business rules in an infrastructure or presentation file.\nEvidence required: Name the file and cite the function, method or statement that carries the misplaced responsibility, and the layer kind it belongs to.\nOut of scope: import direction and layer-dependency rules, which are checked symbolically.\n\n## Layer model\n- domain (kind: domain): src/domain/**\n- application (kind: application): src/application/**\n- infrastructure (kind: infrastructure): src/infrastructure/**\n\n## Unit\nKind: file\nId: src/infrastructure/in-memory-repositories.ts\nLayer: infrastructure\nUnit files:\n- src/infrastructure/in-memory-repositories.ts\n\n## Source\n=====SOURCE-BEGIN src/infrastructure/in-memory-repositories.ts=====\nimport { Order, OrderState } from \"../domain/order\";\nimport { OrderRepository, ProductRepository } from \"../domain/repositories\";\nimport { Product } from \"../domain/product\";\n\nexport class InMemoryProductRepository implements ProductRepository {\n  private readonly products = new Map<string, Product>();\n\n  public findById(id: string): Product | undefined { return this.products.get(id); }\n  public save(product: Product): void { this.products.set(product.id, product); }\n  public list(): Product[] { return [...this.products.values()]; }\n}\n\nexport class InMemoryOrderRepository implements OrderRepository {\n  private readonly orders = new Map<string, Order>();\n\n  public findById(id: string): Order | undefined { return this.orders.get(id); }\n  public save(order: Order): void { this.orders.set(order.id, order); }\n  public list(state?: OrderState): Order[] {\n    return [...this.orders.values()].filter((order) => state === undefined || order.state === state);\n  }\n}\n\n=====SOURCE-END=====\n\n## Graph excerpt\n{\"edges\":[{\"from\":\"InMemoryOrderRepository@src/infrastructure/in-memory-repositories.ts\",\"to\":\"OrderRepository@src/domain/repositories.ts\",\"type\":\"IMPLEMENTS\"},{\"from\":\"InMemoryProductRepository@src/infrastructure/in-memory-repositories.ts\",\"to\":\"ProductRepository@src/domain/repositories.ts\",\"type\":\"IMPLEMENTS\"},{\"from\":\"src/infrastructure/in-memory-repositories.ts\",\"to\":\"src/domain/order.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/infrastructure/in-memory-repositories.ts\",\"to\":\"src/domain/product.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/infrastructure/in-memory-repositories.ts\",\"to\":\"src/domain/repositories.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/infrastructure/server.ts\",\"to\":\"src/infrastructure/in-memory-repositories.ts\",\"type\":\"IMPORTS\"}],\"nodes\":[{\"kind\":\"Class\",\"layer\":\"infrastructure\",\"name\":\"InMemoryOrderRepository\",\"path\":\"src/infrastructure/in-memory-repositories.ts\"},{\"kind\":\"Class\",\"layer\":\"infrastructure\",\"name\":\"InMemoryProductRepository\",\"path\":\"src/infrastructure/in-memory-repositories.ts\"},{\"kind\":\"File\",\"layer\":\"domain\",\"path\":\"src/domain/order.ts\"},{\"kind\":\"File\",\"layer\":\"domain\",\"path\":\"src/domain/product.ts\"},{\"kind\":\"File\",\"layer\":\"domain\",\"path\":\"src/domain/repositories.ts\"},{\"kind\":\"File\",\"layer\":\"infrastructure\",\"path\":\"src/infrastructure/in-memory-repositories.ts\"},{\"kind\":\"File\",\"layer\":\"infrastructure\",\"path\":\"src/infrastructure/server.ts\"},{\"kind\":\"Interface\",\"layer\":\"domain\",\"name\":\"OrderRepository\",\"path\":\"src/domain/repositories.ts\"},{\"kind\":\"Interface\",\"layer\":\"domain\",\"name\":\"ProductRepository\",\"path\":\"src/domain/repositories.ts\"}]}\n\n## Instructions\nJudge the unit against the rule and rubric. Return the JSON object the schema requires. Set pass to false if any file of the unit fails the rubric.\n",
+  "provider": "claude-cli",
+  "recordedAt": "2026-10-11T03:11:34.071Z",
+  "repetition": 0,
+  "requestHash": "2a0f0b79244c1d02e2babe16ef3c123c0008273ff9a2f44fba6ac855371f8801",
+  "resolvedModel": "claude-opus-5-5",
+  "response": "{\"is_error\":false,\"modelUsage\":{\"claude-opus-5-5\":{\"inputTokens\":2,\"outputTokens\":520}},\"result\":\"{\\\"pass\\\":true,\\\"confidence\\\":0.93,\\\"reasoning\\\":\\\"This file only handles persistence, which is the job of the infrastructure layer. InMemoryProductRepository and InMemoryOrderRepository implement the repository interfaces declared in the domain layer. They store, fetch and list entities in Map-based storage. InMemoryOrderRepository.list(state?) filters by order state, but that is a query condition passed in by the caller. It does not make business decisions, check invariants or change state. The file contains no business rules, presentation code or orchestration logic.\\\",\\\"evidence\\\":[\\\"InMemoryProductRepository: findById/save/list just read and write a Map<string, Product>, which is persistence work.\\\",\\\"InMemoryOrderRepository: findById/save/list just read and write a Map<string, Order>, which is persistence work.\\\",\\\"InMemoryOrderRepository.list(state?) filters on `order.state === state`. This is a query condition passed in by the caller, not a business rule.\\\",\\\"Both classes implement the domain interfaces OrderRepository and ProductRepository (IMPLEMENTS edges), which fits an infrastructure adapter.\\\"],\\\"violations\\\":[]}\",\"structured_output\":{\"confidence\":0.93,\"evidence\":[\"InMemoryProductRepository: findById/save/list just read and write a Map<string, Product>, which is persistence work.\",\"InMemoryOrderRepository: findById/save/list just read and write a Map<string, Order>, which is persistence work.\",\"InMemoryOrderRepository.list(state?) filters on `order.state === state`. This is a query condition passed in by the caller, not a business rule.\",\"Both classes implement the domain interfaces OrderRepository and ProductRepository (IMPLEMENTS edges), which fits an infrastructure adapter.\"],\"pass\":true,\"reasoning\":\"This file only handles persistence, which is the job of the infrastructure layer. InMemoryProductRepository and InMemoryOrderRepository implement the repository interfaces declared in the domain layer. They store, fetch and list entities in Map-based storage. InMemoryOrderRepository.list(state?) filters by order state, but that is a query condition passed in by the caller. It does not make business decisions, check invariants or change state. The file contains no business rules, presentation code or orchestration logic.\",\"violations\":[]}}",
+  "runIndex": 2,
+  "schemaVersion": 2,
+  "unitId": "src/infrastructure/in-memory-repositories.ts",
+  "usage": {
+    "inputTokens": 2978,
+    "outputTokens": 520
+  },
+  "usedOptions": {
+    "effort": "high",
+    "model": "claude-opus-5-5"
+  }
+}

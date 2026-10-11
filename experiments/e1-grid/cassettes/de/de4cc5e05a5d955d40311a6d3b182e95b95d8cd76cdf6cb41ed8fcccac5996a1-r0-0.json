@@ -1,0 +1,47 @@
+{
+  "attempts": 1,
+  "cliVersion": "2.1.294",
+  "configListingSha256": "47aa04258852fab9a706f3f0c14cee22306d69fbb6fdfbde8c11854bd54997bc",
+  "durationMs": 5532,
+  "effort": "high",
+  "functionId": "FF-N02",
+  "ignoredOptions": [
+    "maxTokens"
+  ],
+  "isolationProbeSha256": "97a2e2d0af1100c13c55e028c1a0c71f069093c3d08705af122aaeb302f1a641",
+  "key": "de4cc5e05a5d955d40311a6d3b182e95b95d8cd76cdf6cb41ed8fcccac5996a1-r0-0",
+  "model": "claude-opus-5-5",
+  "outcome": {
+    "kind": "valid"
+  },
+  "parsedVerdict": {
+    "confidence": 0.95,
+    "evidence": [
+      "src/domain/task-status.ts: TASK_STATUSES const lists the domain's allowed status values",
+      "src/domain/task-status.ts: the TaskStatus type is derived from TASK_STATUSES as a domain value type",
+      "src/domain/task-status.ts: isTaskStatus(value) is a pure validation guard with no I/O or framework dependency"
+    ],
+    "pass": true,
+    "reasoning": "The file defines a domain value type: the set of allowed task statuses, the TaskStatus union type and a type guard, isTaskStatus, that checks whether a value is a valid status. All three are domain concerns. The type guard is domain validation of a value object, and there is no persistence, transport, framework or orchestration logic in the file. Its responsibilities match the domain layer.",
+    "violations": []
+  },
+  "projectId": "gpt-5.6-terra/task-management/full-aac/run-2",
+  "prompt": "## Rule\nThe unit's responsibilities match the role of its declared layer.\n\n## Rubric\nPass: Every responsibility in the file belongs to the role and kind of its declared layer, and agrees with any ADR prose given.\nFail: The file carries a responsibility that belongs to a different layer kind, for example persistence, transport or framework logic in a domain file, or business rules in an infrastructure or presentation file.\nEvidence required: Name the file and cite the function, method or statement that carries the misplaced responsibility, and the layer kind it belongs to.\nOut of scope: import direction and layer-dependency rules, which are checked symbolically.\n\n## Layer model\n- domain (kind: domain): src/domain/**\n- application (kind: application): src/application/**\n- infrastructure (kind: infrastructure): src/infrastructure/**\n\n## Unit\nKind: file\nId: src/domain/task-status.ts\nLayer: domain\nUnit files:\n- src/domain/task-status.ts\n\n## Source\n=====SOURCE-BEGIN src/domain/task-status.ts=====\nexport const TASK_STATUSES = [\"todo\", \"in progress\", \"done\"] as const;\n\nexport type TaskStatus = (typeof TASK_STATUSES)[number];\n\nexport function isTaskStatus(value: unknown): value is TaskStatus {\n  return typeof value === \"string\" && TASK_STATUSES.includes(value as TaskStatus);\n}\n\n=====SOURCE-END=====\n\n## Graph excerpt\n{\"edges\":[{\"from\":\"src/application/dtos.ts\",\"to\":\"src/domain/task-status.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/domain/task-repository.ts\",\"to\":\"src/domain/task-status.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/domain/task.ts\",\"to\":\"src/domain/task-status.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/infrastructure/task-controller.ts\",\"to\":\"src/domain/task-status.ts\",\"type\":\"IMPORTS\"}],\"nodes\":[{\"kind\":\"File\",\"layer\":\"application\",\"path\":\"src/application/dtos.ts\"},{\"kind\":\"File\",\"layer\":\"domain\",\"path\":\"src/domain/task-repository.ts\"},{\"kind\":\"File\",\"layer\":\"domain\",\"path\":\"src/domain/task-status.ts\"},{\"kind\":\"File\",\"layer\":\"domain\",\"path\":\"src/domain/task.ts\"},{\"kind\":\"File\",\"layer\":\"infrastructure\",\"path\":\"src/infrastructure/task-controller.ts\"}]}\n\n## Instructions\nJudge the unit against the rule and rubric. Return the JSON object the schema requires. Set pass to false if any file of the unit fails the rubric.\n",
+  "provider": "claude-cli",
+  "recordedAt": "2026-10-11T03:30:32.744Z",
+  "repetition": 0,
+  "requestHash": "de4cc5e05a5d955d40311a6d3b182e95b95d8cd76cdf6cb41ed8fcccac5996a1",
+  "resolvedModel": "claude-opus-5-5",
+  "response": "{\"is_error\":false,\"modelUsage\":{\"claude-opus-5-5\":{\"inputTokens\":2,\"outputTokens\":383}},\"result\":\"{\\\"pass\\\":true,\\\"confidence\\\":0.95,\\\"reasoning\\\":\\\"The file defines a domain value type: the set of allowed task statuses, the TaskStatus union type and a type guard, isTaskStatus, that checks whether a value is a valid status. All three are domain concerns. The type guard is domain validation of a value object, and there is no persistence, transport, framework or orchestration logic in the file. Its responsibilities match the domain layer.\\\",\\\"evidence\\\":[\\\"src/domain/task-status.ts: TASK_STATUSES const lists the domain's allowed status values\\\",\\\"src/domain/task-status.ts: the TaskStatus type is derived from TASK_STATUSES as a domain value type\\\",\\\"src/domain/task-status.ts: isTaskStatus(value) is a pure validation guard with no I/O or framework dependency\\\"],\\\"violations\\\":[]}\",\"structured_output\":{\"confidence\":0.95,\"evidence\":[\"src/domain/task-status.ts: TASK_STATUSES const lists the domain's allowed status values\",\"src/domain/task-status.ts: the TaskStatus type is derived from TASK_STATUSES as a domain value type\",\"src/domain/task-status.ts: isTaskStatus(value) is a pure validation guard with no I/O or framework dependency\"],\"pass\":true,\"reasoning\":\"The file defines a domain value type: the set of allowed task statuses, the TaskStatus union type and a type guard, isTaskStatus, that checks whether a value is a valid status. All three are domain concerns. The type guard is domain validation of a value object, and there is no persistence, transport, framework or orchestration logic in the file. Its responsibilities match the domain layer.\",\"violations\":[]}}",
+  "runIndex": 0,
+  "schemaVersion": 2,
+  "unitId": "src/domain/task-status.ts",
+  "usage": {
+    "inputTokens": 2363,
+    "outputTokens": 383
+  },
+  "usedOptions": {
+    "effort": "high",
+    "model": "claude-opus-5-5"
+  }
+}

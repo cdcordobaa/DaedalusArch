@@ -1,0 +1,46 @@
+{
+  "attempts": 1,
+  "cliVersion": "2.1.294",
+  "configListingSha256": "47aa04258852fab9a706f3f0c14cee22306d69fbb6fdfbde8c11854bd54997bc",
+  "durationMs": 5454,
+  "effort": "high",
+  "functionId": "FF-N02",
+  "ignoredOptions": [
+    "maxTokens"
+  ],
+  "isolationProbeSha256": "97a2e2d0af1100c13c55e028c1a0c71f069093c3d08705af122aaeb302f1a641",
+  "key": "14c1f2821a26dc413d2e4c2202b7a942bb3066ce47c19bda22a5e7bedcbd45ae-r0-2",
+  "model": "claude-opus-5-5",
+  "outcome": {
+    "kind": "valid"
+  },
+  "parsedVerdict": {
+    "confidence": 0.97,
+    "evidence": [
+      "src/domain/errors.ts: class DomainError extends Error. Its doc comment says it is 'An error caused by a violated business invariant', which is a domain concept.",
+      "src/domain/errors.ts: the constructor only calls super(message) and sets this.name = \"DomainError\". There is no I/O, HTTP status mapping, persistence or framework code."
+    ],
+    "pass": true,
+    "reasoning": "The file declares one domain error type, DomainError, for violated business invariants. That responsibility belongs in the domain layer. The file has no persistence, transport, framework or orchestration logic. It only extends the built-in Error class and sets the name. Other layers import it, but the direction of those imports is outside this rule's scope.",
+    "violations": []
+  },
+  "projectId": "gpt-5.6-terra/order-fulfilment/full-aac/run-1",
+  "prompt": "## Rule\nThe unit's responsibilities match the role of its declared layer.\n\n## Rubric\nPass: Every responsibility in the file belongs to the role and kind of its declared layer, and agrees with any ADR prose given.\nFail: The file carries a responsibility that belongs to a different layer kind, for example persistence, transport or framework logic in a domain file, or business rules in an infrastructure or presentation file.\nEvidence required: Name the file and cite the function, method or statement that carries the misplaced responsibility, and the layer kind it belongs to.\nOut of scope: import direction and layer-dependency rules, which are checked symbolically.\n\n## Layer model\n- domain (kind: domain): src/domain/**\n- application (kind: application): src/application/**\n- infrastructure (kind: infrastructure): src/infrastructure/**\n\n## Unit\nKind: file\nId: src/domain/errors.ts\nLayer: domain\nUnit files:\n- src/domain/errors.ts\n\n## Source\n=====SOURCE-BEGIN src/domain/errors.ts=====\n/** An error caused by a violated business invariant. */\nexport class DomainError extends Error {\n  public constructor(message: string) {\n    super(message);\n    this.name = \"DomainError\";\n  }\n}\n\n=====SOURCE-END=====\n\n## Graph excerpt\n{\"edges\":[{\"from\":\"src/application/order-service.ts\",\"to\":\"src/domain/errors.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/domain/order.ts\",\"to\":\"src/domain/errors.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/domain/product.ts\",\"to\":\"src/domain/errors.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/infrastructure/order-controller.ts\",\"to\":\"src/domain/errors.ts\",\"type\":\"IMPORTS\"}],\"nodes\":[{\"kind\":\"Class\",\"layer\":\"domain\",\"name\":\"DomainError\",\"path\":\"src/domain/errors.ts\"},{\"kind\":\"File\",\"layer\":\"application\",\"path\":\"src/application/order-service.ts\"},{\"kind\":\"File\",\"layer\":\"domain\",\"path\":\"src/domain/errors.ts\"},{\"kind\":\"File\",\"layer\":\"domain\",\"path\":\"src/domain/order.ts\"},{\"kind\":\"File\",\"layer\":\"domain\",\"path\":\"src/domain/product.ts\"},{\"kind\":\"File\",\"layer\":\"infrastructure\",\"path\":\"src/infrastructure/order-controller.ts\"}]}\n\n## Instructions\nJudge the unit against the rule and rubric. Return the JSON object the schema requires. Set pass to false if any file of the unit fails the rubric.\n",
+  "provider": "claude-cli",
+  "recordedAt": "2026-10-11T03:35:09.027Z",
+  "repetition": 0,
+  "requestHash": "14c1f2821a26dc413d2e4c2202b7a942bb3066ce47c19bda22a5e7bedcbd45ae",
+  "resolvedModel": "claude-opus-5-5",
+  "response": "{\"is_error\":false,\"modelUsage\":{\"claude-opus-5-5\":{\"inputTokens\":2,\"outputTokens\":364}},\"result\":\"{\\\"pass\\\":true,\\\"confidence\\\":0.97,\\\"reasoning\\\":\\\"The file declares one domain error type, DomainError, for violated business invariants. That responsibility belongs in the domain layer. The file has no persistence, transport, framework or orchestration logic. It only extends the built-in Error class and sets the name. Other layers import it, but the direction of those imports is outside this rule's scope.\\\",\\\"evidence\\\":[\\\"src/domain/errors.ts: class DomainError extends Error. Its doc comment says it is 'An error caused by a violated business invariant', which is a domain concept.\\\",\\\"src/domain/errors.ts: the constructor only calls super(message) and sets this.name = \\\\\\\"DomainError\\\\\\\". There is no I/O, HTTP status mapping, persistence or framework code.\\\"],\\\"violations\\\":[]}\",\"structured_output\":{\"confidence\":0.97,\"evidence\":[\"src/domain/errors.ts: class DomainError extends Error. Its doc comment says it is 'An error caused by a violated business invariant', which is a domain concept.\",\"src/domain/errors.ts: the constructor only calls super(message) and sets this.name = \\\"DomainError\\\". There is no I/O, HTTP status mapping, persistence or framework code.\"],\"pass\":true,\"reasoning\":\"The file declares one domain error type, DomainError, for violated business invariants. That responsibility belongs in the domain layer. The file has no persistence, transport, framework or orchestration logic. It only extends the built-in Error class and sets the name. Other layers import it, but the direction of those imports is outside this rule's scope.\",\"violations\":[]}}",
+  "runIndex": 2,
+  "schemaVersion": 2,
+  "unitId": "src/domain/errors.ts",
+  "usage": {
+    "inputTokens": 2334,
+    "outputTokens": 364
+  },
+  "usedOptions": {
+    "effort": "high",
+    "model": "claude-opus-5-5"
+  }
+}

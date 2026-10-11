@@ -1,0 +1,52 @@
+{
+  "attempts": 1,
+  "cliVersion": "2.1.294",
+  "configListingSha256": "47aa04258852fab9a706f3f0c14cee22306d69fbb6fdfbde8c11854bd54997bc",
+  "durationMs": 9884,
+  "effort": "high",
+  "functionId": "FF-N02",
+  "ignoredOptions": [
+    "maxTokens"
+  ],
+  "isolationProbeSha256": "97a2e2d0af1100c13c55e028c1a0c71f069093c3d08705af122aaeb302f1a641",
+  "key": "337f52a3f1382dafe53e7b829a4b23a3ea29d13ddaabe16625e388031f3ce214-r0-0",
+  "model": "claude-opus-5-5",
+  "outcome": {
+    "kind": "valid"
+  },
+  "parsedVerdict": {
+    "confidence": 0.7,
+    "evidence": [
+      "src/application/application-error.ts: constructor parameter `public readonly statusCode: number` stores an HTTP status code in an application-layer error type.",
+      "Graph: src/infrastructure/http-server.ts and src/infrastructure/task-controller.ts import ApplicationError, which suggests they use its statusCode directly as the HTTP response status.",
+      "Graph: five application use cases import ApplicationError, which suggests use cases choose HTTP status codes, a transport/infrastructure decision."
+    ],
+    "pass": false,
+    "reasoning": "The file is in the application layer, but ApplicationError holds a `statusCode` field. That field is an HTTP response status, which is a transport concern. Choosing status codes belongs in the infrastructure layer (the HTTP adapter). The application layer should describe failures by what they mean, for example 'not found', 'conflict' or 'validation' error kinds. It should not say how they map to HTTP. The graph shows five use cases import this class, so they presumably create errors with HTTP status codes. It also shows src/infrastructure/http-server.ts and task-controller.ts import it, likely to send `statusCode` straight back in the response. This means the error class carries the transport mapping for the HTTP layer, and that mapping belongs in infrastructure. Confidence is not full because the field is a plain number and HTTP use is inferred from the name `statusCode` and the HTTP consumers in the graph.",
+    "violations": [
+      {
+        "filePath": "src/application/application-error.ts",
+        "message": "ApplicationError's constructor parameter `public readonly statusCode: number` puts an HTTP status code (transport concern) into the application layer. Mapping errors to HTTP statuses belongs in the infrastructure HTTP adapter. The application layer should use error kinds that describe meaning, such as NotFound, Conflict or Validation."
+      }
+    ]
+  },
+  "projectId": "gpt-5.6-terra/task-management/full-aac/run-2",
+  "prompt": "## Rule\nThe unit's responsibilities match the role of its declared layer.\n\n## Rubric\nPass: Every responsibility in the file belongs to the role and kind of its declared layer, and agrees with any ADR prose given.\nFail: The file carries a responsibility that belongs to a different layer kind, for example persistence, transport or framework logic in a domain file, or business rules in an infrastructure or presentation file.\nEvidence required: Name the file and cite the function, method or statement that carries the misplaced responsibility, and the layer kind it belongs to.\nOut of scope: import direction and layer-dependency rules, which are checked symbolically.\n\n## Layer model\n- domain (kind: domain): src/domain/**\n- application (kind: application): src/application/**\n- infrastructure (kind: infrastructure): src/infrastructure/**\n\n## Unit\nKind: file\nId: src/application/application-error.ts\nLayer: application\nUnit files:\n- src/application/application-error.ts\n\n## Source\n=====SOURCE-BEGIN src/application/application-error.ts=====\nexport class ApplicationError extends Error {\n  public constructor(\n    message: string,\n    public readonly statusCode: number,\n  ) {\n    super(message);\n  }\n}\n\n=====SOURCE-END=====\n\n## Graph excerpt\n{\"edges\":[{\"from\":\"src/application/create-project-use-case.ts\",\"to\":\"src/application/application-error.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/application/create-task-use-case.ts\",\"to\":\"src/application/application-error.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/application/create-user-use-case.ts\",\"to\":\"src/application/application-error.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/application/list-project-tasks-use-case.ts\",\"to\":\"src/application/application-error.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/application/mark-task-done-use-case.ts\",\"to\":\"src/application/application-error.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/infrastructure/http-server.ts\",\"to\":\"src/application/application-error.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/infrastructure/task-controller.ts\",\"to\":\"src/application/application-error.ts\",\"type\":\"IMPORTS\"}],\"nodes\":[{\"kind\":\"Class\",\"layer\":\"application\",\"name\":\"ApplicationError\",\"path\":\"src/application/application-error.ts\"},{\"kind\":\"File\",\"layer\":\"application\",\"path\":\"src/application/application-error.ts\"},{\"kind\":\"File\",\"layer\":\"application\",\"path\":\"src/application/create-project-use-case.ts\"},{\"kind\":\"File\",\"layer\":\"application\",\"path\":\"src/application/create-task-use-case.ts\"},{\"kind\":\"File\",\"layer\":\"application\",\"path\":\"src/application/create-user-use-case.ts\"},{\"kind\":\"File\",\"layer\":\"application\",\"path\":\"src/application/list-project-tasks-use-case.ts\"},{\"kind\":\"File\",\"layer\":\"application\",\"path\":\"src/application/mark-task-done-use-case.ts\"},{\"kind\":\"File\",\"layer\":\"infrastructure\",\"path\":\"src/infrastructure/http-server.ts\"},{\"kind\":\"File\",\"layer\":\"infrastructure\",\"path\":\"src/infrastructure/task-controller.ts\"}]}\n\n## Instructions\nJudge the unit against the rule and rubric. Return the JSON object the schema requires. Set pass to false if any file of the unit fails the rubric.\n",
+  "provider": "claude-cli",
+  "recordedAt": "2026-10-11T03:28:59.552Z",
+  "repetition": 0,
+  "requestHash": "337f52a3f1382dafe53e7b829a4b23a3ea29d13ddaabe16625e388031f3ce214",
+  "resolvedModel": "claude-opus-5-5",
+  "response": "{\"is_error\":false,\"modelUsage\":{\"claude-opus-5-5\":{\"inputTokens\":2,\"outputTokens\":912}},\"result\":\"{\\\"pass\\\":false,\\\"confidence\\\":0.7,\\\"reasoning\\\":\\\"The file is in the application layer, but ApplicationError holds a `statusCode` field. That field is an HTTP response status, which is a transport concern. Choosing status codes belongs in the infrastructure layer (the HTTP adapter). The application layer should describe failures by what they mean, for example 'not found', 'conflict' or 'validation' error kinds. It should not say how they map to HTTP. The graph shows five use cases import this class, so they presumably create errors with HTTP status codes. It also shows src/infrastructure/http-server.ts and task-controller.ts import it, likely to send `statusCode` straight back in the response. This means the error class carries the transport mapping for the HTTP layer, and that mapping belongs in infrastructure. Confidence is not full because the field is a plain number and HTTP use is inferred from the name `statusCode` and the HTTP consumers in the graph.\\\",\\\"evidence\\\":[\\\"src/application/application-error.ts: constructor parameter `public readonly statusCode: number` stores an HTTP status code in an application-layer error type.\\\",\\\"Graph: src/infrastructure/http-server.ts and src/infrastructure/task-controller.ts import ApplicationError, which suggests they use its statusCode directly as the HTTP response status.\\\",\\\"Graph: five application use cases import ApplicationError, which suggests use cases choose HTTP status codes, a transport/infrastructure decision.\\\"],\\\"violations\\\":[{\\\"filePath\\\":\\\"src/application/application-error.ts\\\",\\\"message\\\":\\\"ApplicationError's constructor parameter `public readonly statusCode: number` puts an HTTP status code (transport concern) into the application layer. Mapping errors to HTTP statuses belongs in the infrastructure HTTP adapter. The application layer should use error kinds that describe meaning, such as NotFound, Conflict or Validation.\\\"}]}\",\"structured_output\":{\"confidence\":0.7,\"evidence\":[\"src/application/application-error.ts: constructor parameter `public readonly statusCode: number` stores an HTTP status code in an application-layer error type.\",\"Graph: src/infrastructure/http-server.ts and src/infrastructure/task-controller.ts import ApplicationError, which suggests they use its statusCode directly as the HTTP response status.\",\"Graph: five application use cases import ApplicationError, which suggests use cases choose HTTP status codes, a transport/infrastructure decision.\"],\"pass\":false,\"reasoning\":\"The file is in the application layer, but ApplicationError holds a `statusCode` field. That field is an HTTP response status, which is a transport concern. Choosing status codes belongs in the infrastructure layer (the HTTP adapter). The application layer should describe failures by what they mean, for example 'not found', 'conflict' or 'validation' error kinds. It should not say how they map to HTTP. The graph shows five use cases import this class, so they presumably create errors with HTTP status codes. It also shows src/infrastructure/http-server.ts and task-controller.ts import it, likely to send `statusCode` straight back in the response. This means the error class carries the transport mapping for the HTTP layer, and that mapping belongs in infrastructure. Confidence is not full because the field is a plain number and HTTP use is inferred from the name `statusCode` and the HTTP consumers in the graph.\",\"violations\":[{\"filePath\":\"src/application/application-error.ts\",\"message\":\"ApplicationError's constructor parameter `public readonly statusCode: number` puts an HTTP status code (transport concern) into the application layer. Mapping errors to HTTP statuses belongs in the infrastructure HTTP adapter. The application layer should use error kinds that describe meaning, such as NotFound, Conflict or Validation.\"}]}}",
+  "runIndex": 0,
+  "schemaVersion": 2,
+  "unitId": "src/application/application-error.ts",
+  "usage": {
+    "inputTokens": 2602,
+    "outputTokens": 912
+  },
+  "usedOptions": {
+    "effort": "high",
+    "model": "claude-opus-5-5"
+  }
+}

@@ -1,0 +1,48 @@
+{
+  "attempts": 1,
+  "cliVersion": "2.1.294",
+  "configListingSha256": "47aa04258852fab9a706f3f0c14cee22306d69fbb6fdfbde8c11854bd54997bc",
+  "durationMs": 6590,
+  "effort": "high",
+  "functionId": "FF-N02",
+  "ignoredOptions": [
+    "maxTokens"
+  ],
+  "isolationProbeSha256": "97a2e2d0af1100c13c55e028c1a0c71f069093c3d08705af122aaeb302f1a641",
+  "key": "f5886d4edc134c2541ca497a2dd904ca8fc7bf392eb33a6ec6e08e74d7fbc04d-r0-1",
+  "model": "claude-opus-5-5",
+  "outcome": {
+    "kind": "valid"
+  },
+  "parsedVerdict": {
+    "confidence": 0.95,
+    "evidence": [
+      "The Order constructor checks the domain rules: id and customerId are required, there must be at least one line, and each quantity must be a positive integer.",
+      "The NEXT_STATE map and advanceTo() put the rules for moving between order states in the domain.",
+      "cancel() holds the business rule that an order can't be cancelled once it is shipped, delivered or already cancelled.",
+      "The only import is ./errors (DomainError). There is no I/O, HTTP, database or framework code."
+    ],
+    "pass": true,
+    "reasoning": "src/domain/order.ts holds only domain logic. It has the Order aggregate, with invariants checked in the constructor, a state machine for order states (NEXT_STATE, advanceTo) and rules for when an order can be cancelled (cancel). It contains no persistence, transport, framework or orchestration code. All its errors are raised as DomainError. Every responsibility fits the domain layer kind.",
+    "violations": []
+  },
+  "projectId": "gpt-5.6-terra/order-fulfilment/full-aac/run-1",
+  "prompt": "## Rule\nThe unit's responsibilities match the role of its declared layer.\n\n## Rubric\nPass: Every responsibility in the file belongs to the role and kind of its declared layer, and agrees with any ADR prose given.\nFail: The file carries a responsibility that belongs to a different layer kind, for example persistence, transport or framework logic in a domain file, or business rules in an infrastructure or presentation file.\nEvidence required: Name the file and cite the function, method or statement that carries the misplaced responsibility, and the layer kind it belongs to.\nOut of scope: import direction and layer-dependency rules, which are checked symbolically.\n\n## Layer model\n- domain (kind: domain): src/domain/**\n- application (kind: application): src/application/**\n- infrastructure (kind: infrastructure): src/infrastructure/**\n\n## Unit\nKind: file\nId: src/domain/order.ts\nLayer: domain\nUnit files:\n- src/domain/order.ts\n\n## Source\n=====SOURCE-BEGIN src/domain/order.ts=====\nimport { DomainError } from \"./errors\";\n\nexport type OrderState = \"placed\" | \"paid\" | \"packed\" | \"shipped\" | \"delivered\" | \"cancelled\";\n\nexport interface OrderLine {\n  productId: string;\n  quantity: number;\n}\n\nconst NEXT_STATE: Readonly<Record<Exclude<OrderState, \"cancelled\">, OrderState | undefined>> = {\n  placed: \"paid\",\n  paid: \"packed\",\n  packed: \"shipped\",\n  shipped: \"delivered\",\n  delivered: undefined,\n};\n\nexport class Order {\n  public constructor(\n    public readonly id: string,\n    public readonly customerId: string,\n    public readonly lines: readonly OrderLine[],\n    private currentState: OrderState = \"placed\",\n  ) {\n    if (!id || !customerId || lines.length === 0) {\n      throw new DomainError(\"Order id, customer id, and at least one item are required\");\n    }\n    for (const line of lines) {\n      if (!line.productId || !Number.isInteger(line.quantity) || line.quantity <= 0) {\n        throw new DomainError(\"Each order item needs a product id and positive integer quantity\");\n      }\n    }\n  }\n\n  public get state(): OrderState {\n    return this.currentState;\n  }\n\n  public advanceTo(nextState: OrderState): void {\n    if (this.currentState === \"cancelled\" || NEXT_STATE[this.currentState] !== nextState) {\n      throw new DomainError(`Order ${this.id} cannot move from ${this.currentState} to ${nextState}`);\n    }\n    this.currentState = nextState;\n  }\n\n  public cancel(): void {\n    if (this.currentState === \"shipped\" || this.currentState === \"delivered\" || this.currentState === \"cancelled\") {\n      throw new DomainError(`Order ${this.id} cannot be cancelled from ${this.currentState}`);\n    }\n    this.currentState = \"cancelled\";\n  }\n}\n\n=====SOURCE-END=====\n\n## Graph excerpt\n{\"edges\":[{\"from\":\"src/application/order-service.ts\",\"to\":\"src/domain/order.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/domain/order.ts\",\"to\":\"src/domain/errors.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/domain/repositories.ts\",\"to\":\"src/domain/order.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/infrastructure/in-memory-repositories.ts\",\"to\":\"src/domain/order.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/infrastructure/order-controller.ts\",\"to\":\"src/domain/order.ts\",\"type\":\"IMPORTS\"}],\"nodes\":[{\"kind\":\"Class\",\"layer\":\"domain\",\"name\":\"Order\",\"path\":\"src/domain/order.ts\"},{\"kind\":\"File\",\"layer\":\"application\",\"path\":\"src/application/order-service.ts\"},{\"kind\":\"File\",\"layer\":\"domain\",\"path\":\"src/domain/errors.ts\"},{\"kind\":\"File\",\"layer\":\"domain\",\"path\":\"src/domain/order.ts\"},{\"kind\":\"File\",\"layer\":\"domain\",\"path\":\"src/domain/repositories.ts\"},{\"kind\":\"File\",\"layer\":\"infrastructure\",\"path\":\"src/infrastructure/in-memory-repositories.ts\"},{\"kind\":\"File\",\"layer\":\"infrastructure\",\"path\":\"src/infrastructure/order-controller.ts\"},{\"kind\":\"Interface\",\"layer\":\"domain\",\"name\":\"OrderLine\",\"path\":\"src/domain/order.ts\"}]}\n\n## Instructions\nJudge the unit against the rule and rubric. Return the JSON object the schema requires. Set pass to false if any file of the unit fails the rubric.\n",
+  "provider": "claude-cli",
+  "recordedAt": "2026-10-11T03:35:13.801Z",
+  "repetition": 0,
+  "requestHash": "f5886d4edc134c2541ca497a2dd904ca8fc7bf392eb33a6ec6e08e74d7fbc04d",
+  "resolvedModel": "claude-opus-5-5",
+  "response": "{\"is_error\":false,\"modelUsage\":{\"claude-opus-5-5\":{\"inputTokens\":2,\"outputTokens\":426}},\"result\":\"{\\\"pass\\\":true,\\\"confidence\\\":0.95,\\\"reasoning\\\":\\\"src/domain/order.ts holds only domain logic. It has the Order aggregate, with invariants checked in the constructor, a state machine for order states (NEXT_STATE, advanceTo) and rules for when an order can be cancelled (cancel). It contains no persistence, transport, framework or orchestration code. All its errors are raised as DomainError. Every responsibility fits the domain layer kind.\\\",\\\"evidence\\\":[\\\"The Order constructor checks the domain rules: id and customerId are required, there must be at least one line, and each quantity must be a positive integer.\\\",\\\"The NEXT_STATE map and advanceTo() put the rules for moving between order states in the domain.\\\",\\\"cancel() holds the business rule that an order can't be cancelled once it is shipped, delivered or already cancelled.\\\",\\\"The only import is ./errors (DomainError). There is no I/O, HTTP, database or framework code.\\\"],\\\"violations\\\":[]}\",\"structured_output\":{\"confidence\":0.95,\"evidence\":[\"The Order constructor checks the domain rules: id and customerId are required, there must be at least one line, and each quantity must be a positive integer.\",\"The NEXT_STATE map and advanceTo() put the rules for moving between order states in the domain.\",\"cancel() holds the business rule that an order can't be cancelled once it is shipped, delivered or already cancelled.\",\"The only import is ./errors (DomainError). There is no I/O, HTTP, database or framework code.\"],\"pass\":true,\"reasoning\":\"src/domain/order.ts holds only domain logic. It has the Order aggregate, with invariants checked in the constructor, a state machine for order states (NEXT_STATE, advanceTo) and rules for when an order can be cancelled (cancel). It contains no persistence, transport, framework or orchestration code. All its errors are raised as DomainError. Every responsibility fits the domain layer kind.\",\"violations\":[]}}",
+  "runIndex": 1,
+  "schemaVersion": 2,
+  "unitId": "src/domain/order.ts",
+  "usage": {
+    "inputTokens": 3040,
+    "outputTokens": 426
+  },
+  "usedOptions": {
+    "effort": "high",
+    "model": "claude-opus-5-5"
+  }
+}

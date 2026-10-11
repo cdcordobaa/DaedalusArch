@@ -1,0 +1,47 @@
+{
+  "attempts": 1,
+  "cliVersion": "2.1.294",
+  "configListingSha256": "47aa04258852fab9a706f3f0c14cee22306d69fbb6fdfbde8c11854bd54997bc",
+  "durationMs": 7532,
+  "effort": "high",
+  "functionId": "FF-N02",
+  "ignoredOptions": [
+    "maxTokens"
+  ],
+  "isolationProbeSha256": "97a2e2d0af1100c13c55e028c1a0c71f069093c3d08705af122aaeb302f1a641",
+  "key": "08612b77805e8f86e13ef5a684f7d20f474872f6744a74129aecefbc16cdefb7-r0-2",
+  "model": "claude-opus-5-5",
+  "outcome": {
+    "kind": "valid"
+  },
+  "parsedVerdict": {
+    "confidence": 0.88,
+    "evidence": [
+      "createApp(): sets up Express and connects the repository adapters to the application service, which is composition-root work for infrastructure",
+      "errorHandler: maps NotFoundError to 404, ConflictError to 409, DomainError and TypeError to 400, and anything else to 500, which is HTTP transport work",
+      "startServer(): reads process.env.PORT and calls listen, which is runtime and framework work"
+    ],
+    "pass": true,
+    "reasoning": "src/infrastructure/server.ts does three jobs, and all of them belong in the infrastructure layer. First, it is the composition root: createApp builds the in-memory repositories and the ID generator, passes them into TaskManagementService, and sets up Express. Second, errorHandler is transport logic: it turns domain error types into HTTP status codes (404, 409, 400 and 500). Third, startServer handles process and port startup. The file holds no business rules or domain decisions. The error handler only maps exception types to HTTP responses and makes no business decisions. One detail is unusual but not misplaced: errorHandler also maps TypeError to 400, which is still HTTP-side handling. Import direction is out of scope for this check.",
+    "violations": []
+  },
+  "projectId": "gpt-5.6-terra/task-management/minimal-prose/run-2",
+  "prompt": "## Rule\nThe unit's responsibilities match the role of its declared layer.\n\n## Rubric\nPass: Every responsibility in the file belongs to the role and kind of its declared layer, and agrees with any ADR prose given.\nFail: The file carries a responsibility that belongs to a different layer kind, for example persistence, transport or framework logic in a domain file, or business rules in an infrastructure or presentation file.\nEvidence required: Name the file and cite the function, method or statement that carries the misplaced responsibility, and the layer kind it belongs to.\nOut of scope: import direction and layer-dependency rules, which are checked symbolically.\n\n## Layer model\n- domain (kind: domain): src/domain/**\n- application (kind: application): src/application/**\n- infrastructure (kind: infrastructure): src/infrastructure/**\n\n## Unit\nKind: file\nId: src/infrastructure/server.ts\nLayer: infrastructure\nUnit files:\n- src/infrastructure/server.ts\n\n## Source\n=====SOURCE-BEGIN src/infrastructure/server.ts=====\nimport express, { ErrorRequestHandler, Express } from 'express';\nimport { TaskManagementService } from '../application/task-management-service';\nimport { ConflictError, DomainError, NotFoundError } from '../domain/errors';\nimport { InMemoryProjectRepository, InMemoryTaskRepository, InMemoryUserRepository, SequentialIdGenerator } from './in-memory-repositories';\nimport { TaskController } from './task-controller';\n\nexport function createApp(): Express {\n  const service = new TaskManagementService(new InMemoryUserRepository(), new InMemoryProjectRepository(), new InMemoryTaskRepository(), new SequentialIdGenerator());\n  const app = express();\n  app.use(express.json());\n  app.use(new TaskController(service).router());\n  app.use(errorHandler);\n  return app;\n}\n\nconst errorHandler: ErrorRequestHandler = (error: unknown, _request, response, _next) => {\n  if (error instanceof NotFoundError) { response.status(404).json({ error: error.message }); return; }\n  if (error instanceof ConflictError) { response.status(409).json({ error: error.message }); return; }\n  if (error instanceof DomainError || error instanceof TypeError) { response.status(400).json({ error: error.message }); return; }\n  response.status(500).json({ error: 'Internal server error' });\n};\n\nexport function startServer(port = Number(process.env.PORT) || 3000) {\n  return createApp().listen(port);\n}\n\nif (require.main === module) startServer();\n\n=====SOURCE-END=====\n\n## Graph excerpt\n{\"edges\":[{\"from\":\"src/infrastructure/server.ts\",\"to\":\"express\",\"type\":\"IMPORTS\"},{\"from\":\"src/infrastructure/server.ts\",\"to\":\"src/application/task-management-service.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/infrastructure/server.ts\",\"to\":\"src/domain/errors.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/infrastructure/server.ts\",\"to\":\"src/infrastructure/in-memory-repositories.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/infrastructure/server.ts\",\"to\":\"src/infrastructure/task-controller.ts\",\"type\":\"IMPORTS\"}],\"nodes\":[{\"kind\":\"File\",\"layer\":\"application\",\"path\":\"src/application/task-management-service.ts\"},{\"kind\":\"File\",\"layer\":\"domain\",\"path\":\"src/domain/errors.ts\"},{\"kind\":\"File\",\"layer\":\"infrastructure\",\"path\":\"src/infrastructure/in-memory-repositories.ts\"},{\"kind\":\"File\",\"layer\":\"infrastructure\",\"path\":\"src/infrastructure/server.ts\"},{\"kind\":\"File\",\"layer\":\"infrastructure\",\"path\":\"src/infrastructure/task-controller.ts\"},{\"kind\":\"Package\",\"layer\":null,\"path\":\"express\"}]}\n\n## Instructions\nJudge the unit against the rule and rubric. Return the JSON object the schema requires. Set pass to false if any file of the unit fails the rubric.\n",
+  "provider": "claude-cli",
+  "recordedAt": "2026-10-11T03:17:15.488Z",
+  "repetition": 0,
+  "requestHash": "08612b77805e8f86e13ef5a684f7d20f474872f6744a74129aecefbc16cdefb7",
+  "resolvedModel": "claude-opus-5-5",
+  "response": "{\"is_error\":false,\"modelUsage\":{\"claude-opus-5-5\":{\"inputTokens\":2,\"outputTokens\":590}},\"result\":\"{\\\"pass\\\":true,\\\"confidence\\\":0.88,\\\"reasoning\\\":\\\"src/infrastructure/server.ts does three jobs, and all of them belong in the infrastructure layer. First, it is the composition root: createApp builds the in-memory repositories and the ID generator, passes them into TaskManagementService, and sets up Express. Second, errorHandler is transport logic: it turns domain error types into HTTP status codes (404, 409, 400 and 500). Third, startServer handles process and port startup. The file holds no business rules or domain decisions. The error handler only maps exception types to HTTP responses and makes no business decisions. One detail is unusual but not misplaced: errorHandler also maps TypeError to 400, which is still HTTP-side handling. Import direction is out of scope for this check.\\\",\\\"evidence\\\":[\\\"createApp(): sets up Express and connects the repository adapters to the application service, which is composition-root work for infrastructure\\\",\\\"errorHandler: maps NotFoundError to 404, ConflictError to 409, DomainError and TypeError to 400, and anything else to 500, which is HTTP transport work\\\",\\\"startServer(): reads process.env.PORT and calls listen, which is runtime and framework work\\\"],\\\"violations\\\":[]}\",\"structured_output\":{\"confidence\":0.88,\"evidence\":[\"createApp(): sets up Express and connects the repository adapters to the application service, which is composition-root work for infrastructure\",\"errorHandler: maps NotFoundError to 404, ConflictError to 409, DomainError and TypeError to 400, and anything else to 500, which is HTTP transport work\",\"startServer(): reads process.env.PORT and calls listen, which is runtime and framework work\"],\"pass\":true,\"reasoning\":\"src/infrastructure/server.ts does three jobs, and all of them belong in the infrastructure layer. First, it is the composition root: createApp builds the in-memory repositories and the ID generator, passes them into TaskManagementService, and sets up Express. Second, errorHandler is transport logic: it turns domain error types into HTTP status codes (404, 409, 400 and 500). Third, startServer handles process and port startup. The file holds no business rules or domain decisions. The error handler only maps exception types to HTTP responses and makes no business decisions. One detail is unusual but not misplaced: errorHandler also maps TypeError to 400, which is still HTTP-side handling. Import direction is out of scope for this check.\",\"violations\":[]}}",
+  "runIndex": 2,
+  "schemaVersion": 2,
+  "unitId": "src/infrastructure/server.ts",
+  "usage": {
+    "inputTokens": 2846,
+    "outputTokens": 590
+  },
+  "usedOptions": {
+    "effort": "high",
+    "model": "claude-opus-5-5"
+  }
+}

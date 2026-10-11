@@ -1,0 +1,48 @@
+{
+  "attempts": 1,
+  "cliVersion": "2.1.294",
+  "configListingSha256": "47aa04258852fab9a706f3f0c14cee22306d69fbb6fdfbde8c11854bd54997bc",
+  "durationMs": 6855,
+  "effort": "high",
+  "functionId": "FF-N02",
+  "ignoredOptions": [
+    "maxTokens"
+  ],
+  "isolationProbeSha256": "97a2e2d0af1100c13c55e028c1a0c71f069093c3d08705af122aaeb302f1a641",
+  "key": "505c9d4310968a983540a935be70aa114a9ccd594dd43671eb58bb729f9ee79e-r0-0",
+  "model": "claude-opus-5-5",
+  "outcome": {
+    "kind": "valid"
+  },
+  "parsedVerdict": {
+    "confidence": 0.93,
+    "evidence": [
+      "src/infrastructure/in-memory-store.ts: class InMemoryFulfilmentStore implements FulfilmentStore and stores data in private Map fields (products, orders), which is persistence and belongs in infrastructure",
+      "findProduct/saveProduct/listProducts/findOrder/saveOrder only call Map.get, Map.set or Map.values",
+      "listOrders(state?) filters with `state === undefined || order.state === state`, which is a query predicate, not a business rule",
+      "The file has no HTTP or transport code and no domain state changes or validation"
+    ],
+    "pass": true,
+    "reasoning": "The file has one responsibility: it is an in-memory persistence adapter that implements the application-defined FulfilmentStore port. Every method is a simple storage operation on a Map: find, save or list. The one piece of logic is the optional state filter in listOrders, which is a query feature of the store. It is not a business rule or decision. The file contains no domain invariants, no application orchestration and no transport or HTTP handling, so all of it fits the infrastructure layer.",
+    "violations": []
+  },
+  "projectId": "gpt-5.6-terra/order-fulfilment/none/run-0",
+  "prompt": "## Rule\nThe unit's responsibilities match the role of its declared layer.\n\n## Rubric\nPass: Every responsibility in the file belongs to the role and kind of its declared layer, and agrees with any ADR prose given.\nFail: The file carries a responsibility that belongs to a different layer kind, for example persistence, transport or framework logic in a domain file, or business rules in an infrastructure or presentation file.\nEvidence required: Name the file and cite the function, method or statement that carries the misplaced responsibility, and the layer kind it belongs to.\nOut of scope: import direction and layer-dependency rules, which are checked symbolically.\n\n## Layer model\n- domain (kind: domain): src/domain/**\n- application (kind: application): src/application/**\n- infrastructure (kind: infrastructure): src/infrastructure/**\n\n## Unit\nKind: file\nId: src/infrastructure/in-memory-store.ts\nLayer: infrastructure\nUnit files:\n- src/infrastructure/in-memory-store.ts\n\n## Source\n=====SOURCE-BEGIN src/infrastructure/in-memory-store.ts=====\nimport { Order, OrderState } from \"../domain/order\";\nimport { Product } from \"../domain/product\";\nimport { FulfilmentStore } from \"../application/order-service\";\n\nexport class InMemoryFulfilmentStore implements FulfilmentStore {\n  private readonly products = new Map<string, Product>();\n  private readonly orders = new Map<string, Order>();\n\n  public findProduct(id: string): Product | undefined { return this.products.get(id); }\n  public saveProduct(product: Product): void { this.products.set(product.id, product); }\n  public listProducts(): Product[] { return [...this.products.values()]; }\n  public findOrder(id: string): Order | undefined { return this.orders.get(id); }\n  public saveOrder(order: Order): void { this.orders.set(order.id, order); }\n  public listOrders(state?: OrderState): Order[] {\n    return [...this.orders.values()].filter((order) => state === undefined || order.state === state);\n  }\n}\n\n=====SOURCE-END=====\n\n## Graph excerpt\n{\"edges\":[{\"from\":\"InMemoryFulfilmentStore@src/infrastructure/in-memory-store.ts\",\"to\":\"FulfilmentStore@src/application/order-service.ts\",\"type\":\"IMPLEMENTS\"},{\"from\":\"src/infrastructure/http-app.ts\",\"to\":\"src/infrastructure/in-memory-store.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/infrastructure/in-memory-store.ts\",\"to\":\"src/application/order-service.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/infrastructure/in-memory-store.ts\",\"to\":\"src/domain/order.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/infrastructure/in-memory-store.ts\",\"to\":\"src/domain/product.ts\",\"type\":\"IMPORTS\"}],\"nodes\":[{\"kind\":\"Class\",\"layer\":\"infrastructure\",\"name\":\"InMemoryFulfilmentStore\",\"path\":\"src/infrastructure/in-memory-store.ts\"},{\"kind\":\"File\",\"layer\":\"application\",\"path\":\"src/application/order-service.ts\"},{\"kind\":\"File\",\"layer\":\"domain\",\"path\":\"src/domain/order.ts\"},{\"kind\":\"File\",\"layer\":\"domain\",\"path\":\"src/domain/product.ts\"},{\"kind\":\"File\",\"layer\":\"infrastructure\",\"path\":\"src/infrastructure/http-app.ts\"},{\"kind\":\"File\",\"layer\":\"infrastructure\",\"path\":\"src/infrastructure/in-memory-store.ts\"},{\"kind\":\"Interface\",\"layer\":\"application\",\"name\":\"FulfilmentStore\",\"path\":\"src/application/order-service.ts\"}]}\n\n## Instructions\nJudge the unit against the rule and rubric. Return the JSON object the schema requires. Set pass to false if any file of the unit fails the rubric.\n",
+  "provider": "claude-cli",
+  "recordedAt": "2026-10-11T03:07:40.724Z",
+  "repetition": 0,
+  "requestHash": "505c9d4310968a983540a935be70aa114a9ccd594dd43671eb58bb729f9ee79e",
+  "resolvedModel": "claude-opus-5-5",
+  "response": "{\"is_error\":false,\"modelUsage\":{\"claude-opus-5-5\":{\"inputTokens\":2,\"outputTokens\":511}},\"result\":\"{\\\"pass\\\":true,\\\"confidence\\\":0.93,\\\"reasoning\\\":\\\"The file has one responsibility: it is an in-memory persistence adapter that implements the application-defined FulfilmentStore port. Every method is a simple storage operation on a Map: find, save or list. The one piece of logic is the optional state filter in listOrders, which is a query feature of the store. It is not a business rule or decision. The file contains no domain invariants, no application orchestration and no transport or HTTP handling, so all of it fits the infrastructure layer.\\\",\\\"evidence\\\":[\\\"src/infrastructure/in-memory-store.ts: class InMemoryFulfilmentStore implements FulfilmentStore and stores data in private Map fields (products, orders), which is persistence and belongs in infrastructure\\\",\\\"findProduct/saveProduct/listProducts/findOrder/saveOrder only call Map.get, Map.set or Map.values\\\",\\\"listOrders(state?) filters with `state === undefined || order.state === state`, which is a query predicate, not a business rule\\\",\\\"The file has no HTTP or transport code and no domain state changes or validation\\\"],\\\"violations\\\":[]}\",\"structured_output\":{\"confidence\":0.93,\"evidence\":[\"src/infrastructure/in-memory-store.ts: class InMemoryFulfilmentStore implements FulfilmentStore and stores data in private Map fields (products, orders), which is persistence and belongs in infrastructure\",\"findProduct/saveProduct/listProducts/findOrder/saveOrder only call Map.get, Map.set or Map.values\",\"listOrders(state?) filters with `state === undefined || order.state === state`, which is a query predicate, not a business rule\",\"The file has no HTTP or transport code and no domain state changes or validation\"],\"pass\":true,\"reasoning\":\"The file has one responsibility: it is an in-memory persistence adapter that implements the application-defined FulfilmentStore port. Every method is a simple storage operation on a Map: find, save or list. The one piece of logic is the optional state filter in listOrders, which is a query feature of the store. It is not a business rule or decision. The file contains no domain invariants, no application orchestration and no transport or HTTP handling, so all of it fits the infrastructure layer.\",\"violations\":[]}}",
+  "runIndex": 0,
+  "schemaVersion": 2,
+  "unitId": "src/infrastructure/in-memory-store.ts",
+  "usage": {
+    "inputTokens": 2784,
+    "outputTokens": 511
+  },
+  "usedOptions": {
+    "effort": "high",
+    "model": "claude-opus-5-5"
+  }
+}

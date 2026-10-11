@@ -1,0 +1,47 @@
+{
+  "attempts": 1,
+  "cliVersion": "2.1.294",
+  "configListingSha256": "47aa04258852fab9a706f3f0c14cee22306d69fbb6fdfbde8c11854bd54997bc",
+  "durationMs": 6218,
+  "effort": "high",
+  "functionId": "FF-N02",
+  "ignoredOptions": [
+    "maxTokens"
+  ],
+  "isolationProbeSha256": "97a2e2d0af1100c13c55e028c1a0c71f069093c3d08705af122aaeb302f1a641",
+  "key": "84813b76aed28b113e862a56f6b60639a7bad40faeab95706edd97355c0061d4-r0-1",
+  "model": "claude-opus-5-5",
+  "outcome": {
+    "kind": "valid"
+  },
+  "parsedVerdict": {
+    "confidence": 0.9,
+    "evidence": [
+      "src/infrastructure/server.ts: constructs InMemoryUserRepository/InMemoryProjectRepository/InMemoryTaskRepository and injects them into use cases (composition root wiring)",
+      "src/infrastructure/server.ts: express() app setup, app.use(express.json()), app.use(controller.router()) (transport/framework concerns)",
+      "src/infrastructure/server.ts: Number(process.env.PORT ?? 3000) and app.listen(...) (runtime/environment bootstrap)"
+    ],
+    "pass": true,
+    "reasoning": "server.ts acts as the composition root and HTTP bootstrap. It creates the in-memory repositories, wires the use cases into the TaskController, sets up the Express app with JSON middleware and the router, and starts listening on a port read from the environment. All of this is framework and transport wiring, which belongs in the infrastructure layer. The file has no business rules, domain logic, or application orchestration. Any domain or application behaviour comes from the use cases it imports.",
+    "violations": []
+  },
+  "projectId": "gpt-5.6-terra/task-management/full-aac/run-0",
+  "prompt": "## Rule\nThe unit's responsibilities match the role of its declared layer.\n\n## Rubric\nPass: Every responsibility in the file belongs to the role and kind of its declared layer, and agrees with any ADR prose given.\nFail: The file carries a responsibility that belongs to a different layer kind, for example persistence, transport or framework logic in a domain file, or business rules in an infrastructure or presentation file.\nEvidence required: Name the file and cite the function, method or statement that carries the misplaced responsibility, and the layer kind it belongs to.\nOut of scope: import direction and layer-dependency rules, which are checked symbolically.\n\n## Layer model\n- domain (kind: domain): src/domain/**\n- application (kind: application): src/application/**\n- infrastructure (kind: infrastructure): src/infrastructure/**\n\n## Unit\nKind: file\nId: src/infrastructure/server.ts\nLayer: infrastructure\nUnit files:\n- src/infrastructure/server.ts\n\n## Source\n=====SOURCE-BEGIN src/infrastructure/server.ts=====\nimport express from \"express\";\nimport { CreateProjectUseCase } from \"../application/CreateProjectUseCase\";\nimport { CreateTaskUseCase } from \"../application/CreateTaskUseCase\";\nimport { CreateUserUseCase } from \"../application/CreateUserUseCase\";\nimport { ListProjectTasksUseCase } from \"../application/ListProjectTasksUseCase\";\nimport { MarkTaskDoneUseCase } from \"../application/MarkTaskDoneUseCase\";\nimport { InMemoryProjectRepository, InMemoryTaskRepository, InMemoryUserRepository } from \"./InMemoryRepositories\";\nimport { TaskController } from \"./TaskController\";\n\nconst users = new InMemoryUserRepository();\nconst projects = new InMemoryProjectRepository();\nconst tasks = new InMemoryTaskRepository();\nconst controller = new TaskController({\n  createUser: new CreateUserUseCase(users),\n  createProject: new CreateProjectUseCase(projects),\n  createTask: new CreateTaskUseCase(projects, users, tasks),\n  listTasks: new ListProjectTasksUseCase(projects, tasks),\n  markDone: new MarkTaskDoneUseCase(tasks),\n});\n\nconst app = express();\napp.use(express.json());\napp.use(controller.router());\n\nconst port = Number(process.env.PORT ?? 3000);\napp.listen(port, () => console.log(`Task API listening on port ${port}`));\n\n=====SOURCE-END=====\n\n## Graph excerpt\n{\"edges\":[{\"from\":\"src/infrastructure/server.ts\",\"to\":\"express\",\"type\":\"IMPORTS\"},{\"from\":\"src/infrastructure/server.ts\",\"to\":\"src/application/CreateProjectUseCase.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/infrastructure/server.ts\",\"to\":\"src/application/CreateTaskUseCase.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/infrastructure/server.ts\",\"to\":\"src/application/CreateUserUseCase.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/infrastructure/server.ts\",\"to\":\"src/application/ListProjectTasksUseCase.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/infrastructure/server.ts\",\"to\":\"src/application/MarkTaskDoneUseCase.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/infrastructure/server.ts\",\"to\":\"src/infrastructure/InMemoryRepositories.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/infrastructure/server.ts\",\"to\":\"src/infrastructure/TaskController.ts\",\"type\":\"IMPORTS\"}],\"nodes\":[{\"kind\":\"File\",\"layer\":\"application\",\"path\":\"src/application/CreateProjectUseCase.ts\"},{\"kind\":\"File\",\"layer\":\"application\",\"path\":\"src/application/CreateTaskUseCase.ts\"},{\"kind\":\"File\",\"layer\":\"application\",\"path\":\"src/application/CreateUserUseCase.ts\"},{\"kind\":\"File\",\"layer\":\"application\",\"path\":\"src/application/ListProjectTasksUseCase.ts\"},{\"kind\":\"File\",\"layer\":\"application\",\"path\":\"src/application/MarkTaskDoneUseCase.ts\"},{\"kind\":\"File\",\"layer\":\"infrastructure\",\"path\":\"src/infrastructure/InMemoryRepositories.ts\"},{\"kind\":\"File\",\"layer\":\"infrastructure\",\"path\":\"src/infrastructure/TaskController.ts\"},{\"kind\":\"File\",\"layer\":\"infrastructure\",\"path\":\"src/infrastructure/server.ts\"},{\"kind\":\"Package\",\"layer\":null,\"path\":\"express\"}]}\n\n## Instructions\nJudge the unit against the rule and rubric. Return the JSON object the schema requires. Set pass to false if any file of the unit fails the rubric.\n",
+  "provider": "claude-cli",
+  "recordedAt": "2026-10-11T03:26:15.633Z",
+  "repetition": 0,
+  "requestHash": "84813b76aed28b113e862a56f6b60639a7bad40faeab95706edd97355c0061d4",
+  "resolvedModel": "claude-opus-5-5",
+  "response": "{\"is_error\":false,\"modelUsage\":{\"claude-opus-5-5\":{\"inputTokens\":2,\"outputTokens\":464}},\"result\":\"{\\\"pass\\\":true,\\\"confidence\\\":0.9,\\\"reasoning\\\":\\\"server.ts acts as the composition root and HTTP bootstrap. It creates the in-memory repositories, wires the use cases into the TaskController, sets up the Express app with JSON middleware and the router, and starts listening on a port read from the environment. All of this is framework and transport wiring, which belongs in the infrastructure layer. The file has no business rules, domain logic, or application orchestration. Any domain or application behaviour comes from the use cases it imports.\\\",\\\"evidence\\\":[\\\"src/infrastructure/server.ts: constructs InMemoryUserRepository/InMemoryProjectRepository/InMemoryTaskRepository and injects them into use cases (composition root wiring)\\\",\\\"src/infrastructure/server.ts: express() app setup, app.use(express.json()), app.use(controller.router()) (transport/framework concerns)\\\",\\\"src/infrastructure/server.ts: Number(process.env.PORT ?? 3000) and app.listen(...) (runtime/environment bootstrap)\\\"],\\\"violations\\\":[]}\",\"structured_output\":{\"confidence\":0.9,\"evidence\":[\"src/infrastructure/server.ts: constructs InMemoryUserRepository/InMemoryProjectRepository/InMemoryTaskRepository and injects them into use cases (composition root wiring)\",\"src/infrastructure/server.ts: express() app setup, app.use(express.json()), app.use(controller.router()) (transport/framework concerns)\",\"src/infrastructure/server.ts: Number(process.env.PORT ?? 3000) and app.listen(...) (runtime/environment bootstrap)\"],\"pass\":true,\"reasoning\":\"server.ts acts as the composition root and HTTP bootstrap. It creates the in-memory repositories, wires the use cases into the TaskController, sets up the Express app with JSON middleware and the router, and starts listening on a port read from the environment. All of this is framework and transport wiring, which belongs in the infrastructure layer. The file has no business rules, domain logic, or application orchestration. Any domain or application behaviour comes from the use cases it imports.\",\"violations\":[]}}",
+  "runIndex": 1,
+  "schemaVersion": 2,
+  "unitId": "src/infrastructure/server.ts",
+  "usage": {
+    "inputTokens": 3119,
+    "outputTokens": 464
+  },
+  "usedOptions": {
+    "effort": "high",
+    "model": "claude-opus-5-5"
+  }
+}

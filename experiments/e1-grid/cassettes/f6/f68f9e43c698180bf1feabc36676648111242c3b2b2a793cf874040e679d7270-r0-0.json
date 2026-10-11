@@ -1,0 +1,47 @@
+{
+  "attempts": 1,
+  "cliVersion": "2.1.294",
+  "configListingSha256": "47aa04258852fab9a706f3f0c14cee22306d69fbb6fdfbde8c11854bd54997bc",
+  "durationMs": 5677,
+  "effort": "high",
+  "functionId": "FF-N02",
+  "ignoredOptions": [
+    "maxTokens"
+  ],
+  "isolationProbeSha256": "97a2e2d0af1100c13c55e028c1a0c71f069093c3d08705af122aaeb302f1a641",
+  "key": "f68f9e43c698180bf1feabc36676648111242c3b2b2a793cf874040e679d7270-r0-0",
+  "model": "claude-opus-5-5",
+  "outcome": {
+    "kind": "valid"
+  },
+  "parsedVerdict": {
+    "confidence": 0.95,
+    "evidence": [
+      "src/infrastructure/uuid-generator.ts: class UuidGenerator implements IdGenerator (a domain port), so it is an adapter, which is an infrastructure role",
+      "src/infrastructure/uuid-generator.ts: next() only returns randomUUID() from node:crypto, which is a technical or platform concern",
+      "No business rules, validation or use-case orchestration appear in the file"
+    ],
+    "pass": true,
+    "reasoning": "src/infrastructure/uuid-generator.ts is a small infrastructure adapter. It implements the domain port IdGenerator by calling Node's crypto.randomUUID. Wrapping a platform or system facility behind a domain interface is a standard infrastructure job. The file has no business rules, no application orchestration and no presentation logic, so every responsibility it carries fits the infrastructure layer.",
+    "violations": []
+  },
+  "projectId": "gpt-5.6-terra/task-management/full-aac/run-2",
+  "prompt": "## Rule\nThe unit's responsibilities match the role of its declared layer.\n\n## Rubric\nPass: Every responsibility in the file belongs to the role and kind of its declared layer, and agrees with any ADR prose given.\nFail: The file carries a responsibility that belongs to a different layer kind, for example persistence, transport or framework logic in a domain file, or business rules in an infrastructure or presentation file.\nEvidence required: Name the file and cite the function, method or statement that carries the misplaced responsibility, and the layer kind it belongs to.\nOut of scope: import direction and layer-dependency rules, which are checked symbolically.\n\n## Layer model\n- domain (kind: domain): src/domain/**\n- application (kind: application): src/application/**\n- infrastructure (kind: infrastructure): src/infrastructure/**\n\n## Unit\nKind: file\nId: src/infrastructure/uuid-generator.ts\nLayer: infrastructure\nUnit files:\n- src/infrastructure/uuid-generator.ts\n\n## Source\n=====SOURCE-BEGIN src/infrastructure/uuid-generator.ts=====\nimport { randomUUID } from \"node:crypto\";\nimport { IdGenerator } from \"../domain/id-generator\";\n\nexport class UuidGenerator implements IdGenerator {\n  public next(): string {\n    return randomUUID();\n  }\n}\n\n=====SOURCE-END=====\n\n## Graph excerpt\n{\"edges\":[{\"from\":\"UuidGenerator@src/infrastructure/uuid-generator.ts\",\"to\":\"IdGenerator@src/domain/id-generator.ts\",\"type\":\"IMPLEMENTS\"},{\"from\":\"src/infrastructure/http-server.ts\",\"to\":\"src/infrastructure/uuid-generator.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/infrastructure/uuid-generator.ts\",\"to\":\"crypto\",\"type\":\"IMPORTS\"},{\"from\":\"src/infrastructure/uuid-generator.ts\",\"to\":\"src/domain/id-generator.ts\",\"type\":\"IMPORTS\"}],\"nodes\":[{\"kind\":\"Class\",\"layer\":\"infrastructure\",\"name\":\"UuidGenerator\",\"path\":\"src/infrastructure/uuid-generator.ts\"},{\"kind\":\"File\",\"layer\":\"domain\",\"path\":\"src/domain/id-generator.ts\"},{\"kind\":\"File\",\"layer\":\"infrastructure\",\"path\":\"src/infrastructure/http-server.ts\"},{\"kind\":\"File\",\"layer\":\"infrastructure\",\"path\":\"src/infrastructure/uuid-generator.ts\"},{\"kind\":\"Interface\",\"layer\":\"domain\",\"name\":\"IdGenerator\",\"path\":\"src/domain/id-generator.ts\"},{\"kind\":\"Package\",\"layer\":null,\"path\":\"crypto\"}]}\n\n## Instructions\nJudge the unit against the rule and rubric. Return the JSON object the schema requires. Set pass to false if any file of the unit fails the rubric.\n",
+  "provider": "claude-cli",
+  "recordedAt": "2026-10-11T03:31:32.173Z",
+  "repetition": 0,
+  "requestHash": "f68f9e43c698180bf1feabc36676648111242c3b2b2a793cf874040e679d7270",
+  "resolvedModel": "claude-opus-5-5",
+  "response": "{\"is_error\":false,\"modelUsage\":{\"claude-opus-5-5\":{\"inputTokens\":2,\"outputTokens\":405}},\"result\":\"{\\\"pass\\\":true,\\\"confidence\\\":0.95,\\\"reasoning\\\":\\\"src/infrastructure/uuid-generator.ts is a small infrastructure adapter. It implements the domain port IdGenerator by calling Node's crypto.randomUUID. Wrapping a platform or system facility behind a domain interface is a standard infrastructure job. The file has no business rules, no application orchestration and no presentation logic, so every responsibility it carries fits the infrastructure layer.\\\",\\\"evidence\\\":[\\\"src/infrastructure/uuid-generator.ts: class UuidGenerator implements IdGenerator (a domain port), so it is an adapter, which is an infrastructure role\\\",\\\"src/infrastructure/uuid-generator.ts: next() only returns randomUUID() from node:crypto, which is a technical or platform concern\\\",\\\"No business rules, validation or use-case orchestration appear in the file\\\"],\\\"violations\\\":[]}\",\"structured_output\":{\"confidence\":0.95,\"evidence\":[\"src/infrastructure/uuid-generator.ts: class UuidGenerator implements IdGenerator (a domain port), so it is an adapter, which is an infrastructure role\",\"src/infrastructure/uuid-generator.ts: next() only returns randomUUID() from node:crypto, which is a technical or platform concern\",\"No business rules, validation or use-case orchestration appear in the file\"],\"pass\":true,\"reasoning\":\"src/infrastructure/uuid-generator.ts is a small infrastructure adapter. It implements the domain port IdGenerator by calling Node's crypto.randomUUID. Wrapping a platform or system facility behind a domain interface is a standard infrastructure job. The file has no business rules, no application orchestration and no presentation logic, so every responsibility it carries fits the infrastructure layer.\",\"violations\":[]}}",
+  "runIndex": 0,
+  "schemaVersion": 2,
+  "unitId": "src/infrastructure/uuid-generator.ts",
+  "usage": {
+    "inputTokens": 2450,
+    "outputTokens": 405
+  },
+  "usedOptions": {
+    "effort": "high",
+    "model": "claude-opus-5-5"
+  }
+}

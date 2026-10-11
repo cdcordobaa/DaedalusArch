@@ -1,0 +1,48 @@
+{
+  "attempts": 1,
+  "cliVersion": "2.1.294",
+  "configListingSha256": "47aa04258852fab9a706f3f0c14cee22306d69fbb6fdfbde8c11854bd54997bc",
+  "durationMs": 6884,
+  "effort": "high",
+  "functionId": "FF-N02",
+  "ignoredOptions": [
+    "maxTokens"
+  ],
+  "isolationProbeSha256": "97a2e2d0af1100c13c55e028c1a0c71f069093c3d08705af122aaeb302f1a641",
+  "key": "7e3d608bcf0fce081ea821239da6fc8f51630ee98a2ab3e67785e1c9717e87ad-r0-0",
+  "model": "claude-opus-5-5",
+  "outcome": {
+    "kind": "valid"
+  },
+  "parsedVerdict": {
+    "confidence": 0.92,
+    "evidence": [
+      "Task constructor throws DomainError when id, projectId, title or description is blank. This is an invariant check, which belongs in the domain.",
+      "Task constructor checks that dueDate is a valid date (Number.isNaN(dueDate.getTime())). This is domain validation.",
+      "markDone() rejects a task that is already done, then sets status = TaskStatus.create('done'). This is a business state transition, which belongs in the domain.",
+      "The file has no I/O, persistence, HTTP or framework code. Its imports are only './errors' and './task-status'."
+    ],
+    "pass": true,
+    "reasoning": "src/domain/task.ts declares the Task entity. All of its responsibilities belong in a domain-layer file. The constructor enforces invariants: required fields must be present and the due date must be valid. The getStatus and markDone methods handle the entity's state and its one transition, which includes a business rule: a task that is already done cannot be marked done again. There is no persistence, transport, framework or orchestration logic in the file. The only imports are domain-local errors (DomainError, ConflictError from ./errors) and the TaskStatus value object. ConflictError comes from the domain errors module and is not an HTTP status, so it is not transport logic. No ADR prose was given to check against.",
+    "violations": []
+  },
+  "projectId": "gpt-5.6-terra/task-management/minimal-prose/run-1",
+  "prompt": "## Rule\nThe unit's responsibilities match the role of its declared layer.\n\n## Rubric\nPass: Every responsibility in the file belongs to the role and kind of its declared layer, and agrees with any ADR prose given.\nFail: The file carries a responsibility that belongs to a different layer kind, for example persistence, transport or framework logic in a domain file, or business rules in an infrastructure or presentation file.\nEvidence required: Name the file and cite the function, method or statement that carries the misplaced responsibility, and the layer kind it belongs to.\nOut of scope: import direction and layer-dependency rules, which are checked symbolically.\n\n## Layer model\n- domain (kind: domain): src/domain/**\n- application (kind: application): src/application/**\n- infrastructure (kind: infrastructure): src/infrastructure/**\n\n## Unit\nKind: file\nId: src/domain/task.ts\nLayer: domain\nUnit files:\n- src/domain/task.ts\n\n## Source\n=====SOURCE-BEGIN src/domain/task.ts=====\nimport { ConflictError, DomainError } from './errors';\nimport { TaskStatus } from './task-status';\n\nexport class Task {\n  public constructor(\n    public readonly id: string,\n    public readonly projectId: string,\n    public readonly title: string,\n    public readonly description: string,\n    public readonly dueDate: Date | undefined,\n    public readonly assigneeId: string | undefined,\n    private status: TaskStatus,\n  ) {\n    if (!id.trim() || !projectId.trim() || !title.trim() || !description.trim()) {\n      throw new DomainError('Task id, project id, title, and description are required');\n    }\n    if (dueDate !== undefined && Number.isNaN(dueDate.getTime())) {\n      throw new DomainError('Due date must be a valid date');\n    }\n  }\n\n  public getStatus(): TaskStatus {\n    return this.status;\n  }\n\n  public markDone(): void {\n    if (this.status.isDone()) {\n      throw new ConflictError('Task is already done');\n    }\n    this.status = TaskStatus.create('done');\n  }\n}\n\n=====SOURCE-END=====\n\n## Graph excerpt\n{\"edges\":[{\"from\":\"Task@src/domain/task.ts\",\"to\":\"TaskStatus@src/domain/task-status.ts\",\"type\":\"CONSTRUCTOR_INJECTS\"},{\"from\":\"Task@src/domain/task.ts\",\"to\":\"TaskStatus@src/domain/task-status.ts\",\"type\":\"FLOWS_TO\"},{\"from\":\"src/application/task-dtos.ts\",\"to\":\"src/domain/task.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/application/task-service.ts\",\"to\":\"src/domain/task.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/domain/repositories.ts\",\"to\":\"src/domain/task.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/domain/task.ts\",\"to\":\"src/domain/errors.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/domain/task.ts\",\"to\":\"src/domain/task-status.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/infrastructure/in-memory-repositories.ts\",\"to\":\"src/domain/task.ts\",\"type\":\"IMPORTS\"}],\"nodes\":[{\"kind\":\"Class\",\"layer\":\"domain\",\"name\":\"Task\",\"path\":\"src/domain/task.ts\"},{\"kind\":\"Class\",\"layer\":\"domain\",\"name\":\"TaskStatus\",\"path\":\"src/domain/task-status.ts\"},{\"kind\":\"File\",\"layer\":\"application\",\"path\":\"src/application/task-dtos.ts\"},{\"kind\":\"File\",\"layer\":\"application\",\"path\":\"src/application/task-service.ts\"},{\"kind\":\"File\",\"layer\":\"domain\",\"path\":\"src/domain/errors.ts\"},{\"kind\":\"File\",\"layer\":\"domain\",\"path\":\"src/domain/repositories.ts\"},{\"kind\":\"File\",\"layer\":\"domain\",\"path\":\"src/domain/task-status.ts\"},{\"kind\":\"File\",\"layer\":\"domain\",\"path\":\"src/domain/task.ts\"},{\"kind\":\"File\",\"layer\":\"infrastructure\",\"path\":\"src/infrastructure/in-memory-repositories.ts\"}]}\n\n## Instructions\nJudge the unit against the rule and rubric. Return the JSON object the schema requires. Set pass to false if any file of the unit fails the rubric.\n",
+  "provider": "claude-cli",
+  "recordedAt": "2026-10-11T03:15:06.635Z",
+  "repetition": 0,
+  "requestHash": "7e3d608bcf0fce081ea821239da6fc8f51630ee98a2ab3e67785e1c9717e87ad",
+  "resolvedModel": "claude-opus-5-5",
+  "response": "{\"is_error\":false,\"modelUsage\":{\"claude-opus-5-5\":{\"inputTokens\":2,\"outputTokens\":591}},\"result\":\"{\\\"pass\\\":true,\\\"confidence\\\":0.92,\\\"reasoning\\\":\\\"src/domain/task.ts declares the Task entity. All of its responsibilities belong in a domain-layer file. The constructor enforces invariants: required fields must be present and the due date must be valid. The getStatus and markDone methods handle the entity's state and its one transition, which includes a business rule: a task that is already done cannot be marked done again. There is no persistence, transport, framework or orchestration logic in the file. The only imports are domain-local errors (DomainError, ConflictError from ./errors) and the TaskStatus value object. ConflictError comes from the domain errors module and is not an HTTP status, so it is not transport logic. No ADR prose was given to check against.\\\",\\\"evidence\\\":[\\\"Task constructor throws DomainError when id, projectId, title or description is blank. This is an invariant check, which belongs in the domain.\\\",\\\"Task constructor checks that dueDate is a valid date (Number.isNaN(dueDate.getTime())). This is domain validation.\\\",\\\"markDone() rejects a task that is already done, then sets status = TaskStatus.create('done'). This is a business state transition, which belongs in the domain.\\\",\\\"The file has no I/O, persistence, HTTP or framework code. Its imports are only './errors' and './task-status'.\\\"],\\\"violations\\\":[]}\",\"structured_output\":{\"confidence\":0.92,\"evidence\":[\"Task constructor throws DomainError when id, projectId, title or description is blank. This is an invariant check, which belongs in the domain.\",\"Task constructor checks that dueDate is a valid date (Number.isNaN(dueDate.getTime())). This is domain validation.\",\"markDone() rejects a task that is already done, then sets status = TaskStatus.create('done'). This is a business state transition, which belongs in the domain.\",\"The file has no I/O, persistence, HTTP or framework code. Its imports are only './errors' and './task-status'.\"],\"pass\":true,\"reasoning\":\"src/domain/task.ts declares the Task entity. All of its responsibilities belong in a domain-layer file. The constructor enforces invariants: required fields must be present and the due date must be valid. The getStatus and markDone methods handle the entity's state and its one transition, which includes a business rule: a task that is already done cannot be marked done again. There is no persistence, transport, framework or orchestration logic in the file. The only imports are domain-local errors (DomainError, ConflictError from ./errors) and the TaskStatus value object. ConflictError comes from the domain errors module and is not an HTTP status, so it is not transport logic. No ADR prose was given to check against.\",\"violations\":[]}}",
+  "runIndex": 0,
+  "schemaVersion": 2,
+  "unitId": "src/domain/task.ts",
+  "usage": {
+    "inputTokens": 2929,
+    "outputTokens": 591
+  },
+  "usedOptions": {
+    "effort": "high",
+    "model": "claude-opus-5-5"
+  }
+}

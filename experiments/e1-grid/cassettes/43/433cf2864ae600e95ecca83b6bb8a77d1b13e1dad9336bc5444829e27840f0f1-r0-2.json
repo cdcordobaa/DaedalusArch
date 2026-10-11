@@ -1,0 +1,48 @@
+{
+  "attempts": 1,
+  "cliVersion": "2.1.294",
+  "configListingSha256": "47aa04258852fab9a706f3f0c14cee22306d69fbb6fdfbde8c11854bd54997bc",
+  "durationMs": 6143,
+  "effort": "high",
+  "functionId": "FF-N02",
+  "ignoredOptions": [
+    "maxTokens"
+  ],
+  "isolationProbeSha256": "97a2e2d0af1100c13c55e028c1a0c71f069093c3d08705af122aaeb302f1a641",
+  "key": "433cf2864ae600e95ecca83b6bb8a77d1b13e1dad9336bc5444829e27840f0f1-r0-2",
+  "model": "claude-opus-5-5",
+  "outcome": {
+    "kind": "valid"
+  },
+  "parsedVerdict": {
+    "confidence": 0.9,
+    "evidence": [
+      "createServer(): creates InMemoryProductRepository/InMemoryOrderRepository and passes them into InventoryService and OrderService. This is dependency wiring, which is an infrastructure job.",
+      "createServer(): express(), app.use(express.json()), and mounting OrderController(...).router(). This is HTTP framework setup, which is an infrastructure job.",
+      "startServer(): reads process.env.PORT and calls listen(). This is runtime/transport bootstrap, which is an infrastructure job.",
+      "The file contains no business rules or domain logic."
+    ],
+    "pass": true,
+    "reasoning": "src/infrastructure/server.ts is the composition root and the HTTP bootstrap. It creates the in-memory repositories and wires them into the application services. It then sets up the Express app with JSON middleware, mounts the controller's router, and starts listening on a port. All of these are framework, transport and wiring jobs, which belong in the infrastructure layer. The file has no business rules, domain invariants or use-case orchestration. It only builds objects and starts the server.",
+    "violations": []
+  },
+  "projectId": "gpt-5.6-terra/order-fulfilment/full-aac/run-0",
+  "prompt": "## Rule\nThe unit's responsibilities match the role of its declared layer.\n\n## Rubric\nPass: Every responsibility in the file belongs to the role and kind of its declared layer, and agrees with any ADR prose given.\nFail: The file carries a responsibility that belongs to a different layer kind, for example persistence, transport or framework logic in a domain file, or business rules in an infrastructure or presentation file.\nEvidence required: Name the file and cite the function, method or statement that carries the misplaced responsibility, and the layer kind it belongs to.\nOut of scope: import direction and layer-dependency rules, which are checked symbolically.\n\n## Layer model\n- domain (kind: domain): src/domain/**\n- application (kind: application): src/application/**\n- infrastructure (kind: infrastructure): src/infrastructure/**\n\n## Unit\nKind: file\nId: src/infrastructure/server.ts\nLayer: infrastructure\nUnit files:\n- src/infrastructure/server.ts\n\n## Source\n=====SOURCE-BEGIN src/infrastructure/server.ts=====\nimport express, { Express } from \"express\";\nimport { InventoryService } from \"../application/inventory-service\";\nimport { OrderService } from \"../application/order-service\";\nimport { InMemoryOrderRepository } from \"./in-memory-order-repository\";\nimport { InMemoryProductRepository } from \"./in-memory-product-repository\";\nimport { OrderController } from \"./order-controller\";\n\nexport function createServer(): Express {\n  const products = new InMemoryProductRepository();\n  const orders = new InMemoryOrderRepository();\n  const inventory = new InventoryService(products);\n  const orderService = new OrderService(orders, products);\n  const app = express();\n  app.use(express.json());\n  app.use(new OrderController(inventory, orderService).router());\n  return app;\n}\n\nexport function startServer(port = Number(process.env.PORT) || 3000): void {\n  createServer().listen(port, () => {\n    console.log(`Order fulfilment API listening on port ${port}`);\n  });\n}\n\nif (require.main === module) {\n  startServer();\n}\n\n=====SOURCE-END=====\n\n## Graph excerpt\n{\"edges\":[{\"from\":\"src/infrastructure/server.ts\",\"to\":\"express\",\"type\":\"IMPORTS\"},{\"from\":\"src/infrastructure/server.ts\",\"to\":\"src/application/inventory-service.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/infrastructure/server.ts\",\"to\":\"src/application/order-service.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/infrastructure/server.ts\",\"to\":\"src/infrastructure/in-memory-order-repository.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/infrastructure/server.ts\",\"to\":\"src/infrastructure/in-memory-product-repository.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/infrastructure/server.ts\",\"to\":\"src/infrastructure/order-controller.ts\",\"type\":\"IMPORTS\"}],\"nodes\":[{\"kind\":\"File\",\"layer\":\"application\",\"path\":\"src/application/inventory-service.ts\"},{\"kind\":\"File\",\"layer\":\"application\",\"path\":\"src/application/order-service.ts\"},{\"kind\":\"File\",\"layer\":\"infrastructure\",\"path\":\"src/infrastructure/in-memory-order-repository.ts\"},{\"kind\":\"File\",\"layer\":\"infrastructure\",\"path\":\"src/infrastructure/in-memory-product-repository.ts\"},{\"kind\":\"File\",\"layer\":\"infrastructure\",\"path\":\"src/infrastructure/order-controller.ts\"},{\"kind\":\"File\",\"layer\":\"infrastructure\",\"path\":\"src/infrastructure/server.ts\"},{\"kind\":\"Package\",\"layer\":null,\"path\":\"express\"}]}\n\n## Instructions\nJudge the unit against the rule and rubric. Return the JSON object the schema requires. Set pass to false if any file of the unit fails the rubric.\n",
+  "provider": "claude-cli",
+  "recordedAt": "2026-10-11T03:33:52.724Z",
+  "repetition": 0,
+  "requestHash": "433cf2864ae600e95ecca83b6bb8a77d1b13e1dad9336bc5444829e27840f0f1",
+  "resolvedModel": "claude-opus-5-5",
+  "response": "{\"is_error\":false,\"modelUsage\":{\"claude-opus-5-5\":{\"inputTokens\":2,\"outputTokens\":476}},\"result\":\"{\\\"pass\\\":true,\\\"confidence\\\":0.9,\\\"reasoning\\\":\\\"src/infrastructure/server.ts is the composition root and the HTTP bootstrap. It creates the in-memory repositories and wires them into the application services. It then sets up the Express app with JSON middleware, mounts the controller's router, and starts listening on a port. All of these are framework, transport and wiring jobs, which belong in the infrastructure layer. The file has no business rules, domain invariants or use-case orchestration. It only builds objects and starts the server.\\\",\\\"evidence\\\":[\\\"createServer(): creates InMemoryProductRepository/InMemoryOrderRepository and passes them into InventoryService and OrderService. This is dependency wiring, which is an infrastructure job.\\\",\\\"createServer(): express(), app.use(express.json()), and mounting OrderController(...).router(). This is HTTP framework setup, which is an infrastructure job.\\\",\\\"startServer(): reads process.env.PORT and calls listen(). This is runtime/transport bootstrap, which is an infrastructure job.\\\",\\\"The file contains no business rules or domain logic.\\\"],\\\"violations\\\":[]}\",\"structured_output\":{\"confidence\":0.9,\"evidence\":[\"createServer(): creates InMemoryProductRepository/InMemoryOrderRepository and passes them into InventoryService and OrderService. This is dependency wiring, which is an infrastructure job.\",\"createServer(): express(), app.use(express.json()), and mounting OrderController(...).router(). This is HTTP framework setup, which is an infrastructure job.\",\"startServer(): reads process.env.PORT and calls listen(). This is runtime/transport bootstrap, which is an infrastructure job.\",\"The file contains no business rules or domain logic.\"],\"pass\":true,\"reasoning\":\"src/infrastructure/server.ts is the composition root and the HTTP bootstrap. It creates the in-memory repositories and wires them into the application services. It then sets up the Express app with JSON middleware, mounts the controller's router, and starts listening on a port. All of these are framework, transport and wiring jobs, which belong in the infrastructure layer. The file has no business rules, domain invariants or use-case orchestration. It only builds objects and starts the server.\",\"violations\":[]}}",
+  "runIndex": 2,
+  "schemaVersion": 2,
+  "unitId": "src/infrastructure/server.ts",
+  "usage": {
+    "inputTokens": 2769,
+    "outputTokens": 476
+  },
+  "usedOptions": {
+    "effort": "high",
+    "model": "claude-opus-5-5"
+  }
+}
