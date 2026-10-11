@@ -107,6 +107,7 @@ def fig_so4():
         ("strict v1, rule 1.1.0, N 75", "results/so4-heldout/agg-strict/prf_overall.csv"),
         ("corrected v1, rule 1.2.0, N 73", "results/so4-heldout/agg-corrected/prf_overall.csv"),
         ("instrument v2, rule 1.2.0, N 73", "results/so4-heldout/v2/agg/prf_overall.csv"),
+        ("labelled v1, rule-1.1.0 FPs, N 73", "results/so4-heldout/agg/prf_overall.csv"),
     ]
     labels, data = [], []
     for name, path in readings:
@@ -114,14 +115,15 @@ def fig_so4():
         data.append(r)
         labels += [f"{name}: recall", f"{name}: precision", f"{name}: F1"]
     p = Plot(
-        "SO4 held-out, symbolic-only: three readings",
-        "Point and primary cell-bootstrap 95% interval. Precision is seeded differential precision.",
+        "SO4 held-out, symbolic-only: four readings",
+        "Point and primary cell-bootstrap 95% interval. Precision is seeded differential precision (labelled for the last reading).",
         labels, 0.6, 1.0, [0.6, 0.7, 0.8, 0.9, 1.0], left=330,
     )
     for k, r in enumerate(data):
         p.dot(3 * k, f(r["recall"]), S1, f(r["ci_low"]), f(r["ci_high"]))
-        p.dot(3 * k + 1, f(r["precision_strict"]), S1, f(r["precision_ci_low"]), f(r["precision_ci_high"]))
-        f1 = 2 * f(r["precision_strict"]) * f(r["recall"]) / (f(r["precision_strict"]) + f(r["recall"]))
+        prec = f(r["precision_labelled"]) if r["precision_labelled"] else f(r["precision_strict"])
+        p.dot(3 * k + 1, prec, S1, f(r["precision_ci_low"]), f(r["precision_ci_high"]))
+        f1 = 2 * prec * f(r["recall"]) / (prec + f(r["recall"]))
         p.dot(3 * k + 2, f1, S1, f(r["f1_ci_low"]), f(r["f1_ci_high"]))
     p.save("fig1-so4-readings.svg")
 
@@ -178,8 +180,35 @@ def fig_judge():
     p.save("fig4-judge-effect-judge-weighted.svg")
 
 
+def fig_e1():
+    grid = [x for x in rows("results/e1-grid/agg/so5_grid.csv") if x["ahs_combined"]]
+    models = ["claude-haiku-4-5", "claude-sonnet-5-5", "claude-opus-5-5", "gpt-5.6-terra"]
+    levels = [("none", S1, "circle", -7), ("minimal-prose", S2, "square", 0), ("full-aac", S3, "diamond", 7)]
+    cells = {}
+    for x in grid:
+        cells.setdefault((x["requested_model_id"], x["spec_level"]), []).append(f(x["ahs_combined"]))
+    labels = []
+    for m in models:
+        ns = "/".join(str(len(cells.get((m, lv), []))) for lv, _, _, _ in levels)
+        arm = " (Codex, exploratory)" if m.startswith("gpt") else ""
+        labels.append(f"{m}{arm}, n {ns}")
+    p = Plot(
+        "E1: mean ahsCombined by model and spec level (registered aggregation)",
+        "Dot = mean over valid cells; line = min to max of the cells (descriptive). Every cell passes (threshold 0.80).",
+        labels, 0.84, 1.0, [0.84, 0.88, 0.92, 0.96, 1.0], left=330, row_h=34,
+    )
+    for i, m in enumerate(models):
+        for lv, color, shape, off in levels:
+            v = cells.get((m, lv), [])
+            if v:
+                p.dot(i, sum(v) / len(v), color, min(v), max(v), offset=off, shape=shape)
+    p.legend([(lv, color, shape) for lv, color, shape, _ in levels])
+    p.save("fig5-e1-ahs-model-spec.svg")
+
+
 if __name__ == "__main__":
     fig_so4()
     fig_tool()
     fig_judge()
+    fig_e1()
     print("figures written to", OUT)
