@@ -1,0 +1,47 @@
+{
+  "attempts": 1,
+  "cliVersion": "2.1.294",
+  "configListingSha256": "47aa04258852fab9a706f3f0c14cee22306d69fbb6fdfbde8c11854bd54997bc",
+  "durationMs": 6702,
+  "effort": "high",
+  "functionId": "FF-N02",
+  "ignoredOptions": [
+    "maxTokens"
+  ],
+  "isolationProbeSha256": "97a2e2d0af1100c13c55e028c1a0c71f069093c3d08705af122aaeb302f1a641",
+  "key": "5362afe9249dd6022c94530a83ca6b41d8522bfba5543d789abc24f14d92397e-r0-1",
+  "model": "claude-opus-5-5",
+  "outcome": {
+    "kind": "valid"
+  },
+  "parsedVerdict": {
+    "confidence": 0.85,
+    "evidence": [
+      "src/infrastructure/UserController.ts: create(req, res) reads `req.body` and responds with `res.status(...).json(...)`. This is HTTP transport handling and belongs in infrastructure.",
+      "src/infrastructure/UserController.ts: `if (!id || !name) { res.status(400)... }` only checks the shape of the request at the boundary. It does not encode a domain rule.",
+      "src/infrastructure/UserController.ts: `this.createUserUseCase.execute(id, name)` hands the business behaviour to the application layer."
+    ],
+    "pass": true,
+    "reasoning": "UserController sits in the infrastructure layer and only handles transport concerns: it reads the Express request body, checks that the required fields are present and returns HTTP 400 if they are not, passes the work to the application-layer CreateUserUseCase, and sends back an HTTP 201 response. The missing-field check is input validation at the boundary, not a business rule. It does not contain domain invariants, persistence logic or orchestration logic, so all of its responsibilities fit the role of an infrastructure (adapter) layer.",
+    "violations": []
+  },
+  "projectId": "claude-haiku-4-5/task-management/full-aac/run-2",
+  "prompt": "## Rule\nThe unit's responsibilities match the role of its declared layer.\n\n## Rubric\nPass: Every responsibility in the file belongs to the role and kind of its declared layer, and agrees with any ADR prose given.\nFail: The file carries a responsibility that belongs to a different layer kind, for example persistence, transport or framework logic in a domain file, or business rules in an infrastructure or presentation file.\nEvidence required: Name the file and cite the function, method or statement that carries the misplaced responsibility, and the layer kind it belongs to.\nOut of scope: import direction and layer-dependency rules, which are checked symbolically.\n\n## Layer model\n- domain (kind: domain): src/domain/**\n- application (kind: application): src/application/**\n- infrastructure (kind: infrastructure): src/infrastructure/**\n\n## Unit\nKind: file\nId: src/infrastructure/UserController.ts\nLayer: infrastructure\nUnit files:\n- src/infrastructure/UserController.ts\n\n## Source\n=====SOURCE-BEGIN src/infrastructure/UserController.ts=====\nimport { Request, Response } from 'express';\nimport { CreateUserUseCase } from '../application/CreateUserUseCase';\n\nexport class UserController {\n  constructor(private createUserUseCase: CreateUserUseCase) {}\n\n  create(req: Request, res: Response): void {\n    const { id, name } = req.body;\n    if (!id || !name) {\n      res.status(400).json({ error: 'Missing required fields: id, name' });\n      return;\n    }\n\n    const user = this.createUserUseCase.execute(id, name);\n    res.status(201).json(user);\n  }\n}\n\n=====SOURCE-END=====\n\n## Graph excerpt\n{\"edges\":[{\"from\":\"UserController@src/infrastructure/UserController.ts\",\"to\":\"CreateUserUseCase@src/application/CreateUserUseCase.ts\",\"type\":\"CONSTRUCTOR_INJECTS\"},{\"from\":\"src/infrastructure/UserController.ts\",\"to\":\"express\",\"type\":\"IMPORTS\"},{\"from\":\"src/infrastructure/UserController.ts\",\"to\":\"src/application/CreateUserUseCase.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/infrastructure/server.ts\",\"to\":\"src/infrastructure/UserController.ts\",\"type\":\"IMPORTS\"}],\"nodes\":[{\"kind\":\"Class\",\"layer\":\"application\",\"name\":\"CreateUserUseCase\",\"path\":\"src/application/CreateUserUseCase.ts\"},{\"kind\":\"Class\",\"layer\":\"infrastructure\",\"name\":\"UserController\",\"path\":\"src/infrastructure/UserController.ts\"},{\"kind\":\"File\",\"layer\":\"application\",\"path\":\"src/application/CreateUserUseCase.ts\"},{\"kind\":\"File\",\"layer\":\"infrastructure\",\"path\":\"src/infrastructure/UserController.ts\"},{\"kind\":\"File\",\"layer\":\"infrastructure\",\"path\":\"src/infrastructure/server.ts\"},{\"kind\":\"Package\",\"layer\":null,\"path\":\"express\"}]}\n\n## Instructions\nJudge the unit against the rule and rubric. Return the JSON object the schema requires. Set pass to false if any file of the unit fails the rubric.\n",
+  "provider": "claude-cli",
+  "recordedAt": "2026-10-11T02:55:26.817Z",
+  "repetition": 0,
+  "requestHash": "5362afe9249dd6022c94530a83ca6b41d8522bfba5543d789abc24f14d92397e",
+  "resolvedModel": "claude-opus-5-5",
+  "response": "{\"is_error\":false,\"modelUsage\":{\"claude-opus-5-5\":{\"inputTokens\":2,\"outputTokens\":558}},\"result\":\"{\\\"pass\\\":true,\\\"confidence\\\":0.85,\\\"reasoning\\\":\\\"UserController sits in the infrastructure layer and only handles transport concerns: it reads the Express request body, checks that the required fields are present and returns HTTP 400 if they are not, passes the work to the application-layer CreateUserUseCase, and sends back an HTTP 201 response. The missing-field check is input validation at the boundary, not a business rule. It does not contain domain invariants, persistence logic or orchestration logic, so all of its responsibilities fit the role of an infrastructure (adapter) layer.\\\",\\\"evidence\\\":[\\\"src/infrastructure/UserController.ts: create(req, res) reads `req.body` and responds with `res.status(...).json(...)`. This is HTTP transport handling and belongs in infrastructure.\\\",\\\"src/infrastructure/UserController.ts: `if (!id || !name) { res.status(400)... }` only checks the shape of the request at the boundary. It does not encode a domain rule.\\\",\\\"src/infrastructure/UserController.ts: `this.createUserUseCase.execute(id, name)` hands the business behaviour to the application layer.\\\"],\\\"violations\\\":[]}\",\"structured_output\":{\"confidence\":0.85,\"evidence\":[\"src/infrastructure/UserController.ts: create(req, res) reads `req.body` and responds with `res.status(...).json(...)`. This is HTTP transport handling and belongs in infrastructure.\",\"src/infrastructure/UserController.ts: `if (!id || !name) { res.status(400)... }` only checks the shape of the request at the boundary. It does not encode a domain rule.\",\"src/infrastructure/UserController.ts: `this.createUserUseCase.execute(id, name)` hands the business behaviour to the application layer.\"],\"pass\":true,\"reasoning\":\"UserController sits in the infrastructure layer and only handles transport concerns: it reads the Express request body, checks that the required fields are present and returns HTTP 400 if they are not, passes the work to the application-layer CreateUserUseCase, and sends back an HTTP 201 response. The missing-field check is input validation at the boundary, not a business rule. It does not contain domain invariants, persistence logic or orchestration logic, so all of its responsibilities fit the role of an infrastructure (adapter) layer.\",\"violations\":[]}}",
+  "runIndex": 1,
+  "schemaVersion": 2,
+  "unitId": "src/infrastructure/UserController.ts",
+  "usage": {
+    "inputTokens": 2541,
+    "outputTokens": 558
+  },
+  "usedOptions": {
+    "effort": "high",
+    "model": "claude-opus-5-5"
+  }
+}

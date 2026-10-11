@@ -1,0 +1,47 @@
+{
+  "attempts": 1,
+  "cliVersion": "2.1.294",
+  "configListingSha256": "47aa04258852fab9a706f3f0c14cee22306d69fbb6fdfbde8c11854bd54997bc",
+  "durationMs": 6914,
+  "effort": "high",
+  "functionId": "FF-N02",
+  "ignoredOptions": [
+    "maxTokens"
+  ],
+  "isolationProbeSha256": "97a2e2d0af1100c13c55e028c1a0c71f069093c3d08705af122aaeb302f1a641",
+  "key": "5bbdb4d40a8c40d4955a651617b5a96da0bef526a919687c41cc6c064f9f4b99-r0-1",
+  "model": "claude-opus-5-5",
+  "outcome": {
+    "kind": "valid"
+  },
+  "parsedVerdict": {
+    "confidence": 0.93,
+    "evidence": [
+      "InMemoryUserRepository, InMemoryProjectRepository and InMemoryTaskRepository each wrap a private Map<string, Entity> and expose save/findById. This is persistence work, which belongs in infrastructure.",
+      "InMemoryTaskRepository.findByProject filters stored tasks by projectId and the optional status/assigneeId fields of TaskFilter. This is query evaluation that the TaskRepository contract requires, not a domain invariant or business rule.",
+      "The graph shows that the classes IMPLEMENT the domain interfaces UserRepository, ProjectRepository and TaskRepository, which is the expected adapter role for infrastructure."
+    ],
+    "pass": true,
+    "reasoning": "The file contains only in-memory persistence adapters. They implement repository interfaces declared in the domain layer. Each class stores entities in a Map and retrieves them by id. InMemoryTaskRepository.findByProject only applies the query criteria given by TaskFilter (projectId, status, assigneeId), which is ordinary repository querying and not a business rule. Nothing in the file is domain policy, application orchestration or presentation logic, so every responsibility fits the infrastructure layer.",
+    "violations": []
+  },
+  "projectId": "claude-sonnet-5-5/task-management/none/run-2",
+  "prompt": "## Rule\nThe unit's responsibilities match the role of its declared layer.\n\n## Rubric\nPass: Every responsibility in the file belongs to the role and kind of its declared layer, and agrees with any ADR prose given.\nFail: The file carries a responsibility that belongs to a different layer kind, for example persistence, transport or framework logic in a domain file, or business rules in an infrastructure or presentation file.\nEvidence required: Name the file and cite the function, method or statement that carries the misplaced responsibility, and the layer kind it belongs to.\nOut of scope: import direction and layer-dependency rules, which are checked symbolically.\n\n## Layer model\n- domain (kind: domain): src/domain/**\n- application (kind: application): src/application/**\n- infrastructure (kind: infrastructure): src/infrastructure/**\n\n## Unit\nKind: file\nId: src/infrastructure/inMemoryRepositories.ts\nLayer: infrastructure\nUnit files:\n- src/infrastructure/inMemoryRepositories.ts\n\n## Source\n=====SOURCE-BEGIN src/infrastructure/inMemoryRepositories.ts=====\nimport {\n  Project,\n  ProjectRepository,\n  Task,\n  TaskFilter,\n  TaskRepository,\n  User,\n  UserRepository,\n} from \"../domain/model\";\n\nexport class InMemoryUserRepository implements UserRepository {\n  private readonly items = new Map<string, User>();\n\n  save(user: User): void {\n    this.items.set(user.id, user);\n  }\n\n  findById(id: string): User | undefined {\n    return this.items.get(id);\n  }\n}\n\nexport class InMemoryProjectRepository implements ProjectRepository {\n  private readonly items = new Map<string, Project>();\n\n  save(project: Project): void {\n    this.items.set(project.id, project);\n  }\n\n  findById(id: string): Project | undefined {\n    return this.items.get(id);\n  }\n}\n\nexport class InMemoryTaskRepository implements TaskRepository {\n  private readonly items = new Map<string, Task>();\n\n  save(task: Task): void {\n    this.items.set(task.id, task);\n  }\n\n  findById(id: string): Task | undefined {\n    return this.items.get(id);\n  }\n\n  findByProject(projectId: string, filter: TaskFilter): Task[] {\n    return [...this.items.values()].filter(\n      (t) =>\n        t.projectId === projectId &&\n        (filter.status === undefined || t.status === filter.status) &&\n        (filter.assigneeId === undefined || t.assigneeId === filter.assigneeId),\n    );\n  }\n}\n\n=====SOURCE-END=====\n\n## Graph excerpt\n{\"edges\":[{\"from\":\"InMemoryProjectRepository@src/infrastructure/inMemoryRepositories.ts\",\"to\":\"ProjectRepository@src/domain/model.ts\",\"type\":\"IMPLEMENTS\"},{\"from\":\"InMemoryTaskRepository@src/infrastructure/inMemoryRepositories.ts\",\"to\":\"TaskRepository@src/domain/model.ts\",\"type\":\"IMPLEMENTS\"},{\"from\":\"InMemoryUserRepository@src/infrastructure/inMemoryRepositories.ts\",\"to\":\"UserRepository@src/domain/model.ts\",\"type\":\"IMPLEMENTS\"},{\"from\":\"src/infrastructure/app.ts\",\"to\":\"src/infrastructure/inMemoryRepositories.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/infrastructure/inMemoryRepositories.ts\",\"to\":\"src/domain/model.ts\",\"type\":\"IMPORTS\"}],\"nodes\":[{\"kind\":\"Class\",\"layer\":\"infrastructure\",\"name\":\"InMemoryProjectRepository\",\"path\":\"src/infrastructure/inMemoryRepositories.ts\"},{\"kind\":\"Class\",\"layer\":\"infrastructure\",\"name\":\"InMemoryTaskRepository\",\"path\":\"src/infrastructure/inMemoryRepositories.ts\"},{\"kind\":\"Class\",\"layer\":\"infrastructure\",\"name\":\"InMemoryUserRepository\",\"path\":\"src/infrastructure/inMemoryRepositories.ts\"},{\"kind\":\"File\",\"layer\":\"domain\",\"path\":\"src/domain/model.ts\"},{\"kind\":\"File\",\"layer\":\"infrastructure\",\"path\":\"src/infrastructure/app.ts\"},{\"kind\":\"File\",\"layer\":\"infrastructure\",\"path\":\"src/infrastructure/inMemoryRepositories.ts\"},{\"kind\":\"Interface\",\"layer\":\"domain\",\"name\":\"ProjectRepository\",\"path\":\"src/domain/model.ts\"},{\"kind\":\"Interface\",\"layer\":\"domain\",\"name\":\"TaskRepository\",\"path\":\"src/domain/model.ts\"},{\"kind\":\"Interface\",\"layer\":\"domain\",\"name\":\"UserRepository\",\"path\":\"src/domain/model.ts\"}]}\n\n## Instructions\nJudge the unit against the rule and rubric. Return the JSON object the schema requires. Set pass to false if any file of the unit fails the rubric.\n",
+  "provider": "claude-cli",
+  "recordedAt": "2026-10-10T22:29:39.426Z",
+  "repetition": 0,
+  "requestHash": "5bbdb4d40a8c40d4955a651617b5a96da0bef526a919687c41cc6c064f9f4b99",
+  "resolvedModel": "claude-opus-5-5",
+  "response": "{\"is_error\":false,\"modelUsage\":{\"claude-opus-5-5\":{\"inputTokens\":2,\"outputTokens\":563}},\"result\":\"{\\\"pass\\\":true,\\\"confidence\\\":0.93,\\\"reasoning\\\":\\\"The file contains only in-memory persistence adapters. They implement repository interfaces declared in the domain layer. Each class stores entities in a Map and retrieves them by id. InMemoryTaskRepository.findByProject only applies the query criteria given by TaskFilter (projectId, status, assigneeId), which is ordinary repository querying and not a business rule. Nothing in the file is domain policy, application orchestration or presentation logic, so every responsibility fits the infrastructure layer.\\\",\\\"evidence\\\":[\\\"InMemoryUserRepository, InMemoryProjectRepository and InMemoryTaskRepository each wrap a private Map<string, Entity> and expose save/findById. This is persistence work, which belongs in infrastructure.\\\",\\\"InMemoryTaskRepository.findByProject filters stored tasks by projectId and the optional status/assigneeId fields of TaskFilter. This is query evaluation that the TaskRepository contract requires, not a domain invariant or business rule.\\\",\\\"The graph shows that the classes IMPLEMENT the domain interfaces UserRepository, ProjectRepository and TaskRepository, which is the expected adapter role for infrastructure.\\\"],\\\"violations\\\":[]}\",\"structured_output\":{\"confidence\":0.93,\"evidence\":[\"InMemoryUserRepository, InMemoryProjectRepository and InMemoryTaskRepository each wrap a private Map<string, Entity> and expose save/findById. This is persistence work, which belongs in infrastructure.\",\"InMemoryTaskRepository.findByProject filters stored tasks by projectId and the optional status/assigneeId fields of TaskFilter. This is query evaluation that the TaskRepository contract requires, not a domain invariant or business rule.\",\"The graph shows that the classes IMPLEMENT the domain interfaces UserRepository, ProjectRepository and TaskRepository, which is the expected adapter role for infrastructure.\"],\"pass\":true,\"reasoning\":\"The file contains only in-memory persistence adapters. They implement repository interfaces declared in the domain layer. Each class stores entities in a Map and retrieves them by id. InMemoryTaskRepository.findByProject only applies the query criteria given by TaskFilter (projectId, status, assigneeId), which is ordinary repository querying and not a business rule. Nothing in the file is domain policy, application orchestration or presentation logic, so every responsibility fits the infrastructure layer.\",\"violations\":[]}}",
+  "runIndex": 1,
+  "schemaVersion": 2,
+  "unitId": "src/infrastructure/inMemoryRepositories.ts",
+  "usage": {
+    "inputTokens": 3152,
+    "outputTokens": 563
+  },
+  "usedOptions": {
+    "effort": "high",
+    "model": "claude-opus-5-5"
+  }
+}

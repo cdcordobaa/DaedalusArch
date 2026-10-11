@@ -1,0 +1,48 @@
+{
+  "attempts": 1,
+  "cliVersion": "2.1.294",
+  "configListingSha256": "47aa04258852fab9a706f3f0c14cee22306d69fbb6fdfbde8c11854bd54997bc",
+  "durationMs": 6289,
+  "effort": "high",
+  "functionId": "FF-N02",
+  "ignoredOptions": [
+    "maxTokens"
+  ],
+  "isolationProbeSha256": "97a2e2d0af1100c13c55e028c1a0c71f069093c3d08705af122aaeb302f1a641",
+  "key": "e25ef1e7ec8f40fe540b732cc745b913b011ecbb067db3626cbc8dcaff4acf96-r0-0",
+  "model": "claude-opus-5-5",
+  "outcome": {
+    "kind": "valid"
+  },
+  "parsedVerdict": {
+    "confidence": 0.95,
+    "evidence": [
+      "src/application/use-cases/CreateUserUseCase.ts: execute() calls User.create(this.ids.next(), input.name), so entity construction and invariants are left to the domain layer",
+      "src/application/use-cases/CreateUserUseCase.ts: await this.users.save(user) saves through the injected UserRepository abstraction, with no storage details in the file",
+      "src/application/use-cases/CreateUserUseCase.ts: return toUserDto(user) maps the result to an application DTO, which is normal use-case output shaping",
+      "Constructor injection of UserRepository and IdGenerator: dependencies are ports, not concrete infrastructure"
+    ],
+    "pass": true,
+    "reasoning": "CreateUserUseCase is a typical application-layer use case. It coordinates domain objects and ports: it gets an ID from the injected IdGenerator port, hands entity creation to the domain (User.create), saves through the UserRepository abstraction, and maps the result to an application DTO. It has no persistence details, no transport or HTTP handling and no framework code. It also defines no business rules of its own, because invariants are left to the domain entity. Everything in the file fits the application layer.",
+    "violations": []
+  },
+  "projectId": "claude-opus-5-5/task-management/minimal-prose/run-2",
+  "prompt": "## Rule\nThe unit's responsibilities match the role of its declared layer.\n\n## Rubric\nPass: Every responsibility in the file belongs to the role and kind of its declared layer, and agrees with any ADR prose given.\nFail: The file carries a responsibility that belongs to a different layer kind, for example persistence, transport or framework logic in a domain file, or business rules in an infrastructure or presentation file.\nEvidence required: Name the file and cite the function, method or statement that carries the misplaced responsibility, and the layer kind it belongs to.\nOut of scope: import direction and layer-dependency rules, which are checked symbolically.\n\n## Layer model\n- domain (kind: domain): src/domain/**\n- application (kind: application): src/application/**\n- infrastructure (kind: infrastructure): src/infrastructure/**\n\n## Unit\nKind: file\nId: src/application/use-cases/CreateUserUseCase.ts\nLayer: application\nUnit files:\n- src/application/use-cases/CreateUserUseCase.ts\n\n## Source\n=====SOURCE-BEGIN src/application/use-cases/CreateUserUseCase.ts=====\nimport { User } from '../../domain/entities/User';\nimport { UserRepository } from '../../domain/repositories/UserRepository';\nimport { CreateUserInput, UserDto, toUserDto } from '../dtos/UserDto';\nimport { IdGenerator } from '../ports/IdGenerator';\n\nexport class CreateUserUseCase {\n  constructor(\n    private readonly users: UserRepository,\n    private readonly ids: IdGenerator,\n  ) {}\n\n  async execute(input: CreateUserInput): Promise<UserDto> {\n    const user = User.create(this.ids.next(), input.name);\n    await this.users.save(user);\n    return toUserDto(user);\n  }\n}\n\n=====SOURCE-END=====\n\n## Graph excerpt\n{\"edges\":[{\"from\":\"CreateUserUseCase@src/application/use-cases/CreateUserUseCase.ts\",\"to\":\"IdGenerator@src/application/ports/IdGenerator.ts\",\"type\":\"CONSTRUCTOR_INJECTS\"},{\"from\":\"CreateUserUseCase@src/application/use-cases/CreateUserUseCase.ts\",\"to\":\"UserRepository@src/domain/repositories/UserRepository.ts\",\"type\":\"CONSTRUCTOR_INJECTS\"},{\"from\":\"UserController@src/infrastructure/http/controllers/UserController.ts\",\"to\":\"CreateUserUseCase@src/application/use-cases/CreateUserUseCase.ts\",\"type\":\"CONSTRUCTOR_INJECTS\"},{\"from\":\"src/application/use-cases/CreateUserUseCase.ts\",\"to\":\"src/application/dtos/UserDto.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/application/use-cases/CreateUserUseCase.ts\",\"to\":\"src/application/ports/IdGenerator.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/application/use-cases/CreateUserUseCase.ts\",\"to\":\"src/domain/entities/User.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/application/use-cases/CreateUserUseCase.ts\",\"to\":\"src/domain/repositories/UserRepository.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/infrastructure/container.ts\",\"to\":\"src/application/use-cases/CreateUserUseCase.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/infrastructure/http/controllers/UserController.ts\",\"to\":\"src/application/use-cases/CreateUserUseCase.ts\",\"type\":\"IMPORTS\"}],\"nodes\":[{\"kind\":\"Class\",\"layer\":\"application\",\"name\":\"CreateUserUseCase\",\"path\":\"src/application/use-cases/CreateUserUseCase.ts\"},{\"kind\":\"Class\",\"layer\":\"infrastructure\",\"name\":\"UserController\",\"path\":\"src/infrastructure/http/controllers/UserController.ts\"},{\"kind\":\"File\",\"layer\":\"application\",\"path\":\"src/application/dtos/UserDto.ts\"},{\"kind\":\"File\",\"layer\":\"application\",\"path\":\"src/application/ports/IdGenerator.ts\"},{\"kind\":\"File\",\"layer\":\"application\",\"path\":\"src/application/use-cases/CreateUserUseCase.ts\"},{\"kind\":\"File\",\"layer\":\"domain\",\"path\":\"src/domain/entities/User.ts\"},{\"kind\":\"File\",\"layer\":\"domain\",\"path\":\"src/domain/repositories/UserRepository.ts\"},{\"kind\":\"File\",\"layer\":\"infrastructure\",\"path\":\"src/infrastructure/container.ts\"},{\"kind\":\"File\",\"layer\":\"infrastructure\",\"path\":\"src/infrastructure/http/controllers/UserController.ts\"},{\"kind\":\"Interface\",\"layer\":\"application\",\"name\":\"IdGenerator\",\"path\":\"src/application/ports/IdGenerator.ts\"},{\"kind\":\"Interface\",\"layer\":\"domain\",\"name\":\"UserRepository\",\"path\":\"src/domain/repositories/UserRepository.ts\"}]}\n\n## Instructions\nJudge the unit against the rule and rubric. Return the JSON object the schema requires. Set pass to false if any file of the unit fails the rubric.\n",
+  "provider": "claude-cli",
+  "recordedAt": "2026-10-10T21:45:51.395Z",
+  "repetition": 0,
+  "requestHash": "e25ef1e7ec8f40fe540b732cc745b913b011ecbb067db3626cbc8dcaff4acf96",
+  "resolvedModel": "claude-opus-5-5",
+  "response": "{\"is_error\":false,\"modelUsage\":{\"claude-opus-5-5\":{\"inputTokens\":2,\"outputTokens\":513}},\"result\":\"{\\\"pass\\\":true,\\\"confidence\\\":0.95,\\\"reasoning\\\":\\\"CreateUserUseCase is a typical application-layer use case. It coordinates domain objects and ports: it gets an ID from the injected IdGenerator port, hands entity creation to the domain (User.create), saves through the UserRepository abstraction, and maps the result to an application DTO. It has no persistence details, no transport or HTTP handling and no framework code. It also defines no business rules of its own, because invariants are left to the domain entity. Everything in the file fits the application layer.\\\",\\\"evidence\\\":[\\\"src/application/use-cases/CreateUserUseCase.ts: execute() calls User.create(this.ids.next(), input.name), so entity construction and invariants are left to the domain layer\\\",\\\"src/application/use-cases/CreateUserUseCase.ts: await this.users.save(user) saves through the injected UserRepository abstraction, with no storage details in the file\\\",\\\"src/application/use-cases/CreateUserUseCase.ts: return toUserDto(user) maps the result to an application DTO, which is normal use-case output shaping\\\",\\\"Constructor injection of UserRepository and IdGenerator: dependencies are ports, not concrete infrastructure\\\"],\\\"violations\\\":[]}\",\"structured_output\":{\"confidence\":0.95,\"evidence\":[\"src/application/use-cases/CreateUserUseCase.ts: execute() calls User.create(this.ids.next(), input.name), so entity construction and invariants are left to the domain layer\",\"src/application/use-cases/CreateUserUseCase.ts: await this.users.save(user) saves through the injected UserRepository abstraction, with no storage details in the file\",\"src/application/use-cases/CreateUserUseCase.ts: return toUserDto(user) maps the result to an application DTO, which is normal use-case output shaping\",\"Constructor injection of UserRepository and IdGenerator: dependencies are ports, not concrete infrastructure\"],\"pass\":true,\"reasoning\":\"CreateUserUseCase is a typical application-layer use case. It coordinates domain objects and ports: it gets an ID from the injected IdGenerator port, hands entity creation to the domain (User.create), saves through the UserRepository abstraction, and maps the result to an application DTO. It has no persistence details, no transport or HTTP handling and no framework code. It also defines no business rules of its own, because invariants are left to the domain entity. Everything in the file fits the application layer.\",\"violations\":[]}}",
+  "runIndex": 0,
+  "schemaVersion": 2,
+  "unitId": "src/application/use-cases/CreateUserUseCase.ts",
+  "usage": {
+    "inputTokens": 3225,
+    "outputTokens": 513
+  },
+  "usedOptions": {
+    "effort": "high",
+    "model": "claude-opus-5-5"
+  }
+}

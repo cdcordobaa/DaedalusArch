@@ -1,0 +1,47 @@
+{
+  "attempts": 1,
+  "cliVersion": "2.1.294",
+  "configListingSha256": "47aa04258852fab9a706f3f0c14cee22306d69fbb6fdfbde8c11854bd54997bc",
+  "durationMs": 8029,
+  "effort": "high",
+  "functionId": "FF-N02",
+  "ignoredOptions": [
+    "maxTokens"
+  ],
+  "isolationProbeSha256": "97a2e2d0af1100c13c55e028c1a0c71f069093c3d08705af122aaeb302f1a641",
+  "key": "f6ce2500abec9dac50d52365abb30a4b3deb8676a2ef73a2269defa0dae1e881-r0-1",
+  "model": "claude-opus-5-5",
+  "outcome": {
+    "kind": "valid"
+  },
+  "parsedVerdict": {
+    "confidence": 0.93,
+    "evidence": [
+      "src/infrastructure/in-memory-order-repository.ts: class InMemoryOrderRepository implements OrderRepository and stores orders in a private Map<string, Order>, which is persistence and belongs in infrastructure",
+      "findById(id) returns this.orders.get(id) and save(order) calls this.orders.set(order.id, order): plain storage access",
+      "listByState(state?) filters with order.state === state: a query predicate, not a domain rule"
+    ],
+    "pass": true,
+    "reasoning": "This file is a pure persistence adapter. It implements the domain OrderRepository port with an in-memory Map, and that is a responsibility of the infrastructure layer. findById and save only read and write the store. listByState filters the stored orders by state equality. That is a simple query predicate, the in-memory version of a WHERE clause, not a business rule. The file has no domain invariants, state-transition logic, pricing or validation, and no application orchestration.",
+    "violations": []
+  },
+  "projectId": "gpt-5.6-terra/order-fulfilment/full-aac/run-0",
+  "prompt": "## Rule\nThe unit's responsibilities match the role of its declared layer.\n\n## Rubric\nPass: Every responsibility in the file belongs to the role and kind of its declared layer, and agrees with any ADR prose given.\nFail: The file carries a responsibility that belongs to a different layer kind, for example persistence, transport or framework logic in a domain file, or business rules in an infrastructure or presentation file.\nEvidence required: Name the file and cite the function, method or statement that carries the misplaced responsibility, and the layer kind it belongs to.\nOut of scope: import direction and layer-dependency rules, which are checked symbolically.\n\n## Layer model\n- domain (kind: domain): src/domain/**\n- application (kind: application): src/application/**\n- infrastructure (kind: infrastructure): src/infrastructure/**\n\n## Unit\nKind: file\nId: src/infrastructure/in-memory-order-repository.ts\nLayer: infrastructure\nUnit files:\n- src/infrastructure/in-memory-order-repository.ts\n\n## Source\n=====SOURCE-BEGIN src/infrastructure/in-memory-order-repository.ts=====\nimport { Order, OrderState } from \"../domain/order\";\nimport { OrderRepository } from \"../domain/repositories\";\n\nexport class InMemoryOrderRepository implements OrderRepository {\n  private readonly orders = new Map<string, Order>();\n\n  public findById(id: string): Order | undefined {\n    return this.orders.get(id);\n  }\n\n  public save(order: Order): void {\n    this.orders.set(order.id, order);\n  }\n\n  public listByState(state?: OrderState): Order[] {\n    const orders = [...this.orders.values()];\n    return state ? orders.filter((order) => order.state === state) : orders;\n  }\n}\n\n=====SOURCE-END=====\n\n## Graph excerpt\n{\"edges\":[{\"from\":\"InMemoryOrderRepository@src/infrastructure/in-memory-order-repository.ts\",\"to\":\"OrderRepository@src/domain/repositories.ts\",\"type\":\"IMPLEMENTS\"},{\"from\":\"src/infrastructure/in-memory-order-repository.ts\",\"to\":\"src/domain/order.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/infrastructure/in-memory-order-repository.ts\",\"to\":\"src/domain/repositories.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/infrastructure/server.ts\",\"to\":\"src/infrastructure/in-memory-order-repository.ts\",\"type\":\"IMPORTS\"}],\"nodes\":[{\"kind\":\"Class\",\"layer\":\"infrastructure\",\"name\":\"InMemoryOrderRepository\",\"path\":\"src/infrastructure/in-memory-order-repository.ts\"},{\"kind\":\"File\",\"layer\":\"domain\",\"path\":\"src/domain/order.ts\"},{\"kind\":\"File\",\"layer\":\"domain\",\"path\":\"src/domain/repositories.ts\"},{\"kind\":\"File\",\"layer\":\"infrastructure\",\"path\":\"src/infrastructure/in-memory-order-repository.ts\"},{\"kind\":\"File\",\"layer\":\"infrastructure\",\"path\":\"src/infrastructure/server.ts\"},{\"kind\":\"Interface\",\"layer\":\"domain\",\"name\":\"OrderRepository\",\"path\":\"src/domain/repositories.ts\"}]}\n\n## Instructions\nJudge the unit against the rule and rubric. Return the JSON object the schema requires. Set pass to false if any file of the unit fails the rubric.\n",
+  "provider": "claude-cli",
+  "recordedAt": "2026-10-11T03:33:29.708Z",
+  "repetition": 0,
+  "requestHash": "f6ce2500abec9dac50d52365abb30a4b3deb8676a2ef73a2269defa0dae1e881",
+  "resolvedModel": "claude-opus-5-5",
+  "response": "{\"is_error\":false,\"modelUsage\":{\"claude-opus-5-5\":{\"inputTokens\":2,\"outputTokens\":436}},\"result\":\"{\\\"pass\\\":true,\\\"confidence\\\":0.93,\\\"reasoning\\\":\\\"This file is a pure persistence adapter. It implements the domain OrderRepository port with an in-memory Map, and that is a responsibility of the infrastructure layer. findById and save only read and write the store. listByState filters the stored orders by state equality. That is a simple query predicate, the in-memory version of a WHERE clause, not a business rule. The file has no domain invariants, state-transition logic, pricing or validation, and no application orchestration.\\\",\\\"evidence\\\":[\\\"src/infrastructure/in-memory-order-repository.ts: class InMemoryOrderRepository implements OrderRepository and stores orders in a private Map<string, Order>, which is persistence and belongs in infrastructure\\\",\\\"findById(id) returns this.orders.get(id) and save(order) calls this.orders.set(order.id, order): plain storage access\\\",\\\"listByState(state?) filters with order.state === state: a query predicate, not a domain rule\\\"],\\\"violations\\\":[]}\",\"structured_output\":{\"confidence\":0.93,\"evidence\":[\"src/infrastructure/in-memory-order-repository.ts: class InMemoryOrderRepository implements OrderRepository and stores orders in a private Map<string, Order>, which is persistence and belongs in infrastructure\",\"findById(id) returns this.orders.get(id) and save(order) calls this.orders.set(order.id, order): plain storage access\",\"listByState(state?) filters with order.state === state: a query predicate, not a domain rule\"],\"pass\":true,\"reasoning\":\"This file is a pure persistence adapter. It implements the domain OrderRepository port with an in-memory Map, and that is a responsibility of the infrastructure layer. findById and save only read and write the store. listByState filters the stored orders by state equality. That is a simple query predicate, the in-memory version of a WHERE clause, not a business rule. The file has no domain invariants, state-transition logic, pricing or validation, and no application orchestration.\",\"violations\":[]}}",
+  "runIndex": 1,
+  "schemaVersion": 2,
+  "unitId": "src/infrastructure/in-memory-order-repository.ts",
+  "usage": {
+    "inputTokens": 2619,
+    "outputTokens": 436
+  },
+  "usedOptions": {
+    "effort": "high",
+    "model": "claude-opus-5-5"
+  }
+}

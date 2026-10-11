@@ -1,0 +1,48 @@
+{
+  "attempts": 1,
+  "cliVersion": "2.1.294",
+  "configListingSha256": "47aa04258852fab9a706f3f0c14cee22306d69fbb6fdfbde8c11854bd54997bc",
+  "durationMs": 6188,
+  "effort": "high",
+  "functionId": "FF-N02",
+  "ignoredOptions": [
+    "maxTokens"
+  ],
+  "isolationProbeSha256": "97a2e2d0af1100c13c55e028c1a0c71f069093c3d08705af122aaeb302f1a641",
+  "key": "b2ab3f8fb1d5943e59781c3de4b4dbd3ebf5d542d1c75fc7548eb28e52deb767-r0-0",
+  "model": "claude-opus-5-5",
+  "outcome": {
+    "kind": "valid"
+  },
+  "parsedVerdict": {
+    "confidence": 0.95,
+    "evidence": [
+      "Constructor validates entity invariants and throws DomainError when they are broken. This is domain responsibility.",
+      "advanceTo() holds the status state machine (placed→paid→packed→shipped→delivered). This is a business rule and belongs in the domain.",
+      "cancel() enforces the rules for cancelling an order (it cannot be cancelled again, or cancelled once shipped or delivered). This is a business rule and belongs in the domain.",
+      "The file has no database, HTTP, framework or logging code. It imports only ./DomainError and ./OrderStatus."
+    ],
+    "pass": true,
+    "reasoning": "src/domain/Order.ts is a pure domain entity. It enforces its invariants in the constructor: an id, a customer id, at least one line, and positive integer quantities. advanceTo holds the order status state machine, and cancel holds the cancellation rules. All of these are business rules, which belong in the domain layer. The file has no persistence, transport, framework, I/O or orchestration logic. Its only dependencies are other domain modules (DomainError, OrderStatus).",
+    "violations": []
+  },
+  "projectId": "gpt-5.6-terra/order-fulfilment/full-aac/run-2",
+  "prompt": "## Rule\nThe unit's responsibilities match the role of its declared layer.\n\n## Rubric\nPass: Every responsibility in the file belongs to the role and kind of its declared layer, and agrees with any ADR prose given.\nFail: The file carries a responsibility that belongs to a different layer kind, for example persistence, transport or framework logic in a domain file, or business rules in an infrastructure or presentation file.\nEvidence required: Name the file and cite the function, method or statement that carries the misplaced responsibility, and the layer kind it belongs to.\nOut of scope: import direction and layer-dependency rules, which are checked symbolically.\n\n## Layer model\n- domain (kind: domain): src/domain/**\n- application (kind: application): src/application/**\n- infrastructure (kind: infrastructure): src/infrastructure/**\n\n## Unit\nKind: file\nId: src/domain/Order.ts\nLayer: domain\nUnit files:\n- src/domain/Order.ts\n\n## Source\n=====SOURCE-BEGIN src/domain/Order.ts=====\nimport { DomainError } from \"./DomainError\";\nimport { OrderStatus } from \"./OrderStatus\";\n\nexport interface OrderLine {\n  readonly productId: string;\n  readonly quantity: number;\n}\n\nexport class Order {\n  private status: OrderStatus = \"placed\";\n  private cancelled = false;\n\n  public constructor(\n    public readonly id: string,\n    public readonly customerId: string,\n    public readonly lines: readonly OrderLine[],\n  ) {\n    if (!id.trim() || !customerId.trim() || lines.length === 0) {\n      throw new DomainError(\"Order id, customer id, and at least one line are required\");\n    }\n    for (const line of lines) {\n      if (!line.productId.trim() || !Number.isInteger(line.quantity) || line.quantity <= 0) {\n        throw new DomainError(\"Each order line needs a product and a positive integer quantity\");\n      }\n    }\n  }\n\n  public get currentStatus(): OrderStatus {\n    return this.status;\n  }\n\n  public get isCancelled(): boolean {\n    return this.cancelled;\n  }\n\n  public advanceTo(nextStatus: OrderStatus): void {\n    if (this.cancelled) {\n      throw new DomainError(\"A cancelled order cannot be advanced\");\n    }\n    const nextByStatus: Record<OrderStatus, OrderStatus | undefined> = {\n      placed: \"paid\",\n      paid: \"packed\",\n      packed: \"shipped\",\n      shipped: \"delivered\",\n      delivered: undefined,\n    };\n    if (nextByStatus[this.status] !== nextStatus) {\n      throw new DomainError(`Order cannot move from ${this.status} to ${nextStatus}`);\n    }\n    this.status = nextStatus;\n  }\n\n  public cancel(): void {\n    if (this.cancelled) {\n      throw new DomainError(\"Order is already cancelled\");\n    }\n    if (this.status === \"shipped\" || this.status === \"delivered\") {\n      throw new DomainError(\"A shipped order cannot be cancelled\");\n    }\n    this.cancelled = true;\n  }\n}\n\n=====SOURCE-END=====\n\n## Graph excerpt\n{\"edges\":[{\"from\":\"src/application/OrderService.ts\",\"to\":\"src/domain/Order.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/domain/Order.ts\",\"to\":\"src/domain/DomainError.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/domain/Order.ts\",\"to\":\"src/domain/OrderStatus.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/domain/OrderRepository.ts\",\"to\":\"src/domain/Order.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/infrastructure/InMemoryOrderRepository.ts\",\"to\":\"src/domain/Order.ts\",\"type\":\"IMPORTS\"}],\"nodes\":[{\"kind\":\"Class\",\"layer\":\"domain\",\"name\":\"Order\",\"path\":\"src/domain/Order.ts\"},{\"kind\":\"File\",\"layer\":\"application\",\"path\":\"src/application/OrderService.ts\"},{\"kind\":\"File\",\"layer\":\"domain\",\"path\":\"src/domain/DomainError.ts\"},{\"kind\":\"File\",\"layer\":\"domain\",\"path\":\"src/domain/Order.ts\"},{\"kind\":\"File\",\"layer\":\"domain\",\"path\":\"src/domain/OrderRepository.ts\"},{\"kind\":\"File\",\"layer\":\"domain\",\"path\":\"src/domain/OrderStatus.ts\"},{\"kind\":\"File\",\"layer\":\"infrastructure\",\"path\":\"src/infrastructure/InMemoryOrderRepository.ts\"},{\"kind\":\"Interface\",\"layer\":\"domain\",\"name\":\"OrderLine\",\"path\":\"src/domain/Order.ts\"}]}\n\n## Instructions\nJudge the unit against the rule and rubric. Return the JSON object the schema requires. Set pass to false if any file of the unit fails the rubric.\n",
+  "provider": "claude-cli",
+  "recordedAt": "2026-10-11T03:37:28.668Z",
+  "repetition": 0,
+  "requestHash": "b2ab3f8fb1d5943e59781c3de4b4dbd3ebf5d542d1c75fc7548eb28e52deb767",
+  "resolvedModel": "claude-opus-5-5",
+  "response": "{\"is_error\":false,\"modelUsage\":{\"claude-opus-5-5\":{\"inputTokens\":2,\"outputTokens\":480}},\"result\":\"{\\\"pass\\\":true,\\\"confidence\\\":0.95,\\\"reasoning\\\":\\\"src/domain/Order.ts is a pure domain entity. It enforces its invariants in the constructor: an id, a customer id, at least one line, and positive integer quantities. advanceTo holds the order status state machine, and cancel holds the cancellation rules. All of these are business rules, which belong in the domain layer. The file has no persistence, transport, framework, I/O or orchestration logic. Its only dependencies are other domain modules (DomainError, OrderStatus).\\\",\\\"evidence\\\":[\\\"Constructor validates entity invariants and throws DomainError when they are broken. This is domain responsibility.\\\",\\\"advanceTo() holds the status state machine (placed→paid→packed→shipped→delivered). This is a business rule and belongs in the domain.\\\",\\\"cancel() enforces the rules for cancelling an order (it cannot be cancelled again, or cancelled once shipped or delivered). This is a business rule and belongs in the domain.\\\",\\\"The file has no database, HTTP, framework or logging code. It imports only ./DomainError and ./OrderStatus.\\\"],\\\"violations\\\":[]}\",\"structured_output\":{\"confidence\":0.95,\"evidence\":[\"Constructor validates entity invariants and throws DomainError when they are broken. This is domain responsibility.\",\"advanceTo() holds the status state machine (placed→paid→packed→shipped→delivered). This is a business rule and belongs in the domain.\",\"cancel() enforces the rules for cancelling an order (it cannot be cancelled again, or cancelled once shipped or delivered). This is a business rule and belongs in the domain.\",\"The file has no database, HTTP, framework or logging code. It imports only ./DomainError and ./OrderStatus.\"],\"pass\":true,\"reasoning\":\"src/domain/Order.ts is a pure domain entity. It enforces its invariants in the constructor: an id, a customer id, at least one line, and positive integer quantities. advanceTo holds the order status state machine, and cancel holds the cancellation rules. All of these are business rules, which belong in the domain layer. The file has no persistence, transport, framework, I/O or orchestration logic. Its only dependencies are other domain modules (DomainError, OrderStatus).\",\"violations\":[]}}",
+  "runIndex": 0,
+  "schemaVersion": 2,
+  "unitId": "src/domain/Order.ts",
+  "usage": {
+    "inputTokens": 3112,
+    "outputTokens": 480
+  },
+  "usedOptions": {
+    "effort": "high",
+    "model": "claude-opus-5-5"
+  }
+}

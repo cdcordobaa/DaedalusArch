@@ -1,0 +1,48 @@
+{
+  "attempts": 1,
+  "cliVersion": "2.1.294",
+  "configListingSha256": "47aa04258852fab9a706f3f0c14cee22306d69fbb6fdfbde8c11854bd54997bc",
+  "durationMs": 6786,
+  "effort": "high",
+  "functionId": "FF-N02",
+  "ignoredOptions": [
+    "maxTokens"
+  ],
+  "isolationProbeSha256": "97a2e2d0af1100c13c55e028c1a0c71f069093c3d08705af122aaeb302f1a641",
+  "key": "d98739829d444c49867aa91b6046775d104fa7c17e33aa727d4af39c76a26a6b-r0-0",
+  "model": "claude-opus-5-5",
+  "outcome": {
+    "kind": "valid"
+  },
+  "parsedVerdict": {
+    "confidence": 0.8,
+    "evidence": [
+      "`const port = Number(process.env.PORT ?? 3000);` reads environment config, which is an infrastructure concern",
+      "`createApp(catalogue).listen(port, ...)` starts the HTTP transport, which is an infrastructure concern",
+      "`const catalogue = [new Product(...), ...]` builds in-memory seed data at the composition root and contains no business logic",
+      "`console.log(...)` is process-level logging, which is an infrastructure concern"
+    ],
+    "pass": true,
+    "reasoning": "src/infrastructure/server.ts is the composition root and process entry point. It reads `process.env.PORT` for configuration, builds a fixed set of `Product` objects that act as an in-memory catalogue data source, and starts the HTTP server with `createApp(catalogue).listen(...)`. Reading config, wiring components together and starting the transport are all infrastructure jobs. The hardcoded catalogue is seed data, not business logic: the file makes no decisions and contains no validation or calculations. No domain or application responsibility shows up in this file.",
+    "violations": []
+  },
+  "projectId": "claude-sonnet-5-5/order-fulfilment/minimal-prose/run-1",
+  "prompt": "## Rule\nThe unit's responsibilities match the role of its declared layer.\n\n## Rubric\nPass: Every responsibility in the file belongs to the role and kind of its declared layer, and agrees with any ADR prose given.\nFail: The file carries a responsibility that belongs to a different layer kind, for example persistence, transport or framework logic in a domain file, or business rules in an infrastructure or presentation file.\nEvidence required: Name the file and cite the function, method or statement that carries the misplaced responsibility, and the layer kind it belongs to.\nOut of scope: import direction and layer-dependency rules, which are checked symbolically.\n\n## Layer model\n- domain (kind: domain): src/domain/**\n- application (kind: application): src/application/**\n- infrastructure (kind: infrastructure): src/infrastructure/**\n\n## Unit\nKind: file\nId: src/infrastructure/server.ts\nLayer: infrastructure\nUnit files:\n- src/infrastructure/server.ts\n\n## Source\n=====SOURCE-BEGIN src/infrastructure/server.ts=====\nimport { Product } from \"../domain/product\";\nimport { createApp } from \"./app\";\n\nconst catalogue = [\n  new Product(\"widget\", \"Widget\", 100),\n  new Product(\"gadget\", \"Gadget\", 50),\n  new Product(\"gizmo\", \"Gizmo\", 10),\n];\n\nconst port = Number(process.env.PORT ?? 3000);\n\ncreateApp(catalogue).listen(port, () => {\n  console.log(`Order fulfilment API listening on port ${port}`);\n});\n\n=====SOURCE-END=====\n\n## Graph excerpt\n{\"edges\":[{\"from\":\"src/infrastructure/server.ts\",\"to\":\"src/domain/product.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/infrastructure/server.ts\",\"to\":\"src/infrastructure/app.ts\",\"type\":\"IMPORTS\"}],\"nodes\":[{\"kind\":\"File\",\"layer\":\"domain\",\"path\":\"src/domain/product.ts\"},{\"kind\":\"File\",\"layer\":\"infrastructure\",\"path\":\"src/infrastructure/app.ts\"},{\"kind\":\"File\",\"layer\":\"infrastructure\",\"path\":\"src/infrastructure/server.ts\"}]}\n\n## Instructions\nJudge the unit against the rule and rubric. Return the JSON object the schema requires. Set pass to false if any file of the unit fails the rubric.\n",
+  "provider": "claude-cli",
+  "recordedAt": "2026-10-10T22:49:20.541Z",
+  "repetition": 0,
+  "requestHash": "d98739829d444c49867aa91b6046775d104fa7c17e33aa727d4af39c76a26a6b",
+  "resolvedModel": "claude-opus-5-5",
+  "response": "{\"is_error\":false,\"modelUsage\":{\"claude-opus-5-5\":{\"inputTokens\":2,\"outputTokens\":572}},\"result\":\"{\\\"pass\\\":true,\\\"confidence\\\":0.8,\\\"reasoning\\\":\\\"src/infrastructure/server.ts is the composition root and process entry point. It reads `process.env.PORT` for configuration, builds a fixed set of `Product` objects that act as an in-memory catalogue data source, and starts the HTTP server with `createApp(catalogue).listen(...)`. Reading config, wiring components together and starting the transport are all infrastructure jobs. The hardcoded catalogue is seed data, not business logic: the file makes no decisions and contains no validation or calculations. No domain or application responsibility shows up in this file.\\\",\\\"evidence\\\":[\\\"`const port = Number(process.env.PORT ?? 3000);` reads environment config, which is an infrastructure concern\\\",\\\"`createApp(catalogue).listen(port, ...)` starts the HTTP transport, which is an infrastructure concern\\\",\\\"`const catalogue = [new Product(...), ...]` builds in-memory seed data at the composition root and contains no business logic\\\",\\\"`console.log(...)` is process-level logging, which is an infrastructure concern\\\"],\\\"violations\\\":[]}\",\"structured_output\":{\"confidence\":0.8,\"evidence\":[\"`const port = Number(process.env.PORT ?? 3000);` reads environment config, which is an infrastructure concern\",\"`createApp(catalogue).listen(port, ...)` starts the HTTP transport, which is an infrastructure concern\",\"`const catalogue = [new Product(...), ...]` builds in-memory seed data at the composition root and contains no business logic\",\"`console.log(...)` is process-level logging, which is an infrastructure concern\"],\"pass\":true,\"reasoning\":\"src/infrastructure/server.ts is the composition root and process entry point. It reads `process.env.PORT` for configuration, builds a fixed set of `Product` objects that act as an in-memory catalogue data source, and starts the HTTP server with `createApp(catalogue).listen(...)`. Reading config, wiring components together and starting the transport are all infrastructure jobs. The hardcoded catalogue is seed data, not business logic: the file makes no decisions and contains no validation or calculations. No domain or application responsibility shows up in this file.\",\"violations\":[]}}",
+  "runIndex": 0,
+  "schemaVersion": 2,
+  "unitId": "src/infrastructure/server.ts",
+  "usage": {
+    "inputTokens": 2262,
+    "outputTokens": 572
+  },
+  "usedOptions": {
+    "effort": "high",
+    "model": "claude-opus-5-5"
+  }
+}

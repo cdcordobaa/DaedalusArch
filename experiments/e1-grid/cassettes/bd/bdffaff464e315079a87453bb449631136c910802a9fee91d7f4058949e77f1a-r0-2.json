@@ -1,0 +1,47 @@
+{
+  "attempts": 1,
+  "cliVersion": "2.1.294",
+  "configListingSha256": "47aa04258852fab9a706f3f0c14cee22306d69fbb6fdfbde8c11854bd54997bc",
+  "durationMs": 6536,
+  "effort": "high",
+  "functionId": "FF-N02",
+  "ignoredOptions": [
+    "maxTokens"
+  ],
+  "isolationProbeSha256": "97a2e2d0af1100c13c55e028c1a0c71f069093c3d08705af122aaeb302f1a641",
+  "key": "bdffaff464e315079a87453bb449631136c910802a9fee91d7f4058949e77f1a-r0-2",
+  "model": "claude-opus-5-5",
+  "outcome": {
+    "kind": "valid"
+  },
+  "parsedVerdict": {
+    "confidence": 0.85,
+    "evidence": [
+      "src/infrastructure/catalogue-seed.ts: seedCatalogue() returns a fixed array of `new Product(...)` instances, which is seed/bootstrap data for a data source and belongs in infrastructure",
+      "No business rules, validation or decision logic are present; it only calls the domain constructor",
+      "Graph: src/infrastructure/create-app.ts (the composition root) imports catalogue-seed.ts, which matches its role as infrastructure wiring"
+    ],
+    "pass": true,
+    "reasoning": "The file has one job: it supplies the starting catalogue data by building Product entities. Seeding or bootstrapping a data source is an infrastructure task, the same kind of thing as a fixture or an in-memory store's initial data. The graph shows create-app.ts, the infrastructure composition root, is what uses it. The file has no business rules: no validation, pricing logic or invariants. It only calls the domain constructor with fixed values. So nothing in it belongs to the domain or application layer.",
+    "violations": []
+  },
+  "projectId": "claude-sonnet-5-5/order-fulfilment/full-aac/run-0",
+  "prompt": "## Rule\nThe unit's responsibilities match the role of its declared layer.\n\n## Rubric\nPass: Every responsibility in the file belongs to the role and kind of its declared layer, and agrees with any ADR prose given.\nFail: The file carries a responsibility that belongs to a different layer kind, for example persistence, transport or framework logic in a domain file, or business rules in an infrastructure or presentation file.\nEvidence required: Name the file and cite the function, method or statement that carries the misplaced responsibility, and the layer kind it belongs to.\nOut of scope: import direction and layer-dependency rules, which are checked symbolically.\n\n## Layer model\n- domain (kind: domain): src/domain/**\n- application (kind: application): src/application/**\n- infrastructure (kind: infrastructure): src/infrastructure/**\n\n## Unit\nKind: file\nId: src/infrastructure/catalogue-seed.ts\nLayer: infrastructure\nUnit files:\n- src/infrastructure/catalogue-seed.ts\n\n## Source\n=====SOURCE-BEGIN src/infrastructure/catalogue-seed.ts=====\nimport { Product } from \"../domain/product\";\n\nexport function seedCatalogue(): Product[] {\n  return [\n    new Product(\"widget\", \"Widget\", 100),\n    new Product(\"gadget\", \"Gadget\", 50),\n    new Product(\"gizmo\", \"Gizmo\", 10),\n  ];\n}\n\n=====SOURCE-END=====\n\n## Graph excerpt\n{\"edges\":[{\"from\":\"src/infrastructure/catalogue-seed.ts\",\"to\":\"src/domain/product.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/infrastructure/create-app.ts\",\"to\":\"src/infrastructure/catalogue-seed.ts\",\"type\":\"IMPORTS\"}],\"nodes\":[{\"kind\":\"File\",\"layer\":\"domain\",\"path\":\"src/domain/product.ts\"},{\"kind\":\"File\",\"layer\":\"infrastructure\",\"path\":\"src/infrastructure/catalogue-seed.ts\"},{\"kind\":\"File\",\"layer\":\"infrastructure\",\"path\":\"src/infrastructure/create-app.ts\"}]}\n\n## Instructions\nJudge the unit against the rule and rubric. Return the JSON object the schema requires. Set pass to false if any file of the unit fails the rubric.\n",
+  "provider": "claude-cli",
+  "recordedAt": "2026-10-10T23:04:34.883Z",
+  "repetition": 0,
+  "requestHash": "bdffaff464e315079a87453bb449631136c910802a9fee91d7f4058949e77f1a",
+  "resolvedModel": "claude-opus-5-5",
+  "response": "{\"is_error\":false,\"modelUsage\":{\"claude-opus-5-5\":{\"inputTokens\":2,\"outputTokens\":499}},\"result\":\"{\\\"pass\\\":true,\\\"confidence\\\":0.85,\\\"reasoning\\\":\\\"The file has one job: it supplies the starting catalogue data by building Product entities. Seeding or bootstrapping a data source is an infrastructure task, the same kind of thing as a fixture or an in-memory store's initial data. The graph shows create-app.ts, the infrastructure composition root, is what uses it. The file has no business rules: no validation, pricing logic or invariants. It only calls the domain constructor with fixed values. So nothing in it belongs to the domain or application layer.\\\",\\\"evidence\\\":[\\\"src/infrastructure/catalogue-seed.ts: seedCatalogue() returns a fixed array of `new Product(...)` instances, which is seed/bootstrap data for a data source and belongs in infrastructure\\\",\\\"No business rules, validation or decision logic are present; it only calls the domain constructor\\\",\\\"Graph: src/infrastructure/create-app.ts (the composition root) imports catalogue-seed.ts, which matches its role as infrastructure wiring\\\"],\\\"violations\\\":[]}\",\"structured_output\":{\"confidence\":0.85,\"evidence\":[\"src/infrastructure/catalogue-seed.ts: seedCatalogue() returns a fixed array of `new Product(...)` instances, which is seed/bootstrap data for a data source and belongs in infrastructure\",\"No business rules, validation or decision logic are present; it only calls the domain constructor\",\"Graph: src/infrastructure/create-app.ts (the composition root) imports catalogue-seed.ts, which matches its role as infrastructure wiring\"],\"pass\":true,\"reasoning\":\"The file has one job: it supplies the starting catalogue data by building Product entities. Seeding or bootstrapping a data source is an infrastructure task, the same kind of thing as a fixture or an in-memory store's initial data. The graph shows create-app.ts, the infrastructure composition root, is what uses it. The file has no business rules: no validation, pricing logic or invariants. It only calls the domain constructor with fixed values. So nothing in it belongs to the domain or application layer.\",\"violations\":[]}}",
+  "runIndex": 2,
+  "schemaVersion": 2,
+  "unitId": "src/infrastructure/catalogue-seed.ts",
+  "usage": {
+    "inputTokens": 2242,
+    "outputTokens": 499
+  },
+  "usedOptions": {
+    "effort": "high",
+    "model": "claude-opus-5-5"
+  }
+}

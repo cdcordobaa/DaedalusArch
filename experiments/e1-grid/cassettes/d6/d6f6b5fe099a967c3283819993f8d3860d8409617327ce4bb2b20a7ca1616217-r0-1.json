@@ -1,0 +1,48 @@
+{
+  "attempts": 1,
+  "cliVersion": "2.1.294",
+  "configListingSha256": "47aa04258852fab9a706f3f0c14cee22306d69fbb6fdfbde8c11854bd54997bc",
+  "durationMs": 6292,
+  "effort": "high",
+  "functionId": "FF-N02",
+  "ignoredOptions": [
+    "maxTokens"
+  ],
+  "isolationProbeSha256": "97a2e2d0af1100c13c55e028c1a0c71f069093c3d08705af122aaeb302f1a641",
+  "key": "d6f6b5fe099a967c3283819993f8d3860d8409617327ce4bb2b20a7ca1616217-r0-1",
+  "model": "claude-opus-5-5",
+  "outcome": {
+    "kind": "valid"
+  },
+  "parsedVerdict": {
+    "confidence": 0.93,
+    "evidence": [
+      "src/infrastructure/InMemoryOrderRepository.ts: class InMemoryOrderRepository implements OrderRepository, so it is an infrastructure adapter for a domain port",
+      "save(order) only calls this.store.set(order.id, order), which is pure persistence",
+      "findById(id) only returns this.store.get(id), which is a persistence lookup",
+      "findByStatus(status) filters stored values with o.status === status, a query criterion with no business decision logic"
+    ],
+    "pass": true,
+    "reasoning": "The file is an infrastructure adapter. It implements the domain port OrderRepository and stores orders in an in-memory Map. Its three methods (save, findById, findByStatus) are all persistence and query work, which is what the infrastructure layer is for. findByStatus only filters stored orders by an equality check on status. That is a query criterion, not a business rule: it makes no decisions, does no state transitions and does not enforce any invariants. The file contains no domain logic, application orchestration or presentation concerns.",
+    "violations": []
+  },
+  "projectId": "claude-sonnet-5-5/order-fulfilment/minimal-prose/run-0",
+  "prompt": "## Rule\nThe unit's responsibilities match the role of its declared layer.\n\n## Rubric\nPass: Every responsibility in the file belongs to the role and kind of its declared layer, and agrees with any ADR prose given.\nFail: The file carries a responsibility that belongs to a different layer kind, for example persistence, transport or framework logic in a domain file, or business rules in an infrastructure or presentation file.\nEvidence required: Name the file and cite the function, method or statement that carries the misplaced responsibility, and the layer kind it belongs to.\nOut of scope: import direction and layer-dependency rules, which are checked symbolically.\n\n## Layer model\n- domain (kind: domain): src/domain/**\n- application (kind: application): src/application/**\n- infrastructure (kind: infrastructure): src/infrastructure/**\n\n## Unit\nKind: file\nId: src/infrastructure/InMemoryOrderRepository.ts\nLayer: infrastructure\nUnit files:\n- src/infrastructure/InMemoryOrderRepository.ts\n\n## Source\n=====SOURCE-BEGIN src/infrastructure/InMemoryOrderRepository.ts=====\nimport { Order } from \"../domain/Order\";\nimport { OrderRepository } from \"../domain/OrderRepository\";\nimport { OrderStatus } from \"../domain/OrderState\";\n\nexport class InMemoryOrderRepository implements OrderRepository {\n  private readonly store = new Map<string, Order>();\n\n  async save(order: Order): Promise<void> {\n    this.store.set(order.id, order);\n  }\n\n  async findById(id: string): Promise<Order | undefined> {\n    return this.store.get(id);\n  }\n\n  async findByStatus(status: OrderStatus): Promise<Order[]> {\n    return [...this.store.values()].filter((o) => o.status === status);\n  }\n}\n\n=====SOURCE-END=====\n\n## Graph excerpt\n{\"edges\":[{\"from\":\"InMemoryOrderRepository@src/infrastructure/InMemoryOrderRepository.ts\",\"to\":\"OrderRepository@src/domain/OrderRepository.ts\",\"type\":\"IMPLEMENTS\"},{\"from\":\"src/infrastructure/InMemoryOrderRepository.ts\",\"to\":\"src/domain/Order.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/infrastructure/InMemoryOrderRepository.ts\",\"to\":\"src/domain/OrderRepository.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/infrastructure/InMemoryOrderRepository.ts\",\"to\":\"src/domain/OrderState.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/infrastructure/createApp.ts\",\"to\":\"src/infrastructure/InMemoryOrderRepository.ts\",\"type\":\"IMPORTS\"}],\"nodes\":[{\"kind\":\"Class\",\"layer\":\"infrastructure\",\"name\":\"InMemoryOrderRepository\",\"path\":\"src/infrastructure/InMemoryOrderRepository.ts\"},{\"kind\":\"File\",\"layer\":\"domain\",\"path\":\"src/domain/Order.ts\"},{\"kind\":\"File\",\"layer\":\"domain\",\"path\":\"src/domain/OrderRepository.ts\"},{\"kind\":\"File\",\"layer\":\"domain\",\"path\":\"src/domain/OrderState.ts\"},{\"kind\":\"File\",\"layer\":\"infrastructure\",\"path\":\"src/infrastructure/InMemoryOrderRepository.ts\"},{\"kind\":\"File\",\"layer\":\"infrastructure\",\"path\":\"src/infrastructure/createApp.ts\"},{\"kind\":\"Interface\",\"layer\":\"domain\",\"name\":\"OrderRepository\",\"path\":\"src/domain/OrderRepository.ts\"}]}\n\n## Instructions\nJudge the unit against the rule and rubric. Return the JSON object the schema requires. Set pass to false if any file of the unit fails the rubric.\n",
+  "provider": "claude-cli",
+  "recordedAt": "2026-10-10T22:45:51.653Z",
+  "repetition": 0,
+  "requestHash": "d6f6b5fe099a967c3283819993f8d3860d8409617327ce4bb2b20a7ca1616217",
+  "resolvedModel": "claude-opus-5-5",
+  "response": "{\"is_error\":false,\"modelUsage\":{\"claude-opus-5-5\":{\"inputTokens\":2,\"outputTokens\":460}},\"result\":\"{\\\"pass\\\":true,\\\"confidence\\\":0.93,\\\"reasoning\\\":\\\"The file is an infrastructure adapter. It implements the domain port OrderRepository and stores orders in an in-memory Map. Its three methods (save, findById, findByStatus) are all persistence and query work, which is what the infrastructure layer is for. findByStatus only filters stored orders by an equality check on status. That is a query criterion, not a business rule: it makes no decisions, does no state transitions and does not enforce any invariants. The file contains no domain logic, application orchestration or presentation concerns.\\\",\\\"evidence\\\":[\\\"src/infrastructure/InMemoryOrderRepository.ts: class InMemoryOrderRepository implements OrderRepository, so it is an infrastructure adapter for a domain port\\\",\\\"save(order) only calls this.store.set(order.id, order), which is pure persistence\\\",\\\"findById(id) only returns this.store.get(id), which is a persistence lookup\\\",\\\"findByStatus(status) filters stored values with o.status === status, a query criterion with no business decision logic\\\"],\\\"violations\\\":[]}\",\"structured_output\":{\"confidence\":0.93,\"evidence\":[\"src/infrastructure/InMemoryOrderRepository.ts: class InMemoryOrderRepository implements OrderRepository, so it is an infrastructure adapter for a domain port\",\"save(order) only calls this.store.set(order.id, order), which is pure persistence\",\"findById(id) only returns this.store.get(id), which is a persistence lookup\",\"findByStatus(status) filters stored values with o.status === status, a query criterion with no business decision logic\"],\"pass\":true,\"reasoning\":\"The file is an infrastructure adapter. It implements the domain port OrderRepository and stores orders in an in-memory Map. Its three methods (save, findById, findByStatus) are all persistence and query work, which is what the infrastructure layer is for. findByStatus only filters stored orders by an equality check on status. That is a query criterion, not a business rule: it makes no decisions, does no state transitions and does not enforce any invariants. The file contains no domain logic, application orchestration or presentation concerns.\",\"violations\":[]}}",
+  "runIndex": 1,
+  "schemaVersion": 2,
+  "unitId": "src/infrastructure/InMemoryOrderRepository.ts",
+  "usage": {
+    "inputTokens": 2759,
+    "outputTokens": 460
+  },
+  "usedOptions": {
+    "effort": "high",
+    "model": "claude-opus-5-5"
+  }
+}

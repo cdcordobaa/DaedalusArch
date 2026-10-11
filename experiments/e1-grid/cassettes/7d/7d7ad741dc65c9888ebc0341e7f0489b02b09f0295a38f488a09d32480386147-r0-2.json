@@ -1,0 +1,48 @@
+{
+  "attempts": 1,
+  "cliVersion": "2.1.294",
+  "configListingSha256": "47aa04258852fab9a706f3f0c14cee22306d69fbb6fdfbde8c11854bd54997bc",
+  "durationMs": 8121,
+  "effort": "high",
+  "functionId": "FF-N01",
+  "ignoredOptions": [
+    "maxTokens"
+  ],
+  "isolationProbeSha256": "97a2e2d0af1100c13c55e028c1a0c71f069093c3d08705af122aaeb302f1a641",
+  "key": "7d7ad741dc65c9888ebc0341e7f0489b02b09f0295a38f488a09d32480386147-r0-2",
+  "model": "claude-opus-5-5",
+  "outcome": {
+    "kind": "valid"
+  },
+  "parsedVerdict": {
+    "confidence": 0.85,
+    "evidence": [
+      "src/infrastructure/identity/UuidIdGenerator.ts: `export class UuidIdGenerator implements IdGenerator { next(): string { return randomUUID(); } }` is a single-purpose adapter for the application port.",
+      "src/infrastructure/server.ts: `createApp().listen(port, ...)` only uses the composition root `./composition/AppFactory` and does not wire adapters itself.",
+      "Graph: src/infrastructure/composition/AppFactory.ts IMPORTS src/infrastructure/identity/UuidIdGenerator.ts, so the adapter is wired through the module's composition abstraction.",
+      "No rule or invariant appears in more than one place: the only logic is ID generation, plus port configuration (`Number(process.env.PORT ?? 3000)`) in server.ts."
+    ],
+    "pass": true,
+    "reasoning": "Both unit files are infrastructure work: one is a concrete adapter and the other is the runtime entry point. src/infrastructure/identity/UuidIdGenerator.ts implements the application port IdGenerator with node:crypto randomUUID. src/infrastructure/server.ts only starts the app built by the module's composition root (createApp from ./composition/AppFactory), and AppFactory is also where UuidIdGenerator gets wired in. Neither file repeats a rule or invariant. server.ts does not skip the composition abstraction by building dependencies directly, and UuidIdGenerator stays within the port contract. These are two different jobs (an adapter and a bootstrap), but both are normal parts of an infrastructure module and fit together through AppFactory, so this is not a split into unrelated concerns.",
+    "violations": []
+  },
+  "projectId": "claude-opus-5-5/task-management/full-aac/run-2",
+  "prompt": "## Rule\nThe module's files form one coherent unit with a consistent abstraction and boundary.\n\n## Rubric\nPass: The files serve one cohesive concern, use the module's abstractions consistently, and keep each rule or invariant in one place.\nFail: The files split into unrelated concerns, duplicate a rule or invariant that should live in one place, or bypass the module's own abstractions.\nEvidence required: Name each file involved and cite the declarations that show the split, the duplication or the bypass.\nOut of scope: import direction and layer-dependency rules, which are checked symbolically.\n\n## Layer model\n- domain (kind: domain): src/domain/**\n- application (kind: application): src/application/**\n- infrastructure (kind: infrastructure): src/infrastructure/**\n\n## Unit\nKind: module\nId: src/infrastructure\nLayer: infrastructure\nUnit files:\n- src/infrastructure/identity/UuidIdGenerator.ts\n- src/infrastructure/server.ts\n\n## Source\n=====SOURCE-BEGIN src/infrastructure/identity/UuidIdGenerator.ts=====\nimport { randomUUID } from 'node:crypto';\nimport { IdGenerator } from '../../application/ports/IdGenerator';\n\nexport class UuidIdGenerator implements IdGenerator {\n  next(): string {\n    return randomUUID();\n  }\n}\n\n=====SOURCE-END=====\n\n=====SOURCE-BEGIN src/infrastructure/server.ts=====\nimport { createApp } from './composition/AppFactory';\n\nconst port = Number(process.env.PORT ?? 3000);\n\ncreateApp().listen(port, () => {\n  console.log(`Task management API listening on port ${port}`);\n});\n\n=====SOURCE-END=====\n\n## Exported signatures\n// src/infrastructure/identity/UuidIdGenerator.ts\nexport class UuidIdGenerator implements IdGenerator {\n  next(): string;\n}\n\n## Incoming\n- src/infrastructure/composition/AppFactory.ts\n\n## Outgoing\n- crypto\n- src/application/ports/IdGenerator.ts\n- src/infrastructure/composition/AppFactory.ts\n\n## Graph excerpt\n{\"edges\":[{\"from\":\"UuidIdGenerator@src/infrastructure/identity/UuidIdGenerator.ts\",\"to\":\"IdGenerator@src/application/ports/IdGenerator.ts\",\"type\":\"IMPLEMENTS\"},{\"from\":\"src/infrastructure/composition/AppFactory.ts\",\"to\":\"src/infrastructure/identity/UuidIdGenerator.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/infrastructure/identity/UuidIdGenerator.ts\",\"to\":\"crypto\",\"type\":\"IMPORTS\"},{\"from\":\"src/infrastructure/identity/UuidIdGenerator.ts\",\"to\":\"src/application/ports/IdGenerator.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/infrastructure/server.ts\",\"to\":\"src/infrastructure/composition/AppFactory.ts\",\"type\":\"IMPORTS\"}],\"nodes\":[{\"kind\":\"Class\",\"layer\":\"infrastructure\",\"name\":\"UuidIdGenerator\",\"path\":\"src/infrastructure/identity/UuidIdGenerator.ts\"},{\"kind\":\"File\",\"layer\":\"application\",\"path\":\"src/application/ports/IdGenerator.ts\"},{\"kind\":\"File\",\"layer\":\"infrastructure\",\"path\":\"src/infrastructure/composition/AppFactory.ts\"},{\"kind\":\"File\",\"layer\":\"infrastructure\",\"path\":\"src/infrastructure/identity/UuidIdGenerator.ts\"},{\"kind\":\"File\",\"layer\":\"infrastructure\",\"path\":\"src/infrastructure/server.ts\"},{\"kind\":\"Interface\",\"layer\":\"application\",\"name\":\"IdGenerator\",\"path\":\"src/application/ports/IdGenerator.ts\"},{\"kind\":\"Package\",\"layer\":null,\"path\":\"crypto\"}]}\n\n## Instructions\nJudge the unit against the rule and rubric. Return the JSON object the schema requires. Set pass to false if any file of the unit fails the rubric.\n",
+  "provider": "claude-cli",
+  "recordedAt": "2026-10-10T22:09:12.101Z",
+  "repetition": 0,
+  "requestHash": "7d7ad741dc65c9888ebc0341e7f0489b02b09f0295a38f488a09d32480386147",
+  "resolvedModel": "claude-opus-5-5",
+  "response": "{\"is_error\":false,\"modelUsage\":{\"claude-opus-5-5\":{\"inputTokens\":2,\"outputTokens\":742}},\"result\":\"{\\\"pass\\\":true,\\\"confidence\\\":0.85,\\\"reasoning\\\":\\\"Both unit files are infrastructure work: one is a concrete adapter and the other is the runtime entry point. src/infrastructure/identity/UuidIdGenerator.ts implements the application port IdGenerator with node:crypto randomUUID. src/infrastructure/server.ts only starts the app built by the module's composition root (createApp from ./composition/AppFactory), and AppFactory is also where UuidIdGenerator gets wired in. Neither file repeats a rule or invariant. server.ts does not skip the composition abstraction by building dependencies directly, and UuidIdGenerator stays within the port contract. These are two different jobs (an adapter and a bootstrap), but both are normal parts of an infrastructure module and fit together through AppFactory, so this is not a split into unrelated concerns.\\\",\\\"evidence\\\":[\\\"src/infrastructure/identity/UuidIdGenerator.ts: `export class UuidIdGenerator implements IdGenerator { next(): string { return randomUUID(); } }` is a single-purpose adapter for the application port.\\\",\\\"src/infrastructure/server.ts: `createApp().listen(port, ...)` only uses the composition root `./composition/AppFactory` and does not wire adapters itself.\\\",\\\"Graph: src/infrastructure/composition/AppFactory.ts IMPORTS src/infrastructure/identity/UuidIdGenerator.ts, so the adapter is wired through the module's composition abstraction.\\\",\\\"No rule or invariant appears in more than one place: the only logic is ID generation, plus port configuration (`Number(process.env.PORT ?? 3000)`) in server.ts.\\\"],\\\"violations\\\":[]}\",\"structured_output\":{\"confidence\":0.85,\"evidence\":[\"src/infrastructure/identity/UuidIdGenerator.ts: `export class UuidIdGenerator implements IdGenerator { next(): string { return randomUUID(); } }` is a single-purpose adapter for the application port.\",\"src/infrastructure/server.ts: `createApp().listen(port, ...)` only uses the composition root `./composition/AppFactory` and does not wire adapters itself.\",\"Graph: src/infrastructure/composition/AppFactory.ts IMPORTS src/infrastructure/identity/UuidIdGenerator.ts, so the adapter is wired through the module's composition abstraction.\",\"No rule or invariant appears in more than one place: the only logic is ID generation, plus port configuration (`Number(process.env.PORT ?? 3000)`) in server.ts.\"],\"pass\":true,\"reasoning\":\"Both unit files are infrastructure work: one is a concrete adapter and the other is the runtime entry point. src/infrastructure/identity/UuidIdGenerator.ts implements the application port IdGenerator with node:crypto randomUUID. src/infrastructure/server.ts only starts the app built by the module's composition root (createApp from ./composition/AppFactory), and AppFactory is also where UuidIdGenerator gets wired in. Neither file repeats a rule or invariant. server.ts does not skip the composition abstraction by building dependencies directly, and UuidIdGenerator stays within the port contract. These are two different jobs (an adapter and a bootstrap), but both are normal parts of an infrastructure module and fit together through AppFactory, so this is not a split into unrelated concerns.\",\"violations\":[]}}",
+  "runIndex": 2,
+  "schemaVersion": 2,
+  "unitId": "src/infrastructure",
+  "usage": {
+    "inputTokens": 2861,
+    "outputTokens": 742
+  },
+  "usedOptions": {
+    "effort": "high",
+    "model": "claude-opus-5-5"
+  }
+}

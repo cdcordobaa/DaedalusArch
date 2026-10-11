@@ -1,0 +1,48 @@
+{
+  "attempts": 1,
+  "cliVersion": "2.1.294",
+  "configListingSha256": "47aa04258852fab9a706f3f0c14cee22306d69fbb6fdfbde8c11854bd54997bc",
+  "durationMs": 6149,
+  "effort": "high",
+  "functionId": "FF-N02",
+  "ignoredOptions": [
+    "maxTokens"
+  ],
+  "isolationProbeSha256": "97a2e2d0af1100c13c55e028c1a0c71f069093c3d08705af122aaeb302f1a641",
+  "key": "6400028221573ba0f56f1f0c0eeeb9062c7da6c685307cb193980a4938a61f69-r0-1",
+  "model": "claude-opus-5-5",
+  "outcome": {
+    "kind": "valid"
+  },
+  "parsedVerdict": {
+    "confidence": 0.9,
+    "evidence": [
+      "routes() registers POST /projects on an Express Router, which is HTTP transport wiring.",
+      "create() calls requiredString(bodyOf(req), \"name\"), a check on request input at the boundary.",
+      "create() hands the work to this.createProject.execute({ name }), the application use case.",
+      "res.status(201).json(project) builds the HTTP response."
+    ],
+    "pass": true,
+    "reasoning": "ProjectController sits in the infrastructure layer and only does transport work. It registers the Express route, pulls a required string out of the request body, hands off to the application use case and writes the HTTP response. requiredString only checks that the input is present and well formed, which is a normal transport-boundary job. It does not decide any business rule. The file contains no domain or business logic, so its responsibilities fit its declared layer.",
+    "violations": []
+  },
+  "projectId": "claude-sonnet-5-5/task-management/full-aac/run-1",
+  "prompt": "## Rule\nThe unit's responsibilities match the role of its declared layer.\n\n## Rubric\nPass: Every responsibility in the file belongs to the role and kind of its declared layer, and agrees with any ADR prose given.\nFail: The file carries a responsibility that belongs to a different layer kind, for example persistence, transport or framework logic in a domain file, or business rules in an infrastructure or presentation file.\nEvidence required: Name the file and cite the function, method or statement that carries the misplaced responsibility, and the layer kind it belongs to.\nOut of scope: import direction and layer-dependency rules, which are checked symbolically.\n\n## Layer model\n- domain (kind: domain): src/domain/**\n- application (kind: application): src/application/**\n- infrastructure (kind: infrastructure): src/infrastructure/**\n\n## Unit\nKind: file\nId: src/infrastructure/ProjectController.ts\nLayer: infrastructure\nUnit files:\n- src/infrastructure/ProjectController.ts\n\n## Source\n=====SOURCE-BEGIN src/infrastructure/ProjectController.ts=====\nimport { Request, Response, Router } from \"express\";\nimport { CreateProjectUseCase } from \"../application/CreateProjectUseCase\";\nimport { asyncHandler, bodyOf, requiredString } from \"./httpSupport\";\n\nexport class ProjectController {\n  constructor(private readonly createProject: CreateProjectUseCase) {}\n\n  routes(): Router {\n    const router = Router();\n    router.post(\n      \"/projects\",\n      asyncHandler((req, res) => this.create(req, res)),\n    );\n    return router;\n  }\n\n  private async create(req: Request, res: Response): Promise<void> {\n    const name = requiredString(bodyOf(req), \"name\");\n    const project = await this.createProject.execute({ name });\n    res.status(201).json(project);\n  }\n}\n\n=====SOURCE-END=====\n\n## Graph excerpt\n{\"edges\":[{\"from\":\"ProjectController@src/infrastructure/ProjectController.ts\",\"to\":\"CreateProjectUseCase@src/application/CreateProjectUseCase.ts\",\"type\":\"CONSTRUCTOR_INJECTS\"},{\"from\":\"src/infrastructure/ProjectController.ts\",\"to\":\"express\",\"type\":\"IMPORTS\"},{\"from\":\"src/infrastructure/ProjectController.ts\",\"to\":\"src/application/CreateProjectUseCase.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/infrastructure/ProjectController.ts\",\"to\":\"src/infrastructure/httpSupport.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/infrastructure/createApp.ts\",\"to\":\"src/infrastructure/ProjectController.ts\",\"type\":\"IMPORTS\"}],\"nodes\":[{\"kind\":\"Class\",\"layer\":\"application\",\"name\":\"CreateProjectUseCase\",\"path\":\"src/application/CreateProjectUseCase.ts\"},{\"kind\":\"Class\",\"layer\":\"infrastructure\",\"name\":\"ProjectController\",\"path\":\"src/infrastructure/ProjectController.ts\"},{\"kind\":\"File\",\"layer\":\"application\",\"path\":\"src/application/CreateProjectUseCase.ts\"},{\"kind\":\"File\",\"layer\":\"infrastructure\",\"path\":\"src/infrastructure/ProjectController.ts\"},{\"kind\":\"File\",\"layer\":\"infrastructure\",\"path\":\"src/infrastructure/createApp.ts\"},{\"kind\":\"File\",\"layer\":\"infrastructure\",\"path\":\"src/infrastructure/httpSupport.ts\"},{\"kind\":\"Package\",\"layer\":null,\"path\":\"express\"}]}\n\n## Instructions\nJudge the unit against the rule and rubric. Return the JSON object the schema requires. Set pass to false if any file of the unit fails the rubric.\n",
+  "provider": "claude-cli",
+  "recordedAt": "2026-10-10T22:58:00.940Z",
+  "repetition": 0,
+  "requestHash": "6400028221573ba0f56f1f0c0eeeb9062c7da6c685307cb193980a4938a61f69",
+  "resolvedModel": "claude-opus-5-5",
+  "response": "{\"is_error\":false,\"modelUsage\":{\"claude-opus-5-5\":{\"inputTokens\":2,\"outputTokens\":388}},\"result\":\"{\\\"pass\\\":true,\\\"confidence\\\":0.9,\\\"reasoning\\\":\\\"ProjectController sits in the infrastructure layer and only does transport work. It registers the Express route, pulls a required string out of the request body, hands off to the application use case and writes the HTTP response. requiredString only checks that the input is present and well formed, which is a normal transport-boundary job. It does not decide any business rule. The file contains no domain or business logic, so its responsibilities fit its declared layer.\\\",\\\"evidence\\\":[\\\"routes() registers POST /projects on an Express Router, which is HTTP transport wiring.\\\",\\\"create() calls requiredString(bodyOf(req), \\\\\\\"name\\\\\\\"), a check on request input at the boundary.\\\",\\\"create() hands the work to this.createProject.execute({ name }), the application use case.\\\",\\\"res.status(201).json(project) builds the HTTP response.\\\"],\\\"violations\\\":[]}\",\"structured_output\":{\"confidence\":0.9,\"evidence\":[\"routes() registers POST /projects on an Express Router, which is HTTP transport wiring.\",\"create() calls requiredString(bodyOf(req), \\\"name\\\"), a check on request input at the boundary.\",\"create() hands the work to this.createProject.execute({ name }), the application use case.\",\"res.status(201).json(project) builds the HTTP response.\"],\"pass\":true,\"reasoning\":\"ProjectController sits in the infrastructure layer and only does transport work. It registers the Express route, pulls a required string out of the request body, hands off to the application use case and writes the HTTP response. requiredString only checks that the input is present and well formed, which is a normal transport-boundary job. It does not decide any business rule. The file contains no domain or business logic, so its responsibilities fit its declared layer.\",\"violations\":[]}}",
+  "runIndex": 1,
+  "schemaVersion": 2,
+  "unitId": "src/infrastructure/ProjectController.ts",
+  "usage": {
+    "inputTokens": 2733,
+    "outputTokens": 388
+  },
+  "usedOptions": {
+    "effort": "high",
+    "model": "claude-opus-5-5"
+  }
+}

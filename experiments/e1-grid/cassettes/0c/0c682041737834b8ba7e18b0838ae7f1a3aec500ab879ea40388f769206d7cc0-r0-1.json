@@ -1,0 +1,47 @@
+{
+  "attempts": 1,
+  "cliVersion": "2.1.294",
+  "configListingSha256": "47aa04258852fab9a706f3f0c14cee22306d69fbb6fdfbde8c11854bd54997bc",
+  "durationMs": 6180,
+  "effort": "high",
+  "functionId": "FF-N02",
+  "ignoredOptions": [
+    "maxTokens"
+  ],
+  "isolationProbeSha256": "97a2e2d0af1100c13c55e028c1a0c71f069093c3d08705af122aaeb302f1a641",
+  "key": "0c682041737834b8ba7e18b0838ae7f1a3aec500ab879ea40388f769206d7cc0-r0-1",
+  "model": "claude-opus-5-5",
+  "outcome": {
+    "kind": "valid"
+  },
+  "parsedVerdict": {
+    "confidence": 0.93,
+    "evidence": [
+      "DomainError extends Error and sets name via new.target.name: plain language-level error base, no framework coupling",
+      "InsufficientStockError(productId, requested, available) builds a message in business terms: a domain invariant violation",
+      "No HTTP status codes, serialization, persistence or framework references appear anywhere in src/domain/errors.ts"
+    ],
+    "pass": true,
+    "reasoning": "src/domain/errors.ts only defines domain error types: a base DomainError and subclasses for validation, not-found, insufficient-stock and invalid-transition cases. These classes describe business failures in domain terms. Nothing in the file handles transport, such as HTTP status codes or response shaping. It also has no persistence or framework logic, and no application orchestration. InsufficientStockError carries domain data (productId, requested, available) and builds a domain message, which fits the domain layer. The fact that the infrastructure file http.ts imports these errors does not move any responsibility into this file.",
+    "violations": []
+  },
+  "projectId": "claude-opus-5-5/order-fulfilment/none/run-0",
+  "prompt": "## Rule\nThe unit's responsibilities match the role of its declared layer.\n\n## Rubric\nPass: Every responsibility in the file belongs to the role and kind of its declared layer, and agrees with any ADR prose given.\nFail: The file carries a responsibility that belongs to a different layer kind, for example persistence, transport or framework logic in a domain file, or business rules in an infrastructure or presentation file.\nEvidence required: Name the file and cite the function, method or statement that carries the misplaced responsibility, and the layer kind it belongs to.\nOut of scope: import direction and layer-dependency rules, which are checked symbolically.\n\n## Layer model\n- domain (kind: domain): src/domain/**\n- application (kind: application): src/application/**\n- infrastructure (kind: infrastructure): src/infrastructure/**\n\n## Unit\nKind: file\nId: src/domain/errors.ts\nLayer: domain\nUnit files:\n- src/domain/errors.ts\n\n## Source\n=====SOURCE-BEGIN src/domain/errors.ts=====\nexport class DomainError extends Error {\n  constructor(message: string) {\n    super(message);\n    this.name = new.target.name;\n  }\n}\n\nexport class ValidationError extends DomainError {}\n\nexport class NotFoundError extends DomainError {}\n\nexport class InsufficientStockError extends DomainError {\n  constructor(\n    public readonly productId: string,\n    public readonly requested: number,\n    public readonly available: number,\n  ) {\n    super(\n      `Insufficient stock for product ${productId}: requested ${requested}, available ${available}`,\n    );\n  }\n}\n\nexport class InvalidTransitionError extends DomainError {}\n\n=====SOURCE-END=====\n\n## Graph excerpt\n{\"edges\":[{\"from\":\"InsufficientStockError@src/domain/errors.ts\",\"to\":\"DomainError@src/domain/errors.ts\",\"type\":\"EXTENDS\"},{\"from\":\"InvalidTransitionError@src/domain/errors.ts\",\"to\":\"DomainError@src/domain/errors.ts\",\"type\":\"EXTENDS\"},{\"from\":\"NotFoundError@src/domain/errors.ts\",\"to\":\"DomainError@src/domain/errors.ts\",\"type\":\"EXTENDS\"},{\"from\":\"ValidationError@src/domain/errors.ts\",\"to\":\"DomainError@src/domain/errors.ts\",\"type\":\"EXTENDS\"},{\"from\":\"src/application/inventory-service.ts\",\"to\":\"src/domain/errors.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/application/order-service.ts\",\"to\":\"src/domain/errors.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/domain/order.ts\",\"to\":\"src/domain/errors.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/domain/product.ts\",\"to\":\"src/domain/errors.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/infrastructure/http.ts\",\"to\":\"src/domain/errors.ts\",\"type\":\"IMPORTS\"}],\"nodes\":[{\"kind\":\"Class\",\"layer\":\"domain\",\"name\":\"DomainError\",\"path\":\"src/domain/errors.ts\"},{\"kind\":\"Class\",\"layer\":\"domain\",\"name\":\"InsufficientStockError\",\"path\":\"src/domain/errors.ts\"},{\"kind\":\"Class\",\"layer\":\"domain\",\"name\":\"InvalidTransitionError\",\"path\":\"src/domain/errors.ts\"},{\"kind\":\"Class\",\"layer\":\"domain\",\"name\":\"NotFoundError\",\"path\":\"src/domain/errors.ts\"},{\"kind\":\"Class\",\"layer\":\"domain\",\"name\":\"ValidationError\",\"path\":\"src/domain/errors.ts\"},{\"kind\":\"File\",\"layer\":\"application\",\"path\":\"src/application/inventory-service.ts\"},{\"kind\":\"File\",\"layer\":\"application\",\"path\":\"src/application/order-service.ts\"},{\"kind\":\"File\",\"layer\":\"domain\",\"path\":\"src/domain/errors.ts\"},{\"kind\":\"File\",\"layer\":\"domain\",\"path\":\"src/domain/order.ts\"},{\"kind\":\"File\",\"layer\":\"domain\",\"path\":\"src/domain/product.ts\"},{\"kind\":\"File\",\"layer\":\"infrastructure\",\"path\":\"src/infrastructure/http.ts\"}]}\n\n## Instructions\nJudge the unit against the rule and rubric. Return the JSON object the schema requires. Set pass to false if any file of the unit fails the rubric.\n",
+  "provider": "claude-cli",
+  "recordedAt": "2026-10-10T21:29:28.162Z",
+  "repetition": 0,
+  "requestHash": "0c682041737834b8ba7e18b0838ae7f1a3aec500ab879ea40388f769206d7cc0",
+  "resolvedModel": "claude-opus-5-5",
+  "response": "{\"is_error\":false,\"modelUsage\":{\"claude-opus-5-5\":{\"inputTokens\":2,\"outputTokens\":468}},\"result\":\"{\\\"pass\\\":true,\\\"confidence\\\":0.93,\\\"reasoning\\\":\\\"src/domain/errors.ts only defines domain error types: a base DomainError and subclasses for validation, not-found, insufficient-stock and invalid-transition cases. These classes describe business failures in domain terms. Nothing in the file handles transport, such as HTTP status codes or response shaping. It also has no persistence or framework logic, and no application orchestration. InsufficientStockError carries domain data (productId, requested, available) and builds a domain message, which fits the domain layer. The fact that the infrastructure file http.ts imports these errors does not move any responsibility into this file.\\\",\\\"evidence\\\":[\\\"DomainError extends Error and sets name via new.target.name: plain language-level error base, no framework coupling\\\",\\\"InsufficientStockError(productId, requested, available) builds a message in business terms: a domain invariant violation\\\",\\\"No HTTP status codes, serialization, persistence or framework references appear anywhere in src/domain/errors.ts\\\"],\\\"violations\\\":[]}\",\"structured_output\":{\"confidence\":0.93,\"evidence\":[\"DomainError extends Error and sets name via new.target.name: plain language-level error base, no framework coupling\",\"InsufficientStockError(productId, requested, available) builds a message in business terms: a domain invariant violation\",\"No HTTP status codes, serialization, persistence or framework references appear anywhere in src/domain/errors.ts\"],\"pass\":true,\"reasoning\":\"src/domain/errors.ts only defines domain error types: a base DomainError and subclasses for validation, not-found, insufficient-stock and invalid-transition cases. These classes describe business failures in domain terms. Nothing in the file handles transport, such as HTTP status codes or response shaping. It also has no persistence or framework logic, and no application orchestration. InsufficientStockError carries domain data (productId, requested, available) and builds a domain message, which fits the domain layer. The fact that the infrastructure file http.ts imports these errors does not move any responsibility into this file.\",\"violations\":[]}}",
+  "runIndex": 1,
+  "schemaVersion": 2,
+  "unitId": "src/domain/errors.ts",
+  "usage": {
+    "inputTokens": 2925,
+    "outputTokens": 468
+  },
+  "usedOptions": {
+    "effort": "high",
+    "model": "claude-opus-5-5"
+  }
+}

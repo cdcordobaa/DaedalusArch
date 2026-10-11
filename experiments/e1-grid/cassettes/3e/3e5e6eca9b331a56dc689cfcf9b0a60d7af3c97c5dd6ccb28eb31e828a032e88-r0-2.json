@@ -1,0 +1,47 @@
+{
+  "attempts": 1,
+  "cliVersion": "2.1.294",
+  "configListingSha256": "47aa04258852fab9a706f3f0c14cee22306d69fbb6fdfbde8c11854bd54997bc",
+  "durationMs": 5157,
+  "effort": "high",
+  "functionId": "FF-N02",
+  "ignoredOptions": [
+    "maxTokens"
+  ],
+  "isolationProbeSha256": "97a2e2d0af1100c13c55e028c1a0c71f069093c3d08705af122aaeb302f1a641",
+  "key": "3e5e6eca9b331a56dc689cfcf9b0a60d7af3c97c5dd6ccb28eb31e828a032e88-r0-2",
+  "model": "claude-opus-5-5",
+  "outcome": {
+    "kind": "valid"
+  },
+  "parsedVerdict": {
+    "confidence": 0.96,
+    "evidence": [
+      "src/domain/user.ts: class User is a plain entity with readonly id and name fields",
+      "src/domain/user.ts constructor: `if (!id.trim() || !name.trim()) throw new DomainError(...)` enforces a domain invariant",
+      "The file's only import is ./errors (DomainError), which is in the domain layer; it has no I/O, persistence or framework code"
+    ],
+    "pass": true,
+    "reasoning": "src/domain/user.ts declares a domain entity, User, with an identity and a name. Its only behaviour is an invariant check in the constructor that raises a DomainError when either field is blank. That is pure domain logic. The file has no persistence, transport, framework or orchestration code, so it fits the domain layer.",
+    "violations": []
+  },
+  "projectId": "gpt-5.6-terra/task-management/minimal-prose/run-0",
+  "prompt": "## Rule\nThe unit's responsibilities match the role of its declared layer.\n\n## Rubric\nPass: Every responsibility in the file belongs to the role and kind of its declared layer, and agrees with any ADR prose given.\nFail: The file carries a responsibility that belongs to a different layer kind, for example persistence, transport or framework logic in a domain file, or business rules in an infrastructure or presentation file.\nEvidence required: Name the file and cite the function, method or statement that carries the misplaced responsibility, and the layer kind it belongs to.\nOut of scope: import direction and layer-dependency rules, which are checked symbolically.\n\n## Layer model\n- domain (kind: domain): src/domain/**\n- application (kind: application): src/application/**\n- infrastructure (kind: infrastructure): src/infrastructure/**\n\n## Unit\nKind: file\nId: src/domain/user.ts\nLayer: domain\nUnit files:\n- src/domain/user.ts\n\n## Source\n=====SOURCE-BEGIN src/domain/user.ts=====\nimport { DomainError } from \"./errors\";\n\nexport class User {\n  public constructor(\n    public readonly id: string,\n    public readonly name: string,\n  ) {\n    if (!id.trim() || !name.trim()) throw new DomainError(\"User id and name are required\");\n  }\n}\n\n=====SOURCE-END=====\n\n## Graph excerpt\n{\"edges\":[{\"from\":\"src/application/task-service.ts\",\"to\":\"src/domain/user.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/domain/repositories.ts\",\"to\":\"src/domain/user.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/domain/user.ts\",\"to\":\"src/domain/errors.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/infrastructure/in-memory-repositories.ts\",\"to\":\"src/domain/user.ts\",\"type\":\"IMPORTS\"}],\"nodes\":[{\"kind\":\"Class\",\"layer\":\"domain\",\"name\":\"User\",\"path\":\"src/domain/user.ts\"},{\"kind\":\"File\",\"layer\":\"application\",\"path\":\"src/application/task-service.ts\"},{\"kind\":\"File\",\"layer\":\"domain\",\"path\":\"src/domain/errors.ts\"},{\"kind\":\"File\",\"layer\":\"domain\",\"path\":\"src/domain/repositories.ts\"},{\"kind\":\"File\",\"layer\":\"domain\",\"path\":\"src/domain/user.ts\"},{\"kind\":\"File\",\"layer\":\"infrastructure\",\"path\":\"src/infrastructure/in-memory-repositories.ts\"}]}\n\n## Instructions\nJudge the unit against the rule and rubric. Return the JSON object the schema requires. Set pass to false if any file of the unit fails the rubric.\n",
+  "provider": "claude-cli",
+  "recordedAt": "2026-10-11T03:13:13.527Z",
+  "repetition": 0,
+  "requestHash": "3e5e6eca9b331a56dc689cfcf9b0a60d7af3c97c5dd6ccb28eb31e828a032e88",
+  "resolvedModel": "claude-opus-5-5",
+  "response": "{\"is_error\":false,\"modelUsage\":{\"claude-opus-5-5\":{\"inputTokens\":2,\"outputTokens\":367}},\"result\":\"{\\\"pass\\\":true,\\\"confidence\\\":0.96,\\\"reasoning\\\":\\\"src/domain/user.ts declares a domain entity, User, with an identity and a name. Its only behaviour is an invariant check in the constructor that raises a DomainError when either field is blank. That is pure domain logic. The file has no persistence, transport, framework or orchestration code, so it fits the domain layer.\\\",\\\"evidence\\\":[\\\"src/domain/user.ts: class User is a plain entity with readonly id and name fields\\\",\\\"src/domain/user.ts constructor: `if (!id.trim() || !name.trim()) throw new DomainError(...)` enforces a domain invariant\\\",\\\"The file's only import is ./errors (DomainError), which is in the domain layer; it has no I/O, persistence or framework code\\\"],\\\"violations\\\":[]}\",\"structured_output\":{\"confidence\":0.96,\"evidence\":[\"src/domain/user.ts: class User is a plain entity with readonly id and name fields\",\"src/domain/user.ts constructor: `if (!id.trim() || !name.trim()) throw new DomainError(...)` enforces a domain invariant\",\"The file's only import is ./errors (DomainError), which is in the domain layer; it has no I/O, persistence or framework code\"],\"pass\":true,\"reasoning\":\"src/domain/user.ts declares a domain entity, User, with an identity and a name. Its only behaviour is an invariant check in the constructor that raises a DomainError when either field is blank. That is pure domain logic. The file has no persistence, transport, framework or orchestration code, so it fits the domain layer.\",\"violations\":[]}}",
+  "runIndex": 2,
+  "schemaVersion": 2,
+  "unitId": "src/domain/user.ts",
+  "usage": {
+    "inputTokens": 2359,
+    "outputTokens": 367
+  },
+  "usedOptions": {
+    "effort": "high",
+    "model": "claude-opus-5-5"
+  }
+}

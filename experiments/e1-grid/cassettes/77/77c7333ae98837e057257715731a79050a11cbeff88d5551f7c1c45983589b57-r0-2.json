@@ -1,0 +1,47 @@
+{
+  "attempts": 1,
+  "cliVersion": "2.1.294",
+  "configListingSha256": "47aa04258852fab9a706f3f0c14cee22306d69fbb6fdfbde8c11854bd54997bc",
+  "durationMs": 7383,
+  "effort": "high",
+  "functionId": "FF-N02",
+  "ignoredOptions": [
+    "maxTokens"
+  ],
+  "isolationProbeSha256": "97a2e2d0af1100c13c55e028c1a0c71f069093c3d08705af122aaeb302f1a641",
+  "key": "77c7333ae98837e057257715731a79050a11cbeff88d5551f7c1c45983589b57-r0-2",
+  "model": "claude-opus-5-5",
+  "outcome": {
+    "kind": "valid"
+  },
+  "parsedVerdict": {
+    "confidence": 0.82,
+    "evidence": [
+      "reserve(): adds up quantities per productId and checks availableStock against them before changing any product, so stock is reserved for all lines or none. This is a business rule.",
+      "Persistence goes through the domain-declared ProductRepository interface (findById/save), injected via the constructor. The file contains no concrete storage code.",
+      "Problems are reported with the domain's own DomainError, not HTTP or framework errors."
+    ],
+    "pass": true,
+    "reasoning": "This file is a domain service. It holds the business rules for reserving stock: it adds up the requested quantity per product, checks that each product exists and has enough stock before changing anything (so all lines succeed or none do), then calls product.reserve and product.release. It reaches persistence only through ProductRepository, an interface declared in the domain layer and injected through the constructor. Domain services commonly use repository abstractions this way. The file has no transport, framework, SQL or concrete storage code. The doc comment's mention of an \"in-memory catalogue\" describes the repository's behaviour, not code in this file. Every responsibility here fits the domain layer.",
+    "violations": []
+  },
+  "projectId": "gpt-5.6-terra/order-fulfilment/minimal-prose/run-0",
+  "prompt": "## Rule\nThe unit's responsibilities match the role of its declared layer.\n\n## Rubric\nPass: Every responsibility in the file belongs to the role and kind of its declared layer, and agrees with any ADR prose given.\nFail: The file carries a responsibility that belongs to a different layer kind, for example persistence, transport or framework logic in a domain file, or business rules in an infrastructure or presentation file.\nEvidence required: Name the file and cite the function, method or statement that carries the misplaced responsibility, and the layer kind it belongs to.\nOut of scope: import direction and layer-dependency rules, which are checked symbolically.\n\n## Layer model\n- domain (kind: domain): src/domain/**\n- application (kind: application): src/application/**\n- infrastructure (kind: infrastructure): src/infrastructure/**\n\n## Unit\nKind: file\nId: src/domain/stock-reservation-service.ts\nLayer: domain\nUnit files:\n- src/domain/stock-reservation-service.ts\n\n## Source\n=====SOURCE-BEGIN src/domain/stock-reservation-service.ts=====\nimport { DomainError } from \"./errors\";\nimport { OrderLine } from \"./order\";\nimport { ProductRepository } from \"./repositories\";\n\n/** Reserves every requested line atomically against the in-memory catalogue. */\nexport class StockReservationService {\n  public constructor(private readonly products: ProductRepository) {}\n\n  public reserve(lines: readonly OrderLine[]): void {\n    const quantities = new Map<string, number>();\n    for (const line of lines) quantities.set(line.productId, (quantities.get(line.productId) ?? 0) + line.quantity);\n    const products = [...quantities].map(([productId, quantity]) => {\n      const product = this.products.findById(productId);\n      if (!product) throw new DomainError(`Product ${productId} does not exist`);\n      if (product.availableStock < quantity) throw new DomainError(`Insufficient stock for product ${productId}`);\n      return { product, quantity };\n    });\n    for (const { product, quantity } of products) {\n      product.reserve(quantity);\n      this.products.save(product);\n    }\n  }\n\n  public release(lines: readonly OrderLine[]): void {\n    for (const line of lines) {\n      const product = this.products.findById(line.productId);\n      if (!product) throw new DomainError(`Product ${line.productId} does not exist`);\n      product.release(line.quantity);\n      this.products.save(product);\n    }\n  }\n}\n\n=====SOURCE-END=====\n\n## Graph excerpt\n{\"edges\":[{\"from\":\"OrderService@src/application/order-service.ts\",\"to\":\"StockReservationService@src/domain/stock-reservation-service.ts\",\"type\":\"FLOWS_TO\"},{\"from\":\"StockReservationService@src/domain/stock-reservation-service.ts\",\"to\":\"ProductRepository@src/domain/repositories.ts\",\"type\":\"CONSTRUCTOR_INJECTS\"},{\"from\":\"src/application/order-service.ts\",\"to\":\"src/domain/stock-reservation-service.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/domain/stock-reservation-service.ts\",\"to\":\"src/domain/errors.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/domain/stock-reservation-service.ts\",\"to\":\"src/domain/order.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/domain/stock-reservation-service.ts\",\"to\":\"src/domain/repositories.ts\",\"type\":\"IMPORTS\"}],\"nodes\":[{\"kind\":\"Class\",\"layer\":\"application\",\"name\":\"OrderService\",\"path\":\"src/application/order-service.ts\"},{\"kind\":\"Class\",\"layer\":\"domain\",\"name\":\"StockReservationService\",\"path\":\"src/domain/stock-reservation-service.ts\"},{\"kind\":\"File\",\"layer\":\"application\",\"path\":\"src/application/order-service.ts\"},{\"kind\":\"File\",\"layer\":\"domain\",\"path\":\"src/domain/errors.ts\"},{\"kind\":\"File\",\"layer\":\"domain\",\"path\":\"src/domain/order.ts\"},{\"kind\":\"File\",\"layer\":\"domain\",\"path\":\"src/domain/repositories.ts\"},{\"kind\":\"File\",\"layer\":\"domain\",\"path\":\"src/domain/stock-reservation-service.ts\"},{\"kind\":\"Interface\",\"layer\":\"domain\",\"name\":\"ProductRepository\",\"path\":\"src/domain/repositories.ts\"}]}\n\n## Instructions\nJudge the unit against the rule and rubric. Return the JSON object the schema requires. Set pass to false if any file of the unit fails the rubric.\n",
+  "provider": "claude-cli",
+  "recordedAt": "2026-10-11T03:19:12.044Z",
+  "repetition": 0,
+  "requestHash": "77c7333ae98837e057257715731a79050a11cbeff88d5551f7c1c45983589b57",
+  "resolvedModel": "claude-opus-5-5",
+  "response": "{\"is_error\":false,\"modelUsage\":{\"claude-opus-5-5\":{\"inputTokens\":2,\"outputTokens\":603}},\"result\":\"{\\\"pass\\\":true,\\\"confidence\\\":0.82,\\\"reasoning\\\":\\\"This file is a domain service. It holds the business rules for reserving stock: it adds up the requested quantity per product, checks that each product exists and has enough stock before changing anything (so all lines succeed or none do), then calls product.reserve and product.release. It reaches persistence only through ProductRepository, an interface declared in the domain layer and injected through the constructor. Domain services commonly use repository abstractions this way. The file has no transport, framework, SQL or concrete storage code. The doc comment's mention of an \\\\\\\"in-memory catalogue\\\\\\\" describes the repository's behaviour, not code in this file. Every responsibility here fits the domain layer.\\\",\\\"evidence\\\":[\\\"reserve(): adds up quantities per productId and checks availableStock against them before changing any product, so stock is reserved for all lines or none. This is a business rule.\\\",\\\"Persistence goes through the domain-declared ProductRepository interface (findById/save), injected via the constructor. The file contains no concrete storage code.\\\",\\\"Problems are reported with the domain's own DomainError, not HTTP or framework errors.\\\"],\\\"violations\\\":[]}\",\"structured_output\":{\"confidence\":0.82,\"evidence\":[\"reserve(): adds up quantities per productId and checks availableStock against them before changing any product, so stock is reserved for all lines or none. This is a business rule.\",\"Persistence goes through the domain-declared ProductRepository interface (findById/save), injected via the constructor. The file contains no concrete storage code.\",\"Problems are reported with the domain's own DomainError, not HTTP or framework errors.\"],\"pass\":true,\"reasoning\":\"This file is a domain service. It holds the business rules for reserving stock: it adds up the requested quantity per product, checks that each product exists and has enough stock before changing anything (so all lines succeed or none do), then calls product.reserve and product.release. It reaches persistence only through ProductRepository, an interface declared in the domain layer and injected through the constructor. Domain services commonly use repository abstractions this way. The file has no transport, framework, SQL or concrete storage code. The doc comment's mention of an \\\"in-memory catalogue\\\" describes the repository's behaviour, not code in this file. Every responsibility here fits the domain layer.\",\"violations\":[]}}",
+  "runIndex": 2,
+  "schemaVersion": 2,
+  "unitId": "src/domain/stock-reservation-service.ts",
+  "usage": {
+    "inputTokens": 2994,
+    "outputTokens": 603
+  },
+  "usedOptions": {
+    "effort": "high",
+    "model": "claude-opus-5-5"
+  }
+}

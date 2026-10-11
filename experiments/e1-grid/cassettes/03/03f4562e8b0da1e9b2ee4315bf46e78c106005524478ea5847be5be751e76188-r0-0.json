@@ -1,0 +1,47 @@
+{
+  "attempts": 1,
+  "cliVersion": "2.1.294",
+  "configListingSha256": "47aa04258852fab9a706f3f0c14cee22306d69fbb6fdfbde8c11854bd54997bc",
+  "durationMs": 8854,
+  "effort": "high",
+  "functionId": "FF-N02",
+  "ignoredOptions": [
+    "maxTokens"
+  ],
+  "isolationProbeSha256": "97a2e2d0af1100c13c55e028c1a0c71f069093c3d08705af122aaeb302f1a641",
+  "key": "03f4562e8b0da1e9b2ee4315bf46e78c106005524478ea5847be5be751e76188-r0-0",
+  "model": "claude-opus-5-5",
+  "outcome": {
+    "kind": "valid"
+  },
+  "parsedVerdict": {
+    "confidence": 0.85,
+    "evidence": [
+      "src/application/UpdateOrderStateUseCase.ts: execute() calls this.orderRepository.getById(...) and this.orderRepository.save(order) through the injected OrderRepository abstraction, with no persistence code in the file.",
+      "src/application/UpdateOrderStateUseCase.ts: the transition rule is checked by calling the domain function canTransitionTo(order.state, request.newState) and is not written in this file.",
+      "src/application/UpdateOrderStateUseCase.ts: UpdateOrderStateRequest is a plain input type for the use case, with no HTTP or framework types."
+    ],
+    "pass": true,
+    "reasoning": "The file does what an application-layer use case should do: it coordinates the work and leaves the business rules to the domain. execute() loads the order through the OrderRepository abstraction, which is injected via the constructor. It throws an error if the order is missing. It hands the state-transition rule to the domain function canTransitionTo, then sets the new state and saves the order through the repository. There is no persistence code, transport handling or framework code in the file. The business rule about which state transitions are allowed lives in the domain, not here. Assigning order.state directly is a sign of a thin (anemic) domain model, but the rule that decides whether the change is allowed is still checked in the domain, so no responsibility from another layer kind has been moved into this file.",
+    "violations": []
+  },
+  "projectId": "claude-haiku-4-5/order-fulfilment/none/run-0",
+  "prompt": "## Rule\nThe unit's responsibilities match the role of its declared layer.\n\n## Rubric\nPass: Every responsibility in the file belongs to the role and kind of its declared layer, and agrees with any ADR prose given.\nFail: The file carries a responsibility that belongs to a different layer kind, for example persistence, transport or framework logic in a domain file, or business rules in an infrastructure or presentation file.\nEvidence required: Name the file and cite the function, method or statement that carries the misplaced responsibility, and the layer kind it belongs to.\nOut of scope: import direction and layer-dependency rules, which are checked symbolically.\n\n## Layer model\n- domain (kind: domain): src/domain/**\n- application (kind: application): src/application/**\n- infrastructure (kind: infrastructure): src/infrastructure/**\n\n## Unit\nKind: file\nId: src/application/UpdateOrderStateUseCase.ts\nLayer: application\nUnit files:\n- src/application/UpdateOrderStateUseCase.ts\n\n## Source\n=====SOURCE-BEGIN src/application/UpdateOrderStateUseCase.ts=====\nimport { Order, OrderState, canTransitionTo } from '../domain/Order';\nimport { OrderRepository } from '../domain/OrderRepository';\n\nexport interface UpdateOrderStateRequest {\n  orderId: string;\n  newState: OrderState;\n}\n\nexport class UpdateOrderStateUseCase {\n  constructor(private orderRepository: OrderRepository) {}\n\n  execute(request: UpdateOrderStateRequest): Order {\n    const order = this.orderRepository.getById(request.orderId);\n    if (!order) {\n      throw new Error(`Order ${request.orderId} not found`);\n    }\n\n    if (!canTransitionTo(order.state, request.newState)) {\n      throw new Error(\n        `Cannot transition from ${order.state} to ${request.newState}`,\n      );\n    }\n\n    order.state = request.newState;\n    this.orderRepository.save(order);\n    return order;\n  }\n}\n\n=====SOURCE-END=====\n\n## Graph excerpt\n{\"edges\":[{\"from\":\"UpdateOrderStateUseCase@src/application/UpdateOrderStateUseCase.ts\",\"to\":\"OrderRepository@src/domain/OrderRepository.ts\",\"type\":\"CONSTRUCTOR_INJECTS\"},{\"from\":\"src/application/UpdateOrderStateUseCase.ts\",\"to\":\"src/domain/Order.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/application/UpdateOrderStateUseCase.ts\",\"to\":\"src/domain/OrderRepository.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/infrastructure/dependencies.ts\",\"to\":\"src/application/UpdateOrderStateUseCase.ts\",\"type\":\"IMPORTS\"}],\"nodes\":[{\"kind\":\"Class\",\"layer\":\"application\",\"name\":\"UpdateOrderStateUseCase\",\"path\":\"src/application/UpdateOrderStateUseCase.ts\"},{\"kind\":\"Class\",\"layer\":\"domain\",\"name\":\"OrderRepository\",\"path\":\"src/domain/OrderRepository.ts\"},{\"kind\":\"File\",\"layer\":\"application\",\"path\":\"src/application/UpdateOrderStateUseCase.ts\"},{\"kind\":\"File\",\"layer\":\"domain\",\"path\":\"src/domain/Order.ts\"},{\"kind\":\"File\",\"layer\":\"domain\",\"path\":\"src/domain/OrderRepository.ts\"},{\"kind\":\"File\",\"layer\":\"infrastructure\",\"path\":\"src/infrastructure/dependencies.ts\"},{\"kind\":\"Interface\",\"layer\":\"application\",\"name\":\"UpdateOrderStateRequest\",\"path\":\"src/application/UpdateOrderStateUseCase.ts\"}]}\n\n## Instructions\nJudge the unit against the rule and rubric. Return the JSON object the schema requires. Set pass to false if any file of the unit fails the rubric.\n",
+  "provider": "claude-cli",
+  "recordedAt": "2026-10-11T02:36:09.495Z",
+  "repetition": 0,
+  "requestHash": "03f4562e8b0da1e9b2ee4315bf46e78c106005524478ea5847be5be751e76188",
+  "resolvedModel": "claude-opus-5-5",
+  "response": "{\"is_error\":false,\"modelUsage\":{\"claude-opus-5-5\":{\"inputTokens\":2,\"outputTokens\":654}},\"result\":\"{\\\"pass\\\":true,\\\"confidence\\\":0.85,\\\"reasoning\\\":\\\"The file does what an application-layer use case should do: it coordinates the work and leaves the business rules to the domain. execute() loads the order through the OrderRepository abstraction, which is injected via the constructor. It throws an error if the order is missing. It hands the state-transition rule to the domain function canTransitionTo, then sets the new state and saves the order through the repository. There is no persistence code, transport handling or framework code in the file. The business rule about which state transitions are allowed lives in the domain, not here. Assigning order.state directly is a sign of a thin (anemic) domain model, but the rule that decides whether the change is allowed is still checked in the domain, so no responsibility from another layer kind has been moved into this file.\\\",\\\"evidence\\\":[\\\"src/application/UpdateOrderStateUseCase.ts: execute() calls this.orderRepository.getById(...) and this.orderRepository.save(order) through the injected OrderRepository abstraction, with no persistence code in the file.\\\",\\\"src/application/UpdateOrderStateUseCase.ts: the transition rule is checked by calling the domain function canTransitionTo(order.state, request.newState) and is not written in this file.\\\",\\\"src/application/UpdateOrderStateUseCase.ts: UpdateOrderStateRequest is a plain input type for the use case, with no HTTP or framework types.\\\"],\\\"violations\\\":[]}\",\"structured_output\":{\"confidence\":0.85,\"evidence\":[\"src/application/UpdateOrderStateUseCase.ts: execute() calls this.orderRepository.getById(...) and this.orderRepository.save(order) through the injected OrderRepository abstraction, with no persistence code in the file.\",\"src/application/UpdateOrderStateUseCase.ts: the transition rule is checked by calling the domain function canTransitionTo(order.state, request.newState) and is not written in this file.\",\"src/application/UpdateOrderStateUseCase.ts: UpdateOrderStateRequest is a plain input type for the use case, with no HTTP or framework types.\"],\"pass\":true,\"reasoning\":\"The file does what an application-layer use case should do: it coordinates the work and leaves the business rules to the domain. execute() loads the order through the OrderRepository abstraction, which is injected via the constructor. It throws an error if the order is missing. It hands the state-transition rule to the domain function canTransitionTo, then sets the new state and saves the order through the repository. There is no persistence code, transport handling or framework code in the file. The business rule about which state transitions are allowed lives in the domain, not here. Assigning order.state directly is a sign of a thin (anemic) domain model, but the rule that decides whether the change is allowed is still checked in the domain, so no responsibility from another layer kind has been moved into this file.\",\"violations\":[]}}",
+  "runIndex": 0,
+  "schemaVersion": 2,
+  "unitId": "src/application/UpdateOrderStateUseCase.ts",
+  "usage": {
+    "inputTokens": 2790,
+    "outputTokens": 654
+  },
+  "usedOptions": {
+    "effort": "high",
+    "model": "claude-opus-5-5"
+  }
+}

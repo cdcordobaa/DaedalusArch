@@ -1,0 +1,47 @@
+{
+  "attempts": 1,
+  "cliVersion": "2.1.294",
+  "configListingSha256": "47aa04258852fab9a706f3f0c14cee22306d69fbb6fdfbde8c11854bd54997bc",
+  "durationMs": 6167,
+  "effort": "high",
+  "functionId": "FF-N02",
+  "ignoredOptions": [
+    "maxTokens"
+  ],
+  "isolationProbeSha256": "97a2e2d0af1100c13c55e028c1a0c71f069093c3d08705af122aaeb302f1a641",
+  "key": "f84d17d8038f4553bb0c1e34af52aaa61799d1a448f21f931ecf32d2e971a6eb-r0-0",
+  "model": "claude-opus-5-5",
+  "outcome": {
+    "kind": "valid"
+  },
+  "parsedVerdict": {
+    "confidence": 0.93,
+    "evidence": [
+      "src/infrastructure/ProjectController.ts: `create` handler only gets the name with `asString(bodyOf(req.body).name)` (HTTP input parsing, an infrastructure/transport job)",
+      "src/infrastructure/ProjectController.ts: hands the work off with `this.createProject.execute(...)` (calls the application use case and holds no business logic itself)",
+      "src/infrastructure/ProjectController.ts: `res.status(201).json(project)` (HTTP response mapping, an infrastructure/transport job)"
+    ],
+    "pass": true,
+    "reasoning": "ProjectController is an Express HTTP adapter in the infrastructure layer, and everything it does is transport work. It reads the name from the request body through the asString and bodyOf helpers, passes it to the application-layer CreateProjectUseCase, and sends the result back as an HTTP 201 JSON response. It has no business rules, domain invariants or orchestration that belong in the application layer. Coercing request input is ordinary adapter-level parsing, not domain validation. Its responsibilities fit the infrastructure layer.",
+    "violations": []
+  },
+  "projectId": "claude-sonnet-5-5/task-management/full-aac/run-0",
+  "prompt": "## Rule\nThe unit's responsibilities match the role of its declared layer.\n\n## Rubric\nPass: Every responsibility in the file belongs to the role and kind of its declared layer, and agrees with any ADR prose given.\nFail: The file carries a responsibility that belongs to a different layer kind, for example persistence, transport or framework logic in a domain file, or business rules in an infrastructure or presentation file.\nEvidence required: Name the file and cite the function, method or statement that carries the misplaced responsibility, and the layer kind it belongs to.\nOut of scope: import direction and layer-dependency rules, which are checked symbolically.\n\n## Layer model\n- domain (kind: domain): src/domain/**\n- application (kind: application): src/application/**\n- infrastructure (kind: infrastructure): src/infrastructure/**\n\n## Unit\nKind: file\nId: src/infrastructure/ProjectController.ts\nLayer: infrastructure\nUnit files:\n- src/infrastructure/ProjectController.ts\n\n## Source\n=====SOURCE-BEGIN src/infrastructure/ProjectController.ts=====\nimport { Request, Response } from 'express';\nimport { CreateProjectUseCase } from '../application/CreateProjectUseCase';\nimport { asString, bodyOf } from './requestValues';\n\nexport class ProjectController {\n  constructor(private readonly createProject: CreateProjectUseCase) {}\n\n  create = async (req: Request, res: Response): Promise<void> => {\n    const project = await this.createProject.execute({ name: asString(bodyOf(req.body).name) });\n    res.status(201).json(project);\n  };\n}\n\n=====SOURCE-END=====\n\n## Graph excerpt\n{\"edges\":[{\"from\":\"ProjectController@src/infrastructure/ProjectController.ts\",\"to\":\"CreateProjectUseCase@src/application/CreateProjectUseCase.ts\",\"type\":\"CONSTRUCTOR_INJECTS\"},{\"from\":\"src/infrastructure/ProjectController.ts\",\"to\":\"express\",\"type\":\"IMPORTS\"},{\"from\":\"src/infrastructure/ProjectController.ts\",\"to\":\"src/application/CreateProjectUseCase.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/infrastructure/ProjectController.ts\",\"to\":\"src/infrastructure/requestValues.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/infrastructure/app.ts\",\"to\":\"src/infrastructure/ProjectController.ts\",\"type\":\"IMPORTS\"}],\"nodes\":[{\"kind\":\"Class\",\"layer\":\"application\",\"name\":\"CreateProjectUseCase\",\"path\":\"src/application/CreateProjectUseCase.ts\"},{\"kind\":\"Class\",\"layer\":\"infrastructure\",\"name\":\"ProjectController\",\"path\":\"src/infrastructure/ProjectController.ts\"},{\"kind\":\"File\",\"layer\":\"application\",\"path\":\"src/application/CreateProjectUseCase.ts\"},{\"kind\":\"File\",\"layer\":\"infrastructure\",\"path\":\"src/infrastructure/ProjectController.ts\"},{\"kind\":\"File\",\"layer\":\"infrastructure\",\"path\":\"src/infrastructure/app.ts\"},{\"kind\":\"File\",\"layer\":\"infrastructure\",\"path\":\"src/infrastructure/requestValues.ts\"},{\"kind\":\"Package\",\"layer\":null,\"path\":\"express\"}]}\n\n## Instructions\nJudge the unit against the rule and rubric. Return the JSON object the schema requires. Set pass to false if any file of the unit fails the rubric.\n",
+  "provider": "claude-cli",
+  "recordedAt": "2026-10-10T22:54:54.001Z",
+  "repetition": 0,
+  "requestHash": "f84d17d8038f4553bb0c1e34af52aaa61799d1a448f21f931ecf32d2e971a6eb",
+  "resolvedModel": "claude-opus-5-5",
+  "response": "{\"is_error\":false,\"modelUsage\":{\"claude-opus-5-5\":{\"inputTokens\":2,\"outputTokens\":490}},\"result\":\"{\\\"pass\\\":true,\\\"confidence\\\":0.93,\\\"reasoning\\\":\\\"ProjectController is an Express HTTP adapter in the infrastructure layer, and everything it does is transport work. It reads the name from the request body through the asString and bodyOf helpers, passes it to the application-layer CreateProjectUseCase, and sends the result back as an HTTP 201 JSON response. It has no business rules, domain invariants or orchestration that belong in the application layer. Coercing request input is ordinary adapter-level parsing, not domain validation. Its responsibilities fit the infrastructure layer.\\\",\\\"evidence\\\":[\\\"src/infrastructure/ProjectController.ts: `create` handler only gets the name with `asString(bodyOf(req.body).name)` (HTTP input parsing, an infrastructure/transport job)\\\",\\\"src/infrastructure/ProjectController.ts: hands the work off with `this.createProject.execute(...)` (calls the application use case and holds no business logic itself)\\\",\\\"src/infrastructure/ProjectController.ts: `res.status(201).json(project)` (HTTP response mapping, an infrastructure/transport job)\\\"],\\\"violations\\\":[]}\",\"structured_output\":{\"confidence\":0.93,\"evidence\":[\"src/infrastructure/ProjectController.ts: `create` handler only gets the name with `asString(bodyOf(req.body).name)` (HTTP input parsing, an infrastructure/transport job)\",\"src/infrastructure/ProjectController.ts: hands the work off with `this.createProject.execute(...)` (calls the application use case and holds no business logic itself)\",\"src/infrastructure/ProjectController.ts: `res.status(201).json(project)` (HTTP response mapping, an infrastructure/transport job)\"],\"pass\":true,\"reasoning\":\"ProjectController is an Express HTTP adapter in the infrastructure layer, and everything it does is transport work. It reads the name from the request body through the asString and bodyOf helpers, passes it to the application-layer CreateProjectUseCase, and sends the result back as an HTTP 201 JSON response. It has no business rules, domain invariants or orchestration that belong in the application layer. Coercing request input is ordinary adapter-level parsing, not domain validation. Its responsibilities fit the infrastructure layer.\",\"violations\":[]}}",
+  "runIndex": 0,
+  "schemaVersion": 2,
+  "unitId": "src/infrastructure/ProjectController.ts",
+  "usage": {
+    "inputTokens": 2647,
+    "outputTokens": 490
+  },
+  "usedOptions": {
+    "effort": "high",
+    "model": "claude-opus-5-5"
+  }
+}

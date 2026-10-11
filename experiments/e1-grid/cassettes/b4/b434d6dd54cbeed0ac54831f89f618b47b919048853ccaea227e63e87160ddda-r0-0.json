@@ -1,0 +1,52 @@
+{
+  "attempts": 1,
+  "cliVersion": "2.1.294",
+  "configListingSha256": "47aa04258852fab9a706f3f0c14cee22306d69fbb6fdfbde8c11854bd54997bc",
+  "durationMs": 9731,
+  "effort": "high",
+  "functionId": "FF-N02",
+  "ignoredOptions": [
+    "maxTokens"
+  ],
+  "isolationProbeSha256": "97a2e2d0af1100c13c55e028c1a0c71f069093c3d08705af122aaeb302f1a641",
+  "key": "b434d6dd54cbeed0ac54831f89f618b47b919048853ccaea227e63e87160ddda-r0-0",
+  "model": "claude-opus-5-5",
+  "outcome": {
+    "kind": "valid"
+  },
+  "parsedVerdict": {
+    "confidence": 0.68,
+    "evidence": [
+      "src/domain/entities.ts: `export class DomainError extends Error { public constructor(message: string, public readonly statusCode: number = 400) ... }` puts an HTTP status code (400 Bad Request) on a domain error.",
+      "The graph shows src/infrastructure/http-server.ts importing src/domain/entities.ts, which suggests the transport layer uses the HTTP code stored on the domain error.",
+      "The User, Project and Task interfaces, the TaskStatus type and taskStatuses are plain domain definitions and fit the layer."
+    ],
+    "pass": false,
+    "reasoning": "Most of src/domain/entities.ts belongs in the domain layer. It defines the entity shapes (User, Project, Task), the TaskStatus value type, the list of allowed statuses and a domain error type. The problem is DomainError. Its constructor has a public readonly statusCode parameter that defaults to 400, which is the HTTP code for \"Bad Request\". That is a transport concern. Mapping a domain failure to an HTTP response belongs in the infrastructure (HTTP server) layer, not in the domain error itself. The graph shows src/infrastructure/http-server.ts imports this file, so the HTTP layer most likely reads statusCode directly. This leak is small, and the file has no other misplaced responsibilities.",
+    "violations": [
+      {
+        "filePath": "src/domain/entities.ts",
+        "message": "DomainError's constructor has a `statusCode: number = 400` property, which puts HTTP status semantics in the domain layer. Mapping domain errors to HTTP status codes is an infrastructure concern and belongs in the HTTP adapter (for example, src/infrastructure/http-server.ts). Domain errors should carry domain meaning, such as an error kind or code, not HTTP status codes."
+      }
+    ]
+  },
+  "projectId": "gpt-5.6-terra/task-management/none/run-0",
+  "prompt": "## Rule\nThe unit's responsibilities match the role of its declared layer.\n\n## Rubric\nPass: Every responsibility in the file belongs to the role and kind of its declared layer, and agrees with any ADR prose given.\nFail: The file carries a responsibility that belongs to a different layer kind, for example persistence, transport or framework logic in a domain file, or business rules in an infrastructure or presentation file.\nEvidence required: Name the file and cite the function, method or statement that carries the misplaced responsibility, and the layer kind it belongs to.\nOut of scope: import direction and layer-dependency rules, which are checked symbolically.\n\n## Layer model\n- domain (kind: domain): src/domain/**\n- application (kind: application): src/application/**\n- infrastructure (kind: infrastructure): src/infrastructure/**\n\n## Unit\nKind: file\nId: src/domain/entities.ts\nLayer: domain\nUnit files:\n- src/domain/entities.ts\n\n## Source\n=====SOURCE-BEGIN src/domain/entities.ts=====\nexport type TaskStatus = \"todo\" | \"in progress\" | \"done\";\n\nexport interface User {\n  id: string;\n  name: string;\n}\n\nexport interface Project {\n  id: string;\n  name: string;\n}\n\nexport interface Task {\n  id: string;\n  projectId: string;\n  title: string;\n  description: string;\n  dueDate?: string;\n  status: TaskStatus;\n  assigneeId?: string;\n}\n\nexport const taskStatuses: readonly TaskStatus[] = [\"todo\", \"in progress\", \"done\"];\n\nexport class DomainError extends Error {\n  public constructor(message: string, public readonly statusCode: number = 400) {\n    super(message);\n    this.name = \"DomainError\";\n  }\n}\n\n=====SOURCE-END=====\n\n## Graph excerpt\n{\"edges\":[{\"from\":\"src/application/task-management-service.ts\",\"to\":\"src/domain/entities.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/infrastructure/http-server.ts\",\"to\":\"src/domain/entities.ts\",\"type\":\"IMPORTS\"}],\"nodes\":[{\"kind\":\"Class\",\"layer\":\"domain\",\"name\":\"DomainError\",\"path\":\"src/domain/entities.ts\"},{\"kind\":\"File\",\"layer\":\"application\",\"path\":\"src/application/task-management-service.ts\"},{\"kind\":\"File\",\"layer\":\"domain\",\"path\":\"src/domain/entities.ts\"},{\"kind\":\"File\",\"layer\":\"infrastructure\",\"path\":\"src/infrastructure/http-server.ts\"},{\"kind\":\"Interface\",\"layer\":\"domain\",\"name\":\"Project\",\"path\":\"src/domain/entities.ts\"},{\"kind\":\"Interface\",\"layer\":\"domain\",\"name\":\"Task\",\"path\":\"src/domain/entities.ts\"},{\"kind\":\"Interface\",\"layer\":\"domain\",\"name\":\"User\",\"path\":\"src/domain/entities.ts\"}]}\n\n## Instructions\nJudge the unit against the rule and rubric. Return the JSON object the schema requires. Set pass to false if any file of the unit fails the rubric.\n",
+  "provider": "claude-cli",
+  "recordedAt": "2026-10-11T03:02:32.288Z",
+  "repetition": 0,
+  "requestHash": "b434d6dd54cbeed0ac54831f89f618b47b919048853ccaea227e63e87160ddda",
+  "resolvedModel": "claude-opus-5-5",
+  "response": "{\"is_error\":false,\"modelUsage\":{\"claude-opus-5-5\":{\"inputTokens\":2,\"outputTokens\":912}},\"result\":\"{\\\"pass\\\":false,\\\"confidence\\\":0.68,\\\"reasoning\\\":\\\"Most of src/domain/entities.ts belongs in the domain layer. It defines the entity shapes (User, Project, Task), the TaskStatus value type, the list of allowed statuses and a domain error type. The problem is DomainError. Its constructor has a public readonly statusCode parameter that defaults to 400, which is the HTTP code for \\\\\\\"Bad Request\\\\\\\". That is a transport concern. Mapping a domain failure to an HTTP response belongs in the infrastructure (HTTP server) layer, not in the domain error itself. The graph shows src/infrastructure/http-server.ts imports this file, so the HTTP layer most likely reads statusCode directly. This leak is small, and the file has no other misplaced responsibilities.\\\",\\\"evidence\\\":[\\\"src/domain/entities.ts: `export class DomainError extends Error { public constructor(message: string, public readonly statusCode: number = 400) ... }` puts an HTTP status code (400 Bad Request) on a domain error.\\\",\\\"The graph shows src/infrastructure/http-server.ts importing src/domain/entities.ts, which suggests the transport layer uses the HTTP code stored on the domain error.\\\",\\\"The User, Project and Task interfaces, the TaskStatus type and taskStatuses are plain domain definitions and fit the layer.\\\"],\\\"violations\\\":[{\\\"filePath\\\":\\\"src/domain/entities.ts\\\",\\\"message\\\":\\\"DomainError's constructor has a `statusCode: number = 400` property, which puts HTTP status semantics in the domain layer. Mapping domain errors to HTTP status codes is an infrastructure concern and belongs in the HTTP adapter (for example, src/infrastructure/http-server.ts). Domain errors should carry domain meaning, such as an error kind or code, not HTTP status codes.\\\"}]}\",\"structured_output\":{\"confidence\":0.68,\"evidence\":[\"src/domain/entities.ts: `export class DomainError extends Error { public constructor(message: string, public readonly statusCode: number = 400) ... }` puts an HTTP status code (400 Bad Request) on a domain error.\",\"The graph shows src/infrastructure/http-server.ts importing src/domain/entities.ts, which suggests the transport layer uses the HTTP code stored on the domain error.\",\"The User, Project and Task interfaces, the TaskStatus type and taskStatuses are plain domain definitions and fit the layer.\"],\"pass\":false,\"reasoning\":\"Most of src/domain/entities.ts belongs in the domain layer. It defines the entity shapes (User, Project, Task), the TaskStatus value type, the list of allowed statuses and a domain error type. The problem is DomainError. Its constructor has a public readonly statusCode parameter that defaults to 400, which is the HTTP code for \\\"Bad Request\\\". That is a transport concern. Mapping a domain failure to an HTTP response belongs in the infrastructure (HTTP server) layer, not in the domain error itself. The graph shows src/infrastructure/http-server.ts imports this file, so the HTTP layer most likely reads statusCode directly. This leak is small, and the file has no other misplaced responsibilities.\",\"violations\":[{\"filePath\":\"src/domain/entities.ts\",\"message\":\"DomainError's constructor has a `statusCode: number = 400` property, which puts HTTP status semantics in the domain layer. Mapping domain errors to HTTP status codes is an infrastructure concern and belongs in the HTTP adapter (for example, src/infrastructure/http-server.ts). Domain errors should carry domain meaning, such as an error kind or code, not HTTP status codes.\"}]}}",
+  "runIndex": 0,
+  "schemaVersion": 2,
+  "unitId": "src/domain/entities.ts",
+  "usage": {
+    "inputTokens": 2475,
+    "outputTokens": 912
+  },
+  "usedOptions": {
+    "effort": "high",
+    "model": "claude-opus-5-5"
+  }
+}

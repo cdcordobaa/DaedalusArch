@@ -1,0 +1,46 @@
+{
+  "attempts": 1,
+  "cliVersion": "2.1.294",
+  "configListingSha256": "47aa04258852fab9a706f3f0c14cee22306d69fbb6fdfbde8c11854bd54997bc",
+  "durationMs": 6174,
+  "effort": "high",
+  "functionId": "FF-N02",
+  "ignoredOptions": [
+    "maxTokens"
+  ],
+  "isolationProbeSha256": "97a2e2d0af1100c13c55e028c1a0c71f069093c3d08705af122aaeb302f1a641",
+  "key": "d2d15602d0b60c89e454a0d8058ea34b43b8f18528325726e220815180b575bf-r0-0",
+  "model": "claude-opus-5-5",
+  "outcome": {
+    "kind": "valid"
+  },
+  "parsedVerdict": {
+    "confidence": 0.95,
+    "evidence": [
+      "src/application/dto/ProductResponse.ts declares only `export interface ProductResponse { id; name; availableStock; reservedStock; totalStock }`. These are type fields with no logic.",
+      "Graph: src/application/GetStockLevelsUseCase.ts imports ProductResponse, so it is a use-case output DTO, which is an application-layer responsibility."
+    ],
+    "pass": true,
+    "reasoning": "The file only declares the ProductResponse interface. It is a data transfer shape that GetStockLevelsUseCase uses to return results, and defining output DTOs is a normal job for the application layer. The file has no persistence, transport, framework code or business rules. It has no behaviour at all, so nothing in it belongs to another layer.",
+    "violations": []
+  },
+  "projectId": "claude-haiku-4-5/order-fulfilment/minimal-prose/run-1",
+  "prompt": "## Rule\nThe unit's responsibilities match the role of its declared layer.\n\n## Rubric\nPass: Every responsibility in the file belongs to the role and kind of its declared layer, and agrees with any ADR prose given.\nFail: The file carries a responsibility that belongs to a different layer kind, for example persistence, transport or framework logic in a domain file, or business rules in an infrastructure or presentation file.\nEvidence required: Name the file and cite the function, method or statement that carries the misplaced responsibility, and the layer kind it belongs to.\nOut of scope: import direction and layer-dependency rules, which are checked symbolically.\n\n## Layer model\n- domain (kind: domain): src/domain/**\n- application (kind: application): src/application/**\n- infrastructure (kind: infrastructure): src/infrastructure/**\n\n## Unit\nKind: file\nId: src/application/dto/ProductResponse.ts\nLayer: application\nUnit files:\n- src/application/dto/ProductResponse.ts\n\n## Source\n=====SOURCE-BEGIN src/application/dto/ProductResponse.ts=====\nexport interface ProductResponse {\n  id: string;\n  name: string;\n  availableStock: number;\n  reservedStock: number;\n  totalStock: number;\n}\n\n=====SOURCE-END=====\n\n## Graph excerpt\n{\"edges\":[{\"from\":\"src/application/GetStockLevelsUseCase.ts\",\"to\":\"src/application/dto/ProductResponse.ts\",\"type\":\"IMPORTS\"}],\"nodes\":[{\"kind\":\"File\",\"layer\":\"application\",\"path\":\"src/application/GetStockLevelsUseCase.ts\"},{\"kind\":\"File\",\"layer\":\"application\",\"path\":\"src/application/dto/ProductResponse.ts\"},{\"kind\":\"Interface\",\"layer\":\"application\",\"name\":\"ProductResponse\",\"path\":\"src/application/dto/ProductResponse.ts\"}]}\n\n## Instructions\nJudge the unit against the rule and rubric. Return the JSON object the schema requires. Set pass to false if any file of the unit fails the rubric.\n",
+  "provider": "claude-cli",
+  "recordedAt": "2026-10-11T02:46:48.458Z",
+  "repetition": 0,
+  "requestHash": "d2d15602d0b60c89e454a0d8058ea34b43b8f18528325726e220815180b575bf",
+  "resolvedModel": "claude-opus-5-5",
+  "response": "{\"is_error\":false,\"modelUsage\":{\"claude-opus-5-5\":{\"inputTokens\":2,\"outputTokens\":372}},\"result\":\"{\\\"pass\\\":true,\\\"confidence\\\":0.95,\\\"reasoning\\\":\\\"The file only declares the ProductResponse interface. It is a data transfer shape that GetStockLevelsUseCase uses to return results, and defining output DTOs is a normal job for the application layer. The file has no persistence, transport, framework code or business rules. It has no behaviour at all, so nothing in it belongs to another layer.\\\",\\\"evidence\\\":[\\\"src/application/dto/ProductResponse.ts declares only `export interface ProductResponse { id; name; availableStock; reservedStock; totalStock }`. These are type fields with no logic.\\\",\\\"Graph: src/application/GetStockLevelsUseCase.ts imports ProductResponse, so it is a use-case output DTO, which is an application-layer responsibility.\\\"],\\\"violations\\\":[]}\",\"structured_output\":{\"confidence\":0.95,\"evidence\":[\"src/application/dto/ProductResponse.ts declares only `export interface ProductResponse { id; name; availableStock; reservedStock; totalStock }`. These are type fields with no logic.\",\"Graph: src/application/GetStockLevelsUseCase.ts imports ProductResponse, so it is a use-case output DTO, which is an application-layer responsibility.\"],\"pass\":true,\"reasoning\":\"The file only declares the ProductResponse interface. It is a data transfer shape that GetStockLevelsUseCase uses to return results, and defining output DTOs is a normal job for the application layer. The file has no persistence, transport, framework code or business rules. It has no behaviour at all, so nothing in it belongs to another layer.\",\"violations\":[]}}",
+  "runIndex": 0,
+  "schemaVersion": 2,
+  "unitId": "src/application/dto/ProductResponse.ts",
+  "usage": {
+    "inputTokens": 2154,
+    "outputTokens": 372
+  },
+  "usedOptions": {
+    "effort": "high",
+    "model": "claude-opus-5-5"
+  }
+}

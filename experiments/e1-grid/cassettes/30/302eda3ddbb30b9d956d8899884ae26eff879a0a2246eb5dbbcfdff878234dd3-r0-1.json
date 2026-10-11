@@ -1,0 +1,47 @@
+{
+  "attempts": 1,
+  "cliVersion": "2.1.294",
+  "configListingSha256": "47aa04258852fab9a706f3f0c14cee22306d69fbb6fdfbde8c11854bd54997bc",
+  "durationMs": 5951,
+  "effort": "high",
+  "functionId": "FF-N02",
+  "ignoredOptions": [
+    "maxTokens"
+  ],
+  "isolationProbeSha256": "97a2e2d0af1100c13c55e028c1a0c71f069093c3d08705af122aaeb302f1a641",
+  "key": "302eda3ddbb30b9d956d8899884ae26eff879a0a2246eb5dbbcfdff878234dd3-r0-1",
+  "model": "claude-opus-5-5",
+  "outcome": {
+    "kind": "valid"
+  },
+  "parsedVerdict": {
+    "confidence": 0.95,
+    "evidence": [
+      "src/infrastructure/stock-controller.ts: routes() builds an Express Router and registers GET '/', which is transport/framework wiring and belongs in infrastructure",
+      "src/infrastructure/stock-controller.ts: list() only calls this.listStockLevels.execute() and passes the result to res.json, with no business logic",
+      "Constructor injects ListStockLevelsUseCase, so application orchestration is handed off rather than done here"
+    ],
+    "pass": true,
+    "reasoning": "StockController is a thin Express HTTP adapter. It sets up routing with Router().get(\"/\") and turns the use case result into JSON with res.json(...). It hands all application behaviour to the injected ListStockLevelsUseCase.execute(). Transport and framework concerns belong in the infrastructure layer. The file has no business rules, no domain logic and no persistence code, so its responsibilities fit its declared layer.",
+    "violations": []
+  },
+  "projectId": "claude-sonnet-5-5/order-fulfilment/minimal-prose/run-1",
+  "prompt": "## Rule\nThe unit's responsibilities match the role of its declared layer.\n\n## Rubric\nPass: Every responsibility in the file belongs to the role and kind of its declared layer, and agrees with any ADR prose given.\nFail: The file carries a responsibility that belongs to a different layer kind, for example persistence, transport or framework logic in a domain file, or business rules in an infrastructure or presentation file.\nEvidence required: Name the file and cite the function, method or statement that carries the misplaced responsibility, and the layer kind it belongs to.\nOut of scope: import direction and layer-dependency rules, which are checked symbolically.\n\n## Layer model\n- domain (kind: domain): src/domain/**\n- application (kind: application): src/application/**\n- infrastructure (kind: infrastructure): src/infrastructure/**\n\n## Unit\nKind: file\nId: src/infrastructure/stock-controller.ts\nLayer: infrastructure\nUnit files:\n- src/infrastructure/stock-controller.ts\n\n## Source\n=====SOURCE-BEGIN src/infrastructure/stock-controller.ts=====\nimport { Request, Response, Router } from \"express\";\nimport { ListStockLevelsUseCase } from \"../application/list-stock-levels-use-case\";\n\nexport class StockController {\n  constructor(private readonly listStockLevels: ListStockLevelsUseCase) {}\n\n  routes(): Router {\n    const router = Router();\n    router.get(\"/\", (req, res) => this.list(req, res));\n    return router;\n  }\n\n  private async list(_req: Request, res: Response): Promise<void> {\n    res.json(await this.listStockLevels.execute());\n  }\n}\n\n=====SOURCE-END=====\n\n## Graph excerpt\n{\"edges\":[{\"from\":\"StockController@src/infrastructure/stock-controller.ts\",\"to\":\"ListStockLevelsUseCase@src/application/list-stock-levels-use-case.ts\",\"type\":\"CONSTRUCTOR_INJECTS\"},{\"from\":\"src/infrastructure/app.ts\",\"to\":\"src/infrastructure/stock-controller.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/infrastructure/stock-controller.ts\",\"to\":\"express\",\"type\":\"IMPORTS\"},{\"from\":\"src/infrastructure/stock-controller.ts\",\"to\":\"src/application/list-stock-levels-use-case.ts\",\"type\":\"IMPORTS\"}],\"nodes\":[{\"kind\":\"Class\",\"layer\":\"application\",\"name\":\"ListStockLevelsUseCase\",\"path\":\"src/application/list-stock-levels-use-case.ts\"},{\"kind\":\"Class\",\"layer\":\"infrastructure\",\"name\":\"StockController\",\"path\":\"src/infrastructure/stock-controller.ts\"},{\"kind\":\"File\",\"layer\":\"application\",\"path\":\"src/application/list-stock-levels-use-case.ts\"},{\"kind\":\"File\",\"layer\":\"infrastructure\",\"path\":\"src/infrastructure/app.ts\"},{\"kind\":\"File\",\"layer\":\"infrastructure\",\"path\":\"src/infrastructure/stock-controller.ts\"},{\"kind\":\"Package\",\"layer\":null,\"path\":\"express\"}]}\n\n## Instructions\nJudge the unit against the rule and rubric. Return the JSON object the schema requires. Set pass to false if any file of the unit fails the rubric.\n",
+  "provider": "claude-cli",
+  "recordedAt": "2026-10-10T22:49:26.821Z",
+  "repetition": 0,
+  "requestHash": "302eda3ddbb30b9d956d8899884ae26eff879a0a2246eb5dbbcfdff878234dd3",
+  "resolvedModel": "claude-opus-5-5",
+  "response": "{\"is_error\":false,\"modelUsage\":{\"claude-opus-5-5\":{\"inputTokens\":2,\"outputTokens\":425}},\"result\":\"{\\\"pass\\\":true,\\\"confidence\\\":0.95,\\\"reasoning\\\":\\\"StockController is a thin Express HTTP adapter. It sets up routing with Router().get(\\\\\\\"/\\\\\\\") and turns the use case result into JSON with res.json(...). It hands all application behaviour to the injected ListStockLevelsUseCase.execute(). Transport and framework concerns belong in the infrastructure layer. The file has no business rules, no domain logic and no persistence code, so its responsibilities fit its declared layer.\\\",\\\"evidence\\\":[\\\"src/infrastructure/stock-controller.ts: routes() builds an Express Router and registers GET '/', which is transport/framework wiring and belongs in infrastructure\\\",\\\"src/infrastructure/stock-controller.ts: list() only calls this.listStockLevels.execute() and passes the result to res.json, with no business logic\\\",\\\"Constructor injects ListStockLevelsUseCase, so application orchestration is handed off rather than done here\\\"],\\\"violations\\\":[]}\",\"structured_output\":{\"confidence\":0.95,\"evidence\":[\"src/infrastructure/stock-controller.ts: routes() builds an Express Router and registers GET '/', which is transport/framework wiring and belongs in infrastructure\",\"src/infrastructure/stock-controller.ts: list() only calls this.listStockLevels.execute() and passes the result to res.json, with no business logic\",\"Constructor injects ListStockLevelsUseCase, so application orchestration is handed off rather than done here\"],\"pass\":true,\"reasoning\":\"StockController is a thin Express HTTP adapter. It sets up routing with Router().get(\\\"/\\\") and turns the use case result into JSON with res.json(...). It hands all application behaviour to the injected ListStockLevelsUseCase.execute(). Transport and framework concerns belong in the infrastructure layer. The file has no business rules, no domain logic and no persistence code, so its responsibilities fit its declared layer.\",\"violations\":[]}}",
+  "runIndex": 1,
+  "schemaVersion": 2,
+  "unitId": "src/infrastructure/stock-controller.ts",
+  "usage": {
+    "inputTokens": 2569,
+    "outputTokens": 425
+  },
+  "usedOptions": {
+    "effort": "high",
+    "model": "claude-opus-5-5"
+  }
+}

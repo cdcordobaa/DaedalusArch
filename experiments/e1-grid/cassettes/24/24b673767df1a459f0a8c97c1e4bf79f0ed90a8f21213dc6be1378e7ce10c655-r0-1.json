@@ -1,0 +1,47 @@
+{
+  "attempts": 1,
+  "cliVersion": "2.1.294",
+  "configListingSha256": "47aa04258852fab9a706f3f0c14cee22306d69fbb6fdfbde8c11854bd54997bc",
+  "durationMs": 5838,
+  "effort": "high",
+  "functionId": "FF-N02",
+  "ignoredOptions": [
+    "maxTokens"
+  ],
+  "isolationProbeSha256": "97a2e2d0af1100c13c55e028c1a0c71f069093c3d08705af122aaeb302f1a641",
+  "key": "24b673767df1a459f0a8c97c1e4bf79f0ed90a8f21213dc6be1378e7ce10c655-r0-1",
+  "model": "claude-opus-5-5",
+  "outcome": {
+    "kind": "valid"
+  },
+  "parsedVerdict": {
+    "confidence": 0.95,
+    "evidence": [
+      "src/infrastructure/server.ts: createApp() calls express() and app.use(express.json()). This is HTTP framework setup, which is an infrastructure concern.",
+      "src/infrastructure/server.ts: initializeDependencies() and setupRoutes(app, deps). These wire dependencies and routes, which is infrastructure bootstrapping.",
+      "No business rules, validation or domain calculations appear in the file."
+    ],
+    "pass": true,
+    "reasoning": "src/infrastructure/server.ts only sets up the framework. createApp builds an Express app, adds the express.json() body-parsing middleware, sets up dependencies through initializeDependencies() and wires routes through setupRoutes(). Transport setup, framework bootstrapping and dependency wiring all belong in an infrastructure-layer file. The file has no business rules, domain logic or application use-case orchestration, so every responsibility in it matches its declared layer.",
+    "violations": []
+  },
+  "projectId": "claude-haiku-4-5/order-fulfilment/none/run-0",
+  "prompt": "## Rule\nThe unit's responsibilities match the role of its declared layer.\n\n## Rubric\nPass: Every responsibility in the file belongs to the role and kind of its declared layer, and agrees with any ADR prose given.\nFail: The file carries a responsibility that belongs to a different layer kind, for example persistence, transport or framework logic in a domain file, or business rules in an infrastructure or presentation file.\nEvidence required: Name the file and cite the function, method or statement that carries the misplaced responsibility, and the layer kind it belongs to.\nOut of scope: import direction and layer-dependency rules, which are checked symbolically.\n\n## Layer model\n- domain (kind: domain): src/domain/**\n- application (kind: application): src/application/**\n- infrastructure (kind: infrastructure): src/infrastructure/**\n\n## Unit\nKind: file\nId: src/infrastructure/server.ts\nLayer: infrastructure\nUnit files:\n- src/infrastructure/server.ts\n\n## Source\n=====SOURCE-BEGIN src/infrastructure/server.ts=====\nimport express from 'express';\nimport { setupRoutes } from './routes';\nimport { initializeDependencies } from './dependencies';\n\nexport function createApp() {\n  const app = express();\n\n  app.use(express.json());\n\n  const deps = initializeDependencies();\n  setupRoutes(app, deps);\n\n  return app;\n}\n\n=====SOURCE-END=====\n\n## Graph excerpt\n{\"edges\":[{\"from\":\"src/index.ts\",\"to\":\"src/infrastructure/server.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/infrastructure/server.ts\",\"to\":\"express\",\"type\":\"IMPORTS\"},{\"from\":\"src/infrastructure/server.ts\",\"to\":\"src/infrastructure/dependencies.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/infrastructure/server.ts\",\"to\":\"src/infrastructure/routes.ts\",\"type\":\"IMPORTS\"}],\"nodes\":[{\"kind\":\"File\",\"layer\":\"infrastructure\",\"path\":\"src/infrastructure/dependencies.ts\"},{\"kind\":\"File\",\"layer\":\"infrastructure\",\"path\":\"src/infrastructure/routes.ts\"},{\"kind\":\"File\",\"layer\":\"infrastructure\",\"path\":\"src/infrastructure/server.ts\"},{\"kind\":\"File\",\"layer\":null,\"path\":\"src/index.ts\"},{\"kind\":\"Package\",\"layer\":null,\"path\":\"express\"}]}\n\n## Instructions\nJudge the unit against the rule and rubric. Return the JSON object the schema requires. Set pass to false if any file of the unit fails the rubric.\n",
+  "provider": "claude-cli",
+  "recordedAt": "2026-10-11T02:37:08.774Z",
+  "repetition": 0,
+  "requestHash": "24b673767df1a459f0a8c97c1e4bf79f0ed90a8f21213dc6be1378e7ce10c655",
+  "resolvedModel": "claude-opus-5-5",
+  "response": "{\"is_error\":false,\"modelUsage\":{\"claude-opus-5-5\":{\"inputTokens\":2,\"outputTokens\":432}},\"result\":\"{\\\"pass\\\":true,\\\"confidence\\\":0.95,\\\"reasoning\\\":\\\"src/infrastructure/server.ts only sets up the framework. createApp builds an Express app, adds the express.json() body-parsing middleware, sets up dependencies through initializeDependencies() and wires routes through setupRoutes(). Transport setup, framework bootstrapping and dependency wiring all belong in an infrastructure-layer file. The file has no business rules, domain logic or application use-case orchestration, so every responsibility in it matches its declared layer.\\\",\\\"evidence\\\":[\\\"src/infrastructure/server.ts: createApp() calls express() and app.use(express.json()). This is HTTP framework setup, which is an infrastructure concern.\\\",\\\"src/infrastructure/server.ts: initializeDependencies() and setupRoutes(app, deps). These wire dependencies and routes, which is infrastructure bootstrapping.\\\",\\\"No business rules, validation or domain calculations appear in the file.\\\"],\\\"violations\\\":[]}\",\"structured_output\":{\"confidence\":0.95,\"evidence\":[\"src/infrastructure/server.ts: createApp() calls express() and app.use(express.json()). This is HTTP framework setup, which is an infrastructure concern.\",\"src/infrastructure/server.ts: initializeDependencies() and setupRoutes(app, deps). These wire dependencies and routes, which is infrastructure bootstrapping.\",\"No business rules, validation or domain calculations appear in the file.\"],\"pass\":true,\"reasoning\":\"src/infrastructure/server.ts only sets up the framework. createApp builds an Express app, adds the express.json() body-parsing middleware, sets up dependencies through initializeDependencies() and wires routes through setupRoutes(). Transport setup, framework bootstrapping and dependency wiring all belong in an infrastructure-layer file. The file has no business rules, domain logic or application use-case orchestration, so every responsibility in it matches its declared layer.\",\"violations\":[]}}",
+  "runIndex": 1,
+  "schemaVersion": 2,
+  "unitId": "src/infrastructure/server.ts",
+  "usage": {
+    "inputTokens": 2340,
+    "outputTokens": 432
+  },
+  "usedOptions": {
+    "effort": "high",
+    "model": "claude-opus-5-5"
+  }
+}

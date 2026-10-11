@@ -1,0 +1,47 @@
+{
+  "attempts": 1,
+  "cliVersion": "2.1.294",
+  "configListingSha256": "47aa04258852fab9a706f3f0c14cee22306d69fbb6fdfbde8c11854bd54997bc",
+  "durationMs": 7157,
+  "effort": "high",
+  "functionId": "FF-N02",
+  "ignoredOptions": [
+    "maxTokens"
+  ],
+  "isolationProbeSha256": "97a2e2d0af1100c13c55e028c1a0c71f069093c3d08705af122aaeb302f1a641",
+  "key": "f814baa51f5e255aa55058aae80af3bd8b17c39567cb1614bcf47ab61872fe58-r0-1",
+  "model": "claude-opus-5-5",
+  "outcome": {
+    "kind": "valid"
+  },
+  "parsedVerdict": {
+    "confidence": 0.9,
+    "evidence": [
+      "src/application/dtos/OrderDto.ts contains only `export interface` declarations with primitive and array fields; it has no functions, classes or runtime statements.",
+      "The graph shows the file is imported only by application use cases (PlaceOrderUseCase, CancelOrderUseCase, GetStockLevelsUseCase, ListOrdersByStatusUseCase, UpdateOrderStatusUseCase), which fits its role as application-layer input/output contracts.",
+      "CreateOrderRequest and OrderUpdateRequest import no framework or transport types (no Express Request or decorators), so they are plain use-case inputs."
+    ],
+    "pass": true,
+    "reasoning": "The file only declares plain data-transfer interfaces (OrderLineDto, OrderDto, CreateOrderRequest, ProductStockDto, OrderUpdateRequest). It has no runtime logic: no persistence, no HTTP or framework code, and no business rules. Data shapes that use cases accept and return are a normal application-layer responsibility, and the graph shows only application use cases import them. The 'Request' suffix suggests transport naming, but these are framework-free plain interfaces, so they work as use-case input contracts rather than transport logic. The application layer may compute ProductStockDto.availableStock, but this file only declares the field and computes nothing.",
+    "violations": []
+  },
+  "projectId": "claude-haiku-4-5/order-fulfilment/minimal-prose/run-2",
+  "prompt": "## Rule\nThe unit's responsibilities match the role of its declared layer.\n\n## Rubric\nPass: Every responsibility in the file belongs to the role and kind of its declared layer, and agrees with any ADR prose given.\nFail: The file carries a responsibility that belongs to a different layer kind, for example persistence, transport or framework logic in a domain file, or business rules in an infrastructure or presentation file.\nEvidence required: Name the file and cite the function, method or statement that carries the misplaced responsibility, and the layer kind it belongs to.\nOut of scope: import direction and layer-dependency rules, which are checked symbolically.\n\n## Layer model\n- domain (kind: domain): src/domain/**\n- application (kind: application): src/application/**\n- infrastructure (kind: infrastructure): src/infrastructure/**\n\n## Unit\nKind: file\nId: src/application/dtos/OrderDto.ts\nLayer: application\nUnit files:\n- src/application/dtos/OrderDto.ts\n\n## Source\n=====SOURCE-BEGIN src/application/dtos/OrderDto.ts=====\nexport interface OrderLineDto {\n  productId: string;\n  quantity: number;\n}\n\nexport interface OrderDto {\n  id: string;\n  status: string;\n  lines: OrderLineDto[];\n  createdAt: string;\n}\n\nexport interface CreateOrderRequest {\n  lines: OrderLineDto[];\n}\n\nexport interface ProductStockDto {\n  id: string;\n  name: string;\n  totalStock: number;\n  reservedStock: number;\n  availableStock: number;\n}\n\nexport interface OrderUpdateRequest {\n  status: string;\n}\n\n=====SOURCE-END=====\n\n## Graph excerpt\n{\"edges\":[{\"from\":\"src/application/usecases/CancelOrderUseCase.ts\",\"to\":\"src/application/dtos/OrderDto.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/application/usecases/GetStockLevelsUseCase.ts\",\"to\":\"src/application/dtos/OrderDto.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/application/usecases/ListOrdersByStatusUseCase.ts\",\"to\":\"src/application/dtos/OrderDto.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/application/usecases/PlaceOrderUseCase.ts\",\"to\":\"src/application/dtos/OrderDto.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/application/usecases/UpdateOrderStatusUseCase.ts\",\"to\":\"src/application/dtos/OrderDto.ts\",\"type\":\"IMPORTS\"}],\"nodes\":[{\"kind\":\"File\",\"layer\":\"application\",\"path\":\"src/application/dtos/OrderDto.ts\"},{\"kind\":\"File\",\"layer\":\"application\",\"path\":\"src/application/usecases/CancelOrderUseCase.ts\"},{\"kind\":\"File\",\"layer\":\"application\",\"path\":\"src/application/usecases/GetStockLevelsUseCase.ts\"},{\"kind\":\"File\",\"layer\":\"application\",\"path\":\"src/application/usecases/ListOrdersByStatusUseCase.ts\"},{\"kind\":\"File\",\"layer\":\"application\",\"path\":\"src/application/usecases/PlaceOrderUseCase.ts\"},{\"kind\":\"File\",\"layer\":\"application\",\"path\":\"src/application/usecases/UpdateOrderStatusUseCase.ts\"},{\"kind\":\"Interface\",\"layer\":\"application\",\"name\":\"CreateOrderRequest\",\"path\":\"src/application/dtos/OrderDto.ts\"},{\"kind\":\"Interface\",\"layer\":\"application\",\"name\":\"OrderDto\",\"path\":\"src/application/dtos/OrderDto.ts\"},{\"kind\":\"Interface\",\"layer\":\"application\",\"name\":\"OrderLineDto\",\"path\":\"src/application/dtos/OrderDto.ts\"},{\"kind\":\"Interface\",\"layer\":\"application\",\"name\":\"OrderUpdateRequest\",\"path\":\"src/application/dtos/OrderDto.ts\"},{\"kind\":\"Interface\",\"layer\":\"application\",\"name\":\"ProductStockDto\",\"path\":\"src/application/dtos/OrderDto.ts\"}]}\n\n## Instructions\nJudge the unit against the rule and rubric. Return the JSON object the schema requires. Set pass to false if any file of the unit fails the rubric.\n",
+  "provider": "claude-cli",
+  "recordedAt": "2026-10-11T02:49:48.632Z",
+  "repetition": 0,
+  "requestHash": "f814baa51f5e255aa55058aae80af3bd8b17c39567cb1614bcf47ab61872fe58",
+  "resolvedModel": "claude-opus-5-5",
+  "response": "{\"is_error\":false,\"modelUsage\":{\"claude-opus-5-5\":{\"inputTokens\":2,\"outputTokens\":618}},\"result\":\"{\\\"pass\\\":true,\\\"confidence\\\":0.9,\\\"reasoning\\\":\\\"The file only declares plain data-transfer interfaces (OrderLineDto, OrderDto, CreateOrderRequest, ProductStockDto, OrderUpdateRequest). It has no runtime logic: no persistence, no HTTP or framework code, and no business rules. Data shapes that use cases accept and return are a normal application-layer responsibility, and the graph shows only application use cases import them. The 'Request' suffix suggests transport naming, but these are framework-free plain interfaces, so they work as use-case input contracts rather than transport logic. The application layer may compute ProductStockDto.availableStock, but this file only declares the field and computes nothing.\\\",\\\"evidence\\\":[\\\"src/application/dtos/OrderDto.ts contains only `export interface` declarations with primitive and array fields; it has no functions, classes or runtime statements.\\\",\\\"The graph shows the file is imported only by application use cases (PlaceOrderUseCase, CancelOrderUseCase, GetStockLevelsUseCase, ListOrdersByStatusUseCase, UpdateOrderStatusUseCase), which fits its role as application-layer input/output contracts.\\\",\\\"CreateOrderRequest and OrderUpdateRequest import no framework or transport types (no Express Request or decorators), so they are plain use-case inputs.\\\"],\\\"violations\\\":[]}\",\"structured_output\":{\"confidence\":0.9,\"evidence\":[\"src/application/dtos/OrderDto.ts contains only `export interface` declarations with primitive and array fields; it has no functions, classes or runtime statements.\",\"The graph shows the file is imported only by application use cases (PlaceOrderUseCase, CancelOrderUseCase, GetStockLevelsUseCase, ListOrdersByStatusUseCase, UpdateOrderStatusUseCase), which fits its role as application-layer input/output contracts.\",\"CreateOrderRequest and OrderUpdateRequest import no framework or transport types (no Express Request or decorators), so they are plain use-case inputs.\"],\"pass\":true,\"reasoning\":\"The file only declares plain data-transfer interfaces (OrderLineDto, OrderDto, CreateOrderRequest, ProductStockDto, OrderUpdateRequest). It has no runtime logic: no persistence, no HTTP or framework code, and no business rules. Data shapes that use cases accept and return are a normal application-layer responsibility, and the graph shows only application use cases import them. The 'Request' suffix suggests transport naming, but these are framework-free plain interfaces, so they work as use-case input contracts rather than transport logic. The application layer may compute ProductStockDto.availableStock, but this file only declares the field and computes nothing.\",\"violations\":[]}}",
+  "runIndex": 1,
+  "schemaVersion": 2,
+  "unitId": "src/application/dtos/OrderDto.ts",
+  "usage": {
+    "inputTokens": 2898,
+    "outputTokens": 618
+  },
+  "usedOptions": {
+    "effort": "high",
+    "model": "claude-opus-5-5"
+  }
+}

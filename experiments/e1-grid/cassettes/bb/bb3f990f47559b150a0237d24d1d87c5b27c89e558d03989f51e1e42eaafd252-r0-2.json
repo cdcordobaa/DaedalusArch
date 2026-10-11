@@ -1,0 +1,47 @@
+{
+  "attempts": 1,
+  "cliVersion": "2.1.294",
+  "configListingSha256": "47aa04258852fab9a706f3f0c14cee22306d69fbb6fdfbde8c11854bd54997bc",
+  "durationMs": 5961,
+  "effort": "high",
+  "functionId": "FF-N02",
+  "ignoredOptions": [
+    "maxTokens"
+  ],
+  "isolationProbeSha256": "97a2e2d0af1100c13c55e028c1a0c71f069093c3d08705af122aaeb302f1a641",
+  "key": "bb3f990f47559b150a0237d24d1d87c5b27c89e558d03989f51e1e42eaafd252-r0-2",
+  "model": "claude-opus-5-5",
+  "outcome": {
+    "kind": "valid"
+  },
+  "parsedVerdict": {
+    "confidence": 0.95,
+    "evidence": [
+      "src/application/dtos/UserDtos.ts: CreateUserInput is the input shape for a use case, which is an application-layer job",
+      "src/application/dtos/UserDtos.ts: UserDto is the output shape at the use-case boundary",
+      "src/application/dtos/UserDtos.ts: toUserDto(user) only copies id and name from the domain entity into the DTO, with no business rules, I/O or framework code"
+    ],
+    "pass": true,
+    "reasoning": "This file holds application-layer data transfer objects: an input shape for a use case (CreateUserInput), an output shape (UserDto), and a plain mapper (toUserDto) that turns a domain entity into a DTO. All three are typical application-layer jobs: they define the use-case boundary and map between domain and application. The file has no persistence, transport, framework or HTTP logic, and no business rules. Import direction is out of scope for this rule.",
+    "violations": []
+  },
+  "projectId": "claude-opus-5-5/task-management/minimal-prose/run-0",
+  "prompt": "## Rule\nThe unit's responsibilities match the role of its declared layer.\n\n## Rubric\nPass: Every responsibility in the file belongs to the role and kind of its declared layer, and agrees with any ADR prose given.\nFail: The file carries a responsibility that belongs to a different layer kind, for example persistence, transport or framework logic in a domain file, or business rules in an infrastructure or presentation file.\nEvidence required: Name the file and cite the function, method or statement that carries the misplaced responsibility, and the layer kind it belongs to.\nOut of scope: import direction and layer-dependency rules, which are checked symbolically.\n\n## Layer model\n- domain (kind: domain): src/domain/**\n- application (kind: application): src/application/**\n- infrastructure (kind: infrastructure): src/infrastructure/**\n\n## Unit\nKind: file\nId: src/application/dtos/UserDtos.ts\nLayer: application\nUnit files:\n- src/application/dtos/UserDtos.ts\n\n## Source\n=====SOURCE-BEGIN src/application/dtos/UserDtos.ts=====\nimport { User } from '../../domain/entities/User';\n\nexport interface CreateUserInput {\n  name: string;\n}\n\nexport interface UserDto {\n  id: string;\n  name: string;\n}\n\nexport function toUserDto(user: User): UserDto {\n  return { id: user.id, name: user.name };\n}\n\n=====SOURCE-END=====\n\n## Graph excerpt\n{\"edges\":[{\"from\":\"src/application/dtos/UserDtos.ts\",\"to\":\"src/domain/entities/User.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/application/use-cases/CreateUserUseCase.ts\",\"to\":\"src/application/dtos/UserDtos.ts\",\"type\":\"IMPORTS\"}],\"nodes\":[{\"kind\":\"File\",\"layer\":\"application\",\"path\":\"src/application/dtos/UserDtos.ts\"},{\"kind\":\"File\",\"layer\":\"application\",\"path\":\"src/application/use-cases/CreateUserUseCase.ts\"},{\"kind\":\"File\",\"layer\":\"domain\",\"path\":\"src/domain/entities/User.ts\"},{\"kind\":\"Interface\",\"layer\":\"application\",\"name\":\"CreateUserInput\",\"path\":\"src/application/dtos/UserDtos.ts\"},{\"kind\":\"Interface\",\"layer\":\"application\",\"name\":\"UserDto\",\"path\":\"src/application/dtos/UserDtos.ts\"}]}\n\n## Instructions\nJudge the unit against the rule and rubric. Return the JSON object the schema requires. Set pass to false if any file of the unit fails the rubric.\n",
+  "provider": "claude-cli",
+  "recordedAt": "2026-10-10T21:37:19.581Z",
+  "repetition": 0,
+  "requestHash": "bb3f990f47559b150a0237d24d1d87c5b27c89e558d03989f51e1e42eaafd252",
+  "resolvedModel": "claude-opus-5-5",
+  "response": "{\"is_error\":false,\"modelUsage\":{\"claude-opus-5-5\":{\"inputTokens\":2,\"outputTokens\":425}},\"result\":\"{\\\"pass\\\":true,\\\"confidence\\\":0.95,\\\"reasoning\\\":\\\"This file holds application-layer data transfer objects: an input shape for a use case (CreateUserInput), an output shape (UserDto), and a plain mapper (toUserDto) that turns a domain entity into a DTO. All three are typical application-layer jobs: they define the use-case boundary and map between domain and application. The file has no persistence, transport, framework or HTTP logic, and no business rules. Import direction is out of scope for this rule.\\\",\\\"evidence\\\":[\\\"src/application/dtos/UserDtos.ts: CreateUserInput is the input shape for a use case, which is an application-layer job\\\",\\\"src/application/dtos/UserDtos.ts: UserDto is the output shape at the use-case boundary\\\",\\\"src/application/dtos/UserDtos.ts: toUserDto(user) only copies id and name from the domain entity into the DTO, with no business rules, I/O or framework code\\\"],\\\"violations\\\":[]}\",\"structured_output\":{\"confidence\":0.95,\"evidence\":[\"src/application/dtos/UserDtos.ts: CreateUserInput is the input shape for a use case, which is an application-layer job\",\"src/application/dtos/UserDtos.ts: UserDto is the output shape at the use-case boundary\",\"src/application/dtos/UserDtos.ts: toUserDto(user) only copies id and name from the domain entity into the DTO, with no business rules, I/O or framework code\"],\"pass\":true,\"reasoning\":\"This file holds application-layer data transfer objects: an input shape for a use case (CreateUserInput), an output shape (UserDto), and a plain mapper (toUserDto) that turns a domain entity into a DTO. All three are typical application-layer jobs: they define the use-case boundary and map between domain and application. The file has no persistence, transport, framework or HTTP logic, and no business rules. Import direction is out of scope for this rule.\",\"violations\":[]}}",
+  "runIndex": 2,
+  "schemaVersion": 2,
+  "unitId": "src/application/dtos/UserDtos.ts",
+  "usage": {
+    "inputTokens": 2328,
+    "outputTokens": 425
+  },
+  "usedOptions": {
+    "effort": "high",
+    "model": "claude-opus-5-5"
+  }
+}

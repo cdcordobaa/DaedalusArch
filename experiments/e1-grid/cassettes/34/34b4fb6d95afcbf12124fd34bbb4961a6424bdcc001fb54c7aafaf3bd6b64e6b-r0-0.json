@@ -1,0 +1,48 @@
+{
+  "attempts": 1,
+  "cliVersion": "2.1.294",
+  "configListingSha256": "47aa04258852fab9a706f3f0c14cee22306d69fbb6fdfbde8c11854bd54997bc",
+  "durationMs": 5904,
+  "effort": "high",
+  "functionId": "FF-N02",
+  "ignoredOptions": [
+    "maxTokens"
+  ],
+  "isolationProbeSha256": "97a2e2d0af1100c13c55e028c1a0c71f069093c3d08705af122aaeb302f1a641",
+  "key": "34b4fb6d95afcbf12124fd34bbb4961a6424bdcc001fb54c7aafaf3bd6b64e6b-r0-0",
+  "model": "claude-opus-5-5",
+  "outcome": {
+    "kind": "valid"
+  },
+  "parsedVerdict": {
+    "confidence": 0.95,
+    "evidence": [
+      "src/domain/Task.ts: `export type TaskStatus = 'todo' | 'in_progress' | 'done'` is a domain value type",
+      "src/domain/Task.ts: `canMarkDone()` is a domain business rule that checks `this.status !== 'done'`",
+      "src/domain/Task.ts: `withStatus()` and `withAssignee()` are immutable state changes on the entity, with no I/O or framework code",
+      "src/domain/Task.ts: no database, HTTP, framework or DTO-mapping code appears in the file"
+    ],
+    "pass": true,
+    "reasoning": "src/domain/Task.ts declares a pure domain entity. It has immutable state (id, projectId, title, description, dueDate, status, assigneeId), a TaskStatus value type, a business rule (canMarkDone), and immutable state changes (withStatus, withAssignee). None of these carry persistence, transport, framework, serialization or orchestration work. Each one fits the domain layer kind.",
+    "violations": []
+  },
+  "projectId": "claude-haiku-4-5/task-management/full-aac/run-2",
+  "prompt": "## Rule\nThe unit's responsibilities match the role of its declared layer.\n\n## Rubric\nPass: Every responsibility in the file belongs to the role and kind of its declared layer, and agrees with any ADR prose given.\nFail: The file carries a responsibility that belongs to a different layer kind, for example persistence, transport or framework logic in a domain file, or business rules in an infrastructure or presentation file.\nEvidence required: Name the file and cite the function, method or statement that carries the misplaced responsibility, and the layer kind it belongs to.\nOut of scope: import direction and layer-dependency rules, which are checked symbolically.\n\n## Layer model\n- domain (kind: domain): src/domain/**\n- application (kind: application): src/application/**\n- infrastructure (kind: infrastructure): src/infrastructure/**\n\n## Unit\nKind: file\nId: src/domain/Task.ts\nLayer: domain\nUnit files:\n- src/domain/Task.ts\n\n## Source\n=====SOURCE-BEGIN src/domain/Task.ts=====\nexport type TaskStatus = 'todo' | 'in_progress' | 'done';\n\nexport class Task {\n  constructor(\n    readonly id: string,\n    readonly projectId: string,\n    readonly title: string,\n    readonly description: string,\n    readonly dueDate: Date | null,\n    readonly status: TaskStatus,\n    readonly assigneeId: string | null,\n  ) {}\n\n  canMarkDone(): boolean {\n    return this.status !== 'done';\n  }\n\n  withStatus(status: TaskStatus): Task {\n    return new Task(\n      this.id,\n      this.projectId,\n      this.title,\n      this.description,\n      this.dueDate,\n      status,\n      this.assigneeId,\n    );\n  }\n\n  withAssignee(assigneeId: string | null): Task {\n    return new Task(\n      this.id,\n      this.projectId,\n      this.title,\n      this.description,\n      this.dueDate,\n      this.status,\n      assigneeId,\n    );\n  }\n}\n\n=====SOURCE-END=====\n\n## Graph excerpt\n{\"edges\":[{\"from\":\"src/application/AddTaskUseCase.ts\",\"to\":\"src/domain/Task.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/application/AssignTaskUseCase.ts\",\"to\":\"src/domain/Task.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/application/ListTasksUseCase.ts\",\"to\":\"src/domain/Task.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/application/MarkTaskDoneUseCase.ts\",\"to\":\"src/domain/Task.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/application/TaskDTO.ts\",\"to\":\"src/domain/Task.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/domain/TaskRepository.ts\",\"to\":\"src/domain/Task.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/infrastructure/InMemoryTaskRepository.ts\",\"to\":\"src/domain/Task.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/infrastructure/TaskController.ts\",\"to\":\"src/domain/Task.ts\",\"type\":\"IMPORTS\"}],\"nodes\":[{\"kind\":\"Class\",\"layer\":\"domain\",\"name\":\"Task\",\"path\":\"src/domain/Task.ts\"},{\"kind\":\"File\",\"layer\":\"application\",\"path\":\"src/application/AddTaskUseCase.ts\"},{\"kind\":\"File\",\"layer\":\"application\",\"path\":\"src/application/AssignTaskUseCase.ts\"},{\"kind\":\"File\",\"layer\":\"application\",\"path\":\"src/application/ListTasksUseCase.ts\"},{\"kind\":\"File\",\"layer\":\"application\",\"path\":\"src/application/MarkTaskDoneUseCase.ts\"},{\"kind\":\"File\",\"layer\":\"application\",\"path\":\"src/application/TaskDTO.ts\"},{\"kind\":\"File\",\"layer\":\"domain\",\"path\":\"src/domain/Task.ts\"},{\"kind\":\"File\",\"layer\":\"domain\",\"path\":\"src/domain/TaskRepository.ts\"},{\"kind\":\"File\",\"layer\":\"infrastructure\",\"path\":\"src/infrastructure/InMemoryTaskRepository.ts\"},{\"kind\":\"File\",\"layer\":\"infrastructure\",\"path\":\"src/infrastructure/TaskController.ts\"}]}\n\n## Instructions\nJudge the unit against the rule and rubric. Return the JSON object the schema requires. Set pass to false if any file of the unit fails the rubric.\n",
+  "provider": "claude-cli",
+  "recordedAt": "2026-10-11T02:54:25.598Z",
+  "repetition": 0,
+  "requestHash": "34b4fb6d95afcbf12124fd34bbb4961a6424bdcc001fb54c7aafaf3bd6b64e6b",
+  "resolvedModel": "claude-opus-5-5",
+  "response": "{\"is_error\":false,\"modelUsage\":{\"claude-opus-5-5\":{\"inputTokens\":2,\"outputTokens\":453}},\"result\":\"{\\\"pass\\\":true,\\\"confidence\\\":0.95,\\\"reasoning\\\":\\\"src/domain/Task.ts declares a pure domain entity. It has immutable state (id, projectId, title, description, dueDate, status, assigneeId), a TaskStatus value type, a business rule (canMarkDone), and immutable state changes (withStatus, withAssignee). None of these carry persistence, transport, framework, serialization or orchestration work. Each one fits the domain layer kind.\\\",\\\"evidence\\\":[\\\"src/domain/Task.ts: `export type TaskStatus = 'todo' | 'in_progress' | 'done'` is a domain value type\\\",\\\"src/domain/Task.ts: `canMarkDone()` is a domain business rule that checks `this.status !== 'done'`\\\",\\\"src/domain/Task.ts: `withStatus()` and `withAssignee()` are immutable state changes on the entity, with no I/O or framework code\\\",\\\"src/domain/Task.ts: no database, HTTP, framework or DTO-mapping code appears in the file\\\"],\\\"violations\\\":[]}\",\"structured_output\":{\"confidence\":0.95,\"evidence\":[\"src/domain/Task.ts: `export type TaskStatus = 'todo' | 'in_progress' | 'done'` is a domain value type\",\"src/domain/Task.ts: `canMarkDone()` is a domain business rule that checks `this.status !== 'done'`\",\"src/domain/Task.ts: `withStatus()` and `withAssignee()` are immutable state changes on the entity, with no I/O or framework code\",\"src/domain/Task.ts: no database, HTTP, framework or DTO-mapping code appears in the file\"],\"pass\":true,\"reasoning\":\"src/domain/Task.ts declares a pure domain entity. It has immutable state (id, projectId, title, description, dueDate, status, assigneeId), a TaskStatus value type, a business rule (canMarkDone), and immutable state changes (withStatus, withAssignee). None of these carry persistence, transport, framework, serialization or orchestration work. Each one fits the domain layer kind.\",\"violations\":[]}}",
+  "runIndex": 0,
+  "schemaVersion": 2,
+  "unitId": "src/domain/Task.ts",
+  "usage": {
+    "inputTokens": 2971,
+    "outputTokens": 453
+  },
+  "usedOptions": {
+    "effort": "high",
+    "model": "claude-opus-5-5"
+  }
+}

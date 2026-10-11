@@ -1,0 +1,47 @@
+{
+  "attempts": 1,
+  "cliVersion": "2.1.294",
+  "configListingSha256": "47aa04258852fab9a706f3f0c14cee22306d69fbb6fdfbde8c11854bd54997bc",
+  "durationMs": 5796,
+  "effort": "high",
+  "functionId": "FF-N02",
+  "ignoredOptions": [
+    "maxTokens"
+  ],
+  "isolationProbeSha256": "97a2e2d0af1100c13c55e028c1a0c71f069093c3d08705af122aaeb302f1a641",
+  "key": "6ba6ec15c6708a9af593a6483be44f5bd26110cc0238384023884731e90142fb-r0-0",
+  "model": "claude-opus-5-5",
+  "outcome": {
+    "kind": "valid"
+  },
+  "parsedVerdict": {
+    "confidence": 0.95,
+    "evidence": [
+      "src/application/use-cases/ListProjectsUseCase.ts: execute() calls this.projects.findAll() on the injected ProjectRepository abstraction, which is orchestration and belongs in the application layer.",
+      "src/application/use-cases/ListProjectsUseCase.ts: projects.map(toProjectDto) maps domain objects to an application DTO, which is an application-layer job.",
+      "No database, HTTP or framework code and no domain business rules appear in the file."
+    ],
+    "pass": true,
+    "reasoning": "The file holds one application-layer use case. ListProjectsUseCase.execute() asks the domain ProjectRepository abstraction, which is injected through the constructor, for all projects. It then maps the results to application DTOs with toProjectDto. That is plain use-case orchestration. The file has no persistence code, no HTTP or framework logic, and no business rules that belong in the domain. No ADR prose was given.",
+    "violations": []
+  },
+  "projectId": "claude-opus-5-5/task-management/minimal-prose/run-1",
+  "prompt": "## Rule\nThe unit's responsibilities match the role of its declared layer.\n\n## Rubric\nPass: Every responsibility in the file belongs to the role and kind of its declared layer, and agrees with any ADR prose given.\nFail: The file carries a responsibility that belongs to a different layer kind, for example persistence, transport or framework logic in a domain file, or business rules in an infrastructure or presentation file.\nEvidence required: Name the file and cite the function, method or statement that carries the misplaced responsibility, and the layer kind it belongs to.\nOut of scope: import direction and layer-dependency rules, which are checked symbolically.\n\n## Layer model\n- domain (kind: domain): src/domain/**\n- application (kind: application): src/application/**\n- infrastructure (kind: infrastructure): src/infrastructure/**\n\n## Unit\nKind: file\nId: src/application/use-cases/ListProjectsUseCase.ts\nLayer: application\nUnit files:\n- src/application/use-cases/ListProjectsUseCase.ts\n\n## Source\n=====SOURCE-BEGIN src/application/use-cases/ListProjectsUseCase.ts=====\nimport { ProjectRepository } from '../../domain/repositories/ProjectRepository';\nimport { ProjectDto, toProjectDto } from '../dtos/ProjectDto';\n\nexport class ListProjectsUseCase {\n  constructor(private readonly projects: ProjectRepository) {}\n\n  async execute(): Promise<ProjectDto[]> {\n    const projects = await this.projects.findAll();\n    return projects.map(toProjectDto);\n  }\n}\n\n=====SOURCE-END=====\n\n## Graph excerpt\n{\"edges\":[{\"from\":\"ListProjectsUseCase@src/application/use-cases/ListProjectsUseCase.ts\",\"to\":\"ProjectRepository@src/domain/repositories/ProjectRepository.ts\",\"type\":\"CONSTRUCTOR_INJECTS\"},{\"from\":\"ProjectController@src/infrastructure/http/controllers/ProjectController.ts\",\"to\":\"ListProjectsUseCase@src/application/use-cases/ListProjectsUseCase.ts\",\"type\":\"CONSTRUCTOR_INJECTS\"},{\"from\":\"src/application/use-cases/ListProjectsUseCase.ts\",\"to\":\"src/application/dtos/ProjectDto.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/application/use-cases/ListProjectsUseCase.ts\",\"to\":\"src/domain/repositories/ProjectRepository.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/infrastructure/container.ts\",\"to\":\"src/application/use-cases/ListProjectsUseCase.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/infrastructure/http/controllers/ProjectController.ts\",\"to\":\"src/application/use-cases/ListProjectsUseCase.ts\",\"type\":\"IMPORTS\"}],\"nodes\":[{\"kind\":\"Class\",\"layer\":\"application\",\"name\":\"ListProjectsUseCase\",\"path\":\"src/application/use-cases/ListProjectsUseCase.ts\"},{\"kind\":\"Class\",\"layer\":\"infrastructure\",\"name\":\"ProjectController\",\"path\":\"src/infrastructure/http/controllers/ProjectController.ts\"},{\"kind\":\"File\",\"layer\":\"application\",\"path\":\"src/application/dtos/ProjectDto.ts\"},{\"kind\":\"File\",\"layer\":\"application\",\"path\":\"src/application/use-cases/ListProjectsUseCase.ts\"},{\"kind\":\"File\",\"layer\":\"domain\",\"path\":\"src/domain/repositories/ProjectRepository.ts\"},{\"kind\":\"File\",\"layer\":\"infrastructure\",\"path\":\"src/infrastructure/container.ts\"},{\"kind\":\"File\",\"layer\":\"infrastructure\",\"path\":\"src/infrastructure/http/controllers/ProjectController.ts\"},{\"kind\":\"Interface\",\"layer\":\"domain\",\"name\":\"ProjectRepository\",\"path\":\"src/domain/repositories/ProjectRepository.ts\"}]}\n\n## Instructions\nJudge the unit against the rule and rubric. Return the JSON object the schema requires. Set pass to false if any file of the unit fails the rubric.\n",
+  "provider": "claude-cli",
+  "recordedAt": "2026-10-10T21:41:50.306Z",
+  "repetition": 0,
+  "requestHash": "6ba6ec15c6708a9af593a6483be44f5bd26110cc0238384023884731e90142fb",
+  "resolvedModel": "claude-opus-5-5",
+  "response": "{\"is_error\":false,\"modelUsage\":{\"claude-opus-5-5\":{\"inputTokens\":2,\"outputTokens\":433}},\"result\":\"{\\\"pass\\\":true,\\\"confidence\\\":0.95,\\\"reasoning\\\":\\\"The file holds one application-layer use case. ListProjectsUseCase.execute() asks the domain ProjectRepository abstraction, which is injected through the constructor, for all projects. It then maps the results to application DTOs with toProjectDto. That is plain use-case orchestration. The file has no persistence code, no HTTP or framework logic, and no business rules that belong in the domain. No ADR prose was given.\\\",\\\"evidence\\\":[\\\"src/application/use-cases/ListProjectsUseCase.ts: execute() calls this.projects.findAll() on the injected ProjectRepository abstraction, which is orchestration and belongs in the application layer.\\\",\\\"src/application/use-cases/ListProjectsUseCase.ts: projects.map(toProjectDto) maps domain objects to an application DTO, which is an application-layer job.\\\",\\\"No database, HTTP or framework code and no domain business rules appear in the file.\\\"],\\\"violations\\\":[]}\",\"structured_output\":{\"confidence\":0.95,\"evidence\":[\"src/application/use-cases/ListProjectsUseCase.ts: execute() calls this.projects.findAll() on the injected ProjectRepository abstraction, which is orchestration and belongs in the application layer.\",\"src/application/use-cases/ListProjectsUseCase.ts: projects.map(toProjectDto) maps domain objects to an application DTO, which is an application-layer job.\",\"No database, HTTP or framework code and no domain business rules appear in the file.\"],\"pass\":true,\"reasoning\":\"The file holds one application-layer use case. ListProjectsUseCase.execute() asks the domain ProjectRepository abstraction, which is injected through the constructor, for all projects. It then maps the results to application DTOs with toProjectDto. That is plain use-case orchestration. The file has no persistence code, no HTTP or framework logic, and no business rules that belong in the domain. No ADR prose was given.\",\"violations\":[]}}",
+  "runIndex": 0,
+  "schemaVersion": 2,
+  "unitId": "src/application/use-cases/ListProjectsUseCase.ts",
+  "usage": {
+    "inputTokens": 2881,
+    "outputTokens": 433
+  },
+  "usedOptions": {
+    "effort": "high",
+    "model": "claude-opus-5-5"
+  }
+}

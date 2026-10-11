@@ -1,0 +1,48 @@
+{
+  "attempts": 1,
+  "cliVersion": "2.1.294",
+  "configListingSha256": "47aa04258852fab9a706f3f0c14cee22306d69fbb6fdfbde8c11854bd54997bc",
+  "durationMs": 7555,
+  "effort": "high",
+  "functionId": "FF-N02",
+  "ignoredOptions": [
+    "maxTokens"
+  ],
+  "isolationProbeSha256": "97a2e2d0af1100c13c55e028c1a0c71f069093c3d08705af122aaeb302f1a641",
+  "key": "6e2bf0df62ed9d2bce195dedaf06b67c5aaec5c288bca6f3e754df720bf3db2b-r0-1",
+  "model": "claude-opus-5-5",
+  "outcome": {
+    "kind": "valid"
+  },
+  "parsedVerdict": {
+    "confidence": 0.9,
+    "evidence": [
+      "src/infrastructure/errorHandler.ts: statusFor() maps DomainError subclasses to HTTP status codes (400/404/409/422). This is HTTP transport translation, which fits infrastructure.",
+      "src/infrastructure/errorHandler.ts: errorHandler() is Express error middleware that uses res.status().json(). This is framework and transport logic, which fits infrastructure.",
+      "src/infrastructure/errorHandler.ts: notFoundHandler() sends a 404 for routes that don't exist. This is routing and transport logic.",
+      "src/infrastructure/errorHandler.ts: no business rules or domain decisions are computed. Domain errors are only classified for the HTTP response."
+    ],
+    "pass": true,
+    "reasoning": "The file passes. It is Express middleware that turns errors into HTTP responses, and that is transport work, which belongs in the infrastructure layer. statusFor maps domain error types to HTTP status codes. This translation is a presentation and transport concern and makes no business decisions. clientStatusOf reads body-parser HTTP statuses. notFoundHandler and errorHandler build JSON HTTP responses and log unexpected errors. The file contains no business rules, no domain invariants and no persistence logic.",
+    "violations": []
+  },
+  "projectId": "claude-opus-5-5/order-fulfilment/minimal-prose/run-0",
+  "prompt": "## Rule\nThe unit's responsibilities match the role of its declared layer.\n\n## Rubric\nPass: Every responsibility in the file belongs to the role and kind of its declared layer, and agrees with any ADR prose given.\nFail: The file carries a responsibility that belongs to a different layer kind, for example persistence, transport or framework logic in a domain file, or business rules in an infrastructure or presentation file.\nEvidence required: Name the file and cite the function, method or statement that carries the misplaced responsibility, and the layer kind it belongs to.\nOut of scope: import direction and layer-dependency rules, which are checked symbolically.\n\n## Layer model\n- domain (kind: domain): src/domain/**\n- application (kind: application): src/application/**\n- infrastructure (kind: infrastructure): src/infrastructure/**\n\n## Unit\nKind: file\nId: src/infrastructure/errorHandler.ts\nLayer: infrastructure\nUnit files:\n- src/infrastructure/errorHandler.ts\n\n## Source\n=====SOURCE-BEGIN src/infrastructure/errorHandler.ts=====\nimport { NextFunction, Request, Response } from 'express';\nimport {\n  DomainError,\n  InsufficientStockError,\n  InvalidStateTransitionError,\n  NotFoundError,\n  ValidationError,\n} from '../domain/errors';\n\nfunction statusFor(error: DomainError): number {\n  if (error instanceof ValidationError) return 400;\n  if (error instanceof NotFoundError) return 404;\n  if (error instanceof InsufficientStockError || error instanceof InvalidStateTransitionError) return 409;\n  return 422;\n}\n\n/** Body-parser failures carry an HTTP status in the 4xx range. */\nfunction clientStatusOf(error: unknown): number | undefined {\n  if (typeof error !== 'object' || error === null || !('status' in error)) return undefined;\n  const status = (error as { status: unknown }).status;\n  return typeof status === 'number' && status >= 400 && status < 500 ? status : undefined;\n}\n\nexport function notFoundHandler(req: Request, res: Response): void {\n  res.status(404).json({ error: 'NotFound', message: `No route for ${req.method} ${req.path}` });\n}\n\nexport function errorHandler(error: unknown, _req: Request, res: Response, _next: NextFunction): void {\n  if (error instanceof DomainError) {\n    res.status(statusFor(error)).json({ error: error.name, message: error.message });\n    return;\n  }\n  const clientStatus = clientStatusOf(error);\n  if (clientStatus !== undefined) {\n    res.status(clientStatus).json({ error: 'BadRequest', message: 'Malformed request' });\n    return;\n  }\n  console.error(error);\n  res.status(500).json({ error: 'InternalServerError', message: 'Unexpected error' });\n}\n\n=====SOURCE-END=====\n\n## Graph excerpt\n{\"edges\":[{\"from\":\"src/infrastructure/app.ts\",\"to\":\"src/infrastructure/errorHandler.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/infrastructure/errorHandler.ts\",\"to\":\"express\",\"type\":\"IMPORTS\"},{\"from\":\"src/infrastructure/errorHandler.ts\",\"to\":\"src/domain/errors.ts\",\"type\":\"IMPORTS\"}],\"nodes\":[{\"kind\":\"File\",\"layer\":\"domain\",\"path\":\"src/domain/errors.ts\"},{\"kind\":\"File\",\"layer\":\"infrastructure\",\"path\":\"src/infrastructure/app.ts\"},{\"kind\":\"File\",\"layer\":\"infrastructure\",\"path\":\"src/infrastructure/errorHandler.ts\"},{\"kind\":\"Package\",\"layer\":null,\"path\":\"express\"}]}\n\n## Instructions\nJudge the unit against the rule and rubric. Return the JSON object the schema requires. Set pass to false if any file of the unit fails the rubric.\n",
+  "provider": "claude-cli",
+  "recordedAt": "2026-10-10T21:50:28.584Z",
+  "repetition": 0,
+  "requestHash": "6e2bf0df62ed9d2bce195dedaf06b67c5aaec5c288bca6f3e754df720bf3db2b",
+  "resolvedModel": "claude-opus-5-5",
+  "response": "{\"is_error\":false,\"modelUsage\":{\"claude-opus-5-5\":{\"inputTokens\":2,\"outputTokens\":594}},\"result\":\"{\\\"pass\\\":true,\\\"confidence\\\":0.9,\\\"reasoning\\\":\\\"The file passes. It is Express middleware that turns errors into HTTP responses, and that is transport work, which belongs in the infrastructure layer. statusFor maps domain error types to HTTP status codes. This translation is a presentation and transport concern and makes no business decisions. clientStatusOf reads body-parser HTTP statuses. notFoundHandler and errorHandler build JSON HTTP responses and log unexpected errors. The file contains no business rules, no domain invariants and no persistence logic.\\\",\\\"evidence\\\":[\\\"src/infrastructure/errorHandler.ts: statusFor() maps DomainError subclasses to HTTP status codes (400/404/409/422). This is HTTP transport translation, which fits infrastructure.\\\",\\\"src/infrastructure/errorHandler.ts: errorHandler() is Express error middleware that uses res.status().json(). This is framework and transport logic, which fits infrastructure.\\\",\\\"src/infrastructure/errorHandler.ts: notFoundHandler() sends a 404 for routes that don't exist. This is routing and transport logic.\\\",\\\"src/infrastructure/errorHandler.ts: no business rules or domain decisions are computed. Domain errors are only classified for the HTTP response.\\\"],\\\"violations\\\":[]}\",\"structured_output\":{\"confidence\":0.9,\"evidence\":[\"src/infrastructure/errorHandler.ts: statusFor() maps DomainError subclasses to HTTP status codes (400/404/409/422). This is HTTP transport translation, which fits infrastructure.\",\"src/infrastructure/errorHandler.ts: errorHandler() is Express error middleware that uses res.status().json(). This is framework and transport logic, which fits infrastructure.\",\"src/infrastructure/errorHandler.ts: notFoundHandler() sends a 404 for routes that don't exist. This is routing and transport logic.\",\"src/infrastructure/errorHandler.ts: no business rules or domain decisions are computed. Domain errors are only classified for the HTTP response.\"],\"pass\":true,\"reasoning\":\"The file passes. It is Express middleware that turns errors into HTTP responses, and that is transport work, which belongs in the infrastructure layer. statusFor maps domain error types to HTTP status codes. This translation is a presentation and transport concern and makes no business decisions. clientStatusOf reads body-parser HTTP statuses. notFoundHandler and errorHandler build JSON HTTP responses and log unexpected errors. The file contains no business rules, no domain invariants and no persistence logic.\",\"violations\":[]}}",
+  "runIndex": 1,
+  "schemaVersion": 2,
+  "unitId": "src/infrastructure/errorHandler.ts",
+  "usage": {
+    "inputTokens": 2781,
+    "outputTokens": 594
+  },
+  "usedOptions": {
+    "effort": "high",
+    "model": "claude-opus-5-5"
+  }
+}

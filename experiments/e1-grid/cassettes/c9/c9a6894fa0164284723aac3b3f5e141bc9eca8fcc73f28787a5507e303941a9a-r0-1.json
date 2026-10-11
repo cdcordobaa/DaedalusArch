@@ -1,0 +1,48 @@
+{
+  "attempts": 1,
+  "cliVersion": "2.1.294",
+  "configListingSha256": "47aa04258852fab9a706f3f0c14cee22306d69fbb6fdfbde8c11854bd54997bc",
+  "durationMs": 6220,
+  "effort": "high",
+  "functionId": "FF-N01",
+  "ignoredOptions": [
+    "maxTokens"
+  ],
+  "isolationProbeSha256": "97a2e2d0af1100c13c55e028c1a0c71f069093c3d08705af122aaeb302f1a641",
+  "key": "c9a6894fa0164284723aac3b3f5e141bc9eca8fcc73f28787a5507e303941a9a-r0-1",
+  "model": "claude-opus-5-5",
+  "outcome": {
+    "kind": "valid"
+  },
+  "parsedVerdict": {
+    "confidence": 0.9,
+    "evidence": [
+      "src/infrastructure/system/CryptoIdGenerator.ts: `export class CryptoIdGenerator implements IdGenerator { next(): string { return randomUUID(); } }` is a system-entropy adapter behind the IdGenerator port.",
+      "src/infrastructure/system/SystemClock.ts: `export class SystemClock implements Clock { now(): Date { return new Date(); } }` is a system-time adapter behind the Clock port.",
+      "Both classes follow the same shape: one port implementation with one method and no state. The only consumer of both is src/infrastructure/config/container.ts, which shows they are used together as wiring for system services.",
+      "Neither file duplicates logic from the other or contains shared invariants."
+    ],
+    "pass": true,
+    "reasoning": "The module has one concern: thin adapters that wrap nondeterministic system resources (wall-clock time and random UUIDs) behind application ports. Both files follow the same pattern. Each is a stateless class that implements one port interface with one method. No rule or invariant is repeated across the files, and neither file goes around the port it implements.",
+    "violations": []
+  },
+  "projectId": "claude-opus-5-5/order-fulfilment/minimal-prose/run-1",
+  "prompt": "## Rule\nThe module's files form one coherent unit with a consistent abstraction and boundary.\n\n## Rubric\nPass: The files serve one cohesive concern, use the module's abstractions consistently, and keep each rule or invariant in one place.\nFail: The files split into unrelated concerns, duplicate a rule or invariant that should live in one place, or bypass the module's own abstractions.\nEvidence required: Name each file involved and cite the declarations that show the split, the duplication or the bypass.\nOut of scope: import direction and layer-dependency rules, which are checked symbolically.\n\n## Layer model\n- domain (kind: domain): src/domain/**\n- application (kind: application): src/application/**\n- infrastructure (kind: infrastructure): src/infrastructure/**\n\n## Unit\nKind: module\nId: src/infrastructure/system\nLayer: infrastructure\nUnit files:\n- src/infrastructure/system/CryptoIdGenerator.ts\n- src/infrastructure/system/SystemClock.ts\n\n## Source\n=====SOURCE-BEGIN src/infrastructure/system/CryptoIdGenerator.ts=====\nimport { randomUUID } from 'node:crypto';\nimport { IdGenerator } from '../../application/ports/IdGenerator';\n\nexport class CryptoIdGenerator implements IdGenerator {\n  next(): string {\n    return randomUUID();\n  }\n}\n\n=====SOURCE-END=====\n\n=====SOURCE-BEGIN src/infrastructure/system/SystemClock.ts=====\nimport { Clock } from '../../application/ports/Clock';\n\nexport class SystemClock implements Clock {\n  now(): Date {\n    return new Date();\n  }\n}\n\n=====SOURCE-END=====\n\n## Exported signatures\n// src/infrastructure/system/CryptoIdGenerator.ts\nexport class CryptoIdGenerator implements IdGenerator {\n  next(): string;\n}\n\n// src/infrastructure/system/SystemClock.ts\nexport class SystemClock implements Clock {\n  now(): Date;\n}\n\n## Incoming\n- src/infrastructure/config/container.ts\n\n## Outgoing\n- crypto\n- src/application/ports/Clock.ts\n- src/application/ports/IdGenerator.ts\n\n## Graph excerpt\n{\"edges\":[{\"from\":\"CryptoIdGenerator@src/infrastructure/system/CryptoIdGenerator.ts\",\"to\":\"IdGenerator@src/application/ports/IdGenerator.ts\",\"type\":\"IMPLEMENTS\"},{\"from\":\"SystemClock@src/infrastructure/system/SystemClock.ts\",\"to\":\"Clock@src/application/ports/Clock.ts\",\"type\":\"IMPLEMENTS\"},{\"from\":\"src/infrastructure/config/container.ts\",\"to\":\"src/infrastructure/system/CryptoIdGenerator.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/infrastructure/config/container.ts\",\"to\":\"src/infrastructure/system/SystemClock.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/infrastructure/system/CryptoIdGenerator.ts\",\"to\":\"crypto\",\"type\":\"IMPORTS\"},{\"from\":\"src/infrastructure/system/CryptoIdGenerator.ts\",\"to\":\"src/application/ports/IdGenerator.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/infrastructure/system/SystemClock.ts\",\"to\":\"src/application/ports/Clock.ts\",\"type\":\"IMPORTS\"}],\"nodes\":[{\"kind\":\"Class\",\"layer\":\"infrastructure\",\"name\":\"CryptoIdGenerator\",\"path\":\"src/infrastructure/system/CryptoIdGenerator.ts\"},{\"kind\":\"Class\",\"layer\":\"infrastructure\",\"name\":\"SystemClock\",\"path\":\"src/infrastructure/system/SystemClock.ts\"},{\"kind\":\"File\",\"layer\":\"application\",\"path\":\"src/application/ports/Clock.ts\"},{\"kind\":\"File\",\"layer\":\"application\",\"path\":\"src/application/ports/IdGenerator.ts\"},{\"kind\":\"File\",\"layer\":\"infrastructure\",\"path\":\"src/infrastructure/config/container.ts\"},{\"kind\":\"File\",\"layer\":\"infrastructure\",\"path\":\"src/infrastructure/system/CryptoIdGenerator.ts\"},{\"kind\":\"File\",\"layer\":\"infrastructure\",\"path\":\"src/infrastructure/system/SystemClock.ts\"},{\"kind\":\"Interface\",\"layer\":\"application\",\"name\":\"Clock\",\"path\":\"src/application/ports/Clock.ts\"},{\"kind\":\"Interface\",\"layer\":\"application\",\"name\":\"IdGenerator\",\"path\":\"src/application/ports/IdGenerator.ts\"},{\"kind\":\"Package\",\"layer\":null,\"path\":\"crypto\"}]}\n\n## Instructions\nJudge the unit against the rule and rubric. Return the JSON object the schema requires. Set pass to false if any file of the unit fails the rubric.\n",
+  "provider": "claude-cli",
+  "recordedAt": "2026-10-10T21:53:17.831Z",
+  "repetition": 0,
+  "requestHash": "c9a6894fa0164284723aac3b3f5e141bc9eca8fcc73f28787a5507e303941a9a",
+  "resolvedModel": "claude-opus-5-5",
+  "response": "{\"is_error\":false,\"modelUsage\":{\"claude-opus-5-5\":{\"inputTokens\":2,\"outputTokens\":487}},\"result\":\"{\\\"pass\\\":true,\\\"confidence\\\":0.9,\\\"reasoning\\\":\\\"The module has one concern: thin adapters that wrap nondeterministic system resources (wall-clock time and random UUIDs) behind application ports. Both files follow the same pattern. Each is a stateless class that implements one port interface with one method. No rule or invariant is repeated across the files, and neither file goes around the port it implements.\\\",\\\"evidence\\\":[\\\"src/infrastructure/system/CryptoIdGenerator.ts: `export class CryptoIdGenerator implements IdGenerator { next(): string { return randomUUID(); } }` is a system-entropy adapter behind the IdGenerator port.\\\",\\\"src/infrastructure/system/SystemClock.ts: `export class SystemClock implements Clock { now(): Date { return new Date(); } }` is a system-time adapter behind the Clock port.\\\",\\\"Both classes follow the same shape: one port implementation with one method and no state. The only consumer of both is src/infrastructure/config/container.ts, which shows they are used together as wiring for system services.\\\",\\\"Neither file duplicates logic from the other or contains shared invariants.\\\"],\\\"violations\\\":[]}\",\"structured_output\":{\"confidence\":0.9,\"evidence\":[\"src/infrastructure/system/CryptoIdGenerator.ts: `export class CryptoIdGenerator implements IdGenerator { next(): string { return randomUUID(); } }` is a system-entropy adapter behind the IdGenerator port.\",\"src/infrastructure/system/SystemClock.ts: `export class SystemClock implements Clock { now(): Date { return new Date(); } }` is a system-time adapter behind the Clock port.\",\"Both classes follow the same shape: one port implementation with one method and no state. The only consumer of both is src/infrastructure/config/container.ts, which shows they are used together as wiring for system services.\",\"Neither file duplicates logic from the other or contains shared invariants.\"],\"pass\":true,\"reasoning\":\"The module has one concern: thin adapters that wrap nondeterministic system resources (wall-clock time and random UUIDs) behind application ports. Both files follow the same pattern. Each is a stateless class that implements one port interface with one method. No rule or invariant is repeated across the files, and neither file goes around the port it implements.\",\"violations\":[]}}",
+  "runIndex": 1,
+  "schemaVersion": 2,
+  "unitId": "src/infrastructure/system",
+  "usage": {
+    "inputTokens": 3129,
+    "outputTokens": 487
+  },
+  "usedOptions": {
+    "effort": "high",
+    "model": "claude-opus-5-5"
+  }
+}

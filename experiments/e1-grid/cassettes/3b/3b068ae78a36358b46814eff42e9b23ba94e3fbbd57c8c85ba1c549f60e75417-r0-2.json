@@ -1,0 +1,47 @@
+{
+  "attempts": 1,
+  "cliVersion": "2.1.294",
+  "configListingSha256": "47aa04258852fab9a706f3f0c14cee22306d69fbb6fdfbde8c11854bd54997bc",
+  "durationMs": 6111,
+  "effort": "high",
+  "functionId": "FF-N02",
+  "ignoredOptions": [
+    "maxTokens"
+  ],
+  "isolationProbeSha256": "97a2e2d0af1100c13c55e028c1a0c71f069093c3d08705af122aaeb302f1a641",
+  "key": "3b068ae78a36358b46814eff42e9b23ba94e3fbbd57c8c85ba1c549f60e75417-r0-2",
+  "model": "claude-opus-5-5",
+  "outcome": {
+    "kind": "valid"
+  },
+  "parsedVerdict": {
+    "confidence": 0.93,
+    "evidence": [
+      "src/application/catalogue-service.ts: create() builds a Product, calls this.products.save(product), and returns toProductDto(product). This is use-case orchestration, which belongs to the application layer.",
+      "src/application/catalogue-service.ts: listStock() maps this.products.findAll() to DTOs. This is query orchestration through an abstract repository port.",
+      "The ProductRepository dependency is a domain interface passed in through the constructor, so there is no concrete persistence logic in this file."
+    ],
+    "pass": true,
+    "reasoning": "CatalogueService is a standard application service. It handles use-case orchestration: it builds the domain entity, saves it through an injected domain repository port, and maps the result to DTOs for return. It contains no persistence implementation, no transport or HTTP handling, no framework code, and no inline business rules beyond calling the Product constructor. All of this belongs to the application layer.",
+    "violations": []
+  },
+  "projectId": "gpt-5.6-terra/order-fulfilment/minimal-prose/run-0",
+  "prompt": "## Rule\nThe unit's responsibilities match the role of its declared layer.\n\n## Rubric\nPass: Every responsibility in the file belongs to the role and kind of its declared layer, and agrees with any ADR prose given.\nFail: The file carries a responsibility that belongs to a different layer kind, for example persistence, transport or framework logic in a domain file, or business rules in an infrastructure or presentation file.\nEvidence required: Name the file and cite the function, method or statement that carries the misplaced responsibility, and the layer kind it belongs to.\nOut of scope: import direction and layer-dependency rules, which are checked symbolically.\n\n## Layer model\n- domain (kind: domain): src/domain/**\n- application (kind: application): src/application/**\n- infrastructure (kind: infrastructure): src/infrastructure/**\n\n## Unit\nKind: file\nId: src/application/catalogue-service.ts\nLayer: application\nUnit files:\n- src/application/catalogue-service.ts\n\n## Source\n=====SOURCE-BEGIN src/application/catalogue-service.ts=====\nimport { Product } from \"../domain/product\";\nimport { ProductRepository } from \"../domain/repositories\";\nimport { CreateProductInput, ProductDto, toProductDto } from \"./dtos\";\n\nexport class CatalogueService {\n  public constructor(private readonly products: ProductRepository) {}\n\n  public create(input: CreateProductInput): ProductDto {\n    const product = new Product(input.id, input.name, input.stock);\n    this.products.save(product);\n    return toProductDto(product);\n  }\n\n  public listStock(): readonly ProductDto[] {\n    return this.products.findAll().map(toProductDto);\n  }\n}\n\n=====SOURCE-END=====\n\n## Graph excerpt\n{\"edges\":[{\"from\":\"CatalogueService@src/application/catalogue-service.ts\",\"to\":\"ProductRepository@src/domain/repositories.ts\",\"type\":\"CONSTRUCTOR_INJECTS\"},{\"from\":\"OrderController@src/infrastructure/order-controller.ts\",\"to\":\"CatalogueService@src/application/catalogue-service.ts\",\"type\":\"CONSTRUCTOR_INJECTS\"},{\"from\":\"src/application/catalogue-service.ts\",\"to\":\"src/application/dtos.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/application/catalogue-service.ts\",\"to\":\"src/domain/product.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/application/catalogue-service.ts\",\"to\":\"src/domain/repositories.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/infrastructure/order-controller.ts\",\"to\":\"src/application/catalogue-service.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/infrastructure/server.ts\",\"to\":\"src/application/catalogue-service.ts\",\"type\":\"IMPORTS\"}],\"nodes\":[{\"kind\":\"Class\",\"layer\":\"application\",\"name\":\"CatalogueService\",\"path\":\"src/application/catalogue-service.ts\"},{\"kind\":\"Class\",\"layer\":\"infrastructure\",\"name\":\"OrderController\",\"path\":\"src/infrastructure/order-controller.ts\"},{\"kind\":\"File\",\"layer\":\"application\",\"path\":\"src/application/catalogue-service.ts\"},{\"kind\":\"File\",\"layer\":\"application\",\"path\":\"src/application/dtos.ts\"},{\"kind\":\"File\",\"layer\":\"domain\",\"path\":\"src/domain/product.ts\"},{\"kind\":\"File\",\"layer\":\"domain\",\"path\":\"src/domain/repositories.ts\"},{\"kind\":\"File\",\"layer\":\"infrastructure\",\"path\":\"src/infrastructure/order-controller.ts\"},{\"kind\":\"File\",\"layer\":\"infrastructure\",\"path\":\"src/infrastructure/server.ts\"},{\"kind\":\"Interface\",\"layer\":\"domain\",\"name\":\"ProductRepository\",\"path\":\"src/domain/repositories.ts\"}]}\n\n## Instructions\nJudge the unit against the rule and rubric. Return the JSON object the schema requires. Set pass to false if any file of the unit fails the rubric.\n",
+  "provider": "claude-cli",
+  "recordedAt": "2026-10-11T03:18:15.967Z",
+  "repetition": 0,
+  "requestHash": "3b068ae78a36358b46814eff42e9b23ba94e3fbbd57c8c85ba1c549f60e75417",
+  "resolvedModel": "claude-opus-5-5",
+  "response": "{\"is_error\":false,\"modelUsage\":{\"claude-opus-5-5\":{\"inputTokens\":2,\"outputTokens\":422}},\"result\":\"{\\\"pass\\\":true,\\\"confidence\\\":0.93,\\\"reasoning\\\":\\\"CatalogueService is a standard application service. It handles use-case orchestration: it builds the domain entity, saves it through an injected domain repository port, and maps the result to DTOs for return. It contains no persistence implementation, no transport or HTTP handling, no framework code, and no inline business rules beyond calling the Product constructor. All of this belongs to the application layer.\\\",\\\"evidence\\\":[\\\"src/application/catalogue-service.ts: create() builds a Product, calls this.products.save(product), and returns toProductDto(product). This is use-case orchestration, which belongs to the application layer.\\\",\\\"src/application/catalogue-service.ts: listStock() maps this.products.findAll() to DTOs. This is query orchestration through an abstract repository port.\\\",\\\"The ProductRepository dependency is a domain interface passed in through the constructor, so there is no concrete persistence logic in this file.\\\"],\\\"violations\\\":[]}\",\"structured_output\":{\"confidence\":0.93,\"evidence\":[\"src/application/catalogue-service.ts: create() builds a Product, calls this.products.save(product), and returns toProductDto(product). This is use-case orchestration, which belongs to the application layer.\",\"src/application/catalogue-service.ts: listStock() maps this.products.findAll() to DTOs. This is query orchestration through an abstract repository port.\",\"The ProductRepository dependency is a domain interface passed in through the constructor, so there is no concrete persistence logic in this file.\"],\"pass\":true,\"reasoning\":\"CatalogueService is a standard application service. It handles use-case orchestration: it builds the domain entity, saves it through an injected domain repository port, and maps the result to DTOs for return. It contains no persistence implementation, no transport or HTTP handling, no framework code, and no inline business rules beyond calling the Product constructor. All of this belongs to the application layer.\",\"violations\":[]}}",
+  "runIndex": 2,
+  "schemaVersion": 2,
+  "unitId": "src/application/catalogue-service.ts",
+  "usage": {
+    "inputTokens": 2817,
+    "outputTokens": 422
+  },
+  "usedOptions": {
+    "effort": "high",
+    "model": "claude-opus-5-5"
+  }
+}

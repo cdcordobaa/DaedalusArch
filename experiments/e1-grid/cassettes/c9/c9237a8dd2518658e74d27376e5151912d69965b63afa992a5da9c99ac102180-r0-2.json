@@ -1,0 +1,47 @@
+{
+  "attempts": 1,
+  "cliVersion": "2.1.294",
+  "configListingSha256": "47aa04258852fab9a706f3f0c14cee22306d69fbb6fdfbde8c11854bd54997bc",
+  "durationMs": 5585,
+  "effort": "high",
+  "functionId": "FF-N02",
+  "ignoredOptions": [
+    "maxTokens"
+  ],
+  "isolationProbeSha256": "97a2e2d0af1100c13c55e028c1a0c71f069093c3d08705af122aaeb302f1a641",
+  "key": "c9237a8dd2518658e74d27376e5151912d69965b63afa992a5da9c99ac102180-r0-2",
+  "model": "claude-opus-5-5",
+  "outcome": {
+    "kind": "valid"
+  },
+  "parsedVerdict": {
+    "confidence": 0.95,
+    "evidence": [
+      "src/domain/user.ts: the interface User { readonly id; readonly name } is a pure domain entity shape.",
+      "src/domain/user.ts: createUser(id, name) trims the name and throws ValidationError('User name is required') when it is empty. This is an invariant check, which belongs in the domain layer.",
+      "src/domain/user.ts: its only import is ./errors, another domain file. It has no I/O, storage, HTTP or framework code."
+    ],
+    "pass": true,
+    "reasoning": "src/domain/user.ts has only domain-level responsibilities. It defines the User entity type, and its factory function createUser enforces a business invariant: the name must be non-empty once trimmed. When the invariant fails, it throws a domain ValidationError. The file contains no persistence, transport, framework or orchestration logic, so nothing in it belongs to a different layer kind.",
+    "violations": []
+  },
+  "projectId": "claude-sonnet-5-5/task-management/none/run-1",
+  "prompt": "## Rule\nThe unit's responsibilities match the role of its declared layer.\n\n## Rubric\nPass: Every responsibility in the file belongs to the role and kind of its declared layer, and agrees with any ADR prose given.\nFail: The file carries a responsibility that belongs to a different layer kind, for example persistence, transport or framework logic in a domain file, or business rules in an infrastructure or presentation file.\nEvidence required: Name the file and cite the function, method or statement that carries the misplaced responsibility, and the layer kind it belongs to.\nOut of scope: import direction and layer-dependency rules, which are checked symbolically.\n\n## Layer model\n- domain (kind: domain): src/domain/**\n- application (kind: application): src/application/**\n- infrastructure (kind: infrastructure): src/infrastructure/**\n\n## Unit\nKind: file\nId: src/domain/user.ts\nLayer: domain\nUnit files:\n- src/domain/user.ts\n\n## Source\n=====SOURCE-BEGIN src/domain/user.ts=====\nimport { ValidationError } from \"./errors\";\n\nexport interface User {\n  readonly id: string;\n  readonly name: string;\n}\n\nexport function createUser(id: string, name: string): User {\n  const trimmed = name.trim();\n  if (trimmed === \"\") throw new ValidationError(\"User name is required\");\n  return { id, name: trimmed };\n}\n\n=====SOURCE-END=====\n\n## Graph excerpt\n{\"edges\":[{\"from\":\"src/application/services.ts\",\"to\":\"src/domain/user.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/domain/repositories.ts\",\"to\":\"src/domain/user.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/domain/user.ts\",\"to\":\"src/domain/errors.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/infrastructure/inMemoryRepositories.ts\",\"to\":\"src/domain/user.ts\",\"type\":\"IMPORTS\"}],\"nodes\":[{\"kind\":\"File\",\"layer\":\"application\",\"path\":\"src/application/services.ts\"},{\"kind\":\"File\",\"layer\":\"domain\",\"path\":\"src/domain/errors.ts\"},{\"kind\":\"File\",\"layer\":\"domain\",\"path\":\"src/domain/repositories.ts\"},{\"kind\":\"File\",\"layer\":\"domain\",\"path\":\"src/domain/user.ts\"},{\"kind\":\"File\",\"layer\":\"infrastructure\",\"path\":\"src/infrastructure/inMemoryRepositories.ts\"},{\"kind\":\"Interface\",\"layer\":\"domain\",\"name\":\"User\",\"path\":\"src/domain/user.ts\"}]}\n\n## Instructions\nJudge the unit against the rule and rubric. Return the JSON object the schema requires. Set pass to false if any file of the unit fails the rubric.\n",
+  "provider": "claude-cli",
+  "recordedAt": "2026-10-10T22:27:52.197Z",
+  "repetition": 0,
+  "requestHash": "c9237a8dd2518658e74d27376e5151912d69965b63afa992a5da9c99ac102180",
+  "resolvedModel": "claude-opus-5-5",
+  "response": "{\"is_error\":false,\"modelUsage\":{\"claude-opus-5-5\":{\"inputTokens\":2,\"outputTokens\":411}},\"result\":\"{\\\"pass\\\":true,\\\"confidence\\\":0.95,\\\"reasoning\\\":\\\"src/domain/user.ts has only domain-level responsibilities. It defines the User entity type, and its factory function createUser enforces a business invariant: the name must be non-empty once trimmed. When the invariant fails, it throws a domain ValidationError. The file contains no persistence, transport, framework or orchestration logic, so nothing in it belongs to a different layer kind.\\\",\\\"evidence\\\":[\\\"src/domain/user.ts: the interface User { readonly id; readonly name } is a pure domain entity shape.\\\",\\\"src/domain/user.ts: createUser(id, name) trims the name and throws ValidationError('User name is required') when it is empty. This is an invariant check, which belongs in the domain layer.\\\",\\\"src/domain/user.ts: its only import is ./errors, another domain file. It has no I/O, storage, HTTP or framework code.\\\"],\\\"violations\\\":[]}\",\"structured_output\":{\"confidence\":0.95,\"evidence\":[\"src/domain/user.ts: the interface User { readonly id; readonly name } is a pure domain entity shape.\",\"src/domain/user.ts: createUser(id, name) trims the name and throws ValidationError('User name is required') when it is empty. This is an invariant check, which belongs in the domain layer.\",\"src/domain/user.ts: its only import is ./errors, another domain file. It has no I/O, storage, HTTP or framework code.\"],\"pass\":true,\"reasoning\":\"src/domain/user.ts has only domain-level responsibilities. It defines the User entity type, and its factory function createUser enforces a business invariant: the name must be non-empty once trimmed. When the invariant fails, it throws a domain ValidationError. The file contains no persistence, transport, framework or orchestration logic, so nothing in it belongs to a different layer kind.\",\"violations\":[]}}",
+  "runIndex": 2,
+  "schemaVersion": 2,
+  "unitId": "src/domain/user.ts",
+  "usage": {
+    "inputTokens": 2381,
+    "outputTokens": 411
+  },
+  "usedOptions": {
+    "effort": "high",
+    "model": "claude-opus-5-5"
+  }
+}

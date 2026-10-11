@@ -1,0 +1,47 @@
+{
+  "attempts": 1,
+  "cliVersion": "2.1.294",
+  "configListingSha256": "47aa04258852fab9a706f3f0c14cee22306d69fbb6fdfbde8c11854bd54997bc",
+  "durationMs": 7346,
+  "effort": "high",
+  "functionId": "FF-N02",
+  "ignoredOptions": [
+    "maxTokens"
+  ],
+  "isolationProbeSha256": "97a2e2d0af1100c13c55e028c1a0c71f069093c3d08705af122aaeb302f1a641",
+  "key": "4bd6f9724d4e084be19b7c8094a87a33c2ad3cd0f7002cbfe2ea2281edc448b9-r0-2",
+  "model": "claude-opus-5-5",
+  "outcome": {
+    "kind": "valid"
+  },
+  "parsedVerdict": {
+    "confidence": 0.93,
+    "evidence": [
+      "statusFor(err) maps ValidationError, BadRequestError and JSON parse errors to 400, NotFoundError to 404, ConflictError to 409 and anything else to 500. Turning errors into HTTP codes is transport work.",
+      "errorHandler is an Express ErrorRequestHandler. It calls res.status(...).json(...) to write the HTTP response, which is framework and transport logic and belongs in infrastructure.",
+      "isJsonParseError checks for Express body-parser's 'entity.parse.failed' error type. This is framework-specific handling, and the file is in the right layer for it."
+    ],
+    "pass": true,
+    "reasoning": "The file is an Express error-handling middleware in the infrastructure layer. It has two jobs: turning error types into HTTP status codes (statusFor), and writing JSON error responses (errorHandler). Both are transport-adapter work, which belongs in infrastructure. The file has no business rules, domain invariants, or application orchestration. It only checks which kind of domain error it received and maps that to a status code, and that translation is the HTTP adapter's job. Logging unexpected errors with console.error is also a normal infrastructure concern.",
+    "violations": []
+  },
+  "projectId": "claude-opus-5-5/task-management/minimal-prose/run-2",
+  "prompt": "## Rule\nThe unit's responsibilities match the role of its declared layer.\n\n## Rubric\nPass: Every responsibility in the file belongs to the role and kind of its declared layer, and agrees with any ADR prose given.\nFail: The file carries a responsibility that belongs to a different layer kind, for example persistence, transport or framework logic in a domain file, or business rules in an infrastructure or presentation file.\nEvidence required: Name the file and cite the function, method or statement that carries the misplaced responsibility, and the layer kind it belongs to.\nOut of scope: import direction and layer-dependency rules, which are checked symbolically.\n\n## Layer model\n- domain (kind: domain): src/domain/**\n- application (kind: application): src/application/**\n- infrastructure (kind: infrastructure): src/infrastructure/**\n\n## Unit\nKind: file\nId: src/infrastructure/http/middleware/errorHandler.ts\nLayer: infrastructure\nUnit files:\n- src/infrastructure/http/middleware/errorHandler.ts\n\n## Source\n=====SOURCE-BEGIN src/infrastructure/http/middleware/errorHandler.ts=====\nimport { ErrorRequestHandler } from 'express';\nimport { ConflictError, NotFoundError, ValidationError } from '../../../domain/errors/DomainErrors';\nimport { BadRequestError } from '../RequestReader';\n\nfunction isJsonParseError(err: unknown): boolean {\n  return typeof err === 'object' && err !== null && (err as { type?: unknown }).type === 'entity.parse.failed';\n}\n\nfunction statusFor(err: unknown): number {\n  if (err instanceof ValidationError || err instanceof BadRequestError || isJsonParseError(err)) {\n    return 400;\n  }\n  if (err instanceof NotFoundError) {\n    return 404;\n  }\n  if (err instanceof ConflictError) {\n    return 409;\n  }\n  return 500;\n}\n\nexport const errorHandler: ErrorRequestHandler = (err: unknown, _req, res, _next) => {\n  const status = statusFor(err);\n  if (status === 500) {\n    console.error(err);\n    res.status(500).json({ error: 'Internal server error' });\n    return;\n  }\n  const message = err instanceof Error ? err.message : 'Bad request';\n  res.status(status).json({ error: message });\n};\n\n=====SOURCE-END=====\n\n## Graph excerpt\n{\"edges\":[{\"from\":\"src/infrastructure/http/createApp.ts\",\"to\":\"src/infrastructure/http/middleware/errorHandler.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/infrastructure/http/middleware/errorHandler.ts\",\"to\":\"express\",\"type\":\"IMPORTS\"},{\"from\":\"src/infrastructure/http/middleware/errorHandler.ts\",\"to\":\"src/domain/errors/DomainErrors.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/infrastructure/http/middleware/errorHandler.ts\",\"to\":\"src/infrastructure/http/RequestReader.ts\",\"type\":\"IMPORTS\"}],\"nodes\":[{\"kind\":\"File\",\"layer\":\"domain\",\"path\":\"src/domain/errors/DomainErrors.ts\"},{\"kind\":\"File\",\"layer\":\"infrastructure\",\"path\":\"src/infrastructure/http/RequestReader.ts\"},{\"kind\":\"File\",\"layer\":\"infrastructure\",\"path\":\"src/infrastructure/http/createApp.ts\"},{\"kind\":\"File\",\"layer\":\"infrastructure\",\"path\":\"src/infrastructure/http/middleware/errorHandler.ts\"},{\"kind\":\"Package\",\"layer\":null,\"path\":\"express\"}]}\n\n## Instructions\nJudge the unit against the rule and rubric. Return the JSON object the schema requires. Set pass to false if any file of the unit fails the rubric.\n",
+  "provider": "claude-cli",
+  "recordedAt": "2026-10-10T21:47:07.125Z",
+  "repetition": 0,
+  "requestHash": "4bd6f9724d4e084be19b7c8094a87a33c2ad3cd0f7002cbfe2ea2281edc448b9",
+  "resolvedModel": "claude-opus-5-5",
+  "response": "{\"is_error\":false,\"modelUsage\":{\"claude-opus-5-5\":{\"inputTokens\":2,\"outputTokens\":555}},\"result\":\"{\\\"pass\\\":true,\\\"confidence\\\":0.93,\\\"reasoning\\\":\\\"The file is an Express error-handling middleware in the infrastructure layer. It has two jobs: turning error types into HTTP status codes (statusFor), and writing JSON error responses (errorHandler). Both are transport-adapter work, which belongs in infrastructure. The file has no business rules, domain invariants, or application orchestration. It only checks which kind of domain error it received and maps that to a status code, and that translation is the HTTP adapter's job. Logging unexpected errors with console.error is also a normal infrastructure concern.\\\",\\\"evidence\\\":[\\\"statusFor(err) maps ValidationError, BadRequestError and JSON parse errors to 400, NotFoundError to 404, ConflictError to 409 and anything else to 500. Turning errors into HTTP codes is transport work.\\\",\\\"errorHandler is an Express ErrorRequestHandler. It calls res.status(...).json(...) to write the HTTP response, which is framework and transport logic and belongs in infrastructure.\\\",\\\"isJsonParseError checks for Express body-parser's 'entity.parse.failed' error type. This is framework-specific handling, and the file is in the right layer for it.\\\"],\\\"violations\\\":[]}\",\"structured_output\":{\"confidence\":0.93,\"evidence\":[\"statusFor(err) maps ValidationError, BadRequestError and JSON parse errors to 400, NotFoundError to 404, ConflictError to 409 and anything else to 500. Turning errors into HTTP codes is transport work.\",\"errorHandler is an Express ErrorRequestHandler. It calls res.status(...).json(...) to write the HTTP response, which is framework and transport logic and belongs in infrastructure.\",\"isJsonParseError checks for Express body-parser's 'entity.parse.failed' error type. This is framework-specific handling, and the file is in the right layer for it.\"],\"pass\":true,\"reasoning\":\"The file is an Express error-handling middleware in the infrastructure layer. It has two jobs: turning error types into HTTP status codes (statusFor), and writing JSON error responses (errorHandler). Both are transport-adapter work, which belongs in infrastructure. The file has no business rules, domain invariants, or application orchestration. It only checks which kind of domain error it received and maps that to a status code, and that translation is the HTTP adapter's job. Logging unexpected errors with console.error is also a normal infrastructure concern.\",\"violations\":[]}}",
+  "runIndex": 2,
+  "schemaVersion": 2,
+  "unitId": "src/infrastructure/http/middleware/errorHandler.ts",
+  "usage": {
+    "inputTokens": 2757,
+    "outputTokens": 555
+  },
+  "usedOptions": {
+    "effort": "high",
+    "model": "claude-opus-5-5"
+  }
+}

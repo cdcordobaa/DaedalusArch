@@ -1,0 +1,47 @@
+{
+  "attempts": 1,
+  "cliVersion": "2.1.294",
+  "configListingSha256": "47aa04258852fab9a706f3f0c14cee22306d69fbb6fdfbde8c11854bd54997bc",
+  "durationMs": 7655,
+  "effort": "high",
+  "functionId": "FF-N02",
+  "ignoredOptions": [
+    "maxTokens"
+  ],
+  "isolationProbeSha256": "97a2e2d0af1100c13c55e028c1a0c71f069093c3d08705af122aaeb302f1a641",
+  "key": "98b378895ecc9e6e02bc6bd59d025e4617d8a056e1b7618888d90c6ce94a71df-r0-0",
+  "model": "claude-opus-5-5",
+  "outcome": {
+    "kind": "valid"
+  },
+  "parsedVerdict": {
+    "confidence": 0.8,
+    "evidence": [
+      "src/application/CreateUserUseCase.ts: execute() runs the steps in order: new User(id, name), then this.userRepository.save(user), then returns the UserDTO. This is typical use-case work.",
+      "src/application/CreateUserUseCase.ts: storage is reached only through the injected IUserRepository interface, with no database, SQL or ORM code in the file.",
+      "src/application/CreateUserUseCase.ts: generateId() builds IDs from Date.now/Math.random. It is borderline, since it could sit behind a port, but it is not persistence, transport or framework logic."
+    ],
+    "pass": true,
+    "reasoning": "The file passes. CreateUserUseCase does the job of an application-layer use case. Its execute method builds a domain User entity, saves it through the domain port IUserRepository, which is injected in the constructor, and maps the result to an application UserDTO. The file contains no persistence code, transport handling, framework code or domain invariants. The private generateId helper uses Date.now and Math.random directly. A stricter design might put ID generation behind a port, or give it to the domain or infrastructure layer. Still, it is a small piece of supporting logic for the use case, not logic from another layer, so it does not fail the rubric.",
+    "violations": []
+  },
+  "projectId": "claude-haiku-4-5/task-management/full-aac/run-0",
+  "prompt": "## Rule\nThe unit's responsibilities match the role of its declared layer.\n\n## Rubric\nPass: Every responsibility in the file belongs to the role and kind of its declared layer, and agrees with any ADR prose given.\nFail: The file carries a responsibility that belongs to a different layer kind, for example persistence, transport or framework logic in a domain file, or business rules in an infrastructure or presentation file.\nEvidence required: Name the file and cite the function, method or statement that carries the misplaced responsibility, and the layer kind it belongs to.\nOut of scope: import direction and layer-dependency rules, which are checked symbolically.\n\n## Layer model\n- domain (kind: domain): src/domain/**\n- application (kind: application): src/application/**\n- infrastructure (kind: infrastructure): src/infrastructure/**\n\n## Unit\nKind: file\nId: src/application/CreateUserUseCase.ts\nLayer: application\nUnit files:\n- src/application/CreateUserUseCase.ts\n\n## Source\n=====SOURCE-BEGIN src/application/CreateUserUseCase.ts=====\nimport { User } from \"../domain/User\";\nimport { IUserRepository } from \"../domain/IUserRepository\";\nimport { UserDTO } from \"./UserDTO\";\n\nexport class CreateUserUseCase {\n  constructor(private readonly userRepository: IUserRepository) {}\n\n  execute(name: string): UserDTO {\n    const id = this.generateId();\n    const user = new User(id, name);\n    this.userRepository.save(user);\n    return {\n      id: user.getId(),\n      name: user.getName(),\n    };\n  }\n\n  private generateId(): string {\n    return \"user_\" + Date.now() + \"_\" + Math.random().toString(36).substr(2, 9);\n  }\n}\n\n=====SOURCE-END=====\n\n## Graph excerpt\n{\"edges\":[{\"from\":\"CreateUserUseCase@src/application/CreateUserUseCase.ts\",\"to\":\"IUserRepository@src/domain/IUserRepository.ts\",\"type\":\"CONSTRUCTOR_INJECTS\"},{\"from\":\"UserController@src/infrastructure/UserController.ts\",\"to\":\"CreateUserUseCase@src/application/CreateUserUseCase.ts\",\"type\":\"FLOWS_TO\"},{\"from\":\"src/application/CreateUserUseCase.ts\",\"to\":\"src/application/UserDTO.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/application/CreateUserUseCase.ts\",\"to\":\"src/domain/IUserRepository.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/application/CreateUserUseCase.ts\",\"to\":\"src/domain/User.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/infrastructure/UserController.ts\",\"to\":\"src/application/CreateUserUseCase.ts\",\"type\":\"IMPORTS\"}],\"nodes\":[{\"kind\":\"Class\",\"layer\":\"application\",\"name\":\"CreateUserUseCase\",\"path\":\"src/application/CreateUserUseCase.ts\"},{\"kind\":\"Class\",\"layer\":\"infrastructure\",\"name\":\"UserController\",\"path\":\"src/infrastructure/UserController.ts\"},{\"kind\":\"File\",\"layer\":\"application\",\"path\":\"src/application/CreateUserUseCase.ts\"},{\"kind\":\"File\",\"layer\":\"application\",\"path\":\"src/application/UserDTO.ts\"},{\"kind\":\"File\",\"layer\":\"domain\",\"path\":\"src/domain/IUserRepository.ts\"},{\"kind\":\"File\",\"layer\":\"domain\",\"path\":\"src/domain/User.ts\"},{\"kind\":\"File\",\"layer\":\"infrastructure\",\"path\":\"src/infrastructure/UserController.ts\"},{\"kind\":\"Interface\",\"layer\":\"domain\",\"name\":\"IUserRepository\",\"path\":\"src/domain/IUserRepository.ts\"}]}\n\n## Instructions\nJudge the unit against the rule and rubric. Return the JSON object the schema requires. Set pass to false if any file of the unit fails the rubric.\n",
+  "provider": "claude-cli",
+  "recordedAt": "2026-10-10T20:52:40.584Z",
+  "repetition": 0,
+  "requestHash": "98b378895ecc9e6e02bc6bd59d025e4617d8a056e1b7618888d90c6ce94a71df",
+  "resolvedModel": "claude-opus-5-5",
+  "response": "{\"is_error\":false,\"modelUsage\":{\"claude-opus-5-5\":{\"inputTokens\":2,\"outputTokens\":635}},\"result\":\"{\\\"pass\\\":true,\\\"confidence\\\":0.8,\\\"reasoning\\\":\\\"The file passes. CreateUserUseCase does the job of an application-layer use case. Its execute method builds a domain User entity, saves it through the domain port IUserRepository, which is injected in the constructor, and maps the result to an application UserDTO. The file contains no persistence code, transport handling, framework code or domain invariants. The private generateId helper uses Date.now and Math.random directly. A stricter design might put ID generation behind a port, or give it to the domain or infrastructure layer. Still, it is a small piece of supporting logic for the use case, not logic from another layer, so it does not fail the rubric.\\\",\\\"evidence\\\":[\\\"src/application/CreateUserUseCase.ts: execute() runs the steps in order: new User(id, name), then this.userRepository.save(user), then returns the UserDTO. This is typical use-case work.\\\",\\\"src/application/CreateUserUseCase.ts: storage is reached only through the injected IUserRepository interface, with no database, SQL or ORM code in the file.\\\",\\\"src/application/CreateUserUseCase.ts: generateId() builds IDs from Date.now/Math.random. It is borderline, since it could sit behind a port, but it is not persistence, transport or framework logic.\\\"],\\\"violations\\\":[]}\",\"structured_output\":{\"confidence\":0.8,\"evidence\":[\"src/application/CreateUserUseCase.ts: execute() runs the steps in order: new User(id, name), then this.userRepository.save(user), then returns the UserDTO. This is typical use-case work.\",\"src/application/CreateUserUseCase.ts: storage is reached only through the injected IUserRepository interface, with no database, SQL or ORM code in the file.\",\"src/application/CreateUserUseCase.ts: generateId() builds IDs from Date.now/Math.random. It is borderline, since it could sit behind a port, but it is not persistence, transport or framework logic.\"],\"pass\":true,\"reasoning\":\"The file passes. CreateUserUseCase does the job of an application-layer use case. Its execute method builds a domain User entity, saves it through the domain port IUserRepository, which is injected in the constructor, and maps the result to an application UserDTO. The file contains no persistence code, transport handling, framework code or domain invariants. The private generateId helper uses Date.now and Math.random directly. A stricter design might put ID generation behind a port, or give it to the domain or infrastructure layer. Still, it is a small piece of supporting logic for the use case, not logic from another layer, so it does not fail the rubric.\",\"violations\":[]}}",
+  "runIndex": 0,
+  "schemaVersion": 2,
+  "unitId": "src/application/CreateUserUseCase.ts",
+  "usage": {
+    "inputTokens": 2796,
+    "outputTokens": 635
+  },
+  "usedOptions": {
+    "effort": "high",
+    "model": "claude-opus-5-5"
+  }
+}

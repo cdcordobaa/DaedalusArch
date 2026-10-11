@@ -1,0 +1,47 @@
+{
+  "attempts": 1,
+  "cliVersion": "2.1.294",
+  "configListingSha256": "47aa04258852fab9a706f3f0c14cee22306d69fbb6fdfbde8c11854bd54997bc",
+  "durationMs": 6099,
+  "effort": "high",
+  "functionId": "FF-N02",
+  "ignoredOptions": [
+    "maxTokens"
+  ],
+  "isolationProbeSha256": "97a2e2d0af1100c13c55e028c1a0c71f069093c3d08705af122aaeb302f1a641",
+  "key": "0327eed867e61cfee44b4aa983e821c5cec247353dd7e54014fa63017d009fd2-r0-1",
+  "model": "claude-opus-5-5",
+  "outcome": {
+    "kind": "valid"
+  },
+  "parsedVerdict": {
+    "confidence": 0.93,
+    "evidence": [
+      "src/application/usecases/MarkTaskAsDoneUseCase.ts: execute() calls this.taskRepository.findById(taskId), which is a domain port receiving its implementation through constructor injection, not a concrete persistence implementation",
+      "src/application/usecases/MarkTaskAsDoneUseCase.ts: task.markAsDone() hands the state change to the domain entity, so the business rule stays in the domain",
+      "src/application/usecases/MarkTaskAsDoneUseCase.ts: throw new Error('Task not found') is application-level handling of a missing task, not transport-specific code such as HTTP status handling"
+    ],
+    "pass": true,
+    "reasoning": "The use case does standard application-layer orchestration. It loads the aggregate through a domain repository port and handles the not-found case. It hands the state change to the entity's own behavior (task.markAsDone()), then saves the task through the port. It has no persistence details, transport or HTTP handling, or framework code. Business rules about completing a task stay in the domain entity.",
+    "violations": []
+  },
+  "projectId": "claude-haiku-4-5/task-management/minimal-prose/run-0",
+  "prompt": "## Rule\nThe unit's responsibilities match the role of its declared layer.\n\n## Rubric\nPass: Every responsibility in the file belongs to the role and kind of its declared layer, and agrees with any ADR prose given.\nFail: The file carries a responsibility that belongs to a different layer kind, for example persistence, transport or framework logic in a domain file, or business rules in an infrastructure or presentation file.\nEvidence required: Name the file and cite the function, method or statement that carries the misplaced responsibility, and the layer kind it belongs to.\nOut of scope: import direction and layer-dependency rules, which are checked symbolically.\n\n## Layer model\n- domain (kind: domain): src/domain/**\n- application (kind: application): src/application/**\n- infrastructure (kind: infrastructure): src/infrastructure/**\n\n## Unit\nKind: file\nId: src/application/usecases/MarkTaskAsDoneUseCase.ts\nLayer: application\nUnit files:\n- src/application/usecases/MarkTaskAsDoneUseCase.ts\n\n## Source\n=====SOURCE-BEGIN src/application/usecases/MarkTaskAsDoneUseCase.ts=====\nimport { Task } from '../../domain/entities/Task';\nimport { TaskRepository } from '../../domain/repositories/TaskRepository';\n\nexport class MarkTaskAsDoneUseCase {\n  constructor(private taskRepository: TaskRepository) {}\n\n  execute(taskId: string): Task {\n    const task = this.taskRepository.findById(taskId);\n    if (!task) {\n      throw new Error('Task not found');\n    }\n\n    task.markAsDone();\n    this.taskRepository.save(task);\n    return task;\n  }\n}\n\n=====SOURCE-END=====\n\n## Graph excerpt\n{\"edges\":[{\"from\":\"MarkTaskAsDoneUseCase@src/application/usecases/MarkTaskAsDoneUseCase.ts\",\"to\":\"TaskRepository@src/domain/repositories/TaskRepository.ts\",\"type\":\"CONSTRUCTOR_INJECTS\"},{\"from\":\"TaskController@src/infrastructure/controllers/TaskController.ts\",\"to\":\"MarkTaskAsDoneUseCase@src/application/usecases/MarkTaskAsDoneUseCase.ts\",\"type\":\"CONSTRUCTOR_INJECTS\"},{\"from\":\"src/application/usecases/MarkTaskAsDoneUseCase.ts\",\"to\":\"src/domain/entities/Task.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/application/usecases/MarkTaskAsDoneUseCase.ts\",\"to\":\"src/domain/repositories/TaskRepository.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/infrastructure/app.ts\",\"to\":\"src/application/usecases/MarkTaskAsDoneUseCase.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/infrastructure/controllers/TaskController.ts\",\"to\":\"src/application/usecases/MarkTaskAsDoneUseCase.ts\",\"type\":\"IMPORTS\"}],\"nodes\":[{\"kind\":\"Class\",\"layer\":\"application\",\"name\":\"MarkTaskAsDoneUseCase\",\"path\":\"src/application/usecases/MarkTaskAsDoneUseCase.ts\"},{\"kind\":\"Class\",\"layer\":\"infrastructure\",\"name\":\"TaskController\",\"path\":\"src/infrastructure/controllers/TaskController.ts\"},{\"kind\":\"File\",\"layer\":\"application\",\"path\":\"src/application/usecases/MarkTaskAsDoneUseCase.ts\"},{\"kind\":\"File\",\"layer\":\"domain\",\"path\":\"src/domain/entities/Task.ts\"},{\"kind\":\"File\",\"layer\":\"domain\",\"path\":\"src/domain/repositories/TaskRepository.ts\"},{\"kind\":\"File\",\"layer\":\"infrastructure\",\"path\":\"src/infrastructure/app.ts\"},{\"kind\":\"File\",\"layer\":\"infrastructure\",\"path\":\"src/infrastructure/controllers/TaskController.ts\"},{\"kind\":\"Interface\",\"layer\":\"domain\",\"name\":\"TaskRepository\",\"path\":\"src/domain/repositories/TaskRepository.ts\"}]}\n\n## Instructions\nJudge the unit against the rule and rubric. Return the JSON object the schema requires. Set pass to false if any file of the unit fails the rubric.\n",
+  "provider": "claude-cli",
+  "recordedAt": "2026-10-11T02:39:37.881Z",
+  "repetition": 0,
+  "requestHash": "0327eed867e61cfee44b4aa983e821c5cec247353dd7e54014fa63017d009fd2",
+  "resolvedModel": "claude-opus-5-5",
+  "response": "{\"is_error\":false,\"modelUsage\":{\"claude-opus-5-5\":{\"inputTokens\":2,\"outputTokens\":468}},\"result\":\"{\\\"pass\\\":true,\\\"confidence\\\":0.93,\\\"reasoning\\\":\\\"The use case does standard application-layer orchestration. It loads the aggregate through a domain repository port and handles the not-found case. It hands the state change to the entity's own behavior (task.markAsDone()), then saves the task through the port. It has no persistence details, transport or HTTP handling, or framework code. Business rules about completing a task stay in the domain entity.\\\",\\\"evidence\\\":[\\\"src/application/usecases/MarkTaskAsDoneUseCase.ts: execute() calls this.taskRepository.findById(taskId), which is a domain port receiving its implementation through constructor injection, not a concrete persistence implementation\\\",\\\"src/application/usecases/MarkTaskAsDoneUseCase.ts: task.markAsDone() hands the state change to the domain entity, so the business rule stays in the domain\\\",\\\"src/application/usecases/MarkTaskAsDoneUseCase.ts: throw new Error('Task not found') is application-level handling of a missing task, not transport-specific code such as HTTP status handling\\\"],\\\"violations\\\":[]}\",\"structured_output\":{\"confidence\":0.93,\"evidence\":[\"src/application/usecases/MarkTaskAsDoneUseCase.ts: execute() calls this.taskRepository.findById(taskId), which is a domain port receiving its implementation through constructor injection, not a concrete persistence implementation\",\"src/application/usecases/MarkTaskAsDoneUseCase.ts: task.markAsDone() hands the state change to the domain entity, so the business rule stays in the domain\",\"src/application/usecases/MarkTaskAsDoneUseCase.ts: throw new Error('Task not found') is application-level handling of a missing task, not transport-specific code such as HTTP status handling\"],\"pass\":true,\"reasoning\":\"The use case does standard application-layer orchestration. It loads the aggregate through a domain repository port and handles the not-found case. It hands the state change to the entity's own behavior (task.markAsDone()), then saves the task through the port. It has no persistence details, transport or HTTP handling, or framework code. Business rules about completing a task stay in the domain entity.\",\"violations\":[]}}",
+  "runIndex": 1,
+  "schemaVersion": 2,
+  "unitId": "src/application/usecases/MarkTaskAsDoneUseCase.ts",
+  "usage": {
+    "inputTokens": 2940,
+    "outputTokens": 468
+  },
+  "usedOptions": {
+    "effort": "high",
+    "model": "claude-opus-5-5"
+  }
+}

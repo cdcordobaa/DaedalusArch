@@ -1,0 +1,48 @@
+{
+  "attempts": 1,
+  "cliVersion": "2.1.294",
+  "configListingSha256": "47aa04258852fab9a706f3f0c14cee22306d69fbb6fdfbde8c11854bd54997bc",
+  "durationMs": 8360,
+  "effort": "high",
+  "functionId": "FF-N02",
+  "ignoredOptions": [
+    "maxTokens"
+  ],
+  "isolationProbeSha256": "97a2e2d0af1100c13c55e028c1a0c71f069093c3d08705af122aaeb302f1a641",
+  "key": "59b84ec5e683d351dd3532d56ff91e78bef04f93b31bce868fdce7bd56a634cf-r0-0",
+  "model": "claude-opus-5-5",
+  "outcome": {
+    "kind": "valid"
+  },
+  "parsedVerdict": {
+    "confidence": 0.8,
+    "evidence": [
+      "src/domain/entities/Task.ts: class Task holds only readonly entity fields (id, title, description, completed, categoryId, createdAt) — domain state",
+      "src/domain/entities/Task.ts: complete() returns a new immutable Task with completed=true — a domain state transition",
+      "src/domain/entities/Task.ts: isValid() checks that title and categoryId are not empty — a domain invariant",
+      "src/domain/entities/Task.ts: the import of normalizeTitle from '../../application/utils/TaskUtils' is an import-direction concern, which is out of scope for this rule"
+    ],
+    "pass": true,
+    "reasoning": "Task.ts is a pure, immutable domain entity. It holds entity state, a state transition (complete) and a validation invariant (isValid). Both are business rules, which belong in the domain layer. The file has no persistence, transport, framework or orchestration logic. The one questionable part is the import of normalizeTitle from application/utils, which a source comment also calls a violation. Whether the domain may depend on the application layer is an import-direction question, and the rubric says that is checked separately and is out of scope here. Calling the helper inside complete() does not give the file a responsibility from another layer: the file still applies a domain rule (when a task is completed, its title is normalized) and only borrows the helper to do it. So every responsibility in the file matches the domain role.",
+    "violations": []
+  },
+  "projectId": "variant-d-subtle",
+  "prompt": "## Rule\nThe unit's responsibilities match the role of its declared layer.\n\n## Rubric\nPass: Every responsibility in the file belongs to the role and kind of its declared layer, and agrees with any ADR prose given.\nFail: The file carries a responsibility that belongs to a different layer kind, for example persistence, transport or framework logic in a domain file, or business rules in an infrastructure or presentation file.\nEvidence required: Name the file and cite the function, method or statement that carries the misplaced responsibility, and the layer kind it belongs to.\nOut of scope: import direction and layer-dependency rules, which are checked symbolically.\n\n## Layer model\n- domain (kind: domain): src/domain/**\n- application (kind: application): src/application/**\n- infrastructure (kind: infrastructure): src/infrastructure/**\n\n## Unit\nKind: file\nId: src/domain/entities/Task.ts\nLayer: domain\nUnit files:\n- src/domain/entities/Task.ts\n\n## Source\n=====SOURCE-BEGIN src/domain/entities/Task.ts=====\n// SUBTLE VIOLATION #2: imports from application utils which re-exports from infra\n// The domain entity doesn't directly import infra, but one level of indirection hides it.\nimport { normalizeTitle } from '../../application/utils/TaskUtils';\n\nexport class Task {\n  constructor(\n    public readonly id: string,\n    public readonly title: string,\n    public readonly description: string,\n    public readonly completed: boolean,\n    public readonly categoryId: string,\n    public readonly createdAt: Date\n  ) {}\n\n  complete(): Task {\n    return new Task(this.id, normalizeTitle(this.title), this.description, true, this.categoryId, this.createdAt);\n  }\n\n  isValid(): boolean {\n    return this.title.length > 0 && this.categoryId.length > 0;\n  }\n}\n\n=====SOURCE-END=====\n\n## Graph excerpt\n{\"edges\":[{\"from\":\"src/application/use-cases/CreateTaskUseCase.ts\",\"to\":\"src/domain/entities/Task.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/domain/entities/Task.ts\",\"to\":\"src/application/utils/TaskUtils.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/domain/repositories/ITaskRepository.ts\",\"to\":\"src/domain/entities/Task.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/infrastructure/repositories/InMemoryTaskRepository.ts\",\"to\":\"src/domain/entities/Task.ts\",\"type\":\"IMPORTS\"}],\"nodes\":[{\"kind\":\"Class\",\"layer\":\"domain\",\"name\":\"Task\",\"path\":\"src/domain/entities/Task.ts\"},{\"kind\":\"File\",\"layer\":\"application\",\"path\":\"src/application/use-cases/CreateTaskUseCase.ts\"},{\"kind\":\"File\",\"layer\":\"application\",\"path\":\"src/application/utils/TaskUtils.ts\"},{\"kind\":\"File\",\"layer\":\"domain\",\"path\":\"src/domain/entities/Task.ts\"},{\"kind\":\"File\",\"layer\":\"domain\",\"path\":\"src/domain/repositories/ITaskRepository.ts\"},{\"kind\":\"File\",\"layer\":\"infrastructure\",\"path\":\"src/infrastructure/repositories/InMemoryTaskRepository.ts\"}]}\n\n## Instructions\nJudge the unit against the rule and rubric. Return the JSON object the schema requires. Set pass to false if any file of the unit fails the rubric.\n",
+  "provider": "claude-cli",
+  "recordedAt": "2026-10-10T21:03:25.532Z",
+  "repetition": 0,
+  "requestHash": "59b84ec5e683d351dd3532d56ff91e78bef04f93b31bce868fdce7bd56a634cf",
+  "resolvedModel": "claude-opus-5-5",
+  "response": "{\"is_error\":false,\"modelUsage\":{\"claude-opus-5-5\":{\"inputTokens\":2,\"outputTokens\":718}},\"result\":\"{\\\"pass\\\":true,\\\"confidence\\\":0.8,\\\"reasoning\\\":\\\"Task.ts is a pure, immutable domain entity. It holds entity state, a state transition (complete) and a validation invariant (isValid). Both are business rules, which belong in the domain layer. The file has no persistence, transport, framework or orchestration logic. The one questionable part is the import of normalizeTitle from application/utils, which a source comment also calls a violation. Whether the domain may depend on the application layer is an import-direction question, and the rubric says that is checked separately and is out of scope here. Calling the helper inside complete() does not give the file a responsibility from another layer: the file still applies a domain rule (when a task is completed, its title is normalized) and only borrows the helper to do it. So every responsibility in the file matches the domain role.\\\",\\\"evidence\\\":[\\\"src/domain/entities/Task.ts: class Task holds only readonly entity fields (id, title, description, completed, categoryId, createdAt) — domain state\\\",\\\"src/domain/entities/Task.ts: complete() returns a new immutable Task with completed=true — a domain state transition\\\",\\\"src/domain/entities/Task.ts: isValid() checks that title and categoryId are not empty — a domain invariant\\\",\\\"src/domain/entities/Task.ts: the import of normalizeTitle from '../../application/utils/TaskUtils' is an import-direction concern, which is out of scope for this rule\\\"],\\\"violations\\\":[]}\",\"structured_output\":{\"confidence\":0.8,\"evidence\":[\"src/domain/entities/Task.ts: class Task holds only readonly entity fields (id, title, description, completed, categoryId, createdAt) — domain state\",\"src/domain/entities/Task.ts: complete() returns a new immutable Task with completed=true — a domain state transition\",\"src/domain/entities/Task.ts: isValid() checks that title and categoryId are not empty — a domain invariant\",\"src/domain/entities/Task.ts: the import of normalizeTitle from '../../application/utils/TaskUtils' is an import-direction concern, which is out of scope for this rule\"],\"pass\":true,\"reasoning\":\"Task.ts is a pure, immutable domain entity. It holds entity state, a state transition (complete) and a validation invariant (isValid). Both are business rules, which belong in the domain layer. The file has no persistence, transport, framework or orchestration logic. The one questionable part is the import of normalizeTitle from application/utils, which a source comment also calls a violation. Whether the domain may depend on the application layer is an import-direction question, and the rubric says that is checked separately and is out of scope here. Calling the helper inside complete() does not give the file a responsibility from another layer: the file still applies a domain rule (when a task is completed, its title is normalized) and only borrows the helper to do it. So every responsibility in the file matches the domain role.\",\"violations\":[]}}",
+  "runIndex": 0,
+  "schemaVersion": 2,
+  "unitId": "src/domain/entities/Task.ts",
+  "usage": {
+    "inputTokens": 2643,
+    "outputTokens": 718
+  },
+  "usedOptions": {
+    "effort": "high",
+    "model": "claude-opus-5-5"
+  }
+}

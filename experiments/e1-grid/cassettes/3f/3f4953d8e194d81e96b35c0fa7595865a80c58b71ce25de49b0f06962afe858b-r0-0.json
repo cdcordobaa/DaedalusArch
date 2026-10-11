@@ -1,0 +1,48 @@
+{
+  "attempts": 1,
+  "cliVersion": "2.1.294",
+  "configListingSha256": "47aa04258852fab9a706f3f0c14cee22306d69fbb6fdfbde8c11854bd54997bc",
+  "durationMs": 5335,
+  "effort": "high",
+  "functionId": "FF-N02",
+  "ignoredOptions": [
+    "maxTokens"
+  ],
+  "isolationProbeSha256": "97a2e2d0af1100c13c55e028c1a0c71f069093c3d08705af122aaeb302f1a641",
+  "key": "3f4953d8e194d81e96b35c0fa7595865a80c58b71ce25de49b0f06962afe858b-r0-0",
+  "model": "claude-opus-5-5",
+  "outcome": {
+    "kind": "valid"
+  },
+  "parsedVerdict": {
+    "confidence": 0.95,
+    "evidence": [
+      "ORDER_STATES constant defines the order lifecycle sequence, which is a domain concept",
+      "OrderState and OrderStatus types model the domain's state vocabulary, including 'cancelled'",
+      "isOrderStatus(value) is a pure domain type guard with no I/O or framework dependency",
+      "nextState(state) holds the domain rule for state progression and is a pure function"
+    ],
+    "pass": true,
+    "reasoning": "src/domain/OrderState.ts contains only domain concepts. It defines the order lifecycle states, the OrderState and OrderStatus types, a domain type guard, and the rule for moving to the next state. It has no persistence, transport, framework, presentation or orchestration logic, so every responsibility in the file fits the domain layer.",
+    "violations": []
+  },
+  "projectId": "claude-sonnet-5-5/order-fulfilment/minimal-prose/run-0",
+  "prompt": "## Rule\nThe unit's responsibilities match the role of its declared layer.\n\n## Rubric\nPass: Every responsibility in the file belongs to the role and kind of its declared layer, and agrees with any ADR prose given.\nFail: The file carries a responsibility that belongs to a different layer kind, for example persistence, transport or framework logic in a domain file, or business rules in an infrastructure or presentation file.\nEvidence required: Name the file and cite the function, method or statement that carries the misplaced responsibility, and the layer kind it belongs to.\nOut of scope: import direction and layer-dependency rules, which are checked symbolically.\n\n## Layer model\n- domain (kind: domain): src/domain/**\n- application (kind: application): src/application/**\n- infrastructure (kind: infrastructure): src/infrastructure/**\n\n## Unit\nKind: file\nId: src/domain/OrderState.ts\nLayer: domain\nUnit files:\n- src/domain/OrderState.ts\n\n## Source\n=====SOURCE-BEGIN src/domain/OrderState.ts=====\nexport const ORDER_STATES = [\"placed\", \"paid\", \"packed\", \"shipped\", \"delivered\"] as const;\n\nexport type OrderState = (typeof ORDER_STATES)[number];\n\nexport type OrderStatus = OrderState | \"cancelled\";\n\nexport function isOrderStatus(value: unknown): value is OrderStatus {\n  return value === \"cancelled\" || (ORDER_STATES as readonly unknown[]).includes(value);\n}\n\nexport function nextState(state: OrderState): OrderState | undefined {\n  return ORDER_STATES[ORDER_STATES.indexOf(state) + 1];\n}\n\n=====SOURCE-END=====\n\n## Graph excerpt\n{\"edges\":[{\"from\":\"src/application/ListOrdersByStatusUseCase.ts\",\"to\":\"src/domain/OrderState.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/application/dto.ts\",\"to\":\"src/domain/OrderState.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/domain/Order.ts\",\"to\":\"src/domain/OrderState.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/domain/OrderRepository.ts\",\"to\":\"src/domain/OrderState.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/infrastructure/InMemoryOrderRepository.ts\",\"to\":\"src/domain/OrderState.ts\",\"type\":\"IMPORTS\"}],\"nodes\":[{\"kind\":\"File\",\"layer\":\"application\",\"path\":\"src/application/ListOrdersByStatusUseCase.ts\"},{\"kind\":\"File\",\"layer\":\"application\",\"path\":\"src/application/dto.ts\"},{\"kind\":\"File\",\"layer\":\"domain\",\"path\":\"src/domain/Order.ts\"},{\"kind\":\"File\",\"layer\":\"domain\",\"path\":\"src/domain/OrderRepository.ts\"},{\"kind\":\"File\",\"layer\":\"domain\",\"path\":\"src/domain/OrderState.ts\"},{\"kind\":\"File\",\"layer\":\"infrastructure\",\"path\":\"src/infrastructure/InMemoryOrderRepository.ts\"}]}\n\n## Instructions\nJudge the unit against the rule and rubric. Return the JSON object the schema requires. Set pass to false if any file of the unit fails the rubric.\n",
+  "provider": "claude-cli",
+  "recordedAt": "2026-10-10T22:45:28.968Z",
+  "repetition": 0,
+  "requestHash": "3f4953d8e194d81e96b35c0fa7595865a80c58b71ce25de49b0f06962afe858b",
+  "resolvedModel": "claude-opus-5-5",
+  "response": "{\"is_error\":false,\"modelUsage\":{\"claude-opus-5-5\":{\"inputTokens\":2,\"outputTokens\":376}},\"result\":\"{\\\"pass\\\":true,\\\"confidence\\\":0.95,\\\"reasoning\\\":\\\"src/domain/OrderState.ts contains only domain concepts. It defines the order lifecycle states, the OrderState and OrderStatus types, a domain type guard, and the rule for moving to the next state. It has no persistence, transport, framework, presentation or orchestration logic, so every responsibility in the file fits the domain layer.\\\",\\\"evidence\\\":[\\\"ORDER_STATES constant defines the order lifecycle sequence, which is a domain concept\\\",\\\"OrderState and OrderStatus types model the domain's state vocabulary, including 'cancelled'\\\",\\\"isOrderStatus(value) is a pure domain type guard with no I/O or framework dependency\\\",\\\"nextState(state) holds the domain rule for state progression and is a pure function\\\"],\\\"violations\\\":[]}\",\"structured_output\":{\"confidence\":0.95,\"evidence\":[\"ORDER_STATES constant defines the order lifecycle sequence, which is a domain concept\",\"OrderState and OrderStatus types model the domain's state vocabulary, including 'cancelled'\",\"isOrderStatus(value) is a pure domain type guard with no I/O or framework dependency\",\"nextState(state) holds the domain rule for state progression and is a pure function\"],\"pass\":true,\"reasoning\":\"src/domain/OrderState.ts contains only domain concepts. It defines the order lifecycle states, the OrderState and OrderStatus types, a domain type guard, and the rule for moving to the next state. It has no persistence, transport, framework, presentation or orchestration logic, so every responsibility in the file fits the domain layer.\",\"violations\":[]}}",
+  "runIndex": 0,
+  "schemaVersion": 2,
+  "unitId": "src/domain/OrderState.ts",
+  "usage": {
+    "inputTokens": 2568,
+    "outputTokens": 376
+  },
+  "usedOptions": {
+    "effort": "high",
+    "model": "claude-opus-5-5"
+  }
+}

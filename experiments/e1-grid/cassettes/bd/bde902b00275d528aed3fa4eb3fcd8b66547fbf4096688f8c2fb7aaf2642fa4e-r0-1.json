@@ -1,0 +1,47 @@
+{
+  "attempts": 1,
+  "cliVersion": "2.1.294",
+  "configListingSha256": "47aa04258852fab9a706f3f0c14cee22306d69fbb6fdfbde8c11854bd54997bc",
+  "durationMs": 6471,
+  "effort": "high",
+  "functionId": "FF-N02",
+  "ignoredOptions": [
+    "maxTokens"
+  ],
+  "isolationProbeSha256": "97a2e2d0af1100c13c55e028c1a0c71f069093c3d08705af122aaeb302f1a641",
+  "key": "bde902b00275d528aed3fa4eb3fcd8b66547fbf4096688f8c2fb7aaf2642fa4e-r0-1",
+  "model": "claude-opus-5-5",
+  "outcome": {
+    "kind": "valid"
+  },
+  "parsedVerdict": {
+    "confidence": 0.9,
+    "evidence": [
+      "src/application/dto/OrderDto.ts: OrderDto and OrderLineDto are plain readonly data contracts, used by 8 application use cases according to the graph excerpt.",
+      "src/application/dto/OrderDto.ts: toOrderDto(order) only copies domain values (order.total.cents, line.lineTotal.cents) and does not calculate them itself.",
+      "src/application/dto/OrderDto.ts: the file has no repository, database, HTTP or framework code."
+    ],
+    "pass": true,
+    "reasoning": "The file passes. It defines read-only DTO interfaces and a pure mapping function that converts the domain Order aggregate into an output DTO for use cases. Shaping output data at the use-case boundary is an application-layer job. The file has no business rules: the line and order totals are read from the domain (line.lineTotal, order.total), not computed here. It also has no persistence, no transport or HTTP handling, and no framework code. Turning dates into ISO strings is plain data shaping for the DTO and belongs here.",
+    "violations": []
+  },
+  "projectId": "claude-opus-5-5/order-fulfilment/minimal-prose/run-1",
+  "prompt": "## Rule\nThe unit's responsibilities match the role of its declared layer.\n\n## Rubric\nPass: Every responsibility in the file belongs to the role and kind of its declared layer, and agrees with any ADR prose given.\nFail: The file carries a responsibility that belongs to a different layer kind, for example persistence, transport or framework logic in a domain file, or business rules in an infrastructure or presentation file.\nEvidence required: Name the file and cite the function, method or statement that carries the misplaced responsibility, and the layer kind it belongs to.\nOut of scope: import direction and layer-dependency rules, which are checked symbolically.\n\n## Layer model\n- domain (kind: domain): src/domain/**\n- application (kind: application): src/application/**\n- infrastructure (kind: infrastructure): src/infrastructure/**\n\n## Unit\nKind: file\nId: src/application/dto/OrderDto.ts\nLayer: application\nUnit files:\n- src/application/dto/OrderDto.ts\n\n## Source\n=====SOURCE-BEGIN src/application/dto/OrderDto.ts=====\nimport { Order } from '../../domain/order/Order';\nimport { OrderStatus } from '../../domain/order/OrderStatus';\n\nexport interface OrderLineDto {\n  readonly productId: string;\n  readonly quantity: number;\n  readonly unitPriceCents: number;\n  readonly lineTotalCents: number;\n}\n\nexport interface OrderDto {\n  readonly id: string;\n  readonly customerId: string;\n  readonly status: OrderStatus;\n  readonly lines: readonly OrderLineDto[];\n  readonly totalCents: number;\n  readonly history: ReadonlyArray<{ status: OrderStatus; at: string }>;\n}\n\nexport function toOrderDto(order: Order): OrderDto {\n  return {\n    id: order.id,\n    customerId: order.customerId,\n    status: order.status,\n    lines: order.lines.map((line) => ({\n      productId: line.productId,\n      quantity: line.quantity.value,\n      unitPriceCents: line.unitPrice.cents,\n      lineTotalCents: line.lineTotal.cents,\n    })),\n    totalCents: order.total.cents,\n    history: order.history.map((change) => ({ status: change.status, at: change.at.toISOString() })),\n  };\n}\n\n=====SOURCE-END=====\n\n## Graph excerpt\n{\"edges\":[{\"from\":\"src/application/dto/OrderDto.ts\",\"to\":\"src/domain/order/Order.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/application/dto/OrderDto.ts\",\"to\":\"src/domain/order/OrderStatus.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/application/use-cases/CancelOrderUseCase.ts\",\"to\":\"src/application/dto/OrderDto.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/application/use-cases/DeliverOrderUseCase.ts\",\"to\":\"src/application/dto/OrderDto.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/application/use-cases/GetOrderUseCase.ts\",\"to\":\"src/application/dto/OrderDto.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/application/use-cases/ListOrdersUseCase.ts\",\"to\":\"src/application/dto/OrderDto.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/application/use-cases/PackOrderUseCase.ts\",\"to\":\"src/application/dto/OrderDto.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/application/use-cases/PayOrderUseCase.ts\",\"to\":\"src/application/dto/OrderDto.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/application/use-cases/PlaceOrderUseCase.ts\",\"to\":\"src/application/dto/OrderDto.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/application/use-cases/ShipOrderUseCase.ts\",\"to\":\"src/application/dto/OrderDto.ts\",\"type\":\"IMPORTS\"}],\"nodes\":[{\"kind\":\"File\",\"layer\":\"application\",\"path\":\"src/application/dto/OrderDto.ts\"},{\"kind\":\"File\",\"layer\":\"application\",\"path\":\"src/application/use-cases/CancelOrderUseCase.ts\"},{\"kind\":\"File\",\"layer\":\"application\",\"path\":\"src/application/use-cases/DeliverOrderUseCase.ts\"},{\"kind\":\"File\",\"layer\":\"application\",\"path\":\"src/application/use-cases/GetOrderUseCase.ts\"},{\"kind\":\"File\",\"layer\":\"application\",\"path\":\"src/application/use-cases/ListOrdersUseCase.ts\"},{\"kind\":\"File\",\"layer\":\"application\",\"path\":\"src/application/use-cases/PackOrderUseCase.ts\"},{\"kind\":\"File\",\"layer\":\"application\",\"path\":\"src/application/use-cases/PayOrderUseCase.ts\"},{\"kind\":\"File\",\"layer\":\"application\",\"path\":\"src/application/use-cases/PlaceOrderUseCase.ts\"},{\"kind\":\"File\",\"layer\":\"application\",\"path\":\"src/application/use-cases/ShipOrderUseCase.ts\"},{\"kind\":\"File\",\"layer\":\"domain\",\"path\":\"src/domain/order/Order.ts\"},{\"kind\":\"File\",\"layer\":\"domain\",\"path\":\"src/domain/order/OrderStatus.ts\"},{\"kind\":\"Interface\",\"layer\":\"application\",\"name\":\"OrderDto\",\"path\":\"src/application/dto/OrderDto.ts\"},{\"kind\":\"Interface\",\"layer\":\"application\",\"name\":\"OrderLineDto\",\"path\":\"src/application/dto/OrderDto.ts\"}]}\n\n## Instructions\nJudge the unit against the rule and rubric. Return the JSON object the schema requires. Set pass to false if any file of the unit fails the rubric.\n",
+  "provider": "claude-cli",
+  "recordedAt": "2026-10-10T21:53:24.304Z",
+  "repetition": 0,
+  "requestHash": "bde902b00275d528aed3fa4eb3fcd8b66547fbf4096688f8c2fb7aaf2642fa4e",
+  "resolvedModel": "claude-opus-5-5",
+  "response": "{\"is_error\":false,\"modelUsage\":{\"claude-opus-5-5\":{\"inputTokens\":2,\"outputTokens\":512}},\"result\":\"{\\\"pass\\\":true,\\\"confidence\\\":0.9,\\\"reasoning\\\":\\\"The file passes. It defines read-only DTO interfaces and a pure mapping function that converts the domain Order aggregate into an output DTO for use cases. Shaping output data at the use-case boundary is an application-layer job. The file has no business rules: the line and order totals are read from the domain (line.lineTotal, order.total), not computed here. It also has no persistence, no transport or HTTP handling, and no framework code. Turning dates into ISO strings is plain data shaping for the DTO and belongs here.\\\",\\\"evidence\\\":[\\\"src/application/dto/OrderDto.ts: OrderDto and OrderLineDto are plain readonly data contracts, used by 8 application use cases according to the graph excerpt.\\\",\\\"src/application/dto/OrderDto.ts: toOrderDto(order) only copies domain values (order.total.cents, line.lineTotal.cents) and does not calculate them itself.\\\",\\\"src/application/dto/OrderDto.ts: the file has no repository, database, HTTP or framework code.\\\"],\\\"violations\\\":[]}\",\"structured_output\":{\"confidence\":0.9,\"evidence\":[\"src/application/dto/OrderDto.ts: OrderDto and OrderLineDto are plain readonly data contracts, used by 8 application use cases according to the graph excerpt.\",\"src/application/dto/OrderDto.ts: toOrderDto(order) only copies domain values (order.total.cents, line.lineTotal.cents) and does not calculate them itself.\",\"src/application/dto/OrderDto.ts: the file has no repository, database, HTTP or framework code.\"],\"pass\":true,\"reasoning\":\"The file passes. It defines read-only DTO interfaces and a pure mapping function that converts the domain Order aggregate into an output DTO for use cases. Shaping output data at the use-case boundary is an application-layer job. The file has no business rules: the line and order totals are read from the domain (line.lineTotal, order.total), not computed here. It also has no persistence, no transport or HTTP handling, and no framework code. Turning dates into ISO strings is plain data shaping for the DTO and belongs here.\",\"violations\":[]}}",
+  "runIndex": 1,
+  "schemaVersion": 2,
+  "unitId": "src/application/dto/OrderDto.ts",
+  "usage": {
+    "inputTokens": 3420,
+    "outputTokens": 512
+  },
+  "usedOptions": {
+    "effort": "high",
+    "model": "claude-opus-5-5"
+  }
+}

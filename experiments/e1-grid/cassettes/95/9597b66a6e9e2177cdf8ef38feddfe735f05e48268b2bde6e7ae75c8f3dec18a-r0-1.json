@@ -1,0 +1,47 @@
+{
+  "attempts": 1,
+  "cliVersion": "2.1.294",
+  "configListingSha256": "47aa04258852fab9a706f3f0c14cee22306d69fbb6fdfbde8c11854bd54997bc",
+  "durationMs": 6046,
+  "effort": "high",
+  "functionId": "FF-N02",
+  "ignoredOptions": [
+    "maxTokens"
+  ],
+  "isolationProbeSha256": "97a2e2d0af1100c13c55e028c1a0c71f069093c3d08705af122aaeb302f1a641",
+  "key": "9597b66a6e9e2177cdf8ef38feddfe735f05e48268b2bde6e7ae75c8f3dec18a-r0-1",
+  "model": "claude-opus-5-5",
+  "outcome": {
+    "kind": "valid"
+  },
+  "parsedVerdict": {
+    "confidence": 0.95,
+    "evidence": [
+      "src/application/use-cases/ListProductStockUseCase.ts: the constructor takes `private readonly products: ProductRepository`, an abstract domain port, so the file holds no concrete persistence code.",
+      "src/application/use-cases/ListProductStockUseCase.ts: `execute()` only calls `this.products.findAll().map(toProductStockDto)`, which retrieves the products and maps them to a DTO. This is orchestration belonging to the application layer.",
+      "The file contains no HTTP or framework calls, no database or SQL code and no business-rule calculations."
+    ],
+    "pass": true,
+    "reasoning": "This file is a plain application-layer use case. It gets the domain repository port (ProductRepository) through its constructor. Its execute() method asks the repository for all products and maps each one to an application DTO. That is orchestration, which is the job of the application layer. The file has no persistence code, no HTTP or other transport handling, no framework code and no domain business rules.",
+    "violations": []
+  },
+  "projectId": "claude-opus-5-5/order-fulfilment/minimal-prose/run-1",
+  "prompt": "## Rule\nThe unit's responsibilities match the role of its declared layer.\n\n## Rubric\nPass: Every responsibility in the file belongs to the role and kind of its declared layer, and agrees with any ADR prose given.\nFail: The file carries a responsibility that belongs to a different layer kind, for example persistence, transport or framework logic in a domain file, or business rules in an infrastructure or presentation file.\nEvidence required: Name the file and cite the function, method or statement that carries the misplaced responsibility, and the layer kind it belongs to.\nOut of scope: import direction and layer-dependency rules, which are checked symbolically.\n\n## Layer model\n- domain (kind: domain): src/domain/**\n- application (kind: application): src/application/**\n- infrastructure (kind: infrastructure): src/infrastructure/**\n\n## Unit\nKind: file\nId: src/application/use-cases/ListProductStockUseCase.ts\nLayer: application\nUnit files:\n- src/application/use-cases/ListProductStockUseCase.ts\n\n## Source\n=====SOURCE-BEGIN src/application/use-cases/ListProductStockUseCase.ts=====\nimport { ProductRepository } from '../../domain/product/ProductRepository';\nimport { ProductStockDto, toProductStockDto } from '../dto/ProductStockDto';\n\nexport class ListProductStockUseCase {\n  constructor(private readonly products: ProductRepository) {}\n\n  execute(): ProductStockDto[] {\n    return this.products.findAll().map(toProductStockDto);\n  }\n}\n\n=====SOURCE-END=====\n\n## Graph excerpt\n{\"edges\":[{\"from\":\"ListProductStockUseCase@src/application/use-cases/ListProductStockUseCase.ts\",\"to\":\"ProductRepository@src/domain/product/ProductRepository.ts\",\"type\":\"CONSTRUCTOR_INJECTS\"},{\"from\":\"StockController@src/infrastructure/http/controllers/StockController.ts\",\"to\":\"ListProductStockUseCase@src/application/use-cases/ListProductStockUseCase.ts\",\"type\":\"CONSTRUCTOR_INJECTS\"},{\"from\":\"src/application/use-cases/ListProductStockUseCase.ts\",\"to\":\"src/application/dto/ProductStockDto.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/application/use-cases/ListProductStockUseCase.ts\",\"to\":\"src/domain/product/ProductRepository.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/infrastructure/config/container.ts\",\"to\":\"src/application/use-cases/ListProductStockUseCase.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/infrastructure/http/controllers/StockController.ts\",\"to\":\"src/application/use-cases/ListProductStockUseCase.ts\",\"type\":\"IMPORTS\"}],\"nodes\":[{\"kind\":\"Class\",\"layer\":\"application\",\"name\":\"ListProductStockUseCase\",\"path\":\"src/application/use-cases/ListProductStockUseCase.ts\"},{\"kind\":\"Class\",\"layer\":\"infrastructure\",\"name\":\"StockController\",\"path\":\"src/infrastructure/http/controllers/StockController.ts\"},{\"kind\":\"File\",\"layer\":\"application\",\"path\":\"src/application/dto/ProductStockDto.ts\"},{\"kind\":\"File\",\"layer\":\"application\",\"path\":\"src/application/use-cases/ListProductStockUseCase.ts\"},{\"kind\":\"File\",\"layer\":\"domain\",\"path\":\"src/domain/product/ProductRepository.ts\"},{\"kind\":\"File\",\"layer\":\"infrastructure\",\"path\":\"src/infrastructure/config/container.ts\"},{\"kind\":\"File\",\"layer\":\"infrastructure\",\"path\":\"src/infrastructure/http/controllers/StockController.ts\"},{\"kind\":\"Interface\",\"layer\":\"domain\",\"name\":\"ProductRepository\",\"path\":\"src/domain/product/ProductRepository.ts\"}]}\n\n## Instructions\nJudge the unit against the rule and rubric. Return the JSON object the schema requires. Set pass to false if any file of the unit fails the rubric.\n",
+  "provider": "claude-cli",
+  "recordedAt": "2026-10-10T21:53:53.739Z",
+  "repetition": 0,
+  "requestHash": "9597b66a6e9e2177cdf8ef38feddfe735f05e48268b2bde6e7ae75c8f3dec18a",
+  "resolvedModel": "claude-opus-5-5",
+  "response": "{\"is_error\":false,\"modelUsage\":{\"claude-opus-5-5\":{\"inputTokens\":2,\"outputTokens\":445}},\"result\":\"{\\\"pass\\\":true,\\\"confidence\\\":0.95,\\\"reasoning\\\":\\\"This file is a plain application-layer use case. It gets the domain repository port (ProductRepository) through its constructor. Its execute() method asks the repository for all products and maps each one to an application DTO. That is orchestration, which is the job of the application layer. The file has no persistence code, no HTTP or other transport handling, no framework code and no domain business rules.\\\",\\\"evidence\\\":[\\\"src/application/use-cases/ListProductStockUseCase.ts: the constructor takes `private readonly products: ProductRepository`, an abstract domain port, so the file holds no concrete persistence code.\\\",\\\"src/application/use-cases/ListProductStockUseCase.ts: `execute()` only calls `this.products.findAll().map(toProductStockDto)`, which retrieves the products and maps them to a DTO. This is orchestration belonging to the application layer.\\\",\\\"The file contains no HTTP or framework calls, no database or SQL code and no business-rule calculations.\\\"],\\\"violations\\\":[]}\",\"structured_output\":{\"confidence\":0.95,\"evidence\":[\"src/application/use-cases/ListProductStockUseCase.ts: the constructor takes `private readonly products: ProductRepository`, an abstract domain port, so the file holds no concrete persistence code.\",\"src/application/use-cases/ListProductStockUseCase.ts: `execute()` only calls `this.products.findAll().map(toProductStockDto)`, which retrieves the products and maps them to a DTO. This is orchestration belonging to the application layer.\",\"The file contains no HTTP or framework calls, no database or SQL code and no business-rule calculations.\"],\"pass\":true,\"reasoning\":\"This file is a plain application-layer use case. It gets the domain repository port (ProductRepository) through its constructor. Its execute() method asks the repository for all products and maps each one to an application DTO. That is orchestration, which is the job of the application layer. The file has no persistence code, no HTTP or other transport handling, no framework code and no domain business rules.\",\"violations\":[]}}",
+  "runIndex": 1,
+  "schemaVersion": 2,
+  "unitId": "src/application/use-cases/ListProductStockUseCase.ts",
+  "usage": {
+    "inputTokens": 2841,
+    "outputTokens": 445
+  },
+  "usedOptions": {
+    "effort": "high",
+    "model": "claude-opus-5-5"
+  }
+}

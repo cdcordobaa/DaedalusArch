@@ -1,0 +1,47 @@
+{
+  "attempts": 1,
+  "cliVersion": "2.1.294",
+  "configListingSha256": "47aa04258852fab9a706f3f0c14cee22306d69fbb6fdfbde8c11854bd54997bc",
+  "durationMs": 6331,
+  "effort": "high",
+  "functionId": "FF-N02",
+  "ignoredOptions": [
+    "maxTokens"
+  ],
+  "isolationProbeSha256": "97a2e2d0af1100c13c55e028c1a0c71f069093c3d08705af122aaeb302f1a641",
+  "key": "2ed41a8b75b39d701ced3c5750eaf0d6909fcd94c79dea33a050a889fc4e7a58-r0-1",
+  "model": "claude-opus-5-5",
+  "outcome": {
+    "kind": "valid"
+  },
+  "parsedVerdict": {
+    "confidence": 0.95,
+    "evidence": [
+      "src/infrastructure/http/middleware/notFoundHandler.ts: function notFoundHandler(req, res) only calls res.status(404).json(...), which is an HTTP transport concern and belongs in infrastructure",
+      "The error code 'ROUTE_NOT_FOUND' describes routing, which is a transport concern, not a business rule",
+      "Graph: the only importer is src/infrastructure/http/createApp.ts, so the handler is part of the HTTP framework wiring"
+    ],
+    "pass": true,
+    "reasoning": "The file sits in the infrastructure layer and contains only an Express 404 handler. It sets the HTTP status and returns a JSON error body. That is transport and framework work, which is what the infrastructure layer is for. The file has no business rules, domain logic or application orchestration in it.",
+    "violations": []
+  },
+  "projectId": "claude-opus-5-5/order-fulfilment/minimal-prose/run-1",
+  "prompt": "## Rule\nThe unit's responsibilities match the role of its declared layer.\n\n## Rubric\nPass: Every responsibility in the file belongs to the role and kind of its declared layer, and agrees with any ADR prose given.\nFail: The file carries a responsibility that belongs to a different layer kind, for example persistence, transport or framework logic in a domain file, or business rules in an infrastructure or presentation file.\nEvidence required: Name the file and cite the function, method or statement that carries the misplaced responsibility, and the layer kind it belongs to.\nOut of scope: import direction and layer-dependency rules, which are checked symbolically.\n\n## Layer model\n- domain (kind: domain): src/domain/**\n- application (kind: application): src/application/**\n- infrastructure (kind: infrastructure): src/infrastructure/**\n\n## Unit\nKind: file\nId: src/infrastructure/http/middleware/notFoundHandler.ts\nLayer: infrastructure\nUnit files:\n- src/infrastructure/http/middleware/notFoundHandler.ts\n\n## Source\n=====SOURCE-BEGIN src/infrastructure/http/middleware/notFoundHandler.ts=====\nimport { Request, Response } from 'express';\n\nexport function notFoundHandler(req: Request, res: Response): void {\n  res.status(404).json({ error: { code: 'ROUTE_NOT_FOUND', message: `No route for ${req.method} ${req.path}` } });\n}\n\n=====SOURCE-END=====\n\n## Graph excerpt\n{\"edges\":[{\"from\":\"src/infrastructure/http/createApp.ts\",\"to\":\"src/infrastructure/http/middleware/notFoundHandler.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/infrastructure/http/middleware/notFoundHandler.ts\",\"to\":\"express\",\"type\":\"IMPORTS\"}],\"nodes\":[{\"kind\":\"File\",\"layer\":\"infrastructure\",\"path\":\"src/infrastructure/http/createApp.ts\"},{\"kind\":\"File\",\"layer\":\"infrastructure\",\"path\":\"src/infrastructure/http/middleware/notFoundHandler.ts\"},{\"kind\":\"Package\",\"layer\":null,\"path\":\"express\"}]}\n\n## Instructions\nJudge the unit against the rule and rubric. Return the JSON object the schema requires. Set pass to false if any file of the unit fails the rubric.\n",
+  "provider": "claude-cli",
+  "recordedAt": "2026-10-10T21:54:58.938Z",
+  "repetition": 0,
+  "requestHash": "2ed41a8b75b39d701ced3c5750eaf0d6909fcd94c79dea33a050a889fc4e7a58",
+  "resolvedModel": "claude-opus-5-5",
+  "response": "{\"is_error\":false,\"modelUsage\":{\"claude-opus-5-5\":{\"inputTokens\":2,\"outputTokens\":394}},\"result\":\"{\\\"pass\\\":true,\\\"confidence\\\":0.95,\\\"reasoning\\\":\\\"The file sits in the infrastructure layer and contains only an Express 404 handler. It sets the HTTP status and returns a JSON error body. That is transport and framework work, which is what the infrastructure layer is for. The file has no business rules, domain logic or application orchestration in it.\\\",\\\"evidence\\\":[\\\"src/infrastructure/http/middleware/notFoundHandler.ts: function notFoundHandler(req, res) only calls res.status(404).json(...), which is an HTTP transport concern and belongs in infrastructure\\\",\\\"The error code 'ROUTE_NOT_FOUND' describes routing, which is a transport concern, not a business rule\\\",\\\"Graph: the only importer is src/infrastructure/http/createApp.ts, so the handler is part of the HTTP framework wiring\\\"],\\\"violations\\\":[]}\",\"structured_output\":{\"confidence\":0.95,\"evidence\":[\"src/infrastructure/http/middleware/notFoundHandler.ts: function notFoundHandler(req, res) only calls res.status(404).json(...), which is an HTTP transport concern and belongs in infrastructure\",\"The error code 'ROUTE_NOT_FOUND' describes routing, which is a transport concern, not a business rule\",\"Graph: the only importer is src/infrastructure/http/createApp.ts, so the handler is part of the HTTP framework wiring\"],\"pass\":true,\"reasoning\":\"The file sits in the infrastructure layer and contains only an Express 404 handler. It sets the HTTP status and returns a JSON error body. That is transport and framework work, which is what the infrastructure layer is for. The file has no business rules, domain logic or application orchestration in it.\",\"violations\":[]}}",
+  "runIndex": 1,
+  "schemaVersion": 2,
+  "unitId": "src/infrastructure/http/middleware/notFoundHandler.ts",
+  "usage": {
+    "inputTokens": 2260,
+    "outputTokens": 394
+  },
+  "usedOptions": {
+    "effort": "high",
+    "model": "claude-opus-5-5"
+  }
+}

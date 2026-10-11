@@ -1,0 +1,48 @@
+{
+  "attempts": 1,
+  "cliVersion": "2.1.294",
+  "configListingSha256": "47aa04258852fab9a706f3f0c14cee22306d69fbb6fdfbde8c11854bd54997bc",
+  "durationMs": 6817,
+  "effort": "high",
+  "functionId": "FF-N02",
+  "ignoredOptions": [
+    "maxTokens"
+  ],
+  "isolationProbeSha256": "97a2e2d0af1100c13c55e028c1a0c71f069093c3d08705af122aaeb302f1a641",
+  "key": "6e7d6a13c6d95f6e4a89340b8c0e33330e29516859decbd95971742b62a0c3ba-r0-0",
+  "model": "claude-opus-5-5",
+  "outcome": {
+    "kind": "valid"
+  },
+  "parsedVerdict": {
+    "confidence": 0.88,
+    "evidence": [
+      "getStock: normalizes req.params.productId, then calls this.getProductStockUseCase.execute(productId) and res.json(response). This is request parsing and response serialization, which are transport concerns.",
+      "getAllStock: calls this.getProductStockUseCase.executeAll() and wraps the result in { products: response }. This only shapes the response.",
+      "catch blocks map errors to res.status(404)/res.status(400) with { error: message }. Mapping errors to HTTP status codes is a transport concern that belongs in infrastructure.",
+      "No domain rules, stock computations or persistence code appear in the file."
+    ],
+    "pass": true,
+    "reasoning": "ProductController is an HTTP adapter (Express controller) placed in the infrastructure layer. Its responsibilities are all transport concerns: it pulls the productId from the request params, hands the work to the application use case, serializes the response with res.json, and maps exceptions to HTTP status codes (404/400). None of this is business logic: there are no stock calculations, validation rules or domain decisions in the file. It also does no persistence work. Transport and framework adapter code belongs in infrastructure, so the file fits its declared layer.",
+    "violations": []
+  },
+  "projectId": "claude-haiku-4-5/order-fulfilment/full-aac/run-2",
+  "prompt": "## Rule\nThe unit's responsibilities match the role of its declared layer.\n\n## Rubric\nPass: Every responsibility in the file belongs to the role and kind of its declared layer, and agrees with any ADR prose given.\nFail: The file carries a responsibility that belongs to a different layer kind, for example persistence, transport or framework logic in a domain file, or business rules in an infrastructure or presentation file.\nEvidence required: Name the file and cite the function, method or statement that carries the misplaced responsibility, and the layer kind it belongs to.\nOut of scope: import direction and layer-dependency rules, which are checked symbolically.\n\n## Layer model\n- domain (kind: domain): src/domain/**\n- application (kind: application): src/application/**\n- infrastructure (kind: infrastructure): src/infrastructure/**\n\n## Unit\nKind: file\nId: src/infrastructure/ProductController.ts\nLayer: infrastructure\nUnit files:\n- src/infrastructure/ProductController.ts\n\n## Source\n=====SOURCE-BEGIN src/infrastructure/ProductController.ts=====\nimport { Request, Response } from 'express';\nimport { GetProductStockUseCase } from '../application/GetProductStockUseCase';\n\nexport class ProductController {\n  constructor(private getProductStockUseCase: GetProductStockUseCase) {}\n\n  getStock = (req: Request, res: Response): void => {\n    try {\n      const productId = Array.isArray(req.params.productId) ? req.params.productId[0] : req.params.productId;\n      const response = this.getProductStockUseCase.execute(productId);\n      res.json(response);\n    } catch (error) {\n      const message = error instanceof Error ? error.message : 'Unknown error';\n      res.status(404).json({ error: message });\n    }\n  };\n\n  getAllStock = (req: Request, res: Response): void => {\n    try {\n      const response = this.getProductStockUseCase.executeAll();\n      res.json({ products: response });\n    } catch (error) {\n      const message = error instanceof Error ? error.message : 'Unknown error';\n      res.status(400).json({ error: message });\n    }\n  };\n}\n\n=====SOURCE-END=====\n\n## Graph excerpt\n{\"edges\":[{\"from\":\"ProductController@src/infrastructure/ProductController.ts\",\"to\":\"GetProductStockUseCase@src/application/GetProductStockUseCase.ts\",\"type\":\"CONSTRUCTOR_INJECTS\"},{\"from\":\"src/infrastructure/ProductController.ts\",\"to\":\"express\",\"type\":\"IMPORTS\"},{\"from\":\"src/infrastructure/ProductController.ts\",\"to\":\"src/application/GetProductStockUseCase.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/infrastructure/Server.ts\",\"to\":\"src/infrastructure/ProductController.ts\",\"type\":\"IMPORTS\"}],\"nodes\":[{\"kind\":\"Class\",\"layer\":\"application\",\"name\":\"GetProductStockUseCase\",\"path\":\"src/application/GetProductStockUseCase.ts\"},{\"kind\":\"Class\",\"layer\":\"infrastructure\",\"name\":\"ProductController\",\"path\":\"src/infrastructure/ProductController.ts\"},{\"kind\":\"File\",\"layer\":\"application\",\"path\":\"src/application/GetProductStockUseCase.ts\"},{\"kind\":\"File\",\"layer\":\"infrastructure\",\"path\":\"src/infrastructure/ProductController.ts\"},{\"kind\":\"File\",\"layer\":\"infrastructure\",\"path\":\"src/infrastructure/Server.ts\"},{\"kind\":\"Package\",\"layer\":null,\"path\":\"express\"}]}\n\n## Instructions\nJudge the unit against the rule and rubric. Return the JSON object the schema requires. Set pass to false if any file of the unit fails the rubric.\n",
+  "provider": "claude-cli",
+  "recordedAt": "2026-10-11T03:01:16.774Z",
+  "repetition": 0,
+  "requestHash": "6e7d6a13c6d95f6e4a89340b8c0e33330e29516859decbd95971742b62a0c3ba",
+  "resolvedModel": "claude-opus-5-5",
+  "response": "{\"is_error\":false,\"modelUsage\":{\"claude-opus-5-5\":{\"inputTokens\":2,\"outputTokens\":581}},\"result\":\"{\\\"pass\\\":true,\\\"confidence\\\":0.88,\\\"reasoning\\\":\\\"ProductController is an HTTP adapter (Express controller) placed in the infrastructure layer. Its responsibilities are all transport concerns: it pulls the productId from the request params, hands the work to the application use case, serializes the response with res.json, and maps exceptions to HTTP status codes (404/400). None of this is business logic: there are no stock calculations, validation rules or domain decisions in the file. It also does no persistence work. Transport and framework adapter code belongs in infrastructure, so the file fits its declared layer.\\\",\\\"evidence\\\":[\\\"getStock: normalizes req.params.productId, then calls this.getProductStockUseCase.execute(productId) and res.json(response). This is request parsing and response serialization, which are transport concerns.\\\",\\\"getAllStock: calls this.getProductStockUseCase.executeAll() and wraps the result in { products: response }. This only shapes the response.\\\",\\\"catch blocks map errors to res.status(404)/res.status(400) with { error: message }. Mapping errors to HTTP status codes is a transport concern that belongs in infrastructure.\\\",\\\"No domain rules, stock computations or persistence code appear in the file.\\\"],\\\"violations\\\":[]}\",\"structured_output\":{\"confidence\":0.88,\"evidence\":[\"getStock: normalizes req.params.productId, then calls this.getProductStockUseCase.execute(productId) and res.json(response). This is request parsing and response serialization, which are transport concerns.\",\"getAllStock: calls this.getProductStockUseCase.executeAll() and wraps the result in { products: response }. This only shapes the response.\",\"catch blocks map errors to res.status(404)/res.status(400) with { error: message }. Mapping errors to HTTP status codes is a transport concern that belongs in infrastructure.\",\"No domain rules, stock computations or persistence code appear in the file.\"],\"pass\":true,\"reasoning\":\"ProductController is an HTTP adapter (Express controller) placed in the infrastructure layer. Its responsibilities are all transport concerns: it pulls the productId from the request params, hands the work to the application use case, serializes the response with res.json, and maps exceptions to HTTP status codes (404/400). None of this is business logic: there are no stock calculations, validation rules or domain decisions in the file. It also does no persistence work. Transport and framework adapter code belongs in infrastructure, so the file fits its declared layer.\",\"violations\":[]}}",
+  "runIndex": 0,
+  "schemaVersion": 2,
+  "unitId": "src/infrastructure/ProductController.ts",
+  "usage": {
+    "inputTokens": 2722,
+    "outputTokens": 581
+  },
+  "usedOptions": {
+    "effort": "high",
+    "model": "claude-opus-5-5"
+  }
+}

@@ -1,0 +1,48 @@
+{
+  "attempts": 1,
+  "cliVersion": "2.1.294",
+  "configListingSha256": "47aa04258852fab9a706f3f0c14cee22306d69fbb6fdfbde8c11854bd54997bc",
+  "durationMs": 6380,
+  "effort": "high",
+  "functionId": "FF-N02",
+  "ignoredOptions": [
+    "maxTokens"
+  ],
+  "isolationProbeSha256": "97a2e2d0af1100c13c55e028c1a0c71f069093c3d08705af122aaeb302f1a641",
+  "key": "9a23b7ab2c395527274c3cd806c8a655b0ec06088354363f62d422549b3d77f7-r0-0",
+  "model": "claude-opus-5-5",
+  "outcome": {
+    "kind": "valid"
+  },
+  "parsedVerdict": {
+    "confidence": 0.9,
+    "evidence": [
+      "addProduct: checks for an existing product through this.products.findById, builds the entity with Product.create, saves it with this.products.save and returns product.snapshot(). This is use-case orchestration.",
+      "listProducts and getProduct: read through the repository port and map entities to snapshots. getProduct throws the domain NotFoundError, which is an application-level query concern.",
+      "The constructor receives the ProductRepository interface (CONSTRUCTOR_INJECTS edge). The file has no concrete persistence or transport code.",
+      "AddProductCommand is a plain command DTO for the use case, which fits the application layer."
+    ],
+    "pass": true,
+    "reasoning": "CatalogueService is a standard application service. It coordinates use cases (add, list and get product) through an injected domain repository port. Entity construction and invariants are left to Product.create, and callers receive snapshots rather than entities. The duplicate-id check in addProduct depends on the repository, so it is a use-case precondition. That is normal orchestration for the application layer, not a misplaced domain rule. The file contains no persistence code, transport/HTTP handling or framework code.",
+    "violations": []
+  },
+  "projectId": "claude-opus-5-5/order-fulfilment/none/run-2",
+  "prompt": "## Rule\nThe unit's responsibilities match the role of its declared layer.\n\n## Rubric\nPass: Every responsibility in the file belongs to the role and kind of its declared layer, and agrees with any ADR prose given.\nFail: The file carries a responsibility that belongs to a different layer kind, for example persistence, transport or framework logic in a domain file, or business rules in an infrastructure or presentation file.\nEvidence required: Name the file and cite the function, method or statement that carries the misplaced responsibility, and the layer kind it belongs to.\nOut of scope: import direction and layer-dependency rules, which are checked symbolically.\n\n## Layer model\n- domain (kind: domain): src/domain/**\n- application (kind: application): src/application/**\n- infrastructure (kind: infrastructure): src/infrastructure/**\n\n## Unit\nKind: file\nId: src/application/catalogue-service.ts\nLayer: application\nUnit files:\n- src/application/catalogue-service.ts\n\n## Source\n=====SOURCE-BEGIN src/application/catalogue-service.ts=====\nimport { NotFoundError, ValidationError } from \"../domain/errors\";\nimport { Product, ProductSnapshot } from \"../domain/product\";\nimport type { ProductRepository } from \"../domain/repositories\";\n\nexport interface AddProductCommand {\n  id: string;\n  name: string;\n  priceCents: number;\n  stock: number;\n}\n\nexport class CatalogueService {\n  constructor(private readonly products: ProductRepository) {}\n\n  addProduct(command: AddProductCommand): ProductSnapshot {\n    if (this.products.findById(command.id)) {\n      throw new ValidationError(`Product ${command.id} already exists`);\n    }\n    const product = Product.create(command);\n    this.products.save(product);\n    return product.snapshot();\n  }\n\n  listProducts(): ProductSnapshot[] {\n    return this.products.findAll().map((p) => p.snapshot());\n  }\n\n  getProduct(id: string): ProductSnapshot {\n    const product = this.products.findById(id);\n    if (!product) throw new NotFoundError(`Product ${id} not found`);\n    return product.snapshot();\n  }\n}\n\n=====SOURCE-END=====\n\n## Graph excerpt\n{\"edges\":[{\"from\":\"CatalogueService@src/application/catalogue-service.ts\",\"to\":\"ProductRepository@src/domain/repositories.ts\",\"type\":\"CONSTRUCTOR_INJECTS\"},{\"from\":\"src/application/catalogue-service.ts\",\"to\":\"src/domain/errors.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/application/catalogue-service.ts\",\"to\":\"src/domain/product.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/application/catalogue-service.ts\",\"to\":\"src/domain/repositories.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/infrastructure/http.ts\",\"to\":\"src/application/catalogue-service.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/infrastructure/server.ts\",\"to\":\"src/application/catalogue-service.ts\",\"type\":\"IMPORTS\"}],\"nodes\":[{\"kind\":\"Class\",\"layer\":\"application\",\"name\":\"CatalogueService\",\"path\":\"src/application/catalogue-service.ts\"},{\"kind\":\"File\",\"layer\":\"application\",\"path\":\"src/application/catalogue-service.ts\"},{\"kind\":\"File\",\"layer\":\"domain\",\"path\":\"src/domain/errors.ts\"},{\"kind\":\"File\",\"layer\":\"domain\",\"path\":\"src/domain/product.ts\"},{\"kind\":\"File\",\"layer\":\"domain\",\"path\":\"src/domain/repositories.ts\"},{\"kind\":\"File\",\"layer\":\"infrastructure\",\"path\":\"src/infrastructure/http.ts\"},{\"kind\":\"File\",\"layer\":\"infrastructure\",\"path\":\"src/infrastructure/server.ts\"},{\"kind\":\"Interface\",\"layer\":\"application\",\"name\":\"AddProductCommand\",\"path\":\"src/application/catalogue-service.ts\"},{\"kind\":\"Interface\",\"layer\":\"domain\",\"name\":\"ProductRepository\",\"path\":\"src/domain/repositories.ts\"}]}\n\n## Instructions\nJudge the unit against the rule and rubric. Return the JSON object the schema requires. Set pass to false if any file of the unit fails the rubric.\n",
+  "provider": "claude-cli",
+  "recordedAt": "2026-10-10T21:33:31.595Z",
+  "repetition": 0,
+  "requestHash": "9a23b7ab2c395527274c3cd806c8a655b0ec06088354363f62d422549b3d77f7",
+  "resolvedModel": "claude-opus-5-5",
+  "response": "{\"is_error\":false,\"modelUsage\":{\"claude-opus-5-5\":{\"inputTokens\":2,\"outputTokens\":495}},\"result\":\"{\\\"pass\\\":true,\\\"confidence\\\":0.9,\\\"reasoning\\\":\\\"CatalogueService is a standard application service. It coordinates use cases (add, list and get product) through an injected domain repository port. Entity construction and invariants are left to Product.create, and callers receive snapshots rather than entities. The duplicate-id check in addProduct depends on the repository, so it is a use-case precondition. That is normal orchestration for the application layer, not a misplaced domain rule. The file contains no persistence code, transport/HTTP handling or framework code.\\\",\\\"evidence\\\":[\\\"addProduct: checks for an existing product through this.products.findById, builds the entity with Product.create, saves it with this.products.save and returns product.snapshot(). This is use-case orchestration.\\\",\\\"listProducts and getProduct: read through the repository port and map entities to snapshots. getProduct throws the domain NotFoundError, which is an application-level query concern.\\\",\\\"The constructor receives the ProductRepository interface (CONSTRUCTOR_INJECTS edge). The file has no concrete persistence or transport code.\\\",\\\"AddProductCommand is a plain command DTO for the use case, which fits the application layer.\\\"],\\\"violations\\\":[]}\",\"structured_output\":{\"confidence\":0.9,\"evidence\":[\"addProduct: checks for an existing product through this.products.findById, builds the entity with Product.create, saves it with this.products.save and returns product.snapshot(). This is use-case orchestration.\",\"listProducts and getProduct: read through the repository port and map entities to snapshots. getProduct throws the domain NotFoundError, which is an application-level query concern.\",\"The constructor receives the ProductRepository interface (CONSTRUCTOR_INJECTS edge). The file has no concrete persistence or transport code.\",\"AddProductCommand is a plain command DTO for the use case, which fits the application layer.\"],\"pass\":true,\"reasoning\":\"CatalogueService is a standard application service. It coordinates use cases (add, list and get product) through an injected domain repository port. Entity construction and invariants are left to Product.create, and callers receive snapshots rather than entities. The duplicate-id check in addProduct depends on the repository, so it is a use-case precondition. That is normal orchestration for the application layer, not a misplaced domain rule. The file contains no persistence code, transport/HTTP handling or framework code.\",\"violations\":[]}}",
+  "runIndex": 0,
+  "schemaVersion": 2,
+  "unitId": "src/application/catalogue-service.ts",
+  "usage": {
+    "inputTokens": 2900,
+    "outputTokens": 495
+  },
+  "usedOptions": {
+    "effort": "high",
+    "model": "claude-opus-5-5"
+  }
+}

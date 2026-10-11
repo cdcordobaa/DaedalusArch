@@ -1,0 +1,48 @@
+{
+  "attempts": 1,
+  "cliVersion": "2.1.294",
+  "configListingSha256": "47aa04258852fab9a706f3f0c14cee22306d69fbb6fdfbde8c11854bd54997bc",
+  "durationMs": 5987,
+  "effort": "high",
+  "functionId": "FF-N02",
+  "ignoredOptions": [
+    "maxTokens"
+  ],
+  "isolationProbeSha256": "97a2e2d0af1100c13c55e028c1a0c71f069093c3d08705af122aaeb302f1a641",
+  "key": "cb951757c0ce87861bd7266eb97deeffe6b0d42a91b5a6e090f2739f2307b984-r0-0",
+  "model": "claude-opus-5-5",
+  "outcome": {
+    "kind": "valid"
+  },
+  "parsedVerdict": {
+    "confidence": 0.95,
+    "evidence": [
+      "src/domain/product.ts: the constructor enforces entity invariants (id and name are required, stock is a non-negative integer), which is domain logic",
+      "src/domain/product.ts: reserve() enforces the rule against insufficient stock and throws DomainError, which is domain business logic",
+      "src/domain/product.ts: release() and assertPositiveQuantity() do pure in-memory state changes and validation, with no I/O and no framework dependencies",
+      "The file's only import is ./errors (DomainError), from the domain layer"
+    ],
+    "pass": true,
+    "reasoning": "src/domain/product.ts holds only a domain entity, Product, with its invariants and business behaviour. The constructor checks the id, the name and that stock is non-negative. reserve() and release() change stock and enforce the domain rules on quantity. The file has no persistence, transport, framework, or orchestration logic. Every responsibility fits the domain layer.",
+    "violations": []
+  },
+  "projectId": "gpt-5.6-terra/order-fulfilment/full-aac/run-1",
+  "prompt": "## Rule\nThe unit's responsibilities match the role of its declared layer.\n\n## Rubric\nPass: Every responsibility in the file belongs to the role and kind of its declared layer, and agrees with any ADR prose given.\nFail: The file carries a responsibility that belongs to a different layer kind, for example persistence, transport or framework logic in a domain file, or business rules in an infrastructure or presentation file.\nEvidence required: Name the file and cite the function, method or statement that carries the misplaced responsibility, and the layer kind it belongs to.\nOut of scope: import direction and layer-dependency rules, which are checked symbolically.\n\n## Layer model\n- domain (kind: domain): src/domain/**\n- application (kind: application): src/application/**\n- infrastructure (kind: infrastructure): src/infrastructure/**\n\n## Unit\nKind: file\nId: src/domain/product.ts\nLayer: domain\nUnit files:\n- src/domain/product.ts\n\n## Source\n=====SOURCE-BEGIN src/domain/product.ts=====\nimport { DomainError } from \"./errors\";\n\nexport class Product {\n  public constructor(\n    public readonly id: string,\n    public readonly name: string,\n    private availableQuantity: number,\n  ) {\n    if (!id || !name) throw new DomainError(\"Product id and name are required\");\n    if (!Number.isInteger(availableQuantity) || availableQuantity < 0) {\n      throw new DomainError(\"Stock must be a non-negative integer\");\n    }\n  }\n\n  public get stock(): number {\n    return this.availableQuantity;\n  }\n\n  public reserve(quantity: number): void {\n    this.assertPositiveQuantity(quantity);\n    if (quantity > this.availableQuantity) {\n      throw new DomainError(`Insufficient stock for product ${this.id}`);\n    }\n    this.availableQuantity -= quantity;\n  }\n\n  public release(quantity: number): void {\n    this.assertPositiveQuantity(quantity);\n    this.availableQuantity += quantity;\n  }\n\n  private assertPositiveQuantity(quantity: number): void {\n    if (!Number.isInteger(quantity) || quantity <= 0) {\n      throw new DomainError(\"Quantity must be a positive integer\");\n    }\n  }\n}\n\n=====SOURCE-END=====\n\n## Graph excerpt\n{\"edges\":[{\"from\":\"src/application/order-service.ts\",\"to\":\"src/domain/product.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/domain/product.ts\",\"to\":\"src/domain/errors.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/domain/repositories.ts\",\"to\":\"src/domain/product.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/infrastructure/in-memory-repositories.ts\",\"to\":\"src/domain/product.ts\",\"type\":\"IMPORTS\"}],\"nodes\":[{\"kind\":\"Class\",\"layer\":\"domain\",\"name\":\"Product\",\"path\":\"src/domain/product.ts\"},{\"kind\":\"File\",\"layer\":\"application\",\"path\":\"src/application/order-service.ts\"},{\"kind\":\"File\",\"layer\":\"domain\",\"path\":\"src/domain/errors.ts\"},{\"kind\":\"File\",\"layer\":\"domain\",\"path\":\"src/domain/product.ts\"},{\"kind\":\"File\",\"layer\":\"domain\",\"path\":\"src/domain/repositories.ts\"},{\"kind\":\"File\",\"layer\":\"infrastructure\",\"path\":\"src/infrastructure/in-memory-repositories.ts\"}]}\n\n## Instructions\nJudge the unit against the rule and rubric. Return the JSON object the schema requires. Set pass to false if any file of the unit fails the rubric.\n",
+  "provider": "claude-cli",
+  "recordedAt": "2026-10-11T03:35:19.791Z",
+  "repetition": 0,
+  "requestHash": "cb951757c0ce87861bd7266eb97deeffe6b0d42a91b5a6e090f2739f2307b984",
+  "resolvedModel": "claude-opus-5-5",
+  "response": "{\"is_error\":false,\"modelUsage\":{\"claude-opus-5-5\":{\"inputTokens\":2,\"outputTokens\":429}},\"result\":\"{\\\"pass\\\":true,\\\"confidence\\\":0.95,\\\"reasoning\\\":\\\"src/domain/product.ts holds only a domain entity, Product, with its invariants and business behaviour. The constructor checks the id, the name and that stock is non-negative. reserve() and release() change stock and enforce the domain rules on quantity. The file has no persistence, transport, framework, or orchestration logic. Every responsibility fits the domain layer.\\\",\\\"evidence\\\":[\\\"src/domain/product.ts: the constructor enforces entity invariants (id and name are required, stock is a non-negative integer), which is domain logic\\\",\\\"src/domain/product.ts: reserve() enforces the rule against insufficient stock and throws DomainError, which is domain business logic\\\",\\\"src/domain/product.ts: release() and assertPositiveQuantity() do pure in-memory state changes and validation, with no I/O and no framework dependencies\\\",\\\"The file's only import is ./errors (DomainError), from the domain layer\\\"],\\\"violations\\\":[]}\",\"structured_output\":{\"confidence\":0.95,\"evidence\":[\"src/domain/product.ts: the constructor enforces entity invariants (id and name are required, stock is a non-negative integer), which is domain logic\",\"src/domain/product.ts: reserve() enforces the rule against insufficient stock and throws DomainError, which is domain business logic\",\"src/domain/product.ts: release() and assertPositiveQuantity() do pure in-memory state changes and validation, with no I/O and no framework dependencies\",\"The file's only import is ./errors (DomainError), from the domain layer\"],\"pass\":true,\"reasoning\":\"src/domain/product.ts holds only a domain entity, Product, with its invariants and business behaviour. The constructor checks the id, the name and that stock is non-negative. reserve() and release() change stock and enforce the domain rules on quantity. The file has no persistence, transport, framework, or orchestration logic. Every responsibility fits the domain layer.\",\"violations\":[]}}",
+  "runIndex": 0,
+  "schemaVersion": 2,
+  "unitId": "src/domain/product.ts",
+  "usage": {
+    "inputTokens": 2680,
+    "outputTokens": 429
+  },
+  "usedOptions": {
+    "effort": "high",
+    "model": "claude-opus-5-5"
+  }
+}

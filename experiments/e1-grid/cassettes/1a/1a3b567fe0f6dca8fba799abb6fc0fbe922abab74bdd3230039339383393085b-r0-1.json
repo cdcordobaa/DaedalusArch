@@ -1,0 +1,48 @@
+{
+  "attempts": 1,
+  "cliVersion": "2.1.294",
+  "configListingSha256": "47aa04258852fab9a706f3f0c14cee22306d69fbb6fdfbde8c11854bd54997bc",
+  "durationMs": 5759,
+  "effort": "high",
+  "functionId": "FF-N02",
+  "ignoredOptions": [
+    "maxTokens"
+  ],
+  "isolationProbeSha256": "97a2e2d0af1100c13c55e028c1a0c71f069093c3d08705af122aaeb302f1a641",
+  "key": "1a3b567fe0f6dca8fba799abb6fc0fbe922abab74bdd3230039339383393085b-r0-1",
+  "model": "claude-opus-5-5",
+  "outcome": {
+    "kind": "valid"
+  },
+  "parsedVerdict": {
+    "confidence": 0.95,
+    "evidence": [
+      "src/infrastructure/InMemoryProductRepository.ts: class InMemoryProductRepository implements ProductRepository, so it is an infrastructure adapter for a domain port",
+      "save(product): this.products.set(product.id, product) only stores the product, with no business logic",
+      "findById(id): returns this.products.get(id) || null, a plain lookup",
+      "all(): returns Array.from(this.products.values()), a plain read of everything stored"
+    ],
+    "pass": true,
+    "reasoning": "The file is an in-memory persistence adapter that implements the domain's ProductRepository port, which is exactly what an infrastructure file should do. It has three methods: save stores a product in a Map keyed by id, findById looks one up, and all returns every stored product. None of them contains business rules such as validation, pricing or invariants, and none contains application orchestration. Every responsibility in the file is persistence, which belongs to the infrastructure layer.",
+    "violations": []
+  },
+  "projectId": "claude-haiku-4-5/order-fulfilment/full-aac/run-2",
+  "prompt": "## Rule\nThe unit's responsibilities match the role of its declared layer.\n\n## Rubric\nPass: Every responsibility in the file belongs to the role and kind of its declared layer, and agrees with any ADR prose given.\nFail: The file carries a responsibility that belongs to a different layer kind, for example persistence, transport or framework logic in a domain file, or business rules in an infrastructure or presentation file.\nEvidence required: Name the file and cite the function, method or statement that carries the misplaced responsibility, and the layer kind it belongs to.\nOut of scope: import direction and layer-dependency rules, which are checked symbolically.\n\n## Layer model\n- domain (kind: domain): src/domain/**\n- application (kind: application): src/application/**\n- infrastructure (kind: infrastructure): src/infrastructure/**\n\n## Unit\nKind: file\nId: src/infrastructure/InMemoryProductRepository.ts\nLayer: infrastructure\nUnit files:\n- src/infrastructure/InMemoryProductRepository.ts\n\n## Source\n=====SOURCE-BEGIN src/infrastructure/InMemoryProductRepository.ts=====\nimport { Product } from '../domain/Product';\nimport { ProductRepository } from '../domain/Repository';\n\nexport class InMemoryProductRepository implements ProductRepository {\n  private products: Map<string, Product> = new Map();\n\n  save(product: Product): void {\n    this.products.set(product.id, product);\n  }\n\n  findById(id: string): Product | null {\n    return this.products.get(id) || null;\n  }\n\n  all(): Product[] {\n    return Array.from(this.products.values());\n  }\n}\n\n=====SOURCE-END=====\n\n## Graph excerpt\n{\"edges\":[{\"from\":\"InMemoryProductRepository@src/infrastructure/InMemoryProductRepository.ts\",\"to\":\"ProductRepository@src/domain/Repository.ts\",\"type\":\"IMPLEMENTS\"},{\"from\":\"src/infrastructure/InMemoryProductRepository.ts\",\"to\":\"src/domain/Product.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/infrastructure/InMemoryProductRepository.ts\",\"to\":\"src/domain/Repository.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/infrastructure/Server.ts\",\"to\":\"src/infrastructure/InMemoryProductRepository.ts\",\"type\":\"IMPORTS\"}],\"nodes\":[{\"kind\":\"Class\",\"layer\":\"infrastructure\",\"name\":\"InMemoryProductRepository\",\"path\":\"src/infrastructure/InMemoryProductRepository.ts\"},{\"kind\":\"File\",\"layer\":\"domain\",\"path\":\"src/domain/Product.ts\"},{\"kind\":\"File\",\"layer\":\"domain\",\"path\":\"src/domain/Repository.ts\"},{\"kind\":\"File\",\"layer\":\"infrastructure\",\"path\":\"src/infrastructure/InMemoryProductRepository.ts\"},{\"kind\":\"File\",\"layer\":\"infrastructure\",\"path\":\"src/infrastructure/Server.ts\"},{\"kind\":\"Interface\",\"layer\":\"domain\",\"name\":\"ProductRepository\",\"path\":\"src/domain/Repository.ts\"}]}\n\n## Instructions\nJudge the unit against the rule and rubric. Return the JSON object the schema requires. Set pass to false if any file of the unit fails the rubric.\n",
+  "provider": "claude-cli",
+  "recordedAt": "2026-10-11T03:00:57.031Z",
+  "repetition": 0,
+  "requestHash": "1a3b567fe0f6dca8fba799abb6fc0fbe922abab74bdd3230039339383393085b",
+  "resolvedModel": "claude-opus-5-5",
+  "response": "{\"is_error\":false,\"modelUsage\":{\"claude-opus-5-5\":{\"inputTokens\":2,\"outputTokens\":431}},\"result\":\"{\\\"pass\\\":true,\\\"confidence\\\":0.95,\\\"reasoning\\\":\\\"The file is an in-memory persistence adapter that implements the domain's ProductRepository port, which is exactly what an infrastructure file should do. It has three methods: save stores a product in a Map keyed by id, findById looks one up, and all returns every stored product. None of them contains business rules such as validation, pricing or invariants, and none contains application orchestration. Every responsibility in the file is persistence, which belongs to the infrastructure layer.\\\",\\\"evidence\\\":[\\\"src/infrastructure/InMemoryProductRepository.ts: class InMemoryProductRepository implements ProductRepository, so it is an infrastructure adapter for a domain port\\\",\\\"save(product): this.products.set(product.id, product) only stores the product, with no business logic\\\",\\\"findById(id): returns this.products.get(id) || null, a plain lookup\\\",\\\"all(): returns Array.from(this.products.values()), a plain read of everything stored\\\"],\\\"violations\\\":[]}\",\"structured_output\":{\"confidence\":0.95,\"evidence\":[\"src/infrastructure/InMemoryProductRepository.ts: class InMemoryProductRepository implements ProductRepository, so it is an infrastructure adapter for a domain port\",\"save(product): this.products.set(product.id, product) only stores the product, with no business logic\",\"findById(id): returns this.products.get(id) || null, a plain lookup\",\"all(): returns Array.from(this.products.values()), a plain read of everything stored\"],\"pass\":true,\"reasoning\":\"The file is an in-memory persistence adapter that implements the domain's ProductRepository port, which is exactly what an infrastructure file should do. It has three methods: save stores a product in a Map keyed by id, findById looks one up, and all returns every stored product. None of them contains business rules such as validation, pricing or invariants, and none contains application orchestration. Every responsibility in the file is persistence, which belongs to the infrastructure layer.\",\"violations\":[]}}",
+  "runIndex": 1,
+  "schemaVersion": 2,
+  "unitId": "src/infrastructure/InMemoryProductRepository.ts",
+  "usage": {
+    "inputTokens": 2584,
+    "outputTokens": 431
+  },
+  "usedOptions": {
+    "effort": "high",
+    "model": "claude-opus-5-5"
+  }
+}

@@ -1,0 +1,48 @@
+{
+  "attempts": 1,
+  "cliVersion": "2.1.294",
+  "configListingSha256": "47aa04258852fab9a706f3f0c14cee22306d69fbb6fdfbde8c11854bd54997bc",
+  "durationMs": 6124,
+  "effort": "high",
+  "functionId": "FF-N02",
+  "ignoredOptions": [
+    "maxTokens"
+  ],
+  "isolationProbeSha256": "97a2e2d0af1100c13c55e028c1a0c71f069093c3d08705af122aaeb302f1a641",
+  "key": "9c0f0446fec6c139af1734637199a45b9590fe7ea974c7c52366f732b43a4f2c-r0-1",
+  "model": "claude-opus-5-5",
+  "outcome": {
+    "kind": "valid"
+  },
+  "parsedVerdict": {
+    "confidence": 0.93,
+    "evidence": [
+      "The DomainErrorKind union (\"validation\" | \"not_found\" | \"conflict\") names failure categories in domain terms and has no HTTP status codes.",
+      "The DomainError class only extends Error and sets name and kind. It does no I/O and depends on no framework.",
+      "The static factories validation, notFound and conflict only build error instances.",
+      "The graph shows that src/infrastructure/errorMiddleware.ts consumes DomainError, so transport mapping lives outside the domain file."
+    ],
+    "pass": true,
+    "reasoning": "src/domain/DomainError.ts only defines a domain error type. It has a DomainErrorKind union with the values validation, not_found and conflict, and factory methods that build each kind. These kinds are categories of failure in domain terms. They contain no HTTP status codes, no transport mapping, no persistence logic and no framework coupling. Mapping these errors to HTTP responses happens in src/infrastructure/errorMiddleware.ts, which sits in the infrastructure layer where it belongs. Every responsibility in this file fits the domain layer.",
+    "violations": []
+  },
+  "projectId": "claude-sonnet-5-5/task-management/full-aac/run-1",
+  "prompt": "## Rule\nThe unit's responsibilities match the role of its declared layer.\n\n## Rubric\nPass: Every responsibility in the file belongs to the role and kind of its declared layer, and agrees with any ADR prose given.\nFail: The file carries a responsibility that belongs to a different layer kind, for example persistence, transport or framework logic in a domain file, or business rules in an infrastructure or presentation file.\nEvidence required: Name the file and cite the function, method or statement that carries the misplaced responsibility, and the layer kind it belongs to.\nOut of scope: import direction and layer-dependency rules, which are checked symbolically.\n\n## Layer model\n- domain (kind: domain): src/domain/**\n- application (kind: application): src/application/**\n- infrastructure (kind: infrastructure): src/infrastructure/**\n\n## Unit\nKind: file\nId: src/domain/DomainError.ts\nLayer: domain\nUnit files:\n- src/domain/DomainError.ts\n\n## Source\n=====SOURCE-BEGIN src/domain/DomainError.ts=====\nexport type DomainErrorKind = \"validation\" | \"not_found\" | \"conflict\";\n\nexport class DomainError extends Error {\n  constructor(\n    readonly kind: DomainErrorKind,\n    message: string,\n  ) {\n    super(message);\n    this.name = \"DomainError\";\n  }\n\n  static validation(message: string): DomainError {\n    return new DomainError(\"validation\", message);\n  }\n\n  static notFound(message: string): DomainError {\n    return new DomainError(\"not_found\", message);\n  }\n\n  static conflict(message: string): DomainError {\n    return new DomainError(\"conflict\", message);\n  }\n}\n\n=====SOURCE-END=====\n\n## Graph excerpt\n{\"edges\":[{\"from\":\"src/application/AddTaskUseCase.ts\",\"to\":\"src/domain/DomainError.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/application/AssignTaskUseCase.ts\",\"to\":\"src/domain/DomainError.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/application/ListTasksUseCase.ts\",\"to\":\"src/domain/DomainError.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/application/TaskFinderService.ts\",\"to\":\"src/domain/DomainError.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/domain/Project.ts\",\"to\":\"src/domain/DomainError.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/domain/Task.ts\",\"to\":\"src/domain/DomainError.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/domain/TaskStatus.ts\",\"to\":\"src/domain/DomainError.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/domain/User.ts\",\"to\":\"src/domain/DomainError.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/infrastructure/errorMiddleware.ts\",\"to\":\"src/domain/DomainError.ts\",\"type\":\"IMPORTS\"}],\"nodes\":[{\"kind\":\"Class\",\"layer\":\"domain\",\"name\":\"DomainError\",\"path\":\"src/domain/DomainError.ts\"},{\"kind\":\"File\",\"layer\":\"application\",\"path\":\"src/application/AddTaskUseCase.ts\"},{\"kind\":\"File\",\"layer\":\"application\",\"path\":\"src/application/AssignTaskUseCase.ts\"},{\"kind\":\"File\",\"layer\":\"application\",\"path\":\"src/application/ListTasksUseCase.ts\"},{\"kind\":\"File\",\"layer\":\"application\",\"path\":\"src/application/TaskFinderService.ts\"},{\"kind\":\"File\",\"layer\":\"domain\",\"path\":\"src/domain/DomainError.ts\"},{\"kind\":\"File\",\"layer\":\"domain\",\"path\":\"src/domain/Project.ts\"},{\"kind\":\"File\",\"layer\":\"domain\",\"path\":\"src/domain/Task.ts\"},{\"kind\":\"File\",\"layer\":\"domain\",\"path\":\"src/domain/TaskStatus.ts\"},{\"kind\":\"File\",\"layer\":\"domain\",\"path\":\"src/domain/User.ts\"},{\"kind\":\"File\",\"layer\":\"infrastructure\",\"path\":\"src/infrastructure/errorMiddleware.ts\"}]}\n\n## Instructions\nJudge the unit against the rule and rubric. Return the JSON object the schema requires. Set pass to false if any file of the unit fails the rubric.\n",
+  "provider": "claude-cli",
+  "recordedAt": "2026-10-10T22:57:09.359Z",
+  "repetition": 0,
+  "requestHash": "9c0f0446fec6c139af1734637199a45b9590fe7ea974c7c52366f732b43a4f2c",
+  "resolvedModel": "claude-opus-5-5",
+  "response": "{\"is_error\":false,\"modelUsage\":{\"claude-opus-5-5\":{\"inputTokens\":2,\"outputTokens\":485}},\"result\":\"{\\\"pass\\\":true,\\\"confidence\\\":0.93,\\\"reasoning\\\":\\\"src/domain/DomainError.ts only defines a domain error type. It has a DomainErrorKind union with the values validation, not_found and conflict, and factory methods that build each kind. These kinds are categories of failure in domain terms. They contain no HTTP status codes, no transport mapping, no persistence logic and no framework coupling. Mapping these errors to HTTP responses happens in src/infrastructure/errorMiddleware.ts, which sits in the infrastructure layer where it belongs. Every responsibility in this file fits the domain layer.\\\",\\\"evidence\\\":[\\\"The DomainErrorKind union (\\\\\\\"validation\\\\\\\" | \\\\\\\"not_found\\\\\\\" | \\\\\\\"conflict\\\\\\\") names failure categories in domain terms and has no HTTP status codes.\\\",\\\"The DomainError class only extends Error and sets name and kind. It does no I/O and depends on no framework.\\\",\\\"The static factories validation, notFound and conflict only build error instances.\\\",\\\"The graph shows that src/infrastructure/errorMiddleware.ts consumes DomainError, so transport mapping lives outside the domain file.\\\"],\\\"violations\\\":[]}\",\"structured_output\":{\"confidence\":0.93,\"evidence\":[\"The DomainErrorKind union (\\\"validation\\\" | \\\"not_found\\\" | \\\"conflict\\\") names failure categories in domain terms and has no HTTP status codes.\",\"The DomainError class only extends Error and sets name and kind. It does no I/O and depends on no framework.\",\"The static factories validation, notFound and conflict only build error instances.\",\"The graph shows that src/infrastructure/errorMiddleware.ts consumes DomainError, so transport mapping lives outside the domain file.\"],\"pass\":true,\"reasoning\":\"src/domain/DomainError.ts only defines a domain error type. It has a DomainErrorKind union with the values validation, not_found and conflict, and factory methods that build each kind. These kinds are categories of failure in domain terms. They contain no HTTP status codes, no transport mapping, no persistence logic and no framework coupling. Mapping these errors to HTTP responses happens in src/infrastructure/errorMiddleware.ts, which sits in the infrastructure layer where it belongs. Every responsibility in this file fits the domain layer.\",\"violations\":[]}}",
+  "runIndex": 1,
+  "schemaVersion": 2,
+  "unitId": "src/domain/DomainError.ts",
+  "usage": {
+    "inputTokens": 2908,
+    "outputTokens": 485
+  },
+  "usedOptions": {
+    "effort": "high",
+    "model": "claude-opus-5-5"
+  }
+}

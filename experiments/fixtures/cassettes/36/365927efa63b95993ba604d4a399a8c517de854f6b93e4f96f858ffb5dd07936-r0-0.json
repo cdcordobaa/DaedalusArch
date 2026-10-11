@@ -1,0 +1,52 @@
+{
+  "attempts": 1,
+  "cliVersion": "2.1.294",
+  "configListingSha256": "47aa04258852fab9a706f3f0c14cee22306d69fbb6fdfbde8c11854bd54997bc",
+  "durationMs": 12869,
+  "effort": "high",
+  "functionId": "FF-N02",
+  "ignoredOptions": [
+    "maxTokens"
+  ],
+  "isolationProbeSha256": "97a2e2d0af1100c13c55e028c1a0c71f069093c3d08705af122aaeb302f1a641",
+  "key": "365927efa63b95993ba604d4a399a8c517de854f6b93e4f96f858ffb5dd07936-r0-0",
+  "model": "claude-opus-5-5",
+  "outcome": {
+    "kind": "valid"
+  },
+  "parsedVerdict": {
+    "confidence": 0.6,
+    "evidence": [
+      "src/domain/entities/Task.ts: `static readonly DEFAULT_TIMEOUT = InfraConfig.DEFAULT_TIMEOUT;` makes a domain entity expose an infrastructure timeout setting as part of its API.",
+      "src/domain/entities/Task.ts: complete() and isValid() are proper domain behaviour (state transition and invariant check).",
+      "Graph shows InfraConfig.ts sits in the infrastructure layer, which confirms the setting is an infrastructure value."
+    ],
+    "pass": false,
+    "reasoning": "Most of Task fits the domain role. It is an immutable entity with a state transition, complete(), and an invariant check, isValid(). One statement does not fit: `static readonly DEFAULT_TIMEOUT = InfraConfig.DEFAULT_TIMEOUT;`. It makes the entity hold and publish an infrastructure setting as part of its own public API. A timeout is an operational, infrastructure-level setting with no business meaning for a task. So the entity carries an infrastructure configuration responsibility that belongs in the infrastructure layer. I am not judging the import of InfraConfig or the unused ITaskRepository import, because import direction is out of scope. I fail the file only because the entity exposes this infrastructure setting. Confidence is moderate because the misplaced responsibility is small: a single constant, not logic.",
+    "violations": [
+      {
+        "filePath": "src/domain/entities/Task.ts",
+        "message": "Static field `Task.DEFAULT_TIMEOUT = InfraConfig.DEFAULT_TIMEOUT` puts an infrastructure timeout setting inside the domain entity's public API. This setting belongs in the infrastructure layer, not on a domain entity."
+      }
+    ]
+  },
+  "projectId": "variant-a-structural",
+  "prompt": "## Rule\nThe unit's responsibilities match the role of its declared layer.\n\n## Rubric\nPass: Every responsibility in the file belongs to the role and kind of its declared layer, and agrees with any ADR prose given.\nFail: The file carries a responsibility that belongs to a different layer kind, for example persistence, transport or framework logic in a domain file, or business rules in an infrastructure or presentation file.\nEvidence required: Name the file and cite the function, method or statement that carries the misplaced responsibility, and the layer kind it belongs to.\nOut of scope: import direction and layer-dependency rules, which are checked symbolically.\n\n## Layer model\n- domain (kind: domain): src/domain/**\n- application (kind: application): src/application/**\n- infrastructure (kind: infrastructure): src/infrastructure/**\n\n## Unit\nKind: file\nId: src/domain/entities/Task.ts\nLayer: domain\nUnit files:\n- src/domain/entities/Task.ts\n\n## Source\n=====SOURCE-BEGIN src/domain/entities/Task.ts=====\n// VIOLATION #1: Domain entity imports InfraConfig from infrastructure layer (wrong direction)\nimport { InfraConfig } from '../../infrastructure/config/InfraConfig';\nimport { ITaskRepository } from '../repositories/ITaskRepository';\n\nexport class Task {\n  static readonly DEFAULT_TIMEOUT = InfraConfig.DEFAULT_TIMEOUT;\n\n  constructor(\n    public readonly id: string,\n    public readonly title: string,\n    public readonly description: string,\n    public readonly completed: boolean,\n    public readonly categoryId: string,\n    public readonly createdAt: Date\n  ) {}\n\n  complete(): Task {\n    return new Task(this.id, this.title, this.description, true, this.categoryId, this.createdAt);\n  }\n\n  isValid(): boolean {\n    return this.title.length > 0 && this.categoryId.length > 0;\n  }\n}\n\n=====SOURCE-END=====\n\n## Graph excerpt\n{\"edges\":[{\"from\":\"src/application/use-cases/CreateTaskUseCase.ts\",\"to\":\"src/domain/entities/Task.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/domain/entities/Task.ts\",\"to\":\"src/domain/repositories/ITaskRepository.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/domain/entities/Task.ts\",\"to\":\"src/infrastructure/config/InfraConfig.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/domain/repositories/ITaskRepository.ts\",\"to\":\"src/domain/entities/Task.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/infrastructure/repositories/InMemoryTaskRepository.ts\",\"to\":\"src/domain/entities/Task.ts\",\"type\":\"IMPORTS\"}],\"nodes\":[{\"kind\":\"Class\",\"layer\":\"domain\",\"name\":\"Task\",\"path\":\"src/domain/entities/Task.ts\"},{\"kind\":\"File\",\"layer\":\"application\",\"path\":\"src/application/use-cases/CreateTaskUseCase.ts\"},{\"kind\":\"File\",\"layer\":\"domain\",\"path\":\"src/domain/entities/Task.ts\"},{\"kind\":\"File\",\"layer\":\"domain\",\"path\":\"src/domain/repositories/ITaskRepository.ts\"},{\"kind\":\"File\",\"layer\":\"infrastructure\",\"path\":\"src/infrastructure/config/InfraConfig.ts\"},{\"kind\":\"File\",\"layer\":\"infrastructure\",\"path\":\"src/infrastructure/repositories/InMemoryTaskRepository.ts\"}]}\n\n## Instructions\nJudge the unit against the rule and rubric. Return the JSON object the schema requires. Set pass to false if any file of the unit fails the rubric.\n",
+  "provider": "claude-cli",
+  "recordedAt": "2026-10-10T20:57:56.965Z",
+  "repetition": 0,
+  "requestHash": "365927efa63b95993ba604d4a399a8c517de854f6b93e4f96f858ffb5dd07936",
+  "resolvedModel": "claude-opus-5-5",
+  "response": "{\"is_error\":false,\"modelUsage\":{\"claude-opus-5-5\":{\"inputTokens\":2,\"outputTokens\":1230}},\"result\":\"{\\\"pass\\\":false,\\\"confidence\\\":0.6,\\\"reasoning\\\":\\\"Most of Task fits the domain role. It is an immutable entity with a state transition, complete(), and an invariant check, isValid(). One statement does not fit: `static readonly DEFAULT_TIMEOUT = InfraConfig.DEFAULT_TIMEOUT;`. It makes the entity hold and publish an infrastructure setting as part of its own public API. A timeout is an operational, infrastructure-level setting with no business meaning for a task. So the entity carries an infrastructure configuration responsibility that belongs in the infrastructure layer. I am not judging the import of InfraConfig or the unused ITaskRepository import, because import direction is out of scope. I fail the file only because the entity exposes this infrastructure setting. Confidence is moderate because the misplaced responsibility is small: a single constant, not logic.\\\",\\\"evidence\\\":[\\\"src/domain/entities/Task.ts: `static readonly DEFAULT_TIMEOUT = InfraConfig.DEFAULT_TIMEOUT;` makes a domain entity expose an infrastructure timeout setting as part of its API.\\\",\\\"src/domain/entities/Task.ts: complete() and isValid() are proper domain behaviour (state transition and invariant check).\\\",\\\"Graph shows InfraConfig.ts sits in the infrastructure layer, which confirms the setting is an infrastructure value.\\\"],\\\"violations\\\":[{\\\"filePath\\\":\\\"src/domain/entities/Task.ts\\\",\\\"message\\\":\\\"Static field `Task.DEFAULT_TIMEOUT = InfraConfig.DEFAULT_TIMEOUT` puts an infrastructure timeout setting inside the domain entity's public API. This setting belongs in the infrastructure layer, not on a domain entity.\\\"}]}\",\"structured_output\":{\"confidence\":0.6,\"evidence\":[\"src/domain/entities/Task.ts: `static readonly DEFAULT_TIMEOUT = InfraConfig.DEFAULT_TIMEOUT;` makes a domain entity expose an infrastructure timeout setting as part of its API.\",\"src/domain/entities/Task.ts: complete() and isValid() are proper domain behaviour (state transition and invariant check).\",\"Graph shows InfraConfig.ts sits in the infrastructure layer, which confirms the setting is an infrastructure value.\"],\"pass\":false,\"reasoning\":\"Most of Task fits the domain role. It is an immutable entity with a state transition, complete(), and an invariant check, isValid(). One statement does not fit: `static readonly DEFAULT_TIMEOUT = InfraConfig.DEFAULT_TIMEOUT;`. It makes the entity hold and publish an infrastructure setting as part of its own public API. A timeout is an operational, infrastructure-level setting with no business meaning for a task. So the entity carries an infrastructure configuration responsibility that belongs in the infrastructure layer. I am not judging the import of InfraConfig or the unused ITaskRepository import, because import direction is out of scope. I fail the file only because the entity exposes this infrastructure setting. Confidence is moderate because the misplaced responsibility is small: a single constant, not logic.\",\"violations\":[{\"filePath\":\"src/domain/entities/Task.ts\",\"message\":\"Static field `Task.DEFAULT_TIMEOUT = InfraConfig.DEFAULT_TIMEOUT` puts an infrastructure timeout setting inside the domain entity's public API. This setting belongs in the infrastructure layer, not on a domain entity.\"}]}}",
+  "runIndex": 0,
+  "schemaVersion": 2,
+  "unitId": "src/domain/entities/Task.ts",
+  "usage": {
+    "inputTokens": 2748,
+    "outputTokens": 1230
+  },
+  "usedOptions": {
+    "effort": "high",
+    "model": "claude-opus-5-5"
+  }
+}

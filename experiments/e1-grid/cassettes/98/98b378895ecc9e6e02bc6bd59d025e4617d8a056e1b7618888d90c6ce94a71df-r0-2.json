@@ -1,0 +1,48 @@
+{
+  "attempts": 1,
+  "cliVersion": "2.1.294",
+  "configListingSha256": "47aa04258852fab9a706f3f0c14cee22306d69fbb6fdfbde8c11854bd54997bc",
+  "durationMs": 7712,
+  "effort": "high",
+  "functionId": "FF-N02",
+  "ignoredOptions": [
+    "maxTokens"
+  ],
+  "isolationProbeSha256": "97a2e2d0af1100c13c55e028c1a0c71f069093c3d08705af122aaeb302f1a641",
+  "key": "98b378895ecc9e6e02bc6bd59d025e4617d8a056e1b7618888d90c6ce94a71df-r0-2",
+  "model": "claude-opus-5-5",
+  "outcome": {
+    "kind": "valid"
+  },
+  "parsedVerdict": {
+    "confidence": 0.85,
+    "evidence": [
+      "execute(name) creates a User (new User(id, name)), saves it through this.userRepository.save(user), and returns a UserDTO. This is use-case orchestration.",
+      "The repository is injected as the domain interface IUserRepository, so there is no concrete persistence logic in the file.",
+      "The DTO mapping { id: user.getId(), name: user.getName() } is a normal application-layer output boundary.",
+      "generateId() uses Date.now()/Math.random(). This is a minor technical helper. It is not persistence, transport or framework logic."
+    ],
+    "pass": true,
+    "reasoning": "CreateUserUseCase in src/application/CreateUserUseCase.ts does normal application-layer orchestration. It builds a domain User, saves it through the IUserRepository port defined in the domain, and maps the result to a UserDTO. The file has no persistence code (no SQL, ORM or file I/O), no transport or HTTP handling, no framework code and no business invariants that belong in the domain. The private generateId() helper uses Date.now() and Math.random(). One could argue that an ID-generation strategy belongs behind an infrastructure port, but it is a small technical helper used by the orchestration, not persistence, transport or framework logic. It does not clearly belong to a different layer kind. No ADR prose was given that says otherwise.",
+    "violations": []
+  },
+  "projectId": "claude-haiku-4-5/task-management/full-aac/run-0",
+  "prompt": "## Rule\nThe unit's responsibilities match the role of its declared layer.\n\n## Rubric\nPass: Every responsibility in the file belongs to the role and kind of its declared layer, and agrees with any ADR prose given.\nFail: The file carries a responsibility that belongs to a different layer kind, for example persistence, transport or framework logic in a domain file, or business rules in an infrastructure or presentation file.\nEvidence required: Name the file and cite the function, method or statement that carries the misplaced responsibility, and the layer kind it belongs to.\nOut of scope: import direction and layer-dependency rules, which are checked symbolically.\n\n## Layer model\n- domain (kind: domain): src/domain/**\n- application (kind: application): src/application/**\n- infrastructure (kind: infrastructure): src/infrastructure/**\n\n## Unit\nKind: file\nId: src/application/CreateUserUseCase.ts\nLayer: application\nUnit files:\n- src/application/CreateUserUseCase.ts\n\n## Source\n=====SOURCE-BEGIN src/application/CreateUserUseCase.ts=====\nimport { User } from \"../domain/User\";\nimport { IUserRepository } from \"../domain/IUserRepository\";\nimport { UserDTO } from \"./UserDTO\";\n\nexport class CreateUserUseCase {\n  constructor(private readonly userRepository: IUserRepository) {}\n\n  execute(name: string): UserDTO {\n    const id = this.generateId();\n    const user = new User(id, name);\n    this.userRepository.save(user);\n    return {\n      id: user.getId(),\n      name: user.getName(),\n    };\n  }\n\n  private generateId(): string {\n    return \"user_\" + Date.now() + \"_\" + Math.random().toString(36).substr(2, 9);\n  }\n}\n\n=====SOURCE-END=====\n\n## Graph excerpt\n{\"edges\":[{\"from\":\"CreateUserUseCase@src/application/CreateUserUseCase.ts\",\"to\":\"IUserRepository@src/domain/IUserRepository.ts\",\"type\":\"CONSTRUCTOR_INJECTS\"},{\"from\":\"UserController@src/infrastructure/UserController.ts\",\"to\":\"CreateUserUseCase@src/application/CreateUserUseCase.ts\",\"type\":\"FLOWS_TO\"},{\"from\":\"src/application/CreateUserUseCase.ts\",\"to\":\"src/application/UserDTO.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/application/CreateUserUseCase.ts\",\"to\":\"src/domain/IUserRepository.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/application/CreateUserUseCase.ts\",\"to\":\"src/domain/User.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/infrastructure/UserController.ts\",\"to\":\"src/application/CreateUserUseCase.ts\",\"type\":\"IMPORTS\"}],\"nodes\":[{\"kind\":\"Class\",\"layer\":\"application\",\"name\":\"CreateUserUseCase\",\"path\":\"src/application/CreateUserUseCase.ts\"},{\"kind\":\"Class\",\"layer\":\"infrastructure\",\"name\":\"UserController\",\"path\":\"src/infrastructure/UserController.ts\"},{\"kind\":\"File\",\"layer\":\"application\",\"path\":\"src/application/CreateUserUseCase.ts\"},{\"kind\":\"File\",\"layer\":\"application\",\"path\":\"src/application/UserDTO.ts\"},{\"kind\":\"File\",\"layer\":\"domain\",\"path\":\"src/domain/IUserRepository.ts\"},{\"kind\":\"File\",\"layer\":\"domain\",\"path\":\"src/domain/User.ts\"},{\"kind\":\"File\",\"layer\":\"infrastructure\",\"path\":\"src/infrastructure/UserController.ts\"},{\"kind\":\"Interface\",\"layer\":\"domain\",\"name\":\"IUserRepository\",\"path\":\"src/domain/IUserRepository.ts\"}]}\n\n## Instructions\nJudge the unit against the rule and rubric. Return the JSON object the schema requires. Set pass to false if any file of the unit fails the rubric.\n",
+  "provider": "claude-cli",
+  "recordedAt": "2026-10-10T20:52:43.208Z",
+  "repetition": 0,
+  "requestHash": "98b378895ecc9e6e02bc6bd59d025e4617d8a056e1b7618888d90c6ce94a71df",
+  "resolvedModel": "claude-opus-5-5",
+  "response": "{\"is_error\":false,\"modelUsage\":{\"claude-opus-5-5\":{\"inputTokens\":2,\"outputTokens\":671}},\"result\":\"{\\\"pass\\\":true,\\\"confidence\\\":0.85,\\\"reasoning\\\":\\\"CreateUserUseCase in src/application/CreateUserUseCase.ts does normal application-layer orchestration. It builds a domain User, saves it through the IUserRepository port defined in the domain, and maps the result to a UserDTO. The file has no persistence code (no SQL, ORM or file I/O), no transport or HTTP handling, no framework code and no business invariants that belong in the domain. The private generateId() helper uses Date.now() and Math.random(). One could argue that an ID-generation strategy belongs behind an infrastructure port, but it is a small technical helper used by the orchestration, not persistence, transport or framework logic. It does not clearly belong to a different layer kind. No ADR prose was given that says otherwise.\\\",\\\"evidence\\\":[\\\"execute(name) creates a User (new User(id, name)), saves it through this.userRepository.save(user), and returns a UserDTO. This is use-case orchestration.\\\",\\\"The repository is injected as the domain interface IUserRepository, so there is no concrete persistence logic in the file.\\\",\\\"The DTO mapping { id: user.getId(), name: user.getName() } is a normal application-layer output boundary.\\\",\\\"generateId() uses Date.now()/Math.random(). This is a minor technical helper. It is not persistence, transport or framework logic.\\\"],\\\"violations\\\":[]}\",\"structured_output\":{\"confidence\":0.85,\"evidence\":[\"execute(name) creates a User (new User(id, name)), saves it through this.userRepository.save(user), and returns a UserDTO. This is use-case orchestration.\",\"The repository is injected as the domain interface IUserRepository, so there is no concrete persistence logic in the file.\",\"The DTO mapping { id: user.getId(), name: user.getName() } is a normal application-layer output boundary.\",\"generateId() uses Date.now()/Math.random(). This is a minor technical helper. It is not persistence, transport or framework logic.\"],\"pass\":true,\"reasoning\":\"CreateUserUseCase in src/application/CreateUserUseCase.ts does normal application-layer orchestration. It builds a domain User, saves it through the IUserRepository port defined in the domain, and maps the result to a UserDTO. The file has no persistence code (no SQL, ORM or file I/O), no transport or HTTP handling, no framework code and no business invariants that belong in the domain. The private generateId() helper uses Date.now() and Math.random(). One could argue that an ID-generation strategy belongs behind an infrastructure port, but it is a small technical helper used by the orchestration, not persistence, transport or framework logic. It does not clearly belong to a different layer kind. No ADR prose was given that says otherwise.\",\"violations\":[]}}",
+  "runIndex": 2,
+  "schemaVersion": 2,
+  "unitId": "src/application/CreateUserUseCase.ts",
+  "usage": {
+    "inputTokens": 2796,
+    "outputTokens": 671
+  },
+  "usedOptions": {
+    "effort": "high",
+    "model": "claude-opus-5-5"
+  }
+}
