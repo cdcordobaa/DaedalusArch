@@ -270,3 +270,17 @@ Previous: v23 (P-API), commit `cdbd92f`. The author approved three extra experim
 | `Docs/threats-to-validity.md` | `ebcf3362…` → `17565a68…` | TV-111 (one prompt, one model, author-written prose), TV-112 (leakage channels: the MO-C04 file name, readable paths outside the denied set), TV-113 (tiny n, cost-shaped cuts, known outcomes), DV-TV-18, and the trace ADR-036 → TV-111..113. | None. |
 
 All other 75 hashes are unchanged. Not registered, named for completeness: `scripts/llm-review-cli.ts`, the plan-schema and `ExperimentKind` addition (`llm-review`), `EXTERNAL_RUNNER_KINDS` in `scripts/run-experiment.ts` (run-experiment refuses an `llm-review` plan), the unit test `tests/unit/scripts/llm-review.test.ts`, the probe record `experiments/llm-review/probe/`, the rendered prompts `results/llm-review/prompts/`, ADR-036 and runbook §9; commit `45b93a4`.
+
+## P-JR — prereg v25 (ADR-038 judge model robustness, 2026-10-11)
+
+Previous: v24 (P-LR), commit `8c0a5e5`. The author approved C, relayed by the coordinator on 2026-10-11. This bump comes **before any `claude-sonnet-5-5` judge call**. A (`llm-review`) is complete under v24 (PR #70). B (ADR-037) is on hold, and nothing of it is registered. **Known before registration**: the Opus votes of the 100 sampled units (18 fail, 82 pass), the E7 and E1 judge results, and the fact that no E7 verdict depends on the judge under the registered aggregation (ADR-028).
+
+| Artefact | v24 → v25 sha256 | Change and reason | Post-hoc risk |
+|---|---|---|---|
+| `experiments/judge-robustness/plan.json` | (new) → `f8477b4a…` | `ExperimentPlan` of the new kind `judge-robustness`: `neuronal-only`, judge `claude-cli` / `claude-sonnet-5-5`, no project entries, seeds 9401..9403, its own cassette directory. Run by `scripts/judge-robustness-cli.ts`; `run-experiment` refuses it (`PLAN_EXTERNAL_RUNNER`). | None. |
+| `experiments/judge-robustness/sample.json` | (new) → `0abe8adf…` | The 100 sampled units: source, function, run, unit, report, Opus and Sonnet request hashes, and Opus vote and confidence. Also the strata sizes and the exclusions. It is reproduced byte for byte by `select`. | Low. The draw is seeded within fixed strata, and Opus votes are not used to sample. |
+| `scripts/judge-robustness.ts` | (new) → `37058ebc…` | Eligibility (including the request-hash reproduction), the draw, the call order, Sonnet votes by `voteUnit`, the agreement rows, and the verdict-impact substitution under the scorer's own functions. | None. |
+| `Docs/analysis-plan.md` | `a839f208…` → `30b800a7…` | Header note, section list, §11 row, new §16 (units and votes, outcomes, the κ ≥ 0.60 reading). | None. No registered estimand changes. |
+| `Docs/threats-to-validity.md` | `17565a68…` → `ed7ffb16…` | TV-114 (one alternative model in the same vendor and route), TV-115 (n = 100, low fail prevalence, partial substitution), DV-TV-19, and the trace ADR-038 → TV-114, TV-115. | None. |
+
+All other 80 hashes are unchanged. Not registered, named for completeness: `scripts/judge-robustness-cli.ts`, `contributionOf` exported from `scripts/rescore.ts`, the `judge-robustness` kind in the plan schema and `EXTERNAL_RUNNER_KINDS`, the unit test `tests/unit/scripts/judge-robustness.test.ts`, ADR-038 (and the reserved ADR-037 row), and runbook §10; commit `705d6f6`.
