@@ -194,3 +194,12 @@ the unit tests.
 | 9.5 | `npx tsx scripts/llm-review-cli.ts run` (42 calls, run-major, 150-credit budget stop; resumable: an existing cassette is never re-called) | `experiments/llm-review/cassettes/`, `../daedalus-llm-review/envelopes/` |
 | 9.6 | `npx tsx scripts/llm-review-cli.ts score` | `results/llm-review/*.csv`, `summary.json` |
 
+## 10. Judge model robustness (ADR-038; live Claude calls on the pinned judge route, no Neo4j)
+
+| # | Command | Writes |
+|---|---|---|
+| 10.1 | `npx tsx scripts/judge-robustness-cli.ts select` (pure, seed 9401; re-running reproduces the file byte for byte) | `experiments/judge-robustness/sample.json` (registered) |
+| 10.2 | register (`register-prereg-cli.ts`), `--check-prereg experiments/judge-robustness/plan.json` | `corpus/prereg.json` v25 |
+| 10.3 | `npx tsx scripts/judge-robustness-cli.ts run` (300 calls; isolation pre-flight; usage-limit pause of 30 min; resumable) | `experiments/judge-robustness/cassettes/` |
+| 10.4 | `npx tsx scripts/judge-robustness-cli.ts score` | `results/judge-robustness/*.csv`, `summary.json` |
+

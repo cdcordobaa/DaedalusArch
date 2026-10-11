@@ -96,6 +96,9 @@ export const REGISTERED_ARTEFACTS: readonly string[] = Object.freeze([
   'experiments/llm-review/output-schema.json',
   'experiments/llm-review/prompt-template.md',
   'scripts/llm-review.ts',
+  // ADR-038 (v25): the judge-robustness sample (units, request hashes, strata, seeds) and its selection and scoring.
+  'experiments/judge-robustness/sample.json',
+  'scripts/judge-robustness.ts',
 ]);
 
 export interface PreRegistration {

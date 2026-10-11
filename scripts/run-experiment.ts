@@ -89,13 +89,13 @@ export const PLAN_GRAPH_MODES = ['full', 'ast-only'] as const;
 export const UNIVERSAL_CYCLE_STAGE = 'universal-metric:cyclicDependencyCount';
 export type GraphMode = (typeof PLAN_GRAPH_MODES)[number];
 
-export type ExperimentKind = 'E1' | 'E7' | 'SO4' | 'latency-gate' | 'sensitivity' | 'fixtures' | 'apg-ablation' | 'tool-comparison' | 'real-pairs' | 'llm-review';
+export type ExperimentKind = 'E1' | 'E7' | 'SO4' | 'latency-gate' | 'sensitivity' | 'fixtures' | 'apg-ablation' | 'tool-comparison' | 'real-pairs' | 'llm-review' | 'judge-robustness';
 
 /**
  * Kinds whose plan is registered here (so `--check-prereg` gates it) but whose calls are made by their own CLI, never
  * by `run-experiment` (ADR-036: `scripts/llm-review-cli.ts`).
  */
-export const EXTERNAL_RUNNER_KINDS: readonly ExperimentKind[] = ['llm-review'];
+export const EXTERNAL_RUNNER_KINDS: readonly ExperimentKind[] = ['llm-review', 'judge-robustness'];
 export type PlanMode = 'symbolic-only' | 'neuronal-only' | 'full';
 export type SpecLevel = GenerationCell['specLevel'];
 

@@ -330,7 +330,7 @@ export function aggregateUnits(units: readonly NeuralUnitRow[], rule: NeuralAggr
 }
 
 /** `violatedWeight` contribution of one judged function, through the scorer's own `tallyDimensions`. */
-function contributionOf(dimension: Dimension, agg: AggregatedFunction, thresholds: ConfidenceThresholds): number {
+export function contributionOf(dimension: Dimension, agg: AggregatedFunction, thresholds: ConfidenceThresholds): number {
   const fn: NeuronalFunctionResult = {
     functionId: 'rescore' as FunctionId, dimension, verdict: agg.verdict, confidence: Math.min(1, Math.max(0, agg.confidence)) as Confidence,
     confidenceStdDev: 0, icc: 1, reasoning: '', evidence: [], violations: [], runs: [], deterministic: false,

@@ -1414,3 +1414,11 @@ Plan checkboxes ticked. Auto-approved under standing approval; no blocking or ma
 **Context**: CONSTRUCTION — Build and Test, extra experiments. Worktree ../DaedalusArch-wt-x3, branch v1.2e-exp-extra.
 
 ---
+
+## Build and Test — Experiment C registration (ADR-038, judge model robustness)
+**Timestamp**: 2026-10-11T23:55:00Z
+**User Input**: "Coordinator: A is accepted at its registered budget stop. Run C now (author-approved): register ADR-038 with a dated bump, run with the usage-limit pause, analyse unit agreement (κ/AC1 with CIs) and verdict changes, merge by PR. B stays on hold."
+**AI Response**: "C is registered as ADR-038, prereg v25 (P-JR): 1549 eligible units (every rebuilt Opus request reproduces its recorded hash); 100 drawn (25 per E7/E1 × FF-N01/FF-N02, seed 9401); 300 Sonnet calls on the frozen route with their own cassettes; unit agreement with κ/AC1 item-bootstrap intervals; verdict impact by substitution in 41 reports under the registered and any-fail rules; κ ≥ 0.60 reading. ADR-037 is reserved for B."
+**Context**: CONSTRUCTION — Build and Test, extra experiments. Worktree ../DaedalusArch-wt-x3, branch v1.2e-exp-extra.
+
+---

@@ -1399,6 +1399,8 @@ Lock-file check (decision 2): `scripts/fetch-corpus.ts` runs exactly one install
 | 034 | Labeller route completion: agy 1.3.2 cannot deny `search_web`; a call that completes a tool step is discarded (invocation counted) and retried once, a second makes the item `uncertain` / `tool-use`; 20 % stop rule over at least 10 P4 items; P1/MS/P2 verified; prereg v22 | Accepted | — |
 | 035 | P4 labeller route change to the Gemini API (`gemini-3.1-pro-preview`, tools off, temperature 0, thinking high), forced by the ADR-034 stop rule; all 46 P4 items relabelled; the 8 agy P4 answers reported apart; budget 138 of 300 left; prereg v23 | Accepted | — |
 | 036 | Plain LLM-review baseline pilot (exploratory): Codex `gpt-5.6-terra` read-only, spec as prose, 5 seeded SO4 copies + baselines + 2 real pairs, 3 runs, 150-credit budget stop, MAT keys (rule, file); prereg v24 | Accepted | — |
+| 037 | Reserved: judge-probe detection (experiment B), on hold for the author (the frozen MO-X02/MO-X03 place 0 seeds on the corpus and on the 65 E1 cells) | Reserved | — |
+| 038 | Judge model robustness: 100 recorded units (E7/E1 × FF-N01/N02, seed 9401) re-judged by `claude-sonnet-5-5` on the same pinned route; unit agreement κ/AC1 and verdict impact by substitution; prereg v25 | Accepted | — |
 
 ## ADR-031: withdrawn (graphify ablation cancelled by the author before registration)
 
@@ -1551,3 +1553,45 @@ The number was reserved for a graphify ablation. The author cancelled it before 
 | A free-text review scored by hand | Not reproducible; the fixed schema allows mechanical matching |
 
 **Consequences**: `results/llm-review/` (seeds, recall, pairs, pair runs, consistency, overlap, cost, summary, prompts), `experiments/llm-review/cassettes/` (one compact record per call) and the full envelopes outside the repository (`../daedalus-llm-review/envelopes/`, sha256 in each cassette). Threats: TV-111 (one prompt, one model, author-written prose), TV-112 (leakage channels), TV-113 (tiny n, cost-motivated cuts, known firewall outcomes).
+
+---
+
+## ADR-038: Judge model robustness: Sonnet against Opus on 100 recorded judge units (registered before it runs); prereg v25
+
+**Status**: Accepted (author approval of experiment C, relayed by the coordinator 2026-10-11). ADR-037 (experiment B, judge-probe detection) is reserved: the author has it on hold for new operators, because the frozen MO-X02/MO-X03 place no seed on the corpus or on the E1 cells (`Docs/DiagnosticRuns/judge-probe-e1-site-count.md`).
+
+**Date**: 2026-10-11
+
+**Context**: Every judge figure comes from one model, the frozen `claude-opus-5-5` (ADR-018; `Docs/judge-preregistration.md`). A reviewer can ask whether the judge's unit verdicts reflect the rubric and the code, or that model. The judge model never changes mid-study (threats §4), so this is a separate, fixed-sample check that changes no registered result.
+
+**What is known before the run (declared)**: the recorded Opus votes of every sampled unit (E7 and E1 judge diagnostics; 18 fail and 82 pass in the sample), the E7 and E1 judge results, and the fact that the judge moves no E7 verdict under the registered aggregation (ADR-028). No Sonnet judge call has been made on any unit.
+
+**Decision**:
+1. **Population and eligibility** (`scripts/judge-robustness.ts`, `eligibleUnits`). The valid units of the registered E7 (`results/e7-corpus`) and E1 (`results/e1-grid`) runs, from their judge diagnostics, qualify when all of the following hold:
+   - the vote matches the report;
+   - exactly one recorded request of repetition 0 with runs 0..2 and a stored prompt exists;
+   - U4's `voteUnit` over those runs equals the report's unit row (verdict and confidence);
+   - the canonical request rebuilt from the stored prompt under the frozen route (persona, schema, effort high, 8192 tokens, the CLI's argv flags) hashes to the recorded request hash.
+
+   All 1549 such units qualify; 15 E1 units are excluded (invalid, or the vote does not match). The last check proves that the Sonnet request is the recorded request with only `model` changed.
+2. **Sample.** Four strata, source (E7, E1) × function (FF-N01, FF-N02), with **25 units each** drawn by mulberry32(**9401**) from a sorted frame. That makes 100 units in 41 reports. Stratum sizes: E7 152 / 179, E1 300 / 918. The sample (units, Opus and Sonnet request hashes, Opus votes) is registered as `experiments/judge-robustness/sample.json`.
+3. **Calls.** The same pinned route: the CLI 2.1.294 at `~/.firewall/judge-cli`, the ADR-018 config dir, the isolation pre-flight on every start, the frozen persona, rubric, verdict schema, effort `high`, `maxTokens` 8192, 3 runs per unit (`runsPerEvaluation`), repetition 0, and the byte-identical prompt. **The only difference is the model: `claude-sonnet-5-5`**. The actual-model rule (VRD-07) applies, so a run served by another model is invalid. The run records to its own cassettes, `experiments/judge-robustness/cassettes`, never the E7 or E1 ones. It is resumable, because record mode reuses a recorded key. A usage limit is the registered pause (30 min, then resume). Order: units round-robin over the strata, runs 0..2. 300 calls.
+4. **Outcomes** (analysis plan §16):
+   - **Unit agreement (primary)**: each model's unit vote by U4's rule, in the categories pass / fail / warning. A Sonnet-invalid unit is excluded from the primary row and counted, and a sensitivity row counts it as disagreement. The primary row reports percent agreement (Wilson), Cohen's κ and Gwet's AC1 with 95 % item-bootstrap intervals (seed 9402, 10 000 resamples), unweighted over the 100 sampled units. Secondary rows: per stratum, per source, per function, and population-weighted (w = N_h / n_h, weighted item bootstrap). Below 10 pairs, counts only.
+   - **Transition table**, fail rate and mean confidence per model.
+   - **Verdict impact**: in each of the 41 reports, the sampled units' rows are replaced by their Sonnet votes (all other units keep their Opus rows). Each judge dimension's stored `violatedWeight` is moved by the change of its functions' contributions, using the scorer's own `contributionOf`, `avrOf`, `computeAHS` and `determineVerdict`. The function verdicts, `ahsCombined` and the project or cell verdict are recomputed under the registered majority rule and under the BR-U5b-60 any-fail rule. The unsubstituted report must reproduce its stored AHS and verdict, or the run refuses. Reported: the function verdict changes and the verdict changes, per rule.
+   - **Pre-declared interpretation**: κ (point estimate, primary row) ≥ 0.60 reads as "the unit verdicts are robust to the judge model"; below 0.60, "the unit verdicts depend on the model". This is the floor of the labeller validity rule (ADR-021 SO3).
+5. **Registration.** Prereg v25 (P-JR) registers `experiments/judge-robustness/plan.json` (kind `judge-robustness`, an `EXTERNAL_RUNNER_KINDS` plan run by `scripts/judge-robustness-cli.ts`), `sample.json`, `scripts/judge-robustness.ts`, analysis plan §16, threats TV-114 and TV-115, and DV-TV-19.
+
+**Rationale**: replaying the recorded prompts through the same route isolates the model as the only factor, so any disagreement can be attributed to it. The verdict-impact substitution answers the reviewer's question in the units the thesis reports.
+
+**Alternatives considered**:
+
+| Alternative | Why rejected |
+| --- | --- |
+| Re-run whole E7 projects with Sonnet | About 1000 calls, and the verdicts would mix model and selection effects |
+| One run per unit | U4 votes over 3 runs; a 1-run vote is not the registered unit verdict |
+| A Gemini or GPT judge | Not the same route (CLI, isolation, schema); it would change more than the model |
+| Sampling by Opus verdict (more fails) | Changes the estimand; the strata are the registered sources and functions |
+
+**Consequences**: `results/judge-robustness/` (`units.csv`, `agreement.csv`, `transition.csv`, `fail-rates.csv`, `verdict-impact.csv`, `summary.json`) and 300 Sonnet cassette entries. Threats: TV-114 (one alternative model, same vendor) and TV-115 (sample of 100, fail prevalence about 18 %, κ unstable at low prevalence; AC1 reported beside it).
