@@ -1382,3 +1382,11 @@ Plan checkboxes ticked. Auto-approved under standing approval; no blocking or ma
 **Context**: v1.2e maintenance, branch v1.2e-usage-limit-fix.
 
 ---
+
+## Build and Test — P4 stop rule fired; ADR-035 route change (Gemini API)
+**Timestamp**: 2026-10-11T08:10:00Z
+**User Input**: "Author decision, option (a): change the P4 labeller route to the Gemini API with tools off. Pin gemini-3.1-pro-preview, temperature 0, same persona and prompts. Probe with 1–2 calls. Register ADR-035 with prereg v23. Relabel all 46 P4 items within the remaining budget, back off on quota, then run the judge-vs-panel and run-vs-run analysis and merge by PR."
+**AI Response**: "On agy under ADR-034, the run stopped on the registered rule (2 of 10 P4 items tool-use, 5 discards; 159/300); it was not a usage limit as first relayed. ADR-035: GeminiProvider gains thinkingLevel (high), the served modelVersion, a function-call fail-closed check and 429/503 as LLM_USAGE_LIMIT (never cached). llm-label gains the API output cap of 65536 and --derive-route. The derived plan has the 46 P4 items, the same seeds and budget 138. Probe: 3 invocations (1 provider retry), valid JSON pass/pass, served model gemini-3.1-pro-preview, no tool. The derived plan, TV-110, DV-TV-17, labeller-route §8 and the analysis plan §11 row are registered as prereg v23 (P-API)."
+**Context**: CONSTRUCTION — Build and Test, runbook 6.4 (P4). Worktree ../DaedalusArch-wt-p4, branch v1.2e-exp-p4.
+
+---

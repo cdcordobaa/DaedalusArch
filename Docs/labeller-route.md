@@ -1,7 +1,8 @@
 # Labeller route: Antigravity CLI (`agy`)
 
 > **Status**: registered by the P-U6 bump (ADR-021 item 4; SO3: "register the labeller route, model id and CLI version"; `corpus/prereg.json` version 4, 2026-10-09). Any change is a pre-registration version bump with a reason (BR-U5b-50).
-> **Decisions**: ADR-019 item 4 as amended 2026-10-08 (`1185a1f`); ADR-021 SO3-1, SO3-4, THR-5.
+> **Decisions**: ADR-019 item 4 as amended 2026-10-08 (`1185a1f`); ADR-021 SO3-1, SO3-4, THR-5; ADR-034 (tool use); ADR-035 (P4 on the Gemini API route, §8).
+> **Scope from v23**: P1, MS and P2 are labelled on this agy route. P4 is labelled on the Gemini API route of §8 (ADR-035).
 > **Evidence**: `tests/fixtures/agy-cli/probe-values.json` and the scrubbed probe outputs beside it (probe of 2026-10-08/09, 10 model calls plus a 2-call smoke).
 
 ## 1. Pinned values (BR-U4-VRD-09, BR-U5b-31)
@@ -81,4 +82,25 @@ In both probes the browser tools and `list_dir` were not offered to the model, a
 **P1/MS/P2: verified.** `agy-cli-provider.ts` is unchanged since `56e77f6`, so the fail-closed guard was active for all 142 invocations of the first live plan. That run completed without a stop, and its 139 cassettes hold 138 answers and 1 timeout. No call there completed a tool step.
 
 **Audit coverage.** The 30-item author audit (ADR-021 item 8.8) was drawn from the first live plan before P4 existed and stays as drawn. It contains no P4 item, so the P4 judge-vs-panel rows have no panel-vs-audit check (a limitation, TV-109).
+
+## 8. P4 route: Gemini API, tools off (ADR-035, prereg v23, 2026-10-11)
+
+**Why.** The ADR-034 stop rule fired on agy: 2 of the first 10 P4 items ended as `uncertain` / `tool-use`, with 5 tool-use discards. Under that rule a route change goes to the author, who chose the Gemini API with no tools. This is a route change forced by a registered stop rule. It is not a change of labelling method.
+
+| Item | Value | How it was verified |
+|---|---|---|
+| Route | Gemini API (`@google/generative-ai` 0.24.1, U4 `GeminiProvider`, BR-U4-VRD-09), `--provider gemini` from the derived plan | `results/labels/api-probe/` |
+| Model | **`gemini-3.1-pro-preview`**, the same model as agy's `gemini-3.1-pro-high` (Gemini 3.1 Pro, "High" reasoning) | `models.get`: version `3.1-pro-preview-01-2026`, `outputTokenLimit` 65 536, `thinking: true`. The probe cassettes record the served `modelVersion` `gemini-3.1-pro-preview` |
+| Tools | **none**: the request carries no `tools` and no `toolConfig`. A function-call part in an answer fails closed (`LLM_CLI_TOOL_USE`) | provider test; probe answers are plain JSON |
+| Temperature | **0** (`LABELLER_TEMPERATURE`), now honoured (`usedOptions.temperature` 0). agy could not set it (§3) | probe cassettes |
+| Thinking | `generationConfig.thinkingConfig.thinkingLevel = "high"`, the closest match to agy's "High". Gemini 3 also defaults to high. The API rejects unknown fields, and the probe calls succeeded | probe |
+| Output cap | 65 536 (`LABELLER_API_MAX_TOKENS`, the model's limit). agy ignored `maxTokens`, so P1/P2 ran uncapped, and the 1 024 cap would truncate a high-thinking answer | `usedOptions.maxTokens` |
+| Persona, prompts, schema | unchanged (`Docs/labeller-prompts/*.md`; the label schema as `responseSchema`). The persona goes as `systemInstruction`, while agy prepended it to the prompt (agy has no system channel) | — |
+| Errors | 429, `RESOURCE_EXHAUSTED`, quota, rate limit, 503 and overload are `LLM_USAGE_LIMIT`: a stop, never cached. The run pauses and re-runs, and cassettes are reused. Other API errors are retried once, then recorded invalid | provider tests |
+| Plan | `results/e1-grid/label-plan-p4-api/label-plan.json`, built with `llm-label --derive-route` from the registered P4 plan. It holds the 46 P4 items, their strata and the same seeds (run-1 order and permutations follow 6103), and has budget **138** = 300 − 162 label invocations used (142 P1/MS/P2, 17 agy P4, 3 API probe) | `--estimate`: 92 + 30 <= 138 |
+| Cassettes | `results/labels/cassettes-api/` (record mode). The probe cassettes are kept in `results/labels/api-probe/` | — |
+
+**Probe (2026-10-11).** One fixture judge unit (`correct-reference`, semantic; not a P4 item), both runs: valid JSON, `pass` / `pass`, served model `gemini-3.1-pro-preview`, temperature 0, no tool. It used 3 invocations: run 1 needed one provider retry, whose cause the decorator does not store. These count against the label budget.
+
+**Separation.** All 46 P4 items are relabelled on this route. The 8 P4 items answered validly on agy before the stop (run 0 only) are reported separately (`results/e1-grid/label-plan-p4/agy-partial.json`) and are never mixed with the API labels. P1/MS/P2 keep their agy labels. The ADR-034 rule and stop stay in force; with no tool offered, they should not fire.
 

@@ -121,6 +121,12 @@ export const LABEL_PROVIDER_CONFLICT = 'LABEL_PROVIDER_CONFLICT';
 export const LABELLER_PROMPT_DIR = 'Docs/labeller-prompts';
 export const LABELLER_MAX_TOKENS = 1024;
 export const LABELLER_TEMPERATURE = 0;
+/**
+ * Output-token cap on the Gemini API route (ADR-035): the model's `outputTokenLimit` (models.get, 2026-10-11). agy
+ * ignored `maxTokens` (cassette `ignoredOptions`), so P1/P2 ran uncapped, and the 1 024 cap would truncate an answer
+ * produced with high thinking.
+ */
+export const LABELLER_API_MAX_TOKENS = 65536;
 /** `--provider` values; `agy` is the registered panel route (ADR-019 item 4 as amended), `gemini` the API route. */
 export const LABEL_PROVIDERS: readonly string[] = ['agy', 'gemini', 'mock'];
 
@@ -498,6 +504,26 @@ export interface LabelPlanFile {
   /** Labeller route and pinned model of the registered config; `--provider` / `--model` must agree. */
   readonly provider?: string;
   readonly model?: string;
+  /** A plan derived by `--derive-route` (ADR-035): its source plan, the populations kept and the reason. */
+  readonly derivedFrom?: { readonly plan: string; readonly populations: readonly string[]; readonly reason: string };
+}
+
+/**
+ * ADR-035: the items of the given populations of a registered plan, routed to another labeller route with the
+ * remaining label budget. Items, seeds, strata of those populations and the re-ask reserve are kept unchanged, so the
+ * run-1 order and per-item option permutations follow the registered seed.
+ */
+export function deriveRoutePlan(plan: LabelPlanFile, o: { readonly source: string; readonly populations: readonly string[]; readonly provider: string; readonly model: string; readonly budgetCalls: number; readonly reason: string }): LabelPlanFile {
+  const keep = new Set(o.populations);
+  return {
+    ...plan,
+    budgetCalls: o.budgetCalls,
+    strata: plan.strata.filter((s) => keep.has(s.population)),
+    items: plan.items.filter((i) => keep.has(i.population)),
+    provider: o.provider,
+    model: o.model,
+    derivedFrom: { plan: o.source, populations: [...o.populations], reason: o.reason },
+  };
 }
 
 export function checkLabelPlan(v: unknown): string[] {
@@ -562,6 +588,8 @@ export const LABEL_USAGE = [
   '                                        --audit audit/<plan-id>.json (committed)] [--judge-runs <dir>[,<dir>...]] [--judge-verdicts <file>]',
   '                                        [--judge-cassettes <dir>] [--fn-causes <file>] [--resamples <n>] --out <labelling.json>',
   '       npx tsx scripts/llm-label-cli.ts --usage --cassette-dir <labeller cassette dir>',
+  '       npx tsx scripts/llm-label-cli.ts --derive-route --plan <file> --population P4[,..] --provider <p> --model <id> --budget <n>',
+  '                                        --reason <text> --out <derived plan>   (ADR-035: the remaining label budget)',
   '--provider and --model default to the plan\'s registered route (build-label-plan: agy, ADR-019 item 4 as amended).',
   '       npx tsx scripts/llm-label-cli.ts --self-test',
   '',
@@ -620,10 +648,10 @@ export function routeOf(args: ReadonlyMap<string, string>, plan: Pick<LabelPlanF
 }
 
 function parseArgs(argv: readonly string[]): Map<string, string> | string {
-  const flags = new Set(['--estimate', '--self-test', '--help', '--allocate-audit', '--agreement', '--usage']);
+  const flags = new Set(['--estimate', '--self-test', '--help', '--allocate-audit', '--agreement', '--usage', '--derive-route']);
   const valued = new Set([
     '--plan', '--mode', '--cassette-dir', '--model', '--provider', '--out', '--labels', '--plan-id', '--seed', '--allocation', '--allocation-out', '--audit',
-    '--judge-verdicts', '--judge-runs', '--judge-cassettes', '--fn-causes', '--resamples',
+    '--judge-verdicts', '--judge-runs', '--judge-cassettes', '--fn-causes', '--resamples', '--population', '--budget', '--reason',
   ]);
   const out = new Map<string, string>();
   for (let i = 0; i < argv.length; i += 1) {
@@ -686,6 +714,36 @@ export async function main(argv: readonly string[], repoRoot: string, io: LabelM
   if (errs.length > 0) {
     io.err(`${LABELLER_PLAN_INVALID}: ${errs.join('; ')}\n`);
     return 1;
+  }
+  if (args.has('derive-route')) {
+    const populations = (args.get('population') ?? '').split(',').filter((x) => x !== '');
+    const provider = args.get('provider');
+    const model = args.get('model');
+    const budget = Number(args.get('budget'));
+    const out = args.get('out');
+    const reason = args.get('reason');
+    if (populations.length === 0 || provider === undefined || model === undefined || !Number.isSafeInteger(budget) || budget <= 0 || out === undefined || reason === undefined) {
+      io.err(`--derive-route needs --population, --provider, --model, --budget, --reason and --out\n${LABEL_USAGE}`);
+      return 2;
+    }
+    if (!LABEL_PROVIDERS.includes(provider)) {
+      io.err(`--provider must be one of ${LABEL_PROVIDERS.join(', ')}\n`);
+      return 2;
+    }
+    const pinnedRoute = checkLabellerModel(model);
+    if (!pinnedRoute.ok) {
+      io.err(`${pinnedRoute.detail}\n`);
+      return 1;
+    }
+    const derived = deriveRoutePlan(plan, { source: planPath, populations, provider, model, budgetCalls: budget, reason });
+    const e = estimatePlan(derived);
+    if (e.exitCode !== 0) {
+      io.err(`${e.line}\n`);
+      return 1;
+    }
+    io.writeFile(resolve(repoRoot, out), `${JSON.stringify(derived, null, 2)}\n`);
+    io.out(`derived ${String(derived.items.length)} items (${populations.join(', ')}) for ${provider} ${model}; ${e.line}\n`);
+    return 0;
   }
   if (args.has('allocate-audit')) return allocateAuditMain(args, repoRoot, io, plan);
   if (args.has('agreement')) return agreementMain(args, repoRoot, io, plan, deps);
@@ -762,6 +820,7 @@ export async function main(argv: readonly string[], repoRoot: string, io: LabelM
   const r = await labelItems(plan.items, {
     provider, model, runs: 2, mode, cassetteDir: resolve(repoRoot, cassetteDir), permutationSeed: plan.permutationSeed,
     budgetCalls: plan.budgetCalls, ...(cassetteProvenance !== undefined && { cassetteProvenance }),
+    ...(providerName === 'gemini' && { maxTokens: LABELLER_API_MAX_TOKENS }),
   }, prompts.prompts);
   if (!r.ok) {
     io.err(`${r.code}: ${r.detail}\n`);

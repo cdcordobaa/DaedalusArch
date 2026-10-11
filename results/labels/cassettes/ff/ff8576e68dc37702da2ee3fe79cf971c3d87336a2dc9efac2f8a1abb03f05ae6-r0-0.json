@@ -1,0 +1,36 @@
+{
+  "attempts": 1,
+  "cliVersion": "1.3.2",
+  "configListingSha256": "b8cce56d63afd9cebbf745ed20c888d9ab0007207a513029027cc10be9494345",
+  "durationMs": 36758,
+  "effort": null,
+  "functionId": "label:judge-unit:a1a9bc079f31af3bc21021736bf4ffcb61dd9cccff7b10d7d0986c274a19ceca",
+  "ignoredOptions": [
+    "temperature",
+    "maxTokens"
+  ],
+  "isolationProbeSha256": "e3e335eb64e5ae507ca6484a4f75d0443b1afef89d42854818fa51bd02d68423",
+  "key": "ff8576e68dc37702da2ee3fe79cf971c3d87336a2dc9efac2f8a1abb03f05ae6-r0-0",
+  "model": "gemini-3.1-pro-high",
+  "outcome": {
+    "kind": "valid"
+  },
+  "parsedVerdict": null,
+  "prompt": "Decide whether the unit below satisfies the rubric.\n- pass: the unit meets the rubric's pass condition.\n- fail: the unit meets the rubric's fail condition.\nGive a short rationale that cites the code. Root cause: answer null.\n\n## Item\n## Judge unit\n  Function: FF-N01 (integrity)\n  Unit: src/infrastructure (module, layer infrastructure)\n  \n  ## Rubric\n  Rule: The module's files form one coherent unit with a consistent abstraction and boundary.\n  Pass: The files serve one cohesive concern, use the module's abstractions consistently, and keep each rule or invariant in one place.\n  Fail: The files split into unrelated concerns, duplicate a rule or invariant that should live in one place, or bypass the module's own abstractions.\n  Evidence required: Name each file involved and cite the declarations that show the split, the duplication or the bypass.\n  Out of scope: import direction and layer-dependency rules, which are checked symbolically.\n  \n  ## Source\n  =====SOURCE-BEGIN src/infrastructure/server.ts=====\n  import { createApp } from './config/createApp';\n  \n  const port = Number(process.env.PORT ?? 3000);\n  \n  createApp().listen(port, () => {\n    console.log(`Order fulfilment API listening on http://localhost:${port}`);\n  });\n  \n  =====SOURCE-END=====\n\n## Label options\n1. pass\n  2. fail\n\n## Root causes\n1. RC-LAYER-MAP\n  2. RC-EXTRACT-ALIAS\n  3. RC-EXTRACT-BARREL\n  4. RC-DYNAMIC-IMPORT\n  5. RC-TYPE-ONLY\n  6. RC-TEMPLATE-OVERAPPROX\n  7. RC-STYLE-INAPPLICABLE\n  8. RC-SPEC-PARAM\n  9. RC-GENERATED-CODE\n  10. RC-TEST-CODE\n  11. RC-GENUINE-UNSEEDED\n  12. RC-OTHER\n\nAnswer with one JSON object: {\"option\": <number of the label option>, \"rootCause\": <number of the root cause or null>, \"note\": \"<text, required with RC-OTHER>\", \"rationale\": \"<one or two sentences citing the code>\"}.",
+  "provider": "agy",
+  "recordedAt": "2026-10-11T05:56:07.490Z",
+  "repetition": 0,
+  "requestHash": "ff8576e68dc37702da2ee3fe79cf971c3d87336a2dc9efac2f8a1abb03f05ae6",
+  "resolvedModel": "gemini-3.1-pro-high",
+  "response": "{\"option\":1,\"rationale\":\"src/infrastructure/server.ts serves the single cohesive concern of initializing and listening on the HTTP server using createApp().listen(port), with no split concerns, duplicated invariants, or bypassed abstractions.\"}",
+  "runIndex": 0,
+  "schemaVersion": 2,
+  "unitId": "src/infrastructure",
+  "usage": {
+    "inputTokens": 13704,
+    "outputTokens": 6200
+  },
+  "usedOptions": {
+    "model": "gemini-3.1-pro-high"
+  }
+}

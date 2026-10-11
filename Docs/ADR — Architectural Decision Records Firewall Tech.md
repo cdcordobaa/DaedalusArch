@@ -1397,6 +1397,7 @@ Lock-file check (decision 2): `scripts/fetch-corpus.ts` runs exactly one install
 | 032 | E1 cells extracted with the pinned per-run tsconfig (operational, post-hoc); prereg v20 | Accepted | — |
 | 033 | POST-HOC reproduction-audit corrections: labelled SO4 reading on the guarded manifest with the P1 labels (N 73), degenerate-interval flags, one interval method per table, `uncertain` sensitivity rows of the baseline precision filed under `e7-corpus`, threats register §3 and TV-17, provenance producers; prereg v21 | Accepted | — |
 | 034 | Labeller route completion: agy 1.3.2 cannot deny `search_web`; a call that completes a tool step is discarded (invocation counted) and retried once, a second makes the item `uncertain` / `tool-use`; 20 % stop rule over at least 10 P4 items; P1/MS/P2 verified; prereg v22 | Accepted | — |
+| 035 | P4 labeller route change to the Gemini API (`gemini-3.1-pro-preview`, tools off, temperature 0, thinking high), forced by the ADR-034 stop rule; all 46 P4 items relabelled; the 8 agy P4 answers reported apart; budget 138 of 300 left; prereg v23 | Accepted | — |
 
 ## ADR-031: withdrawn (graphify ablation cancelled by the author before registration)
 
@@ -1477,3 +1478,28 @@ The number was reserved for a graphify ablation. The author cancelled it before 
 **Validity metric (P4 run)**: recorded at the P4 labelling commit in `results/e1-grid/label-plan-p4/` and in the ledger.
 
 **Consequences**: the isolation of the labeller is now partly ex post: a web search can still run and spend quota, but its answer never becomes a label (TV-109). If the stop rule fires, the agy route cannot label P4, and a route change goes back to the author.
+
+---
+
+## ADR-035: P4 labeller route change to the Gemini API with tools off, forced by the ADR-034 stop rule; prereg v23
+
+**Status**: Accepted (author decision 2026-10-11, option (a), relayed by the coordinator)
+
+**Date**: 2026-10-11
+
+**Context**: Under ADR-034 (prereg v22), the P4 labelling on agy stopped on the pre-registered rule (`LABEL_TOOL_USE_STOP`, 05:56Z). 2 of the first 10 P4 items ended as `uncertain` / `tool-use`, with 5 tool-use discards. Item 37 (`claude-haiku-4-5/order-fulfilment/none/run-0`, integrity) completed `search_web` on both attempts. Item 44 (`claude-haiku-4-5/task-management/none/run-0`, semantic) ran `search_web`, then timed out, then completed `search_web` twice on the re-ask. The other 8 items answered validly in run 0. ADR-034 sends a route change to the author, who chose the Gemini API with no tools.
+
+**Decision**:
+1. **Route.** P4 is labelled on the Gemini API through U4's `GeminiProvider` (BR-U4-VRD-09). Model `gemini-3.1-pro-preview` is pinned, as verified by `models.list` / `models.get` (version `3.1-pro-preview-01-2026`). It is the same Gemini 3.1 Pro model as agy's `gemini-3.1-pro-high`.
+2. **Request.** It offers **no tools** (no `tools`, no `toolConfig`), and a function-call part fails closed. Temperature is **0**. Thinking level is **high**, the closest match to agy's "High" and also Gemini 3's default. The output cap is the model's 65 536 tokens: agy ignored `maxTokens`, and 1 024 would truncate high-thinking answers. Persona, prompts, label schema and verdict contract are those of P1/P2. The persona travels as `systemInstruction`, whereas agy prepended it. The run uses record mode with cassettes in `results/labels/cassettes-api/`.
+3. **Same and different.** The model family and prompts match P1/P2, but the transport differs (API instead of CLI). Temperature 0 is now available, so the BR-U5b-31 rule holds on this route. The §3 amendment of `Docs/labeller-route.md` remains for agy.
+4. **Relabelling and separation.** All 46 P4 items are relabelled on the API route, using the plan `results/e1-grid/label-plan-p4-api/label-plan.json`. `llm-label --derive-route` builds it from the registered P4 plan, keeping the same items, strata and seeds. The 8 valid agy P4 answers are reported separately and are never mixed with the API labels.
+5. **Budget.** Every API call counts against the registered label budget of 300. 162 were used before P4 on the API: 142 P1/MS/P2, 17 agy P4 and 3 API probe. The derived plan's budget is therefore 138. A quota, rate-limit or overload answer (429, 503) is a stop that is never cached. The run pauses with back-off and re-runs, reusing the cassettes, and each stopped call is counted in the ledger. The budget is never exceeded.
+6. **Probe.** One fixture judge unit made 3 invocations: valid structured output, served model `gemini-3.1-pro-preview`, no tool. Its cassettes are in `results/labels/api-probe/`.
+7. **Kept.** The ADR-034 rule and stop (dormant without tools), the seeds, the analysis rows and their interval methods.
+8. **Pre-registration v23** (one dated bump, P-API): `Docs/labeller-route.md` (header, new §8), `Docs/threats-to-validity.md` (TV-110, DV-TV-17, trace) and `Docs/analysis-plan.md` (§11 row).
+
+**Classification**: route change forced by a registered stop rule, before any P4 label existed. It is not post hoc on outcomes: no P4 judge-vs-panel figure had been computed.
+
+**Consequences**: the P4 judge-vs-panel rows come from a temperature-0 API panel of the same model, while P1/MS/P2 come from the agy panel. The P4 run-vs-run agreement describes the API route only (TV-110).
+

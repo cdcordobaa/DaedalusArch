@@ -242,3 +242,15 @@ Previous: v21 (P-AUD), commit `08bbf32`. Coordinator decision 2026-10-11 (Option
 | `Docs/analysis-plan.md` | `c6fe520b…` → `e6956470…` | §7 adds the `uncertain` reason `tool-use` and the tool-use discard count as a P4 validity metric. §11 gains a row. | None. No estimand changes. |
 
 All other 74 hashes are unchanged. Not registered, named for completeness: `src/llm-critic/agy-cli-provider.ts` (`LLM_CLI_TOOL_USE`), `src/llm-critic/cassette-provider.ts` (retry class, `discardedAttempts`), `src/llm-critic/types.ts`, `scripts/llm-label.ts` (`tool-use` run and reconciliation, `LABEL_TOOL_USE_STOP`, the discard count), the tests in `tests/unit/scripts/u5b/llm-label-tool-use.test.ts`, `tests/unit/llm-critic/agy-cli-provider.test.ts` and `cassette-provider.test.ts`, and ADR-034; commit `28cc4d7`. The judge's `InvalidCause` set is unchanged, so no judge report changes.
+
+## P-API — prereg v23 (ADR-035 P4 labeller route change to the Gemini API, 2026-10-11)
+
+Previous: v22 (P-TU), commit `3f35bef`. Author decision 2026-10-11, option (a), relayed by the coordinator. **Forced by a registered stop rule**: on agy, the ADR-034 stop fired at 2 of the first 10 P4 items `uncertain` / `tool-use` (5 discards), before any P4 label file existed and before any P4 agreement figure was computed. P1/MS/P2 labels are unchanged.
+
+| Artefact | v22 → v23 sha256 | Change and reason | Post-hoc risk |
+|---|---|---|---|
+| `Docs/labeller-route.md` | `d17b8917…` → `fb319693…` | The header gains the scope (P4 on the API route from v23). New §8 covers the route (`gemini-3.1-pro-preview`, tools off, temperature 0, thinking level high, 65 536-token cap, persona as `systemInstruction`), error classes (429/503 are stops, never cached), the derived plan and budget 138, the probe, and the separation of the 8 agy P4 answers. | Low. Same model, prompts, items and seeds. The route was forced by a registered rule, not chosen on outcomes. |
+| `Docs/threats-to-validity.md` | `8759ff53…` → `ebcf3362…` | TV-110 (P4 on a different route from P1/MS/P2; run-vs-run not comparable across routes; the 8 agy answers are a separate partial record), DV-TV-17, and the trace ADR-035 → TV-110. | None. |
+| `Docs/analysis-plan.md` | `e6956470…` → `b01e812b…` | §11 row: the P4 judge-vs-panel rows come from the API route, run-vs-run is reported per route, and the 8 agy P4 answers are descriptive and kept apart. | None. No estimand, weight or interval method changes. |
+
+All other 74 hashes are unchanged. Not registered, named for completeness: `src/llm-critic/gemini-provider.ts` (`thinkingLevel`, served `modelVersion`, function-call fail-closed, 429/503 as `LLM_USAGE_LIMIT`), `src/shared/types/llm-config.ts`, `scripts/llm-label.ts` (`LABELLER_API_MAX_TOKENS`, `--derive-route`, `deriveRoutePlan`), `scripts/llm-label-cli.ts`, the tests in `tests/unit/llm-critic/llm-port.test.ts` and `tests/unit/scripts/u5b/llm-label-route.test.ts`, the derived plan `results/e1-grid/label-plan-p4-api/label-plan.json`, the probe in `results/labels/api-probe/`, and ADR-035; commit `6436f7d`.
