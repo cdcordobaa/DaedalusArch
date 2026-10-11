@@ -14,6 +14,14 @@
  * so no exempted row enters them. When v1-only labels exist, one **v1** overall row (both frames, each label weighing
  * 1 / p of its own frame, over v2 ∪ v1-only) and one **v1-only** overall row (counts only, never an interval) follow.
  *
+ * Sensitivity to the `uncertain` rule (reproduction audit 2026-10-10 issue 3; POST-HOC, analysis plan §11): after the
+ * registered rows (`uncertainRule` `fp`, `uncertain` kept in the denominator as non-TP), the v2 overall and tier rows
+ * and the v1 overall row are repeated with `uncertain` counted as TP (`tp`) and with `uncertain` items dropped
+ * (`excluded`). They are sensitivity rows only; every `precision_baseline` column and figure uses the registered rows.
+ * `planIds` names the plans whose runs the row's labels were drawn from (from the label `runId`), so a row is filed
+ * under its population (the `e7-corpus` runs, and `e7-corpus-v1sym` for the v1-only frame), not under the plan that
+ * aggregates it.
+ *
  * Pure functions only; the interval is `weightedProportionInterval` (Kish-Wilson below 10 clusters).
  */
 import { p2FrameOf } from './label-plan.js';
@@ -37,6 +45,8 @@ export interface BaselineLabel {
   readonly inclusionProbability: number;
   /** The P2 frame of the label's stratum (`p2FrameOf`); absent = `v2`. */
   readonly frame?: P2Frame;
+  /** The plan of the run the item was drawn from (`planIdOfRunId` of the label's `runId`); absent when unknown. */
+  readonly planId?: string;
 }
 
 /** The fields of a reconciled label (`ReconciledLabel` of `scripts/llm-label.ts`) this module reads. */
@@ -48,6 +58,15 @@ export interface ReconciledLabelView {
   readonly inclusionProbability: number;
   readonly label: string;
   readonly functionId?: string;
+  readonly runId?: string;
+}
+
+/** How a row counts `uncertain` labels: as non-TP in the denominator (`fp`, registered), as TP, or not at all. */
+export type UncertainRule = 'fp' | 'tp' | 'excluded';
+
+/** The plan id of a harness run id (`<planId>-<NNN>-<projectId>`, `runIdOf` of `run-experiment.ts`), else `undefined`. */
+export function planIdOfRunId(runId: string): string | undefined {
+  return /^(.+?)-\d{3}-/.exec(runId)?.[1];
 }
 
 export type BaselineScope = 'overall' | 'tier' | 'function' | 'project';
@@ -72,6 +91,10 @@ export interface BaselinePrecisionRow {
   readonly ciLow: number | null;
   readonly ciHigh: number | null;
   readonly ciMethod: WeightedCiMethod | null;
+  /** `fp` on the registered rows; `tp` and `excluded` on the post-hoc sensitivity rows. */
+  readonly uncertainRule: UncertainRule;
+  /** Sorted plan ids of the labels' runs (empty when no label carries a run id). */
+  readonly planIds: readonly string[];
 }
 
 export const BASELINE_PRECISION_INVALID = 'BASELINE_PRECISION_INVALID';
@@ -89,7 +112,8 @@ export function baselineLabelsOf(labels: readonly ReconciledLabelView[]): Baseli
   return labels.filter((l) => l.population === 'P2' && l.kind === 'violation').map((l) => {
     const functionId = l.functionId ?? stratumFunctionId(l.stratum);
     if (functionId === undefined) throw new Error(`${BASELINE_PRECISION_INVALID}: P2 stratum without a function id: ${l.stratum}`);
-    return { projectId: l.projectId, functionId, label: l.label, inclusionProbability: l.inclusionProbability, frame: p2FrameOf(l.stratum) };
+    const planId = l.runId === undefined ? undefined : planIdOfRunId(l.runId);
+    return { projectId: l.projectId, functionId, label: l.label, inclusionProbability: l.inclusionProbability, frame: p2FrameOf(l.stratum), ...(planId !== undefined && { planId }) };
   });
 }
 
@@ -99,15 +123,21 @@ function weightOf(l: BaselineLabel): number {
   return 1 / p;
 }
 
-function rowOf(instrument: BaselineInstrument, scope: BaselineScope, key: string, labels: readonly BaselineLabel[], seed: number, resamples: number | undefined): BaselinePrecisionRow {
+function rowOf(
+  instrument: BaselineInstrument, scope: BaselineScope, key: string, all: readonly BaselineLabel[], seed: number, resamples: number | undefined,
+  uncertainRule: UncertainRule = 'fp',
+): BaselinePrecisionRow {
+  const labels = uncertainRule === 'excluded' ? all.filter((l) => l.label !== 'uncertain') : all;
+  const success = (l: BaselineLabel): boolean => isTpClass(l.label) || (uncertainRule === 'tp' && l.label === 'uncertain');
   const byProject = new Map<string, WeightedObservation[]>();
-  for (const l of labels) byProject.set(l.projectId, [...(byProject.get(l.projectId) ?? []), { weight: weightOf(l), success: isTpClass(l.label) }]);
+  for (const l of labels) byProject.set(l.projectId, [...(byProject.get(l.projectId) ?? []), { weight: weightOf(l), success: success(l) }]);
   const clusters = [...byProject.keys()].sort().map((p) => byProject.get(p) ?? []);
   const cell = weightedProportionInterval(clusters, { seed, ...(resamples !== undefined && { resamples }) });
   return {
     instrument, scope, key, n: cell.n, nTpClass: labels.filter((l) => isTpClass(l.label)).length, nUncertain: labels.filter((l) => l.label === 'uncertain').length,
     weightedTpClass: cell.weightedSuccesses, weightedTotal: cell.weightedTotal, nEffective: cell.nEffective, nClusters: cell.nClusters,
     estimate: cell.estimate, ciLow: cell.ciLow, ciHigh: cell.ciHigh, ciMethod: cell.ciMethod,
+    uncertainRule, planIds: [...new Set(all.flatMap((l) => (l.planId === undefined ? [] : [l.planId])))].sort(),
   };
 }
 
@@ -145,6 +175,13 @@ export function baselinePrecision(
     rows.push(rowOf('v1', 'overall', '', all, seed, resamples));
     const only = rowOf('v1-only', 'overall', '', v1Only, seed, resamples);
     rows.push({ ...only, estimate: null, ciLow: null, ciHigh: null, ciMethod: null });
+  }
+  // Post-hoc sensitivity rows (audit 2026-10-10 issue 3): the overall, tier and v1 rows under the other two rules.
+  const tiers = group((l) => options.tierOf?.(l.projectId));
+  for (const rule of ['tp', 'excluded'] as const) {
+    if (labels.length > 0) rows.push(rowOf('v2', 'overall', '', labels, seed, resamples, rule));
+    for (const k of [...tiers.keys()].sort()) rows.push(rowOf('v2', 'tier', k, tiers.get(k) ?? [], seed, resamples, rule));
+    if (v1Only.length > 0) rows.push(rowOf('v1', 'overall', '', all, seed, resamples, rule));
   }
   return rows;
 }

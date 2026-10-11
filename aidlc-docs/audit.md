@@ -1354,6 +1354,14 @@ Plan checkboxes ticked. Auto-approved under standing approval; no blocking or ma
 
 ---
 
+## Build and Test — ADR-033 reproduction-audit corrections (prereg v21)
+**Timestamp**: 2026-10-11T04:20:00Z
+**User Input**: "Fix the findings of the independent reproduction audit (PR #54; director report PR #53) as analysis or labelling corrections only, with no evaluation re-run and no live LLM call: rebuild the labels-based SO4 table on the ADR-025 guarded manifest (N 73) so the P1 labels enter the FP-labelled precision; label degenerate intervals with an if-independent bound; name and align interval methods; add uncertain-rule sensitivity rows to the baseline precision and file them under their population; fix the stale threats-register §3 and TV-17; add the ADR-031 withdrawn placeholder; address the other medium issues; one prereg bump to v21 declared post hoc."
+**AI Response**: "score-golden --rule-version 1.1.0 (reproduces score-strict.json byte for byte); score.json = case-corrected + rule-1.1.0 FP set + P1 labels: N 73, TP 67, FP-labelled 3 (uncertain), FN 6, R 0.918 [0.818, 1.000], P 0.957 [0.893, 1.000], F1 0.937 [0.878, 0.986]; agg/ replaced (no registered reference), agg-strict/agg-corrected/v2/agg re-aggregated with degenerate flags (shared columns unchanged). Baseline v2 0.328 / 0.789 / 0.608, v1 0.264 / 0.744 / 0.508 (registered / uncertain as TP / excluded), plan_id e7-corpus. Tool comparison names wilson-instances-if-independent. Provenance producers rebuild case-corrected/manifest.json and ahs_v1_sensitivity.csv byte for byte; results/so4-heldout/external-inputs.json and results/sensitivity/external-inputs.json hash the outside inputs. Analysis plan §14, threats DV-TV-1..15, TV-17, TV-108, ADR-031, ADR-033. Prereg v21 (P-AUD): analysis-plan.md, threats-to-validity.md. Superseded entry: the labelling-step note 'FP-labelled precision 1.0 (67 TP, 0 FP, unchanged from strict)' described the hybrid table."
+**Context**: CONSTRUCTION — Build and Test, ADR-033. Worktree ../DaedalusArch-wt-fix, branch v1.2e-audit-fixes. Under the standing approval (2026-10-08).
+
+---
+
 ## Build and Test — E1 size analysis (post hoc, committed data only)
 **Timestamp**: 2026-10-10T23:30:00Z
 **User Input**: "E1 shows a reversed spec-level effect (none best) and no model effect, with none projects much smaller. Using only committed data and no new runs, find what the registered plan says about size-normalised SO5 outcomes, recompute them with the registered procedure, label everything unregistered as post-hoc, break findings down by rule family and spec level, check size vs AHS descriptively, report the Codex arm separately, and merge by PR."
