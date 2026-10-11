@@ -507,7 +507,8 @@ Flags are recorded on every row and never exclude it by themselves:
 - Functions (`prf_by_function.csv`): `not_applicable`, `collateral`, `metric_key_excluded` (empty at registration:
   both U3 metric-key readiness flags are true, `corpus/frozen-instrument.json`).
 - Runs (`runs.csv`): `attempt` (a transport-error retry), `reason_code`, every registered hash.
-- Labels: `uncertain` with its reason (`disagree`, `invalid-run`); on agreement rows `sameFamily`, `source`,
+- Labels: `uncertain` with its reason (`disagree`, `invalid-run`, `tool-use`: ADR-034, from prereg v22); the count of
+  agy attempts discarded for a completed tool step is reported with the P4 agreement rows as a validity metric; on agreement rows `sameFamily`, `source`,
   `generator_model`, `headline` and `uncertain_as_category` (ADR-020 item 7, B3).
 - Seeds also carry `corpus_tier` (`instances.csv`); functions carry `neural_new` and `precision_baseline`
   (`prf_by_function.csv`); `so5_tests.csv` rows carry `descriptive`; every P/R/F1 row carries
@@ -711,6 +712,7 @@ These statements are registered: every report of the corresponding figure carrie
 | 2026-10-10 (ADR-028 judge-weighted variant, prereg v17) | §10, §12 | The registered spec weights stay primary (W_n = 0.08); the judge-weighted sensitivity variant `judge-weighted-v1` registered before any E1 run (judge dimensions 2/7, symbolic 5/7, each group proportional, same thresholds; under the registered, proportional and any-fail aggregations; a pure function of the stored reports); its E7 reading post hoc, its E1 reading pre-registered; B9 wording rules (iv), (v) | ADR-028 (author, 2026-10-10: "Keep 8%, add weighted variant") |
 | 2026-10-10 (ADR-030, prereg v19) | §13 | `tool-comparison` and `real-pairs` registered before either runs: the dependency-cruiser translation (T1..T10), the shared finding key, per-operator recall and twin fire rates with instance Wilson bounds, baseline volume and overlap per rule, runtime, and the real-pair detection rule (primary resolved-finding, strict secondary), descriptive at n = 5; what was known before (§13.4) | ADR-030 |
 | 2026-10-10 (ADR-033, reproduction audit, POST-HOC, prereg v21) | §3, §5, §14 | The labelled SO4 reading is MAT-10 over the P1 census (the rule-1.1.0 FP-strict items) on the ADR-025 guarded manifest; a zero-width primary interval is flagged and quoted with its "if independent" bound; the baseline-precision rows carry `uncertain` as TP and excluded as sensitivity rows, filed under the P2 source plan; every interval names its method in each table | ADR-033; `Docs/DiagnosticRuns/reproduction-audit-2026-10-10.md` issues 1–4 |
+| 2026-10-11 (ADR-034, prereg v22) | §7 | The labels gain the `uncertain` reason `tool-use` and the tool-use discard count as a P4 validity metric: agy 1.3.2 cannot deny `search_web`, so a labeller call that completes a tool step is discarded and retried once (operational, found by the fail-closed guard before any P4 label existed) | ADR-034 |
 
 ## 12. Neural aggregation variant and judge diagnostics (ADR-028)
 

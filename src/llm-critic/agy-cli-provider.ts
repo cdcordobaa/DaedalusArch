@@ -223,7 +223,8 @@ export function answerText(result: AgyResult): string {
 
 export type AgyErrorCode =
   | 'LLM_CLI_NOT_FOUND' | 'LLM_CLI_TIMEOUT' | 'LLM_CLI_EXIT' | 'LLM_CLI_BAD_ENVELOPE'
-  | 'LLM_AUTH' | 'LLM_USAGE_LIMIT' | 'LLM_CLI_ISOLATION' | 'LLM_CLI_VERSION_DRIFT' | 'LLM_NOT_CONFIGURED';
+  | 'LLM_AUTH' | 'LLM_USAGE_LIMIT' | 'LLM_CLI_ISOLATION' | 'LLM_CLI_VERSION_DRIFT' | 'LLM_NOT_CONFIGURED'
+  | 'LLM_CLI_TOOL_USE';
 
 const EXCERPT = 500;
 
@@ -235,7 +236,8 @@ function matches(patterns: readonly RegExp[], text: string): boolean {
  * Maps one finished agy process to its stream and an error, or `null` for an answer:
  * runner timeout or `[agy] print timeout` → TIMEOUT (retry); auth text → AUTH (stop); unknown model →
  * NOT_CONFIGURED (stop); quota text → USAGE_LIMIT (stop, unverified patterns); a completed tool step →
- * ISOLATION (stop); init model differing from the requested id → ISOLATION (stop); no result event →
+ * TOOL_USE (the call is discarded and retried once; ADR-034: agy 1.3.2 cannot deny `search_web`, so the deny
+ * rules cannot make every tool inert); init model differing from the requested id → ISOLATION (stop); no result event →
  * BAD_ENVELOPE (retry); status ERROR, non-zero exit or an empty answer → CLI_EXIT (retry).
  */
 export function classifyAgyResult(
@@ -256,7 +258,7 @@ export function classifyAgyResult(
   if (matches(AGY_CLASSIFIER.AUTH, errorText)) return fail('LLM_AUTH', 'agy is not signed in to the dedicated home');
   if (matches(AGY_CLASSIFIER.MODEL, errorText)) return fail('LLM_NOT_CONFIGURED', `agy does not know the model ${requestedModel}`);
   const ran = executedTools(stream);
-  if (ran.length > 0) return fail('LLM_CLI_ISOLATION', `agy executed tool(s): ${[...new Set(ran)].sort().join(', ')}`);
+  if (ran.length > 0) return fail('LLM_CLI_TOOL_USE', `agy executed tool(s): ${[...new Set(ran)].sort().join(', ')}`);
   if (stream.result?.status === 'ERROR' || run.exitCode !== 0) {
     if (matches(AGY_CLASSIFIER.USAGE_LIMIT, errorText)) return fail('LLM_USAGE_LIMIT', 'agy reported a quota or capacity limit');
     return fail('LLM_CLI_EXIT', `agy failed (exit ${String(run.exitCode)}): ${(stream.result?.error ?? '').slice(0, EXCERPT)}`);

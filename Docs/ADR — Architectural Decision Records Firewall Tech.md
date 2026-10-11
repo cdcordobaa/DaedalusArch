@@ -1396,6 +1396,7 @@ Lock-file check (decision 2): `scripts/fetch-corpus.ts` runs exactly one install
 | 031 | Withdrawn: graphify ablation cancelled by the author before registration | Withdrawn | — |
 | 032 | E1 cells extracted with the pinned per-run tsconfig (operational, post-hoc); prereg v20 | Accepted | — |
 | 033 | POST-HOC reproduction-audit corrections: labelled SO4 reading on the guarded manifest with the P1 labels (N 73), degenerate-interval flags, one interval method per table, `uncertain` sensitivity rows of the baseline precision filed under `e7-corpus`, threats register §3 and TV-17, provenance producers; prereg v21 | Accepted | — |
+| 034 | Labeller route completion: agy 1.3.2 cannot deny `search_web`; a call that completes a tool step is discarded (invocation counted) and retried once, a second makes the item `uncertain` / `tool-use`; 20 % stop rule over at least 10 P4 items; P1/MS/P2 verified; prereg v22 | Accepted | — |
 
 ## ADR-031: withdrawn (graphify ablation cancelled by the author before registration)
 
@@ -1450,3 +1451,29 @@ The number was reserved for a graphify ablation. The author cancelled it before 
 **Not changed (audit issues ranked low)**: the HEAD-vs-producing-commit drift of older aggregates (issue 5) beyond the re-aggregation of item 2, the runbook 1.6 SO2 command note (issue 6), the AC1 category count (issue 7) and the `n_mutate_rejected` reading (issue 8).
 
 **Consequences**: Ch7 and Ch8 quote three SO4 readings, each from one regime: strict (registered), corrected (ADR-025) and labelled (this ADR), all post hoc except strict. Any sentence that quoted the labelled F1 0.944 or "labelled precision 1.0" is replaced by the labelled N = 73 figures above.
+
+---
+
+## ADR-034: Labeller route completion: agy 1.3.2 cannot deny `search_web`, so any call that completes a tool step is invalid (operational); prereg v22
+
+**Status**: Accepted (coordinator decision 2026-10-11, Option A, under the v1.2E standing approval)
+
+**Date**: 2026-10-11
+
+**Context**: The first P4 live labelling call (plan `results/e1-grid/label-plan-p4/label-plan.json`, prereg v21, all pre-flight checks passed) timed out twice at 240 s (one cassette entry, `TIMEOUT`, 2 attempts). Its re-ask then completed a `search_web` tool step, and the fail-closed provider guard stopped the run (`LLM_CLI_ISOLATION`). The re-ask's answer was never stored. No P4 label existed. The registered isolation (ADR-019 item 4; `Docs/labeller-route.md` §2) had made tools inert with `toolPermission: strict` and 7 deny rules, but `search_web` was never probed. Two route probes then showed that `search_web` passes no permission check on agy 1.3.2. It completed with a `disabledTools` list of 51 tools in `settings.json` (init still listed 60 tools), and again with the deny rules `search_web(*)`, `execute_url(*)`, `browser(*)` and `edit_file(*)` added. The other tools stayed refused or were not offered. agy has no CLI flag for web search, and its documented grant categories are `command`, `read_file`, `write_file`, `mcp`, `read_url` and `execute_url`. Two further turns (`/permissions`, `/config`) ran by mistake on the default model. All four are recorded as non-label probes (`results/labels/live-call-ledger.md`). The home's `settings.json` was restored byte-identical after each probe.
+
+**Decision**:
+1. **Tool steps are invalid.** A labeller call whose agy attempt completes any tool step other than `finish` is invalid (`LLM_CLI_TOOL_USE`, a retry class of the cassette decorator). The attempt is discarded and its answer is never stored. Its invocation counts against the label budget, and the entry records it in `discardedAttempts`.
+2. **One retry.** The call is retried once, with the same prompt and key. If the retry completes a tool step too, the run is invalid with reason `tool-use` and is not re-asked, and the item is `uncertain` with `uncertainReason` `tool-use`.
+3. **Stop rule (pre-registered).** Once at least 10 P4 items have a finished run, the run stops (`LABEL_TOOL_USE_STOP`) if 20 % or more of them have a run that ended as `tool-use`. At that rate the panel's labels would be compromised. The stop is reported to the coordinator, and the run does not continue past it.
+4. **Validity metric.** The count of discarded tool-use attempts and the count of `uncertain` / `tool-use` items are reported with the P4 results and here.
+5. **Unchanged.** The labeller persona and prompts, the argv, the 240 s timeout with one retry, and the 7 registered deny rules. P1/MS/P2 and P4 therefore share one method. The timed-out cassette of the first P4 call is kept: the cassette rules record a timeout as an invalid, answerless entry (as in the P1/MS/P2 set), and replay re-derives its re-ask from it. The stopped re-ask was never recorded, so it is re-sent under this ADR.
+6. **P1/MS/P2: verified.** `agy-cli-provider.ts` is unchanged since `56e77f6`, so the guard was active for all 142 invocations of the first live plan. That run completed without a stop, and its 139 cassettes hold 138 answers and 1 timeout. No call completed a tool step.
+7. **Author audit.** The 30-item audit stays as drawn (first live plan, before P4 existed). It contains no P4 item, which is stated as a limitation.
+8. **Pre-registration v22** (one dated bump, P-TU): `Docs/labeller-route.md` (§2, §4, new §7), `Docs/threats-to-validity.md` (TV-109, DV-TV-16, trace) and `Docs/analysis-plan.md` (§7 reason list, §11 row).
+
+**Classification**: operational, found by the fail-closed guard before any P4 label existed. It completes the labeller route and does not change the labelling method, rubric, prompts, sampling or any analysis.
+
+**Validity metric (P4 run)**: recorded at the P4 labelling commit in `results/e1-grid/label-plan-p4/` and in the ledger.
+
+**Consequences**: the isolation of the labeller is now partly ex post: a web search can still run and spend quota, but its answer never becomes a label (TV-109). If the stop rule fires, the agy route cannot label P4, and a route change goes back to the author.

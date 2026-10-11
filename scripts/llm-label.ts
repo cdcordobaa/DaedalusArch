@@ -65,8 +65,10 @@ export interface LabelRun<L extends string = AnyLabel> {
    * ADR-021 item 8.7). Absent in labels written before P-U6 (then `attempts`).
    */
   readonly invocations?: number;
-  /** Why the recorded outcome is invalid. */
+  /** Why the recorded outcome is invalid (`tool-use`: the final attempt completed an agy tool step, ADR-034). */
   readonly invalidReason?: string;
+  /** agy attempts of this run discarded because they completed a tool step (ADR-034); absent when 0. */
+  readonly toolUseDiscards?: number;
 }
 
 export interface ReconciledLabel<L extends string = AnyLabel> {
@@ -85,7 +87,7 @@ export interface ReconciledLabel<L extends string = AnyLabel> {
   /** Missed-seed items: the seed (instances.csv FN cause columns, ADR-021 SO4-02). */
   readonly seedId?: string;
   readonly label: L | 'uncertain';
-  readonly uncertainReason?: 'disagree' | 'invalid-run';
+  readonly uncertainReason?: 'disagree' | 'invalid-run' | 'tool-use';
   readonly rootCause?: RootCauseCode;
   readonly runs: readonly [LabelRun<L>, LabelRun<L>];
 }
@@ -317,6 +319,8 @@ export function reconcile<L extends string>(item: LabelItem, prompt: LabellerPro
     ...(item.kind === 'missed-seed' && item.seedId !== undefined && { seedId: item.seedId }),
   };
   const [a, b] = runs;
+  // ADR-034: a run whose retried call still completed a tool step makes the item uncertain for that reason.
+  if (a.invalidReason === TOOL_USE_REASON || b.invalidReason === TOOL_USE_REASON) return { ...base, label: 'uncertain', uncertainReason: 'tool-use' };
   if (a.label === null || b.label === null) return { ...base, label: 'uncertain', uncertainReason: 'invalid-run' };
   if (a.label !== b.label) return { ...base, label: 'uncertain', uncertainReason: 'disagree' };
   if (prompt.rootCauseRequired.includes(a.label)) {
@@ -344,6 +348,8 @@ export interface LabelOutcome {
   readonly calls: number;
   /** Prompts sent (record) or keyed (replay), in call order; for the context-exclusion check. */
   readonly prompts: readonly string[];
+  /** agy attempts discarded because they completed a tool step (ADR-034 validity metric), over all runs. */
+  readonly toolUseDiscards: number;
 }
 
 export type LabelResult =
@@ -351,6 +357,26 @@ export type LabelResult =
   | { readonly ok: false; readonly code: string; readonly detail: string };
 
 const REASK_HEADER = '## Your previous answer was invalid';
+
+/** ADR-034: the `invalidReason` of a run whose retried call still completed an agy tool step. */
+export const TOOL_USE_REASON = 'tool-use';
+/** The provider error code of a completed agy tool step (`agy-cli-provider.ts`, ADR-034). */
+export const TOOL_USE_CODE = 'LLM_CLI_TOOL_USE';
+/** ADR-034 stop rule: P4 items done before the rule applies, and the tool-use share that stops the run. */
+export const TOOL_USE_STOP_MIN_ITEMS = 10;
+export const TOOL_USE_STOP_SHARE = 0.2;
+/** ADR-034: 20 % or more of the P4 items done (at least 10) end as `uncertain` / `tool-use`; the run stops. */
+export const LABEL_TOOL_USE_STOP = 'LABEL_TOOL_USE_STOP';
+
+/** Whether a cassette entry's final attempt completed a tool step (its stored text carries the code, ADR-034). */
+export function finalToolUse(entry: { readonly outcome: { readonly kind: string }; readonly response: string }): boolean {
+  return entry.outcome.kind === 'invalid' && entry.response.startsWith(`${TOOL_USE_CODE}:`);
+}
+
+/** Attempts of one cassette entry discarded for a completed tool step: the retried ones and a tool-use final one. */
+export function toolUseDiscardsOf(entry: { readonly outcome: { readonly kind: string }; readonly response: string; readonly discardedAttempts?: readonly string[] }): number {
+  return (entry.discardedAttempts ?? []).filter((c) => c === TOOL_USE_CODE).length + (finalToolUse(entry) ? 1 : 0);
+}
 /** The most invocations one call can make: the first try and the provider retries (U4 `JUDGE_RETRIES`). */
 export const MAX_INVOCATIONS_PER_CALL = 1 + JUDGE_RETRIES;
 
@@ -366,6 +392,10 @@ export async function labelItems(items: readonly LabelItem[], config: LabellerCo
   const options = { model: config.model, maxTokens: config.maxTokens ?? LABELLER_MAX_TOKENS, temperature: LABELLER_TEMPERATURE };
   const sent: string[] = [];
   let calls = 0;
+  let toolUseDiscards = 0;
+  // ADR-034 stop rule state: P4 items with a finished run, and those with a run that ended as tool-use.
+  const p4Done = new Set<string>();
+  const p4ToolUse = new Set<string>();
   const runsByItem = new Map<string, LabelRun[]>();
   const order1 = shuffle(items, createRng(config.permutationSeed));
   for (const runIndex of [0, 1] as const) {
@@ -381,6 +411,7 @@ export async function labelItems(items: readonly LabelItem[], config: LabellerCo
       let text = renderPrompt(prompt, item, shown);
       let run: LabelRun | null = null;
       let invocations = 0;
+      let discards = 0;
       for (const attempt of [1, 2] as const) {
         // ADR-021 item 8.7: a call may use up to MAX_INVOCATIONS_PER_CALL agy invocations; none is sent past the budget.
         if (calls + MAX_INVOCATIONS_PER_CALL > config.budgetCalls) {
@@ -391,6 +422,12 @@ export async function labelItems(items: readonly LabelItem[], config: LabellerCo
         if (r.kind === 'stop') return { ok: false, code: r.stop === 'CASSETTE_MISS' ? 'CASSETTE_MISS' : LABELLER_STOPPED, detail: r.message };
         calls += r.entry.attempts;
         invocations += r.entry.attempts;
+        discards += toolUseDiscardsOf(r.entry);
+        if (finalToolUse(r.entry)) {
+          // ADR-034: the retry also completed a tool step. No answer is stored and none is re-asked.
+          run = { runIndex, cassetteKey: r.key, attempts: attempt, invocations, ...(permutationSeed !== undefined && { permutationSeed }), label: null, rationale: '', invalidReason: TOOL_USE_REASON };
+          break;
+        }
         const parsed = r.outcome.kind === 'valid' ? parseAnswer(r.entry.response, shown) : { ok: false as const, reason: `provider outcome ${r.outcome.cause}` };
         const reason = parsed.ok ? validateAnswer(prompt, parsed.answer) : parsed.reason;
         const common = { runIndex, cassetteKey: r.key, attempts: attempt, invocations, ...(permutationSeed !== undefined && { permutationSeed }) };
@@ -403,7 +440,19 @@ export async function labelItems(items: readonly LabelItem[], config: LabellerCo
         text = `${renderPrompt(prompt, item, shown)}\n\n${REASK_HEADER}\n${reason ?? 'invalid'}. Answer again with one valid JSON object.`;
       }
       if (run === null) return { ok: false, code: LABELLER_STOPPED, detail: 'no run outcome' };
+      if (discards > 0) run = { ...run, toolUseDiscards: discards };
+      toolUseDiscards += discards;
       runsByItem.set(item.itemId, [...(runsByItem.get(item.itemId) ?? []), run]);
+      if (item.population === 'P4') {
+        p4Done.add(item.itemId);
+        if (run.invalidReason === TOOL_USE_REASON) p4ToolUse.add(item.itemId);
+        if (p4Done.size >= TOOL_USE_STOP_MIN_ITEMS && p4ToolUse.size >= TOOL_USE_STOP_SHARE * p4Done.size) {
+          return {
+            ok: false, code: LABEL_TOOL_USE_STOP,
+            detail: `${LABEL_TOOL_USE_STOP}: ${String(p4ToolUse.size)} of ${String(p4Done.size)} P4 items done end as uncertain/tool-use (>= ${String(TOOL_USE_STOP_SHARE * 100)} % after >= ${String(TOOL_USE_STOP_MIN_ITEMS)}); ${String(toolUseDiscards)} tool-use discards; ${String(calls)} invocations used (ADR-034)`,
+          };
+        }
+      }
     }
   }
   const labels: ReconciledLabel[] = [];
@@ -415,7 +464,7 @@ export async function labelItems(items: readonly LabelItem[], config: LabellerCo
     if (prompt === undefined || r0 === undefined || r1 === undefined) return { ok: false, code: LABELLER_STOPPED, detail: `item ${item.itemId} lacks a run` };
     labels.push(reconcile(item, prompt, [r0, r1]));
   }
-  return { ok: true, labels, calls, prompts: sent };
+  return { ok: true, labels, calls, prompts: sent, toolUseDiscards };
 }
 
 // ---------------------------------------------------------------------------------------------
@@ -719,7 +768,7 @@ export async function main(argv: readonly string[], repoRoot: string, io: LabelM
     return 1;
   }
   io.writeFile(resolve(repoRoot, out), `${JSON.stringify(r.labels, null, 2)}\n`);
-  io.out(`labelled ${String(r.labels.length)} items in ${String(r.calls)} calls (${mode})\n`);
+  io.out(`labelled ${String(r.labels.length)} items in ${String(r.calls)} calls (${mode}); tool-use discards ${String(r.toolUseDiscards)} (ADR-034)\n`);
   return 0;
 }
 

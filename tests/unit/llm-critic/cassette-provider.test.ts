@@ -194,6 +194,19 @@ describe('CAS-04 recorded outcomes', () => {
     expect(readCassetteEntry(dir, result.key)?.attempts).toBe(2);
   });
 
+  it('ADR-034: a tool-use attempt is discarded (not stored) and retried once; the entry names the discard', async () => {
+    const dir = tmpDir();
+    const inner = new StubProvider([err('LLM_CLI_TOOL_USE', 'agy executed tool(s): search_web'), ok(VALID)]);
+    const result = await decorator(inner, dir).judge('p', OPTIONS, CALL(0));
+    expect(result.kind === 'final' && result.outcome).toEqual({ kind: 'valid' });
+    const e = readCassetteEntry(dir, result.key);
+    expect(e).toMatchObject({ attempts: 2, discardedAttempts: ['LLM_CLI_TOOL_USE'], response: VALID });
+    const dir2 = tmpDir();
+    const twice = await decorator(new StubProvider([err('LLM_CLI_TOOL_USE', 'a'), err('LLM_CLI_TOOL_USE', 'b')]), dir2).judge('p', OPTIONS, CALL(0));
+    expect(twice.kind === 'final' && twice.outcome).toEqual({ kind: 'invalid', cause: 'CLI_EXIT' });
+    expect(readCassetteEntry(dir2, twice.key)).toMatchObject({ attempts: 2, discardedAttempts: ['LLM_CLI_TOOL_USE'], response: 'LLM_CLI_TOOL_USE: b' });
+  });
+
   it.each([
     ['LLM_USAGE_LIMIT', 'USAGE_LIMIT'], ['LLM_AUTH', 'AUTH'], ['LLM_CLI_NOT_FOUND', 'CLI_NOT_FOUND'],
     ['LLM_CLI_ISOLATION', 'ISOLATION'], ['LLM_CLI_VERSION_DRIFT', 'CLI_VERSION'],

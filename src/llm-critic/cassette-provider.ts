@@ -90,6 +90,9 @@ export const PROVIDER_ERROR_CLASSES: Readonly<Record<string, { readonly kind: 'r
   LLM_CLI_TIMEOUT: { kind: 'retry', cause: 'TIMEOUT' },
   LLM_CLI_EXIT: { kind: 'retry', cause: 'CLI_EXIT' },
   LLM_CLI_BAD_ENVELOPE: { kind: 'retry', cause: 'BAD_ENVELOPE' },
+  // ADR-034: a completed agy tool step. The attempt is discarded (its answer is never stored) and retried once;
+  // the stored text of a final tool-use attempt starts with `LLM_CLI_TOOL_USE:` (no judge cause is added).
+  LLM_CLI_TOOL_USE: { kind: 'retry', cause: 'CLI_EXIT' },
   LLM_CLI_NOT_FOUND: { kind: 'stop', stop: 'CLI_NOT_FOUND' },
   LLM_NOT_CONFIGURED: { kind: 'stop', stop: 'CLI_NOT_FOUND' },
   LLM_USAGE_LIMIT: { kind: 'stop', stop: 'USAGE_LIMIT' },
@@ -271,8 +274,11 @@ export class CassetteLLMProvider implements LLMProvider {
     let response: LLMResponse | null = null;
     let interpretation: Interpretation | null = null;
     let failureText = '';
+    // Error codes of attempts that were retried (ADR-034: the tool-use discard count is a validity metric).
+    const discarded: string[] = [];
     for (let attempt = 1; attempt <= 1 + JUDGE_RETRIES; attempt++) {
       attempts = attempt === 1 ? 1 : 2;
+      if (attempt > 1 && response === null && failureText !== '') discarded.push(failureText.split(':')[0] ?? '');
       const result = await this.inner.evaluate(request.prompt, options, call);
       if (!result.success) {
         const error = result.errors[0];
@@ -294,7 +300,8 @@ export class CassetteLLMProvider implements LLMProvider {
     const final = interpretation ?? { outcome: { kind: 'invalid', cause: 'CLI_EXIT' } as const, verdict: null };
     // The caller receives exactly what replay will read: scrubbed, then normalised to the
     // stored form (sorted keys), so record and replay feed identical data (CAS-07).
-    const built = this.buildEntry(request, key, call, options, response, final, attempts, failureText, started, unitPaths);
+    const built0 = this.buildEntry(request, key, call, options, response, final, attempts, failureText, started, unitPaths);
+    const built: CassetteEntry = discarded.some((c) => c === 'LLM_CLI_TOOL_USE') ? { ...built0, discardedAttempts: discarded } : built0;
     const entry = JSON.parse(sortedJson(built)) as CassetteEntry;
     writeCassetteEntry(this.options.dir, entry);
     this.used.set(key, entry);

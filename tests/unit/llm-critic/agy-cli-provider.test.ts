@@ -118,14 +118,25 @@ describe('agy stream reading and classification (probe fixtures)', () => {
     expect(s.init).toBeNull();
   });
 
-  it('treats denied tool attempts as harmless and completed tools as an isolation stop', () => {
+  it('treats denied tool attempts as harmless and completed tools as tool use (ADR-034: discarded and retried)', () => {
     const denied = readAgyStream(text('stream-tools-denied.ndjson'));
     expect(executedTools(denied)).toEqual([]);
     expect(deniedToolCount(denied)).toBe(6);
     expect(classifyAgyResult(proc(text('stream-tools-denied.ndjson')), 'gemini-3.1-pro-high', []).error).toBeNull();
     const strictOnly = proc(text('stream-tools-strict-only.ndjson'), { stderr: text('stderr-c04-tools-strict.txt') });
     expect(executedTools(readAgyStream(strictOnly.stdout))).toEqual(['view_file', 'view_file', 'run_command', 'read_url_content', 'write_to_file']);
-    expect(classifyAgyResult(strictOnly, 'gemini-3.1-pro-high', []).error?.code).toBe('LLM_CLI_ISOLATION');
+    expect(classifyAgyResult(strictOnly, 'gemini-3.1-pro-high', []).error?.code).toBe('LLM_CLI_TOOL_USE');
+    // ADR-034: the P4 stop of 2026-10-11 and both route probes: search_web completes under every deny rule tried.
+    const web = text('stream-json-clean.ndjson').trimEnd().split('\n');
+    const searched = [
+      ...web.slice(0, 1),
+      JSON.stringify({ event: 'step_update', step_update: { step_index: 90, state: 'ACTIVE', step_type: 'tool', tool_name: 'search_web', tool_info: { name: 'search_web' } } }),
+      JSON.stringify({ event: 'step_update', step_update: { step_index: 90, state: 'DONE', step_type: 'tool', tool_name: 'search_web', tool_info: { name: 'search_web' } } }),
+      ...web.slice(1),
+    ].join('\n');
+    const r = classifyAgyResult(proc(searched), 'gemini-3.1-pro-high', []);
+    expect(r.error?.code).toBe('LLM_CLI_TOOL_USE');
+    expect(r.error?.message).toMatch(/search_web/);
     for (const f of ['stream-memory-plant.ndjson', 'stream-memory-probe.ndjson', 'stream-canary-negative.ndjson']) {
       expect(classifyAgyResult(proc(text(f)), 'gemini-3.1-pro-high', []).error).toBeNull();
     }
