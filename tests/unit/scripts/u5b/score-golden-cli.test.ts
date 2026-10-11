@@ -32,4 +32,11 @@ describe('score-golden main (BR-U5b-73)', () => {
     expect(a.err.join('')).toContain('SCORE_RULE_MISMATCH');
     expect(a.out).toEqual([]);
   });
+
+  it('--rule-version accepts only 1.1.0 under the 1.2.0 rule (audit 2026-10-10 issue 1); any other value exits 2', async () => {
+    const a = io();
+    expect(await main(['--case', 'tests/fixtures/u5b/hand-computed', '--rule-version', '1.0.0'], ROOT, a.io, (r) => loadMatchingRule(r))).toBe(2);
+    expect(a.err.join('')).toContain('only 1.1.0 under the 1.2.0 rule');
+    expect(await main(['--case', 'tests/fixtures/u5b/hand-computed', '--rule-version'], ROOT, io().io, (r) => loadMatchingRule(r))).toBe(2);
+  });
 });

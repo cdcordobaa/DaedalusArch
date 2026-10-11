@@ -291,6 +291,12 @@ export interface ScoreInput {
   readonly specStyles?: ReadonlyMap<string, string>;
   /** Corpus project id → `style` of `corpus/corpus.json` (ADR-021 SO1-C). */
   readonly corpusStyles?: ReadonlyMap<string, CorpusStyle>;
+  /**
+   * `false` scores with the rule-1.1.0 diff, without the MAT-04a class-rename identity (default `true`). Only
+   * `--rule-version 1.1.0` sets it: the labelled reading whose FP-strict set is the P1 census the labels were drawn
+   * from (independent reproduction audit 2026-10-10, issue 1; POST-HOC).
+   */
+  readonly classRenameIdentity?: boolean;
 }
 
 export type ScoreOutcome =
@@ -549,6 +555,7 @@ interface ClassifyContext {
   readonly specStyles: ReadonlyMap<string, string> | undefined;
   readonly corpusStyles: ReadonlyMap<string, CorpusStyle> | undefined;
   readonly labels: ReadonlyMap<string, ReconciledP1Label> | undefined;
+  readonly classRenameIdentity: boolean;
 }
 
 /** A new symbolic violation occurrence (one per multiset count) with a sample violation of its key. */
@@ -635,7 +642,7 @@ function classifySeed(pair: AcceptedPair, ctx: ClassifyContext): SeedOutcome {
   const { row, baseline, seeded } = pair;
   const info = functionInfo(seeded);
   const expected = row.expected;
-  const diff = diffPair(baseline, seeded, classRenameOf(row, baseline, seeded));
+  const diff = diffPair(baseline, seeded, ctx.classRenameIdentity ? classRenameOf(row, baseline, seeded) : undefined);
   const judgeUnits = judgeCollateralUnits(seeded, row);
   const judgeCollateral = diff.neuralNew.filter((v) => v.unitId !== undefined && judgeUnits.has(v.unitId)).length;
   // MAT-19 1.1.0 (ADR-020 item 5): neural new violations outside judge collateral form their own column.
@@ -1081,6 +1088,7 @@ export function scoreDifferential(input: ScoreInput): ScoreOutcome {
     specStyles: input.specStyles,
     corpusStyles: input.corpusStyles,
     labels: input.labels,
+    classRenameIdentity: input.classRenameIdentity ?? true,
   };
   const perFunction = new Map<string, Map<string, Cell>>();
   const perDimension = new Map<string, Map<string, Cell>>();
@@ -1391,6 +1399,7 @@ export function labelItemsFile(score: GoldenScore, items: readonly P1Item[]): La
 
 export const SCORE_USAGE = [
   'usage: npx tsx scripts/score-golden-cli.ts --case <dir> [--labels <labels.json>] [--label-items <file>] [--out <file>]',
+  '         [--rule-version 1.1.0]',
   '         [--sensitivity <results.json> [--plan <sensitivity plan.json>] [--later-disabled <FF-id,...>]]',
   '       npx tsx scripts/score-golden-cli.ts --self-test | --help',
   '',
@@ -1401,6 +1410,9 @@ export const SCORE_USAGE = [
   '--labels takes the llm-label output (ReconciledLabel[]; P1 items are read) or an itemId -> label object; every P1',
   'item of the score must have a label (SCORE_LABELS_MISSING). --label-items writes the P1 items and the missed seeds',
   'for build-label-plan (ADR-021 SO4-02).',
+  '--rule-version 1.1.0 scores without MAT-04a (the rule-1.1.0 diff) and stamps ruleVersion 1.1.0; only valid while',
+  'Docs/matching-rule.md is 1.2.0. It gives the labelled reading over the P1 census the labels were drawn from',
+  '(reproduction audit 2026-10-10 issue 1, POST-HOC).',
   '--sensitivity writes the SP-* probe results (scoreSensitivity, BR-U5b-78) of the same case for aggregate --sensitivity;',
   '--plan supplies the plan\'s fixAttempts and --later-disabled the functions a later registered spec disables (ADR-016 b).',
   'Exit: 0 scored; 1 refused (SCORE_RULE_MISMATCH, SCORE_INPUT_REJECTED for every pair, SCORE_COLLATERAL_UNKEYED,',
@@ -1423,7 +1435,7 @@ function parseArgs(argv: readonly string[]): Map<string, string | true> | string
       args.set(a, true);
       continue;
     }
-    if (a === '--case' || a === '--labels' || a === '--out' || a === '--label-items' || a === '--sensitivity' || a === '--plan' || a === '--later-disabled') {
+    if (a === '--case' || a === '--labels' || a === '--out' || a === '--label-items' || a === '--sensitivity' || a === '--plan' || a === '--later-disabled' || a === '--rule-version') {
       const v = argv[i + 1];
       if (v === undefined || v.startsWith('--')) return `${a} needs a value`;
       args.set(a, v);
@@ -1450,11 +1462,19 @@ export async function main(argv: readonly string[], repoRoot: string, io: ScoreM
     io.out(SCORE_USAGE);
     return 0;
   }
-  const rule = loadRule(repoRoot);
-  if (!rule.ok) {
-    io.err(`${rule.code}: ${rule.detail}\n`);
+  const loadedRule = loadRule(repoRoot);
+  if (!loadedRule.ok) {
+    io.err(`${loadedRule.code}: ${loadedRule.detail}\n`);
     return 1;
   }
+  // --rule-version 1.1.0: the 1.2.0 rule minus MAT-04a (its only diff change; the MAT-13 note changes no code here).
+  const ruleVersionArg = args.get('--rule-version');
+  if (ruleVersionArg !== undefined && (ruleVersionArg !== '1.1.0' || loadedRule.rule.version !== '1.2.0')) {
+    io.err(`--rule-version ${String(ruleVersionArg)}: only 1.1.0 under the 1.2.0 rule is supported\n${SCORE_USAGE}`);
+    return 2;
+  }
+  const classRenameIdentity = ruleVersionArg === undefined;
+  const rule = classRenameIdentity ? loadedRule : { ...loadedRule, rule: { ...loadedRule.rule, version: '1.1.0' } };
   if (args.has('--self-test')) {
     const r = scoreDifferential(selfTestInput(rule.rule));
     io.err(r.ok ? 'self-test: known-bad input was scored\n' : `self-test: ${r.code}: ${r.detail}\n`);
@@ -1500,6 +1520,7 @@ export async function main(argv: readonly string[], repoRoot: string, io: ScoreM
     ...(corpusStyles !== undefined && { corpusStyles }),
     ...(loaded.value.metricKeyReadiness !== undefined && { metricKeyReadiness: loaded.value.metricKeyReadiness }),
     ...(labels !== undefined && { labels }),
+    ...(!classRenameIdentity && { classRenameIdentity }),
   });
   if (!result.ok) {
     io.err(`${result.code}: ${result.detail}\n`);

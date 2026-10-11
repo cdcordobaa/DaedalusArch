@@ -222,6 +222,9 @@ export function wilson(k: number, n: number): [number, number] {
 
 const r3 = (x: number): number => Math.round(x * 1000) / 1000;
 
+/** The interval method of `recall*.csv` `*_ci95` (analysis plan §13.2): Wilson on instances, the "if independent" bound. */
+export const CI_METHOD_IF_INDEPENDENT = 'wilson-instances-if-independent';
+
 // ---------------------------------------------------------------------------------------------
 // I/O helpers
 
@@ -314,7 +317,10 @@ function activeFunctions(outDir: string, specPath: string): string[] {
 function cmdScoreComparison(repoRoot: string): void {
   const { plan, entries } = plannedEntries(repoRoot, 'experiments/tool-comparison/plan.json');
   const outDir = resolve(repoRoot, plan.outDir);
-  const manifest = readJson<{ rows: ManifestRow[] }>(resolve(repoRoot, '../daedalus-so4/manifest.json'));
+  // The committed copy of the SO4 manifest (`build-score-case`: the external ../daedalus-so4/manifest.json with its
+  // absolute tsc paths made repository-relative; no expected block differs), so the table is reproducible in the
+  // repository (reproduction audit 2026-10-10 issue 4).
+  const manifest = readJson<{ rows: ManifestRow[] }>(resolve(repoRoot, 'results/so4-heldout/case/manifest.json'));
   const rowById = new Map(manifest.rows.map((r) => [r.seedId, r]));
   const so4Status = new Map(parseCsv(readFileSync(resolve(repoRoot, 'results/so4-heldout/v2/agg/seed_coverage.csv'), 'utf8')).map((r) => [r['seed_id'] ?? '', r['status'] ?? '']));
   const byId = new Map(entries.map((e) => [e.projectId, e]));
@@ -373,6 +379,8 @@ function cmdScoreComparison(repoRoot: string): void {
       group: label, rule, kind, n, da_hits: da, da_rate: n ? r3(da / n) : '', da_ci95: n ? `${r3(dl)}-${r3(dh)}` : '',
       depcruise_hits: dc, depcruise_rate: n ? r3(dc / n) : '', depcruise_ci95: n ? `${r3(cl)}-${r3(ch)}` : '',
       both: both, da_only: da - both, depcruise_only: dc - both,
+      // Analysis plan §13.2: instance Wilson, the "if independent" bound; no cell-level interval (audit 2026-10-10 issue 2).
+      ci_method: n ? CI_METHOD_IF_INDEPENDENT : '',
     });
   };
   for (const op of ['MO-S01', 'MO-X01', 'MO-S03', 'MO-P01', 'MO-C04']) {

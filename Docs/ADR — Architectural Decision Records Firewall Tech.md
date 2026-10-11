@@ -1393,6 +1393,19 @@ Lock-file check (decision 2): `scripts/fetch-corpus.ts` runs exactly one install
 | 028 | Judge aggregation: registered rule primary + pre-declared proportional variant; judge diagnostics first-class (Option C); judge-weighted sensitivity variant (2/7, prereg v17) | Accepted | — |
 | 029 | Codex as a 4th E1 model: an added 18-cell arm (`gpt-5.6-terra`, CLI 0.162.1, own plan and `orderSeed` 20261010, sandbox confinement, pinned catalog); Claude cells unchanged; vendor contrast and vendor self-preference check; prereg v18 | Accepted | — |
 | 030 | Tool comparison with dependency-cruiser 18.4.0 (mechanical spec translation T1..T10 of FF-S01..S04, P01, C04; SO4 comparable seeds and twins, same keys) and five real fix-commit pairs (before/after, resolved-finding rule, n = 5 descriptive); both symbolic-only, registered before they run; prereg v19 | Accepted | — |
+| 031 | Withdrawn: graphify ablation cancelled by the author before registration | Withdrawn | — |
+| 032 | E1 cells extracted with the pinned per-run tsconfig (operational, post-hoc); prereg v20 | Accepted | — |
+| 033 | POST-HOC reproduction-audit corrections: labelled SO4 reading on the guarded manifest with the P1 labels (N 73), degenerate-interval flags, one interval method per table, `uncertain` sensitivity rows of the baseline precision filed under `e7-corpus`, threats register §3 and TV-17, provenance producers; prereg v21 | Accepted | — |
+
+## ADR-031: withdrawn (graphify ablation cancelled by the author before registration)
+
+**Status**: Withdrawn
+
+**Date**: 2026-10-10
+
+The number was reserved for a graphify ablation. The author cancelled it before anything was registered, run or committed. No plan, artefact or result exists, so no pre-registration bump refers to it. The number is kept so that the ADR sequence has no gap.
+
+---
 
 ## ADR-032: E1 cells are extracted with the pinned per-run tsconfig (operational, post-hoc pipeline fix found during the E1 judge pass)
 
@@ -1411,3 +1424,29 @@ Lock-file check (decision 2): `scripts/fetch-corpus.ts` runs exactly one install
 **Classification**: operational and **post-hoc** (the gap was found during the registered run). It changes how the instrument locates the files of an E1 tree, not a rule, weight, threshold, judge parameter, selection rule or aggregation. Readers should treat it as a disclosed deviation from the run as first registered (`Docs/prereg-reasons.md` P-TS, prereg v20).
 
 **Consequences**: The tsconfig used at evaluation is the same for every cell and equals the one that decided the valid-yield figure. Cells whose agent wrote root-level files outside `src/` have them excluded from the evaluation exactly as from the type-check of record. The fixtures plan (runbook E1 step 3) is unaffected: its projects ship their own registered tsconfigs and get no `--tsconfig`.
+
+---
+
+## ADR-033: Reproduction-audit corrections to the SO4 and baseline tables (POST-HOC); prereg v21
+
+**Status**: Accepted (coordinator, 2026-10-10, under the v1.2E standing approval; the author asked for the audit findings to be fixed as analysis or labelling corrections only)
+
+**Date**: 2026-10-10
+
+**POST-HOC declaration**: every correction below was found by the independent reproduction audit of 2026-10-10 (`Docs/DiagnosticRuns/reproduction-audit-2026-10-10.md`, PR #54), after every SO4, E7 and labelling result had been seen. No firewall evaluation was re-run, no model was called (labels are the committed cassette replays), and no label, matching-rule version, weight, threshold or registered outcome changes.
+
+**Context**: the audit reproduced every committed table byte for byte but ranked one issue high and three medium. (1) `results/so4-heldout/score.json` and `agg/` scored the unguarded case (N = 75) under matching rule 1.2.0: a hybrid of the strict and corrected readings in which the P1 labels, drawn from the rule-1.1.0 FP-strict items, never entered a precision. (2) When every cell is perfect the cell bootstrap gives [1, 1], and the precision figure used the item bound while the P/R/F1 files used the cell interval. (3) The baseline precision depends strongly on the `uncertain` rule and was filed under `plan_id so4-heldout`, with the overall value repeated on the tier strata. (4) The SO4 manifest and the label-plan inputs live outside the repository and were not hashed, and two committed files had no producing script. The director report (PR #53) also named two stale threats-register entries and the missing ADR-031.
+
+**Decision**:
+1. **Labelled SO4 reading.** `score-golden --rule-version 1.1.0` scores with the rule-1.1.0 diff (no MAT-04a; it reproduces `score-strict.json` and `label-items.json` byte for byte). `score.json` is now `--case results/so4-heldout/case-corrected --rule-version 1.1.0 --labels results/labels/labels.json`: the guarded manifest (N = 73) with FP-labelled = the 13 rule-1.1.0 FP-strict seed items minus the 10 labelled TP-class, leaving the 3 `uncertain` items (MAT-10). `agg/` is rebuilt from it (runbook 7.1). Result: TP 67, FP-labelled 3, FN 6; recall 0.918 (cell bootstrap 0.818–1.000, 39 cells), precision 0.957 (0.893–1.000, 36 cells; if independent, Wilson 0.881–0.985), F1 0.937 (0.878–0.986). The old table is not kept: no registered artefact names it. Analysis plan §14 item 1.
+2. **Degenerate intervals.** Every P/R/F1 file carries `ci_degenerate`, `precision_ci_degenerate`, `f1_ci_degenerate`; a degenerate interval is quoted with the row's "if independent" bound (Clopper–Pearson at 0 or n). `agg-strict/`, `agg-corrected/` and `v2/agg/` are re-aggregated at this commit so they carry the flags; every column they had before is unchanged except the intended `precision_figure.csv` intervals (item 3). Analysis plan §14 item 2.
+3. **One method per table.** `precision_figure.csv` carries the cell interval (`ci_*`) and the item bound beside it (`ci_independent_*`); the tool-comparison `recall*.csv` and `summary*.json` name their method (`ci_method` `wilson-instances-if-independent`, analysis plan §13.2) and read the committed SO4 manifest copy (all other tool-comparison files are byte-identical). Analysis plan §14 item 3.
+4. **Baseline precision.** `precision_baseline.csv` gains `uncertain_rule` and `reading`, with the sensitivity rows `tp` and `excluded` beside the registered `fp` rows, and `plan_id` = the P2 source plan (`e7-corpus`; `e7-corpus+e7-corpus-v1sym` for the v1 row). The `precision_baseline` column of a `corpus-core` / `corpus-e7` stratum carries the tier estimate (`precision_baseline_scope`). v2: registered 0.328 (0.132–0.609), uncertain as TP 0.789 (0.500–0.933), excluded 0.608 (0.351–0.816). v1: 0.264 (0.110–0.510), 0.744 (0.498–0.895), 0.508 (0.287–0.725). Analysis plan §14 item 4.
+5. **Threats register.** §3 lists the post-run bumps (DV-TV-1 to DV-TV-15) instead of the "no run has happened" placeholder; TV-17 states that the floor of 80 is not met (75 strict, 73 corrected and labelled; the ADR-019 item 1 shortfall); TV-23 names the figure's interval; TV-108 records these corrections.
+6. **ADR-031** is recorded as withdrawn.
+7. **Provenance (audit issue 4).** `scripts/provenance-cli.ts guard-case` rebuilds `results/so4-heldout/case-corrected/manifest.json` and `v1-sensitivity` rebuilds `results/e7-corpus/v1/ahs_v1_sensitivity.csv`, both byte for byte; `external --write / --check` records in `results/external-inputs.json` the sha256 of `../daedalus-so4/manifest.json`, `../daedalus-so4/prepared-bases-7.json` and `../daedalus-sp-probes/manifest.json`, and whether each committed case copy equals its outside file apart from the machine-local `tscPath` (SO4 copy: equal; sensitivity: the step-31 copy is equal, the first-run copy predates the P-E re-seed). The corpus clones stay outside the repository, pinned by commit in `corpus/corpus.json`.
+8. **Pre-registration v21** (one dated bump, P-AUD): `Docs/analysis-plan.md` (§11 row, §14) and `Docs/threats-to-validity.md` (item 5). No other registered artefact changes; the matching rule stays 1.2.0.
+
+**Not changed (audit issues ranked low)**: the HEAD-vs-producing-commit drift of older aggregates (issue 5) beyond the re-aggregation of item 2, the runbook 1.6 SO2 command note (issue 6), the AC1 category count (issue 7) and the `n_mutate_rejected` reading (issue 8).
+
+**Consequences**: Ch7 and Ch8 quote three SO4 readings, each from one regime: strict (registered), corrected (ADR-025) and labelled (this ADR), all post hoc except strict. Any sentence that quoted the labelled F1 0.944 or "labelled precision 1.0" is replaced by the labelled N = 73 figures above.

@@ -2,7 +2,7 @@
  * SO4 baseline precision (ADR-020 item 1): the Horvitz–Thompson weighted share of TP-class P2 labels, per function,
  * per corpus tier, per project and overall, under the BR-U5b-61 interval rule. Hand-computed fixture.
  */
-import { baselineLabelsOf, baselinePrecision, isTpClass, stratumFunctionId } from '../../../../scripts/lib/baseline-precision.js';
+import { baselineLabelsOf, baselinePrecision, isTpClass, planIdOfRunId, stratumFunctionId } from '../../../../scripts/lib/baseline-precision.js';
 import type { BaselineLabel } from '../../../../scripts/lib/baseline-precision.js';
 
 const many = (n: number, projectId: string, functionId: string, label: string, p: number): BaselineLabel[] =>
@@ -22,7 +22,7 @@ describe('baseline precision (ADR-020 item 1)', () => {
 
   it('overall HT estimate 31/45 with Kish-Wilson; FF-S01 15/20 with Wilson on 20; FF-C04 n = 5 → counts only; tiers and projects', () => {
     const tiers = new Map([['X', 'core' as const], ['Y', 'e7' as const]]);
-    const rows = baselinePrecision(LABELS, { seed: 9, resamples: 200, tierOf: (p) => tiers.get(p) });
+    const rows = baselinePrecision(LABELS, { seed: 9, resamples: 200, tierOf: (p) => tiers.get(p) }).filter((r) => r.uncertainRule === 'fp');
     expect(rows.map((r) => [r.scope, r.key])).toEqual([
       ['overall', ''], ['tier', 'core'], ['tier', 'e7'], ['function', 'FF-C04'], ['function', 'FF-S01'], ['project', 'X'], ['project', 'Y'],
     ]);
@@ -57,6 +57,35 @@ describe('baseline precision (ADR-020 item 1)', () => {
     expect(out).toEqual([{ projectId: 'X', functionId: 'FF-S01', label: 'TP', inclusionProbability: 0.5, frame: 'v2' }]);
   });
 
+  it('audit 2026-10-10 issue 3: uncertain-as-TP and uncertain-excluded sensitivity rows follow the registered rows; plan ids from the run ids', () => {
+    expect(planIdOfRunId('e7-corpus-003-dry-run-test')).toBe('e7-corpus');
+    expect(planIdOfRunId('e7-corpus-v1sym-008-raouf-b-dev__ecommerce-store-api')).toBe('e7-corpus-v1sym');
+    expect(planIdOfRunId('no-number')).toBeUndefined();
+    const tiers = new Map([['X', 'core' as const], ['Y', 'e7' as const]]);
+    const rows = baselinePrecision(LABELS, { seed: 9, resamples: 200, tierOf: (p) => tiers.get(p) });
+    // The 7 registered rows come first and are unchanged; then overall and the two tiers under each other rule.
+    expect(rows.slice(0, 7).every((r) => r.uncertainRule === 'fp')).toBe(true);
+    expect(rows.slice(7).map((r) => [r.uncertainRule, r.scope, r.key])).toEqual([
+      ['tp', 'overall', ''], ['tp', 'tier', 'core'], ['tp', 'tier', 'e7'],
+      ['excluded', 'overall', ''], ['excluded', 'tier', 'core'], ['excluded', 'tier', 'e7'],
+    ]);
+    // The one uncertain item (Y, w 1): as TP 32 / 45; excluded 31 / 44 (n 24).
+    expect(rows[7]).toMatchObject({ n: 25, nUncertain: 1, weightedTpClass: 32, weightedTotal: 45 });
+    expect(rows[7]?.estimate?.toFixed(6)).toBe('0.711111');
+    expect(rows[10]).toMatchObject({ n: 24, nUncertain: 0, weightedTpClass: 31, weightedTotal: 44 });
+    expect(rows[10]?.estimate?.toFixed(6)).toBe('0.704545');
+    // No run ids: no plan ids. With run ids, the row names the plans its labels came from.
+    expect(rows[0]?.planIds).toEqual([]);
+    const withRuns = baselineLabelsOf([
+      { population: 'P2', kind: 'violation', projectId: 'X', stratum: 'X, FF-S01', inclusionProbability: 0.5, label: 'TP', runId: 'e7-corpus-001-X' },
+      { population: 'P2', kind: 'violation', projectId: 'X', stratum: 'v1-only: X, FF-C02', inclusionProbability: 0.5, label: 'FP', runId: 'e7-corpus-v1sym-001-X' },
+    ]);
+    const pr = baselinePrecision(withRuns, { seed: 9, resamples: 50 });
+    expect(pr.filter((r) => r.uncertainRule === 'fp').map((r) => [r.instrument, r.planIds.join('+')])).toEqual([
+      ['v2', 'e7-corpus'], ['v2', 'e7-corpus'], ['v2', 'e7-corpus'], ['v1', 'e7-corpus+e7-corpus-v1sym'], ['v1-only', 'e7-corpus-v1sym'],
+    ]);
+  });
+
   it('ADR-026 B8: the v2 rows drop the v1-only strata (p2FrameOf); a v1 overall row pools both frames; v1-only is counts only', () => {
     // v1-only set: Y, FF-C02, 4 labels at p = 1/4 (w 4): 2 TP, 2 FP. Strata carry the `v1-only: ` prefix.
     const v1OnlyViews = [
@@ -65,8 +94,9 @@ describe('baseline precision (ADR-020 item 1)', () => {
     ];
     const v1Only = baselineLabelsOf(v1OnlyViews);
     expect(v1Only.every((l) => l.frame === 'v1-only' && l.functionId === 'FF-C02')).toBe(true);
-    const v2Only = baselinePrecision(LABELS, { seed: 9, resamples: 200 });
-    const rows = baselinePrecision([...LABELS, ...v1Only], { seed: 9, resamples: 200 });
+    const registered = (rs: ReturnType<typeof baselinePrecision>): ReturnType<typeof baselinePrecision> => rs.filter((r) => r.uncertainRule === 'fp');
+    const v2Only = registered(baselinePrecision(LABELS, { seed: 9, resamples: 200 }));
+    const rows = registered(baselinePrecision([...LABELS, ...v1Only], { seed: 9, resamples: 200 }));
     // Every v2 row equals the row without the v1-only labels (the v1-only rows only follow them).
     const v2Rows = rows.filter((r) => r.instrument === 'v2');
     expect(v2Rows).toEqual(v2Only);
@@ -81,6 +111,6 @@ describe('baseline precision (ADR-020 item 1)', () => {
     expect(rows.map((r) => r.instrument).slice(-2)).toEqual(['v1', 'v1-only']);
     // Without v1-only labels there is no v1 or v1-only row; v1-only labels alone give no v2 row.
     expect(v2Only.every((r) => r.instrument === 'v2')).toBe(true);
-    expect(baselinePrecision(v1Only, { seed: 9 }).map((r) => r.instrument)).toEqual(['v1', 'v1-only']);
+    expect(registered(baselinePrecision(v1Only, { seed: 9 })).map((r) => r.instrument)).toEqual(['v1', 'v1-only']);
   });
 });
