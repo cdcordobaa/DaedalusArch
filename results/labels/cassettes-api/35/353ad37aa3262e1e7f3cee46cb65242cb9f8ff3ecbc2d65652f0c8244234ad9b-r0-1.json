@@ -1,0 +1,32 @@
+{
+  "attempts": 1,
+  "durationMs": 4682,
+  "effort": null,
+  "functionId": "label:judge-unit:fb9202729ed202a364a8908c375e3d6aed6b33891dd94073a05592d8251f8090",
+  "ignoredOptions": [],
+  "key": "353ad37aa3262e1e7f3cee46cb65242cb9f8ff3ecbc2d65652f0c8244234ad9b-r0-1",
+  "model": "gemini-3.1-pro-preview",
+  "outcome": {
+    "kind": "valid"
+  },
+  "parsedVerdict": null,
+  "prompt": "Decide whether the unit below satisfies the rubric.\n- pass: the unit meets the rubric's pass condition.\n- fail: the unit meets the rubric's fail condition.\nGive a short rationale that cites the code. Root cause: answer null.\n\n## Item\n## Judge unit\n  Function: FF-N01 (integrity)\n  Unit: src/infrastructure/repositories (module, layer infrastructure)\n  \n  ## Rubric\n  Rule: The module's files form one coherent unit with a consistent abstraction and boundary.\n  Pass: The files serve one cohesive concern, use the module's abstractions consistently, and keep each rule or invariant in one place.\n  Fail: The files split into unrelated concerns, duplicate a rule or invariant that should live in one place, or bypass the module's own abstractions.\n  Evidence required: Name each file involved and cite the declarations that show the split, the duplication or the bypass.\n  Out of scope: import direction and layer-dependency rules, which are checked symbolically.\n  \n  ## Source\n  // src/infrastructure/repositories/CircularB.ts\n  export class CircularB {\n    log(msg: string): void;\n  }\n  \n  // src/infrastructure/repositories/InMemoryTaskRepository.ts\n  export class InMemoryTaskRepository {\n    async findById(id: string): Promise<Task | null>;\n    async findAll(): Promise<Task[]>;\n    async findByCategory(categoryId: string): Promise<Task[]>;\n    async findCompleted(): Promise<Task[]>;\n    async findPending(): Promise<Task[]>;\n    async findByPriority(_priority: string): Promise<Task[]>;\n    async save(task: Task): Promise<Task>;\n    async update(task: Task): Promise<Task>;\n    async delete(id: string): Promise<void>;\n  }\n  \n  =====SOURCE-BEGIN src/infrastructure/repositories/CircularB.ts=====\n  import { InMemoryTaskRepository } from './InMemoryTaskRepository';\n  \n  export class CircularB {\n    log(msg: string): void {\n      console.log(msg);\n    }\n  }\n  \n  =====SOURCE-END=====\n  \n  =====SOURCE-BEGIN src/infrastructure/repositories/InMemoryTaskRepository.ts=====\n  import { Task } from '../../domain/entities/Task';\n  import { CircularB } from './CircularB';\n  \n  // Does NOT implement ITaskRepository (repository pattern violation)\n  export class InMemoryTaskRepository {\n    private readonly store = new Map<string, Task>();\n    private readonly helper = new CircularB();\n  \n    async findById(id: string): Promise<Task | null> {\n      return this.store.get(id) ?? null;\n    }\n  \n    async findAll(): Promise<Task[]> {\n      return [...this.store.values()];\n    }\n  \n    async findByCategory(categoryId: string): Promise<Task[]> {\n      return [...this.store.values()].filter(t => t.categoryId === categoryId);\n    }\n  \n    async findCompleted(): Promise<Task[]> {\n      return [...this.store.values()].filter(t => t.completed);\n    }\n  \n    async findPending(): Promise<Task[]> {\n      return [...this.store.values()].filter(t => !t.completed);\n    }\n  \n    async findByPriority(_priority: string): Promise<Task[]> {\n      return [...this.store.values()];\n    }\n  \n    async save(task: Task): Promise<Task> {\n      this.store.set(task.id, task);\n      return task;\n    }\n  \n    async update(task: Task): Promise<Task> {\n      return this.save(task);\n    }\n  \n    async delete(id: string): Promise<void> {\n      this.store.delete(id);\n    }\n  }\n  \n  =====SOURCE-END=====\n\n## Label options\n1. fail\n  2. pass\n\n## Root causes\n1. RC-EXTRACT-ALIAS\n  2. RC-OTHER\n  3. RC-TEMPLATE-OVERAPPROX\n  4. RC-DYNAMIC-IMPORT\n  5. RC-LAYER-MAP\n  6. RC-GENERATED-CODE\n  7. RC-TEST-CODE\n  8. RC-STYLE-INAPPLICABLE\n  9. RC-GENUINE-UNSEEDED\n  10. RC-SPEC-PARAM\n  11. RC-EXTRACT-BARREL\n  12. RC-TYPE-ONLY\n\nAnswer with one JSON object: {\"option\": <number of the label option>, \"rootCause\": <number of the root cause or null>, \"note\": \"<text, required with RC-OTHER>\", \"rationale\": \"<one or two sentences citing the code>\"}.",
+  "provider": "gemini",
+  "recordedAt": "2026-10-11T17:22:16.732Z",
+  "repetition": 0,
+  "requestHash": "353ad37aa3262e1e7f3cee46cb65242cb9f8ff3ecbc2d65652f0c8244234ad9b",
+  "resolvedModel": "gemini-3.1-pro-preview",
+  "response": "{\"option\": 1, \"rationale\": \"The module splits into unrelated concerns: `InMemoryTaskRepository.ts` implements a task repository, while `CircularB.ts` implements a logging utility (`log(msg: string)`), which does not belong in a repositories module.\", \"note\": \"\", \"rootCause\": null}",
+  "runIndex": 1,
+  "schemaVersion": 2,
+  "unitId": "src/infrastructure/repositories",
+  "usage": {
+    "inputTokens": 1111,
+    "outputTokens": 68
+  },
+  "usedOptions": {
+    "maxTokens": 65536,
+    "model": "gemini-3.1-pro-preview",
+    "temperature": 0
+  }
+}

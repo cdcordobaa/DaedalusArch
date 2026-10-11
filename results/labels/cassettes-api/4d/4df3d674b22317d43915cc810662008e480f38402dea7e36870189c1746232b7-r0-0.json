@@ -1,0 +1,32 @@
+{
+  "attempts": 1,
+  "durationMs": 4242,
+  "effort": null,
+  "functionId": "label:judge-unit:68b928c50eddcad7187a899617c60cfe4fe947736562dab508b1099f460d719b",
+  "ignoredOptions": [],
+  "key": "4df3d674b22317d43915cc810662008e480f38402dea7e36870189c1746232b7-r0-0",
+  "model": "gemini-3.1-pro-preview",
+  "outcome": {
+    "kind": "valid"
+  },
+  "parsedVerdict": null,
+  "prompt": "Decide whether the unit below satisfies the rubric.\n- pass: the unit meets the rubric's pass condition.\n- fail: the unit meets the rubric's fail condition.\nGive a short rationale that cites the code. Root cause: answer null.\n\n## Item\n## Judge unit\n  Function: FF-N02 (semantic)\n  Unit: src/application/usecases/AssignTaskUseCase.ts (file, layer application)\n  \n  ## Rubric\n  Rule: The unit's responsibilities match the role of its declared layer.\n  Pass: Every responsibility in the file belongs to the role and kind of its declared layer, and agrees with any ADR prose given.\n  Fail: The file carries a responsibility that belongs to a different layer kind, for example persistence, transport or framework logic in a domain file, or business rules in an infrastructure or presentation file.\n  Evidence required: Name the file and cite the function, method or statement that carries the misplaced responsibility, and the layer kind it belongs to.\n  Out of scope: import direction and layer-dependency rules, which are checked symbolically.\n  \n  ## Source\n  =====SOURCE-BEGIN src/application/usecases/AssignTaskUseCase.ts=====\n  import { Task } from '../../domain/entities/Task';\n  import { TaskRepository } from '../../domain/repositories/TaskRepository';\n  import { UserRepository } from '../../domain/repositories/UserRepository';\n  \n  export class AssignTaskUseCase {\n    constructor(\n      private taskRepository: TaskRepository,\n      private userRepository: UserRepository,\n    ) {}\n  \n    execute(taskId: string, userId: string): Task {\n      const task = this.taskRepository.findById(taskId);\n      if (!task) {\n        throw new Error('Task not found');\n      }\n  \n      const user = this.userRepository.findById(userId);\n      if (!user) {\n        throw new Error('User not found');\n      }\n  \n      const updatedTask = new Task(\n        task.id,\n        task.projectId,\n        task.title,\n        task.description,\n        task.status,\n        task.dueDate,\n        userId,\n      );\n      this.taskRepository.save(updatedTask);\n      return updatedTask;\n    }\n  }\n  \n  =====SOURCE-END=====\n\n## Label options\n1. pass\n  2. fail\n\n## Root causes\n1. RC-LAYER-MAP\n  2. RC-EXTRACT-ALIAS\n  3. RC-EXTRACT-BARREL\n  4. RC-DYNAMIC-IMPORT\n  5. RC-TYPE-ONLY\n  6. RC-TEMPLATE-OVERAPPROX\n  7. RC-STYLE-INAPPLICABLE\n  8. RC-SPEC-PARAM\n  9. RC-GENERATED-CODE\n  10. RC-TEST-CODE\n  11. RC-GENUINE-UNSEEDED\n  12. RC-OTHER\n\nAnswer with one JSON object: {\"option\": <number of the label option>, \"rootCause\": <number of the root cause or null>, \"note\": \"<text, required with RC-OTHER>\", \"rationale\": \"<one or two sentences citing the code>\"}.",
+  "provider": "gemini",
+  "recordedAt": "2026-10-11T17:15:45.474Z",
+  "repetition": 0,
+  "requestHash": "4df3d674b22317d43915cc810662008e480f38402dea7e36870189c1746232b7",
+  "resolvedModel": "gemini-3.1-pro-preview",
+  "response": "{\n  \"option\": 1,\n  \"rationale\": \"The file contains an application use case that orchestrates domain entities and repositories, which perfectly matches the role of the application layer.\",\n  \"note\": \"\",\n  \"rootCause\": null\n}",
+  "runIndex": 0,
+  "schemaVersion": 2,
+  "unitId": "src/application/usecases/AssignTaskUseCase.ts",
+  "usage": {
+    "inputTokens": 744,
+    "outputTokens": 56
+  },
+  "usedOptions": {
+    "maxTokens": 65536,
+    "model": "gemini-3.1-pro-preview",
+    "temperature": 0
+  }
+}

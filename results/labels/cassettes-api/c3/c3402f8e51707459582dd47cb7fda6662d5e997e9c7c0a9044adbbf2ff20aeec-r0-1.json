@@ -1,0 +1,32 @@
+{
+  "attempts": 1,
+  "durationMs": 6010,
+  "effort": null,
+  "functionId": "label:judge-unit:97c37c40e8783f15edbd55cd22cf719ecd46fca83c215de248955bb843a7ee82",
+  "ignoredOptions": [],
+  "key": "c3402f8e51707459582dd47cb7fda6662d5e997e9c7c0a9044adbbf2ff20aeec-r0-1",
+  "model": "gemini-3.1-pro-preview",
+  "outcome": {
+    "kind": "valid"
+  },
+  "parsedVerdict": null,
+  "prompt": "Decide whether the unit below satisfies the rubric.\n- pass: the unit meets the rubric's pass condition.\n- fail: the unit meets the rubric's fail condition.\nGive a short rationale that cites the code. Root cause: answer null.\n\n## Item\n## Judge unit\n  Function: FF-N01 (integrity)\n  Unit: src/application/use-cases (module, layer application)\n  \n  ## Rubric\n  Rule: The module's files form one coherent unit with a consistent abstraction and boundary.\n  Pass: The files serve one cohesive concern, use the module's abstractions consistently, and keep each rule or invariant in one place.\n  Fail: The files split into unrelated concerns, duplicate a rule or invariant that should live in one place, or bypass the module's own abstractions.\n  Evidence required: Name each file involved and cite the declarations that show the split, the duplication or the bypass.\n  Out of scope: import direction and layer-dependency rules, which are checked symbolically.\n  \n  ## Source\n  // src/application/use-cases/CompleteTaskUseCase.ts\n  export class CompleteTaskUseCase {\n    constructor(private readonly taskRepository: ITaskRepository);\n    async execute(id: string): Promise<Task>;\n  }\n  \n  // src/application/use-cases/CreateTaskUseCase.ts\n  export interface CreateTaskInput {\n    title: string;\n    description: string;\n    categoryId: string;\n  }\n  export class CreateTaskUseCase {\n    constructor(private readonly taskRepository: ITaskRepository);\n    async execute(input: CreateTaskInput): Promise<Task>;\n  }\n  \n  // src/application/use-cases/ICompleteTaskUseCase.ts\n  export interface ICompleteTaskUseCase {\n    execute(id: string): Promise<Task>;\n  }\n  \n  // src/application/use-cases/ICreateTaskUseCase.ts\n  export interface ICreateTaskUseCase {\n    execute(title: string, description: string, categoryId: string): Promise<Task>;\n  }\n  \n  =====SOURCE-BEGIN src/application/use-cases/CompleteTaskUseCase.ts=====\n  import { Task } from '../../domain/entities/Task';\n  import { ITaskRepository } from '../../domain/repositories/ITaskRepository';\n  \n  export class CompleteTaskUseCase {\n    constructor(private readonly taskRepository: ITaskRepository) {}\n  \n    async execute(id: string): Promise<Task> {\n      const task = await this.taskRepository.findById(id);\n      if (!task) throw new Error(`Task ${id} not found`);\n      const completed = task.complete();\n      return this.taskRepository.save(completed);\n    }\n  }\n  \n  =====SOURCE-END=====\n  \n  =====SOURCE-BEGIN src/application/use-cases/CreateTaskUseCase.ts=====\n  import { Task } from '../../domain/entities/Task';\n  import { ITaskRepository } from '../../domain/repositories/ITaskRepository';\n  \n  export interface CreateTaskInput {\n    title: string;\n    description: string;\n    categoryId: string;\n  }\n  \n  export class CreateTaskUseCase {\n    constructor(private readonly taskRepository: ITaskRepository) {}\n  \n    async execute(input: CreateTaskInput): Promise<Task> {\n      const task = new Task(\n        crypto.randomUUID(),\n        input.title,\n        input.description,\n        false,\n        input.categoryId,\n        new Date()\n      );\n  \n      if (!task.isValid()) {\n        throw new Error('Invalid task data');\n      }\n  \n      return this.taskRepository.save(task);\n    }\n  }\n  \n  =====SOURCE-END=====\n  \n  =====SOURCE-BEGIN src/application/use-cases/ICompleteTaskUseCase.ts=====\n  import { Task } from '../../domain/entities/Task';\n  \n  export interface ICompleteTaskUseCase {\n    execute(id: string): Promise<Task>;\n  }\n  \n  =====SOURCE-END=====\n  \n  =====SOURCE-BEGIN src/application/use-cases/ICreateTaskUseCase.ts=====\n  import { Task } from '../../domain/entities/Task';\n  \n  export interface ICreateTaskUseCase {\n    execute(title: string, description: string, categoryId: string): Promise<Task>;\n  }\n  \n  =====SOURCE-END=====\n\n## Label options\n1. pass\n  2. fail\n\n## Root causes\n1. RC-EXTRACT-ALIAS\n  2. RC-GENUINE-UNSEEDED\n  3. RC-SPEC-PARAM\n  4. RC-TEST-CODE\n  5. RC-EXTRACT-BARREL\n  6. RC-STYLE-INAPPLICABLE\n  7. RC-TYPE-ONLY\n  8. RC-DYNAMIC-IMPORT\n  9. RC-TEMPLATE-OVERAPPROX\n  10. RC-LAYER-MAP\n  11. RC-OTHER\n  12. RC-GENERATED-CODE\n\nAnswer with one JSON object: {\"option\": <number of the label option>, \"rootCause\": <number of the root cause or null>, \"note\": \"<text, required with RC-OTHER>\", \"rationale\": \"<one or two sentences citing the code>\"}.",
+  "provider": "gemini",
+  "recordedAt": "2026-10-11T17:23:46.264Z",
+  "repetition": 0,
+  "requestHash": "c3402f8e51707459582dd47cb7fda6662d5e997e9c7c0a9044adbbf2ff20aeec",
+  "resolvedModel": "gemini-3.1-pro-preview",
+  "response": "{\"option\":2,\"rationale\":\"The module's abstractions are inconsistent: `CreateTaskUseCase` defines `execute(input: CreateTaskInput)` while `ICreateTaskUseCase` defines `execute(title: string, description: string, categoryId: string)`. The class fails to use the module's own interface abstraction consistently.\",\"note\":\"\",\"rootCause\":null}",
+  "runIndex": 1,
+  "schemaVersion": 2,
+  "unitId": "src/application/use-cases",
+  "usage": {
+    "inputTokens": 1230,
+    "outputTokens": 77
+  },
+  "usedOptions": {
+    "maxTokens": 65536,
+    "model": "gemini-3.1-pro-preview",
+    "temperature": 0
+  }
+}

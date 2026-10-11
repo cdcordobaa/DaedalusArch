@@ -1,0 +1,32 @@
+{
+  "attempts": 1,
+  "durationMs": 4267,
+  "effort": null,
+  "functionId": "label:judge-unit:f1a3760d2058d32d308fd7a6ecf97e3ebd0876500b54c81e153c2191312bb9c8",
+  "ignoredOptions": [],
+  "key": "defbdd26f52073b292b92606a296f6fe8c4375419dee5e7c00ea6ec40160235d-r0-0",
+  "model": "gemini-3.1-pro-preview",
+  "outcome": {
+    "kind": "valid"
+  },
+  "parsedVerdict": null,
+  "prompt": "Decide whether the unit below satisfies the rubric.\n- pass: the unit meets the rubric's pass condition.\n- fail: the unit meets the rubric's fail condition.\nGive a short rationale that cites the code. Root cause: answer null.\n\n## Item\n## Judge unit\n  Function: FF-N02 (semantic)\n  Unit: src/domain/models.ts (file, layer domain)\n  \n  ## Rubric\n  Rule: The unit's responsibilities match the role of its declared layer.\n  Pass: Every responsibility in the file belongs to the role and kind of its declared layer, and agrees with any ADR prose given.\n  Fail: The file carries a responsibility that belongs to a different layer kind, for example persistence, transport or framework logic in a domain file, or business rules in an infrastructure or presentation file.\n  Evidence required: Name the file and cite the function, method or statement that carries the misplaced responsibility, and the layer kind it belongs to.\n  Out of scope: import direction and layer-dependency rules, which are checked symbolically.\n  \n  ## Source\n  =====SOURCE-BEGIN src/domain/models.ts=====\n  export type TaskStatus = 'todo' | 'in progress' | 'done';\n  \n  export interface User {\n    id: string;\n    name: string;\n  }\n  \n  export interface Task {\n    id: string;\n    title: string;\n    description: string;\n    status: TaskStatus;\n    dueDate?: Date;\n    assigneeId?: string;\n    projectId: string;\n  }\n  \n  export interface Project {\n    id: string;\n    name: string;\n    tasks: Task[];\n  }\n  \n  export interface Repository {\n    projects: Map<string, Project>;\n    users: Map<string, User>;\n  }\n  \n  =====SOURCE-END=====\n\n## Label options\n1. pass\n  2. fail\n\n## Root causes\n1. RC-LAYER-MAP\n  2. RC-EXTRACT-ALIAS\n  3. RC-EXTRACT-BARREL\n  4. RC-DYNAMIC-IMPORT\n  5. RC-TYPE-ONLY\n  6. RC-TEMPLATE-OVERAPPROX\n  7. RC-STYLE-INAPPLICABLE\n  8. RC-SPEC-PARAM\n  9. RC-GENERATED-CODE\n  10. RC-TEST-CODE\n  11. RC-GENUINE-UNSEEDED\n  12. RC-OTHER\n\nAnswer with one JSON object: {\"option\": <number of the label option>, \"rootCause\": <number of the root cause or null>, \"note\": \"<text, required with RC-OTHER>\", \"rationale\": \"<one or two sentences citing the code>\"}.",
+  "provider": "gemini",
+  "recordedAt": "2026-10-11T17:15:55.249Z",
+  "repetition": 0,
+  "requestHash": "defbdd26f52073b292b92606a296f6fe8c4375419dee5e7c00ea6ec40160235d",
+  "resolvedModel": "gemini-3.1-pro-preview",
+  "response": "{\"option\": 1, \"rationale\": \"The file src/domain/models.ts contains only domain models and interfaces (TaskStatus, User, Task, Project, Repository), which perfectly match the role of the domain layer.\", \"note\": \"\", \"rootCause\": null}",
+  "runIndex": 0,
+  "schemaVersion": 2,
+  "unitId": "src/domain/models.ts",
+  "usage": {
+    "inputTokens": 650,
+    "outputTokens": 58
+  },
+  "usedOptions": {
+    "maxTokens": 65536,
+    "model": "gemini-3.1-pro-preview",
+    "temperature": 0
+  }
+}

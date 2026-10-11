@@ -1,0 +1,32 @@
+{
+  "attempts": 1,
+  "durationMs": 3324,
+  "effort": null,
+  "functionId": "label:judge-unit:5e7a9f1cf789cd779a85565aae7d72659002aa2fb7b0553643e507e22a3a88fd",
+  "ignoredOptions": [],
+  "key": "71142e1566ee86fd6d304126c4f435c12d69565950e6965f2e1f333a7b065e31-r0-1",
+  "model": "gemini-3.1-pro-preview",
+  "outcome": {
+    "kind": "valid"
+  },
+  "parsedVerdict": null,
+  "prompt": "Decide whether the unit below satisfies the rubric.\n- pass: the unit meets the rubric's pass condition.\n- fail: the unit meets the rubric's fail condition.\nGive a short rationale that cites the code. Root cause: answer null.\n\n## Item\n## Judge unit\n  Function: FF-N02 (semantic)\n  Unit: src/domain/repositories/ITaskRepository.ts (file, layer domain)\n  \n  ## Rubric\n  Rule: The unit's responsibilities match the role of its declared layer.\n  Pass: Every responsibility in the file belongs to the role and kind of its declared layer, and agrees with any ADR prose given.\n  Fail: The file carries a responsibility that belongs to a different layer kind, for example persistence, transport or framework logic in a domain file, or business rules in an infrastructure or presentation file.\n  Evidence required: Name the file and cite the function, method or statement that carries the misplaced responsibility, and the layer kind it belongs to.\n  Out of scope: import direction and layer-dependency rules, which are checked symbolically.\n  \n  ## Source\n  =====SOURCE-BEGIN src/domain/repositories/ITaskRepository.ts=====\n  import { Task } from '../entities/Task';\n  \n  export interface ITaskRepository {\n    findById(id: string): Promise<Task | null>;\n    findAll(): Promise<Task[]>;\n    save(task: Task): Promise<Task>;\n    delete(id: string): Promise<void>;\n  }\n  \n  =====SOURCE-END=====\n\n## Label options\n1. fail\n  2. pass\n\n## Root causes\n1. RC-DYNAMIC-IMPORT\n  2. RC-TEST-CODE\n  3. RC-STYLE-INAPPLICABLE\n  4. RC-EXTRACT-ALIAS\n  5. RC-TYPE-ONLY\n  6. RC-GENUINE-UNSEEDED\n  7. RC-LAYER-MAP\n  8. RC-EXTRACT-BARREL\n  9. RC-OTHER\n  10. RC-GENERATED-CODE\n  11. RC-TEMPLATE-OVERAPPROX\n  12. RC-SPEC-PARAM\n\nAnswer with one JSON object: {\"option\": <number of the label option>, \"rootCause\": <number of the root cause or null>, \"note\": \"<text, required with RC-OTHER>\", \"rationale\": \"<one or two sentences citing the code>\"}.",
+  "provider": "gemini",
+  "recordedAt": "2026-10-11T17:21:58.561Z",
+  "repetition": 0,
+  "requestHash": "71142e1566ee86fd6d304126c4f435c12d69565950e6965f2e1f333a7b065e31",
+  "resolvedModel": "gemini-3.1-pro-preview",
+  "response": "{\"option\": 2, \"rationale\": \"The file defines a repository interface (ITaskRepository) which is a standard domain layer responsibility to abstract persistence without implementing it.\", \"note\": \"\", \"rootCause\": null}",
+  "runIndex": 1,
+  "schemaVersion": 2,
+  "unitId": "src/domain/repositories/ITaskRepository.ts",
+  "usage": {
+    "inputTokens": 572,
+    "outputTokens": 46
+  },
+  "usedOptions": {
+    "maxTokens": 65536,
+    "model": "gemini-3.1-pro-preview",
+    "temperature": 0
+  }
+}

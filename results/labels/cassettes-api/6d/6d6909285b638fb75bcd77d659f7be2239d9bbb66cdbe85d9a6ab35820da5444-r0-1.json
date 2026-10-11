@@ -1,0 +1,32 @@
+{
+  "attempts": 1,
+  "durationMs": 4423,
+  "effort": null,
+  "functionId": "label:judge-unit:a1a9bc079f31af3bc21021736bf4ffcb61dd9cccff7b10d7d0986c274a19ceca",
+  "ignoredOptions": [],
+  "key": "6d6909285b638fb75bcd77d659f7be2239d9bbb66cdbe85d9a6ab35820da5444-r0-1",
+  "model": "gemini-3.1-pro-preview",
+  "outcome": {
+    "kind": "valid"
+  },
+  "parsedVerdict": null,
+  "prompt": "Decide whether the unit below satisfies the rubric.\n- pass: the unit meets the rubric's pass condition.\n- fail: the unit meets the rubric's fail condition.\nGive a short rationale that cites the code. Root cause: answer null.\n\n## Item\n## Judge unit\n  Function: FF-N01 (integrity)\n  Unit: src/infrastructure (module, layer infrastructure)\n  \n  ## Rubric\n  Rule: The module's files form one coherent unit with a consistent abstraction and boundary.\n  Pass: The files serve one cohesive concern, use the module's abstractions consistently, and keep each rule or invariant in one place.\n  Fail: The files split into unrelated concerns, duplicate a rule or invariant that should live in one place, or bypass the module's own abstractions.\n  Evidence required: Name each file involved and cite the declarations that show the split, the duplication or the bypass.\n  Out of scope: import direction and layer-dependency rules, which are checked symbolically.\n  \n  ## Source\n  =====SOURCE-BEGIN src/infrastructure/server.ts=====\n  import { createApp } from './config/createApp';\n  \n  const port = Number(process.env.PORT ?? 3000);\n  \n  createApp().listen(port, () => {\n    console.log(`Order fulfilment API listening on http://localhost:${port}`);\n  });\n  \n  =====SOURCE-END=====\n\n## Label options\n1. pass\n  2. fail\n\n## Root causes\n1. RC-TYPE-ONLY\n  2. RC-OTHER\n  3. RC-DYNAMIC-IMPORT\n  4. RC-TEMPLATE-OVERAPPROX\n  5. RC-GENUINE-UNSEEDED\n  6. RC-EXTRACT-ALIAS\n  7. RC-TEST-CODE\n  8. RC-EXTRACT-BARREL\n  9. RC-SPEC-PARAM\n  10. RC-GENERATED-CODE\n  11. RC-STYLE-INAPPLICABLE\n  12. RC-LAYER-MAP\n\nAnswer with one JSON object: {\"option\": <number of the label option>, \"rootCause\": <number of the root cause or null>, \"note\": \"<text, required with RC-OTHER>\", \"rationale\": \"<one or two sentences citing the code>\"}.",
+  "provider": "gemini",
+  "recordedAt": "2026-10-11T17:21:23.362Z",
+  "repetition": 0,
+  "requestHash": "6d6909285b638fb75bcd77d659f7be2239d9bbb66cdbe85d9a6ab35820da5444",
+  "resolvedModel": "gemini-3.1-pro-preview",
+  "response": "{\"option\": 1, \"rationale\": \"The module contains a single file (server.ts) that serves the cohesive concern of starting the server, without splitting into unrelated concerns or duplicating rules.\", \"rootCause\": null}",
+  "runIndex": 1,
+  "schemaVersion": 2,
+  "unitId": "src/infrastructure",
+  "usage": {
+    "inputTokens": 545,
+    "outputTokens": 48
+  },
+  "usedOptions": {
+    "maxTokens": 65536,
+    "model": "gemini-3.1-pro-preview",
+    "temperature": 0
+  }
+}

@@ -1,0 +1,32 @@
+{
+  "attempts": 1,
+  "durationMs": 4012,
+  "effort": null,
+  "functionId": "label:judge-unit:6af1e39da4857cedda5851365b139936a4bd0edbe88fecf0d429b30f254eb1d2",
+  "ignoredOptions": [],
+  "key": "97131cd5b86165d5878f991fe131ab8607677563fd978299b2e62aceee8daf83-r0-1",
+  "model": "gemini-3.1-pro-preview",
+  "outcome": {
+    "kind": "valid"
+  },
+  "parsedVerdict": null,
+  "prompt": "Decide whether the unit below satisfies the rubric.\n- pass: the unit meets the rubric's pass condition.\n- fail: the unit meets the rubric's fail condition.\nGive a short rationale that cites the code. Root cause: answer null.\n\n## Item\n## Judge unit\n  Function: FF-N02 (semantic)\n  Unit: src/domain/errors.ts (file, layer domain)\n  \n  ## Rubric\n  Rule: The unit's responsibilities match the role of its declared layer.\n  Pass: Every responsibility in the file belongs to the role and kind of its declared layer, and agrees with any ADR prose given.\n  Fail: The file carries a responsibility that belongs to a different layer kind, for example persistence, transport or framework logic in a domain file, or business rules in an infrastructure or presentation file.\n  Evidence required: Name the file and cite the function, method or statement that carries the misplaced responsibility, and the layer kind it belongs to.\n  Out of scope: import direction and layer-dependency rules, which are checked symbolically.\n  \n  ## Source\n  =====SOURCE-BEGIN src/domain/errors.ts=====\n  export class DomainError extends Error {\n    constructor(message: string) {\n      super(message);\n      this.name = new.target.name;\n    }\n  }\n  \n  export class ValidationError extends DomainError {}\n  \n  export class NotFoundError extends DomainError {}\n  \n  export class InsufficientStockError extends DomainError {\n    constructor(\n      public readonly productId: string,\n      public readonly requested: number,\n      public readonly available: number,\n    ) {\n      super(\n        `Insufficient stock for product ${productId}: requested ${requested}, available ${available}`,\n      );\n    }\n  }\n  \n  export class InvalidTransitionError extends DomainError {}\n  \n  =====SOURCE-END=====\n\n## Label options\n1. fail\n  2. pass\n\n## Root causes\n1. RC-GENUINE-UNSEEDED\n  2. RC-STYLE-INAPPLICABLE\n  3. RC-TYPE-ONLY\n  4. RC-GENERATED-CODE\n  5. RC-OTHER\n  6. RC-SPEC-PARAM\n  7. RC-TEST-CODE\n  8. RC-EXTRACT-ALIAS\n  9. RC-TEMPLATE-OVERAPPROX\n  10. RC-DYNAMIC-IMPORT\n  11. RC-LAYER-MAP\n  12. RC-EXTRACT-BARREL\n\nAnswer with one JSON object: {\"option\": <number of the label option>, \"rootCause\": <number of the root cause or null>, \"note\": \"<text, required with RC-OTHER>\", \"rationale\": \"<one or two sentences citing the code>\"}.",
+  "provider": "gemini",
+  "recordedAt": "2026-10-11T17:24:19.504Z",
+  "repetition": 0,
+  "requestHash": "97131cd5b86165d5878f991fe131ab8607677563fd978299b2e62aceee8daf83",
+  "resolvedModel": "gemini-3.1-pro-preview",
+  "response": "{\"option\": 2, \"rationale\": \"The file defines custom error classes for domain concepts (e.g., InsufficientStockError, InvalidTransitionError), which correctly belong to the domain layer.\", \"note\": \"\", \"rootCause\": null}",
+  "runIndex": 1,
+  "schemaVersion": 2,
+  "unitId": "src/domain/errors.ts",
+  "usage": {
+    "inputTokens": 647,
+    "outputTokens": 52
+  },
+  "usedOptions": {
+    "maxTokens": 65536,
+    "model": "gemini-3.1-pro-preview",
+    "temperature": 0
+  }
+}

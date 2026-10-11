@@ -1,0 +1,32 @@
+{
+  "attempts": 1,
+  "durationMs": 4352,
+  "effort": null,
+  "functionId": "label:judge-unit:3fcda7d9f58d1b75abdce4a2a7e680dbc75461f99f9f11c02422647bf68e65fb",
+  "ignoredOptions": [],
+  "key": "1e90f17458831818368f59fdc8137bcf0c8933792e5eb500452e3104594a25bb-r0-0",
+  "model": "gemini-3.1-pro-preview",
+  "outcome": {
+    "kind": "valid"
+  },
+  "parsedVerdict": null,
+  "prompt": "Decide whether the unit below satisfies the rubric.\n- pass: the unit meets the rubric's pass condition.\n- fail: the unit meets the rubric's fail condition.\nGive a short rationale that cites the code. Root cause: answer null.\n\n## Item\n## Judge unit\n  Function: FF-N02 (semantic)\n  Unit: src/domain/Task.ts (file, layer domain)\n  \n  ## Rubric\n  Rule: The unit's responsibilities match the role of its declared layer.\n  Pass: Every responsibility in the file belongs to the role and kind of its declared layer, and agrees with any ADR prose given.\n  Fail: The file carries a responsibility that belongs to a different layer kind, for example persistence, transport or framework logic in a domain file, or business rules in an infrastructure or presentation file.\n  Evidence required: Name the file and cite the function, method or statement that carries the misplaced responsibility, and the layer kind it belongs to.\n  Out of scope: import direction and layer-dependency rules, which are checked symbolically.\n  \n  ## Source\n  =====SOURCE-BEGIN src/domain/Task.ts=====\n  import { TaskStatus } from \"./TaskStatus\";\n  \n  export class Task {\n    constructor(\n      private readonly id: string,\n      private readonly projectId: string,\n      private readonly title: string,\n      private readonly description: string,\n      private status: TaskStatus,\n      private readonly dueDate: Date | null,\n      private assigneeId: string | null,\n    ) {}\n  \n    getId(): string {\n      return this.id;\n    }\n  \n    getProjectId(): string {\n      return this.projectId;\n    }\n  \n    getTitle(): string {\n      return this.title;\n    }\n  \n    getDescription(): string {\n      return this.description;\n    }\n  \n    getStatus(): TaskStatus {\n      return this.status;\n    }\n  \n    getDueDate(): Date | null {\n      return this.dueDate;\n    }\n  \n    getAssigneeId(): string | null {\n      return this.assigneeId;\n    }\n  \n    markDone(): void {\n      if (this.status.isDone()) {\n        throw new Error(\"Task is already marked as done\");\n      }\n      this.status = TaskStatus.done();\n    }\n  \n    assign(userId: string): void {\n      this.assigneeId = userId;\n    }\n  }\n  \n  =====SOURCE-END=====\n\n## Label options\n1. pass\n  2. fail\n\n## Root causes\n1. RC-LAYER-MAP\n  2. RC-EXTRACT-ALIAS\n  3. RC-EXTRACT-BARREL\n  4. RC-DYNAMIC-IMPORT\n  5. RC-TYPE-ONLY\n  6. RC-TEMPLATE-OVERAPPROX\n  7. RC-STYLE-INAPPLICABLE\n  8. RC-SPEC-PARAM\n  9. RC-GENERATED-CODE\n  10. RC-TEST-CODE\n  11. RC-GENUINE-UNSEEDED\n  12. RC-OTHER\n\nAnswer with one JSON object: {\"option\": <number of the label option>, \"rootCause\": <number of the root cause or null>, \"note\": \"<text, required with RC-OTHER>\", \"rationale\": \"<one or two sentences citing the code>\"}.",
+  "provider": "gemini",
+  "recordedAt": "2026-10-11T17:15:37.537Z",
+  "repetition": 0,
+  "requestHash": "1e90f17458831818368f59fdc8137bcf0c8933792e5eb500452e3104594a25bb",
+  "resolvedModel": "gemini-3.1-pro-preview",
+  "response": "{\n  \"option\": 1,\n  \"rationale\": \"The file src/domain/Task.ts defines a domain entity Task with business logic like markDone() and assign(), which perfectly matches the role of the domain layer.\",\n  \"note\": \"\",\n  \"rootCause\": null\n}",
+  "runIndex": 0,
+  "schemaVersion": 2,
+  "unitId": "src/domain/Task.ts",
+  "usage": {
+    "inputTokens": 797,
+    "outputTokens": 65
+  },
+  "usedOptions": {
+    "maxTokens": 65536,
+    "model": "gemini-3.1-pro-preview",
+    "temperature": 0
+  }
+}

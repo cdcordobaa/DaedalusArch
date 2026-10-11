@@ -1,0 +1,32 @@
+{
+  "attempts": 1,
+  "durationMs": 3963,
+  "effort": null,
+  "functionId": "label:judge-unit:3ddd030744982ec5450b87d0a4deb1fb9b47e3b218828820711f3ab9db691a63",
+  "ignoredOptions": [],
+  "key": "7d564134311858140ad31c5a7c818f1cef993ecb8eac80ee66fd54bbad973579-r0-1",
+  "model": "gemini-3.1-pro-preview",
+  "outcome": {
+    "kind": "valid"
+  },
+  "parsedVerdict": null,
+  "prompt": "Decide whether the unit below satisfies the rubric.\n- pass: the unit meets the rubric's pass condition.\n- fail: the unit meets the rubric's fail condition.\nGive a short rationale that cites the code. Root cause: answer null.\n\n## Item\n## Judge unit\n  Function: FF-N02 (semantic)\n  Unit: src/application/order-dto.ts (file, layer application)\n  \n  ## Rubric\n  Rule: The unit's responsibilities match the role of its declared layer.\n  Pass: Every responsibility in the file belongs to the role and kind of its declared layer, and agrees with any ADR prose given.\n  Fail: The file carries a responsibility that belongs to a different layer kind, for example persistence, transport or framework logic in a domain file, or business rules in an infrastructure or presentation file.\n  Evidence required: Name the file and cite the function, method or statement that carries the misplaced responsibility, and the layer kind it belongs to.\n  Out of scope: import direction and layer-dependency rules, which are checked symbolically.\n  \n  ## Source\n  =====SOURCE-BEGIN src/application/order-dto.ts=====\n  import { Order } from \"../domain/order\";\n  \n  export interface OrderLineDto {\n    productId: string;\n    quantity: number;\n  }\n  \n  export interface PlaceOrderCommand {\n    lines: OrderLineDto[];\n  }\n  \n  export interface OrderDto {\n    id: string;\n    state: string;\n    lines: OrderLineDto[];\n  }\n  \n  export interface StockLevelDto {\n    productId: string;\n    name: string;\n    onHand: number;\n    reserved: number;\n    available: number;\n  }\n  \n  export function toOrderDto(order: Order): OrderDto {\n    return {\n      id: order.id,\n      state: order.state,\n      lines: order.lines.map((line) => ({ productId: line.productId, quantity: line.quantity })),\n    };\n  }\n  \n  =====SOURCE-END=====\n\n## Label options\n1. pass\n  2. fail\n\n## Root causes\n1. RC-OTHER\n  2. RC-STYLE-INAPPLICABLE\n  3. RC-TEST-CODE\n  4. RC-TYPE-ONLY\n  5. RC-EXTRACT-BARREL\n  6. RC-TEMPLATE-OVERAPPROX\n  7. RC-EXTRACT-ALIAS\n  8. RC-GENUINE-UNSEEDED\n  9. RC-SPEC-PARAM\n  10. RC-GENERATED-CODE\n  11. RC-DYNAMIC-IMPORT\n  12. RC-LAYER-MAP\n\nAnswer with one JSON object: {\"option\": <number of the label option>, \"rootCause\": <number of the root cause or null>, \"note\": \"<text, required with RC-OTHER>\", \"rationale\": \"<one or two sentences citing the code>\"}.",
+  "provider": "gemini",
+  "recordedAt": "2026-10-11T17:25:13.187Z",
+  "repetition": 0,
+  "requestHash": "7d564134311858140ad31c5a7c818f1cef993ecb8eac80ee66fd54bbad973579",
+  "resolvedModel": "gemini-3.1-pro-preview",
+  "response": "{\"option\": 1, \"rationale\": \"The file contains DTO interfaces and a mapping function to convert a domain object to a DTO, which are appropriate responsibilities for the application layer.\", \"note\": \"\", \"rootCause\": null}",
+  "runIndex": 1,
+  "schemaVersion": 2,
+  "unitId": "src/application/order-dto.ts",
+  "usage": {
+    "inputTokens": 699,
+    "outputTokens": 51
+  },
+  "usedOptions": {
+    "maxTokens": 65536,
+    "model": "gemini-3.1-pro-preview",
+    "temperature": 0
+  }
+}

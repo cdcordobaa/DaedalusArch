@@ -1,0 +1,32 @@
+{
+  "attempts": 1,
+  "durationMs": 4013,
+  "effort": null,
+  "functionId": "label:judge-unit:667e5c0b12bdf1667f0f8f0f52917165826a929f89d619c78dc38f2dfa81d63e",
+  "ignoredOptions": [],
+  "key": "7faba79569afcd5f0cc44c266fd8fde4230463c5cad4727f9dedd5eb201d16df-r0-1",
+  "model": "gemini-3.1-pro-preview",
+  "outcome": {
+    "kind": "valid"
+  },
+  "parsedVerdict": null,
+  "prompt": "Decide whether the unit below satisfies the rubric.\n- pass: the unit meets the rubric's pass condition.\n- fail: the unit meets the rubric's fail condition.\nGive a short rationale that cites the code. Root cause: answer null.\n\n## Item\n## Judge unit\n  Function: FF-N02 (semantic)\n  Unit: src/infrastructure/repositories/InMemoryTaskRepository.ts (file, layer infrastructure)\n  \n  ## Rubric\n  Rule: The unit's responsibilities match the role of its declared layer.\n  Pass: Every responsibility in the file belongs to the role and kind of its declared layer, and agrees with any ADR prose given.\n  Fail: The file carries a responsibility that belongs to a different layer kind, for example persistence, transport or framework logic in a domain file, or business rules in an infrastructure or presentation file.\n  Evidence required: Name the file and cite the function, method or statement that carries the misplaced responsibility, and the layer kind it belongs to.\n  Out of scope: import direction and layer-dependency rules, which are checked symbolically.\n  \n  ## Source\n  =====SOURCE-BEGIN src/infrastructure/repositories/InMemoryTaskRepository.ts=====\n  import { Task } from '../../domain/entities/Task';\n  // VIOLATION #3: does NOT implement ITaskRepository — breaks repository pattern\n  export class InMemoryTaskRepository {\n    private readonly store = new Map<string, Task>();\n  \n    async findById(id: string): Promise<Task | null> {\n      return this.store.get(id) ?? null;\n    }\n  \n    async findAll(): Promise<Task[]> {\n      return [...this.store.values()];\n    }\n  \n    async findByCategory(categoryId: string): Promise<Task[]> {\n      return [...this.store.values()].filter((t) => t.categoryId === categoryId);\n    }\n  \n    async findCompleted(): Promise<Task[]> {\n      return [...this.store.values()].filter((t) => t.completed);\n    }\n  \n    async findPending(): Promise<Task[]> {\n      return [...this.store.values()].filter((t) => !t.completed);\n    }\n  \n    async save(task: Task): Promise<Task> {\n      this.store.set(task.id, task);\n      return task;\n    }\n  \n    async update(task: Task): Promise<Task> {\n      this.store.set(task.id, task);\n      return task;\n    }\n  \n    async delete(id: string): Promise<void> {\n      this.store.delete(id);\n    }\n  }\n  \n  =====SOURCE-END=====\n\n## Label options\n1. pass\n  2. fail\n\n## Root causes\n1. RC-TYPE-ONLY\n  2. RC-STYLE-INAPPLICABLE\n  3. RC-EXTRACT-BARREL\n  4. RC-EXTRACT-ALIAS\n  5. RC-SPEC-PARAM\n  6. RC-GENUINE-UNSEEDED\n  7. RC-LAYER-MAP\n  8. RC-GENERATED-CODE\n  9. RC-TEMPLATE-OVERAPPROX\n  10. RC-DYNAMIC-IMPORT\n  11. RC-TEST-CODE\n  12. RC-OTHER\n\nAnswer with one JSON object: {\"option\": <number of the label option>, \"rootCause\": <number of the root cause or null>, \"note\": \"<text, required with RC-OTHER>\", \"rationale\": \"<one or two sentences citing the code>\"}.",
+  "provider": "gemini",
+  "recordedAt": "2026-10-11T17:25:46.791Z",
+  "repetition": 0,
+  "requestHash": "7faba79569afcd5f0cc44c266fd8fde4230463c5cad4727f9dedd5eb201d16df",
+  "resolvedModel": "gemini-3.1-pro-preview",
+  "response": "{\"option\": 1, \"rationale\": \"The file implements an in-memory repository for Task entities, which is a persistence responsibility appropriate for the infrastructure layer.\", \"note\": \"\", \"rootCause\": null}",
+  "runIndex": 1,
+  "schemaVersion": 2,
+  "unitId": "src/infrastructure/repositories/InMemoryTaskRepository.ts",
+  "usage": {
+    "inputTokens": 836,
+    "outputTokens": 44
+  },
+  "usedOptions": {
+    "maxTokens": 65536,
+    "model": "gemini-3.1-pro-preview",
+    "temperature": 0
+  }
+}

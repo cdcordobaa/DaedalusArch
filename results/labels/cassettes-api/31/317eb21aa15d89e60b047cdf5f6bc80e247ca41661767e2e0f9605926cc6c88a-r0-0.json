@@ -1,0 +1,32 @@
+{
+  "attempts": 1,
+  "durationMs": 4346,
+  "effort": null,
+  "functionId": "label:judge-unit:ae041983859628969a5c619145b615a806b327758813f125c71acf13de3609b6",
+  "ignoredOptions": [],
+  "key": "317eb21aa15d89e60b047cdf5f6bc80e247ca41661767e2e0f9605926cc6c88a-r0-0",
+  "model": "gemini-3.1-pro-preview",
+  "outcome": {
+    "kind": "valid"
+  },
+  "parsedVerdict": null,
+  "prompt": "Decide whether the unit below satisfies the rubric.\n- pass: the unit meets the rubric's pass condition.\n- fail: the unit meets the rubric's fail condition.\nGive a short rationale that cites the code. Root cause: answer null.\n\n## Item\n## Judge unit\n  Function: FF-N02 (semantic)\n  Unit: src/infrastructure/InMemoryProjectRepository.ts (file, layer infrastructure)\n  \n  ## Rubric\n  Rule: The unit's responsibilities match the role of its declared layer.\n  Pass: Every responsibility in the file belongs to the role and kind of its declared layer, and agrees with any ADR prose given.\n  Fail: The file carries a responsibility that belongs to a different layer kind, for example persistence, transport or framework logic in a domain file, or business rules in an infrastructure or presentation file.\n  Evidence required: Name the file and cite the function, method or statement that carries the misplaced responsibility, and the layer kind it belongs to.\n  Out of scope: import direction and layer-dependency rules, which are checked symbolically.\n  \n  ## Source\n  =====SOURCE-BEGIN src/infrastructure/InMemoryProjectRepository.ts=====\n  import { Project } from '../domain/Project';\n  import { ProjectRepository } from '../domain/ProjectRepository';\n  \n  export class InMemoryProjectRepository implements ProjectRepository {\n    private readonly items = new Map<string, Project>();\n  \n    async save(project: Project): Promise<void> {\n      this.items.set(project.id, project);\n    }\n  \n    async findById(id: string): Promise<Project | undefined> {\n      return this.items.get(id);\n    }\n  }\n  \n  =====SOURCE-END=====\n\n## Label options\n1. pass\n  2. fail\n\n## Root causes\n1. RC-LAYER-MAP\n  2. RC-EXTRACT-ALIAS\n  3. RC-EXTRACT-BARREL\n  4. RC-DYNAMIC-IMPORT\n  5. RC-TYPE-ONLY\n  6. RC-TEMPLATE-OVERAPPROX\n  7. RC-STYLE-INAPPLICABLE\n  8. RC-SPEC-PARAM\n  9. RC-GENERATED-CODE\n  10. RC-TEST-CODE\n  11. RC-GENUINE-UNSEEDED\n  12. RC-OTHER\n\nAnswer with one JSON object: {\"option\": <number of the label option>, \"rootCause\": <number of the root cause or null>, \"note\": \"<text, required with RC-OTHER>\", \"rationale\": \"<one or two sentences citing the code>\"}.",
+  "provider": "gemini",
+  "recordedAt": "2026-10-11T17:18:08.024Z",
+  "repetition": 0,
+  "requestHash": "317eb21aa15d89e60b047cdf5f6bc80e247ca41661767e2e0f9605926cc6c88a",
+  "resolvedModel": "gemini-3.1-pro-preview",
+  "response": "{\"option\": 1, \"rationale\": \"The file implements an in-memory repository (InMemoryProjectRepository), which is a persistence mechanism and correctly belongs in the infrastructure layer.\", \"note\": \"\", \"rootCause\": null}",
+  "runIndex": 0,
+  "schemaVersion": 2,
+  "unitId": "src/infrastructure/InMemoryProjectRepository.ts",
+  "usage": {
+    "inputTokens": 617,
+    "outputTokens": 48
+  },
+  "usedOptions": {
+    "maxTokens": 65536,
+    "model": "gemini-3.1-pro-preview",
+    "temperature": 0
+  }
+}
