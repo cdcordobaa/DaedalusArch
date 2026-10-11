@@ -1,0 +1,47 @@
+{
+  "attempts": 1,
+  "cliVersion": "2.1.294",
+  "configListingSha256": "47aa04258852fab9a706f3f0c14cee22306d69fbb6fdfbde8c11854bd54997bc",
+  "durationMs": 11193,
+  "effort": "high",
+  "functionId": "FF-N01",
+  "ignoredOptions": [
+    "maxTokens"
+  ],
+  "isolationProbeSha256": "ce76f240c1d90df332d581703538c0b40c5186947dd64c0ffb3ffb207242b218",
+  "key": "2b5d2c312c1eee4055c45e11f1dd0766825287f3aac2f2d41f39af1bd271bc9b-r0-2",
+  "model": "claude-sonnet-5-5",
+  "outcome": {
+    "kind": "valid"
+  },
+  "parsedVerdict": {
+    "confidence": 0.8,
+    "evidence": [
+      "src/article/dto/create-article.dto.ts: `export class CreateArticleDto` with readonly title, description, body, tagList.",
+      "src/article/dto/create-comment.ts: `export class CreateCommentDto` with readonly body. It has the same plain-DTO shape.",
+      "src/article/dto/index.ts re-exports both files, so they form one DTO module surface.",
+      "The file name `create-comment.ts` lacks the `.dto` suffix, a cosmetic naming inconsistency with `create-article.dto.ts`."
+    ],
+    "pass": true,
+    "reasoning": "Both files are input DTOs for the article feature: CreateArticleDto and CreateCommentDto. Comments belong to articles here, so they are one concern. Both use the same style, a class with readonly fields and no logic. No rule or invariant is duplicated, because the DTOs share only the generic `body` field. Neither file bypasses an abstraction. The only inconsistency is naming: `create-comment.ts` lacks the `.dto.ts` suffix that `create-article.dto.ts` uses. That is cosmetic and doesn't split the unit's concern. The controller imports the files directly instead of through `index.ts`, but that is an import-path matter and out of scope.",
+    "violations": []
+  },
+  "prompt": "## Rule\nThe module's files form one coherent unit with a consistent abstraction and boundary.\n\n## Rubric\nPass: The files serve one cohesive concern, use the module's abstractions consistently, and keep each rule or invariant in one place.\nFail: The files split into unrelated concerns, duplicate a rule or invariant that should live in one place, or bypass the module's own abstractions.\nEvidence required: Name each file involved and cite the declarations that show the split, the duplication or the bypass.\nOut of scope: import direction and layer-dependency rules, which are checked symbolically.\n\n## Layer model\n- domain (kind: domain): src/domain/**, src/core/**, src/entities/**, src/models/**, **/domain/**; file patterns: **/*.entity.ts\n- infrastructure (kind: infrastructure): src/infrastructure/**, src/persistence/**, src/adapters/**, src/prisma/**, src/lib/**, src/common/middleware/**, src/common/filters/**, src/common/pipes/**; file patterns: **/*.repository.ts, **/*.worker.ts, **/workers/**, **/strategies/**\n- application (kind: application): src/application/**, src/use-cases/**, src/services/**; file patterns: **/*.service.ts, **/*.processor.ts, **/dto/**, **/*.dto.ts\n- presentation (kind: presentation): src/controllers/**, src/gateways/**, src/common/guards/**, src/common/interceptors/**; file patterns: **/*.controller.ts, **/*.module.ts, **/*.guard.ts, **/*.interceptor.ts, **/*.gateway.ts\n\n## Unit\nKind: module\nId: src/article/dto\nLayer: application\nUnit files:\n- src/article/dto/create-article.dto.ts\n- src/article/dto/create-comment.ts\n\n## Source\n=====SOURCE-BEGIN src/article/dto/create-article.dto.ts=====\nexport class CreateArticleDto {\n  readonly title: string;\n  readonly description: string;\n  readonly body: string;\n  readonly tagList: string[];\n}\n\n=====SOURCE-END=====\n\n=====SOURCE-BEGIN src/article/dto/create-comment.ts=====\nexport class CreateCommentDto {\n  readonly body: string;\n}\n=====SOURCE-END=====\n\n## Exported signatures\n// src/article/dto/create-article.dto.ts\nexport class CreateArticleDto {\n  readonly title: string;\n  readonly description: string;\n  readonly body: string;\n  readonly tagList: string[];\n}\n\n// src/article/dto/create-comment.ts\nexport class CreateCommentDto {\n  readonly body: string;\n}\n\n## Incoming\n- src/article/article.controller.ts\n- src/article/article.service.ts\n- src/article/dto/index.ts\n\n## Outgoing\n(none)\n\n## Graph excerpt\n{\"edges\":[{\"from\":\"src/article/article.controller.ts\",\"to\":\"src/article/dto/create-article.dto.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/article/article.controller.ts\",\"to\":\"src/article/dto/create-comment.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/article/article.service.ts\",\"to\":\"src/article/dto/create-article.dto.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/article/dto/index.ts\",\"to\":\"src/article/dto/create-article.dto.ts\",\"type\":\"RE_EXPORTS\"},{\"from\":\"src/article/dto/index.ts\",\"to\":\"src/article/dto/create-comment.ts\",\"type\":\"RE_EXPORTS\"}],\"nodes\":[{\"kind\":\"Class\",\"layer\":\"application\",\"name\":\"CreateArticleDto\",\"path\":\"src/article/dto/create-article.dto.ts\"},{\"kind\":\"Class\",\"layer\":\"application\",\"name\":\"CreateCommentDto\",\"path\":\"src/article/dto/create-comment.ts\"},{\"kind\":\"File\",\"layer\":\"application\",\"path\":\"src/article/article.service.ts\"},{\"kind\":\"File\",\"layer\":\"application\",\"path\":\"src/article/dto/create-article.dto.ts\"},{\"kind\":\"File\",\"layer\":\"application\",\"path\":\"src/article/dto/create-comment.ts\"},{\"kind\":\"File\",\"layer\":\"application\",\"path\":\"src/article/dto/index.ts\"},{\"kind\":\"File\",\"layer\":\"presentation\",\"path\":\"src/article/article.controller.ts\"}]}\n\n## Instructions\nJudge the unit against the rule and rubric. Return the JSON object the schema requires. Set pass to false if any file of the unit fails the rubric.\n",
+  "provider": "claude-cli",
+  "recordedAt": "2026-10-11T22:11:19.994Z",
+  "repetition": 0,
+  "requestHash": "2b5d2c312c1eee4055c45e11f1dd0766825287f3aac2f2d41f39af1bd271bc9b",
+  "resolvedModel": "claude-sonnet-5-5",
+  "response": "{\"is_error\":false,\"modelUsage\":{\"claude-sonnet-5-5\":{\"inputTokens\":4,\"outputTokens\":1183}},\"result\":\"{\\\"pass\\\":true,\\\"confidence\\\":0.8,\\\"reasoning\\\":\\\"Both files are input DTOs for the article feature: CreateArticleDto and CreateCommentDto. Comments belong to articles here, so they are one concern. Both use the same style, a class with readonly fields and no logic. No rule or invariant is duplicated, because the DTOs share only the generic `body` field. Neither file bypasses an abstraction. The only inconsistency is naming: `create-comment.ts` lacks the `.dto.ts` suffix that `create-article.dto.ts` uses. That is cosmetic and doesn't split the unit's concern. The controller imports the files directly instead of through `index.ts`, but that is an import-path matter and out of scope.\\\",\\\"evidence\\\":[\\\"src/article/dto/create-article.dto.ts: `export class CreateArticleDto` with readonly title, description, body, tagList.\\\",\\\"src/article/dto/create-comment.ts: `export class CreateCommentDto` with readonly body. It has the same plain-DTO shape.\\\",\\\"src/article/dto/index.ts re-exports both files, so they form one DTO module surface.\\\",\\\"The file name `create-comment.ts` lacks the `.dto` suffix, a cosmetic naming inconsistency with `create-article.dto.ts`.\\\"],\\\"violations\\\":[]}\",\"structured_output\":{\"confidence\":0.8,\"evidence\":[\"src/article/dto/create-article.dto.ts: `export class CreateArticleDto` with readonly title, description, body, tagList.\",\"src/article/dto/create-comment.ts: `export class CreateCommentDto` with readonly body. It has the same plain-DTO shape.\",\"src/article/dto/index.ts re-exports both files, so they form one DTO module surface.\",\"The file name `create-comment.ts` lacks the `.dto` suffix, a cosmetic naming inconsistency with `create-article.dto.ts`.\"],\"pass\":true,\"reasoning\":\"Both files are input DTOs for the article feature: CreateArticleDto and CreateCommentDto. Comments belong to articles here, so they are one concern. Both use the same style, a class with readonly fields and no logic. No rule or invariant is duplicated, because the DTOs share only the generic `body` field. Neither file bypasses an abstraction. The only inconsistency is naming: `create-comment.ts` lacks the `.dto.ts` suffix that `create-article.dto.ts` uses. That is cosmetic and doesn't split the unit's concern. The controller imports the files directly instead of through `index.ts`, but that is an import-path matter and out of scope.\",\"violations\":[]}}",
+  "runIndex": 2,
+  "schemaVersion": 2,
+  "unitId": "src/article/dto",
+  "usage": {
+    "inputTokens": 6843,
+    "outputTokens": 1183
+  },
+  "usedOptions": {
+    "effort": "high",
+    "model": "claude-sonnet-5-5"
+  }
+}

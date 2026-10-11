@@ -1,0 +1,46 @@
+{
+  "attempts": 1,
+  "cliVersion": "2.1.294",
+  "configListingSha256": "47aa04258852fab9a706f3f0c14cee22306d69fbb6fdfbde8c11854bd54997bc",
+  "durationMs": 8459,
+  "effort": "high",
+  "functionId": "FF-N02",
+  "ignoredOptions": [
+    "maxTokens"
+  ],
+  "isolationProbeSha256": "ce76f240c1d90df332d581703538c0b40c5186947dd64c0ffb3ffb207242b218",
+  "key": "42352db2c8a593696686ea1581fbb55beffaabee4c6227c630ac8fe7950aba99-r0-0",
+  "model": "claude-sonnet-5-5",
+  "outcome": {
+    "kind": "valid"
+  },
+  "parsedVerdict": {
+    "confidence": 0.96,
+    "evidence": [
+      "src/delivery/curiers/curier/dal/orm-entities/curier.orm-entity.ts: `@Entity('curiers', { schema: 'delivery' })` declares the table mapping, which is infrastructure persistence.",
+      "Fields use only @Column / @PrimaryGeneratedColumn decorators and have no methods or domain invariants.",
+      "`@OneToMany(() => OrderOrmEntity, ..., { cascade: ['insert', 'update'] })` is an ORM relation and cascade setting, which is a persistence concern."
+    ],
+    "pass": true,
+    "reasoning": "The file is a TypeORM ORM entity under a dal/orm-entities path, in the infrastructure layer. It has only persistence mapping: @Entity, @PrimaryGeneratedColumn, @Column and @OneToMany decorators for table, schema, columns and relations. It has no business rules, validation, transport logic or behavior methods. The cascade option on the relation is a persistence concern. Persistence mapping is what an infrastructure file should carry, so no responsibility belongs to another layer.",
+    "violations": []
+  },
+  "prompt": "## Rule\nThe unit's responsibilities match the role of its declared layer.\n\n## Rubric\nPass: Every responsibility in the file belongs to the role and kind of its declared layer, and agrees with any ADR prose given.\nFail: The file carries a responsibility that belongs to a different layer kind, for example persistence, transport or framework logic in a domain file, or business rules in an infrastructure or presentation file.\nEvidence required: Name the file and cite the function, method or statement that carries the misplaced responsibility, and the layer kind it belongs to.\nOut of scope: import direction and layer-dependency rules, which are checked symbolically.\n\n## Layer model\n- domain (kind: domain): src/domain/**, src/core/**, src/entities/**, src/models/**, **/domain/**, **/entities/**, **/models/**; file patterns: **/*.entity.ts, **/*.model.ts\n- infrastructure (kind: infrastructure): src/infrastructure/**, src/persistence/**, src/adapters/**, src/prisma/**, src/lib/**, src/common/middleware/**, src/common/filters/**, src/common/pipes/**, **/dal/**; file patterns: **/*.repository.ts, **/*.worker.ts, **/workers/**, **/strategies/**\n- application (kind: application): src/application/**, src/use-cases/**, src/services/**, **/dtos/**, **/queries/**, **/services/**; file patterns: **/*.service.ts, **/*.processor.ts, **/dto/**, **/*.dto.ts, **/*.query.ts\n- presentation (kind: presentation): src/controllers/**, src/gateways/**, src/common/guards/**, src/common/interceptors/**, **/controllers/**; file patterns: **/*.controller.ts, **/*.module.ts, **/*.guard.ts, **/*.interceptor.ts, **/*.gateway.ts\n\n## Unit\nKind: file\nId: src/delivery/curiers/curier/dal/orm-entities/curier.orm-entity.ts\nLayer: infrastructure\nUnit files:\n- src/delivery/curiers/curier/dal/orm-entities/curier.orm-entity.ts\n\n## Source\n=====SOURCE-BEGIN src/delivery/curiers/curier/dal/orm-entities/curier.orm-entity.ts=====\nimport { Column, Entity, OneToMany, PrimaryGeneratedColumn } from 'typeorm';\nimport { OrderOrmEntity } from './orders.orm-entity';\n\n@Entity('curiers', { schema: 'delivery' })\nexport class CurierOrmEntity {\n  @PrimaryGeneratedColumn('uuid')\n  id: string;\n\n  @Column()\n  firstName: string;\n\n  @Column()\n  lastName: string;\n\n  @Column({ type: 'bool', default: false })\n  isActive: boolean;\n\n  @Column()\n  email: string;\n\n  @Column()\n  phone: number;\n\n  @Column()\n  vehicleType: string;\n\n  @Column()\n  workingHours: number;\n\n  @Column()\n  rating: number;\n\n  @Column()\n  deliveryCapacity: number;\n\n  @Column()\n  specialization: string;\n\n  @Column()\n  commissionRate: number;\n\n  @Column()\n  paymentDetails: number;\n\n  @OneToMany(() => OrderOrmEntity, (order) => order.curier, {\n    cascade: ['insert', 'update'],\n  })\n  orders: OrderOrmEntity[];\n}\n\n=====SOURCE-END=====\n\n## Graph excerpt\n{\"edges\":[{\"from\":\"src/app.module.ts\",\"to\":\"src/delivery/curiers/curier/dal/orm-entities/curier.orm-entity.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/delivery/curiers/curier/dal/curier.mapper.ts\",\"to\":\"src/delivery/curiers/curier/dal/orm-entities/curier.orm-entity.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/delivery/curiers/curier/dal/curier.repository.ts\",\"to\":\"src/delivery/curiers/curier/dal/orm-entities/curier.orm-entity.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/delivery/curiers/curier/dal/orm-entities/curier.orm-entity.ts\",\"to\":\"src/delivery/curiers/curier/dal/orm-entities/orders.orm-entity.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/delivery/curiers/curier/dal/orm-entities/curier.orm-entity.ts\",\"to\":\"typeorm\",\"type\":\"IMPORTS\"},{\"from\":\"src/delivery/curiers/curier/dal/orm-entities/orders.orm-entity.ts\",\"to\":\"src/delivery/curiers/curier/dal/orm-entities/curier.orm-entity.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/delivery/curiers/curiers.module.ts\",\"to\":\"src/delivery/curiers/curier/dal/orm-entities/curier.orm-entity.ts\",\"type\":\"IMPORTS\"}],\"nodes\":[{\"kind\":\"Class\",\"layer\":\"infrastructure\",\"name\":\"CurierOrmEntity\",\"path\":\"src/delivery/curiers/curier/dal/orm-entities/curier.orm-entity.ts\"},{\"kind\":\"File\",\"layer\":\"infrastructure\",\"path\":\"src/delivery/curiers/curier/dal/curier.mapper.ts\"},{\"kind\":\"File\",\"layer\":\"infrastructure\",\"path\":\"src/delivery/curiers/curier/dal/curier.repository.ts\"},{\"kind\":\"File\",\"layer\":\"infrastructure\",\"path\":\"src/delivery/curiers/curier/dal/orm-entities/curier.orm-entity.ts\"},{\"kind\":\"File\",\"layer\":\"infrastructure\",\"path\":\"src/delivery/curiers/curier/dal/orm-entities/orders.orm-entity.ts\"},{\"kind\":\"File\",\"layer\":\"presentation\",\"path\":\"src/app.module.ts\"},{\"kind\":\"File\",\"layer\":\"presentation\",\"path\":\"src/delivery/curiers/curiers.module.ts\"},{\"kind\":\"Package\",\"layer\":null,\"path\":\"typeorm\"}]}\n\n## Instructions\nJudge the unit against the rule and rubric. Return the JSON object the schema requires. Set pass to false if any file of the unit fails the rubric.\n",
+  "provider": "claude-cli",
+  "recordedAt": "2026-10-11T21:57:28.375Z",
+  "repetition": 0,
+  "requestHash": "42352db2c8a593696686ea1581fbb55beffaabee4c6227c630ac8fe7950aba99",
+  "resolvedModel": "claude-sonnet-5-5",
+  "response": "{\"is_error\":false,\"modelUsage\":{\"claude-sonnet-5-5\":{\"inputTokens\":4,\"outputTokens\":1018}},\"result\":\"{\\\"pass\\\":true,\\\"confidence\\\":0.96,\\\"reasoning\\\":\\\"The file is a TypeORM ORM entity under a dal/orm-entities path, in the infrastructure layer. It has only persistence mapping: @Entity, @PrimaryGeneratedColumn, @Column and @OneToMany decorators for table, schema, columns and relations. It has no business rules, validation, transport logic or behavior methods. The cascade option on the relation is a persistence concern. Persistence mapping is what an infrastructure file should carry, so no responsibility belongs to another layer.\\\",\\\"evidence\\\":[\\\"src/delivery/curiers/curier/dal/orm-entities/curier.orm-entity.ts: `@Entity('curiers', { schema: 'delivery' })` declares the table mapping, which is infrastructure persistence.\\\",\\\"Fields use only @Column / @PrimaryGeneratedColumn decorators and have no methods or domain invariants.\\\",\\\"`@OneToMany(() => OrderOrmEntity, ..., { cascade: ['insert', 'update'] })` is an ORM relation and cascade setting, which is a persistence concern.\\\"],\\\"violations\\\":[]}\",\"structured_output\":{\"confidence\":0.96,\"evidence\":[\"src/delivery/curiers/curier/dal/orm-entities/curier.orm-entity.ts: `@Entity('curiers', { schema: 'delivery' })` declares the table mapping, which is infrastructure persistence.\",\"Fields use only @Column / @PrimaryGeneratedColumn decorators and have no methods or domain invariants.\",\"`@OneToMany(() => OrderOrmEntity, ..., { cascade: ['insert', 'update'] })` is an ORM relation and cascade setting, which is a persistence concern.\"],\"pass\":true,\"reasoning\":\"The file is a TypeORM ORM entity under a dal/orm-entities path, in the infrastructure layer. It has only persistence mapping: @Entity, @PrimaryGeneratedColumn, @Column and @OneToMany decorators for table, schema, columns and relations. It has no business rules, validation, transport logic or behavior methods. The cascade option on the relation is a persistence concern. Persistence mapping is what an infrastructure file should carry, so no responsibility belongs to another layer.\",\"violations\":[]}}",
+  "runIndex": 0,
+  "schemaVersion": 2,
+  "unitId": "src/delivery/curiers/curier/dal/orm-entities/curier.orm-entity.ts",
+  "usage": {
+    "inputTokens": 7956,
+    "outputTokens": 1018
+  },
+  "usedOptions": {
+    "effort": "high",
+    "model": "claude-sonnet-5-5"
+  }
+}

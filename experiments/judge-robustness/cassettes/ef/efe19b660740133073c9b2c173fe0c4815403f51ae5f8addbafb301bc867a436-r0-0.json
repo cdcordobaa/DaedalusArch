@@ -1,0 +1,46 @@
+{
+  "attempts": 1,
+  "cliVersion": "2.1.294",
+  "configListingSha256": "47aa04258852fab9a706f3f0c14cee22306d69fbb6fdfbde8c11854bd54997bc",
+  "durationMs": 5009,
+  "effort": "high",
+  "functionId": "FF-N02",
+  "ignoredOptions": [
+    "maxTokens"
+  ],
+  "isolationProbeSha256": "ce76f240c1d90df332d581703538c0b40c5186947dd64c0ffb3ffb207242b218",
+  "key": "efe19b660740133073c9b2c173fe0c4815403f51ae5f8addbafb301bc867a436-r0-0",
+  "model": "claude-sonnet-5-5",
+  "outcome": {
+    "kind": "valid"
+  },
+  "parsedVerdict": {
+    "confidence": 0.96,
+    "evidence": [
+      "src/role/dto/role-filter.dto.ts: `export class RoleFilterDto extends PartialType(CommonSearchFieldDto) {}` is a pure DTO declaration with no logic.",
+      "The file matches the application layer pattern **/dto/** and **/*.dto.ts.",
+      "The file has no database access, HTTP handling or domain rules."
+    ],
+    "pass": true,
+    "reasoning": "The file is a DTO in the application layer. It only declares RoleFilterDto, which extends PartialType(CommonSearchFieldDto) from @nestjs/swagger. This is a data-shape definition for input filtering, so it fits the application layer's DTO role. It has no persistence, transport handling, business rules or framework wiring. Using a swagger mapped-type helper to derive the DTO is normal DTO composition.",
+    "violations": []
+  },
+  "prompt": "## Rule\nThe unit's responsibilities match the role of its declared layer.\n\n## Rubric\nPass: Every responsibility in the file belongs to the role and kind of its declared layer, and agrees with any ADR prose given.\nFail: The file carries a responsibility that belongs to a different layer kind, for example persistence, transport or framework logic in a domain file, or business rules in an infrastructure or presentation file.\nEvidence required: Name the file and cite the function, method or statement that carries the misplaced responsibility, and the layer kind it belongs to.\nOut of scope: import direction and layer-dependency rules, which are checked symbolically.\n\n## Layer model\n- domain (kind: domain): src/domain/**, src/core/**, src/entities/**, src/models/**, **/domain/**; file patterns: **/*.entity.ts\n- infrastructure (kind: infrastructure): src/infrastructure/**, src/persistence/**, src/adapters/**, src/prisma/**, src/lib/**, src/common/middleware/**, src/common/filters/**, src/common/pipes/**; file patterns: **/*.repository.ts, **/*.worker.ts, **/workers/**, **/strategies/**\n- application (kind: application): src/application/**, src/use-cases/**, src/services/**; file patterns: **/*.service.ts, **/*.processor.ts, **/dto/**, **/*.dto.ts\n- presentation (kind: presentation): src/controllers/**, src/gateways/**, src/common/guards/**, src/common/interceptors/**; file patterns: **/*.controller.ts, **/*.module.ts, **/*.guard.ts, **/*.interceptor.ts, **/*.gateway.ts\n\n## Unit\nKind: file\nId: src/role/dto/role-filter.dto.ts\nLayer: application\nUnit files:\n- src/role/dto/role-filter.dto.ts\n\n## Source\n=====SOURCE-BEGIN src/role/dto/role-filter.dto.ts=====\nimport { PartialType } from '@nestjs/swagger';\n\nimport { CommonSearchFieldDto } from 'src/common/extra/common-search-field.dto';\n\nexport class RoleFilterDto extends PartialType(CommonSearchFieldDto) {}\n\n=====SOURCE-END=====\n\n## Graph excerpt\n{\"edges\":[{\"from\":\"src/role/dto/role-filter.dto.ts\",\"to\":\"@nestjs/swagger\",\"type\":\"IMPORTS\"},{\"from\":\"src/role/dto/role-filter.dto.ts\",\"to\":\"src/common/extra/common-search-field.dto.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/role/roles.controller.ts\",\"to\":\"src/role/dto/role-filter.dto.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/role/roles.service.ts\",\"to\":\"src/role/dto/role-filter.dto.ts\",\"type\":\"IMPORTS\"}],\"nodes\":[{\"kind\":\"Class\",\"layer\":\"application\",\"name\":\"RoleFilterDto\",\"path\":\"src/role/dto/role-filter.dto.ts\"},{\"kind\":\"File\",\"layer\":\"application\",\"path\":\"src/common/extra/common-search-field.dto.ts\"},{\"kind\":\"File\",\"layer\":\"application\",\"path\":\"src/role/dto/role-filter.dto.ts\"},{\"kind\":\"File\",\"layer\":\"application\",\"path\":\"src/role/roles.service.ts\"},{\"kind\":\"File\",\"layer\":\"presentation\",\"path\":\"src/role/roles.controller.ts\"},{\"kind\":\"Package\",\"layer\":null,\"path\":\"@nestjs/swagger\"}]}\n\n## Instructions\nJudge the unit against the rule and rubric. Return the JSON object the schema requires. Set pass to false if any file of the unit fails the rubric.\n",
+  "provider": "claude-cli",
+  "recordedAt": "2026-10-11T22:27:33.966Z",
+  "repetition": 0,
+  "requestHash": "efe19b660740133073c9b2c173fe0c4815403f51ae5f8addbafb301bc867a436",
+  "resolvedModel": "claude-sonnet-5-5",
+  "response": "{\"is_error\":false,\"modelUsage\":{\"claude-sonnet-5-5\":{\"inputTokens\":2,\"outputTokens\":401}},\"result\":\"{\\\"pass\\\":true,\\\"confidence\\\":0.96,\\\"reasoning\\\":\\\"The file is a DTO in the application layer. It only declares RoleFilterDto, which extends PartialType(CommonSearchFieldDto) from @nestjs/swagger. This is a data-shape definition for input filtering, so it fits the application layer's DTO role. It has no persistence, transport handling, business rules or framework wiring. Using a swagger mapped-type helper to derive the DTO is normal DTO composition.\\\",\\\"evidence\\\":[\\\"src/role/dto/role-filter.dto.ts: `export class RoleFilterDto extends PartialType(CommonSearchFieldDto) {}` is a pure DTO declaration with no logic.\\\",\\\"The file matches the application layer pattern **/dto/** and **/*.dto.ts.\\\",\\\"The file has no database access, HTTP handling or domain rules.\\\"],\\\"violations\\\":[]}\",\"structured_output\":{\"confidence\":0.96,\"evidence\":[\"src/role/dto/role-filter.dto.ts: `export class RoleFilterDto extends PartialType(CommonSearchFieldDto) {}` is a pure DTO declaration with no logic.\",\"The file matches the application layer pattern **/dto/** and **/*.dto.ts.\",\"The file has no database access, HTTP handling or domain rules.\"],\"pass\":true,\"reasoning\":\"The file is a DTO in the application layer. It only declares RoleFilterDto, which extends PartialType(CommonSearchFieldDto) from @nestjs/swagger. This is a data-shape definition for input filtering, so it fits the application layer's DTO role. It has no persistence, transport handling, business rules or framework wiring. Using a swagger mapped-type helper to derive the DTO is normal DTO composition.\",\"violations\":[]}}",
+  "runIndex": 0,
+  "schemaVersion": 2,
+  "unitId": "src/role/dto/role-filter.dto.ts",
+  "usage": {
+    "inputTokens": 2735,
+    "outputTokens": 401
+  },
+  "usedOptions": {
+    "effort": "high",
+    "model": "claude-sonnet-5-5"
+  }
+}

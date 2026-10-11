@@ -1414,3 +1414,19 @@ Plan checkboxes ticked. Auto-approved under standing approval; no blocking or ma
 **Context**: CONSTRUCTION — Build and Test, extra experiments. Worktree ../DaedalusArch-wt-x3, branch v1.2e-exp-extra.
 
 ---
+
+## Build and Test — Experiment C registration (ADR-038, judge model robustness)
+**Timestamp**: 2026-10-11T23:55:00Z
+**User Input**: "Coordinator: A is accepted at its registered budget stop. Run C now (author-approved): register ADR-038 with a dated bump, run with the usage-limit pause, analyse unit agreement (κ/AC1 with CIs) and verdict changes, merge by PR. B stays on hold."
+**AI Response**: "C is registered as ADR-038, prereg v25 (P-JR): 1549 eligible units (every rebuilt Opus request reproduces its recorded hash); 100 drawn (25 per E7/E1 × FF-N01/FF-N02, seed 9401); 300 Sonnet calls on the frozen route with their own cassettes; unit agreement with κ/AC1 item-bootstrap intervals; verdict impact by substitution in 41 reports under the registered and any-fail rules; κ ≥ 0.60 reading. ADR-037 is reserved for B."
+**Context**: CONSTRUCTION — Build and Test, extra experiments. Worktree ../DaedalusArch-wt-x3, branch v1.2e-exp-extra.
+
+---
+
+## Build and Test — Experiment C (ADR-038) run and scored
+**Timestamp**: 2026-10-12T01:10:00Z
+**User Input**: "Coordinator: run C, analyse it, merge it by PR, report to main."
+**AI Response**: "300 Sonnet calls on the frozen route (0 invalid, 0 retries, no usage pause). Unit agreement 0.940 (0.875–0.972), κ 0.766 (0.565–0.926), AC1 0.931 (0.872–0.978); weighted 0.974, κ 0.886. E1 agrees 50/50; E7 44/50. All 6 disagreements are low-confidence Opus fail → Sonnet pass. Fail rate: Opus 0.18, Sonnet 0.12. 0 function and 0 verdict changes in 41 reports (registered and any-fail). Reading: robust (κ ≥ 0.60)."
+**Context**: CONSTRUCTION — Build and Test, extra experiments. Worktree ../DaedalusArch-wt-x3, branch v1.2e-exp-extra.
+
+---

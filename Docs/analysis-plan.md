@@ -42,6 +42,9 @@
 > **Amended 2026-10-11 (ADR-036, `corpus/prereg.json` version 24)**, before any call: the plain LLM-review baseline
 > pilot `llm-review` (Codex `gpt-5.6-terra`, read-only, the spec as prose; 5 SO4 seeded copies with their baselines and
 > 2 real fix pairs, 3 runs each), exploratory, with its scoring (§15). The firewall outcomes on these trees were known.
+> **Amended 2026-10-11 (ADR-038, `corpus/prereg.json` version 25)**, before any Sonnet call: the judge model robustness
+> check `judge-robustness` (100 recorded E7/E1 judge units re-judged by `claude-sonnet-5-5` on the frozen route), with
+> its agreement and verdict-impact outcomes (§16). The Opus votes of the sample were known.
 > **Requirements**: FR-v1.2E-25, 27, 36; SO1–SO5 (ADR-017 items 1–3, 6, 7); ADR-015 items 1, 2, 5, 10; ADR-016 b, e.
 > **Design source**: `aidlc-docs/construction/v1.2E-u5b-scoring-harness/functional-design/business-rules.md`
 > (BR-U5b-20, 30, 33, 34, 45..49, 53, 54, 61..65, 78). The matching of seeds to violations is `Docs/matching-rule.md`
@@ -53,7 +56,7 @@ labelling populations, caps and budget; §5 interval rule; §6 SO5 factors, test
 §8 missingness and exclusions; §9 what is fixed by registration; §10 reporting duties; §11 amendments; §12 the
 neural aggregation variant, the judge diagnostics and the judge-weighted variant (ADR-028); §13 the tool comparison and
 the real fix-commit pairs (ADR-030); §14 the reproduction-audit corrections (ADR-033); §15 the plain LLM-review baseline
-pilot (ADR-036).
+pilot (ADR-036); §16 the judge model robustness check (ADR-038).
 
 ## 1. SO5 code tables (frozen at registration)
 
@@ -719,6 +722,7 @@ These statements are registered: every report of the corresponding figure carrie
 | 2026-10-11 (ADR-034, prereg v22) | §7 | The labels gain the `uncertain` reason `tool-use` and the tool-use discard count as a P4 validity metric: agy 1.3.2 cannot deny `search_web`, so a labeller call that completes a tool step is discarded and retried once (operational, found by the fail-closed guard before any P4 label existed) | ADR-034 |
 | 2026-10-11 (ADR-035, prereg v23) | §3, §7 | P4 judge-vs-panel rows come from the Gemini API route (tools off, temperature 0), forced by the ADR-034 stop rule; all 46 P4 items are relabelled there. The P4 run-vs-run row is reported per route. The 8 agy P4 answers are descriptive and reported apart. No estimand, weight or interval method changes | ADR-035 |
 | 2026-10-11 (ADR-036, prereg v24) | §15 | `llm-review` registered before any call: the Codex review pins, the seeded draw (seed 9301) of 5 SO4 seeds on 5 admitted bases and of the second pair, tree export and digests, the prose prompt and its listed rules (no advisory rule), read-only confinement, 3 runs in run-major order under a 150-credit budget stop, and the scoring (MAT keys reduced to (rule, file), real-fix rule with a chance control, consistency, overlap with the firewall, cost); exploratory | ADR-036 |
+| 2026-10-11 (ADR-038, prereg v25) | §16 | `judge-robustness` registered before any call: eligibility (request hash reproduced), the stratified sample of 100 (seed 9401), the Sonnet calls on the frozen route, unit agreement (κ, AC1, item-bootstrap CIs, seed 9402), the verdict impact by substitution under the registered and any-fail rules, and the κ ≥ 0.60 reading | ADR-038 |
 
 ## 12. Neural aggregation variant and judge diagnostics (ADR-028)
 
@@ -1061,4 +1065,31 @@ call is retried once and its credits count. A usage or credit limit is a pause, 
 outputs are `results/llm-review/seeds.csv`, `recall.csv`, `pairs.csv`, `pair-runs.csv`, `consistency.csv`,
 `overlap.csv`, `cost.csv` and `summary.json`, from `npx tsx scripts/llm-review-cli.ts score`. Every table names its
 reading (`exploratory`) and every interval its method.
+
+## 16. Judge model robustness (ADR-038, registered v25)
+
+**Status.** Registered 2026-10-11 with `corpus/prereg.json` version 25, before any `claude-sonnet-5-5` judge call. Known
+before registration: the Opus votes of the sampled units and every E7 and E1 judge result. The check changes no
+registered result: the frozen judge stays `claude-opus-5-5` for every SO3, SO5 and E1 figure.
+
+### 16.1 Units and votes
+
+The sample is `experiments/judge-robustness/sample.json`: 25 units per stratum (E7 FF-N01, E7 FF-N02, E1 FF-N01, E1
+FF-N02), drawn by mulberry32(9401) from the eligible units (ADR-038 item 1). Each unit has its recorded Opus runs 0..2
+and 3 new Sonnet runs of the byte-identical prompt. A model's **unit vote** is U4's `voteUnit`: pass or fail by strict
+majority of the valid runs, `warning` on a tie, `invalid` below 2 valid runs.
+
+### 16.2 Outcomes
+
+| Outcome | Definition | Interval |
+|---|---|---|
+| Unit agreement (primary) | Opus vote = Sonnet vote over the units with a valid Sonnet vote; categories pass / fail / warning; unweighted | Percent agreement: Wilson. Cohen's κ and Gwet's AC1: 95 % percentile item bootstrap (seed 9402, 10 000 resamples; a resample with undefined κ is skipped) |
+| Agreement, secondary rows | The same per stratum, per source (E7, E1), per function; population-weighted (w = N_h / n_h); Sonnet-invalid units counted as disagreement | As primary; weighted rows use the weighted item bootstrap; below 10 pairs, counts only |
+| Transition table | Opus vote × Sonnet vote (with invalid and not-run) | Counts |
+| Fail rate per model | Units voted fail / units with valid votes; mean confidence | Wilson |
+| Verdict impact | Per report holding sampled units: function verdicts, `ahsCombined` and the verdict, recomputed with the sampled rows replaced by the Sonnet votes (ADR-038 item 4), under the registered majority rule and the any-fail rule | Counts of function verdict changes and verdict changes per rule (41 reports) |
+
+**Reading (pre-declared).** On the primary κ point estimate: ≥ 0.60 → "unit verdicts robust to the judge model";
+< 0.60 → "unit verdicts depend on the model". AC1 is reported beside κ, because with about 18 % fails κ is sensitive
+to prevalence. The verdict-impact counts are reported as they are; no test is made.
 

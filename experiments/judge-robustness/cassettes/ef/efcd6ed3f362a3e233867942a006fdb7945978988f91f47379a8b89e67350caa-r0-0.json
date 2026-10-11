@@ -1,0 +1,45 @@
+{
+  "attempts": 1,
+  "cliVersion": "2.1.294",
+  "configListingSha256": "47aa04258852fab9a706f3f0c14cee22306d69fbb6fdfbde8c11854bd54997bc",
+  "durationMs": 4452,
+  "effort": "high",
+  "functionId": "FF-N02",
+  "ignoredOptions": [
+    "maxTokens"
+  ],
+  "isolationProbeSha256": "ce76f240c1d90df332d581703538c0b40c5186947dd64c0ffb3ffb207242b218",
+  "key": "efcd6ed3f362a3e233867942a006fdb7945978988f91f47379a8b89e67350caa-r0-0",
+  "model": "claude-sonnet-5-5",
+  "outcome": {
+    "kind": "valid"
+  },
+  "parsedVerdict": {
+    "confidence": 0.97,
+    "evidence": [
+      "`orderStatuses` is a constant tuple of domain status values: placed, paid, packed, shipped, delivered.",
+      "`OrderStatus` is a type derived from that tuple. It has no I/O, HTTP, storage or framework code."
+    ],
+    "pass": true,
+    "reasoning": "src/domain/OrderStatus.ts only declares the list of valid order statuses and the union type derived from it. That is pure domain vocabulary. It has no persistence, transport, framework or orchestration logic, so it fits the domain layer.",
+    "violations": []
+  },
+  "prompt": "## Rule\nThe unit's responsibilities match the role of its declared layer.\n\n## Rubric\nPass: Every responsibility in the file belongs to the role and kind of its declared layer, and agrees with any ADR prose given.\nFail: The file carries a responsibility that belongs to a different layer kind, for example persistence, transport or framework logic in a domain file, or business rules in an infrastructure or presentation file.\nEvidence required: Name the file and cite the function, method or statement that carries the misplaced responsibility, and the layer kind it belongs to.\nOut of scope: import direction and layer-dependency rules, which are checked symbolically.\n\n## Layer model\n- domain (kind: domain): src/domain/**\n- application (kind: application): src/application/**\n- infrastructure (kind: infrastructure): src/infrastructure/**\n\n## Unit\nKind: file\nId: src/domain/OrderStatus.ts\nLayer: domain\nUnit files:\n- src/domain/OrderStatus.ts\n\n## Source\n=====SOURCE-BEGIN src/domain/OrderStatus.ts=====\nexport const orderStatuses = [\"placed\", \"paid\", \"packed\", \"shipped\", \"delivered\"] as const;\n\nexport type OrderStatus = (typeof orderStatuses)[number];\n\n=====SOURCE-END=====\n\n## Graph excerpt\n{\"edges\":[{\"from\":\"src/application/OrderDtos.ts\",\"to\":\"src/domain/OrderStatus.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/application/OrderService.ts\",\"to\":\"src/domain/OrderStatus.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/domain/Order.ts\",\"to\":\"src/domain/OrderStatus.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/domain/OrderRepository.ts\",\"to\":\"src/domain/OrderStatus.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/infrastructure/HttpServer.ts\",\"to\":\"src/domain/OrderStatus.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/infrastructure/InMemoryOrderRepository.ts\",\"to\":\"src/domain/OrderStatus.ts\",\"type\":\"IMPORTS\"}],\"nodes\":[{\"kind\":\"File\",\"layer\":\"application\",\"path\":\"src/application/OrderDtos.ts\"},{\"kind\":\"File\",\"layer\":\"application\",\"path\":\"src/application/OrderService.ts\"},{\"kind\":\"File\",\"layer\":\"domain\",\"path\":\"src/domain/Order.ts\"},{\"kind\":\"File\",\"layer\":\"domain\",\"path\":\"src/domain/OrderRepository.ts\"},{\"kind\":\"File\",\"layer\":\"domain\",\"path\":\"src/domain/OrderStatus.ts\"},{\"kind\":\"File\",\"layer\":\"infrastructure\",\"path\":\"src/infrastructure/HttpServer.ts\"},{\"kind\":\"File\",\"layer\":\"infrastructure\",\"path\":\"src/infrastructure/InMemoryOrderRepository.ts\"}]}\n\n## Instructions\nJudge the unit against the rule and rubric. Return the JSON object the schema requires. Set pass to false if any file of the unit fails the rubric.\n",
+  "provider": "claude-cli",
+  "recordedAt": "2026-10-11T22:28:23.208Z",
+  "repetition": 0,
+  "requestHash": "efcd6ed3f362a3e233867942a006fdb7945978988f91f47379a8b89e67350caa",
+  "resolvedModel": "claude-sonnet-5-5",
+  "response": "{\"is_error\":false,\"modelUsage\":{\"claude-sonnet-5-5\":{\"inputTokens\":2,\"outputTokens\":302}},\"result\":\"{\\\"pass\\\":true,\\\"confidence\\\":0.97,\\\"reasoning\\\":\\\"src/domain/OrderStatus.ts only declares the list of valid order statuses and the union type derived from it. That is pure domain vocabulary. It has no persistence, transport, framework or orchestration logic, so it fits the domain layer.\\\",\\\"evidence\\\":[\\\"`orderStatuses` is a constant tuple of domain status values: placed, paid, packed, shipped, delivered.\\\",\\\"`OrderStatus` is a type derived from that tuple. It has no I/O, HTTP, storage or framework code.\\\"],\\\"violations\\\":[]}\",\"structured_output\":{\"confidence\":0.97,\"evidence\":[\"`orderStatuses` is a constant tuple of domain status values: placed, paid, packed, shipped, delivered.\",\"`OrderStatus` is a type derived from that tuple. It has no I/O, HTTP, storage or framework code.\"],\"pass\":true,\"reasoning\":\"src/domain/OrderStatus.ts only declares the list of valid order statuses and the union type derived from it. That is pure domain vocabulary. It has no persistence, transport, framework or orchestration logic, so it fits the domain layer.\",\"violations\":[]}}",
+  "runIndex": 0,
+  "schemaVersion": 2,
+  "unitId": "src/domain/OrderStatus.ts",
+  "usage": {
+    "inputTokens": 2524,
+    "outputTokens": 302
+  },
+  "usedOptions": {
+    "effort": "high",
+    "model": "claude-sonnet-5-5"
+  }
+}

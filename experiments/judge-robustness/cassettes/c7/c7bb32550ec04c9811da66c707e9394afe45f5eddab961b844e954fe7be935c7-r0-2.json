@@ -1,0 +1,46 @@
+{
+  "attempts": 1,
+  "cliVersion": "2.1.294",
+  "configListingSha256": "47aa04258852fab9a706f3f0c14cee22306d69fbb6fdfbde8c11854bd54997bc",
+  "durationMs": 7545,
+  "effort": "high",
+  "functionId": "FF-N02",
+  "ignoredOptions": [
+    "maxTokens"
+  ],
+  "isolationProbeSha256": "ce76f240c1d90df332d581703538c0b40c5186947dd64c0ffb3ffb207242b218",
+  "key": "c7bb32550ec04c9811da66c707e9394afe45f5eddab961b844e954fe7be935c7-r0-2",
+  "model": "claude-sonnet-5-5",
+  "outcome": {
+    "kind": "valid"
+  },
+  "parsedVerdict": {
+    "confidence": 0.95,
+    "evidence": [
+      "src/infrastructure/server.ts: express(), app.use(express.json()), app.use(controller.router()), app.use(errorMiddleware) are transport/framework wiring.",
+      "src/infrastructure/server.ts: new InMemoryProductRepository() and new InMemoryOrderRepository() are persistence adapters created at the composition root.",
+      "src/infrastructure/server.ts: Number(process.env.PORT ?? 3000) and app.listen(...) are runtime configuration and server bootstrap."
+    ],
+    "pass": true,
+    "reasoning": "server.ts is an infrastructure composition root. It instantiates in-memory repositories, wires application services into the controller, configures Express middleware, reads PORT from the environment, and starts the HTTP listener. These are all infrastructure concerns (framework, transport, bootstrap). The file has no business rules, validation or domain logic, so no responsibility belongs to another layer.",
+    "violations": []
+  },
+  "prompt": "## Rule\nThe unit's responsibilities match the role of its declared layer.\n\n## Rubric\nPass: Every responsibility in the file belongs to the role and kind of its declared layer, and agrees with any ADR prose given.\nFail: The file carries a responsibility that belongs to a different layer kind, for example persistence, transport or framework logic in a domain file, or business rules in an infrastructure or presentation file.\nEvidence required: Name the file and cite the function, method or statement that carries the misplaced responsibility, and the layer kind it belongs to.\nOut of scope: import direction and layer-dependency rules, which are checked symbolically.\n\n## Layer model\n- domain (kind: domain): src/domain/**\n- application (kind: application): src/application/**\n- infrastructure (kind: infrastructure): src/infrastructure/**\n\n## Unit\nKind: file\nId: src/infrastructure/server.ts\nLayer: infrastructure\nUnit files:\n- src/infrastructure/server.ts\n\n## Source\n=====SOURCE-BEGIN src/infrastructure/server.ts=====\nimport express from \"express\";\nimport { CatalogueService } from \"../application/catalogue-service\";\nimport { OrderService } from \"../application/order-service\";\nimport { errorMiddleware } from \"./error-middleware\";\nimport { InMemoryOrderRepository, InMemoryProductRepository } from \"./in-memory-repositories\";\nimport { OrderController } from \"./order-controller\";\n\nconst products = new InMemoryProductRepository();\nconst orders = new InMemoryOrderRepository();\nconst controller = new OrderController(new OrderService(orders, products), new CatalogueService(products));\nconst app = express();\n\napp.use(express.json());\napp.use(controller.router());\napp.use(errorMiddleware);\n\nconst port = Number(process.env.PORT ?? 3000);\napp.listen(port, () => console.log(`Order fulfilment API listening on port ${port}`));\n\n=====SOURCE-END=====\n\n## Graph excerpt\n{\"edges\":[{\"from\":\"src/infrastructure/server.ts\",\"to\":\"express\",\"type\":\"IMPORTS\"},{\"from\":\"src/infrastructure/server.ts\",\"to\":\"src/application/catalogue-service.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/infrastructure/server.ts\",\"to\":\"src/application/order-service.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/infrastructure/server.ts\",\"to\":\"src/infrastructure/error-middleware.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/infrastructure/server.ts\",\"to\":\"src/infrastructure/in-memory-repositories.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/infrastructure/server.ts\",\"to\":\"src/infrastructure/order-controller.ts\",\"type\":\"IMPORTS\"}],\"nodes\":[{\"kind\":\"File\",\"layer\":\"application\",\"path\":\"src/application/catalogue-service.ts\"},{\"kind\":\"File\",\"layer\":\"application\",\"path\":\"src/application/order-service.ts\"},{\"kind\":\"File\",\"layer\":\"infrastructure\",\"path\":\"src/infrastructure/error-middleware.ts\"},{\"kind\":\"File\",\"layer\":\"infrastructure\",\"path\":\"src/infrastructure/in-memory-repositories.ts\"},{\"kind\":\"File\",\"layer\":\"infrastructure\",\"path\":\"src/infrastructure/order-controller.ts\"},{\"kind\":\"File\",\"layer\":\"infrastructure\",\"path\":\"src/infrastructure/server.ts\"},{\"kind\":\"Package\",\"layer\":null,\"path\":\"express\"}]}\n\n## Instructions\nJudge the unit against the rule and rubric. Return the JSON object the schema requires. Set pass to false if any file of the unit fails the rubric.\n",
+  "provider": "claude-cli",
+  "recordedAt": "2026-10-11T22:00:18.893Z",
+  "repetition": 0,
+  "requestHash": "c7bb32550ec04c9811da66c707e9394afe45f5eddab961b844e954fe7be935c7",
+  "resolvedModel": "claude-sonnet-5-5",
+  "response": "{\"is_error\":false,\"modelUsage\":{\"claude-sonnet-5-5\":{\"inputTokens\":4,\"outputTokens\":923}},\"result\":\"{\\\"pass\\\":true,\\\"confidence\\\":0.95,\\\"reasoning\\\":\\\"server.ts is an infrastructure composition root. It instantiates in-memory repositories, wires application services into the controller, configures Express middleware, reads PORT from the environment, and starts the HTTP listener. These are all infrastructure concerns (framework, transport, bootstrap). The file has no business rules, validation or domain logic, so no responsibility belongs to another layer.\\\",\\\"evidence\\\":[\\\"src/infrastructure/server.ts: express(), app.use(express.json()), app.use(controller.router()), app.use(errorMiddleware) are transport/framework wiring.\\\",\\\"src/infrastructure/server.ts: new InMemoryProductRepository() and new InMemoryOrderRepository() are persistence adapters created at the composition root.\\\",\\\"src/infrastructure/server.ts: Number(process.env.PORT ?? 3000) and app.listen(...) are runtime configuration and server bootstrap.\\\"],\\\"violations\\\":[]}\",\"structured_output\":{\"confidence\":0.95,\"evidence\":[\"src/infrastructure/server.ts: express(), app.use(express.json()), app.use(controller.router()), app.use(errorMiddleware) are transport/framework wiring.\",\"src/infrastructure/server.ts: new InMemoryProductRepository() and new InMemoryOrderRepository() are persistence adapters created at the composition root.\",\"src/infrastructure/server.ts: Number(process.env.PORT ?? 3000) and app.listen(...) are runtime configuration and server bootstrap.\"],\"pass\":true,\"reasoning\":\"server.ts is an infrastructure composition root. It instantiates in-memory repositories, wires application services into the controller, configures Express middleware, reads PORT from the environment, and starts the HTTP listener. These are all infrastructure concerns (framework, transport, bootstrap). The file has no business rules, validation or domain logic, so no responsibility belongs to another layer.\",\"violations\":[]}}",
+  "runIndex": 2,
+  "schemaVersion": 2,
+  "unitId": "src/infrastructure/server.ts",
+  "usage": {
+    "inputTokens": 6054,
+    "outputTokens": 923
+  },
+  "usedOptions": {
+    "effort": "high",
+    "model": "claude-sonnet-5-5"
+  }
+}
