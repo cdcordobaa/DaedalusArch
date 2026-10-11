@@ -1,0 +1,32 @@
+{
+  "attempts": 1,
+  "durationMs": 4110,
+  "effort": null,
+  "functionId": "label:judge-unit:d8e792b709157a3677cf3c6395f9a5caaadcbc2612101ddc8a927e34990938fc",
+  "ignoredOptions": [],
+  "key": "d3b6337f7e6c0b21a4f145f0be020623c9c1472d87151253311894aa1f5c84f1-r0-1",
+  "model": "gemini-3.1-pro-preview",
+  "outcome": {
+    "kind": "valid"
+  },
+  "parsedVerdict": null,
+  "prompt": "Decide whether the unit below satisfies the rubric.\n- pass: the unit meets the rubric's pass condition.\n- fail: the unit meets the rubric's fail condition.\nGive a short rationale that cites the code. Root cause: answer null.\n\n## Item\n## Judge unit\n  Function: FF-N02 (semantic)\n  Unit: src/infrastructure/server.ts (file, layer infrastructure)\n  \n  ## Rubric\n  Rule: The unit's responsibilities match the role of its declared layer.\n  Pass: Every responsibility in the file belongs to the role and kind of its declared layer, and agrees with any ADR prose given.\n  Fail: The file carries a responsibility that belongs to a different layer kind, for example persistence, transport or framework logic in a domain file, or business rules in an infrastructure or presentation file.\n  Evidence required: Name the file and cite the function, method or statement that carries the misplaced responsibility, and the layer kind it belongs to.\n  Out of scope: import direction and layer-dependency rules, which are checked symbolically.\n  \n  ## Source\n  =====SOURCE-BEGIN src/infrastructure/server.ts=====\n  import { createApp } from './app';\n  \n  const port = Number(process.env.PORT ?? 3000);\n  \n  createApp().listen(port, () => {\n    console.log(`Order fulfilment API listening on http://localhost:${port}`);\n  });\n  \n  =====SOURCE-END=====\n\n## Label options\n1. fail\n  2. pass\n\n## Root causes\n1. RC-EXTRACT-BARREL\n  2. RC-DYNAMIC-IMPORT\n  3. RC-TEST-CODE\n  4. RC-OTHER\n  5. RC-GENUINE-UNSEEDED\n  6. RC-STYLE-INAPPLICABLE\n  7. RC-TEMPLATE-OVERAPPROX\n  8. RC-LAYER-MAP\n  9. RC-EXTRACT-ALIAS\n  10. RC-TYPE-ONLY\n  11. RC-SPEC-PARAM\n  12. RC-GENERATED-CODE\n\nAnswer with one JSON object: {\"option\": <number of the label option>, \"rootCause\": <number of the root cause or null>, \"note\": \"<text, required with RC-OTHER>\", \"rationale\": \"<one or two sentences citing the code>\"}.",
+  "provider": "gemini",
+  "recordedAt": "2026-10-11T17:23:56.403Z",
+  "repetition": 0,
+  "requestHash": "d3b6337f7e6c0b21a4f145f0be020623c9c1472d87151253311894aa1f5c84f1",
+  "resolvedModel": "gemini-3.1-pro-preview",
+  "response": "{\"option\": 2, \"rationale\": \"The file src/infrastructure/server.ts contains transport and framework logic (creating an app and listening on a port), which matches the role of its declared infrastructure layer.\", \"note\": \"\", \"rootCause\": null}",
+  "runIndex": 1,
+  "schemaVersion": 2,
+  "unitId": "src/infrastructure/server.ts",
+  "usage": {
+    "inputTokens": 557,
+    "outputTokens": 55
+  },
+  "usedOptions": {
+    "maxTokens": 65536,
+    "model": "gemini-3.1-pro-preview",
+    "temperature": 0
+  }
+}

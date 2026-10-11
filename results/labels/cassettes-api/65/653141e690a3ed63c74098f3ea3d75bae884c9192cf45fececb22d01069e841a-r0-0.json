@@ -1,0 +1,32 @@
+{
+  "attempts": 1,
+  "durationMs": 14122,
+  "effort": null,
+  "functionId": "label:judge-unit:68289ac342c13d4278427dc1718bf456d8dcc0f822a3e997c97a1c003f381161",
+  "ignoredOptions": [],
+  "key": "653141e690a3ed63c74098f3ea3d75bae884c9192cf45fececb22d01069e841a-r0-0",
+  "model": "gemini-3.1-pro-preview",
+  "outcome": {
+    "kind": "valid"
+  },
+  "parsedVerdict": null,
+  "prompt": "Decide whether the unit below satisfies the rubric.\n- pass: the unit meets the rubric's pass condition.\n- fail: the unit meets the rubric's fail condition.\nGive a short rationale that cites the code. Root cause: answer null.\n\n## Item\n## Judge unit\n  Function: FF-N01 (integrity)\n  Unit: src/application/use-cases (module, layer application)\n  \n  ## Rubric\n  Rule: The module's files form one coherent unit with a consistent abstraction and boundary.\n  Pass: The files serve one cohesive concern, use the module's abstractions consistently, and keep each rule or invariant in one place.\n  Fail: The files split into unrelated concerns, duplicate a rule or invariant that should live in one place, or bypass the module's own abstractions.\n  Evidence required: Name each file involved and cite the declarations that show the split, the duplication or the bypass.\n  Out of scope: import direction and layer-dependency rules, which are checked symbolically.\n  \n  ## Source\n  // src/application/use-cases/CompleteTaskUseCase.ts\n  export class CompleteTaskUseCase {\n    constructor(private readonly taskRepository: InMemoryTaskRepository);\n    async execute(id: string): Promise<Task>;\n  }\n  \n  // src/application/use-cases/CreateTaskUseCase.ts\n  export class CreateTaskUseCase {\n    constructor(private readonly taskRepository: InMemoryTaskRepository);\n    async execute(title: string, description: string, categoryId: string): Promise<Task>;\n  }\n  \n  =====SOURCE-BEGIN src/application/use-cases/CompleteTaskUseCase.ts=====\n  import { Task } from '../../domain/entities/Task';\n  import { InMemoryTaskRepository } from '../../infrastructure/repositories/InMemoryTaskRepository';\n  \n  // VIOLATION #2: injects concrete InMemoryTaskRepository instead of ITaskRepository\n  export class CompleteTaskUseCase {\n    constructor(private readonly taskRepository: InMemoryTaskRepository) {}\n  \n    async execute(id: string): Promise<Task> {\n      const task = await this.taskRepository.findById(id);\n      if (!task) throw new Error(`Task ${id} not found`);\n      return this.taskRepository.save(task.complete());\n    }\n  }\n  \n  =====SOURCE-END=====\n  \n  =====SOURCE-BEGIN src/application/use-cases/CreateTaskUseCase.ts=====\n  import { Task } from '../../domain/entities/Task';\n  import { InMemoryTaskRepository } from '../../infrastructure/repositories/InMemoryTaskRepository';\n  \n  // VIOLATION #1: injects concrete InMemoryTaskRepository instead of ITaskRepository\n  export class CreateTaskUseCase {\n    constructor(private readonly taskRepository: InMemoryTaskRepository) {}\n  \n    async execute(title: string, description: string, categoryId: string): Promise<Task> {\n      const task = new Task(crypto.randomUUID(), title, description, false, categoryId, new Date());\n      return this.taskRepository.save(task);\n    }\n  }\n  \n  =====SOURCE-END=====\n\n## Label options\n1. pass\n  2. fail\n\n## Root causes\n1. RC-LAYER-MAP\n  2. RC-EXTRACT-ALIAS\n  3. RC-EXTRACT-BARREL\n  4. RC-DYNAMIC-IMPORT\n  5. RC-TYPE-ONLY\n  6. RC-TEMPLATE-OVERAPPROX\n  7. RC-STYLE-INAPPLICABLE\n  8. RC-SPEC-PARAM\n  9. RC-GENERATED-CODE\n  10. RC-TEST-CODE\n  11. RC-GENUINE-UNSEEDED\n  12. RC-OTHER\n\nAnswer with one JSON object: {\"option\": <number of the label option>, \"rootCause\": <number of the root cause or null>, \"note\": \"<text, required with RC-OTHER>\", \"rationale\": \"<one or two sentences citing the code>\"}.",
+  "provider": "gemini",
+  "recordedAt": "2026-10-11T17:20:52.996Z",
+  "repetition": 0,
+  "requestHash": "653141e690a3ed63c74098f3ea3d75bae884c9192cf45fececb22d01069e841a",
+  "resolvedModel": "gemini-3.1-pro-preview",
+  "response": "{\n  \"option\": 1,\n  \"rationale\": \"The files serve a cohesive concern (task use cases). The injection of the concrete InMemoryTaskRepository is a layer-dependency violation, which is explicitly out of scope for this rubric.\",\n  \"note\": \"\",\n  \"rootCause\": null\n}",
+  "runIndex": 0,
+  "schemaVersion": 2,
+  "unitId": "src/application/use-cases",
+  "usage": {
+    "inputTokens": 925,
+    "outputTokens": 67
+  },
+  "usedOptions": {
+    "maxTokens": 65536,
+    "model": "gemini-3.1-pro-preview",
+    "temperature": 0
+  }
+}

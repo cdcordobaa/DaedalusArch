@@ -1390,3 +1390,11 @@ Plan checkboxes ticked. Auto-approved under standing approval; no blocking or ma
 **Context**: CONSTRUCTION — Build and Test, runbook 6.4 (P4). Worktree ../DaedalusArch-wt-p4, branch v1.2e-exp-p4.
 
 ---
+
+## Build and Test — P4 labelled on the Gemini API; judge-vs-panel agreement
+**Timestamp**: 2026-10-11T17:40:00Z
+**User Input**: "Label all 46 P4 items on the API route (2 runs) within the budget, then run judge-vs-panel per generator model and per source with E1 as the headline, κ/AC1 with weighted bootstrap CIs and uncertain as a category, plus run-vs-run. Merge by PR and report to main."
+**AI Response**: "There were 92 calls (0 retries, re-asks, tool use or quota stops) and the replay is byte-identical; the label budget is now 254/300. Labels: 40 pass, 4 fail, 2 uncertain (disagree). Run-vs-run: n 46, agreement 0.957 [0.855, 0.988], κ 0.777 [0.355, 1.000], AC1 0.955 [0.886, 1.000]; taxonomy as registered (κ ≥ 0.60). Judge vs panel, E1 headline (weighted): n 36, agreement 0.982 [0.949, 1.000], κ 0.000 [0, 0], AC1 0.982 [0.947, 1.000]. Fixtures: n 8, all agree (2 fail, 6 pass). Pooled: n 44, agreement 0.984, κ 0.742, AC1 0.983. Per model (E1): haiku 8/8, opus 9/9, sonnet 0.968, gpt-5.6-terra 0.953 [0.809, 1.000]. With uncertain kept as a category (E1): n 38, agreement 0.965, κ 0.192, AC1 0.964. The judge said pass on all 36 E1 pairs, so κ is 0 by prevalence. The 2 disagreements are judge pass against panel fail (both runs) on FF-N01 order-fulfilment/none (sonnet, gpt). The 8 agy P4 answers are reported apart in agy-partial.json."
+**Context**: CONSTRUCTION — Build and Test, runbook 6.4 and 6.6 (P4). Worktree ../DaedalusArch-wt-p4, branch v1.2e-exp-p4.
+
+---
