@@ -167,7 +167,7 @@ describe('ADR-034 stop rule (20 % of at least 10 P4 items)', () => {
   });
 
   it('only P4 items count toward the rule', async () => {
-    const nonP4 = p4Items(12).map((i) => ({ ...i, population: 'P2' as LabelItem['population'] }));
+    const nonP4: LabelItem[] = p4Items(12).map((i) => ({ ...i, population: 'P2' }));
     const r = await labelItems(nonP4, config({ provider: new ToolUsingLabeller(() => true, 99) }), prompts());
     expect(r.ok).toBe(true);
   });
