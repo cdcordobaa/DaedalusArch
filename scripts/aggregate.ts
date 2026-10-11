@@ -799,7 +799,7 @@ function outcomesOf(cells: readonly So5Cell[], labelDependent: ReadonlySet<FpatF
   return outcomes;
 }
 
-function stratifiedMeanDiffCi(obs: readonly { cell: string; group: 'A' | 'B'; value: number }[], seed: number, resamples: number): [number, number] {
+export function stratifiedMeanDiffCi(obs: readonly { cell: string; group: 'A' | 'B'; value: number }[], seed: number, resamples: number): [number, number] {
   const rng = createRng(seed);
   const byCell = new Map<string, { group: 'A' | 'B'; values: number[] }>();
   for (const o of obs) {
