@@ -1,10 +1,10 @@
 # Results report for the thesis director, October 2026
 
 **Thesis**: *Governing AI-Agentic Development: A Spec-Driven Neuro-Symbolic Architectural Firewall* (MSc, Universidad Nacional de Colombia)
-**Tool**: DaedalusArch, branch `v1.2e` at merge commit `c8848bc`
+**Tool**: DaedalusArch, branch `v1.2e` at merge commit `b703468`
 **Date of this report**: 2026-10-11
-**Scope**: every result committed on `v1.2e`, including E1 (SO5, Section 4.8) and the reproduction-audit corrections of ADR-033 (prereg v21).
-**Revision**: second version. It adds the E1 results and replaces the withdrawn labelled SO4 table and the single-figure baseline precision with the ADR-033 figures.
+**Scope**: every result committed on `v1.2e`, including E1 (SO5, Section 4.8), the reproduction-audit corrections of ADR-033 (prereg v21) and the P4 judge-vs-panel validation (ADR-034 and ADR-035, prereg v23).
+**Revision**: third version. It adds the P4 judge-vs-panel validation (Sections 3.7, 4.8.5 and 7) and updates the executive summary, the SO3 and SO5 status and Section 6. The second version added the E1 results and replaced the withdrawn labelled SO4 table and the single-figure baseline precision with the ADR-033 figures.
 
 **How to read this report**
 
@@ -18,7 +18,7 @@
 
 ## 1. Executive summary
 
-**What was built and frozen.** DaedalusArch compiles an architecture spec into graph queries (Cypher fitness functions) and runs them over an Architectural Property Graph (APG) extracted from TypeScript code. A frozen LLM judge (`claude-opus-5-5`) adds two semantic dimensions. Before any experiment ran, the analysis plan, the operator catalogue, the matching rule, the judge rubric and the corpus were registered under a hash-checked pre-registration. That registration now stands at version 21, with 77 registered artefacts [corpus/prereg.json]. `run-experiment` refuses any plan whose registered artefacts changed [Docs/threats-to-validity.md, TV-01].
+**What was built and frozen.** DaedalusArch compiles an architecture spec into graph queries (Cypher fitness functions) and runs them over an Architectural Property Graph (APG) extracted from TypeScript code. A frozen LLM judge (`claude-opus-5-5`) adds two semantic dimensions. Before any experiment ran, the analysis plan, the operator catalogue, the matching rule, the judge rubric and the corpus were registered under a hash-checked pre-registration. That registration now stands at version 23, with 77 registered artefacts [corpus/prereg.json]. `run-experiment` refuses any plan whose registered artefacts changed [Docs/threats-to-validity.md, TV-01].
 
 **Main findings.**
 
@@ -43,19 +43,26 @@
 
    The post-hoc size analysis explains the direction. Without a spec, the models build small, flat projects (about 9 files) where two rules, FF-C02 and FF-P02, rarely fire. Findings per file do not differ between levels. At equal size, `full-aac` beats `minimal-prose` (Cliff's δ 0.52; 0.47 after a LOC adjustment) [results/e1-grid/agg-size/size_tests.csv]. The registered directional self-preference check is positive (p = 0.014); the vendor self-preference check is not (p = 0.173) [results/e1-grid/agg/so5_tests.csv]. Under the registered weights the judge changes no E1 verdict [results/e1-grid/agg-proportional/ahs_by_aggregation.csv].
 
-**What this supports.** The symbolic engine finds the canonical violation constructs it was designed for, reproducibly, on held-out code, and fast enough for CI use. It matches a mature import-graph checker on the rules both can express. Its extra rule families (patterns, SOLID proxies, metrics, data-flow) have no external comparator yet. In E1, the spec level changes the structure that the models build, and the AHS registers that change; a vague prose spec gives the worst score.
+9. **SO3, judge validation (P4).** The judge agrees with the Gemini panel on the E1 headline: n = 36, agreement 0.982 (95% CI 0.949 to 1.000), Gwet's AC1 0.982, Cohen's κ 0 [results/e1-grid/label-plan-p4-api/labelling.json, row `judge-vs-panel`, `source` = `e1`, `headline` = true].
+   - κ is 0 because of prevalence, not because of disagreement: the judge passed every one of the 36 items, so there is no variance in its labels. AC1 is the figure that holds up. The two errors were both lenient (the panel failed an item the judge passed), one on a Sonnet-written and one on a `gpt-5.6-terra`-written project [same file, `labels`; results/e1-grid/label-plan-p4/judge-verdicts.json].
+   - The 8 fixture items agree 100%. Per generator the E1 agreement is 95% to 100% (n = 8 to 10 each) [same file].
+   - Run vs run on the API route: agreement 0.957 (n = 46), κ 0.777 [same file, row `run-vs-run`].
+   - **Read this as a weak test of the judge's fail detection.** On E1 the judge's labels are almost all `pass`, and the panel failed only 2 of the 36 items, so the data say the judge is not wrongly failing sound code. They say little about whether it catches unsound code. The 2 fixture fails are the only place where fail detection is checked, and the judge matched the panel there.
+   - The panel is not independent ground truth, and no author audit covers P4 [Docs/threats-to-validity.md, TV-109]. The P4 labels came from a different route (Gemini API, tools off) from P1/MS/P2 (agy CLI), after the agy route was stopped by a pre-registered rule [Docs/labeller-route.md §7, §8; Docs/threats-to-validity.md, TV-110; ADR-034; ADR-035].
+
+**What this supports.** The symbolic engine finds the canonical violation constructs it was designed for, reproducibly, on held-out code, and fast enough for CI use. It matches a mature import-graph checker on the rules both can express. Its extra rule families (patterns, SOLID proxies, metrics, data-flow) have no external comparator yet. In E1, the spec level changes the structure that the models build, and the AHS registers that change; a vague prose spec gives the worst score. On the P4 sample the judge agrees with an independent-vendor panel (0.982 on E1, AC1 0.982), so it is not failing sound code, although that test barely exercises its fail detection.
 
 **What it does not support yet.** It does not support these claims:
 
 - that DaedalusArch's findings on real code are mostly correct (baseline precision 0.33 registered, 0.33 to 0.79 across the `uncertain` rules, wide CIs);
-- that the LLM judge improves verdicts (no effect under the registered rule in E7 or E1, and no panel validation of the judge yet);
+- that the LLM judge improves verdicts (no effect under the registered rule in E7 or E1), or that it detects violations: P4 shows agreement with the panel but barely tests fail detection on E1 (2 panel fails in 36 items), the panel is a single model, and no author audit covers P4;
 - that specs make generated architecture worse (the reversed E1 effect runs through project size and structure);
 - any SO5 claim beyond one vendor and two tasks, or about model differences (no model effect).
 
 **Decisions needed from the director** (Section 7):
 
 - how to frame the reversed E1 spec effect in the thesis, and where the Codex arm goes;
-- when to run the judge-vs-panel labelling (P4), now that its 46 items are drawn;
+- how to report the P4 result, and whether to complete the author audit so that P4 has a check against a human (Section 7, items 1 and 2);
 - the 30-item author audit;
 - the API-robustness experiments;
 - the split into three papers;
@@ -69,9 +76,9 @@
 |---|---|---|---|
 | SO1 | Spec language and style libraries (Clean, Hexagonal, Layered) that compile to executable checks | **Done for Clean, Layered and a NestJS library; Hexagonal not built.** All 27 declared functions have a template in each of the 3 libraries. A layered acceptance run passed | [results/pre-tag/so1-metrics-53cfaed4a313.json; results/pre-tag/layered-53cfaed4a313.json; ADR-027 context] |
 | SO2 | APG extraction: coverage, latency, value of the graph over a plain AST | **Done.** Latency gate passed. Ablation run. FLOWS_TO limitation declared | [results/latency-gate/so2/gate.json; results/apg-ablation/so2/] |
-| SO3 | Symbolic rules plus a neural judge producing an Architectural Health Score (AHS) and verdicts | **Partly done.** E7 (9 of 9 projects) and E1 (65 judged cells) are complete. The judge's effect on verdicts is zero under the registered rule in both. Judge-vs-panel validation (P4) is drawn but not labelled | [results/e7-corpus/agg/; results/e7-corpus/agg-proportional/; results/e1-grid/agg-proportional/; results/e1-grid/label-plan-p4/] |
+| SO3 | Symbolic rules plus a neural judge producing an Architectural Health Score (AHS) and verdicts | **Partly done.** E7 (9 of 9 projects) and E1 (65 judged cells) are complete. The judge's effect on verdicts is zero under the registered rule in both. Judge-vs-panel validation (P4) is done: agreement 0.982 on the E1 headline (n = 36), 100% on fixtures, but fail detection is barely tested and no author audit covers P4 (Section 4.8.5) | [results/e7-corpus/agg/; results/e7-corpus/agg-proportional/; results/e1-grid/agg-proportional/; results/e1-grid/label-plan-p4-api/labelling.json] |
 | SO4 | P/R/F1 on a seeded golden dataset (80 to 120 instances) | **Done with a shortfall** (N = 75 strict, 73 corrected and labelled). Strict, corrected, labelled and v2 readings committed. Baseline precision labelled, with `uncertain`-rule sensitivity rows. Author audit pending | [results/so4-heldout/; ADR-033] |
-| SO5 | LLM × spec-quality study (E1) | **Run, P4 pending.** 72 cells (54 Claude, 18 Codex); 65 judged, 7 Haiku cells not run (GEN-TYPECHECK). Registered tests, both aggregation passes, judge diagnostics and the post-hoc size analysis are committed. The judge-vs-panel labels (P4) are drawn but not labelled | [results/e1-grid/agg/; results/e1-grid/agg-proportional/; results/e1-grid/agg-size/; results/e1-grid/label-plan-p4/] |
+| SO5 | LLM × spec-quality study (E1) | **Run, P4 labelled.** 72 cells (54 Claude, 18 Codex); 65 judged, 7 Haiku cells not run (GEN-TYPECHECK). Registered tests, both aggregation passes, judge diagnostics and the post-hoc size analysis are committed. The judge-vs-panel labels (P4) are committed (Section 4.8.5) | [results/e1-grid/agg/; results/e1-grid/agg-proportional/; results/e1-grid/agg-size/; results/e1-grid/label-plan-p4-api/labelling.json] |
 
 ---
 
@@ -110,7 +117,7 @@ Sources: [Docs/prereg-reasons.md; ADR-025, ADR-026, ADR-027, ADR-033].
 |---|---|---|
 | Runtime | Node v24.5.0; Neo4j 5.26 community, APOC 5.26.24 | [aidlc-docs/construction/build-and-test/build-and-test-summary.md §1] |
 | Judge | `claude-opus-5-5` through Claude CLI 2.1.294, pinned under a dedicated prefix. Rubric frozen 2026-10-09, `FROZEN_SHA256 f8b2dabb…eac5a` | [Docs/judge-preregistration.md; ADR-018 item 4; ADR-022 item 5] |
-| Labeller | `gemini-3.1-pro-high` through the Antigravity CLI `agy` 1.3.2 | [results/labels/live-call-ledger.md; ADR-019 item 4] |
+| Labeller | `gemini-3.1-pro-high` through the Antigravity CLI `agy` 1.3.2 for P1, MS and P2. For P4, `gemini-3.1-pro-preview` (the same model) through the Gemini API, tools off, temperature 0 | [results/labels/live-call-ledger.md; ADR-019 item 4; ADR-035; Docs/labeller-route.md §8] |
 | Rule set | instrument v1 (last commit `febc918`) and instrument v2, which adds role exemptions for three proxy rules | [ADR-026] |
 | Matching rule | 1.1.0 (registered) and 1.2.0 (post-hoc, ADR-025) | [Docs/matching-rule.md; ADR-025] |
 | Baseline tool | dependency-cruiser 18.4.0 with typescript 5.9.3; translation 1.0.0 | [ADR-030 item 1] |
@@ -199,9 +206,9 @@ They are listed as residual threats [Docs/threats-to-validity.md, TV-36].
 - **MS**: missed seeds without a mechanical cause (2 items).
 - **P2**: baseline violations of the E7 projects (30 items, drawn with probability proportional to stratum size). Of these, 24 come from the v2 population and 6 from the rows only v1 reports.
 - **P3**: 0 items (dropped, ADR-021 item 8.1).
-- **P4**: judge units of E1 and the fixtures. 46 items are drawn (38 E1, 8 fixtures) but none is labelled yet [results/e1-grid/label-plan-p4/label-plan-summary.json].
+- **P4**: judge units of E1 and the fixtures. 46 items are drawn (38 E1, 8 fixtures) and all 46 are labelled, on the Gemini API route (Section 4.8.5) [results/e1-grid/label-plan-p4/label-plan-summary.json; results/e1-grid/label-plan-p4-api/labelling.json].
 
-**Budget and calls.** The budget is 300 agy invocations, re-asks and retries included. Live labelling used 142 [results/labels/live-call-ledger.md].
+**Budget and calls.** The budget is 300 label invocations, re-asks and retries included. Live labelling used 254: 142 for P1, MS and P2, 17 for the stopped agy P4 attempt, 3 for the API probe and 92 for P4 on the API (46 items, two runs each) [results/labels/live-call-ledger.md, rows 1 to 5].
 
 **Validity rule.** Run-vs-run κ of at least 0.60 keeps the FP/FN taxonomy "as registered"; below that it is descriptive only [Docs/analysis-plan.md §5].
 
@@ -466,7 +473,7 @@ Intervals are Kish-Wilson 95% unless stated, on effective n 11.5 (v2 overall), 1
 
 - The judge works as a process: 331 units judged, 0 invalid, 73 fails, most of them on files that the rules also flag. Under the registered rule, though, it never changes a score or a verdict.
 - The only readings in which it moves verdicts are post-hoc for E7 and use the any-fail rule. Under that rule a single failing unit fails the function.
-- None of these judge outputs has been validated against the panel (P4 n = 0). Every judge claim stays conditional on that validation [Docs/analysis-plan.md §10 B9].
+- The P4 validation (Section 4.8.5) found agreement with the panel on E1 judge units (0.982, n = 36). It covers E1 only. The E7 judge units are not in P4, so E7 judge claims are validated only by transfer, and the validation barely tests fail detection [Docs/analysis-plan.md §10 B9; results/e1-grid/label-plan-p4-api/labelling.json].
 
 ### 4.6 Tool comparison against dependency-cruiser
 
@@ -610,7 +617,7 @@ Symbolic findings by registered `FPAT-*` family, Claude arm, are unlabelled and 
 - **It does not move the AHS.** It fires in all 47 Claude cells and costs each one the same 0.0125, so it contributes 0 to every spec contrast [results/e1-grid/agg-size/size_functions.csv, `cells_fired`, `ahs_deficit_mean`].
 - The registered FPAT family label and the AVR dimension disagree for two functions: FF-CV05 is family FPAT-PATTERN but dimension `convention`, and FF-P02 is family FPAT-SOLID but dimension `pattern` [same note, §5]. Raw counts by family therefore mostly count files.
 
-The registered exploratory open coding of labeller rationales (§6) has not run, because it needs the P4 and P3 labels.
+The registered exploratory open coding of labeller rationales (§6) has not run. The P4 labels now exist, but P3 has none (dropped, ADR-021 item 8.1), so it remains open.
 
 #### 4.8.5 The judge in E1
 
@@ -649,7 +656,41 @@ The 8 cells that move to warning are 6 Haiku cells (2 per spec level, all `order
 - The vendor check is not significant, and the plan states in advance that a null here is not evidence of no self-preference: one GPT model and 18 cells give low power [Docs/analysis-plan.md §6.1].
 - The model effect on `ahsNeuronal` is large (exploratory, Holm p 0.0003), while the co-primary `ahsDeterministic` shows none (p 0.753). Under ADR-020 item 7, a model effect seen only in the judge-bearing field is not read as a model effect [results/e1-grid/agg/so5_tests.csv; Docs/analysis-plan.md §6].
 
-**Judge validation (P4).** The P4 judge-vs-panel sample is drawn: 46 items (38 E1, 8 fixtures), with a planned half-width of ±0.186 at p = 0.5 for the E1 headline [results/e1-grid/label-plan-p4/label-plan-summary.json]. No item has been labelled, so every judge statement above remains conditional on that validation.
+**Judge validation (P4).** The P4 sample has 46 items: 38 from E1 and 8 from the fixtures, with a planned half-width of ±0.186 at p = 0.5 for the E1 headline [results/e1-grid/label-plan-p4/label-plan-summary.json]. All 46 are now labelled.
+
+*How the labels were obtained.* The first route, the `agy` CLI with Gemini 3.1 Pro, was stopped by a pre-registered rule. Gemini on agy 1.3.2 ran web search (`search_web`), which passes no permission check and cannot be disabled by settings. Under the rule, 2 of the first 10 P4 items ended as `uncertain` / `tool-use`, with 5 tool-use discards, and the run stopped [Docs/labeller-route.md §7; ADR-034; results/labels/live-call-ledger.md, "Stop, 2026-10-11 05:56Z"]. The relabelling route, chosen by the author, was the Gemini API with tools off and temperature 0, on the same model [ADR-035; Docs/labeller-route.md §8]. All 46 items were relabelled with 92 calls (46 items, two runs each), with 0 retries and 0 tool use, and replay of the cassettes is byte-identical [results/labels/live-call-ledger.md, row 5]. The 8 answers that agy had produced validly are kept apart and are not mixed in [results/e1-grid/label-plan-p4/agy-partial.json]. Panel labels: 40 `pass`, 4 `fail`, 2 `uncertain` [results/labels/live-call-ledger.md; results/e1-grid/label-plan-p4-api/labelling.json].
+
+*Judge vs panel* [results/e1-grid/label-plan-p4-api/labelling.json, rows `judge-vs-panel`; judge `claude-opus-5-5`; 2 `uncertain` items excluded in the registered reading]:
+
+| Row | n | Agreement (95% CI) | Gwet's AC1 | Cohen's κ |
+|---|---|---|---|---|
+| E1 headline (pre-registered) | 36 | 0.982 (0.949 to 1.000) | 0.982 | 0 |
+| Fixtures | 8 | 1.000 | 1.000 | 1.000 |
+| E1, generator `claude-haiku-4-5` | 8 | 1.000 | 1.000 | not defined |
+| E1, generator `claude-opus-5-5` | 9 | 1.000 | 1.000 | not defined |
+| E1, generator `claude-sonnet-5-5` | 9 | 0.968 | 0.967 | 0 |
+| E1, generator `gpt-5.6-terra` | 10 | 0.953 (0.809 to 1.000) | 0.951 | 0 |
+| E1, `uncertain` counted as a category (post-hoc) | 38 | 0.965 (0.920 to 0.993) | 0.964 | 0.192 |
+
+The per-generator and fixture rows have no usable interval and are descriptive. The agreement rows are flagged `weighted` in the file and each item carries an inclusion probability, so the figures are not simple item counts (0.982 on 36 items is not a ratio of integers). I did not re-derive the weighting [results/e1-grid/label-plan-p4-api/labelling.json].
+
+*Run vs run on the API route.* Agreement 0.957 (95% CI 0.855 to 0.988), κ 0.777, AC1 0.955, n = 46 [results/e1-grid/label-plan-p4-api/labelling.json, row `run-vs-run`]. On agy the same row was 0.875, κ 0.774, n = 64 (Section 4.4). The two are different routes (temperature 0 against default sampling) and are not directly comparable [Docs/threats-to-validity.md, TV-110].
+
+*What this shows.*
+
+- **High agreement, 95% to 100% in every row.** The judge's labels match the panel's on almost every item, on the fixtures and on each generator's code.
+- **κ is 0 because of prevalence, not disagreement.** The judge passed every one of the 36 comparable E1 items, so its labels have no variance, and κ is zero whatever the panel says. AC1, which is robust to this, is 0.982. This is why AC1 is the figure to quote [results/e1-grid/label-plan-p4-api/labelling.json; results/e1-grid/label-plan-p4/judge-verdicts.json].
+- **Both errors were lenient.** The panel failed an item that the judge passed: one in `claude-sonnet-5-5/order-fulfilment/none` and one in `gpt-5.6-terra/order-fulfilment/none`, both on `src/infrastructure` (FF-N01) [same files]. No error runs the other way among the comparable items.
+- **The judge's fail detection is barely tested on E1.** The panel failed only 2 of the 36 comparable E1 items, and the judge missed both. The one E1 item the judge failed (`claude-haiku-4-5/task-management/none`, `src/application`) is one of the 2 `uncertain` items, so it is outside the headline. The 4 panel fails in all of P4 are these 2 E1 items and 2 fixture items, and the judge caught the 2 fixture fails. The test shows that the judge does not fail sound code, but the sample cannot say how often it misses unsound code. The two misses are the only evidence, and they point to leniency.
+- **No self-preference shows in agreement.** The only disagreements are on Sonnet-written and GPT-written code, none on Opus-written code, and agreement on Opus-written items (1.000, n = 9) is inside the range of the others. Agreement does not separate the models. This does not contradict the positive directional check above (p = 0.014), which is on AHS differences, not on agreement with a panel, and with 2 disagreements the power is very low.
+
+*Limits.*
+
+- **Different transport from P1/P2.** P4 labels come from the Gemini API (tools off, temperature 0, `systemInstruction` for the persona, thinking level high). P1/MS/P2 labels come from the agy CLI with default sampling. The model and prompts are the same, the transport is not, so the P4 run-vs-run row describes the API route only [Docs/labeller-route.md §8; Docs/threats-to-validity.md, TV-110].
+- **The author audit does not cover P4.** The 30-item audit was drawn from the first live plan before P4 existed and contains no P4 item. The P4 rows therefore have no panel-vs-audit check [ADR-034 item 7; Docs/threats-to-validity.md, TV-109].
+- **The route change was forced by a registered stop rule**, before any P4 label existed and before any judge-vs-panel figure had been computed [ADR-035, classification].
+- **One panel model.** The panel is a single Gemini model, run twice. Agreement with it is not agreement with a human.
+- **Small n.** 36 comparable E1 items, 2 panel fails, 2 `uncertain` items. The per-generator rows have 8 to 10 items each.
 
 #### 4.8.6 The Codex arm (exploratory)
 
@@ -680,7 +721,7 @@ The Codex arm is one model, `gpt-5.6-terra`, with 18 of 18 cells valid [results/
    - the judge is a Claude model;
    - the Codex arm differs in harness, confinement and time.
 7. **Every cell passes.** The AHS differences lie between 0.852 and 0.988, inside the pass band, and the structural rules never fire. The study measures differences in coupling and pattern proxies, not architectural violations that block a merge.
-8. **No panel validation of the judge** (P4 not labelled) and **no open coding** yet.
+8. **The panel validation of the judge is weak where it matters.** P4 is labelled and agrees with the judge (Section 4.8.5), but it barely tests fail detection on E1, uses one panel model on a different transport from P1/P2, and has no author audit behind it [Docs/threats-to-validity.md, TV-109, TV-110]. There is also **no open coding** of labeller rationales yet.
 
 ---
 
@@ -733,13 +774,15 @@ The Codex arm is one model, `gpt-5.6-terra`, with 18 of 18 cells valid [results/
 - On import-graph rules, DaedalusArch is equivalent to dependency-cruiser on the same specs, apart from the dynamic-import gap [results/tool-comparison/recall-dts.csv].
 - In E1, the spec level given to Claude generators changes the AHS of what they build (pre-registered, Holm p 0.0003). The post-hoc size analysis shows that the change runs through project structure: with no spec the models build small, flat projects where the coupling and dependency-inversion rules rarely fire. At equal size, the architecture-as-code spec beats the prose spec (δ 0.52; 0.47 after the LOC adjustment) [results/e1-grid/agg/so5_tests.csv; results/e1-grid/agg-size/size_tests.csv].
 - The E1 generation and evaluation pipeline worked at scale: 72 cells, 65 judged, 1 233 judge units with none invalid [results/e1-grid/agg/so5_grid.csv; results/e1-grid/judge-diagnostics/judge_summary.csv].
+- The judge does not fail code that an independent-vendor panel passes: on the E1 headline, agreement is 0.982 (95% CI 0.949 to 1.000, n = 36, AC1 0.982), and 100% on the fixtures. Both disagreements were lenient. κ is 0 because the judge passed every item, so AC1 is the figure to quote [results/e1-grid/label-plan-p4-api/labelling.json]. This is agreement with a single-model panel, not proof of correctness.
 
 **Not supported (yet).**
 
 - That most DaedalusArch findings on real code are correct. Baseline precision under v2 is 0.33 (0.13 to 0.61) by the registered rule, and 0.61 or 0.79 under the post-hoc `uncertain` rules [results/so4-heldout/agg/precision_baseline.csv]. The range itself is the finding.
-- That the LLM judge improves verdicts or AHS. In E7 and in E1 it changes no verdict under the registered weights. Only the any-fail readings move verdicts: in E7, 1 of 9 projects at registered weights and 8 of 9 at judge-weighted weights (both post-hoc); in E1, only judge-weighted any-fail, 8 of 65 cells to warning (pre-registered). No panel validation exists.
-- That the judge is free of self-preference. The registered directional check is positive (p 0.014), although the contrast is driven by the Haiku cells [results/e1-grid/agg/so5_tests.csv].
+- That the LLM judge improves verdicts or AHS. In E7 and in E1 it changes no verdict under the registered weights. Only the any-fail readings move verdicts: in E7, 1 of 9 projects at registered weights and 8 of 9 at judge-weighted weights (both post-hoc); in E1, only judge-weighted any-fail, 8 of 65 cells to warning (pre-registered). The P4 validation shows agreement with the panel but cannot show that the judge catches violations.
+- That the judge is free of self-preference. The registered directional check is positive (p 0.014), although the contrast is driven by the Haiku cells [results/e1-grid/agg/so5_tests.csv]. P4 agreement shows no self-preference pattern, but with 2 disagreements it cannot rule one out [results/e1-grid/label-plan-p4-api/labelling.json].
 - That DaedalusArch detects real architectural fixes better than an import checker. Both detect 2 of 5, the same two.
+- That the judge detects unsound architecture. On E1 the panel failed only 2 of 36 comparable items and the judge missed both; its fail detection is checked mainly on the 2 fixture fails [results/e1-grid/label-plan-p4-api/labelling.json].
 - Anything about the Hexagonal style, non-NestJS frameworks, projects beyond about 800 files, or languages other than TypeScript.
 - That specs make generated architecture worse. The reversed E1 effect is an effect of spec level on project size and structure, which the AHS then scores.
 - Any difference between Claude models (no model effect, Holm p 0.438), or any SO5 claim beyond Claude generators, these two tasks and small projects. The Codex arm reverses the spec order and is exploratory.
@@ -749,7 +792,7 @@ The Codex arm is one model, `gpt-5.6-terra`, with 18 of 18 cells valid [results/
 
 ## 7. Next steps and decisions for the director
 
-**E1 (SO5) is complete except P4.** Both passes ran under prereg v20; the aggregates, the judge decomposition, the judge diagnostics and the post-hoc size analysis are committed [results/e1-grid/].
+**E1 (SO5) is complete, including P4.** Both passes ran under prereg v20; the aggregates, the judge decomposition, the judge diagnostics, the post-hoc size analysis and the P4 labels (prereg v23) are committed [results/e1-grid/].
 
 - *Decision:* adopt the framing of Section 4.8.3 for the thesis: the registered spec effect is reported first, in its reversed direction, followed by the post-hoc size analysis that explains it and the size-matched `full-aac` vs `minimal-prose` contrast. The thesis does not claim that specs worsen architecture.
 - *Decision:* whether the Codex arm's 18 cells are reported in the thesis body or in an appendix. They are exploratory except the vendor self-preference check [Docs/analysis-plan.md §6.1]. My recommendation is a short body paragraph (it reverses the spec order) with the tables in an appendix.
@@ -757,12 +800,12 @@ The Codex arm is one model, `gpt-5.6-terra`, with 18 of 18 cells valid [results/
 
 **Decisions requested.**
 
-1. **P4 judge-vs-panel labelling.** This is the only planned validation of the judge.
-   - The P4 sample is now drawn: 46 items, 38 from E1 and 8 from the fixtures. The E1 headline has n_eff 23.9 and a half-width of about ±0.186 at p = 0.5 [results/e1-grid/label-plan-p4/label-plan-summary.json]. Of the 300-call ceiling, 158 calls remain [results/labels/live-call-ledger.md; derived 300 − 142].
-   - The positive self-preference check (Section 4.8.5) makes this validation more pressing: P4 gives per-generator agreement rows that separate the models.
-   - *Decision:* label P4 now, before writing any judge claim. Or accept the judge as "unvalidated, diagnostic only" in the thesis.
+1. **P4 judge-vs-panel result.** P4 is labelled: 46 items, 92 calls on the Gemini API, 254 of the 300 label invocations used, 46 left [results/labels/live-call-ledger.md, rows 1 to 5; derived 300 − 254]. The result is in Section 4.8.5: E1 headline agreement 0.982 (n = 36, AC1 0.982, κ 0 from prevalence), fixtures 100%, both errors lenient.
+   - The result is reassuring but weak on fail detection: the panel failed only 2 of 36 E1 items, and the judge missed both [results/e1-grid/label-plan-p4-api/labelling.json].
+   - The route change (agy to the Gemini API) was forced by the pre-registered tool-use stop rule [ADR-034; ADR-035]. P4 and P1/MS/P2 differ in transport.
+   - *Decision:* whether the thesis states the judge as "validated against a single-model panel on E1, fail detection barely tested", which is my recommendation, or spends part of the remaining 46 invocations on a targeted P4 extension that over-samples likely fails. The second needs a new registration and changes the sample design, so it would be post-hoc relative to the current P4.
 2. **The 30-item author audit.** The view is drawn and the allocation sealed. It needs about one sitting of author time [results/labels/live-call-ledger.md].
-   - *Decision:* complete it before the thesis draft, so that the panel-vs-audit row is not empty. It is a sanity check, not a validation (B6).
+   - *Decision:* complete it before the thesis draft, so that the panel-vs-audit row is not empty. It is a sanity check, not a validation (B6). The audit draws no P4 item, so a human check of P4 would need a new draw [ADR-034 item 7].
 3. **API robustness experiments.** These are not yet in any committed plan. *Proposal to register before running:*
    - repeat the judge on a fixed sample, to measure verdict stability across days and quota windows;
    - inject faults (timeouts, malformed responses, usage limits) to exercise the degradation ladder;
@@ -773,11 +816,11 @@ The Codex arm is one model, `gpt-5.6-terra`, with 18 of 18 cells valid [results/
    - **E1 empirical paper:** LLM × spec quality. Its result is the reversed spec effect, explained through project structure, with the size-matched contrast favouring architecture-as-code. Main risks: the confounds B5 and B10, the post-hoc status of the size analysis, two tasks, and the positive self-preference check.
    - **Tool paper:** DaedalusArch with SO1, SO2 and SO4, the dependency-cruiser comparison and the real pairs. It must lead with the circularity caveat and the baseline precision range (0.33 registered, up to 0.79 by the `uncertain` rule).
    - **LLM-judge lessons paper:** a negative result. A registered majority rule with an 8% weight leaves the judge without effect, in E7 (post-hoc readings) and in E1 (pre-registered readings). It covers the algebraic bound, the dilution artefact, the variants, the self-preference result, and a coding frame in which at most 1 of 7 criteria discriminates.
-   - *Decision:* order and venues. The judge paper needs the P4 result to say anything about judge validity.
+   - *Decision:* order and venues. The judge paper can now cite the P4 agreement, but should state its limits (weak fail detection, one panel model, different transport).
 5. **Extensions.** Neither is in a committed plan; both would be new registrations.
    - **A Grok arm in E1.** It would follow the ADR-029 pattern: its own plan, seed and sandbox confinement, and the vendor families only.
    - **An MCP firewall-in-the-loop.** DaedalusArch served as an MCP tool the generating agent calls during generation, compared with post-hoc evaluation. This is a new experiment with its own isolation design. It cannot reuse the E1 confinement unchanged, because that confinement forbids MCP [ADR-029 item 4; Docs/threats-to-validity.md, TV-95].
-   - *Decision:* thesis scope or future work. My recommendation is future work for both, given the time left and the open P4 validation.
+   - *Decision:* thesis scope or future work. My recommendation is future work for both, given the time left and the limits of the P4 validation.
 
 **Housekeeping before the thesis draft.**
 
