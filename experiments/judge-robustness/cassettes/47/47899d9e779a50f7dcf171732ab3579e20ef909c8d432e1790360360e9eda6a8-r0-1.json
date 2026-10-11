@@ -1,0 +1,46 @@
+{
+  "attempts": 1,
+  "cliVersion": "2.1.294",
+  "configListingSha256": "47aa04258852fab9a706f3f0c14cee22306d69fbb6fdfbde8c11854bd54997bc",
+  "durationMs": 4866,
+  "effort": "high",
+  "functionId": "FF-N02",
+  "ignoredOptions": [
+    "maxTokens"
+  ],
+  "isolationProbeSha256": "ce76f240c1d90df332d581703538c0b40c5186947dd64c0ffb3ffb207242b218",
+  "key": "47899d9e779a50f7dcf171732ab3579e20ef909c8d432e1790360360e9eda6a8-r0-1",
+  "model": "claude-sonnet-5-5",
+  "outcome": {
+    "kind": "valid"
+  },
+  "parsedVerdict": {
+    "confidence": 0.97,
+    "evidence": [
+      "src/infrastructure/repositories/InMemoryUserRepository.ts: class InMemoryUserRepository implements UserRepository, with storage in a private Map (persistence, which belongs to infrastructure).",
+      "findById, findAll and save only read from and write to the Map, with no domain rules or validation.",
+      "The graph shows an IMPLEMENTS edge to the domain UserRepository interface, which is the expected adapter pattern."
+    ],
+    "pass": true,
+    "reasoning": "InMemoryUserRepository is an infrastructure-layer class that implements the domain UserRepository port. Its only responsibility is persistence, using an in-memory Map for findById, findAll and save. It has no business rules, validation or presentation logic, so it fits the infrastructure role.",
+    "violations": []
+  },
+  "prompt": "## Rule\nThe unit's responsibilities match the role of its declared layer.\n\n## Rubric\nPass: Every responsibility in the file belongs to the role and kind of its declared layer, and agrees with any ADR prose given.\nFail: The file carries a responsibility that belongs to a different layer kind, for example persistence, transport or framework logic in a domain file, or business rules in an infrastructure or presentation file.\nEvidence required: Name the file and cite the function, method or statement that carries the misplaced responsibility, and the layer kind it belongs to.\nOut of scope: import direction and layer-dependency rules, which are checked symbolically.\n\n## Layer model\n- domain (kind: domain): src/domain/**\n- application (kind: application): src/application/**\n- infrastructure (kind: infrastructure): src/infrastructure/**\n\n## Unit\nKind: file\nId: src/infrastructure/repositories/InMemoryUserRepository.ts\nLayer: infrastructure\nUnit files:\n- src/infrastructure/repositories/InMemoryUserRepository.ts\n\n## Source\n=====SOURCE-BEGIN src/infrastructure/repositories/InMemoryUserRepository.ts=====\nimport { User } from '../../domain/entities/User';\nimport { UserRepository } from '../../domain/repositories/UserRepository';\n\nexport class InMemoryUserRepository implements UserRepository {\n  private users: Map<string, User> = new Map();\n\n  findById(id: string): User | null {\n    return this.users.get(id) ?? null;\n  }\n\n  findAll(): User[] {\n    return Array.from(this.users.values());\n  }\n\n  save(user: User): void {\n    this.users.set(user.id, user);\n  }\n}\n\n=====SOURCE-END=====\n\n## Graph excerpt\n{\"edges\":[{\"from\":\"InMemoryUserRepository@src/infrastructure/repositories/InMemoryUserRepository.ts\",\"to\":\"UserRepository@src/domain/repositories/UserRepository.ts\",\"type\":\"IMPLEMENTS\"},{\"from\":\"src/infrastructure/app.ts\",\"to\":\"src/infrastructure/repositories/InMemoryUserRepository.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/infrastructure/repositories/InMemoryUserRepository.ts\",\"to\":\"src/domain/entities/User.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/infrastructure/repositories/InMemoryUserRepository.ts\",\"to\":\"src/domain/repositories/UserRepository.ts\",\"type\":\"IMPORTS\"}],\"nodes\":[{\"kind\":\"Class\",\"layer\":\"infrastructure\",\"name\":\"InMemoryUserRepository\",\"path\":\"src/infrastructure/repositories/InMemoryUserRepository.ts\"},{\"kind\":\"File\",\"layer\":\"domain\",\"path\":\"src/domain/entities/User.ts\"},{\"kind\":\"File\",\"layer\":\"domain\",\"path\":\"src/domain/repositories/UserRepository.ts\"},{\"kind\":\"File\",\"layer\":\"infrastructure\",\"path\":\"src/infrastructure/app.ts\"},{\"kind\":\"File\",\"layer\":\"infrastructure\",\"path\":\"src/infrastructure/repositories/InMemoryUserRepository.ts\"},{\"kind\":\"Interface\",\"layer\":\"domain\",\"name\":\"UserRepository\",\"path\":\"src/domain/repositories/UserRepository.ts\"}]}\n\n## Instructions\nJudge the unit against the rule and rubric. Return the JSON object the schema requires. Set pass to false if any file of the unit fails the rubric.\n",
+  "provider": "claude-cli",
+  "recordedAt": "2026-10-11T21:50:06.047Z",
+  "repetition": 0,
+  "requestHash": "47899d9e779a50f7dcf171732ab3579e20ef909c8d432e1790360360e9eda6a8",
+  "resolvedModel": "claude-sonnet-5-5",
+  "response": "{\"is_error\":false,\"modelUsage\":{\"claude-sonnet-5-5\":{\"inputTokens\":2,\"outputTokens\":381}},\"result\":\"{\\\"pass\\\":true,\\\"confidence\\\":0.97,\\\"reasoning\\\":\\\"InMemoryUserRepository is an infrastructure-layer class that implements the domain UserRepository port. Its only responsibility is persistence, using an in-memory Map for findById, findAll and save. It has no business rules, validation or presentation logic, so it fits the infrastructure role.\\\",\\\"evidence\\\":[\\\"src/infrastructure/repositories/InMemoryUserRepository.ts: class InMemoryUserRepository implements UserRepository, with storage in a private Map (persistence, which belongs to infrastructure).\\\",\\\"findById, findAll and save only read from and write to the Map, with no domain rules or validation.\\\",\\\"The graph shows an IMPLEMENTS edge to the domain UserRepository interface, which is the expected adapter pattern.\\\"],\\\"violations\\\":[]}\",\"structured_output\":{\"confidence\":0.97,\"evidence\":[\"src/infrastructure/repositories/InMemoryUserRepository.ts: class InMemoryUserRepository implements UserRepository, with storage in a private Map (persistence, which belongs to infrastructure).\",\"findById, findAll and save only read from and write to the Map, with no domain rules or validation.\",\"The graph shows an IMPLEMENTS edge to the domain UserRepository interface, which is the expected adapter pattern.\"],\"pass\":true,\"reasoning\":\"InMemoryUserRepository is an infrastructure-layer class that implements the domain UserRepository port. Its only responsibility is persistence, using an in-memory Map for findById, findAll and save. It has no business rules, validation or presentation logic, so it fits the infrastructure role.\",\"violations\":[]}}",
+  "runIndex": 1,
+  "schemaVersion": 2,
+  "unitId": "src/infrastructure/repositories/InMemoryUserRepository.ts",
+  "usage": {
+    "inputTokens": 2654,
+    "outputTokens": 381
+  },
+  "usedOptions": {
+    "effort": "high",
+    "model": "claude-sonnet-5-5"
+  }
+}

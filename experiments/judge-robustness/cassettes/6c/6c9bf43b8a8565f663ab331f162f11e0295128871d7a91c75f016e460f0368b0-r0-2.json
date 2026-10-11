@@ -1,0 +1,45 @@
+{
+  "attempts": 1,
+  "cliVersion": "2.1.294",
+  "configListingSha256": "47aa04258852fab9a706f3f0c14cee22306d69fbb6fdfbde8c11854bd54997bc",
+  "durationMs": 10878,
+  "effort": "high",
+  "functionId": "FF-N02",
+  "ignoredOptions": [
+    "maxTokens"
+  ],
+  "isolationProbeSha256": "ce76f240c1d90df332d581703538c0b40c5186947dd64c0ffb3ffb207242b218",
+  "key": "6c9bf43b8a8565f663ab331f162f11e0295128871d7a91c75f016e460f0368b0-r0-2",
+  "model": "claude-sonnet-5-5",
+  "outcome": {
+    "kind": "valid"
+  },
+  "parsedVerdict": {
+    "confidence": 0.78,
+    "evidence": [
+      "src/profile/follows.entity.ts: class FollowsEntity declares only the fields id, followerId and followingId, with no methods.",
+      "The decorators @Entity('follows'), @PrimaryGeneratedColumn() and @Column() are declarative mappings only. The layer model places **/*.entity.ts in the domain layer."
+    ],
+    "pass": true,
+    "reasoning": "FollowsEntity is a plain data holder with three fields: id, followerId and followingId. It has no queries, repository calls, transport code, framework wiring or business logic. The only persistence-related content is the TypeORM mapping decorators (@Entity, @PrimaryGeneratedColumn, @Column). They are declarative schema metadata, not persistence behavior. The layer model assigns **/*.entity.ts to the domain layer, which indicates that decorated entities belong here. The typeorm import is a dependency-direction matter and out of scope. No responsibility from another layer kind is present.",
+    "violations": []
+  },
+  "prompt": "## Rule\nThe unit's responsibilities match the role of its declared layer.\n\n## Rubric\nPass: Every responsibility in the file belongs to the role and kind of its declared layer, and agrees with any ADR prose given.\nFail: The file carries a responsibility that belongs to a different layer kind, for example persistence, transport or framework logic in a domain file, or business rules in an infrastructure or presentation file.\nEvidence required: Name the file and cite the function, method or statement that carries the misplaced responsibility, and the layer kind it belongs to.\nOut of scope: import direction and layer-dependency rules, which are checked symbolically.\n\n## Layer model\n- domain (kind: domain): src/domain/**, src/core/**, src/entities/**, src/models/**, **/domain/**; file patterns: **/*.entity.ts\n- infrastructure (kind: infrastructure): src/infrastructure/**, src/persistence/**, src/adapters/**, src/prisma/**, src/lib/**, src/common/middleware/**, src/common/filters/**, src/common/pipes/**; file patterns: **/*.repository.ts, **/*.worker.ts, **/workers/**, **/strategies/**\n- application (kind: application): src/application/**, src/use-cases/**, src/services/**; file patterns: **/*.service.ts, **/*.processor.ts, **/dto/**, **/*.dto.ts\n- presentation (kind: presentation): src/controllers/**, src/gateways/**, src/common/guards/**, src/common/interceptors/**; file patterns: **/*.controller.ts, **/*.module.ts, **/*.guard.ts, **/*.interceptor.ts, **/*.gateway.ts\n\n## Unit\nKind: file\nId: src/profile/follows.entity.ts\nLayer: domain\nUnit files:\n- src/profile/follows.entity.ts\n\n## Source\n=====SOURCE-BEGIN src/profile/follows.entity.ts=====\nimport { Entity, PrimaryGeneratedColumn, Column } from \"typeorm\";\n\n@Entity('follows')\nexport class FollowsEntity {\n\n  @PrimaryGeneratedColumn()\n  id: number;\n\n  @Column()\n  followerId: number;\n\n  @Column()\n  followingId: number;\n\n}\n\n=====SOURCE-END=====\n\n## Graph excerpt\n{\"edges\":[{\"from\":\"src/article/article.module.ts\",\"to\":\"src/profile/follows.entity.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/article/article.service.ts\",\"to\":\"src/profile/follows.entity.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/profile/follows.entity.ts\",\"to\":\"typeorm\",\"type\":\"IMPORTS\"},{\"from\":\"src/profile/profile.module.ts\",\"to\":\"src/profile/follows.entity.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/profile/profile.service.ts\",\"to\":\"src/profile/follows.entity.ts\",\"type\":\"IMPORTS\"}],\"nodes\":[{\"kind\":\"Class\",\"layer\":\"domain\",\"name\":\"FollowsEntity\",\"path\":\"src/profile/follows.entity.ts\"},{\"kind\":\"File\",\"layer\":\"application\",\"path\":\"src/article/article.service.ts\"},{\"kind\":\"File\",\"layer\":\"application\",\"path\":\"src/profile/profile.service.ts\"},{\"kind\":\"File\",\"layer\":\"domain\",\"path\":\"src/profile/follows.entity.ts\"},{\"kind\":\"File\",\"layer\":\"presentation\",\"path\":\"src/article/article.module.ts\"},{\"kind\":\"File\",\"layer\":\"presentation\",\"path\":\"src/profile/profile.module.ts\"},{\"kind\":\"Package\",\"layer\":null,\"path\":\"typeorm\"}]}\n\n## Instructions\nJudge the unit against the rule and rubric. Return the JSON object the schema requires. Set pass to false if any file of the unit fails the rubric.\n",
+  "provider": "claude-cli",
+  "recordedAt": "2026-10-11T22:19:25.187Z",
+  "repetition": 0,
+  "requestHash": "6c9bf43b8a8565f663ab331f162f11e0295128871d7a91c75f016e460f0368b0",
+  "resolvedModel": "claude-sonnet-5-5",
+  "response": "{\"is_error\":false,\"modelUsage\":{\"claude-sonnet-5-5\":{\"inputTokens\":4,\"outputTokens\":1033}},\"result\":\"{\\\"pass\\\":true,\\\"confidence\\\":0.78,\\\"reasoning\\\":\\\"FollowsEntity is a plain data holder with three fields: id, followerId and followingId. It has no queries, repository calls, transport code, framework wiring or business logic. The only persistence-related content is the TypeORM mapping decorators (@Entity, @PrimaryGeneratedColumn, @Column). They are declarative schema metadata, not persistence behavior. The layer model assigns **/*.entity.ts to the domain layer, which indicates that decorated entities belong here. The typeorm import is a dependency-direction matter and out of scope. No responsibility from another layer kind is present.\\\",\\\"evidence\\\":[\\\"src/profile/follows.entity.ts: class FollowsEntity declares only the fields id, followerId and followingId, with no methods.\\\",\\\"The decorators @Entity('follows'), @PrimaryGeneratedColumn() and @Column() are declarative mappings only. The layer model places **/*.entity.ts in the domain layer.\\\"],\\\"violations\\\":[]}\",\"structured_output\":{\"confidence\":0.78,\"evidence\":[\"src/profile/follows.entity.ts: class FollowsEntity declares only the fields id, followerId and followingId, with no methods.\",\"The decorators @Entity('follows'), @PrimaryGeneratedColumn() and @Column() are declarative mappings only. The layer model places **/*.entity.ts in the domain layer.\"],\"pass\":true,\"reasoning\":\"FollowsEntity is a plain data holder with three fields: id, followerId and followingId. It has no queries, repository calls, transport code, framework wiring or business logic. The only persistence-related content is the TypeORM mapping decorators (@Entity, @PrimaryGeneratedColumn, @Column). They are declarative schema metadata, not persistence behavior. The layer model assigns **/*.entity.ts to the domain layer, which indicates that decorated entities belong here. The typeorm import is a dependency-direction matter and out of scope. No responsibility from another layer kind is present.\",\"violations\":[]}}",
+  "runIndex": 2,
+  "schemaVersion": 2,
+  "unitId": "src/profile/follows.entity.ts",
+  "usage": {
+    "inputTokens": 6316,
+    "outputTokens": 1033
+  },
+  "usedOptions": {
+    "effort": "high",
+    "model": "claude-sonnet-5-5"
+  }
+}

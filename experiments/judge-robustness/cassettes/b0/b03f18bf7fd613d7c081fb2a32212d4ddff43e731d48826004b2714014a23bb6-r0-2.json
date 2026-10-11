@@ -1,0 +1,46 @@
+{
+  "attempts": 1,
+  "cliVersion": "2.1.294",
+  "configListingSha256": "47aa04258852fab9a706f3f0c14cee22306d69fbb6fdfbde8c11854bd54997bc",
+  "durationMs": 4833,
+  "effort": "high",
+  "functionId": "FF-N02",
+  "ignoredOptions": [
+    "maxTokens"
+  ],
+  "isolationProbeSha256": "ce76f240c1d90df332d581703538c0b40c5186947dd64c0ffb3ffb207242b218",
+  "key": "b03f18bf7fd613d7c081fb2a32212d4ddff43e731d48826004b2714014a23bb6-r0-2",
+  "model": "claude-sonnet-5-5",
+  "outcome": {
+    "kind": "valid"
+  },
+  "parsedVerdict": {
+    "confidence": 0.93,
+    "evidence": [
+      "execute(): `new Project(id, name)` delegates construction to the domain, with no business rules inlined.",
+      "execute(): `this.projectRepository.save(project)` calls the repository interface. No persistence implementation is present.",
+      "The constructor injects the `ProjectRepository` abstraction. There is no HTTP, framework or transport code in the file."
+    ],
+    "pass": true,
+    "reasoning": "CreateProjectUseCase is an application-layer use case. It only orchestrates: it constructs a domain Project, persists it through the domain-defined ProjectRepository abstraction, and returns the result. It has no business rules (no validation or invariants), no persistence implementation, and no transport or framework logic. That fits the application layer's role. No ADR prose was given to conflict with this.",
+    "violations": []
+  },
+  "prompt": "## Rule\nThe unit's responsibilities match the role of its declared layer.\n\n## Rubric\nPass: Every responsibility in the file belongs to the role and kind of its declared layer, and agrees with any ADR prose given.\nFail: The file carries a responsibility that belongs to a different layer kind, for example persistence, transport or framework logic in a domain file, or business rules in an infrastructure or presentation file.\nEvidence required: Name the file and cite the function, method or statement that carries the misplaced responsibility, and the layer kind it belongs to.\nOut of scope: import direction and layer-dependency rules, which are checked symbolically.\n\n## Layer model\n- domain (kind: domain): src/domain/**\n- application (kind: application): src/application/**\n- infrastructure (kind: infrastructure): src/infrastructure/**\n\n## Unit\nKind: file\nId: src/application/CreateProjectUseCase.ts\nLayer: application\nUnit files:\n- src/application/CreateProjectUseCase.ts\n\n## Source\n=====SOURCE-BEGIN src/application/CreateProjectUseCase.ts=====\nimport { Project } from '../domain/Project';\nimport { ProjectRepository } from '../domain/ProjectRepository';\n\nexport class CreateProjectUseCase {\n  constructor(private projectRepository: ProjectRepository) {}\n\n  execute(id: string, name: string): Project {\n    const project = new Project(id, name);\n    this.projectRepository.save(project);\n    return project;\n  }\n}\n\n=====SOURCE-END=====\n\n## Graph excerpt\n{\"edges\":[{\"from\":\"CreateProjectUseCase@src/application/CreateProjectUseCase.ts\",\"to\":\"ProjectRepository@src/domain/ProjectRepository.ts\",\"type\":\"CONSTRUCTOR_INJECTS\"},{\"from\":\"ProjectController@src/infrastructure/ProjectController.ts\",\"to\":\"CreateProjectUseCase@src/application/CreateProjectUseCase.ts\",\"type\":\"CONSTRUCTOR_INJECTS\"},{\"from\":\"src/application/CreateProjectUseCase.ts\",\"to\":\"src/domain/Project.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/application/CreateProjectUseCase.ts\",\"to\":\"src/domain/ProjectRepository.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/infrastructure/ProjectController.ts\",\"to\":\"src/application/CreateProjectUseCase.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/infrastructure/server.ts\",\"to\":\"src/application/CreateProjectUseCase.ts\",\"type\":\"IMPORTS\"}],\"nodes\":[{\"kind\":\"Class\",\"layer\":\"application\",\"name\":\"CreateProjectUseCase\",\"path\":\"src/application/CreateProjectUseCase.ts\"},{\"kind\":\"Class\",\"layer\":\"infrastructure\",\"name\":\"ProjectController\",\"path\":\"src/infrastructure/ProjectController.ts\"},{\"kind\":\"File\",\"layer\":\"application\",\"path\":\"src/application/CreateProjectUseCase.ts\"},{\"kind\":\"File\",\"layer\":\"domain\",\"path\":\"src/domain/Project.ts\"},{\"kind\":\"File\",\"layer\":\"domain\",\"path\":\"src/domain/ProjectRepository.ts\"},{\"kind\":\"File\",\"layer\":\"infrastructure\",\"path\":\"src/infrastructure/ProjectController.ts\"},{\"kind\":\"File\",\"layer\":\"infrastructure\",\"path\":\"src/infrastructure/server.ts\"},{\"kind\":\"Interface\",\"layer\":\"domain\",\"name\":\"ProjectRepository\",\"path\":\"src/domain/ProjectRepository.ts\"}]}\n\n## Instructions\nJudge the unit against the rule and rubric. Return the JSON object the schema requires. Set pass to false if any file of the unit fails the rubric.\n",
+  "provider": "claude-cli",
+  "recordedAt": "2026-10-11T21:48:26.362Z",
+  "repetition": 0,
+  "requestHash": "b03f18bf7fd613d7c081fb2a32212d4ddff43e731d48826004b2714014a23bb6",
+  "resolvedModel": "claude-sonnet-5-5",
+  "response": "{\"is_error\":false,\"modelUsage\":{\"claude-sonnet-5-5\":{\"inputTokens\":2,\"outputTokens\":382}},\"result\":\"{\\\"pass\\\":true,\\\"confidence\\\":0.93,\\\"reasoning\\\":\\\"CreateProjectUseCase is an application-layer use case. It only orchestrates: it constructs a domain Project, persists it through the domain-defined ProjectRepository abstraction, and returns the result. It has no business rules (no validation or invariants), no persistence implementation, and no transport or framework logic. That fits the application layer's role. No ADR prose was given to conflict with this.\\\",\\\"evidence\\\":[\\\"execute(): `new Project(id, name)` delegates construction to the domain, with no business rules inlined.\\\",\\\"execute(): `this.projectRepository.save(project)` calls the repository interface. No persistence implementation is present.\\\",\\\"The constructor injects the `ProjectRepository` abstraction. There is no HTTP, framework or transport code in the file.\\\"],\\\"violations\\\":[]}\",\"structured_output\":{\"confidence\":0.93,\"evidence\":[\"execute(): `new Project(id, name)` delegates construction to the domain, with no business rules inlined.\",\"execute(): `this.projectRepository.save(project)` calls the repository interface. No persistence implementation is present.\",\"The constructor injects the `ProjectRepository` abstraction. There is no HTTP, framework or transport code in the file.\"],\"pass\":true,\"reasoning\":\"CreateProjectUseCase is an application-layer use case. It only orchestrates: it constructs a domain Project, persists it through the domain-defined ProjectRepository abstraction, and returns the result. It has no business rules (no validation or invariants), no persistence implementation, and no transport or framework logic. That fits the application layer's role. No ADR prose was given to conflict with this.\",\"violations\":[]}}",
+  "runIndex": 2,
+  "schemaVersion": 2,
+  "unitId": "src/application/CreateProjectUseCase.ts",
+  "usage": {
+    "inputTokens": 2752,
+    "outputTokens": 382
+  },
+  "usedOptions": {
+    "effort": "high",
+    "model": "claude-sonnet-5-5"
+  }
+}

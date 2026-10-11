@@ -1,0 +1,46 @@
+{
+  "attempts": 1,
+  "cliVersion": "2.1.294",
+  "configListingSha256": "47aa04258852fab9a706f3f0c14cee22306d69fbb6fdfbde8c11854bd54997bc",
+  "durationMs": 8263,
+  "effort": "high",
+  "functionId": "FF-N02",
+  "ignoredOptions": [
+    "maxTokens"
+  ],
+  "isolationProbeSha256": "ce76f240c1d90df332d581703538c0b40c5186947dd64c0ffb3ffb207242b218",
+  "key": "f23b7ac7b21ba2c7d772ee95c38ad38885443fa96969cd76a9b1f7b5466915a2-r0-1",
+  "model": "claude-sonnet-5-5",
+  "outcome": {
+    "kind": "valid"
+  },
+  "parsedVerdict": {
+    "confidence": 0.93,
+    "evidence": [
+      "src/application/CreateUserUseCase.ts execute(): `User.create(this.ids.next(), input.name)` delegates creation and its rules to the domain.",
+      "src/application/CreateUserUseCase.ts execute(): `await this.users.save(user)` calls the repository abstraction and has no concrete persistence logic.",
+      "src/application/CreateUserUseCase.ts execute(): `toUserDto(user)` maps to an application-level DTO, which is orchestration work."
+    ],
+    "pass": true,
+    "reasoning": "CreateUserUseCase is an application-layer use case. It orchestrates the flow. It gets an id from the IdGenerator port and delegates entity creation and its invariants to the domain (User.create). It persists through the domain's UserRepository abstraction and maps the result to a DTO. It has no business rules of its own, no concrete persistence or transport code, and no framework logic. Every responsibility fits the application layer.",
+    "violations": []
+  },
+  "prompt": "## Rule\nThe unit's responsibilities match the role of its declared layer.\n\n## Rubric\nPass: Every responsibility in the file belongs to the role and kind of its declared layer, and agrees with any ADR prose given.\nFail: The file carries a responsibility that belongs to a different layer kind, for example persistence, transport or framework logic in a domain file, or business rules in an infrastructure or presentation file.\nEvidence required: Name the file and cite the function, method or statement that carries the misplaced responsibility, and the layer kind it belongs to.\nOut of scope: import direction and layer-dependency rules, which are checked symbolically.\n\n## Layer model\n- domain (kind: domain): src/domain/**\n- application (kind: application): src/application/**\n- infrastructure (kind: infrastructure): src/infrastructure/**\n\n## Unit\nKind: file\nId: src/application/CreateUserUseCase.ts\nLayer: application\nUnit files:\n- src/application/CreateUserUseCase.ts\n\n## Source\n=====SOURCE-BEGIN src/application/CreateUserUseCase.ts=====\nimport { User } from \"../domain/User\";\nimport { UserRepository } from \"../domain/UserRepository\";\nimport { UserDto, toUserDto } from \"./dto\";\nimport { IdGenerator } from \"./IdGenerator\";\n\nexport class CreateUserUseCase {\n  constructor(\n    private readonly users: UserRepository,\n    private readonly ids: IdGenerator,\n  ) {}\n\n  async execute(input: { name: string }): Promise<UserDto> {\n    const user = User.create(this.ids.next(), input.name);\n    await this.users.save(user);\n    return toUserDto(user);\n  }\n}\n\n=====SOURCE-END=====\n\n## Graph excerpt\n{\"edges\":[{\"from\":\"CreateUserUseCase@src/application/CreateUserUseCase.ts\",\"to\":\"IdGenerator@src/application/IdGenerator.ts\",\"type\":\"CONSTRUCTOR_INJECTS\"},{\"from\":\"CreateUserUseCase@src/application/CreateUserUseCase.ts\",\"to\":\"UserRepository@src/domain/UserRepository.ts\",\"type\":\"CONSTRUCTOR_INJECTS\"},{\"from\":\"UserController@src/infrastructure/UserController.ts\",\"to\":\"CreateUserUseCase@src/application/CreateUserUseCase.ts\",\"type\":\"CONSTRUCTOR_INJECTS\"},{\"from\":\"src/application/CreateUserUseCase.ts\",\"to\":\"src/application/IdGenerator.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/application/CreateUserUseCase.ts\",\"to\":\"src/application/dto.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/application/CreateUserUseCase.ts\",\"to\":\"src/domain/User.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/application/CreateUserUseCase.ts\",\"to\":\"src/domain/UserRepository.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/infrastructure/UserController.ts\",\"to\":\"src/application/CreateUserUseCase.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/infrastructure/createApp.ts\",\"to\":\"src/application/CreateUserUseCase.ts\",\"type\":\"IMPORTS\"}],\"nodes\":[{\"kind\":\"Class\",\"layer\":\"application\",\"name\":\"CreateUserUseCase\",\"path\":\"src/application/CreateUserUseCase.ts\"},{\"kind\":\"Class\",\"layer\":\"infrastructure\",\"name\":\"UserController\",\"path\":\"src/infrastructure/UserController.ts\"},{\"kind\":\"File\",\"layer\":\"application\",\"path\":\"src/application/CreateUserUseCase.ts\"},{\"kind\":\"File\",\"layer\":\"application\",\"path\":\"src/application/IdGenerator.ts\"},{\"kind\":\"File\",\"layer\":\"application\",\"path\":\"src/application/dto.ts\"},{\"kind\":\"File\",\"layer\":\"domain\",\"path\":\"src/domain/User.ts\"},{\"kind\":\"File\",\"layer\":\"domain\",\"path\":\"src/domain/UserRepository.ts\"},{\"kind\":\"File\",\"layer\":\"infrastructure\",\"path\":\"src/infrastructure/UserController.ts\"},{\"kind\":\"File\",\"layer\":\"infrastructure\",\"path\":\"src/infrastructure/createApp.ts\"},{\"kind\":\"Interface\",\"layer\":\"application\",\"name\":\"IdGenerator\",\"path\":\"src/application/IdGenerator.ts\"},{\"kind\":\"Interface\",\"layer\":\"domain\",\"name\":\"UserRepository\",\"path\":\"src/domain/UserRepository.ts\"}]}\n\n## Instructions\nJudge the unit against the rule and rubric. Return the JSON object the schema requires. Set pass to false if any file of the unit fails the rubric.\n",
+  "provider": "claude-cli",
+  "recordedAt": "2026-10-11T22:02:00.987Z",
+  "repetition": 0,
+  "requestHash": "f23b7ac7b21ba2c7d772ee95c38ad38885443fa96969cd76a9b1f7b5466915a2",
+  "resolvedModel": "claude-sonnet-5-5",
+  "response": "{\"is_error\":false,\"modelUsage\":{\"claude-sonnet-5-5\":{\"inputTokens\":4,\"outputTokens\":875}},\"result\":\"{\\\"pass\\\":true,\\\"confidence\\\":0.93,\\\"reasoning\\\":\\\"CreateUserUseCase is an application-layer use case. It orchestrates the flow. It gets an id from the IdGenerator port and delegates entity creation and its invariants to the domain (User.create). It persists through the domain's UserRepository abstraction and maps the result to a DTO. It has no business rules of its own, no concrete persistence or transport code, and no framework logic. Every responsibility fits the application layer.\\\",\\\"evidence\\\":[\\\"src/application/CreateUserUseCase.ts execute(): `User.create(this.ids.next(), input.name)` delegates creation and its rules to the domain.\\\",\\\"src/application/CreateUserUseCase.ts execute(): `await this.users.save(user)` calls the repository abstraction and has no concrete persistence logic.\\\",\\\"src/application/CreateUserUseCase.ts execute(): `toUserDto(user)` maps to an application-level DTO, which is orchestration work.\\\"],\\\"violations\\\":[]}\",\"structured_output\":{\"confidence\":0.93,\"evidence\":[\"src/application/CreateUserUseCase.ts execute(): `User.create(this.ids.next(), input.name)` delegates creation and its rules to the domain.\",\"src/application/CreateUserUseCase.ts execute(): `await this.users.save(user)` calls the repository abstraction and has no concrete persistence logic.\",\"src/application/CreateUserUseCase.ts execute(): `toUserDto(user)` maps to an application-level DTO, which is orchestration work.\"],\"pass\":true,\"reasoning\":\"CreateUserUseCase is an application-layer use case. It orchestrates the flow. It gets an id from the IdGenerator port and delegates entity creation and its invariants to the domain (User.create). It persists through the domain's UserRepository abstraction and maps the result to a DTO. It has no business rules of its own, no concrete persistence or transport code, and no framework logic. Every responsibility fits the application layer.\",\"violations\":[]}}",
+  "runIndex": 1,
+  "schemaVersion": 2,
+  "unitId": "src/application/CreateUserUseCase.ts",
+  "usage": {
+    "inputTokens": 6728,
+    "outputTokens": 875
+  },
+  "usedOptions": {
+    "effort": "high",
+    "model": "claude-sonnet-5-5"
+  }
+}

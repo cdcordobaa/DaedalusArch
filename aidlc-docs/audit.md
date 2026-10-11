@@ -1422,3 +1422,11 @@ Plan checkboxes ticked. Auto-approved under standing approval; no blocking or ma
 **Context**: CONSTRUCTION — Build and Test, extra experiments. Worktree ../DaedalusArch-wt-x3, branch v1.2e-exp-extra.
 
 ---
+
+## Build and Test — Experiment C (ADR-038) run and scored
+**Timestamp**: 2026-10-12T01:10:00Z
+**User Input**: "Coordinator: run C, analyse it, merge it by PR, report to main."
+**AI Response**: "300 Sonnet calls on the frozen route (0 invalid, 0 retries, no usage pause). Unit agreement 0.940 (0.875–0.972), κ 0.766 (0.565–0.926), AC1 0.931 (0.872–0.978); weighted 0.974, κ 0.886. E1 agrees 50/50; E7 44/50. All 6 disagreements are low-confidence Opus fail → Sonnet pass. Fail rate: Opus 0.18, Sonnet 0.12. 0 function and 0 verdict changes in 41 reports (registered and any-fail). Reading: robust (κ ≥ 0.60)."
+**Context**: CONSTRUCTION — Build and Test, extra experiments. Worktree ../DaedalusArch-wt-x3, branch v1.2e-exp-extra.
+
+---
