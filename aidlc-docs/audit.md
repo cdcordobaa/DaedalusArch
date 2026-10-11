@@ -1345,3 +1345,11 @@ Plan checkboxes ticked. Auto-approved under standing approval; no blocking or ma
 **Context**: CONSTRUCTION — Build and Test, ADR-030; worktree ../DaedalusArch-wt-cmp, branch v1.2e-exp-comparison.
 
 ---
+
+## Build and Test — v1.3 MCP prototype (scheduled run)
+**Timestamp**: 2026-10-11T00:00:00Z
+**User Input**: "(scheduled task) Build a prototype MCP server for DaedalusArch on a new branch v1.3-mcp-prototype from v1.2e, groundwork for a firewall-in-the-loop experiment: five tools over stdio (get_architecture_spec, which_layer, check_import, evaluate_project, explain_violation), new code only, frozen instrument and registered artefacts untouched, --check-prereg still passing, unit tests with Neo4j mocked, README section, and an experiment design document; open a draft PR into v1.2e."
+**AI Response**: "Added src/mcp-server/ (spec-rules, layer-resolver, import-check, spec-view, rule-explainer, evaluate-project behind injected ports, tools, server, context, main), tests/unit/mcp-server/, README.md section, Docs/mcp-firewall-in-the-loop.md, the pinned @modelcontextprotocol/sdk 1.32.1 with lockfile, a daedalus-arch-mcp bin and an `mcp` script. No existing source, spec, preset or registered artefact edited; --check-prereg passes on all ten experiment plans (v20, 77 artefacts unchanged). Deviation: the unattended run has no approval gates, so the AI-DLC stage approvals (requirements, workflow planning, code-generation plan) were not requested; the task prompt served as the approved scope."
+**Context**: CONSTRUCTION — prototype lane, branch v1.3-mcp-prototype. Not registered; nothing run.
+
+---
