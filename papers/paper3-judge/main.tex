@@ -2,7 +2,8 @@
 % Workshop paper draft (LLM4Code or an AI-for-SE workshop), about 6 pages in this class.
 %
 % Provenance convention: every number in this file carries a LaTeX comment "% src: <path>" naming the committed
-% file it was read from (paths relative to the repository root, at branch v1.2e, commit b7034682). Where a number
+% file it was read from (paths relative to the repository root, at branch v1.2e, commit b7034682; Lessons 8 and 9
+% added in the 2026-10-12 revision from files at 8fbe079e). Where a number
 % was derived (a sum, a difference, a count of rows), the comment says "derived" and how. Nothing here comes from an
 % uncommitted file. A path of the form "git show <sha>:<path>" names a committed file at an earlier commit.
 %
@@ -46,7 +47,7 @@
 
 % =====================================================================================================================
 \begin{abstract}
-LLM judges are increasingly placed inside software quality gates, next to deterministic rules. We report eight
+LLM judges are increasingly placed inside software quality gates, next to deterministic rules. We report ten
 lessons from one such gate: \tool{}, an architectural conformance checker for TypeScript whose score combines 25
 symbolic fitness functions with two rubric-driven LLM judge functions. The evaluation was pre-registered and every
 judge call was recorded. On nine real projects the judge failed about a fifth of the units it saw, yet under the
@@ -56,13 +57,17 @@ not the judge, decide whether it matters: with a weight of 2/7 and an any-fail r
 verdicts. A clean judge dimension even raises the composite score. Coding the judge's rationales over-counts
 criteria because the judge names criteria while negating them. Most judge failures coincide with rule findings, a
 self-preference signal turns out to be confounded with code quality, and a cross-family LLM panel agrees with the
-judge 98.2\% of the time with an AC1 of 0.98 but a $\kappa$ of 0, because the judge never failed a sampled generated
-unit. We close with operational lessons on CLI isolation, an unblockable web-search tool and fail-closed guards, and
-with recommendations for anyone who puts an LLM judge inside a gate.
+judge on 34 of 36 items (weighted agreement 0.982) with an AC1 of 0.98 but a $\kappa$ of 0, because the judge never failed a sampled generated
+unit. Replaying 100 recorded units with a second model of the same vendor changes no verdict (agreement 0.94,
+$\kappa = 0.77$); the frozen judge is slightly stricter. Our synthetic judge probes place no seed in real or
+generated code, so the judge's detection rate could not be measured. We close with operational lessons on CLI
+isolation, an unblockable web-search tool and fail-closed guards, and with recommendations for anyone who puts an
+LLM judge inside a gate.
 \end{abstract}
 % src (abstract): 25 symbolic functions: src/fitness-compiler/cypher-templates.ts (header comment, "25 symbolic fitness functions"); the 2 judge functions:
 % src/llm-critic/rubric.ts (FF-N01, FF-N02). Every other number is repeated with its source in the body:
-% "a fifth" = 73/331 (Sec. 4.1); 65 cells (Sec. 2); 8 of 9 (Sec. 4.2); 98.2%, AC1 0.98, kappa 0 (Sec. 4.7).
+% "a fifth" = 73/331 (Sec. 4.1); 65 cells (Sec. 2); 8 of 9 (Sec. 4.2); weighted agreement 0.982, 34 of 36 items, AC1 0.98, kappa 0 (Sec. 4.7);
+% 0.94 and kappa 0.766355 (rounded 0.77): results/judge-robustness/summary.json (Sec. 4.8); no probe site: Docs/DiagnosticRuns/judge-probe-e1-site-count.md (Sec. 4.9).
 
 % =====================================================================================================================
 \section{Introduction}\label{sec:intro}
@@ -81,12 +86,13 @@ irrelevant. This paper reports what we learned from one such gate, \tool{}, duri
 \cite{nosek2018prereg}. Every judge call was recorded in a cassette, so every reading below was recomputed from
 the same calls with no new judge call.
 
-Our contribution is a set of eight lessons, each with its evidence: (1) the judge was inert, and a simple bound
+Our contribution is a set of ten lessons, each with its evidence: (1) the judge was inert, and a simple bound
 shows why; (2) aggregation and weight decide whether it matters; (3) a clean judge dimension inflates the
 composite score; (4) keyword coding of judge rationales misleads; (5) most judge failures overlap with rule
 findings; (6) a self-preference signal is confounded with code quality; (7) validating the judge with an LLM panel
-gives high agreement but leaves fail detection untested; (8) isolating CLI-based judges and labellers is harder
-than it looks. Section~\ref{sec:recs} turns them into recommendations.
+gives high agreement but leaves fail detection untested; (8) the verdicts are robust to the judge model, with
+the frozen judge slightly stricter; (9) synthetic judge probes may have no construct validity, because they find
+no site in real or generated code; (10) isolating CLI-based judges and labellers is harder than it looks. Section~\ref{sec:recs} turns them into recommendations.
 
 % =====================================================================================================================
 \section{The Gate and the Judge}\label{sec:gate}
@@ -369,7 +375,56 @@ and no human audit covers P4 items.
 When the judge rarely fails, a random validation sample rarely contains a failure. Sampling for validation
 should be stratified by the judge's verdict, and reports should give agreement on fails separately.
 
-\subsection{Lesson 8: operating CLI judges and labellers}\label{sec:l8}
+\subsection{Lesson 8: the verdicts are robust to the judge model}\label{sec:l8robust}
+
+Every judge figure above comes from one frozen model. A reader can ask whether the verdicts reflect the rubric and
+the code, or that model. Before any call, we registered a replay of 100 recorded judge units through the same pinned
+route with one change, the model: the top-tier judge was replaced by the middle Claude tier. The units were drawn by
+a registered seed, 25 from each of four strata (E7 and E1, integrity and intent), in 41 reports. A unit was eligible
+only if its rebuilt request hashed to the recorded one, so the new request differed from the old one in the model
+field alone. Each unit was judged three times, as before: 300 calls, none invalid.
+% src: Docs/ADR.md ADR-038 Decision items 1-3 (eligibility by request hash, 25 units per stratum, mulberry32 seed 9401, 41 reports, only the model changes); results/judge-robustness/summary.json (units 100, calls 300, invalidRuns 0, reportsAffected 41; frozenModel claude-opus-5-5 = top tier, model claude-sonnet-5-5 = middle tier)
+The two models agreed on 94 of the 100 unit verdicts: agreement 0.94 [0.875, 0.972], Cohen's $\kappa = 0.766$
+[0.565, 0.926] and Gwet's AC1 0.931 [0.872, 0.978]. The $\kappa$ point estimate clears the floor of 0.60 that
+the registration set for reading the verdicts as robust to the judge model.
+% src: results/judge-robustness/agreement.csv (row all, unweighted, primary: 0.940000 [0.875232, 0.972214], kappa 0.766355 [0.565170, 0.925651], ac1 0.931232 [0.872423, 0.977830]); Docs/ADR.md ADR-038 item 4 (pre-declared interpretation, kappa >= 0.60)
+The disagreements have a direction. All six are units the top tier failed and the middle tier passed; none went the
+other way. The top tier failed 18 units and the middle tier 12, so the frozen judge is slightly stricter, although
+the two fail rates' intervals overlap ([0.117, 0.267] and [0.070, 0.198]). All six sit in the real-project (E7)
+strata; on the 50 generated units, including their 6 fails, the two models agreed on every verdict.
+% src: results/judge-robustness/transition.csv (opus fail / sonnet pass 6, opus pass / sonnet fail 0); results/judge-robustness/fail-rates.csv (18 and 12 of 100, Wilson intervals); results/judge-robustness/units.csv (E7 FF-N01 fail/pass 2, E7 FF-N02 fail/pass 4; E1 fail/fail 3 + 3, derived); results/judge-robustness/agreement.csv (E1 rows agreement 1.000)
+Substituting the middle tier's votes into the 41 reports changed no function verdict and no project or cell
+verdict, under the registered majority rule and under the any-fail rule.
+% src: results/judge-robustness/summary.json (functionVerdictChanges 0, registeredVerdictChanges 0, anyFailVerdictChanges 0); results/judge-robustness/verdict-impact.csv
+Two cautions. Agreement between two models of one vendor is reliability, not validity: both could share a blind
+spot. And with fails at about 18\%, $\kappa$ is unstable (it is 0.43 on the 25 E7 intent units), which is why AC1 is
+reported beside it. Lesson 1 still holds: the null effect on verdicts is a property of the weight and aggregation,
+and this check shows only that it is not also an accident of the model.
+% src: Docs/ADR.md ADR-038 Consequences (TV-114 one alternative model, same vendor; TV-115 fail prevalence about 18 %, kappa unstable, AC1 reported beside it); results/judge-robustness/agreement.csv (E7:FF-N02 kappa 0.431818)
+
+\subsection{Lesson 9: construct validity of synthetic judge probes}\label{sec:l9}
+
+To measure the judge's detection on known violations we wrote two seed operators, one per judge function, each with
+a twin that should stay clean. They were frozen before use. On real code they found nothing to seed: on the seven
+held-out corpus projects every attempt ended with no site, on six of them with no candidate site at all.
+% src: results/so4-heldout/agg/seed_coverage.csv (MO-X02, MO-X03: 7 rows each, stage mutate, status rejected, reason no-site; candidates 0 on six projects; nestjslatam__ddd candidates refused by not-removable-guard)
+A later count over the 65 accepted generated (E1) cells, made without reading any detector output or calling any
+model, found the same: the two seed operators place no site in any cell. One operator had no candidate site in 59
+cells and the other in 51; where candidates existed, every one was refused by a precondition (the guarded method
+could not be removed, or its type shape did not fit). Only twins could be placed: 12 twin rows in 11 cells.
+% src: Docs/DiagnosticRuns/judge-probe-e1-site-count.md (MO-X02 rows 0, 59 cells with 0 candidates, 3 cells all rejected; MO-X03 rows 0, 51 cells with 0 candidates, 11 cells all rejected; twins MO-X02n 1 row and MO-X03n 11 rows, 12 rows in 11 cells)
+The reason is the construction. Both seeds need a boolean entity method that is used only as the condition of
+guard statements (\texttt{if (!e.m()) throw}). Neither the real projects nor the agents' code look like that: they
+validate inline, or their methods do more than return a boolean, or the type checker will not let the method be
+removed. The probes therefore encode the authors' picture of a semantic violation, not a construct that occurs in
+the code the judge is asked to read. Under the frozen operators the judge's detection rate cannot be measured on
+either population; only the twins' false-alarm rate can. The follow-up detection experiment is on hold until new
+operators exist.
+% src: Docs/DiagnosticRuns/judge-probe-e1-site-count.md ("Reading": boolean entity method used only as guard condition; generated code validates inline; "Under the frozen operators the judge's detection rate cannot be measured on either population. Only the twin false-alarm rate can."); Docs/ADR.md ADR-038 Status (ADR-037 reserved, on hold for new operators)
+Before freezing a synthetic probe, count its sites on the target population, real and generated, and treat a probe
+that cannot be placed as a failed instrument rather than a passed judge.
+
+\subsection{Lesson 10: operating CLI judges and labellers}\label{sec:l8}
 
 \paragraph{The judge's CLI writes more than you expect.}
 Using a subscription CLI rather than an API brought hidden state. A probe of the judge configuration directory
@@ -424,7 +479,10 @@ offered, and where a CLI is unavoidable, a guard that inspects what the model ac
   \item \textbf{Validate on fails.} Stratify the validation sample by judge verdict; report AC1 beside $\kappa$ and
         agreement on fails separately (Lesson 7).
   \item \textbf{Treat isolation as testable.} Pin versions, fail closed on drift, prefer APIs without tools, and
-        pre-register stop rules for when isolation fails (Lesson 8).
+        pre-register stop rules for when isolation fails (Lesson 10).
+  \item \textbf{Replay with another model.} Recorded prompts make a model swap cheap; report agreement, its
+        direction and the verdict impact (Lesson 8).
+  \item \textbf{Count probe sites before freezing a probe}, on real and on generated code (Lesson 9).
 \end{enumerate}
 
 % =====================================================================================================================
@@ -437,8 +495,10 @@ not ground truth \citeneeded{ahmed2025annotation}. The coding frames are keyword
 were defined after E7 results were known; we mark them post hoc. Generator tier is confounded with model
 generation, and the panel route changed between label sets.
 % src: Docs/analysis-plan.md sections 12 and 12.5 (post-hoc E7 readings); Docs/threats-to-validity.md TV-49; Docs/ADR.md ADR-035 Consequences
-\emph{External.} One gate, one judge model, two rubrics, nine real projects and two generation tasks; the bound
-argument generalises, the counts do not.
+\emph{External.} One gate, one judge model (checked against one alternative model of the same vendor on 100
+units), two rubrics, nine real projects and two generation tasks; the bound argument generalises, the counts do
+not. The judge has no seeded ground truth, because its probes could not be placed (Lesson 9).
+% src: Docs/ADR.md ADR-038 Consequences (TV-114); Docs/DiagnosticRuns/judge-probe-e1-site-count.md
 \emph{Conclusion.} Validation samples are small ($n = 36$ on the headline) and its intervals are wide; the
 self-preference check is one test.
 % src: results/e1-grid/label-plan-p4-api/labelling.json (headline n 36)
@@ -448,8 +508,8 @@ Wohlin et al.'s classification guided this section \citeneeded{wohlin2012experim
 \section{Conclusion}\label{sec:conclusion}
 
 An LLM judge inside a gate can be active, plausible and validated by a panel, and still decide nothing. In our gate
-the judge failed about a fifth of real-project units, explained them well and mostly agreed with an independent
-panel, yet the registered weight and aggregation left it no verdict to move, and a clean judge dimension made scores
+the judge failed about a fifth of real-project units, explained them well, mostly agreed with an independent panel
+and with a second model of its own vendor, yet the registered weight and aggregation left it no verdict to move, and a clean judge dimension made scores
 look better. Whether the judge ``matters'' was settled by configuration choices that can be analysed before any call
 is made. We recommend that gate designers make those choices explicit, register them with a sensitivity set, report
 the judge-blind decomposition, and validate the judge where it is supposed to act: on the units it fails.
