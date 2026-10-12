@@ -88,7 +88,9 @@ specification styles, which produce projects of the same size, the full AaC spec
 has no effect. The exploratory Codex arm prefers the prose specification. The judge changes no verdict at its 8\%
 weight; a registered self-preference check is positive ($p = 0.014$) but is carried by the weakest model's cells;
 on a 36-item sample the judge agrees with the panel on 98.2\% of items (AC1 0.98), and both disagreements are
-lenient. \textbf{Conclusion.} A specification changes how much structure an agent builds, and scores that reward
+lenient; replacing the judge model on 100 recorded units changes no verdict ($\kappa = 0.77$).
+% src: results/judge-robustness/summary.json (units 100, kappa 0.766355, registeredVerdictChanges 0); ADR.md ADR-038
+\textbf{Conclusion.} A specification changes how much structure an agent builds, and scores that reward
 small structures can make that change look like a loss. At equal size, a precise AaC specification gives more
 conformant code than prose.
 \end{abstract}
@@ -290,10 +292,12 @@ Date & Version & Change \\
 10-10 & v18 & Codex arm, vendor contrast and vendor self-preference check (before any Codex cell) \\
 10-10 & v20 & ADR-032: pinned tsconfig for extraction, operational and post-hoc (after generation, during the judge pass) \\
 10-11 & v22, v23 & ADR-034 and ADR-035: labeller route for the judge-vs-panel sample (after E1 scoring, before labelling) \\
+10-11 & v25 & ADR-038: judge model robustness, Sonnet against Opus on recorded judge units (after E1 scoring, before any Sonnet call) \\
 \bottomrule
 \end{tabularx}
 % src: PLAN header amendments (v1, P-2, P-U6 v4, v14, v15, v17, v18); ADR.md ADR-032 (prereg v20), ADR-034, ADR-035 (prereg v23);
 %      aidlc-docs/audit.md entries "go E1", "P4 labelling stop and ADR-034", "P4 stop rule fired; ADR-035"
+%      ADR.md ADR-038 (prereg v25, "registered before it runs", date 2026-10-11)
 \end{table}
 
 % =====================================================================================================================
@@ -710,10 +714,23 @@ The headline therefore validates the judge's passes on E1 code and says nothing 
 2 fails were confirmed. The planned half-width for the E1 headline was $\pm 0.186$ at 50\% agreement, so the interval
 is narrow only because agreement is near 1. % src: results/e1-grid/label-plan-p4/label-plan-summary.json (precision row "P4 judge-vs-panel agreement, E1 headline": halfWidthAt50 0.186)
 
+\paragraph{Robustness to the judge model \ph{}.} A separate check, registered after the E1 results were known but
+before any of its calls (ADR-038), replayed 100 recorded judge units, 50 of them from E1 cells, through the same
+pinned route with only the model changed from \texttt{claude-opus-5-5} to \texttt{claude-sonnet-5-5}; each unit was
+again judged three times. Over all 100 units the two models agree on 94\% of unit verdicts, Cohen's
+$\kappa = 0.766$ [0.565, 0.926] and AC1 0.931, above the pre-declared floor of 0.60 for reading the verdicts as robust
+to the judge model. % src: ADR.md ADR-038 Decision items 1-4; results/judge-robustness/agreement.csv (row all, primary: agreement 0.940000, kappa 0.766355 [0.565170, 0.925651], ac1 0.931232); results/judge-robustness/summary.json (units 100, calls 300, interpretation "model-robust (kappa >= 0.60)")
+On the 50 E1 units, which include 6 Opus fails, the two models agree on every verdict; all six disagreements are on
+real-project units where Opus failed and Sonnet passed, so Opus is slightly the stricter judge (18 against 12 failing
+units of 100). Substituting the Sonnet votes changes no function, project or cell verdict in any of the 41 affected
+reports. % src: results/judge-robustness/agreement.csv (E1 row: n 50, agreement 1.000000); results/judge-robustness/units.csv (E1: 6 fail/fail, 44 pass/pass, derived); results/judge-robustness/transition.csv (opus fail / sonnet pass 6); results/judge-robustness/fail-rates.csv (18 and 12); results/judge-robustness/summary.json (reportsAffected 41, functionVerdictChanges 0, registeredVerdictChanges 0, anyFailVerdictChanges 0)
+This is agreement between two models of one vendor, a reliability check, not validation: it shows that the judge's
+null effect on E1 verdicts does not hinge on the model chosen, not that the judge is right.
+
 \paragraph{Answer to RQ4.} At an 8\% weight the judge adds diagnostic text but no verdict change, and it does not
 contribute to the specification effect. The registered self-preference check is positive, but it is carried by the
 weakest model's cells and confounded with code quality. A panel from another vendor agrees with the judge on 98\% of
-sampled E1 units, and where they disagree the judge is the lenient one.
+sampled E1 units, and where they disagree the judge is the lenient one. Replacing the judge model changes no verdict.
 
 % =====================================================================================================================
 \section{Discussion}\label{sec:discussion}
@@ -760,7 +777,9 @@ designs register a size-normalised and a per-file outcome in advance.
 
 On the judge, E1 replicates the companion study: with an 8\% weight and a majority rule, the judge cannot move a
 verdict in a pass band this wide \cite{daedalus2026tool}. A judge earns its place in such a score only if its weight
-is large enough to matter and its fails are validated; E1 validates its passes but not its fails.
+is large enough to matter and its fails are validated; E1 validates its passes but not its fails. Its verdicts do
+not hinge on the judge model: a second Claude model agrees on every sampled E1 unit and changes no verdict.
+% src: results/judge-robustness/agreement.csv (E1 row: n 50, agreement 1.000000); results/judge-robustness/summary.json (registeredVerdictChanges 0)
 
 \subsection{Practical guidance: what to put in a specification}
 
@@ -832,7 +851,8 @@ Claude cells in all. The pairwise intervals resample three runs within each cell
 families, chosen after the registered results were known. % src: SIZE §3, §8
 \emph{The judge-versus-panel headline} rests on 36 items with no judge fail among them (the one sampled judge fail
 was \texttt{uncertain}); $\kappa$ is uninformative and
-the judge's fails on E1 code are not validated.
+the judge's fails on E1 code are not validated. The model-robustness check compares two Claude models and is
+reliability evidence only.
 
 \paragraph{External validity.}
 \emph{Two tasks}, both small in-memory Express services, as a blocking factor, not a sample of tasks.
