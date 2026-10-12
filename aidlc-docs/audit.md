@@ -1430,3 +1430,11 @@ Plan checkboxes ticked. Auto-approved under standing approval; no blocking or ma
 **Context**: CONSTRUCTION — Build and Test, extra experiments. Worktree ../DaedalusArch-wt-x3, branch v1.2e-exp-extra.
 
 ---
+
+## v1.3 DRAFT — judge anti-pattern operators (scheduled task)
+**Timestamp**: 2026-10-12T00:00:00Z
+**User Input**: "Scheduled task: build realistic semantic and integrity anti-pattern mutation operators (AP-REPO-BYPASS, AP-FAT-CONTROLLER, AP-PERSIST-IN-DOMAIN, AP-DUP-RULE, AP-FRAMEWORK-LEAK) with twins, sources and expected keys, in a new DRAFT catalogue; count sites label-free on the fixtures and corpus clones; unit tests; a DRAFT pre-registration of the judge test; code and tests only, no LLM calls, no experiment runs; draft PR into v1.2e."
+**AI Response**: "Branch v1.3-judge-antipatterns from v1.2e. Ten operators in scripts/lib/mutation/antipatterns/ (separate registry, catalogueVersion = sha256 of Docs/operator-catalogue-antipatterns.md); fixture fixtures/unit/antipattern-nest; site kinds added additively to types.ts and schemas/manifest.schema.json; scripts/mutate.ts routes AP-*. Label-free count on the 7 held-out clones at registered SHAs: eligible REPO-BYPASS 58, FAT-CONTROLLER 0, PERSIST-IN-DOMAIN 1, DUP-RULE 16, FRAMEWORK-LEAK 127 (without placement 175/6/5/42/523). No-install smoke: 232 in-memory applications, 0 new diagnostics. 18 unit tests. Docs/prereg-drafts/judge-antipattern-test.md (DRAFT). Frozen catalogue and every REGISTERED_ARTEFACTS path unchanged. The AI-DLC approval gates were not run interactively: the request came from a scheduled task with no one present, and its scope (code, tests, DRAFT documents, draft PR) needs no registered-artefact decision; the open design choices are listed in the draft for the author."
+**Context**: v1.3 DRAFT, outside the v1.2e Build and Test stages. No judge call, no detector run, no seeding.
+
+---
