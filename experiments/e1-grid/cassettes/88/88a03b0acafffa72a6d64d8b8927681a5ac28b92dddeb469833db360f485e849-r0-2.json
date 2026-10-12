@@ -1,0 +1,47 @@
+{
+  "attempts": 1,
+  "cliVersion": "2.1.294",
+  "configListingSha256": "47aa04258852fab9a706f3f0c14cee22306d69fbb6fdfbde8c11854bd54997bc",
+  "durationMs": 6146,
+  "effort": "high",
+  "functionId": "FF-N02",
+  "ignoredOptions": [
+    "maxTokens"
+  ],
+  "isolationProbeSha256": "97a2e2d0af1100c13c55e028c1a0c71f069093c3d08705af122aaeb302f1a641",
+  "key": "88a03b0acafffa72a6d64d8b8927681a5ac28b92dddeb469833db360f485e849-r0-2",
+  "model": "claude-opus-5-5",
+  "outcome": {
+    "kind": "valid"
+  },
+  "parsedVerdict": {
+    "confidence": 0.95,
+    "evidence": [
+      "src/application/use-cases/GetOrderUseCase.ts: constructor(private readonly orders: OrderRepository) injects a domain port, not a concrete persistence implementation.",
+      "src/application/use-cases/GetOrderUseCase.ts: execute(orderId) only orchestrates: return toOrderDto(requireOrder(this.orders, orderId)), which is a fetch followed by mapping to a DTO.",
+      "No database, HTTP or framework calls and no inline business rules appear anywhere in the file."
+    ],
+    "pass": true,
+    "reasoning": "GetOrderUseCase is an application-layer use case. Its only job is orchestration. It gets a domain repository port through constructor injection, hands the lookup to an application helper (requireOrder), and maps the result to an application DTO (toOrderDto). The file has no persistence code, no transport or HTTP handling, no framework logic and no business rules of its own. All of that matches the application layer's role.",
+    "violations": []
+  },
+  "projectId": "claude-opus-5-5/order-fulfilment/full-aac/run-0",
+  "prompt": "## Rule\nThe unit's responsibilities match the role of its declared layer.\n\n## Rubric\nPass: Every responsibility in the file belongs to the role and kind of its declared layer, and agrees with any ADR prose given.\nFail: The file carries a responsibility that belongs to a different layer kind, for example persistence, transport or framework logic in a domain file, or business rules in an infrastructure or presentation file.\nEvidence required: Name the file and cite the function, method or statement that carries the misplaced responsibility, and the layer kind it belongs to.\nOut of scope: import direction and layer-dependency rules, which are checked symbolically.\n\n## Layer model\n- domain (kind: domain): src/domain/**\n- application (kind: application): src/application/**\n- infrastructure (kind: infrastructure): src/infrastructure/**\n\n## Unit\nKind: file\nId: src/application/use-cases/GetOrderUseCase.ts\nLayer: application\nUnit files:\n- src/application/use-cases/GetOrderUseCase.ts\n\n## Source\n=====SOURCE-BEGIN src/application/use-cases/GetOrderUseCase.ts=====\nimport { OrderRepository } from '../../domain/order/OrderRepository';\nimport { OrderDto, toOrderDto } from '../dto/OrderDto';\nimport { requireOrder } from '../services/requireOrder';\n\nexport class GetOrderUseCase {\n  constructor(private readonly orders: OrderRepository) {}\n\n  execute(orderId: string): OrderDto {\n    return toOrderDto(requireOrder(this.orders, orderId));\n  }\n}\n\n=====SOURCE-END=====\n\n## Graph excerpt\n{\"edges\":[{\"from\":\"GetOrderUseCase@src/application/use-cases/GetOrderUseCase.ts\",\"to\":\"OrderRepository@src/domain/order/OrderRepository.ts\",\"type\":\"CONSTRUCTOR_INJECTS\"},{\"from\":\"src/application/use-cases/GetOrderUseCase.ts\",\"to\":\"src/application/dto/OrderDto.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/application/use-cases/GetOrderUseCase.ts\",\"to\":\"src/application/services/requireOrder.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/application/use-cases/GetOrderUseCase.ts\",\"to\":\"src/domain/order/OrderRepository.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/infrastructure/config/orderModule.ts\",\"to\":\"src/application/use-cases/GetOrderUseCase.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/infrastructure/http/OrderController.ts\",\"to\":\"src/application/use-cases/GetOrderUseCase.ts\",\"type\":\"IMPORTS\"}],\"nodes\":[{\"kind\":\"Class\",\"layer\":\"application\",\"name\":\"GetOrderUseCase\",\"path\":\"src/application/use-cases/GetOrderUseCase.ts\"},{\"kind\":\"File\",\"layer\":\"application\",\"path\":\"src/application/dto/OrderDto.ts\"},{\"kind\":\"File\",\"layer\":\"application\",\"path\":\"src/application/services/requireOrder.ts\"},{\"kind\":\"File\",\"layer\":\"application\",\"path\":\"src/application/use-cases/GetOrderUseCase.ts\"},{\"kind\":\"File\",\"layer\":\"domain\",\"path\":\"src/domain/order/OrderRepository.ts\"},{\"kind\":\"File\",\"layer\":\"infrastructure\",\"path\":\"src/infrastructure/config/orderModule.ts\"},{\"kind\":\"File\",\"layer\":\"infrastructure\",\"path\":\"src/infrastructure/http/OrderController.ts\"},{\"kind\":\"Interface\",\"layer\":\"domain\",\"name\":\"OrderRepository\",\"path\":\"src/domain/order/OrderRepository.ts\"}]}\n\n## Instructions\nJudge the unit against the rule and rubric. Return the JSON object the schema requires. Set pass to false if any file of the unit fails the rubric.\n",
+  "provider": "claude-cli",
+  "recordedAt": "2026-10-10T22:14:24.031Z",
+  "repetition": 0,
+  "requestHash": "88a03b0acafffa72a6d64d8b8927681a5ac28b92dddeb469833db360f485e849",
+  "resolvedModel": "claude-opus-5-5",
+  "response": "{\"is_error\":false,\"modelUsage\":{\"claude-opus-5-5\":{\"inputTokens\":2,\"outputTokens\":444}},\"result\":\"{\\\"pass\\\":true,\\\"confidence\\\":0.95,\\\"reasoning\\\":\\\"GetOrderUseCase is an application-layer use case. Its only job is orchestration. It gets a domain repository port through constructor injection, hands the lookup to an application helper (requireOrder), and maps the result to an application DTO (toOrderDto). The file has no persistence code, no transport or HTTP handling, no framework logic and no business rules of its own. All of that matches the application layer's role.\\\",\\\"evidence\\\":[\\\"src/application/use-cases/GetOrderUseCase.ts: constructor(private readonly orders: OrderRepository) injects a domain port, not a concrete persistence implementation.\\\",\\\"src/application/use-cases/GetOrderUseCase.ts: execute(orderId) only orchestrates: return toOrderDto(requireOrder(this.orders, orderId)), which is a fetch followed by mapping to a DTO.\\\",\\\"No database, HTTP or framework calls and no inline business rules appear anywhere in the file.\\\"],\\\"violations\\\":[]}\",\"structured_output\":{\"confidence\":0.95,\"evidence\":[\"src/application/use-cases/GetOrderUseCase.ts: constructor(private readonly orders: OrderRepository) injects a domain port, not a concrete persistence implementation.\",\"src/application/use-cases/GetOrderUseCase.ts: execute(orderId) only orchestrates: return toOrderDto(requireOrder(this.orders, orderId)), which is a fetch followed by mapping to a DTO.\",\"No database, HTTP or framework calls and no inline business rules appear anywhere in the file.\"],\"pass\":true,\"reasoning\":\"GetOrderUseCase is an application-layer use case. Its only job is orchestration. It gets a domain repository port through constructor injection, hands the lookup to an application helper (requireOrder), and maps the result to an application DTO (toOrderDto). The file has no persistence code, no transport or HTTP handling, no framework logic and no business rules of its own. All of that matches the application layer's role.\",\"violations\":[]}}",
+  "runIndex": 2,
+  "schemaVersion": 2,
+  "unitId": "src/application/use-cases/GetOrderUseCase.ts",
+  "usage": {
+    "inputTokens": 2794,
+    "outputTokens": 444
+  },
+  "usedOptions": {
+    "effort": "high",
+    "model": "claude-opus-5-5"
+  }
+}

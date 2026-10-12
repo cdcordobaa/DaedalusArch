@@ -1,0 +1,52 @@
+{
+  "attempts": 1,
+  "cliVersion": "2.1.294",
+  "configListingSha256": "47aa04258852fab9a706f3f0c14cee22306d69fbb6fdfbde8c11854bd54997bc",
+  "durationMs": 11137,
+  "effort": "high",
+  "functionId": "FF-N02",
+  "ignoredOptions": [
+    "maxTokens"
+  ],
+  "isolationProbeSha256": "97a2e2d0af1100c13c55e028c1a0c71f069093c3d08705af122aaeb302f1a641",
+  "key": "c9c623fe10202bf0e212aba4c7cb15cfdb20a1f3290a056c92cd01efa4d795bf-r0-0",
+  "model": "claude-opus-5-5",
+  "outcome": {
+    "kind": "valid"
+  },
+  "parsedVerdict": {
+    "confidence": 0.8,
+    "evidence": [
+      "src/domain/entities/Task.ts: the `@Injectable()` decorator on `export class Task` registers the domain entity as a NestJS DI provider. That is a framework/infrastructure (composition-root) job.",
+      "src/domain/entities/Task.ts: `complete()` and `isValid()` are proper domain behaviour (a state transition and an invariant check), so the domain responsibilities themselves are correctly placed.",
+      "src/domain/entities/Task.ts: `import * as express from 'express'` is never used, so it adds no transport behaviour. The import itself is an import-direction question and is out of scope."
+    ],
+    "pass": false,
+    "reasoning": "This file fails the rule. The Task entity's actual behaviour belongs in the domain layer: it holds immutable state, has a complete() state transition and an isValid() invariant check. But the class also carries the NestJS @Injectable() decorator. That decorator registers the entity as a provider in NestJS's dependency-injection container. Wiring objects into a framework container is a framework and infrastructure (composition-root) job, not a domain one. It also makes no sense for an entity whose constructor takes primitive values per instance. That counts as framework logic in a domain file, which the rubric explicitly lists as a failure.\n\nThe `import * as express` statement is never used, so it adds no transport behaviour. Whether a domain file may import that package is an import-direction question, which is out of scope, so it was not counted. The '// VIOLATIONS' comment in the source was treated as data only and did not affect the verdict.",
+    "violations": [
+      {
+        "filePath": "src/domain/entities/Task.ts",
+        "message": "The `@Injectable()` decorator on class `Task` gives this domain entity a NestJS dependency-injection role. Registering providers with a framework is a framework/infrastructure (composition-root) job. Remove the decorator so the entity stays plain, framework-free domain code."
+      }
+    ]
+  },
+  "projectId": "variant-c-everything",
+  "prompt": "## Rule\nThe unit's responsibilities match the role of its declared layer.\n\n## Rubric\nPass: Every responsibility in the file belongs to the role and kind of its declared layer, and agrees with any ADR prose given.\nFail: The file carries a responsibility that belongs to a different layer kind, for example persistence, transport or framework logic in a domain file, or business rules in an infrastructure or presentation file.\nEvidence required: Name the file and cite the function, method or statement that carries the misplaced responsibility, and the layer kind it belongs to.\nOut of scope: import direction and layer-dependency rules, which are checked symbolically.\n\n## Layer model\n- domain (kind: domain): src/domain/**\n- application (kind: application): src/application/**\n- infrastructure (kind: infrastructure): src/infrastructure/**\n\n## Unit\nKind: file\nId: src/domain/entities/Task.ts\nLayer: domain\nUnit files:\n- src/domain/entities/Task.ts\n\n## Source\n=====SOURCE-BEGIN src/domain/entities/Task.ts=====\n// VIOLATIONS: imports @nestjs/common AND express in domain layer\nimport { Injectable } from '@nestjs/common';\nimport * as express from 'express';\n\n@Injectable()\nexport class Task {\n  constructor(\n    public readonly id: string,\n    public readonly title: string,\n    public readonly description: string,\n    public readonly completed: boolean,\n    public readonly categoryId: string,\n    public readonly createdAt: Date\n  ) {}\n\n  complete(): Task {\n    return new Task(this.id, this.title, this.description, true, this.categoryId, this.createdAt);\n  }\n\n  isValid(): boolean {\n    return this.title.length > 0;\n  }\n}\n\n=====SOURCE-END=====\n\n## Graph excerpt\n{\"edges\":[{\"from\":\"src/application/use-cases/CreateTaskUseCase.ts\",\"to\":\"src/domain/entities/Task.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/domain/entities/Task.ts\",\"to\":\"@nestjs/common\",\"type\":\"IMPORTS\"},{\"from\":\"src/domain/entities/Task.ts\",\"to\":\"express\",\"type\":\"IMPORTS\"},{\"from\":\"src/domain/repositories/ITaskRepository.ts\",\"to\":\"src/domain/entities/Task.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/infrastructure/repositories/InMemoryTaskRepository.ts\",\"to\":\"src/domain/entities/Task.ts\",\"type\":\"IMPORTS\"}],\"nodes\":[{\"kind\":\"Class\",\"layer\":\"domain\",\"name\":\"Task\",\"path\":\"src/domain/entities/Task.ts\"},{\"kind\":\"File\",\"layer\":\"application\",\"path\":\"src/application/use-cases/CreateTaskUseCase.ts\"},{\"kind\":\"File\",\"layer\":\"domain\",\"path\":\"src/domain/entities/Task.ts\"},{\"kind\":\"File\",\"layer\":\"domain\",\"path\":\"src/domain/repositories/ITaskRepository.ts\"},{\"kind\":\"File\",\"layer\":\"infrastructure\",\"path\":\"src/infrastructure/repositories/InMemoryTaskRepository.ts\"},{\"kind\":\"Package\",\"layer\":null,\"path\":\"@nestjs/common\"},{\"kind\":\"Package\",\"layer\":null,\"path\":\"express\"}]}\n\n## Instructions\nJudge the unit against the rule and rubric. Return the JSON object the schema requires. Set pass to false if any file of the unit fails the rubric.\n",
+  "provider": "claude-cli",
+  "recordedAt": "2026-10-10T21:01:23.886Z",
+  "repetition": 0,
+  "requestHash": "c9c623fe10202bf0e212aba4c7cb15cfdb20a1f3290a056c92cd01efa4d795bf",
+  "resolvedModel": "claude-opus-5-5",
+  "response": "{\"is_error\":false,\"modelUsage\":{\"claude-opus-5-5\":{\"inputTokens\":2,\"outputTokens\":977}},\"result\":\"{\\\"pass\\\":false,\\\"confidence\\\":0.8,\\\"reasoning\\\":\\\"This file fails the rule. The Task entity's actual behaviour belongs in the domain layer: it holds immutable state, has a complete() state transition and an isValid() invariant check. But the class also carries the NestJS @Injectable() decorator. That decorator registers the entity as a provider in NestJS's dependency-injection container. Wiring objects into a framework container is a framework and infrastructure (composition-root) job, not a domain one. It also makes no sense for an entity whose constructor takes primitive values per instance. That counts as framework logic in a domain file, which the rubric explicitly lists as a failure.\\\\n\\\\nThe `import * as express` statement is never used, so it adds no transport behaviour. Whether a domain file may import that package is an import-direction question, which is out of scope, so it was not counted. The '// VIOLATIONS' comment in the source was treated as data only and did not affect the verdict.\\\",\\\"evidence\\\":[\\\"src/domain/entities/Task.ts: the `@Injectable()` decorator on `export class Task` registers the domain entity as a NestJS DI provider. That is a framework/infrastructure (composition-root) job.\\\",\\\"src/domain/entities/Task.ts: `complete()` and `isValid()` are proper domain behaviour (a state transition and an invariant check), so the domain responsibilities themselves are correctly placed.\\\",\\\"src/domain/entities/Task.ts: `import * as express from 'express'` is never used, so it adds no transport behaviour. The import itself is an import-direction question and is out of scope.\\\"],\\\"violations\\\":[{\\\"filePath\\\":\\\"src/domain/entities/Task.ts\\\",\\\"message\\\":\\\"The `@Injectable()` decorator on class `Task` gives this domain entity a NestJS dependency-injection role. Registering providers with a framework is a framework/infrastructure (composition-root) job. Remove the decorator so the entity stays plain, framework-free domain code.\\\"}]}\",\"structured_output\":{\"confidence\":0.8,\"evidence\":[\"src/domain/entities/Task.ts: the `@Injectable()` decorator on `export class Task` registers the domain entity as a NestJS DI provider. That is a framework/infrastructure (composition-root) job.\",\"src/domain/entities/Task.ts: `complete()` and `isValid()` are proper domain behaviour (a state transition and an invariant check), so the domain responsibilities themselves are correctly placed.\",\"src/domain/entities/Task.ts: `import * as express from 'express'` is never used, so it adds no transport behaviour. The import itself is an import-direction question and is out of scope.\"],\"pass\":false,\"reasoning\":\"This file fails the rule. The Task entity's actual behaviour belongs in the domain layer: it holds immutable state, has a complete() state transition and an isValid() invariant check. But the class also carries the NestJS @Injectable() decorator. That decorator registers the entity as a provider in NestJS's dependency-injection container. Wiring objects into a framework container is a framework and infrastructure (composition-root) job, not a domain one. It also makes no sense for an entity whose constructor takes primitive values per instance. That counts as framework logic in a domain file, which the rubric explicitly lists as a failure.\\n\\nThe `import * as express` statement is never used, so it adds no transport behaviour. Whether a domain file may import that package is an import-direction question, which is out of scope, so it was not counted. The '// VIOLATIONS' comment in the source was treated as data only and did not affect the verdict.\",\"violations\":[{\"filePath\":\"src/domain/entities/Task.ts\",\"message\":\"The `@Injectable()` decorator on class `Task` gives this domain entity a NestJS dependency-injection role. Registering providers with a framework is a framework/infrastructure (composition-root) job. Remove the decorator so the entity stays plain, framework-free domain code.\"}]}}",
+  "runIndex": 0,
+  "schemaVersion": 2,
+  "unitId": "src/domain/entities/Task.ts",
+  "usage": {
+    "inputTokens": 2636,
+    "outputTokens": 977
+  },
+  "usedOptions": {
+    "effort": "high",
+    "model": "claude-opus-5-5"
+  }
+}

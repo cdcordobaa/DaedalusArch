@@ -1,0 +1,47 @@
+{
+  "attempts": 1,
+  "cliVersion": "2.1.294",
+  "configListingSha256": "47aa04258852fab9a706f3f0c14cee22306d69fbb6fdfbde8c11854bd54997bc",
+  "durationMs": 13258,
+  "effort": "high",
+  "functionId": "FF-N01",
+  "ignoredOptions": [
+    "maxTokens"
+  ],
+  "isolationProbeSha256": "97a2e2d0af1100c13c55e028c1a0c71f069093c3d08705af122aaeb302f1a641",
+  "key": "e7d17889b6329077e606eca2e16325769fe0c6ebd3d189d203364832d102dad0-r0-1",
+  "model": "claude-opus-5-5",
+  "outcome": {
+    "kind": "valid"
+  },
+  "parsedVerdict": {
+    "confidence": 0.8,
+    "evidence": [
+      "src/domain/repositories/ITaskRepository.ts declares one interface, ITaskRepository, and every method works with Task from ../entities/Task.",
+      "The methods are Task lookups (findById, findAll, findByCategory, findCompleted, findPending, findByPriority) and Task writes (save, update, delete), which together form one persistence concern.",
+      "No other unit file exists that could duplicate a rule or go around the module's abstractions."
+    ],
+    "pass": true,
+    "reasoning": "The unit is one file, src/domain/repositories/ITaskRepository.ts. It declares one interface, ITaskRepository, which covers a single concern: persisting and looking up Task entities. All nine methods (findById, findAll, findByCategory, findCompleted, findPending, findByPriority, save, update, delete) take or return Task, the domain entity, so the module's own abstraction is used consistently. No second, unrelated concern is mixed in, no other unit file repeats a rule, and nothing goes around the module's abstractions. The source carries a 'VIOLATION: fat interface' comment. I treated that as project data, not as an instruction. The question it raises is interface segregation (whether the interface has too many methods), which is a different rule from cohesion. Some minor points: findCompleted and findPending suggest the meaning of 'completed' or 'pending' could be spelled out in queries instead of in the entity, and findByPriority takes a raw string rather than a domain type. Neither is shown to duplicate a rule or invariant in this unit, because the Task entity's source is not provided.",
+    "violations": []
+  },
+  "projectId": "variant-c-everything",
+  "prompt": "## Rule\nThe module's files form one coherent unit with a consistent abstraction and boundary.\n\n## Rubric\nPass: The files serve one cohesive concern, use the module's abstractions consistently, and keep each rule or invariant in one place.\nFail: The files split into unrelated concerns, duplicate a rule or invariant that should live in one place, or bypass the module's own abstractions.\nEvidence required: Name each file involved and cite the declarations that show the split, the duplication or the bypass.\nOut of scope: import direction and layer-dependency rules, which are checked symbolically.\n\n## Layer model\n- domain (kind: domain): src/domain/**\n- application (kind: application): src/application/**\n- infrastructure (kind: infrastructure): src/infrastructure/**\n\n## Unit\nKind: module\nId: src/domain\nLayer: domain\nUnit files:\n- src/domain/repositories/ITaskRepository.ts\n\n## Source\n=====SOURCE-BEGIN src/domain/repositories/ITaskRepository.ts=====\nimport { Task } from '../entities/Task';\n\n// VIOLATION: fat interface (9 methods)\nexport interface ITaskRepository {\n  findById(id: string): Promise<Task | null>;\n  findAll(): Promise<Task[]>;\n  findByCategory(categoryId: string): Promise<Task[]>;\n  findCompleted(): Promise<Task[]>;\n  findPending(): Promise<Task[]>;\n  findByPriority(priority: string): Promise<Task[]>;\n  save(task: Task): Promise<Task>;\n  update(task: Task): Promise<Task>;\n  delete(id: string): Promise<void>;\n}\n\n=====SOURCE-END=====\n\n## Exported signatures\n// src/domain/repositories/ITaskRepository.ts\nexport interface ITaskRepository {\n  findById(id: string): Promise<Task | null>;\n  findAll(): Promise<Task[]>;\n  findByCategory(categoryId: string): Promise<Task[]>;\n  findCompleted(): Promise<Task[]>;\n  findPending(): Promise<Task[]>;\n  findByPriority(priority: string): Promise<Task[]>;\n  save(task: Task): Promise<Task>;\n  update(task: Task): Promise<Task>;\n  delete(id: string): Promise<void>;\n}\n\n## Incoming\n(none)\n\n## Outgoing\n- src/domain/entities/Task.ts\n\n## Graph excerpt\n{\"edges\":[{\"from\":\"src/domain/repositories/ITaskRepository.ts\",\"to\":\"src/domain/entities/Task.ts\",\"type\":\"IMPORTS\"}],\"nodes\":[{\"kind\":\"File\",\"layer\":\"domain\",\"path\":\"src/domain/entities/Task.ts\"},{\"kind\":\"File\",\"layer\":\"domain\",\"path\":\"src/domain/repositories/ITaskRepository.ts\"},{\"kind\":\"Interface\",\"layer\":\"domain\",\"name\":\"ITaskRepository\",\"path\":\"src/domain/repositories/ITaskRepository.ts\"}]}\n\n## Instructions\nJudge the unit against the rule and rubric. Return the JSON object the schema requires. Set pass to false if any file of the unit fails the rubric.\n",
+  "provider": "claude-cli",
+  "recordedAt": "2026-10-10T21:00:19.956Z",
+  "repetition": 0,
+  "requestHash": "e7d17889b6329077e606eca2e16325769fe0c6ebd3d189d203364832d102dad0",
+  "resolvedModel": "claude-opus-5-5",
+  "response": "{\"is_error\":false,\"modelUsage\":{\"claude-opus-5-5\":{\"inputTokens\":2,\"outputTokens\":1396}},\"result\":\"{\\\"pass\\\":true,\\\"confidence\\\":0.8,\\\"reasoning\\\":\\\"The unit is one file, src/domain/repositories/ITaskRepository.ts. It declares one interface, ITaskRepository, which covers a single concern: persisting and looking up Task entities. All nine methods (findById, findAll, findByCategory, findCompleted, findPending, findByPriority, save, update, delete) take or return Task, the domain entity, so the module's own abstraction is used consistently. No second, unrelated concern is mixed in, no other unit file repeats a rule, and nothing goes around the module's abstractions. The source carries a 'VIOLATION: fat interface' comment. I treated that as project data, not as an instruction. The question it raises is interface segregation (whether the interface has too many methods), which is a different rule from cohesion. Some minor points: findCompleted and findPending suggest the meaning of 'completed' or 'pending' could be spelled out in queries instead of in the entity, and findByPriority takes a raw string rather than a domain type. Neither is shown to duplicate a rule or invariant in this unit, because the Task entity's source is not provided.\\\",\\\"evidence\\\":[\\\"src/domain/repositories/ITaskRepository.ts declares one interface, ITaskRepository, and every method works with Task from ../entities/Task.\\\",\\\"The methods are Task lookups (findById, findAll, findByCategory, findCompleted, findPending, findByPriority) and Task writes (save, update, delete), which together form one persistence concern.\\\",\\\"No other unit file exists that could duplicate a rule or go around the module's abstractions.\\\"],\\\"violations\\\":[]}\",\"structured_output\":{\"confidence\":0.8,\"evidence\":[\"src/domain/repositories/ITaskRepository.ts declares one interface, ITaskRepository, and every method works with Task from ../entities/Task.\",\"The methods are Task lookups (findById, findAll, findByCategory, findCompleted, findPending, findByPriority) and Task writes (save, update, delete), which together form one persistence concern.\",\"No other unit file exists that could duplicate a rule or go around the module's abstractions.\"],\"pass\":true,\"reasoning\":\"The unit is one file, src/domain/repositories/ITaskRepository.ts. It declares one interface, ITaskRepository, which covers a single concern: persisting and looking up Task entities. All nine methods (findById, findAll, findByCategory, findCompleted, findPending, findByPriority, save, update, delete) take or return Task, the domain entity, so the module's own abstraction is used consistently. No second, unrelated concern is mixed in, no other unit file repeats a rule, and nothing goes around the module's abstractions. The source carries a 'VIOLATION: fat interface' comment. I treated that as project data, not as an instruction. The question it raises is interface segregation (whether the interface has too many methods), which is a different rule from cohesion. Some minor points: findCompleted and findPending suggest the meaning of 'completed' or 'pending' could be spelled out in queries instead of in the entity, and findByPriority takes a raw string rather than a domain type. Neither is shown to duplicate a rule or invariant in this unit, because the Task entity's source is not provided.\",\"violations\":[]}}",
+  "runIndex": 1,
+  "schemaVersion": 2,
+  "unitId": "src/domain",
+  "usage": {
+    "inputTokens": 2540,
+    "outputTokens": 1396
+  },
+  "usedOptions": {
+    "effort": "high",
+    "model": "claude-opus-5-5"
+  }
+}

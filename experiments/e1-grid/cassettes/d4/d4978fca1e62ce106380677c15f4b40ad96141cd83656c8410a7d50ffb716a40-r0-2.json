@@ -1,0 +1,48 @@
+{
+  "attempts": 1,
+  "cliVersion": "2.1.294",
+  "configListingSha256": "47aa04258852fab9a706f3f0c14cee22306d69fbb6fdfbde8c11854bd54997bc",
+  "durationMs": 6659,
+  "effort": "high",
+  "functionId": "FF-N02",
+  "ignoredOptions": [
+    "maxTokens"
+  ],
+  "isolationProbeSha256": "97a2e2d0af1100c13c55e028c1a0c71f069093c3d08705af122aaeb302f1a641",
+  "key": "d4978fca1e62ce106380677c15f4b40ad96141cd83656c8410a7d50ffb716a40-r0-2",
+  "model": "claude-opus-5-5",
+  "outcome": {
+    "kind": "valid"
+  },
+  "parsedVerdict": {
+    "confidence": 0.93,
+    "evidence": [
+      "AdvanceOrderUseCase.execute coordinates the steps: findById, then order.advance(), then save, then toOrderDto. This is application-layer work.",
+      "The business rule for advancing an order is handed to the domain entity (order.advance()) and is not written in the use case.",
+      "Persistence goes through the OrderRepository interface injected in the constructor. The file has no SQL, ORM or other storage code.",
+      "The file has no HTTP, framework or transport code. It returns an OrderDto built by toOrderDto from ./dtos."
+    ],
+    "pass": true,
+    "reasoning": "This file is a standard application-layer use case. It loads an order through the injected OrderRepository port and throws NotFoundError if the order is missing. It then hands the state change to the domain entity with order.advance(), saves the order through the port and maps the result to a DTO. None of its work belongs to another layer. It contains no persistence code such as SQL or ORM calls, no transport or framework code such as HTTP request/response handling, and no business rules of its own: the rule for advancing an order stays in the domain entity. Coordinating, mapping to DTOs and raising a not-found error all fit the application layer.",
+    "violations": []
+  },
+  "projectId": "claude-sonnet-5-5/order-fulfilment/minimal-prose/run-2",
+  "prompt": "## Rule\nThe unit's responsibilities match the role of its declared layer.\n\n## Rubric\nPass: Every responsibility in the file belongs to the role and kind of its declared layer, and agrees with any ADR prose given.\nFail: The file carries a responsibility that belongs to a different layer kind, for example persistence, transport or framework logic in a domain file, or business rules in an infrastructure or presentation file.\nEvidence required: Name the file and cite the function, method or statement that carries the misplaced responsibility, and the layer kind it belongs to.\nOut of scope: import direction and layer-dependency rules, which are checked symbolically.\n\n## Layer model\n- domain (kind: domain): src/domain/**\n- application (kind: application): src/application/**\n- infrastructure (kind: infrastructure): src/infrastructure/**\n\n## Unit\nKind: file\nId: src/application/advance-order-use-case.ts\nLayer: application\nUnit files:\n- src/application/advance-order-use-case.ts\n\n## Source\n=====SOURCE-BEGIN src/application/advance-order-use-case.ts=====\nimport { NotFoundError } from \"../domain/errors\";\nimport { OrderRepository } from \"../domain/order-repository\";\nimport { OrderDto, toOrderDto } from \"./dtos\";\n\nexport class AdvanceOrderUseCase {\n  constructor(private readonly orders: OrderRepository) {}\n\n  async execute(orderId: string): Promise<OrderDto> {\n    const order = await this.orders.findById(orderId);\n    if (!order) throw new NotFoundError(`Order ${orderId} not found`);\n    order.advance();\n    await this.orders.save(order);\n    return toOrderDto(order);\n  }\n}\n\n=====SOURCE-END=====\n\n## Graph excerpt\n{\"edges\":[{\"from\":\"AdvanceOrderUseCase@src/application/advance-order-use-case.ts\",\"to\":\"OrderRepository@src/domain/order-repository.ts\",\"type\":\"CONSTRUCTOR_INJECTS\"},{\"from\":\"OrderController@src/infrastructure/order-controller.ts\",\"to\":\"AdvanceOrderUseCase@src/application/advance-order-use-case.ts\",\"type\":\"CONSTRUCTOR_INJECTS\"},{\"from\":\"src/application/advance-order-use-case.ts\",\"to\":\"src/application/dtos.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/application/advance-order-use-case.ts\",\"to\":\"src/domain/errors.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/application/advance-order-use-case.ts\",\"to\":\"src/domain/order-repository.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/infrastructure/app-factory.ts\",\"to\":\"src/application/advance-order-use-case.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/infrastructure/order-controller.ts\",\"to\":\"src/application/advance-order-use-case.ts\",\"type\":\"IMPORTS\"}],\"nodes\":[{\"kind\":\"Class\",\"layer\":\"application\",\"name\":\"AdvanceOrderUseCase\",\"path\":\"src/application/advance-order-use-case.ts\"},{\"kind\":\"Class\",\"layer\":\"infrastructure\",\"name\":\"OrderController\",\"path\":\"src/infrastructure/order-controller.ts\"},{\"kind\":\"File\",\"layer\":\"application\",\"path\":\"src/application/advance-order-use-case.ts\"},{\"kind\":\"File\",\"layer\":\"application\",\"path\":\"src/application/dtos.ts\"},{\"kind\":\"File\",\"layer\":\"domain\",\"path\":\"src/domain/errors.ts\"},{\"kind\":\"File\",\"layer\":\"domain\",\"path\":\"src/domain/order-repository.ts\"},{\"kind\":\"File\",\"layer\":\"infrastructure\",\"path\":\"src/infrastructure/app-factory.ts\"},{\"kind\":\"File\",\"layer\":\"infrastructure\",\"path\":\"src/infrastructure/order-controller.ts\"},{\"kind\":\"Interface\",\"layer\":\"domain\",\"name\":\"OrderRepository\",\"path\":\"src/domain/order-repository.ts\"}]}\n\n## Instructions\nJudge the unit against the rule and rubric. Return the JSON object the schema requires. Set pass to false if any file of the unit fails the rubric.\n",
+  "provider": "claude-cli",
+  "recordedAt": "2026-10-10T22:50:33.072Z",
+  "repetition": 0,
+  "requestHash": "d4978fca1e62ce106380677c15f4b40ad96141cd83656c8410a7d50ffb716a40",
+  "resolvedModel": "claude-opus-5-5",
+  "response": "{\"is_error\":false,\"modelUsage\":{\"claude-opus-5-5\":{\"inputTokens\":2,\"outputTokens\":512}},\"result\":\"{\\\"pass\\\":true,\\\"confidence\\\":0.93,\\\"reasoning\\\":\\\"This file is a standard application-layer use case. It loads an order through the injected OrderRepository port and throws NotFoundError if the order is missing. It then hands the state change to the domain entity with order.advance(), saves the order through the port and maps the result to a DTO. None of its work belongs to another layer. It contains no persistence code such as SQL or ORM calls, no transport or framework code such as HTTP request/response handling, and no business rules of its own: the rule for advancing an order stays in the domain entity. Coordinating, mapping to DTOs and raising a not-found error all fit the application layer.\\\",\\\"evidence\\\":[\\\"AdvanceOrderUseCase.execute coordinates the steps: findById, then order.advance(), then save, then toOrderDto. This is application-layer work.\\\",\\\"The business rule for advancing an order is handed to the domain entity (order.advance()) and is not written in the use case.\\\",\\\"Persistence goes through the OrderRepository interface injected in the constructor. The file has no SQL, ORM or other storage code.\\\",\\\"The file has no HTTP, framework or transport code. It returns an OrderDto built by toOrderDto from ./dtos.\\\"],\\\"violations\\\":[]}\",\"structured_output\":{\"confidence\":0.93,\"evidence\":[\"AdvanceOrderUseCase.execute coordinates the steps: findById, then order.advance(), then save, then toOrderDto. This is application-layer work.\",\"The business rule for advancing an order is handed to the domain entity (order.advance()) and is not written in the use case.\",\"Persistence goes through the OrderRepository interface injected in the constructor. The file has no SQL, ORM or other storage code.\",\"The file has no HTTP, framework or transport code. It returns an OrderDto built by toOrderDto from ./dtos.\"],\"pass\":true,\"reasoning\":\"This file is a standard application-layer use case. It loads an order through the injected OrderRepository port and throws NotFoundError if the order is missing. It then hands the state change to the domain entity with order.advance(), saves the order through the port and maps the result to a DTO. None of its work belongs to another layer. It contains no persistence code such as SQL or ORM calls, no transport or framework code such as HTTP request/response handling, and no business rules of its own: the rule for advancing an order stays in the domain entity. Coordinating, mapping to DTOs and raising a not-found error all fit the application layer.\",\"violations\":[]}}",
+  "runIndex": 2,
+  "schemaVersion": 2,
+  "unitId": "src/application/advance-order-use-case.ts",
+  "usage": {
+    "inputTokens": 2871,
+    "outputTokens": 512
+  },
+  "usedOptions": {
+    "effort": "high",
+    "model": "claude-opus-5-5"
+  }
+}

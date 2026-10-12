@@ -51,7 +51,11 @@ const SKELETON_ENTRIES: readonly string[] = ['package.json', 'node_modules'];
 /** Tail of a non-JSON stdout kept (scrubbed) in `envelope.json`. */
 const UNREADABLE_TAIL_CHARS = 4000;
 
-const USAGE_LIMIT_TEXT = /usage limit|rate[ _-]?limit|too many requests/i;
+/**
+ * Usage or rate limit text of an erroring call. `you've hit your limit` is the judge's frozen USAGE_LIMIT pattern
+ * (ADR-018 item 5, `CLASSIFIER_PATTERNS`), the Claude CLI's limit message, which names no "usage limit".
+ */
+const USAGE_LIMIT_TEXT = /usage limit|rate[ _-]?limit|too many requests|you['\u2019]ve hit your limit/i;
 const RESET_EPOCH = /\|(\d{10})(?!\d)/;
 
 // --- file counts and tree sha ----------------------------------------------------------------------------------

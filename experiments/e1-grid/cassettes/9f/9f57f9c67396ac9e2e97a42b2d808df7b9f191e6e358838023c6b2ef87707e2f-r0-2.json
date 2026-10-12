@@ -1,0 +1,47 @@
+{
+  "attempts": 1,
+  "cliVersion": "2.1.294",
+  "configListingSha256": "47aa04258852fab9a706f3f0c14cee22306d69fbb6fdfbde8c11854bd54997bc",
+  "durationMs": 6318,
+  "effort": "high",
+  "functionId": "FF-N02",
+  "ignoredOptions": [
+    "maxTokens"
+  ],
+  "isolationProbeSha256": "97a2e2d0af1100c13c55e028c1a0c71f069093c3d08705af122aaeb302f1a641",
+  "key": "9f57f9c67396ac9e2e97a42b2d808df7b9f191e6e358838023c6b2ef87707e2f-r0-2",
+  "model": "claude-opus-5-5",
+  "outcome": {
+    "kind": "valid"
+  },
+  "parsedVerdict": {
+    "confidence": 0.92,
+    "evidence": [
+      "src/domain/task/DueDate.ts: `private constructor(private readonly value: Date)` means DueDate can only be built through a factory that checks its value, which is a domain value-object pattern",
+      "src/domain/task/DueDate.ts: `static fromIsoString` checks for an empty or invalid date and throws a domain `ValidationError`, which enforces a domain rule",
+      "src/domain/task/DueDate.ts: `toIsoString()` returns a plain value representation, with no persistence or transport concerns"
+    ],
+    "pass": true,
+    "reasoning": "DueDate is a domain value object. Its private constructor lets it be created only through a factory method that validates the input. It also has a method that turns the value back into a string. Parsing and validating an ISO 8601 string while building a value object is a normal domain job: it enforces the rule that the value is valid when it's created. The file has no persistence, transport, framework or HTTP logic, and no application orchestration. ISO string conversion is a plain format representation. It isn't tied to a transport protocol. All responsibilities fit the domain layer.",
+    "violations": []
+  },
+  "projectId": "claude-opus-5-5/task-management/full-aac/run-1",
+  "prompt": "## Rule\nThe unit's responsibilities match the role of its declared layer.\n\n## Rubric\nPass: Every responsibility in the file belongs to the role and kind of its declared layer, and agrees with any ADR prose given.\nFail: The file carries a responsibility that belongs to a different layer kind, for example persistence, transport or framework logic in a domain file, or business rules in an infrastructure or presentation file.\nEvidence required: Name the file and cite the function, method or statement that carries the misplaced responsibility, and the layer kind it belongs to.\nOut of scope: import direction and layer-dependency rules, which are checked symbolically.\n\n## Layer model\n- domain (kind: domain): src/domain/**\n- application (kind: application): src/application/**\n- infrastructure (kind: infrastructure): src/infrastructure/**\n\n## Unit\nKind: file\nId: src/domain/task/DueDate.ts\nLayer: domain\nUnit files:\n- src/domain/task/DueDate.ts\n\n## Source\n=====SOURCE-BEGIN src/domain/task/DueDate.ts=====\nimport { ValidationError } from '../errors/DomainError';\n\nexport class DueDate {\n  private constructor(private readonly value: Date) {}\n\n  static fromIsoString(value: string): DueDate {\n    const date = new Date(value);\n    if (value.trim().length === 0 || Number.isNaN(date.getTime())) {\n      throw new ValidationError(`Due date '${value}' is not a valid ISO 8601 date`);\n    }\n    return new DueDate(date);\n  }\n\n  toIsoString(): string {\n    return this.value.toISOString();\n  }\n}\n\n=====SOURCE-END=====\n\n## Graph excerpt\n{\"edges\":[{\"from\":\"src/application/task/AddTaskService.ts\",\"to\":\"src/domain/task/DueDate.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/domain/task/DueDate.ts\",\"to\":\"src/domain/errors/DomainError.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/domain/task/Task.ts\",\"to\":\"src/domain/task/DueDate.ts\",\"type\":\"IMPORTS\"}],\"nodes\":[{\"kind\":\"Class\",\"layer\":\"domain\",\"name\":\"DueDate\",\"path\":\"src/domain/task/DueDate.ts\"},{\"kind\":\"File\",\"layer\":\"application\",\"path\":\"src/application/task/AddTaskService.ts\"},{\"kind\":\"File\",\"layer\":\"domain\",\"path\":\"src/domain/errors/DomainError.ts\"},{\"kind\":\"File\",\"layer\":\"domain\",\"path\":\"src/domain/task/DueDate.ts\"},{\"kind\":\"File\",\"layer\":\"domain\",\"path\":\"src/domain/task/Task.ts\"}]}\n\n## Instructions\nJudge the unit against the rule and rubric. Return the JSON object the schema requires. Set pass to false if any file of the unit fails the rubric.\n",
+  "provider": "claude-cli",
+  "recordedAt": "2026-10-10T22:06:40.526Z",
+  "repetition": 0,
+  "requestHash": "9f57f9c67396ac9e2e97a42b2d808df7b9f191e6e358838023c6b2ef87707e2f",
+  "resolvedModel": "claude-opus-5-5",
+  "response": "{\"is_error\":false,\"modelUsage\":{\"claude-opus-5-5\":{\"inputTokens\":2,\"outputTokens\":482}},\"result\":\"{\\\"pass\\\":true,\\\"confidence\\\":0.92,\\\"reasoning\\\":\\\"DueDate is a domain value object. Its private constructor lets it be created only through a factory method that validates the input. It also has a method that turns the value back into a string. Parsing and validating an ISO 8601 string while building a value object is a normal domain job: it enforces the rule that the value is valid when it's created. The file has no persistence, transport, framework or HTTP logic, and no application orchestration. ISO string conversion is a plain format representation. It isn't tied to a transport protocol. All responsibilities fit the domain layer.\\\",\\\"evidence\\\":[\\\"src/domain/task/DueDate.ts: `private constructor(private readonly value: Date)` means DueDate can only be built through a factory that checks its value, which is a domain value-object pattern\\\",\\\"src/domain/task/DueDate.ts: `static fromIsoString` checks for an empty or invalid date and throws a domain `ValidationError`, which enforces a domain rule\\\",\\\"src/domain/task/DueDate.ts: `toIsoString()` returns a plain value representation, with no persistence or transport concerns\\\"],\\\"violations\\\":[]}\",\"structured_output\":{\"confidence\":0.92,\"evidence\":[\"src/domain/task/DueDate.ts: `private constructor(private readonly value: Date)` means DueDate can only be built through a factory that checks its value, which is a domain value-object pattern\",\"src/domain/task/DueDate.ts: `static fromIsoString` checks for an empty or invalid date and throws a domain `ValidationError`, which enforces a domain rule\",\"src/domain/task/DueDate.ts: `toIsoString()` returns a plain value representation, with no persistence or transport concerns\"],\"pass\":true,\"reasoning\":\"DueDate is a domain value object. Its private constructor lets it be created only through a factory method that validates the input. It also has a method that turns the value back into a string. Parsing and validating an ISO 8601 string while building a value object is a normal domain job: it enforces the rule that the value is valid when it's created. The file has no persistence, transport, framework or HTTP logic, and no application orchestration. ISO string conversion is a plain format representation. It isn't tied to a transport protocol. All responsibilities fit the domain layer.\",\"violations\":[]}}",
+  "runIndex": 2,
+  "schemaVersion": 2,
+  "unitId": "src/domain/task/DueDate.ts",
+  "usage": {
+    "inputTokens": 2432,
+    "outputTokens": 482
+  },
+  "usedOptions": {
+    "effort": "high",
+    "model": "claude-opus-5-5"
+  }
+}

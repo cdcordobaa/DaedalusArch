@@ -1,0 +1,47 @@
+{
+  "attempts": 1,
+  "cliVersion": "2.1.294",
+  "configListingSha256": "47aa04258852fab9a706f3f0c14cee22306d69fbb6fdfbde8c11854bd54997bc",
+  "durationMs": 8574,
+  "effort": "high",
+  "functionId": "FF-N02",
+  "ignoredOptions": [
+    "maxTokens"
+  ],
+  "isolationProbeSha256": "97a2e2d0af1100c13c55e028c1a0c71f069093c3d08705af122aaeb302f1a641",
+  "key": "6d3268aff4401dda2f35aa2fecfd1fc0a8a01c194551332914e2616385e22e60-r0-1",
+  "model": "claude-opus-5-5",
+  "outcome": {
+    "kind": "valid"
+  },
+  "parsedVerdict": {
+    "confidence": 0.93,
+    "evidence": [
+      "src/infrastructure/composition/Dependencies.ts declares only `export interface Dependencies { users; projects; tasks; ids; }`. This is a dependency container type for composition and wiring, which is an infrastructure responsibility.",
+      "The file contains no functions, methods or runtime statements, so it carries no business rules or misplaced logic.",
+      "According to the graph, the only files that use it are other infrastructure composition files (AppFactory, ProjectModule, TaskModule, UserModule)."
+    ],
+    "pass": true,
+    "reasoning": "This file belongs to the infrastructure composition root. It declares one interface, `Dependencies`, which lists the adapters (repositories and an id generator) that the feature modules receive. Wiring dependencies together is a composition job, and that job belongs in infrastructure. The file has no business rules, no domain logic and no presentation concerns. It only defines the shape of the dependency container. The import direction toward domain and application ports is out of scope for this rule.",
+    "violations": []
+  },
+  "projectId": "claude-opus-5-5/task-management/full-aac/run-2",
+  "prompt": "## Rule\nThe unit's responsibilities match the role of its declared layer.\n\n## Rubric\nPass: Every responsibility in the file belongs to the role and kind of its declared layer, and agrees with any ADR prose given.\nFail: The file carries a responsibility that belongs to a different layer kind, for example persistence, transport or framework logic in a domain file, or business rules in an infrastructure or presentation file.\nEvidence required: Name the file and cite the function, method or statement that carries the misplaced responsibility, and the layer kind it belongs to.\nOut of scope: import direction and layer-dependency rules, which are checked symbolically.\n\n## Layer model\n- domain (kind: domain): src/domain/**\n- application (kind: application): src/application/**\n- infrastructure (kind: infrastructure): src/infrastructure/**\n\n## Unit\nKind: file\nId: src/infrastructure/composition/Dependencies.ts\nLayer: infrastructure\nUnit files:\n- src/infrastructure/composition/Dependencies.ts\n\n## Source\n=====SOURCE-BEGIN src/infrastructure/composition/Dependencies.ts=====\nimport { IdGenerator } from '../../application/ports/IdGenerator';\nimport { ProjectRepository } from '../../domain/repositories/ProjectRepository';\nimport { TaskRepository } from '../../domain/repositories/TaskRepository';\nimport { UserRepository } from '../../domain/repositories/UserRepository';\n\n/** Adapters shared by every feature module of the application. */\nexport interface Dependencies {\n  users: UserRepository;\n  projects: ProjectRepository;\n  tasks: TaskRepository;\n  ids: IdGenerator;\n}\n\n=====SOURCE-END=====\n\n## Graph excerpt\n{\"edges\":[{\"from\":\"src/infrastructure/composition/AppFactory.ts\",\"to\":\"src/infrastructure/composition/Dependencies.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/infrastructure/composition/Dependencies.ts\",\"to\":\"src/application/ports/IdGenerator.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/infrastructure/composition/Dependencies.ts\",\"to\":\"src/domain/repositories/ProjectRepository.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/infrastructure/composition/Dependencies.ts\",\"to\":\"src/domain/repositories/TaskRepository.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/infrastructure/composition/Dependencies.ts\",\"to\":\"src/domain/repositories/UserRepository.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/infrastructure/composition/ProjectModule.ts\",\"to\":\"src/infrastructure/composition/Dependencies.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/infrastructure/composition/TaskModule.ts\",\"to\":\"src/infrastructure/composition/Dependencies.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/infrastructure/composition/UserModule.ts\",\"to\":\"src/infrastructure/composition/Dependencies.ts\",\"type\":\"IMPORTS\"}],\"nodes\":[{\"kind\":\"File\",\"layer\":\"application\",\"path\":\"src/application/ports/IdGenerator.ts\"},{\"kind\":\"File\",\"layer\":\"domain\",\"path\":\"src/domain/repositories/ProjectRepository.ts\"},{\"kind\":\"File\",\"layer\":\"domain\",\"path\":\"src/domain/repositories/TaskRepository.ts\"},{\"kind\":\"File\",\"layer\":\"domain\",\"path\":\"src/domain/repositories/UserRepository.ts\"},{\"kind\":\"File\",\"layer\":\"infrastructure\",\"path\":\"src/infrastructure/composition/AppFactory.ts\"},{\"kind\":\"File\",\"layer\":\"infrastructure\",\"path\":\"src/infrastructure/composition/Dependencies.ts\"},{\"kind\":\"File\",\"layer\":\"infrastructure\",\"path\":\"src/infrastructure/composition/ProjectModule.ts\"},{\"kind\":\"File\",\"layer\":\"infrastructure\",\"path\":\"src/infrastructure/composition/TaskModule.ts\"},{\"kind\":\"File\",\"layer\":\"infrastructure\",\"path\":\"src/infrastructure/composition/UserModule.ts\"},{\"kind\":\"Interface\",\"layer\":\"infrastructure\",\"name\":\"Dependencies\",\"path\":\"src/infrastructure/composition/Dependencies.ts\"}]}\n\n## Instructions\nJudge the unit against the rule and rubric. Return the JSON object the schema requires. Set pass to false if any file of the unit fails the rubric.\n",
+  "provider": "claude-cli",
+  "recordedAt": "2026-10-10T22:11:31.313Z",
+  "repetition": 0,
+  "requestHash": "6d3268aff4401dda2f35aa2fecfd1fc0a8a01c194551332914e2616385e22e60",
+  "resolvedModel": "claude-opus-5-5",
+  "response": "{\"is_error\":false,\"modelUsage\":{\"claude-opus-5-5\":{\"inputTokens\":2,\"outputTokens\":451}},\"result\":\"{\\\"pass\\\":true,\\\"confidence\\\":0.93,\\\"reasoning\\\":\\\"This file belongs to the infrastructure composition root. It declares one interface, `Dependencies`, which lists the adapters (repositories and an id generator) that the feature modules receive. Wiring dependencies together is a composition job, and that job belongs in infrastructure. The file has no business rules, no domain logic and no presentation concerns. It only defines the shape of the dependency container. The import direction toward domain and application ports is out of scope for this rule.\\\",\\\"evidence\\\":[\\\"src/infrastructure/composition/Dependencies.ts declares only `export interface Dependencies { users; projects; tasks; ids; }`. This is a dependency container type for composition and wiring, which is an infrastructure responsibility.\\\",\\\"The file contains no functions, methods or runtime statements, so it carries no business rules or misplaced logic.\\\",\\\"According to the graph, the only files that use it are other infrastructure composition files (AppFactory, ProjectModule, TaskModule, UserModule).\\\"],\\\"violations\\\":[]}\",\"structured_output\":{\"confidence\":0.93,\"evidence\":[\"src/infrastructure/composition/Dependencies.ts declares only `export interface Dependencies { users; projects; tasks; ids; }`. This is a dependency container type for composition and wiring, which is an infrastructure responsibility.\",\"The file contains no functions, methods or runtime statements, so it carries no business rules or misplaced logic.\",\"According to the graph, the only files that use it are other infrastructure composition files (AppFactory, ProjectModule, TaskModule, UserModule).\"],\"pass\":true,\"reasoning\":\"This file belongs to the infrastructure composition root. It declares one interface, `Dependencies`, which lists the adapters (repositories and an id generator) that the feature modules receive. Wiring dependencies together is a composition job, and that job belongs in infrastructure. The file has no business rules, no domain logic and no presentation concerns. It only defines the shape of the dependency container. The import direction toward domain and application ports is out of scope for this rule.\",\"violations\":[]}}",
+  "runIndex": 1,
+  "schemaVersion": 2,
+  "unitId": "src/infrastructure/composition/Dependencies.ts",
+  "usage": {
+    "inputTokens": 3005,
+    "outputTokens": 451
+  },
+  "usedOptions": {
+    "effort": "high",
+    "model": "claude-opus-5-5"
+  }
+}

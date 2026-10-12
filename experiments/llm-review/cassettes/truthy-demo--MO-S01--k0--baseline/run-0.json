@@ -1,0 +1,345 @@
+{
+  "schemaVersion": 1,
+  "treeId": "truthy-demo--MO-S01--k0--baseline",
+  "run": 0,
+  "attempt": 0,
+  "startedAt": "2026-10-11T20:05:09.796Z",
+  "durationMs": 252002,
+  "promptSha256": "e3a5c1f5ce8b75cc8062f2598cc398a859d3f565b2bdd82f09c1be7eabbd79e8",
+  "treeDigest": "c6c80c05613b3d360966a0f3716f50dbed78d2a22590f4fd75f01947cb8e169b",
+  "cliVersion": "0.162.1",
+  "model": "gpt-5.6-terra",
+  "servedModels": [
+    "gpt-5.6-terra"
+  ],
+  "reroutes": [],
+  "exitCode": 0,
+  "timedOut": false,
+  "isError": false,
+  "subtype": "success",
+  "valid": true,
+  "findings": [
+    {
+      "file": "src/auth/user.repository.ts",
+      "rule": "FF-S01",
+      "reason": "UserRepository imports the application-layer UserLoginDto and ResetPasswordDto."
+    },
+    {
+      "file": "src/role/role.repository.ts",
+      "rule": "FF-S01",
+      "reason": "RoleRepository imports the application-layer CreateRoleDto and UpdateRoleDto."
+    },
+    {
+      "file": "src/role/entities/role.entity.ts",
+      "rule": "FF-S02",
+      "reason": "RoleEntity participates in the import cycle RoleEntity -> PermissionEntity -> RoleEntity."
+    },
+    {
+      "file": "src/permission/entities/permission.entity.ts",
+      "rule": "FF-S02",
+      "reason": "PermissionEntity participates in the import cycle RoleEntity -> PermissionEntity -> RoleEntity."
+    },
+    {
+      "file": "src/auth/auth.service.ts",
+      "rule": "FF-S02",
+      "reason": "AuthService participates in the import cycle AuthService -> RefreshTokenService -> AuthService."
+    },
+    {
+      "file": "src/refresh-token/refresh-token.service.ts",
+      "rule": "FF-S02",
+      "reason": "RefreshTokenService participates in the import cycle AuthService -> RefreshTokenService -> AuthService."
+    },
+    {
+      "file": "src/auth/auth.module.ts",
+      "rule": "FF-S02",
+      "reason": "AuthModule participates in the import cycle AuthModule -> MailModule -> EmailTemplateModule -> AuthModule."
+    },
+    {
+      "file": "src/mail/mail.module.ts",
+      "rule": "FF-S02",
+      "reason": "MailModule participates in the import cycle AuthModule -> MailModule -> EmailTemplateModule -> AuthModule."
+    },
+    {
+      "file": "src/email-template/email-template.module.ts",
+      "rule": "FF-S02",
+      "reason": "EmailTemplateModule participates in the import cycle AuthModule -> MailModule -> EmailTemplateModule -> AuthModule."
+    },
+    {
+      "file": "src/auth/auth.module.ts",
+      "rule": "FF-S02",
+      "reason": "AuthModule participates in the import cycle AuthModule -> RefreshTokenModule -> AuthModule."
+    },
+    {
+      "file": "src/refresh-token/refresh-token.module.ts",
+      "rule": "FF-S02",
+      "reason": "RefreshTokenModule participates in the import cycle AuthModule -> RefreshTokenModule -> AuthModule."
+    },
+    {
+      "file": "src/auth/entity/user.entity.ts",
+      "rule": "FF-P01",
+      "reason": "UserEntity imports the forbidden typeorm package."
+    },
+    {
+      "file": "src/common/entity/custom-base.entity.ts",
+      "rule": "FF-P01",
+      "reason": "CustomBaseEntity imports the forbidden typeorm package."
+    },
+    {
+      "file": "src/email-template/entities/email-template.entity.ts",
+      "rule": "FF-P01",
+      "reason": "EmailTemplateEntity imports the forbidden typeorm package."
+    },
+    {
+      "file": "src/permission/entities/permission.entity.ts",
+      "rule": "FF-P01",
+      "reason": "PermissionEntity imports the forbidden typeorm package."
+    },
+    {
+      "file": "src/refresh-token/entities/refresh-token.entity.ts",
+      "rule": "FF-P01",
+      "reason": "RefreshToken imports the forbidden typeorm package."
+    },
+    {
+      "file": "src/role/entities/role.entity.ts",
+      "rule": "FF-P01",
+      "reason": "RoleEntity imports the forbidden typeorm package."
+    },
+    {
+      "file": "src/auth/auth.service.ts",
+      "rule": "FF-P02",
+      "reason": "AuthService injects four concrete classes among its five constructor dependencies."
+    },
+    {
+      "file": "src/dashboard/dashboard.service.ts",
+      "rule": "FF-P02",
+      "reason": "DashboardService injects the concrete AuthService class."
+    },
+    {
+      "file": "src/email-template/email-template.service.ts",
+      "rule": "FF-P02",
+      "reason": "EmailTemplateService injects the concrete EmailTemplateRepository class."
+    },
+    {
+      "file": "src/mail/mail.processor.ts",
+      "rule": "FF-P02",
+      "reason": "MailProcessor injects the concrete MailerService class."
+    },
+    {
+      "file": "src/mail/mail.service.ts",
+      "rule": "FF-P02",
+      "reason": "MailService injects concrete Queue and EmailTemplateService dependencies."
+    },
+    {
+      "file": "src/permission/permissions.service.ts",
+      "rule": "FF-P02",
+      "reason": "PermissionsService injects the concrete PermissionRepository class."
+    },
+    {
+      "file": "src/refresh-token/refresh-token.service.ts",
+      "rule": "FF-P02",
+      "reason": "RefreshTokenService injects concrete RefreshTokenRepository, AuthService, and JwtService dependencies."
+    },
+    {
+      "file": "src/role/roles.service.ts",
+      "rule": "FF-P02",
+      "reason": "RolesService injects concrete RoleRepository and PermissionsService dependencies."
+    },
+    {
+      "file": "src/twofa/twofa.service.ts",
+      "rule": "FF-P02",
+      "reason": "TwofaService injects the concrete AuthService class."
+    },
+    {
+      "file": "src/auth/user.repository.ts",
+      "rule": "FF-P03",
+      "reason": "UserRepository does not implement an interface."
+    },
+    {
+      "file": "src/common/repository/base.repository.ts",
+      "rule": "FF-P03",
+      "reason": "BaseRepository does not implement an interface."
+    },
+    {
+      "file": "src/email-template/email-template.repository.ts",
+      "rule": "FF-P03",
+      "reason": "EmailTemplateRepository does not implement an interface."
+    },
+    {
+      "file": "src/permission/permission.repository.ts",
+      "rule": "FF-P03",
+      "reason": "PermissionRepository does not implement an interface."
+    },
+    {
+      "file": "src/refresh-token/refresh-token.repository.ts",
+      "rule": "FF-P03",
+      "reason": "RefreshTokenRepository does not implement an interface."
+    },
+    {
+      "file": "src/role/role.repository.ts",
+      "rule": "FF-P03",
+      "reason": "RoleRepository does not implement an interface."
+    },
+    {
+      "file": "src/auth/auth.controller.ts",
+      "rule": "FF-P05",
+      "reason": "AuthController directly imports the domain entity classes UserEntity and RefreshToken."
+    },
+    {
+      "file": "src/email-template/email-template.controller.ts",
+      "rule": "FF-P05",
+      "reason": "EmailTemplateController reaches EmailTemplateEntity through CreateEmailTemplateDto."
+    },
+    {
+      "file": "src/permission/permissions.controller.ts",
+      "rule": "FF-P05",
+      "reason": "PermissionsController reaches PermissionEntity through PermissionsService and CreatePermissionDto."
+    },
+    {
+      "file": "src/role/roles.controller.ts",
+      "rule": "FF-P05",
+      "reason": "RolesController reaches RoleEntity through CreateRoleDto."
+    },
+    {
+      "file": "src/twofa/twofa.controller.ts",
+      "rule": "FF-P05",
+      "reason": "TwofaController directly imports the domain UserEntity class."
+    },
+    {
+      "file": "src/app.module.ts",
+      "rule": "FF-C02",
+      "reason": "AppModule imports 15 distinct project files."
+    },
+    {
+      "file": "src/auth/auth.controller.ts",
+      "rule": "FF-C02",
+      "reason": "AuthController imports 20 distinct project files."
+    },
+    {
+      "file": "src/auth/auth.service.ts",
+      "rule": "FF-C02",
+      "reason": "AuthService imports 23 distinct project files."
+    },
+    {
+      "file": "src/refresh-token/refresh-token.service.ts",
+      "rule": "FF-C02",
+      "reason": "RefreshTokenService imports 14 distinct project files."
+    },
+    {
+      "file": "src/app.module.ts",
+      "rule": "FF-C03",
+      "reason": "AppModule has instability 15/16, exceeding 0.8."
+    },
+    {
+      "file": "src/auth/auth.controller.ts",
+      "rule": "FF-C03",
+      "reason": "AuthController has instability 20/21, exceeding 0.8."
+    },
+    {
+      "file": "src/dashboard/dashboard.controller.ts",
+      "rule": "FF-C03",
+      "reason": "DashboardController has instability 6/7, exceeding 0.8."
+    },
+    {
+      "file": "src/dashboard/dto/update-dashboard.dto.ts",
+      "rule": "FF-C03",
+      "reason": "UpdateDashboardDto has instability 1/1, exceeding 0.8."
+    },
+    {
+      "file": "src/email-template/email-template.controller.ts",
+      "rule": "FF-C03",
+      "reason": "EmailTemplateController has instability 8/9, exceeding 0.8."
+    },
+    {
+      "file": "src/permission/permissions.controller.ts",
+      "rule": "FF-C03",
+      "reason": "PermissionsController has instability 8/9, exceeding 0.8."
+    },
+    {
+      "file": "src/refresh-token/refresh-token.service.ts",
+      "rule": "FF-C03",
+      "reason": "RefreshTokenService has instability 14/16, exceeding 0.8."
+    },
+    {
+      "file": "src/role/roles.controller.ts",
+      "rule": "FF-C03",
+      "reason": "RolesController has instability 8/9, exceeding 0.8."
+    },
+    {
+      "file": "src/role/roles.module.ts",
+      "rule": "FF-C03",
+      "reason": "RolesModule has instability 6/7, exceeding 0.8."
+    },
+    {
+      "file": "src/role/roles.service.ts",
+      "rule": "FF-C03",
+      "reason": "RolesService has instability 9/11, exceeding 0.8."
+    },
+    {
+      "file": "src/twofa/twofa.controller.ts",
+      "rule": "FF-C03",
+      "reason": "TwofaController has instability 7/8, exceeding 0.8."
+    },
+    {
+      "file": "src/common/middleware/logger.middleware.ts",
+      "rule": "FF-C04",
+      "reason": "LoggerMiddleware is a mapped non-barrel file with no project import, re-export, or importer."
+    },
+    {
+      "file": "src/dashboard/entities/dashboard.entity.ts",
+      "rule": "FF-C04",
+      "reason": "Dashboard is a mapped non-barrel file with no project import, re-export, or importer."
+    },
+    {
+      "file": "src/auth/auth.service.ts",
+      "rule": "FF-SO01",
+      "reason": "AuthService declares 27 methods."
+    },
+    {
+      "file": "src/auth/auth.controller.ts",
+      "rule": "FF-SO01",
+      "reason": "AuthController declares 16 methods."
+    },
+    {
+      "file": "src/auth/entity/user.entity.ts",
+      "rule": "FF-N02",
+      "reason": "UserEntity contains TypeORM persistence mapping in a domain-layer file."
+    },
+    {
+      "file": "src/common/entity/custom-base.entity.ts",
+      "rule": "FF-N02",
+      "reason": "CustomBaseEntity contains TypeORM persistence mapping in a domain-layer file."
+    },
+    {
+      "file": "src/email-template/entities/email-template.entity.ts",
+      "rule": "FF-N02",
+      "reason": "EmailTemplateEntity contains TypeORM persistence mapping in a domain-layer file."
+    },
+    {
+      "file": "src/permission/entities/permission.entity.ts",
+      "rule": "FF-N02",
+      "reason": "PermissionEntity contains TypeORM persistence mapping in a domain-layer file."
+    },
+    {
+      "file": "src/refresh-token/entities/refresh-token.entity.ts",
+      "rule": "FF-N02",
+      "reason": "RefreshToken contains TypeORM persistence mapping in a domain-layer file."
+    },
+    {
+      "file": "src/role/entities/role.entity.ts",
+      "rule": "FF-N02",
+      "reason": "RoleEntity contains TypeORM persistence mapping in a domain-layer file."
+    }
+  ],
+  "tokens": {
+    "input": 575633,
+    "cached": 519936,
+    "output": 11011,
+    "reasoning": 4315
+  },
+  "creditsRateCard": 8.68783,
+  "balanceAfter": "1222.0031650000",
+  "toolCalls": 35,
+  "permissionDenials": 6,
+  "envelopeSha256": "b667a39bd98be104cd42576d13eb1b28af70dc7ef186bcb7044950897dfcd2c7",
+  "discardedAttempts": []
+}

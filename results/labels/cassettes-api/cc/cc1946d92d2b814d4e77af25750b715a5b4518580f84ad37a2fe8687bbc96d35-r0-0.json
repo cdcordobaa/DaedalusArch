@@ -1,0 +1,32 @@
+{
+  "attempts": 1,
+  "durationMs": 5369,
+  "effort": null,
+  "functionId": "label:judge-unit:cd09450ee09c36b6a1c65e1a14483d9bff3b0fc90ceece4c407ce30b359dd453",
+  "ignoredOptions": [],
+  "key": "cc1946d92d2b814d4e77af25750b715a5b4518580f84ad37a2fe8687bbc96d35-r0-0",
+  "model": "gemini-3.1-pro-preview",
+  "outcome": {
+    "kind": "valid"
+  },
+  "parsedVerdict": null,
+  "prompt": "Decide whether the unit below satisfies the rubric.\n- pass: the unit meets the rubric's pass condition.\n- fail: the unit meets the rubric's fail condition.\nGive a short rationale that cites the code. Root cause: answer null.\n\n## Item\n## Judge unit\n  Function: FF-N01 (integrity)\n  Unit: src/domain (module, layer domain)\n  \n  ## Rubric\n  Rule: The module's files form one coherent unit with a consistent abstraction and boundary.\n  Pass: The files serve one cohesive concern, use the module's abstractions consistently, and keep each rule or invariant in one place.\n  Fail: The files split into unrelated concerns, duplicate a rule or invariant that should live in one place, or bypass the module's own abstractions.\n  Evidence required: Name each file involved and cite the declarations that show the split, the duplication or the bypass.\n  Out of scope: import direction and layer-dependency rules, which are checked symbolically.\n  \n  ## Source\n  // src/domain/entities/Task.ts\n  export class Task {\n    static readonly DEFAULT_TIMEOUT = InfraConfig.DEFAULT_TIMEOUT;\n    constructor(\n      public readonly id: string,\n      public readonly title: string,\n      public readonly description: string,\n      public readonly completed: boolean,\n      public readonly categoryId: string,\n      public readonly createdAt: Date\n    );\n    complete(): Task;\n    isValid(): boolean;\n  }\n  \n  // src/domain/repositories/ITaskRepository.ts\n  export interface ITaskRepository {\n    findById(id: string): Promise<Task | null>;\n    findAll(): Promise<Task[]>;\n    save(task: Task): Promise<Task>;\n    delete(id: string): Promise<void>;\n  }\n  \n  =====SOURCE-BEGIN src/domain/entities/Task.ts=====\n  // VIOLATION #1: Domain entity imports InfraConfig from infrastructure layer (wrong direction)\n  import { InfraConfig } from '../../infrastructure/config/InfraConfig';\n  import { ITaskRepository } from '../repositories/ITaskRepository';\n  \n  export class Task {\n    static readonly DEFAULT_TIMEOUT = InfraConfig.DEFAULT_TIMEOUT;\n  \n    constructor(\n      public readonly id: string,\n      public readonly title: string,\n      public readonly description: string,\n      public readonly completed: boolean,\n      public readonly categoryId: string,\n      public readonly createdAt: Date\n    ) {}\n  \n    complete(): Task {\n      return new Task(this.id, this.title, this.description, true, this.categoryId, this.createdAt);\n    }\n  \n    isValid(): boolean {\n      return this.title.length > 0 && this.categoryId.length > 0;\n    }\n  }\n  \n  =====SOURCE-END=====\n  \n  =====SOURCE-BEGIN src/domain/repositories/ITaskRepository.ts=====\n  import { Task } from '../entities/Task';\n  \n  export interface ITaskRepository {\n    findById(id: string): Promise<Task | null>;\n    findAll(): Promise<Task[]>;\n    save(task: Task): Promise<Task>;\n    delete(id: string): Promise<void>;\n  }\n  \n  =====SOURCE-END=====\n\n## Label options\n1. pass\n  2. fail\n\n## Root causes\n1. RC-LAYER-MAP\n  2. RC-EXTRACT-ALIAS\n  3. RC-EXTRACT-BARREL\n  4. RC-DYNAMIC-IMPORT\n  5. RC-TYPE-ONLY\n  6. RC-TEMPLATE-OVERAPPROX\n  7. RC-STYLE-INAPPLICABLE\n  8. RC-SPEC-PARAM\n  9. RC-GENERATED-CODE\n  10. RC-TEST-CODE\n  11. RC-GENUINE-UNSEEDED\n  12. RC-OTHER\n\nAnswer with one JSON object: {\"option\": <number of the label option>, \"rootCause\": <number of the root cause or null>, \"note\": \"<text, required with RC-OTHER>\", \"rationale\": \"<one or two sentences citing the code>\"}.",
+  "provider": "gemini",
+  "recordedAt": "2026-10-11T17:20:35.146Z",
+  "repetition": 0,
+  "requestHash": "cc1946d92d2b814d4e77af25750b715a5b4518580f84ad37a2fe8687bbc96d35",
+  "resolvedModel": "gemini-3.1-pro-preview",
+  "response": "{\"option\":1,\"rationale\":\"The files serve a cohesive concern (Task domain) and keep invariants in one place. The layer-dependency violation (importing InfraConfig) is explicitly out of scope for this rule.\",\"note\":\"\",\"rootCause\":null}",
+  "runIndex": 0,
+  "schemaVersion": 2,
+  "unitId": "src/domain",
+  "usage": {
+    "inputTokens": 968,
+    "outputTokens": 53
+  },
+  "usedOptions": {
+    "maxTokens": 65536,
+    "model": "gemini-3.1-pro-preview",
+    "temperature": 0
+  }
+}

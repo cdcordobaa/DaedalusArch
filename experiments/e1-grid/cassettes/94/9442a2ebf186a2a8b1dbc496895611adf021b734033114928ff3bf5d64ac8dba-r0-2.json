@@ -1,0 +1,49 @@
+{
+  "attempts": 1,
+  "cliVersion": "2.1.294",
+  "configListingSha256": "47aa04258852fab9a706f3f0c14cee22306d69fbb6fdfbde8c11854bd54997bc",
+  "durationMs": 5925,
+  "effort": "high",
+  "functionId": "FF-N02",
+  "ignoredOptions": [
+    "maxTokens"
+  ],
+  "isolationProbeSha256": "97a2e2d0af1100c13c55e028c1a0c71f069093c3d08705af122aaeb302f1a641",
+  "key": "9442a2ebf186a2a8b1dbc496895611adf021b734033114928ff3bf5d64ac8dba-r0-2",
+  "model": "claude-opus-5-5",
+  "outcome": {
+    "kind": "valid"
+  },
+  "parsedVerdict": {
+    "confidence": 0.93,
+    "evidence": [
+      "Types OrderState, OrderItem and Order model the domain entity and its value types",
+      "canTransitionTo encodes the order lifecycle rule (each move must go to the next state) as a business invariant",
+      "canCancelOrder encodes the business rule that shipped or delivered orders cannot be cancelled",
+      "createOrder is a domain factory that sets the initial state to 'placed'",
+      "No imports and no I/O, database, HTTP or framework code in the file"
+    ],
+    "pass": true,
+    "reasoning": "src/domain/Order.ts holds only domain concerns. It defines the Order entity and its value types (OrderState, OrderItem), the business rules for state transitions and cancellation (canTransitionTo, canCancelOrder), and a factory (createOrder) that enforces the 'placed' starting state. The file has no persistence, transport, HTTP, framework, or orchestration logic. Its use of new Date() in createOrder is a small impurity, but it is not a responsibility that belongs to another layer.",
+    "violations": []
+  },
+  "projectId": "claude-haiku-4-5/order-fulfilment/none/run-0",
+  "prompt": "## Rule\nThe unit's responsibilities match the role of its declared layer.\n\n## Rubric\nPass: Every responsibility in the file belongs to the role and kind of its declared layer, and agrees with any ADR prose given.\nFail: The file carries a responsibility that belongs to a different layer kind, for example persistence, transport or framework logic in a domain file, or business rules in an infrastructure or presentation file.\nEvidence required: Name the file and cite the function, method or statement that carries the misplaced responsibility, and the layer kind it belongs to.\nOut of scope: import direction and layer-dependency rules, which are checked symbolically.\n\n## Layer model\n- domain (kind: domain): src/domain/**\n- application (kind: application): src/application/**\n- infrastructure (kind: infrastructure): src/infrastructure/**\n\n## Unit\nKind: file\nId: src/domain/Order.ts\nLayer: domain\nUnit files:\n- src/domain/Order.ts\n\n## Source\n=====SOURCE-BEGIN src/domain/Order.ts=====\nexport type OrderState = 'placed' | 'paid' | 'packed' | 'shipped' | 'delivered';\n\nexport interface OrderItem {\n  productId: string;\n  quantity: number;\n}\n\nexport interface Order {\n  id: string;\n  customerId: string;\n  items: OrderItem[];\n  state: OrderState;\n  createdAt: Date;\n}\n\nconst stateOrder: OrderState[] = ['placed', 'paid', 'packed', 'shipped', 'delivered'];\n\nexport function canTransitionTo(currentState: OrderState, newState: OrderState): boolean {\n  const currentIndex = stateOrder.indexOf(currentState);\n  const newIndex = stateOrder.indexOf(newState);\n  return newIndex === currentIndex + 1;\n}\n\nexport function canCancelOrder(state: OrderState): boolean {\n  return state !== 'shipped' && state !== 'delivered';\n}\n\nexport function createOrder(\n  id: string,\n  customerId: string,\n  items: OrderItem[],\n): Order {\n  return {\n    id,\n    customerId,\n    items,\n    state: 'placed',\n    createdAt: new Date(),\n  };\n}\n\n=====SOURCE-END=====\n\n## Graph excerpt\n{\"edges\":[{\"from\":\"src/application/CancelOrderUseCase.ts\",\"to\":\"src/domain/Order.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/application/ListOrdersByStateUseCase.ts\",\"to\":\"src/domain/Order.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/application/PlaceOrderUseCase.ts\",\"to\":\"src/domain/Order.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/application/UpdateOrderStateUseCase.ts\",\"to\":\"src/domain/Order.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/domain/OrderRepository.ts\",\"to\":\"src/domain/Order.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/infrastructure/routes.ts\",\"to\":\"src/domain/Order.ts\",\"type\":\"IMPORTS\"}],\"nodes\":[{\"kind\":\"File\",\"layer\":\"application\",\"path\":\"src/application/CancelOrderUseCase.ts\"},{\"kind\":\"File\",\"layer\":\"application\",\"path\":\"src/application/ListOrdersByStateUseCase.ts\"},{\"kind\":\"File\",\"layer\":\"application\",\"path\":\"src/application/PlaceOrderUseCase.ts\"},{\"kind\":\"File\",\"layer\":\"application\",\"path\":\"src/application/UpdateOrderStateUseCase.ts\"},{\"kind\":\"File\",\"layer\":\"domain\",\"path\":\"src/domain/Order.ts\"},{\"kind\":\"File\",\"layer\":\"domain\",\"path\":\"src/domain/OrderRepository.ts\"},{\"kind\":\"File\",\"layer\":\"infrastructure\",\"path\":\"src/infrastructure/routes.ts\"},{\"kind\":\"Interface\",\"layer\":\"domain\",\"name\":\"Order\",\"path\":\"src/domain/Order.ts\"},{\"kind\":\"Interface\",\"layer\":\"domain\",\"name\":\"OrderItem\",\"path\":\"src/domain/Order.ts\"}]}\n\n## Instructions\nJudge the unit against the rule and rubric. Return the JSON object the schema requires. Set pass to false if any file of the unit fails the rubric.\n",
+  "provider": "claude-cli",
+  "recordedAt": "2026-10-11T02:36:25.881Z",
+  "repetition": 0,
+  "requestHash": "9442a2ebf186a2a8b1dbc496895611adf021b734033114928ff3bf5d64ac8dba",
+  "resolvedModel": "claude-opus-5-5",
+  "response": "{\"is_error\":false,\"modelUsage\":{\"claude-opus-5-5\":{\"inputTokens\":2,\"outputTokens\":456}},\"result\":\"{\\\"pass\\\":true,\\\"confidence\\\":0.93,\\\"reasoning\\\":\\\"src/domain/Order.ts holds only domain concerns. It defines the Order entity and its value types (OrderState, OrderItem), the business rules for state transitions and cancellation (canTransitionTo, canCancelOrder), and a factory (createOrder) that enforces the 'placed' starting state. The file has no persistence, transport, HTTP, framework, or orchestration logic. Its use of new Date() in createOrder is a small impurity, but it is not a responsibility that belongs to another layer.\\\",\\\"evidence\\\":[\\\"Types OrderState, OrderItem and Order model the domain entity and its value types\\\",\\\"canTransitionTo encodes the order lifecycle rule (each move must go to the next state) as a business invariant\\\",\\\"canCancelOrder encodes the business rule that shipped or delivered orders cannot be cancelled\\\",\\\"createOrder is a domain factory that sets the initial state to 'placed'\\\",\\\"No imports and no I/O, database, HTTP or framework code in the file\\\"],\\\"violations\\\":[]}\",\"structured_output\":{\"confidence\":0.93,\"evidence\":[\"Types OrderState, OrderItem and Order model the domain entity and its value types\",\"canTransitionTo encodes the order lifecycle rule (each move must go to the next state) as a business invariant\",\"canCancelOrder encodes the business rule that shipped or delivered orders cannot be cancelled\",\"createOrder is a domain factory that sets the initial state to 'placed'\",\"No imports and no I/O, database, HTTP or framework code in the file\"],\"pass\":true,\"reasoning\":\"src/domain/Order.ts holds only domain concerns. It defines the Order entity and its value types (OrderState, OrderItem), the business rules for state transitions and cancellation (canTransitionTo, canCancelOrder), and a factory (createOrder) that enforces the 'placed' starting state. The file has no persistence, transport, HTTP, framework, or orchestration logic. Its use of new Date() in createOrder is a small impurity, but it is not a responsibility that belongs to another layer.\",\"violations\":[]}}",
+  "runIndex": 2,
+  "schemaVersion": 2,
+  "unitId": "src/domain/Order.ts",
+  "usage": {
+    "inputTokens": 2913,
+    "outputTokens": 456
+  },
+  "usedOptions": {
+    "effort": "high",
+    "model": "claude-opus-5-5"
+  }
+}

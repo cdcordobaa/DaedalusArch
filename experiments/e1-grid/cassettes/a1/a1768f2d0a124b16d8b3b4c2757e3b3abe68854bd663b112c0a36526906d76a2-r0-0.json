@@ -1,0 +1,47 @@
+{
+  "attempts": 1,
+  "cliVersion": "2.1.294",
+  "configListingSha256": "47aa04258852fab9a706f3f0c14cee22306d69fbb6fdfbde8c11854bd54997bc",
+  "durationMs": 6257,
+  "effort": "high",
+  "functionId": "FF-N02",
+  "ignoredOptions": [
+    "maxTokens"
+  ],
+  "isolationProbeSha256": "97a2e2d0af1100c13c55e028c1a0c71f069093c3d08705af122aaeb302f1a641",
+  "key": "a1768f2d0a124b16d8b3b4c2757e3b3abe68854bd663b112c0a36526906d76a2-r0-0",
+  "model": "claude-opus-5-5",
+  "outcome": {
+    "kind": "valid"
+  },
+  "parsedVerdict": {
+    "confidence": 0.86,
+    "evidence": [
+      "src/infrastructure/persistence/catalogueSeed.ts: CATALOGUE is a fixed list of sample starting data (id, name, onHand), which is persistence setup data.",
+      "src/infrastructure/persistence/catalogueSeed.ts: seedCatalogue() loops over CATALOGUE and calls products.save(Product.create(...)). It only creates and saves records and adds no business logic of its own.",
+      "Graph: the only importer is src/infrastructure/app.ts (startup wiring), which confirms this is a bootstrap and infrastructure concern."
+    ],
+    "pass": true,
+    "reasoning": "This file only bootstraps the database with sample data. It defines a fixed catalogue list and saves each entry through the domain ProductRepository port. It builds the products with the domain factory Product.create, so any validation or business rules stay in the domain. Loading starting data at startup is a persistence and setup task, which fits the infrastructure layer. The file has no business rules, use-case logic or presentation concerns.",
+    "violations": []
+  },
+  "projectId": "claude-opus-5-5/order-fulfilment/minimal-prose/run-2",
+  "prompt": "## Rule\nThe unit's responsibilities match the role of its declared layer.\n\n## Rubric\nPass: Every responsibility in the file belongs to the role and kind of its declared layer, and agrees with any ADR prose given.\nFail: The file carries a responsibility that belongs to a different layer kind, for example persistence, transport or framework logic in a domain file, or business rules in an infrastructure or presentation file.\nEvidence required: Name the file and cite the function, method or statement that carries the misplaced responsibility, and the layer kind it belongs to.\nOut of scope: import direction and layer-dependency rules, which are checked symbolically.\n\n## Layer model\n- domain (kind: domain): src/domain/**\n- application (kind: application): src/application/**\n- infrastructure (kind: infrastructure): src/infrastructure/**\n\n## Unit\nKind: file\nId: src/infrastructure/persistence/catalogueSeed.ts\nLayer: infrastructure\nUnit files:\n- src/infrastructure/persistence/catalogueSeed.ts\n\n## Source\n=====SOURCE-BEGIN src/infrastructure/persistence/catalogueSeed.ts=====\nimport { Product } from '../../domain/Product';\nimport { ProductRepository } from '../../domain/ProductRepository';\n\nconst CATALOGUE: ReadonlyArray<{ id: string; name: string; onHand: number }> = [\n  { id: 'SKU-001', name: 'Espresso beans 1kg', onHand: 50 },\n  { id: 'SKU-002', name: 'Ceramic mug', onHand: 120 },\n  { id: 'SKU-003', name: 'Pour-over kettle', onHand: 15 },\n  { id: 'SKU-004', name: 'Paper filters (100)', onHand: 200 },\n];\n\nexport function seedCatalogue(products: ProductRepository): void {\n  for (const item of CATALOGUE) {\n    products.save(Product.create(item.id, item.name, item.onHand));\n  }\n}\n\n=====SOURCE-END=====\n\n## Graph excerpt\n{\"edges\":[{\"from\":\"src/infrastructure/app.ts\",\"to\":\"src/infrastructure/persistence/catalogueSeed.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/infrastructure/persistence/catalogueSeed.ts\",\"to\":\"src/domain/Product.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/infrastructure/persistence/catalogueSeed.ts\",\"to\":\"src/domain/ProductRepository.ts\",\"type\":\"IMPORTS\"}],\"nodes\":[{\"kind\":\"File\",\"layer\":\"domain\",\"path\":\"src/domain/Product.ts\"},{\"kind\":\"File\",\"layer\":\"domain\",\"path\":\"src/domain/ProductRepository.ts\"},{\"kind\":\"File\",\"layer\":\"infrastructure\",\"path\":\"src/infrastructure/app.ts\"},{\"kind\":\"File\",\"layer\":\"infrastructure\",\"path\":\"src/infrastructure/persistence/catalogueSeed.ts\"}]}\n\n## Instructions\nJudge the unit against the rule and rubric. Return the JSON object the schema requires. Set pass to false if any file of the unit fails the rubric.\n",
+  "provider": "claude-cli",
+  "recordedAt": "2026-10-10T21:58:36.353Z",
+  "repetition": 0,
+  "requestHash": "a1768f2d0a124b16d8b3b4c2757e3b3abe68854bd663b112c0a36526906d76a2",
+  "resolvedModel": "claude-opus-5-5",
+  "response": "{\"is_error\":false,\"modelUsage\":{\"claude-opus-5-5\":{\"inputTokens\":2,\"outputTokens\":519}},\"result\":\"{\\\"pass\\\":true,\\\"confidence\\\":0.86,\\\"reasoning\\\":\\\"This file only bootstraps the database with sample data. It defines a fixed catalogue list and saves each entry through the domain ProductRepository port. It builds the products with the domain factory Product.create, so any validation or business rules stay in the domain. Loading starting data at startup is a persistence and setup task, which fits the infrastructure layer. The file has no business rules, use-case logic or presentation concerns.\\\",\\\"evidence\\\":[\\\"src/infrastructure/persistence/catalogueSeed.ts: CATALOGUE is a fixed list of sample starting data (id, name, onHand), which is persistence setup data.\\\",\\\"src/infrastructure/persistence/catalogueSeed.ts: seedCatalogue() loops over CATALOGUE and calls products.save(Product.create(...)). It only creates and saves records and adds no business logic of its own.\\\",\\\"Graph: the only importer is src/infrastructure/app.ts (startup wiring), which confirms this is a bootstrap and infrastructure concern.\\\"],\\\"violations\\\":[]}\",\"structured_output\":{\"confidence\":0.86,\"evidence\":[\"src/infrastructure/persistence/catalogueSeed.ts: CATALOGUE is a fixed list of sample starting data (id, name, onHand), which is persistence setup data.\",\"src/infrastructure/persistence/catalogueSeed.ts: seedCatalogue() loops over CATALOGUE and calls products.save(Product.create(...)). It only creates and saves records and adds no business logic of its own.\",\"Graph: the only importer is src/infrastructure/app.ts (startup wiring), which confirms this is a bootstrap and infrastructure concern.\"],\"pass\":true,\"reasoning\":\"This file only bootstraps the database with sample data. It defines a fixed catalogue list and saves each entry through the domain ProductRepository port. It builds the products with the domain factory Product.create, so any validation or business rules stay in the domain. Loading starting data at startup is a persistence and setup task, which fits the infrastructure layer. The file has no business rules, use-case logic or presentation concerns.\",\"violations\":[]}}",
+  "runIndex": 0,
+  "schemaVersion": 2,
+  "unitId": "src/infrastructure/persistence/catalogueSeed.ts",
+  "usage": {
+    "inputTokens": 2541,
+    "outputTokens": 519
+  },
+  "usedOptions": {
+    "effort": "high",
+    "model": "claude-opus-5-5"
+  }
+}

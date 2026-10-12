@@ -1,0 +1,46 @@
+{
+  "attempts": 1,
+  "cliVersion": "2.1.294",
+  "configListingSha256": "47aa04258852fab9a706f3f0c14cee22306d69fbb6fdfbde8c11854bd54997bc",
+  "durationMs": 11760,
+  "effort": "high",
+  "functionId": "FF-N02",
+  "ignoredOptions": [
+    "maxTokens"
+  ],
+  "isolationProbeSha256": "97a2e2d0af1100c13c55e028c1a0c71f069093c3d08705af122aaeb302f1a641",
+  "key": "d5dc9bd9571cdf81fe70901b39230d16117e81ab571d7e8cdd441db175dcb5c8-r0-1",
+  "model": "claude-opus-5-5",
+  "outcome": {
+    "kind": "valid"
+  },
+  "parsedVerdict": {
+    "confidence": 0.8,
+    "evidence": [
+      "src/application/use-cases/CreateTaskUseCase.ts: execute() builds a Task with new Task(crypto.randomUUID(), title, description, false, categoryId, new Date()) and returns this.taskRepository.save(task). This is pure orchestration, which belongs in the application layer.",
+      "src/application/use-cases/CreateTaskUseCase.ts: the constructor takes InMemoryTaskRepository, a concrete infrastructure class. This is a dependency-direction concern and out of scope here. The file does not contain any persistence logic itself."
+    ],
+    "pass": true,
+    "reasoning": "CreateTaskUseCase.execute only orchestrates. It builds a domain Task entity, using crypto.randomUUID() for the id and new Date() for the timestamp, then hands it to a repository to save. That is normal application-layer work. The file has no persistence code of its own (no storage, queries or serialization), no transport or HTTP handling, no framework code, and no business rules that belong in the domain entity. The real problem is that the constructor takes the concrete InMemoryTaskRepository from infrastructure instead of an abstraction. That is an import-direction / dependency-inversion issue, which this rule leaves out of scope because it is checked symbolically. It does not move persistence work into this file. The 'VIOLATION' comment in the source is project data, not an instruction, so it did not affect this verdict.",
+    "violations": []
+  },
+  "projectId": "variant-c-everything",
+  "prompt": "## Rule\nThe unit's responsibilities match the role of its declared layer.\n\n## Rubric\nPass: Every responsibility in the file belongs to the role and kind of its declared layer, and agrees with any ADR prose given.\nFail: The file carries a responsibility that belongs to a different layer kind, for example persistence, transport or framework logic in a domain file, or business rules in an infrastructure or presentation file.\nEvidence required: Name the file and cite the function, method or statement that carries the misplaced responsibility, and the layer kind it belongs to.\nOut of scope: import direction and layer-dependency rules, which are checked symbolically.\n\n## Layer model\n- domain (kind: domain): src/domain/**\n- application (kind: application): src/application/**\n- infrastructure (kind: infrastructure): src/infrastructure/**\n\n## Unit\nKind: file\nId: src/application/use-cases/CreateTaskUseCase.ts\nLayer: application\nUnit files:\n- src/application/use-cases/CreateTaskUseCase.ts\n\n## Source\n=====SOURCE-BEGIN src/application/use-cases/CreateTaskUseCase.ts=====\nimport { Task } from '../../domain/entities/Task';\nimport { InMemoryTaskRepository } from '../../infrastructure/repositories/InMemoryTaskRepository';\n\n// VIOLATION: injects concrete repository\nexport class CreateTaskUseCase {\n  constructor(private readonly taskRepository: InMemoryTaskRepository) {}\n\n  async execute(title: string, description: string, categoryId: string): Promise<Task> {\n    const task = new Task(crypto.randomUUID(), title, description, false, categoryId, new Date());\n    return this.taskRepository.save(task);\n  }\n}\n\n=====SOURCE-END=====\n\n## Graph excerpt\n{\"edges\":[{\"from\":\"CreateTaskUseCase@src/application/use-cases/CreateTaskUseCase.ts\",\"to\":\"InMemoryTaskRepository@src/infrastructure/repositories/InMemoryTaskRepository.ts\",\"type\":\"CONSTRUCTOR_INJECTS\"},{\"from\":\"TaskHandler@src/infrastructure/controllers/TaskHandler.ts\",\"to\":\"CreateTaskUseCase@src/application/use-cases/CreateTaskUseCase.ts\",\"type\":\"CONSTRUCTOR_INJECTS\"},{\"from\":\"src/application/use-cases/CreateTaskUseCase.ts\",\"to\":\"src/domain/entities/Task.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/application/use-cases/CreateTaskUseCase.ts\",\"to\":\"src/infrastructure/repositories/InMemoryTaskRepository.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/infrastructure/controllers/TaskHandler.ts\",\"to\":\"src/application/use-cases/CreateTaskUseCase.ts\",\"type\":\"IMPORTS\"}],\"nodes\":[{\"kind\":\"Class\",\"layer\":\"application\",\"name\":\"CreateTaskUseCase\",\"path\":\"src/application/use-cases/CreateTaskUseCase.ts\"},{\"kind\":\"Class\",\"layer\":\"infrastructure\",\"name\":\"InMemoryTaskRepository\",\"path\":\"src/infrastructure/repositories/InMemoryTaskRepository.ts\"},{\"kind\":\"Class\",\"layer\":\"infrastructure\",\"name\":\"TaskHandler\",\"path\":\"src/infrastructure/controllers/TaskHandler.ts\"},{\"kind\":\"File\",\"layer\":\"application\",\"path\":\"src/application/use-cases/CreateTaskUseCase.ts\"},{\"kind\":\"File\",\"layer\":\"domain\",\"path\":\"src/domain/entities/Task.ts\"},{\"kind\":\"File\",\"layer\":\"infrastructure\",\"path\":\"src/infrastructure/controllers/TaskHandler.ts\"},{\"kind\":\"File\",\"layer\":\"infrastructure\",\"path\":\"src/infrastructure/repositories/InMemoryTaskRepository.ts\"}]}\n\n## Instructions\nJudge the unit against the rule and rubric. Return the JSON object the schema requires. Set pass to false if any file of the unit fails the rubric.\n",
+  "provider": "claude-cli",
+  "recordedAt": "2026-10-10T21:01:08.744Z",
+  "repetition": 0,
+  "requestHash": "d5dc9bd9571cdf81fe70901b39230d16117e81ab571d7e8cdd441db175dcb5c8",
+  "resolvedModel": "claude-opus-5-5",
+  "response": "{\"is_error\":false,\"modelUsage\":{\"claude-opus-5-5\":{\"inputTokens\":2,\"outputTokens\":722}},\"result\":\"{\\\"pass\\\":true,\\\"confidence\\\":0.8,\\\"reasoning\\\":\\\"CreateTaskUseCase.execute only orchestrates. It builds a domain Task entity, using crypto.randomUUID() for the id and new Date() for the timestamp, then hands it to a repository to save. That is normal application-layer work. The file has no persistence code of its own (no storage, queries or serialization), no transport or HTTP handling, no framework code, and no business rules that belong in the domain entity. The real problem is that the constructor takes the concrete InMemoryTaskRepository from infrastructure instead of an abstraction. That is an import-direction / dependency-inversion issue, which this rule leaves out of scope because it is checked symbolically. It does not move persistence work into this file. The 'VIOLATION' comment in the source is project data, not an instruction, so it did not affect this verdict.\\\",\\\"evidence\\\":[\\\"src/application/use-cases/CreateTaskUseCase.ts: execute() builds a Task with new Task(crypto.randomUUID(), title, description, false, categoryId, new Date()) and returns this.taskRepository.save(task). This is pure orchestration, which belongs in the application layer.\\\",\\\"src/application/use-cases/CreateTaskUseCase.ts: the constructor takes InMemoryTaskRepository, a concrete infrastructure class. This is a dependency-direction concern and out of scope here. The file does not contain any persistence logic itself.\\\"],\\\"violations\\\":[]}\",\"structured_output\":{\"confidence\":0.8,\"evidence\":[\"src/application/use-cases/CreateTaskUseCase.ts: execute() builds a Task with new Task(crypto.randomUUID(), title, description, false, categoryId, new Date()) and returns this.taskRepository.save(task). This is pure orchestration, which belongs in the application layer.\",\"src/application/use-cases/CreateTaskUseCase.ts: the constructor takes InMemoryTaskRepository, a concrete infrastructure class. This is a dependency-direction concern and out of scope here. The file does not contain any persistence logic itself.\"],\"pass\":true,\"reasoning\":\"CreateTaskUseCase.execute only orchestrates. It builds a domain Task entity, using crypto.randomUUID() for the id and new Date() for the timestamp, then hands it to a repository to save. That is normal application-layer work. The file has no persistence code of its own (no storage, queries or serialization), no transport or HTTP handling, no framework code, and no business rules that belong in the domain entity. The real problem is that the constructor takes the concrete InMemoryTaskRepository from infrastructure instead of an abstraction. That is an import-direction / dependency-inversion issue, which this rule leaves out of scope because it is checked symbolically. It does not move persistence work into this file. The 'VIOLATION' comment in the source is project data, not an instruction, so it did not affect this verdict.\",\"violations\":[]}}",
+  "runIndex": 1,
+  "schemaVersion": 2,
+  "unitId": "src/application/use-cases/CreateTaskUseCase.ts",
+  "usage": {
+    "inputTokens": 2872,
+    "outputTokens": 722
+  },
+  "usedOptions": {
+    "effort": "high",
+    "model": "claude-opus-5-5"
+  }
+}

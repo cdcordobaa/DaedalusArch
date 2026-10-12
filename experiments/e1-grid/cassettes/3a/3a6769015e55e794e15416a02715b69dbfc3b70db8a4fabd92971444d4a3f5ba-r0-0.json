@@ -1,0 +1,47 @@
+{
+  "attempts": 1,
+  "cliVersion": "2.1.294",
+  "configListingSha256": "47aa04258852fab9a706f3f0c14cee22306d69fbb6fdfbde8c11854bd54997bc",
+  "durationMs": 6083,
+  "effort": "high",
+  "functionId": "FF-N02",
+  "ignoredOptions": [
+    "maxTokens"
+  ],
+  "isolationProbeSha256": "97a2e2d0af1100c13c55e028c1a0c71f069093c3d08705af122aaeb302f1a641",
+  "key": "3a6769015e55e794e15416a02715b69dbfc3b70db8a4fabd92971444d4a3f5ba-r0-0",
+  "model": "claude-opus-5-5",
+  "outcome": {
+    "kind": "valid"
+  },
+  "parsedVerdict": {
+    "confidence": 0.9,
+    "evidence": [
+      "The file declares only interfaces: CreateOrderRequest, CreateOrderResponse, UpdateOrderStateRequest, UpdateOrderStateResponse, CancelOrderRequest, ListOrdersResponse and ProductStockResponse.",
+      "No functions, methods or executable statements appear apart from a single type import of OrderState.",
+      "The graph shows the application use cases (PlaceOrderUseCase, UpdateOrderStateUseCase and others) using these DTOs, which fits their role as use-case contracts."
+    ],
+    "pass": true,
+    "reasoning": "src/application/DTOs.ts contains only TypeScript interfaces that define the request and response shapes for the application's use cases. Defining these data-transfer contracts is the application layer's job. The file has no persistence, transport or framework logic, and it has no business rules. createdAt is typed as a string, which is a plain serialization choice and does not tie the file to any framework. The empty CancelOrderRequest interface is a style point, not a layer problem.",
+    "violations": []
+  },
+  "projectId": "claude-haiku-4-5/order-fulfilment/full-aac/run-2",
+  "prompt": "## Rule\nThe unit's responsibilities match the role of its declared layer.\n\n## Rubric\nPass: Every responsibility in the file belongs to the role and kind of its declared layer, and agrees with any ADR prose given.\nFail: The file carries a responsibility that belongs to a different layer kind, for example persistence, transport or framework logic in a domain file, or business rules in an infrastructure or presentation file.\nEvidence required: Name the file and cite the function, method or statement that carries the misplaced responsibility, and the layer kind it belongs to.\nOut of scope: import direction and layer-dependency rules, which are checked symbolically.\n\n## Layer model\n- domain (kind: domain): src/domain/**\n- application (kind: application): src/application/**\n- infrastructure (kind: infrastructure): src/infrastructure/**\n\n## Unit\nKind: file\nId: src/application/DTOs.ts\nLayer: application\nUnit files:\n- src/application/DTOs.ts\n\n## Source\n=====SOURCE-BEGIN src/application/DTOs.ts=====\nimport { OrderState } from '../domain/Order';\n\nexport interface CreateOrderRequest {\n  customerId: string;\n  items: Array<{ productId: string; quantity: number }>;\n}\n\nexport interface CreateOrderResponse {\n  id: string;\n  customerId: string;\n  state: OrderState;\n  items: Array<{ productId: string; quantity: number }>;\n  createdAt: string;\n}\n\nexport interface UpdateOrderStateRequest {\n  state: OrderState;\n}\n\nexport interface UpdateOrderStateResponse {\n  id: string;\n  customerId: string;\n  state: OrderState;\n  items: Array<{ productId: string; quantity: number }>;\n  createdAt: string;\n}\n\nexport interface CancelOrderRequest {}\n\nexport interface ListOrdersResponse {\n  orders: Array<{\n    id: string;\n    customerId: string;\n    state: OrderState;\n    items: Array<{ productId: string; quantity: number }>;\n    createdAt: string;\n  }>;\n}\n\nexport interface ProductStockResponse {\n  productId: string;\n  name: string;\n  stock: number;\n}\n\n=====SOURCE-END=====\n\n## Graph excerpt\n{\"edges\":[{\"from\":\"src/application/DTOs.ts\",\"to\":\"src/domain/Order.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/application/GetProductStockUseCase.ts\",\"to\":\"src/application/DTOs.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/application/ListOrdersByStateUseCase.ts\",\"to\":\"src/application/DTOs.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/application/PlaceOrderUseCase.ts\",\"to\":\"src/application/DTOs.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/application/UpdateOrderStateUseCase.ts\",\"to\":\"src/application/DTOs.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/infrastructure/OrderController.ts\",\"to\":\"src/application/DTOs.ts\",\"type\":\"IMPORTS\"}],\"nodes\":[{\"kind\":\"File\",\"layer\":\"application\",\"path\":\"src/application/DTOs.ts\"},{\"kind\":\"File\",\"layer\":\"application\",\"path\":\"src/application/GetProductStockUseCase.ts\"},{\"kind\":\"File\",\"layer\":\"application\",\"path\":\"src/application/ListOrdersByStateUseCase.ts\"},{\"kind\":\"File\",\"layer\":\"application\",\"path\":\"src/application/PlaceOrderUseCase.ts\"},{\"kind\":\"File\",\"layer\":\"application\",\"path\":\"src/application/UpdateOrderStateUseCase.ts\"},{\"kind\":\"File\",\"layer\":\"domain\",\"path\":\"src/domain/Order.ts\"},{\"kind\":\"File\",\"layer\":\"infrastructure\",\"path\":\"src/infrastructure/OrderController.ts\"},{\"kind\":\"Interface\",\"layer\":\"application\",\"name\":\"CancelOrderRequest\",\"path\":\"src/application/DTOs.ts\"},{\"kind\":\"Interface\",\"layer\":\"application\",\"name\":\"CreateOrderRequest\",\"path\":\"src/application/DTOs.ts\"},{\"kind\":\"Interface\",\"layer\":\"application\",\"name\":\"CreateOrderResponse\",\"path\":\"src/application/DTOs.ts\"},{\"kind\":\"Interface\",\"layer\":\"application\",\"name\":\"ListOrdersResponse\",\"path\":\"src/application/DTOs.ts\"},{\"kind\":\"Interface\",\"layer\":\"application\",\"name\":\"ProductStockResponse\",\"path\":\"src/application/DTOs.ts\"},{\"kind\":\"Interface\",\"layer\":\"application\",\"name\":\"UpdateOrderStateRequest\",\"path\":\"src/application/DTOs.ts\"},{\"kind\":\"Interface\",\"layer\":\"application\",\"name\":\"UpdateOrderStateResponse\",\"path\":\"src/application/DTOs.ts\"}]}\n\n## Instructions\nJudge the unit against the rule and rubric. Return the JSON object the schema requires. Set pass to false if any file of the unit fails the rubric.\n",
+  "provider": "claude-cli",
+  "recordedAt": "2026-10-11T02:59:46.266Z",
+  "repetition": 0,
+  "requestHash": "3a6769015e55e794e15416a02715b69dbfc3b70db8a4fabd92971444d4a3f5ba",
+  "resolvedModel": "claude-opus-5-5",
+  "response": "{\"is_error\":false,\"modelUsage\":{\"claude-opus-5-5\":{\"inputTokens\":2,\"outputTokens\":464}},\"result\":\"{\\\"pass\\\":true,\\\"confidence\\\":0.9,\\\"reasoning\\\":\\\"src/application/DTOs.ts contains only TypeScript interfaces that define the request and response shapes for the application's use cases. Defining these data-transfer contracts is the application layer's job. The file has no persistence, transport or framework logic, and it has no business rules. createdAt is typed as a string, which is a plain serialization choice and does not tie the file to any framework. The empty CancelOrderRequest interface is a style point, not a layer problem.\\\",\\\"evidence\\\":[\\\"The file declares only interfaces: CreateOrderRequest, CreateOrderResponse, UpdateOrderStateRequest, UpdateOrderStateResponse, CancelOrderRequest, ListOrdersResponse and ProductStockResponse.\\\",\\\"No functions, methods or executable statements appear apart from a single type import of OrderState.\\\",\\\"The graph shows the application use cases (PlaceOrderUseCase, UpdateOrderStateUseCase and others) using these DTOs, which fits their role as use-case contracts.\\\"],\\\"violations\\\":[]}\",\"structured_output\":{\"confidence\":0.9,\"evidence\":[\"The file declares only interfaces: CreateOrderRequest, CreateOrderResponse, UpdateOrderStateRequest, UpdateOrderStateResponse, CancelOrderRequest, ListOrdersResponse and ProductStockResponse.\",\"No functions, methods or executable statements appear apart from a single type import of OrderState.\",\"The graph shows the application use cases (PlaceOrderUseCase, UpdateOrderStateUseCase and others) using these DTOs, which fits their role as use-case contracts.\"],\"pass\":true,\"reasoning\":\"src/application/DTOs.ts contains only TypeScript interfaces that define the request and response shapes for the application's use cases. Defining these data-transfer contracts is the application layer's job. The file has no persistence, transport or framework logic, and it has no business rules. createdAt is typed as a string, which is a plain serialization choice and does not tie the file to any framework. The empty CancelOrderRequest interface is a style point, not a layer problem.\",\"violations\":[]}}",
+  "runIndex": 0,
+  "schemaVersion": 2,
+  "unitId": "src/application/DTOs.ts",
+  "usage": {
+    "inputTokens": 3139,
+    "outputTokens": 464
+  },
+  "usedOptions": {
+    "effort": "high",
+    "model": "claude-opus-5-5"
+  }
+}

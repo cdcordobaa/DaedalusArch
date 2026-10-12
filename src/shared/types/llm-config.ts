@@ -5,6 +5,11 @@ export interface GeminiConfig {
   readonly model: string;
   readonly temperature: number;
   readonly maxTokens: number;
+  /**
+   * Gemini 3 thinking level (`generationConfig.thinkingConfig.thinkingLevel`), sent only when set. The P4 labeller
+   * route sets `high`, the closest match to agy's "High" model (ADR-035). Unset: the request is unchanged.
+   */
+  readonly thinkingLevel?: 'low' | 'high';
 }
 
 // FR-23: 'claude-cli' and the cassette settings are contract only in U0 ('claude-cli' still builds

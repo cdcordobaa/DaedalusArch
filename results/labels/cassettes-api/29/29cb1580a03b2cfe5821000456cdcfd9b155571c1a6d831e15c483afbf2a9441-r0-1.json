@@ -1,0 +1,32 @@
+{
+  "attempts": 1,
+  "durationMs": 4128,
+  "effort": null,
+  "functionId": "label:judge-unit:bad8240e8d3bbe90e7261496c1cf0bf825110b534a1cb5fa55e887c9af8d75ad",
+  "ignoredOptions": [],
+  "key": "29cb1580a03b2cfe5821000456cdcfd9b155571c1a6d831e15c483afbf2a9441-r0-1",
+  "model": "gemini-3.1-pro-preview",
+  "outcome": {
+    "kind": "valid"
+  },
+  "parsedVerdict": null,
+  "prompt": "Decide whether the unit below satisfies the rubric.\n- pass: the unit meets the rubric's pass condition.\n- fail: the unit meets the rubric's fail condition.\nGive a short rationale that cites the code. Root cause: answer null.\n\n## Item\n## Judge unit\n  Function: FF-N01 (integrity)\n  Unit: src/domain/entities (module, layer domain)\n  \n  ## Rubric\n  Rule: The module's files form one coherent unit with a consistent abstraction and boundary.\n  Pass: The files serve one cohesive concern, use the module's abstractions consistently, and keep each rule or invariant in one place.\n  Fail: The files split into unrelated concerns, duplicate a rule or invariant that should live in one place, or bypass the module's own abstractions.\n  Evidence required: Name each file involved and cite the declarations that show the split, the duplication or the bypass.\n  Out of scope: import direction and layer-dependency rules, which are checked symbolically.\n  \n  ## Source\n  // src/domain/entities/Project.ts\n  export class Project {\n    static create(id: string, name: string): Project;\n  }\n  \n  // src/domain/entities/Task.ts\n  export interface NewTask {\n    id: string;\n    projectId: string;\n    title: string;\n    description: string;\n    dueDate?: DueDate;\n    status?: TaskStatus;\n  }\n  export class Task {\n    static create(input: NewTask): Task;\n    assignTo(user: User): void;\n    markDone(): void;\n  }\n  \n  // src/domain/entities/User.ts\n  export class User {\n    static create(id: string, name: string): User;\n  }\n  \n  =====SOURCE-BEGIN src/domain/entities/Project.ts=====\n  import { ValidationError } from '../errors/ValidationError';\n  \n  export class Project {\n    private constructor(\n      readonly id: string,\n      readonly name: string,\n    ) {}\n  \n    static create(id: string, name: string): Project {\n      const trimmed = name.trim();\n      if (trimmed.length === 0) {\n        throw new ValidationError('Project name must not be empty');\n      }\n      return new Project(id, trimmed);\n    }\n  }\n  \n  =====SOURCE-END=====\n  \n  =====SOURCE-BEGIN src/domain/entities/Task.ts=====\n  import { TaskAlreadyDoneError } from '../errors/TaskAlreadyDoneError';\n  import { ValidationError } from '../errors/ValidationError';\n  import { DueDate } from '../value-objects/DueDate';\n  import { TaskStatus } from '../value-objects/TaskStatus';\n  import { User } from './User';\n  \n  export interface NewTask {\n    id: string;\n    projectId: string;\n    title: string;\n    description: string;\n    dueDate?: DueDate;\n    status?: TaskStatus;\n  }\n  \n  export class Task {\n    private constructor(\n      readonly id: string,\n      readonly projectId: string,\n      readonly title: string,\n      readonly description: string,\n      readonly dueDate: DueDate | undefined,\n      private currentStatus: TaskStatus,\n      private currentAssigneeId: string | undefined,\n    ) {}\n  \n    static create(input: NewTask): Task {\n      const title = input.title.trim();\n      if (title.length === 0) {\n        throw new ValidationError('Task title must not be empty');\n      }\n      return new Task(\n        input.id,\n        input.projectId,\n        title,\n        input.description,\n        input.dueDate,\n        input.status ?? 'todo',\n        undefined,\n      );\n    }\n  \n    get status(): TaskStatus {\n      return this.currentStatus;\n    }\n  \n    get assigneeId(): string | undefined {\n      return this.currentAssigneeId;\n    }\n  \n    /** Taking a `User` rather than an id means only existing users can be assigned. */\n    assignTo(user: User): void {\n      this.currentAssigneeId = user.id;\n    }\n  \n    markDone(): void {\n      if (this.currentStatus === 'done') {\n        throw new TaskAlreadyDoneError(this.id);\n      }\n      this.currentStatus = 'done';\n    }\n  }\n  \n  =====SOURCE-END=====\n  \n  =====SOURCE-BEGIN src/domain/entities/User.ts=====\n  import { ValidationError } from '../errors/ValidationError';\n  \n  export class User {\n    private constructor(\n      readonly id: string,\n      readonly name: string,\n    ) {}\n  \n    static create(id: string, name: string): User {\n      const trimmed = name.trim();\n      if (trimmed.length === 0) {\n        throw new ValidationError('User name must not be empty');\n      }\n      return new User(id, trimmed);\n    }\n  }\n  \n  =====SOURCE-END=====\n\n## Label options\n1. pass\n  2. fail\n\n## Root causes\n1. RC-EXTRACT-ALIAS\n  2. RC-DYNAMIC-IMPORT\n  3. RC-EXTRACT-BARREL\n  4. RC-LAYER-MAP\n  5. RC-OTHER\n  6. RC-TEMPLATE-OVERAPPROX\n  7. RC-GENUINE-UNSEEDED\n  8. RC-TYPE-ONLY\n  9. RC-TEST-CODE\n  10. RC-SPEC-PARAM\n  11. RC-STYLE-INAPPLICABLE\n  12. RC-GENERATED-CODE\n\nAnswer with one JSON object: {\"option\": <number of the label option>, \"rootCause\": <number of the root cause or null>, \"note\": \"<text, required with RC-OTHER>\", \"rationale\": \"<one or two sentences citing the code>\"}.",
+  "provider": "gemini",
+  "recordedAt": "2026-10-11T17:24:00.533Z",
+  "repetition": 0,
+  "requestHash": "29cb1580a03b2cfe5821000456cdcfd9b155571c1a6d831e15c483afbf2a9441",
+  "resolvedModel": "gemini-3.1-pro-preview",
+  "response": "{\n  \"option\": 1,\n  \"rationale\": \"The files Project.ts, Task.ts, and User.ts all define domain entities using a consistent abstraction (private constructors with static create methods for validation). They serve the cohesive concern of representing domain entities and do not duplicate rules or bypass abstractions.\",\n  \"note\": \"\",\n  \"rootCause\": null\n}",
+  "runIndex": 1,
+  "schemaVersion": 2,
+  "unitId": "src/domain/entities",
+  "usage": {
+    "inputTokens": 1391,
+    "outputTokens": 81
+  },
+  "usedOptions": {
+    "maxTokens": 65536,
+    "model": "gemini-3.1-pro-preview",
+    "temperature": 0
+  }
+}

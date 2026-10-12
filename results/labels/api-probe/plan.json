@@ -1,0 +1,36 @@
+{
+  "version": 1,
+  "permutationSeed": 20261008,
+  "budgetCalls": 4,
+  "strata": [
+    {
+      "population": "P4",
+      "stratum": "correct-reference, semantic",
+      "size": 1,
+      "cap": 10
+    }
+  ],
+  "items": [
+    {
+      "itemId": "5886bd84039179e100e1abe8cd50043c0b4186b5223d23d824d4bb61b8f883a3",
+      "kind": "judge-unit",
+      "population": "P4",
+      "projectId": "correct-reference",
+      "stratum": "correct-reference, semantic",
+      "inclusionProbability": 1,
+      "unitId": "src/domain/entities/Task.ts",
+      "functionId": "FF-N02",
+      "dimension": "semantic",
+      "context": "## Judge unit\nFunction: FF-N02 (semantic)\nUnit: src/domain/entities/Task.ts (file, layer domain)\n\n## Rubric\nRule: The unit's responsibilities match the role of its declared layer.\nPass: Every responsibility in the file belongs to the role and kind of its declared layer, and agrees with any ADR prose given.\nFail: The file carries a responsibility that belongs to a different layer kind, for example persistence, transport or framework logic in a domain file, or business rules in an infrastructure or presentation file.\nEvidence required: Name the file and cite the function, method or statement that carries the misplaced responsibility, and the layer kind it belongs to.\nOut of scope: import direction and layer-dependency rules, which are checked symbolically.\n\n## Source\n=====SOURCE-BEGIN src/domain/entities/Task.ts=====\n// Task — pure domain entity, zero violations\nexport class Task {\n  constructor(\n    public readonly id: string,\n    public readonly title: string,\n    public readonly description: string,\n    public readonly completed: boolean,\n    public readonly categoryId: string,\n    public readonly createdAt: Date\n  ) {}\n\n  complete(): Task {\n    return new Task(this.id, this.title, this.description, true, this.categoryId, this.createdAt);\n  }\n\n  isValid(): boolean {\n    return this.title.length > 0 && this.categoryId.length > 0;\n  }\n}\n\n=====SOURCE-END====="
+    }
+  ],
+  "provider": "gemini",
+  "model": "gemini-3.1-pro-preview",
+  "derivedFrom": {
+    "plan": "results/labels/api-probe/probe-source-plan.json",
+    "populations": [
+      "P4"
+    ],
+    "reason": "ADR-035 route probe: one fixture judge unit, 2 calls"
+  }
+}

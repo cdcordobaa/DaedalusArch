@@ -1,0 +1,47 @@
+{
+  "attempts": 1,
+  "cliVersion": "2.1.294",
+  "configListingSha256": "47aa04258852fab9a706f3f0c14cee22306d69fbb6fdfbde8c11854bd54997bc",
+  "durationMs": 5213,
+  "effort": "high",
+  "functionId": "FF-N02",
+  "ignoredOptions": [
+    "maxTokens"
+  ],
+  "isolationProbeSha256": "97a2e2d0af1100c13c55e028c1a0c71f069093c3d08705af122aaeb302f1a641",
+  "key": "548c9bd0b02fab4ce7983106619462fb37b8a18ba66151da3f51bda77b8759da-r0-1",
+  "model": "claude-opus-5-5",
+  "outcome": {
+    "kind": "valid"
+  },
+  "parsedVerdict": {
+    "confidence": 0.95,
+    "evidence": [
+      "const port = Number(process.env.PORT ?? 3000); reads environment configuration, which is an infrastructure concern",
+      "createApp(buildControllers()).listen(port, ...) starts the HTTP server and wires the composition root, which is infrastructure or framework bootstrapping",
+      "console.log on startup is an operational logging concern, not business logic"
+    ],
+    "pass": true,
+    "reasoning": "src/infrastructure/server.ts is the process entry point. It reads the PORT environment variable, builds the controllers through the composition root, creates the HTTP app and starts listening. Reading configuration, bootstrapping, wiring and starting the HTTP server are all infrastructure work. The file contains no business rules and no domain logic.",
+    "violations": []
+  },
+  "projectId": "claude-opus-5-5/task-management/minimal-prose/run-0",
+  "prompt": "## Rule\nThe unit's responsibilities match the role of its declared layer.\n\n## Rubric\nPass: Every responsibility in the file belongs to the role and kind of its declared layer, and agrees with any ADR prose given.\nFail: The file carries a responsibility that belongs to a different layer kind, for example persistence, transport or framework logic in a domain file, or business rules in an infrastructure or presentation file.\nEvidence required: Name the file and cite the function, method or statement that carries the misplaced responsibility, and the layer kind it belongs to.\nOut of scope: import direction and layer-dependency rules, which are checked symbolically.\n\n## Layer model\n- domain (kind: domain): src/domain/**\n- application (kind: application): src/application/**\n- infrastructure (kind: infrastructure): src/infrastructure/**\n\n## Unit\nKind: file\nId: src/infrastructure/server.ts\nLayer: infrastructure\nUnit files:\n- src/infrastructure/server.ts\n\n## Source\n=====SOURCE-BEGIN src/infrastructure/server.ts=====\nimport { buildControllers } from './composition/buildControllers';\nimport { createApp } from './http/createApp';\n\nconst port = Number(process.env.PORT ?? 3000);\n\ncreateApp(buildControllers()).listen(port, () => {\n  console.log(`Task management API listening on http://localhost:${port}`);\n});\n\n=====SOURCE-END=====\n\n## Graph excerpt\n{\"edges\":[{\"from\":\"src/infrastructure/server.ts\",\"to\":\"src/infrastructure/composition/buildControllers.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/infrastructure/server.ts\",\"to\":\"src/infrastructure/http/createApp.ts\",\"type\":\"IMPORTS\"}],\"nodes\":[{\"kind\":\"File\",\"layer\":\"infrastructure\",\"path\":\"src/infrastructure/composition/buildControllers.ts\"},{\"kind\":\"File\",\"layer\":\"infrastructure\",\"path\":\"src/infrastructure/http/createApp.ts\"},{\"kind\":\"File\",\"layer\":\"infrastructure\",\"path\":\"src/infrastructure/server.ts\"}]}\n\n## Instructions\nJudge the unit against the rule and rubric. Return the JSON object the schema requires. Set pass to false if any file of the unit fails the rubric.\n",
+  "provider": "claude-cli",
+  "recordedAt": "2026-10-10T21:39:06.256Z",
+  "repetition": 0,
+  "requestHash": "548c9bd0b02fab4ce7983106619462fb37b8a18ba66151da3f51bda77b8759da",
+  "resolvedModel": "claude-opus-5-5",
+  "response": "{\"is_error\":false,\"modelUsage\":{\"claude-opus-5-5\":{\"inputTokens\":2,\"outputTokens\":367}},\"result\":\"{\\\"pass\\\":true,\\\"confidence\\\":0.95,\\\"reasoning\\\":\\\"src/infrastructure/server.ts is the process entry point. It reads the PORT environment variable, builds the controllers through the composition root, creates the HTTP app and starts listening. Reading configuration, bootstrapping, wiring and starting the HTTP server are all infrastructure work. The file contains no business rules and no domain logic.\\\",\\\"evidence\\\":[\\\"const port = Number(process.env.PORT ?? 3000); reads environment configuration, which is an infrastructure concern\\\",\\\"createApp(buildControllers()).listen(port, ...) starts the HTTP server and wires the composition root, which is infrastructure or framework bootstrapping\\\",\\\"console.log on startup is an operational logging concern, not business logic\\\"],\\\"violations\\\":[]}\",\"structured_output\":{\"confidence\":0.95,\"evidence\":[\"const port = Number(process.env.PORT ?? 3000); reads environment configuration, which is an infrastructure concern\",\"createApp(buildControllers()).listen(port, ...) starts the HTTP server and wires the composition root, which is infrastructure or framework bootstrapping\",\"console.log on startup is an operational logging concern, not business logic\"],\"pass\":true,\"reasoning\":\"src/infrastructure/server.ts is the process entry point. It reads the PORT environment variable, builds the controllers through the composition root, creates the HTTP app and starts listening. Reading configuration, bootstrapping, wiring and starting the HTTP server are all infrastructure work. The file contains no business rules and no domain logic.\",\"violations\":[]}}",
+  "runIndex": 1,
+  "schemaVersion": 2,
+  "unitId": "src/infrastructure/server.ts",
+  "usage": {
+    "inputTokens": 2237,
+    "outputTokens": 367
+  },
+  "usedOptions": {
+    "effort": "high",
+    "model": "claude-opus-5-5"
+  }
+}

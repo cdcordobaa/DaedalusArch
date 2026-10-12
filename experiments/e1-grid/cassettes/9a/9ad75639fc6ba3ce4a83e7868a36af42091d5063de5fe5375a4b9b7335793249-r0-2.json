@@ -1,0 +1,47 @@
+{
+  "attempts": 1,
+  "cliVersion": "2.1.294",
+  "configListingSha256": "47aa04258852fab9a706f3f0c14cee22306d69fbb6fdfbde8c11854bd54997bc",
+  "durationMs": 6536,
+  "effort": "high",
+  "functionId": "FF-N02",
+  "ignoredOptions": [
+    "maxTokens"
+  ],
+  "isolationProbeSha256": "97a2e2d0af1100c13c55e028c1a0c71f069093c3d08705af122aaeb302f1a641",
+  "key": "9ad75639fc6ba3ce4a83e7868a36af42091d5063de5fe5375a4b9b7335793249-r0-2",
+  "model": "claude-opus-5-5",
+  "outcome": {
+    "kind": "valid"
+  },
+  "parsedVerdict": {
+    "confidence": 0.95,
+    "evidence": [
+      "src/infrastructure/repositories/InMemoryProductRepository.ts: class InMemoryProductRepository implements ProductRepository, so it is an infrastructure adapter for a domain port",
+      "findById/findAll/add only call Map get, values and set, which is pure persistence work",
+      "No business rules or domain invariants are enforced anywhere in the class"
+    ],
+    "pass": true,
+    "reasoning": "The file sits in the infrastructure layer. It implements the domain-level ProductRepository port using an in-memory Map as its storage. Each method (findById, findAll, add) only stores or retrieves data, which is persistence work and belongs in infrastructure. The file has no business rules, validation, pricing logic, transport handling or presentation code. Its responsibilities fit its declared layer.",
+    "violations": []
+  },
+  "projectId": "claude-haiku-4-5/order-fulfilment/minimal-prose/run-2",
+  "prompt": "## Rule\nThe unit's responsibilities match the role of its declared layer.\n\n## Rubric\nPass: Every responsibility in the file belongs to the role and kind of its declared layer, and agrees with any ADR prose given.\nFail: The file carries a responsibility that belongs to a different layer kind, for example persistence, transport or framework logic in a domain file, or business rules in an infrastructure or presentation file.\nEvidence required: Name the file and cite the function, method or statement that carries the misplaced responsibility, and the layer kind it belongs to.\nOut of scope: import direction and layer-dependency rules, which are checked symbolically.\n\n## Layer model\n- domain (kind: domain): src/domain/**\n- application (kind: application): src/application/**\n- infrastructure (kind: infrastructure): src/infrastructure/**\n\n## Unit\nKind: file\nId: src/infrastructure/repositories/InMemoryProductRepository.ts\nLayer: infrastructure\nUnit files:\n- src/infrastructure/repositories/InMemoryProductRepository.ts\n\n## Source\n=====SOURCE-BEGIN src/infrastructure/repositories/InMemoryProductRepository.ts=====\nimport { Product } from '../../domain/entities/Product';\nimport { ProductRepository } from '../../domain/repositories/ProductRepository';\n\nexport class InMemoryProductRepository implements ProductRepository {\n  private products: Map<string, Product>;\n\n  constructor() {\n    this.products = new Map();\n  }\n\n  findById(id: string): Product | undefined {\n    return this.products.get(id);\n  }\n\n  findAll(): Product[] {\n    return Array.from(this.products.values());\n  }\n\n  add(product: Product): void {\n    this.products.set(product.id, product);\n  }\n}\n\n=====SOURCE-END=====\n\n## Graph excerpt\n{\"edges\":[{\"from\":\"InMemoryProductRepository@src/infrastructure/repositories/InMemoryProductRepository.ts\",\"to\":\"ProductRepository@src/domain/repositories/ProductRepository.ts\",\"type\":\"IMPLEMENTS\"},{\"from\":\"src/infrastructure/app.ts\",\"to\":\"src/infrastructure/repositories/InMemoryProductRepository.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/infrastructure/repositories/InMemoryProductRepository.ts\",\"to\":\"src/domain/entities/Product.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/infrastructure/repositories/InMemoryProductRepository.ts\",\"to\":\"src/domain/repositories/ProductRepository.ts\",\"type\":\"IMPORTS\"}],\"nodes\":[{\"kind\":\"Class\",\"layer\":\"infrastructure\",\"name\":\"InMemoryProductRepository\",\"path\":\"src/infrastructure/repositories/InMemoryProductRepository.ts\"},{\"kind\":\"File\",\"layer\":\"domain\",\"path\":\"src/domain/entities/Product.ts\"},{\"kind\":\"File\",\"layer\":\"domain\",\"path\":\"src/domain/repositories/ProductRepository.ts\"},{\"kind\":\"File\",\"layer\":\"infrastructure\",\"path\":\"src/infrastructure/app.ts\"},{\"kind\":\"File\",\"layer\":\"infrastructure\",\"path\":\"src/infrastructure/repositories/InMemoryProductRepository.ts\"},{\"kind\":\"Interface\",\"layer\":\"domain\",\"name\":\"ProductRepository\",\"path\":\"src/domain/repositories/ProductRepository.ts\"}]}\n\n## Instructions\nJudge the unit against the rule and rubric. Return the JSON object the schema requires. Set pass to false if any file of the unit fails the rubric.\n",
+  "provider": "claude-cli",
+  "recordedAt": "2026-10-11T02:51:43.479Z",
+  "repetition": 0,
+  "requestHash": "9ad75639fc6ba3ce4a83e7868a36af42091d5063de5fe5375a4b9b7335793249",
+  "resolvedModel": "claude-opus-5-5",
+  "response": "{\"is_error\":false,\"modelUsage\":{\"claude-opus-5-5\":{\"inputTokens\":2,\"outputTokens\":386}},\"result\":\"{\\\"pass\\\":true,\\\"confidence\\\":0.95,\\\"reasoning\\\":\\\"The file sits in the infrastructure layer. It implements the domain-level ProductRepository port using an in-memory Map as its storage. Each method (findById, findAll, add) only stores or retrieves data, which is persistence work and belongs in infrastructure. The file has no business rules, validation, pricing logic, transport handling or presentation code. Its responsibilities fit its declared layer.\\\",\\\"evidence\\\":[\\\"src/infrastructure/repositories/InMemoryProductRepository.ts: class InMemoryProductRepository implements ProductRepository, so it is an infrastructure adapter for a domain port\\\",\\\"findById/findAll/add only call Map get, values and set, which is pure persistence work\\\",\\\"No business rules or domain invariants are enforced anywhere in the class\\\"],\\\"violations\\\":[]}\",\"structured_output\":{\"confidence\":0.95,\"evidence\":[\"src/infrastructure/repositories/InMemoryProductRepository.ts: class InMemoryProductRepository implements ProductRepository, so it is an infrastructure adapter for a domain port\",\"findById/findAll/add only call Map get, values and set, which is pure persistence work\",\"No business rules or domain invariants are enforced anywhere in the class\"],\"pass\":true,\"reasoning\":\"The file sits in the infrastructure layer. It implements the domain-level ProductRepository port using an in-memory Map as its storage. Each method (findById, findAll, add) only stores or retrieves data, which is persistence work and belongs in infrastructure. The file has no business rules, validation, pricing logic, transport handling or presentation code. Its responsibilities fit its declared layer.\",\"violations\":[]}}",
+  "runIndex": 2,
+  "schemaVersion": 2,
+  "unitId": "src/infrastructure/repositories/InMemoryProductRepository.ts",
+  "usage": {
+    "inputTokens": 2681,
+    "outputTokens": 386
+  },
+  "usedOptions": {
+    "effort": "high",
+    "model": "claude-opus-5-5"
+  }
+}

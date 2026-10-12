@@ -1,0 +1,47 @@
+{
+  "attempts": 1,
+  "cliVersion": "2.1.294",
+  "configListingSha256": "47aa04258852fab9a706f3f0c14cee22306d69fbb6fdfbde8c11854bd54997bc",
+  "durationMs": 6084,
+  "effort": "high",
+  "functionId": "FF-N02",
+  "ignoredOptions": [
+    "maxTokens"
+  ],
+  "isolationProbeSha256": "97a2e2d0af1100c13c55e028c1a0c71f069093c3d08705af122aaeb302f1a641",
+  "key": "7b5de96f6268c874e3aacbf9f244a294677be94bea1f9c3ce672c54b486fa5e1-r0-0",
+  "model": "claude-opus-5-5",
+  "outcome": {
+    "kind": "valid"
+  },
+  "parsedVerdict": {
+    "confidence": 0.9,
+    "evidence": [
+      "src/application/dtos.ts: the interfaces CreateProductInput, PlaceOrderInput, OrderDto and ProductDto are plain data contracts for use-case input and output.",
+      "src/application/dtos.ts: toOrderDto and toProductDto only copy fields from domain entities into DTOs. They contain no validation, no business rules and no I/O.",
+      "src/application/dtos.ts: the file has no HTTP, database or framework code."
+    ],
+    "pass": true,
+    "reasoning": "src/application/dtos.ts declares the application layer's input and output contracts (CreateProductInput, PlaceOrderInput, OrderDto, ProductDto). It also has two pure mapping functions, toOrderDto and toProductDto, which turn domain entities into those output DTOs. Defining use-case data shapes and mapping domain objects into them is a normal application-layer job. The file has no persistence, transport or framework code, and no business rules or invariants. The mappers only copy fields; renaming availableStock to stock is not a business decision.",
+    "violations": []
+  },
+  "projectId": "gpt-5.6-terra/order-fulfilment/minimal-prose/run-0",
+  "prompt": "## Rule\nThe unit's responsibilities match the role of its declared layer.\n\n## Rubric\nPass: Every responsibility in the file belongs to the role and kind of its declared layer, and agrees with any ADR prose given.\nFail: The file carries a responsibility that belongs to a different layer kind, for example persistence, transport or framework logic in a domain file, or business rules in an infrastructure or presentation file.\nEvidence required: Name the file and cite the function, method or statement that carries the misplaced responsibility, and the layer kind it belongs to.\nOut of scope: import direction and layer-dependency rules, which are checked symbolically.\n\n## Layer model\n- domain (kind: domain): src/domain/**\n- application (kind: application): src/application/**\n- infrastructure (kind: infrastructure): src/infrastructure/**\n\n## Unit\nKind: file\nId: src/application/dtos.ts\nLayer: application\nUnit files:\n- src/application/dtos.ts\n\n## Source\n=====SOURCE-BEGIN src/application/dtos.ts=====\nimport { Order } from \"../domain/order\";\nimport { OrderStatus } from \"../domain/order-status\";\nimport { Product } from \"../domain/product\";\n\nexport interface CreateProductInput { id: string; name: string; stock: number; }\nexport interface PlaceOrderInput { customerId: string; lines: Array<{ productId: string; quantity: number }>; }\nexport interface OrderDto { id: string; customerId: string; status: OrderStatus; lines: readonly { productId: string; quantity: number }[]; }\nexport interface ProductDto { id: string; name: string; stock: number; }\n\nexport const toOrderDto = (order: Order): OrderDto => ({\n  id: order.id, customerId: order.customerId, status: order.status, lines: order.lines,\n});\n\nexport const toProductDto = (product: Product): ProductDto => ({\n  id: product.id, name: product.name, stock: product.availableStock,\n});\n\n=====SOURCE-END=====\n\n## Graph excerpt\n{\"edges\":[{\"from\":\"src/application/catalogue-service.ts\",\"to\":\"src/application/dtos.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/application/dtos.ts\",\"to\":\"src/domain/order-status.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/application/dtos.ts\",\"to\":\"src/domain/order.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/application/dtos.ts\",\"to\":\"src/domain/product.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/application/order-service.ts\",\"to\":\"src/application/dtos.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/infrastructure/order-controller.ts\",\"to\":\"src/application/dtos.ts\",\"type\":\"IMPORTS\"}],\"nodes\":[{\"kind\":\"File\",\"layer\":\"application\",\"path\":\"src/application/catalogue-service.ts\"},{\"kind\":\"File\",\"layer\":\"application\",\"path\":\"src/application/dtos.ts\"},{\"kind\":\"File\",\"layer\":\"application\",\"path\":\"src/application/order-service.ts\"},{\"kind\":\"File\",\"layer\":\"domain\",\"path\":\"src/domain/order-status.ts\"},{\"kind\":\"File\",\"layer\":\"domain\",\"path\":\"src/domain/order.ts\"},{\"kind\":\"File\",\"layer\":\"domain\",\"path\":\"src/domain/product.ts\"},{\"kind\":\"File\",\"layer\":\"infrastructure\",\"path\":\"src/infrastructure/order-controller.ts\"},{\"kind\":\"Interface\",\"layer\":\"application\",\"name\":\"CreateProductInput\",\"path\":\"src/application/dtos.ts\"},{\"kind\":\"Interface\",\"layer\":\"application\",\"name\":\"OrderDto\",\"path\":\"src/application/dtos.ts\"},{\"kind\":\"Interface\",\"layer\":\"application\",\"name\":\"PlaceOrderInput\",\"path\":\"src/application/dtos.ts\"},{\"kind\":\"Interface\",\"layer\":\"application\",\"name\":\"ProductDto\",\"path\":\"src/application/dtos.ts\"}]}\n\n## Instructions\nJudge the unit against the rule and rubric. Return the JSON object the schema requires. Set pass to false if any file of the unit fails the rubric.\n",
+  "provider": "claude-cli",
+  "recordedAt": "2026-10-11T03:18:20.965Z",
+  "repetition": 0,
+  "requestHash": "7b5de96f6268c874e3aacbf9f244a294677be94bea1f9c3ce672c54b486fa5e1",
+  "resolvedModel": "claude-opus-5-5",
+  "response": "{\"is_error\":false,\"modelUsage\":{\"claude-opus-5-5\":{\"inputTokens\":2,\"outputTokens\":469}},\"result\":\"{\\\"pass\\\":true,\\\"confidence\\\":0.9,\\\"reasoning\\\":\\\"src/application/dtos.ts declares the application layer's input and output contracts (CreateProductInput, PlaceOrderInput, OrderDto, ProductDto). It also has two pure mapping functions, toOrderDto and toProductDto, which turn domain entities into those output DTOs. Defining use-case data shapes and mapping domain objects into them is a normal application-layer job. The file has no persistence, transport or framework code, and no business rules or invariants. The mappers only copy fields; renaming availableStock to stock is not a business decision.\\\",\\\"evidence\\\":[\\\"src/application/dtos.ts: the interfaces CreateProductInput, PlaceOrderInput, OrderDto and ProductDto are plain data contracts for use-case input and output.\\\",\\\"src/application/dtos.ts: toOrderDto and toProductDto only copy fields from domain entities into DTOs. They contain no validation, no business rules and no I/O.\\\",\\\"src/application/dtos.ts: the file has no HTTP, database or framework code.\\\"],\\\"violations\\\":[]}\",\"structured_output\":{\"confidence\":0.9,\"evidence\":[\"src/application/dtos.ts: the interfaces CreateProductInput, PlaceOrderInput, OrderDto and ProductDto are plain data contracts for use-case input and output.\",\"src/application/dtos.ts: toOrderDto and toProductDto only copy fields from domain entities into DTOs. They contain no validation, no business rules and no I/O.\",\"src/application/dtos.ts: the file has no HTTP, database or framework code.\"],\"pass\":true,\"reasoning\":\"src/application/dtos.ts declares the application layer's input and output contracts (CreateProductInput, PlaceOrderInput, OrderDto, ProductDto). It also has two pure mapping functions, toOrderDto and toProductDto, which turn domain entities into those output DTOs. Defining use-case data shapes and mapping domain objects into them is a normal application-layer job. The file has no persistence, transport or framework code, and no business rules or invariants. The mappers only copy fields; renaming availableStock to stock is not a business decision.\",\"violations\":[]}}",
+  "runIndex": 0,
+  "schemaVersion": 2,
+  "unitId": "src/application/dtos.ts",
+  "usage": {
+    "inputTokens": 2842,
+    "outputTokens": 469
+  },
+  "usedOptions": {
+    "effort": "high",
+    "model": "claude-opus-5-5"
+  }
+}

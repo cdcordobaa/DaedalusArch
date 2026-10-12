@@ -1,0 +1,48 @@
+{
+  "attempts": 1,
+  "cliVersion": "2.1.294",
+  "configListingSha256": "47aa04258852fab9a706f3f0c14cee22306d69fbb6fdfbde8c11854bd54997bc",
+  "durationMs": 7053,
+  "effort": "high",
+  "functionId": "FF-N02",
+  "ignoredOptions": [
+    "maxTokens"
+  ],
+  "isolationProbeSha256": "97a2e2d0af1100c13c55e028c1a0c71f069093c3d08705af122aaeb302f1a641",
+  "key": "0b1d81d5c36d191eed291cda3b31810e90c0009dfc01a48326790137756afaee-r0-1",
+  "model": "claude-opus-5-5",
+  "outcome": {
+    "kind": "valid"
+  },
+  "parsedVerdict": {
+    "confidence": 0.88,
+    "evidence": [
+      "src/application/catalogue-service.ts: add() checks for an existing id with this.products.findById, builds the domain Product and saves it through the repository port, which is application-layer use-case coordination",
+      "src/application/catalogue-service.ts: toDto() maps the domain entity to the application's ProductDto, which is an application-layer job",
+      "src/application/catalogue-service.ts: list() delegates to ProductRepository.list() and returns DTOs, with no persistence or transport details",
+      "No HTTP, database or framework code appears anywhere in the file"
+    ],
+    "pass": true,
+    "reasoning": "CatalogueService is a use-case service, which is the job of the application layer. It coordinates the domain repository port (ProductRepository) and the domain entity (Product). It checks that a product id isn't already taken by calling findById on the repository. It saves through the repository's save method and maps entities to DTOs. None of this is persistence, transport or framework code: no SQL, HTTP or ORM details appear. Checking for an existing id through a repository is normal application-level coordination, not a domain rule that has been moved out of the domain. Mapping entities to DTOs also belongs in the application layer. Product construction and its own checks stay with the Product entity.",
+    "violations": []
+  },
+  "projectId": "gpt-5.6-terra/order-fulfilment/minimal-prose/run-1",
+  "prompt": "## Rule\nThe unit's responsibilities match the role of its declared layer.\n\n## Rubric\nPass: Every responsibility in the file belongs to the role and kind of its declared layer, and agrees with any ADR prose given.\nFail: The file carries a responsibility that belongs to a different layer kind, for example persistence, transport or framework logic in a domain file, or business rules in an infrastructure or presentation file.\nEvidence required: Name the file and cite the function, method or statement that carries the misplaced responsibility, and the layer kind it belongs to.\nOut of scope: import direction and layer-dependency rules, which are checked symbolically.\n\n## Layer model\n- domain (kind: domain): src/domain/**\n- application (kind: application): src/application/**\n- infrastructure (kind: infrastructure): src/infrastructure/**\n\n## Unit\nKind: file\nId: src/application/catalogue-service.ts\nLayer: application\nUnit files:\n- src/application/catalogue-service.ts\n\n## Source\n=====SOURCE-BEGIN src/application/catalogue-service.ts=====\nimport { Product } from \"../domain/product\";\nimport { ProductRepository } from \"../domain/repositories\";\nimport { ProductDto } from \"./dtos\";\n\nexport class CatalogueService {\n  public constructor(private readonly products: ProductRepository) {}\n\n  public add(id: string, name: string, stock: number): ProductDto {\n    if (this.products.findById(id)) throw new Error(`Product already exists: ${id}`);\n    const product = new Product(id, name, stock);\n    this.products.save(product);\n    return this.toDto(product);\n  }\n\n  public list(): ProductDto[] {\n    return this.products.list().map((product) => this.toDto(product));\n  }\n\n  private toDto(product: Product): ProductDto {\n    return { id: product.id, name: product.name, stock: product.stock };\n  }\n}\n\n=====SOURCE-END=====\n\n## Graph excerpt\n{\"edges\":[{\"from\":\"CatalogueService@src/application/catalogue-service.ts\",\"to\":\"ProductRepository@src/domain/repositories.ts\",\"type\":\"CONSTRUCTOR_INJECTS\"},{\"from\":\"OrderController@src/infrastructure/order-controller.ts\",\"to\":\"CatalogueService@src/application/catalogue-service.ts\",\"type\":\"CONSTRUCTOR_INJECTS\"},{\"from\":\"src/application/catalogue-service.ts\",\"to\":\"src/application/dtos.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/application/catalogue-service.ts\",\"to\":\"src/domain/product.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/application/catalogue-service.ts\",\"to\":\"src/domain/repositories.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/infrastructure/order-controller.ts\",\"to\":\"src/application/catalogue-service.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/infrastructure/server.ts\",\"to\":\"src/application/catalogue-service.ts\",\"type\":\"IMPORTS\"}],\"nodes\":[{\"kind\":\"Class\",\"layer\":\"application\",\"name\":\"CatalogueService\",\"path\":\"src/application/catalogue-service.ts\"},{\"kind\":\"Class\",\"layer\":\"infrastructure\",\"name\":\"OrderController\",\"path\":\"src/infrastructure/order-controller.ts\"},{\"kind\":\"File\",\"layer\":\"application\",\"path\":\"src/application/catalogue-service.ts\"},{\"kind\":\"File\",\"layer\":\"application\",\"path\":\"src/application/dtos.ts\"},{\"kind\":\"File\",\"layer\":\"domain\",\"path\":\"src/domain/product.ts\"},{\"kind\":\"File\",\"layer\":\"domain\",\"path\":\"src/domain/repositories.ts\"},{\"kind\":\"File\",\"layer\":\"infrastructure\",\"path\":\"src/infrastructure/order-controller.ts\"},{\"kind\":\"File\",\"layer\":\"infrastructure\",\"path\":\"src/infrastructure/server.ts\"},{\"kind\":\"Interface\",\"layer\":\"domain\",\"name\":\"ProductRepository\",\"path\":\"src/domain/repositories.ts\"}]}\n\n## Instructions\nJudge the unit against the rule and rubric. Return the JSON object the schema requires. Set pass to false if any file of the unit fails the rubric.\n",
+  "provider": "claude-cli",
+  "recordedAt": "2026-10-11T03:20:39.396Z",
+  "repetition": 0,
+  "requestHash": "0b1d81d5c36d191eed291cda3b31810e90c0009dfc01a48326790137756afaee",
+  "resolvedModel": "claude-opus-5-5",
+  "response": "{\"is_error\":false,\"modelUsage\":{\"claude-opus-5-5\":{\"inputTokens\":2,\"outputTokens\":581}},\"result\":\"{\\\"pass\\\":true,\\\"confidence\\\":0.88,\\\"reasoning\\\":\\\"CatalogueService is a use-case service, which is the job of the application layer. It coordinates the domain repository port (ProductRepository) and the domain entity (Product). It checks that a product id isn't already taken by calling findById on the repository. It saves through the repository's save method and maps entities to DTOs. None of this is persistence, transport or framework code: no SQL, HTTP or ORM details appear. Checking for an existing id through a repository is normal application-level coordination, not a domain rule that has been moved out of the domain. Mapping entities to DTOs also belongs in the application layer. Product construction and its own checks stay with the Product entity.\\\",\\\"evidence\\\":[\\\"src/application/catalogue-service.ts: add() checks for an existing id with this.products.findById, builds the domain Product and saves it through the repository port, which is application-layer use-case coordination\\\",\\\"src/application/catalogue-service.ts: toDto() maps the domain entity to the application's ProductDto, which is an application-layer job\\\",\\\"src/application/catalogue-service.ts: list() delegates to ProductRepository.list() and returns DTOs, with no persistence or transport details\\\",\\\"No HTTP, database or framework code appears anywhere in the file\\\"],\\\"violations\\\":[]}\",\"structured_output\":{\"confidence\":0.88,\"evidence\":[\"src/application/catalogue-service.ts: add() checks for an existing id with this.products.findById, builds the domain Product and saves it through the repository port, which is application-layer use-case coordination\",\"src/application/catalogue-service.ts: toDto() maps the domain entity to the application's ProductDto, which is an application-layer job\",\"src/application/catalogue-service.ts: list() delegates to ProductRepository.list() and returns DTOs, with no persistence or transport details\",\"No HTTP, database or framework code appears anywhere in the file\"],\"pass\":true,\"reasoning\":\"CatalogueService is a use-case service, which is the job of the application layer. It coordinates the domain repository port (ProductRepository) and the domain entity (Product). It checks that a product id isn't already taken by calling findById on the repository. It saves through the repository's save method and maps entities to DTOs. None of this is persistence, transport or framework code: no SQL, HTTP or ORM details appear. Checking for an existing id through a repository is normal application-level coordination, not a domain rule that has been moved out of the domain. Mapping entities to DTOs also belongs in the application layer. Product construction and its own checks stay with the Product entity.\",\"violations\":[]}}",
+  "runIndex": 1,
+  "schemaVersion": 2,
+  "unitId": "src/application/catalogue-service.ts",
+  "usage": {
+    "inputTokens": 2875,
+    "outputTokens": 581
+  },
+  "usedOptions": {
+    "effort": "high",
+    "model": "claude-opus-5-5"
+  }
+}

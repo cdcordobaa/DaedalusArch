@@ -1,0 +1,32 @@
+{
+  "attempts": 1,
+  "durationMs": 6025,
+  "effort": null,
+  "functionId": "label:judge-unit:fc368b349844b5aff074d8d938f8c4b036ad93d7f3b62e031df49524c2d71249",
+  "ignoredOptions": [],
+  "key": "ab408959eba2fab0e2b84e456b892d05b65eee4703d352f8a89dff23e64e4cc4-r0-1",
+  "model": "gemini-3.1-pro-preview",
+  "outcome": {
+    "kind": "valid"
+  },
+  "parsedVerdict": null,
+  "prompt": "Decide whether the unit below satisfies the rubric.\n- pass: the unit meets the rubric's pass condition.\n- fail: the unit meets the rubric's fail condition.\nGive a short rationale that cites the code. Root cause: answer null.\n\n## Item\n## Judge unit\n  Function: FF-N02 (semantic)\n  Unit: src/infrastructure/dependencies.ts (file, layer infrastructure)\n  \n  ## Rubric\n  Rule: The unit's responsibilities match the role of its declared layer.\n  Pass: Every responsibility in the file belongs to the role and kind of its declared layer, and agrees with any ADR prose given.\n  Fail: The file carries a responsibility that belongs to a different layer kind, for example persistence, transport or framework logic in a domain file, or business rules in an infrastructure or presentation file.\n  Evidence required: Name the file and cite the function, method or statement that carries the misplaced responsibility, and the layer kind it belongs to.\n  Out of scope: import direction and layer-dependency rules, which are checked symbolically.\n  \n  ## Source\n  =====SOURCE-BEGIN src/infrastructure/dependencies.ts=====\n  import { Catalog } from '../domain/Catalog';\n  import { OrderRepository } from '../domain/OrderRepository';\n  import { PlaceOrderUseCase } from '../application/PlaceOrderUseCase';\n  import { UpdateOrderStateUseCase } from '../application/UpdateOrderStateUseCase';\n  import { CancelOrderUseCase } from '../application/CancelOrderUseCase';\n  import { ListOrdersByStateUseCase } from '../application/ListOrdersByStateUseCase';\n  import { GetStockLevelsUseCase } from '../application/GetStockLevelsUseCase';\n  \n  export interface Dependencies {\n    catalog: Catalog;\n    orderRepository: OrderRepository;\n    placeOrderUseCase: PlaceOrderUseCase;\n    updateOrderStateUseCase: UpdateOrderStateUseCase;\n    cancelOrderUseCase: CancelOrderUseCase;\n    listOrdersByStateUseCase: ListOrdersByStateUseCase;\n    getStockLevelsUseCase: GetStockLevelsUseCase;\n  }\n  \n  export function initializeDependencies(): Dependencies {\n    const catalog = new Catalog();\n    const orderRepository = new OrderRepository();\n  \n    // Initialize with sample products\n    catalog.addProduct({ id: 'p1', name: 'Laptop', price: 999.99 }, 10);\n    catalog.addProduct({ id: 'p2', name: 'Mouse', price: 29.99 }, 50);\n    catalog.addProduct({ id: 'p3', name: 'Keyboard', price: 79.99 }, 30);\n  \n    return {\n      catalog,\n      orderRepository,\n      placeOrderUseCase: new PlaceOrderUseCase(catalog, orderRepository),\n      updateOrderStateUseCase: new UpdateOrderStateUseCase(orderRepository),\n      cancelOrderUseCase: new CancelOrderUseCase(catalog, orderRepository),\n      listOrdersByStateUseCase: new ListOrdersByStateUseCase(orderRepository),\n      getStockLevelsUseCase: new GetStockLevelsUseCase(catalog),\n    };\n  }\n  \n  =====SOURCE-END=====\n\n## Label options\n1. fail\n  2. pass\n\n## Root causes\n1. RC-EXTRACT-BARREL\n  2. RC-SPEC-PARAM\n  3. RC-TEST-CODE\n  4. RC-STYLE-INAPPLICABLE\n  5. RC-GENUINE-UNSEEDED\n  6. RC-EXTRACT-ALIAS\n  7. RC-OTHER\n  8. RC-DYNAMIC-IMPORT\n  9. RC-GENERATED-CODE\n  10. RC-TYPE-ONLY\n  11. RC-LAYER-MAP\n  12. RC-TEMPLATE-OVERAPPROX\n\nAnswer with one JSON object: {\"option\": <number of the label option>, \"rootCause\": <number of the root cause or null>, \"note\": \"<text, required with RC-OTHER>\", \"rationale\": \"<one or two sentences citing the code>\"}.",
+  "provider": "gemini",
+  "recordedAt": "2026-10-11T17:23:52.291Z",
+  "repetition": 0,
+  "requestHash": "ab408959eba2fab0e2b84e456b892d05b65eee4703d352f8a89dff23e64e4cc4",
+  "resolvedModel": "gemini-3.1-pro-preview",
+  "response": "{\"option\": 2, \"rationale\": \"The file acts as a composition root, wiring dependencies and instantiating use cases and repositories, which is a valid responsibility for the infrastructure layer.\", \"note\": \"\", \"rootCause\": null}",
+  "runIndex": 1,
+  "schemaVersion": 2,
+  "unitId": "src/infrastructure/dependencies.ts",
+  "usage": {
+    "inputTokens": 918,
+    "outputTokens": 50
+  },
+  "usedOptions": {
+    "maxTokens": 65536,
+    "model": "gemini-3.1-pro-preview",
+    "temperature": 0
+  }
+}

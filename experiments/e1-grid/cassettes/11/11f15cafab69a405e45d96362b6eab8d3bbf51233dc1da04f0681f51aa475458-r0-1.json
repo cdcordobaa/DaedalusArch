@@ -1,0 +1,48 @@
+{
+  "attempts": 1,
+  "cliVersion": "2.1.294",
+  "configListingSha256": "47aa04258852fab9a706f3f0c14cee22306d69fbb6fdfbde8c11854bd54997bc",
+  "durationMs": 8242,
+  "effort": "high",
+  "functionId": "FF-N02",
+  "ignoredOptions": [
+    "maxTokens"
+  ],
+  "isolationProbeSha256": "97a2e2d0af1100c13c55e028c1a0c71f069093c3d08705af122aaeb302f1a641",
+  "key": "11f15cafab69a405e45d96362b6eab8d3bbf51233dc1da04f0681f51aa475458-r0-1",
+  "model": "claude-opus-5-5",
+  "outcome": {
+    "kind": "valid"
+  },
+  "parsedVerdict": {
+    "confidence": 0.93,
+    "evidence": [
+      "src/application/user-service.ts: register() gets an id from the IdGenerator port, builds the user with the domain factory createUser, and saves it through the UserRepository port. This is use-case orchestration.",
+      "src/application/user-service.ts: get() looks the user up through the repository port and throws the domain NotFoundError if it is missing. This is application-level use-case flow.",
+      "src/application/user-service.ts: list() hands off to users.findAll() and contains no storage or transport details.",
+      "Dependencies arrive through constructor injection of abstractions (CONSTRUCTOR_INJECTS edges to IdGenerator and UserRepository). The file has no infrastructure or framework code."
+    ],
+    "pass": true,
+    "reasoning": "UserService is a typical application-layer service. Each method coordinates use-case steps through injected ports (UserRepository, IdGenerator). Entity construction is handed to the domain factory createUser. The class contains no persistence code (no SQL and no storage details), no transport or HTTP handling, and no framework code. It also holds no business invariants, which belong to the domain. The not-found check in get() is ordinary use-case flow that raises a domain error. It is not a misplaced business rule. No ADR prose was provided to contradict this.",
+    "violations": []
+  },
+  "projectId": "claude-opus-5-5/task-management/none/run-2",
+  "prompt": "## Rule\nThe unit's responsibilities match the role of its declared layer.\n\n## Rubric\nPass: Every responsibility in the file belongs to the role and kind of its declared layer, and agrees with any ADR prose given.\nFail: The file carries a responsibility that belongs to a different layer kind, for example persistence, transport or framework logic in a domain file, or business rules in an infrastructure or presentation file.\nEvidence required: Name the file and cite the function, method or statement that carries the misplaced responsibility, and the layer kind it belongs to.\nOut of scope: import direction and layer-dependency rules, which are checked symbolically.\n\n## Layer model\n- domain (kind: domain): src/domain/**\n- application (kind: application): src/application/**\n- infrastructure (kind: infrastructure): src/infrastructure/**\n\n## Unit\nKind: file\nId: src/application/user-service.ts\nLayer: application\nUnit files:\n- src/application/user-service.ts\n\n## Source\n=====SOURCE-BEGIN src/application/user-service.ts=====\nimport { NotFoundError } from \"../domain/errors\";\nimport { createUser, User, UserRepository } from \"../domain/user\";\nimport { IdGenerator } from \"./ports\";\n\nexport class UserService {\n  constructor(\n    private readonly users: UserRepository,\n    private readonly ids: IdGenerator,\n  ) {}\n\n  register(name: string): User {\n    const user = createUser(this.ids.next(), name);\n    this.users.save(user);\n    return user;\n  }\n\n  get(id: string): User {\n    const user = this.users.findById(id);\n    if (!user) {\n      throw new NotFoundError(\"User\", id);\n    }\n    return user;\n  }\n\n  list(): User[] {\n    return this.users.findAll();\n  }\n}\n\n=====SOURCE-END=====\n\n## Graph excerpt\n{\"edges\":[{\"from\":\"UserService@src/application/user-service.ts\",\"to\":\"IdGenerator@src/application/ports.ts\",\"type\":\"CONSTRUCTOR_INJECTS\"},{\"from\":\"UserService@src/application/user-service.ts\",\"to\":\"UserRepository@src/domain/user.ts\",\"type\":\"CONSTRUCTOR_INJECTS\"},{\"from\":\"src/application/user-service.ts\",\"to\":\"src/application/ports.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/application/user-service.ts\",\"to\":\"src/domain/errors.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/application/user-service.ts\",\"to\":\"src/domain/user.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/infrastructure/http-app.ts\",\"to\":\"src/application/user-service.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/infrastructure/server.ts\",\"to\":\"src/application/user-service.ts\",\"type\":\"IMPORTS\"}],\"nodes\":[{\"kind\":\"Class\",\"layer\":\"application\",\"name\":\"UserService\",\"path\":\"src/application/user-service.ts\"},{\"kind\":\"File\",\"layer\":\"application\",\"path\":\"src/application/ports.ts\"},{\"kind\":\"File\",\"layer\":\"application\",\"path\":\"src/application/user-service.ts\"},{\"kind\":\"File\",\"layer\":\"domain\",\"path\":\"src/domain/errors.ts\"},{\"kind\":\"File\",\"layer\":\"domain\",\"path\":\"src/domain/user.ts\"},{\"kind\":\"File\",\"layer\":\"infrastructure\",\"path\":\"src/infrastructure/http-app.ts\"},{\"kind\":\"File\",\"layer\":\"infrastructure\",\"path\":\"src/infrastructure/server.ts\"},{\"kind\":\"Interface\",\"layer\":\"application\",\"name\":\"IdGenerator\",\"path\":\"src/application/ports.ts\"},{\"kind\":\"Interface\",\"layer\":\"domain\",\"name\":\"UserRepository\",\"path\":\"src/domain/user.ts\"}]}\n\n## Instructions\nJudge the unit against the rule and rubric. Return the JSON object the schema requires. Set pass to false if any file of the unit fails the rubric.\n",
+  "provider": "claude-cli",
+  "recordedAt": "2026-10-10T21:27:17.662Z",
+  "repetition": 0,
+  "requestHash": "11f15cafab69a405e45d96362b6eab8d3bbf51233dc1da04f0681f51aa475458",
+  "resolvedModel": "claude-opus-5-5",
+  "response": "{\"is_error\":false,\"modelUsage\":{\"claude-opus-5-5\":{\"inputTokens\":2,\"outputTokens\":539}},\"result\":\"{\\\"pass\\\":true,\\\"confidence\\\":0.93,\\\"reasoning\\\":\\\"UserService is a typical application-layer service. Each method coordinates use-case steps through injected ports (UserRepository, IdGenerator). Entity construction is handed to the domain factory createUser. The class contains no persistence code (no SQL and no storage details), no transport or HTTP handling, and no framework code. It also holds no business invariants, which belong to the domain. The not-found check in get() is ordinary use-case flow that raises a domain error. It is not a misplaced business rule. No ADR prose was provided to contradict this.\\\",\\\"evidence\\\":[\\\"src/application/user-service.ts: register() gets an id from the IdGenerator port, builds the user with the domain factory createUser, and saves it through the UserRepository port. This is use-case orchestration.\\\",\\\"src/application/user-service.ts: get() looks the user up through the repository port and throws the domain NotFoundError if it is missing. This is application-level use-case flow.\\\",\\\"src/application/user-service.ts: list() hands off to users.findAll() and contains no storage or transport details.\\\",\\\"Dependencies arrive through constructor injection of abstractions (CONSTRUCTOR_INJECTS edges to IdGenerator and UserRepository). The file has no infrastructure or framework code.\\\"],\\\"violations\\\":[]}\",\"structured_output\":{\"confidence\":0.93,\"evidence\":[\"src/application/user-service.ts: register() gets an id from the IdGenerator port, builds the user with the domain factory createUser, and saves it through the UserRepository port. This is use-case orchestration.\",\"src/application/user-service.ts: get() looks the user up through the repository port and throws the domain NotFoundError if it is missing. This is application-level use-case flow.\",\"src/application/user-service.ts: list() hands off to users.findAll() and contains no storage or transport details.\",\"Dependencies arrive through constructor injection of abstractions (CONSTRUCTOR_INJECTS edges to IdGenerator and UserRepository). The file has no infrastructure or framework code.\"],\"pass\":true,\"reasoning\":\"UserService is a typical application-layer service. Each method coordinates use-case steps through injected ports (UserRepository, IdGenerator). Entity construction is handed to the domain factory createUser. The class contains no persistence code (no SQL and no storage details), no transport or HTTP handling, and no framework code. It also holds no business invariants, which belong to the domain. The not-found check in get() is ordinary use-case flow that raises a domain error. It is not a misplaced business rule. No ADR prose was provided to contradict this.\",\"violations\":[]}}",
+  "runIndex": 1,
+  "schemaVersion": 2,
+  "unitId": "src/application/user-service.ts",
+  "usage": {
+    "inputTokens": 2780,
+    "outputTokens": 539
+  },
+  "usedOptions": {
+    "effort": "high",
+    "model": "claude-opus-5-5"
+  }
+}

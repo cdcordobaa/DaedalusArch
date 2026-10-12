@@ -1,0 +1,49 @@
+{
+  "attempts": 1,
+  "cliVersion": "2.1.294",
+  "configListingSha256": "47aa04258852fab9a706f3f0c14cee22306d69fbb6fdfbde8c11854bd54997bc",
+  "durationMs": 6130,
+  "effort": "high",
+  "functionId": "FF-N02",
+  "ignoredOptions": [
+    "maxTokens"
+  ],
+  "isolationProbeSha256": "97a2e2d0af1100c13c55e028c1a0c71f069093c3d08705af122aaeb302f1a641",
+  "key": "ebdb5672892a1e97d79566ca559364209ef73d15ecb236973f62ea5fef5c4b04-r0-1",
+  "model": "claude-opus-5-5",
+  "outcome": {
+    "kind": "valid"
+  },
+  "parsedVerdict": {
+    "confidence": 0.95,
+    "evidence": [
+      "ORDER_STATUSES and the OrderStatus type define the domain's value set",
+      "nextStatus() encodes the forward-only fulfilment sequence, which is a business rule",
+      "isCancellable() encodes the business rule for which statuses can be cancelled",
+      "isOrderStatus() is a pure type guard on a domain value, with no HTTP or framework coupling",
+      "No I/O, persistence, transport or framework code in the file"
+    ],
+    "pass": true,
+    "reasoning": "src/domain/OrderStatus.ts holds only domain concepts. It defines the order status value set, the forward-only fulfilment sequence, the rule for which statuses can be cancelled, and a type guard for the status value. These are business rules and value definitions, so they belong in the domain layer. The file has no persistence, transport, framework, or orchestration logic. The isOrderStatus type guard does validate unknown input, but it is a pure check on a domain value, not transport parsing.",
+    "violations": []
+  },
+  "projectId": "claude-opus-5-5/order-fulfilment/minimal-prose/run-0",
+  "prompt": "## Rule\nThe unit's responsibilities match the role of its declared layer.\n\n## Rubric\nPass: Every responsibility in the file belongs to the role and kind of its declared layer, and agrees with any ADR prose given.\nFail: The file carries a responsibility that belongs to a different layer kind, for example persistence, transport or framework logic in a domain file, or business rules in an infrastructure or presentation file.\nEvidence required: Name the file and cite the function, method or statement that carries the misplaced responsibility, and the layer kind it belongs to.\nOut of scope: import direction and layer-dependency rules, which are checked symbolically.\n\n## Layer model\n- domain (kind: domain): src/domain/**\n- application (kind: application): src/application/**\n- infrastructure (kind: infrastructure): src/infrastructure/**\n\n## Unit\nKind: file\nId: src/domain/OrderStatus.ts\nLayer: domain\nUnit files:\n- src/domain/OrderStatus.ts\n\n## Source\n=====SOURCE-BEGIN src/domain/OrderStatus.ts=====\nexport const ORDER_STATUSES = [\n  'placed',\n  'paid',\n  'packed',\n  'shipped',\n  'delivered',\n  'cancelled',\n] as const;\n\nexport type OrderStatus = (typeof ORDER_STATUSES)[number];\n\n/** The forward-only fulfilment sequence. */\nconst FULFILMENT_SEQUENCE: readonly OrderStatus[] = ['placed', 'paid', 'packed', 'shipped', 'delivered'];\n\nconst CANCELLABLE: ReadonlySet<OrderStatus> = new Set<OrderStatus>(['placed', 'paid', 'packed']);\n\nexport function isOrderStatus(value: unknown): value is OrderStatus {\n  return typeof value === 'string' && (ORDER_STATUSES as readonly string[]).includes(value);\n}\n\n/** The status that directly follows `status`, or undefined if it is terminal. */\nexport function nextStatus(status: OrderStatus): OrderStatus | undefined {\n  const index = FULFILMENT_SEQUENCE.indexOf(status);\n  return index >= 0 ? FULFILMENT_SEQUENCE[index + 1] : undefined;\n}\n\nexport function isCancellable(status: OrderStatus): boolean {\n  return CANCELLABLE.has(status);\n}\n\n=====SOURCE-END=====\n\n## Graph excerpt\n{\"edges\":[{\"from\":\"src/application/AdvanceOrderUseCase.ts\",\"to\":\"src/domain/OrderStatus.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/application/ListOrdersUseCase.ts\",\"to\":\"src/domain/OrderStatus.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/application/dtos.ts\",\"to\":\"src/domain/OrderStatus.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/domain/Order.ts\",\"to\":\"src/domain/OrderStatus.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/domain/OrderRepository.ts\",\"to\":\"src/domain/OrderStatus.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/infrastructure/InMemoryOrderRepository.ts\",\"to\":\"src/domain/OrderStatus.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/infrastructure/OrderController.ts\",\"to\":\"src/domain/OrderStatus.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/infrastructure/requestParsers.ts\",\"to\":\"src/domain/OrderStatus.ts\",\"type\":\"IMPORTS\"}],\"nodes\":[{\"kind\":\"File\",\"layer\":\"application\",\"path\":\"src/application/AdvanceOrderUseCase.ts\"},{\"kind\":\"File\",\"layer\":\"application\",\"path\":\"src/application/ListOrdersUseCase.ts\"},{\"kind\":\"File\",\"layer\":\"application\",\"path\":\"src/application/dtos.ts\"},{\"kind\":\"File\",\"layer\":\"domain\",\"path\":\"src/domain/Order.ts\"},{\"kind\":\"File\",\"layer\":\"domain\",\"path\":\"src/domain/OrderRepository.ts\"},{\"kind\":\"File\",\"layer\":\"domain\",\"path\":\"src/domain/OrderStatus.ts\"},{\"kind\":\"File\",\"layer\":\"infrastructure\",\"path\":\"src/infrastructure/InMemoryOrderRepository.ts\"},{\"kind\":\"File\",\"layer\":\"infrastructure\",\"path\":\"src/infrastructure/OrderController.ts\"},{\"kind\":\"File\",\"layer\":\"infrastructure\",\"path\":\"src/infrastructure/requestParsers.ts\"}]}\n\n## Instructions\nJudge the unit against the rule and rubric. Return the JSON object the schema requires. Set pass to false if any file of the unit fails the rubric.\n",
+  "provider": "claude-cli",
+  "recordedAt": "2026-10-10T21:49:34.535Z",
+  "repetition": 0,
+  "requestHash": "ebdb5672892a1e97d79566ca559364209ef73d15ecb236973f62ea5fef5c4b04",
+  "resolvedModel": "claude-opus-5-5",
+  "response": "{\"is_error\":false,\"modelUsage\":{\"claude-opus-5-5\":{\"inputTokens\":2,\"outputTokens\":440}},\"result\":\"{\\\"pass\\\":true,\\\"confidence\\\":0.95,\\\"reasoning\\\":\\\"src/domain/OrderStatus.ts holds only domain concepts. It defines the order status value set, the forward-only fulfilment sequence, the rule for which statuses can be cancelled, and a type guard for the status value. These are business rules and value definitions, so they belong in the domain layer. The file has no persistence, transport, framework, or orchestration logic. The isOrderStatus type guard does validate unknown input, but it is a pure check on a domain value, not transport parsing.\\\",\\\"evidence\\\":[\\\"ORDER_STATUSES and the OrderStatus type define the domain's value set\\\",\\\"nextStatus() encodes the forward-only fulfilment sequence, which is a business rule\\\",\\\"isCancellable() encodes the business rule for which statuses can be cancelled\\\",\\\"isOrderStatus() is a pure type guard on a domain value, with no HTTP or framework coupling\\\",\\\"No I/O, persistence, transport or framework code in the file\\\"],\\\"violations\\\":[]}\",\"structured_output\":{\"confidence\":0.95,\"evidence\":[\"ORDER_STATUSES and the OrderStatus type define the domain's value set\",\"nextStatus() encodes the forward-only fulfilment sequence, which is a business rule\",\"isCancellable() encodes the business rule for which statuses can be cancelled\",\"isOrderStatus() is a pure type guard on a domain value, with no HTTP or framework coupling\",\"No I/O, persistence, transport or framework code in the file\"],\"pass\":true,\"reasoning\":\"src/domain/OrderStatus.ts holds only domain concepts. It defines the order status value set, the forward-only fulfilment sequence, the rule for which statuses can be cancelled, and a type guard for the status value. These are business rules and value definitions, so they belong in the domain layer. The file has no persistence, transport, framework, or orchestration logic. The isOrderStatus type guard does validate unknown input, but it is a pure check on a domain value, not transport parsing.\",\"violations\":[]}}",
+  "runIndex": 1,
+  "schemaVersion": 2,
+  "unitId": "src/domain/OrderStatus.ts",
+  "usage": {
+    "inputTokens": 3090,
+    "outputTokens": 440
+  },
+  "usedOptions": {
+    "effort": "high",
+    "model": "claude-opus-5-5"
+  }
+}

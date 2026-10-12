@@ -1,7 +1,8 @@
 # Labeller route: Antigravity CLI (`agy`)
 
 > **Status**: registered by the P-U6 bump (ADR-021 item 4; SO3: "register the labeller route, model id and CLI version"; `corpus/prereg.json` version 4, 2026-10-09). Any change is a pre-registration version bump with a reason (BR-U5b-50).
-> **Decisions**: ADR-019 item 4 as amended 2026-10-08 (`1185a1f`); ADR-021 SO3-1, SO3-4, THR-5.
+> **Decisions**: ADR-019 item 4 as amended 2026-10-08 (`1185a1f`); ADR-021 SO3-1, SO3-4, THR-5; ADR-034 (tool use); ADR-035 (P4 on the Gemini API route, §8).
+> **Scope from v23**: P1, MS and P2 are labelled on this agy route. P4 is labelled on the Gemini API route of §8 (ADR-035).
 > **Evidence**: `tests/fixtures/agy-cli/probe-values.json` and the scrubbed probe outputs beside it (probe of 2026-10-08/09, 10 model calls plus a 2-call smoke).
 
 ## 1. Pinned values (BR-U4-VRD-09, BR-U5b-31)
@@ -18,7 +19,7 @@
 ## 2. Isolation (ADR-019 item 4)
 
 - **Environment**: only `PATH`, `USER`, `LOGNAME`, `TMPDIR` and `LANG` pass through. `HOME` is the dedicated home.
-- **Tools**: agy always registers its tool set (60 tools), so tools are made inert instead. The home's `settings.json` sets `toolPermission: strict`, `enableTerminalSandbox: true` and `disableSlashCommands: true`, plus `permissions.deny` = `command(*)`, `read_file(*)`, `read_file(/)`, `write_file(*)`, `write_file(/)`, `mcp(*)`, `read_url(*)`. `strict` alone was not enough: reads reported DONE. With the deny rules, every attempt (shell, read inside and outside the workspace, URL fetch, write) was refused. A denied attempt is allowed. A tool step that completes (any tool other than `finish`) stops the run (`LLM_CLI_ISOLATION`).
+- **Tools**: agy always registers its tool set (60 tools), so tools are made inert instead. The home's `settings.json` sets `toolPermission: strict`, `enableTerminalSandbox: true` and `disableSlashCommands: true`, plus `permissions.deny` = `command(*)`, `read_file(*)`, `read_file(/)`, `write_file(*)`, `write_file(/)`, `mcp(*)`, `read_url(*)`. `strict` alone was not enough: reads reported DONE. With the deny rules, every attempt (shell, read inside and outside the workspace, URL fetch, write) was refused. A denied attempt is allowed. **Except `search_web`** (ADR-034, prereg v22): it passes no permission check on agy 1.3.2 and cannot be denied (§7). A tool step that completes (any tool other than `finish`) makes the call invalid (`LLM_CLI_TOOL_USE`, §4 and §7). Until v22 it stopped the run (`LLM_CLI_ISOLATION`).
 - **MCP, plugins, agents, hooks**: none. `agy mcp list` and `agy plugin list` are checked before every record-mode run.
 - **Ambient rules**: the canary positive control fired on a cwd `AGENTS.md` and on the home's `.gemini/GEMINI.md` and `.gemini/config/GEMINI.md`. Ancestors outside a git repository did not fire. Each call therefore runs in a fresh, empty `mkdtemp` cwd outside any repository, with no rule file or customisation dir on its ancestor chain. The pre-flight also fails closed on any rule, skill, plugin, agent, workflow or hook entry in the home, outside agy's own builtin dir. The negative canary found no token.
 - **Cross-conversation memory**: a planted codeword was not recalled by a later call. There is no positive control, because `/learn` is disabled: **residual**.
@@ -39,7 +40,8 @@ agy has no temperature, seed or max-token setting. BR-U5b-31's "temperature 0" t
 | `authentication failed or timed out` / `authentication required` | `LLM_AUTH` | stop |
 | `invalid model selection` | `LLM_NOT_CONFIGURED` | stop |
 | `RESOURCE_EXHAUSTED`, `MODEL_CAPACITY_EXHAUSTED`, quota, rate limit, 429 (**unverified**: never observed) | `LLM_USAGE_LIMIT` | stop |
-| completed tool step; `init.model` differing from the request | `LLM_CLI_ISOLATION` | stop |
+| completed tool step (any tool other than `finish`; ADR-034) | `LLM_CLI_TOOL_USE` | discard the attempt (no answer stored; the invocation counts), retry once; a second tool step makes the run invalid with reason `tool-use` and no re-ask (§7) |
+| `init.model` differing from the request | `LLM_CLI_ISOLATION` | stop |
 | no result event | `LLM_CLI_BAD_ENVELOPE` | retry once |
 | status ERROR, non-zero exit, or empty answer (e.g. denied-only turn) | `LLM_CLI_EXIT` | retry once |
 
@@ -61,3 +63,44 @@ The P1–P4 / MS plan producer exists (`scripts/build-label-plan-cli.ts`, ADR-02
 **Context and tokens.** Each item's context is cut at a ceiling per kind (item 8.6): 6 000 characters for violation and missed-seed items (the 31-line window, the rule text and the options), 32 000 for judge units (the judge's `codeSnippet` budget of 8 000 tokens × 4 characters, the unit source and the rubric); the verdict schema travels as the response schema. `build-label-plan` reports the items cut per kind. The agent turn's own system prompt dominates the 74k–124k input tokens measured in §5, so the measured count, not the context size, is what matters for the quota: after a record run, `llm-label --usage --cassette-dir <dir>` reports the input tokens per call (min, median, max, mean) from the cassettes, and the figure is recorded here.
 
 **Measured (runbook 6.5, live labelling of 2026-10-10).** `llm-label --usage --cassette-dir results/labels/cassettes` on the first live plan (66 items, both runs): 139 cassette entries (132 answers + 7 re-asks), 142 agy invocations with 3 CLI retries; input tokens per call min 0 (a timed-out first attempt), median 14 024, max 124 846, mean 24 246; 329 569 output tokens in total. The median is far below the 74k–124k of the §5 smoke, so the quota estimate of §5 is conservative: the 142 invocations ran in one session with no quota pause. Ledger: `results/labels/live-call-ledger.md`.
+
+## 7. Tool use (ADR-034, prereg v22, 2026-10-11)
+
+**Finding.** On agy 1.3.2, `search_web` passes no permission check. The first P4 call (2026-10-11) completed a `search_web` step under `toolPermission: strict` and the 7 deny rules of §2, and the guard stopped the run (`LLM_CLI_ISOLATION`). Two route probes then ran on `gemini-3.1-pro-high`, the registered argv and a neutral cwd, with `settings.json` restored byte-identical after each:
+1. A `disabledTools` list of 51 tools (network, browser, outside-read, shell and subagent tools) had no effect. Init still listed 60 tools, and `search_web` completed.
+2. The deny rules `search_web(*)`, `execute_url(*)`, `browser(*)` and `edit_file(*)` were added. `search_web` completed again, while `run_command` was refused by `command(*)`.
+
+In both probes the browser tools and `list_dir` were not offered to the model, and `read_url_content` and `view_file` were refused by the §2 rules. agy has no CLI flag for web search. Its grant categories are `command`, `read_file`, `write_file`, `mcp`, `read_url` and `execute_url`. The deny list therefore stays the registered 7 rules, and no tool can be made inert by settings alone. Two further turns (`-p="/permissions"`, `-p="/config"`) were meant as no-turn listings but ran model turns on the default model. All four are non-label probes (`results/labels/live-call-ledger.md`).
+
+**Rule.**
+1. A labeller call whose agy attempt completes any tool step is invalid. The attempt is discarded, and its answer is never stored or used. Its invocation counts against the label budget, and the cassette entry records it in `discardedAttempts`.
+2. The call is retried once, with the same prompt and key. If the retry answers without a tool step, that answer is the run's answer. If the retry also completes a tool step, the run is invalid with reason `tool-use` and is not re-asked, and the item is `uncertain` with reason `tool-use`.
+3. **Stop rule (pre-registered).** Once at least 10 P4 items have a finished run, the run stops (`LABEL_TOOL_USE_STOP`) if 20 % or more of them have a run that ended as `tool-use`. The stop is reported to the coordinator, and the run does not continue past it.
+4. **Validity metric.** The number of discarded tool-use attempts and the number of `uncertain` / `tool-use` items are reported with the P4 agreement rows.
+5. The labeller persona, prompts, argv, timeout (240 s, one retry) and deny rules are unchanged, so every label shares one method.
+
+**P1/MS/P2: verified.** `agy-cli-provider.ts` is unchanged since `56e77f6`, so the fail-closed guard was active for all 142 invocations of the first live plan. That run completed without a stop, and its 139 cassettes hold 138 answers and 1 timeout. No call there completed a tool step.
+
+**Audit coverage.** The 30-item author audit (ADR-021 item 8.8) was drawn from the first live plan before P4 existed and stays as drawn. It contains no P4 item, so the P4 judge-vs-panel rows have no panel-vs-audit check (a limitation, TV-109).
+
+## 8. P4 route: Gemini API, tools off (ADR-035, prereg v23, 2026-10-11)
+
+**Why.** The ADR-034 stop rule fired on agy: 2 of the first 10 P4 items ended as `uncertain` / `tool-use`, with 5 tool-use discards. Under that rule a route change goes to the author, who chose the Gemini API with no tools. This is a route change forced by a registered stop rule. It is not a change of labelling method.
+
+| Item | Value | How it was verified |
+|---|---|---|
+| Route | Gemini API (`@google/generative-ai` 0.24.1, U4 `GeminiProvider`, BR-U4-VRD-09), `--provider gemini` from the derived plan | `results/labels/api-probe/` |
+| Model | **`gemini-3.1-pro-preview`**, the same model as agy's `gemini-3.1-pro-high` (Gemini 3.1 Pro, "High" reasoning) | `models.get`: version `3.1-pro-preview-01-2026`, `outputTokenLimit` 65 536, `thinking: true`. The probe cassettes record the served `modelVersion` `gemini-3.1-pro-preview` |
+| Tools | **none**: the request carries no `tools` and no `toolConfig`. A function-call part in an answer fails closed (`LLM_CLI_TOOL_USE`) | provider test; probe answers are plain JSON |
+| Temperature | **0** (`LABELLER_TEMPERATURE`), now honoured (`usedOptions.temperature` 0). agy could not set it (§3) | probe cassettes |
+| Thinking | `generationConfig.thinkingConfig.thinkingLevel = "high"`, the closest match to agy's "High". Gemini 3 also defaults to high. The API rejects unknown fields, and the probe calls succeeded | probe |
+| Output cap | 65 536 (`LABELLER_API_MAX_TOKENS`, the model's limit). agy ignored `maxTokens`, so P1/P2 ran uncapped, and the 1 024 cap would truncate a high-thinking answer | `usedOptions.maxTokens` |
+| Persona, prompts, schema | unchanged (`Docs/labeller-prompts/*.md`; the label schema as `responseSchema`). The persona goes as `systemInstruction`, while agy prepended it to the prompt (agy has no system channel) | — |
+| Errors | 429, `RESOURCE_EXHAUSTED`, quota, rate limit, 503 and overload are `LLM_USAGE_LIMIT`: a stop, never cached. The run pauses and re-runs, and cassettes are reused. Other API errors are retried once, then recorded invalid | provider tests |
+| Plan | `results/e1-grid/label-plan-p4-api/label-plan.json`, built with `llm-label --derive-route` from the registered P4 plan. It holds the 46 P4 items, their strata and the same seeds (run-1 order and permutations follow 6103), and has budget **138** = 300 − 162 label invocations used (142 P1/MS/P2, 17 agy P4, 3 API probe) | `--estimate`: 92 + 30 <= 138 |
+| Cassettes | `results/labels/cassettes-api/` (record mode). The probe cassettes are kept in `results/labels/api-probe/` | — |
+
+**Probe (2026-10-11).** One fixture judge unit (`correct-reference`, semantic; not a P4 item), both runs: valid JSON, `pass` / `pass`, served model `gemini-3.1-pro-preview`, temperature 0, no tool. It used 3 invocations: run 1 needed one provider retry, whose cause the decorator does not store. These count against the label budget.
+
+**Separation.** All 46 P4 items are relabelled on this route. The 8 P4 items answered validly on agy before the stop (run 0 only) are reported separately (`results/e1-grid/label-plan-p4/agy-partial.json`) and are never mixed with the API labels. P1/MS/P2 keep their agy labels. The ADR-034 rule and stop stay in force; with no tool offered, they should not fire.
+

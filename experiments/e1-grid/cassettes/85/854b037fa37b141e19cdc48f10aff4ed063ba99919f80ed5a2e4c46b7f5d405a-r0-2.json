@@ -1,0 +1,48 @@
+{
+  "attempts": 1,
+  "cliVersion": "2.1.294",
+  "configListingSha256": "47aa04258852fab9a706f3f0c14cee22306d69fbb6fdfbde8c11854bd54997bc",
+  "durationMs": 5738,
+  "effort": "high",
+  "functionId": "FF-N02",
+  "ignoredOptions": [
+    "maxTokens"
+  ],
+  "isolationProbeSha256": "97a2e2d0af1100c13c55e028c1a0c71f069093c3d08705af122aaeb302f1a641",
+  "key": "854b037fa37b141e19cdc48f10aff4ed063ba99919f80ed5a2e4c46b7f5d405a-r0-2",
+  "model": "claude-opus-5-5",
+  "outcome": {
+    "kind": "valid"
+  },
+  "parsedVerdict": {
+    "confidence": 0.95,
+    "evidence": [
+      "src/application/dto/project-dto.ts: interface CreateProjectInput { name: string } is the input contract of a use case (application)",
+      "src/application/dto/project-dto.ts: interface ProjectDto { id; name } is the output DTO of a use case (application)",
+      "src/application/dto/project-dto.ts: toProjectDto(project) maps fields straight from the domain entity to the DTO, with no business rules, I/O or framework code",
+      "Graph: the file is used by src/application/use-cases/create-project-use-case.ts, which matches its role as a DTO at the use-case boundary"
+    ],
+    "pass": true,
+    "reasoning": "The file only defines application-layer data transfer objects (an input DTO for a use case and an output DTO) and a mapping function from the domain entity to the DTO. Shaping data at the use-case boundary is a normal application-layer job. The file has no persistence, transport, framework or business-rule logic.",
+    "violations": []
+  },
+  "projectId": "claude-sonnet-5-5/task-management/full-aac/run-2",
+  "prompt": "## Rule\nThe unit's responsibilities match the role of its declared layer.\n\n## Rubric\nPass: Every responsibility in the file belongs to the role and kind of its declared layer, and agrees with any ADR prose given.\nFail: The file carries a responsibility that belongs to a different layer kind, for example persistence, transport or framework logic in a domain file, or business rules in an infrastructure or presentation file.\nEvidence required: Name the file and cite the function, method or statement that carries the misplaced responsibility, and the layer kind it belongs to.\nOut of scope: import direction and layer-dependency rules, which are checked symbolically.\n\n## Layer model\n- domain (kind: domain): src/domain/**\n- application (kind: application): src/application/**\n- infrastructure (kind: infrastructure): src/infrastructure/**\n\n## Unit\nKind: file\nId: src/application/dto/project-dto.ts\nLayer: application\nUnit files:\n- src/application/dto/project-dto.ts\n\n## Source\n=====SOURCE-BEGIN src/application/dto/project-dto.ts=====\nimport type { Project } from \"../../domain/project\";\n\nexport interface CreateProjectInput {\n  name: string;\n}\n\nexport interface ProjectDto {\n  id: string;\n  name: string;\n}\n\nexport function toProjectDto(project: Project): ProjectDto {\n  return { id: project.id, name: project.name };\n}\n\n=====SOURCE-END=====\n\n## Graph excerpt\n{\"edges\":[{\"from\":\"src/application/dto/project-dto.ts\",\"to\":\"src/domain/project.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/application/use-cases/create-project-use-case.ts\",\"to\":\"src/application/dto/project-dto.ts\",\"type\":\"IMPORTS\"}],\"nodes\":[{\"kind\":\"File\",\"layer\":\"application\",\"path\":\"src/application/dto/project-dto.ts\"},{\"kind\":\"File\",\"layer\":\"application\",\"path\":\"src/application/use-cases/create-project-use-case.ts\"},{\"kind\":\"File\",\"layer\":\"domain\",\"path\":\"src/domain/project.ts\"},{\"kind\":\"Interface\",\"layer\":\"application\",\"name\":\"CreateProjectInput\",\"path\":\"src/application/dto/project-dto.ts\"},{\"kind\":\"Interface\",\"layer\":\"application\",\"name\":\"ProjectDto\",\"path\":\"src/application/dto/project-dto.ts\"}]}\n\n## Instructions\nJudge the unit against the rule and rubric. Return the JSON object the schema requires. Set pass to false if any file of the unit fails the rubric.\n",
+  "provider": "claude-cli",
+  "recordedAt": "2026-10-10T22:59:51.209Z",
+  "repetition": 0,
+  "requestHash": "854b037fa37b141e19cdc48f10aff4ed063ba99919f80ed5a2e4c46b7f5d405a",
+  "resolvedModel": "claude-opus-5-5",
+  "response": "{\"is_error\":false,\"modelUsage\":{\"claude-opus-5-5\":{\"inputTokens\":2,\"outputTokens\":433}},\"result\":\"{\\\"pass\\\":true,\\\"confidence\\\":0.95,\\\"reasoning\\\":\\\"The file only defines application-layer data transfer objects (an input DTO for a use case and an output DTO) and a mapping function from the domain entity to the DTO. Shaping data at the use-case boundary is a normal application-layer job. The file has no persistence, transport, framework or business-rule logic.\\\",\\\"evidence\\\":[\\\"src/application/dto/project-dto.ts: interface CreateProjectInput { name: string } is the input contract of a use case (application)\\\",\\\"src/application/dto/project-dto.ts: interface ProjectDto { id; name } is the output DTO of a use case (application)\\\",\\\"src/application/dto/project-dto.ts: toProjectDto(project) maps fields straight from the domain entity to the DTO, with no business rules, I/O or framework code\\\",\\\"Graph: the file is used by src/application/use-cases/create-project-use-case.ts, which matches its role as a DTO at the use-case boundary\\\"],\\\"violations\\\":[]}\",\"structured_output\":{\"confidence\":0.95,\"evidence\":[\"src/application/dto/project-dto.ts: interface CreateProjectInput { name: string } is the input contract of a use case (application)\",\"src/application/dto/project-dto.ts: interface ProjectDto { id; name } is the output DTO of a use case (application)\",\"src/application/dto/project-dto.ts: toProjectDto(project) maps fields straight from the domain entity to the DTO, with no business rules, I/O or framework code\",\"Graph: the file is used by src/application/use-cases/create-project-use-case.ts, which matches its role as a DTO at the use-case boundary\"],\"pass\":true,\"reasoning\":\"The file only defines application-layer data transfer objects (an input DTO for a use case and an output DTO) and a mapping function from the domain entity to the DTO. Shaping data at the use-case boundary is a normal application-layer job. The file has no persistence, transport, framework or business-rule logic.\",\"violations\":[]}}",
+  "runIndex": 2,
+  "schemaVersion": 2,
+  "unitId": "src/application/dto/project-dto.ts",
+  "usage": {
+    "inputTokens": 2312,
+    "outputTokens": 433
+  },
+  "usedOptions": {
+    "effort": "high",
+    "model": "claude-opus-5-5"
+  }
+}

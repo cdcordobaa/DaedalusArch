@@ -1,0 +1,185 @@
+{
+  "schemaVersion": 1,
+  "treeId": "realworld-test--MO-SO01--k1--baseline",
+  "run": 1,
+  "attempt": 0,
+  "startedAt": "2026-10-11T21:14:29.160Z",
+  "durationMs": 156107,
+  "promptSha256": "e3a5c1f5ce8b75cc8062f2598cc398a859d3f565b2bdd82f09c1be7eabbd79e8",
+  "treeDigest": "810d0f8fbf46a855302c428cc805d3fc0a5d440fb6ccaee1b05f8a3601c031ca",
+  "cliVersion": "0.162.1",
+  "model": "gpt-5.6-terra",
+  "servedModels": [
+    "gpt-5.6-terra"
+  ],
+  "reroutes": [],
+  "exitCode": 0,
+  "timedOut": false,
+  "isError": false,
+  "subtype": "success",
+  "valid": true,
+  "findings": [
+    {
+      "file": "src/app.module.ts",
+      "rule": "FF-C03",
+      "reason": "ApplicationModule imports five project files and is imported only by main.ts, giving an instability above 0.8."
+    },
+    {
+      "file": "src/article/article.controller.ts",
+      "rule": "FF-P05",
+      "reason": "ArticleController reaches domain entities through its injected ArticleService, which imports ArticleEntity and other entity classes."
+    },
+    {
+      "file": "src/article/article.entity.ts",
+      "rule": "FF-S02",
+      "reason": "ArticleEntity participates in import cycles with UserEntity and Comment."
+    },
+    {
+      "file": "src/article/article.entity.ts",
+      "rule": "FF-P01",
+      "reason": "ArticleEntity imports the forbidden domain dependency typeorm."
+    },
+    {
+      "file": "src/article/article.entity.ts",
+      "rule": "FF-N02",
+      "reason": "ArticleEntity contains TypeORM persistence decorators despite belonging to the domain layer."
+    },
+    {
+      "file": "src/article/article.module.ts",
+      "rule": "FF-C03",
+      "reason": "ArticleModule imports eight project files and is imported only by app.module.ts, giving an instability above 0.8."
+    },
+    {
+      "file": "src/article/article.service.ts",
+      "rule": "FF-P02",
+      "reason": "ArticleService constructor injects four concrete TypeORM Repository dependencies and no interface or abstract dependency."
+    },
+    {
+      "file": "src/article/article.service.ts",
+      "rule": "FF-SO01",
+      "reason": "ArticleService declares twelve methods, exceeding the maximum of ten."
+    },
+    {
+      "file": "src/article/article.service.ts",
+      "rule": "FF-N02",
+      "reason": "ArticleService performs direct TypeORM repository persistence work although it belongs to the application layer."
+    },
+    {
+      "file": "src/article/comment.entity.ts",
+      "rule": "FF-S02",
+      "reason": "Comment participates in an import cycle with ArticleEntity."
+    },
+    {
+      "file": "src/article/comment.entity.ts",
+      "rule": "FF-P01",
+      "reason": "Comment imports the forbidden domain dependency typeorm."
+    },
+    {
+      "file": "src/article/comment.entity.ts",
+      "rule": "FF-N02",
+      "reason": "Comment contains TypeORM persistence decorators despite belonging to the domain layer."
+    },
+    {
+      "file": "src/profile/follows.entity.ts",
+      "rule": "FF-P01",
+      "reason": "FollowsEntity imports the forbidden domain dependency typeorm."
+    },
+    {
+      "file": "src/profile/follows.entity.ts",
+      "rule": "FF-N02",
+      "reason": "FollowsEntity contains TypeORM persistence decorators despite belonging to the domain layer."
+    },
+    {
+      "file": "src/profile/profile.controller.ts",
+      "rule": "FF-P05",
+      "reason": "ProfileController reaches domain entities through its injected ProfileService, which imports UserEntity and FollowsEntity."
+    },
+    {
+      "file": "src/profile/profile.module.ts",
+      "rule": "FF-C03",
+      "reason": "ProfileModule imports six project files and is imported only by app.module.ts, giving an instability above 0.8."
+    },
+    {
+      "file": "src/profile/profile.service.ts",
+      "rule": "FF-P02",
+      "reason": "ProfileService constructor injects two concrete TypeORM Repository dependencies and no interface or abstract dependency."
+    },
+    {
+      "file": "src/profile/profile.service.ts",
+      "rule": "FF-N02",
+      "reason": "ProfileService performs direct TypeORM repository persistence work although it belongs to the application layer."
+    },
+    {
+      "file": "src/tag/tag.controller.ts",
+      "rule": "FF-P05",
+      "reason": "TagController directly imports and returns the domain TagEntity class."
+    },
+    {
+      "file": "src/tag/tag.entity.ts",
+      "rule": "FF-P01",
+      "reason": "TagEntity imports the forbidden domain dependency typeorm."
+    },
+    {
+      "file": "src/tag/tag.entity.ts",
+      "rule": "FF-N02",
+      "reason": "TagEntity contains TypeORM persistence decorators despite belonging to the domain layer."
+    },
+    {
+      "file": "src/tag/tag.service.ts",
+      "rule": "FF-P02",
+      "reason": "TagService constructor injects a concrete TypeORM Repository dependency rather than an interface or abstract type."
+    },
+    {
+      "file": "src/tag/tag.service.ts",
+      "rule": "FF-N02",
+      "reason": "TagService performs direct TypeORM repository persistence work although it belongs to the application layer."
+    },
+    {
+      "file": "src/user/user.controller.ts",
+      "rule": "FF-P05",
+      "reason": "UserController reaches the domain UserEntity through its injected UserService."
+    },
+    {
+      "file": "src/user/user.controller.ts",
+      "rule": "FF-C03",
+      "reason": "UserController imports five project files and is imported only by user.module.ts, giving an instability above 0.8."
+    },
+    {
+      "file": "src/user/user.entity.ts",
+      "rule": "FF-S02",
+      "reason": "UserEntity participates in an import cycle with ArticleEntity."
+    },
+    {
+      "file": "src/user/user.entity.ts",
+      "rule": "FF-P01",
+      "reason": "UserEntity imports the forbidden domain dependency typeorm."
+    },
+    {
+      "file": "src/user/user.entity.ts",
+      "rule": "FF-N02",
+      "reason": "UserEntity contains TypeORM persistence decorators despite belonging to the domain layer."
+    },
+    {
+      "file": "src/user/user.service.ts",
+      "rule": "FF-P02",
+      "reason": "UserService constructor injects a concrete TypeORM Repository dependency rather than an interface or abstract type."
+    },
+    {
+      "file": "src/user/user.service.ts",
+      "rule": "FF-N02",
+      "reason": "UserService performs direct TypeORM repository persistence work although it belongs to the application layer."
+    }
+  ],
+  "tokens": {
+    "input": 89056,
+    "cached": 67328,
+    "output": 6227,
+    "reasoning": 4194
+  },
+  "creditsRateCard": 3.29114,
+  "balanceAfter": "1107.5071150000",
+  "toolCalls": 8,
+  "permissionDenials": 2,
+  "envelopeSha256": "56f9c65adf7d76df71ffa21e0272870684c0818403883bf1a9d87eb46e117564",
+  "discardedAttempts": []
+}

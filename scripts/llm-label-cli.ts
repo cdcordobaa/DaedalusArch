@@ -12,7 +12,7 @@ import { AGY_HOME_DEFAULT, AgyCliProvider, expandHome } from '../src/llm-critic/
 import { GeminiProvider } from '../src/llm-critic/gemini-provider.js';
 import { NodeProcessRunner } from '../src/shared/process/node-process-runner.js';
 import { MockLabellerProvider } from './lib/mock-labeller.js';
-import { LABELLER_MAX_TOKENS, LABELLER_TEMPERATURE, main } from './llm-label.js';
+import { LABELLER_API_MAX_TOKENS, LABELLER_TEMPERATURE, main } from './llm-label.js';
 
 void main(process.argv.slice(2), process.cwd(), {
   out: (t) => process.stdout.write(t),
@@ -23,7 +23,8 @@ void main(process.argv.slice(2), process.cwd(), {
   },
 }, {
   gemini: (model) => new GeminiProvider({
-    apiKey: process.env.GEMINI_API_KEY ?? '', model, temperature: LABELLER_TEMPERATURE, maxTokens: LABELLER_MAX_TOKENS,
+    // ADR-035: the API labeller route (tools off, temperature 0, thinking level high, the model's output cap).
+    apiKey: process.env.GEMINI_API_KEY ?? '', model, temperature: LABELLER_TEMPERATURE, maxTokens: LABELLER_API_MAX_TOKENS, thinkingLevel: 'high',
   }),
   agy: (model) => new AgyCliProvider(
     { model, home: expandHome(process.env.LABELLER_AGY_HOME ?? AGY_HOME_DEFAULT), mode: 'record' },

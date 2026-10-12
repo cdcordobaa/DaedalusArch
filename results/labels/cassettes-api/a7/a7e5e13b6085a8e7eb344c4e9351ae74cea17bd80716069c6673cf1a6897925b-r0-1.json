@@ -1,0 +1,32 @@
+{
+  "attempts": 1,
+  "durationMs": 3403,
+  "effort": null,
+  "functionId": "label:judge-unit:5f2eb670c6c0230de734029347dbebb4d30c92f98b70885b15eed5a9482a2de8",
+  "ignoredOptions": [],
+  "key": "a7e5e13b6085a8e7eb344c4e9351ae74cea17bd80716069c6673cf1a6897925b-r0-1",
+  "model": "gemini-3.1-pro-preview",
+  "outcome": {
+    "kind": "valid"
+  },
+  "parsedVerdict": null,
+  "prompt": "Decide whether the unit below satisfies the rubric.\n- pass: the unit meets the rubric's pass condition.\n- fail: the unit meets the rubric's fail condition.\nGive a short rationale that cites the code. Root cause: answer null.\n\n## Item\n## Judge unit\n  Function: FF-N02 (semantic)\n  Unit: src/infrastructure/in-memory-repositories.ts (file, layer infrastructure)\n  \n  ## Rubric\n  Rule: The unit's responsibilities match the role of its declared layer.\n  Pass: Every responsibility in the file belongs to the role and kind of its declared layer, and agrees with any ADR prose given.\n  Fail: The file carries a responsibility that belongs to a different layer kind, for example persistence, transport or framework logic in a domain file, or business rules in an infrastructure or presentation file.\n  Evidence required: Name the file and cite the function, method or statement that carries the misplaced responsibility, and the layer kind it belongs to.\n  Out of scope: import direction and layer-dependency rules, which are checked symbolically.\n  \n  ## Source\n  =====SOURCE-BEGIN src/infrastructure/in-memory-repositories.ts=====\n  import { randomUUID } from \"node:crypto\";\n  import { Project } from \"../domain/project\";\n  import {\n    Clock,\n    IdGenerator,\n    ProjectRepository,\n    TaskFilter,\n    TaskRepository,\n    UserRepository,\n  } from \"../domain/repositories\";\n  import { Task } from \"../domain/task\";\n  import { User } from \"../domain/user\";\n  \n  export class InMemoryUserRepository implements UserRepository {\n    private readonly items = new Map<string, User>();\n  \n    save(user: User): void {\n      this.items.set(user.id, user);\n    }\n  \n    findById(id: string): User | undefined {\n      return this.items.get(id);\n    }\n  \n    findAll(): User[] {\n      return [...this.items.values()];\n    }\n  }\n  \n  export class InMemoryProjectRepository implements ProjectRepository {\n    private readonly items = new Map<string, Project>();\n  \n    save(project: Project): void {\n      this.items.set(project.id, project);\n    }\n  \n    findById(id: string): Project | undefined {\n      return this.items.get(id);\n    }\n  \n    findAll(): Project[] {\n      return [...this.items.values()];\n    }\n  }\n  \n  export class InMemoryTaskRepository implements TaskRepository {\n    private readonly items = new Map<string, Task>();\n  \n    save(task: Task): void {\n      this.items.set(task.id, task);\n    }\n  \n    findById(id: string): Task | undefined {\n      return this.items.get(id);\n    }\n  \n    findByProject(projectId: string, filter: TaskFilter = {}): Task[] {\n      return [...this.items.values()].filter(\n        (task) =>\n          task.projectId === projectId &&\n          (filter.status === undefined || task.status === filter.status) &&\n          (filter.assigneeId === undefined || task.assigneeId === filter.assigneeId),\n      );\n    }\n  }\n  \n  export class UuidGenerator implements IdGenerator {\n    next(): string {\n      return randomUUID();\n    }\n  }\n  \n  export class SystemClock implements Clock {\n    now(): Date {\n      return new Date();\n    }\n  }\n  \n  =====SOURCE-END=====\n\n## Label options\n1. fail\n  2. pass\n\n## Root causes\n1. RC-LAYER-MAP\n  2. RC-EXTRACT-BARREL\n  3. RC-TYPE-ONLY\n  4. RC-GENERATED-CODE\n  5. RC-TEST-CODE\n  6. RC-TEMPLATE-OVERAPPROX\n  7. RC-EXTRACT-ALIAS\n  8. RC-OTHER\n  9. RC-DYNAMIC-IMPORT\n  10. RC-SPEC-PARAM\n  11. RC-GENUINE-UNSEEDED\n  12. RC-STYLE-INAPPLICABLE\n\nAnswer with one JSON object: {\"option\": <number of the label option>, \"rootCause\": <number of the root cause or null>, \"note\": \"<text, required with RC-OTHER>\", \"rationale\": \"<one or two sentences citing the code>\"}.",
+  "provider": "gemini",
+  "recordedAt": "2026-10-11T17:22:20.138Z",
+  "repetition": 0,
+  "requestHash": "a7e5e13b6085a8e7eb344c4e9351ae74cea17bd80716069c6673cf1a6897925b",
+  "resolvedModel": "gemini-3.1-pro-preview",
+  "response": "{\"option\": 2, \"rationale\": \"The file contains in-memory repository implementations, an ID generator, and a system clock, all of which are infrastructure concerns that implement domain interfaces.\", \"rootCause\": null}",
+  "runIndex": 1,
+  "schemaVersion": 2,
+  "unitId": "src/infrastructure/in-memory-repositories.ts",
+  "usage": {
+    "inputTokens": 1044,
+    "outputTokens": 46
+  },
+  "usedOptions": {
+    "maxTokens": 65536,
+    "model": "gemini-3.1-pro-preview",
+    "temperature": 0
+  }
+}

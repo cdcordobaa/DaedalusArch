@@ -1,0 +1,47 @@
+{
+  "attempts": 1,
+  "cliVersion": "2.1.294",
+  "configListingSha256": "47aa04258852fab9a706f3f0c14cee22306d69fbb6fdfbde8c11854bd54997bc",
+  "durationMs": 5495,
+  "effort": "high",
+  "functionId": "FF-N02",
+  "ignoredOptions": [
+    "maxTokens"
+  ],
+  "isolationProbeSha256": "97a2e2d0af1100c13c55e028c1a0c71f069093c3d08705af122aaeb302f1a641",
+  "key": "33d11912fca7343876c2f73b6325e3f19d32eb287bfeae9e90c9162ed058c30e-r0-0",
+  "model": "claude-opus-5-5",
+  "outcome": {
+    "kind": "valid"
+  },
+  "parsedVerdict": {
+    "confidence": 0.95,
+    "evidence": [
+      "src/infrastructure/http/ProductController.ts: routes() builds an Express Router and registers router.get('/stock', ...), which is transport/framework logic suited to infrastructure.",
+      "src/infrastructure/http/ProductController.ts: the handler only calls this.listProductStock.execute() and passes the result to res.json(...). No business rules or decisions are made in the controller.",
+      "The constructor injects ListProductStockUseCase, so business behavior is handed to the application layer."
+    ],
+    "pass": true,
+    "reasoning": "ProductController is a thin HTTP adapter in the infrastructure layer. All it does is set up an Express Router, map GET /stock to the injected application use case and serialize the result as JSON. That is transport and framework logic, which belongs in infrastructure. It contains no business rules, domain calculations or persistence logic, so all of its responsibilities fit the declared layer.",
+    "violations": []
+  },
+  "projectId": "claude-opus-5-5/order-fulfilment/minimal-prose/run-2",
+  "prompt": "## Rule\nThe unit's responsibilities match the role of its declared layer.\n\n## Rubric\nPass: Every responsibility in the file belongs to the role and kind of its declared layer, and agrees with any ADR prose given.\nFail: The file carries a responsibility that belongs to a different layer kind, for example persistence, transport or framework logic in a domain file, or business rules in an infrastructure or presentation file.\nEvidence required: Name the file and cite the function, method or statement that carries the misplaced responsibility, and the layer kind it belongs to.\nOut of scope: import direction and layer-dependency rules, which are checked symbolically.\n\n## Layer model\n- domain (kind: domain): src/domain/**\n- application (kind: application): src/application/**\n- infrastructure (kind: infrastructure): src/infrastructure/**\n\n## Unit\nKind: file\nId: src/infrastructure/http/ProductController.ts\nLayer: infrastructure\nUnit files:\n- src/infrastructure/http/ProductController.ts\n\n## Source\n=====SOURCE-BEGIN src/infrastructure/http/ProductController.ts=====\nimport { Router } from 'express';\nimport { ListProductStockUseCase } from '../../application/ListProductStockUseCase';\n\nexport class ProductController {\n  constructor(private readonly listProductStock: ListProductStockUseCase) {}\n\n  routes(): Router {\n    const router = Router();\n    router.get('/stock', (_req, res) => {\n      res.json(this.listProductStock.execute());\n    });\n    return router;\n  }\n}\n\n=====SOURCE-END=====\n\n## Graph excerpt\n{\"edges\":[{\"from\":\"ProductController@src/infrastructure/http/ProductController.ts\",\"to\":\"ListProductStockUseCase@src/application/ListProductStockUseCase.ts\",\"type\":\"CONSTRUCTOR_INJECTS\"},{\"from\":\"src/infrastructure/app.ts\",\"to\":\"src/infrastructure/http/ProductController.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/infrastructure/http/ProductController.ts\",\"to\":\"express\",\"type\":\"IMPORTS\"},{\"from\":\"src/infrastructure/http/ProductController.ts\",\"to\":\"src/application/ListProductStockUseCase.ts\",\"type\":\"IMPORTS\"}],\"nodes\":[{\"kind\":\"Class\",\"layer\":\"application\",\"name\":\"ListProductStockUseCase\",\"path\":\"src/application/ListProductStockUseCase.ts\"},{\"kind\":\"Class\",\"layer\":\"infrastructure\",\"name\":\"ProductController\",\"path\":\"src/infrastructure/http/ProductController.ts\"},{\"kind\":\"File\",\"layer\":\"application\",\"path\":\"src/application/ListProductStockUseCase.ts\"},{\"kind\":\"File\",\"layer\":\"infrastructure\",\"path\":\"src/infrastructure/app.ts\"},{\"kind\":\"File\",\"layer\":\"infrastructure\",\"path\":\"src/infrastructure/http/ProductController.ts\"},{\"kind\":\"Package\",\"layer\":null,\"path\":\"express\"}]}\n\n## Instructions\nJudge the unit against the rule and rubric. Return the JSON object the schema requires. Set pass to false if any file of the unit fails the rubric.\n",
+  "provider": "claude-cli",
+  "recordedAt": "2026-10-10T21:58:13.835Z",
+  "repetition": 0,
+  "requestHash": "33d11912fca7343876c2f73b6325e3f19d32eb287bfeae9e90c9162ed058c30e",
+  "resolvedModel": "claude-opus-5-5",
+  "response": "{\"is_error\":false,\"modelUsage\":{\"claude-opus-5-5\":{\"inputTokens\":2,\"outputTokens\":423}},\"result\":\"{\\\"pass\\\":true,\\\"confidence\\\":0.95,\\\"reasoning\\\":\\\"ProductController is a thin HTTP adapter in the infrastructure layer. All it does is set up an Express Router, map GET /stock to the injected application use case and serialize the result as JSON. That is transport and framework logic, which belongs in infrastructure. It contains no business rules, domain calculations or persistence logic, so all of its responsibilities fit the declared layer.\\\",\\\"evidence\\\":[\\\"src/infrastructure/http/ProductController.ts: routes() builds an Express Router and registers router.get('/stock', ...), which is transport/framework logic suited to infrastructure.\\\",\\\"src/infrastructure/http/ProductController.ts: the handler only calls this.listProductStock.execute() and passes the result to res.json(...). No business rules or decisions are made in the controller.\\\",\\\"The constructor injects ListProductStockUseCase, so business behavior is handed to the application layer.\\\"],\\\"violations\\\":[]}\",\"structured_output\":{\"confidence\":0.95,\"evidence\":[\"src/infrastructure/http/ProductController.ts: routes() builds an Express Router and registers router.get('/stock', ...), which is transport/framework logic suited to infrastructure.\",\"src/infrastructure/http/ProductController.ts: the handler only calls this.listProductStock.execute() and passes the result to res.json(...). No business rules or decisions are made in the controller.\",\"The constructor injects ListProductStockUseCase, so business behavior is handed to the application layer.\"],\"pass\":true,\"reasoning\":\"ProductController is a thin HTTP adapter in the infrastructure layer. All it does is set up an Express Router, map GET /stock to the injected application use case and serialize the result as JSON. That is transport and framework logic, which belongs in infrastructure. It contains no business rules, domain calculations or persistence logic, so all of its responsibilities fit the declared layer.\",\"violations\":[]}}",
+  "runIndex": 0,
+  "schemaVersion": 2,
+  "unitId": "src/infrastructure/http/ProductController.ts",
+  "usage": {
+    "inputTokens": 2533,
+    "outputTokens": 423
+  },
+  "usedOptions": {
+    "effort": "high",
+    "model": "claude-opus-5-5"
+  }
+}

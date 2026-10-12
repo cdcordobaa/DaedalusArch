@@ -1,0 +1,48 @@
+{
+  "attempts": 1,
+  "cliVersion": "2.1.294",
+  "configListingSha256": "47aa04258852fab9a706f3f0c14cee22306d69fbb6fdfbde8c11854bd54997bc",
+  "durationMs": 7150,
+  "effort": "high",
+  "functionId": "FF-N02",
+  "ignoredOptions": [
+    "maxTokens"
+  ],
+  "isolationProbeSha256": "97a2e2d0af1100c13c55e028c1a0c71f069093c3d08705af122aaeb302f1a641",
+  "key": "296c8a877d5058706dcbe860e1669768baafaf913efb0331b0bff0064319cde2-r0-2",
+  "model": "claude-opus-5-5",
+  "outcome": {
+    "kind": "valid"
+  },
+  "parsedVerdict": {
+    "confidence": 0.93,
+    "evidence": [
+      "src/domain/product.ts constructor: validates the invariant that initialStock is a non-negative integer (a domain rule).",
+      "src/domain/product.ts Product.reserve: throws InsufficientStockError when quantity > available, then moves stock from available to reserved (domain behaviour).",
+      "src/domain/product.ts Product.release: returns at most the reserved quantity to available stock (domain behaviour).",
+      "Its only import is ./domain-errors (domain). There is no I/O, framework, persistence or transport code."
+    ],
+    "pass": true,
+    "reasoning": "src/domain/product.ts is a plain domain entity. It holds the product's identity and stock state, and enforces business invariants: initial stock must be a non-negative integer, a reservation cannot be larger than the available stock, and a release cannot return more than is reserved. It has no persistence, HTTP/transport, framework, serialization or orchestration logic. It only depends on domain errors from a sibling domain file. The name InvalidRequestError sounds a little like transport language, but here it is a domain error used to guard a business rule, so no responsibility is in the wrong place.",
+    "violations": []
+  },
+  "projectId": "claude-sonnet-5-5/order-fulfilment/minimal-prose/run-1",
+  "prompt": "## Rule\nThe unit's responsibilities match the role of its declared layer.\n\n## Rubric\nPass: Every responsibility in the file belongs to the role and kind of its declared layer, and agrees with any ADR prose given.\nFail: The file carries a responsibility that belongs to a different layer kind, for example persistence, transport or framework logic in a domain file, or business rules in an infrastructure or presentation file.\nEvidence required: Name the file and cite the function, method or statement that carries the misplaced responsibility, and the layer kind it belongs to.\nOut of scope: import direction and layer-dependency rules, which are checked symbolically.\n\n## Layer model\n- domain (kind: domain): src/domain/**\n- application (kind: application): src/application/**\n- infrastructure (kind: infrastructure): src/infrastructure/**\n\n## Unit\nKind: file\nId: src/domain/product.ts\nLayer: domain\nUnit files:\n- src/domain/product.ts\n\n## Source\n=====SOURCE-BEGIN src/domain/product.ts=====\nimport { InsufficientStockError, InvalidRequestError } from \"./domain-errors\";\n\nexport class Product {\n  private available: number;\n  private reserved = 0;\n\n  constructor(\n    readonly id: string,\n    readonly name: string,\n    initialStock: number,\n  ) {\n    if (!Number.isInteger(initialStock) || initialStock < 0) {\n      throw new InvalidRequestError(\"Initial stock must be a non-negative integer\");\n    }\n    this.available = initialStock;\n  }\n\n  get availableStock(): number {\n    return this.available;\n  }\n\n  get reservedStock(): number {\n    return this.reserved;\n  }\n\n  canReserve(quantity: number): boolean {\n    return quantity <= this.available;\n  }\n\n  reserve(quantity: number): void {\n    if (!this.canReserve(quantity)) throw new InsufficientStockError(this.id);\n    this.available -= quantity;\n    this.reserved += quantity;\n  }\n\n  release(quantity: number): void {\n    const released = Math.min(quantity, this.reserved);\n    this.reserved -= released;\n    this.available += released;\n  }\n}\n\n=====SOURCE-END=====\n\n## Graph excerpt\n{\"edges\":[{\"from\":\"src/application/dtos.ts\",\"to\":\"src/domain/product.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/domain/product-repository.ts\",\"to\":\"src/domain/product.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/domain/product.ts\",\"to\":\"src/domain/domain-errors.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/domain/stock-reservation-service.ts\",\"to\":\"src/domain/product.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/infrastructure/app.ts\",\"to\":\"src/domain/product.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/infrastructure/in-memory-product-repository.ts\",\"to\":\"src/domain/product.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/infrastructure/server.ts\",\"to\":\"src/domain/product.ts\",\"type\":\"IMPORTS\"}],\"nodes\":[{\"kind\":\"Class\",\"layer\":\"domain\",\"name\":\"Product\",\"path\":\"src/domain/product.ts\"},{\"kind\":\"File\",\"layer\":\"application\",\"path\":\"src/application/dtos.ts\"},{\"kind\":\"File\",\"layer\":\"domain\",\"path\":\"src/domain/domain-errors.ts\"},{\"kind\":\"File\",\"layer\":\"domain\",\"path\":\"src/domain/product-repository.ts\"},{\"kind\":\"File\",\"layer\":\"domain\",\"path\":\"src/domain/product.ts\"},{\"kind\":\"File\",\"layer\":\"domain\",\"path\":\"src/domain/stock-reservation-service.ts\"},{\"kind\":\"File\",\"layer\":\"infrastructure\",\"path\":\"src/infrastructure/app.ts\"},{\"kind\":\"File\",\"layer\":\"infrastructure\",\"path\":\"src/infrastructure/in-memory-product-repository.ts\"},{\"kind\":\"File\",\"layer\":\"infrastructure\",\"path\":\"src/infrastructure/server.ts\"}]}\n\n## Instructions\nJudge the unit against the rule and rubric. Return the JSON object the schema requires. Set pass to false if any file of the unit fails the rubric.\n",
+  "provider": "claude-cli",
+  "recordedAt": "2026-10-10T22:48:48.394Z",
+  "repetition": 0,
+  "requestHash": "296c8a877d5058706dcbe860e1669768baafaf913efb0331b0bff0064319cde2",
+  "resolvedModel": "claude-opus-5-5",
+  "response": "{\"is_error\":false,\"modelUsage\":{\"claude-opus-5-5\":{\"inputTokens\":2,\"outputTokens\":550}},\"result\":\"{\\\"pass\\\":true,\\\"confidence\\\":0.93,\\\"reasoning\\\":\\\"src/domain/product.ts is a plain domain entity. It holds the product's identity and stock state, and enforces business invariants: initial stock must be a non-negative integer, a reservation cannot be larger than the available stock, and a release cannot return more than is reserved. It has no persistence, HTTP/transport, framework, serialization or orchestration logic. It only depends on domain errors from a sibling domain file. The name InvalidRequestError sounds a little like transport language, but here it is a domain error used to guard a business rule, so no responsibility is in the wrong place.\\\",\\\"evidence\\\":[\\\"src/domain/product.ts constructor: validates the invariant that initialStock is a non-negative integer (a domain rule).\\\",\\\"src/domain/product.ts Product.reserve: throws InsufficientStockError when quantity > available, then moves stock from available to reserved (domain behaviour).\\\",\\\"src/domain/product.ts Product.release: returns at most the reserved quantity to available stock (domain behaviour).\\\",\\\"Its only import is ./domain-errors (domain). There is no I/O, framework, persistence or transport code.\\\"],\\\"violations\\\":[]}\",\"structured_output\":{\"confidence\":0.93,\"evidence\":[\"src/domain/product.ts constructor: validates the invariant that initialStock is a non-negative integer (a domain rule).\",\"src/domain/product.ts Product.reserve: throws InsufficientStockError when quantity > available, then moves stock from available to reserved (domain behaviour).\",\"src/domain/product.ts Product.release: returns at most the reserved quantity to available stock (domain behaviour).\",\"Its only import is ./domain-errors (domain). There is no I/O, framework, persistence or transport code.\"],\"pass\":true,\"reasoning\":\"src/domain/product.ts is a plain domain entity. It holds the product's identity and stock state, and enforces business invariants: initial stock must be a non-negative integer, a reservation cannot be larger than the available stock, and a release cannot return more than is reserved. It has no persistence, HTTP/transport, framework, serialization or orchestration logic. It only depends on domain errors from a sibling domain file. The name InvalidRequestError sounds a little like transport language, but here it is a domain error used to guard a business rule, so no responsibility is in the wrong place.\",\"violations\":[]}}",
+  "runIndex": 2,
+  "schemaVersion": 2,
+  "unitId": "src/domain/product.ts",
+  "usage": {
+    "inputTokens": 2889,
+    "outputTokens": 550
+  },
+  "usedOptions": {
+    "effort": "high",
+    "model": "claude-opus-5-5"
+  }
+}

@@ -1,0 +1,47 @@
+{
+  "attempts": 1,
+  "cliVersion": "2.1.294",
+  "configListingSha256": "47aa04258852fab9a706f3f0c14cee22306d69fbb6fdfbde8c11854bd54997bc",
+  "durationMs": 6024,
+  "effort": "high",
+  "functionId": "FF-N02",
+  "ignoredOptions": [
+    "maxTokens"
+  ],
+  "isolationProbeSha256": "97a2e2d0af1100c13c55e028c1a0c71f069093c3d08705af122aaeb302f1a641",
+  "key": "51472ea2fd9f47cba336fd92c1a1a7fbeb53c4fc560bc667b7e3481799c16d52-r0-1",
+  "model": "claude-opus-5-5",
+  "outcome": {
+    "kind": "valid"
+  },
+  "parsedVerdict": {
+    "confidence": 0.95,
+    "evidence": [
+      "src/application/create-project-use-case.ts: execute() only coordinates the steps: this.ids.next(), new Project(...), this.projects.save(project), toProjectDto(project).",
+      "Its dependencies are domain ports (ProjectRepository, IdGenerator) passed in through the constructor, not concrete persistence or framework classes.",
+      "There are no HTTP, database or framework calls and no business-rule checks in this file."
+    ],
+    "pass": true,
+    "reasoning": "This file does only application-layer work: it coordinates one use case. CreateProjectUseCase.execute gets an id from the injected IdGenerator port, builds a domain Project, saves it through the injected ProjectRepository port and returns a DTO. It has no persistence code, no transport or framework logic and no business rules of its own; it hands entity creation to the domain. Shaping the output as a DTO is a normal application-layer job.",
+    "violations": []
+  },
+  "projectId": "claude-sonnet-5-5/task-management/minimal-prose/run-2",
+  "prompt": "## Rule\nThe unit's responsibilities match the role of its declared layer.\n\n## Rubric\nPass: Every responsibility in the file belongs to the role and kind of its declared layer, and agrees with any ADR prose given.\nFail: The file carries a responsibility that belongs to a different layer kind, for example persistence, transport or framework logic in a domain file, or business rules in an infrastructure or presentation file.\nEvidence required: Name the file and cite the function, method or statement that carries the misplaced responsibility, and the layer kind it belongs to.\nOut of scope: import direction and layer-dependency rules, which are checked symbolically.\n\n## Layer model\n- domain (kind: domain): src/domain/**\n- application (kind: application): src/application/**\n- infrastructure (kind: infrastructure): src/infrastructure/**\n\n## Unit\nKind: file\nId: src/application/create-project-use-case.ts\nLayer: application\nUnit files:\n- src/application/create-project-use-case.ts\n\n## Source\n=====SOURCE-BEGIN src/application/create-project-use-case.ts=====\nimport { IdGenerator } from \"../domain/id-generator\";\nimport { Project } from \"../domain/project\";\nimport { ProjectRepository } from \"../domain/project-repository\";\nimport { CreateProjectInput, ProjectDto, toProjectDto } from \"./dtos\";\n\nexport class CreateProjectUseCase {\n  constructor(\n    private readonly projects: ProjectRepository,\n    private readonly ids: IdGenerator,\n  ) {}\n\n  async execute(input: CreateProjectInput): Promise<ProjectDto> {\n    const project = new Project(this.ids.next(), input.name);\n    await this.projects.save(project);\n    return toProjectDto(project);\n  }\n}\n\n=====SOURCE-END=====\n\n## Graph excerpt\n{\"edges\":[{\"from\":\"CreateProjectUseCase@src/application/create-project-use-case.ts\",\"to\":\"IdGenerator@src/domain/id-generator.ts\",\"type\":\"CONSTRUCTOR_INJECTS\"},{\"from\":\"CreateProjectUseCase@src/application/create-project-use-case.ts\",\"to\":\"ProjectRepository@src/domain/project-repository.ts\",\"type\":\"CONSTRUCTOR_INJECTS\"},{\"from\":\"ProjectController@src/infrastructure/project-controller.ts\",\"to\":\"CreateProjectUseCase@src/application/create-project-use-case.ts\",\"type\":\"CONSTRUCTOR_INJECTS\"},{\"from\":\"src/application/create-project-use-case.ts\",\"to\":\"src/application/dtos.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/application/create-project-use-case.ts\",\"to\":\"src/domain/id-generator.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/application/create-project-use-case.ts\",\"to\":\"src/domain/project-repository.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/application/create-project-use-case.ts\",\"to\":\"src/domain/project.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/infrastructure/app.ts\",\"to\":\"src/application/create-project-use-case.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/infrastructure/project-controller.ts\",\"to\":\"src/application/create-project-use-case.ts\",\"type\":\"IMPORTS\"}],\"nodes\":[{\"kind\":\"Class\",\"layer\":\"application\",\"name\":\"CreateProjectUseCase\",\"path\":\"src/application/create-project-use-case.ts\"},{\"kind\":\"Class\",\"layer\":\"infrastructure\",\"name\":\"ProjectController\",\"path\":\"src/infrastructure/project-controller.ts\"},{\"kind\":\"File\",\"layer\":\"application\",\"path\":\"src/application/create-project-use-case.ts\"},{\"kind\":\"File\",\"layer\":\"application\",\"path\":\"src/application/dtos.ts\"},{\"kind\":\"File\",\"layer\":\"domain\",\"path\":\"src/domain/id-generator.ts\"},{\"kind\":\"File\",\"layer\":\"domain\",\"path\":\"src/domain/project-repository.ts\"},{\"kind\":\"File\",\"layer\":\"domain\",\"path\":\"src/domain/project.ts\"},{\"kind\":\"File\",\"layer\":\"infrastructure\",\"path\":\"src/infrastructure/app.ts\"},{\"kind\":\"File\",\"layer\":\"infrastructure\",\"path\":\"src/infrastructure/project-controller.ts\"},{\"kind\":\"Interface\",\"layer\":\"domain\",\"name\":\"IdGenerator\",\"path\":\"src/domain/id-generator.ts\"},{\"kind\":\"Interface\",\"layer\":\"domain\",\"name\":\"ProjectRepository\",\"path\":\"src/domain/project-repository.ts\"}]}\n\n## Instructions\nJudge the unit against the rule and rubric. Return the JSON object the schema requires. Set pass to false if any file of the unit fails the rubric.\n",
+  "provider": "claude-cli",
+  "recordedAt": "2026-10-10T22:42:16.716Z",
+  "repetition": 0,
+  "requestHash": "51472ea2fd9f47cba336fd92c1a1a7fbeb53c4fc560bc667b7e3481799c16d52",
+  "resolvedModel": "claude-opus-5-5",
+  "response": "{\"is_error\":false,\"modelUsage\":{\"claude-opus-5-5\":{\"inputTokens\":2,\"outputTokens\":422}},\"result\":\"{\\\"pass\\\":true,\\\"confidence\\\":0.95,\\\"reasoning\\\":\\\"This file does only application-layer work: it coordinates one use case. CreateProjectUseCase.execute gets an id from the injected IdGenerator port, builds a domain Project, saves it through the injected ProjectRepository port and returns a DTO. It has no persistence code, no transport or framework logic and no business rules of its own; it hands entity creation to the domain. Shaping the output as a DTO is a normal application-layer job.\\\",\\\"evidence\\\":[\\\"src/application/create-project-use-case.ts: execute() only coordinates the steps: this.ids.next(), new Project(...), this.projects.save(project), toProjectDto(project).\\\",\\\"Its dependencies are domain ports (ProjectRepository, IdGenerator) passed in through the constructor, not concrete persistence or framework classes.\\\",\\\"There are no HTTP, database or framework calls and no business-rule checks in this file.\\\"],\\\"violations\\\":[]}\",\"structured_output\":{\"confidence\":0.95,\"evidence\":[\"src/application/create-project-use-case.ts: execute() only coordinates the steps: this.ids.next(), new Project(...), this.projects.save(project), toProjectDto(project).\",\"Its dependencies are domain ports (ProjectRepository, IdGenerator) passed in through the constructor, not concrete persistence or framework classes.\",\"There are no HTTP, database or framework calls and no business-rule checks in this file.\"],\"pass\":true,\"reasoning\":\"This file does only application-layer work: it coordinates one use case. CreateProjectUseCase.execute gets an id from the injected IdGenerator port, builds a domain Project, saves it through the injected ProjectRepository port and returns a DTO. It has no persistence code, no transport or framework logic and no business rules of its own; it hands entity creation to the domain. Shaping the output as a DTO is a normal application-layer job.\",\"violations\":[]}}",
+  "runIndex": 1,
+  "schemaVersion": 2,
+  "unitId": "src/application/create-project-use-case.ts",
+  "usage": {
+    "inputTokens": 3068,
+    "outputTokens": 422
+  },
+  "usedOptions": {
+    "effort": "high",
+    "model": "claude-opus-5-5"
+  }
+}

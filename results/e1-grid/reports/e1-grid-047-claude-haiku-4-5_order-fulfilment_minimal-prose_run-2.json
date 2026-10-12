@@ -1,0 +1,1426 @@
+{
+  "runId": "run-1791687103545",
+  "projectPath": "../daedalus-e1-outcomes/claude-haiku-4-5/order-fulfilment/minimal-prose/run-2",
+  "specVersion": "1.0.0",
+  "ahsDeterministic": 0.904,
+  "ahsCombined": 0.912,
+  "ahsNeuronal": 1,
+  "verdict": "pass",
+  "scoring": {
+    "weights": {
+      "structural": 0.35,
+      "coupling": 0.2,
+      "pattern": 0.3,
+      "solid": 0.1,
+      "convention": 0.05,
+      "semantic": 0,
+      "integrity": 0
+    },
+    "fullModeWeights": {
+      "structural": 0.32,
+      "coupling": 0.18,
+      "pattern": 0.27,
+      "solid": 0.1,
+      "convention": 0.05,
+      "semantic": 0.04,
+      "integrity": 0.04
+    },
+    "thresholds": {
+      "pass": 0.8,
+      "warning": 0.65,
+      "softBlock": 0.5
+    },
+    "confidenceThresholds": {
+      "high": 0.85,
+      "medium": 0.6,
+      "iccMinimum": 0.7
+    },
+    "verdictSource": "ahsCombined",
+    "neuralAggregation": "registered"
+  },
+  "perDimensionScores": [
+    {
+      "dimension": "structural",
+      "avr": 0,
+      "violatedWeight": 0,
+      "weight": 0.32,
+      "effectiveWeight": 0.32,
+      "violationCount": 0,
+      "functionCount": 3
+    },
+    {
+      "dimension": "coupling",
+      "avr": 0.167,
+      "violatedWeight": 1,
+      "weight": 0.18,
+      "effectiveWeight": 0.18,
+      "violationCount": 1,
+      "functionCount": 6
+    },
+    {
+      "dimension": "pattern",
+      "avr": 0.167,
+      "violatedWeight": 1,
+      "weight": 0.27,
+      "effectiveWeight": 0.27,
+      "violationCount": 1,
+      "functionCount": 6
+    },
+    {
+      "dimension": "solid",
+      "avr": 0,
+      "violatedWeight": 0,
+      "weight": 0.1,
+      "effectiveWeight": 0.1,
+      "violationCount": 0,
+      "functionCount": 3
+    },
+    {
+      "dimension": "convention",
+      "avr": 0.25,
+      "violatedWeight": 1,
+      "weight": 0.05,
+      "effectiveWeight": 0.05,
+      "violationCount": 1,
+      "functionCount": 4
+    },
+    {
+      "dimension": "semantic",
+      "avr": 0,
+      "violatedWeight": 0,
+      "weight": 0.04,
+      "effectiveWeight": 0.04,
+      "violationCount": 0,
+      "functionCount": 1
+    },
+    {
+      "dimension": "integrity",
+      "avr": 0,
+      "violatedWeight": 0,
+      "weight": 0.04,
+      "effectiveWeight": 0.04,
+      "violationCount": 0,
+      "functionCount": 1
+    }
+  ],
+  "violations": [
+    {
+      "id": "v-cb1eee1d0b0aacd7",
+      "type": "DEPENDENCY_INVERSION_VIOLATION",
+      "dimension": "pattern",
+      "severity": "critical",
+      "functionId": "FF-P02",
+      "route": "symbolic",
+      "filePath": "src/application/usecases/CancelOrderUseCase.ts",
+      "message": "Violation in src/application/usecases/CancelOrderUseCase.ts",
+      "deterministic": true,
+      "discriminator": [
+        "CancelOrderUseCase"
+      ],
+      "evidence": [
+        "ratio=0.6666666666666666"
+      ],
+      "tag": "pattern-proxy"
+    },
+    {
+      "id": "v-07917ef23a19b003",
+      "type": "DEPENDENCY_INVERSION_VIOLATION",
+      "dimension": "pattern",
+      "severity": "critical",
+      "functionId": "FF-P02",
+      "route": "symbolic",
+      "filePath": "src/application/usecases/PlaceOrderUseCase.ts",
+      "message": "Violation in src/application/usecases/PlaceOrderUseCase.ts",
+      "deterministic": true,
+      "discriminator": [
+        "PlaceOrderUseCase"
+      ],
+      "evidence": [
+        "ratio=0.6666666666666666"
+      ],
+      "tag": "pattern-proxy"
+    },
+    {
+      "id": "v-92fa6191639501ea",
+      "type": "INSTABILITY_VIOLATION",
+      "dimension": "coupling",
+      "severity": "major",
+      "functionId": "FF-C03",
+      "route": "symbolic",
+      "filePath": "src/infrastructure/app.ts",
+      "message": "Violation in src/infrastructure/app.ts",
+      "deterministic": true,
+      "discriminator": [],
+      "evidence": [
+        "instability=0.9090909090909091"
+      ],
+      "tag": "topological"
+    },
+    {
+      "id": "v-7a8d7c76659459be",
+      "type": "INSTABILITY_VIOLATION",
+      "dimension": "coupling",
+      "severity": "major",
+      "functionId": "FF-C03",
+      "route": "symbolic",
+      "filePath": "src/infrastructure/controllers/OrderController.ts",
+      "message": "Violation in src/infrastructure/controllers/OrderController.ts",
+      "deterministic": true,
+      "discriminator": [],
+      "evidence": [
+        "instability=0.8571428571428571"
+      ],
+      "tag": "topological"
+    },
+    {
+      "id": "v-5352fe30c256868d",
+      "type": "MISSING_TEST_FILE",
+      "dimension": "convention",
+      "severity": "advisory",
+      "functionId": "FF-CV05",
+      "route": "symbolic",
+      "filePath": "src/application/usecases/CancelOrderUseCase.ts",
+      "message": "Violation in src/application/usecases/CancelOrderUseCase.ts",
+      "deterministic": true,
+      "discriminator": [],
+      "tag": "pattern-proxy"
+    },
+    {
+      "id": "v-f1fb0deafec20d7c",
+      "type": "MISSING_TEST_FILE",
+      "dimension": "convention",
+      "severity": "advisory",
+      "functionId": "FF-CV05",
+      "route": "symbolic",
+      "filePath": "src/application/usecases/GetStockLevelsUseCase.ts",
+      "message": "Violation in src/application/usecases/GetStockLevelsUseCase.ts",
+      "deterministic": true,
+      "discriminator": [],
+      "tag": "pattern-proxy"
+    },
+    {
+      "id": "v-f2938b8340e6f1c2",
+      "type": "MISSING_TEST_FILE",
+      "dimension": "convention",
+      "severity": "advisory",
+      "functionId": "FF-CV05",
+      "route": "symbolic",
+      "filePath": "src/application/usecases/ListOrdersByStatusUseCase.ts",
+      "message": "Violation in src/application/usecases/ListOrdersByStatusUseCase.ts",
+      "deterministic": true,
+      "discriminator": [],
+      "tag": "pattern-proxy"
+    },
+    {
+      "id": "v-de53b54819a64e03",
+      "type": "MISSING_TEST_FILE",
+      "dimension": "convention",
+      "severity": "advisory",
+      "functionId": "FF-CV05",
+      "route": "symbolic",
+      "filePath": "src/application/usecases/PlaceOrderUseCase.ts",
+      "message": "Violation in src/application/usecases/PlaceOrderUseCase.ts",
+      "deterministic": true,
+      "discriminator": [],
+      "tag": "pattern-proxy"
+    },
+    {
+      "id": "v-5fcdd2e095e6614d",
+      "type": "MISSING_TEST_FILE",
+      "dimension": "convention",
+      "severity": "advisory",
+      "functionId": "FF-CV05",
+      "route": "symbolic",
+      "filePath": "src/application/usecases/UpdateOrderStatusUseCase.ts",
+      "message": "Violation in src/application/usecases/UpdateOrderStatusUseCase.ts",
+      "deterministic": true,
+      "discriminator": [],
+      "tag": "pattern-proxy"
+    },
+    {
+      "id": "v-cdc5c41d288df0fb",
+      "type": "MISSING_TEST_FILE",
+      "dimension": "convention",
+      "severity": "advisory",
+      "functionId": "FF-CV05",
+      "route": "symbolic",
+      "filePath": "src/domain/entities/Order.ts",
+      "message": "Violation in src/domain/entities/Order.ts",
+      "deterministic": true,
+      "discriminator": [],
+      "tag": "pattern-proxy"
+    },
+    {
+      "id": "v-b75be9f11e364720",
+      "type": "MISSING_TEST_FILE",
+      "dimension": "convention",
+      "severity": "advisory",
+      "functionId": "FF-CV05",
+      "route": "symbolic",
+      "filePath": "src/domain/entities/Product.ts",
+      "message": "Violation in src/domain/entities/Product.ts",
+      "deterministic": true,
+      "discriminator": [],
+      "tag": "pattern-proxy"
+    },
+    {
+      "id": "v-23baaf8be4662189",
+      "type": "MISSING_TEST_FILE",
+      "dimension": "convention",
+      "severity": "advisory",
+      "functionId": "FF-CV05",
+      "route": "symbolic",
+      "filePath": "src/domain/repositories/OrderRepository.ts",
+      "message": "Violation in src/domain/repositories/OrderRepository.ts",
+      "deterministic": true,
+      "discriminator": [],
+      "tag": "pattern-proxy"
+    },
+    {
+      "id": "v-c995f98fa3743d6e",
+      "type": "MISSING_TEST_FILE",
+      "dimension": "convention",
+      "severity": "advisory",
+      "functionId": "FF-CV05",
+      "route": "symbolic",
+      "filePath": "src/domain/repositories/ProductRepository.ts",
+      "message": "Violation in src/domain/repositories/ProductRepository.ts",
+      "deterministic": true,
+      "discriminator": [],
+      "tag": "pattern-proxy"
+    },
+    {
+      "id": "v-1f880a9b62d17271",
+      "type": "MISSING_TEST_FILE",
+      "dimension": "convention",
+      "severity": "advisory",
+      "functionId": "FF-CV05",
+      "route": "symbolic",
+      "filePath": "src/domain/services/StockManager.ts",
+      "message": "Violation in src/domain/services/StockManager.ts",
+      "deterministic": true,
+      "discriminator": [],
+      "tag": "pattern-proxy"
+    },
+    {
+      "id": "v-dc7d0b81bd73effd",
+      "type": "MISSING_TEST_FILE",
+      "dimension": "convention",
+      "severity": "advisory",
+      "functionId": "FF-CV05",
+      "route": "symbolic",
+      "filePath": "src/infrastructure/app.ts",
+      "message": "Violation in src/infrastructure/app.ts",
+      "deterministic": true,
+      "discriminator": [],
+      "tag": "pattern-proxy"
+    },
+    {
+      "id": "v-305ed6b5d8a60c19",
+      "type": "MISSING_TEST_FILE",
+      "dimension": "convention",
+      "severity": "advisory",
+      "functionId": "FF-CV05",
+      "route": "symbolic",
+      "filePath": "src/infrastructure/controllers/OrderController.ts",
+      "message": "Violation in src/infrastructure/controllers/OrderController.ts",
+      "deterministic": true,
+      "discriminator": [],
+      "tag": "pattern-proxy"
+    },
+    {
+      "id": "v-980d8f3f17f6a1ec",
+      "type": "MISSING_TEST_FILE",
+      "dimension": "convention",
+      "severity": "advisory",
+      "functionId": "FF-CV05",
+      "route": "symbolic",
+      "filePath": "src/infrastructure/repositories/InMemoryOrderRepository.ts",
+      "message": "Violation in src/infrastructure/repositories/InMemoryOrderRepository.ts",
+      "deterministic": true,
+      "discriminator": [],
+      "tag": "pattern-proxy"
+    },
+    {
+      "id": "v-40b91fdd20905a54",
+      "type": "MISSING_TEST_FILE",
+      "dimension": "convention",
+      "severity": "advisory",
+      "functionId": "FF-CV05",
+      "route": "symbolic",
+      "filePath": "src/infrastructure/repositories/InMemoryProductRepository.ts",
+      "message": "Violation in src/infrastructure/repositories/InMemoryProductRepository.ts",
+      "deterministic": true,
+      "discriminator": [],
+      "tag": "pattern-proxy"
+    },
+    {
+      "id": "v-71d0950162190c9e",
+      "type": "INTEGRITY_VIOLATION",
+      "dimension": "integrity",
+      "severity": "major",
+      "functionId": "FF-N01",
+      "route": "neuronal",
+      "filePath": "src/application/usecases/CancelOrderUseCase.ts",
+      "message": "Copies the Order-to-OrderDto mapping inline instead of sharing one mapper. It also releases stock without changing the order's status or saving the order, unlike the other order-changing use cases.",
+      "deterministic": false
+    },
+    {
+      "id": "v-2dae3223a3739dee",
+      "type": "INTEGRITY_VIOLATION",
+      "dimension": "integrity",
+      "severity": "major",
+      "functionId": "FF-N01",
+      "route": "neuronal",
+      "filePath": "src/application/usecases/ListOrdersByStatusUseCase.ts",
+      "message": "Copies the Order-to-OrderDto mapping inline in execute(). This mapping should live in one shared mapper.",
+      "deterministic": false
+    },
+    {
+      "id": "v-dceb814d5e3a8e0a",
+      "type": "INTEGRITY_VIOLATION",
+      "dimension": "integrity",
+      "severity": "major",
+      "functionId": "FF-N01",
+      "route": "neuronal",
+      "filePath": "src/application/usecases/PlaceOrderUseCase.ts",
+      "message": "Defines a private mapToDto that sibling use cases can't reuse, so the DTO mapping exists separately in this file and in the other three.",
+      "deterministic": false
+    },
+    {
+      "id": "v-09b13faa5e4e3f6e",
+      "type": "INTEGRITY_VIOLATION",
+      "dimension": "integrity",
+      "severity": "major",
+      "functionId": "FF-N01",
+      "route": "neuronal",
+      "filePath": "src/application/usecases/UpdateOrderStatusUseCase.ts",
+      "message": "Copies the OrderDto mapping inline. It also hard-codes a validStatuses list that repeats the domain's OrderStatus definition and the checks in order.transitionTo, and this list appears to leave out 'cancelled'.",
+      "deterministic": false
+    },
+    {
+      "id": "v-f42a47b6eb5b4f5e",
+      "type": "INTEGRITY_VIOLATION",
+      "dimension": "integrity",
+      "severity": "major",
+      "functionId": "FF-N01",
+      "route": "neuronal",
+      "filePath": "src/infrastructure/controllers/OrderController.ts",
+      "message": "listOrdersByStatus hardcodes `validStatuses: OrderStatus[] = ['placed','paid','packed','shipped','delivered']`. This copies the domain's rule for valid order statuses (OrderStatus in src/domain/entities/Order.ts) into the controller instead of keeping it in one place. The list can drift from the domain, and it likely already has: no cancelled status is listed even though a cancel-order use case exists.",
+      "deterministic": false
+    },
+    {
+      "id": "v-2325aa791f471461",
+      "type": "SEMANTIC_RULE_VIOLATION",
+      "dimension": "semantic",
+      "severity": "major",
+      "functionId": "FF-N02",
+      "route": "neuronal",
+      "filePath": "src/application/usecases/PlaceOrderUseCase.ts",
+      "message": "execute() enforces two Order domain invariants: an order needs at least one line (`request.lines.length === 0`) and each line quantity must be positive (`line.quantity <= 0`). These business rules belong in the domain layer (the Order entity or its factory), not in the application use case.",
+      "deterministic": false
+    }
+  ],
+  "universalMetrics": {
+    "cyclicDependencyCount": 0,
+    "maxFanOut": 10,
+    "maxFanIn": 7,
+    "abstractionRatio": 0.421,
+    "averageInstability": 0.497,
+    "orphanFileCount": 0
+  },
+  "evaluationMode": "full",
+  "durationMs": 51,
+  "droppedDimensions": [],
+  "warnings": [
+    {
+      "code": "EXTRACTOR_005",
+      "message": "CONSTRUCTOR_INJECTS type unresolvable: import(\"../daedalus-e1-outcomes/claude-haiku-4-5/order-fulfilment/minimal-prose/run-2/src/domain/entities/Order\").OrderLine[]",
+      "context": {
+        "filePath": "src/domain/entities/Order.ts"
+      },
+      "stage": "extract-apg"
+    },
+    {
+      "code": "SPEC_002",
+      "message": "Template function \"FF-C01\" overridden by spec declaration",
+      "stage": "parse-spec"
+    },
+    {
+      "code": "SPEC_002",
+      "message": "Template function \"FF-C02\" overridden by spec declaration",
+      "stage": "parse-spec"
+    },
+    {
+      "code": "SPEC_002",
+      "message": "Template function \"FF-C03\" overridden by spec declaration",
+      "stage": "parse-spec"
+    },
+    {
+      "code": "SPEC_002",
+      "message": "Template function \"FF-C04\" overridden by spec declaration",
+      "stage": "parse-spec"
+    },
+    {
+      "code": "SPEC_002",
+      "message": "Template function \"FF-C05\" overridden by spec declaration",
+      "stage": "parse-spec"
+    },
+    {
+      "code": "SPEC_002",
+      "message": "Template function \"FF-C06\" overridden by spec declaration",
+      "stage": "parse-spec"
+    },
+    {
+      "code": "SPEC_002",
+      "message": "Template function \"FF-CV01\" overridden by spec declaration",
+      "stage": "parse-spec"
+    },
+    {
+      "code": "SPEC_002",
+      "message": "Template function \"FF-CV02\" overridden by spec declaration",
+      "stage": "parse-spec"
+    },
+    {
+      "code": "SPEC_002",
+      "message": "Template function \"FF-CV03\" overridden by spec declaration",
+      "stage": "parse-spec"
+    },
+    {
+      "code": "SPEC_002",
+      "message": "Template function \"FF-CV04\" overridden by spec declaration",
+      "stage": "parse-spec"
+    },
+    {
+      "code": "SPEC_002",
+      "message": "Template function \"FF-CV05\" overridden by spec declaration",
+      "stage": "parse-spec"
+    },
+    {
+      "code": "SPEC_002",
+      "message": "Template function \"FF-CV06\" overridden by spec declaration",
+      "stage": "parse-spec"
+    },
+    {
+      "code": "SPEC_002",
+      "message": "Template function \"FF-N01\" overridden by spec declaration",
+      "stage": "parse-spec"
+    },
+    {
+      "code": "SPEC_002",
+      "message": "Template function \"FF-N02\" overridden by spec declaration",
+      "stage": "parse-spec"
+    },
+    {
+      "code": "SPEC_002",
+      "message": "Template function \"FF-P01\" overridden by spec declaration",
+      "stage": "parse-spec"
+    },
+    {
+      "code": "SPEC_002",
+      "message": "Template function \"FF-P02\" overridden by spec declaration",
+      "stage": "parse-spec"
+    },
+    {
+      "code": "SPEC_002",
+      "message": "Template function \"FF-P03\" overridden by spec declaration",
+      "stage": "parse-spec"
+    },
+    {
+      "code": "SPEC_002",
+      "message": "Template function \"FF-P04\" overridden by spec declaration",
+      "stage": "parse-spec"
+    },
+    {
+      "code": "SPEC_002",
+      "message": "Template function \"FF-P05\" overridden by spec declaration",
+      "stage": "parse-spec"
+    },
+    {
+      "code": "SPEC_002",
+      "message": "Template function \"FF-P06\" overridden by spec declaration",
+      "stage": "parse-spec"
+    },
+    {
+      "code": "SPEC_002",
+      "message": "Template function \"FF-S01\" overridden by spec declaration",
+      "stage": "parse-spec"
+    },
+    {
+      "code": "SPEC_002",
+      "message": "Template function \"FF-S02\" overridden by spec declaration",
+      "stage": "parse-spec"
+    },
+    {
+      "code": "SPEC_002",
+      "message": "Template function \"FF-S03\" overridden by spec declaration",
+      "stage": "parse-spec"
+    },
+    {
+      "code": "SPEC_002",
+      "message": "Template function \"FF-S04\" overridden by spec declaration",
+      "stage": "parse-spec"
+    },
+    {
+      "code": "SPEC_002",
+      "message": "Template function \"FF-SO01\" overridden by spec declaration",
+      "stage": "parse-spec"
+    },
+    {
+      "code": "SPEC_002",
+      "message": "Template function \"FF-SO02\" overridden by spec declaration",
+      "stage": "parse-spec"
+    },
+    {
+      "code": "SPEC_002",
+      "message": "Template function \"FF-SO03\" overridden by spec declaration",
+      "stage": "parse-spec"
+    },
+    {
+      "code": "COMPILER_004",
+      "message": "FF-S03 (no-layer-skip) disabled: not applicable to style clean-architecture",
+      "context": {
+        "functionId": "FF-S03"
+      },
+      "stage": "compile-functions"
+    }
+  ],
+  "functionExecution": {
+    "declared": 27,
+    "adrDerived": 0,
+    "compiled": 24,
+    "disabled": 3,
+    "dropped": [],
+    "skippedByMode": 0,
+    "noJudgeUnits": [],
+    "executed": 24,
+    "failed": []
+  },
+  "functionResults": [
+    {
+      "functionId": "FF-P06",
+      "name": "domain-state-purity",
+      "dimension": "pattern",
+      "route": "symbolic",
+      "tag": "structural",
+      "passed": true,
+      "violationCount": 0,
+      "executionTimeMs": 1,
+      "truncated": false
+    },
+    {
+      "functionId": "FF-S01",
+      "name": "dependency-direction",
+      "dimension": "structural",
+      "route": "symbolic",
+      "tag": "structural",
+      "passed": true,
+      "violationCount": 0,
+      "executionTimeMs": 5,
+      "truncated": false
+    },
+    {
+      "functionId": "FF-S04",
+      "name": "no-domain-outward-dep",
+      "dimension": "structural",
+      "route": "symbolic",
+      "tag": "structural",
+      "passed": true,
+      "violationCount": 0,
+      "executionTimeMs": 3,
+      "truncated": false
+    },
+    {
+      "functionId": "FF-C01",
+      "name": "domain-stability",
+      "dimension": "coupling",
+      "route": "symbolic",
+      "tag": "topological",
+      "passed": true,
+      "violationCount": 0,
+      "executionTimeMs": 0,
+      "truncated": false
+    },
+    {
+      "functionId": "FF-C02",
+      "name": "module-fan-out",
+      "dimension": "coupling",
+      "route": "symbolic",
+      "tag": "topological",
+      "passed": true,
+      "violationCount": 0,
+      "executionTimeMs": 1,
+      "truncated": false
+    },
+    {
+      "functionId": "FF-C03",
+      "name": "component-instability",
+      "dimension": "coupling",
+      "route": "symbolic",
+      "tag": "topological",
+      "passed": false,
+      "violationCount": 2,
+      "executionTimeMs": 2,
+      "truncated": false
+    },
+    {
+      "functionId": "FF-C04",
+      "name": "no-orphan-files",
+      "dimension": "coupling",
+      "route": "symbolic",
+      "tag": "topological",
+      "passed": true,
+      "violationCount": 0,
+      "executionTimeMs": 0,
+      "truncated": false
+    },
+    {
+      "functionId": "FF-C05",
+      "name": "max-fan-in",
+      "dimension": "coupling",
+      "route": "symbolic",
+      "tag": "topological",
+      "passed": true,
+      "violationCount": 0,
+      "executionTimeMs": 1,
+      "truncated": false
+    },
+    {
+      "functionId": "FF-C06",
+      "name": "abstraction-ratio",
+      "dimension": "coupling",
+      "route": "symbolic",
+      "tag": "topological",
+      "passed": true,
+      "violationCount": 0,
+      "executionTimeMs": 1,
+      "truncated": false
+    },
+    {
+      "functionId": "FF-S02",
+      "name": "no-cyclic-deps",
+      "dimension": "structural",
+      "route": "symbolic",
+      "tag": "topological",
+      "passed": true,
+      "violationCount": 0,
+      "executionTimeMs": 3,
+      "truncated": false
+    },
+    {
+      "functionId": "FF-SO03",
+      "name": "inheritance-depth",
+      "dimension": "solid",
+      "route": "symbolic",
+      "tag": "topological",
+      "passed": true,
+      "violationCount": 0,
+      "executionTimeMs": 0,
+      "truncated": false
+    },
+    {
+      "functionId": "FF-CV02",
+      "name": "naming-services",
+      "dimension": "convention",
+      "route": "symbolic",
+      "tag": "pattern-proxy",
+      "passed": true,
+      "violationCount": 0,
+      "executionTimeMs": 1,
+      "truncated": false
+    },
+    {
+      "functionId": "FF-CV03",
+      "name": "naming-repos",
+      "dimension": "convention",
+      "route": "symbolic",
+      "tag": "pattern-proxy",
+      "passed": true,
+      "violationCount": 0,
+      "executionTimeMs": 1,
+      "truncated": false
+    },
+    {
+      "functionId": "FF-CV05",
+      "name": "test-file-pairing",
+      "dimension": "convention",
+      "route": "symbolic",
+      "tag": "pattern-proxy",
+      "passed": false,
+      "violationCount": 14,
+      "executionTimeMs": 2,
+      "truncated": false
+    },
+    {
+      "functionId": "FF-CV06",
+      "name": "no-index-logic",
+      "dimension": "convention",
+      "route": "symbolic",
+      "tag": "pattern-proxy",
+      "passed": true,
+      "violationCount": 0,
+      "executionTimeMs": 1,
+      "truncated": false
+    },
+    {
+      "functionId": "FF-P01",
+      "name": "domain-purity",
+      "dimension": "pattern",
+      "route": "symbolic",
+      "tag": "pattern-proxy",
+      "passed": true,
+      "violationCount": 0,
+      "executionTimeMs": 2,
+      "truncated": false
+    },
+    {
+      "functionId": "FF-P02",
+      "name": "dependency-inversion",
+      "dimension": "pattern",
+      "route": "symbolic",
+      "tag": "pattern-proxy",
+      "passed": false,
+      "violationCount": 2,
+      "executionTimeMs": 2,
+      "truncated": false
+    },
+    {
+      "functionId": "FF-P03",
+      "name": "repository-pattern",
+      "dimension": "pattern",
+      "route": "symbolic",
+      "tag": "pattern-proxy",
+      "passed": true,
+      "violationCount": 0,
+      "executionTimeMs": 1,
+      "truncated": false
+    },
+    {
+      "functionId": "FF-P04",
+      "name": "use-case-isolation",
+      "dimension": "pattern",
+      "route": "symbolic",
+      "tag": "pattern-proxy",
+      "passed": true,
+      "violationCount": 0,
+      "executionTimeMs": 1,
+      "truncated": false
+    },
+    {
+      "functionId": "FF-P05",
+      "name": "controller-no-entity",
+      "dimension": "pattern",
+      "route": "symbolic",
+      "tag": "pattern-proxy",
+      "passed": true,
+      "violationCount": 0,
+      "executionTimeMs": 1,
+      "truncated": false
+    },
+    {
+      "functionId": "FF-SO01",
+      "name": "single-responsibility-proxy",
+      "dimension": "solid",
+      "route": "symbolic",
+      "tag": "pattern-proxy",
+      "passed": true,
+      "violationCount": 0,
+      "executionTimeMs": 1,
+      "truncated": false
+    },
+    {
+      "functionId": "FF-SO02",
+      "name": "interface-segregation-proxy",
+      "dimension": "solid",
+      "route": "symbolic",
+      "tag": "pattern-proxy",
+      "passed": true,
+      "violationCount": 0,
+      "executionTimeMs": 1,
+      "truncated": false
+    },
+    {
+      "functionId": "FF-N01",
+      "name": "architectural-integrity",
+      "dimension": "integrity",
+      "route": "neuronal",
+      "passed": true,
+      "violationCount": 5,
+      "executionTimeMs": 0,
+      "truncated": false
+    },
+    {
+      "functionId": "FF-N02",
+      "name": "intent-alignment",
+      "dimension": "semantic",
+      "route": "neuronal",
+      "passed": true,
+      "violationCount": 1,
+      "executionTimeMs": 0,
+      "truncated": false
+    }
+  ],
+  "disabledFunctions": [
+    {
+      "functionId": "FF-CV01",
+      "name": "naming-conventions",
+      "reason": "ADR-016 b (B&T Step 31): cannot fire; per-layer naming patterns compile to .* and no requirement supplies them (SP-FF-CV01 not fired)"
+    },
+    {
+      "functionId": "FF-CV04",
+      "name": "naming-controllers",
+      "reason": "ADR-016 b (B&T Step 31): cannot fire; class decorators are not ingested (BR-U2-31), so no controller is selected (SP-FF-CV04 not fired)"
+    },
+    {
+      "functionId": "FF-S03",
+      "name": "no-layer-skip",
+      "reason": "not applicable to style clean-architecture"
+    }
+  ],
+  "graphStats": {
+    "nodeCount": 72,
+    "edgeCount": 131,
+    "layerCoverage": 0.9375,
+    "nodeCountByType": {
+      "File": 16,
+      "Class": 11,
+      "Interface": 8,
+      "Method": 34,
+      "Function": 2,
+      "Package": 1
+    },
+    "edgeCountByType": {
+      "IMPORTS": 44,
+      "IMPLEMENTS": 2,
+      "EXTENDS": 0,
+      "CONSTRUCTOR_INJECTS": 14,
+      "CALLS": 16,
+      "DECLARES": 21,
+      "CONTAINS": 34,
+      "FLOWS_TO": 0,
+      "RE_EXPORTS": 0
+    }
+  },
+  "layerAnnotation": {
+    "mapped": 15,
+    "unmapped": 1,
+    "unmappedFiles": [
+      "src/server.ts"
+    ]
+  },
+  "parseCoverage": {
+    "total": 16,
+    "parsed": 16,
+    "percentage": 100,
+    "skipped": []
+  },
+  "importResolution": {
+    "resolvedInternal": 42,
+    "external": 2,
+    "externalOutOfRootAlias": 0,
+    "unresolved": 0,
+    "droppedNoFileNode": 0,
+    "unsupportedDynamic": 0
+  },
+  "timings": {
+    "stages": [
+      {
+        "name": "parallel:extract-apg+parse-spec",
+        "durationMs": 372,
+        "status": "success"
+      },
+      {
+        "name": "ingest-apg",
+        "durationMs": 140,
+        "status": "success"
+      },
+      {
+        "name": "compile-functions",
+        "durationMs": 2,
+        "status": "success"
+      },
+      {
+        "name": "route-evaluate",
+        "durationMs": 207652,
+        "status": "success"
+      },
+      {
+        "name": "universal-metric:cyclicDependencyCount",
+        "durationMs": 26,
+        "status": "success"
+      },
+      {
+        "name": "compute-scores",
+        "durationMs": 53,
+        "status": "success"
+      }
+    ],
+    "totalMs": 208219
+  },
+  "judge": {
+    "provider": "claude-cli",
+    "model": "claude-opus-5-5",
+    "effort": "high",
+    "cliVersion": "2.1.294",
+    "cassetteMode": "record",
+    "runsPerUnit": 3,
+    "resolvedModel": "claude-opus-5-5",
+    "repetition": 0,
+    "isolationProbeSha256": "97a2e2d0af1100c13c55e028c1a0c71f069093c3d08705af122aaeb302f1a641",
+    "configListingSha256": "47aa04258852fab9a706f3f0c14cee22306d69fbb6fdfbde8c11854bd54997bc",
+    "provenanceMixed": false,
+    "seededList": []
+  },
+  "instrumentVersion": 2,
+  "neuralResults": [
+    {
+      "functionId": "FF-N01",
+      "dimension": "integrity",
+      "aggregationRule": "majority-of-valid-units-v1",
+      "selection": {
+        "source": "own",
+        "candidateUnitIds": [
+          "src/application",
+          "src/application/usecases",
+          "src/domain",
+          "src/domain/entities",
+          "src/domain/repositories",
+          "src/infrastructure",
+          "src/infrastructure/repositories"
+        ],
+        "selectedUnitIds": [
+          "src/application",
+          "src/application/usecases",
+          "src/domain",
+          "src/domain/entities",
+          "src/domain/repositories",
+          "src/infrastructure",
+          "src/infrastructure/repositories"
+        ]
+      },
+      "unitsSelected": 7,
+      "unitsCapped": 0,
+      "candidateCount": 7,
+      "uncoveredFileCount": 1,
+      "singleFileModules": 2,
+      "candidateExclusions": {
+        "unlayered": 1,
+        "exclude-paths": 0,
+        "barrel": 0,
+        "test-path": 0,
+        "e2e-spec": 0,
+        "generated-path": 0,
+        "generated-marker": 0
+      },
+      "unitsInvalidByCause": {
+        "PARSE_FAILURE": 0,
+        "MISSING_CONFIDENCE": 0,
+        "MODEL_MISMATCH": 0,
+        "TIMEOUT": 0,
+        "BAD_ENVELOPE": 0,
+        "CLI_EXIT": 0,
+        "INSUFFICIENT_VALID_RUNS": 0
+      },
+      "truncatedUnits": 0,
+      "excerptTruncatedUnits": 3,
+      "removedByVariant": [],
+      "unitResults": [
+        {
+          "unitId": "src/application",
+          "unitKind": "module",
+          "layer": "application",
+          "filePaths": [
+            "src/application/dtos/OrderDto.ts"
+          ],
+          "status": "valid",
+          "verdict": "pass",
+          "confidence": 0.7133333333333333,
+          "confidenceStdDev": 0.009428090415820642,
+          "flaggedUnstable": false,
+          "validRunCount": 3
+        },
+        {
+          "unitId": "src/application/usecases",
+          "unitKind": "module",
+          "layer": "application",
+          "filePaths": [
+            "src/application/usecases/CancelOrderUseCase.ts",
+            "src/application/usecases/GetStockLevelsUseCase.ts",
+            "src/application/usecases/ListOrdersByStatusUseCase.ts",
+            "src/application/usecases/PlaceOrderUseCase.ts",
+            "src/application/usecases/UpdateOrderStatusUseCase.ts"
+          ],
+          "status": "valid",
+          "verdict": "fail",
+          "confidence": 0.8000000000000002,
+          "confidenceStdDev": 1.1102230246251565e-16,
+          "flaggedUnstable": false,
+          "validRunCount": 3
+        },
+        {
+          "unitId": "src/domain",
+          "unitKind": "module",
+          "layer": "domain",
+          "filePaths": [
+            "src/domain/services/StockManager.ts"
+          ],
+          "status": "valid",
+          "verdict": "pass",
+          "confidence": 0.8333333333333334,
+          "confidenceStdDev": 0.023570226039551553,
+          "flaggedUnstable": false,
+          "validRunCount": 3
+        },
+        {
+          "unitId": "src/domain/entities",
+          "unitKind": "module",
+          "layer": "domain",
+          "filePaths": [
+            "src/domain/entities/Order.ts",
+            "src/domain/entities/Product.ts"
+          ],
+          "status": "valid",
+          "verdict": "pass",
+          "confidence": 0.85,
+          "confidenceStdDev": 0,
+          "flaggedUnstable": false,
+          "validRunCount": 3
+        },
+        {
+          "unitId": "src/domain/repositories",
+          "unitKind": "module",
+          "layer": "domain",
+          "filePaths": [
+            "src/domain/repositories/OrderRepository.ts",
+            "src/domain/repositories/ProductRepository.ts"
+          ],
+          "status": "valid",
+          "verdict": "pass",
+          "confidence": 0.8766666666666666,
+          "confidenceStdDev": 0.020548046676563275,
+          "flaggedUnstable": false,
+          "validRunCount": 3
+        },
+        {
+          "unitId": "src/infrastructure",
+          "unitKind": "module",
+          "layer": "infrastructure",
+          "filePaths": [
+            "src/infrastructure/app.ts",
+            "src/infrastructure/controllers/OrderController.ts"
+          ],
+          "status": "valid",
+          "verdict": "fail",
+          "confidence": 0.64,
+          "confidenceStdDev": 0.02828427124746193,
+          "flaggedUnstable": false,
+          "validRunCount": 3
+        },
+        {
+          "unitId": "src/infrastructure/repositories",
+          "unitKind": "module",
+          "layer": "infrastructure",
+          "filePaths": [
+            "src/infrastructure/repositories/InMemoryOrderRepository.ts",
+            "src/infrastructure/repositories/InMemoryProductRepository.ts"
+          ],
+          "status": "valid",
+          "verdict": "pass",
+          "confidence": 0.87,
+          "confidenceStdDev": 0.014142135623730963,
+          "flaggedUnstable": false,
+          "validRunCount": 3
+        }
+      ],
+      "candidatesByLayer": {
+        "application": 2,
+        "domain": 3,
+        "infrastructure": 2
+      }
+    },
+    {
+      "functionId": "FF-N02",
+      "dimension": "semantic",
+      "aggregationRule": "majority-of-valid-units-v1",
+      "selection": {
+        "source": "own",
+        "candidateUnitIds": [
+          "src/application/dtos/OrderDto.ts",
+          "src/application/usecases/CancelOrderUseCase.ts",
+          "src/application/usecases/GetStockLevelsUseCase.ts",
+          "src/application/usecases/ListOrdersByStatusUseCase.ts",
+          "src/application/usecases/PlaceOrderUseCase.ts",
+          "src/application/usecases/UpdateOrderStatusUseCase.ts",
+          "src/domain/entities/Order.ts",
+          "src/domain/entities/Product.ts",
+          "src/domain/repositories/OrderRepository.ts",
+          "src/domain/repositories/ProductRepository.ts",
+          "src/domain/services/StockManager.ts",
+          "src/infrastructure/app.ts",
+          "src/infrastructure/controllers/OrderController.ts",
+          "src/infrastructure/repositories/InMemoryOrderRepository.ts",
+          "src/infrastructure/repositories/InMemoryProductRepository.ts"
+        ],
+        "selectedUnitIds": [
+          "src/application/dtos/OrderDto.ts",
+          "src/application/usecases/CancelOrderUseCase.ts",
+          "src/application/usecases/GetStockLevelsUseCase.ts",
+          "src/application/usecases/ListOrdersByStatusUseCase.ts",
+          "src/application/usecases/PlaceOrderUseCase.ts",
+          "src/application/usecases/UpdateOrderStatusUseCase.ts",
+          "src/domain/entities/Order.ts",
+          "src/domain/entities/Product.ts",
+          "src/domain/repositories/OrderRepository.ts",
+          "src/domain/repositories/ProductRepository.ts",
+          "src/domain/services/StockManager.ts",
+          "src/infrastructure/app.ts",
+          "src/infrastructure/controllers/OrderController.ts",
+          "src/infrastructure/repositories/InMemoryOrderRepository.ts",
+          "src/infrastructure/repositories/InMemoryProductRepository.ts"
+        ]
+      },
+      "unitsSelected": 15,
+      "unitsCapped": 0,
+      "candidateCount": 15,
+      "uncoveredFileCount": 1,
+      "candidateExclusions": {
+        "unlayered": 1,
+        "exclude-paths": 0,
+        "barrel": 0,
+        "test-path": 0,
+        "e2e-spec": 0,
+        "generated-path": 0,
+        "generated-marker": 0
+      },
+      "unitsInvalidByCause": {
+        "PARSE_FAILURE": 0,
+        "MISSING_CONFIDENCE": 0,
+        "MODEL_MISMATCH": 0,
+        "TIMEOUT": 0,
+        "BAD_ENVELOPE": 0,
+        "CLI_EXIT": 0,
+        "INSUFFICIENT_VALID_RUNS": 0
+      },
+      "truncatedUnits": 0,
+      "excerptTruncatedUnits": 0,
+      "removedByVariant": [],
+      "unitResults": [
+        {
+          "unitId": "src/application/dtos/OrderDto.ts",
+          "unitKind": "file",
+          "layer": "application",
+          "filePaths": [
+            "src/application/dtos/OrderDto.ts"
+          ],
+          "status": "valid",
+          "verdict": "pass",
+          "confidence": 0.9066666666666667,
+          "confidenceStdDev": 0.009428090415820642,
+          "flaggedUnstable": false,
+          "validRunCount": 3
+        },
+        {
+          "unitId": "src/application/usecases/CancelOrderUseCase.ts",
+          "unitKind": "file",
+          "layer": "application",
+          "filePaths": [
+            "src/application/usecases/CancelOrderUseCase.ts"
+          ],
+          "status": "valid",
+          "verdict": "pass",
+          "confidence": 0.8633333333333333,
+          "confidenceStdDev": 0.012472191289246483,
+          "flaggedUnstable": false,
+          "validRunCount": 3
+        },
+        {
+          "unitId": "src/application/usecases/GetStockLevelsUseCase.ts",
+          "unitKind": "file",
+          "layer": "application",
+          "filePaths": [
+            "src/application/usecases/GetStockLevelsUseCase.ts"
+          ],
+          "status": "valid",
+          "verdict": "pass",
+          "confidence": 0.93,
+          "confidenceStdDev": 0,
+          "flaggedUnstable": false,
+          "validRunCount": 3
+        },
+        {
+          "unitId": "src/application/usecases/ListOrdersByStatusUseCase.ts",
+          "unitKind": "file",
+          "layer": "application",
+          "filePaths": [
+            "src/application/usecases/ListOrdersByStatusUseCase.ts"
+          ],
+          "status": "valid",
+          "verdict": "pass",
+          "confidence": 0.92,
+          "confidenceStdDev": 0.014142135623730963,
+          "flaggedUnstable": false,
+          "validRunCount": 3
+        },
+        {
+          "unitId": "src/application/usecases/PlaceOrderUseCase.ts",
+          "unitKind": "file",
+          "layer": "application",
+          "filePaths": [
+            "src/application/usecases/PlaceOrderUseCase.ts"
+          ],
+          "status": "valid",
+          "verdict": "fail",
+          "confidence": 0.64,
+          "confidenceStdDev": 0.04320493798938574,
+          "flaggedUnstable": false,
+          "validRunCount": 3
+        },
+        {
+          "unitId": "src/application/usecases/UpdateOrderStatusUseCase.ts",
+          "unitKind": "file",
+          "layer": "application",
+          "filePaths": [
+            "src/application/usecases/UpdateOrderStatusUseCase.ts"
+          ],
+          "status": "valid",
+          "verdict": "pass",
+          "confidence": 0.7200000000000001,
+          "confidenceStdDev": 1.1102230246251565e-16,
+          "flaggedUnstable": false,
+          "validRunCount": 3
+        },
+        {
+          "unitId": "src/domain/entities/Order.ts",
+          "unitKind": "file",
+          "layer": "domain",
+          "filePaths": [
+            "src/domain/entities/Order.ts"
+          ],
+          "status": "valid",
+          "verdict": "pass",
+          "confidence": 0.9266666666666667,
+          "confidenceStdDev": 0.004714045207910321,
+          "flaggedUnstable": false,
+          "validRunCount": 3
+        },
+        {
+          "unitId": "src/domain/entities/Product.ts",
+          "unitKind": "file",
+          "layer": "domain",
+          "filePaths": [
+            "src/domain/entities/Product.ts"
+          ],
+          "status": "valid",
+          "verdict": "pass",
+          "confidence": 0.9499999999999998,
+          "confidenceStdDev": 1.1102230246251565e-16,
+          "flaggedUnstable": false,
+          "validRunCount": 3
+        },
+        {
+          "unitId": "src/domain/repositories/OrderRepository.ts",
+          "unitKind": "file",
+          "layer": "domain",
+          "filePaths": [
+            "src/domain/repositories/OrderRepository.ts"
+          ],
+          "status": "valid",
+          "verdict": "pass",
+          "confidence": 0.9499999999999998,
+          "confidenceStdDev": 1.1102230246251565e-16,
+          "flaggedUnstable": false,
+          "validRunCount": 3
+        },
+        {
+          "unitId": "src/domain/repositories/ProductRepository.ts",
+          "unitKind": "file",
+          "layer": "domain",
+          "filePaths": [
+            "src/domain/repositories/ProductRepository.ts"
+          ],
+          "status": "valid",
+          "verdict": "pass",
+          "confidence": 0.9499999999999998,
+          "confidenceStdDev": 1.1102230246251565e-16,
+          "flaggedUnstable": false,
+          "validRunCount": 3
+        },
+        {
+          "unitId": "src/domain/services/StockManager.ts",
+          "unitKind": "file",
+          "layer": "domain",
+          "filePaths": [
+            "src/domain/services/StockManager.ts"
+          ],
+          "status": "valid",
+          "verdict": "pass",
+          "confidence": 0.93,
+          "confidenceStdDev": 0,
+          "flaggedUnstable": false,
+          "validRunCount": 3
+        },
+        {
+          "unitId": "src/infrastructure/app.ts",
+          "unitKind": "file",
+          "layer": "infrastructure",
+          "filePaths": [
+            "src/infrastructure/app.ts"
+          ],
+          "status": "valid",
+          "verdict": "pass",
+          "confidence": 0.85,
+          "confidenceStdDev": 0,
+          "flaggedUnstable": false,
+          "validRunCount": 3
+        },
+        {
+          "unitId": "src/infrastructure/controllers/OrderController.ts",
+          "unitKind": "file",
+          "layer": "infrastructure",
+          "filePaths": [
+            "src/infrastructure/controllers/OrderController.ts"
+          ],
+          "status": "valid",
+          "verdict": "pass",
+          "confidence": 0.7466666666666667,
+          "confidenceStdDev": 0.03771236166328257,
+          "flaggedUnstable": false,
+          "validRunCount": 3
+        },
+        {
+          "unitId": "src/infrastructure/repositories/InMemoryOrderRepository.ts",
+          "unitKind": "file",
+          "layer": "infrastructure",
+          "filePaths": [
+            "src/infrastructure/repositories/InMemoryOrderRepository.ts"
+          ],
+          "status": "valid",
+          "verdict": "pass",
+          "confidence": 0.9433333333333334,
+          "confidenceStdDev": 0.00942809041582059,
+          "flaggedUnstable": false,
+          "validRunCount": 3
+        },
+        {
+          "unitId": "src/infrastructure/repositories/InMemoryProductRepository.ts",
+          "unitKind": "file",
+          "layer": "infrastructure",
+          "filePaths": [
+            "src/infrastructure/repositories/InMemoryProductRepository.ts"
+          ],
+          "status": "valid",
+          "verdict": "pass",
+          "confidence": 0.9499999999999998,
+          "confidenceStdDev": 1.1102230246251565e-16,
+          "flaggedUnstable": false,
+          "validRunCount": 3
+        }
+      ],
+      "candidatesByLayer": {
+        "application": 6,
+        "domain": 5,
+        "infrastructure": 4
+      }
+    }
+  ]
+}

@@ -148,6 +148,11 @@ export interface CassetteEntry {
   readonly usedOptions: Partial<LLMOptions>;
   readonly ignoredOptions: readonly (keyof LLMOptions)[];
   readonly attempts: 1 | 2;
+  /**
+   * Error codes of the retried attempts, written only when one of them is `LLM_CLI_TOOL_USE` (ADR-034): those
+   * attempts' answers are discarded, never stored, and the count is reported as a validity metric.
+   */
+  readonly discardedAttempts?: readonly string[];
   readonly outcome: CallOutcome;
   // content
   readonly prompt?: string;                   // omitted for corpus (E7) cassettes (BR-U4-CAS-09)

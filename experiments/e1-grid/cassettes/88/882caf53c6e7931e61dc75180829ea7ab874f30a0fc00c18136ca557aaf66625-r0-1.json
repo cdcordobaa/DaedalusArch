@@ -1,0 +1,47 @@
+{
+  "attempts": 1,
+  "cliVersion": "2.1.294",
+  "configListingSha256": "47aa04258852fab9a706f3f0c14cee22306d69fbb6fdfbde8c11854bd54997bc",
+  "durationMs": 6304,
+  "effort": "high",
+  "functionId": "FF-N02",
+  "ignoredOptions": [
+    "maxTokens"
+  ],
+  "isolationProbeSha256": "97a2e2d0af1100c13c55e028c1a0c71f069093c3d08705af122aaeb302f1a641",
+  "key": "882caf53c6e7931e61dc75180829ea7ab874f30a0fc00c18136ca557aaf66625-r0-1",
+  "model": "claude-opus-5-5",
+  "outcome": {
+    "kind": "valid"
+  },
+  "parsedVerdict": {
+    "confidence": 0.9,
+    "evidence": [
+      "src/infrastructure/in-memory-task-repository.ts: class InMemoryTaskRepository implements TaskRepository, an infrastructure adapter for a domain port",
+      "save(task) and findById(id) only read and write a private Map, which is persistence work",
+      "findByProject(projectId, filter) applies the TaskFilter fields (status, assigneeId) as query criteria, which is how a repository carries out a query and is not a business rule"
+    ],
+    "pass": true,
+    "reasoning": "The file implements the domain-declared TaskRepository port as an in-memory store, which is persistence work and belongs in the infrastructure layer. save and findById only store and fetch from a Map. findByProject filters on projectId, status and assigneeId. That filtering carries out the query the port's TaskFilter contract asks for. It is not a business rule or invariant, such as a status-transition check or an authorization decision. The file has no presentation, transport or domain decision logic.",
+    "violations": []
+  },
+  "projectId": "claude-sonnet-5-5/task-management/minimal-prose/run-0",
+  "prompt": "## Rule\nThe unit's responsibilities match the role of its declared layer.\n\n## Rubric\nPass: Every responsibility in the file belongs to the role and kind of its declared layer, and agrees with any ADR prose given.\nFail: The file carries a responsibility that belongs to a different layer kind, for example persistence, transport or framework logic in a domain file, or business rules in an infrastructure or presentation file.\nEvidence required: Name the file and cite the function, method or statement that carries the misplaced responsibility, and the layer kind it belongs to.\nOut of scope: import direction and layer-dependency rules, which are checked symbolically.\n\n## Layer model\n- domain (kind: domain): src/domain/**\n- application (kind: application): src/application/**\n- infrastructure (kind: infrastructure): src/infrastructure/**\n\n## Unit\nKind: file\nId: src/infrastructure/in-memory-task-repository.ts\nLayer: infrastructure\nUnit files:\n- src/infrastructure/in-memory-task-repository.ts\n\n## Source\n=====SOURCE-BEGIN src/infrastructure/in-memory-task-repository.ts=====\nimport { Task } from \"../domain/task\";\nimport { TaskFilter, TaskRepository } from \"../domain/task-repository\";\n\nexport class InMemoryTaskRepository implements TaskRepository {\n  private readonly items = new Map<string, Task>();\n\n  async save(task: Task): Promise<void> {\n    this.items.set(task.id, task);\n  }\n\n  async findById(id: string): Promise<Task | undefined> {\n    return this.items.get(id);\n  }\n\n  async findByProject(projectId: string, filter: TaskFilter): Promise<Task[]> {\n    return [...this.items.values()].filter(\n      (t) =>\n        t.projectId === projectId &&\n        (filter.status === undefined || t.status === filter.status) &&\n        (filter.assigneeId === undefined || t.assigneeId === filter.assigneeId),\n    );\n  }\n}\n\n=====SOURCE-END=====\n\n## Graph excerpt\n{\"edges\":[{\"from\":\"InMemoryTaskRepository@src/infrastructure/in-memory-task-repository.ts\",\"to\":\"TaskRepository@src/domain/task-repository.ts\",\"type\":\"IMPLEMENTS\"},{\"from\":\"src/infrastructure/app.ts\",\"to\":\"src/infrastructure/in-memory-task-repository.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/infrastructure/in-memory-task-repository.ts\",\"to\":\"src/domain/task-repository.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/infrastructure/in-memory-task-repository.ts\",\"to\":\"src/domain/task.ts\",\"type\":\"IMPORTS\"}],\"nodes\":[{\"kind\":\"Class\",\"layer\":\"infrastructure\",\"name\":\"InMemoryTaskRepository\",\"path\":\"src/infrastructure/in-memory-task-repository.ts\"},{\"kind\":\"File\",\"layer\":\"domain\",\"path\":\"src/domain/task-repository.ts\"},{\"kind\":\"File\",\"layer\":\"domain\",\"path\":\"src/domain/task.ts\"},{\"kind\":\"File\",\"layer\":\"infrastructure\",\"path\":\"src/infrastructure/app.ts\"},{\"kind\":\"File\",\"layer\":\"infrastructure\",\"path\":\"src/infrastructure/in-memory-task-repository.ts\"},{\"kind\":\"Interface\",\"layer\":\"domain\",\"name\":\"TaskRepository\",\"path\":\"src/domain/task-repository.ts\"}]}\n\n## Instructions\nJudge the unit against the rule and rubric. Return the JSON object the schema requires. Set pass to false if any file of the unit fails the rubric.\n",
+  "provider": "claude-cli",
+  "recordedAt": "2026-10-10T22:38:10.300Z",
+  "repetition": 0,
+  "requestHash": "882caf53c6e7931e61dc75180829ea7ab874f30a0fc00c18136ca557aaf66625",
+  "resolvedModel": "claude-opus-5-5",
+  "response": "{\"is_error\":false,\"modelUsage\":{\"claude-opus-5-5\":{\"inputTokens\":2,\"outputTokens\":493}},\"result\":\"{\\\"pass\\\":true,\\\"confidence\\\":0.9,\\\"reasoning\\\":\\\"The file implements the domain-declared TaskRepository port as an in-memory store, which is persistence work and belongs in the infrastructure layer. save and findById only store and fetch from a Map. findByProject filters on projectId, status and assigneeId. That filtering carries out the query the port's TaskFilter contract asks for. It is not a business rule or invariant, such as a status-transition check or an authorization decision. The file has no presentation, transport or domain decision logic.\\\",\\\"evidence\\\":[\\\"src/infrastructure/in-memory-task-repository.ts: class InMemoryTaskRepository implements TaskRepository, an infrastructure adapter for a domain port\\\",\\\"save(task) and findById(id) only read and write a private Map, which is persistence work\\\",\\\"findByProject(projectId, filter) applies the TaskFilter fields (status, assigneeId) as query criteria, which is how a repository carries out a query and is not a business rule\\\"],\\\"violations\\\":[]}\",\"structured_output\":{\"confidence\":0.9,\"evidence\":[\"src/infrastructure/in-memory-task-repository.ts: class InMemoryTaskRepository implements TaskRepository, an infrastructure adapter for a domain port\",\"save(task) and findById(id) only read and write a private Map, which is persistence work\",\"findByProject(projectId, filter) applies the TaskFilter fields (status, assigneeId) as query criteria, which is how a repository carries out a query and is not a business rule\"],\"pass\":true,\"reasoning\":\"The file implements the domain-declared TaskRepository port as an in-memory store, which is persistence work and belongs in the infrastructure layer. save and findById only store and fetch from a Map. findByProject filters on projectId, status and assigneeId. That filtering carries out the query the port's TaskFilter contract asks for. It is not a business rule or invariant, such as a status-transition check or an authorization decision. The file has no presentation, transport or domain decision logic.\",\"violations\":[]}}",
+  "runIndex": 1,
+  "schemaVersion": 2,
+  "unitId": "src/infrastructure/in-memory-task-repository.ts",
+  "usage": {
+    "inputTokens": 2700,
+    "outputTokens": 493
+  },
+  "usedOptions": {
+    "effort": "high",
+    "model": "claude-opus-5-5"
+  }
+}

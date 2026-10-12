@@ -39,6 +39,12 @@
 > comparable operators and the seven bases) and `real-pairs` (five before/after fix-commit pairs), with their metrics
 > (§13). The SO4 DaedalusArch results were known and the pairs were mined before this amendment (§13.4). §11 lists
 > the change.
+> **Amended 2026-10-11 (ADR-036, `corpus/prereg.json` version 24)**, before any call: the plain LLM-review baseline
+> pilot `llm-review` (Codex `gpt-5.6-terra`, read-only, the spec as prose; 5 SO4 seeded copies with their baselines and
+> 2 real fix pairs, 3 runs each), exploratory, with its scoring (§15). The firewall outcomes on these trees were known.
+> **Amended 2026-10-11 (ADR-038, `corpus/prereg.json` version 25)**, before any Sonnet call: the judge model robustness
+> check `judge-robustness` (100 recorded E7/E1 judge units re-judged by `claude-sonnet-5-5` on the frozen route), with
+> its agreement and verdict-impact outcomes (§16). The Opus votes of the sample were known.
 > **Requirements**: FR-v1.2E-25, 27, 36; SO1–SO5 (ADR-017 items 1–3, 6, 7); ADR-015 items 1, 2, 5, 10; ADR-016 b, e.
 > **Design source**: `aidlc-docs/construction/v1.2E-u5b-scoring-harness/functional-design/business-rules.md`
 > (BR-U5b-20, 30, 33, 34, 45..49, 53, 54, 61..65, 78). The matching of seeds to violations is `Docs/matching-rule.md`
@@ -49,7 +55,8 @@ Sections: §1 the SO5 code tables (machine block); §2 registered plans and seed
 labelling populations, caps and budget; §5 interval rule; §6 SO5 factors, tests and Holm families; §7 flag columns;
 §8 missingness and exclusions; §9 what is fixed by registration; §10 reporting duties; §11 amendments; §12 the
 neural aggregation variant, the judge diagnostics and the judge-weighted variant (ADR-028); §13 the tool comparison and
-the real fix-commit pairs (ADR-030).
+the real fix-commit pairs (ADR-030); §14 the reproduction-audit corrections (ADR-033); §15 the plain LLM-review baseline
+pilot (ADR-036); §16 the judge model robustness check (ADR-038).
 
 ## 1. SO5 code tables (frozen at registration)
 
@@ -507,7 +514,8 @@ Flags are recorded on every row and never exclude it by themselves:
 - Functions (`prf_by_function.csv`): `not_applicable`, `collateral`, `metric_key_excluded` (empty at registration:
   both U3 metric-key readiness flags are true, `corpus/frozen-instrument.json`).
 - Runs (`runs.csv`): `attempt` (a transport-error retry), `reason_code`, every registered hash.
-- Labels: `uncertain` with its reason (`disagree`, `invalid-run`); on agreement rows `sameFamily`, `source`,
+- Labels: `uncertain` with its reason (`disagree`, `invalid-run`, `tool-use`: ADR-034, from prereg v22); the count of
+  agy attempts discarded for a completed tool step is reported with the P4 agreement rows as a validity metric; on agreement rows `sameFamily`, `source`,
   `generator_model`, `headline` and `uncertain_as_category` (ADR-020 item 7, B3).
 - Seeds also carry `corpus_tier` (`instances.csv`); functions carry `neural_new` and `precision_baseline`
   (`prf_by_function.csv`); `so5_tests.csv` rows carry `descriptive`; every P/R/F1 row carries
@@ -710,6 +718,11 @@ These statements are registered: every report of the corresponding figure carrie
 | 2026-10-10 (ADR-029 Codex arm, prereg v18) | §2, §3, §6.1, §9, §10 | E1 gains the Codex arm (`gpt-5.6-terra`, 18 cells, own plan and `orderSeed` 20261010) before any E1 or Codex cell runs; every registered SO5 analysis stays on the 54 Claude cells; the vendor contrast (exploratory) and the registered vendor self-preference check (§6.1); the per-model agreement rows read per vendor; grid shape 4 × 3 × 2 × 3; B5 note and B10 | ADR-029 (author, 2026-10-10) |
 | 2026-10-10 (ADR-028 judge-weighted variant, prereg v17) | §10, §12 | The registered spec weights stay primary (W_n = 0.08); the judge-weighted sensitivity variant `judge-weighted-v1` registered before any E1 run (judge dimensions 2/7, symbolic 5/7, each group proportional, same thresholds; under the registered, proportional and any-fail aggregations; a pure function of the stored reports); its E7 reading post hoc, its E1 reading pre-registered; B9 wording rules (iv), (v) | ADR-028 (author, 2026-10-10: "Keep 8%, add weighted variant") |
 | 2026-10-10 (ADR-030, prereg v19) | §13 | `tool-comparison` and `real-pairs` registered before either runs: the dependency-cruiser translation (T1..T10), the shared finding key, per-operator recall and twin fire rates with instance Wilson bounds, baseline volume and overlap per rule, runtime, and the real-pair detection rule (primary resolved-finding, strict secondary), descriptive at n = 5; what was known before (§13.4) | ADR-030 |
+| 2026-10-10 (ADR-033, reproduction audit, POST-HOC, prereg v21) | §3, §5, §14 | The labelled SO4 reading is MAT-10 over the P1 census (the rule-1.1.0 FP-strict items) on the ADR-025 guarded manifest; a zero-width primary interval is flagged and quoted with its "if independent" bound; the baseline-precision rows carry `uncertain` as TP and excluded as sensitivity rows, filed under the P2 source plan; every interval names its method in each table | ADR-033; `Docs/DiagnosticRuns/reproduction-audit-2026-10-10.md` issues 1–4 |
+| 2026-10-11 (ADR-034, prereg v22) | §7 | The labels gain the `uncertain` reason `tool-use` and the tool-use discard count as a P4 validity metric: agy 1.3.2 cannot deny `search_web`, so a labeller call that completes a tool step is discarded and retried once (operational, found by the fail-closed guard before any P4 label existed) | ADR-034 |
+| 2026-10-11 (ADR-035, prereg v23) | §3, §7 | P4 judge-vs-panel rows come from the Gemini API route (tools off, temperature 0), forced by the ADR-034 stop rule; all 46 P4 items are relabelled there. The P4 run-vs-run row is reported per route. The 8 agy P4 answers are descriptive and reported apart. No estimand, weight or interval method changes | ADR-035 |
+| 2026-10-11 (ADR-036, prereg v24) | §15 | `llm-review` registered before any call: the Codex review pins, the seeded draw (seed 9301) of 5 SO4 seeds on 5 admitted bases and of the second pair, tree export and digests, the prose prompt and its listed rules (no advisory rule), read-only confinement, 3 runs in run-major order under a 150-credit budget stop, and the scoring (MAT keys reduced to (rule, file), real-fix rule with a chance control, consistency, overlap with the firewall, cost); exploratory | ADR-036 |
+| 2026-10-11 (ADR-038, prereg v25) | §16 | `judge-robustness` registered before any call: eligibility (request hash reproduced), the stratified sample of 100 (seed 9401), the Sonnet calls on the frozen route, unit agreement (κ, AC1, item-bootstrap CIs, seed 9402), the verdict impact by substitution under the registered and any-fail rules, and the κ ≥ 0.60 reading | ADR-038 |
 
 ## 12. Neural aggregation variant and judge diagnostics (ADR-028)
 
@@ -980,3 +993,103 @@ The DaedalusArch SO4 v2 outcomes of the comparable operators were known (MO-S01 
 amendment, with DaedalusArch already run on both projects at their pinned (later) commits by `e7-corpus`. Only one
 dependency-cruiser smoke run on one unseeded base preceded registration (ADR-030). The new evidence is therefore the
 dependency-cruiser arm of Experiment A and both tools' outcomes on the pair commits.
+
+## 14. Reproduction-audit corrections (ADR-033, POST-HOC, registered v21)
+
+The independent reproduction audit of 2026-10-10 (`Docs/DiagnosticRuns/reproduction-audit-2026-10-10.md`) found
+every committed table reproducible but four interpretive defects. The corrections below were made **after** every
+SO4, E7 and labelling result was seen. They are post hoc, change no registered outcome, no rule version and no label,
+and add no firewall evaluation or model call.
+
+1. **The labelled SO4 reading (audit issue 1).** The P1 census was drawn from the FP-strict items of the rule-1.1.0
+   score (34 items: 13 seed FP, 21 twin FP keys). Under rule 1.2.0 (MAT-04a, ADR-025) those 13 seed items are
+   pre-existing and leave FP-strict mechanically, so MAT-10 applied under 1.2.0 subtracts nothing and the labels
+   never enter a precision. The labelled reading is therefore MAT-10 over the census as drawn: `score-golden --case
+   results/so4-heldout/case-corrected --rule-version 1.1.0 --labels results/labels/labels.json`, that is, the ADR-025
+   guarded manifest (N = 73, the same N as the corrected reading) with the rule-1.1.0 diff, FP-labelled = the 13
+   FP-strict seed items minus those labelled TP-class. The three SO4 readings are then: strict (rule 1.1.0, N = 75,
+   registered), corrected (rule 1.2.0, N = 73, ADR-025) and labelled (rule-1.1.0 FP set adjudicated by the P1 labels,
+   N = 73, this section). MAT-04a and the labels are two independent corrections of the same 13 items; the labelled
+   reading is reported beside the corrected one and replaces neither. The earlier labels-based table (unguarded case,
+   N = 75, rule 1.2.0) is withdrawn: it mixed two regimes.
+2. **Degenerate intervals (issue 2).** When every cell is perfect the cell bootstrap returns a zero-width interval.
+   Such an interval is flagged (`ci_degenerate`, `precision_ci_degenerate`, `f1_ci_degenerate`) and is never quoted
+   alone: the row's "if independent" bound (§5; Clopper–Pearson at 0 or n) is quoted beside it, labelled "if
+   independent". F1 has no such bound (§5) and a degenerate F1 interval is reported as degenerate.
+3. **One method per interval column (issue 2).** `precision_figure.csv` carries the §5 primary cell interval of the
+   P/R/F1 files on the same basis (`ci_*`) and the "if independent" bound beside it (`ci_independent_*`), so a seed set
+   carries the same interval method in every SO4 table. The tool-comparison `recall*.csv` names its §13.2 method
+   (`ci_method` = `wilson-instances-if-independent`).
+4. **Baseline precision (issue 3).** `precision_baseline.csv` adds post-hoc sensitivity rows for the `uncertain`
+   rule (`uncertain_rule` `tp`: counted as TP; `excluded`: dropped from numerator and denominator) for the v2 overall
+   and tier rows and the v1 overall row, beside the registered rows (`fp`: kept in the denominator as non-TP, §3),
+   which stay the reported figure. `plan_id` names the plan whose runs the P2 labels were drawn from (`e7-corpus`;
+   `e7-corpus+e7-corpus-v1sym` for the v1 row), and the `precision_baseline` column of a corpus-tier stratum row
+   carries that tier's estimate (`precision_baseline_scope`), not the overall one.
+
+## 15. Plain LLM-review baseline pilot (ADR-036, exploratory, registered v24)
+
+**Status.** Registered 2026-10-11 with `corpus/prereg.json` version 24, before any review call on a plan tree. Every
+number of this section is **exploratory**: no hypothesis test, no Holm family, no claim beyond the 12 trees reviewed.
+Known before registration: the firewall's SO4 v2 status of the five drawn seeds (all `matched`), both rule tools'
+outcomes on p4 and p5 (`results/real-pairs/pairs.csv`), and the firewall reports of all 14 trees. The registered
+inputs are `experiments/llm-review/review-plan.json` (pins, draw, tree digests, prompt hashes, seeds and pairs),
+`prompt-template.md`, `output-schema.json` and `scripts/llm-review.ts`; the call records are
+`experiments/llm-review/cassettes/<treeId>/run-<r>.json`.
+
+### 15.1 Keys
+
+A review run answers `violations[]` of (`file`, `rule`, `reason`). Its key set is {(rule upper-cased, file)}: the file
+is made repository-relative (posix, no `./`, no line suffix, the tree's absolute prefix removed), duplicates collapse.
+`reason` never enters a key (MAT-02: messages never key). The rule family of a key is its rule's spec `dimension`. A
+run is **valid** when the call completed, the answer parses under the schema and every served model is
+`gpt-5.6-terra`; only valid runs are scored, and a missing run (invalid or stopped by the budget) is reported.
+
+### 15.2 Outcomes
+
+| Outcome | Definition | Unit and interval |
+|---|---|---|
+| Seed recall (primary) | Seed s detected in run r: the seeded tree's run r lists a key (f, p) with f an applicable expected function of s and p the file of an expected key of f, and the baseline tree's run r does not list (f, p) (MAT-03 difference by run index; MAT-04 with the key reduced to (function, file)) | Detected seed-runs / scored seed-runs over the 5 seeds × 3 runs; Wilson 95 % "if independent" (`wilson-seed-runs-if-independent`), descriptive; per seed the count of detecting runs (0–3) with the firewall's SO4 v2 status beside |
+| Seed recall (secondary) | `presence`: as primary without the baseline difference. `family`: any listed rule of the seed's dimension on an expected file, with the difference | As primary |
+| Real fix (primary) | Run r flags pair p when a key of the before run r on a touched file (old path) has no equal key in the after run r, renamed files mapped to their new path (ADR-030 §13.3) | Runs flagging (0–3) per pair; the resolved keys listed; DaedalusArch and dependency-cruiser outcomes beside |
+| Real fix (strict) | The before run lists a key on a touched file and the after run lists none on a touched file (new path) | As primary |
+| Chance control | The primary real-fix rule applied between two different runs of the unchanged before tree (6 ordered run pairs per pair) | Flagged run pairs / run pairs: how often run-to-run variation alone "resolves" a finding |
+| Consistency | Per tree, the mean pairwise Jaccard of the valid runs' key sets; the union size and the share of union keys listed in every run; findings per run | Per tree and the mean over trees; descriptive |
+| Overlap with the firewall | Each listed key of a valid run is: an exact firewall key (same function and file in the tree's v2 report, restricted to the listed rules); on a file the firewall flags under another listed rule; on a file without a listed-rule firewall finding; or a rule the firewall does not run symbolically (FF-N01, FF-N02, unknown id). The reverse share: firewall keys of listed rules that the run lists | Counts per tree and run and in total; nothing is labelled, so no precision is claimed for either side |
+| Cost | Credits per call from the rollout tokens at the rate card (50 / 5 / 300 per 1M input / cached / output), discarded attempts included; the credit balance after each call; wall time; tool calls | Per call, per valid review (total credits / valid runs) and in total |
+
+### 15.3 Rules fixed here
+
+Calls run in run-major order under the 150-credit budget stop of ADR-036 item 5. A timed-out, erroring or unparsable
+call is retried once and its credits count. A usage or credit limit is a pause, not an attempt. The registered
+outputs are `results/llm-review/seeds.csv`, `recall.csv`, `pairs.csv`, `pair-runs.csv`, `consistency.csv`,
+`overlap.csv`, `cost.csv` and `summary.json`, from `npx tsx scripts/llm-review-cli.ts score`. Every table names its
+reading (`exploratory`) and every interval its method.
+
+## 16. Judge model robustness (ADR-038, registered v25)
+
+**Status.** Registered 2026-10-11 with `corpus/prereg.json` version 25, before any `claude-sonnet-5-5` judge call. Known
+before registration: the Opus votes of the sampled units and every E7 and E1 judge result. The check changes no
+registered result: the frozen judge stays `claude-opus-5-5` for every SO3, SO5 and E1 figure.
+
+### 16.1 Units and votes
+
+The sample is `experiments/judge-robustness/sample.json`: 25 units per stratum (E7 FF-N01, E7 FF-N02, E1 FF-N01, E1
+FF-N02), drawn by mulberry32(9401) from the eligible units (ADR-038 item 1). Each unit has its recorded Opus runs 0..2
+and 3 new Sonnet runs of the byte-identical prompt. A model's **unit vote** is U4's `voteUnit`: pass or fail by strict
+majority of the valid runs, `warning` on a tie, `invalid` below 2 valid runs.
+
+### 16.2 Outcomes
+
+| Outcome | Definition | Interval |
+|---|---|---|
+| Unit agreement (primary) | Opus vote = Sonnet vote over the units with a valid Sonnet vote; categories pass / fail / warning; unweighted | Percent agreement: Wilson. Cohen's κ and Gwet's AC1: 95 % percentile item bootstrap (seed 9402, 10 000 resamples; a resample with undefined κ is skipped) |
+| Agreement, secondary rows | The same per stratum, per source (E7, E1), per function; population-weighted (w = N_h / n_h); Sonnet-invalid units counted as disagreement | As primary; weighted rows use the weighted item bootstrap; below 10 pairs, counts only |
+| Transition table | Opus vote × Sonnet vote (with invalid and not-run) | Counts |
+| Fail rate per model | Units voted fail / units with valid votes; mean confidence | Wilson |
+| Verdict impact | Per report holding sampled units: function verdicts, `ahsCombined` and the verdict, recomputed with the sampled rows replaced by the Sonnet votes (ADR-038 item 4), under the registered majority rule and the any-fail rule | Counts of function verdict changes and verdict changes per rule (41 reports) |
+
+**Reading (pre-declared).** On the primary κ point estimate: ≥ 0.60 → "unit verdicts robust to the judge model";
+< 0.60 → "unit verdicts depend on the model". AC1 is reported beside κ, because with about 18 % fails κ is sensitive
+to prevalence. The verdict-impact counts are reported as they are; no test is made.
+

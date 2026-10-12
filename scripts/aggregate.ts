@@ -55,7 +55,7 @@ import { baselineLabelsOf, baselinePrecision, isTpClass } from './lib/baseline-p
 import type { BaselinePrecisionRow } from './lib/baseline-precision.js';
 import type { CorpusTier } from './lib/mutation/types.js';
 import {
-  cliffsDelta, createRng, holm, permutationFactorTest, permutationInteractionTest, permutationTest, proportionInterval, recallIntervals,
+  cliffsDelta, createRng, holm, permutationFactorTest, permutationInteractionTest, permutationTest, recallIntervals,
 } from './lib/stats.js';
 import { precisionF1Intervals } from './lib/stats.js';
 import type { ConfusionCell, RecallCell } from './lib/stats.js';
@@ -90,23 +90,47 @@ export const COMMON_PRF_COLUMNS = [
   'precision_labelled', 'precision_incl_twins', 'recall', 'f1_labelled', 'ci_low', 'ci_high', 'ci_method', 'n_clusters',
   'ci_project_low', 'ci_project_high', 'ci_project_method', 'n_projects', 'ci_project_descriptive', 'ci_independent_low', 'ci_independent_high', 'ci_independent_method',
 ] as const;
-/** Precision and F1 interval columns, appended to every P/R/F1 file (ADR-021 SO4-06). */
-export const PRF_INTERVAL_COLUMNS = [
+/** Precision and F1 interval columns (ADR-021 SO4-06). */
+const PRF_INTERVAL_BASE_COLUMNS = [
   'precision_f1_ci_basis', 'precision_ci_low', 'precision_ci_high', 'precision_ci_method', 'precision_n_cells',
   'precision_ci_project_low', 'precision_ci_project_high', 'precision_ci_project_method', 'precision_ci_project_descriptive',
   'precision_ci_independent_low', 'precision_ci_independent_high', 'precision_ci_independent_method',
   'f1_ci_low', 'f1_ci_high', 'f1_ci_method', 'f1_n_cells', 'f1_ci_project_low', 'f1_ci_project_high', 'f1_ci_project_method',
   'f1_ci_project_descriptive',
 ] as const;
+/**
+ * Degenerate-interval flags (reproduction audit 2026-10-10 issue 2; analysis plan §5 as amended for v21): `true` when the
+ * primary interval of recall (`ci_*`), precision (`precision_ci_*`) or F1 (`f1_ci_*`) has zero width, which the cell
+ * bootstrap gives when every cell is perfect. A degenerate primary interval is never quoted alone: the row's "if
+ * independent" bound (`ci_independent_*`, `precision_ci_independent_*`: Clopper–Pearson at 0 or n) is quoted beside
+ * it and labelled so. F1 has no such bound (§5), so a degenerate F1 interval is reported as degenerate. `''` = no
+ * primary interval.
+ */
+export const DEGENERATE_COLUMNS = ['ci_degenerate', 'precision_ci_degenerate', 'f1_ci_degenerate'] as const;
+/** Precision and F1 interval columns plus the degenerate flags, the trailing columns of every P/R/F1 file. */
+export const PRF_INTERVAL_COLUMNS = [...PRF_INTERVAL_BASE_COLUMNS, ...DEGENERATE_COLUMNS] as const;
 export const DENOMINATOR_COLUMNS = [
   'run_id', 'declared', 'adr_derived', 'compiled', 'disabled', 'dropped', 'dropped_ids', 'skipped_by_mode', 'executed', 'failed',
   'not_applicable', 'metric_key_excluded', 'identity_ok', 'project_id', 'corpus_style', 'spec_style',
 ] as const;
+/**
+ * `plan_id` is the plan whose runs the P2 labels were drawn from (`e7-corpus`; `e7-corpus+e7-corpus-v1sym` for the
+ * pooled v1 row), not the aggregating plan. `uncertain_rule` / `reading`: the registered rows (`fp`, `registered`) and the
+ * post-hoc sensitivity rows (`tp`, `excluded`; `sensitivity-post-hoc`), audit 2026-10-10 issue 3.
+ */
 export const BASELINE_PRECISION_COLUMNS = [
   'plan_id', 'instrument', 'scope', 'key', 'n_items', 'n_tp_class', 'n_uncertain', 'weighted_tp_class', 'weighted_total', 'n_effective',
-  'precision_baseline', 'ci_low', 'ci_high', 'ci_method', 'n_clusters',
+  'precision_baseline', 'ci_low', 'ci_high', 'ci_method', 'n_clusters', 'uncertain_rule', 'reading',
 ] as const;
-export const PRECISION_FIGURE_COLUMNS = ['plan_id', 'scope', 'function_id', 'measure', 'estimate', 'ci_low', 'ci_high', 'ci_method', 'n'] as const;
+/**
+ * Figure-ready precision. The seeded differential rows carry the §5 primary interval (`ci_*`: the cell interval of the
+ * P/R/F1 row on the same basis, counts only below n = 10) and the "if independent" bound on the violations
+ * (`ci_independent_*`), with `ci_degenerate` as in `DEGENERATE_COLUMNS`; the baseline rows carry the Kish interval.
+ */
+export const PRECISION_FIGURE_COLUMNS = [
+  'plan_id', 'scope', 'function_id', 'measure', 'estimate', 'ci_low', 'ci_high', 'ci_method', 'n',
+  'ci_independent_low', 'ci_independent_high', 'ci_independent_method', 'ci_degenerate',
+] as const;
 
 // ---------------------------------------------------------------------------------------------
 // CSV primitives (BR-U5b-63)
@@ -297,7 +321,7 @@ function prfIntervalCells(
   const basis = labelled ? 'labelled' : 'strict';
   const cells = cellsOf(labelled);
   const sum = (cells ?? []).reduce((a, c) => ({ tp: a.tp + c.tp, fp: a.fp + c.fp, fn: a.fn + c.fn }), { tp: 0, fp: 0, fn: 0 });
-  const blank = (): string[] => [basis, ...PRF_INTERVAL_COLUMNS.slice(1).map(() => '')];
+  const blank = (): string[] => [basis, ...PRF_INTERVAL_BASE_COLUMNS.slice(1).map(() => '')];
   if (cells === undefined || sum.tp !== target.tp || sum.fp !== target.fp || sum.fn !== target.fn) return blank();
   const r = precisionF1Intervals(cells, { seed, resamples });
   const p = r.precision;
@@ -340,14 +364,45 @@ export function baselineRows(input: AggregateInput, seed: number, resamples: num
   return baselinePrecision(labels, { seed, resamples, ...(tiers !== undefined && { tierOf: (p: string) => tiers.get(p) }) });
 }
 
-/** Seeded differential precision rows of the figure (held-out total stratum; Wilson / CP on items, BR-U5b-61). */
-function differentialFigureRows(pid: string, scope: 'overall' | 'function', fid: string, m: PrfModesJson, seed: number, resamples: number): string[][] {
+/** `'true'` when both bounds are present and equal (a zero-width interval), `'false'` when they differ, else `''`. */
+export function degenerateFlag(low: string, high: string): string {
+  return low === '' || high === '' ? '' : String(low === high);
+}
+
+/** The `DEGENERATE_COLUMNS` of a P/R/F1 row, read from its own `ci_*`, `precision_ci_*` and `f1_ci_*` cells. */
+export function degenerateCells(header: readonly string[], row: readonly string[]): string[] {
+  const at = (c: string): string => row[header.indexOf(c)] ?? '';
+  return ['', 'precision_', 'f1_'].map((p) => degenerateFlag(at(`${p}ci_low`), at(`${p}ci_high`)));
+}
+
+/** A P/R/F1 file: `rows` hold every column but the trailing `DEGENERATE_COLUMNS`, which are derived here. */
+function prfCsv(header: readonly string[], rows: readonly string[][]): string {
+  return csvText(header, rows.map((r) => [...r, ...degenerateCells(header, r)]));
+}
+
+/**
+ * Seeded differential precision rows of the figure (held-out total stratum). The primary interval is the §5 cell
+ * interval of the same basis (`precisionF1Intervals` on the row's cells, as in the P/R/F1 files; counts only below
+ * n = 10), and the "if independent" bound on the violations is beside it (audit 2026-10-10 issue 3: the figure used
+ * to carry only the item bound, so the same seeds had different interval methods in the figure and the P/R/F1 files).
+ */
+function differentialFigureRows(
+  pid: string, scope: 'overall' | 'function', fid: string, m: PrfModesJson,
+  cellsOf: (labelled: boolean) => ConfusionCell[] | undefined, seed: number, resamples: number,
+): string[][] {
   const rows: string[][] = [];
-  for (const [measure, prf] of [['seeded-differential-labelled', m.labelled], ['seeded-differential-strict', m.strict]] as const) {
+  for (const [measure, prf, labelled] of [['seeded-differential-labelled', m.labelled, true], ['seeded-differential-strict', m.strict, false]] as const) {
     if (prf === null) continue;
     const n = prf.tp + prf.fp;
-    const cell = n === 0 ? undefined : proportionInterval([{ num: prf.tp, den: n }], { seed, resamples });
-    rows.push([pid, scope, fid, measure, f6(prf.precision), f6(cell?.ciLow), f6(cell?.ciHigh), cell?.ciMethod ?? '', int(n)]);
+    const cells = cellsOf(labelled);
+    const sum = (cells ?? []).reduce((a, c) => ({ tp: a.tp + c.tp, fp: a.fp + c.fp }), { tp: 0, fp: 0 });
+    const p = cells !== undefined && sum.tp === prf.tp && sum.fp === prf.fp ? precisionF1Intervals(cells, { seed, resamples }).precision : undefined;
+    const low = f6(p?.cell.ciLow);
+    const high = f6(p?.cell.ciHigh);
+    rows.push([
+      pid, scope, fid, measure, f6(prf.precision), low, high, p?.cell.ciMethod ?? '', int(n),
+      f6(p?.independent.ciLow), f6(p?.independent.ciHigh), p?.independent.ciMethod ?? '', degenerateFlag(low, high),
+    ]);
   }
   return rows;
 }
@@ -381,8 +436,14 @@ function prfFiles(input: AggregateInput, seed: number, resamples: number): Parti
   const meta = functionMeta(input.reports.values());
   const baseline = baselineRows(input, seed, resamples);
   // The PRF columns and the figure carry the v2 baseline rows only (ADR-026, B8): never the v1 or v1-only rows.
-  const baselineV2 = baseline.filter((b) => b.instrument === 'v2');
-  const baselineOf = (scope: 'overall' | 'function', key: string): string => f6(baselineV2.find((b) => b.scope === scope && b.key === key)?.estimate);
+  const baselineV2 = baseline.filter((b) => b.instrument === 'v2' && b.uncertainRule === 'fp');
+  const baselineOf = (scope: 'overall' | 'tier' | 'function', key: string): string => f6(baselineV2.find((b) => b.scope === scope && b.key === key)?.estimate);
+  // The baseline beside a stratum row (audit 2026-10-10 issue 3): the tier row for the corpus-tier strata, else overall.
+  const baselineScopeOf = (baseKind: string): readonly ['overall' | 'tier', string] => (baseKind.startsWith('corpus-') ? ['tier', baseKind.slice('corpus-'.length)] : ['overall', '']);
+  const baselineCols = (scope: 'overall' | 'tier' | 'function', key: string): string[] => {
+    const v = baselineOf(scope, key);
+    return [v, v === '' ? '' : scope === 'overall' ? 'overall' : `${scope}:${key}`];
+  };
   const out: Partial<Record<CsvFile, string>> = {};
   const fnRows: string[][] = [];
   const dimRows: string[][] = [];
@@ -401,7 +462,7 @@ function prfFiles(input: AggregateInput, seed: number, resamples: number): Parti
         const md = meta.get(fid);
         const cells = instanceCells(inst, stratum, (i) => applicableOf(i).includes(fid), (i) => i.detectedBy.includes(fid));
         const pf = prfIntervalCells(m, (lab) => confusionCells(inst, stratum, (i) => applicableOf(i).includes(fid), (i) => i.detectedBy.includes(fid), (f) => f.functionId === fid, lab), seed, resamples);
-        fnRows.push([...prfCells(pid, stratum, m, ciCells(cells, m.strict.tp, m.strict.fn, seed, resamples)), fid, md?.dimension ?? '', md?.tag ?? '', int(na.get(fid) ?? 0), int(coll.get(fid) ?? 0), int(mke.get(fid) ?? 0), int(neural.get(fid) ?? 0), baselineOf('function', fid), ...pf]);
+        fnRows.push([...prfCells(pid, stratum, m, ciCells(cells, m.strict.tp, m.strict.fn, seed, resamples)), fid, md?.dimension ?? '', md?.tag ?? '', int(na.get(fid) ?? 0), int(coll.get(fid) ?? 0), int(mke.get(fid) ?? 0), int(neural.get(fid) ?? 0), ...baselineCols('function', fid), ...pf]);
       }
     }
     for (const [stratum, dims] of s.perDimension) {
@@ -429,7 +490,7 @@ function prfFiles(input: AggregateInput, seed: number, resamples: number): Parti
       const inCov = overall.get(JSON.stringify([split, baseKind, 'in']));
       const all = overall.get(JSON.stringify([split, baseKind, 'all']));
       const pf = prfIntervalCells(m, (lab) => confusionCells(inst, stratum, () => true, (i) => i.status === 'matched', () => true, lab), seed, resamples);
-      overallRows.push([...prfCells(pid, stratum, m, ciCells(instanceCells(inst, stratum), m.strict.tp, m.strict.fn, seed, resamples)), f6(inCov?.strict.recall), f6(all?.strict.recall), baselineOf('overall', ''), ...pf]);
+      overallRows.push([...prfCells(pid, stratum, m, ciCells(instanceCells(inst, stratum), m.strict.tp, m.strict.fn, seed, resamples)), f6(inCov?.strict.recall), f6(all?.strict.recall), ...baselineCols(...baselineScopeOf(baseKind)), ...pf]);
     }
     for (const [stratum, om] of s.overall) {
       const projects = [...new Set(inst.filter((i) => strataOf(i).includes(stratum)).map((i) => i.projectId))].sort();
@@ -442,26 +503,28 @@ function prfFiles(input: AggregateInput, seed: number, resamples: number): Parti
       }
     }
   }
-  out['prf_by_function.csv'] = csvText([...COMMON_PRF_COLUMNS, 'function_id', 'dimension', 'tag', 'not_applicable', 'collateral', 'metric_key_excluded', 'neural_new', 'precision_baseline', ...PRF_INTERVAL_COLUMNS], fnRows);
-  out['prf_by_dimension.csv'] = csvText([...COMMON_PRF_COLUMNS, 'dimension', ...PRF_INTERVAL_COLUMNS], dimRows);
-  out['prf_by_tag.csv'] = csvText([...COMMON_PRF_COLUMNS, 'tag', 'sub_row', ...PRF_INTERVAL_COLUMNS], tagRows);
-  out['prf_overall.csv'] = csvText([...COMMON_PRF_COLUMNS, 'recall_in_coverage', 'recall_overall', 'precision_baseline', ...PRF_INTERVAL_COLUMNS], overallRows);
-  out['prf_by_project.csv'] = csvText([...COMMON_PRF_COLUMNS, 'project_id', 'corpus_style', 'spec_style', ...PRF_INTERVAL_COLUMNS], projectRows);
+  out['prf_by_function.csv'] = prfCsv([...COMMON_PRF_COLUMNS, 'function_id', 'dimension', 'tag', 'not_applicable', 'collateral', 'metric_key_excluded', 'neural_new', 'precision_baseline', 'precision_baseline_scope', ...PRF_INTERVAL_COLUMNS], fnRows);
+  out['prf_by_dimension.csv'] = prfCsv([...COMMON_PRF_COLUMNS, 'dimension', ...PRF_INTERVAL_COLUMNS], dimRows);
+  out['prf_by_tag.csv'] = prfCsv([...COMMON_PRF_COLUMNS, 'tag', 'sub_row', ...PRF_INTERVAL_COLUMNS], tagRows);
+  out['prf_overall.csv'] = prfCsv([...COMMON_PRF_COLUMNS, 'recall_in_coverage', 'recall_overall', 'precision_baseline', 'precision_baseline_scope', ...PRF_INTERVAL_COLUMNS], overallRows);
+  out['prf_by_project.csv'] = prfCsv([...COMMON_PRF_COLUMNS, 'project_id', 'corpus_style', 'spec_style', ...PRF_INTERVAL_COLUMNS], projectRows);
   out['precision_baseline.csv'] = csvText(BASELINE_PRECISION_COLUMNS, baseline.map((b) => [
-    pid, b.instrument, b.scope, b.key, int(b.n), int(b.nTpClass), int(b.nUncertain), f6(b.weightedTpClass), f6(b.weightedTotal), f6(b.nEffective),
-    f6(b.estimate), f6(b.ciLow), f6(b.ciHigh), b.ciMethod ?? '', int(b.nClusters),
+    b.planIds.length > 0 ? b.planIds.join('+') : pid, b.instrument, b.scope, b.key, int(b.n), int(b.nTpClass), int(b.nUncertain), f6(b.weightedTpClass), f6(b.weightedTotal), f6(b.nEffective),
+    f6(b.estimate), f6(b.ciLow), f6(b.ciHigh), b.ciMethod ?? '', int(b.nClusters), b.uncertainRule, b.uncertainRule === 'fp' ? 'registered' : 'sensitivity-post-hoc',
   ]));
   // Figure-ready long form (ADR-020 item 1): seeded differential precision (held-out total) beside baseline precision.
   const figure: string[][] = [];
   const headline = s === undefined ? undefined : new Map(s.overall).get(HEADLINE_STRATUM);
   const headlineFns = s === undefined ? undefined : new Map(new Map(s.perFunction).get(HEADLINE_STRATUM) ?? []);
-  const baselineFigure = (b: BaselinePrecisionRow | undefined, scope: 'overall' | 'function', fid: string): string[][] => (b === undefined ? [] : [[pid, scope, fid, 'baseline', f6(b.estimate), f6(b.ciLow), f6(b.ciHigh), b.ciMethod ?? '', int(b.n)]]);
-  if (headline !== undefined) figure.push(...differentialFigureRows(pid, 'overall', '', headline, seed, resamples));
+  const baselineFigure = (b: BaselinePrecisionRow | undefined, scope: 'overall' | 'function', fid: string): string[][] => (b === undefined ? [] : [[b.planIds.length > 0 ? b.planIds.join('+') : pid, scope, fid, 'baseline', f6(b.estimate), f6(b.ciLow), f6(b.ciHigh), b.ciMethod ?? '', int(b.n), '', '', '', degenerateFlag(f6(b.ciLow), f6(b.ciHigh))]]);
+  const figInst = s?.perInstance ?? [];
+  const figApplicable = (i: InstanceResult): readonly string[] => (i as Partial<InstanceResult>).applicable ?? [];
+  if (headline !== undefined) figure.push(...differentialFigureRows(pid, 'overall', '', headline, (lab) => confusionCells(figInst, HEADLINE_STRATUM, () => true, (i) => i.status === 'matched', () => true, lab), seed, resamples));
   figure.push(...baselineFigure(baselineV2.find((b) => b.scope === 'overall'), 'overall', ''));
   const figureFns = [...new Set([...(headlineFns?.keys() ?? []), ...baselineV2.filter((b) => b.scope === 'function').map((b) => b.key)])].sort();
   for (const fid of figureFns) {
     const m = headlineFns?.get(fid);
-    if (m !== undefined) figure.push(...differentialFigureRows(pid, 'function', fid, m, seed, resamples));
+    if (m !== undefined) figure.push(...differentialFigureRows(pid, 'function', fid, m, (lab) => confusionCells(figInst, HEADLINE_STRATUM, (i) => figApplicable(i).includes(fid), (i) => i.detectedBy.includes(fid), (f) => f.functionId === fid, lab), seed, resamples));
     figure.push(...baselineFigure(baselineV2.find((b) => b.scope === 'function' && b.key === fid), 'function', fid));
   }
   out['precision_figure.csv'] = csvText(PRECISION_FIGURE_COLUMNS, figure);
@@ -799,7 +862,7 @@ function outcomesOf(cells: readonly So5Cell[], labelDependent: ReadonlySet<FpatF
   return outcomes;
 }
 
-function stratifiedMeanDiffCi(obs: readonly { cell: string; group: 'A' | 'B'; value: number }[], seed: number, resamples: number): [number, number] {
+export function stratifiedMeanDiffCi(obs: readonly { cell: string; group: 'A' | 'B'; value: number }[], seed: number, resamples: number): [number, number] {
   const rng = createRng(seed);
   const byCell = new Map<string, { group: 'A' | 'B'; values: number[] }>();
   for (const o of obs) {

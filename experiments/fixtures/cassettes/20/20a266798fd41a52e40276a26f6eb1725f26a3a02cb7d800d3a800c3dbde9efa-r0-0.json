@@ -1,0 +1,48 @@
+{
+  "attempts": 1,
+  "cliVersion": "2.1.294",
+  "configListingSha256": "47aa04258852fab9a706f3f0c14cee22306d69fbb6fdfbde8c11854bd54997bc",
+  "durationMs": 8296,
+  "effort": "high",
+  "functionId": "FF-N01",
+  "ignoredOptions": [
+    "maxTokens"
+  ],
+  "isolationProbeSha256": "97a2e2d0af1100c13c55e028c1a0c71f069093c3d08705af122aaeb302f1a641",
+  "key": "20a266798fd41a52e40276a26f6eb1725f26a3a02cb7d800d3a800c3dbde9efa-r0-0",
+  "model": "claude-opus-5-5",
+  "outcome": {
+    "kind": "valid"
+  },
+  "parsedVerdict": {
+    "confidence": 0.72,
+    "evidence": [
+      "src/application/use-cases/CreateTaskUseCase.ts declares a single class, CreateTaskUseCase, with one method: execute(title, description, categoryId): Promise<Task>.",
+      "execute builds a new Task(...) and calls this.taskRepository.save(task). That is one cohesive task-creation concern.",
+      "No other file is in the unit, so no rule or invariant is repeated across files.",
+      "The constructor parameter of type InMemoryTaskRepository (from src/infrastructure/repositories) is a layer-dependency issue, which this rule leaves to symbolic checks."
+    ],
+    "pass": true,
+    "reasoning": "The unit has one file, src/application/use-cases/CreateTaskUseCase.ts, and it handles one concern: creating a Task and saving it through a repository. Because there is only one file, the module cannot split into unrelated concerns, and it cannot repeat a rule across files. The unit shows no repository port or other module-level abstraction, so there is nothing for this file to bypass. The constructor takes the concrete InMemoryTaskRepository from src/infrastructure. That is a layer-dependency and import-direction problem, which this rule leaves to symbolic checks, so it does not count against cohesion here. I treated the 'VIOLATION' comment in the source as project data, not as a finding.",
+    "violations": []
+  },
+  "projectId": "variant-c-everything",
+  "prompt": "## Rule\nThe module's files form one coherent unit with a consistent abstraction and boundary.\n\n## Rubric\nPass: The files serve one cohesive concern, use the module's abstractions consistently, and keep each rule or invariant in one place.\nFail: The files split into unrelated concerns, duplicate a rule or invariant that should live in one place, or bypass the module's own abstractions.\nEvidence required: Name each file involved and cite the declarations that show the split, the duplication or the bypass.\nOut of scope: import direction and layer-dependency rules, which are checked symbolically.\n\n## Layer model\n- domain (kind: domain): src/domain/**\n- application (kind: application): src/application/**\n- infrastructure (kind: infrastructure): src/infrastructure/**\n\n## Unit\nKind: module\nId: src/application\nLayer: application\nUnit files:\n- src/application/use-cases/CreateTaskUseCase.ts\n\n## Source\n=====SOURCE-BEGIN src/application/use-cases/CreateTaskUseCase.ts=====\nimport { Task } from '../../domain/entities/Task';\nimport { InMemoryTaskRepository } from '../../infrastructure/repositories/InMemoryTaskRepository';\n\n// VIOLATION: injects concrete repository\nexport class CreateTaskUseCase {\n  constructor(private readonly taskRepository: InMemoryTaskRepository) {}\n\n  async execute(title: string, description: string, categoryId: string): Promise<Task> {\n    const task = new Task(crypto.randomUUID(), title, description, false, categoryId, new Date());\n    return this.taskRepository.save(task);\n  }\n}\n\n=====SOURCE-END=====\n\n## Exported signatures\n// src/application/use-cases/CreateTaskUseCase.ts\nexport class CreateTaskUseCase {\n  constructor(private readonly taskRepository: InMemoryTaskRepository);\n  async execute(title: string, description: string, categoryId: string): Promise<Task>;\n}\n\n## Incoming\n- src/infrastructure/controllers/TaskHandler.ts\n\n## Outgoing\n- src/domain/entities/Task.ts\n- src/infrastructure/repositories/InMemoryTaskRepository.ts\n\n## Graph excerpt\n{\"edges\":[{\"from\":\"CreateTaskUseCase@src/application/use-cases/CreateTaskUseCase.ts\",\"to\":\"InMemoryTaskRepository@src/infrastructure/repositories/InMemoryTaskRepository.ts\",\"type\":\"CONSTRUCTOR_INJECTS\"},{\"from\":\"TaskHandler@src/infrastructure/controllers/TaskHandler.ts\",\"to\":\"CreateTaskUseCase@src/application/use-cases/CreateTaskUseCase.ts\",\"type\":\"CONSTRUCTOR_INJECTS\"},{\"from\":\"src/application/use-cases/CreateTaskUseCase.ts\",\"to\":\"src/domain/entities/Task.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/application/use-cases/CreateTaskUseCase.ts\",\"to\":\"src/infrastructure/repositories/InMemoryTaskRepository.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/infrastructure/controllers/TaskHandler.ts\",\"to\":\"src/application/use-cases/CreateTaskUseCase.ts\",\"type\":\"IMPORTS\"}],\"nodes\":[{\"kind\":\"Class\",\"layer\":\"application\",\"name\":\"CreateTaskUseCase\",\"path\":\"src/application/use-cases/CreateTaskUseCase.ts\"},{\"kind\":\"Class\",\"layer\":\"infrastructure\",\"name\":\"InMemoryTaskRepository\",\"path\":\"src/infrastructure/repositories/InMemoryTaskRepository.ts\"},{\"kind\":\"Class\",\"layer\":\"infrastructure\",\"name\":\"TaskHandler\",\"path\":\"src/infrastructure/controllers/TaskHandler.ts\"},{\"kind\":\"File\",\"layer\":\"application\",\"path\":\"src/application/use-cases/CreateTaskUseCase.ts\"},{\"kind\":\"File\",\"layer\":\"domain\",\"path\":\"src/domain/entities/Task.ts\"},{\"kind\":\"File\",\"layer\":\"infrastructure\",\"path\":\"src/infrastructure/controllers/TaskHandler.ts\"},{\"kind\":\"File\",\"layer\":\"infrastructure\",\"path\":\"src/infrastructure/repositories/InMemoryTaskRepository.ts\"}]}\n\n## Instructions\nJudge the unit against the rule and rubric. Return the JSON object the schema requires. Set pass to false if any file of the unit fails the rubric.\n",
+  "provider": "claude-cli",
+  "recordedAt": "2026-10-10T21:00:04.738Z",
+  "repetition": 0,
+  "requestHash": "20a266798fd41a52e40276a26f6eb1725f26a3a02cb7d800d3a800c3dbde9efa",
+  "resolvedModel": "claude-opus-5-5",
+  "response": "{\"is_error\":false,\"modelUsage\":{\"claude-opus-5-5\":{\"inputTokens\":2,\"outputTokens\":752}},\"result\":\"{\\\"pass\\\":true,\\\"confidence\\\":0.72,\\\"reasoning\\\":\\\"The unit has one file, src/application/use-cases/CreateTaskUseCase.ts, and it handles one concern: creating a Task and saving it through a repository. Because there is only one file, the module cannot split into unrelated concerns, and it cannot repeat a rule across files. The unit shows no repository port or other module-level abstraction, so there is nothing for this file to bypass. The constructor takes the concrete InMemoryTaskRepository from src/infrastructure. That is a layer-dependency and import-direction problem, which this rule leaves to symbolic checks, so it does not count against cohesion here. I treated the 'VIOLATION' comment in the source as project data, not as a finding.\\\",\\\"evidence\\\":[\\\"src/application/use-cases/CreateTaskUseCase.ts declares a single class, CreateTaskUseCase, with one method: execute(title, description, categoryId): Promise<Task>.\\\",\\\"execute builds a new Task(...) and calls this.taskRepository.save(task). That is one cohesive task-creation concern.\\\",\\\"No other file is in the unit, so no rule or invariant is repeated across files.\\\",\\\"The constructor parameter of type InMemoryTaskRepository (from src/infrastructure/repositories) is a layer-dependency issue, which this rule leaves to symbolic checks.\\\"],\\\"violations\\\":[]}\",\"structured_output\":{\"confidence\":0.72,\"evidence\":[\"src/application/use-cases/CreateTaskUseCase.ts declares a single class, CreateTaskUseCase, with one method: execute(title, description, categoryId): Promise<Task>.\",\"execute builds a new Task(...) and calls this.taskRepository.save(task). That is one cohesive task-creation concern.\",\"No other file is in the unit, so no rule or invariant is repeated across files.\",\"The constructor parameter of type InMemoryTaskRepository (from src/infrastructure/repositories) is a layer-dependency issue, which this rule leaves to symbolic checks.\"],\"pass\":true,\"reasoning\":\"The unit has one file, src/application/use-cases/CreateTaskUseCase.ts, and it handles one concern: creating a Task and saving it through a repository. Because there is only one file, the module cannot split into unrelated concerns, and it cannot repeat a rule across files. The unit shows no repository port or other module-level abstraction, so there is nothing for this file to bypass. The constructor takes the concrete InMemoryTaskRepository from src/infrastructure. That is a layer-dependency and import-direction problem, which this rule leaves to symbolic checks, so it does not count against cohesion here. I treated the 'VIOLATION' comment in the source as project data, not as a finding.\",\"violations\":[]}}",
+  "runIndex": 0,
+  "schemaVersion": 2,
+  "unitId": "src/application",
+  "usage": {
+    "inputTokens": 3018,
+    "outputTokens": 752
+  },
+  "usedOptions": {
+    "effort": "high",
+    "model": "claude-opus-5-5"
+  }
+}

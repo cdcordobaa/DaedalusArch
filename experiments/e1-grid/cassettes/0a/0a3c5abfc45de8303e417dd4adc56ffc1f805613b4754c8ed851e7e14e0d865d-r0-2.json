@@ -1,0 +1,48 @@
+{
+  "attempts": 1,
+  "cliVersion": "2.1.294",
+  "configListingSha256": "47aa04258852fab9a706f3f0c14cee22306d69fbb6fdfbde8c11854bd54997bc",
+  "durationMs": 6202,
+  "effort": "high",
+  "functionId": "FF-N02",
+  "ignoredOptions": [
+    "maxTokens"
+  ],
+  "isolationProbeSha256": "97a2e2d0af1100c13c55e028c1a0c71f069093c3d08705af122aaeb302f1a641",
+  "key": "0a3c5abfc45de8303e417dd4adc56ffc1f805613b4754c8ed851e7e14e0d865d-r0-2",
+  "model": "claude-opus-5-5",
+  "outcome": {
+    "kind": "valid"
+  },
+  "parsedVerdict": {
+    "confidence": 0.93,
+    "evidence": [
+      "src/domain/user.ts: `interface User` is a readonly entity shape, which is domain modelling",
+      "src/domain/user.ts: `createUser` checks `trimmed.length === 0` and throws ValidationError, a domain invariant",
+      "src/domain/user.ts: `interface UserRepository` is an abstract port with no implementation; the graph shows InMemoryUserRepository in infrastructure IMPLEMENTS it",
+      "No I/O, storage, HTTP or framework code appears in the file"
+    ],
+    "pass": true,
+    "reasoning": "src/domain/user.ts holds only domain responsibilities. It defines the User entity as a readonly interface. createUser is a factory that enforces an invariant (the trimmed name must not be empty) and throws a domain ValidationError, which is a business rule. UserRepository is a port interface with no implementation. Domain-owned repository abstractions are the standard approach, and the graph shows that infrastructure implements this interface (InMemoryUserRepository) and application services receive it through their constructors. The file has no persistence code, no transport or framework logic and no application orchestration.",
+    "violations": []
+  },
+  "projectId": "claude-opus-5-5/task-management/none/run-2",
+  "prompt": "## Rule\nThe unit's responsibilities match the role of its declared layer.\n\n## Rubric\nPass: Every responsibility in the file belongs to the role and kind of its declared layer, and agrees with any ADR prose given.\nFail: The file carries a responsibility that belongs to a different layer kind, for example persistence, transport or framework logic in a domain file, or business rules in an infrastructure or presentation file.\nEvidence required: Name the file and cite the function, method or statement that carries the misplaced responsibility, and the layer kind it belongs to.\nOut of scope: import direction and layer-dependency rules, which are checked symbolically.\n\n## Layer model\n- domain (kind: domain): src/domain/**\n- application (kind: application): src/application/**\n- infrastructure (kind: infrastructure): src/infrastructure/**\n\n## Unit\nKind: file\nId: src/domain/user.ts\nLayer: domain\nUnit files:\n- src/domain/user.ts\n\n## Source\n=====SOURCE-BEGIN src/domain/user.ts=====\nimport { ValidationError } from \"./errors\";\n\nexport interface User {\n  readonly id: string;\n  readonly name: string;\n}\n\nexport function createUser(id: string, name: string): User {\n  const trimmed = name.trim();\n  if (trimmed.length === 0) {\n    throw new ValidationError(\"User name must not be empty\");\n  }\n  return { id, name: trimmed };\n}\n\nexport interface UserRepository {\n  save(user: User): void;\n  findById(id: string): User | undefined;\n  findAll(): User[];\n}\n\n=====SOURCE-END=====\n\n## Graph excerpt\n{\"edges\":[{\"from\":\"InMemoryUserRepository@src/infrastructure/in-memory-repositories.ts\",\"to\":\"UserRepository@src/domain/user.ts\",\"type\":\"IMPLEMENTS\"},{\"from\":\"TaskService@src/application/task-service.ts\",\"to\":\"UserRepository@src/domain/user.ts\",\"type\":\"CONSTRUCTOR_INJECTS\"},{\"from\":\"UserService@src/application/user-service.ts\",\"to\":\"UserRepository@src/domain/user.ts\",\"type\":\"CONSTRUCTOR_INJECTS\"},{\"from\":\"src/application/task-service.ts\",\"to\":\"src/domain/user.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/application/user-service.ts\",\"to\":\"src/domain/user.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/domain/user.ts\",\"to\":\"src/domain/errors.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/infrastructure/in-memory-repositories.ts\",\"to\":\"src/domain/user.ts\",\"type\":\"IMPORTS\"}],\"nodes\":[{\"kind\":\"Class\",\"layer\":\"application\",\"name\":\"TaskService\",\"path\":\"src/application/task-service.ts\"},{\"kind\":\"Class\",\"layer\":\"application\",\"name\":\"UserService\",\"path\":\"src/application/user-service.ts\"},{\"kind\":\"Class\",\"layer\":\"infrastructure\",\"name\":\"InMemoryUserRepository\",\"path\":\"src/infrastructure/in-memory-repositories.ts\"},{\"kind\":\"File\",\"layer\":\"application\",\"path\":\"src/application/task-service.ts\"},{\"kind\":\"File\",\"layer\":\"application\",\"path\":\"src/application/user-service.ts\"},{\"kind\":\"File\",\"layer\":\"domain\",\"path\":\"src/domain/errors.ts\"},{\"kind\":\"File\",\"layer\":\"domain\",\"path\":\"src/domain/user.ts\"},{\"kind\":\"File\",\"layer\":\"infrastructure\",\"path\":\"src/infrastructure/in-memory-repositories.ts\"},{\"kind\":\"Interface\",\"layer\":\"domain\",\"name\":\"User\",\"path\":\"src/domain/user.ts\"},{\"kind\":\"Interface\",\"layer\":\"domain\",\"name\":\"UserRepository\",\"path\":\"src/domain/user.ts\"}]}\n\n## Instructions\nJudge the unit against the rule and rubric. Return the JSON object the schema requires. Set pass to false if any file of the unit fails the rubric.\n",
+  "provider": "claude-cli",
+  "recordedAt": "2026-10-10T21:27:43.646Z",
+  "repetition": 0,
+  "requestHash": "0a3c5abfc45de8303e417dd4adc56ffc1f805613b4754c8ed851e7e14e0d865d",
+  "resolvedModel": "claude-opus-5-5",
+  "response": "{\"is_error\":false,\"modelUsage\":{\"claude-opus-5-5\":{\"inputTokens\":2,\"outputTokens\":495}},\"result\":\"{\\\"pass\\\":true,\\\"confidence\\\":0.93,\\\"reasoning\\\":\\\"src/domain/user.ts holds only domain responsibilities. It defines the User entity as a readonly interface. createUser is a factory that enforces an invariant (the trimmed name must not be empty) and throws a domain ValidationError, which is a business rule. UserRepository is a port interface with no implementation. Domain-owned repository abstractions are the standard approach, and the graph shows that infrastructure implements this interface (InMemoryUserRepository) and application services receive it through their constructors. The file has no persistence code, no transport or framework logic and no application orchestration.\\\",\\\"evidence\\\":[\\\"src/domain/user.ts: `interface User` is a readonly entity shape, which is domain modelling\\\",\\\"src/domain/user.ts: `createUser` checks `trimmed.length === 0` and throws ValidationError, a domain invariant\\\",\\\"src/domain/user.ts: `interface UserRepository` is an abstract port with no implementation; the graph shows InMemoryUserRepository in infrastructure IMPLEMENTS it\\\",\\\"No I/O, storage, HTTP or framework code appears in the file\\\"],\\\"violations\\\":[]}\",\"structured_output\":{\"confidence\":0.93,\"evidence\":[\"src/domain/user.ts: `interface User` is a readonly entity shape, which is domain modelling\",\"src/domain/user.ts: `createUser` checks `trimmed.length === 0` and throws ValidationError, a domain invariant\",\"src/domain/user.ts: `interface UserRepository` is an abstract port with no implementation; the graph shows InMemoryUserRepository in infrastructure IMPLEMENTS it\",\"No I/O, storage, HTTP or framework code appears in the file\"],\"pass\":true,\"reasoning\":\"src/domain/user.ts holds only domain responsibilities. It defines the User entity as a readonly interface. createUser is a factory that enforces an invariant (the trimmed name must not be empty) and throws a domain ValidationError, which is a business rule. UserRepository is a port interface with no implementation. Domain-owned repository abstractions are the standard approach, and the graph shows that infrastructure implements this interface (InMemoryUserRepository) and application services receive it through their constructors. The file has no persistence code, no transport or framework logic and no application orchestration.\",\"violations\":[]}}",
+  "runIndex": 2,
+  "schemaVersion": 2,
+  "unitId": "src/domain/user.ts",
+  "usage": {
+    "inputTokens": 2801,
+    "outputTokens": 495
+  },
+  "usedOptions": {
+    "effort": "high",
+    "model": "claude-opus-5-5"
+  }
+}

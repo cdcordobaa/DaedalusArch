@@ -1,0 +1,46 @@
+{
+  "attempts": 1,
+  "cliVersion": "2.1.294",
+  "configListingSha256": "47aa04258852fab9a706f3f0c14cee22306d69fbb6fdfbde8c11854bd54997bc",
+  "durationMs": 4954,
+  "effort": "high",
+  "functionId": "FF-N02",
+  "ignoredOptions": [
+    "maxTokens"
+  ],
+  "isolationProbeSha256": "ce76f240c1d90df332d581703538c0b40c5186947dd64c0ffb3ffb207242b218",
+  "key": "657daaee6602c7779cf766703d863eb9e77df6dc2a456d13646c72fe21e6c3fa-r0-0",
+  "model": "claude-sonnet-5-5",
+  "outcome": {
+    "kind": "valid"
+  },
+  "parsedVerdict": {
+    "confidence": 0.95,
+    "evidence": [
+      "Order.advanceTo enforces the immediate-successor transition rule against FLOW, which is a business invariant that belongs in the domain.",
+      "Order.cancel enforces that an order cannot be cancelled twice or once it has reached shipped, which is also a domain rule.",
+      "The file has no I/O, HTTP, database, or framework code. It only defines types, constants, and the entity, and it throws DomainError."
+    ],
+    "pass": true,
+    "reasoning": "src/domain/order.ts contains only domain concerns: the OrderState type, the FLOW ordering, the OrderLine value type, and the Order entity with state-transition invariants (advanceTo, cancel) that throw DomainError. There is no persistence, transport, framework, or orchestration logic. The only import is from the domain's own errors module, and import direction is out of scope anyway.",
+    "violations": []
+  },
+  "prompt": "## Rule\nThe unit's responsibilities match the role of its declared layer.\n\n## Rubric\nPass: Every responsibility in the file belongs to the role and kind of its declared layer, and agrees with any ADR prose given.\nFail: The file carries a responsibility that belongs to a different layer kind, for example persistence, transport or framework logic in a domain file, or business rules in an infrastructure or presentation file.\nEvidence required: Name the file and cite the function, method or statement that carries the misplaced responsibility, and the layer kind it belongs to.\nOut of scope: import direction and layer-dependency rules, which are checked symbolically.\n\n## Layer model\n- domain (kind: domain): src/domain/**\n- application (kind: application): src/application/**\n- infrastructure (kind: infrastructure): src/infrastructure/**\n\n## Unit\nKind: file\nId: src/domain/order.ts\nLayer: domain\nUnit files:\n- src/domain/order.ts\n\n## Source\n=====SOURCE-BEGIN src/domain/order.ts=====\nimport { DomainError } from \"./errors\";\n\nexport type OrderState = \"placed\" | \"paid\" | \"packed\" | \"shipped\" | \"delivered\" | \"cancelled\";\n\nexport const FLOW: readonly OrderState[] = [\"placed\", \"paid\", \"packed\", \"shipped\", \"delivered\"];\n\nexport interface OrderLine {\n  readonly productId: string;\n  readonly quantity: number;\n}\n\nexport class Order {\n  private current: OrderState = \"placed\";\n\n  constructor(\n    readonly id: string,\n    readonly customerId: string,\n    readonly lines: readonly OrderLine[],\n    readonly placedAt: Date,\n  ) {}\n\n  get state(): OrderState {\n    return this.current;\n  }\n\n  /** Advances to the next state in the flow; only the immediate successor is allowed. */\n  advanceTo(next: OrderState): void {\n    const i = FLOW.indexOf(this.current);\n    if (i < 0 || FLOW[i + 1] !== next) {\n      throw new DomainError(\"invalid_transition\", `cannot move order from ${this.current} to ${next}`);\n    }\n    this.current = next;\n  }\n\n  cancel(): void {\n    if (this.current === \"cancelled\") {\n      throw new DomainError(\"invalid_transition\", \"order is already cancelled\");\n    }\n    if (FLOW.indexOf(this.current) >= FLOW.indexOf(\"shipped\")) {\n      throw new DomainError(\"invalid_transition\", `cannot cancel an order that is ${this.current}`);\n    }\n    this.current = \"cancelled\";\n  }\n}\n\n=====SOURCE-END=====\n\n## Graph excerpt\n{\"edges\":[{\"from\":\"src/application/order-service.ts\",\"to\":\"src/domain/order.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/application/ports.ts\",\"to\":\"src/domain/order.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/domain/order.ts\",\"to\":\"src/domain/errors.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/infrastructure/http-app.ts\",\"to\":\"src/domain/order.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/infrastructure/in-memory-repositories.ts\",\"to\":\"src/domain/order.ts\",\"type\":\"IMPORTS\"}],\"nodes\":[{\"kind\":\"Class\",\"layer\":\"domain\",\"name\":\"Order\",\"path\":\"src/domain/order.ts\"},{\"kind\":\"File\",\"layer\":\"application\",\"path\":\"src/application/order-service.ts\"},{\"kind\":\"File\",\"layer\":\"application\",\"path\":\"src/application/ports.ts\"},{\"kind\":\"File\",\"layer\":\"domain\",\"path\":\"src/domain/errors.ts\"},{\"kind\":\"File\",\"layer\":\"domain\",\"path\":\"src/domain/order.ts\"},{\"kind\":\"File\",\"layer\":\"infrastructure\",\"path\":\"src/infrastructure/http-app.ts\"},{\"kind\":\"File\",\"layer\":\"infrastructure\",\"path\":\"src/infrastructure/in-memory-repositories.ts\"},{\"kind\":\"Interface\",\"layer\":\"domain\",\"name\":\"OrderLine\",\"path\":\"src/domain/order.ts\"}]}\n\n## Instructions\nJudge the unit against the rule and rubric. Return the JSON object the schema requires. Set pass to false if any file of the unit fails the rubric.\n",
+  "provider": "claude-cli",
+  "recordedAt": "2026-10-11T22:10:39.447Z",
+  "repetition": 0,
+  "requestHash": "657daaee6602c7779cf766703d863eb9e77df6dc2a456d13646c72fe21e6c3fa",
+  "resolvedModel": "claude-sonnet-5-5",
+  "response": "{\"is_error\":false,\"modelUsage\":{\"claude-sonnet-5-5\":{\"inputTokens\":2,\"outputTokens\":403}},\"result\":\"{\\\"pass\\\":true,\\\"confidence\\\":0.95,\\\"reasoning\\\":\\\"src/domain/order.ts contains only domain concerns: the OrderState type, the FLOW ordering, the OrderLine value type, and the Order entity with state-transition invariants (advanceTo, cancel) that throw DomainError. There is no persistence, transport, framework, or orchestration logic. The only import is from the domain's own errors module, and import direction is out of scope anyway.\\\",\\\"evidence\\\":[\\\"Order.advanceTo enforces the immediate-successor transition rule against FLOW, which is a business invariant that belongs in the domain.\\\",\\\"Order.cancel enforces that an order cannot be cancelled twice or once it has reached shipped, which is also a domain rule.\\\",\\\"The file has no I/O, HTTP, database, or framework code. It only defines types, constants, and the entity, and it throws DomainError.\\\"],\\\"violations\\\":[]}\",\"structured_output\":{\"confidence\":0.95,\"evidence\":[\"Order.advanceTo enforces the immediate-successor transition rule against FLOW, which is a business invariant that belongs in the domain.\",\"Order.cancel enforces that an order cannot be cancelled twice or once it has reached shipped, which is also a domain rule.\",\"The file has no I/O, HTTP, database, or framework code. It only defines types, constants, and the entity, and it throws DomainError.\"],\"pass\":true,\"reasoning\":\"src/domain/order.ts contains only domain concerns: the OrderState type, the FLOW ordering, the OrderLine value type, and the Order entity with state-transition invariants (advanceTo, cancel) that throw DomainError. There is no persistence, transport, framework, or orchestration logic. The only import is from the domain's own errors module, and import direction is out of scope anyway.\",\"violations\":[]}}",
+  "runIndex": 0,
+  "schemaVersion": 2,
+  "unitId": "src/domain/order.ts",
+  "usage": {
+    "inputTokens": 2911,
+    "outputTokens": 403
+  },
+  "usedOptions": {
+    "effort": "high",
+    "model": "claude-sonnet-5-5"
+  }
+}

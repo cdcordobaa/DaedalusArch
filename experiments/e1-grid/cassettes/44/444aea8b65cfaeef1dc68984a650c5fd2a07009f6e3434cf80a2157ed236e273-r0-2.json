@@ -1,0 +1,48 @@
+{
+  "attempts": 1,
+  "cliVersion": "2.1.294",
+  "configListingSha256": "47aa04258852fab9a706f3f0c14cee22306d69fbb6fdfbde8c11854bd54997bc",
+  "durationMs": 5562,
+  "effort": "high",
+  "functionId": "FF-N02",
+  "ignoredOptions": [
+    "maxTokens"
+  ],
+  "isolationProbeSha256": "97a2e2d0af1100c13c55e028c1a0c71f069093c3d08705af122aaeb302f1a641",
+  "key": "444aea8b65cfaeef1dc68984a650c5fd2a07009f6e3434cf80a2157ed236e273-r0-2",
+  "model": "claude-opus-5-5",
+  "outcome": {
+    "kind": "valid"
+  },
+  "parsedVerdict": {
+    "confidence": 0.95,
+    "evidence": [
+      "src/application/user/ListUsersService.ts: class ListUsersService implements ListUsersUseCase, which is an application use-case port",
+      "execute() calls this.users.findAll() on the injected UserRepository abstraction, so no persistence code lives in this file",
+      "execute() returns users.map(toUserDto), which maps domain objects to application DTOs as a use-case output",
+      "There are no HTTP, ORM, SQL or framework references, and no domain business rules"
+    ],
+    "pass": true,
+    "reasoning": "ListUsersService is an application-layer use-case service. It runs a single use case: it loads users through the domain-defined UserRepository port, which is injected through the constructor, and maps them to DTOs with toUserDto. That is application-layer work. The file has no persistence details, no transport or framework code and no business rules beyond the orchestration itself.",
+    "violations": []
+  },
+  "projectId": "claude-opus-5-5/task-management/full-aac/run-1",
+  "prompt": "## Rule\nThe unit's responsibilities match the role of its declared layer.\n\n## Rubric\nPass: Every responsibility in the file belongs to the role and kind of its declared layer, and agrees with any ADR prose given.\nFail: The file carries a responsibility that belongs to a different layer kind, for example persistence, transport or framework logic in a domain file, or business rules in an infrastructure or presentation file.\nEvidence required: Name the file and cite the function, method or statement that carries the misplaced responsibility, and the layer kind it belongs to.\nOut of scope: import direction and layer-dependency rules, which are checked symbolically.\n\n## Layer model\n- domain (kind: domain): src/domain/**\n- application (kind: application): src/application/**\n- infrastructure (kind: infrastructure): src/infrastructure/**\n\n## Unit\nKind: file\nId: src/application/user/ListUsersService.ts\nLayer: application\nUnit files:\n- src/application/user/ListUsersService.ts\n\n## Source\n=====SOURCE-BEGIN src/application/user/ListUsersService.ts=====\nimport { UserRepository } from '../../domain/user/UserRepository';\nimport { toUserDto, UserDto } from '../dto/UserDto';\nimport { ListUsersUseCase } from './ListUsersUseCase';\n\nexport class ListUsersService implements ListUsersUseCase {\n  constructor(private readonly users: UserRepository) {}\n\n  async execute(): Promise<UserDto[]> {\n    const users = await this.users.findAll();\n    return users.map(toUserDto);\n  }\n}\n\n=====SOURCE-END=====\n\n## Graph excerpt\n{\"edges\":[{\"from\":\"ListUsersService@src/application/user/ListUsersService.ts\",\"to\":\"ListUsersUseCase@src/application/user/ListUsersUseCase.ts\",\"type\":\"IMPLEMENTS\"},{\"from\":\"ListUsersService@src/application/user/ListUsersService.ts\",\"to\":\"UserRepository@src/domain/user/UserRepository.ts\",\"type\":\"CONSTRUCTOR_INJECTS\"},{\"from\":\"src/application/user/ListUsersService.ts\",\"to\":\"src/application/dto/UserDto.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/application/user/ListUsersService.ts\",\"to\":\"src/application/user/ListUsersUseCase.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/application/user/ListUsersService.ts\",\"to\":\"src/domain/user/UserRepository.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/infrastructure/composition/userModule.ts\",\"to\":\"src/application/user/ListUsersService.ts\",\"type\":\"IMPORTS\"}],\"nodes\":[{\"kind\":\"Class\",\"layer\":\"application\",\"name\":\"ListUsersService\",\"path\":\"src/application/user/ListUsersService.ts\"},{\"kind\":\"File\",\"layer\":\"application\",\"path\":\"src/application/dto/UserDto.ts\"},{\"kind\":\"File\",\"layer\":\"application\",\"path\":\"src/application/user/ListUsersService.ts\"},{\"kind\":\"File\",\"layer\":\"application\",\"path\":\"src/application/user/ListUsersUseCase.ts\"},{\"kind\":\"File\",\"layer\":\"domain\",\"path\":\"src/domain/user/UserRepository.ts\"},{\"kind\":\"File\",\"layer\":\"infrastructure\",\"path\":\"src/infrastructure/composition/userModule.ts\"},{\"kind\":\"Interface\",\"layer\":\"application\",\"name\":\"ListUsersUseCase\",\"path\":\"src/application/user/ListUsersUseCase.ts\"},{\"kind\":\"Interface\",\"layer\":\"domain\",\"name\":\"UserRepository\",\"path\":\"src/domain/user/UserRepository.ts\"}]}\n\n## Instructions\nJudge the unit against the rule and rubric. Return the JSON object the schema requires. Set pass to false if any file of the unit fails the rubric.\n",
+  "provider": "claude-cli",
+  "recordedAt": "2026-10-10T22:06:08.783Z",
+  "repetition": 0,
+  "requestHash": "444aea8b65cfaeef1dc68984a650c5fd2a07009f6e3434cf80a2157ed236e273",
+  "resolvedModel": "claude-opus-5-5",
+  "response": "{\"is_error\":false,\"modelUsage\":{\"claude-opus-5-5\":{\"inputTokens\":2,\"outputTokens\":405}},\"result\":\"{\\\"pass\\\":true,\\\"confidence\\\":0.95,\\\"reasoning\\\":\\\"ListUsersService is an application-layer use-case service. It runs a single use case: it loads users through the domain-defined UserRepository port, which is injected through the constructor, and maps them to DTOs with toUserDto. That is application-layer work. The file has no persistence details, no transport or framework code and no business rules beyond the orchestration itself.\\\",\\\"evidence\\\":[\\\"src/application/user/ListUsersService.ts: class ListUsersService implements ListUsersUseCase, which is an application use-case port\\\",\\\"execute() calls this.users.findAll() on the injected UserRepository abstraction, so no persistence code lives in this file\\\",\\\"execute() returns users.map(toUserDto), which maps domain objects to application DTOs as a use-case output\\\",\\\"There are no HTTP, ORM, SQL or framework references, and no domain business rules\\\"],\\\"violations\\\":[]}\",\"structured_output\":{\"confidence\":0.95,\"evidence\":[\"src/application/user/ListUsersService.ts: class ListUsersService implements ListUsersUseCase, which is an application use-case port\",\"execute() calls this.users.findAll() on the injected UserRepository abstraction, so no persistence code lives in this file\",\"execute() returns users.map(toUserDto), which maps domain objects to application DTOs as a use-case output\",\"There are no HTTP, ORM, SQL or framework references, and no domain business rules\"],\"pass\":true,\"reasoning\":\"ListUsersService is an application-layer use-case service. It runs a single use case: it loads users through the domain-defined UserRepository port, which is injected through the constructor, and maps them to DTOs with toUserDto. That is application-layer work. The file has no persistence details, no transport or framework code and no business rules beyond the orchestration itself.\",\"violations\":[]}}",
+  "runIndex": 2,
+  "schemaVersion": 2,
+  "unitId": "src/application/user/ListUsersService.ts",
+  "usage": {
+    "inputTokens": 2766,
+    "outputTokens": 405
+  },
+  "usedOptions": {
+    "effort": "high",
+    "model": "claude-opus-5-5"
+  }
+}

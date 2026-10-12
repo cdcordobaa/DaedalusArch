@@ -1,0 +1,48 @@
+{
+  "attempts": 1,
+  "cliVersion": "2.1.294",
+  "configListingSha256": "47aa04258852fab9a706f3f0c14cee22306d69fbb6fdfbde8c11854bd54997bc",
+  "durationMs": 6267,
+  "effort": "high",
+  "functionId": "FF-N02",
+  "ignoredOptions": [
+    "maxTokens"
+  ],
+  "isolationProbeSha256": "97a2e2d0af1100c13c55e028c1a0c71f069093c3d08705af122aaeb302f1a641",
+  "key": "c74af8768fd3c35b31b405ab1ab124ea08b9f7d466f1d8ee3f6fe2ed3800c28a-r0-2",
+  "model": "claude-opus-5-5",
+  "outcome": {
+    "kind": "valid"
+  },
+  "parsedVerdict": {
+    "confidence": 0.9,
+    "evidence": [
+      "asyncHandler wraps Express RequestHandler and forwards rejections to next(), which is Express framework glue (infrastructure)",
+      "bodyOf(req) checks that req.body is a JSON object, which is HTTP request parsing (infrastructure)",
+      "requiredString/optionalString only check that fields are typed as strings and throw BadRequestError; they encode no business rules",
+      "BadRequestError is an HTTP 400-style transport error used by controllers and errorMiddleware in the same layer"
+    ],
+    "pass": true,
+    "reasoning": "src/infrastructure/httpSupport.ts contains only HTTP transport helpers: an Express async handler wrapper, request-body extraction, and type checks on primitive fields that raise a transport-level BadRequestError. All of these are transport and framework concerns, and those belong in the infrastructure layer. The file has no business rules, domain invariants or application orchestration. Its string checks only confirm the request shape, which is input parsing at the transport edge, not domain validation.",
+    "violations": []
+  },
+  "projectId": "claude-sonnet-5-5/task-management/full-aac/run-1",
+  "prompt": "## Rule\nThe unit's responsibilities match the role of its declared layer.\n\n## Rubric\nPass: Every responsibility in the file belongs to the role and kind of its declared layer, and agrees with any ADR prose given.\nFail: The file carries a responsibility that belongs to a different layer kind, for example persistence, transport or framework logic in a domain file, or business rules in an infrastructure or presentation file.\nEvidence required: Name the file and cite the function, method or statement that carries the misplaced responsibility, and the layer kind it belongs to.\nOut of scope: import direction and layer-dependency rules, which are checked symbolically.\n\n## Layer model\n- domain (kind: domain): src/domain/**\n- application (kind: application): src/application/**\n- infrastructure (kind: infrastructure): src/infrastructure/**\n\n## Unit\nKind: file\nId: src/infrastructure/httpSupport.ts\nLayer: infrastructure\nUnit files:\n- src/infrastructure/httpSupport.ts\n\n## Source\n=====SOURCE-BEGIN src/infrastructure/httpSupport.ts=====\nimport { NextFunction, Request, RequestHandler, Response } from \"express\";\n\nexport class BadRequestError extends Error {\n  constructor(message: string) {\n    super(message);\n    this.name = \"BadRequestError\";\n  }\n}\n\nexport function asyncHandler(\n  handler: (req: Request, res: Response) => Promise<void>,\n): RequestHandler {\n  return (req: Request, res: Response, next: NextFunction): void => {\n    handler(req, res).catch(next);\n  };\n}\n\nexport function bodyOf(req: Request): Record<string, unknown> {\n  const body: unknown = req.body;\n  if (typeof body !== \"object\" || body === null || Array.isArray(body)) {\n    throw new BadRequestError(\"request body must be a JSON object\");\n  }\n  return body as Record<string, unknown>;\n}\n\nexport function requiredString(\n  source: Record<string, unknown>,\n  key: string,\n): string {\n  const value = source[key];\n  if (typeof value !== \"string\") {\n    throw new BadRequestError(`${key} must be a string`);\n  }\n  return value;\n}\n\nexport function optionalString(\n  source: Record<string, unknown>,\n  key: string,\n): string | undefined {\n  const value = source[key];\n  if (value === undefined) {\n    return undefined;\n  }\n  if (typeof value !== \"string\") {\n    throw new BadRequestError(`${key} must be a string`);\n  }\n  return value;\n}\n\n=====SOURCE-END=====\n\n## Graph excerpt\n{\"edges\":[{\"from\":\"src/infrastructure/ProjectController.ts\",\"to\":\"src/infrastructure/httpSupport.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/infrastructure/TaskController.ts\",\"to\":\"src/infrastructure/httpSupport.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/infrastructure/UserController.ts\",\"to\":\"src/infrastructure/httpSupport.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/infrastructure/errorMiddleware.ts\",\"to\":\"src/infrastructure/httpSupport.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/infrastructure/httpSupport.ts\",\"to\":\"express\",\"type\":\"IMPORTS\"}],\"nodes\":[{\"kind\":\"Class\",\"layer\":\"infrastructure\",\"name\":\"BadRequestError\",\"path\":\"src/infrastructure/httpSupport.ts\"},{\"kind\":\"File\",\"layer\":\"infrastructure\",\"path\":\"src/infrastructure/ProjectController.ts\"},{\"kind\":\"File\",\"layer\":\"infrastructure\",\"path\":\"src/infrastructure/TaskController.ts\"},{\"kind\":\"File\",\"layer\":\"infrastructure\",\"path\":\"src/infrastructure/UserController.ts\"},{\"kind\":\"File\",\"layer\":\"infrastructure\",\"path\":\"src/infrastructure/errorMiddleware.ts\"},{\"kind\":\"File\",\"layer\":\"infrastructure\",\"path\":\"src/infrastructure/httpSupport.ts\"},{\"kind\":\"Package\",\"layer\":null,\"path\":\"express\"}]}\n\n## Instructions\nJudge the unit against the rule and rubric. Return the JSON object the schema requires. Set pass to false if any file of the unit fails the rubric.\n",
+  "provider": "claude-cli",
+  "recordedAt": "2026-10-10T22:58:30.245Z",
+  "repetition": 0,
+  "requestHash": "c74af8768fd3c35b31b405ab1ab124ea08b9f7d466f1d8ee3f6fe2ed3800c28a",
+  "resolvedModel": "claude-opus-5-5",
+  "response": "{\"is_error\":false,\"modelUsage\":{\"claude-opus-5-5\":{\"inputTokens\":2,\"outputTokens\":461}},\"result\":\"{\\\"pass\\\":true,\\\"confidence\\\":0.9,\\\"reasoning\\\":\\\"src/infrastructure/httpSupport.ts contains only HTTP transport helpers: an Express async handler wrapper, request-body extraction, and type checks on primitive fields that raise a transport-level BadRequestError. All of these are transport and framework concerns, and those belong in the infrastructure layer. The file has no business rules, domain invariants or application orchestration. Its string checks only confirm the request shape, which is input parsing at the transport edge, not domain validation.\\\",\\\"evidence\\\":[\\\"asyncHandler wraps Express RequestHandler and forwards rejections to next(), which is Express framework glue (infrastructure)\\\",\\\"bodyOf(req) checks that req.body is a JSON object, which is HTTP request parsing (infrastructure)\\\",\\\"requiredString/optionalString only check that fields are typed as strings and throw BadRequestError; they encode no business rules\\\",\\\"BadRequestError is an HTTP 400-style transport error used by controllers and errorMiddleware in the same layer\\\"],\\\"violations\\\":[]}\",\"structured_output\":{\"confidence\":0.9,\"evidence\":[\"asyncHandler wraps Express RequestHandler and forwards rejections to next(), which is Express framework glue (infrastructure)\",\"bodyOf(req) checks that req.body is a JSON object, which is HTTP request parsing (infrastructure)\",\"requiredString/optionalString only check that fields are typed as strings and throw BadRequestError; they encode no business rules\",\"BadRequestError is an HTTP 400-style transport error used by controllers and errorMiddleware in the same layer\"],\"pass\":true,\"reasoning\":\"src/infrastructure/httpSupport.ts contains only HTTP transport helpers: an Express async handler wrapper, request-body extraction, and type checks on primitive fields that raise a transport-level BadRequestError. All of these are transport and framework concerns, and those belong in the infrastructure layer. The file has no business rules, domain invariants or application orchestration. Its string checks only confirm the request shape, which is input parsing at the transport edge, not domain validation.\",\"violations\":[]}}",
+  "runIndex": 2,
+  "schemaVersion": 2,
+  "unitId": "src/infrastructure/httpSupport.ts",
+  "usage": {
+    "inputTokens": 2913,
+    "outputTokens": 461
+  },
+  "usedOptions": {
+    "effort": "high",
+    "model": "claude-opus-5-5"
+  }
+}

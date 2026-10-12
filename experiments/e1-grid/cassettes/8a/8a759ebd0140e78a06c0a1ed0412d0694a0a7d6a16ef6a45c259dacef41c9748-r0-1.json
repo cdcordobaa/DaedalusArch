@@ -1,0 +1,48 @@
+{
+  "attempts": 1,
+  "cliVersion": "2.1.294",
+  "configListingSha256": "47aa04258852fab9a706f3f0c14cee22306d69fbb6fdfbde8c11854bd54997bc",
+  "durationMs": 6865,
+  "effort": "high",
+  "functionId": "FF-N02",
+  "ignoredOptions": [
+    "maxTokens"
+  ],
+  "isolationProbeSha256": "97a2e2d0af1100c13c55e028c1a0c71f069093c3d08705af122aaeb302f1a641",
+  "key": "8a759ebd0140e78a06c0a1ed0412d0694a0a7d6a16ef6a45c259dacef41c9748-r0-1",
+  "model": "claude-opus-5-5",
+  "outcome": {
+    "kind": "valid"
+  },
+  "parsedVerdict": {
+    "confidence": 0.9,
+    "evidence": [
+      "Order.create enforces the business invariant 'Order must contain at least one item': domain logic",
+      "transitionTo and cancel use OrderState.canTransitionTo/canBeCancelled for state-machine rules: domain logic",
+      "fromState is a plain reconstitution factory with no persistence/ORM/serialization code",
+      "No HTTP, database, framework or I/O code is present in the file"
+    ],
+    "pass": true,
+    "reasoning": "src/domain/Order.ts holds only domain responsibilities. It is an aggregate/entity with a factory that enforces an invariant (Order.create requires at least one item). It handles state transitions through the OrderState value object (transitionTo, cancel, isCancellable). It also has a reconstitution factory, fromState. Reconstitution factories are a normal domain pattern, and fromState has no persistence-specific logic such as row mapping, SQL or serialization. The file has no transport, framework, persistence or orchestration logic. One possible logic bug sits outside this rule: cancel() sets the state to 'placed' instead of a cancelled state. That is a correctness problem, not a layer-responsibility violation.",
+    "violations": []
+  },
+  "projectId": "claude-haiku-4-5/order-fulfilment/minimal-prose/run-1",
+  "prompt": "## Rule\nThe unit's responsibilities match the role of its declared layer.\n\n## Rubric\nPass: Every responsibility in the file belongs to the role and kind of its declared layer, and agrees with any ADR prose given.\nFail: The file carries a responsibility that belongs to a different layer kind, for example persistence, transport or framework logic in a domain file, or business rules in an infrastructure or presentation file.\nEvidence required: Name the file and cite the function, method or statement that carries the misplaced responsibility, and the layer kind it belongs to.\nOut of scope: import direction and layer-dependency rules, which are checked symbolically.\n\n## Layer model\n- domain (kind: domain): src/domain/**\n- application (kind: application): src/application/**\n- infrastructure (kind: infrastructure): src/infrastructure/**\n\n## Unit\nKind: file\nId: src/domain/Order.ts\nLayer: domain\nUnit files:\n- src/domain/Order.ts\n\n## Source\n=====SOURCE-BEGIN src/domain/Order.ts=====\nimport { OrderState, OrderStateType } from './OrderState';\nimport { OrderItem } from './OrderItem';\n\nexport class Order {\n  private constructor(\n    readonly id: string,\n    private state: OrderState,\n    readonly items: OrderItem[],\n    readonly createdAt: Date,\n  ) {}\n\n  static create(id: string, items: OrderItem[]): Order {\n    if (items.length === 0) {\n      throw new Error('Order must contain at least one item');\n    }\n    return new Order(id, OrderState.create('placed'), items, new Date());\n  }\n\n  static fromState(id: string, state: OrderStateType, items: OrderItem[], createdAt: Date): Order {\n    return new Order(id, OrderState.create(state), items, createdAt);\n  }\n\n  getState(): OrderState {\n    return this.state;\n  }\n\n  getStateValue(): OrderStateType {\n    return this.state.value;\n  }\n\n  transitionTo(nextState: OrderStateType): void {\n    if (!this.state.canTransitionTo(nextState)) {\n      throw new Error(\n        `Cannot transition from ${this.state.value} to ${nextState}`,\n      );\n    }\n    this.state = OrderState.create(nextState);\n  }\n\n  cancel(): void {\n    if (!this.state.canBeCancelled()) {\n      throw new Error(`Cannot cancel order in state ${this.state.value}`);\n    }\n    this.state = OrderState.create('placed');\n  }\n\n  isCancellable(): boolean {\n    return this.state.canBeCancelled();\n  }\n}\n\n=====SOURCE-END=====\n\n## Graph excerpt\n{\"edges\":[{\"from\":\"Order@src/domain/Order.ts\",\"to\":\"OrderState@src/domain/OrderState.ts\",\"type\":\"CONSTRUCTOR_INJECTS\"},{\"from\":\"Order@src/domain/Order.ts\",\"to\":\"OrderState@src/domain/OrderState.ts\",\"type\":\"FLOWS_TO\"},{\"from\":\"src/application/PlaceOrderUseCase.ts\",\"to\":\"src/domain/Order.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/domain/Order.ts\",\"to\":\"src/domain/OrderItem.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/domain/Order.ts\",\"to\":\"src/domain/OrderState.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/domain/OrderRepository.ts\",\"to\":\"src/domain/Order.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/infrastructure/InMemoryOrderRepository.ts\",\"to\":\"src/domain/Order.ts\",\"type\":\"IMPORTS\"}],\"nodes\":[{\"kind\":\"Class\",\"layer\":\"domain\",\"name\":\"Order\",\"path\":\"src/domain/Order.ts\"},{\"kind\":\"Class\",\"layer\":\"domain\",\"name\":\"OrderState\",\"path\":\"src/domain/OrderState.ts\"},{\"kind\":\"File\",\"layer\":\"application\",\"path\":\"src/application/PlaceOrderUseCase.ts\"},{\"kind\":\"File\",\"layer\":\"domain\",\"path\":\"src/domain/Order.ts\"},{\"kind\":\"File\",\"layer\":\"domain\",\"path\":\"src/domain/OrderItem.ts\"},{\"kind\":\"File\",\"layer\":\"domain\",\"path\":\"src/domain/OrderRepository.ts\"},{\"kind\":\"File\",\"layer\":\"domain\",\"path\":\"src/domain/OrderState.ts\"},{\"kind\":\"File\",\"layer\":\"infrastructure\",\"path\":\"src/infrastructure/InMemoryOrderRepository.ts\"}]}\n\n## Instructions\nJudge the unit against the rule and rubric. Return the JSON object the schema requires. Set pass to false if any file of the unit fails the rubric.\n",
+  "provider": "claude-cli",
+  "recordedAt": "2026-10-11T02:46:57.973Z",
+  "repetition": 0,
+  "requestHash": "8a759ebd0140e78a06c0a1ed0412d0694a0a7d6a16ef6a45c259dacef41c9748",
+  "resolvedModel": "claude-opus-5-5",
+  "response": "{\"is_error\":false,\"modelUsage\":{\"claude-opus-5-5\":{\"inputTokens\":2,\"outputTokens\":580}},\"result\":\"{\\\"pass\\\":true,\\\"confidence\\\":0.9,\\\"reasoning\\\":\\\"src/domain/Order.ts holds only domain responsibilities. It is an aggregate/entity with a factory that enforces an invariant (Order.create requires at least one item). It handles state transitions through the OrderState value object (transitionTo, cancel, isCancellable). It also has a reconstitution factory, fromState. Reconstitution factories are a normal domain pattern, and fromState has no persistence-specific logic such as row mapping, SQL or serialization. The file has no transport, framework, persistence or orchestration logic. One possible logic bug sits outside this rule: cancel() sets the state to 'placed' instead of a cancelled state. That is a correctness problem, not a layer-responsibility violation.\\\",\\\"evidence\\\":[\\\"Order.create enforces the business invariant 'Order must contain at least one item': domain logic\\\",\\\"transitionTo and cancel use OrderState.canTransitionTo/canBeCancelled for state-machine rules: domain logic\\\",\\\"fromState is a plain reconstitution factory with no persistence/ORM/serialization code\\\",\\\"No HTTP, database, framework or I/O code is present in the file\\\"],\\\"violations\\\":[]}\",\"structured_output\":{\"confidence\":0.9,\"evidence\":[\"Order.create enforces the business invariant 'Order must contain at least one item': domain logic\",\"transitionTo and cancel use OrderState.canTransitionTo/canBeCancelled for state-machine rules: domain logic\",\"fromState is a plain reconstitution factory with no persistence/ORM/serialization code\",\"No HTTP, database, framework or I/O code is present in the file\"],\"pass\":true,\"reasoning\":\"src/domain/Order.ts holds only domain responsibilities. It is an aggregate/entity with a factory that enforces an invariant (Order.create requires at least one item). It handles state transitions through the OrderState value object (transitionTo, cancel, isCancellable). It also has a reconstitution factory, fromState. Reconstitution factories are a normal domain pattern, and fromState has no persistence-specific logic such as row mapping, SQL or serialization. The file has no transport, framework, persistence or orchestration logic. One possible logic bug sits outside this rule: cancel() sets the state to 'placed' instead of a cancelled state. That is a correctness problem, not a layer-responsibility violation.\",\"violations\":[]}}",
+  "runIndex": 1,
+  "schemaVersion": 2,
+  "unitId": "src/domain/Order.ts",
+  "usage": {
+    "inputTokens": 3067,
+    "outputTokens": 580
+  },
+  "usedOptions": {
+    "effort": "high",
+    "model": "claude-opus-5-5"
+  }
+}

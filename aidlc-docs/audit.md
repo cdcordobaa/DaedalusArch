@@ -1346,6 +1346,89 @@ Plan checkboxes ticked. Auto-approved under standing approval; no blocking or ma
 
 ---
 
+## Build and Test — E1 grid (SO5), generation and judge passes (prereg v16 → v20)
+**Timestamp**: 2026-10-11T04:30:00Z
+**User Input**: "go E1 (author, 2026-10-10): run E1 exactly as registered; generation first, judge after the judge-weighted variant is merged; add the Codex cells once ADR-029 is merged; both ADR-028 passes; every registered reading; P4 label items without live labelling; PR and merge."
+**AI Response**: "Generation: 54 Claude cells (generator-plan.json, orderSeed 20261008, CLI 2.1.294) gave 47 ok and 7 failed-typecheck (GEN-TYPECHECK, all claude-haiku-4-5), with no usage pause and no restart. After PR #50 (v18), the 18 Codex cells (gpt-5.6-terra, CLI 0.162.1, effort medium) were all ok, with no quota pause. Harness-overlap check of the 4 Claude cells that overlapped the Codex lane's reinstalls: no generator transcript exists (--no-session-persistence). The envelopes show ok, tsc 0, no node_modules write, and one denied, unexecuted `ls node_modules` (opus OF minimal-prose run-0). Result: checked, no observable interaction; cells kept. Judge pass 1 first ran on v18/v19 code and exposed the tsconfig gap (ADR-032). It was stopped and its records discarded (1 accepted). ADR-032 was merged as PR #52 (prereg v20). Pass 1 was re-run under v20 and hit one usage window at cell 35: the init-probe usage limit was classified as transport-error, so there was no registered pause. The same command was re-run (cassettes reused) and gave 72 records: 65 accepted, 7 not-run. 3,654 judge cassette entries (central estimate 4,428 for 54 cells). Pass 2 (proportional replay) made 0 new calls (cassettes unchanged) and gave 65 accepted. compare-aggregations results: registered vs proportional 0 verdict changes; any-fail 0; judge-weighted-v1 0 under the registered and proportional readings and 8 under any-fail. judge_mattered was 0 except jw any-fail (8). Judge diagnostics frame 1.1.0: no pooled code is informative (≥ 0.3); 15 FF-N02 units have no cassette join by project id (content-keyed cassettes shared across cells). P4 label plan built in results/e1-grid/label-plan-p4 (P4 46 items; P1/P2 items identical to results/labels); no live labelling. Fixtures plan (step 3) 5/5 accepted at v19 (unaffected by ADR-032)."
+**Context**: CONSTRUCTION — Build and Test, runbook §5 E1 and §7.2; worktree ../DaedalusArch-wt-e1, branch v1.2e-exp-e1; ADR-028, ADR-029, ADR-032.
+
+---
+
+## Build and Test — ADR-033 reproduction-audit corrections (prereg v21)
+**Timestamp**: 2026-10-11T04:20:00Z
+**User Input**: "Fix the findings of the independent reproduction audit (PR #54; director report PR #53) as analysis or labelling corrections only, with no evaluation re-run and no live LLM call: rebuild the labels-based SO4 table on the ADR-025 guarded manifest (N 73) so the P1 labels enter the FP-labelled precision; label degenerate intervals with an if-independent bound; name and align interval methods; add uncertain-rule sensitivity rows to the baseline precision and file them under their population; fix the stale threats-register §3 and TV-17; add the ADR-031 withdrawn placeholder; address the other medium issues; one prereg bump to v21 declared post hoc."
+**AI Response**: "score-golden --rule-version 1.1.0 (reproduces score-strict.json byte for byte); score.json = case-corrected + rule-1.1.0 FP set + P1 labels: N 73, TP 67, FP-labelled 3 (uncertain), FN 6, R 0.918 [0.818, 1.000], P 0.957 [0.893, 1.000], F1 0.937 [0.878, 0.986]; agg/ replaced (no registered reference), agg-strict/agg-corrected/v2/agg re-aggregated with degenerate flags (shared columns unchanged). Baseline v2 0.328 / 0.789 / 0.608, v1 0.264 / 0.744 / 0.508 (registered / uncertain as TP / excluded), plan_id e7-corpus. Tool comparison names wilson-instances-if-independent. Provenance producers rebuild case-corrected/manifest.json and ahs_v1_sensitivity.csv byte for byte; results/so4-heldout/external-inputs.json and results/sensitivity/external-inputs.json hash the outside inputs. Analysis plan §14, threats DV-TV-1..15, TV-17, TV-108, ADR-031, ADR-033. Prereg v21 (P-AUD): analysis-plan.md, threats-to-validity.md. Superseded entry: the labelling-step note 'FP-labelled precision 1.0 (67 TP, 0 FP, unchanged from strict)' described the hybrid table."
+**Context**: CONSTRUCTION — Build and Test, ADR-033. Worktree ../DaedalusArch-wt-fix, branch v1.2e-audit-fixes. Under the standing approval (2026-10-08).
+
+---
+
+## Build and Test — E1 size analysis (post hoc, committed data only)
+**Timestamp**: 2026-10-10T23:30:00Z
+**User Input**: "E1 shows a reversed spec-level effect (none best) and no model effect, with none projects much smaller. Using only committed data and no new runs, find what the registered plan says about size-normalised SO5 outcomes, recompute them with the registered procedure, label everything unregistered as post-hoc, break findings down by rule family and spec level, check size vs AHS descriptively, report the Codex arm separately, and merge by PR."
+**AI Response**: "Registered: deterministic violations per KLOC is an exploratory secondary family; LOC, all-violations density and latency are descriptive with no test. scripts/e1-size-analysis.ts reproduces all 27 registered rows (ahsCombined, ahsDeterministic, violations_per_kloc) exactly. The spec effect survives on the registered density (none 27 vs 57-58 per KLOC, Holm p 0.0003, δ 0.97) and, post hoc, on AHS residualised on ln LOC (p 0.0003). Per file it vanishes (post hoc, p 0.95). FF-CV05 test-file-pairing (FPAT-PATTERN) makes 83 % of findings at about one per file, but it fires in every cell, so it adds nothing to the AHS gap. The AHS spec effect comes from FF-C02 module-fan-out and FF-P02 dependency-inversion, which rarely fire on none projects. Size is a mediator, not a confounder. full-aac beats minimal-prose at equal size. Codex arm (exploratory): the opposite AHS pattern. Outputs: results/e1-grid/agg-size/, Docs/DiagnosticRuns/e1-size-analysis-2026-10-10.md. No registered artefact changed and no prereg bump."
+**Context**: CONSTRUCTION — Build and Test, E1 follow-up; worktree ../DaedalusArch-wt-size, branch v1.2e-e1-size.
+
+---
+
+## Build and Test — P4 labelling stop and ADR-034 (labeller route completion)
+**Timestamp**: 2026-10-11T05:15:00Z
+**User Input**: "Run the registered P4 live labelling (judge vs panel on E1) within the P4 allocation. Coordinator, after the stop: Option A. A completed tool step is invalid: discard it, retry once, then uncertain/tool-use. Add a 20 % stop rule over at least 10 P4 items, a discard metric and a residual threat. Verify P1/MS/P2. Keep the persona, prompts and timeout. Register as ADR-034 with prereg v22, merge by PR, then resume P4."
+**AI Response**: "Pre-flight passed (agy 1.3.2, AGY_CLI_DISABLE_AUTO_UPDATE=true, home names clean, 7 deny rules, MCP and plugins empty, --check-prereg v21 ok on 10 plans, estimate 224 + 30 <= 300; the 66-item replay gave 142 calls, byte-identical). First P4 call: TIMEOUT x2, then the re-ask completed search_web and the guard stopped the run (LLM_CLI_ISOLATION); 3 invocations, 145/300. Probes (non-label): disabledTools (51 tools) had no effect and search_web completed; deny search_web(*), execute_url(*), browser(*) and edit_file(*) also failed to stop it. 2 accidental /permissions and /config turns ran on the default model. settings.json was restored byte-identical. ADR-034: LLM_CLI_TOOL_USE is a decorator retry class (discardedAttempts recorded, no InvalidCause change); a tool-use final attempt makes the run invalid 'tool-use' with no re-ask, and the item becomes uncertain/tool-use; LABEL_TOOL_USE_STOP; tests added. TV-109, DV-TV-16; labeller-route §2, §4, §7; analysis plan §7 and §11; prereg v22 (P-TU). P1/MS/P2 verified: guard unchanged since 56e77f6, run completed, 139 cassettes = 138 answers + 1 timeout."
+**Context**: CONSTRUCTION — Build and Test, runbook 6.4 (P4). Worktree ../DaedalusArch-wt-p4, branch v1.2e-exp-p4. Under the standing approval (2026-10-08).
+## Harness fix: usage limit at the judge init probe
+**Timestamp**: 2026-10-11T04:49:55Z
+**User Input**: "Fix the harness so a usage limit hit at the judge's init probe (E1 pass 1, recorded as transport-error) is classified USAGE_LIMIT and the registered pause/resume applies, for any judge or generator step; add tests that reproduce it; change no registered artefact."
+**AI Response**: "Cause: the init-probe stop was read only from an is_error result event, and any pre-flight failure (including LLM_USAGE_LIMIT) ended the evaluate child with exit 2, which the harness reads as transport-error. Fix: C14 `initProbeStop` matches the frozen CLASSIFIER_PATTERNS (and HTTP 429) on the result text, stderr and non-JSON stdout of any erroring probe (is_error, non-zero exit or no init event); a judge call without an envelope also matches its stdout; `prepareJudgeStage` maps a pre-flight LLM_USAGE_LIMIT to JUDGE_RUN_INCOMPLETE (exit 3, stop USAGE_LIMIT, no manifest since no call was made); `classifyAttempt` reads a non-zero exit without a report whose stderr names LLM_USAGE_LIMIT or a frozen pattern (restated, test-pinned) as incomplete/usage-limit; the Claude generator's limit text adds the frozen pattern \"You've hit your limit\". Tests: 8 provider/judge-stage cases, 6 harness/generator cases; unit 3436/244 green. frozen.ts and FROZEN_SHA256 unchanged; --check-prereg v21 ok (77 artefacts unchanged), so no prereg bump."
+**Context**: v1.2e maintenance, branch v1.2e-usage-limit-fix.
+
+---
+
+## Build and Test — P4 stop rule fired; ADR-035 route change (Gemini API)
+**Timestamp**: 2026-10-11T08:10:00Z
+**User Input**: "Author decision, option (a): change the P4 labeller route to the Gemini API with tools off. Pin gemini-3.1-pro-preview, temperature 0, same persona and prompts. Probe with 1–2 calls. Register ADR-035 with prereg v23. Relabel all 46 P4 items within the remaining budget, back off on quota, then run the judge-vs-panel and run-vs-run analysis and merge by PR."
+**AI Response**: "On agy under ADR-034, the run stopped on the registered rule (2 of 10 P4 items tool-use, 5 discards; 159/300); it was not a usage limit as first relayed. ADR-035: GeminiProvider gains thinkingLevel (high), the served modelVersion, a function-call fail-closed check and 429/503 as LLM_USAGE_LIMIT (never cached). llm-label gains the API output cap of 65536 and --derive-route. The derived plan has the 46 P4 items, the same seeds and budget 138. Probe: 3 invocations (1 provider retry), valid JSON pass/pass, served model gemini-3.1-pro-preview, no tool. The derived plan, TV-110, DV-TV-17, labeller-route §8 and the analysis plan §11 row are registered as prereg v23 (P-API)."
+**Context**: CONSTRUCTION — Build and Test, runbook 6.4 (P4). Worktree ../DaedalusArch-wt-p4, branch v1.2e-exp-p4.
+
+---
+
+## Build and Test — P4 labelled on the Gemini API; judge-vs-panel agreement
+**Timestamp**: 2026-10-11T17:40:00Z
+**User Input**: "Label all 46 P4 items on the API route (2 runs) within the budget, then run judge-vs-panel per generator model and per source with E1 as the headline, κ/AC1 with weighted bootstrap CIs and uncertain as a category, plus run-vs-run. Merge by PR and report to main."
+**AI Response**: "There were 92 calls (0 retries, re-asks, tool use or quota stops) and the replay is byte-identical; the label budget is now 254/300. Labels: 40 pass, 4 fail, 2 uncertain (disagree). Run-vs-run: n 46, agreement 0.957 [0.855, 0.988], κ 0.777 [0.355, 1.000], AC1 0.955 [0.886, 1.000]; taxonomy as registered (κ ≥ 0.60). Judge vs panel, E1 headline (weighted): n 36, agreement 0.982 [0.949, 1.000], κ 0.000 [0, 0], AC1 0.982 [0.947, 1.000]. Fixtures: n 8, all agree (2 fail, 6 pass). Pooled: n 44, agreement 0.984, κ 0.742, AC1 0.983. Per model (E1): haiku 8/8, opus 9/9, sonnet 0.968, gpt-5.6-terra 0.953 [0.809, 1.000]. With uncertain kept as a category (E1): n 38, agreement 0.965, κ 0.192, AC1 0.964. The judge said pass on all 36 E1 pairs, so κ is 0 by prevalence. The 2 disagreements are judge pass against panel fail (both runs) on FF-N01 order-fulfilment/none (sonnet, gpt). The 8 agy P4 answers are reported apart in agy-partial.json."
+**Context**: CONSTRUCTION — Build and Test, runbook 6.4 and 6.6 (P4). Worktree ../DaedalusArch-wt-p4, branch v1.2e-exp-p4.
+
+---
+
+## Build and Test — extra experiments A, B, C: registration of A (ADR-036, plain LLM-review pilot)
+**Timestamp**: 2026-10-11T20:20:00Z
+**User Input**: "Run three new pre-registered experiments in order (author-approved): A, a plain LLM-review baseline pilot on Codex gpt-5.6-terra (exploratory, about 150 credits at most); B, judge detection of the seeded MO-X02/MO-X03 probes and their twins on the 7 held-out bases at k=2, after a Fable adversarial review; C, judge model robustness (Sonnet against Opus on about 100 recorded units). Register each one before it runs, merge each by PR, and report to main."
+**AI Response**: "B cannot be built as approved: the registered SO4 mutate run placed 0 MO-X02 and 0 MO-X03 seeds on the 7 held-out bases (all no-site; nestjslatam's candidates fail not-removable-guard). A label-free site count on the 5 fixtures gives 3 seeds and 9 twins; with the 8 held-out MO-X02n twins, that is 3 seeds and 17 twins in reach. This was escalated to main with options, and B waits for the author. A is registered as ADR-036 (prereg v24, P-LR): seeded draw (seed 9301) on 5 admitted bases, plus p5 and the drawn p4; 14 pinned trees and prompts; read-only Codex confinement (probe passed, 0.84 credits); 42 calls in run-major order under a 150-credit stop; MAT keys reduced to (rule, file)."
+**Context**: CONSTRUCTION — Build and Test, extra experiments. Worktree ../DaedalusArch-wt-x3, branch v1.2e-exp-extra.
+
+---
+
+## Build and Test — Experiment A (ADR-036) run and scored; B redesigned twice and on hold
+**Timestamp**: 2026-10-11T23:30:00Z
+**User Input**: "Coordinator: the author decided B uses the frozen operators on the E1 cells (count first, pre-stated k rule, Fable review, then register). Later: finish A, score it, PR and merge it; do not register or run B (the author is designing realistic anti-pattern operators); do not run C yet."
+**AI Response**: "A ran under prereg v24 and stopped on its registered 150-credit budget rule. 25 of 42 reviews are valid (run 0 of all 14 trees, run 1 of 11), at 147.96 credits by the rate card (5.92 per review; the balance fell 144.09). Seed-run recall 9/10 (firewall 5/5); p4 flagged in its one run pair, with a chance control of 1/2; p5 flagged by FF-C03 in one run; mean Jaccard 0.727 over the two-run trees. The summary.json mean (0.571) has a declared averaging defect. Of 909 claims, 50.6 % are firewall keys and 23.1 % are on files without a firewall finding. B under the author's E1 design: the pre-stated rule was committed (484c35b) before the label-free count (89359c1); 0 MO-X02 and 0 MO-X03 seeds in 65 cells, 12 twins. This was escalated, and B is on hold for new operators. C (ADR-038) code and sample are ready (100 units, all 1549 eligible requests reproduce their recorded hash) but are not registered."
+**Context**: CONSTRUCTION — Build and Test, extra experiments. Worktree ../DaedalusArch-wt-x3, branch v1.2e-exp-extra.
+
+---
+
+## Build and Test — Experiment C registration (ADR-038, judge model robustness)
+**Timestamp**: 2026-10-11T23:55:00Z
+**User Input**: "Coordinator: A is accepted at its registered budget stop. Run C now (author-approved): register ADR-038 with a dated bump, run with the usage-limit pause, analyse unit agreement (κ/AC1 with CIs) and verdict changes, merge by PR. B stays on hold."
+**AI Response**: "C is registered as ADR-038, prereg v25 (P-JR): 1549 eligible units (every rebuilt Opus request reproduces its recorded hash); 100 drawn (25 per E7/E1 × FF-N01/FF-N02, seed 9401); 300 Sonnet calls on the frozen route with their own cassettes; unit agreement with κ/AC1 item-bootstrap intervals; verdict impact by substitution in 41 reports under the registered and any-fail rules; κ ≥ 0.60 reading. ADR-037 is reserved for B."
+**Context**: CONSTRUCTION — Build and Test, extra experiments. Worktree ../DaedalusArch-wt-x3, branch v1.2e-exp-extra.
+
+---
+
+## Build and Test — Experiment C (ADR-038) run and scored
+**Timestamp**: 2026-10-12T01:10:00Z
+**User Input**: "Coordinator: run C, analyse it, merge it by PR, report to main."
+**AI Response**: "300 Sonnet calls on the frozen route (0 invalid, 0 retries, no usage pause). Unit agreement 0.940 (0.875–0.972), κ 0.766 (0.565–0.926), AC1 0.931 (0.872–0.978); weighted 0.974, κ 0.886. E1 agrees 50/50; E7 44/50. All 6 disagreements are low-confidence Opus fail → Sonnet pass. Fail rate: Opus 0.18, Sonnet 0.12. 0 function and 0 verdict changes in 41 reports (registered and any-fail). Reading: robust (κ ≥ 0.60)."
+**Context**: CONSTRUCTION — Build and Test, extra experiments. Worktree ../DaedalusArch-wt-x3, branch v1.2e-exp-extra.
+
 ## Build and Test — v1.3 MCP prototype (scheduled run)
 **Timestamp**: 2026-10-11T00:00:00Z
 **User Input**: "(scheduled task) Build a prototype MCP server for DaedalusArch on a new branch v1.3-mcp-prototype from v1.2e, groundwork for a firewall-in-the-loop experiment: five tools over stdio (get_architecture_spec, which_layer, check_import, evaluate_project, explain_violation), new code only, frozen instrument and registered artefacts untouched, --check-prereg still passing, unit tests with Neo4j mocked, README section, and an experiment design document; open a draft PR into v1.2e."

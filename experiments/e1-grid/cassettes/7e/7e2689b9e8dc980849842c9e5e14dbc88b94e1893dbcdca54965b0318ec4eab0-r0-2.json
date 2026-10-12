@@ -1,0 +1,47 @@
+{
+  "attempts": 1,
+  "cliVersion": "2.1.294",
+  "configListingSha256": "47aa04258852fab9a706f3f0c14cee22306d69fbb6fdfbde8c11854bd54997bc",
+  "durationMs": 6116,
+  "effort": "high",
+  "functionId": "FF-N02",
+  "ignoredOptions": [
+    "maxTokens"
+  ],
+  "isolationProbeSha256": "97a2e2d0af1100c13c55e028c1a0c71f069093c3d08705af122aaeb302f1a641",
+  "key": "7e2689b9e8dc980849842c9e5e14dbc88b94e1893dbcdca54965b0318ec4eab0-r0-2",
+  "model": "claude-opus-5-5",
+  "outcome": {
+    "kind": "valid"
+  },
+  "parsedVerdict": {
+    "confidence": 0.93,
+    "evidence": [
+      "src/application/list-products.ts: ListProductsUseCase.execute() calls this.productRepo.getAll() through the domain repository interface, with no concrete persistence code.",
+      "src/application/list-products.ts: execute() maps products to ProductListResponse, copying only id, name, price and stock (DTO mapping, which belongs in the application layer).",
+      "The file has no HTTP or framework code, no database access and no domain invariants."
+    ],
+    "pass": true,
+    "reasoning": "src/application/list-products.ts holds a single use case, ListProductsUseCase. Its execute() method gets products through the ProductRepository interface (a domain port) and maps them to the application DTO ProductListResponse. That is ordinary application-layer work: run a use case through a port and shape its output. The file has no persistence code (no SQL, ORM or file I/O), no transport or framework code (no HTTP, request or response objects, or status codes), and no business rules that belong in domain entities. The mapping only copies fields into the DTO, which belongs in the application layer.",
+    "violations": []
+  },
+  "projectId": "claude-haiku-4-5/order-fulfilment/full-aac/run-0",
+  "prompt": "## Rule\nThe unit's responsibilities match the role of its declared layer.\n\n## Rubric\nPass: Every responsibility in the file belongs to the role and kind of its declared layer, and agrees with any ADR prose given.\nFail: The file carries a responsibility that belongs to a different layer kind, for example persistence, transport or framework logic in a domain file, or business rules in an infrastructure or presentation file.\nEvidence required: Name the file and cite the function, method or statement that carries the misplaced responsibility, and the layer kind it belongs to.\nOut of scope: import direction and layer-dependency rules, which are checked symbolically.\n\n## Layer model\n- domain (kind: domain): src/domain/**\n- application (kind: application): src/application/**\n- infrastructure (kind: infrastructure): src/infrastructure/**\n\n## Unit\nKind: file\nId: src/application/list-products.ts\nLayer: application\nUnit files:\n- src/application/list-products.ts\n\n## Source\n=====SOURCE-BEGIN src/application/list-products.ts=====\nimport { ProductRepository } from '../domain/repositories';\nimport { ProductListResponse, ProductResponse } from './dtos';\n\nexport class ListProductsUseCase {\n  constructor(private productRepo: ProductRepository) {}\n\n  execute(): ProductListResponse {\n    const products = this.productRepo.getAll();\n    return {\n      products: products.map(product => ({\n        id: product.id,\n        name: product.name,\n        price: product.price,\n        stock: product.stock,\n      })),\n    };\n  }\n}\n\n=====SOURCE-END=====\n\n## Graph excerpt\n{\"edges\":[{\"from\":\"ListProductsUseCase@src/application/list-products.ts\",\"to\":\"ProductRepository@src/domain/repositories.ts\",\"type\":\"CONSTRUCTOR_INJECTS\"},{\"from\":\"ProductController@src/infrastructure/product-controller.ts\",\"to\":\"ListProductsUseCase@src/application/list-products.ts\",\"type\":\"CONSTRUCTOR_INJECTS\"},{\"from\":\"src/application/list-products.ts\",\"to\":\"src/application/dtos.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/application/list-products.ts\",\"to\":\"src/domain/repositories.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/infrastructure/product-controller.ts\",\"to\":\"src/application/list-products.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/infrastructure/server.ts\",\"to\":\"src/application/list-products.ts\",\"type\":\"IMPORTS\"}],\"nodes\":[{\"kind\":\"Class\",\"layer\":\"application\",\"name\":\"ListProductsUseCase\",\"path\":\"src/application/list-products.ts\"},{\"kind\":\"Class\",\"layer\":\"infrastructure\",\"name\":\"ProductController\",\"path\":\"src/infrastructure/product-controller.ts\"},{\"kind\":\"File\",\"layer\":\"application\",\"path\":\"src/application/dtos.ts\"},{\"kind\":\"File\",\"layer\":\"application\",\"path\":\"src/application/list-products.ts\"},{\"kind\":\"File\",\"layer\":\"domain\",\"path\":\"src/domain/repositories.ts\"},{\"kind\":\"File\",\"layer\":\"infrastructure\",\"path\":\"src/infrastructure/product-controller.ts\"},{\"kind\":\"File\",\"layer\":\"infrastructure\",\"path\":\"src/infrastructure/server.ts\"},{\"kind\":\"Interface\",\"layer\":\"domain\",\"name\":\"ProductRepository\",\"path\":\"src/domain/repositories.ts\"}]}\n\n## Instructions\nJudge the unit against the rule and rubric. Return the JSON object the schema requires. Set pass to false if any file of the unit fails the rubric.\n",
+  "provider": "claude-cli",
+  "recordedAt": "2026-10-11T02:57:02.000Z",
+  "repetition": 0,
+  "requestHash": "7e2689b9e8dc980849842c9e5e14dbc88b94e1893dbcdca54965b0318ec4eab0",
+  "resolvedModel": "claude-opus-5-5",
+  "response": "{\"is_error\":false,\"modelUsage\":{\"claude-opus-5-5\":{\"inputTokens\":2,\"outputTokens\":468}},\"result\":\"{\\\"pass\\\":true,\\\"confidence\\\":0.93,\\\"reasoning\\\":\\\"src/application/list-products.ts holds a single use case, ListProductsUseCase. Its execute() method gets products through the ProductRepository interface (a domain port) and maps them to the application DTO ProductListResponse. That is ordinary application-layer work: run a use case through a port and shape its output. The file has no persistence code (no SQL, ORM or file I/O), no transport or framework code (no HTTP, request or response objects, or status codes), and no business rules that belong in domain entities. The mapping only copies fields into the DTO, which belongs in the application layer.\\\",\\\"evidence\\\":[\\\"src/application/list-products.ts: ListProductsUseCase.execute() calls this.productRepo.getAll() through the domain repository interface, with no concrete persistence code.\\\",\\\"src/application/list-products.ts: execute() maps products to ProductListResponse, copying only id, name, price and stock (DTO mapping, which belongs in the application layer).\\\",\\\"The file has no HTTP or framework code, no database access and no domain invariants.\\\"],\\\"violations\\\":[]}\",\"structured_output\":{\"confidence\":0.93,\"evidence\":[\"src/application/list-products.ts: ListProductsUseCase.execute() calls this.productRepo.getAll() through the domain repository interface, with no concrete persistence code.\",\"src/application/list-products.ts: execute() maps products to ProductListResponse, copying only id, name, price and stock (DTO mapping, which belongs in the application layer).\",\"The file has no HTTP or framework code, no database access and no domain invariants.\"],\"pass\":true,\"reasoning\":\"src/application/list-products.ts holds a single use case, ListProductsUseCase. Its execute() method gets products through the ProductRepository interface (a domain port) and maps them to the application DTO ProductListResponse. That is ordinary application-layer work: run a use case through a port and shape its output. The file has no persistence code (no SQL, ORM or file I/O), no transport or framework code (no HTTP, request or response objects, or status codes), and no business rules that belong in domain entities. The mapping only copies fields into the DTO, which belongs in the application layer.\",\"violations\":[]}}",
+  "runIndex": 2,
+  "schemaVersion": 2,
+  "unitId": "src/application/list-products.ts",
+  "usage": {
+    "inputTokens": 2683,
+    "outputTokens": 468
+  },
+  "usedOptions": {
+    "effort": "high",
+    "model": "claude-opus-5-5"
+  }
+}

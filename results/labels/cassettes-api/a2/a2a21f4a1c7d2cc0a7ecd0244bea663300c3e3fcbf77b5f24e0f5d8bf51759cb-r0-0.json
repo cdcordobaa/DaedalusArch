@@ -1,0 +1,32 @@
+{
+  "attempts": 1,
+  "durationMs": 3691,
+  "effort": null,
+  "functionId": "label:judge-unit:0d0985025b54c393a3eac2c28717059839d851c846abdd7fcf46ec8d1eb9e99b",
+  "ignoredOptions": [],
+  "key": "a2a21f4a1c7d2cc0a7ecd0244bea663300c3e3fcbf77b5f24e0f5d8bf51759cb-r0-0",
+  "model": "gemini-3.1-pro-preview",
+  "outcome": {
+    "kind": "valid"
+  },
+  "parsedVerdict": null,
+  "prompt": "Decide whether the unit below satisfies the rubric.\n- pass: the unit meets the rubric's pass condition.\n- fail: the unit meets the rubric's fail condition.\nGive a short rationale that cites the code. Root cause: answer null.\n\n## Item\n## Judge unit\n  Function: FF-N01 (integrity)\n  Unit: src/domain/repositories (module, layer domain)\n  \n  ## Rubric\n  Rule: The module's files form one coherent unit with a consistent abstraction and boundary.\n  Pass: The files serve one cohesive concern, use the module's abstractions consistently, and keep each rule or invariant in one place.\n  Fail: The files split into unrelated concerns, duplicate a rule or invariant that should live in one place, or bypass the module's own abstractions.\n  Evidence required: Name each file involved and cite the declarations that show the split, the duplication or the bypass.\n  Out of scope: import direction and layer-dependency rules, which are checked symbolically.\n  \n  ## Source\n  // src/domain/repositories/ProjectRepository.ts\n  export interface ProjectRepository {\n    findById(id: string): Project | null;\n    findAll(): Project[];\n    save(project: Project): void;\n  }\n  \n  // src/domain/repositories/TaskRepository.ts\n  export interface TaskRepository {\n    findById(id: string): Task | null;\n    findByProjectId(projectId: string): Task[];\n    findByProjectIdAndStatus(projectId: string, status: TaskStatus): Task[];\n    findByProjectIdAndAssignee(projectId: string, assigneeId: string): Task[];\n    save(task: Task): void;\n  }\n  \n  // src/domain/repositories/UserRepository.ts\n  export interface UserRepository {\n    findById(id: string): User | null;\n    findAll(): User[];\n    save(user: User): void;\n  }\n  \n  =====SOURCE-BEGIN src/domain/repositories/ProjectRepository.ts=====\n  import { Project } from '../entities/Project';\n  \n  export interface ProjectRepository {\n    findById(id: string): Project | null;\n    findAll(): Project[];\n    save(project: Project): void;\n  }\n  \n  =====SOURCE-END=====\n  \n  =====SOURCE-BEGIN src/domain/repositories/TaskRepository.ts=====\n  import { Task, TaskStatus } from '../entities/Task';\n  \n  export interface TaskRepository {\n    findById(id: string): Task | null;\n    findByProjectId(projectId: string): Task[];\n    findByProjectIdAndStatus(projectId: string, status: TaskStatus): Task[];\n    findByProjectIdAndAssignee(projectId: string, assigneeId: string): Task[];\n    save(task: Task): void;\n  }\n  \n  =====SOURCE-END=====\n  \n  =====SOURCE-BEGIN src/domain/repositories/UserRepository.ts=====\n  import { User } from '../entities/User';\n  \n  export interface UserRepository {\n    findById(id: string): User | null;\n    findAll(): User[];\n    save(user: User): void;\n  }\n  \n  =====SOURCE-END=====\n\n## Label options\n1. pass\n  2. fail\n\n## Root causes\n1. RC-LAYER-MAP\n  2. RC-EXTRACT-ALIAS\n  3. RC-EXTRACT-BARREL\n  4. RC-DYNAMIC-IMPORT\n  5. RC-TYPE-ONLY\n  6. RC-TEMPLATE-OVERAPPROX\n  7. RC-STYLE-INAPPLICABLE\n  8. RC-SPEC-PARAM\n  9. RC-GENERATED-CODE\n  10. RC-TEST-CODE\n  11. RC-GENUINE-UNSEEDED\n  12. RC-OTHER\n\nAnswer with one JSON object: {\"option\": <number of the label option>, \"rootCause\": <number of the root cause or null>, \"note\": \"<text, required with RC-OTHER>\", \"rationale\": \"<one or two sentences citing the code>\"}.",
+  "provider": "gemini",
+  "recordedAt": "2026-10-11T17:15:41.230Z",
+  "repetition": 0,
+  "requestHash": "a2a21f4a1c7d2cc0a7ecd0244bea663300c3e3fcbf77b5f24e0f5d8bf51759cb",
+  "resolvedModel": "gemini-3.1-pro-preview",
+  "response": "{\"option\": 1, \"rationale\": \"The files ProjectRepository.ts, TaskRepository.ts, and UserRepository.ts all serve the cohesive concern of defining repository interfaces for domain entities, using consistent abstractions like findById and save.\", \"note\": \"\", \"rootCause\": null}",
+  "runIndex": 0,
+  "schemaVersion": 2,
+  "unitId": "src/domain/repositories",
+  "usage": {
+    "inputTokens": 936,
+    "outputTokens": 59
+  },
+  "usedOptions": {
+    "maxTokens": 65536,
+    "model": "gemini-3.1-pro-preview",
+    "temperature": 0
+  }
+}

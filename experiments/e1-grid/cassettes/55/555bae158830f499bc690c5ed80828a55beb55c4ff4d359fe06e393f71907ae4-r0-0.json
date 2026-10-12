@@ -1,0 +1,48 @@
+{
+  "attempts": 1,
+  "cliVersion": "2.1.294",
+  "configListingSha256": "47aa04258852fab9a706f3f0c14cee22306d69fbb6fdfbde8c11854bd54997bc",
+  "durationMs": 6123,
+  "effort": "high",
+  "functionId": "FF-N02",
+  "ignoredOptions": [
+    "maxTokens"
+  ],
+  "isolationProbeSha256": "97a2e2d0af1100c13c55e028c1a0c71f069093c3d08705af122aaeb302f1a641",
+  "key": "555bae158830f499bc690c5ed80828a55beb55c4ff4d359fe06e393f71907ae4-r0-0",
+  "model": "claude-opus-5-5",
+  "outcome": {
+    "kind": "valid"
+  },
+  "parsedVerdict": {
+    "confidence": 0.95,
+    "evidence": [
+      "src/application/dto/user-dto.ts: `interface CreateUserInput { name: string }` is an input contract for a use case, which is an application responsibility.",
+      "src/application/dto/user-dto.ts: `interface UserDto { id; name }` is an output data transfer shape, which is an application responsibility.",
+      "src/application/dto/user-dto.ts: `toUserDto(user)` only copies id and name. It contains no business rules, I/O or framework code.",
+      "Graph: the file is imported by src/application/use-cases/create-user-use-case.ts, so it serves the application use-case boundary."
+    ],
+    "pass": true,
+    "reasoning": "This file belongs to the application layer. It declares an input DTO (CreateUserInput), an output DTO (UserDto) and a pure mapper (toUserDto) that turns a domain User into the DTO. Defining use-case input/output contracts and mapping domain objects to them is application-layer work. The file has no persistence, transport, framework or HTTP logic, and no business rules or invariants that should live in the domain. No ADR prose was given.",
+    "violations": []
+  },
+  "projectId": "claude-sonnet-5-5/task-management/full-aac/run-2",
+  "prompt": "## Rule\nThe unit's responsibilities match the role of its declared layer.\n\n## Rubric\nPass: Every responsibility in the file belongs to the role and kind of its declared layer, and agrees with any ADR prose given.\nFail: The file carries a responsibility that belongs to a different layer kind, for example persistence, transport or framework logic in a domain file, or business rules in an infrastructure or presentation file.\nEvidence required: Name the file and cite the function, method or statement that carries the misplaced responsibility, and the layer kind it belongs to.\nOut of scope: import direction and layer-dependency rules, which are checked symbolically.\n\n## Layer model\n- domain (kind: domain): src/domain/**\n- application (kind: application): src/application/**\n- infrastructure (kind: infrastructure): src/infrastructure/**\n\n## Unit\nKind: file\nId: src/application/dto/user-dto.ts\nLayer: application\nUnit files:\n- src/application/dto/user-dto.ts\n\n## Source\n=====SOURCE-BEGIN src/application/dto/user-dto.ts=====\nimport type { User } from \"../../domain/user\";\n\nexport interface CreateUserInput {\n  name: string;\n}\n\nexport interface UserDto {\n  id: string;\n  name: string;\n}\n\nexport function toUserDto(user: User): UserDto {\n  return { id: user.id, name: user.name };\n}\n\n=====SOURCE-END=====\n\n## Graph excerpt\n{\"edges\":[{\"from\":\"src/application/dto/user-dto.ts\",\"to\":\"src/domain/user.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/application/use-cases/create-user-use-case.ts\",\"to\":\"src/application/dto/user-dto.ts\",\"type\":\"IMPORTS\"}],\"nodes\":[{\"kind\":\"File\",\"layer\":\"application\",\"path\":\"src/application/dto/user-dto.ts\"},{\"kind\":\"File\",\"layer\":\"application\",\"path\":\"src/application/use-cases/create-user-use-case.ts\"},{\"kind\":\"File\",\"layer\":\"domain\",\"path\":\"src/domain/user.ts\"},{\"kind\":\"Interface\",\"layer\":\"application\",\"name\":\"CreateUserInput\",\"path\":\"src/application/dto/user-dto.ts\"},{\"kind\":\"Interface\",\"layer\":\"application\",\"name\":\"UserDto\",\"path\":\"src/application/dto/user-dto.ts\"}]}\n\n## Instructions\nJudge the unit against the rule and rubric. Return the JSON object the schema requires. Set pass to false if any file of the unit fails the rubric.\n",
+  "provider": "claude-cli",
+  "recordedAt": "2026-10-10T22:59:58.547Z",
+  "repetition": 0,
+  "requestHash": "555bae158830f499bc690c5ed80828a55beb55c4ff4d359fe06e393f71907ae4",
+  "resolvedModel": "claude-opus-5-5",
+  "response": "{\"is_error\":false,\"modelUsage\":{\"claude-opus-5-5\":{\"inputTokens\":2,\"outputTokens\":483}},\"result\":\"{\\\"pass\\\":true,\\\"confidence\\\":0.95,\\\"reasoning\\\":\\\"This file belongs to the application layer. It declares an input DTO (CreateUserInput), an output DTO (UserDto) and a pure mapper (toUserDto) that turns a domain User into the DTO. Defining use-case input/output contracts and mapping domain objects to them is application-layer work. The file has no persistence, transport, framework or HTTP logic, and no business rules or invariants that should live in the domain. No ADR prose was given.\\\",\\\"evidence\\\":[\\\"src/application/dto/user-dto.ts: `interface CreateUserInput { name: string }` is an input contract for a use case, which is an application responsibility.\\\",\\\"src/application/dto/user-dto.ts: `interface UserDto { id; name }` is an output data transfer shape, which is an application responsibility.\\\",\\\"src/application/dto/user-dto.ts: `toUserDto(user)` only copies id and name. It contains no business rules, I/O or framework code.\\\",\\\"Graph: the file is imported by src/application/use-cases/create-user-use-case.ts, so it serves the application use-case boundary.\\\"],\\\"violations\\\":[]}\",\"structured_output\":{\"confidence\":0.95,\"evidence\":[\"src/application/dto/user-dto.ts: `interface CreateUserInput { name: string }` is an input contract for a use case, which is an application responsibility.\",\"src/application/dto/user-dto.ts: `interface UserDto { id; name }` is an output data transfer shape, which is an application responsibility.\",\"src/application/dto/user-dto.ts: `toUserDto(user)` only copies id and name. It contains no business rules, I/O or framework code.\",\"Graph: the file is imported by src/application/use-cases/create-user-use-case.ts, so it serves the application use-case boundary.\"],\"pass\":true,\"reasoning\":\"This file belongs to the application layer. It declares an input DTO (CreateUserInput), an output DTO (UserDto) and a pure mapper (toUserDto) that turns a domain User into the DTO. Defining use-case input/output contracts and mapping domain objects to them is application-layer work. The file has no persistence, transport, framework or HTTP logic, and no business rules or invariants that should live in the domain. No ADR prose was given.\",\"violations\":[]}}",
+  "runIndex": 0,
+  "schemaVersion": 2,
+  "unitId": "src/application/dto/user-dto.ts",
+  "usage": {
+    "inputTokens": 2301,
+    "outputTokens": 483
+  },
+  "usedOptions": {
+    "effort": "high",
+    "model": "claude-opus-5-5"
+  }
+}

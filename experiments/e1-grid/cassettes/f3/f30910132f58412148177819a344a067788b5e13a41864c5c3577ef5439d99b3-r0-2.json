@@ -1,0 +1,49 @@
+{
+  "attempts": 1,
+  "cliVersion": "2.1.294",
+  "configListingSha256": "47aa04258852fab9a706f3f0c14cee22306d69fbb6fdfbde8c11854bd54997bc",
+  "durationMs": 6009,
+  "effort": "high",
+  "functionId": "FF-N02",
+  "ignoredOptions": [
+    "maxTokens"
+  ],
+  "isolationProbeSha256": "97a2e2d0af1100c13c55e028c1a0c71f069093c3d08705af122aaeb302f1a641",
+  "key": "f30910132f58412148177819a344a067788b5e13a41864c5c3577ef5439d99b3-r0-2",
+  "model": "claude-opus-5-5",
+  "outcome": {
+    "kind": "valid"
+  },
+  "parsedVerdict": {
+    "confidence": 0.95,
+    "evidence": [
+      "DomainError extends Error and only sets message and name, with no framework or transport details",
+      "InsufficientStockError carries the domain data productId, requested and available, plus a business-language message",
+      "EmptyOrderError expresses the business invariant 'An order must contain at least one line'",
+      "No status codes, serialization, I/O or persistence logic is present in the file",
+      "The graph shows src/infrastructure/http/errorHandler.ts imports these errors, so HTTP mapping lives in infrastructure"
+    ],
+    "pass": true,
+    "reasoning": "src/domain/errors.ts defines only a hierarchy of domain error types. They express business invariant violations: invalid quantity, insufficient stock, unknown product, invalid order transition and empty order. None of them carries an HTTP status code, transport mapping, persistence concern or framework dependency. Mapping these errors to HTTP responses is done separately in src/infrastructure/http/errorHandler.ts, which is the right place for it. Every responsibility in the file fits the domain layer.",
+    "violations": []
+  },
+  "projectId": "claude-opus-5-5/order-fulfilment/minimal-prose/run-2",
+  "prompt": "## Rule\nThe unit's responsibilities match the role of its declared layer.\n\n## Rubric\nPass: Every responsibility in the file belongs to the role and kind of its declared layer, and agrees with any ADR prose given.\nFail: The file carries a responsibility that belongs to a different layer kind, for example persistence, transport or framework logic in a domain file, or business rules in an infrastructure or presentation file.\nEvidence required: Name the file and cite the function, method or statement that carries the misplaced responsibility, and the layer kind it belongs to.\nOut of scope: import direction and layer-dependency rules, which are checked symbolically.\n\n## Layer model\n- domain (kind: domain): src/domain/**\n- application (kind: application): src/application/**\n- infrastructure (kind: infrastructure): src/infrastructure/**\n\n## Unit\nKind: file\nId: src/domain/errors.ts\nLayer: domain\nUnit files:\n- src/domain/errors.ts\n\n## Source\n=====SOURCE-BEGIN src/domain/errors.ts=====\nexport class DomainError extends Error {\n  constructor(message: string) {\n    super(message);\n    this.name = new.target.name;\n  }\n}\n\nexport class InvalidQuantityError extends DomainError {}\n\nexport class InsufficientStockError extends DomainError {\n  constructor(\n    readonly productId: string,\n    readonly requested: number,\n    readonly available: number,\n  ) {\n    super(`Insufficient stock for product ${productId}: requested ${requested}, available ${available}`);\n  }\n}\n\nexport class UnknownProductError extends DomainError {\n  constructor(readonly productId: string) {\n    super(`Product ${productId} is not in the catalogue`);\n  }\n}\n\nexport class InvalidOrderTransitionError extends DomainError {}\n\nexport class EmptyOrderError extends DomainError {\n  constructor() {\n    super('An order must contain at least one line');\n  }\n}\n\n=====SOURCE-END=====\n\n## Graph excerpt\n{\"edges\":[{\"from\":\"EmptyOrderError@src/domain/errors.ts\",\"to\":\"DomainError@src/domain/errors.ts\",\"type\":\"EXTENDS\"},{\"from\":\"InsufficientStockError@src/domain/errors.ts\",\"to\":\"DomainError@src/domain/errors.ts\",\"type\":\"EXTENDS\"},{\"from\":\"InvalidOrderTransitionError@src/domain/errors.ts\",\"to\":\"DomainError@src/domain/errors.ts\",\"type\":\"EXTENDS\"},{\"from\":\"InvalidQuantityError@src/domain/errors.ts\",\"to\":\"DomainError@src/domain/errors.ts\",\"type\":\"EXTENDS\"},{\"from\":\"UnknownProductError@src/domain/errors.ts\",\"to\":\"DomainError@src/domain/errors.ts\",\"type\":\"EXTENDS\"},{\"from\":\"src/domain/Order.ts\",\"to\":\"src/domain/errors.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/domain/Product.ts\",\"to\":\"src/domain/errors.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/domain/Quantity.ts\",\"to\":\"src/domain/errors.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/domain/StockReservationService.ts\",\"to\":\"src/domain/errors.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/infrastructure/http/errorHandler.ts\",\"to\":\"src/domain/errors.ts\",\"type\":\"IMPORTS\"}],\"nodes\":[{\"kind\":\"Class\",\"layer\":\"domain\",\"name\":\"DomainError\",\"path\":\"src/domain/errors.ts\"},{\"kind\":\"Class\",\"layer\":\"domain\",\"name\":\"EmptyOrderError\",\"path\":\"src/domain/errors.ts\"},{\"kind\":\"Class\",\"layer\":\"domain\",\"name\":\"InsufficientStockError\",\"path\":\"src/domain/errors.ts\"},{\"kind\":\"Class\",\"layer\":\"domain\",\"name\":\"InvalidOrderTransitionError\",\"path\":\"src/domain/errors.ts\"},{\"kind\":\"Class\",\"layer\":\"domain\",\"name\":\"InvalidQuantityError\",\"path\":\"src/domain/errors.ts\"},{\"kind\":\"Class\",\"layer\":\"domain\",\"name\":\"UnknownProductError\",\"path\":\"src/domain/errors.ts\"},{\"kind\":\"File\",\"layer\":\"domain\",\"path\":\"src/domain/Order.ts\"},{\"kind\":\"File\",\"layer\":\"domain\",\"path\":\"src/domain/Product.ts\"},{\"kind\":\"File\",\"layer\":\"domain\",\"path\":\"src/domain/Quantity.ts\"},{\"kind\":\"File\",\"layer\":\"domain\",\"path\":\"src/domain/StockReservationService.ts\"},{\"kind\":\"File\",\"layer\":\"domain\",\"path\":\"src/domain/errors.ts\"},{\"kind\":\"File\",\"layer\":\"infrastructure\",\"path\":\"src/infrastructure/http/errorHandler.ts\"}]}\n\n## Instructions\nJudge the unit against the rule and rubric. Return the JSON object the schema requires. Set pass to false if any file of the unit fails the rubric.\n",
+  "provider": "claude-cli",
+  "recordedAt": "2026-10-10T21:58:11.440Z",
+  "repetition": 0,
+  "requestHash": "f30910132f58412148177819a344a067788b5e13a41864c5c3577ef5439d99b3",
+  "resolvedModel": "claude-opus-5-5",
+  "response": "{\"is_error\":false,\"modelUsage\":{\"claude-opus-5-5\":{\"inputTokens\":2,\"outputTokens\":463}},\"result\":\"{\\\"pass\\\":true,\\\"confidence\\\":0.95,\\\"reasoning\\\":\\\"src/domain/errors.ts defines only a hierarchy of domain error types. They express business invariant violations: invalid quantity, insufficient stock, unknown product, invalid order transition and empty order. None of them carries an HTTP status code, transport mapping, persistence concern or framework dependency. Mapping these errors to HTTP responses is done separately in src/infrastructure/http/errorHandler.ts, which is the right place for it. Every responsibility in the file fits the domain layer.\\\",\\\"evidence\\\":[\\\"DomainError extends Error and only sets message and name, with no framework or transport details\\\",\\\"InsufficientStockError carries the domain data productId, requested and available, plus a business-language message\\\",\\\"EmptyOrderError expresses the business invariant 'An order must contain at least one line'\\\",\\\"No status codes, serialization, I/O or persistence logic is present in the file\\\",\\\"The graph shows src/infrastructure/http/errorHandler.ts imports these errors, so HTTP mapping lives in infrastructure\\\"],\\\"violations\\\":[]}\",\"structured_output\":{\"confidence\":0.95,\"evidence\":[\"DomainError extends Error and only sets message and name, with no framework or transport details\",\"InsufficientStockError carries the domain data productId, requested and available, plus a business-language message\",\"EmptyOrderError expresses the business invariant 'An order must contain at least one line'\",\"No status codes, serialization, I/O or persistence logic is present in the file\",\"The graph shows src/infrastructure/http/errorHandler.ts imports these errors, so HTTP mapping lives in infrastructure\"],\"pass\":true,\"reasoning\":\"src/domain/errors.ts defines only a hierarchy of domain error types. They express business invariant violations: invalid quantity, insufficient stock, unknown product, invalid order transition and empty order. None of them carries an HTTP status code, transport mapping, persistence concern or framework dependency. Mapping these errors to HTTP responses is done separately in src/infrastructure/http/errorHandler.ts, which is the right place for it. Every responsibility in the file fits the domain layer.\",\"violations\":[]}}",
+  "runIndex": 2,
+  "schemaVersion": 2,
+  "unitId": "src/domain/errors.ts",
+  "usage": {
+    "inputTokens": 3151,
+    "outputTokens": 463
+  },
+  "usedOptions": {
+    "effort": "high",
+    "model": "claude-opus-5-5"
+  }
+}

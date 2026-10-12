@@ -1,0 +1,46 @@
+{
+  "attempts": 1,
+  "cliVersion": "2.1.294",
+  "configListingSha256": "47aa04258852fab9a706f3f0c14cee22306d69fbb6fdfbde8c11854bd54997bc",
+  "durationMs": 6732,
+  "effort": "high",
+  "functionId": "FF-N02",
+  "ignoredOptions": [
+    "maxTokens"
+  ],
+  "isolationProbeSha256": "ce76f240c1d90df332d581703538c0b40c5186947dd64c0ffb3ffb207242b218",
+  "key": "0adc3abe541d5e865523b63dc13791a871d9b0a1a41141973760f3949a4addae-r0-2",
+  "model": "claude-sonnet-5-5",
+  "outcome": {
+    "kind": "valid"
+  },
+  "parsedVerdict": {
+    "confidence": 0.95,
+    "evidence": [
+      "src/domain/product.ts: the constructor validates initialStock and throws ValidationError. This is a domain invariant.",
+      "src/domain/product.ts: reserve() and canReserve() enforce stock availability and throw InsufficientStockError. This is a domain business rule.",
+      "src/domain/product.ts: release() adjusts in-memory state only, with no I/O, HTTP or framework code."
+    ],
+    "pass": true,
+    "reasoning": "Product is a domain entity. It holds stock state and enforces invariants: the constructor requires non-negative integer initial stock, and reserve() fails when stock is insufficient. It throws domain errors from ./errors. It has no persistence, transport, framework or presentation logic, so every responsibility fits the domain layer.",
+    "violations": []
+  },
+  "prompt": "## Rule\nThe unit's responsibilities match the role of its declared layer.\n\n## Rubric\nPass: Every responsibility in the file belongs to the role and kind of its declared layer, and agrees with any ADR prose given.\nFail: The file carries a responsibility that belongs to a different layer kind, for example persistence, transport or framework logic in a domain file, or business rules in an infrastructure or presentation file.\nEvidence required: Name the file and cite the function, method or statement that carries the misplaced responsibility, and the layer kind it belongs to.\nOut of scope: import direction and layer-dependency rules, which are checked symbolically.\n\n## Layer model\n- domain (kind: domain): src/domain/**\n- application (kind: application): src/application/**\n- infrastructure (kind: infrastructure): src/infrastructure/**\n\n## Unit\nKind: file\nId: src/domain/product.ts\nLayer: domain\nUnit files:\n- src/domain/product.ts\n\n## Source\n=====SOURCE-BEGIN src/domain/product.ts=====\nimport { InsufficientStockError, ValidationError } from \"./errors\";\n\nexport class Product {\n  private available: number;\n\n  constructor(\n    readonly id: string,\n    readonly name: string,\n    initialStock: number,\n  ) {\n    if (!Number.isInteger(initialStock) || initialStock < 0) {\n      throw new ValidationError(\"Stock must be a non-negative integer\");\n    }\n    this.available = initialStock;\n  }\n\n  get stock(): number {\n    return this.available;\n  }\n\n  canReserve(quantity: number): boolean {\n    return quantity <= this.available;\n  }\n\n  reserve(quantity: number): void {\n    if (!this.canReserve(quantity)) {\n      throw new InsufficientStockError(`Insufficient stock for product ${this.id}`);\n    }\n    this.available -= quantity;\n  }\n\n  release(quantity: number): void {\n    this.available += quantity;\n  }\n}\n\n=====SOURCE-END=====\n\n## Graph excerpt\n{\"edges\":[{\"from\":\"src/application/dtos.ts\",\"to\":\"src/domain/product.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/domain/product-repository.ts\",\"to\":\"src/domain/product.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/domain/product.ts\",\"to\":\"src/domain/errors.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/domain/stock-reservation-service.ts\",\"to\":\"src/domain/product.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/infrastructure/app-factory.ts\",\"to\":\"src/domain/product.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/infrastructure/in-memory-product-repository.ts\",\"to\":\"src/domain/product.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/infrastructure/server.ts\",\"to\":\"src/domain/product.ts\",\"type\":\"IMPORTS\"}],\"nodes\":[{\"kind\":\"Class\",\"layer\":\"domain\",\"name\":\"Product\",\"path\":\"src/domain/product.ts\"},{\"kind\":\"File\",\"layer\":\"application\",\"path\":\"src/application/dtos.ts\"},{\"kind\":\"File\",\"layer\":\"domain\",\"path\":\"src/domain/errors.ts\"},{\"kind\":\"File\",\"layer\":\"domain\",\"path\":\"src/domain/product-repository.ts\"},{\"kind\":\"File\",\"layer\":\"domain\",\"path\":\"src/domain/product.ts\"},{\"kind\":\"File\",\"layer\":\"domain\",\"path\":\"src/domain/stock-reservation-service.ts\"},{\"kind\":\"File\",\"layer\":\"infrastructure\",\"path\":\"src/infrastructure/app-factory.ts\"},{\"kind\":\"File\",\"layer\":\"infrastructure\",\"path\":\"src/infrastructure/in-memory-product-repository.ts\"},{\"kind\":\"File\",\"layer\":\"infrastructure\",\"path\":\"src/infrastructure/server.ts\"}]}\n\n## Instructions\nJudge the unit against the rule and rubric. Return the JSON object the schema requires. Set pass to false if any file of the unit fails the rubric.\n",
+  "provider": "claude-cli",
+  "recordedAt": "2026-10-11T21:58:34.116Z",
+  "repetition": 0,
+  "requestHash": "0adc3abe541d5e865523b63dc13791a871d9b0a1a41141973760f3949a4addae",
+  "resolvedModel": "claude-sonnet-5-5",
+  "response": "{\"is_error\":false,\"modelUsage\":{\"claude-sonnet-5-5\":{\"inputTokens\":4,\"outputTokens\":663}},\"result\":\"{\\\"pass\\\":true,\\\"confidence\\\":0.95,\\\"reasoning\\\":\\\"Product is a domain entity. It holds stock state and enforces invariants: the constructor requires non-negative integer initial stock, and reserve() fails when stock is insufficient. It throws domain errors from ./errors. It has no persistence, transport, framework or presentation logic, so every responsibility fits the domain layer.\\\",\\\"evidence\\\":[\\\"src/domain/product.ts: the constructor validates initialStock and throws ValidationError. This is a domain invariant.\\\",\\\"src/domain/product.ts: reserve() and canReserve() enforce stock availability and throw InsufficientStockError. This is a domain business rule.\\\",\\\"src/domain/product.ts: release() adjusts in-memory state only, with no I/O, HTTP or framework code.\\\"],\\\"violations\\\":[]}\",\"structured_output\":{\"confidence\":0.95,\"evidence\":[\"src/domain/product.ts: the constructor validates initialStock and throws ValidationError. This is a domain invariant.\",\"src/domain/product.ts: reserve() and canReserve() enforce stock availability and throw InsufficientStockError. This is a domain business rule.\",\"src/domain/product.ts: release() adjusts in-memory state only, with no I/O, HTTP or framework code.\"],\"pass\":true,\"reasoning\":\"Product is a domain entity. It holds stock state and enforces invariants: the constructor requires non-negative integer initial stock, and reserve() fails when stock is insufficient. It throws domain errors from ./errors. It has no persistence, transport, framework or presentation logic, so every responsibility fits the domain layer.\",\"violations\":[]}}",
+  "runIndex": 2,
+  "schemaVersion": 2,
+  "unitId": "src/domain/product.ts",
+  "usage": {
+    "inputTokens": 6125,
+    "outputTokens": 663
+  },
+  "usedOptions": {
+    "effort": "high",
+    "model": "claude-sonnet-5-5"
+  }
+}

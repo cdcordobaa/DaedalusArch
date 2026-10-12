@@ -1,0 +1,47 @@
+{
+  "attempts": 1,
+  "cliVersion": "2.1.294",
+  "configListingSha256": "47aa04258852fab9a706f3f0c14cee22306d69fbb6fdfbde8c11854bd54997bc",
+  "durationMs": 8416,
+  "effort": "high",
+  "functionId": "FF-N02",
+  "ignoredOptions": [
+    "maxTokens"
+  ],
+  "isolationProbeSha256": "ce76f240c1d90df332d581703538c0b40c5186947dd64c0ffb3ffb207242b218",
+  "key": "898b46e5082c711e9e2e4834db17e48c9919a01ec6b456e96f00a29d322f6a41-r0-1",
+  "model": "claude-sonnet-5-5",
+  "outcome": {
+    "kind": "valid"
+  },
+  "parsedVerdict": {
+    "confidence": 0.95,
+    "evidence": [
+      "src/domain/services/TaskAssignmentService.ts: assign() checks that the user exists through the UserRepository abstraction and throws the domain NotFoundError. This is a domain rule.",
+      "task.assignTo(user.id) delegates the state change to the domain entity.",
+      "The doc comment 'Enforces that only existing users can be assigned to a task' matches the code, which is a domain invariant.",
+      "The file has no HTTP, database, framework or DTO code. UserRepository is a domain interface in src/domain/repositories/UserRepository.ts."
+    ],
+    "pass": true,
+    "reasoning": "TaskAssignmentService is a domain service. It enforces a business invariant: only existing users can be assigned to a task. It relies on the domain-defined UserRepository interface, not a concrete persistence implementation. It throws a domain error (NotFoundError) and delegates the state change to the Task entity through task.assignTo. It has no transport, framework, persistence or use-case orchestration logic that belongs to another layer. The code agrees with its doc comment.",
+    "violations": []
+  },
+  "prompt": "## Rule\nThe unit's responsibilities match the role of its declared layer.\n\n## Rubric\nPass: Every responsibility in the file belongs to the role and kind of its declared layer, and agrees with any ADR prose given.\nFail: The file carries a responsibility that belongs to a different layer kind, for example persistence, transport or framework logic in a domain file, or business rules in an infrastructure or presentation file.\nEvidence required: Name the file and cite the function, method or statement that carries the misplaced responsibility, and the layer kind it belongs to.\nOut of scope: import direction and layer-dependency rules, which are checked symbolically.\n\n## Layer model\n- domain (kind: domain): src/domain/**\n- application (kind: application): src/application/**\n- infrastructure (kind: infrastructure): src/infrastructure/**\n\n## Unit\nKind: file\nId: src/domain/services/TaskAssignmentService.ts\nLayer: domain\nUnit files:\n- src/domain/services/TaskAssignmentService.ts\n\n## Source\n=====SOURCE-BEGIN src/domain/services/TaskAssignmentService.ts=====\nimport { Task } from '../entities/Task';\nimport { NotFoundError } from '../errors/DomainErrors';\nimport { UserRepository } from '../repositories/UserRepository';\n\n/** Enforces that only existing users can be assigned to a task. */\nexport class TaskAssignmentService {\n  constructor(private readonly users: UserRepository) {}\n\n  async assign(task: Task, userId: string): Promise<void> {\n    const user = await this.users.findById(userId);\n    if (user === null) {\n      throw new NotFoundError('User', userId);\n    }\n    task.assignTo(user.id);\n  }\n}\n\n=====SOURCE-END=====\n\n## Graph excerpt\n{\"edges\":[{\"from\":\"AssignTaskUseCase@src/application/use-cases/AssignTaskUseCase.ts\",\"to\":\"TaskAssignmentService@src/domain/services/TaskAssignmentService.ts\",\"type\":\"CONSTRUCTOR_INJECTS\"},{\"from\":\"CreateTaskUseCase@src/application/use-cases/CreateTaskUseCase.ts\",\"to\":\"TaskAssignmentService@src/domain/services/TaskAssignmentService.ts\",\"type\":\"CONSTRUCTOR_INJECTS\"},{\"from\":\"TaskAssignmentService@src/domain/services/TaskAssignmentService.ts\",\"to\":\"UserRepository@src/domain/repositories/UserRepository.ts\",\"type\":\"CONSTRUCTOR_INJECTS\"},{\"from\":\"src/application/use-cases/AssignTaskUseCase.ts\",\"to\":\"src/domain/services/TaskAssignmentService.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/application/use-cases/CreateTaskUseCase.ts\",\"to\":\"src/domain/services/TaskAssignmentService.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/domain/services/TaskAssignmentService.ts\",\"to\":\"src/domain/entities/Task.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/domain/services/TaskAssignmentService.ts\",\"to\":\"src/domain/errors/DomainErrors.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/domain/services/TaskAssignmentService.ts\",\"to\":\"src/domain/repositories/UserRepository.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/infrastructure/container.ts\",\"to\":\"src/domain/services/TaskAssignmentService.ts\",\"type\":\"IMPORTS\"}],\"nodes\":[{\"kind\":\"Class\",\"layer\":\"application\",\"name\":\"AssignTaskUseCase\",\"path\":\"src/application/use-cases/AssignTaskUseCase.ts\"},{\"kind\":\"Class\",\"layer\":\"application\",\"name\":\"CreateTaskUseCase\",\"path\":\"src/application/use-cases/CreateTaskUseCase.ts\"},{\"kind\":\"Class\",\"layer\":\"domain\",\"name\":\"TaskAssignmentService\",\"path\":\"src/domain/services/TaskAssignmentService.ts\"},{\"kind\":\"File\",\"layer\":\"application\",\"path\":\"src/application/use-cases/AssignTaskUseCase.ts\"},{\"kind\":\"File\",\"layer\":\"application\",\"path\":\"src/application/use-cases/CreateTaskUseCase.ts\"},{\"kind\":\"File\",\"layer\":\"domain\",\"path\":\"src/domain/entities/Task.ts\"},{\"kind\":\"File\",\"layer\":\"domain\",\"path\":\"src/domain/errors/DomainErrors.ts\"},{\"kind\":\"File\",\"layer\":\"domain\",\"path\":\"src/domain/repositories/UserRepository.ts\"},{\"kind\":\"File\",\"layer\":\"domain\",\"path\":\"src/domain/services/TaskAssignmentService.ts\"},{\"kind\":\"File\",\"layer\":\"infrastructure\",\"path\":\"src/infrastructure/container.ts\"},{\"kind\":\"Interface\",\"layer\":\"domain\",\"name\":\"UserRepository\",\"path\":\"src/domain/repositories/UserRepository.ts\"}]}\n\n## Instructions\nJudge the unit against the rule and rubric. Return the JSON object the schema requires. Set pass to false if any file of the unit fails the rubric.\n",
+  "provider": "claude-cli",
+  "recordedAt": "2026-10-11T22:04:44.045Z",
+  "repetition": 0,
+  "requestHash": "898b46e5082c711e9e2e4834db17e48c9919a01ec6b456e96f00a29d322f6a41",
+  "resolvedModel": "claude-sonnet-5-5",
+  "response": "{\"is_error\":false,\"modelUsage\":{\"claude-sonnet-5-5\":{\"inputTokens\":4,\"outputTokens\":991}},\"result\":\"{\\\"pass\\\":true,\\\"confidence\\\":0.95,\\\"reasoning\\\":\\\"TaskAssignmentService is a domain service. It enforces a business invariant: only existing users can be assigned to a task. It relies on the domain-defined UserRepository interface, not a concrete persistence implementation. It throws a domain error (NotFoundError) and delegates the state change to the Task entity through task.assignTo. It has no transport, framework, persistence or use-case orchestration logic that belongs to another layer. The code agrees with its doc comment.\\\",\\\"evidence\\\":[\\\"src/domain/services/TaskAssignmentService.ts: assign() checks that the user exists through the UserRepository abstraction and throws the domain NotFoundError. This is a domain rule.\\\",\\\"task.assignTo(user.id) delegates the state change to the domain entity.\\\",\\\"The doc comment 'Enforces that only existing users can be assigned to a task' matches the code, which is a domain invariant.\\\",\\\"The file has no HTTP, database, framework or DTO code. UserRepository is a domain interface in src/domain/repositories/UserRepository.ts.\\\"],\\\"violations\\\":[]}\",\"structured_output\":{\"confidence\":0.95,\"evidence\":[\"src/domain/services/TaskAssignmentService.ts: assign() checks that the user exists through the UserRepository abstraction and throws the domain NotFoundError. This is a domain rule.\",\"task.assignTo(user.id) delegates the state change to the domain entity.\",\"The doc comment 'Enforces that only existing users can be assigned to a task' matches the code, which is a domain invariant.\",\"The file has no HTTP, database, framework or DTO code. UserRepository is a domain interface in src/domain/repositories/UserRepository.ts.\"],\"pass\":true,\"reasoning\":\"TaskAssignmentService is a domain service. It enforces a business invariant: only existing users can be assigned to a task. It relies on the domain-defined UserRepository interface, not a concrete persistence implementation. It throws a domain error (NotFoundError) and delegates the state change to the Task entity through task.assignTo. It has no transport, framework, persistence or use-case orchestration logic that belongs to another layer. The code agrees with its doc comment.\",\"violations\":[]}}",
+  "runIndex": 1,
+  "schemaVersion": 2,
+  "unitId": "src/domain/services/TaskAssignmentService.ts",
+  "usage": {
+    "inputTokens": 7122,
+    "outputTokens": 991
+  },
+  "usedOptions": {
+    "effort": "high",
+    "model": "claude-sonnet-5-5"
+  }
+}

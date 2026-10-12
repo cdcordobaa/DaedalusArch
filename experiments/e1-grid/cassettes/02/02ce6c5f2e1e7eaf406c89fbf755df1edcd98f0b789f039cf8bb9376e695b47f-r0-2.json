@@ -1,0 +1,48 @@
+{
+  "attempts": 1,
+  "cliVersion": "2.1.294",
+  "configListingSha256": "47aa04258852fab9a706f3f0c14cee22306d69fbb6fdfbde8c11854bd54997bc",
+  "durationMs": 6210,
+  "effort": "high",
+  "functionId": "FF-N02",
+  "ignoredOptions": [
+    "maxTokens"
+  ],
+  "isolationProbeSha256": "97a2e2d0af1100c13c55e028c1a0c71f069093c3d08705af122aaeb302f1a641",
+  "key": "02ce6c5f2e1e7eaf406c89fbf755df1edcd98f0b789f039cf8bb9376e695b47f-r0-2",
+  "model": "claude-opus-5-5",
+  "outcome": {
+    "kind": "valid"
+  },
+  "parsedVerdict": {
+    "confidence": 0.93,
+    "evidence": [
+      "src/infrastructure/InMemoryOrderRepository.ts: class InMemoryOrderRepository implements OrderRepository, a domain port implemented by an infrastructure adapter",
+      "save() and findById() only call Map set/get, so they are pure storage concerns",
+      "findByState() filters stored orders using the domain accessor getStateValue(), which is a repository query and not a business rule",
+      "findAll() returns every stored order, so no domain logic is present"
+    ],
+    "pass": true,
+    "reasoning": "The file is an in-memory persistence adapter. It implements the domain OrderRepository port and only stores and retrieves Order aggregates, which is the job of an infrastructure layer. findByState filters on order.getStateValue() === state. That is a query-by-attribute persistence concern, not a business rule: it doesn't decide state transitions or validity, and it doesn't compute domain outcomes. There is no business logic, presentation or application orchestration in the file.",
+    "violations": []
+  },
+  "projectId": "claude-haiku-4-5/order-fulfilment/minimal-prose/run-1",
+  "prompt": "## Rule\nThe unit's responsibilities match the role of its declared layer.\n\n## Rubric\nPass: Every responsibility in the file belongs to the role and kind of its declared layer, and agrees with any ADR prose given.\nFail: The file carries a responsibility that belongs to a different layer kind, for example persistence, transport or framework logic in a domain file, or business rules in an infrastructure or presentation file.\nEvidence required: Name the file and cite the function, method or statement that carries the misplaced responsibility, and the layer kind it belongs to.\nOut of scope: import direction and layer-dependency rules, which are checked symbolically.\n\n## Layer model\n- domain (kind: domain): src/domain/**\n- application (kind: application): src/application/**\n- infrastructure (kind: infrastructure): src/infrastructure/**\n\n## Unit\nKind: file\nId: src/infrastructure/InMemoryOrderRepository.ts\nLayer: infrastructure\nUnit files:\n- src/infrastructure/InMemoryOrderRepository.ts\n\n## Source\n=====SOURCE-BEGIN src/infrastructure/InMemoryOrderRepository.ts=====\nimport { Order } from '../domain/Order';\nimport { OrderRepository } from '../domain/OrderRepository';\nimport { OrderStateType } from '../domain/OrderState';\n\nexport class InMemoryOrderRepository implements OrderRepository {\n  private orders: Map<string, Order> = new Map();\n\n  save(order: Order): void {\n    this.orders.set(order.id, order);\n  }\n\n  findById(id: string): Order | null {\n    return this.orders.get(id) || null;\n  }\n\n  findByState(state: OrderStateType): Order[] {\n    return Array.from(this.orders.values()).filter((order) => order.getStateValue() === state);\n  }\n\n  findAll(): Order[] {\n    return Array.from(this.orders.values());\n  }\n}\n\n=====SOURCE-END=====\n\n## Graph excerpt\n{\"edges\":[{\"from\":\"InMemoryOrderRepository@src/infrastructure/InMemoryOrderRepository.ts\",\"to\":\"OrderRepository@src/domain/OrderRepository.ts\",\"type\":\"IMPLEMENTS\"},{\"from\":\"src/infrastructure/InMemoryOrderRepository.ts\",\"to\":\"src/domain/Order.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/infrastructure/InMemoryOrderRepository.ts\",\"to\":\"src/domain/OrderRepository.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/infrastructure/InMemoryOrderRepository.ts\",\"to\":\"src/domain/OrderState.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/infrastructure/app.ts\",\"to\":\"src/infrastructure/InMemoryOrderRepository.ts\",\"type\":\"IMPORTS\"}],\"nodes\":[{\"kind\":\"Class\",\"layer\":\"infrastructure\",\"name\":\"InMemoryOrderRepository\",\"path\":\"src/infrastructure/InMemoryOrderRepository.ts\"},{\"kind\":\"File\",\"layer\":\"domain\",\"path\":\"src/domain/Order.ts\"},{\"kind\":\"File\",\"layer\":\"domain\",\"path\":\"src/domain/OrderRepository.ts\"},{\"kind\":\"File\",\"layer\":\"domain\",\"path\":\"src/domain/OrderState.ts\"},{\"kind\":\"File\",\"layer\":\"infrastructure\",\"path\":\"src/infrastructure/InMemoryOrderRepository.ts\"},{\"kind\":\"File\",\"layer\":\"infrastructure\",\"path\":\"src/infrastructure/app.ts\"},{\"kind\":\"Interface\",\"layer\":\"domain\",\"name\":\"OrderRepository\",\"path\":\"src/domain/OrderRepository.ts\"}]}\n\n## Instructions\nJudge the unit against the rule and rubric. Return the JSON object the schema requires. Set pass to false if any file of the unit fails the rubric.\n",
+  "provider": "claude-cli",
+  "recordedAt": "2026-10-11T02:47:40.292Z",
+  "repetition": 0,
+  "requestHash": "02ce6c5f2e1e7eaf406c89fbf755df1edcd98f0b789f039cf8bb9376e695b47f",
+  "resolvedModel": "claude-opus-5-5",
+  "response": "{\"is_error\":false,\"modelUsage\":{\"claude-opus-5-5\":{\"inputTokens\":2,\"outputTokens\":441}},\"result\":\"{\\\"pass\\\":true,\\\"confidence\\\":0.93,\\\"reasoning\\\":\\\"The file is an in-memory persistence adapter. It implements the domain OrderRepository port and only stores and retrieves Order aggregates, which is the job of an infrastructure layer. findByState filters on order.getStateValue() === state. That is a query-by-attribute persistence concern, not a business rule: it doesn't decide state transitions or validity, and it doesn't compute domain outcomes. There is no business logic, presentation or application orchestration in the file.\\\",\\\"evidence\\\":[\\\"src/infrastructure/InMemoryOrderRepository.ts: class InMemoryOrderRepository implements OrderRepository, a domain port implemented by an infrastructure adapter\\\",\\\"save() and findById() only call Map set/get, so they are pure storage concerns\\\",\\\"findByState() filters stored orders using the domain accessor getStateValue(), which is a repository query and not a business rule\\\",\\\"findAll() returns every stored order, so no domain logic is present\\\"],\\\"violations\\\":[]}\",\"structured_output\":{\"confidence\":0.93,\"evidence\":[\"src/infrastructure/InMemoryOrderRepository.ts: class InMemoryOrderRepository implements OrderRepository, a domain port implemented by an infrastructure adapter\",\"save() and findById() only call Map set/get, so they are pure storage concerns\",\"findByState() filters stored orders using the domain accessor getStateValue(), which is a repository query and not a business rule\",\"findAll() returns every stored order, so no domain logic is present\"],\"pass\":true,\"reasoning\":\"The file is an in-memory persistence adapter. It implements the domain OrderRepository port and only stores and retrieves Order aggregates, which is the job of an infrastructure layer. findByState filters on order.getStateValue() === state. That is a query-by-attribute persistence concern, not a business rule: it doesn't decide state transitions or validity, and it doesn't compute domain outcomes. There is no business logic, presentation or application orchestration in the file.\",\"violations\":[]}}",
+  "runIndex": 2,
+  "schemaVersion": 2,
+  "unitId": "src/infrastructure/InMemoryOrderRepository.ts",
+  "usage": {
+    "inputTokens": 2779,
+    "outputTokens": 441
+  },
+  "usedOptions": {
+    "effort": "high",
+    "model": "claude-opus-5-5"
+  }
+}

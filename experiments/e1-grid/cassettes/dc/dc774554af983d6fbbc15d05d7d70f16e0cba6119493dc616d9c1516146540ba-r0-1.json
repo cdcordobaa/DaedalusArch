@@ -1,0 +1,48 @@
+{
+  "attempts": 1,
+  "cliVersion": "2.1.294",
+  "configListingSha256": "47aa04258852fab9a706f3f0c14cee22306d69fbb6fdfbde8c11854bd54997bc",
+  "durationMs": 6283,
+  "effort": "high",
+  "functionId": "FF-N02",
+  "ignoredOptions": [
+    "maxTokens"
+  ],
+  "isolationProbeSha256": "97a2e2d0af1100c13c55e028c1a0c71f069093c3d08705af122aaeb302f1a641",
+  "key": "dc774554af983d6fbbc15d05d7d70f16e0cba6119493dc616d9c1516146540ba-r0-1",
+  "model": "claude-opus-5-5",
+  "outcome": {
+    "kind": "valid"
+  },
+  "parsedVerdict": {
+    "confidence": 0.95,
+    "evidence": [
+      "createApp(): `const app = express(); app.use(express.json());` sets up the framework, which is an infrastructure (transport) responsibility.",
+      "createApp(): calls such as `app.post('/projects/:projectId/tasks', controllers.tasks.create)` only map routes to handlers, with no business logic inline.",
+      "createApp(): `app.use(notFoundHandler); app.use(errorHandler);` registers HTTP middleware, which is transport-level and belongs in infrastructure.",
+      "The `Controllers` interface only bundles infrastructure controller types for wiring and has no domain behaviour."
+    ],
+    "pass": true,
+    "reasoning": "The file src/infrastructure/http/createApp.ts only does HTTP transport and framework wiring. It creates an Express app, adds JSON body parsing, maps HTTP routes to controller handlers, and registers the not-found and error-handling middleware. All of these belong to the infrastructure layer. The file has no business rules, domain validation, use-case orchestration or persistence logic. The Controllers interface is just a typed wiring contract for the transport adapter. No ADR prose was given that would contradict this.",
+    "violations": []
+  },
+  "projectId": "claude-opus-5-5/task-management/minimal-prose/run-0",
+  "prompt": "## Rule\nThe unit's responsibilities match the role of its declared layer.\n\n## Rubric\nPass: Every responsibility in the file belongs to the role and kind of its declared layer, and agrees with any ADR prose given.\nFail: The file carries a responsibility that belongs to a different layer kind, for example persistence, transport or framework logic in a domain file, or business rules in an infrastructure or presentation file.\nEvidence required: Name the file and cite the function, method or statement that carries the misplaced responsibility, and the layer kind it belongs to.\nOut of scope: import direction and layer-dependency rules, which are checked symbolically.\n\n## Layer model\n- domain (kind: domain): src/domain/**\n- application (kind: application): src/application/**\n- infrastructure (kind: infrastructure): src/infrastructure/**\n\n## Unit\nKind: file\nId: src/infrastructure/http/createApp.ts\nLayer: infrastructure\nUnit files:\n- src/infrastructure/http/createApp.ts\n\n## Source\n=====SOURCE-BEGIN src/infrastructure/http/createApp.ts=====\nimport express, { Express } from 'express';\nimport { ProjectController } from '../controllers/ProjectController';\nimport { TaskController } from '../controllers/TaskController';\nimport { UserController } from '../controllers/UserController';\nimport { errorHandler } from '../middleware/errorHandler';\nimport { notFoundHandler } from '../middleware/notFoundHandler';\n\nexport interface Controllers {\n  users: UserController;\n  projects: ProjectController;\n  tasks: TaskController;\n}\n\nexport function createApp(controllers: Controllers): Express {\n  const app = express();\n  app.use(express.json());\n\n  app.post('/users', controllers.users.create);\n  app.post('/projects', controllers.projects.create);\n  app.post('/projects/:projectId/tasks', controllers.tasks.create);\n  app.get('/projects/:projectId/tasks', controllers.tasks.listByProject);\n  app.put('/tasks/:taskId/assignee', controllers.tasks.assign);\n  app.post('/tasks/:taskId/complete', controllers.tasks.complete);\n\n  app.use(notFoundHandler);\n  app.use(errorHandler);\n  return app;\n}\n\n=====SOURCE-END=====\n\n## Graph excerpt\n{\"edges\":[{\"from\":\"src/infrastructure/composition/buildControllers.ts\",\"to\":\"src/infrastructure/http/createApp.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/infrastructure/http/createApp.ts\",\"to\":\"express\",\"type\":\"IMPORTS\"},{\"from\":\"src/infrastructure/http/createApp.ts\",\"to\":\"src/infrastructure/controllers/ProjectController.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/infrastructure/http/createApp.ts\",\"to\":\"src/infrastructure/controllers/TaskController.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/infrastructure/http/createApp.ts\",\"to\":\"src/infrastructure/controllers/UserController.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/infrastructure/http/createApp.ts\",\"to\":\"src/infrastructure/middleware/errorHandler.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/infrastructure/http/createApp.ts\",\"to\":\"src/infrastructure/middleware/notFoundHandler.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/infrastructure/server.ts\",\"to\":\"src/infrastructure/http/createApp.ts\",\"type\":\"IMPORTS\"}],\"nodes\":[{\"kind\":\"File\",\"layer\":\"infrastructure\",\"path\":\"src/infrastructure/composition/buildControllers.ts\"},{\"kind\":\"File\",\"layer\":\"infrastructure\",\"path\":\"src/infrastructure/controllers/ProjectController.ts\"},{\"kind\":\"File\",\"layer\":\"infrastructure\",\"path\":\"src/infrastructure/controllers/TaskController.ts\"},{\"kind\":\"File\",\"layer\":\"infrastructure\",\"path\":\"src/infrastructure/controllers/UserController.ts\"},{\"kind\":\"File\",\"layer\":\"infrastructure\",\"path\":\"src/infrastructure/http/createApp.ts\"},{\"kind\":\"File\",\"layer\":\"infrastructure\",\"path\":\"src/infrastructure/middleware/errorHandler.ts\"},{\"kind\":\"File\",\"layer\":\"infrastructure\",\"path\":\"src/infrastructure/middleware/notFoundHandler.ts\"},{\"kind\":\"File\",\"layer\":\"infrastructure\",\"path\":\"src/infrastructure/server.ts\"},{\"kind\":\"Interface\",\"layer\":\"infrastructure\",\"name\":\"Controllers\",\"path\":\"src/infrastructure/http/createApp.ts\"},{\"kind\":\"Package\",\"layer\":null,\"path\":\"express\"}]}\n\n## Instructions\nJudge the unit against the rule and rubric. Return the JSON object the schema requires. Set pass to false if any file of the unit fails the rubric.\n",
+  "provider": "claude-cli",
+  "recordedAt": "2026-10-10T21:38:42.214Z",
+  "repetition": 0,
+  "requestHash": "dc774554af983d6fbbc15d05d7d70f16e0cba6119493dc616d9c1516146540ba",
+  "resolvedModel": "claude-opus-5-5",
+  "response": "{\"is_error\":false,\"modelUsage\":{\"claude-opus-5-5\":{\"inputTokens\":2,\"outputTokens\":508}},\"result\":\"{\\\"pass\\\":true,\\\"confidence\\\":0.95,\\\"reasoning\\\":\\\"The file src/infrastructure/http/createApp.ts only does HTTP transport and framework wiring. It creates an Express app, adds JSON body parsing, maps HTTP routes to controller handlers, and registers the not-found and error-handling middleware. All of these belong to the infrastructure layer. The file has no business rules, domain validation, use-case orchestration or persistence logic. The Controllers interface is just a typed wiring contract for the transport adapter. No ADR prose was given that would contradict this.\\\",\\\"evidence\\\":[\\\"createApp(): `const app = express(); app.use(express.json());` sets up the framework, which is an infrastructure (transport) responsibility.\\\",\\\"createApp(): calls such as `app.post('/projects/:projectId/tasks', controllers.tasks.create)` only map routes to handlers, with no business logic inline.\\\",\\\"createApp(): `app.use(notFoundHandler); app.use(errorHandler);` registers HTTP middleware, which is transport-level and belongs in infrastructure.\\\",\\\"The `Controllers` interface only bundles infrastructure controller types for wiring and has no domain behaviour.\\\"],\\\"violations\\\":[]}\",\"structured_output\":{\"confidence\":0.95,\"evidence\":[\"createApp(): `const app = express(); app.use(express.json());` sets up the framework, which is an infrastructure (transport) responsibility.\",\"createApp(): calls such as `app.post('/projects/:projectId/tasks', controllers.tasks.create)` only map routes to handlers, with no business logic inline.\",\"createApp(): `app.use(notFoundHandler); app.use(errorHandler);` registers HTTP middleware, which is transport-level and belongs in infrastructure.\",\"The `Controllers` interface only bundles infrastructure controller types for wiring and has no domain behaviour.\"],\"pass\":true,\"reasoning\":\"The file src/infrastructure/http/createApp.ts only does HTTP transport and framework wiring. It creates an Express app, adds JSON body parsing, maps HTTP routes to controller handlers, and registers the not-found and error-handling middleware. All of these belong to the infrastructure layer. The file has no business rules, domain validation, use-case orchestration or persistence logic. The Controllers interface is just a typed wiring contract for the transport adapter. No ADR prose was given that would contradict this.\",\"violations\":[]}}",
+  "runIndex": 1,
+  "schemaVersion": 2,
+  "unitId": "src/infrastructure/http/createApp.ts",
+  "usage": {
+    "inputTokens": 3145,
+    "outputTokens": 508
+  },
+  "usedOptions": {
+    "effort": "high",
+    "model": "claude-opus-5-5"
+  }
+}

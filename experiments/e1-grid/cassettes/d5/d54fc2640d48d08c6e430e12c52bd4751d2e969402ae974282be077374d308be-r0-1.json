@@ -1,0 +1,47 @@
+{
+  "attempts": 1,
+  "cliVersion": "2.1.294",
+  "configListingSha256": "47aa04258852fab9a706f3f0c14cee22306d69fbb6fdfbde8c11854bd54997bc",
+  "durationMs": 6446,
+  "effort": "high",
+  "functionId": "FF-N02",
+  "ignoredOptions": [
+    "maxTokens"
+  ],
+  "isolationProbeSha256": "97a2e2d0af1100c13c55e028c1a0c71f069093c3d08705af122aaeb302f1a641",
+  "key": "d54fc2640d48d08c6e430e12c52bd4751d2e969402ae974282be077374d308be-r0-1",
+  "model": "claude-opus-5-5",
+  "outcome": {
+    "kind": "valid"
+  },
+  "parsedVerdict": {
+    "confidence": 0.9,
+    "evidence": [
+      "src/application/dtos.ts declares the input contracts CreateUserDto, CreateProjectDto, CreateTaskDto, AssignTaskDto and ListTasksDto, which the application use cases consume",
+      "src/application/dtos.ts toTaskResponse(task) only maps Task fields to TaskResponseDto, with no business rules and no persistence or transport logic",
+      "Graph: five application use cases and infrastructure/task-controller.ts import dtos.ts, which fits its role as the application boundary contract"
+    ],
+    "pass": true,
+    "reasoning": "The file holds the application layer's input and output DTOs plus one mapper, toTaskResponse, that turns a domain Task into a TaskResponseDto. Use-case boundary contracts and the mapping from domain objects to response DTOs belong in the application layer. The file has no persistence, no transport or framework code (no HTTP, no ORM), and no business rules. Converting dueDate to an ISO string is a serialization choice for the use-case output contract, not domain logic. The infrastructure controller imports these DTOs, which is the expected direction.",
+    "violations": []
+  },
+  "projectId": "claude-sonnet-5-5/task-management/minimal-prose/run-0",
+  "prompt": "## Rule\nThe unit's responsibilities match the role of its declared layer.\n\n## Rubric\nPass: Every responsibility in the file belongs to the role and kind of its declared layer, and agrees with any ADR prose given.\nFail: The file carries a responsibility that belongs to a different layer kind, for example persistence, transport or framework logic in a domain file, or business rules in an infrastructure or presentation file.\nEvidence required: Name the file and cite the function, method or statement that carries the misplaced responsibility, and the layer kind it belongs to.\nOut of scope: import direction and layer-dependency rules, which are checked symbolically.\n\n## Layer model\n- domain (kind: domain): src/domain/**\n- application (kind: application): src/application/**\n- infrastructure (kind: infrastructure): src/infrastructure/**\n\n## Unit\nKind: file\nId: src/application/dtos.ts\nLayer: application\nUnit files:\n- src/application/dtos.ts\n\n## Source\n=====SOURCE-BEGIN src/application/dtos.ts=====\nimport { Task } from \"../domain/task\";\nimport { TaskStatus } from \"../domain/task-status\";\n\nexport interface CreateUserDto { name: string; }\nexport interface CreateProjectDto { name: string; }\nexport interface CreateTaskDto {\n  projectId: string;\n  title: string;\n  description?: string;\n  dueDate?: string;\n  status?: string;\n}\nexport interface AssignTaskDto { taskId: string; assigneeId: string; }\nexport interface ListTasksDto { projectId: string; status?: string; assigneeId?: string; }\n\nexport interface TaskResponseDto {\n  id: string;\n  projectId: string;\n  title: string;\n  description: string;\n  dueDate: string | null;\n  status: TaskStatus;\n  assigneeId: string | null;\n}\n\nexport function toTaskResponse(task: Task): TaskResponseDto {\n  return {\n    id: task.id,\n    projectId: task.projectId,\n    title: task.title,\n    description: task.description,\n    dueDate: task.dueDate ? task.dueDate.toISOString() : null,\n    status: task.status,\n    assigneeId: task.assigneeId ?? null,\n  };\n}\n\n=====SOURCE-END=====\n\n## Graph excerpt\n{\"edges\":[{\"from\":\"src/application/assign-task-use-case.ts\",\"to\":\"src/application/dtos.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/application/create-project-use-case.ts\",\"to\":\"src/application/dtos.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/application/create-task-use-case.ts\",\"to\":\"src/application/dtos.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/application/create-user-use-case.ts\",\"to\":\"src/application/dtos.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/application/dtos.ts\",\"to\":\"src/domain/task-status.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/application/dtos.ts\",\"to\":\"src/domain/task.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/application/list-tasks-use-case.ts\",\"to\":\"src/application/dtos.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/infrastructure/task-controller.ts\",\"to\":\"src/application/dtos.ts\",\"type\":\"IMPORTS\"}],\"nodes\":[{\"kind\":\"File\",\"layer\":\"application\",\"path\":\"src/application/assign-task-use-case.ts\"},{\"kind\":\"File\",\"layer\":\"application\",\"path\":\"src/application/create-project-use-case.ts\"},{\"kind\":\"File\",\"layer\":\"application\",\"path\":\"src/application/create-task-use-case.ts\"},{\"kind\":\"File\",\"layer\":\"application\",\"path\":\"src/application/create-user-use-case.ts\"},{\"kind\":\"File\",\"layer\":\"application\",\"path\":\"src/application/dtos.ts\"},{\"kind\":\"File\",\"layer\":\"application\",\"path\":\"src/application/list-tasks-use-case.ts\"},{\"kind\":\"File\",\"layer\":\"domain\",\"path\":\"src/domain/task-status.ts\"},{\"kind\":\"File\",\"layer\":\"domain\",\"path\":\"src/domain/task.ts\"},{\"kind\":\"File\",\"layer\":\"infrastructure\",\"path\":\"src/infrastructure/task-controller.ts\"},{\"kind\":\"Interface\",\"layer\":\"application\",\"name\":\"AssignTaskDto\",\"path\":\"src/application/dtos.ts\"},{\"kind\":\"Interface\",\"layer\":\"application\",\"name\":\"CreateProjectDto\",\"path\":\"src/application/dtos.ts\"},{\"kind\":\"Interface\",\"layer\":\"application\",\"name\":\"CreateTaskDto\",\"path\":\"src/application/dtos.ts\"},{\"kind\":\"Interface\",\"layer\":\"application\",\"name\":\"CreateUserDto\",\"path\":\"src/application/dtos.ts\"},{\"kind\":\"Interface\",\"layer\":\"application\",\"name\":\"ListTasksDto\",\"path\":\"src/application/dtos.ts\"},{\"kind\":\"Interface\",\"layer\":\"application\",\"name\":\"TaskResponseDto\",\"path\":\"src/application/dtos.ts\"}]}\n\n## Instructions\nJudge the unit against the rule and rubric. Return the JSON object the schema requires. Set pass to false if any file of the unit fails the rubric.\n",
+  "provider": "claude-cli",
+  "recordedAt": "2026-10-10T22:36:57.619Z",
+  "repetition": 0,
+  "requestHash": "d54fc2640d48d08c6e430e12c52bd4751d2e969402ae974282be077374d308be",
+  "resolvedModel": "claude-opus-5-5",
+  "response": "{\"is_error\":false,\"modelUsage\":{\"claude-opus-5-5\":{\"inputTokens\":2,\"outputTokens\":492}},\"result\":\"{\\\"pass\\\":true,\\\"confidence\\\":0.9,\\\"reasoning\\\":\\\"The file holds the application layer's input and output DTOs plus one mapper, toTaskResponse, that turns a domain Task into a TaskResponseDto. Use-case boundary contracts and the mapping from domain objects to response DTOs belong in the application layer. The file has no persistence, no transport or framework code (no HTTP, no ORM), and no business rules. Converting dueDate to an ISO string is a serialization choice for the use-case output contract, not domain logic. The infrastructure controller imports these DTOs, which is the expected direction.\\\",\\\"evidence\\\":[\\\"src/application/dtos.ts declares the input contracts CreateUserDto, CreateProjectDto, CreateTaskDto, AssignTaskDto and ListTasksDto, which the application use cases consume\\\",\\\"src/application/dtos.ts toTaskResponse(task) only maps Task fields to TaskResponseDto, with no business rules and no persistence or transport logic\\\",\\\"Graph: five application use cases and infrastructure/task-controller.ts import dtos.ts, which fits its role as the application boundary contract\\\"],\\\"violations\\\":[]}\",\"structured_output\":{\"confidence\":0.9,\"evidence\":[\"src/application/dtos.ts declares the input contracts CreateUserDto, CreateProjectDto, CreateTaskDto, AssignTaskDto and ListTasksDto, which the application use cases consume\",\"src/application/dtos.ts toTaskResponse(task) only maps Task fields to TaskResponseDto, with no business rules and no persistence or transport logic\",\"Graph: five application use cases and infrastructure/task-controller.ts import dtos.ts, which fits its role as the application boundary contract\"],\"pass\":true,\"reasoning\":\"The file holds the application layer's input and output DTOs plus one mapper, toTaskResponse, that turns a domain Task into a TaskResponseDto. Use-case boundary contracts and the mapping from domain objects to response DTOs belong in the application layer. The file has no persistence, no transport or framework code (no HTTP, no ORM), and no business rules. Converting dueDate to an ISO string is a serialization choice for the use-case output contract, not domain logic. The infrastructure controller imports these DTOs, which is the expected direction.\",\"violations\":[]}}",
+  "runIndex": 1,
+  "schemaVersion": 2,
+  "unitId": "src/application/dtos.ts",
+  "usage": {
+    "inputTokens": 3200,
+    "outputTokens": 492
+  },
+  "usedOptions": {
+    "effort": "high",
+    "model": "claude-opus-5-5"
+  }
+}

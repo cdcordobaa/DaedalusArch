@@ -1,0 +1,47 @@
+{
+  "attempts": 1,
+  "cliVersion": "2.1.294",
+  "configListingSha256": "47aa04258852fab9a706f3f0c14cee22306d69fbb6fdfbde8c11854bd54997bc",
+  "durationMs": 9983,
+  "effort": "high",
+  "functionId": "FF-N02",
+  "ignoredOptions": [
+    "maxTokens"
+  ],
+  "isolationProbeSha256": "97a2e2d0af1100c13c55e028c1a0c71f069093c3d08705af122aaeb302f1a641",
+  "key": "a7206bd1e754488cd3e488b97e8d142e0ee41ba0e67fcf64fb736843da4fbd6b-r0-2",
+  "model": "claude-opus-5-5",
+  "outcome": {
+    "kind": "valid"
+  },
+  "parsedVerdict": {
+    "confidence": 0.9,
+    "evidence": [
+      "src/infrastructure/error-handler-middleware.ts: errorHandlerMiddleware(err, _req, res, _next) is an Express error middleware, which is framework and transport logic and belongs in infrastructure.",
+      "The instanceof checks for ValidationError, NotFoundError and ConflictError map each error to HTTP 400, 404 and 409 through res.status().json(). This is HTTP transport translation, not business logic.",
+      "The fallback returns 500 'internal server error'. This is a standard transport concern, and no domain rules or persistence appear in the file."
+    ],
+    "pass": true,
+    "reasoning": "The file is an Express error-handling middleware in the infrastructure layer. Its one job is transport: it turns domain error types into HTTP status codes and JSON responses. That is framework and transport logic, so it fits the infrastructure layer. It has no business rules, no persistence and no domain decisions. It only checks which error type it received and maps it to an HTTP code. Importing domain error types is an import-direction question, which is out of scope here.",
+    "violations": []
+  },
+  "projectId": "claude-sonnet-5-5/task-management/minimal-prose/run-1",
+  "prompt": "## Rule\nThe unit's responsibilities match the role of its declared layer.\n\n## Rubric\nPass: Every responsibility in the file belongs to the role and kind of its declared layer, and agrees with any ADR prose given.\nFail: The file carries a responsibility that belongs to a different layer kind, for example persistence, transport or framework logic in a domain file, or business rules in an infrastructure or presentation file.\nEvidence required: Name the file and cite the function, method or statement that carries the misplaced responsibility, and the layer kind it belongs to.\nOut of scope: import direction and layer-dependency rules, which are checked symbolically.\n\n## Layer model\n- domain (kind: domain): src/domain/**\n- application (kind: application): src/application/**\n- infrastructure (kind: infrastructure): src/infrastructure/**\n\n## Unit\nKind: file\nId: src/infrastructure/error-handler-middleware.ts\nLayer: infrastructure\nUnit files:\n- src/infrastructure/error-handler-middleware.ts\n\n## Source\n=====SOURCE-BEGIN src/infrastructure/error-handler-middleware.ts=====\nimport { NextFunction, Request, Response } from \"express\";\nimport { ConflictError, NotFoundError, ValidationError } from \"../domain/errors\";\n\nexport function errorHandlerMiddleware(\n  err: unknown,\n  _req: Request,\n  res: Response,\n  _next: NextFunction,\n): void {\n  if (err instanceof ValidationError) {\n    res.status(400).json({ error: err.message });\n  } else if (err instanceof NotFoundError) {\n    res.status(404).json({ error: err.message });\n  } else if (err instanceof ConflictError) {\n    res.status(409).json({ error: err.message });\n  } else {\n    res.status(500).json({ error: \"internal server error\" });\n  }\n}\n\n=====SOURCE-END=====\n\n## Graph excerpt\n{\"edges\":[{\"from\":\"src/infrastructure/app.ts\",\"to\":\"src/infrastructure/error-handler-middleware.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/infrastructure/error-handler-middleware.ts\",\"to\":\"express\",\"type\":\"IMPORTS\"},{\"from\":\"src/infrastructure/error-handler-middleware.ts\",\"to\":\"src/domain/errors.ts\",\"type\":\"IMPORTS\"}],\"nodes\":[{\"kind\":\"File\",\"layer\":\"domain\",\"path\":\"src/domain/errors.ts\"},{\"kind\":\"File\",\"layer\":\"infrastructure\",\"path\":\"src/infrastructure/app.ts\"},{\"kind\":\"File\",\"layer\":\"infrastructure\",\"path\":\"src/infrastructure/error-handler-middleware.ts\"},{\"kind\":\"Package\",\"layer\":null,\"path\":\"express\"}]}\n\n## Instructions\nJudge the unit against the rule and rubric. Return the JSON object the schema requires. Set pass to false if any file of the unit fails the rubric.\n",
+  "provider": "claude-cli",
+  "recordedAt": "2026-10-10T22:40:55.496Z",
+  "repetition": 0,
+  "requestHash": "a7206bd1e754488cd3e488b97e8d142e0ee41ba0e67fcf64fb736843da4fbd6b",
+  "resolvedModel": "claude-opus-5-5",
+  "response": "{\"is_error\":false,\"modelUsage\":{\"claude-opus-5-5\":{\"inputTokens\":2,\"outputTokens\":471}},\"result\":\"{\\\"pass\\\":true,\\\"confidence\\\":0.9,\\\"reasoning\\\":\\\"The file is an Express error-handling middleware in the infrastructure layer. Its one job is transport: it turns domain error types into HTTP status codes and JSON responses. That is framework and transport logic, so it fits the infrastructure layer. It has no business rules, no persistence and no domain decisions. It only checks which error type it received and maps it to an HTTP code. Importing domain error types is an import-direction question, which is out of scope here.\\\",\\\"evidence\\\":[\\\"src/infrastructure/error-handler-middleware.ts: errorHandlerMiddleware(err, _req, res, _next) is an Express error middleware, which is framework and transport logic and belongs in infrastructure.\\\",\\\"The instanceof checks for ValidationError, NotFoundError and ConflictError map each error to HTTP 400, 404 and 409 through res.status().json(). This is HTTP transport translation, not business logic.\\\",\\\"The fallback returns 500 'internal server error'. This is a standard transport concern, and no domain rules or persistence appear in the file.\\\"],\\\"violations\\\":[]}\",\"structured_output\":{\"confidence\":0.9,\"evidence\":[\"src/infrastructure/error-handler-middleware.ts: errorHandlerMiddleware(err, _req, res, _next) is an Express error middleware, which is framework and transport logic and belongs in infrastructure.\",\"The instanceof checks for ValidationError, NotFoundError and ConflictError map each error to HTTP 400, 404 and 409 through res.status().json(). This is HTTP transport translation, not business logic.\",\"The fallback returns 500 'internal server error'. This is a standard transport concern, and no domain rules or persistence appear in the file.\"],\"pass\":true,\"reasoning\":\"The file is an Express error-handling middleware in the infrastructure layer. Its one job is transport: it turns domain error types into HTTP status codes and JSON responses. That is framework and transport logic, so it fits the infrastructure layer. It has no business rules, no persistence and no domain decisions. It only checks which error type it received and maps it to an HTTP code. Importing domain error types is an import-direction question, which is out of scope here.\",\"violations\":[]}}",
+  "runIndex": 2,
+  "schemaVersion": 2,
+  "unitId": "src/infrastructure/error-handler-middleware.ts",
+  "usage": {
+    "inputTokens": 2446,
+    "outputTokens": 471
+  },
+  "usedOptions": {
+    "effort": "high",
+    "model": "claude-opus-5-5"
+  }
+}

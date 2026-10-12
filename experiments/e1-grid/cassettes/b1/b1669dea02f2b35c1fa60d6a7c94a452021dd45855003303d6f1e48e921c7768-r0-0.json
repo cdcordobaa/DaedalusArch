@@ -1,0 +1,47 @@
+{
+  "attempts": 1,
+  "cliVersion": "2.1.294",
+  "configListingSha256": "47aa04258852fab9a706f3f0c14cee22306d69fbb6fdfbde8c11854bd54997bc",
+  "durationMs": 6126,
+  "effort": "high",
+  "functionId": "FF-N01",
+  "ignoredOptions": [
+    "maxTokens"
+  ],
+  "isolationProbeSha256": "97a2e2d0af1100c13c55e028c1a0c71f069093c3d08705af122aaeb302f1a641",
+  "key": "b1669dea02f2b35c1fa60d6a7c94a452021dd45855003303d6f1e48e921c7768-r0-0",
+  "model": "claude-opus-5-5",
+  "outcome": {
+    "kind": "valid"
+  },
+  "parsedVerdict": {
+    "confidence": 0.9,
+    "evidence": [
+      "src/infrastructure/system/SystemClock.ts: `export class SystemClock implements Clock { now(): Date { return new Date(); } }`, a thin adapter for the Clock port",
+      "src/infrastructure/system/RandomIdGenerator.ts: `export class RandomIdGenerator implements IdGenerator { next(): string { return randomUUID(); } }`, a thin adapter for the IdGenerator port",
+      "Both are wired only through src/infrastructure/config/container.ts, so the port abstraction is used consistently and no rule is duplicated."
+    ],
+    "pass": true,
+    "reasoning": "The module holds two adapters for non-deterministic system resources, time and identity generation. Each one implements an application port: SystemClock implements Clock and RandomIdGenerator implements IdGenerator. Both follow the same small-adapter pattern, with no logic copied between them and no shortcut around the ports. Only the container imports them. Together they form one clear concern: adapters that supply system-provided values.",
+    "violations": []
+  },
+  "projectId": "claude-opus-5-5/order-fulfilment/full-aac/run-1",
+  "prompt": "## Rule\nThe module's files form one coherent unit with a consistent abstraction and boundary.\n\n## Rubric\nPass: The files serve one cohesive concern, use the module's abstractions consistently, and keep each rule or invariant in one place.\nFail: The files split into unrelated concerns, duplicate a rule or invariant that should live in one place, or bypass the module's own abstractions.\nEvidence required: Name each file involved and cite the declarations that show the split, the duplication or the bypass.\nOut of scope: import direction and layer-dependency rules, which are checked symbolically.\n\n## Layer model\n- domain (kind: domain): src/domain/**\n- application (kind: application): src/application/**\n- infrastructure (kind: infrastructure): src/infrastructure/**\n\n## Unit\nKind: module\nId: src/infrastructure/system\nLayer: infrastructure\nUnit files:\n- src/infrastructure/system/RandomIdGenerator.ts\n- src/infrastructure/system/SystemClock.ts\n\n## Source\n=====SOURCE-BEGIN src/infrastructure/system/RandomIdGenerator.ts=====\nimport { randomUUID } from 'node:crypto';\nimport type { IdGenerator } from '../../application/ports/IdGenerator';\n\nexport class RandomIdGenerator implements IdGenerator {\n  next(): string {\n    return randomUUID();\n  }\n}\n\n=====SOURCE-END=====\n\n=====SOURCE-BEGIN src/infrastructure/system/SystemClock.ts=====\nimport type { Clock } from '../../application/ports/Clock';\n\nexport class SystemClock implements Clock {\n  now(): Date {\n    return new Date();\n  }\n}\n\n=====SOURCE-END=====\n\n## Exported signatures\n// src/infrastructure/system/RandomIdGenerator.ts\nexport class RandomIdGenerator implements IdGenerator {\n  next(): string;\n}\n\n// src/infrastructure/system/SystemClock.ts\nexport class SystemClock implements Clock {\n  now(): Date;\n}\n\n## Incoming\n- src/infrastructure/config/container.ts\n\n## Outgoing\n- crypto\n- src/application/ports/Clock.ts\n- src/application/ports/IdGenerator.ts\n\n## Graph excerpt\n{\"edges\":[{\"from\":\"RandomIdGenerator@src/infrastructure/system/RandomIdGenerator.ts\",\"to\":\"IdGenerator@src/application/ports/IdGenerator.ts\",\"type\":\"IMPLEMENTS\"},{\"from\":\"SystemClock@src/infrastructure/system/SystemClock.ts\",\"to\":\"Clock@src/application/ports/Clock.ts\",\"type\":\"IMPLEMENTS\"},{\"from\":\"src/infrastructure/config/container.ts\",\"to\":\"src/infrastructure/system/RandomIdGenerator.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/infrastructure/config/container.ts\",\"to\":\"src/infrastructure/system/SystemClock.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/infrastructure/system/RandomIdGenerator.ts\",\"to\":\"crypto\",\"type\":\"IMPORTS\"},{\"from\":\"src/infrastructure/system/RandomIdGenerator.ts\",\"to\":\"src/application/ports/IdGenerator.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/infrastructure/system/SystemClock.ts\",\"to\":\"src/application/ports/Clock.ts\",\"type\":\"IMPORTS\"}],\"nodes\":[{\"kind\":\"Class\",\"layer\":\"infrastructure\",\"name\":\"RandomIdGenerator\",\"path\":\"src/infrastructure/system/RandomIdGenerator.ts\"},{\"kind\":\"Class\",\"layer\":\"infrastructure\",\"name\":\"SystemClock\",\"path\":\"src/infrastructure/system/SystemClock.ts\"},{\"kind\":\"File\",\"layer\":\"application\",\"path\":\"src/application/ports/Clock.ts\"},{\"kind\":\"File\",\"layer\":\"application\",\"path\":\"src/application/ports/IdGenerator.ts\"},{\"kind\":\"File\",\"layer\":\"infrastructure\",\"path\":\"src/infrastructure/config/container.ts\"},{\"kind\":\"File\",\"layer\":\"infrastructure\",\"path\":\"src/infrastructure/system/RandomIdGenerator.ts\"},{\"kind\":\"File\",\"layer\":\"infrastructure\",\"path\":\"src/infrastructure/system/SystemClock.ts\"},{\"kind\":\"Interface\",\"layer\":\"application\",\"name\":\"Clock\",\"path\":\"src/application/ports/Clock.ts\"},{\"kind\":\"Interface\",\"layer\":\"application\",\"name\":\"IdGenerator\",\"path\":\"src/application/ports/IdGenerator.ts\"},{\"kind\":\"Package\",\"layer\":null,\"path\":\"crypto\"}]}\n\n## Instructions\nJudge the unit against the rule and rubric. Return the JSON object the schema requires. Set pass to false if any file of the unit fails the rubric.\n",
+  "provider": "claude-cli",
+  "recordedAt": "2026-10-10T22:18:57.017Z",
+  "repetition": 0,
+  "requestHash": "b1669dea02f2b35c1fa60d6a7c94a452021dd45855003303d6f1e48e921c7768",
+  "resolvedModel": "claude-opus-5-5",
+  "response": "{\"is_error\":false,\"modelUsage\":{\"claude-opus-5-5\":{\"inputTokens\":2,\"outputTokens\":460}},\"result\":\"{\\\"pass\\\":true,\\\"confidence\\\":0.9,\\\"reasoning\\\":\\\"The module holds two adapters for non-deterministic system resources, time and identity generation. Each one implements an application port: SystemClock implements Clock and RandomIdGenerator implements IdGenerator. Both follow the same small-adapter pattern, with no logic copied between them and no shortcut around the ports. Only the container imports them. Together they form one clear concern: adapters that supply system-provided values.\\\",\\\"evidence\\\":[\\\"src/infrastructure/system/SystemClock.ts: `export class SystemClock implements Clock { now(): Date { return new Date(); } }`, a thin adapter for the Clock port\\\",\\\"src/infrastructure/system/RandomIdGenerator.ts: `export class RandomIdGenerator implements IdGenerator { next(): string { return randomUUID(); } }`, a thin adapter for the IdGenerator port\\\",\\\"Both are wired only through src/infrastructure/config/container.ts, so the port abstraction is used consistently and no rule is duplicated.\\\"],\\\"violations\\\":[]}\",\"structured_output\":{\"confidence\":0.9,\"evidence\":[\"src/infrastructure/system/SystemClock.ts: `export class SystemClock implements Clock { now(): Date { return new Date(); } }`, a thin adapter for the Clock port\",\"src/infrastructure/system/RandomIdGenerator.ts: `export class RandomIdGenerator implements IdGenerator { next(): string { return randomUUID(); } }`, a thin adapter for the IdGenerator port\",\"Both are wired only through src/infrastructure/config/container.ts, so the port abstraction is used consistently and no rule is duplicated.\"],\"pass\":true,\"reasoning\":\"The module holds two adapters for non-deterministic system resources, time and identity generation. Each one implements an application port: SystemClock implements Clock and RandomIdGenerator implements IdGenerator. Both follow the same small-adapter pattern, with no logic copied between them and no shortcut around the ports. Only the container imports them. Together they form one clear concern: adapters that supply system-provided values.\",\"violations\":[]}}",
+  "runIndex": 0,
+  "schemaVersion": 2,
+  "unitId": "src/infrastructure/system",
+  "usage": {
+    "inputTokens": 3119,
+    "outputTokens": 460
+  },
+  "usedOptions": {
+    "effort": "high",
+    "model": "claude-opus-5-5"
+  }
+}

@@ -1,0 +1,44 @@
+{
+  "attempts": 1,
+  "cliVersion": "2.1.294",
+  "configListingSha256": "47aa04258852fab9a706f3f0c14cee22306d69fbb6fdfbde8c11854bd54997bc",
+  "durationMs": 9396,
+  "effort": "high",
+  "functionId": "FF-N02",
+  "ignoredOptions": [
+    "maxTokens"
+  ],
+  "isolationProbeSha256": "ce76f240c1d90df332d581703538c0b40c5186947dd64c0ffb3ffb207242b218",
+  "key": "5eb175c07351a7cd55f24b1be55ebaebe7c1461550c24fb297040a2cac40e093-r0-2",
+  "model": "claude-sonnet-5-5",
+  "outcome": {
+    "kind": "valid"
+  },
+  "parsedVerdict": {
+    "confidence": 0.88,
+    "evidence": [
+      "src/orders/application/use-cases/create-order/create-order.dto.ts: CreateOrderDto has only typed fields with @IsString, @IsEmail and @IsOptional decorators."
+    ],
+    "pass": true,
+    "reasoning": "The file is a DTO in the application layer. It only declares the input shape of the create-order use case and attaches class-validator decorators for structural checks (string, optional, email format). It has no persistence, no HTTP or controller logic, and no domain invariants such as pricing, state transitions or business rules. Declaring input contracts and basic shape validation fits what an application-layer DTO is for, and the layer model puts **/*.dto.ts in application. The doc comment mentions POST /orders and ValidationPipe, but that is only explanation. The file contains no transport code, and @IsEmail is a format check, not a business rule.",
+    "violations": []
+  },
+  "prompt": "## Rule\nThe unit's responsibilities match the role of its declared layer.\n\n## Rubric\nPass: Every responsibility in the file belongs to the role and kind of its declared layer, and agrees with any ADR prose given.\nFail: The file carries a responsibility that belongs to a different layer kind, for example persistence, transport or framework logic in a domain file, or business rules in an infrastructure or presentation file.\nEvidence required: Name the file and cite the function, method or statement that carries the misplaced responsibility, and the layer kind it belongs to.\nOut of scope: import direction and layer-dependency rules, which are checked symbolically.\n\n## Layer model\n- domain (kind: domain): src/domain/**, **/domain/**, **/entities/**, **/value-objects/**, **/valueobjects/**; file patterns: **/*.entity.ts, **/*.vo.ts\n- application (kind: application): src/application/**, **/application/**, **/dtos/**, **/queries/**, **/use-cases/**; file patterns: **/*.command.ts, **/*.dto.ts, **/*.query.ts, **/*.service.ts\n- infrastructure (kind: infrastructure): src/infrastructure/**, **/infrastructure/**, **/presentation/**, **/repositories/**; file patterns: **/*.controller.ts, **/*.repository.ts\n\n## Unit\nKind: file\nId: src/orders/application/use-cases/create-order/create-order.dto.ts\nLayer: application\nUnit files:\n- src/orders/application/use-cases/create-order/create-order.dto.ts\n\n## Source\n=====SOURCE-BEGIN src/orders/application/use-cases/create-order/create-order.dto.ts=====\nimport { IsEmail, IsOptional, IsString } from 'class-validator';\n\n/**\n * The transport contract for POST /orders.\n *\n * Without these decorators the global `ValidationPipe({ whitelist: true })`\n * strips every property and the handler receives `{}` -- which is how this\n * endpoint returned 500 on every call.\n *\n * `@IsEmail` is the one rule here that is more than structural, and it earns\n * its place: an address that is not an address is a transport-level mistake\n * the caller should hear about as a 400, not a domain invariant.\n */\nexport class CreateOrderDto {\n  @IsString()\n  customerName: string;\n\n  @IsEmail()\n  customerEmail: string;\n\n  @IsString()\n  customerPhone: string;\n\n  @IsString()\n  shippingStreet: string;\n\n  @IsOptional()\n  @IsString()\n  shippingComplement?: string;\n\n  @IsString()\n  shippingCity: string;\n\n  @IsString()\n  shippingState: string;\n\n  @IsString()\n  shippingZipCode: string;\n\n  @IsString()\n  shippingCountry: string;\n\n  @IsOptional()\n  @IsString()\n  currency?: string;\n}\n\n=====SOURCE-END=====\n\n## Graph excerpt\n{\"edges\":[{\"from\":\"CreateOrderCommand@src/orders/application/use-cases/create-order/create-order.command.ts\",\"to\":\"CreateOrderDto@src/orders/application/use-cases/create-order/create-order.dto.ts\",\"type\":\"CONSTRUCTOR_INJECTS\"},{\"from\":\"src/orders/application/use-cases/create-order/create-order.command.ts\",\"to\":\"src/orders/application/use-cases/create-order/create-order.dto.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/orders/application/use-cases/create-order/create-order.dto.ts\",\"to\":\"class-validator\",\"type\":\"IMPORTS\"},{\"from\":\"src/orders/application/use-cases/create-order/create-order.service.ts\",\"to\":\"src/orders/application/use-cases/create-order/create-order.dto.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/orders/application/use-cases/create-order/index.ts\",\"to\":\"src/orders/application/use-cases/create-order/create-order.dto.ts\",\"type\":\"RE_EXPORTS\"},{\"from\":\"src/orders/presentation/orders.controller.ts\",\"to\":\"src/orders/application/use-cases/create-order/create-order.dto.ts\",\"type\":\"IMPORTS\"}],\"nodes\":[{\"kind\":\"Class\",\"layer\":\"application\",\"name\":\"CreateOrderCommand\",\"path\":\"src/orders/application/use-cases/create-order/create-order.command.ts\"},{\"kind\":\"Class\",\"layer\":\"application\",\"name\":\"CreateOrderDto\",\"path\":\"src/orders/application/use-cases/create-order/create-order.dto.ts\"},{\"kind\":\"File\",\"layer\":\"application\",\"path\":\"src/orders/application/use-cases/create-order/create-order.command.ts\"},{\"kind\":\"File\",\"layer\":\"application\",\"path\":\"src/orders/application/use-cases/create-order/create-order.dto.ts\"},{\"kind\":\"File\",\"layer\":\"application\",\"path\":\"src/orders/application/use-cases/create-order/create-order.service.ts\"},{\"kind\":\"File\",\"layer\":\"application\",\"path\":\"src/orders/application/use-cases/create-order/index.ts\"},{\"kind\":\"File\",\"layer\":\"infrastructure\",\"path\":\"src/orders/presentation/orders.controller.ts\"},{\"kind\":\"Package\",\"layer\":null,\"path\":\"class-validator\"}]}\n\n## Instructions\nJudge the unit against the rule and rubric. Return the JSON object the schema requires. Set pass to false if any file of the unit fails the rubric.\n",
+  "provider": "claude-cli",
+  "recordedAt": "2026-10-11T22:11:46.598Z",
+  "repetition": 0,
+  "requestHash": "5eb175c07351a7cd55f24b1be55ebaebe7c1461550c24fb297040a2cac40e093",
+  "resolvedModel": "claude-sonnet-5-5",
+  "response": "{\"is_error\":false,\"modelUsage\":{\"claude-sonnet-5-5\":{\"inputTokens\":4,\"outputTokens\":957}},\"result\":\"{\\\"pass\\\":true,\\\"confidence\\\":0.88,\\\"reasoning\\\":\\\"The file is a DTO in the application layer. It only declares the input shape of the create-order use case and attaches class-validator decorators for structural checks (string, optional, email format). It has no persistence, no HTTP or controller logic, and no domain invariants such as pricing, state transitions or business rules. Declaring input contracts and basic shape validation fits what an application-layer DTO is for, and the layer model puts **/*.dto.ts in application. The doc comment mentions POST /orders and ValidationPipe, but that is only explanation. The file contains no transport code, and @IsEmail is a format check, not a business rule.\\\",\\\"evidence\\\":[\\\"src/orders/application/use-cases/create-order/create-order.dto.ts: CreateOrderDto has only typed fields with @IsString, @IsEmail and @IsOptional decorators.\\\"],\\\"violations\\\":[]}\",\"structured_output\":{\"confidence\":0.88,\"evidence\":[\"src/orders/application/use-cases/create-order/create-order.dto.ts: CreateOrderDto has only typed fields with @IsString, @IsEmail and @IsOptional decorators.\"],\"pass\":true,\"reasoning\":\"The file is a DTO in the application layer. It only declares the input shape of the create-order use case and attaches class-validator decorators for structural checks (string, optional, email format). It has no persistence, no HTTP or controller logic, and no domain invariants such as pricing, state transitions or business rules. Declaring input contracts and basic shape validation fits what an application-layer DTO is for, and the layer model puts **/*.dto.ts in application. The doc comment mentions POST /orders and ValidationPipe, but that is only explanation. The file contains no transport code, and @IsEmail is a format check, not a business rule.\",\"violations\":[]}}",
+  "runIndex": 2,
+  "schemaVersion": 2,
+  "unitId": "src/orders/application/use-cases/create-order/create-order.dto.ts",
+  "usage": {
+    "inputTokens": 7341,
+    "outputTokens": 957
+  },
+  "usedOptions": {
+    "effort": "high",
+    "model": "claude-sonnet-5-5"
+  }
+}

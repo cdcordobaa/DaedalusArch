@@ -1,0 +1,46 @@
+{
+  "attempts": 1,
+  "cliVersion": "2.1.294",
+  "configListingSha256": "47aa04258852fab9a706f3f0c14cee22306d69fbb6fdfbde8c11854bd54997bc",
+  "durationMs": 7930,
+  "effort": "high",
+  "functionId": "FF-N02",
+  "ignoredOptions": [
+    "maxTokens"
+  ],
+  "isolationProbeSha256": "ce76f240c1d90df332d581703538c0b40c5186947dd64c0ffb3ffb207242b218",
+  "key": "0db1685465b9c12d4d47319da98fe65869cc450f6a0fafba84bdea7edaa1c03f-r0-1",
+  "model": "claude-sonnet-5-5",
+  "outcome": {
+    "kind": "valid"
+  },
+  "parsedVerdict": {
+    "confidence": 0.95,
+    "evidence": [
+      "src/domain/repositories.ts: ProductRepository interface (findById, list, save) is a pure abstraction over the domain type Product.",
+      "src/domain/repositories.ts: OrderRepository interface (findById, listByState(state?: OrderState), save) uses only domain types Order and OrderState.",
+      "Graph: InMemoryOrderRepository and InMemoryProductRepository (infrastructure) IMPLEMENTS these interfaces, so persistence logic lives in infrastructure, not in this file."
+    ],
+    "pass": true,
+    "reasoning": "src/domain/repositories.ts only declares ProductRepository and OrderRepository as interfaces (ports) expressed in domain types (Product, Order, OrderState). It has no persistence implementation, transport or framework logic, and no business rules or orchestration. Repository interfaces are a standard domain-layer responsibility. The graph shows implementations in infrastructure and consumers in application, which is consistent with this role.",
+    "violations": []
+  },
+  "prompt": "## Rule\nThe unit's responsibilities match the role of its declared layer.\n\n## Rubric\nPass: Every responsibility in the file belongs to the role and kind of its declared layer, and agrees with any ADR prose given.\nFail: The file carries a responsibility that belongs to a different layer kind, for example persistence, transport or framework logic in a domain file, or business rules in an infrastructure or presentation file.\nEvidence required: Name the file and cite the function, method or statement that carries the misplaced responsibility, and the layer kind it belongs to.\nOut of scope: import direction and layer-dependency rules, which are checked symbolically.\n\n## Layer model\n- domain (kind: domain): src/domain/**\n- application (kind: application): src/application/**\n- infrastructure (kind: infrastructure): src/infrastructure/**\n\n## Unit\nKind: file\nId: src/domain/repositories.ts\nLayer: domain\nUnit files:\n- src/domain/repositories.ts\n\n## Source\n=====SOURCE-BEGIN src/domain/repositories.ts=====\nimport { Order, OrderState } from \"./order\";\nimport { Product } from \"./product\";\n\nexport interface ProductRepository {\n  findById(id: string): Product | undefined;\n  list(): Product[];\n  save(product: Product): void;\n}\n\nexport interface OrderRepository {\n  findById(id: string): Order | undefined;\n  listByState(state?: OrderState): Order[];\n  save(order: Order): void;\n}\n\n=====SOURCE-END=====\n\n## Graph excerpt\n{\"edges\":[{\"from\":\"CatalogueService@src/application/catalogue-service.ts\",\"to\":\"ProductRepository@src/domain/repositories.ts\",\"type\":\"CONSTRUCTOR_INJECTS\"},{\"from\":\"InMemoryOrderRepository@src/infrastructure/in-memory-repositories.ts\",\"to\":\"OrderRepository@src/domain/repositories.ts\",\"type\":\"IMPLEMENTS\"},{\"from\":\"InMemoryProductRepository@src/infrastructure/in-memory-repositories.ts\",\"to\":\"ProductRepository@src/domain/repositories.ts\",\"type\":\"IMPLEMENTS\"},{\"from\":\"OrderService@src/application/order-service.ts\",\"to\":\"OrderRepository@src/domain/repositories.ts\",\"type\":\"CONSTRUCTOR_INJECTS\"},{\"from\":\"OrderService@src/application/order-service.ts\",\"to\":\"ProductRepository@src/domain/repositories.ts\",\"type\":\"CONSTRUCTOR_INJECTS\"},{\"from\":\"src/application/catalogue-service.ts\",\"to\":\"src/domain/repositories.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/application/order-service.ts\",\"to\":\"src/domain/repositories.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/domain/repositories.ts\",\"to\":\"src/domain/order.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/domain/repositories.ts\",\"to\":\"src/domain/product.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/infrastructure/in-memory-repositories.ts\",\"to\":\"src/domain/repositories.ts\",\"type\":\"IMPORTS\"}],\"nodes\":[{\"kind\":\"Class\",\"layer\":\"application\",\"name\":\"CatalogueService\",\"path\":\"src/application/catalogue-service.ts\"},{\"kind\":\"Class\",\"layer\":\"application\",\"name\":\"OrderService\",\"path\":\"src/application/order-service.ts\"},{\"kind\":\"Class\",\"layer\":\"infrastructure\",\"name\":\"InMemoryOrderRepository\",\"path\":\"src/infrastructure/in-memory-repositories.ts\"},{\"kind\":\"Class\",\"layer\":\"infrastructure\",\"name\":\"InMemoryProductRepository\",\"path\":\"src/infrastructure/in-memory-repositories.ts\"},{\"kind\":\"File\",\"layer\":\"application\",\"path\":\"src/application/catalogue-service.ts\"},{\"kind\":\"File\",\"layer\":\"application\",\"path\":\"src/application/order-service.ts\"},{\"kind\":\"File\",\"layer\":\"domain\",\"path\":\"src/domain/order.ts\"},{\"kind\":\"File\",\"layer\":\"domain\",\"path\":\"src/domain/product.ts\"},{\"kind\":\"File\",\"layer\":\"domain\",\"path\":\"src/domain/repositories.ts\"},{\"kind\":\"File\",\"layer\":\"infrastructure\",\"path\":\"src/infrastructure/in-memory-repositories.ts\"},{\"kind\":\"Interface\",\"layer\":\"domain\",\"name\":\"OrderRepository\",\"path\":\"src/domain/repositories.ts\"},{\"kind\":\"Interface\",\"layer\":\"domain\",\"name\":\"ProductRepository\",\"path\":\"src/domain/repositories.ts\"}]}\n\n## Instructions\nJudge the unit against the rule and rubric. Return the JSON object the schema requires. Set pass to false if any file of the unit fails the rubric.\n",
+  "provider": "claude-cli",
+  "recordedAt": "2026-10-11T22:20:10.525Z",
+  "repetition": 0,
+  "requestHash": "0db1685465b9c12d4d47319da98fe65869cc450f6a0fafba84bdea7edaa1c03f",
+  "resolvedModel": "claude-sonnet-5-5",
+  "response": "{\"is_error\":false,\"modelUsage\":{\"claude-sonnet-5-5\":{\"inputTokens\":4,\"outputTokens\":944}},\"result\":\"{\\\"pass\\\":true,\\\"confidence\\\":0.95,\\\"reasoning\\\":\\\"src/domain/repositories.ts only declares ProductRepository and OrderRepository as interfaces (ports) expressed in domain types (Product, Order, OrderState). It has no persistence implementation, transport or framework logic, and no business rules or orchestration. Repository interfaces are a standard domain-layer responsibility. The graph shows implementations in infrastructure and consumers in application, which is consistent with this role.\\\",\\\"evidence\\\":[\\\"src/domain/repositories.ts: ProductRepository interface (findById, list, save) is a pure abstraction over the domain type Product.\\\",\\\"src/domain/repositories.ts: OrderRepository interface (findById, listByState(state?: OrderState), save) uses only domain types Order and OrderState.\\\",\\\"Graph: InMemoryOrderRepository and InMemoryProductRepository (infrastructure) IMPLEMENTS these interfaces, so persistence logic lives in infrastructure, not in this file.\\\"],\\\"violations\\\":[]}\",\"structured_output\":{\"confidence\":0.95,\"evidence\":[\"src/domain/repositories.ts: ProductRepository interface (findById, list, save) is a pure abstraction over the domain type Product.\",\"src/domain/repositories.ts: OrderRepository interface (findById, listByState(state?: OrderState), save) uses only domain types Order and OrderState.\",\"Graph: InMemoryOrderRepository and InMemoryProductRepository (infrastructure) IMPLEMENTS these interfaces, so persistence logic lives in infrastructure, not in this file.\"],\"pass\":true,\"reasoning\":\"src/domain/repositories.ts only declares ProductRepository and OrderRepository as interfaces (ports) expressed in domain types (Product, Order, OrderState). It has no persistence implementation, transport or framework logic, and no business rules or orchestration. Repository interfaces are a standard domain-layer responsibility. The graph shows implementations in infrastructure and consumers in application, which is consistent with this role.\",\"violations\":[]}}",
+  "runIndex": 1,
+  "schemaVersion": 2,
+  "unitId": "src/domain/repositories.ts",
+  "usage": {
+    "inputTokens": 6834,
+    "outputTokens": 944
+  },
+  "usedOptions": {
+    "effort": "high",
+    "model": "claude-sonnet-5-5"
+  }
+}

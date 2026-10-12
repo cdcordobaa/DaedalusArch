@@ -1,0 +1,48 @@
+{
+  "attempts": 1,
+  "cliVersion": "2.1.294",
+  "configListingSha256": "47aa04258852fab9a706f3f0c14cee22306d69fbb6fdfbde8c11854bd54997bc",
+  "durationMs": 6701,
+  "effort": "high",
+  "functionId": "FF-N02",
+  "ignoredOptions": [
+    "maxTokens"
+  ],
+  "isolationProbeSha256": "97a2e2d0af1100c13c55e028c1a0c71f069093c3d08705af122aaeb302f1a641",
+  "key": "1dd264a5f630d463f58e1b2c6bfc889e9f497223dd387d72a0b549a17f31ad4d-r0-2",
+  "model": "claude-opus-5-5",
+  "outcome": {
+    "kind": "valid"
+  },
+  "parsedVerdict": {
+    "confidence": 0.93,
+    "evidence": [
+      "Product.create validates the id and initial stock and throws a domain ValidationError. This is a business invariant.",
+      "reserve/canReserve use the available stock to enforce the rule that stock cannot be over-reserved, throwing InsufficientStockError. This is domain logic.",
+      "dispatch/release change the stock state according to warehouse business rules.",
+      "restore/toSnapshot only map to and from a plain ProductSnapshot object. They contain no storage technology or I/O, so they are a domain memento, not persistence logic."
+    ],
+    "pass": true,
+    "reasoning": "src/domain/Product.ts is a pure domain entity. It holds stock state (onHand and reserved) and enforces business invariants: validation when the product is created, checking availability before a reservation, and the rules for release and dispatch. It raises domain errors. The ProductSnapshot type and the restore/toSnapshot methods are a plain-data memento. They use no persistence technology, ORM, SQL, serialization format or I/O, so the entity can be rebuilt without depending on infrastructure. Nothing in the file is transport, framework or application orchestration logic. Every responsibility fits the domain layer.",
+    "violations": []
+  },
+  "projectId": "claude-opus-5-5/order-fulfilment/minimal-prose/run-0",
+  "prompt": "## Rule\nThe unit's responsibilities match the role of its declared layer.\n\n## Rubric\nPass: Every responsibility in the file belongs to the role and kind of its declared layer, and agrees with any ADR prose given.\nFail: The file carries a responsibility that belongs to a different layer kind, for example persistence, transport or framework logic in a domain file, or business rules in an infrastructure or presentation file.\nEvidence required: Name the file and cite the function, method or statement that carries the misplaced responsibility, and the layer kind it belongs to.\nOut of scope: import direction and layer-dependency rules, which are checked symbolically.\n\n## Layer model\n- domain (kind: domain): src/domain/**\n- application (kind: application): src/application/**\n- infrastructure (kind: infrastructure): src/infrastructure/**\n\n## Unit\nKind: file\nId: src/domain/Product.ts\nLayer: domain\nUnit files:\n- src/domain/Product.ts\n\n## Source\n=====SOURCE-BEGIN src/domain/Product.ts=====\nimport { InsufficientStockError, ValidationError } from './errors';\nimport { Quantity } from './Quantity';\n\nexport interface ProductSnapshot {\n  readonly id: string;\n  readonly name: string;\n  readonly onHand: number;\n  readonly reserved: number;\n}\n\n/**\n * A catalogue product and its stock. `onHand` is physically in the warehouse;\n * `reserved` is the part of it promised to orders that have not shipped yet.\n */\nexport class Product {\n  private constructor(\n    readonly id: string,\n    readonly name: string,\n    private onHand: number,\n    private reserved: number,\n  ) {}\n\n  static create(id: string, name: string, initialStock: number): Product {\n    if (id.trim() === '') throw new ValidationError('Product id must not be empty');\n    if (!Number.isSafeInteger(initialStock) || initialStock < 0) {\n      throw new ValidationError('Initial stock must be a non-negative integer');\n    }\n    return new Product(id, name, initialStock, 0);\n  }\n\n  static restore(snapshot: ProductSnapshot): Product {\n    return new Product(snapshot.id, snapshot.name, snapshot.onHand, snapshot.reserved);\n  }\n\n  get available(): number {\n    return this.onHand - this.reserved;\n  }\n\n  canReserve(quantity: Quantity): boolean {\n    return quantity.value <= this.available;\n  }\n\n  reserve(quantity: Quantity): void {\n    if (!this.canReserve(quantity)) {\n      throw new InsufficientStockError(this.id, quantity.value, this.available);\n    }\n    this.reserved += quantity.value;\n  }\n\n  release(quantity: Quantity): void {\n    this.reserved = Math.max(0, this.reserved - quantity.value);\n  }\n\n  /** Reserved units leave the warehouse when the order ships. */\n  dispatch(quantity: Quantity): void {\n    this.reserved = Math.max(0, this.reserved - quantity.value);\n    this.onHand = Math.max(0, this.onHand - quantity.value);\n  }\n\n  toSnapshot(): ProductSnapshot {\n    return { id: this.id, name: this.name, onHand: this.onHand, reserved: this.reserved };\n  }\n}\n\n=====SOURCE-END=====\n\n## Graph excerpt\n{\"edges\":[{\"from\":\"src/domain/Product.ts\",\"to\":\"src/domain/Quantity.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/domain/Product.ts\",\"to\":\"src/domain/errors.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/domain/ProductRepository.ts\",\"to\":\"src/domain/Product.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/domain/StockReservationService.ts\",\"to\":\"src/domain/Product.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/infrastructure/InMemoryProductRepository.ts\",\"to\":\"src/domain/Product.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/infrastructure/catalogueSeed.ts\",\"to\":\"src/domain/Product.ts\",\"type\":\"IMPORTS\"}],\"nodes\":[{\"kind\":\"Class\",\"layer\":\"domain\",\"name\":\"Product\",\"path\":\"src/domain/Product.ts\"},{\"kind\":\"File\",\"layer\":\"domain\",\"path\":\"src/domain/Product.ts\"},{\"kind\":\"File\",\"layer\":\"domain\",\"path\":\"src/domain/ProductRepository.ts\"},{\"kind\":\"File\",\"layer\":\"domain\",\"path\":\"src/domain/Quantity.ts\"},{\"kind\":\"File\",\"layer\":\"domain\",\"path\":\"src/domain/StockReservationService.ts\"},{\"kind\":\"File\",\"layer\":\"domain\",\"path\":\"src/domain/errors.ts\"},{\"kind\":\"File\",\"layer\":\"infrastructure\",\"path\":\"src/infrastructure/InMemoryProductRepository.ts\"},{\"kind\":\"File\",\"layer\":\"infrastructure\",\"path\":\"src/infrastructure/catalogueSeed.ts\"},{\"kind\":\"Interface\",\"layer\":\"domain\",\"name\":\"ProductSnapshot\",\"path\":\"src/domain/Product.ts\"}]}\n\n## Instructions\nJudge the unit against the rule and rubric. Return the JSON object the schema requires. Set pass to false if any file of the unit fails the rubric.\n",
+  "provider": "claude-cli",
+  "recordedAt": "2026-10-10T21:49:46.243Z",
+  "repetition": 0,
+  "requestHash": "1dd264a5f630d463f58e1b2c6bfc889e9f497223dd387d72a0b549a17f31ad4d",
+  "resolvedModel": "claude-opus-5-5",
+  "response": "{\"is_error\":false,\"modelUsage\":{\"claude-opus-5-5\":{\"inputTokens\":2,\"outputTokens\":553}},\"result\":\"{\\\"pass\\\":true,\\\"confidence\\\":0.93,\\\"reasoning\\\":\\\"src/domain/Product.ts is a pure domain entity. It holds stock state (onHand and reserved) and enforces business invariants: validation when the product is created, checking availability before a reservation, and the rules for release and dispatch. It raises domain errors. The ProductSnapshot type and the restore/toSnapshot methods are a plain-data memento. They use no persistence technology, ORM, SQL, serialization format or I/O, so the entity can be rebuilt without depending on infrastructure. Nothing in the file is transport, framework or application orchestration logic. Every responsibility fits the domain layer.\\\",\\\"evidence\\\":[\\\"Product.create validates the id and initial stock and throws a domain ValidationError. This is a business invariant.\\\",\\\"reserve/canReserve use the available stock to enforce the rule that stock cannot be over-reserved, throwing InsufficientStockError. This is domain logic.\\\",\\\"dispatch/release change the stock state according to warehouse business rules.\\\",\\\"restore/toSnapshot only map to and from a plain ProductSnapshot object. They contain no storage technology or I/O, so they are a domain memento, not persistence logic.\\\"],\\\"violations\\\":[]}\",\"structured_output\":{\"confidence\":0.93,\"evidence\":[\"Product.create validates the id and initial stock and throws a domain ValidationError. This is a business invariant.\",\"reserve/canReserve use the available stock to enforce the rule that stock cannot be over-reserved, throwing InsufficientStockError. This is domain logic.\",\"dispatch/release change the stock state according to warehouse business rules.\",\"restore/toSnapshot only map to and from a plain ProductSnapshot object. They contain no storage technology or I/O, so they are a domain memento, not persistence logic.\"],\"pass\":true,\"reasoning\":\"src/domain/Product.ts is a pure domain entity. It holds stock state (onHand and reserved) and enforces business invariants: validation when the product is created, checking availability before a reservation, and the rules for release and dispatch. It raises domain errors. The ProductSnapshot type and the restore/toSnapshot methods are a plain-data memento. They use no persistence technology, ORM, SQL, serialization format or I/O, so the entity can be rebuilt without depending on infrastructure. Nothing in the file is transport, framework or application orchestration logic. Every responsibility fits the domain layer.\",\"violations\":[]}}",
+  "runIndex": 2,
+  "schemaVersion": 2,
+  "unitId": "src/domain/Product.ts",
+  "usage": {
+    "inputTokens": 3267,
+    "outputTokens": 553
+  },
+  "usedOptions": {
+    "effort": "high",
+    "model": "claude-opus-5-5"
+  }
+}

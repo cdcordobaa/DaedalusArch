@@ -1,0 +1,46 @@
+{
+  "attempts": 1,
+  "cliVersion": "2.1.294",
+  "configListingSha256": "47aa04258852fab9a706f3f0c14cee22306d69fbb6fdfbde8c11854bd54997bc",
+  "durationMs": 4702,
+  "effort": "high",
+  "functionId": "FF-N02",
+  "ignoredOptions": [
+    "maxTokens"
+  ],
+  "isolationProbeSha256": "ce76f240c1d90df332d581703538c0b40c5186947dd64c0ffb3ffb207242b218",
+  "key": "e38053730d76266812ea1123b570caa4a89138557e73012f99a00bd5837c2894-r0-1",
+  "model": "claude-sonnet-5-5",
+  "outcome": {
+    "kind": "valid"
+  },
+  "parsedVerdict": {
+    "confidence": 0.95,
+    "evidence": [
+      "find() only returns this.findAllOrdersService.findAll(), so it delegates to an application service.",
+      "updateOrderById() binds @Param and @Body, then calls this.updateOrderService.updateOrder(orderId, updateOrderDto). That is transport mapping plus delegation.",
+      "The file has no database access, validation rules, or domain computations."
+    ],
+    "pass": true,
+    "reasoning": "OrdersController is a thin NestJS controller in the presentation layer. It defines HTTP routes with @Controller, @Get and @Post, extracts the route param and body, and delegates to injected application services. It has no business rules, persistence or other logic from a different layer kind.",
+    "violations": []
+  },
+  "prompt": "## Rule\nThe unit's responsibilities match the role of its declared layer.\n\n## Rubric\nPass: Every responsibility in the file belongs to the role and kind of its declared layer, and agrees with any ADR prose given.\nFail: The file carries a responsibility that belongs to a different layer kind, for example persistence, transport or framework logic in a domain file, or business rules in an infrastructure or presentation file.\nEvidence required: Name the file and cite the function, method or statement that carries the misplaced responsibility, and the layer kind it belongs to.\nOut of scope: import direction and layer-dependency rules, which are checked symbolically.\n\n## Layer model\n- domain (kind: domain): src/domain/**, src/core/**, src/entities/**, src/models/**, **/domain/**; file patterns: **/*.model.ts, **/*.entity.ts\n- infrastructure (kind: infrastructure): src/infrastructure/**, src/persistence/**, src/adapters/**, src/prisma/**, src/lib/**, src/common/middleware/**, src/common/filters/**, src/common/pipes/**, **/dal/**; file patterns: **/*.repository.ts, **/*.worker.ts, **/workers/**, **/strategies/**\n- application (kind: application): src/application/**, src/use-cases/**, src/services/**, **/dtos/**, **/services/**; file patterns: **/*.service.ts, **/*.processor.ts, **/dto/**, **/*.dto.ts\n- presentation (kind: presentation): src/controllers/**, src/gateways/**, src/common/guards/**, src/common/interceptors/**; file patterns: **/*.controller.ts, **/*.module.ts, **/*.guard.ts, **/*.interceptor.ts, **/*.gateway.ts\n\n## Unit\nKind: file\nId: src/delivery/orders/orders.controller.ts\nLayer: presentation\nUnit files:\n- src/delivery/orders/orders.controller.ts\n\n## Source\n=====SOURCE-BEGIN src/delivery/orders/orders.controller.ts=====\nimport { Body, Controller, Get, Param, Post } from '@nestjs/common';\nimport { UpdateOrderDto } from './dtos/update-order.dto';\nimport { Order } from '../__models__/orders.model';\nimport { FindAllOrdersService } from './services/find-all-orders.service';\nimport { UpdateOrderService } from './services/update-order.service';\n\n@Controller('orders')\nexport class OrdersController {\n  constructor(\n    private readonly findAllOrdersService: FindAllOrdersService,\n    private readonly updateOrderService: UpdateOrderService,\n  ) {}\n\n  @Get('/')\n  find(): Promise<Order[]> {\n    return this.findAllOrdersService.findAll();\n  }\n\n  @Post('/:orderId')\n  updateOrderById(\n    @Param('orderId') orderId: string,\n    @Body() updateOrderDto: UpdateOrderDto,\n  ): Promise<Order> {\n    return this.updateOrderService.updateOrder(orderId, updateOrderDto);\n  }\n}\n\n=====SOURCE-END=====\n\n## Graph excerpt\n{\"edges\":[{\"from\":\"OrdersController@src/delivery/orders/orders.controller.ts\",\"to\":\"FindAllOrdersService@src/delivery/orders/services/find-all-orders.service.ts\",\"type\":\"CONSTRUCTOR_INJECTS\"},{\"from\":\"OrdersController@src/delivery/orders/orders.controller.ts\",\"to\":\"UpdateOrderService@src/delivery/orders/services/update-order.service.ts\",\"type\":\"CONSTRUCTOR_INJECTS\"},{\"from\":\"src/delivery/delivery.module.ts\",\"to\":\"src/delivery/orders/orders.controller.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/delivery/orders/orders.controller.ts\",\"to\":\"@nestjs/common\",\"type\":\"IMPORTS\"},{\"from\":\"src/delivery/orders/orders.controller.ts\",\"to\":\"src/delivery/__models__/orders.model.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/delivery/orders/orders.controller.ts\",\"to\":\"src/delivery/orders/dtos/update-order.dto.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/delivery/orders/orders.controller.ts\",\"to\":\"src/delivery/orders/services/find-all-orders.service.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/delivery/orders/orders.controller.ts\",\"to\":\"src/delivery/orders/services/update-order.service.ts\",\"type\":\"IMPORTS\"}],\"nodes\":[{\"kind\":\"Class\",\"layer\":\"application\",\"name\":\"FindAllOrdersService\",\"path\":\"src/delivery/orders/services/find-all-orders.service.ts\"},{\"kind\":\"Class\",\"layer\":\"application\",\"name\":\"UpdateOrderService\",\"path\":\"src/delivery/orders/services/update-order.service.ts\"},{\"kind\":\"Class\",\"layer\":\"presentation\",\"name\":\"OrdersController\",\"path\":\"src/delivery/orders/orders.controller.ts\"},{\"kind\":\"File\",\"layer\":\"application\",\"path\":\"src/delivery/orders/dtos/update-order.dto.ts\"},{\"kind\":\"File\",\"layer\":\"application\",\"path\":\"src/delivery/orders/services/find-all-orders.service.ts\"},{\"kind\":\"File\",\"layer\":\"application\",\"path\":\"src/delivery/orders/services/update-order.service.ts\"},{\"kind\":\"File\",\"layer\":\"domain\",\"path\":\"src/delivery/__models__/orders.model.ts\"},{\"kind\":\"File\",\"layer\":\"presentation\",\"path\":\"src/delivery/delivery.module.ts\"},{\"kind\":\"File\",\"layer\":\"presentation\",\"path\":\"src/delivery/orders/orders.controller.ts\"},{\"kind\":\"Package\",\"layer\":null,\"path\":\"@nestjs/common\"}]}\n\n## Instructions\nJudge the unit against the rule and rubric. Return the JSON object the schema requires. Set pass to false if any file of the unit fails the rubric.\n",
+  "provider": "claude-cli",
+  "recordedAt": "2026-10-11T22:09:45.795Z",
+  "repetition": 0,
+  "requestHash": "e38053730d76266812ea1123b570caa4a89138557e73012f99a00bd5837c2894",
+  "resolvedModel": "claude-sonnet-5-5",
+  "response": "{\"is_error\":false,\"modelUsage\":{\"claude-sonnet-5-5\":{\"inputTokens\":2,\"outputTokens\":347}},\"result\":\"{\\\"pass\\\":true,\\\"confidence\\\":0.95,\\\"reasoning\\\":\\\"OrdersController is a thin NestJS controller in the presentation layer. It defines HTTP routes with @Controller, @Get and @Post, extracts the route param and body, and delegates to injected application services. It has no business rules, persistence or other logic from a different layer kind.\\\",\\\"evidence\\\":[\\\"find() only returns this.findAllOrdersService.findAll(), so it delegates to an application service.\\\",\\\"updateOrderById() binds @Param and @Body, then calls this.updateOrderService.updateOrder(orderId, updateOrderDto). That is transport mapping plus delegation.\\\",\\\"The file has no database access, validation rules, or domain computations.\\\"],\\\"violations\\\":[]}\",\"structured_output\":{\"confidence\":0.95,\"evidence\":[\"find() only returns this.findAllOrdersService.findAll(), so it delegates to an application service.\",\"updateOrderById() binds @Param and @Body, then calls this.updateOrderService.updateOrder(orderId, updateOrderDto). That is transport mapping plus delegation.\",\"The file has no database access, validation rules, or domain computations.\"],\"pass\":true,\"reasoning\":\"OrdersController is a thin NestJS controller in the presentation layer. It defines HTTP routes with @Controller, @Get and @Post, extracts the route param and body, and delegates to injected application services. It has no business rules, persistence or other logic from a different layer kind.\",\"violations\":[]}}",
+  "runIndex": 1,
+  "schemaVersion": 2,
+  "unitId": "src/delivery/orders/orders.controller.ts",
+  "usage": {
+    "inputTokens": 3523,
+    "outputTokens": 347
+  },
+  "usedOptions": {
+    "effort": "high",
+    "model": "claude-sonnet-5-5"
+  }
+}

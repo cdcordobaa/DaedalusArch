@@ -1,0 +1,32 @@
+{
+  "attempts": 1,
+  "durationMs": 2508,
+  "effort": null,
+  "functionId": "label:judge-unit:8bfece3b8416bc4fd3fc5216ccb64058dd49d1c768e1eb4f3f92af4a0059a18f",
+  "ignoredOptions": [],
+  "key": "91728f723241c13b4384283a9656cc7c1f15318f539a4db00c887d939db054a5-r0-1",
+  "model": "gemini-3.1-pro-preview",
+  "outcome": {
+    "kind": "valid"
+  },
+  "parsedVerdict": null,
+  "prompt": "Decide whether the unit below satisfies the rubric.\n- pass: the unit meets the rubric's pass condition.\n- fail: the unit meets the rubric's fail condition.\nGive a short rationale that cites the code. Root cause: answer null.\n\n## Item\n## Judge unit\n  Function: FF-N02 (semantic)\n  Unit: src/application/ports/UseCase.ts (file, layer application)\n  \n  ## Rubric\n  Rule: The unit's responsibilities match the role of its declared layer.\n  Pass: Every responsibility in the file belongs to the role and kind of its declared layer, and agrees with any ADR prose given.\n  Fail: The file carries a responsibility that belongs to a different layer kind, for example persistence, transport or framework logic in a domain file, or business rules in an infrastructure or presentation file.\n  Evidence required: Name the file and cite the function, method or statement that carries the misplaced responsibility, and the layer kind it belongs to.\n  Out of scope: import direction and layer-dependency rules, which are checked symbolically.\n  \n  ## Source\n  =====SOURCE-BEGIN src/application/ports/UseCase.ts=====\n  export interface UseCase<Input, Output> {\n    execute(input: Input): Promise<Output>;\n  }\n  \n  =====SOURCE-END=====\n\n## Label options\n1. fail\n  2. pass\n\n## Root causes\n1. RC-EXTRACT-BARREL\n  2. RC-LAYER-MAP\n  3. RC-SPEC-PARAM\n  4. RC-TEMPLATE-OVERAPPROX\n  5. RC-DYNAMIC-IMPORT\n  6. RC-GENERATED-CODE\n  7. RC-EXTRACT-ALIAS\n  8. RC-GENUINE-UNSEEDED\n  9. RC-OTHER\n  10. RC-TYPE-ONLY\n  11. RC-STYLE-INAPPLICABLE\n  12. RC-TEST-CODE\n\nAnswer with one JSON object: {\"option\": <number of the label option>, \"rootCause\": <number of the root cause or null>, \"note\": \"<text, required with RC-OTHER>\", \"rationale\": \"<one or two sentences citing the code>\"}.",
+  "provider": "gemini",
+  "recordedAt": "2026-10-11T17:25:38.581Z",
+  "repetition": 0,
+  "requestHash": "91728f723241c13b4384283a9656cc7c1f15318f539a4db00c887d939db054a5",
+  "resolvedModel": "gemini-3.1-pro-preview",
+  "response": "{\"option\": 2, \"rationale\": \"The file defines a generic UseCase interface, which is a standard application layer responsibility and contains no logic from other layers.\", \"rootCause\": null}",
+  "runIndex": 1,
+  "schemaVersion": 2,
+  "unitId": "src/application/ports/UseCase.ts",
+  "usage": {
+    "inputTokens": 523,
+    "outputTokens": 41
+  },
+  "usedOptions": {
+    "maxTokens": 65536,
+    "model": "gemini-3.1-pro-preview",
+    "temperature": 0
+  }
+}

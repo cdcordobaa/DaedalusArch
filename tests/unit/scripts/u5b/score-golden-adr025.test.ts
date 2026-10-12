@@ -56,6 +56,15 @@ describe('MAT-04a 1.2.0: class-rename identity (ADR-025)', () => {
     expect(score.perInstance[0]?.undeclaredNew ?? []).toEqual([]);
   });
 
+  it('classRenameIdentity false (--rule-version 1.1.0, audit 2026-10-10 issue 1) restores the rule-1.1.0 diff: FP 2, the P1 census', async () => {
+    const b = await report(BASE, { fns });
+    const s = await report(SEEDED, { fns });
+    const r = renameRow('MO-CV02', { functionIds: ['FF-CV02'], dimension: 'convention', keys: [key('FF-CV02', F, '', [NEW], 'site-line', 16)] });
+    const score = ok(scoreDifferential({ rule: rule(), seeds: [seed(r, b, s)], classRenameIdentity: false }));
+    expect(score.overall.get(HELD_OUT)?.strict).toMatchObject({ tp: 1, fp: 2, fn: 0 });
+    expect(score.preExistingIgnored).toBe(1);
+  });
+
   it('twin (MO-CV02n, conforming new name) is twin-clean when only re-keyed pre-existing violations differ', async () => {
     const twinNew = `Core${OLD}`;
     const b = await report(BASE, { fns });

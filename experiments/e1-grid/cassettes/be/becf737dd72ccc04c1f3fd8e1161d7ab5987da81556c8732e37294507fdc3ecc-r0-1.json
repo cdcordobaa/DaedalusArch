@@ -1,0 +1,48 @@
+{
+  "attempts": 1,
+  "cliVersion": "2.1.294",
+  "configListingSha256": "47aa04258852fab9a706f3f0c14cee22306d69fbb6fdfbde8c11854bd54997bc",
+  "durationMs": 7721,
+  "effort": "high",
+  "functionId": "FF-N02",
+  "ignoredOptions": [
+    "maxTokens"
+  ],
+  "isolationProbeSha256": "97a2e2d0af1100c13c55e028c1a0c71f069093c3d08705af122aaeb302f1a641",
+  "key": "becf737dd72ccc04c1f3fd8e1161d7ab5987da81556c8732e37294507fdc3ecc-r0-1",
+  "model": "claude-opus-5-5",
+  "outcome": {
+    "kind": "valid"
+  },
+  "parsedVerdict": {
+    "confidence": 0.85,
+    "evidence": [
+      "src/infrastructure/server.ts: `new InMemoryProductRepository()` / `new InMemoryOrderRepository()` set up the persistence adapters, which is infrastructure work",
+      "src/infrastructure/server.ts: `new OrderService(orders, products, new UuidGenerator(), new SystemClock())` connects the adapters to the application services, which is startup wiring",
+      "src/infrastructure/server.ts: `catalogue.addProduct({...})` seeds demo data through the application service and adds no business rules of its own",
+      "src/infrastructure/server.ts: `Number(process.env[\"PORT\"] ?? 3000)` and `app.listen(port, ...)` handle configuration and starting the HTTP server, which is infrastructure work"
+    ],
+    "pass": true,
+    "reasoning": "src/infrastructure/server.ts passes: everything in it is infrastructure work. The file is the app's startup and wiring code. It builds the in-memory repositories and the UUID and clock adapters, passes them into the application services, sets up the HTTP app and starts the server using the PORT environment variable. All of that is framework, configuration and runtime-hosting work, which belongs in infrastructure. The file also seeds three catalogue products, but it does this through the application service (catalogue.addProduct) rather than by running any business logic itself. The seeding is a demo setup step, not a business rule. The file has no pricing, stock-checking or order logic, so no domain or application work is in the wrong place.",
+    "violations": []
+  },
+  "projectId": "claude-opus-5-5/order-fulfilment/none/run-2",
+  "prompt": "## Rule\nThe unit's responsibilities match the role of its declared layer.\n\n## Rubric\nPass: Every responsibility in the file belongs to the role and kind of its declared layer, and agrees with any ADR prose given.\nFail: The file carries a responsibility that belongs to a different layer kind, for example persistence, transport or framework logic in a domain file, or business rules in an infrastructure or presentation file.\nEvidence required: Name the file and cite the function, method or statement that carries the misplaced responsibility, and the layer kind it belongs to.\nOut of scope: import direction and layer-dependency rules, which are checked symbolically.\n\n## Layer model\n- domain (kind: domain): src/domain/**\n- application (kind: application): src/application/**\n- infrastructure (kind: infrastructure): src/infrastructure/**\n\n## Unit\nKind: file\nId: src/infrastructure/server.ts\nLayer: infrastructure\nUnit files:\n- src/infrastructure/server.ts\n\n## Source\n=====SOURCE-BEGIN src/infrastructure/server.ts=====\nimport { CatalogueService } from \"../application/catalogue-service\";\nimport { OrderService } from \"../application/order-service\";\nimport { createApp } from \"./http\";\nimport { InMemoryOrderRepository, InMemoryProductRepository, SystemClock, UuidGenerator } from \"./in-memory\";\n\nconst products = new InMemoryProductRepository();\nconst orders = new InMemoryOrderRepository();\n\nconst catalogue = new CatalogueService(products);\nconst orderService = new OrderService(orders, products, new UuidGenerator(), new SystemClock());\n\n// Seed a small catalogue so the API is usable straight away.\ncatalogue.addProduct({ id: \"widget\", name: \"Widget\", priceCents: 1299, stock: 100 });\ncatalogue.addProduct({ id: \"gadget\", name: \"Gadget\", priceCents: 2499, stock: 25 });\ncatalogue.addProduct({ id: \"gizmo\", name: \"Gizmo\", priceCents: 499, stock: 5 });\n\nconst port = Number(process.env[\"PORT\"] ?? 3000);\nconst app = createApp({ catalogue, orders: orderService });\n\napp.listen(port, () => {\n  console.log(`Order fulfilment API listening on http://localhost:${port}`);\n});\n\n=====SOURCE-END=====\n\n## Graph excerpt\n{\"edges\":[{\"from\":\"src/infrastructure/server.ts\",\"to\":\"src/application/catalogue-service.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/infrastructure/server.ts\",\"to\":\"src/application/order-service.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/infrastructure/server.ts\",\"to\":\"src/infrastructure/http.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/infrastructure/server.ts\",\"to\":\"src/infrastructure/in-memory.ts\",\"type\":\"IMPORTS\"}],\"nodes\":[{\"kind\":\"File\",\"layer\":\"application\",\"path\":\"src/application/catalogue-service.ts\"},{\"kind\":\"File\",\"layer\":\"application\",\"path\":\"src/application/order-service.ts\"},{\"kind\":\"File\",\"layer\":\"infrastructure\",\"path\":\"src/infrastructure/http.ts\"},{\"kind\":\"File\",\"layer\":\"infrastructure\",\"path\":\"src/infrastructure/in-memory.ts\"},{\"kind\":\"File\",\"layer\":\"infrastructure\",\"path\":\"src/infrastructure/server.ts\"}]}\n\n## Instructions\nJudge the unit against the rule and rubric. Return the JSON object the schema requires. Set pass to false if any file of the unit fails the rubric.\n",
+  "provider": "claude-cli",
+  "recordedAt": "2026-10-10T21:34:41.426Z",
+  "repetition": 0,
+  "requestHash": "becf737dd72ccc04c1f3fd8e1161d7ab5987da81556c8732e37294507fdc3ecc",
+  "resolvedModel": "claude-opus-5-5",
+  "response": "{\"is_error\":false,\"modelUsage\":{\"claude-opus-5-5\":{\"inputTokens\":2,\"outputTokens\":670}},\"result\":\"{\\\"pass\\\":true,\\\"confidence\\\":0.85,\\\"reasoning\\\":\\\"src/infrastructure/server.ts passes: everything in it is infrastructure work. The file is the app's startup and wiring code. It builds the in-memory repositories and the UUID and clock adapters, passes them into the application services, sets up the HTTP app and starts the server using the PORT environment variable. All of that is framework, configuration and runtime-hosting work, which belongs in infrastructure. The file also seeds three catalogue products, but it does this through the application service (catalogue.addProduct) rather than by running any business logic itself. The seeding is a demo setup step, not a business rule. The file has no pricing, stock-checking or order logic, so no domain or application work is in the wrong place.\\\",\\\"evidence\\\":[\\\"src/infrastructure/server.ts: `new InMemoryProductRepository()` / `new InMemoryOrderRepository()` set up the persistence adapters, which is infrastructure work\\\",\\\"src/infrastructure/server.ts: `new OrderService(orders, products, new UuidGenerator(), new SystemClock())` connects the adapters to the application services, which is startup wiring\\\",\\\"src/infrastructure/server.ts: `catalogue.addProduct({...})` seeds demo data through the application service and adds no business rules of its own\\\",\\\"src/infrastructure/server.ts: `Number(process.env[\\\\\\\"PORT\\\\\\\"] ?? 3000)` and `app.listen(port, ...)` handle configuration and starting the HTTP server, which is infrastructure work\\\"],\\\"violations\\\":[]}\",\"structured_output\":{\"confidence\":0.85,\"evidence\":[\"src/infrastructure/server.ts: `new InMemoryProductRepository()` / `new InMemoryOrderRepository()` set up the persistence adapters, which is infrastructure work\",\"src/infrastructure/server.ts: `new OrderService(orders, products, new UuidGenerator(), new SystemClock())` connects the adapters to the application services, which is startup wiring\",\"src/infrastructure/server.ts: `catalogue.addProduct({...})` seeds demo data through the application service and adds no business rules of its own\",\"src/infrastructure/server.ts: `Number(process.env[\\\"PORT\\\"] ?? 3000)` and `app.listen(port, ...)` handle configuration and starting the HTTP server, which is infrastructure work\"],\"pass\":true,\"reasoning\":\"src/infrastructure/server.ts passes: everything in it is infrastructure work. The file is the app's startup and wiring code. It builds the in-memory repositories and the UUID and clock adapters, passes them into the application services, sets up the HTTP app and starts the server using the PORT environment variable. All of that is framework, configuration and runtime-hosting work, which belongs in infrastructure. The file also seeds three catalogue products, but it does this through the application service (catalogue.addProduct) rather than by running any business logic itself. The seeding is a demo setup step, not a business rule. The file has no pricing, stock-checking or order logic, so no domain or application work is in the wrong place.\",\"violations\":[]}}",
+  "runIndex": 1,
+  "schemaVersion": 2,
+  "unitId": "src/infrastructure/server.ts",
+  "usage": {
+    "inputTokens": 2685,
+    "outputTokens": 670
+  },
+  "usedOptions": {
+    "effort": "high",
+    "model": "claude-opus-5-5"
+  }
+}

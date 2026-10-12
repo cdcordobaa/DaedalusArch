@@ -1,0 +1,47 @@
+{
+  "attempts": 1,
+  "cliVersion": "2.1.294",
+  "configListingSha256": "47aa04258852fab9a706f3f0c14cee22306d69fbb6fdfbde8c11854bd54997bc",
+  "durationMs": 6242,
+  "effort": "high",
+  "functionId": "FF-N02",
+  "ignoredOptions": [
+    "maxTokens"
+  ],
+  "isolationProbeSha256": "97a2e2d0af1100c13c55e028c1a0c71f069093c3d08705af122aaeb302f1a641",
+  "key": "f57e7fde871ab5ba7e4838a525f917855725b2c707ac3ae8ca951cb3c9efc6ce-r0-2",
+  "model": "claude-opus-5-5",
+  "outcome": {
+    "kind": "valid"
+  },
+  "parsedVerdict": {
+    "confidence": 0.95,
+    "evidence": [
+      "src/domain/project/ProjectRepository.ts declares `export interface ProjectRepository` with only abstract method signatures: save, findById, findAll.",
+      "No storage, database, HTTP or framework code is in the file. Its only import is the domain entity './Project'.",
+      "Graph: InMemoryProjectRepository@src/infrastructure/persistence IMPLEMENTS this interface, so the actual storage code is in infrastructure."
+    ],
+    "pass": true,
+    "reasoning": "src/domain/project/ProjectRepository.ts only declares the ProjectRepository interface, a port defined in domain terms with three methods: save(project), findById(id) and findAll(). It has no storage code, no transport or framework code, and no business logic. In a domain layer, a repository interface is a standard abstraction. The in-memory implementation lives in the infrastructure layer (InMemoryProjectRepository implements this interface), so its responsibilities fit the domain layer.",
+    "violations": []
+  },
+  "projectId": "claude-opus-5-5/task-management/full-aac/run-1",
+  "prompt": "## Rule\nThe unit's responsibilities match the role of its declared layer.\n\n## Rubric\nPass: Every responsibility in the file belongs to the role and kind of its declared layer, and agrees with any ADR prose given.\nFail: The file carries a responsibility that belongs to a different layer kind, for example persistence, transport or framework logic in a domain file, or business rules in an infrastructure or presentation file.\nEvidence required: Name the file and cite the function, method or statement that carries the misplaced responsibility, and the layer kind it belongs to.\nOut of scope: import direction and layer-dependency rules, which are checked symbolically.\n\n## Layer model\n- domain (kind: domain): src/domain/**\n- application (kind: application): src/application/**\n- infrastructure (kind: infrastructure): src/infrastructure/**\n\n## Unit\nKind: file\nId: src/domain/project/ProjectRepository.ts\nLayer: domain\nUnit files:\n- src/domain/project/ProjectRepository.ts\n\n## Source\n=====SOURCE-BEGIN src/domain/project/ProjectRepository.ts=====\nimport { Project } from './Project';\n\nexport interface ProjectRepository {\n  save(project: Project): Promise<void>;\n  findById(id: string): Promise<Project | undefined>;\n  findAll(): Promise<Project[]>;\n}\n\n=====SOURCE-END=====\n\n## Graph excerpt\n{\"edges\":[{\"from\":\"AddTaskService@src/application/task/AddTaskService.ts\",\"to\":\"ProjectRepository@src/domain/project/ProjectRepository.ts\",\"type\":\"CONSTRUCTOR_INJECTS\"},{\"from\":\"CreateProjectService@src/application/project/CreateProjectService.ts\",\"to\":\"ProjectRepository@src/domain/project/ProjectRepository.ts\",\"type\":\"CONSTRUCTOR_INJECTS\"},{\"from\":\"InMemoryProjectRepository@src/infrastructure/persistence/InMemoryProjectRepository.ts\",\"to\":\"ProjectRepository@src/domain/project/ProjectRepository.ts\",\"type\":\"IMPLEMENTS\"},{\"from\":\"ListProjectsService@src/application/project/ListProjectsService.ts\",\"to\":\"ProjectRepository@src/domain/project/ProjectRepository.ts\",\"type\":\"CONSTRUCTOR_INJECTS\"},{\"from\":\"ListTasksService@src/application/task/ListTasksService.ts\",\"to\":\"ProjectRepository@src/domain/project/ProjectRepository.ts\",\"type\":\"CONSTRUCTOR_INJECTS\"},{\"from\":\"src/application/project/CreateProjectService.ts\",\"to\":\"src/domain/project/ProjectRepository.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/application/project/ListProjectsService.ts\",\"to\":\"src/domain/project/ProjectRepository.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/application/task/AddTaskService.ts\",\"to\":\"src/domain/project/ProjectRepository.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/application/task/ListTasksService.ts\",\"to\":\"src/domain/project/ProjectRepository.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/domain/project/ProjectRepository.ts\",\"to\":\"src/domain/project/Project.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/infrastructure/composition/createRepositories.ts\",\"to\":\"src/domain/project/ProjectRepository.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/infrastructure/persistence/InMemoryProjectRepository.ts\",\"to\":\"src/domain/project/ProjectRepository.ts\",\"type\":\"IMPORTS\"}],\"nodes\":[{\"kind\":\"Class\",\"layer\":\"application\",\"name\":\"AddTaskService\",\"path\":\"src/application/task/AddTaskService.ts\"},{\"kind\":\"Class\",\"layer\":\"application\",\"name\":\"CreateProjectService\",\"path\":\"src/application/project/CreateProjectService.ts\"},{\"kind\":\"Class\",\"layer\":\"application\",\"name\":\"ListProjectsService\",\"path\":\"src/application/project/ListProjectsService.ts\"},{\"kind\":\"Class\",\"layer\":\"application\",\"name\":\"ListTasksService\",\"path\":\"src/application/task/ListTasksService.ts\"},{\"kind\":\"Class\",\"layer\":\"infrastructure\",\"name\":\"InMemoryProjectRepository\",\"path\":\"src/infrastructure/persistence/InMemoryProjectRepository.ts\"},{\"kind\":\"File\",\"layer\":\"application\",\"path\":\"src/application/project/CreateProjectService.ts\"},{\"kind\":\"File\",\"layer\":\"application\",\"path\":\"src/application/project/ListProjectsService.ts\"},{\"kind\":\"File\",\"layer\":\"application\",\"path\":\"src/application/task/AddTaskService.ts\"},{\"kind\":\"File\",\"layer\":\"application\",\"path\":\"src/application/task/ListTasksService.ts\"},{\"kind\":\"File\",\"layer\":\"domain\",\"path\":\"src/domain/project/Project.ts\"},{\"kind\":\"File\",\"layer\":\"domain\",\"path\":\"src/domain/project/ProjectRepository.ts\"},{\"kind\":\"File\",\"layer\":\"infrastructure\",\"path\":\"src/infrastructure/composition/createRepositories.ts\"},{\"kind\":\"File\",\"layer\":\"infrastructure\",\"path\":\"src/infrastructure/persistence/InMemoryProjectRepository.ts\"},{\"kind\":\"Interface\",\"layer\":\"domain\",\"name\":\"ProjectRepository\",\"path\":\"src/domain/project/ProjectRepository.ts\"}]}\n\n## Instructions\nJudge the unit against the rule and rubric. Return the JSON object the schema requires. Set pass to false if any file of the unit fails the rubric.\n",
+  "provider": "claude-cli",
+  "recordedAt": "2026-10-10T22:06:34.207Z",
+  "repetition": 0,
+  "requestHash": "f57e7fde871ab5ba7e4838a525f917855725b2c707ac3ae8ca951cb3c9efc6ce",
+  "resolvedModel": "claude-opus-5-5",
+  "response": "{\"is_error\":false,\"modelUsage\":{\"claude-opus-5-5\":{\"inputTokens\":2,\"outputTokens\":444}},\"result\":\"{\\\"pass\\\":true,\\\"confidence\\\":0.95,\\\"reasoning\\\":\\\"src/domain/project/ProjectRepository.ts only declares the ProjectRepository interface, a port defined in domain terms with three methods: save(project), findById(id) and findAll(). It has no storage code, no transport or framework code, and no business logic. In a domain layer, a repository interface is a standard abstraction. The in-memory implementation lives in the infrastructure layer (InMemoryProjectRepository implements this interface), so its responsibilities fit the domain layer.\\\",\\\"evidence\\\":[\\\"src/domain/project/ProjectRepository.ts declares `export interface ProjectRepository` with only abstract method signatures: save, findById, findAll.\\\",\\\"No storage, database, HTTP or framework code is in the file. Its only import is the domain entity './Project'.\\\",\\\"Graph: InMemoryProjectRepository@src/infrastructure/persistence IMPLEMENTS this interface, so the actual storage code is in infrastructure.\\\"],\\\"violations\\\":[]}\",\"structured_output\":{\"confidence\":0.95,\"evidence\":[\"src/domain/project/ProjectRepository.ts declares `export interface ProjectRepository` with only abstract method signatures: save, findById, findAll.\",\"No storage, database, HTTP or framework code is in the file. Its only import is the domain entity './Project'.\",\"Graph: InMemoryProjectRepository@src/infrastructure/persistence IMPLEMENTS this interface, so the actual storage code is in infrastructure.\"],\"pass\":true,\"reasoning\":\"src/domain/project/ProjectRepository.ts only declares the ProjectRepository interface, a port defined in domain terms with three methods: save(project), findById(id) and findAll(). It has no storage code, no transport or framework code, and no business logic. In a domain layer, a repository interface is a standard abstraction. The in-memory implementation lives in the infrastructure layer (InMemoryProjectRepository implements this interface), so its responsibilities fit the domain layer.\",\"violations\":[]}}",
+  "runIndex": 2,
+  "schemaVersion": 2,
+  "unitId": "src/domain/project/ProjectRepository.ts",
+  "usage": {
+    "inputTokens": 3393,
+    "outputTokens": 444
+  },
+  "usedOptions": {
+    "effort": "high",
+    "model": "claude-opus-5-5"
+  }
+}

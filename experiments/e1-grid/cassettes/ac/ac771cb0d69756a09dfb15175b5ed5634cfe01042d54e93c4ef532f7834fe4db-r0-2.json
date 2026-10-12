@@ -1,0 +1,47 @@
+{
+  "attempts": 1,
+  "cliVersion": "2.1.294",
+  "configListingSha256": "47aa04258852fab9a706f3f0c14cee22306d69fbb6fdfbde8c11854bd54997bc",
+  "durationMs": 5515,
+  "effort": "high",
+  "functionId": "FF-N02",
+  "ignoredOptions": [
+    "maxTokens"
+  ],
+  "isolationProbeSha256": "97a2e2d0af1100c13c55e028c1a0c71f069093c3d08705af122aaeb302f1a641",
+  "key": "ac771cb0d69756a09dfb15175b5ed5634cfe01042d54e93c4ef532f7834fe4db-r0-2",
+  "model": "claude-opus-5-5",
+  "outcome": {
+    "kind": "valid"
+  },
+  "parsedVerdict": {
+    "confidence": 0.95,
+    "evidence": [
+      "src/domain/entities/Product.ts: canReserve/reserve enforce the business invariant that reservations cannot exceed available stock, which belongs in the domain layer",
+      "src/domain/entities/Product.ts: release clamps reservedStock at 0, which is a domain state rule",
+      "No imports, I/O, database, HTTP or framework code appears in the file"
+    ],
+    "pass": true,
+    "reasoning": "Product.ts is a plain domain entity. It holds identity (id, name) and stock state (totalStock, reservedStock), and its methods only carry stock-reservation rules: canReserve, reserve, release and getAvailableStock. It has no persistence, transport, framework, logging or orchestration logic. Every responsibility in the file fits the domain layer.",
+    "violations": []
+  },
+  "projectId": "claude-haiku-4-5/order-fulfilment/minimal-prose/run-2",
+  "prompt": "## Rule\nThe unit's responsibilities match the role of its declared layer.\n\n## Rubric\nPass: Every responsibility in the file belongs to the role and kind of its declared layer, and agrees with any ADR prose given.\nFail: The file carries a responsibility that belongs to a different layer kind, for example persistence, transport or framework logic in a domain file, or business rules in an infrastructure or presentation file.\nEvidence required: Name the file and cite the function, method or statement that carries the misplaced responsibility, and the layer kind it belongs to.\nOut of scope: import direction and layer-dependency rules, which are checked symbolically.\n\n## Layer model\n- domain (kind: domain): src/domain/**\n- application (kind: application): src/application/**\n- infrastructure (kind: infrastructure): src/infrastructure/**\n\n## Unit\nKind: file\nId: src/domain/entities/Product.ts\nLayer: domain\nUnit files:\n- src/domain/entities/Product.ts\n\n## Source\n=====SOURCE-BEGIN src/domain/entities/Product.ts=====\nexport class Product {\n  private reservedStock: number;\n\n  constructor(\n    readonly id: string,\n    readonly name: string,\n    private totalStock: number\n  ) {\n    this.reservedStock = 0;\n  }\n\n  getAvailableStock(): number {\n    return this.totalStock - this.reservedStock;\n  }\n\n  getTotalStock(): number {\n    return this.totalStock;\n  }\n\n  getReservedStock(): number {\n    return this.reservedStock;\n  }\n\n  canReserve(quantity: number): boolean {\n    return this.getAvailableStock() >= quantity;\n  }\n\n  reserve(quantity: number): void {\n    if (!this.canReserve(quantity)) {\n      throw new Error(`Insufficient stock for product ${this.id}`);\n    }\n    this.reservedStock += quantity;\n  }\n\n  release(quantity: number): void {\n    this.reservedStock = Math.max(0, this.reservedStock - quantity);\n  }\n}\n\n=====SOURCE-END=====\n\n## Graph excerpt\n{\"edges\":[{\"from\":\"src/domain/repositories/ProductRepository.ts\",\"to\":\"src/domain/entities/Product.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/domain/services/StockManager.ts\",\"to\":\"src/domain/entities/Product.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/infrastructure/app.ts\",\"to\":\"src/domain/entities/Product.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/infrastructure/repositories/InMemoryProductRepository.ts\",\"to\":\"src/domain/entities/Product.ts\",\"type\":\"IMPORTS\"}],\"nodes\":[{\"kind\":\"Class\",\"layer\":\"domain\",\"name\":\"Product\",\"path\":\"src/domain/entities/Product.ts\"},{\"kind\":\"File\",\"layer\":\"domain\",\"path\":\"src/domain/entities/Product.ts\"},{\"kind\":\"File\",\"layer\":\"domain\",\"path\":\"src/domain/repositories/ProductRepository.ts\"},{\"kind\":\"File\",\"layer\":\"domain\",\"path\":\"src/domain/services/StockManager.ts\"},{\"kind\":\"File\",\"layer\":\"infrastructure\",\"path\":\"src/infrastructure/app.ts\"},{\"kind\":\"File\",\"layer\":\"infrastructure\",\"path\":\"src/infrastructure/repositories/InMemoryProductRepository.ts\"}]}\n\n## Instructions\nJudge the unit against the rule and rubric. Return the JSON object the schema requires. Set pass to false if any file of the unit fails the rubric.\n",
+  "provider": "claude-cli",
+  "recordedAt": "2026-10-11T02:50:49.731Z",
+  "repetition": 0,
+  "requestHash": "ac771cb0d69756a09dfb15175b5ed5634cfe01042d54e93c4ef532f7834fe4db",
+  "resolvedModel": "claude-opus-5-5",
+  "response": "{\"is_error\":false,\"modelUsage\":{\"claude-opus-5-5\":{\"inputTokens\":2,\"outputTokens\":379}},\"result\":\"{\\\"pass\\\":true,\\\"confidence\\\":0.95,\\\"reasoning\\\":\\\"Product.ts is a plain domain entity. It holds identity (id, name) and stock state (totalStock, reservedStock), and its methods only carry stock-reservation rules: canReserve, reserve, release and getAvailableStock. It has no persistence, transport, framework, logging or orchestration logic. Every responsibility in the file fits the domain layer.\\\",\\\"evidence\\\":[\\\"src/domain/entities/Product.ts: canReserve/reserve enforce the business invariant that reservations cannot exceed available stock, which belongs in the domain layer\\\",\\\"src/domain/entities/Product.ts: release clamps reservedStock at 0, which is a domain state rule\\\",\\\"No imports, I/O, database, HTTP or framework code appears in the file\\\"],\\\"violations\\\":[]}\",\"structured_output\":{\"confidence\":0.95,\"evidence\":[\"src/domain/entities/Product.ts: canReserve/reserve enforce the business invariant that reservations cannot exceed available stock, which belongs in the domain layer\",\"src/domain/entities/Product.ts: release clamps reservedStock at 0, which is a domain state rule\",\"No imports, I/O, database, HTTP or framework code appears in the file\"],\"pass\":true,\"reasoning\":\"Product.ts is a plain domain entity. It holds identity (id, name) and stock state (totalStock, reservedStock), and its methods only carry stock-reservation rules: canReserve, reserve, release and getAvailableStock. It has no persistence, transport, framework, logging or orchestration logic. Every responsibility in the file fits the domain layer.\",\"violations\":[]}}",
+  "runIndex": 2,
+  "schemaVersion": 2,
+  "unitId": "src/domain/entities/Product.ts",
+  "usage": {
+    "inputTokens": 2669,
+    "outputTokens": 379
+  },
+  "usedOptions": {
+    "effort": "high",
+    "model": "claude-opus-5-5"
+  }
+}

@@ -1,0 +1,32 @@
+{
+  "attempts": 1,
+  "durationMs": 4394,
+  "effort": null,
+  "functionId": "label:judge-unit:f21ff7e17ab8f5d211febe36634ee7ac013e61fc729b3274b4c684f50ae00481",
+  "ignoredOptions": [],
+  "key": "487c14c028feaf8c0a41f4f64bd8803f93bc73e878a318147a61812395ad29b3-r0-1",
+  "model": "gemini-3.1-pro-preview",
+  "outcome": {
+    "kind": "valid"
+  },
+  "parsedVerdict": null,
+  "prompt": "Decide whether the unit below satisfies the rubric.\n- pass: the unit meets the rubric's pass condition.\n- fail: the unit meets the rubric's fail condition.\nGive a short rationale that cites the code. Root cause: answer null.\n\n## Item\n## Judge unit\n  Function: FF-N02 (semantic)\n  Unit: src/domain/order.ts (file, layer domain)\n  \n  ## Rubric\n  Rule: The unit's responsibilities match the role of its declared layer.\n  Pass: Every responsibility in the file belongs to the role and kind of its declared layer, and agrees with any ADR prose given.\n  Fail: The file carries a responsibility that belongs to a different layer kind, for example persistence, transport or framework logic in a domain file, or business rules in an infrastructure or presentation file.\n  Evidence required: Name the file and cite the function, method or statement that carries the misplaced responsibility, and the layer kind it belongs to.\n  Out of scope: import direction and layer-dependency rules, which are checked symbolically.\n  \n  ## Source\n  =====SOURCE-BEGIN src/domain/order.ts=====\n  import { DomainError } from \"./errors\";\n  import { canTransition, OrderStatus } from \"./order-status\";\n  \n  export interface OrderLine {\n    readonly productId: string;\n    readonly quantity: number;\n  }\n  \n  export class Order {\n    public status: OrderStatus = \"placed\";\n  \n    public constructor(\n      public readonly id: string,\n      public readonly customerId: string,\n      public readonly lines: readonly OrderLine[],\n    ) {\n      if (!id.trim() || !customerId.trim()) throw new DomainError(\"Order id and customer id are required\");\n      if (lines.length === 0) throw new DomainError(\"An order must contain at least one line\");\n      for (const line of lines) {\n        if (!line.productId.trim() || !Number.isSafeInteger(line.quantity) || line.quantity <= 0) {\n          throw new DomainError(\"Each order line needs a product id and positive integer quantity\");\n        }\n      }\n    }\n  \n    public advance(to: OrderStatus): void {\n      if (!canTransition(this.status, to)) {\n        throw new DomainError(`Cannot transition order from ${this.status} to ${to}`);\n      }\n      this.status = to;\n    }\n  \n    public cancel(): void {\n      if (this.status === \"cancelled\") throw new DomainError(\"Order is already cancelled\");\n      if (this.status === \"shipped\" || this.status === \"delivered\") {\n        throw new DomainError(\"A shipped order cannot be cancelled\");\n      }\n      this.status = \"cancelled\";\n    }\n  }\n  \n  =====SOURCE-END=====\n\n## Label options\n1. fail\n  2. pass\n\n## Root causes\n1. RC-OTHER\n  2. RC-LAYER-MAP\n  3. RC-DYNAMIC-IMPORT\n  4. RC-SPEC-PARAM\n  5. RC-TEMPLATE-OVERAPPROX\n  6. RC-GENUINE-UNSEEDED\n  7. RC-TEST-CODE\n  8. RC-GENERATED-CODE\n  9. RC-EXTRACT-ALIAS\n  10. RC-TYPE-ONLY\n  11. RC-EXTRACT-BARREL\n  12. RC-STYLE-INAPPLICABLE\n\nAnswer with one JSON object: {\"option\": <number of the label option>, \"rootCause\": <number of the root cause or null>, \"note\": \"<text, required with RC-OTHER>\", \"rationale\": \"<one or two sentences citing the code>\"}.",
+  "provider": "gemini",
+  "recordedAt": "2026-10-11T17:24:57.021Z",
+  "repetition": 0,
+  "requestHash": "487c14c028feaf8c0a41f4f64bd8803f93bc73e878a318147a61812395ad29b3",
+  "resolvedModel": "gemini-3.1-pro-preview",
+  "response": "{\"option\":2,\"rationale\":\"The file contains pure domain logic, specifically the Order entity and its business rules for state transitions and validation, which perfectly matches the role of the domain layer.\",\"note\":\"\",\"rootCause\":null}",
+  "runIndex": 1,
+  "schemaVersion": 2,
+  "unitId": "src/domain/order.ts",
+  "usage": {
+    "inputTokens": 868,
+    "outputTokens": 48
+  },
+  "usedOptions": {
+    "maxTokens": 65536,
+    "model": "gemini-3.1-pro-preview",
+    "temperature": 0
+  }
+}

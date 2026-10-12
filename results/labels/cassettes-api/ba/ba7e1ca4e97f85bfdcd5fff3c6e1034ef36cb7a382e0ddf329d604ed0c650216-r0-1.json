@@ -1,0 +1,32 @@
+{
+  "attempts": 1,
+  "durationMs": 4012,
+  "effort": null,
+  "functionId": "label:judge-unit:5281450ac3a29a4a76f2c2d5c51d5dc6f4e7146df27d158acee2f656778b1ef3",
+  "ignoredOptions": [],
+  "key": "ba7e1ca4e97f85bfdcd5fff3c6e1034ef36cb7a382e0ddf329d604ed0c650216-r0-1",
+  "model": "gemini-3.1-pro-preview",
+  "outcome": {
+    "kind": "valid"
+  },
+  "parsedVerdict": null,
+  "prompt": "Decide whether the unit below satisfies the rubric.\n- pass: the unit meets the rubric's pass condition.\n- fail: the unit meets the rubric's fail condition.\nGive a short rationale that cites the code. Root cause: answer null.\n\n## Item\n## Judge unit\n  Function: FF-N02 (semantic)\n  Unit: src/domain/domain-error.ts (file, layer domain)\n  \n  ## Rubric\n  Rule: The unit's responsibilities match the role of its declared layer.\n  Pass: Every responsibility in the file belongs to the role and kind of its declared layer, and agrees with any ADR prose given.\n  Fail: The file carries a responsibility that belongs to a different layer kind, for example persistence, transport or framework logic in a domain file, or business rules in an infrastructure or presentation file.\n  Evidence required: Name the file and cite the function, method or statement that carries the misplaced responsibility, and the layer kind it belongs to.\n  Out of scope: import direction and layer-dependency rules, which are checked symbolically.\n  \n  ## Source\n  =====SOURCE-BEGIN src/domain/domain-error.ts=====\n  export class ValidationError extends Error {}\n  export class NotFoundError extends Error {}\n  export class ConflictError extends Error {}\n  \n  =====SOURCE-END=====\n\n## Label options\n1. pass\n  2. fail\n\n## Root causes\n1. RC-SPEC-PARAM\n  2. RC-GENERATED-CODE\n  3. RC-DYNAMIC-IMPORT\n  4. RC-GENUINE-UNSEEDED\n  5. RC-TEMPLATE-OVERAPPROX\n  6. RC-TYPE-ONLY\n  7. RC-EXTRACT-ALIAS\n  8. RC-OTHER\n  9. RC-LAYER-MAP\n  10. RC-STYLE-INAPPLICABLE\n  11. RC-TEST-CODE\n  12. RC-EXTRACT-BARREL\n\nAnswer with one JSON object: {\"option\": <number of the label option>, \"rootCause\": <number of the root cause or null>, \"note\": \"<text, required with RC-OTHER>\", \"rationale\": \"<one or two sentences citing the code>\"}.",
+  "provider": "gemini",
+  "recordedAt": "2026-10-11T17:22:02.575Z",
+  "repetition": 0,
+  "requestHash": "ba7e1ca4e97f85bfdcd5fff3c6e1034ef36cb7a382e0ddf329d604ed0c650216",
+  "resolvedModel": "gemini-3.1-pro-preview",
+  "response": "{\"option\": 1, \"rationale\": \"The file defines custom error classes (ValidationError, NotFoundError, ConflictError) which are appropriate for the domain layer and do not contain any misplaced responsibilities such as persistence or transport logic.\", \"note\": \"\", \"rootCause\": null}",
+  "runIndex": 1,
+  "schemaVersion": 2,
+  "unitId": "src/domain/domain-error.ts",
+  "usage": {
+    "inputTokens": 522,
+    "outputTokens": 58
+  },
+  "usedOptions": {
+    "maxTokens": 65536,
+    "model": "gemini-3.1-pro-preview",
+    "temperature": 0
+  }
+}

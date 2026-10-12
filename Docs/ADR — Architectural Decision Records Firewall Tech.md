@@ -1393,6 +1393,24 @@ Lock-file check (decision 2): `scripts/fetch-corpus.ts` runs exactly one install
 | 028 | Judge aggregation: registered rule primary + pre-declared proportional variant; judge diagnostics first-class (Option C); judge-weighted sensitivity variant (2/7, prereg v17) | Accepted | — |
 | 029 | Codex as a 4th E1 model: an added 18-cell arm (`gpt-5.6-terra`, CLI 0.162.1, own plan and `orderSeed` 20261010, sandbox confinement, pinned catalog); Claude cells unchanged; vendor contrast and vendor self-preference check; prereg v18 | Accepted | — |
 | 030 | Tool comparison with dependency-cruiser 18.4.0 (mechanical spec translation T1..T10 of FF-S01..S04, P01, C04; SO4 comparable seeds and twins, same keys) and five real fix-commit pairs (before/after, resolved-finding rule, n = 5 descriptive); both symbolic-only, registered before they run; prereg v19 | Accepted | — |
+| 031 | Withdrawn: graphify ablation cancelled by the author before registration | Withdrawn | — |
+| 032 | E1 cells extracted with the pinned per-run tsconfig (operational, post-hoc); prereg v20 | Accepted | — |
+| 033 | POST-HOC reproduction-audit corrections: labelled SO4 reading on the guarded manifest with the P1 labels (N 73), degenerate-interval flags, one interval method per table, `uncertain` sensitivity rows of the baseline precision filed under `e7-corpus`, threats register §3 and TV-17, provenance producers; prereg v21 | Accepted | — |
+| 034 | Labeller route completion: agy 1.3.2 cannot deny `search_web`; a call that completes a tool step is discarded (invocation counted) and retried once, a second makes the item `uncertain` / `tool-use`; 20 % stop rule over at least 10 P4 items; P1/MS/P2 verified; prereg v22 | Accepted | — |
+| 035 | P4 labeller route change to the Gemini API (`gemini-3.1-pro-preview`, tools off, temperature 0, thinking high), forced by the ADR-034 stop rule; all 46 P4 items relabelled; the 8 agy P4 answers reported apart; budget 138 of 300 left; prereg v23 | Accepted | — |
+| 036 | Plain LLM-review baseline pilot (exploratory): Codex `gpt-5.6-terra` read-only, spec as prose, 5 seeded SO4 copies + baselines + 2 real pairs, 3 runs, 150-credit budget stop, MAT keys (rule, file); prereg v24 | Accepted | — |
+| 037 | Reserved: judge-probe detection (experiment B), on hold for the author (the frozen MO-X02/MO-X03 place 0 seeds on the corpus and on the 65 E1 cells) | Reserved | — |
+| 038 | Judge model robustness: 100 recorded units (E7/E1 × FF-N01/N02, seed 9401) re-judged by `claude-sonnet-5-5` on the same pinned route; unit agreement κ/AC1 and verdict impact by substitution; prereg v25 | Accepted | — |
+
+## ADR-031: withdrawn (graphify ablation cancelled by the author before registration)
+
+**Status**: Withdrawn
+
+**Date**: 2026-10-10
+
+The number was reserved for a graphify ablation. The author cancelled it before anything was registered, run or committed. No plan, artefact or result exists, so no pre-registration bump refers to it. The number is kept so that the ADR sequence has no gap.
+
+---
 
 ## ADR-032: E1 cells are extracted with the pinned per-run tsconfig (operational, post-hoc pipeline fix found during the E1 judge pass)
 
@@ -1411,3 +1429,169 @@ Lock-file check (decision 2): `scripts/fetch-corpus.ts` runs exactly one install
 **Classification**: operational and **post-hoc** (the gap was found during the registered run). It changes how the instrument locates the files of an E1 tree, not a rule, weight, threshold, judge parameter, selection rule or aggregation. Readers should treat it as a disclosed deviation from the run as first registered (`Docs/prereg-reasons.md` P-TS, prereg v20).
 
 **Consequences**: The tsconfig used at evaluation is the same for every cell and equals the one that decided the valid-yield figure. Cells whose agent wrote root-level files outside `src/` have them excluded from the evaluation exactly as from the type-check of record. The fixtures plan (runbook E1 step 3) is unaffected: its projects ship their own registered tsconfigs and get no `--tsconfig`.
+
+---
+
+## ADR-033: Reproduction-audit corrections to the SO4 and baseline tables (POST-HOC); prereg v21
+
+**Status**: Accepted (coordinator, 2026-10-10, under the v1.2E standing approval; the author asked for the audit findings to be fixed as analysis or labelling corrections only)
+
+**Date**: 2026-10-10
+
+**POST-HOC declaration**: every correction below was found by the independent reproduction audit of 2026-10-10 (`Docs/DiagnosticRuns/reproduction-audit-2026-10-10.md`, PR #54), after every SO4, E7 and labelling result had been seen. No firewall evaluation was re-run, no model was called (labels are the committed cassette replays), and no label, matching-rule version, weight, threshold or registered outcome changes.
+
+**Context**: the audit reproduced every committed table byte for byte but ranked one issue high and three medium. (1) `results/so4-heldout/score.json` and `agg/` scored the unguarded case (N = 75) under matching rule 1.2.0: a hybrid of the strict and corrected readings in which the P1 labels, drawn from the rule-1.1.0 FP-strict items, never entered a precision. (2) When every cell is perfect the cell bootstrap gives [1, 1], and the precision figure used the item bound while the P/R/F1 files used the cell interval. (3) The baseline precision depends strongly on the `uncertain` rule and was filed under `plan_id so4-heldout`, with the overall value repeated on the tier strata. (4) The SO4 manifest and the label-plan inputs live outside the repository and were not hashed, and two committed files had no producing script. The director report (PR #53) also named two stale threats-register entries and the missing ADR-031.
+
+**Decision**:
+1. **Labelled SO4 reading.** `score-golden --rule-version 1.1.0` scores with the rule-1.1.0 diff (no MAT-04a; it reproduces `score-strict.json` and `label-items.json` byte for byte). `score.json` is now `--case results/so4-heldout/case-corrected --rule-version 1.1.0 --labels results/labels/labels.json`: the guarded manifest (N = 73) with FP-labelled = the 13 rule-1.1.0 FP-strict seed items minus the 10 labelled TP-class, leaving the 3 `uncertain` items (MAT-10). `agg/` is rebuilt from it (runbook 7.1). Result: TP 67, FP-labelled 3, FN 6; recall 0.918 (cell bootstrap 0.818–1.000, 39 cells), precision 0.957 (0.893–1.000, 36 cells; if independent, Wilson 0.881–0.985), F1 0.937 (0.878–0.986). The old table is not kept: no registered artefact names it. Analysis plan §14 item 1.
+2. **Degenerate intervals.** Every P/R/F1 file carries `ci_degenerate`, `precision_ci_degenerate`, `f1_ci_degenerate`; a degenerate interval is quoted with the row's "if independent" bound (Clopper–Pearson at 0 or n). `agg-strict/`, `agg-corrected/` and `v2/agg/` are re-aggregated at this commit so they carry the flags; every column they had before is unchanged except the intended `precision_figure.csv` intervals (item 3). Analysis plan §14 item 2.
+3. **One method per table.** `precision_figure.csv` carries the cell interval (`ci_*`) and the item bound beside it (`ci_independent_*`); the tool-comparison `recall*.csv` and `summary*.json` name their method (`ci_method` `wilson-instances-if-independent`, analysis plan §13.2) and read the committed SO4 manifest copy (all other tool-comparison files are byte-identical). Analysis plan §14 item 3.
+4. **Baseline precision.** `precision_baseline.csv` gains `uncertain_rule` and `reading`, with the sensitivity rows `tp` and `excluded` beside the registered `fp` rows, and `plan_id` = the P2 source plan (`e7-corpus`; `e7-corpus+e7-corpus-v1sym` for the v1 row). The `precision_baseline` column of a `corpus-core` / `corpus-e7` stratum carries the tier estimate (`precision_baseline_scope`). v2: registered 0.328 (0.132–0.609), uncertain as TP 0.789 (0.500–0.933), excluded 0.608 (0.351–0.816). v1: 0.264 (0.110–0.510), 0.744 (0.498–0.895), 0.508 (0.287–0.725). Analysis plan §14 item 4.
+5. **Threats register.** §3 lists the post-run bumps (DV-TV-1 to DV-TV-15) instead of the "no run has happened" placeholder; TV-17 states that the floor of 80 is not met (75 strict, 73 corrected and labelled; the ADR-019 item 1 shortfall); TV-23 names the figure's interval; TV-108 records these corrections.
+6. **ADR-031** is recorded as withdrawn.
+7. **Provenance (audit issue 4).** `scripts/provenance-cli.ts guard-case` rebuilds `results/so4-heldout/case-corrected/manifest.json` and `v1-sensitivity` rebuilds `results/e7-corpus/v1/ahs_v1_sensitivity.csv`, both byte for byte; `external --write / --check` records in `results/so4-heldout/external-inputs.json` and `results/sensitivity/external-inputs.json` the sha256 of `../daedalus-so4/manifest.json`, `../daedalus-so4/prepared-bases-7.json` and `../daedalus-sp-probes/manifest.json`, and whether each committed case copy equals its outside file apart from the machine-local `tscPath` (SO4 copy: equal; sensitivity: the step-31 copy is equal, the first-run copy predates the P-E re-seed). The corpus clones stay outside the repository, pinned by commit in `corpus/corpus.json`.
+8. **Pre-registration v21** (one dated bump, P-AUD): `Docs/analysis-plan.md` (§11 row, §14) and `Docs/threats-to-validity.md` (item 5). No other registered artefact changes; the matching rule stays 1.2.0.
+
+**Not changed (audit issues ranked low)**: the HEAD-vs-producing-commit drift of older aggregates (issue 5) beyond the re-aggregation of item 2, the runbook 1.6 SO2 command note (issue 6), the AC1 category count (issue 7) and the `n_mutate_rejected` reading (issue 8).
+
+**Consequences**: Ch7 and Ch8 quote three SO4 readings, each from one regime: strict (registered), corrected (ADR-025) and labelled (this ADR), all post hoc except strict. Any sentence that quoted the labelled F1 0.944 or "labelled precision 1.0" is replaced by the labelled N = 73 figures above.
+
+---
+
+## ADR-034: Labeller route completion: agy 1.3.2 cannot deny `search_web`, so any call that completes a tool step is invalid (operational); prereg v22
+
+**Status**: Accepted (coordinator decision 2026-10-11, Option A, under the v1.2E standing approval)
+
+**Date**: 2026-10-11
+
+**Context**: The first P4 live labelling call (plan `results/e1-grid/label-plan-p4/label-plan.json`, prereg v21, all pre-flight checks passed) timed out twice at 240 s (one cassette entry, `TIMEOUT`, 2 attempts). Its re-ask then completed a `search_web` tool step, and the fail-closed provider guard stopped the run (`LLM_CLI_ISOLATION`). The re-ask's answer was never stored. No P4 label existed. The registered isolation (ADR-019 item 4; `Docs/labeller-route.md` §2) had made tools inert with `toolPermission: strict` and 7 deny rules, but `search_web` was never probed. Two route probes then showed that `search_web` passes no permission check on agy 1.3.2. It completed with a `disabledTools` list of 51 tools in `settings.json` (init still listed 60 tools), and again with the deny rules `search_web(*)`, `execute_url(*)`, `browser(*)` and `edit_file(*)` added. The other tools stayed refused or were not offered. agy has no CLI flag for web search, and its documented grant categories are `command`, `read_file`, `write_file`, `mcp`, `read_url` and `execute_url`. Two further turns (`/permissions`, `/config`) ran by mistake on the default model. All four are recorded as non-label probes (`results/labels/live-call-ledger.md`). The home's `settings.json` was restored byte-identical after each probe.
+
+**Decision**:
+1. **Tool steps are invalid.** A labeller call whose agy attempt completes any tool step other than `finish` is invalid (`LLM_CLI_TOOL_USE`, a retry class of the cassette decorator). The attempt is discarded and its answer is never stored. Its invocation counts against the label budget, and the entry records it in `discardedAttempts`.
+2. **One retry.** The call is retried once, with the same prompt and key. If the retry completes a tool step too, the run is invalid with reason `tool-use` and is not re-asked, and the item is `uncertain` with `uncertainReason` `tool-use`.
+3. **Stop rule (pre-registered).** Once at least 10 P4 items have a finished run, the run stops (`LABEL_TOOL_USE_STOP`) if 20 % or more of them have a run that ended as `tool-use`. At that rate the panel's labels would be compromised. The stop is reported to the coordinator, and the run does not continue past it.
+4. **Validity metric.** The count of discarded tool-use attempts and the count of `uncertain` / `tool-use` items are reported with the P4 results and here.
+5. **Unchanged.** The labeller persona and prompts, the argv, the 240 s timeout with one retry, and the 7 registered deny rules. P1/MS/P2 and P4 therefore share one method. The timed-out cassette of the first P4 call is kept: the cassette rules record a timeout as an invalid, answerless entry (as in the P1/MS/P2 set), and replay re-derives its re-ask from it. The stopped re-ask was never recorded, so it is re-sent under this ADR.
+6. **P1/MS/P2: verified.** `agy-cli-provider.ts` is unchanged since `56e77f6`, so the guard was active for all 142 invocations of the first live plan. That run completed without a stop, and its 139 cassettes hold 138 answers and 1 timeout. No call completed a tool step.
+7. **Author audit.** The 30-item audit stays as drawn (first live plan, before P4 existed). It contains no P4 item, which is stated as a limitation.
+8. **Pre-registration v22** (one dated bump, P-TU): `Docs/labeller-route.md` (§2, §4, new §7), `Docs/threats-to-validity.md` (TV-109, DV-TV-16, trace) and `Docs/analysis-plan.md` (§7 reason list, §11 row).
+
+**Classification**: operational, found by the fail-closed guard before any P4 label existed. It completes the labeller route and does not change the labelling method, rubric, prompts, sampling or any analysis.
+
+**Validity metric (P4 run)**: recorded at the P4 labelling commit in `results/e1-grid/label-plan-p4/` and in the ledger.
+
+**Consequences**: the isolation of the labeller is now partly ex post: a web search can still run and spend quota, but its answer never becomes a label (TV-109). If the stop rule fires, the agy route cannot label P4, and a route change goes back to the author.
+
+---
+
+## ADR-035: P4 labeller route change to the Gemini API with tools off, forced by the ADR-034 stop rule; prereg v23
+
+**Status**: Accepted (author decision 2026-10-11, option (a), relayed by the coordinator)
+
+**Date**: 2026-10-11
+
+**Context**: Under ADR-034 (prereg v22), the P4 labelling on agy stopped on the pre-registered rule (`LABEL_TOOL_USE_STOP`, 05:56Z). 2 of the first 10 P4 items ended as `uncertain` / `tool-use`, with 5 tool-use discards. Item 37 (`claude-haiku-4-5/order-fulfilment/none/run-0`, integrity) completed `search_web` on both attempts. Item 44 (`claude-haiku-4-5/task-management/none/run-0`, semantic) ran `search_web`, then timed out, then completed `search_web` twice on the re-ask. The other 8 items answered validly in run 0. ADR-034 sends a route change to the author, who chose the Gemini API with no tools.
+
+**Decision**:
+1. **Route.** P4 is labelled on the Gemini API through U4's `GeminiProvider` (BR-U4-VRD-09). Model `gemini-3.1-pro-preview` is pinned, as verified by `models.list` / `models.get` (version `3.1-pro-preview-01-2026`). It is the same Gemini 3.1 Pro model as agy's `gemini-3.1-pro-high`.
+2. **Request.** It offers **no tools** (no `tools`, no `toolConfig`), and a function-call part fails closed. Temperature is **0**. Thinking level is **high**, the closest match to agy's "High" and also Gemini 3's default. The output cap is the model's 65 536 tokens: agy ignored `maxTokens`, and 1 024 would truncate high-thinking answers. Persona, prompts, label schema and verdict contract are those of P1/P2. The persona travels as `systemInstruction`, whereas agy prepended it. The run uses record mode with cassettes in `results/labels/cassettes-api/`.
+3. **Same and different.** The model family and prompts match P1/P2, but the transport differs (API instead of CLI). Temperature 0 is now available, so the BR-U5b-31 rule holds on this route. The §3 amendment of `Docs/labeller-route.md` remains for agy.
+4. **Relabelling and separation.** All 46 P4 items are relabelled on the API route, using the plan `results/e1-grid/label-plan-p4-api/label-plan.json`. `llm-label --derive-route` builds it from the registered P4 plan, keeping the same items, strata and seeds. The 8 valid agy P4 answers are reported separately and are never mixed with the API labels.
+5. **Budget.** Every API call counts against the registered label budget of 300. 162 were used before P4 on the API: 142 P1/MS/P2, 17 agy P4 and 3 API probe. The derived plan's budget is therefore 138. A quota, rate-limit or overload answer (429, 503) is a stop that is never cached. The run pauses with back-off and re-runs, reusing the cassettes, and each stopped call is counted in the ledger. The budget is never exceeded.
+6. **Probe.** One fixture judge unit made 3 invocations: valid structured output, served model `gemini-3.1-pro-preview`, no tool. Its cassettes are in `results/labels/api-probe/`.
+7. **Kept.** The ADR-034 rule and stop (dormant without tools), the seeds, the analysis rows and their interval methods.
+8. **Pre-registration v23** (one dated bump, P-API): `Docs/labeller-route.md` (header, new §8), `Docs/threats-to-validity.md` (TV-110, DV-TV-17, trace) and `Docs/analysis-plan.md` (§11 row).
+
+**Classification**: route change forced by a registered stop rule, before any P4 label existed. It is not post hoc on outcomes: no P4 judge-vs-panel figure had been computed.
+
+**Consequences**: the P4 judge-vs-panel rows come from a temperature-0 API panel of the same model, while P1/MS/P2 come from the agy panel. The P4 run-vs-run agreement describes the API route only (TV-110).
+
+
+---
+
+## ADR-036: Plain LLM-review baseline pilot with Codex (exploratory, registered before it runs); prereg v24
+
+**Status**: Accepted (author approval of the three extra experiments A, B and C, relayed by the coordinator 2026-10-11)
+
+**Date**: 2026-10-11
+
+**Context**: A reviewer can ask why an architectural firewall is needed when a coding agent can simply be asked to review the code against the architecture. No DaedalusArch number answers that yet. ADR-029 set up a confined Codex CLI arm (`gpt-5.6-terra`, CLI 0.162.1, pinned catalog). This ADR registers a small pilot in which that agent, given the project's architecture spec rendered as prose and read-only access to the tree, lists the violations it finds. The pilot runs on the plan's credit balance, not on a subscription. The whole experiment is **exploratory**.
+
+**What is known before the run (declared)**: the SO4 v2 outcomes of the five drawn seeds (all five `matched` by DaedalusArch; `results/so4-heldout/v2/agg/seed_coverage.csv`); both rule tools' outcomes on the two pairs (`results/real-pairs/pairs.csv`: p4 detected by DaedalusArch and dependency-cruiser, p5 by neither); the firewall reports of all 14 trees. One confinement probe ran on a dummy tree (below; no project data, 0.84 credits). No review call has been made on any plan tree.
+
+**Decision**:
+
+1. **Reviewer and pins.** Codex CLI **0.162.1**, model **`gpt-5.6-terra`**, `model_reasoning_effort` **medium**, the pinned catalog `scripts/generator/codex/model-catalog.json` (sha256 in the review plan). `CODEX_HOME` = `~/.firewall/generator-codex-home` (fail-closed `checkCodexHome`; `auth.json` is never opened), `HOME` = the dedicated empty `~/.firewall/generator-codex-userhome`. The context is locked as in ADR-029 item 4: no user config or rules, no AGENTS.md, no skills, apps, plugins, hooks, memories, MCP, web search, image or browser tools, no sub-agents, approval `never`. Each call's served model is read from its session rollout; a call served by another model is invalid.
+2. **Trees (14), selection by a registered seed (`scripts/llm-review.ts`, `select`; seed 9301).**
+   - **Seeded copies (5).** One SO4 held-out copy for each of MO-S01, MO-P01, MO-C04, MO-SO01 and MO-CV02, on five distinct bases. **Admitted bases**: the five held-out bases with under 300 kB of TypeScript source (`dry-run-test`, `realworld-test`, `truthy-demo`, `v-aguiar__valex`, `zhuravlevma__nestjs-active-record`). `ghostfolio-test` (1.15 MB) and `nestjslatam__ddd` (0.82 MB) are left out to fit the credit budget, before any call. The draw is uniform over the feasible bijections of operators onto bases (a base must hold a seed of that operator that SO4 v2 scored `matched` or `missed`), then over that operator's scored seeds on the base. Result: `truthy-demo:MO-S01:0`, `v-aguiar__valex:MO-P01:0`, `dry-run-test:MO-C04:1`, `realworld-test:MO-SO01:1`, `zhuravlevma__nestjs-active-record:MO-CV02:0` (120 feasible assignments).
+   - **Unseeded baselines (5).** The seeded copy with each edited file restored from the copy's HEAD (the prepared base commit) and each created file removed. Each baseline `src/` is byte-identical to the corpus base, and each seeded tree differs from its baseline only in the seed's files (checked at registration).
+   - **Real fix pairs (2).** **p5** (`zhuravlevma__typescript-ddd-architecture`, the only pair of the second repository and the only small pair tree; neither rule tool detects it) is fixed. The second pair is drawn from {p3, p4}, the pairs both rule tools detect: **p4**. Before and after trees are the `../daedalus-realpairs` exports.
+   - **Export hygiene.** Trees go to `../daedalus-llm-review/trees/<treeId>` without `.git`, the mutant marker `.daedalus-mutant.json`, `node_modules`, `dist`, `coverage` or symbolic links. Every mtime is set to 2026-01-01T00:00Z, so no timestamp shows the seeded file. Each tree's digest (sha256 over its sorted path and content hashes) is pinned in the review plan and checked before every call.
+3. **Prompt.** One registered template (`experiments/llm-review/prompt-template.md`) holds the spec rendered as prose (`renderSpecProse`): the style, the layers in spec order with their directories and file patterns, and one sentence per rule (`RULE_PROSE`, from the AoC function table and the Cypher templates) with its spec parameters and exclusions. **Listed rules**: the symbolic functions the firewall executed on that tree (a `functionResults` row in its report), except severity `advisory` (FF-CV05, FF-CV06, FF-C06: per-file inventories, cut for the credit budget before any call; no drawn seed targets them), plus the two judge functions FF-N01 and FF-N02 with their rule and fail rubric. A seeded tree and its baseline, and a pair's before and after trees, get byte-identical prompts; each prompt's sha256 is pinned. The answer must match `experiments/llm-review/output-schema.json` (`violations[]` of `file`, `rule`, `reason`; `--output-schema`). `rule` is the listed rule id, and its spec dimension is the rule family.
+4. **Confinement (SECURITY-11 analogue).** A Seatbelt permission profile `daedalus_review` **extends `:read-only`**. It denies reads, as `codexReadDenies` does for ADR-029, of every sibling on the path from the repository's parent down to the tree: the repository and its worktrees, the SO4 copies and manifest, the corpus, the other review trees and the envelopes. It also denies `CODEX_HOME` and the credential homes, and it disables the network. **Probe (2026-10-11, `experiments/llm-review/probe/`)**: on a dummy tree, an in-tree read succeeded. Reads of a sibling review tree, of this worktree's `package.json`, of the SO4 manifest, of `~/.firewall` and of `CODEX_HOME` all failed (`Operation not permitted`). `touch` failed, `curl` failed (no network), and the served model was `gpt-5.6-terra`. Residual: paths outside `Archi-Firewall` and outside the denied home entries stay readable; they hold no project or result data.
+5. **Execution and budget.** 3 runs per tree make 42 calls, in run-major order (run 0 of every tree in plan order, then run 1, then run 2), so a budget stop leaves complete earlier runs. Credits are computed per call from the rollout's tokens at the rate card (50 / 5 / 300 credits per 1M input / cached / output tokens), and the balance after each call is recorded as a check. **Budget stop**: a call is made only when spent + projected ≤ **150** credits. Projected is the tree's own first call × 1.5 when it has one, else the largest call so far (6 before any call); otherwise the run stops (`LLM_REVIEW_BUDGET_STOP`) and later calls are reported as not run. A timed-out, erroring or unparsable call is discarded (its credits count) and retried once; a second failure leaves the run invalid. A usage or credit limit is a registered pause, not an attempt. Timeout: 20 min per call.
+6. **Scoring** (`scoreReview`, no model call; analysis plan §15). Key = (rule id, file), with the file normalised and the rule upper-cased; set semantics.
+   - **Seed detection, primary** (MAT-02..04 adapted): in run r, the seeded tree's run lists a key whose rule is an applicable expected function of the seed and whose file is that function's expected key file, and the baseline's run r does not list the same key (the MAT-03 difference by run index).
+   - **Secondary seed readings**: `presence` (no baseline difference) and `family` (any rule of the seed's dimension on the expected file, with the difference).
+   - **Real fix** (ADR-030 §13.3 on these keys): run r flags the fix when a before key on a touched file (old path) is missing from the after run r, with renamed files mapped. Strict reading: before has a key on a touched file and after has none. **Chance control**: the same rule applied between two different runs of the unchanged before tree (6 ordered run pairs).
+   - **Consistency**: per tree, the mean pairwise Jaccard of the runs' key sets and the share of keys found in every run.
+   - **Overlap with the firewall**: each claimed key is an exact firewall key (same function and file in the tree's v2 report), on a file the firewall flags under another rule, on a file with no firewall finding, or a rule the firewall does not run symbolically (FF-N01, FF-N02 or an unknown id). Firewall keys are restricted to the listed rules. Also reported: the share of firewall keys the LLM lists.
+   - **Cost**: credits per call and per valid review, discarded attempts, wall time.
+7. **Reading.** Exploratory throughout: no hypothesis test and no claim beyond these 12 trees. Recall gets a Wilson interval over seed-runs labelled "if independent" (descriptive). The firewall's own SO4 v2 status and both rule tools' pair outcomes are printed beside the LLM numbers.
+8. **Registration.** Prereg v24 (P-LR) registers `experiments/llm-review/plan.json` (an `ExperimentPlan` of kind `llm-review`, run only by `scripts/llm-review-cli.ts`; `run-experiment` refuses it with `PLAN_EXTERNAL_RUNNER`), `experiments/llm-review/review-plan.json`, `output-schema.json`, `prompt-template.md`, `scripts/llm-review.ts` (rendering, call rules, scoring), analysis plan §15, threats TV-111..TV-113 and DV-TV-18.
+
+**Rationale**: Giving the agent the same spec and the same trees, and scoring it with the same matching keys, asks the narrow question a reviewer would ask, at a cost the credit balance allows. Registering the draw, prompt, tree digests and scoring first keeps the pilot prospective, even though the firewall's outcomes on these trees are known.
+
+**Alternatives considered**:
+
+| Alternative | Why rejected |
+| --- | --- |
+| A Claude model as the reviewer | Claude is the judge's vendor (ADR-020 item 7). Codex is already confined and pinned (ADR-029). Claude usage is reserved for experiments B and C |
+| The YAML spec verbatim (E1 `full-aac` form) | The E1 YAML presets carry no rule semantics (names only); prose rules state what a violation is |
+| All seven held-out bases | ghostfolio and nestjslatam alone would take about half the credit budget |
+| Listing advisory rules | FF-CV05 alone is 287 of the 682 p4 findings; a complete answer would mostly be a test-file inventory |
+| A free-text review scored by hand | Not reproducible; the fixed schema allows mechanical matching |
+
+**Consequences**: `results/llm-review/` (seeds, recall, pairs, pair runs, consistency, overlap, cost, summary, prompts), `experiments/llm-review/cassettes/` (one compact record per call) and the full envelopes outside the repository (`../daedalus-llm-review/envelopes/`, sha256 in each cassette). Threats: TV-111 (one prompt, one model, author-written prose), TV-112 (leakage channels), TV-113 (tiny n, cost-motivated cuts, known firewall outcomes).
+
+---
+
+## ADR-038: Judge model robustness: Sonnet against Opus on 100 recorded judge units (registered before it runs); prereg v25
+
+**Status**: Accepted (author approval of experiment C, relayed by the coordinator 2026-10-11). ADR-037 (experiment B, judge-probe detection) is reserved: the author has it on hold for new operators, because the frozen MO-X02/MO-X03 place no seed on the corpus or on the E1 cells (`Docs/DiagnosticRuns/judge-probe-e1-site-count.md`).
+
+**Date**: 2026-10-11
+
+**Context**: Every judge figure comes from one model, the frozen `claude-opus-5-5` (ADR-018; `Docs/judge-preregistration.md`). A reviewer can ask whether the judge's unit verdicts reflect the rubric and the code, or that model. The judge model never changes mid-study (threats §4), so this is a separate, fixed-sample check that changes no registered result.
+
+**What is known before the run (declared)**: the recorded Opus votes of every sampled unit (E7 and E1 judge diagnostics; 18 fail and 82 pass in the sample), the E7 and E1 judge results, and the fact that the judge moves no E7 verdict under the registered aggregation (ADR-028). No Sonnet judge call has been made on any unit.
+
+**Decision**:
+1. **Population and eligibility** (`scripts/judge-robustness.ts`, `eligibleUnits`). The valid units of the registered E7 (`results/e7-corpus`) and E1 (`results/e1-grid`) runs, from their judge diagnostics, qualify when all of the following hold:
+   - the vote matches the report;
+   - exactly one recorded request of repetition 0 with runs 0..2 and a stored prompt exists;
+   - U4's `voteUnit` over those runs equals the report's unit row (verdict and confidence);
+   - the canonical request rebuilt from the stored prompt under the frozen route (persona, schema, effort high, 8192 tokens, the CLI's argv flags) hashes to the recorded request hash.
+
+   All 1549 such units qualify; 15 E1 units are excluded (invalid, or the vote does not match). The last check proves that the Sonnet request is the recorded request with only `model` changed.
+2. **Sample.** Four strata, source (E7, E1) × function (FF-N01, FF-N02), with **25 units each** drawn by mulberry32(**9401**) from a sorted frame. That makes 100 units in 41 reports. Stratum sizes: E7 152 / 179, E1 300 / 918. The sample (units, Opus and Sonnet request hashes, Opus votes) is registered as `experiments/judge-robustness/sample.json`.
+3. **Calls.** The same pinned route: the CLI 2.1.294 at `~/.firewall/judge-cli`, the ADR-018 config dir, the isolation pre-flight on every start, the frozen persona, rubric, verdict schema, effort `high`, `maxTokens` 8192, 3 runs per unit (`runsPerEvaluation`), repetition 0, and the byte-identical prompt. **The only difference is the model: `claude-sonnet-5-5`**. The actual-model rule (VRD-07) applies, so a run served by another model is invalid. The run records to its own cassettes, `experiments/judge-robustness/cassettes`, never the E7 or E1 ones. It is resumable, because record mode reuses a recorded key. A usage limit is the registered pause (30 min, then resume). Order: units round-robin over the strata, runs 0..2. 300 calls.
+4. **Outcomes** (analysis plan §16):
+   - **Unit agreement (primary)**: each model's unit vote by U4's rule, in the categories pass / fail / warning. A Sonnet-invalid unit is excluded from the primary row and counted, and a sensitivity row counts it as disagreement. The primary row reports percent agreement (Wilson), Cohen's κ and Gwet's AC1 with 95 % item-bootstrap intervals (seed 9402, 10 000 resamples), unweighted over the 100 sampled units. Secondary rows: per stratum, per source, per function, and population-weighted (w = N_h / n_h, weighted item bootstrap). Below 10 pairs, counts only.
+   - **Transition table**, fail rate and mean confidence per model.
+   - **Verdict impact**: in each of the 41 reports, the sampled units' rows are replaced by their Sonnet votes (all other units keep their Opus rows). Each judge dimension's stored `violatedWeight` is moved by the change of its functions' contributions, using the scorer's own `contributionOf`, `avrOf`, `computeAHS` and `determineVerdict`. The function verdicts, `ahsCombined` and the project or cell verdict are recomputed under the registered majority rule and under the BR-U5b-60 any-fail rule. The unsubstituted report must reproduce its stored AHS and verdict, or the run refuses. Reported: the function verdict changes and the verdict changes, per rule.
+   - **Pre-declared interpretation**: κ (point estimate, primary row) ≥ 0.60 reads as "the unit verdicts are robust to the judge model"; below 0.60, "the unit verdicts depend on the model". This is the floor of the labeller validity rule (ADR-021 SO3).
+5. **Registration.** Prereg v25 (P-JR) registers `experiments/judge-robustness/plan.json` (kind `judge-robustness`, an `EXTERNAL_RUNNER_KINDS` plan run by `scripts/judge-robustness-cli.ts`), `sample.json`, `scripts/judge-robustness.ts`, analysis plan §16, threats TV-114 and TV-115, and DV-TV-19.
+
+**Rationale**: replaying the recorded prompts through the same route isolates the model as the only factor, so any disagreement can be attributed to it. The verdict-impact substitution answers the reviewer's question in the units the thesis reports.
+
+**Alternatives considered**:
+
+| Alternative | Why rejected |
+| --- | --- |
+| Re-run whole E7 projects with Sonnet | About 1000 calls, and the verdicts would mix model and selection effects |
+| One run per unit | U4 votes over 3 runs; a 1-run vote is not the registered unit verdict |
+| A Gemini or GPT judge | Not the same route (CLI, isolation, schema); it would change more than the model |
+| Sampling by Opus verdict (more fails) | Changes the estimand; the strata are the registered sources and functions |
+
+**Consequences**: `results/judge-robustness/` (`units.csv`, `agreement.csv`, `transition.csv`, `fail-rates.csv`, `verdict-impact.csv`, `summary.json`) and 300 Sonnet cassette entries. Threats: TV-114 (one alternative model, same vendor) and TV-115 (sample of 100, fail prevalence about 18 %, κ unstable at low prevalence; AC1 reported beside it).

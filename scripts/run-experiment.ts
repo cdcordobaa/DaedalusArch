@@ -89,7 +89,13 @@ export const PLAN_GRAPH_MODES = ['full', 'ast-only'] as const;
 export const UNIVERSAL_CYCLE_STAGE = 'universal-metric:cyclicDependencyCount';
 export type GraphMode = (typeof PLAN_GRAPH_MODES)[number];
 
-export type ExperimentKind = 'E1' | 'E7' | 'SO4' | 'latency-gate' | 'sensitivity' | 'fixtures' | 'apg-ablation' | 'tool-comparison' | 'real-pairs';
+export type ExperimentKind = 'E1' | 'E7' | 'SO4' | 'latency-gate' | 'sensitivity' | 'fixtures' | 'apg-ablation' | 'tool-comparison' | 'real-pairs' | 'llm-review' | 'judge-robustness';
+
+/**
+ * Kinds whose plan is registered here (so `--check-prereg` gates it) but whose calls are made by their own CLI, never
+ * by `run-experiment` (ADR-036: `scripts/llm-review-cli.ts`).
+ */
+export const EXTERNAL_RUNNER_KINDS: readonly ExperimentKind[] = ['llm-review', 'judge-robustness'];
 export type PlanMode = 'symbolic-only' | 'neuronal-only' | 'full';
 export type SpecLevel = GenerationCell['specLevel'];
 
@@ -481,7 +487,26 @@ export function classifyAttempt(spawn: { ok: true; result: ProcessResult } | { o
       // fall through: no readable report
     }
   }
+  // A run without a report whose stderr names a usage limit (for example the judge's init probe) is a usage stop,
+  // never a transport error: it is resumable and the registered pause applies (E1 pass 1, 2026-10-10).
+  if (r.exitCode !== 0 && namesUsageLimit(r.stderr)) {
+    return { kind: 'incomplete', detail: `usage limit stop (exit ${String(r.exitCode)}): ${tail(r.stderr)}` };
+  }
   return { kind: 'transport', detail: `CLI exit ${String(r.exitCode)} before a report was written: ${tail(r.stderr)}` };
+}
+
+/**
+ * The judge's frozen USAGE_LIMIT patterns (C14 `CLASSIFIER_PATTERNS.USAGE_LIMIT`, `src/llm-critic/frozen.ts`;
+ * ADR-018 item 5), restated because the harness imports no C14 module (BR-U5b-55); a unit test keeps the two equal.
+ */
+export const JUDGE_USAGE_LIMIT_PATTERNS: readonly string[] = Object.freeze(['You\'ve hit your limit', '[Uu]sage limit reached']);
+/** The judge's stop code for a usage limit (C14 `LLM_USAGE_LIMIT`). */
+export const LLM_USAGE_LIMIT_CODE = 'LLM_USAGE_LIMIT';
+
+/** Whether a CLI's stderr names a usage limit: the stop code or a frozen USAGE_LIMIT pattern. */
+export function namesUsageLimit(stderr: string): boolean {
+  if (stderr.includes(LLM_USAGE_LIMIT_CODE)) return true;
+  return JUDGE_USAGE_LIMIT_PATTERNS.some((p) => new RegExp(p, 'm').test(stderr));
 }
 
 // ---------------------------------------------------------------------------------------------
@@ -871,6 +896,10 @@ export async function main(
   }
   const l = loadAt(first);
   if (!l.ok) return 1;
+  if (EXTERNAL_RUNNER_KINDS.includes(l.plan.experiment)) {
+    io.err(`PLAN_EXTERNAL_RUNNER: plan ${l.plan.id} (${l.plan.experiment}) runs through its own CLI, not run-experiment\n`);
+    return 2;
+  }
   const deps = makeDeps(neo4jContainer !== undefined ? { neo4jContainer } : {});
   const result = await runPlan(l.plan, l.file, repoRoot, {
     ...deps, schemaRoot, ...(outDir !== undefined && { outDir }), ...(instrumentVersion !== undefined && { instrumentVersion }),

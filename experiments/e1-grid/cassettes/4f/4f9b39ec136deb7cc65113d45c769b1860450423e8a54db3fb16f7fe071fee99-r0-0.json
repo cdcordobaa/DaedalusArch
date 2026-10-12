@@ -1,0 +1,47 @@
+{
+  "attempts": 1,
+  "cliVersion": "2.1.294",
+  "configListingSha256": "47aa04258852fab9a706f3f0c14cee22306d69fbb6fdfbde8c11854bd54997bc",
+  "durationMs": 7581,
+  "effort": "high",
+  "functionId": "FF-N02",
+  "ignoredOptions": [
+    "maxTokens"
+  ],
+  "isolationProbeSha256": "97a2e2d0af1100c13c55e028c1a0c71f069093c3d08705af122aaeb302f1a641",
+  "key": "4f9b39ec136deb7cc65113d45c769b1860450423e8a54db3fb16f7fe071fee99-r0-0",
+  "model": "claude-opus-5-5",
+  "outcome": {
+    "kind": "valid"
+  },
+  "parsedVerdict": {
+    "confidence": 0.85,
+    "evidence": [
+      "src/infrastructure/ProjectController.ts: createProject reads req.body and maps results to res.status(201/400/500).json(...), which is HTTP transport work suited to infrastructure",
+      "src/infrastructure/ProjectController.ts: `if (!name || typeof name !== 'string')` only checks the request's shape at the boundary; it is not a domain rule",
+      "src/infrastructure/ProjectController.ts: the business operation is handed off through this.createProjectUseCase.execute({ name }), so no business logic is kept in the controller"
+    ],
+    "pass": true,
+    "reasoning": "ProjectController is an Express HTTP adapter in the infrastructure layer. It does what a transport adapter should: it pulls `name` from req.body, checks that the request has the right shape (present and a string), hands the work to CreateProjectUseCase.execute, and turns the result or any error into an HTTP status code and JSON body. The presence and type check is basic input validation at the transport boundary, not a business rule. The file holds no domain invariants, no persistence and no orchestration logic. Every responsibility it has fits the infrastructure layer.",
+    "violations": []
+  },
+  "projectId": "claude-haiku-4-5/task-management/minimal-prose/run-2",
+  "prompt": "## Rule\nThe unit's responsibilities match the role of its declared layer.\n\n## Rubric\nPass: Every responsibility in the file belongs to the role and kind of its declared layer, and agrees with any ADR prose given.\nFail: The file carries a responsibility that belongs to a different layer kind, for example persistence, transport or framework logic in a domain file, or business rules in an infrastructure or presentation file.\nEvidence required: Name the file and cite the function, method or statement that carries the misplaced responsibility, and the layer kind it belongs to.\nOut of scope: import direction and layer-dependency rules, which are checked symbolically.\n\n## Layer model\n- domain (kind: domain): src/domain/**\n- application (kind: application): src/application/**\n- infrastructure (kind: infrastructure): src/infrastructure/**\n\n## Unit\nKind: file\nId: src/infrastructure/ProjectController.ts\nLayer: infrastructure\nUnit files:\n- src/infrastructure/ProjectController.ts\n\n## Source\n=====SOURCE-BEGIN src/infrastructure/ProjectController.ts=====\nimport { Request, Response } from 'express';\nimport { CreateProjectUseCase } from '../application/CreateProjectUseCase';\n\nexport class ProjectController {\n  constructor(private createProjectUseCase: CreateProjectUseCase) {}\n\n  createProject = (req: Request, res: Response): void => {\n    try {\n      const { name } = req.body;\n\n      if (!name || typeof name !== 'string') {\n        res.status(400).json({ error: 'Project name is required and must be a string' });\n        return;\n      }\n\n      const response = this.createProjectUseCase.execute({ name });\n      res.status(201).json(response);\n    } catch (error) {\n      res.status(500).json({ error: 'Internal server error' });\n    }\n  };\n}\n\n=====SOURCE-END=====\n\n## Graph excerpt\n{\"edges\":[{\"from\":\"ProjectController@src/infrastructure/ProjectController.ts\",\"to\":\"CreateProjectUseCase@src/application/CreateProjectUseCase.ts\",\"type\":\"CONSTRUCTOR_INJECTS\"},{\"from\":\"src/infrastructure/ProjectController.ts\",\"to\":\"express\",\"type\":\"IMPORTS\"},{\"from\":\"src/infrastructure/ProjectController.ts\",\"to\":\"src/application/CreateProjectUseCase.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/infrastructure/app.ts\",\"to\":\"src/infrastructure/ProjectController.ts\",\"type\":\"IMPORTS\"}],\"nodes\":[{\"kind\":\"Class\",\"layer\":\"application\",\"name\":\"CreateProjectUseCase\",\"path\":\"src/application/CreateProjectUseCase.ts\"},{\"kind\":\"Class\",\"layer\":\"infrastructure\",\"name\":\"ProjectController\",\"path\":\"src/infrastructure/ProjectController.ts\"},{\"kind\":\"File\",\"layer\":\"application\",\"path\":\"src/application/CreateProjectUseCase.ts\"},{\"kind\":\"File\",\"layer\":\"infrastructure\",\"path\":\"src/infrastructure/ProjectController.ts\"},{\"kind\":\"File\",\"layer\":\"infrastructure\",\"path\":\"src/infrastructure/app.ts\"},{\"kind\":\"Package\",\"layer\":null,\"path\":\"express\"}]}\n\n## Instructions\nJudge the unit against the rule and rubric. Return the JSON object the schema requires. Set pass to false if any file of the unit fails the rubric.\n",
+  "provider": "claude-cli",
+  "recordedAt": "2026-10-11T02:44:08.463Z",
+  "repetition": 0,
+  "requestHash": "4f9b39ec136deb7cc65113d45c769b1860450423e8a54db3fb16f7fe071fee99",
+  "resolvedModel": "claude-opus-5-5",
+  "response": "{\"is_error\":false,\"modelUsage\":{\"claude-opus-5-5\":{\"inputTokens\":2,\"outputTokens\":566}},\"result\":\"{\\\"pass\\\":true,\\\"confidence\\\":0.85,\\\"reasoning\\\":\\\"ProjectController is an Express HTTP adapter in the infrastructure layer. It does what a transport adapter should: it pulls `name` from req.body, checks that the request has the right shape (present and a string), hands the work to CreateProjectUseCase.execute, and turns the result or any error into an HTTP status code and JSON body. The presence and type check is basic input validation at the transport boundary, not a business rule. The file holds no domain invariants, no persistence and no orchestration logic. Every responsibility it has fits the infrastructure layer.\\\",\\\"evidence\\\":[\\\"src/infrastructure/ProjectController.ts: createProject reads req.body and maps results to res.status(201/400/500).json(...), which is HTTP transport work suited to infrastructure\\\",\\\"src/infrastructure/ProjectController.ts: `if (!name || typeof name !== 'string')` only checks the request's shape at the boundary; it is not a domain rule\\\",\\\"src/infrastructure/ProjectController.ts: the business operation is handed off through this.createProjectUseCase.execute({ name }), so no business logic is kept in the controller\\\"],\\\"violations\\\":[]}\",\"structured_output\":{\"confidence\":0.85,\"evidence\":[\"src/infrastructure/ProjectController.ts: createProject reads req.body and maps results to res.status(201/400/500).json(...), which is HTTP transport work suited to infrastructure\",\"src/infrastructure/ProjectController.ts: `if (!name || typeof name !== 'string')` only checks the request's shape at the boundary; it is not a domain rule\",\"src/infrastructure/ProjectController.ts: the business operation is handed off through this.createProjectUseCase.execute({ name }), so no business logic is kept in the controller\"],\"pass\":true,\"reasoning\":\"ProjectController is an Express HTTP adapter in the infrastructure layer. It does what a transport adapter should: it pulls `name` from req.body, checks that the request has the right shape (present and a string), hands the work to CreateProjectUseCase.execute, and turns the result or any error into an HTTP status code and JSON body. The presence and type check is basic input validation at the transport boundary, not a business rule. The file holds no domain invariants, no persistence and no orchestration logic. Every responsibility it has fits the infrastructure layer.\",\"violations\":[]}}",
+  "runIndex": 0,
+  "schemaVersion": 2,
+  "unitId": "src/infrastructure/ProjectController.ts",
+  "usage": {
+    "inputTokens": 2623,
+    "outputTokens": 566
+  },
+  "usedOptions": {
+    "effort": "high",
+    "model": "claude-opus-5-5"
+  }
+}

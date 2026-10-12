@@ -65,8 +65,10 @@ export interface LabelRun<L extends string = AnyLabel> {
    * ADR-021 item 8.7). Absent in labels written before P-U6 (then `attempts`).
    */
   readonly invocations?: number;
-  /** Why the recorded outcome is invalid. */
+  /** Why the recorded outcome is invalid (`tool-use`: the final attempt completed an agy tool step, ADR-034). */
   readonly invalidReason?: string;
+  /** agy attempts of this run discarded because they completed a tool step (ADR-034); absent when 0. */
+  readonly toolUseDiscards?: number;
 }
 
 export interface ReconciledLabel<L extends string = AnyLabel> {
@@ -85,7 +87,7 @@ export interface ReconciledLabel<L extends string = AnyLabel> {
   /** Missed-seed items: the seed (instances.csv FN cause columns, ADR-021 SO4-02). */
   readonly seedId?: string;
   readonly label: L | 'uncertain';
-  readonly uncertainReason?: 'disagree' | 'invalid-run';
+  readonly uncertainReason?: 'disagree' | 'invalid-run' | 'tool-use';
   readonly rootCause?: RootCauseCode;
   readonly runs: readonly [LabelRun<L>, LabelRun<L>];
 }
@@ -119,6 +121,12 @@ export const LABEL_PROVIDER_CONFLICT = 'LABEL_PROVIDER_CONFLICT';
 export const LABELLER_PROMPT_DIR = 'Docs/labeller-prompts';
 export const LABELLER_MAX_TOKENS = 1024;
 export const LABELLER_TEMPERATURE = 0;
+/**
+ * Output-token cap on the Gemini API route (ADR-035): the model's `outputTokenLimit` (models.get, 2026-10-11). agy
+ * ignored `maxTokens` (cassette `ignoredOptions`), so P1/P2 ran uncapped, and the 1 024 cap would truncate an answer
+ * produced with high thinking.
+ */
+export const LABELLER_API_MAX_TOKENS = 65536;
 /** `--provider` values; `agy` is the registered panel route (ADR-019 item 4 as amended), `gemini` the API route. */
 export const LABEL_PROVIDERS: readonly string[] = ['agy', 'gemini', 'mock'];
 
@@ -317,6 +325,8 @@ export function reconcile<L extends string>(item: LabelItem, prompt: LabellerPro
     ...(item.kind === 'missed-seed' && item.seedId !== undefined && { seedId: item.seedId }),
   };
   const [a, b] = runs;
+  // ADR-034: a run whose retried call still completed a tool step makes the item uncertain for that reason.
+  if (a.invalidReason === TOOL_USE_REASON || b.invalidReason === TOOL_USE_REASON) return { ...base, label: 'uncertain', uncertainReason: 'tool-use' };
   if (a.label === null || b.label === null) return { ...base, label: 'uncertain', uncertainReason: 'invalid-run' };
   if (a.label !== b.label) return { ...base, label: 'uncertain', uncertainReason: 'disagree' };
   if (prompt.rootCauseRequired.includes(a.label)) {
@@ -344,6 +354,8 @@ export interface LabelOutcome {
   readonly calls: number;
   /** Prompts sent (record) or keyed (replay), in call order; for the context-exclusion check. */
   readonly prompts: readonly string[];
+  /** agy attempts discarded because they completed a tool step (ADR-034 validity metric), over all runs. */
+  readonly toolUseDiscards: number;
 }
 
 export type LabelResult =
@@ -351,6 +363,26 @@ export type LabelResult =
   | { readonly ok: false; readonly code: string; readonly detail: string };
 
 const REASK_HEADER = '## Your previous answer was invalid';
+
+/** ADR-034: the `invalidReason` of a run whose retried call still completed an agy tool step. */
+export const TOOL_USE_REASON = 'tool-use';
+/** The provider error code of a completed agy tool step (`agy-cli-provider.ts`, ADR-034). */
+export const TOOL_USE_CODE = 'LLM_CLI_TOOL_USE';
+/** ADR-034 stop rule: P4 items done before the rule applies, and the tool-use share that stops the run. */
+export const TOOL_USE_STOP_MIN_ITEMS = 10;
+export const TOOL_USE_STOP_SHARE = 0.2;
+/** ADR-034: 20 % or more of the P4 items done (at least 10) end as `uncertain` / `tool-use`; the run stops. */
+export const LABEL_TOOL_USE_STOP = 'LABEL_TOOL_USE_STOP';
+
+/** Whether a cassette entry's final attempt completed a tool step (its stored text carries the code, ADR-034). */
+export function finalToolUse(entry: { readonly outcome: { readonly kind: string }; readonly response: string }): boolean {
+  return entry.outcome.kind === 'invalid' && entry.response.startsWith(`${TOOL_USE_CODE}:`);
+}
+
+/** Attempts of one cassette entry discarded for a completed tool step: the retried ones and a tool-use final one. */
+export function toolUseDiscardsOf(entry: { readonly outcome: { readonly kind: string }; readonly response: string; readonly discardedAttempts?: readonly string[] }): number {
+  return (entry.discardedAttempts ?? []).filter((c) => c === TOOL_USE_CODE).length + (finalToolUse(entry) ? 1 : 0);
+}
 /** The most invocations one call can make: the first try and the provider retries (U4 `JUDGE_RETRIES`). */
 export const MAX_INVOCATIONS_PER_CALL = 1 + JUDGE_RETRIES;
 
@@ -366,6 +398,10 @@ export async function labelItems(items: readonly LabelItem[], config: LabellerCo
   const options = { model: config.model, maxTokens: config.maxTokens ?? LABELLER_MAX_TOKENS, temperature: LABELLER_TEMPERATURE };
   const sent: string[] = [];
   let calls = 0;
+  let toolUseDiscards = 0;
+  // ADR-034 stop rule state: P4 items with a finished run, and those with a run that ended as tool-use.
+  const p4Done = new Set<string>();
+  const p4ToolUse = new Set<string>();
   const runsByItem = new Map<string, LabelRun[]>();
   const order1 = shuffle(items, createRng(config.permutationSeed));
   for (const runIndex of [0, 1] as const) {
@@ -381,6 +417,7 @@ export async function labelItems(items: readonly LabelItem[], config: LabellerCo
       let text = renderPrompt(prompt, item, shown);
       let run: LabelRun | null = null;
       let invocations = 0;
+      let discards = 0;
       for (const attempt of [1, 2] as const) {
         // ADR-021 item 8.7: a call may use up to MAX_INVOCATIONS_PER_CALL agy invocations; none is sent past the budget.
         if (calls + MAX_INVOCATIONS_PER_CALL > config.budgetCalls) {
@@ -391,6 +428,12 @@ export async function labelItems(items: readonly LabelItem[], config: LabellerCo
         if (r.kind === 'stop') return { ok: false, code: r.stop === 'CASSETTE_MISS' ? 'CASSETTE_MISS' : LABELLER_STOPPED, detail: r.message };
         calls += r.entry.attempts;
         invocations += r.entry.attempts;
+        discards += toolUseDiscardsOf(r.entry);
+        if (finalToolUse(r.entry)) {
+          // ADR-034: the retry also completed a tool step. No answer is stored and none is re-asked.
+          run = { runIndex, cassetteKey: r.key, attempts: attempt, invocations, ...(permutationSeed !== undefined && { permutationSeed }), label: null, rationale: '', invalidReason: TOOL_USE_REASON };
+          break;
+        }
         const parsed = r.outcome.kind === 'valid' ? parseAnswer(r.entry.response, shown) : { ok: false as const, reason: `provider outcome ${r.outcome.cause}` };
         const reason = parsed.ok ? validateAnswer(prompt, parsed.answer) : parsed.reason;
         const common = { runIndex, cassetteKey: r.key, attempts: attempt, invocations, ...(permutationSeed !== undefined && { permutationSeed }) };
@@ -403,7 +446,19 @@ export async function labelItems(items: readonly LabelItem[], config: LabellerCo
         text = `${renderPrompt(prompt, item, shown)}\n\n${REASK_HEADER}\n${reason ?? 'invalid'}. Answer again with one valid JSON object.`;
       }
       if (run === null) return { ok: false, code: LABELLER_STOPPED, detail: 'no run outcome' };
+      if (discards > 0) run = { ...run, toolUseDiscards: discards };
+      toolUseDiscards += discards;
       runsByItem.set(item.itemId, [...(runsByItem.get(item.itemId) ?? []), run]);
+      if (item.population === 'P4') {
+        p4Done.add(item.itemId);
+        if (run.invalidReason === TOOL_USE_REASON) p4ToolUse.add(item.itemId);
+        if (p4Done.size >= TOOL_USE_STOP_MIN_ITEMS && p4ToolUse.size >= TOOL_USE_STOP_SHARE * p4Done.size) {
+          return {
+            ok: false, code: LABEL_TOOL_USE_STOP,
+            detail: `${LABEL_TOOL_USE_STOP}: ${String(p4ToolUse.size)} of ${String(p4Done.size)} P4 items done end as uncertain/tool-use (>= ${String(TOOL_USE_STOP_SHARE * 100)} % after >= ${String(TOOL_USE_STOP_MIN_ITEMS)}); ${String(toolUseDiscards)} tool-use discards; ${String(calls)} invocations used (ADR-034)`,
+          };
+        }
+      }
     }
   }
   const labels: ReconciledLabel[] = [];
@@ -415,7 +470,7 @@ export async function labelItems(items: readonly LabelItem[], config: LabellerCo
     if (prompt === undefined || r0 === undefined || r1 === undefined) return { ok: false, code: LABELLER_STOPPED, detail: `item ${item.itemId} lacks a run` };
     labels.push(reconcile(item, prompt, [r0, r1]));
   }
-  return { ok: true, labels, calls, prompts: sent };
+  return { ok: true, labels, calls, prompts: sent, toolUseDiscards };
 }
 
 // ---------------------------------------------------------------------------------------------
@@ -449,6 +504,26 @@ export interface LabelPlanFile {
   /** Labeller route and pinned model of the registered config; `--provider` / `--model` must agree. */
   readonly provider?: string;
   readonly model?: string;
+  /** A plan derived by `--derive-route` (ADR-035): its source plan, the populations kept and the reason. */
+  readonly derivedFrom?: { readonly plan: string; readonly populations: readonly string[]; readonly reason: string };
+}
+
+/**
+ * ADR-035: the items of the given populations of a registered plan, routed to another labeller route with the
+ * remaining label budget. Items, seeds, strata of those populations and the re-ask reserve are kept unchanged, so the
+ * run-1 order and per-item option permutations follow the registered seed.
+ */
+export function deriveRoutePlan(plan: LabelPlanFile, o: { readonly source: string; readonly populations: readonly string[]; readonly provider: string; readonly model: string; readonly budgetCalls: number; readonly reason: string }): LabelPlanFile {
+  const keep = new Set(o.populations);
+  return {
+    ...plan,
+    budgetCalls: o.budgetCalls,
+    strata: plan.strata.filter((s) => keep.has(s.population)),
+    items: plan.items.filter((i) => keep.has(i.population)),
+    provider: o.provider,
+    model: o.model,
+    derivedFrom: { plan: o.source, populations: [...o.populations], reason: o.reason },
+  };
 }
 
 export function checkLabelPlan(v: unknown): string[] {
@@ -513,6 +588,8 @@ export const LABEL_USAGE = [
   '                                        --audit audit/<plan-id>.json (committed)] [--judge-runs <dir>[,<dir>...]] [--judge-verdicts <file>]',
   '                                        [--judge-cassettes <dir>] [--fn-causes <file>] [--resamples <n>] --out <labelling.json>',
   '       npx tsx scripts/llm-label-cli.ts --usage --cassette-dir <labeller cassette dir>',
+  '       npx tsx scripts/llm-label-cli.ts --derive-route --plan <file> --population P4[,..] --provider <p> --model <id> --budget <n>',
+  '                                        --reason <text> --out <derived plan>   (ADR-035: the remaining label budget)',
   '--provider and --model default to the plan\'s registered route (build-label-plan: agy, ADR-019 item 4 as amended).',
   '       npx tsx scripts/llm-label-cli.ts --self-test',
   '',
@@ -571,10 +648,10 @@ export function routeOf(args: ReadonlyMap<string, string>, plan: Pick<LabelPlanF
 }
 
 function parseArgs(argv: readonly string[]): Map<string, string> | string {
-  const flags = new Set(['--estimate', '--self-test', '--help', '--allocate-audit', '--agreement', '--usage']);
+  const flags = new Set(['--estimate', '--self-test', '--help', '--allocate-audit', '--agreement', '--usage', '--derive-route']);
   const valued = new Set([
     '--plan', '--mode', '--cassette-dir', '--model', '--provider', '--out', '--labels', '--plan-id', '--seed', '--allocation', '--allocation-out', '--audit',
-    '--judge-verdicts', '--judge-runs', '--judge-cassettes', '--fn-causes', '--resamples',
+    '--judge-verdicts', '--judge-runs', '--judge-cassettes', '--fn-causes', '--resamples', '--population', '--budget', '--reason',
   ]);
   const out = new Map<string, string>();
   for (let i = 0; i < argv.length; i += 1) {
@@ -637,6 +714,36 @@ export async function main(argv: readonly string[], repoRoot: string, io: LabelM
   if (errs.length > 0) {
     io.err(`${LABELLER_PLAN_INVALID}: ${errs.join('; ')}\n`);
     return 1;
+  }
+  if (args.has('derive-route')) {
+    const populations = (args.get('population') ?? '').split(',').filter((x) => x !== '');
+    const provider = args.get('provider');
+    const model = args.get('model');
+    const budget = Number(args.get('budget'));
+    const out = args.get('out');
+    const reason = args.get('reason');
+    if (populations.length === 0 || provider === undefined || model === undefined || !Number.isSafeInteger(budget) || budget <= 0 || out === undefined || reason === undefined) {
+      io.err(`--derive-route needs --population, --provider, --model, --budget, --reason and --out\n${LABEL_USAGE}`);
+      return 2;
+    }
+    if (!LABEL_PROVIDERS.includes(provider)) {
+      io.err(`--provider must be one of ${LABEL_PROVIDERS.join(', ')}\n`);
+      return 2;
+    }
+    const pinnedRoute = checkLabellerModel(model);
+    if (!pinnedRoute.ok) {
+      io.err(`${pinnedRoute.detail}\n`);
+      return 1;
+    }
+    const derived = deriveRoutePlan(plan, { source: planPath, populations, provider, model, budgetCalls: budget, reason });
+    const e = estimatePlan(derived);
+    if (e.exitCode !== 0) {
+      io.err(`${e.line}\n`);
+      return 1;
+    }
+    io.writeFile(resolve(repoRoot, out), `${JSON.stringify(derived, null, 2)}\n`);
+    io.out(`derived ${String(derived.items.length)} items (${populations.join(', ')}) for ${provider} ${model}; ${e.line}\n`);
+    return 0;
   }
   if (args.has('allocate-audit')) return allocateAuditMain(args, repoRoot, io, plan);
   if (args.has('agreement')) return agreementMain(args, repoRoot, io, plan, deps);
@@ -713,13 +820,14 @@ export async function main(argv: readonly string[], repoRoot: string, io: LabelM
   const r = await labelItems(plan.items, {
     provider, model, runs: 2, mode, cassetteDir: resolve(repoRoot, cassetteDir), permutationSeed: plan.permutationSeed,
     budgetCalls: plan.budgetCalls, ...(cassetteProvenance !== undefined && { cassetteProvenance }),
+    ...(providerName === 'gemini' && { maxTokens: LABELLER_API_MAX_TOKENS }),
   }, prompts.prompts);
   if (!r.ok) {
     io.err(`${r.code}: ${r.detail}\n`);
     return 1;
   }
   io.writeFile(resolve(repoRoot, out), `${JSON.stringify(r.labels, null, 2)}\n`);
-  io.out(`labelled ${String(r.labels.length)} items in ${String(r.calls)} calls (${mode})\n`);
+  io.out(`labelled ${String(r.labels.length)} items in ${String(r.calls)} calls (${mode}); tool-use discards ${String(r.toolUseDiscards)} (ADR-034)\n`);
   return 0;
 }
 

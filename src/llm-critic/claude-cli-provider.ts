@@ -309,7 +309,8 @@ export function classifyProcessResult(
     return { envelope, error: fail(stop ?? 'LLM_CLI_EXIT', `Claude CLI reported an error (exit ${String(result.exitCode)}): ${resultText}`) };
   }
   if (result.exitCode !== 0) {
-    const stop = classifyStop(result.stderr);
+    // A limit can come as plain text on stdout instead of an envelope; it is matched too (no envelope only).
+    const stop = classifyStop(envelope === null ? `${result.stderr}\n${result.stdout.slice(-STDERR_EXCERPT_CHARS)}` : result.stderr);
     return { envelope, error: fail(stop ?? 'LLM_CLI_EXIT', `Claude CLI exited with code ${String(result.exitCode)}${stderr !== '' ? `: ${stderr}` : ''}`) };
   }
   if (envelope === null) {
@@ -606,6 +607,28 @@ export interface JudgeIsolationInput {
   readonly timeoutMs?: number;
 }
 
+/**
+ * Auth or usage-limit stop of the init probe (OPS-03, ADR-018 item 5), or `null`. The probe is an erroring call when
+ * its `result` event has `is_error`, when the process exits non-zero, or when it printed no init event (a limit can
+ * end the CLI before the init event or the result event). Only then are the `result` text, stderr and the stdout
+ * lines that are not JSON matched against the frozen `CLASSIFIER_PATTERNS` (and HTTP 429). A usage limit hit at the
+ * probe is therefore `LLM_USAGE_LIMIT`, never `LLM_CLI_ISOLATION`, so the judge stage ends the run as resumable
+ * (exit 3) and the registered pause applies (E1 pass 1, 2026-10-10).
+ */
+export function initProbeStop(
+  run: Pick<ProcessResult, 'exitCode' | 'stdout' | 'stderr'>,
+  events: { readonly init: InitEvent | null; readonly result: ClaudeCliEnvelope | null },
+): 'LLM_AUTH' | 'LLM_USAGE_LIMIT' | null {
+  const erroring = events.result?.is_error === true || run.exitCode !== 0 || events.init === null;
+  if (!erroring) return null;
+  const plainStdout = run.stdout.split('\n').filter((l) => {
+    const t = l.trim();
+    return t !== '' && !t.startsWith('{');
+  }).join('\n');
+  const resultText = typeof events.result?.result === 'string' ? events.result.result : '';
+  return classifyStop(`${resultText}\n${run.stderr}\n${plainStdout}`, events.result?.api_error_status);
+}
+
 function isolationFail<T>(message: string, context?: Record<string, unknown>): DomainResult<T> {
   return DomainResult.fail([{ code: 'LLM_CLI_ISOLATION', message, ...(context !== undefined ? { context } : {}) }]);
 }
@@ -663,10 +686,8 @@ export async function checkJudgeIsolation(input: JudgeIsolationInput): Promise<D
     return cleanup(DomainResult.fail([{ code: 'LLM_CLI_NOT_FOUND', message: scrubSecrets(run.errors[0]?.message ?? 'claude not found', secrets) }]));
   }
   const events = readStreamEvents(run.data.stdout);
-  if (events.result !== null && events.result.is_error === true) {
-    const stop = classifyStop(`${events.result.result ?? ''}\n${run.data.stderr}`, events.result.api_error_status);
-    if (stop !== null) return cleanup(DomainResult.fail([{ code: stop, message: `Init probe: ${stop === 'LLM_AUTH' ? 'not authenticated' : 'usage limit reached'}` }]));
-  }
+  const stop = initProbeStop(run.data, events);
+  if (stop !== null) return cleanup(DomainResult.fail([{ code: stop, message: `Init probe: ${stop === 'LLM_AUTH' ? 'not authenticated' : 'usage limit reached'}` }]));
   if (events.init === null) return cleanup(isolationFail('Init probe printed no init event'));
   const verdict = evaluateInitEvent(events.init, model);
   const probe: IsolationProbeResult = {

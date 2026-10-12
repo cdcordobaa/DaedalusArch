@@ -1,0 +1,49 @@
+{
+  "attempts": 1,
+  "cliVersion": "2.1.294",
+  "configListingSha256": "47aa04258852fab9a706f3f0c14cee22306d69fbb6fdfbde8c11854bd54997bc",
+  "durationMs": 8052,
+  "effort": "high",
+  "functionId": "FF-N02",
+  "ignoredOptions": [
+    "maxTokens"
+  ],
+  "isolationProbeSha256": "97a2e2d0af1100c13c55e028c1a0c71f069093c3d08705af122aaeb302f1a641",
+  "key": "5e6e26e8fa1dd37163201ddd19ece787423f74b2398e6f385ceed665d097c12a-r0-2",
+  "model": "claude-opus-5-5",
+  "outcome": {
+    "kind": "valid"
+  },
+  "parsedVerdict": {
+    "confidence": 0.85,
+    "evidence": [
+      "The module-level `const catalogue = [new Product(\"widget\", \"Widget\", 100), ...]` only creates seed data during startup, which is an infrastructure job.",
+      "`const port = Number(process.env.PORT ?? 3000)` reads the environment, which belongs in infrastructure.",
+      "`createApp(catalogue).listen(port, ...)` starts the HTTP server, which belongs in infrastructure.",
+      "`console.log(...)` in the listen callback is operational logging, which belongs in infrastructure.",
+      "No function, method or statement in the file holds business rules or application use-case logic."
+    ],
+    "pass": true,
+    "reasoning": "src/infrastructure/server.ts passes. It is the app's entry point, the place where everything is wired together and started. It builds an in-memory catalogue of Product objects as seed data, reads PORT from process.env, calls createApp(catalogue), starts the HTTP server with listen and logs a startup message. Loading data, reading environment settings, starting the server and logging are all infrastructure jobs. The file holds no business rules: no pricing, validation or order logic, and it doesn't decide anything about the domain. It only creates domain objects to feed them into the app. Seed values in a startup file count as configuration, not domain logic. Which modules it imports (here, the domain layer) is out of scope for this rule.",
+    "violations": []
+  },
+  "projectId": "claude-sonnet-5-5/order-fulfilment/minimal-prose/run-0",
+  "prompt": "## Rule\nThe unit's responsibilities match the role of its declared layer.\n\n## Rubric\nPass: Every responsibility in the file belongs to the role and kind of its declared layer, and agrees with any ADR prose given.\nFail: The file carries a responsibility that belongs to a different layer kind, for example persistence, transport or framework logic in a domain file, or business rules in an infrastructure or presentation file.\nEvidence required: Name the file and cite the function, method or statement that carries the misplaced responsibility, and the layer kind it belongs to.\nOut of scope: import direction and layer-dependency rules, which are checked symbolically.\n\n## Layer model\n- domain (kind: domain): src/domain/**\n- application (kind: application): src/application/**\n- infrastructure (kind: infrastructure): src/infrastructure/**\n\n## Unit\nKind: file\nId: src/infrastructure/server.ts\nLayer: infrastructure\nUnit files:\n- src/infrastructure/server.ts\n\n## Source\n=====SOURCE-BEGIN src/infrastructure/server.ts=====\nimport { Product } from \"../domain/Product\";\nimport { createApp } from \"./createApp\";\n\nconst catalogue = [\n  new Product(\"widget\", \"Widget\", 100),\n  new Product(\"gadget\", \"Gadget\", 50),\n  new Product(\"gizmo\", \"Gizmo\", 10),\n];\n\nconst port = Number(process.env.PORT ?? 3000);\ncreateApp(catalogue).listen(port, () => {\n  console.log(`Order fulfilment API listening on port ${port}`);\n});\n\n=====SOURCE-END=====\n\n## Graph excerpt\n{\"edges\":[{\"from\":\"src/infrastructure/server.ts\",\"to\":\"src/domain/Product.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/infrastructure/server.ts\",\"to\":\"src/infrastructure/createApp.ts\",\"type\":\"IMPORTS\"}],\"nodes\":[{\"kind\":\"File\",\"layer\":\"domain\",\"path\":\"src/domain/Product.ts\"},{\"kind\":\"File\",\"layer\":\"infrastructure\",\"path\":\"src/infrastructure/createApp.ts\"},{\"kind\":\"File\",\"layer\":\"infrastructure\",\"path\":\"src/infrastructure/server.ts\"}]}\n\n## Instructions\nJudge the unit against the rule and rubric. Return the JSON object the schema requires. Set pass to false if any file of the unit fails the rubric.\n",
+  "provider": "claude-cli",
+  "recordedAt": "2026-10-10T22:46:36.306Z",
+  "repetition": 0,
+  "requestHash": "5e6e26e8fa1dd37163201ddd19ece787423f74b2398e6f385ceed665d097c12a",
+  "resolvedModel": "claude-opus-5-5",
+  "response": "{\"is_error\":false,\"modelUsage\":{\"claude-opus-5-5\":{\"inputTokens\":2,\"outputTokens\":681}},\"result\":\"{\\\"pass\\\":true,\\\"confidence\\\":0.85,\\\"reasoning\\\":\\\"src/infrastructure/server.ts passes. It is the app's entry point, the place where everything is wired together and started. It builds an in-memory catalogue of Product objects as seed data, reads PORT from process.env, calls createApp(catalogue), starts the HTTP server with listen and logs a startup message. Loading data, reading environment settings, starting the server and logging are all infrastructure jobs. The file holds no business rules: no pricing, validation or order logic, and it doesn't decide anything about the domain. It only creates domain objects to feed them into the app. Seed values in a startup file count as configuration, not domain logic. Which modules it imports (here, the domain layer) is out of scope for this rule.\\\",\\\"evidence\\\":[\\\"The module-level `const catalogue = [new Product(\\\\\\\"widget\\\\\\\", \\\\\\\"Widget\\\\\\\", 100), ...]` only creates seed data during startup, which is an infrastructure job.\\\",\\\"`const port = Number(process.env.PORT ?? 3000)` reads the environment, which belongs in infrastructure.\\\",\\\"`createApp(catalogue).listen(port, ...)` starts the HTTP server, which belongs in infrastructure.\\\",\\\"`console.log(...)` in the listen callback is operational logging, which belongs in infrastructure.\\\",\\\"No function, method or statement in the file holds business rules or application use-case logic.\\\"],\\\"violations\\\":[]}\",\"structured_output\":{\"confidence\":0.85,\"evidence\":[\"The module-level `const catalogue = [new Product(\\\"widget\\\", \\\"Widget\\\", 100), ...]` only creates seed data during startup, which is an infrastructure job.\",\"`const port = Number(process.env.PORT ?? 3000)` reads the environment, which belongs in infrastructure.\",\"`createApp(catalogue).listen(port, ...)` starts the HTTP server, which belongs in infrastructure.\",\"`console.log(...)` in the listen callback is operational logging, which belongs in infrastructure.\",\"No function, method or statement in the file holds business rules or application use-case logic.\"],\"pass\":true,\"reasoning\":\"src/infrastructure/server.ts passes. It is the app's entry point, the place where everything is wired together and started. It builds an in-memory catalogue of Product objects as seed data, reads PORT from process.env, calls createApp(catalogue), starts the HTTP server with listen and logs a startup message. Loading data, reading environment settings, starting the server and logging are all infrastructure jobs. The file holds no business rules: no pricing, validation or order logic, and it doesn't decide anything about the domain. It only creates domain objects to feed them into the app. Seed values in a startup file count as configuration, not domain logic. Which modules it imports (here, the domain layer) is out of scope for this rule.\",\"violations\":[]}}",
+  "runIndex": 2,
+  "schemaVersion": 2,
+  "unitId": "src/infrastructure/server.ts",
+  "usage": {
+    "inputTokens": 2270,
+    "outputTokens": 681
+  },
+  "usedOptions": {
+    "effort": "high",
+    "model": "claude-opus-5-5"
+  }
+}

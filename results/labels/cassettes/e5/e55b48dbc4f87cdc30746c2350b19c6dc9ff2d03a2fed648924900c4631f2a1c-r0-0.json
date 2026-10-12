@@ -1,0 +1,36 @@
+{
+  "attempts": 1,
+  "cliVersion": "1.3.2",
+  "configListingSha256": "b8cce56d63afd9cebbf745ed20c888d9ab0007207a513029027cc10be9494345",
+  "durationMs": 27378,
+  "effort": null,
+  "functionId": "label:judge-unit:3fcda7d9f58d1b75abdce4a2a7e680dbc75461f99f9f11c02422647bf68e65fb",
+  "ignoredOptions": [
+    "temperature",
+    "maxTokens"
+  ],
+  "isolationProbeSha256": "e3e335eb64e5ae507ca6484a4f75d0443b1afef89d42854818fa51bd02d68423",
+  "key": "e55b48dbc4f87cdc30746c2350b19c6dc9ff2d03a2fed648924900c4631f2a1c-r0-0",
+  "model": "gemini-3.1-pro-high",
+  "outcome": {
+    "kind": "valid"
+  },
+  "parsedVerdict": null,
+  "prompt": "Decide whether the unit below satisfies the rubric.\n- pass: the unit meets the rubric's pass condition.\n- fail: the unit meets the rubric's fail condition.\nGive a short rationale that cites the code. Root cause: answer null.\n\n## Item\n## Judge unit\n  Function: FF-N02 (semantic)\n  Unit: src/domain/Task.ts (file, layer domain)\n  \n  ## Rubric\n  Rule: The unit's responsibilities match the role of its declared layer.\n  Pass: Every responsibility in the file belongs to the role and kind of its declared layer, and agrees with any ADR prose given.\n  Fail: The file carries a responsibility that belongs to a different layer kind, for example persistence, transport or framework logic in a domain file, or business rules in an infrastructure or presentation file.\n  Evidence required: Name the file and cite the function, method or statement that carries the misplaced responsibility, and the layer kind it belongs to.\n  Out of scope: import direction and layer-dependency rules, which are checked symbolically.\n  \n  ## Source\n  =====SOURCE-BEGIN src/domain/Task.ts=====\n  import { TaskStatus } from \"./TaskStatus\";\n  \n  export class Task {\n    constructor(\n      private readonly id: string,\n      private readonly projectId: string,\n      private readonly title: string,\n      private readonly description: string,\n      private status: TaskStatus,\n      private readonly dueDate: Date | null,\n      private assigneeId: string | null,\n    ) {}\n  \n    getId(): string {\n      return this.id;\n    }\n  \n    getProjectId(): string {\n      return this.projectId;\n    }\n  \n    getTitle(): string {\n      return this.title;\n    }\n  \n    getDescription(): string {\n      return this.description;\n    }\n  \n    getStatus(): TaskStatus {\n      return this.status;\n    }\n  \n    getDueDate(): Date | null {\n      return this.dueDate;\n    }\n  \n    getAssigneeId(): string | null {\n      return this.assigneeId;\n    }\n  \n    markDone(): void {\n      if (this.status.isDone()) {\n        throw new Error(\"Task is already marked as done\");\n      }\n      this.status = TaskStatus.done();\n    }\n  \n    assign(userId: string): void {\n      this.assigneeId = userId;\n    }\n  }\n  \n  =====SOURCE-END=====\n\n## Label options\n1. pass\n  2. fail\n\n## Root causes\n1. RC-LAYER-MAP\n  2. RC-EXTRACT-ALIAS\n  3. RC-EXTRACT-BARREL\n  4. RC-DYNAMIC-IMPORT\n  5. RC-TYPE-ONLY\n  6. RC-TEMPLATE-OVERAPPROX\n  7. RC-STYLE-INAPPLICABLE\n  8. RC-SPEC-PARAM\n  9. RC-GENERATED-CODE\n  10. RC-TEST-CODE\n  11. RC-GENUINE-UNSEEDED\n  12. RC-OTHER\n\nAnswer with one JSON object: {\"option\": <number of the label option>, \"rootCause\": <number of the root cause or null>, \"note\": \"<text, required with RC-OTHER>\", \"rationale\": \"<one or two sentences citing the code>\"}.",
+  "provider": "agy",
+  "recordedAt": "2026-10-11T05:38:49.053Z",
+  "repetition": 0,
+  "requestHash": "e55b48dbc4f87cdc30746c2350b19c6dc9ff2d03a2fed648924900c4631f2a1c",
+  "resolvedModel": "gemini-3.1-pro-high",
+  "response": "{\"option\":1,\"rationale\":\"The Task entity in src/domain/Task.ts encapsulates only domain state and business logic (such as markDone() and assign()), with no misplaced persistence, transport, or framework responsibilities.\"}",
+  "runIndex": 0,
+  "schemaVersion": 2,
+  "unitId": "src/domain/Task.ts",
+  "usage": {
+    "inputTokens": 13955,
+    "outputTokens": 5204
+  },
+  "usedOptions": {
+    "model": "gemini-3.1-pro-high"
+  }
+}

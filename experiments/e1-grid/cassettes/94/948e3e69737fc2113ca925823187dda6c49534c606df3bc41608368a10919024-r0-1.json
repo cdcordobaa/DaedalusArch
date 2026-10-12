@@ -1,0 +1,48 @@
+{
+  "attempts": 1,
+  "cliVersion": "2.1.294",
+  "configListingSha256": "47aa04258852fab9a706f3f0c14cee22306d69fbb6fdfbde8c11854bd54997bc",
+  "durationMs": 8375,
+  "effort": "high",
+  "functionId": "FF-N02",
+  "ignoredOptions": [
+    "maxTokens"
+  ],
+  "isolationProbeSha256": "97a2e2d0af1100c13c55e028c1a0c71f069093c3d08705af122aaeb302f1a641",
+  "key": "948e3e69737fc2113ca925823187dda6c49534c606df3bc41608368a10919024-r0-1",
+  "model": "claude-opus-5-5",
+  "outcome": {
+    "kind": "valid"
+  },
+  "parsedVerdict": {
+    "confidence": 0.9,
+    "evidence": [
+      "addProduct: calls this.products.findById, constructs new Product(...), calls this.products.save. This is use-case coordination through the domain repository port.",
+      "listProducts: gets products through the repository abstraction and maps them to DTOs.",
+      "toDto: maps a domain entity to an application DTO, which is an application-layer responsibility.",
+      "The file contains no database, HTTP, framework or UI code."
+    ],
+    "pass": true,
+    "reasoning": "InventoryService is a standard application service. It coordinates use cases: it checks for an existing product through the repository port, builds the Product entity, saves it, and maps the result to a DTO. It contains no persistence code (no SQL, file I/O or ORM), no transport or framework logic (no HTTP, request or response handling), and no presentation concerns. The duplicate-ID check needs a repository lookup, so it is ordinary use-case coordination that fits the application layer, not an entity-level business rule. Mapping to DTOs is also an application-layer job.",
+    "violations": []
+  },
+  "projectId": "gpt-5.6-terra/order-fulfilment/full-aac/run-0",
+  "prompt": "## Rule\nThe unit's responsibilities match the role of its declared layer.\n\n## Rubric\nPass: Every responsibility in the file belongs to the role and kind of its declared layer, and agrees with any ADR prose given.\nFail: The file carries a responsibility that belongs to a different layer kind, for example persistence, transport or framework logic in a domain file, or business rules in an infrastructure or presentation file.\nEvidence required: Name the file and cite the function, method or statement that carries the misplaced responsibility, and the layer kind it belongs to.\nOut of scope: import direction and layer-dependency rules, which are checked symbolically.\n\n## Layer model\n- domain (kind: domain): src/domain/**\n- application (kind: application): src/application/**\n- infrastructure (kind: infrastructure): src/infrastructure/**\n\n## Unit\nKind: file\nId: src/application/inventory-service.ts\nLayer: application\nUnit files:\n- src/application/inventory-service.ts\n\n## Source\n=====SOURCE-BEGIN src/application/inventory-service.ts=====\nimport { CreateProductInput, ProductDto } from \"./dtos\";\nimport { DomainError } from \"../domain/errors\";\nimport { Product } from \"../domain/product\";\nimport { ProductRepository } from \"../domain/repositories\";\n\nexport class InventoryService {\n  public constructor(private readonly products: ProductRepository) {}\n\n  public addProduct(input: CreateProductInput): ProductDto {\n    if (this.products.findById(input.id)) {\n      throw new DomainError(`Product ${input.id} already exists`);\n    }\n    const product = new Product(input.id, input.name, input.stock);\n    this.products.save(product);\n    return this.toDto(product);\n  }\n\n  public listProducts(): ProductDto[] {\n    return this.products.list().map((product) => this.toDto(product));\n  }\n\n  private toDto(product: Product): ProductDto {\n    return { id: product.id, name: product.name, stock: product.stock };\n  }\n}\n\n=====SOURCE-END=====\n\n## Graph excerpt\n{\"edges\":[{\"from\":\"InventoryService@src/application/inventory-service.ts\",\"to\":\"ProductRepository@src/domain/repositories.ts\",\"type\":\"CONSTRUCTOR_INJECTS\"},{\"from\":\"OrderController@src/infrastructure/order-controller.ts\",\"to\":\"InventoryService@src/application/inventory-service.ts\",\"type\":\"CONSTRUCTOR_INJECTS\"},{\"from\":\"src/application/inventory-service.ts\",\"to\":\"src/application/dtos.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/application/inventory-service.ts\",\"to\":\"src/domain/errors.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/application/inventory-service.ts\",\"to\":\"src/domain/product.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/application/inventory-service.ts\",\"to\":\"src/domain/repositories.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/infrastructure/order-controller.ts\",\"to\":\"src/application/inventory-service.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/infrastructure/server.ts\",\"to\":\"src/application/inventory-service.ts\",\"type\":\"IMPORTS\"}],\"nodes\":[{\"kind\":\"Class\",\"layer\":\"application\",\"name\":\"InventoryService\",\"path\":\"src/application/inventory-service.ts\"},{\"kind\":\"Class\",\"layer\":\"infrastructure\",\"name\":\"OrderController\",\"path\":\"src/infrastructure/order-controller.ts\"},{\"kind\":\"File\",\"layer\":\"application\",\"path\":\"src/application/dtos.ts\"},{\"kind\":\"File\",\"layer\":\"application\",\"path\":\"src/application/inventory-service.ts\"},{\"kind\":\"File\",\"layer\":\"domain\",\"path\":\"src/domain/errors.ts\"},{\"kind\":\"File\",\"layer\":\"domain\",\"path\":\"src/domain/product.ts\"},{\"kind\":\"File\",\"layer\":\"domain\",\"path\":\"src/domain/repositories.ts\"},{\"kind\":\"File\",\"layer\":\"infrastructure\",\"path\":\"src/infrastructure/order-controller.ts\"},{\"kind\":\"File\",\"layer\":\"infrastructure\",\"path\":\"src/infrastructure/server.ts\"},{\"kind\":\"Interface\",\"layer\":\"domain\",\"name\":\"ProductRepository\",\"path\":\"src/domain/repositories.ts\"}]}\n\n## Instructions\nJudge the unit against the rule and rubric. Return the JSON object the schema requires. Set pass to false if any file of the unit fails the rubric.\n",
+  "provider": "claude-cli",
+  "recordedAt": "2026-10-11T03:32:40.613Z",
+  "repetition": 0,
+  "requestHash": "948e3e69737fc2113ca925823187dda6c49534c606df3bc41608368a10919024",
+  "resolvedModel": "claude-opus-5-5",
+  "response": "{\"is_error\":false,\"modelUsage\":{\"claude-opus-5-5\":{\"inputTokens\":2,\"outputTokens\":515}},\"result\":\"{\\\"pass\\\":true,\\\"confidence\\\":0.9,\\\"reasoning\\\":\\\"InventoryService is a standard application service. It coordinates use cases: it checks for an existing product through the repository port, builds the Product entity, saves it, and maps the result to a DTO. It contains no persistence code (no SQL, file I/O or ORM), no transport or framework logic (no HTTP, request or response handling), and no presentation concerns. The duplicate-ID check needs a repository lookup, so it is ordinary use-case coordination that fits the application layer, not an entity-level business rule. Mapping to DTOs is also an application-layer job.\\\",\\\"evidence\\\":[\\\"addProduct: calls this.products.findById, constructs new Product(...), calls this.products.save. This is use-case coordination through the domain repository port.\\\",\\\"listProducts: gets products through the repository abstraction and maps them to DTOs.\\\",\\\"toDto: maps a domain entity to an application DTO, which is an application-layer responsibility.\\\",\\\"The file contains no database, HTTP, framework or UI code.\\\"],\\\"violations\\\":[]}\",\"structured_output\":{\"confidence\":0.9,\"evidence\":[\"addProduct: calls this.products.findById, constructs new Product(...), calls this.products.save. This is use-case coordination through the domain repository port.\",\"listProducts: gets products through the repository abstraction and maps them to DTOs.\",\"toDto: maps a domain entity to an application DTO, which is an application-layer responsibility.\",\"The file contains no database, HTTP, framework or UI code.\"],\"pass\":true,\"reasoning\":\"InventoryService is a standard application service. It coordinates use cases: it checks for an existing product through the repository port, builds the Product entity, saves it, and maps the result to a DTO. It contains no persistence code (no SQL, file I/O or ORM), no transport or framework logic (no HTTP, request or response handling), and no presentation concerns. The duplicate-ID check needs a repository lookup, so it is ordinary use-case coordination that fits the application layer, not an entity-level business rule. Mapping to DTOs is also an application-layer job.\",\"violations\":[]}}",
+  "runIndex": 1,
+  "schemaVersion": 2,
+  "unitId": "src/application/inventory-service.ts",
+  "usage": {
+    "inputTokens": 2977,
+    "outputTokens": 515
+  },
+  "usedOptions": {
+    "effort": "high",
+    "model": "claude-opus-5-5"
+  }
+}

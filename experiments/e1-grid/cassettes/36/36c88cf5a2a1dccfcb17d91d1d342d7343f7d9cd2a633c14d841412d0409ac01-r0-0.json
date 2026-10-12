@@ -1,0 +1,48 @@
+{
+  "attempts": 1,
+  "cliVersion": "2.1.294",
+  "configListingSha256": "47aa04258852fab9a706f3f0c14cee22306d69fbb6fdfbde8c11854bd54997bc",
+  "durationMs": 6662,
+  "effort": "high",
+  "functionId": "FF-N02",
+  "ignoredOptions": [
+    "maxTokens"
+  ],
+  "isolationProbeSha256": "97a2e2d0af1100c13c55e028c1a0c71f069093c3d08705af122aaeb302f1a641",
+  "key": "36c88cf5a2a1dccfcb17d91d1d342d7343f7d9cd2a633c14d841412d0409ac01-r0-0",
+  "model": "claude-opus-5-5",
+  "outcome": {
+    "kind": "valid"
+  },
+  "parsedVerdict": {
+    "confidence": 0.93,
+    "evidence": [
+      "src/application/dto.ts declares only interfaces: PlaceOrderLineCommand, PlaceOrderCommand, OrderLineDto, OrderDto, ProductStockDto",
+      "No functions, classes, I/O, HTTP or database code in the file",
+      "OrderDto.placedAt/updatedAt are strings, i.e. serializable shapes that cross the boundary",
+      "Used by the application use cases (PlaceOrderUseCase, GetOrderUseCase, etc.) and by DtoMapper, which fits its role as the use cases' input and output types"
+    ],
+    "pass": true,
+    "reasoning": "The file only declares application-layer data shapes. It has commands that use cases take as input (PlaceOrderCommand, PlaceOrderLineCommand) and DTOs that use cases return (OrderDto, OrderLineDto, ProductStockDto). It has no persistence, transport, framework or business-rule logic. The fields are plain values, such as dates stored as ISO strings, which suits data that crosses the application boundary. Pulling in the domain OrderState type for a field is a normal application-layer pattern, and import direction is checked by other tools anyway.",
+    "violations": []
+  },
+  "projectId": "claude-opus-5-5/order-fulfilment/minimal-prose/run-2",
+  "prompt": "## Rule\nThe unit's responsibilities match the role of its declared layer.\n\n## Rubric\nPass: Every responsibility in the file belongs to the role and kind of its declared layer, and agrees with any ADR prose given.\nFail: The file carries a responsibility that belongs to a different layer kind, for example persistence, transport or framework logic in a domain file, or business rules in an infrastructure or presentation file.\nEvidence required: Name the file and cite the function, method or statement that carries the misplaced responsibility, and the layer kind it belongs to.\nOut of scope: import direction and layer-dependency rules, which are checked symbolically.\n\n## Layer model\n- domain (kind: domain): src/domain/**\n- application (kind: application): src/application/**\n- infrastructure (kind: infrastructure): src/infrastructure/**\n\n## Unit\nKind: file\nId: src/application/dto.ts\nLayer: application\nUnit files:\n- src/application/dto.ts\n\n## Source\n=====SOURCE-BEGIN src/application/dto.ts=====\nimport { OrderState } from '../domain/OrderState';\n\nexport interface PlaceOrderLineCommand {\n  productId: string;\n  quantity: number;\n}\n\nexport interface PlaceOrderCommand {\n  customerId: string;\n  lines: PlaceOrderLineCommand[];\n}\n\nexport interface OrderLineDto {\n  productId: string;\n  quantity: number;\n}\n\nexport interface OrderDto {\n  id: string;\n  customerId: string;\n  state: OrderState;\n  lines: OrderLineDto[];\n  placedAt: string;\n  updatedAt: string;\n}\n\nexport interface ProductStockDto {\n  productId: string;\n  name: string;\n  onHand: number;\n  reserved: number;\n  available: number;\n}\n\n=====SOURCE-END=====\n\n## Graph excerpt\n{\"edges\":[{\"from\":\"src/application/AdvanceOrderUseCase.ts\",\"to\":\"src/application/dto.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/application/CancelOrderUseCase.ts\",\"to\":\"src/application/dto.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/application/DtoMapper.ts\",\"to\":\"src/application/dto.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/application/GetOrderUseCase.ts\",\"to\":\"src/application/dto.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/application/ListOrdersUseCase.ts\",\"to\":\"src/application/dto.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/application/ListProductStockUseCase.ts\",\"to\":\"src/application/dto.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/application/PlaceOrderUseCase.ts\",\"to\":\"src/application/dto.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/application/dto.ts\",\"to\":\"src/domain/OrderState.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/infrastructure/http/requestParsers.ts\",\"to\":\"src/application/dto.ts\",\"type\":\"IMPORTS\"}],\"nodes\":[{\"kind\":\"File\",\"layer\":\"application\",\"path\":\"src/application/AdvanceOrderUseCase.ts\"},{\"kind\":\"File\",\"layer\":\"application\",\"path\":\"src/application/CancelOrderUseCase.ts\"},{\"kind\":\"File\",\"layer\":\"application\",\"path\":\"src/application/DtoMapper.ts\"},{\"kind\":\"File\",\"layer\":\"application\",\"path\":\"src/application/GetOrderUseCase.ts\"},{\"kind\":\"File\",\"layer\":\"application\",\"path\":\"src/application/ListOrdersUseCase.ts\"},{\"kind\":\"File\",\"layer\":\"application\",\"path\":\"src/application/ListProductStockUseCase.ts\"},{\"kind\":\"File\",\"layer\":\"application\",\"path\":\"src/application/PlaceOrderUseCase.ts\"},{\"kind\":\"File\",\"layer\":\"application\",\"path\":\"src/application/dto.ts\"},{\"kind\":\"File\",\"layer\":\"domain\",\"path\":\"src/domain/OrderState.ts\"},{\"kind\":\"File\",\"layer\":\"infrastructure\",\"path\":\"src/infrastructure/http/requestParsers.ts\"},{\"kind\":\"Interface\",\"layer\":\"application\",\"name\":\"OrderDto\",\"path\":\"src/application/dto.ts\"},{\"kind\":\"Interface\",\"layer\":\"application\",\"name\":\"OrderLineDto\",\"path\":\"src/application/dto.ts\"},{\"kind\":\"Interface\",\"layer\":\"application\",\"name\":\"PlaceOrderCommand\",\"path\":\"src/application/dto.ts\"},{\"kind\":\"Interface\",\"layer\":\"application\",\"name\":\"PlaceOrderLineCommand\",\"path\":\"src/application/dto.ts\"},{\"kind\":\"Interface\",\"layer\":\"application\",\"name\":\"ProductStockDto\",\"path\":\"src/application/dto.ts\"}]}\n\n## Instructions\nJudge the unit against the rule and rubric. Return the JSON object the schema requires. Set pass to false if any file of the unit fails the rubric.\n",
+  "provider": "claude-cli",
+  "recordedAt": "2026-10-10T21:57:25.229Z",
+  "repetition": 0,
+  "requestHash": "36c88cf5a2a1dccfcb17d91d1d342d7343f7d9cd2a633c14d841412d0409ac01",
+  "resolvedModel": "claude-opus-5-5",
+  "response": "{\"is_error\":false,\"modelUsage\":{\"claude-opus-5-5\":{\"inputTokens\":2,\"outputTokens\":514}},\"result\":\"{\\\"pass\\\":true,\\\"confidence\\\":0.93,\\\"reasoning\\\":\\\"The file only declares application-layer data shapes. It has commands that use cases take as input (PlaceOrderCommand, PlaceOrderLineCommand) and DTOs that use cases return (OrderDto, OrderLineDto, ProductStockDto). It has no persistence, transport, framework or business-rule logic. The fields are plain values, such as dates stored as ISO strings, which suits data that crosses the application boundary. Pulling in the domain OrderState type for a field is a normal application-layer pattern, and import direction is checked by other tools anyway.\\\",\\\"evidence\\\":[\\\"src/application/dto.ts declares only interfaces: PlaceOrderLineCommand, PlaceOrderCommand, OrderLineDto, OrderDto, ProductStockDto\\\",\\\"No functions, classes, I/O, HTTP or database code in the file\\\",\\\"OrderDto.placedAt/updatedAt are strings, i.e. serializable shapes that cross the boundary\\\",\\\"Used by the application use cases (PlaceOrderUseCase, GetOrderUseCase, etc.) and by DtoMapper, which fits its role as the use cases' input and output types\\\"],\\\"violations\\\":[]}\",\"structured_output\":{\"confidence\":0.93,\"evidence\":[\"src/application/dto.ts declares only interfaces: PlaceOrderLineCommand, PlaceOrderCommand, OrderLineDto, OrderDto, ProductStockDto\",\"No functions, classes, I/O, HTTP or database code in the file\",\"OrderDto.placedAt/updatedAt are strings, i.e. serializable shapes that cross the boundary\",\"Used by the application use cases (PlaceOrderUseCase, GetOrderUseCase, etc.) and by DtoMapper, which fits its role as the use cases' input and output types\"],\"pass\":true,\"reasoning\":\"The file only declares application-layer data shapes. It has commands that use cases take as input (PlaceOrderCommand, PlaceOrderLineCommand) and DTOs that use cases return (OrderDto, OrderLineDto, ProductStockDto). It has no persistence, transport, framework or business-rule logic. The fields are plain values, such as dates stored as ISO strings, which suits data that crosses the application boundary. Pulling in the domain OrderState type for a field is a normal application-layer pattern, and import direction is checked by other tools anyway.\",\"violations\":[]}}",
+  "runIndex": 0,
+  "schemaVersion": 2,
+  "unitId": "src/application/dto.ts",
+  "usage": {
+    "inputTokens": 3126,
+    "outputTokens": 514
+  },
+  "usedOptions": {
+    "effort": "high",
+    "model": "claude-opus-5-5"
+  }
+}

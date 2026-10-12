@@ -1,0 +1,32 @@
+{
+  "attempts": 1,
+  "durationMs": 3925,
+  "effort": null,
+  "functionId": "label:judge-unit:0d42938ed39fc6b677dae242d06a900d88d6cc8661489fb6c6fe709dabb2aee5",
+  "ignoredOptions": [],
+  "key": "1ca95993669e4cd4ad298e1e55ff958729f8a0282c3c598bc940377b1d3e0bb1-r0-1",
+  "model": "gemini-3.1-pro-preview",
+  "outcome": {
+    "kind": "valid"
+  },
+  "parsedVerdict": null,
+  "prompt": "Decide whether the unit below satisfies the rubric.\n- pass: the unit meets the rubric's pass condition.\n- fail: the unit meets the rubric's fail condition.\nGive a short rationale that cites the code. Root cause: answer null.\n\n## Item\n## Judge unit\n  Function: FF-N02 (semantic)\n  Unit: src/infrastructure/InMemoryRepositories.ts (file, layer infrastructure)\n  \n  ## Rubric\n  Rule: The unit's responsibilities match the role of its declared layer.\n  Pass: Every responsibility in the file belongs to the role and kind of its declared layer, and agrees with any ADR prose given.\n  Fail: The file carries a responsibility that belongs to a different layer kind, for example persistence, transport or framework logic in a domain file, or business rules in an infrastructure or presentation file.\n  Evidence required: Name the file and cite the function, method or statement that carries the misplaced responsibility, and the layer kind it belongs to.\n  Out of scope: import direction and layer-dependency rules, which are checked symbolically.\n  \n  ## Source\n  =====SOURCE-BEGIN src/infrastructure/InMemoryRepositories.ts=====\n  import { Project } from \"../domain/Project\";\n  import { ProjectRepository, TaskRepository, UserRepository } from \"../domain/Repositories\";\n  import { Task } from \"../domain/Task\";\n  import { TaskStatus } from \"../domain/TaskStatus\";\n  import { User } from \"../domain/User\";\n  \n  export class InMemoryUserRepository implements UserRepository {\n    private readonly records = new Map<string, User>();\n  \n    public save(user: User): void { this.records.set(user.id, user); }\n    public findById(id: string): User | undefined { return this.records.get(id); }\n  }\n  \n  export class InMemoryProjectRepository implements ProjectRepository {\n    private readonly records = new Map<string, Project>();\n  \n    public save(project: Project): void { this.records.set(project.id, project); }\n    public findById(id: string): Project | undefined { return this.records.get(id); }\n  }\n  \n  export class InMemoryTaskRepository implements TaskRepository {\n    private readonly records = new Map<string, Task>();\n  \n    public save(task: Task): void { this.records.set(task.id, task); }\n    public findById(id: string): Task | undefined { return this.records.get(id); }\n  \n    public findByProject(projectId: string, status?: TaskStatus, assigneeId?: string): Task[] {\n      return [...this.records.values()].filter((task) =>\n        task.projectId === projectId &&\n        (!status || task.status === status) &&\n        (!assigneeId || task.assigneeId === assigneeId),\n      );\n    }\n  }\n  \n  =====SOURCE-END=====\n\n## Label options\n1. pass\n  2. fail\n\n## Root causes\n1. RC-EXTRACT-ALIAS\n  2. RC-TEST-CODE\n  3. RC-LAYER-MAP\n  4. RC-TEMPLATE-OVERAPPROX\n  5. RC-EXTRACT-BARREL\n  6. RC-STYLE-INAPPLICABLE\n  7. RC-OTHER\n  8. RC-DYNAMIC-IMPORT\n  9. RC-TYPE-ONLY\n  10. RC-SPEC-PARAM\n  11. RC-GENUINE-UNSEEDED\n  12. RC-GENERATED-CODE\n\nAnswer with one JSON object: {\"option\": <number of the label option>, \"rootCause\": <number of the root cause or null>, \"note\": \"<text, required with RC-OTHER>\", \"rationale\": \"<one or two sentences citing the code>\"}.",
+  "provider": "gemini",
+  "recordedAt": "2026-10-11T17:23:40.252Z",
+  "repetition": 0,
+  "requestHash": "1ca95993669e4cd4ad298e1e55ff958729f8a0282c3c598bc940377b1d3e0bb1",
+  "resolvedModel": "gemini-3.1-pro-preview",
+  "response": "{\n  \"option\": 1,\n  \"rationale\": \"The file implements repository interfaces using in-memory maps, which is a valid infrastructure responsibility for data access.\",\n  \"note\": \"\",\n  \"rootCause\": null\n}",
+  "runIndex": 1,
+  "schemaVersion": 2,
+  "unitId": "src/infrastructure/InMemoryRepositories.ts",
+  "usage": {
+    "inputTokens": 880,
+    "outputTokens": 52
+  },
+  "usedOptions": {
+    "maxTokens": 65536,
+    "model": "gemini-3.1-pro-preview",
+    "temperature": 0
+  }
+}
