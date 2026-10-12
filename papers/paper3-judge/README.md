@@ -17,7 +17,7 @@ pdflatex main && bibtex main && pdflatex main && pdflatex main
 - `refs.bib`: bibliography, written from general knowledge. Entries cited with `\citeneeded{}` render with a red
   "[verify]" mark. The six cited with a plain `\cite{}` are well known but still need a page and DOI check.
 
-## The eight lessons and their main sources
+## The ten lessons and their main sources
 
 | Lesson | Claim | Main sources |
 |---|---|---|
@@ -28,7 +28,9 @@ pdflatex main && bibtex main && pdflatex main && pdflatex main
 | 5 | 63 of 73 E7 judge fails (55 of 55 on E1) are also flagged by rules | `judge_summary.csv`; `results/e1-grid/judge-diagnostics/judge_units.csv` |
 | 6 | Directional self-preference p 0.014, driven by the smallest Claude tier | `results/e1-grid/agg/so5_tests.csv`; `results/e1-grid/agg/so5_grid.csv`; E1 `judge_units.csv` |
 | 7 | Panel: 98.2 % agreement, AC1 0.98, kappa 0; lenient errors; fail detection untested on E1 | `results/e1-grid/label-plan-p4-api/labelling.json`, `labels.json`; `results/e1-grid/label-plan-p4/label-plan-summary.json`; `results/labels/live-call-ledger.md` |
-| 8 | CLI isolation, unblockable `search_web`, fail-closed guard plus stop rule | ADR-018, ADR-034, ADR-035; `Docs/judge-preregistration.md`; `Docs/labeller-route.md` §7, §8 |
+| 8 | Judge model robustness: top vs middle Claude tier on 100 recorded units, agreement 0.94, kappa 0.766, 0 verdict changes; the top tier fails 18 vs 12 (slightly stricter) | ADR-038; `results/judge-robustness/` (`summary.json`, `agreement.csv`, `transition.csv`, `fail-rates.csv`, `units.csv`) |
+| 9 | Construct validity of synthetic judge probes: MO-X02/MO-X03 place no seed on the 7 held-out bases or the 65 E1 cells | `Docs/DiagnosticRuns/judge-probe-e1-site-count.md`; `results/so4-heldout/agg/seed_coverage.csv`; ADR-038 status (ADR-037 on hold) |
+| 10 | CLI isolation, unblockable `search_web`, fail-closed guard plus stop rule | ADR-018, ADR-034, ADR-035; `Docs/judge-preregistration.md`; `Docs/labeller-route.md` §7, §8 |
 
 ## Open items
 
