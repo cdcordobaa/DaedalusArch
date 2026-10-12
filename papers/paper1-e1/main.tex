@@ -87,8 +87,9 @@ specification styles, which produce projects of the same size, the full AaC spec
 (Cliff's $\delta = 0.52$; $0.47$ after a size adjustment), so the vague specification is the worst case. Model size
 has no effect. The exploratory Codex arm prefers the prose specification. The judge changes no verdict at its 8\%
 weight; a registered self-preference check is positive ($p = 0.014$) but is carried by the weakest model's cells;
-on a 36-item sample the judge agrees with the panel on 98.2\% of items (AC1 0.98), and both disagreements are
+on a 36-item sample the judge's weighted agreement with the panel is 0.982 (AC1 0.98; 34 of 36 items agree), and both disagreements are
 lenient; replacing the judge model on 100 recorded units changes no verdict ($\kappa = 0.77$).
+% src: P4 headline row (percentAgreement 0.982301, AC1 0.981985); results/e1-grid/label-plan-p4-api/labels.json joined with results/e1-grid/label-plan-p4/judge-verdicts.json (36 decided E1 items: 34 agree, 2 judge pass / panel fail; derived)
 % src: results/judge-robustness/summary.json (units 100, kappa 0.766355, registeredVerdictChanges 0); ADR.md ADR-038
 \textbf{Conclusion.} A specification changes how much structure an agent builds, and scores that reward
 small structures can make that change look like a loss. At equal size, a precise AaC specification gives more
@@ -236,9 +237,10 @@ The level block differs:
         functions, thresholds and weights. % src: GENP §5 ("the preset verbatim"); presets/clean-architecture.yaml (wc -l = 307)
 \end{itemize}
 The \lev{full-aac} preset carries the same rules, thresholds and weights as the specification the instrument
-evaluates with (\texttt{specs/clean-arch.yaml}); the two files differ only in comments, quoting and a version line.
+evaluates with (\texttt{specs/clean-arch.yaml}); apart from comments and quoting, the two files differ only in a
+\texttt{default\_exclude\_paths} block (\texttt{node\_modules}, \texttt{dist}, spec and test files) that the preset carries.
 % src: derived, diff of presets/clean-architecture.yaml and specs/clean-arch.yaml with comment and blank lines removed
-% (only comment, quoting and the spec_version line differ); experiments/e1-grid/plan.json (specPath specs/clean-arch.yaml)
+% (besides comments and quoting, only the preset's default_exclude_paths block, 5 lines, differs; spec_version 1.0.0 in both; 27 FF ids, weights and thresholds equal); experiments/e1-grid/plan.json (specPath specs/clean-arch.yaml)
 At \lev{full-aac} the agent therefore sees the test it will be scored against. This confound was declared before
 the run (Section~\ref{sec:threats}). % src: PLAN §10 B5
 The three template files differ in length by more than an order of magnitude (21, 25 and 637 lines).
@@ -404,8 +406,8 @@ type-check of record (3 at \lev{none}, 2 at \lev{minimal-prose}, 2 at \lev{full-
 replaced. % src: GRID (status, generation_status; derived counts by spec_level)
 Opus, Sonnet and the Codex model produced 18 of 18 valid cells each, giving 47 valid Claude cells and 18 valid Codex
 cells. % src: GRID (derived counts of status = accepted by requested_model_id)
-Valid-generation yield differs by model \regX{} (Holm $p = 0.0003$; Haiku minus Opus $-0.39$) but not by
-specification level (Holm $p = 1.000$). % src: TESTS family secondary:valid_generation_yield
+Valid-generation yield differs by model \regX{} (Holm $p = 0.004$; Haiku minus Opus $-0.39$) but not by
+specification level (Holm $p = 1.000$). % src: TESTS family secondary:valid_generation_yield (model p_holm 0.004200; spec-level p_holm 1.000000; haiku-opus -0.388889)
 
 \textbf{Every evaluated cell passes.} The lowest $\AHSc$ is 0.852 and the highest 0.988, against the 0.80 pass
 threshold, and the structural dimension (dependency direction and cycles) is clean in every cell.
@@ -729,8 +731,8 @@ null effect on E1 verdicts does not hinge on the model chosen, not that the judg
 
 \paragraph{Answer to RQ4.} At an 8\% weight the judge adds diagnostic text but no verdict change, and it does not
 contribute to the specification effect. The registered self-preference check is positive, but it is carried by the
-weakest model's cells and confounded with code quality. A panel from another vendor agrees with the judge on 98\% of
-sampled E1 units, and where they disagree the judge is the lenient one. Replacing the judge model changes no verdict.
+weakest model's cells and confounded with code quality. A panel from another vendor agrees with the judge on 34 of 36
+sampled E1 units (weighted agreement 0.982), and where they disagree the judge is the lenient one. Replacing the judge model changes no verdict.
 
 % =====================================================================================================================
 \section{Discussion}\label{sec:discussion}
@@ -910,7 +912,7 @@ specification, agents build about three times as many files, and the two rules t
 and dependency inversion, then fire. Findings per file did not differ. At equal size, a full AaC specification gave
 better conformance than a short prose one, which was the worst level. An exploratory second-vendor arm reversed the
 order of levels. The LLM judge, at its 8\% weight, changed no verdict; a positive self-preference check was carried
-by the weakest model's cells; and a cross-vendor panel agreed with the judge's passes on 98\% of sampled units.
+by the weakest model's cells; and a cross-vendor panel agreed with the judge's passes on 34 of 36 sampled units (weighted agreement 0.982).
 
 Next steps are a registered replication with a size-normalised primary outcome, a fourth level that gives a precise
 specification of a different rule set to separate understanding from knowing the test, more tasks and vendors, and a
