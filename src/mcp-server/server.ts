@@ -1,5 +1,5 @@
 /**
- * MCP server wiring: registers the five DaedalusArch tools on an `McpServer`. Transport-agnostic (`main.ts`
+ * MCP server wiring: registers the eight DaedalusArch tools on an `McpServer`. Transport-agnostic (`main.ts`
  * connects stdio; the tests connect an in-memory pair). Tools only read the spec and, for `evaluate_project`,
  * run the existing pipeline; none writes to the project under evaluation.
  */
@@ -7,10 +7,13 @@ import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import type { CallToolResult, ToolAnnotations } from '@modelcontextprotocol/sdk/types.js';
 import { z } from 'zod';
 import {
+  checkDiffTool,
+  checkFileTool,
   checkImportTool,
   evaluateProjectTool,
   explainViolationTool,
   getArchitectureSpec,
+  suggestPlacementTool,
   whichLayerTool,
 } from './tools.js';
 import type { ServerContext, ToolOutcome } from './tools.js';
@@ -25,7 +28,15 @@ export const TOOL_NAMES: readonly string[] = Object.freeze([
   'check_import',
   'evaluate_project',
   'explain_violation',
+  'check_file',
+  'check_diff',
+  'suggest_placement',
 ]);
+
+/** Tools that read only the spec: instant, no graph, no database (the set an experiment arm may allow-list). */
+export const SPEC_TOOL_NAMES: readonly string[] = Object.freeze(
+  TOOL_NAMES.filter((n) => n !== 'evaluate_project'),
+);
 
 const specArg = z
   .string()
@@ -85,6 +96,29 @@ const evaluateShape = {
     .string()
     .optional()
     .describe("Project root; defaults to the server's configured project."),
+  spec: specArg,
+};
+const checkFileShape = {
+  path: z
+    .string()
+    .min(1)
+    .describe('Path of the file, relative to the project root (decides its layer).'),
+  content: z.string().describe('The full proposed content of the file.'),
+  spec: specArg,
+};
+const checkDiffShape = {
+  diff: z.string().min(1).describe('A unified diff (git diff or diff -u output).'),
+  spec: specArg,
+};
+const placementShape = {
+  purpose: z
+    .string()
+    .min(1)
+    .describe('What the new class or module is for, e.g. "repository for orders".'),
+  name: z
+    .string()
+    .optional()
+    .describe('Base name to use, e.g. "Order"; derived from the purpose when omitted.'),
   spec: specArg,
 };
 const explainShape = {
@@ -159,6 +193,42 @@ export function createServer(ctx: ServerContext): McpServer {
       annotations: readOnly,
     },
     async (args) => toResult(await explainViolationTool(ctx, z.object(explainShape).parse(args))),
+  );
+
+  register(
+    'check_file',
+    {
+      title: 'Check a proposed file against the architecture rules',
+      description:
+        'Checks one file before you write it: every import (layer direction FF-S01, layer skip FF-S03, domain outward FF-S04, domain purity FF-P01) and every class name (active naming rules). Returns verdict, a one-line summary and each violation with rule id, line, reason and a concrete fix. Spec-based and instant; no graph.',
+      inputSchema: checkFileShape,
+      annotations: readOnly,
+    },
+    async (args) => toResult(await checkFileTool(ctx, z.object(checkFileShape).parse(args))),
+  );
+
+  register(
+    'check_diff',
+    {
+      title: 'Check a unified diff against the architecture rules',
+      description:
+        'The check_file rules over a unified diff: new files are checked whole, modified files on their added lines (new-file line numbers). Returns an overall verdict, a summary and per-file violations with fixes. Spec-based and instant; no graph.',
+      inputSchema: checkDiffShape,
+      annotations: readOnly,
+    },
+    async (args) => toResult(await checkDiffTool(ctx, z.object(checkDiffShape).parse(args))),
+  );
+
+  register(
+    'suggest_placement',
+    {
+      title: 'Suggest where new code belongs',
+      description:
+        'Given what a new class or module is for (e.g. "repository for orders", "use case to cancel an order"), returns the layer, a path that the spec maps to that layer, a class name that passes the naming rules, and what that file may import. A repository returns two placements: the interface and its implementation.',
+      inputSchema: placementShape,
+      annotations: readOnly,
+    },
+    async (args) => toResult(await suggestPlacementTool(ctx, z.object(placementShape).parse(args))),
   );
 
   return server;

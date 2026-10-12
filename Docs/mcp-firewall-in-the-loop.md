@@ -3,6 +3,8 @@
 > **Status**: draft design written with the v1.3 MCP prototype (`src/mcp-server/`). Nothing here is registered, no
 > arm has been run, and nothing in this file is in `REGISTERED_ARTEFACTS` (`scripts/lib/prereg.ts`). The frozen
 > instrument (v1.2e) is untouched. Running any of this needs a pre-registration bump first (§7).
+> **Update (v1.3-mcp-loop)**: the pre-registration draft `Docs/prereg-drafts/firewall-in-the-loop.md` refines this
+> design (three arms, A3 dropped for leakage; outcomes, analysis, threats and budget made specific).
 > **Not claimed**: that agents use the tools well, or that they produce better architecture. That is what the
 > experiment would test.
 

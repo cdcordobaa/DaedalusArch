@@ -12,11 +12,17 @@ import { evaluateProject } from './evaluate-project.js';
 import type { EvaluateDeps } from './evaluate-project.js';
 import { explainViolation } from './rule-explainer.js';
 import { buildSpecView, whichLayer } from './spec-view.js';
+import { checkSource } from './file-check.js';
+import { checkDiff } from './diff-check.js';
+import { suggestPlacement } from './placement.js';
 import { normalisePath } from './layer-resolver.js';
 import type {
   ArchitectureSpecView,
   CheckImportResult,
+  DiffCheckResult,
   EvaluateProjectResult,
+  FileCheckResult,
+  PlacementResult,
   RuleExplanation,
   WhichLayerResult,
 } from './types.js';
@@ -168,4 +174,44 @@ export async function evaluateProjectTool(
     return fail(`${first?.code ?? 'ERROR'}: ${first?.message ?? 'evaluation failed'}`);
   }
   return ok(result.data);
+}
+
+export async function checkFileTool(
+  ctx: ServerContext,
+  args: { readonly path: string; readonly content: string; readonly spec?: string | undefined },
+): Promise<ToolOutcome<FileCheckResult>> {
+  const loaded = await specFor(ctx, args.spec);
+  if (!loaded.ok) return loaded;
+  return ok(
+    checkSource(loaded.data.spec, {
+      path: toProjectRelative(ctx, args.path),
+      content: args.content,
+    }),
+  );
+}
+
+export async function checkDiffTool(
+  ctx: ServerContext,
+  args: { readonly diff: string; readonly spec?: string | undefined },
+): Promise<ToolOutcome<DiffCheckResult>> {
+  const loaded = await specFor(ctx, args.spec);
+  if (!loaded.ok) return loaded;
+  const result = checkDiff(loaded.data.spec, args.diff);
+  if (result.files.length === 0 && result.skipped.length === 0) {
+    return fail('No file found in the diff: pass unified diff text (git diff or diff -u output).');
+  }
+  return ok(result);
+}
+
+export async function suggestPlacementTool(
+  ctx: ServerContext,
+  args: {
+    readonly purpose: string;
+    readonly name?: string | undefined;
+    readonly spec?: string | undefined;
+  },
+): Promise<ToolOutcome<PlacementResult>> {
+  const loaded = await specFor(ctx, args.spec);
+  if (!loaded.ok) return loaded;
+  return ok(suggestPlacement(loaded.data.spec, { purpose: args.purpose, name: args.name }));
 }

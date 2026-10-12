@@ -1353,3 +1353,11 @@ Plan checkboxes ticked. Auto-approved under standing approval; no blocking or ma
 **Context**: CONSTRUCTION — prototype lane, branch v1.3-mcp-prototype. Not registered; nothing run.
 
 ---
+
+## Build and Test — v1.3 MCP firewall in the loop (scheduled run)
+**Timestamp**: 2026-10-12T00:00:00Z
+**User Input**: "(scheduled task) Continue the firewall-in-the-loop work on a new branch v1.3-mcp-loop from v1.3-mcp-prototype: add check_file, check_diff and suggest_placement tools with concise outputs, README examples and tests; extend the generator harness with an optional MCP arm (--mcp-config, only its tools, confinement kept) and a context-graph placeholder, with a dry-run mode and tests, no LLM call; write a DRAFT pre-registration at Docs/prereg-drafts/firewall-in-the-loop.md; new code only, frozen instrument and registered artefacts untouched; draft PR into v1.2e."
+**AI Response**: "Added src/mcp-server/{source-scan,file-check,diff-check,placement,check-file-cli}.ts and three tools in server.ts/tools.ts (eight tools; SPEC_TOOL_NAMES = the seven spec-only ones), scripts/lib/generators/{arms,arms-dry-run}.ts and scripts/generator/arms-dry-run.ts, tests (tests/unit/mcp-server, tests/unit/scripts/generators/arms.test.ts), README sections and the prereg draft. No registered artefact, spec, preset, template or generator argv edited; --check-prereg passes. No model was called. Deviation: the unattended run has no approval gates, so AI-DLC stage approvals were not requested; the task prompt served as the approved scope."
+**Context**: CONSTRUCTION — prototype lane, branch v1.3-mcp-loop. Not registered; nothing run.
+
+---

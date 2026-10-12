@@ -163,3 +163,69 @@ export interface Neo4jEnv {
   readonly password: string;
   readonly apgStorePath: string;
 }
+
+// ── check_file / check_diff (v1.3 loop) ──────────────────────────────────────
+
+/** One rule a proposed file breaks, with the concrete change that would clear it. */
+export interface FileViolation {
+  readonly rule: string;
+  readonly ruleName: string;
+  readonly severity: Severity;
+  /** 1-based line in the checked file (the new-file line for `check_diff`). */
+  readonly line: number;
+  /** What was flagged: `import "<specifier>"` or `class <Name>`. */
+  readonly subject: string;
+  readonly reason: string;
+  readonly fix: string;
+}
+
+export type FileVerdict = 'clean' | 'violations' | 'unknown';
+
+export interface FileCheckResult {
+  readonly path: string;
+  readonly layer: string | null;
+  readonly verdict: FileVerdict;
+  /** One line an agent can act on without reading the rest. */
+  readonly summary: string;
+  readonly violations: readonly FileViolation[];
+  /**
+   * Same checks on `require()` and `import()` calls. The frozen firewall counts these calls but does not model them
+   * as edges (BR-U2-25), so they never lower the score; they are listed so the agent can avoid them anyway.
+   */
+  readonly advisories: readonly FileViolation[];
+  /** Imports the spec alone cannot place (path aliases); `verdict` is `unknown` when there are any and no violation. */
+  readonly unresolved: readonly { readonly line: number; readonly specifier: string }[];
+  readonly checkedRules: readonly string[];
+  readonly notes: readonly string[];
+}
+
+export interface DiffCheckResult {
+  readonly verdict: FileVerdict;
+  readonly summary: string;
+  readonly files: readonly (FileCheckResult & {
+    readonly change: 'added' | 'modified' | 'renamed';
+  })[];
+  readonly skipped: readonly { readonly path: string; readonly reason: string }[];
+}
+
+// ── suggest_placement (v1.3 loop) ────────────────────────────────────────────
+
+export interface Placement {
+  readonly role: string;
+  readonly layer: string;
+  /** Project-relative path; the file name follows the spec's active naming rules. */
+  readonly path: string;
+  readonly className: string;
+  /** Why this placement: the spec role or layer kind it was derived from. */
+  readonly why: string;
+  readonly mayImport: readonly string[];
+  readonly forbiddenPackages: readonly string[];
+}
+
+export interface PlacementResult {
+  readonly purpose: string;
+  readonly summary: string;
+  /** Best first; a split concern (an interface and its implementation) returns one entry per part. */
+  readonly placements: readonly Placement[];
+  readonly notes: readonly string[];
+}

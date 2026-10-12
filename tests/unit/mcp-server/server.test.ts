@@ -6,7 +6,7 @@ import { InMemoryTransport } from '@modelcontextprotocol/sdk/inMemory.js';
 import type { GraphRepository } from '../../../src/shared/interfaces/graph-repository.js';
 import { DomainResult } from '../../../src/shared/errors/domain-result.js';
 import { buildContext, parseArgs } from '../../../src/mcp-server/context.js';
-import { TOOL_NAMES, createServer } from '../../../src/mcp-server/server.js';
+import { SPEC_TOOL_NAMES, TOOL_NAMES, createServer } from '../../../src/mcp-server/server.js';
 import { createSpecLoader, toProjectRelative } from '../../../src/mcp-server/tools.js';
 import type { ServerContext } from '../../../src/mcp-server/tools.js';
 import { CLEAN_ARCH_SPEC, FIXTURES } from './helpers.js';
@@ -75,7 +75,7 @@ async function call(client: Client, name: string, args: Record<string, unknown> 
 }
 
 describe('MCP server over an in-memory transport', () => {
-  it('exposes exactly the five tools, each with a description and an input schema', async () => {
+  it('exposes exactly the eight tools, each with a description and an input schema', async () => {
     const { client, close } = await connect(context());
     const { tools } = await client.listTools();
     expect(tools.map((t) => t.name)).toEqual([...TOOL_NAMES]);
@@ -85,7 +85,12 @@ describe('MCP server over an in-memory transport', () => {
       'check_import',
       'evaluate_project',
       'explain_violation',
+      'check_file',
+      'check_diff',
+      'suggest_placement',
     ]);
+    expect(SPEC_TOOL_NAMES).not.toContain('evaluate_project');
+    expect(SPEC_TOOL_NAMES).toHaveLength(7);
     for (const tool of tools) {
       expect(tool.description?.length).toBeGreaterThan(40);
       expect(tool.inputSchema.type).toBe('object');
@@ -208,6 +213,62 @@ describe('MCP server over an in-memory transport', () => {
     expect(invalid.isError).toBe(true);
     expect(invalid.text).toMatch(/Spec is invalid/);
     fs.rmSync(dir, { recursive: true, force: true });
+    await close();
+  });
+});
+
+describe('v1.3 loop tools over an in-memory transport', () => {
+  it('check_file returns violations with rule, line, reason and fix', async () => {
+    const { client, close } = await connect(context());
+    const res = await call(client, 'check_file', {
+      path: path.join(PROJECT, 'src/domain/entities/Order.ts'),
+      content: "import { Entity } from 'typeorm';\nexport class Order {}",
+    });
+    expect(res.isError).toBe(false);
+    expect(res.structured).toMatchObject({
+      path: 'src/domain/entities/Order.ts',
+      layer: 'domain',
+      verdict: 'violations',
+      violations: [{ rule: 'FF-P01', line: 1, subject: 'import "typeorm"' }],
+    });
+    expect(JSON.parse(res.text)).toEqual(res.structured);
+    await close();
+  });
+
+  it('check_diff checks a diff and errors on text that is not a diff', async () => {
+    const { client, close } = await connect(context());
+    const ok = await call(client, 'check_diff', {
+      diff: "--- /dev/null\n+++ b/src/domain/Order.ts\n@@ -0,0 +1 @@\n+import 'express';\n",
+    });
+    expect(ok.structured).toMatchObject({ verdict: 'violations', skipped: [] });
+    const bad = await call(client, 'check_diff', { diff: 'hello' });
+    expect(bad.isError).toBe(true);
+    expect(bad.text).toMatch(/No file found in the diff/);
+    await close();
+  });
+
+  it('suggest_placement returns placements and requires a purpose', async () => {
+    const { client, close } = await connect(context());
+    const res = await call(client, 'suggest_placement', { purpose: 'repository for orders' });
+    expect(res.structured).toMatchObject({
+      placements: [{ layer: 'domain' }, { layer: 'infrastructure' }],
+    });
+    const missing = await call(client, 'suggest_placement', {});
+    expect(missing.isError).toBe(true);
+    await close();
+  });
+
+  it('the loop tools report a missing spec like the others', async () => {
+    const { client, close } = await connect(context({ defaultSpecPath: undefined }));
+    for (const [name, args] of [
+      ['check_file', { path: 'a.ts', content: '' }],
+      ['check_diff', { diff: 'x' }],
+      ['suggest_placement', { purpose: 'entity' }],
+    ] as const) {
+      const res = await call(client, name, args);
+      expect(res.isError).toBe(true);
+      expect(res.text).toMatch(/No spec configured/);
+    }
     await close();
   });
 });
