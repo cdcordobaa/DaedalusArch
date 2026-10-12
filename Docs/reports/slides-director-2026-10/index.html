@@ -1,0 +1,428 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Thesis meeting, October 2026</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/5.1.0/reveal.min.css">
+<style>
+  :root {
+    --ink: #151515;
+    --muted: #5d5c58;
+    --line: #e2e1dc;
+    --accent: #1f5fbf;
+    --warn: #a35a00;
+    --bg: #fcfcfb;
+    --soft: #f1f0ec;
+  }
+  .reveal { font-family: "Helvetica Neue", Helvetica, Arial, sans-serif; color: var(--ink); font-size: 28px; }
+  .reveal-viewport { background: var(--bg); }
+  .reveal .slides section { text-align: left; }
+  .reveal h1, .reveal h2, .reveal h3 { font-family: inherit; text-transform: none; color: var(--ink); letter-spacing: -0.01em; }
+  .reveal h1 { font-size: 1.9em; line-height: 1.15; }
+  .reveal h2 { font-size: 1.3em; margin: 0 0 0.5em; font-weight: 600; }
+  .reveal h3 { font-size: 0.8em; color: var(--muted); font-weight: 500; text-transform: uppercase; letter-spacing: 0.06em; margin: 0 0 0.4em; }
+  .reveal p, .reveal li { line-height: 1.35; }
+  .reveal ul { margin: 0; padding-left: 1.1em; }
+  .reveal li { margin: 0.35em 0; }
+  .muted { color: var(--muted); }
+  .small { font-size: 0.72em; }
+  .accent { color: var(--accent); }
+  .warn { color: var(--warn); }
+  .big { font-size: 2.6em; font-weight: 700; line-height: 1; letter-spacing: -0.02em; }
+  .cols { display: flex; gap: 48px; align-items: flex-start; }
+  .cols > div { flex: 1; }
+  .stat { border-top: 2px solid var(--ink); padding-top: 10px; }
+  .stat .lab { color: var(--muted); font-size: 0.65em; margin-top: 6px; line-height: 1.3; }
+  .row3 { display: flex; gap: 36px; }
+  .row3 > div { flex: 1; }
+  table { border-collapse: collapse; width: 100%; font-size: 0.68em; }
+  th { text-align: left; font-weight: 600; color: var(--muted); border-bottom: 2px solid var(--ink); padding: 6px 10px 6px 0; }
+  td { border-bottom: 1px solid var(--line); padding: 7px 10px 7px 0; vertical-align: top; }
+  .tag { display: inline-block; font-size: 0.8em; padding: 1px 8px; border-radius: 10px; background: var(--soft); white-space: nowrap; }
+  .tag.ok { background: #e3efe3; }
+  .tag.part { background: #f6ead2; }
+  .pipe { display: flex; align-items: stretch; gap: 0; margin-top: 30px; }
+  .box { flex: 1; border: 2px solid var(--ink); border-radius: 8px; padding: 14px 16px; font-size: 0.7em; background: #fff; }
+  .box b { display: block; font-size: 1.1em; margin-bottom: 4px; }
+  .box.sym { border-color: var(--accent); }
+  .box.neu { border-style: dashed; border-color: var(--muted); }
+  .arrow { display: flex; align-items: center; justify-content: center; width: 40px; font-size: 1.2em; color: var(--muted); }
+  .branch { display: flex; flex-direction: column; gap: 12px; flex: 1.3; }
+  img.fig { max-width: 100%; max-height: 520px; display: block; }
+  .reveal .footer { position: absolute; bottom: -250px; left: 0; font-size: 0.55em; color: var(--muted); }
+  .callout { border-left: 4px solid var(--accent); padding: 4px 0 4px 16px; margin-top: 24px; font-size: 0.85em; }
+  .callout.warn { border-color: var(--warn); }
+  @media print { .reveal .slides section { background: var(--bg); } }
+</style>
+</head>
+<body>
+<div class="reveal"><div class="slides">
+
+<!-- 1 Title -->
+<section>
+  <h3>MSc thesis, meeting with the director, October 2026</h3>
+  <h1>Governing AI-Agentic Development</h1>
+  <p style="font-size:1.05em" class="accent">A Spec-Driven Neuro-Symbolic Architectural Firewall</p>
+  <p class="small muted" style="margin-top:2em">Results to date on branch v1.2e, merge commit b703468<br>Report of 2026-10-12, updated with the director-report-final branch</p>
+  <aside class="notes">
+    Opening. This deck summarises the results report for the thesis director.
+    Source: Docs/reports/director-report-2026-10.md, taken from the branch docs/director-report-final (fourth revision, not yet merged into v1.2e). That newer version adds the LLM-review pilot, the judge robustness check and the judge-catch test B finding.
+    Tool and commit: report header, "Tool: DaedalusArch, branch v1.2e at merge commit b703468" (Docs/reports/director-report-2026-10.md).
+    Every number in this deck comes from that report. Each slide's notes give the committed file the number comes from.
+    Ground rules for the room: the registered (pre-registered) reading is always quoted first; post-hoc readings are labelled as post-hoc.
+  </aside>
+</section>
+
+<!-- 2 Problem and RQ -->
+<section>
+  <h3>The problem</h3>
+  <h2>AI coding agents write code faster than anyone can review its architecture</h2>
+  <ul>
+    <li>Generated code compiles and passes tests, yet can quietly break layer rules, add cycles and couple modules.</li>
+    <li>A plain "review this against the architecture" prompt is not repeatable and cannot be audited.</li>
+  </ul>
+  <div class="callout">
+    <b>Research question</b><br>
+    Can an architecture spec be compiled into executable checks, backed by a frozen LLM judge, so that architectural conformance of agent-written code is measured deterministically, fast and with an audit trail?
+  </div>
+  <aside class="notes">
+    Framing slide. No number on this slide.
+    The wording of the research question is a paraphrase of the thesis title and of objectives SO1 to SO5 (Docs/reports/director-report-2026-10.md, Section 2 table). The report does not state the research question in a single sentence, so please adjust the wording to the official thesis text.
+    The comparison point "a plain LLM review" is the ADR-036 pilot (Docs/reports/director-report-2026-10.md, Section 4.9), shown on slide 11.
+  </aside>
+</section>
+
+<!-- 3 Pipeline -->
+<section>
+  <h3>What was built</h3>
+  <h2>DaedalusArch: spec to graph queries to a score</h2>
+  <div class="pipe">
+    <div class="box"><b>Architecture spec</b>Clean, Layered, NestJS style libraries. 27 declared functions</div>
+    <div class="arrow">&rarr;</div>
+    <div class="box"><b>Compiler</b>Spec to Cypher fitness functions</div>
+    <div class="arrow">&rarr;</div>
+    <div class="box"><b>APG</b>Architectural Property Graph extracted from TypeScript</div>
+    <div class="arrow">&rarr;</div>
+    <div class="branch">
+      <div class="box sym"><b>Symbolic rules</b>Deterministic graph queries</div>
+      <div class="box neu"><b>LLM judge (frozen)</b>2 semantic dimensions, weight 0.08</div>
+    </div>
+    <div class="arrow">&rarr;</div>
+    <div class="box"><b>AHS and verdict</b>pass, warning, soft-block, hard-block</div>
+  </div>
+  <p class="small muted" style="margin-top:28px">Pre-registration, hash-checked: analysis plan, operator catalogue, matching rule, judge rubric and corpus are frozen before any experiment runs.</p>
+  <aside class="notes">
+    Sources for this slide:
+    - Pipeline description (spec to Cypher fitness functions, APG from TypeScript, frozen judge claude-opus-5-5 adding two semantic dimensions, AHS): Docs/reports/director-report-2026-10.md, Section 1, "What was built and frozen".
+    - 27 declared functions, a template in each of the 3 libraries: results/pre-tag/so1-metrics-53cfaed4a313.json (cited in Docs/reports/director-report-2026-10.md, Section 2, SO1 row, and Section 4.1).
+    - Judge weight 0.08 (W_n): Docs/analysis-plan.md section 12.3, cited in Docs/reports/director-report-2026-10.md, Section 4.5, "The algebraic bound".
+    - Verdict names (pass, warning, soft-block, hard-block): results/e7-corpus/agg/ahs_by_project.csv, quoted in Section 4.5 of the report.
+    - Hash-checked pre-registration: corpus/prereg.json and Docs/threats-to-validity.md TV-01, cited in Section 1 of the report.
+    Diagram is deliberately simple: symbolic path in solid blue, neural path dashed.
+  </aside>
+</section>
+
+<!-- 4 Objectives -->
+<section>
+  <h3>Objectives</h3>
+  <h2>SO1 to SO5: all delivered or run, none without a caveat</h2>
+  <table>
+    <tr><th>Objective</th><th>Promise</th><th>Status on v1.2e</th></tr>
+    <tr><td>SO1</td><td>Spec language and style libraries</td><td><span class="tag part">Done, Hexagonal not built</span> Clean, Layered, NestJS: 27/27 templates each</td></tr>
+    <tr><td>SO2</td><td>APG coverage, latency, ablation</td><td><span class="tag ok">Done</span> Latency gate passed, FLOWS_TO limitation declared</td></tr>
+    <tr><td>SO3</td><td>Rules plus neural judge, AHS</td><td><span class="tag part">Partly done</span> Judge agrees with panel, inert at 8%, detection unmeasured</td></tr>
+    <tr><td>SO4</td><td>P/R/F1 on a seeded golden set (80 to 120)</td><td><span class="tag part">Done with a shortfall</span> N = 75 strict, 73 corrected</td></tr>
+    <tr><td>SO5</td><td>LLM &times; spec-quality study (E1)</td><td><span class="tag ok">Run</span> 72 cells, 65 judged, P4 labelled</td></tr>
+  </table>
+  <aside class="notes">
+    Source for the whole table: Docs/reports/director-report-2026-10.md, Section 2 ("Objectives SO1 to SO5 and their status"), which cites the following files.
+    - SO1: 27 of 27 templates per library (clean-architecture, layered, nestjs): results/pre-tag/so1-metrics-53cfaed4a313.json. Hexagonal library not built: ADR-027 context.
+    - SO2: results/latency-gate/so2/gate.json; results/apg-ablation/so2/.
+    - SO3: E7 9 of 9 projects, E1 65 judged cells; results/e7-corpus/agg/; results/e1-grid/agg-proportional/; results/e1-grid/label-plan-p4-api/labelling.json; results/judge-robustness/agreement.csv; Docs/DiagnosticRuns/judge-probe-e1-site-count.md.
+    - SO4: N = 75 strict, 73 corrected and labelled, against the registered range of 80 to 120: results/so4-heldout/; ADR-033. Author audit still pending.
+    - SO5: 72 cells (54 Claude, 18 Codex), 65 judged, 7 Haiku cells not run (GEN-TYPECHECK): results/e1-grid/agg/so5_grid.csv.
+  </aside>
+</section>
+
+<!-- 5 Method rigour -->
+<section>
+  <h3>Method rigour</h3>
+  <h2>Registered first, post-hoc changes declared, results reproduced by an outside audit</h2>
+  <div class="row3">
+    <div class="stat"><div class="big">v25</div><div class="lab">Pre-registration version, 85 hash-checked artefacts. The runner refuses a plan whose registered files changed.</div></div>
+    <div class="stat"><div class="big">11</div><div class="lab">Post-hoc changes declared in ADRs. Each is reported beside the registered reading and replaces none.</div></div>
+    <div class="stat"><div class="big accent">310</div><div class="lab">Result tables and files reproduced byte-identical by an independent skeptical audit. 0 differ, 22 not reproducible.</div></div>
+  </div>
+  <p class="small muted" style="margin-top:34px">A withdrawn table (labelled SO4 at N = 75) was caught by the audit and replaced under ADR-033.</p>
+  <aside class="notes">
+    Sources:
+    - Prereg v25 with 85 registered artefacts, and the hash gate: corpus/prereg.json; Docs/threats-to-validity.md TV-01 (cited in Docs/reports/director-report-2026-10.md, Section 1 and Section 3.1).
+    - 11 post-hoc changes: count of the rows in the table in Docs/reports/director-report-2026-10.md, Section 3.8 ("Post-hoc declarations"), 11 rows including the E1 size analysis diagnostic note. Derived by me by counting the rows; the report does not state the count.
+    - 310 byte-identical: Docs/DiagnosticRuns/reproduction-audit-2026-10-10.md, section 2, "Verdict counts (files)": 310 byte-identical (231 at HEAD, 79 at the producing commit), 0 differing, 22 not reproducible. Note the audit counts files; the 310 covers CSV, JSON and similar result files, which is the "tables" in the brief. The audited ref was v1.2e at 1543ba9, before the later reports.
+    - Withdrawn table: Docs/reports/director-report-2026-10.md, Section 4.3, "Withdrawn table"; ADR-033 item 1.
+    - Audit corrections (ADR-033, prereg v21): Docs/reports/director-report-2026-10.md, Section 3.8.
+  </aside>
+</section>
+
+<!-- 6 SO4 -->
+<section>
+  <h3>SO4: seeded detection</h3>
+  <h2>F1 0.937 on held-out code, from 73 instances against a floor of 80</h2>
+  <div class="cols">
+    <div>
+      <table>
+        <tr><th>Reading</th><th>N</th><th>Recall</th><th>Precision</th><th>F1</th></tr>
+        <tr><td>Strict <span class="tag">registered</span></td><td>75</td><td>0.893<br><span class="muted">0.787 to 0.974</span></td><td>0.838<br><span class="muted">0.719 to 0.970</span></td><td>0.865<br><span class="muted">0.784 to 0.943</span></td></tr>
+        <tr><td>Labelled <span class="tag">post-hoc</span></td><td>73</td><td>0.918<br><span class="muted">0.818 to 1.000</span></td><td>0.957<br><span class="muted">0.893 to 1.000</span></td><td><b>0.937</b><br><span class="muted">0.878 to 0.986</span></td></tr>
+      </table>
+      <p class="small muted" style="margin-top:16px">95% cell-bootstrap intervals. The 6 misses are all dynamic <code>import()</code>, outside extractor coverage.</p>
+    </div>
+    <div><img class="fig" src="figures/fig1-so4-readings.svg" alt="SO4 readings with intervals"></div>
+  </div>
+  <p class="warn small">N is 5 below the floor (strict) and 7 below (corrected). Recall is construct sensitivity, not detection of natural violations.</p>
+  <aside class="notes">
+    Sources:
+    - Strict row (registered, instrument v1, rule 1.1.0): N 75, recall 0.893 (0.787 to 0.974), precision 0.838 (0.719 to 0.970), F1 0.865 (0.784 to 0.943): results/so4-heldout/agg-strict/prf_overall.csv; results/so4-heldout/score-strict.json.
+    - Labelled row (post-hoc, ADR-033): N 73, recall 0.918 (0.818 to 1.000), precision 0.957 (0.893 to 1.000), F1 0.937 (0.878 to 0.986): results/so4-heldout/score.json; results/so4-heldout/agg/prf_overall.csv.
+    - The report also gives a corrected reading (rule 1.2.0, post-hoc, ADR-025): recall 0.918, precision 1.000, F1 0.957 (0.900 to 1.000): results/so4-heldout/agg-corrected/prf_overall.csv. Not shown here to keep the slide simple.
+    - Floor of 80, N 75 strict: results/so4-heldout/agg-strict/golden_instances.csv (10 of 85 registered applications failed the type-check, ADR-024). N 73 for corrected and labelled: results/so4-heldout/agg/golden_instances.csv; ADR-025 item 2.
+    - 6 misses are the dynamic import() operator MO-X01: results/labels/fn-causes.json.
+    - Construct-sensitivity caveat: Docs/analysis-plan.md section 10 B1.
+    - Figure: Docs/reports/figures/fig1-so4-readings.svg (copied to this folder).
+    Say plainly: the registered strict figures are the ones to quote first (Docs/reports/director-report-2026-10.md, Section 4.3 Interpretation). The 0.937 is post-hoc.
+  </aside>
+</section>
+
+<!-- 7 Real-code precision -->
+<section>
+  <h3>SO4: real code</h3>
+  <h2>Precision on real findings is a range, 0.33 to 0.79</h2>
+  <table style="width:88%">
+    <tr><th>How the 8 <code>uncertain</code> items count</th><th>Status</th><th>Precision (95% CI)</th></tr>
+    <tr><td>Counted as not real</td><td><span class="tag">registered</span></td><td><b>0.328</b> <span class="muted">(0.132 to 0.609)</span></td></tr>
+    <tr><td>Excluded</td><td><span class="tag">post-hoc</span></td><td>0.608 <span class="muted">(0.351 to 0.816)</span></td></tr>
+    <tr><td>Counted as real</td><td><span class="tag">post-hoc</span></td><td>0.789 <span class="muted">(0.500 to 0.933)</span></td></tr>
+  </table>
+  <ul style="margin-top:26px">
+    <li>24 labelled items, effective n 11.5. Every reading is below seeded precision.</li>
+    <li>The rule for <code>uncertain</code> moves the estimate more than the sampling error does.</li>
+    <li>Quote the registered 0.33 first. Only the author audit or a second labeller can narrow the range.</li>
+  </ul>
+  <aside class="notes">
+    Sources:
+    - All three precision values and intervals (instrument v2, n 24, 8 uncertain, effective n 11.5, Kish-Wilson 95%): results/so4-heldout/agg/precision_baseline.csv (cited in Docs/reports/director-report-2026-10.md, Section 1 finding 3 and Section 4.4).
+    - Registered rule counts uncertain as not real: Docs/analysis-plan.md section 3. The two sensitivity rules are post-hoc, added by ADR-033 (Docs/analysis-plan.md section 14 item 4).
+    - Under instrument v1 the same three readings are 0.264, 0.508 and 0.744 (n 30): same file. Not shown.
+    - Labeller is a single Gemini model run twice, so its run-vs-run kappa of 0.774 measures order sensitivity, not independent agreement: results/so4-heldout/agg/agreement.csv.
+    - "Every reading is below the seeded differential precision": Docs/reports/director-report-2026-10.md, Section 1 finding 3.
+  </aside>
+</section>
+
+<!-- 8 SO2 -->
+<section>
+  <h3>SO2</h3>
+  <h2>Fast and complete, but the data-flow edge is empty on real code</h2>
+  <div class="row3">
+    <div class="stat"><div class="big">1.000</div><div class="lab">Parse coverage on all four real core bases</div></div>
+    <div class="stat"><div class="big">5.3 s</div><div class="lab">Full evaluation of the largest base (241 files). The cycle query budget is 30 s.</div></div>
+    <div class="stat"><div class="big warn">0</div><div class="lab">FLOWS_TO edges on the four real bases. A declared limitation (ADR-023).</div></div>
+  </div>
+  <h3 style="margin-top:34px">Ablation: full graph vs AST-only</h3>
+  <ul>
+    <li>Without type-checker edges, FF-P02 (dependency inversion) goes blind on 3 of 4 bases, and FF-P04 on 2.</li>
+    <li>The ablation cannot show what FLOWS_TO adds, because there are no such edges to remove.</li>
+  </ul>
+  <aside class="notes">
+    Sources:
+    - Parse coverage 1.000 for realworld-test (35 files), ghostfolio-test (241), truthy-demo (131), dry-run-test (155): results/apg-ablation/so2/graph_coverage.csv.
+    - 5343 ms total for ghostfolio, 241 files, cycle query budget 30000 ms: results/latency-gate/so2/latency.csv; results/latency-gate/so2/gate.json (cited in Docs/reports/director-report-2026-10.md, Section 4.2).
+    - FLOWS_TO edges 0 on all four bases: results/apg-ablation/so2/flows_to_stores.csv. Limitation declared in ADR-023.
+    - Ablation: results/apg-ablation/so2/apg_ablation_summary.csv and apg_ablation.csv. FF-P02 lost on ghostfolio-test, truthy-demo and dry-run-test (3 of 4 bases, derived by me from the table in Section 4.2); FF-P04 lost on truthy-demo and dry-run-test (2). realworld-test loses nothing. The AST-only arm also shows false gains on the fixtures (FF-P03, FF-C04).
+    - Consequence stated in the report: SO4 domain purity rests on CONSTRUCTOR_INJECTS plus IMPORTS, not FLOWS_TO (ADR-023 item 4).
+    - Runtimes come from a shared machine: Docs/reports/director-report-2026-10.md, Section 5 item 9.
+  </aside>
+</section>
+
+<!-- 9 SO3 judge -->
+<section>
+  <h3>SO3: the LLM judge</h3>
+  <h2>It agrees with a panel and survives a model swap, but it changes nothing and its detection is unmeasured</h2>
+  <div class="cols" style="gap:36px">
+    <div class="stat"><div class="big accent">98%</div><div class="lab"><b>Agrees with the panel</b><br>0.982 on E1 (n = 36, 95% CI 0.949 to 1.000, AC1 0.982). Both errors were lenient.</div></div>
+    <div class="stat"><div class="big accent">0</div><div class="lab"><b>Robust to a model swap</b><br>Opus vs Sonnet: agreement 0.940, kappa 0.766, 0 verdict changes.</div></div>
+    <div class="stat"><div class="big">8%</div><div class="lab"><b>Inert by design</b><br>At weight 0.08 it can lower the score by at most 0.08. 0 verdict changes in 9 E7 projects and 65 E1 cells.</div></div>
+    <div class="stat"><div class="big warn">?</div><div class="lab"><b>Detection not measured</b><br>The panel failed only 2 of 36 items. The planned catch test placed 0 seeds.</div></div>
+  </div>
+  <p class="small muted" style="margin-top:30px">Kappa is 0 on E1 because the judge passed every item (prevalence), so AC1 is the figure to quote. The panel is one Gemini model, not a human.</p>
+  <aside class="notes">
+    Sources:
+    - 98% agreement, 0.982 (0.949 to 1.000), n 36, AC1 0.982, kappa 0: results/e1-grid/label-plan-p4-api/labelling.json, row judge-vs-panel, source e1, headline true (Docs/reports/director-report-2026-10.md, Section 4.8.5). The agreement rows are weighted (inclusion probabilities), so 0.982 is not a ratio of integers.
+    - Both errors lenient (panel failed, judge passed), one Sonnet-written and one gpt-5.6-terra-written project: same file; results/e1-grid/label-plan-p4/judge-verdicts.json.
+    - Model swap: claude-sonnet-5-5 re-judged 100 units; agreement 0.940 (Wilson 0.875 to 0.972), kappa 0.766, AC1 0.931: results/judge-robustness/agreement.csv. 0 verdict changes under the registered rule and under the any-fail rule: results/judge-robustness/verdict-impact.csv; Docs/DiagnosticRuns/judge-robustness-2026-10-11.md. The 6 disagreements are all low-confidence E7 units that Opus failed and Sonnet passed.
+    - Inert at 8%: W_n 0.08, effect bounded in [-0.08, 0]: Docs/analysis-plan.md sections 10 B9 and 12.3. 0 of 9 E7 verdict changes under the registered aggregation: results/e7-corpus/agg-proportional/ahs_by_aggregation.csv. 0 of 65 E1 cells: results/e1-grid/agg-proportional/ahs_by_aggregation.csv.
+    - Only post-hoc any-fail and judge-weighted (2/7) readings move verdicts (E7: up to 8 of 9; E1: 8 of 65 cells to warning, pre-registered for E1).
+    - Detection not measured: the panel failed 2 of 36 comparable E1 items and the judge missed both (labelling.json). Test B (ADR-037) placed 0 seeds with operators MO-X02 and MO-X03 on the 7 corpus bases and in the 65 E1 cells: Docs/DiagnosticRuns/judge-probe-e1-site-count.md.
+    - Caveats: P4 used the Gemini API route, not the agy CLI (ADR-034, ADR-035; Docs/threats-to-validity.md TV-110). No author audit covers P4 (TV-109). Robustness is two Claude models, not validity (TV-114).
+  </aside>
+</section>
+
+<!-- 10 SO5 -->
+<section>
+  <h3>SO5 (E1): LLM &times; spec level</h3>
+  <h2>The spec level changes the structure the models build; model size does not matter</h2>
+  <div class="cols">
+    <div>
+      <table>
+        <tr><th>Spec level</th><th>Mean AHS</th><th>Files</th></tr>
+        <tr><td>none</td><td><b>0.951</b></td><td>9.1</td></tr>
+        <tr><td>vague prose</td><td>0.887</td><td>27.4</td></tr>
+        <tr><td>precise spec (full-aac)</td><td>0.920</td><td>29.6</td></tr>
+      </table>
+      <ul class="small" style="margin-top:14px">
+        <li>Spec level: Holm p = 0.0003. Model: p = 0.438.</li>
+        <li>At equal size, the precise spec beats vague prose: +0.033, Cliff's delta 0.52 (0.47 size-adjusted).</li>
+        <li>No spec gives small, flat projects where two rules rarely fire. Do not claim specs make architecture worse.</li>
+      </ul>
+    </div>
+    <div><img class="fig" src="figures/fig5-e1-ahs-model-spec.svg" alt="E1 mean AHS by model and spec level"></div>
+  </div>
+  <aside class="notes">
+    Sources (47 valid Claude cells, pre-registered tests unless marked):
+    - Spec level Holm p 0.0003, model Holm p 0.438, interaction 0.026: results/e1-grid/agg/so5_tests.csv, family primary:ahsCombined.
+    - Mean ahsCombined by level, none 0.951, minimal-prose 0.887, full-aac 0.920: Docs/DiagnosticRuns/e1-size-analysis-2026-10-10.md section 3; results/e1-grid/agg-size/size_levels.csv.
+    - Mean file counts 9.1, 27.4, 29.6 (post-hoc size analysis): results/e1-grid/agg-size/size_levels.csv.
+    - full-aac minus minimal-prose +0.033, Cliff's delta 0.52 (registered primary field): results/e1-grid/agg/so5_tests.csv. Size-adjusted (ln LOC, post-hoc) delta 0.47: results/e1-grid/agg-size/size_tests.csv, outcome ahsCombined_resid_lnloc.
+    - Model size has no effect: Opus, Sonnet and Haiku differ by at most 0.014 in mean ahsCombined (results/e1-grid/agg/so5_tests.csv, model pairs). Caveat: tier is confounded with model generation (Haiku 4.5 vs the 5.5 models), and 7 of 18 Haiku cells failed the type-check (results/e1-grid/agg/so5_grid.csv).
+    - Why the direction is reversed (none scores best): FF-C02 and FF-P02 rarely fire on 9-file projects; findings per file are equal across levels (Holm p 0.95): results/e1-grid/agg-size/size_functions.csv and size_tests.csv. This is post-hoc. Framing recommended in Docs/reports/director-report-2026-10.md, Section 4.8.3.
+    - Every cell passes (minimum AHS 0.852), so E1 measures differences inside the pass band: results/e1-grid/agg/so5_grid.csv.
+    - Figure: Docs/reports/figures/fig5-e1-ahs-model-spec.svg (copied to this folder).
+    - Limits: two tasks, one vendor in the confirmatory tests, at most 3 runs per cell (Section 4.8.7). The Codex arm reverses the order and is exploratory.
+  </aside>
+</section>
+
+<!-- 11 Comparisons -->
+<section>
+  <h3>Comparisons</h3>
+  <h2>Equal to dependency-cruiser on import rules; a plain LLM review is not repeatable</h2>
+  <div class="cols">
+    <div>
+      <h3>vs dependency-cruiser</h3>
+      <table>
+        <tr><th>Seeds</th><th>DaedalusArch</th><th>dep-cruiser</th></tr>
+        <tr><td>In coverage (37)</td><td>37</td><td>28 <span class="muted">(36 post-hoc fix)</span></td></tr>
+        <tr><td>All seeds (43)</td><td>37</td><td>34 <span class="muted">(42)</span></td></tr>
+      </table>
+      <ul class="small" style="margin-top:12px">
+        <li>It finds the 6 dynamic-import seeds that we miss.</li>
+        <li>Real fix commits: both flag the same 2 of 5.</li>
+      </ul>
+    </div>
+    <div>
+      <h3>vs plain LLM review (pilot)</h3>
+      <table>
+        <tr><th>Measure</th><th>LLM review</th></tr>
+        <tr><td>Seeds found</td><td>9/10 <span class="muted">(firewall 5/5)</span></td></tr>
+        <tr><td>Run-to-run Jaccard</td><td>0.727</td></tr>
+        <tr><td>Firewall keys covered</td><td>26.5%</td></tr>
+        <tr><td>Cost per review</td><td>5.92 credits, 3.2 min</td></tr>
+      </table>
+      <p class="small muted" style="margin-top:12px">Exploratory: 5 seeds, 25 of 42 reviews, one model.</p>
+    </div>
+  </div>
+  <div class="callout">The case for the firewall is determinism, exhaustiveness, speed and auditability. It is not better seed detection.</div>
+  <aside class="notes">
+    Sources:
+    - dependency-cruiser (18.4.0, translation 1.0.0, registered under prereg v19, ADR-030). In-coverage seeds: DaedalusArch 37 of 37, dep-cruiser 28 of 37 registered and 36 of 37 under the post-hoc dts variant. All seeds: 37, 34 and 42 of 43. results/tool-comparison/recall.csv and recall-dts.csv.
+    - The registered dep-cruiser gap on MO-P01 comes from a translation defect found post-hoc that favoured DaedalusArch; under the dts fix dep-cruiser scores 42 of 43 vs our 37 of 43. Docs/reports/director-report-2026-10.md, Section 4.6; ADR-030.
+    - 6 dynamic-import seeds (MO-X01) found by dep-cruiser only: results/tool-comparison/recall.csv.
+    - Real fix commits, both flag the same 2 of 5: results/real-pairs/summary.json; Docs/DiagnosticRuns/tool-comparison-real-pairs-2026-10-10.md.
+    - Plain LLM review pilot (ADR-036, exploratory, Codex gpt-5.6-terra): seeds 9/10 seed-runs (Wilson 0.596 to 0.982 if independent), firewall 5/5: results/llm-review/recall.csv. Jaccard 0.727 over 11 trees with two runs: results/llm-review/consistency.csv (the 0.571 in summary.json is a declared scorer defect). 26.5% = 460 of 1736 firewall keys: results/llm-review/overlap.csv; results/llm-review/summary.json. 5.92 credits and 3.2 minutes per valid review: results/llm-review/cost.csv; Docs/DiagnosticRuns/llm-review-pilot-2026-10-11.md.
+    - 25 of 42 planned reviews ran; the run stopped at the registered 150 credit budget: same note, "Execution and the budget stop".
+    - On the real fix pairs the LLM hits are close to chance (n = 2 pairs): Docs/reports/director-report-2026-10.md, Section 4.9.
+    - Figure 2 (results/tool-comparison/recall.csv) is in Docs/reports/figures/fig2-tool-comparison.svg if needed as a backup.
+  </aside>
+</section>
+
+<!-- 12 Limitations -->
+<section>
+  <h3>Honest limitations</h3>
+  <h2>What the results do not support yet</h2>
+  <ul>
+    <li><b>Circularity.</b> One author wrote the operators, rules and baseline translation. SO4 recall is construct sensitivity.</li>
+    <li><b>Narrow corpus.</b> 5 of 7 held-out bases are NestJS. TypeScript back ends of 35 to 819 files only.</li>
+    <li><b>One labeller model.</b> The only human check, the 30-item author audit, is still pending.</li>
+    <li><b>Floor missed.</b> N = 75 (73) against 80. Real-code precision is 0.33 to 0.79.</li>
+    <li><b>Judge.</b> No effect on verdicts, detection unmeasured, no Hexagonal library, dynamic <code>import()</code> invisible.</li>
+    <li><b>E1.</b> Two tasks, one vendor in the confirmatory tests, every cell passes.</li>
+  </ul>
+  <aside class="notes">
+    Sources: Docs/reports/director-report-2026-10.md, Section 5 ("Honest limitations") and Section 6 ("Not supported yet"). Numbers:
+    - Circularity: Docs/threats-to-validity.md TV-12, TV-104; Docs/analysis-plan.md section 10 B1.
+    - 5 of 7 held-out bases nestjs; generalisation limited to files 35 to 819: Docs/threats-to-validity.md TV-89, TV-82; Docs/corpus.md.
+    - One Gemini model run twice; author audit pending (panel-vs-audit n = 0): results/so4-heldout/agg/agreement.csv; results/labels/live-call-ledger.md; TV-31, TV-33.
+    - N = 75 and 73 vs floor 80: results/so4-heldout/agg-strict/golden_instances.csv and results/so4-heldout/agg/golden_instances.csv. Precision range: results/so4-heldout/agg/precision_baseline.csv.
+    - Judge: results/e7-corpus/agg-proportional/ahs_by_aggregation.csv; results/e1-grid/agg-proportional/ahs_by_aggregation.csv; Docs/DiagnosticRuns/judge-probe-e1-site-count.md. No Hexagonal library: ADR-027 context. Dynamic import gap: results/labels/fn-causes.json.
+    - E1: every cell passes, minimum AHS 0.852: results/e1-grid/agg/so5_grid.csv.
+    The report holds 13 numbered limitation items; this slide picks the six that matter most for the thesis defence.
+  </aside>
+</section>
+
+<!-- 13 Decisions -->
+<section>
+  <h3>Decisions needed from the director</h3>
+  <h2>Five calls to make today</h2>
+  <ol style="line-height:1.3">
+    <li><b>Paper order.</b> E1 empirical paper, tool paper, or LLM-judge lessons paper first, and the venues.</li>
+    <li><b>Grok arm.</b> Add a third vendor to E1, or leave it as future work (recommended).</li>
+    <li><b>Judge anti-pattern test.</b> Approve the redesign (seed shapes surveyed from real code), or state that judge detection is unmeasured (recommended).</li>
+    <li><b>Firewall in the loop.</b> The MCP study where the agent calls the firewall while generating: thesis scope or future work (recommended).</li>
+    <li><b>Publication rules.</b> Registered readings first, post-hoc labelled, exploratory marked. Confirm this for all three papers.</li>
+  </ol>
+  <p class="small muted" style="margin-top:20px">Also open: how to frame the reversed E1 effect, where the Codex arm goes, how to word the P4 result, the 30-item author audit.</p>
+  <aside class="notes">
+    Sources: Docs/reports/director-report-2026-10.md, Section 1 ("Decisions needed from the director") and Section 7.
+    1. Paper order: Section 7 item 4, "Three papers" (E1 empirical paper, tool paper, LLM-judge lessons paper). The decision requested there is order and venues. The judge paper can cite the P4 agreement but must state its limits.
+    2. Grok arm: Section 7 item 5, "Extensions". It would follow the ADR-029 pattern: its own plan, seed and sandbox confinement, vendor families only. Report recommendation: future work.
+    3. Judge anti-pattern test: Section 4.11 and Section 7 item 7. Redesign derives seed shapes from anti-patterns that occur in the corpus and E1 projects, with a site-count gate before any judge call, and a new ADR and prereg version. Recommendation: state it as unmeasured in the thesis and run the redesign only if time allows. Evidence that the old operators fail: Docs/DiagnosticRuns/judge-probe-e1-site-count.md (0 seeds).
+    4. Firewall-in-the-loop: Section 7 item 5. DaedalusArch served as an MCP tool during generation, compared with post-hoc evaluation. It cannot reuse the E1 confinement, which forbids MCP (ADR-029 item 4; Docs/threats-to-validity.md TV-95). Recommendation: future work.
+    5. Publication rules: the committed report does not contain a section called publication rules. This item is the brief's framing. It is grounded in the reporting convention used throughout the report (Docs/reports/director-report-2026-10.md, "How to read this report": registered vs post-hoc labelling) and in the caveats listed for each paper in Section 7 item 4. Please confirm or reword before the meeting.
+    Other open decisions in the report: Section 7, E1 framing (Section 4.8.3), Codex arm placement (body paragraph plus appendix recommended), P4 wording (item 1), 30-item author audit (item 2, results/labels/live-call-ledger.md), LLM-review baseline placement (item 6).
+  </aside>
+</section>
+
+<!-- 14 Next steps -->
+<section>
+  <h3>Next steps</h3>
+  <h2>Close the evidence gaps, then write</h2>
+  <ul>
+    <li>Complete the 30-item author audit, so that the panel-vs-audit row is not empty.</li>
+    <li>Adopt the E1 framing: registered reversed effect first, then the size analysis, then the size-matched contrast.</li>
+    <li>Register the proposed API-robustness experiments before running any of them.</li>
+    <li>Housekeeping: close threat TV-84, and add a threats entry for the E1 usage-limit misclassification.</li>
+    <li>Start the thesis draft and the first paper once the order is chosen.</li>
+  </ul>
+  <aside class="notes">
+    Sources: Docs/reports/director-report-2026-10.md, Section 7.
+    - 30-item author audit, drawn label-blind with seed 6105, allocation sealed, needs about one sitting: results/labels/live-call-ledger.md; results/so4-heldout/agg/agreement.csv (panel-vs-audit n = 0). Report recommendation: complete it before the thesis draft.
+    - E1 framing: Docs/reports/director-report-2026-10.md, Section 4.8.3 "Recommended framing for the thesis" and Section 7.
+    - API robustness experiments (repeat the judge on a fixed sample, inject faults, re-run the labeller after a quota reset): proposals only, not in any committed plan, each needs its own registered plan and budget (Section 7 item 3).
+    - Housekeeping: threat TV-84 (developer study dropped, no ADR records it): Docs/threats-to-validity.md TV-84. E1 usage-limit misclassification, recorded only in aidlc-docs/audit.md (E1 grid entry): Section 4.8.7 item 5.
+    - The last bullet (start the draft) is mine, following from the order decision; it is not a numbered item in the report.
+    End of deck. Remaining time: open discussion on slide 13.
+  </aside>
+</section>
+
+</div></div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/5.1.0/reveal.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/5.1.0/plugin/notes/notes.min.js"></script>
+<script>
+  Reveal.initialize({
+    width: 1280, height: 720, margin: 0.06,
+    hash: true, slideNumber: 'c/t', transition: 'none', controls: true, progress: true,
+    plugins: [RevealNotes]
+  });
+</script>
+</body>
+</html>
