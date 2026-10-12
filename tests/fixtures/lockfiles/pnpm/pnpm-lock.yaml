@@ -1,0 +1,29 @@
+lockfileVersion: '9.0'
+
+settings:
+  autoInstallPeers: true
+  excludeLinksFromLockfile: false
+
+importers:
+
+  .:
+    dependencies:
+      pkg-a:
+        specifier: file:vendor/pkg-a
+        version: file:vendor/pkg-a
+
+packages:
+
+  pkg-a@file:vendor/pkg-a:
+    resolution: {directory: vendor/pkg-a, type: directory}
+
+  pkg-b@file:vendor/pkg-b:
+    resolution: {directory: vendor/pkg-b, type: directory}
+
+snapshots:
+
+  pkg-a@file:vendor/pkg-a:
+    dependencies:
+      pkg-b: file:vendor/pkg-b
+
+  pkg-b@file:vendor/pkg-b: {}

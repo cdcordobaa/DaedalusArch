@@ -122,7 +122,7 @@ export async function prepareBase(entry: CorpusEntry, cloneDir: string, stored: 
     tsconfigPath: entry.tsconfigPath ?? 'tsconfig.json',
     tscPath,
     tscVersion: measured,
-    ...(entry.install.policy === 'npm-ci-ignore-scripts' ? { installLockSha256: entry.install.lockSha256 } : {}),
+    ...(entry.install.policy !== 'none' ? { installLockSha256: entry.install.lockSha256 } : {}),
     overlays,
     specPath: entry.specPath,
     judgeSelection: sel.value,
