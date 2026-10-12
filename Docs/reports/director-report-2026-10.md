@@ -2,9 +2,9 @@
 
 **Thesis**: *Governing AI-Agentic Development: A Spec-Driven Neuro-Symbolic Architectural Firewall* (MSc, Universidad Nacional de Colombia)
 **Tool**: DaedalusArch, branch `v1.2e` at merge commit `b703468`
-**Date of this report**: 2026-10-11
-**Scope**: every result committed on `v1.2e`, including E1 (SO5, Section 4.8), the reproduction-audit corrections of ADR-033 (prereg v21) and the P4 judge-vs-panel validation (ADR-034 and ADR-035, prereg v23).
-**Revision**: third version. It adds the P4 judge-vs-panel validation (Sections 3.7, 4.8.5 and 7) and updates the executive summary, the SO3 and SO5 status and Section 6. The second version added the E1 results and replaced the withdrawn labelled SO4 table and the single-figure baseline precision with the ADR-033 figures.
+**Date of this report**: 2026-10-12
+**Scope**: every result committed on `v1.2e`, including E1 (SO5, Section 4.8), the reproduction-audit corrections of ADR-033 (prereg v21), the P4 judge-vs-panel validation (ADR-034 and ADR-035, prereg v23), the plain LLM-review baseline pilot (ADR-036, prereg v24), the judge model robustness check (ADR-038, prereg v25) and the judge-probe site count (ADR-037, not run).
+**Revision**: fourth version. It adds the plain LLM-review baseline pilot (Section 4.9), the judge model robustness check (Section 4.10) and the judge-catch test B finding (Section 4.11), and updates the executive summary, the SO3 status, Sections 5 to 7. The third version added the P4 judge-vs-panel validation (Sections 3.7, 4.8.5 and 7) and updates the executive summary, the SO3 and SO5 status and Section 6. The second version added the E1 results and replaced the withdrawn labelled SO4 table and the single-figure baseline precision with the ADR-033 figures.
 
 **How to read this report**
 
@@ -18,7 +18,7 @@
 
 ## 1. Executive summary
 
-**What was built and frozen.** DaedalusArch compiles an architecture spec into graph queries (Cypher fitness functions) and runs them over an Architectural Property Graph (APG) extracted from TypeScript code. A frozen LLM judge (`claude-opus-5-5`) adds two semantic dimensions. Before any experiment ran, the analysis plan, the operator catalogue, the matching rule, the judge rubric and the corpus were registered under a hash-checked pre-registration. That registration now stands at version 23, with 77 registered artefacts [corpus/prereg.json]. `run-experiment` refuses any plan whose registered artefacts changed [Docs/threats-to-validity.md, TV-01].
+**What was built and frozen.** DaedalusArch compiles an architecture spec into graph queries (Cypher fitness functions) and runs them over an Architectural Property Graph (APG) extracted from TypeScript code. A frozen LLM judge (`claude-opus-5-5`) adds two semantic dimensions. Before any experiment ran, the analysis plan, the operator catalogue, the matching rule, the judge rubric and the corpus were registered under a hash-checked pre-registration. That registration now stands at version 25, with 85 registered artefacts [corpus/prereg.json]. `run-experiment` refuses any plan whose registered artefacts changed [Docs/threats-to-validity.md, TV-01].
 
 **Main findings.**
 
@@ -49,13 +49,22 @@
    - Run vs run on the API route: agreement 0.957 (n = 46), κ 0.777 [same file, row `run-vs-run`].
    - **Read this as a weak test of the judge's fail detection.** On E1 the judge's labels are almost all `pass`, and the panel failed only 2 of the 36 items, so the data say the judge is not wrongly failing sound code. They say little about whether it catches unsound code. The 2 fixture fails are the only place where fail detection is checked, and the judge matched the panel there.
    - The panel is not independent ground truth, and no author audit covers P4 [Docs/threats-to-validity.md, TV-109]. The P4 labels came from a different route (Gemini API, tools off) from P1/MS/P2 (agy CLI), after the agy route was stopped by a pre-registered rule [Docs/labeller-route.md §7, §8; Docs/threats-to-validity.md, TV-110; ADR-034; ADR-035].
+10. **Plain LLM-review baseline (ADR-036, exploratory).** Codex `gpt-5.6-terra` reviewed the same trees given the same spec as prose. It stopped at its registered credit budget after 25 of the 42 planned reviews [Docs/DiagnosticRuns/llm-review-pilot-2026-10-11.md, "Execution and the budget stop"; results/llm-review/cost.csv].
+    - Seed detection: 9/10 seed-runs, Wilson 0.596 to 0.982 ("if independent"). The firewall matched 5/5 [results/llm-review/recall.csv].
+    - Run-to-run consistency: mean pairwise Jaccard 0.727 over the 11 trees with two runs. The 0.571 in `summary.json` comes from a declared scorer defect [Docs/DiagnosticRuns/llm-review-pilot-2026-10-11.md, "Consistency"; results/llm-review/consistency.csv].
+    - Overlap: 460 of 909 claims (50.6%) equal a firewall key, and the runs list 460 of the firewall's 1736 keys (26.5%) [results/llm-review/overlap.csv; results/llm-review/summary.json].
+    - Cost: 5.92 credits and 3.2 minutes per valid review [Docs/DiagnosticRuns/llm-review-pilot-2026-10-11.md].
+    - On the real fix pairs its hits are close to chance (Section 4.9).
+11. **Judge model robustness (ADR-038).** `claude-sonnet-5-5` re-judged 100 recorded units on the same pinned route. Agreement 0.940 (Wilson 0.875 to 0.972), κ 0.766, AC1 0.931; population-weighted agreement 0.974 [results/judge-robustness/agreement.csv]. E1 agrees 50/50 and E7 44/50. All 6 disagreements are low-confidence E7 units that Opus failed and Sonnet passed. 0 verdict changes under the registered rule and under the any-fail rule [Docs/DiagnosticRuns/judge-robustness-2026-10-11.md]. The pre-declared reading is robust (κ ≥ 0.60).
+12. **Judge-catch test B was not run (construct-validity finding).** The frozen operators MO-X02 and MO-X03 placed 0 seeds on the 7 held-out corpus bases and 0 seeds in the 65 E1 cells [Docs/DiagnosticRuns/judge-probe-e1-site-count.md; ADR-038 status line]. The judge's detection rate therefore could not be measured. A redesign is proposed in Section 4.11.
 
-**What this supports.** The symbolic engine finds the canonical violation constructs it was designed for, reproducibly, on held-out code, and fast enough for CI use. It matches a mature import-graph checker on the rules both can express. Its extra rule families (patterns, SOLID proxies, metrics, data-flow) have no external comparator yet. In E1, the spec level changes the structure that the models build, and the AHS registers that change; a vague prose spec gives the worst score. On the P4 sample the judge agrees with an independent-vendor panel (0.982 on E1, AC1 0.982), so it is not failing sound code, although that test barely exercises its fail detection.
+**What this supports.** The symbolic engine finds the canonical violation constructs it was designed for, reproducibly, on held-out code, and fast enough for CI use. It matches a mature import-graph checker on the rules both can express. Its extra rule families (patterns, SOLID proxies, metrics, data-flow) have no external comparator yet. In E1, the spec level changes the structure that the models build, and the AHS registers that change; a vague prose spec gives the worst score. On the P4 sample the judge agrees with an independent-vendor panel (0.982 on E1, AC1 0.982), so it is not failing sound code, although that test barely exercises its fail detection. Its unit verdicts are also stable when the judge model is swapped from Opus to Sonnet (κ 0.766, 0 verdict changes). In an exploratory pilot, a plain LLM review given the same spec found 9 of 10 planted seeds, but its findings were not repeatable (Jaccard 0.727), covered 26.5% of the firewall's keys and cost about 6 credits and 3 minutes per review, against seconds for the firewall. The firewall's case rests on determinism, exhaustiveness, speed and auditability, not on better seed detection.
 
 **What it does not support yet.** It does not support these claims:
 
 - that DaedalusArch's findings on real code are mostly correct (baseline precision 0.33 registered, 0.33 to 0.79 across the `uncertain` rules, wide CIs);
-- that the LLM judge improves verdicts (no effect under the registered rule in E7 or E1), or that it detects violations: P4 shows agreement with the panel but barely tests fail detection on E1 (2 panel fails in 36 items), the panel is a single model, and no author audit covers P4;
+- that the LLM judge improves verdicts (no effect under the registered rule in E7 or E1), or that it detects violations: P4 shows agreement with the panel but barely tests fail detection on E1 (2 panel fails in 36 items), the panel is a single model, and no author audit covers P4. The robustness check shows model stability, not validity, and the planned detection test (B) could not be run because the frozen operators place no seeds;
+- that the firewall detects seeds better than a plain LLM review (9/10 against 5/5 on 5 seeds, exploratory), or that a plain LLM review is worse on real code (n = 2 pairs, one run each);
 - that specs make generated architecture worse (the reversed E1 effect runs through project size and structure);
 - any SO5 claim beyond one vendor and two tasks, or about model differences (no model effect).
 
@@ -63,8 +72,9 @@
 
 - how to frame the reversed E1 spec effect in the thesis, and where the Codex arm goes;
 - how to report the P4 result, and whether to complete the author audit so that P4 has a check against a human (Section 7, items 1 and 2);
+- whether to approve the judge-probe redesign (Section 4.11) and where the LLM-review baseline goes in the thesis (Section 7, items 6 and 7);
 - the 30-item author audit;
-- the API-robustness experiments;
+- the remaining API-robustness experiments;
 - the split into three papers;
 - the two proposed extensions (a Grok arm and an MCP firewall-in-the-loop).
 
@@ -76,7 +86,7 @@
 |---|---|---|---|
 | SO1 | Spec language and style libraries (Clean, Hexagonal, Layered) that compile to executable checks | **Done for Clean, Layered and a NestJS library; Hexagonal not built.** All 27 declared functions have a template in each of the 3 libraries. A layered acceptance run passed | [results/pre-tag/so1-metrics-53cfaed4a313.json; results/pre-tag/layered-53cfaed4a313.json; ADR-027 context] |
 | SO2 | APG extraction: coverage, latency, value of the graph over a plain AST | **Done.** Latency gate passed. Ablation run. FLOWS_TO limitation declared | [results/latency-gate/so2/gate.json; results/apg-ablation/so2/] |
-| SO3 | Symbolic rules plus a neural judge producing an Architectural Health Score (AHS) and verdicts | **Partly done.** E7 (9 of 9 projects) and E1 (65 judged cells) are complete. The judge's effect on verdicts is zero under the registered rule in both. Judge-vs-panel validation (P4) is done: agreement 0.982 on the E1 headline (n = 36), 100% on fixtures, but fail detection is barely tested and no author audit covers P4 (Section 4.8.5) | [results/e7-corpus/agg/; results/e7-corpus/agg-proportional/; results/e1-grid/agg-proportional/; results/e1-grid/label-plan-p4-api/labelling.json] |
+| SO3 | Symbolic rules plus a neural judge producing an Architectural Health Score (AHS) and verdicts | **Partly done.** E7 (9 of 9 projects) and E1 (65 judged cells) are complete. The judge's effect on verdicts is zero under the registered rule in both. Judge-vs-panel validation (P4) is done: agreement 0.982 on the E1 headline (n = 36), 100% on fixtures, but fail detection is barely tested and no author audit covers P4 (Section 4.8.5). Model robustness (ADR-038) is done: Sonnet agrees with Opus on 94% of 100 units, κ 0.766, 0 verdict changes (Section 4.10). The judge-catch test B is **not run**: the frozen operators place 0 seeds (Section 4.11), so detection of planted unsound code remains unmeasured | [results/e7-corpus/agg/; results/e7-corpus/agg-proportional/; results/e1-grid/agg-proportional/; results/e1-grid/label-plan-p4-api/labelling.json; results/judge-robustness/agreement.csv; Docs/DiagnosticRuns/judge-probe-e1-site-count.md] |
 | SO4 | P/R/F1 on a seeded golden dataset (80 to 120 instances) | **Done with a shortfall** (N = 75 strict, 73 corrected and labelled). Strict, corrected, labelled and v2 readings committed. Baseline precision labelled, with `uncertain`-rule sensitivity rows. Author audit pending | [results/so4-heldout/; ADR-033] |
 | SO5 | LLM × spec-quality study (E1) | **Run, P4 labelled.** 72 cells (54 Claude, 18 Codex); 65 judged, 7 Haiku cells not run (GEN-TYPECHECK). Registered tests, both aggregation passes, judge diagnostics and the post-hoc size analysis are committed. The judge-vs-panel labels (P4) are committed (Section 4.8.5) | [results/e1-grid/agg/; results/e1-grid/agg-proportional/; results/e1-grid/agg-size/; results/e1-grid/label-plan-p4-api/labelling.json] |
 
@@ -86,7 +96,7 @@
 
 ### 3.1 Pre-registration and the hash gate (pre-registered)
 
-- The analysis plan, threats register, operator catalogue, matching rule, judge pre-registration, plans, specs and seeds are hashed in `corpus/prereg.json`. It is at version 21, with 77 artefacts [corpus/prereg.json].
+- The analysis plan, threats register, operator catalogue, matching rule, judge pre-registration, plans, specs and seeds are hashed in `corpus/prereg.json`. It is at version 25, with 85 artefacts [corpus/prereg.json].
 - `run-experiment` refuses a plan when a registered artefact changed, or when `prereg.json` is uncommitted or newer than the first run. Every result records its `preregVersion` [Docs/threats-to-validity.md, TV-01].
 - CI runs `--check-prereg` on every plan for pull requests to `v1.2e` [Docs/threats-to-validity.md, TV-91].
 - Each bump has a dated reason in `Docs/prereg-reasons.md`. The bumps that matter for this report:
@@ -108,8 +118,10 @@
 | P-TC | v19 | tool comparison |
 | P-TS | v20 | E1 tsconfig fix |
 | P-AUD | v21 | reproduction-audit corrections (post-hoc) |
+| P-LR | v24 | plain LLM-review baseline pilot, exploratory (ADR-036) |
+| P-JR | v25 | judge model robustness check, registered before any Sonnet call (ADR-038) |
 
-Sources: [Docs/prereg-reasons.md; ADR-025, ADR-026, ADR-027, ADR-033].
+Sources: [Docs/prereg-reasons.md; ADR-025, ADR-026, ADR-027, ADR-033, ADR-036, ADR-038].
 
 ### 3.2 Versions
 
@@ -121,6 +133,8 @@ Sources: [Docs/prereg-reasons.md; ADR-025, ADR-026, ADR-027, ADR-033].
 | Rule set | instrument v1 (last commit `febc918`) and instrument v2, which adds role exemptions for three proxy rules | [ADR-026] |
 | Matching rule | 1.1.0 (registered) and 1.2.0 (post-hoc, ADR-025) | [Docs/matching-rule.md; ADR-025] |
 | Baseline tool | dependency-cruiser 18.4.0 with typescript 5.9.3; translation 1.0.0 | [ADR-030 item 1] |
+| LLM-review reviewer | `gpt-5.6-terra` through Codex CLI 0.162.1, effort medium, read-only confined | [ADR-036 item 1] |
+| Robustness judge | `claude-sonnet-5-5` on the frozen route (CLI 2.1.294, ADR-018 config), effort high | [ADR-038 item 3] |
 | E1 generators | `claude-opus-5-5`, `claude-sonnet-5-5`, `claude-haiku-4-5`; `gpt-5.6-terra` through Codex CLI 0.162.1 | [Docs/analysis-plan.md §2; ADR-029] |
 
 ### 3.3 Corpus and selection rules (pre-registered, with post-hoc steps declared)
@@ -229,6 +243,7 @@ Each item below was decided after some outputs were seen. Every one is reported 
 | ADR-030 | Translation defect found after the run; sensitivity variant `dts` | Tool comparison has a registered and a post-hoc reading |
 | ADR-032 | E1 extraction uses the pinned per-run tsconfig | Operational. All pass-1 E1 records discarded |
 | ADR-033 | Reproduction-audit corrections: labelled SO4 reading at N = 73, degenerate-interval flags, one interval method per table, `uncertain`-rule sensitivity rows for baseline precision | Labelled SO4 precision 1.000 → 0.957 and F1 0.944 → 0.937. Baseline precision reported as a range. No registered outcome changed |
+| ADR-036 | Plain LLM-review pilot, exploratory throughout. One scorer defect declared after the run: `summary.json` consistency (0.571) averages three one-run trees as 0; the per-tree CSV is the source (0.727) | No registered number changed. The registered scorer is not edited [Docs/DiagnosticRuns/llm-review-pilot-2026-10-11.md] |
 | (none; diagnostic note) | E1 size analysis: tests on LOC, files, per-file density, density without FF-CV05, AHS residualised on ln LOC, per-function AHS deficit | Explains the reversed E1 spec effect. No registered E1 number changed [Docs/DiagnosticRuns/e1-size-analysis-2026-10-10.md §8] |
 
 ---
@@ -725,6 +740,115 @@ The Codex arm is one model, `gpt-5.6-terra`, with 18 of 18 cells valid [results/
 
 ---
 
+### 4.9 Plain LLM-review baseline pilot (ADR-036; exploratory)
+
+**Question.** A reviewer can ask why a firewall is needed when a coding agent can be asked to review the code against the architecture. The pilot gave Codex `gpt-5.6-terra` (CLI 0.162.1, effort medium, read-only sandbox) the architecture spec as prose and a tree, and scored its listed violations with the firewall's own matching keys. All readings are **exploratory**: no test, and no claim beyond 12 trees and one prompt [ADR-036 items 1, 3, 6, 7; Docs/threats-to-validity.md, TV-111, TV-113].
+
+**Execution.** The registered budget stop (150 credits) ended the run before `p4-after` run 1. **25 of the 42 planned reviews ran and are valid**: run 0 of all 14 trees, and run 1 of the 10 seeded and baseline trees and of `p4-before`. There were 26 calls, including 1 discarded attempt. The valid runs cost 139.97 credits (147.96 with the discard), or 5.92 per valid review, and took 3.2 minutes each [Docs/DiagnosticRuns/llm-review-pilot-2026-10-11.md, "Execution and the budget stop"; results/llm-review/cost.csv].
+
+**Seed detection** (5 seeds, one per operator, 2 runs each) [results/llm-review/seeds.csv; results/llm-review/recall.csv]:
+
+| Seed | Runs detecting | Firewall |
+|---|---|---|
+| truthy-demo, MO-S01 | 2/2 | matched |
+| v-aguiar__valex, MO-P01 | 2/2 | matched |
+| dry-run-test, MO-C04 | 2/2 | matched |
+| realworld-test, MO-SO01 | 1/2 | matched |
+| zhuravlevma__nestjs-active-record, MO-CV02 | 2/2 | matched |
+| **Seed-runs** | **9/10 = 0.90** (Wilson 0.596 to 0.982, "if independent") | **5/5** |
+
+The primary, presence and family readings give the same 9/10 [results/llm-review/recall.csv]. Every seed was found in at least one run. The MO-C04 seed creates a file named `OrphanHelper.ts`, a name that hints at the rule; it is a declared leakage channel [Docs/threats-to-validity.md, TV-112].
+
+**Run-to-run consistency.**
+
+- Mean pairwise Jaccard over the 11 trees with two valid runs: **0.727**. Over the 10 seeded and baseline trees: 0.799, range 0.54 to 0.94. `p4-before`, the largest tree, gave 28 and 2 findings, Jaccard 0.000 [results/llm-review/consistency.csv; Docs/DiagnosticRuns/llm-review-pilot-2026-10-11.md, "Consistency"].
+- **Declared scorer defect.** The value 0.571 in `summary.json` averages the three one-run trees as 0. The per-tree CSV is correct and is the source of 0.727. The registered scorer was not edited after the run [same note].
+
+**Overlap with the firewall** (all valid runs, listed rules only) [results/llm-review/overlap.csv; results/llm-review/summary.json; Docs/DiagnosticRuns/llm-review-pilot-2026-10-11.md, "Overlap with the firewall"]:
+
+| Claims by the LLM (909) | Count | Share |
+|---|---|---|
+| Equal a firewall key (same rule and file) | 460 | 50.6% |
+| On a file the firewall flags under another listed rule | 119 | 13.1% |
+| On a file with no listed-rule firewall finding | 210 | 23.1% |
+| Name a judge rule (FF-N01, FF-N02) or an unlisted id | 120 | 13.2% |
+
+The runs list 460 of the firewall's 1736 run-paired keys (26.5%). Nothing is labelled, so neither side's precision is claimed.
+
+**Real fix pairs** (one before and after run pair each) [Docs/DiagnosticRuns/llm-review-pilot-2026-10-11.md, "Real fix pairs"; results/llm-review/pairs.csv]:
+
+| Pair | LLM flags the fix (primary / strict) | Chance control | DaedalusArch / dependency-cruiser |
+|---|---|---|---|
+| p4 | 1/1, 1/1 | 1 of 2 run pairs of the unchanged before tree "resolve" a finding | detects / detects |
+| p5 | 1/1, 0/1 | not computable (one before run) | no / no |
+
+The p4 flag cannot be told from run-to-run variation: the control fires in 1 of 2 run pairs, and the two `p4-before` runs listed 28 and 2 findings. The p5 flag is an instability finding on a module root that no rule tool reads, and rests on one run. So **on the real fix pairs the LLM's hits are close to chance**.
+
+**Interpretation (exploratory).**
+
+- A plain LLM review is good at spotting planted violations (9/10), about as well as the firewall on these five clear-cut seeds.
+- It is **not repeatable** (Jaccard 0.727, and 0.000 on the largest tree), **not exhaustive** (it lists 26.5% of the firewall's keys) and **costly** (about 6 credits and 3 minutes per review, against seconds and no credits for the firewall [results/tool-comparison/runtime.csv]).
+- The firewall's case is therefore that it is deterministic, exhaustive, fast and auditable. This pilot does not show that it detects more seeds.
+- Limits: 5 seeds and 2 pairs, 1 to 2 runs each, one model, one prompt written by the author, the budget stop, the firewall's outcomes known beforehand, and the cuts made for cost (two large bases not admitted, advisory rules not listed) [ADR-036 items 2, 5; TV-111 to TV-113].
+
+### 4.10 Judge model robustness (ADR-038)
+
+**Design** (registered before any Sonnet call, prereg v25). `claude-sonnet-5-5` re-judged 100 recorded units on the same pinned route: 25 units from each of E7 and E1 for each of FF-N01 and FF-N02, drawn with seed 9401. The prompts are byte-identical to the recorded ones; only the model differs. There were 300 calls (3 runs per unit), 0 invalid runs and 0 retries, and every run was served by `claude-sonnet-5-5` [Docs/DiagnosticRuns/judge-robustness-2026-10-11.md; ADR-038 items 1 to 3].
+
+**Unit agreement, Opus vote against Sonnet vote** [results/judge-robustness/agreement.csv]:
+
+| Scope | n | Agreement (95% CI) | κ | AC1 |
+|---|---|---|---|---|
+| All, unweighted (**primary**) | 100 | **0.940** (0.875 to 0.972, Wilson) | **0.766** (0.565 to 0.926) | **0.931** (0.872 to 0.978) |
+| All, population-weighted | 100 | 0.974 (0.950 to 0.992) | 0.886 | 0.970 |
+| E7 | 50 | 0.880 (44/50) | 0.603 | 0.859 |
+| E1 | 50 | 1.000 (50/50) | 1.000 | 1.000 |
+| FF-N01 / FF-N02 | 50 / 50 | 0.960 / 0.920 | 0.852 / 0.672 | 0.954 / 0.909 |
+| E7 FF-N02 | 25 | 0.840 | 0.432 | 0.815 |
+
+**Disagreements.** There are 6, all of one kind: **Opus failed, Sonnet passed**. Opus passed and Sonnet failed in 0 units. All 6 are E7 units with low Opus confidence (0.60 to 0.66): 2 FF-N01 DTO modules and 4 FF-N02 files [results/judge-robustness/transition.csv; Docs/DiagnosticRuns/judge-robustness-2026-10-11.md, "Unit agreement"]. Fail rate: Opus 18/100, Sonnet 12/100 [results/judge-robustness/fail-rates.csv].
+
+**Verdict impact.** Replacing the sampled votes with Sonnet's in the 41 affected reports changes **0 function verdicts and 0 project or cell verdicts**, under the registered majority rule and under the any-fail rule. Every unsubstituted report reproduced its stored AHS and verdict [results/judge-robustness/verdict-impact.csv].
+
+**Reading (pre-declared, analysis plan §16.2).** The primary κ 0.766 is at or above 0.60, so the unit verdicts are **robust** to the judge model within the frozen route. Where the models differ, Sonnet is the more lenient: it clears 6 of Opus's 18 fails, all low-confidence and all on real E7 projects.
+
+**Limits.** This is agreement between two Claude models on one route, not validity: shared training can make both wrong in the same way (TV-114). n = 100 with about 18% fails, and the E7 FF-N02 κ of 0.43 rests on 25 units (TV-115). The substitution replaces only the sampled units. The reading is pre-declared and registered, so it is not post-hoc.
+
+### 4.11 Judge-catch test B (ADR-037): not run
+
+**What was planned.** Experiment B would seed unsound constructs that the judge should fail (operators MO-X02 for FF-N02 and MO-X03 for FF-N01) and measure the judge's detection rate, with twins for the false-alarm rate. It is the test that P4 lacks (Section 4.8.5). ADR-037 is reserved and on hold, and nothing of it is registered [ADR-038 status line; Docs/ADR table, row 037].
+
+**Finding.** The frozen operators placed **no seed** where they were tried [Docs/DiagnosticRuns/judge-probe-e1-site-count.md]:
+
+| Population | MO-X02 seeds | MO-X03 seeds | Twins placeable |
+|---|---|---|---|
+| 7 held-out corpus bases (2026-10-09) | 0 | 0 | not reported in the note |
+| 65 E1 cells | 0 (3 cells had candidates, all rejected) | 0 (11 cells had candidates, all rejected) | 12 twins in 11 cells (MO-X02n 1, MO-X03n 11) |
+
+Candidates were rejected as `not-removable-guard` or `type-shape`. The seed constructions need a boolean entity method used only as the condition of guard statements (`if (!e.m()) throw ...`). The generated and real code validates inline, uses methods that do more than return a boolean, or uses methods the type checker would not let be removed [same note, "Reading"].
+
+**Why this is a construct-validity finding.** The operators encode one author-chosen shape of the anti-pattern, and that shape is rare in both real NestJS code and LLM-generated code. The judge's detection rate cannot be measured with them on either population; only the twin false-alarm rate can. The result says nothing against the judge. It says the test instrument does not match how the anti-patterns occur in practice.
+
+**Proposed redesign (my proposal; not registered, no ADR, needs the author's approval).**
+
+- Derive seed shapes from anti-patterns that occur in the corpus and the E1 projects, found by a label-free survey of the committed code, instead of a single imagined shape. Examples of the kind of shape to survey: business rules moved into controllers or transport classes, persistence calls inside domain entities, and use cases that bypass their ports.
+- Freeze the new operators and a site-count rule before any judge call, as was done for the site count in `judge-probe-e1-site-rule.md`, and report the site count first so that a zero is visible before cost is spent.
+- Keep the twin design and the call cap of the existing plan, and register it as a new ADR under a new prereg version.
+- Reading would stay exploratory until the site count shows enough seeds.
+
+### 4.12 Summary of Sections 4.9 to 4.11
+
+| Question | Result | Reading | Source |
+|---|---|---|---|
+| Does a plain LLM review find planted seeds? | 9/10 seed-runs (0.596 to 0.982); firewall 5/5 | exploratory | [results/llm-review/recall.csv] |
+| Is it repeatable? | Jaccard 0.727 (0.000 on the largest tree) | exploratory | [results/llm-review/consistency.csv] |
+| Does it cover the firewall's findings? | 26.5% of firewall keys; 50.6% of its claims equal a firewall key | exploratory | [results/llm-review/overlap.csv] |
+| What does it cost? | 5.92 credits, 3.2 minutes per review | exploratory | [results/llm-review/cost.csv] |
+| Does the judge depend on its model? | agreement 0.940, κ 0.766, 0 verdict changes | pre-registered | [results/judge-robustness/agreement.csv] |
+| Can the judge's detection be measured with the frozen operators? | No: 0 seeds on the corpus and the E1 cells | construct-validity finding | [Docs/DiagnosticRuns/judge-probe-e1-site-count.md] |
+
+---
+
 ## 5. Honest limitations
 
 1. **Circularity.**
@@ -760,6 +884,10 @@ The Codex arm is one model, `gpt-5.6-terra`, with 18 of 18 cells valid [results/
 10. **Baseline precision depends on an unregistered choice.** 8 of the 24 v2 items are `uncertain`. Counting them as not real (registered), excluded or real (both post-hoc) gives 0.33, 0.61 or 0.79 [results/so4-heldout/agg/precision_baseline.csv]. Only the author audit or a second labeller can narrow this.
 11. **E1 limits** (Section 4.8.7): at most 3 runs per cell and 3 or 4 valid Haiku cells per level; 2 tasks; one vendor in the confirmatory tests; the ADR-032 fix; the usage-limit misclassification during pass 1; every cell in the pass band.
 12. **The stale register entries named in the first version are fixed.** ADR-033 item 5 replaced the "No run has happened yet" row of the threats register §3 and corrected TV-17 (floor not met: 75 strict, 73 corrected and labelled). ADR-033 item 6 records ADR-031 as withdrawn [ADR-033; Docs/threats-to-validity.md, TV-17, TV-108].
+13. **The two latest experiments are small.**
+    - The LLM-review pilot has 5 seeds, 2 pairs and 1 to 2 runs per tree, stopped at its credit budget (25 of 42 reviews), with one model and one author-written prompt [Docs/DiagnosticRuns/llm-review-pilot-2026-10-11.md; TV-111 to TV-113].
+    - The judge robustness check has 100 units, about 18% fails, and two models from one vendor [TV-114, TV-115].
+    - Judge detection (test B) is unmeasured because the frozen operators place no seeds (Section 4.11).
 
 ---
 
@@ -775,6 +903,8 @@ The Codex arm is one model, `gpt-5.6-terra`, with 18 of 18 cells valid [results/
 - In E1, the spec level given to Claude generators changes the AHS of what they build (pre-registered, Holm p 0.0003). The post-hoc size analysis shows that the change runs through project structure: with no spec the models build small, flat projects where the coupling and dependency-inversion rules rarely fire. At equal size, the architecture-as-code spec beats the prose spec (δ 0.52; 0.47 after the LOC adjustment) [results/e1-grid/agg/so5_tests.csv; results/e1-grid/agg-size/size_tests.csv].
 - The E1 generation and evaluation pipeline worked at scale: 72 cells, 65 judged, 1 233 judge units with none invalid [results/e1-grid/agg/so5_grid.csv; results/e1-grid/judge-diagnostics/judge_summary.csv].
 - The judge does not fail code that an independent-vendor panel passes: on the E1 headline, agreement is 0.982 (95% CI 0.949 to 1.000, n = 36, AC1 0.982), and 100% on the fixtures. Both disagreements were lenient. κ is 0 because the judge passed every item, so AC1 is the figure to quote [results/e1-grid/label-plan-p4-api/labelling.json]. This is agreement with a single-model panel, not proof of correctness.
+- The judge's unit verdicts do not depend on the choice between two Claude models on the frozen route: Sonnet agrees with Opus on 94% of 100 units (κ 0.766, AC1 0.931), and swapping the sampled votes changes no verdict [results/judge-robustness/agreement.csv; results/judge-robustness/verdict-impact.csv]. This is model robustness, not validity.
+- (Exploratory.) A plain LLM review given the same spec finds most planted seeds (9/10 runs), but is not repeatable (Jaccard 0.727), reproduces 26.5% of the firewall's keys, and costs about 6 credits and 3 minutes per review [results/llm-review/recall.csv; results/llm-review/consistency.csv; results/llm-review/overlap.csv; results/llm-review/cost.csv]. This supports the firewall's case on determinism, exhaustiveness, speed and auditability, not on seed detection.
 
 **Not supported (yet).**
 
@@ -783,6 +913,9 @@ The Codex arm is one model, `gpt-5.6-terra`, with 18 of 18 cells valid [results/
 - That the judge is free of self-preference. The registered directional check is positive (p 0.014), although the contrast is driven by the Haiku cells [results/e1-grid/agg/so5_tests.csv]. P4 agreement shows no self-preference pattern, but with 2 disagreements it cannot rule one out [results/e1-grid/label-plan-p4-api/labelling.json].
 - That DaedalusArch detects real architectural fixes better than an import checker. Both detect 2 of 5, the same two.
 - That the judge detects unsound architecture. On E1 the panel failed only 2 of 36 comparable items and the judge missed both; its fail detection is checked mainly on the 2 fixture fails [results/e1-grid/label-plan-p4-api/labelling.json].
+- That the firewall beats a plain LLM review at finding violations. Seed detection is 5/5 against 9/10 on 5 seeds, the real-pair hits of the LLM are close to chance on n = 2, and nothing is labelled, so neither side's precision is claimed [Docs/DiagnosticRuns/llm-review-pilot-2026-10-11.md].
+- That the judge's detection rate is known. Test B could not be run, because the frozen MO-X02 and MO-X03 place 0 seeds on the corpus and on the 65 E1 cells [Docs/DiagnosticRuns/judge-probe-e1-site-count.md].
+- That the judge is valid because it is robust to the model. Two Claude models agreeing is not agreement with a human [Docs/threats-to-validity.md, TV-114].
 - Anything about the Hexagonal style, non-NestJS frameworks, projects beyond about 800 files, or languages other than TypeScript.
 - That specs make generated architecture worse. The reversed E1 effect is an effect of spec level on project size and structure, which the AHS then scores.
 - Any difference between Claude models (no model effect, Holm p 0.438), or any SO5 claim beyond Claude generators, these two tasks and small projects. The Codex arm reverses the spec order and is exploratory.
@@ -798,7 +931,7 @@ The Codex arm is one model, `gpt-5.6-terra`, with 18 of 18 cells valid [results/
 - *Decision:* whether the Codex arm's 18 cells are reported in the thesis body or in an appendix. They are exploratory except the vendor self-preference check [Docs/analysis-plan.md §6.1]. My recommendation is a short body paragraph (it reverses the spec order) with the tables in an appendix.
 - *Decision:* whether to register a follow-up that adds a per-file or size-matched outcome before any new E1-style run. It cannot be applied to the current E1 data as anything but post-hoc.
 
-**Decisions requested.**
+**Decisions requested.** (Items 6 and 7 are new in this revision.)
 
 1. **P4 judge-vs-panel result.** P4 is labelled: 46 items, 92 calls on the Gemini API, 254 of the 300 label invocations used, 46 left [results/labels/live-call-ledger.md, rows 1 to 5; derived 300 − 254]. The result is in Section 4.8.5: E1 headline agreement 0.982 (n = 36, AC1 0.982, κ 0 from prevalence), fixtures 100%, both errors lenient.
    - The result is reassuring but weak on fail detection: the panel failed only 2 of 36 E1 items, and the judge missed both [results/e1-grid/label-plan-p4-api/labelling.json].
@@ -822,8 +955,16 @@ The Codex arm is one model, `gpt-5.6-terra`, with 18 of 18 cells valid [results/
    - **An MCP firewall-in-the-loop.** DaedalusArch served as an MCP tool the generating agent calls during generation, compared with post-hoc evaluation. This is a new experiment with its own isolation design. It cannot reuse the E1 confinement unchanged, because that confinement forbids MCP [ADR-029 item 4; Docs/threats-to-validity.md, TV-95].
    - *Decision:* thesis scope or future work. My recommendation is future work for both, given the time left and the limits of the P4 validation.
 
+6. **Plain LLM-review baseline (ADR-036).** The pilot is complete but small and stopped at its budget (25 of 42 reviews).
+   - *Decision:* report it in the thesis as an exploratory comparison, with the framing "good at planted seeds, not repeatable, not exhaustive, costly", and the firewall's case as determinism, exhaustiveness, speed and auditability. My recommendation is a short subsection plus the tables in an appendix.
+   - *Decision:* whether to spend more credits to complete the 17 missing reviews or to extend the pilot (more seeds, a second model, labelled precision). Either needs a new registration; the current one cannot be extended without being post-hoc. My recommendation is not to extend it, and to say plainly that it is a pilot.
+7. **Judge detection (test B) and the judge robustness result.**
+   - *Decision:* approve the redesign in Section 4.11 (anti-patterns surveyed from the committed code, a site-count gate before any judge call, a new ADR and prereg version), or state in the thesis that the judge's detection rate is unmeasured. My recommendation is to state it as unmeasured in the thesis and to run the redesign only if time allows.
+   - The robustness result (Section 4.10) can be cited in the judge paper as model robustness, beside the P4 agreement, with both limits stated (one vendor, no human check).
+
 **Housekeeping before the thesis draft.**
 
 - Done in ADR-033 (prereg v21): the stale threats-register entries and the ADR-031 gap (Section 5, item 12).
 - Still open: close threat TV-84, the developer study dropped with no ADR recording it [Docs/threats-to-validity.md, TV-84].
 - New: add a threats-register entry for the E1 usage-limit misclassification (Section 4.8.7, item 5), which is recorded only in the audit log.
+- New: the `summary.json` consistency value of the LLM-review pilot (0.571) is a declared scorer defect (Section 4.9). Quote 0.727 from `consistency.csv`.
