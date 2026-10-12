@@ -20,6 +20,19 @@ export const SPEC_SCHEMA_V1 = {
       required: ['layers'],
       properties: {
         style: { type: 'string' },
+        // v1.3: the allowed-dependency graph of the hexagonal style; read by that style only.
+        allowed_dependencies: {
+          type: 'array',
+          items: {
+            type: 'object',
+            required: ['from', 'to'],
+            properties: {
+              from: { type: 'string', minLength: 1 },
+              to: { type: 'array', items: { type: 'string', minLength: 1 }, minItems: 1 },
+            },
+            additionalProperties: false,
+          },
+        },
         layers: {
           type: 'array',
           minItems: 2,

@@ -51,6 +51,14 @@ export interface EvalRubric {
 
 export interface LayerModel {
   readonly layers: readonly LayerDefinition[];
+  /** Hexagonal style only (v1.3): the allowed-dependency graph, `from` may import `to`. Absent for every other style. */
+  readonly allowedDependencies?: readonly AllowedDependency[];
+}
+
+/** One directed edge of the hexagonal allowed-dependency graph (`architecture.allowed_dependencies`). */
+export interface AllowedDependency {
+  readonly from: string;
+  readonly to: string;
 }
 
 export interface LayerDefinition {

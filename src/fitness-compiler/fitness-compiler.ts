@@ -17,6 +17,8 @@ import type { InstrumentVersion } from './role-exemptions.js';
 import { compilerInputFromSpec } from './compiler-input.js';
 import { compilePattern } from './pattern-compiler.js';
 import { checkBoundParameters } from './bound-param-checker.js';
+import { compileHexagonalFunctions } from './hexagonal-compiler.js';
+import { HEXAGONAL_STYLE } from './hexagonal-templates.js';
 
 // ── Standalone Function ───────────────────────────────────────────────────────
 
@@ -43,6 +45,14 @@ export interface CompileOptions {
 }
 
 export function compileFunctions(input: CompilerInput, options: CompileOptions = {}): DomainResult<CompiledFunctions> {
+  // v1.3: the hexagonal style has its own graph-based templates; every other style takes the path below unchanged.
+  if (input.style === HEXAGONAL_STYLE) {
+    return compileHexagonalFunctions(input, (rest) => compileFunctionsCore(rest, options));
+  }
+  return compileFunctionsCore(input, options);
+}
+
+function compileFunctionsCore(input: CompilerInput, options: CompileOptions): DomainResult<CompiledFunctions> {
   const instrumentVersion = options.instrumentVersion ?? INSTRUMENT_VERSION;
   const { fitnessFunctions, adrRules, layerModel } = input;
   const symbolicQueries: CypherQuery[] = [];

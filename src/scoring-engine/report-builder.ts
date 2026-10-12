@@ -25,6 +25,7 @@ import type { PipelineError, PipelineWarning } from '../shared/errors/domain-res
 import { DomainResult } from '../shared/errors/domain-result.js';
 import { scrubWarning } from '../shared/errors/scrub.js';
 import { getTemplateTag } from '../fitness-compiler/cypher-templates.js';
+import { HEXAGONAL_TEMPLATES } from '../fitness-compiler/hexagonal-templates.js';
 import { mergeWarnings, REPORT_STAGE } from './warning-merge.js';
 import { INSTRUMENT_VERSION } from '../fitness-compiler/role-exemptions.js';
 import type { InstrumentVersion } from '../fitness-compiler/role-exemptions.js';
@@ -181,7 +182,7 @@ function rowOf(fn: ExecutedFunction, violationCount: number): FunctionResultRow 
   const dimension: Dimension | undefined = symbolic?.dimension ?? neural?.dimension;
   const tag = entry.route === 'neuronal'
     ? undefined
-    : symbolic?.tag ?? (entry.templateName !== undefined && !entry.adr ? getTemplateTag(entry.templateName) : undefined);
+    : symbolic?.tag ?? (entry.templateName !== undefined && !entry.adr ? (getTemplateTag(entry.templateName) ?? HEXAGONAL_TEMPLATES.get(entry.templateName)?.tag) : undefined);
   const neuralPassed = neural?.verdict !== 'fail';
   const passed = (symbolic?.passed ?? true) && neuralPassed;
   return {

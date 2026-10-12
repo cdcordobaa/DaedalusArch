@@ -1,5 +1,5 @@
 import type {
-  FitnessFunction, LayerModel, LayerDefinition,
+  FitnessFunction, LayerModel, LayerDefinition, AllowedDependency,
   ScoringWeights, VerdictThresholds, ConfidenceThresholds,
   SemanticCriteria,
 } from '../shared/types/spec.js';
@@ -43,6 +43,21 @@ export function parseLayerA(raw: Record<string, unknown>, warnings: ValidationWa
 
   const { layers, warnings: kindWarnings } = resolveLayerKinds(declared);
   warnings.push(...kindWarnings);
+
+  // v1.3: `allowed_dependencies` is read by the hexagonal style only; any other style ignores it with SPEC_001.
+  const { allowed_dependencies: rawEdges, style } = arch as { allowed_dependencies?: { from: string; to: string[] }[]; style?: string };
+  if (rawEdges != null) {
+    if ((style ?? '').toLowerCase() !== 'hexagonal') {
+      warnings.push({
+        code: 'SPEC_001',
+        message: 'Field "allowed_dependencies" is read by the hexagonal style only (ignored)',
+        path: 'architecture.allowed_dependencies',
+      });
+    } else {
+      const allowedDependencies: AllowedDependency[] = rawEdges.flatMap((e) => e.to.map((to) => ({ from: e.from, to })));
+      return { layers, allowedDependencies };
+    }
+  }
   return { layers };
 }
 
