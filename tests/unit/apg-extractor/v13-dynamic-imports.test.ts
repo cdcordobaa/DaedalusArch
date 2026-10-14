@@ -2,6 +2,7 @@ import { Project } from 'ts-morph';
 import { extractNodes } from '../../../src/apg-extractor/node-extractor.js';
 import { extractEdges } from '../../../src/apg-extractor/edge-extractor.js';
 import type { ExtractorOptions } from '../../../src/apg-extractor/types.js';
+import { DEFAULT_OPTIONS, V12E_DEFAULT_OPTIONS, V13_DEFAULT_OPTIONS } from '../../../src/apg-extractor/types.js';
 
 const ROOT = '/proj';
 
@@ -30,8 +31,24 @@ const MO_X01_SEED: Record<string, string> = {
 };
 
 describe('v1.3 dynamicImports option', () => {
-  it('is off by default: dynamic calls give no IMPORTS edge and stay counted (v1.2E behaviour)', () => {
-    const { edges, importResolution, warnings } = setup(MO_X01_SEED);
+  it('is on by default in v1.3 (V13_DEFAULT_OPTIONS) and off in the frozen v1.2E defaults', () => {
+    expect(DEFAULT_OPTIONS).toBe(V13_DEFAULT_OPTIONS);
+    expect(V13_DEFAULT_OPTIONS.dynamicImports).toBe(true);
+    expect(V12E_DEFAULT_OPTIONS.dynamicImports).toBe(false);
+  });
+
+  it('default (no option): the MO-X01 dynamic import is an IMPORTS edge, same as dynamicImports: true', () => {
+    const byDefault = setup(MO_X01_SEED);
+    const explicit = setup(MO_X01_SEED, { dynamicImports: true });
+    const imports = byDefault.edges.filter(e => e.type === 'IMPORTS');
+    expect(imports).toHaveLength(1);
+    expect(imports[0]?.properties.dynamic).toBe(true);
+    expect(byDefault.importResolution.unsupportedDynamic).toBe(0);
+    expect(byDefault.edges).toEqual(explicit.edges);
+  });
+
+  it('explicit off (dynamicImports: false): dynamic calls give no IMPORTS edge and stay counted (v1.2E behaviour)', () => {
+    const { edges, importResolution, warnings } = setup(MO_X01_SEED, { dynamicImports: false });
     expect(edges.filter(e => e.type === 'IMPORTS')).toHaveLength(0);
     expect(importResolution.unsupportedDynamic).toBe(1);
     expect(warnings.some(w => w.code === 'EXTRACTOR_009')).toBe(true);
@@ -89,7 +106,7 @@ describe('v1.3 dynamicImports option', () => {
   });
 
   it('leaves the statement partition counters unchanged', () => {
-    const off = setup(MO_X01_SEED).importResolution;
+    const off = setup(MO_X01_SEED, { dynamicImports: false }).importResolution;
     const on = setup(MO_X01_SEED, { dynamicImports: true }).importResolution;
     expect({ ...on, unsupportedDynamic: 0 }).toEqual({ ...off, unsupportedDynamic: 0 });
   });

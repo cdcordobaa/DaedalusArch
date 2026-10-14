@@ -55,8 +55,14 @@ export class AuditModule { static forRoot(_o: object) { return AuditModule; } }`
 };
 
 describe('v1.3 moduleWiring option', () => {
-  it('is off by default: no MODULE_* edges', () => {
-    const { edges, warnings } = setup(FIXTURE);
+  it('is on by default in v1.3: MODULE_* edges without passing the option, same as moduleWiring: true', () => {
+    const byDefault = setup(FIXTURE);
+    expect(byDefault.edges.filter(e => e.type.startsWith('MODULE_')).length).toBeGreaterThan(0);
+    expect(byDefault.edges).toEqual(setup(FIXTURE, { moduleWiring: true }).edges);
+  });
+
+  it('explicit off (moduleWiring: false): no MODULE_* edges (v1.2E behaviour)', () => {
+    const { edges, warnings } = setup(FIXTURE, { moduleWiring: false });
     expect(edges.filter(e => e.type.startsWith('MODULE_'))).toHaveLength(0);
     expect(warnings.some(w => w.code === 'EXTRACTOR_010')).toBe(false);
   });
@@ -97,7 +103,7 @@ describe('v1.3 moduleWiring option', () => {
   });
 
   it('gives every edge a deterministic unique id and leaves the v1.2E edges untouched', () => {
-    const off = setup(FIXTURE);
+    const off = setup(FIXTURE, { moduleWiring: false });
     const on = setup(FIXTURE, { moduleWiring: true });
     const v12 = on.edges.filter(e => !e.type.startsWith('MODULE_'));
     expect(v12).toEqual(off.edges);

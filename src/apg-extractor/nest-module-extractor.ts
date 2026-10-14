@@ -1,5 +1,5 @@
 /**
- * v1.3 NestJS module wiring (`moduleWiring` option, OFF by default).
+ * v1.3 NestJS module wiring (`moduleWiring` option, ON by default in v1.3).
  *
  * Reads the `@Module({ imports, providers, controllers, exports })` metadata of a class as edges between Class
  * nodes: MODULE_IMPORTS (module -> imported module), MODULE_PROVIDES (module -> provider or controller class,

@@ -99,8 +99,8 @@ export function extractEdges(
       if (resolution.outOfRootAlias) counts.externalOutOfRootAlias++;
     }
 
-    // v1.3 `dynamicImports` (OFF by default): string-literal import() / require() calls become IMPORTS occurrences
-    // (dynamic = true), after the file's static statements.
+    // v1.3 `dynamicImports` (ON by default in v1.3): string-literal import() / require() calls become IMPORTS
+    // occurrences (dynamic = true), after the file's static statements.
     if (opts.dynamicImports) {
       for (const occ of resolveDynamicImportTargets(sf, importCtx)) {
         merger.add(occ, occ.target.kind === 'file' ? occ.target.fileNodeId : packages.getOrCreate(occ.target.root).id);
@@ -300,7 +300,7 @@ export function extractEdges(
       }
     }
 
-    // v1.3 `moduleWiring` (OFF by default): @Module metadata edges, after every v1.2E edge of the file.
+    // v1.3 `moduleWiring` (ON by default in v1.3): @Module metadata edges, after every v1.2E edge of the file.
     if (opts.moduleWiring) {
       for (const edge of extractModuleWiringEdges(sf.getClasses(), filePath, projectRoot, lookup, addWarning)) addEdge(edge);
     }

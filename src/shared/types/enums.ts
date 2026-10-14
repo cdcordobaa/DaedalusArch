@@ -14,7 +14,7 @@ export const EDGE_TYPES = [
   'RE_EXPORTS',
 ] as const;
 
-// v1.3 NestJS module-wiring edge types (opt-in `moduleWiring` extractor option, OFF by default). Kept apart from
+// v1.3 NestJS module-wiring edge types (`moduleWiring` extractor option, ON by default in v1.3). Kept apart from
 // EDGE_TYPES, which the frozen v1.2E report schema, the SO2 CSV columns and the registered artefacts mirror.
 export const V13_EDGE_TYPES = ['MODULE_IMPORTS', 'MODULE_PROVIDES', 'MODULE_EXPORTS'] as const;
 
