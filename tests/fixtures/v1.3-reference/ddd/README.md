@@ -35,6 +35,14 @@ violation of a different rule; `n01` is a negative control that exercises the AC
 | v10-api-imports-infrastructure | FF-S03 | `OrderController` imports `InMemoryOrderRepository` |
 | n01-acl-internal-import | none | billing's ACL imports ordering's internal `OrderId` (allowed) |
 
+Probes added after the first tool run, each to test one limit (manifests still written from the definitions):
+
+| Variant | Rule | Plant |
+|---|---|---|
+| g01-value-object-setter-accessor | FF-DT03 | `Quantity` with a `set value` accessor over a mutable field |
+| g02-barrel-reexported-service | none | ordering's barrel publishes `GetOrderSummary`; billing's API imports it through the barrel |
+| g03-deep-import-of-reexported-file | FF-DS02 | same barrel; billing's API imports `GetOrderSummary.ts` directly |
+
 ## Manifests
 
 `expected-graph.json` (layer and context of every clean file, the key edges, the edges that must be absent) and

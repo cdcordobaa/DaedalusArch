@@ -2,6 +2,7 @@ import type { FitnessFunction, SemanticCriteria, ScoringWeights, VerdictThreshol
 import type { BuiltInTemplate } from './types.js';
 import { functionId } from '../shared/types/value-objects.js';
 import { buildHexagonalTemplate } from './hexagonal-template.js';
+import { buildDddTemplate } from './ddd-template.js';
 
 function ff(
   id: string,
@@ -170,6 +171,7 @@ export const TEMPLATE_REGISTRY: ReadonlyMap<string, BuiltInTemplate> = new Map([
  */
 export const EXTENSION_TEMPLATES: ReadonlyMap<string, BuiltInTemplate> = new Map([
   ['hexagonal', buildHexagonalTemplate(LAYERED_TEMPLATE)],
+  ['ddd', buildDddTemplate(LAYERED_TEMPLATE)],
 ]);
 
 export function resolveTemplate(style: string): BuiltInTemplate | undefined {

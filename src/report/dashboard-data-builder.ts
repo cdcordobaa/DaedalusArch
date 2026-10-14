@@ -4,7 +4,7 @@ import type { APGResult } from '../shared/types/apg.js';
 import type { BaselineResult } from '../shared/types/baseline.js';
 import type { ActionableViolation } from '../shared/taxonomy/violation-types.js';
 import { getTemplateTag } from '../fitness-compiler/cypher-templates.js';
-import { HEXAGONAL_TEMPLATES } from '../fitness-compiler/hexagonal-templates.js';
+import { getExtensionTemplate } from '../fitness-compiler/extension-templates.js';
 import { headlineAhs } from '../scoring-engine/report-formatter.js';
 import { CARD_GROUP_ORDER } from './types.js';
 import type {
@@ -144,7 +144,7 @@ function cardGroupOf(ff: FitnessFunction, rowTag: CardGroup | undefined, hasRow:
   if (rowTag !== undefined) return rowTag;
   if (ff.route === 'neuronal') return 'neural';
   if (hasRow) return 'untagged';
-  return getTemplateTag(ff.name) ?? HEXAGONAL_TEMPLATES.get(ff.name)?.tag ?? 'untagged';
+  return getTemplateTag(ff.name) ?? getExtensionTemplate(ff.name)?.tag ?? 'untagged';
 }
 
 /**
