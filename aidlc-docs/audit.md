@@ -1446,3 +1446,19 @@ Plan checkboxes ticked. Auto-approved under standing approval; no blocking or ma
 **Context**: v1.3 INCEPTION — Requirements Analysis answers recorded; requirements document next.
 
 ---
+
+## v1.3 INCEPTION → CONSTRUCTION — requirements, plan and first units launched
+**Timestamp**: 2026-10-14T20:10:00Z
+**User Input**: (delegated; see the entry above)
+**AI Response**: "Requirements v1.3-validity-requirements.md (FR-V1..V12, exit targets, NFR-V1..V6) and execution plan v1.3-execution-plan.md written and committed (c63fa0d). User Stories skipped (single persona, targets carry acceptance). Launched: Fable adversarial review of requirements and targets (read-only); U-A integration branch v1.3 (local lane 1); U-B graph-fidelity harness with a first result on the E1 cells (local lane 2); cloud routines U-C1 DDD library + DDD reference project (trig_01PNCxpTj149VELyt4og9HC4) and U-C2 reference projects for clean/layered/NestJS/hexagonal + validation-runner skeleton (trig_011SszUX2ar1CtkWeCmfqLDt), both with an anti-circularity rule (manifests written from style definitions before the tool runs, never edited to match). Notion brief page 3f950d308227810a8225e3b3f0be58f2 under the roadmap."
+**Context**: v1.3 — requirements gate auto-approved under delegation pending the Fable review; its confirmed points will be folded in as a requirements revision.
+
+---
+
+## v1.3 INCEPTION — Fable adversarial review folded in (requirements revision 1)
+**Timestamp**: 2026-10-14T20:25:00Z
+**User Input**: (none; review result under delegation)
+**AI Response**: "Fable review of the v1.3 requirements: 2 BLOCKING, 5 MAJOR, 3 MINOR. All accepted. (1) BLOCKING, manifests written by the rule author → blind re-derivation protocol, author adjudication, one external project per style. (2) BLOCKING, dependency-cruiser/tsc are not ground truth → report agreement; adjudicate every disagreement plus 50 seeded agreements; only the adjudicated figure counts as precision (running U-B agent updated). (3) Labels: correct label checked deterministically or by a rule-blind agent; Gemini only for meaningful; per-rule n fixed (all if < 40, else 40); author audit ≥ 30 items blind to rule id, κ ≥ 0.60 gate; ask the director for 30. (4) Study 2 task list written and sealed outside the repo, hash recorded; tunables to be hashed in the Study 2 prereg. (5) Tier table committed a priori (Docs/v1.3/rule-tiers.md, hashed). (6) Literature table (Docs/v1.3/style-rule-sources.md, paraphrases; author to verify the quotes). (7) Judge operators frozen before prompt changes; clean variants as negative control. (8) ≥ 20 seeds per style. (9) FF-P06 field half N/A (FLOWS_TO). (10) Gate 2 becomes a human gate; U-G deferred until U-F has numbers. Protocol: Docs/v1.3/validation-protocol.md. Hashes: Docs/v1.3/sealed-hashes.md. Note: the sealed Study 2 tasks were written by this coordinator session, which therefore knows them; v1.3 agents are not given that path."
+**Context**: v1.3 — requirements revision 1; Gate 2 (first fidelity result) is now a human gate.
+
+---
