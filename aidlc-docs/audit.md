@@ -1430,3 +1430,19 @@ Plan checkboxes ticked. Auto-approved under standing approval; no blocking or ma
 **Context**: CONSTRUCTION — Build and Test, extra experiments. Worktree ../DaedalusArch-wt-x3, branch v1.2e-exp-extra.
 
 ---
+
+## v1.3 INCEPTION — Workspace Detection (new cycle: tool validity, greenfield focus)
+**Timestamp**: 2026-10-14T19:08:15Z
+**User Input**: "Make the tool really work before any new study: use every test and run we have to improve it and prove its validity. Focus on greenfield. Add hexagonal and/or DDD as common real-world styles. Explore how specs shape the patterns LLMs generate and how the tool reviews that. Later, infer the rules of brownfield projects from the same graph (ISE). Then run another study; the methodology may change." (Author intent: a validation-and-hardening cycle v1.3 whose exit criterion is demonstrated tool validity, followed by a new pre-registered study.)
+**AI Response**: "Started AI-DLC v1.3 cycle. Workspace: existing TypeScript codebase on v1.2e (a28d245+), reverse-engineering artefacts exist, so Reverse Engineering is skipped. v1.2E stays frozen as Study 1. Evidence inventory for the questions: open v1.3 drafts #69 (dynamic imports, NestJS module wiring), #74 (MCP loop), #75 (graph adapters), #76 (hexagonal library), #77 (pnpm/yarn), #79 (judge anti-pattern operators); known instrument gaps: FLOWS_TO near-empty (ADR-023), dynamic import() uncovered (all 6 SO4 misses), FF-CV05 test-file-pairing (advisory) produces 83% of E1 findings, judge fail-detection untested (36/36 pass in P4; 0 probe sites), real-code precision a 24-item pilot (n_eff 11.5), graph fidelity and file-to-layer accuracy never measured against a reference, no-spec E1 confound. Next: Requirements Analysis, question file v1.3-validity-questions.md."
+**Context**: v1.3 INCEPTION — Workspace Detection complete; proceeding to Requirements Analysis (comprehensive depth). This is a requirement change, so the v1.2E standing approval does not cover v1.3 gates: author approval required at each gate.
+
+---
+
+## v1.3 INCEPTION — Requirements Analysis: author delegates all v1.3 decisions
+**Timestamp**: 2026-10-14T19:30:00Z
+**User Input**: "Okay please take charge of the whole implementation. Please generate a brief document in Notion for this and move the progress toward what we just talked about. I need quick results as you know so" (Intent: delegate every v1.3 decision and gate to the AI; prioritise speed; Notion brief; results quickly.)
+**AI Response**: "Answered all 17 questions with the recommended defaults, each marked 'AI default, delegated' in v1.3-validity-questions.md: per-link numeric targets (provisional); hexagonal + DDD (tactical first, strategic as bounded-context isolation) plus the existing styles; reference graph = hand-built for reference projects + automatic dependency-cruiser/tsc comparison; validation projects = hand-written core with manifests + reviewed generations; labels = Gemini + author sample audit, two labels (correct, meaningful); formal blocking/advisory tiers; judge filter-and-explain; FLOWS_TO stays a limitation; drafts #69 #74 #76 #79 in, #75 #77 parked; spec-influence pilot now, confirmatory later; ISE in a later cycle; Study 1 frozen / v1.3 development / Study 2 pre-registered on fresh data; tight timeline; proceed and bring results to the director; security baseline on. Author delegation recorded as standing approval for v1.3 gates; escalate only conflicts, scope changes, main, or anything that spends paid credits beyond the plan."
+**Context**: v1.3 INCEPTION — Requirements Analysis answers recorded; requirements document next.
+
+---

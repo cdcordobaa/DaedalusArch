@@ -111,3 +111,14 @@
 - [x] U5b Scoring+harness — Code Generation COMPLETE and merged 2026-10-08 (PR #8, merge commit 7192cb7; 2864 tests / 199 suites (2822 after the U4 sync + 42; 254 U5b tests in all); golden 80/80, 0 skipped; no snapshot change, no CHANGES.md line; pre-registration v1 at 84bd30c (2026-10-08T20:03:37Z, 28 artefacts, matching rule 1.0.0, labellingBudgetCalls 4000); corpus-spec chain 0c7b2df → 450134f → 194f7fe → 06ef4a7; PR CI runs 37839347368 / 37839298686 green; merge push run 37840382331 green; deviations DV-U5b-1..29) (code-summary in construction/v1.2E-u5b-scoring-harness/code/) (`construction/plans/v1.2E-u5b-scoring-harness-code-generation-plan.md`). Open: the SO4 floor escalation (CAT_SHORTFALL, 69 < 80 at k = 3, Step 25, author decision); OI-11, OI-12, OI-U5b-P2-1, OI-U5b-P2-4; no pinned Gemini labeller id
 - [ ] Build and Test (v1.2E) — **STOPPED at Step 49, E-1 and E-2 open** (2026-10-08; auto-approved under the standing approval). Done: BT-A Steps 0–8 (PR #9, 00114de), BT-C 13–20 (PR #10, bb97a7e), BT-E 26–27 (PR #11, 5020099), BT-F 34–41 (PR #12, c8abcf4) and the 46 lane code (PR #13, 6bcb3bb), BT-G 48–51 (PR #14, fda27b4). Held: BT-B 9–12, BT-D 21–25, BT-E 28–33, 42–43 (E-1); 38, 44–45, the L0 baseline in 46 (E-2). Gate U 2903 / 203; golden 80 / 7, snapshots unchanged, no CHANGES.md line; lane 7 / 7; live judge 20 / 40, generator 11 / 11 + 0 / 3. Summary `construction/build-and-test/build-and-test-summary.md`; instruction files in `construction/build-and-test/`. Lanes kept (daedalus-neo4j-bt, worktree, ../daedalus-corpus) until the orchestrator's word
 - CONSTRUCTION: Functional Design EXECUTE U1–U5 / SKIP U0; NFR Requirements EXECUTE light (in U0); NFR Design, Infrastructure Design SKIP; Code Generation and Build and Test EXECUTE
+
+### v1.3 VALIDITY CYCLE (started 2026-10-14) — tool validity, greenfield focus
+- **Current Stage**: INCEPTION — Requirements Analysis, waiting for author answers in `inception/requirements/v1.3-validity-questions.md`
+- **Study framing (proposed, Q14)**: v1.2E frozen as Study 1; v1.3 = development; Study 2 pre-registered on fresh held-out data
+- **Approval**: the v1.2E standing approval does not cover v1.3 gates (requirement change)
+- [x] Workspace Detection (existing code; reverse-engineering artefacts exist, RE skipped)
+- [ ] Requirements Analysis (comprehensive depth)
+- [ ] User Stories (assess)
+- [ ] Workflow Planning
+- [ ] Application Design (likely: style libraries, fidelity harness, labelling)
+- [ ] Units Generation
