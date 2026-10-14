@@ -1,0 +1,25 @@
+{
+  "schemaVersion": 1,
+  "style": "nestjs",
+  "variant": "v01-domain-entity-imports-dto",
+  "kind": "violation",
+  "plants": "FF-S01",
+  "description": "Registration (domain) imports RegisterAttendeeDto to offer Registration.fromDto().",
+  "patch": "variant.patch",
+  "expectedFindings": [
+    {
+      "ruleId": "FF-S01",
+      "ruleName": "dependency-direction",
+      "file": "src/domain/registration.ts",
+      "target": "src/registrations/dto/register-attendee.dto.ts",
+      "reason": "Domain imports an application-layer DTO: the dependency points outward."
+    },
+    {
+      "ruleId": "FF-S04",
+      "ruleName": "no-domain-outward-dep",
+      "file": "src/domain/registration.ts",
+      "target": "src/registrations/dto/register-attendee.dto.ts",
+      "reason": "A domain file imports a file of another layer."
+    }
+  ]
+}

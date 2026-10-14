@@ -1,0 +1,19 @@
+--- a/src/application/use-cases/RegisterBookUseCase.ts
++++ b/src/application/use-cases/RegisterBookUseCase.ts
+@@ -1,6 +1,6 @@
+ import { Book } from '../../domain/entities/Book';
+-import { BookRepository } from '../../domain/repositories/BookRepository';
+ import { Isbn } from '../../domain/value-objects/Isbn';
++import { InMemoryBookRepository } from '../../infrastructure/persistence/InMemoryBookRepository';
+ import { BookDto, toBookDto } from '../dto/BookDto';
+ import { IdGenerator } from '../ports/IdGenerator';
+ 
+@@ -13,7 +13,7 @@
+ 
+ export class RegisterBookUseCase {
+   constructor(
+-    private readonly books: BookRepository,
++    private readonly books: InMemoryBookRepository,
+     private readonly ids: IdGenerator,
+   ) {}
+ 

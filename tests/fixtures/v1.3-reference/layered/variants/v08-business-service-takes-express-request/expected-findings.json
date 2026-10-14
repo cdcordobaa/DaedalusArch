@@ -1,0 +1,18 @@
+{
+  "schemaVersion": 1,
+  "style": "layered",
+  "variant": "v08-business-service-takes-express-request",
+  "kind": "violation",
+  "plants": "FF-P01",
+  "description": "OrderService gets placeOrderFromRequest(request: express.Request) (type-only import).",
+  "patch": "variant.patch",
+  "expectedFindings": [
+    {
+      "ruleId": "FF-P01",
+      "ruleName": "domain-purity",
+      "file": "src/business/services/OrderService.ts",
+      "target": "express",
+      "reason": "The business layer imports the web framework express."
+    }
+  ]
+}

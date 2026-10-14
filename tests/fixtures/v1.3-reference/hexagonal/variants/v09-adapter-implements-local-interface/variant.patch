@@ -1,0 +1,23 @@
+--- a/src/adapters/outbound/persistence/InMemoryRoomRepository.ts
++++ b/src/adapters/outbound/persistence/InMemoryRoomRepository.ts
+@@ -1,8 +1,8 @@
+-import { RoomRepository } from '../../../application/ports/out/RoomRepository';
+ import { Money } from '../../../domain/model/Money';
+ import { Room } from '../../../domain/model/Room';
++import { RoomStore } from './RoomStore';
+ 
+-export class InMemoryRoomRepository implements RoomRepository {
++export class InMemoryRoomRepository implements RoomStore {
+   private readonly rooms = new Map<string, Room>([
+     ['r-101', new Room('r-101', '101', Money.ofCents(9_000), 2)],
+     ['r-102', new Room('r-102', '102', Money.ofCents(12_000), 3)],
+--- /dev/null
++++ b/src/adapters/outbound/persistence/RoomStore.ts
+@@ -0,0 +1,7 @@
++import { Room } from '../../../domain/model/Room';
++
++/** The adapter's own contract, declared next to it instead of in the application. */
++export interface RoomStore {
++  findById(id: string): Promise<Room | undefined>;
++  findAll(): Promise<Room[]>;
++}

@@ -1,0 +1,75 @@
+--- /dev/null
++++ b/src/domain/waitlist.repository.ts
+@@ -0,0 +1,7 @@
++export const WAITLIST_REPOSITORY = 'WAITLIST_REPOSITORY';
++
++/** A port that lives in src/domain/ but uses the *.repository.ts file name the preset maps to infrastructure. */
++export interface WaitlistRepository {
++  add(workshopId: string, attendeeId: string): Promise<void>;
++  next(workshopId: string): Promise<string | undefined>;
++}
+--- /dev/null
++++ b/src/registrations/in-memory-waitlist.repository.ts
+@@ -0,0 +1,15 @@
++import { Injectable } from '@nestjs/common';
++import { WaitlistRepository } from '../domain/waitlist.repository';
++
++@Injectable()
++export class InMemoryWaitlistRepository implements WaitlistRepository {
++  private readonly queues = new Map<string, string[]>();
++
++  async add(workshopId: string, attendeeId: string): Promise<void> {
++    this.queues.set(workshopId, [...(this.queues.get(workshopId) ?? []), attendeeId]);
++  }
++
++  async next(workshopId: string): Promise<string | undefined> {
++    return this.queues.get(workshopId)?.shift();
++  }
++}
+--- a/src/registrations/registrations.module.ts
++++ b/src/registrations/registrations.module.ts
+@@ -1,14 +1,20 @@
+ import { Module } from '@nestjs/common';
+ import { AttendeesModule } from '../attendees/attendees.module';
+ import { REGISTRATION_REPOSITORY } from '../domain/registration-repository';
++import { WAITLIST_REPOSITORY } from '../domain/waitlist.repository';
+ import { WorkshopsModule } from '../workshops/workshops.module';
+ import { InMemoryRegistrationRepository } from './in-memory-registration.repository';
++import { InMemoryWaitlistRepository } from './in-memory-waitlist.repository';
+ import { RegistrationsController } from './registrations.controller';
+ import { RegistrationsService } from './registrations.service';
+ 
+ @Module({
+   imports: [WorkshopsModule, AttendeesModule],
+   controllers: [RegistrationsController],
+-  providers: [RegistrationsService, { provide: REGISTRATION_REPOSITORY, useClass: InMemoryRegistrationRepository }],
++  providers: [
++    RegistrationsService,
++    { provide: REGISTRATION_REPOSITORY, useClass: InMemoryRegistrationRepository },
++    { provide: WAITLIST_REPOSITORY, useClass: InMemoryWaitlistRepository },
++  ],
+ })
+ export class RegistrationsModule {}
+--- a/src/registrations/registrations.service.ts
++++ b/src/registrations/registrations.service.ts
+@@ -4,6 +4,7 @@
+ import { Registration } from '../domain/registration';
+ import { RegistrationPolicy } from '../domain/registration-policy';
+ import { REGISTRATION_REPOSITORY, RegistrationRepository } from '../domain/registration-repository';
++import { WAITLIST_REPOSITORY, WaitlistRepository } from '../domain/waitlist.repository';
+ import { WORKSHOP_REPOSITORY, WorkshopRepository } from '../domain/workshop-repository';
+ import { RegisterAttendeeDto } from './dto/register-attendee.dto';
+ import { RegistrationResponseDto } from './dto/registration-response.dto';
+@@ -17,7 +18,12 @@
+     @Inject(WORKSHOP_REPOSITORY) private readonly workshops: WorkshopRepository,
+     @Inject(ATTENDEE_REPOSITORY) private readonly attendees: AttendeeRepository,
+     @Inject(REGISTRATION_REPOSITORY) private readonly registrations: RegistrationRepository,
++    @Inject(WAITLIST_REPOSITORY) private readonly waitlist: WaitlistRepository,
+   ) {}
++
++  async joinWaitlist(dto: RegisterAttendeeDto): Promise<void> {
++    await this.waitlist.add(dto.workshopId, dto.attendeeId);
++  }
+ 
+   async register(dto: RegisterAttendeeDto): Promise<RegistrationResponseDto> {
+     const workshop = await this.workshops.findById(dto.workshopId);

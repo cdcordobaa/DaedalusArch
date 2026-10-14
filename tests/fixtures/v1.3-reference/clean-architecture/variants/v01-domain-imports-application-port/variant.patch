@@ -1,0 +1,18 @@
+--- a/src/domain/entities/Loan.ts
++++ b/src/domain/entities/Loan.ts
+@@ -1,3 +1,4 @@
++import { Clock } from '../../application/ports/Clock';
+ import { DomainError } from '../errors/DomainError';
+ import { LoanPeriod } from '../value-objects/LoanPeriod';
+ 
+@@ -31,6 +32,10 @@
+     return this.isActive && now.getTime() > this.dueAt.getTime();
+   }
+ 
++  isOverdueNow(clock: Clock): boolean {
++    return this.isOverdue(clock.now());
++  }
++
+   daysOverdue(now: Date): number {
+     if (!this.isOverdue(now)) return 0;
+     return Math.ceil((now.getTime() - this.dueAt.getTime()) / DAY_MS);

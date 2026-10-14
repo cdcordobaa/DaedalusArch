@@ -1,0 +1,24 @@
+{
+  "schemaVersion": 1,
+  "style": "hexagonal",
+  "variant": "v03-use-case-injects-concrete-adapter",
+  "kind": "violation",
+  "plants": "FF-P02",
+  "description": "FindAvailableRoomsService injects the concrete InMemoryRoomRepository instead of the RoomRepository port.",
+  "patch": "variant.patch",
+  "expectedFindings": [
+    {
+      "ruleId": "FF-S01",
+      "ruleName": "dependency-direction-graph",
+      "file": "src/application/services/FindAvailableRoomsService.ts",
+      "target": "src/adapters/outbound/persistence/InMemoryRoomRepository.ts",
+      "reason": "application > adapters-outbound is the reverse of an allowed edge."
+    },
+    {
+      "ruleId": "FF-P02",
+      "ruleName": "port-dependency-inversion",
+      "file": "src/application/services/FindAvailableRoomsService.ts",
+      "reason": "The use case injects an adapter class (1 of 2 constructor dependencies is an interface; 0.5 < 0.85)."
+    }
+  ]
+}

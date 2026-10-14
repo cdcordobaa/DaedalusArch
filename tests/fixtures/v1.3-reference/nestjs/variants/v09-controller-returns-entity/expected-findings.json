@@ -1,0 +1,18 @@
+{
+  "schemaVersion": 1,
+  "style": "nestjs",
+  "variant": "v09-controller-returns-entity",
+  "kind": "violation",
+  "plants": "FF-P05",
+  "description": "WorkshopsController.findOne returns the Workshop domain entity (via a new service method) instead of WorkshopResponseDto.",
+  "patch": "variant.patch",
+  "expectedFindings": [
+    {
+      "ruleId": "FF-P05",
+      "ruleName": "controller-no-entity",
+      "file": "src/workshops/workshops.controller.ts",
+      "target": "src/domain/workshop.ts",
+      "reason": "A controller references and returns a domain entity (Workshop)."
+    }
+  ]
+}

@@ -1,0 +1,19 @@
+--- a/src/application/services/FindAvailableRoomsService.ts
++++ b/src/application/services/FindAvailableRoomsService.ts
+@@ -1,14 +1,14 @@
++import { InMemoryRoomRepository } from '../../adapters/outbound/persistence/InMemoryRoomRepository';
+ import { DateRange } from '../../domain/model/DateRange';
+ import { AvailabilityChecker } from '../../domain/services/AvailabilityChecker';
+ import { AvailableRoom, FindAvailableRooms } from '../ports/in/FindAvailableRooms';
+ import { BookingRepository } from '../ports/out/BookingRepository';
+-import { RoomRepository } from '../ports/out/RoomRepository';
+ 
+ export class FindAvailableRoomsService implements FindAvailableRooms {
+   private readonly availability = new AvailabilityChecker();
+ 
+   constructor(
+-    private readonly rooms: RoomRepository,
++    private readonly rooms: InMemoryRoomRepository,
+     private readonly bookings: BookingRepository,
+   ) {}
+ 

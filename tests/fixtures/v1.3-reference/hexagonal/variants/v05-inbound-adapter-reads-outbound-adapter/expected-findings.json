@@ -1,0 +1,18 @@
+{
+  "schemaVersion": 1,
+  "style": "hexagonal",
+  "variant": "v05-inbound-adapter-reads-outbound-adapter",
+  "kind": "violation",
+  "plants": "FF-S03",
+  "description": "RoomController receives InMemoryRoomRepository and reads a room directly.",
+  "patch": "variant.patch",
+  "expectedFindings": [
+    {
+      "ruleId": "FF-S03",
+      "ruleName": "layer-skip-graph",
+      "file": "src/adapters/inbound/http/RoomController.ts",
+      "target": "src/adapters/outbound/persistence/InMemoryRoomRepository.ts",
+      "reason": "adapters-inbound and adapters-outbound have no allowed edge in either direction."
+    }
+  ]
+}

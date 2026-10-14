@@ -1,0 +1,24 @@
+--- /dev/null
++++ b/src/config/testContainer.ts
+@@ -0,0 +1,21 @@
++import { BookingController } from '../adapters/inbound/http/BookingController';
++import { OutboxNotificationAdapter } from '../adapters/outbound/notification/OutboxNotificationAdapter';
++import { FakePaymentGateway } from '../adapters/outbound/payment/FakePaymentGateway';
++import { InMemoryBookingRepository } from '../adapters/outbound/persistence/InMemoryBookingRepository';
++import { InMemoryGuestRepository } from '../adapters/outbound/persistence/InMemoryGuestRepository';
++import { InMemoryRoomRepository } from '../adapters/outbound/persistence/InMemoryRoomRepository';
++import { BookRoomService } from '../application/services/BookRoomService';
++import { CancelBookingService } from '../application/services/CancelBookingService';
++
++/** A second composition root for acceptance tests: same ports, outbox exposed for assertions. */
++export function createTestContainer(): { controller: BookingController; outbox: OutboxNotificationAdapter } {
++  const bookings = new InMemoryBookingRepository();
++  const guests = new InMemoryGuestRepository();
++  const payments = new FakePaymentGateway();
++  const outbox = new OutboxNotificationAdapter();
++  const controller = new BookingController(
++    new BookRoomService(new InMemoryRoomRepository(), bookings, guests, payments, outbox),
++    new CancelBookingService(bookings, guests, payments, outbox),
++  );
++  return { controller, outbox };
++}

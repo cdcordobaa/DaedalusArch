@@ -1,0 +1,30 @@
+{
+  "schemaVersion": 1,
+  "style": "clean-architecture",
+  "variant": "v05-use-case-injects-concrete-repository",
+  "kind": "violation",
+  "plants": "FF-P02",
+  "description": "RegisterBookUseCase takes the concrete InMemoryBookRepository instead of the BookRepository interface.",
+  "patch": "variant.patch",
+  "expectedFindings": [
+    {
+      "ruleId": "FF-S01",
+      "ruleName": "dependency-direction",
+      "file": "src/application/use-cases/RegisterBookUseCase.ts",
+      "target": "src/infrastructure/persistence/InMemoryBookRepository.ts",
+      "reason": "Application imports an infrastructure class: the dependency points outward."
+    },
+    {
+      "ruleId": "FF-P02",
+      "ruleName": "dependency-inversion",
+      "file": "src/application/use-cases/RegisterBookUseCase.ts",
+      "reason": "The use case injects a concrete class (1 of 2 constructor dependencies is an interface; 0.5 < 0.85)."
+    },
+    {
+      "ruleId": "FF-P04",
+      "ruleName": "use-case-isolation",
+      "file": "src/application/use-cases/RegisterBookUseCase.ts",
+      "reason": "The use case injects a dependency from the infrastructure layer."
+    }
+  ]
+}

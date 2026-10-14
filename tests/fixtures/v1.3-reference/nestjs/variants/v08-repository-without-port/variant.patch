@@ -1,0 +1,13 @@
+--- a/src/attendees/in-memory-attendee.repository.ts
++++ b/src/attendees/in-memory-attendee.repository.ts
+@@ -1,9 +1,8 @@
+ import { Injectable } from '@nestjs/common';
+ import { Attendee } from '../domain/attendee';
+-import { AttendeeRepository } from '../domain/attendee-repository';
+ 
+ @Injectable()
+-export class InMemoryAttendeeRepository implements AttendeeRepository {
++export class InMemoryAttendeeRepository {
+   private readonly rows = new Map<string, Attendee>();
+ 
+   async findById(id: string): Promise<Attendee | undefined> {

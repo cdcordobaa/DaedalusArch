@@ -1,0 +1,42 @@
+--- a/src/business/ServiceFactory.ts
++++ b/src/business/ServiceFactory.ts
+@@ -4,10 +4,12 @@
+ import { ProductGateway } from '../persistence/ProductGateway';
+ import { CatalogService } from './services/CatalogService';
+ import { OrderService } from './services/OrderService';
++import { SalesReportService } from './services/SalesReportService';
+ 
+ export interface BusinessServices {
+   catalog: CatalogService;
+   orders: OrderService;
++  sales: SalesReportService;
+ }
+ 
+ /**
+@@ -21,5 +23,6 @@
+   return {
+     catalog: new CatalogService(products),
+     orders: new OrderService(new OrderGateway(db), products, new CustomerGateway(db)),
++    sales: new SalesReportService(db),
+   };
+ }
+--- /dev/null
++++ b/src/business/services/SalesReportService.ts
+@@ -0,0 +1,17 @@
++import { InMemoryDatabase } from '../../persistence/Database';
++import { OrderRecord } from '../../persistence/records/OrderRecord';
++import { Money } from '../model/Money';
++
++/** Reporting reads the order table directly (one layer down): no gateway exists for an ad-hoc aggregate. */
++export class SalesReportService {
++  constructor(private readonly db: InMemoryDatabase) {}
++
++  revenue(): Money {
++    let cents = 0;
++    for (const order of this.db.table<OrderRecord>('orders').values()) {
++      if (order.status !== 'placed') continue;
++      cents += order.lines.reduce((sum, line) => sum + line.quantity * line.unitPriceCents, 0) - order.discountCents;
++    }
++    return Money.ofCents(Math.max(0, cents));
++  }
++}
