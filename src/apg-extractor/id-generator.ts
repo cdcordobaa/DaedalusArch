@@ -1,5 +1,5 @@
 import { createHash } from 'node:crypto';
-import type { EdgeType, NodeType } from '../shared/types/enums.js';
+import type { EdgeType, NodeType, V13EdgeType } from '../shared/types/enums.js';
 
 /**
  * Generate a deterministic 16-char hex node ID.
@@ -17,7 +17,7 @@ export function generateNodeId(type: NodeType, normalizedFilePath: string, name:
  *
  * Format: SHA-256("{edgeType}:{sourceId}:{targetId}")[0..16]
  */
-export function generateEdgeId(edgeType: EdgeType, sourceId: string, targetId: string): string {
+export function generateEdgeId(edgeType: EdgeType | V13EdgeType, sourceId: string, targetId: string): string {
   const input = `${edgeType}:${sourceId}:${targetId}`.toLowerCase();
   return createHash('sha256').update(input).digest('hex').slice(0, 16);
 }

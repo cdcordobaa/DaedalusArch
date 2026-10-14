@@ -1,4 +1,4 @@
-import type { NodeType, EdgeType } from './enums.js';
+import type { NodeType, EdgeType, V13EdgeType } from './enums.js';
 
 export interface APGNode {
   readonly id: string;
@@ -13,7 +13,7 @@ export interface APGNode {
 
 export interface APGEdge {
   readonly id: string;
-  readonly type: EdgeType;
+  readonly type: EdgeType | V13EdgeType;
   readonly sourceId: string;
   readonly targetId: string;
   readonly properties: Readonly<Record<string, unknown>>;
@@ -27,6 +27,8 @@ export interface ImportEdgeProperties {
   readonly lines: readonly number[];
   readonly isTypeOnly: boolean;
   readonly importedNames: readonly string[];
+  /** v1.3 `dynamicImports` option only: true when every occurrence is an `import()` / `require()` call. Absent otherwise. */
+  readonly dynamic?: true;
 }
 
 // Typed view of APGEdge.properties for RE_EXPORTS edges (FR-34). Not produced in U0.
