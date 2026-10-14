@@ -3,6 +3,7 @@ import type { ValidationResult, ValidationError, ValidationWarning } from './typ
 import type { ValidationReport, ValidationError as V11ValidationError } from '../shared/types/validation.js';
 import { SPEC_SCHEMA_V1 } from './spec-schema.js';
 import { CYPHER_TEMPLATES } from '../fitness-compiler/cypher-templates.js';
+import { HEXAGONAL_TEMPLATES } from '../fitness-compiler/hexagonal-templates.js';
 import { globToRegex } from '../fitness-compiler/glob-to-regex.js';
 import { existsSync } from 'node:fs';
 import { resolve } from 'node:path';
@@ -205,7 +206,7 @@ export function validateSpecAgainstProject(spec: ParsedSpec, projectPath: string
     const ffId = String(ff.id);
 
     // Template reference check for symbolic/hybrid functions
-    if ((ff.route === 'symbolic' || ff.route === 'hybrid') && !CYPHER_TEMPLATES.has(ff.name)) {
+    if ((ff.route === 'symbolic' || ff.route === 'hybrid') && !CYPHER_TEMPLATES.has(ff.name) && !HEXAGONAL_TEMPLATES.has(ff.name)) {
       errors.push({
         code: 'INVALID_TEMPLATE_REF',
         message: `No Cypher template found for function "${ff.name}" (${ffId})`,

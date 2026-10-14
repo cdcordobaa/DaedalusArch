@@ -1,6 +1,7 @@
 import type { FitnessFunction, SemanticCriteria, ScoringWeights, VerdictThresholds, ConfidenceThresholds } from '../shared/types/spec.js';
 import type { BuiltInTemplate } from './types.js';
 import { functionId } from '../shared/types/value-objects.js';
+import { buildHexagonalTemplate } from './hexagonal-template.js';
 
 function ff(
   id: string,
@@ -163,6 +164,14 @@ export const TEMPLATE_REGISTRY: ReadonlyMap<string, BuiltInTemplate> = new Map([
   ['layered', LAYERED_TEMPLATE],
 ]);
 
+/**
+ * Styles added after the v1.2E freeze (v1.3). Kept out of `TEMPLATE_REGISTRY`, which stays the frozen three-style
+ * set that the SO1 metrics and the frozen-instrument export enumerate; `resolveTemplate` falls back to this map.
+ */
+export const EXTENSION_TEMPLATES: ReadonlyMap<string, BuiltInTemplate> = new Map([
+  ['hexagonal', buildHexagonalTemplate(LAYERED_TEMPLATE)],
+]);
+
 export function resolveTemplate(style: string): BuiltInTemplate | undefined {
-  return TEMPLATE_REGISTRY.get(style.toLowerCase());
+  return TEMPLATE_REGISTRY.get(style.toLowerCase()) ?? EXTENSION_TEMPLATES.get(style.toLowerCase());
 }
