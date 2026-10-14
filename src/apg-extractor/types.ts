@@ -17,6 +17,18 @@ export interface ExtractorOptions {
   maxBarrelDepth?: number;      // default: 10
   excludePatterns?: string[];   // additional globs beyond defaults
   graphMode?: GraphMode;        // default: 'full'
+  /**
+   * v1.3, ON by default on the v1.3 branch (`V13_DEFAULT_OPTIONS`); OFF in the frozen v1.2E instrument
+   * (`V12E_DEFAULT_OPTIONS`). Model `import('x')` and `require('x')` calls with a string-literal argument as
+   * IMPORTS edges carrying `dynamic: true`, resolved like static imports.
+   */
+  dynamicImports?: boolean;
+  /**
+   * v1.3, ON by default on the v1.3 branch; OFF in the frozen v1.2E instrument. Extract the NestJS
+   * `@Module({ imports, providers, controllers, exports })` metadata as MODULE_IMPORTS, MODULE_PROVIDES and
+   * MODULE_EXPORTS edges between Class nodes.
+   */
+  moduleWiring?: boolean;
 }
 
 export type ExtractorErrorCode =
@@ -93,10 +105,29 @@ export const DEFAULT_EXCLUDE_PATTERNS = [
   '**/*.test.ts',
 ];
 
-export const DEFAULT_OPTIONS: Required<ExtractorOptions> = {
+/**
+ * The frozen v1.2E extractor defaults: the two v1.3 features are OFF. Pass these (or `dynamicImports: false,
+ * moduleWiring: false`) to reproduce the v1.2E instrument's graph.
+ */
+export const V12E_DEFAULT_OPTIONS: Readonly<Required<ExtractorOptions>> = Object.freeze({
   lenientMode: true,
   includeDecorators: true,
   maxBarrelDepth: 10,
   excludePatterns: [],
   graphMode: 'full',
-};
+  dynamicImports: false,
+  moduleWiring: false,
+});
+
+/**
+ * The v1.3 extractor defaults (FR-V1): dynamic import edges and NestJS module wiring are ON. The flags stay, so a
+ * caller can still turn either one off explicitly.
+ */
+export const V13_DEFAULT_OPTIONS: Readonly<Required<ExtractorOptions>> = Object.freeze({
+  ...V12E_DEFAULT_OPTIONS,
+  dynamicImports: true,
+  moduleWiring: true,
+});
+
+/** The defaults every extractor entry point applies on the v1.3 branch. */
+export const DEFAULT_OPTIONS: Readonly<Required<ExtractorOptions>> = V13_DEFAULT_OPTIONS;

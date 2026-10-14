@@ -14,6 +14,10 @@ export const EDGE_TYPES = [
   'RE_EXPORTS',
 ] as const;
 
+// v1.3 NestJS module-wiring edge types (`moduleWiring` extractor option, ON by default in v1.3). Kept apart from
+// EDGE_TYPES, which the frozen v1.2E report schema, the SO2 CSV columns and the registered artefacts mirror.
+export const V13_EDGE_TYPES = ['MODULE_IMPORTS', 'MODULE_PROVIDES', 'MODULE_EXPORTS'] as const;
+
 // Seven dimensions (FR-32; U3-R7, BR-U3-30): intent is no longer a member. It survives only as a
 // deprecated YAML alias normalised by the spec parser (BR-U1-20/21); INTENT_VIOLATION stays (U4 Q11 A).
 export const DIMENSIONS = [
@@ -35,6 +39,8 @@ export const LAYER_KINDS = ['domain', 'application', 'infrastructure', 'presenta
 export type NodeType = (typeof NODE_TYPES)[number];
 
 export type EdgeType = (typeof EDGE_TYPES)[number];
+
+export type V13EdgeType = (typeof V13_EDGE_TYPES)[number];
 
 export type Dimension = (typeof DIMENSIONS)[number];
 

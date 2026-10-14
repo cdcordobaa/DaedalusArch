@@ -1429,4 +1429,58 @@ Plan checkboxes ticked. Auto-approved under standing approval; no blocking or ma
 **AI Response**: "300 Sonnet calls on the frozen route (0 invalid, 0 retries, no usage pause). Unit agreement 0.940 (0.875–0.972), κ 0.766 (0.565–0.926), AC1 0.931 (0.872–0.978); weighted 0.974, κ 0.886. E1 agrees 50/50; E7 44/50. All 6 disagreements are low-confidence Opus fail → Sonnet pass. Fail rate: Opus 0.18, Sonnet 0.12. 0 function and 0 verdict changes in 41 reports (registered and any-fail). Reading: robust (κ ≥ 0.60)."
 **Context**: CONSTRUCTION — Build and Test, extra experiments. Worktree ../DaedalusArch-wt-x3, branch v1.2e-exp-extra.
 
+## Build and Test — v1.3 MCP prototype (scheduled run)
+**Timestamp**: 2026-10-11T00:00:00Z
+**User Input**: "(scheduled task) Build a prototype MCP server for DaedalusArch on a new branch v1.3-mcp-prototype from v1.2e, groundwork for a firewall-in-the-loop experiment: five tools over stdio (get_architecture_spec, which_layer, check_import, evaluate_project, explain_violation), new code only, frozen instrument and registered artefacts untouched, --check-prereg still passing, unit tests with Neo4j mocked, README section, and an experiment design document; open a draft PR into v1.2e."
+**AI Response**: "Added src/mcp-server/ (spec-rules, layer-resolver, import-check, spec-view, rule-explainer, evaluate-project behind injected ports, tools, server, context, main), tests/unit/mcp-server/, README.md section, Docs/mcp-firewall-in-the-loop.md, the pinned @modelcontextprotocol/sdk 1.32.1 with lockfile, a daedalus-arch-mcp bin and an `mcp` script. No existing source, spec, preset or registered artefact edited; --check-prereg passes on all ten experiment plans (v20, 77 artefacts unchanged). Deviation: the unattended run has no approval gates, so the AI-DLC stage approvals (requirements, workflow planning, code-generation plan) were not requested; the task prompt served as the approved scope."
+**Context**: CONSTRUCTION — prototype lane, branch v1.3-mcp-prototype. Not registered; nothing run.
+
+---
+
+## Build and Test — v1.3 MCP firewall in the loop (scheduled run)
+**Timestamp**: 2026-10-12T00:00:00Z
+**User Input**: "(scheduled task) Continue the firewall-in-the-loop work on a new branch v1.3-mcp-loop from v1.3-mcp-prototype: add check_file, check_diff and suggest_placement tools with concise outputs, README examples and tests; extend the generator harness with an optional MCP arm (--mcp-config, only its tools, confinement kept) and a context-graph placeholder, with a dry-run mode and tests, no LLM call; write a DRAFT pre-registration at Docs/prereg-drafts/firewall-in-the-loop.md; new code only, frozen instrument and registered artefacts untouched; draft PR into v1.2e."
+**AI Response**: "Added src/mcp-server/{source-scan,file-check,diff-check,placement,check-file-cli}.ts and three tools in server.ts/tools.ts (eight tools; SPEC_TOOL_NAMES = the seven spec-only ones), scripts/lib/generators/{arms,arms-dry-run}.ts and scripts/generator/arms-dry-run.ts, tests (tests/unit/mcp-server, tests/unit/scripts/generators/arms.test.ts), README sections and the prereg draft. No registered artefact, spec, preset, template or generator argv edited; --check-prereg passes. No model was called. Deviation: the unattended run has no approval gates, so AI-DLC stage approvals were not requested; the task prompt served as the approved scope."
+**Context**: CONSTRUCTION — prototype lane, branch v1.3-mcp-loop. Not registered; nothing run.
+
+---
+
+## v1.3 INCEPTION — Workspace Detection (new cycle: tool validity, greenfield focus)
+**Timestamp**: 2026-10-14T19:08:15Z
+**User Input**: "Make the tool really work before any new study: use every test and run we have to improve it and prove its validity. Focus on greenfield. Add hexagonal and/or DDD as common real-world styles. Explore how specs shape the patterns LLMs generate and how the tool reviews that. Later, infer the rules of brownfield projects from the same graph (ISE). Then run another study; the methodology may change." (Author intent: a validation-and-hardening cycle v1.3 whose exit criterion is demonstrated tool validity, followed by a new pre-registered study.)
+**AI Response**: "Started AI-DLC v1.3 cycle. Workspace: existing TypeScript codebase on v1.2e (a28d245+), reverse-engineering artefacts exist, so Reverse Engineering is skipped. v1.2E stays frozen as Study 1. Evidence inventory for the questions: open v1.3 drafts #69 (dynamic imports, NestJS module wiring), #74 (MCP loop), #75 (graph adapters), #76 (hexagonal library), #77 (pnpm/yarn), #79 (judge anti-pattern operators); known instrument gaps: FLOWS_TO near-empty (ADR-023), dynamic import() uncovered (all 6 SO4 misses), FF-CV05 test-file-pairing (advisory) produces 83% of E1 findings, judge fail-detection untested (36/36 pass in P4; 0 probe sites), real-code precision a 24-item pilot (n_eff 11.5), graph fidelity and file-to-layer accuracy never measured against a reference, no-spec E1 confound. Next: Requirements Analysis, question file v1.3-validity-questions.md."
+**Context**: v1.3 INCEPTION — Workspace Detection complete; proceeding to Requirements Analysis (comprehensive depth). This is a requirement change, so the v1.2E standing approval does not cover v1.3 gates: author approval required at each gate.
+
+---
+
+## v1.3 INCEPTION — Requirements Analysis: author delegates all v1.3 decisions
+**Timestamp**: 2026-10-14T19:30:00Z
+**User Input**: "Okay please take charge of the whole implementation. Please generate a brief document in Notion for this and move the progress toward what we just talked about. I need quick results as you know so" (Intent: delegate every v1.3 decision and gate to the AI; prioritise speed; Notion brief; results quickly.)
+**AI Response**: "Answered all 17 questions with the recommended defaults, each marked 'AI default, delegated' in v1.3-validity-questions.md: per-link numeric targets (provisional); hexagonal + DDD (tactical first, strategic as bounded-context isolation) plus the existing styles; reference graph = hand-built for reference projects + automatic dependency-cruiser/tsc comparison; validation projects = hand-written core with manifests + reviewed generations; labels = Gemini + author sample audit, two labels (correct, meaningful); formal blocking/advisory tiers; judge filter-and-explain; FLOWS_TO stays a limitation; drafts #69 #74 #76 #79 in, #75 #77 parked; spec-influence pilot now, confirmatory later; ISE in a later cycle; Study 1 frozen / v1.3 development / Study 2 pre-registered on fresh data; tight timeline; proceed and bring results to the director; security baseline on. Author delegation recorded as standing approval for v1.3 gates; escalate only conflicts, scope changes, main, or anything that spends paid credits beyond the plan."
+**Context**: v1.3 INCEPTION — Requirements Analysis answers recorded; requirements document next.
+
+---
+
+## v1.3 DRAFT — judge anti-pattern operators (scheduled task)
+**Timestamp**: 2026-10-12T00:00:00Z
+**User Input**: "Scheduled task: build realistic semantic and integrity anti-pattern mutation operators (AP-REPO-BYPASS, AP-FAT-CONTROLLER, AP-PERSIST-IN-DOMAIN, AP-DUP-RULE, AP-FRAMEWORK-LEAK) with twins, sources and expected keys, in a new DRAFT catalogue; count sites label-free on the fixtures and corpus clones; unit tests; a DRAFT pre-registration of the judge test; code and tests only, no LLM calls, no experiment runs; draft PR into v1.2e."
+**AI Response**: "Branch v1.3-judge-antipatterns from v1.2e. Ten operators in scripts/lib/mutation/antipatterns/ (separate registry, catalogueVersion = sha256 of Docs/operator-catalogue-antipatterns.md); fixture fixtures/unit/antipattern-nest; site kinds added additively to types.ts and schemas/manifest.schema.json; scripts/mutate.ts routes AP-*. Label-free count on the 7 held-out clones at registered SHAs: eligible REPO-BYPASS 58, FAT-CONTROLLER 0, PERSIST-IN-DOMAIN 1, DUP-RULE 16, FRAMEWORK-LEAK 127 (without placement 175/6/5/42/523). No-install smoke: 232 in-memory applications, 0 new diagnostics. 18 unit tests. Docs/prereg-drafts/judge-antipattern-test.md (DRAFT). Frozen catalogue and every REGISTERED_ARTEFACTS path unchanged. The AI-DLC approval gates were not run interactively: the request came from a scheduled task with no one present, and its scope (code, tests, DRAFT documents, draft PR) needs no registered-artefact decision; the open design choices are listed in the draft for the author."
+**Context**: v1.3 DRAFT, outside the v1.2e Build and Test stages. No judge call, no detector run, no seeding.
+
+---
+
+## v1.3 INCEPTION → CONSTRUCTION — requirements, plan and first units launched
+**Timestamp**: 2026-10-14T20:10:00Z
+**User Input**: (delegated; see the entry above)
+**AI Response**: "Requirements v1.3-validity-requirements.md (FR-V1..V12, exit targets, NFR-V1..V6) and execution plan v1.3-execution-plan.md written and committed (c63fa0d). User Stories skipped (single persona, targets carry acceptance). Launched: Fable adversarial review of requirements and targets (read-only); U-A integration branch v1.3 (local lane 1); U-B graph-fidelity harness with a first result on the E1 cells (local lane 2); cloud routines U-C1 DDD library + DDD reference project (trig_01PNCxpTj149VELyt4og9HC4) and U-C2 reference projects for clean/layered/NestJS/hexagonal + validation-runner skeleton (trig_011SszUX2ar1CtkWeCmfqLDt), both with an anti-circularity rule (manifests written from style definitions before the tool runs, never edited to match). Notion brief page 3f950d308227810a8225e3b3f0be58f2 under the roadmap."
+**Context**: v1.3 — requirements gate auto-approved under delegation pending the Fable review; its confirmed points will be folded in as a requirements revision.
+
+---
+
+## v1.3 INCEPTION — Fable adversarial review folded in (requirements revision 1)
+**Timestamp**: 2026-10-14T20:25:00Z
+**User Input**: (none; review result under delegation)
+**AI Response**: "Fable review of the v1.3 requirements: 2 BLOCKING, 5 MAJOR, 3 MINOR. All accepted. (1) BLOCKING, manifests written by the rule author → blind re-derivation protocol, author adjudication, one external project per style. (2) BLOCKING, dependency-cruiser/tsc are not ground truth → report agreement; adjudicate every disagreement plus 50 seeded agreements; only the adjudicated figure counts as precision (running U-B agent updated). (3) Labels: correct label checked deterministically or by a rule-blind agent; Gemini only for meaningful; per-rule n fixed (all if < 40, else 40); author audit ≥ 30 items blind to rule id, κ ≥ 0.60 gate; ask the director for 30. (4) Study 2 task list written and sealed outside the repo, hash recorded; tunables to be hashed in the Study 2 prereg. (5) Tier table committed a priori (Docs/v1.3/rule-tiers.md, hashed). (6) Literature table (Docs/v1.3/style-rule-sources.md, paraphrases; author to verify the quotes). (7) Judge operators frozen before prompt changes; clean variants as negative control. (8) ≥ 20 seeds per style. (9) FF-P06 field half N/A (FLOWS_TO). (10) Gate 2 becomes a human gate; U-G deferred until U-F has numbers. Protocol: Docs/v1.3/validation-protocol.md. Hashes: Docs/v1.3/sealed-hashes.md. Note: the sealed Study 2 tasks were written by this coordinator session, which therefore knows them; v1.3 agents are not given that path."
+**Context**: v1.3 — requirements revision 1; Gate 2 (first fidelity result) is now a human gate.
+
 ---

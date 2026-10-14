@@ -10,10 +10,12 @@ import { ImportEdgeMerger } from './import-edge-merger.js';
 import { deriveFlowsToEdges, emptyFlowsToTally } from './flows-to-deriver.js';
 import { PackageNodeRegistry } from './package-node-factory.js';
 import { restrictToGraphMode } from './graph-mode.js';
+import { extractModuleWiringEdges } from './nest-module-extractor.js';
 import {
   buildImportResolutionContext,
   countUnsupportedDynamicImports,
   importEqualsSpecifier,
+  resolveDynamicImportTargets,
   resolveImportTargets,
   resolveReExportTargets,
 } from './import-resolver.js';
@@ -97,8 +99,17 @@ export function extractEdges(
       if (resolution.outOfRootAlias) counts.externalOutOfRootAlias++;
     }
 
-    // import() / require() calls are counted, not modelled (BR-U2-25).
-    const dynamic = countUnsupportedDynamicImports(sf);
+    // v1.3 `dynamicImports` (ON by default in v1.3): string-literal import() / require() calls become IMPORTS
+    // occurrences (dynamic = true), after the file's static statements.
+    if (opts.dynamicImports) {
+      for (const occ of resolveDynamicImportTargets(sf, importCtx)) {
+        merger.add(occ, occ.target.kind === 'file' ? occ.target.fileNodeId : packages.getOrCreate(occ.target.root).id);
+      }
+    }
+
+    // import() / require() calls are counted, not modelled (BR-U2-25); with `dynamicImports` only the
+    // computed-specifier calls remain unmodelled.
+    const dynamic = countUnsupportedDynamicImports(sf, opts.dynamicImports);
     if (dynamic > 0) {
       counts.unsupportedDynamic += dynamic;
       addWarning(filePath, 'EXTRACTOR_009', `Unsupported dynamic import(s): ${String(dynamic)}`);
@@ -287,6 +298,11 @@ export function extractEdges(
           addEdge(buildEdge('CALLS', sourceMethodId, targetMethodId, { callCount }));
         }
       }
+    }
+
+    // v1.3 `moduleWiring` (ON by default in v1.3): @Module metadata edges, after every v1.2E edge of the file.
+    if (opts.moduleWiring) {
+      for (const edge of extractModuleWiringEdges(sf.getClasses(), filePath, projectRoot, lookup, addWarning)) addEdge(edge);
     }
 
     // CONTAINS (Interface → Method), one per own method-signature name, after the class edges
