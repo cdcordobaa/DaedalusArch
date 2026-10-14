@@ -26,10 +26,10 @@ afterAll(() => { fs.rmSync(TMP, { recursive: true, force: true }); });
 const DDD_NAMES = ['bounded-context-modules', 'context-isolation', 'aggregate-boundary', 'repository-aggregate-root',
   'value-object-immutability', 'domain-event-placement', 'application-service-thin'];
 
-/** The a-priori tiers of Docs/v1.3-ddd-notes.md §2. */
+/** The tiers sealed in Docs/v1.3/rule-tiers.md (Docs/v1.3-ddd-notes.md §2). */
 const TIERS: Readonly<Record<string, 'blocking' | 'advisory'>> = {
-  'FF-DS01': 'blocking', 'FF-DS02': 'blocking', 'FF-DT01': 'blocking', 'FF-DT02': 'blocking', 'FF-DT03': 'advisory',
-  'FF-DT04': 'blocking', 'FF-DT05': 'blocking', 'FF-DT06': 'advisory', 'FF-S01': 'blocking', 'FF-S03': 'blocking',
+  'FF-DS01': 'blocking', 'FF-DS02': 'blocking', 'FF-DT01': 'blocking', 'FF-DT02': 'blocking', 'FF-DT03': 'blocking',
+  'FF-DT04': 'blocking', 'FF-DT05': 'advisory', 'FF-DT06': 'advisory', 'FF-S01': 'blocking', 'FF-S03': 'advisory',
 };
 
 function presetRaw(): Record<string, unknown> {

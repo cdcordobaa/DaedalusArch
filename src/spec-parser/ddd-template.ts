@@ -5,7 +5,8 @@ import { functionId } from '../shared/types/value-objects.js';
 /**
  * `ddd` library (v1.3, FR-V4). Registered through `EXTENSION_TEMPLATES` rather than `TEMPLATE_REGISTRY`, which stays
  * the frozen v1.2E set of three styles. A rule set, not a full scoring preset: the eight DDD rules plus the hexagonal
- * graph layering composed inside each context. Every function carries its a-priori tier (Docs/v1.3-ddd-notes.md §2).
+ * graph layering composed inside each context. Every function carries its tier as sealed in Docs/v1.3/rule-tiers.md
+ * (Docs/v1.3-ddd-notes.md §2).
  * The rules need `architecture.ddd` declarations; `presets/ddd.yaml` declares the reference project's.
  */
 function dddFn(
@@ -31,13 +32,13 @@ export const DDD_FUNCTIONS: readonly FitnessFunction[] = [
   // ── Tactical ──
   dddFn('FF-DT01', 'aggregate-boundary', 'structural', 'critical', 'blocking'),
   dddFn('FF-DT02', 'repository-aggregate-root', 'pattern', 'critical', 'blocking'),
-  dddFn('FF-DT03', 'value-object-immutability', 'pattern', 'minor', 'advisory'),
+  dddFn('FF-DT03', 'value-object-immutability', 'pattern', 'critical', 'blocking'),
   { ...dddFn('FF-DT04', 'domain-purity', 'pattern', 'critical', 'blocking'), forbiddenImports: DDD_FORBIDDEN_IMPORTS },
-  dddFn('FF-DT05', 'domain-event-placement', 'pattern', 'critical', 'blocking'),
+  dddFn('FF-DT05', 'domain-event-placement', 'pattern', 'minor', 'advisory'),
   dddFn('FF-DT06', 'application-service-thin', 'pattern', 'advisory', 'advisory', 3),
   // ── Layering inside each context (hexagonal templates) ──
   dddFn('FF-S01', 'dependency-direction-graph', 'structural', 'critical', 'blocking'),
-  dddFn('FF-S03', 'layer-skip-graph', 'structural', 'critical', 'blocking'),
+  dddFn('FF-S03', 'layer-skip-graph', 'structural', 'minor', 'advisory'),
 ];
 
 /** The ddd library; weights and thresholds from the layered one (passed in so this module does not import the registry). */

@@ -47,7 +47,9 @@ Probes added after the first tool run, each to test one limit (manifests still w
 
 `expected-graph.json` (layer and context of every clean file, the key edges, the edges that must be absent) and
 every `expected-findings.json` were written from the rule definitions in `Docs/v1.3-ddd-notes.md` §1 **before** the
-templates existed. They are not edited to match the tool; differences are recorded in the notes, §6.
+templates existed. They are not edited to match the tool; differences are recorded in the notes, §6. Under
+`Docs/v1.3/validation-protocol.md` §1 they are **author-manifests** (same author as the rules); the blind re-derivation
+is still to be done.
 
 `v04` imports `class-transformer`, which resolves from the repository's `node_modules` (a transitive dependency); the
 variant is not required to compile elsewhere.
