@@ -1429,6 +1429,20 @@ Plan checkboxes ticked. Auto-approved under standing approval; no blocking or ma
 **AI Response**: "300 Sonnet calls on the frozen route (0 invalid, 0 retries, no usage pause). Unit agreement 0.940 (0.875–0.972), κ 0.766 (0.565–0.926), AC1 0.931 (0.872–0.978); weighted 0.974, κ 0.886. E1 agrees 50/50; E7 44/50. All 6 disagreements are low-confidence Opus fail → Sonnet pass. Fail rate: Opus 0.18, Sonnet 0.12. 0 function and 0 verdict changes in 41 reports (registered and any-fail). Reading: robust (κ ≥ 0.60)."
 **Context**: CONSTRUCTION — Build and Test, extra experiments. Worktree ../DaedalusArch-wt-x3, branch v1.2e-exp-extra.
 
+## Build and Test — v1.3 MCP prototype (scheduled run)
+**Timestamp**: 2026-10-11T00:00:00Z
+**User Input**: "(scheduled task) Build a prototype MCP server for DaedalusArch on a new branch v1.3-mcp-prototype from v1.2e, groundwork for a firewall-in-the-loop experiment: five tools over stdio (get_architecture_spec, which_layer, check_import, evaluate_project, explain_violation), new code only, frozen instrument and registered artefacts untouched, --check-prereg still passing, unit tests with Neo4j mocked, README section, and an experiment design document; open a draft PR into v1.2e."
+**AI Response**: "Added src/mcp-server/ (spec-rules, layer-resolver, import-check, spec-view, rule-explainer, evaluate-project behind injected ports, tools, server, context, main), tests/unit/mcp-server/, README.md section, Docs/mcp-firewall-in-the-loop.md, the pinned @modelcontextprotocol/sdk 1.32.1 with lockfile, a daedalus-arch-mcp bin and an `mcp` script. No existing source, spec, preset or registered artefact edited; --check-prereg passes on all ten experiment plans (v20, 77 artefacts unchanged). Deviation: the unattended run has no approval gates, so the AI-DLC stage approvals (requirements, workflow planning, code-generation plan) were not requested; the task prompt served as the approved scope."
+**Context**: CONSTRUCTION — prototype lane, branch v1.3-mcp-prototype. Not registered; nothing run.
+
+---
+
+## Build and Test — v1.3 MCP firewall in the loop (scheduled run)
+**Timestamp**: 2026-10-12T00:00:00Z
+**User Input**: "(scheduled task) Continue the firewall-in-the-loop work on a new branch v1.3-mcp-loop from v1.3-mcp-prototype: add check_file, check_diff and suggest_placement tools with concise outputs, README examples and tests; extend the generator harness with an optional MCP arm (--mcp-config, only its tools, confinement kept) and a context-graph placeholder, with a dry-run mode and tests, no LLM call; write a DRAFT pre-registration at Docs/prereg-drafts/firewall-in-the-loop.md; new code only, frozen instrument and registered artefacts untouched; draft PR into v1.2e."
+**AI Response**: "Added src/mcp-server/{source-scan,file-check,diff-check,placement,check-file-cli}.ts and three tools in server.ts/tools.ts (eight tools; SPEC_TOOL_NAMES = the seven spec-only ones), scripts/lib/generators/{arms,arms-dry-run}.ts and scripts/generator/arms-dry-run.ts, tests (tests/unit/mcp-server, tests/unit/scripts/generators/arms.test.ts), README sections and the prereg draft. No registered artefact, spec, preset, template or generator argv edited; --check-prereg passes. No model was called. Deviation: the unattended run has no approval gates, so AI-DLC stage approvals were not requested; the task prompt served as the approved scope."
+**Context**: CONSTRUCTION — prototype lane, branch v1.3-mcp-loop. Not registered; nothing run.
+
 ---
 
 ## v1.3 INCEPTION — Workspace Detection (new cycle: tool validity, greenfield focus)

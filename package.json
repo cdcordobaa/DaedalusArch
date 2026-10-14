@@ -4,13 +4,16 @@
   "description": "Architectural Firewall — spec-driven compliance tool using neuro-symbolic evaluation",
   "main": "dist/cli/index.js",
   "bin": {
-    "daedalus-arch": "dist/cli/index.js"
+    "daedalus-arch": "dist/cli/index.js",
+    "daedalus-arch-mcp": "dist/mcp-server/main.js"
   },
   "scripts": {
     "build": "tsc --project tsconfig.json",
     "build:watch": "tsc --project tsconfig.json --watch",
     "start": "node dist/cli/index.js",
     "dev": "tsx src/cli/index.ts",
+    "mcp": "tsx src/mcp-server/main.ts",
+    "mcp:check-file": "tsx src/mcp-server/check-file-cli.ts",
     "test": "jest --forceExit --passWithNoTests",
     "test:unit": "jest --testPathPattern='tests/unit' --forceExit --passWithNoTests",
     "test:integration": "jest --testPathPattern='tests/integration' --forceExit --passWithNoTests",
@@ -45,6 +48,7 @@
   },
   "dependencies": {
     "@google/generative-ai": "^0.24.1",
+    "@modelcontextprotocol/sdk": "1.32.1",
     "ajv": "^8.17.1",
     "ajv-formats": "^3.0.1",
     "chalk": "^5.4.1",
