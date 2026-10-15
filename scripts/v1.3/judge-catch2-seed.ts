@@ -29,7 +29,7 @@
  */
 import * as fs from 'node:fs';
 import * as path from 'node:path';
-import { ANTIPATTERN_OPERATORS } from '../lib/mutation/antipatterns/index.js';
+import { FROZEN_V1_OPERATORS } from '../lib/mutation/antipatterns/index.js';
 import { mulberry32 } from '../lib/mutation/rng.js';
 import { detailJson } from '../lib/mutation/sites.js';
 import type { MutationOperator, MutationSite } from '../lib/mutation/types.js';
@@ -72,7 +72,7 @@ export interface Round2Row extends SeedRow {
   readonly handPlanted?: { style: string; variant: string; mapsTo: string; why: string };
 }
 
-interface E1Cell {
+export interface E1Cell {
   readonly cellId: string;
   readonly projectId: string;
   readonly vendor: string;
@@ -95,7 +95,7 @@ export function acceptedCells(repoRoot: string): E1Cell[] {
 }
 
 /** The generator protocol §3 tsconfig, relative form (same options and file set as the E1 evaluation's). */
-const E1_TSCONFIG = {
+export const E1_TSCONFIG = {
   compilerOptions: {
     strict: true, target: 'ES2022', lib: ['ES2022'], module: 'commonjs', moduleResolution: 'node', esModuleInterop: true,
     skipLibCheck: true, forceConsistentCasingInFileNames: true, noEmit: true, incremental: false,
@@ -104,7 +104,7 @@ const E1_TSCONFIG = {
   include: ['src/**/*.ts'],
 };
 
-function stageCell(e1Root: string, cell: E1Cell, dest: string): void {
+export function stageCell(e1Root: string, cell: E1Cell, dest: string): void {
   const src = path.join(e1Root, cell.projectId);
   fs.rmSync(dest, { recursive: true, force: true });
   fs.mkdirSync(dest, { recursive: true });
@@ -129,7 +129,8 @@ export async function main(argv: readonly string[], repoRoot: string): Promise<n
   const countOnly = argv.includes('--count-only');
   fs.mkdirSync(out, { recursive: true });
   const specAbs = path.resolve(repoRoot, E1_SPEC);
-  const ops = ANTIPATTERN_OPERATORS;
+  // Round 2's ten frozen operators (the v2 pair of AP-DUP-RULE is seeded by `judge-catch-v2-seed.ts`).
+  const ops = FROZEN_V1_OPERATORS;
   const opById = new Map(ops.map((o) => [o.id, o]));
 
   // ── Stratum 1: E1 cells ──────────────────────────────────────────────────────

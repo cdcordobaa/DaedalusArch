@@ -16,7 +16,7 @@
 import { spawnSync } from 'node:child_process';
 import * as fs from 'node:fs';
 import * as path from 'node:path';
-import { ANTIPATTERN_OPERATORS } from '../lib/mutation/antipatterns/index.js';
+import { FROZEN_V1_OPERATORS } from '../lib/mutation/antipatterns/index.js';
 import { CYCLE_ROW_CAP, MAX_CYCLE_LENGTH } from '../lib/mutation/cycles.js';
 import { compiledParams, compiledThresholds, loadCompiledSpec } from '../lib/mutation/expected.js';
 import { buildImportGraph, openImportGraphProject } from '../lib/mutation/import-graph.js';
@@ -28,6 +28,8 @@ import { loadAllReferences } from './lib/reference-model.js';
 import { materialiseVariant } from './lib/materialise.js';
 
 export const MIN_SITES = 5;
+/** Round 1's ten frozen operators (the v2 pair of AP-DUP-RULE is seeded by `judge-catch-v2-seed.ts`). */
+const ANTIPATTERN_OPERATORS = FROZEN_V1_OPERATORS;
 const APPLY_SEED = 20261015;
 
 export interface SeedBase {

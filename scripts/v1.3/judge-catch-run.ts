@@ -25,6 +25,7 @@ import type { SeedRow } from './judge-catch-seed.js';
 export const PROBED_FUNCTION: Readonly<Record<string, 'FF-N01' | 'FF-N02'>> = {
   'AP-REPO-BYPASS': 'FF-N01',
   'AP-DUP-RULE': 'FF-N01',
+  'AP-DUP-RULE2': 'FF-N01',
   'AP-FAT-CONTROLLER': 'FF-N02',
   'AP-PERSIST-IN-DOMAIN': 'FF-N02',
   'AP-FRAMEWORK-LEAK': 'FF-N02',
