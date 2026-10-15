@@ -20,6 +20,7 @@ import { compilePattern } from './pattern-compiler.js';
 import { checkBoundParameters } from './bound-param-checker.js';
 import { compileHexagonalFunctions } from './hexagonal-compiler.js';
 import { HEXAGONAL_STYLE } from './hexagonal-templates.js';
+import { applyEdgeView } from './edge-views.js';
 
 // ── Standalone Function ───────────────────────────────────────────────────────
 
@@ -45,14 +46,23 @@ export interface CompileOptions {
   readonly instrumentVersion?: InstrumentVersion;
   /** v1.3, OFF by default: also resolve the `V13_CYPHER_TEMPLATES` (module-wiring examples). */
   readonly v13Templates?: boolean;
+  /**
+   * v1.3 (ADR-V13-01), OFF by default so the compiled text of the frozen catalogue stays byte-identical: rewrite each
+   * query to read its template's edge view (literal or resolved, `edge-views.ts`, `Docs/v1.3/edge-views.md`). On a
+   * graph extracted with `reExportEdges: 'resolved-only'` the rewrite does not change any row.
+   */
+  readonly edgeViews?: boolean;
 }
+
+/** The v1.3 compile options for the pipeline (the frozen v1.2E reproduction passes `{}`). */
+export const V13_COMPILE_OPTIONS: Readonly<CompileOptions> = Object.freeze({ edgeViews: true });
 
 type TemplateCatalogue = ReadonlyMap<string, CypherTemplate>;
 
 export function compileFunctions(input: CompilerInput, options: CompileOptions = {}): DomainResult<CompiledFunctions> {
   // v1.3: the hexagonal style has its own graph-based templates; every other style takes the path below unchanged.
   if (input.style === HEXAGONAL_STYLE) {
-    return compileHexagonalFunctions(input, (rest) => compileFunctionsCore(rest, options));
+    return compileHexagonalFunctions(input, (rest) => compileFunctionsCore(rest, options), options.edgeViews === true);
   }
   return compileFunctionsCore(input, options);
 }
@@ -115,7 +125,7 @@ function compileFunctionsCore(input: CompilerInput, options: CompileOptions): Do
 
     switch (ff.route) {
       case 'symbolic': {
-        const result = compileSymbolic(ff, layerModel, binding, warnings, instrumentVersion, templates);
+        const result = compileSymbolic(ff, layerModel, binding, warnings, instrumentVersion, templates, options.edgeViews === true);
         if (result) symbolicQueries.push(result);
         break;
       }
@@ -125,7 +135,7 @@ function compileFunctionsCore(input: CompilerInput, options: CompileOptions): Do
         break;
       }
       case 'hybrid': {
-        const sym = compileSymbolic(ff, layerModel, binding, warnings, instrumentVersion, templates);
+        const sym = compileSymbolic(ff, layerModel, binding, warnings, instrumentVersion, templates, options.edgeViews === true);
         const neur = compileNeuronal(ff, false);
         if (sym && neur) {
           hybridPairs.push({ functionId: ff.id, symbolicQuery: sym, neuronalInstruction: neur });
@@ -203,6 +213,7 @@ function compileSymbolic(
   warnings: CompilerWarning[],
   instrumentVersion: InstrumentVersion = INSTRUMENT_VERSION,
   templates: TemplateCatalogue = CYPHER_TEMPLATES,
+  edgeViews = false,
 ): CypherQuery | undefined {
   const template = templates.get(ff.name);
 
@@ -220,7 +231,8 @@ function compileSymbolic(
   // the template's instrument v2 role exemptions (ADR-026).
   const excludePatterns = [...ff.excludePaths.map((g) => globToRegex(g)), ...roleExemptionPatterns(template.functionName, instrumentVersion)];
   if (excludePatterns.length > 0) params.excludePatterns = excludePatterns;
-  const cypher = instantiateTemplate(template, params);
+  const instantiated = instantiateTemplate(template, params);
+  const cypher = edgeViews ? applyEdgeView(template.functionName, instantiated) : instantiated;
 
   return {
     functionId: ff.id,

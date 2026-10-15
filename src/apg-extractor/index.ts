@@ -6,7 +6,7 @@
  */
 
 export { APGExtractor, extractAPG } from './apg-extractor.js';
-export type { ExtractorOptions, ExtractorError, ExtractorErrorCode, GraphMode } from './types.js';
+export type { ExtractorOptions, ExtractorError, ExtractorErrorCode, GraphMode, ReExportEdgesMode } from './types.js';
 export { GRAPH_MODES, V12E_DEFAULT_OPTIONS, V13_DEFAULT_OPTIONS } from './types.js';
 export { AST_ONLY_EDGE_TYPES, edgeTypesOf, restrictToGraphMode } from './graph-mode.js';
 export type { GraphView } from './graph-mode.js';

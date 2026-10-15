@@ -29,7 +29,21 @@ export interface ExtractorOptions {
    * MODULE_EXPORTS edges between Class nodes.
    */
   moduleWiring?: boolean;
+  /**
+   * v1.3 (ADR-V13-01). How an import of a name through a re-export file (a barrel) is recorded.
+   * - `'resolved-only'` (the frozen v1.2E behaviour): one IMPORTS edge to the file that declares the name; the edge
+   *   to the barrel is dropped unless something is declared there.
+   * - `'both'` (v1.3 default): the LITERAL IMPORTS edge to the file the specifier resolves to (the barrel), marked
+   *   `reExportHop: true` when every name it carries is re-exported rather than declared there, plus the RESOLVED
+   *   edge to the declaring file, marked `viaReExport: true` with the barrel path(s) in `reExportBarrels`.
+   * The literal view of the graph excludes `viaReExport` edges; the resolved view excludes `reExportHop` edges and
+   * equals the `'resolved-only'` graph (`Docs/v1.3/edge-views.md`).
+   */
+  reExportEdges?: ReExportEdgesMode;
 }
+
+/** ADR-V13-01: see {@link ExtractorOptions.reExportEdges}. */
+export type ReExportEdgesMode = 'resolved-only' | 'both';
 
 export type ExtractorErrorCode =
   | 'PROJECT_NOT_FOUND'
@@ -106,8 +120,8 @@ export const DEFAULT_EXCLUDE_PATTERNS = [
 ];
 
 /**
- * The frozen v1.2E extractor defaults: the two v1.3 features are OFF. Pass these (or `dynamicImports: false,
- * moduleWiring: false`) to reproduce the v1.2E instrument's graph.
+ * The frozen v1.2E extractor defaults: the v1.3 features are OFF. Pass these (or `dynamicImports: false,
+ * moduleWiring: false, reExportEdges: 'resolved-only'`) to reproduce the v1.2E instrument's graph.
  */
 export const V12E_DEFAULT_OPTIONS: Readonly<Required<ExtractorOptions>> = Object.freeze({
   lenientMode: true,
@@ -117,16 +131,18 @@ export const V12E_DEFAULT_OPTIONS: Readonly<Required<ExtractorOptions>> = Object
   graphMode: 'full',
   dynamicImports: false,
   moduleWiring: false,
+  reExportEdges: 'resolved-only',
 });
 
 /**
- * The v1.3 extractor defaults (FR-V1): dynamic import edges and NestJS module wiring are ON. The flags stay, so a
- * caller can still turn either one off explicitly.
+ * The v1.3 extractor defaults (FR-V1, ADR-V13-01): dynamic import edges, NestJS module wiring and literal +
+ * resolved re-export edges are ON. The flags stay, so a caller can still turn each one off explicitly.
  */
 export const V13_DEFAULT_OPTIONS: Readonly<Required<ExtractorOptions>> = Object.freeze({
   ...V12E_DEFAULT_OPTIONS,
   dynamicImports: true,
   moduleWiring: true,
+  reExportEdges: 'both',
 });
 
 /** The defaults every extractor entry point applies on the v1.3 branch. */

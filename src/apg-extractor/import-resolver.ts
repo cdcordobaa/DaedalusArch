@@ -14,7 +14,7 @@ import { Node, SyntaxKind, ts } from 'ts-morph';
 import type {
   CallExpression, ExportDeclaration, ImportDeclaration, ImportEqualsDeclaration, Project, SourceFile, Symbol as MorphSymbol,
 } from 'ts-morph';
-import type { ExtractorOptions, NodeLookup } from './types.js';
+import type { ExtractorOptions, NodeLookup, ReExportEdgesMode } from './types.js';
 import { DEFAULT_OPTIONS } from './types.js';
 import { normalizeFilePath } from './id-generator.js';
 import {
@@ -65,6 +65,10 @@ export interface ImportResolutionContext {
   readonly isInstalledPackage: (fromDir: string, root: string) => boolean;
   readonly project: Project;
   readonly host: ts.ModuleResolutionHost;
+  /** ADR-V13-01 (`ExtractorOptions.reExportEdges`). */
+  readonly reExportEdges: ReExportEdgesMode;
+  /** `reExportEdges: 'both'` only: per-file `export … from` targets, filled lazily (barrel-path search). */
+  readonly reExportAdjacency: Map<string, readonly SourceFile[]>;
 }
 
 // ── Classification (BR-U2-01) ────────────────────────────────────────────────
@@ -161,6 +165,8 @@ export function buildImportResolutionContext(
     isInstalledPackage: makeIsInstalledPackage(host),
     project,
     host,
+    reExportEdges: opts.reExportEdges ?? DEFAULT_OPTIONS.reExportEdges,
+    reExportAdjacency: new Map(),
   };
 }
 
@@ -351,6 +357,8 @@ function followExportedName(
   specifier: string,
   warnFile: string,
   ctx: ImportResolutionContext,
+  /** ADR-V13-01: receives the file of every alias declaration crossed, in order. Does not change the result. */
+  hopFiles?: SourceFile[],
 ): NameTarget {
   let sym: MorphSymbol | undefined = moduleFile.getExportSymbols().find(s => s.getName() === name);
   let hops = 0;
@@ -368,6 +376,7 @@ function followExportedName(
       return { kind: 'fallback' };
     }
     visited.add(key);
+    hopFiles?.push(decl.getSourceFile());
     const hopSpecifier = moduleSpecifierOfAlias(decl);
     if (hopSpecifier !== undefined) {
       hops++;
@@ -449,25 +458,140 @@ export function resolveImportTargets(
     return { occurrences: [occurrence(moduleTarget, [], false)], outcome: 'resolvedInternal', outOfRootAlias: false };
   }
 
-  const routed = new Map<string, { target: OccurrenceTarget; specs: NameSpec[] }>();
+  const both = ctx.reExportEdges === 'both';
+  const moduleKey = targetKey(moduleTarget, ctx);
+  const routed = new Map<string, { target: OccurrenceTarget; specs: NameSpec[]; barrels: string[] }>();
+  // ADR-V13-01: the literal occurrence is a re-export hop when no spec of the statement routes to the module file
+  // (the resolved-only graph then has no edge to it).
+  let allHops = true;
   for (const spec of specs) {
     let target: OccurrenceTarget | undefined;
+    const hopFiles: SourceFile[] | undefined = both ? [] : undefined;
     if (spec.name === '*') {
       target = moduleTarget;
     } else {
-      const followed = followExportedName(spec.name, resolution.sourceFile, specifier, warnFile, ctx);
+      const followed = followExportedName(spec.name, resolution.sourceFile, specifier, warnFile, ctx, hopFiles);
       if (followed.kind === 'dropped') continue;
       target = followed.kind === 'target' ? followed.target : moduleTarget;
     }
     const key = targetKey(target, ctx);
+    if (key === moduleKey) allHops = false;
+    const barrels = both && key !== moduleKey
+      ? reExportBarrelPath(resolution.sourceFile, hopFiles ?? [], target, ctx)
+      : [];
     const slot = routed.get(key);
-    if (slot === undefined) routed.set(key, { target, specs: [spec] });
-    else slot.specs.push(spec);
+    if (slot === undefined) {
+      routed.set(key, { target, specs: [spec], barrels });
+    } else {
+      slot.specs.push(spec);
+      slot.barrels.push(...barrels);
+    }
   }
 
   const occurrences = [...routed.values()].map(({ target, specs: routedSpecs }) =>
     occurrence(target, routedSpecs.map(s => s.name), statementTypeOnly || allTypeMarked(routedSpecs)));
-  return { occurrences, outcome: outcomeOf(occurrences), outOfRootAlias: false };
+  if (!both) return { occurrences, outcome: outcomeOf(occurrences), outOfRootAlias: false };
+
+  // `reExportEdges: 'both'`: the literal occurrence to the module file carries every name of the statement; each
+  // target reached through a re-export gets its resolved occurrence with `viaReExport`. The partition outcome is the
+  // resolved-only one, so the statement counters do not change between the modes.
+  const literal: ImportOccurrence = {
+    ...occurrence(moduleTarget, specs.map(s => s.name), statementTypeOnly || allTypeMarked(specs)),
+    ...(allHops ? { reExportHop: true } : {}),
+  };
+  const resolvedViaReExport = [...routed.entries()]
+    .filter(([key]) => key !== moduleKey)
+    .map(([, { target, specs: routedSpecs, barrels }]): ImportOccurrence => ({
+      ...occurrence(target, routedSpecs.map(s => s.name), statementTypeOnly || allTypeMarked(routedSpecs)),
+      viaReExport: true,
+      reExportBarrels: [...new Set(barrels)],
+    }));
+  return { occurrences: [literal, ...resolvedViaReExport], outcome: outcomeOf(occurrences), outOfRootAlias: false };
+}
+
+// ── Re-export barrel path (ADR-V13-01) ───────────────────────────────────────
+
+/** Project files named by the `export … from` statements of one file (named, `*` and `* as ns`), cached. */
+function reExportTargetsOf(sf: SourceFile, ctx: ImportResolutionContext): readonly SourceFile[] {
+  const cacheKey = sf.getFilePath();
+  const cached = ctx.reExportAdjacency.get(cacheKey);
+  if (cached !== undefined) return cached;
+  const targets: SourceFile[] = [];
+  for (const decl of sf.getExportDeclarations()) {
+    const spec = decl.getModuleSpecifierValue();
+    if (spec === undefined) continue;
+    const r = resolveModuleSilently(spec, sf, ctx);
+    if (r.kind === 'project-file' && !targets.includes(r.sourceFile)) targets.push(r.sourceFile);
+  }
+  ctx.reExportAdjacency.set(cacheKey, targets);
+  return targets;
+}
+
+/**
+ * Files strictly between `from` and `to` on a shortest `export … from` path (breadth-first; the visited set guards
+ * against re-export cycles, the depth against long chains); `[]` when `to` is a direct re-export target or no such
+ * path exists. It fills in the files an `export *` chain crosses, which the checker skips (it resolves an
+ * `export *` name to its declaration directly).
+ */
+function reExportIntermediates(from: SourceFile, to: SourceFile, ctx: ImportResolutionContext): SourceFile[] {
+  if (from === to) return [];
+  const parent = new Map<SourceFile, SourceFile>();
+  const visited = new Set<SourceFile>([from]);
+  let frontier: SourceFile[] = [from];
+  let depth = 0;
+  while (frontier.length > 0 && depth <= ctx.maxBarrelDepth) {
+    const next: SourceFile[] = [];
+    for (const f of frontier) {
+      for (const t of reExportTargetsOf(f, ctx)) {
+        if (visited.has(t)) continue;
+        visited.add(t);
+        parent.set(t, f);
+        if (t === to) {
+          const path: SourceFile[] = [];
+          for (let p = parent.get(t); p !== undefined && p !== from; p = parent.get(p)) path.unshift(p);
+          return path;
+        }
+        next.push(t);
+      }
+    }
+    frontier = next;
+    depth++;
+  }
+  return [];
+}
+
+/**
+ * The re-export files an import crosses from its module file to `target`, import side first, as File node paths:
+ * the module file, the files of the alias declarations followed (`hopFiles`), and the files an `export *` chain
+ * crosses between them. The declaring file itself is not listed.
+ */
+function reExportBarrelPath(
+  moduleFile: SourceFile,
+  hopFiles: readonly SourceFile[],
+  target: OccurrenceTarget,
+  ctx: ImportResolutionContext,
+): string[] {
+  const declaring = target.kind === 'file' ? sourceFileOfNode(target.fileNodeId, ctx) : undefined;
+  const chain: SourceFile[] = [];
+  for (const f of [moduleFile, ...hopFiles, ...(declaring !== undefined ? [declaring] : [])]) {
+    if (chain[chain.length - 1] !== f) chain.push(f);
+  }
+  const files: SourceFile[] = [];
+  chain.forEach((f, i) => {
+    const prev = i > 0 ? chain[i - 1] : undefined;
+    if (prev !== undefined) files.push(...reExportIntermediates(prev, f, ctx));
+    files.push(f);
+  });
+  const paths = files.filter(f => f !== declaring).map(f => normalizeFilePath(f.getFilePath(), ctx.projectRoot));
+  return [...new Set(paths)];
+}
+
+/** The source file of a File node (reverse of `lookup.fileNodes`). */
+function sourceFileOfNode(fileNodeId: string, ctx: ImportResolutionContext): SourceFile | undefined {
+  for (const [path, id] of ctx.lookup.fileNodes) {
+    if (id === fileNodeId) return ctx.project.getSourceFile(join(ctx.projectRoot, path));
+  }
+  return undefined;
 }
 
 /**
