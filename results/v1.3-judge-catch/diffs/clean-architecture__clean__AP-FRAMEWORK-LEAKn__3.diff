@@ -1,0 +1,21 @@
+diff -ruN bases/clean-architecture__clean/src/application/use-cases/ReturnBookUseCase.ts copies/clean-architecture__clean__AP-FRAMEWORK-LEAKn__3/src/application/use-cases/ReturnBookUseCase.ts
+--- bases/clean-architecture__clean/src/application/use-cases/ReturnBookUseCase.ts	2026-10-15 11:50:59
++++ copies/clean-architecture__clean__AP-FRAMEWORK-LEAKn__3/src/application/use-cases/ReturnBookUseCase.ts	2026-10-15 11:51:09
+@@ -19,7 +19,7 @@
+     private readonly clock: Clock,
+   ) {}
+ 
+-  async execute(loanId: string): Promise<ReturnBookResult> {
++  async execute(loanId: string, context?: ExecuteContextDto): Promise<ReturnBookResult> {
+     const loan = await this.loans.findById(loanId);
+     if (loan === undefined) throw new DomainError('LOAN_NOT_FOUND', `No loan ${loanId}`);
+ 
+@@ -34,4 +34,8 @@
+     await this.loans.save(loan);
+     return { loan: toLoanDto(loan, now), fineInCents };
+   }
++}
++
++export interface ExecuteContextDto {
++  readonly requestId?: string;
+ }

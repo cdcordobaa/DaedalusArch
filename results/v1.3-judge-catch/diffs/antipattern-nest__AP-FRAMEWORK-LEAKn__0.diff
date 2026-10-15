@@ -1,0 +1,21 @@
+diff -ruN bases/antipattern-nest/src/invoice/invoice.service.ts copies/antipattern-nest__AP-FRAMEWORK-LEAKn__0/src/invoice/invoice.service.ts
+--- bases/antipattern-nest/src/invoice/invoice.service.ts	2026-10-15 11:50:59
++++ copies/antipattern-nest__AP-FRAMEWORK-LEAKn__0/src/invoice/invoice.service.ts	2026-10-15 11:51:12
+@@ -10,7 +10,7 @@
+     private readonly invoiceRepository: Repository<InvoiceEntity>,
+   ) {}
+ 
+-  async issue(orderId: string, amount: number): Promise<InvoiceEntity> {
++  async issue(orderId: string, amount: number, context?: IssueContextDto): Promise<InvoiceEntity> {
+     const invoice = this.invoiceRepository.create({ orderId, amount });
+     return this.invoiceRepository.save(invoice);
+   }
+@@ -18,4 +18,8 @@
+   countFor(orderId: string): Promise<number> {
+     return this.invoiceRepository.count({ where: { orderId } });
+   }
++}
++
++export interface IssueContextDto {
++  readonly requestId?: string;
+ }

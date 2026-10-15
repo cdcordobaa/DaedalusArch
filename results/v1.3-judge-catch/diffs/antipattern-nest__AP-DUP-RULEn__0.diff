@@ -1,0 +1,46 @@
+diff -ruN bases/antipattern-nest/src/invoice/invoice.service.ts copies/antipattern-nest__AP-DUP-RULEn__0/src/invoice/invoice.service.ts
+--- bases/antipattern-nest/src/invoice/invoice.service.ts	2026-10-15 11:50:59
++++ copies/antipattern-nest__AP-DUP-RULEn__0/src/invoice/invoice.service.ts	2026-10-15 11:51:07
+@@ -2,6 +2,7 @@
+ import { InjectRepository } from '@nestjs/typeorm';
+ import { Repository } from 'typeorm';
+ import { InvoiceEntity } from './invoice.entity';
++import { assertCreateRule } from '../order/order.service';
+ 
+ @Injectable()
+ export class InvoiceService {
+@@ -17,5 +18,9 @@
+ 
+   countFor(orderId: string): Promise<number> {
+     return this.invoiceRepository.count({ where: { orderId } });
++  }
++
++  validateCreate(quantity: number): void {
++    assertCreateRule(quantity);
+   }
+ }
+diff -ruN bases/antipattern-nest/src/order/order.service.ts copies/antipattern-nest__AP-DUP-RULEn__0/src/order/order.service.ts
+--- bases/antipattern-nest/src/order/order.service.ts	2026-10-15 11:50:59
++++ copies/antipattern-nest__AP-DUP-RULEn__0/src/order/order.service.ts	2026-10-15 11:51:07
+@@ -11,9 +11,7 @@
+   ) {}
+ 
+   async create(customerId: string, quantity: number, unitPrice: number): Promise<OrderEntity> {
+-    if (quantity <= 0) {
+-      throw new BadRequestException('Quantity must be positive');
+-    }
++    assertCreateRule(quantity);
+     const order = this.orderRepository.create({ customerId, quantity, total: quantity * unitPrice });
+     return this.orderRepository.save(order);
+   }
+@@ -25,4 +23,10 @@
+     }
+     return order;
+   }
++}
++
++export function assertCreateRule(quantity: number): void {
++  if (quantity <= 0) {
++        throw new BadRequestException('Quantity must be positive');
++      }
+ }

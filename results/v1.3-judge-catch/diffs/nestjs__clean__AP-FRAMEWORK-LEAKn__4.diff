@@ -1,0 +1,21 @@
+diff -ruN bases/nestjs__clean/src/workshops/workshops.service.ts copies/nestjs__clean__AP-FRAMEWORK-LEAKn__4/src/workshops/workshops.service.ts
+--- bases/nestjs__clean/src/workshops/workshops.service.ts	2026-10-15 11:50:59
++++ copies/nestjs__clean__AP-FRAMEWORK-LEAKn__4/src/workshops/workshops.service.ts	2026-10-15 11:51:10
+@@ -11,7 +11,7 @@
+ 
+   constructor(@Inject(WORKSHOP_REPOSITORY) private readonly workshops: WorkshopRepository) {}
+ 
+-  async create(dto: CreateWorkshopDto): Promise<WorkshopResponseDto> {
++  async create(dto: CreateWorkshopDto, context?: CreateContextDto): Promise<WorkshopResponseDto> {
+     this.sequence += 1;
+     const workshop = new Workshop(`ws-${this.sequence}`, dto.title, dto.capacity, new Date(dto.startsAt));
+     await this.workshops.save(workshop);
+@@ -27,4 +27,8 @@
+     if (workshop === undefined) throw new DomainError('not-found', `No workshop ${id}`);
+     return WorkshopResponseDto.from(workshop);
+   }
++}
++
++export interface CreateContextDto {
++  readonly requestId?: string;
+ }

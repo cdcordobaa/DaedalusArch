@@ -1,0 +1,21 @@
+diff -ruN bases/ddd__clean/src/ordering/application/PlaceOrder.ts copies/ddd__clean__AP-FRAMEWORK-LEAKn__2/src/ordering/application/PlaceOrder.ts
+--- bases/ddd__clean/src/ordering/application/PlaceOrder.ts	2026-10-15 11:50:59
++++ copies/ddd__clean__AP-FRAMEWORK-LEAKn__2/src/ordering/application/PlaceOrder.ts	2026-10-15 11:51:12
+@@ -17,7 +17,7 @@
+ export class PlaceOrder {
+   constructor(private readonly orders: OrderRepository, private readonly customers: CustomerRepository) {}
+ 
+-  async execute(cmd: PlaceOrderCommand): Promise<void> {
++  async execute(cmd: PlaceOrderCommand, context?: ExecuteContextDto): Promise<void> {
+     const customer = await this.customers.byId(new CustomerId(cmd.customerId));
+     if (customer === null || !customer.canOrder()) throw new Error('Unknown or inactive customer');
+     const order = new Order(new OrderId(cmd.orderId), customer.id, cmd.currency);
+@@ -25,4 +25,8 @@
+     order.place();
+     await this.orders.save(order);
+   }
++}
++
++export interface ExecuteContextDto {
++  readonly requestId?: string;
+ }

@@ -1,0 +1,18 @@
+diff -ruN bases/clean-architecture__clean/src/application/use-cases/RegisterBookUseCase.ts copies/clean-architecture__clean__AP-FRAMEWORK-LEAKn__2/src/application/use-cases/RegisterBookUseCase.ts
+--- bases/clean-architecture__clean/src/application/use-cases/RegisterBookUseCase.ts	2026-10-15 11:50:59
++++ copies/clean-architecture__clean__AP-FRAMEWORK-LEAKn__2/src/application/use-cases/RegisterBookUseCase.ts	2026-10-15 11:51:09
+@@ -17,9 +17,13 @@
+     private readonly ids: IdGenerator,
+   ) {}
+ 
+-  async execute(command: RegisterBookCommand): Promise<BookDto> {
++  async execute(command: RegisterBookCommand, context?: ExecuteContextDto): Promise<BookDto> {
+     const book = new Book(this.ids.next('book'), Isbn.parse(command.isbn), command.title, command.author, command.copies);
+     await this.books.save(book);
+     return toBookDto(book);
+   }
++}
++
++export interface ExecuteContextDto {
++  readonly requestId?: string;
+ }

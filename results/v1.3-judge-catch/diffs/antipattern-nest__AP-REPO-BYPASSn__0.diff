@@ -1,0 +1,15 @@
+diff -ruN bases/antipattern-nest/src/invoice/invoice.service.ts copies/antipattern-nest__AP-REPO-BYPASSn__0/src/invoice/invoice.service.ts
+--- bases/antipattern-nest/src/invoice/invoice.service.ts	2026-10-15 11:50:59
++++ copies/antipattern-nest__AP-REPO-BYPASSn__0/src/invoice/invoice.service.ts	2026-10-15 11:51:00
+@@ -11,8 +11,9 @@
+   ) {}
+ 
+   async issue(orderId: string, amount: number): Promise<InvoiceEntity> {
+-    const invoice = this.invoiceRepository.create({ orderId, amount });
+-    return this.invoiceRepository.save(invoice);
++    const invoiceRepository = this.invoiceRepository;
++    const invoice = invoiceRepository.create({ orderId, amount });
++    return invoiceRepository.save(invoice);
+   }
+ 
+   countFor(orderId: string): Promise<number> {
