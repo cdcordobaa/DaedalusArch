@@ -39,6 +39,8 @@ import type { CompileFactsHolder } from './commands/compile-command.js';
 import { UNIVERSAL_CYCLE_STAGE } from '../scoring-engine/universal-metrics.js';
 import type { CycleMetricTiming } from '../scoring-engine/universal-metrics.js';
 import type { StageTimingEntry, StageTimings } from './types.js';
+import { CONSTRUCT_ANSWERS } from '../shared/construct-switches.js';
+import { constructRowTransform, constructTierResolver } from '../construct-switches/pipeline.js';
 
 /**
  * The value returned by `createPipeline`. Holds everything the caller needs
@@ -160,15 +162,17 @@ export function createPipeline(config: PipelineConfig): PipelineBundle {
   commands.push(new CompileCommand(compileFacts, config.instrumentVersion));
 
   // ---- Stage 4: Evaluate (mode-dependent) -----------------------------
+  // v1.3 construct switches: the row stage runs in the v1.3 scoring mode only, and only when a switch is set.
+  const rowStage = config.scoringMode === 'v1.3' ? constructRowTransform(CONSTRUCT_ANSWERS) : undefined;
   switch (config.evaluationMode) {
     case 'full':
       commands.push(
-        new RouteEvaluateCommand(graphRepo, llmProvider!, config.evaluationMode, judgeStage),
+        new RouteEvaluateCommand(graphRepo, llmProvider!, config.evaluationMode, judgeStage, rowStage),
       );
       break;
 
     case 'symbolic-only':
-      commands.push(new SymbolicEvaluateCommand(graphRepo, scrubPolicy.secrets));
+      commands.push(new SymbolicEvaluateCommand(graphRepo, scrubPolicy.secrets, rowStage));
       break;
 
     case 'neuronal-only':
@@ -279,6 +283,8 @@ class LazyScoreCommand implements PipelineCommand {
   async execute(context: FirewallContext): Promise<DomainResultType<void>> {
     const parsedSpec = context.getParsedSpec();
 
+    // v1.3 construct switches: the switch-aware tiers (absent at the status quo).
+    const tiers = this.config.scoringMode === 'v1.3' ? constructTierResolver(CONSTRUCT_ANSWERS, parsedSpec.style, parsedSpec.layerModel) : undefined;
     const scoreCmd = new ScoreCommand(this.graphRepository, {
       scoringWeights: parsedSpec.scoringWeights,
       ...(parsedSpec.fullModeWeights !== undefined && { fullModeWeights: parsedSpec.fullModeWeights }),
@@ -295,6 +301,7 @@ class LazyScoreCommand implements PipelineCommand {
         scoringMode: this.config.scoringMode,
         ...(parsedSpec.style !== undefined && { style: parsedSpec.style }),
       }),
+      ...(tiers !== undefined && { tierResolver: tiers }),
     });
 
     return scoreCmd.execute(context);
