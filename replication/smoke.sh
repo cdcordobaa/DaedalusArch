@@ -3,13 +3,13 @@
 # COMMITTED tree (git archive HEAD into a scratch directory, so the working tree is never written), and compares each
 # output byte for byte with the committed copy. Run from anywhere after replication/setup.sh.
 #
-#   replication/smoke.sh [--keep] [--only gf,ise,apg2,cheap,judge]
+#   replication/smoke.sh [--keep] [--only gf,gfagg,ise,apg2,cheap,judge]
 #
 # Exit 0: every output is IDENTICAL or a KNOWN divergence (replication/known-divergences.json, each one explained in
 # Docs/DiagnosticRuns/v1.3-repro-audit-2026-10-16.md). Exit 1: an unexpected DIFF / MISSING / EXTRA file.
 set -euo pipefail
 REPO="$(cd "$(dirname "$0")/.." && pwd)"
-KEEP=0; ONLY="gf,ise,apg2,cheap,judge"
+KEEP=0; ONLY="gf,gfagg,ise,apg2,cheap,judge"
 while [ $# -gt 0 ]; do case "$1" in --keep) KEEP=1;; --only) ONLY="$2"; shift;; *) echo "unknown arg $1" >&2; exit 2;; esac; shift; done
 want() { case ",$ONLY," in *",$1,"*) return 0;; *) return 1;; esac; }
 
@@ -48,10 +48,27 @@ if want gf; then
   done
 fi
 
+# 1b. Graph fidelity corpus aggregates (E1, SO4), re-derived from the committed per-project JSON with an independent
+#     re-implementation of the harness's unexported aggregate() (the corpora themselves are not in the repository).
+if want gfagg; then
+  run "graph fidelity: re-aggregate e1 + so4" node "$REPO/replication/lib/fidelity-reaggregate.mjs" "$TREE" "$OUT/gfagg"
+  for c in e1 so4; do $CMP "results/v1.3-fidelity/$c/aggregate.json" "$REPO/results/v1.3-fidelity/$c/aggregate.json" "$OUT/gfagg/$c/aggregate.json" $KNOWN || status=1; done
+fi
+
 # 2. ISE prototype, offline measure (style classification, layer accuracy, spec equivalence, Options 1 and 3).
 if want ise; then
   run "ISE measure" npx tsx scripts/v1.3/ise-measure.ts --out "$OUT/ise"
   $CMP "results/v1.3-ise/2026-10-15" "$REPO/results/v1.3-ise/2026-10-15" "$OUT/ise" --only '^(measure\.(json|md)|specs/[^/]*(?<!\.true)\.yaml)$' $KNOWN || status=1
+  # (d) downstream: replayed from the committed live rows (raw/) of the Neo4j run, no Neo4j needed.
+  D="$OUT/ise-down"; mkdir -p "$D/specs"
+  cp -R "$TREE/results/v1.3-ise/2026-10-15/raw" "$D/raw"
+  for f in "$TREE"/results/v1.3-ise/2026-10-15/specs/*.yaml; do case "$f" in *.true.yaml) ;; *) cp "$f" "$D/specs/";; esac; done
+  run "ISE downstream (--from-raw)" node --import tsx scripts/v1.3/ise-downstream.ts --from-raw --out "$D"
+  $CMP "results/v1.3-ise/2026-10-15" "$REPO/results/v1.3-ise/2026-10-15" "$D" --only '^(downstream\.(json|md)|specs/[^/]*\.true\.yaml)$' $KNOWN || status=1
+  # ISE E1 summary tables from the committed per-cell records.
+  E="$OUT/ise-e1"; mkdir -p "$E"; cp "$TREE/results/v1.3-ise-e1/cells.json" "$E/"
+  run "ISE E1 report (ise-e1-report.ts)" node --import tsx scripts/v1.3/ise-e1-report.ts --dir "$E"
+  $CMP "results/v1.3-ise-e1" "$REPO/results/v1.3-ise-e1" "$E" --only '^summary\.(json|md)$' $KNOWN || status=1
 fi
 
 # 3. APG v2 in-memory ablation (+ pinned dependency-cruiser 18.4.0). The script writes into its own Docs folder, i.e.

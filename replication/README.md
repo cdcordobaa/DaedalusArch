@@ -46,17 +46,18 @@ replication/setup.sh --neo4j    # optional: starts Neo4j 5.26 + APOC (needs NEO4
 
 `smoke.sh` exports `git archive HEAD` into a scratch directory and runs every step there, so the working tree is
 never written. It unsets every API key and the `NEO4J_*` variables first. It needs no Neo4j, no model and no network,
-and takes about 3–4 minutes. Each file it checks is reported as one of:
+and takes about 4–5 minutes. Each file it checks is reported as one of:
 
 - `IDENTICAL`: byte-identical to the committed file (sha256 prefix shown).
 - `KNOWN`: a divergence listed in [`known-divergences.json`](known-divergences.json). Each one is explained in the
   audit doc and is checked in a narrower form, so it is never just waved through (see below).
 - `DIFF` / `MISSING` / `EXTRA`: unexpected; the script exits 1.
 
-| Step (`--only`) | What it regenerates | Compared against | Result on 2026-10-15 (commit `6510eddd`) |
+| Step (`--only`) | What it regenerates | Compared against | Result on 2026-10-15 |
 |---|---|---|---|
 | `gf` | graph fidelity harness, `project` mode, on the 5 reference fixtures (`tests/fixtures/v1.3-reference`) | `replication/expected/graph-fidelity/` | 25/25 IDENTICAL |
-| `ise` | ISE prototype offline measure (`scripts/v1.3/ise-measure.ts`) | `results/v1.3-ise/2026-10-15/{measure.json,measure.md,specs/*.yaml}` | 22/22 IDENTICAL |
+| `gfagg` | graph fidelity corpus aggregates, re-derived from the committed per-project JSON (`lib/fidelity-reaggregate.mjs`) | `results/v1.3-fidelity/{e1,so4}/aggregate.json` | 2/2 IDENTICAL |
+| `ise` | ISE prototype offline measure (`ise-measure.ts`); downstream (d) replayed from the committed live rows (`ise-downstream.ts --from-raw`); ISE E1 tables (`ise-e1-report.ts`) | `results/v1.3-ise/2026-10-15/{measure.*,specs/*.yaml,downstream.*,specs/*.true.yaml}`, `results/v1.3-ise-e1/summary.*` | 22/22 + 12/12 + 2/2 IDENTICAL |
 | `apg2` | APG v2 in-memory ablation + dependency-cruiser arm (`scripts/apg2-ablation.ts`), at HEAD **and** at its producing commit `72fa9203` | `Docs/DiagnosticRuns/apg2-ablation-2026-10-15/` | at `72fa9203`: 19/19 IDENTICAL. At HEAD: 17 IDENTICAL + `ablation.json`, `table.md` KNOWN (finding C-1) |
 | `cheap` | seeding (`judge-catch-seed.ts`) + cheap semantic proxies (`cheap-semantics-eval.ts`) | `results/v1.3-cheap-semantics/{rows.csv,flags/*.json,scores.json}` | 54/54 IDENTICAL. `scores.json` is compared with `generatedAt` and the `*Ms` wall-clock fields removed, and is identical. |
 | `judge` | judge catch scores, rounds 1, 2 and DUP-RULE v2, **replayed from the committed cassettes** | `results/v1.3-judge-catch/{,round2/,duprule-v2/}{scores.json,rows.csv}` | 4/6 IDENTICAL. Round 1 and round 2 `scores.json` are KNOWN (finding D-5) and IDENTICAL once the empty `AP-DUP-RULE2` blocks are removed. |
@@ -83,7 +84,10 @@ If `npx tsx` fails with `EADDRINUSE` on its IPC pipe (a long `TMPDIR`), use `nod
 | `results/v1.3-fidelity/so4/**` | `npx tsx scripts/v1.3/graph-fidelity.ts so4 --bases ../daedalus-so4/bases --out <dir>` | `../daedalus-so4` | D | same |
 | fixtures (new) | `replication/smoke.sh --only gf` | none | D | IDENTICAL |
 
-GRAPH_FIDELITY_EXTRA
+| `results/v1.3-fidelity/{e1,so4}/aggregate.json` | `replication/smoke.sh --only gfagg` (`node replication/lib/fidelity-reaggregate.mjs . <dir>`): an independent re-implementation of the harness's unexported `aggregate()` run on the committed `projects/*.json` | none | D | both IDENTICAL; a recount from the edge-level CSVs equals the per-project JSON in all 79 projects |
+
+The doc's claim that "a full E1 rerun gave byte-identical outputs" has no committed second-run evidence (audit, missing
+raw file).
 
 ### 3.2 Reference validation (`v1.3-reference-{baseline,after-fixes,after-member-facts}-2026-10-15.md`)
 
@@ -133,7 +137,10 @@ GRAPH_FIDELITY_EXTRA
 |---|---|---|---|---|
 | `results/v1.3-ise/2026-10-15/{measure.json,measure.md,specs/*.yaml}` | `replication/smoke.sh --only ise` or `npx tsx scripts/v1.3/ise-measure.ts --out <dir>` | none | D | IDENTICAL |
 
-ISE_EXTRA
+| `downstream.json`, `downstream.md`, `specs/*.true.yaml` | live: `npx tsx scripts/v1.3/ise-downstream.ts --out <dir>` (Neo4j). Replay: copy `specs/` (without `*.true.yaml`) and `raw/` into `<dir>`, then `node --import tsx scripts/v1.3/ise-downstream.ts --from-raw --out <dir>` (`smoke.sh --only ise`) | live: Neo4j; replay: none | D | replay: 12/12 IDENTICAL |
+| `results/v1.3-ise-e1/{cells.json,cells/,raw/,specs/}` | `npx tsx scripts/v1.3/ise-e1.ts ...` | Neo4j + `../daedalus-e1-outcomes` | D | not regenerable here |
+| `results/v1.3-ise-e1/summary.{json,md}` | copy `cells.json` into `<dir>`, then `node --import tsx scripts/v1.3/ise-e1-report.ts --dir <dir>` (`smoke.sh --only ise`) | none | D | IDENTICAL |
+| `results/v1.3-ise-e1/option1.{json,md}` | `npx tsx scripts/v1.3/ise-e1-option1.ts ...` | `../daedalus-e1-outcomes` (no Neo4j) | D | not regenerable here; numbers re-derived |
 
 ## 4. Credentials and privacy
 
@@ -150,7 +157,8 @@ ISE_EXTRA
 | File | Purpose |
 |---|---|
 | `setup.sh` | one-command setup |
-| `smoke.sh` | offline deterministic regeneration + byte comparison (steps `gf`, `ise`, `apg2`, `cheap`, `judge`) |
+| `smoke.sh` | offline deterministic regeneration + byte comparison (steps `gf`, `gfagg`, `ise`, `apg2`, `cheap`, `judge`) |
+| `lib/fidelity-reaggregate.mjs` | independent re-aggregation of the fidelity corpora (step `gfagg`) |
 | `lib/compare.mjs` | byte comparison of files or trees (`--root` path normalisation, `--only` filter, `--known` list) |
 | `lib/strip-timings.mjs` | removes `generatedAt` and `*Ms` fields (used for `cheap-semantics/scores.json`) |
 | `lib/strip-keys.mjs` | removes the named keys and array rows (used for known divergence D-5) |
