@@ -1,6 +1,6 @@
 # F8 · timeline
 
-**Title on slide:** What happens next, in order
+**Title on slide:** What happens next, in order (the slide carries the title; the figure is a bare 1600 x 360 strip: plan, nothing here has run)
 
 **What it shows.** The ordered steps after the development set: (1) the author's construct decisions, (2) the freeze of the tool, (3) the one-time hold-out run, (4) labelling by the model labeller, (5) labelling by two humans (blind union sheets), (6) the loop pilot, (7) the Study 2 pre-registration. Sealed items are drawn as locked, dashed boxes; nothing of their content is shown.
 

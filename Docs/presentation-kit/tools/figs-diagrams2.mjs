@@ -186,39 +186,38 @@ import { box, arrow, path, chip, lock } from './diagram.mjs';
     { t: 'Hold-out run', d: 'unseal the hold-out projects, one live run, outputs committed unchanged', k: 'sealed', s: 'sealed' },
     { t: 'Labelling: model', d: '"meaningful" labeller (single vendor) after the outputs are committed', k: 'defined', s: 'defined' },
     { t: 'Labelling: two humans', d: 'blind union sheets with decoys; author audit κ ≥ 0.60', k: 'defined', s: 'defined' },
-    { t: 'Loop pilot', d: '3 tasks × 2 arms, k = 4; decides Study 2\'s primary outcome in advance', k: 'defined', s: 'defined, not run' },
+    { t: 'Loop pilot', d: '3 tasks × 2 arms, k=4; decides Study 2\'s primary outcome in advance', k: 'defined', s: 'defined, not run' },
     { t: 'Study 2 pre-registration', d: 'only if the validation report passes; tasks stay sealed until then', k: 'sealed', s: 'tasks sealed' },
   ];
+  // Wide, short strip (1600 x 360) for a 1150 x 250 slide slot: no frame header, the slide carries the title.
   const n = steps.length;
-  const bw = 196;
-  const gap = (W - 96 - n * bw) / (n - 1);
+  const VW = 1600;
+  const VH = 360;
+  const pad = 16;
+  const gap = 12;
+  const bw = (VW - 2 * pad - (n - 1) * gap) / n;
+  const ly = 30;
   let b = '';
-  b += line(48, top + 60, W - 48, top + 60, { stroke: C.grid, sw: 6 });
+  b += line(pad, ly, VW - pad, ly, { stroke: C.grid, sw: 6 });
   steps.forEach((st, i) => {
-    const x = 48 + i * (bw + gap);
+    const x = pad + i * (bw + gap);
     const sealed = st.k === 'sealed';
-    b += `<circle cx="${x + bw / 2}" cy="${top + 60}" r="14" fill="${sealed ? C.status.sealed : C.status.defined}"/>`;
-    b += rect(x, top + 100, bw, 270, { rx: 12, fill: sealed ? '#F1F2F4' : '#FFFFFF', stroke: sealed ? C.status.sealed : C.status.defined, sw: 2, dash: sealed ? '8 5' : undefined });
-    if (sealed) b += lock(x + bw - 34, top + 112, 1.1, C.status.sealed);
-    b += text(x + 12, top + 90 - 50, String(i + 1), { size: 22, weight: 700, fill: C.muted });
-    wrap(st.t, bw - (sealed ? 50 : 24), 19, 700).forEach((l, k) => (b += text(x + 14, top + 132 + k * 23, l, { size: 19, weight: 700 })));
-    wrap(st.d, bw - 26, 16).forEach((l, k) => (b += text(x + 14, top + 196 + k * 21, l, { size: 16 })));
-    b += text(x + 14, top + 355, st.s, { size: 15, weight: 700, fill: sealed ? C.status.sealed : C.status.defined });
+    const col = sealed ? C.status.sealed : C.status.defined;
+    b += `<circle cx="${x + bw / 2}" cy="${ly}" r="18" fill="${col}"/>`;
+    b += text(x + bw / 2, ly + 8, String(i + 1), { size: 21, weight: 700, fill: '#fff', anchor: 'middle' });
+    b += rect(x, ly + 30, bw, VH - ly - 36, { rx: 12, fill: sealed ? '#F1F2F4' : '#FFFFFF', stroke: col, sw: 2.5, dash: sealed ? '8 5' : undefined });
+    if (sealed) b += lock(x + bw - 34, ly + 42, 1.1, col);
+    const tl = wrap(st.t, bw - (sealed ? 52 : 24), 22, 700);
+    tl.forEach((l, k) => (b += text(x + 12, ly + 64 + k * 26, l, { size: 22, weight: 700 })));
+    const dy = ly + 64 + tl.length * 26 + 8;
+    wrap(st.d, bw - 22, 18).forEach((l, k) => (b += text(x + 12, dy + k * 23, l, { size: 18 })));
+    b += text(x + 12, VH - 20, st.s, { size: 18, weight: 700, fill: col });
   });
-  b += text(48, top + 10, 'NOW: development set done (F1–F3, F6, F7). Everything below is ahead, in this order.', { size: 18, weight: 600 });
-  const svg = frame({
-    title: 'What happens next, in order',
-    subtitle: 'From the construct decisions to Study 2. Sealed items (locks) are outside the repository; their contents are not shown and were not opened.',
-    badgeKind: 'design',
-    badgeLabel: 'PLAN (nothing here has run)',
-    body: b,
-    height: top + 380 + 90,
-    footer: ['Sources: Docs/v1.3/construct-decisions.md ("After answering"); Docs/v1.3/holdout-prespec.md §1, §2, §7; Docs/v1.3/labelling.md; Docs/v1.3/human-labelling-protocol.md; Docs/v1.3/pilot-outcome-memo.md; Docs/v1.3/study2-outline.md §8; Docs/v1.3/validation-protocol.md §4.'],
-  });
+  const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${VW}" height="${VH}" viewBox="0 0 ${VW} ${VH}">${rect(0, 0, VW, VH, { fill: C.bg })}${b}</svg>`;
   save(FIG, 'F8-timeline', svg, `
 # F8 · timeline
 
-**Title on slide:** What happens next, in order
+**Title on slide:** What happens next, in order (the slide carries the title; the figure is a bare 1600 x 360 strip: plan, nothing here has run)
 
 **What it shows.** The ordered steps after the development set: (1) the author's construct decisions, (2) the freeze of the tool, (3) the one-time hold-out run, (4) labelling by the model labeller, (5) labelling by two humans (blind union sheets), (6) the loop pilot, (7) the Study 2 pre-registration. Sealed items are drawn as locked, dashed boxes; nothing of their content is shown.
 
