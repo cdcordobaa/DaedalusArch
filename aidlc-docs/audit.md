@@ -1614,3 +1614,11 @@ Plan checkboxes ticked. Auto-approved under standing approval; no blocking or ma
 **Context**: v1.3 U-F.
 
 ---
+
+## v1.3 — live labelling: correctness done; meaningful blocked by a Codex limit
+**Timestamp**: 2026-10-15T19:20:00Z
+**User Input**: (none)
+**AI Response**: "PR #95 (2c1098c) merged. Correctness (deterministic, from code + spec, never the graph): reference dev set 1,663 findings, 1,484 correct, 0 incorrect, 179 not checkable; E1 under v1.3 1,428 findings, 1,184 correct, 0 incorrect, 244 not checkable (threshold metrics). All 54 checkable blocking findings are correct. One checker bug (the FF-DT03 member-fact discriminator) was fixed; it was not a tool defect. E1 still has 0 blocking-tier findings under v1.3. Meaningful labelling: the protocol sample is 348 items (696 calls); Codex hit the account usage limit on call 2 (resets Nov 9), so no meaningful labels yet. Audit sheet generated (40 items), BUT the reference fixtures contain comments such as '// VIOLATION (...)' that reveal the answer in the excerpts, so the sheet must be regenerated with comments stripped before the author uses it."
+**Context**: v1.3 U-F — meaningful labels need a provider: the Gemini API with a NEW key (the old one is exposed), or a Claude labeller declared as same-vendor as the judge.
+
+---
