@@ -156,7 +156,7 @@ export async function explainViolationTool(
 
 export async function evaluateProjectTool(
   ctx: ServerContext,
-  args: { readonly project?: string | undefined; readonly spec?: string | undefined },
+  args: { readonly project?: string | undefined; readonly spec?: string | undefined; readonly scoring?: 'v1.3' | 'v1.2e' | undefined },
 ): Promise<ToolOutcome<EvaluateProjectResult>> {
   const project = args.project ?? ctx.defaultProjectPath;
   if (project === undefined) {
@@ -165,7 +165,7 @@ export async function evaluateProjectTool(
   const loaded = await specFor(ctx, args.spec);
   if (!loaded.ok) return loaded;
   const result = await evaluateProject(
-    { projectPath: project, specPath: loaded.data.specPath },
+    { projectPath: project, specPath: loaded.data.specPath, ...(args.scoring !== undefined && { scoringMode: args.scoring }) },
     ctx.env,
     ctx.evaluateDeps,
   );

@@ -288,6 +288,11 @@ class LazyScoreCommand implements PipelineCommand {
       fitnessFunctions: parsedSpec.fitnessFunctions,
       ...(this.onCycleMetricTiming !== undefined && { onCycleMetricTiming: this.onCycleMetricTiming }),
       ...(this.config.neuralAggregation !== undefined && { neuralAggregation: this.config.neuralAggregation }),
+      // FR-V6: the v1.3 mode reads the style (FF-S03 tier); the v1.2E mode passes neither field.
+      ...(this.config.scoringMode === 'v1.3' && {
+        scoringMode: this.config.scoringMode,
+        ...(parsedSpec.style !== undefined && { style: parsedSpec.style }),
+      }),
     });
 
     return scoreCmd.execute(context);

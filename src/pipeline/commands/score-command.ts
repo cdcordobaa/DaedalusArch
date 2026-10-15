@@ -5,6 +5,7 @@ import type { GraphRepository } from '../../shared/interfaces/graph-repository.j
 import type { EvaluationMode } from '../../shared/types/enums.js';
 import type { ScoringWeights, VerdictThresholds, ConfidenceThresholds, FitnessFunction } from '../../shared/types/spec.js';
 import type { FunctionId } from '../../shared/types/value-objects.js';
+import type { ScoringMode } from '../../shared/types/evaluation.js';
 import type { PipelineWarning } from '../../shared/errors/domain-result.js';
 import { DomainResult } from '../../shared/errors/domain-result.js';
 import { computeScoredReport } from '../../scoring-engine/index.js';
@@ -25,6 +26,10 @@ export interface ScoreCommandConfig {
   readonly onCycleMetricTiming?: (timing: CycleMetricTiming) => void;
   /** ADR-028: `registered` (default) or `proportional`. */
   readonly neuralAggregation?: NeuralAggregation;
+  /** FR-V6: `v1.2e` (default) or `v1.3` (rule tiers). */
+  readonly scoringMode?: ScoringMode;
+  /** The spec's `architecture.style` (style-dependent tiers, v1.3 mode only). */
+  readonly style?: string;
 }
 
 /** U4's warning for a neural function with zero selected units (U4 BR-U4-AGG-09). */
@@ -69,6 +74,8 @@ export class ScoreCommand implements PipelineCommand {
       ...(apg !== undefined && { apg }),
       ...(this.config.onCycleMetricTiming !== undefined && { onCycleMetricTiming: this.config.onCycleMetricTiming }),
       ...(this.config.neuralAggregation !== undefined && { neuralAggregation: this.config.neuralAggregation }),
+      ...(this.config.scoringMode !== undefined && { scoringMode: this.config.scoringMode }),
+      ...(this.config.style !== undefined && { style: this.config.style }),
     });
 
     if (!result.success) {

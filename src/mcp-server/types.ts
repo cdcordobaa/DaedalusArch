@@ -10,6 +10,7 @@ import type {
   LayerKind,
 } from '../shared/types/enums.js';
 import type { ViolationType } from '../shared/taxonomy/violation-types.js';
+import type { ScoringMode, TieredScoring } from '../shared/types/evaluation.js';
 
 // ── Rules ────────────────────────────────────────────────────────────────────
 
@@ -152,6 +153,10 @@ export interface EvaluateProjectResult {
   readonly violationCount: number;
   readonly byRule: readonly RuleViolationGroup[];
   readonly durationMs: number;
+  /** FR-V6: `v1.3` (default: `verdict` from the blocking rules) or `v1.2e` (the registered scoring). */
+  readonly scoringMode: ScoringMode;
+  /** v1.3 mode only: blocking and advisory counts per rule, N/A parts with denominators; `ahs` stays the v1.2E AHS. */
+  readonly tiers?: TieredScoring;
 }
 
 // ── Environment ──────────────────────────────────────────────────────────────

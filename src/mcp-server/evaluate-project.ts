@@ -9,7 +9,7 @@
 import * as fs from 'node:fs';
 import * as path from 'node:path';
 import type { GraphRepository } from '../shared/interfaces/graph-repository.js';
-import type { EvaluationReport } from '../shared/types/evaluation.js';
+import type { EvaluationReport, ScoringMode } from '../shared/types/evaluation.js';
 import type { DomainResult } from '../shared/errors/domain-result.js';
 import { DomainResult as Result } from '../shared/errors/domain-result.js';
 import { neo4jScrubPolicy, scrubWithPolicy } from '../shared/errors/scrub.js';
@@ -33,6 +33,8 @@ export interface EvaluateDeps {
 export interface EvaluateInput {
   readonly projectPath: string;
   readonly specPath: string;
+  /** FR-V6 scoring mode; default `v1.3`. */
+  readonly scoringMode?: ScoringMode;
 }
 
 /** The Neo4j settings from the environment (the CLI's variables); throws `MissingEnvError` for no password. */
@@ -94,6 +96,7 @@ export async function evaluateProject(
   deps: EvaluateDeps,
 ): Promise<DomainResult<EvaluateProjectResult>> {
   const projectPath = path.resolve(input.projectPath);
+  const scoringMode: ScoringMode = input.scoringMode ?? 'v1.3';
   if (!fs.existsSync(projectPath) || !fs.statSync(projectPath).isDirectory()) {
     return failure('PROJECT_NOT_FOUND', `Project path is not a directory: ${projectPath}`);
   }
@@ -148,6 +151,7 @@ export async function evaluateProject(
     diff: false,
     verbose: false,
     apgStorePath: neo4j.apgStorePath,
+    scoringMode,
   };
   const { executor, cleanup } = deps.makePipeline(config);
   try {
@@ -168,6 +172,8 @@ export async function evaluateProject(
       violationCount: report.violations.length,
       byRule: groupByRule(report),
       durationMs: report.durationMs,
+      scoringMode,
+      ...(report.tiers !== undefined && { tiers: report.tiers }),
     });
   } catch (err) {
     return failure(

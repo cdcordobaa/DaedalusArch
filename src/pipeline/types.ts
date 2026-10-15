@@ -4,6 +4,7 @@ import type { LLMProviderConfig } from '../shared/types/llm-config.js';
 import type { GraphMode } from '../apg-extractor/types.js';
 import type { InstrumentVersion } from '../fitness-compiler/role-exemptions.js';
 import type { NeuralAggregation } from '../scoring-engine/neural-aggregation.js';
+import type { ScoringMode } from '../shared/types/evaluation.js';
 
 export interface PipelineConfig {
   readonly projectPath: string;
@@ -27,6 +28,11 @@ export interface PipelineConfig {
   readonly instrumentVersion?: InstrumentVersion | undefined;
   /** Neural aggregation of the AHS fields (ADR-028): `registered` (default, primary) or `proportional`. */
   readonly neuralAggregation?: NeuralAggregation | undefined;
+  /**
+   * FR-V6 scoring mode: `v1.2e` (default here, the registered scoring) or `v1.3` (rule tiers). The CLI `evaluate`
+   * command and the MCP `evaluate_project` tool pass `v1.3` unless told otherwise.
+   */
+  readonly scoringMode?: ScoringMode | undefined;
 }
 
 export type OutputFormat = 'json' | 'human' | 'csv';
