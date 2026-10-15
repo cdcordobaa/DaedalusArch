@@ -1,0 +1,84 @@
+{
+  "case": "case-04b-control-clean-notification",
+  "note": "Hand-written scripted mock answers (NOT model output). They exercise the ontology pipeline, the grounding validator, the cache and the scorer on the planted cases; they were written after expected-semantic.json and say nothing about what a model would answer. Planted hallucinations are marked 'planted-hallucination'.",
+  "responses": [
+    {
+      "pass": "responsibility",
+      "item": "ShipmentNotificationService",
+      "answer": {
+        "responsibilities": [
+          {
+            "name": "Send the shipment notification",
+            "description": "Send the shipment notification",
+            "naturalLayer": "application",
+            "confidence": 0.85,
+            "evidence": [
+              {
+                "node": "ShipmentNotificationService.sendShipped",
+                "quote": "await this.mailer.send(shipment.recipientEmail, 'Your order has shipped',"
+              }
+            ]
+          },
+          {
+            "name": "Format the shipping date for the message",
+            "description": "Format the shipping date for the message",
+            "naturalLayer": "application",
+            "confidence": 0.85,
+            "evidence": [
+              {
+                "node": "ShipmentNotificationService.sendShipped",
+                "quote": "const day = shipment.shippedAt.toISOString().slice(0, 10);"
+              }
+            ]
+          }
+        ],
+        "concepts": [
+          {
+            "name": "Shipment",
+            "relation": "uses",
+            "confidence": 0.85,
+            "evidence": [
+              {
+                "node": "ShipmentNotificationService.sendShipped",
+                "quote": "async sendShipped(shipment: Shipment): Promise<void> {"
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "pass": "responsibility",
+      "item": "Shipment",
+      "answer": {
+        "responsibilities": [
+          {
+            "name": "Record a shipment",
+            "description": "Record a shipment",
+            "naturalLayer": "domain",
+            "confidence": 0.85,
+            "evidence": [
+              {
+                "node": "Shipment",
+                "quote": "readonly carrier: string,"
+              }
+            ]
+          }
+        ],
+        "concepts": [
+          {
+            "name": "Shipment",
+            "relation": "defines",
+            "confidence": 0.85,
+            "evidence": [
+              {
+                "node": "Shipment",
+                "quote": "export class Shipment {"
+              }
+            ]
+          }
+        ]
+      }
+    }
+  ]
+}

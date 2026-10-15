@@ -15,3 +15,10 @@ before any ontology pipeline code, prompt or run existed (first commit of branch
 
 `layers.json` is the layer model used for every case (`src/**/<kind>/**`). Components are the first directory under
 `src/`. Scorer: `src/apg-enrich/ontology/scorer.ts`; runner: `scripts/v1.3/ontology-run.ts`.
+
+Added after the manifests (second commit):
+- `mock-answers/<case>.json`: hand-written scripted mock answers, **not model output**, with planted hallucinations and
+  one planted run disagreement. They exercise the pipeline, the grounding validator, the cache and the scorer.
+- `cassettes-mock/<case>/`: the cassettes recorded from those answers
+  (`npx tsx scripts/v1.3/ontology-run.ts --fixtures --provider mock`), replayed by the unit tests with no provider call.
+- `cassettes-claude-cli/<case>/` (not yet present): the local live run through the judge's Claude CLI route.
