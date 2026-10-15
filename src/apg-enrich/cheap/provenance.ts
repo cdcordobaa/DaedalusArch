@@ -24,7 +24,8 @@
  *   findings: the harness's recorded findings (loop store) and, with a layer model, the in-memory dependency-direction
  *   rule (`v13DependencyDirection`); advisory findings: the flags of the context proxies. Each new finding is
  *   ATTRIBUTED to the step that introduced the offending edge (a finding with a target file: the IMPORTS edge between
- *   the two files), else to the step that last changed its unit (Method / Class node text), else its file.
+ *   the two files), else to the step that last changed its unit (Method / Function / Class node text), else its file;
+ *   a two-ended finding (a clone pair, a shared literal) to the later of its two ends (the step that made the pair).
  * - REIMPLEMENTS (new unit → existing unit): a Method, Function or Class created at k that (a) is a clone (the batch-1
  *   clone proxy's SAME_LOGIC_AS on snapshot k) of a unit that existed at k − 1, or (b) for a class, shares the concept
  *   and the member vocabulary of a class that existed at k − 1 (`vocabularyMatch`). Not a candidate when the new unit's
@@ -192,6 +193,8 @@ export interface ProvFinding {
   readonly target?: string;
   readonly className?: string;
   readonly methodName?: string;
+  /** The other end of a two-ended finding (a clone pair, a shared literal). */
+  readonly related?: { readonly file: string; readonly className?: string; readonly methodName?: string };
   readonly message: string;
 }
 
@@ -323,7 +326,8 @@ async function snapshotOf(history: SnapshotHistory, index: number, commit: strin
   for (const f of enr.flags) {
     if (!wantFlags.has(f.proxy as ContextProxyId)) continue;
     const key = `advisory|${f.proxy}:${f.kind}|${f.evidence.file}|${f.className ?? ''}|${f.methodName ?? ''}|${f.related?.file ?? ''}`;
-    findings.set(key, { key, tier: 'advisory', rule: `${f.proxy}:${f.kind}`, file: f.evidence.file, ...(f.className !== undefined ? { className: f.className } : {}), ...(f.methodName !== undefined ? { methodName: f.methodName } : {}), message: f.message });
+    const related = f.related === undefined ? undefined : { file: f.related.file, ...(f.related.className !== undefined ? { className: f.related.className } : {}), ...(f.related.methodName !== undefined ? { methodName: f.related.methodName } : {}) };
+    findings.set(key, { key, tier: 'advisory', rule: `${f.proxy}:${f.kind}`, file: f.evidence.file, ...(f.className !== undefined ? { className: f.className } : {}), ...(f.methodName !== undefined ? { methodName: f.methodName } : {}), ...(related !== undefined ? { related } : {}), message: f.message });
   }
   if (opts.layerModel !== undefined && opts.layerModel.layers.length > 1) {
     const g = memGraph(apg, opts.layerModel);
@@ -491,6 +495,14 @@ export async function analyseProvenance(history: SnapshotHistory, opts: Provenan
     const before = snaps[sn.index - 1]?.findings ?? new Map<string, ProvFinding>();
     const fresh = [...sn.findings.values()].filter((f) => !before.has(f.key)).sort((a, b) => (a.key < b.key ? -1 : 1));
     const resolved = [...before.values()].filter((f) => !sn.findings.has(f.key));
+    /** The step a code unit (or, failing that, its file) was last changed at, up to this snapshot. */
+    const unitOrFile = (u: { file: string; className?: string; methodName?: string }): { at: number; via: AttributedFinding['via'] } => {
+      const nid = u.className !== undefined
+        ? (u.methodName !== undefined ? sn.ctx.nodeId('Method', u.file, `${u.className}.${u.methodName}`) : undefined) ?? sn.ctx.nodeId('Class', u.file, u.className)
+        : u.methodName !== undefined ? sn.ctx.nodeId('Function', u.file, u.methodName) : undefined;
+      const c = nid === undefined ? null : unitChangedAt(nid, sn.index);
+      return c !== null ? { at: c, via: 'unit' } : { at: Math.max(0, lastModifiedBy(u.file, sn.index)), via: 'file' };
+    };
     const attributed: AttributedFinding[] = fresh.map((f) => {
       let at: number | null = null;
       let via: AttributedFinding['via'] = 'file';
@@ -505,15 +517,14 @@ export async function analyseProvenance(history: SnapshotHistory, opts: Provenan
           }
         }
       }
-      if (at === null && f.className !== undefined) {
-        const nid = (f.methodName !== undefined ? sn.ctx.nodeId('Method', f.file, `${f.className}.${f.methodName}`) : undefined) ?? sn.ctx.nodeId('Class', f.file, f.className);
-        const c = nid === undefined ? null : unitChangedAt(nid, sn.index);
-        if (c !== null) {
-          at = c;
-          via = 'unit';
-        }
+      if (at === null) {
+        // A two-ended finding exists from the step that completed the pair: the later of its two ends.
+        const own = unitOrFile(f);
+        const other = f.related === undefined ? undefined : unitOrFile(f.related);
+        const pick = other !== undefined && other.at > own.at ? other : own;
+        at = pick.at;
+        via = pick.via;
       }
-      at ??= Math.max(0, lastModifiedBy(f.file, sn.index));
       const a = attributedCount.get(at) ?? { blocking: 0, advisory: 0 };
       a[f.tier]++;
       attributedCount.set(at, a);

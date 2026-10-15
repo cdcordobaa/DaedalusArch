@@ -61,6 +61,14 @@ describe('agent provenance (batch 2) on a plain git history', () => {
     expect(pick(f, ['rule', 'file', 'target', 'attributedTurn', 'via'])).toEqual({ rule: 'dependency-direction', file: 'src/todos/domain/todo.ts', target: 'src/todos/infrastructure/in-memory-todo.repository.ts', attributedTurn: 'step-03', via: 'edge' });
   });
 
+  it('attributes a new two-ended advisory finding (a clone pair) to the step that completed the pair, not to its old end', () => {
+    for (const k of [1, 3]) {
+      const adv = result.erosion[k]?.newFindings.filter((f) => f.tier === 'advisory') ?? [];
+      expect(adv.length > 0).toBe(true);
+      expect([...new Set(adv.map((f) => f.attributedTurn))]).toEqual([result.erosion[k]?.turnId]);
+    }
+  });
+
   it('measures agent locality against the feature scope', () => {
     expect(result.locality.map((l) => `${l.turnId}:${l.componentsTouched.join('+')}:${l.scope.join('+')}:${String(l.locality)}`)).toEqual([
       'step-01:todos:todos:1',
