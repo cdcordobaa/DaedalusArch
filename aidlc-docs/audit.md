@@ -1694,3 +1694,11 @@ Plan checkboxes ticked. Auto-approved under standing approval; no blocking or ma
 **Context**: v1.3 overnight wave 4.
 
 ---
+
+## v1.3 — instrument-improvement plan before the freeze (wave 5)
+**Timestamp**: 2026-10-16T01:30:00Z
+**User Input**: "I need to plan something that we can still improve on this instrument before we run the study." Earlier: "I don't need to do related work review ... focus work on this project" (related-work agent stopped).
+**AI Response**: "Plan (every instrument change must precede the freeze; post-hold-out changes need a new hold-out). P0: apply construct decisions (switches being pre-built); erosion metric definition + per-step attribution; agent feedback quality; the judge's role in Study 2 + judge v2 / filter-and-explain; APG v2 tier decision. P1: Neo4j-free memory engine with differential parity; field-level state facts (HOLDS_STATE_OF) for FF-P06; cheap-proxy duplicate fixes; test topology replacing FF-CV05 (in cheap batch 2). Then freeze checklist → tag v1.3.0 → hold-out. Launched: cloud I1 erosion metric + feedback quality (trig_01Rmc2rHq3Z4UtWwoB1WbSxE), I2 memory engine (trig_01WdZKH9Voy86Rq3RJFrUqoJ), I3 field state + cheap-proxy fixes (trig_01WYF2v8WHBewqRwGC2Gm1eT); local judge v2 with a TUNE/CHECK split written before any call (≤600 calls), construct switches, examiner question bank, rule-source verification, thesis Ch7–9 v1.3 draft (separate thesis worktree), adversarial review of the v1.3 results."
+**Context**: v1.3 pre-freeze improvement wave.
+
+---
