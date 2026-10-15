@@ -1566,3 +1566,11 @@ Plan checkboxes ticked. Auto-approved under standing approval; no blocking or ma
 **Context**: ISE exploratory track inside the v1.3 overnight push.
 
 ---
+
+## v1.3 — APG v2 generic enrichments (author choice)
+**Timestamp**: 2026-10-15T17:20:00Z
+**User Input**: "In the graph construction what is something that we can generate ... that others, like Dependency Cruiser ... definitely can't?"; then "1, 2, 4 but ... those ones are very focused on DDD. What would be some features ... more generic and applied to most projects?" (Intent: strengthen the APG's distinctive value with style-agnostic enrichments.)
+**AI Response**: "Generic set proposed: type flow across boundaries (SIGNATURE_USES), component nodes + Martin metrics, public API surface / deep imports, async coupling (EventEmitter, pub/sub, queues), I/O and side-effect boundary, SDK spread, entry-point reachability, error flow, test topology. Built now (cloud trig_01X4cxm8Y5WHCvMw6vACxKVD, branch v1.3-apg2): 1, 2 + 2b, 4 (as generic async coupling) + 5 (I/O, recommended), each with one extension template, a design note with literature, and an ablation fixture suite showing per case: APG v2 detects / v1.3 APG does not / dependency-cruiser does not. v1.2E extraction stays byte-identical."
+**Context**: v1.3 — SO2 strengthening (what the APG can express that import graphs cannot).
+
+---
