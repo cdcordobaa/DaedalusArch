@@ -62,12 +62,16 @@ C1, C2, C3 and C5 are covered by F3, F2, F6/F7 and F9.
 | F3b author-vs-blind | Same run scored against author vs blind manifests (53/67 recall blind) | `figures/F3b-author-vs-blind.{svg,png,caption.md}` |
 | F4 construct-questions | The seven high-stakes construct questions with rows at stake and the recommended option | `figures/F4-construct-questions.{svg,png,caption.md}` |
 | F5 apg2-ablation-grid | 27 planted cases × 6 representations; CP4/CP5 dropped by the 4-type minimum | `figures/F5-apg2-ablation-grid.{svg,png,caption.md}` |
-| F6 judge-catch | Judge catch per operator and round, twin and clean false fails (30/35; 4/50) | `figures/F6-judge-catch.{svg,png,caption.md}` |
+| F6 judge-catch | Judge catch per operator and round, twin and clean false fails (16/21 on the two unconfounded operators; 30/35 includes confounded seeds; 4/50) | `figures/F6-judge-catch.{svg,png,caption.md}` |
 | F7 proxies-judge-rules | Cheap proxies vs judge vs rules on the 11 round-1 seeds and 9 DUP-RULE v2 seeds; 6/6 analogues; 14 flags / 146 files | `figures/F7-proxies-judge-rules.{svg,png,caption.md}` |
 | F8 timeline | Construct decisions → freeze → hold-out → labelling (model, two humans) → pilot → Study 2 prereg | `figures/F8-timeline.{svg,png,caption.md}` |
 | F9 study1-under-v13 | E1: 0 blocking in every cell, 100% advisory; SO4 recall 67/73 → 73/73 | `figures/F9-study1-under-v13.{svg,png,caption.md}` |
 | F10 study2-design | Steps × arms (none, daedalus-mcp, gate) with snapshot/score points and the repair turn | `figures/F10-study2-design.{svg,png,caption.md}` |
 | F11 pilot-decision | Zero erosion in the none arm → Study 2's primary outcome becomes the advisory erosion rate | `figures/F11-pilot-decision.{svg,png,caption.md}` |
+
+## Plain set
+
+`figures-plain/` holds a large-type, plain-language version of the figures for a reader who does not know the project's vocabulary, with the **same basenames** as `figures/`, so a slide can swap one for the other by path: A1, A3, A4, B1–B4, C7, D1, F1, F2, F3, F3b, F6, F7, F8, F9, F10, F11 (each `.svg`, `.png` at 2x and a short `.caption.md` with the slide claim and the `NUMBERS.md` rows used). There is no title, subtitle, source footer or badge inside a plain figure; the slide carries them. Side figures are 1430 × 900 with no text under 26 px; full-width figures (A4, B1–B4, D1) are 2300 × 940 with no text under 30 px, code included (code is trimmed with "…", never shrunk). Labels use plain words: "AI-built projects" (E1), "planted violation", "harmless control" (twin), "look-alike" (near-miss), "answer key" / "author key" / "blind key" (manifests), "defining rule (can fail)" / "warning (never fails)" (blocking / advisory), "violations found" (recall), "reports right" (precision), "plausible range" (Wilson interval), "the tool's map" / "richer map" (APG / APG v2), "AI reviewer" (LLM judge), "simple detectors" (cheap proxies), "fixed rules" (symbolic rules); no rule ids, file paths or variant codes appear. F8 is copied unchanged. Generators: `tools/plain-kit.mjs` (shared, on top of `kit.mjs`), `plain-charts.mjs`, `plain-diagrams.mjs`, `plain-graph.mjs` (needs `KIT_TOOLS`), `plain-examples.mjs`; rebuild them like the others, render with `render.mjs Docs/presentation-kit/figures-plain/*.svg`, then run `node Docs/presentation-kit/tools/check-plain.mjs`, which checks every plain SVG's viewBox, its smallest drawn font size (through nested Graphviz scaling) and the absence of the project's jargon tokens.
 
 ## Data behind the graph figures
 
