@@ -1,0 +1,18 @@
+{
+  "schemaVersion": 1,
+  "style": "hexagonal",
+  "variant": "v06-outbound-adapter-uses-cli-formatter",
+  "kind": "violation",
+  "plants": "FF-S03",
+  "description": "OutboxNotificationAdapter reuses formatCliLine from the CLI adapter.",
+  "patch": "variant.patch",
+  "expectedFindings": [
+    {
+      "ruleId": "FF-S03",
+      "ruleName": "layer-skip-graph",
+      "file": "src/adapters/outbound/notification/OutboxNotificationAdapter.ts",
+      "target": "src/adapters/inbound/cli/BookingCli.ts",
+      "reason": "adapters-outbound and adapters-inbound have no allowed edge in either direction."
+    }
+  ]
+}

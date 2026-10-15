@@ -1,0 +1,21 @@
+--- a/src/workshops/in-memory-workshop.repository.ts
++++ b/src/workshops/in-memory-workshop.repository.ts
+@@ -1,6 +1,7 @@
+ import { Injectable } from '@nestjs/common';
+ import { Workshop } from '../domain/workshop';
+ import { WorkshopRepository } from '../domain/workshop-repository';
++import { WorkshopResponseDto } from './dto/workshop-response.dto';
+ 
+ @Injectable()
+ export class InMemoryWorkshopRepository implements WorkshopRepository {
+@@ -14,6 +15,10 @@
+     return [...this.rows.values()];
+   }
+ 
++  async findAllAsResponse(): Promise<WorkshopResponseDto[]> {
++    return [...this.rows.values()].map((w) => WorkshopResponseDto.from(w));
++  }
++
+   async save(workshop: Workshop): Promise<void> {
+     this.rows.set(workshop.id, workshop);
+   }

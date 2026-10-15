@@ -1,0 +1,97 @@
+{
+  "schemaVersion": 1,
+  "style": "nestjs",
+  "spec": "spec.yaml",
+  "project": "Workshop registrations: workshops, attendees, registrations; three feature modules plus a framework-free src/domain.",
+  "canonicalSource": "NestJS documentation (docs.nestjs.com): Overview > Controllers, Providers, Modules, Exception filters, Guards; Fundamentals > Custom providers (non-class-based provider tokens, useClass). Layer model from presets/nestjs.yaml (controller -> service -> repository -> domain).",
+  "styleDefinition": [
+    "Feature modules co-locate a controller (presentation), a service (application), DTOs (application) and a repository implementation (infrastructure); *.module.ts files wire them (presentation by the preset).",
+    "Layer order (preset): presentation -> application -> infrastructure -> domain. A service may call infrastructure; infrastructure must not call services or controllers; nothing in the domain depends outward.",
+    "This project binds repositories through injection tokens (Custom providers, useClass) to interfaces declared in src/domain, so services depend on ports, not on repository classes. Injecting a concrete repository into a service breaks that declared design (and DIP).",
+    "Controllers exchange DTOs with services; they do not hand domain entities to the transport layer.",
+    "The domain depends on no persistence or web framework (typeorm, express, prisma, sequelize per the preset; @nestjs/* is not forbidden by this preset).",
+    "No dependency cycles (the docs treat circular dependencies and forwardRef as something to avoid)."
+  ],
+  "authored": "2026-10-14",
+  "writtenBeforeToolRun": true,
+  "scopeRules": [
+    {
+      "ruleId": "FF-S01",
+      "ruleName": "dependency-direction",
+      "severity": "critical",
+      "blockingCandidate": true
+    },
+    {
+      "ruleId": "FF-S02",
+      "ruleName": "no-cyclic-deps",
+      "severity": "critical",
+      "blockingCandidate": true
+    },
+    {
+      "ruleId": "FF-S04",
+      "ruleName": "no-domain-outward-dep",
+      "severity": "major",
+      "blockingCandidate": false
+    },
+    {
+      "ruleId": "FF-P01",
+      "ruleName": "domain-purity",
+      "severity": "critical",
+      "blockingCandidate": true
+    },
+    {
+      "ruleId": "FF-P02",
+      "ruleName": "dependency-inversion",
+      "severity": "critical",
+      "blockingCandidate": true
+    },
+    {
+      "ruleId": "FF-P03",
+      "ruleName": "repository-pattern",
+      "severity": "critical",
+      "blockingCandidate": true
+    },
+    {
+      "ruleId": "FF-P04",
+      "ruleName": "use-case-isolation",
+      "severity": "major",
+      "blockingCandidate": false
+    },
+    {
+      "ruleId": "FF-P05",
+      "ruleName": "controller-no-entity",
+      "severity": "major",
+      "blockingCandidate": false
+    },
+    {
+      "ruleId": "FF-P06",
+      "ruleName": "domain-state-purity",
+      "severity": "critical",
+      "blockingCandidate": true
+    }
+  ],
+  "notApplicable": [
+    {
+      "ruleId": "FF-S03",
+      "reason": "no-layer-skip applies to style layered only (template applicability)"
+    }
+  ],
+  "noViolatingVariant": [],
+  "outOfScope": "Coupling metrics (FF-C*), SOLID proxies (FF-SO*), naming and convention rules (FF-CV*) and the neuronal functions (FF-N*) are not compared: they are threshold proxies or conventions (FR-V6 makes them advisory), and they say nothing about whether a planted architectural violation is caught. The runner lists their rows separately as unscored.",
+  "variants": [
+    "clean",
+    "n01-controller-catches-domain-error",
+    "n02-domain-port-named-dot-repository",
+    "n03-service-injects-sibling-service",
+    "v01-domain-entity-imports-dto",
+    "v02-repository-builds-response-dto",
+    "v03-service-imports-guard",
+    "v04-response-dto-cycle",
+    "v05-domain-entity-typeorm-decorator",
+    "v06-domain-entity-type-imports-express",
+    "v07-service-injects-concrete-repository",
+    "v08-repository-without-port",
+    "v09-controller-returns-entity",
+    "v10-domain-policy-holds-repository"
+  ]
+}

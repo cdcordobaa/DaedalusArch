@@ -1,0 +1,19 @@
+--- a/src/registrations/registrations.service.ts
++++ b/src/registrations/registrations.service.ts
+@@ -1,4 +1,5 @@
+ import { Inject, Injectable } from '@nestjs/common';
++import { API_KEY_HEADER } from '../common/guards/api-key.guard';
+ import { ATTENDEE_REPOSITORY, AttendeeRepository } from '../domain/attendee-repository';
+ import { DomainError } from '../domain/domain-error';
+ import { Registration } from '../domain/registration';
+@@ -35,6 +36,10 @@
+     return RegistrationResponseDto.from(registration);
+   }
+ 
++  auditSource(): string {
++    return `api (authenticated by ${API_KEY_HEADER})`;
++  }
++
+   async cancel(id: string): Promise<RegistrationResponseDto> {
+     const registration = await this.registrations.findById(id);
+     if (registration === undefined) throw new DomainError('not-found', `No registration ${id}`);

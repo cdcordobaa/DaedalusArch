@@ -1,0 +1,17 @@
+{
+  "schemaVersion": 1,
+  "style": "clean-architecture",
+  "variant": "v06-repository-without-port",
+  "kind": "violation",
+  "plants": "FF-P03",
+  "description": "InMemoryLoanRepository no longer declares implements LoanRepository (it still fits structurally).",
+  "patch": "variant.patch",
+  "expectedFindings": [
+    {
+      "ruleId": "FF-P03",
+      "ruleName": "repository-pattern",
+      "file": "src/infrastructure/persistence/InMemoryLoanRepository.ts",
+      "reason": "An infrastructure repository implements no domain repository interface."
+    }
+  ]
+}

@@ -1,0 +1,33 @@
+--- a/src/workshops/workshops.controller.ts
++++ b/src/workshops/workshops.controller.ts
+@@ -1,4 +1,5 @@
+ import { Body, Controller, Get, Param, Post } from '@nestjs/common';
++import { Workshop } from '../domain/workshop';
+ import { CreateWorkshopDto } from './dto/create-workshop.dto';
+ import { WorkshopResponseDto } from './dto/workshop-response.dto';
+ import { WorkshopsService } from './workshops.service';
+@@ -18,7 +19,7 @@
+   }
+ 
+   @Get(':id')
+-  findOne(@Param('id') id: string): Promise<WorkshopResponseDto> {
+-    return this.workshopsService.findOne(id);
++  findOne(@Param('id') id: string): Promise<Workshop> {
++    return this.workshopsService.findEntity(id);
+   }
+ }
+--- a/src/workshops/workshops.service.ts
++++ b/src/workshops/workshops.service.ts
+@@ -22,6 +22,12 @@
+     return (await this.workshops.findAll()).map((w) => WorkshopResponseDto.from(w));
+   }
+ 
++  async findEntity(id: string): Promise<Workshop> {
++    const workshop = await this.workshops.findById(id);
++    if (workshop === undefined) throw new DomainError('not-found', `No workshop ${id}`);
++    return workshop;
++  }
++
+   async findOne(id: string): Promise<WorkshopResponseDto> {
+     const workshop = await this.workshops.findById(id);
+     if (workshop === undefined) throw new DomainError('not-found', `No workshop ${id}`);

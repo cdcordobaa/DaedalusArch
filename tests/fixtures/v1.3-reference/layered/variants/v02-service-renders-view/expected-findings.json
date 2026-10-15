@@ -1,0 +1,25 @@
+{
+  "schemaVersion": 1,
+  "style": "layered",
+  "variant": "v02-service-renders-view",
+  "kind": "violation",
+  "plants": "FF-S01",
+  "description": "OrderService (business) imports renderOrder from the presentation views.",
+  "patch": "variant.patch",
+  "expectedFindings": [
+    {
+      "ruleId": "FF-S01",
+      "ruleName": "dependency-direction",
+      "file": "src/business/services/OrderService.ts",
+      "target": "src/presentation/views/OrderView.ts",
+      "reason": "A lower layer imports an upper one."
+    },
+    {
+      "ruleId": "FF-S03",
+      "ruleName": "no-layer-skip",
+      "file": "src/business/services/OrderService.ts",
+      "target": "src/presentation/views/OrderView.ts",
+      "reason": "business > presentation is not an allowed transition."
+    }
+  ]
+}

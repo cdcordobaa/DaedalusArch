@@ -1,0 +1,25 @@
+{
+  "schemaVersion": 1,
+  "style": "hexagonal",
+  "variant": "v02-domain-entity-uses-driven-port",
+  "kind": "violation",
+  "plants": "FF-S01",
+  "description": "Booking (domain) imports the NotificationSender port (application) for announceTo(sender, email).",
+  "patch": "variant.patch",
+  "expectedFindings": [
+    {
+      "ruleId": "FF-S01",
+      "ruleName": "dependency-direction-graph",
+      "file": "src/domain/model/Booking.ts",
+      "target": "src/application/ports/out/NotificationSender.ts",
+      "reason": "domain > application is the reverse of the allowed application > domain edge."
+    },
+    {
+      "ruleId": "FF-S04",
+      "ruleName": "core-isolation",
+      "file": "src/domain/model/Booking.ts",
+      "target": "src/application/ports/out/NotificationSender.ts",
+      "reason": "The core imports a file outside the domain layer."
+    }
+  ]
+}

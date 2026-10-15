@@ -1,0 +1,32 @@
+{
+  "schemaVersion": 1,
+  "style": "nestjs",
+  "variant": "v10-domain-policy-holds-repository",
+  "kind": "violation",
+  "plants": "FF-P06",
+  "description": "RegistrationPolicy (domain service) keeps a private InMemoryRegistrationRepository field.",
+  "patch": "variant.patch",
+  "expectedFindings": [
+    {
+      "ruleId": "FF-S01",
+      "ruleName": "dependency-direction",
+      "file": "src/domain/registration-policy.ts",
+      "target": "src/registrations/in-memory-registration.repository.ts",
+      "reason": "Domain imports infrastructure."
+    },
+    {
+      "ruleId": "FF-S04",
+      "ruleName": "no-domain-outward-dep",
+      "file": "src/domain/registration-policy.ts",
+      "target": "src/registrations/in-memory-registration.repository.ts",
+      "reason": "A domain file imports a file of another layer."
+    },
+    {
+      "ruleId": "FF-P06",
+      "ruleName": "domain-state-purity",
+      "file": "src/domain/registration-policy.ts",
+      "target": "src/registrations/in-memory-registration.repository.ts",
+      "reason": "A domain class holds infrastructure state (field history = new InMemoryRegistrationRepository())."
+    }
+  ]
+}

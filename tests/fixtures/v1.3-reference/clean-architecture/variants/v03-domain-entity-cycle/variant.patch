@@ -1,0 +1,37 @@
+--- a/src/domain/entities/Loan.ts
++++ b/src/domain/entities/Loan.ts
+@@ -1,5 +1,6 @@
+ import { DomainError } from '../errors/DomainError';
+ import { LoanPeriod } from '../value-objects/LoanPeriod';
++import { Member } from './Member';
+ 
+ const DAY_MS = 24 * 60 * 60 * 1000;
+ 
+@@ -16,6 +17,10 @@
+ 
+   static open(id: string, bookId: string, memberId: string, borrowedAt: Date, period: LoanPeriod): Loan {
+     return new Loan(id, bookId, memberId, borrowedAt, period.dueDateFrom(borrowedAt));
++  }
++
++  belongsTo(member: Member): boolean {
++    return this.memberId === member.id;
+   }
+ 
+   get isActive(): boolean {
+--- a/src/domain/entities/Member.ts
++++ b/src/domain/entities/Member.ts
+@@ -1,4 +1,5 @@
+ import { DomainError } from '../errors/DomainError';
++import { Loan } from './Loan';
+ 
+ export class Member {
+   constructor(
+@@ -10,4 +11,8 @@
+     if (!email.includes('@')) throw new DomainError('INVALID_MEMBER', `Invalid e-mail: ${email}`);
+     if (maxActiveLoans < 1) throw new DomainError('INVALID_MEMBER', 'A member may borrow at least one book');
+   }
++
++  hasReachedLimit(activeLoans: readonly Loan[]): boolean {
++    return activeLoans.filter((loan) => loan.belongsTo(this)).length >= this.maxActiveLoans;
++  }
+ }

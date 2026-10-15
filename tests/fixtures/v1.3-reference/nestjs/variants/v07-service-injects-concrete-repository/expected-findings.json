@@ -1,0 +1,17 @@
+{
+  "schemaVersion": 1,
+  "style": "nestjs",
+  "variant": "v07-service-injects-concrete-repository",
+  "kind": "violation",
+  "plants": "FF-P02",
+  "description": "RegistrationsService injects the concrete InMemoryRegistrationRepository (class provider) instead of the REGISTRATION_REPOSITORY port.",
+  "patch": "variant.patch",
+  "expectedFindings": [
+    {
+      "ruleId": "FF-P02",
+      "ruleName": "dependency-inversion",
+      "file": "src/registrations/registrations.service.ts",
+      "reason": "The service injects a concrete repository class (2 of 3 constructor dependencies are interfaces; 0.67 < 0.85)."
+    }
+  ]
+}

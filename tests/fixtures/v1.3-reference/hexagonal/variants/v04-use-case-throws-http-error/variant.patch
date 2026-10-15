@@ -1,0 +1,17 @@
+--- a/src/application/services/CancelBookingService.ts
++++ b/src/application/services/CancelBookingService.ts
+@@ -1,4 +1,4 @@
+-import { BookingError } from '../../domain/errors/BookingError';
++import { HttpError } from '../../adapters/inbound/http/HttpTypes';
+ import { CancelBooking } from '../ports/in/CancelBooking';
+ import { BookingView, toBookingView } from '../ports/in/BookingView';
+ import { BookingRepository } from '../ports/out/BookingRepository';
+@@ -16,7 +16,7 @@
+ 
+   async cancel(bookingId: string): Promise<BookingView> {
+     const booking = await this.bookings.findById(bookingId);
+-    if (booking === undefined) throw new BookingError('not-found', `No booking ${bookingId}`);
++    if (booking === undefined) throw new HttpError(404, `No booking ${bookingId}`);
+     booking.cancel();
+     await this.payments.refund(booking.paymentRef);
+     await this.bookings.save(booking);

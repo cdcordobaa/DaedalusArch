@@ -1,0 +1,36 @@
+--- a/src/registrations/registrations.service.ts
++++ b/src/registrations/registrations.service.ts
+@@ -6,6 +6,8 @@
+ import { REGISTRATION_REPOSITORY, RegistrationRepository } from '../domain/registration-repository';
+ import { WORKSHOP_REPOSITORY, WorkshopRepository } from '../domain/workshop-repository';
+ import { RegisterAttendeeDto } from './dto/register-attendee.dto';
++import { WorkshopResponseDto } from '../workshops/dto/workshop-response.dto';
++import { WorkshopsService } from '../workshops/workshops.service';
+ import { RegistrationResponseDto } from './dto/registration-response.dto';
+ 
+ @Injectable()
+@@ -17,7 +19,14 @@
+     @Inject(WORKSHOP_REPOSITORY) private readonly workshops: WorkshopRepository,
+     @Inject(ATTENDEE_REPOSITORY) private readonly attendees: AttendeeRepository,
+     @Inject(REGISTRATION_REPOSITORY) private readonly registrations: RegistrationRepository,
++    private readonly workshopsService: WorkshopsService,
+   ) {}
++
++  async workshopOf(registrationId: string): Promise<WorkshopResponseDto> {
++    const registration = await this.registrations.findById(registrationId);
++    if (registration === undefined) throw new DomainError('not-found', `No registration ${registrationId}`);
++    return this.workshopsService.findOne(registration.workshopId);
++  }
+ 
+   async register(dto: RegisterAttendeeDto): Promise<RegistrationResponseDto> {
+     const workshop = await this.workshops.findById(dto.workshopId);
+--- a/src/workshops/workshops.module.ts
++++ b/src/workshops/workshops.module.ts
+@@ -7,6 +7,6 @@
+ @Module({
+   controllers: [WorkshopsController],
+   providers: [WorkshopsService, { provide: WORKSHOP_REPOSITORY, useClass: InMemoryWorkshopRepository }],
+-  exports: [WORKSHOP_REPOSITORY],
++  exports: [WORKSHOP_REPOSITORY, WorkshopsService],
+ })
+ export class WorkshopsModule {}

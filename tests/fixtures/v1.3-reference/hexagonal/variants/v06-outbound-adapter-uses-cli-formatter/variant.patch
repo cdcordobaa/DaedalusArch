@@ -1,0 +1,18 @@
+--- a/src/adapters/outbound/notification/OutboxNotificationAdapter.ts
++++ b/src/adapters/outbound/notification/OutboxNotificationAdapter.ts
+@@ -1,9 +1,15 @@
++import { BookingView } from '../../../application/ports/in/BookingView';
+ import { NotificationSender } from '../../../application/ports/out/NotificationSender';
++import { formatCliLine } from '../../inbound/cli/BookingCli';
+ 
+ /** Driven adapter: writes messages to an outbox that a mail relay drains. */
+ export class OutboxNotificationAdapter implements NotificationSender {
+   readonly outbox: { recipient: string; message: string }[] = [];
+ 
++  async sendSummary(recipient: string, view: BookingView): Promise<void> {
++    await this.send(recipient, formatCliLine(view));
++  }
++
+   async send(recipient: string, message: string): Promise<void> {
+     this.outbox.push({ recipient, message });
+   }

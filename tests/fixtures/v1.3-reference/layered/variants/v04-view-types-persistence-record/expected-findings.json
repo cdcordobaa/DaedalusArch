@@ -1,0 +1,18 @@
+{
+  "schemaVersion": 1,
+  "style": "layered",
+  "variant": "v04-view-types-persistence-record",
+  "kind": "violation",
+  "plants": "FF-S03",
+  "description": "ProductView renders a ProductRecord row (import type) next to the model-based renderer.",
+  "patch": "variant.patch",
+  "expectedFindings": [
+    {
+      "ruleId": "FF-S03",
+      "ruleName": "no-layer-skip",
+      "file": "src/presentation/views/ProductView.ts",
+      "target": "src/persistence/records/ProductRecord.ts",
+      "reason": "Presentation depends on the persistence record shape (type-only import), skipping the business layer."
+    }
+  ]
+}

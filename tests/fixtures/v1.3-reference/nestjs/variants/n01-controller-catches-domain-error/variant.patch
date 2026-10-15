@@ -1,0 +1,24 @@
+--- a/src/registrations/registrations.controller.ts
++++ b/src/registrations/registrations.controller.ts
+@@ -1,5 +1,6 @@
+ import { Body, Controller, Delete, Param, Post, UseGuards } from '@nestjs/common';
+ import { ApiKeyGuard } from '../common/guards/api-key.guard';
++import { DomainError } from '../domain/domain-error';
+ import { RegisterAttendeeDto } from './dto/register-attendee.dto';
+ import { RegistrationResponseDto } from './dto/registration-response.dto';
+ import { RegistrationsService } from './registrations.service';
+@@ -15,7 +16,12 @@
+   }
+ 
+   @Delete(':id')
+-  cancel(@Param('id') id: string): Promise<RegistrationResponseDto> {
+-    return this.registrationsService.cancel(id);
++  async cancel(@Param('id') id: string): Promise<RegistrationResponseDto | { alreadyCancelled: true }> {
++    try {
++      return await this.registrationsService.cancel(id);
++    } catch (error) {
++      if (error instanceof DomainError && error.kind === 'conflict') return { alreadyCancelled: true };
++      throw error;
++    }
+   }
+ }

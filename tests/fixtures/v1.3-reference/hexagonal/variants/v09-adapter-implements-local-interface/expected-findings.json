@@ -1,0 +1,17 @@
+{
+  "schemaVersion": 1,
+  "style": "hexagonal",
+  "variant": "v09-adapter-implements-local-interface",
+  "kind": "violation",
+  "plants": "FF-P03",
+  "description": "InMemoryRoomRepository implements RoomStore, an interface declared next to it in the adapter layer, instead of the RoomRepository port.",
+  "patch": "variant.patch",
+  "expectedFindings": [
+    {
+      "ruleId": "FF-P03",
+      "ruleName": "port-adapter-pattern",
+      "file": "src/adapters/outbound/persistence/InMemoryRoomRepository.ts",
+      "reason": "The adapter implements an interface, but not one in a port layer (domain or application)."
+    }
+  ]
+}

@@ -1,0 +1,16 @@
+--- a/src/presentation/http/CatalogController.ts
++++ b/src/presentation/http/CatalogController.ts
+@@ -1,3 +1,4 @@
++import { Money } from '../../business/model/Money';
+ import { CatalogService } from '../../business/services/CatalogService';
+ import { renderProduct } from '../views/ProductView';
+ import { errorResponse } from './ErrorHandling';
+@@ -15,7 +16,7 @@
+       const product = this.catalog.addProduct(
+         String(request.body['sku']),
+         String(request.body['name']),
+-        Number(request.body['priceCents']),
++        Money.ofCents(Math.round(Number(request.body['price']) * 100)).cents,
+         Number(request.body['stock']),
+       );
+       return { status: 201, body: renderProduct(product) };

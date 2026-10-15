@@ -1,0 +1,18 @@
+{
+  "schemaVersion": 1,
+  "style": "layered",
+  "variant": "v03-controller-reads-gateway",
+  "kind": "violation",
+  "plants": "FF-S03",
+  "description": "CatalogController receives the ProductGateway and reads stock rows directly.",
+  "patch": "variant.patch",
+  "expectedFindings": [
+    {
+      "ruleId": "FF-S03",
+      "ruleName": "no-layer-skip",
+      "file": "src/presentation/http/CatalogController.ts",
+      "target": "src/persistence/ProductGateway.ts",
+      "reason": "Presentation imports persistence, skipping the business layer."
+    }
+  ]
+}

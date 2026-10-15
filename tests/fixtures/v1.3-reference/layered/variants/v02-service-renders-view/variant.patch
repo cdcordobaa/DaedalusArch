@@ -1,0 +1,21 @@
+--- a/src/business/services/OrderService.ts
++++ b/src/business/services/OrderService.ts
+@@ -5,6 +5,7 @@
+ import { Money } from '../model/Money';
+ import { Order } from '../model/Order';
+ import { OrderLine } from '../model/OrderLine';
++import { OrderViewModel, renderOrder } from '../../presentation/views/OrderView';
+ import { PricingPolicy } from './PricingPolicy';
+ import { toCustomer, toOrder, toOrderRecord, toProduct } from './RecordMapping';
+ 
+@@ -53,6 +54,10 @@
+     return order;
+   }
+ 
++  getOrderView(orderId: string): OrderViewModel {
++    return renderOrder(this.getOrder(orderId));
++  }
++
+   getOrder(orderId: string): Order {
+     const record = this.orders.findById(orderId);
+     if (record === undefined) throw new BusinessError('NOT_FOUND', `No order ${orderId}`);

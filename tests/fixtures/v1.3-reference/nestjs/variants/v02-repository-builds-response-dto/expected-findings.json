@@ -1,0 +1,18 @@
+{
+  "schemaVersion": 1,
+  "style": "nestjs",
+  "variant": "v02-repository-builds-response-dto",
+  "kind": "violation",
+  "plants": "FF-S01",
+  "description": "InMemoryWorkshopRepository (infrastructure) imports WorkshopResponseDto (application) for findAllAsResponse().",
+  "patch": "variant.patch",
+  "expectedFindings": [
+    {
+      "ruleId": "FF-S01",
+      "ruleName": "dependency-direction",
+      "file": "src/workshops/in-memory-workshop.repository.ts",
+      "target": "src/workshops/dto/workshop-response.dto.ts",
+      "reason": "Infrastructure imports application (infrastructure is below application in the preset order)."
+    }
+  ]
+}

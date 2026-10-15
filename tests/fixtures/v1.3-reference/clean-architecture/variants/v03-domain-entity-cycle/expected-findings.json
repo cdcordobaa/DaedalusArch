@@ -1,0 +1,18 @@
+{
+  "schemaVersion": 1,
+  "style": "clean-architecture",
+  "variant": "v03-domain-entity-cycle",
+  "kind": "violation",
+  "plants": "FF-S02",
+  "description": "Loan and Member import each other (Loan.belongsTo(member), Member.hasReachedLimit(loans)).",
+  "patch": "variant.patch",
+  "expectedFindings": [
+    {
+      "ruleId": "FF-S02",
+      "ruleName": "no-cyclic-deps",
+      "file": "src/domain/entities/Loan.ts",
+      "target": "src/domain/entities/Member.ts",
+      "reason": "Two-file import cycle Loan -> Member -> Loan (ADP). The row is keyed on the lexicographically smallest path of the cycle."
+    }
+  ]
+}
