@@ -6,6 +6,8 @@ import { neo4jScrubPolicy, scrubWithPolicy } from '../shared/errors/scrub.js';
 import type { ScrubPolicy } from '../shared/errors/scrub.js';
 import type { IngestionConfig, Neo4jRepositoryConfig } from './types.js';
 import { DEFAULT_INGESTION_CONFIG, WRITE_QUERY_TIMEOUT_MS } from './types.js';
+import { acquireNeo4jLock, NEO4J_LOCK_TIMEOUT } from '../shared/process/neo4j-lock.js';
+import type { Neo4jLockHandle } from '../shared/process/neo4j-lock.js';
 
 function errorMessage(e: unknown): string {
   return e instanceof Error ? e.message : String(e);
@@ -24,9 +26,14 @@ export class Neo4jRepository implements GraphRepository {
   private readonly repoSecrets: ScrubPolicy;
   /** Created lazily by the first query (BR-U2-41); the constructor never touches the driver. */
   private driver: Driver | undefined;
+  private readonly useLock: boolean;
+  /** The lock acquisition, started by the first query when `lock` is set (shared by concurrent first calls). */
+  private lock: Promise<Neo4jLockHandle> | undefined;
 
   constructor(config: Neo4jRepositoryConfig) {
-    this.cfg = { ...DEFAULT_INGESTION_CONFIG, ...config };
+    const { lock, ...rest } = config;
+    this.cfg = { ...DEFAULT_INGESTION_CONFIG, ...rest };
+    this.useLock = lock === true;
     this.repoSecrets = neo4jScrubPolicy(this.cfg);
   }
 
@@ -43,6 +50,15 @@ export class Neo4jRepository implements GraphRepository {
   ): Promise<DomainResult<QueryResult>> {
     let session: Session | undefined;
     let outcome: DomainResult<QueryResult>;
+    if (this.useLock) {
+      try {
+        this.lock ??= acquireNeo4jLock(this.cfg.neo4jUri, { label: `Neo4jRepository ${process.argv.slice(1, 3).join(' ')}` });
+        await this.lock;
+      } catch (e) {
+        this.lock = undefined;
+        return DomainResult.fail([{ code: NEO4J_LOCK_TIMEOUT, message: this.scrub(errorMessage(e)) }]);
+      }
+    }
     try {
       // Synchronous, before the first await: concurrent first calls share one driver (BR-U2-41).
       this.driver ??= neo4j.driver(this.cfg.neo4jUri, neo4j.auth.basic(this.cfg.neo4jUser, this.cfg.neo4jPassword));
@@ -98,6 +114,12 @@ export class Neo4jRepository implements GraphRepository {
   }
 
   async close(): Promise<void> {
-    if (this.driver) await this.driver.close();
+    try {
+      if (this.driver) await this.driver.close();
+    } finally {
+      const lock = this.lock;
+      this.lock = undefined;
+      if (lock !== undefined) (await lock.catch(() => undefined))?.release();
+    }
   }
 }

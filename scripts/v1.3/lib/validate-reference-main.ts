@@ -16,6 +16,7 @@
 import * as fs from 'node:fs';
 import * as path from 'node:path';
 import { NodeProcessRunner } from '../../../src/shared/process/node-process-runner.js';
+import { acquireNeo4jLock } from '../../../src/shared/process/neo4j-lock.js';
 import { cliEvaluate } from '../../lib/freeze-gate-main.js';
 import { compareVariant, normaliseFindingPath, renderMarkdown, styleMetrics } from './compare.js';
 import type { ActualFinding, StyleMetrics, VariantComparison } from './compare.js';
@@ -222,6 +223,12 @@ export async function main(argv: readonly string[], repoRoot: string, deps: Main
     evaluate = liveEvaluator(repoRoot, deps.env);
   }
   const outDir = path.resolve(repoRoot, args.out);
+  // v1.3 fix round: hold the cross-process Neo4j lock for the whole run, so no other ingestion (another worktree's
+  // jest suite, another agent's run) can wipe the database between this run's ingestion and evaluation. The CLI
+  // children see their ancestor's lock and do not wait for it.
+  const uri = deps.env.NEO4J_URI ?? '';
+  const lock = uri === '' ? undefined : await acquireNeo4jLock(uri, { label: 'validate-reference live run', env: deps.env, onWait: (t) => deps.err(`${t}\n`) });
+  if (lock !== undefined) deps.err(`Neo4j lock ${lock.mode} (${lock.path})\n`);
   const work = makeTempRoot();
   try {
     const run = await compareAll(refs, async (ref, variant) => {
@@ -240,5 +247,6 @@ export async function main(argv: readonly string[], repoRoot: string, deps: Main
     return 0;
   } finally {
     fs.rmSync(work, { recursive: true, force: true });
+    lock?.release();
   }
 }
