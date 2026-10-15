@@ -68,13 +68,23 @@ export interface CompileOptions {
    * (`ExtractorOptions.memberFacts`) instead of the setter-name proxy (`DDD_MEMBER_FACT_TEMPLATES`).
    */
   readonly memberFacts?: boolean;
+  /**
+   * v1.3 field-level state, OFF by default and OFF in `V13_COMPILE_OPTIONS` (construct question Q8 is open and there is
+   * no construct-switch file): FF-P06 domain-state-purity reads its field half from HOLDS_STATE_OF instead of FLOWS_TO
+   * (`applyFieldState`, `v13-rewrites.ts`). Needs a graph extracted with `ExtractorOptions.fieldState`
+   * (`V13_FIELD_STATE_OPTIONS`); on any other graph the field half returns no row.
+   */
+  readonly fieldState?: boolean;
 }
 
 /** The v1.3 compile options for the pipeline (the frozen v1.2E reproduction passes `{}`). */
 export const V13_COMPILE_OPTIONS: Readonly<CompileOptions> = Object.freeze({ edgeViews: true, styleApplicability: true, roleTokens: true, memberFacts: true });
 
 function rewriteFlags(options: CompileOptions): V13RewriteFlags {
-  return { edgeViews: options.edgeViews === true, roleTokens: options.roleTokens === true, memberFacts: options.memberFacts === true };
+  return {
+    edgeViews: options.edgeViews === true, roleTokens: options.roleTokens === true, memberFacts: options.memberFacts === true,
+    ...(options.fieldState === true ? { fieldState: true } : {}),
+  };
 }
 
 type TemplateCatalogue = ReadonlyMap<string, CypherTemplate>;

@@ -92,6 +92,13 @@ export interface CheapOptions {
   readonly cloneMinTokens: number;
   /** Minimum normalised token count of a whole-body clone unit (CCFinder's default minimum, Kamiya et al. 2002). */
   readonly cloneMinBodyTokens: number;
+  /**
+   * Guard-normalised clone units (`guards.ts`): short `if (…) throw …` guards keyed on condition, error type and message
+   * template, trivial parameter null checks excluded. Off reproduces the proxy before the v1.3 cheap-fix change.
+   */
+  readonly cloneGuardUnits: boolean;
+  /** Flag same-component clone pairs as `same-component-<type>` (advisory kind). Off: only cross-component pairs flag. */
+  readonly cloneSameComponentFlags: boolean;
   /** Token-shingle Jaccard at or above which two units are near-clones. */
   readonly nearCloneThreshold: number;
   /** Shingle width in tokens. */
@@ -117,6 +124,8 @@ export interface CheapOptions {
 export const DEFAULT_CHEAP_OPTIONS: Readonly<CheapOptions> = Object.freeze({
   cloneMinTokens: 12,
   cloneMinBodyTokens: 30,
+  cloneGuardUnits: true,
+  cloneSameComponentFlags: true,
   nearCloneThreshold: 0.8,
   shingleSize: 3,
   literalMinLength: 4,

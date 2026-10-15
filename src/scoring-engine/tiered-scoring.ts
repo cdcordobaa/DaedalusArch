@@ -41,7 +41,7 @@ export interface TieredScoringInput {
 export function relTypeOf(v: Violation): string | undefined {
   const fromDiscriminator = v.discriminator?.[2];
   if (fromDiscriminator !== undefined) return fromDiscriminator;
-  const m = / via (FLOWS_TO|CONSTRUCTOR_INJECTS) /.exec(v.message);
+  const m = / via (FLOWS_TO|HOLDS_STATE_OF|CONSTRUCTOR_INJECTS) /.exec(v.message);
   return m?.[1];
 }
 
@@ -49,7 +49,7 @@ export function relTypeOf(v: Violation): string | undefined {
 export function splitPartial(violations: readonly Violation[], partial: PartialRule): { counted: Violation[]; na: Violation[] } {
   const counted: Violation[] = [];
   const na: Violation[] = [];
-  for (const v of violations) (relTypeOf(v) === partial.naRelType ? na : counted).push(v);
+  for (const v of violations) (partial.naRelTypes.includes(relTypeOf(v) ?? '') ? na : counted).push(v);
   return { counted, na };
 }
 
