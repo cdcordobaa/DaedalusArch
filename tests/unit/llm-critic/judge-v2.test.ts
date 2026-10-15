@@ -15,7 +15,7 @@ import {
   CANDIDATE_FLAGS_HEADER, DEFAULT_JUDGE_VERSION, FF_N01_RUBRIC_V2, FF_N02_RUBRIC_V2, JUDGE_V2_PERSONA, JUDGE_V2_SHA256,
   JUDGE_V2_VALUES, PROMPT_INSTRUCTIONS_V2, computeJudgeV2Sha256,
 } from '../../../src/llm-critic/judge-v2.js';
-import { candidateFlagsOf, renderCandidateFlags, renderNeighbourhood } from '../../../src/llm-critic/context-v2.js';
+import { candidateFlagsOf, relativiseTypeText, renderCandidateFlags, renderNeighbourhood } from '../../../src/llm-critic/context-v2.js';
 import { parseLLMOptions } from '../../../src/cli/llm-options.js';
 
 const ROOT = fs.mkdtempSync(path.join(os.tmpdir(), 'judge-v2-'));
@@ -106,6 +106,12 @@ describe('judge v2: context', () => {
     expect(text).toContain('imports: package express');
     expect(text).toContain('imported by: src/app/b.ts (layer application, kind application)');
     expect(text).toContain('A is injected into B in src/app/b.ts');
+  });
+
+  it('keeps prompts free of absolute paths from checker type text (CTX-08)', () => {
+    expect(relativiseTypeText('r: Request<import("/Volumes/x/node_modules/@types/express-serve-static-core/index").ParamsDictionary>'))
+      .toBe('r: Request<import("@types/express-serve-static-core").ParamsDictionary>');
+    expect(relativiseTypeText('t: import("/Users/a/b/src/x").X')).toBe('t: import("<abs>").X');
   });
 
   it('keeps only the unit\'s flags of the candidate proxies', () => {

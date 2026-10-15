@@ -107,6 +107,17 @@ export function candidateFlagsOf(unitFiles: readonly string[], flags: readonly C
     });
 }
 
+/**
+ * Flag messages carry checker type text, which can hold absolute `import("/abs/.../node_modules/pkg/...")` paths. The
+ * prompt keeps root-relative paths only (CTX-08): such an import becomes `import("pkg")`, any other absolute path `<abs>`.
+ */
+export function relativiseTypeText(text: string): string {
+  return text
+    .replace(/import\("[^"]*\/node_modules\/((?:@[^/"]+\/)?[^/"]+)[^"]*"\)/g, 'import("$1")')
+    .replace(/import\("\/[^"]*"\)/g, 'import("<abs>")')
+    .replace(/(^|[\s(])\/(?:Users|Volumes|private|home|tmp|var)\/\S*/g, '$1<abs>');
+}
+
 export function renderCandidateFlags(
   flags: readonly CheapFlag[],
   maxFlags: number = JUDGE_V2_MAX_FLAGS,
@@ -116,7 +127,7 @@ export function renderCandidateFlags(
   const lines = flags.slice(0, maxFlags).map((f) => {
     const span = f.evidence.startLine === f.evidence.endLine ? String(f.evidence.startLine) : `${String(f.evidence.startLine)}-${String(f.evidence.endLine)}`;
     const related = f.related !== undefined ? ` [other end: ${f.related.file}:${String(f.related.startLine)}]` : '';
-    return `- ${f.proxy}/${f.kind} at ${f.evidence.file}:${span}: ${f.message}${related}`;
+    return `- ${f.proxy}/${f.kind} at ${f.evidence.file}:${span}: ${relativiseTypeText(f.message)}${related}`;
   });
   if (flags.length > maxFlags) lines.push(`- (${String(flags.length - maxFlags)} more not shown)`);
   return `${CANDIDATE_FLAGS_HEADER}\n${cutChars(lines.join('\n'), maxChars)}`;

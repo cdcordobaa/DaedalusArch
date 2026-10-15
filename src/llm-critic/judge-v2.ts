@@ -28,7 +28,7 @@ export const JUDGE_VERSIONS: readonly JudgeVersion[] = ['v1', 'v2'];
 export const DEFAULT_JUDGE_VERSION: JudgeVersion = 'v1';
 
 /** Revision of the v2 texts; bumped with every committed prompt revision (at most 3 TUNE revisions). */
-export const JUDGE_V2_REVISION = 'v2.0';
+export const JUDGE_V2_REVISION = 'v2.1';
 
 export const FF_N01_RUBRIC_V2: RubricText = Object.freeze({
   rule: FF_N01_RUBRIC.rule,
@@ -40,7 +40,7 @@ export const FF_N01_RUBRIC_V2: RubricText = Object.freeze({
 export const FF_N02_RUBRIC_V2: RubricText = Object.freeze({
   rule: 'The unit\'s responsibilities, signatures and annotations match the role of its declared layer.',
   pass: 'Every declaration in the file belongs to the role and kind of its declared layer, including its parameter, return and field types, its decorators and base classes, and its statements, and agrees with any ADR prose given.',
-  fail: 'The file carries something that belongs to a different layer kind. In a domain or application file: a type of a web, transport or framework package in any signature (parameter, return or field), even when the parameter is optional or unused; or a request, response, status code or HTTP error of the delivery layer. In a domain file also: a framework or ORM decorator or base class (dependency injection, routing, persistence mapping), even when the class logic is pure; or persistence or I/O (queries, database or ORM clients, HTTP or file access). In an infrastructure or presentation file: a business rule, that is a domain invariant, calculation or decision that the domain or application layer should own. A type the project declares itself is not a framework type, whatever its name.',
+  fail: 'The file carries something that belongs to a different layer kind. In a domain or application file: a request, response, HTTP context, status code or HTTP error, from a web or transport package or from the delivery layer, in any method or function signature (parameter or return) or thrown, even when the parameter is optional or unused. In a domain file also: any framework or ORM type, decorator or base class (dependency injection, routing, persistence mapping), even when the class logic is pure; or persistence or I/O (queries, database or ORM clients, HTTP or file access). In an infrastructure or presentation file: a business rule, that is a domain invariant, calculation or decision that the domain or application layer should own. Constructor parameters of an application file are dependency wiring: an injected repository, client or service there is not by itself misplaced. A type the project declares itself is not a framework type, whatever its name.',
   evidenceRequired: 'Name the file and cite the signature, decorator, declaration or statement that carries the misplaced responsibility, its package or origin, and the layer kind it belongs to.',
 });
 
@@ -90,7 +90,7 @@ export const JUDGE_V2_VALUES = Object.freeze({
 });
 
 /** Test anchor: `sha256(canonicalJSON(JUDGE_V2_VALUES))` of the current revision. */
-export const JUDGE_V2_SHA256 = 'b19f6623cec516575e343c7ea6b86e16e19777e151a67c0217be6db84d9d92ec';
+export const JUDGE_V2_SHA256 = '0add6562061d6eb7b2466cbeb5c1d194e896c91b77f337fd6239584ff40145f3';
 
 export function computeJudgeV2Sha256(): string {
   return sha256Hex(canonicalJSON(JUDGE_V2_VALUES));
