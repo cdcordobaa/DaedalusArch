@@ -1,8 +1,9 @@
 import { Membership as MembershipRow } from '@prisma/client';
 import { Clock } from '../domain/clock';
 import { isIsoDate } from '../domain/desk-day';
-import { MAX_PAUSE_WEEKS, Membership, MembershipStatus } from '../domain/membership';
+import { MAX_PAUSE_WEEKS, Membership } from '../domain/membership';
 import { MembershipPlan } from '../domain/membership-plan';
+import { toMembership } from '../prisma/membership.mapper';
 import { PrismaService } from '../prisma/prisma';
 import { NotFoundError, ValidationError } from './errors';
 import { MembershipView, toMembershipView } from './dto/membership.dto';
@@ -62,7 +63,7 @@ export class MembershipsService {
     if (row === null) {
       throw new NotFoundError(`Membership ${id} not found`);
     }
-    return new Membership(row.id, row.memberId, MembershipPlan.byCode(row.planCode), row.status as MembershipStatus, row.pausedUntil);
+    return toMembership(row);
   }
 
   private async store(membership: Membership): Promise<MembershipView> {

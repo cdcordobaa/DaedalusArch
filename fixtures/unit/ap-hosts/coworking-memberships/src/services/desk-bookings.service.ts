@@ -1,8 +1,7 @@
 import { Clock } from '../domain/clock';
 import { DeskDay, HalfDay, isIsoDate } from '../domain/desk-day';
-import { Membership, MembershipStatus } from '../domain/membership';
-import { MembershipPlan } from '../domain/membership-plan';
 import { SlotTakenError } from '../domain/booking-slot';
+import { toMembership } from '../prisma/membership.mapper';
 import { PrismaService } from '../prisma/prisma';
 import { ConflictError, NotFoundError, ValidationError } from './errors';
 import { DeskBookingView, toDeskBookingView } from './dto/booking.dto';
@@ -28,7 +27,7 @@ export class DeskBookingsService {
     if (row === null) {
       throw new NotFoundError(`Member ${memberId} has no active membership`);
     }
-    const membership = new Membership(row.id, row.memberId, MembershipPlan.byCode(row.planCode), row.status as MembershipStatus, row.pausedUntil);
+    const membership = toMembership(row);
     if (!membership.canBookDesks()) {
       throw new ConflictError(`The ${membership.plan.code} plan does not include desk days`);
     }
