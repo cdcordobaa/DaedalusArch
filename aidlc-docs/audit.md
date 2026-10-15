@@ -1622,3 +1622,11 @@ Plan checkboxes ticked. Auto-approved under standing approval; no blocking or ma
 **Context**: v1.3 U-F — meaningful labels need a provider: the Gemini API with a NEW key (the old one is exposed), or a Claude labeller declared as same-vendor as the judge.
 
 ---
+
+## ISE — prototype merged; E1 consistency run and robustness round started
+**Timestamp**: 2026-10-15T19:45:00Z
+**User Input**: (none)
+**AI Response**: "PR #96 merged (e8a966d). The ISE prototype on the 71 dev reference cases: style 71/71, per-file layers 100%, inferred DDD block equal to the hand-written one, blocking findings under the inferred spec identical to the true spec on all 71 (planted recall 49/52, the same as the true spec). Option 2 49/52 vs Option 1 39/52 (5 near-miss false alarms) vs Option 3 21/52. Rename probe: clean/layered/NestJS robust, hexagonal and DDD misread as clean (recall 5/11 and 0/12). Side defect: the true NestJS spec and presets/ddd.yaml fail `firewall validate` (LAYER_DIR_NOT_FOUND). Launched: a local ISE-on-E1 run (ICS defined before results, the §16.8 2×2 grid, the no-spec cells); a cloud ISE robustness round (structural fixes; two NEW blind rename probes + a scrambled probe so as not to tune to the dev probe; the validate defect fixed with a regression test). Also merged #97: labelling excerpts scrubbed of answer-revealing comments (9 audit items had leaked)."
+**Context**: ISE exploratory track.
+
+---
