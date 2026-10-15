@@ -1534,3 +1534,11 @@ Plan checkboxes ticked. Auto-approved under standing approval; no blocking or ma
 **Context**: v1.3 scope clarification.
 
 ---
+
+## v1.3 — sealed hold-out set written
+**Timestamp**: 2026-10-15T08:00:00Z
+**User Input**: (none)
+**AI Response**: "Hold-out set authored blind (Fable model; inputs: rule sources, tiers, layer declarations, schemas): 5 apps in new domains, 62 cases (42 violations, 15 near-misses, 5 clean), 6 cycles, 2 dynamic import(), 1 barrel-mediated violation, 2 type-only, 3 misleading-name near-misses; 62/62 compile. Content hash (sha256 of the sorted file hashes) recorded at ../daedalus-sealed/v1.3-holdout/out.sha256: a94360e1278208fd8391056873e0fa01c71fd14aad8da68dfcf74b669cb41feb. Known format gaps for the scorer: 'ddd' is not in the style enum; provisional DDD ids FF-D01..D04 and FF-M01 need a mapping. Open author question: enlarge to ~30–40 violations per style (option A) so that intervals can clear 0.80."
+**Context**: v1.3 — hold-out sealed; not read by any tuning agent.
+
+---
