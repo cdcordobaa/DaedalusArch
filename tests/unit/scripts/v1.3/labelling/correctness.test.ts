@@ -6,7 +6,7 @@ import type { Finding } from '../../../../../scripts/v1.3/lib/labelling/findings
 import { BLOCKING_COVERAGE, CHECKERS, UNCOVERABLE, checkFinding } from '../../../../../scripts/v1.3/lib/labelling/correctness.js';
 import { loadSpecView } from '../../../../../scripts/v1.3/lib/labelling/spec-facts.js';
 import type { SpecView } from '../../../../../scripts/v1.3/lib/labelling/spec-facts.js';
-import { SourceFacts } from '../../../../../scripts/v1.3/lib/labelling/source-facts.js';
+import { SourceFacts, SourceFactsCache } from '../../../../../scripts/v1.3/lib/labelling/source-facts.js';
 import { jobsMain, checkMain } from '../../../../../scripts/v1.3/lib/labelling/mains.js';
 import { ruleTier } from '../../../../../src/scoring-engine/rule-tiers.js';
 import { DDD_FUNCTIONS } from '../../../../../src/spec-parser/ddd-template.js';
@@ -39,6 +39,16 @@ describe('correctness checker: edge rules (clean-mini fixture)', () => {
     const r = checkFinding(finding(DOMAIN_OUT), spec, src);
     expect(r.verdict).toBe('correct');
     expect(r.checks.join(' ')).toContain('resolves to src/infrastructure/Db.ts');
+  });
+
+  it('reads the source with the pinned E1 tsconfig (ADR-032) and keeps a bounded cache', () => {
+    const pinned = new SourceFacts(MINI, { tsconfig: 'adr-032' });
+    expect(checkFinding(finding(DOMAIN_OUT), spec, pinned).verdict).toBe('correct');
+    const cache = new SourceFactsCache(1);
+    const a = cache.get(MINI, 'adr-032');
+    expect(cache.get(MINI, 'adr-032')).toBe(a);
+    expect(cache.get(MINI, 'own')).not.toBe(a);
+    expect(cache.get(MINI, 'adr-032')).not.toBe(a);
   });
 
   it('rejects a wrong line, a wrong target, a wrong relation and a missing file', () => {
@@ -141,7 +151,8 @@ describe('coverage of the blocking rules (rule-tiers.md)', () => {
 });
 
 describe('reference runs (hexagonal and DDD evidence, materialised variants)', () => {
-  const evidence = path.join(REPO, 'results/v1.3-reference/after-fixes/evidence');
+  // after-member-facts: the v1.3 member-fact FF-DT03 rows (`Class.member (clause)` discriminators).
+  const evidence = path.join(REPO, 'results/v1.3-reference/after-member-facts/evidence');
   let tmp: string;
   const io = { env: {}, out: () => undefined, err: () => undefined };
 
@@ -179,5 +190,22 @@ describe('reference runs (hexagonal and DDD evidence, materialised variants)', (
     expect(checkFinding(f, view, facts).verdict).toBe('correct');
     expect(checkFinding({ ...f, line: 9999 }, view, facts).verdict).toBe('incorrect');
     expect(checkFinding({ ...f, target: 'src/domain/Nowhere.ts' }, view, facts).verdict).toBe('incorrect');
+  }, 120_000);
+
+  it('FF-DT03 member-fact rows: each listed member must hold its clause', async () => {
+    const jobs = loadJobs(path.join(tmp, 'jobs.json')).jobs;
+    const dt03 = loadFindings(jobs).filter((x) => x.ruleId === 'FF-DT03');
+    expect(dt03.length).toBeGreaterThanOrEqual(2);
+    for (const f of dt03) {
+      const job = jobs.find((j) => j.projectId === f.projectId);
+      if (job === undefined) throw new Error('no job');
+      const view = await loadSpecView(job.spec);
+      const facts = new SourceFacts(job.projectRoot);
+      expect(checkFinding(f, view, facts).verdict).toBe('correct');
+      const [cls, members] = f.discriminator;
+      const swapped = (members ?? '').replace(/\((set accessor|public mutable field)\)/, (m) => (m === '(set accessor)' ? '(mutator method)' : '(set accessor)'));
+      expect(checkFinding({ ...f, discriminator: [cls ?? '', swapped] }, view, facts).verdict).toBe('incorrect');
+      expect(checkFinding({ ...f, discriminator: [cls ?? '', `${cls ?? ''}.nowhere (mutator method)`] }, view, facts).verdict).toBe('incorrect');
+    }
   }, 120_000);
 });

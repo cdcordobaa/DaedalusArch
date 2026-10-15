@@ -345,6 +345,15 @@ function aggregateRule(c: Ctx, repositoryOnly: boolean): Outcome {
 
 const SETTER = /^set[A-Z].*$/;
 
+const MEMBER_CLAUSE = /^(.+)\.([^.\s]+) \((public mutable field|set accessor|mutator method)\)$/;
+
+/**
+ * FF-DT03. Two discriminator forms: the frozen setter-name proxy (`Quantity.setValue`: a non-static method whose name
+ * matches `set[A-Z].*`), and the v1.3 member-fact template (`Quantity.value (set accessor), Quantity.setValue (mutator
+ * method)`): every listed member must hold its clause in the source: (a) a public, non-readonly, non-static field or
+ * parameter property, (b) a non-static `set` accessor, (c) a public non-static method or arrow-function property
+ * whose body assigns a `this.<field>`.
+ */
 function valueObjectImmutability(c: Ctx): Outcome {
   const d = c.spec.ddd;
   if (d === undefined) return na('the spec declares no architecture.ddd');
@@ -352,7 +361,28 @@ function valueObjectImmutability(c: Ctx): Outcome {
   if (!globMatch(d.valueObjects, c.f.file)) return no(`${c.f.file} matches no value-object glob`);
   const cls = classIn(c, className);
   if ('verdict' in cls) return cls;
-  const short = (method ?? '').split('.').pop() ?? '';
+  const raw = method ?? '';
+  if (/\((public mutable field|set accessor|mutator method)\)/.test(raw)) {
+    const parts = raw.split(/,\s+(?=[^,]+\.[^,.\s]+ \()/);
+    for (const part of parts) {
+      const m = MEMBER_CLAUSE.exec(part.trim());
+      if (m === null) return na(`unparsed member clause '${part}'`);
+      const [, owner, name, clause] = m as unknown as [string, string, string, string];
+      if (owner !== cls.name) return no(`${part} names class ${owner}, not ${cls.name}`);
+      if (clause === 'public mutable field') {
+        const f = cls.members.fields.find((x) => x.name === name);
+        if (f === undefined) return no(`${cls.name} declares no field ${name}`);
+        if (!f.isPublic || f.isReadonly || f.isStatic) return no(`${cls.name}.${name} is not a public, non-readonly, non-static field`);
+      } else if (clause === 'set accessor') {
+        if (!cls.members.setAccessors.includes(name)) return no(`${cls.name} declares no non-static set accessor ${name}`);
+      } else if (!cls.members.mutators.includes(name)) {
+        return no(`${cls.name}.${name} is not a public non-static method that assigns a this field`);
+      }
+      c.checks.push(`${cls.name}.${name}: ${clause}`);
+    }
+    return ok(`value object ${cls.name} is mutable through ${raw}`);
+  }
+  const short = raw.split('.').pop() ?? '';
   const m = cls.methods.find((x) => x.name === short && !x.isStatic);
   if (m === undefined) return no(`${cls.name} declares no non-static method ${short}`);
   return SETTER.test(m.name) ? ok(`value object ${cls.name} declares setter-named method ${m.name}`) : no(`${m.name} is not setter-named`);
@@ -436,7 +466,7 @@ export const BLOCKING_COVERAGE: readonly CoverageRow[] = Object.freeze([
   { style: 'ddd', ruleId: 'FF-DS02', template: 'context-isolation', coverage: 'full', note: 'literal view (edge-views.md addendum): the target is the file the specifier names' },
   { style: 'ddd', ruleId: 'FF-DT01', template: 'aggregate-boundary', coverage: 'full' },
   { style: 'ddd', ruleId: 'FF-DT02', template: 'repository-aggregate-root', coverage: 'full' },
-  { style: 'ddd', ruleId: 'FF-DT03', template: 'value-object-immutability', coverage: 'full', note: 'the setter-name proxy the template computes; field mutability itself is not checked' },
+  { style: 'ddd', ruleId: 'FF-DT03', template: 'value-object-immutability', coverage: 'full', note: 'the frozen setter-name proxy, and the v1.3 member-fact clauses (public mutable field, set accessor, mutator method)' },
   { style: 'ddd', ruleId: 'FF-DT04', template: 'domain-purity', coverage: 'full' },
 ]);
 

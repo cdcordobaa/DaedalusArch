@@ -56,6 +56,8 @@ The E1 sources are outside the repository (`experiments/e1-grid/plan.json`: `out
 
 **State on the committed Study 1 E1 reports (2026-10-15, dry run, no model).** 65 accepted cells, specs `specs/clean-arch.yaml`. They hold **no blocking-tier finding**: every symbolic finding is advisory under the v1.3 tiers (FF-CV05 1184, FF-C03 154, FF-P02 51, FF-C02 21, FF-C06 6, FF-SO01 3, FF-C04 2, FF-SO02 2). The blocking sample is therefore empty and costs 0 calls; `--tiers all` samples 154 findings over 8 rules, `--estimate` 308 calls (worst case 1232). The v1.3 E1 cells (re-evaluated under the v1.3 rules) are what this harness is for.
 
+**v1.3 re-evaluation of the E1 cells (U-F live run).** `scripts/v1.3/e1-v13-evaluate.ts --e1-runs results/e1-grid/runs --e1-root <outcomes> --spec specs/clean-arch.yaml --out results/v1.3-labelling/e1` evaluates each accepted cell symbolic-only under the v1.3 defaults, on a temporary copy, with the pinned ADR-032 tsconfig, holding the Neo4j lock, and writes the reports and a jobs file whose jobs carry `"tsconfig": "adr-032"` (the checker then reads the cell with the same pinned tsconfig). Results: `Docs/DiagnosticRuns/v1.3-labelling-2026-10-15.md`.
+
 ## 3. Running on the reference runs
 
 The reference projects are materialised from `tests/fixtures/v1.3-reference` (patch and overlay formats), one per variant with an evidence file:
@@ -95,7 +97,7 @@ Each finding's condition is re-checked from the **source** (TypeScript compiler 
 | ddd | FF-DS02 | context-isolation | full (literal view) |
 | ddd | FF-DT01 | aggregate-boundary | full |
 | ddd | FF-DT02 | repository-aggregate-root | full |
-| ddd | FF-DT03 | value-object-immutability | full for the setter-name proxy the template computes; field mutability is not checked |
+| ddd | FF-DT03 | value-object-immutability | full: the frozen setter-name proxy, and each member clause of the v1.3 member-fact template (public mutable field, set accessor, mutator method) |
 | ddd | FF-DT04 | domain-purity | full |
 
 Also checked (advisory): `layer-skip-graph`, `naming-services`, `naming-repos`, `test-file-pairing`.
@@ -134,5 +136,7 @@ The protocol names the Gemini labeller for *meaningful*. Codex is wired as a sec
 - `audit-sheet.md`: style, file, neutral claim and excerpt per item; no rule id, template, type or labeller answer;
 - `audit-answers.csv`: `auditId,meaningful,correct,note` (meaningful = yes / no / uncertain; correct = yes / no, optional);
 - `audit-key.json`: audit id to finding key and rule. Keep it away from the author until the answers are in.
+
+With `--labels <labels.json,…>` the draw is stratified by rule × labeller label (`selectAuditStratified`), so both labels are represented. With `--format table --sheet-out <file.md> --key-out <file.json>` the sheet is one Markdown table with an `[Answer]` column (excerpts below it) and the key goes to its own path; `agreement --answers <file.md>` reads that column. `--sample`, `--jobs`, `--labels` and `--correctness` take comma-separated lists (one audit over E1 and the reference runs).
 
 `audit-sheet agreement` reports, for author vs labeller on *meaningful*: the 3×3 table, Cohen's κ, Gwet's AC1, and the observed agreement with its Wilson interval. It reports the same for the binary split (yes vs not yes), and the **gate**: κ (three-way) ≥ 0.60 with n ≥ 30. With `--correctness`, it also reports author vs checker on *correct* (checkable items only). Unanswered and unmatched audit ids are listed. The director's 30 independent ratings (protocol §3) use the same sheet and calculator: give the director's CSV as `--answers`.

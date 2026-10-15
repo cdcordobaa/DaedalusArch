@@ -42,6 +42,74 @@ export function selectAudit(items: readonly SampledFinding[], n: number, seed: n
   return shuffle(chosen, createRng(derivedSeed(seed, 'audit-order')));
 }
 
+/**
+ * The audit draw stratified by rule AND by the labeller's label (U-F live run): strata are `rule × label` over the
+ * labelled items, visited round-robin in a seeded order, each stratum in a seeded order, then the draw is shuffled.
+ * Every rule and every label the labeller gave is represented, so κ is not computed on a one-label sheet. Items with
+ * no label are left out.
+ */
+export function selectAuditStratified(items: readonly SampledFinding[], n: number, seed: number, labelOf: ReadonlyMap<string, string>): SampledFinding[] {
+  if (n < AUDIT_MIN) throw new Error(`the author audit needs at least ${String(AUDIT_MIN)} items (asked for ${String(n)})`);
+  const labelled = [...items].filter((it) => labelOf.has(it.key)).sort((a, b) => (a.key < b.key ? -1 : 1));
+  if (labelled.length < n) throw new Error(`only ${String(labelled.length)} labelled items; the audit needs ${String(n)}`);
+  const strata = new Map<string, SampledFinding[]>();
+  for (const it of labelled) {
+    const k = `${it.rule}\u0000${labelOf.get(it.key) ?? ''}`;
+    strata.set(k, [...(strata.get(k) ?? []), it]);
+  }
+  const queues = shuffle([...strata.keys()].sort(), createRng(derivedSeed(seed, 'audit-strata')))
+    .map((k) => shuffle(strata.get(k) ?? [], createRng(derivedSeed(seed, 'audit', k))));
+  const chosen: SampledFinding[] = [];
+  while (chosen.length < n) {
+    for (const q of queues) {
+      const next = q.shift();
+      if (next !== undefined && chosen.length < n) chosen.push(next);
+    }
+  }
+  return shuffle(chosen, createRng(derivedSeed(seed, 'audit-order')));
+}
+
+const cell = (t: string): string => t.replace(/\|/g, '\\|').replace(/\s*\n\s*/g, ' ');
+
+/**
+ * The blind sheet as one Markdown table with an `[Answer]` column (yes / no / uncertain), followed by each item's
+ * code excerpt. No rule id, template, type or labeller answer.
+ */
+export function auditTable(chosen: readonly SampledFinding[], sourceOf: (f: SampledFinding) => string | null): string {
+  const parts = [
+    '# v1.3 author audit (blind)',
+    '',
+    `Question for every item: **${QUESTION}**`,
+    '',
+    'Write `yes`, `no` or `uncertain` in the `[Answer]` column of each row. Each item\'s code excerpt is under the table',
+    '(section of the same id). The rule, the template and the labeller\'s answer are not shown; do not open the key file',
+    'before every row is answered.',
+    '',
+    '| ID | Style | Location | Finding | [Answer] |',
+    '|---|---|---|---|---|',
+  ];
+  chosen.forEach((f, i) => {
+    const loc = `${f.file}${f.line !== undefined ? `:${String(f.line)}` : ''}`;
+    parts.push(`| ${auditId(i)} | ${f.style} | \`${cell(loc)}\` | ${cell(claimText(f))} |  |`);
+  });
+  parts.push('', '## Excerpts', '');
+  chosen.forEach((f, i) => {
+    const src = sourceOf(f);
+    parts.push(`### ${auditId(i)}`, '', `${f.style}, \`${f.file}\``, '', '```ts', src === null ? '(file not readable)' : excerpt(src, f.line), '```', '');
+  });
+  return parts.join('\n');
+}
+
+/** The `[Answer]` column of a filled `auditTable` sheet, as answer rows (`auditId`, `meaningful`). */
+export function parseAnswerTable(md: string): Record<string, string>[] {
+  const out: Record<string, string>[] = [];
+  for (const line of md.split('\n')) {
+    const m = /^\|\s*(A\d{3})\s*\|.*\|\s*([^|]*?)\s*\|\s*$/.exec(line);
+    if (m !== null) out.push({ auditId: m[1] ?? '', meaningful: (m[2] ?? '').replace(/[`*[\]]/g, '').trim() });
+  }
+  return out;
+}
+
 export function auditId(i: number): string {
   return `A${String(i + 1).padStart(3, '0')}`;
 }

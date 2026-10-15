@@ -1,7 +1,7 @@
 import type { Finding } from '../../../../../scripts/v1.3/lib/labelling/findings.js';
 import { PER_RULE_CAP, allocate, notApplicable, sampleFindings } from '../../../../../scripts/v1.3/lib/labelling/sampler.js';
 import type { SampledFinding } from '../../../../../scripts/v1.3/lib/labelling/sampler.js';
-import { AUDIT_MIN, agreement, answersTemplate, auditAgreement, auditKey, auditSheet, parseCsv, selectAudit } from '../../../../../scripts/v1.3/lib/labelling/audit.js';
+import { AUDIT_MIN, agreement, answersTemplate, auditAgreement, auditKey, auditSheet, auditTable, parseAnswerTable, parseCsv, selectAudit, selectAuditStratified } from '../../../../../scripts/v1.3/lib/labelling/audit.js';
 
 function f(i: number, ruleId: string, projectId: string, extra: Partial<Finding> = {}): Finding {
   return {
@@ -101,5 +101,26 @@ describe('author audit', () => {
     expect(report.correctness?.observed).toBe(1);
     const disagree = auditAgreement(key, answers, new Map(key.map((k) => [k.key, 'yes'])));
     expect(disagree.gate.pass).toBe(false);
+  });
+
+  it('stratifies by rule and labeller label, and round-trips the [Answer] table', () => {
+    const labelOf = new Map(items.map((it, i) => [it.key, i % 4 === 0 ? 'no' : 'yes']));
+    labelOf.delete(items[1]?.key ?? '');
+    const chosen = selectAuditStratified(items, 30, 7, labelOf);
+    expect(chosen).toHaveLength(30);
+    expect(chosen.some((c) => c.key === items[1]?.key)).toBe(false);
+    for (const rule of ['FF-S01/dependency-direction', 'FF-P01/domain-purity']) {
+      for (const label of ['yes', 'no']) expect(chosen.some((c) => c.rule === rule && labelOf.get(c.key) === label)).toBe(true);
+    }
+    expect(selectAuditStratified(items, 30, 7, labelOf).map((c) => c.key)).toEqual(chosen.map((c) => c.key));
+    const sheet = auditTable(chosen, () => 'a | b');
+    expect(sheet).not.toMatch(/FF-[A-Z]+\d/);
+    expect(sheet).toContain('| ID | Style | Location | Finding | [Answer] |');
+    expect(sheet).toContain('### A030');
+    const filled = sheet.split('\n').map((l) => (l.startsWith('| A0') ? l.replace(/\|\s*\|$/, '| yes |') : l)).join('\n');
+    const rows = parseAnswerTable(filled);
+    expect(rows).toHaveLength(30);
+    expect(rows.every((r) => r.meaningful === 'yes')).toBe(true);
+    expect(parseAnswerTable(sheet).every((r) => r.meaningful === '')).toBe(true);
   });
 });
