@@ -5,7 +5,7 @@
 ## 1. How the tasks were chosen
 
 - **New domains.** None of the domains is one of the reference apps (library loans, orders, workshop registrations, room booking, ordering and billing, expense reimbursement, course enrollment, support tickets, parcel tracking, insurance). None is an E1 task (`experiments/e1-grid/plan.json`: task-management, order-fulfilment) or the loop demo task (todo list).
-- **Sealed-list check.** Before the pilot runs, the author checks that no pilot domain matches a sealed Study 2 domain, without writing down which domains those are. If one matches, that task is replaced, re-hashed and the memo updated, all before any run.
+- **Sealed-list check.** Before the pilot runs, the author checks that no pilot domain matches a sealed Study 2 domain, without writing down which domains those are. If one matches, that task is replaced, re-hashed and the memo updated, all before any run. One first-draft task (the Clean task) was replaced this way before any run; its domain is reserved for a later study.
 - **Architectural pressure, not CRUD.** Step 1 builds the system and already contains one external integration. Each later step forces a design choice where the easy answer erodes the style. Across the three tasks the steps cover the four pressure kinds: a cross-module feature, a second adapter of a type that already exists, a reporting or shared-kernel feature that crosses contexts, and a change that cuts across every layer (multi-tenancy, audit logging).
 - **Plain product language.** The requests describe features only. They never name a layer, a port, an interface or a pattern, so the pressure comes from the feature, not the wording. The target style reaches the agent only through the prompt frame and the evaluator spec (§3).
 - **k = 4** steps per task.
@@ -19,24 +19,24 @@ The JSON block below is exactly the content of the harness tasks file (`LoopTask
   "description": "v1.3 loop pilot tasks (exploratory, not Study 2). Defined in Docs/v1.3/pilot-tasks.md before any pilot run; hashed in Docs/v1.3/pilot-outcome-memo.md. Never to be used in Study 2.",
   "tasks": [
     {
-      "id": "fleet-maintenance",
-      "title": "Fleet maintenance",
+      "id": "market-vendors",
+      "title": "Farmers' market vendors",
       "steps": [
         {
-          "id": "vehicles",
-          "request": "Create a fleet-maintenance service for a company that runs delivery vans. Fleet managers register vehicles (plate, model, year) and record odometer readings. Each vehicle model has a service plan: a list of service types (oil change, brake check, tyre rotation) with an interval in kilometres and in months. Mechanics record completed services. The service lists, for every vehicle, which services are due or overdue from its last odometer reading and its service history. Readings come from the fleet manager over HTTP or from the TrakNet telematics vendor, which posts each reading to a webhook as JSON with the plate and the kilometres. A reading lower than the vehicle's last reading is rejected. Keep the data in memory and expose the operations over HTTP."
+          "id": "stalls",
+          "request": "Create a service for a weekly farmers' market. The market organiser defines market days and the stall pitches of the market (number, size, with or without power). Vendors register (business name, contact, products sold) and book a pitch for a market day. A pitch is never booked twice for the same market day, and a vendor holds at most one pitch per market day. Shoppers pay at the stalls with card readers from PayLane, which the market provides; PayLane posts each card sale to a webhook as JSON with the reader id, the amount and the time. The organiser links each reader to a vendor for a market day. A sale from a reader that is not linked to a vendor with a booking on that day is rejected. The service lists each vendor's card sales per market day. Keep the data in memory and expose the operations over HTTP."
         },
         {
-          "id": "drivers",
-          "request": "Add drivers. A vehicle has at most one assigned driver. Before each trip the driver records an inspection with a checklist (brakes, tyres, lights, mirrors). A failed safety item takes the vehicle out of service and opens a defect, which a mechanic closes by recording a repair. A vehicle that is out of service cannot be assigned to a driver. When a repair is also a service type of the vehicle's plan (for example a brake check), it counts as that service in the vehicle's service history."
+          "id": "fees-and-settlement",
+          "request": "Add vendor fees and payouts. Each pitch size has a stall fee per market day, with a surcharge for power, and the market keeps a commission of every card sale (5% by default; the organiser can set a different rate per vendor). A vendor can cancel a booking up to 48 hours before the market day without paying the stall fee. After a market day is closed, the organiser runs its settlement: each vendor's payout is their card sales for the day minus the commission and the stall fee. A payout is never negative: what the vendor still owes is carried into their next settlement. A settled market day can no longer receive sales or booking changes."
         },
         {
-          "id": "second-vendor",
-          "request": "Some vans now carry RoadPulse telematics units instead of TrakNet. RoadPulse does not call us: the service must poll its HTTP API every 15 minutes. RoadPulse reports distances in miles and identifies vehicles by its own unit ids, which fleet managers link to plates. Each vehicle is linked to at most one vendor. RoadPulse readings go through the same checks and the same due-service calculation as the other readings."
+          "id": "second-provider",
+          "request": "Some vendors now bring their own card readers from TillWave instead of using PayLane. TillWave does not call us: the service must poll its HTTP API every 15 minutes for new sales. TillWave reports amounts in cents and identifies sellers by its own merchant ids, which the organiser links to vendors. Each vendor uses at most one provider on a market day. TillWave sales go through the same checks, the same commission and the same settlement as PayLane sales, and a sale reported twice is counted once."
         },
         {
-          "id": "operators",
-          "request": "The service is now sold to several fleet operators. Every vehicle, reading, driver, inspection, defect and service record belongs to one operator. Every HTTP request carries the operator's id in a header, and a request must never read or change another operator's data. TrakNet webhooks identify the operator by an API key issued per operator, and each operator has its own RoadPulse account. Operators can use the built-in service plans or define their own plans, which only they can see."
+          "id": "audit-and-statements",
+          "request": "The market's accountant needs an audit log. Every change to a booking, a fee or commission rate, a card sale or a settlement is recorded with who made it (the organiser id from a request header, or 'system' for provider sales), when, and the values before and after. A change and its audit record are always saved together or not at all. The organiser can list the audit log of one market day, including the changes to its bookings, sales and settlement. Each vendor can download a monthly statement of their bookings, card sales per provider, fees, payouts and carried balance."
         }
       ]
     },
@@ -92,7 +92,7 @@ The JSON block below is exactly the content of the harness tasks file (`LoopTask
 
 | Task | Style | Evaluator spec | Style sentence in the prompt frame |
 |---|---|---|---|
-| `fleet-maintenance` | Clean Architecture | `specs/clean-arch.yaml` (the E1 spec) | "Organise the code following Clean Architecture." (the current frame) |
+| `market-vendors` | Clean Architecture | `specs/clean-arch.yaml` (the E1 spec) | "Organise the code following Clean Architecture." (the current frame) |
 | `shelter-adoptions` | Hexagonal | a pilot spec built on `presets/hexagonal.yaml` | "Organise the code following Hexagonal Architecture (ports and adapters)." |
 | `relief-volunteers` | DDD | a pilot spec built on `presets/ddd.yaml`, declaring two bounded contexts, `src/registry/` and `src/deployment/` | "Organise the code following Domain-Driven Design, with one bounded context per part: src/registry/ for the volunteer registry and src/deployment/ for deployment planning." |
 
@@ -102,10 +102,10 @@ The JSON block below is exactly the content of the harness tasks file (`LoopTask
 
 | Task, step | Pressure kind | The tempting shortcut | What the tool would see |
 |---|---|---|---|
-| fleet 1 | first adapter | Parse the TrakNet JSON inside the reading use case or the entity. | Domain or application importing an HTTP or vendor module (FF-S01, FF-S04, FF-P01). |
-| fleet 2 | cross-module | The inspection code edits vehicle status and service history directly, or the two modules import each other. | Cycles (FF-S02); outward edges if the inspection rules sit in a controller. |
-| fleet 3 | second adapter | `if (vendor === 'roadpulse')` with the miles conversion in the use case or the domain; a poller that writes to the repository and skips the checks. | Infrastructure types in the core (FF-S01, FF-S04); a scheduler importing the concrete repository (FF-P03); duplicated reading logic. |
-| fleet 4 | across every layer | A tenant id read from the request deep inside services, entities importing a request context, repositories filtering ad hoc. | Domain imports from infrastructure or HTTP (FF-S04, FF-P01); constructor injection of concrete classes (FF-P06). |
+| market 1 | first adapter | Parse the PayLane JSON inside the sale-recording use case or the entity; booking checks in the controller. | Domain or application importing an HTTP or vendor module (FF-S01, FF-S04, FF-P01). |
+| market 2 | cross-module | The settlement code reads bookings and sales stores directly, edits booking state, or the booking, sales and settlement modules import each other. | Cycles (FF-S02); outward edges if the fee and settlement rules sit in a controller. |
+| market 3 | second adapter | `if (provider === 'tillwave')` with the cents conversion in the use case or the domain; a poller that writes to the repository and skips the checks and de-duplication. | Infrastructure types in the core (FF-S01, FF-S04); a scheduler importing the concrete repository (FF-P03); duplicated sale logic. |
+| market 4 | across every layer | Audit writes inside each controller or repository; the organiser id read from the request deep inside use cases; entities importing a logger or request context; the statement querying every repository directly. | Domain imports from infrastructure or HTTP (FF-S04, FF-P01); constructor injection of concrete classes (FF-P06). |
 | shelter 1 | first adapter | The approval use case calls the fake mail class directly. | Application to adapter edge (dependency-direction-graph, core-isolation); adapter with no port (port-adapter-pattern). |
 | shelter 2 | cross-module | Adoption approval reaching into the foster store, or the foster code calling the mail class directly. | Core-to-adapter edges; cycles between the two features. |
 | shelter 3 | second adapter | Branching on the channel in the use case; the TextBridge webhook handler calling the e-mail adapter for the fallback (adapter to adapter). | Adapter-to-adapter edges (construct question Q5); a second notifier that implements no port. |
