@@ -1670,3 +1670,11 @@ Plan checkboxes ticked. Auto-approved under standing approval; no blocking or ma
 **Context**: v1.3 — honest positioning for the director meeting.
 
 ---
+
+## v1.3 — week plan prep, decision board and review sheet published
+**Timestamp**: 2026-10-16T00:30:00Z
+**User Input**: "lets analyse this plan and plan for it and found potential gabs and problems, but i mainly agree" (week plan); "Give me the decisions that I need to take in an HTML format ... for the level items ... a format in which I can easily review them and especially someone else, including my director"
+**AI Response**: "Week plan analysed with a Fable adversarial review (2 BLOCKING: hold-out contamination by ordering, author as decider+rater; MAJOR: label findings not cases via a blind union, sample size/time, same-family hold-out → external public-project check, Gemini is cross-vendor not independent, pilot outcome + fallback pre-committed, contribution (b) planted by the designer, (d) needs the director's written agreement, hold-out pre-spec, writing day). PR #107 merged: hold-out pre-spec, pilot memo + 3 pilot tasks, human-labelling protocol (60/120 options), calibration sheet (10 dev items), director email draft. The coordinator caught that one pilot task overlapped a sealed Study 2 domain; replaced (PR #109, market-vendors; new hashes). Published: Thesis Decisions Board (https://claude.ai/artifact/VfUjw8uPhkEBNqNRuNFypF; db 'answers', editors write) with 7 week-plan items, P1/P2 and Q1–Q25; Architecture Findings Review (https://claude.ai/artifact/EQWjf9XSKQTC7sqbxD5j9Y; db 'ratings/{rater}', each rater writes only their own, verified with an interact-level probe) with the calibration set (10) and the labeller audit set (40); no answer keys embedded; the hold-out union set is added only after the freeze."
+**Context**: v1.3 week plan, Day 1.
+
+---
