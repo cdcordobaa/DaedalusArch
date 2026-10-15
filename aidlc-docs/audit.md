@@ -1518,3 +1518,11 @@ Plan checkboxes ticked. Auto-approved under standing approval; no blocking or ma
 **Context**: v1.3 — validation-protocol amendment: development set = 71 reference cases; hold-out set = sealed, run once after tuning freezes.
 
 ---
+
+## v1.3 — author decision: no pre-registration until the tool is fit
+**Timestamp**: 2026-10-15T07:00:00Z
+**User Input**: "i dont want p[reregistrations  until we make sure the tool is good enough to actually detect what we are trying to find out" (Intent: defer every pre-registration until the tool is demonstrated to detect what the study needs.)
+**AI Response**: "Requirements revision 2: FR-V12 is now an informal outline only; no prereg work in v1.3; pre-registration is gated on the hold-out validation meeting the targets (or written waivers) plus the author's explicit go. The non-prereg safeguards (sealed hold-out, blind manifests, a priori tiers, sealed task hash) stay."
+**Context**: v1.3 scope change by the author.
+
+---
