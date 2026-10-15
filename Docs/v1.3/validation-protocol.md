@@ -54,3 +54,9 @@ At least 20 planted violations per style, using variants plus the existing mutat
 
 - Gate 2 (the first fidelity result) is a **human gate**: the author sees it before U-E runs.
 - U-G (the spec-influence pilot) is deferred until U-F has first numbers.
+
+## 9. Development set and sealed hold-out set (added 2026-10-15, after the U-E baseline)
+
+- The 71 reference cases (PRs #82, #83) are now the **development set**. Tuning is measured on them and labelled as development-set numbers.
+- A **hold-out reference set** is written blind (another model, inputs limited to the rule sources, the tiers, the layer declarations and the schemas) and stored sealed in `../daedalus-sealed/v1.3-holdout`. No tuning agent may read it.
+- When v1.3 tuning freezes, the tool's commit is recorded. The hold-out set is then run **once**, and those numbers are the v1.3 validity figures. Any fix made after that run starts a new development round, and needs a new hold-out set before a validity claim.
