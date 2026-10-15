@@ -1646,3 +1646,11 @@ Plan checkboxes ticked. Auto-approved under standing approval; no blocking or ma
 **Context**: v1.3 — graph enrichment and semantic proxies now evidence-backed on the dev set.
 
 ---
+
+## v1.3 — APG v2 live verification + F-P01-ALIAS fix merged
+**Timestamp**: 2026-10-15T22:10:00Z
+**User Input**: (none; the author asked for an overview of deterministic vs semantic APG capabilities; answered in the conversation with the ontology proposal: Capability, BusinessConcept, BusinessRule, Responsibility, Assumption, QualityConcern, DecisionRef nodes; REALIZES, EMBODIES, ENFORCES, SHARES_ASSUMPTION, RESPONSIBLE_FOR, MISPLACED_IN, TRACES_TO, CONTRADICTS_INTENT edges)
+**AI Response**: "PR #103 (cca3b86) merged. Live Cypher = in-memory mirrors on 63 ablation runs and 639 dev runs, so no Cypher defects; ablation 47/47 live. Dev set: APG v2 adds no detection that the v1.3 rules miss (its rows co-locate with v1.3 findings), but it brings blocking-tier false alarms on 4/19 clean/near-miss variants (DDD composition root main.ts deep-import x9 per variant, the DDD ACL, a hexagonal test composition root) plus 40 advisory rows, so APG v2 templates need scope and exemption changes before entering any verdict; they stay off by default. F-P01-ALIAS fixed under v1.3 (aliasDeclarationPackages): a path-aliased .d.ts package becomes a Package node; FF-P01 now fires on antipattern-nest; v1.2E byte-identical on 29 fixtures, hashes now pinned by a jest suite. 1090 + 81 golden tests pass; prereg ok."
+**Context**: v1.3 — APG v2 unique capability is confirmed live; its rules are not yet verdict-grade on realistic code.
+
+---
