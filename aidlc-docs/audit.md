@@ -1462,3 +1462,35 @@ Plan checkboxes ticked. Auto-approved under standing approval; no blocking or ma
 **Context**: v1.3 — requirements revision 1; Gate 2 (first fidelity result) is now a human gate.
 
 ---
+
+## v1.3 CONSTRUCTION — U-A integration done; U-D started
+**Timestamp**: 2026-10-14T20:40:00Z
+**User Input**: (none; under delegation)
+**AI Response**: "U-A: branch v1.3 at f0f1137 (verified on origin), draft PR #80. Merged #74(+#55), #69, #76, #79 with --no-ff, no textual conflicts; 3 hexagonal-affected tests fixed without deleting assertions; extractor DEFAULT_OPTIONS → V13 (dynamicImports and moduleWiring on), V12E_DEFAULT_OPTIONS kept for reproduction. jest 3655/3656 (the 1 failure is env-sensitive, also on v1.2e); golden 80/80; --check-prereg v25 ok on 12 plans. Open: presets/hexagonal.yaml must be hashed by any future registration; spec-validator accepts frozen templates only (assigned to U-D). U-D launched on branch v1.3-tiers (tiers per Docs/v1.3/rule-tiers.md, v1.3 scoring mode, spec-validator for extension templates)."
+**Context**: v1.3 CONSTRUCTION — lane 1 now U-D; lane 2 U-B still running.
+
+---
+
+## v1.3 CONSTRUCTION — U-B first fidelity result (Gate 2, human gate)
+**Timestamp**: 2026-10-14T21:15:00Z
+**User Input**: (none; result under delegation; Gate 2 needs the author)
+**AI Response**: "U-B: branch v1.3-fidelity at 5b5be04 (verified), draft PR #81. Agreement on E1 (72 cells): covered 0.9967, confirmed 0.9916, Jaccard 0.9883, identical against dependency-cruiser and tsc; 70/72 cells agree fully. SO4 scoped vs tsc: 0.9663 / 0.9433 / 0.9132. 0 unexplained extractor bugs; every disagreement falls in a deliberate-behaviour class (re-export/barrel, excluded file, out-of-root, .d.ts); excluding those, scoped agreement with tsc is 1.0. Defect confirmed by the coordinator on source: barrel routing sends a named import through a re-export file to the declaring file and drops the edge to the re-export file itself (opus order-fulfilment/full-aac/run-1: infrastructure → application/ports/persistence.ts recorded only as infrastructure → domain). Also: monorepo libs outside the root become Package nodes (ghostfolio libs/common, 329 edges); dynamicImports untested (no literal dynamic import in either corpus). File-to-layer coverage E1 0.990 (13 unassigned index/server files), SO4 0.723 (spec coverage). Adjudication sheets prefilled 'suggested'; human verdicts pending, so no precision is claimed."
+**Context**: v1.3 Gate 2 presented to the author. Proposed fix: ADR-V13-01, emit both edges (literal edge to the re-export file and resolved edge with viaReExport), rule by rule choice of edge view.
+
+---
+
+## v1.3 CONSTRUCTION — cloud units done; blind re-derivation started; U-D resumed
+**Timestamp**: 2026-10-15T00:40:00Z
+**User Input**: "how are we progressing here"
+**AI Response**: "Cloud U-C2 → PR #82 (4 reference projects, clean/layered/NestJS/hexagonal, 27–30 files each, 56 variants of which 40 are violations and 12 near-misses, hand-written expected graphs, validation runner with --check/--materialise/live/--from-raw; no Neo4j run). Cloud U-C1 → PR #83 (DDD style: 7 templates, declarations-based, 31-file two-context reference project with 10 violations, 3 probes and 1 negative control, manifests committed before the templates; it independently found the same barrel-routing defect; three tier disagreements are proposed as ADRs). U-D had stalled waiting for a memory signal that never came; resumed. Blind re-derivation (protocol §1) started: 71 cases shuffled and renamed, 68 revealing comments removed, the variant key kept by the coordinator only; annotator = Fable model, sees only code, declarations, style-rule-sources.md and rule-tiers.md."
+**Context**: v1.3 CONSTRUCTION — waiting on U-D, the blind annotation, and the author's Gate 2 answer (barrel fix, ADR-V13-01).
+
+---
+
+## v1.3 CONSTRUCTION — Gate 2 decided by the author: barrel fix option A (ADR-V13-01)
+**Timestamp**: 2026-10-15T01:30:00Z
+**User Input**: "yes A" (Intent: approve Gate 2 and choose to record both the literal edge to the re-export file and the resolved edge to the declaring file.)
+**AI Response**: "Recorded ADR-V13-01 (Docs/v1.3/adr-v13.md). U-D done (96120b3, PR #84: verdict FAIL iff a blocking rule has a counted violation; v1.2E scoring byte-identical by default in the library, v1.3 default in evaluate/MCP; 41+17+5 new tests, 837 unit, 81 golden). Integration agent merging #84, #82, #83 and the fidelity branch into v1.3 and wiring DDD tiers. Barrel-fix unit launched on branch v1.3-barrels from v1.3. U-E (live reference validation) runs after both land."
+**Context**: v1.3 Gate 2 passed.
+
+---
