@@ -843,3 +843,20 @@ Verdict per question, as the review gave it. "Endorse" means the review raised n
 | 19 | endorse-with-change | Labelled "stricter than Evans (transient references allowed in Evans ch. 6)". |
 | 22 | endorse-with-change | Re-lettered (now B). The narrowing is stated: Martin's DIP is not boundary-scoped. |
 | 25 | endorse-with-change | Re-lettered (now B). One development-set run before the hold-out, no second tuning loop. |
+
+## Source verification notes (2026-10-16)
+
+An independent check of the sources (`Docs/v1.3/rule-source-verification.md`; corrections in `Docs/v1.3/style-rule-sources-errata.md`) affects these questions. Read them before answering.
+
+- **Q2 (type-only imports):** Martin's blog says an inner circle must not *mention* any outer name ("functions, classes, variables"). That supports counting type-only imports.
+- **Q3 (in-layer cycles):** cite Martin ch. 12 (components as units of deployment) and ch. 14 (ADP, p. 112), not "ch. 13 and 14". The argument for option C is unchanged.
+- **Q5 (adapter→adapter):** Cockburn never says adapters must not talk to each other, and in his own sample the primary FIT adapter calls the secondary adapter factory. Blocking adapter→adapter is therefore an *inference* from the port concept, not a quotation. Weigh this before choosing a blocking option.
+- **Q6 (hexagonal core):** the phrase "application core" quoted as the source does not appear in Cockburn's article. The question should rest on "Intent" and "Nature of the Solution", which state no explicit source-dependency rule.
+- **Q7 (FF-P03 consumers):** "the sources are silent on consumers" is not accurate. Martin ch. 11 (DIP) also covers code that uses a concrete class. Option A still holds, because FF-P02 owns that edge.
+- **Q10 / Q12 (layered):** Fowler calls layering "mostly opaque", and POSA has a relaxed variant. Strict no-skip is the strict variant only.
+- **Q11:** the 2015 *DDD Reference* places the domain below the application layer, which supports A.
+- **Q14:** Evans 2003 allows a mutable value object as a performance special case. Note it in the thesis.
+- **Q18 (DDD ACL importing upstream internals):** Evans says the anticorruption layer "talks to the other system through its *existing interface*" (Reference 2015, p. 34). That argues *against* the sealed exemption that lets an ACL import upstream internals. Reconsider before confirming A.
+- **Q19:** Evans explicitly allows transient references to inner members. "Stricter than Evans" is confirmed.
+- **Q13:** the NestJS docs constrain DI injection, not file imports, and their TypeORM example injects a repository into a service.
+
