@@ -450,7 +450,7 @@ function scoreStyle(ref: LoadedReference, inputs: ScoreInputs, deferred: Readonl
     strict.tp += sm.tp;
     strict.fn += sm.fnRules.length;
     strict.fp += sm.fpIdx.length;
-    strict.fpDistinct += sm.fpIdx.filter((i) => v.manifest.kind === 'clean' || !cleanKeys.has(rowKey(act[i] as ActualFinding))).length;
+    strict.fpDistinct += sm.fpIdx.filter((i) => v.manifest.kind === 'clean' || !cleanKeys.has(rowKey(act[i] ?? { ruleId: '', file: '' }))).length;
   }
 
   const rules: RuleScore[] = ref.descriptor.scopeRules.map((r) => ({ ruleId: r.ruleId, ruleName: r.ruleName, tier: tierOf(ref, r.ruleId, deferred), counts: rate(per.get(r.ruleId) ?? zero()) }));
@@ -530,7 +530,8 @@ const yn = (b: boolean | null): string => (b === null ? 'n/a' : b ? 'pass' : 'FA
 const cell = (s: string): string => s.replace(/\|/g, '\\|');
 
 export function claimLines(scores: HoldoutScores): string[] {
-  return scores.styles.map((s) => `${s.style}: ${s.claim} (${s.checks.map((c) => `${c.metric.split(' ')[0] ?? ''} ${c.claim}`).join('; ')})`);
+  const short = (m: string): string => m.replace(/\s*\([^)]*\)\s*$/, '');
+  return scores.styles.map((s) => `${s.style}: ${s.claim} (${s.checks.map((c) => `${short(c.metric)}: ${c.claim}`).join('; ')})`);
 }
 
 export function renderHoldoutMarkdown(scores: HoldoutScores, header: string): string {

@@ -104,7 +104,7 @@ export function parseHoldoutArgs(argv: readonly string[]): HoldoutArgs | string 
   if (st !== undefined) {
     const list = st.split(',').filter((s) => s !== '');
     if (list.length === 0 || !list.every(isReferenceStyle)) return `--style takes a comma list of ${REFERENCE_STYLES.join(', ')}`;
-    styles = list as ReferenceStyle[];
+    styles = list;
   }
   const deferred = (m.get('deferred') ?? '').split(',').filter((s) => s !== '');
   if (!deferred.every((d) => /^FF-[A-Z]+[0-9]{2}$/.test(d))) return '--deferred takes a comma list of rule ids';
@@ -429,10 +429,14 @@ export async function holdoutMain(argv: readonly string[], repoRoot: string, io:
   });
   const determinism = args.determinism === undefined ? undefined : determinismDiff(runDir, path.resolve(repoRoot, args.determinism), structure.refs);
 
+  const shown = (p: string): string => {
+    const rel = path.relative(repoRoot, p);
+    return rel === '' ? '.' : rel.startsWith('..') ? p : rel;
+  };
   const header = args.standIn
     ? '# DEVELOPMENT-SET STAND-IN: holdout-run.ts on the development reference set (not a hold-out result, not a validity figure)'
     : '# v1.3 hold-out run: scores (Docs/v1.3/holdout-prespec.md)';
-  const md = renderHoldoutMarkdown(scores, `${header}\n\nTool commit ${freeze.sha}. Hold-out tree sha256 ${structure.tree.sha256}. Run directory ${path.relative(repoRoot, runDir) || '.'}.${determinism !== undefined ? ` Determinism repeat: ${determinism.length === 0 ? 'identical raw rows' : `DIFFERS in ${determinism.join(', ')} (a defect; the first run stands)`}.` : ''}`);
+  const md = renderHoldoutMarkdown(scores, `${header}\n\nTool commit ${freeze.sha}. Hold-out tree sha256 ${structure.tree.sha256}. Run directory ${shown(runDir)}.${determinism !== undefined ? ` Determinism repeat: ${determinism.length === 0 ? 'identical raw rows' : `DIFFERS in ${determinism.join(', ')} (a defect; the first run stands)`}.` : ''}`);
   fs.writeFileSync(path.join(outDir, 'holdout-scores.md'), md);
   fs.writeFileSync(path.join(outDir, 'holdout-scores.json'), JSON.stringify({ standIn: args.standIn, commit: freeze.sha, treeSha256: structure.tree.sha256, ...(determinism !== undefined && { determinism }), scores: scoresJson(scores) }, null, 1) + '\n');
   const uri = io.env.NEO4J_URI ?? '';
@@ -447,6 +451,6 @@ export async function holdoutMain(argv: readonly string[], repoRoot: string, io:
     node: process.version, started, ended: now().toISOString(),
   }, null, 2) + '\n');
   io.out(`${claimLines(scores).join('\n')}\n`);
-  io.out(`wrote ${path.relative(repoRoot, outDir) || '.'}/holdout-scores.{md,json}\n`);
+  io.out(`wrote ${shown(outDir)}/holdout-scores.{md,json}\n`);
   return determinism !== undefined && determinism.length > 0 ? 1 : 0;
 }

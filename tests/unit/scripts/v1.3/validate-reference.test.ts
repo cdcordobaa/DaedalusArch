@@ -150,7 +150,9 @@ describe('validate-reference main', () => {
   };
 
   it('parses its arguments and refuses bad ones', () => {
-    expect(parseArgs(['--check', '--style', 'nestjs,layered'])).toEqual({ mode: 'check', styles: ['nestjs', 'layered'], out: 'results/v1.3-reference' });
+    expect(parseArgs(['--check', '--style', 'nestjs,layered'])).toEqual({ mode: 'check', styles: ['nestjs', 'layered'], out: 'results/v1.3-reference', root: 'tests/fixtures/v1.3-reference' });
+    expect(parseArgs(['--check', '--root', '/x/holdout', '--id-map', 'm.json'])).toMatchObject({ root: '/x/holdout', idMap: 'm.json' });
+    expect(parseArgs(['--root'])).toMatch(/--root needs a path/);
     expect(parseArgs(['--style', 'ddd'])).toMatchObject({ styles: ['ddd'] });
     expect(parseArgs(['--style', 'onion'])).toMatch(/--style/);
     expect(parseArgs(['--check', '--from-raw', 'x'])).toMatch(/choose one/);
