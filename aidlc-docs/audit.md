@@ -1590,3 +1590,11 @@ Plan checkboxes ticked. Auto-approved under standing approval; no blocking or ma
 **Context**: v1.3 — hold-out ready; it runs once after the construct decisions and the tool freeze.
 
 ---
+
+## v1.3 — semantic layer direction; cheap proxies first
+**Timestamp**: 2026-10-15T17:32:00Z
+**User Input**: "we really do need some step where a model or a harness could observe, identify the graph ... drive some connections between the nodes ... a second pass or a second layer"; then "Those ideas, but also ... let's win the ones that are cheap, quick, and easy ... programmatic tricks ... before getting deep into the semantics." (Intent: a neuro-symbolic semantic layer over the APG, preceded by deterministic semantic proxies.)
+**AI Response**: "Design recorded in the conversation: Pass 0 symbolic APG → Pass 0.5 cheap deterministic proxies → Pass 1 grounded LLM semantic layer (separate namespace, provenance, mandatory evidence, symbolic proposes / neural interprets / symbolic verifies) → rules over both layers. Pass 0.5 launched (cloud trig_016GQwzSLmKe8mWe68ZirWQR, branch v1.3-cheap-semantics, new module src/apg-enrich/cheap/): clones, shared literals, name-vs-behaviour, LCOM4, logic density by role, repository bypass, framework types in the core, vocabulary TF-IDF, Louvain communities vs declared structure, doc text. Evaluated on the frozen AP operators against the LLM judge and the symbolic rules (three-way table)."
+**Context**: v1.3 exploratory; the semantic layer (Pass 1) design is pending the author's answers (fixed prompts vs agent; thesis vs next step; first semantic question).
+
+---
