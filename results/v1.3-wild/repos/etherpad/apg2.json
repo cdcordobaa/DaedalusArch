@@ -1,0 +1,1455 @@
+{
+ "id": "etherpad",
+ "stats": {
+  "signatureUses": 2,
+  "components": 4,
+  "componentSource": "declared",
+  "dependsOn": 0,
+  "deepImports": 0,
+  "exportsSymbol": 0,
+  "channels": 1,
+  "async": {
+   "publishes": 2,
+   "subscribes": 0,
+   "dynamicNames": 2
+  },
+  "io": {
+   "byCategory": {
+    "db": 0,
+    "http-out": 5,
+    "fs": 79,
+    "env": 21,
+    "clock": 62,
+    "random": 8,
+    "process": 59
+   }
+  },
+  "timingsMs": {
+   "typeFlow": 19,
+   "components": 4.7,
+   "async": 714.7,
+   "io": 414.2
+  }
+ },
+ "params": {
+  "domainLayer": "domain",
+  "applicationLayers": [
+   "application"
+  ],
+  "infraLayer": "infrastructure",
+  "controllerLayer": "infrastructure",
+  "threshold": 0.7,
+  "allowedAsync": [],
+  "compositionRootLayers": [],
+  "compositionRootPatterns": [
+   "^(?:.*/)?(?:main|bootstrap|composition-root|compositionRoot|container|di)\\.(?:ts|tsx|mts|cts)$",
+   "^(?:.*/)?[^/]+\\.(?:module|container)\\.(?:ts|tsx|mts|cts)$"
+  ],
+  "testPatterns": [
+   "^(?:.*/)?[^/]*\\.(?:spec|test)\\.(?:ts|tsx|mts|cts)$",
+   "^(?:.*/)?(?:__tests__|__mocks__|test|tests)/.*$",
+   "^(?:.*/)?[Tt]est[A-Z._-][^/]*$"
+  ],
+  "aclPatterns": [],
+  "minTypes": 4
+ },
+ "components": [
+  {
+   "name": "domain",
+   "kind": "layer"
+  },
+  {
+   "name": "application",
+   "kind": "layer"
+  },
+  {
+   "name": "infrastructure",
+   "kind": "layer"
+  },
+  {
+   "name": "node",
+   "kind": "folder"
+  }
+ ],
+ "parseCoverage": {
+  "total": 133,
+  "parsed": 133
+ },
+ "importResolution": {
+  "resolvedInternal": 227,
+  "external": 151,
+  "externalOutOfRootAlias": 0,
+  "unresolved": 0,
+  "droppedNoFileNode": 53,
+  "unsupportedDynamic": 0
+ },
+ "counts": {
+  "boundary-type-leak": 0,
+  "component-adp-cycle": 0,
+  "component-sdp-violation": 0,
+  "component-main-sequence-distance": 0,
+  "deep-import-declared-api": 0,
+  "deep-import-inferred-api": 0,
+  "undeclared-async-coupling": 0,
+  "io-outside-adapters": 21,
+  "nondeterminism-in-core": 49
+ },
+ "rows": {
+  "boundary-type-leak": [],
+  "component-adp-cycle": [],
+  "component-sdp-violation": [],
+  "component-main-sequence-distance": [],
+  "deep-import-declared-api": [],
+  "deep-import-inferred-api": [],
+  "undeclared-async-coupling": [],
+  "io-outside-adapters": [
+   {
+    "filePath": "src/node/eejs/index.ts",
+    "member": "index.ts",
+    "layer": "domain",
+    "category": "fs",
+    "apis": [
+     "fs:fs.readFileSync(ejspath).toString",
+     "fs:fs.readFileSync"
+    ],
+    "line": 103,
+    "lines": [
+     103,
+     103
+    ],
+    "_file": "src/node/eejs/index.ts",
+    "_line": 103,
+    "_importGraphSees": true
+   },
+   {
+    "filePath": "src/node/handler/APIHandler.ts",
+    "member": "APIHandler.ts",
+    "layer": "domain",
+    "category": "http-out",
+    "apis": [
+     "http2:req.headers.authorization.replace"
+    ],
+    "line": 198,
+    "lines": [
+     198
+    ],
+    "_file": "src/node/handler/APIHandler.ts",
+    "_line": 198,
+    "_importGraphSees": true
+   },
+   {
+    "filePath": "src/node/handler/APIKeyHandler.ts",
+    "member": "APIKeyHandler.ts",
+    "layer": "domain",
+    "category": "fs",
+    "apis": [
+     "fs:fs.readFileSync",
+     "fs:fs.writeFileSync"
+    ],
+    "line": 27,
+    "lines": [
+     27,
+     33
+    ],
+    "_file": "src/node/handler/APIKeyHandler.ts",
+    "_line": 27,
+    "_importGraphSees": true
+   },
+   {
+    "filePath": "src/node/handler/ImportHandler.ts",
+    "member": "ImportHandler.ts",
+    "layer": "domain",
+    "category": "fs",
+    "apis": [
+     "fs:fs.unlink",
+     "fs:fs.rename",
+     "fs:fs.readFile"
+    ],
+    "line": 54,
+    "lines": [
+     54,
+     135,
+     162,
+     219,
+     234,
+     247,
+     265
+    ],
+    "_file": "src/node/handler/ImportHandler.ts",
+    "_line": 54,
+    "_importGraphSees": true
+   },
+   {
+    "filePath": "src/node/hooks/express.ts",
+    "member": "express.ts",
+    "layer": "domain",
+    "category": "fs",
+    "apis": [
+     "fs:fs.readFileSync"
+    ],
+    "line": 110,
+    "lines": [
+     110,
+     111,
+     118
+    ],
+    "_file": "src/node/hooks/express.ts",
+    "_line": 110,
+    "_importGraphSees": true
+   },
+   {
+    "filePath": "src/node/hooks/express/admin.ts",
+    "member": "admin.ts",
+    "layer": "domain",
+    "category": "fs",
+    "apis": [
+     "fs:fs.existsSync",
+     "fs:fs.exists",
+     "fs:fs.statSync(pathname).isDirectory",
+     "fs:fs.statSync",
+     "fs:fs.readFile"
+    ],
+    "line": 21,
+    "lines": [
+     21,
+     52,
+     61,
+     61,
+     67
+    ],
+    "_file": "src/node/hooks/express/admin.ts",
+    "_line": 21,
+    "_importGraphSees": true
+   },
+   {
+    "filePath": "src/node/hooks/express/specialpages.ts",
+    "member": "specialpages.ts",
+    "layer": "domain",
+    "category": "fs",
+    "apis": [
+     "fs:fsp.access",
+     "fs:fs.existsSync",
+     "fs:fs.mkdirSync"
+    ],
+    "line": 112,
+    "lines": [
+     112,
+     356,
+     357
+    ],
+    "_file": "src/node/hooks/express/specialpages.ts",
+    "_line": 112,
+    "_importGraphSees": true
+   },
+   {
+    "filePath": "src/node/hooks/express/updateActions.ts",
+    "member": "updateActions.ts",
+    "layer": "domain",
+    "category": "fs",
+    "apis": [
+     "fs:(fsasany).statfs",
+     "fs:fs.mkdir",
+     "fs:fs.copyFile"
+    ],
+    "line": 80,
+    "lines": [
+     80,
+     248,
+     249
+    ],
+    "_file": "src/node/hooks/express/updateActions.ts",
+    "_line": 80,
+    "_importGraphSees": true
+   },
+   {
+    "filePath": "src/node/hooks/i18n.ts",
+    "member": "i18n.ts",
+    "layer": "domain",
+    "category": "fs",
+    "apis": [
+     "fs:fs.lstatSync",
+     "fs:stat.isDirectory",
+     "fs:stat.isSymbolicLink",
+     "fs:fs.readdirSync(dir).forEach",
+     "fs:fs.readdirSync",
+     "fs:fs.readFileSync"
+    ],
+    "line": 24,
+    "lines": [
+     24,
+     25,
+     25,
+     27,
+     27,
+     29,
+     30,
+     30,
+     60
+    ],
+    "_file": "src/node/hooks/i18n.ts",
+    "_line": 24,
+    "_importGraphSees": true
+   },
+   {
+    "filePath": "src/node/server.ts",
+    "member": "server.ts",
+    "layer": "domain",
+    "category": "http-out",
+    "apis": [
+     "undici:setGlobalDispatcher",
+     "undici:ProxyAgent"
+    ],
+    "line": 44,
+    "lines": [
+     44,
+     44
+    ],
+    "_file": "src/node/server.ts",
+    "_line": 44,
+    "_importGraphSees": true
+   },
+   {
+    "filePath": "src/node/updater/InstallMethodDetector.ts",
+    "member": "InstallMethodDetector.ts",
+    "layer": "domain",
+    "category": "fs",
+    "apis": [
+     "fs:fs.access"
+    ],
+    "line": 16,
+    "lines": [
+     16,
+     20
+    ],
+    "_file": "src/node/updater/InstallMethodDetector.ts",
+    "_line": 16,
+    "_importGraphSees": true
+   },
+   {
+    "filePath": "src/node/updater/VersionChecker.ts",
+    "member": "realFetcher",
+    "layer": "domain",
+    "category": "http-out",
+    "apis": [
+     "fetch()"
+    ],
+    "line": 84,
+    "lines": [
+     84
+    ],
+    "_file": "src/node/updater/VersionChecker.ts",
+    "_line": 84,
+    "_importGraphSees": false
+   },
+   {
+    "filePath": "src/node/updater/index.ts",
+    "member": "index.ts",
+    "layer": "domain",
+    "category": "fs",
+    "apis": [
+     "fs:fs.mkdir",
+     "fs:fs.copyFile",
+     "fs:(fsasany).statfs"
+    ],
+    "line": 247,
+    "lines": [
+     247,
+     248,
+     294,
+     362,
+     363
+    ],
+    "_file": "src/node/updater/index.ts",
+    "_line": 247,
+    "_importGraphSees": true
+   },
+   {
+    "filePath": "src/node/updater/lock.ts",
+    "member": "lock.ts",
+    "layer": "domain",
+    "category": "fs",
+    "apis": [
+     "fs:fs.readFile",
+     "fs:fs.mkdir",
+     "fs:fs.open",
+     "fs:fh.writeFile",
+     "fs:fh.close",
+     "fs:fs.unlink"
+    ],
+    "line": 23,
+    "lines": [
+     23,
+     42,
+     47,
+     48,
+     48,
+     64,
+     70
+    ],
+    "_file": "src/node/updater/lock.ts",
+    "_line": 23,
+    "_importGraphSees": true
+   },
+   {
+    "filePath": "src/node/updater/state.ts",
+    "member": "state.ts",
+    "layer": "domain",
+    "category": "fs",
+    "apis": [
+     "fs:fs.readFile",
+     "fs:fs.mkdir",
+     "fs:fs.writeFile",
+     "fs:fs.rename"
+    ],
+    "line": 118,
+    "lines": [
+     118,
+     152,
+     154,
+     155
+    ],
+    "_file": "src/node/updater/state.ts",
+    "_line": 118,
+    "_importGraphSees": true
+   },
+   {
+    "filePath": "src/node/updater/updateLog.ts",
+    "member": "updateLog.ts",
+    "layer": "domain",
+    "category": "fs",
+    "apis": [
+     "fs:fs.stat",
+     "fs:fs.rename",
+     "fs:fs.mkdir",
+     "fs:fs.appendFile",
+     "fs:fs.readFile"
+    ],
+    "line": 19,
+    "lines": [
+     19,
+     29,
+     33,
+     52,
+     54,
+     67,
+     69,
+     76
+    ],
+    "_file": "src/node/updater/updateLog.ts",
+    "_line": 19,
+    "_importGraphSees": true
+   },
+   {
+    "filePath": "src/node/utils/AbsolutePaths.ts",
+    "member": "AbsolutePaths.ts",
+    "layer": "domain",
+    "category": "fs",
+    "apis": [
+     "fs:fs.existsSync"
+    ],
+    "line": 46,
+    "lines": [
+     46
+    ],
+    "_file": "src/node/utils/AbsolutePaths.ts",
+    "_line": 46,
+    "_importGraphSees": true
+   },
+   {
+    "filePath": "src/node/utils/ExportPdfNative.ts",
+    "member": "ExportPdfNative.ts",
+    "layer": "domain",
+    "category": "fs",
+    "apis": [
+     "fs:fs.statSync",
+     "fs:fs.readFileSync"
+    ],
+    "line": 240,
+    "lines": [
+     240,
+     251
+    ],
+    "_file": "src/node/utils/ExportPdfNative.ts",
+    "_line": 240,
+    "_importGraphSees": true
+   },
+   {
+    "filePath": "src/node/utils/Minify.ts",
+    "member": "Minify.ts",
+    "layer": "domain",
+    "category": "fs",
+    "apis": [
+     "fs:fs.stat",
+     "fs:fs.readFile"
+    ],
+    "line": 253,
+    "lines": [
+     253,
+     320
+    ],
+    "_file": "src/node/utils/Minify.ts",
+    "_line": 253,
+    "_importGraphSees": true
+   },
+   {
+    "filePath": "src/node/utils/Settings.ts",
+    "member": "Settings.ts",
+    "layer": "domain",
+    "category": "fs",
+    "apis": [
+     "fs:fs.readFileSync(settingsFilename).toString",
+     "fs:fs.readFileSync",
+     "fs:fs.lstatSync(`${rootPath}/.git`).isFile",
+     "fs:fs.lstatSync",
+     "fs:ref.startsWith",
+     "fs:ref.substring",
+     "fs:ref.indexOf",
+     "fs:fs.existsSync",
+     "fs:fs.exists",
+     "fs:fs.writeFileSync"
+    ],
+    "line": 110,
+    "lines": [
+     110,
+     110,
+     149,
+     149,
+     150,
+     155,
+     156,
+     157,
+     157,
+     158,
+     1337,
+     1347,
+     1364,
+     1373
+    ],
+    "_file": "src/node/utils/Settings.ts",
+    "_line": 110,
+    "_importGraphSees": true
+   },
+   {
+    "filePath": "src/node/utils/UpdateCheck.ts",
+    "member": "UpdateCheck.ts",
+    "layer": "domain",
+    "category": "http-out",
+    "apis": [
+     "fetch()"
+    ],
+    "line": 23,
+    "lines": [
+     23
+    ],
+    "_file": "src/node/utils/UpdateCheck.ts",
+    "_line": 23,
+    "_importGraphSees": false
+   }
+  ],
+  "nondeterminism-in-core": [
+   {
+    "filePath": "src/node/db/API.ts",
+    "member": "API.ts",
+    "layer": "domain",
+    "category": "clock",
+    "apis": [
+     "Date.now()"
+    ],
+    "line": 414,
+    "lines": [
+     414
+    ],
+    "_file": "src/node/db/API.ts",
+    "_line": 414,
+    "_importGraphSees": false
+   },
+   {
+    "filePath": "src/node/db/AuthorManager.ts",
+    "member": "AuthorManager.ts",
+    "layer": "domain",
+    "category": "clock",
+    "apis": [
+     "Date.now()",
+     "new Date()"
+    ],
+    "line": 135,
+    "lines": [
+     135,
+     203,
+     233,
+     249,
+     387,
+     423,
+     427
+    ],
+    "_file": "src/node/db/AuthorManager.ts",
+    "_line": 135,
+    "_importGraphSees": false
+   },
+   {
+    "filePath": "src/node/db/AuthorManager.ts",
+    "member": "AuthorManager.ts",
+    "layer": "domain",
+    "category": "random",
+    "apis": [
+     "Math.random()"
+    ],
+    "line": 205,
+    "lines": [
+     205
+    ],
+    "_file": "src/node/db/AuthorManager.ts",
+    "_line": 205,
+    "_importGraphSees": false
+   },
+   {
+    "filePath": "src/node/db/Pad.ts",
+    "member": "Pad.addSavedRevision",
+    "layer": "domain",
+    "category": "clock",
+    "apis": [
+     "Date.now()"
+    ],
+    "line": 1012,
+    "lines": [
+     1012
+    ],
+    "_file": "src/node/db/Pad.ts",
+    "_line": 1012,
+    "_importGraphSees": false
+   },
+   {
+    "filePath": "src/node/db/Pad.ts",
+    "member": "Pad.appendRevision",
+    "layer": "domain",
+    "category": "clock",
+    "apis": [
+     "Date.now()"
+    ],
+    "line": 352,
+    "lines": [
+     352
+    ],
+    "_file": "src/node/db/Pad.ts",
+    "_line": 352,
+    "_importGraphSees": false
+   },
+   {
+    "filePath": "src/node/db/PadDeletionManager.ts",
+    "member": "PadDeletionManager.ts",
+    "layer": "domain",
+    "category": "clock",
+    "apis": [
+     "Date.now()"
+    ],
+    "line": 37,
+    "lines": [
+     37
+    ],
+    "_file": "src/node/db/PadDeletionManager.ts",
+    "_line": 37,
+    "_importGraphSees": false
+   },
+   {
+    "filePath": "src/node/db/SessionManager.ts",
+    "member": "SessionManager.ts",
+    "layer": "domain",
+    "category": "clock",
+    "apis": [
+     "Date.now()"
+    ],
+    "line": 67,
+    "lines": [
+     67,
+     129
+    ],
+    "_file": "src/node/db/SessionManager.ts",
+    "_line": 67,
+    "_importGraphSees": false
+   },
+   {
+    "filePath": "src/node/db/SessionStore.ts",
+    "member": "SessionStore._cleanup",
+    "layer": "domain",
+    "category": "clock",
+    "apis": [
+     "Date.now()"
+    ],
+    "line": 95,
+    "lines": [
+     95,
+     96,
+     141
+    ],
+    "_file": "src/node/db/SessionStore.ts",
+    "_line": 95,
+    "_importGraphSees": false
+   },
+   {
+    "filePath": "src/node/db/SessionStore.ts",
+    "member": "SessionStore._updateExpirations",
+    "layer": "domain",
+    "category": "clock",
+    "apis": [
+     "Date.now()"
+    ],
+    "line": 167,
+    "lines": [
+     167,
+     178,
+     180
+    ],
+    "_file": "src/node/db/SessionStore.ts",
+    "_line": 167,
+    "_importGraphSees": false
+   },
+   {
+    "filePath": "src/node/handler/ExportHandler.ts",
+    "member": "ExportHandler.ts",
+    "layer": "domain",
+    "category": "random",
+    "apis": [
+     "crypto:crypto.randomBytes"
+    ],
+    "line": 164,
+    "lines": [
+     164
+    ],
+    "_file": "src/node/handler/ExportHandler.ts",
+    "_line": 164,
+    "_importGraphSees": true
+   },
+   {
+    "filePath": "src/node/handler/ImportHandler.ts",
+    "member": "ImportHandler.ts",
+    "layer": "domain",
+    "category": "random",
+    "apis": [
+     "crypto:crypto.randomBytes"
+    ],
+    "line": 90,
+    "lines": [
+     90
+    ],
+    "_file": "src/node/handler/ImportHandler.ts",
+    "_line": 90,
+    "_importGraphSees": true
+   },
+   {
+    "filePath": "src/node/handler/PadMessageHandler.ts",
+    "member": "PadMessageHandler.ts",
+    "layer": "domain",
+    "category": "clock",
+    "apis": [
+     "Date.now()"
+    ],
+    "line": 343,
+    "lines": [
+     343,
+     371,
+     694,
+     715,
+     1432,
+     1491
+    ],
+    "_file": "src/node/handler/PadMessageHandler.ts",
+    "_line": 343,
+    "_importGraphSees": false
+   },
+   {
+    "filePath": "src/node/handler/PadMessageHandler.ts",
+    "member": "PadMessageHandler.ts",
+    "layer": "domain",
+    "category": "env",
+    "apis": [
+     "process.env"
+    ],
+    "line": 391,
+    "lines": [
+     391,
+     1458
+    ],
+    "_file": "src/node/handler/PadMessageHandler.ts",
+    "_line": 391,
+    "_importGraphSees": false
+   },
+   {
+    "filePath": "src/node/handler/SocketIORouter.ts",
+    "member": "SocketIORouter.ts",
+    "layer": "domain",
+    "category": "clock",
+    "apis": [
+     "Date.now()"
+    ],
+    "line": 100,
+    "lines": [
+     100
+    ],
+    "_file": "src/node/handler/SocketIORouter.ts",
+    "_line": 100,
+    "_importGraphSees": false
+   },
+   {
+    "filePath": "src/node/hooks/express.ts",
+    "member": "express.ts",
+    "layer": "domain",
+    "category": "clock",
+    "apis": [
+     "Date.now()"
+    ],
+    "line": 48,
+    "lines": [
+     48,
+     50,
+     262
+    ],
+    "_file": "src/node/hooks/express.ts",
+    "_line": 48,
+    "_importGraphSees": false
+   },
+   {
+    "filePath": "src/node/hooks/express.ts",
+    "member": "express.ts",
+    "layer": "domain",
+    "category": "env",
+    "apis": [
+     "process.env"
+    ],
+    "line": 90,
+    "lines": [
+     90
+    ],
+    "_file": "src/node/hooks/express.ts",
+    "_line": 90,
+    "_importGraphSees": false
+   },
+   {
+    "filePath": "src/node/hooks/express/adminsettings.ts",
+    "member": "adminsettings.ts",
+    "layer": "domain",
+    "category": "clock",
+    "apis": [
+     "Date.now()"
+    ],
+    "line": 127,
+    "lines": [
+     127,
+     233
+    ],
+    "_file": "src/node/hooks/express/adminsettings.ts",
+    "_line": 127,
+    "_importGraphSees": false
+   },
+   {
+    "filePath": "src/node/hooks/express/socketio.ts",
+    "member": "socketio.ts",
+    "layer": "domain",
+    "category": "clock",
+    "apis": [
+     "Date.now()"
+    ],
+    "line": 45,
+    "lines": [
+     45,
+     47
+    ],
+    "_file": "src/node/hooks/express/socketio.ts",
+    "_line": 45,
+    "_importGraphSees": false
+   },
+   {
+    "filePath": "src/node/hooks/express/specialpages.ts",
+    "member": "specialpages.ts",
+    "layer": "domain",
+    "category": "env",
+    "apis": [
+     "process.env"
+    ],
+    "line": 139,
+    "lines": [
+     139,
+     140,
+     305,
+     306,
+     363
+    ],
+    "_file": "src/node/hooks/express/specialpages.ts",
+    "_line": 139,
+    "_importGraphSees": false
+   },
+   {
+    "filePath": "src/node/hooks/express/tokenTransfer.ts",
+    "member": "tokenTransfer.ts",
+    "layer": "domain",
+    "category": "clock",
+    "apis": [
+     "Date.now()"
+    ],
+    "line": 89,
+    "lines": [
+     89,
+     118
+    ],
+    "_file": "src/node/hooks/express/tokenTransfer.ts",
+    "_line": 89,
+    "_importGraphSees": false
+   },
+   {
+    "filePath": "src/node/hooks/express/tokenTransfer.ts",
+    "member": "tokenTransfer.ts",
+    "layer": "domain",
+    "category": "random",
+    "apis": [
+     "crypto:crypto.randomUUID"
+    ],
+    "line": 85,
+    "lines": [
+     85
+    ],
+    "_file": "src/node/hooks/express/tokenTransfer.ts",
+    "_line": 85,
+    "_importGraphSees": true
+   },
+   {
+    "filePath": "src/node/hooks/express/updateActions.ts",
+    "member": "updateActions.ts",
+    "layer": "domain",
+    "category": "clock",
+    "apis": [
+     "Date.now()",
+     "new Date()"
+    ],
+    "line": 59,
+    "lines": [
+     59,
+     254,
+     266,
+     318,
+     336,
+     364
+    ],
+    "_file": "src/node/hooks/express/updateActions.ts",
+    "_line": 59,
+    "_importGraphSees": false
+   },
+   {
+    "filePath": "src/node/hooks/express/updateActions.ts",
+    "member": "updateActions.ts",
+    "layer": "domain",
+    "category": "env",
+    "apis": [
+     "process.env"
+    ],
+    "line": 93,
+    "lines": [
+     93
+    ],
+    "_file": "src/node/hooks/express/updateActions.ts",
+    "_line": 93,
+    "_importGraphSees": false
+   },
+   {
+    "filePath": "src/node/hooks/express/updateActions.ts",
+    "member": "updateActions.ts",
+    "layer": "domain",
+    "category": "process",
+    "apis": [
+     "child_process:spawn",
+     "child_process:c.stdout.on",
+     "child_process:c.on",
+     "process.exit"
+    ],
+    "line": 72,
+    "lines": [
+     72,
+     74,
+     75,
+     76,
+     100,
+     103,
+     104,
+     105,
+     114,
+     117,
+     118,
+     125,
+     238,
+     241,
+     242,
+     245,
+     255
+    ],
+    "_file": "src/node/hooks/express/updateActions.ts",
+    "_line": 72,
+    "_importGraphSees": true
+   },
+   {
+    "filePath": "src/node/hooks/express/updateStatus.ts",
+    "member": "updateStatus.ts",
+    "layer": "domain",
+    "category": "clock",
+    "apis": [
+     "Date.now()",
+     "new Date()"
+    ],
+    "line": 140,
+    "lines": [
+     140,
+     190
+    ],
+    "_file": "src/node/hooks/express/updateStatus.ts",
+    "_line": 140,
+    "_importGraphSees": false
+   },
+   {
+    "filePath": "src/node/security/OIDCAdapter.ts",
+    "member": "OIDCAdapter.ts",
+    "layer": "domain",
+    "category": "clock",
+    "apis": [
+     "Date.now()"
+    ],
+    "line": 14,
+    "lines": [
+     14
+    ],
+    "_file": "src/node/security/OIDCAdapter.ts",
+    "_line": 14,
+    "_importGraphSees": false
+   },
+   {
+    "filePath": "src/node/security/OidcProviderSecurity.ts",
+    "member": "OidcProviderSecurity.ts",
+    "layer": "domain",
+    "category": "random",
+    "apis": [
+     "crypto:crypto.randomBytes"
+    ],
+    "line": 66,
+    "lines": [
+     66
+    ],
+    "_file": "src/node/security/OidcProviderSecurity.ts",
+    "_line": 66,
+    "_importGraphSees": true
+   },
+   {
+    "filePath": "src/node/server.ts",
+    "member": "server.ts",
+    "layer": "domain",
+    "category": "env",
+    "apis": [
+     "process.env"
+    ],
+    "line": 41,
+    "lines": [
+     41,
+     41
+    ],
+    "_file": "src/node/server.ts",
+    "_line": 41,
+    "_importGraphSees": false
+   },
+   {
+    "filePath": "src/node/server.ts",
+    "member": "server.ts",
+    "layer": "domain",
+    "category": "process",
+    "apis": [
+     "process.off",
+     "process.memoryUsage",
+     "process.on",
+     "process.exit",
+     "process.listeners",
+     "process.exitCode"
+    ],
+    "line": 85,
+    "lines": [
+     85,
+     117,
+     119,
+     137,
+     145,
+     151,
+     162,
+     165,
+     167,
+     270,
+     273,
+     318
+    ],
+    "_file": "src/node/server.ts",
+    "_line": 85,
+    "_importGraphSees": false
+   },
+   {
+    "filePath": "src/node/updater/RollbackHandler.ts",
+    "member": "RollbackHandler.ts",
+    "layer": "domain",
+    "category": "clock",
+    "apis": [
+     "new Date()"
+    ],
+    "line": 41,
+    "lines": [
+     41,
+     46,
+     52
+    ],
+    "_file": "src/node/updater/RollbackHandler.ts",
+    "_line": 41,
+    "_importGraphSees": false
+   },
+   {
+    "filePath": "src/node/updater/UpdateExecutor.ts",
+    "member": "UpdateExecutor.ts",
+    "layer": "domain",
+    "category": "clock",
+    "apis": [
+     "new Date()"
+    ],
+    "line": 69,
+    "lines": [
+     69,
+     76,
+     84
+    ],
+    "_file": "src/node/updater/UpdateExecutor.ts",
+    "_line": 69,
+    "_importGraphSees": false
+   },
+   {
+    "filePath": "src/node/updater/index.ts",
+    "member": "index.ts",
+    "layer": "domain",
+    "category": "clock",
+    "apis": [
+     "new Date()"
+    ],
+    "line": 131,
+    "lines": [
+     131,
+     252,
+     368,
+     373,
+     464,
+     554
+    ],
+    "_file": "src/node/updater/index.ts",
+    "_line": 131,
+    "_importGraphSees": false
+   },
+   {
+    "filePath": "src/node/updater/index.ts",
+    "member": "index.ts",
+    "layer": "domain",
+    "category": "env",
+    "apis": [
+     "process.env"
+    ],
+    "line": 306,
+    "lines": [
+     306
+    ],
+    "_file": "src/node/updater/index.ts",
+    "_line": 306,
+    "_importGraphSees": false
+   },
+   {
+    "filePath": "src/node/updater/index.ts",
+    "member": "index.ts",
+    "layer": "domain",
+    "category": "process",
+    "apis": [
+     "process.exit",
+     "child_process:spawn",
+     "child_process:c.stdout.on",
+     "child_process:c.on"
+    ],
+    "line": 251,
+    "lines": [
+     251,
+     286,
+     288,
+     289,
+     290,
+     312,
+     315,
+     316,
+     317,
+     332,
+     335,
+     336,
+     343,
+     353,
+     355,
+     356,
+     359,
+     369
+    ],
+    "_file": "src/node/updater/index.ts",
+    "_line": 251,
+    "_importGraphSees": true
+   },
+   {
+    "filePath": "src/node/updater/lock.ts",
+    "member": "lock.ts",
+    "layer": "domain",
+    "category": "clock",
+    "apis": [
+     "new Date()"
+    ],
+    "line": 43,
+    "lines": [
+     43
+    ],
+    "_file": "src/node/updater/lock.ts",
+    "_line": 43,
+    "_importGraphSees": false
+   },
+   {
+    "filePath": "src/node/updater/lock.ts",
+    "member": "lock.ts",
+    "layer": "domain",
+    "category": "process",
+    "apis": [
+     "process.kill",
+     "process.pid"
+    ],
+    "line": 11,
+    "lines": [
+     11,
+     43
+    ],
+    "_file": "src/node/updater/lock.ts",
+    "_line": 11,
+    "_importGraphSees": false
+   },
+   {
+    "filePath": "src/node/updater/trustedKeys.ts",
+    "member": "trustedKeys.ts",
+    "layer": "domain",
+    "category": "env",
+    "apis": [
+     "process.env"
+    ],
+    "line": 52,
+    "lines": [
+     52
+    ],
+    "_file": "src/node/updater/trustedKeys.ts",
+    "_line": 52,
+    "_importGraphSees": false
+   },
+   {
+    "filePath": "src/node/utils/AbsolutePaths.ts",
+    "member": "AbsolutePaths.ts",
+    "layer": "domain",
+    "category": "process",
+    "apis": [
+     "process.platform",
+     "process.exit"
+    ],
+    "line": 113,
+    "lines": [
+     113,
+     126,
+     127,
+     139
+    ],
+    "_file": "src/node/utils/AbsolutePaths.ts",
+    "_line": 113,
+    "_importGraphSees": false
+   },
+   {
+    "filePath": "src/node/utils/Cleanup.ts",
+    "member": "Cleanup.ts",
+    "layer": "domain",
+    "category": "clock",
+    "apis": [
+     "Date.now()"
+    ],
+    "line": 206,
+    "lines": [
+     206
+    ],
+    "_file": "src/node/utils/Cleanup.ts",
+    "_line": 206,
+    "_importGraphSees": false
+   },
+   {
+    "filePath": "src/node/utils/Cleanup.ts",
+    "member": "Cleanup.ts",
+    "layer": "domain",
+    "category": "random",
+    "apis": [
+     "Math.random()"
+    ],
+    "line": 17,
+    "lines": [
+     17
+    ],
+    "_file": "src/node/utils/Cleanup.ts",
+    "_line": 17,
+    "_importGraphSees": false
+   },
+   {
+    "filePath": "src/node/utils/ImportEtherpad.ts",
+    "member": "ImportEtherpad.ts",
+    "layer": "domain",
+    "category": "random",
+    "apis": [
+     "Math.random()"
+    ],
+    "line": 274,
+    "lines": [
+     274
+    ],
+    "_file": "src/node/utils/ImportEtherpad.ts",
+    "_line": 274,
+    "_importGraphSees": false
+   },
+   {
+    "filePath": "src/node/utils/Minify.ts",
+    "member": "Minify.ts",
+    "layer": "domain",
+    "category": "clock",
+    "apis": [
+     "new Date()",
+     "Date.now()"
+    ],
+    "line": 208,
+    "lines": [
+     208,
+     210
+    ],
+    "_file": "src/node/utils/Minify.ts",
+    "_line": 208,
+    "_importGraphSees": false
+   },
+   {
+    "filePath": "src/node/utils/NodeVersion.ts",
+    "member": "NodeVersion.ts",
+    "layer": "domain",
+    "category": "process",
+    "apis": [
+     "process.version",
+     "process.exit"
+    ],
+    "line": 30,
+    "lines": [
+     30,
+     37,
+     53
+    ],
+    "_file": "src/node/utils/NodeVersion.ts",
+    "_line": 30,
+    "_importGraphSees": false
+   },
+   {
+    "filePath": "src/node/utils/Settings.ts",
+    "member": "Settings.ts",
+    "layer": "domain",
+    "category": "env",
+    "apis": [
+     "process.env"
+    ],
+    "line": 499,
+    "lines": [
+     499,
+     1141,
+     1191,
+     1406,
+     1423,
+     1472
+    ],
+    "_file": "src/node/utils/Settings.ts",
+    "_line": 499,
+    "_importGraphSees": false
+   },
+   {
+    "filePath": "src/node/utils/Settings.ts",
+    "member": "Settings.ts",
+    "layer": "domain",
+    "category": "process",
+    "apis": [
+     "process.exit"
+    ],
+    "line": 139,
+    "lines": [
+     139
+    ],
+    "_file": "src/node/utils/Settings.ts",
+    "_line": 139,
+    "_importGraphSees": false
+   },
+   {
+    "filePath": "src/node/utils/UpdateCheck.ts",
+    "member": "UpdateCheck.ts",
+    "layer": "domain",
+    "category": "clock",
+    "apis": [
+     "Date.now()"
+    ],
+    "line": 19,
+    "lines": [
+     19,
+     32
+    ],
+    "_file": "src/node/utils/UpdateCheck.ts",
+    "_line": 19,
+    "_importGraphSees": false
+   },
+   {
+    "filePath": "src/node/utils/randomstring.ts",
+    "member": "randomstring.ts",
+    "layer": "domain",
+    "category": "random",
+    "apis": [
+     "crypto:cryptoMod.randomBytes"
+    ],
+    "line": 7,
+    "lines": [
+     7
+    ],
+    "_file": "src/node/utils/randomstring.ts",
+    "_line": 7,
+    "_importGraphSees": true
+   },
+   {
+    "filePath": "src/node/utils/run_cmd.ts",
+    "member": "run_cmd.ts",
+    "layer": "domain",
+    "category": "env",
+    "apis": [
+     "process.env"
+    ],
+    "line": 107,
+    "lines": [
+     107,
+     110
+    ],
+    "_file": "src/node/utils/run_cmd.ts",
+    "_line": 107,
+    "_importGraphSees": false
+   },
+   {
+    "filePath": "src/node/utils/run_cmd.ts",
+    "member": "run_cmd.ts",
+    "layer": "domain",
+    "category": "process",
+    "apis": [
+     "child_process:proc.on"
+    ],
+    "line": 154,
+    "lines": [
+     154,
+     161
+    ],
+    "_file": "src/node/utils/run_cmd.ts",
+    "_line": 154,
+    "_importGraphSees": true
+   }
+  ]
+ }
+}
