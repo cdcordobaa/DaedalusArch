@@ -113,17 +113,25 @@ describe('validate-reference main', () => {
 
   it('parses its arguments and refuses bad ones', () => {
     expect(parseArgs(['--check', '--style', 'nestjs,layered'])).toEqual({ mode: 'check', styles: ['nestjs', 'layered'], out: 'results/v1.3-reference' });
-    expect(parseArgs(['--style', 'ddd'])).toMatch(/--style/);
+    expect(parseArgs(['--style', 'ddd'])).toMatchObject({ styles: ['ddd'] });
+    expect(parseArgs(['--style', 'onion'])).toMatch(/--style/);
     expect(parseArgs(['--check', '--from-raw', 'x'])).toMatch(/choose one/);
     expect(parseArgs(['--bogus'])).toMatch(/unexpected argument/);
   });
 
-  it('--check validates every manifest and applies every patch', async () => {
+  it('--check validates every manifest, applies every patch and overlay, and every variant compiles (all five styles)', async () => {
     const { out, err, deps } = io();
     expect(await main(['--check'], ROOT, deps)).toBe(0);
     expect(err).toEqual([]);
-    expect(out.length).toBe(loadAllReferences(ROOT).reduce((n, r) => n + r.variants.length, 0));
-  });
+    const refs = loadAllReferences(ROOT);
+    expect(refs.map((r) => r.style)).toEqual(['clean-architecture', 'layered', 'nestjs', 'hexagonal', 'ddd']);
+    // One line per variant, then one summary line per style.
+    expect(out.length).toBe(refs.reduce((n, r) => n + r.variants.length + 1, 0));
+    expect(out.filter((l) => / variants \((patch|overlay) format\)/.test(l)).every((l) => l.includes(': ok,'))).toBe(true);
+    expect(out.filter((l) => !/ variants \(/.test(l)).every((l) => l.endsWith(', compiles\n'))).toBe(true);
+    expect(out.join('')).toContain('ddd: ok, 15 variants (overlay format); blocking (v1.3 tiers): FF-DS01, FF-DS02, FF-DT01, FF-DT02, FF-DT03, FF-DT04, FF-S01');
+    expect(out.join('')).toContain('hexagonal: ok, 15 variants (patch format); blocking (v1.3 tiers): FF-S01, FF-S02, FF-S04, FF-P01, FF-P03, FF-P06');
+  }, 300_000);
 
   it('refuses the live run without Neo4j settings', async () => {
     const { err, deps } = io();

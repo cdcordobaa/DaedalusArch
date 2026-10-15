@@ -132,7 +132,7 @@ export interface StyleMetrics {
   readonly style: string;
   readonly variants: number;
   readonly rules: readonly RuleMetrics[];
-  /** Pooled over the blocking-candidate rules (severity critical). */
+  /** Pooled over the blocking rules (v1.3 tier `blocking` under the style; see reference-model.ts). */
   readonly blocking: Omit<RuleMetrics, 'ruleId' | 'ruleName' | 'blockingCandidate'>;
   /** Pooled over every compared rule. */
   readonly all: Omit<RuleMetrics, 'ruleId' | 'ruleName' | 'blockingCandidate'>;

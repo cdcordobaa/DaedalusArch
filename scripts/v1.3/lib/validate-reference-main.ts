@@ -2,8 +2,8 @@
  * FR-V5 skeleton: the end-to-end validation runner over the v1.3 reference projects (FR-V3).
  *
  * Modes (exactly one):
- *   --check                 load and schema-validate every manifest, run the cross-checks, apply every patch to a
- *                           temporary copy; no evaluation (needs no Neo4j)
+ *   --check                 load and schema-validate every manifest, run the cross-checks, apply every patch or
+ *                           overlay to a temporary copy and type-check it; no evaluation (needs no Neo4j)
  *   --materialise <dir>     write every variant to <dir>/<style>/<variant> (for a manual run or inspection)
  *   --from-raw <dir>        compare saved tool outputs (<dir>/<style>/<variant>.json) with the manifests
  *   (default, live)         materialise each variant, run `firewall evaluate --symbolic-only --format json` on it
@@ -21,6 +21,7 @@ import { compareVariant, normaliseFindingPath, renderMarkdown, styleMetrics } fr
 import type { ActualFinding, StyleMetrics, VariantComparison } from './compare.js';
 import { makeTempRoot, materialiseVariant } from './materialise.js';
 import { REFERENCE_STYLES, crossCheck, isReferenceStyle, loadAllReferences } from './reference-model.js';
+import { typecheckProject } from './typecheck.js';
 import type { LoadedReference, ReferenceStyle } from './reference-model.js';
 
 export type Evaluator = (projectDir: string, specPath: string) => Promise<readonly ActualFinding[]>;
@@ -149,21 +150,57 @@ export async function main(argv: readonly string[], repoRoot: string, deps: Main
   }
 
   if (args.mode === 'check' || args.mode === 'materialise') {
-    const dest = args.mode === 'materialise' ? path.resolve(repoRoot, args.dir ?? '') : makeTempRoot();
+    const check = args.mode === 'check';
+    // --check compiles every variant. Patch-format projects vendor their framework typings and are checked in the
+    // OS temp directory (as their unit tests do); the overlay-format DDD project resolves bare packages (v04's
+    // class-transformer) from the repository's node_modules, so it is checked under node_modules/.cache.
+    const roots = new Map<string, string>();
+    const rootFor = (ref: LoadedReference): string => {
+      if (!check) return path.resolve(repoRoot, args.dir ?? '');
+      let root = roots.get(ref.format);
+      if (root === undefined) {
+        if (ref.format === 'overlay') {
+          const cache = path.join(repoRoot, 'node_modules', '.cache');
+          fs.mkdirSync(cache, { recursive: true });
+          root = fs.mkdtempSync(path.join(cache, 'v13-reference-check-'));
+        } else root = makeTempRoot();
+        roots.set(ref.format, root);
+      }
+      return root;
+    };
     let failed = 0;
-    for (const ref of refs) {
-      for (const v of ref.variants) {
-        try {
-          const m = materialiseVariant(ref, v, dest);
-          deps.out(`${ref.style}/${v.manifest.variant}: ${v.manifest.kind}, ${String(v.manifest.expectedFindings.length)} expected, patch touches ${m.touched.length === 0 ? 'nothing' : m.touched.join(', ')}\n`);
-        } catch (e) {
-          failed += 1;
-          deps.err(`${e instanceof Error ? e.message : String(e)}\n`);
+    try {
+      for (const ref of refs) {
+        let styleFailed = 0;
+        for (const v of ref.variants) {
+          try {
+            const m = materialiseVariant(ref, v, rootFor(ref));
+            const how = ref.format === 'overlay' ? 'overlay' : 'patch';
+            let compiled = '';
+            if (check) {
+              const diagnostics = typecheckProject(m.projectDir);
+              if (diagnostics.length > 0) {
+                styleFailed += 1;
+                deps.err(`${ref.style}/${v.manifest.variant}: does not compile: ${diagnostics.slice(0, 5).join(' | ')}${diagnostics.length > 5 ? ` (+${String(diagnostics.length - 5)} more)` : ''}\n`);
+              }
+              compiled = diagnostics.length === 0 ? ', compiles' : ', DOES NOT COMPILE';
+            }
+            deps.out(`${ref.style}/${v.manifest.variant}: ${v.manifest.kind}, ${String(v.manifest.expectedFindings.length)} expected, ${how} touches ${m.touched.length === 0 ? 'nothing' : m.touched.join(', ')}${compiled}\n`);
+          } catch (e) {
+            styleFailed += 1;
+            deps.err(`${e instanceof Error ? e.message : String(e)}\n`);
+          }
+        }
+        failed += styleFailed;
+        if (check) {
+          const blocking = ref.descriptor.scopeRules.filter((r) => r.blockingCandidate).map((r) => r.ruleId);
+          deps.out(`${ref.style}: ${styleFailed === 0 ? 'ok' : `${String(styleFailed)} FAILED`}, ${String(ref.variants.length)} variants (${ref.format} format); blocking (v1.3 tiers): ${blocking.join(', ') || 'none'}\n`);
         }
       }
+    } finally {
+      if (check) for (const root of roots.values()) fs.rmSync(root, { recursive: true, force: true });
     }
-    if (args.mode === 'check') fs.rmSync(dest, { recursive: true, force: true });
-    else deps.out(`materialised under ${dest}\n`);
+    if (!check) deps.out(`materialised under ${path.resolve(repoRoot, args.dir ?? '')}\n`);
     return failed === 0 ? 0 : 1;
   }
 

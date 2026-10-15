@@ -10,8 +10,9 @@ import ts from 'typescript';
 import YAML from 'yaml';
 import { materialiseVariant, makeTempRoot } from '../../../../scripts/v1.3/lib/materialise.js';
 import {
-  REFERENCE_STYLES,
+  PATCH_REFERENCE_STYLES as REFERENCE_STYLES,
   crossCheck,
+  loadReference,
   loadAllReferences,
   validateExpectedGraph,
   validateReferenceDescriptor,
@@ -20,7 +21,7 @@ import {
 import type { LoadedReference } from '../../../../scripts/v1.3/lib/reference-model.js';
 
 const ROOT = path.resolve(__dirname, '../../../..');
-const refs: LoadedReference[] = loadAllReferences(ROOT);
+const refs: LoadedReference[] = loadAllReferences(ROOT, REFERENCE_STYLES);
 let work: string;
 
 function must<T>(value: T | undefined, what = 'value'): T {
@@ -76,7 +77,7 @@ function typecheck(projectDir: string): string[] {
 }
 
 describe('v1.3 reference projects: manifests', () => {
-  it('covers the four styles of this unit (DDD is a separate unit)', () => {
+  it('covers the four patch-format styles of this unit (DDD, overlay format, is checked below)', () => {
     expect(refs.map((r) => r.style)).toEqual([...REFERENCE_STYLES]);
   });
 
@@ -156,5 +157,47 @@ describe('v1.3 reference projects: patches and compilation', () => {
     for (const v of ref.variants) materialiseVariant(ref, v, work);
     const after = listSources(ref.projectDir).map((f) => fs.readFileSync(path.join(ref.projectDir, f), 'utf8')).join('\0');
     expect(after).toBe(before);
+  });
+});
+
+describe('v1.3 reference projects: the DDD project (overlay format, U-C1) in the common model', () => {
+  const ddd = loadReference(ROOT, 'ddd');
+
+  it('loads with the overlay format, the preset as spec and every preset function as a compared rule', () => {
+    expect(ddd.format).toBe('overlay');
+    expect(path.relative(ROOT, ddd.specPath)).toBe('presets/ddd.yaml');
+    expect(ddd.descriptor.scopeRules.map((r) => r.ruleId)).toEqual([
+      'FF-DS01', 'FF-DS02', 'FF-DT01', 'FF-DT02', 'FF-DT03', 'FF-DT04', 'FF-DT05', 'FF-DT06', 'FF-S01', 'FF-S03',
+    ]);
+    expect(crossCheck(ddd)).toEqual([]);
+  });
+
+  it('the blocking set is the v1.3 tiers, not the severity', () => {
+    const blocking = ddd.descriptor.scopeRules.filter((r) => r.blockingCandidate).map((r) => r.ruleId);
+    expect(blocking).toEqual(['FF-DS01', 'FF-DS02', 'FF-DT01', 'FF-DT02', 'FF-DT03', 'FF-DT04', 'FF-S01']);
+  });
+
+  it('one clean variant, the violations plant their rule, the negative controls expect nothing', () => {
+    const kinds = ddd.variants.map((v) => v.manifest.kind);
+    expect(kinds.filter((k) => k === 'clean')).toHaveLength(1);
+    expect(kinds.filter((k) => k === 'violation')).toHaveLength(12);
+    expect(kinds.filter((k) => k === 'near-miss')).toHaveLength(2);
+    expect(ddd.graph.files.map((f) => f.path).sort()).toEqual(listSources(ddd.projectDir));
+  });
+
+  it.each(ddd.variants.filter((v) => v.overlay !== undefined).map((v) => [v.manifest.variant, v] as const))(
+    '%s: the overlay and delete list apply and touch only src/', (_label, v) => {
+      const m = materialiseVariant(ddd, v, work);
+      expect(m.touched.length).toBeGreaterThan(0);
+      for (const t of m.touched) expect(t.startsWith('src/')).toBe(true);
+      expect(fs.existsSync(path.join(m.projectDir, 'expected-findings.json'))).toBe(false);
+      for (const d of v.overlay?.delete ?? []) expect(fs.existsSync(path.join(m.projectDir, d))).toBe(false);
+    });
+
+  it('the hexagonal outbound ports are present (they were once dropped by the out/ ignore rule)', () => {
+    const hex = must(refs.find((r) => r.style === 'hexagonal'), 'hexagonal');
+    const ports = hex.graph.files.filter((f) => f.path.startsWith('src/application/ports/out/')).map((f) => f.path);
+    expect(ports).toHaveLength(5);
+    for (const p of ports) expect(fs.existsSync(path.join(hex.projectDir, p))).toBe(true);
   });
 });
