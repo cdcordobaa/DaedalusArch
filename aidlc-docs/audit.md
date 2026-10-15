@@ -1678,3 +1678,11 @@ Plan checkboxes ticked. Auto-approved under standing approval; no blocking or ma
 **Context**: v1.3 week plan, Day 1.
 
 ---
+
+## v1.3 — AP-DUP-RULE v2 merged
+**Timestamp**: 2026-10-16T00:50:00Z
+**User Input**: (authorised earlier: "What else is pending to be fixed? Let's fix it")
+**AI Response**: "PR #111 (782c248) merged; v2 hashes frozen (827d9ac) before calls; frozen v1 kept. Twin is now a valid control: v1 twin failed 6/6, v2 twin fails 2/9 raw, 1/9 paired (the one is a fair finding of an inherited inline check). Catch 9/9 as before, still confounded (the positive edit also misplaces the rule; no cleaner positive site exists in E1). Pooled judge: seed catch 30/35 = 0.86 [0.71, 0.94]; twin false fail 8/47 → 4/50 = 0.08. Cheap proxies on the same copies: clones 1/9, shared literals 2/9 (density filter drops bare guards; same-component clones not flagged); symbolic rules 0/9. 135/200 calls; replay 27/27."
+**Context**: v1.3 FR-V9.
+
+---
