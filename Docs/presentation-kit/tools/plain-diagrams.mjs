@@ -1,9 +1,10 @@
 // Plain set, diagrams: D1 and A4 (full width, 2300 x 940, text >= 30 px); F1, F10, F11 (side, 1430 x 900,
-// text >= 26 px); F8 is copied unchanged from figures/.
+// text >= 26 px); F8 is the same 1600 x 360 strip as figures/, in plain words.
 import * as fs from 'node:fs';
 import * as path from 'node:path';
 import { C, SIDE, FULL, PLAIN, T, para, canvas, rect, line, box, arrow, poly, chip, legend, savePlain, caption, tw } from './plain-kit.mjs';
-import { FIG } from './kit.mjs';
+import { FIG, text as ktext, rect as krect, line as kline, wrap as kwrap } from './kit.mjs';
+import { lock } from './diagram.mjs';
 
 const BLUE = C.layer.application;
 const GREEN = C.layer.domain;
@@ -255,5 +256,46 @@ const ORANGE = C.layer['adapters-outbound'];
     ['Plain words: blocking = defining rule (can fail); advisory = warning (never fails); none arm = no tool.']));
 }
 
-// ---------------- F8: copied unchanged ----------------
-for (const ext of ['svg', 'png', 'caption.md']) fs.copyFileSync(path.join(FIG, `F8-timeline.${ext}`), path.join(PLAIN, `F8-timeline.${ext}`));
+// ---------------- F8: what happens next (plain words, same 1600 x 360 strip as figures/) ----------------
+{
+  const steps = [
+    { t: 'Decide the open questions', d: 'the author answers 25 open questions, with a written reason for each change', k: 'open', s: 'open, with the author' },
+    { t: 'Freeze the tool', d: 'rules, settings and code are fixed; no changes until the sealed test', k: 'open', s: 'not yet' },
+    { t: 'Sealed test', d: 'open the sealed projects, run the tool once, keep the results as they are', k: 'sealed', s: 'sealed' },
+    { t: 'AI checks the reports', d: 'an AI labeller judges which reports matter, after the results are saved', k: 'open', s: 'planned' },
+    { t: 'Two people check', d: 'two people label reports blind, with decoys mixed in; the author spot-checks', k: 'open', s: 'planned' },
+    { t: 'Small trial', d: '3 tasks, with and without the tool, 4 runs each; fixes the second study\'s main measure in advance', k: 'open', s: 'planned, not run' },
+    { t: 'Plan locked in advance', d: 'only if the sealed test passes; the second study\'s tasks stay sealed until then', k: 'sealed', s: 'tasks sealed' },
+  ];
+  const n = steps.length;
+  const VW = 1600;
+  const VH = 360;
+  const pad = 16;
+  const gap = 12;
+  const bw = (VW - 2 * pad - (n - 1) * gap) / n;
+  const ly = 30;
+  let b = '';
+  b += kline(pad, ly, VW - pad, ly, { stroke: C.grid, sw: 6 });
+  steps.forEach((st, i) => {
+    const x = pad + i * (bw + gap);
+    const sealed = st.k === 'sealed';
+    const col = sealed ? C.status.sealed : C.status.defined;
+    b += `<circle cx="${x + bw / 2}" cy="${ly}" r="18" fill="${col}"/>`;
+    b += ktext(x + bw / 2, ly + 8, String(i + 1), { size: 21, weight: 700, fill: '#fff', anchor: 'middle' });
+    b += krect(x, ly + 30, bw, VH - ly - 36, { rx: 12, fill: sealed ? '#F1F2F4' : '#FFFFFF', stroke: col, sw: 2.5, dash: sealed ? '8 5' : undefined });
+    if (sealed) b += lock(x + bw - 34, ly + 42, 1.1, col);
+    const tl = kwrap(st.t, bw - (sealed ? 52 : 24), 22, 700);
+    tl.forEach((l, k) => (b += ktext(x + 12, ly + 64 + k * 26, l, { size: 22, weight: 700 })));
+    const dy = ly + 64 + tl.length * 26 + 8;
+    kwrap(st.d, bw - 22, 18).forEach((l, k) => (b += ktext(x + 12, dy + k * 23, l, { size: 18 })));
+    b += ktext(x + 12, VH - 20, st.s, { size: 18, weight: 700, fill: col });
+  });
+  const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${VW}" height="${VH}" viewBox="0 0 ${VW} ${VH}">${krect(0, 0, VW, VH, { fill: C.bg })}${b}</svg>`;
+  fs.writeFileSync(path.join(PLAIN, 'F8-timeline.svg'), svg);
+  fs.writeFileSync(path.join(PLAIN, 'F8-timeline.caption.md'), `# F8 (plain) · what happens next
+
+**Slide claim.** The tool is tested on a sealed set before the second study is planned in detail; each step is fixed before the data it depends on exist.
+
+Same content and order as \`figures/F8-timeline\`, in plain words; same 1600 x 360 strip (card text 18-22 px). Sealed steps (3, 7) are drawn locked and dashed. Plain words: open questions = construct decisions; written reason = decision record; sealed test = hold-out run; plan locked in advance = Study 2 pre-registration.
+`);
+}
