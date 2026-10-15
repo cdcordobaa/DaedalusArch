@@ -9,6 +9,7 @@ import * as path from 'node:path';
 import { extractAPG } from '../../../src/apg-extractor/index.js';
 import { DEFAULT_OPTIONS, V12E_DEFAULT_OPTIONS, V13_DEFAULT_OPTIONS } from '../../../src/apg-extractor/types.js';
 import type { APGEdge, APGResult } from '../../../src/shared/types/apg.js';
+import { MEMBER_FACT_KEYS } from '../../../src/apg-extractor/member-facts.js';
 import { harnessTsconfigText } from '../../../scripts/lib/generators/harness-tsconfig.js';
 
 const REPO_ROOT = path.resolve(__dirname, '../../..');
@@ -210,7 +211,11 @@ describe('views over the v1.3 graph', () => {
   });
 
   it('nodes, warnings, parse coverage and the statement partition are the same in both modes', () => {
-    expect(v13.nodes).toEqual(v12e.nodes);
+    // The member facts (a separate v1.3 option, on in V13_DEFAULT_OPTIONS) are left out: this compares the re-export modes.
+    const withoutMemberFacts = v13.nodes.map((n) => ({
+      ...n, properties: Object.fromEntries(Object.entries(n.properties).filter(([k]) => !MEMBER_FACT_KEYS.includes(k))),
+    }));
+    expect(withoutMemberFacts).toEqual(v12e.nodes);
     expect(v13.warnings).toEqual(v12e.warnings);
     expect(v13.parseCoverage).toEqual(v12e.parseCoverage);
     expect(v13.importResolution).toEqual(v12e.importResolution);

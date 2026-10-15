@@ -43,7 +43,7 @@ describe('v1.2E compile is unchanged', () => {
   });
 
   it('V13_COMPILE_OPTIONS turns every v1.3 rewrite on', () => {
-    expect(V13_COMPILE_OPTIONS).toEqual({ edgeViews: true, styleApplicability: true, roleTokens: true });
+    expect(V13_COMPILE_OPTIONS).toEqual({ edgeViews: true, styleApplicability: true, roleTokens: true, memberFacts: true });
   });
 });
 

@@ -9,7 +9,7 @@ import type { CompiledFunctions, CypherQuery } from '../shared/types/evaluation.
 import type { FitnessFunction } from '../shared/types/spec.js';
 import { DomainResult } from '../shared/errors/domain-result.js';
 import type { CompilerError, CompilerInput, CompilerWarning, CypherTemplate } from './types.js';
-import { bindDddModel, buildDddParams, DDD_LITERAL_VIEW_TEMPLATES, DDD_TEMPLATES } from './ddd-templates.js';
+import { bindDddModel, buildDddParams, DDD_LITERAL_VIEW_TEMPLATES, DDD_MEMBER_FACT_TEMPLATES, DDD_TEMPLATES } from './ddd-templates.js';
 import { bindHexagonalLayers, buildHexagonalParams, HEXAGONAL_TEMPLATES } from './hexagonal-templates.js';
 import { globToRegex } from './glob-to-regex.js';
 import { replaceExcludeMarkers } from './exclude-injector.js';
@@ -66,7 +66,9 @@ export function compileDddFunctions(input: CompilerInput, core: CoreCompile, rew
   const queries: CypherQuery[] = [];
   const errors: CompilerError[] = [];
   for (const ff of own) {
-    const q = toQuery(ff, DDD_TEMPLATES.get(ff.name), buildDddParams(ff, ddd.binding), rewrites);
+    // v1.3 member facts: FF-DT03 reads the class-member facts instead of the setter-name proxy.
+    const template = (rewrites.memberFacts === true ? DDD_MEMBER_FACT_TEMPLATES.get(ff.name) : undefined) ?? DDD_TEMPLATES.get(ff.name);
+    const q = toQuery(ff, template, buildDddParams(ff, ddd.binding, template), rewrites);
     if ('cypher' in q) queries.push(q); else errors.push(q);
   }
   if (hexBound?.ok) {

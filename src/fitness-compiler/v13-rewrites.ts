@@ -5,6 +5,8 @@
  * - `roleTokens`: role detection by the class name's last camel-case token(s) (`v13-role-names.ts`).
  * - `edgeViews`: the template's literal or resolved import-edge view (ADR-V13-01, `edge-views.ts`). Applied last, on
  *   the final text.
+ * - `memberFacts`: not a text rewrite. The DDD compile path selects the member-fact text of FF-DT03
+ *   (`DDD_MEMBER_FACT_TEMPLATES`) instead of the setter-name proxy; the other paths ignore it.
  */
 import { applyEdgeView } from './edge-views.js';
 import { applyRoleTokens } from './v13-role-names.js';
@@ -12,6 +14,7 @@ import { applyRoleTokens } from './v13-role-names.js';
 export interface V13RewriteFlags {
   readonly edgeViews: boolean;
   readonly roleTokens: boolean;
+  readonly memberFacts?: boolean;
 }
 
 export const NO_V13_REWRITES: V13RewriteFlags = Object.freeze({ edgeViews: false, roleTokens: false });

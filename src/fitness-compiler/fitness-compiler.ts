@@ -63,13 +63,18 @@ export interface CompileOptions {
   readonly styleApplicability?: boolean;
   /** v1.3 fix round, OFF by default: role detection by the class name's last camel-case token(s) (`v13-role-names.ts`). */
   readonly roleTokens?: boolean;
+  /**
+   * v1.3, OFF by default: FF-DT03 value-object-immutability (ddd style) reads the extractor's class-member facts
+   * (`ExtractorOptions.memberFacts`) instead of the setter-name proxy (`DDD_MEMBER_FACT_TEMPLATES`).
+   */
+  readonly memberFacts?: boolean;
 }
 
 /** The v1.3 compile options for the pipeline (the frozen v1.2E reproduction passes `{}`). */
-export const V13_COMPILE_OPTIONS: Readonly<CompileOptions> = Object.freeze({ edgeViews: true, styleApplicability: true, roleTokens: true });
+export const V13_COMPILE_OPTIONS: Readonly<CompileOptions> = Object.freeze({ edgeViews: true, styleApplicability: true, roleTokens: true, memberFacts: true });
 
 function rewriteFlags(options: CompileOptions): V13RewriteFlags {
-  return { edgeViews: options.edgeViews === true, roleTokens: options.roleTokens === true };
+  return { edgeViews: options.edgeViews === true, roleTokens: options.roleTokens === true, memberFacts: options.memberFacts === true };
 }
 
 type TemplateCatalogue = ReadonlyMap<string, CypherTemplate>;

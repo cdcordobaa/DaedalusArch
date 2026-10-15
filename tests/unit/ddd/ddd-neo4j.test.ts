@@ -28,11 +28,12 @@ const KNOWN_GOT: Readonly<Record<string, readonly string[]>> = {
 };
 /**
  * The v1.3 compile (V13_COMPILE_OPTIONS, as the pipeline runs it): context-isolation reads the literal barrel edge
- * (fix round, fix 6), so g03's deep import is found and M2 is closed; g01 (M3, no accessor facts) stays.
+ * (fix round, fix 6), so g03's deep import is found and M2 is closed; FF-DT03 reads the extractor's class-member
+ * facts (v1.3 member facts), so g01's `set value` accessor is found and M3 is closed. No known difference is left.
+ * Not yet run against a database: no Neo4j in the environment where the member facts were added
+ * (aidlc-docs/construction/v1.3-member-facts/notes.md).
  */
-const KNOWN_GOT_V13: Readonly<Record<string, readonly string[]>> = {
-  'g01-value-object-setter-accessor': [],
-};
+const KNOWN_GOT_V13: Readonly<Record<string, readonly string[]>> = {};
 
 const env = resolveGoldenEnv();
 const describeNeo4j = env.enabled ? describe : describe.skip;

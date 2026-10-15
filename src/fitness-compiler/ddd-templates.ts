@@ -19,6 +19,16 @@ const DDD_ONLY: readonly string[] = [DDD_STYLE];
 /** Non-static method names that the value-object proxy treats as setters (FF-DT03; Cypher `=~` is a full match). */
 export const SETTER_NAME_PATTERN = 'set[A-Z].*';
 
+/**
+ * FF-DT03's mapping, shared by the frozen proxy text and the v1.3 member-fact text (the evaluator looks a mapping up by
+ * template name). Both return `class` and `method`: the member(s) that make the value object mutable, qualified by the
+ * class (`Quantity.setValue`; `Quantity.value (set accessor)`), so the violation ids of the proxy rows are unchanged.
+ */
+const VALUE_OBJECT_MAPPING: ResultMapping = {
+  filePathColumn: 'filePath', messageTemplate: 'Value object {class} in {filePath} is mutable through {method}',
+  discriminatorColumns: ['class', 'method'], metadataColumns: ['class', 'method'],
+};
+
 type TMapColumns = Omit<ResultMapping, 'filePathColumn' | 'messageTemplate' | 'metadataColumns'>;
 
 const DEP_EDGE: TMapColumns = {
@@ -151,7 +161,7 @@ RETURN c.filePath AS filePath, c.name AS class, m.name AS method
 ORDER BY filePath, class, method`,
     ['valueObjectPatterns', 'setterPattern'], [], [], 'pattern-proxy',
     'Detects value objects that declare a setter-named method (proxy for a mutable value object)',
-    { filePathColumn: 'filePath', messageTemplate: 'Value object {class} in {filePath} declares setter {method}', discriminatorColumns: ['class', 'method'], metadataColumns: ['class', 'method'] },
+    VALUE_OBJECT_MAPPING,
   )],
 
   ['domain-event-placement', ddd(
@@ -276,7 +286,11 @@ export function bindDddModel(layerModel: LayerModel): DddBindResult {
  * Parameters of one DDD template: its required and optional parameters. Optional list parameters are always bound,
  * empty when nothing is declared, because the Cypher reads them unconditionally (an empty NONE(...) is true).
  */
-export function buildDddParams(ff: FitnessFunction, binding: DddBinding): Record<string, unknown> {
+export function buildDddParams(
+  ff: FitnessFunction,
+  binding: DddBinding,
+  template: CypherTemplate | undefined = DDD_TEMPLATES.get(ff.name),
+): Record<string, unknown> {
   const candidates: Record<string, unknown> = {
     sourceRoot: binding.sourceRoot,
     contextRoots: [...binding.contextRoots],
@@ -292,7 +306,6 @@ export function buildDddParams(ff: FitnessFunction, binding: DddBinding): Record
     setterPattern: SETTER_NAME_PATTERN,
   };
   if (ff.threshold != null) candidates.threshold = ff.threshold;
-  const template = DDD_TEMPLATES.get(ff.name);
   const params: Record<string, unknown> = {};
   if (!template) return params;
   for (const name of [...template.requiredParams, ...template.optionalParams]) {
@@ -316,4 +329,41 @@ export function buildDddParams(ff: FitnessFunction, binding: DddBinding): Record
  */
 export const DDD_LITERAL_VIEW_TEMPLATES: ReadonlyMap<string, string> = new Map([
   ['context-isolation', must(DDD_TEMPLATES.get('context-isolation')).template.replace(M1_PUBLISHED_VIA_BARREL, '')],
+]);
+
+/**
+ * v1.3 member facts: DDD templates used instead of the ones above when the compile reads the extractor's class-member
+ * facts (`CompileOptions.memberFacts`, on a graph extracted with `ExtractorOptions.memberFacts`).
+ *
+ * `value-object-immutability` (FF-DT03, blocking per the sealed Docs/v1.3/rule-tiers.md). Evans 2003, ch. 5 VALUE
+ * OBJECTS: treat a value object as immutable; change it by replacing it. Definition: a class in a declared
+ * value-object file is mutable when it has
+ *   (a) a public, non-readonly, non-static field (a property declaration or a constructor parameter property),
+ *   (b) a non-static `set` accessor (any visibility), or
+ *   (c) a public non-static method (or arrow-function property) whose body assigns a `this.<field>`; the constructor
+ *       is not a method, so constructor-only assignment is immutable.
+ * A class with private fields and public getters only is immutable. One row per mutable value object (the rule's unit,
+ * as in the manifests): `members` lists every offending member qualified by its class with its clause, in clause then
+ * source order, and `method` joins them for the shared mapping's message. The template reads no edge. On a graph without member
+ * facts (v1.2E extraction) the lists are absent and the query returns no row, so it is selected only together with
+ * a member-fact extraction (`V13_DEFAULT_OPTIONS` + `V13_COMPILE_OPTIONS`).
+ */
+export const DDD_MEMBER_FACT_TEMPLATES: ReadonlyMap<string, CypherTemplate> = new Map([
+  ['value-object-immutability', ddd(
+    'value-object-immutability',
+    `MATCH (c:Class)
+WHERE ANY(p IN $valueObjectPatterns WHERE c.filePath =~ p) /*EXCLUDE:c*/
+WITH c,
+     [f IN coalesce(c.publicFields, [])
+        WHERE NOT f IN coalesce(c.readonlyFields, []) AND NOT f IN coalesce(c.staticFields, []) | c.name + '.' + f + ' (public mutable field)']
+     + [s IN coalesce(c.setAccessors, []) | c.name + '.' + s + ' (set accessor)']
+     + [m IN coalesce(c.mutatorMethods, []) | c.name + '.' + m + ' (mutator method)'] AS members
+WHERE size(members) > 0
+RETURN c.filePath AS filePath, c.name AS class, reduce(acc = head(members), x IN tail(members) | acc + ', ' + x) AS method,
+       members
+ORDER BY filePath, class`,
+    ['valueObjectPatterns'], [], [], 'structural',
+    'Detects value objects with a public mutable field, a set accessor, or a public method that assigns a field',
+    VALUE_OBJECT_MAPPING,
+  )],
 ]);
