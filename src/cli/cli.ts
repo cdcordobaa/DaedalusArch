@@ -17,7 +17,7 @@ import { runBatch } from './batch-runner.js';
 import { requireEnvForCli } from './require-env.js';
 import { handleDrift } from './drift-handler.js';
 import { parseSpec, validateSpecAgainstProject } from '../spec-parser/index.js';
-import { compileFunctions, compilerInputFromSpec } from '../fitness-compiler/index.js';
+import { compileFunctions, compilerInputFromSpec, V13_COMPILE_OPTIONS } from '../fitness-compiler/index.js';
 import { createBaseline, saveBaseline } from '../baseline/index.js';
 import { loadBaseline, compareBaseline } from '../baseline/index.js';
 import * as path from 'node:path';
@@ -433,7 +433,7 @@ program
     // C9 parity (FR-08, BR-U1-11): the spec must also compile; the denominator is visible (FR-20, BR-U1-19).
     const spec = parseResult.data;
     // v1.3 rules also resolve the v1.3 module-wiring templates; v1.2e compiles exactly as before.
-    const compiled = compileFunctions(compilerInputFromSpec(spec), rules === 'v1.3' ? { v13Templates: true, edgeViews: true } : {});
+    const compiled = compileFunctions(compilerInputFromSpec(spec), rules === 'v1.3' ? { ...V13_COMPILE_OPTIONS, v13Templates: true } : {});
     if (!compiled.success) {
       process.stderr.write(`Spec compilation failed with ${String(compiled.errors.length)} error(s):\n`);
       for (const error of compiled.errors) {

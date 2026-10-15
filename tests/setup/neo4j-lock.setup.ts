@@ -11,8 +11,8 @@
  * nothing is locked.
  */
 import * as fs from 'node:fs';
-import { acquireNeo4jLock } from '../../src/shared/process/neo4j-lock';
-import type { Neo4jLockHandle } from '../../src/shared/process/neo4j-lock';
+import { acquireNeo4jLock } from '../../src/shared/process/neo4j-lock.js';
+import type { Neo4jLockHandle } from '../../src/shared/process/neo4j-lock.js';
 
 const NEO4J_SUITE = /resolveGoldenEnv|NEO4J_PASSWORD|from ['"]neo4j-driver['"]/;
 const LOCK_WAIT_MS = 45 * 60 * 1000;

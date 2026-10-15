@@ -26,6 +26,8 @@ const KNOWN_MISMATCHES: Readonly<Record<string, { readonly got: readonly string[
   },
   'g03-deep-import-of-reexported-file': {
     got: [],
+    // Frozen compile only: under V13_COMPILE_OPTIONS context-isolation reads the literal barrel edge and finds g03 (fix
+    // round fix 6; asserted against Neo4j in ddd-neo4j.test.ts, KNOWN_GOT_V13).
     classification: 'tool gap (extractor + rule fix): barrel routing erases the barrel hop, so FF-DS02 treats files a public barrel re-exports as published; a deep import of one is missed',
   },
 };

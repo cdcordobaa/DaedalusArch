@@ -60,7 +60,10 @@ export async function computeScoredReport(input: ScoringInput): Promise<DomainRe
   const verdict = tiers !== undefined ? overallVerdictOf(tiers) : v12eVerdict;
 
   // Universal metrics (BR-U3-40..42): a failed metric is null + METRIC_001, never a silent 0.
-  const metricsResult = await computeUniversalMetrics(input.graphRepository, CYCLE_STRATEGY, input.apg);
+  // v1.3: the universal metrics read the literal edge view (Docs/v1.3/edge-views.md, addendum 2026-10-15).
+  const metricsResult = await computeUniversalMetrics(
+    input.graphRepository, CYCLE_STRATEGY, input.apg, undefined, input.scoringMode === 'v1.3' ? 'literal' : 'frozen',
+  );
   if (!metricsResult.success) return DomainResult.fail(metricsResult.errors, metricsResult.warnings);
   const { metrics: universalMetrics, warnings: metricWarnings, cycleTiming } = metricsResult.data;
   input.onCycleMetricTiming?.(cycleTiming);

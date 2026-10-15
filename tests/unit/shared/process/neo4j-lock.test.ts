@@ -8,7 +8,7 @@ import * as os from 'node:os';
 import * as path from 'node:path';
 import {
   acquireNeo4jLock, neo4jLockKey, neo4jLockPath, NEO4J_LOCK_TIMEOUT, withNeo4jLock,
-} from '../../../../src/shared/process/neo4j-lock';
+} from '../../../../src/shared/process/neo4j-lock.js';
 
 const ROOT = path.resolve(__dirname, '../../../..');
 const TSX = path.join(ROOT, 'node_modules/.bin/tsx');

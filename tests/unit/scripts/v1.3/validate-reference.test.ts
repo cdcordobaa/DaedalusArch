@@ -72,6 +72,44 @@ describe('compareVariant', () => {
   });
 });
 
+describe('cycle findings match on the set of files (v1.3 fix round, fix 2)', () => {
+  const scope = new Set(['FF-S01', 'FF-S02']);
+  const cycle = {
+    variant: 'v01-cycle', kind: 'violation' as const, plants: 'FF-S02',
+    expectedFindings: [exp('FF-S02', 'src/domain/Loan.ts', 'src/domain/Member.ts')],
+  };
+
+  it('the tool row (cycle path in file, second file in target) matches the manifest row (smallest file, next file)', () => {
+    const c = compareVariant('s', cycle, [act('FF-S02', 'src/domain/Loan.ts,src/domain/Member.ts,src/domain/Loan.ts', 'src/domain/Member.ts')], scope);
+    expect(c.matched).toHaveLength(1);
+    expect(c.mismatches).toEqual([]);
+    expect(c.plantedDetected).toBe(true);
+  });
+
+  it('the set decides, not the rotation or the order of the files', () => {
+    const c = compareVariant('s', cycle, [act('FF-S02', 'src/domain/Member.ts,src/domain/Loan.ts,src/domain/Member.ts')], scope);
+    expect(c.matched).toHaveLength(1);
+  });
+
+  it('a different set is a miss plus an unexpected row; a superset is not the same cycle', () => {
+    const c = compareVariant('s', cycle, [act('FF-S02', 'src/domain/Loan.ts,src/domain/Member.ts,src/domain/Fine.ts,src/domain/Loan.ts', 'src/domain/Member.ts')], scope);
+    expect(c.mismatches.map((m) => m.kind).sort()).toEqual(['missed', 'unexpected']);
+    // the unexpected row keeps the tool's own file text
+    expect(c.mismatches.find((m) => m.kind === 'unexpected')?.file).toBe('src/domain/Loan.ts,src/domain/Member.ts,src/domain/Fine.ts,src/domain/Loan.ts');
+  });
+
+  it('a cycle row on the clean variant counts as alsoOnClean under the set key', () => {
+    const nm = { variant: 'n01', kind: 'near-miss' as const, plants: null, expectedFindings: [] };
+    const c = compareVariant('s', nm, [act('FF-S02', 'src/b.ts,src/a.ts,src/b.ts')], scope, [act('FF-S02', 'src/a.ts,src/b.ts,src/a.ts', 'src/b.ts')]);
+    expect(c.mismatches).toEqual([expect.objectContaining({ kind: 'unexpected', alsoOnClean: true })]);
+  });
+
+  it('other rules still need the same file', () => {
+    const m = { variant: 'v02', kind: 'violation' as const, plants: 'FF-S01', expectedFindings: [exp('FF-S01', 'src/a.ts', 'src/b.ts')] };
+    expect(compareVariant('s', m, [act('FF-S01', 'src/b.ts', 'src/a.ts')], scope).matched).toHaveLength(0);
+  });
+});
+
 describe('styleMetrics', () => {
   const descriptor = {
     scopeRules: [

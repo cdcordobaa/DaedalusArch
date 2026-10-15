@@ -242,7 +242,9 @@ export async function acquireNeo4jLock(uri: string, options: Neo4jLockOptions = 
   for (;;) {
     if (tryCreate(file, { ...mine, acquiredAt: new Date().toISOString() })) {
       let released = false;
-      const onExit = (): void => unlinkIfToken(file, mine.token);
+      const onExit = (): void => {
+        unlinkIfToken(file, mine.token);
+      };
       process.once('exit', onExit);
       return {
         mode: 'owned', path: file, holder: mine,

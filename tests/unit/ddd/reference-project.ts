@@ -12,6 +12,7 @@ import * as path from 'node:path';
 import { extractAPG } from '../../../src/apg-extractor/index.js';
 import { annotateNodes } from '../../../src/neo4j-ingestion/layer-annotator.js';
 import { compileFunctions } from '../../../src/fitness-compiler/fitness-compiler.js';
+import type { CompileOptions } from '../../../src/fitness-compiler/fitness-compiler.js';
 import { compilerInputFromSpec } from '../../../src/fitness-compiler/compiler-input.js';
 import { parseSpec } from '../../../src/spec-parser/spec-parser.js';
 import type { APGNode, APGResult } from '../../../src/shared/types/apg.js';
@@ -81,8 +82,9 @@ export async function parsedPreset(): Promise<ParsedSpec> {
   return parsed.data;
 }
 
-export async function compiledPreset(): Promise<readonly CypherQuery[]> {
-  const compiled = compileFunctions(compilerInputFromSpec(await parsedPreset()));
+/** The preset's compiled queries; `options` defaults to the frozen compile (v1.3 runs pass `V13_COMPILE_OPTIONS`). */
+export async function compiledPreset(options: CompileOptions = {}): Promise<readonly CypherQuery[]> {
+  const compiled = compileFunctions(compilerInputFromSpec(await parsedPreset()), options);
   if (!compiled.success) throw new Error(compiled.errors.map((e) => e.message).join('; '));
   return compiled.data.symbolicQueries;
 }

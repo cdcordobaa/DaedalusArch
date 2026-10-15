@@ -10,6 +10,7 @@ import * as path from 'node:path';
 import { extractAPG } from '../../../src/apg-extractor/index.js';
 import { V12E_DEFAULT_OPTIONS } from '../../../src/apg-extractor/types.js';
 import { compileFunctions, V13_COMPILE_OPTIONS } from '../../../src/fitness-compiler/fitness-compiler.js';
+import { computeUniversalMetrics } from '../../../src/scoring-engine/universal-metrics.js';
 import { compilerInputFromSpec } from '../../../src/fitness-compiler/compiler-input.js';
 import { edgeViewOf } from '../../../src/fitness-compiler/edge-views.js';
 import { FileSystemSnapshotStore, Neo4jRepository, ingestAPG } from '../../../src/neo4j-ingestion/index.js';
@@ -33,7 +34,8 @@ async function specOf(file: string): Promise<ParsedSpec> {
 }
 
 function queriesOf(spec: ParsedSpec, edgeViews: boolean): CypherQuery[] {
-  const r = compileFunctions(compilerInputFromSpec(spec), edgeViews ? V13_COMPILE_OPTIONS : {});
+  // The edge-view option alone; the fix round's role-token and applicability options are checked separately below.
+  const r = compileFunctions(compilerInputFromSpec(spec), edgeViews ? { edgeViews: true } : {});
   if (!r.success) throw new Error(r.errors.map((e) => e.message).join('; '));
   return [...r.data.symbolicQueries, ...r.data.hybridPairs.map((h) => h.symbolicQuery)];
 }
@@ -146,4 +148,33 @@ describeNeo4j('edge views on Neo4j (ADR-V13-01)', () => {
     // Importing the domain barrel directly is still a skip, now to the barrel file.
     expect(pairs(v13Views['no-layer-skip'])).toContain('src/infrastructure/star.ts -> src/domain/index.ts');
   });
+
+  it('fix round: the literal universal metrics run, equal the frozen ones on the v1.2E graph, and drop the resolved edges on v1.3', async () => {
+    await ingest(V12E_DEFAULT_OPTIONS, clean);
+    const frozen12 = await computeUniversalMetrics(repo, 'cypher');
+    const literal12 = await computeUniversalMetrics(repo, 'cypher', undefined, undefined, 'literal');
+    await ingest({}, clean);
+    const literal13 = await computeUniversalMetrics(repo, 'cypher', undefined, undefined, 'literal');
+    const frozen13 = await computeUniversalMetrics(repo, 'cypher');
+    for (const r of [frozen12, literal12, literal13, frozen13]) {
+      expect(r.success).toBe(true);
+      if (r.success) expect(r.data.warnings.filter((w) => w.code === 'METRIC_001')).toEqual([]);
+    }
+    if (!frozen12.success || !literal12.success || !literal13.success || !frozen13.success) return;
+    expect(literal12.data.metrics).toEqual(frozen12.data.metrics);
+    // On the v1.3 graph the frozen queries count both edges of every barrel import; the literal ones do not.
+    expect(literal13.data.metrics.maxFanOut).toBeLessThanOrEqual(frozen13.data.metrics.maxFanOut ?? Infinity);
+  }, 120_000);
+
+  it('fix round: the V13_COMPILE_OPTIONS queries (role tokens, applicability, views) all run on the v1.3 graph', async () => {
+    await ingest({}, clean);
+    for (const s of [clean, spec, await specOf('presets/clean-architecture.yaml'), await specOf('presets/nestjs.yaml'), await specOf('presets/hexagonal.yaml')]) {
+      const r = compileFunctions(compilerInputFromSpec(s), V13_COMPILE_OPTIONS);
+      if (!r.success) throw new Error(r.errors.map((e) => e.message).join('; '));
+      for (const q of r.data.symbolicQueries) {
+        const res = await repo.executeQuery(q.cypher, q.params);
+        expect([q.name, res.success]).toEqual([q.name, true]);
+      }
+    }
+  }, 120_000);
 });

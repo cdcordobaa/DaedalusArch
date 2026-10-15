@@ -20,7 +20,9 @@ import { compilePattern } from './pattern-compiler.js';
 import { checkBoundParameters } from './bound-param-checker.js';
 import { compileHexagonalFunctions } from './hexagonal-compiler.js';
 import { HEXAGONAL_STYLE } from './hexagonal-templates.js';
-import { applyEdgeView } from './edge-views.js';
+import { applyV13Rewrites } from './v13-rewrites.js';
+import type { V13RewriteFlags } from './v13-rewrites.js';
+import { v13InapplicableReason } from './v13-applicability.js';
 import { compileDddFunctions } from './ddd-compiler.js';
 import { DDD_STYLE } from './ddd-templates.js';
 
@@ -54,20 +56,31 @@ export interface CompileOptions {
    * graph extracted with `reExportEdges: 'resolved-only'` the rewrite does not change any row.
    */
   readonly edgeViews?: boolean;
+  /**
+   * v1.3 fix round, OFF by default: the v1.3 style-applicability table (`v13-applicability.ts`, ADR-V13-02 draft):
+   * FF-P06 domain-state-purity applies only to styles with an isolated domain (not `layered`).
+   */
+  readonly styleApplicability?: boolean;
+  /** v1.3 fix round, OFF by default: role detection by the class name's last camel-case token(s) (`v13-role-names.ts`). */
+  readonly roleTokens?: boolean;
 }
 
 /** The v1.3 compile options for the pipeline (the frozen v1.2E reproduction passes `{}`). */
-export const V13_COMPILE_OPTIONS: Readonly<CompileOptions> = Object.freeze({ edgeViews: true });
+export const V13_COMPILE_OPTIONS: Readonly<CompileOptions> = Object.freeze({ edgeViews: true, styleApplicability: true, roleTokens: true });
+
+function rewriteFlags(options: CompileOptions): V13RewriteFlags {
+  return { edgeViews: options.edgeViews === true, roleTokens: options.roleTokens === true };
+}
 
 type TemplateCatalogue = ReadonlyMap<string, CypherTemplate>;
 
 export function compileFunctions(input: CompilerInput, options: CompileOptions = {}): DomainResult<CompiledFunctions> {
   // v1.3: the hexagonal style has its own graph-based templates; every other style takes the path below unchanged.
   if (input.style === HEXAGONAL_STYLE) {
-    return compileHexagonalFunctions(input, (rest) => compileFunctionsCore(rest, options), options.edgeViews === true);
+    return compileHexagonalFunctions(input, (rest) => compileFunctionsCore(rest, options), rewriteFlags(options));
   }
   if (input.style === DDD_STYLE) {
-    return compileDddFunctions(input, (rest) => compileFunctionsCore(rest, options), options.edgeViews === true);
+    return compileDddFunctions(input, (rest) => compileFunctionsCore(rest, options), rewriteFlags(options));
   }
   return compileFunctionsCore(input, options);
 }
@@ -117,11 +130,16 @@ function compileFunctionsCore(input: CompilerInput, options: CompileOptions): Do
     const template = ff.route === 'neuronal' ? undefined : templates.get(ff.name);
     if (template) {
       const applicability = isTemplateApplicable(template, input.style, binding, layerModel);
-      if (!applicability.applicable) {
-        disabledFunctions.push({ id: ff.id, name: ff.name, reason: applicability.reason });
+      // v1.3 (ADR-V13-02 draft): the style-applicability table, after the frozen checks.
+      const v13Reason = applicability.applicable && options.styleApplicability === true
+        ? v13InapplicableReason(template.functionName, input.style)
+        : undefined;
+      const reason = !applicability.applicable ? applicability.reason : v13Reason;
+      if (reason !== undefined) {
+        disabledFunctions.push({ id: ff.id, name: ff.name, reason });
         warnings.push({
           code: 'COMPILER_004',
-          message: `${String(ff.id)} (${ff.name}) disabled: ${applicability.reason}`,
+          message: `${String(ff.id)} (${ff.name}) disabled: ${reason}`,
           functionId: String(ff.id),
         });
         continue;
@@ -130,7 +148,7 @@ function compileFunctionsCore(input: CompilerInput, options: CompileOptions): Do
 
     switch (ff.route) {
       case 'symbolic': {
-        const result = compileSymbolic(ff, layerModel, binding, warnings, instrumentVersion, templates, options.edgeViews === true);
+        const result = compileSymbolic(ff, layerModel, binding, warnings, instrumentVersion, templates, rewriteFlags(options));
         if (result) symbolicQueries.push(result);
         break;
       }
@@ -140,7 +158,7 @@ function compileFunctionsCore(input: CompilerInput, options: CompileOptions): Do
         break;
       }
       case 'hybrid': {
-        const sym = compileSymbolic(ff, layerModel, binding, warnings, instrumentVersion, templates, options.edgeViews === true);
+        const sym = compileSymbolic(ff, layerModel, binding, warnings, instrumentVersion, templates, rewriteFlags(options));
         const neur = compileNeuronal(ff, false);
         if (sym && neur) {
           hybridPairs.push({ functionId: ff.id, symbolicQuery: sym, neuronalInstruction: neur });
@@ -218,7 +236,7 @@ function compileSymbolic(
   warnings: CompilerWarning[],
   instrumentVersion: InstrumentVersion = INSTRUMENT_VERSION,
   templates: TemplateCatalogue = CYPHER_TEMPLATES,
-  edgeViews = false,
+  rewrites: V13RewriteFlags = { edgeViews: false, roleTokens: false },
 ): CypherQuery | undefined {
   const template = templates.get(ff.name);
 
@@ -237,7 +255,7 @@ function compileSymbolic(
   const excludePatterns = [...ff.excludePaths.map((g) => globToRegex(g)), ...roleExemptionPatterns(template.functionName, instrumentVersion)];
   if (excludePatterns.length > 0) params.excludePatterns = excludePatterns;
   const instantiated = instantiateTemplate(template, params);
-  const cypher = edgeViews ? applyEdgeView(template.functionName, instantiated) : instantiated;
+  const cypher = applyV13Rewrites(template.functionName, instantiated, rewrites);
 
   return {
     functionId: ff.id,
