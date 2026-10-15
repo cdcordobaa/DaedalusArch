@@ -1,0 +1,210 @@
+{
+ "id": "claude-opus-5-5_task-management_minimal-prose_run-0",
+ "projectId": "claude-opus-5-5/task-management/minimal-prose/run-0",
+ "model": "claude-opus-5-5",
+ "task": "task-management",
+ "level": "minimal-prose",
+ "run": "run-0",
+ "files": 34,
+ "ise": {
+  "style": "clean-architecture",
+  "confidence": 1,
+  "points": 9,
+  "totalPoints": 9,
+  "runnerUp": null,
+  "evidence": [
+   "+3 top-level domain + application + infrastructure directories",
+   "+1 top-level core/domain directory",
+   "+1 top-level application/use-case directory",
+   "+1 top-level infrastructure directory",
+   "+1 use-case directory",
+   "+2 dependency inversion: 4/4 cross-unit implements point inward, one outer ring"
+  ],
+  "ranked": [
+   {
+    "style": "clean-architecture",
+    "points": 9,
+    "confidence": 1
+   },
+   {
+    "style": "layered",
+    "points": 0,
+    "confidence": 0
+   },
+   {
+    "style": "hexagonal",
+    "points": 0,
+    "confidence": 0
+   },
+   {
+    "style": "nestjs",
+    "points": 0,
+    "confidence": 0
+   },
+   {
+    "style": "ddd",
+    "points": 0,
+    "confidence": 0
+   }
+  ],
+  "abstains": false,
+  "abstainReasons": [],
+  "styleMatch": true,
+  "units": [
+   {
+    "unit": "src/application/",
+    "layer": "application",
+    "source": "preset-glob",
+    "confidence": 0.9
+   },
+   {
+    "unit": "src/domain/",
+    "layer": "domain",
+    "source": "preset-glob",
+    "confidence": 0.9
+   },
+   {
+    "unit": "src/infrastructure/",
+    "layer": "infrastructure",
+    "source": "preset-glob",
+    "confidence": 0.9
+   }
+  ],
+  "structureOnlyUnits": 0,
+  "unlayeredFiles": 0,
+  "layers": [
+   {
+    "name": "domain",
+    "directories": [
+     "src/domain/**"
+    ],
+    "filePatterns": []
+   },
+   {
+    "name": "application",
+    "directories": [
+     "src/application/**"
+    ],
+    "filePatterns": []
+   },
+   {
+    "name": "infrastructure",
+    "directories": [
+     "src/infrastructure/**"
+    ],
+    "filePatterns": []
+   }
+  ],
+  "specValid": true,
+  "specErrors": [],
+  "majorityVoteRules": 15
+ },
+ "extrinsic": {
+  "label": "given",
+  "style": "clean-architecture",
+  "verdict": "pass",
+  "blockingAhs": 1,
+  "layeredFiles": 34,
+  "checkedSites": 96,
+  "violatedSites": [],
+  "violatedInChecked": 0,
+  "siteRatio": 1,
+  "blockingFindings": 0,
+  "advisoryFindings": 36,
+  "blockingByRule": {},
+  "advisoryByRule": {
+   "FF-C02": 1,
+   "FF-C03": 3,
+   "FF-CV05": 31,
+   "FF-P02": 1
+  },
+  "blockingPerFile": {},
+  "advisoryPerFile": {
+   "src/application/use-cases/AssignTaskUseCase.ts": 2,
+   "src/application/use-cases/CompleteTaskUseCase.ts": 1,
+   "src/application/use-cases/CreateProjectUseCase.ts": 1,
+   "src/application/use-cases/CreateTaskUseCase.ts": 2,
+   "src/application/use-cases/CreateUserUseCase.ts": 1,
+   "src/application/use-cases/ListProjectTasksUseCase.ts": 1,
+   "src/domain/entities/Project.ts": 1,
+   "src/domain/entities/Task.ts": 1,
+   "src/domain/entities/User.ts": 1,
+   "src/domain/errors/DomainError.ts": 1,
+   "src/domain/repositories/ProjectRepository.ts": 1,
+   "src/domain/repositories/TaskRepository.ts": 1,
+   "src/domain/repositories/UserRepository.ts": 1,
+   "src/domain/services/IdGenerator.ts": 1,
+   "src/domain/services/TaskAssignmentService.ts": 1,
+   "src/domain/value-objects/DueDate.ts": 1,
+   "src/domain/value-objects/TaskStatus.ts": 1,
+   "src/domain/value-objects/TaskTitle.ts": 1,
+   "src/infrastructure/composition/buildControllers.ts": 3,
+   "src/infrastructure/controllers/ProjectController.ts": 1,
+   "src/infrastructure/controllers/TaskController.ts": 1,
+   "src/infrastructure/controllers/UserController.ts": 1,
+   "src/infrastructure/http/RequestParser.ts": 1,
+   "src/infrastructure/http/createApp.ts": 1,
+   "src/infrastructure/middleware/errorHandler.ts": 1,
+   "src/infrastructure/middleware/notFoundHandler.ts": 1,
+   "src/infrastructure/repositories/InMemoryProjectRepository.ts": 1,
+   "src/infrastructure/repositories/InMemoryTaskRepository.ts": 1,
+   "src/infrastructure/repositories/InMemoryUserRepository.ts": 1,
+   "src/infrastructure/server.ts": 2,
+   "src/infrastructure/services/UuidIdGenerator.ts": 1
+  }
+ },
+ "intrinsic": {
+  "label": "inferred",
+  "style": "clean-architecture",
+  "verdict": "pass",
+  "blockingAhs": 1,
+  "layeredFiles": 34,
+  "checkedSites": 96,
+  "violatedSites": [],
+  "violatedInChecked": 0,
+  "siteRatio": 1,
+  "blockingFindings": 0,
+  "advisoryFindings": 36,
+  "blockingByRule": {},
+  "advisoryByRule": {
+   "FF-C02": 1,
+   "FF-C03": 3,
+   "FF-CV05": 31,
+   "FF-P02": 1
+  },
+  "blockingPerFile": {},
+  "advisoryPerFile": {
+   "src/application/use-cases/AssignTaskUseCase.ts": 2,
+   "src/application/use-cases/CompleteTaskUseCase.ts": 1,
+   "src/application/use-cases/CreateProjectUseCase.ts": 1,
+   "src/application/use-cases/CreateTaskUseCase.ts": 2,
+   "src/application/use-cases/CreateUserUseCase.ts": 1,
+   "src/application/use-cases/ListProjectTasksUseCase.ts": 1,
+   "src/domain/entities/Project.ts": 1,
+   "src/domain/entities/Task.ts": 1,
+   "src/domain/entities/User.ts": 1,
+   "src/domain/errors/DomainError.ts": 1,
+   "src/domain/repositories/ProjectRepository.ts": 1,
+   "src/domain/repositories/TaskRepository.ts": 1,
+   "src/domain/repositories/UserRepository.ts": 1,
+   "src/domain/services/IdGenerator.ts": 1,
+   "src/domain/services/TaskAssignmentService.ts": 1,
+   "src/domain/value-objects/DueDate.ts": 1,
+   "src/domain/value-objects/TaskStatus.ts": 1,
+   "src/domain/value-objects/TaskTitle.ts": 1,
+   "src/infrastructure/composition/buildControllers.ts": 3,
+   "src/infrastructure/controllers/ProjectController.ts": 1,
+   "src/infrastructure/controllers/TaskController.ts": 1,
+   "src/infrastructure/controllers/UserController.ts": 1,
+   "src/infrastructure/http/RequestParser.ts": 1,
+   "src/infrastructure/http/createApp.ts": 1,
+   "src/infrastructure/middleware/errorHandler.ts": 1,
+   "src/infrastructure/middleware/notFoundHandler.ts": 1,
+   "src/infrastructure/repositories/InMemoryProjectRepository.ts": 1,
+   "src/infrastructure/repositories/InMemoryTaskRepository.ts": 1,
+   "src/infrastructure/repositories/InMemoryUserRepository.ts": 1,
+   "src/infrastructure/server.ts": 2,
+   "src/infrastructure/services/UuidIdGenerator.ts": 1
+  }
+ }
+}

@@ -1,0 +1,231 @@
+{
+ "id": "claude-opus-5-5_order-fulfilment_full-aac_run-1",
+ "projectId": "claude-opus-5-5/order-fulfilment/full-aac/run-1",
+ "model": "claude-opus-5-5",
+ "task": "order-fulfilment",
+ "level": "full-aac",
+ "run": "run-1",
+ "files": 46,
+ "ise": {
+  "style": "clean-architecture",
+  "confidence": 1,
+  "points": 8,
+  "totalPoints": 8,
+  "runnerUp": null,
+  "evidence": [
+   "+3 top-level domain + application + infrastructure directories",
+   "+1 top-level core/domain directory",
+   "+1 top-level application/use-case directory",
+   "+1 top-level infrastructure directory",
+   "+2 dependency inversion: 4/4 cross-unit implements point inward, one outer ring"
+  ],
+  "ranked": [
+   {
+    "style": "clean-architecture",
+    "points": 8,
+    "confidence": 1
+   },
+   {
+    "style": "layered",
+    "points": 0,
+    "confidence": 0
+   },
+   {
+    "style": "hexagonal",
+    "points": 0,
+    "confidence": 0
+   },
+   {
+    "style": "nestjs",
+    "points": 0,
+    "confidence": 0
+   },
+   {
+    "style": "ddd",
+    "points": 0,
+    "confidence": 0
+   }
+  ],
+  "abstains": false,
+  "abstainReasons": [],
+  "styleMatch": true,
+  "units": [
+   {
+    "unit": "src/application/",
+    "layer": "application",
+    "source": "preset-glob",
+    "confidence": 0.9
+   },
+   {
+    "unit": "src/domain/",
+    "layer": "domain",
+    "source": "preset-glob",
+    "confidence": 0.9
+   },
+   {
+    "unit": "src/infrastructure/",
+    "layer": "infrastructure",
+    "source": "preset-glob",
+    "confidence": 0.9
+   }
+  ],
+  "structureOnlyUnits": 0,
+  "unlayeredFiles": 0,
+  "layers": [
+   {
+    "name": "domain",
+    "directories": [
+     "src/domain/**"
+    ],
+    "filePatterns": []
+   },
+   {
+    "name": "application",
+    "directories": [
+     "src/application/**"
+    ],
+    "filePatterns": []
+   },
+   {
+    "name": "infrastructure",
+    "directories": [
+     "src/infrastructure/**"
+    ],
+    "filePatterns": []
+   }
+  ],
+  "specValid": true,
+  "specErrors": [],
+  "majorityVoteRules": 15
+ },
+ "extrinsic": {
+  "label": "given",
+  "style": "clean-architecture",
+  "verdict": "pass",
+  "blockingAhs": 1,
+  "layeredFiles": 46,
+  "checkedSites": 133,
+  "violatedSites": [],
+  "violatedInChecked": 0,
+  "siteRatio": 1,
+  "blockingFindings": 0,
+  "advisoryFindings": 50,
+  "blockingByRule": {},
+  "advisoryByRule": {
+   "FF-C03": 6,
+   "FF-CV05": 44
+  },
+  "blockingPerFile": {},
+  "advisoryPerFile": {
+   "src/application/catalogue/AddProductUseCase.ts": 2,
+   "src/application/catalogue/CatalogueModule.ts": 1,
+   "src/application/catalogue/ListCatalogueUseCase.ts": 1,
+   "src/application/catalogue/ListStockLevelsUseCase.ts": 1,
+   "src/application/catalogue/ProductDtos.ts": 1,
+   "src/application/catalogue/ProductMapper.ts": 1,
+   "src/application/catalogue/productCommandParsers.ts": 1,
+   "src/application/errors/ApplicationError.ts": 1,
+   "src/application/errors/errorClassification.ts": 1,
+   "src/application/orders/ChangeOrderStatusUseCase.ts": 2,
+   "src/application/orders/GetOrderUseCase.ts": 1,
+   "src/application/orders/ListOrdersUseCase.ts": 2,
+   "src/application/orders/OrderDtos.ts": 1,
+   "src/application/orders/OrderMapper.ts": 1,
+   "src/application/orders/OrderModule.ts": 1,
+   "src/application/orders/PlaceOrderUseCase.ts": 2,
+   "src/application/orders/lookups.ts": 1,
+   "src/application/orders/orderCommandParsers.ts": 1,
+   "src/application/ports/Clock.ts": 1,
+   "src/application/ports/IdGenerator.ts": 1,
+   "src/application/validation/inputGuards.ts": 1,
+   "src/domain/entities/Order.ts": 1,
+   "src/domain/entities/Product.ts": 1,
+   "src/domain/errors/DomainError.ts": 1,
+   "src/domain/repositories/OrderRepository.ts": 1,
+   "src/domain/repositories/ProductRepository.ts": 1,
+   "src/domain/services/StockAllocationService.ts": 1,
+   "src/domain/shared/guards.ts": 1,
+   "src/domain/value-objects/OrderLine.ts": 1,
+   "src/domain/value-objects/OrderStatus.ts": 1,
+   "src/domain/value-objects/Quantity.ts": 1,
+   "src/infrastructure/config/catalogueSeed.ts": 1,
+   "src/infrastructure/config/container.ts": 2,
+   "src/infrastructure/config/environment.ts": 1,
+   "src/infrastructure/http/controllers/CatalogueController.ts": 1,
+   "src/infrastructure/http/controllers/OrderController.ts": 1,
+   "src/infrastructure/http/createHttpApp.ts": 2,
+   "src/infrastructure/http/middleware/errorHandler.ts": 1,
+   "src/infrastructure/http/middleware/staffAuth.ts": 1,
+   "src/infrastructure/http/routes.ts": 1,
+   "src/infrastructure/persistence/InMemoryOrderRepository.ts": 1,
+   "src/infrastructure/persistence/InMemoryProductRepository.ts": 1,
+   "src/infrastructure/system/RandomIdGenerator.ts": 1,
+   "src/infrastructure/system/SystemClock.ts": 1
+  }
+ },
+ "intrinsic": {
+  "label": "inferred",
+  "style": "clean-architecture",
+  "verdict": "pass",
+  "blockingAhs": 1,
+  "layeredFiles": 46,
+  "checkedSites": 133,
+  "violatedSites": [],
+  "violatedInChecked": 0,
+  "siteRatio": 1,
+  "blockingFindings": 0,
+  "advisoryFindings": 50,
+  "blockingByRule": {},
+  "advisoryByRule": {
+   "FF-C03": 6,
+   "FF-CV05": 44
+  },
+  "blockingPerFile": {},
+  "advisoryPerFile": {
+   "src/application/catalogue/AddProductUseCase.ts": 2,
+   "src/application/catalogue/CatalogueModule.ts": 1,
+   "src/application/catalogue/ListCatalogueUseCase.ts": 1,
+   "src/application/catalogue/ListStockLevelsUseCase.ts": 1,
+   "src/application/catalogue/ProductDtos.ts": 1,
+   "src/application/catalogue/ProductMapper.ts": 1,
+   "src/application/catalogue/productCommandParsers.ts": 1,
+   "src/application/errors/ApplicationError.ts": 1,
+   "src/application/errors/errorClassification.ts": 1,
+   "src/application/orders/ChangeOrderStatusUseCase.ts": 2,
+   "src/application/orders/GetOrderUseCase.ts": 1,
+   "src/application/orders/ListOrdersUseCase.ts": 2,
+   "src/application/orders/OrderDtos.ts": 1,
+   "src/application/orders/OrderMapper.ts": 1,
+   "src/application/orders/OrderModule.ts": 1,
+   "src/application/orders/PlaceOrderUseCase.ts": 2,
+   "src/application/orders/lookups.ts": 1,
+   "src/application/orders/orderCommandParsers.ts": 1,
+   "src/application/ports/Clock.ts": 1,
+   "src/application/ports/IdGenerator.ts": 1,
+   "src/application/validation/inputGuards.ts": 1,
+   "src/domain/entities/Order.ts": 1,
+   "src/domain/entities/Product.ts": 1,
+   "src/domain/errors/DomainError.ts": 1,
+   "src/domain/repositories/OrderRepository.ts": 1,
+   "src/domain/repositories/ProductRepository.ts": 1,
+   "src/domain/services/StockAllocationService.ts": 1,
+   "src/domain/shared/guards.ts": 1,
+   "src/domain/value-objects/OrderLine.ts": 1,
+   "src/domain/value-objects/OrderStatus.ts": 1,
+   "src/domain/value-objects/Quantity.ts": 1,
+   "src/infrastructure/config/catalogueSeed.ts": 1,
+   "src/infrastructure/config/container.ts": 2,
+   "src/infrastructure/config/environment.ts": 1,
+   "src/infrastructure/http/controllers/CatalogueController.ts": 1,
+   "src/infrastructure/http/controllers/OrderController.ts": 1,
+   "src/infrastructure/http/createHttpApp.ts": 2,
+   "src/infrastructure/http/middleware/errorHandler.ts": 1,
+   "src/infrastructure/http/middleware/staffAuth.ts": 1,
+   "src/infrastructure/http/routes.ts": 1,
+   "src/infrastructure/persistence/InMemoryOrderRepository.ts": 1,
+   "src/infrastructure/persistence/InMemoryProductRepository.ts": 1,
+   "src/infrastructure/system/RandomIdGenerator.ts": 1,
+   "src/infrastructure/system/SystemClock.ts": 1
+  }
+ }
+}
