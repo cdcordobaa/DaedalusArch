@@ -1558,3 +1558,11 @@ Plan checkboxes ticked. Auto-approved under standing approval; no blocking or ma
 **Context**: v1.3 overnight; wave 2 (merges, the dev-set re-run with member facts, E1/SO4 re-run, U-F labelling, then the hold-out freeze decision) follows as wave 1 lands.
 
 ---
+
+## ISE — author starts exploratory testing now (scope change: pulled forward from a later cycle)
+**Timestamp**: 2026-10-15T17:12:00Z
+**User Input**: "Now that we have the capacity, can we start some testing on the ESA? ... the capability of building the rules based on the graph itself" (Intent: begin ISE, inferring the spec from the APG, now, using spare capacity.)
+**AI Response**: "Cloud routine trig_017XkPGDWCqp4brThyUVyEfo, branch v1.3-ise: a style classifier, a layer-mapping inferrer and a spec emitter (thesis §16 Option 2), with Option 1 (majority vote) and Option 3 (deviation clustering) as comparators. Anti-leakage: the inferrer sees only src/ and the in-memory APG, enforced by a test. Ground truth = the 71-case dev reference set (true specs and expected graphs); the sealed hold-out is NOT used. Metrics: style accuracy, per-file layer accuracy, glob equivalence, downstream finding agreement and planted-violation recall under the inferred spec (needs Neo4j; local run later), plus a renamed-directory robustness probe. Exploratory, not pre-registered."
+**Context**: ISE exploratory track inside the v1.3 overnight push.
+
+---
