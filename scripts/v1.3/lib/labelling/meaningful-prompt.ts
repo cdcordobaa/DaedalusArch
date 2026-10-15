@@ -12,6 +12,7 @@ import * as path from 'node:path';
 import type { Finding } from './findings.js';
 import { createRng } from '../../../lib/stats.js';
 import { derivedSeed } from './sampler.js';
+import { stripComments } from './excerpt-scrub.js';
 
 export const MEANINGFUL_OPTIONS = ['yes', 'no', 'uncertain'] as const;
 export type MeaningfulLabel = (typeof MEANINGFUL_OPTIONS)[number];
@@ -68,9 +69,12 @@ export function loadStyleSources(repoRoot: string): string {
   return fs.readFileSync(path.join(repoRoot, STYLE_SOURCES_DOC), 'utf8');
 }
 
-/** Numbered source lines around `line` (the first 31 lines when the line is unknown). */
+/**
+ * Numbered source lines around `line` (the first 31 lines when the line is unknown), with every comment removed
+ * (`stripComments`): fixture comments can state the answer. Line numbers are those of the original file.
+ */
 export function excerpt(content: string, line: number | undefined, window = EXCERPT_WINDOW): string {
-  const lines = content.replace(/\r\n/g, '\n').split('\n');
+  const lines = stripComments(content).split('\n');
   const from = line === undefined ? 1 : Math.max(1, line - window);
   const to = Math.min(lines.length, line === undefined ? 1 + 2 * window : line + window);
   const out: string[] = [];
