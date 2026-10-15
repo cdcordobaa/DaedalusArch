@@ -103,7 +103,7 @@ export async function eligibleSites(repoRoot: string, base: SeedBase, op: Mutati
   const ctx = await contextOf(repoRoot, base, handle);
   const candidates = sortSites(op.findSites(handle, compiled.data.spec));
   const tally = evaluatePreconditions(op, handle, compiled.data.spec, candidates, ctx);
-  return { candidates: candidates.length, eligible: tally.eligible.map((e) => e.site), rejected: { ...tally.rejectedByReason } as Record<string, number> };
+  return { candidates: candidates.length, eligible: tally.eligible.map((e) => e.site), rejected: { ...tally.rejectedByReason } };
 }
 
 /** `tsc` defaults to the repository's tsc (round 1); round 2 passes the E1 skeleton's pinned tsc for E1 cells. */

@@ -155,12 +155,12 @@ function getValidators(repoRoot: string): Validators {
   return validators;
 }
 
-function check<T>(validate: ValidateFunction, value: unknown, label: string): T {
+function check(validate: ValidateFunction, value: unknown, label: string): unknown {
   if (!validate(value)) {
     const detail = (validate.errors ?? []).map((e) => `${e.instancePath || '/'} ${e.message ?? ''}`).join('; ');
     throw new Error(`${label}: schema violation: ${detail}`);
   }
-  return value as T;
+  return value;
 }
 
 function readJson(file: string): unknown {
@@ -168,15 +168,15 @@ function readJson(file: string): unknown {
 }
 
 export function validateVariantManifest(repoRoot: string, value: unknown, label = 'expected-findings.json'): VariantManifest {
-  return check<VariantManifest>(getValidators(repoRoot).findings, value, label);
+  return check(getValidators(repoRoot).findings, value, label) as VariantManifest;
 }
 
 export function validateReferenceDescriptor(repoRoot: string, value: unknown, label = 'reference.json'): ReferenceDescriptor {
-  return check<ReferenceDescriptor>(getValidators(repoRoot).reference, value, label);
+  return check(getValidators(repoRoot).reference, value, label) as ReferenceDescriptor;
 }
 
 export function validateExpectedGraph(repoRoot: string, value: unknown, label = 'expected-graph.json'): ExpectedGraph {
-  return check<ExpectedGraph>(getValidators(repoRoot).graph, value, label);
+  return check(getValidators(repoRoot).graph, value, label) as ExpectedGraph;
 }
 
 /** The scope rules with `blockingCandidate` and `tier` taken from the v1.3 tiers under `style`. */
@@ -259,7 +259,7 @@ const SEVERITIES = new Set(['critical', 'major', 'minor', 'advisory']);
 /** The overlay format (U-C1) read into the common model. Nothing on disk is rewritten. */
 function loadOverlayReference(repoRoot: string, style: ReferenceStyle, dir: string): LoadedReference {
   const v = getValidators(repoRoot);
-  const graphJson = check<DddGraphJson>(v.dddGraph, readJson(path.join(dir, 'expected-graph.json')), `${style}/expected-graph.json`);
+  const graphJson = check(v.dddGraph, readJson(path.join(dir, 'expected-graph.json')), `${style}/expected-graph.json`) as DddGraphJson;
   const specRel = graphJson.spec;
   const specPath = path.resolve(repoRoot, specRel);
   const preset = YAML.parse(fs.readFileSync(specPath, 'utf8')) as {
@@ -276,7 +276,7 @@ function loadOverlayReference(repoRoot: string, style: ReferenceStyle, dir: stri
     ruleId: f.rule, ruleName: f.name, file: f.file, reason: f.reason, ...(f.target !== undefined ? { target: f.target } : {}),
   });
   const readFindings = (file: string, id: string): DddFindingsJson => {
-    const m = check<DddFindingsJson>(v.dddFindings, readJson(file), `${style}/${id}/expected-findings.json`);
+    const m = check(v.dddFindings, readJson(file), `${style}/${id}/expected-findings.json`) as DddFindingsJson;
     if (m.variant !== id) throw new Error(`${style}/${id}: manifest names variant ${m.variant}`);
     if (m.spec !== specRel) throw new Error(`${style}/${id}: manifest names spec ${m.spec}, expected-graph.json ${specRel}`);
     return m;
@@ -293,7 +293,7 @@ function loadOverlayReference(repoRoot: string, style: ReferenceStyle, dir: stri
   }];
   for (const id of fs.readdirSync(path.join(dir, 'variants')).sort()) {
     const vdir = path.join(dir, 'variants', id);
-    const meta = check<DddVariantJson>(v.dddVariant, readJson(path.join(vdir, 'variant.json')), `${style}/${id}/variant.json`);
+    const meta = check(v.dddVariant, readJson(path.join(vdir, 'variant.json')), `${style}/${id}/variant.json`) as DddVariantJson;
     if (meta.id !== id) throw new Error(`${style}/${id}: variant.json names variant ${meta.id}`);
     const findings = readFindings(path.join(vdir, 'expected-findings.json'), id);
     variants.push({

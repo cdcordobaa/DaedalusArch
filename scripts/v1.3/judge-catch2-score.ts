@@ -24,6 +24,7 @@ import { PROBED_FUNCTION } from './judge-catch-run.js';
 import type { Target } from './judge-catch-run.js';
 import { CONSTRUCT, rate } from './judge-catch-score.js';
 import type { Round2Row } from './judge-catch2-seed.js';
+import { must } from './lib/must.js';
 
 interface Entry {
   readonly functionId: string;
@@ -41,8 +42,8 @@ interface Report {
 
 type Scored = Record<string, unknown>;
 
-function readJson<T>(file: string): T {
-  return JSON.parse(fs.readFileSync(file, 'utf8')) as T;
+function readJson(file: string): unknown {
+  return JSON.parse(fs.readFileSync(file, 'utf8')) as unknown;
 }
 
 const safe = (id: string): string => id.replace(/[/:]/g, '__');
@@ -54,7 +55,7 @@ function allEntries(dir: string): Entry[] {
   for (const sub of fs.readdirSync(dir)) {
     const p = path.join(dir, sub);
     if (sub === '_incomplete' || !fs.statSync(p).isDirectory()) continue;
-    for (const f of fs.readdirSync(p).filter((x) => x.endsWith('.json'))) out.push(readJson<Entry>(path.join(p, f)));
+    for (const f of fs.readdirSync(p).filter((x) => x.endsWith('.json'))) out.push(readJson(path.join(p, f)) as Entry);
   }
   return out.sort((a, b) => (a.recordedAt < b.recordedAt ? -1 : 1));
 }
@@ -71,23 +72,29 @@ function block(seeds: readonly Scored[], twins: readonly Scored[]): Record<strin
     constructFlagAnyRun: rate(count(seeds, 'constructFlagAnyRun'), seeds.length),
     twinFalseFail: rate(count(twins, 'unitFail'), twins.length),
     twinFalseFailPaired: rate(count(twins, 'pairedFail'), twins.length),
-    twinFalseFailWithFlag: rate(twins.filter((x) => x['unitFail'] === true || x['constructFlagMajority'] === true).length, twins.length),
+    twinFalseFailWithFlag: rate(twins.filter((x) => x.unitFail === true || x.constructFlagMajority === true).length, twins.length),
     symbolicS2: rate(count(seeds, 'symbolicS2'), seeds.length),
   };
+}
+
+/** A CSV cell: '' for null and undefined, the primitive's text, else its JSON. */
+function cell(x: unknown): string {
+  if (x === null || x === undefined) return '';
+  return typeof x === 'string' || typeof x === 'number' || typeof x === 'boolean' ? String(x) : JSON.stringify(x);
 }
 
 export function main(argv: readonly string[]): number {
   const argOf = (n: string, d: string): string => {
     const i = argv.indexOf(n);
-    return i >= 0 && argv[i + 1] !== undefined ? (argv[i + 1] as string) : d;
+    return (i >= 0 ? argv[i + 1] : undefined) ?? d;
   };
   const results = path.resolve(argOf('--results', 'results/v1.3-judge-catch/round2'));
   const cas = path.resolve(argOf('--cassettes', 'tests/fixtures/judge-cassettes-v13/judge-catch-round2'));
   const round1 = path.resolve(argOf('--round1', 'results/v1.3-judge-catch'));
-  const { targets, skipped } = readJson<{ targets: Target[]; skipped: { id: string; reason: string }[] }>(path.join(results, 'plan.json'));
-  const manifest = readJson<{ rows: Round2Row[] }>(path.join(results, 'seed-manifest.json'));
+  const { targets, skipped } = readJson(path.join(results, 'plan.json')) as { targets: Target[]; skipped: { id: string; reason: string }[] };
+  const manifest = readJson(path.join(results, 'seed-manifest.json')) as { rows: Round2Row[] };
   const rows = manifest.rows;
-  const ledger = readJson<{ calls: number; runs: { id: string; at: string }[] }>(path.join(results, 'call-ledger.json'));
+  const ledger = readJson(path.join(results, 'call-ledger.json')) as { calls: number; runs: { id: string; at: string }[] };
   const entries = allEntries(cas);
   const entriesOf = new Map<string, Entry[]>();
   let prev = '';
@@ -97,7 +104,7 @@ export function main(argv: readonly string[]): number {
   }
   const reportOf = (id: string): Report | null => {
     const f = path.join(results, 'reports', `${safe(id)}.json`);
-    return fs.existsSync(f) ? readJson<Report>(f) : null;
+    return fs.existsSync(f) ? (readJson(f) as Report) : null;
   };
   const unitVerdict = (rep: Report, fn: string, unit: string): string | null =>
     rep.neuralResults?.find((n) => n.functionId === fn)?.unitResults.find((u) => u.unitId === unit)?.verdict ?? null;
@@ -109,7 +116,7 @@ export function main(argv: readonly string[]): number {
   const expectedRulesOf = (r: Round2Row): string[] => {
     if (r.handPlanted === undefined) return [];
     const f = path.resolve('tests/fixtures/v1.3-reference', r.handPlanted.style, 'variants', r.handPlanted.variant, 'expected-findings.json');
-    return fs.existsSync(f) ? readJson<{ expectedFindings: { ruleId: string }[] }>(f).expectedFindings.map((x) => x.ruleId) : [];
+    return fs.existsSync(f) ? (readJson(f) as { expectedFindings: { ruleId: string }[] }).expectedFindings.map((x) => x.ruleId) : [];
   };
 
   const stratumOfBase = (baseId: string): Round2Row['stratum'] => (baseId.startsWith('e1/') ? 'operator' : 'hand-planted');
@@ -154,10 +161,10 @@ export function main(argv: readonly string[]): number {
     });
   }
 
-  const judged = scored.filter((r) => r['judged'] === true);
+  const judged = scored.filter((r) => r.judged === true);
   const positives = Object.keys(PROBED_FUNCTION);
   const sel = (stratum: string | null, pos: string | null, role: string): Scored[] =>
-    judged.filter((r) => (stratum === null || r['stratum'] === stratum) && (pos === null || r['positiveId'] === pos) && r['role'] === role);
+    judged.filter((r) => (stratum === null || r.stratum === stratum) && (pos === null || r.positiveId === pos) && r.role === role);
   const strata = ['operator', 'hand-planted', null] as const;
   const perOperator = positives.map((pos) => ({
     positive: pos,
@@ -184,12 +191,13 @@ export function main(argv: readonly string[]): number {
   let rounds12: Record<string, unknown> | null = null;
   const r1File = path.join(round1, 'scores.json');
   if (fs.existsSync(r1File)) {
-    const r1 = readJson<{ rows: Scored[] }>(r1File).rows.filter((r) => r['judged'] === true && r['role'] === 'seed');
+    const r1 = (readJson(r1File) as { rows: Scored[] }).rows.filter((r) => r.judged === true && r.role === 'seed');
     const r2 = sel('operator', null, 'seed');
-    rounds12 = Object.fromEntries([...positives.map((pos) => {
-      const xs = [...r1.filter((r) => r['positiveId'] === pos), ...r2.filter((r) => r['positiveId'] === pos)];
+    const entries: [string, ReturnType<typeof rate>][] = [...positives.map((pos): [string, ReturnType<typeof rate>] => {
+      const xs = [...r1.filter((r) => r.positiveId === pos), ...r2.filter((r) => r.positiveId === pos)];
       return [pos, rate(count(xs, 'catch'), xs.length)];
-    }), ['pooled', rate(count([...r1, ...r2], 'catch'), r1.length + r2.length)]]);
+    }), ['pooled', rate(count([...r1, ...r2], 'catch'), r1.length + r2.length)]];
+    rounds12 = Object.fromEntries(entries);
   }
 
   const scores = {
@@ -198,20 +206,20 @@ export function main(argv: readonly string[]): number {
   };
   fs.writeFileSync(path.join(results, 'scores.json'), `${JSON.stringify(scores, null, 2)}\n`);
   const csv = ['rowId,stratum,operatorId,positiveId,role,baseId,twinOf,judged,unitFail,constructFlagMajority,catch,pairedCatch,symbolicS1,symbolicS2,blockingVerdict'];
-  for (const r of scored) csv.push([r['rowId'], r['stratum'], r['operatorId'], r['positiveId'], r['role'], r['baseId'], r['twinOf'], r['judged'], r['unitFail'], r['constructFlagMajority'], r['catch'], r['pairedCatch'], r['symbolicS1'], r['symbolicS2'], r['blockingVerdict']].map((x) => String(x ?? '')).join(','));
+  for (const r of scored) csv.push([r.rowId, r.stratum, r.operatorId, r.positiveId, r.role, r.baseId, r.twinOf, r.judged, r.unitFail, r.constructFlagMajority, r.catch, r.pairedCatch, r.symbolicS1, r.symbolicS2, r.blockingVerdict].map(cell).join(','));
   fs.writeFileSync(path.join(results, 'rows.csv'), `${csv.join('\n')}\n`);
   const txt = (b: Record<string, unknown>, k: string): string => (b[k] as { text: string }).text;
   const out = ['| Operator | Stratum | Seeds | Catch | Unit fail only | Paired catch | Twins | Twin false fail |', '|---|---|---|---|---|---|---|---|'];
   for (const p of perOperator) {
     for (const s of ['operator', 'hand-planted', 'combined']) {
       const b = (p as Record<string, unknown>)[s] as Record<string, unknown>;
-      if (b['seeds'] === 0 && b['twins'] === 0) continue;
-      out.push(`| ${p.positive} | ${s} | ${String(b['seeds'])} | ${txt(b, 'catch')} | ${txt(b, 'unitFailOnly')} | ${txt(b, 'pairedCatch')} | ${String(b['twins'])} | ${txt(b, 'twinFalseFail')} |`);
+      if (b.seeds === 0 && b.twins === 0) continue;
+      out.push(`| ${p.positive} | ${s} | ${String(b.seeds)} | ${txt(b, 'catch')} | ${txt(b, 'unitFailOnly')} | ${txt(b, 'pairedCatch')} | ${String(b.twins)} | ${txt(b, 'twinFalseFail')} |`);
     }
   }
   for (const s of ['operator', 'hand-planted', 'combined']) {
-    const b = pooled[s] as Record<string, unknown>;
-    out.push(`| pooled | ${s} | ${String(b['seeds'])} | ${txt(b, 'catch')} | ${txt(b, 'unitFailOnly')} | ${txt(b, 'pairedCatch')} | ${String(b['twins'])} | ${txt(b, 'twinFalseFail')} |`);
+    const b = must(pooled[s], `pooled stratum ${s}`);
+    out.push(`| pooled | ${s} | ${String(b.seeds)} | ${txt(b, 'catch')} | ${txt(b, 'unitFailOnly')} | ${txt(b, 'pairedCatch')} | ${String(b.twins)} | ${txt(b, 'twinFalseFail')} |`);
   }
   for (const s of ['operator', 'hand-planted', 'combined'] as const) out.push(`clean ${s}: units ${(clean[s].unitFalseFail as { text: string }).text}; bases ${(clean[s].baseFalseFail as { text: string }).text}`);
   if (rounds12 !== null) out.push(`rounds 1+2 operator seeds: ${Object.entries(rounds12).map(([k, v]) => `${k} ${(v as { text: string }).text}`).join('; ')}`);
