@@ -3,7 +3,7 @@ import type { GraphRepository } from '../shared/interfaces/graph-repository.js';
 import type { GraphStats } from '../shared/types/evaluation.js';
 import type { DomainWarning } from '../shared/errors/domain-result.js';
 import { DomainResult } from '../shared/errors/domain-result.js';
-import { NODE_TYPES, EDGE_TYPES, V13_EDGE_TYPES } from '../shared/types/enums.js';
+import { NODE_TYPES, EDGE_TYPES, V13_EDGE_TYPES, APG2_NODE_TYPES, APG2_EDGE_TYPES } from '../shared/types/enums.js';
 import type { NodeType, EdgeType } from '../shared/types/enums.js';
 import type { LayerAnnotation } from './types.js';
 import { WRITE_QUERY_TIMEOUT_MS } from './types.js';
@@ -84,7 +84,8 @@ export async function ingestNodes(
   let totalCreated = 0;
   const warnings: DomainWarning[] = [];
 
-  for (const type of NODE_INGESTION_ORDER) {
+  // The APG v2 node types follow; they occur only when the extractor's `apg2` option is on.
+  for (const type of [...NODE_INGESTION_ORDER, ...APG2_NODE_TYPES]) {
     const typeNodes = nodes.filter((n) => n.type === type);
     if (typeNodes.length === 0) continue;
 
@@ -129,8 +130,9 @@ export async function ingestEdges(
   let totalCreated = 0;
   const warnings: DomainWarning[] = [];
 
-  // The v1.3 module-wiring types follow; they occur only when the extractor's `moduleWiring` option is on.
-  for (const type of [...EDGE_INGESTION_ORDER, ...V13_EDGE_TYPES]) {
+  // The v1.3 module-wiring types follow; they occur only when the extractor's `moduleWiring` option is on. Then the
+  // APG v2 types, which occur only with the `apg2` option.
+  for (const type of [...EDGE_INGESTION_ORDER, ...V13_EDGE_TYPES, ...APG2_EDGE_TYPES]) {
     const typeEdges = edges.filter((e) => e.type === type);
     if (typeEdges.length === 0) continue;
 
