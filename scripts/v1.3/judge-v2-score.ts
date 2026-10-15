@@ -106,8 +106,13 @@ export function main(argv: readonly string[]): number {
   const override = arg(argv, '--v1-override', '');
   const out = arg(argv, '--out', '');
   const split = readSplit(path.join(RESULTS, 'split.json'));
-  const items = split.items.filter((i) => i.split === splitName);
   const v2 = new Map(readJson<{ verdicts: ItemVerdict[] }>(path.join(RESULTS, label, 'verdicts.json')).verdicts.map((v) => [v.itemId, v]));
+  // --judged-only: an incomplete run (usage limit) is scored on the items it judged fully, for v1 and v2 alike.
+  const judgedOnly = argv.includes('--judged-only');
+  const expectRuns = mode === 'majority' ? 3 : 1;
+  const all = split.items.filter((i) => i.split === splitName);
+  const items = judgedOnly ? all.filter((i) => (v2.get(i.itemId)?.runs.length ?? 0) >= expectRuns) : all;
+  if (judgedOnly) process.stdout.write(`judged-only: ${String(items.length)} of ${String(all.length)} ${splitName} items have ${String(expectRuns)} v2 run(s)\n`);
   const ov = override === '' ? new Map<string, ItemVerdict>() : new Map(readJson<{ verdicts: ItemVerdict[] }>(path.join(RESULTS, override, 'verdicts.json')).verdicts.map((v) => [v.itemId, v]));
   // v1 is always its recorded majority of 3 (the round reports carry no per-run verdicts); an override is majority too.
   const v1 = (i: SplitItem): V => (ov.has(i.itemId) ? v2VerdictOf(ov.get(i.itemId), 'majority') : v1Verdict(i, 'majority'));
