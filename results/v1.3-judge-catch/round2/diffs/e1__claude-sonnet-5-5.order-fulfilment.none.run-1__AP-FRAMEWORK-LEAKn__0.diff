@@ -1,0 +1,21 @@
+diff -ruN -x node_modules a/src/application/order-service.ts b/src/application/order-service.ts
+--- a/src/application/order-service.ts	2026-10-15 12:42:23
++++ b/src/application/order-service.ts	2026-10-15 12:42:17
+@@ -68,7 +68,7 @@
+     return order;
+   }
+ 
+-  listOrders(status?: string): Order[] {
++  listOrders(status?: string, context?: ListOrdersContextDto): Order[] {
+     if (status !== undefined && !isOrderStatus(status)) {
+       throw new DomainError("invalid_input", `Unknown state ${status}`);
+     }
+@@ -108,4 +108,8 @@
+     if (!product) throw new DomainError("not_found", `Product ${id} not found`);
+     return product;
+   }
++}
++
++export interface ListOrdersContextDto {
++  readonly requestId?: string;
+ }

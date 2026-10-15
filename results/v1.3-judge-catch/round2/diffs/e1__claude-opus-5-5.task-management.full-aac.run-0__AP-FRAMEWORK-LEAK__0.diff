@@ -1,0 +1,20 @@
+diff -ruN -x node_modules a/src/application/use-cases/ListProjectTasksUseCase.ts b/src/application/use-cases/ListProjectTasksUseCase.ts
+--- a/src/application/use-cases/ListProjectTasksUseCase.ts	2026-10-15 12:42:23
++++ b/src/application/use-cases/ListProjectTasksUseCase.ts	2026-10-15 12:42:11
+@@ -5,6 +5,7 @@
+ import { TaskDto, toTaskDto } from '../dto/TaskDto';
+ import { ListProjectTasksInput } from '../dto/TaskInputs';
+ import { UseCase } from '../ports/UseCase';
++import { Request } from 'express';
+ 
+ export class ListProjectTasksUseCase implements UseCase<ListProjectTasksInput, TaskDto[]> {
+   constructor(
+@@ -12,7 +13,7 @@
+     private readonly tasks: TaskRepository,
+   ) {}
+ 
+-  async execute(input: ListProjectTasksInput): Promise<TaskDto[]> {
++  async execute(input: ListProjectTasksInput, request?: Request): Promise<TaskDto[]> {
+     const project = await this.projects.findById(input.projectId);
+     if (project === undefined) {
+       throw new NotFoundError('Project', input.projectId);

@@ -1,0 +1,20 @@
+diff -ruN -x node_modules a/src/application/AdvanceOrderUseCase.ts b/src/application/AdvanceOrderUseCase.ts
+--- a/src/application/AdvanceOrderUseCase.ts	2026-10-15 12:42:23
++++ b/src/application/AdvanceOrderUseCase.ts	2026-10-15 12:42:11
+@@ -5,6 +5,7 @@
+ import { OrderDto } from './dtos';
+ import { toOrderDto } from './OrderDtoMapper';
+ import { loadOrder } from './OrderLoader';
++import { Request } from 'express';
+ 
+ /** Moves an order one step along placed → paid → packed → shipped → delivered. */
+ export class AdvanceOrderUseCase {
+@@ -14,7 +15,7 @@
+     private readonly clock: Clock,
+   ) {}
+ 
+-  execute(orderId: string, target: OrderStatus): OrderDto {
++  execute(orderId: string, target: OrderStatus, request?: Request): OrderDto {
+     const order = loadOrder(this.orders, orderId);
+     order.advanceTo(target, this.clock.now());
+ 

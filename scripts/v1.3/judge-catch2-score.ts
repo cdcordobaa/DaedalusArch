@@ -160,7 +160,7 @@ export function main(argv: readonly string[]): number {
     judged.filter((r) => (stratum === null || r['stratum'] === stratum) && (pos === null || r['positiveId'] === pos) && r['role'] === role);
   const strata = ['operator', 'hand-planted', null] as const;
   const perOperator = positives.map((pos) => ({
-    operator: pos,
+    positive: pos,
     probedFunction: PROBED_FUNCTION[pos],
     ...Object.fromEntries(strata.map((s) => [s ?? 'combined', block(sel(s, pos, 'seed'), sel(s, pos, 'twin'))])),
   }));
@@ -206,7 +206,7 @@ export function main(argv: readonly string[]): number {
     for (const s of ['operator', 'hand-planted', 'combined']) {
       const b = (p as Record<string, unknown>)[s] as Record<string, unknown>;
       if (b['seeds'] === 0 && b['twins'] === 0) continue;
-      out.push(`| ${p.operator} | ${s} | ${String(b['seeds'])} | ${txt(b, 'catch')} | ${txt(b, 'unitFailOnly')} | ${txt(b, 'pairedCatch')} | ${String(b['twins'])} | ${txt(b, 'twinFalseFail')} |`);
+      out.push(`| ${p.positive} | ${s} | ${String(b['seeds'])} | ${txt(b, 'catch')} | ${txt(b, 'unitFailOnly')} | ${txt(b, 'pairedCatch')} | ${String(b['twins'])} | ${txt(b, 'twinFalseFail')} |`);
     }
   }
   for (const s of ['operator', 'hand-planted', 'combined']) {

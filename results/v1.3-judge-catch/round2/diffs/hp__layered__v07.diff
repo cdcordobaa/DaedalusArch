@@ -1,0 +1,13 @@
+diff -ruN -x node_modules a/src/business/model/Order.ts b/src/business/model/Order.ts
+--- a/src/business/model/Order.ts	2026-10-15 12:42:23
++++ b/src/business/model/Order.ts	2026-10-15 12:42:19
+@@ -1,7 +1,9 @@
++import { Entity } from 'typeorm';
+ import { BusinessError } from '../errors/BusinessError';
+ import { Money } from './Money';
+ import { OrderLine } from './OrderLine';
+ 
++@Entity('orders')
+ export class Order {
+   constructor(
+     readonly id: string,

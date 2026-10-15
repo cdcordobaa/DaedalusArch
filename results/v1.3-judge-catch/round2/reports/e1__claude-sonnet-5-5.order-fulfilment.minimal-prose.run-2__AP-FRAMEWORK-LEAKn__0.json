@@ -1,0 +1,1416 @@
+{
+  "runId": "run-1792087604256",
+  "projectPath": "<work>/copies/e1__claude-sonnet-5-5.order-fulfilment.minimal-prose.run-2__AP-FRAMEWORK-LEAKn__0",
+  "specVersion": "1.0.0",
+  "ahsDeterministic": 0.837,
+  "ahsCombined": 0.846,
+  "ahsNeuronal": 1,
+  "verdict": "pass",
+  "scoring": {
+    "weights": {
+      "structural": 0.35,
+      "coupling": 0.2,
+      "pattern": 0.3,
+      "solid": 0.1,
+      "convention": 0.05,
+      "semantic": 0,
+      "integrity": 0
+    },
+    "fullModeWeights": {
+      "structural": 0.32,
+      "coupling": 0.18,
+      "pattern": 0.27,
+      "solid": 0.1,
+      "convention": 0.05,
+      "semantic": 0.04,
+      "integrity": 0.04
+    },
+    "thresholds": {
+      "pass": 0.8,
+      "warning": 0.65,
+      "softBlock": 0.5
+    },
+    "confidenceThresholds": {
+      "high": 0.85,
+      "medium": 0.6,
+      "iccMinimum": 0.7
+    },
+    "verdictSource": "ahsCombined",
+    "neuralAggregation": "registered"
+  },
+  "perDimensionScores": [
+    {
+      "dimension": "structural",
+      "avr": 0,
+      "violatedWeight": 0,
+      "weight": 0.32,
+      "effectiveWeight": 0.3333333333333333,
+      "violationCount": 0,
+      "functionCount": 3
+    },
+    {
+      "dimension": "coupling",
+      "avr": 0.5,
+      "violatedWeight": 3,
+      "weight": 0.18,
+      "effectiveWeight": 0.18749999999999997,
+      "violationCount": 3,
+      "functionCount": 6
+    },
+    {
+      "dimension": "pattern",
+      "avr": 0.167,
+      "violatedWeight": 1,
+      "weight": 0.27,
+      "effectiveWeight": 0.28125,
+      "violationCount": 1,
+      "functionCount": 6
+    },
+    {
+      "dimension": "solid",
+      "avr": 0,
+      "violatedWeight": 0,
+      "weight": 0.1,
+      "effectiveWeight": 0.10416666666666666,
+      "violationCount": 0,
+      "functionCount": 3
+    },
+    {
+      "dimension": "convention",
+      "avr": 0.25,
+      "violatedWeight": 1,
+      "weight": 0.05,
+      "effectiveWeight": 0.05208333333333333,
+      "violationCount": 1,
+      "functionCount": 4
+    },
+    {
+      "dimension": "semantic",
+      "avr": 0,
+      "violatedWeight": 0,
+      "weight": 0.04,
+      "effectiveWeight": 0.041666666666666664,
+      "violationCount": 0,
+      "functionCount": 1
+    }
+  ],
+  "violations": [
+    {
+      "id": "v-78b4b4ef6c67481e",
+      "type": "DEPENDENCY_INVERSION_VIOLATION",
+      "dimension": "pattern",
+      "severity": "critical",
+      "functionId": "FF-P02",
+      "route": "symbolic",
+      "filePath": "src/application/cancel-order-use-case.ts",
+      "message": "Violation in src/application/cancel-order-use-case.ts",
+      "deterministic": true,
+      "discriminator": [
+        "CancelOrderUseCase"
+      ],
+      "evidence": [
+        "ratio=0.5"
+      ],
+      "tag": "pattern-proxy"
+    },
+    {
+      "id": "v-1f4e95ca58ded8c2",
+      "type": "DEPENDENCY_INVERSION_VIOLATION",
+      "dimension": "pattern",
+      "severity": "critical",
+      "functionId": "FF-P02",
+      "route": "symbolic",
+      "filePath": "src/application/place-order-use-case.ts",
+      "message": "Violation in src/application/place-order-use-case.ts",
+      "deterministic": true,
+      "discriminator": [
+        "PlaceOrderUseCase"
+      ],
+      "evidence": [
+        "ratio=0.6666666666666666"
+      ],
+      "tag": "pattern-proxy"
+    },
+    {
+      "id": "v-21aab46d2506eb89",
+      "type": "FAN_OUT_EXCEEDED",
+      "dimension": "coupling",
+      "severity": "major",
+      "functionId": "FF-C02",
+      "route": "symbolic",
+      "filePath": "src/infrastructure/app-factory.ts",
+      "message": "Violation in src/infrastructure/app-factory.ts",
+      "deterministic": true,
+      "discriminator": [],
+      "evidence": [
+        "fanOut=14"
+      ],
+      "tag": "topological"
+    },
+    {
+      "id": "v-b2d168e0d63de5bf",
+      "type": "INSTABILITY_VIOLATION",
+      "dimension": "coupling",
+      "severity": "major",
+      "functionId": "FF-C03",
+      "route": "symbolic",
+      "filePath": "src/infrastructure/app-factory.ts",
+      "message": "Violation in src/infrastructure/app-factory.ts",
+      "deterministic": true,
+      "discriminator": [],
+      "evidence": [
+        "instability=0.9333333333333333"
+      ],
+      "tag": "topological"
+    },
+    {
+      "id": "v-a6bc4fafd7cda408",
+      "type": "INSTABILITY_VIOLATION",
+      "dimension": "coupling",
+      "severity": "major",
+      "functionId": "FF-C03",
+      "route": "symbolic",
+      "filePath": "src/infrastructure/order-controller.ts",
+      "message": "Violation in src/infrastructure/order-controller.ts",
+      "deterministic": true,
+      "discriminator": [],
+      "evidence": [
+        "instability=0.8333333333333334"
+      ],
+      "tag": "topological"
+    },
+    {
+      "id": "v-81e8ef4f4ea1e28e",
+      "type": "INSTABILITY_VIOLATION",
+      "dimension": "coupling",
+      "severity": "major",
+      "functionId": "FF-C03",
+      "route": "symbolic",
+      "filePath": "src/infrastructure/server.ts",
+      "message": "Violation in src/infrastructure/server.ts",
+      "deterministic": true,
+      "discriminator": [],
+      "evidence": [
+        "instability=1"
+      ],
+      "tag": "topological"
+    },
+    {
+      "id": "v-b0f52043a29b792b",
+      "type": "LOW_ABSTRACTION_RATIO",
+      "dimension": "coupling",
+      "severity": "advisory",
+      "functionId": "FF-C06",
+      "route": "symbolic",
+      "filePath": "<project>",
+      "message": "Abstraction ratio 0.25925925925925924 below threshold",
+      "deterministic": true,
+      "discriminator": [],
+      "evidence": [
+        "ratio=0.25925925925925924"
+      ],
+      "tag": "topological"
+    },
+    {
+      "id": "v-258f7010a5a8b5d4",
+      "type": "MISSING_TEST_FILE",
+      "dimension": "convention",
+      "severity": "advisory",
+      "functionId": "FF-CV05",
+      "route": "symbolic",
+      "filePath": "src/application/advance-order-use-case.ts",
+      "message": "Violation in src/application/advance-order-use-case.ts",
+      "deterministic": true,
+      "discriminator": [],
+      "tag": "pattern-proxy"
+    },
+    {
+      "id": "v-db000be9dd9fbfdf",
+      "type": "MISSING_TEST_FILE",
+      "dimension": "convention",
+      "severity": "advisory",
+      "functionId": "FF-CV05",
+      "route": "symbolic",
+      "filePath": "src/application/cancel-order-use-case.ts",
+      "message": "Violation in src/application/cancel-order-use-case.ts",
+      "deterministic": true,
+      "discriminator": [],
+      "tag": "pattern-proxy"
+    },
+    {
+      "id": "v-33a0cd3e4441133a",
+      "type": "MISSING_TEST_FILE",
+      "dimension": "convention",
+      "severity": "advisory",
+      "functionId": "FF-CV05",
+      "route": "symbolic",
+      "filePath": "src/application/dtos.ts",
+      "message": "Violation in src/application/dtos.ts",
+      "deterministic": true,
+      "discriminator": [],
+      "tag": "pattern-proxy"
+    },
+    {
+      "id": "v-a5ca0c12dc69bc46",
+      "type": "MISSING_TEST_FILE",
+      "dimension": "convention",
+      "severity": "advisory",
+      "functionId": "FF-CV05",
+      "route": "symbolic",
+      "filePath": "src/application/get-order-use-case.ts",
+      "message": "Violation in src/application/get-order-use-case.ts",
+      "deterministic": true,
+      "discriminator": [],
+      "tag": "pattern-proxy"
+    },
+    {
+      "id": "v-7b49cdf60b58457b",
+      "type": "MISSING_TEST_FILE",
+      "dimension": "convention",
+      "severity": "advisory",
+      "functionId": "FF-CV05",
+      "route": "symbolic",
+      "filePath": "src/application/list-orders-by-state-use-case.ts",
+      "message": "Violation in src/application/list-orders-by-state-use-case.ts",
+      "deterministic": true,
+      "discriminator": [],
+      "tag": "pattern-proxy"
+    },
+    {
+      "id": "v-9a375379e0775255",
+      "type": "MISSING_TEST_FILE",
+      "dimension": "convention",
+      "severity": "advisory",
+      "functionId": "FF-CV05",
+      "route": "symbolic",
+      "filePath": "src/application/list-stock-levels-use-case.ts",
+      "message": "Violation in src/application/list-stock-levels-use-case.ts",
+      "deterministic": true,
+      "discriminator": [],
+      "tag": "pattern-proxy"
+    },
+    {
+      "id": "v-ac065dc74730e97f",
+      "type": "MISSING_TEST_FILE",
+      "dimension": "convention",
+      "severity": "advisory",
+      "functionId": "FF-CV05",
+      "route": "symbolic",
+      "filePath": "src/application/place-order-use-case.ts",
+      "message": "Violation in src/application/place-order-use-case.ts",
+      "deterministic": true,
+      "discriminator": [],
+      "tag": "pattern-proxy"
+    },
+    {
+      "id": "v-9a5fb678f290c0bd",
+      "type": "MISSING_TEST_FILE",
+      "dimension": "convention",
+      "severity": "advisory",
+      "functionId": "FF-CV05",
+      "route": "symbolic",
+      "filePath": "src/domain/errors.ts",
+      "message": "Violation in src/domain/errors.ts",
+      "deterministic": true,
+      "discriminator": [],
+      "tag": "pattern-proxy"
+    },
+    {
+      "id": "v-75bf0ba909edf7e9",
+      "type": "MISSING_TEST_FILE",
+      "dimension": "convention",
+      "severity": "advisory",
+      "functionId": "FF-CV05",
+      "route": "symbolic",
+      "filePath": "src/domain/id-generator.ts",
+      "message": "Violation in src/domain/id-generator.ts",
+      "deterministic": true,
+      "discriminator": [],
+      "tag": "pattern-proxy"
+    },
+    {
+      "id": "v-c3075dc169ed2f26",
+      "type": "MISSING_TEST_FILE",
+      "dimension": "convention",
+      "severity": "advisory",
+      "functionId": "FF-CV05",
+      "route": "symbolic",
+      "filePath": "src/domain/order-item.ts",
+      "message": "Violation in src/domain/order-item.ts",
+      "deterministic": true,
+      "discriminator": [],
+      "tag": "pattern-proxy"
+    },
+    {
+      "id": "v-a86d56138c9f7ea1",
+      "type": "MISSING_TEST_FILE",
+      "dimension": "convention",
+      "severity": "advisory",
+      "functionId": "FF-CV05",
+      "route": "symbolic",
+      "filePath": "src/domain/order-repository.ts",
+      "message": "Violation in src/domain/order-repository.ts",
+      "deterministic": true,
+      "discriminator": [],
+      "tag": "pattern-proxy"
+    },
+    {
+      "id": "v-fa6314a9c95dadd9",
+      "type": "MISSING_TEST_FILE",
+      "dimension": "convention",
+      "severity": "advisory",
+      "functionId": "FF-CV05",
+      "route": "symbolic",
+      "filePath": "src/domain/order-state.ts",
+      "message": "Violation in src/domain/order-state.ts",
+      "deterministic": true,
+      "discriminator": [],
+      "tag": "pattern-proxy"
+    },
+    {
+      "id": "v-5499c9bfca6b66af",
+      "type": "MISSING_TEST_FILE",
+      "dimension": "convention",
+      "severity": "advisory",
+      "functionId": "FF-CV05",
+      "route": "symbolic",
+      "filePath": "src/domain/order.ts",
+      "message": "Violation in src/domain/order.ts",
+      "deterministic": true,
+      "discriminator": [],
+      "tag": "pattern-proxy"
+    },
+    {
+      "id": "v-cd2c0a13dafacc6e",
+      "type": "MISSING_TEST_FILE",
+      "dimension": "convention",
+      "severity": "advisory",
+      "functionId": "FF-CV05",
+      "route": "symbolic",
+      "filePath": "src/domain/product-repository.ts",
+      "message": "Violation in src/domain/product-repository.ts",
+      "deterministic": true,
+      "discriminator": [],
+      "tag": "pattern-proxy"
+    },
+    {
+      "id": "v-2f333946bbea248b",
+      "type": "MISSING_TEST_FILE",
+      "dimension": "convention",
+      "severity": "advisory",
+      "functionId": "FF-CV05",
+      "route": "symbolic",
+      "filePath": "src/domain/product.ts",
+      "message": "Violation in src/domain/product.ts",
+      "deterministic": true,
+      "discriminator": [],
+      "tag": "pattern-proxy"
+    },
+    {
+      "id": "v-7fa11555b26fa2ee",
+      "type": "MISSING_TEST_FILE",
+      "dimension": "convention",
+      "severity": "advisory",
+      "functionId": "FF-CV05",
+      "route": "symbolic",
+      "filePath": "src/domain/stock-reservation-service.ts",
+      "message": "Violation in src/domain/stock-reservation-service.ts",
+      "deterministic": true,
+      "discriminator": [],
+      "tag": "pattern-proxy"
+    },
+    {
+      "id": "v-ef6962785c17280d",
+      "type": "MISSING_TEST_FILE",
+      "dimension": "convention",
+      "severity": "advisory",
+      "functionId": "FF-CV05",
+      "route": "symbolic",
+      "filePath": "src/infrastructure/app-factory.ts",
+      "message": "Violation in src/infrastructure/app-factory.ts",
+      "deterministic": true,
+      "discriminator": [],
+      "tag": "pattern-proxy"
+    },
+    {
+      "id": "v-4e0d51ad0592256d",
+      "type": "MISSING_TEST_FILE",
+      "dimension": "convention",
+      "severity": "advisory",
+      "functionId": "FF-CV05",
+      "route": "symbolic",
+      "filePath": "src/infrastructure/error-handler-middleware.ts",
+      "message": "Violation in src/infrastructure/error-handler-middleware.ts",
+      "deterministic": true,
+      "discriminator": [],
+      "tag": "pattern-proxy"
+    },
+    {
+      "id": "v-0e13ee9ab1f66fac",
+      "type": "MISSING_TEST_FILE",
+      "dimension": "convention",
+      "severity": "advisory",
+      "functionId": "FF-CV05",
+      "route": "symbolic",
+      "filePath": "src/infrastructure/in-memory-order-repository.ts",
+      "message": "Violation in src/infrastructure/in-memory-order-repository.ts",
+      "deterministic": true,
+      "discriminator": [],
+      "tag": "pattern-proxy"
+    },
+    {
+      "id": "v-cd8ac491b45c80da",
+      "type": "MISSING_TEST_FILE",
+      "dimension": "convention",
+      "severity": "advisory",
+      "functionId": "FF-CV05",
+      "route": "symbolic",
+      "filePath": "src/infrastructure/in-memory-product-repository.ts",
+      "message": "Violation in src/infrastructure/in-memory-product-repository.ts",
+      "deterministic": true,
+      "discriminator": [],
+      "tag": "pattern-proxy"
+    },
+    {
+      "id": "v-63b5e0123f2ec3ef",
+      "type": "MISSING_TEST_FILE",
+      "dimension": "convention",
+      "severity": "advisory",
+      "functionId": "FF-CV05",
+      "route": "symbolic",
+      "filePath": "src/infrastructure/order-controller.ts",
+      "message": "Violation in src/infrastructure/order-controller.ts",
+      "deterministic": true,
+      "discriminator": [],
+      "tag": "pattern-proxy"
+    },
+    {
+      "id": "v-3dd747611709035f",
+      "type": "MISSING_TEST_FILE",
+      "dimension": "convention",
+      "severity": "advisory",
+      "functionId": "FF-CV05",
+      "route": "symbolic",
+      "filePath": "src/infrastructure/server.ts",
+      "message": "Violation in src/infrastructure/server.ts",
+      "deterministic": true,
+      "discriminator": [],
+      "tag": "pattern-proxy"
+    },
+    {
+      "id": "v-e399bff0f24ec381",
+      "type": "MISSING_TEST_FILE",
+      "dimension": "convention",
+      "severity": "advisory",
+      "functionId": "FF-CV05",
+      "route": "symbolic",
+      "filePath": "src/infrastructure/stock-controller.ts",
+      "message": "Violation in src/infrastructure/stock-controller.ts",
+      "deterministic": true,
+      "discriminator": [],
+      "tag": "pattern-proxy"
+    },
+    {
+      "id": "v-db8c74a9c8e54a96",
+      "type": "MISSING_TEST_FILE",
+      "dimension": "convention",
+      "severity": "advisory",
+      "functionId": "FF-CV05",
+      "route": "symbolic",
+      "filePath": "src/infrastructure/uuid-id-generator.ts",
+      "message": "Violation in src/infrastructure/uuid-id-generator.ts",
+      "deterministic": true,
+      "discriminator": [],
+      "tag": "pattern-proxy"
+    }
+  ],
+  "universalMetrics": {
+    "cyclicDependencyCount": 0,
+    "maxFanOut": 14,
+    "maxFanIn": 10,
+    "abstractionRatio": 0.259,
+    "averageInstability": 0.485,
+    "orphanFileCount": 0
+  },
+  "evaluationMode": "full",
+  "durationMs": 32,
+  "droppedDimensions": [
+    {
+      "dimension": "integrity",
+      "reason": "no-judge-units",
+      "declared": 1,
+      "executed": 0
+    }
+  ],
+  "tiers": {
+    "scoringMode": "v1.3",
+    "tierTable": "Docs/v1.3/rule-tiers.md",
+    "style": "clean-architecture",
+    "verdict": "pass",
+    "verdictRule": "any-blocking-violation",
+    "v12eVerdict": "pass",
+    "blockingAhs": 1,
+    "blocking": {
+      "rules": [
+        {
+          "functionId": "FF-P01",
+          "name": "domain-purity",
+          "dimension": "pattern",
+          "tier": "blocking",
+          "tierSource": "table",
+          "violationCount": 0,
+          "violated": false
+        },
+        {
+          "functionId": "FF-P03",
+          "name": "repository-pattern",
+          "dimension": "pattern",
+          "tier": "blocking",
+          "tierSource": "table",
+          "violationCount": 0,
+          "violated": false
+        },
+        {
+          "functionId": "FF-P06",
+          "name": "domain-state-purity",
+          "dimension": "pattern",
+          "tier": "blocking",
+          "tierSource": "table",
+          "violationCount": 0,
+          "violated": false
+        },
+        {
+          "functionId": "FF-S01",
+          "name": "dependency-direction",
+          "dimension": "structural",
+          "tier": "blocking",
+          "tierSource": "table",
+          "violationCount": 0,
+          "violated": false
+        },
+        {
+          "functionId": "FF-S02",
+          "name": "no-cyclic-deps",
+          "dimension": "structural",
+          "tier": "blocking",
+          "tierSource": "table",
+          "violationCount": 0,
+          "violated": false
+        },
+        {
+          "functionId": "FF-S04",
+          "name": "no-domain-outward-dep",
+          "dimension": "structural",
+          "tier": "blocking",
+          "tierSource": "table",
+          "violationCount": 0,
+          "violated": false
+        }
+      ],
+      "violatedRules": 0,
+      "violationCount": 0
+    },
+    "advisory": {
+      "rules": [
+        {
+          "functionId": "FF-C01",
+          "name": "domain-stability",
+          "dimension": "coupling",
+          "tier": "advisory",
+          "tierSource": "table",
+          "violationCount": 0,
+          "violated": false
+        },
+        {
+          "functionId": "FF-C02",
+          "name": "module-fan-out",
+          "dimension": "coupling",
+          "tier": "advisory",
+          "tierSource": "table",
+          "violationCount": 1,
+          "violated": true
+        },
+        {
+          "functionId": "FF-C03",
+          "name": "component-instability",
+          "dimension": "coupling",
+          "tier": "advisory",
+          "tierSource": "table",
+          "violationCount": 3,
+          "violated": true
+        },
+        {
+          "functionId": "FF-C04",
+          "name": "no-orphan-files",
+          "dimension": "coupling",
+          "tier": "advisory",
+          "tierSource": "table",
+          "violationCount": 0,
+          "violated": false
+        },
+        {
+          "functionId": "FF-C05",
+          "name": "max-fan-in",
+          "dimension": "coupling",
+          "tier": "advisory",
+          "tierSource": "table",
+          "violationCount": 0,
+          "violated": false
+        },
+        {
+          "functionId": "FF-C06",
+          "name": "abstraction-ratio",
+          "dimension": "coupling",
+          "tier": "advisory",
+          "tierSource": "table",
+          "violationCount": 1,
+          "violated": true
+        },
+        {
+          "functionId": "FF-CV02",
+          "name": "naming-services",
+          "dimension": "convention",
+          "tier": "advisory",
+          "tierSource": "table",
+          "violationCount": 0,
+          "violated": false
+        },
+        {
+          "functionId": "FF-CV03",
+          "name": "naming-repos",
+          "dimension": "convention",
+          "tier": "advisory",
+          "tierSource": "table",
+          "violationCount": 0,
+          "violated": false
+        },
+        {
+          "functionId": "FF-CV05",
+          "name": "test-file-pairing",
+          "dimension": "convention",
+          "tier": "advisory",
+          "tierSource": "table",
+          "violationCount": 24,
+          "violated": true
+        },
+        {
+          "functionId": "FF-CV06",
+          "name": "no-index-logic",
+          "dimension": "convention",
+          "tier": "advisory",
+          "tierSource": "table",
+          "violationCount": 0,
+          "violated": false
+        },
+        {
+          "functionId": "FF-N02",
+          "name": "intent-alignment",
+          "dimension": "semantic",
+          "tier": "advisory",
+          "tierSource": "table",
+          "judge": true,
+          "violationCount": 0,
+          "violated": false
+        },
+        {
+          "functionId": "FF-P02",
+          "name": "dependency-inversion",
+          "dimension": "pattern",
+          "tier": "advisory",
+          "tierSource": "table",
+          "violationCount": 2,
+          "violated": true
+        },
+        {
+          "functionId": "FF-P04",
+          "name": "use-case-isolation",
+          "dimension": "pattern",
+          "tier": "advisory",
+          "tierSource": "table",
+          "violationCount": 0,
+          "violated": false
+        },
+        {
+          "functionId": "FF-P05",
+          "name": "controller-no-entity",
+          "dimension": "pattern",
+          "tier": "advisory",
+          "tierSource": "table",
+          "violationCount": 0,
+          "violated": false
+        },
+        {
+          "functionId": "FF-SO01",
+          "name": "single-responsibility-proxy",
+          "dimension": "solid",
+          "tier": "advisory",
+          "tierSource": "table",
+          "violationCount": 0,
+          "violated": false
+        },
+        {
+          "functionId": "FF-SO02",
+          "name": "interface-segregation-proxy",
+          "dimension": "solid",
+          "tier": "advisory",
+          "tierSource": "table",
+          "violationCount": 0,
+          "violated": false
+        },
+        {
+          "functionId": "FF-SO03",
+          "name": "inheritance-depth",
+          "dimension": "solid",
+          "tier": "advisory",
+          "tierSource": "table",
+          "violationCount": 0,
+          "violated": false
+        }
+      ],
+      "violatedRules": 5,
+      "violationCount": 31
+    },
+    "notApplicable": [
+      {
+        "functionId": "FF-P06",
+        "part": "FLOWS_TO field rows",
+        "reason": "The field half needs FLOWS_TO, which is near-empty (rule-tiers.md, finding 9); reported N/A with its denominator",
+        "naRows": 0,
+        "totalRows": 0,
+        "flowsToEdges": 0
+      }
+    ],
+    "blockingNotExecuted": []
+  },
+  "warnings": [
+    {
+      "code": "EXTRACTOR_005",
+      "message": "CONSTRUCTOR_INJECTS type unresolvable: readonly import(\"<work>/copies/e1__claude-sonnet-5-5.order-fulfilment.minimal-prose.run-2__AP-FRAMEWORK-LEAKn__0/src/domain/order-item\").OrderItem[]",
+      "context": {
+        "filePath": "src/domain/order.ts"
+      },
+      "stage": "extract-apg"
+    },
+    {
+      "code": "EXTRACTOR_005",
+      "message": "CONSTRUCTOR_INJECTS type unresolvable: readonly import(\"<work>/copies/e1__claude-sonnet-5-5.order-fulfilment.minimal-prose.run-2__AP-FRAMEWORK-LEAKn__0/src/domain/product\").Product[]",
+      "context": {
+        "filePath": "src/infrastructure/in-memory-product-repository.ts"
+      },
+      "stage": "extract-apg"
+    },
+    {
+      "code": "SPEC_002",
+      "message": "Template function \"FF-C01\" overridden by spec declaration",
+      "stage": "parse-spec"
+    },
+    {
+      "code": "SPEC_002",
+      "message": "Template function \"FF-C02\" overridden by spec declaration",
+      "stage": "parse-spec"
+    },
+    {
+      "code": "SPEC_002",
+      "message": "Template function \"FF-C03\" overridden by spec declaration",
+      "stage": "parse-spec"
+    },
+    {
+      "code": "SPEC_002",
+      "message": "Template function \"FF-C04\" overridden by spec declaration",
+      "stage": "parse-spec"
+    },
+    {
+      "code": "SPEC_002",
+      "message": "Template function \"FF-C05\" overridden by spec declaration",
+      "stage": "parse-spec"
+    },
+    {
+      "code": "SPEC_002",
+      "message": "Template function \"FF-C06\" overridden by spec declaration",
+      "stage": "parse-spec"
+    },
+    {
+      "code": "SPEC_002",
+      "message": "Template function \"FF-CV01\" overridden by spec declaration",
+      "stage": "parse-spec"
+    },
+    {
+      "code": "SPEC_002",
+      "message": "Template function \"FF-CV02\" overridden by spec declaration",
+      "stage": "parse-spec"
+    },
+    {
+      "code": "SPEC_002",
+      "message": "Template function \"FF-CV03\" overridden by spec declaration",
+      "stage": "parse-spec"
+    },
+    {
+      "code": "SPEC_002",
+      "message": "Template function \"FF-CV04\" overridden by spec declaration",
+      "stage": "parse-spec"
+    },
+    {
+      "code": "SPEC_002",
+      "message": "Template function \"FF-CV05\" overridden by spec declaration",
+      "stage": "parse-spec"
+    },
+    {
+      "code": "SPEC_002",
+      "message": "Template function \"FF-CV06\" overridden by spec declaration",
+      "stage": "parse-spec"
+    },
+    {
+      "code": "SPEC_002",
+      "message": "Template function \"FF-N01\" overridden by spec declaration",
+      "stage": "parse-spec"
+    },
+    {
+      "code": "SPEC_002",
+      "message": "Template function \"FF-N02\" overridden by spec declaration",
+      "stage": "parse-spec"
+    },
+    {
+      "code": "SPEC_002",
+      "message": "Template function \"FF-P01\" overridden by spec declaration",
+      "stage": "parse-spec"
+    },
+    {
+      "code": "SPEC_002",
+      "message": "Template function \"FF-P02\" overridden by spec declaration",
+      "stage": "parse-spec"
+    },
+    {
+      "code": "SPEC_002",
+      "message": "Template function \"FF-P03\" overridden by spec declaration",
+      "stage": "parse-spec"
+    },
+    {
+      "code": "SPEC_002",
+      "message": "Template function \"FF-P04\" overridden by spec declaration",
+      "stage": "parse-spec"
+    },
+    {
+      "code": "SPEC_002",
+      "message": "Template function \"FF-P05\" overridden by spec declaration",
+      "stage": "parse-spec"
+    },
+    {
+      "code": "SPEC_002",
+      "message": "Template function \"FF-P06\" overridden by spec declaration",
+      "stage": "parse-spec"
+    },
+    {
+      "code": "SPEC_002",
+      "message": "Template function \"FF-S01\" overridden by spec declaration",
+      "stage": "parse-spec"
+    },
+    {
+      "code": "SPEC_002",
+      "message": "Template function \"FF-S02\" overridden by spec declaration",
+      "stage": "parse-spec"
+    },
+    {
+      "code": "SPEC_002",
+      "message": "Template function \"FF-S03\" overridden by spec declaration",
+      "stage": "parse-spec"
+    },
+    {
+      "code": "SPEC_002",
+      "message": "Template function \"FF-S04\" overridden by spec declaration",
+      "stage": "parse-spec"
+    },
+    {
+      "code": "SPEC_002",
+      "message": "Template function \"FF-SO01\" overridden by spec declaration",
+      "stage": "parse-spec"
+    },
+    {
+      "code": "SPEC_002",
+      "message": "Template function \"FF-SO02\" overridden by spec declaration",
+      "stage": "parse-spec"
+    },
+    {
+      "code": "SPEC_002",
+      "message": "Template function \"FF-SO03\" overridden by spec declaration",
+      "stage": "parse-spec"
+    },
+    {
+      "code": "COMPILER_004",
+      "message": "FF-S03 (no-layer-skip) disabled: not applicable to style clean-architecture",
+      "context": {
+        "functionId": "FF-S03"
+      },
+      "stage": "compile-functions"
+    },
+    {
+      "code": "JUDGE_NO_UNITS",
+      "message": "FF-N01: no judge unit selected (3 candidate units, 0 unlayered files)",
+      "context": {
+        "functionId": "FF-N01"
+      },
+      "stage": "route-evaluate"
+    }
+  ],
+  "functionExecution": {
+    "declared": 27,
+    "adrDerived": 0,
+    "compiled": 24,
+    "disabled": 3,
+    "dropped": [],
+    "skippedByMode": 0,
+    "noJudgeUnits": [
+      "FF-N01"
+    ],
+    "executed": 23,
+    "failed": []
+  },
+  "functionResults": [
+    {
+      "functionId": "FF-P06",
+      "name": "domain-state-purity",
+      "dimension": "pattern",
+      "route": "symbolic",
+      "tag": "structural",
+      "passed": true,
+      "violationCount": 0,
+      "executionTimeMs": 1,
+      "truncated": false
+    },
+    {
+      "functionId": "FF-S01",
+      "name": "dependency-direction",
+      "dimension": "structural",
+      "route": "symbolic",
+      "tag": "structural",
+      "passed": true,
+      "violationCount": 0,
+      "executionTimeMs": 20,
+      "truncated": false
+    },
+    {
+      "functionId": "FF-S04",
+      "name": "no-domain-outward-dep",
+      "dimension": "structural",
+      "route": "symbolic",
+      "tag": "structural",
+      "passed": true,
+      "violationCount": 0,
+      "executionTimeMs": 4,
+      "truncated": false
+    },
+    {
+      "functionId": "FF-C01",
+      "name": "domain-stability",
+      "dimension": "coupling",
+      "route": "symbolic",
+      "tag": "topological",
+      "passed": true,
+      "violationCount": 0,
+      "executionTimeMs": 1,
+      "truncated": false
+    },
+    {
+      "functionId": "FF-C02",
+      "name": "module-fan-out",
+      "dimension": "coupling",
+      "route": "symbolic",
+      "tag": "topological",
+      "passed": false,
+      "violationCount": 1,
+      "executionTimeMs": 2,
+      "truncated": false
+    },
+    {
+      "functionId": "FF-C03",
+      "name": "component-instability",
+      "dimension": "coupling",
+      "route": "symbolic",
+      "tag": "topological",
+      "passed": false,
+      "violationCount": 3,
+      "executionTimeMs": 2,
+      "truncated": false
+    },
+    {
+      "functionId": "FF-C04",
+      "name": "no-orphan-files",
+      "dimension": "coupling",
+      "route": "symbolic",
+      "tag": "topological",
+      "passed": true,
+      "violationCount": 0,
+      "executionTimeMs": 1,
+      "truncated": false
+    },
+    {
+      "functionId": "FF-C05",
+      "name": "max-fan-in",
+      "dimension": "coupling",
+      "route": "symbolic",
+      "tag": "topological",
+      "passed": true,
+      "violationCount": 0,
+      "executionTimeMs": 2,
+      "truncated": false
+    },
+    {
+      "functionId": "FF-C06",
+      "name": "abstraction-ratio",
+      "dimension": "coupling",
+      "route": "symbolic",
+      "tag": "topological",
+      "passed": false,
+      "violationCount": 1,
+      "executionTimeMs": 1,
+      "truncated": false
+    },
+    {
+      "functionId": "FF-S02",
+      "name": "no-cyclic-deps",
+      "dimension": "structural",
+      "route": "symbolic",
+      "tag": "topological",
+      "passed": true,
+      "violationCount": 0,
+      "executionTimeMs": 6,
+      "truncated": false
+    },
+    {
+      "functionId": "FF-SO03",
+      "name": "inheritance-depth",
+      "dimension": "solid",
+      "route": "symbolic",
+      "tag": "topological",
+      "passed": true,
+      "violationCount": 0,
+      "executionTimeMs": 1,
+      "truncated": false
+    },
+    {
+      "functionId": "FF-CV02",
+      "name": "naming-services",
+      "dimension": "convention",
+      "route": "symbolic",
+      "tag": "pattern-proxy",
+      "passed": true,
+      "violationCount": 0,
+      "executionTimeMs": 1,
+      "truncated": false
+    },
+    {
+      "functionId": "FF-CV03",
+      "name": "naming-repos",
+      "dimension": "convention",
+      "route": "symbolic",
+      "tag": "pattern-proxy",
+      "passed": true,
+      "violationCount": 0,
+      "executionTimeMs": 1,
+      "truncated": false
+    },
+    {
+      "functionId": "FF-CV05",
+      "name": "test-file-pairing",
+      "dimension": "convention",
+      "route": "symbolic",
+      "tag": "pattern-proxy",
+      "passed": false,
+      "violationCount": 24,
+      "executionTimeMs": 2,
+      "truncated": false
+    },
+    {
+      "functionId": "FF-CV06",
+      "name": "no-index-logic",
+      "dimension": "convention",
+      "route": "symbolic",
+      "tag": "pattern-proxy",
+      "passed": true,
+      "violationCount": 0,
+      "executionTimeMs": 2,
+      "truncated": false
+    },
+    {
+      "functionId": "FF-P01",
+      "name": "domain-purity",
+      "dimension": "pattern",
+      "route": "symbolic",
+      "tag": "pattern-proxy",
+      "passed": true,
+      "violationCount": 0,
+      "executionTimeMs": 3,
+      "truncated": false
+    },
+    {
+      "functionId": "FF-P02",
+      "name": "dependency-inversion",
+      "dimension": "pattern",
+      "route": "symbolic",
+      "tag": "pattern-proxy",
+      "passed": false,
+      "violationCount": 2,
+      "executionTimeMs": 3,
+      "truncated": false
+    },
+    {
+      "functionId": "FF-P03",
+      "name": "repository-pattern",
+      "dimension": "pattern",
+      "route": "symbolic",
+      "tag": "pattern-proxy",
+      "passed": true,
+      "violationCount": 0,
+      "executionTimeMs": 1,
+      "truncated": false
+    },
+    {
+      "functionId": "FF-P04",
+      "name": "use-case-isolation",
+      "dimension": "pattern",
+      "route": "symbolic",
+      "tag": "pattern-proxy",
+      "passed": true,
+      "violationCount": 0,
+      "executionTimeMs": 2,
+      "truncated": false
+    },
+    {
+      "functionId": "FF-P05",
+      "name": "controller-no-entity",
+      "dimension": "pattern",
+      "route": "symbolic",
+      "tag": "pattern-proxy",
+      "passed": true,
+      "violationCount": 0,
+      "executionTimeMs": 1,
+      "truncated": false
+    },
+    {
+      "functionId": "FF-SO01",
+      "name": "single-responsibility-proxy",
+      "dimension": "solid",
+      "route": "symbolic",
+      "tag": "pattern-proxy",
+      "passed": true,
+      "violationCount": 0,
+      "executionTimeMs": 1,
+      "truncated": false
+    },
+    {
+      "functionId": "FF-SO02",
+      "name": "interface-segregation-proxy",
+      "dimension": "solid",
+      "route": "symbolic",
+      "tag": "pattern-proxy",
+      "passed": true,
+      "violationCount": 0,
+      "executionTimeMs": 1,
+      "truncated": false
+    },
+    {
+      "functionId": "FF-N02",
+      "name": "intent-alignment",
+      "dimension": "semantic",
+      "route": "neuronal",
+      "passed": true,
+      "violationCount": 0,
+      "executionTimeMs": 0,
+      "truncated": false
+    }
+  ],
+  "disabledFunctions": [
+    {
+      "functionId": "FF-CV01",
+      "name": "naming-conventions",
+      "reason": "ADR-016 b (B&T Step 31): cannot fire; per-layer naming patterns compile to .* and no requirement supplies them (SP-FF-CV01 not fired)"
+    },
+    {
+      "functionId": "FF-CV04",
+      "name": "naming-controllers",
+      "reason": "ADR-016 b (B&T Step 31): cannot fire; class decorators are not ingested (BR-U2-31), so no controller is selected (SP-FF-CV04 not fired)"
+    },
+    {
+      "functionId": "FF-S03",
+      "name": "no-layer-skip",
+      "reason": "not applicable to style clean-architecture"
+    }
+  ],
+  "graphStats": {
+    "nodeCount": 96,
+    "edgeCount": 177,
+    "layerCoverage": 1,
+    "nodeCountByType": {
+      "File": 24,
+      "Class": 20,
+      "Interface": 7,
+      "Method": 34,
+      "Function": 9,
+      "Package": 2
+    },
+    "edgeCountByType": {
+      "IMPORTS": 71,
+      "IMPLEMENTS": 3,
+      "EXTENDS": 4,
+      "CONSTRUCTOR_INJECTS": 16,
+      "CALLS": 13,
+      "DECLARES": 36,
+      "CONTAINS": 34,
+      "FLOWS_TO": 0,
+      "RE_EXPORTS": 0
+    }
+  },
+  "layerAnnotation": {
+    "mapped": 24,
+    "unmapped": 0,
+    "unmappedFiles": []
+  },
+  "parseCoverage": {
+    "total": 24,
+    "parsed": 24,
+    "percentage": 100,
+    "skipped": []
+  },
+  "importResolution": {
+    "resolvedInternal": 66,
+    "external": 5,
+    "externalOutOfRootAlias": 0,
+    "unresolved": 0,
+    "droppedNoFileNode": 0,
+    "unsupportedDynamic": 0
+  },
+  "timings": {
+    "stages": [
+      {
+        "name": "parallel:extract-apg+parse-spec",
+        "durationMs": 516,
+        "status": "success"
+      },
+      {
+        "name": "ingest-apg",
+        "durationMs": 99,
+        "status": "success"
+      },
+      {
+        "name": "compile-functions",
+        "durationMs": 2,
+        "status": "success"
+      },
+      {
+        "name": "route-evaluate",
+        "durationMs": 12322,
+        "status": "success"
+      },
+      {
+        "name": "universal-metric:cyclicDependencyCount",
+        "durationMs": 12,
+        "status": "success"
+      },
+      {
+        "name": "compute-scores",
+        "durationMs": 32,
+        "status": "success"
+      }
+    ],
+    "totalMs": 12971
+  },
+  "judge": {
+    "provider": "claude-cli",
+    "model": "claude-opus-5-5",
+    "effort": "high",
+    "cliVersion": "2.1.294",
+    "cassetteMode": "record",
+    "runsPerUnit": 3,
+    "resolvedModel": "claude-opus-5-5",
+    "repetition": 0,
+    "isolationProbeSha256": "97a2e2d0af1100c13c55e028c1a0c71f069093c3d08705af122aaeb302f1a641",
+    "configListingSha256": "47aa04258852fab9a706f3f0c14cee22306d69fbb6fdfbde8c11854bd54997bc",
+    "provenanceMixed": false,
+    "seededList": []
+  },
+  "instrumentVersion": 2,
+  "neuralResults": [
+    {
+      "functionId": "FF-N02",
+      "dimension": "semantic",
+      "aggregationRule": "majority-of-valid-units-v1",
+      "selection": {
+        "source": "baseline",
+        "candidateUnitIds": [
+          "src/application/advance-order-use-case.ts",
+          "src/application/cancel-order-use-case.ts",
+          "src/application/dtos.ts",
+          "src/application/get-order-use-case.ts",
+          "src/application/list-orders-by-state-use-case.ts",
+          "src/application/list-stock-levels-use-case.ts",
+          "src/application/place-order-use-case.ts",
+          "src/domain/errors.ts",
+          "src/domain/id-generator.ts",
+          "src/domain/order-item.ts",
+          "src/domain/order-repository.ts",
+          "src/domain/order-state.ts",
+          "src/domain/order.ts",
+          "src/domain/product-repository.ts",
+          "src/domain/product.ts",
+          "src/domain/stock-reservation-service.ts",
+          "src/infrastructure/app-factory.ts",
+          "src/infrastructure/error-handler-middleware.ts",
+          "src/infrastructure/in-memory-order-repository.ts",
+          "src/infrastructure/in-memory-product-repository.ts",
+          "src/infrastructure/order-controller.ts",
+          "src/infrastructure/server.ts",
+          "src/infrastructure/stock-controller.ts",
+          "src/infrastructure/uuid-id-generator.ts"
+        ],
+        "selectedUnitIds": [
+          "src/application/get-order-use-case.ts"
+        ]
+      },
+      "unitsSelected": 1,
+      "unitsCapped": 23,
+      "candidateCount": 24,
+      "uncoveredFileCount": 0,
+      "candidateExclusions": {
+        "unlayered": 0,
+        "exclude-paths": 0,
+        "barrel": 0,
+        "test-path": 0,
+        "e2e-spec": 0,
+        "generated-path": 0,
+        "generated-marker": 0
+      },
+      "unitsInvalidByCause": {
+        "PARSE_FAILURE": 0,
+        "MISSING_CONFIDENCE": 0,
+        "MODEL_MISMATCH": 0,
+        "TIMEOUT": 0,
+        "BAD_ENVELOPE": 0,
+        "CLI_EXIT": 0,
+        "INSUFFICIENT_VALID_RUNS": 0
+      },
+      "truncatedUnits": 0,
+      "excerptTruncatedUnits": 0,
+      "removedByVariant": [],
+      "unitResults": [
+        {
+          "unitId": "src/application/get-order-use-case.ts",
+          "unitKind": "file",
+          "layer": "application",
+          "filePaths": [
+            "src/application/get-order-use-case.ts"
+          ],
+          "status": "valid",
+          "verdict": "pass",
+          "confidence": 0.9066666666666667,
+          "confidenceStdDev": 0.009428090415820642,
+          "flaggedUnstable": false,
+          "validRunCount": 3
+        }
+      ],
+      "candidatesByLayer": {
+        "application": 7,
+        "domain": 9,
+        "infrastructure": 8
+      }
+    }
+  ]
+}

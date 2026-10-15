@@ -1,0 +1,47 @@
+{
+  "attempts": 1,
+  "cliVersion": "2.1.294",
+  "configListingSha256": "47aa04258852fab9a706f3f0c14cee22306d69fbb6fdfbde8c11854bd54997bc",
+  "durationMs": 6233,
+  "effort": "high",
+  "functionId": "FF-N02",
+  "ignoredOptions": [
+    "maxTokens"
+  ],
+  "isolationProbeSha256": "97a2e2d0af1100c13c55e028c1a0c71f069093c3d08705af122aaeb302f1a641",
+  "key": "db5f163c38d8a3d6d2d1f6660d2953f7fbe038f7936ebfdd0b27d5dc9a4bf263-r0-0",
+  "model": "claude-opus-5-5",
+  "outcome": {
+    "kind": "valid"
+  },
+  "parsedVerdict": {
+    "confidence": 0.93,
+    "evidence": [
+      "Constructor enforces the invariant 'An order needs at least one line' via BusinessError (domain rule)",
+      "subtotal() and total() compute monetary values using the Money value object (domain logic)",
+      "cancel() guards the state change with a CONFLICT BusinessError (domain behaviour)",
+      "No database, HTTP, framework or rendering code anywhere in the file"
+    ],
+    "pass": true,
+    "reasoning": "src/business/model/Order.ts is a pure domain entity. It enforces invariants: an order must have at least one line, and an order can't be cancelled twice. It computes subtotal and total using the Money value object and manages its own status changes. It contains no persistence, transport, framework or presentation logic. Errors are raised as a domain BusinessError, not as HTTP or database errors. All of its responsibilities fit the domain kind of the business layer.",
+    "violations": []
+  },
+  "prompt": "## Rule\nThe unit's responsibilities match the role of its declared layer.\n\n## Rubric\nPass: Every responsibility in the file belongs to the role and kind of its declared layer, and agrees with any ADR prose given.\nFail: The file carries a responsibility that belongs to a different layer kind, for example persistence, transport or framework logic in a domain file, or business rules in an infrastructure or presentation file.\nEvidence required: Name the file and cite the function, method or statement that carries the misplaced responsibility, and the layer kind it belongs to.\nOut of scope: import direction and layer-dependency rules, which are checked symbolically.\n\n## Layer model\n- persistence (kind: infrastructure): src/persistence/**\n- business (kind: domain): src/business/**\n- presentation (kind: presentation): src/presentation/**\n\n## Unit\nKind: file\nId: src/business/model/Order.ts\nLayer: business\nUnit files:\n- src/business/model/Order.ts\n\n## Source\n=====SOURCE-BEGIN src/business/model/Order.ts=====\nimport { BusinessError } from '../errors/BusinessError';\nimport { Money } from './Money';\nimport { OrderLine } from './OrderLine';\n\nexport class Order {\n  constructor(\n    readonly id: string,\n    readonly customerId: string,\n    readonly lines: readonly OrderLine[],\n    readonly createdAt: Date,\n    readonly discount: Money,\n    private orderStatus: 'placed' | 'cancelled' = 'placed',\n  ) {\n    if (lines.length === 0) throw new BusinessError('INVALID', 'An order needs at least one line');\n  }\n\n  get status(): 'placed' | 'cancelled' {\n    return this.orderStatus;\n  }\n\n  subtotal(): Money {\n    return this.lines.reduce((sum, line) => sum.add(line.total()), Money.zero());\n  }\n\n  total(): Money {\n    return this.subtotal().subtract(this.discount);\n  }\n\n  cancel(): void {\n    if (this.orderStatus === 'cancelled') throw new BusinessError('CONFLICT', `Order ${this.id} is already cancelled`);\n    this.orderStatus = 'cancelled';\n  }\n}\n\n=====SOURCE-END=====\n\n## Graph excerpt\n{\"edges\":[{\"from\":\"Order@src/business/model/Order.ts\",\"to\":\"Money@src/business/model/Money.ts\",\"type\":\"CONSTRUCTOR_INJECTS\"},{\"from\":\"src/business/model/Order.ts\",\"to\":\"src/business/errors/BusinessError.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/business/model/Order.ts\",\"to\":\"src/business/model/Money.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/business/model/Order.ts\",\"to\":\"src/business/model/OrderLine.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/business/services/OrderService.ts\",\"to\":\"src/business/model/Order.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/business/services/RecordMapping.ts\",\"to\":\"src/business/model/Order.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/presentation/views/OrderView.ts\",\"to\":\"src/business/model/Order.ts\",\"type\":\"IMPORTS\"}],\"nodes\":[{\"kind\":\"Class\",\"layer\":\"business\",\"name\":\"Money\",\"path\":\"src/business/model/Money.ts\"},{\"kind\":\"Class\",\"layer\":\"business\",\"name\":\"Order\",\"path\":\"src/business/model/Order.ts\"},{\"kind\":\"File\",\"layer\":\"business\",\"path\":\"src/business/errors/BusinessError.ts\"},{\"kind\":\"File\",\"layer\":\"business\",\"path\":\"src/business/model/Money.ts\"},{\"kind\":\"File\",\"layer\":\"business\",\"path\":\"src/business/model/Order.ts\"},{\"kind\":\"File\",\"layer\":\"business\",\"path\":\"src/business/model/OrderLine.ts\"},{\"kind\":\"File\",\"layer\":\"business\",\"path\":\"src/business/services/OrderService.ts\"},{\"kind\":\"File\",\"layer\":\"business\",\"path\":\"src/business/services/RecordMapping.ts\"},{\"kind\":\"File\",\"layer\":\"presentation\",\"path\":\"src/presentation/views/OrderView.ts\"}]}\n\n## Instructions\nJudge the unit against the rule and rubric. Return the JSON object the schema requires. Set pass to false if any file of the unit fails the rubric.\n",
+  "provider": "claude-cli",
+  "recordedAt": "2026-10-15T17:49:00.724Z",
+  "repetition": 0,
+  "requestHash": "db5f163c38d8a3d6d2d1f6660d2953f7fbe038f7936ebfdd0b27d5dc9a4bf263",
+  "resolvedModel": "claude-opus-5-5",
+  "response": "{\"is_error\":false,\"modelUsage\":{\"claude-opus-5-5\":{\"inputTokens\":2,\"outputTokens\":408}},\"result\":\"{\\\"pass\\\":true,\\\"confidence\\\":0.93,\\\"reasoning\\\":\\\"src/business/model/Order.ts is a pure domain entity. It enforces invariants: an order must have at least one line, and an order can't be cancelled twice. It computes subtotal and total using the Money value object and manages its own status changes. It contains no persistence, transport, framework or presentation logic. Errors are raised as a domain BusinessError, not as HTTP or database errors. All of its responsibilities fit the domain kind of the business layer.\\\",\\\"evidence\\\":[\\\"Constructor enforces the invariant 'An order needs at least one line' via BusinessError (domain rule)\\\",\\\"subtotal() and total() compute monetary values using the Money value object (domain logic)\\\",\\\"cancel() guards the state change with a CONFLICT BusinessError (domain behaviour)\\\",\\\"No database, HTTP, framework or rendering code anywhere in the file\\\"],\\\"violations\\\":[]}\",\"structured_output\":{\"confidence\":0.93,\"evidence\":[\"Constructor enforces the invariant 'An order needs at least one line' via BusinessError (domain rule)\",\"subtotal() and total() compute monetary values using the Money value object (domain logic)\",\"cancel() guards the state change with a CONFLICT BusinessError (domain behaviour)\",\"No database, HTTP, framework or rendering code anywhere in the file\"],\"pass\":true,\"reasoning\":\"src/business/model/Order.ts is a pure domain entity. It enforces invariants: an order must have at least one line, and an order can't be cancelled twice. It computes subtotal and total using the Money value object and manages its own status changes. It contains no persistence, transport, framework or presentation logic. Errors are raised as a domain BusinessError, not as HTTP or database errors. All of its responsibilities fit the domain kind of the business layer.\",\"violations\":[]}}",
+  "runIndex": 0,
+  "schemaVersion": 2,
+  "unitId": "src/business/model/Order.ts",
+  "usage": {
+    "inputTokens": 2938,
+    "outputTokens": 408
+  },
+  "usedOptions": {
+    "effort": "high",
+    "model": "claude-opus-5-5"
+  }
+}

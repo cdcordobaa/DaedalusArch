@@ -1,0 +1,27 @@
+diff -ruN -x node_modules a/src/application/list-tasks-use-case.ts b/src/application/list-tasks-use-case.ts
+--- a/src/application/list-tasks-use-case.ts	2026-10-15 12:42:23
++++ b/src/application/list-tasks-use-case.ts	2026-10-15 12:41:49
+@@ -1,9 +1,9 @@
+-import { NotFoundError } from "../domain/domain-error";
++import { NotFoundError, ValidationError } from "../domain/domain-error";
+ import { ProjectRepository } from "../domain/project-repository";
+ import { Task } from "../domain/task";
+ import { TaskRepository } from "../domain/task-repository";
+ import { parseTaskStatus } from "../domain/task-status";
+-import { ListTasksDto } from "./dtos";
++import { ListTasksDto, CreateProjectDto } from "./dtos";
+ 
+ export class ListTasksUseCase {
+   constructor(
+@@ -19,5 +19,11 @@
+       status: dto.status === undefined ? undefined : parseTaskStatus(dto.status),
+       assigneeId: dto.assigneeId,
+     });
++  }
++
++  validateExecute(dto: CreateProjectDto): void {
++    if (typeof dto.name !== "string" || dto.name.trim() === "") {
++          throw new ValidationError("name is required");
++        }
+   }
+ }
