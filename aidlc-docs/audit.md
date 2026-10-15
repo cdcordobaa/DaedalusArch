@@ -1494,3 +1494,27 @@ Plan checkboxes ticked. Auto-approved under standing approval; no blocking or ma
 **Context**: v1.3 Gate 2 passed.
 
 ---
+
+## v1.3 CONSTRUCTION — units merged into v1.3; blind annotation done
+**Timestamp**: 2026-10-15T03:30:00Z
+**User Input**: (none; under delegation)
+**AI Response**: "v1.3 at 5d50dfa: #84 tiers (513e558), #82 reference (293f486), #83 DDD (48d1908) and the v1.3-fidelity branch (4fb5b45) merged; #81 left open with a pointer. DDD wired into tiers, extension registry and validate-reference (blocking sets now from the sealed v1.3 tiers). Defect found by the blind annotator: .gitignore 'out/' had dropped hexagonal src/application/ports/out (5 files) from PR #82; negation added; the files were RECONSTRUCTED from usages and expected-graph.json, not recovered, so they enter the author audit. --check 71/71 cases compile; 97 suites 1502 tests pass plus 25 suites 396 (no Neo4j); golden 81 + 7; DDD Cypher ran on Neo4j for the first time; prereg v25 ok. Blind re-derivation (Fable model, 71 cases): verdict agreement with the author-manifests 63/71 (hexagonal 15/15, clean 13/14, layered 12/13, NestJS 12/14, DDD 11/15); most disagreements are rules that are advisory under the sealed tiers (the author-manifests used severity); 13 rule-definition ambiguities recorded; artefacts in ../daedalus-sealed/v1.3-blind. Tier decision: FF-DS01 bounded-context-modules stays blocking, because rule-tiers.md delegates new-rule tiers to the library notes written before validation, and the DDD notes assigned blocking before any template existed; flagged for the author."
+**Context**: v1.3 — next U-E (live reference validation) after the barrel fix (ADR-V13-01) merges.
+
+---
+
+## v1.3 CONSTRUCTION — barrel fix merged (ADR-V13-01); academic deck
+**Timestamp**: 2026-10-15T05:00:00Z
+**User Input**: "can i really have an academic presentation please send a sub agent, creat ea nice style" (earlier); none since for the barrel fix (approved as 'yes A').
+**AI Response**: "PR #85 (04c6158) merged into v1.3 as 79c692f. Extractor option reExportEdges ('resolved-only' in V12E, 'both' in v1.3); Docs/v1.3/edge-views.md committed before validation (13 literal, 4 resolved, 21 none, out of 38 templates), applied by a compile-time rewrite with the frozen template text unchanged; v1.2E extraction byte-identical on 15 fixtures. Fidelity on the two disagreeing E1 cells: task-management/none/run-1 Jaccard 0.3962 → 1.0, order-fulfilment/full-aac/run-1 0.9435 → 1.0 (literal view vs dependency-cruiser/tsc). 968 tests + 81 golden pass; prereg v25 ok. Follow-ups: the scoring engine's universal metrics, the drift detector, the judge source context and the report graph still read both views and need a view decision; the other 70 E1 cells and SO4 have not been rerun. Academic deck: 31 slides, HTML + PDF, committed 3325fa5 on v1.2e (Docs/reports/director-deck-v12e-2026-10/)."
+**Context**: v1.3 — U-E baseline (pre-barrel, v1.3@5d50dfa) running; a post-barrel re-run follows on 79c692f.
+
+---
+
+## v1.3 CONSTRUCTION — U-E baseline result; fix round and sealed hold-out set started
+**Timestamp**: 2026-10-15T06:30:00Z
+**User Input**: (none; under delegation)
+**AI Response**: "U-E baseline (pre-barrel, v1.3@5d50dfa) merged as PR #86 (9542356). Blocking recall against the author-manifests: clean 0.92, layered 0.82, NestJS 0.91, hexagonal 0.92, DDD 0.78, pooled 0.88 (0.96 once cycles are matched on file set). Against the blind manifests: pooled 0.76. Blocking precision pooled 0.45 (layered 0.14), 53 of 60 blocking FPs from FF-P06 on layered business→gateway. Negative control: 1 of 5 clean variants fails (layered). Near-misses: 6/14 have FPs. Graph: author graphs exact on the 4 non-DDD styles; blind literal edges 4738/4756; barrel literal edges 0/18 (pre-fix). A validity incident: the first live run was silently corrupted by a concurrent jest run wiping the shared Neo4j, so it was discarded; two later runs are byte-identical. Neo4j isolation is now a required fix. Started: U-E2 fix round (v1.3-fixes: Neo4j lock, cycle matching on file set, FF-P06 inapplicable to layered (ADR-V13-02 draft), token-based role detection, edge views for metrics/drift/judge/report, DDD FF-DS02 literal edge), with a re-measure labelled DEVELOPMENT-SET. Because tuning now uses the 71 cases, final validity numbers must come from a fresh set: a sealed hold-out reference set (5 new apps in new domains, blind-authored by a Fable model from the rule sources and layer declarations only) is being written to ../daedalus-sealed/v1.3-holdout; the fix-round agent is forbidden to read it."
+**Context**: v1.3 — validation-protocol amendment: development set = 71 reference cases; hold-out set = sealed, run once after tuning freezes.
+
+---
