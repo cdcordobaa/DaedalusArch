@@ -93,7 +93,7 @@ export interface ContextGraphProvider {
   readonly serverName: string;
   readonly tools: readonly string[];
   readonly deniedTools: readonly string[];
-  readonly server: (req: GenerationRequest) => McpStdioServer;
+  readonly server: (req: ArmRequest) => McpStdioServer;
 }
 
 /** Placeholder description printed by the dry run for an unconfigured `context-graph` arm. */
@@ -107,6 +107,9 @@ export const CONTEXT_GRAPH_PLACEHOLDER = Object.freeze({
     'match tool descriptions to the daedalus-mcp arm (T3) and re-run the confinement probes (T7)',
   ],
 });
+
+/** The request fields an arm call reads (the E1 `GenerationRequest` satisfies it; so does a multi-step loop turn). */
+export type ArmRequest = Pick<GenerationRequest, 'runId' | 'outputDir'>;
 
 export interface ArmInput {
   readonly arm: ExperimentArm;
@@ -146,7 +149,7 @@ export function armPrompt(basePrompt: string, arm: ExperimentArm): string {
   return sentence === '' ? basePrompt : `${basePrompt.replace(/\s+$/, '')}\n\n${sentence}\n`;
 }
 
-export function daedalusMcpConfig(input: DaedalusServerInput, req: GenerationRequest): McpConfigFile {
+export function daedalusMcpConfig(input: DaedalusServerInput, req: ArmRequest): McpConfigFile {
   return {
     mcpServers: {
       [DAEDALUS_MCP_SERVER]: {
@@ -159,7 +162,7 @@ export function daedalusMcpConfig(input: DaedalusServerInput, req: GenerationReq
   };
 }
 
-function checkDaedalusInput(input: DaedalusServerInput, req: GenerationRequest): DomainError[] {
+export function checkDaedalusInput(input: DaedalusServerInput, req: ArmRequest): DomainError[] {
   const errors: DomainError[] = [];
   for (const [field, value] of [
     ['nodeBinary', input.nodeBinary],
@@ -201,7 +204,7 @@ export function withMcpServer(
 
 export function buildArmCall(
   config: GeneratorCliConfig,
-  req: GenerationRequest,
+  req: ArmRequest,
   basePrompt: string,
   input: ArmInput,
 ): DomainResult<ArmCall> {

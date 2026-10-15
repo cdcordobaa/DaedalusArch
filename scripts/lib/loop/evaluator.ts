@@ -1,0 +1,84 @@
+/**
+ * The firewall and the type-check of record on a loop snapshot.
+ *
+ * - `firewallEvaluator`: `evaluateProject` (the `evaluate_project` pipeline, symbolic-only, v1.3 scoring FR-V6) on the
+ *   work directory, mapped to a `StepEvaluation`: the v1.2E AHS, the blocking-only AHS, the v1.3 verdict, blocking and
+ *   advisory counts, and the listed blocking findings (what the gate arm shows the agent). It needs a scratch Neo4j
+ *   (the pipeline replaces the graph). The agent never reaches it: `evaluate_project` is denied in every arm and no
+ *   Neo4j variable is in any child environment.
+ * - `harnessTypechecker`: the E1 type-check of record (`<H>/bin/tsc` with the pinned per-run tsconfig, BR-U5a-48).
+ *
+ * The evaluator is symbolic-only, so it makes no model call and needs no cassette. A judge-mode evaluator plugged in
+ * later must take the experiment's cassette directory and mode the way `run-experiment.ts` passes them (BR-U5b-56,
+ * ADR-028); the plan's `cassette` block is recorded for that purpose.
+ */
+import { DomainResult } from '../../../src/shared/errors/domain-result.js';
+import type { ProcessRunner } from '../../../src/shared/interfaces/process-runner.js';
+import { evaluateProject } from '../../../src/mcp-server/evaluate-project.js';
+import type { EvaluateDeps } from '../../../src/mcp-server/evaluate-project.js';
+import type { EvaluateProjectResult } from '../../../src/mcp-server/types.js';
+import { writeHarnessTsconfig } from '../generators/harness-tsconfig.js';
+import { runHarnessTypecheck } from '../generators/skeleton.js';
+import type { BlockingFinding, StepEvaluation, StepEvaluator, StepTypechecker } from './types.js';
+
+const MAX_CODES = 50;
+
+/** Maps an `evaluate_project` result (v1.3 scoring) to a step evaluation. Fails when the tiers are missing. */
+export function toStepEvaluation(r: EvaluateProjectResult): DomainResult<StepEvaluation> {
+  const tiers = r.tiers;
+  if (tiers === undefined) {
+    return DomainResult.fail([{ code: 'LOOP_EVAL_NO_TIERS', message: 'the evaluation carries no v1.3 tiers (scoringMode must be v1.3)' }]);
+  }
+  const blockingIds = new Set(tiers.blocking.rules.map((row) => String(row.functionId)));
+  const blockingByRule: Record<string, number> = {};
+  for (const row of tiers.blocking.rules) {
+    if (row.violationCount > 0) blockingByRule[String(row.functionId)] = row.violationCount;
+  }
+  const blockingFindings: BlockingFinding[] = [];
+  for (const group of r.byRule) {
+    if (!blockingIds.has(group.ruleId)) continue;
+    for (const v of group.violations) {
+      blockingFindings.push({
+        ruleId: group.ruleId,
+        ruleName: group.ruleName,
+        filePath: v.filePath,
+        ...(v.line !== undefined ? { line: v.line } : {}),
+        ...(v.target !== undefined ? { target: v.target } : {}),
+        message: v.message,
+      });
+    }
+  }
+  return DomainResult.ok({
+    scoringMode: 'v1.3',
+    ahs: r.ahs,
+    blockingAhs: tiers.blockingAhs,
+    verdict: tiers.verdict,
+    violationCount: r.violationCount,
+    blockingViolationCount: tiers.blocking.violationCount,
+    advisoryViolationCount: tiers.advisory.violationCount,
+    blockingByRule,
+    blockingFindings,
+    durationMs: r.durationMs,
+  });
+}
+
+export function firewallEvaluator(specPath: string, env: NodeJS.ProcessEnv, deps: EvaluateDeps): StepEvaluator {
+  return {
+    id: 'daedalus-evaluate-project/v1.3',
+    evaluate: async (projectDir) => {
+      const r = await evaluateProject({ projectPath: projectDir, specPath, scoringMode: 'v1.3' }, env, deps);
+      return r.success ? toStepEvaluation(r.data) : DomainResult.fail(r.errors);
+    },
+  };
+}
+
+export function harnessTypechecker(runner: ProcessRunner, harnessRoot: string): StepTypechecker {
+  return {
+    typecheck: async (runId, cwd) => {
+      writeHarnessTsconfig(harnessRoot, runId, cwd);
+      const r = await runHarnessTypecheck(runner, harnessRoot, runId, cwd);
+      if (!r.success) return DomainResult.fail(r.errors);
+      return DomainResult.ok({ errors: r.data.length, codes: r.data.slice(0, MAX_CODES) });
+    },
+  };
+}
