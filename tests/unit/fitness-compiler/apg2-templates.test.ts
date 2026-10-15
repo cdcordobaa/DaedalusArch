@@ -16,6 +16,7 @@ import { V13_EXTENSION_TEMPLATE_CATALOGUES, v13ExtensionCatalogueOf } from '../.
 import { CYPHER_TEMPLATES } from '../../../src/fitness-compiler/cypher-templates.js';
 import type { LayerDefinition, LayerModel } from '../../../src/shared/types/spec.js';
 import type { LayerKind } from '../../../src/shared/types/enums.js';
+import { APG2_COMPOSITION_ROOT_NAME_PATTERNS, APG2_TEST_PATTERNS } from '../../../src/shared/apg2-scope.js';
 
 const SUITE = path.resolve(__dirname, '../../fixtures/v1.3-apg2');
 
@@ -88,11 +89,21 @@ describe('APG v2 template catalogue', () => {
   });
 });
 
+/**
+ * Planted cases the scope ADR (`Docs/v1.3/apg2-scope-adr-draft.md`, change 5) no longer reports: the kernel and the
+ * contracts folders hold 2 types each, under the a priori minimum of 4. Reported as lost
+ * (`Docs/DiagnosticRuns/apg2-scope-2026-10-15.md`); the minimum was not changed to keep them.
+ */
+const LOST_TO_SCOPE = new Set(['CP4', 'CP5']);
+
 describe('APG v2 ablation suite (in-memory)', () => {
   it.each(suite.cases.map((c) => [c.id, c] as const))('%s', (_, c) => {
     const g = graphsOf(c.project);
     const a = rowsOf(g.v2, c, g.params);
-    if (c.kind === 'planted') {
+    if (LOST_TO_SCOPE.has(c.id)) {
+      expect(a).toEqual([]); // lost to the minimum type count alone:
+      expect(rowsOf(g.v2, c, { ...g.params, minTypes: 0 }).length).toBeGreaterThan(0);
+    } else if (c.kind === 'planted') {
       expect(a.length).toBeGreaterThan(0); // (a) APG v2 reports it
       expect(rowsOf(g.v13, c, g.params)).toEqual([]); // (b) the v1.3 graph has none of the edges
     } else {
@@ -145,7 +156,9 @@ describe('apg2Params', () => {
       ],
       allowedDependencies: [{ from: 'adapters', to: 'core' }],
     };
-    expect(apg2Params(lm)).toEqual({ domainLayer: 'core', applicationLayers: [], infraLayer: 'adapters', controllerLayer: 'adapters', threshold: 0.7, allowedAsync: ['adapters->core'] });
+    expect(apg2Params(lm)).toEqual({ domainLayer: 'core', applicationLayers: [], infraLayer: 'adapters', controllerLayer: 'adapters', threshold: 0.7, allowedAsync: ['adapters->core'],
+      // Scope (Docs/v1.3/apg2-scope-adr-draft.md): `adapters` may import every other layer and no edge points to it.
+      compositionRootLayers: ['adapters'], compositionRootPatterns: [...APG2_COMPOSITION_ROOT_NAME_PATTERNS], testPatterns: [...APG2_TEST_PATTERNS], aclPatterns: [], minTypes: 4 });
     expect(apg2Params(lm, { allowedAsync: [], threshold: 0.5 })).toMatchObject({ allowedAsync: [], threshold: 0.5 });
   });
 });

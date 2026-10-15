@@ -10,6 +10,10 @@ import type { LayerModel } from '../shared/types/spec.js';
 import { annotateNodes } from '../neo4j-ingestion/layer-annotator.js';
 import { bindLayerParams } from './layer-binding.js';
 import { IO_ADVISORY_CATEGORIES, IO_BLOCKING_CATEGORIES } from './apg2-templates.js';
+import { globToRegex } from './glob-to-regex.js';
+import {
+  APG2_COMPOSITION_ROOT_NAME_PATTERNS, APG2_MIN_TYPES_FOR_DISTANCE, APG2_TEST_PATTERNS, COMPOSITION_ROOT_ROLE, matchesAny,
+} from '../shared/apg2-scope.js';
 
 export type Row = Readonly<Record<string, unknown>>;
 
@@ -55,6 +59,33 @@ export interface Apg2Params {
   readonly controllerLayer?: string;
   readonly threshold: number;
   readonly allowedAsync: readonly string[];
+  /** Scope (`Docs/v1.3/apg2-scope-adr-draft.md`): layers that are composition roots (declared or detected; change 1). */
+  readonly compositionRootLayers: readonly string[];
+  /** Composition roots by file name (change 1), anchored regexes. */
+  readonly compositionRootPatterns: readonly string[];
+  /** Test files and test composition roots (change 3), anchored regexes. */
+  readonly testPatterns: readonly string[];
+  /** Declared anti-corruption layers (`architecture.ddd.contexts[].acl`; change 2), anchored regexes. */
+  readonly aclPatterns: readonly string[];
+  /** Minimum type count for the main-sequence distance (change 5). */
+  readonly minTypes: number;
+}
+
+/**
+ * The composition-root layers of a layer model (ADR change 1): a layer that declares the role `composition-root`, and,
+ * with `allowedDependencies`, a layer that no allowed edge points to and that may import every other layer (the rule
+ * `bindHexagonalLayers` uses).
+ */
+export function compositionRootLayers(layerModel: LayerModel): string[] {
+  const layers = layerModel.layers;
+  const declared = layers.filter((l) => l.role.split(',').map((r) => r.trim()).includes(COMPOSITION_ROOT_ROLE)).map((l) => l.name);
+  const edges = layerModel.allowedDependencies ?? [];
+  const allowed = new Set(edges.map((e) => `${e.from}>${e.to}`));
+  const targets = new Set(edges.map((e) => e.to));
+  const detected = edges.length === 0 || layers.length < 2 ? [] : layers
+    .filter((l) => !targets.has(l.name) && layers.every((o) => o.name === l.name || allowed.has(`${l.name}>${o.name}`)))
+    .map((l) => l.name);
+  return layers.map((l) => l.name).filter((n) => declared.includes(n) || detected.includes(n));
 }
 
 /**
@@ -62,8 +93,9 @@ export interface Apg2Params {
  * distance) and `allowedAsync`: "subscriber->publisher" component pairs, from the explicit list or, when absent,
  * from the hexagonal `allowedDependencies` (a subscriber may react to a component it may depend on).
  */
-export function apg2Params(layerModel: LayerModel, extra: { threshold?: number; allowedAsync?: readonly string[] } = {}): Apg2Params {
+export function apg2Params(layerModel: LayerModel, extra: { threshold?: number; allowedAsync?: readonly string[]; minTypes?: number } = {}): Apg2Params {
   const b = bindLayerParams(layerModel.layers);
+  const acl = (layerModel.ddd?.contexts ?? []).flatMap((c) => c.acl).map((g) => globToRegex(g, { segmentGlobstar: true }));
   return {
     ...(b.domainLayer !== undefined ? { domainLayer: b.domainLayer } : {}),
     applicationLayers: [...b.applicationLayers],
@@ -71,8 +103,19 @@ export function apg2Params(layerModel: LayerModel, extra: { threshold?: number; 
     ...(b.controllerLayer !== undefined ? { controllerLayer: b.controllerLayer } : {}),
     threshold: extra.threshold ?? 0.7,
     allowedAsync: extra.allowedAsync ?? (layerModel.allowedDependencies ?? []).map((d) => `${d.from}->${d.to}`),
+    compositionRootLayers: compositionRootLayers(layerModel),
+    compositionRootPatterns: [...APG2_COMPOSITION_ROOT_NAME_PATTERNS],
+    testPatterns: [...APG2_TEST_PATTERNS],
+    aclPatterns: acl,
+    minTypes: extra.minTypes ?? APG2_MIN_TYPES_FOR_DISTANCE,
   };
 }
+
+/** A file or member is in scope of a template: not test code (change 3). */
+const notTest = (p: Apg2Params, filePath: string): boolean => !matchesAny(p.testPatterns, filePath);
+/** Not a composition root, by layer or by name (change 1). */
+const notCompositionRoot = (p: Apg2Params, layer: string | null, filePath: string): boolean =>
+  (layer === null || !p.compositionRootLayers.includes(layer)) && !matchesAny(p.compositionRootPatterns, filePath);
 
 const cmp = (...keys: string[]) => (a: Row, b: Row): number => {
   for (const k of keys) {
@@ -94,6 +137,7 @@ export function boundaryTypeLeak(g: MemGraph, p: Apg2Params): Row[] {
     if (ml === null || tl === null) continue;
     if (!(ml === p.controllerLayer || p.applicationLayers.includes(ml))) continue;
     if (tl !== p.infraLayer || ml === tl) continue;
+    if (!notCompositionRoot(p, ml, m.filePath) || !notTest(p, m.filePath)) continue;
     rows.push({ filePath: m.filePath, member: m.name, leakedType: ty.name, target: ty.filePath, fromLayer: ml, toLayer: tl,
       positions: e.properties.positions, inferred: e.properties.inferred });
   }
@@ -117,7 +161,7 @@ function reaches(g: MemGraph, from: string, to: string): boolean {
 export function componentAdpCycle(g: MemGraph): Row[] {
   const rows: Row[] = [];
   for (const d of g.edgesOf('DEPENDS_ON')) {
-    if (!reaches(g, d.targetId, d.sourceId)) continue;
+    if (d.properties.kind === 'layer' || !reaches(g, d.targetId, d.sourceId)) continue;
     const a = g.node(d.sourceId);
     const b = g.node(d.targetId);
     rows.push({ component: a.name, target: b.name, kind: d.properties.kind, imports: d.properties.imports, filePath: a.name });
@@ -140,21 +184,27 @@ export function componentSdpViolation(g: MemGraph): Row[] {
 
 export function componentMainSequenceDistance(g: MemGraph, p: Apg2Params): Row[] {
   return g.nodes
-    .filter((c) => c.type === 'Component' && typeof c.properties.distance === 'number' && (c.properties.distance) > p.threshold)
+    .filter((c) => c.type === 'Component' && c.properties.kind !== 'layer' && typeof c.properties.typeCount === 'number'
+      && c.properties.typeCount >= p.minTypes && typeof c.properties.distance === 'number' && (c.properties.distance) > p.threshold)
     .map((c) => ({ component: c.name, kind: c.properties.kind, abstractness: c.properties.abstractness,
       instability: c.properties.instability, distance: c.properties.distance, filePath: c.name }))
     .sort(cmp('kind', 'component'));
 }
 
-function deepImport(g: MemGraph, declared: boolean): Row[] {
+function deepImport(g: MemGraph, p: Apg2Params, declared: boolean): Row[] {
   return g.edgesOf('DEEP_IMPORT')
     .filter((d) => d.properties.publicApiDeclared === declared)
+    .filter((d) => {
+      const s = g.node(d.sourceId);
+      const acl = d.properties.kind === 'module' && matchesAny(p.aclPatterns, s.filePath);
+      return notCompositionRoot(p, g.layer.get(s.id) ?? null, s.filePath) && notTest(p, s.filePath) && !acl;
+    })
     .map((d) => ({ filePath: g.node(d.sourceId).filePath, target: g.node(d.targetId).filePath,
       component: d.properties.component, kind: d.properties.kind, line: d.properties.line }))
     .sort(cmp('filePath', 'target'));
 }
-export const deepImportDeclaredApi = (g: MemGraph): Row[] => deepImport(g, true);
-export const deepImportInferredApi = (g: MemGraph): Row[] => deepImport(g, false);
+export const deepImportDeclaredApi = (g: MemGraph, p: Apg2Params): Row[] => deepImport(g, p, true);
+export const deepImportInferredApi = (g: MemGraph, p: Apg2Params): Row[] => deepImport(g, p, false);
 
 /** File path → its components (one per kind). */
 function componentsByFile(g: MemGraph): Map<string, APGNode[]> {
@@ -176,6 +226,7 @@ export function undeclaredAsyncCoupling(g: MemGraph, p: Apg2Params): Row[] {
     const pub = g.node(e.sourceId);
     const ch = g.node(e.targetId);
     for (const s of subs.get(ch.id) ?? []) {
+      if (!notTest(p, pub.filePath) || !notTest(p, s.filePath)) continue;
       for (const pc of comps.get(pub.filePath) ?? []) {
         for (const sc of comps.get(s.filePath) ?? []) {
           if (pc.properties.kind !== sc.properties.kind || pc.id === sc.id) continue;
@@ -198,6 +249,7 @@ function io(g: MemGraph, p: Apg2Params, categories: readonly string[]): Row[] {
     const cat = g.node(e.targetId);
     const l = g.layer.get(m.id) ?? null;
     if (l === null || !(l === p.domainLayer || p.applicationLayers.includes(l)) || !categories.includes(cat.name)) continue;
+    if (!notTest(p, m.filePath)) continue;
     rows.push({ filePath: m.filePath, member: m.name, layer: l, category: cat.name, apis: e.properties.apis, line: e.properties.line, lines: e.properties.lines });
   }
   return rows.sort(cmp('filePath', 'member', 'category'));
@@ -211,8 +263,8 @@ export const APG2_IN_MEMORY: ReadonlyMap<string, (g: MemGraph, p: Apg2Params) =>
   ['component-adp-cycle', (g: MemGraph) => componentAdpCycle(g)],
   ['component-sdp-violation', (g: MemGraph) => componentSdpViolation(g)],
   ['component-main-sequence-distance', componentMainSequenceDistance],
-  ['deep-import-declared-api', (g: MemGraph) => deepImportDeclaredApi(g)],
-  ['deep-import-inferred-api', (g: MemGraph) => deepImportInferredApi(g)],
+  ['deep-import-declared-api', deepImportDeclaredApi],
+  ['deep-import-inferred-api', deepImportInferredApi],
   ['undeclared-async-coupling', undeclaredAsyncCoupling],
   ['io-outside-adapters', ioOutsideAdapters],
   ['nondeterminism-in-core', nondeterminismInCore],
