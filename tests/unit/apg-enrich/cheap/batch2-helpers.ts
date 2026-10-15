@@ -115,3 +115,14 @@ export function replayGit(root: string, commits: readonly ReplayCommit[]): void 
     run(['commit', '--quiet', '--allow-empty', '-m', trailers === '' ? c.message : `${c.message}\n\n${trailers}`], { GIT_AUTHOR_DATE: date, GIT_COMMITTER_DATE: date });
   });
 }
+
+/** The expected items missing from `actual` (an `arrayContaining` that lints with this repository's jest types). */
+export function missingFrom(actual: readonly unknown[], expected: readonly unknown[]): unknown[] {
+  return expected.filter((x) => !actual.includes(x));
+}
+
+/** The listed keys of an object (an `objectContaining` that lints with this repository's jest types). */
+export function pick(value: unknown, keys: readonly string[]): Record<string, unknown> {
+  const o = (typeof value === 'object' && value !== null ? value : {}) as Record<string, unknown>;
+  return Object.fromEntries(keys.filter((k) => k in o).map((k) => [k, o[k]]));
+}

@@ -43,7 +43,8 @@ export function runSdkSpread(ctx: CheapContext): CheapProxyOutput {
   const sfOf = new Map(ctx.sources.map((s) => [s.file, s.sf]));
   const isAdapterFile = (file: string): boolean => {
     const info = ctx.info(file);
-    const roles = (sfOf.get(file) === undefined ? [] : classesOf(sfOf.get(file)!)).map((c) => roleFromName(c.getName() ?? ''));
+    const sf = sfOf.get(file);
+    const roles = (sf === undefined ? [] : classesOf(sf)).map((c) => roleFromName(c.getName() ?? ''));
     if (roles.some((r) => r === 'adapter' || r === 'repository')) return true;
     if (info.layer !== null) return info.layerKind === 'infrastructure';
     return ADAPTER_DIRS.test(file);

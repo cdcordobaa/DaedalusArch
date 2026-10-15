@@ -469,7 +469,7 @@ export async function analyseProvenance(history: SnapshotHistory, opts: Provenan
   // ── Edges and units: introduced at (first snapshot of the last uninterrupted presence up to k) ──
   const introducedAt = (has: (sn: Snapshot) => boolean, k: number): number => {
     let j = k;
-    while (j > 0 && has(snaps[j - 1] as Snapshot)) j--;
+    for (let prev = snaps[j - 1]; j > 0 && prev !== undefined && has(prev); prev = snaps[j - 1]) j--;
     return j;
   };
   const edgeFacts: { edgeId: string; type: string; createdAt: ProvenanceRecord }[] = [];
@@ -513,7 +513,7 @@ export async function analyseProvenance(history: SnapshotHistory, opts: Provenan
           via = 'unit';
         }
       }
-      if (at === null) at = Math.max(0, lastModifiedBy(f.file, sn.index));
+      at ??= Math.max(0, lastModifiedBy(f.file, sn.index));
       const a = attributedCount.get(at) ?? { blocking: 0, advisory: 0 };
       a[f.tier]++;
       attributedCount.set(at, a);

@@ -1,4 +1,4 @@
-import { check, loadExpected, runFixture } from './batch2-helpers.js';
+import { check, loadExpected, missingFrom, runFixture } from './batch2-helpers.js';
 import { runOn } from './helpers.js';
 
 describe('error-flow proxy (batch 2)', () => {
@@ -16,22 +16,22 @@ describe('error-flow proxy (batch 2)', () => {
     try {
       const edges = fx.enrichment.edges;
       const throws = edges.filter((e) => e.type === 'THROWS').map((e) => `${String(e.properties.unit)}>${String(e.properties.errorType)}:${e.properties.direct === true ? 'direct' : 'propagated'}`);
-      expect(throws).toEqual(expect.arrayContaining([
+      expect(missingFrom(throws, [
         'Order.confirm>OrderError:direct',
         'ConfirmOrderService.confirm>OrderError:propagated',
         'Order.line>NotFoundException:direct',
         'IssueInvoice.run>InvoiceRejected:propagated',
-      ]));
+      ])).toEqual([]);
       const catches = edges.filter((e) => e.type === 'CATCHES').map((e) => `${e.evidence[0]?.file ?? ''}:${String(e.properties.errorType)}:${String(e.properties.handling)}`);
-      expect(catches).toEqual(expect.arrayContaining([
+      expect(missingFrom(catches, [
         'src/orders/presentation/order.controller.ts:OrderError:logged',
         'src/orders/presentation/order.controller.ts:OrderError:translated',
         'src/orders/presentation/order.controller.ts:OrderError:narrowed',
         'src/billing/infrastructure/invoice-job.ts:InvoiceRejected:rethrown',
         'src/billing/infrastructure/invoice-job.ts:InvoiceRejected:swallowed',
-      ]));
+      ])).toEqual([]);
       const virtual = fx.enrichment.virtualNodes.filter((n) => n.kind === 'ErrorType').map((n) => `${n.id}:${String(n.properties.frameworkHttp)}`);
-      expect(virtual).toEqual(expect.arrayContaining(['error:@nestjs/common#NotFoundException:true', 'error:@nestjs/common#BadRequestException:true']));
+      expect(missingFrom(virtual, ['error:@nestjs/common#NotFoundException:true', 'error:@nestjs/common#BadRequestException:true'])).toEqual([]);
       // A project error class has an APG Class node: the THROWS edge targets it, not a virtual node.
       const orderError = fx.apg.nodes.find((n) => n.type === 'Class' && n.name === 'OrderError');
       expect(edges.some((e) => e.type === 'THROWS' && e.targetId === orderError?.id)).toBe(true);

@@ -24,7 +24,9 @@
  *
  * Flags:
  * - `unreachable-module`: a file that declares runtime code (a class, a function or a variable) and that no entry
- *   reaches in that sense. Only raised when the project has at least one entry point; test files are not APG files.
+ *   reaches in that sense. Only raised when the project has at least one entry point; test files are not APG files,
+ *   and test-support modules (a `test` / `testing` / `mocks` / `fixtures` / `stubs` / `fakes` directory, a
+ *   `test*` / `Test*` file name, a `.mock` / `.stub` / `.fixture` / `.fake` suffix) are listed in the summary instead.
  * - `endpoint-bypasses-core`: an `http` or `message` entry with a call path (calls and function references, not
  *   `new`) to an infrastructure unit on which no unit lies in a core layer. Core = the application-kind layers, or the
  *   domain-kind layers when there is no application kind (strict layering); without a layer model, a `*Service`,
@@ -67,6 +69,11 @@ const SCHEDULE_DECORATORS = new Set(['Cron', 'Interval', 'Timeout']);
 const CQRS_CLASS_DECORATORS = new Set(['EventsHandler', 'CommandHandler', 'QueryHandler', 'Saga']);
 const ROUTER_METHODS = new Set(['get', 'post', 'put', 'patch', 'delete', 'del', 'options', 'head', 'all', 'use', 'route']);
 const ROUTER_MODULES = /^(express|fastify|koa-router|@koa\/router|@fastify\/.+|hono)$/;
+/**
+ * Test-support modules (a test composition root, mocks, fixtures): reached from tests, which are not APG files, so
+ * never from a production entry. Added after the first run on the reference projects (design note, batch 2).
+ */
+const TEST_SUPPORT = /(^|\/)(test|tests|testing|__tests__|__mocks__|mocks?|fixtures?|stubs?|fakes?)(\/|$)|(^|\/)[Tt]est[A-Z_-][^/]*$|\.(mock|stub|fixture|fake)\.(ts|tsx)$/;
 const MAIN_NAMES = new Set(['main', 'cli', 'server', 'bootstrap', 'container', 'composition-root']);
 
 function decoratorModule(ctx: CheapContext, d: Decorator): string | null {
@@ -224,8 +231,8 @@ export function runReachability(ctx: CheapContext): CheapProxyOutput {
       parent.set(s, undefined);
       queue.push(s);
     }
-    for (let i = 0; i < queue.length; i++) {
-      const cur = queue[i] ?? '';
+    // `queue` grows while it is walked (breadth first).
+    for (const cur of queue) {
       const next = (g.out.get(cur) ?? []).map((e) => e.target);
       // An instantiated object may escape to code outside the project (a host, a framework): its public methods count
       // as reached (rapid type analysis, Bacon and Sweeney 1996).
@@ -304,9 +311,7 @@ export function runReachability(ctx: CheapContext): CheapProxyOutput {
       const u = g.units.get(s);
       visit(s, u !== undefined && isCore(u), undefined);
     }
-    for (let i = 0; i < q.length; i++) {
-      const cur = q[i];
-      if (cur === undefined) continue;
+    for (const cur of q) {
       const curKey = `${cur.unit}|${String(cur.core)}`;
       for (const e of g.out.get(cur.unit) ?? []) {
         if (e.kind === 'new') continue;
@@ -353,6 +358,7 @@ export function runReachability(ctx: CheapContext): CheapProxyOutput {
   }
   // A file reached by reference only (a type) is reached: refs were added to reachedFiles before the import closure.
   const unreachable: string[] = [];
+  const testSupport: string[] = [];
   for (const { file, sf } of ctx.sources) {
     const id = ctx.info(file).fileNodeId;
     const reached = loaded.has(file);
@@ -360,12 +366,16 @@ export function runReachability(ctx: CheapContext): CheapProxyOutput {
     if (entries.length === 0 || reached) continue;
     const runtime = sf.getClasses().length + sf.getFunctions().length + sf.getVariableStatements().length > 0;
     if (!runtime) continue;
+    if (TEST_SUPPORT.test(file)) {
+      testSupport.push(file);
+      continue;
+    }
     unreachable.push(file);
     flags.push({ proxy: 'reachability', kind: 'unreachable-module', score: 1, evidence: { file, startLine: 1, endLine: 1 }, message: `no entry point reaches ${file} (${String(entries.length)} entries)` });
   }
   return {
     edges, nodeFacts, flags, virtualNodes,
-    summary: { entries: entries.length, entriesByKind: countBy(entries.map((e) => e.kind)), reachedUnits: reachedUnits.size, units: g.units.size, unreachableModules: unreachable, perEntry, coreKinds: [...core], flagsByKind: countKinds(flags) },
+    summary: { entries: entries.length, entriesByKind: countBy(entries.map((e) => e.kind)), reachedUnits: reachedUnits.size, units: g.units.size, unreachableModules: unreachable, unreachableTestSupport: testSupport, perEntry, coreKinds: [...core], flagsByKind: countKinds(flags) },
   };
 }
 

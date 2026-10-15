@@ -46,7 +46,7 @@ describe('batch-2 cheap template catalogue', () => {
     { template: 'env-read-outside-config', fixture: 'config-surface', proxy: 'config-surface', kind: 'env-read-outside-config' },
     { template: 'hidden-coupling', fixture: 'co-change', proxy: 'co-change', kind: 'hidden-coupling', options: { coChangeMaxFilesPerCommit: 6 }, git: true },
   ];
-  it.each(CASES)('$template: one row per planted $kind site, none on the near misses', async (c) => {
+  for (const c of CASES) it(`${c.template}: one row per planted ${c.kind} site, none on the near misses`, async () => {
     const root = materialiseFixture(c.fixture);
     if (c.git === true) {
       const h = JSON.parse(fs.readFileSync(path.join(CHEAP2_FIXTURES, c.fixture, 'history.json'), 'utf8')) as { commits: ReplayCommit[] };
@@ -69,7 +69,7 @@ describe('batch-2 cheap template catalogue', () => {
       }
       const onNearMiss = (x: Row, n: (typeof exp.nearMisses)[number]): boolean => {
         if (x.filePath !== n.file) return false;
-        const member = String(x.member ?? '');
+        const member = typeof x.member === 'string' ? x.member : '';
         if (n.methodName !== undefined) return member === (n.className !== undefined ? `${n.className}.${n.methodName}` : n.methodName);
         return n.className === undefined || member.startsWith(n.className);
       };
@@ -78,6 +78,7 @@ describe('batch-2 cheap template catalogue', () => {
       fx.cleanup();
     }
   });
+
 
   it('agent-reimplementation: one row per planted re-implementation of the provenance fixture', async () => {
     const steps = JSON.parse(fs.readFileSync(path.join(CHEAP2_FIXTURES, 'provenance', 'steps.json'), 'utf8')) as { steps: ReplayCommit[] };

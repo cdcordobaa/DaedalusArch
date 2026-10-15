@@ -48,7 +48,7 @@ export const CHEAP2_IN_MEMORY: ReadonlyMap<string, Mirror> = new Map<string, Mir
 
   ['vendor-sdk-outside-adapters', (g, facts) => g.nodes.filter((n) => n.type === 'File').flatMap((f) => {
     const v = fact(facts, f.id, 'vendorSdkOutsideAdapters');
-    return Array.isArray(v) ? v.map((sdk) => ({ filePath: f.filePath, sdk, layer: g.layer.get(f.id) ?? null })) : [];
+    return Array.isArray(v) ? (v as unknown[]).map((sdk) => ({ filePath: f.filePath, sdk, layer: g.layer.get(f.id) ?? null })) : [];
   }).sort(cmp('filePath', 'sdk'))],
 
   ['untested-component', (g, facts) => {

@@ -221,15 +221,15 @@ function isLogCall(call: Node): boolean {
 /** How a catch clause handles what it catches (see the module comment). */
 export function catchHandling(clause: CatchClause): { handling: CatchHandling; narrowedTo: string[] } {
   const block = clause.getBlock();
-  let rethrows = false;
+  const st = { rethrows: false };
   block.forEachDescendant((n, trav) => {
     if (Node.isArrowFunction(n) || Node.isFunctionExpression(n) || Node.isFunctionDeclaration(n)) {
       trav.skip();
       return;
     }
-    if (Node.isThrowStatement(n)) rethrows = true;
+    if (Node.isThrowStatement(n)) st.rethrows = true;
   });
-  if (rethrows) return { handling: 'rethrown', narrowedTo: [] };
+  if (st.rethrows) return { handling: 'rethrown', narrowedTo: [] };
   const v = clause.getVariableDeclaration();
   const name = v?.getName();
   if (v === undefined || name === undefined) return { handling: 'swallowed', narrowedTo: [] };

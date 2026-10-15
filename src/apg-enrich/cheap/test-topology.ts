@@ -28,6 +28,7 @@ import type { SourceFile } from 'ts-morph';
 import type { CheapContext } from './context.js';
 import { classesOf } from './context.js';
 import { resolvedDeclaration, topLevelFunctions } from './behaviour.js';
+import { same } from './callgraph.js';
 import { countKinds } from './error-flow.js';
 import type { CheapEdge, CheapFlag, CheapNodeFact, CheapProxyOutput, CheapVirtualNode } from './types.js';
 
@@ -107,7 +108,7 @@ export function runTestTopology(ctx: CheapContext): CheapProxyOutput {
       const parent = n.getParent();
       const line = n.getStartLineNumber();
       if (Node.isClassDeclaration(decl)) {
-        const isNew = parent !== undefined && Node.isNewExpression(parent) && parent.getExpression() === n;
+        const isNew = Node.isNewExpression(parent) && same(parent.getExpression(), n);
         hit(`Class|${rel}|${decl.getName() ?? ''}`, isNew ? 'instantiation' : 'reference', line);
         return;
       }
@@ -118,7 +119,7 @@ export function runTestTopology(ctx: CheapContext): CheapProxyOutput {
       }
       if (Node.isFunctionDeclaration(decl) || (Node.isVariableDeclaration(decl) && decl.getVariableStatement()?.getParent() === decl.getSourceFile())) {
         const name = (decl as { getName(): string | undefined }).getName() ?? '';
-        const isCall = parent !== undefined && Node.isCallExpression(parent) && parent.getExpression() === n;
+        const isCall = Node.isCallExpression(parent) && same(parent.getExpression(), n);
         hit(`Function|${rel}|${name}`, isCall ? 'call' : 'reference', line);
       }
     });

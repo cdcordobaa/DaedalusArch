@@ -20,8 +20,8 @@ describe('reachability proxy (batch 2)', () => {
       expect(fx.enrichment.edges.some((e) => e.type === 'REACHES' && e.sourceId === list?.id && e.targetId === impl?.id)).toBe(true);
       expect(list?.properties.componentPaths).toEqual(['shop']);
       const bypass = fx.flags('reachability').find((f) => f.kind === 'endpoint-bypasses-core' && f.className === 'ProductsController');
-      expect(bypass?.message).toContain('ProductsController.list -> InMemoryProductRepository.findAll');
-      expect(fx.flags('reachability').filter((f) => f.kind === 'endpoint-bypasses-core')).toHaveLength(2);
+      expect(bypass?.message.includes('ProductsController.list -> InMemoryProductRepository.findAll')).toBe(true);
+      expect(fx.flags('reachability').filter((f) => f.kind === 'endpoint-bypasses-core').length).toBe(2);
     } finally {
       fx.cleanup();
     }

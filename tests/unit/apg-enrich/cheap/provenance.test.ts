@@ -7,7 +7,7 @@ import type { LayerModel } from '../../../../src/shared/types/spec.js';
 import { main } from '../../../../scripts/lib/loop/main.js';
 import type { LoopMainDeps } from '../../../../scripts/lib/loop/main.js';
 import { runDirFor } from '../../../../scripts/lib/loop/loop.js';
-import { CHEAP2_FIXTURES, check, loadExpected, replayGit } from './batch2-helpers.js';
+import { CHEAP2_FIXTURES, check, loadExpected, missingFrom, pick, replayGit } from './batch2-helpers.js';
 import type { ReplayCommit } from './batch2-helpers.js';
 import { LAYERS } from './helpers.js';
 
@@ -40,25 +40,25 @@ describe('agent provenance (batch 2) on a plain git history', () => {
   });
 
   it('attaches created / modified provenance to files and the introducing step to edges', () => {
-    const todoFile = result.nodeFacts.filter((f) => f.key.endsWith('Step') || f.key === 'modifiedAtSteps').filter((f) => (f.value as { turnId?: string } | string[]) !== undefined);
+    const todoFile = result.nodeFacts.filter((f) => f.key.endsWith('Step') || f.key === 'modifiedAtSteps');
     const fileId = (p: string): string | undefined => result.nodeFacts.find((f) => f.key === 'createdAtStep' && result.edges.some((e) => e.type === 'CREATED_AT_STEP' && e.sourceId === f.nodeId && e.evidence[0]?.file === p))?.nodeId;
     const id = fileId('src/todos/domain/todo.ts');
-    expect(id).toBeDefined();
+    expect(id === undefined).toBe(false);
     const fact = (key: string): unknown => todoFile.find((f) => f.nodeId === id && f.key === key)?.value;
-    expect(fact('createdAtStep')).toEqual(expect.objectContaining({ turnId: 'step-01', stepId: 'todos', arm: 'none', modelId: 'demo-model', promptSha256: 'a'.repeat(64) }));
-    expect(fact('lastModifiedAtStep')).toEqual(expect.objectContaining({ turnId: 'step-03', promptSha256: 'c'.repeat(64) }));
+    expect(pick(fact('createdAtStep'), ['turnId', 'stepId', 'arm', 'modelId', 'promptSha256'])).toEqual({ turnId: 'step-01', stepId: 'todos', arm: 'none', modelId: 'demo-model', promptSha256: 'a'.repeat(64) });
+    expect(pick(fact('lastModifiedAtStep'), ['turnId', 'promptSha256'])).toEqual({ turnId: 'step-03', promptSha256: 'c'.repeat(64) });
     expect(fact('modifiedAtSteps')).toEqual(['step-01', 'step-03']);
     expect(result.edges.filter((e) => e.sourceId === id).map((e) => `${e.type}:${e.targetId}`)).toEqual(['CREATED_AT_STEP:step:0:step-01', 'MODIFIED_AT_STEP:step:2:step-03']);
     // The domain -> infrastructure import was introduced at step 3; the port import of the adapter at step 1.
     const imports = result.edgeFacts.filter((e) => e.type === 'IMPORTS').map((e) => e.createdAt.turnId);
-    expect(imports).toEqual(expect.arrayContaining(['step-01', 'step-03', 'step-04']));
+    expect(missingFrom(imports, ['step-01', 'step-03', 'step-04'])).toEqual([]);
   });
 
   it('computes the erosion delta and attributes the new blocking finding to the step of its edge', () => {
     const blocking = result.erosion.map((e) => `${e.turnId}:${String(e.newBlocking)}/${String(e.totalBlocking)}`);
     expect(blocking).toEqual(['step-01:0/0', 'step-02:0/0', 'step-03:1/1', 'step-04:0/1']);
     const f = result.erosion[2]?.newFindings.find((x) => x.tier === 'blocking');
-    expect(f).toEqual(expect.objectContaining({ rule: 'dependency-direction', file: 'src/todos/domain/todo.ts', target: 'src/todos/infrastructure/in-memory-todo.repository.ts', attributedTurn: 'step-03', via: 'edge' }));
+    expect(pick(f, ['rule', 'file', 'target', 'attributedTurn', 'via'])).toEqual({ rule: 'dependency-direction', file: 'src/todos/domain/todo.ts', target: 'src/todos/infrastructure/in-memory-todo.repository.ts', attributedTurn: 'step-03', via: 'edge' });
   });
 
   it('measures agent locality against the feature scope', () => {

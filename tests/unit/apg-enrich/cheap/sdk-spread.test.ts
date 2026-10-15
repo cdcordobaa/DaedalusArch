@@ -1,4 +1,4 @@
-import { check, loadExpected, runFixture } from './batch2-helpers.js';
+import { check, loadExpected, pick, runFixture } from './batch2-helpers.js';
 
 describe('sdk-spread proxy (batch 2)', () => {
   it('flags every planted case of the fixture and nothing on its near misses', async () => {
@@ -17,13 +17,13 @@ describe('sdk-spread proxy (batch 2)', () => {
     try {
       const s = fx.enrichment.summaries['sdk-spread'] as { components: number; packages: Record<string, { vendor: boolean; components: string[]; spread: number }>; sdkSpreadIndex: number };
       expect(s.components).toBe(3);
-      expect(s.packages.stripe).toEqual(expect.objectContaining({ vendor: true, components: ['payments'], spread: 0.3333 }));
+      expect(pick(s.packages.stripe, ['vendor', 'components', 'spread'])).toEqual({ vendor: true, components: ['payments'], spread: 0.3333 });
       expect(s.packages.lodash?.vendor).toBe(false);
-      expect(s.packages.crypto).toBeUndefined();
+      expect('crypto' in s.packages).toBe(false);
       // stripe, @aws-sdk/client-s3, mongoose: 1 of 3 components each; axios: 1 of 3.
       expect(s.sdkSpreadIndex).toBe(0.3333);
       const pkg = fx.apg.nodes.find((n) => n.type === 'Package' && n.name === 'stripe');
-      expect(fx.enrichment.nodeFacts.find((f) => f.nodeId === pkg?.id && f.key === 'sdkSpread')?.value).toEqual(expect.objectContaining({ importingFiles: 2, importingLayers: ['domain', 'infrastructure'] }));
+      expect(pick(fx.enrichment.nodeFacts.find((f) => f.nodeId === pkg?.id && f.key === 'sdkSpread')?.value, ['importingFiles', 'importingLayers'])).toEqual({ importingFiles: 2, importingLayers: ['domain', 'infrastructure'] });
     } finally {
       fx.cleanup();
     }

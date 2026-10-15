@@ -87,9 +87,14 @@ export function moduleStatements(sf: SourceFile): Node[] {
   return out;
 }
 
+/** Node identity across ts-morph's wrapper types (their static types need not overlap). */
+export function same(a: Node, b: Node): boolean {
+  return a === b;
+}
+
 function isCalleeOf(n: Node): boolean {
   const p = n.getParent();
-  return p !== undefined && Node.isCallExpression(p) && p.getExpression() === n;
+  return p !== undefined && Node.isCallExpression(p) && same(p.getExpression(), n);
 }
 
 /** The declaration key `file|name` used by `refDecls`. */
@@ -264,8 +269,8 @@ export function callGraph(ctx: CheapContext): CallGraph {
           push('new', n, scope, resolve(n.getExpression(), true));
         } else if (Node.isIdentifier(n)) {
           const parent = n.getParent();
-          const isCallee = parent !== undefined && ((Node.isCallExpression(parent) && parent.getExpression() === n) || (Node.isPropertyAccessExpression(parent) && parent.getNameNode() === n && isCalleeOf(parent)));
-          const isNewTarget = parent !== undefined && Node.isNewExpression(parent) && parent.getExpression() === n;
+          const isCallee = ((Node.isCallExpression(parent) && same(parent.getExpression(), n)) || (Node.isPropertyAccessExpression(parent) && same(parent.getNameNode(), n) && isCalleeOf(parent)));
+          const isNewTarget = Node.isNewExpression(parent) && same(parent.getExpression(), n);
           let decl: Node | undefined;
           try {
             decl = resolvedDeclaration(n);

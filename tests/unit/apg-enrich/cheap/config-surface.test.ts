@@ -1,4 +1,4 @@
-import { check, loadExpected, runFixture } from './batch2-helpers.js';
+import { check, loadExpected, missingFrom, runFixture } from './batch2-helpers.js';
 
 describe('config-surface proxy (batch 2)', () => {
   it('flags every planted case of the fixture and nothing on its near misses', async () => {
@@ -14,7 +14,7 @@ describe('config-surface proxy (batch 2)', () => {
     const fx = await runFixture('config-surface', ['config-surface']);
     try {
       const reads = fx.enrichment.edges.filter((e) => e.type === 'READS_ENV').map((e) => `${e.targetId}:${String(e.properties.via)}`);
-      expect(reads).toEqual(expect.arrayContaining(['env:TAX_RATE:process.env', 'env:FEATURE_EXPRESS:process.env', 'env:DEPLOY_REGION:process.env', 'env:CARRIER_API_KEY:@nestjs/config.get', 'env:AWS_REGION:process.env']));
+      expect(missingFrom(reads, ['env:TAX_RATE:process.env', 'env:FEATURE_EXPRESS:process.env', 'env:DEPLOY_REGION:process.env', 'env:CARRIER_API_KEY:@nestjs/config.get', 'env:AWS_REGION:process.env'])).toEqual([]);
       const keys = (fx.enrichment.summaries['config-surface'] as { keys: Record<string, { components: string[] }> }).keys;
       expect(keys.DATABASE_URL?.components).toEqual(['billing', 'config', 'orders', 'shipping']);
       expect(keys.REDIS_URL?.components).toEqual(['billing', 'config']);
