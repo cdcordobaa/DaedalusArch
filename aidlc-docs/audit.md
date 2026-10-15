@@ -1574,3 +1574,11 @@ Plan checkboxes ticked. Auto-approved under standing approval; no blocking or ma
 **Context**: v1.3 — SO2 strengthening (what the APG can express that import graphs cannot).
 
 ---
+
+## v1.3 — judge catch round 1 merged; round 2 started
+**Timestamp**: 2026-10-15T18:10:00Z
+**User Input**: (none; overnight push)
+**AI Response**: "PR #92 (7811797) merged into v1.3 (a06532d). Operators frozen first (0771ecb). The judge caught 9/11 seeds = 0.82 (Wilson 0.52–0.95): REPO-BYPASS 4/4, DUP-RULE 1/1, FAT-CONTROLLER 1/1, PERSIST-IN-DOMAIN 1/1, FRAMEWORK-LEAK 2/4 (both misses: an express Request parameter not mentioned). Twin false-fail 3/33 (1/33 excluding units already failing on the clean base); clean-control false-fail 2/24 units, both the fixture's own TypeORM entities; 0/22 reference units. The symbolic rules caught no seed: FF-P01 did not fire on PERSIST-IN-DOMAIN, suspected path-aliased package (to verify). 261 of 400 calls; cassette replay identical. Limitation: 10 of 11 seeds on one fixture. Round 2 launched: hand-planted semantic variants from the dev reference set (a separate stratum), operator seeds on E1 cells (≤8 per operator), twins and controls, the FF-P01 investigation; ≤500 calls."
+**Context**: v1.3 FR-V9 — first evidence that the judge detects semantic anti-patterns; precision of the estimate pending round 2.
+
+---
