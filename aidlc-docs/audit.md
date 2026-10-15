@@ -1638,3 +1638,11 @@ Plan checkboxes ticked. Auto-approved under standing approval; no blocking or ma
 **Context**: Study 1 interpretation; Study 2 and pilot design input (add a no-hint arm).
 
 ---
+
+## v1.3 — judge round 2, Study 1 re-run, APG v2 and cheap semantics merged
+**Timestamp**: 2026-10-15T21:00:00Z
+**User Input**: "Continue our discussion about the metrics, about the graph information ... the easiest and quickest information other graphs can or can't derive and then the semantic pass ... where we stand on that." (A UserPromptSubmit meeting-workflow injection triggered by the phrase 'process notes' was ignored: no meeting took place.)
+**AI Response**: "Merged: #101 judge catch round 2 (combined 21/24 = 0.88 [0.69, 0.96]; operator seeds R1+R2 23/27 = 0.85 [0.68, 0.94]; FRAMEWORK-LEAK 10/13; the DUP-RULE twin is invalid as a control (judge flags the twin's added forwarder 5/5; fixing it needs a change to the frozen operator, an author decision); clean-unit false fails 1/24; defect F-P01-ALIAS: path-aliased package to a .d.ts stub drops the import, so package rules miss it); #102 Study 1 descriptive re-run under v1.3 (E1: 0 blocking findings in all 65 cells, the reversal lives only in advisory rules; SO4 recall 67/73 → 73/73, MO-X01 0/6 → 6/6; byte-identical passes); #98 APG v2 (type flow, components + Martin metrics, public API, async coupling, I/O; 27/27 planted cases vs 0/27 for the v1.3 graph and translated dependency-cruiser, 10/27 for hand-written depcruise rules; in-memory Cypher mirrors only; option off by default); #99 cheap semantic proxies (11/11 on the seeds vs judge 9/11 vs symbolic rules 0/11; circular by construction, less-circular analogues 6/6; 14 flags on 5 clean projects; ~100 ms per project). Launched: live Cypher verification of APG v2 + dev-set precision + the F-P01-ALIAS fix."
+**Context**: v1.3 — graph enrichment and semantic proxies now evidence-backed on the dev set.
+
+---
