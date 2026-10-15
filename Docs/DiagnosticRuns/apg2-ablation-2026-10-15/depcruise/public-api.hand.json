@@ -1,0 +1,38 @@
+{
+  "forbidden": [
+    {
+      "name": "H-deep-import",
+      "severity": "error",
+      "comment": "best hand-written form of deep-import: only a module's index.ts may be imported from outside it",
+      "from": {
+        "path": "^src/([^/]+)/"
+      },
+      "to": {
+        "path": "^src/(orders|payments)/",
+        "pathNot": [
+          "^src/$1/",
+          "^src/[^/]+/index\\.ts$"
+        ]
+      }
+    }
+  ],
+  "options": {
+    "tsPreCompilationDeps": true,
+    "tsConfig": {
+      "fileName": "tsconfig.json"
+    },
+    "doNotFollow": {
+      "path": "node_modules"
+    },
+    "enhancedResolveOptions": {
+      "extensions": [
+        ".ts",
+        ".tsx",
+        ".d.ts",
+        ".js",
+        ".jsx",
+        ".json"
+      ]
+    }
+  }
+}

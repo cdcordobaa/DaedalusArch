@@ -1,0 +1,41 @@
+{
+  "forbidden": [
+    {
+      "name": "FF-S02--cycle",
+      "severity": "error",
+      "comment": "T6 no-cyclic-deps",
+      "from": {},
+      "to": {
+        "circular": true
+      }
+    }
+  ],
+  "options": {
+    "tsPreCompilationDeps": true,
+    "doNotFollow": {
+      "path": "node_modules"
+    },
+    "exclude": {
+      "path": [
+        "(?:^|\\/)dist(?:\\/|$)",
+        "(?:^|\\/)build(?:\\/|$)",
+        "(?:^|\\/)[^/]*\\.d\\.ts$",
+        "(?:^|\\/)[^/]*\\.spec\\.ts$",
+        "(?:^|\\/)[^/]*\\.test\\.ts$"
+      ]
+    },
+    "tsConfig": {
+      "fileName": "tsconfig.json"
+    },
+    "enhancedResolveOptions": {
+      "extensions": [
+        ".ts",
+        ".tsx",
+        ".d.ts",
+        ".js",
+        ".jsx",
+        ".json"
+      ]
+    }
+  }
+}
