@@ -5,6 +5,7 @@ import type { GraphRepository } from '../../shared/interfaces/graph-repository.j
 import { DomainResult } from '../../shared/errors/domain-result.js';
 import { evaluateSymbolic } from '../../evaluation-engine/index.js';
 import { CYCLE_STRATEGY } from '../../evaluation-engine/scc-cycles.js';
+import type { SymbolicTransform } from '../../construct-switches/pipeline.js';
 import { toPipelineError, toPipelineWarning } from './map-helpers.js';
 
 export class SymbolicEvaluateCommand implements PipelineCommand {
@@ -14,6 +15,8 @@ export class SymbolicEvaluateCommand implements PipelineCommand {
     private readonly graphRepository: GraphRepository,
     /** Known secrets scrubbed from failure messages (BR-U3-58). */
     private readonly knownSecrets: readonly string[] = [],
+    /** v1.3 construct switches: the row stage over the symbolic results (`constructRowTransform`). */
+    private readonly transformSymbolic?: SymbolicTransform,
   ) {}
 
   async execute(context: FirewallContext): Promise<DomainResultType<void>> {
@@ -36,7 +39,8 @@ export class SymbolicEvaluateCommand implements PipelineCommand {
 
     // Set evaluation results with symbolic only (empty neuronal); failures forwarded (FR-13, BR-U3-01)
     context.setEvaluationResults({
-      symbolicResults: result.data.results,
+      // v1.3 construct switches: the row stage (absent at the status quo).
+      symbolicResults: this.transformSymbolic !== undefined ? this.transformSymbolic(result.data.results, context) : result.data.results,
       neuronalResults: [],
       failures: result.data.failures,
     });
