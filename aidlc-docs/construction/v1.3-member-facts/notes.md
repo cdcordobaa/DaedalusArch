@@ -148,7 +148,7 @@ The parts most worth seeing run: the concatenation of list comprehensions over s
 
 ### Full unit run
 
-FULL_RUN_PLACEHOLDER
+`npx jest --maxWorkers=4` on this branch (commit `a1c64630`): **4032 passed, 6 failed, 40 skipped** (4078; 276 suites passed, 5 failed, 2 skipped). The 6 failures also fail on a worktree of `origin/v1.3` in this container, run the same way, and none touches this unit's code: `replay-no-binary.test.ts` ×2, `skeleton.test.ts` (`npm ci --offline`), `guards.test.ts` (`origin/v1.2e` not fetched), `score-golden-acceptance.test.ts` (git history), `import-graph-parity.test.ts` (F-BARREL parity with the literal barrel edges of the v1.3 extractor). The 40 skipped include every Neo4j test.
 
 tsc (`npx tsc --noEmit`) passes. The new files are lint-clean (`eslint`). The edited source and test files have the same lint errors as on `origin/v1.3` (all on lines this unit did not touch).
 
