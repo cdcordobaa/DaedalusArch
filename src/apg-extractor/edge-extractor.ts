@@ -66,8 +66,8 @@ export function extractEdges(
     if (!edgeSet.has(key)) edgeSet.set(key, edge);
   };
 
-  const addWarning = (filePath: string, code: string, message: string): void => {
-    warnings.push({ filePath, code, message });
+  const addWarning = (filePath: string, code: string, message: string, severity?: 'info'): void => {
+    warnings.push({ filePath, code, message, ...(severity !== undefined ? { severity } : {}) });
   };
 
   const packages = new PackageNodeRegistry();

@@ -48,6 +48,14 @@ export interface ExtractorOptions {
    */
   memberFacts?: boolean;
   /**
+   * v1.3 (finding F-P01-ALIAS), ON by default on the v1.3 branch; OFF in the frozen v1.2E instrument. A bare (not
+   * relative) specifier that resolves through a tsconfig `paths` rule to a declaration file (`.d.ts`, `.d.mts`,
+   * `.d.cts`) without a File node, such as a local stub `vendor/typeorm.d.ts` for `typeorm`, becomes an IMPORTS edge
+   * to the Package named by the specifier instead of being dropped. `EXTRACTOR_008` is still emitted, with
+   * `severity: 'info'`. Off: the import is dropped with `EXTRACTOR_008` (the v1.2E behaviour).
+   */
+  aliasDeclarationPackages?: boolean;
+  /**
    * APG v2 (`Docs/v1.3/apg2-design.md`), OFF in both `V12E_DEFAULT_OPTIONS` and `V13_DEFAULT_OPTIONS`; ON in
    * `V13_APG2_OPTIONS`. Adds, after every v1.3 node and edge: SIGNATURE_USES (type flow through signatures), Component
    * nodes with BELONGS_TO / DEPENDS_ON / EXPORTS_SYMBOL / DEEP_IMPORT and Martin's metrics, Channel nodes with
@@ -164,13 +172,15 @@ export const V12E_DEFAULT_OPTIONS: Readonly<Required<ExtractorOptions>> = Object
   moduleWiring: false,
   reExportEdges: 'resolved-only',
   memberFacts: false,
+  aliasDeclarationPackages: false,
   apg2: false,
   components: [],
 });
 
 /**
  * The v1.3 extractor defaults (FR-V1, ADR-V13-01): dynamic import edges, NestJS module wiring and literal +
- * resolved re-export edges and class-member facts are ON. The flags stay, so a caller can still turn each one off explicitly.
+ * resolved re-export edges, class-member facts and Package edges for `paths` aliases onto declaration stubs
+ * (F-P01-ALIAS) are ON. The flags stay, so a caller can still turn each one off explicitly.
  */
 export const V13_DEFAULT_OPTIONS: Readonly<Required<ExtractorOptions>> = Object.freeze({
   ...V12E_DEFAULT_OPTIONS,
@@ -178,6 +188,7 @@ export const V13_DEFAULT_OPTIONS: Readonly<Required<ExtractorOptions>> = Object.
   moduleWiring: true,
   reExportEdges: 'both',
   memberFacts: true,
+  aliasDeclarationPackages: true,
 });
 
 /**
