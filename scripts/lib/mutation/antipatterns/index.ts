@@ -3,8 +3,9 @@
  *
  * A separate registry from the frozen catalogue (`operators/index.ts`): its `catalogueVersion` is the sha256 of the
  * DRAFT anti-pattern catalogue, read from an explicit `repoRoot`, so no manifest row of these operators can carry the
- * frozen catalogue's version. Ten entries (five positives, five twins), all judge probes outside coverage. A unit test
- * asserts the registry and the catalogue table match one to one.
+ * frozen catalogue's version. Twelve entries (six positives, six twins), all judge probes outside coverage. A unit test
+ * asserts the registry and the catalogue table match one to one. AP-DUP-RULE2 / AP-DUP-RULE2n (catalogue §8) are the v2
+ * of AP-DUP-RULE, appended last so the v1 entries and their order are unchanged.
  */
 import * as fs from 'node:fs';
 import * as path from 'node:path';
@@ -12,6 +13,7 @@ import { DomainResult } from '../../../../src/shared/errors/domain-result.js';
 import { OperatorRegistry, catalogueVersionOf } from '../registry.js';
 import type { MutationOperator } from '../types.js';
 import { AP_DUP_RULE, AP_DUP_RULEN } from './ap-dup-rule.js';
+import { AP_DUP_RULE2, AP_DUP_RULE2N } from './ap-dup-rule-v2.js';
 import { AP_FAT_CONTROLLER, AP_FAT_CONTROLLERN } from './ap-fat-controller.js';
 import { AP_FRAMEWORK_LEAK, AP_FRAMEWORK_LEAKN } from './ap-framework-leak.js';
 import { AP_PERSIST_IN_DOMAIN, AP_PERSIST_IN_DOMAINN } from './ap-persist-in-domain.js';
@@ -30,14 +32,22 @@ export const ANTIPATTERN_OPERATORS: readonly MutationOperator[] = Object.freeze(
   AP_DUP_RULEN,
   AP_FRAMEWORK_LEAK,
   AP_FRAMEWORK_LEAKN,
+  AP_DUP_RULE2,
+  AP_DUP_RULE2N,
 ]);
+
+/**
+ * The ten entries frozen for the judge catch test rounds 1 and 2 (`Docs/v1.3/judge-catch-frozen.md`), without the v2
+ * pair, so those rounds' seeding scripts reproduce their outputs.
+ */
+export const FROZEN_V1_OPERATORS: readonly MutationOperator[] = Object.freeze(ANTIPATTERN_OPERATORS.filter((o) => o !== AP_DUP_RULE2 && o !== AP_DUP_RULE2N));
 
 /** True for an anti-pattern operator id (`AP-…`). */
 export function isAntipatternId(id: string): boolean {
   return id.startsWith('AP-');
 }
 
-/** A registry holding the ten anti-pattern entries, frozen on return. */
+/** A registry holding the twelve anti-pattern entries, frozen on return. */
 export function buildAntipatternRegistry(catalogueVersion: string): OperatorRegistry {
   const registry = new OperatorRegistry(catalogueVersion);
   for (const op of ANTIPATTERN_OPERATORS) {

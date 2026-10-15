@@ -18,6 +18,8 @@ import {
   loadAntipatternRegistry,
 } from '../../../../scripts/lib/mutation/antipatterns/index.js';
 import { AP_DUP_RULE, AP_DUP_RULEN } from '../../../../scripts/lib/mutation/antipatterns/ap-dup-rule.js';
+import { AP_DUP_RULE2, AP_DUP_RULE2N } from '../../../../scripts/lib/mutation/antipatterns/ap-dup-rule-v2.js';
+import { loadCompiledSpec } from '../../../../scripts/lib/mutation/expected.js';
 import { AP_FAT_CONTROLLER, AP_FAT_CONTROLLERN } from '../../../../scripts/lib/mutation/antipatterns/ap-fat-controller.js';
 import { AP_FRAMEWORK_LEAK, AP_FRAMEWORK_LEAKN } from '../../../../scripts/lib/mutation/antipatterns/ap-framework-leak.js';
 import { AP_PERSIST_IN_DOMAIN, AP_PERSIST_IN_DOMAINN } from '../../../../scripts/lib/mutation/antipatterns/ap-persist-in-domain.js';
@@ -210,6 +212,92 @@ describe('AP-DUP-RULE (Integrity)', () => {
   });
 });
 
+describe('AP-DUP-RULE v2 (Integrity; catalogue §8)', () => {
+  const v1Detail = { class: 'InvoiceService', sourceFile: SERVICE, sourceClass: 'OrderService', method: 'create', guard: '0', imports: 'pkg @nestjs/common BadRequestException new', typeImports: '' };
+  const site = { filePath: INVOICE, detail: { ...v1Detail, twinHost: SERVICE, twinHostKind: 'own', twinHostImports: '', twinEdges: '' } };
+
+  it('AP-DUP-RULE2 is the v1 positive edit, unchanged', async () => {
+    const v1 = await applyForced(scratch, ALL, 'AP-DUP-RULE', base(), { filePath: INVOICE, detail: v1Detail });
+    const v2 = await applyForced(scratch, ALL, 'AP-DUP-RULE2', base(), site);
+    expect(v2.row?.expected).toEqual(judgeOnly('integrity'));
+    expect(read(v2.copy, INVOICE)).toBe(read(v1.copy, INVOICE));
+    expect(read(v2.copy, SERVICE)).toBe(read(v1.copy, SERVICE));
+    expect(v2.row?.editedFiles).toEqual([INVOICE]);
+    expect(v2.row?.typecheck.mutantErrors).toBe(0);
+  });
+
+  it('AP-DUP-RULE2n (own-file host): the rule moves once into a local helper; the second service is untouched; compiles', async () => {
+    const { row, copy } = await applyForced(scratch, ALL, 'AP-DUP-RULE2n', base(), site);
+    expect(row?.expected).toMatchObject({ negative: true, twinOf: 'AP-DUP-RULE2', keys: [] });
+    const service = read(copy, SERVICE);
+    expect(service).toContain('assertCreateRule(quantity);');
+    expect(service).toMatch(/\nfunction assertCreateRule\(quantity: number\): void \{/);
+    expect(service).not.toContain('export function assertCreateRule');
+    expect(service.match(/Quantity must be positive/g)).toHaveLength(1);
+    expect(read(copy, INVOICE)).toBe(fs.readFileSync(path.join(DIR, INVOICE), 'utf8'));
+    expect(row?.editedFiles).toEqual([SERVICE]);
+    expect(row?.typecheck.mutantErrors).toBe(0);
+  });
+
+  it('AP-DUP-RULE2n (domain host): an is<X> guard rule becomes an assertion function next to the guard; narrowing kept; compiles', async () => {
+    const dir = fs.mkdtempSync(path.join(scratch, 'v2-domain-'));
+    const w = (rel: string, lines: readonly string[]): void => {
+      fs.mkdirSync(path.dirname(path.join(dir, rel)), { recursive: true });
+      fs.writeFileSync(path.join(dir, rel), `${lines.join('\n')}\n`);
+    };
+    w('tsconfig.json', [JSON.stringify({ compilerOptions: { strict: true, target: 'ES2022', module: 'commonjs', moduleResolution: 'node', noEmit: true, skipLibCheck: true, types: [] }, include: ['src/**/*.ts'] })]);
+    w('src/domain/order-status.ts', ['export type OrderStatus = "placed" | "paid";', '', 'export function isOrderStatus(value: unknown): value is OrderStatus {', '  return value === "placed" || value === "paid";', '}']);
+    w('src/domain/domain-error.ts', ['export class DomainError extends Error {}']);
+    w('src/domain/order-repository.ts', ['import { OrderStatus } from "./order-status";', '', 'export interface OrderRepository {', '  findByStatus(status: OrderStatus): string[];', '}']);
+    w('src/application/list-orders-use-case.ts', [
+      'import { DomainError } from "../domain/domain-error";',
+      'import { OrderRepository } from "../domain/order-repository";',
+      'import { isOrderStatus } from "../domain/order-status";',
+      '',
+      'export class ListOrdersUseCase {',
+      '  constructor(private readonly orders: OrderRepository) {}',
+      '',
+      '  execute(status: unknown): string[] {',
+      '    if (!isOrderStatus(status)) {',
+      '      throw new DomainError("unknown status");',
+      '    }',
+      '    return this.orders.findByStatus(status);',
+      '  }',
+      '}',
+    ]);
+    w('src/application/get-order-use-case.ts', [
+      'import { OrderRepository } from "../domain/order-repository";',
+      '',
+      'export class GetOrderUseCase {',
+      '  constructor(private readonly orders: OrderRepository) {}',
+      '',
+      '  execute(id: string): string {',
+      '    return id;',
+      '  }',
+      '}',
+    ]);
+    const compiled = await loadCompiledSpec(REPO, path.join(REPO, CLEAN_SPEC));
+    if (!compiled.success) throw new Error('spec');
+    const sites = AP_DUP_RULE2N.findSites(openImportGraphProject(dir, 'tsconfig.json'), compiled.data.spec);
+    expect(sites.map((s) => [s.filePath, s.detail.twinHost, s.detail.twinHostKind, s.detail.twinEdges])).toEqual([
+      ['src/application/get-order-use-case.ts', 'src/domain/order-status.ts', 'domain', 'src/domain/order-status.ts>src/domain/domain-error.ts'],
+    ]);
+    const s = sites[0];
+    if (s === undefined) throw new Error('site');
+    const { row, copy } = await applyForced(scratch, ALL, 'AP-DUP-RULE2n', fixtureBase(CLEAN_SPEC, dir), { filePath: s.filePath, detail: s.detail });
+    const host = read(copy, 'src/domain/order-status.ts');
+    expect(host).toContain('import { DomainError } from "./domain-error";');
+    expect(host).toContain('export function assertOrderStatus(status: unknown): asserts status is OrderStatus {');
+    const uc = read(copy, 'src/application/list-orders-use-case.ts');
+    expect(uc).toContain('import { assertOrderStatus } from "../domain/order-status";');
+    expect(uc).toContain('    assertOrderStatus(status);\n    return this.orders.findByStatus(status);');
+    expect(uc).not.toContain('DomainError');
+    expect(read(copy, 'src/application/get-order-use-case.ts')).toBe(fs.readFileSync(path.join(dir, 'src/application/get-order-use-case.ts'), 'utf8'));
+    expect(row?.editedFiles).toEqual(['src/application/list-orders-use-case.ts', 'src/domain/order-status.ts']);
+    expect(row?.typecheck.mutantErrors).toBe(0);
+  });
+});
+
 describe('AP-FRAMEWORK-LEAK (Semantic)', () => {
   const site = { filePath: INVOICE, detail: { class: 'InvoiceService', method: 'issue', framework: 'express' } };
 
@@ -248,6 +336,8 @@ describe('sites and preconditions on the fixtures (label-free)', () => {
       ['AP-DUP-RULEn', 1, 1],
       ['AP-FRAMEWORK-LEAK', 4, 4],
       ['AP-FRAMEWORK-LEAKn', 4, 4],
+      ['AP-DUP-RULE2', 1, 1],
+      ['AP-DUP-RULE2n', 1, 1],
     ]);
     expect(r.data.find((x) => x.operatorId === 'AP-PERSIST-IN-DOMAIN')?.rejectedByReason).toEqual({ 'already-imported': 2 });
   });
@@ -282,7 +372,7 @@ describe('sites and preconditions on the fixtures (label-free)', () => {
 describe('registry and DRAFT catalogue', () => {
   const text = fs.readFileSync(path.join(REPO, ANTIPATTERN_CATALOGUE_PATH), 'utf8');
 
-  it('ten entries, one to one with the registry on id, twin, dimension, expected templates, coverage, site kinds, source', () => {
+  it('twelve entries, one to one with the registry on id, twin, dimension, expected templates, coverage, site kinds, source', () => {
     const parsed = parseCatalogue(text);
     if (!parsed.success) throw new Error(JSON.stringify(parsed.errors));
     expect(parsed.data.entries.map((e) => e.id)).toEqual(ALL.map((o) => o.id));
@@ -311,8 +401,9 @@ describe('registry and DRAFT catalogue', () => {
       AP_PERSIST_IN_DOMAIN.id,
       AP_DUP_RULE.id,
       AP_FRAMEWORK_LEAK.id,
+      AP_DUP_RULE2.id,
     ]);
-    expect([AP_REPO_BYPASSN, AP_FAT_CONTROLLERN, AP_PERSIST_IN_DOMAINN, AP_DUP_RULEN, AP_FRAMEWORK_LEAKN].map((o) => o.role)).toEqual(['twin', 'twin', 'twin', 'twin', 'twin']);
+    expect([AP_REPO_BYPASSN, AP_FAT_CONTROLLERN, AP_PERSIST_IN_DOMAINN, AP_DUP_RULEN, AP_FRAMEWORK_LEAKN, AP_DUP_RULE2N].map((o) => o.role)).toEqual(['twin', 'twin', 'twin', 'twin', 'twin', 'twin']);
   });
 
   it('the registry carries the DRAFT catalogue sha256, never the frozen one, and shares no id with it', () => {
@@ -321,7 +412,7 @@ describe('registry and DRAFT catalogue', () => {
     expect(r.data.catalogueVersion).toBe(catalogueVersionOf(text));
     expect(r.data.catalogueVersion).not.toBe(catalogueVersionOf(fs.readFileSync(path.join(REPO, 'Docs/operator-catalogue.md'))));
     expect(r.data.isFrozen).toBe(true);
-    expect(buildAntipatternRegistry('d'.repeat(64)).list()).toHaveLength(10);
+    expect(buildAntipatternRegistry('d'.repeat(64)).list()).toHaveLength(12);
     const frozenIds = new Set(CATALOGUE_OPERATORS.map((o) => o.id));
     expect(ALL.some((o) => frozenIds.has(o.id))).toBe(false);
   });

@@ -1,0 +1,37 @@
+diff -ruN a/src/application/ListOrdersByStatusUseCase.ts b/src/application/ListOrdersByStatusUseCase.ts
+--- a/src/application/ListOrdersByStatusUseCase.ts
++++ b/src/application/ListOrdersByStatusUseCase.ts
+@@ -1,13 +1,12 @@
+-import { DomainError } from "../domain/DomainError";
+ import { OrderRepository } from "../domain/OrderRepository";
+-import { isOrderStatus } from "../domain/OrderState";
++import { assertOrderStatus } from "../domain/OrderState";
+ import { OrderDto, toOrderDto } from "./dto";
+ 
+ export class ListOrdersByStatusUseCase {
+   constructor(private readonly orders: OrderRepository) {}
+ 
+   async execute(status: unknown): Promise<OrderDto[]> {
+-    if (!isOrderStatus(status)) throw new DomainError("invalid", "Unknown order state");
++    assertOrderStatus(status);
+     const found = await this.orders.findByStatus(status);
+     return found.map(toOrderDto);
+   }
+diff -ruN a/src/domain/OrderState.ts b/src/domain/OrderState.ts
+--- a/src/domain/OrderState.ts
++++ b/src/domain/OrderState.ts
+@@ -1,3 +1,5 @@
++import { DomainError } from "./DomainError";
++
+ export const ORDER_STATES = ["placed", "paid", "packed", "shipped", "delivered"] as const;
+ 
+ export type OrderState = (typeof ORDER_STATES)[number];
+@@ -10,4 +12,8 @@
+ 
+ export function nextState(state: OrderState): OrderState | undefined {
+   return ORDER_STATES[ORDER_STATES.indexOf(state) + 1];
++}
++
++export function assertOrderStatus(status: unknown): asserts status is OrderStatus {
++  if (!isOrderStatus(status)) throw new DomainError("invalid", "Unknown order state");
+ }

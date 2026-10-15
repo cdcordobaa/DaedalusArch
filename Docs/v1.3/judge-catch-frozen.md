@@ -43,3 +43,39 @@ Combined registry digest (sha256 of the sorted `shasum -a 256` lines of the cata
 | AP-PERSIST-IN-DOMAIN | AP-PERSIST-IN-DOMAINn | FF-N02 `intent-alignment` (both-catch control: FF-P01 expected) |
 | AP-DUP-RULE | AP-DUP-RULEn | FF-N01 `architectural-integrity` |
 | AP-FRAMEWORK-LEAK | AP-FRAMEWORK-LEAKn | FF-N02 `intent-alignment` |
+
+## AP-DUP-RULE v2 (appended 2026-10-15, before any v2 judge call)
+
+> Appended only; nothing above this line was changed. The author authorised fixing AP-DUP-RULE because its twin is not a neutral control: the twin's `validate<Method>` forwarder is itself failed as a misplaced responsibility, 5/5 in round 2 (`Docs/DiagnosticRuns/v1.3-judge-catch-round2-2026-10-15.md`). The v1 operator and its hashes above stay frozen. v2 is a new registry entry pair, AP-DUP-RULE2 and AP-DUP-RULE2n (catalogue §8, rationale written before the code). Development-set work; not a pre-registration; no `REGISTERED_ARTEFACTS` file touched.
+
+Base: `origin/v1.3` @ `95637b75`, branch `v1.3-duprule-v2`.
+
+**v1 files, re-checked unchanged** (byte-identical to the table above): `ap-dup-rule.ts` `dda3accc…`, `common.ts` `40552e37…`, `ap-repo-bypass.ts`, `ap-fat-controller.ts`, `ap-persist-in-domain.ts`, `ap-framework-leak.ts`, `registry.ts`, `types.ts`, `sites.ts`, `rubric.ts` `52960e02…`, `frozen.ts` `b6301b67…`.
+
+**Files changed by addition only.** The catalogue (two §1 rows, two §2 rows, §8, one changelog row; every v1 row unchanged) and `antipatterns/index.ts` (the v2 import, two entries appended after the ten v1 entries, `FROZEN_V1_OPERATORS`). Their sha256 therefore differ from the table above, which records them at round 1 and 2. The round 1 and 2 seeding scripts now read `FROZEN_V1_OPERATORS` (the same ten entries in the same order), so they reproduce their outputs.
+
+| File | sha256 |
+|---|---|
+| `Docs/operator-catalogue-antipatterns.md` | `3cc3d03c2be0a0406e2410b16c8220fdd610c9d98d31fc02057103ce819b1e38` |
+| `scripts/lib/mutation/antipatterns/index.ts` | `c1eef5d3952cdf5a896018b29781fc47d1e3132ab0d12024b7398d1ed642c5d5` |
+| `scripts/lib/mutation/antipatterns/ap-dup-rule-v2.ts` | `72342a9ebe03c60c9213691c22e3ccba9ad71eb1b8e9567a8fd0284ad4fa1f68` |
+
+Harness (seeding, judge runner with the `AP-DUP-RULE2` → FF-N01 mapping, scoring, cheap proxies), frozen with the operators:
+
+| File | sha256 |
+|---|---|
+| `scripts/v1.3/judge-catch-v2-seed.ts` | `f689b6409b5447d0e694a7c4e1892c0c70ed636a6bd53bff512dc5ca81ec7e50` |
+| `scripts/v1.3/judge-catch-v2-score.ts` | `5eee56220fe0afe586c82716d3a66049c21380484ff63565d7095c4a9fd016f0` |
+| `scripts/v1.3/cheap-semantics-v2-eval.ts` | `34df15848ebf74519699a788b7fe9d4108d1685f1e2fa98e9c84a146c78390c0` |
+| `scripts/v1.3/judge-catch-run.ts` | `25a654f62ae5093aa570498a8bdc6beeccd721ac5bcd5103816b1d1ecc0c24f6` |
+| `scripts/v1.3/judge-catch-seed.ts` | `ded298ea57e53435b7a15e2a3c6eada55a0f63e456a5d67788156defdf6f317d` |
+| `scripts/v1.3/judge-catch2-seed.ts` | `524e74cdd3586d2b3e0db3dc7ebe67a753baaaf6ca3f059ecd8806bb9b8c8c54` |
+
+Combined v2 registry digest (sha256 of the `shasum -a 256` lines, sorted by path, of the catalogue and the eight `antipatterns/*.ts` files): `afe879b51c3d1cd0c84a203e0f819000eccd427e155acb7db2c4480648764444`.
+
+Judge instrument: unchanged (table above). Model `claude-opus-5-5`, effort `high`, 3 runs per unit, majority vote, pinned CLI `2.1.294` with the isolated config dir. Budget for this unit: at most 200 live calls.
+
+| Positive | Twin | Probed function |
+|---|---|---|
+| AP-DUP-RULE2 (the AP-DUP-RULE edit, unchanged) | AP-DUP-RULE2n (the rule moves once into a policy function: the domain file of its `is<X>` guard as an assertion function, else the first service's own file; the second service is not touched) | FF-N01 `architectural-integrity` |
+
