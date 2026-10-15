@@ -73,6 +73,8 @@ This cloud environment has no Neo4j, so (a) and (b1) were checked on the in-memo
 
 Until that run, the claim "the Cypher returns what the mirror returns" is unverified.
 
+**Update (2026-10-15).** The live run is done (`Docs/DiagnosticRuns/apg2-live-2026-10-15.md` §1). On Neo4j the compiled templates return the mirror's rows, row for row and in order: 63 template runs on these projects and 639 on the 71 dev reference variants. All 47 cases agree with `ablation.json`. No Cypher defect was found.
+
 ## Results
 
 Summary over the 27 planted cases:
