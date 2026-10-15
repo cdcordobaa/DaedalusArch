@@ -3,13 +3,13 @@
 # COMMITTED tree (git archive HEAD into a scratch directory, so the working tree is never written), and compares each
 # output byte for byte with the committed copy. Run from anywhere after replication/setup.sh.
 #
-#   replication/smoke.sh [--keep] [--only gf,ise,apg2,cheap]
+#   replication/smoke.sh [--keep] [--only gf,ise,apg2,cheap,judge]
 #
 # Exit 0: every output is IDENTICAL or a KNOWN divergence (replication/known-divergences.json, each one explained in
 # Docs/DiagnosticRuns/v1.3-repro-audit-2026-10-16.md). Exit 1: an unexpected DIFF / MISSING / EXTRA file.
 set -euo pipefail
 REPO="$(cd "$(dirname "$0")/.." && pwd)"
-KEEP=0; ONLY="gf,ise,apg2,cheap"
+KEEP=0; ONLY="gf,ise,apg2,cheap,judge"
 while [ $# -gt 0 ]; do case "$1" in --keep) KEEP=1;; --only) ONLY="$2"; shift;; *) echo "unknown arg $1" >&2; exit 2;; esac; shift; done
 want() { case ",$ONLY," in *",$1,"*) return 0;; *) return 1;; esac; }
 
@@ -75,6 +75,11 @@ fi
 # 4. Cheap semantic proxies (pass 0.5).
 if want cheap; then
   . "$REPO/replication/lib/cheap.sh"
+fi
+
+# 5. Judge catch scores (rounds 1, 2 and DUP-RULE v2) replayed from the committed cassettes.
+if want judge; then
+  . "$REPO/replication/lib/judge.sh"
 fi
 
 echo
