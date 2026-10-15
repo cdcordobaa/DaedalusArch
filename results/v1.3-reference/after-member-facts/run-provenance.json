@@ -1,0 +1,18 @@
+{
+  "unit": "v1.3 integration check after #89 (loop harness) and #90 (member facts, FF-DT03), then the dev-set re-run. DEVELOPMENT-SET numbers (the 71-case reference set); not a validity estimate. Nothing was tuned in this unit",
+  "branch": "v1.3-int2 from origin/v1.3 3e2c96ae (merge of #89 over #90 over #91)",
+  "code": "3e2c96ae, unchanged: the integration check needed no fix",
+  "defaults": "v1.3: extractor V13_DEFAULT_OPTIONS (reExportEdges 'both', memberFacts on); CompileCommand V13_COMPILE_OPTIONS = { edgeViews, styleApplicability, roleTokens, memberFacts }; v1.3 tiers",
+  "neo4j": "daedalus-neo4j-bt, bolt 127.0.0.1:7693, env from ~/.daedalus-bt.env (not printed). Each live run held the cross-process Neo4j lock (~/.daedalus/locks/neo4j-127.0.0.1_7693.lock, mode owned) for the whole run; the CLI children were re-entrant",
+  "command": "node --import tsx scripts/v1.3/ue-baseline-live.ts --out <dir>; scripts/v1.3/ue-graph.ts --out <dir>; scripts/v1.3/ue-score.ts --base <dir> --blind <daedalus-sealed/v1.3-blind> (the blind manifests were read only through ue-score.ts); blind-rule-mapping.json copied unchanged from after-fixes/",
+  "admission": "HEAVY_ADMISSION_BYPASS=1 on npm ci, tsc, the jest runs, the extraction hash runs, both live runs and ue-graph, one at a time: the hook blocked on swap (12.1 GB of 16 GB) while memory_pressure reported 34-40% free",
+  "runs": [
+    { "attempt": "run1", "start": "2026-10-15T17:22:42Z", "end": "2026-10-15T17:24:19Z", "kept": true, "lock": "owned" },
+    {
+      "attempt": "run2", "start": "2026-10-15T17:24:27Z", "end": "2026-10-15T17:25:57Z", "kept": false, "lock": "owned",
+      "identicalToRun1": "raw/ byte-identical (71 files); report.md and report.json byte-identical; evidence violations identical 71/71 (only elapsedMs differs); scores.json, scores.md, adjudication.csv and graph-agreement.json byte-identical when run2 is scored the same way"
+    }
+  ],
+  "replay": "validate-reference.ts --from-raw raw/ reproduces report.md (header line aside)",
+  "temp": "materialised variants under the OS temp directory (/var/folders/...), outside any node_modules ancestry; removed after each run"
+}
