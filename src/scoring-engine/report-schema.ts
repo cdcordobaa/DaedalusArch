@@ -11,7 +11,7 @@ export const REPORT_SCHEMA_ID = 'https://daedalus-arch.local/schemas/report.sche
 export const REPORT_SCHEMA = {
   "$schema": "http://json-schema.org/draft-07/schema#",
   "$id": "https://daedalus-arch.local/schemas/report.schema.json",
-  "$comment": "FROZEN at U3-R10 (FR-14, FR-36; U3 BR-U3-59, 60, 65; domain-entities.md §7). Amended 2026-10-09 (ADR-021 item 9, zero judge units): full mode requires ahsNeuronal unless droppedDimensions lists both semantic and integrity. Amended 2026-10-09 (ADR-026): optional instrumentVersion (1 | 2). Embedded as REPORT_SCHEMA in src/scoring-engine/report-schema.ts (deep-equal test); validateReport runs it on every assembled report. Version = $id + the CLI commit (no reportSchemaVersion). A change reopens U3 as a reviewed patch. Enums mirror NODE_TYPES, EDGE_TYPES, DIMENSIONS (src/shared/types/enums.ts) and BUILT_IN_VIOLATION_TYPES; neuralResults rows are U4 NeuralResultRow (U4 DE §4.8). Amended 2026-10-10 (ADR-028): optional scoring.neuralAggregation (registered | proportional) and optional neuralResults[].candidatesByLayer.",
+  "$comment": "FROZEN at U3-R10 (FR-14, FR-36; U3 BR-U3-59, 60, 65; domain-entities.md §7). Amended 2026-10-09 (ADR-021 item 9, zero judge units): full mode requires ahsNeuronal unless droppedDimensions lists both semantic and integrity. Amended 2026-10-09 (ADR-026): optional instrumentVersion (1 | 2). Embedded as REPORT_SCHEMA in src/scoring-engine/report-schema.ts (deep-equal test); validateReport runs it on every assembled report. Version = $id + the CLI commit (no reportSchemaVersion). A change reopens U3 as a reviewed patch. Enums mirror NODE_TYPES, EDGE_TYPES, DIMENSIONS (src/shared/types/enums.ts) and BUILT_IN_VIOLATION_TYPES; neuralResults rows are U4 NeuralResultRow (U4 DE §4.8). Amended 2026-10-10 (ADR-028): optional scoring.neuralAggregation (registered | proportional) and optional neuralResults[].candidatesByLayer. Amended 2026-10-14 (v1.3 FR-V6, U-D): optional tiers (v1.3 scoring mode only).",
   "title": "DaedalusArch evaluation report",
   "type": "object",
   "additionalProperties": false,
@@ -256,6 +256,250 @@ export const REPORT_SCHEMA = {
         1,
         2
       ]
+    },
+    "tiers": {
+      "$comment": "v1.3 scoring mode only (FR-V6, Docs/v1.3/rule-tiers.md); absent in the v1.2E mode. verdict is fail iff a blocking rule has an applicable violation; the report verdict is then hard-block (pass otherwise) and v12eVerdict keeps the v1.2E reading.",
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "scoringMode",
+        "tierTable",
+        "style",
+        "verdict",
+        "verdictRule",
+        "v12eVerdict",
+        "blockingAhs",
+        "blocking",
+        "advisory",
+        "notApplicable",
+        "blockingNotExecuted"
+      ],
+      "properties": {
+        "scoringMode": {
+          "const": "v1.3"
+        },
+        "tierTable": {
+          "type": "string"
+        },
+        "style": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "verdict": {
+          "enum": [
+            "pass",
+            "fail"
+          ]
+        },
+        "verdictRule": {
+          "const": "any-blocking-violation"
+        },
+        "v12eVerdict": {
+          "enum": [
+            "pass",
+            "warning",
+            "soft-block",
+            "hard-block"
+          ]
+        },
+        "blockingAhs": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "minimum": 0,
+          "maximum": 1
+        },
+        "blocking": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "rules",
+            "violatedRules",
+            "violationCount"
+          ],
+          "properties": {
+            "rules": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": [
+                  "functionId",
+                  "name",
+                  "dimension",
+                  "tier",
+                  "tierSource",
+                  "violationCount",
+                  "violated"
+                ],
+                "properties": {
+                  "functionId": {
+                    "type": "string",
+                    "minLength": 1
+                  },
+                  "name": {
+                    "type": "string"
+                  },
+                  "dimension": {
+                    "$ref": "#/definitions/dimension"
+                  },
+                  "tier": {
+                    "enum": [
+                      "blocking",
+                      "advisory"
+                    ]
+                  },
+                  "tierSource": {
+                    "enum": [
+                      "table",
+                      "untiered-default"
+                    ]
+                  },
+                  "judge": {
+                    "const": true
+                  },
+                  "violationCount": {
+                    "type": "integer",
+                    "minimum": 0
+                  },
+                  "violated": {
+                    "type": "boolean"
+                  }
+                }
+              }
+            },
+            "violatedRules": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "violationCount": {
+              "type": "integer",
+              "minimum": 0
+            }
+          }
+        },
+        "advisory": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "rules",
+            "violatedRules",
+            "violationCount"
+          ],
+          "properties": {
+            "rules": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": [
+                  "functionId",
+                  "name",
+                  "dimension",
+                  "tier",
+                  "tierSource",
+                  "violationCount",
+                  "violated"
+                ],
+                "properties": {
+                  "functionId": {
+                    "type": "string",
+                    "minLength": 1
+                  },
+                  "name": {
+                    "type": "string"
+                  },
+                  "dimension": {
+                    "$ref": "#/definitions/dimension"
+                  },
+                  "tier": {
+                    "enum": [
+                      "blocking",
+                      "advisory"
+                    ]
+                  },
+                  "tierSource": {
+                    "enum": [
+                      "table",
+                      "untiered-default"
+                    ]
+                  },
+                  "judge": {
+                    "const": true
+                  },
+                  "violationCount": {
+                    "type": "integer",
+                    "minimum": 0
+                  },
+                  "violated": {
+                    "type": "boolean"
+                  }
+                }
+              }
+            },
+            "violatedRules": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "violationCount": {
+              "type": "integer",
+              "minimum": 0
+            }
+          }
+        },
+        "notApplicable": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "functionId",
+              "part",
+              "reason",
+              "naRows",
+              "totalRows",
+              "flowsToEdges"
+            ],
+            "properties": {
+              "functionId": {
+                "type": "string",
+                "minLength": 1
+              },
+              "part": {
+                "type": "string"
+              },
+              "reason": {
+                "type": "string"
+              },
+              "naRows": {
+                "type": "integer",
+                "minimum": 0
+              },
+              "totalRows": {
+                "type": "integer",
+                "minimum": 0
+              },
+              "flowsToEdges": {
+                "type": [
+                  "integer",
+                  "null"
+                ],
+                "minimum": 0
+              }
+            }
+          }
+        },
+        "blockingNotExecuted": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        }
+      }
     },
     "neuralResults": {
       "type": "array",

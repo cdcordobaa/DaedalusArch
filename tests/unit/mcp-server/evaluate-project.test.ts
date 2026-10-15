@@ -137,8 +137,21 @@ describe('evaluate_project', () => {
         diff: false,
         verbose: false,
         apgStorePath: '/tmp/apg',
+        scoringMode: 'v1.3', // FR-V6: the MCP tool defaults to the v1.3 tiered scoring
       },
     ]);
+  });
+
+  it('passes an explicit v1.2e scoring mode through and reports the mode (FR-V6)', async () => {
+    const h = harness();
+    const result = await evaluateProject(
+      { projectPath: PROJECT, specPath: CLEAN_ARCH_SPEC, scoringMode: 'v1.2e' },
+      ENV,
+      h.deps,
+    );
+    expect(h.configs.map((c) => c.scoringMode)).toEqual(['v1.2e']);
+    expect(result.success && result.data.scoringMode).toBe('v1.2e');
+    expect(result.success && 'tiers' in result.data).toBe(false);
   });
 
   it('reports AHS null when the report carries no deterministic score', async () => {

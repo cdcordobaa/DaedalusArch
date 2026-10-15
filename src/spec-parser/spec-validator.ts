@@ -4,6 +4,8 @@ import type { ValidationReport, ValidationError as V11ValidationError } from '..
 import { SPEC_SCHEMA_V1 } from './spec-schema.js';
 import { CYPHER_TEMPLATES } from '../fitness-compiler/cypher-templates.js';
 import { HEXAGONAL_TEMPLATES } from '../fitness-compiler/hexagonal-templates.js';
+import { v13ExtensionCatalogueOf } from '../fitness-compiler/extension-templates.js';
+import { EXTENSION_TEMPLATES } from './template-registry.js';
 import { globToRegex } from '../fitness-compiler/glob-to-regex.js';
 import { existsSync } from 'node:fs';
 import { resolve } from 'node:path';
@@ -160,11 +162,35 @@ function sumWeights(w: ScoringWeights): number {
   return w.structural + w.coupling + w.pattern + w.solid + w.convention + w.semantic + w.integrity;
 }
 
+/** Which rule set the template check accepts (FR-V6, U-D). */
+export type SpecRuleSet = 'v1.2e' | 'v1.3';
+
+export interface SpecValidationOptions {
+  /**
+   * `v1.2e` (default, unchanged): `CYPHER_TEMPLATES` plus `HEXAGONAL_TEMPLATES`. `v1.3`: also every v1.3 extension
+   * catalogue (`V13_EXTENSION_TEMPLATE_CATALOGUES`: module wiring, hexagonal, later DDD) and every function name of
+   * an extension style library (`EXTENSION_TEMPLATES`).
+   */
+  readonly rules?: SpecRuleSet;
+}
+
+function templateCheckFor(rules: SpecRuleSet): (name: string) => boolean {
+  const v12e = (name: string): boolean => CYPHER_TEMPLATES.has(name) || HEXAGONAL_TEMPLATES.has(name);
+  if (rules === 'v1.2e') return v12e;
+  const extensionNames = new Set([...EXTENSION_TEMPLATES.values()].flatMap((t) => t.functions.map((f) => f.name)));
+  return (name) => v12e(name) || v13ExtensionCatalogueOf(name) !== undefined || extensionNames.has(name);
+}
+
 /**
  * Pass 3: Filesystem + project-level validation.
  * Checks that layer directories exist, glob patterns are valid, template refs resolve, etc.
  */
-export function validateSpecAgainstProject(spec: ParsedSpec, projectPath: string): ValidationReport {
+export function validateSpecAgainstProject(
+  spec: ParsedSpec,
+  projectPath: string,
+  options: SpecValidationOptions = {},
+): ValidationReport {
+  const knownTemplate = templateCheckFor(options.rules ?? 'v1.2e');
   const errors: V11ValidationError[] = [];
   const warnings: import('../shared/types/validation.js').ValidationWarning[] = [];
 
@@ -206,7 +232,7 @@ export function validateSpecAgainstProject(spec: ParsedSpec, projectPath: string
     const ffId = String(ff.id);
 
     // Template reference check for symbolic/hybrid functions
-    if ((ff.route === 'symbolic' || ff.route === 'hybrid') && !CYPHER_TEMPLATES.has(ff.name) && !HEXAGONAL_TEMPLATES.has(ff.name)) {
+    if ((ff.route === 'symbolic' || ff.route === 'hybrid') && !knownTemplate(ff.name)) {
       errors.push({
         code: 'INVALID_TEMPLATE_REF',
         message: `No Cypher template found for function "${ff.name}" (${ffId})`,

@@ -9,6 +9,7 @@ import { determineVerdict } from './verdict.js';
 import { computeUniversalMetrics } from './universal-metrics.js';
 import { CYCLE_STRATEGY } from '../evaluation-engine/scc-cycles.js';
 import { DEFAULT_NEURAL_AGGREGATION } from './neural-aggregation.js';
+import { computeTieredScoring, overallVerdictOf } from './tiered-scoring.js';
 
 /**
  * Scoring stage output (business-logic-model.md §6): per-dimension rows, dropped dimensions, the AHS
@@ -43,7 +44,20 @@ export async function computeScoredReport(input: ScoringInput): Promise<DomainRe
     };
     return DomainResult.fail([error]);
   }
-  const verdict = determineVerdict(verdictAHS, input.verdictThresholds);
+  const v12eVerdict = determineVerdict(verdictAHS, input.verdictThresholds);
+  // FR-V6: the v1.3 mode adds the tiered reading; the v1.2E fields above are computed exactly as before.
+  const tiers = input.scoringMode === 'v1.3'
+    ? computeTieredScoring({
+      evaluationResults: input.evaluationResults,
+      fitnessFunctions: input.fitnessFunctions,
+      ...(input.style !== undefined && { style: input.style }),
+      scoringWeights: input.scoringWeights,
+      confidenceThresholds: input.confidenceThresholds,
+      v12eVerdict,
+      ...(input.apg !== undefined && { apg: input.apg }),
+    })
+    : undefined;
+  const verdict = tiers !== undefined ? overallVerdictOf(tiers) : v12eVerdict;
 
   // Universal metrics (BR-U3-40..42): a failed metric is null + METRIC_001, never a silent 0.
   const metricsResult = await computeUniversalMetrics(input.graphRepository, CYCLE_STRATEGY, input.apg);
@@ -91,6 +105,7 @@ export async function computeScoredReport(input: ScoringInput): Promise<DomainRe
     evaluationMode: input.mode,
     durationMs: Date.now() - start,
     droppedDimensions,
+    ...(tiers !== undefined && { tiers }),
   }, metricWarnings);
 }
 

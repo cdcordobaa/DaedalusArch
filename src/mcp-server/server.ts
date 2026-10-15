@@ -97,6 +97,10 @@ const evaluateShape = {
     .optional()
     .describe("Project root; defaults to the server's configured project."),
   spec: specArg,
+  scoring: z
+    .enum(['v1.3', 'v1.2e'])
+    .optional()
+    .describe('Scoring mode: v1.3 (default; the verdict comes from the blocking rules, advisory findings reported apart) or v1.2e (the registered Study 1 scoring).'),
 };
 const checkFileShape = {
   path: z

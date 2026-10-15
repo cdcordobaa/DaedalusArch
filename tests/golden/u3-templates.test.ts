@@ -307,9 +307,11 @@ describeU3('U3-R9 one assembly point (BR-U3-50, 55, 56, 64)', () => {
     const apgStore = fs.mkdtempSync(path.join(os.tmpdir(), 'u3-r9-cli-'));
     try {
       // Credentials travel in the environment only, never on argv.
+      // v1.3 FR-V6: the CLI defaults to the v1.3 tiered scoring; this v1.2E case pins the v1.2E scoring.
       const out = spawnSync(path.join(REPO_ROOT, 'node_modules', '.bin', 'tsx'), [
         path.join(REPO_ROOT, 'bin', 'firewall.ts'), 'evaluate',
         '--project', c.projectPath, '--spec', c.specPath, '--symbolic-only', '--format', 'json', '--neo4j-uri', neo4j.uri,
+        '--scoring', 'v1.2e',
       ], {
         cwd: REPO_ROOT,
         encoding: 'utf8',
@@ -321,6 +323,37 @@ describeU3('U3-R9 one assembly point (BR-U3-50, 55, 56, 64)', () => {
       expect(withoutRunValues(cliReport)).toEqual(withoutRunValues(pipelineReport));
       // U3-R10: the printed JSON validates against the frozen schema (FR-14 acceptance).
       expect(validateReport(cliReport).success).toBe(true);
+    } finally {
+      fs.rmSync(apgStore, { recursive: true, force: true });
+    }
+  }, RUN_TIMEOUT_MS);
+
+  it('variant-a: the default CLI scoring is v1.3; it adds tiers and keeps every v1.2E field but the verdict (FR-V6)', async () => {
+    const c = goldenCase('variant-a-structural');
+    const pipelineReport = (await run(c.id)).report;
+    const neo4j = neo4jConfig();
+    const apgStore = fs.mkdtempSync(path.join(os.tmpdir(), 'u3-r9-cli13-'));
+    try {
+      const out = spawnSync(path.join(REPO_ROOT, 'node_modules', '.bin', 'tsx'), [
+        path.join(REPO_ROOT, 'bin', 'firewall.ts'), 'evaluate',
+        '--project', c.projectPath, '--spec', c.specPath, '--symbolic-only', '--format', 'json', '--neo4j-uri', neo4j.uri,
+      ], {
+        cwd: REPO_ROOT,
+        encoding: 'utf8',
+        env: { ...process.env, NEO4J_USER: neo4j.user, NEO4J_PASSWORD: neo4j.password, APG_STORE_PATH: apgStore },
+        maxBuffer: 64 * 1024 * 1024,
+      });
+      expect(out.error).toBeUndefined();
+      const cliReport = JSON.parse(out.stdout) as Record<string, unknown> & {
+        tiers: { verdict: string; v12eVerdict: string; blocking: { violatedRules: number } };
+      };
+      expect(validateReport(cliReport).success).toBe(true);
+      const { tiers, verdict, ...rest } = withoutRunValues(cliReport) as Record<string, unknown>;
+      const { verdict: v12eVerdict, ...v12eRest } = withoutRunValues(pipelineReport) as Record<string, unknown>;
+      expect(rest).toEqual(v12eRest);
+      expect(cliReport.tiers.v12eVerdict).toBe(v12eVerdict);
+      expect(verdict).toBe(cliReport.tiers.blocking.violatedRules > 0 ? 'hard-block' : 'pass');
+      expect(tiers).toBeDefined();
     } finally {
       fs.rmSync(apgStore, { recursive: true, force: true });
     }

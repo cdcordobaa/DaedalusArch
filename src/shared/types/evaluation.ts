@@ -363,6 +363,64 @@ export interface EvaluationReport {
   readonly instrumentVersion?: 1 | 2;
   // FR-33: present in full and neuronal-only modes, absent in symbolic-only (schema if/then, BR-U3-65; C10 row 14)
   readonly neuralResults?: readonly NeuralResultRow[];
+  /** v1.3 scoring mode only (FR-V6, Docs/v1.3/rule-tiers.md): the tiered verdict; absent in the v1.2E mode. */
+  readonly tiers?: TieredScoring;
+}
+
+/** Scoring mode: `v1.2e` (the registered Study 1 scoring, unchanged) or `v1.3` (rule tiers, FR-V6). */
+export type ScoringMode = 'v1.2e' | 'v1.3';
+
+/** One executed rule under v1.3 tiers. */
+export interface TierRuleRow {
+  readonly functionId: FunctionId;
+  readonly name: string;
+  readonly dimension: Dimension;
+  readonly tier: 'blocking' | 'advisory';
+  /** `table`: Docs/v1.3/rule-tiers.md; `untiered-default`: an id the table does not list (advisory). */
+  readonly tierSource: 'table' | 'untiered-default';
+  /** LLM judge rule (FF-N01, FF-N02): reported, non-blocking in v1.3. */
+  readonly judge?: true;
+  /** Violations that count (for a partial rule, the applicable rows only). */
+  readonly violationCount: number;
+  readonly violated: boolean;
+}
+
+export interface TierGroup {
+  readonly rules: readonly TierRuleRow[];
+  readonly violatedRules: number;
+  readonly violationCount: number;
+}
+
+/** A part of a rule reported N/A (FF-P06 FLOWS_TO field rows), with its denominator. */
+export interface NotApplicablePart {
+  readonly functionId: FunctionId;
+  readonly part: string;
+  readonly reason: string;
+  /** Rows of the part, reported and not counted. */
+  readonly naRows: number;
+  /** All rows of the rule (the denominator of `naRows`). */
+  readonly totalRows: number;
+  /** FLOWS_TO edges in the extracted graph (the part's input); null when the APG is not available to scoring. */
+  readonly flowsToEdges: number | null;
+}
+
+/** v1.3 scoring (FR-V6): verdict from blocking rules only; advisory findings reported apart. */
+export interface TieredScoring {
+  readonly scoringMode: 'v1.3';
+  readonly tierTable: string;
+  readonly style: string | null;
+  /** `fail` iff a blocking rule has at least one applicable violation. */
+  readonly verdict: 'pass' | 'fail';
+  readonly verdictRule: 'any-blocking-violation';
+  /** The v1.2E verdict of the same run (the report's v1.2E AHS fields are unchanged). */
+  readonly v12eVerdict: import('./enums.js').OverallVerdict;
+  /** AHS over the blocking rules only (v1.2E symbolic weights renormalised over their dimensions); null when none ran. */
+  readonly blockingAhs: number | null;
+  readonly blocking: TierGroup;
+  readonly advisory: TierGroup;
+  readonly notApplicable: readonly NotApplicablePart[];
+  /** Blocking rules that failed to execute (FR-13); they do not count, as in v1.2E. */
+  readonly blockingNotExecuted: readonly FunctionId[];
 }
 
 // Forward ref type used by CypherRule in spec.ts — re-exported for convenience

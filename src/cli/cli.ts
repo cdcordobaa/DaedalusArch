@@ -9,6 +9,8 @@ import type { EvaluationMode } from '../shared/types/enums.js';
 import { formatJSON, formatHuman, formatCSV, csvHeader } from '../scoring-engine/index.js';
 import { NEURAL_AGGREGATIONS, parseNeuralAggregation } from '../scoring-engine/neural-aggregation.js';
 import type { NeuralAggregation } from '../scoring-engine/neural-aggregation.js';
+import { parseScoringMode, SCORING_MODES } from '../scoring-engine/tiered-scoring.js';
+import type { ScoringMode } from '../shared/types/evaluation.js';
 import { generateReport } from '../report/report-generator.js';
 import { formatActionableHuman } from '../scoring-engine/report-formatter.js';
 import { runBatch } from './batch-runner.js';
@@ -54,6 +56,15 @@ function resolveNeuralAggregation(value: string): NeuralAggregation | undefined 
   const v = parseNeuralAggregation(value);
   if (v !== undefined) return v;
   process.stderr.write(`Error: --neural-aggregation must be one of ${NEURAL_AGGREGATIONS.join(' | ')}\n`);
+  process.exitCode = 2;
+  return undefined;
+}
+
+/** `--scoring` / `--rules` value (FR-V6): `v1.3` (default) or `v1.2e`; anything else exits 2. */
+function resolveScoringMode(value: string, flag: string): ScoringMode | undefined {
+  const v = parseScoringMode(value);
+  if (v !== undefined) return v;
+  process.stderr.write(`Error: ${flag} must be one of ${SCORING_MODES.join(' | ')}\n`);
   process.exitCode = 2;
   return undefined;
 }
@@ -172,6 +183,7 @@ withLLMOptions(program
   .option('--instrument <version>', 'Symbolic instrument: v2 (role exemptions, default) | v1 (ADR-026)', 'v2')
   .option('--neural-aggregation <rule>', 'Neural aggregation of the AHS: registered (default, primary) | proportional (ADR-028 sensitivity variant)', 'registered')
   .option('--tsconfig <path>', 'Explicit tsconfig for APG extraction; the project\'s own tsconfig.json is then ignored (ADR-032)')
+  .option('--scoring <mode>', 'Scoring mode: v1.3 (rule tiers, default; verdict from blocking rules) | v1.2e (the registered Study 1 scoring)', 'v1.3')
   .action(async (opts: LLMCliOpts & {
     project: string;
     tsconfig?: string;
@@ -187,10 +199,13 @@ withLLMOptions(program
     graphMode: string;
     instrument: string;
     neuralAggregation: string;
+    scoring: string;
   }) => {
     const evaluationMode = resolveEvaluationMode(opts.symbolicOnly, opts.neuronalOnly);
     const graphMode = resolveGraphMode(opts.graphMode);
     if (graphMode === undefined) return;
+    const scoringMode = resolveScoringMode(opts.scoring, '--scoring');
+    if (scoringMode === undefined) return;
     const instrumentVersion = resolveInstrument(opts.instrument);
     if (instrumentVersion === undefined) return;
     const neuralAggregation = resolveNeuralAggregation(opts.neuralAggregation);
@@ -219,6 +234,7 @@ withLLMOptions(program
       ...(opts.tsconfig !== undefined && { tsconfigPath: opts.tsconfig }),
       instrumentVersion,
       neuralAggregation,
+      scoringMode,
     };
 
     const { executor, cleanup } = createPipeline(config);
@@ -377,10 +393,14 @@ program
   .description('Validate a spec YAML against a project')
   .requiredOption('--spec <path>', 'Path to AoC YAML spec')
   .option('--project <path>', 'Path to TypeScript project (for directory checks)', '.')
+  .option('--rules <set>', 'Rule set the template check accepts: v1.3 (default; adds the v1.3 extension templates) | v1.2e (frozen templates only)', 'v1.3')
   .action(async (opts: {
     spec: string;
     project: string;
+    rules: string;
   }) => {
+    const rules = resolveScoringMode(opts.rules, '--rules');
+    if (rules === undefined) return;
     const parseResult = await parseSpec({ specFilePath: opts.spec });
     if (!parseResult.success) {
       process.stderr.write(`Spec parse error: ${parseResult.errors.map((e) => e.message).join('; ')}\n`);
@@ -388,7 +408,7 @@ program
       return;
     }
 
-    const report = validateSpecAgainstProject(parseResult.data, opts.project);
+    const report = validateSpecAgainstProject(parseResult.data, opts.project, { rules });
 
     if (report.valid) {
       process.stderr.write(
@@ -412,7 +432,8 @@ program
 
     // C9 parity (FR-08, BR-U1-11): the spec must also compile; the denominator is visible (FR-20, BR-U1-19).
     const spec = parseResult.data;
-    const compiled = compileFunctions(compilerInputFromSpec(spec));
+    // v1.3 rules also resolve the v1.3 module-wiring templates; v1.2e compiles exactly as before.
+    const compiled = compileFunctions(compilerInputFromSpec(spec), rules === 'v1.3' ? { v13Templates: true } : {});
     if (!compiled.success) {
       process.stderr.write(`Spec compilation failed with ${String(compiled.errors.length)} error(s):\n`);
       for (const error of compiled.errors) {
