@@ -1,0 +1,66 @@
+{
+ "source": "boundaryTypeLeak (src/fitness-compiler/apg2-in-memory.ts) on extractAPG(tests/fixtures/v1.3-apg2/type-flow, V13_APG2_OPTIONS). The V13_DEFAULT_OPTIONS graph gives no rows. The committed live Neo4j check returned the same number of rows (Docs/DiagnosticRuns/apg2-scope-2026-10-15/fixtures-live.json: type-flow, boundary-type-leak, live 5 = mirror 5).",
+ "apg2Rows": [
+  {
+   "filePath": "src/presentation/admin.controller.ts",
+   "member": "AdminController.dump",
+   "leakedType": "UserRecord",
+   "target": "src/infrastructure/user.record.ts",
+   "fromLayer": "presentation",
+   "toLayer": "infrastructure",
+   "positions": [
+    "return"
+   ],
+   "inferred": false
+  },
+  {
+   "filePath": "src/presentation/user.controller.ts",
+   "member": "UserController.get",
+   "leakedType": "UserRecord",
+   "target": "src/infrastructure/user.record.ts",
+   "fromLayer": "presentation",
+   "toLayer": "infrastructure",
+   "positions": [
+    "return"
+   ],
+   "inferred": true
+  },
+  {
+   "filePath": "src/presentation/user.controller.ts",
+   "member": "UserController.orders",
+   "leakedType": "OrderRow",
+   "target": "src/infrastructure/order.row.ts",
+   "fromLayer": "presentation",
+   "toLayer": "infrastructure",
+   "positions": [
+    "return"
+   ],
+   "inferred": true
+  },
+  {
+   "filePath": "src/presentation/user.controller.ts",
+   "member": "UserController.profile",
+   "leakedType": "UserRecord",
+   "target": "src/infrastructure/user.record.ts",
+   "fromLayer": "presentation",
+   "toLayer": "infrastructure",
+   "positions": [
+    "return"
+   ],
+   "inferred": true
+  },
+  {
+   "filePath": "src/presentation/user.controller.ts",
+   "member": "UserController.update",
+   "leakedType": "UserRecord",
+   "target": "src/infrastructure/user.record.ts",
+   "fromLayer": "presentation",
+   "toLayer": "infrastructure",
+   "positions": [
+    "param"
+   ],
+   "inferred": false
+  }
+ ],
+ "v13Rows": []
+}
