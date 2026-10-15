@@ -10,7 +10,7 @@ The manifests, the sealed files (`Docs/v1.3/rule-tiers.md`, `style-rule-sources.
 - **Search.** No lock helper existed in the repo. The only `'wx'` use is a one-shot manifest write.
 - **Change.** `src/shared/process/neo4j-lock.ts`:
   - **Lock file.** One file per `host:port`, in `~/.daedalus/locks/`, outside every worktree (override: `DAEDALUS_NEO4J_LOCK_DIR`). Created with `'wx'`; it holds the pid, host, label and a random token.
-  - **Stale detection.** A lock is stale when its pid is dead on this host. It is broken under a short-lived breaker file, and only if the file still holds the token that was seen dead.
+  - **Stale detection.** A lock is stale when its pid is dead. The directory is per machine, so the pid is checked whatever host name the file records (a macOS host name follows the network). It is broken under a short-lived breaker file, and only if the file still holds the token that was seen dead.
   - **Re-entrancy.** The lock counts as held for the holder and for its descendants. A run that holds the lock spawns `firewall evaluate` children, and they do not wait for it.
   - **Release.** Only by token, and also from an exit handler.
   - **Off switch.** `DAEDALUS_NEO4J_LOCK=off`.

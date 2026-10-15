@@ -11,7 +11,7 @@
  * random token. It lives outside every worktree, in `~/.daedalus/locks/` (override: `DAEDALUS_NEO4J_LOCK_DIR`), one
  * file per `host:port` (`localhost` and `::1` are `127.0.0.1`).
  *
- * - **Stale detection.** A lock whose pid is dead on this host is stale. It is broken under a short-lived breaker
+ * - **Stale detection.** A lock whose pid is dead is stale (the directory is per machine; the host name is shown only). It is broken under a short-lived breaker
  *   file (`<lock>.break`, itself stale after 30 s), and only when the lock file still holds the token that was seen
  *   dead, so two waiters cannot both break it and then remove a fresh lock.
  * - **Re-entrancy.** A lock held by this process or by one of its ancestors counts as held. A run that holds the lock
@@ -260,7 +260,9 @@ export async function acquireNeo4jLock(uri: string, options: Neo4jLockOptions = 
     if (held === 'missing') continue;
     if (held === 'unreadable') {
       if (ageMs(file) > UNREADABLE_STALE_MS) breakStale(file, null);
-    } else if (held.hostname === host) {
+    } else {
+      // The lock directory is local to this machine (under HOME), so the pid is checked whatever the recorded host
+      // name says: a macOS host name follows the network and can change between two runs.
       if (held.pid === process.pid || (ancestors ??= ancestorPids()).includes(held.pid)) {
         return { mode: 'reentrant', path: file, holder: held, release: () => undefined };
       }

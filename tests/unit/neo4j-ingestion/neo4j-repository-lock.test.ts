@@ -12,6 +12,7 @@ jest.mock('neo4j-driver', () => ({
   },
 }));
 
+import { spawn } from 'node:child_process';
 import * as fs from 'node:fs';
 import * as os from 'node:os';
 import * as path from 'node:path';
@@ -56,7 +57,9 @@ describe('Neo4jRepository lock', () => {
 
   it('a lock it cannot get is a failed query (NEO4J_LOCK_TIMEOUT), never a query on a shared database', async () => {
     const file = neo4jLockPath(URI);
-    fs.writeFileSync(file, JSON.stringify({ pid: process.ppid, hostname: 'another-host', label: 'other run', acquiredAt: 'x', key: 'k', token: 't' }));
+    // A live process that is not an ancestor of this one holds the lock.
+    const other = spawn(process.execPath, ['-e', 'setTimeout(() => {}, 30000)']);
+    fs.writeFileSync(file, JSON.stringify({ pid: other.pid, hostname: 'h', label: 'other run', acquiredAt: 'x', key: 'k', token: 't' }));
     const prev = process.env.DAEDALUS_NEO4J_LOCK_TIMEOUT_MS;
     process.env.DAEDALUS_NEO4J_LOCK_TIMEOUT_MS = '150';
     try {
@@ -68,6 +71,7 @@ describe('Neo4jRepository lock', () => {
       await repo.close();
       expect(fs.existsSync(file)).toBe(true); // someone else's lock is left alone
     } finally {
+      other.kill();
       if (prev === undefined) delete process.env.DAEDALUS_NEO4J_LOCK_TIMEOUT_MS; else process.env.DAEDALUS_NEO4J_LOCK_TIMEOUT_MS = prev;
     }
   });
