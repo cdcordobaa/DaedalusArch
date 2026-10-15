@@ -1606,3 +1606,11 @@ Plan checkboxes ticked. Auto-approved under standing approval; no blocking or ma
 **Context**: v1.3 — the tool is complete on the development set against the author-manifests; the remaining gap is definitional.
 
 ---
+
+## v1.3 — labelling harness merged; live labelling started
+**Timestamp**: 2026-10-15T18:50:00Z
+**User Input**: (none)
+**AI Response**: "PR #93 merged (8114324): deterministic correctness checker (TS compiler API + spec globs, never the graph), a meaningful labeller (Codex or Gemini providers, two permuted runs, cassettes), a per-rule sampler, and the author-audit sheet + agreement calculator. Dry run: all 53 checkable blocking dev-set findings re-verify as correct; Study 1 E1 has 0 blocking-tier findings under v1.3 (all advisory). That is a design input for Study 2: single-shot generation is structurally clean, so look for erosion across steps. Live labelling launched with the Codex provider only (the Gemini key is exposed, so not used), cap 400 calls, plus a blind author-audit sheet (≥40 items) at audit/view/v1.3-labels-audit.md."
+**Context**: v1.3 U-F.
+
+---
