@@ -4,6 +4,7 @@
  * planted case is flagged with its kind on its unit, no near-miss unit carries a flag of the proxy, and the proxy
  * raises no other flag.
  */
+import { spawnSync } from 'node:child_process';
 import * as fs from 'node:fs';
 import * as os from 'node:os';
 import * as path from 'node:path';
@@ -82,4 +83,35 @@ export function check(flags: readonly CheapFlag[], expected: Expected): { missed
   const nearMissFlags = expected.nearMisses.flatMap((n) => flags.filter((f) => onUnit(f, n)).map((f) => `${n.id}: ${f.kind} ${f.message}`));
   const unexpected = flags.filter((f) => !expected.planted.some((p) => f.kind === p.kind && onUnit(f, p))).map((f) => `${f.kind} ${f.evidence.file}:${String(f.evidence.startLine)} ${f.message}`);
   return { missed, nearMissFlags, unexpected };
+}
+
+export interface ReplayCommit {
+  readonly message: string;
+  readonly trailers?: Readonly<Record<string, string>>;
+  /** Project-relative path → content; null deletes the file. */
+  readonly files: Readonly<Record<string, string | null>>;
+}
+
+/** Replays commits into `root` as a fresh git repository (fixed identity and dates, no global configuration). */
+export function replayGit(root: string, commits: readonly ReplayCommit[]): void {
+  const env = { PATH: process.env.PATH ?? '', HOME: root, GIT_CONFIG_NOSYSTEM: '1', GIT_CONFIG_GLOBAL: '/dev/null', LC_ALL: 'C' };
+  const run = (args: string[], extra: Record<string, string> = {}): void => {
+    const r = spawnSync('git', ['-c', 'user.name=fixture', '-c', 'user.email=fixture@localhost', '-c', 'commit.gpgsign=false', '-c', 'init.defaultBranch=main', ...args], { cwd: root, env: { ...env, ...extra }, encoding: 'utf8' });
+    if (r.status !== 0) throw new Error(`git ${args.join(' ')}: ${r.stderr}`);
+  };
+  run(['init', '--quiet']);
+  commits.forEach((c, i) => {
+    for (const [rel, text] of Object.entries(c.files)) {
+      const abs = path.join(root, rel);
+      if (text === null) fs.rmSync(abs, { force: true });
+      else {
+        fs.mkdirSync(path.dirname(abs), { recursive: true });
+        fs.writeFileSync(abs, text);
+      }
+    }
+    run(['add', '--all']);
+    const trailers = Object.entries(c.trailers ?? {}).map(([k, v]) => `${k}: ${v}`).join('\n');
+    const date = new Date(Date.UTC(2026, 0, 1) + i * 60_000).toISOString();
+    run(['commit', '--quiet', '--allow-empty', '-m', trailers === '' ? c.message : `${c.message}\n\n${trailers}`], { GIT_AUTHOR_DATE: date, GIT_COMMITTER_DATE: date });
+  });
 }
