@@ -1,0 +1,19 @@
+diff -ruN bases/ddd__clean/src/ordering/application/GetOrderSummary.ts copies/ddd__clean__AP-FRAMEWORK-LEAKn__1/src/ordering/application/GetOrderSummary.ts
+--- bases/ddd__clean/src/ordering/application/GetOrderSummary.ts	2026-10-15 11:50:59
++++ copies/ddd__clean__AP-FRAMEWORK-LEAKn__1/src/ordering/application/GetOrderSummary.ts	2026-10-15 11:51:12
+@@ -6,10 +6,14 @@
+ export class GetOrderSummary implements OrderSummaryQuery {
+   constructor(private readonly orders: OrderRepository) {}
+ 
+-  async summaryOf(orderId: string): Promise<OrderSummary | null> {
++  async summaryOf(orderId: string, context?: SummaryOfContextDto): Promise<OrderSummary | null> {
+     const order = await this.orders.byId(new OrderId(orderId));
+     if (order === null) return null;
+     const total = order.total();
+     return { orderId, customerId: order.customerId.value, totalCents: total.cents, currency: total.currency, lineCount: order.lineCount() };
+   }
++}
++
++export interface SummaryOfContextDto {
++  readonly requestId?: string;
+ }

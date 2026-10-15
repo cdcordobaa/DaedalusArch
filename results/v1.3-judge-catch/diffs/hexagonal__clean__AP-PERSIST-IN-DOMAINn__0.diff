@@ -1,0 +1,12 @@
+diff -ruN bases/hexagonal__clean/src/domain/model/Booking.ts copies/hexagonal__clean__AP-PERSIST-IN-DOMAINn__0/src/domain/model/Booking.ts
+--- bases/hexagonal__clean/src/domain/model/Booking.ts	2026-10-15 11:50:59
++++ copies/hexagonal__clean__AP-PERSIST-IN-DOMAINn__0/src/domain/model/Booking.ts	2026-10-15 11:51:03
+@@ -28,4 +28,8 @@
+     if (!this.isActive) throw new BookingError('invalid', `Booking ${this.id} is already cancelled`);
+     this.bookingStatus = 'cancelled';
+   }
++
++  hasBookingStatus(): boolean {
++    return this.bookingStatus !== undefined;
++  }
+ }

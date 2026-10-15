@@ -1,0 +1,20 @@
+diff -ruN bases/antipattern-nest/src/order/order.service.ts copies/antipattern-nest__AP-FRAMEWORK-LEAK__2/src/order/order.service.ts
+--- bases/antipattern-nest/src/order/order.service.ts	2026-10-15 11:50:59
++++ copies/antipattern-nest__AP-FRAMEWORK-LEAK__2/src/order/order.service.ts	2026-10-15 11:51:08
+@@ -2,6 +2,7 @@
+ import { InjectRepository } from '@nestjs/typeorm';
+ import { Repository } from 'typeorm';
+ import { OrderEntity } from './order.entity';
++import { Request } from 'express';
+ 
+ @Injectable()
+ export class OrderService {
+@@ -10,7 +11,7 @@
+     private readonly orderRepository: Repository<OrderEntity>,
+   ) {}
+ 
+-  async create(customerId: string, quantity: number, unitPrice: number): Promise<OrderEntity> {
++  async create(customerId: string, quantity: number, unitPrice: number, request?: Request): Promise<OrderEntity> {
+     if (quantity <= 0) {
+       throw new BadRequestException('Quantity must be positive');
+     }

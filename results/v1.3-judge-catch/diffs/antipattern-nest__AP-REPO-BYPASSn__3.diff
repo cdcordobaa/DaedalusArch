@@ -1,0 +1,13 @@
+diff -ruN bases/antipattern-nest/src/order/order.service.ts copies/antipattern-nest__AP-REPO-BYPASSn__3/src/order/order.service.ts
+--- bases/antipattern-nest/src/order/order.service.ts	2026-10-15 11:50:59
++++ copies/antipattern-nest__AP-REPO-BYPASSn__3/src/order/order.service.ts	2026-10-15 11:51:01
+@@ -19,7 +19,8 @@
+   }
+ 
+   async findOne(id: string): Promise<OrderEntity> {
+-    const order = await this.orderRepository.findOne({ where: { id } });
++    const orderRepository = this.orderRepository;
++    const order = await orderRepository.findOne({ where: { id } });
+     if (order === null) {
+       throw new NotFoundException(`Order ${id} not found`);
+     }

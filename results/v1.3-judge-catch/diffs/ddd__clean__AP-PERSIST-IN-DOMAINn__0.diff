@@ -1,0 +1,12 @@
+diff -ruN bases/ddd__clean/src/billing/domain/invoice/Invoice.ts copies/ddd__clean__AP-PERSIST-IN-DOMAINn__0/src/billing/domain/invoice/Invoice.ts
+--- bases/ddd__clean/src/billing/domain/invoice/Invoice.ts	2026-10-15 11:50:59
++++ copies/ddd__clean__AP-PERSIST-IN-DOMAINn__0/src/billing/domain/invoice/Invoice.ts	2026-10-15 11:51:04
+@@ -36,4 +36,8 @@
+   pullEvents(): DomainEvent[] {
+     return this.events.splice(0, this.events.length);
+   }
++
++  hasLines(): boolean {
++    return this.lines !== undefined;
++  }
+ }

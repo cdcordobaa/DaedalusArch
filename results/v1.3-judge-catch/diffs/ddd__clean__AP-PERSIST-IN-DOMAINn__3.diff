@@ -1,0 +1,12 @@
+diff -ruN bases/ddd__clean/src/ordering/domain/order/Order.ts copies/ddd__clean__AP-PERSIST-IN-DOMAINn__3/src/ordering/domain/order/Order.ts
+--- bases/ddd__clean/src/ordering/domain/order/Order.ts	2026-10-15 11:50:59
++++ copies/ddd__clean__AP-PERSIST-IN-DOMAINn__3/src/ordering/domain/order/Order.ts	2026-10-15 11:51:05
+@@ -39,4 +39,8 @@
+   pullEvents(): DomainEvent[] {
+     return this.events.splice(0, this.events.length);
+   }
++
++  hasLines(): boolean {
++    return this.lines !== undefined;
++  }
+ }

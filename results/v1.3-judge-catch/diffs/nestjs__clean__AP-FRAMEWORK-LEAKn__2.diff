@@ -1,0 +1,21 @@
+diff -ruN bases/nestjs__clean/src/registrations/registrations.service.ts copies/nestjs__clean__AP-FRAMEWORK-LEAKn__2/src/registrations/registrations.service.ts
+--- bases/nestjs__clean/src/registrations/registrations.service.ts	2026-10-15 11:50:59
++++ copies/nestjs__clean__AP-FRAMEWORK-LEAKn__2/src/registrations/registrations.service.ts	2026-10-15 11:51:10
+@@ -19,7 +19,7 @@
+     @Inject(REGISTRATION_REPOSITORY) private readonly registrations: RegistrationRepository,
+   ) {}
+ 
+-  async register(dto: RegisterAttendeeDto): Promise<RegistrationResponseDto> {
++  async register(dto: RegisterAttendeeDto, context?: RegisterContextDto): Promise<RegistrationResponseDto> {
+     const workshop = await this.workshops.findById(dto.workshopId);
+     if (workshop === undefined) throw new DomainError('not-found', `No workshop ${dto.workshopId}`);
+     const attendee = await this.attendees.findById(dto.attendeeId);
+@@ -47,4 +47,8 @@
+     await this.registrations.save(registration);
+     return RegistrationResponseDto.from(registration);
+   }
++}
++
++export interface RegisterContextDto {
++  readonly requestId?: string;
+ }

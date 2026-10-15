@@ -1,0 +1,16 @@
+diff -ruN bases/antipattern-nest/src/invoice/invoice.service.ts copies/antipattern-nest__AP-FRAMEWORK-LEAKn__1/src/invoice/invoice.service.ts
+--- bases/antipattern-nest/src/invoice/invoice.service.ts	2026-10-15 11:50:59
++++ copies/antipattern-nest__AP-FRAMEWORK-LEAKn__1/src/invoice/invoice.service.ts	2026-10-15 11:51:13
+@@ -15,7 +15,11 @@
+     return this.invoiceRepository.save(invoice);
+   }
+ 
+-  countFor(orderId: string): Promise<number> {
++  countFor(orderId: string, context?: CountForContextDto): Promise<number> {
+     return this.invoiceRepository.count({ where: { orderId } });
+   }
++}
++
++export interface CountForContextDto {
++  readonly requestId?: string;
+ }

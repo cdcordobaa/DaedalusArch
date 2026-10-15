@@ -1,0 +1,21 @@
+diff -ruN bases/nestjs__n03-service-injects-sibling-service/src/registrations/registrations.service.ts copies/nestjs__n03-service-injects-sibling-service__AP-FRAMEWORK-LEAKn__2/src/registrations/registrations.service.ts
+--- bases/nestjs__n03-service-injects-sibling-service/src/registrations/registrations.service.ts	2026-10-15 11:50:59
++++ copies/nestjs__n03-service-injects-sibling-service__AP-FRAMEWORK-LEAKn__2/src/registrations/registrations.service.ts	2026-10-15 11:51:14
+@@ -22,7 +22,7 @@
+     private readonly workshopsService: WorkshopsService,
+   ) {}
+ 
+-  async workshopOf(registrationId: string): Promise<WorkshopResponseDto> {
++  async workshopOf(registrationId: string, context?: WorkshopOfContextDto): Promise<WorkshopResponseDto> {
+     const registration = await this.registrations.findById(registrationId);
+     if (registration === undefined) throw new DomainError('not-found', `No registration ${registrationId}`);
+     return this.workshopsService.findOne(registration.workshopId);
+@@ -56,4 +56,8 @@
+     await this.registrations.save(registration);
+     return RegistrationResponseDto.from(registration);
+   }
++}
++
++export interface WorkshopOfContextDto {
++  readonly requestId?: string;
+ }

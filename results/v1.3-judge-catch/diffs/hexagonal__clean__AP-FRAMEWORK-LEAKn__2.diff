@@ -1,0 +1,20 @@
+diff -ruN bases/hexagonal__clean/src/application/services/FindAvailableRoomsService.ts copies/hexagonal__clean__AP-FRAMEWORK-LEAKn__2/src/application/services/FindAvailableRoomsService.ts
+--- bases/hexagonal__clean/src/application/services/FindAvailableRoomsService.ts	2026-10-15 11:50:59
++++ copies/hexagonal__clean__AP-FRAMEWORK-LEAKn__2/src/application/services/FindAvailableRoomsService.ts	2026-10-15 11:51:11
+@@ -12,11 +12,15 @@
+     private readonly bookings: BookingRepository,
+   ) {}
+ 
+-  async find(checkIn: string, checkOut: string, guests: number): Promise<AvailableRoom[]> {
++  async find(checkIn: string, checkOut: string, guests: number, context?: FindContextDto): Promise<AvailableRoom[]> {
+     const stay = DateRange.parse(checkIn, checkOut);
+     const active = await this.bookings.findActive();
+     return (await this.rooms.findAll())
+       .filter((room) => room.fits(guests) && this.availability.isAvailable(room, stay, active))
+       .map((room) => ({ roomId: room.id, number: room.number, nightlyRateCents: room.nightlyRate.cents }));
+   }
++}
++
++export interface FindContextDto {
++  readonly requestId?: string;
+ }

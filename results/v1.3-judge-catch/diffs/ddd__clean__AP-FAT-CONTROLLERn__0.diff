@@ -1,0 +1,13 @@
+diff -ruN bases/ddd__clean/src/billing/api/InvoiceController.ts copies/ddd__clean__AP-FAT-CONTROLLERn__0/src/billing/api/InvoiceController.ts
+--- bases/ddd__clean/src/billing/api/InvoiceController.ts	2026-10-15 11:50:59
++++ copies/ddd__clean__AP-FAT-CONTROLLERn__0/src/billing/api/InvoiceController.ts	2026-10-15 11:51:02
+@@ -5,7 +5,8 @@
+   constructor(private readonly issueInvoice: IssueInvoice) {}
+ 
+   async post(body: { invoiceId: string; orderId: string }): Promise<{ status: number; location: string }> {
+-    await this.issueInvoice.execute(body.invoiceId, body.orderId);
++    const invoiceId = body.invoiceId;
++    await this.issueInvoice.execute(invoiceId, body.orderId);
+     return { status: 201, location: `/invoices/${body.invoiceId}` };
+   }
+ 
