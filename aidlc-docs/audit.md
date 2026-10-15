@@ -1662,3 +1662,11 @@ Plan checkboxes ticked. Auto-approved under standing approval; no blocking or ma
 **Context**: v1.3 overnight wave 3.
 
 ---
+
+## v1.3 — APG v2 scope fixes merged; author asked for honest weak spots
+**Timestamp**: 2026-10-15T23:40:00Z
+**User Input**: "Else is pending. Let's scope out our main objectives ... What do we need there to guarantee we are meeting them, and what can I present this week?"; "But what keeps, honestly, being a weak spot"
+**AI Response**: "Objectives refreshed in claims, not wording (SO1 5 libraries; SO2 APG uniqueness, data flow reframed as type flow; SO3 layered neuro-symbolic; SO4 sealed hold-out validity + correctness; SO5 Study 1 done, governing claim moved to Study 2). Weak spots, ranked: (1) ground truth almost entirely AI-made (Claude family), zero human labels in v1.3; (2) no evidence yet of naturally occurring agent violations being caught (E1 had 0 blocking findings; strong numbers come from planted cases); (3) under-specified rule constructs, single arbiter; (4) thin neural evidence (24 seeds, same-vendor correlation, 0 verdict effect in Study 1); (5) dev-set tuning/circularity, hold-out the only guard; (6) narrow external validity; (7) Study 1 flaws; (8) breadth over depth and the author's mastery; (9) reproducibility via pinned subscription CLIs. Proposed fixes this week: human-labelled hold-out sample (author + 1 other), Gemini key for a cross-vendor annotator, an exploratory loop pilot to see whether erosion appears, narrowing the thesis core to 4 contributions, tutoring. PR #104 (53a610d) merged: scope ADR draft committed first; blocking false alarms on clean/near-miss 29 → 0, advisory 40 → 21 (justified, as predicted); ablation 27 → 25/27 (CP4/CP5 fall under the a-priori ≥4-types minimum; minimum not lowered)."
+**Context**: v1.3 — honest positioning for the director meeting.
+
+---
