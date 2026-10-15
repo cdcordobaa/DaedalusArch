@@ -1,0 +1,22 @@
+--- /dev/null
++++ b/src/infrastructure/testing/TestLibraryApp.ts
+@@ -0,0 +1,19 @@
++import { Book } from '../../domain/entities/Book';
++import { Member } from '../../domain/entities/Member';
++import { Isbn } from '../../domain/value-objects/Isbn';
++import { BorrowBookUseCase } from '../../application/use-cases/BorrowBookUseCase';
++import { Clock } from '../../application/ports/Clock';
++import { InMemoryBookRepository } from '../persistence/InMemoryBookRepository';
++import { InMemoryLoanRepository } from '../persistence/InMemoryLoanRepository';
++import { InMemoryMemberRepository } from '../persistence/InMemoryMemberRepository';
++import { SequentialIdGenerator } from '../system/SequentialIdGenerator';
++
++/** A second composition root used by acceptance tests: a fixed clock and a seeded catalogue. */
++export async function createSeededBorrowing(fixedNow: Date): Promise<BorrowBookUseCase> {
++  const clock: Clock = { now: () => fixedNow };
++  const books = new InMemoryBookRepository();
++  const members = new InMemoryMemberRepository();
++  await books.save(new Book('book-1', Isbn.parse('978-0134494166'), 'Clean Architecture', 'Robert C. Martin', 2));
++  await members.save(new Member('member-1', 'Ada', 'ada@example.org', 3));
++  return new BorrowBookUseCase(books, members, new InMemoryLoanRepository(), clock, new SequentialIdGenerator());
++}

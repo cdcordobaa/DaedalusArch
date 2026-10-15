@@ -1,0 +1,97 @@
+{
+  "schemaVersion": 1,
+  "style": "hexagonal",
+  "spec": "spec.yaml",
+  "project": "Hotel room booking: rooms, guests, bookings, payment and notification ports.",
+  "canonicalSource": "Cockburn, A. (2005). Hexagonal architecture (Ports and Adapters). alistair.cockburn.us/hexagonal-architecture. Allowed-dependency graph from presets/hexagonal.yaml and Docs/v1.3-hexagonal-notes.md.",
+  "styleDefinition": [
+    "The application (domain + application layers) is the inside of the hexagon; it talks to the outside only through ports it owns (driving ports in application/ports/in, driven ports in application/ports/out).",
+    "Allowed dependencies (preset): application -> domain; adapters-inbound -> application, domain; adapters-outbound -> application, domain; config -> every layer. Everything else across layers is a violation.",
+    "The domain depends on nothing outside itself and on no framework.",
+    "Driven (outbound) adapters implement a port declared inside the hexagon; driving (inbound) adapters call driving ports.",
+    "Use cases receive driven ports (interfaces), never adapter classes.",
+    "Inbound and outbound adapters never import each other; only the composition root (config) knows both.",
+    "No dependency cycles."
+  ],
+  "authored": "2026-10-14",
+  "writtenBeforeToolRun": true,
+  "scopeRules": [
+    {
+      "ruleId": "FF-S01",
+      "ruleName": "dependency-direction-graph",
+      "severity": "critical",
+      "blockingCandidate": true
+    },
+    {
+      "ruleId": "FF-S02",
+      "ruleName": "no-cyclic-deps",
+      "severity": "critical",
+      "blockingCandidate": true
+    },
+    {
+      "ruleId": "FF-S03",
+      "ruleName": "layer-skip-graph",
+      "severity": "critical",
+      "blockingCandidate": true
+    },
+    {
+      "ruleId": "FF-S04",
+      "ruleName": "core-isolation",
+      "severity": "major",
+      "blockingCandidate": false
+    },
+    {
+      "ruleId": "FF-P01",
+      "ruleName": "domain-purity",
+      "severity": "critical",
+      "blockingCandidate": true
+    },
+    {
+      "ruleId": "FF-P02",
+      "ruleName": "port-dependency-inversion",
+      "severity": "critical",
+      "blockingCandidate": true
+    },
+    {
+      "ruleId": "FF-P03",
+      "ruleName": "port-adapter-pattern",
+      "severity": "critical",
+      "blockingCandidate": true
+    },
+    {
+      "ruleId": "FF-P06",
+      "ruleName": "domain-state-purity",
+      "severity": "critical",
+      "blockingCandidate": true
+    }
+  ],
+  "notApplicable": [
+    {
+      "ruleId": "FF-P04",
+      "reason": "dropped from the hexagonal library (subsumed by the graph)"
+    },
+    {
+      "ruleId": "FF-P05",
+      "reason": "dropped (inbound adapters may name domain types)"
+    }
+  ],
+  "noViolatingVariant": [],
+  "outOfScope": "Coupling metrics (FF-C*), SOLID proxies (FF-SO*), naming and convention rules (FF-CV*) and the neuronal functions (FF-N*) are not compared: they are threshold proxies or conventions (FR-V6 makes them advisory), and they say nothing about whether a planted architectural violation is caught. The runner lists their rows separately as unscored.",
+  "variants": [
+    "clean",
+    "n01-inbound-adapter-parses-domain-value",
+    "n02-test-composition-root",
+    "n03-gateway-named-helper",
+    "v01-domain-uses-outbound-adapter-constant",
+    "v02-domain-entity-uses-driven-port",
+    "v03-use-case-injects-concrete-adapter",
+    "v04-use-case-throws-http-error",
+    "v05-inbound-adapter-reads-outbound-adapter",
+    "v06-outbound-adapter-uses-cli-formatter",
+    "v07-domain-service-nestjs-decorator",
+    "v08-adapter-without-port",
+    "v09-adapter-implements-local-interface",
+    "v10-domain-service-holds-adapter",
+    "v11-domain-model-cycle"
+  ]
+}

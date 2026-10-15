@@ -1,0 +1,32 @@
+{
+  "schemaVersion": 1,
+  "style": "clean-architecture",
+  "variant": "v08-domain-service-holds-infrastructure-clock",
+  "kind": "violation",
+  "plants": "FF-P06",
+  "description": "LoanPolicy keeps a private readonly SystemClock field.",
+  "patch": "variant.patch",
+  "expectedFindings": [
+    {
+      "ruleId": "FF-S01",
+      "ruleName": "dependency-direction",
+      "file": "src/domain/services/LoanPolicy.ts",
+      "target": "src/infrastructure/system/SystemClock.ts",
+      "reason": "Domain imports an infrastructure class."
+    },
+    {
+      "ruleId": "FF-S04",
+      "ruleName": "no-domain-outward-dep",
+      "file": "src/domain/services/LoanPolicy.ts",
+      "target": "src/infrastructure/system/SystemClock.ts",
+      "reason": "A domain file imports a file of another layer."
+    },
+    {
+      "ruleId": "FF-P06",
+      "ruleName": "domain-state-purity",
+      "file": "src/domain/services/LoanPolicy.ts",
+      "target": "src/infrastructure/system/SystemClock.ts",
+      "reason": "A domain class holds infrastructure state (field clock = new SystemClock())."
+    }
+  ]
+}

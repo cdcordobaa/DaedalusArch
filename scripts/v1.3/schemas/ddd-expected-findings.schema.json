@@ -1,0 +1,27 @@
+{
+  "$id": "https://daedalusarch/v1.3/ddd-expected-findings.schema.json",
+  "title": "expected-findings.json of one DDD reference variant (U-C1 format)",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["variant", "spec", "findings"],
+  "properties": {
+    "variant": { "type": "string", "pattern": "^(clean|[vng][0-9]{2}-[a-z0-9-]+)$" },
+    "spec": { "const": "presets/ddd.yaml" },
+    "findings": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["rule", "name", "file", "reason"],
+        "properties": {
+          "rule": { "type": "string", "pattern": "^FF-[A-Z]+[0-9]{2}$" },
+          "name": { "type": "string", "minLength": 1 },
+          "file": { "type": "string", "pattern": "^src/.+\\.ts$" },
+          "target": { "type": "string", "minLength": 1 },
+          "class": { "type": "string", "minLength": 1 },
+          "reason": { "type": "string", "minLength": 10 }
+        }
+      }
+    }
+  }
+}

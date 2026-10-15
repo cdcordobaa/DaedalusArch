@@ -1,0 +1,16 @@
+--- a/src/domain/attendee.ts
++++ b/src/domain/attendee.ts
+@@ -1,3 +1,4 @@
++import type { Request } from 'express';
+ import { DomainError } from './domain-error';
+ 
+ export class Attendee {
+@@ -8,4 +9,8 @@
+   ) {
+     if (!email.includes('@')) throw new DomainError('invalid', `Invalid e-mail: ${email}`);
+   }
++
++  static fromRequest(id: string, request: Request): Attendee {
++    return new Attendee(id, String(request.body['name']), String(request.body['email']));
++  }
+ }

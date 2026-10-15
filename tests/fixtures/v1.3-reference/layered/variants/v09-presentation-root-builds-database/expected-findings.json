@@ -1,0 +1,18 @@
+{
+  "schemaVersion": 1,
+  "style": "layered",
+  "variant": "v09-presentation-root-builds-database",
+  "kind": "violation",
+  "plants": "FF-S03",
+  "description": "presentation/app.ts constructs the InMemoryDatabase and passes it to createServices(db).",
+  "patch": "variant.patch",
+  "expectedFindings": [
+    {
+      "ruleId": "FF-S03",
+      "ruleName": "no-layer-skip",
+      "file": "src/presentation/app.ts",
+      "target": "src/persistence/Database.ts",
+      "reason": "Presentation imports persistence, skipping the business layer."
+    }
+  ]
+}

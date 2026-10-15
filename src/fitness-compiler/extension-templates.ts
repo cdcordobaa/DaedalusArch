@@ -1,16 +1,21 @@
 /**
- * v1.3 extension template registry: every Cypher catalogue added after the v1.2E freeze, by name. `CYPHER_TEMPLATES`
- * stays the frozen v1.2E instrument (NFR-V1) and is not listed here. The v1.3 spec validation
- * (`validateSpecAgainstProject(..., { rules: 'v1.3' })`) accepts any function name found in these catalogues; a new
- * v1.3 library (the DDD templates, U-C1) registers its catalogue by adding one entry.
+ * v1.3 extension template registry: every Cypher catalogue added after the v1.2E freeze, by name, all outside
+ * `CYPHER_TEMPLATES`, which stays the frozen v1.2E instrument (NFR-V1) and is not listed here.
+ *
+ * - The v1.3 spec validation (`validateSpecAgainstProject(..., { rules: 'v1.3' })`) accepts any function name found
+ *   in these catalogues; a new v1.3 library registers its catalogue by adding one entry (hexagonal #76, module
+ *   wiring #69, DDD U-C1 #83).
+ * - Lookups that fall back from the frozen map (evaluator, report tags) go through `getExtensionTemplate`.
  */
 import type { CypherTemplate } from './types.js';
 import { HEXAGONAL_TEMPLATES } from './hexagonal-templates.js';
+import { DDD_TEMPLATES } from './ddd-templates.js';
 import { V13_CYPHER_TEMPLATES } from './v13-templates.js';
 
 export const V13_EXTENSION_TEMPLATE_CATALOGUES: ReadonlyMap<string, ReadonlyMap<string, CypherTemplate>> = new Map([
   ['hexagonal', HEXAGONAL_TEMPLATES],
   ['module-wiring', V13_CYPHER_TEMPLATES],
+  ['ddd', DDD_TEMPLATES],
 ]);
 
 /** The catalogue that holds a v1.3 extension template, or undefined. */
@@ -19,4 +24,12 @@ export function v13ExtensionCatalogueOf(name: string): string | undefined {
     if (templates.has(name)) return catalogue;
   }
   return undefined;
+}
+
+/**
+ * A style-library template (hexagonal or DDD) by name, for lookups that fall back from `CYPHER_TEMPLATES`.
+ * The module-wiring example templates are reached only through `CompileOptions.v13Templates`, not here.
+ */
+export function getExtensionTemplate(name: string): CypherTemplate | undefined {
+  return HEXAGONAL_TEMPLATES.get(name) ?? DDD_TEMPLATES.get(name);
 }

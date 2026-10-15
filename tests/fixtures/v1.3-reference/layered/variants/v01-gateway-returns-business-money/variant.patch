@@ -1,0 +1,19 @@
+--- a/src/persistence/ProductGateway.ts
++++ b/src/persistence/ProductGateway.ts
+@@ -1,3 +1,4 @@
++import { Money } from '../business/model/Money';
+ import { InMemoryDatabase } from './Database';
+ import { ProductRecord } from './records/ProductRecord';
+ 
+@@ -7,6 +8,11 @@
+ 
+   findBySku(sku: string): ProductRecord | undefined {
+     return this.db.table<ProductRecord>('products').get(sku);
++  }
++
++  priceOf(sku: string): Money | undefined {
++    const row = this.findBySku(sku);
++    return row === undefined ? undefined : Money.ofCents(row.priceCents);
+   }
+ 
+   findAll(): ProductRecord[] {

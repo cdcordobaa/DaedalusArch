@@ -60,13 +60,13 @@ On a graph without the two properties every added predicate is true, so a v1.2E 
 | HEXAGONAL_TEMPLATES | port-adapter-pattern | none | reads IMPLEMENTS only |
 | HEXAGONAL_TEMPLATES | port-dependency-inversion | none | reads CONSTRUCTOR_INJECTS only |
 | V13_CYPHER_TEMPLATES | module-domain-imports-infrastructure | none | reads MODULE_IMPORTS only (not IMPORTS) |
-| DDD (PR #83, not yet on v1.3) | context-isolation | literal | context-isolation / public-API rule: whether the import goes through the published barrel is the question |
-| DDD (PR #83) | aggregate-boundary | resolved | usage rule: reaching an aggregate's inner entity is about the symbol used, through a barrel or not |
-| DDD (PR #83) | repository-aggregate-root | resolved | usage rule: which entity a repository stores is the symbol it imports, wherever re-exported |
-| DDD (PR #83) | bounded-context-modules | none | reads no import edge (file placement only) |
-| DDD (PR #83) | value-object-immutability | none | reads CONTAINS only |
-| DDD (PR #83) | domain-event-placement | none | reads IMPLEMENTS and EXTENDS only |
-| DDD (PR #83) | application-service-thin | none | reads CONTAINS only |
+| DDD_TEMPLATES (PR #83) | context-isolation | literal | context-isolation / public-API rule: whether the import goes through the published barrel is the question |
+| DDD_TEMPLATES | aggregate-boundary | resolved | usage rule: reaching an aggregate's inner entity is about the symbol used, through a barrel or not |
+| DDD_TEMPLATES | repository-aggregate-root | resolved | usage rule: which entity a repository stores is the symbol it imports, wherever re-exported |
+| DDD_TEMPLATES | bounded-context-modules | none | reads no import edge (file placement only) |
+| DDD_TEMPLATES | value-object-immutability | none | reads CONTAINS only |
+| DDD_TEMPLATES | domain-event-placement | none | reads IMPLEMENTS and EXTENDS only |
+| DDD_TEMPLATES | application-service-thin | none | reads CONTAINS only |
 
 Counts over the 38 names: 13 literal (9 frozen, 3 hexagonal, 1 DDD), 4 resolved (2 frozen, 2 DDD), 21 none (14 frozen, 2 hexagonal, 1 module-wiring, 4 DDD).
 
@@ -75,6 +75,6 @@ Counts over the 38 names: 13 literal (9 frozen, 3 hexagonal, 1 DDD), 4 resolved 
 - **Metrics read the literal view.** The ADR names the rule families; the five coupling metrics are not among them. They are put on the literal view because Martin's fan-in, fan-out and instability are defined over module dependencies, and the literal view is the one the second extractors measure. A consequence to expect: a widely imported barrel gains fan-in, and its importers lose fan-out to the files behind it.
 - **domain-purity reads the resolved view.** The ADR's "domain purity by symbol" is this template: a domain file that imports a framework name through a domain barrel still depends on the framework. Under the literal view the edge would end at the barrel File, not at the Package node, and the rule would miss it.
 - **controller-no-entity's IMPORTS hop.** The template walks `IMPORTS|CONSTRUCTOR_INJECTS*1..2` between Class nodes. IMPORTS edges join File nodes, so in practice only the CONSTRUCTOR_INJECTS part matches; the view is set for the day an IMPORTS step can match.
-- **DDD templates.** The DDD library (PR #83) is not on `v1.3` yet. Its entries are in the table so the choice is recorded before any rerun. Its compiler (`ddd-compiler.ts`) must call `applyEdgeView` when `edgeViews` is set, which it does not do yet, as `hexagonal-compiler.ts` does here. `context-isolation` counts a file re-exported by a public-API barrel as published (the M1 fix). Under the literal view, the edge to the barrel is in the graph, so the template could test the barrel hop directly and close M2. That needs a change to the template, which is outside this unit.
+- **DDD templates.** The DDD library (PR #83) was not on `v1.3` when this table was written; its views were recorded with the rest, from the rule definitions. After `v1.3` merged #83, `ddd-compiler.ts` was wired to `applyEdgeView` in the same way as `hexagonal-compiler.ts`, and no view was changed. `context-isolation` counts a file re-exported by a public-API barrel as published (the M1 fix). Under the literal view the edge to the barrel is in the graph, so the template could test the barrel hop directly and close M2. That needs a change to the template, which is outside this unit.
 - **ADR-derived rules** (`adr:` symbolic rules written by a spec author) are not in the table and are not rewritten.
 - **The SCC cycle path** (`scc-cycles.ts`, off: `CYCLE_STRATEGY = 'cypher'`) builds its graph from every IMPORTS and RE_EXPORTS edge. If it is switched on for v1.3 it must drop `viaReExport` edges to match `no-cyclic-deps`.

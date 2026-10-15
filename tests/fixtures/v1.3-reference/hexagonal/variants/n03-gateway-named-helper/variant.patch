@@ -1,0 +1,44 @@
+--- a/src/adapters/outbound/payment/FakePaymentGateway.ts
++++ b/src/adapters/outbound/payment/FakePaymentGateway.ts
+@@ -1,12 +1,14 @@
+ import { PaymentGateway } from '../../../application/ports/out/PaymentGateway';
+ import { BookingError } from '../../../domain/errors/BookingError';
+ import { Money } from '../../../domain/model/Money';
++import { GatewayRetryPolicy } from './GatewayRetryPolicy';
+ 
+ export const PAYMENT_FEE_CENTS = 150;
+ 
+ /** Driven adapter standing in for a card processor; declines charges above a fixed limit. */
+ export class FakePaymentGateway implements PaymentGateway {
+   private readonly charges = new Map<string, number>();
++  private readonly retry = new GatewayRetryPolicy(3);
+ 
+   async charge(guestId: string, amount: Money): Promise<string> {
+     if (amount.cents > 500_000) throw new BookingError('payment-declined', `Charge for ${guestId} declined`);
+@@ -16,6 +18,6 @@
+   }
+ 
+   async refund(paymentRef: string): Promise<void> {
+-    this.charges.delete(paymentRef);
++    await this.retry.run(async () => this.charges.delete(paymentRef));
+   }
+ }
+--- /dev/null
++++ b/src/adapters/outbound/payment/GatewayRetryPolicy.ts
+@@ -0,0 +1,16 @@
++/** Helper inside the payment adapter: how often to retry the processor. Not an adapter; it implements no port. */
++export class GatewayRetryPolicy {
++  constructor(private readonly maxAttempts: number) {}
++
++  async run<T>(attempt: () => Promise<T>): Promise<T> {
++    let lastError: unknown;
++    for (let i = 0; i < this.maxAttempts; i += 1) {
++      try {
++        return await attempt();
++      } catch (error) {
++        lastError = error;
++      }
++    }
++    throw lastError;
++  }
++}

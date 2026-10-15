@@ -94,9 +94,57 @@ export const HEXAGONAL_RULE_TIERS: ReadonlyMap<string, { readonly ruleId: string
   ['layer-skip-graph', { ruleId: 'FF-S03', tier: 'advisory' }],
 ]);
 
+/**
+ * The DDD library (U-C1, `src/spec-parser/ddd-template.ts`), keyed by template name, with the id the library gives
+ * each and the row of rule-tiers.md (second table) that sets its tier. The tiers are the sealed ones. Three of them
+ * differ from the unit's own construct assessment (FF-DT03 value-object-immutability, FF-DT05 domain-event-placement,
+ * and FF-S03 layer-skip-graph, which resolves through `RULE_TIERS`); those are proposed ADRs in
+ * Docs/v1.3-ddd-notes.md §2 and are not applied here.
+ *
+ * `bounded-context-modules` (FF-DS01, every source file lies in a declared context or outside-context path) has no
+ * row of its own in the sealed table. Its tier is the one its library notes assigned a priori (Docs/v1.3-ddd-notes.md
+ * §2, commit 99aaabca, before any template existed), as the sealed table's "each new rule gets its tier in its
+ * library notes, before that library is validated" provides; the construct is the "explicit context boundaries" of
+ * the sealed bounded-context-isolation row.
+ *
+ * The composed hexagonal layering (FF-S01 dependency-direction-graph, FF-S03 layer-skip-graph) re-uses the ids of
+ * `RULE_TIERS`, whose rows agree with the hexagonal rows of the second table.
+ */
+export interface DddRuleTier {
+  readonly ruleId: string;
+  readonly tier: RuleTier;
+  /** The rule-tiers.md row (second table) the tier comes from, or `library-notes` for FF-DS01. */
+  readonly docRow: string;
+  readonly reason: string;
+}
+
+export const DDD_RULE_TIERS: ReadonlyMap<string, DddRuleTier> = new Map<string, DddRuleTier>([
+  ['bounded-context-modules', { ruleId: 'FF-DS01', tier: 'blocking', docRow: 'library-notes',
+    reason: 'Strategic DDD: explicit context boundaries (tier from Docs/v1.3-ddd-notes.md §2, a priori; no own row in rule-tiers.md)' }],
+  ['context-isolation', { ruleId: 'FF-DS02', tier: 'blocking', docRow: 'DDD bounded-context isolation (imports only through the declared public API or ACL)',
+    reason: 'Strategic DDD: explicit context boundaries and translation' }],
+  ['aggregate-boundary', { ruleId: 'FF-DT01', tier: 'blocking', docRow: 'DDD aggregate boundary',
+    reason: 'Evans: outside objects hold references only to the root' }],
+  ['repository-aggregate-root', { ruleId: 'FF-DT02', tier: 'blocking', docRow: 'DDD repository only for aggregate roots',
+    reason: 'Evans: repositories are provided only for aggregate roots' }],
+  ['value-object-immutability', { ruleId: 'FF-DT03', tier: 'blocking', docRow: 'DDD value-object immutability',
+    reason: 'Evans: value objects are immutable; checked as a declaration fact (proposed ADR 1 in Docs/v1.3-ddd-notes.md §2 not applied)' }],
+  ['domain-purity', { ruleId: 'FF-DT04', tier: 'blocking', docRow: 'DDD framework-free domain',
+    reason: 'Same construct as FF-P01' }],
+  ['domain-event-placement', { ruleId: 'FF-DT05', tier: 'advisory', docRow: 'DDD domain events defined in the domain',
+    reason: 'Placement guideline (proposed ADR 2 in Docs/v1.3-ddd-notes.md §2 not applied)' }],
+  ['application-service-thin', { ruleId: 'FF-DT06', tier: 'advisory', docRow: 'DDD application services hold no business rules',
+    reason: 'Heuristic' }],
+]);
+
+/** The DDD ids as tier entries (the ids are unique to the DDD library, so they resolve under any style). */
+const DDD_ID_TIERS: ReadonlyMap<string, RuleTierEntry> = new Map(
+  [...DDD_RULE_TIERS.values()].map((d): [string, RuleTierEntry] => [d.ruleId, entry(d.ruleId, d.tier, d.reason)]),
+);
+
 export interface ResolvedTier {
   readonly tier: RuleTier;
-  /** `table`: from rule-tiers.md; `untiered-default`: an id the table does not list (ADR-derived, custom). */
+  /** `table`: from rule-tiers.md (DDD ids: `DDD_RULE_TIERS`); `untiered-default`: an id the table does not list (ADR-derived, custom). */
   readonly source: 'table' | 'untiered-default';
   readonly entry?: RuleTierEntry;
 }
@@ -107,7 +155,7 @@ export interface ResolvedTier {
  * v1.3 verdict. The source is reported so an untiered rule is visible.
  */
 export function ruleTier(ruleId: string, style?: string): ResolvedTier {
-  const e = RULE_TIERS.get(ruleId);
+  const e = RULE_TIERS.get(ruleId) ?? DDD_ID_TIERS.get(ruleId);
   if (e === undefined) return { tier: 'advisory', source: 'untiered-default' };
   const byStyle = style !== undefined ? e.byStyle?.[style.toLowerCase()] : undefined;
   return { tier: byStyle ?? e.tier, source: 'table', entry: e };

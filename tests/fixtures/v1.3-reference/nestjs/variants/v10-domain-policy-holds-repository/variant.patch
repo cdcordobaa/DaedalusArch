@@ -1,0 +1,19 @@
+--- a/src/domain/registration-policy.ts
++++ b/src/domain/registration-policy.ts
+@@ -2,9 +2,16 @@
+ import { DomainError } from './domain-error';
+ import { Registration } from './registration';
+ import { Workshop } from './workshop';
++import { InMemoryRegistrationRepository } from '../registrations/in-memory-registration.repository';
+ 
+ /** Domain service: rules that span a workshop, an attendee and their existing registrations. */
+ export class RegistrationPolicy {
++  private readonly history = new InMemoryRegistrationRepository();
++
++  async registrationsOf(attendee: Attendee): Promise<Registration[]> {
++    return this.history.findByAttendee(attendee.id);
++  }
++
+   assertCanRegister(workshop: Workshop, attendee: Attendee, existing: readonly Registration[], now: Date): void {
+     if (workshop.startsAt.getTime() <= now.getTime()) {
+       throw new DomainError('conflict', `Workshop "${workshop.title}" has already started`);

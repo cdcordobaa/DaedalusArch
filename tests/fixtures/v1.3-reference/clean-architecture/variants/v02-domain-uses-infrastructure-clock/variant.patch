@@ -1,0 +1,16 @@
+--- a/src/domain/services/LoanPolicy.ts
++++ b/src/domain/services/LoanPolicy.ts
+@@ -1,8 +1,13 @@
+ import { Loan } from '../entities/Loan';
+ import { Member } from '../entities/Member';
+ import { DomainError } from '../errors/DomainError';
++import { SystemClock } from '../../infrastructure/system/SystemClock';
+ 
+ export class LoanPolicy {
++  assertCanBorrowToday(member: Member, activeLoans: readonly Loan[]): void {
++    this.assertCanBorrow(member, activeLoans, new SystemClock().now());
++  }
++
+   assertCanBorrow(member: Member, activeLoans: readonly Loan[], now: Date): void {
+     if (activeLoans.some((loan) => loan.isOverdue(now))) {
+       throw new DomainError('OVERDUE_LOANS', `${member.name} has overdue loans`);

@@ -23,7 +23,7 @@ export { renormaliseWeights, dropReasonFor, ahsFromEffectiveWeights } from './re
 export type {
   DimensionCounts, DimensionWeights, DroppedCandidate, RenormalisedWeights, DimensionDeclaration,
 } from './renormaliser.js';
-export { RULE_TIERS, HEXAGONAL_RULE_TIERS, RULE_TIERS_DOC, ruleTier } from './rule-tiers.js';
-export type { RuleTier, RuleTierEntry, ResolvedTier, PartialRule } from './rule-tiers.js';
+export { RULE_TIERS, HEXAGONAL_RULE_TIERS, DDD_RULE_TIERS, RULE_TIERS_DOC, ruleTier } from './rule-tiers.js';
+export type { RuleTier, RuleTierEntry, ResolvedTier, PartialRule, DddRuleTier } from './rule-tiers.js';
 export { computeTieredScoring, overallVerdictOf, relTypeOf, splitPartial, parseScoringMode, SCORING_MODES } from './tiered-scoring.js';
 export type { TieredScoringInput } from './tiered-scoring.js';

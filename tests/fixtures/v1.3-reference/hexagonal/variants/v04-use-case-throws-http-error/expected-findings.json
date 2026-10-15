@@ -1,0 +1,18 @@
+{
+  "schemaVersion": 1,
+  "style": "hexagonal",
+  "variant": "v04-use-case-throws-http-error",
+  "kind": "violation",
+  "plants": "FF-S01",
+  "description": "CancelBookingService throws the inbound adapter's HttpError(404) instead of a BookingError.",
+  "patch": "variant.patch",
+  "expectedFindings": [
+    {
+      "ruleId": "FF-S01",
+      "ruleName": "dependency-direction-graph",
+      "file": "src/application/services/CancelBookingService.ts",
+      "target": "src/adapters/inbound/http/HttpTypes.ts",
+      "reason": "application > adapters-inbound is the reverse of an allowed edge."
+    }
+  ]
+}

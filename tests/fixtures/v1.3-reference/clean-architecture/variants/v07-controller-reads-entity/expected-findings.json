@@ -1,0 +1,18 @@
+{
+  "schemaVersion": 1,
+  "style": "clean-architecture",
+  "variant": "v07-controller-reads-entity",
+  "kind": "violation",
+  "plants": "FF-P05",
+  "description": "LoanController gets the LoanRepository and reads a Loan entity directly for a show route, bypassing the use cases.",
+  "patch": "variant.patch",
+  "expectedFindings": [
+    {
+      "ruleId": "FF-P05",
+      "ruleName": "controller-no-entity",
+      "file": "src/infrastructure/http/LoanController.ts",
+      "target": "src/domain/entities/Loan.ts",
+      "reason": "A controller references a domain entity (Loan) directly instead of a use case and its DTO."
+    }
+  ]
+}

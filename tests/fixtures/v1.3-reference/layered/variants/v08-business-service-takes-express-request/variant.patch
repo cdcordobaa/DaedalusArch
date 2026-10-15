@@ -1,0 +1,18 @@
+--- a/src/business/services/OrderService.ts
++++ b/src/business/services/OrderService.ts
+@@ -1,3 +1,4 @@
++import type { Request } from 'express';
+ import { CustomerGateway } from '../../persistence/CustomerGateway';
+ import { OrderGateway } from '../../persistence/OrderGateway';
+ import { ProductGateway } from '../../persistence/ProductGateway';
+@@ -42,6 +43,10 @@
+     return draft;
+   }
+ 
++  placeOrderFromRequest(request: Request): Order {
++    return this.placeOrder(String(request.body['customerId']), (request.body['items'] as OrderItem[] | undefined) ?? []);
++  }
++
+   cancelOrder(orderId: string): Order {
+     const order = this.getOrder(orderId);
+     order.cancel();

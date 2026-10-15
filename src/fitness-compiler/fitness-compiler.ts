@@ -21,6 +21,8 @@ import { checkBoundParameters } from './bound-param-checker.js';
 import { compileHexagonalFunctions } from './hexagonal-compiler.js';
 import { HEXAGONAL_STYLE } from './hexagonal-templates.js';
 import { applyEdgeView } from './edge-views.js';
+import { compileDddFunctions } from './ddd-compiler.js';
+import { DDD_STYLE } from './ddd-templates.js';
 
 // ── Standalone Function ───────────────────────────────────────────────────────
 
@@ -63,6 +65,9 @@ export function compileFunctions(input: CompilerInput, options: CompileOptions =
   // v1.3: the hexagonal style has its own graph-based templates; every other style takes the path below unchanged.
   if (input.style === HEXAGONAL_STYLE) {
     return compileHexagonalFunctions(input, (rest) => compileFunctionsCore(rest, options), options.edgeViews === true);
+  }
+  if (input.style === DDD_STYLE) {
+    return compileDddFunctions(input, (rest) => compileFunctionsCore(rest, options), options.edgeViews === true);
   }
   return compileFunctionsCore(input, options);
 }

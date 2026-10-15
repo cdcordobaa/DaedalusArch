@@ -1,0 +1,18 @@
+{
+  "schemaVersion": 1,
+  "style": "hexagonal",
+  "variant": "v07-domain-service-nestjs-decorator",
+  "kind": "violation",
+  "plants": "FF-P01",
+  "description": "AvailabilityChecker (domain) is decorated with @Injectable from @nestjs/common.",
+  "patch": "variant.patch",
+  "expectedFindings": [
+    {
+      "ruleId": "FF-P01",
+      "ruleName": "domain-purity",
+      "file": "src/domain/services/AvailabilityChecker.ts",
+      "target": "@nestjs/common",
+      "reason": "The core imports a framework package (@nestjs/* is forbidden by the hexagonal preset)."
+    }
+  ]
+}

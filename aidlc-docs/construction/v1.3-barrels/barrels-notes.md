@@ -55,7 +55,11 @@ How it runs:
 - The pipeline's `CompileCommand` and `validate --rules v1.3` pass the option, because the pipeline extracts with the v1.3 defaults. On a v1.2E graph the predicates are always true. The Neo4j test checks that on both specs: every template gives the same rows rewritten and frozen.
 - The hexagonal compiler path takes the option too.
 
-**DDD.** The DDD templates are not on `v1.3` yet (PR #83). Their names are in the table, but `ddd-compiler.ts` has to call `applyEdgeView` when `edgeViews` is set. That is one line, the same as `hexagonal-compiler.ts`, and it is left for whoever merges #83. `context-isolation` still carries the M1 workaround. Under the literal view the barrel edge is in the graph, so M2 can be closed by a template change (outside this unit).
+**DDD.** When the table was written, the DDD templates were not on `v1.3` (PR #83). Their views were recorded from the rule definitions. `v1.3` then merged #83 (with #81 and #82), and this branch merged `origin/v1.3` @ `5d50dfaf`. The only conflict was the import block of `fitness-compiler.ts`. `ddd-compiler.ts` now calls `applyEdgeView` when `edgeViews` is set, in the same way as `hexagonal-compiler.ts`. No view was changed.
+
+Effect on the DDD reference test: the expected-graph key edge E1 (`billing/acl/OrderingAcl.ts -> ordering/index.ts`) is now extracted, as a literal `reExportHop` edge. The resolved edge to `ordering/contracts/OrderSummary.ts` is there too, with `viaReExport` and barrel `src/ordering/index.ts`. `ddd-reference.test.ts` recorded E1 as a known mismatch that must fail when the tool changes. It now records no mismatch and asserts both edges. The findings manifests (and M2, M3) are unchanged. The fixtures and manifests were not touched.
+
+`context-isolation` still carries the M1 workaround. Under the literal view the barrel edge is in the graph, so M2 can be closed by a template change (outside this unit).
 
 ## 3. Tests
 
@@ -72,7 +76,7 @@ The new fixture `fixtures/unit/v13-barrels` covers these cases:
 | Suite | Tests |
 |---|---|
 | `tests/unit/apg-extractor/v13-reexport-edges.test.ts` (new) | 26. Both edges in v1.3, only the resolved edge in v1.2E, barrel paths per shape, cycles, resolved view = v1.2E edge set, golden fixtures unchanged by the option, the real E1 cell (read-only, skipped if absent) |
-| `tests/unit/fitness-compiler/v13-edge-views.test.ts` (new) | 20. Every catalogue template has a view; `none` exactly when no IMPORTS is read; the table equals the doc; the rewrite is exact and deterministic; the frozen text is unchanged without the option |
+| `tests/unit/fitness-compiler/v13-edge-views.test.ts` (new) | 23. Every template of the four catalogues (frozen, hexagonal, module-wiring, DDD) has a view, and the table has no other entry; `none` exactly when no IMPORTS is read; the table equals the doc; the rewrite is exact and deterministic; the frozen text is unchanged without the option |
 | `tests/unit/fitness-compiler/v13-edge-views-neo4j.test.ts` (new) | 5, on Neo4j (golden guard, skips without `NEO4J_PASSWORD`). The rewritten Cypher runs; it is a no-op on the v1.2E graph; resolved-view rows on the v1.3 graph equal the v1.2E rows; `no-layer-skip` (layered preset moved onto the fixture) reports the order-fulfilment file's three skips to domain in v1.2E and none in v1.3, keeps the direct deep import, and reports `star.ts → domain/index.ts` |
 
 Adapted existing tests. Each one pins v1.2E behaviour and now passes the frozen mode explicitly:
@@ -81,13 +85,15 @@ Adapted existing tests. Each one pins v1.2E behaviour and now passes the frozen 
 - `import-resolution-stats.test.ts` (`V12E_FLAGS`);
 - `graph-mode-ast-only.test.ts`;
 - `compiler-input.test.ts`: `CompileCommand` now equals `compileFunctions(…, V13_COMPILE_OPTIONS)`;
-- `tests/unit/scripts/v1.3/graph-fidelity.test.ts` (from #81): its "v1.2E extractor" case passes `V12E_DEFAULT_OPTIONS`, because `{}` means the v1.3 defaults on this branch.
+- `tests/unit/scripts/v1.3/graph-fidelity.test.ts` (from #81): its "v1.2E extractor" case passes `V12E_DEFAULT_OPTIONS`, because `{}` means the v1.3 defaults on this branch;
+- `tests/unit/ddd/ddd-reference.test.ts`: the recorded mismatch E1 is closed (see §2).
 
 Runs, all with `--maxWorkers=2`, Neo4j `daedalus-neo4j-bt` on bolt 7693, credentials from `~/.daedalus-bt.env` (never printed):
 
 | Run | Result |
 |---|---|
-| extractor (unit and integration), fitness-compiler, the fidelity harness tests, and the touched pipeline / CLI-validate / hexagonal tests | 52 suites, **783 passed**, 0 failed |
+| extractor (unit and integration), fitness-compiler, the fidelity harness tests, the touched pipeline / CLI-validate tests, hexagonal and DDD (including both Neo4j suites), after merging `origin/v1.3` @ `5d50dfaf` | 58 suites, **968 passed**, 0 failed, 0 skipped |
+| the same set before that merge | 52 suites, 783 passed |
 | golden lane (`jest.golden.config.cjs`, `GOLDEN_REQUIRED=1`, `--runInBand`) | 7 suites, **81 passed** |
 | `--check-prereg` on all 12 plans | `pre-registration v25 ok: 85 registered artefacts unchanged` |
 

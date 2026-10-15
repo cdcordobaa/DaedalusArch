@@ -7,6 +7,7 @@ import * as path from 'node:path';
 import { CYPHER_TEMPLATES } from '../../../src/fitness-compiler/cypher-templates.js';
 import { HEXAGONAL_TEMPLATES } from '../../../src/fitness-compiler/hexagonal-templates.js';
 import { V13_CYPHER_TEMPLATES } from '../../../src/fitness-compiler/v13-templates.js';
+import { DDD_TEMPLATES } from '../../../src/fitness-compiler/ddd-templates.js';
 import {
   TEMPLATE_EDGE_VIEWS, applyEdgeView, cypherReadsImports, edgeViewOf,
 } from '../../../src/fitness-compiler/edge-views.js';
@@ -16,8 +17,8 @@ import { parseSpec } from '../../../src/spec-parser/spec-parser.js';
 import type { CypherQuery } from '../../../src/shared/types/evaluation.js';
 
 const REPO_ROOT = path.resolve(__dirname, '../../..');
-const CATALOGUES = { CYPHER_TEMPLATES, HEXAGONAL_TEMPLATES, V13_CYPHER_TEMPLATES } as const;
-const ALL = [...CYPHER_TEMPLATES, ...HEXAGONAL_TEMPLATES, ...V13_CYPHER_TEMPLATES];
+const CATALOGUES = { CYPHER_TEMPLATES, HEXAGONAL_TEMPLATES, V13_CYPHER_TEMPLATES, DDD_TEMPLATES } as const;
+const ALL = [...CYPHER_TEMPLATES, ...HEXAGONAL_TEMPLATES, ...V13_CYPHER_TEMPLATES, ...DDD_TEMPLATES];
 
 async function compiled(specRel: string, edgeViews: boolean): Promise<CypherQuery[]> {
   const parsed = await parseSpec({ specFilePath: path.join(REPO_ROOT, specRel) });
@@ -111,7 +112,11 @@ describe('applyEdgeView', () => {
     expect(out).toContain('(f)-[_ev1:IMPORTS WHERE NOT coalesce(_ev1.viaReExport, false)]->(outgoing:File)');
   });
 
-  it('leaves MODULE_IMPORTS, unknown names and DDD-only names absent from the Cypher alone', () => {
+  it('the table covers exactly the templates of the four catalogues', () => {
+    expect([...TEMPLATE_EDGE_VIEWS.keys()].sort()).toEqual(ALL.map(([n]) => n).sort());
+  });
+
+  it('leaves MODULE_IMPORTS and unknown names alone', () => {
     const t = V13_CYPHER_TEMPLATES.get('module-domain-imports-infrastructure')!.template;
     expect(applyEdgeView('module-domain-imports-infrastructure', t)).toBe(t);
     expect(applyEdgeView('adr:some decision', 'MATCH (a)-[:IMPORTS]->(b) RETURN a')).toBe('MATCH (a)-[:IMPORTS]->(b) RETURN a');
@@ -123,7 +128,7 @@ describe('applyEdgeView', () => {
 });
 
 describe('compileFunctions edgeViews option', () => {
-  it.each(['specs/clean-arch.yaml', 'presets/clean-architecture.yaml', 'presets/nestjs.yaml', 'presets/layered.yaml', 'presets/hexagonal.yaml'])(
+  it.each(['specs/clean-arch.yaml', 'presets/clean-architecture.yaml', 'presets/nestjs.yaml', 'presets/layered.yaml', 'presets/hexagonal.yaml', 'presets/ddd.yaml'])(
     '%s: without the option the compiled text has no view predicate (frozen text); with it, every IMPORTS-reading query is rewritten',
     async (spec) => {
       const frozen = await compiled(spec, false);

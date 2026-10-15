@@ -1,0 +1,13 @@
+{
+  "$id": "https://daedalusarch/v1.3/ddd-variant.schema.json",
+  "title": "variant.json of one DDD reference variant (U-C1 overlay format: overlay/ files plus a delete list)",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["id", "rule", "plants", "delete"],
+  "properties": {
+    "id": { "type": "string", "pattern": "^[vng][0-9]{2}-[a-z0-9-]+$" },
+    "rule": { "type": ["string", "null"], "pattern": "^FF-[A-Z]+[0-9]{2}$" },
+    "plants": { "type": "string", "minLength": 10 },
+    "delete": { "type": "array", "items": { "type": "string", "pattern": "^src/.+\\.ts$" } }
+  }
+}

@@ -5,9 +5,11 @@
 import { createHash } from 'node:crypto';
 import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
-import { HEXAGONAL_RULE_TIERS, RULE_TIERS, RULE_TIERS_DOC, ruleTier } from '../../../src/scoring-engine/rule-tiers.js';
+import { DDD_RULE_TIERS, HEXAGONAL_RULE_TIERS, RULE_TIERS, RULE_TIERS_DOC, ruleTier } from '../../../src/scoring-engine/rule-tiers.js';
 import { EXTENSION_TEMPLATES, TEMPLATE_REGISTRY } from '../../../src/spec-parser/template-registry.js';
 import { HEXAGONAL_TEMPLATES } from '../../../src/fitness-compiler/hexagonal-templates.js';
+import { DDD_TEMPLATES } from '../../../src/fitness-compiler/ddd-templates.js';
+import { DDD_FUNCTIONS } from '../../../src/spec-parser/ddd-template.js';
 
 const ROOT = join(__dirname, '../../..');
 const DOC = readFileSync(join(ROOT, RULE_TIERS_DOC), 'utf8');
@@ -89,7 +91,7 @@ describe('v1.3 rule tiers: the table equals Docs/v1.3/rule-tiers.md (FR-V6)', ()
 
   it('every rule id of every registered library (frozen and extension) has a table tier', () => {
     const libraries = [...TEMPLATE_REGISTRY.values(), ...EXTENSION_TEMPLATES.values()];
-    expect(libraries.map((l) => l.style).sort()).toEqual(['clean-architecture', 'hexagonal', 'layered', 'nestjs']);
+    expect(libraries.map((l) => l.style).sort()).toEqual(['clean-architecture', 'ddd', 'hexagonal', 'layered', 'nestjs']);
     for (const lib of libraries) {
       for (const f of lib.functions) {
         expect([lib.style, String(f.id), ruleTier(String(f.id), lib.style).source]).toEqual([lib.style, String(f.id), 'table']);
@@ -126,5 +128,43 @@ describe('v1.3 rule tiers: the hexagonal templates (rule-tiers.md, second table)
     expect(cypher).toMatch(/AS ratio/);
     expect(cypher).toMatch(/ratio < \$threshold/);
     expect(HEXAGONAL_RULE_TIERS.get('port-dependency-inversion')?.tier).toBe('advisory');
+  });
+});
+
+describe('v1.3 rule tiers: the DDD library (rule-tiers.md, second table; U-C1 wired at integration)', () => {
+  const rows = tableRows('New v1.3 rules').filter((c) => (c[0] ?? '').startsWith('DDD '));
+  const sealed = new Map(rows.map((c) => [c[0] ?? '', c[1] ?? ''] as const));
+
+  it('the sealed table has seven DDD rows, and each is the source of exactly one DDD template tier', () => {
+    expect(rows).toHaveLength(7);
+    const fromRows = [...DDD_RULE_TIERS.values()].filter((d) => d.docRow !== 'library-notes').map((d) => d.docRow);
+    expect(fromRows.sort()).toEqual([...sealed.keys()].sort());
+  });
+
+  it.each([...DDD_RULE_TIERS.entries()].filter(([, d]) => d.docRow !== 'library-notes').map(([name, d]) => [name, d] as const))(
+    '%s: the sealed tier, unchanged', (_name, d) => {
+      expect(d.tier).toBe(sealed.get(d.docRow));
+      expect(ruleTier(d.ruleId, 'ddd')).toMatchObject({ tier: d.tier, source: 'table' });
+    });
+
+  it('the sealed tiers hold where the DDD unit proposed others (ADRs not applied): FF-DT03 blocking, FF-DT05 and FF-S03 advisory', () => {
+    expect(ruleTier('FF-DT03', 'ddd').tier).toBe('blocking');
+    expect(ruleTier('FF-DT05', 'ddd').tier).toBe('advisory');
+    expect(ruleTier('FF-S03', 'ddd').tier).toBe('advisory');
+    expect(ruleTier('FF-S01', 'ddd').tier).toBe('blocking');
+  });
+
+  it('only bounded-context-modules (FF-DS01) takes its tier from the library notes, and it is blocking there', () => {
+    expect([...DDD_RULE_TIERS.entries()].filter(([, d]) => d.docRow === 'library-notes').map(([n, d]) => [n, d.ruleId, d.tier]))
+      .toEqual([['bounded-context-modules', 'FF-DS01', 'blocking']]);
+  });
+
+  it('every DDD template has a tier entry; the library gives each function the entry id and the resolved tier', () => {
+    for (const name of DDD_TEMPLATES.keys()) expect(DDD_RULE_TIERS.has(name)).toBe(true);
+    for (const f of DDD_FUNCTIONS) {
+      const d = DDD_RULE_TIERS.get(f.name);
+      if (d !== undefined) expect(String(f.id)).toBe(d.ruleId);
+      expect([String(f.id), f.tier]).toEqual([String(f.id), ruleTier(String(f.id), 'ddd').tier]);
+    }
   });
 });

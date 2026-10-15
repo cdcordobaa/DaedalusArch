@@ -1,0 +1,25 @@
+{
+  "schemaVersion": 1,
+  "style": "clean-architecture",
+  "variant": "v02-domain-uses-infrastructure-clock",
+  "kind": "violation",
+  "plants": "FF-S01",
+  "description": "LoanPolicy (domain service) imports SystemClock (infrastructure) and calls it in a method (no field).",
+  "patch": "variant.patch",
+  "expectedFindings": [
+    {
+      "ruleId": "FF-S01",
+      "ruleName": "dependency-direction",
+      "file": "src/domain/services/LoanPolicy.ts",
+      "target": "src/infrastructure/system/SystemClock.ts",
+      "reason": "Domain imports an infrastructure class: the dependency points outward."
+    },
+    {
+      "ruleId": "FF-S04",
+      "ruleName": "no-domain-outward-dep",
+      "file": "src/domain/services/LoanPolicy.ts",
+      "target": "src/infrastructure/system/SystemClock.ts",
+      "reason": "A domain file imports a file of another layer."
+    }
+  ]
+}

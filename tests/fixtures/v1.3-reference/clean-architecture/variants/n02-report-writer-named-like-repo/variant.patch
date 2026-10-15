@@ -1,0 +1,33 @@
+--- /dev/null
++++ b/src/infrastructure/http/CsvReportWriter.ts
+@@ -0,0 +1,9 @@
++import { LoanDto } from '../../application/dto/LoanDto';
++
++/** Formats the overdue list for the librarians' spreadsheet export. Not a repository: it stores nothing. */
++export class CsvReportWriter {
++  write(loans: readonly LoanDto[]): string {
++    const rows = loans.map((loan) => [loan.id, loan.bookId, loan.memberId, loan.dueAt].join(','));
++    return ['id,bookId,memberId,dueAt', ...rows].join('\n');
++  }
++}
+--- a/src/infrastructure/http/LoanController.ts
++++ b/src/infrastructure/http/LoanController.ts
+@@ -1,6 +1,7 @@
+ import { BorrowBookUseCase } from '../../application/use-cases/BorrowBookUseCase';
+ import { ListOverdueLoansUseCase } from '../../application/use-cases/ListOverdueLoansUseCase';
+ import { ReturnBookUseCase } from '../../application/use-cases/ReturnBookUseCase';
++import { CsvReportWriter } from './CsvReportWriter';
+ import { toErrorResponse } from './ErrorMapper';
+ import { HttpRequest, HttpResponse, created, ok } from './HttpTypes';
+ 
+@@ -31,6 +32,10 @@
+     }
+   }
+ 
++  async overdueCsv(): Promise<HttpResponse> {
++    return ok(new CsvReportWriter().write(await this.listOverdue.execute()));
++  }
++
+   async overdue(): Promise<HttpResponse> {
+     return ok(await this.listOverdue.execute());
+   }

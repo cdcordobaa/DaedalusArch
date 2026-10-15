@@ -1,0 +1,4 @@
+{ "variant": "g03-deep-import-of-reexported-file", "spec": "presets/ddd.yaml", "findings": [
+  { "rule": "FF-DS02", "name": "context-isolation", "file": "src/billing/api/InvoiceController.ts", "target": "src/ordering/application/GetOrderSummary.ts",
+    "reason": "billing imports ordering's GetOrderSummary.ts directly; the file is re-exported by ordering's barrel, but the import does not go through it, and the importer is not in billing's ACL." }
+] }
