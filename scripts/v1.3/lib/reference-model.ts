@@ -344,6 +344,72 @@ export function loadAllReferences(repoRoot: string, styles: readonly ReferenceSt
   return styles.map((s) => loadReference(repoRoot, s, root));
 }
 
+// ── Rule-id mapping (hold-out manifests written with provisional ids) ─────────
+
+/**
+ * Maps rule ids written in a manifest to the ids of the frozen spec, per style. A value is the frozen id, or
+ * `{ ruleId, name }` when the manifest also carries a provisional rule name: then the manifest's name must equal
+ * `name` and is replaced by the compared rule's name. Example (hold-out DDD manifests with provisional ids):
+ *   { "schemaVersion": 1, "styles": { "ddd": { "FF-D01": "FF-DT01", "FF-M01": { "ruleId": "FF-DS01", "name": "modules" } } } }
+ * The mapping is applied in memory after the schema check; nothing on disk is rewritten.
+ */
+export interface RuleIdMapFile {
+  readonly schemaVersion: 1;
+  readonly note?: string;
+  readonly styles: Readonly<Record<string, Readonly<Record<string, string | { readonly ruleId: string; readonly name?: string }>>>>;
+}
+
+const RULE_ID_PATTERN = /^FF-[A-Z]+[0-9]{2}$/;
+
+/** Reads and checks a rule-id mapping file (see `RuleIdMapFile`). */
+export function loadRuleIdMap(file: string): RuleIdMapFile {
+  const raw = readJson(file) as Partial<RuleIdMapFile> | null;
+  if (raw === null || typeof raw !== 'object' || raw.schemaVersion !== 1 || typeof raw.styles !== 'object' || raw.styles === null) {
+    throw new Error(`${file}: not a rule-id map (schemaVersion 1, styles: { <style>: { <id>: <id> } })`);
+  }
+  for (const [style, entries] of Object.entries(raw.styles)) {
+    if (!isReferenceStyle(style)) throw new Error(`${file}: unknown style ${style}`);
+    for (const [from, to] of Object.entries(entries)) {
+      const id = typeof to === 'string' ? to : to.ruleId;
+      if (!RULE_ID_PATTERN.test(from) || !RULE_ID_PATTERN.test(id)) throw new Error(`${file}: ${style}: ${from} -> ${String(id)} is not a rule id pair`);
+    }
+  }
+  return raw as RuleIdMapFile;
+}
+
+/**
+ * The reference with its manifest rule ids (expected findings and planted rule) mapped by `map`. Ids the map does
+ * not name are kept. Returns the mapped reference and the ids that were mapped (`from -> to`, with counts).
+ */
+export function applyRuleIdMap(ref: LoadedReference, map: RuleIdMapFile | undefined): { ref: LoadedReference; mapped: Record<string, number> } {
+  const entries = map?.styles[ref.style];
+  const mapped: Record<string, number> = {};
+  if (entries === undefined) return { ref, mapped };
+  const lookup = (id: string): { ruleId: string; name?: string } | undefined => {
+    const e = entries[id];
+    if (e === undefined) return undefined;
+    return typeof e === 'string' ? { ruleId: e } : e;
+  };
+  const nameOf = new Map(ref.descriptor.scopeRules.map((r) => [r.ruleId, r.ruleName]));
+  const variants = ref.variants.map((v): LoadedVariant => {
+    const expectedFindings = v.manifest.expectedFindings.map((f): ExpectedFinding => {
+      const e = lookup(f.ruleId);
+      if (e === undefined) return f;
+      const k = `${f.ruleId} -> ${e.ruleId}`;
+      mapped[k] = (mapped[k] ?? 0) + 1;
+      let ruleName = f.ruleName;
+      if (e.name !== undefined) {
+        if (f.ruleName !== e.name) throw new Error(`${ref.style}/${v.manifest.variant}: ${f.ruleId} is named ${f.ruleName}, the map expects ${e.name}`);
+        ruleName = nameOf.get(e.ruleId) ?? f.ruleName;
+      }
+      return { ...f, ruleId: e.ruleId, ruleName };
+    });
+    const plants = v.manifest.plants === null ? null : lookup(v.manifest.plants)?.ruleId ?? v.manifest.plants;
+    return { ...v, manifest: { ...v.manifest, plants, expectedFindings } };
+  });
+  return { ref: { ...ref, variants }, mapped };
+}
+
 export function isReferenceStyle(value: string): value is ReferenceStyle {
   return (REFERENCE_STYLES as readonly string[]).includes(value);
 }
