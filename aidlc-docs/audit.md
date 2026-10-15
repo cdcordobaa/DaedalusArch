@@ -1582,3 +1582,11 @@ Plan checkboxes ticked. Auto-approved under standing approval; no blocking or ma
 **Context**: v1.3 FR-V9 — first evidence that the judge detects semantic anti-patterns; precision of the estimate pending round 2.
 
 ---
+
+## v1.3 — hold-out set enlarged and re-sealed
+**Timestamp**: 2026-10-15T19:00:00Z
+**User Input**: (none; option A taken under 'max progress')
+**AI Response**: "Hold-out enlarged by the same blind author: 62 → 207 cases (167 violations: clean 33, layered 32, NestJS 34, hexagonal 32, DDD 36; 35 near-misses, 7 per style; 5 clean). Every blocking construct has ≥ 4 variants; many import and injection forms; 207/207 compile; the original 62 cases are unchanged. New content hash: cddec14a2863168af95c6254e93b1235e3a2ba631fe937599479688d3bb1fcc4. Not read by any tuning agent."
+**Context**: v1.3 — hold-out ready; it runs once after the construct decisions and the tool freeze.
+
+---
