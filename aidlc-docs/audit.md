@@ -1526,3 +1526,11 @@ Plan checkboxes ticked. Auto-approved under standing approval; no blocking or ma
 **Context**: v1.3 scope change by the author.
 
 ---
+
+## v1.3 — clarification: pre-registration deferred, not dropped
+**Timestamp**: 2026-10-15T07:10:00Z
+**User Input**: "I do want to do the registration at some point, not discard it at all. I really want to do the proper process but before actually going into and running the whole study, I want to be sure the tool exists before presenting the study."
+**AI Response**: "Confirmed: the order is tool validated (hold-out) → author go → full Study 2 pre-registration → Study 2 run. Clarification added to requirements rev 2."
+**Context**: v1.3 scope clarification.
+
+---
