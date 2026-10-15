@@ -1630,3 +1630,11 @@ Plan checkboxes ticked. Auto-approved under standing approval; no blocking or ma
 **Context**: ISE exploratory track.
 
 ---
+
+## ISE on E1 — null result with a design insight (Study 1 addendum A1)
+**Timestamp**: 2026-10-15T20:20:00Z
+**User Input**: (none)
+**AI Response**: "PR #100 (03dab10) merged into v1.3 (d8eef83). ICS was defined before the results (a403092). All 65 E1 cells: style clean-architecture, inferred spec = given spec, ICS = extrinsic = 1.000; 2×2 grid 65/0/0/0. Cause: every E1 prompt, `none` included, contains the registered folder-layout sentence (src/domain, src/application, src/infrastructure) (Docs/generator-protocol.md:75). So E1's `none` arm was not guidance-free, and §16.1 is untested by E1. Under v1.3 blocking rules E1 has no reversal; the Study 1 reversal lives in advisory rules (FF-C02, FF-P02, FF-C06). Post-hoc descriptive: partial interface injection appears in 0/21 none vs 15/22 minimal-prose vs 10/22 full-aac (confounded by size). Recorded as Docs/v1.3/study1-addenda.md A1, because threats-to-validity.md is registered and is not edited."
+**Context**: Study 1 interpretation; Study 2 and pilot design input (add a no-hint arm).
+
+---
