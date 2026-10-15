@@ -34,7 +34,10 @@ export class ExtractCommand implements PipelineCommand {
 
     // Extractor warnings travel in APGResult.warnings (BR-U2-26); route them to the context (BR-U3-56).
     for (const w of result.data.warnings) {
-      context.addWarning(toPipelineWarning({ code: w.code, message: w.message, context: { filePath: w.filePath } }, this.name));
+      context.addWarning(toPipelineWarning({
+        code: w.code, message: w.message,
+        context: { filePath: w.filePath, ...(w.severity !== undefined ? { severity: w.severity } : {}) },
+      }, this.name));
     }
 
     if (result.warnings) {

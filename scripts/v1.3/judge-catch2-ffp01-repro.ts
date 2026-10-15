@@ -8,7 +8,9 @@
  *   C  an ambient `declare module 'typeorm'` in `types/vendor.d.ts` (the v1.3 reference projects' shape)
  *   D  `fixtures/unit/antipattern-nest` as committed (file `src/invoice/invoice.entity.ts`)
  * Prints the IMPORTS targets of the file, the Package nodes and the extractor warnings on the file.
- * Extractor only (V13_DEFAULT_OPTIONS): no Neo4j, no model. This unit records the defect; it does not fix it.
+ * Extractor only (V13_DEFAULT_OPTIONS): no Neo4j, no model. Round 2 recorded the defect; the v1.3 option
+ * `aliasDeclarationPackages` (Docs/DiagnosticRuns/apg2-live-2026-10-15.md §3) fixes shapes A and D, which now print
+ * `Package:typeorm` with an info-level EXTRACTOR_008. Pinned by tests/unit/apg-extractor/v13-alias-declaration-packages.test.ts.
  *
  * Usage (repository root): npx tsx scripts/v1.3/judge-catch2-ffp01-repro.ts <scratch dir>
  */

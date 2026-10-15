@@ -136,4 +136,6 @@ export interface ExtractorWarning {
   readonly filePath: string;
   readonly message: string;
   readonly code: string;
+  /** Present only as `'info'`: the warning records a decision, not a lost fact (v1.3 F-P01-ALIAS). */
+  readonly severity?: 'info';
 }

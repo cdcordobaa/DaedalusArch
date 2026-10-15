@@ -37,7 +37,11 @@ export type SpecifierClass = 'relative' | 'alias-or-bare' | 'node-builtin';
 export type ModuleResolution =
   | { readonly kind: 'project-file'; readonly sourceFile: SourceFile; readonly fileNodeId: string }
   | { readonly kind: 'no-file-node'; readonly reason: 'excluded-or-skipped' | 'outside-root' }
-  | { readonly kind: 'package'; readonly root: PackageRoot; readonly outOfRootAlias: boolean }
+  | {
+    readonly kind: 'package'; readonly root: PackageRoot; readonly outOfRootAlias: boolean;
+    /** v1.3 `aliasDeclarationPackages` only: a bare specifier that `paths` maps to a declaration file without a File node. */
+    readonly declarationAlias?: true;
+  }
   | { readonly kind: 'unresolved' };
 
 /** One `compilerOptions.paths` key or the `baseUrl` (`domain-entities.md` §2.5). */
@@ -49,7 +53,8 @@ export interface AliasRule {
   readonly targetsIntoNodeModules: boolean;
 }
 
-export type AddWarning = (filePath: string, code: string, message: string) => void;
+/** `severity: 'info'` marks a warning that records a decision rather than a lost fact (v1.3 F-P01-ALIAS). */
+export type AddWarning = (filePath: string, code: string, message: string, severity?: 'info') => void;
 
 /** `domain-entities.md` §2.5. Internal to C1. */
 export interface ImportResolutionContext {
@@ -69,6 +74,8 @@ export interface ImportResolutionContext {
   readonly reExportEdges: ReExportEdgesMode;
   /** `reExportEdges: 'both'` only: per-file `export … from` targets, filled lazily (barrel-path search). */
   readonly reExportAdjacency: Map<string, readonly SourceFile[]>;
+  /** v1.3 F-P01-ALIAS (`ExtractorOptions.aliasDeclarationPackages`). */
+  readonly aliasDeclarationPackages: boolean;
 }
 
 // ── Classification (BR-U2-01) ────────────────────────────────────────────────
@@ -167,6 +174,7 @@ export function buildImportResolutionContext(
     host,
     reExportEdges: opts.reExportEdges ?? DEFAULT_OPTIONS.reExportEdges,
     reExportAdjacency: new Map(),
+    aliasDeclarationPackages: opts.aliasDeclarationPackages ?? DEFAULT_OPTIONS.aliasDeclarationPackages,
   };
 }
 
@@ -196,6 +204,10 @@ function looksLikeProjectAlias(specifier: string, ctx: ImportResolutionContext):
   const candidate = join(base.key, segment);
   if (ctx.host.directoryExists?.(candidate) === true) return true;
   return ['', '.ts', '.tsx', '.d.ts', '.js'].some(ext => ctx.host.fileExists(candidate + ext));
+}
+
+function isDeclarationFile(file: string): boolean {
+  return /\.d\.[cm]?ts$/.test(file);
 }
 
 function fileResolution(file: string, ctx: ImportResolutionContext): ModuleResolution {
@@ -229,6 +241,12 @@ export function resolveModule(
     ctx.addWarning(fromPath, 'EXTRACTOR_002', `Unresolvable import: ${specifier}`);
   } else if (result.kind === 'no-file-node') {
     ctx.addWarning(fromPath, 'EXTRACTOR_008', `Import target outside the extracted set: ${specifier}`);
+  } else if (result.kind === 'package' && result.declarationAlias === true) {
+    ctx.addWarning(
+      fromPath, 'EXTRACTOR_008',
+      `Import target outside the extracted set: ${specifier} (a declaration file reached through tsconfig paths; recorded as Package ${result.root.name})`,
+      'info',
+    );
   }
   return result;
 }
@@ -260,7 +278,17 @@ function resolveModuleSilently(specifier: string, fromSourceFile: SourceFile, ct
     if (resolved.isExternalLibraryImport === true || hasNodeModulesSegment(file)) {
       return { kind: 'package', root: packageRootForSpecifier(specifier, ctx.aliasRules), outOfRootAlias: false };
     }
-    if (isUnderRoot(ctx.projectRoot, file)) return fileResolution(file, ctx);
+    if (isUnderRoot(ctx.projectRoot, file)) {
+      const asFile = fileResolution(file, ctx);
+      // v1.3 F-P01-ALIAS: `paths` maps a bare specifier onto a local declaration stub (`typeorm` ->
+      // `vendor/typeorm.d.ts`). The specifier names a package, whatever file the checker reads; dropping the import
+      // would hide it from every package-based rule (FF-P01 domain-purity and others).
+      if (asFile.kind === 'no-file-node' && ctx.aliasDeclarationPackages && isDeclarationFile(file)
+        && matchPathsRule(ctx.aliasRules, specifier) !== undefined) {
+        return { kind: 'package', root: packageRootForSpecifier(specifier, ctx.aliasRules), outOfRootAlias: false, declarationAlias: true };
+      }
+      return asFile;
+    }
     const viaAlias = matchPathsRule(ctx.aliasRules, specifier) !== undefined || baseUrlRule(ctx.aliasRules) !== undefined;
     return { kind: 'package', root: packageRootForSpecifier(specifier, ctx.aliasRules), outOfRootAlias: viaAlias };
   }
