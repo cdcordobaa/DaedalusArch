@@ -87,6 +87,26 @@ export function wrap(s, maxW, size = 18, weight = 400) {
   return out;
 }
 
+/** Word wrap that also breaks over-long paths after a '/'. */
+export function wrapPath(v, max, size = 16) {
+  const out = [];
+  for (const l of wrap(v, max, size)) {
+    if (tw(l, size) <= max) {
+      out.push(l);
+      continue;
+    }
+    let cur = '';
+    for (const part of l.split(/(?<=\/)/)) {
+      if (tw(cur + part, size) > max && cur) {
+        out.push(cur);
+        cur = part;
+      } else cur += part;
+    }
+    if (cur) out.push(cur);
+  }
+  return out;
+}
+
 export const rect = (x, y, w, h, o = {}) =>
   `<rect x="${x}" y="${y}" width="${w}" height="${h}" rx="${o.rx ?? 0}" fill="${o.fill ?? 'none'}" stroke="${o.stroke ?? 'none'}" stroke-width="${o.sw ?? 1}"${o.dash ? ` stroke-dasharray="${o.dash}"` : ''}${o.opacity != null ? ` opacity="${o.opacity}"` : ''}/>`;
 export const line = (x1, y1, x2, y2, o = {}) =>
@@ -95,7 +115,7 @@ export const line = (x1, y1, x2, y2, o = {}) =>
 /** A pill label. Returns [svg, width]. */
 export function pill(x, y, label, o = {}) {
   const { fill = C.panel, stroke = C.grid, color = C.ink, size = 15, weight = 600, h = 28 } = o;
-  const w = Math.round(tw(label, size, weight) + 24);
+  const w = Math.round(tw(label, size, weight) * (label === label.toUpperCase() ? 1.16 : 1.0) + 26);
   return [rect(x, y, w, h, { rx: h / 2, fill, stroke }) + text(x + w / 2, y + h / 2 + size * 0.36, label, { size, weight, fill: color, anchor: 'middle' }), w];
 }
 
