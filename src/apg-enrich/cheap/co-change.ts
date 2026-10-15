@@ -109,6 +109,17 @@ export function runCoChange(ctx: CheapContext): CheapProxyOutput {
     const b = compOfNode.get(e.targetId);
     if (a !== undefined && b !== undefined && a !== b) staticPairs.add([a, b].sort().join('\u0000'));
   }
+  // CO_CHANGES_WITH edges across a coupled component pair with no static dependency (the `hidden-coupling` template).
+  for (let i = 0; i < edges.length; i++) {
+    const e = edges[i];
+    const a = e?.evidence[0]?.file;
+    const b = e?.evidence[1]?.file;
+    if (e === undefined || a === undefined || b === undefined) continue;
+    const ca = ctx.info(a).component;
+    const cb = ctx.info(b).component;
+    const hidden = ca !== cb && e.score >= ctx.options.coChangeMinConfidence && !staticPairs.has([ca, cb].sort().join('\u0000'));
+    edges[i] = { ...e, properties: { ...e.properties, hiddenCoupling: hidden } };
+  }
   const flags: CheapFlag[] = [];
   for (const [ck, best] of [...coupledComponents.entries()].sort((x, y) => (x[0] < y[0] ? -1 : 1))) {
     if (staticPairs.has(ck)) continue;

@@ -65,6 +65,8 @@ export function runSdkSpread(ctx: CheapContext): CheapProxyOutput {
   const flags: CheapFlag[] = [];
   const packages: Record<string, { vendor: boolean; files: number; components: string[]; layers: string[]; spread: number }> = {};
   const vendorSpreads: number[] = [];
+  /** File → vendor SDKs it imports outside an adapter (the `vendor-sdk-outside-adapters` template reads it). */
+  const outside = new Map<string, string[]>();
   for (const [pkg, rec] of [...perPkg.entries()].sort((a, b) => (a[0] < b[0] ? -1 : 1))) {
     const files = [...rec.files.keys()].sort();
     const cs = [...new Set(files.map((f) => ctx.info(f).component))].sort();
@@ -77,6 +79,7 @@ export function runSdkSpread(ctx: CheapContext): CheapProxyOutput {
     if (!vendor) continue;
     for (const f of files) {
       if (isAdapterFile(f)) continue;
+      outside.set(f, [...(outside.get(f) ?? []), pkg]);
       const imp = rec.files.get(f);
       flags.push({
         proxy: 'sdk-spread', kind: 'vendor-sdk-outside-adapters', score: imp?.typeOnly === true ? 0.5 : 1,
@@ -85,6 +88,11 @@ export function runSdkSpread(ctx: CheapContext): CheapProxyOutput {
       });
     }
   }
+  for (const [f, pkgs] of [...outside.entries()].sort((a, b) => (a[0] < b[0] ? -1 : 1))) {
+    const id = ctx.info(f).fileNodeId;
+    if (id !== undefined) nodeFacts.push({ proxy: 'sdk-spread', nodeId: id, key: 'vendorSdkOutsideAdapters', value: pkgs.sort() });
+  }
+  for (const [pkg, rec] of perPkg) nodeFacts.push({ proxy: 'sdk-spread', nodeId: rec.nodeId, key: 'vendorSdk', value: isVendorSdk(pkg) });
   const index = vendorSpreads.length === 0 ? null : round(vendorSpreads.reduce((s, x) => s + x, 0) / vendorSpreads.length);
   return { edges: [], nodeFacts, flags, summary: { components: comps.size, packages, vendorPackages: vendorSpreads.length, sdkSpreadIndex: index, flagsByKind: countKinds(flags) } };
 }

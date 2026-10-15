@@ -83,7 +83,7 @@ export function runConfigSurface(ctx: CheapContext): CheapProxyOutput {
   const g = callGraph(ctx);
   const edges: CheapEdge[] = [];
   const flags: CheapFlag[] = [];
-  const perOwner = new Map<string, { owner: string; key: string; lines: number[]; evidence: Evidence[]; via: string; dynamic: boolean }>();
+  const perOwner = new Map<string, { owner: string; key: string; lines: number[]; evidence: Evidence[]; via: string; dynamic: boolean; outsideConfig: boolean }>();
   const perKey = new Map<string, { components: Set<string>; first: Evidence; files: Set<string> }>();
   let reads = 0;
   for (const { file, sf } of ctx.sources) {
@@ -93,11 +93,14 @@ export function runConfigSurface(ctx: CheapContext): CheapProxyOutput {
       const u = uid === undefined ? undefined : g.units.get(uid);
       const owner = (u === undefined ? undefined : ownerNodeId(ctx, u)) ?? ctx.info(file).fileNodeId;
       const ev = ctx.evidence(r.node);
+      const cls = u?.className;
+      const outside = !isConfigModule(ctx, file, cls);
       if (owner !== undefined) {
         const k = `${owner}|${r.key}`;
-        const rec = perOwner.get(k) ?? { owner, key: r.key, lines: [], evidence: [], via: r.via, dynamic: r.dynamic };
+        const rec = perOwner.get(k) ?? { owner, key: r.key, lines: [], evidence: [], via: r.via, dynamic: r.dynamic, outsideConfig: false };
         rec.lines.push(ev.startLine);
         rec.evidence.push(ev);
+        rec.outsideConfig ||= outside;
         perOwner.set(k, rec);
       }
       if (!r.dynamic) {
@@ -106,14 +109,13 @@ export function runConfigSurface(ctx: CheapContext): CheapProxyOutput {
         pk.files.add(file);
         perKey.set(r.key, pk);
       }
-      const cls = u?.className;
-      if (!isConfigModule(ctx, file, cls)) {
+      if (outside) {
         flags.push({ proxy: 'config-surface', kind: 'env-read-outside-config', score: 1, evidence: ev, ...(cls !== undefined ? { className: cls } : {}), ...(u !== undefined && u.kind !== 'module' ? { methodName: u.name } : {}), message: `${file} reads ${r.dynamic ? 'a computed env key' : `env key ${r.key}`} through ${r.via} outside a config or infrastructure module (layer ${ctx.info(file).layer ?? 'none'})` });
       }
     }
   }
   for (const rec of [...perOwner.values()].sort((a, b) => (a.owner + a.key < b.owner + b.key ? -1 : 1))) {
-    edges.push({ type: 'READS_ENV', proxy: 'config-surface', sourceId: rec.owner, targetId: `env:${rec.key}`, score: 1, evidence: rec.evidence, properties: { key: rec.key, via: rec.via, dynamic: rec.dynamic, lines: rec.lines } });
+    edges.push({ type: 'READS_ENV', proxy: 'config-surface', sourceId: rec.owner, targetId: `env:${rec.key}`, score: 1, evidence: rec.evidence, properties: { key: rec.key, via: rec.via, dynamic: rec.dynamic, lines: rec.lines, outsideConfig: rec.outsideConfig } });
   }
   const virtualNodes: CheapVirtualNode[] = [];
   const keys: Record<string, { components: string[]; files: number }> = {};

@@ -228,6 +228,8 @@ export interface LocalityRecord {
 
 export interface ProvenanceResult {
   readonly history: Omit<SnapshotHistory, 'gitArgs'>;
+  /** The APG of the last snapshot (the graph the facts are about); null for an empty history. */
+  readonly apg: APGResult | null;
   readonly virtualNodes: readonly CheapVirtualNode[];
   readonly edges: readonly CheapEdge[];
   readonly nodeFacts: readonly CheapNodeFact[];
@@ -626,7 +628,7 @@ export async function analyseProvenance(history: SnapshotHistory, opts: Provenan
 
   const { gitArgs: _g, ...historyOut } = history;
   return {
-    history: historyOut, virtualNodes, edges, nodeFacts, edgeFacts, flags, erosion, locality,
+    history: historyOut, apg: last?.apg ?? null, virtualNodes, edges, nodeFacts, edgeFacts, flags, erosion, locality,
     summary: {
       snapshots: snaps.length,
       files: last?.files.size ?? 0,

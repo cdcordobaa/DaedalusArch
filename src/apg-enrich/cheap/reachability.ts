@@ -238,12 +238,15 @@ export function runReachability(ctx: CheapContext): CheapProxyOutput {
       }
     }
     const comps = new Set<string>();
+    const firstEdge = edges.length;
+    const reachUnit: string[] = [];
     for (const [uid, d] of depth) {
       reachedUnits.add(uid);
       const u = g.units.get(uid);
       if (u === undefined) continue;
       comps.add(ctx.info(u.file).component);
       const target = ownerNodeId(ctx, u);
+      if (target !== undefined && u.kind !== 'module') reachUnit.push(uid);
       if (target !== undefined && u.kind !== 'module') edges.push({ type: 'REACHES', proxy: 'reachability', sourceId: ep.id, targetId: target, score: 1 / (1 + d), evidence: [u.evidence], properties: { depth: d, unit: `${u.className !== undefined ? `${u.className}.` : ''}${u.name}` } });
     }
     // Component paths: the component sequence of the BFS-tree path to every leaf.
@@ -311,6 +314,16 @@ export function runReachability(ctx: CheapContext): CheapProxyOutput {
         if (t === undefined) continue;
         visit(e.target, cur.core || isCore(t), curKey);
       }
+    }
+    // REACHES of an http / message entry say whether a call path with no core unit reaches the unit (read by the
+    // `endpoint-bypasses-application` template).
+    const noCore = new Set(q.filter((x) => !x.core).map((x) => x.unit));
+    for (let i = firstEdge; i < edges.length; i++) {
+      const e = edges[i];
+      const uid = reachUnit[i - firstEdge];
+      const u = uid === undefined ? undefined : g.units.get(uid);
+      if (e === undefined || u === undefined) continue;
+      edges[i] = { ...e, properties: { ...e.properties, withoutCore: noCore.has(u.id), infrastructure: isInfra(u) && !(u.className !== undefined && entryClasses.has(u.className)) } };
     }
   }
 

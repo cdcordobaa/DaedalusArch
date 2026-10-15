@@ -166,6 +166,13 @@ export function runTestTopology(ctx: CheapContext): CheapProxyOutput {
   const components: Record<string, { testable: number; tested: number; coverage: number | null }> = {};
   for (const [c, rec] of [...comp.entries()].sort((a, b) => (a[0] < b[0] ? -1 : 1))) {
     components[c] = { testable: rec.testable, tested: rec.tested, coverage: rec.testable === 0 ? null : Math.round((rec.tested / rec.testable) * 1e4) / 1e4 };
+    const untested = tests.length === 0 ? null : rec.testable > 0 && rec.tested === 0;
+    for (const f of rec.files) {
+      const id = ctx.info(f).fileNodeId;
+      if (id === undefined) continue;
+      nodeFacts.push({ proxy: 'test-topology', nodeId: id, key: 'component', value: c });
+      nodeFacts.push({ proxy: 'test-topology', nodeId: id, key: 'componentUntested', value: untested });
+    }
     if (tests.length === 0 || rec.testable === 0 || rec.tested > 0) continue;
     const first = [...rec.files].sort()[0] ?? c;
     flags.push({ proxy: 'test-topology', kind: 'untested-component', score: 1, evidence: { file: first, startLine: 1, endLine: 1 }, message: `component ${c}: none of its ${String(rec.testable)} testable units (${rec.untestedUnits.slice(0, 6).join(', ')}${rec.untestedUnits.length > 6 ? ', …' : ''}) is exercised by a test` });
