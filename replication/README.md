@@ -165,4 +165,4 @@ raw file).
 | `lib/cheap.sh`, `lib/judge.sh` | smoke steps 4 and 5 |
 | `known-divergences.json` | the expected `KNOWN` lines and their finding ids |
 | `expected/graph-fidelity/` | expected output of the graph-fidelity harness on the fixtures |
-| `smoke-2026-10-15.log` | the full smoke log of the run reported above |
+| `smoke-2026-10-15.txt` | the full log of the final smoke run (commit `23e0d9ea`: 160 IDENTICAL, 4 KNOWN, exit 0, 4 min) |
