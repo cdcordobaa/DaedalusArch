@@ -810,7 +810,7 @@ export interface WaitlistRepository {
 
 ## Review applied (revision 1)
 
-An adversarial review of revision 0 found the framing biased toward the recommendations and challenged five of them. Its framing fixes, applied throughout:
+An adversarial review of revision 0 found the framing biased toward the recommendations. It challenged two recommendations (Q3, Q10), endorsed nine with changes (Q5, Q8, Q13, Q14, Q15, Q16, Q19, Q22, Q25) and endorsed the rest. Its framing fixes, applied throughout:
 
 - The 56/56 "where this lands" claim was removed from the preamble and kept only as a footnote, which says it holds by construction.
 - Options now come in a fixed order (A = status quo), and the recommendation follows them on its own line. Every option has a reason of similar length.
@@ -819,7 +819,7 @@ An adversarial review of revision 0 found the framing biased toward the recommen
 - Four non-construct reasons were struck: Q3 "all five planted cycles were written as violations" (circular); Q5 "needs only a tier change, no new code" (convenience); Q8 "nothing in the set suggests a FLOWS_TO row is wrong" (a precision observation); Q15 "the independent reader also saw it".
 - New sections: Principles (P1, P2), "Decide these yourself", "Safe defaults", "Default acceptable only with caveats".
 
-Verdict per question. "Endorse" means the review raised nothing specific beyond the framing fixes.
+Verdict per question, as the review gave it. "Endorse" means the review raised nothing specific beyond the framing fixes. For Q8, Q14 and Q15 the recommendation still changed, because of the review's stated change.
 
 | Q | Verdict | What changed |
 |---|---|---|
@@ -830,14 +830,14 @@ Verdict per question. "Endorse" means the review raised nothing specific beyond 
 | 5 | endorse-with-change | Still blocking (Cockburn 2005), but under a new rule id (or FF-S01), not FF-S03. Convenience reason struck. Options re-lettered. |
 | 6 | endorse | Re-lettered (recommendation is now B); P2 tension noted; listed under "decide yourself". |
 | 7 | endorse | Framing only. |
-| 8 | **challenge** | Recommendation A → B: keep the sealed tier, FLOWS_TO half N/A with denominator and "recall unestimated". Precision reason struck. Merged with Q14 into one policy. |
+| 8 | endorse-with-change | Recommendation A → B: keep the sealed tier, FLOWS_TO half N/A with denominator and "recall unestimated". Precision reason struck. Merged with Q14 into one policy. |
 | 9 | endorse | Framing only. |
 | 10 | **challenge** | Recommendation "web frameworks only" → C: FF-P01 not applicable to layered (no purity row; source wins), packages via FF-S01 mapping if declared. No layered-specific package list. |
 | 11 | endorse | Framing only. |
 | 12 | endorse | Re-lettered (recommendation is now B). |
 | 13 | endorse-with-change | Re-lettered (now B). Action item added: fix ADR-V13-02's "Clean Architecture layering" claim or the preset comment before sealing. |
-| 14 | **challenge** | Recommendation "advisory" → A: keep blocking as sealed, accessor half N/A (same policy as Q8); becomes C once member facts land. |
-| 15 | **challenge** | Recommendation "advisory" → defer (keep the current blocking state, revisit with hold-out evidence); Evans ch. 14 Shared Kernel cited. Non-construct reason struck. |
+| 14 | endorse-with-change | Recommendation "advisory" → A: keep blocking as sealed, accessor half N/A (same policy as Q8); becomes C once member facts land. |
+| 15 | endorse-with-change | Recommendation "advisory" → defer (keep the current blocking state, revisit with hold-out evidence); Evans ch. 14 Shared Kernel cited. Non-construct reason struck. |
 | 16 | endorse-with-change | Re-lettered (now B). One development-set run before the hold-out, no second tuning loop. |
 | 17, 18, 20, 21, 23, 24 | endorse | Framing only (Q23 re-lettered, now B). |
 | 19 | endorse-with-change | Labelled "stricter than Evans (transient references allowed in Evans ch. 6)". |
