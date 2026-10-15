@@ -121,8 +121,11 @@ export const defs = () => `<defs>
  * A full figure: title, subtitle, optional badge (top right), body (already-positioned SVG starting at y=top),
  * and a source footer. Returns the SVG string.
  */
-export function frame({ title, subtitle, badgeKind, badgeLabel, body, height, footer }) {
+export function frame({ title, subtitle, badgeKind, badgeLabel, body, height: h0, footer }) {
   const parts = [];
+  const fl = footer ? (Array.isArray(footer) ? footer : [footer]).flatMap((f) => wrap(f, W - 110, 15)) : [];
+  // The body ends at h0 - 60 or so; extra footer lines grow the figure instead of overlapping it.
+  const height = Math.round(h0 + Math.max(0, (fl.length - 2) * 21));
   parts.push(`<svg xmlns="http://www.w3.org/2000/svg" width="${W}" height="${height}" viewBox="0 0 ${W} ${height}">`);
   parts.push(defs());
   parts.push(rect(0, 0, W, height, { fill: C.bg }));
@@ -137,8 +140,7 @@ export function frame({ title, subtitle, badgeKind, badgeLabel, body, height, fo
     parts.push(badge(W - 48 - bw, 32, badgeKind, lab));
   }
   parts.push(body);
-  if (footer) {
-    const fl = Array.isArray(footer) ? footer : [footer];
+  if (fl.length) {
     fl.forEach((f, i) => parts.push(text(48, height - 24 - (fl.length - 1 - i) * 21, f, { size: 15, fill: C.muted })));
   }
   parts.push('</svg>');
