@@ -61,6 +61,17 @@ if want apg2; then
   $CMP "Docs/DiagnosticRuns/apg2-ablation-2026-10-15" "$REPO/Docs/DiagnosticRuns/apg2-ablation-2026-10-15" "$TREE/Docs/DiagnosticRuns/apg2-ablation-2026-10-15" $KNOWN || status=1
 fi
 
+# 3b. The same ablation on the tree of the commit that produced the committed outputs (72fa9203): expected
+#     byte-identical with no known divergence. Needs the git history (a clone, not a tarball).
+if want apg2 && git -C "$REPO" cat-file -e 72fa9203^{commit} 2>/dev/null; then
+  T72="$WORK/tree-72fa9203"; mkdir -p "$T72"; git -C "$REPO" archive 72fa9203 | tar -x -C "$T72"
+  ln -s "$REPO/node_modules" "$T72/node_modules"
+  ln -s "$REPO/experiments/tool-comparison/depcruise/node_modules" "$T72/experiments/tool-comparison/depcruise/node_modules"
+  mkdir -p "$OUT/logs"; echo; echo "== APG v2 ablation @72fa9203"
+  ( cd "$T72" && npx tsx scripts/apg2-ablation.ts ) > "$OUT/logs/apg2-72fa9203.log" 2>&1 || echo "(exit $?)"
+  $CMP "apg2-ablation@72fa9203" "$REPO/Docs/DiagnosticRuns/apg2-ablation-2026-10-15" "$T72/Docs/DiagnosticRuns/apg2-ablation-2026-10-15" || status=1
+fi
+
 # 4. Cheap semantic proxies (pass 0.5).
 if want cheap; then
   . "$REPO/replication/lib/cheap.sh"
