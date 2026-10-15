@@ -12,6 +12,7 @@ import { annotateNodes } from '../../../src/neo4j-ingestion/layer-annotator.js';
 import { ensureIndexes, ingestEdges, ingestNodes } from '../../../src/neo4j-ingestion/graph-ingester.js';
 import { extractAPG } from '../../../src/apg-extractor/index.js';
 import { CYPHER_TEMPLATES } from '../../../src/fitness-compiler/cypher-templates.js';
+import { V13_COMPILE_OPTIONS } from '../../../src/fitness-compiler/fitness-compiler.js';
 import { getExtensionTemplate } from '../../../src/fitness-compiler/extension-templates.js';
 import { resolveGoldenEnv } from '../../golden/golden-env.js';
 import {
@@ -24,6 +25,13 @@ jest.setTimeout(300_000);
 const KNOWN_GOT: Readonly<Record<string, readonly string[]>> = {
   'g01-value-object-setter-accessor': [],
   'g03-deep-import-of-reexported-file': [],
+};
+/**
+ * The v1.3 compile (V13_COMPILE_OPTIONS, as the pipeline runs it): context-isolation reads the literal barrel edge
+ * (fix round, fix 6), so g03's deep import is found and M2 is closed; g01 (M3, no accessor facts) stays.
+ */
+const KNOWN_GOT_V13: Readonly<Record<string, readonly string[]>> = {
+  'g01-value-object-setter-accessor': [],
 };
 
 const env = resolveGoldenEnv();
@@ -46,9 +54,13 @@ describeNeo4j('DDD reference project on Neo4j', () => {
     await repo?.close();
   });
 
-  it.each(['clean', ...variantIds()])('%s', async (id) => {
+  it.each([
+    ...['clean', ...variantIds()].map((id) => [id, 'frozen compile'] as const),
+    ...['clean', ...variantIds()].map((id) => [id, 'v1.3 compile'] as const),
+  ])('%s (%s)', async (id, mode) => {
+    const known = mode === 'v1.3 compile' ? KNOWN_GOT_V13 : KNOWN_GOT;
     const spec = await parsedPreset();
-    const queries = await compiledPreset();
+    const queries = await compiledPreset(mode === 'v1.3 compile' ? V13_COMPILE_OPTIONS : {});
     const dir = id === 'clean' ? path.join(REFERENCE, 'clean') : materialise(id, parent);
     const apg = await extractAPG(dir);
     if (!apg.success) throw new Error(apg.errors.map((e) => e.message).join('; '));
@@ -73,6 +85,6 @@ describeNeo4j('DDD reference project on Neo4j', () => {
       }
     }
     const expected = id === 'clean' ? [] : manifestKeys(readVariant(id).manifest);
-    expect([...got].sort()).toEqual(id in KNOWN_GOT ? [...(KNOWN_GOT[id] ?? [])].sort() : expected);
+    expect([...got].sort()).toEqual(id in known ? [...(known[id] ?? [])].sort() : expected);
   });
 });

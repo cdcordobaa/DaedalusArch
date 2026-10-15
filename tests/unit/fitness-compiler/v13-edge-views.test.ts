@@ -7,7 +7,7 @@ import * as path from 'node:path';
 import { CYPHER_TEMPLATES } from '../../../src/fitness-compiler/cypher-templates.js';
 import { HEXAGONAL_TEMPLATES } from '../../../src/fitness-compiler/hexagonal-templates.js';
 import { V13_CYPHER_TEMPLATES } from '../../../src/fitness-compiler/v13-templates.js';
-import { DDD_TEMPLATES } from '../../../src/fitness-compiler/ddd-templates.js';
+import { DDD_LITERAL_VIEW_TEMPLATES, DDD_TEMPLATES } from '../../../src/fitness-compiler/ddd-templates.js';
 import {
   TEMPLATE_EDGE_VIEWS, applyEdgeView, cypherReadsImports, edgeViewOf,
 } from '../../../src/fitness-compiler/edge-views.js';
@@ -23,7 +23,8 @@ const ALL = [...CYPHER_TEMPLATES, ...HEXAGONAL_TEMPLATES, ...V13_CYPHER_TEMPLATE
 async function compiled(specRel: string, edgeViews: boolean): Promise<CypherQuery[]> {
   const parsed = await parseSpec({ specFilePath: path.join(REPO_ROOT, specRel) });
   if (!parsed.success) throw new Error(parsed.errors.map((e) => e.message).join('; '));
-  const r = compileFunctions(compilerInputFromSpec(parsed.data), edgeViews ? V13_COMPILE_OPTIONS : {});
+  // The edge-view option alone (the fix round's other v1.3 options are tested in v13-fix-round.test.ts).
+  const r = compileFunctions(compilerInputFromSpec(parsed.data), edgeViews ? { edgeViews: true } : {});
   if (!r.success) throw new Error(r.errors.map((e) => e.message).join('; '));
   return [...r.data.symbolicQueries, ...r.data.hybridPairs.map((h) => h.symbolicQuery)];
 }
@@ -31,7 +32,10 @@ async function compiled(specRel: string, edgeViews: boolean): Promise<CypherQuer
 /** `Docs/v1.3/edge-views.md` table rows: template name(s) → view. */
 function docTable(): Map<string, string> {
   const text = fs.readFileSync(path.join(REPO_ROOT, 'Docs/v1.3/edge-views.md'), 'utf8');
-  const section = text.slice(text.indexOf('## Table'));
+  // The '## Table' section only, up to the next '## ' heading (the 2026-10-15 addendum lists non-template readers).
+  const start = text.indexOf('## Table');
+  const next = text.indexOf('\n## ', start + 1);
+  const section = text.slice(start, next === -1 ? undefined : next);
   const out = new Map<string, string>();
   for (const line of section.split('\n')) {
     const cells = line.split('|').map((c) => c.trim());
@@ -139,7 +143,10 @@ describe('compileFunctions edgeViews option', () => {
         const before = frozen[i]!;
         expect(q.params).toEqual(before.params);
         const view = edgeViewOf(q.name);
-        expect([q.name, q.cypher]).toEqual([q.name, view === undefined ? before.cypher : applyEdgeView(q.name, before.cypher)]);
+        // Fix round fix 6: under the edge views context-isolation reads the literal barrel edge and drops the M1 clause.
+        const base = DDD_LITERAL_VIEW_TEMPLATES.has(q.name) ? before.cypher.replace(/ {2}AND NOT EXISTS \{\n {4}MATCH \(api:File\)[\s\S]*?\n {2}\}\n/, '') : before.cypher;
+        if (DDD_LITERAL_VIEW_TEMPLATES.has(q.name)) expect(base).not.toBe(before.cypher);
+        expect([q.name, q.cypher]).toEqual([q.name, view === undefined ? base : applyEdgeView(q.name, base)]);
       });
     },
   );

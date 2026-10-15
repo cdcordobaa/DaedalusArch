@@ -78,3 +78,23 @@ Counts over the 38 names: 13 literal (9 frozen, 3 hexagonal, 1 DDD), 4 resolved 
 - **DDD templates.** The DDD library (PR #83) was not on `v1.3` when this table was written; its views were recorded with the rest, from the rule definitions. After `v1.3` merged #83, `ddd-compiler.ts` was wired to `applyEdgeView` in the same way as `hexagonal-compiler.ts`, and no view was changed. `context-isolation` counts a file re-exported by a public-API barrel as published (the M1 fix). Under the literal view the edge to the barrel is in the graph, so the template could test the barrel hop directly and close M2. That needs a change to the template, which is outside this unit.
 - **ADR-derived rules** (`adr:` symbolic rules written by a spec author) are not in the table and are not rewritten.
 - **The SCC cycle path** (`scc-cycles.ts`, off: `CYCLE_STRATEGY = 'cypher'`) builds its graph from every IMPORTS and RE_EXPORTS edge. If it is switched on for v1.3 it must drop `viaReExport` edges to match `no-cyclic-deps`.
+
+## Addendum 2026-10-15: the IMPORTS readers outside the templates (fix round)
+
+Written on branch `v1.3-fixes` before the reference validation was rerun with these choices. The barrels unit left four readers that read every IMPORTS edge, so under the v1.3 defaults they saw both views at once (`aidlc-docs/construction/v1.3-barrels/barrels-notes.md` §5). Each now reads one view. In every case the filter is "drop the IMPORTS edges marked `viaReExport`" (`src/shared/apg-edge-view.ts` for the in-memory readers, `NOT coalesce(r.viaReExport, false)` in Cypher). On a v1.2E graph no edge carries the mark, so each reader's output is unchanged there.
+
+| Reader | File | View | Reason |
+|---|---|---|---|
+| Universal metrics (scoring engine): cycle count, max fan-out, max fan-in, average instability, orphan count | `src/scoring-engine/universal-metrics.ts` (`UNIVERSAL_METRIC_QUERIES_LITERAL`; the SCC path filters the same edges) | literal | Structural metrics and cycles over module dependencies, as for the five coupling templates and `no-cyclic-deps` above: Martin's fan-in, fan-out and instability count the modules an import statement depends on, and the literal view is the graph the second extractors (tsc, dependency-cruiser) measure. Reading both views counted a barrel import twice. Used in the v1.3 scoring mode (`scoringMode: 'v1.3'`); the v1.2E mode keeps the frozen query text. `abstractionRatio` reads no edge and is unchanged. |
+| Drift detector: cross-layer dependency groups, per-layer fan-out, top fan-out contributors | `src/neo4j-ingestion/drift-detector.ts` | literal | Drift compares coupling between two snapshots, so it measures the same thing as the coupling metrics. With both views, a barrel import added between two commits would count as two new dependencies. |
+| Judge source context: the graph excerpt and the cross-module incoming/outgoing lists | `src/llm-critic/judge-graph.ts` (`JUDGE_GRAPH_QUERIES.edges`) | literal | The judge reads the unit's source next to the excerpt. The literal edges are the dependencies its import statements state, so the excerpt agrees with the code the judge sees. Where a name comes from stays visible: the barrel's RE_EXPORTS edge to the declaring file is kept, one hop further. The resolved edge would add a dependency that no line of the source states. |
+| Report graph (the HTML dashboard's file graph) | `src/report/graph-data-builder.ts` | literal | A picture of the module graph, which a reader checks against the import statements. Drawing both views would draw two arrows for one import. |
+
+Consequences:
+
+- The judge's prompt text changes on a v1.3 graph with barrel imports. It does not change on a v1.2E graph, or on any golden fixture: none of them has an import that hops a barrel (barrels notes §1). The v1.3 judge is reported and non-blocking.
+- No finding changes. These readers feed metrics, drift, the judge's context and the report picture, not the templates.
+
+### Template text: context-isolation in the literal view (DDD, M2)
+
+The table above already gave `context-isolation` the literal view. Under that view the M1 workaround in its frozen text is no longer needed: a file one of B's public-API barrels re-exports counts as published. With the edge views on, `ddd-compiler.ts` therefore compiles the template text without that clause (`DDD_LITERAL_VIEW_TEMPLATES`). An import through B's barrel ends at the barrel, which is public. A deep import that bypasses the barrel ends at the internal file, and is reported (probe g03, M2). The compile without the option keeps the frozen text and its M1 clause, because a v1.2E graph has no literal barrel edge.

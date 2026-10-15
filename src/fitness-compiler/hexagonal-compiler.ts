@@ -11,7 +11,8 @@ import { buildHexagonalParams, bindHexagonalLayers, HEXAGONAL_TEMPLATES } from '
 import type { HexagonalBinding } from './hexagonal-templates.js';
 import { globToRegex } from './glob-to-regex.js';
 import { replaceExcludeMarkers } from './exclude-injector.js';
-import { applyEdgeView } from './edge-views.js';
+import { applyV13Rewrites, NO_V13_REWRITES } from './v13-rewrites.js';
+import type { V13RewriteFlags } from './v13-rewrites.js';
 
 type CoreCompile = (input: CompilerInput) => DomainResult<CompiledFunctions>;
 
@@ -19,7 +20,7 @@ function compilerError(message: string): CompilerError {
   return { code: 'COMPILATION_FAILED', message, stage: 'fitness-compiler', critical: true };
 }
 
-function compileTemplateFunction(ff: FitnessFunction, binding: HexagonalBinding, edgeViews: boolean): CypherQuery | CompilerError {
+function compileTemplateFunction(ff: FitnessFunction, binding: HexagonalBinding, rewrites: V13RewriteFlags): CypherQuery | CompilerError {
   const template = HEXAGONAL_TEMPLATES.get(ff.name);
   if (!template) return compilerError(`${String(ff.id)}: no hexagonal template ${ff.name}`);
   const params = buildHexagonalParams(ff, binding);
@@ -35,7 +36,7 @@ function compileTemplateFunction(ff: FitnessFunction, binding: HexagonalBinding,
   return {
     functionId: ff.id,
     name: ff.name,
-    cypher: edgeViews ? applyEdgeView(template.functionName, cypher) : cypher,
+    cypher: applyV13Rewrites(template.functionName, cypher, rewrites),
     params,
     dimension: ff.dimension,
     severity: ff.severity,
@@ -45,7 +46,7 @@ function compileTemplateFunction(ff: FitnessFunction, binding: HexagonalBinding,
   };
 }
 
-export function compileHexagonalFunctions(input: CompilerInput, core: CoreCompile, edgeViews = false): DomainResult<CompiledFunctions> {
+export function compileHexagonalFunctions(input: CompilerInput, core: CoreCompile, rewrites: V13RewriteFlags = NO_V13_REWRITES): DomainResult<CompiledFunctions> {
   const bound = bindHexagonalLayers(input.layerModel);
   if (!bound.ok) {
     return DomainResult.fail<CompiledFunctions>(bound.errors.map((m) => compilerError(m)));
@@ -59,7 +60,7 @@ export function compileHexagonalFunctions(input: CompilerInput, core: CoreCompil
   const queries: CypherQuery[] = [];
   const errors: CompilerError[] = [];
   for (const ff of own) {
-    const q = compileTemplateFunction(ff, bound.binding, edgeViews);
+    const q = compileTemplateFunction(ff, bound.binding, rewrites);
     if ('cypher' in q) queries.push(q); else errors.push(q);
   }
   if (errors.length > 0) return DomainResult.fail<CompiledFunctions>(errors);

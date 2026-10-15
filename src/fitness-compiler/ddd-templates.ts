@@ -51,6 +51,18 @@ const EDGE_TAIL = `type(i) AS relType,
        CASE type(i) WHEN 'IMPORTS' THEN 'imports' ELSE 're-exports' END AS verb,
        i.line AS line, i.lines AS lines, coalesce(i.isTypeOnly, false) AS isTypeOnly`;
 
+/** The M1 workaround clause of `context-isolation` (published via a public-API barrel); dropped in the literal view. */
+const M1_PUBLISHED_VIA_BARREL = `  AND NOT EXISTS {
+    MATCH (api:File)-[:RE_EXPORTS*1..]->(tgt)
+    WHERE api.filePath STARTS WITH tgtCtx[0] AND ANY(p IN $publicApiPatterns WHERE api.filePath =~ p)
+  }
+`;
+
+function must<T>(v: T | undefined): T {
+  if (v === undefined) throw new Error('ddd-templates: missing template');
+  return v;
+}
+
 export const DDD_TEMPLATES: ReadonlyMap<string, CypherTemplate> = new Map([
   // ── Strategic ──
   ['bounded-context-modules', ddd(
@@ -289,3 +301,19 @@ export function buildDddParams(ff: FitnessFunction, binding: DddBinding): Record
   }
   return params;
 }
+
+/**
+ * v1.3 (ADR-V13-01, fix round fix 6): DDD template texts used instead of the ones above when the compile reads the
+ * edge views (`CompileOptions.edgeViews`, on a graph with the literal barrel edge).
+ *
+ * `context-isolation` (FF-DS02) reads the literal view. There an import through B's barrel ends at the barrel file
+ * itself (a public-API file), and the edge on to the declaring file is a `viaReExport` edge the view drops. So the M1
+ * workaround above (a file a public-API barrel re-exports counts as published) is no longer needed, and it is dropped:
+ * a deep import that bypasses the barrel (`billing/api/... -> ordering/application/GetOrderSummary.ts`, probe g03,
+ * mismatch M2 of Docs/v1.3-ddd-notes.md §6) is a literal edge to a non-public file and is reported, while the import
+ * through the barrel (probe g02) is not. On a graph without the literal barrel edge (v1.2E extraction) this text would
+ * reopen M1, which is why it is selected only together with the edge views.
+ */
+export const DDD_LITERAL_VIEW_TEMPLATES: ReadonlyMap<string, string> = new Map([
+  ['context-isolation', must(DDD_TEMPLATES.get('context-isolation')).template.replace(M1_PUBLISHED_VIA_BARREL, '')],
+]);

@@ -68,6 +68,35 @@ WHERE NOT EXISTS { MATCH (f)-[:IMPORTS|RE_EXPORTS]->(:File) }
 RETURN count(f) AS cnt`,
 } as const satisfies Record<UniversalMetric, string>;
 
+/**
+ * v1.3 (fix round, fix 5; `Docs/v1.3/edge-views.md`, addendum 2026-10-15): the same six metrics over the LITERAL edge
+ * view, the module graph as the import statements state it (as tsc and dependency-cruiser report it). A resolved
+ * `viaReExport` IMPORTS edge (ADR-V13-01) is dropped; RE_EXPORTS edges are kept. On a graph without `viaReExport`
+ * (v1.2E extraction) every query returns the same value as its frozen form above. Used in the v1.3 scoring mode.
+ */
+const LIT = (r: string): string => `NOT coalesce(${r}.viaReExport, false)`;
+export const UNIVERSAL_METRIC_QUERIES_LITERAL = {
+  cyclicDependencyCount: `MATCH (f:File) WHERE EXISTS { MATCH p = (f)-[:IMPORTS|RE_EXPORTS*2..${String(MAX_CYCLE_LENGTH)}]->(f) WHERE ALL(r IN relationships(p) WHERE ${LIT('r')}) } RETURN count(f) AS cnt`,
+  maxFanOut: `MATCH (f:File)-[r:IMPORTS]->(dep:File) WHERE ${LIT('r')} WITH f, count(dep) AS fo RETURN max(fo) AS val`,
+  maxFanIn: `MATCH (f:File)<-[r:IMPORTS]-(dep:File) WHERE ${LIT('r')} WITH f, count(dep) AS fi RETURN max(fi) AS val`,
+  abstractionRatio: UNIVERSAL_METRIC_QUERIES.abstractionRatio,
+  averageInstability: `MATCH (f:File)
+      OPTIONAL MATCH (f)-[ro:IMPORTS]->(out:File) WHERE ${LIT('ro')}
+      WITH f, count(DISTINCT out) AS fo
+      OPTIONAL MATCH (f)<-[ri:IMPORTS]-(inc:File) WHERE ${LIT('ri')}
+      WITH f, fo, count(DISTINCT inc) AS fi
+      WHERE fo + fi > 0
+      RETURN avg(toFloat(fo) / (fo + fi)) AS val`,
+  orphanFileCount: `MATCH (f:File)
+WHERE NOT EXISTS { MATCH (f)-[r:IMPORTS|RE_EXPORTS]->(:File) WHERE ${LIT('r')} }
+  AND NOT EXISTS { MATCH (:File)-[r:IMPORTS|RE_EXPORTS]->(f) WHERE ${LIT('r')} }
+  AND NOT f.isBarrel
+RETURN count(f) AS cnt`,
+} as const satisfies Record<UniversalMetric, string>;
+
+/** Which query set `computeUniversalMetrics` runs: the frozen one (v1.2E) or the literal view (v1.3). */
+export type UniversalMetricView = 'frozen' | 'literal';
+
 const round3 = (x: number): number => Math.round(x * 1000) / 1000;
 
 type Cell = { readonly kind: 'value'; readonly value: number | null } | { readonly kind: 'failed'; readonly code: string };
@@ -81,9 +110,11 @@ export async function computeUniversalMetrics(
   strategy: CycleStrategy = CYCLE_STRATEGY,
   apg?: Pick<APGResult, 'nodes' | 'edges'>,
   now: () => number = () => performance.now(),
+  view: UniversalMetricView = 'frozen',
 ): Promise<DomainResult<UniversalMetricsOutput>> {
+  const queries = view === 'literal' ? UNIVERSAL_METRIC_QUERIES_LITERAL : UNIVERSAL_METRIC_QUERIES;
   const first = async (metric: UniversalMetric, field: string): Promise<Cell> => {
-    const result = await graphRepo.executeQuery(UNIVERSAL_METRIC_QUERIES[metric]);
+    const result = await graphRepo.executeQuery(queries[metric]);
     if (!result.success) return { kind: 'failed', code: result.errors[0]?.code ?? 'UNKNOWN' };
     const raw = result.data.records[0]?.[field];
     return { kind: 'value', value: raw === null || raw === undefined ? null : Number(raw) };
@@ -91,7 +122,10 @@ export async function computeUniversalMetrics(
 
   const cycles = async (): Promise<Cell> => {
     if (strategy === 'scc') {
-      return apg === undefined ? { kind: 'failed', code: APG_MISSING } : { kind: 'value', value: countSccFiles(apg) };
+      if (apg === undefined) return { kind: 'failed', code: APG_MISSING };
+      // The literal view drops the resolved re-export edges, as the Cypher form does (edge-views.md, SCC note).
+      const graph = view === 'literal' ? { nodes: apg.nodes, edges: apg.edges.filter((e) => !(e.type === 'IMPORTS' && e.properties.viaReExport === true)) } : apg;
+      return { kind: 'value', value: countSccFiles(graph) };
     }
     return first('cyclicDependencyCount', 'cnt');
   };

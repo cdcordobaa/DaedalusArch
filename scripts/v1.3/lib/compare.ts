@@ -6,6 +6,13 @@
  * the targets must be equal too; otherwise the target is ignored (several templates return no target column).
  * Matching is one-to-one: a second tool row for the same expected finding is an unexpected finding. Exact-target
  * matches are taken before target-less ones, so the pairing does not depend on row order.
+ *
+ * Cycle findings (FF-S02, v1.3 fix round fix 2). The cycle template puts the cycle PATH in the file column
+ * (`"a.ts,b.ts,a.ts"`) and the second file in the target column; a manifest names the cycle by its smallest file and
+ * the next one. A cycle is a set of files, not a path or a key file, so an FF-S02 row matches an expected FF-S02 finding
+ * when the two have the same SET of files: every path in `file` and `target`, split on commas, deduplicated. Under the
+ * literal key each planted cycle counted as one miss plus one false positive. This is scoring code; the tool's rows and
+ * the manifests are unchanged. `ue-score.ts` reports the same reading as its `author-cycle-normalised` view.
  */
 import type { ExpectedFinding, ScopeRule, VariantKind } from './reference-model.js';
 
@@ -51,8 +58,24 @@ export function normaliseFindingPath(p: string, projectDir?: string): string {
   return out.replace(/^\.\//, '');
 }
 
+/** Rules whose finding is a cycle, matched on the set of files in it (see the file comment). */
+export const CYCLE_RULE_IDS: ReadonlySet<string> = new Set(['FF-S02']);
+
+/** The sorted, deduplicated files of a cycle finding (`file` and `target`, each split on commas). */
+export function cycleFileSet(f: { file: string; target?: string | undefined }): string {
+  const parts = [...f.file.split(','), ...(f.target ?? '').split(',')].map((x) => x.trim()).filter((x) => x !== '');
+  return [...new Set(parts)].sort().join(',');
+}
+
 function key(f: { ruleId: string; file: string; target?: string | undefined }): string {
+  if (CYCLE_RULE_IDS.has(f.ruleId)) return `${f.ruleId}|{${cycleFileSet(f)}}`;
   return `${f.ruleId}|${f.file}|${f.target ?? ''}`;
+}
+
+function sameFinding(e: ExpectedFinding, a: ActualFinding, exactOnly: boolean): boolean {
+  if (a.ruleId !== e.ruleId) return false;
+  if (CYCLE_RULE_IDS.has(e.ruleId)) return cycleFileSet(e) === cycleFileSet(a);
+  return a.file === e.file && targetsCompatible(e, a, exactOnly);
 }
 
 function targetsCompatible(e: ExpectedFinding, a: ActualFinding, exactOnly: boolean): boolean {
@@ -77,7 +100,7 @@ export function compareVariant(
   for (const exactOnly of [true, false]) {
     manifest.expectedFindings.forEach((e, ei) => {
       if (matchedIdx[ei] !== -1) return;
-      const ai = scored.findIndex((a, i) => !used[i] && a.ruleId === e.ruleId && a.file === e.file && targetsCompatible(e, a, exactOnly));
+      const ai = scored.findIndex((a, i) => !used[i] && sameFinding(e, a, exactOnly));
       if (ai >= 0) {
         used[ai] = true;
         matchedIdx[ei] = ai;

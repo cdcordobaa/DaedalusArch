@@ -85,6 +85,8 @@ export function createPipeline(config: PipelineConfig): PipelineBundle {
     neo4jUser: config.neo4jUser,
     neo4jPassword: config.neo4jPassword,
     apgStorePath: config.apgStorePath,
+    // v1.3 fix round: one run at a time per Neo4j database (ingestion wipes it); released by `cleanup`.
+    lock: true,
   });
 
   const snapshotStore: SnapshotStore = new FileSystemSnapshotStore(

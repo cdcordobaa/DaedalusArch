@@ -10,6 +10,8 @@ module.exports = {
   // D-U0-14: the golden regression suite needs Neo4j and runs only via
   // `npm run test:golden` (jest.golden.config.cjs).
   testPathIgnorePatterns: ['/node_modules/', '/tests/golden/'],
+  // v1.3 fix round: a suite that can reach Neo4j holds the cross-process Neo4j lock (tests/setup/neo4j-lock.setup.ts).
+  setupFilesAfterEnv: ['<rootDir>/tests/setup/neo4j-lock.setup.ts'],
   moduleNameMapper: {
     // Resolve .js extension imports (NodeNext compat under Jest)
     '^(\\.{1,2}/.*)\\.js$': '$1',
