@@ -1550,3 +1550,11 @@ Plan checkboxes ticked. Auto-approved under standing approval; no blocking or ma
 **Context**: v1.3 — tool frozen for hold-out pending the adjudication outcome and the author's answer on enlarging the hold-out set.
 
 ---
+
+## v1.3 — overnight push started (author: maximise progress until 7am)
+**Timestamp**: 2026-10-15T16:50:00Z
+**User Input**: "i just updgraded my subscription, lets put fire to we most we can here ... until tomorrow 7am where week reestarts"; "what are we going to do"
+**AI Response**: "caffeinate until 07:30 local. Wave 1. Local: judge catch test (FR-V9; AP operators frozen first; ≤400 judge calls; clean variants as negative control); construct-decision document for the author (Docs/v1.3/construct-decisions.md); hold-out enlargement to ≥32 violations per style (sealed, Fable model; the author's open question on option A taken as yes under 'max progress'). Cloud: member facts + FF-DT03 value-object immutability (trig_01VCHsLrUyNLhFesQD8ZczZC); labelling harness, correctness checker + meaningful labeller, no live calls (trig_016GhDoS9pYs8fDafta1Dton); firewall-in-the-loop multi-step harness + informal Study 2 outline, not a pre-registration (trig_01EsbzfWhTfZj2j6UrUgTZDt). Neo4j work is serialised by the new lock."
+**Context**: v1.3 overnight; wave 2 (merges, the dev-set re-run with member facts, E1/SO4 re-run, U-F labelling, then the hold-out freeze decision) follows as wave 1 lands.
+
+---
