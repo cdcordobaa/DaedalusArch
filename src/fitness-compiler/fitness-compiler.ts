@@ -22,6 +22,7 @@ import { compileHexagonalFunctions } from './hexagonal-compiler.js';
 import { HEXAGONAL_STYLE } from './hexagonal-templates.js';
 import { applyV13Rewrites } from './v13-rewrites.js';
 import type { V13RewriteFlags } from './v13-rewrites.js';
+import { applySignatureTypes } from './v13-signature-types.js';
 import { v13InapplicableReason } from './v13-applicability.js';
 import { compileDddFunctions } from './ddd-compiler.js';
 import { DDD_STYLE } from './ddd-templates.js';
@@ -68,13 +69,21 @@ export interface CompileOptions {
    * (`ExtractorOptions.memberFacts`) instead of the setter-name proxy (`DDD_MEMBER_FACT_TEMPLATES`).
    */
   readonly memberFacts?: boolean;
+  /**
+   * v1.3 fix batch, OFF by default: FF-P05 controller-no-entity also reads the APG v2 SIGNATURE_USES edge (a public
+   * controller method that takes or returns a domain class; `v13-signature-types.ts`, `Docs/v1.3/ffp05-type-edges.md`).
+   */
+  readonly signatureTypes?: boolean;
 }
 
 /** The v1.3 compile options for the pipeline (the frozen v1.2E reproduction passes `{}`). */
-export const V13_COMPILE_OPTIONS: Readonly<CompileOptions> = Object.freeze({ edgeViews: true, styleApplicability: true, roleTokens: true, memberFacts: true });
+export const V13_COMPILE_OPTIONS: Readonly<CompileOptions> = Object.freeze({ edgeViews: true, styleApplicability: true, roleTokens: true, memberFacts: true, signatureTypes: true });
 
 function rewriteFlags(options: CompileOptions): V13RewriteFlags {
-  return { edgeViews: options.edgeViews === true, roleTokens: options.roleTokens === true, memberFacts: options.memberFacts === true };
+  return {
+    edgeViews: options.edgeViews === true, roleTokens: options.roleTokens === true, memberFacts: options.memberFacts === true,
+    signatureTypes: options.signatureTypes === true,
+  };
 }
 
 type TemplateCatalogue = ReadonlyMap<string, CypherTemplate>;
@@ -259,7 +268,8 @@ function compileSymbolic(
   // the template's instrument v2 role exemptions (ADR-026).
   const excludePatterns = [...ff.excludePaths.map((g) => globToRegex(g)), ...roleExemptionPatterns(template.functionName, instrumentVersion)];
   if (excludePatterns.length > 0) params.excludePatterns = excludePatterns;
-  const instantiated = instantiateTemplate(template, params);
+  const source = rewrites.signatureTypes === true ? applySignatureTypes(template) : template;
+  const instantiated = instantiateTemplate(source, params);
   const cypher = applyV13Rewrites(template.functionName, instantiated, rewrites);
 
   return {

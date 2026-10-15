@@ -7,6 +7,8 @@
  *   the final text.
  * - `memberFacts`: not a text rewrite. The DDD compile path selects the member-fact text of FF-DT03
  *   (`DDD_MEMBER_FACT_TEMPLATES`) instead of the setter-name proxy; the other paths ignore it.
+ * - `signatureTypes`: not a rewrite of the compiled text. The core compile path adds the SIGNATURE_USES branch to the
+ *   FF-P05 template text before instantiation (`v13-signature-types.ts`), so its exclude markers are injected too.
  */
 import { applyEdgeView } from './edge-views.js';
 import { applyRoleTokens } from './v13-role-names.js';
@@ -15,6 +17,7 @@ export interface V13RewriteFlags {
   readonly edgeViews: boolean;
   readonly roleTokens: boolean;
   readonly memberFacts?: boolean;
+  readonly signatureTypes?: boolean;
 }
 
 export const NO_V13_REWRITES: V13RewriteFlags = Object.freeze({ edgeViews: false, roleTokens: false });
