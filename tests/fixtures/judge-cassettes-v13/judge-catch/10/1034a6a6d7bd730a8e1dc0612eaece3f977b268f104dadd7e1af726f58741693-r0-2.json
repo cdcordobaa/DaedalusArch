@@ -1,0 +1,47 @@
+{
+  "attempts": 1,
+  "cliVersion": "2.1.294",
+  "configListingSha256": "47aa04258852fab9a706f3f0c14cee22306d69fbb6fdfbde8c11854bd54997bc",
+  "durationMs": 6689,
+  "effort": "high",
+  "functionId": "FF-N01",
+  "ignoredOptions": [
+    "maxTokens"
+  ],
+  "isolationProbeSha256": "97a2e2d0af1100c13c55e028c1a0c71f069093c3d08705af122aaeb302f1a641",
+  "key": "1034a6a6d7bd730a8e1dc0612eaece3f977b268f104dadd7e1af726f58741693-r0-2",
+  "model": "claude-opus-5-5",
+  "outcome": {
+    "kind": "valid"
+  },
+  "parsedVerdict": {
+    "confidence": 0.88,
+    "evidence": [
+      "src/invoice/invoice.service.ts: class InvoiceService has a single constructor dependency, `private readonly invoiceRepository: Repository<InvoiceEntity>`",
+      "src/invoice/invoice.service.ts: `issue(orderId, amount)` uses this.invoiceRepository.create and this.invoiceRepository.save",
+      "src/invoice/invoice.service.ts: `countFor(orderId)` aliases the same injected repository as a local const and calls count({ where: { orderId } }), so it does not bypass the abstraction",
+      "Both methods deal only with invoices for an order; there is no unrelated concern and no duplicated invariant"
+    ],
+    "pass": true,
+    "reasoning": "The unit has one file, src/invoice/invoice.service.ts, and it handles one concern: persisting and querying invoices. Both methods go through the same injected abstraction, Repository<InvoiceEntity>. `issue` uses create and save, and `countFor` uses count. In `countFor`, the line `const invoiceRepository = this.invoiceRepository` only gives the same injected repository a local name. That is a style quirk, not a bypass, because the method still uses the module's own abstraction. No rule or invariant is repeated, and the file does not mix in unrelated concerns.",
+    "violations": []
+  },
+  "prompt": "## Rule\nThe module's files form one coherent unit with a consistent abstraction and boundary.\n\n## Rubric\nPass: The files serve one cohesive concern, use the module's abstractions consistently, and keep each rule or invariant in one place.\nFail: The files split into unrelated concerns, duplicate a rule or invariant that should live in one place, or bypass the module's own abstractions.\nEvidence required: Name each file involved and cite the declarations that show the split, the duplication or the bypass.\nOut of scope: import direction and layer-dependency rules, which are checked symbolically.\n\n## Layer model\n- domain (kind: domain): src/domain/**, src/core/**, src/entities/**, src/models/**, **/domain/**; file patterns: **/*.entity.ts\n- infrastructure (kind: infrastructure): src/infrastructure/**, src/persistence/**, src/adapters/**, src/prisma/**, src/lib/**, src/common/middleware/**, src/common/filters/**, src/common/pipes/**; file patterns: **/*.repository.ts, **/*.worker.ts, **/workers/**, **/strategies/**\n- application (kind: application): src/application/**, src/use-cases/**, src/services/**; file patterns: **/*.service.ts, **/*.processor.ts, **/dto/**, **/*.dto.ts\n- presentation (kind: presentation): src/controllers/**, src/gateways/**, src/common/guards/**, src/common/interceptors/**; file patterns: **/*.controller.ts, **/*.module.ts, **/*.guard.ts, **/*.interceptor.ts, **/*.gateway.ts\n\n## Unit\nKind: module\nId: src/invoice#application\nLayer: application\nUnit files:\n- src/invoice/invoice.service.ts\n\n## Source\n=====SOURCE-BEGIN src/invoice/invoice.service.ts=====\nimport { Injectable } from '@nestjs/common';\nimport { InjectRepository } from '@nestjs/typeorm';\nimport { Repository } from 'typeorm';\nimport { InvoiceEntity } from './invoice.entity';\n\n@Injectable()\nexport class InvoiceService {\n  constructor(\n    @InjectRepository(InvoiceEntity)\n    private readonly invoiceRepository: Repository<InvoiceEntity>,\n  ) {}\n\n  async issue(orderId: string, amount: number): Promise<InvoiceEntity> {\n    const invoice = this.invoiceRepository.create({ orderId, amount });\n    return this.invoiceRepository.save(invoice);\n  }\n\n  countFor(orderId: string): Promise<number> {\n    const invoiceRepository = this.invoiceRepository;\n    return invoiceRepository.count({ where: { orderId } });\n  }\n}\n\n=====SOURCE-END=====\n\n## Exported signatures\n// src/invoice/invoice.service.ts\nexport class InvoiceService {\n  constructor(\n    @InjectRepository(InvoiceEntity)\n    private readonly invoiceRepository: Repository<InvoiceEntity>,\n  );\n  async issue(orderId: string, amount: number): Promise<InvoiceEntity>;\n  countFor(orderId: string): Promise<number>;\n}\n\n## Incoming\n(none)\n\n## Outgoing\n- src/invoice/invoice.entity.ts\n\n## Graph excerpt\n{\"edges\":[{\"from\":\"src/invoice/invoice.service.ts\",\"to\":\"src/invoice/invoice.entity.ts\",\"type\":\"IMPORTS\"}],\"nodes\":[{\"kind\":\"Class\",\"layer\":\"application\",\"name\":\"InvoiceService\",\"path\":\"src/invoice/invoice.service.ts\"},{\"kind\":\"File\",\"layer\":\"application\",\"path\":\"src/invoice/invoice.service.ts\"},{\"kind\":\"File\",\"layer\":\"domain\",\"path\":\"src/invoice/invoice.entity.ts\"}]}\n\n## Instructions\nJudge the unit against the rule and rubric. Return the JSON object the schema requires. Set pass to false if any file of the unit fails the rubric.\n",
+  "provider": "claude-cli",
+  "recordedAt": "2026-10-15T17:04:51.655Z",
+  "repetition": 0,
+  "requestHash": "1034a6a6d7bd730a8e1dc0612eaece3f977b268f104dadd7e1af726f58741693",
+  "resolvedModel": "claude-opus-5-5",
+  "response": "{\"is_error\":false,\"modelUsage\":{\"claude-opus-5-5\":{\"inputTokens\":2,\"outputTokens\":591}},\"result\":\"{\\\"pass\\\":true,\\\"confidence\\\":0.88,\\\"reasoning\\\":\\\"The unit has one file, src/invoice/invoice.service.ts, and it handles one concern: persisting and querying invoices. Both methods go through the same injected abstraction, Repository<InvoiceEntity>. `issue` uses create and save, and `countFor` uses count. In `countFor`, the line `const invoiceRepository = this.invoiceRepository` only gives the same injected repository a local name. That is a style quirk, not a bypass, because the method still uses the module's own abstraction. No rule or invariant is repeated, and the file does not mix in unrelated concerns.\\\",\\\"evidence\\\":[\\\"src/invoice/invoice.service.ts: class InvoiceService has a single constructor dependency, `private readonly invoiceRepository: Repository<InvoiceEntity>`\\\",\\\"src/invoice/invoice.service.ts: `issue(orderId, amount)` uses this.invoiceRepository.create and this.invoiceRepository.save\\\",\\\"src/invoice/invoice.service.ts: `countFor(orderId)` aliases the same injected repository as a local const and calls count({ where: { orderId } }), so it does not bypass the abstraction\\\",\\\"Both methods deal only with invoices for an order; there is no unrelated concern and no duplicated invariant\\\"],\\\"violations\\\":[]}\",\"structured_output\":{\"confidence\":0.88,\"evidence\":[\"src/invoice/invoice.service.ts: class InvoiceService has a single constructor dependency, `private readonly invoiceRepository: Repository<InvoiceEntity>`\",\"src/invoice/invoice.service.ts: `issue(orderId, amount)` uses this.invoiceRepository.create and this.invoiceRepository.save\",\"src/invoice/invoice.service.ts: `countFor(orderId)` aliases the same injected repository as a local const and calls count({ where: { orderId } }), so it does not bypass the abstraction\",\"Both methods deal only with invoices for an order; there is no unrelated concern and no duplicated invariant\"],\"pass\":true,\"reasoning\":\"The unit has one file, src/invoice/invoice.service.ts, and it handles one concern: persisting and querying invoices. Both methods go through the same injected abstraction, Repository<InvoiceEntity>. `issue` uses create and save, and `countFor` uses count. In `countFor`, the line `const invoiceRepository = this.invoiceRepository` only gives the same injected repository a local name. That is a style quirk, not a bypass, because the method still uses the module's own abstraction. No rule or invariant is repeated, and the file does not mix in unrelated concerns.\",\"violations\":[]}}",
+  "runIndex": 2,
+  "schemaVersion": 2,
+  "unitId": "src/invoice#application",
+  "usage": {
+    "inputTokens": 2834,
+    "outputTokens": 591
+  },
+  "usedOptions": {
+    "effort": "high",
+    "model": "claude-opus-5-5"
+  }
+}
