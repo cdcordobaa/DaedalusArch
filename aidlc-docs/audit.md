@@ -1542,3 +1542,11 @@ Plan checkboxes ticked. Auto-approved under standing approval; no blocking or ma
 **Context**: v1.3 — hold-out sealed; not read by any tuning agent.
 
 ---
+
+## v1.3 CONSTRUCTION — fix round merged (dev set)
+**Timestamp**: 2026-10-15T09:30:00Z
+**User Input**: "Do you think we overpromised?" (answered: SO3 'neuro' and the 'governing' claim are the unsupported parts; the symbolic core is not overpromised)
+**AI Response**: "PR #87 (b35bf17) merged into v1.3. Construct reasons committed before measuring (3e8d4b4). Dev-set after fixes (blocking; author cycle-normalised / blind expanded): pooled recall 56/57 / 52/67, pooled precision 56/56 / 52/56; clean variants 5/5 pass; near-misses with a blocking FP 0/14; barrel edges 18/18; DDD key edges 16/16; blind literal edge recall 1.000 in every style. Two live runs byte-identical under the new Neo4j lock (~/.daedalus/locks). Fixes: lock; cycle matching on file set; FF-P06 not applicable to layered (ADR-V13-02 draft); camel-case-token role matching (FF-P03/P04/P05); literal view for metrics/drift/judge context/report; DDD context isolation on the literal barrel edge. Remaining: FF-DT03 setter accessor (needs extractor member facts); advisory misses and FPs; the gap against the blind manifests is construct-reading disagreement that awaits author adjudication (RDQ-3 FF-P02 sibling injection open)."
+**Context**: v1.3 — tool frozen for hold-out pending the adjudication outcome and the author's answer on enlarging the hold-out set.
+
+---
