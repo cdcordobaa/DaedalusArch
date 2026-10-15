@@ -1,0 +1,63 @@
+{
+  "variant": "clean",
+  "spec": "presets/ddd.yaml",
+  "note": "Hand-written from the spec's layer globs and context roots. layer null = no layer glob matches (the public API files: each context's index.ts and contracts/). context null = declared outside the contexts (shared kernel, composition root).",
+  "files": {
+    "src/main.ts": { "layer": "composition", "context": null },
+    "src/shared-kernel/DomainEvent.ts": { "layer": "domain", "context": null },
+    "src/shared-kernel/value-objects/Money.ts": { "layer": "domain", "context": null },
+
+    "src/ordering/index.ts": { "layer": null, "context": "ordering" },
+    "src/ordering/contracts/OrderSummary.ts": { "layer": null, "context": "ordering" },
+    "src/ordering/domain/order/Order.ts": { "layer": "domain", "context": "ordering", "aggregate": "Order", "aggregateRole": "root" },
+    "src/ordering/domain/order/OrderLine.ts": { "layer": "domain", "context": "ordering", "aggregate": "Order", "aggregateRole": "inner-entity" },
+    "src/ordering/domain/order/OrderRepository.ts": { "layer": "domain", "context": "ordering", "aggregate": "Order", "aggregateRole": "repository" },
+    "src/ordering/domain/order/value-objects/OrderId.ts": { "layer": "domain", "context": "ordering", "aggregate": "Order", "aggregateRole": "value-object" },
+    "src/ordering/domain/order/events/OrderPlaced.ts": { "layer": "domain", "context": "ordering", "aggregate": "Order", "aggregateRole": "domain-event" },
+    "src/ordering/domain/customer/Customer.ts": { "layer": "domain", "context": "ordering", "aggregate": "Customer", "aggregateRole": "root" },
+    "src/ordering/domain/customer/CustomerRepository.ts": { "layer": "domain", "context": "ordering", "aggregate": "Customer", "aggregateRole": "repository" },
+    "src/ordering/domain/customer/value-objects/CustomerId.ts": { "layer": "domain", "context": "ordering", "aggregate": "Customer", "aggregateRole": "value-object" },
+    "src/ordering/domain/value-objects/Quantity.ts": { "layer": "domain", "context": "ordering", "aggregateRole": "value-object" },
+    "src/ordering/application/PlaceOrder.ts": { "layer": "application", "context": "ordering", "aggregateRole": "application-service" },
+    "src/ordering/application/GetOrderSummary.ts": { "layer": "application", "context": "ordering", "aggregateRole": "application-service" },
+    "src/ordering/infrastructure/InMemoryOrderRepository.ts": { "layer": "infrastructure", "context": "ordering", "aggregateRole": "repository" },
+    "src/ordering/infrastructure/InMemoryCustomerRepository.ts": { "layer": "infrastructure", "context": "ordering", "aggregateRole": "repository" },
+    "src/ordering/api/OrderController.ts": { "layer": "api", "context": "ordering" },
+
+    "src/billing/index.ts": { "layer": null, "context": "billing" },
+    "src/billing/contracts/InvoiceView.ts": { "layer": null, "context": "billing" },
+    "src/billing/domain/invoice/Invoice.ts": { "layer": "domain", "context": "billing", "aggregate": "Invoice", "aggregateRole": "root" },
+    "src/billing/domain/invoice/InvoiceLine.ts": { "layer": "domain", "context": "billing", "aggregate": "Invoice", "aggregateRole": "inner-entity" },
+    "src/billing/domain/invoice/InvoiceRepository.ts": { "layer": "domain", "context": "billing", "aggregate": "Invoice", "aggregateRole": "repository" },
+    "src/billing/domain/invoice/value-objects/InvoiceId.ts": { "layer": "domain", "context": "billing", "aggregate": "Invoice", "aggregateRole": "value-object" },
+    "src/billing/domain/invoice/events/InvoiceIssued.ts": { "layer": "domain", "context": "billing", "aggregate": "Invoice", "aggregateRole": "domain-event" },
+    "src/billing/application/IssueInvoice.ts": { "layer": "application", "context": "billing", "aggregateRole": "application-service" },
+    "src/billing/application/ports/OrderSource.ts": { "layer": "application", "context": "billing" },
+    "src/billing/acl/OrderingAcl.ts": { "layer": "infrastructure", "context": "billing", "acl": true },
+    "src/billing/infrastructure/InMemoryInvoiceRepository.ts": { "layer": "infrastructure", "context": "billing", "aggregateRole": "repository" },
+    "src/billing/api/InvoiceController.ts": { "layer": "api", "context": "billing" }
+  },
+  "keyEdges": [
+    { "from": "src/ordering/domain/order/Order.ts", "to": "src/ordering/domain/order/OrderLine.ts", "why": "only the root references its inner entity" },
+    { "from": "src/ordering/domain/order/Order.ts", "to": "src/ordering/domain/customer/value-objects/CustomerId.ts", "why": "reference to another aggregate by identity" },
+    { "from": "src/ordering/domain/order/Order.ts", "to": "src/ordering/domain/order/events/OrderPlaced.ts", "why": "the aggregate raises its event" },
+    { "from": "src/ordering/domain/order/Order.ts", "to": "src/shared-kernel/value-objects/Money.ts", "why": "shared kernel use" },
+    { "from": "src/ordering/domain/order/OrderRepository.ts", "to": "src/ordering/domain/order/Order.ts", "why": "repository for the root" },
+    { "from": "src/ordering/application/PlaceOrder.ts", "to": "src/ordering/domain/order/Order.ts", "why": "application -> domain (allowed)" },
+    { "from": "src/ordering/application/GetOrderSummary.ts", "to": "src/ordering/contracts/OrderSummary.ts", "why": "implements the published query" },
+    { "from": "src/ordering/infrastructure/InMemoryOrderRepository.ts", "to": "src/ordering/domain/order/OrderRepository.ts", "why": "infrastructure -> domain (allowed)" },
+    { "from": "src/ordering/api/OrderController.ts", "to": "src/ordering/application/PlaceOrder.ts", "why": "api -> application (allowed)" },
+    { "from": "src/ordering/index.ts", "to": "src/ordering/contracts/OrderSummary.ts", "why": "public API barrel (re-export)", "kind": "RE_EXPORTS" },
+    { "from": "src/billing/acl/OrderingAcl.ts", "to": "src/ordering/index.ts", "why": "the only cross-context import, through ordering's public API" },
+    { "from": "src/billing/acl/OrderingAcl.ts", "to": "src/billing/application/ports/OrderSource.ts", "why": "the ACL implements billing's port" },
+    { "from": "src/billing/application/IssueInvoice.ts", "to": "src/billing/application/ports/OrderSource.ts", "why": "the service depends on the port, not on ordering" },
+    { "from": "src/billing/domain/invoice/Invoice.ts", "to": "src/billing/domain/invoice/InvoiceLine.ts", "why": "only the root references its inner entity" },
+    { "from": "src/billing/domain/invoice/events/InvoiceIssued.ts", "to": "src/shared-kernel/DomainEvent.ts", "why": "event implements the shared contract" },
+    { "from": "src/main.ts", "to": "src/billing/acl/OrderingAcl.ts", "why": "composition root wires the ACL" }
+  ],
+  "absentEdges": [
+    { "from": "src/billing/**", "to": "src/ordering/** except src/ordering/index.ts", "why": "context isolation" },
+    { "from": "src/**", "to": "src/ordering/domain/order/OrderLine.ts", "except": "src/ordering/domain/order/**" },
+    { "from": "src/**", "to": "src/billing/domain/invoice/InvoiceLine.ts", "except": "src/billing/domain/invoice/**" }
+  ]
+}

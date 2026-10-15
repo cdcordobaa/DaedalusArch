@@ -42,7 +42,8 @@ describe('frozen instrument is untouched', () => {
   it('the hexagonal templates are not in CYPHER_TEMPLATES and the style is not in TEMPLATE_REGISTRY', () => {
     for (const n of HEX_NAMES) expect(CYPHER_TEMPLATES.has(n)).toBe(false);
     expect([...TEMPLATE_REGISTRY.keys()].sort()).toEqual(['clean-architecture', 'layered', 'nestjs']);
-    expect([...EXTENSION_TEMPLATES.keys()]).toEqual(['hexagonal']);
+    // DDD (#83) registers a second extension library; hexagonal stays the first entry.
+    expect([...EXTENSION_TEMPLATES.keys()]).toEqual(['hexagonal', 'ddd']);
   });
 
   it('every hexagonal template is restricted to the hexagonal style', () => {

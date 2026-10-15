@@ -1,5 +1,5 @@
 import type {
-  FitnessFunction, LayerModel, LayerDefinition, AllowedDependency,
+  FitnessFunction, LayerModel, LayerDefinition, AllowedDependency, DddModel, RuleTier,
   ScoringWeights, VerdictThresholds, ConfidenceThresholds,
   SemanticCriteria,
 } from '../shared/types/spec.js';
@@ -44,21 +44,67 @@ export function parseLayerA(raw: Record<string, unknown>, warnings: ValidationWa
   const { layers, warnings: kindWarnings } = resolveLayerKinds(declared);
   warnings.push(...kindWarnings);
 
-  // v1.3: `allowed_dependencies` is read by the hexagonal style only; any other style ignores it with SPEC_001.
-  const { allowed_dependencies: rawEdges, style } = arch as { allowed_dependencies?: { from: string; to: string[] }[]; style?: string };
+  // v1.3: `allowed_dependencies` is read by the hexagonal and ddd styles only, `ddd` by the ddd style only; any other
+  // style ignores them with SPEC_001.
+  const { allowed_dependencies: rawEdges, ddd: rawDdd, style } = arch as {
+    allowed_dependencies?: { from: string; to: string[] }[]; ddd?: Record<string, unknown>; style?: string;
+  };
+  const styleName = (style ?? '').toLowerCase();
+  let allowedDependencies: AllowedDependency[] | undefined;
   if (rawEdges != null) {
-    if ((style ?? '').toLowerCase() !== 'hexagonal') {
+    if (styleName !== 'hexagonal' && styleName !== DDD_STYLE_NAME) {
       warnings.push({
         code: 'SPEC_001',
-        message: 'Field "allowed_dependencies" is read by the hexagonal style only (ignored)',
+        message: 'Field "allowed_dependencies" is read by the hexagonal and ddd styles only (ignored)',
         path: 'architecture.allowed_dependencies',
       });
     } else {
-      const allowedDependencies: AllowedDependency[] = rawEdges.flatMap((e) => e.to.map((to) => ({ from: e.from, to })));
-      return { layers, allowedDependencies };
+      allowedDependencies = rawEdges.flatMap((e) => e.to.map((to) => ({ from: e.from, to })));
     }
   }
-  return { layers };
+  let ddd: DddModel | undefined;
+  if (rawDdd != null) {
+    if (styleName !== DDD_STYLE_NAME) {
+      warnings.push({ code: 'SPEC_001', message: 'Field "ddd" is read by the ddd style only (ignored)', path: 'architecture.ddd' });
+    } else {
+      ddd = parseDddBlock(rawDdd);
+    }
+  }
+  return {
+    layers,
+    ...(allowedDependencies !== undefined ? { allowedDependencies } : {}),
+    ...(ddd !== undefined ? { ddd } : {}),
+  };
+}
+
+const DDD_STYLE_NAME = 'ddd';
+
+/** `architecture.ddd` → DddModel (shape already checked by the schema; consistency is checked when binding). */
+function parseDddBlock(raw: Record<string, unknown>): DddModel {
+  const list = (v: unknown): string[] => (Array.isArray(v) ? v.map(String) : []);
+  const contexts = (raw['contexts'] as Record<string, unknown>[]).map((c) => ({
+    name: String(c['name']),
+    root: String(c['root']),
+    publicApi: list(c['public_api']),
+    acl: list(c['acl']),
+  }));
+  const aggregates = ((raw['aggregates'] as Record<string, unknown>[] | undefined) ?? []).map((a) => ({
+    name: String(a['name']),
+    context: String(a['context']),
+    module: String(a['module']),
+    root: String(a['root']),
+    innerEntities: list(a['inner_entities']),
+  }));
+  return {
+    sourceRoot: String(raw['source_root']),
+    contexts,
+    outsideContexts: list(raw['outside_contexts']),
+    aggregates,
+    valueObjects: list(raw['value_objects']),
+    repositories: list(raw['repositories']),
+    domainEventTypes: list(raw['domain_event_types']),
+    applicationServices: list(raw['application_services']),
+  };
 }
 
 /**
@@ -74,6 +120,7 @@ export function parseLayerB(
 ): { functions: FitnessFunction[]; warnings: ValidationWarning[] } {
   const rawFFs = (raw['fitness_functions'] as Record<string, unknown>[] | undefined) ?? [];
   const warnings: ValidationWarning[] = [];
+  const archStyle = String((raw['architecture'] as Record<string, unknown> | undefined)?.['style'] ?? '').toLowerCase();
 
   const specFunctions: FitnessFunction[] = rawFFs.map((f) => {
     const sc = f['semantic_criteria'] as Record<string, unknown> | undefined;
@@ -99,6 +146,12 @@ export function parseLayerB(
     warnings.push(...unusedFieldWarnings(id, name, fields));
     const { dimension, warning: dimensionWarning } = normaliseDimension(String(f['dimension']), id);
     if (dimensionWarning) warnings.push({ ...dimensionWarning, path: `fitness_functions[${id}].dimension` });
+    // v1.3: `tier` is read by the ddd style only; another style ignores it with SPEC_001 (FR-V6 will generalise it).
+    let tier: RuleTier | undefined;
+    if (f['tier'] != null) {
+      if (archStyle === DDD_STYLE_NAME) tier = String(f['tier']) as RuleTier;
+      else warnings.push({ code: 'SPEC_001', message: `Field "tier" of ${id} is read by the ddd style only (ignored)`, path: `fitness_functions[${id}].tier` });
+    }
 
     const base: FitnessFunction = {
       id: functionId(id),
@@ -118,6 +171,7 @@ export function parseLayerB(
       ...(f['threshold'] != null ? { threshold: Number(f['threshold']) } : {}),
       ...(semanticCriteria ? { semanticCriteria } : {}),
       ...(judgeUnit != null ? { judgeUnit } : {}), // FR-33 (BR-U1-26); the schema has checked the value
+      ...(tier !== undefined ? { tier } : {}),
       ...fields,
     };
   });

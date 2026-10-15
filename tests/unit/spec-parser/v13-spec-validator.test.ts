@@ -6,6 +6,7 @@ import { validateSpecAgainstProject } from '../../../src/spec-parser/spec-valida
 import { V13_EXTENSION_TEMPLATE_CATALOGUES, v13ExtensionCatalogueOf } from '../../../src/fitness-compiler/extension-templates.js';
 import { V13_CYPHER_TEMPLATES } from '../../../src/fitness-compiler/v13-templates.js';
 import { HEXAGONAL_TEMPLATES } from '../../../src/fitness-compiler/hexagonal-templates.js';
+import { DDD_TEMPLATES } from '../../../src/fitness-compiler/ddd-templates.js';
 import type { CypherTemplate } from '../../../src/fitness-compiler/types.js';
 import type { FitnessFunction, ParsedSpec } from '../../../src/shared/types/spec.js';
 import { functionId } from '../../../src/shared/types/value-objects.js';
@@ -51,21 +52,30 @@ describe('spec validation: v1.3 extension templates', () => {
 
   it('v1.3 accepts every template of every extension catalogue', () => {
     const all = [...V13_EXTENSION_TEMPLATE_CATALOGUES.values()].flatMap((c) => [...c.keys()]);
-    expect(all.sort()).toEqual([...HEXAGONAL_TEMPLATES.keys(), ...V13_CYPHER_TEMPLATES.keys()].sort());
+    expect(all.sort()).toEqual([...HEXAGONAL_TEMPLATES.keys(), ...V13_CYPHER_TEMPLATES.keys(), ...DDD_TEMPLATES.keys()].sort());
     expect(badRefs(spec(all.map((name, i) => fn(`E-${String(i)}`, name))), 'v1.3')).toEqual([]);
   });
 
-  it('a catalogue registered later (the DDD templates) is accepted under v1.3 only', () => {
+  it('the DDD catalogue (U-C1, registered at integration) is accepted under v1.3 only', () => {
+    expect([...V13_EXTENSION_TEMPLATE_CATALOGUES.keys()]).toEqual(['hexagonal', 'module-wiring', 'ddd']);
+    expect(DDD_TEMPLATES.size).toBeGreaterThan(0);
+    for (const name of DDD_TEMPLATES.keys()) expect(v13ExtensionCatalogueOf(name)).toBe('ddd');
+    const ddd = spec([...DDD_TEMPLATES.keys()].map((name, i) => fn(`DDD-${String(i)}`, name)));
+    expect(badRefs(ddd, 'v1.3')).toEqual([]);
+    expect(badRefs(ddd, 'v1.2e')).toEqual([...DDD_TEMPLATES.keys()].map((_, i) => `fitness_functions.DDD-${String(i)}.name`));
+  });
+
+  it('a catalogue registered later is accepted under v1.3 only', () => {
     const registry = V13_EXTENSION_TEMPLATE_CATALOGUES as Map<string, ReadonlyMap<string, CypherTemplate>>;
-    const ddd = spec([fn('DDD-01', 'aggregate-boundary')]);
-    expect(badRefs(ddd, 'v1.3')).toEqual(['fitness_functions.DDD-01.name']);
-    registry.set('ddd', new Map([['aggregate-boundary', {} as CypherTemplate]]));
+    const later = spec([fn('LATER-01', 'later-library-rule')]);
+    expect(badRefs(later, 'v1.3')).toEqual(['fitness_functions.LATER-01.name']);
+    registry.set('later', new Map([['later-library-rule', {} as CypherTemplate]]));
     try {
-      expect(v13ExtensionCatalogueOf('aggregate-boundary')).toBe('ddd');
-      expect(badRefs(ddd, 'v1.3')).toEqual([]);
-      expect(badRefs(ddd, 'v1.2e')).toEqual(['fitness_functions.DDD-01.name']);
+      expect(v13ExtensionCatalogueOf('later-library-rule')).toBe('later');
+      expect(badRefs(later, 'v1.3')).toEqual([]);
+      expect(badRefs(later, 'v1.2e')).toEqual(['fitness_functions.LATER-01.name']);
     } finally {
-      registry.delete('ddd');
+      registry.delete('later');
     }
   });
 

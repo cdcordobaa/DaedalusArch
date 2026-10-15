@@ -168,7 +168,7 @@ export type SpecRuleSet = 'v1.2e' | 'v1.3';
 export interface SpecValidationOptions {
   /**
    * `v1.2e` (default, unchanged): `CYPHER_TEMPLATES` plus `HEXAGONAL_TEMPLATES`. `v1.3`: also every v1.3 extension
-   * catalogue (`V13_EXTENSION_TEMPLATE_CATALOGUES`: module wiring, hexagonal, later DDD) and every function name of
+   * catalogue (`V13_EXTENSION_TEMPLATE_CATALOGUES`: hexagonal, module wiring, DDD) and every function name of
    * an extension style library (`EXTENSION_TEMPLATES`).
    */
   readonly rules?: SpecRuleSet;

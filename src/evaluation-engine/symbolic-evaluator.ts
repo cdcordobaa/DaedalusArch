@@ -5,7 +5,7 @@ import { DomainResult } from '../shared/errors/domain-result.js';
 import { scrubSecrets } from '../shared/errors/scrub.js';
 import type { ResultMapping } from '../fitness-compiler/types.js';
 import { CYCLE_ROW_CAP, CYPHER_TEMPLATES, getTemplateTag } from '../fitness-compiler/cypher-templates.js';
-import { HEXAGONAL_TEMPLATES } from '../fitness-compiler/hexagonal-templates.js';
+import { getExtensionTemplate } from '../fitness-compiler/extension-templates.js';
 import type { SymbolicEvalInput } from './types.js';
 import { functionId as makeFunctionId } from '../shared/types/value-objects.js';
 import { computeViolationId, discriminatorValues, scalarText, toFiniteNumber } from './violation-id.js';
@@ -80,7 +80,7 @@ export async function evaluateSymbolic(input: SymbolicEvalInput): Promise<Domain
       continue;
     }
 
-    const template = CYPHER_TEMPLATES.get(query.name) ?? HEXAGONAL_TEMPLATES.get(query.name);
+    const template = CYPHER_TEMPLATES.get(query.name) ?? getExtensionTemplate(query.name);
     const mapping = template?.resultMapping ?? FALLBACK_MAPPING;
 
     // FR-35 cycle sentinel (BR-U3-08, BR-U3-09): `truncated` is decided on the raw rows, before the
@@ -148,7 +148,7 @@ function mapResultsToViolations(
   mapping: ResultMapping,
   query: CypherQuery,
 ): Violation[] {
-  const tag = query.source === 'template' ? (getTemplateTag(query.name) ?? HEXAGONAL_TEMPLATES.get(query.name)?.tag) : undefined;
+  const tag = query.source === 'template' ? (getTemplateTag(query.name) ?? getExtensionTemplate(query.name)?.tag) : undefined;
   const evidenceColumns = mapping.evidenceColumns ?? [];
   return records.map((record) => {
     const filePath = String(record[mapping.filePathColumn] ?? 'unknown');
