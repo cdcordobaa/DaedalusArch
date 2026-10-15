@@ -4,7 +4,7 @@
  * Entry file: no exports besides `summarise` and `renderDownstream` (unit-tested).
  *
  * Usage (repository root), after `ise-measure.ts` wrote <out>/specs/:
- *   NEO4J_URI=bolt://localhost:7687 NEO4J_PASSWORD=... npx tsx scripts/v1.3/ise-downstream.ts [--out <dir>] [--target id,id]
+ *   NEO4J_URI=bolt://localhost:7687 NEO4J_PASSWORD=... npx tsx scripts/v1.3/ise-downstream.ts [--out <dir>] [--set dev|heldout|all] [--target id,id]
  *   npx tsx scripts/v1.3/ise-downstream.ts --from-raw [--out <dir>]     (recompute from <out>/raw, no Neo4j)
  * Writes <out>/raw/<target>/<variant>.json (both specs' rows), <out>/downstream.json and <out>/downstream.md.
  */
@@ -15,7 +15,7 @@ import { acquireNeo4jLock } from '../../src/shared/process/neo4j-lock.js';
 import type { ActualFinding } from './lib/compare.js';
 import { blockingAgreement, plantedResult } from './lib/ise-compare.js';
 import type { BlockingAgreement, PlantedResult } from './lib/ise-compare.js';
-import { ISE_TARGETS, materialiseTarget, renamedFindings, trueSpecText } from './lib/ise-targets.js';
+import { materialiseTarget, targetSet, renamedFindings, trueSpecText } from './lib/ise-targets.js';
 import { makeTempRoot } from './lib/materialise.js';
 import { loadAllReferences } from './lib/reference-model.js';
 import { LIVE_REFUSAL, liveEvaluator } from './lib/validate-reference-main.js';
@@ -116,7 +116,7 @@ async function run(): Promise<number> {
   const work = makeTempRoot('v13-ise-d-');
   const results: TargetDownstream[] = [];
   try {
-    for (const t of ISE_TARGETS.filter((x) => only === undefined || only.has(x.id))) {
+    for (const t of targetSet(argv).filter((x) => only === undefined || only.has(x.id))) {
       const ref = refs.find((r) => r.style === t.style);
       if (ref === undefined) throw new Error(`no reference ${t.style}`);
       const inferredPath = path.join(out, 'specs', `${t.id}.yaml`);
