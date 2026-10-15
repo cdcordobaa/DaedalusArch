@@ -149,7 +149,11 @@ export function frame({ title, subtitle, badgeKind, badgeLabel, body, height: h0
   parts.push(`<svg xmlns="http://www.w3.org/2000/svg" width="${W}" height="${height}" viewBox="0 0 ${W} ${height}">`);
   parts.push(defs());
   parts.push(rect(0, 0, W, height, { fill: C.bg }));
-  parts.push(text(48, 62, title, { size: 34, weight: 700 }));
+  // Keep the title clear of the badge: shrink it if both would not fit on one line.
+  let bwid = 0;
+  if (badgeKind) bwid = pill(0, 0, badgeLabel ?? { dev: 'DEVELOPMENT SET (not a validity estimate)', study1: 'STUDY 1 (registered data)', design: 'DESIGN (nothing measured)', v13onS1: 'STUDY 1 DATA, READ BY THE v1.3 DEV INSTRUMENT (descriptive)' }[badgeKind], { size: 15 })[1];
+  const tsize = Math.min(34, Math.floor((W - 96 - bwid - 30) / (String(title).length * 0.6)));
+  parts.push(text(48, 62, title, { size: tsize, weight: 700 }));
   if (subtitle) {
     const sl = Array.isArray(subtitle) ? subtitle : [subtitle];
     sl.forEach((s, i) => parts.push(text(48, 98 + i * 27, s, { size: 20, fill: C.muted })));
