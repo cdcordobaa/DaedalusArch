@@ -6,6 +6,7 @@ import type { LayerModel } from '../../shared/types/spec.js';
 import type { ComponentDeclaration, NodeLookup } from '../types.js';
 import { normalizeFilePath } from '../id-generator.js';
 import { apg2Edge, apg2Node } from './common.js';
+import { isApg2TestPath } from '../../shared/apg2-scope.js';
 
 /**
  * Enrichment 2 and 2b: Component nodes, BELONGS_TO (File → Component), DEPENDS_ON (Component → Component, aggregated
@@ -14,6 +15,9 @@ import { apg2Edge, apg2Node } from './common.js';
  *
  * Components come in kinds (`layer`, `module`, `folder`). Each kind is a partition of (part of) the files: a file
  * belongs to at most one component of a kind, and DEPENDS_ON and the metrics are computed within a kind.
+ *
+ * Scope (`Docs/v1.3/apg2-scope-adr-draft.md`): test files and test composition roots belong to no component (change 3),
+ * and a barrel is an entry file only when an entry file re-exports it (change 6).
  */
 
 /** Components from a spec: one per layer (its directories, then its file-name patterns), one per DDD context. */
@@ -108,6 +112,7 @@ export function extractComponents(input: ComponentPassInput): ComponentPassResul
     const byName = ofKind.map((c) => (c.decl.includeByName?.length ?? 0) > 0 ? picomatch(c.decl.includeByName as string[], { dot: true }) : null);
     const map = new Map<string, Comp>();
     for (const f of fileNodes) {
+      if (isApg2TestPath(f.filePath)) continue; // test code is outside every component (ADR change 3)
       let idx = byInclude.findIndex((m) => m(f.filePath));
       if (idx < 0) idx = byName.findIndex((m) => m?.(f.filePath) === true);
       const comp = ofKind[idx];
@@ -118,7 +123,19 @@ export function extractComponents(input: ComponentPassInput): ComponentPassResul
     membership.set(kind, map);
   }
 
-  // Entry files: declared, else index files at the component root and barrel files anywhere in it.
+  // Entry files: declared, else the index file at the component root; then every barrel of the component that an entry
+  // file re-exports, directly or through such barrels (ADR change 6). Other barrels are internal to a sub-module.
+  const reExportsFrom = new Map<string, string[]>();
+  for (const e of edges) {
+    if (e.type !== 'RE_EXPORTS') continue;
+    const s = fileById.get(e.sourceId)?.filePath;
+    const t = fileById.get(e.targetId)?.filePath;
+    if (s === undefined || t === undefined) continue;
+    const list = reExportsFrom.get(s);
+    if (list === undefined) reExportsFrom.set(s, [t]);
+    else list.push(t);
+  }
+  const barrels = new Set(fileNodes.filter((n) => n.properties.isBarrel === true).map((n) => n.filePath));
   for (const c of comps) {
     if (c.decl.publicApi !== undefined && c.decl.publicApi.length > 0) {
       const m = picomatch(c.decl.publicApi as string[], { dot: true });
@@ -126,9 +143,14 @@ export function extractComponents(input: ComponentPassInput): ComponentPassResul
     } else {
       const root = rootDirOf(c.decl);
       for (const f of c.files) {
-        const isRootIndex = root !== undefined && INDEX_FILE.test(f) && f.slice(root.length).split('/').length === 1;
-        const fileNode = fileNodes.find((n) => n.filePath === f);
-        if (isRootIndex || fileNode?.properties.isBarrel === true) c.entries.add(f);
+        if (root !== undefined && f.startsWith(root) && INDEX_FILE.test(f) && f.slice(root.length).split('/').length === 1) c.entries.add(f);
+      }
+    }
+    const own = new Set(c.files);
+    const stack = [...c.entries];
+    for (let cur = stack.pop(); cur !== undefined; cur = stack.pop()) {
+      for (const t of reExportsFrom.get(cur) ?? []) {
+        if (own.has(t) && barrels.has(t) && !c.entries.has(t)) { c.entries.add(t); stack.push(t); }
       }
     }
   }

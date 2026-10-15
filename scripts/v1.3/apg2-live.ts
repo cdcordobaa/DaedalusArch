@@ -16,7 +16,9 @@
  *
  * Neo4j: NEO4J_URI, NEO4J_USER, NEO4J_PASSWORD from the environment; the cross-process Neo4j lock is held for the run.
  * Usage (repository root): npx tsx scripts/v1.3/apg2-live.ts fixtures|reference [--out <dir>]
- * Default out: Docs/DiagnosticRuns/apg2-live-2026-10-15.
+ * Default out: Docs/DiagnosticRuns/apg2-live-2026-10-15. The scope re-measure (Docs/DiagnosticRuns/apg2-scope-2026-10-15.md)
+ * wrote to Docs/DiagnosticRuns/apg2-scope-2026-10-15 with `--out`; `ablation.json` (the mirror run before the scope
+ * changes) stays the comparison point, so `agrees` there flags every case whose row count the scope changed.
  */
 import * as fs from 'node:fs';
 import * as path from 'node:path';
@@ -90,6 +92,9 @@ function cypherParams(p: Apg2Params): Record<string, unknown> {
   return {
     domainLayer: p.domainLayer ?? null, infraLayer: p.infraLayer ?? null, controllerLayer: p.controllerLayer ?? null,
     applicationLayers: [...p.applicationLayers], threshold: p.threshold, allowedAsync: [...p.allowedAsync],
+    // Scope parameters (Docs/v1.3/apg2-scope-adr-draft.md).
+    compositionRootLayers: [...p.compositionRootLayers], compositionRootPatterns: [...p.compositionRootPatterns],
+    testPatterns: [...p.testPatterns], aclPatterns: [...p.aclPatterns], minTypes: p.minTypes,
   };
 }
 

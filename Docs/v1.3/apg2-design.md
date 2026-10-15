@@ -155,7 +155,7 @@ Martin (1994), "OO Design Quality Metrics", is the original source of Ca, Ce, I,
 **Entry files.** If the component declares a `publicApi`, its entry files are the files that match those globs. Otherwise they are inferred:
 
 - `index.ts` (or `.tsx`, `.mts`, `.cts`) at the component's root directory, which is the common directory of its include globs;
-- any file in the component that the extractor marks as `isBarrel`.
+- ~~any file in the component that the extractor marks as `isBarrel`~~. **Scope change** (`Docs/v1.3/apg2-scope-adr-draft.md`, change 6): a barrel is an entry file only when an entry file (declared or the root index) re-exports it, directly or through such barrels. Test files and test composition roots belong to no component (change 3).
 
 **EXPORTS_SYMBOL.** For each entry file, the pass resolves every name in ts-morph `getExportedDeclarations()`, through re-export chains, to a Class, Interface or Function node.
 
@@ -246,9 +246,9 @@ The templates are in `src/fitness-compiler/apg2-templates.ts`. They are register
 | Template | Reads | Parameters | Tier |
 |---|---|---|---|
 | `boundary-type-leak` | SIGNATURE_USES with `publicSurface` | `controllerLayer`, `applicationLayers`, `infraLayer` | **blocking** candidate. This is the dependency rule checked as a signature fact: an exposing layer (controller or application) names an infrastructure type. |
-| `component-adp-cycle` | DEPENDS_ON on a cycle | — | **blocking**. ADP at component level; a structural fact, the same construct as FF-S02. |
+| `component-adp-cycle` | DEPENDS_ON on a cycle, kind `module` or `folder` (scope change 4) | — | **blocking**. ADP at component level; a structural fact, the same construct as FF-S02. |
 | `component-sdp-violation` | DEPENDS_ON with I(a) < I(b) | — | advisory. Compares two metrics. |
-| `component-main-sequence-distance` | Component.distance > `$threshold` | `threshold` (default 0.7 in `apg2Params`) | advisory. Metric threshold. |
+| `component-main-sequence-distance` | Component.distance > `$threshold`, kind `module` or `folder`, `typeCount ≥ $minTypes` (scope change 5) | `threshold` (default 0.7 in `apg2Params`), `minTypes` (4) | advisory. Metric threshold. |
 | `deep-import-declared-api` | DEEP_IMPORT, declared public API | — | **blocking**. A declared public API is bypassed; a structural fact against a declaration. |
 | `deep-import-inferred-api` | DEEP_IMPORT, inferred entry files | — | advisory. The public API is a convention (index or barrel). |
 | `undeclared-async-coupling` | PUBLISHES and SUBSCRIBES of one Channel, publisher and subscriber in different components of one kind | `allowedAsync`: `"subscriber->publisher"` pairs, or the hexagonal `allowedDependencies` | advisory. Channels are keyed by literal name, a heuristic of run-time coupling. |
@@ -258,6 +258,8 @@ The templates are in `src/fitness-compiler/apg2-templates.ts`. They are register
 The tiers apply the principle of `Docs/v1.3/rule-tiers.md`: a precise structural fact that states a defining constraint is blocking, and a metric threshold or a guideline is advisory. They are held in `APG2_TEMPLATE_TIERS`. They are **not** added to the sealed tier table or to `src/scoring-engine/rule-tiers.ts`, because adding a rule there needs the ADR that the table's first paragraph requires. Until then, a v1.3 run that names one of these templates gets the scoring engine's `untiered-default` (advisory).
 
 The templates are not wired into `compileFunctions`. `apg2Params(layerModel)` binds their parameters the way `bindLayerParams` does (`allowedAsync` and `threshold` are new). The ablation and the unit tests evaluate them through the in-memory mirrors. Each mirror returns the same columns as its Cypher, in the same order, without exclude paths. The Cypher text has not been run against Neo4j in this environment, which has no Neo4j. Run it on the local machine: extract with `V13_APG2_OPTIONS`, ingest, then run each template with `apg2Params` (see the ablation document). **Update:** the live run (`Docs/DiagnosticRuns/apg2-live-2026-10-15.md`) found Cypher and mirrors equal row for row on all 7 ablation projects and all 71 dev variants. It also lists the dev-set false alarms that must be fixed before any of these templates enters a verdict (§2.3 and §2.4 there).
+
+**Scope (2026-10-15).** `Docs/v1.3/apg2-scope-adr-draft.md` scopes the templates: composition roots are exempt from the deep-import templates and `boundary-type-leak`, a declared ACL from the deep-import templates for imports into another module, and test code from every template. `apg2Params` binds the scope parameters `compositionRootLayers`, `compositionRootPatterns`, `testPatterns`, `aclPatterns` and `minTypes` (patterns in `src/shared/apg2-scope.ts`). The re-measure is `Docs/DiagnosticRuns/apg2-scope-2026-10-15.md`.
 
 ## References
 
