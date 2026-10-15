@@ -9,6 +9,8 @@
  *   --dynamic-extractor <path to src/apg-extractor/index.ts of a tree with the v1.3 `dynamicImports` option>
  *   --depcruise <bin>   (default: experiments/tool-comparison/depcruise/node_modules/.bin/depcruise, the pinned 18.4.0)
  *   --seed <n>          (default 20261014) for the adjudication and layer samples
+ *   --views             also measure the v1.3 graph (ADR-V13-01) in its literal view (no `viaReExport` edges) and its
+ *                       resolved view (no `reExportHop` edges)
  *
  * Per corpus it writes `<out>/projects/<id>.json` and `.csv`, `<out>/aggregate.json`, `<out>/adjudication.csv` (every
  * disagreement edge plus a stratified sample of 50 agreement edges, suggested verdicts pre-filled) and
@@ -19,7 +21,7 @@ import { existsSync, mkdirSync, mkdtempSync, readFileSync, readdirSync, realpath
 import { tmpdir } from 'node:os';
 import { join, relative, resolve } from 'node:path';
 import { pathToFileURL } from 'node:url';
-import { extractAPG } from '../../src/apg-extractor/index.js';
+import { extractAPG, V12E_DEFAULT_OPTIONS, V13_DEFAULT_OPTIONS } from '../../src/apg-extractor/index.js';
 import { parseSpec, specExcludePathsFromYaml } from '../../src/spec-parser/index.js';
 import type { LayerModel } from '../../src/shared/types/spec.js';
 import { harnessTsconfigText } from '../lib/generators/harness-tsconfig.js';
@@ -42,7 +44,14 @@ const LAYER_SAMPLE = 40;
 
 type ExtractFn = (root: string, options: Record<string, unknown>, tsconfig?: string) => Promise<{ success: boolean; data?: ApgLike; errors?: { message: string }[] }>;
 
-interface Variant { readonly name: string; readonly extract: ExtractFn; readonly options: Record<string, unknown>; readonly dynamicOption: boolean }
+interface Variant {
+  readonly name: string;
+  readonly extract: ExtractFn;
+  readonly options: Record<string, unknown>;
+  readonly dynamicOption: boolean;
+  /** ADR-V13-01 views: keep only the edges of one view before the projection. */
+  readonly edgeFilter?: (e: ApgLike['edges'][number]) => boolean;
+}
 
 interface ProjectInput {
   readonly id: string;
@@ -112,7 +121,7 @@ async function measure(input: ProjectInput, variants: readonly Variant[], depcru
     if (!res.success || res.data === undefined) {
       return { summary: { id: input.id, ok: false, error: `${v.name}: ${(res.errors ?? []).map((e) => e.message).join('; ')}`, meta: input.meta } };
     }
-    apg[v.name] = projectApg(res.data);
+    apg[v.name] = projectApg(v.edgeFilter !== undefined ? { ...res.data, edges: res.data.edges.filter(v.edgeFilter) } : res.data);
   }
   const apgFiles = new Set(apg[variants[0]!.name]!.files);
 
@@ -475,7 +484,16 @@ async function main(): Promise<void> {
   const seed = Number(arg('seed', argv) ?? DEFAULT_SEED);
   const depcruiseBin = resolve(REPO, arg('depcruise', argv) ?? DEFAULT_DEPCRUISE);
   if (!existsSync(depcruiseBin)) throw new Error(`dependency-cruiser not installed at ${depcruiseBin} (npm ci in experiments/tool-comparison/depcruise)`);
-  const variants: Variant[] = [{ name: 'apg-v12e-default', extract: extractAPG as unknown as ExtractFn, options: {}, dynamicOption: false }];
+  // The v1.2E instrument's options, explicitly: on the v1.3 branch `{}` means the v1.3 defaults.
+  const variants: Variant[] = [{ name: 'apg-v12e-default', extract: extractAPG as unknown as ExtractFn, options: { ...V12E_DEFAULT_OPTIONS }, dynamicOption: false }];
+  if (argv.includes('--views')) {
+    const v13 = { ...V13_DEFAULT_OPTIONS };
+    const flag = (e: ApgLike['edges'][number], key: string): boolean => e.type === 'IMPORTS' && (e.properties as Record<string, unknown>)[key] === true;
+    variants.push(
+      { name: 'apg-v13-literal', extract: extractAPG as unknown as ExtractFn, options: v13, dynamicOption: true, edgeFilter: (e) => !flag(e, 'viaReExport') },
+      { name: 'apg-v13-resolved', extract: extractAPG as unknown as ExtractFn, options: v13, dynamicOption: true, edgeFilter: (e) => !flag(e, 'reExportHop') },
+    );
+  }
   const dyn = arg('dynamic-extractor', argv);
   if (dyn !== undefined) {
     const mod = (await import(pathToFileURL(resolve(dyn)).href)) as { extractAPG: ExtractFn };

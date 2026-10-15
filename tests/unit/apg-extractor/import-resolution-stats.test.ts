@@ -28,7 +28,7 @@ interface Run extends EdgeExtractionResult {
  * v1.3: these tests pin the frozen v1.2E partition, so the run passes the v1.3 extractor features off explicitly
  * (they are on by default on the v1.3 branch; `tests/unit/apg-extractor/v13-*.test.ts` cover the on behaviour).
  */
-const V12E_FLAGS = { dynamicImports: false, moduleWiring: false } as const;
+const V12E_FLAGS = { dynamicImports: false, moduleWiring: false, reExportEdges: 'resolved-only' } as const;
 
 function run(files: Record<string, string>): Run {
   const project = new Project({ useInMemoryFileSystem: true, skipFileDependencyResolution: true, compilerOptions: { strict: false } });

@@ -31,12 +31,9 @@ const KNOWN_MISMATCHES: Readonly<Record<string, { readonly got: readonly string[
 };
 
 /** Expected-graph key edges the extractor does not produce, and why (notes §6). */
-const KNOWN_EDGE_MISMATCHES: Readonly<Record<string, { readonly got: string; readonly classification: string }>> = {
-  'IMPORTS src/billing/acl/OrderingAcl.ts -> src/ordering/index.ts': {
-    got: 'IMPORTS src/billing/acl/OrderingAcl.ts -> src/ordering/contracts/OrderSummary.ts',
-    classification: 'extractor semantics (by design, per-name barrel routing): the import lands on the declaring file, not on the barrel',
-  },
-};
+// E1 (OrderingAcl.ts -> ordering/index.ts, per-name barrel routing) is closed by ADR-V13-01: the v1.3 extractor emits
+// the literal edge to the barrel and the resolved edge to the declaring file (asserted below). No mismatch is left.
+const KNOWN_EDGE_MISMATCHES: Readonly<Record<string, { readonly got: string; readonly classification: string }>> = {};
 
 const parent = tmpdir();
 afterAll(() => { cleanupScratch(parent); });
@@ -79,6 +76,11 @@ describe('clean variant', () => {
     // Recorded differences: the expected edge is still absent and the extractor's edge is there instead.
     expect(missing.sort()).toEqual(Object.keys(KNOWN_EDGE_MISMATCHES).sort());
     for (const k of Object.values(KNOWN_EDGE_MISMATCHES)) expect(edges.has(k.got)).toBe(true);
+    // ADR-V13-01 (former E1): the literal edge to the barrel and the resolved edge to the declaring file, viaReExport.
+    const acl = apg.edges.filter((e) => e.type === 'IMPORTS' && byId.get(e.sourceId)?.filePath === 'src/billing/acl/OrderingAcl.ts');
+    const at = (to: string) => acl.find((e) => byId.get(e.targetId)?.filePath === to)?.properties;
+    expect(at('src/ordering/index.ts')).toMatchObject({ reExportHop: true });
+    expect(at('src/ordering/contracts/OrderSummary.ts')).toMatchObject({ viaReExport: true, reExportBarrels: ['src/ordering/index.ts'] });
   });
 });
 

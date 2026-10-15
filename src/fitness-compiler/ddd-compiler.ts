@@ -13,6 +13,7 @@ import { bindDddModel, buildDddParams, DDD_TEMPLATES } from './ddd-templates.js'
 import { bindHexagonalLayers, buildHexagonalParams, HEXAGONAL_TEMPLATES } from './hexagonal-templates.js';
 import { globToRegex } from './glob-to-regex.js';
 import { replaceExcludeMarkers } from './exclude-injector.js';
+import { applyEdgeView } from './edge-views.js';
 
 type CoreCompile = (input: CompilerInput) => DomainResult<CompiledFunctions>;
 
@@ -20,7 +21,7 @@ function compilerError(message: string): CompilerError {
   return { code: 'COMPILATION_FAILED', message, stage: 'fitness-compiler', critical: true };
 }
 
-function toQuery(ff: FitnessFunction, template: CypherTemplate | undefined, params: Record<string, unknown>): CypherQuery | CompilerError {
+function toQuery(ff: FitnessFunction, template: CypherTemplate | undefined, params: Record<string, unknown>, edgeViews: boolean): CypherQuery | CompilerError {
   if (template === undefined) return compilerError(`${String(ff.id)}: no template ${ff.name}`);
   for (const name of template.requiredParams) {
     const value = params[name];
@@ -30,10 +31,12 @@ function toQuery(ff: FitnessFunction, template: CypherTemplate | undefined, para
   }
   const excludePatterns = ff.excludePaths.map((g) => globToRegex(g));
   const withExcludes = excludePatterns.length > 0 ? { ...params, excludePatterns } : params;
+  const cypher = replaceExcludeMarkers(template.template, excludePatterns.length > 0);
   return {
     functionId: ff.id,
     name: ff.name,
-    cypher: replaceExcludeMarkers(template.template, excludePatterns.length > 0),
+    // v1.3 edge views (ADR-V13-01, `edge-views.ts`), selected by template name.
+    cypher: edgeViews ? applyEdgeView(template.functionName, cypher) : cypher,
     params: withExcludes,
     dimension: ff.dimension,
     severity: ff.severity,
@@ -43,7 +46,7 @@ function toQuery(ff: FitnessFunction, template: CypherTemplate | undefined, para
   };
 }
 
-export function compileDddFunctions(input: CompilerInput, core: CoreCompile): DomainResult<CompiledFunctions> {
+export function compileDddFunctions(input: CompilerInput, core: CoreCompile, edgeViews = false): DomainResult<CompiledFunctions> {
   const enabled = input.fitnessFunctions.filter((f) => f.enabled);
   const own = enabled.filter((f) => DDD_TEMPLATES.has(f.name));
   const hex = enabled.filter((f) => HEXAGONAL_TEMPLATES.has(f.name));
@@ -60,12 +63,12 @@ export function compileDddFunctions(input: CompilerInput, core: CoreCompile): Do
   const queries: CypherQuery[] = [];
   const errors: CompilerError[] = [];
   for (const ff of own) {
-    const q = toQuery(ff, DDD_TEMPLATES.get(ff.name), buildDddParams(ff, ddd.binding));
+    const q = toQuery(ff, DDD_TEMPLATES.get(ff.name), buildDddParams(ff, ddd.binding), edgeViews);
     if ('cypher' in q) queries.push(q); else errors.push(q);
   }
   if (hexBound?.ok) {
     for (const ff of hex) {
-      const q = toQuery(ff, HEXAGONAL_TEMPLATES.get(ff.name), buildHexagonalParams(ff, hexBound.binding));
+      const q = toQuery(ff, HEXAGONAL_TEMPLATES.get(ff.name), buildHexagonalParams(ff, hexBound.binding), edgeViews);
       if ('cypher' in q) queries.push(q); else errors.push(q);
     }
   }

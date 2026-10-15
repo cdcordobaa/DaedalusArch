@@ -29,6 +29,20 @@ export interface ImportEdgeProperties {
   readonly importedNames: readonly string[];
   /** v1.3 `dynamicImports` option only: true when every occurrence is an `import()` / `require()` call. Absent otherwise. */
   readonly dynamic?: true;
+  /**
+   * v1.3 `reExportEdges: 'both'` only (ADR-V13-01). The RESOLVED edge to the file that declares the imported name(s),
+   * present only because the specifier's file re-exports them: true when every occurrence reaches this target
+   * through a re-export. Literal-view templates exclude these edges. Absent otherwise.
+   */
+  readonly viaReExport?: true;
+  /** With `viaReExport`: the re-export files crossed, import side first (relative paths, sorted unique per edge). */
+  readonly reExportBarrels?: readonly string[];
+  /**
+   * v1.3 `reExportEdges: 'both'` only. The LITERAL edge to the file the specifier resolves to, true when every name
+   * on it is re-exported (not declared) there, so the `'resolved-only'` graph has no such edge. Resolved-view
+   * templates exclude these edges. Absent otherwise.
+   */
+  readonly reExportHop?: true;
 }
 
 // Typed view of APGEdge.properties for RE_EXPORTS edges (FR-34). Not produced in U0.

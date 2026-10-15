@@ -2,7 +2,7 @@ import type { PipelineCommand } from '../../shared/interfaces/pipeline-stage.js'
 import type { FirewallContext } from '../../shared/context/firewall-context.js';
 import type { DomainResult as DomainResultType } from '../../shared/errors/domain-result.js';
 import { DomainResult } from '../../shared/errors/domain-result.js';
-import { compileFunctions } from '../../fitness-compiler/index.js';
+import { compileFunctions, V13_COMPILE_OPTIONS } from '../../fitness-compiler/index.js';
 import { compilerInputFromSpec } from '../../fitness-compiler/compiler-input.js';
 import type { DomainWarning } from '../../shared/errors/domain-result.js';
 import { INSTRUMENT_VERSION } from '../../fitness-compiler/role-exemptions.js';
@@ -31,7 +31,8 @@ export class CompileCommand implements PipelineCommand {
   async execute(context: FirewallContext): Promise<DomainResultType<void>> {
     const parsedSpec = context.getParsedSpec();
 
-    const result = compileFunctions(compilerInputFromSpec(parsedSpec), { instrumentVersion: this.instrumentVersion });
+    // v1.3 edge views (ADR-V13-01): a no-op on a v1.2E graph, so the frozen results are unchanged.
+    const result = compileFunctions(compilerInputFromSpec(parsedSpec), { ...V13_COMPILE_OPTIONS, instrumentVersion: this.instrumentVersion });
 
     if (!result.success) {
       return DomainResult.fail<void>(

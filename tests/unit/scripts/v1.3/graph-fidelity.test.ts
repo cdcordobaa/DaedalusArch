@@ -5,7 +5,7 @@
 import * as fs from 'node:fs';
 import * as os from 'node:os';
 import * as path from 'node:path';
-import { extractAPG } from '../../../../src/apg-extractor/index.js';
+import { extractAPG, V12E_DEFAULT_OPTIONS } from '../../../../src/apg-extractor/index.js';
 import {
   agreement, agreementStratum, classify, collectSpecifiers, depcruiseEdges, edgeKey, microAgreement, mulberry32,
   occurrencesByEdge, projectApg, readCompilerConfig, scopeOf, seededSample, stratifiedSample, suggestVerdict, toCsv,
@@ -92,7 +92,8 @@ describe('tscReference and the APG projection on a fixture', () => {
   });
 
   it('classifies the disagreements between the v1.2E extractor and the tsc reference', async () => {
-    const res = await extractAPG(root);
+    // v1.3 branch: `{}` means the v1.3 defaults; this case pins the v1.2E extractor.
+    const res = await extractAPG(root, V12E_DEFAULT_OPTIONS);
     expect(res.success).toBe(true);
     if (!res.success) return;
     const apg = projectApg(res.data);
