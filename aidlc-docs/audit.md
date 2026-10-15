@@ -1654,3 +1654,11 @@ Plan checkboxes ticked. Auto-approved under standing approval; no blocking or ma
 **Context**: v1.3 — APG v2 unique capability is confirmed live; its rules are not yet verdict-grade on realistic code.
 
 ---
+
+## v1.3 — author: build all cheap + agentic + semantic; fix everything pending
+**Timestamp**: 2026-10-15T23:00:00Z
+**User Input**: "Let's build all the cheap ones, especially the agentic ones ... Let's also build the semantic ones ... send to subagents in parallel and we merge. What else is pending to be fixed? Let's fix it and let's keep progressing." (Intent: maximum parallel progress; authorises fixing the frozen DUP-RULE operator through a new version.)
+**AI Response**: "Cloud: cheap batch 2 incl. agent provenance (error flow, reachability, SDK spread, test topology, config surface, git co-change, CREATED_AT_STEP / erosion delta / REIMPLEMENTS / agent locality) trig_01Q1YXUBbm164ZXaTcgYjQKh; Ontology v0 grounded semantic layer (Sem* namespace, grounding validator, cheap-propose / model-interpret / deterministic-verify, planted semantic cases) trig_01PVnqAqhcTaDdDZHdLBi68b; fix batch (FF-P05 via type edges, hermetic cli test, F-BARREL test, lint, ADR-V13-02 factual text) trig_01Va1JZyTrzh9QAgQ8j5hg7A. Local: APG v2 scope fixes (scope ADR draft first; composition roots, ACL, tests, one-edge-one-rule, metric minimums); AP-DUP-RULE v2 (frozen v1 kept; v2 hashes appended before calls) + judge and cheap re-run. Housekeeping: PR #81 closed (merged into v1.3); 17 merged agent worktrees removed."
+**Context**: v1.3 overnight wave 3.
+
+---
