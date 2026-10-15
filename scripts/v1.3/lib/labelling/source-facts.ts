@@ -9,6 +9,7 @@
 import * as fs from 'node:fs';
 import * as path from 'node:path';
 import ts from 'typescript';
+import { buildHarnessTsconfig } from '../../../lib/generators/harness-tsconfig.js';
 
 export type RelType = 'IMPORTS' | 'RE_EXPORTS';
 
@@ -40,6 +41,88 @@ export interface ClassFact {
   readonly implementsTypes: readonly TypeRef[];
   readonly ctorParams: readonly { readonly name: string; readonly type?: TypeRef }[];
   readonly methods: readonly { readonly name: string; readonly isStatic: boolean }[];
+  /** Class members read for the value-object check (FF-DT03, member-fact template). */
+  readonly members: MemberFacts;
+}
+
+export interface MemberFacts {
+  /** Property declarations and constructor parameter properties. */
+  readonly fields: readonly { readonly name: string; readonly isPublic: boolean; readonly isReadonly: boolean; readonly isStatic: boolean }[];
+  /** Non-static `set` accessors (any visibility). */
+  readonly setAccessors: readonly string[];
+  /** Public non-static methods and arrow-function properties whose body assigns a `this.<field>` directly. */
+  readonly mutators: readonly string[];
+}
+
+const hasMod = (n: ts.Node, k: ts.SyntaxKind): boolean =>
+  (ts.canHaveModifiers(n) ? ts.getModifiers(n) ?? [] : []).some((m) => m.kind === k);
+
+function isPublicMember(n: ts.Node, name: string): boolean {
+  return !name.startsWith('#') && !hasMod(n, ts.SyntaxKind.PrivateKeyword) && !hasMod(n, ts.SyntaxKind.ProtectedKeyword);
+}
+
+/** `this.x`, `this['x']` (parenthesised or not); not `this.x.y`. */
+function isThisField(e: ts.Node): boolean {
+  let t = e;
+  while (ts.isParenthesizedExpression(t)) t = t.expression;
+  if (ts.isPropertyAccessExpression(t)) return t.expression.kind === ts.SyntaxKind.ThisKeyword;
+  if (ts.isElementAccessExpression(t)) return t.expression.kind === ts.SyntaxKind.ThisKeyword && ts.isStringLiteralLike(t.argumentExpression);
+  return false;
+}
+
+function hasThisTarget(lhs: ts.Node): boolean {
+  if (isThisField(lhs)) return true;
+  if (ts.isArrayLiteralExpression(lhs) || ts.isObjectLiteralExpression(lhs)) {
+    let found = false;
+    const walk = (n: ts.Node): void => { if (found) return; if (isThisField(n)) { found = true; return; } ts.forEachChild(n, walk); };
+    ts.forEachChild(lhs, walk);
+    return found;
+  }
+  return false;
+}
+
+/** True when the body assigns a `this` field (`=`, compound assignment, `++`/`--`, `delete`), arrow functions included. */
+function assignsThisField(body: ts.Node | undefined): boolean {
+  if (body === undefined) return false;
+  let found = false;
+  const walk = (n: ts.Node): void => {
+    if (found) return;
+    if (ts.isFunctionDeclaration(n) || ts.isFunctionExpression(n) || ts.isClassLike(n) || ts.isMethodDeclaration(n)
+      || ts.isAccessor(n) || ts.isConstructorDeclaration(n)) return;
+    if (ts.isBinaryExpression(n) && n.operatorToken.kind >= ts.SyntaxKind.FirstAssignment && n.operatorToken.kind <= ts.SyntaxKind.LastAssignment
+      && hasThisTarget(n.left)) { found = true; return; }
+    if ((ts.isPrefixUnaryExpression(n) || ts.isPostfixUnaryExpression(n))
+      && (n.operator === ts.SyntaxKind.PlusPlusToken || n.operator === ts.SyntaxKind.MinusMinusToken) && isThisField(n.operand)) { found = true; return; }
+    if (ts.isDeleteExpression(n) && isThisField(n.expression)) { found = true; return; }
+    ts.forEachChild(n, walk);
+  };
+  ts.forEachChild(body, walk);
+  return found;
+}
+
+function memberFactsOf(node: ts.ClassDeclaration, sf: ts.SourceFile): MemberFacts {
+  const fields: { name: string; isPublic: boolean; isReadonly: boolean; isStatic: boolean }[] = [];
+  const setAccessors: string[] = [];
+  const mutators: string[] = [];
+  for (const m of node.members) {
+    const name = m.name !== undefined ? m.name.getText(sf) : '';
+    const isStatic = hasMod(m, ts.SyntaxKind.StaticKeyword);
+    if (ts.isPropertyDeclaration(m)) {
+      fields.push({ name, isPublic: isPublicMember(m, name), isReadonly: hasMod(m, ts.SyntaxKind.ReadonlyKeyword), isStatic });
+      if (!isStatic && m.initializer !== undefined && ts.isArrowFunction(m.initializer) && isPublicMember(m, name) && assignsThisField(m.initializer.body)) mutators.push(name);
+    } else if (ts.isConstructorDeclaration(m)) {
+      for (const p of m.parameters) {
+        if (!ts.isParameterPropertyDeclaration(p, m)) continue;
+        const pn = p.name.getText(sf);
+        fields.push({ name: pn, isPublic: isPublicMember(p, pn), isReadonly: hasMod(p, ts.SyntaxKind.ReadonlyKeyword), isStatic: false });
+      }
+    } else if (ts.isSetAccessorDeclaration(m)) {
+      if (!isStatic) setAccessors.push(name);
+    } else if (ts.isMethodDeclaration(m)) {
+      if (!isStatic && isPublicMember(m, name) && assignsThisField(m.body)) mutators.push(name);
+    }
+  }
+  return { fields, setAccessors, mutators };
 }
 
 const toPosix = (p: string): string => p.split(path.sep).join('/');
@@ -74,11 +157,19 @@ export class SourceFacts {
   private readonly options: ts.CompilerOptions;
   private readonly importCache = new Map<string, ImportFact[]>();
 
-  constructor(projectRoot: string) {
+  /**
+   * `tsconfig: 'adr-032'` reads the project with the pinned per-run tsconfig of the E1 cells (generator-protocol §3,
+   * ADR-032; the tree's own tsconfig.json is ignored), as the extractor did.
+   */
+  constructor(projectRoot: string, opts: { readonly tsconfig?: 'own' | 'adr-032' } = {}) {
     this.root = path.resolve(projectRoot);
     const configPath = path.join(this.root, 'tsconfig.json');
     let rootNames: string[];
-    if (fs.existsSync(configPath)) {
+    if (opts.tsconfig === 'adr-032') {
+      const parsed = ts.parseJsonConfigFileContent(buildHarnessTsconfig(this.root), ts.sys, this.root);
+      this.options = { ...parsed.options, noEmit: true };
+      rootNames = parsed.fileNames.length > 0 ? parsed.fileNames : listTsFiles(this.root);
+    } else if (fs.existsSync(configPath)) {
       const config = ts.readConfigFile(configPath, (p) => ts.sys.readFile(p));
       const parsed = ts.parseJsonConfigFileContent(config.config ?? {}, ts.sys, this.root);
       this.options = { ...parsed.options, noEmit: true };
@@ -257,7 +348,7 @@ export class SourceFacts {
             name: m.name.getText(sf),
             isStatic: (ts.getCombinedModifierFlags(m) & ts.ModifierFlags.Static) !== 0,
           }));
-        out.push({ name: node.name.text, line: this.lineOf(sf, node.getStart(sf)), implementsTypes, ctorParams, methods });
+        out.push({ name: node.name.text, line: this.lineOf(sf, node.getStart(sf)), implementsTypes, ctorParams, methods, members: memberFactsOf(node, sf) });
       }
       ts.forEachChild(node, visit);
     };
@@ -288,15 +379,23 @@ function moduleSpecifierOf(d: ts.Declaration): string | undefined {
 }
 
 /** One `SourceFacts` per project root. */
+/** Keeps the most recent `max` projects (one `ts.Program` each; 65 E1 programs do not fit in one heap). */
 export class SourceFactsCache {
   private readonly cache = new Map<string, SourceFacts>();
-  get(root: string): SourceFacts {
-    const key = path.resolve(root);
+  constructor(private readonly max = 4) {}
+  get(root: string, tsconfig: 'own' | 'adr-032' = 'own'): SourceFacts {
+    const key = `${tsconfig}\u0000${path.resolve(root)}`;
     let f = this.cache.get(key);
     if (f === undefined) {
-      f = new SourceFacts(key);
-      this.cache.set(key, f);
+      f = new SourceFacts(root, { tsconfig });
+      if (this.cache.size >= this.max) {
+        const oldest = this.cache.keys().next().value;
+        if (oldest !== undefined) this.cache.delete(oldest);
+      }
+    } else {
+      this.cache.delete(key);
     }
+    this.cache.set(key, f);
     return f;
   }
 }

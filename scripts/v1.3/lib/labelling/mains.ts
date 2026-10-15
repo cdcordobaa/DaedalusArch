@@ -21,7 +21,7 @@ import { estimateCalls, labelItems, perRule } from './meaningful.js';
 import type { MeaningfulItemLabel } from './meaningful.js';
 import { CassetteMissError, CassetteStore, GEMINI_KEY_ENV, PROVIDER_IDS, ProviderError, codexProvider, geminiProvider, mockProvider } from './providers.js';
 import type { MeaningfulProvider, ProviderId } from './providers.js';
-import { AUDIT_MIN, answersTemplate, auditAgreement, auditKey, auditSheet, parseCsv, selectAudit } from './audit.js';
+import { AUDIT_MIN, answersTemplate, auditAgreement, auditKey, auditSheet, auditTable, parseAnswerTable, parseCsv, selectAudit, selectAuditStratified } from './audit.js';
 import type { AuditKeyRow } from './audit.js';
 import { wilson } from '../../../lib/stats.js';
 
@@ -192,7 +192,9 @@ export async function checkMain(argv: readonly string[], io: MainIo): Promise<nu
   const specs = new Map<string, SpecView>();
   const sources = new SourceFactsCache();
   const results: (CorrectnessResult & { rule: string })[] = [];
-  for (const f of findings) {
+  // Checked project by project (the source cache keeps a few programs only), reported in the input order.
+  const order = new Map(findings.map((f, i) => [f.key, i]));
+  for (const f of [...findings].sort((a, b) => (a.projectId < b.projectId ? -1 : a.projectId > b.projectId ? 1 : 0))) {
     const job = byProject.get(f.projectId);
     const rule = f.rule ?? `${f.ruleId}/${f.template === '' ? '?' : f.template}`;
     if (job === undefined) {
@@ -208,8 +210,9 @@ export async function checkMain(argv: readonly string[], io: MainIo): Promise<nu
       spec = await loadSpecView(job.spec);
       specs.set(job.spec, spec);
     }
-    results.push({ ...checkFinding(f, spec, sources.get(job.projectRoot)), rule });
+    results.push({ ...checkFinding(f, spec, sources.get(job.projectRoot, job.tsconfig ?? 'own')), rule });
   }
+  results.sort((a, b) => (order.get(a.key) ?? 0) - (order.get(b.key) ?? 0));
   const summary = summariseCorrectness(results);
   writeJson(path.join(outDir, 'correctness.json'), { schemaVersion: 1, summary, results });
   const csv = ['key,projectId,rule,tier,file,verdict,reason', ...results.map((r) => [r.key, r.projectId, r.rule, r.tier, r.file, r.verdict, r.reason].map(csvCell).join(','))];
@@ -290,8 +293,11 @@ export async function labelMain(argv: readonly string[], repoRoot: string, io: M
 // ── audit-sheet ─────────────────────────────────────────────────────────────
 
 /**
- * `sheet --sample sample.json --jobs jobs.json --seed <n> --out <dir> [--n 30]`: writes audit-sheet.md,
- * audit-answers.csv and audit-key.json (keep the key away from the author until the answers are in).
+ * `sheet --sample sample.json[,…] --jobs jobs.json[,…] --seed <n> --out <dir> [--n 30] [--labels labels.json[,…]]`: writes
+ * audit-sheet.md, audit-answers.csv and audit-key.json (keep the key away from the author until the answers are in).
+ * With `--labels` the draw is stratified by rule and labeller label; with `--format table --sheet-out <md> --key-out
+ * <json>` the sheet is one Markdown table with an `[Answer]` column and the key goes to its own path.
+ * `agreement` reads `--answers` as CSV, or as the filled table when the file ends in `.md`; `--labels` takes a list.
  * `agreement --key audit-key.json --answers audit-answers.csv --labels labels.json [--correctness correctness.json]
  *  --out agreement.json`.
  */
@@ -299,29 +305,47 @@ export function auditMain(argv: readonly string[], io: MainIo): number {
   const [sub, ...rest] = argv;
   const args = parseArgs(rest);
   if (sub === 'sheet') {
-    const items = (readJson(need(args, 'sample')) as SampleFile).items;
-    const jobs = new Map(loadJobs(need(args, 'jobs')).jobs.map((j) => [j.projectId, j]));
+    // --sample and --jobs take a comma-separated list (one audit over several sets, e.g. E1 and the reference runs).
+    const list = (name: string): string[] => need(args, name).split(',').filter((x) => x !== '');
+    const items = list('sample').flatMap((f) => (readJson(f) as SampleFile).items);
+    const jobs = new Map(list('jobs').flatMap((f) => loadJobs(f).jobs).map((j) => [j.projectId, j]));
     const n = Number(args.get('n') ?? String(AUDIT_MIN));
-    const chosen = selectAudit(items, n, seedOf(args));
-    const outDir = need(args, 'out');
-    fs.mkdirSync(outDir, { recursive: true });
+    const labelFiles = args.get('labels')?.split(',').filter((x) => x !== '');
+    const labelOf = labelFiles === undefined ? undefined
+      : new Map(labelFiles.flatMap((f) => (readJson(f) as { labels: MeaningfulItemLabel[] }).labels).map((l) => [l.key, l.label]));
+    const chosen = labelOf === undefined ? selectAudit(items, n, seedOf(args)) : selectAuditStratified(items, n, seedOf(args), labelOf);
     const sourceOf = (f: SampledFinding): string | null => {
       const j = jobs.get(f.projectId);
       if (j === undefined) return null;
       try { return fs.readFileSync(path.join(j.projectRoot, f.file), 'utf8'); } catch { return null; }
     };
+    const key = { schemaVersion: 1, seed: seedOf(args), stratifiedBy: labelOf === undefined ? 'rule' : 'rule x labeller label', rows: auditKey(chosen) };
+    if (args.get('format') === 'table') {
+      // --sheet-out <file.md> --key-out <file.json>: the sheet and its key in separate places.
+      const sheetOut = need(args, 'sheet-out');
+      fs.mkdirSync(path.dirname(path.resolve(sheetOut)), { recursive: true });
+      fs.writeFileSync(sheetOut, auditTable(chosen, sourceOf));
+      writeJson(need(args, 'key-out'), key);
+      io.out(`audit: ${String(chosen.length)} items over ${String(new Set(chosen.map((c) => c.rule)).size)} rules -> ${sheetOut}\n`);
+      return 0;
+    }
+    const outDir = need(args, 'out');
+    fs.mkdirSync(outDir, { recursive: true });
     fs.writeFileSync(path.join(outDir, 'audit-sheet.md'), auditSheet(chosen, sourceOf));
     fs.writeFileSync(path.join(outDir, 'audit-answers.csv'), answersTemplate(chosen));
-    writeJson(path.join(outDir, 'audit-key.json'), { schemaVersion: 1, seed: seedOf(args), rows: auditKey(chosen) });
+    writeJson(path.join(outDir, 'audit-key.json'), key);
     io.out(`audit: ${String(chosen.length)} items over ${String(new Set(chosen.map((c) => c.rule)).size)} rules -> ${outDir}\n`);
     return 0;
   }
   if (sub === 'agreement') {
     const key = (readJson(need(args, 'key')) as { rows: AuditKeyRow[] }).rows;
-    const answers = parseCsv(fs.readFileSync(need(args, 'answers'), 'utf8'));
-    const labels = (readJson(need(args, 'labels')) as { labels: MeaningfulItemLabel[] }).labels;
+    const answersFile = need(args, 'answers');
+    const answersText = fs.readFileSync(answersFile, 'utf8');
+    const answers = answersFile.endsWith('.md') ? parseAnswerTable(answersText) : parseCsv(answersText);
+    const labels = need(args, 'labels').split(',').filter((x) => x !== '').flatMap((f) => (readJson(f) as { labels: MeaningfulItemLabel[] }).labels);
     const corr = args.get('correctness');
-    const correctnessOf = corr !== undefined ? new Map((readJson(corr) as { results: CorrectnessResult[] }).results.map((r) => [r.key, r.verdict])) : undefined;
+    const correctnessOf = corr !== undefined
+      ? new Map(corr.split(',').filter((x) => x !== '').flatMap((f) => (readJson(f) as { results: CorrectnessResult[] }).results).map((r) => [r.key, r.verdict])) : undefined;
     const report = auditAgreement(key, answers, new Map(labels.map((l) => [l.key, l.label])), correctnessOf);
     writeJson(need(args, 'out'), report);
     const m = report.meaningful;

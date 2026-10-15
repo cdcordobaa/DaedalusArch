@@ -26,6 +26,8 @@ export interface LabellingJob {
   readonly report: string;
   /** Architecture style; read from the spec when absent. */
   readonly style?: string;
+  /** `adr-032`: the source is read with the pinned E1 tsconfig (the tree's own is ignored); default `own`. */
+  readonly tsconfig?: 'own' | 'adr-032';
 }
 
 export interface JobsFile {
@@ -154,7 +156,8 @@ export function loadJobs(file: string): JobsFile {
       throw new Error(`${file}: jobs[${String(i)}] needs projectId, projectRoot, spec and report`);
     }
     const style = str(j.style);
-    return { projectId, projectRoot: abs(projectRoot), spec: abs(spec), report: abs(report), ...(style !== undefined && { style }) };
+    const tsconfig = j.tsconfig === 'adr-032' ? 'adr-032' as const : undefined;
+    return { projectId, projectRoot: abs(projectRoot), spec: abs(spec), report: abs(report), ...(style !== undefined && { style }), ...(tsconfig !== undefined && { tsconfig }) };
   });
   const kind = raw.kind === 'e1' || raw.kind === 'reference' ? raw.kind : 'custom';
   return { schemaVersion: 1, kind, jobs };
