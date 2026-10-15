@@ -3,6 +3,7 @@
  * accepted with `{ rules: 'v1.3' }`, the v1.2E check (the default) is unchanged.
  */
 import { validateSpecAgainstProject } from '../../../src/spec-parser/spec-validator.js';
+import { APG2_TEMPLATES } from '../../../src/fitness-compiler/apg2-templates.js';
 import { V13_EXTENSION_TEMPLATE_CATALOGUES, v13ExtensionCatalogueOf } from '../../../src/fitness-compiler/extension-templates.js';
 import { V13_CYPHER_TEMPLATES } from '../../../src/fitness-compiler/v13-templates.js';
 import { HEXAGONAL_TEMPLATES } from '../../../src/fitness-compiler/hexagonal-templates.js';
@@ -52,12 +53,12 @@ describe('spec validation: v1.3 extension templates', () => {
 
   it('v1.3 accepts every template of every extension catalogue', () => {
     const all = [...V13_EXTENSION_TEMPLATE_CATALOGUES.values()].flatMap((c) => [...c.keys()]);
-    expect(all.sort()).toEqual([...HEXAGONAL_TEMPLATES.keys(), ...V13_CYPHER_TEMPLATES.keys(), ...DDD_TEMPLATES.keys()].sort());
+    expect(all.sort()).toEqual([...HEXAGONAL_TEMPLATES.keys(), ...V13_CYPHER_TEMPLATES.keys(), ...DDD_TEMPLATES.keys(), ...APG2_TEMPLATES.keys()].sort());
     expect(badRefs(spec(all.map((name, i) => fn(`E-${String(i)}`, name))), 'v1.3')).toEqual([]);
   });
 
   it('the DDD catalogue (U-C1, registered at integration) is accepted under v1.3 only', () => {
-    expect([...V13_EXTENSION_TEMPLATE_CATALOGUES.keys()]).toEqual(['hexagonal', 'module-wiring', 'ddd']);
+    expect([...V13_EXTENSION_TEMPLATE_CATALOGUES.keys()]).toEqual(['hexagonal', 'module-wiring', 'ddd', 'apg2']);
     expect(DDD_TEMPLATES.size).toBeGreaterThan(0);
     for (const name of DDD_TEMPLATES.keys()) expect(v13ExtensionCatalogueOf(name)).toBe('ddd');
     const ddd = spec([...DDD_TEMPLATES.keys()].map((name, i) => fn(`DDD-${String(i)}`, name)));
