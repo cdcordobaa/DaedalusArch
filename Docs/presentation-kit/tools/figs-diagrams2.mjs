@@ -268,7 +268,7 @@ import { box, arrow, path, chip, lock } from './diagram.mjs';
       if (arm.a === 'gate') {
         b += rect(x + 6, y + 84, sw - 70, 44, { rx: 8, fill: C.redSoft, stroke: C.red, sw: 2, dash: '6 4' });
         b += text(x + 6 + (sw - 70) / 2, y + 104, 'repair turn', { size: 15, anchor: 'middle', fill: C.red });
-        b += text(x + 6 + (sw - 70) / 2, y + 122, 'if blocking > 0', { size: 13.5, anchor: 'middle', fill: C.red });
+        b += text(x + 6 + (sw - 70) / 2, y + 122, 'if blocking > 0', { size: 14, anchor: 'middle', fill: C.red });
         b += path([[cx, y + 48], [cx, y + 106], [x + sw - 62, y + 106]], { color: C.red, sw: 2 });
         b += `<circle cx="${cx}" cy="${y + 106}" r="0"/>`;
       }

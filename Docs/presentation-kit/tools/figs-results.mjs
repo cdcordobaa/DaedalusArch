@@ -405,8 +405,8 @@ import { pbars, legendRow, whiskerNote } from './charts.mjs';
       const x = lx + lw + j * cw + 6;
       const col = { y: C.s.after, n: '#F1F3F6', d: '#D9C6EA', p: '#EADFF3', x: '#FBE3D2' }[v];
       b += rect(x, y + 1, cw - 12, rh - 4, { rx: 4, fill: col, stroke: v === 'x' ? C.s.proxy : 'none', dash: v === 'x' ? '4 3' : undefined });
-      const lab = { y: 'detected', n: '', d: 'derivable', p: 'partial', x: 'dropped (4-type min.)' }[v];
-      if (lab) b += text(x + (cw - 12) / 2, y + 16, lab, { size: v === 'x' ? 13.5 : 14, weight: 600, fill: v === 'y' ? '#fff' : v === 'x' ? C.s.proxy : C.s.blind, anchor: 'middle' });
+      const lab = { y: 'detected', n: '', d: 'derivable', p: 'partial', x: 'dropped (min 4)' }[v];
+      if (lab) b += text(x + (cw - 12) / 2, y + 16, lab, { size: 14, weight: 600, fill: v === 'y' ? '#fff' : v === 'x' ? C.s.proxy : C.s.blind, anchor: 'middle' });
     });
     y += rh;
   }
