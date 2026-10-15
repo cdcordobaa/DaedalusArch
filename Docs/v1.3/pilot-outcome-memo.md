@@ -13,7 +13,7 @@ The pilot answers one question before Study 2 is designed in detail: **does a co
 | Item | Value |
 |---|---|
 | Harness | `scripts/loop-harness-cli.ts` (`scripts/lib/loop/`), resumable, symbolic-only firewall evaluator (v1.3 scoring) |
-| Tasks | 3, from `Docs/v1.3/pilot-tasks.md`: `fleet-maintenance` (Clean), `shelter-adoptions` (Hexagonal), `relief-volunteers` (DDD) |
+| Tasks | 3, from `Docs/v1.3/pilot-tasks.md`: `market-vendors` (Clean), `shelter-adoptions` (Hexagonal), `relief-volunteers` (DDD) |
 | Steps | k = 4 per task |
 | Arms | `none` and `gate`. `daedalus-mcp` is added only under the condition below. |
 | Generator | Claude Sonnet through the existing generator adapter: `adapterId` `claude-code-cli`, `modelId` `claude-sonnet-5-5` (the E1 pin), with the E1 confinement and retry policy |
@@ -80,8 +80,8 @@ No other pilot result may change Study 2's primary outcome. In particular, nothi
 
 | Input | Value |
 |---|---|
-| Tasks block of `Docs/v1.3/pilot-tasks.md` §2 (sha256) | `8ad474b1ab0d9e68f31e8f145e83dc6aaf26fddede51ecb62bb4b0d246d45ead` |
-| Task `fleet-maintenance` "Fleet maintenance" (sha256 of `JSON.stringify(task)`) | `9af9ef1e14e37165e62a137568206b2f7f9bda896cd222e2e79ae79c5bfc5e91` |
+| Tasks block of `Docs/v1.3/pilot-tasks.md` §2 (sha256) | `5b72d1182c5a6ededd8fcf1ce5715c960ac14e2105631ee6e67f72053fdce22f` |
+| Task `market-vendors` "Farmers' market vendors" (sha256 of `JSON.stringify(task)`) | `009c672b4dee2a566da4fc9ad4d6d084df317763cbfce1508f53c6196d012c89` |
 | Task `shelter-adoptions` "Animal shelter adoptions" | `acc8a145f5c884653dfec92bd98315b4cd272d24bdce3c3253d0f52e6d4ff49c` |
 | Task `relief-volunteers` "Disaster-relief volunteer coordination" | `0a6f2531c56e09f4bd69d739bfa16c20e058a14224f70d1263b5964fd5c52315` |
 | Tool commit | `<PILOT_SHA>` |
