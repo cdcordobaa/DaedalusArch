@@ -1,0 +1,20 @@
+diff -ruN -x node_modules a/src/application/order-service.ts b/src/application/order-service.ts
+--- a/src/application/order-service.ts	2026-10-15 12:42:23
++++ b/src/application/order-service.ts	2026-10-15 12:42:12
+@@ -17,6 +17,7 @@
+   type StockLevel,
+ } from "../domain/product";
+ import type { OrderRepository, ProductRepository } from "./ports";
++import { Request } from "express";
+ 
+ export class OrderService {
+   constructor(
+@@ -68,7 +69,7 @@
+     return order;
+   }
+ 
+-  listOrders(status?: string): Order[] {
++  listOrders(status?: string, request?: Request): Order[] {
+     if (status !== undefined && !isOrderStatus(status)) {
+       throw new DomainError("invalid_input", `Unknown state ${status}`);
+     }

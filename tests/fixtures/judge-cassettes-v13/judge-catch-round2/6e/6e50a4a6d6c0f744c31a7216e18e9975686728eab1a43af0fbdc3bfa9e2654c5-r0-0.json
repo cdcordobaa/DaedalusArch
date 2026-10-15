@@ -1,0 +1,47 @@
+{
+  "attempts": 1,
+  "cliVersion": "2.1.294",
+  "configListingSha256": "47aa04258852fab9a706f3f0c14cee22306d69fbb6fdfbde8c11854bd54997bc",
+  "durationMs": 6272,
+  "effort": "high",
+  "functionId": "FF-N02",
+  "ignoredOptions": [
+    "maxTokens"
+  ],
+  "isolationProbeSha256": "97a2e2d0af1100c13c55e028c1a0c71f069093c3d08705af122aaeb302f1a641",
+  "key": "6e50a4a6d6c0f744c31a7216e18e9975686728eab1a43af0fbdc3bfa9e2654c5-r0-0",
+  "model": "claude-opus-5-5",
+  "outcome": {
+    "kind": "valid"
+  },
+  "parsedVerdict": {
+    "confidence": 0.93,
+    "evidence": [
+      "ListStockLevelsUseCase.execute(): `return this.products.findAll().map(toStockLevelDto);` loads products through the repository port and maps them to DTOs, which is application-layer orchestration.",
+      "The constructor takes `ProductRepository`, a domain abstraction, rather than a concrete persistence class.",
+      "`ExecuteContextDto` and `ListStockLevels` are an application-level DTO and a use-case port interface.",
+      "The file has no SQL, HTTP or framework decorators, and no business-rule calculations."
+    ],
+    "pass": true,
+    "reasoning": "The file is in the application layer and only does use-case orchestration. It defines a use-case port (ListStockLevels), a use-case class that gets a domain repository abstraction through its constructor, and a context DTO. execute() loads products through the repository port and maps them to DTOs with an application-layer mapper. It has no persistence code, no transport or framework logic, and no domain business rules. The context parameter in execute() is never used, and the class's signature is a little wider than the interface's. Neither of these puts a responsibility in the wrong layer.",
+    "violations": []
+  },
+  "prompt": "## Rule\nThe unit's responsibilities match the role of its declared layer.\n\n## Rubric\nPass: Every responsibility in the file belongs to the role and kind of its declared layer, and agrees with any ADR prose given.\nFail: The file carries a responsibility that belongs to a different layer kind, for example persistence, transport or framework logic in a domain file, or business rules in an infrastructure or presentation file.\nEvidence required: Name the file and cite the function, method or statement that carries the misplaced responsibility, and the layer kind it belongs to.\nOut of scope: import direction and layer-dependency rules, which are checked symbolically.\n\n## Layer model\n- domain (kind: domain): src/domain/**\n- application (kind: application): src/application/**\n- infrastructure (kind: infrastructure): src/infrastructure/**\n\n## Unit\nKind: file\nId: src/application/catalogue/ListStockLevelsUseCase.ts\nLayer: application\nUnit files:\n- src/application/catalogue/ListStockLevelsUseCase.ts\n\n## Source\n=====SOURCE-BEGIN src/application/catalogue/ListStockLevelsUseCase.ts=====\nimport type { ProductRepository } from '../../domain/repositories/ProductRepository';\nimport type { StockLevelDto } from './ProductDtos';\nimport { toStockLevelDto } from './ProductMapper';\n\nexport interface ListStockLevels {\n  execute(): StockLevelDto[];\n}\n\nexport class ListStockLevelsUseCase implements ListStockLevels {\n  constructor(private readonly products: ProductRepository) {}\n\n  execute(context?: ExecuteContextDto): StockLevelDto[] {\n    return this.products.findAll().map(toStockLevelDto);\n  }\n}\n\nexport interface ExecuteContextDto {\n  readonly requestId?: string;\n}\n\n=====SOURCE-END=====\n\n## Graph excerpt\n{\"edges\":[{\"from\":\"ListStockLevelsUseCase@src/application/catalogue/ListStockLevelsUseCase.ts\",\"to\":\"ListStockLevels@src/application/catalogue/ListStockLevelsUseCase.ts\",\"type\":\"IMPLEMENTS\"},{\"from\":\"ListStockLevelsUseCase@src/application/catalogue/ListStockLevelsUseCase.ts\",\"to\":\"ProductRepository@src/domain/repositories/ProductRepository.ts\",\"type\":\"CONSTRUCTOR_INJECTS\"},{\"from\":\"src/application/catalogue/CatalogueModule.ts\",\"to\":\"src/application/catalogue/ListStockLevelsUseCase.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/application/catalogue/ListStockLevelsUseCase.ts\",\"to\":\"src/application/catalogue/ProductDtos.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/application/catalogue/ListStockLevelsUseCase.ts\",\"to\":\"src/application/catalogue/ProductMapper.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/application/catalogue/ListStockLevelsUseCase.ts\",\"to\":\"src/domain/repositories/ProductRepository.ts\",\"type\":\"IMPORTS\"}],\"nodes\":[{\"kind\":\"Class\",\"layer\":\"application\",\"name\":\"ListStockLevelsUseCase\",\"path\":\"src/application/catalogue/ListStockLevelsUseCase.ts\"},{\"kind\":\"File\",\"layer\":\"application\",\"path\":\"src/application/catalogue/CatalogueModule.ts\"},{\"kind\":\"File\",\"layer\":\"application\",\"path\":\"src/application/catalogue/ListStockLevelsUseCase.ts\"},{\"kind\":\"File\",\"layer\":\"application\",\"path\":\"src/application/catalogue/ProductDtos.ts\"},{\"kind\":\"File\",\"layer\":\"application\",\"path\":\"src/application/catalogue/ProductMapper.ts\"},{\"kind\":\"File\",\"layer\":\"domain\",\"path\":\"src/domain/repositories/ProductRepository.ts\"},{\"kind\":\"Interface\",\"layer\":\"application\",\"name\":\"ExecuteContextDto\",\"path\":\"src/application/catalogue/ListStockLevelsUseCase.ts\"},{\"kind\":\"Interface\",\"layer\":\"application\",\"name\":\"ListStockLevels\",\"path\":\"src/application/catalogue/ListStockLevelsUseCase.ts\"},{\"kind\":\"Interface\",\"layer\":\"domain\",\"name\":\"ProductRepository\",\"path\":\"src/domain/repositories/ProductRepository.ts\"}]}\n\n## Instructions\nJudge the unit against the rule and rubric. Return the JSON object the schema requires. Set pass to false if any file of the unit fails the rubric.\n",
+  "provider": "claude-cli",
+  "recordedAt": "2026-10-15T18:06:29.970Z",
+  "repetition": 0,
+  "requestHash": "6e50a4a6d6c0f744c31a7216e18e9975686728eab1a43af0fbdc3bfa9e2654c5",
+  "resolvedModel": "claude-opus-5-5",
+  "response": "{\"is_error\":false,\"modelUsage\":{\"claude-opus-5-5\":{\"inputTokens\":2,\"outputTokens\":494}},\"result\":\"{\\\"pass\\\":true,\\\"confidence\\\":0.93,\\\"reasoning\\\":\\\"The file is in the application layer and only does use-case orchestration. It defines a use-case port (ListStockLevels), a use-case class that gets a domain repository abstraction through its constructor, and a context DTO. execute() loads products through the repository port and maps them to DTOs with an application-layer mapper. It has no persistence code, no transport or framework logic, and no domain business rules. The context parameter in execute() is never used, and the class's signature is a little wider than the interface's. Neither of these puts a responsibility in the wrong layer.\\\",\\\"evidence\\\":[\\\"ListStockLevelsUseCase.execute(): `return this.products.findAll().map(toStockLevelDto);` loads products through the repository port and maps them to DTOs, which is application-layer orchestration.\\\",\\\"The constructor takes `ProductRepository`, a domain abstraction, rather than a concrete persistence class.\\\",\\\"`ExecuteContextDto` and `ListStockLevels` are an application-level DTO and a use-case port interface.\\\",\\\"The file has no SQL, HTTP or framework decorators, and no business-rule calculations.\\\"],\\\"violations\\\":[]}\",\"structured_output\":{\"confidence\":0.93,\"evidence\":[\"ListStockLevelsUseCase.execute(): `return this.products.findAll().map(toStockLevelDto);` loads products through the repository port and maps them to DTOs, which is application-layer orchestration.\",\"The constructor takes `ProductRepository`, a domain abstraction, rather than a concrete persistence class.\",\"`ExecuteContextDto` and `ListStockLevels` are an application-level DTO and a use-case port interface.\",\"The file has no SQL, HTTP or framework decorators, and no business-rule calculations.\"],\"pass\":true,\"reasoning\":\"The file is in the application layer and only does use-case orchestration. It defines a use-case port (ListStockLevels), a use-case class that gets a domain repository abstraction through its constructor, and a context DTO. execute() loads products through the repository port and maps them to DTOs with an application-layer mapper. It has no persistence code, no transport or framework logic, and no domain business rules. The context parameter in execute() is never used, and the class's signature is a little wider than the interface's. Neither of these puts a responsibility in the wrong layer.\",\"violations\":[]}}",
+  "runIndex": 0,
+  "schemaVersion": 2,
+  "unitId": "src/application/catalogue/ListStockLevelsUseCase.ts",
+  "usage": {
+    "inputTokens": 3033,
+    "outputTokens": 494
+  },
+  "usedOptions": {
+    "effort": "high",
+    "model": "claude-opus-5-5"
+  }
+}

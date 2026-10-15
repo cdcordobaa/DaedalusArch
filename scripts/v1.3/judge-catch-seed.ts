@@ -32,7 +32,8 @@ const APPLY_SEED = 20261015;
 
 export interface SeedBase {
   readonly baseId: string;
-  readonly kind: 'reference-clean' | 'fixture' | 'near-miss';
+  /** `e1-cell` and `reference-violation` are round-2 bases (`judge-catch2-seed.ts`). */
+  readonly kind: 'reference-clean' | 'fixture' | 'near-miss' | 'e1-cell' | 'reference-violation';
   readonly style: string;
   readonly dir: string;
   readonly specPath: string;
@@ -57,11 +58,11 @@ export interface SeedRow {
   readonly copyDir: string;
 }
 
-function positiveOf(op: MutationOperator): string {
+export function positiveOf(op: MutationOperator): string {
   return op.id.endsWith('n') ? op.id.slice(0, -1) : op.id;
 }
 
-function copyDir(src: string, dest: string): void {
+export function copyDir(src: string, dest: string): void {
   fs.rmSync(dest, { recursive: true, force: true });
   fs.mkdirSync(path.dirname(dest), { recursive: true });
   fs.cpSync(src, dest, { recursive: true });
@@ -95,7 +96,7 @@ async function contextOf(repoRoot: string, base: SeedBase, handle: ProjectHandle
   };
 }
 
-async function eligibleSites(repoRoot: string, base: SeedBase, op: MutationOperator): Promise<{ candidates: number; eligible: MutationSite[]; rejected: Record<string, number> }> {
+export async function eligibleSites(repoRoot: string, base: SeedBase, op: MutationOperator): Promise<{ candidates: number; eligible: MutationSite[]; rejected: Record<string, number> }> {
   const compiled = await loadCompiledSpec(repoRoot, base.specPath);
   if (!compiled.success) throw new Error(compiled.errors.map((e) => e.message).join('; '));
   const handle = openImportGraphProject(base.dir, 'tsconfig.json');
@@ -105,20 +106,20 @@ async function eligibleSites(repoRoot: string, base: SeedBase, op: MutationOpera
   return { candidates: candidates.length, eligible: tally.eligible.map((e) => e.site), rejected: { ...tally.rejectedByReason } as Record<string, number> };
 }
 
-function typecheck(repoRoot: string, dir: string): string[] {
-  const tsc = path.resolve(repoRoot, 'node_modules/typescript/lib/tsc.js');
+/** `tsc` defaults to the repository's tsc (round 1); round 2 passes the E1 skeleton's pinned tsc for E1 cells. */
+export function typecheck(repoRoot: string, dir: string, tsc: string = path.resolve(repoRoot, 'node_modules/typescript/lib/tsc.js')): string[] {
   const r = spawnSync(process.execPath, [tsc, '--noEmit', '-p', path.join(dir, 'tsconfig.json')], { encoding: 'utf8', timeout: 300_000 });
   const out = `${r.stdout}${r.stderr}`;
   return r.status === 0 ? [] : out.split('\n').filter((l) => /error TS\d+/.test(l)).map((l) => l.replace(dir + path.sep, ''));
 }
 
-async function applyOne(repoRoot: string, base: SeedBase, op: MutationOperator, site: MutationSite, dest: string): Promise<Pick<SeedRow, 'status' | 'editedFiles' | 'createdFiles' | 'typecheckErrors'>> {
+export async function applyOne(repoRoot: string, base: SeedBase, op: MutationOperator, site: MutationSite, dest: string, tsc?: string): Promise<Pick<SeedRow, 'status' | 'editedFiles' | 'createdFiles' | 'typecheckErrors'>> {
   copyDir(base.dir, dest);
   const handle = openImportGraphProject(dest, 'tsconfig.json');
   const r = op.apply(handle, site, mulberry32(APPLY_SEED));
   if (!r.success) return { status: 'apply-error', editedFiles: [], createdFiles: [], typecheckErrors: r.errors.map((e) => e.message) };
   await handle.project.save();
-  const errors = typecheck(repoRoot, dest);
+  const errors = typecheck(repoRoot, dest, tsc);
   return { status: errors.length === 0 ? 'ok' : 'typecheck', editedFiles: r.data.editedFiles, createdFiles: r.data.createdFiles, typecheckErrors: errors };
 }
 

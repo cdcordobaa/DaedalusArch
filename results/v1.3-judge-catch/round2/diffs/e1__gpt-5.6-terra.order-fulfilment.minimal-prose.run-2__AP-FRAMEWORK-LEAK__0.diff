@@ -1,0 +1,17 @@
+diff -ruN -x node_modules a/src/application/catalogue-service.ts b/src/application/catalogue-service.ts
+--- a/src/application/catalogue-service.ts	2026-10-15 12:42:22
++++ b/src/application/catalogue-service.ts	2026-10-15 12:42:13
+@@ -2,11 +2,12 @@
+ import { DomainError } from "../domain/errors";
+ import { Product } from "../domain/product";
+ import { ProductRepository } from "../domain/repositories";
++import { Request } from "express";
+ 
+ export class CatalogueService {
+   public constructor(private readonly products: ProductRepository) {}
+ 
+-  public addProduct(input: CreateProductDto): ProductDto {
++  public addProduct(input: CreateProductDto, request?: Request): ProductDto {
+     if (this.products.findById(input.id)) throw new DomainError("A product with this id already exists");
+     const product = new Product(input.id, input.name, input.stock);
+     this.products.save(product);

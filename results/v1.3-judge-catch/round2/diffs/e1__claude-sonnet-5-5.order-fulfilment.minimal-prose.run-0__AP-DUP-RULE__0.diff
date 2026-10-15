@@ -1,0 +1,21 @@
+diff -ruN -x node_modules a/src/application/AdvanceOrderUseCase.ts b/src/application/AdvanceOrderUseCase.ts
+--- a/src/application/AdvanceOrderUseCase.ts	2026-10-15 12:42:23
++++ b/src/application/AdvanceOrderUseCase.ts	2026-10-15 12:41:47
+@@ -1,6 +1,7 @@
+ import { DomainError } from "../domain/DomainError";
+ import { OrderRepository } from "../domain/OrderRepository";
+ import { OrderDto, toOrderDto } from "./dto";
++import { isOrderStatus } from "../domain/OrderState";
+ 
+ export class AdvanceOrderUseCase {
+   constructor(private readonly orders: OrderRepository) {}
+@@ -11,5 +12,9 @@
+     order.advance();
+     await this.orders.save(order);
+     return toOrderDto(order);
++  }
++
++  validateExecute(status: unknown): void {
++    if (!isOrderStatus(status)) throw new DomainError("invalid", "Unknown order state");
+   }
+ }

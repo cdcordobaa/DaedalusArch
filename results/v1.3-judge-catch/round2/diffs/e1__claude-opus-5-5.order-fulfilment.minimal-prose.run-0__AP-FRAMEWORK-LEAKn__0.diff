@@ -1,0 +1,21 @@
+diff -ruN -x node_modules a/src/application/AdvanceOrderUseCase.ts b/src/application/AdvanceOrderUseCase.ts
+--- a/src/application/AdvanceOrderUseCase.ts	2026-10-15 12:42:23
++++ b/src/application/AdvanceOrderUseCase.ts	2026-10-15 12:42:15
+@@ -14,7 +14,7 @@
+     private readonly clock: Clock,
+   ) {}
+ 
+-  execute(orderId: string, target: OrderStatus): OrderDto {
++  execute(orderId: string, target: OrderStatus, context?: ExecuteContextDto): OrderDto {
+     const order = loadOrder(this.orders, orderId);
+     order.advanceTo(target, this.clock.now());
+ 
+@@ -24,4 +24,8 @@
+     this.orders.save(order);
+     return toOrderDto(order);
+   }
++}
++
++export interface ExecuteContextDto {
++  readonly requestId?: string;
+ }

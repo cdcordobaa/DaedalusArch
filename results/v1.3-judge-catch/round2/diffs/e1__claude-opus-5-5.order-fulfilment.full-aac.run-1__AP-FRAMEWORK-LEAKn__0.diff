@@ -1,0 +1,16 @@
+diff -ruN -x node_modules a/src/application/catalogue/ListStockLevelsUseCase.ts b/src/application/catalogue/ListStockLevelsUseCase.ts
+--- a/src/application/catalogue/ListStockLevelsUseCase.ts	2026-10-15 12:42:23
++++ b/src/application/catalogue/ListStockLevelsUseCase.ts	2026-10-15 12:42:13
+@@ -9,7 +9,11 @@
+ export class ListStockLevelsUseCase implements ListStockLevels {
+   constructor(private readonly products: ProductRepository) {}
+ 
+-  execute(): StockLevelDto[] {
++  execute(context?: ExecuteContextDto): StockLevelDto[] {
+     return this.products.findAll().map(toStockLevelDto);
+   }
++}
++
++export interface ExecuteContextDto {
++  readonly requestId?: string;
+ }

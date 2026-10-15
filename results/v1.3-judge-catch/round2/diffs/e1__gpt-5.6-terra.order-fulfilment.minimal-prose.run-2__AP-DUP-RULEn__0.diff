@@ -1,0 +1,44 @@
+diff -ruN -x node_modules a/src/application/catalogue-service.ts b/src/application/catalogue-service.ts
+--- a/src/application/catalogue-service.ts	2026-10-15 12:42:22
++++ b/src/application/catalogue-service.ts	2026-10-15 12:41:55
+@@ -1,7 +1,8 @@
+-import { CreateProductDto, ProductDto } from "./dtos";
++import { CreateProductDto, ProductDto, PlaceOrderDto } from "./dtos";
+ import { DomainError } from "../domain/errors";
+ import { Product } from "../domain/product";
+ import { ProductRepository } from "../domain/repositories";
++import { assertCombineItemsRule } from "./order-service";
+ 
+ export class CatalogueService {
+   public constructor(private readonly products: ProductRepository) {}
+@@ -19,5 +20,9 @@
+ 
+   private toDto(product: Product): ProductDto {
+     return { id: product.id, name: product.name, stock: product.stock };
++  }
++
++  validateCombineItems(items: PlaceOrderDto["items"]): void {
++    assertCombineItemsRule(items);
+   }
+ }
+diff -ruN -x node_modules a/src/application/order-service.ts b/src/application/order-service.ts
+--- a/src/application/order-service.ts	2026-10-15 12:42:22
++++ b/src/application/order-service.ts	2026-10-15 12:41:55
+@@ -62,7 +62,7 @@
+   }
+ 
+   private combineItems(items: PlaceOrderDto["items"]): OrderItem[] {
+-    if (!Array.isArray(items) || items.length === 0) throw new DomainError("An order requires at least one item");
++    assertCombineItemsRule(items);
+     const quantities = new Map<string, number>();
+     for (const item of items) {
+       if (!item || !item.productId || !Number.isInteger(item.quantity) || item.quantity <= 0) {
+@@ -82,4 +82,8 @@
+   private toDto(order: Order): OrderDto {
+     return { id: order.id, state: order.state, items: order.items.map((item) => ({ ...item })) };
+   }
++}
++
++export function assertCombineItemsRule(items: PlaceOrderDto["items"]): void {
++  if (!Array.isArray(items) || items.length === 0) throw new DomainError("An order requires at least one item");
+ }

@@ -1,0 +1,51 @@
+{
+  "attempts": 1,
+  "cliVersion": "2.1.294",
+  "configListingSha256": "47aa04258852fab9a706f3f0c14cee22306d69fbb6fdfbde8c11854bd54997bc",
+  "durationMs": 8731,
+  "effort": "high",
+  "functionId": "FF-N02",
+  "ignoredOptions": [
+    "maxTokens"
+  ],
+  "isolationProbeSha256": "97a2e2d0af1100c13c55e028c1a0c71f069093c3d08705af122aaeb302f1a641",
+  "key": "401851eee23402987d456f132431b236911eefd1464e57f94a736a40d66d36ac-r0-0",
+  "model": "claude-opus-5-5",
+  "outcome": {
+    "kind": "valid"
+  },
+  "parsedVerdict": {
+    "confidence": 0.93,
+    "evidence": [
+      "src/domain/entities/Member.ts: `static fromRequest(request: Request): Member` builds the entity directly from an Express HTTP request, which is transport/framework logic belonging to infrastructure/presentation.",
+      "src/domain/entities/Member.ts: `const body = request.body; return new Member(String(body['id']), ..., Number(body['maxActiveLoans']))` parses and converts the HTTP request body, which is adapter work belonging to infrastructure/presentation.",
+      "src/domain/entities/Member.ts: the constructor checks `email.includes('@')` and `maxActiveLoans < 1` and throws DomainError. These are proper domain invariants and fit the domain layer."
+    ],
+    "pass": false,
+    "reasoning": "Member.ts is declared in the domain layer. Its constructor holds domain invariants (a valid email and maxActiveLoans >= 1), and those fit the domain role. The static factory `Member.fromRequest(request: Request)` is different: it takes an Express HTTP request, reads `request.body`, and turns untyped transport payload fields into a Member. Mapping HTTP requests to domain objects is a transport/presentation job, which belongs in a controller or adapter in the infrastructure or presentation layer. It is not a domain responsibility. So the file carries a misplaced framework/transport responsibility. I judged this on responsibility only; import direction is out of scope.",
+    "violations": [
+      {
+        "filePath": "src/domain/entities/Member.ts",
+        "message": "Static method `fromRequest(request: Request)` maps an Express HTTP request body into a Member entity. This is transport/framework logic that belongs in an infrastructure (or presentation) controller or adapter, not in a domain entity."
+      }
+    ]
+  },
+  "prompt": "## Rule\nThe unit's responsibilities match the role of its declared layer.\n\n## Rubric\nPass: Every responsibility in the file belongs to the role and kind of its declared layer, and agrees with any ADR prose given.\nFail: The file carries a responsibility that belongs to a different layer kind, for example persistence, transport or framework logic in a domain file, or business rules in an infrastructure or presentation file.\nEvidence required: Name the file and cite the function, method or statement that carries the misplaced responsibility, and the layer kind it belongs to.\nOut of scope: import direction and layer-dependency rules, which are checked symbolically.\n\n## Layer model\n- domain (kind: domain): src/domain/**\n- application (kind: application): src/application/**\n- infrastructure (kind: infrastructure): src/infrastructure/**\n\n## Unit\nKind: file\nId: src/domain/entities/Member.ts\nLayer: domain\nUnit files:\n- src/domain/entities/Member.ts\n\n## Source\n=====SOURCE-BEGIN src/domain/entities/Member.ts=====\nimport type { Request } from 'express';\nimport { DomainError } from '../errors/DomainError';\n\nexport class Member {\n  constructor(\n    readonly id: string,\n    readonly name: string,\n    readonly email: string,\n    readonly maxActiveLoans: number,\n  ) {\n    if (!email.includes('@')) throw new DomainError('INVALID_MEMBER', `Invalid e-mail: ${email}`);\n    if (maxActiveLoans < 1) throw new DomainError('INVALID_MEMBER', 'A member may borrow at least one book');\n  }\n\n  static fromRequest(request: Request): Member {\n    const body = request.body;\n    return new Member(String(body['id']), String(body['name']), String(body['email']), Number(body['maxActiveLoans']));\n  }\n}\n\n=====SOURCE-END=====\n\n## Graph excerpt\n{\"edges\":[{\"from\":\"src/domain/entities/Member.ts\",\"to\":\"express\",\"type\":\"IMPORTS\"},{\"from\":\"src/domain/entities/Member.ts\",\"to\":\"src/domain/errors/DomainError.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/domain/repositories/MemberRepository.ts\",\"to\":\"src/domain/entities/Member.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/domain/services/LoanPolicy.ts\",\"to\":\"src/domain/entities/Member.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/infrastructure/persistence/InMemoryMemberRepository.ts\",\"to\":\"src/domain/entities/Member.ts\",\"type\":\"IMPORTS\"}],\"nodes\":[{\"kind\":\"Class\",\"layer\":\"domain\",\"name\":\"Member\",\"path\":\"src/domain/entities/Member.ts\"},{\"kind\":\"File\",\"layer\":\"domain\",\"path\":\"src/domain/entities/Member.ts\"},{\"kind\":\"File\",\"layer\":\"domain\",\"path\":\"src/domain/errors/DomainError.ts\"},{\"kind\":\"File\",\"layer\":\"domain\",\"path\":\"src/domain/repositories/MemberRepository.ts\"},{\"kind\":\"File\",\"layer\":\"domain\",\"path\":\"src/domain/services/LoanPolicy.ts\"},{\"kind\":\"File\",\"layer\":\"infrastructure\",\"path\":\"src/infrastructure/persistence/InMemoryMemberRepository.ts\"},{\"kind\":\"Package\",\"layer\":null,\"path\":\"express\"}]}\n\n## Instructions\nJudge the unit against the rule and rubric. Return the JSON object the schema requires. Set pass to false if any file of the unit fails the rubric.\n",
+  "provider": "claude-cli",
+  "recordedAt": "2026-10-15T18:10:12.729Z",
+  "repetition": 0,
+  "requestHash": "401851eee23402987d456f132431b236911eefd1464e57f94a736a40d66d36ac",
+  "resolvedModel": "claude-opus-5-5",
+  "response": "{\"is_error\":false,\"modelUsage\":{\"claude-opus-5-5\":{\"inputTokens\":2,\"outputTokens\":694}},\"result\":\"{\\\"pass\\\":false,\\\"confidence\\\":0.93,\\\"reasoning\\\":\\\"Member.ts is declared in the domain layer. Its constructor holds domain invariants (a valid email and maxActiveLoans >= 1), and those fit the domain role. The static factory `Member.fromRequest(request: Request)` is different: it takes an Express HTTP request, reads `request.body`, and turns untyped transport payload fields into a Member. Mapping HTTP requests to domain objects is a transport/presentation job, which belongs in a controller or adapter in the infrastructure or presentation layer. It is not a domain responsibility. So the file carries a misplaced framework/transport responsibility. I judged this on responsibility only; import direction is out of scope.\\\",\\\"evidence\\\":[\\\"src/domain/entities/Member.ts: `static fromRequest(request: Request): Member` builds the entity directly from an Express HTTP request, which is transport/framework logic belonging to infrastructure/presentation.\\\",\\\"src/domain/entities/Member.ts: `const body = request.body; return new Member(String(body['id']), ..., Number(body['maxActiveLoans']))` parses and converts the HTTP request body, which is adapter work belonging to infrastructure/presentation.\\\",\\\"src/domain/entities/Member.ts: the constructor checks `email.includes('@')` and `maxActiveLoans < 1` and throws DomainError. These are proper domain invariants and fit the domain layer.\\\"],\\\"violations\\\":[{\\\"filePath\\\":\\\"src/domain/entities/Member.ts\\\",\\\"message\\\":\\\"Static method `fromRequest(request: Request)` maps an Express HTTP request body into a Member entity. This is transport/framework logic that belongs in an infrastructure (or presentation) controller or adapter, not in a domain entity.\\\"}]}\",\"structured_output\":{\"confidence\":0.93,\"evidence\":[\"src/domain/entities/Member.ts: `static fromRequest(request: Request): Member` builds the entity directly from an Express HTTP request, which is transport/framework logic belonging to infrastructure/presentation.\",\"src/domain/entities/Member.ts: `const body = request.body; return new Member(String(body['id']), ..., Number(body['maxActiveLoans']))` parses and converts the HTTP request body, which is adapter work belonging to infrastructure/presentation.\",\"src/domain/entities/Member.ts: the constructor checks `email.includes('@')` and `maxActiveLoans < 1` and throws DomainError. These are proper domain invariants and fit the domain layer.\"],\"pass\":false,\"reasoning\":\"Member.ts is declared in the domain layer. Its constructor holds domain invariants (a valid email and maxActiveLoans >= 1), and those fit the domain role. The static factory `Member.fromRequest(request: Request)` is different: it takes an Express HTTP request, reads `request.body`, and turns untyped transport payload fields into a Member. Mapping HTTP requests to domain objects is a transport/presentation job, which belongs in a controller or adapter in the infrastructure or presentation layer. It is not a domain responsibility. So the file carries a misplaced framework/transport responsibility. I judged this on responsibility only; import direction is out of scope.\",\"violations\":[{\"filePath\":\"src/domain/entities/Member.ts\",\"message\":\"Static method `fromRequest(request: Request)` maps an Express HTTP request body into a Member entity. This is transport/framework logic that belongs in an infrastructure (or presentation) controller or adapter, not in a domain entity.\"}]}}",
+  "runIndex": 0,
+  "schemaVersion": 2,
+  "unitId": "src/domain/entities/Member.ts",
+  "usage": {
+    "inputTokens": 2680,
+    "outputTokens": 694
+  },
+  "usedOptions": {
+    "effort": "high",
+    "model": "claude-opus-5-5"
+  }
+}
