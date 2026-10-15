@@ -1598,3 +1598,11 @@ Plan checkboxes ticked. Auto-approved under standing approval; no blocking or ma
 **Context**: v1.3 exploratory; the semantic layer (Pass 1) design is pending the author's answers (fixed prompts vs agent; thesis vs next step; first semantic question).
 
 ---
+
+## v1.3 — integration check + dev-set re-run with member facts merged
+**Timestamp**: 2026-10-15T18:40:00Z
+**User Input**: (none)
+**AI Response**: "PR #94 (0440d49) merged. Integration of #89/#90: tsc clean; 1597 tests pass (104 suites) + 81 golden; prereg v25 ok; v1.2E extraction byte-identical on 21 fixtures; the DDD member-fact Cypher ran on Neo4j for the first time and passed. Dev set (development numbers, nothing tuned): only DDD g01 (now a TP via the setter accessor) and v03 (evidence text) changed; DDD recall 9/9; pooled blocking recall/precision against the author-manifests 57/57 and 57/57; against the blind manifests 53/67 and 53/57 (the gap is construct reading, which awaits the author's decisions). Two live runs byte-identical."
+**Context**: v1.3 — the tool is complete on the development set against the author-manifests; the remaining gap is definitional.
+
+---
