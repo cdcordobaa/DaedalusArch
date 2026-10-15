@@ -1,5 +1,7 @@
 # APG v2 ablation: what only the new edges reveal (2026-10-15)
 
+> **Superseded in part (note 2026-10-16).** After the scope change of `Docs/v1.3/apg2-scope-adr-draft.md`, the ablation result is **25/27**, not 27/27: CP4 and CP5 (main-sequence distance, 2 types each, under the minimum of 4) are lost. See `Docs/DiagnosticRuns/apg2-scope-2026-10-15.md`, "Summary". The "All 47 cases agree" and "27 / 27" statements below describe the pre-scope templates. This document is otherwise left as written.
+
 Branch `v1.3-apg2`, base `origin/v1.3` at `3e2c96ae`. Node v22.22.0, dependency-cruiser 18.4.0 (`experiments/tool-comparison/depcruise`, `npm ci`). Design: `Docs/v1.3/apg2-design.md`.
 
 **Status:** a diagnostic run on a planted fixture suite. It is not a registered analysis and has no pre-registration (author decision). It shows which planted facts each representation can and cannot express. It does not estimate detection rates on real code.

@@ -49,7 +49,7 @@ These move blocking rows on a construct the sources leave open, or they redefine
 - **R and P.** Blocking recall (R) and blocking precision (P), as found/expected and correct/reported, for the styles the question moves.
 - **"x → y".** x is the current tool (after-fixes `raw/`). y is the tool after the code change the option implies, assumed to be done exactly. A single figure means the option needs no code change, or only a tier or preset entry.
 
-[^1]: Revision 0 reported that adopting every recommendation yields 56/56 after the implied changes. That holds by construction: the reference is redefined per option, so the tool after the change matches it. It is not evidence for any option.
+[^1]: Revision 0 reported that adopting every recommendation yields 56/56 after the implied changes. That holds by construction: the reference is redefined per option, so the tool after the change matches it. It is not evidence for any option. (Note 2026-10-16: with the 3 FF-P06 FLOWS_TO rows reported N/A, as `rule-tiers.md` requires and as Q8 B recommends, the status-quo author view is 53/54 recall and 53/53 precision after fixes, and 54/54 after member facts, not 56/57, 56/56 or 57/57. See `Docs/DiagnosticRuns/v1.3-reference-after-member-facts-2026-10-15.md`, "Correction (2026-10-16)".)
 
 ## Summary
 
@@ -804,7 +804,7 @@ export interface WaitlistRepository {
 - Re-score `construct-decisions-impact.csv` with the revision 1 recommendations held fixed, if the figures are to be quoted anywhere.
 - The numbers here are not to be quoted as validity. The sealed hold-out set measures validity.
 
-*Method.* The rows were dumped from `results/v1.3-reference/after-fixes/` (`raw/`, the author-manifests, the blind manifests with `alsoMatches` expanded, cycles keyed on their file set), with the same matching as `scripts/v1.3/lib/compare.ts`. The figures were then re-scored offline per option, holding the other questions at their revision 0 recommendations. With every question at its current behaviour, the script reproduces the after-fixes report exactly (author R 56/57, P 56/56; blind R 52/67, P 52/56). Type-only status was read from the blind graph's `typeOnly` flags. In revision 1 the CSV's option letters were changed to the status-quo-first order of this page, and its `recommended` column was updated; no figure was changed. Q5 option D has no rows in the CSV.
+*Method.* The rows were dumped from `results/v1.3-reference/after-fixes/` (`raw/`, the author-manifests, the blind manifests with `alsoMatches` expanded, cycles keyed on their file set), with the same matching as `scripts/v1.3/lib/compare.ts`. The figures were then re-scored offline per option, holding the other questions at their revision 0 recommendations. With every question at its current behaviour, the script reproduces the after-fixes report exactly (author R 56/57, P 56/56; blind R 52/67, P 52/56). These are the after-fixes figures as reported, with the 3 FF-P06 FLOWS_TO rows counted as blocking TPs. With those rows N/A, as the sealed tier row requires, they are author R 53/54, P 53/53; blind R 49/64, P 49/53 (note 2026-10-16). Type-only status was read from the blind graph's `typeOnly` flags. In revision 1 the CSV's option letters were changed to the status-quo-first order of this page, and its `recommended` column was updated; no figure was changed. Q5 option D has no rows in the CSV.
 
 ---
 

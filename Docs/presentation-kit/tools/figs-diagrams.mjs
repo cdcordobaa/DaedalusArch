@@ -78,12 +78,12 @@ const LINKS = [
     { name: 'Reference set', ev: '5 reference projects, 71 variants (52 planted, 14 near-misses, 5 clean), hand-written expected graphs and manifests.', status: [['done', 'built']], file: 'Docs/v1.3-reference-notes.md · Docs/v1.3-ddd-notes.md' },
   ] },
   { group: 'Link 3 · rules', color: C.layer['adapters-outbound'], rows: [
-    { name: 'Rules, author view', ev: 'Blocking recall 57/57, precision 57/57; clean controls 5/5 pass; 0/14 near-misses with a blocking false alarm.', status: [['done', 'done on dev set']], file: 'Docs/DiagnosticRuns/v1.3-reference-after-member-facts-2026-10-15.md' },
-    { name: 'Rules, blind view', ev: 'Blocking recall 53/67, precision 53/57 against independently written manifests; 39 disagreement rows await the author.', status: [['done', 'done on dev set'], ['defined', 'adjudication pending']], file: 'same doc, §3 · results/v1.3-reference/after-member-facts/adjudication.csv' },
+    { name: 'Rules, author view', ev: 'Blocking recall 54/54, precision 54/54 (3 FF-P06 rows N/A); clean controls 5/5 pass; 0/14 near-misses with a blocking false alarm.', status: [['done', 'done on dev set']], file: 'Docs/DiagnosticRuns/v1.3-reference-after-member-facts-2026-10-15.md' },
+    { name: 'Rules, blind view', ev: 'Blocking recall 50/64, precision 50/54 against independently written manifests; 39 disagreement rows await the author.', status: [['done', 'done on dev set'], ['defined', 'adjudication pending']], file: 'same doc, §3 · results/v1.3-reference/after-member-facts/adjudication.csv' },
     { name: 'APG v2 rules', ev: 'APG v2 detects 25/27 planted cases (import graph: 0/27); 0 blocking rows on the 19 clean and near-miss variants after the scope fix.', status: [['done', 'done on dev set']], file: 'Docs/DiagnosticRuns/apg2-scope-2026-10-15.md' },
   ] },
   { group: 'Link 4 · meaning', color: C.layer['adapters-inbound'], rows: [
-    { name: 'LLM judge', ev: 'Catches 30/35 planted anti-patterns; fails 4/50 neutral twins. Construct sensitivity, n = 35.', status: [['done', 'done on dev set']], file: 'Docs/DiagnosticRuns/v1.3-duprule-v2-2026-10-15.md' },
+    { name: 'LLM judge', ev: 'Catches 30/35 seeds, 9 of them confounded (DUP-RULE); 13/16 on the two unconfounded operators; fails 4/50 twins; DDD not judged.', status: [['done', 'done on dev set']], file: 'Docs/DiagnosticRuns/v1.3-duprule-v2-2026-10-15.md' },
     { name: 'Labelling + hold-out', ev: '"Correct": 2,668/2,668 checkable findings. "Meaningful": not measured yet. Two-human protocol written. Hold-out run: once, after freeze.', status: [['defined', 'defined, not run'], ['sealed', 'sealed']], file: 'Docs/DiagnosticRuns/v1.3-labelling-2026-10-15.md · Docs/v1.3/human-labelling-protocol.md · Docs/v1.3/holdout-prespec.md' },
   ] },
 ];
@@ -156,10 +156,10 @@ const LINKS = [
 **Numbers and sources (row by row).**
 - Graph fidelity: E1 72 projects, refCoveredByApg 0.996684 and apgConfirmedByRef 0.991602 against tsc (= dependency-cruiser on E1); SO4 scoped against tsc 0.966302 / 0.943257; extractor-bug (unexplained) 0 / 0. \`Docs/DiagnosticRuns/v1.3-graph-fidelity-2026-10-14.md\`, "Headline" and "Disagreement classes". The \`human_verdict\` column is still empty ("What to fix", item 5).
 - Reference set: 5 projects, 71 variants; 5 clean, 14 near-misses, 52 planted (\`results/v1.3-reference/after-member-facts/report.md\`: variants 14+13+14+15+15 = 71; planted detected denominators 10+9+10+11+12 = 52). \`Docs/v1.3-reference-notes.md\`, \`Docs/v1.3-ddd-notes.md\`.
-- Rules, author view: pooled blocking recall 57/57, precision 57/57; 5/5 clean variants pass; 0/14 near-misses with a blocking false positive. \`Docs/DiagnosticRuns/v1.3-reference-after-member-facts-2026-10-15.md\` §3.
-- Rules, blind view: pooled blocking recall 53/67, precision 53/57 (blind, expanded); adjudication rows 39. Same doc §3 and \`results/v1.3-reference/after-member-facts/adjudication.csv\`.
+- Rules, author view: pooled blocking recall 54/54, precision 54/54, with the 3 FF-P06 FLOWS_TO rows N/A by \`Docs/v1.3/rule-tiers.md\` (was 57/57; after-member-facts doc, "Correction (2026-10-16)"); 5/5 clean variants pass; 0/14 near-misses with a blocking false positive. \`Docs/DiagnosticRuns/v1.3-reference-after-member-facts-2026-10-15.md\` §3.
+- Rules, blind view: pooled blocking recall 50/64, precision 50/54 (blind, expanded; FF-P06 FLOWS_TO rows N/A, was 53/67 and 53/57); adjudication rows 39. Same doc §3 and \`results/v1.3-reference/after-member-facts/adjudication.csv\`.
 - APG v2: ablation recall after scope 25/27; blocking rows on the 19 clean and near-miss variants 29 → 0. \`Docs/DiagnosticRuns/apg2-scope-2026-10-15.md\`, "Summary".
-- LLM judge: pooled seeds 30/35 = 0.86 [0.71, 0.94]; twin false fail with v2 in place 4/50 = 0.08 [0.03, 0.19]. \`Docs/DiagnosticRuns/v1.3-duprule-v2-2026-10-15.md\` §3, "Pooled across rounds".
+- LLM judge: pooled seeds 30/35 = 0.86 [0.71, 0.94], which includes 9 DUP-RULE seeds whose construct is confounded with the twin's cue (round 2 §3; duprule-v2 doc), and DDD was never judged. Defensible: FRAMEWORK-LEAK + PERSIST-IN-DOMAIN, round 2 13/16 = 0.81 [0.57, 0.93]; both rounds 16/21 = 0.76 [0.55, 0.89] (\`results/v1.3-judge-catch/{scores.json,round2/scores.json}\`); twin false fail with v2 in place 4/50 = 0.08 [0.03, 0.19]. \`Docs/DiagnosticRuns/v1.3-duprule-v2-2026-10-15.md\` §3, "Pooled across rounds".
 - Labelling: all 2,668 checkable findings correct; "meaningful" not measured (labeller hit its usage limit). \`Docs/DiagnosticRuns/v1.3-labelling-2026-10-15.md\`, "Summary". Human protocol "defined; nothing labelled yet": \`Docs/v1.3/human-labelling-protocol.md\`. Hold-out "draft, to be frozen", run once: \`Docs/v1.3/holdout-prespec.md\`.
 
 **Caveats to say.** The development set is AI-written; no human labels exist yet; the hold-out has not run; the judge figures rest on n = 35 seeds.
