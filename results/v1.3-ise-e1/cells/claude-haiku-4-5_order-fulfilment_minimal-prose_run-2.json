@@ -1,0 +1,180 @@
+{
+ "id": "claude-haiku-4-5_order-fulfilment_minimal-prose_run-2",
+ "projectId": "claude-haiku-4-5/order-fulfilment/minimal-prose/run-2",
+ "model": "claude-haiku-4-5",
+ "task": "order-fulfilment",
+ "level": "minimal-prose",
+ "run": "run-2",
+ "files": 16,
+ "ise": {
+  "style": "clean-architecture",
+  "confidence": 1,
+  "points": 9,
+  "totalPoints": 9,
+  "runnerUp": null,
+  "evidence": [
+   "+3 top-level domain + application + infrastructure directories",
+   "+1 top-level core/domain directory",
+   "+1 top-level application/use-case directory",
+   "+1 top-level infrastructure directory",
+   "+1 use-case directory",
+   "+2 dependency inversion: 2/2 cross-unit implements point inward, one outer ring"
+  ],
+  "ranked": [
+   {
+    "style": "clean-architecture",
+    "points": 9,
+    "confidence": 1
+   },
+   {
+    "style": "layered",
+    "points": 0,
+    "confidence": 0
+   },
+   {
+    "style": "hexagonal",
+    "points": 0,
+    "confidence": 0
+   },
+   {
+    "style": "nestjs",
+    "points": 0,
+    "confidence": 0
+   },
+   {
+    "style": "ddd",
+    "points": 0,
+    "confidence": 0
+   }
+  ],
+  "abstains": false,
+  "abstainReasons": [],
+  "styleMatch": true,
+  "units": [
+   {
+    "unit": "src/application/",
+    "layer": "application",
+    "source": "preset-glob",
+    "confidence": 0.9
+   },
+   {
+    "unit": "src/domain/",
+    "layer": "domain",
+    "source": "preset-glob",
+    "confidence": 0.9
+   },
+   {
+    "unit": "src/infrastructure/",
+    "layer": "infrastructure",
+    "source": "preset-glob",
+    "confidence": 0.9
+   },
+   {
+    "unit": "src/server.ts",
+    "layer": null,
+    "source": "none",
+    "confidence": 0.5
+   }
+  ],
+  "structureOnlyUnits": 0,
+  "unlayeredFiles": 1,
+  "layers": [
+   {
+    "name": "domain",
+    "directories": [
+     "src/domain/**"
+    ],
+    "filePatterns": []
+   },
+   {
+    "name": "application",
+    "directories": [
+     "src/application/**"
+    ],
+    "filePatterns": []
+   },
+   {
+    "name": "infrastructure",
+    "directories": [
+     "src/infrastructure/**"
+    ],
+    "filePatterns": []
+   }
+  ],
+  "specValid": true,
+  "specErrors": [],
+  "majorityVoteRules": 18
+ },
+ "extrinsic": {
+  "label": "given",
+  "style": "clean-architecture",
+  "verdict": "pass",
+  "blockingAhs": 1,
+  "layeredFiles": 15,
+  "checkedSites": 43,
+  "violatedSites": [],
+  "violatedInChecked": 0,
+  "siteRatio": 1,
+  "blockingFindings": 0,
+  "advisoryFindings": 18,
+  "blockingByRule": {},
+  "advisoryByRule": {
+   "FF-C03": 2,
+   "FF-CV05": 14,
+   "FF-P02": 2
+  },
+  "blockingPerFile": {},
+  "advisoryPerFile": {
+   "src/application/usecases/CancelOrderUseCase.ts": 2,
+   "src/application/usecases/GetStockLevelsUseCase.ts": 1,
+   "src/application/usecases/ListOrdersByStatusUseCase.ts": 1,
+   "src/application/usecases/PlaceOrderUseCase.ts": 2,
+   "src/application/usecases/UpdateOrderStatusUseCase.ts": 1,
+   "src/domain/entities/Order.ts": 1,
+   "src/domain/entities/Product.ts": 1,
+   "src/domain/repositories/OrderRepository.ts": 1,
+   "src/domain/repositories/ProductRepository.ts": 1,
+   "src/domain/services/StockManager.ts": 1,
+   "src/infrastructure/app.ts": 2,
+   "src/infrastructure/controllers/OrderController.ts": 2,
+   "src/infrastructure/repositories/InMemoryOrderRepository.ts": 1,
+   "src/infrastructure/repositories/InMemoryProductRepository.ts": 1
+  }
+ },
+ "intrinsic": {
+  "label": "inferred",
+  "style": "clean-architecture",
+  "verdict": "pass",
+  "blockingAhs": 1,
+  "layeredFiles": 15,
+  "checkedSites": 43,
+  "violatedSites": [],
+  "violatedInChecked": 0,
+  "siteRatio": 1,
+  "blockingFindings": 0,
+  "advisoryFindings": 18,
+  "blockingByRule": {},
+  "advisoryByRule": {
+   "FF-C03": 2,
+   "FF-CV05": 14,
+   "FF-P02": 2
+  },
+  "blockingPerFile": {},
+  "advisoryPerFile": {
+   "src/application/usecases/CancelOrderUseCase.ts": 2,
+   "src/application/usecases/GetStockLevelsUseCase.ts": 1,
+   "src/application/usecases/ListOrdersByStatusUseCase.ts": 1,
+   "src/application/usecases/PlaceOrderUseCase.ts": 2,
+   "src/application/usecases/UpdateOrderStatusUseCase.ts": 1,
+   "src/domain/entities/Order.ts": 1,
+   "src/domain/entities/Product.ts": 1,
+   "src/domain/repositories/OrderRepository.ts": 1,
+   "src/domain/repositories/ProductRepository.ts": 1,
+   "src/domain/services/StockManager.ts": 1,
+   "src/infrastructure/app.ts": 2,
+   "src/infrastructure/controllers/OrderController.ts": 2,
+   "src/infrastructure/repositories/InMemoryOrderRepository.ts": 1,
+   "src/infrastructure/repositories/InMemoryProductRepository.ts": 1
+  }
+ }
+}
