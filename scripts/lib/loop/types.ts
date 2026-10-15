@@ -215,10 +215,53 @@ export interface StepRecord {
   readonly turns: readonly TurnRecord[];
   /** Gate arm: whether a repair turn ran and whether it cleared every blocking finding. */
   readonly repair: { readonly attempted: boolean; readonly blockingBefore: number | null; readonly blockingAfter: number | null; readonly cleared: boolean | null } | null;
+  /**
+   * Gate arm, when a repair ran and both snapshots were evaluated: finding by finding, which blocking findings the
+   * repair removed and which it introduced (`repairOutcome` in `loop.ts`).
+   */
+  readonly repairOutcome?: RepairOutcome;
+  /** The spec the step's snapshots were evaluated against, when the plan sets one per task (`specs.ts`). */
+  readonly evaluatorSpec?: StepSpecRef;
   /** Commit the next step starts from (the last turn's snapshot). */
   readonly finalCommit: string;
   /** Sum over the turns. */
   readonly cost: { readonly costUsd: number | null; readonly inputTokens: number | null; readonly outputTokens: number | null; readonly wallMs: number };
+}
+
+/**
+ * Identity of a blocking finding across snapshots: rule id, file and target; line numbers are ignored because they
+ * move (`Docs/v1.3/pilot-outcome-memo.md` §3).
+ */
+export interface RepairFindingOutcome {
+  readonly ruleId: string;
+  readonly filePath: string;
+  readonly target?: string;
+  /** Listed in the repair prompt (at most `MAX_REPAIR_FINDINGS` are). */
+  readonly shown: boolean;
+  /** No finding with the same identity remains after the repair. */
+  readonly removed: boolean;
+}
+
+/** What the gate's repair turn did to the blocking findings, by identity (null counts when the evaluation failed). */
+export interface RepairOutcome {
+  /** Distinct identities before the repair. */
+  readonly before: number;
+  readonly shown: number;
+  readonly removed: number;
+  readonly remaining: number;
+  /** Identities after the repair that were not there before. */
+  readonly introduced: number;
+  readonly findings: readonly RepairFindingOutcome[];
+  readonly introducedFindings: readonly { readonly ruleId: string; readonly filePath: string; readonly target?: string }[];
+}
+
+/** The evaluator spec of a step: a fixed file, or the run's spec frozen after step 1 (`spec/frozen-spec.yaml`). */
+export interface StepSpecRef {
+  readonly kind: 'static' | 'frozen-after-step-1';
+  /** Repository-relative for a static spec; run-directory-relative for a frozen one. */
+  readonly path: string;
+  /** Null when no spec could be frozen. */
+  readonly sha256: string | null;
 }
 
 /** `run.json` of a loop run: written once when the run directory is created, completed when the last step is done. */
