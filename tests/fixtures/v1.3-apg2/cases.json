@@ -1,0 +1,110 @@
+{
+  "description": "APG v2 ablation suite (Docs/DiagnosticRuns/apg2-ablation-2026-10-15.md). Each case: the APG v2 template that should (planted) or should not (near-miss, control) report it, the row fields that identify it, and the locus used to look for the same finding in the v1.3 rules and in dependency-cruiser.",
+  "projects": {
+    "type-flow": {
+      "layers": [
+        { "name": "domain", "directories": ["src/domain/**"], "kind": "domain" },
+        { "name": "application", "directories": ["src/application/**"], "kind": "application" },
+        { "name": "infrastructure", "directories": ["src/infrastructure/**"], "kind": "infrastructure" },
+        { "name": "presentation", "directories": ["src/presentation/**"], "kind": "presentation" }
+      ],
+      "components": "layers",
+      "forbiddenImports": ["typeorm", "fs", "axios"]
+    },
+    "components": { "layers": [], "components": "folders", "forbiddenImports": [] },
+    "components-flat": {
+      "layers": [],
+      "components": [
+        { "name": "core", "kind": "module", "include": ["src/lib/core-*.ts"] },
+        { "name": "plugins", "kind": "module", "include": ["src/lib/plugin-*.ts"] }
+      ],
+      "forbiddenImports": []
+    },
+    "public-api": {
+      "layers": [],
+      "components": [
+        { "name": "orders", "kind": "module", "include": ["src/orders/**"], "publicApi": ["src/orders/index.ts"] },
+        { "name": "payments", "kind": "module", "include": ["src/payments/**"] },
+        { "name": "checkout", "kind": "module", "include": ["src/checkout/**"] },
+        { "name": "reports", "kind": "module", "include": ["src/reports/**"] },
+        { "name": "ledger", "kind": "module", "include": ["src/ledger/**"] }
+      ],
+      "forbiddenImports": []
+    },
+    "async": { "layers": [], "components": "folders", "forbiddenImports": [], "allowedAsync": ["audit-log->orders"] },
+    "io": {
+      "layers": [
+        { "name": "domain", "directories": ["src/domain/**"], "kind": "domain" },
+        { "name": "application", "directories": ["src/application/**"], "kind": "application" },
+        { "name": "infrastructure", "directories": ["src/infrastructure/**"], "kind": "infrastructure" }
+      ],
+      "components": "layers",
+      "forbiddenImports": ["fs", "axios", "typeorm", "pg"]
+    },
+    "control-clean": {
+      "layers": [
+        { "name": "domain", "directories": ["src/domain/**"], "kind": "domain" },
+        { "name": "application", "directories": ["src/application/**"], "kind": "application" },
+        { "name": "infrastructure", "directories": ["src/infrastructure/**"], "kind": "infrastructure" },
+        { "name": "presentation", "directories": ["src/presentation/**"], "kind": "presentation" }
+      ],
+      "components": "layers",
+      "forbiddenImports": ["fs", "axios", "typeorm", "pg"],
+      "allowedAsync": ["infrastructure->application"]
+    }
+  },
+  "cases": [
+    { "id": "TF1", "project": "type-flow", "enrichment": "type-flow", "kind": "planted", "title": "Controller returns a persistence model through an inferred Promise<UserRecord>", "template": "boundary-type-leak", "match": { "member": "UserController.get", "leakedType": "UserRecord" }, "locus": { "source": "src/presentation/user.controller.ts", "target": "src/infrastructure/user.record.ts" } },
+    { "id": "TF2", "project": "type-flow", "enrichment": "type-flow", "kind": "planted", "title": "Inferred Promise<Array<OrderRow>> (generic, array, interface)", "template": "boundary-type-leak", "match": { "member": "UserController.orders", "leakedType": "OrderRow" }, "locus": { "source": "src/presentation/user.controller.ts", "target": "src/infrastructure/order.row.ts" } },
+    { "id": "TF3", "project": "type-flow", "enrichment": "type-flow", "kind": "planted", "title": "Parameter typed Parameters<UserRepository['save']>[0] (derived type, no import of the record)", "template": "boundary-type-leak", "match": { "member": "UserController.update", "leakedType": "UserRecord" }, "locus": { "source": "src/presentation/user.controller.ts", "target": "src/infrastructure/user.record.ts" } },
+    { "id": "TF4", "project": "type-flow", "enrichment": "type-flow", "kind": "planted", "title": "Anonymous object return type { user: UserRecord }", "template": "boundary-type-leak", "match": { "member": "UserController.profile", "leakedType": "UserRecord" }, "locus": { "source": "src/presentation/user.controller.ts", "target": "src/infrastructure/user.record.ts" } },
+    { "id": "TF5", "project": "type-flow", "enrichment": "type-flow", "kind": "planted", "title": "Explicit UserRecord[] return with an allowed-direction import (the import exists; its use in the signature is the fact)", "template": "boundary-type-leak", "match": { "member": "AdminController.dump", "leakedType": "UserRecord" }, "locus": { "source": "src/presentation/admin.controller.ts", "target": "src/infrastructure/user.record.ts" } },
+    { "id": "NM-TF1", "project": "type-flow", "enrichment": "type-flow", "kind": "near-miss", "title": "Record mapped to a DTO before it is returned", "template": "boundary-type-leak", "match": { "member": "UserController.getDto" } },
+    { "id": "NM-TF2", "project": "type-flow", "enrichment": "type-flow", "kind": "near-miss", "title": "Private helper returning the record", "template": "boundary-type-leak", "match": { "member": "UserController.raw" } },
+    { "id": "NM-TF3", "project": "type-flow", "enrichment": "type-flow", "kind": "near-miss", "title": "Protected helper returning the record", "template": "boundary-type-leak", "match": { "member": "UserController.rawProtected" } },
+    { "id": "NM-TF4", "project": "type-flow", "enrichment": "type-flow", "kind": "near-miss", "title": "Application service exposing a domain type (domain is not internal)", "template": "boundary-type-leak", "match": { "member": "UserService.find" } },
+
+    { "id": "CP1", "project": "components", "enrichment": "components", "kind": "planted", "title": "Two-component cycle billing <-> shipping with no file cycle", "template": "component-adp-cycle", "match": { "component": "shipping", "target": "billing" }, "locus": { "source": "src/shipping/tracker.ts", "target": "src/billing/rates.ts", "dcFrom": "src/shipping", "dcTo": "src/billing" } },
+    { "id": "CP2", "project": "components", "enrichment": "components", "kind": "planted", "title": "Three-component cycle catalog -> pricing -> promo -> catalog", "template": "component-adp-cycle", "match": { "component": "promo", "target": "catalog" }, "locus": { "source": "src/promo/banner.ts", "target": "src/catalog/category.ts", "dcFrom": "src/promo", "dcTo": "src/catalog" } },
+    { "id": "CP3", "project": "components", "enrichment": "components", "kind": "planted", "title": "Stable kernel (I=0.17) depends on unstable plugins (I=0.5): SDP", "template": "component-sdp-violation", "match": { "component": "kernel", "target": "plugins" }, "locus": { "source": "src/kernel/registry.ts", "target": "src/plugins/loader.ts", "dcFrom": "src/kernel", "dcTo": "src/plugins" } },
+    { "id": "CP4", "project": "components", "enrichment": "components", "kind": "planted", "title": "Concrete, stable kernel: zone of pain (A=0, I=0.17, D=0.83)", "template": "component-main-sequence-distance", "match": { "component": "kernel" }, "locus": { "source": "src/kernel/registry.ts" } },
+    { "id": "CP5", "project": "components", "enrichment": "components", "kind": "planted", "title": "Abstract, unstable contracts: zone of uselessness (A=1, I=1, D=1)", "template": "component-main-sequence-distance", "match": { "component": "contracts" }, "locus": { "source": "src/contracts/api.ts" } },
+    { "id": "CP6", "project": "components-flat", "enrichment": "components", "kind": "planted", "title": "Module cycle core <-> plugins between glob-declared modules in one folder", "template": "component-adp-cycle", "match": { "component": "plugins", "target": "core" }, "locus": { "source": "src/lib/plugin-hooks.ts", "target": "src/lib/core-config.ts", "dcFrom": "src/lib", "dcTo": "src/lib" } },
+    { "id": "NM-CP1", "project": "components", "enrichment": "components", "kind": "near-miss", "title": "File cycle inside one component (audit/a <-> audit/b): no component cycle; v1.3 no-cyclic-deps reports the file cycle", "template": "component-adp-cycle", "match": { "component": "audit" }, "locus": { "source": "src/audit/a.ts", "target": "src/audit/b.ts" } },
+    { "id": "NM-CP2", "project": "components", "enrichment": "components", "kind": "near-miss", "title": "Unstable plugins (0.5) depends on stable vendor-a (0): no SDP", "template": "component-sdp-violation", "match": { "component": "plugins" } },
+    { "id": "NM-CP3", "project": "components", "enrichment": "components", "kind": "near-miss", "title": "vendor-a: stable but half abstract (D=0.5)", "template": "component-main-sequence-distance", "match": { "component": "vendor-a" } },
+
+    { "id": "PA1", "project": "public-api", "enrichment": "public-api", "kind": "planted", "title": "Deep import into the declared public API of orders", "template": "deep-import-declared-api", "match": { "filePath": "src/checkout/checkout.ts", "target": "src/orders/internal/order-repo.ts" }, "locus": { "source": "src/checkout/checkout.ts", "target": "src/orders/internal/order-repo.ts" } },
+    { "id": "PA2", "project": "public-api", "enrichment": "public-api", "kind": "planted", "title": "Deep import behind an inferred entry file (payments/index.ts)", "template": "deep-import-inferred-api", "match": { "filePath": "src/checkout/checkout.ts", "target": "src/payments/gateway/stripe.ts" }, "locus": { "source": "src/checkout/checkout.ts", "target": "src/payments/gateway/stripe.ts" } },
+    { "id": "PA3", "project": "public-api", "enrichment": "public-api", "kind": "planted", "title": "Type-only deep import", "template": "deep-import-declared-api", "match": { "filePath": "src/checkout/summary.ts", "target": "src/orders/internal/order-row.ts" }, "locus": { "source": "src/checkout/summary.ts", "target": "src/orders/internal/order-row.ts" } },
+    { "id": "PA4", "project": "public-api", "enrichment": "public-api", "kind": "planted", "title": "Deep import through a path alias (@app/orders/internal/...)", "template": "deep-import-declared-api", "match": { "filePath": "src/reports/report.ts", "target": "src/orders/internal/order-repo.ts" }, "locus": { "source": "src/reports/report.ts", "target": "src/orders/internal/order-repo.ts" } },
+    { "id": "NM-PA1", "project": "public-api", "enrichment": "public-api", "kind": "near-miss", "title": "Import through the orders barrel", "template": "deep-import-declared-api", "match": { "target": "src/orders/index.ts" } },
+    { "id": "NM-PA2", "project": "public-api", "enrichment": "public-api", "kind": "near-miss", "title": "Import of a module with no entry files (ledger)", "template": "deep-import-inferred-api", "match": { "target": "src/ledger/ledger.ts" } },
+    { "id": "NM-PA3", "project": "public-api", "enrichment": "public-api", "kind": "near-miss", "title": "Deep path inside the component itself", "template": "deep-import-declared-api", "match": { "filePath": "src/orders/order.service.ts" } },
+
+    { "id": "AS1", "project": "async", "enrichment": "async", "kind": "planted", "title": "Node EventEmitter channel order.placed: orders -> billing, no import between them", "template": "undeclared-async-coupling", "match": { "channel": "order.placed", "publisherComponent": "orders", "subscriberComponent": "billing" }, "locus": { "source": "src/orders/order.service.ts", "target": "src/billing/billing.listener.ts" } },
+    { "id": "AS2", "project": "async", "enrichment": "async", "kind": "planted", "title": "@nestjs/event-emitter emit + @OnEvent: orders -> notifications", "template": "undeclared-async-coupling", "match": { "channel": "order.cancelled", "subscriberComponent": "notifications" }, "locus": { "source": "src/orders/order.service.ts", "target": "src/notifications/notifier.ts" } },
+    { "id": "AS3", "project": "async", "enrichment": "async", "kind": "planted", "title": "bullmq Queue('restock').add + new Worker('restock'): inventory -> reports", "template": "undeclared-async-coupling", "match": { "channel": "restock", "publisherComponent": "inventory", "subscriberComponent": "reports" }, "locus": { "source": "src/inventory/restock.ts", "target": "src/reports/workers.ts" } },
+    { "id": "AS4", "project": "async", "enrichment": "async", "kind": "planted", "title": "kafkajs producer.send / consumer.subscribe topic invoice.issued: billing -> reports", "template": "undeclared-async-coupling", "match": { "channel": "invoice.issued", "publisherComponent": "billing", "subscriberComponent": "reports" }, "locus": { "source": "src/billing/invoice.publisher.ts", "target": "src/reports/workers.ts" } },
+    { "id": "AS5", "project": "async", "enrichment": "async", "kind": "planted", "title": "@nestjs/cqrs EventBus.publish(new OrderShipped) + @EventsHandler(OrderShipped)", "template": "undeclared-async-coupling", "match": { "channel": "OrderShipped", "subscriberComponent": "notifications" }, "locus": { "source": "src/orders/order.service.ts", "target": "src/notifications/notifier.ts" } },
+    { "id": "NM-AS1", "project": "async", "enrichment": "async", "kind": "near-miss", "title": "Computed event name bus.emit(eventName)", "template": "undeclared-async-coupling", "match": { "subscriberComponent": "shared" } },
+    { "id": "NM-AS2", "project": "async", "enrichment": "async", "kind": "near-miss", "title": "A project Logger.emit is not an emitter", "template": "undeclared-async-coupling", "match": { "publisherComponent": "orders", "subscriberComponent": "orders" } },
+    { "id": "NM-AS3", "project": "async", "enrichment": "async", "kind": "near-miss", "title": "Publisher and subscriber in one component (order.audited)", "template": "undeclared-async-coupling", "match": { "channel": "order.audited" } },
+    { "id": "NM-AS4", "project": "async", "enrichment": "async", "kind": "near-miss", "title": "Allowed pair audit-log->orders", "template": "undeclared-async-coupling", "match": { "subscriberComponent": "audit-log" } },
+
+    { "id": "IO1", "project": "io", "enrichment": "io", "kind": "planted", "title": "Date.now() in a domain entity (clock)", "template": "nondeterminism-in-core", "match": { "member": "Order.place", "category": "clock" }, "locus": { "source": "src/domain/order.ts" } },
+    { "id": "IO2", "project": "io", "enrichment": "io", "kind": "planted", "title": "new Date() in a domain entity (clock)", "template": "nondeterminism-in-core", "match": { "member": "Order.stamp", "category": "clock" }, "locus": { "source": "src/domain/order.ts" } },
+    { "id": "IO3", "project": "io", "enrichment": "io", "kind": "planted", "title": "Math.random() and crypto.randomUUID() in a domain service (random)", "template": "nondeterminism-in-core", "match": { "member": "IdGenerator.next", "category": "random" }, "locus": { "source": "src/domain/id-generator.ts" } },
+    { "id": "IO4", "project": "io", "enrichment": "io", "kind": "planted", "title": "process.env in an application service (env)", "template": "nondeterminism-in-core", "match": { "member": "PaymentService.charge", "category": "env" }, "locus": { "source": "src/application/payment.service.ts" } },
+    { "id": "IO5", "project": "io", "enrichment": "io", "kind": "planted", "title": "Global fetch() in an application service (http-out), no import", "template": "io-outside-adapters", "match": { "member": "PaymentService.charge", "category": "http-out" }, "locus": { "source": "src/application/payment.service.ts" } },
+    { "id": "IO6", "project": "io", "enrichment": "io", "kind": "planted", "title": "TypeORM repository.find() in an application service (db)", "template": "io-outside-adapters", "match": { "member": "ReportService.load", "category": "db" }, "locus": { "source": "src/application/report.service.ts", "target": "typeorm" } },
+    { "id": "IO7", "project": "io", "enrichment": "io", "kind": "planted", "title": "fs.readFileSync in an application service (fs)", "template": "io-outside-adapters", "match": { "member": "ReportService.template", "category": "fs" }, "locus": { "source": "src/application/report.service.ts", "target": "fs" } },
+    { "id": "NM-IO1", "project": "io", "enrichment": "io", "kind": "near-miss", "title": "new Date(iso) converts, reads no clock", "template": "nondeterminism-in-core", "match": { "member": "Order.restore" } },
+    { "id": "NM-IO2", "project": "io", "enrichment": "io", "kind": "near-miss", "title": "Calling a domain Clock port", "template": "nondeterminism-in-core", "match": { "member": "Deadline.expired" } },
+    { "id": "NM-IO3", "project": "io", "enrichment": "io", "kind": "near-miss", "title": "Type-only import of fs in the domain, no call (v1.3 domain-purity reports the import)", "template": "io-outside-adapters", "match": { "filePath": "src/domain/stats.ts" }, "locus": { "source": "src/domain/stats.ts", "target": "fs" } },
+    { "id": "NM-IO4", "project": "io", "enrichment": "io", "kind": "near-miss", "title": "A project function named fetch", "template": "io-outside-adapters", "match": { "filePath": "src/application/local-fetch.ts" } },
+    { "id": "NM-IO5", "project": "io", "enrichment": "io", "kind": "near-miss", "title": "Date.now() and axios in infrastructure", "template": "nondeterminism-in-core", "match": { "layer": "infrastructure" } },
+
+    { "id": "CTL", "project": "control-clean", "enrichment": "all", "kind": "control", "title": "Clean control: every APG v2 template returns no row", "template": "*", "match": {} }
+  ]
+}

@@ -11,11 +11,14 @@ import type { CypherTemplate } from './types.js';
 import { HEXAGONAL_TEMPLATES } from './hexagonal-templates.js';
 import { DDD_TEMPLATES } from './ddd-templates.js';
 import { V13_CYPHER_TEMPLATES } from './v13-templates.js';
+import { APG2_TEMPLATES } from './apg2-templates.js';
 
 export const V13_EXTENSION_TEMPLATE_CATALOGUES: ReadonlyMap<string, ReadonlyMap<string, CypherTemplate>> = new Map([
   ['hexagonal', HEXAGONAL_TEMPLATES],
   ['module-wiring', V13_CYPHER_TEMPLATES],
   ['ddd', DDD_TEMPLATES],
+  // APG v2 generic templates (`apg2-templates.ts`); they need a graph extracted with `V13_APG2_OPTIONS`.
+  ['apg2', APG2_TEMPLATES],
 ]);
 
 /** The catalogue that holds a v1.3 extension template, or undefined. */

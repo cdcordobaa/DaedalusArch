@@ -47,6 +47,30 @@ export interface ExtractorOptions {
    * `member-facts.ts`; used by the v1.3 FF-DT03 value-object-immutability template.
    */
   memberFacts?: boolean;
+  /**
+   * APG v2 (`Docs/v1.3/apg2-design.md`), OFF in both `V12E_DEFAULT_OPTIONS` and `V13_DEFAULT_OPTIONS`; ON in
+   * `V13_APG2_OPTIONS`. Adds, after every v1.3 node and edge: SIGNATURE_USES (type flow through signatures), Component
+   * nodes with BELONGS_TO / DEPENDS_ON / EXPORTS_SYMBOL / DEEP_IMPORT and Martin's metrics, Channel nodes with
+   * PUBLISHES / SUBSCRIBES (async coupling), and IOCategory nodes with PERFORMS_IO. See `apg2/`.
+   */
+  apg2?: boolean;
+  /**
+   * APG v2 only: the components to build. Empty = the top-level folders under `src/` (else under the project root).
+   * `componentsFromLayerModel` (`apg2/components.ts`) derives them from a spec's layers and DDD contexts.
+   */
+  components?: readonly ComponentDeclaration[];
+}
+
+/** APG v2: one declared component (a layer, a module, or a folder); globs are project-relative. */
+export interface ComponentDeclaration {
+  readonly name: string;
+  readonly kind: 'layer' | 'module' | 'folder';
+  /** Files that belong to the component (first matching declaration of a kind wins, in declaration order). */
+  readonly include: readonly string[];
+  /** Matched only when no declaration of the kind matches by `include` (a layer's file-name patterns). */
+  readonly includeByName?: readonly string[];
+  /** Declared public entry files. When absent, the entry files are inferred (index files at the root, barrels). */
+  readonly publicApi?: readonly string[];
 }
 
 /** ADR-V13-01: see {@link ExtractorOptions.reExportEdges}. */
@@ -140,6 +164,8 @@ export const V12E_DEFAULT_OPTIONS: Readonly<Required<ExtractorOptions>> = Object
   moduleWiring: false,
   reExportEdges: 'resolved-only',
   memberFacts: false,
+  apg2: false,
+  components: [],
 });
 
 /**
@@ -152,6 +178,15 @@ export const V13_DEFAULT_OPTIONS: Readonly<Required<ExtractorOptions>> = Object.
   moduleWiring: true,
   reExportEdges: 'both',
   memberFacts: true,
+});
+
+/**
+ * APG v2 (`Docs/v1.3/apg2-design.md`): the v1.3 defaults plus the generic architectural edges. Not the default, so
+ * every v1.3 graph read by the existing templates, metrics and reports is unchanged.
+ */
+export const V13_APG2_OPTIONS: Readonly<Required<ExtractorOptions>> = Object.freeze({
+  ...V13_DEFAULT_OPTIONS,
+  apg2: true,
 });
 
 /** The defaults every extractor entry point applies on the v1.3 branch. */

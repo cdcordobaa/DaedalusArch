@@ -11,6 +11,7 @@ import type { ExtractorOptions, ExtractorError } from './types.js';
 import { DEFAULT_OPTIONS, DEFAULT_EXCLUDE_PATTERNS } from './types.js';
 import { extractNodes } from './node-extractor.js';
 import { extractEdges } from './edge-extractor.js';
+import { extractApg2 } from './apg2/index.js';
 
 /**
  * Standalone extraction function.
@@ -82,7 +83,16 @@ export async function extractAPG(
 
     // Extracted nodes first (unchanged order), then Package nodes by name (domain-entities.md §2.6).
     // No warnings argument: extractor warnings stay in APGResult.warnings (BR-U2-26, Q15 A).
-    return DR.ok<APGResult>({ nodes: [...nodes, ...packageNodes], edges, parseCoverage, warnings, importResolution, flowsTo });
+    const v13Nodes = [...nodes, ...packageNodes];
+    // APG v2 (`apg2` option, OFF in the v1.2E and v1.3 defaults): appended after every v1.3 node and edge, so the
+    // v1.3 part of the result is the same with the option on or off.
+    if (opts.apg2) {
+      const v2 = extractApg2(sourceFiles, lookup, absoluteProjectPath, v13Nodes, edges, opts.components);
+      return DR.ok<APGResult>({
+        nodes: [...v13Nodes, ...v2.nodes], edges: [...edges, ...v2.edges], parseCoverage, warnings, importResolution, flowsTo, apg2: v2.stats,
+      });
+    }
+    return DR.ok<APGResult>({ nodes: v13Nodes, edges, parseCoverage, warnings, importResolution, flowsTo });
 
   } catch (err) {
     return DR.fromError<APGResult>(err);
