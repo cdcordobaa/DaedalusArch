@@ -47,6 +47,7 @@ export default tseslint.config(
     },
   },
   {
-    ignores: ['dist/**', 'node_modules/**', 'coverage/**', '*.cjs', '*.mjs'],
+    // src/cypher-interp/generated: ANTLR output (scripts/v1.3/gen-cypher-parser.sh), not hand-written.
+    ignores: ['dist/**', 'node_modules/**', 'coverage/**', '*.cjs', '*.mjs', 'src/cypher-interp/generated/**'],
   },
 );
