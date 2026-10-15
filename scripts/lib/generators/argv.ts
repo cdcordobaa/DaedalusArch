@@ -35,7 +35,7 @@ export function bashAllowRule(harnessRoot: string, runId: string): string {
 
 export function buildGeneratorArgs(
   config: GeneratorCliConfig,
-  req: GenerationRequest,
+  req: Pick<GenerationRequest, 'runId'>,
   prompt: string,
 ): readonly string[] {
   const args: string[] = [
