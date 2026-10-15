@@ -1,0 +1,20 @@
+diff -ruN a/src/application/place-order-use-case.ts b/src/application/place-order-use-case.ts
+--- a/src/application/place-order-use-case.ts
++++ b/src/application/place-order-use-case.ts
+@@ -14,11 +14,15 @@
+   ) {}
+ 
+   async execute(request: PlaceOrderRequest): Promise<OrderDto> {
+-    if (!request.customerId) throw new InvalidRequestError("customerId is required");
++    assertExecuteRule(request);
+     const lines = request.items.map((item) => new OrderLine(item.productId, item.quantity));
+     const order = new Order(this.ids.next(), request.customerId, lines);
+     await this.reservations.reserve(order.lines);
+     await this.orders.save(order);
+     return toOrderDto(order);
+   }
++}
++
++function assertExecuteRule(request: PlaceOrderRequest): void {
++  if (!request.customerId) throw new InvalidRequestError("customerId is required");
+ }

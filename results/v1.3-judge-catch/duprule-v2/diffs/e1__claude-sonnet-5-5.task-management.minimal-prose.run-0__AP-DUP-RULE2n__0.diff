@@ -1,0 +1,22 @@
+diff -ruN a/src/application/create-project-use-case.ts b/src/application/create-project-use-case.ts
+--- a/src/application/create-project-use-case.ts
++++ b/src/application/create-project-use-case.ts
+@@ -11,11 +11,15 @@
+   ) {}
+ 
+   async execute(dto: CreateProjectDto): Promise<Project> {
+-    if (typeof dto.name !== "string" || dto.name.trim() === "") {
+-      throw new ValidationError("name is required");
+-    }
++    assertExecuteRule(dto);
+     const project = new Project(this.ids.next(), dto.name.trim());
+     await this.projects.save(project);
+     return project;
+   }
++}
++
++function assertExecuteRule(dto: CreateProjectDto): void {
++  if (typeof dto.name !== "string" || dto.name.trim() === "") {
++        throw new ValidationError("name is required");
++      }
+ }

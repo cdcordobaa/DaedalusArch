@@ -1,0 +1,14 @@
+diff -ruN a/src/application/advance-order-use-case.ts b/src/application/advance-order-use-case.ts
+--- a/src/application/advance-order-use-case.ts
++++ b/src/application/advance-order-use-case.ts
+@@ -19,4 +19,10 @@
+     this.orders.save(order);
+     return toOrderDto(order);
+   }
++
++  validateExecute(status: unknown): void {
++    if (!isOrderStatus(status)) {
++          throw new DomainError("VALIDATION", "Query parameter 'status' must be a valid order status");
++        }
++  }
+ }
