@@ -36,18 +36,18 @@ No hash values appear in this kit. Sealed material (the hold-out manifests, the 
 
 | Number | Meaning | Set | Figures | Source |
 |---|---|---|---|---|
-| 13/13, 11/11, 11/11, 13/13, 7/9; pooled 55/57 = 0.96 [0.88, 0.99] | blocking recall before (U-E baseline, author view, cycle-normalised) | Dev | F3 | `Docs/DiagnosticRuns/v1.3-reference-after-fixes-2026-10-15.md` §1, "Blocking recall", column "Author: before" |
-| 13/14, 11/64, 11/11, 13/14, 7/7; pooled 55/110 = 0.50 [0.41, 0.59] | blocking precision before (same view) | Dev | F3 | same, "Blocking precision" |
-| 50/110 = 0.45 | the same baseline's precision in the runner's literal-key view | Dev | F3 caption/footer | same, "The other two views"; `Docs/DiagnosticRuns/v1.3-reference-baseline-2026-10-15.md` |
-| 13/13, 11/11, 11/11, 13/13, 9/9; pooled 57/57 = 1.00 [0.94, 1.00] | blocking recall and precision now (after fixes + member facts), author view | Dev | F1, F3, F3b, D3 | `Docs/DiagnosticRuns/v1.3-reference-after-member-facts-2026-10-15.md` §3, "Per style, author view" |
-| 13/15, 7/10, 11/14, 13/19, 9/9; pooled 53/67 = 0.79 [0.68, 0.87] | blocking recall now, blind (expanded) manifests | Dev | F1, F3b | same §3, "Per style, blind (expanded), blocking" and the pooled table |
-| 13/13, 7/11, 11/11, 13/13, 9/9; pooled 53/57 = 0.93 [0.83, 0.97] | blocking precision now, blind (expanded) | Dev | F1, F3b | same |
+| 12/12, 11/11, 10/10, 12/12, 7/9; pooled 52/54 = 0.96 [0.87, 0.99]; 3 FF-P06 FLOWS_TO rows N/A (was 55/57) | blocking recall before (U-E baseline, author view, cycle-normalised) | Dev | F3 | `Docs/DiagnosticRuns/v1.3-reference-after-member-facts-2026-10-15.md`, "Correction (2026-10-16)"; `scripts/v1.3/ffp06-na-recount.mjs`; uncorrected: after-fixes doc §1, "Blocking recall", column "Author: before" |
+| 12/13, 11/64, 10/10, 12/13, 7/7; pooled 52/107 = 0.49 [0.39, 0.58] (was 55/110) | blocking precision before (same view) | Dev | F3 | same |
+| 47/107 = 0.44 (was 50/110 = 0.45) | the same baseline's precision in the runner's literal-key view, FF-P06 FLOWS_TO rows N/A | Dev | F3 caption/footer | same, "The other two views"; `Docs/DiagnosticRuns/v1.3-reference-baseline-2026-10-15.md` |
+| 12/12, 11/11, 10/10, 12/12, 9/9; pooled 54/54 = 1.00 [0.93, 1.00]; 3 FF-P06 FLOWS_TO rows N/A, recall unestimated (was 57/57) | blocking recall and precision now (after fixes + member facts), author view | Dev | F1, F3, F3b, D3 | `Docs/DiagnosticRuns/v1.3-reference-after-member-facts-2026-10-15.md`, "Correction (2026-10-16)"; `scripts/v1.3/ffp06-na-recount.mjs` |
+| 12/14, 7/10, 10/13, 12/18, 9/9; pooled 50/64 = 0.78 [0.67, 0.86] (was 53/67) | blocking recall now, blind (expanded) manifests | Dev | F1, F3b | same |
+| 12/12, 7/11, 10/10, 12/12, 9/9; pooled 50/54 = 0.93 [0.82, 0.97] (was 53/57) | blocking precision now, blind (expanded) | Dev | F1, F3b | same |
 | 39 | adjudication rows (disagreements awaiting the author) | Dev | F1, F3b | same §3 ("adjudication rows 40 → 39"); `results/v1.3-reference/after-member-facts/adjudication.csv` |
 | 4/5 → 5/5 | clean variants passing the blocking verdict | Dev | F1, F3 | after-fixes doc §1, "Negative control, near-misses, planted rule"; unchanged after member facts (§3) |
 | 5/14 → 0/14 | near-misses with a blocking false positive | Dev | F1, F3 | same |
 | 6/14 → 1/14 | near-misses with any scored false positive (left: nestjs n03, FF-P02, advisory) | Dev | F3 | same |
 | −53 rows; 11/64 → 11/11 | FF-P06 made not applicable in layered (fix 3) | Dev | F3 caption | after-fixes doc §3, fix 3 |
-| 8/9 → 9/9 (ddd), 56/57 → 57/57 (pooled) | effect of member facts (g01 found) | Dev | B2 | after-member-facts doc §3 |
+| 8/9 → 9/9 (ddd), 53/54 → 54/54 (pooled; was 56/57 → 57/57 before the FF-P06 correction) | effect of member facts (g01 found) | Dev | B2 | after-member-facts doc §3 and "Correction (2026-10-16)" |
 | 71 variants; 5 clean, 14 near-miss, 52 planted; 146 files | the reference set | Dev | F1, D4, reference-projects.md | `results/v1.3-reference/after-member-facts/report.md` (variants, planted); after-fixes doc §1 (clean, near-miss); `Docs/DiagnosticRuns/cheap-semantics-2026-10-15.md` §5 (files) |
 | 2,668 / 2,668 | checkable findings labelled "correct" | Dev | F1 | `Docs/DiagnosticRuns/v1.3-labelling-2026-10-15.md`, "Summary" |
 
@@ -73,7 +73,7 @@ No hash values appear in this kit. Sealed material (the hold-out manifests, the 
 | 8/8; 10/13 = 0.77 [0.50, 0.92] (E1 6/8, hand 4/5); 3/3; pooled 21/24 = 0.88 [0.69, 0.96] | round 2 catch (DUP-RULE E1, FRAMEWORK-LEAK combined, PERSIST-IN-DOMAIN hand-planted, pooled) | Dev | F6 | `Docs/DiagnosticRuns/v1.3-judge-catch-round2-2026-10-15.md` §3 |
 | 5/14 = 0.36 [0.16, 0.61]; 1/24 = 0.04 [0.01, 0.20] | round 2 twin false fails; clean-unit false fails | Dev | F6 | same |
 | 9/9 = 1.00 [0.70, 1.00]; 2/9 = 0.22 [0.06, 0.55]; 2/14 = 0.14 [0.04, 0.40] | DUP-RULE v2: seeds caught; twin false fails; clean units | Dev | F6, F7 | `Docs/DiagnosticRuns/v1.3-duprule-v2-2026-10-15.md` §3 |
-| 30/35 = 0.86 [0.71, 0.94] | pooled seeds caught, all rounds | Dev | F1, F6, D3 | same, "Pooled across rounds" |
+| 30/35 = 0.86 [0.71, 0.94] | pooled seeds caught, all rounds. **Qualified (2026-10-16):** includes 9 DUP-RULE seeds whose construct is confounded with its twin's cue, and DDD was never judged. Defensible: FRAMEWORK-LEAK + PERSIST-IN-DOMAIN, round 2 13/16 = 0.81 [0.57, 0.93]; both rounds 16/21 = 0.76 [0.55, 0.89] | Dev | F1, F6, D3 | same, "Pooled across rounds"; `results/v1.3-judge-catch/{scores.json,round2/scores.json}` |
 | 8/47 = 0.17 [0.09, 0.30] → 4/50 = 0.08 [0.03, 0.19] | pooled twin false fails, v1 twin → v2 twin | Dev | F1, F6 | same |
 | 12/17 | FRAMEWORK-LEAK pooled over rounds | Dev | F6 caption | same, "Pooled across rounds" |
 | 11/11 = 1.00 [0.74, 1.00]; 9/11; 0/11 | round-1 seeds: cheap proxy (primary) / judge / symbolic rules | Dev | F7 | `Docs/DiagnosticRuns/cheap-semantics-2026-10-15.md` §2–3 |

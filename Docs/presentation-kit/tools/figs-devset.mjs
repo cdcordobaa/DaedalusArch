@@ -5,13 +5,16 @@ import { pbars, legendRow, whiskerNote } from './charts.mjs';
 const STYLES = ['clean-architecture', 'layered', 'nestjs', 'hexagonal', 'ddd'];
 // Author view (cycle-normalised = the runner's view). Before = U-E baseline (baseline-pre-barrel);
 // after = after-member-facts. Sources: after-fixes doc §1 ("Author: before"), after-member-facts doc §3.
-const REC = { before: [[13, 13], [11, 11], [11, 11], [13, 13], [7, 9]], after: [[13, 13], [11, 11], [11, 11], [13, 13], [9, 9]] };
-const PRE = { before: [[13, 14], [11, 64], [11, 11], [13, 14], [7, 7]], after: [[13, 13], [11, 11], [11, 11], [13, 13], [9, 9]] };
-const POOL = { recB: [55, 57], recA: [57, 57], preB: [55, 110], preA: [57, 57] };
+// Corrected 2026-10-16: the 3 FF-P06 FLOWS_TO rows (clean v08, nestjs v10, hexagonal v10) are N/A by the sealed
+// rule-tiers.md, so they are out of every count below (scripts/v1.3/ffp06-na-recount.mjs; after-member-facts doc,
+// "Correction (2026-10-16)").
+const REC = { before: [[12, 12], [11, 11], [10, 10], [12, 12], [7, 9]], after: [[12, 12], [11, 11], [10, 10], [12, 12], [9, 9]] };
+const PRE = { before: [[12, 13], [11, 64], [10, 10], [12, 13], [7, 7]], after: [[12, 12], [11, 11], [10, 10], [12, 12], [9, 9]] };
+const POOL = { recB: [52, 54], recA: [54, 54], preB: [52, 107], preA: [54, 54] };
 // Blind (expanded) view after member facts: after-member-facts doc §3 "Per style, blind (expanded), blocking".
-const BREC = [[13, 15], [7, 10], [11, 14], [13, 19], [9, 9]];
-const BPRE = [[13, 13], [7, 11], [11, 11], [13, 13], [9, 9]];
-const BPOOL = { rec: [53, 67], pre: [53, 57] };
+const BREC = [[12, 14], [7, 10], [10, 13], [12, 18], [9, 9]];
+const BPRE = [[12, 12], [7, 11], [10, 10], [12, 12], [9, 9]];
+const BPOOL = { rec: [50, 64], pre: [50, 54] };
 
 const rowsOf = (A, B, pooledA, pooledB, cA, cB) => [
   ...STYLES.map((s, i) => ({ label: s, bars: [{ k: A[i][0], n: A[i][1], color: cA }, { k: B[i][0], n: B[i][1], color: cB }] })),
@@ -50,11 +53,11 @@ const rowsOf = (A, B, pooledA, pooledB, cA, cB) => [
   const height = y + 90;
   const svg = frame({
     title: 'Development set: before and after the fix round',
-    subtitle: 'Author-written manifests, 71 variants of 5 reference projects. Precision went from 55/110 to 57/57; recall from 55/57 to 57/57.',
+    subtitle: 'Author-written manifests, 71 variants of 5 reference projects. Precision went from 52/107 to 54/54; recall from 52/54 to 54/54 (3 FF-P06 rows N/A).',
     badgeKind: 'dev',
     body: b,
     height,
-    footer: ['Before: Docs/DiagnosticRuns/v1.3-reference-after-fixes-2026-10-15.md §1 ("Author: before", cycle-normalised; results/v1.3-reference/baseline-pre-barrel/). After: Docs/DiagnosticRuns/v1.3-reference-after-member-facts-2026-10-15.md §3 (results/v1.3-reference/after-member-facts/scores.json).', 'Literal-key view of the baseline runner: precision 50/110 = 0.45 (after-fixes §1, "other two views"). Controls: after-fixes §1 "Negative control, near-misses"; unchanged after member facts (§3).'],
+    footer: ['Before: Docs/DiagnosticRuns/v1.3-reference-after-fixes-2026-10-15.md §1 ("Author: before", cycle-normalised; results/v1.3-reference/baseline-pre-barrel/). After: Docs/DiagnosticRuns/v1.3-reference-after-member-facts-2026-10-15.md §3 (results/v1.3-reference/after-member-facts/scores.json).', 'Literal-key view of the baseline runner: precision 47/107 = 0.44. 3 FF-P06 FLOWS_TO rows are N/A (rule-tiers.md); correction: after-member-facts doc, "Correction (2026-10-16)". Controls: after-fixes §1.'],
   });
   save(FIG, 'F3-devset-before-after', svg, `
 # F3 · devset-before-after
@@ -66,9 +69,10 @@ const rowsOf = (A, B, pooledA, pooledB, cA, cB) => [
 **One idea.** On the development set, the fixes removed every blocking false alarm without losing a planted violation. It is not a validity estimate: these are the cases the fixes were made against.
 
 **Numbers and sources.**
-- Before, author view (cycle-normalised): recall 13/13, 11/11, 11/11, 13/13, 7/9, pooled 55/57 = 0.96 [0.88, 0.99]; precision 13/14, **11/64**, 11/11, 13/14, 7/7, pooled **55/110 = 0.50** [0.41, 0.59]. \`Docs/DiagnosticRuns/v1.3-reference-after-fixes-2026-10-15.md\` §1, "Blocking recall" and "Blocking precision", column "Author: before".
-- The often-quoted **0.45** is the same baseline in the runner's literal-key view: 50/110 (same doc §1, "The other two views"; also \`Docs/DiagnosticRuns/v1.3-reference-baseline-2026-10-15.md\`). The chart uses the cycle-normalised view on both sides so that before and after are comparable.
-- After: recall 13/13, 11/11, 11/11, 13/13, 9/9, pooled **57/57 = 1.00 [0.94, 1.00]**; precision the same, pooled **57/57 = 1.00 [0.94, 1.00]**. \`Docs/DiagnosticRuns/v1.3-reference-after-member-facts-2026-10-15.md\` §3, "Per style, author view".
+- **Correction (2026-10-16).** The 3 FF-P06 FLOWS_TO rows (clean v08, nestjs v10, hexagonal v10) are N/A under the sealed \`Docs/v1.3/rule-tiers.md\` and are out of every count here; recall for that half is unestimated. Before the correction the figures were 55/57 and 55/110 (before) and 57/57 (after). Source: \`Docs/DiagnosticRuns/v1.3-reference-after-member-facts-2026-10-15.md\`, "Correction (2026-10-16)"; \`scripts/v1.3/ffp06-na-recount.mjs\`.
+- Before, author view (cycle-normalised): recall 12/12, 11/11, 10/10, 12/12, 7/9, pooled 52/54 = 0.96 [0.87, 0.99]; precision 12/13, **11/64**, 10/10, 12/13, 7/7, pooled **52/107 = 0.49** [0.39, 0.58]. \`Docs/DiagnosticRuns/v1.3-reference-after-fixes-2026-10-15.md\` §1, "Blocking recall" and "Blocking precision", column "Author: before".
+- The often-quoted **0.45** is the same baseline in the runner's literal-key view: 50/110, or 47/107 = 0.44 with the FF-P06 rows N/A (same doc §1, "The other two views"; also \`Docs/DiagnosticRuns/v1.3-reference-baseline-2026-10-15.md\`). The chart uses the cycle-normalised view on both sides so that before and after are comparable.
+- After: recall 12/12, 11/11, 10/10, 12/12, 9/9, pooled **54/54 = 1.00 [0.93, 1.00]**; precision the same, pooled **54/54 = 1.00 [0.93, 1.00]**. \`Docs/DiagnosticRuns/v1.3-reference-after-member-facts-2026-10-15.md\` §3, "Per style, author view".
 - Clean variants passing 4/5 → 5/5; near-misses with a blocking false positive 5/14 → 0/14; with any scored false positive 6/14 → 1/14. after-fixes §1, "Negative control, near-misses, planted rule"; unchanged after member facts (after-member-facts §3, "The unchanged rows").
 - What changed: layered precision 11/64 → 11/11 is fix 3 (FF-P06 not applicable in layered, −53 rows); ddd recall 7/9 → 8/9 is fix 6 (barrel literal edge), 8/9 → 9/9 is member facts (B2).
 
@@ -109,11 +113,12 @@ const rowsOf = (A, B, pooledA, pooledB, cA, cB) => [
 
 **What it shows.** The current tool run (after member facts) scored against two answer keys: the author-manifests (blue), written by the people who could see the rules, and the blind manifests (purple), written by a separate agent that saw only the source, the style sources and the rule names (validation protocol §1). Blocking recall and precision per style and pooled, 95% Wilson whiskers.
 
-**One idea.** Against an independent answer key the tool looks weaker (recall 53/67), and most of the gap is a disagreement about what the style means, which the author must adjudicate.
+**One idea.** Against an independent answer key the tool looks weaker (recall 50/64), and most of the gap is a disagreement about what the style means, which the author must adjudicate.
 
 **Numbers and sources.** \`Docs/DiagnosticRuns/v1.3-reference-after-member-facts-2026-10-15.md\` §3:
-- Author: recall and precision 13/13, 11/11, 11/11, 13/13, 9/9; pooled 57/57 and 57/57.
-- Blind (expanded): recall 13/15, 7/10, 11/14, 13/19, 9/9, pooled **53/67 = 0.79 [0.68, 0.87]**; precision 13/13, 7/11, 11/11, 13/13, 9/9, pooled **53/57 = 0.93 [0.83, 0.97]**.
+- Author: recall and precision 12/12, 11/11, 10/10, 12/12, 9/9; pooled 54/54 and 54/54.
+- Blind (expanded): recall 12/14, 7/10, 10/13, 12/18, 9/9, pooled **50/64 = 0.78 [0.67, 0.86]**; precision 12/12, 7/11, 10/10, 12/12, 9/9, pooled **50/54 = 0.93 [0.82, 0.97]**.
+- **Correction (2026-10-16).** The 3 FF-P06 FLOWS_TO rows (clean v08, nestjs v10, hexagonal v10) are N/A under the sealed \`Docs/v1.3/rule-tiers.md\` and are out of both keys' counts (before: author 57/57, blind 53/67 and 53/57). Source: after-member-facts doc, "Correction (2026-10-16)"; \`scripts/v1.3/ffp06-na-recount.mjs\`.
 - 39 adjudication rows: same doc §3 table ("adjudication rows 40 → 39") and \`results/v1.3-reference/after-member-facts/adjudication.csv\` (the \`adjudication\` column is empty).
 - The reading gaps named in \`Docs/DiagnosticRuns/v1.3-reference-after-fixes-2026-10-15.md\` §5: hexagonal adapter-to-adapter as FF-S01 or FF-S03; layer cycles under FF-S02; FF-P01 or FF-S01 for \`express\` in layered. Q5: \`Docs/v1.3/construct-decisions.md\`.
 

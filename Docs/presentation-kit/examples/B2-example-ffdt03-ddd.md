@@ -88,5 +88,5 @@ Source: `results/v1.3-reference/after-member-facts/evidence/ddd/g01-value-object
 
 - This is the one real miss the development set found in the DDD rules (M3). The first runs saw only setter-named methods, so a `set value(v)` accessor went through.
 - The fix was in the extractor, not the rule text: Class nodes now carry member facts (`publicFields`, `readonlyFields`, `setAccessors`, `mutatorMethods`), and the template reads them.
-- Effect (development set): DDD blocking recall 8/9 → 9/9, pooled author-view blocking recall 56/57 → 57/57 (`Docs/DiagnosticRuns/v1.3-reference-after-member-facts-2026-10-15.md` §3). No other row moved.
+- Effect (development set): DDD blocking recall 8/9 → 9/9, pooled author-view blocking recall 53/54 → 54/54, with the 3 FF-P06 FLOWS_TO rows N/A by `Docs/v1.3/rule-tiers.md` (56/57 → 57/57 before that correction; `Docs/DiagnosticRuns/v1.3-reference-after-member-facts-2026-10-15.md` §3 and "Correction (2026-10-16)"). No other row moved.
 - Caveat: g01 was written after the first tool run, to probe this limit. The comment above FF-DT03 in `presets/ddd.yaml` still describes the old name proxy.

@@ -8,9 +8,9 @@ import { box, arrow, path, chip, lock } from './diagram.mjs';
   const top = 160;
   const L = [
     { n: '4', t: 'Rules over both', d: 'Cypher rules that read graph facts and, later, the semantic layers\' outputs as ordinary node and edge properties.', ex: 'today: symbolic rules only; the judge is reported, never blocks', chip: ['defined', 'partly built'], col: C.ink },
-    { n: '3', t: 'LLM judge  ·  grounded ontology', d: 'Frozen LLM judge reads one unit of code against the spec for integrity (FF-N01) and intent (FF-N02). An ontology grounded in the graph would name roles and concepts.', ex: 'judge: frozen, 30/35 planted anti-patterns (dev)  ·  ontology: not built live', chip: ['done', 'judge measured on dev set'], chip2: ['open', 'ontology not built'], col: C.layer['adapters-inbound'] },
+    { n: '3', t: 'LLM judge  ·  grounded ontology', d: 'Frozen LLM judge reads one unit of code against the spec for integrity (FF-N01) and intent (FF-N02). An ontology grounded in the graph would name roles and concepts.', ex: 'judge: frozen, 13/16 unconfounded seeds, 30/35 all (dev)  ·  ontology: not built live', chip: ['done', 'judge measured on dev set'], chip2: ['open', 'ontology not built'], col: C.layer['adapters-inbound'] },
     { n: '2', t: 'Cheap semantic proxies (pass 0.5)', d: 'Deterministic code analysis proposes candidate sites: clones, shared literals, persistence or framework in the core, repository bypass, logic density, cohesion. No LLM; ~50–130 ms per project.', ex: '11/11 round-1 seeds but 2/9 on E1 DUP-RULE copies: a candidate generator, not a verdict', chip: ['done', 'prototype on dev set'], col: C.layer['adapters-outbound'] },
-    { n: '1', t: 'Symbolic facts: the APG', d: 'Extractor writes files, classes, methods, packages and typed edges (imports, implements, injects, calls, data flow); APG v2 adds signatures, components, channels, I/O.', ex: 'graph agrees with tsc (99.7% / 99.2% on E1); 57/57 blocking rows on the dev set', chip: ['done', 'done on dev set'], col: C.layer.domain },
+    { n: '1', t: 'Symbolic facts: the APG', d: 'Extractor writes files, classes, methods, packages and typed edges (imports, implements, injects, calls, data flow); APG v2 adds signatures, components, channels, I/O.', ex: 'graph agrees with tsc (99.7% / 99.2% on E1); 54/54 blocking rows on the dev set (3 N/A)', chip: ['done', 'done on dev set'], col: C.layer.domain },
   ];
   let b = '';
   const x = 48;
@@ -56,9 +56,9 @@ import { box, arrow, path, chip, lock } from './diagram.mjs';
 **One idea.** Spend the LLM only where code meaning is needed, after deterministic layers have done what they can.
 
 **Numbers and sources.**
-- Layer 1: E1 agreement with tsc 0.996684 / 0.991602 (\`Docs/DiagnosticRuns/v1.3-graph-fidelity-2026-10-14.md\`, Headline); 57/57 blocking recall and precision on the development set, author view (\`Docs/DiagnosticRuns/v1.3-reference-after-member-facts-2026-10-15.md\` §3).
+- Layer 1: E1 agreement with tsc 0.996684 / 0.991602 (\`Docs/DiagnosticRuns/v1.3-graph-fidelity-2026-10-14.md\`, Headline); 54/54 blocking recall and precision on the development set, author view, with the 3 FF-P06 FLOWS_TO rows N/A by \`Docs/v1.3/rule-tiers.md\` (was 57/57; \`Docs/DiagnosticRuns/v1.3-reference-after-member-facts-2026-10-15.md\`, "Correction (2026-10-16)").
 - Layer 2: design and runtime (50 to 130 ms per reference project) in \`Docs/v1.3/cheap-semantics-design.md\`, "Purpose"; 11/11 on round-1 seeds (\`Docs/DiagnosticRuns/cheap-semantics-2026-10-15.md\` §2); 2/9 on DUP-RULE v2 (\`Docs/DiagnosticRuns/v1.3-duprule-v2-2026-10-15.md\` §5). "A proxy proposes candidate sites. It does not give a verdict." (design doc).
-- Layer 3: judge pooled catch 30/35 (\`Docs/DiagnosticRuns/v1.3-duprule-v2-2026-10-15.md\` §3). The grounded ontology is not built: there is no committed design or run in the repository, so it is shown as an open item only.
+- Layer 3: judge pooled catch 30/35 (\`Docs/DiagnosticRuns/v1.3-duprule-v2-2026-10-15.md\` §3), which includes 9 confounded DUP-RULE seeds; DDD was never judged. On FRAMEWORK-LEAK + PERSIST-IN-DOMAIN only: round 2 13/16 = 0.81 [0.57, 0.93]; both rounds 16/21 = 0.76 [0.55, 0.89]. The grounded ontology is not built: there is no committed design or run in the repository, so it is shown as an open item only.
 - Layer 4: the judge dimensions are reported and never block (\`Docs/v1.3/rule-tiers.md\`, cited in \`Docs/v1.3/pilot-outcome-memo.md\` §4). Proxy flags are not yet persisted to Neo4j ("Nothing is written to Neo4j", design doc), so "rules over both" is partly built.
 
 **Caveats to say.** The ontology is not built live. Layer 2 and 3 figures are development-set construct sensitivity, not validity estimates.
