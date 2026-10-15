@@ -40,6 +40,13 @@ export interface ExtractorOptions {
    * equals the `'resolved-only'` graph (`Docs/v1.3/edge-views.md`).
    */
   reExportEdges?: ReExportEdgesMode;
+  /**
+   * v1.3, ON by default on the v1.3 branch; OFF in the frozen v1.2E instrument. Write class-member facts on Class
+   * nodes (field names with their readonly, static and visibility facts, get/set accessors, public mutator methods,
+   * fields assigned outside the constructor) and on Method nodes (`visibility`, `assignedFields`). See
+   * `member-facts.ts`; used by the v1.3 FF-DT03 value-object-immutability template.
+   */
+  memberFacts?: boolean;
 }
 
 /** ADR-V13-01: see {@link ExtractorOptions.reExportEdges}. */
@@ -121,7 +128,7 @@ export const DEFAULT_EXCLUDE_PATTERNS = [
 
 /**
  * The frozen v1.2E extractor defaults: the v1.3 features are OFF. Pass these (or `dynamicImports: false,
- * moduleWiring: false, reExportEdges: 'resolved-only'`) to reproduce the v1.2E instrument's graph.
+ * moduleWiring: false, reExportEdges: 'resolved-only', memberFacts: false`) to reproduce the v1.2E instrument's graph.
  */
 export const V12E_DEFAULT_OPTIONS: Readonly<Required<ExtractorOptions>> = Object.freeze({
   lenientMode: true,
@@ -132,17 +139,19 @@ export const V12E_DEFAULT_OPTIONS: Readonly<Required<ExtractorOptions>> = Object
   dynamicImports: false,
   moduleWiring: false,
   reExportEdges: 'resolved-only',
+  memberFacts: false,
 });
 
 /**
  * The v1.3 extractor defaults (FR-V1, ADR-V13-01): dynamic import edges, NestJS module wiring and literal +
- * resolved re-export edges are ON. The flags stay, so a caller can still turn each one off explicitly.
+ * resolved re-export edges and class-member facts are ON. The flags stay, so a caller can still turn each one off explicitly.
  */
 export const V13_DEFAULT_OPTIONS: Readonly<Required<ExtractorOptions>> = Object.freeze({
   ...V12E_DEFAULT_OPTIONS,
   dynamicImports: true,
   moduleWiring: true,
   reExportEdges: 'both',
+  memberFacts: true,
 });
 
 /** The defaults every extractor entry point applies on the v1.3 branch. */
