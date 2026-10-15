@@ -16,6 +16,7 @@ import { applyRoleTokens, V13_ROLE_NAME_REWRITES } from '../../../src/fitness-co
 import { V13_STYLE_APPLICABILITY, v13InapplicableReason } from '../../../src/fitness-compiler/v13-applicability.js';
 import { parseSpec } from '../../../src/spec-parser/spec-parser.js';
 import type { CompiledFunctions } from '../../../src/shared/types/evaluation.js';
+import { CONSTRUCT_ANSWERS } from '../../../src/shared/construct-switches.js';
 
 const ROOT = path.resolve(__dirname, '../../..');
 const SPECS = ['specs/clean-arch.yaml', 'presets/clean-architecture.yaml', 'presets/nestjs.yaml', 'presets/layered.yaml', 'presets/hexagonal.yaml', 'presets/ddd.yaml'];
@@ -43,7 +44,8 @@ describe('v1.2E compile is unchanged', () => {
   });
 
   it('V13_COMPILE_OPTIONS turns every v1.3 rewrite on', () => {
-    expect(V13_COMPILE_OPTIONS).toEqual({ edgeViews: true, styleApplicability: true, roleTokens: true, memberFacts: true });
+    // The construct switches (src/shared/construct-switches.ts) ride along; at the status quo they change nothing.
+    expect(V13_COMPILE_OPTIONS).toEqual({ edgeViews: true, styleApplicability: true, roleTokens: true, memberFacts: true, constructSwitches: CONSTRUCT_ANSWERS });
   });
 });
 

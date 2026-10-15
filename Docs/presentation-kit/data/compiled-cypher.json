@@ -1,0 +1,103 @@
+{
+ "B1": {
+  "spec": "tests/fixtures/v1.3-reference/clean-architecture/spec.yaml",
+  "functionId": "FF-S01",
+  "name": "dependency-direction",
+  "severity": "critical",
+  "cypher": "WITH $layerOrder AS layerOrder\nMATCH (src:File)-[i:IMPORTS|RE_EXPORTS WHERE NOT coalesce(i.viaReExport, false)]->(tgt:File)\nWHERE src.layer IS NOT NULL AND tgt.layer IS NOT NULL\n  AND src.layer <> tgt.layer\nWITH src, tgt, i,\n     apoc.coll.indexOf(layerOrder, src.layer) AS srcIdx,\n     apoc.coll.indexOf(layerOrder, tgt.layer) AS tgtIdx\nWHERE srcIdx >= 0 AND tgtIdx >= 0 AND srcIdx < tgtIdx \nRETURN src.filePath AS source, tgt.filePath AS target, src.layer AS srcLayer, tgt.layer AS tgtLayer,\n       type(i) AS relType,\n       CASE type(i) WHEN 'IMPORTS' THEN 'imports' ELSE 're-exports' END AS verb,\n       i.line AS line, i.lines AS lines, coalesce(i.isTypeOnly, false) AS isTypeOnly\nORDER BY source, target, relType",
+  "params": {
+   "layerOrder": [
+    "domain",
+    "application",
+    "infrastructure"
+   ]
+  },
+  "totalCompiled": 24
+ },
+ "B2": {
+  "spec": "presets/ddd.yaml",
+  "functionId": "FF-DT03",
+  "name": "value-object-immutability",
+  "severity": "critical",
+  "cypher": "MATCH (c:Class)\nWHERE ANY(p IN $valueObjectPatterns WHERE c.filePath =~ p) \nWITH c,\n     [f IN coalesce(c.publicFields, [])\n        WHERE NOT f IN coalesce(c.readonlyFields, []) AND NOT f IN coalesce(c.staticFields, []) | c.name + '.' + f + ' (public mutable field)']\n     + [s IN coalesce(c.setAccessors, []) | c.name + '.' + s + ' (set accessor)']\n     + [m IN coalesce(c.mutatorMethods, []) | c.name + '.' + m + ' (mutator method)'] AS members\nWHERE size(members) > 0\nRETURN c.filePath AS filePath, c.name AS class, reduce(acc = head(members), x IN tail(members) | acc + ', ' + x) AS method,\n       members\nORDER BY filePath, class",
+  "params": {
+   "valueObjectPatterns": [
+    "^src/(?:.*/)?value-objects/.*$"
+   ]
+  },
+  "totalCompiled": 10
+ },
+ "B3": {
+  "spec": "tests/fixtures/v1.3-reference/hexagonal/spec.yaml",
+  "functionId": "FF-S03",
+  "name": "layer-skip-graph",
+  "severity": "critical",
+  "cypher": "MATCH (src:File)-[i:IMPORTS|RE_EXPORTS WHERE NOT coalesce(i.viaReExport, false)]->(tgt:File)\nWHERE src.layer IS NOT NULL AND tgt.layer IS NOT NULL\n  AND src.layer <> tgt.layer\n  AND NOT (src.layer + '>' + tgt.layer) IN $allowedDependencies\n  AND NOT (tgt.layer + '>' + src.layer) IN $allowedDependencies \nRETURN src.filePath AS source, tgt.filePath AS target, src.layer AS srcLayer, tgt.layer AS tgtLayer,\n       type(i) AS relType,\n       CASE type(i) WHEN 'IMPORTS' THEN 'imports' ELSE 're-exports' END AS verb,\n       i.line AS line, i.lines AS lines, coalesce(i.isTypeOnly, false) AS isTypeOnly\nORDER BY source, target, relType",
+  "params": {
+   "allowedDependencies": [
+    "application>domain",
+    "adapters-inbound>application",
+    "adapters-inbound>domain",
+    "adapters-outbound>application",
+    "adapters-outbound>domain",
+    "config>domain",
+    "config>application",
+    "config>adapters-inbound",
+    "config>adapters-outbound"
+   ]
+  },
+  "totalCompiled": 22
+ },
+ "A2": {
+  "spec": "tests/fixtures/v1.3-reference/hexagonal/spec.yaml",
+  "functionId": "FF-S01",
+  "name": "dependency-direction-graph",
+  "severity": "critical",
+  "cypher": "MATCH (src:File)-[i:IMPORTS|RE_EXPORTS WHERE NOT coalesce(i.viaReExport, false)]->(tgt:File)\nWHERE src.layer IS NOT NULL AND tgt.layer IS NOT NULL\n  AND src.layer <> tgt.layer\n  AND NOT (src.layer + '>' + tgt.layer) IN $allowedDependencies\n  AND (tgt.layer + '>' + src.layer) IN $allowedDependencies \nRETURN src.filePath AS source, tgt.filePath AS target, src.layer AS srcLayer, tgt.layer AS tgtLayer,\n       type(i) AS relType,\n       CASE type(i) WHEN 'IMPORTS' THEN 'imports' ELSE 're-exports' END AS verb,\n       i.line AS line, i.lines AS lines, coalesce(i.isTypeOnly, false) AS isTypeOnly\nORDER BY source, target, relType",
+  "params": {
+   "allowedDependencies": [
+    "application>domain",
+    "adapters-inbound>application",
+    "adapters-inbound>domain",
+    "adapters-outbound>application",
+    "adapters-outbound>domain",
+    "config>domain",
+    "config>application",
+    "config>adapters-inbound",
+    "config>adapters-outbound"
+   ]
+  },
+  "totalCompiled": 22
+ },
+ "B4": {
+  "spec": "tests/fixtures/v1.3-apg2/cases.json (projects.type-flow)",
+  "template": "boundary-type-leak",
+  "tier": {
+   "tier": "blocking",
+   "reason": "The dependency rule, checked as a signature fact: an exposing layer names an infrastructure type"
+  },
+  "cypher": "MATCH (m)-[u:SIGNATURE_USES]->(ty)\nWHERE u.publicSurface = true\n  AND (m.layer = $controllerLayer OR m.layer IN $applicationLayers)\n  AND ty.layer = $infraLayer AND m.layer <> ty.layer\n  AND (m.layer IS NULL OR NOT m.layer IN $compositionRootLayers) AND NONE(sp IN $compositionRootPatterns WHERE m.filePath =~ sp)\n  AND NONE(sp IN $testPatterns WHERE m.filePath =~ sp) \nRETURN m.filePath AS filePath, m.name AS member, ty.name AS leakedType, ty.filePath AS target,\n       m.layer AS fromLayer, ty.layer AS toLayer, u.positions AS positions, u.inferred AS inferred\nORDER BY filePath, member, leakedType",
+  "params": {
+   "domainLayer": "domain",
+   "applicationLayers": [
+    "application"
+   ],
+   "infraLayer": "infrastructure",
+   "controllerLayer": "presentation",
+   "threshold": 0.7,
+   "allowedAsync": [],
+   "compositionRootLayers": [],
+   "compositionRootPatterns": [
+    "^(?:.*/)?(?:main|bootstrap|composition-root|compositionRoot|container|di)\\.(?:ts|tsx|mts|cts)$",
+    "^(?:.*/)?[^/]+\\.(?:module|container)\\.(?:ts|tsx|mts|cts)$"
+   ],
+   "testPatterns": [
+    "^(?:.*/)?[^/]*\\.(?:spec|test)\\.(?:ts|tsx|mts|cts)$",
+    "^(?:.*/)?(?:__tests__|__mocks__|test|tests)/.*$",
+    "^(?:.*/)?[Tt]est[A-Z._-][^/]*$"
+   ],
+   "aclPatterns": [],
+   "minTypes": 4
+  }
+ }
+}

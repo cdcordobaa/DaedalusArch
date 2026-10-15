@@ -25,6 +25,9 @@ import type { V13RewriteFlags } from './v13-rewrites.js';
 import { v13InapplicableReason } from './v13-applicability.js';
 import { compileDddFunctions } from './ddd-compiler.js';
 import { DDD_STYLE } from './ddd-templates.js';
+import { CONSTRUCT_ANSWERS } from '../shared/construct-switches.js';
+import type { ConstructAnswers } from '../shared/construct-switches.js';
+import { applyConstructCompileOverlays, constructApplicability, constructSwitchesActive, CONSTRUCT_TEMPLATES } from '../construct-switches/compile.js';
 
 // ── Standalone Function ───────────────────────────────────────────────────────
 
@@ -69,16 +72,25 @@ export interface CompileOptions {
    */
   readonly memberFacts?: boolean;
   /**
-   * v1.3 field-level state, OFF by default and OFF in `V13_COMPILE_OPTIONS` (construct question Q8 is open and there is
-   * no construct-switch file): FF-P06 domain-state-purity reads its field half from HOLDS_STATE_OF instead of FLOWS_TO
-   * (`applyFieldState`, `v13-rewrites.ts`). Needs a graph extracted with `ExtractorOptions.fieldState`
+   * v1.3 field-level state, OFF by default and OFF in `V13_COMPILE_OPTIONS` (construct question Q8 is open; the Q8
+   * construct switch decides how FLOWS_TO rows are scored, not which fact feeds the field half): FF-P06
+   * domain-state-purity reads its field half from HOLDS_STATE_OF instead of FLOWS_TO (`applyFieldState`,
+   * `v13-rewrites.ts`). Needs a graph extracted with `ExtractorOptions.fieldState`
    * (`V13_FIELD_STATE_OPTIONS`); on any other graph the field half returns no row.
    */
   readonly fieldState?: boolean;
+  /**
+   * v1.3, absent by default: the construct-decision answers (`src/shared/construct-switches.ts`). Read by the compile
+   * hook (`src/construct-switches/compile.ts`: preset additions, layer order, applicability, carrier functions). At the
+   * status quo (every question at A) the hook is the identity.
+   */
+  readonly constructSwitches?: ConstructAnswers;
 }
 
 /** The v1.3 compile options for the pipeline (the frozen v1.2E reproduction passes `{}`). */
-export const V13_COMPILE_OPTIONS: Readonly<CompileOptions> = Object.freeze({ edgeViews: true, styleApplicability: true, roleTokens: true, memberFacts: true });
+export const V13_COMPILE_OPTIONS: Readonly<CompileOptions> = Object.freeze({
+  edgeViews: true, styleApplicability: true, roleTokens: true, memberFacts: true, constructSwitches: CONSTRUCT_ANSWERS,
+});
 
 function rewriteFlags(options: CompileOptions): V13RewriteFlags {
   return {
@@ -89,7 +101,9 @@ function rewriteFlags(options: CompileOptions): V13RewriteFlags {
 
 type TemplateCatalogue = ReadonlyMap<string, CypherTemplate>;
 
-export function compileFunctions(input: CompilerInput, options: CompileOptions = {}): DomainResult<CompiledFunctions> {
+export function compileFunctions(rawInput: CompilerInput, options: CompileOptions = {}): DomainResult<CompiledFunctions> {
+  // v1.3 construct switches: the spec as the chosen options declare it (identity at the status quo).
+  const input = applyConstructCompileOverlays(rawInput, options.constructSwitches);
   // v1.3: the hexagonal style has its own graph-based templates; every other style takes the path below unchanged.
   if (input.style === HEXAGONAL_STYLE) {
     return compileHexagonalFunctions(input, (rest) => compileFunctionsCore(rest, options), rewriteFlags(options));
@@ -102,9 +116,11 @@ export function compileFunctions(input: CompilerInput, options: CompileOptions =
 
 function compileFunctionsCore(input: CompilerInput, options: CompileOptions): DomainResult<CompiledFunctions> {
   const instrumentVersion = options.instrumentVersion ?? INSTRUMENT_VERSION;
-  const templates: TemplateCatalogue = options.v13Templates === true
+  const base: TemplateCatalogue = options.v13Templates === true
     ? new Map([...CYPHER_TEMPLATES, ...V13_CYPHER_TEMPLATES])
     : CYPHER_TEMPLATES;
+  // v1.3 construct switches: the carrier template of the switch-declared rules (only when a switch is set).
+  const templates: TemplateCatalogue = constructSwitchesActive(options.constructSwitches) ? new Map([...base, ...CONSTRUCT_TEMPLATES]) : base;
   const { fitnessFunctions, adrRules, layerModel } = input;
   const symbolicQueries: CypherQuery[] = [];
   const neuronalInstructions: NeuronalInstruction[] = [];
@@ -146,10 +162,12 @@ function compileFunctionsCore(input: CompilerInput, options: CompileOptions): Do
     if (template) {
       const applicability = isTemplateApplicable(template, input.style, binding, layerModel);
       // v1.3 (ADR-V13-02 draft): the style-applicability table, after the frozen checks.
-      const v13Reason = applicability.applicable && options.styleApplicability === true
+      // v1.3 construct switches (Q1, Q10): lift or add a style inapplicability.
+      const switched = applicability.applicable ? constructApplicability(template.functionName, input.style, options.constructSwitches) : undefined;
+      const v13Reason = applicability.applicable && options.styleApplicability === true && typeof switched !== 'object'
         ? v13InapplicableReason(template.functionName, input.style)
         : undefined;
-      const reason = !applicability.applicable ? applicability.reason : v13Reason;
+      const reason = !applicability.applicable ? applicability.reason : v13Reason ?? (typeof switched === 'string' ? switched : undefined);
       if (reason !== undefined) {
         disabledFunctions.push({ id: ff.id, name: ff.name, reason });
         warnings.push({

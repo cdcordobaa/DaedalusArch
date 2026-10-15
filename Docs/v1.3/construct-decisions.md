@@ -49,7 +49,7 @@ These move blocking rows on a construct the sources leave open, or they redefine
 - **R and P.** Blocking recall (R) and blocking precision (P), as found/expected and correct/reported, for the styles the question moves.
 - **"x → y".** x is the current tool (after-fixes `raw/`). y is the tool after the code change the option implies, assumed to be done exactly. A single figure means the option needs no code change, or only a tier or preset entry.
 
-[^1]: Revision 0 reported that adopting every recommendation yields 56/56 after the implied changes. That holds by construction: the reference is redefined per option, so the tool after the change matches it. It is not evidence for any option.
+[^1]: Revision 0 reported that adopting every recommendation yields 56/56 after the implied changes. That holds by construction: the reference is redefined per option, so the tool after the change matches it. It is not evidence for any option. (Note 2026-10-16: with the 3 FF-P06 FLOWS_TO rows reported N/A, as `rule-tiers.md` requires and as Q8 B recommends, the status-quo author view is 53/54 recall and 53/53 precision after fixes, and 54/54 after member facts, not 56/57, 56/56 or 57/57. See `Docs/DiagnosticRuns/v1.3-reference-after-member-facts-2026-10-15.md`, "Correction (2026-10-16)".)
 
 ## Summary
 
@@ -804,7 +804,7 @@ export interface WaitlistRepository {
 - Re-score `construct-decisions-impact.csv` with the revision 1 recommendations held fixed, if the figures are to be quoted anywhere.
 - The numbers here are not to be quoted as validity. The sealed hold-out set measures validity.
 
-*Method.* The rows were dumped from `results/v1.3-reference/after-fixes/` (`raw/`, the author-manifests, the blind manifests with `alsoMatches` expanded, cycles keyed on their file set), with the same matching as `scripts/v1.3/lib/compare.ts`. The figures were then re-scored offline per option, holding the other questions at their revision 0 recommendations. With every question at its current behaviour, the script reproduces the after-fixes report exactly (author R 56/57, P 56/56; blind R 52/67, P 52/56). Type-only status was read from the blind graph's `typeOnly` flags. In revision 1 the CSV's option letters were changed to the status-quo-first order of this page, and its `recommended` column was updated; no figure was changed. Q5 option D has no rows in the CSV.
+*Method.* The rows were dumped from `results/v1.3-reference/after-fixes/` (`raw/`, the author-manifests, the blind manifests with `alsoMatches` expanded, cycles keyed on their file set), with the same matching as `scripts/v1.3/lib/compare.ts`. The figures were then re-scored offline per option, holding the other questions at their revision 0 recommendations. With every question at its current behaviour, the script reproduces the after-fixes report exactly (author R 56/57, P 56/56; blind R 52/67, P 52/56). These are the after-fixes figures as reported, with the 3 FF-P06 FLOWS_TO rows counted as blocking TPs. With those rows N/A, as the sealed tier row requires, they are author R 53/54, P 53/53; blind R 49/64, P 49/53 (note 2026-10-16). Type-only status was read from the blind graph's `typeOnly` flags. In revision 1 the CSV's option letters were changed to the status-quo-first order of this page, and its `recommended` column was updated; no figure was changed. Q5 option D has no rows in the CSV.
 
 ---
 
@@ -843,3 +843,20 @@ Verdict per question, as the review gave it. "Endorse" means the review raised n
 | 19 | endorse-with-change | Labelled "stricter than Evans (transient references allowed in Evans ch. 6)". |
 | 22 | endorse-with-change | Re-lettered (now B). The narrowing is stated: Martin's DIP is not boundary-scoped. |
 | 25 | endorse-with-change | Re-lettered (now B). One development-set run before the hold-out, no second tuning loop. |
+
+## Source verification notes (2026-10-16)
+
+An independent check of the sources (`Docs/v1.3/rule-source-verification.md`; corrections in `Docs/v1.3/style-rule-sources-errata.md`) affects these questions. Read them before answering.
+
+- **Q2 (type-only imports):** Martin's blog says an inner circle must not *mention* any outer name ("functions, classes, variables"). That supports counting type-only imports.
+- **Q3 (in-layer cycles):** cite Martin ch. 12 (components as units of deployment) and ch. 14 (ADP, p. 112), not "ch. 13 and 14". The argument for option C is unchanged.
+- **Q5 (adapter→adapter):** Cockburn never says adapters must not talk to each other, and in his own sample the primary FIT adapter calls the secondary adapter factory. Blocking adapter→adapter is therefore an *inference* from the port concept, not a quotation. Weigh this before choosing a blocking option.
+- **Q6 (hexagonal core):** the phrase "application core" quoted as the source does not appear in Cockburn's article. The question should rest on "Intent" and "Nature of the Solution", which state no explicit source-dependency rule.
+- **Q7 (FF-P03 consumers):** "the sources are silent on consumers" is not accurate. Martin ch. 11 (DIP) also covers code that uses a concrete class. Option A still holds, because FF-P02 owns that edge.
+- **Q10 / Q12 (layered):** Fowler calls layering "mostly opaque", and POSA has a relaxed variant. Strict no-skip is the strict variant only.
+- **Q11:** the 2015 *DDD Reference* places the domain below the application layer, which supports A.
+- **Q14:** Evans 2003 allows a mutable value object as a performance special case. Note it in the thesis.
+- **Q18 (DDD ACL importing upstream internals):** Evans says the anticorruption layer "talks to the other system through its *existing interface*" (Reference 2015, p. 34). That argues *against* the sealed exemption that lets an ACL import upstream internals. Reconsider before confirming A.
+- **Q19:** Evans explicitly allows transient references to inner members. "Stricter than Evans" is confirmed.
+- **Q13:** the NestJS docs constrain DI injection, not file imports, and their TypeORM example injects a repository into a service.
+

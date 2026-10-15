@@ -21,7 +21,7 @@ import type { ConfidenceThresholds, FitnessFunction, ScoringWeights } from '../s
 import type { FunctionId } from '../shared/types/value-objects.js';
 import type { APGResult } from '../shared/types/apg.js';
 import { RULE_TIERS_DOC, ruleTier } from './rule-tiers.js';
-import type { PartialRule } from './rule-tiers.js';
+import type { PartialRule, ResolvedTier, RuleTier } from './rule-tiers.js';
 import { avrOf, tallyDimensions } from './score-computer.js';
 import { ahsFromEffectiveWeights, renormaliseWeights } from './renormaliser.js';
 
@@ -35,6 +35,20 @@ export interface TieredScoringInput {
   /** The v1.2E verdict of the same run, carried for comparison. */
   readonly v12eVerdict: OverallVerdict;
   readonly apg?: APGResult;
+  /** v1.3 construct switches (`src/construct-switches/tiers.ts`); absent at the status quo, where `ruleTier` applies. */
+  readonly tierResolver?: TierResolver;
+}
+
+/**
+ * A switch-aware tier lookup. `rule` replaces `ruleTier`; `row`, when present, gives single rows of a rule another
+ * tier (Q3 C: in-component cycles of FF-S02 advisory), reported as a second row of the same function in that tier.
+ */
+export interface TierResolver {
+  readonly rule: (ruleId: string, style: string | undefined) => ResolvedTier;
+  readonly row?: {
+    readonly tierOf: (ruleId: string, row: { readonly filePath: string; readonly target?: string }) => RuleTier | undefined;
+    readonly label: (ruleId: string) => string;
+  };
 }
 
 /** `relType` of a `domain-state-purity` row: its third discriminator (`class, targetName, relType, field`). */
@@ -100,8 +114,11 @@ export function computeTieredScoring(input: TieredScoringInput): TieredScoring {
   const notApplicable: NotApplicablePart[] = [];
   const blockingSymbolic: SymbolicFunctionResult[] = [];
 
+  const tierOf = input.tierResolver?.rule ?? ruleTier;
+  const rowTier = input.tierResolver?.row;
+
   for (const fn of executed.values()) {
-    const resolved = ruleTier(fn.id, input.style);
+    const resolved = tierOf(fn.id, input.style);
     const symbolicViolations = fn.symbolic?.violations ?? [];
     let counted: readonly Violation[] = [...symbolicViolations, ...(fn.neuralViolations ?? [])];
     let violated = (fn.symbolic !== undefined && !fn.symbolic.passed) || fn.neuralFailed === true;
@@ -122,6 +139,37 @@ export function computeTieredScoring(input: TieredScoringInput): TieredScoring {
     }
 
     const functionId = (fn.symbolic?.functionId ?? fn.id) as FunctionId;
+
+    // v1.3 construct switches (Q3 C): rows of this rule in another tier are reported as a second row of that tier.
+    let moved: Violation[] = [];
+    let movedTier: RuleTier | undefined;
+    if (rowTier !== undefined) {
+      const keep: Violation[] = [];
+      for (const v of counted) {
+        const t = rowTier.tierOf(fn.id, v);
+        if (t !== undefined && t !== resolved.tier) {
+          moved.push(v);
+          movedTier = t;
+        } else keep.push(v);
+      }
+      if (moved.length > 0) {
+        counted = keep;
+        violated = keep.length > 0;
+      } else moved = [];
+    }
+    if (movedTier !== undefined && moved.length > 0) {
+      const extra: TierRuleRow = {
+        functionId,
+        name: `${names.get(fn.id) ?? fn.id} (${rowTier?.label(fn.id) ?? 'moved part'})`,
+        dimension: fn.dimension,
+        tier: movedTier,
+        tierSource: resolved.source,
+        violationCount: moved.length,
+        violated: true,
+      };
+      (movedTier === 'blocking' ? blockingRows : advisoryRows).push(extra);
+    }
+
     const row: TierRuleRow = {
       functionId,
       name: names.get(fn.id) ?? fn.id,
@@ -136,7 +184,7 @@ export function computeTieredScoring(input: TieredScoringInput): TieredScoring {
       blockingRows.push(row);
       // Blocking rules are symbolic: the judge rules are advisory in the table (rule-tiers.md).
       if (fn.symbolic !== undefined) {
-        blockingSymbolic.push(partial !== undefined ? { ...fn.symbolic, passed: !violated, violations: counted } : fn.symbolic);
+        blockingSymbolic.push(partial !== undefined || moved.length > 0 ? { ...fn.symbolic, passed: !violated, violations: counted } : fn.symbolic);
       }
     } else {
       advisoryRows.push(row);
@@ -156,7 +204,7 @@ export function computeTieredScoring(input: TieredScoringInput): TieredScoring {
 
   const failed = new Set((input.evaluationResults.failures ?? []).map((f) => String(f.functionId)));
   const blockingNotExecuted = input.fitnessFunctions
-    .filter((f) => failed.has(String(f.id)) && ruleTier(String(f.id), input.style).tier === 'blocking')
+    .filter((f) => failed.has(String(f.id)) && tierOf(String(f.id), input.style).tier === 'blocking')
     .map((f) => f.id)
     .sort((a, b) => (String(a) < String(b) ? -1 : String(a) > String(b) ? 1 : 0));
 

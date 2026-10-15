@@ -17,7 +17,7 @@ Le escribo para proponerle un núcleo más acotado para la tesis y pedirle dos d
 2. El grafo de arquitectura (APG) capta lo que un grafo de importaciones no ve: roles, declaraciones y contextos delimitados.
 3. Un diseño neuro-simbólico por capas, con evidencia honesta para cada capa: lo que cada una aporta y dónde falla.
 4. El Estudio 1 queda como estudio piloto, y el Estudio 2 es la prueba que decide la pregunta principal.
-5. El método de validación: manifiestos ciegos, un conjunto *hold-out* sellado que se ejecuta una sola vez y sin ajustes, una pre-especificación con *hash* antes de la ejecución, y un etiquetado humano ciego con dos evaluadores.
+5. El método de validación. Lo que existe hoy: cifras sobre un conjunto de desarrollo (no son estimaciones de validez), manifiestos ciegos escritos por un modelo, y borradores de los protocolos. Lo que está **planificado** y aún no se ha hecho: un conjunto *hold-out* sellado que se ejecutará una sola vez y sin ajustes, una pre-especificación cuyo *hash* se registrará antes de esa ejecución, y un etiquetado humano ciego con dos evaluadores.
 
 **Primera decisión: el calendario del Estudio 2.** Le pido una decisión por escrito (basta un correo) entre dos opciones:
 - **A.** El Estudio 2 se ejecuta y se analiza antes del [fecha].
@@ -30,7 +30,7 @@ Puedo trabajar con cualquiera de las dos. Lo que necesito es saber cuál, para p
 - etiquetado: 60 ítems, unas 2–3 horas, o 120 ítems, unas 5–10 horas;
 - además, una revisión corta de 20 casos completos.
 
-**Reunión.** ¿Le vendría bien reunirnos el viernes 16 de octubre, a la hora que le convenga? Le adjunto el protocolo de etiquetado y la pre-especificación del *hold-out*, por si quiere verlos antes.
+**Reunión.** ¿Le vendría bien reunirnos el viernes 16 de octubre, a la hora que le convenga? Le adjunto el borrador del protocolo de etiquetado y el borrador de la pre-especificación del *hold-out*, por si quiere verlos antes.
 
 Muchas gracias por su tiempo.
 
@@ -52,7 +52,7 @@ I am writing to propose a narrower core for the thesis, and to ask you for two d
 2. The architecture graph (APG) captures what an import graph cannot see: roles, declarations and bounded contexts.
 3. A layered neuro-symbolic design, with honest evidence for each layer: what each one adds, and where it fails.
 4. Study 1 becomes the pilot, and Study 2 is the test that decides the main question.
-5. The validation method: blind manifests, a sealed hold-out set run once with no tuning, a pre-specification hashed before the run, and blind human labelling by two raters.
+5. The validation method. What exists today: development-set figures (not validity estimates), model-written blind manifests, and draft protocols. What is **planned** and not yet done: a sealed hold-out set that will be run once with no tuning, a pre-specification whose hash will be recorded before that run, and blind human labelling by two raters.
 
 **First decision: Study 2 timing.** I would like a written decision (an email is enough) between two options:
 - **A.** Study 2 is run and analysed by [date].
@@ -65,7 +65,7 @@ I can work with either. What I need is to know which, so I can plan the coming w
 - labelling: 60 items, about 2–3 hours, or 120 items, about 5–10 hours;
 - plus a short review of 20 whole cases.
 
-**Meeting.** Would Friday 16 October work for you, at a time that suits you? I attach the labelling protocol and the hold-out pre-specification in case you would like to see them first.
+**Meeting.** Would Friday 16 October work for you, at a time that suits you? I attach the draft labelling protocol and the draft hold-out pre-specification in case you would like to see them first.
 
 Thank you very much for your time.
 
