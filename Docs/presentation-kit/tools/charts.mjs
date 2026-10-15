@@ -18,14 +18,16 @@ export function pbars(x, y, w, { title, rows, labelW = 200, barH = 20, barGap = 
   // rows first to know height
   let body = '';
   for (const r of rows) {
-    const rh = r.bars.length * barH + (r.bars.length - 1) * barGap;
+    const nl = Array.isArray(r.label) ? r.label.length : 1;
+    const rh = Math.max(r.bars.length * barH + (r.bars.length - 1) * barGap, nl * 21 + 4);
     if (r.sep) {
       body += line(x, yy - rowGap / 2, x + w, yy - rowGap / 2, { stroke: C.grid, sw: 1.5 });
     }
     const lines = Array.isArray(r.label) ? r.label : [r.label];
+    const by0 = yy + (rh - (r.bars.length * barH + (r.bars.length - 1) * barGap)) / 2;
     lines.forEach((l, i) => (body += text(px - 14, yy + rh / 2 + 6 - ((lines.length - 1) * 10) + i * 20, l, { size: i === 0 ? 18 : 15, weight: r.bold && i === 0 ? 700 : 400, anchor: 'end', fill: i === 0 ? C.ink : C.muted })));
     r.bars.forEach((b, i) => {
-      const by = yy + i * (barH + barGap);
+      const by = by0 + i * (barH + barGap);
       if (b.n === 0 || b.n == null) {
         body += text(px + 6, by + barH - 5, b.na ?? 'n/a', { size: 15, fill: C.muted, italic: true });
         return;
