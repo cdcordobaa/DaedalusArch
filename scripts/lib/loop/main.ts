@@ -45,6 +45,7 @@ import type { Clock, Sleeper } from '../generators/retry.js';
 import { checkSkeletonIntact, ensureHarness, prepareCellDir } from '../generators/skeleton.js';
 import type { SkeletonInstall } from '../generators/skeleton.js';
 import { CODEX_CLI_ADAPTER_ID_VALUE } from '../generators/types.js';
+import { acceptanceRunner } from './acceptance.js';
 import { ClaudeStepAgent, CodexStepAgent } from './agents.js';
 import { firewallEvaluator, harnessSnapshotTsconfig, harnessTypechecker } from './evaluator.js';
 import { evaluatorForEngine, parseLoopEngine } from './engine-tee.js';
@@ -370,6 +371,7 @@ export async function runLoopGrid(
         now: options.now,
         dryRun: options.dryRun,
         ...(options.log !== undefined ? { log: options.log } : {}),
+        ...(plan.acceptance?.enabled === true ? { acceptance: acceptanceRunner(plan.acceptance) } : {}),
       },
       spec,
     );

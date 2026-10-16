@@ -38,6 +38,44 @@ export interface LoopTask {
   readonly id: string;
   readonly title: string;
   readonly steps: readonly LoopStep[];
+  /** How the acceptance runner starts the task's service (`acceptance.ts`); used only when the plan enables it. */
+  readonly acceptance?: TaskAcceptance;
+}
+
+/** Per-task start block of the acceptance runner (argv arrays; `{{port}}` and `{{dir}}` are substituted). */
+export interface TaskAcceptance {
+  readonly startCommand?: readonly string[];
+  readonly buildCommand?: readonly string[];
+  readonly port?: number;
+  /** Path the readiness wait polls (any HTTP answer counts); default `/`. */
+  readonly healthPath?: string;
+}
+
+/** One acceptance test file run on a snapshot. */
+export interface AcceptanceFileResult {
+  readonly file: string;
+  readonly sha256: string;
+  readonly passed: number;
+  readonly failed: number;
+  readonly skipped: number;
+  /** Cancelled tests, plus 1 when the file crashed, timed out or never ran. */
+  readonly errors: number;
+  readonly timedOut: boolean;
+}
+
+/** The acceptance checks of one snapshot (`Docs/v1.3/acceptance-checks.md`). */
+export interface AcceptanceRecord {
+  readonly schema: 'loop-acceptance/v1';
+  readonly status: 'ran' | 'no-tests' | 'no-start-command' | 'build-failed' | 'service-not-ready' | 'runner-error';
+  readonly passed: number;
+  readonly failed: number;
+  readonly skipped: number;
+  readonly errors: number;
+  readonly durationMs: number;
+  /** sha256 of the sorted `file<TAB>sha256` manifest of the files run. */
+  readonly testFileSha256: string;
+  readonly files: readonly AcceptanceFileResult[];
+  readonly message?: string;
 }
 
 export interface LoopTasksFile {
@@ -277,6 +315,8 @@ export interface SnapshotMeasure {
   readonly evaluation: StepEvaluation | null;
   /** Code and message when the evaluator failed (the step is kept; the outcome is missing). */
   readonly evaluationError?: { readonly code: string; readonly message: string };
+  /** The acceptance checks of the snapshot; absent unless the plan enables them. */
+  readonly acceptance?: AcceptanceRecord;
 }
 
 export interface TurnRecord {
@@ -306,6 +346,8 @@ export interface StepRecord {
   readonly repairOutcome?: RepairOutcome;
   /** The spec the step's snapshots were evaluated against, when the plan sets one per task (`specs.ts`). */
   readonly evaluatorSpec?: StepSpecRef;
+  /** The acceptance checks of the step's final snapshot; absent unless the plan enables them. */
+  readonly acceptance?: AcceptanceRecord;
   /** Commit the next step starts from (the last turn's snapshot). */
   readonly finalCommit: string;
   /** Sum over the turns. */
