@@ -36,10 +36,21 @@ function codePoints(s: string): string[] {
   return Array.from(s); // code points, as Neo4j counts them (not UTF-16 units, not grapheme clusters)
 }
 
+const INT64_MAX = 2n ** 63n - 1n;
+const INT64_MIN = -(2n ** 63n);
+
+/** Java's `(long) d` narrowing: NaN is 0, values outside the int64 range (and the infinities) saturate, else truncate. */
+function javaLongCast(d: number): bigint {
+  if (Number.isNaN(d)) return 0n;
+  if (d >= 2 ** 63) return INT64_MAX;
+  if (d <= -(2 ** 63)) return INT64_MIN;
+  return BigInt(Math.trunc(d));
+}
+
 function toIntegerOf(v: Value): Value {
   if (v === null) return null;
   if (typeof v === 'bigint') return v;
-  if (typeof v === 'number') return Number.isFinite(v) ? checkedInt(BigInt(Math.trunc(v))) : null;
+  if (typeof v === 'number') return javaLongCast(v); // FloatingPointValue.longValue(): a Java (long) cast
   if (typeof v === 'boolean') return v ? 1n : 0n;
   if (typeof v === 'string') {
     const t = v.trim();
@@ -184,7 +195,7 @@ const FUNCTIONS: ReadonlyMap<string, Fn> = new Map<string, Fn>([
     throw new CypherRuntimeError('toBoolean() expects a String, Boolean or Integer');
   }],
   ['abs', (a) => { arity('abs', a, 1); const v = a[0] as Value; if (v === null) return null; if (typeof v === 'bigint') return checkedInt(v < 0n ? -v : v); if (typeof v === 'number') return Math.abs(v); throw new CypherRuntimeError('abs() expects a number'); }],
-  ['sign', (a) => { arity('sign', a, 1); const v = a[0] as Value; if (v === null) return null; if (typeof v === 'bigint') return v > 0n ? 1n : v < 0n ? -1n : 0n; if (typeof v === 'number') return BigInt(Math.sign(v)); throw new CypherRuntimeError('sign() expects a number'); }],
+  ['sign', (a) => { arity('sign', a, 1); const v = a[0] as Value; if (v === null) return null; if (typeof v === 'bigint') return v > 0n ? 1n : v < 0n ? -1n : 0n; if (typeof v === 'number') return javaLongCast(Math.sign(v)); throw new CypherRuntimeError('sign() expects a number'); }],
   ['ceil', (a) => { arity('ceil', a, 1); const v = a[0] as Value; if (v === null) return null; if (!isNumber(v)) throw new CypherRuntimeError('ceil() expects a number'); return Math.ceil(Number(v)); }],
   ['floor', (a) => { arity('floor', a, 1); const v = a[0] as Value; if (v === null) return null; if (!isNumber(v)) throw new CypherRuntimeError('floor() expects a number'); return Math.floor(Number(v)); }],
   ['sqrt', (a) => { arity('sqrt', a, 1); const v = a[0] as Value; if (v === null) return null; if (!isNumber(v)) throw new CypherRuntimeError('sqrt() expects a number'); return Math.sqrt(Number(v)); }],
