@@ -5,6 +5,9 @@
 > instrument (v1.2e) is untouched. Running any of this needs a pre-registration bump first (§7).
 > **Update (v1.3-mcp-loop)**: the pre-registration draft `Docs/prereg-drafts/firewall-in-the-loop.md` refines this
 > design (three arms, A3 dropped for leakage; outcomes, analysis, threats and budget made specific).
+> **Update (v1.3-mcp2)**: the server is now MCP v2 (`Docs/v1.3/mcp-v2.md`): v1.3 tiers on every finding, more rules
+> decided by `check_file`/`check_diff`, `infer_spec` and `explain_finding`; the `daedalus-mcp` arm allows the nine
+> spec-only tools. A live smoke test of one agent run is `Docs/v1.3/mcp-smoke.md`.
 > **Not claimed**: that agents use the tools well, or that they produce better architecture. That is what the
 > experiment would test.
 

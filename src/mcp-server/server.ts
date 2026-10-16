@@ -1,5 +1,6 @@
 /**
- * MCP server wiring: registers the eight DaedalusArch tools on an `McpServer`. Transport-agnostic (`main.ts`
+ * MCP server wiring: registers the ten DaedalusArch tools (MCP v2: the eight v1 tools with v1.3 fields added, plus
+ * `infer_spec` and `explain_finding`) on an `McpServer`. Transport-agnostic (`main.ts`
  * connects stdio; the tests connect an in-memory pair). Tools only read the spec and, for `evaluate_project`,
  * run the existing pipeline; none writes to the project under evaluation.
  */
@@ -11,15 +12,17 @@ import {
   checkFileTool,
   checkImportTool,
   evaluateProjectTool,
+  explainFindingTool,
   explainViolationTool,
   getArchitectureSpec,
+  inferSpecTool,
   suggestPlacementTool,
   whichLayerTool,
 } from './tools.js';
 import type { ServerContext, ToolOutcome } from './tools.js';
 
 export const SERVER_NAME = 'daedalus-arch';
-export const SERVER_VERSION = '0.1.0';
+export const SERVER_VERSION = '0.2.0';
 
 /** Tool names in registration order. */
 export const TOOL_NAMES: readonly string[] = Object.freeze([
@@ -31,6 +34,8 @@ export const TOOL_NAMES: readonly string[] = Object.freeze([
   'check_file',
   'check_diff',
   'suggest_placement',
+  'infer_spec',
+  'explain_finding',
 ]);
 
 /** Tools that read only the spec: instant, no graph, no database (the set an experiment arm may allow-list). */
@@ -139,6 +144,30 @@ const explainShape = {
   spec: specArg,
   hints: hintsArg,
 };
+const inferShape = {
+  project: z
+    .string()
+    .optional()
+    .describe("Project root (with src/ and tsconfig.json); defaults to the server's configured project."),
+  style: z
+    .enum(['clean-architecture', 'layered', 'hexagonal', 'nestjs', 'ddd'])
+    .optional()
+    .describe('Force a style instead of classifying it.'),
+  mode: z
+    .enum(['preset-first', 'infer-only'])
+    .optional()
+    .describe('Layer mapping: preset globs first (default), or inferred from the code only.'),
+};
+const explainFindingShape = {
+  rule: z
+    .string()
+    .min(1)
+    .describe('The finding\'s ruleId (FF-S01, FF-DS02, APG2.boundary-type-leak, CHEAP.repository-bypass), a template name or a violation type.'),
+  location: z.string().optional().describe('Where it was reported, as "file:line" (project-relative).'),
+  file: z.string().optional().describe('Project-relative file (instead of location).'),
+  line: z.number().int().positive().optional().describe('1-based line (instead of location).'),
+  spec: specArg,
+};
 
 export function createServer(ctx: ServerContext): McpServer {
   const server = new McpServer({ name: SERVER_NAME, version: SERVER_VERSION });
@@ -173,7 +202,7 @@ export function createServer(ctx: ServerContext): McpServer {
     {
       title: 'Check an import against the architecture rules',
       description:
-        'Whether an import from file `from` of module `module` would violate a layer or purity rule, with rule id and reason. Spec-based and instant: no graph is built, so cycles and class-level rules are not covered (use evaluate_project). Path aliases cannot be resolved without tsconfig; pass resolvedPath for them.',
+        'Whether an import from file `from` of module `module` would violate a layer or purity rule, with rule id, v1.3 tier (blocking/advisory), construct, literature source and reason; blockingVerdict is the answer to act on. Spec-based and instant: no graph is built, so cycles and class-level rules are not covered (use check_file, check_diff or evaluate_project). Path aliases cannot be resolved without tsconfig; pass resolvedPath for them.',
       inputSchema: checkImportShape,
       annotations: readOnly,
     },
@@ -214,7 +243,7 @@ export function createServer(ctx: ServerContext): McpServer {
     {
       title: 'Check a proposed file against the architecture rules',
       description:
-        'Checks one file before you write it: every import (layer direction FF-S01, layer skip FF-S03, domain outward FF-S04, domain purity FF-P01) and every class name (active naming rules). Returns verdict, a one-line summary and each violation with rule id, line, reason and a concrete fix. Spec-based and instant; no graph.',
+        'Checks one file before you write it against the v1.3 rules the spec makes active: layer direction and skipping (also over allowed_dependencies for hexagonal/ddd), core isolation, domain purity (through barrels), repository/port placement, constructor-injected infrastructure in the domain, DDD context isolation, aggregate boundary, value-object immutability, naming, and (with a project root) import cycles. Act on blockingVerdict: "block" means a blocking-tier violation. Each violation carries ruleId, tier (blocking/advisory), construct, literature source, file:line, reason and a concrete fix; hints (APG v2 and cheap proxies) are advisory. notChecked lists rules only evaluate_project decides. Fast (no graph database).',
       inputSchema: checkFileShape,
       annotations: readOnly,
     },
@@ -226,7 +255,7 @@ export function createServer(ctx: ServerContext): McpServer {
     {
       title: 'Check a unified diff against the architecture rules',
       description:
-        'The check_file rules over a unified diff: new files are checked whole, modified files on their added lines (new-file line numbers). Returns an overall verdict, a summary and per-file violations with fixes. Spec-based and instant; no graph.',
+        'The check_file rules over a unified diff (git diff or diff -u). New files are checked whole; with a project root a modified file is rebuilt from the diff and the project and only what the change introduces is reported (else its added lines are checked). Act on blockingVerdict: "block" means a blocking-tier violation; each violation has ruleId, tier, construct, source, file:line, reason and fix; hints are advisory. Fast (no graph database).',
       inputSchema: checkDiffShape,
       annotations: readOnly,
     },
@@ -243,6 +272,30 @@ export function createServer(ctx: ServerContext): McpServer {
       annotations: readOnly,
     },
     async (args) => toResult(await suggestPlacementTool(ctx, z.object(placementShape).parse(args))),
+  );
+
+  register(
+    'infer_spec',
+    {
+      title: 'Infer a firewall spec for a project (proposal)',
+      description:
+        'Zero-config onboarding: classifies the architectural style of the project (src/ and tsconfig.json), maps its folders to the style\'s layers and returns a PROPOSED spec YAML with the confidence, the evidence, the per-folder mapping and the spec validator\'s verdict. Nothing is written: review the proposal (the human or you must confirm it) and save it before using it as the spec. Takes seconds (it extracts the project).',
+      inputSchema: inferShape,
+      annotations: readOnly,
+    },
+    async (args) => toResult(await inferSpecTool(ctx, z.object(inferShape).parse(args))),
+  );
+
+  register(
+    'explain_finding',
+    {
+      title: 'Explain a finding',
+      description:
+        'Given a finding\'s ruleId (and optionally its file:line), returns the construct, the literature source, the tier, a minimal violating and compliant example, and how the firewall checks it (the full evaluation\'s template and edge view, and what check_file/check_diff read). Use it when a blocking answer is unclear.',
+      inputSchema: explainFindingShape,
+      annotations: readOnly,
+    },
+    async (args) => toResult(await explainFindingTool(ctx, z.object(explainFindingShape).parse(args))),
   );
 
   return server;

@@ -79,3 +79,15 @@ Judge instrument: unchanged (table above). Model `claude-opus-5-5`, effort `high
 |---|---|---|
 | AP-DUP-RULE2 (the AP-DUP-RULE edit, unchanged) | AP-DUP-RULE2n (the rule moves once into a policy function: the domain file of its `is<X>` guard as an assertion function, else the first service's own file; the second service is not touched) | FF-N01 `architectural-integrity` |
 
+
+## Re-hash after the #108 lint (appended 2026-10-15, merge train)
+
+`scripts/v1.3/judge-catch-run.ts` and `scripts/v1.3/judge-catch-seed.ts` were edited by the #108 lint commit `12b10ee8`
+(no disables; type narrowing only). In the runner, `readJson<T>` now returns `unknown` with the cast at each call site,
+`arg()` uses `??` for the same default, and `process.env['NEO4J_URI']` became `process.env.NEO4J_URI`. In the seeder, a
+redundant `as Record<string, number>` was dropped. Behaviour is unchanged. Their latest sha256:
+
+| File | sha256 |
+|---|---|
+| `scripts/v1.3/judge-catch-run.ts` | `e152cea0f6f7051d6dbb1e937150caaecec79fdd22e23cae3164d45d26712234` |
+| `scripts/v1.3/judge-catch-seed.ts` | `5ed299fe2db80c838211ab858a3c437bc67c25f37f324257cb3960a4b48a9c0f` |

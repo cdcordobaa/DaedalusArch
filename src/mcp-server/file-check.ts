@@ -11,9 +11,32 @@ import { checkImport } from './import-check.js';
 import { normalisePath, resolveLayer } from './layer-resolver.js';
 import { scanSource } from './source-scan.js';
 import type { ScannedClass } from './source-scan.js';
-import { importableLayers, isExcluded, ruleState } from './spec-rules.js';
-import type { FileCheckResult, FileVerdict, FileViolation, RuleHit } from './types.js';
+import { IMPORT_RULE_NAMES, importableLayers, isExcluded, ruleState } from './spec-rules.js';
+import { buildFastContext } from './fast-context.js';
+import { FAST_RULE_NAMES, fastRuleFindings } from './fast-rules.js';
+import type { RawFinding } from './fast-rules.js';
+import { fastHints } from './fast-hints.js';
+import type { RawHint } from './fast-hints.js';
+import { ProjectView } from './project-files.js';
+import { hintMeta, specRuleMeta, v13RuleStates } from './rule-meta.js';
+import type { RuleMeta } from './rule-meta.js';
+import type {
+  BlockingVerdict,
+  FileCheckResult,
+  FileVerdict,
+  FileViolation,
+  NotChecked,
+  RuleHit,
+} from './types.js';
 import { buildFixHint } from '../fix-hints/index.js';
+import type { FixHint } from '../fix-hints/types.js';
+
+/** The pre-v2 fields of a violation (what the import and naming checks build). */
+type BaseViolation = Pick<FileViolation, 'rule' | 'ruleName' | 'severity' | 'line' | 'subject' | 'reason' | 'fix'> & {
+  readonly target?: string;
+  readonly viaBarrels?: readonly string[];
+  readonly hint?: FixHint;
+};
 
 /** Naming templates a class declaration alone decides (the others need the graph or never fire). */
 export const NAMING_RULE_NAMES: readonly string[] = Object.freeze([
@@ -129,8 +152,8 @@ function namingViolations(
   layer: string | null,
   classes: readonly ScannedClass[],
   lineOf: (line: number) => number,
-): FileViolation[] {
-  const out: FileViolation[] = [];
+): BaseViolation[] {
+  const out: BaseViolation[] = [];
   for (const ff of activeNamingRules(spec)) {
     if (isExcluded(ff, filePath)) continue;
     const pattern = ff.pattern ?? '';
@@ -144,6 +167,7 @@ function namingViolations(
         severity: ff.severity,
         line: lineOf(cls.line),
         subject: `class ${cls.name}`,
+        target: cls.name,
         reason: `class ${cls.name} does not match the naming pattern "${pattern}"`,
         fix:
           suggestion !== undefined
@@ -175,10 +199,110 @@ export interface CheckSourceInput {
   readonly lineOf?: (line: number) => number;
   /** Attach a deterministic fix hint to each blocking import violation (Docs/v1.3/fix-hints.md). Off by default. */
   readonly hints?: boolean;
+  /**
+   * MCP v2: the project as the fast checks may read it (barrels, entry files, the import graph for cycles). Without
+   * it the check is spec-only: no barrel is followed and no cycle is checked.
+   */
+  readonly view?: ProjectView;
+  /** MCP v2: the project's literal import graph with the proposed contents (built from `view` when omitted). */
+  readonly graph?: ReadonlyMap<string, ReadonlySet<string>>;
+}
+
+/** Ids of every rule check_file / check_diff decide for this spec under v1.3 (import, naming and fast rules). */
+export function fileCheckedRulesV2(spec: ParsedSpec, projectAware: boolean): readonly string[] {
+  const states = v13RuleStates(spec);
+  return spec.fitnessFunctions
+    .filter((ff) => states.get(String(ff.id))?.status === 'active')
+    .filter((ff) =>
+      IMPORT_RULE_NAMES.includes(ff.name) ||
+      (NAMING_RULE_NAMES.includes(ff.name) && ff.pattern !== undefined) ||
+      (FAST_RULE_NAMES.includes(ff.name) && (ff.name !== 'no-cyclic-deps' || projectAware)))
+    .map((ff) => String(ff.id));
+}
+
+/** Why the fast path leaves a rule to evaluate_project. */
+function notCheckedReason(name: string, projectAware: boolean): string {
+  if (name === 'no-cyclic-deps' && !projectAware) return 'a cycle needs the whole import graph: no project root is configured, so run evaluate_project (or start the server with --project)';
+  if (['domain-stability', 'module-fan-out', 'component-instability', 'max-fan-in', 'abstraction-ratio', 'no-orphan-files'].includes(name)) return 'a metric over the whole graph';
+  if (['dependency-inversion', 'port-dependency-inversion'].includes(name)) return 'a ratio over every injected dependency of a class, read from the graph';
+  if (['single-responsibility-proxy', 'interface-segregation-proxy', 'inheritance-depth'].includes(name)) return 'a proxy over the class graph (members, injections, inheritance chains)';
+  if (['use-case-isolation', 'controller-no-entity'].includes(name)) return 'reads CONSTRUCTOR_INJECTS paths across files';
+  if (['architectural-integrity', 'intent-alignment'].includes(name)) return 'an LLM judge dimension (reported, non-blocking in v1.3)';
+  if (['naming-conventions', 'test-file-pairing', 'no-index-logic'].includes(name)) return 'reads every file of the project';
+  return 'not covered by the spec-only fast path';
+}
+
+function notCheckedRules(spec: ParsedSpec, projectAware: boolean): NotChecked[] {
+  const checked = new Set(fileCheckedRulesV2(spec, projectAware));
+  const states = v13RuleStates(spec);
+  return spec.fitnessFunctions
+    .filter((ff) => states.get(String(ff.id))?.status === 'active' && !checked.has(String(ff.id)))
+    .filter((ff) => !(NAMING_RULE_NAMES.includes(ff.name) && ff.pattern === undefined))
+    .map((ff) => {
+      const meta = specRuleMeta(spec, ff);
+      return { ruleId: meta.ruleId, ruleName: ff.name, tier: meta.tier, reason: notCheckedReason(ff.name, projectAware) };
+    });
+}
+
+function withMeta(meta: RuleMeta, file: string, row: BaseViolation, check: FileViolation['check']): FileViolation {
+  return {
+    rule: row.rule,
+    ruleName: row.ruleName,
+    severity: row.severity,
+    line: row.line,
+    subject: row.subject,
+    reason: row.reason,
+    fix: row.fix,
+    ruleId: meta.ruleId,
+    tier: meta.tier,
+    tierSource: meta.tierSource,
+    ...(meta.candidateTier !== undefined ? { candidateTier: meta.candidateTier } : {}),
+    construct: meta.construct,
+    source: meta.source,
+    edgeView: meta.edgeView,
+    check,
+    file,
+    location: `${file}:${String(row.line)}`,
+    ...(row.target !== undefined ? { target: row.target } : {}),
+    ...(row.viaBarrels !== undefined && row.viaBarrels.length > 0 ? { viaBarrels: row.viaBarrels } : {}),
+    ...(row.hint !== undefined ? { hint: row.hint } : {}),
+  };
+}
+
+function fromRaw(r: RawFinding, lineOf: (line: number) => number): BaseViolation {
+  return {
+    rule: r.ruleId,
+    ruleName: r.ruleName,
+    severity: r.severity,
+    line: lineOf(r.line),
+    subject: r.subject,
+    reason: r.reason,
+    fix: r.fix,
+    ...(r.target !== undefined ? { target: r.target } : {}),
+    ...(r.viaBarrels !== undefined ? { viaBarrels: r.viaBarrels } : {}),
+  };
+}
+
+function fromHint(file: string, h: RawHint, lineOf: (line: number) => number): FileViolation {
+  const meta = hintMeta(h.kind, h.name);
+  return withMeta(meta, file, {
+    rule: meta.ruleId,
+    ruleName: h.name,
+    severity: 'advisory',
+    line: lineOf(h.line),
+    subject: h.subject,
+    reason: h.reason,
+    fix: h.fix,
+    ...(h.target !== undefined ? { target: h.target } : {}),
+  }, h.kind);
 }
 
 function verdictOf(violations: readonly FileViolation[], unresolved: number): FileVerdict {
   return violations.length > 0 ? 'violations' : unresolved > 0 ? 'unknown' : 'clean';
+}
+
+export function blockingVerdictOf(violations: readonly FileViolation[], unresolved: number): BlockingVerdict {
+  return violations.some((v) => v.tier === 'blocking') ? 'block' : unresolved > 0 ? 'unknown' : 'pass';
 }
 
 function summaryOf(
@@ -198,13 +322,25 @@ function summaryOf(
   return `${where}: clean.`;
 }
 
+export function blockingSummaryOf(verdict: BlockingVerdict, violations: readonly FileViolation[], hints: number): string {
+  const blocking = violations.filter((v) => v.tier === 'blocking');
+  const advisory = violations.length - blocking.length;
+  const tail = `${String(advisory)} advisory, ${String(hints)} hint(s)`;
+  if (verdict === 'block') {
+    const rules = [...new Set(blocking.map((v) => v.rule))].join(', ');
+    return `BLOCK: ${String(blocking.length)} blocking violation(s) of ${rules} (v1.3 tiers); fix them before writing. ${tail}.`;
+  }
+  if (verdict === 'unknown') return `UNKNOWN: no blocking violation found, but some imports could not be placed; ${tail}.`;
+  return `PASS: no blocking violation (v1.3 tiers); ${tail}.`;
+}
+
 export function checkSource(spec: ParsedSpec, input: CheckSourceInput): FileCheckResult {
   const filePath = normalisePath(input.path);
   const lineOf = input.lineOf ?? ((l: number): number => l);
   const layer = resolveLayer(spec, filePath)?.layer ?? null;
   const scan = scanSource(input.content);
-  const violations: FileViolation[] = [];
-  const advisories: FileViolation[] = [];
+  const base: BaseViolation[] = [];
+  const baseAdvisories: BaseViolation[] = [];
   const unresolved: { line: number; specifier: string }[] = [];
   const notes: string[] = [];
 
@@ -215,8 +351,8 @@ export function checkSource(spec: ParsedSpec, input: CheckSourceInput): FileChec
       continue;
     }
     if (layer === null) continue;
+    const target = res.to.path ?? res.to.package;
     for (const hit of res.violations) {
-      const target = res.to.path ?? res.to.package;
       const hint =
         input.hints === true && target !== undefined
           ? buildFixHint(spec, {
@@ -226,7 +362,7 @@ export function checkSource(spec: ParsedSpec, input: CheckSourceInput): FileChec
               isTypeOnly: imp.kind === 'type',
             })
           : undefined;
-      const row: FileViolation = {
+      const row: BaseViolation = {
         rule: hit.ruleId,
         ruleName: hit.ruleName,
         severity: hit.severity,
@@ -234,13 +370,36 @@ export function checkSource(spec: ParsedSpec, input: CheckSourceInput): FileChec
         subject: `import "${imp.specifier}"`,
         reason: hit.reason,
         fix: importFix(spec, hit, filePath, layer, res.to),
+        ...(target !== undefined ? { target } : {}),
         ...(hint !== undefined ? { hint } : {}),
       };
-      (imp.kind === 'require' || imp.kind === 'dynamic' ? advisories : violations).push(row);
+      (imp.kind === 'require' || imp.kind === 'dynamic' ? baseAdvisories : base).push(row);
     }
   }
-  violations.push(...namingViolations(spec, filePath, layer, scan.classes, lineOf));
-  violations.sort((a, b) => a.line - b.line);
+  base.push(...namingViolations(spec, filePath, layer, scan.classes, lineOf));
+  base.sort((a, b) => a.line - b.line);
+
+  // MCP v2: the v1.3 fast rules and the advisory hints.
+  const view = input.view ?? new ProjectView();
+  const ctx = buildFastContext(spec, filePath, input.content, view);
+  const graph = input.graph ?? (view.hasRoot ? view.importGraph() : undefined);
+  const extra = fastRuleFindings(ctx, graph !== undefined ? { graph } : {});
+  const all = [...base];
+  const seen = new Set(base.map((b) => `${b.rule}|${String(b.line)}|${b.subject}`));
+  for (const r of extra) {
+    const row = fromRaw(r, lineOf);
+    const key = `${row.rule}|${String(row.line)}|${row.subject}`;
+    if (seen.has(key)) continue;
+    seen.add(key);
+    all.push(row);
+  }
+  all.sort((a, b) => a.line - b.line);
+
+  const meta = (row: BaseViolation): RuleMeta => specRuleMeta(spec, { id: row.rule, name: row.ruleName });
+  const violations = base.map((r) => withMeta(meta(r), filePath, r, 'spec'));
+  const findings = all.map((r) => withMeta(meta(r), filePath, r, 'spec'));
+  const advisories = baseAdvisories.map((r) => withMeta(meta(r), filePath, r, 'spec'));
+  const hints = fastHints(ctx).map((h) => fromHint(filePath, h, lineOf));
 
   if (layer === null) {
     notes.push(
@@ -252,6 +411,12 @@ export function checkSource(spec: ParsedSpec, input: CheckSourceInput): FileChec
       'advisories are require()/import() calls: not scored by the firewall, but they break the same rule',
     );
   }
+  if (!view.hasRoot) {
+    notes.push('spec-only: no project root, so barrels are not followed (resolved view = literal view), entry files are the declared public APIs only, and cycles are not checked');
+  }
+  if (ctx.ast.partial) notes.push('the text does not parse whole (partial content): class-level checks may be incomplete');
+  const blockingVerdict = blockingVerdictOf(findings, unresolved.length);
+  const blockingCount = findings.filter((v) => v.tier === 'blocking').length;
   return {
     path: filePath,
     layer,
@@ -260,7 +425,15 @@ export function checkSource(spec: ParsedSpec, input: CheckSourceInput): FileChec
     violations,
     advisories,
     unresolved,
-    checkedRules: fileCheckedRules(spec),
+    checkedRules: [...new Set([...fileCheckedRules(spec), ...fileCheckedRulesV2(spec, view.hasRoot)])],
     notes,
+    findings,
+    blockingVerdict,
+    blockingCount,
+    advisoryCount: findings.length - blockingCount,
+    blockingSummary: blockingSummaryOf(blockingVerdict, findings, hints.length),
+    hints,
+    notChecked: notCheckedRules(spec, view.hasRoot),
+    projectAware: view.hasRoot,
   };
 }

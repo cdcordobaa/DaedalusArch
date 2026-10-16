@@ -22,7 +22,7 @@ const DAEDALUS: DaedalusServerInput = {
   serverEntry: '/opt/daedalus/dist/mcp-server/main.js',
   specPath: '/opt/daedalus/specs/clean-arch.yaml',
 };
-const SPEC_TOOLS = ['get_architecture_spec', 'which_layer', 'check_import', 'explain_violation', 'check_file', 'check_diff', 'suggest_placement'];
+const SPEC_TOOLS = ['get_architecture_spec', 'which_layer', 'check_import', 'explain_violation', 'check_file', 'check_diff', 'suggest_placement', 'infer_spec', 'explain_finding'];
 
 let h: Harness;
 let runId: string;
@@ -82,7 +82,7 @@ describe('Claude Code step agent: argv per arm', () => {
     expect(p.data.prompt).toBe(PROMPT);
   });
 
-  it('daedalus-mcp: exact argv with the strict MCP config, the seven spec-only tools and evaluate_project denied', () => {
+  it('daedalus-mcp: exact argv with the strict MCP config, the nine spec-only (MCP v2) tools and evaluate_project denied', () => {
     const agent = new ClaudeStepAgent(h.config, { runner: new FakeGeneratorRunner(h.binary), daedalus: DAEDALUS });
     const p = agent.plan({ runId, cwd, prompt: PROMPT, arm: 'daedalus-mcp' });
     if (!p.success) throw new Error('plan failed');
@@ -285,7 +285,7 @@ describe('Codex step agent: argument set per arm', () => {
       '-c',
       `mcp_servers.daedalus-arch.args=["/opt/daedalus/dist/mcp-server/main.js","--spec","/opt/daedalus/specs/clean-arch.yaml","--project",${JSON.stringify(cwd)}]`,
       '-c',
-      'mcp_servers.daedalus-arch.enabled_tools=["get_architecture_spec","which_layer","check_import","explain_violation","check_file","check_diff","suggest_placement"]',
+      'mcp_servers.daedalus-arch.enabled_tools=["get_architecture_spec","which_layer","check_import","explain_violation","check_file","check_diff","suggest_placement","infer_spec","explain_finding"]',
       '-c',
       'mcp_servers.daedalus-arch.disabled_tools=["evaluate_project"]',
       '-',

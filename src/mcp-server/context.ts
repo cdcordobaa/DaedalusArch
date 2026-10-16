@@ -3,6 +3,8 @@
  * (the real pipeline and Neo4j repository behind the injected ports). Kept apart from `main.ts` so importing it
  * does not start a server.
  */
+import * as fs from 'node:fs';
+import * as path from 'node:path';
 import { createPipeline } from '../pipeline/pipeline-factory.js';
 import { Neo4jRepository } from '../neo4j-ingestion/neo4j-repository.js';
 import { createSpecLoader } from './tools.js';
@@ -34,8 +36,22 @@ export function parseArgs(argv: readonly string[]): McpArgs {
   return out;
 }
 
+/**
+ * The presets directory `infer_spec` reads: `DAEDALUS_PRESETS`, else `presets/` next to the package the entry runs
+ * from (`<pkg>/dist/mcp-server/main.js` or `<pkg>/src/mcp-server/main.ts`), else `presets/` under the working directory.
+ */
+export function presetsDirFrom(env: NodeJS.ProcessEnv, entry: string | undefined, cwd: string): string | undefined {
+  const candidates = [
+    env.DAEDALUS_PRESETS,
+    entry !== undefined ? path.resolve(path.dirname(entry), '..', '..', 'presets') : undefined,
+    path.resolve(cwd, 'presets'),
+  ].filter((c): c is string => c !== undefined && c !== '');
+  return candidates.find((c) => fs.existsSync(c));
+}
+
 export function buildContext(args: McpArgs, env: NodeJS.ProcessEnv): ServerContext {
   return {
+    presetsDir: presetsDirFrom(env, process.argv[1], process.cwd()),
     defaultSpecPath: args.spec ?? env.DAEDALUS_SPEC,
     defaultProjectPath: args.project ?? env.DAEDALUS_PROJECT,
     ...(args.hints === true || env.DAEDALUS_HINTS === '1' ? { hints: true } : {}),
