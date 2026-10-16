@@ -32,7 +32,7 @@ Strength scale: **strong** (an examiner would accept it as stated), **moderate**
 | # | Validity strand | Evidence in this project | State | Strength today | Main attack | Human piece that closes it |
 |---|---|---|---|---|---|---|
 | 2.1 | Content | Rule-source traceability (`rule-source-verification.md`, errata) | done | moderate | 5 of 13 rows only partly supported; 8 rules have no source row; books not read in print | 3 architects rate rule–source fit (≈ 25 rules) |
-| 2.2 | Construct: mechanical correctness | 0 incorrect of 2,668 checkable findings *[dev]* | done | strong (for "correct", not "meaningful") | correctness is checked against the tool's own definitions | none needed |
+| 2.2 | Construct: mechanical correctness | 0 incorrect of 2,669 checkable findings *[dev]* | done | strong (for "correct", not "meaningful") | correctness is checked against the tool's own definitions | none needed |
 | 2.3 | Construct / criterion (concurrent): seeded detection | SO4 seeded recall 0.918; v1.3 dev set; hold-out pre-specified | SO4 done; hold-out not run | moderate → strong after the hold-out | seeds written by the tool's designer and a same-vendor model; mutants ≠ real violations | the blind union sheet on the hold-out (`human-labelling-protocol.md`) |
 | 2.4 | Criterion (concurrent): developer-fix mining | 5 real fix-commit pairs, 2 detected | done, n = 5 | weak | n = 5, one repository, author-mined | none; enlarge the mined set instead |
 | 2.5 | Criterion (predictive): bug-fix churn | none yet | absent | absent | — | none needed |
@@ -84,8 +84,8 @@ and turns a self-assessment into an expert-panel content check.
 ### 2.2 Construct validity, part 1: mechanical correctness
 
 **Evidence.** Every checkable finding is re-checked by an independent checker against the graph and the source text:
-all 2,668 checkable findings are correct (1,484 of 1,663 reference findings, 1,184 of 1,428 E1 findings) *[dev]*
-(`Docs/DiagnosticRuns/v1.3-labelling-2026-10-15.md`). **Correction to carry into the thesis:** the v1.3
+all 2,669 checkable findings are correct (1,485 of 1,663 reference findings, 1,184 of 1,428 E1 findings) *[dev]*
+(`Docs/DiagnosticRuns/v1.3-labelling-2026-10-15.md`). **Correction to carry into the thesis:** the labelling doc prints 2,668 (1,484 reference); the v1.3
 reproducibility audit (finding E-7, `Docs/DiagnosticRuns/v1.3-repro-audit-2026-10-16.md`) recomputes the reference
 row as 1,485 correct and 178 not checkable, so the total is **2,669**. Zero incorrect still stands. Graph fidelity
 against the TypeScript compiler and dependency-cruiser is agreement-based: Jaccard 0.988 (E1) and 0.913 (SO4, scoped),
@@ -102,7 +102,7 @@ idea.
 **Strength: strong, for the narrow claim** "the finding is a true statement about the code". Not for "the finding
 matters".
 
-**Attacks.** The checker and the tool share the project's definitions of a layer and an edge. 423 of 3,091 findings (about
+**Attacks.** The checker and the tool share the project's definitions of a layer and an edge. 422 of 3,091 findings (about
 14 %) are not checkable. "Correct" is not "meaningful", and the meaningful labeller stopped at a usage limit after one
 answer (`v1.3-labelling-2026-10-15.md`).
 
@@ -342,7 +342,7 @@ internal and some inputs (E1 outcomes, SO4 checkouts, sealed manifests) are outs
    Today only the first exists, and it is not run.
 2. **"Same vendor everywhere."** Judge, hold-out author and blind annotator are one vendor. Answer: the cross-vendor
    panel (2.7) and non-LLM criteria (2.4, 2.5); state the residual threat.
-3. **"Correct is not meaningful."** 2,668 correct findings say nothing about whether an architect would act on them.
+3. **"Correct is not meaningful."** 2,669 correct findings say nothing about whether an architect would act on them.
    Answer: only the paid-architect subsample (2.7) closes this. No rater-free method does.
 4. **"Seeds are not real violations."** Answer: Just et al. 2014 for the general argument; 2.4 and 2.5 for real ones;
    admit that no architecture-specific mutant-validity study exists.
