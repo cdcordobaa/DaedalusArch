@@ -23,6 +23,10 @@
  * `LoopContext.evaluator`. Every turn's prompt is written beside its envelope (`turns/step-NN/prompt-<turnId>.txt`).
  * The gate's repair record says finding by finding which blocking findings the repair removed (`repairOutcome`).
  *
+ * Acceptance checks (`LoopContext.acceptance`, off unless the plan enables them; `acceptance.ts`, gate D12): every
+ * measured snapshot also gets the black-box tests of steps 1..k run against its service, started from a copy outside
+ * `work/`; the record goes on the snapshot and the step's final one on the step record.
+ *
  * Resume: the step records are the only progress state. On start, a run with every step record and `completedAt` is
  * skipped; otherwise the work tree is put back to the last recorded step's final commit (the base commit when none),
  * any partial step after it is logged in `restarts.jsonl` and discarded, and the loop continues with the next step.
@@ -32,6 +36,7 @@ import * as path from 'node:path';
 import { DomainResult } from '../../../src/shared/errors/domain-result.js';
 import { agentFileCount, sourceFilePaths } from '../generators/outcome.js';
 import { treeLoc } from '../so5-size.js';
+import type { AcceptanceRunner } from './acceptance.js';
 import { loopRunId } from './plan.js';
 import { MAX_REPAIR_FINDINGS, repairPrompt, sha256, stepPrompt } from './prompts.js';
 import { WorkTreeSnapshots, SNAPSHOT_GIT_DIR } from './snapshot.js';
@@ -48,6 +53,7 @@ import type {
   StepEvaluation,
   StepEvaluator,
   RepairOutcome,
+  RunParityCounts,
   StepRecord,
   StepSpecRef,
   StepTypechecker,
@@ -105,6 +111,8 @@ export interface LoopContext {
   readonly log?: (line: string) => void;
   /** Pins the snapshot commits' dates (`WorkTreeSnapshots`); the loop replay sets it, live runs do not. */
   readonly snapshotDate?: string;
+  /** Per-snapshot acceptance checks (`acceptance.ts`); absent (the default) means none run and none are recorded. */
+  readonly acceptance?: AcceptanceRunner;
 }
 
 export type LoopRunResult =
@@ -309,6 +317,16 @@ class LoopRun {
         writeJsonAtomic(file, { schema: 'loop-snapshot-report/v1', runId: this.runId, turnId, commit, violations: reportViolations });
       }
     }
+    const acceptance =
+      this.ctx.acceptance !== undefined
+        ? await this.ctx.acceptance.run({
+            taskId: this.task.id,
+            stepIndex,
+            workDir: this.workDir,
+            ...(this.task.acceptance !== undefined ? { task: this.task.acceptance } : {}),
+            logFile: path.join(this.runDir, TURNS_DIR, `step-${pad(stepIndex + 1)}`, `acceptance-step-${pad(stepIndex + 1)}${kind === 'repair' ? '-repair' : ''}.log`),
+          })
+        : undefined;
     return DomainResult.ok({
       commit,
       sourceFiles: sourceFilePaths(this.workDir),
@@ -319,6 +337,7 @@ class LoopRun {
       typecheck: tc.data,
       evaluation,
       ...(firstError !== undefined ? { evaluationError: { code: firstError.code, message: firstError.message } } : {}),
+      ...(acceptance !== undefined ? { acceptance } : {}),
     });
   }
 
@@ -392,6 +411,7 @@ class LoopRun {
       repair,
       ...(outcome !== undefined ? { repairOutcome: outcome } : {}),
       ...(this.lastSpecRef !== undefined ? { evaluatorSpec: this.lastSpecRef } : {}),
+      ...(last.snapshot.acceptance !== undefined ? { acceptance: last.snapshot.acceptance } : {}),
       finalCommit: last.snapshot.commit,
       cost: {
         costUsd: sumOrNull(turns.map((t) => t.result.usage.costUsd)),
@@ -443,7 +463,9 @@ class LoopRun {
       this.ctx.log?.(unevaluated.message);
       return DomainResult.fail([unevaluated]);
     }
-    writeJsonAtomic(runFile, { ...record, completedAt: this.ctx.now().toISOString() });
+    // `--engine both`: parity counts over every step of the run (earlier invocations' steps included); absent otherwise.
+    const parity = runParityCounts(records);
+    writeJsonAtomic(runFile, { ...record, completedAt: this.ctx.now().toISOString(), ...(parity !== undefined ? { parity } : {}) });
     return DomainResult.ok({ kind: 'completed', runId: this.runId, resumedFromStep: done.length, steps: records });
   }
 }
@@ -462,6 +484,23 @@ export function allSnapshotsUnevaluated(runId: string, records: readonly StepRec
     code: 'LOOP_EVAL_ALL_FAILED',
     message: `${runId}: all ${String(snapshots.length)} snapshots failed evaluation (${codes.join(', ')}); the run is not marked complete`,
   };
+}
+
+/** Parity counts over every evaluated turn of the given step records; undefined when none carries a parity block. */
+export function runParityCounts(steps: readonly StepRecord[]): RunParityCounts | undefined {
+  const c = { snapshots: 0, identical: 0, order: 0, divergent: 0, checkFailed: 0 };
+  for (const s of steps) {
+    for (const t of s.turns) {
+      const p = t.snapshot.evaluation?.parity;
+      if (p === undefined) continue;
+      c.snapshots++;
+      if (p.status === 'identical') c.identical++;
+      else if (p.status === 'order') c.order++;
+      else if (p.status === 'divergent') c.divergent++;
+      else c.checkFailed++;
+    }
+  }
+  return c.snapshots > 0 ? c : undefined;
 }
 
 /** One-line summary of a step for the console. */

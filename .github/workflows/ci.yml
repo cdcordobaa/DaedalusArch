@@ -71,6 +71,11 @@ jobs:
         # D-U4-14 (Build and Test Step 5)
         run: npx tsc -p tsconfig.u4-tests.json
 
+      - name: Citation and personal-path guard
+        # Fails on citations of internal communications removed from the public tree (#132) and on personal
+        # absolute paths in Docs/, papers/, results/, experiments/, replication/ and aidlc-docs/.
+        run: npm run lint:citations
+
       - name: Lint
         # D-U0-16: lint tooling broken at 7cd15b4; repaired in U0 Step 11, findings are a recorded residual
         continue-on-error: true

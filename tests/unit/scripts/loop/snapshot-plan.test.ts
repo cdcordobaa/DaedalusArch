@@ -139,9 +139,6 @@ describe('plan and tasks files', () => {
     expect(codes({ ...ok, adapters: [{ adapterId: 'other', modelId: 'm' }] })).toBe(1);
     expect(codes({ ...ok, runs: 0, orderSeed: -1 })).toBe(2);
     expect(codes({ ...ok, cassette: { dir: 'c', mode: 'live' } })).toBe(1);
-    expect(codes({ ...ok, graphEngine: 'neo4j' })).toBe(0);
-    expect(codes({ ...ok, graphEngine: 'cypher-interp' })).toBe(0);
-    expect(codes({ ...ok, graphEngine: 'memgraph' })).toBe(1);
     expect(codes([])).toBe(1);
   });
 
@@ -204,7 +201,6 @@ describe('evaluator mapping (v1.3 scoring)', () => {
     if (!full.success) throw new Error('mapping failed');
     expect(full.data).toEqual({
       scoringMode: 'v1.3',
-      graphEngine: 'neo4j',
       ahs: 0.8,
       blockingAhs: 0.7,
       verdict: 'fail',

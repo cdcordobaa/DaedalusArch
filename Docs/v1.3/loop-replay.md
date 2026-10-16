@@ -150,7 +150,7 @@ The harness changed after the first run, so the replay was run again on `v1.3-lo
 - The blocking findings are now exactly the rows the v1.3 scoring counts. FF-P06's FLOWS_TO and HOLDS_STATE_OF rows are N/A, and so are rows a construct switch moves to advisory. They no longer reach the repair prompt, `repairOutcome` or the pilot outcomes. A count mismatch fails the evaluation with `LOOP_EVAL_FINDINGS_MISMATCH`.
 - An unscored step has a `null` count, never 0. `newBlockingTotal` is null when any step is unscored, and `unscoredSteps` lists those steps.
 - `evaluate_project` on cypher-interp honours the run's pinned tsconfig. A run in which every snapshot failed evaluation fails with `LOOP_EVAL_ALL_FAILED`.
-- Every evaluation records `graphEngine`. The replay takes `--engine` (default `neo4j`) and fails on a snapshot recorded on another engine.
+- Every evaluation records its engine (`engineOfRecord`, from the engine tee of `loop-engine-tee.md`, now in every mode). The live harness and the replay default to `neo4j` instead of the NEO4J_URI default, and the replay fails on a snapshot recorded on another engine.
 
 | Engine | Failures | Reproducible (files) | Consistency | Labels | New blocking, steps 2–4 (none / daedalus-mcp / gate) |
 |---|---|---|---|---|---|

@@ -12,6 +12,8 @@ import type { LoadedRun } from '../../../../scripts/v1.3/lib/study2-analysis.js'
 import { buildContext } from '../../../../src/mcp-server/context.js';
 import { CLEAN_ARCH_SPEC } from '../../mcp-server/helpers.js';
 import { firewallEvaluator, toStepEvaluation } from '../../../../scripts/lib/loop/evaluator.js';
+import { evaluatorForEngine } from '../../../../scripts/lib/loop/engine-tee.js';
+import { liveEngine } from '../../../../scripts/lib/loop/main.js';
 import { repairPrompt } from '../../../../scripts/lib/loop/prompts.js';
 import { computeTieredScoring, countedTierOf } from '../../../../src/scoring-engine/tiered-scoring.js';
 import type { TierResolver } from '../../../../src/scoring-engine/tiered-scoring.js';
@@ -116,7 +118,6 @@ describe('toStepEvaluation: blocking findings are the counted rows (F17)', () =>
     expect(ev.data.blockingFindings.map((f) => f.violationId)).toEqual(['p06-1', 's02-in', 's02-cross']);
     expect(ev.data.blockingFindings).toHaveLength(ev.data.blockingViolationCount);
     expect(ev.data.blockingByRule).toEqual({ 'FF-P06': 1, 'FF-S02': 2 });
-    expect(ev.data.graphEngine).toBe('neo4j');
   });
 
   it('leaves out a row-tier FF-S02 row the switch moves to advisory', () => {
@@ -141,11 +142,6 @@ describe('toStepEvaluation: blocking findings are the counted rows (F17)', () =>
     expect(ev.success ? [] : ev.errors.map((e) => e.code)).toEqual(['LOOP_EVAL_NO_VIOLATIONS']);
   });
 
-  it('records the engine that answered', () => {
-    const ev = toStepEvaluation({ ...evaluated(undefined), engine: 'cypher-interp' });
-    expect(ev.success && ev.data.graphEngine).toBe('cypher-interp');
-  });
-
   it('countedTierOf places each row as computeTieredScoring counts it', () => {
     expect(countedTierOf(ROWS.injects, 'clean-architecture')).toBe('blocking');
     expect(countedTierOf(ROWS.holds, 'clean-architecture')).toBe('not-applicable');
@@ -164,7 +160,7 @@ describe('repairPrompt', () => {
   });
 });
 
-describe('firewallEvaluator on cypher-interp (F7, F24)', () => {
+describe('the loop evaluator on cypher-interp (F7, F24)', () => {
   it('evaluates a work tree without its own tsconfig through the pinned one, and records the engine', async () => {
     const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'loop-interp-'));
     try {
@@ -182,26 +178,52 @@ describe('firewallEvaluator on cypher-interp (F7, F24)', () => {
       fs.mkdirSync(path.dirname(tsconfig), { recursive: true });
       fs.writeFileSync(tsconfig, JSON.stringify({ compilerOptions: { strict: true, target: 'ES2022', module: 'commonjs', noEmit: true }, include: [`${work}/src/**/*.ts`] }));
       const env = { APG_STORE_PATH: path.join(tmp, 'apg') };
-      const deps = buildContext({ engine: 'cypher-interp' }, env).evaluateDeps;
-      const without = await firewallEvaluator(CLEAN_ARCH_SPEC, env, deps).evaluate(work, 'run');
+      // The base wiring with no NEO4J_URI is the MCP server's cached interpreter path (the §2 default).
+      const deps = buildContext({}, env).evaluateDeps;
+      expect(deps.graphEngine).toBe('cypher-interp');
+      const build = (tsconfigOf?: () => string) => (d: typeof deps, e: NodeJS.ProcessEnv) => firewallEvaluator(CLEAN_ARCH_SPEC, e, d, tsconfigOf);
+      const without = await evaluatorForEngine(undefined, deps, env, build()).evaluate(work, 'run');
       expect(without.success).toBe(false);
-      const ev = await firewallEvaluator(CLEAN_ARCH_SPEC, env, deps, () => tsconfig).evaluate(work, 'run');
+      const ev = await evaluatorForEngine(undefined, deps, env, build(() => tsconfig)).evaluate(work, 'run');
       if (!ev.success) throw new Error(ev.errors.map((e) => `${e.code}: ${e.message}`).join());
-      expect(ev.data.graphEngine).toBe('cypher-interp');
+      // Even without --engine, the record names the engine that answered.
+      expect(ev.data.engineOfRecord).toBe('cypher-interp');
       expect(ev.data.blockingViolationCount).toBeGreaterThan(0);
       expect(ev.data.blockingFindings).toHaveLength(ev.data.blockingViolationCount);
       expect(ev.data.blockingFindings.some((f) => f.filePath.endsWith('domain/item.ts'))).toBe(true);
+      // The pipeline path of `--engine cypher-interp` gives the same counted findings and records its engine too.
+      const tee = await evaluatorForEngine('cypher-interp', deps, env, build(() => tsconfig)).evaluate(work, 'run');
+      if (!tee.success) throw new Error(tee.errors.map((e) => `${e.code}: ${e.message}`).join());
+      expect(tee.data.engineOfRecord).toBe('cypher-interp');
+      expect(tee.data.blockingFindings).toEqual(ev.data.blockingFindings);
     } finally {
       fs.rmSync(tmp, { recursive: true, force: true });
     }
   }, 120_000);
 });
 
+describe('engine pin (F7)', () => {
+  it('a live grid without --engine or a plan engine evaluates on neo4j, never on the NEO4J_URI default', () => {
+    expect(liveEngine(undefined, undefined)).toBe('neo4j');
+    expect(liveEngine(undefined, 'cypher-interp')).toBe('cypher-interp');
+    expect(liveEngine('both', 'cypher-interp')).toBe('both');
+  });
+
+  it('every engine mode records engineOfRecord', async () => {
+    const stub = { id: 's', evaluate: () => Promise.resolve(toStepEvaluation(evaluated(undefined))) };
+    const base = buildContext({ engine: 'neo4j' }, {}).evaluateDeps;
+    for (const [engine, want] of [[undefined, 'neo4j'], ['neo4j', 'neo4j'], ['cypher-interp', 'cypher-interp']] as const) {
+      const r = await evaluatorForEngine(engine, base, {}, () => stub).evaluate('/w', 'run');
+      expect([engine, r.success && r.data.engineOfRecord]).toEqual([engine, want]);
+    }
+  });
+});
+
 describe('Study 2 engine assertion (F7)', () => {
   const run = (engines: (string | undefined | null)[]): LoadedRun => ({
     run: { schema: 'loop-run/v1', runId: 'a/m/t/none/run-0', spec: { adapterId: 'claude-code-cli', modelId: 'm', taskId: 't', arm: 'none', runIndex: 0 }, steps: engines.length, baseCommit: 'c', createdAt: 'x', dryRun: false },
     steps: engines.map((e, i) => ({
-      turns: [{ snapshot: { evaluation: e === null ? null : { ...(e !== undefined ? { graphEngine: e } : {}) } } }],
+      turns: [{ snapshot: { evaluation: e === null ? null : { ...(e !== undefined ? { engineOfRecord: e } : {}) } } }],
       stepIndex: i,
     })),
   }) as unknown as LoadedRun;

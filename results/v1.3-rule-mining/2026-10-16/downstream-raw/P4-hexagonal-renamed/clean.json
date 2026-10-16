@@ -1,0 +1,157 @@
+{
+ "minedSpec": "# PROPOSED rules, mined from the code (daedalus mine-rules; src/rule-mining). Not a reviewed spec: review before use.\n# style: hexagonal (ISE, confidence 1.00); layers: ISE preset-first\n# mined rules: 21 (20 emitted)\n# MR-001 [layer-direction, high 0.82] domain must not depend on application (13 edges application -> domain; 0/8 domain files import application)\n# MR-002 [layer-direction, low 0.44] domain must not depend on adapters-inbound (1 edges adapters-inbound -> domain; 0/8 domain files import adapters-inbound)\n# MR-003 [layer-direction, high 0.76] domain must not depend on adapters-outbound (6 edges adapters-outbound -> domain; 0/8 domain files import adapters-outbound)\n# MR-004 [layer-unobserved, low 0.22] domain must not depend on config (no import between them either way)\n# MR-005 [layer-direction, high 0.77] application must not depend on adapters-inbound (5 edges adapters-inbound -> application; 0/12 application files import adapters-inbound)\n# MR-006 [layer-direction, high 0.77] application must not depend on adapters-outbound (5 edges adapters-outbound -> application; 0/12 application files import adapters-outbound)\n# MR-007 [layer-direction, medium 0.69] application must not depend on config (3 edges config -> application; 0/12 application files import config)\n# MR-008 [layer-rare-edge, low 0.30] adapters-inbound should not depend on domain (1/4 adapters-inbound files imports it; nothing goes back) -- 1 exception(s): src/plugins/entry/http/BookingController.ts -> src/kernel/errors/BookingError.ts\n# MR-009 [layer-unobserved, low 0.33] adapters-inbound must not depend on adapters-outbound (no import between them either way)\n# MR-010 [layer-direction, medium 0.60] adapters-inbound must not depend on config (3 edges config -> adapters-inbound; 0/4 adapters-inbound files import config)\n# MR-011 [layer-unobserved, low 0.33] adapters-outbound must not depend on adapters-inbound (no import between them either way)\n# MR-012 [layer-direction, medium 0.69] adapters-outbound must not depend on config (5 edges config -> adapters-outbound; 0/5 adapters-outbound files import config)\n# MR-013 [layer-unobserved, low 0.22] config must not depend on domain (no import between them either way)\n# MR-014 [acyclic-files, high 0.97] no file lies on an import cycle (30/30 files do not)\n# MR-015 [component-direction, high 0.82] folder component kernel must not depend on orchestration (13 imports orchestration -> kernel; 0/8 files import back)\n# MR-016 [component-direction, high 0.78] folder component kernel must not depend on plugins (7 imports plugins -> kernel; 0/8 files import back)\n# MR-017 [component-direction, medium 0.69] folder component orchestration must not depend on setup (3 imports setup -> orchestration; 0/12 files import back)\n# MR-018 [component-direction, high 0.84] folder component orchestration must not depend on plugins (10 imports plugins -> orchestration; 0/12 files import back)\n# MR-019 [component-direction, high 0.80] folder component plugins must not depend on setup (8 imports setup -> plugins; 0/9 files import back)\n# MR-020 [port-implementation, high 0.75] every *Repository class in adapters-outbound implements an interface declared in another layer (3/3)\n# MR-021 [inject-abstractions, high 0.80] classes of adapters-inbound inject interfaces across layers, not concrete classes (4/4) -- not emitted: the existing templates check the application-kind layer only (application), not adapters-inbound\n\nspec_version: \"1.0.0\"\n\narchitecture:\n  style: hexagonal\n\n  layers:\n    - name: domain\n      kind: domain\n      directories:\n        - src/kernel/**\n      roles:\n        - entity\n        - value-object\n        - domain-service\n        - port\n\n    - name: application\n      kind: application\n      directories:\n        - src/orchestration/**\n      roles:\n        - use-case\n        - port\n        - application-service\n\n    - name: adapters-inbound\n      kind: presentation\n      directories:\n        - src/plugins/entry/**\n      roles:\n        - controller\n        - cli-command\n        - message-consumer\n\n    - name: adapters-outbound\n      kind: infrastructure\n      directories:\n        - src/plugins/exit/**\n      roles:\n        - repository\n        - gateway\n        - external-api-client\n\n    # Composition root: wires adapters to ports. kind application is only a placeholder for the kind resolver.\n    - name: config\n      kind: application\n      directories:\n        - src/setup/**\n      roles:\n        - composition-root\n        - module\n\n  # `from` may import each layer in `to`; any other cross-layer import is a violation.\n  allowed_dependencies:\n    # observed: application -> domain 8/12 files\n    - from: application\n      to:\n        - domain\n    # observed: adapters-inbound -> application 3/4 files\n    - from: adapters-inbound\n      to:\n        - application\n    # observed: adapters-outbound -> application 5/5 files; adapters-outbound -> domain 4/5 files\n    - from: adapters-outbound\n      to:\n        - application\n        - domain\n    # observed: config -> adapters-inbound 1/1 files; config -> adapters-outbound 1/1 files; config -> application 1/1 files\n    - from: config\n      to:\n        - adapters-inbound\n        - adapters-outbound\n        - application\n\nfitness_functions:\n\n  # ── STRUCTURAL ──\n\n  # mined: MR-001 high 0.82, 0 exceptions; MR-002 low 0.44, 0 exceptions; MR-003 high 0.76, 0 exceptions; MR-005 high 0.77, 0 exceptions; MR-006 high 0.77, 0 exceptions; MR-007 medium 0.69, 0 exceptions; MR-010 medium 0.60, 0 exceptions; MR-012 medium 0.69, 0 exceptions\n  - id: FF-S01\n    name: dependency-direction-graph\n    dimension: structural\n    severity: critical\n    route: symbolic\n    validated: false\n\n  # mined: MR-014 high 0.97, 0 exceptions\n  - id: FF-S02\n    name: no-cyclic-deps\n    dimension: structural\n    severity: critical\n    route: symbolic\n    validated: true\n\n  # mined: MR-004 low 0.22, 0 exceptions; MR-008 low 0.30, 1 exception; MR-009 low 0.33, 0 exceptions; MR-011 low 0.33, 0 exceptions; MR-013 low 0.22, 0 exceptions\n  - id: FF-S03\n    name: layer-skip-graph\n    dimension: structural\n    severity: critical\n    route: symbolic\n    validated: false\n\n  # mined: MR-020 high 0.75, 0 exceptions\n  - id: FF-P03\n    name: port-adapter-pattern\n    dimension: pattern\n    severity: critical\n    route: symbolic\n    validated: false\n  # mined: MR-015 high 0.82, 0 exceptions; MR-016 high 0.78, 0 exceptions; MR-017 medium 0.69, 0 exceptions; MR-018 high 0.84, 0 exceptions; MR-019 high 0.80, 0 exceptions (APG v2: evaluated on a graph extracted with V13_APG2_OPTIONS)\n  - id: FF-A01\n    name: component-adp-cycle\n    dimension: structural\n    severity: advisory\n    route: symbolic\n    validated: false\n\n  # not mined: switched off (the style template would otherwise add them)\n  - id: FF-S04\n    name: core-isolation\n    dimension: structural\n    severity: major\n    route: symbolic\n    validated: false\n    enabled: false\n    reason: \"not mined: rule mining proposes only the rules the code follows\"\n\n  - id: FF-P01\n    name: domain-purity\n    dimension: pattern\n    severity: critical\n    route: symbolic\n    validated: true\n    forbidden_imports:\n      - \"@nestjs/*\"\n      - typeorm\n      - express\n      - prisma\n      - \"@prisma/*\"\n      - sequelize\n    enabled: false\n    reason: \"not mined: rule mining proposes only the rules the code follows\"\n\n  - id: FF-P02\n    name: port-dependency-inversion\n    dimension: pattern\n    severity: critical\n    route: symbolic\n    validated: false\n    threshold: 0.85\n    enabled: false\n    reason: \"not mined: rule mining proposes only the rules the code follows\"\n\n  - id: FF-P06\n    name: domain-state-purity\n    dimension: pattern\n    severity: critical\n    route: symbolic\n    validated: false\n    enabled: false\n    reason: \"not mined: rule mining proposes only the rules the code follows\"\n\n  - id: FF-C02\n    name: module-fan-out\n    dimension: coupling\n    severity: major\n    route: symbolic\n    validated: true\n    threshold: 10\n    enabled: false\n    reason: \"not mined: rule mining proposes only the rules the code follows\"\n\n  - id: FF-C03\n    name: component-instability\n    dimension: coupling\n    severity: major\n    route: symbolic\n    validated: true\n    enabled: false\n    reason: \"not mined: rule mining proposes only the rules the code follows\"\n\n  - id: FF-C04\n    name: no-orphan-files\n    dimension: coupling\n    severity: minor\n    route: symbolic\n    validated: false\n    enabled: false\n    reason: \"not mined: rule mining proposes only the rules the code follows\"\n\n  - id: FF-C05\n    name: max-fan-in\n    dimension: coupling\n    severity: minor\n    route: symbolic\n    validated: false\n    threshold: 15\n    enabled: false\n    reason: \"not mined: rule mining proposes only the rules the code follows\"\n\n  - id: FF-C06\n    name: abstraction-ratio\n    dimension: coupling\n    severity: advisory\n    route: symbolic\n    validated: false\n    threshold: 0.3\n    enabled: false\n    reason: \"not mined: rule mining proposes only the rules the code follows\"\n\n  - id: FF-SO01\n    name: single-responsibility-proxy\n    dimension: solid\n    severity: major\n    route: symbolic\n    validated: true\n    max_public_methods: 10\n    max_dependencies: 5\n    enabled: false\n    reason: \"not mined: rule mining proposes only the rules the code follows\"\n\n  - id: FF-SO02\n    name: interface-segregation-proxy\n    dimension: solid\n    severity: major\n    route: symbolic\n    validated: true\n    max_interface_methods: 5\n    enabled: false\n    reason: \"not mined: rule mining proposes only the rules the code follows\"\n\n  - id: FF-SO03\n    name: inheritance-depth\n    dimension: solid\n    severity: minor\n    route: symbolic\n    validated: false\n    max_depth: 3\n    enabled: false\n    reason: \"not mined: rule mining proposes only the rules the code follows\"\n\n  - id: FF-CV01\n    name: naming-conventions\n    dimension: convention\n    severity: minor\n    route: symbolic\n    enabled: false\n    reason: \"not mined: rule mining proposes only the rules the code follows\"\n    validated: true\n\n  - id: FF-CV02\n    name: naming-services\n    dimension: convention\n    severity: minor\n    route: symbolic\n    validated: false\n    pattern: \"*Service|*UseCase\"\n    enabled: false\n    reason: \"not mined: rule mining proposes only the rules the code follows\"\n\n  - id: FF-CV03\n    name: naming-repos\n    dimension: convention\n    severity: minor\n    route: symbolic\n    validated: false\n    pattern: \"*Repository|*Repo\"\n    enabled: false\n    reason: \"not mined: rule mining proposes only the rules the code follows\"\n\n  - id: FF-CV04\n    name: naming-controllers\n    dimension: convention\n    severity: minor\n    route: symbolic\n    enabled: false\n    reason: \"not mined: rule mining proposes only the rules the code follows\"\n    validated: false\n    pattern: \"*Controller\"\n\n  - id: FF-CV05\n    name: test-file-pairing\n    dimension: convention\n    severity: advisory\n    route: symbolic\n    validated: false\n    enabled: false\n    reason: \"not mined: rule mining proposes only the rules the code follows\"\n\n  - id: FF-CV06\n    name: no-index-logic\n    dimension: convention\n    severity: advisory\n    route: symbolic\n    validated: false\n    enabled: false\n    reason: \"not mined: rule mining proposes only the rules the code follows\"\n\n  - id: FF-N01\n    name: architectural-integrity\n    dimension: integrity\n    severity: major\n    route: neuronal\n    validated: false\n    semantic_criteria:\n      rule: \"The module's files form one coherent unit with a consistent abstraction and boundary.\"\n      rubric:\n        pass: \"The files serve one cohesive concern, use the module's abstractions consistently, and keep each rule or invariant in one place.\"\n        fail: \"The files split into unrelated concerns, duplicate a rule or invariant that should live in one place, or bypass the module's own abstractions.\"\n        evidence_required: \"Name each file involved and cite the declarations that show the split, the duplication or the bypass.\"\n    enabled: false\n    reason: \"not mined: rule mining proposes only the rules the code follows\"\n\n  - id: FF-N02\n    name: intent-alignment\n    dimension: semantic\n    severity: major\n    route: neuronal\n    validated: false\n    semantic_criteria:\n      rule: \"The unit's responsibilities match the role of its declared layer.\"\n      rubric:\n        pass: \"Every responsibility in the file belongs to the role and kind of its declared layer, and agrees with any ADR prose given.\"\n        fail: \"The file carries a responsibility that belongs to a different layer kind, for example persistence, transport or framework logic in a domain file, or business rules in an infrastructure or presentation file.\"\n        evidence_required: \"Name the file and cite the function, method or statement that carries the misplaced responsibility, and the layer kind it belongs to.\"\n    enabled: false\n    reason: \"not mined: rule mining proposes only the rules the code follows\"\n\nscoring:\n  weights:\n    structural: 0.35\n    coupling: 0.20\n    pattern: 0.30\n    solid: 0.10\n    convention: 0.05\n\n  full_mode_weights:\n    structural: 0.32\n    coupling: 0.18\n    pattern: 0.27\n    solid: 0.10\n    convention: 0.05\n    semantic: 0.04\n    integrity: 0.04\n\n  thresholds:\n    pass: 0.80\n    warning: 0.65\n    soft_block: 0.50\n\nconfidence_thresholds:\n  high: 0.85\n  medium: 0.60\n  icc_minimum: 0.70\n",
+ "minedStyle": "hexagonal",
+ "trueFindings": [
+  {
+   "ruleId": "FF-C02",
+   "file": "src/orchestration/services/BookRoomService.ts"
+  },
+  {
+   "ruleId": "FF-C02",
+   "file": "src/setup/container.ts"
+  },
+  {
+   "ruleId": "FF-C03",
+   "file": "src/orchestration/services/BookRoomService.ts"
+  },
+  {
+   "ruleId": "FF-C03",
+   "file": "src/orchestration/services/CancelBookingService.ts"
+  },
+  {
+   "ruleId": "FF-C03",
+   "file": "src/orchestration/services/FindAvailableRoomsService.ts"
+  },
+  {
+   "ruleId": "FF-C03",
+   "file": "src/setup/container.ts"
+  },
+  {
+   "ruleId": "FF-CV05",
+   "file": "src/kernel/errors/BookingError.ts"
+  },
+  {
+   "ruleId": "FF-CV05",
+   "file": "src/kernel/model/Booking.ts"
+  },
+  {
+   "ruleId": "FF-CV05",
+   "file": "src/kernel/model/DateRange.ts"
+  },
+  {
+   "ruleId": "FF-CV05",
+   "file": "src/kernel/model/Guest.ts"
+  },
+  {
+   "ruleId": "FF-CV05",
+   "file": "src/kernel/model/Money.ts"
+  },
+  {
+   "ruleId": "FF-CV05",
+   "file": "src/kernel/model/Room.ts"
+  },
+  {
+   "ruleId": "FF-CV05",
+   "file": "src/kernel/services/AvailabilityChecker.ts"
+  },
+  {
+   "ruleId": "FF-CV05",
+   "file": "src/kernel/services/PriceCalculator.ts"
+  },
+  {
+   "ruleId": "FF-CV05",
+   "file": "src/orchestration/ports/in/BookRoom.ts"
+  },
+  {
+   "ruleId": "FF-CV05",
+   "file": "src/orchestration/ports/in/BookingView.ts"
+  },
+  {
+   "ruleId": "FF-CV05",
+   "file": "src/orchestration/ports/in/CancelBooking.ts"
+  },
+  {
+   "ruleId": "FF-CV05",
+   "file": "src/orchestration/ports/in/FindAvailableRooms.ts"
+  },
+  {
+   "ruleId": "FF-CV05",
+   "file": "src/orchestration/ports/out/BookingRepository.ts"
+  },
+  {
+   "ruleId": "FF-CV05",
+   "file": "src/orchestration/ports/out/GuestRepository.ts"
+  },
+  {
+   "ruleId": "FF-CV05",
+   "file": "src/orchestration/ports/out/NotificationSender.ts"
+  },
+  {
+   "ruleId": "FF-CV05",
+   "file": "src/orchestration/ports/out/PaymentGateway.ts"
+  },
+  {
+   "ruleId": "FF-CV05",
+   "file": "src/orchestration/ports/out/RoomRepository.ts"
+  },
+  {
+   "ruleId": "FF-CV05",
+   "file": "src/orchestration/services/BookRoomService.ts"
+  },
+  {
+   "ruleId": "FF-CV05",
+   "file": "src/orchestration/services/CancelBookingService.ts"
+  },
+  {
+   "ruleId": "FF-CV05",
+   "file": "src/orchestration/services/FindAvailableRoomsService.ts"
+  },
+  {
+   "ruleId": "FF-CV05",
+   "file": "src/plugins/entry/cli/BookingCli.ts"
+  },
+  {
+   "ruleId": "FF-CV05",
+   "file": "src/plugins/entry/http/BookingController.ts"
+  },
+  {
+   "ruleId": "FF-CV05",
+   "file": "src/plugins/entry/http/HttpTypes.ts"
+  },
+  {
+   "ruleId": "FF-CV05",
+   "file": "src/plugins/entry/http/RoomController.ts"
+  },
+  {
+   "ruleId": "FF-CV05",
+   "file": "src/plugins/exit/notification/OutboxNotificationAdapter.ts"
+  },
+  {
+   "ruleId": "FF-CV05",
+   "file": "src/plugins/exit/payment/FakePaymentGateway.ts"
+  },
+  {
+   "ruleId": "FF-CV05",
+   "file": "src/plugins/exit/persistence/InMemoryBookingRepository.ts"
+  },
+  {
+   "ruleId": "FF-CV05",
+   "file": "src/plugins/exit/persistence/InMemoryGuestRepository.ts"
+  },
+  {
+   "ruleId": "FF-CV05",
+   "file": "src/plugins/exit/persistence/InMemoryRoomRepository.ts"
+  },
+  {
+   "ruleId": "FF-CV05",
+   "file": "src/setup/container.ts"
+  }
+ ],
+ "minedFindings": [
+  {
+   "ruleId": "FF-S03",
+   "file": "src/plugins/entry/http/BookingController.ts",
+   "target": "src/kernel/errors/BookingError.ts"
+  }
+ ]
+}

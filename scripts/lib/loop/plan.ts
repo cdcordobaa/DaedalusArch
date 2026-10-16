@@ -19,17 +19,16 @@ import * as fs from 'node:fs';
 import * as path from 'node:path';
 import { DomainResult } from '../../../src/shared/errors/domain-result.js';
 import type { DomainError } from '../../../src/shared/errors/domain-result.js';
-import { GRAPH_ENGINES, parseGraphEngine } from '../../../src/cypher-interp/engine.js';
-import type { GraphEngine } from '../../../src/cypher-interp/engine.js';
 import { mulberry32 } from '../mutation/rng.js';
+import type { AcceptancePlan } from './acceptance.js';
 import type { DaedalusServerInput } from '../generators/arms.js';
 import type { CodexPlanBlock } from '../generators/schedule.js';
 import { GENERATOR_ADAPTER_IDS } from '../generators/types.js';
 import type { GeneratorAdapterId } from '../generators/types.js';
 import { CONTEXT_ROOT_RE, LOOP_STYLES } from './style.js';
 import type { LoopContextDecl, LoopStyle } from './style.js';
-import { LOOP_ARMS } from './types.js';
-import type { LoopArm, LoopRunSpec, LoopTask, LoopTasksFile } from './types.js';
+import { LOOP_ARMS, parseLoopEngine } from './types.js';
+import type { LoopArm, LoopEngine, LoopRunSpec, LoopTask, LoopTasksFile, TaskAcceptance } from './types.js';
 
 /** A task's style and evaluator spec. */
 export interface TaskProfilePlan {
@@ -75,14 +74,15 @@ export interface LoopPlanFile {
   readonly taskProfiles?: Readonly<Record<string, TaskProfilePlan>>;
   /** The recorded call budget; checked against `planCallBudget`. */
   readonly callBudget?: CallBudget;
+  /**
+   * The evaluator's graph engine (`Docs/v1.3/loop-engine-tee.md`); `--engine` overrides it. Absent = the default
+   * wiring, unchanged.
+   */
+  readonly engine?: LoopEngine;
   /** Recorded for a judge-mode evaluator (the symbolic evaluator makes no model call). */
   readonly cassette?: { readonly dir: string; readonly mode: 'record' | 'replay' };
-  /**
-   * The graph engine every snapshot must be evaluated on (absent = `neo4j`, the reference engine). The live wiring
-   * builds the evaluator with exactly this engine, whatever NEO4J_URI says, and a snapshot answered by another engine
-   * fails with `LOOP_ENGINE_MISMATCH`.
-   */
-  readonly graphEngine?: GraphEngine;
+  /** Per-snapshot acceptance checks (`acceptance.ts`, gate D12); off unless `enabled` is true. */
+  readonly acceptance?: AcceptancePlan;
 }
 
 const ID_RE = /^[a-z0-9][a-z0-9-]*$/;
@@ -123,10 +123,44 @@ export function validateTasks(raw: unknown): DomainResult<LoopTasksFile> {
       steps.push({ id: s.id, request: s.request });
     }
     if (steps.length === 0) errors.push(err('LOOP_TASKS_INVALID', `task ${t.id} has no steps`));
+    if (t.acceptance !== undefined) {
+      const a = validateTaskAcceptance(t.id, t.acceptance);
+      errors.push(...a.errors);
+      tasks.push({ id: t.id, title: t.title, steps, acceptance: a.value });
+      continue;
+    }
     tasks.push({ id: t.id, title: t.title, steps });
   }
   if (tasks.length === 0) errors.push(err('LOOP_TASKS_INVALID', 'the tasks file lists no task'));
   return errors.length > 0 ? DomainResult.fail(errors) : DomainResult.ok({ description: raw.description, tasks });
+}
+
+function isArgv(v: unknown): v is string[] {
+  return Array.isArray(v) && v.length > 0 && v.every((a) => typeof a === 'string' && a !== '');
+}
+
+/** A task's optional acceptance start block (`acceptance.ts`). */
+function validateTaskAcceptance(taskId: string, raw: unknown): { readonly value: TaskAcceptance; readonly errors: DomainError[] } {
+  const bad = (m: string): DomainError => err('LOOP_TASKS_INVALID', `task ${taskId}: acceptance ${m}`);
+  if (!isRecord(raw)) return { value: {}, errors: [bad('must be { startCommand?, buildCommand?, port?, healthPath? }')] };
+  const errors: DomainError[] = [];
+  if (raw.startCommand !== undefined && !isArgv(raw.startCommand)) errors.push(bad('startCommand must be a non-empty argv array of strings'));
+  if (raw.buildCommand !== undefined && !isArgv(raw.buildCommand)) errors.push(bad('buildCommand must be a non-empty argv array of strings'));
+  if (raw.port !== undefined && (!Number.isInteger(raw.port) || (raw.port as number) < 1 || (raw.port as number) > 65535)) errors.push(bad('port must be an integer in 1..65535'));
+  if (raw.healthPath !== undefined && (typeof raw.healthPath !== 'string' || !raw.healthPath.startsWith('/'))) errors.push(bad('healthPath must start with /'));
+  return { value: raw, errors };
+}
+
+function validateAcceptancePlan(raw: unknown): DomainError[] {
+  const bad = (m: string): DomainError => err('LOOP_PLAN_INVALID', `acceptance ${m}`);
+  if (!isRecord(raw)) return [bad('must be { enabled, testsRoot, timeoutMs?, startTimeoutMs? }')];
+  const errors: DomainError[] = [];
+  if (typeof raw.enabled !== 'boolean') errors.push(bad('enabled must be a boolean'));
+  if (typeof raw.testsRoot !== 'string' || !path.isAbsolute(raw.testsRoot)) errors.push(bad('testsRoot must be an absolute path'));
+  for (const k of ['timeoutMs', 'startTimeoutMs']) {
+    if (raw[k] !== undefined && (!Number.isInteger(raw[k]) || (raw[k] as number) <= 0)) errors.push(bad(`${k} must be a positive integer`));
+  }
+  return errors;
 }
 
 export function validatePlan(raw: unknown): DomainResult<LoopPlanFile> {
@@ -137,6 +171,7 @@ export function validatePlan(raw: unknown): DomainResult<LoopPlanFile> {
   };
   for (const k of ['description', 'tasksFile', 'outRoot', 'binary', 'harnessRoot']) str(k);
   if (raw.evaluatorSpec !== undefined) str('evaluatorSpec');
+  if (raw.engine !== undefined && parseLoopEngine(raw.engine) === undefined) errors.push(err('LOOP_PLAN_INVALID', 'engine must be neo4j, cypher-interp or both'));
   if (raw.evaluatorSpec === undefined && raw.taskProfiles === undefined) errors.push(err('LOOP_PLAN_INVALID', 'evaluatorSpec must be a non-empty string (or every task needs a taskProfiles entry)'));
   if (raw.taskProfiles !== undefined) errors.push(...validateProfiles(raw.taskProfiles));
   if (raw.taskProfiles !== undefined && Array.isArray(raw.arms) && raw.arms.includes('daedalus-mcp')) {
@@ -171,9 +206,7 @@ export function validatePlan(raw: unknown): DomainResult<LoopPlanFile> {
   if (Array.isArray(arms) && arms.includes('daedalus-mcp') && !isRecord(raw.daedalus)) {
     errors.push(err('LOOP_PLAN_INVALID', 'the daedalus-mcp arm needs a daedalus block { nodeBinary, serverEntry, specPath }'));
   }
-  if (raw.graphEngine !== undefined && (typeof raw.graphEngine !== 'string' || parseGraphEngine(raw.graphEngine) === undefined)) {
-    errors.push(err('LOOP_PLAN_INVALID', `graphEngine must be one of ${GRAPH_ENGINES.join(', ')}`));
-  }
+  if (raw.acceptance !== undefined) errors.push(...validateAcceptancePlan(raw.acceptance));
   if (raw.cassette !== undefined && (!isRecord(raw.cassette) || typeof raw.cassette.dir !== 'string' || !['record', 'replay'].includes(String(raw.cassette.mode)))) {
     errors.push(err('LOOP_PLAN_INVALID', 'cassette must be { dir, mode: record | replay }'));
   }
@@ -277,6 +310,13 @@ export function loadLoopPlan(planFile: string, repoRoot: string, local: LocalOve
   if (!tasks.success) return DomainResult.fail(tasks.errors);
   const cross = checkPlanAgainstTasks(plan.data, tasks.data);
   if (cross.length > 0) return DomainResult.fail(cross);
+  const acc = plan.data.acceptance;
+  if (acc?.enabled === true) {
+    const rel = path.relative(path.resolve(plan.data.outRoot), path.resolve(acc.testsRoot));
+    if (rel === '' || (!rel.startsWith('..') && !path.isAbsolute(rel))) {
+      return DomainResult.fail([err('LOOP_PLAN_INVALID', 'acceptance.testsRoot must lie outside outRoot (the agents work under it)')]);
+    }
+  }
   return DomainResult.ok({ plan: plan.data, tasks: tasks.data, tasksPath });
 }
 

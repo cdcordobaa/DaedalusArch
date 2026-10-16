@@ -82,9 +82,9 @@ tests whose decision rules were fixed before any call or number, negative result
 | Lesson | Claim | Main sources |
 |---|---|---|
 | 11 (revised) | Adds the defensible restricted catch, 16/21 = 0.76 [0.55, 0.89] | `Docs/DiagnosticRuns/v1.3-judge-catch-round2-2026-10-15.md` header note |
-| 13 | CHECK-2: v1 and v2.2 both 40/40 on ten unseen bases; v2.2 halves false fails but fails D1 (7/21) and is not adopted; FF-N01 base-construction defect; exploratory second-vendor rater κ = 0.954 | `git show origin/v1.3-judge-v22-run:Docs/DiagnosticRuns/v1.3-judge-v22-check2-2026-10-16.md` (PR #191) |
-| 14 | 3-run unanimity does not meet the pre-stated confidence rule (null) | `git show origin/v1.3-judge-selective-prediction:Docs/DiagnosticRuns/v1.3-judge-selective-2026-10-16.md` (PR #165) |
-| 15 | Symbolic–neural complementarity: rules see 9/35; judge catches 22/26 blind seeds; false fail 2/48 clean, 10/55 twins | `git show origin/v1.3-complementarity-matrix:Docs/DiagnosticRuns/v1.3-complementarity-2026-10-16.md` (PR #179) |
+| 13 | CHECK-2: v1 and v2.2 both 40/40 on ten unseen bases; v2.2 halves false fails but fails D1 (7/21) and is not adopted; FF-N01 base-construction defect; exploratory second-vendor rater κ = 0.954 | `Docs/DiagnosticRuns/v1.3-judge-v22-check2-2026-10-16.md` (PR #191) |
+| 14 | 3-run unanimity does not meet the pre-stated confidence rule (null) | `Docs/DiagnosticRuns/v1.3-judge-selective-2026-10-16.md` (PR #165) |
+| 15 | Symbolic–neural complementarity: rules see 9/35; judge catches 22/26 blind seeds; false fail 2/48 clean, 10/55 twins | `Docs/DiagnosticRuns/v1.3-complementarity-2026-10-16.md` (PR #179) |
 | layered gate | FR-V8 filter-and-explain confirms 65/66 expected findings (62/63 without the FF-P06 N/A rows) | `Docs/DiagnosticRuns/v1.3-judge-v2-2026-10-16.md` §4; `Docs/v1.3/post-merge-review-2026-10-16.md` R26 |
 
 Compiles: 12 pages, no undefined references. Lessons 13–15 depend on three open PRs; see `papers/STATUS.md`.

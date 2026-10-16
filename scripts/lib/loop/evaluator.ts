@@ -3,9 +3,9 @@
  *
  * - `firewallEvaluator`: `evaluateProject` (the `evaluate_project` pipeline, symbolic-only, v1.3 scoring FR-V6) on the
  *   work directory, mapped to a `StepEvaluation`: the v1.2E AHS, the blocking-only AHS, the v1.3 verdict, blocking and
- *   advisory counts, the listed blocking findings (what the gate arm shows the agent) and the graph engine that
- *   answered. On Neo4j it needs a scratch database (the pipeline replaces the graph). The agent never reaches it:
- *   `evaluate_project` is denied in every arm and no Neo4j variable is in any child environment.
+ *   advisory counts, and the listed blocking findings (what the gate arm shows the agent). On Neo4j it needs a
+ *   scratch database (the pipeline replaces the graph); `engine-tee.ts` records the engine. The agent never reaches
+ *   it: `evaluate_project` is denied in every arm and no Neo4j variable is in any child environment.
  * - `harnessTypechecker`: the E1 type-check of record (`<H>/bin/tsc` with the pinned per-run tsconfig, BR-U5a-48).
  *
  * The evaluator is symbolic-only, so it makes no model call and needs no cassette. A judge-mode evaluator plugged in
@@ -17,7 +17,6 @@ import type { ProcessRunner } from '../../../src/shared/interfaces/process-runne
 import { evaluateProject } from '../../../src/mcp-server/evaluate-project.js';
 import type { EvaluateDeps } from '../../../src/mcp-server/evaluate-project.js';
 import type { EvaluateProjectResult } from '../../../src/mcp-server/types.js';
-import type { GraphEngine } from '../../../src/cypher-interp/engine.js';
 import { CONSTRUCT_ANSWERS } from '../../../src/shared/construct-switches.js';
 import { constructSwitchesActive } from '../../../src/construct-switches/compile.js';
 import { constructTierResolver } from '../../../src/construct-switches/pipeline.js';
@@ -86,7 +85,6 @@ export function toStepEvaluation(r: EvaluateProjectResult, resolver?: TierResolv
   }
   return DomainResult.ok({
     scoringMode: 'v1.3',
-    graphEngine: r.engine ?? 'neo4j',
     ahs: r.ahs,
     blockingAhs: tiers.blockingAhs,
     verdict: tiers.verdict,
@@ -121,22 +119,13 @@ export function harnessSnapshotTsconfig(harnessRoot: string): SnapshotTsconfig {
   return (_projectDir, runId) => (runId === undefined ? undefined : harnessTsconfigPath(harnessRoot, runId));
 }
 
-/**
- * The live firewall. `deps.graphEngine` is the engine the run expects (absent = `neo4j`); a result answered by another
- * engine fails the step with `LOOP_ENGINE_MISMATCH`, so a run never changes engine silently.
- */
 export function firewallEvaluator(specPath: string, env: NodeJS.ProcessEnv, deps: EvaluateDeps, tsconfigOf?: SnapshotTsconfig): StepEvaluator {
-  const expected: GraphEngine = deps.graphEngine ?? 'neo4j';
   return {
     id: 'daedalus-evaluate-project/v1.3',
     evaluate: async (projectDir, runId) => {
       const tsconfigPath = tsconfigOf?.(projectDir, runId);
       const r = await evaluateProject({ projectPath: projectDir, specPath, scoringMode: 'v1.3', includeViolations: true, ...(tsconfigPath !== undefined ? { tsconfigPath } : {}) }, env, deps);
       if (!r.success) return DomainResult.fail(r.errors);
-      const answered: GraphEngine = r.data.engine ?? 'neo4j';
-      if (answered !== expected) {
-        return DomainResult.fail([{ code: 'LOOP_ENGINE_MISMATCH', message: `the run expects graph engine ${expected}, the evaluation ran on ${answered}` }]);
-      }
       const resolver = await specTierResolver(specPath);
       if (!resolver.success) return DomainResult.fail(resolver.errors);
       return toStepEvaluation(r.data, resolver.data);

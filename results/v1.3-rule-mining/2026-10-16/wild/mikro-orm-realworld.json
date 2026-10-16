@@ -1,0 +1,387 @@
+{
+ "id": "mikro-orm-realworld",
+ "sha": "605a147509887da0bf405cdac3c3c7728d1606bf",
+ "label": "PROPOSED rules: mined from the code (deterministic, no LLM), not a reviewed spec. Review before use; exceptions are candidate violations, not confirmed ones.",
+ "style": "nestjs",
+ "styleConfidence": 1,
+ "layers": {
+  "presentation": 10,
+  "application": 12,
+  "infrastructure": 2,
+  "domain": 4
+ },
+ "allowedDependencies": [
+  "application>infrastructure",
+  "presentation>application"
+ ],
+ "rules": [
+  {
+   "id": "MR-001",
+   "kind": "layer-unobserved",
+   "statement": "domain must not depend on infrastructure (no import between them either way)",
+   "subject": "domain",
+   "object": "infrastructure",
+   "confidence": 0.267,
+   "level": "low",
+   "evidence": {
+    "fromFiles": 4,
+    "importingFiles": 0,
+    "edges": 0,
+    "reverseEdges": 0
+   },
+   "exceptions": [],
+   "compilesTo": null,
+   "notRepresentable": "style nestjs orders its layers totally: dependency-direction allows every inward import, and no-layer-skip applies to the layered style only",
+   "status": "proposal"
+  },
+  {
+   "id": "MR-002",
+   "kind": "layer-unobserved",
+   "statement": "domain must not depend on application (no import between them either way)",
+   "subject": "domain",
+   "object": "application",
+   "confidence": 0.369,
+   "level": "low",
+   "evidence": {
+    "fromFiles": 4,
+    "importingFiles": 0,
+    "edges": 0,
+    "reverseEdges": 0
+   },
+   "exceptions": [],
+   "compilesTo": null,
+   "notRepresentable": "style nestjs orders its layers totally: dependency-direction allows every inward import, and no-layer-skip applies to the layered style only",
+   "status": "proposal"
+  },
+  {
+   "id": "MR-003",
+   "kind": "layer-direction",
+   "statement": "domain must not depend on presentation (1 edges presentation -> domain; 0/4 domain files import presentation)",
+   "subject": "domain",
+   "object": "presentation",
+   "confidence": 0.4,
+   "level": "low",
+   "evidence": {
+    "fromFiles": 4,
+    "importingFiles": 0,
+    "edges": 0,
+    "reverseEdges": 1
+   },
+   "exceptions": [],
+   "compilesTo": {
+    "catalogue": "frozen",
+    "template": "dependency-direction",
+    "via": "the order of architecture.layers"
+   },
+   "status": "proposal"
+  },
+  {
+   "id": "MR-004",
+   "kind": "layer-unobserved",
+   "statement": "infrastructure must not depend on domain (no import between them either way)",
+   "subject": "infrastructure",
+   "object": "domain",
+   "confidence": 0.267,
+   "level": "low",
+   "evidence": {
+    "fromFiles": 2,
+    "importingFiles": 0,
+    "edges": 0,
+    "reverseEdges": 0
+   },
+   "exceptions": [],
+   "compilesTo": null,
+   "notRepresentable": "style nestjs orders its layers totally: dependency-direction allows every inward import, and no-layer-skip applies to the layered style only",
+   "status": "proposal"
+  },
+  {
+   "id": "MR-005",
+   "kind": "layer-direction",
+   "statement": "infrastructure must not depend on application (3 edges application -> infrastructure; 0/2 infrastructure files import application)",
+   "subject": "infrastructure",
+   "object": "application",
+   "confidence": 0.5,
+   "level": "medium",
+   "evidence": {
+    "fromFiles": 2,
+    "importingFiles": 0,
+    "edges": 0,
+    "reverseEdges": 3
+   },
+   "exceptions": [],
+   "compilesTo": {
+    "catalogue": "frozen",
+    "template": "dependency-direction",
+    "via": "the order of architecture.layers"
+   },
+   "status": "proposal"
+  },
+  {
+   "id": "MR-006",
+   "kind": "layer-unobserved",
+   "statement": "infrastructure must not depend on presentation (no import between them either way)",
+   "subject": "infrastructure",
+   "object": "presentation",
+   "confidence": 0.303,
+   "level": "low",
+   "evidence": {
+    "fromFiles": 2,
+    "importingFiles": 0,
+    "edges": 0,
+    "reverseEdges": 0
+   },
+   "exceptions": [],
+   "compilesTo": null,
+   "notRepresentable": "style nestjs orders its layers totally: dependency-direction allows every inward import, and no-layer-skip applies to the layered style only",
+   "status": "proposal"
+  },
+  {
+   "id": "MR-007",
+   "kind": "layer-unobserved",
+   "statement": "application must not depend on domain (no import between them either way)",
+   "subject": "application",
+   "object": "domain",
+   "confidence": 0.369,
+   "level": "low",
+   "evidence": {
+    "fromFiles": 12,
+    "importingFiles": 0,
+    "edges": 0,
+    "reverseEdges": 0
+   },
+   "exceptions": [],
+   "compilesTo": null,
+   "notRepresentable": "style nestjs orders its layers totally: dependency-direction allows every inward import, and no-layer-skip applies to the layered style only",
+   "status": "proposal"
+  },
+  {
+   "id": "MR-008",
+   "kind": "layer-direction",
+   "statement": "application must not depend on presentation (15 edges presentation -> application; 0/12 application files import presentation)",
+   "subject": "application",
+   "object": "presentation",
+   "confidence": 0.865,
+   "level": "high",
+   "evidence": {
+    "fromFiles": 12,
+    "importingFiles": 0,
+    "edges": 0,
+    "reverseEdges": 15
+   },
+   "exceptions": [],
+   "compilesTo": {
+    "catalogue": "frozen",
+    "template": "dependency-direction",
+    "via": "the order of architecture.layers"
+   },
+   "status": "proposal"
+  },
+  {
+   "id": "MR-009",
+   "kind": "layer-rare-edge",
+   "statement": "presentation should not depend on domain (1/10 presentation files imports it; nothing goes back)",
+   "subject": "presentation",
+   "object": "domain",
+   "confidence": 0.409,
+   "level": "low",
+   "evidence": {
+    "fromFiles": 10,
+    "importingFiles": 1,
+    "edges": 1,
+    "reverseEdges": 0
+   },
+   "exceptions": [
+    {
+     "file": "src/user/user.controller.ts",
+     "target": "src/shared/pipes/validation.pipe.ts"
+    }
+   ],
+   "compilesTo": null,
+   "notRepresentable": "style nestjs orders its layers totally: dependency-direction allows every inward import, and no-layer-skip applies to the layered style only",
+   "status": "proposal"
+  },
+  {
+   "id": "MR-010",
+   "kind": "layer-unobserved",
+   "statement": "presentation must not depend on infrastructure (no import between them either way)",
+   "subject": "presentation",
+   "object": "infrastructure",
+   "confidence": 0.303,
+   "level": "low",
+   "evidence": {
+    "fromFiles": 10,
+    "importingFiles": 0,
+    "edges": 0,
+    "reverseEdges": 0
+   },
+   "exceptions": [],
+   "compilesTo": null,
+   "notRepresentable": "style nestjs orders its layers totally: dependency-direction allows every inward import, and no-layer-skip applies to the layered style only",
+   "status": "proposal"
+  },
+  {
+   "id": "MR-011",
+   "kind": "component-direction",
+   "statement": "folder component shared must not depend on user (1 imports user -> shared; 0/1 files import back)",
+   "subject": "folder:shared",
+   "object": "folder:user",
+   "confidence": 0.25,
+   "level": "low",
+   "evidence": {
+    "fromFiles": 1,
+    "importingFiles": 0,
+    "edges": 0,
+    "reverseEdges": 1
+   },
+   "exceptions": [],
+   "compilesTo": {
+    "catalogue": "apg2",
+    "template": "component-adp-cycle",
+    "via": "APG v2 folder components (an import against the rule closes a component cycle)"
+   },
+   "status": "proposal"
+  },
+  {
+   "id": "MR-012",
+   "kind": "component-direction",
+   "statement": "folder component user must not depend on tag (1 imports tag -> user; 0/12 files import back)",
+   "subject": "folder:user",
+   "object": "folder:tag",
+   "confidence": 0.462,
+   "level": "low",
+   "evidence": {
+    "fromFiles": 12,
+    "importingFiles": 0,
+    "edges": 0,
+    "reverseEdges": 1
+   },
+   "exceptions": [],
+   "compilesTo": {
+    "catalogue": "apg2",
+    "template": "component-adp-cycle",
+    "via": "APG v2 folder components (an import against the rule closes a component cycle)"
+   },
+   "status": "proposal"
+  },
+  {
+   "id": "MR-013",
+   "kind": "component-direction",
+   "statement": "folder component user must not depend on profile (6 imports profile -> user; 0/12 files import back)",
+   "subject": "folder:user",
+   "object": "folder:profile",
+   "confidence": 0.791,
+   "level": "high",
+   "evidence": {
+    "fromFiles": 12,
+    "importingFiles": 0,
+    "edges": 0,
+    "reverseEdges": 6
+   },
+   "exceptions": [],
+   "compilesTo": {
+    "catalogue": "apg2",
+    "template": "component-adp-cycle",
+    "via": "APG v2 folder components (an import against the rule closes a component cycle)"
+   },
+   "status": "proposal"
+  },
+  {
+   "id": "MR-014",
+   "kind": "component-direction",
+   "statement": "folder component user must not depend on article (8 imports article -> user; 1/12 files import back)",
+   "subject": "folder:user",
+   "object": "folder:article",
+   "confidence": 0.677,
+   "level": "medium",
+   "evidence": {
+    "fromFiles": 12,
+    "importingFiles": 1,
+    "edges": 1,
+    "reverseEdges": 8
+   },
+   "exceptions": [
+    {
+     "file": "src/user/user.entity.ts",
+     "target": "src/article/article.entity.ts"
+    }
+   ],
+   "compilesTo": {
+    "catalogue": "apg2",
+    "template": "component-adp-cycle",
+    "via": "APG v2 folder components (an import against the rule closes a component cycle)"
+   },
+   "status": "proposal"
+  },
+  {
+   "id": "MR-015",
+   "kind": "core-package-free",
+   "statement": "domain (a core layer: it may depend on no other layer) imports none of @mikro-orm/nestjs, @nestjs/swagger, crypto, jsonwebtoken",
+   "subject": "domain",
+   "confidence": 0.8,
+   "level": "high",
+   "evidence": {
+    "coreFiles": 4,
+    "packages": 4
+   },
+   "exceptions": [],
+   "params": {
+    "forbidden_imports": [
+     "@mikro-orm/nestjs",
+     "@nestjs/swagger",
+     "crypto",
+     "jsonwebtoken"
+    ]
+   },
+   "compilesTo": {
+    "catalogue": "frozen",
+    "template": "domain-purity",
+    "via": "fitness function FF-P01 (domain-purity) forbidden_imports"
+   },
+   "status": "proposal"
+  },
+  {
+   "id": "MR-016",
+   "kind": "core-package-free",
+   "statement": "infrastructure (a core layer: it may depend on no other layer) imports none of @mikro-orm/migrations, @mikro-orm/nestjs, @nestjs/common, @nestjs/swagger, class-transformer, class-validator, crypto, jsonwebtoken",
+   "subject": "infrastructure",
+   "confidence": 0.667,
+   "level": "medium",
+   "evidence": {
+    "coreFiles": 2,
+    "packages": 8
+   },
+   "exceptions": [],
+   "params": {
+    "forbidden_imports": [
+     "@mikro-orm/migrations",
+     "@mikro-orm/nestjs",
+     "@nestjs/common",
+     "@nestjs/swagger",
+     "class-transformer",
+     "class-validator",
+     "crypto",
+     "jsonwebtoken"
+    ]
+   },
+   "compilesTo": null,
+   "notRepresentable": "domain-purity checks the domain-kind layer only (domain), not infrastructure",
+   "status": "proposal"
+  }
+ ],
+ "counts": {
+  "rules": 16,
+  "high": 3,
+  "medium": 3,
+  "low": 10,
+  "exceptions": 2,
+  "notRepresentable": 8
+ },
+ "spec": {
+  "valid": true,
+  "errors": [],
+  "compiled": [
+   "dependency-direction",
+   "domain-purity"
+  ]
+ }
+}

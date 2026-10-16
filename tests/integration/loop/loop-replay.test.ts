@@ -111,6 +111,7 @@ describeNeo4j('loop replay: scripted agent through none, daedalus-mcp and gate (
           expect(t.snapshot.evaluationError).toBeUndefined();
           expect(t.snapshot.typecheck).toEqual({ errors: 0, codes: [] });
           expect(t.snapshot.evaluation?.advisoryByRule).toBeDefined();
+          expect(t.snapshot.evaluation?.engineOfRecord).toBe('neo4j');
           for (const f of t.snapshot.evaluation?.blockingFindings ?? []) {
             expect(f.template).not.toBe('');
             expect(f.violationId).toBeDefined();

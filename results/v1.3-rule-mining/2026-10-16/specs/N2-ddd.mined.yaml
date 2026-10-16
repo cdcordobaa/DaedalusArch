@@ -1,0 +1,297 @@
+# PROPOSED rules, mined from the code (daedalus mine-rules; src/rule-mining). Not a reviewed spec: review before use.
+# style: ddd (ISE, confidence 0.75); layers: ISE preset-first
+# mined rules: 21 (18 emitted)
+# MR-001 [layer-direction, high 0.87] domain must not depend on application (13 edges application -> domain; 0/16 domain files import application)
+# MR-002 [layer-direction, high 0.85] domain must not depend on infrastructure (9 edges infrastructure -> domain; 0/16 domain files import infrastructure)
+# MR-003 [layer-unobserved, low 0.31] domain must not depend on api (no import between them either way)
+# MR-004 [layer-unobserved, low 0.23] domain must not depend on composition (no import between them either way)
+# MR-005 [layer-direction, low 0.40] application must not depend on infrastructure (1 edges infrastructure -> application; 0/4 application files import infrastructure)
+# MR-006 [layer-direction, medium 0.53] application must not depend on api (2 edges api -> application; 0/4 application files import api)
+# MR-007 [layer-direction, medium 0.60] application must not depend on composition (3 edges composition -> application; 0/4 application files import composition)
+# MR-008 [layer-rare-edge, low 0.30] infrastructure should not depend on application (1/4 infrastructure files imports it; nothing goes back) -- 1 exception(s): src/billing/garnet/acl/OrderingAcl.ts -> src/billing/garnet/ridge/ports/OrderSource.ts
+# MR-009 [layer-unobserved, low 0.27] infrastructure must not depend on api (no import between them either way)
+# MR-010 [layer-direction, medium 0.64] infrastructure must not depend on composition (4 edges composition -> infrastructure; 0/4 infrastructure files import composition)
+# MR-011 [layer-unobserved, low 0.31] api must not depend on domain (no import between them either way)
+# MR-012 [layer-unobserved, low 0.27] api must not depend on infrastructure (no import between them either way)
+# MR-013 [layer-direction, low 0.44] api must not depend on composition (2 edges composition -> api; 0/2 api files import composition)
+# MR-014 [layer-unobserved, low 0.23] composition must not depend on domain (no import between them either way)
+# MR-015 [acyclic-files, high 0.97] no file lies on an import cycle (31/31 files do not) -- not emitted: the ddd style compiles only its own library and the hexagonal graph templates; no-cyclic-deps is not among them
+# MR-016 [component-direction, low 0.47] module component ordering must not depend on billing (1 imports billing -> ordering; 0/16 files import back)
+# MR-017 [component-direction, medium 0.56] folder component shared-kernel must not depend on ordering (5 imports ordering -> shared-kernel; 0/2 files import back)
+# MR-018 [component-direction, medium 0.56] folder component shared-kernel must not depend on billing (5 imports billing -> shared-kernel; 0/2 files import back)
+# MR-019 [component-direction, low 0.47] folder component ordering must not depend on billing (1 imports billing -> ordering; 0/16 files import back)
+# MR-020 [port-implementation, high 0.75] every *Repository class in infrastructure implements an interface declared in another layer (3/3) -- not emitted: the ddd library has no port template (repository-aggregate-root checks aggregate roots, not ports)
+# MR-021 [inject-abstractions, high 0.80] classes of application inject interfaces across layers, not concrete classes (4/4) -- not emitted: the ddd library has no injection template
+
+spec_version: "1.0.0"
+
+architecture:
+  style: ddd
+
+  layers:
+    - name: domain
+      kind: domain
+      directories:
+        - src/shared-kernel/**
+        - src/billing/garnet/aspen/**
+        - src/ordering/garnet/aspen/**
+      roles:
+        - aggregate
+        - entity
+        - value-object
+        - domain-event
+        - repository-interface
+
+    - name: application
+      kind: application
+      directories:
+        - src/billing/garnet/ridge/**
+        - src/ordering/garnet/ridge/**
+      roles:
+        - application-service
+        - port
+
+    - name: infrastructure
+      kind: infrastructure
+      directories:
+        - src/billing/garnet/acl/**
+        - src/billing/garnet/kelp/**
+        - src/ordering/garnet/kelp/**
+      roles:
+        - repository
+        - anti-corruption-layer
+
+    - name: api
+      kind: presentation
+      directories:
+        - src/billing/garnet/api/**
+        - src/ordering/garnet/api/**
+      roles:
+        - controller
+
+    # Composition root, outside every context. kind application is only a placeholder for the kind resolver.
+    - name: composition
+      kind: application
+      directories:
+        - src/main.ts
+      roles:
+        - composition-root
+
+  # Layering inside each context (`from` may import each layer in `to`); cross-context imports are FF-DS02's.
+  allowed_dependencies:
+    # observed: application -> domain 3/4 files
+    - from: application
+      to:
+        - domain
+    # observed: infrastructure -> domain 3/4 files
+    - from: infrastructure
+      to:
+        - domain
+    # observed: api -> application 2/2 files
+    - from: api
+      to:
+        - application
+    # observed: composition -> api 1/1 files; composition -> application 1/1 files; composition -> infrastructure 1/1 files
+    - from: composition
+      to:
+        - api
+        - application
+        - infrastructure
+
+  ddd:
+    source_root: src/
+    contexts:
+      - name: billing
+        root: src/billing/
+        public_api:
+          - src/billing/index.ts
+          - src/billing/garnet/contracts/**
+        acl:
+          - src/billing/garnet/acl/**
+      - name: ordering
+        root: src/ordering/
+        public_api:
+          - src/ordering/index.ts
+          - src/ordering/garnet/contracts/**
+        acl: []
+    outside_contexts:
+      - src/main.ts
+      - src/shared-kernel/**
+    aggregates:
+      - name: Invoice
+        context: billing
+        module: src/billing/garnet/aspen/invoice/**
+        root: src/billing/garnet/aspen/invoice/Invoice.ts
+        inner_entities:
+          - src/billing/garnet/aspen/invoice/InvoiceLine.ts
+      - name: Customer
+        context: ordering
+        module: src/ordering/garnet/aspen/customer/**
+        root: src/ordering/garnet/aspen/customer/Customer.ts
+        inner_entities: []
+      - name: Order
+        context: ordering
+        module: src/ordering/garnet/aspen/order/**
+        root: src/ordering/garnet/aspen/order/Order.ts
+        inner_entities:
+          - src/ordering/garnet/aspen/order/OrderLine.ts
+    value_objects:
+      - src/**/value-objects/**
+    repositories:
+      - src/*/garnet/aspen/**/*Repository.ts
+      - src/*/garnet/kelp/**/*Repository.ts
+    domain_event_types:
+      - DomainEvent
+    application_services:
+      - src/*/garnet/ridge/*.ts
+
+fitness_functions:
+
+  # ── STRATEGIC ──
+
+  
+  # mined: MR-001 high 0.87, 0 exceptions; MR-002 high 0.85, 0 exceptions; MR-005 low 0.40, 0 exceptions; MR-006 medium 0.53, 0 exceptions; MR-007 medium 0.60, 0 exceptions; MR-010 medium 0.64, 0 exceptions; MR-013 low 0.44, 0 exceptions
+  - id: FF-S01
+    name: dependency-direction-graph
+    dimension: structural
+    severity: critical
+    route: symbolic
+    validated: false
+    tier: blocking
+
+  # mined: MR-003 low 0.31, 0 exceptions; MR-004 low 0.23, 0 exceptions; MR-008 low 0.30, 1 exception; MR-009 low 0.27, 0 exceptions; MR-011 low 0.31, 0 exceptions; MR-012 low 0.27, 0 exceptions; MR-014 low 0.23, 0 exceptions
+  - id: FF-S03
+    name: layer-skip-graph
+    dimension: structural
+    severity: minor
+    route: symbolic
+    validated: false
+    tier: advisory
+  # mined: MR-016 low 0.47, 0 exceptions; MR-017 medium 0.56, 0 exceptions; MR-018 medium 0.56, 0 exceptions; MR-019 low 0.47, 0 exceptions (APG v2: evaluated on a graph extracted with V13_APG2_OPTIONS)
+  - id: FF-A01
+    name: component-adp-cycle
+    dimension: structural
+    severity: advisory
+    route: symbolic
+    validated: false
+  # not mined: switched off (the style template would otherwise add them)
+  - id: FF-DS01
+    name: bounded-context-modules
+    dimension: structural
+    severity: critical
+    route: symbolic
+    validated: false
+    tier: blocking
+    enabled: false
+    reason: "not mined: rule mining proposes only the rules the code follows"
+
+  - id: FF-DS02
+    name: context-isolation
+    dimension: structural
+    severity: critical
+    route: symbolic
+    validated: false
+    tier: blocking
+    enabled: false
+    reason: "not mined: rule mining proposes only the rules the code follows"
+
+  - id: FF-DT01
+    name: aggregate-boundary
+    dimension: structural
+    severity: critical
+    route: symbolic
+    validated: false
+    tier: blocking
+    enabled: false
+    reason: "not mined: rule mining proposes only the rules the code follows"
+
+  - id: FF-DT02
+    name: repository-aggregate-root
+    dimension: pattern
+    severity: critical
+    route: symbolic
+    validated: false
+    tier: blocking
+    enabled: false
+    reason: "not mined: rule mining proposes only the rules the code follows"
+
+  - id: FF-DT03
+    name: value-object-immutability
+    dimension: pattern
+    severity: critical
+    route: symbolic
+    validated: false
+    tier: blocking
+    enabled: false
+    reason: "not mined: rule mining proposes only the rules the code follows"
+
+  - id: FF-DT04
+    name: domain-purity
+    dimension: pattern
+    severity: critical
+    route: symbolic
+    validated: false
+    tier: blocking
+    forbidden_imports:
+      - "@nestjs/*"
+      - typeorm
+      - express
+      - prisma
+      - "@prisma/*"
+      - sequelize
+      - mongoose
+      - "@mikro-orm/*"
+      - class-validator
+      - class-transformer
+      - inversify
+      - tsyringe
+    enabled: false
+    reason: "not mined: rule mining proposes only the rules the code follows"
+
+  - id: FF-DT05
+    name: domain-event-placement
+    dimension: pattern
+    severity: minor
+    route: symbolic
+    validated: false
+    tier: advisory
+    enabled: false
+    reason: "not mined: rule mining proposes only the rules the code follows"
+
+  - id: FF-DT06
+    name: application-service-thin
+    dimension: pattern
+    severity: advisory
+    route: symbolic
+    validated: false
+    tier: advisory
+    threshold: 3
+    enabled: false
+    reason: "not mined: rule mining proposes only the rules the code follows"
+
+scoring:
+  weights:
+    structural: 0.35
+    coupling: 0.20
+    pattern: 0.30
+    solid: 0.10
+    convention: 0.05
+
+  full_mode_weights:
+    structural: 0.32
+    coupling: 0.18
+    pattern: 0.27
+    solid: 0.10
+    convention: 0.05
+    semantic: 0.04
+    integrity: 0.04
+
+  thresholds:
+    pass: 0.80
+    warning: 0.65
+    soft_block: 0.50
+
+confidence_thresholds:
+  high: 0.85
+  medium: 0.60
+  icc_minimum: 0.70

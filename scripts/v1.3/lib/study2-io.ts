@@ -56,14 +56,14 @@ export function loadOutRoot(outRoot: string): LoadedOutRoot {
 }
 
 /**
- * Every evaluated snapshot of the loaded runs must name `expected` as its graph engine (`StepEvaluation.graphEngine`).
+ * Every evaluated snapshot of the loaded runs must name `expected` as its graph engine (`StepEvaluation.engineOfRecord`).
  * Returns one line per run that breaks this (another engine, or no engine recorded); empty when all agree.
  */
 export function engineProblems(runs: readonly LoadedRun[], expected: GraphEngine): string[] {
   const problems: string[] = [];
   for (const r of runs) {
     const seen = new Set<string>();
-    for (const s of r.steps) for (const t of s.turns) if (t.snapshot.evaluation !== null) seen.add(t.snapshot.evaluation.graphEngine ?? 'not recorded');
+    for (const s of r.steps) for (const t of s.turns) if (t.snapshot.evaluation !== null) seen.add(t.snapshot.evaluation.engineOfRecord ?? 'not recorded');
     const other = [...seen].filter((e) => e !== expected).sort();
     if (other.length > 0) problems.push(`${r.run.runId}: graph engine ${other.join(', ')} (expected ${expected})`);
   }
