@@ -1,0 +1,23 @@
+--- a/src/domain/model/Guest.ts
++++ b/src/domain/model/Guest.ts
+@@ -1,11 +1,20 @@
++import { OutboxNotificationAdapter } from '../../adapters/outbound/notification/OutboxNotificationAdapter';
+ import { BookingError } from '../errors/BookingError';
+ 
+ export class Guest {
++  private readonly outbox: OutboxNotificationAdapter;
++
+   constructor(
+     readonly id: string,
+     readonly name: string,
+     readonly email: string,
++    outbox: OutboxNotificationAdapter = new OutboxNotificationAdapter(),
+   ) {
+     if (!email.includes('@')) throw new BookingError('invalid', `Invalid e-mail: ${email}`);
++    this.outbox = outbox;
++  }
++
++  async greet(): Promise<void> {
++    await this.outbox.send(this.email, `Welcome, ${this.name}`);
+   }
+ }

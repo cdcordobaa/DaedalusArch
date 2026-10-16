@@ -1,0 +1,17 @@
+{
+  "schemaVersion": 1,
+  "style": "nestjs",
+  "variant": "v33-persistence-check-in-repository-without-port",
+  "kind": "violation",
+  "plants": "FF-P03",
+  "description": "A check-in feature: domain port CheckInRepository with token, a new InMemoryCheckInRepository in src/persistence that does not declare implements CheckInRepository, bound by token in AttendeesModule and injected into AttendeesService by token.",
+  "patch": "variant.patch",
+  "expectedFindings": [
+    {
+      "ruleId": "FF-P03",
+      "ruleName": "repository-pattern",
+      "file": "src/persistence/in-memory-check-in.repository.ts",
+      "reason": "An infrastructure repository implements no repository interface."
+    }
+  ]
+}

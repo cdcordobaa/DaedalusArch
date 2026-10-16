@@ -1,0 +1,32 @@
+--- a/src/application/use-cases/ListOverdueLoansUseCase.ts
++++ b/src/application/use-cases/ListOverdueLoansUseCase.ts
+@@ -1,6 +1,9 @@
+ import { LoanRepository } from '../../domain/repositories/LoanRepository';
+ import { LoanDto, toLoanDto } from '../dto/LoanDto';
+ import { Clock } from '../ports/Clock';
++import formatDueDate from '../../infrastructure/system/formatDueDate';
++
++export type OverdueLoanDto = LoanDto & { dueLabel: string };
+ 
+ export class ListOverdueLoansUseCase {
+   constructor(
+@@ -8,9 +11,11 @@
+     private readonly clock: Clock,
+   ) {}
+ 
+-  async execute(): Promise<LoanDto[]> {
++  async execute(): Promise<OverdueLoanDto[]> {
+     const now = this.clock.now();
+     const active = await this.loans.findActive();
+-    return active.filter((loan) => loan.isOverdue(now)).map((loan) => toLoanDto(loan, now));
++    return active
++      .filter((loan) => loan.isOverdue(now))
++      .map((loan) => ({ ...toLoanDto(loan, now), dueLabel: formatDueDate(loan.dueAt) }));
+   }
+ }
+--- /dev/null
++++ b/src/infrastructure/system/formatDueDate.ts
+@@ -0,0 +1,3 @@
++export default function formatDueDate(date: Date): string {
++  return date.toISOString().slice(0, 10);
++}

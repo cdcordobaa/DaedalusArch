@@ -1,0 +1,428 @@
+{
+  "schemaVersion": 1,
+  "style": "layered",
+  "variant": "clean",
+  "note": "Written by hand from the clean variant's source: the layer every file gets under spec.yaml, and every internal file-to-file import edge (one per importing file and imported file, type-only included; package imports excluded). Ground truth for graph-fidelity (FR-V2 link 1).",
+  "files": [
+    {
+      "path": "src/business/ServiceFactory.ts",
+      "layer": "business"
+    },
+    {
+      "path": "src/business/errors/BusinessError.ts",
+      "layer": "business"
+    },
+    {
+      "path": "src/business/model/Customer.ts",
+      "layer": "business"
+    },
+    {
+      "path": "src/business/model/Money.ts",
+      "layer": "business"
+    },
+    {
+      "path": "src/business/model/Order.ts",
+      "layer": "business"
+    },
+    {
+      "path": "src/business/model/OrderLine.ts",
+      "layer": "business"
+    },
+    {
+      "path": "src/business/model/Product.ts",
+      "layer": "business"
+    },
+    {
+      "path": "src/business/services/CatalogService.ts",
+      "layer": "business"
+    },
+    {
+      "path": "src/business/services/OrderService.ts",
+      "layer": "business"
+    },
+    {
+      "path": "src/business/services/PricingPolicy.ts",
+      "layer": "business"
+    },
+    {
+      "path": "src/business/services/RecordMapping.ts",
+      "layer": "business"
+    },
+    {
+      "path": "src/main.ts",
+      "layer": null
+    },
+    {
+      "path": "src/persistence/CustomerGateway.ts",
+      "layer": "persistence"
+    },
+    {
+      "path": "src/persistence/Database.ts",
+      "layer": "persistence"
+    },
+    {
+      "path": "src/persistence/OrderGateway.ts",
+      "layer": "persistence"
+    },
+    {
+      "path": "src/persistence/ProductGateway.ts",
+      "layer": "persistence"
+    },
+    {
+      "path": "src/persistence/records/CustomerRecord.ts",
+      "layer": "persistence"
+    },
+    {
+      "path": "src/persistence/records/OrderRecord.ts",
+      "layer": "persistence"
+    },
+    {
+      "path": "src/persistence/records/ProductRecord.ts",
+      "layer": "persistence"
+    },
+    {
+      "path": "src/presentation/Router.ts",
+      "layer": "presentation"
+    },
+    {
+      "path": "src/presentation/app.ts",
+      "layer": "presentation"
+    },
+    {
+      "path": "src/presentation/http/CatalogController.ts",
+      "layer": "presentation"
+    },
+    {
+      "path": "src/presentation/http/ErrorHandling.ts",
+      "layer": "presentation"
+    },
+    {
+      "path": "src/presentation/http/HttpTypes.ts",
+      "layer": "presentation"
+    },
+    {
+      "path": "src/presentation/http/OrderController.ts",
+      "layer": "presentation"
+    },
+    {
+      "path": "src/presentation/views/OrderView.ts",
+      "layer": "presentation"
+    },
+    {
+      "path": "src/presentation/views/ProductView.ts",
+      "layer": "presentation"
+    }
+  ],
+  "edges": [
+    {
+      "from": "src/business/ServiceFactory.ts",
+      "to": "src/business/services/CatalogService.ts",
+      "kind": "import"
+    },
+    {
+      "from": "src/business/ServiceFactory.ts",
+      "to": "src/business/services/OrderService.ts",
+      "kind": "import"
+    },
+    {
+      "from": "src/business/ServiceFactory.ts",
+      "to": "src/persistence/CustomerGateway.ts",
+      "kind": "import"
+    },
+    {
+      "from": "src/business/ServiceFactory.ts",
+      "to": "src/persistence/Database.ts",
+      "kind": "import"
+    },
+    {
+      "from": "src/business/ServiceFactory.ts",
+      "to": "src/persistence/OrderGateway.ts",
+      "kind": "import"
+    },
+    {
+      "from": "src/business/ServiceFactory.ts",
+      "to": "src/persistence/ProductGateway.ts",
+      "kind": "import"
+    },
+    {
+      "from": "src/business/model/Money.ts",
+      "to": "src/business/errors/BusinessError.ts",
+      "kind": "import"
+    },
+    {
+      "from": "src/business/model/Order.ts",
+      "to": "src/business/errors/BusinessError.ts",
+      "kind": "import"
+    },
+    {
+      "from": "src/business/model/Order.ts",
+      "to": "src/business/model/Money.ts",
+      "kind": "import"
+    },
+    {
+      "from": "src/business/model/Order.ts",
+      "to": "src/business/model/OrderLine.ts",
+      "kind": "import"
+    },
+    {
+      "from": "src/business/model/OrderLine.ts",
+      "to": "src/business/model/Money.ts",
+      "kind": "import"
+    },
+    {
+      "from": "src/business/model/Product.ts",
+      "to": "src/business/errors/BusinessError.ts",
+      "kind": "import"
+    },
+    {
+      "from": "src/business/model/Product.ts",
+      "to": "src/business/model/Money.ts",
+      "kind": "import"
+    },
+    {
+      "from": "src/business/services/CatalogService.ts",
+      "to": "src/business/errors/BusinessError.ts",
+      "kind": "import"
+    },
+    {
+      "from": "src/business/services/CatalogService.ts",
+      "to": "src/business/model/Product.ts",
+      "kind": "import"
+    },
+    {
+      "from": "src/business/services/CatalogService.ts",
+      "to": "src/business/services/RecordMapping.ts",
+      "kind": "import"
+    },
+    {
+      "from": "src/business/services/CatalogService.ts",
+      "to": "src/persistence/ProductGateway.ts",
+      "kind": "import"
+    },
+    {
+      "from": "src/business/services/OrderService.ts",
+      "to": "src/business/errors/BusinessError.ts",
+      "kind": "import"
+    },
+    {
+      "from": "src/business/services/OrderService.ts",
+      "to": "src/business/model/Money.ts",
+      "kind": "import"
+    },
+    {
+      "from": "src/business/services/OrderService.ts",
+      "to": "src/business/model/Order.ts",
+      "kind": "import"
+    },
+    {
+      "from": "src/business/services/OrderService.ts",
+      "to": "src/business/model/OrderLine.ts",
+      "kind": "import"
+    },
+    {
+      "from": "src/business/services/OrderService.ts",
+      "to": "src/business/services/PricingPolicy.ts",
+      "kind": "import"
+    },
+    {
+      "from": "src/business/services/OrderService.ts",
+      "to": "src/business/services/RecordMapping.ts",
+      "kind": "import"
+    },
+    {
+      "from": "src/business/services/OrderService.ts",
+      "to": "src/persistence/CustomerGateway.ts",
+      "kind": "import"
+    },
+    {
+      "from": "src/business/services/OrderService.ts",
+      "to": "src/persistence/OrderGateway.ts",
+      "kind": "import"
+    },
+    {
+      "from": "src/business/services/OrderService.ts",
+      "to": "src/persistence/ProductGateway.ts",
+      "kind": "import"
+    },
+    {
+      "from": "src/business/services/PricingPolicy.ts",
+      "to": "src/business/model/Customer.ts",
+      "kind": "import"
+    },
+    {
+      "from": "src/business/services/PricingPolicy.ts",
+      "to": "src/business/model/Money.ts",
+      "kind": "import"
+    },
+    {
+      "from": "src/business/services/RecordMapping.ts",
+      "to": "src/business/model/Customer.ts",
+      "kind": "import"
+    },
+    {
+      "from": "src/business/services/RecordMapping.ts",
+      "to": "src/business/model/Money.ts",
+      "kind": "import"
+    },
+    {
+      "from": "src/business/services/RecordMapping.ts",
+      "to": "src/business/model/Order.ts",
+      "kind": "import"
+    },
+    {
+      "from": "src/business/services/RecordMapping.ts",
+      "to": "src/business/model/OrderLine.ts",
+      "kind": "import"
+    },
+    {
+      "from": "src/business/services/RecordMapping.ts",
+      "to": "src/business/model/Product.ts",
+      "kind": "import"
+    },
+    {
+      "from": "src/business/services/RecordMapping.ts",
+      "to": "src/persistence/records/CustomerRecord.ts",
+      "kind": "import"
+    },
+    {
+      "from": "src/business/services/RecordMapping.ts",
+      "to": "src/persistence/records/OrderRecord.ts",
+      "kind": "import"
+    },
+    {
+      "from": "src/business/services/RecordMapping.ts",
+      "to": "src/persistence/records/ProductRecord.ts",
+      "kind": "import"
+    },
+    {
+      "from": "src/main.ts",
+      "to": "src/presentation/app.ts",
+      "kind": "import"
+    },
+    {
+      "from": "src/persistence/CustomerGateway.ts",
+      "to": "src/persistence/Database.ts",
+      "kind": "import"
+    },
+    {
+      "from": "src/persistence/CustomerGateway.ts",
+      "to": "src/persistence/records/CustomerRecord.ts",
+      "kind": "import"
+    },
+    {
+      "from": "src/persistence/OrderGateway.ts",
+      "to": "src/persistence/Database.ts",
+      "kind": "import"
+    },
+    {
+      "from": "src/persistence/OrderGateway.ts",
+      "to": "src/persistence/records/OrderRecord.ts",
+      "kind": "import"
+    },
+    {
+      "from": "src/persistence/ProductGateway.ts",
+      "to": "src/persistence/Database.ts",
+      "kind": "import"
+    },
+    {
+      "from": "src/persistence/ProductGateway.ts",
+      "to": "src/persistence/records/ProductRecord.ts",
+      "kind": "import"
+    },
+    {
+      "from": "src/presentation/Router.ts",
+      "to": "src/presentation/http/CatalogController.ts",
+      "kind": "import"
+    },
+    {
+      "from": "src/presentation/Router.ts",
+      "to": "src/presentation/http/HttpTypes.ts",
+      "kind": "import"
+    },
+    {
+      "from": "src/presentation/Router.ts",
+      "to": "src/presentation/http/OrderController.ts",
+      "kind": "import"
+    },
+    {
+      "from": "src/presentation/app.ts",
+      "to": "src/business/ServiceFactory.ts",
+      "kind": "import"
+    },
+    {
+      "from": "src/presentation/app.ts",
+      "to": "src/presentation/Router.ts",
+      "kind": "import"
+    },
+    {
+      "from": "src/presentation/app.ts",
+      "to": "src/presentation/http/CatalogController.ts",
+      "kind": "import"
+    },
+    {
+      "from": "src/presentation/app.ts",
+      "to": "src/presentation/http/OrderController.ts",
+      "kind": "import"
+    },
+    {
+      "from": "src/presentation/http/CatalogController.ts",
+      "to": "src/business/services/CatalogService.ts",
+      "kind": "import"
+    },
+    {
+      "from": "src/presentation/http/CatalogController.ts",
+      "to": "src/presentation/http/ErrorHandling.ts",
+      "kind": "import"
+    },
+    {
+      "from": "src/presentation/http/CatalogController.ts",
+      "to": "src/presentation/http/HttpTypes.ts",
+      "kind": "import"
+    },
+    {
+      "from": "src/presentation/http/CatalogController.ts",
+      "to": "src/presentation/views/ProductView.ts",
+      "kind": "import"
+    },
+    {
+      "from": "src/presentation/http/ErrorHandling.ts",
+      "to": "src/business/errors/BusinessError.ts",
+      "kind": "import"
+    },
+    {
+      "from": "src/presentation/http/ErrorHandling.ts",
+      "to": "src/presentation/http/HttpTypes.ts",
+      "kind": "import"
+    },
+    {
+      "from": "src/presentation/http/OrderController.ts",
+      "to": "src/business/services/OrderService.ts",
+      "kind": "import"
+    },
+    {
+      "from": "src/presentation/http/OrderController.ts",
+      "to": "src/presentation/http/ErrorHandling.ts",
+      "kind": "import"
+    },
+    {
+      "from": "src/presentation/http/OrderController.ts",
+      "to": "src/presentation/http/HttpTypes.ts",
+      "kind": "import"
+    },
+    {
+      "from": "src/presentation/http/OrderController.ts",
+      "to": "src/presentation/views/OrderView.ts",
+      "kind": "import"
+    },
+    {
+      "from": "src/presentation/views/OrderView.ts",
+      "to": "src/business/model/Order.ts",
+      "kind": "import"
+    },
+    {
+      "from": "src/presentation/views/ProductView.ts",
+      "to": "src/business/model/Product.ts",
+      "kind": "import"
+    }
+  ]
+}
