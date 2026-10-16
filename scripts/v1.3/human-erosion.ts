@@ -136,7 +136,7 @@ function run(): void {
       if (files === 0) { evals.push({ ...base, status: 'no-src', exit: null }); continue; }
       if (!fs.existsSync(path.join(root, 'tsconfig.json'))) { evals.push({ ...base, status: 'no-tsconfig', exit: null }); continue; }
       const ev = spawnSync('npx', ['tsx', 'bin/firewall.ts', 'evaluate', '--project', root, '--spec', spec, '--symbolic-only',
-        '--engine', 'cypher-interp', '--scoring', 'v1.3', '--format', 'json'], { cwd: REPO, encoding: 'utf8', maxBuffer: 1 << 28 });
+        '--engine', 'cypher-interp', '--scoring', 'v1.3', '--format', 'json'], { cwd: REPO, encoding: 'utf8', maxBuffer: 1 << 28, env: childEnv() });
       let report: (EvalReport & Record<string, unknown>) | null = null;
       try { report = JSON.parse(ev.stdout) as EvalReport & Record<string, unknown>; } catch { report = null; }
       if ((ev.status !== 0 && ev.status !== 1) || report === null || !Array.isArray(report.violations)) {
@@ -162,6 +162,14 @@ function run(): void {
     fs.writeFileSync(path.join(OUT, 'evals', `${r.id}.json`), JSON.stringify({ id: r.id, sha: r.sha, specSha256: specHash, commits: evals }, null, 1) + '\n');
     fs.rmSync(path.join(work, r.id), { recursive: true, force: true });
   }
+}
+
+/** A minimal child environment: the symbolic-only, in-process evaluation needs no key, proxy or database variable. */
+function childEnv(): NodeJS.ProcessEnv {
+  const keep = ['PATH', 'HOME', 'TMPDIR', 'LANG', 'LC_ALL', 'TZ'];
+  const env: NodeJS.ProcessEnv = {};
+  for (const k of keep) if (process.env[k] !== undefined) env[k] = process.env[k];
+  return env;
 }
 
 /** The report minus fields that vary run to run (timings, ids, paths), so its hash is a determinism check. */
