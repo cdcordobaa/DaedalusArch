@@ -31,6 +31,9 @@
  * Usage (repository root):
  *   npx tsx scripts/v1.3/rule-mutation.ts --work <dir> --devset <dir-with-tests/fixtures/v1.3-devset-b> [--jobs 2]
  *       [--only plan|baseline|mutants|jest|score] [--out results/v1.3-rule-mutation/rule-mutation-2026-10-16.json]
+ *   After the first run, the semantic suite (tests/unit/semantic-rules) under every mutant, and the before/after score:
+ *   npx tsx scripts/v1.3/rule-mutation.ts --work <dir> --only semantic [--jobs 2]
+ *   npx tsx scripts/v1.3/rule-mutation.ts --work <dir> --only score-semantic [--before <first-run JSON>] [--out <JSON>]
  *   (internal) --child <mutants.json> <id> <work>
  */
 import * as fs from 'node:fs';
@@ -802,9 +805,11 @@ function suiteFiles(repoRoot: string, suiteKey: string): string[] {
   return out.sort();
 }
 
-interface JestOutcome { readonly passed: number; readonly failed: number; readonly skipped: number; readonly failing: readonly string[]; readonly error?: string }
+interface JestOutcome { readonly passed: number; readonly failed: number; readonly skipped: number; readonly failing: readonly string[]; readonly error?: string;
+  /** First line of each failing test's message (semantic step only: tells a wrong answer from a compile or query failure). */
+  readonly messages?: Readonly<Record<string, string>> }
 
-async function runJest(repoRoot: string, work: string, files: readonly string[], mutantFile: string | undefined, log: string): Promise<JestOutcome> {
+async function runJest(repoRoot: string, work: string, files: readonly string[], mutantFile: string | undefined, log: string, withMessages = false): Promise<JestOutcome> {
   const cfg = path.join(work, 'jest.mutation.config.cjs');
   if (!fs.existsSync(cfg)) {
     fs.writeFileSync(path.join(work, 'jest.mutation.setup.cjs'), jestSetupSource(repoRoot));
@@ -820,15 +825,201 @@ module.exports = { ...base, rootDir: ${JSON.stringify(repoRoot)}, verbose: false
   // Exact paths (not regexes): --runTestsByPath.
   const r = await sh(jest, ['--config', cfg, '--maxWorkers=2', '--forceExit', '--silent', '--json', '--outputFile', json, '--runTestsByPath', ...files], { cwd: repoRoot, timeoutMs: 900_000, env, log });
   if (!fs.existsSync(json)) return { passed: 0, failed: 0, skipped: 0, failing: [], error: r.timedOut ? 'timeout' : `no jest JSON (exit ${String(r.code)})` };
-  const j = readJson<{ numPassedTests: number; numFailedTests: number; numPendingTests: number; testResults: { name: string; message: string; assertionResults: { fullName: string; status: string }[] }[] }>(json);
+  const j = readJson<{ numPassedTests: number; numFailedTests: number; numPendingTests: number; testResults: { name: string; message: string; assertionResults: { fullName: string; status: string; failureMessages?: string[] }[] }[] }>(json);
   const failing: string[] = [];
+  const messages: Record<string, string> = {};
   for (const t of j.testResults) {
     const rel = path.relative(repoRoot, t.name);
     const f = t.assertionResults.filter((a) => a.status === 'failed');
-    for (const a of f) failing.push(`${rel} > ${a.fullName}`);
+    for (const a of f) {
+      failing.push(`${rel} > ${a.fullName}`);
+      if (withMessages) messages[`${rel} > ${a.fullName}`] = (a.failureMessages ?? []).join(' ').replace(/\u001b\[[0-9;]*m/g, '').split('\n').find((l) => l.trim() !== '')?.trim().slice(0, 240) ?? '';
+    }
     if (f.length === 0 && t.message !== '' && t.assertionResults.length === 0) failing.push(`${rel} > (suite failed to run)`);
   }
-  return { passed: j.numPassedTests, failed: j.numFailedTests, skipped: j.numPendingTests, failing };
+  return { passed: j.numPassedTests, failed: j.numFailedTests, skipped: j.numPendingTests, failing, ...(withMessages ? { messages } : {}) };
+}
+
+// ── Semantic suite (after the first run) ──────────────────────────────────────
+//
+// `tests/unit/semantic-rules/` runs each scored rule's real compiled query through cypher-interp on hand-built graphs.
+// Step `semantic` runs that suite alone under every valid mutant and control (jest --maxWorkers=2, the same in-memory
+// mutant setup file as step `jest`). Step `score-semantic` merges it with the first run's results (`--before`, the
+// committed JSON: reference/devset outcome and the earlier unit suites per mutant, which this step does not re-run:
+// both are deterministic and nothing they read changed) and writes the before/after tallies.
+
+const SEMANTIC_SUITE = ['tests/unit/semantic-rules/semantic-rules.test.ts'];
+
+/** A failing semantic test whose message shows the compile or the query failing, not a wrong set of findings. */
+const LOUD_FAILURE = /COMPILE_FAILED|QUERY_FAILED|role names|ingest (nodes|edges)/;
+
+/**
+ * Survivors classified by reading the template (they survive the sets, the earlier unit suites and the semantic suite).
+ * Group C: logically equivalent (a redundant guard, an implied conjunct, a duplicate row removed downstream).
+ * Group B: equivalent on the extractor's graph schema or on every preset's configuration (no project can tell the
+ * difference today; a later extractor edge or preset could). Checked against the measured survivors in
+ * `score-semantic`: a mutant listed here that some suite kills, or a survivor not listed, fails the step.
+ */
+const NULL_GUARD = 'C: null guard made redundant by a later conjunct (a null layer fails it too)';
+const FILE_ONLY = 'B: only File nodes carry IMPORTS / RE_EXPORTS edges, and they end on File or Package nodes';
+const EQUIVALENT: ReadonlyArray<readonly [RegExp, string]> = [
+  [/^order-by$/, 'C: row order; findings are compared as a set and the only LIMIT (the cycle cap) is pinned separately'],
+  [/^(cypher\/(dependency-direction|no-layer-skip)|hexagonal\/(dependency-direction-graph|layer-skip-graph))\/drop-conjunct\/[12]$/, NULL_GUARD],
+  [/^hexagonal\/core-isolation\/drop-conjunct\/2$/, NULL_GUARD],
+  [/^cypher\/use-case-isolation\/drop-conjunct\/4$/, NULL_GUARD],
+  [/^cypher\/dependency-direction\/drop-conjunct\/3$/, 'C: implied by srcIdx < tgtIdx'],
+  [/^cypher\/dependency-direction\/drop-conjunct\/[45]$/, 'B (config): $layerOrder is the spec\'s whole layer list, so every non-null layer has an index >= 0'],
+  [/^hexagonal\/dependency-direction-graph\/drop-conjunct\/3$/, 'B (config): with src.layer = tgt.layer the next conjunct needs "x>x" in $allowedDependencies; no preset allows a layer to itself'],
+  [/^hexagonal\/dependency-direction-graph\/drop-conjunct\/4$/, 'B (config): differs only when both a>b and b>a are allowed; no preset allows a symmetric pair'],
+  [/^(cypher\/dependency-inversion|hexagonal\/port-dependency-inversion)\/drop-conjunct\/2$/, 'C: the MATCH guarantees at least one dependency'],
+  [/^ddd-literal-view\/context-isolation\/drop-conjunct\/[34]$/, 'C: srcCtx[0] <> tgtCtx[0] is null on an empty list'],
+  [/^cypher\/no-cyclic-deps\/remove-distinct\/1$/, 'C: the next WITH groups by cycle, so duplicate paths collapse anyway (blind spot A11)'],
+  [/^ddd\/domain-event-placement\/remove-distinct\/1$/, 'C: duplicate rows carry the same violation id and are merged by mergeById (blind spot A10, DISTINCT part)'],
+  [/^ddd\/bounded-context-modules\/label-rel\/1$/, 'C: a Class or Method row has its File\'s filePath, so it merges into the File\'s violation (same id)'],
+  [/^(cypher\/(dependency-direction|no-layer-skip|no-domain-outward-dep)|hexagonal\/(dependency-direction-graph|layer-skip-graph|core-isolation)|ddd\/(aggregate-boundary|repository-aggregate-root)|ddd-literal-view\/context-isolation)\/label-rel\/[12]$/, FILE_ONLY],
+  [/^cypher\/no-cyclic-deps\/label-rel\/1$/, FILE_ONLY],
+  [/^cypher\/domain-purity\/label-rel\/1$/, FILE_ONLY],
+  [/^cypher\/domain-purity\/label-rel\/2$/, 'B: a File reached by IMPORTS has a file name (with extension, no slash), never a package specifier from the list'],
+  [/^cypher\/domain-state-purity\/(label-rel\/1|drop-conjunct\/3)$/, 'B: FLOWS_TO and CONSTRUCTOR_INJECTS start at classes and end at classes or interfaces'],
+  [/^(cypher\/(dependency-inversion|use-case-isolation)|hexagonal\/port-dependency-inversion)\/label-rel\/1$/, 'B: only classes carry CONSTRUCTOR_INJECTS'],
+  [/^cypher\/controller-no-entity\/label-rel\/1$/, 'B: only classes carry CONSTRUCTOR_INJECTS, and IMPORTS from a File never reaches a Class'],
+  [/^cypher\/controller-no-entity\/label-rel\/4$/, 'B: IMPORTS never connects two classes, so the IMPORTS alternative of the frozen FF-P05 branch is dead on the APG schema'],
+  [/^ddd\/application-service-thin\/label-rel\/[23]$/, 'B: a class reaches Method nodes only through CONTAINS, and CONTAINS ends only on Method nodes'],
+  [/^ddd-member-fact\/value-object-immutability\/label-rel\/1$/, 'B: only classes carry member facts (publicFields, setAccessors, mutatorMethods)'],
+];
+
+function equivalenceOf(id: string, operator: string): string | undefined {
+  const key = operator === 'order-by' && id !== 'cypher/no-cyclic-deps/order-by/1' ? 'order-by' : id;
+  return EQUIVALENT.find(([re]) => re.test(key))?.[1];
+}
+
+async function semanticStep(repoRoot: string, work: string, mutants: readonly Mutant[], jobs: number, log: (s: string) => void): Promise<void> {
+  const dir = path.join(work, 'semantic');
+  fs.mkdirSync(dir, { recursive: true });
+  const base = path.join(dir, '__baseline__.json');
+  if (!fs.existsSync(base)) writeJson(base, await runJest(repoRoot, work, SEMANTIC_SUITE, undefined, path.join(dir, '__baseline__.log'), true));
+  const b = readJson<JestOutcome>(base);
+  log(`semantic baseline: ${String(b.passed)} pass, ${String(b.failed)} fail`);
+  if (b.failed > 0 || b.passed === 0) throw new Error(`semantic suite does not pass unmutated: ${b.failing.join('; ')}`);
+  const todo = mutants.filter((m) => m.valid === true && !fs.existsSync(path.join(dir, `${m.id.replace(/\//g, '__')}.json`)));
+  log(`semantic: ${String(todo.length)} mutants and controls`);
+  let done = 0;
+  await pool(todo, jobs, async (m) => {
+    const stem = m.id.replace(/\//g, '__');
+    const mf = path.join(dir, `${stem}.mutant.json`);
+    writeJson(mf, { catalogue: m.catalogue, name: m.name, text: m.text });
+    writeJson(path.join(dir, `${stem}.json`), await runJest(repoRoot, work, SEMANTIC_SUITE, mf, path.join(dir, `${stem}.log`), true));
+    fs.rmSync(mf, { force: true });
+    done += 1;
+    if (done % 25 === 0) log(`semantic: ${String(done)}/${String(todo.length)}`);
+  });
+}
+
+type Row = Record<string, unknown> & { id: string; operator: string; inScope: string[]; catalogue: string; rule: string; status?: string; reference?: { status: string }; unit?: { status: string } };
+
+function scoreSemantic(repoRoot: string, work: string, beforeFile: string, outFile: string, log: (s: string) => void): void {
+  const before = readJson<{ mutants: Row[]; controls: Row[] }>(beforeFile);
+  const dir = path.join(work, 'semantic');
+  const base = readJson<JestOutcome>(path.join(dir, '__baseline__.json'));
+  const outcome = (id: string): JestOutcome | undefined => {
+    const f = path.join(dir, `${id.replace(/\//g, '__')}.json`);
+    return fs.existsSync(f) ? readJson<JestOutcome>(f) : undefined;
+  };
+  // Text pins: semantic tests failing under the behaviour-neutral whitespace control (expected: none).
+  const textPins = new Set<string>();
+  for (const c of before.controls.filter((x) => x.operator === 'whitespace')) for (const t of outcome(c.id)?.failing ?? []) textPins.add(t);
+  const semanticOf = (id: string): Record<string, unknown> => {
+    const j = outcome(id);
+    if (j === undefined) return { status: 'not-run' };
+    if (j.error !== undefined) return { status: `error: ${j.error}` };
+    const fails = j.failing.filter((t) => !base.failing.includes(t) && !textPins.has(t));
+    const caseOf = (t: string): string => t.replace(/^.*> /, '');
+    const loud = fails.filter((t) => LOUD_FAILURE.test(j.messages?.[t] ?? ''));
+    return {
+      status: fails.length === 0 ? 'survived' : loud.length === fails.length ? 'killed-loud' : 'killed',
+      failingCases: fails.map(caseOf).slice(0, 8),
+      failingCount: fails.length,
+      ...(loud.length > 0 ? { loudFailures: loud.slice(0, 3).map((t) => `${caseOf(t)}: ${j.messages?.[t] ?? ''}`) } : {}),
+    };
+  };
+  const controls = before.controls.map((c) => ({ id: c.id, operator: c.operator, inScope: c.inScope.length > 0, semantic: semanticOf(c.id) }));
+  const rows = before.mutants.map((m) => {
+    if (m.status === 'stillborn') return { ...m };
+    const semantic = semanticOf(m.id);
+    const sets = m.reference?.status === 'killed';
+    const unit = m.unit?.status === 'killed';
+    const sem = semantic.status === 'killed' || semantic.status === 'killed-loud';
+    const anyAfter = sets || unit || sem;
+    // Equivalence is about behaviour: a listed mutant may still fail a text-asserting unit test.
+    const equivalent = sets || sem ? undefined : equivalenceOf(m.id, m.operator);
+    return { ...m, semantic, after: { setsStrict: sets, oldUnit: unit, semantic: sem, setsOrSemantic: sets || sem, any: anyAfter, ...(equivalent !== undefined ? { equivalent } : {}) } };
+  });
+  // The equivalence table must match the measurement: no listed mutant killed behaviourally (by a set or a semantic
+  // test), no in-scope behavioural survivor unlisted.
+  const contradictions = rows.filter((r) => (r as { after?: { setsOrSemantic: boolean } }).after?.setsOrSemantic === true && r.inScope.length > 0 && equivalenceOf(r.id, r.operator) !== undefined).map((r) => r.id);
+  const unlisted = rows.filter((r) => r.inScope.length > 0 && (r as { after?: { any: boolean; equivalent?: string } }).after !== undefined
+    && (r as { after: { setsOrSemantic: boolean } }).after.setsOrSemantic === false && (r as { after: { equivalent?: string } }).after.equivalent === undefined).map((r) => r.id);
+  if (contradictions.length > 0) throw new Error(`equivalence table lists killed mutants: ${contradictions.join(', ')}`);
+
+  interface T { mutants: number; stillborn: number; notExercised: number; unmeasurable: number; equivalent: number; setsStrict: number; oldUnit: number; beforeAny: number;
+    semantic: number; semanticLoud: number; setsOrSemantic: number; afterAny: number; survivedAll: number; survivedNonEquivalent: number; behaviouralSurvivorsNonEquivalent: number }
+  const tally = (pick: (r: Row) => boolean, group: (r: Row) => string): Record<string, T> => {
+    const out: Record<string, T> = {};
+    for (const r of rows as Row[]) {
+      if (!pick(r) || r.status === 'stillborn') continue;
+      const g = group(r);
+      const t = out[g] ?? { mutants: 0, stillborn: 0, notExercised: 0, unmeasurable: 0, equivalent: 0, setsStrict: 0, oldUnit: 0, beforeAny: 0, semantic: 0, semanticLoud: 0, setsOrSemantic: 0, afterAny: 0, survivedAll: 0, survivedNonEquivalent: 0, behaviouralSurvivorsNonEquivalent: 0 };
+      const a = (r as unknown as { after: { setsStrict: boolean; oldUnit: boolean; semantic: boolean; setsOrSemantic: boolean; any: boolean; equivalent?: string } }).after;
+      const sem = (r as unknown as { semantic: { status: string } }).semantic;
+      t.mutants += 1;
+      if (r.reference?.status === 'not-exercised') t.notExercised += 1;
+      if (r.reference?.status === 'unmeasurable-on-interp') t.unmeasurable += 1;
+      if (a.setsStrict) t.setsStrict += 1;
+      if (a.oldUnit) t.oldUnit += 1;
+      if (a.setsStrict || a.oldUnit) t.beforeAny += 1;
+      if (a.semantic) t.semantic += 1;
+      if (sem.status === 'killed-loud') t.semanticLoud += 1;
+      if (a.setsOrSemantic) t.setsOrSemantic += 1;
+      if (a.equivalent !== undefined) t.equivalent += 1;
+      if (a.any) t.afterAny += 1;
+      else {
+        t.survivedAll += 1;
+        if (a.equivalent === undefined) t.survivedNonEquivalent += 1;
+      }
+      if (!a.setsOrSemantic && a.equivalent === undefined) t.behaviouralSurvivorsNonEquivalent += 1;
+      out[g] = t;
+    }
+    return out;
+  };
+  const inScope = (r: Row): boolean => r.inScope.length > 0;
+  writeJson(outFile, {
+    schema: 'v1.3-rule-mutation-semantic/1',
+    generated: new Date().toISOString(),
+    before: path.relative(repoRoot, beforeFile),
+    suite: SEMANTIC_SUITE,
+    engine: 'cypher-interp (in process) through jest --maxWorkers=2; each case compiles its style\'s reference spec with V13_COMPILE_OPTIONS (instrument v2) and runs the rule\'s compiled query via evaluateSymbolic',
+    definitions: {
+      setsStrict: 'first run: some expected finding of the reference set (author or blind key) or devset-b changes status',
+      oldUnit: 'first run: a test of the earlier unit suites fails (text pins excluded); these tests assert on the template text',
+      semantic: 'a semantic-rules test that passes unmutated fails under the mutant (tests failing under the whitespace control excluded: none do)',
+      semanticLoud: 'semantic kill where every failing test shows the compile or the query failing (role-name guard, type error), not a wrong finding set',
+      setsOrSemantic: 'behavioural kill: setsStrict or semantic (excludes the text-asserting unit tests)',
+      afterAny: 'setsStrict or oldUnit or semantic',
+      equivalent: 'killed neither by a set nor by a semantic test, and classified equivalent by reading the template (EQUIVALENT in scripts/v1.3/rule-mutation.ts); a text-asserting unit test may still fail on it',
+      behaviouralSurvivorsNonEquivalent: 'neither setsStrict nor semantic, and not classified equivalent',
+    },
+    semanticBaseline: base,
+    semanticTextPins: [...textPins].sort(),
+    unclassifiedSurvivors: unlisted,
+    totals: tally(() => true, () => 'all'),
+    totalsInScope: tally(() => true, (r) => (inScope(r) ? 'in-scope' : 'out-of-scope')),
+    byOperatorInScope: tally(inScope, (r) => r.operator),
+    byOperator: tally(() => true, (r) => r.operator),
+    byRule: tally(() => true, (r) => `${r.catalogue}/${r.rule}`),
+    controls,
+    mutants: rows,
+  });
+  log(`score-semantic: wrote ${outFile}; ${String(unlisted.length)} in-scope survivors not classified`);
 }
 
 async function main(argv: readonly string[]): Promise<number> {
@@ -866,6 +1057,17 @@ async function main(argv: readonly string[]): Promise<number> {
     log(`plan: ${String(all.length)} mutants (${String(all.filter((m) => m.valid !== true).length)} do not parse), ${String(shadowed.length)} shadowed DDD entries`);
   }
   const mutants = readJson<Mutant[]>(mutantsFile).filter((m) => filter === undefined || m.id.includes(filter));
+
+  // Semantic suite (separate steps after the first run; they need only the plan).
+  if (only === 'semantic') {
+    await semanticStep(repoRoot, work, mutants, jobs, log);
+    return 0;
+  }
+  if (only === 'score-semantic') {
+    scoreSemantic(repoRoot, work, path.resolve(repoRoot, arg(argv, '--before') ?? 'results/v1.3-rule-mutation/rule-mutation-2026-10-16.json'),
+      path.resolve(repoRoot, arg(argv, '--out') ?? 'results/v1.3-rule-mutation/after-semantic-tests/rule-mutation-semantic-2026-10-16.json'), log);
+    return 0;
+  }
 
   // 2. Baseline: materialise every case once, run unmutated, record which entries each style's compile reads.
   const baselineFile = path.join(work, 'baseline.json');
