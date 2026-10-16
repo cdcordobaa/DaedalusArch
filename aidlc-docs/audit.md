@@ -1492,3 +1492,11 @@ Plan checkboxes ticked. Auto-approved under standing approval; no blocking or ma
 **Context**: v1.3 spike, outside the v1.3 study stages. Development-set evidence only.
 
 ---
+
+## v1.3 EVIDENCE — validity from developer behaviour, fixes mined (scheduled task)
+**Timestamp**: 2026-10-16T02:40:00Z
+**User Input**: "Scheduled task: measure validity without human raters, using developer behaviour as ground truth. Corpus of 20-40 public TypeScript backends with long histories (the pinned v1.3-wild and v1.3-external projects plus more); layer specs written and committed before any run; walk up to 200 evenly spaced commits per repository, tool on each commit and its parent (--symbolic-only, --engine cypher-interp); FIXED-BY-DEV disappearances (edge removed, not file deletion or mass rename) with commit messages; introductions and survival; per rule fix rate, median survival, architecture words in fix messages; baselines: random unflagged import edges and advisory-tier findings; report Docs/DiagnosticRuns/v1.3-validity-fixes-mined-2026-10-16.md with Wilson CIs, effect sizes, threats and 20 example fix commits. Branch v1.3-validity-fixes-mined from origin/v1.3, one PR into v1.3, not merged. Never read secrets, never touch main or v1.2e, never edit Cypher templates or tiers, jest --maxWorkers=2."
+**AI Response**: "Corpus (36: 14 wild + 15 external pinned, 7 added), 21 new layer specs plus the 15 external specs verbatim, protocol (definitions and thresholds) committed before any corpus run. Runtime calibration (on ToolJet, excluded by the size rule) showed the interpreter enumerating every trail for the two `*2..10` cycle queries (110 s of a 112 s snapshot); a harness GraphRepository (scripts/v1.3/lib/fast-cycles.ts) answers exactly those two texts with an equivalent bounded search, everything else by the interpreter, with parity checks (unit tests on random graphs; live on every snapshot of at most 100 files). No template, tier or src/ file changed. The AI-DLC approval gates were not run interactively: scheduled task, no one present; the stored prompt served as the requirements."
+**Context**: v1.3 evidence unit outside the study stages; exploratory, no labels.
+
+---
