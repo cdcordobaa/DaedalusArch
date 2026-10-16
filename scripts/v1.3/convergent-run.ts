@@ -202,24 +202,37 @@ function runBoundaries(p: Project, ir: Ir, files: string[], work: string, scope:
   return { keys: [...keys].sort(), errors, wallMs, outOfScope };
 }
 
-function runArchunit(p: Project, ir: Ir, work: string, scope: ReadonlySet<string>): ToolRun {
+/** ArchUnitTS enumerates every simple cycle; on a dense cycle structure that does not finish, so each run is bounded. */
+const ARCHUNIT_TIMEOUT_MS = 600_000;
+
+function runArchunit(p: Project, ir: Ir, work: string, scope: ReadonlySet<string>): ToolRun & { notComputed: string[] } {
   const checksFile = path.join(work, 'archunit-checks.json');
-  writeJson(checksFile, archunitChecks(ir));
+  let checks = archunitChecks(ir);
+  writeJson(checksFile, checks);
   const t = Date.now();
-  const r = spawnSync(process.execPath, [path.join(REPO, 'scripts/v1.3/convergent-archunit.mjs'), AU_DIR, checksFile, p.tsconfig], { cwd: p.dir, encoding: 'utf8', maxBuffer: 1 << 30 });
+  const exec = (): ReturnType<typeof spawnSync> => spawnSync(process.execPath, [path.join(REPO, 'scripts/v1.3/convergent-archunit.mjs'), AU_DIR, checksFile, p.tsconfig],
+    { cwd: p.dir, encoding: 'utf8', maxBuffer: 1 << 30, timeout: ARCHUNIT_TIMEOUT_MS, killSignal: 'SIGKILL' });
+  let r = exec();
+  const notComputed: string[] = [];
+  if (r.error !== undefined && /ETIMEDOUT/.test(String(r.error))) {
+    notComputed.push(...new Set(checks.filter((c) => c.op === 'no-cycles').map((c) => c.id)));
+    checks = checks.filter((c) => c.op !== 'no-cycles');
+    writeJson(checksFile, checks);
+    r = exec();
+  }
   const wallMs = Date.now() - t;
-  const errors: string[] = [];
+  const errors: string[] = notComputed.map((id) => `${id}: haveNoCycles did not finish in ${String(ARCHUNIT_TIMEOUT_MS / 1000)} s; rerun without it`);
   const keys = new Set<string>(); let outOfScope = 0;
   try {
-    const d = JSON.parse(r.stdout) as { findings: [string, string, string][]; errors: unknown[] };
+    const d = JSON.parse(String(r.stdout)) as { findings: [string, string, string][]; errors: unknown[] };
     for (const e of d.errors) errors.push(JSON.stringify(e).slice(0, 400));
     for (const [id, file, target] of d.findings) {
       const unit = unitOf(ir, id);
       if (!inScope(scope, unit, file, target)) { outOfScope++; continue; }
       keys.add(key(id, file, target));
     }
-  } catch { errors.push(`no JSON (exit ${String(r.status)}): ${r.stderr.slice(0, 400)}`); }
-  return { keys: [...keys].sort(), errors, wallMs, outOfScope };
+  } catch { errors.push(`no JSON (exit ${String(r.status)}): ${String(r.stderr).slice(0, 400)}`); }
+  return { keys: [...keys].sort(), errors, wallMs, outOfScope, notComputed };
 }
 
 interface OursViolation { functionId: string; filePath: string; target?: string; discriminator?: string[] }

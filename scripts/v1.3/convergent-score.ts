@@ -38,7 +38,7 @@ const TOOL_CAN: Readonly<Record<Exclude<EngineName, 'ours'>, ReadonlySet<RuleKin
 };
 const can = (e: EngineName, k: RuleKind): boolean => e === 'ours' || TOOL_CAN[e].has(k);
 
-interface ToolRun { keys: string[]; errors: string[]; wallMs: number; outOfScope: number; cycleLen?: Record<string, number> }
+interface ToolRun { keys: string[]; errors: string[]; wallMs: number; outOfScope: number; cycleLen?: Record<string, number>; notComputed?: string[] }
 interface KeysFile {
   corpus: string; id: string; style: string; programFiles: number; ourFileNodes: number; barrels: string[]; ourFailedFunctions: unknown[];
   rules: { id: string; template: string; kind: RuleKind; view: string }[]; layers: LayerSel[];
@@ -189,6 +189,7 @@ const cells = new Map<string, Map<string, Cell>>(); // `${corpus}|${rule label}|
 const pairs: [EngineName, EngineName][] = [];
 for (let i = 0; i < ENGINES.length; i++) for (let j = i + 1; j < ENGINES.length; j++) pairs.push([ENGINES[i] as EngineName, ENGINES[j] as EngineName]);
 const errorsOut: Record<string, unknown>[] = [];
+const notComputed: Record<string, unknown>[] = [];
 
 for (const k of all) {
   const ctx: Ctx = {
@@ -207,6 +208,7 @@ for (const k of all) {
     cells.set(cellKey, byPair);
     for (const [a, b] of pairs) {
       if (!can(a, r.kind) || !can(b, r.kind)) continue;
+      if ((k.tools[a].notComputed ?? []).includes(r.id) || (k.tools[b].notComputed ?? []).includes(r.id)) { notComputed.push({ corpus: k.corpus, project: k.id, rule: r.id, pair: `${a}~${b}` }); continue; }
       const u = universeSize(k, r.kind, new Set([...sets[a], ...sets[b]]), r.id);
       const cell = byPair.get(`${a}~${b}`) ?? { tables: [], projects: 0, style: new Set<string>() };
       cell.tables.push(table(sets[a], sets[b], u)); cell.projects++; cell.style.add(k.style);
@@ -231,7 +233,7 @@ for (const k of all) {
   writeJson(path.join(OUT, 'keys', k.corpus, `${k.id.replace('/', '__')}.json`), {
     corpus: k.corpus, id: k.id, style: k.style, programFiles: k.programFiles, ourFileNodes: k.ourFileNodes, ourFailedFunctions: k.ourFailedFunctions,
     rules: k.rules, universe: { edges: k.universe.edges.length, packages: k.universe.packages.length }, unresolved: k.unresolved, barrels: k.barrels,
-    tools: Object.fromEntries(ENGINES.map((e) => [e, { keys: k.tools[e].keys, outOfScope: k.tools[e].outOfScope, wallMs: k.tools[e].wallMs, errors: k.tools[e].errors.length }])),
+    tools: Object.fromEntries(ENGINES.map((e) => [e, { keys: k.tools[e].keys, outOfScope: k.tools[e].outOfScope, wallMs: k.tools[e].wallMs, errors: k.tools[e].errors.length, notComputed: k.tools[e].notComputed ?? [] }])),
   });
 }
 
@@ -320,7 +322,7 @@ for (const v of committed.views.filter((x) => x.view === 'blind-expanded' || x.v
   }
 }
 
-writeJson(path.join(OUT, 'agreement.json'), { pooled, rows: agreeRows, classCounts, errors: errorsOut });
+writeJson(path.join(OUT, 'agreement.json'), { pooled, rows: agreeRows, classCounts, errors: errorsOut, notComputed });
 writeJson(path.join(OUT, 'manifest-scores.json'), { rows: manifestRows, blindCheck });
 const DIS_HEADER = ['corpus', 'project', 'style', 'rule', 'template', 'kind', 'view', 'tool', 'side', 'file', 'target', 'fileLayer', 'targetLayer', 'literalEdge', 'targetIsBarrel', 'cls', 'why'];
 fs.writeFileSync(path.join(OUT, 'disagreements.csv'), toCsv(DIS_HEADER, disagreements.map((d) => DIS_HEADER.map((h) => d[h] ?? ''))));
