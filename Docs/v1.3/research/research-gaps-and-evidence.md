@@ -29,10 +29,10 @@ are marked *(open PR)*.
 
 | Objective | State | Main evidence | Main gap |
 |---|---|---|---|
-| SO1 specs and style libraries | met | 5 style libraries; rule-source verification (8 verbatim, 5 partial) | 8 blocking rules without a source row |
+| SO1 specs and style libraries | objective text met; content-validity gap open | 5 style libraries; rule-source verification (8 verbatim, 5 partial) | 8 blocking rules without a source row |
 | SO2 property graph | reframed; real-world value pending | graph fidelity vs tsc and dependency-cruiser; 15-repository external set (#133, open PR) | value on human code is not yet shown beyond correctness |
 | SO3 neuro-symbolic | 16/21 = 0.76 [0.55, 0.89] vs the 0.80 target | judge catch test; P4 panel 34/36 with κ = 0; model swap κ = 0.766 | below target; selective prediction failed its rule (#165, open PR) |
-| SO4 validity (non-human evidence, by the author's decision) | pending | 0 incorrect of 2,669 checkable *[dev]*; SO4 seeded recall 0.918; 283/283 blocking findings correct on human code (#167, open PR) | sealed hold-out not run; fix mining n = 5; no predictive evidence |
+| SO4 validity (non-human evidence, by the author's decision) | pending | 0 incorrect of 2,669 checkable *[dev]*; SO4 seeded recall 0.918; 283/283 blocking findings correct on human code (#167, open PR) | sealed hold-out not run; fix mining shows no robust signal (#168, open PR); no predictive evidence |
 | SO5 spec level vs generated architecture | floor effect | hexagonal none-arm 0/14 steps blocking (#161, open PR); E1 0 blocking at any spec level | agents rarely break defining rules in greenfield, so the outcome has little variance |
 
 Study 2 runs **exactly once**. Nothing in this memo reads, names or infers a Study 2 task or the sealed hold-out.
@@ -45,7 +45,7 @@ Summary first; detail per job below. "Strength once run" uses the scale of the v
 
 | # | Job (backlog / memo id) | Objective | Closest published method | What the precedent sets for us | Status here |
 |---|---|---|---|---|---|
-| 1.1 | Developer-fix mining (memo 2.4) | SO4 | Kim & Ernst 2007; Liu et al. 2021; SZZ (Śliwerski et al. 2005) | many projects, fixed classification rules, SZZ error as a stated threat | n = 5, 2 detected; scaling not started |
+| 1.1 | Developer-fix mining (memo 2.4) | SO4 | Kim & Ernst 2007; Liu et al. 2021; SZZ (Śliwerski et al. 2005) | many projects, fixed classification rules, SZZ error as a stated threat | 36 histories, 14 fix commits; no robust signal (#168, open PR) |
 | 1.2 | Predictive validity on bug-fix churn (memo 2.5) | SO4 | Khomh et al. 2012; Xiao et al. 2016; Mo et al. 2015, 2021 | size and churn controls; misclassified bugs (Herzig et al. 2013) | absent |
 | 1.3 | Convergent agreement with established checkers (memo 2.6) | SO4 | Arcelli Fontana et al. 2012; Paiva et al. 2017; Campbell & Fiske 1959 | low agreement is normal and is reported; MTMM layout | dc, boundaries, ArchUnitTS (#166, open PR) |
 | 1.4 | Mutation analysis of the rules (memo 2.3; #162) | SO4 | Groce et al. 2021; Ami et al. 2021; Just et al. 2014 | mutant–real-fault link is unproven for architecture | SO4 seeds; hex/DDD operators drafted (#162, open PR) |
@@ -70,9 +70,13 @@ Summary first; detail per job below. "Strength once run" uses the scale of the v
   https://doi.org/10.1109/icse43902.2021.00049 [V-DOI]
 
 **What it implies for our design.**
-- *Sample size.* The precedents mine across many projects, not a handful of hand-picked pairs. Our n = 5 (four from one
-  repository) is a case description, not an estimate. The memo's target of ≥ 50 pairs from ≥ 10 repositories gives a
-  95 % Wilson interval half-width of about ±0.13 at p = 0.5, wide but meaningful; 100 pairs gives about ±0.10.
+- *Sample size.* The precedents mine across many projects, not a handful of hand-picked pairs. The first pilot (n = 5,
+  four from one repository) was a case description. #168 (open PR, not reviewed) scales it to 36 histories and finds
+  only 14 distinct commits that removed a blocking finding. Its pooled rate ratio against unflagged edges is driven by
+  one commit; without that commit the ratio is about 1. Read at face value, this is the null the precedents warn
+  about: findings are removed at a lower rate than ≥ 50 independent fixes would need, so per-commit credit and
+  per-repository analysis (as #168 does) are mandatory. A 95 % Wilson interval at p = 0.5 has a half-width of about
+  ±0.13 with 50 pairs and ±0.10 with 100.
 - *Controls.* Fix the commit-selection rule before mining: config-change commits in repositories that already enforce
   boundaries, plus a fixed keyword list. Add a **non-fix control**: commits of similar size that are not fixes, to
   check that findings do not disappear through churn alone.
@@ -296,8 +300,8 @@ Summary first; detail per job below. "Strength once run" uses the scale of the v
   rule as purposive, per Baltes & Ralph. Do not call the 15 repositories representative.
 - *Controls.* The spec for each repository is a degree of freedom: K2 (second blind spec author) measures it. Known-
   groups (K1: showcase vs application) and size-proxy checks are the discriminant side.
-- *What #167 shows (open PR).* 283/283 blocking findings are *correct* statements about human code. That is the first
-  non-Claude-code correctness number. It does not show the findings *matter*; 1.1, 1.2 and M1 (erosion trajectories,
+- *What #167 shows (open PR).* 283/283 blocking findings are *correct* statements about human code. Once #167 is reviewed, this
+  would be the project's first correctness figure on code not written by Claude. It does not show the findings *matter*; 1.1, 1.2 and M1 (erosion trajectories,
   following Le et al. and Behnamghader et al.) are the routes to that without raters.
 
 ---
@@ -322,7 +326,7 @@ Summary first; detail per job below. "Strength once run" uses the scale of the v
    Verdecchia et al. 2020; Besker et al. 2018) links debt to cost. We have no cost or effort data. 1.2 is a proxy at best.
 2. **Practitioner adoption and trust.** Erosion studies ask practitioners (Li et al. 2021). The thesis has no human
    participants by design (compliance register X-1).
-3. **A benchmark of real, labelled architecture violations.** None exists for TypeScript (validity memo §2.3). We do not
+3. **A benchmark of real, labelled architecture violations.** We found none for TypeScript in a non-systematic search (validity memo §2.3). We do not
    build one; we use seeds, fixes and correctness checks instead.
 4. **Generalisation across languages and paradigms.** The APG is TypeScript-only. Code property graphs (Yamaguchi et al.
    2014) show multi-language graphs are feasible, but we do not test that.
@@ -347,7 +351,7 @@ Nothing here needs a human rater; item 9 is the one optional human piece.
 |---|---|---|---|---|---|
 | 1 | **Run the sealed hold-out once**, at the freeze, with the pre-specified analysis | SO4 | only non-development estimate of detection; pre-specified | 1.4 | "seeded recall/precision on unseen cases is X [CI]" |
 | 2 | **Consolidate the human-code correctness and convergent results** (#167, #166) after review; add maintainer-written configs | SO4, SO2 | already computed (open PRs); first evidence on non-Claude code | 1.3, 1.11 | "findings on human code are correct statements; agreement with independent tools where constructs overlap" |
-| 3 | **Scale developer-fix mining** to ≥ 50 pairs / ≥ 10 repositories, rules fixed first, with a non-fix control | SO4 | the only rater-free route to "findings developers act on" | 1.1 | "of N developer fixes of boundary violations, the tool flags k" |
+| 3 | **Review and report developer-fix mining** (#168, open PR: 36 histories, no robust signal) as a pre-specified negative or rule-specific (cycles) result; do not re-mine to find a signal | SO4 | the only rater-free route to "findings developers act on"; a null is still evidence | 1.1 | "developers do not remove blocking findings faster than unflagged edges, except possibly cycles" (if #168 survives review) |
 | 4 | **F2 precedent probe, then F1** (layout sentence), before Study 2 design is locked | SO5 | the floor is the biggest threat to SO5; brownfield seeding is the most promising lever | 1.8 | design justification only, never an effect size |
 | 5 | **Predictive churn study** with size and prior-churn controls, null result reported | SO4 | widely accepted, but likely null for single-edge rules | 1.2 | "blocking files do / do not attract more bug fixes after controlling for size" |
 | 6 | **SO3 framing**: report 0.76 [0.55, 0.89] against 0.80 as *not met*; report the symbolic–neural complementarity matrix (N2); report #165 as a negative result | SO3 | honest reporting beats a post-hoc rescue; the neuro-symbolic claim can rest on complementarity | 1.7, 1.9 | "the judge adds catches the rules cannot express; on its own it is below target" |
@@ -478,8 +482,9 @@ their arXiv records. Before submission, confirm each published venue against a r
 > effect of architectural feedback on coding agents, and its mechanism, calls for factorial designs across vendors and
 > interfaces (Yang et al., 2024), ideally on brownfield tasks, where existing code is known to steer generation (Dinh et
 > al., 2023). Fourth, erosion under months of agent-driven development can now be studied with agent-provenance
-> datasets, extending studies of architectural decay (Le et al., 2018; Behnamghader et al., 2017). Fifth, no public
-> benchmark of real, developer-confirmed architecture violations exists; building one would also test whether seeded
+> datasets, extending studies of architectural decay (Le et al., 2018; Behnamghader et al., 2017). Fifth, we found no
+> public benchmark of real, developer-confirmed architecture violations for TypeScript (our search was not
+> systematic); building one would also test whether seeded
 > architectural mutants stand in for real violations, as Just et al. (2014) showed for test suites. Finally, the
 > compilation from specification to fitness functions was tested, not proven; a formal semantics grounded in reflexion
 > models (Murphy et al., 2001) and Cypher (Francis et al., 2018), together with field studies of how teams and agents
