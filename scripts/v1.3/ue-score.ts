@@ -16,6 +16,7 @@ import { compareVariant } from './lib/compare.js';
 import type { ActualFinding } from './lib/compare.js';
 import { loadAllReferences } from './lib/reference-model.js';
 import type { LoadedReference } from './lib/reference-model.js';
+import { must } from './lib/must.js';
 
 // ── Arguments ────────────────────────────────────────────────────────────────
 
@@ -137,22 +138,22 @@ function mapRule(style: string, name: string): { ruleId: string | null; basis: s
   return { ruleId: row.ruleId, basis: row.basis };
 }
 
-function readJson<T>(p: string): T {
-  return JSON.parse(fs.readFileSync(p, 'utf8')) as T;
+function readJson(p: string): unknown {
+  return JSON.parse(fs.readFileSync(p, 'utf8')) as unknown;
 }
 
 interface Evidence { violations: Record<string, unknown>[] }
 function toolRows(style: string, variant: string): Finding[] {
-  const raw = readJson<{ findings: ActualFinding[] }>(path.join(BASE, 'raw', style, `${variant}.json`)).findings;
+  const raw = (readJson(path.join(BASE, 'raw', style, `${variant}.json`)) as { findings: ActualFinding[] }).findings;
   const evPath = path.join(BASE, 'evidence', style, `${variant}.json`);
-  const ev = fs.existsSync(evPath) ? readJson<Evidence>(evPath).violations : [];
+  const ev = fs.existsSync(evPath) ? (readJson(evPath) as Evidence).violations : [];
   const usedEv = new Set<number>();
   return raw.map((f) => {
     const i = ev.findIndex((v, j) => !usedEv.has(j) && v.functionId === f.ruleId && v.filePath === f.file && ((v.target as string | undefined) ?? '') === (f.target ?? ''));
     let evidence = `${f.ruleId} ${f.file}${f.target !== undefined ? ` -> ${f.target}` : ''}`;
     if (i >= 0) {
       usedEv.add(i);
-      const v = ev[i] as Record<string, unknown>;
+      const v = must(ev[i], `evidence row ${String(i)}`);
       const parts = [`type=${String(v.type)}`, `message=${String(v.message)}`];
       if (typeof v.line === 'number') parts.push(`line=${String(v.line)}`);
       if (Array.isArray(v.evidence) && v.evidence.length > 0) parts.push(`evidence=${(v.evidence as unknown[]).map(String).join('; ')}`);
@@ -166,7 +167,7 @@ function toolRows(style: string, variant: string): Finding[] {
 function blindCase(style: string, variant: string): BlindCase {
   const c = caseOf.get(`${style}/${variant}`);
   if (c === undefined) throw new Error(`no blind case for ${style}/${variant}`);
-  return readJson<BlindCase>(path.join(BLIND, 'blind-out', style, `${c}.json`));
+  return readJson(path.join(BLIND, 'blind-out', style, `${c}.json`)) as BlindCase;
 }
 
 const stripVia = (t: string | null | undefined): string | undefined => {
@@ -233,21 +234,23 @@ function scoreView(view: string, ref: LoadedReference, expectedOf: ExpectedOf, n
     const actual = toolRows(ref.style, v.manifest.variant).filter((a) => scope.has(a.ruleId)).map((a) => (normalise ? canon(a) : a));
     const expected = expectedOf(ref, v.manifest.variant).filter((e) => scope.has(e.ruleId));
     const { pairs, fnIdx, fpIdx } = match(expected, actual);
-    for (const [ei] of pairs) { const c = per.get(expected[ei]!.ruleId)!; c.tp += 1; }
-    for (const ei of fnIdx) { const c = per.get(expected[ei]!.ruleId)!; c.fn += 1; }
+    const exp = (ei: number): (typeof expected)[number] => must(expected[ei], `expected finding ${String(ei)}`);
+    const countsOf = (ruleId: string): Counts => must(per.get(ruleId), `counts of ${ruleId}`);
+    for (const [ei] of pairs) { const c = countsOf(exp(ei).ruleId); c.tp += 1; }
+    for (const ei of fnIdx) { const c = countsOf(exp(ei).ruleId); c.fn += 1; }
     for (const ai of fpIdx) {
-      const a = actual[ai]!;
-      const c = per.get(a.ruleId)!;
+      const a = must(actual[ai], `actual finding ${String(ai)}`);
+      const c = countsOf(a.ruleId);
       c.fp += 1;
       if (v.manifest.kind === 'clean' || !cleanKeys.has(fkey(a))) c.fpDistinct += 1;
     }
     if (v.manifest.kind === 'violation') {
       violations += 1;
-      if (pairs.some(([ei]) => expected[ei]!.ruleId === v.manifest.plants)) planted += 1;
-      if (pairs.some(([ei]) => blockingSet.has(expected[ei]!.ruleId))) blockingHit += 1;
+      if (pairs.some(([ei]) => exp(ei).ruleId === v.manifest.plants)) planted += 1;
+      if (pairs.some(([ei]) => blockingSet.has(exp(ei).ruleId))) blockingHit += 1;
     }
   }
-  const rules = ref.descriptor.scopeRules.map((r) => ({ ruleId: r.ruleId, ruleName: r.ruleName, blocking: r.blockingCandidate, counts: rate(per.get(r.ruleId)!) }));
+  const rules = ref.descriptor.scopeRules.map((r) => ({ ruleId: r.ruleId, ruleName: r.ruleName, blocking: r.blockingCandidate, counts: rate(must(per.get(r.ruleId), `counts of ${r.ruleId}`)) }));
   const pool = (sel: (r: (typeof rules)[number]) => boolean): Rated => rate(rules.filter(sel).reduce<Counts>((s, r) => add(s, r.counts), { ...ZERO }));
   return {
     style: ref.style, view, blocking: pool((r) => r.blocking), all: pool(() => true), perRule: rules,
@@ -256,7 +259,7 @@ function scoreView(view: string, ref: LoadedReference, expectedOf: ExpectedOf, n
 }
 
 const authorExpected: ExpectedOf = (ref, variant) => {
-  const v = ref.variants.find((x) => x.manifest.variant === variant)!;
+  const v = must(ref.variants.find((x) => x.manifest.variant === variant), `${ref.style}/${variant}`);
   return v.manifest.expectedFindings.map((e) => ({ ruleId: e.ruleId, file: e.file, ...(e.target !== undefined ? { target: e.target } : {}), reason: e.reason }));
 };
 const authorExpectedCanon: ExpectedOf = (ref, variant) => authorExpected(ref, variant).map(canon);
@@ -281,7 +284,7 @@ for (const ref of refs) {
 for (const ref of refs) {
   const scope = new Set(ref.descriptor.scopeRules.map((r) => r.ruleId));
   const blockingSet = new Set(ref.descriptor.scopeRules.filter((r) => r.blockingCandidate).map((r) => r.ruleId));
-  const clean = ref.variants.find((v) => v.manifest.kind === 'clean')!;
+  const clean = must(ref.variants.find((v) => v.manifest.kind === 'clean'), `${ref.style} clean variant`);
   const cleanRows = toolRows(ref.style, clean.manifest.variant).filter((a) => scope.has(a.ruleId)).map(canon);
   const cleanKeys = new Set(cleanRows.map(fkey));
   const bClean = blindFindings(ref.style, blindCase(ref.style, clean.manifest.variant), scope, true);
@@ -297,7 +300,7 @@ for (const ref of refs) {
     const actual = toolRows(ref.style, v.manifest.variant).filter((a) => scope.has(a.ruleId)).map(canon);
     const bf = blindFindings(ref.style, blindCase(ref.style, v.manifest.variant), scope, true).scored;
     const unexpectedAuthor = actual; // near-miss author manifests expect nothing
-    const unexpectedBlind = match(bf, actual).fpIdx.map((i) => actual[i]!);
+    const unexpectedBlind = match(bf, actual).fpIdx.map((i) => must(actual[i], `actual finding ${String(i)}`));
     return {
       variant: v.manifest.variant, case: caseOf.get(`${ref.style}/${v.manifest.variant}`),
       rows: unexpectedAuthor.map((r) => ({ ruleId: r.ruleId, file: r.file, target: r.target ?? '', blocking: blockingSet.has(r.ruleId), alsoOnClean: cleanKeys.has(fkey(r)) })),
@@ -329,9 +332,9 @@ for (const ref of refs) {
     const b = blindExpected(true)(ref, v.manifest.variant);
     const { pairs, fnIdx, fpIdx } = match(a, b);
     both += pairs.length; authorOnly += fnIdx.length; blindOnly += fpIdx.length;
-    bothBlocking += pairs.filter(([ei]) => blockingSet.has(a[ei]!.ruleId)).length;
-    authorOnlyBlocking += fnIdx.filter((i) => blockingSet.has(a[i]!.ruleId)).length;
-    blindOnlyBlocking += fpIdx.filter((i) => blockingSet.has(b[i]!.ruleId)).length;
+    bothBlocking += pairs.filter(([ei]) => blockingSet.has(must(a[ei], 'author finding').ruleId)).length;
+    authorOnlyBlocking += fnIdx.filter((i) => blockingSet.has(must(a[i], 'author finding').ruleId)).length;
+    blindOnlyBlocking += fpIdx.filter((i) => blockingSet.has(must(b[i], 'blind finding').ruleId)).length;
     const authorFail = a.some((e) => blockingSet.has(e.ruleId));
     const blindFail = blindCase(ref.style, v.manifest.variant).verdict === 'fail';
     if (authorFail === blindFail) verdictAgree += 1;
@@ -383,7 +386,7 @@ for (const ref of refs) {
       const buckets = new Map<string, Entry[]>();
       for (const e of g) {
         const t = e.f.target ?? '';
-        const k = t !== '' ? t : targets.length === 1 ? targets[0]! : '';
+        const k = t !== '' ? t : targets.length === 1 ? (targets[0] ?? '') : '';
         const b = buckets.get(k) ?? [];
         b.push(e);
         buckets.set(k, b);
@@ -394,7 +397,7 @@ for (const ref of refs) {
         const a = has('author');
         const b = has('blind');
         if (t.length > 0 && a.length > 0 && b.length > 0 && t.length === a.length && a.length === b.length) continue;
-        const first = es[0]!;
+        const first = must(es[0], `bucket ${target}`);
         const rule = first.f.ruleId;
         const scopeLabel = first.unmapped === true ? 'unmapped' : es.some((e) => e.scoped) ? 'scored' : 'unscored';
         const nm = bc.nearMissOk.filter((n) => n.nearMissOk === first.f.file || picomatch(n.nearMissOk, { dot: true })(first.f.file));
@@ -436,15 +439,15 @@ fs.writeFileSync(path.join(BASE, 'adjudication.csv'), [header, ...csvRows].map((
 // ── Graph agreement ──────────────────────────────────────────────────────────
 
 interface ToolGraph { files: { file: string; layer: string | null }[]; edges: { from: string; to: string; types: string[] }[] }
-const toolGraphs = readJson<Record<string, Record<string, ToolGraph>>>(path.join(BASE, 'graph', 'tool-graphs.json'));
+const toolGraphs = readJson(path.join(BASE, 'graph', 'tool-graphs.json')) as Record<string, Record<string, ToolGraph>>;
 const ek = (f: string, t: string): string => `${f} -> ${t}`;
 
 interface GraphCounts { both: number; onlyTool: number; onlyRef: number; onlyToolExcluded: number }
 const graphOut: Record<string, unknown> = { vsAuthor: [] as unknown[], vsBlind: [] as unknown[], examples: [] as unknown[] };
 for (const ref of refs) {
-  const tg = toolGraphs[ref.style]!;
+  const tg = must(toolGraphs[ref.style], `tool graphs of ${ref.style}`);
   // vs author expected graph (clean variant only).
-  const cleanTool = tg.clean!;
+  const cleanTool = must(tg.clean, `${ref.style} clean tool graph`);
   const toolE = new Set(cleanTool.edges.map((e) => ek(e.from, e.to)));
   const toolLayer = new Map(cleanTool.files.map((f) => [f.file, f.layer]));
   const eg = JSON.parse(fs.readFileSync(path.join(ref.dir, 'expected-graph.json'), 'utf8')) as Record<string, unknown>;
@@ -457,7 +460,7 @@ for (const ref of refs) {
   for (const [p, l] of efiles) {
     layerTotal += 1;
     if ((toolLayer.get(p) ?? null) === l && toolLayer.has(p)) layerAgree += 1;
-    else layerMismatch.push(`${p}: expected ${String(l)}, tool ${String(toolLayer.get(p) ?? 'absent')}`);
+    else layerMismatch.push(`${p}: expected ${String(l)}, tool ${toolLayer.get(p) ?? 'absent'}`);
   }
   if (ref.format === 'patch') {
     const authE = new Set((eg.edges as { from: string; to: string }[]).map((e) => ek(e.from, e.to)));
@@ -488,7 +491,7 @@ for (const ref of refs) {
   const layerMis: Record<string, number> = {};
   for (const v of ref.variants) {
     const bc = blindCase(ref.style, v.manifest.variant);
-    const t = tg[v.manifest.variant]!;
+    const t = must(tg[v.manifest.variant], `${ref.style}/${v.manifest.variant} tool graph`);
     const tE = new Set(t.edges.map((e) => ek(e.from, e.to)));
     const literal = new Set(bc.expectedGraph.edges.filter((e) => e.viaReExport !== true).map((e) => ek(e.from, e.to)));
     const viaE = new Set(bc.expectedGraph.edges.filter((e) => e.viaReExport === true).map((e) => ek(e.from, e.to)));
