@@ -1,0 +1,119 @@
+{
+  "schema": "loop-step/v1",
+  "runId": "claude-code-cli/claude-sonnet-5-5/market-vendors/none/run-0",
+  "spec": {
+    "adapterId": "claude-code-cli",
+    "modelId": "claude-sonnet-5-5",
+    "taskId": "market-vendors",
+    "arm": "none",
+    "runIndex": 0
+  },
+  "stepIndex": 3,
+  "stepId": "audit-and-statements",
+  "startedAt": "2026-10-16T03:50:09.306Z",
+  "finishedAt": "2026-10-16T03:52:06.540Z",
+  "turns": [
+    {
+      "turnId": "step-04",
+      "kind": "step",
+      "promptSha256": "9517176189bc3fc3c5593b0576f294690a16625a65e292fcc6ccda1ad4d69884",
+      "result": {
+        "status": "completed",
+        "usage": {
+          "costUsd": 0.3769656,
+          "inputTokens": 18,
+          "outputTokens": 19926,
+          "cacheReadTokens": 184016,
+          "cacheCreationTokens": 39817,
+          "numTurns": 43,
+          "durationMs": 114280
+        },
+        "wallMs": 114806,
+        "attempts": [
+          {
+            "startedAt": "2026-10-16T03:50:09.307Z",
+            "outcome": "completed"
+          }
+        ],
+        "interruptions": [],
+        "argv": [
+          "-p",
+          "<prompt>",
+          "--model",
+          "claude-sonnet-5-5",
+          "--output-format",
+          "json",
+          "--safe-mode",
+          "--restricted",
+          "--tools",
+          "Read,Write,Edit,Glob,Grep,Bash",
+          "--allowedTools",
+          "Bash(/root/pilot/harness/bin/tsc --noEmit --incremental false -p /root/pilot/harness/runs/claude-code-cli/claude-sonnet-5-5/market-vendors/none/run-0/tsconfig.json)",
+          "--disallowedTools",
+          "Write(node_modules/**)",
+          "Edit(node_modules/**)",
+          "--permission-mode",
+          "acceptEdits",
+          "--permission-prompts",
+          "none",
+          "--no-session-persistence",
+          "--strict-mcp-config"
+        ],
+        "envelopePath": "envelope-step-04.json",
+        "permissionDenials": 2
+      },
+      "snapshot": {
+        "commit": "c88c062858bcd4f5fb892966dcd4b6c03fcfcd02",
+        "sourceFiles": [
+          "application/market-service.ts",
+          "application/tillwave-sync.ts",
+          "domain/entities.ts",
+          "domain/errors.ts",
+          "domain/pricing.ts",
+          "domain/repositories.ts",
+          "infrastructure/http-app.ts",
+          "infrastructure/memory-repositories.ts",
+          "infrastructure/server.ts",
+          "infrastructure/tillwave-client.ts"
+        ],
+        "treeFileCount": 10,
+        "loc": 1068,
+        "diff": {
+          "added": 0,
+          "modified": 5,
+          "deleted": 0
+        },
+        "skeletonIntact": true,
+        "typecheck": {
+          "errors": 0,
+          "codes": []
+        },
+        "evaluation": {
+          "scoringMode": "v1.3",
+          "ahs": 0.837,
+          "blockingAhs": 1,
+          "verdict": "pass",
+          "violationCount": 14,
+          "blockingViolationCount": 0,
+          "advisoryViolationCount": 14,
+          "blockingByRule": {},
+          "blockingFindings": [],
+          "durationMs": 71
+        }
+      }
+    }
+  ],
+  "repair": null,
+  "evaluatorSpec": {
+    "kind": "static",
+    "path": "specs/clean-arch.yaml",
+    "sha256": "91bd152e0ae58dcc28a35f2ebc6fe264bf9ff7cd11a2fa6a8094ef54fcd6f6a8"
+  },
+  "finalCommit": "c88c062858bcd4f5fb892966dcd4b6c03fcfcd02",
+  "cost": {
+    "costUsd": 0.3769656,
+    "inputTokens": 18,
+    "outputTokens": 19926,
+    "wallMs": 114806
+  }
+}

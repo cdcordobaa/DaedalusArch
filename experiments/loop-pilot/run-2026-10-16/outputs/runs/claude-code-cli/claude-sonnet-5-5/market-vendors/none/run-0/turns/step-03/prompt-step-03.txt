@@ -1,0 +1,10 @@
+The current directory holds a TypeScript backend service built in earlier feature steps.
+This is step 3 of 4 of "Farmers' market vendors". Extend the existing service; keep every existing feature working.
+
+Feature request:
+Some vendors now bring their own card readers from TillWave instead of using PayLane. TillWave does not call us: the service must poll its HTTP API every 15 minutes for new sales. TillWave reports amounts in cents and identifies sellers by its own merchant ids, which the organiser links to vendors. Each vendor uses at most one provider on a market day. TillWave sales go through the same checks, the same commission and the same settlement as PayLane sales, and a sale reported twice is counted once.
+
+Keep the source under src/ and follow the architecture the project already uses (Clean Architecture).
+Organise the source code under src/ in exactly three folders: src/domain, src/application and src/infrastructure.
+Before you finish, type-check the project with exactly this command and fix every error it reports:
+/root/pilot/harness/bin/tsc --noEmit --incremental false -p /root/pilot/harness/runs/claude-code-cli/claude-sonnet-5-5/market-vendors/none/run-0/tsconfig.json
