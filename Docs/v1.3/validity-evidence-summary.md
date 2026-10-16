@@ -12,7 +12,7 @@ Most of the evidence is on branches that are not merged. A citation in the form 
 | — | `v1.3-model-panel` | #153 | merged into v1.3 (`e46aa6b8`) | harness only, fake-rater dry run, **no result** |
 | — | `v1.3-blind-misses` | #134 | merged into v1.3 (`a893b0eb`) | finished (development set) |
 | — | `v1.3-floor-probe` | #161 | merged into v1.3 (`6384b821`) | finished (one-session feasibility probe) |
-| [FM] | `v1.3-validity-fixes-mined` | #168 open | not merged | finished (exploratory) |
+| [FM] | `v1.3-validity-fixes-mined` | #168 | merged into v1.3 later on 2026-10-16 (`a9bcdfb0`); line numbers below are from the branch | finished (exploratory) |
 | [PV] | `v1.3-validity-predictive` | **no PR** | not merged, tip `e37ef23e` | **unfinished**: no outcome analysis |
 | [VS] | `v1.3-validity-strategy` | #147 open | not merged | methods memo |
 | [EX] | `v1.3-external-set` | #133 open | not merged | tool runs finished, **nothing labelled** |
@@ -90,6 +90,14 @@ These figures come from merged PR #166. The doc reports that "No LLM was called"
 | Earlier dc comparison on SO4 (restated) | "DA 37/37, dc 28/37 (36/37 in the post-hoc `dts` variant); on the 6 dynamic-import seeds DA 0/6, dc 6/6" | [VS] VSM:213-214 | registered SO4 | moderate; this is the known dynamic-import gap |
 
 ### 1.4 Criterion validity, from developer behaviour (fixes mined) and predictive (bug-fix churn)
+
+**Summary (added 2026-10-16).** Criterion validity from developer behaviour is **null for the direction rules (the intervals are uninformative), and positive for cycles**.
+
+- **Direction rules: null.** Removal rate ratios against unflagged cross-layer edges (#168, `Docs/DiagnosticRuns/v1.3-validity-fixes-mined-2026-10-16.md:201-204`): FF-S01 0.65 [0.32, 1.33] (8 removals in 78,528 exposures), FF-S03 (layered) 0.38 [0.12, 1.21] (3 in 49,817), FF-S04 0.16 [0.01, 2.50] (0 in 20,412; the point estimate is not zero only because of the interval method). Every interval spans 1, and FF-S04's runs from 0.01 to 2.50. These say nothing either way. They do not show that the rules are wrong, and they do not support them.
+- **Cycles: positive.** FF-S02 is 2.7× [1.5, 5.1] the baseline without the amplication "Lint Imports" commit (amplication PR #93, 48 credited removals), so that commit does not drive this figure (FMR:19; the table row at FMR:245 gives 2.73 [1.47, 5.07]). It is the one rule whose interval excludes 1 once that commit is left out. It is still one rule, from 11 removals, and the authors call it weak (FMR:26).
+- **Trajectories (#209, open, exploratory).** Six external repositories, 8 commits each, under a fixed spec. The primary sign test on blocking/KLOC slopes gives 5 positive and 1 negative, p = 0.219: a direction, not a result, under the rule committed before the run. The raw count gives 6/6, p = 0.031, but that is confounded by code size. In every repository except w3tec the count jumps in one or two fast-growth intervals, and much of that coincides with the spec's layout appearing (layer coverage rising) (`v1.3-human-erosion:Docs/DiagnosticRuns/v1.3-human-erosion-2026-10-16.md:54-68`). This is no criterion evidence for the direction rules either: it describes when findings appear, not whether developers treat them as defects.
+
+The rows below give the detail.
 
 | Evidence | Numbers as reported | Source | Data | Strength |
 |---|---|---|---|---|
