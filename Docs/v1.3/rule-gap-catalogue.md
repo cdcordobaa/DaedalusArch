@@ -6,7 +6,7 @@
 - Opt-in mechanism: `V13_OPT_IN_EXTENSION_CATALOGUES` and `v13OptInCatalogueOf` in `src/fitness-compiler/extension-templates.ts`.
 - Fixtures: `tests/fixtures/v1.3-rule-gaps/`.
 - Unit tests: `tests/unit/fitness-compiler/rule-gap-templates.test.ts`.
-- Live run: `scripts/v1.3/rule-gaps-run.ts`. Raw output is in `results/v1.3-rule-gaps/`.
+- Live run: `scripts/v1.3/rule-gaps-run.ts`, on `--engine cypher-interp` (the default) or `--engine neo4j`. Raw output is in `results/v1.3-rule-gaps/`.
 - No existing template, tier, preset or the sealed `Docs/v1.3/rule-tiers.md` was changed.
 
 ## 1. Method and sources
@@ -180,16 +180,19 @@ G1 and G3 close partial gaps (C4/C5 and C6). G2 also covers parts of L6, H5 and 
   - a `useClass` token;
   - a provider listed twice in one module.
 - The unit test checks that every violating case is reported, that no clean or look-alike case is, and that no other row appears.
-- The live run gives the same result: `results/v1.3-rule-gaps/fixtures-live.json`, 37/37 cases, live rows equal to the mirror rows for all 24 project × template pairs, including with an exclude pattern.
+- The live runs give the same result on both engines: `results/v1.3-rule-gaps/fixtures-cypher-interp.json` and `fixtures-neo4j.json`. All 37 cases pass, and the live rows equal the mirror rows for all 24 project × template pairs, including with an exclude pattern.
 
 ## 4. Results on the dev set (71 variants)
 
 **Run conditions:**
-- Neo4j 5.26.0 community with the bundled APOC 5.26.0 core, from the dist tarball. `cypher-interp` does not exist in this repository.
+- Two engines, run separately on the same extractions:
+  - `--engine cypher-interp`, the in-process interpreter merged into v1.3 in #128;
+  - Neo4j 5.26.0 community with the bundled APOC 5.26.0 core, from the dist tarball.
+- The two engines return the same 60 rows, row for row, and the same summary.
 - Extraction with `{ ...V13_APG2_OPTIONS, fieldState: true }` and components from the spec's layer model.
 - The spec's own exclude paths, and the layer models and forbidden lists from each reference `spec.yaml` or `presets/ddd.yaml`.
 
-**Live versus mirror:** the live Cypher rows equal the mirror rows on all 71 variants × 8 templates. There were no errors.
+**Live versus mirror:** on both engines, the live Cypher rows equal the mirror rows on all 71 variants × 8 templates. There were no errors.
 
 **Fire counts.** Each cell gives rows / variants with a row / distinct findings. A finding is identified by its file, target and discriminator columns, per style.
 
@@ -217,7 +220,7 @@ G1 and G3 close partial gaps (C4/C5 and C6). G2 also covers parts of L6, H5 and 
 - **No rule fires on any clean variant of clean-architecture, hexagonal or ddd.**
 - G1, G4, G5, G7 and G8 have no planted case in the dev set. Their only evidence is the fixtures.
 
-**Sample for labelling:** `results/v1.3-rule-gaps/reference-sample.md`. It has every distinct finding (fewer than 10 per rule exist), with the row, the variants it occurs in, a code excerpt with the reported line marked, and an empty label field. All rows are in `reference-rows.json`. The counts are in `reference-summary.json`.
+**Sample for labelling:** `results/v1.3-rule-gaps/reference-sample.md` (`reference-neo4j-sample.md` is the same list from the Neo4j run). It has every distinct finding (fewer than 10 per rule exist), with the row, the variants it occurs in, a code excerpt with the reported line marked, and an empty label field. All rows are in `reference-rows.json`. The counts are in `reference-summary.json`. The Neo4j run's files carry a `-neo4j` suffix after `reference`.
 
 ## 5. E1 projects: not run
 
@@ -227,9 +230,11 @@ The E1 mode (`rule-gaps-run.ts e1 --e1-runs results/e1-grid/runs --e1-root ../da
 
 ```bash
 npx jest --maxWorkers=2 tests/unit/fitness-compiler/rule-gap-templates.test.ts
-# Neo4j 5.26 + APOC running; NEO4J_URI, NEO4J_USER, NEO4J_PASSWORD set
-npx tsx scripts/v1.3/rule-gaps-run.ts fixtures  --out results/v1.3-rule-gaps
+npx tsx scripts/v1.3/rule-gaps-run.ts fixtures  --out results/v1.3-rule-gaps      # cypher-interp, no server
 npx tsx scripts/v1.3/rule-gaps-run.ts reference --out results/v1.3-rule-gaps
+# Neo4j 5.26 + APOC running; NEO4J_URI, NEO4J_USER, NEO4J_PASSWORD set
+npx tsx scripts/v1.3/rule-gaps-run.ts fixtures  --engine neo4j --out results/v1.3-rule-gaps
+npx tsx scripts/v1.3/rule-gaps-run.ts reference --engine neo4j --out results/v1.3-rule-gaps
 npx tsx scripts/v1.3/rule-gaps-run.ts e1 --e1-runs results/e1-grid/runs --e1-root ../daedalus-e1-outcomes --spec specs/clean-arch.yaml --out results/v1.3-rule-gaps
 ```
 

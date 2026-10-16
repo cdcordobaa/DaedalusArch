@@ -12,11 +12,13 @@
  * - `fixtures`: `tests/fixtures/v1.3-rule-gaps` (cases.json): live rows must equal the mirror and every case must hold.
  * - `reference`: the 71 variants of the five v1.3 dev reference projects (`tests/fixtures/v1.3-reference`).
  * - `e1 --e1-runs <dir> --e1-root <outcomes> --spec <spec>`: the accepted E1 cells, with the pinned ADR-032 tsconfig.
- * `reference` and `e1` write `<out>/<mode>-rows.json` (every row), `<out>/<mode>-summary.json` (fire counts) and
- * `<out>/<mode>-sample.md` (up to 10 distinct findings per rule, with code excerpts).
+ * `fixtures` writes `<out>/fixtures-<engine>.json`. `reference` and `e1` write `<out>/<mode>-rows.json` (every row), `<out>/<mode>-summary.json` (fire counts) and
+ * `<out>/<mode>-sample.md` (with `-neo4j` after the mode on that engine) (up to 10 distinct findings per rule, with code excerpts).
  *
- * Neo4j 5.26 + APOC: NEO4J_URI, NEO4J_USER, NEO4J_PASSWORD from the environment; the cross-process Neo4j lock is held.
- * Usage (repository root): npx tsx scripts/v1.3/rule-gaps-run.ts fixtures|reference|e1 [--out <dir>] [e1 flags]
+ * Engines (`--engine`): `cypher-interp` (default; the in-process interpreter, `Docs/v1.3/cypher-interpreter.md`, a fresh
+ * graph per project) or `neo4j` (Neo4j 5.26 + APOC: NEO4J_URI, NEO4J_USER, NEO4J_PASSWORD from the environment; the
+ * cross-process Neo4j lock is held).
+ * Usage (repository root): npx tsx scripts/v1.3/rule-gaps-run.ts fixtures|reference|e1 [--engine cypher-interp|neo4j] [--out <dir>] [e1 flags]
  * Default out: results/v1.3-rule-gaps.
  */
 import * as fs from 'node:fs';
@@ -33,6 +35,8 @@ import { memGraph } from '../../src/fitness-compiler/apg2-in-memory.js';
 import type { Row } from '../../src/fitness-compiler/apg2-in-memory.js';
 import { instantiateTemplate } from '../../src/fitness-compiler/index.js';
 import { ingestAPG, Neo4jRepository } from '../../src/neo4j-ingestion/index.js';
+import { MemoryGraphRepository } from '../../src/cypher-interp/repository.js';
+import type { GraphRepository } from '../../src/shared/interfaces/graph-repository.js';
 import { parseSpec, readSpecExcludePaths } from '../../src/spec-parser/index.js';
 import { acquireNeo4jLock } from '../../src/shared/process/neo4j-lock.js';
 import { scrubSecrets } from '../../src/shared/errors/scrub.js';
@@ -61,7 +65,7 @@ const canon = (rows: readonly Row[]): string[] => rows.map((r) => JSON.stringify
 
 const cypherParams = (p: RuleGapParams): Record<string, unknown> => JSON.parse(JSON.stringify(p)) as Record<string, unknown>;
 
-async function ingest(repo: Neo4jRepository, apg: APGResult, layerModel: LayerModel): Promise<void> {
+async function ingest(repo: GraphRepository, apg: APGResult, layerModel: LayerModel): Promise<void> {
   const r = await ingestAPG({ apgResult: apg, layerModel, mode: 'stateless' }, repo, nullStore);
   if (!r.success) throw new Error(`ingest: ${r.errors.map((e) => e.message).join('; ')}`);
   for (const w of r.warnings ?? []) if (w.code === 'INGEST_002' || w.code === 'INGEST_003') throw new Error(`ingest: ${w.code} ${w.message}`);
@@ -73,7 +77,7 @@ async function extract(dir: string, opts: object, tsconfig?: string): Promise<AP
   return r.data;
 }
 
-async function runLive(repo: Neo4jRepository, name: string, p: RuleGapParams, exclude: boolean): Promise<Record<string, unknown>[]> {
+async function runLive(repo: GraphRepository, name: string, p: RuleGapParams, exclude: boolean): Promise<Record<string, unknown>[]> {
   const tpl = must(RULE_GAP_TEMPLATES.get(name), `template ${name}`);
   const params: Record<string, unknown> = { ...cypherParams(p), ...(exclude ? { excludePatterns: ['^__no_such_path__$'] } : {}) };
   const r = await repo.executeQuery(instantiateTemplate(tpl, params), params);
@@ -84,7 +88,11 @@ async function runLive(repo: Neo4jRepository, name: string, p: RuleGapParams, ex
 interface Comparison { readonly template: string; readonly live: number; readonly mirror: number; readonly equal: boolean; readonly orderEqual: boolean; readonly excludeEqual: boolean; readonly onlyLive: string[]; readonly onlyMirror: string[] }
 
 /** Ingests, runs every template live and its mirror; returns the comparison and the live rows. */
-async function runAll(repo: Neo4jRepository, apg: APGResult, lm: LayerModel, p: RuleGapParams): Promise<{ cmp: Comparison[]; live: Map<string, Record<string, unknown>[]> }> {
+/** The graph store of one project: the shared Neo4j repository, or a fresh in-process graph. */
+type RepoSource = () => GraphRepository;
+
+async function runAll(source: RepoSource, apg: APGResult, lm: LayerModel, p: RuleGapParams): Promise<{ cmp: Comparison[]; live: Map<string, Record<string, unknown>[]> }> {
+  const repo = source();
   await ingest(repo, apg, lm);
   const g = memGraph(apg, lm);
   const cmp: Comparison[] = [];
@@ -109,7 +117,7 @@ const cmpOk = (c: Comparison): boolean => c.equal && c.excludeEqual;
 interface FixtureProject { layers: { name: string; directories: string[]; kind: LayerKind }[]; forbiddenImports: string[]; ddd?: DddModel }
 interface FixtureCase { id: string; kind: string; project: string; template: string; match: Record<string, unknown> }
 
-async function fixtures(repo: Neo4jRepository, out: string): Promise<number> {
+async function fixtures(repo: RepoSource, out: string, engine: string): Promise<number> {
   const suite = JSON.parse(fs.readFileSync(path.join(SUITE, 'cases.json'), 'utf8')) as { projects: Record<string, FixtureProject>; cases: FixtureCase[] };
   const results: Record<string, unknown>[] = [];
   const comparisons: Record<string, Comparison[]> = {};
@@ -132,7 +140,7 @@ async function fixtures(repo: Neo4jRepository, out: string): Promise<number> {
     process.stdout.write(`${name}: ${cmp.map((c) => `${c.template}=${String(c.live)}/${String(c.mirror)}${cmpOk(c) ? '' : ' DIFF'}`).join(', ')}\n`);
   }
   fs.mkdirSync(out, { recursive: true });
-  fs.writeFileSync(path.join(out, 'fixtures-live.json'), JSON.stringify({ comparisons, cases: results }, null, 2) + '\n');
+  fs.writeFileSync(path.join(out, `fixtures-${engine}.json`), JSON.stringify({ comparisons, cases: results }, null, 2) + '\n');
   process.stdout.write(`cases: ${String(results.length)}, failing: ${results.filter((r) => r.pass !== true).map((r) => String(r.id)).join(', ') || 'none'}; problems: ${String(bad)}\n`);
   return bad === 0 ? 0 : 1;
 }
@@ -182,7 +190,7 @@ function excerpt(projectDir: string, template: string, row: Record<string, unkno
   return { file, from, text: lines.slice(from - 1, to).map((l, k) => `${String(from + k).padStart(4)}${from + k === at ? ' >' : '  '} ${l}`).join('\n') };
 }
 
-async function runUnits(repo: Neo4jRepository, units: Iterable<RunUnit>, mode: string, out: string): Promise<number> {
+async function runUnits(repo: RepoSource, units: Iterable<RunUnit>, mode: string, out: string): Promise<number> {
   const rows: FoundRow[] = [];
   const unitsSeen: { group: string; unit: string; kind: string; mirrorEqual: boolean; diffs: Comparison[]; rows: Record<string, number> }[] = [];
   const excerpts = new Map<string, ReturnType<typeof excerpt>>();
@@ -299,27 +307,40 @@ async function main(argv: readonly string[]): Promise<number> {
   const outIdx = argv.indexOf('--out');
   const out = path.resolve(ROOT, outIdx >= 0 ? argv[outIdx + 1] ?? '' : 'results/v1.3-rule-gaps');
   if (mode !== 'fixtures' && mode !== 'reference' && mode !== 'e1') {
-    process.stderr.write('usage: rule-gaps-run.ts fixtures|reference|e1 [--out <dir>] [--e1-runs <dir> --e1-root <dir> --spec <file>]\n');
+    process.stderr.write('usage: rule-gaps-run.ts fixtures|reference|e1 [--engine cypher-interp|neo4j] [--out <dir>] [--e1-runs <dir> --e1-root <dir> --spec <file>]\n');
     return 2;
   }
-  const uri = process.env.NEO4J_URI ?? '';
-  const password = process.env.NEO4J_PASSWORD ?? '';
-  if (uri === '' || password === '') {
-    process.stderr.write('needs NEO4J_URI and NEO4J_PASSWORD\n');
+  const engineIdx = argv.indexOf('--engine');
+  const engine = engineIdx >= 0 ? argv[engineIdx + 1] ?? '' : 'cypher-interp';
+  if (engine !== 'cypher-interp' && engine !== 'neo4j') {
+    process.stderr.write('--engine is cypher-interp or neo4j\n');
     return 2;
   }
-  const lock = await acquireNeo4jLock(uri, { label: `rule-gaps ${mode}`, onWait: (t) => process.stderr.write(`${t}\n`) });
-  const repo = new Neo4jRepository({ neo4jUri: uri, neo4jUser: process.env.NEO4J_USER ?? 'neo4j', neo4jPassword: password });
   const work = makeTempRoot('rule-gaps-');
-  try {
-    if (mode === 'fixtures') return await fixtures(repo, out);
+  const run = async (source: RepoSource): Promise<number> => {
+    if (mode === 'fixtures') return fixtures(source, out, engine);
     const units: RunUnit[] = [];
     for await (const u of mode === 'reference' ? referenceUnits(work) : e1Units(argv, work)) units.push(u);
-    return await runUnits(repo, units, mode, out);
+    return runUnits(source, units, `${mode}${engine === 'neo4j' ? '-neo4j' : ''}`, out);
+  };
+  try {
+    if (engine === 'cypher-interp') return await run(() => new MemoryGraphRepository());
+    const uri = process.env.NEO4J_URI ?? '';
+    const password = process.env.NEO4J_PASSWORD ?? '';
+    if (uri === '' || password === '') {
+      process.stderr.write('--engine neo4j needs NEO4J_URI and NEO4J_PASSWORD\n');
+      return 2;
+    }
+    const lock = await acquireNeo4jLock(uri, { label: `rule-gaps ${mode}`, onWait: (t) => process.stderr.write(`${t}\n`) });
+    const repo = new Neo4jRepository({ neo4jUri: uri, neo4jUser: process.env.NEO4J_USER ?? 'neo4j', neo4jPassword: password });
+    try {
+      return await run(() => repo);
+    } finally {
+      await repo.close();
+      lock.release();
+    }
   } finally {
     fs.rmSync(work, { recursive: true, force: true });
-    await repo.close();
-    lock.release();
   }
 }
 
