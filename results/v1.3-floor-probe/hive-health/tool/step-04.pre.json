@@ -1,0 +1,66 @@
+{
+  "spec": "presets/layered.yaml",
+  "engine": "cypher-interp",
+  "scoringMode": "v1.3",
+  "instrumentVersion": 2,
+  "typecheckErrors": 0,
+  "typecheckSample": [],
+  "verdict": "pass",
+  "blockingAhs": 1,
+  "ahsV12e": 0.927,
+  "blockingViolationCount": 0,
+  "advisoryViolationCount": 18,
+  "blockingByRule": {
+    "FF-P01": 0,
+    "FF-S01": 0,
+    "FF-S02": 0,
+    "FF-S03": 0
+  },
+  "advisoryByRule": {
+    "FF-C02": 0,
+    "FF-C03": 3,
+    "FF-C04": 0,
+    "FF-C05": 0,
+    "FF-C06": 0,
+    "FF-CV03": 1,
+    "FF-CV05": 14,
+    "FF-CV06": 0,
+    "FF-SO01": 0,
+    "FF-SO02": 0,
+    "FF-SO03": 0
+  },
+  "blockingFindings": [],
+  "srcFiles": 14,
+  "loc": 550,
+  "layerAnnotation": {
+    "mapped": 14,
+    "unmapped": 0,
+    "unmappedFiles": []
+  },
+  "arm": "tool",
+  "step": 4,
+  "phase": "pre",
+  "filesTouched": [
+    "M src/business/container.ts",
+    "A src/business/report-service.ts",
+    "M src/persistence/hive-repository.ts",
+    "M src/presentation/api.ts",
+    "M src/presentation/app.ts"
+  ],
+  "checkDiff": {
+    "blocking": 0,
+    "advisory": 1,
+    "findings": [],
+    "advisoryListed": [
+      {
+        "file": "src/business/report-service.ts",
+        "rule": "FF-CV03",
+        "tier": "advisory",
+        "line": 23,
+        "target": "ReportService",
+        "reason": "class ReportService does not match the naming pattern \"*Repository|*Repo\"",
+        "fix": "Rename ReportService to rtServiceRepo."
+      }
+    ]
+  }
+}

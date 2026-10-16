@@ -1,0 +1,22 @@
+--- a/src/business/services/CatalogService.ts
++++ b/src/business/services/CatalogService.ts
+@@ -1,4 +1,6 @@
++import * as typeorm from 'typeorm';
+ import { ProductGateway } from '../../persistence/ProductGateway';
++import { ProductRecord } from '../../persistence/records/ProductRecord';
+ import { BusinessError } from '../errors/BusinessError';
+ import { Product } from '../model/Product';
+ import { toProduct } from './RecordMapping';
+@@ -17,6 +19,12 @@
+     return toProduct(record);
+   }
+ 
++  async importProduct(source: typeorm.Repository<ProductRecord>, sku: string): Promise<Product> {
++    const row = await source.findOneBy({ sku });
++    if (row === null) throw new BusinessError('NOT_FOUND', `No product ${sku} in the source catalogue`);
++    return this.addProduct(row.sku, row.name, row.priceCents, row.stock);
++  }
++
+   addProduct(sku: string, name: string, priceCents: number, stock: number): Product {
+     if (this.products.findBySku(sku) !== undefined) throw new BusinessError('CONFLICT', `Product ${sku} exists`);
+     this.products.insert({ sku, name, priceCents, stock });

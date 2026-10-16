@@ -1,0 +1,4601 @@
+{
+  "runId": "run-1792150644848",
+  "projectPath": "<clones>/felixle-node-core/.",
+  "specVersion": "1.0.0",
+  "ahsDeterministic": 0.538,
+  "verdict": "hard-block",
+  "scoring": {
+    "weights": {
+      "structural": 0.35,
+      "coupling": 0.2,
+      "pattern": 0.3,
+      "solid": 0.1,
+      "convention": 0.05,
+      "semantic": 0,
+      "integrity": 0
+    },
+    "fullModeWeights": {
+      "structural": 0.32,
+      "coupling": 0.18,
+      "pattern": 0.27,
+      "solid": 0.1,
+      "convention": 0.05,
+      "semantic": 0.04,
+      "integrity": 0.04
+    },
+    "thresholds": {
+      "pass": 0.8,
+      "warning": 0.65,
+      "softBlock": 0.5
+    },
+    "confidenceThresholds": {
+      "high": 0.85,
+      "medium": 0.6,
+      "iccMinimum": 0.7
+    },
+    "verdictSource": "ahsDeterministic"
+  },
+  "perDimensionScores": [
+    {
+      "dimension": "structural",
+      "avr": 0.333,
+      "violatedWeight": 1,
+      "weight": 0.35,
+      "effectiveWeight": 0.35,
+      "violationCount": 1,
+      "functionCount": 3
+    },
+    {
+      "dimension": "coupling",
+      "avr": 0.833,
+      "violatedWeight": 5,
+      "weight": 0.2,
+      "effectiveWeight": 0.2,
+      "violationCount": 5,
+      "functionCount": 6
+    },
+    {
+      "dimension": "pattern",
+      "avr": 0.333,
+      "violatedWeight": 2,
+      "weight": 0.3,
+      "effectiveWeight": 0.3,
+      "violationCount": 2,
+      "functionCount": 6
+    },
+    {
+      "dimension": "solid",
+      "avr": 0.667,
+      "violatedWeight": 2,
+      "weight": 0.1,
+      "effectiveWeight": 0.1,
+      "violationCount": 2,
+      "functionCount": 3
+    },
+    {
+      "dimension": "convention",
+      "avr": 0.25,
+      "violatedWeight": 1,
+      "weight": 0.05,
+      "effectiveWeight": 0.05,
+      "violationCount": 1,
+      "functionCount": 4
+    }
+  ],
+  "violations": [
+    {
+      "id": "v-61f2809ddb30a12a",
+      "type": "CYCLIC_DEPENDENCY",
+      "dimension": "structural",
+      "severity": "critical",
+      "functionId": "FF-S02",
+      "route": "symbolic",
+      "filePath": "src/domain/entities/auth/Auth.ts,src/domain/entities/user/User.ts,src/domain/entities/auth/Auth.ts",
+      "message": "Circular dependency: src/domain/entities/auth/Auth.ts,src/domain/entities/user/User.ts,src/domain/entities/auth/Auth.ts",
+      "deterministic": true,
+      "target": "src/domain/entities/user/User.ts",
+      "line": 6,
+      "discriminator": [
+        "[\"src/domain/entities/auth/Auth.ts\",\"src/domain/entities/user/User.ts\",\"src/domain/entities/auth/Auth.ts\"]"
+      ],
+      "tag": "topological"
+    },
+    {
+      "id": "v-6dfdf9beb5aa336c",
+      "type": "CYCLIC_DEPENDENCY",
+      "dimension": "structural",
+      "severity": "critical",
+      "functionId": "FF-S02",
+      "route": "symbolic",
+      "filePath": "src/infras/data/typeorm/entities/auth/AuthDb.ts,src/infras/data/typeorm/entities/user/UserDb.ts,src/infras/data/typeorm/entities/auth/AuthDb.ts",
+      "message": "Circular dependency: src/infras/data/typeorm/entities/auth/AuthDb.ts,src/infras/data/typeorm/entities/user/UserDb.ts,src/infras/data/typeorm/entities/auth/AuthDb.ts",
+      "deterministic": true,
+      "target": "src/infras/data/typeorm/entities/user/UserDb.ts",
+      "line": 6,
+      "discriminator": [
+        "[\"src/infras/data/typeorm/entities/auth/AuthDb.ts\",\"src/infras/data/typeorm/entities/user/UserDb.ts\",\"src/infras/data/typeorm/entities/auth/AuthDb.ts\"]"
+      ],
+      "tag": "topological"
+    },
+    {
+      "id": "v-f19b903789cbfae1",
+      "type": "DEPENDENCY_INVERSION_VIOLATION",
+      "dimension": "pattern",
+      "severity": "critical",
+      "functionId": "FF-P02",
+      "route": "symbolic",
+      "filePath": "src/application/usecases/user/client/create-client/CreateClientHandler.ts",
+      "message": "Violation in src/application/usecases/user/client/create-client/CreateClientHandler.ts",
+      "deterministic": true,
+      "discriminator": [
+        "CreateClientHandler"
+      ],
+      "evidence": [
+        "ratio=0.6"
+      ],
+      "tag": "pattern-proxy"
+    },
+    {
+      "id": "v-f0857a03e7a9b1e2",
+      "type": "DEPENDENCY_INVERSION_VIOLATION",
+      "dimension": "pattern",
+      "severity": "critical",
+      "functionId": "FF-P02",
+      "route": "symbolic",
+      "filePath": "src/application/usecases/user/client/import-client-test/ImportClientTestHandler.ts",
+      "message": "Violation in src/application/usecases/user/client/import-client-test/ImportClientTestHandler.ts",
+      "deterministic": true,
+      "discriminator": [
+        "ImportClientTestHandler"
+      ],
+      "evidence": [
+        "ratio=0.3333333333333333"
+      ],
+      "tag": "pattern-proxy"
+    },
+    {
+      "id": "v-7dd6bb232b7bdcd9",
+      "type": "DEPENDENCY_INVERSION_VIOLATION",
+      "dimension": "pattern",
+      "severity": "critical",
+      "functionId": "FF-P02",
+      "route": "symbolic",
+      "filePath": "src/application/usecases/user/client/register-client/RegisterClientHandler.ts",
+      "message": "Violation in src/application/usecases/user/client/register-client/RegisterClientHandler.ts",
+      "deterministic": true,
+      "discriminator": [
+        "RegisterClientHandler"
+      ],
+      "evidence": [
+        "ratio=0.6666666666666666"
+      ],
+      "tag": "pattern-proxy"
+    },
+    {
+      "id": "v-1269c0b6960102e8",
+      "type": "DEPENDENCY_INVERSION_VIOLATION",
+      "dimension": "pattern",
+      "severity": "critical",
+      "functionId": "FF-P02",
+      "route": "symbolic",
+      "filePath": "src/application/usecases/user/manager/create-manager/CreateManagerHandler.ts",
+      "message": "Violation in src/application/usecases/user/manager/create-manager/CreateManagerHandler.ts",
+      "deterministic": true,
+      "discriminator": [
+        "CreateManagerHandler"
+      ],
+      "evidence": [
+        "ratio=0.6"
+      ],
+      "tag": "pattern-proxy"
+    },
+    {
+      "id": "v-f0069408dda1f91f",
+      "type": "DEPENDENCY_INVERSION_VIOLATION",
+      "dimension": "pattern",
+      "severity": "critical",
+      "functionId": "FF-P02",
+      "route": "symbolic",
+      "filePath": "src/application/usecases/user/manager/import-manager-test/ImportManagerTestHandler.ts",
+      "message": "Violation in src/application/usecases/user/manager/import-manager-test/ImportManagerTestHandler.ts",
+      "deterministic": true,
+      "discriminator": [
+        "ImportManagerTestHandler"
+      ],
+      "evidence": [
+        "ratio=0.3333333333333333"
+      ],
+      "tag": "pattern-proxy"
+    },
+    {
+      "id": "v-1254de66499436eb",
+      "type": "REPOSITORY_PATTERN_VIOLATION",
+      "dimension": "pattern",
+      "severity": "critical",
+      "functionId": "FF-P03",
+      "route": "symbolic",
+      "filePath": "src/infras/data/typeorm/common/Repository.ts",
+      "message": "Violation in src/infras/data/typeorm/common/Repository.ts",
+      "deterministic": true,
+      "discriminator": [
+        "Repository"
+      ],
+      "tag": "pattern-proxy"
+    },
+    {
+      "id": "v-c8aa1f8d9c874a27",
+      "type": "FAN_OUT_EXCEEDED",
+      "dimension": "coupling",
+      "severity": "major",
+      "functionId": "FF-C02",
+      "route": "symbolic",
+      "filePath": "src/app.ts",
+      "message": "Violation in src/app.ts",
+      "deterministic": true,
+      "discriminator": [],
+      "evidence": [
+        "fanOut=13"
+      ],
+      "tag": "topological"
+    },
+    {
+      "id": "v-4e8e126d8cdc38c0",
+      "type": "FAN_OUT_EXCEEDED",
+      "dimension": "coupling",
+      "severity": "major",
+      "functionId": "FF-C02",
+      "route": "symbolic",
+      "filePath": "src/application/usecases/auth/auth/forgot-password-by-email/ForgotPasswordByEmailHandler.ts",
+      "message": "Violation in src/application/usecases/auth/auth/forgot-password-by-email/ForgotPasswordByEmailHandler.ts",
+      "deterministic": true,
+      "discriminator": [],
+      "evidence": [
+        "fanOut=11"
+      ],
+      "tag": "topological"
+    },
+    {
+      "id": "v-f4b084184564bbe6",
+      "type": "FAN_OUT_EXCEEDED",
+      "dimension": "coupling",
+      "severity": "major",
+      "functionId": "FF-C02",
+      "route": "symbolic",
+      "filePath": "src/application/usecases/user/client/create-client/CreateClientHandler.ts",
+      "message": "Violation in src/application/usecases/user/client/create-client/CreateClientHandler.ts",
+      "deterministic": true,
+      "discriminator": [],
+      "evidence": [
+        "fanOut=12"
+      ],
+      "tag": "topological"
+    },
+    {
+      "id": "v-acf26b34c33ce7cb",
+      "type": "FAN_OUT_EXCEEDED",
+      "dimension": "coupling",
+      "severity": "major",
+      "functionId": "FF-C02",
+      "route": "symbolic",
+      "filePath": "src/application/usecases/user/client/register-client/RegisterClientHandler.ts",
+      "message": "Violation in src/application/usecases/user/client/register-client/RegisterClientHandler.ts",
+      "deterministic": true,
+      "discriminator": [],
+      "evidence": [
+        "fanOut=14"
+      ],
+      "tag": "topological"
+    },
+    {
+      "id": "v-c6df2e4799a0f726",
+      "type": "FAN_OUT_EXCEEDED",
+      "dimension": "coupling",
+      "severity": "major",
+      "functionId": "FF-C02",
+      "route": "symbolic",
+      "filePath": "src/application/usecases/user/manager/create-manager/CreateManagerHandler.ts",
+      "message": "Violation in src/application/usecases/user/manager/create-manager/CreateManagerHandler.ts",
+      "deterministic": true,
+      "discriminator": [],
+      "evidence": [
+        "fanOut=12"
+      ],
+      "tag": "topological"
+    },
+    {
+      "id": "v-0eef502d1222b0ad",
+      "type": "FAN_OUT_EXCEEDED",
+      "dimension": "coupling",
+      "severity": "major",
+      "functionId": "FF-C02",
+      "route": "symbolic",
+      "filePath": "src/exposes/api/mobile/controllers/auth/AuthController.ts",
+      "message": "Violation in src/exposes/api/mobile/controllers/auth/AuthController.ts",
+      "deterministic": true,
+      "discriminator": [],
+      "evidence": [
+        "fanOut=18"
+      ],
+      "tag": "topological"
+    },
+    {
+      "id": "v-7f3c67b4965dcb97",
+      "type": "FAN_OUT_EXCEEDED",
+      "dimension": "coupling",
+      "severity": "major",
+      "functionId": "FF-C02",
+      "route": "symbolic",
+      "filePath": "src/exposes/api/web/controllers/auth/AuthController.ts",
+      "message": "Violation in src/exposes/api/web/controllers/auth/AuthController.ts",
+      "deterministic": true,
+      "discriminator": [],
+      "evidence": [
+        "fanOut=18"
+      ],
+      "tag": "topological"
+    },
+    {
+      "id": "v-39d2bde486e1fee4",
+      "type": "FAN_OUT_EXCEEDED",
+      "dimension": "coupling",
+      "severity": "major",
+      "functionId": "FF-C02",
+      "route": "symbolic",
+      "filePath": "src/exposes/api/web/controllers/user/ClientController.ts",
+      "message": "Violation in src/exposes/api/web/controllers/user/ClientController.ts",
+      "deterministic": true,
+      "discriminator": [],
+      "evidence": [
+        "fanOut=26"
+      ],
+      "tag": "topological"
+    },
+    {
+      "id": "v-1007754382443e26",
+      "type": "FAN_OUT_EXCEEDED",
+      "dimension": "coupling",
+      "severity": "major",
+      "functionId": "FF-C02",
+      "route": "symbolic",
+      "filePath": "src/exposes/api/web/controllers/user/ManagerController.ts",
+      "message": "Violation in src/exposes/api/web/controllers/user/ManagerController.ts",
+      "deterministic": true,
+      "discriminator": [],
+      "evidence": [
+        "fanOut=18"
+      ],
+      "tag": "topological"
+    },
+    {
+      "id": "v-4abc86ff9d759b07",
+      "type": "FAN_OUT_EXCEEDED",
+      "dimension": "coupling",
+      "severity": "major",
+      "functionId": "FF-C02",
+      "route": "symbolic",
+      "filePath": "src/exposes/api/web/controllers/user/UserController.ts",
+      "message": "Violation in src/exposes/api/web/controllers/user/UserController.ts",
+      "deterministic": true,
+      "discriminator": [],
+      "evidence": [
+        "fanOut=12"
+      ],
+      "tag": "topological"
+    },
+    {
+      "id": "v-62e670ab34cbc9d2",
+      "type": "INSTABILITY_VIOLATION",
+      "dimension": "coupling",
+      "severity": "major",
+      "functionId": "FF-C03",
+      "route": "symbolic",
+      "filePath": "src/application/usecases/auth/auth/forgot-password-by-email/ForgotPasswordByEmailHandler.ts",
+      "message": "Violation in src/application/usecases/auth/auth/forgot-password-by-email/ForgotPasswordByEmailHandler.ts",
+      "deterministic": true,
+      "discriminator": [],
+      "evidence": [
+        "instability=0.8461538461538461"
+      ],
+      "tag": "topological"
+    },
+    {
+      "id": "v-7ce3f91a37f011e3",
+      "type": "INSTABILITY_VIOLATION",
+      "dimension": "coupling",
+      "severity": "major",
+      "functionId": "FF-C03",
+      "route": "symbolic",
+      "filePath": "src/application/usecases/auth/auth/login-by-email/LoginByEmailHandler.ts",
+      "message": "Violation in src/application/usecases/auth/auth/login-by-email/LoginByEmailHandler.ts",
+      "deterministic": true,
+      "discriminator": [],
+      "evidence": [
+        "instability=0.8181818181818182"
+      ],
+      "tag": "topological"
+    },
+    {
+      "id": "v-7e5c5e883f2776ec",
+      "type": "INSTABILITY_VIOLATION",
+      "dimension": "coupling",
+      "severity": "major",
+      "functionId": "FF-C03",
+      "route": "symbolic",
+      "filePath": "src/application/usecases/user/client/active-client/ActiveClientHandler.ts",
+      "message": "Violation in src/application/usecases/user/client/active-client/ActiveClientHandler.ts",
+      "deterministic": true,
+      "discriminator": [],
+      "evidence": [
+        "instability=0.8571428571428571"
+      ],
+      "tag": "topological"
+    },
+    {
+      "id": "v-e2a0caf6dae7990a",
+      "type": "INSTABILITY_VIOLATION",
+      "dimension": "coupling",
+      "severity": "major",
+      "functionId": "FF-C03",
+      "route": "symbolic",
+      "filePath": "src/application/usecases/user/client/archive-client/ArchiveClientHandler.ts",
+      "message": "Violation in src/application/usecases/user/client/archive-client/ArchiveClientHandler.ts",
+      "deterministic": true,
+      "discriminator": [],
+      "evidence": [
+        "instability=0.8333333333333334"
+      ],
+      "tag": "topological"
+    },
+    {
+      "id": "v-deefd9e0460738d5",
+      "type": "INSTABILITY_VIOLATION",
+      "dimension": "coupling",
+      "severity": "major",
+      "functionId": "FF-C03",
+      "route": "symbolic",
+      "filePath": "src/application/usecases/user/client/create-client/CreateClientHandler.ts",
+      "message": "Violation in src/application/usecases/user/client/create-client/CreateClientHandler.ts",
+      "deterministic": true,
+      "discriminator": [],
+      "evidence": [
+        "instability=0.8571428571428571"
+      ],
+      "tag": "topological"
+    },
+    {
+      "id": "v-de5186925799233c",
+      "type": "INSTABILITY_VIOLATION",
+      "dimension": "coupling",
+      "severity": "major",
+      "functionId": "FF-C03",
+      "route": "symbolic",
+      "filePath": "src/application/usecases/user/client/delete-client/DeleteClientHandler.ts",
+      "message": "Violation in src/application/usecases/user/client/delete-client/DeleteClientHandler.ts",
+      "deterministic": true,
+      "discriminator": [],
+      "evidence": [
+        "instability=0.875"
+      ],
+      "tag": "topological"
+    },
+    {
+      "id": "v-81da539a9b8c78fb",
+      "type": "INSTABILITY_VIOLATION",
+      "dimension": "coupling",
+      "severity": "major",
+      "functionId": "FF-C03",
+      "route": "symbolic",
+      "filePath": "src/application/usecases/user/client/get-client/GetClientHandler.ts",
+      "message": "Violation in src/application/usecases/user/client/get-client/GetClientHandler.ts",
+      "deterministic": true,
+      "discriminator": [],
+      "evidence": [
+        "instability=0.8333333333333334"
+      ],
+      "tag": "topological"
+    },
+    {
+      "id": "v-09cda3569f43282a",
+      "type": "INSTABILITY_VIOLATION",
+      "dimension": "coupling",
+      "severity": "major",
+      "functionId": "FF-C03",
+      "route": "symbolic",
+      "filePath": "src/application/usecases/user/client/get-profile-client/GetProfileClientHandler.ts",
+      "message": "Violation in src/application/usecases/user/client/get-profile-client/GetProfileClientHandler.ts",
+      "deterministic": true,
+      "discriminator": [],
+      "evidence": [
+        "instability=0.8333333333333334"
+      ],
+      "tag": "topological"
+    },
+    {
+      "id": "v-818aff3d4a3a0209",
+      "type": "INSTABILITY_VIOLATION",
+      "dimension": "coupling",
+      "severity": "major",
+      "functionId": "FF-C03",
+      "route": "symbolic",
+      "filePath": "src/application/usecases/user/client/import-client-test/ImportClientTestHandler.ts",
+      "message": "Violation in src/application/usecases/user/client/import-client-test/ImportClientTestHandler.ts",
+      "deterministic": true,
+      "discriminator": [],
+      "evidence": [
+        "instability=0.9090909090909091"
+      ],
+      "tag": "topological"
+    },
+    {
+      "id": "v-45f96fbced6fcfff",
+      "type": "INSTABILITY_VIOLATION",
+      "dimension": "coupling",
+      "severity": "major",
+      "functionId": "FF-C03",
+      "route": "symbolic",
+      "filePath": "src/application/usecases/user/client/register-client/RegisterClientHandler.ts",
+      "message": "Violation in src/application/usecases/user/client/register-client/RegisterClientHandler.ts",
+      "deterministic": true,
+      "discriminator": [],
+      "evidence": [
+        "instability=0.9333333333333333"
+      ],
+      "tag": "topological"
+    },
+    {
+      "id": "v-53e0706b5df2f92e",
+      "type": "INSTABILITY_VIOLATION",
+      "dimension": "coupling",
+      "severity": "major",
+      "functionId": "FF-C03",
+      "route": "symbolic",
+      "filePath": "src/application/usecases/user/client/resend-activation/ResendActivationHandler.ts",
+      "message": "Violation in src/application/usecases/user/client/resend-activation/ResendActivationHandler.ts",
+      "deterministic": true,
+      "discriminator": [],
+      "evidence": [
+        "instability=0.9"
+      ],
+      "tag": "topological"
+    },
+    {
+      "id": "v-e51d751f4d822b92",
+      "type": "INSTABILITY_VIOLATION",
+      "dimension": "coupling",
+      "severity": "major",
+      "functionId": "FF-C03",
+      "route": "symbolic",
+      "filePath": "src/application/usecases/user/client/update-client/UpdateClientHandler.ts",
+      "message": "Violation in src/application/usecases/user/client/update-client/UpdateClientHandler.ts",
+      "deterministic": true,
+      "discriminator": [],
+      "evidence": [
+        "instability=0.8333333333333334"
+      ],
+      "tag": "topological"
+    },
+    {
+      "id": "v-daf743b6d089b59d",
+      "type": "INSTABILITY_VIOLATION",
+      "dimension": "coupling",
+      "severity": "major",
+      "functionId": "FF-C03",
+      "route": "symbolic",
+      "filePath": "src/application/usecases/user/client/update-profile-client/UpdateProfileClientHandler.ts",
+      "message": "Violation in src/application/usecases/user/client/update-profile-client/UpdateProfileClientHandler.ts",
+      "deterministic": true,
+      "discriminator": [],
+      "evidence": [
+        "instability=0.8333333333333334"
+      ],
+      "tag": "topological"
+    },
+    {
+      "id": "v-70d9b2d5d298583d",
+      "type": "INSTABILITY_VIOLATION",
+      "dimension": "coupling",
+      "severity": "major",
+      "functionId": "FF-C03",
+      "route": "symbolic",
+      "filePath": "src/application/usecases/user/manager/archive-manager/ArchiveManagerHandler.ts",
+      "message": "Violation in src/application/usecases/user/manager/archive-manager/ArchiveManagerHandler.ts",
+      "deterministic": true,
+      "discriminator": [],
+      "evidence": [
+        "instability=0.8333333333333334"
+      ],
+      "tag": "topological"
+    },
+    {
+      "id": "v-2ebbb631e1363fc9",
+      "type": "INSTABILITY_VIOLATION",
+      "dimension": "coupling",
+      "severity": "major",
+      "functionId": "FF-C03",
+      "route": "symbolic",
+      "filePath": "src/application/usecases/user/manager/create-manager/CreateManagerHandler.ts",
+      "message": "Violation in src/application/usecases/user/manager/create-manager/CreateManagerHandler.ts",
+      "deterministic": true,
+      "discriminator": [],
+      "evidence": [
+        "instability=0.8571428571428571"
+      ],
+      "tag": "topological"
+    },
+    {
+      "id": "v-30876dda810354a3",
+      "type": "INSTABILITY_VIOLATION",
+      "dimension": "coupling",
+      "severity": "major",
+      "functionId": "FF-C03",
+      "route": "symbolic",
+      "filePath": "src/application/usecases/user/manager/delete-manager/DeleteManagerHandler.ts",
+      "message": "Violation in src/application/usecases/user/manager/delete-manager/DeleteManagerHandler.ts",
+      "deterministic": true,
+      "discriminator": [],
+      "evidence": [
+        "instability=0.875"
+      ],
+      "tag": "topological"
+    },
+    {
+      "id": "v-16c1d35651595b37",
+      "type": "INSTABILITY_VIOLATION",
+      "dimension": "coupling",
+      "severity": "major",
+      "functionId": "FF-C03",
+      "route": "symbolic",
+      "filePath": "src/application/usecases/user/manager/get-manager/GetManagerHandler.ts",
+      "message": "Violation in src/application/usecases/user/manager/get-manager/GetManagerHandler.ts",
+      "deterministic": true,
+      "discriminator": [],
+      "evidence": [
+        "instability=0.8333333333333334"
+      ],
+      "tag": "topological"
+    },
+    {
+      "id": "v-cd09ce9dc1a7c0ca",
+      "type": "INSTABILITY_VIOLATION",
+      "dimension": "coupling",
+      "severity": "major",
+      "functionId": "FF-C03",
+      "route": "symbolic",
+      "filePath": "src/application/usecases/user/manager/get-profile-manager/GetProfileManagerHandler.ts",
+      "message": "Violation in src/application/usecases/user/manager/get-profile-manager/GetProfileManagerHandler.ts",
+      "deterministic": true,
+      "discriminator": [],
+      "evidence": [
+        "instability=0.8333333333333334"
+      ],
+      "tag": "topological"
+    },
+    {
+      "id": "v-a9e152258ae910a9",
+      "type": "INSTABILITY_VIOLATION",
+      "dimension": "coupling",
+      "severity": "major",
+      "functionId": "FF-C03",
+      "route": "symbolic",
+      "filePath": "src/application/usecases/user/manager/import-manager-test/ImportManagerTestHandler.ts",
+      "message": "Violation in src/application/usecases/user/manager/import-manager-test/ImportManagerTestHandler.ts",
+      "deterministic": true,
+      "discriminator": [],
+      "evidence": [
+        "instability=0.9090909090909091"
+      ],
+      "tag": "topological"
+    },
+    {
+      "id": "v-80b4b55b56eb91d0",
+      "type": "INSTABILITY_VIOLATION",
+      "dimension": "coupling",
+      "severity": "major",
+      "functionId": "FF-C03",
+      "route": "symbolic",
+      "filePath": "src/application/usecases/user/manager/update-manager/UpdateManagerHandler.ts",
+      "message": "Violation in src/application/usecases/user/manager/update-manager/UpdateManagerHandler.ts",
+      "deterministic": true,
+      "discriminator": [],
+      "evidence": [
+        "instability=0.8333333333333334"
+      ],
+      "tag": "topological"
+    },
+    {
+      "id": "v-aeaa6fef116786c8",
+      "type": "INSTABILITY_VIOLATION",
+      "dimension": "coupling",
+      "severity": "major",
+      "functionId": "FF-C03",
+      "route": "symbolic",
+      "filePath": "src/application/usecases/user/manager/update-profile-manager/UpdateProfileManagerHandler.ts",
+      "message": "Violation in src/application/usecases/user/manager/update-profile-manager/UpdateProfileManagerHandler.ts",
+      "deterministic": true,
+      "discriminator": [],
+      "evidence": [
+        "instability=0.8333333333333334"
+      ],
+      "tag": "topological"
+    },
+    {
+      "id": "v-072462ca968c443d",
+      "type": "INSTABILITY_VIOLATION",
+      "dimension": "coupling",
+      "severity": "major",
+      "functionId": "FF-C03",
+      "route": "symbolic",
+      "filePath": "src/application/usecases/user/user/get-list-online-status-by-ids/GetListOnlineStatusByIdsHandler.ts",
+      "message": "Violation in src/application/usecases/user/user/get-list-online-status-by-ids/GetListOnlineStatusByIdsHandler.ts",
+      "deterministic": true,
+      "discriminator": [],
+      "evidence": [
+        "instability=0.8571428571428571"
+      ],
+      "tag": "topological"
+    },
+    {
+      "id": "v-e43f4a5df7221d14",
+      "type": "INSTABILITY_VIOLATION",
+      "dimension": "coupling",
+      "severity": "major",
+      "functionId": "FF-C03",
+      "route": "symbolic",
+      "filePath": "src/domain/entities/user/Client.ts",
+      "message": "Violation in src/domain/entities/user/Client.ts",
+      "deterministic": true,
+      "discriminator": [],
+      "evidence": [
+        "instability=1"
+      ],
+      "tag": "topological"
+    },
+    {
+      "id": "v-a23cf8bac011b4e7",
+      "type": "INSTABILITY_VIOLATION",
+      "dimension": "coupling",
+      "severity": "major",
+      "functionId": "FF-C03",
+      "route": "symbolic",
+      "filePath": "src/domain/entities/user/Manager.ts",
+      "message": "Violation in src/domain/entities/user/Manager.ts",
+      "deterministic": true,
+      "discriminator": [],
+      "evidence": [
+        "instability=1"
+      ],
+      "tag": "topological"
+    },
+    {
+      "id": "v-c3a99a765af32f81",
+      "type": "INSTABILITY_VIOLATION",
+      "dimension": "coupling",
+      "severity": "major",
+      "functionId": "FF-C03",
+      "route": "symbolic",
+      "filePath": "src/infras/data/redis/RedisRegister.ts",
+      "message": "Violation in src/infras/data/redis/RedisRegister.ts",
+      "deterministic": true,
+      "discriminator": [],
+      "evidence": [
+        "instability=1"
+      ],
+      "tag": "topological"
+    },
+    {
+      "id": "v-e9fb60aee30415a9",
+      "type": "INSTABILITY_VIOLATION",
+      "dimension": "coupling",
+      "severity": "major",
+      "functionId": "FF-C03",
+      "route": "symbolic",
+      "filePath": "src/infras/data/redis/repositories/user/UserOnlineStatusRepository.ts",
+      "message": "Violation in src/infras/data/redis/repositories/user/UserOnlineStatusRepository.ts",
+      "deterministic": true,
+      "discriminator": [],
+      "evidence": [
+        "instability=1"
+      ],
+      "tag": "topological"
+    },
+    {
+      "id": "v-4ab6fb81ac3c3744",
+      "type": "INSTABILITY_VIOLATION",
+      "dimension": "coupling",
+      "severity": "major",
+      "functionId": "FF-C03",
+      "route": "symbolic",
+      "filePath": "src/infras/data/typeorm/DbRegister.ts",
+      "message": "Violation in src/infras/data/typeorm/DbRegister.ts",
+      "deterministic": true,
+      "discriminator": [],
+      "evidence": [
+        "instability=1"
+      ],
+      "tag": "topological"
+    },
+    {
+      "id": "v-0d2d43ea7a68fe60",
+      "type": "INSTABILITY_VIOLATION",
+      "dimension": "coupling",
+      "severity": "major",
+      "functionId": "FF-C03",
+      "route": "symbolic",
+      "filePath": "src/infras/data/typeorm/migrations/1639016247061-Initialize.ts",
+      "message": "Violation in src/infras/data/typeorm/migrations/1639016247061-Initialize.ts",
+      "deterministic": true,
+      "discriminator": [],
+      "evidence": [
+        "instability=1"
+      ],
+      "tag": "topological"
+    },
+    {
+      "id": "v-093b193d524ebd6c",
+      "type": "INSTABILITY_VIOLATION",
+      "dimension": "coupling",
+      "severity": "major",
+      "functionId": "FF-C03",
+      "route": "symbolic",
+      "filePath": "src/infras/data/typeorm/repositories/auth/AuthRepository.ts",
+      "message": "Violation in src/infras/data/typeorm/repositories/auth/AuthRepository.ts",
+      "deterministic": true,
+      "discriminator": [],
+      "evidence": [
+        "instability=0.875"
+      ],
+      "tag": "topological"
+    },
+    {
+      "id": "v-f68cf206d492d911",
+      "type": "INSTABILITY_VIOLATION",
+      "dimension": "coupling",
+      "severity": "major",
+      "functionId": "FF-C03",
+      "route": "symbolic",
+      "filePath": "src/infras/data/typeorm/repositories/user/ClientRepository.ts",
+      "message": "Violation in src/infras/data/typeorm/repositories/user/ClientRepository.ts",
+      "deterministic": true,
+      "discriminator": [],
+      "evidence": [
+        "instability=1"
+      ],
+      "tag": "topological"
+    },
+    {
+      "id": "v-c7bd48b0897bc69d",
+      "type": "INSTABILITY_VIOLATION",
+      "dimension": "coupling",
+      "severity": "major",
+      "functionId": "FF-C03",
+      "route": "symbolic",
+      "filePath": "src/infras/data/typeorm/repositories/user/ManagerRepository.ts",
+      "message": "Violation in src/infras/data/typeorm/repositories/user/ManagerRepository.ts",
+      "deterministic": true,
+      "discriminator": [],
+      "evidence": [
+        "instability=0.8571428571428571"
+      ],
+      "tag": "topological"
+    },
+    {
+      "id": "v-7ed9a5f27f36019d",
+      "type": "INSTABILITY_VIOLATION",
+      "dimension": "coupling",
+      "severity": "major",
+      "functionId": "FF-C03",
+      "route": "symbolic",
+      "filePath": "src/infras/data/typeorm/repositories/user/UserRepository.ts",
+      "message": "Violation in src/infras/data/typeorm/repositories/user/UserRepository.ts",
+      "deterministic": true,
+      "discriminator": [],
+      "evidence": [
+        "instability=1"
+      ],
+      "tag": "topological"
+    },
+    {
+      "id": "v-4e4c512114b47a07",
+      "type": "INSTABILITY_VIOLATION",
+      "dimension": "coupling",
+      "severity": "major",
+      "functionId": "FF-C03",
+      "route": "symbolic",
+      "filePath": "src/infras/services/authentication/AuthJwtService.ts",
+      "message": "Violation in src/infras/services/authentication/AuthJwtService.ts",
+      "deterministic": true,
+      "discriminator": [],
+      "evidence": [
+        "instability=1"
+      ],
+      "tag": "topological"
+    },
+    {
+      "id": "v-bffda7f9c5555ff1",
+      "type": "INSTABILITY_VIOLATION",
+      "dimension": "coupling",
+      "severity": "major",
+      "functionId": "FF-C03",
+      "route": "symbolic",
+      "filePath": "src/infras/services/log/LogService.ts",
+      "message": "Violation in src/infras/services/log/LogService.ts",
+      "deterministic": true,
+      "discriminator": [],
+      "evidence": [
+        "instability=0.8571428571428571"
+      ],
+      "tag": "topological"
+    },
+    {
+      "id": "v-d7736b0a766b6085",
+      "type": "INSTABILITY_VIOLATION",
+      "dimension": "coupling",
+      "severity": "major",
+      "functionId": "FF-C03",
+      "route": "symbolic",
+      "filePath": "src/infras/services/mail/MailService.ts",
+      "message": "Violation in src/infras/services/mail/MailService.ts",
+      "deterministic": true,
+      "discriminator": [],
+      "evidence": [
+        "instability=1"
+      ],
+      "tag": "topological"
+    },
+    {
+      "id": "v-78e37a5be5122e90",
+      "type": "INSTABILITY_VIOLATION",
+      "dimension": "coupling",
+      "severity": "major",
+      "functionId": "FF-C03",
+      "route": "symbolic",
+      "filePath": "src/infras/services/mail/sender/MailSender.ts",
+      "message": "Violation in src/infras/services/mail/sender/MailSender.ts",
+      "deterministic": true,
+      "discriminator": [],
+      "evidence": [
+        "instability=0.875"
+      ],
+      "tag": "topological"
+    },
+    {
+      "id": "v-5abfc3a75ae0c083",
+      "type": "INSTABILITY_VIOLATION",
+      "dimension": "coupling",
+      "severity": "major",
+      "functionId": "FF-C03",
+      "route": "symbolic",
+      "filePath": "src/infras/services/notification/NotificationService.ts",
+      "message": "Violation in src/infras/services/notification/NotificationService.ts",
+      "deterministic": true,
+      "discriminator": [],
+      "evidence": [
+        "instability=1"
+      ],
+      "tag": "topological"
+    },
+    {
+      "id": "v-b5b8092f3b73ec24",
+      "type": "INSTABILITY_VIOLATION",
+      "dimension": "coupling",
+      "severity": "major",
+      "functionId": "FF-C03",
+      "route": "symbolic",
+      "filePath": "src/infras/services/notification/sender/NotificationSender.ts",
+      "message": "Violation in src/infras/services/notification/sender/NotificationSender.ts",
+      "deterministic": true,
+      "discriminator": [],
+      "evidence": [
+        "instability=0.8333333333333334"
+      ],
+      "tag": "topological"
+    },
+    {
+      "id": "v-c4240713be339207",
+      "type": "INSTABILITY_VIOLATION",
+      "dimension": "coupling",
+      "severity": "major",
+      "functionId": "FF-C03",
+      "route": "symbolic",
+      "filePath": "src/infras/services/payment/PaymentPaypalService.ts",
+      "message": "Violation in src/infras/services/payment/PaymentPaypalService.ts",
+      "deterministic": true,
+      "discriminator": [],
+      "evidence": [
+        "instability=1"
+      ],
+      "tag": "topological"
+    },
+    {
+      "id": "v-6071498a0b9dabf7",
+      "type": "INSTABILITY_VIOLATION",
+      "dimension": "coupling",
+      "severity": "major",
+      "functionId": "FF-C03",
+      "route": "symbolic",
+      "filePath": "src/infras/services/payment/PaymentStripeService.ts",
+      "message": "Violation in src/infras/services/payment/PaymentStripeService.ts",
+      "deterministic": true,
+      "discriminator": [],
+      "evidence": [
+        "instability=1"
+      ],
+      "tag": "topological"
+    },
+    {
+      "id": "v-6b0df30c25adbd2d",
+      "type": "INSTABILITY_VIOLATION",
+      "dimension": "coupling",
+      "severity": "major",
+      "functionId": "FF-C03",
+      "route": "symbolic",
+      "filePath": "src/infras/services/sms/SmsService.ts",
+      "message": "Violation in src/infras/services/sms/SmsService.ts",
+      "deterministic": true,
+      "discriminator": [],
+      "evidence": [
+        "instability=1"
+      ],
+      "tag": "topological"
+    },
+    {
+      "id": "v-3bb7a403fdf8513c",
+      "type": "INSTABILITY_VIOLATION",
+      "dimension": "coupling",
+      "severity": "major",
+      "functionId": "FF-C03",
+      "route": "symbolic",
+      "filePath": "src/infras/services/sms/sender/SmsSender.ts",
+      "message": "Violation in src/infras/services/sms/sender/SmsSender.ts",
+      "deterministic": true,
+      "discriminator": [],
+      "evidence": [
+        "instability=0.8571428571428571"
+      ],
+      "tag": "topological"
+    },
+    {
+      "id": "v-3e9010e7917c9359",
+      "type": "INSTABILITY_VIOLATION",
+      "dimension": "coupling",
+      "severity": "major",
+      "functionId": "FF-C03",
+      "route": "symbolic",
+      "filePath": "src/infras/services/socket-emitter/SocketEmitterService.ts",
+      "message": "Violation in src/infras/services/socket-emitter/SocketEmitterService.ts",
+      "deterministic": true,
+      "discriminator": [],
+      "evidence": [
+        "instability=1"
+      ],
+      "tag": "topological"
+    },
+    {
+      "id": "v-5638b09f25156c5e",
+      "type": "INSTABILITY_VIOLATION",
+      "dimension": "coupling",
+      "severity": "major",
+      "functionId": "FF-C03",
+      "route": "symbolic",
+      "filePath": "src/infras/services/storage/StorageService.ts",
+      "message": "Violation in src/infras/services/storage/StorageService.ts",
+      "deterministic": true,
+      "discriminator": [],
+      "evidence": [
+        "instability=0.9"
+      ],
+      "tag": "topological"
+    },
+    {
+      "id": "v-252605a2335286fd",
+      "type": "INSTABILITY_VIOLATION",
+      "dimension": "coupling",
+      "severity": "major",
+      "functionId": "FF-C03",
+      "route": "symbolic",
+      "filePath": "src/infras/services/storage/providers/StorageConsoleFactory.ts",
+      "message": "Violation in src/infras/services/storage/providers/StorageConsoleFactory.ts",
+      "deterministic": true,
+      "discriminator": [],
+      "evidence": [
+        "instability=0.8571428571428571"
+      ],
+      "tag": "topological"
+    },
+    {
+      "id": "v-a14b1b359c2d75c7",
+      "type": "ORPHAN_FILE",
+      "dimension": "coupling",
+      "severity": "minor",
+      "functionId": "FF-C04",
+      "route": "symbolic",
+      "filePath": "src/domain/common/Entity.ts",
+      "message": "Violation in src/domain/common/Entity.ts",
+      "deterministic": true,
+      "discriminator": [],
+      "tag": "topological"
+    },
+    {
+      "id": "v-65f9dc125931f62c",
+      "type": "ORPHAN_FILE",
+      "dimension": "coupling",
+      "severity": "minor",
+      "functionId": "FF-C04",
+      "route": "symbolic",
+      "filePath": "src/domain/common/ValueObject.ts",
+      "message": "Violation in src/domain/common/ValueObject.ts",
+      "deterministic": true,
+      "discriminator": [],
+      "tag": "topological"
+    },
+    {
+      "id": "v-a2701b016b2f2d45",
+      "type": "ORPHAN_FILE",
+      "dimension": "coupling",
+      "severity": "minor",
+      "functionId": "FF-C04",
+      "route": "symbolic",
+      "filePath": "src/domain/enums/auth/AuthType.ts",
+      "message": "Violation in src/domain/enums/auth/AuthType.ts",
+      "deterministic": true,
+      "discriminator": [],
+      "tag": "topological"
+    },
+    {
+      "id": "v-d23aeb760caab4e5",
+      "type": "ORPHAN_FILE",
+      "dimension": "coupling",
+      "severity": "minor",
+      "functionId": "FF-C04",
+      "route": "symbolic",
+      "filePath": "src/domain/enums/user/ClientStatus.ts",
+      "message": "Violation in src/domain/enums/user/ClientStatus.ts",
+      "deterministic": true,
+      "discriminator": [],
+      "tag": "topological"
+    },
+    {
+      "id": "v-9976685e9b612941",
+      "type": "ORPHAN_FILE",
+      "dimension": "coupling",
+      "severity": "minor",
+      "functionId": "FF-C04",
+      "route": "symbolic",
+      "filePath": "src/domain/enums/user/GenderType.ts",
+      "message": "Violation in src/domain/enums/user/GenderType.ts",
+      "deterministic": true,
+      "discriminator": [],
+      "tag": "topological"
+    },
+    {
+      "id": "v-943ff9eb8d3dfbb9",
+      "type": "ORPHAN_FILE",
+      "dimension": "coupling",
+      "severity": "minor",
+      "functionId": "FF-C04",
+      "route": "symbolic",
+      "filePath": "src/domain/enums/user/ManagerStatus.ts",
+      "message": "Violation in src/domain/enums/user/ManagerStatus.ts",
+      "deterministic": true,
+      "discriminator": [],
+      "tag": "topological"
+    },
+    {
+      "id": "v-dbfae141707303cd",
+      "type": "ORPHAN_FILE",
+      "dimension": "coupling",
+      "severity": "minor",
+      "functionId": "FF-C04",
+      "route": "symbolic",
+      "filePath": "src/domain/enums/user/RoleId.ts",
+      "message": "Violation in src/domain/enums/user/RoleId.ts",
+      "deterministic": true,
+      "discriminator": [],
+      "tag": "topological"
+    },
+    {
+      "id": "v-7966e1faaea1596c",
+      "type": "ORPHAN_FILE",
+      "dimension": "coupling",
+      "severity": "minor",
+      "functionId": "FF-C04",
+      "route": "symbolic",
+      "filePath": "src/domain/value-objects/AddressInfo.ts",
+      "message": "Violation in src/domain/value-objects/AddressInfo.ts",
+      "deterministic": true,
+      "discriminator": [],
+      "tag": "topological"
+    },
+    {
+      "id": "v-d05e9576d39a5667",
+      "type": "ORPHAN_FILE",
+      "dimension": "coupling",
+      "severity": "minor",
+      "functionId": "FF-C04",
+      "route": "symbolic",
+      "filePath": "src/infras/data/typeorm/transformers/NumericTransformer.ts",
+      "message": "Violation in src/infras/data/typeorm/transformers/NumericTransformer.ts",
+      "deterministic": true,
+      "discriminator": [],
+      "tag": "topological"
+    },
+    {
+      "id": "v-e42a325bb2812d7c",
+      "type": "FAN_IN_EXCEEDED",
+      "dimension": "coupling",
+      "severity": "minor",
+      "functionId": "FF-C05",
+      "route": "symbolic",
+      "filePath": "src/application/interfaces/repositories/user/IClientRepository.ts",
+      "message": "Violation in src/application/interfaces/repositories/user/IClientRepository.ts",
+      "deterministic": true,
+      "discriminator": [],
+      "evidence": [
+        "fanIn=16"
+      ],
+      "tag": "topological"
+    },
+    {
+      "id": "v-6fe4329ae5c11c98",
+      "type": "FAN_IN_EXCEEDED",
+      "dimension": "coupling",
+      "severity": "minor",
+      "functionId": "FF-C05",
+      "route": "symbolic",
+      "filePath": "src/application/interfaces/services/ILogService.ts",
+      "message": "Violation in src/application/interfaces/services/ILogService.ts",
+      "deterministic": true,
+      "discriminator": [],
+      "evidence": [
+        "fanIn=18"
+      ],
+      "tag": "topological"
+    },
+    {
+      "id": "v-1429f9b37d0fe934",
+      "type": "FAN_IN_EXCEEDED",
+      "dimension": "coupling",
+      "severity": "minor",
+      "functionId": "FF-C05",
+      "route": "symbolic",
+      "filePath": "src/config/Configuration.ts",
+      "message": "Violation in src/config/Configuration.ts",
+      "deterministic": true,
+      "discriminator": [],
+      "evidence": [
+        "fanIn=42"
+      ],
+      "tag": "topological"
+    },
+    {
+      "id": "v-56604d995ee94eb1",
+      "type": "FAN_IN_EXCEEDED",
+      "dimension": "coupling",
+      "severity": "minor",
+      "functionId": "FF-C05",
+      "route": "symbolic",
+      "filePath": "src/shared/decorators/RefSchema.ts",
+      "message": "Violation in src/shared/decorators/RefSchema.ts",
+      "deterministic": true,
+      "discriminator": [],
+      "evidence": [
+        "fanIn=17"
+      ],
+      "tag": "topological"
+    },
+    {
+      "id": "v-ce7716beb82bba6f",
+      "type": "FAN_IN_EXCEEDED",
+      "dimension": "coupling",
+      "severity": "minor",
+      "functionId": "FF-C05",
+      "route": "symbolic",
+      "filePath": "src/shared/decorators/ValidationDecorator.ts",
+      "message": "Violation in src/shared/decorators/ValidationDecorator.ts",
+      "deterministic": true,
+      "discriminator": [],
+      "evidence": [
+        "fanIn=39"
+      ],
+      "tag": "topological"
+    },
+    {
+      "id": "v-85e985186a8727b0",
+      "type": "FAN_IN_EXCEEDED",
+      "dimension": "coupling",
+      "severity": "minor",
+      "functionId": "FF-C05",
+      "route": "symbolic",
+      "filePath": "src/shared/exceptions/LogicalError.ts",
+      "message": "Violation in src/shared/exceptions/LogicalError.ts",
+      "deterministic": true,
+      "discriminator": [],
+      "evidence": [
+        "fanIn=20"
+      ],
+      "tag": "topological"
+    },
+    {
+      "id": "v-e2447c31b73bffe5",
+      "type": "FAN_IN_EXCEEDED",
+      "dimension": "coupling",
+      "severity": "minor",
+      "functionId": "FF-C05",
+      "route": "symbolic",
+      "filePath": "src/shared/exceptions/message/MessageError.ts",
+      "message": "Violation in src/shared/exceptions/message/MessageError.ts",
+      "deterministic": true,
+      "discriminator": [],
+      "evidence": [
+        "fanIn=25"
+      ],
+      "tag": "topological"
+    },
+    {
+      "id": "v-5ce43489027ea498",
+      "type": "FAN_IN_EXCEEDED",
+      "dimension": "coupling",
+      "severity": "minor",
+      "functionId": "FF-C05",
+      "route": "symbolic",
+      "filePath": "src/shared/types/Injection.ts",
+      "message": "Violation in src/shared/types/Injection.ts",
+      "deterministic": true,
+      "discriminator": [],
+      "evidence": [
+        "fanIn=64"
+      ],
+      "tag": "topological"
+    },
+    {
+      "id": "v-ee25d6419bcea6ef",
+      "type": "FAN_IN_EXCEEDED",
+      "dimension": "coupling",
+      "severity": "minor",
+      "functionId": "FF-C05",
+      "route": "symbolic",
+      "filePath": "src/shared/usecase/DataResponse.ts",
+      "message": "Violation in src/shared/usecase/DataResponse.ts",
+      "deterministic": true,
+      "discriminator": [],
+      "evidence": [
+        "fanIn=30"
+      ],
+      "tag": "topological"
+    },
+    {
+      "id": "v-3ccea5410886a634",
+      "type": "FAN_IN_EXCEEDED",
+      "dimension": "coupling",
+      "severity": "minor",
+      "functionId": "FF-C05",
+      "route": "symbolic",
+      "filePath": "src/shared/usecase/UsecaseOption.ts",
+      "message": "Violation in src/shared/usecase/UsecaseOption.ts",
+      "deterministic": true,
+      "discriminator": [],
+      "evidence": [
+        "fanIn=16"
+      ],
+      "tag": "topological"
+    },
+    {
+      "id": "v-42c8afc13103ebd8",
+      "type": "FAN_IN_EXCEEDED",
+      "dimension": "coupling",
+      "severity": "minor",
+      "functionId": "FF-C05",
+      "route": "symbolic",
+      "filePath": "src/shared/usecase/interfaces/IUsecaseHandler.ts",
+      "message": "Violation in src/shared/usecase/interfaces/IUsecaseHandler.ts",
+      "deterministic": true,
+      "discriminator": [],
+      "evidence": [
+        "fanIn=32"
+      ],
+      "tag": "topological"
+    },
+    {
+      "id": "v-b0f52043a29b792b",
+      "type": "LOW_ABSTRACTION_RATIO",
+      "dimension": "coupling",
+      "severity": "advisory",
+      "functionId": "FF-C06",
+      "route": "symbolic",
+      "filePath": "<project>",
+      "message": "Abstraction ratio 0.15151515151515152 below threshold",
+      "deterministic": true,
+      "discriminator": [],
+      "evidence": [
+        "ratio=0.15151515151515152"
+      ],
+      "tag": "topological"
+    },
+    {
+      "id": "v-6b40ae90284f1a24",
+      "type": "SRP_VIOLATION",
+      "dimension": "solid",
+      "severity": "major",
+      "functionId": "FF-SO01",
+      "route": "symbolic",
+      "filePath": "src/application/usecases/user/client/register-client/RegisterClientHandler.ts",
+      "message": "Violation in src/application/usecases/user/client/register-client/RegisterClientHandler.ts",
+      "deterministic": true,
+      "discriminator": [
+        "RegisterClientHandler"
+      ],
+      "evidence": [
+        "methodCount=1",
+        "depCount=6"
+      ],
+      "tag": "pattern-proxy"
+    },
+    {
+      "id": "v-c8d898b2c36aa46f",
+      "type": "SRP_VIOLATION",
+      "dimension": "solid",
+      "severity": "major",
+      "functionId": "FF-SO01",
+      "route": "symbolic",
+      "filePath": "src/exposes/api/mobile/controllers/auth/AuthController.ts",
+      "message": "Violation in src/exposes/api/mobile/controllers/auth/AuthController.ts",
+      "deterministic": true,
+      "discriminator": [
+        "AuthController"
+      ],
+      "evidence": [
+        "methodCount=6",
+        "depCount=7"
+      ],
+      "tag": "pattern-proxy"
+    },
+    {
+      "id": "v-41b157d7c39a1023",
+      "type": "SRP_VIOLATION",
+      "dimension": "solid",
+      "severity": "major",
+      "functionId": "FF-SO01",
+      "route": "symbolic",
+      "filePath": "src/exposes/api/web/controllers/auth/AuthController.ts",
+      "message": "Violation in src/exposes/api/web/controllers/auth/AuthController.ts",
+      "deterministic": true,
+      "discriminator": [
+        "AuthController"
+      ],
+      "evidence": [
+        "methodCount=6",
+        "depCount=7"
+      ],
+      "tag": "pattern-proxy"
+    },
+    {
+      "id": "v-20478cffbb80fbe9",
+      "type": "SRP_VIOLATION",
+      "dimension": "solid",
+      "severity": "major",
+      "functionId": "FF-SO01",
+      "route": "symbolic",
+      "filePath": "src/exposes/api/web/controllers/user/ClientController.ts",
+      "message": "Violation in src/exposes/api/web/controllers/user/ClientController.ts",
+      "deterministic": true,
+      "discriminator": [
+        "ClientController"
+      ],
+      "evidence": [
+        "methodCount=11",
+        "depCount=11"
+      ],
+      "tag": "pattern-proxy"
+    },
+    {
+      "id": "v-b48b1b41010fd548",
+      "type": "SRP_VIOLATION",
+      "dimension": "solid",
+      "severity": "major",
+      "functionId": "FF-SO01",
+      "route": "symbolic",
+      "filePath": "src/exposes/api/web/controllers/user/ManagerController.ts",
+      "message": "Violation in src/exposes/api/web/controllers/user/ManagerController.ts",
+      "deterministic": true,
+      "discriminator": [
+        "ManagerController"
+      ],
+      "evidence": [
+        "methodCount=8",
+        "depCount=8"
+      ],
+      "tag": "pattern-proxy"
+    },
+    {
+      "id": "v-9bb50d41fe36f0b7",
+      "type": "SRP_VIOLATION",
+      "dimension": "solid",
+      "severity": "major",
+      "functionId": "FF-SO01",
+      "route": "symbolic",
+      "filePath": "src/infras/data/typeorm/common/Repository.ts",
+      "message": "Violation in src/infras/data/typeorm/common/Repository.ts",
+      "deterministic": true,
+      "discriminator": [
+        "Repository"
+      ],
+      "evidence": [
+        "methodCount=20",
+        "depCount=0"
+      ],
+      "tag": "pattern-proxy"
+    },
+    {
+      "id": "v-9ff35cee01000436",
+      "type": "SRP_VIOLATION",
+      "dimension": "solid",
+      "severity": "major",
+      "functionId": "FF-SO01",
+      "route": "symbolic",
+      "filePath": "src/infras/services/storage/providers/AwsS3Factory.ts",
+      "message": "Violation in src/infras/services/storage/providers/AwsS3Factory.ts",
+      "deterministic": true,
+      "discriminator": [
+        "AwsS3Factory"
+      ],
+      "evidence": [
+        "methodCount=12",
+        "depCount=0"
+      ],
+      "tag": "pattern-proxy"
+    },
+    {
+      "id": "v-89b9e97f06218a8f",
+      "type": "SRP_VIOLATION",
+      "dimension": "solid",
+      "severity": "major",
+      "functionId": "FF-SO01",
+      "route": "symbolic",
+      "filePath": "src/infras/services/storage/providers/GoogleStorageFactory.ts",
+      "message": "Violation in src/infras/services/storage/providers/GoogleStorageFactory.ts",
+      "deterministic": true,
+      "discriminator": [
+        "GoogleStorageFactory"
+      ],
+      "evidence": [
+        "methodCount=12",
+        "depCount=0"
+      ],
+      "tag": "pattern-proxy"
+    },
+    {
+      "id": "v-4b38e3c18dfc2755",
+      "type": "SRP_VIOLATION",
+      "dimension": "solid",
+      "severity": "major",
+      "functionId": "FF-SO01",
+      "route": "symbolic",
+      "filePath": "src/infras/services/storage/providers/MinioFactory.ts",
+      "message": "Violation in src/infras/services/storage/providers/MinioFactory.ts",
+      "deterministic": true,
+      "discriminator": [
+        "MinioFactory"
+      ],
+      "evidence": [
+        "methodCount=12",
+        "depCount=0"
+      ],
+      "tag": "pattern-proxy"
+    },
+    {
+      "id": "v-929ca8a8b43b2562",
+      "type": "SRP_VIOLATION",
+      "dimension": "solid",
+      "severity": "major",
+      "functionId": "FF-SO01",
+      "route": "symbolic",
+      "filePath": "src/infras/services/storage/providers/StorageConsoleFactory.ts",
+      "message": "Violation in src/infras/services/storage/providers/StorageConsoleFactory.ts",
+      "deterministic": true,
+      "discriminator": [
+        "StorageConsoleFactory"
+      ],
+      "evidence": [
+        "methodCount=12",
+        "depCount=0"
+      ],
+      "tag": "pattern-proxy"
+    },
+    {
+      "id": "v-902d67f863db713d",
+      "type": "ISP_VIOLATION",
+      "dimension": "solid",
+      "severity": "major",
+      "functionId": "FF-SO02",
+      "route": "symbolic",
+      "filePath": "src/infras/services/storage/interfaces/IStorageProvider.ts",
+      "message": "Violation in src/infras/services/storage/interfaces/IStorageProvider.ts",
+      "deterministic": true,
+      "discriminator": [
+        "IStorageProvider"
+      ],
+      "evidence": [
+        "methodCount=12"
+      ],
+      "tag": "pattern-proxy"
+    },
+    {
+      "id": "v-c0a608b6eddd1064",
+      "type": "ISP_VIOLATION",
+      "dimension": "solid",
+      "severity": "major",
+      "functionId": "FF-SO02",
+      "route": "symbolic",
+      "filePath": "src/shared/database/interfaces/IRepository.ts",
+      "message": "Violation in src/shared/database/interfaces/IRepository.ts",
+      "deterministic": true,
+      "discriminator": [
+        "IRepository"
+      ],
+      "evidence": [
+        "methodCount=18"
+      ],
+      "tag": "pattern-proxy"
+    },
+    {
+      "id": "v-576802825a20af74",
+      "type": "MISSING_TEST_FILE",
+      "dimension": "convention",
+      "severity": "advisory",
+      "functionId": "FF-CV05",
+      "route": "symbolic",
+      "filePath": "src/application/interfaces/repositories/auth/IAuthRepository.ts",
+      "message": "Violation in src/application/interfaces/repositories/auth/IAuthRepository.ts",
+      "deterministic": true,
+      "discriminator": [],
+      "tag": "pattern-proxy"
+    },
+    {
+      "id": "v-acd6be399696726d",
+      "type": "MISSING_TEST_FILE",
+      "dimension": "convention",
+      "severity": "advisory",
+      "functionId": "FF-CV05",
+      "route": "symbolic",
+      "filePath": "src/application/interfaces/repositories/user/IClientRepository.ts",
+      "message": "Violation in src/application/interfaces/repositories/user/IClientRepository.ts",
+      "deterministic": true,
+      "discriminator": [],
+      "tag": "pattern-proxy"
+    },
+    {
+      "id": "v-0dffdd4ed0626b60",
+      "type": "MISSING_TEST_FILE",
+      "dimension": "convention",
+      "severity": "advisory",
+      "functionId": "FF-CV05",
+      "route": "symbolic",
+      "filePath": "src/application/interfaces/repositories/user/IManagerRepository.ts",
+      "message": "Violation in src/application/interfaces/repositories/user/IManagerRepository.ts",
+      "deterministic": true,
+      "discriminator": [],
+      "tag": "pattern-proxy"
+    },
+    {
+      "id": "v-8424cedda74cf4f3",
+      "type": "MISSING_TEST_FILE",
+      "dimension": "convention",
+      "severity": "advisory",
+      "functionId": "FF-CV05",
+      "route": "symbolic",
+      "filePath": "src/application/interfaces/repositories/user/IUserOnlineStatusRepository.ts",
+      "message": "Violation in src/application/interfaces/repositories/user/IUserOnlineStatusRepository.ts",
+      "deterministic": true,
+      "discriminator": [],
+      "tag": "pattern-proxy"
+    },
+    {
+      "id": "v-c016beb650420168",
+      "type": "MISSING_TEST_FILE",
+      "dimension": "convention",
+      "severity": "advisory",
+      "functionId": "FF-CV05",
+      "route": "symbolic",
+      "filePath": "src/application/interfaces/repositories/user/IUserRepository.ts",
+      "message": "Violation in src/application/interfaces/repositories/user/IUserRepository.ts",
+      "deterministic": true,
+      "discriminator": [],
+      "tag": "pattern-proxy"
+    },
+    {
+      "id": "v-38779149671e938c",
+      "type": "MISSING_TEST_FILE",
+      "dimension": "convention",
+      "severity": "advisory",
+      "functionId": "FF-CV05",
+      "route": "symbolic",
+      "filePath": "src/application/interfaces/services/IAuthJwtService.ts",
+      "message": "Violation in src/application/interfaces/services/IAuthJwtService.ts",
+      "deterministic": true,
+      "discriminator": [],
+      "tag": "pattern-proxy"
+    },
+    {
+      "id": "v-a136eee72b916e28",
+      "type": "MISSING_TEST_FILE",
+      "dimension": "convention",
+      "severity": "advisory",
+      "functionId": "FF-CV05",
+      "route": "symbolic",
+      "filePath": "src/application/interfaces/services/ILogService.ts",
+      "message": "Violation in src/application/interfaces/services/ILogService.ts",
+      "deterministic": true,
+      "discriminator": [],
+      "tag": "pattern-proxy"
+    },
+    {
+      "id": "v-2ba414ac2cc99aff",
+      "type": "MISSING_TEST_FILE",
+      "dimension": "convention",
+      "severity": "advisory",
+      "functionId": "FF-CV05",
+      "route": "symbolic",
+      "filePath": "src/application/interfaces/services/IMailService.ts",
+      "message": "Violation in src/application/interfaces/services/IMailService.ts",
+      "deterministic": true,
+      "discriminator": [],
+      "tag": "pattern-proxy"
+    },
+    {
+      "id": "v-eed26719dd118aa4",
+      "type": "MISSING_TEST_FILE",
+      "dimension": "convention",
+      "severity": "advisory",
+      "functionId": "FF-CV05",
+      "route": "symbolic",
+      "filePath": "src/application/interfaces/services/INotificationService.ts",
+      "message": "Violation in src/application/interfaces/services/INotificationService.ts",
+      "deterministic": true,
+      "discriminator": [],
+      "tag": "pattern-proxy"
+    },
+    {
+      "id": "v-0627ffb45da1683d",
+      "type": "MISSING_TEST_FILE",
+      "dimension": "convention",
+      "severity": "advisory",
+      "functionId": "FF-CV05",
+      "route": "symbolic",
+      "filePath": "src/application/interfaces/services/IPaymentPaypalService.ts",
+      "message": "Violation in src/application/interfaces/services/IPaymentPaypalService.ts",
+      "deterministic": true,
+      "discriminator": [],
+      "tag": "pattern-proxy"
+    },
+    {
+      "id": "v-2631a316f63b7d23",
+      "type": "MISSING_TEST_FILE",
+      "dimension": "convention",
+      "severity": "advisory",
+      "functionId": "FF-CV05",
+      "route": "symbolic",
+      "filePath": "src/application/interfaces/services/IPaymentStripeService.ts",
+      "message": "Violation in src/application/interfaces/services/IPaymentStripeService.ts",
+      "deterministic": true,
+      "discriminator": [],
+      "tag": "pattern-proxy"
+    },
+    {
+      "id": "v-9ff9247a32c3ef68",
+      "type": "MISSING_TEST_FILE",
+      "dimension": "convention",
+      "severity": "advisory",
+      "functionId": "FF-CV05",
+      "route": "symbolic",
+      "filePath": "src/application/interfaces/services/ISmsService.ts",
+      "message": "Violation in src/application/interfaces/services/ISmsService.ts",
+      "deterministic": true,
+      "discriminator": [],
+      "tag": "pattern-proxy"
+    },
+    {
+      "id": "v-0e05ccf9299d6f5c",
+      "type": "MISSING_TEST_FILE",
+      "dimension": "convention",
+      "severity": "advisory",
+      "functionId": "FF-CV05",
+      "route": "symbolic",
+      "filePath": "src/application/interfaces/services/ISocketEmitterService.ts",
+      "message": "Violation in src/application/interfaces/services/ISocketEmitterService.ts",
+      "deterministic": true,
+      "discriminator": [],
+      "tag": "pattern-proxy"
+    },
+    {
+      "id": "v-fe790a3bd5376e60",
+      "type": "MISSING_TEST_FILE",
+      "dimension": "convention",
+      "severity": "advisory",
+      "functionId": "FF-CV05",
+      "route": "symbolic",
+      "filePath": "src/application/interfaces/services/IStorageService.ts",
+      "message": "Violation in src/application/interfaces/services/IStorageService.ts",
+      "deterministic": true,
+      "discriminator": [],
+      "tag": "pattern-proxy"
+    },
+    {
+      "id": "v-cb8a34ba6d83a221",
+      "type": "MISSING_TEST_FILE",
+      "dimension": "convention",
+      "severity": "advisory",
+      "functionId": "FF-CV05",
+      "route": "symbolic",
+      "filePath": "src/application/usecases/auth/auth/create-auth-by-email/CreateAuthByEmailHandler.ts",
+      "message": "Violation in src/application/usecases/auth/auth/create-auth-by-email/CreateAuthByEmailHandler.ts",
+      "deterministic": true,
+      "discriminator": [],
+      "tag": "pattern-proxy"
+    },
+    {
+      "id": "v-378770e9f039a5d6",
+      "type": "MISSING_TEST_FILE",
+      "dimension": "convention",
+      "severity": "advisory",
+      "functionId": "FF-CV05",
+      "route": "symbolic",
+      "filePath": "src/application/usecases/auth/auth/create-auth-by-email/CreateAuthByEmailSchema.ts",
+      "message": "Violation in src/application/usecases/auth/auth/create-auth-by-email/CreateAuthByEmailSchema.ts",
+      "deterministic": true,
+      "discriminator": [],
+      "tag": "pattern-proxy"
+    },
+    {
+      "id": "v-61a058c47e367f40",
+      "type": "MISSING_TEST_FILE",
+      "dimension": "convention",
+      "severity": "advisory",
+      "functionId": "FF-CV05",
+      "route": "symbolic",
+      "filePath": "src/application/usecases/auth/auth/forgot-password-by-email/ForgotPasswordByEmailHandler.ts",
+      "message": "Violation in src/application/usecases/auth/auth/forgot-password-by-email/ForgotPasswordByEmailHandler.ts",
+      "deterministic": true,
+      "discriminator": [],
+      "tag": "pattern-proxy"
+    },
+    {
+      "id": "v-4f9a7cec4aee3c97",
+      "type": "MISSING_TEST_FILE",
+      "dimension": "convention",
+      "severity": "advisory",
+      "functionId": "FF-CV05",
+      "route": "symbolic",
+      "filePath": "src/application/usecases/auth/auth/forgot-password-by-email/ForgotPasswordByEmailSchema.ts",
+      "message": "Violation in src/application/usecases/auth/auth/forgot-password-by-email/ForgotPasswordByEmailSchema.ts",
+      "deterministic": true,
+      "discriminator": [],
+      "tag": "pattern-proxy"
+    },
+    {
+      "id": "v-cc2f726471d42847",
+      "type": "MISSING_TEST_FILE",
+      "dimension": "convention",
+      "severity": "advisory",
+      "functionId": "FF-CV05",
+      "route": "symbolic",
+      "filePath": "src/application/usecases/auth/auth/get-user-auth-by-jwt/GetUserAuthByJwtHandler.ts",
+      "message": "Violation in src/application/usecases/auth/auth/get-user-auth-by-jwt/GetUserAuthByJwtHandler.ts",
+      "deterministic": true,
+      "discriminator": [],
+      "tag": "pattern-proxy"
+    },
+    {
+      "id": "v-9498ab0cb7e08734",
+      "type": "MISSING_TEST_FILE",
+      "dimension": "convention",
+      "severity": "advisory",
+      "functionId": "FF-CV05",
+      "route": "symbolic",
+      "filePath": "src/application/usecases/auth/auth/get-user-auth-by-jwt/GetUserAuthByJwtSchema.ts",
+      "message": "Violation in src/application/usecases/auth/auth/get-user-auth-by-jwt/GetUserAuthByJwtSchema.ts",
+      "deterministic": true,
+      "discriminator": [],
+      "tag": "pattern-proxy"
+    },
+    {
+      "id": "v-2451117a786857f7",
+      "type": "MISSING_TEST_FILE",
+      "dimension": "convention",
+      "severity": "advisory",
+      "functionId": "FF-CV05",
+      "route": "symbolic",
+      "filePath": "src/application/usecases/auth/auth/login-by-email/LoginByEmailHandler.ts",
+      "message": "Violation in src/application/usecases/auth/auth/login-by-email/LoginByEmailHandler.ts",
+      "deterministic": true,
+      "discriminator": [],
+      "tag": "pattern-proxy"
+    },
+    {
+      "id": "v-ab98a75a41ff98d7",
+      "type": "MISSING_TEST_FILE",
+      "dimension": "convention",
+      "severity": "advisory",
+      "functionId": "FF-CV05",
+      "route": "symbolic",
+      "filePath": "src/application/usecases/auth/auth/login-by-email/LoginByEmailSchema.ts",
+      "message": "Violation in src/application/usecases/auth/auth/login-by-email/LoginByEmailSchema.ts",
+      "deterministic": true,
+      "discriminator": [],
+      "tag": "pattern-proxy"
+    },
+    {
+      "id": "v-b5d02b7907fcc3f2",
+      "type": "MISSING_TEST_FILE",
+      "dimension": "convention",
+      "severity": "advisory",
+      "functionId": "FF-CV05",
+      "route": "symbolic",
+      "filePath": "src/application/usecases/auth/auth/reset-password-by-email/ResetPasswordByEmailHandler.ts",
+      "message": "Violation in src/application/usecases/auth/auth/reset-password-by-email/ResetPasswordByEmailHandler.ts",
+      "deterministic": true,
+      "discriminator": [],
+      "tag": "pattern-proxy"
+    },
+    {
+      "id": "v-495a0ec06eb25002",
+      "type": "MISSING_TEST_FILE",
+      "dimension": "convention",
+      "severity": "advisory",
+      "functionId": "FF-CV05",
+      "route": "symbolic",
+      "filePath": "src/application/usecases/auth/auth/reset-password-by-email/ResetPasswordByEmailSchema.ts",
+      "message": "Violation in src/application/usecases/auth/auth/reset-password-by-email/ResetPasswordByEmailSchema.ts",
+      "deterministic": true,
+      "discriminator": [],
+      "tag": "pattern-proxy"
+    },
+    {
+      "id": "v-ab3f96aa962d218c",
+      "type": "MISSING_TEST_FILE",
+      "dimension": "convention",
+      "severity": "advisory",
+      "functionId": "FF-CV05",
+      "route": "symbolic",
+      "filePath": "src/application/usecases/auth/auth/update-my-password-by-email/UpdateMyPasswordByEmailHandler.ts",
+      "message": "Violation in src/application/usecases/auth/auth/update-my-password-by-email/UpdateMyPasswordByEmailHandler.ts",
+      "deterministic": true,
+      "discriminator": [],
+      "tag": "pattern-proxy"
+    },
+    {
+      "id": "v-f4dbff0d48fbc962",
+      "type": "MISSING_TEST_FILE",
+      "dimension": "convention",
+      "severity": "advisory",
+      "functionId": "FF-CV05",
+      "route": "symbolic",
+      "filePath": "src/application/usecases/auth/auth/update-my-password-by-email/UpdateMyPasswordByEmailSchema.ts",
+      "message": "Violation in src/application/usecases/auth/auth/update-my-password-by-email/UpdateMyPasswordByEmailSchema.ts",
+      "deterministic": true,
+      "discriminator": [],
+      "tag": "pattern-proxy"
+    },
+    {
+      "id": "v-e033c95b478be60d",
+      "type": "MISSING_TEST_FILE",
+      "dimension": "convention",
+      "severity": "advisory",
+      "functionId": "FF-CV05",
+      "route": "symbolic",
+      "filePath": "src/application/usecases/auth/auth/validate-forgot-key-for-email/ValidateForgotKeyForEmailHandler.ts",
+      "message": "Violation in src/application/usecases/auth/auth/validate-forgot-key-for-email/ValidateForgotKeyForEmailHandler.ts",
+      "deterministic": true,
+      "discriminator": [],
+      "tag": "pattern-proxy"
+    },
+    {
+      "id": "v-ba3fa40e1711dd20",
+      "type": "MISSING_TEST_FILE",
+      "dimension": "convention",
+      "severity": "advisory",
+      "functionId": "FF-CV05",
+      "route": "symbolic",
+      "filePath": "src/application/usecases/auth/auth/validate-forgot-key-for-email/ValidateForgotKeyForEmailSchema.ts",
+      "message": "Violation in src/application/usecases/auth/auth/validate-forgot-key-for-email/ValidateForgotKeyForEmailSchema.ts",
+      "deterministic": true,
+      "discriminator": [],
+      "tag": "pattern-proxy"
+    },
+    {
+      "id": "v-3efc2e7205e2a911",
+      "type": "MISSING_TEST_FILE",
+      "dimension": "convention",
+      "severity": "advisory",
+      "functionId": "FF-CV05",
+      "route": "symbolic",
+      "filePath": "src/application/usecases/common/AddressInfoData.ts",
+      "message": "Violation in src/application/usecases/common/AddressInfoData.ts",
+      "deterministic": true,
+      "discriminator": [],
+      "tag": "pattern-proxy"
+    },
+    {
+      "id": "v-a0090223034d3f4a",
+      "type": "MISSING_TEST_FILE",
+      "dimension": "convention",
+      "severity": "advisory",
+      "functionId": "FF-CV05",
+      "route": "symbolic",
+      "filePath": "src/application/usecases/user/client/active-client/ActiveClientHandler.ts",
+      "message": "Violation in src/application/usecases/user/client/active-client/ActiveClientHandler.ts",
+      "deterministic": true,
+      "discriminator": [],
+      "tag": "pattern-proxy"
+    },
+    {
+      "id": "v-3f622ff205c403fb",
+      "type": "MISSING_TEST_FILE",
+      "dimension": "convention",
+      "severity": "advisory",
+      "functionId": "FF-CV05",
+      "route": "symbolic",
+      "filePath": "src/application/usecases/user/client/active-client/ActiveClientSchema.ts",
+      "message": "Violation in src/application/usecases/user/client/active-client/ActiveClientSchema.ts",
+      "deterministic": true,
+      "discriminator": [],
+      "tag": "pattern-proxy"
+    },
+    {
+      "id": "v-338363484f7fff26",
+      "type": "MISSING_TEST_FILE",
+      "dimension": "convention",
+      "severity": "advisory",
+      "functionId": "FF-CV05",
+      "route": "symbolic",
+      "filePath": "src/application/usecases/user/client/archive-client/ArchiveClientHandler.ts",
+      "message": "Violation in src/application/usecases/user/client/archive-client/ArchiveClientHandler.ts",
+      "deterministic": true,
+      "discriminator": [],
+      "tag": "pattern-proxy"
+    },
+    {
+      "id": "v-c68b2b8c91a8052d",
+      "type": "MISSING_TEST_FILE",
+      "dimension": "convention",
+      "severity": "advisory",
+      "functionId": "FF-CV05",
+      "route": "symbolic",
+      "filePath": "src/application/usecases/user/client/archive-client/ArchiveClientSchema.ts",
+      "message": "Violation in src/application/usecases/user/client/archive-client/ArchiveClientSchema.ts",
+      "deterministic": true,
+      "discriminator": [],
+      "tag": "pattern-proxy"
+    },
+    {
+      "id": "v-d92d2b29e06cac93",
+      "type": "MISSING_TEST_FILE",
+      "dimension": "convention",
+      "severity": "advisory",
+      "functionId": "FF-CV05",
+      "route": "symbolic",
+      "filePath": "src/application/usecases/user/client/create-client/CreateClientHandler.ts",
+      "message": "Violation in src/application/usecases/user/client/create-client/CreateClientHandler.ts",
+      "deterministic": true,
+      "discriminator": [],
+      "tag": "pattern-proxy"
+    },
+    {
+      "id": "v-6e90d6f9d18ec7f8",
+      "type": "MISSING_TEST_FILE",
+      "dimension": "convention",
+      "severity": "advisory",
+      "functionId": "FF-CV05",
+      "route": "symbolic",
+      "filePath": "src/application/usecases/user/client/create-client/CreateClientSchema.ts",
+      "message": "Violation in src/application/usecases/user/client/create-client/CreateClientSchema.ts",
+      "deterministic": true,
+      "discriminator": [],
+      "tag": "pattern-proxy"
+    },
+    {
+      "id": "v-b190543e273a5a1f",
+      "type": "MISSING_TEST_FILE",
+      "dimension": "convention",
+      "severity": "advisory",
+      "functionId": "FF-CV05",
+      "route": "symbolic",
+      "filePath": "src/application/usecases/user/client/delete-client/DeleteClientHandler.ts",
+      "message": "Violation in src/application/usecases/user/client/delete-client/DeleteClientHandler.ts",
+      "deterministic": true,
+      "discriminator": [],
+      "tag": "pattern-proxy"
+    },
+    {
+      "id": "v-60ca96083f19216c",
+      "type": "MISSING_TEST_FILE",
+      "dimension": "convention",
+      "severity": "advisory",
+      "functionId": "FF-CV05",
+      "route": "symbolic",
+      "filePath": "src/application/usecases/user/client/delete-client/DeleteClientSchema.ts",
+      "message": "Violation in src/application/usecases/user/client/delete-client/DeleteClientSchema.ts",
+      "deterministic": true,
+      "discriminator": [],
+      "tag": "pattern-proxy"
+    },
+    {
+      "id": "v-b7aa95ff471ddfec",
+      "type": "MISSING_TEST_FILE",
+      "dimension": "convention",
+      "severity": "advisory",
+      "functionId": "FF-CV05",
+      "route": "symbolic",
+      "filePath": "src/application/usecases/user/client/find-client/FindClientHandler.ts",
+      "message": "Violation in src/application/usecases/user/client/find-client/FindClientHandler.ts",
+      "deterministic": true,
+      "discriminator": [],
+      "tag": "pattern-proxy"
+    },
+    {
+      "id": "v-55cb6f381deb50ba",
+      "type": "MISSING_TEST_FILE",
+      "dimension": "convention",
+      "severity": "advisory",
+      "functionId": "FF-CV05",
+      "route": "symbolic",
+      "filePath": "src/application/usecases/user/client/find-client/FindClientSchema.ts",
+      "message": "Violation in src/application/usecases/user/client/find-client/FindClientSchema.ts",
+      "deterministic": true,
+      "discriminator": [],
+      "tag": "pattern-proxy"
+    },
+    {
+      "id": "v-425ae3d3fc10cd1b",
+      "type": "MISSING_TEST_FILE",
+      "dimension": "convention",
+      "severity": "advisory",
+      "functionId": "FF-CV05",
+      "route": "symbolic",
+      "filePath": "src/application/usecases/user/client/get-client/GetClientHandler.ts",
+      "message": "Violation in src/application/usecases/user/client/get-client/GetClientHandler.ts",
+      "deterministic": true,
+      "discriminator": [],
+      "tag": "pattern-proxy"
+    },
+    {
+      "id": "v-95ba198a6a028a70",
+      "type": "MISSING_TEST_FILE",
+      "dimension": "convention",
+      "severity": "advisory",
+      "functionId": "FF-CV05",
+      "route": "symbolic",
+      "filePath": "src/application/usecases/user/client/get-client/GetClientSchema.ts",
+      "message": "Violation in src/application/usecases/user/client/get-client/GetClientSchema.ts",
+      "deterministic": true,
+      "discriminator": [],
+      "tag": "pattern-proxy"
+    },
+    {
+      "id": "v-9b7d925f6ab59081",
+      "type": "MISSING_TEST_FILE",
+      "dimension": "convention",
+      "severity": "advisory",
+      "functionId": "FF-CV05",
+      "route": "symbolic",
+      "filePath": "src/application/usecases/user/client/get-profile-client/GetProfileClientHandler.ts",
+      "message": "Violation in src/application/usecases/user/client/get-profile-client/GetProfileClientHandler.ts",
+      "deterministic": true,
+      "discriminator": [],
+      "tag": "pattern-proxy"
+    },
+    {
+      "id": "v-a2460add26adf2fd",
+      "type": "MISSING_TEST_FILE",
+      "dimension": "convention",
+      "severity": "advisory",
+      "functionId": "FF-CV05",
+      "route": "symbolic",
+      "filePath": "src/application/usecases/user/client/get-profile-client/GetProfileClientSchema.ts",
+      "message": "Violation in src/application/usecases/user/client/get-profile-client/GetProfileClientSchema.ts",
+      "deterministic": true,
+      "discriminator": [],
+      "tag": "pattern-proxy"
+    },
+    {
+      "id": "v-2c041dfecea785e3",
+      "type": "MISSING_TEST_FILE",
+      "dimension": "convention",
+      "severity": "advisory",
+      "functionId": "FF-CV05",
+      "route": "symbolic",
+      "filePath": "src/application/usecases/user/client/import-client-test/ImportClientTestHandler.ts",
+      "message": "Violation in src/application/usecases/user/client/import-client-test/ImportClientTestHandler.ts",
+      "deterministic": true,
+      "discriminator": [],
+      "tag": "pattern-proxy"
+    },
+    {
+      "id": "v-540e32fee38f9efb",
+      "type": "MISSING_TEST_FILE",
+      "dimension": "convention",
+      "severity": "advisory",
+      "functionId": "FF-CV05",
+      "route": "symbolic",
+      "filePath": "src/application/usecases/user/client/import-client-test/ImportClientTestSchema.ts",
+      "message": "Violation in src/application/usecases/user/client/import-client-test/ImportClientTestSchema.ts",
+      "deterministic": true,
+      "discriminator": [],
+      "tag": "pattern-proxy"
+    },
+    {
+      "id": "v-0201ac250a85021d",
+      "type": "MISSING_TEST_FILE",
+      "dimension": "convention",
+      "severity": "advisory",
+      "functionId": "FF-CV05",
+      "route": "symbolic",
+      "filePath": "src/application/usecases/user/client/register-client/RegisterClientHandler.ts",
+      "message": "Violation in src/application/usecases/user/client/register-client/RegisterClientHandler.ts",
+      "deterministic": true,
+      "discriminator": [],
+      "tag": "pattern-proxy"
+    },
+    {
+      "id": "v-6cfc37dfb58f78e4",
+      "type": "MISSING_TEST_FILE",
+      "dimension": "convention",
+      "severity": "advisory",
+      "functionId": "FF-CV05",
+      "route": "symbolic",
+      "filePath": "src/application/usecases/user/client/register-client/RegisterClientSchema.ts",
+      "message": "Violation in src/application/usecases/user/client/register-client/RegisterClientSchema.ts",
+      "deterministic": true,
+      "discriminator": [],
+      "tag": "pattern-proxy"
+    },
+    {
+      "id": "v-d29082b1c3b41db8",
+      "type": "MISSING_TEST_FILE",
+      "dimension": "convention",
+      "severity": "advisory",
+      "functionId": "FF-CV05",
+      "route": "symbolic",
+      "filePath": "src/application/usecases/user/client/resend-activation/ResendActivationHandler.ts",
+      "message": "Violation in src/application/usecases/user/client/resend-activation/ResendActivationHandler.ts",
+      "deterministic": true,
+      "discriminator": [],
+      "tag": "pattern-proxy"
+    },
+    {
+      "id": "v-3b2fc219667d3f90",
+      "type": "MISSING_TEST_FILE",
+      "dimension": "convention",
+      "severity": "advisory",
+      "functionId": "FF-CV05",
+      "route": "symbolic",
+      "filePath": "src/application/usecases/user/client/resend-activation/ResendActivationSchema.ts",
+      "message": "Violation in src/application/usecases/user/client/resend-activation/ResendActivationSchema.ts",
+      "deterministic": true,
+      "discriminator": [],
+      "tag": "pattern-proxy"
+    },
+    {
+      "id": "v-9c3f5fc935accb95",
+      "type": "MISSING_TEST_FILE",
+      "dimension": "convention",
+      "severity": "advisory",
+      "functionId": "FF-CV05",
+      "route": "symbolic",
+      "filePath": "src/application/usecases/user/client/update-client/UpdateClientHandler.ts",
+      "message": "Violation in src/application/usecases/user/client/update-client/UpdateClientHandler.ts",
+      "deterministic": true,
+      "discriminator": [],
+      "tag": "pattern-proxy"
+    },
+    {
+      "id": "v-5d69621e85e22474",
+      "type": "MISSING_TEST_FILE",
+      "dimension": "convention",
+      "severity": "advisory",
+      "functionId": "FF-CV05",
+      "route": "symbolic",
+      "filePath": "src/application/usecases/user/client/update-client/UpdateClientSchema.ts",
+      "message": "Violation in src/application/usecases/user/client/update-client/UpdateClientSchema.ts",
+      "deterministic": true,
+      "discriminator": [],
+      "tag": "pattern-proxy"
+    },
+    {
+      "id": "v-0a222957cc55bfa3",
+      "type": "MISSING_TEST_FILE",
+      "dimension": "convention",
+      "severity": "advisory",
+      "functionId": "FF-CV05",
+      "route": "symbolic",
+      "filePath": "src/application/usecases/user/client/update-profile-client/UpdateProfileClientHandler.ts",
+      "message": "Violation in src/application/usecases/user/client/update-profile-client/UpdateProfileClientHandler.ts",
+      "deterministic": true,
+      "discriminator": [],
+      "tag": "pattern-proxy"
+    },
+    {
+      "id": "v-fcd0947b1f07454a",
+      "type": "MISSING_TEST_FILE",
+      "dimension": "convention",
+      "severity": "advisory",
+      "functionId": "FF-CV05",
+      "route": "symbolic",
+      "filePath": "src/application/usecases/user/client/update-profile-client/UpdateProfileClientSchema.ts",
+      "message": "Violation in src/application/usecases/user/client/update-profile-client/UpdateProfileClientSchema.ts",
+      "deterministic": true,
+      "discriminator": [],
+      "tag": "pattern-proxy"
+    },
+    {
+      "id": "v-a3cf940a9bd0b0cb",
+      "type": "MISSING_TEST_FILE",
+      "dimension": "convention",
+      "severity": "advisory",
+      "functionId": "FF-CV05",
+      "route": "symbolic",
+      "filePath": "src/application/usecases/user/manager/archive-manager/ArchiveManagerHandler.ts",
+      "message": "Violation in src/application/usecases/user/manager/archive-manager/ArchiveManagerHandler.ts",
+      "deterministic": true,
+      "discriminator": [],
+      "tag": "pattern-proxy"
+    },
+    {
+      "id": "v-a0b99d6e4262ea6b",
+      "type": "MISSING_TEST_FILE",
+      "dimension": "convention",
+      "severity": "advisory",
+      "functionId": "FF-CV05",
+      "route": "symbolic",
+      "filePath": "src/application/usecases/user/manager/archive-manager/ArchiveManagerSchema.ts",
+      "message": "Violation in src/application/usecases/user/manager/archive-manager/ArchiveManagerSchema.ts",
+      "deterministic": true,
+      "discriminator": [],
+      "tag": "pattern-proxy"
+    },
+    {
+      "id": "v-a625834ce168f999",
+      "type": "MISSING_TEST_FILE",
+      "dimension": "convention",
+      "severity": "advisory",
+      "functionId": "FF-CV05",
+      "route": "symbolic",
+      "filePath": "src/application/usecases/user/manager/create-manager/CreateManagerHandler.ts",
+      "message": "Violation in src/application/usecases/user/manager/create-manager/CreateManagerHandler.ts",
+      "deterministic": true,
+      "discriminator": [],
+      "tag": "pattern-proxy"
+    },
+    {
+      "id": "v-e893b069c82c5d99",
+      "type": "MISSING_TEST_FILE",
+      "dimension": "convention",
+      "severity": "advisory",
+      "functionId": "FF-CV05",
+      "route": "symbolic",
+      "filePath": "src/application/usecases/user/manager/create-manager/CreateManagerSchema.ts",
+      "message": "Violation in src/application/usecases/user/manager/create-manager/CreateManagerSchema.ts",
+      "deterministic": true,
+      "discriminator": [],
+      "tag": "pattern-proxy"
+    },
+    {
+      "id": "v-e70dea6db8cd7fa8",
+      "type": "MISSING_TEST_FILE",
+      "dimension": "convention",
+      "severity": "advisory",
+      "functionId": "FF-CV05",
+      "route": "symbolic",
+      "filePath": "src/application/usecases/user/manager/delete-manager/DeleteManagerHandler.ts",
+      "message": "Violation in src/application/usecases/user/manager/delete-manager/DeleteManagerHandler.ts",
+      "deterministic": true,
+      "discriminator": [],
+      "tag": "pattern-proxy"
+    },
+    {
+      "id": "v-e6a1b035301ce8b8",
+      "type": "MISSING_TEST_FILE",
+      "dimension": "convention",
+      "severity": "advisory",
+      "functionId": "FF-CV05",
+      "route": "symbolic",
+      "filePath": "src/application/usecases/user/manager/delete-manager/DeleteManagerSchema.ts",
+      "message": "Violation in src/application/usecases/user/manager/delete-manager/DeleteManagerSchema.ts",
+      "deterministic": true,
+      "discriminator": [],
+      "tag": "pattern-proxy"
+    },
+    {
+      "id": "v-09a2003582229975",
+      "type": "MISSING_TEST_FILE",
+      "dimension": "convention",
+      "severity": "advisory",
+      "functionId": "FF-CV05",
+      "route": "symbolic",
+      "filePath": "src/application/usecases/user/manager/find-manager/FindManagerHandler.ts",
+      "message": "Violation in src/application/usecases/user/manager/find-manager/FindManagerHandler.ts",
+      "deterministic": true,
+      "discriminator": [],
+      "tag": "pattern-proxy"
+    },
+    {
+      "id": "v-8ff50d0b7dee9ecf",
+      "type": "MISSING_TEST_FILE",
+      "dimension": "convention",
+      "severity": "advisory",
+      "functionId": "FF-CV05",
+      "route": "symbolic",
+      "filePath": "src/application/usecases/user/manager/find-manager/FindManagerSchema.ts",
+      "message": "Violation in src/application/usecases/user/manager/find-manager/FindManagerSchema.ts",
+      "deterministic": true,
+      "discriminator": [],
+      "tag": "pattern-proxy"
+    },
+    {
+      "id": "v-b68142319fd27313",
+      "type": "MISSING_TEST_FILE",
+      "dimension": "convention",
+      "severity": "advisory",
+      "functionId": "FF-CV05",
+      "route": "symbolic",
+      "filePath": "src/application/usecases/user/manager/get-manager/GetManagerHandler.ts",
+      "message": "Violation in src/application/usecases/user/manager/get-manager/GetManagerHandler.ts",
+      "deterministic": true,
+      "discriminator": [],
+      "tag": "pattern-proxy"
+    },
+    {
+      "id": "v-5ca50f88ea35f932",
+      "type": "MISSING_TEST_FILE",
+      "dimension": "convention",
+      "severity": "advisory",
+      "functionId": "FF-CV05",
+      "route": "symbolic",
+      "filePath": "src/application/usecases/user/manager/get-manager/GetManagerSchema.ts",
+      "message": "Violation in src/application/usecases/user/manager/get-manager/GetManagerSchema.ts",
+      "deterministic": true,
+      "discriminator": [],
+      "tag": "pattern-proxy"
+    },
+    {
+      "id": "v-2e79512ea47fbcda",
+      "type": "MISSING_TEST_FILE",
+      "dimension": "convention",
+      "severity": "advisory",
+      "functionId": "FF-CV05",
+      "route": "symbolic",
+      "filePath": "src/application/usecases/user/manager/get-profile-manager/GetProfileManagerHandler.ts",
+      "message": "Violation in src/application/usecases/user/manager/get-profile-manager/GetProfileManagerHandler.ts",
+      "deterministic": true,
+      "discriminator": [],
+      "tag": "pattern-proxy"
+    },
+    {
+      "id": "v-fc590a8444de1b52",
+      "type": "MISSING_TEST_FILE",
+      "dimension": "convention",
+      "severity": "advisory",
+      "functionId": "FF-CV05",
+      "route": "symbolic",
+      "filePath": "src/application/usecases/user/manager/get-profile-manager/GetProfileManagerSchema.ts",
+      "message": "Violation in src/application/usecases/user/manager/get-profile-manager/GetProfileManagerSchema.ts",
+      "deterministic": true,
+      "discriminator": [],
+      "tag": "pattern-proxy"
+    },
+    {
+      "id": "v-4988dfb68f6070ce",
+      "type": "MISSING_TEST_FILE",
+      "dimension": "convention",
+      "severity": "advisory",
+      "functionId": "FF-CV05",
+      "route": "symbolic",
+      "filePath": "src/application/usecases/user/manager/import-manager-test/ImportManagerTestHandler.ts",
+      "message": "Violation in src/application/usecases/user/manager/import-manager-test/ImportManagerTestHandler.ts",
+      "deterministic": true,
+      "discriminator": [],
+      "tag": "pattern-proxy"
+    },
+    {
+      "id": "v-a4475241b30147f9",
+      "type": "MISSING_TEST_FILE",
+      "dimension": "convention",
+      "severity": "advisory",
+      "functionId": "FF-CV05",
+      "route": "symbolic",
+      "filePath": "src/application/usecases/user/manager/import-manager-test/ImportManagerTestSchema.ts",
+      "message": "Violation in src/application/usecases/user/manager/import-manager-test/ImportManagerTestSchema.ts",
+      "deterministic": true,
+      "discriminator": [],
+      "tag": "pattern-proxy"
+    },
+    {
+      "id": "v-591a3fb7b7b08bc6",
+      "type": "MISSING_TEST_FILE",
+      "dimension": "convention",
+      "severity": "advisory",
+      "functionId": "FF-CV05",
+      "route": "symbolic",
+      "filePath": "src/application/usecases/user/manager/update-manager/UpdateManagerHandler.ts",
+      "message": "Violation in src/application/usecases/user/manager/update-manager/UpdateManagerHandler.ts",
+      "deterministic": true,
+      "discriminator": [],
+      "tag": "pattern-proxy"
+    },
+    {
+      "id": "v-df60a21be84fb028",
+      "type": "MISSING_TEST_FILE",
+      "dimension": "convention",
+      "severity": "advisory",
+      "functionId": "FF-CV05",
+      "route": "symbolic",
+      "filePath": "src/application/usecases/user/manager/update-manager/UpdateManagerSchema.ts",
+      "message": "Violation in src/application/usecases/user/manager/update-manager/UpdateManagerSchema.ts",
+      "deterministic": true,
+      "discriminator": [],
+      "tag": "pattern-proxy"
+    },
+    {
+      "id": "v-44ff363c48a95082",
+      "type": "MISSING_TEST_FILE",
+      "dimension": "convention",
+      "severity": "advisory",
+      "functionId": "FF-CV05",
+      "route": "symbolic",
+      "filePath": "src/application/usecases/user/manager/update-profile-manager/UpdateProfileManagerHandler.ts",
+      "message": "Violation in src/application/usecases/user/manager/update-profile-manager/UpdateProfileManagerHandler.ts",
+      "deterministic": true,
+      "discriminator": [],
+      "tag": "pattern-proxy"
+    },
+    {
+      "id": "v-4811038b1cdd0d58",
+      "type": "MISSING_TEST_FILE",
+      "dimension": "convention",
+      "severity": "advisory",
+      "functionId": "FF-CV05",
+      "route": "symbolic",
+      "filePath": "src/application/usecases/user/manager/update-profile-manager/UpdateProfileManagerSchema.ts",
+      "message": "Violation in src/application/usecases/user/manager/update-profile-manager/UpdateProfileManagerSchema.ts",
+      "deterministic": true,
+      "discriminator": [],
+      "tag": "pattern-proxy"
+    },
+    {
+      "id": "v-2b9a57a11199ab25",
+      "type": "MISSING_TEST_FILE",
+      "dimension": "convention",
+      "severity": "advisory",
+      "functionId": "FF-CV05",
+      "route": "symbolic",
+      "filePath": "src/application/usecases/user/user/check-email-exist/CheckEmailExistHandler.ts",
+      "message": "Violation in src/application/usecases/user/user/check-email-exist/CheckEmailExistHandler.ts",
+      "deterministic": true,
+      "discriminator": [],
+      "tag": "pattern-proxy"
+    },
+    {
+      "id": "v-884d5dd0845ba8be",
+      "type": "MISSING_TEST_FILE",
+      "dimension": "convention",
+      "severity": "advisory",
+      "functionId": "FF-CV05",
+      "route": "symbolic",
+      "filePath": "src/application/usecases/user/user/check-email-exist/CheckEmailExistSchema.ts",
+      "message": "Violation in src/application/usecases/user/user/check-email-exist/CheckEmailExistSchema.ts",
+      "deterministic": true,
+      "discriminator": [],
+      "tag": "pattern-proxy"
+    },
+    {
+      "id": "v-5f811d03b2e3efae",
+      "type": "MISSING_TEST_FILE",
+      "dimension": "convention",
+      "severity": "advisory",
+      "functionId": "FF-CV05",
+      "route": "symbolic",
+      "filePath": "src/application/usecases/user/user/get-list-online-status-by-ids/GetListOnlineStatusByIdsHandler.ts",
+      "message": "Violation in src/application/usecases/user/user/get-list-online-status-by-ids/GetListOnlineStatusByIdsHandler.ts",
+      "deterministic": true,
+      "discriminator": [],
+      "tag": "pattern-proxy"
+    },
+    {
+      "id": "v-c92903a5fb437559",
+      "type": "MISSING_TEST_FILE",
+      "dimension": "convention",
+      "severity": "advisory",
+      "functionId": "FF-CV05",
+      "route": "symbolic",
+      "filePath": "src/application/usecases/user/user/get-list-online-status-by-ids/GetListOnlineStatusByIdsSchema.ts",
+      "message": "Violation in src/application/usecases/user/user/get-list-online-status-by-ids/GetListOnlineStatusByIdsSchema.ts",
+      "deterministic": true,
+      "discriminator": [],
+      "tag": "pattern-proxy"
+    },
+    {
+      "id": "v-73e3dbda043cd6db",
+      "type": "MISSING_TEST_FILE",
+      "dimension": "convention",
+      "severity": "advisory",
+      "functionId": "FF-CV05",
+      "route": "symbolic",
+      "filePath": "src/application/usecases/user/user/update-user-online-status/UpdateUserOnlineStatusHandler.ts",
+      "message": "Violation in src/application/usecases/user/user/update-user-online-status/UpdateUserOnlineStatusHandler.ts",
+      "deterministic": true,
+      "discriminator": [],
+      "tag": "pattern-proxy"
+    },
+    {
+      "id": "v-690c10ad1629afbb",
+      "type": "MISSING_TEST_FILE",
+      "dimension": "convention",
+      "severity": "advisory",
+      "functionId": "FF-CV05",
+      "route": "symbolic",
+      "filePath": "src/application/usecases/user/user/update-user-online-status/UpdateUserOnlineStatusSchema.ts",
+      "message": "Violation in src/application/usecases/user/user/update-user-online-status/UpdateUserOnlineStatusSchema.ts",
+      "deterministic": true,
+      "discriminator": [],
+      "tag": "pattern-proxy"
+    },
+    {
+      "id": "v-bea94877bf99d6ca",
+      "type": "MISSING_TEST_FILE",
+      "dimension": "convention",
+      "severity": "advisory",
+      "functionId": "FF-CV05",
+      "route": "symbolic",
+      "filePath": "src/application/usecases/user/user/upload-avatar/UploadAvatarHandler.ts",
+      "message": "Violation in src/application/usecases/user/user/upload-avatar/UploadAvatarHandler.ts",
+      "deterministic": true,
+      "discriminator": [],
+      "tag": "pattern-proxy"
+    },
+    {
+      "id": "v-501ff8e5d0e9a590",
+      "type": "MISSING_TEST_FILE",
+      "dimension": "convention",
+      "severity": "advisory",
+      "functionId": "FF-CV05",
+      "route": "symbolic",
+      "filePath": "src/application/usecases/user/user/upload-avatar/UploadAvatarSchema.ts",
+      "message": "Violation in src/application/usecases/user/user/upload-avatar/UploadAvatarSchema.ts",
+      "deterministic": true,
+      "discriminator": [],
+      "tag": "pattern-proxy"
+    },
+    {
+      "id": "v-d5a24f1398b7eb69",
+      "type": "MISSING_TEST_FILE",
+      "dimension": "convention",
+      "severity": "advisory",
+      "functionId": "FF-CV05",
+      "route": "symbolic",
+      "filePath": "src/domain/common/Entity.ts",
+      "message": "Violation in src/domain/common/Entity.ts",
+      "deterministic": true,
+      "discriminator": [],
+      "tag": "pattern-proxy"
+    },
+    {
+      "id": "v-28639dc64904339d",
+      "type": "MISSING_TEST_FILE",
+      "dimension": "convention",
+      "severity": "advisory",
+      "functionId": "FF-CV05",
+      "route": "symbolic",
+      "filePath": "src/domain/common/ValueObject.ts",
+      "message": "Violation in src/domain/common/ValueObject.ts",
+      "deterministic": true,
+      "discriminator": [],
+      "tag": "pattern-proxy"
+    },
+    {
+      "id": "v-60207be7e5ab8f35",
+      "type": "MISSING_TEST_FILE",
+      "dimension": "convention",
+      "severity": "advisory",
+      "functionId": "FF-CV05",
+      "route": "symbolic",
+      "filePath": "src/domain/entities/auth/Auth.ts",
+      "message": "Violation in src/domain/entities/auth/Auth.ts",
+      "deterministic": true,
+      "discriminator": [],
+      "tag": "pattern-proxy"
+    },
+    {
+      "id": "v-3fcf7f7a569d8d8f",
+      "type": "MISSING_TEST_FILE",
+      "dimension": "convention",
+      "severity": "advisory",
+      "functionId": "FF-CV05",
+      "route": "symbolic",
+      "filePath": "src/domain/entities/user/Client.ts",
+      "message": "Violation in src/domain/entities/user/Client.ts",
+      "deterministic": true,
+      "discriminator": [],
+      "tag": "pattern-proxy"
+    },
+    {
+      "id": "v-03d521f2d85acc52",
+      "type": "MISSING_TEST_FILE",
+      "dimension": "convention",
+      "severity": "advisory",
+      "functionId": "FF-CV05",
+      "route": "symbolic",
+      "filePath": "src/domain/entities/user/Manager.ts",
+      "message": "Violation in src/domain/entities/user/Manager.ts",
+      "deterministic": true,
+      "discriminator": [],
+      "tag": "pattern-proxy"
+    },
+    {
+      "id": "v-bdaa5e67184fd796",
+      "type": "MISSING_TEST_FILE",
+      "dimension": "convention",
+      "severity": "advisory",
+      "functionId": "FF-CV05",
+      "route": "symbolic",
+      "filePath": "src/domain/entities/user/User.ts",
+      "message": "Violation in src/domain/entities/user/User.ts",
+      "deterministic": true,
+      "discriminator": [],
+      "tag": "pattern-proxy"
+    },
+    {
+      "id": "v-4c432747ea4d7e5e",
+      "type": "MISSING_TEST_FILE",
+      "dimension": "convention",
+      "severity": "advisory",
+      "functionId": "FF-CV05",
+      "route": "symbolic",
+      "filePath": "src/domain/enums/auth/AuthType.ts",
+      "message": "Violation in src/domain/enums/auth/AuthType.ts",
+      "deterministic": true,
+      "discriminator": [],
+      "tag": "pattern-proxy"
+    },
+    {
+      "id": "v-5db353619f75346b",
+      "type": "MISSING_TEST_FILE",
+      "dimension": "convention",
+      "severity": "advisory",
+      "functionId": "FF-CV05",
+      "route": "symbolic",
+      "filePath": "src/domain/enums/user/ClientStatus.ts",
+      "message": "Violation in src/domain/enums/user/ClientStatus.ts",
+      "deterministic": true,
+      "discriminator": [],
+      "tag": "pattern-proxy"
+    },
+    {
+      "id": "v-985edc5790dab960",
+      "type": "MISSING_TEST_FILE",
+      "dimension": "convention",
+      "severity": "advisory",
+      "functionId": "FF-CV05",
+      "route": "symbolic",
+      "filePath": "src/domain/enums/user/GenderType.ts",
+      "message": "Violation in src/domain/enums/user/GenderType.ts",
+      "deterministic": true,
+      "discriminator": [],
+      "tag": "pattern-proxy"
+    },
+    {
+      "id": "v-a4ae24bd82b4fbf2",
+      "type": "MISSING_TEST_FILE",
+      "dimension": "convention",
+      "severity": "advisory",
+      "functionId": "FF-CV05",
+      "route": "symbolic",
+      "filePath": "src/domain/enums/user/ManagerStatus.ts",
+      "message": "Violation in src/domain/enums/user/ManagerStatus.ts",
+      "deterministic": true,
+      "discriminator": [],
+      "tag": "pattern-proxy"
+    },
+    {
+      "id": "v-de9a03820aec3129",
+      "type": "MISSING_TEST_FILE",
+      "dimension": "convention",
+      "severity": "advisory",
+      "functionId": "FF-CV05",
+      "route": "symbolic",
+      "filePath": "src/domain/enums/user/RoleId.ts",
+      "message": "Violation in src/domain/enums/user/RoleId.ts",
+      "deterministic": true,
+      "discriminator": [],
+      "tag": "pattern-proxy"
+    },
+    {
+      "id": "v-9f0401b4200b5e45",
+      "type": "MISSING_TEST_FILE",
+      "dimension": "convention",
+      "severity": "advisory",
+      "functionId": "FF-CV05",
+      "route": "symbolic",
+      "filePath": "src/domain/value-objects/AddressInfo.ts",
+      "message": "Violation in src/domain/value-objects/AddressInfo.ts",
+      "deterministic": true,
+      "discriminator": [],
+      "tag": "pattern-proxy"
+    },
+    {
+      "id": "v-b952f26233c2c045",
+      "type": "MISSING_TEST_FILE",
+      "dimension": "convention",
+      "severity": "advisory",
+      "functionId": "FF-CV05",
+      "route": "symbolic",
+      "filePath": "src/infras/SingletonRegister.ts",
+      "message": "Violation in src/infras/SingletonRegister.ts",
+      "deterministic": true,
+      "discriminator": [],
+      "tag": "pattern-proxy"
+    },
+    {
+      "id": "v-7565571dbe4dfc85",
+      "type": "MISSING_TEST_FILE",
+      "dimension": "convention",
+      "severity": "advisory",
+      "functionId": "FF-CV05",
+      "route": "symbolic",
+      "filePath": "src/infras/data/DataRegister.ts",
+      "message": "Violation in src/infras/data/DataRegister.ts",
+      "deterministic": true,
+      "discriminator": [],
+      "tag": "pattern-proxy"
+    },
+    {
+      "id": "v-abd54e16945d32ad",
+      "type": "MISSING_TEST_FILE",
+      "dimension": "convention",
+      "severity": "advisory",
+      "functionId": "FF-CV05",
+      "route": "symbolic",
+      "filePath": "src/infras/data/redis/RedisContext.ts",
+      "message": "Violation in src/infras/data/redis/RedisContext.ts",
+      "deterministic": true,
+      "discriminator": [],
+      "tag": "pattern-proxy"
+    },
+    {
+      "id": "v-f9dd6e717e467a2f",
+      "type": "MISSING_TEST_FILE",
+      "dimension": "convention",
+      "severity": "advisory",
+      "functionId": "FF-CV05",
+      "route": "symbolic",
+      "filePath": "src/infras/data/redis/RedisRegister.ts",
+      "message": "Violation in src/infras/data/redis/RedisRegister.ts",
+      "deterministic": true,
+      "discriminator": [],
+      "tag": "pattern-proxy"
+    },
+    {
+      "id": "v-26d50f9e622eb3ee",
+      "type": "MISSING_TEST_FILE",
+      "dimension": "convention",
+      "severity": "advisory",
+      "functionId": "FF-CV05",
+      "route": "symbolic",
+      "filePath": "src/infras/data/redis/repositories/user/UserOnlineStatusRepository.ts",
+      "message": "Violation in src/infras/data/redis/repositories/user/UserOnlineStatusRepository.ts",
+      "deterministic": true,
+      "discriminator": [],
+      "tag": "pattern-proxy"
+    },
+    {
+      "id": "v-2ce8659318b8c1d8",
+      "type": "MISSING_TEST_FILE",
+      "dimension": "convention",
+      "severity": "advisory",
+      "functionId": "FF-CV05",
+      "route": "symbolic",
+      "filePath": "src/infras/data/typeorm/DbContext.ts",
+      "message": "Violation in src/infras/data/typeorm/DbContext.ts",
+      "deterministic": true,
+      "discriminator": [],
+      "tag": "pattern-proxy"
+    },
+    {
+      "id": "v-826d2c32236bb219",
+      "type": "MISSING_TEST_FILE",
+      "dimension": "convention",
+      "severity": "advisory",
+      "functionId": "FF-CV05",
+      "route": "symbolic",
+      "filePath": "src/infras/data/typeorm/DbRegister.ts",
+      "message": "Violation in src/infras/data/typeorm/DbRegister.ts",
+      "deterministic": true,
+      "discriminator": [],
+      "tag": "pattern-proxy"
+    },
+    {
+      "id": "v-b201a37ca7fb37b5",
+      "type": "MISSING_TEST_FILE",
+      "dimension": "convention",
+      "severity": "advisory",
+      "functionId": "FF-CV05",
+      "route": "symbolic",
+      "filePath": "src/infras/data/typeorm/common/DbEntity.ts",
+      "message": "Violation in src/infras/data/typeorm/common/DbEntity.ts",
+      "deterministic": true,
+      "discriminator": [],
+      "tag": "pattern-proxy"
+    },
+    {
+      "id": "v-cf9cdb6188e6038e",
+      "type": "MISSING_TEST_FILE",
+      "dimension": "convention",
+      "severity": "advisory",
+      "functionId": "FF-CV05",
+      "route": "symbolic",
+      "filePath": "src/infras/data/typeorm/common/Repository.ts",
+      "message": "Violation in src/infras/data/typeorm/common/Repository.ts",
+      "deterministic": true,
+      "discriminator": [],
+      "tag": "pattern-proxy"
+    },
+    {
+      "id": "v-12bc553d00a51373",
+      "type": "MISSING_TEST_FILE",
+      "dimension": "convention",
+      "severity": "advisory",
+      "functionId": "FF-CV05",
+      "route": "symbolic",
+      "filePath": "src/infras/data/typeorm/common/Schema.ts",
+      "message": "Violation in src/infras/data/typeorm/common/Schema.ts",
+      "deterministic": true,
+      "discriminator": [],
+      "tag": "pattern-proxy"
+    },
+    {
+      "id": "v-f3ae69cfa8c4f2bc",
+      "type": "MISSING_TEST_FILE",
+      "dimension": "convention",
+      "severity": "advisory",
+      "functionId": "FF-CV05",
+      "route": "symbolic",
+      "filePath": "src/infras/data/typeorm/entities/auth/AuthDb.ts",
+      "message": "Violation in src/infras/data/typeorm/entities/auth/AuthDb.ts",
+      "deterministic": true,
+      "discriminator": [],
+      "tag": "pattern-proxy"
+    },
+    {
+      "id": "v-a781aad3bba78373",
+      "type": "MISSING_TEST_FILE",
+      "dimension": "convention",
+      "severity": "advisory",
+      "functionId": "FF-CV05",
+      "route": "symbolic",
+      "filePath": "src/infras/data/typeorm/entities/user/ClientDb.ts",
+      "message": "Violation in src/infras/data/typeorm/entities/user/ClientDb.ts",
+      "deterministic": true,
+      "discriminator": [],
+      "tag": "pattern-proxy"
+    },
+    {
+      "id": "v-fb31bb66106c7f43",
+      "type": "MISSING_TEST_FILE",
+      "dimension": "convention",
+      "severity": "advisory",
+      "functionId": "FF-CV05",
+      "route": "symbolic",
+      "filePath": "src/infras/data/typeorm/entities/user/ManagerDb.ts",
+      "message": "Violation in src/infras/data/typeorm/entities/user/ManagerDb.ts",
+      "deterministic": true,
+      "discriminator": [],
+      "tag": "pattern-proxy"
+    },
+    {
+      "id": "v-5f078ae6436095a6",
+      "type": "MISSING_TEST_FILE",
+      "dimension": "convention",
+      "severity": "advisory",
+      "functionId": "FF-CV05",
+      "route": "symbolic",
+      "filePath": "src/infras/data/typeorm/entities/user/UserDb.ts",
+      "message": "Violation in src/infras/data/typeorm/entities/user/UserDb.ts",
+      "deterministic": true,
+      "discriminator": [],
+      "tag": "pattern-proxy"
+    },
+    {
+      "id": "v-3a33cb0bd02f6935",
+      "type": "MISSING_TEST_FILE",
+      "dimension": "convention",
+      "severity": "advisory",
+      "functionId": "FF-CV05",
+      "route": "symbolic",
+      "filePath": "src/infras/data/typeorm/migrations/1639016247061-Initialize.ts",
+      "message": "Violation in src/infras/data/typeorm/migrations/1639016247061-Initialize.ts",
+      "deterministic": true,
+      "discriminator": [],
+      "tag": "pattern-proxy"
+    },
+    {
+      "id": "v-2e76c756b00d1129",
+      "type": "MISSING_TEST_FILE",
+      "dimension": "convention",
+      "severity": "advisory",
+      "functionId": "FF-CV05",
+      "route": "symbolic",
+      "filePath": "src/infras/data/typeorm/repositories/auth/AuthRepository.ts",
+      "message": "Violation in src/infras/data/typeorm/repositories/auth/AuthRepository.ts",
+      "deterministic": true,
+      "discriminator": [],
+      "tag": "pattern-proxy"
+    },
+    {
+      "id": "v-eafdd460b7d0419c",
+      "type": "MISSING_TEST_FILE",
+      "dimension": "convention",
+      "severity": "advisory",
+      "functionId": "FF-CV05",
+      "route": "symbolic",
+      "filePath": "src/infras/data/typeorm/repositories/user/ClientRepository.ts",
+      "message": "Violation in src/infras/data/typeorm/repositories/user/ClientRepository.ts",
+      "deterministic": true,
+      "discriminator": [],
+      "tag": "pattern-proxy"
+    },
+    {
+      "id": "v-199cfe0385c10b03",
+      "type": "MISSING_TEST_FILE",
+      "dimension": "convention",
+      "severity": "advisory",
+      "functionId": "FF-CV05",
+      "route": "symbolic",
+      "filePath": "src/infras/data/typeorm/repositories/user/ManagerRepository.ts",
+      "message": "Violation in src/infras/data/typeorm/repositories/user/ManagerRepository.ts",
+      "deterministic": true,
+      "discriminator": [],
+      "tag": "pattern-proxy"
+    },
+    {
+      "id": "v-1521571c8ac1935a",
+      "type": "MISSING_TEST_FILE",
+      "dimension": "convention",
+      "severity": "advisory",
+      "functionId": "FF-CV05",
+      "route": "symbolic",
+      "filePath": "src/infras/data/typeorm/repositories/user/UserRepository.ts",
+      "message": "Violation in src/infras/data/typeorm/repositories/user/UserRepository.ts",
+      "deterministic": true,
+      "discriminator": [],
+      "tag": "pattern-proxy"
+    },
+    {
+      "id": "v-3b6836652cfbe272",
+      "type": "MISSING_TEST_FILE",
+      "dimension": "convention",
+      "severity": "advisory",
+      "functionId": "FF-CV05",
+      "route": "symbolic",
+      "filePath": "src/infras/data/typeorm/schemas/auth/AuthSchema.ts",
+      "message": "Violation in src/infras/data/typeorm/schemas/auth/AuthSchema.ts",
+      "deterministic": true,
+      "discriminator": [],
+      "tag": "pattern-proxy"
+    },
+    {
+      "id": "v-7d7e118188f8e910",
+      "type": "MISSING_TEST_FILE",
+      "dimension": "convention",
+      "severity": "advisory",
+      "functionId": "FF-CV05",
+      "route": "symbolic",
+      "filePath": "src/infras/data/typeorm/schemas/user/ClientSchema.ts",
+      "message": "Violation in src/infras/data/typeorm/schemas/user/ClientSchema.ts",
+      "deterministic": true,
+      "discriminator": [],
+      "tag": "pattern-proxy"
+    },
+    {
+      "id": "v-62a4cc7efc1d6387",
+      "type": "MISSING_TEST_FILE",
+      "dimension": "convention",
+      "severity": "advisory",
+      "functionId": "FF-CV05",
+      "route": "symbolic",
+      "filePath": "src/infras/data/typeorm/schemas/user/ManagerSchema.ts",
+      "message": "Violation in src/infras/data/typeorm/schemas/user/ManagerSchema.ts",
+      "deterministic": true,
+      "discriminator": [],
+      "tag": "pattern-proxy"
+    },
+    {
+      "id": "v-6c55ed55fa070ada",
+      "type": "MISSING_TEST_FILE",
+      "dimension": "convention",
+      "severity": "advisory",
+      "functionId": "FF-CV05",
+      "route": "symbolic",
+      "filePath": "src/infras/data/typeorm/schemas/user/UserSchema.ts",
+      "message": "Violation in src/infras/data/typeorm/schemas/user/UserSchema.ts",
+      "deterministic": true,
+      "discriminator": [],
+      "tag": "pattern-proxy"
+    },
+    {
+      "id": "v-b9f1684d1d2e4308",
+      "type": "MISSING_TEST_FILE",
+      "dimension": "convention",
+      "severity": "advisory",
+      "functionId": "FF-CV05",
+      "route": "symbolic",
+      "filePath": "src/infras/data/typeorm/transformers/NumericTransformer.ts",
+      "message": "Violation in src/infras/data/typeorm/transformers/NumericTransformer.ts",
+      "deterministic": true,
+      "discriminator": [],
+      "tag": "pattern-proxy"
+    },
+    {
+      "id": "v-a4541014f0c4e001",
+      "type": "MISSING_TEST_FILE",
+      "dimension": "convention",
+      "severity": "advisory",
+      "functionId": "FF-CV05",
+      "route": "symbolic",
+      "filePath": "src/infras/servers/http/HttpServer.ts",
+      "message": "Violation in src/infras/servers/http/HttpServer.ts",
+      "deterministic": true,
+      "discriminator": [],
+      "tag": "pattern-proxy"
+    },
+    {
+      "id": "v-41069983abb429f6",
+      "type": "MISSING_TEST_FILE",
+      "dimension": "convention",
+      "severity": "advisory",
+      "functionId": "FF-CV05",
+      "route": "symbolic",
+      "filePath": "src/infras/servers/socket/SocketServer.ts",
+      "message": "Violation in src/infras/servers/socket/SocketServer.ts",
+      "deterministic": true,
+      "discriminator": [],
+      "tag": "pattern-proxy"
+    },
+    {
+      "id": "v-0d9d8bd173cfe740",
+      "type": "MISSING_TEST_FILE",
+      "dimension": "convention",
+      "severity": "advisory",
+      "functionId": "FF-CV05",
+      "route": "symbolic",
+      "filePath": "src/infras/services/ServiceRegister.ts",
+      "message": "Violation in src/infras/services/ServiceRegister.ts",
+      "deterministic": true,
+      "discriminator": [],
+      "tag": "pattern-proxy"
+    },
+    {
+      "id": "v-34d233c4b7c71290",
+      "type": "MISSING_TEST_FILE",
+      "dimension": "convention",
+      "severity": "advisory",
+      "functionId": "FF-CV05",
+      "route": "symbolic",
+      "filePath": "src/infras/services/authentication/AuthJwtService.ts",
+      "message": "Violation in src/infras/services/authentication/AuthJwtService.ts",
+      "deterministic": true,
+      "discriminator": [],
+      "tag": "pattern-proxy"
+    },
+    {
+      "id": "v-3464a39a2e63db72",
+      "type": "MISSING_TEST_FILE",
+      "dimension": "convention",
+      "severity": "advisory",
+      "functionId": "FF-CV05",
+      "route": "symbolic",
+      "filePath": "src/infras/services/log/LogService.ts",
+      "message": "Violation in src/infras/services/log/LogService.ts",
+      "deterministic": true,
+      "discriminator": [],
+      "tag": "pattern-proxy"
+    },
+    {
+      "id": "v-3007ffbe0377c0ac",
+      "type": "MISSING_TEST_FILE",
+      "dimension": "convention",
+      "severity": "advisory",
+      "functionId": "FF-CV05",
+      "route": "symbolic",
+      "filePath": "src/infras/services/mail/MailGenerator.ts",
+      "message": "Violation in src/infras/services/mail/MailGenerator.ts",
+      "deterministic": true,
+      "discriminator": [],
+      "tag": "pattern-proxy"
+    },
+    {
+      "id": "v-a7350cf48cd42bed",
+      "type": "MISSING_TEST_FILE",
+      "dimension": "convention",
+      "severity": "advisory",
+      "functionId": "FF-CV05",
+      "route": "symbolic",
+      "filePath": "src/infras/services/mail/MailService.ts",
+      "message": "Violation in src/infras/services/mail/MailService.ts",
+      "deterministic": true,
+      "discriminator": [],
+      "tag": "pattern-proxy"
+    },
+    {
+      "id": "v-206a2a2a736c68e4",
+      "type": "MISSING_TEST_FILE",
+      "dimension": "convention",
+      "severity": "advisory",
+      "functionId": "FF-CV05",
+      "route": "symbolic",
+      "filePath": "src/infras/services/mail/sender/MailSender.ts",
+      "message": "Violation in src/infras/services/mail/sender/MailSender.ts",
+      "deterministic": true,
+      "discriminator": [],
+      "tag": "pattern-proxy"
+    },
+    {
+      "id": "v-13c87e0da03bdbdc",
+      "type": "MISSING_TEST_FILE",
+      "dimension": "convention",
+      "severity": "advisory",
+      "functionId": "FF-CV05",
+      "route": "symbolic",
+      "filePath": "src/infras/services/mail/sender/interfaces/IMailProvider.ts",
+      "message": "Violation in src/infras/services/mail/sender/interfaces/IMailProvider.ts",
+      "deterministic": true,
+      "discriminator": [],
+      "tag": "pattern-proxy"
+    },
+    {
+      "id": "v-96ba3ebc04271cbf",
+      "type": "MISSING_TEST_FILE",
+      "dimension": "convention",
+      "severity": "advisory",
+      "functionId": "FF-CV05",
+      "route": "symbolic",
+      "filePath": "src/infras/services/mail/sender/providers/GoogleSmtpFactory.ts",
+      "message": "Violation in src/infras/services/mail/sender/providers/GoogleSmtpFactory.ts",
+      "deterministic": true,
+      "discriminator": [],
+      "tag": "pattern-proxy"
+    },
+    {
+      "id": "v-2ad435a8d1261315",
+      "type": "MISSING_TEST_FILE",
+      "dimension": "convention",
+      "severity": "advisory",
+      "functionId": "FF-CV05",
+      "route": "symbolic",
+      "filePath": "src/infras/services/mail/sender/providers/MailConsoleFactory.ts",
+      "message": "Violation in src/infras/services/mail/sender/providers/MailConsoleFactory.ts",
+      "deterministic": true,
+      "discriminator": [],
+      "tag": "pattern-proxy"
+    },
+    {
+      "id": "v-dc2c7fd21d5ea1dc",
+      "type": "MISSING_TEST_FILE",
+      "dimension": "convention",
+      "severity": "advisory",
+      "functionId": "FF-CV05",
+      "route": "symbolic",
+      "filePath": "src/infras/services/mail/sender/providers/MailGunFactory.ts",
+      "message": "Violation in src/infras/services/mail/sender/providers/MailGunFactory.ts",
+      "deterministic": true,
+      "discriminator": [],
+      "tag": "pattern-proxy"
+    },
+    {
+      "id": "v-a2959ca4dbecd631",
+      "type": "MISSING_TEST_FILE",
+      "dimension": "convention",
+      "severity": "advisory",
+      "functionId": "FF-CV05",
+      "route": "symbolic",
+      "filePath": "src/infras/services/mail/sender/providers/SendInBlueFactory.ts",
+      "message": "Violation in src/infras/services/mail/sender/providers/SendInBlueFactory.ts",
+      "deterministic": true,
+      "discriminator": [],
+      "tag": "pattern-proxy"
+    },
+    {
+      "id": "v-5020999144086e9e",
+      "type": "MISSING_TEST_FILE",
+      "dimension": "convention",
+      "severity": "advisory",
+      "functionId": "FF-CV05",
+      "route": "symbolic",
+      "filePath": "src/infras/services/mail/templates/ForgotPasswordTemplate.ts",
+      "message": "Violation in src/infras/services/mail/templates/ForgotPasswordTemplate.ts",
+      "deterministic": true,
+      "discriminator": [],
+      "tag": "pattern-proxy"
+    },
+    {
+      "id": "v-cfd26ab25f60cf3d",
+      "type": "MISSING_TEST_FILE",
+      "dimension": "convention",
+      "severity": "advisory",
+      "functionId": "FF-CV05",
+      "route": "symbolic",
+      "filePath": "src/infras/services/mail/templates/UserActivationTemplate.ts",
+      "message": "Violation in src/infras/services/mail/templates/UserActivationTemplate.ts",
+      "deterministic": true,
+      "discriminator": [],
+      "tag": "pattern-proxy"
+    },
+    {
+      "id": "v-ddd116c306e4e05a",
+      "type": "MISSING_TEST_FILE",
+      "dimension": "convention",
+      "severity": "advisory",
+      "functionId": "FF-CV05",
+      "route": "symbolic",
+      "filePath": "src/infras/services/notification/NotificationService.ts",
+      "message": "Violation in src/infras/services/notification/NotificationService.ts",
+      "deterministic": true,
+      "discriminator": [],
+      "tag": "pattern-proxy"
+    },
+    {
+      "id": "v-35bfe92707f19003",
+      "type": "MISSING_TEST_FILE",
+      "dimension": "convention",
+      "severity": "advisory",
+      "functionId": "FF-CV05",
+      "route": "symbolic",
+      "filePath": "src/infras/services/notification/sender/NotificationSender.ts",
+      "message": "Violation in src/infras/services/notification/sender/NotificationSender.ts",
+      "deterministic": true,
+      "discriminator": [],
+      "tag": "pattern-proxy"
+    },
+    {
+      "id": "v-1e448507c514fcc0",
+      "type": "MISSING_TEST_FILE",
+      "dimension": "convention",
+      "severity": "advisory",
+      "functionId": "FF-CV05",
+      "route": "symbolic",
+      "filePath": "src/infras/services/notification/sender/interfaces/INotificationProvider.ts",
+      "message": "Violation in src/infras/services/notification/sender/interfaces/INotificationProvider.ts",
+      "deterministic": true,
+      "discriminator": [],
+      "tag": "pattern-proxy"
+    },
+    {
+      "id": "v-0d3e88a2d3c14f91",
+      "type": "MISSING_TEST_FILE",
+      "dimension": "convention",
+      "severity": "advisory",
+      "functionId": "FF-CV05",
+      "route": "symbolic",
+      "filePath": "src/infras/services/notification/sender/providers/NodePushNotificationFactory.ts",
+      "message": "Violation in src/infras/services/notification/sender/providers/NodePushNotificationFactory.ts",
+      "deterministic": true,
+      "discriminator": [],
+      "tag": "pattern-proxy"
+    },
+    {
+      "id": "v-8dd89e2506f5f266",
+      "type": "MISSING_TEST_FILE",
+      "dimension": "convention",
+      "severity": "advisory",
+      "functionId": "FF-CV05",
+      "route": "symbolic",
+      "filePath": "src/infras/services/notification/sender/providers/NotificationConsoleFactory.ts",
+      "message": "Violation in src/infras/services/notification/sender/providers/NotificationConsoleFactory.ts",
+      "deterministic": true,
+      "discriminator": [],
+      "tag": "pattern-proxy"
+    },
+    {
+      "id": "v-acd84cb03328fe57",
+      "type": "MISSING_TEST_FILE",
+      "dimension": "convention",
+      "severity": "advisory",
+      "functionId": "FF-CV05",
+      "route": "symbolic",
+      "filePath": "src/infras/services/payment/PaymentPaypalService.ts",
+      "message": "Violation in src/infras/services/payment/PaymentPaypalService.ts",
+      "deterministic": true,
+      "discriminator": [],
+      "tag": "pattern-proxy"
+    },
+    {
+      "id": "v-b0f415c9d4cc3d80",
+      "type": "MISSING_TEST_FILE",
+      "dimension": "convention",
+      "severity": "advisory",
+      "functionId": "FF-CV05",
+      "route": "symbolic",
+      "filePath": "src/infras/services/payment/PaymentStripeService.ts",
+      "message": "Violation in src/infras/services/payment/PaymentStripeService.ts",
+      "deterministic": true,
+      "discriminator": [],
+      "tag": "pattern-proxy"
+    },
+    {
+      "id": "v-ddae8aa1a859ca15",
+      "type": "MISSING_TEST_FILE",
+      "dimension": "convention",
+      "severity": "advisory",
+      "functionId": "FF-CV05",
+      "route": "symbolic",
+      "filePath": "src/infras/services/sms/SmsService.ts",
+      "message": "Violation in src/infras/services/sms/SmsService.ts",
+      "deterministic": true,
+      "discriminator": [],
+      "tag": "pattern-proxy"
+    },
+    {
+      "id": "v-762e7ff792753899",
+      "type": "MISSING_TEST_FILE",
+      "dimension": "convention",
+      "severity": "advisory",
+      "functionId": "FF-CV05",
+      "route": "symbolic",
+      "filePath": "src/infras/services/sms/sender/SmsSender.ts",
+      "message": "Violation in src/infras/services/sms/sender/SmsSender.ts",
+      "deterministic": true,
+      "discriminator": [],
+      "tag": "pattern-proxy"
+    },
+    {
+      "id": "v-d4bcad61c634c346",
+      "type": "MISSING_TEST_FILE",
+      "dimension": "convention",
+      "severity": "advisory",
+      "functionId": "FF-CV05",
+      "route": "symbolic",
+      "filePath": "src/infras/services/sms/sender/interfaces/ISmsProvider.ts",
+      "message": "Violation in src/infras/services/sms/sender/interfaces/ISmsProvider.ts",
+      "deterministic": true,
+      "discriminator": [],
+      "tag": "pattern-proxy"
+    },
+    {
+      "id": "v-cb0ea50390206025",
+      "type": "MISSING_TEST_FILE",
+      "dimension": "convention",
+      "severity": "advisory",
+      "functionId": "FF-CV05",
+      "route": "symbolic",
+      "filePath": "src/infras/services/sms/sender/providers/SendInBlueFactory.ts",
+      "message": "Violation in src/infras/services/sms/sender/providers/SendInBlueFactory.ts",
+      "deterministic": true,
+      "discriminator": [],
+      "tag": "pattern-proxy"
+    },
+    {
+      "id": "v-690dd9fbf2bb3c1e",
+      "type": "MISSING_TEST_FILE",
+      "dimension": "convention",
+      "severity": "advisory",
+      "functionId": "FF-CV05",
+      "route": "symbolic",
+      "filePath": "src/infras/services/sms/sender/providers/SmsConsoleFactory.ts",
+      "message": "Violation in src/infras/services/sms/sender/providers/SmsConsoleFactory.ts",
+      "deterministic": true,
+      "discriminator": [],
+      "tag": "pattern-proxy"
+    },
+    {
+      "id": "v-113ba4120c4c6a1d",
+      "type": "MISSING_TEST_FILE",
+      "dimension": "convention",
+      "severity": "advisory",
+      "functionId": "FF-CV05",
+      "route": "symbolic",
+      "filePath": "src/infras/services/sms/sender/providers/TwilioFactory.ts",
+      "message": "Violation in src/infras/services/sms/sender/providers/TwilioFactory.ts",
+      "deterministic": true,
+      "discriminator": [],
+      "tag": "pattern-proxy"
+    },
+    {
+      "id": "v-611844eab073d3b2",
+      "type": "MISSING_TEST_FILE",
+      "dimension": "convention",
+      "severity": "advisory",
+      "functionId": "FF-CV05",
+      "route": "symbolic",
+      "filePath": "src/infras/services/socket-emitter/SocketEmitterService.ts",
+      "message": "Violation in src/infras/services/socket-emitter/SocketEmitterService.ts",
+      "deterministic": true,
+      "discriminator": [],
+      "tag": "pattern-proxy"
+    },
+    {
+      "id": "v-8cc8788cb6928512",
+      "type": "MISSING_TEST_FILE",
+      "dimension": "convention",
+      "severity": "advisory",
+      "functionId": "FF-CV05",
+      "route": "symbolic",
+      "filePath": "src/infras/services/storage/StorageService.ts",
+      "message": "Violation in src/infras/services/storage/StorageService.ts",
+      "deterministic": true,
+      "discriminator": [],
+      "tag": "pattern-proxy"
+    },
+    {
+      "id": "v-47f58b6eba72172e",
+      "type": "MISSING_TEST_FILE",
+      "dimension": "convention",
+      "severity": "advisory",
+      "functionId": "FF-CV05",
+      "route": "symbolic",
+      "filePath": "src/infras/services/storage/interfaces/IBucketItem.ts",
+      "message": "Violation in src/infras/services/storage/interfaces/IBucketItem.ts",
+      "deterministic": true,
+      "discriminator": [],
+      "tag": "pattern-proxy"
+    },
+    {
+      "id": "v-b6d4baf036a574c5",
+      "type": "MISSING_TEST_FILE",
+      "dimension": "convention",
+      "severity": "advisory",
+      "functionId": "FF-CV05",
+      "route": "symbolic",
+      "filePath": "src/infras/services/storage/interfaces/IStorageProvider.ts",
+      "message": "Violation in src/infras/services/storage/interfaces/IStorageProvider.ts",
+      "deterministic": true,
+      "discriminator": [],
+      "tag": "pattern-proxy"
+    },
+    {
+      "id": "v-d733359398baa86a",
+      "type": "MISSING_TEST_FILE",
+      "dimension": "convention",
+      "severity": "advisory",
+      "functionId": "FF-CV05",
+      "route": "symbolic",
+      "filePath": "src/infras/services/storage/interfaces/IStorageProviderUploadOption.ts",
+      "message": "Violation in src/infras/services/storage/interfaces/IStorageProviderUploadOption.ts",
+      "deterministic": true,
+      "discriminator": [],
+      "tag": "pattern-proxy"
+    },
+    {
+      "id": "v-61c9e8835bde605a",
+      "type": "MISSING_TEST_FILE",
+      "dimension": "convention",
+      "severity": "advisory",
+      "functionId": "FF-CV05",
+      "route": "symbolic",
+      "filePath": "src/infras/services/storage/providers/AwsS3Factory.ts",
+      "message": "Violation in src/infras/services/storage/providers/AwsS3Factory.ts",
+      "deterministic": true,
+      "discriminator": [],
+      "tag": "pattern-proxy"
+    },
+    {
+      "id": "v-00fb02585adff15b",
+      "type": "MISSING_TEST_FILE",
+      "dimension": "convention",
+      "severity": "advisory",
+      "functionId": "FF-CV05",
+      "route": "symbolic",
+      "filePath": "src/infras/services/storage/providers/GoogleStorageFactory.ts",
+      "message": "Violation in src/infras/services/storage/providers/GoogleStorageFactory.ts",
+      "deterministic": true,
+      "discriminator": [],
+      "tag": "pattern-proxy"
+    },
+    {
+      "id": "v-6e40537aa50e5c9f",
+      "type": "MISSING_TEST_FILE",
+      "dimension": "convention",
+      "severity": "advisory",
+      "functionId": "FF-CV05",
+      "route": "symbolic",
+      "filePath": "src/infras/services/storage/providers/MinioFactory.ts",
+      "message": "Violation in src/infras/services/storage/providers/MinioFactory.ts",
+      "deterministic": true,
+      "discriminator": [],
+      "tag": "pattern-proxy"
+    },
+    {
+      "id": "v-3e6ec96edd284a7d",
+      "type": "MISSING_TEST_FILE",
+      "dimension": "convention",
+      "severity": "advisory",
+      "functionId": "FF-CV05",
+      "route": "symbolic",
+      "filePath": "src/infras/services/storage/providers/StorageConsoleFactory.ts",
+      "message": "Violation in src/infras/services/storage/providers/StorageConsoleFactory.ts",
+      "deterministic": true,
+      "discriminator": [],
+      "tag": "pattern-proxy"
+    }
+  ],
+  "universalMetrics": {
+    "cyclicDependencyCount": 4,
+    "maxFanOut": 26,
+    "maxFanIn": 64,
+    "abstractionRatio": 0.152,
+    "averageInstability": 0.559,
+    "orphanFileCount": 11
+  },
+  "evaluationMode": "symbolic-only",
+  "durationMs": 94,
+  "droppedDimensions": [],
+  "tiers": {
+    "scoringMode": "v1.3",
+    "tierTable": "Docs/v1.3/rule-tiers.md",
+    "style": "clean-architecture",
+    "verdict": "fail",
+    "verdictRule": "any-blocking-violation",
+    "v12eVerdict": "soft-block",
+    "blockingAhs": 0.667,
+    "blocking": {
+      "rules": [
+        {
+          "functionId": "FF-P01",
+          "name": "domain-purity",
+          "dimension": "pattern",
+          "tier": "blocking",
+          "tierSource": "table",
+          "violationCount": 0,
+          "violated": false
+        },
+        {
+          "functionId": "FF-P03",
+          "name": "repository-pattern",
+          "dimension": "pattern",
+          "tier": "blocking",
+          "tierSource": "table",
+          "violationCount": 1,
+          "violated": true
+        },
+        {
+          "functionId": "FF-P06",
+          "name": "domain-state-purity",
+          "dimension": "pattern",
+          "tier": "blocking",
+          "tierSource": "table",
+          "violationCount": 0,
+          "violated": false
+        },
+        {
+          "functionId": "FF-S01",
+          "name": "dependency-direction",
+          "dimension": "structural",
+          "tier": "blocking",
+          "tierSource": "table",
+          "violationCount": 0,
+          "violated": false
+        },
+        {
+          "functionId": "FF-S02",
+          "name": "no-cyclic-deps",
+          "dimension": "structural",
+          "tier": "blocking",
+          "tierSource": "table",
+          "violationCount": 2,
+          "violated": true
+        },
+        {
+          "functionId": "FF-S04",
+          "name": "no-domain-outward-dep",
+          "dimension": "structural",
+          "tier": "blocking",
+          "tierSource": "table",
+          "violationCount": 0,
+          "violated": false
+        }
+      ],
+      "violatedRules": 2,
+      "violationCount": 3
+    },
+    "advisory": {
+      "rules": [
+        {
+          "functionId": "FF-C01",
+          "name": "domain-stability",
+          "dimension": "coupling",
+          "tier": "advisory",
+          "tierSource": "table",
+          "violationCount": 0,
+          "violated": false
+        },
+        {
+          "functionId": "FF-C02",
+          "name": "module-fan-out",
+          "dimension": "coupling",
+          "tier": "advisory",
+          "tierSource": "table",
+          "violationCount": 10,
+          "violated": true
+        },
+        {
+          "functionId": "FF-C03",
+          "name": "component-instability",
+          "dimension": "coupling",
+          "tier": "advisory",
+          "tierSource": "table",
+          "violationCount": 45,
+          "violated": true
+        },
+        {
+          "functionId": "FF-C04",
+          "name": "no-orphan-files",
+          "dimension": "coupling",
+          "tier": "advisory",
+          "tierSource": "table",
+          "violationCount": 9,
+          "violated": true
+        },
+        {
+          "functionId": "FF-C05",
+          "name": "max-fan-in",
+          "dimension": "coupling",
+          "tier": "advisory",
+          "tierSource": "table",
+          "violationCount": 11,
+          "violated": true
+        },
+        {
+          "functionId": "FF-C06",
+          "name": "abstraction-ratio",
+          "dimension": "coupling",
+          "tier": "advisory",
+          "tierSource": "table",
+          "violationCount": 1,
+          "violated": true
+        },
+        {
+          "functionId": "FF-CV02",
+          "name": "naming-services",
+          "dimension": "convention",
+          "tier": "advisory",
+          "tierSource": "table",
+          "violationCount": 0,
+          "violated": false
+        },
+        {
+          "functionId": "FF-CV03",
+          "name": "naming-repos",
+          "dimension": "convention",
+          "tier": "advisory",
+          "tierSource": "table",
+          "violationCount": 0,
+          "violated": false
+        },
+        {
+          "functionId": "FF-CV05",
+          "name": "test-file-pairing",
+          "dimension": "convention",
+          "tier": "advisory",
+          "tierSource": "table",
+          "violationCount": 152,
+          "violated": true
+        },
+        {
+          "functionId": "FF-CV06",
+          "name": "no-index-logic",
+          "dimension": "convention",
+          "tier": "advisory",
+          "tierSource": "table",
+          "violationCount": 0,
+          "violated": false
+        },
+        {
+          "functionId": "FF-P02",
+          "name": "dependency-inversion",
+          "dimension": "pattern",
+          "tier": "advisory",
+          "tierSource": "table",
+          "violationCount": 5,
+          "violated": true
+        },
+        {
+          "functionId": "FF-P04",
+          "name": "use-case-isolation",
+          "dimension": "pattern",
+          "tier": "advisory",
+          "tierSource": "table",
+          "violationCount": 0,
+          "violated": false
+        },
+        {
+          "functionId": "FF-P05",
+          "name": "controller-no-entity",
+          "dimension": "pattern",
+          "tier": "advisory",
+          "tierSource": "table",
+          "violationCount": 0,
+          "violated": false
+        },
+        {
+          "functionId": "FF-SO01",
+          "name": "single-responsibility-proxy",
+          "dimension": "solid",
+          "tier": "advisory",
+          "tierSource": "table",
+          "violationCount": 10,
+          "violated": true
+        },
+        {
+          "functionId": "FF-SO02",
+          "name": "interface-segregation-proxy",
+          "dimension": "solid",
+          "tier": "advisory",
+          "tierSource": "table",
+          "violationCount": 2,
+          "violated": true
+        },
+        {
+          "functionId": "FF-SO03",
+          "name": "inheritance-depth",
+          "dimension": "solid",
+          "tier": "advisory",
+          "tierSource": "table",
+          "violationCount": 0,
+          "violated": false
+        }
+      ],
+      "violatedRules": 9,
+      "violationCount": 245
+    },
+    "notApplicable": [
+      {
+        "functionId": "FF-P06",
+        "part": "FLOWS_TO field rows",
+        "reason": "The field half needs FLOWS_TO, which is near-empty (rule-tiers.md, finding 9); reported N/A with its denominator",
+        "naRows": 0,
+        "totalRows": 0,
+        "flowsToEdges": 18
+      }
+    ],
+    "blockingNotExecuted": []
+  },
+  "warnings": [
+    {
+      "code": "EXTRACTOR_004",
+      "message": "IMPLEMENTS target not in extracted set: ExpressErrorMiddlewareInterface",
+      "context": {
+        "filePath": "src/exposes/api/mobile/middlewares/ErrorMiddleware.ts"
+      },
+      "stage": "extract-apg"
+    },
+    {
+      "code": "EXTRACTOR_004",
+      "message": "IMPLEMENTS target not in extracted set: ExpressErrorMiddlewareInterface",
+      "context": {
+        "filePath": "src/exposes/api/web/middlewares/ErrorMiddleware.ts"
+      },
+      "stage": "extract-apg"
+    },
+    {
+      "code": "EXTRACTOR_004",
+      "message": "IMPLEMENTS target not in extracted set: ExpressErrorMiddlewareInterface",
+      "context": {
+        "filePath": "src/exposes/ui/web/middlewares/ErrorMiddleware.ts"
+      },
+      "stage": "extract-apg"
+    },
+    {
+      "code": "EXTRACTOR_004",
+      "message": "IMPLEMENTS target not in extracted set: ExpressMiddlewareInterface",
+      "context": {
+        "filePath": "src/exposes/api/mobile/middlewares/BodyParserMiddleware.ts"
+      },
+      "stage": "extract-apg"
+    },
+    {
+      "code": "EXTRACTOR_004",
+      "message": "IMPLEMENTS target not in extracted set: ExpressMiddlewareInterface",
+      "context": {
+        "filePath": "src/exposes/api/web/middlewares/BodyParserMiddleware.ts"
+      },
+      "stage": "extract-apg"
+    },
+    {
+      "code": "EXTRACTOR_004",
+      "message": "IMPLEMENTS target not in extracted set: ExpressMiddlewareInterface",
+      "context": {
+        "filePath": "src/exposes/api/web/middlewares/PrivateAccessMiddleware.ts"
+      },
+      "stage": "extract-apg"
+    },
+    {
+      "code": "EXTRACTOR_004",
+      "message": "IMPLEMENTS target not in extracted set: ExpressMiddlewareInterface",
+      "context": {
+        "filePath": "src/exposes/ui/web/middlewares/AuthenticationMiddleware.ts"
+      },
+      "stage": "extract-apg"
+    },
+    {
+      "code": "EXTRACTOR_004",
+      "message": "IMPLEMENTS target not in extracted set: MigrationInterface",
+      "context": {
+        "filePath": "src/infras/data/typeorm/migrations/1639016247061-Initialize.ts"
+      },
+      "stage": "extract-apg"
+    },
+    {
+      "code": "EXTRACTOR_005",
+      "message": "CONSTRUCTOR_INJECTS type unresolvable: (string | number | boolean | { t: string; })[]",
+      "context": {
+        "filePath": "src/shared/exceptions/LogicalError.ts"
+      },
+      "stage": "extract-apg"
+    },
+    {
+      "code": "EXTRACTOR_005",
+      "message": "CONSTRUCTOR_INJECTS type unresolvable: (string | number | boolean | { t: string; })[]",
+      "context": {
+        "filePath": "src/shared/exceptions/NotFoundError.ts"
+      },
+      "stage": "extract-apg"
+    },
+    {
+      "code": "EXTRACTOR_005",
+      "message": "CONSTRUCTOR_INJECTS type unresolvable: (string | number | boolean | { t: string; })[]",
+      "context": {
+        "filePath": "src/shared/exceptions/UnauthorizedError.ts"
+      },
+      "stage": "extract-apg"
+    },
+    {
+      "code": "EXTRACTOR_008",
+      "message": "Import target outside the extracted set: ../../../../../resources/data/dummy-clients.js",
+      "context": {
+        "filePath": "src/application/usecases/user/client/import-client-test/ImportClientTestHandler.ts"
+      },
+      "stage": "extract-apg"
+    },
+    {
+      "code": "EXTRACTOR_008",
+      "message": "Import target outside the extracted set: ../../../../../resources/data/dummy-managers.js",
+      "context": {
+        "filePath": "src/application/usecases/user/manager/import-manager-test/ImportManagerTestHandler.ts"
+      },
+      "stage": "extract-apg"
+    },
+    {
+      "code": "EXTRACTOR_009",
+      "message": "Unsupported dynamic import(s): 1",
+      "context": {
+        "filePath": "src/exposes/socket/SocketService.ts"
+      },
+      "stage": "extract-apg"
+    },
+    {
+      "code": "EXTRACTOR_009",
+      "message": "Unsupported dynamic import(s): 1",
+      "context": {
+        "filePath": "src/exposes/ui/doc/ApiGenerator.ts"
+      },
+      "stage": "extract-apg"
+    },
+    {
+      "code": "EXTRACTOR_009",
+      "message": "Unsupported dynamic import(s): 1",
+      "context": {
+        "filePath": "src/infras/data/DataRegister.ts"
+      },
+      "stage": "extract-apg"
+    },
+    {
+      "code": "EXTRACTOR_009",
+      "message": "Unsupported dynamic import(s): 1",
+      "context": {
+        "filePath": "src/infras/data/redis/RedisRegister.ts"
+      },
+      "stage": "extract-apg"
+    },
+    {
+      "code": "EXTRACTOR_009",
+      "message": "Unsupported dynamic import(s): 1",
+      "context": {
+        "filePath": "src/infras/data/typeorm/DbRegister.ts"
+      },
+      "stage": "extract-apg"
+    },
+    {
+      "code": "EXTRACTOR_009",
+      "message": "Unsupported dynamic import(s): 1",
+      "context": {
+        "filePath": "src/infras/services/ServiceRegister.ts"
+      },
+      "stage": "extract-apg"
+    },
+    {
+      "code": "SPEC_001",
+      "message": "Unknown field \"default_exclude_paths\" in spec (ignored)",
+      "stage": "parse-spec"
+    },
+    {
+      "code": "SPEC_002",
+      "message": "Template function \"FF-C01\" overridden by spec declaration",
+      "stage": "parse-spec"
+    },
+    {
+      "code": "SPEC_002",
+      "message": "Template function \"FF-C02\" overridden by spec declaration",
+      "stage": "parse-spec"
+    },
+    {
+      "code": "SPEC_002",
+      "message": "Template function \"FF-C03\" overridden by spec declaration",
+      "stage": "parse-spec"
+    },
+    {
+      "code": "SPEC_002",
+      "message": "Template function \"FF-C04\" overridden by spec declaration",
+      "stage": "parse-spec"
+    },
+    {
+      "code": "SPEC_002",
+      "message": "Template function \"FF-C05\" overridden by spec declaration",
+      "stage": "parse-spec"
+    },
+    {
+      "code": "SPEC_002",
+      "message": "Template function \"FF-C06\" overridden by spec declaration",
+      "stage": "parse-spec"
+    },
+    {
+      "code": "SPEC_002",
+      "message": "Template function \"FF-CV01\" overridden by spec declaration",
+      "stage": "parse-spec"
+    },
+    {
+      "code": "SPEC_002",
+      "message": "Template function \"FF-CV02\" overridden by spec declaration",
+      "stage": "parse-spec"
+    },
+    {
+      "code": "SPEC_002",
+      "message": "Template function \"FF-CV03\" overridden by spec declaration",
+      "stage": "parse-spec"
+    },
+    {
+      "code": "SPEC_002",
+      "message": "Template function \"FF-CV04\" overridden by spec declaration",
+      "stage": "parse-spec"
+    },
+    {
+      "code": "SPEC_002",
+      "message": "Template function \"FF-CV05\" overridden by spec declaration",
+      "stage": "parse-spec"
+    },
+    {
+      "code": "SPEC_002",
+      "message": "Template function \"FF-CV06\" overridden by spec declaration",
+      "stage": "parse-spec"
+    },
+    {
+      "code": "SPEC_002",
+      "message": "Template function \"FF-N01\" overridden by spec declaration",
+      "stage": "parse-spec"
+    },
+    {
+      "code": "SPEC_002",
+      "message": "Template function \"FF-N02\" overridden by spec declaration",
+      "stage": "parse-spec"
+    },
+    {
+      "code": "SPEC_002",
+      "message": "Template function \"FF-P01\" overridden by spec declaration",
+      "stage": "parse-spec"
+    },
+    {
+      "code": "SPEC_002",
+      "message": "Template function \"FF-P02\" overridden by spec declaration",
+      "stage": "parse-spec"
+    },
+    {
+      "code": "SPEC_002",
+      "message": "Template function \"FF-P03\" overridden by spec declaration",
+      "stage": "parse-spec"
+    },
+    {
+      "code": "SPEC_002",
+      "message": "Template function \"FF-P04\" overridden by spec declaration",
+      "stage": "parse-spec"
+    },
+    {
+      "code": "SPEC_002",
+      "message": "Template function \"FF-P05\" overridden by spec declaration",
+      "stage": "parse-spec"
+    },
+    {
+      "code": "SPEC_002",
+      "message": "Template function \"FF-P06\" overridden by spec declaration",
+      "stage": "parse-spec"
+    },
+    {
+      "code": "SPEC_002",
+      "message": "Template function \"FF-S01\" overridden by spec declaration",
+      "stage": "parse-spec"
+    },
+    {
+      "code": "SPEC_002",
+      "message": "Template function \"FF-S02\" overridden by spec declaration",
+      "stage": "parse-spec"
+    },
+    {
+      "code": "SPEC_002",
+      "message": "Template function \"FF-S03\" overridden by spec declaration",
+      "stage": "parse-spec"
+    },
+    {
+      "code": "SPEC_002",
+      "message": "Template function \"FF-S04\" overridden by spec declaration",
+      "stage": "parse-spec"
+    },
+    {
+      "code": "SPEC_002",
+      "message": "Template function \"FF-SO01\" overridden by spec declaration",
+      "stage": "parse-spec"
+    },
+    {
+      "code": "SPEC_002",
+      "message": "Template function \"FF-SO02\" overridden by spec declaration",
+      "stage": "parse-spec"
+    },
+    {
+      "code": "SPEC_002",
+      "message": "Template function \"FF-SO03\" overridden by spec declaration",
+      "stage": "parse-spec"
+    },
+    {
+      "code": "COMPILER_004",
+      "message": "FF-S03 (no-layer-skip) disabled: not applicable to style clean-architecture",
+      "context": {
+        "functionId": "FF-S03"
+      },
+      "stage": "compile-functions"
+    }
+  ],
+  "functionExecution": {
+    "declared": 27,
+    "adrDerived": 0,
+    "compiled": 24,
+    "disabled": 3,
+    "dropped": [],
+    "skippedByMode": 2,
+    "noJudgeUnits": [],
+    "executed": 22,
+    "failed": []
+  },
+  "functionResults": [
+    {
+      "functionId": "FF-P06",
+      "name": "domain-state-purity",
+      "dimension": "pattern",
+      "route": "symbolic",
+      "tag": "structural",
+      "passed": true,
+      "violationCount": 0,
+      "executionTimeMs": 13,
+      "truncated": false
+    },
+    {
+      "functionId": "FF-S01",
+      "name": "dependency-direction",
+      "dimension": "structural",
+      "route": "symbolic",
+      "tag": "structural",
+      "passed": true,
+      "violationCount": 0,
+      "executionTimeMs": 133,
+      "truncated": false
+    },
+    {
+      "functionId": "FF-S04",
+      "name": "no-domain-outward-dep",
+      "dimension": "structural",
+      "route": "symbolic",
+      "tag": "structural",
+      "passed": true,
+      "violationCount": 0,
+      "executionTimeMs": 21,
+      "truncated": false
+    },
+    {
+      "functionId": "FF-C01",
+      "name": "domain-stability",
+      "dimension": "coupling",
+      "route": "symbolic",
+      "tag": "topological",
+      "passed": true,
+      "violationCount": 0,
+      "executionTimeMs": 10,
+      "truncated": false
+    },
+    {
+      "functionId": "FF-C02",
+      "name": "module-fan-out",
+      "dimension": "coupling",
+      "route": "symbolic",
+      "tag": "topological",
+      "passed": false,
+      "violationCount": 10,
+      "executionTimeMs": 22,
+      "truncated": false
+    },
+    {
+      "functionId": "FF-C03",
+      "name": "component-instability",
+      "dimension": "coupling",
+      "route": "symbolic",
+      "tag": "topological",
+      "passed": false,
+      "violationCount": 45,
+      "executionTimeMs": 34,
+      "truncated": false
+    },
+    {
+      "functionId": "FF-C04",
+      "name": "no-orphan-files",
+      "dimension": "coupling",
+      "route": "symbolic",
+      "tag": "topological",
+      "passed": false,
+      "violationCount": 9,
+      "executionTimeMs": 9,
+      "truncated": false
+    },
+    {
+      "functionId": "FF-C05",
+      "name": "max-fan-in",
+      "dimension": "coupling",
+      "route": "symbolic",
+      "tag": "topological",
+      "passed": false,
+      "violationCount": 11,
+      "executionTimeMs": 9,
+      "truncated": false
+    },
+    {
+      "functionId": "FF-C06",
+      "name": "abstraction-ratio",
+      "dimension": "coupling",
+      "route": "symbolic",
+      "tag": "topological",
+      "passed": false,
+      "violationCount": 1,
+      "executionTimeMs": 4,
+      "truncated": false
+    },
+    {
+      "functionId": "FF-S02",
+      "name": "no-cyclic-deps",
+      "dimension": "structural",
+      "route": "symbolic",
+      "tag": "topological",
+      "passed": false,
+      "violationCount": 2,
+      "executionTimeMs": 101,
+      "truncated": false
+    },
+    {
+      "functionId": "FF-SO03",
+      "name": "inheritance-depth",
+      "dimension": "solid",
+      "route": "symbolic",
+      "tag": "topological",
+      "passed": true,
+      "violationCount": 0,
+      "executionTimeMs": 4,
+      "truncated": false
+    },
+    {
+      "functionId": "FF-CV02",
+      "name": "naming-services",
+      "dimension": "convention",
+      "route": "symbolic",
+      "tag": "pattern-proxy",
+      "passed": true,
+      "violationCount": 0,
+      "executionTimeMs": 5,
+      "truncated": false
+    },
+    {
+      "functionId": "FF-CV03",
+      "name": "naming-repos",
+      "dimension": "convention",
+      "route": "symbolic",
+      "tag": "pattern-proxy",
+      "passed": true,
+      "violationCount": 0,
+      "executionTimeMs": 3,
+      "truncated": false
+    },
+    {
+      "functionId": "FF-CV05",
+      "name": "test-file-pairing",
+      "dimension": "convention",
+      "route": "symbolic",
+      "tag": "pattern-proxy",
+      "passed": false,
+      "violationCount": 152,
+      "executionTimeMs": 151,
+      "truncated": false
+    },
+    {
+      "functionId": "FF-CV06",
+      "name": "no-index-logic",
+      "dimension": "convention",
+      "route": "symbolic",
+      "tag": "pattern-proxy",
+      "passed": true,
+      "violationCount": 0,
+      "executionTimeMs": 5,
+      "truncated": false
+    },
+    {
+      "functionId": "FF-P01",
+      "name": "domain-purity",
+      "dimension": "pattern",
+      "route": "symbolic",
+      "tag": "pattern-proxy",
+      "passed": true,
+      "violationCount": 0,
+      "executionTimeMs": 44,
+      "truncated": false
+    },
+    {
+      "functionId": "FF-P02",
+      "name": "dependency-inversion",
+      "dimension": "pattern",
+      "route": "symbolic",
+      "tag": "pattern-proxy",
+      "passed": false,
+      "violationCount": 5,
+      "executionTimeMs": 20,
+      "truncated": false
+    },
+    {
+      "functionId": "FF-P03",
+      "name": "repository-pattern",
+      "dimension": "pattern",
+      "route": "symbolic",
+      "tag": "pattern-proxy",
+      "passed": false,
+      "violationCount": 1,
+      "executionTimeMs": 21,
+      "truncated": false
+    },
+    {
+      "functionId": "FF-P04",
+      "name": "use-case-isolation",
+      "dimension": "pattern",
+      "route": "symbolic",
+      "tag": "pattern-proxy",
+      "passed": true,
+      "violationCount": 0,
+      "executionTimeMs": 16,
+      "truncated": false
+    },
+    {
+      "functionId": "FF-P05",
+      "name": "controller-no-entity",
+      "dimension": "pattern",
+      "route": "symbolic",
+      "tag": "pattern-proxy",
+      "passed": true,
+      "violationCount": 0,
+      "executionTimeMs": 16,
+      "truncated": false
+    },
+    {
+      "functionId": "FF-SO01",
+      "name": "single-responsibility-proxy",
+      "dimension": "solid",
+      "route": "symbolic",
+      "tag": "pattern-proxy",
+      "passed": false,
+      "violationCount": 10,
+      "executionTimeMs": 10,
+      "truncated": false
+    },
+    {
+      "functionId": "FF-SO02",
+      "name": "interface-segregation-proxy",
+      "dimension": "solid",
+      "route": "symbolic",
+      "tag": "pattern-proxy",
+      "passed": false,
+      "violationCount": 2,
+      "executionTimeMs": 2,
+      "truncated": false
+    }
+  ],
+  "disabledFunctions": [
+    {
+      "functionId": "FF-CV01",
+      "name": "naming-conventions",
+      "reason": "ADR-016 b (B&T Step 31): cannot fire; per-layer naming patterns compile to .* and no requirement supplies them (SP-FF-CV01 not fired)"
+    },
+    {
+      "functionId": "FF-CV04",
+      "name": "naming-controllers",
+      "reason": "ADR-016 b (B&T Step 31): cannot fire; class decorators are not ingested (BR-U2-31), so no controller is selected (SP-FF-CV04 not fired)"
+    },
+    {
+      "functionId": "FF-S03",
+      "name": "no-layer-skip",
+      "reason": "not applicable to style clean-architecture"
+    }
+  ],
+  "graphStats": {
+    "nodeCount": 894,
+    "edgeCount": 2054,
+    "layerCoverage": 0.6440677966101694,
+    "nodeCountByType": {
+      "File": 236,
+      "Class": 196,
+      "Interface": 35,
+      "Method": 329,
+      "Function": 46,
+      "Package": 52
+    },
+    "edgeCountByType": {
+      "IMPORTS": 1101,
+      "IMPLEMENTS": 64,
+      "EXTENDS": 54,
+      "CONSTRUCTOR_INJECTS": 109,
+      "CALLS": 102,
+      "DECLARES": 277,
+      "CONTAINS": 329,
+      "FLOWS_TO": 18,
+      "RE_EXPORTS": 0
+    }
+  },
+  "layerAnnotation": {
+    "mapped": 152,
+    "unmapped": 84,
+    "unmappedFiles": [
+      "src/app.ts",
+      "src/config/Configuration.ts",
+      "src/config/DbConfig.ts",
+      "src/utils/Common.ts",
+      "src/utils/Converter.ts",
+      "src/utils/Crypt.ts",
+      "src/utils/Datetime.ts",
+      "src/utils/File.ts",
+      "src/utils/Socket.ts",
+      "src/utils/Validation.ts",
+      "src/exposes/socket/SocketService.ts",
+      "src/shared/database/DbTypes.ts",
+      "src/shared/decorators/RefSchema.ts",
+      "src/shared/decorators/UsecaseOptionRequest.ts",
+      "src/shared/decorators/ValidationDecorator.ts",
+      "src/shared/exceptions/AccessDeniedError.ts",
+      "src/shared/exceptions/BaseError.ts",
+      "src/shared/exceptions/InputValidationError.ts",
+      "src/shared/exceptions/InternalServerError.ts",
+      "src/shared/exceptions/LogicalError.ts",
+      "src/shared/exceptions/NotFoundError.ts",
+      "src/shared/exceptions/UnauthorizedError.ts",
+      "src/shared/localization/Localization.ts",
+      "src/shared/request/IRequest.ts",
+      "src/shared/request/LogTracing.ts",
+      "src/shared/request/UserAuthenticated.ts",
+      "src/shared/test/MockAuthentication.ts",
+      "src/shared/test/MockAuthJwtService.ts",
+      "src/shared/test/MockDbContext.ts",
+      "src/shared/test/MockFunction.ts",
+      "src/shared/test/MockInjection.ts",
+      "src/shared/test/MockLogService.ts",
+      "src/shared/test/MockMobileApi.ts",
+      "src/shared/test/MockRedisContext.ts",
+      "src/shared/test/MockStorageService.ts",
+      "src/shared/test/MockWebApi.ts",
+      "src/shared/types/Common.ts",
+      "src/shared/types/Environment.ts",
+      "src/shared/types/Global.ts",
+      "src/shared/types/Injection.ts",
+      "src/shared/usecase/BulkActionResponse.ts",
+      "src/shared/usecase/DataResponse.ts",
+      "src/shared/usecase/PaginationRequest.ts",
+      "src/shared/usecase/PaginationResponse.ts",
+      "src/shared/usecase/UsecaseOption.ts",
+      "src/exposes/api/mobile/ApiAuthenticator.ts",
+      "src/exposes/api/mobile/ApiDocument.ts",
+      "src/exposes/api/mobile/ApiService.ts",
+      "src/exposes/api/web/ApiAuthenticator.ts",
+      "src/exposes/api/web/ApiDocument.ts",
+      "src/exposes/api/web/ApiService.ts",
+      "src/exposes/socket/channels/ChatChannel.ts",
+      "src/exposes/socket/channels/NotificationChannel.ts",
+      "src/exposes/socket/channels/TrackingChannel.ts",
+      "src/exposes/ui/doc/ApiGenerator.ts",
+      "src/exposes/ui/doc/ApiService.ts",
+      "src/exposes/ui/web/WebAuthenticator.ts",
+      "src/exposes/ui/web/WebService.ts",
+      "src/shared/database/interfaces/IDbContext.ts",
+      "src/shared/database/interfaces/IDbMigration.ts",
+      "src/shared/database/interfaces/IRedisContext.ts",
+      "src/shared/database/interfaces/IRepository.ts",
+      "src/shared/exceptions/message/ErrorCode.ts",
+      "src/shared/exceptions/message/ErrorObject.ts",
+      "src/shared/exceptions/message/MessageError.ts",
+      "src/shared/socket/interfaces/ISocket.ts",
+      "src/shared/socket/namespaces/ChatNS.ts",
+      "src/shared/socket/namespaces/NotificationNS.ts",
+      "src/shared/socket/namespaces/TrackingNS.ts",
+      "src/shared/usecase/interfaces/IUsecaseHandler.ts",
+      "src/exposes/api/mobile/middlewares/BodyParserMiddleware.ts",
+      "src/exposes/api/mobile/middlewares/ErrorMiddleware.ts",
+      "src/exposes/api/web/middlewares/BodyParserMiddleware.ts",
+      "src/exposes/api/web/middlewares/ErrorMiddleware.ts",
+      "src/exposes/api/web/middlewares/PrivateAccessMiddleware.ts",
+      "src/exposes/ui/web/controllers/HomeController.ts",
+      "src/exposes/ui/web/controllers/UserController.ts",
+      "src/exposes/ui/web/middlewares/AuthenticationMiddleware.ts",
+      "src/exposes/ui/web/middlewares/ErrorMiddleware.ts",
+      "src/exposes/api/mobile/controllers/auth/AuthController.ts",
+      "src/exposes/api/web/controllers/auth/AuthController.ts",
+      "src/exposes/api/web/controllers/user/ClientController.ts",
+      "src/exposes/api/web/controllers/user/ManagerController.ts",
+      "src/exposes/api/web/controllers/user/UserController.ts"
+    ]
+  },
+  "parseCoverage": {
+    "total": 236,
+    "parsed": 236,
+    "percentage": 100,
+    "skipped": []
+  },
+  "importResolution": {
+    "resolvedInternal": 779,
+    "external": 368,
+    "externalOutOfRootAlias": 0,
+    "unresolved": 0,
+    "droppedNoFileNode": 0,
+    "unsupportedDynamic": 6
+  },
+  "timings": {
+    "stages": [
+      {
+        "name": "parallel:extract-apg+parse-spec",
+        "durationMs": 3216,
+        "status": "success"
+      },
+      {
+        "name": "ingest-apg",
+        "durationMs": 280,
+        "status": "success"
+      },
+      {
+        "name": "compile-functions",
+        "durationMs": 6,
+        "status": "success"
+      },
+      {
+        "name": "evaluate-symbolic",
+        "durationMs": 654,
+        "status": "success"
+      },
+      {
+        "name": "universal-metric:cyclicDependencyCount",
+        "durationMs": 47,
+        "status": "success"
+      },
+      {
+        "name": "compute-scores",
+        "durationMs": 95,
+        "status": "success"
+      }
+    ],
+    "totalMs": 4251
+  },
+  "judge": {
+    "provider": "none",
+    "model": "none",
+    "runsPerUnit": 0
+  },
+  "instrumentVersion": 2
+}

@@ -28,7 +28,8 @@ import { CODEX_DISABLED_FEATURES, CODEX_SHELL_FEATURES, buildCodexChildEnv } fro
 import { parseJsonl } from '../../../lib/generators/codex-events.js';
 import { RESPONSE_SCHEMA_TEXT } from './meaningful-prompt.js';
 
-export type ProviderId = 'codex' | 'gemini' | 'mock';
+/** `claude-cli`, `openai-api` and `fake` are the model panel's (`scripts/v1.3/lib/panel/adapters.ts`). */
+export type ProviderId = 'codex' | 'gemini' | 'mock' | 'claude-cli' | 'openai-api' | 'fake';
 export const PROVIDER_IDS: readonly ProviderId[] = ['codex', 'gemini', 'mock'];
 export const LABEL_TEMPERATURE = 0;
 

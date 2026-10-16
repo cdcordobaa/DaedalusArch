@@ -1,0 +1,29 @@
+--- /dev/null
++++ b/src/persistence/RequestLogGateway.ts
+@@ -0,0 +1,26 @@
++import type { HttpRequest } from '../presentation/http/HttpTypes';
++import { InMemoryDatabase } from './Database';
++
++export interface RequestLogRow {
++  id: string;
++  route: string;
++  params: Record<string, string>;
++  receivedAt: string;
++}
++
++export class RequestLogGateway {
++  private sequence = 0;
++
++  constructor(private readonly db: InMemoryDatabase) {}
++
++  record(route: string, request: HttpRequest): RequestLogRow {
++    this.sequence += 1;
++    const row: RequestLogRow = { id: `req-${this.sequence}`, route, params: { ...request.params }, receivedAt: new Date().toISOString() };
++    this.db.table<RequestLogRow>('request_log').set(row.id, row);
++    return row;
++  }
++
++  findAll(): RequestLogRow[] {
++    return [...this.db.table<RequestLogRow>('request_log').values()];
++  }
++}

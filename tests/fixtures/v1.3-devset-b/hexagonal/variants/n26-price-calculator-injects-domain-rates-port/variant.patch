@@ -1,0 +1,94 @@
+--- /dev/null
++++ b/src/adapters/outbound/pricing/WeekendRatesAdapter.ts
+@@ -0,0 +1,14 @@
++import { DateRange } from '../../../domain/model/DateRange';
++import { SeasonalRates } from '../../../domain/ports/SeasonalRates';
++
++const FRIDAY = 5;
++const SATURDAY = 6;
++
++export class WeekendRatesAdapter implements SeasonalRates {
++  constructor(private readonly weekendMultiplier = 1.2) {}
++
++  multiplierFor(stay: DateRange): number {
++    const day = stay.checkIn.getUTCDay();
++    return day === FRIDAY || day === SATURDAY ? this.weekendMultiplier : 1;
++  }
++}
+--- a/src/application/services/BookRoomService.ts
++++ b/src/application/services/BookRoomService.ts
+@@ -2,6 +2,7 @@
+ import { Booking } from '../../domain/model/Booking';
+ import { DateRange } from '../../domain/model/DateRange';
+ import { AvailabilityChecker } from '../../domain/services/AvailabilityChecker';
++import { SeasonalRates } from '../../domain/ports/SeasonalRates';
+ import { PriceCalculator } from '../../domain/services/PriceCalculator';
+ import { BookRoom, BookRoomCommand } from '../ports/in/BookRoom';
+ import { BookingView, toBookingView } from '../ports/in/BookingView';
+@@ -13,7 +14,7 @@
+ 
+ export class BookRoomService implements BookRoom {
+   private readonly availability = new AvailabilityChecker();
+-  private readonly pricing = new PriceCalculator();
++  private readonly pricing: PriceCalculator;
+ 
+   constructor(
+     private readonly rooms: RoomRepository,
+@@ -21,7 +22,10 @@
+     private readonly guests: GuestRepository,
+     private readonly payments: PaymentGateway,
+     private readonly notifications: NotificationSender,
+-  ) {}
++    rates: SeasonalRates,
++  ) {
++    this.pricing = new PriceCalculator(rates);
++  }
+ 
+   async book(command: BookRoomCommand): Promise<BookingView> {
+     const room = await this.rooms.findById(command.roomId);
+--- a/src/config/container.ts
++++ b/src/config/container.ts
+@@ -6,6 +6,7 @@
+ import { InMemoryBookingRepository } from '../adapters/outbound/persistence/InMemoryBookingRepository';
+ import { InMemoryGuestRepository } from '../adapters/outbound/persistence/InMemoryGuestRepository';
+ import { InMemoryRoomRepository } from '../adapters/outbound/persistence/InMemoryRoomRepository';
++import { WeekendRatesAdapter } from '../adapters/outbound/pricing/WeekendRatesAdapter';
+ import { BookRoomService } from '../application/services/BookRoomService';
+ import { CancelBookingService } from '../application/services/CancelBookingService';
+ import { FindAvailableRoomsService } from '../application/services/FindAvailableRoomsService';
+@@ -24,7 +25,7 @@
+   const payments = new FakePaymentGateway();
+   const notifications = new OutboxNotificationAdapter();
+ 
+-  const bookRoom = new BookRoomService(rooms, bookings, guests, payments, notifications);
++  const bookRoom = new BookRoomService(rooms, bookings, guests, payments, notifications, new WeekendRatesAdapter());
+   return {
+     bookings: new BookingController(bookRoom, new CancelBookingService(bookings, guests, payments, notifications)),
+     rooms: new RoomController(new FindAvailableRoomsService(rooms, bookings)),
+--- /dev/null
++++ b/src/domain/ports/SeasonalRates.ts
+@@ -0,0 +1,5 @@
++import { DateRange } from '../model/DateRange';
++
++export interface SeasonalRates {
++  multiplierFor(stay: DateRange): number;
++}
+--- a/src/domain/services/PriceCalculator.ts
++++ b/src/domain/services/PriceCalculator.ts
+@@ -1,11 +1,15 @@
+ import { DateRange } from '../model/DateRange';
+ import { Money } from '../model/Money';
+ import { Room } from '../model/Room';
++import { SeasonalRates } from '../ports/SeasonalRates';
+ 
+ const CLEANING_FEE = Money.ofCents(2_500);
+ 
+ export class PriceCalculator {
++  constructor(private readonly rates: SeasonalRates) {}
++
+   quote(room: Room, stay: DateRange): Money {
+-    return room.nightlyRate.times(stay.nights()).add(CLEANING_FEE);
++    const nightly = Math.round(room.nightlyRate.cents * this.rates.multiplierFor(stay));
++    return Money.ofCents(nightly).times(stay.nights()).add(CLEANING_FEE);
+   }
+ }

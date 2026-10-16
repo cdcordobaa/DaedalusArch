@@ -1,0 +1,32 @@
+{
+  "schemaVersion": 1,
+  "style": "layered",
+  "variant": "v32-product-gateway-reserves-order-items",
+  "kind": "violation",
+  "plants": "FF-S02",
+  "description": "ProductGateway (persistence) imports the OrderItem type from the business OrderService for hasStockFor(items); OrderService already imports ProductGateway, so the upward edge closes a cross-layer cycle.",
+  "patch": "variant.patch",
+  "expectedFindings": [
+    {
+      "ruleId": "FF-S02",
+      "ruleName": "no-cyclic-deps",
+      "file": "src/business/services/OrderService.ts",
+      "target": "src/persistence/ProductGateway.ts",
+      "reason": "Two-file import cycle OrderService -> ProductGateway -> OrderService across business and persistence."
+    },
+    {
+      "ruleId": "FF-S01",
+      "ruleName": "dependency-direction",
+      "file": "src/persistence/ProductGateway.ts",
+      "target": "src/business/services/OrderService.ts",
+      "reason": "A lower layer (persistence) imports an upper one (business)."
+    },
+    {
+      "ruleId": "FF-S03",
+      "ruleName": "no-layer-skip",
+      "file": "src/persistence/ProductGateway.ts",
+      "target": "src/business/services/OrderService.ts",
+      "reason": "persistence > business is not an allowed transition (only business > persistence and presentation > business are)."
+    }
+  ]
+}

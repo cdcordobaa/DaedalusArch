@@ -1,0 +1,35 @@
+--- a/src/registrations/registrations.controller.ts
++++ b/src/registrations/registrations.controller.ts
+@@ -1,4 +1,4 @@
+-import { Body, Controller, Delete, Param, Post, UseGuards } from '@nestjs/common';
++import { Body, Controller, Delete, Get, Param, Post, UseGuards } from '@nestjs/common';
+ import { ApiKeyGuard } from '../common/guards/api-key.guard';
+ import { RegisterAttendeeDto } from './dto/register-attendee.dto';
+ import { RegistrationResponseDto } from './dto/registration-response.dto';
+@@ -14,6 +14,11 @@
+     return this.registrationsService.register(dto);
+   }
+ 
++  @Get('attendee/:attendeeId')
++  findByAttendee(@Param('attendeeId') attendeeId: string): Promise<RegistrationResponseDto[]> {
++    return this.registrationsService.findByAttendee(attendeeId);
++  }
++
+   @Delete(':id')
+   cancel(@Param('id') id: string): Promise<RegistrationResponseDto> {
+     return this.registrationsService.cancel(id);
+--- a/src/registrations/registrations.service.ts
++++ b/src/registrations/registrations.service.ts
+@@ -35,6 +35,12 @@
+     return RegistrationResponseDto.from(registration);
+   }
+ 
++  async findByAttendee(attendeeId: string): Promise<RegistrationResponseDto[]> {
++    const attendee = await this.attendees.findById(attendeeId);
++    if (attendee === undefined) throw new DomainError('not-found', `No attendee ${attendeeId}`);
++    return (await this.registrations.findByAttendee(attendee.id)).map((r) => RegistrationResponseDto.from(r));
++  }
++
+   async cancel(id: string): Promise<RegistrationResponseDto> {
+     const registration = await this.registrations.findById(id);
+     if (registration === undefined) throw new DomainError('not-found', `No registration ${id}`);

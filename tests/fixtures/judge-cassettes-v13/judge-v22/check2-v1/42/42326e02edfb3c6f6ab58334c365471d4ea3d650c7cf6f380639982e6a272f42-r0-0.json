@@ -1,0 +1,47 @@
+{
+  "attempts": 1,
+  "cliVersion": "2.1.294",
+  "configListingSha256": "47aa04258852fab9a706f3f0c14cee22306d69fbb6fdfbde8c11854bd54997bc",
+  "durationMs": 9458,
+  "effort": "high",
+  "functionId": "FF-N02",
+  "ignoredOptions": [
+    "maxTokens"
+  ],
+  "isolationProbeSha256": "97a2e2d0af1100c13c55e028c1a0c71f069093c3d08705af122aaeb302f1a641",
+  "key": "42326e02edfb3c6f6ab58334c365471d4ea3d650c7cf6f380639982e6a272f42-r0-0",
+  "model": "claude-opus-5-5",
+  "outcome": {
+    "kind": "valid"
+  },
+  "parsedVerdict": {
+    "confidence": 0.72,
+    "evidence": [
+      "src/adapters/outbound/payment/CardPaymentAdapter.ts: class CardPaymentAdapter implements PaymentPort (the outbound port contract)",
+      "authorise(): stores reference -> amountCents in a private Map, which acts as a stand-in for the gateway's state (infrastructure)",
+      "authorise(): `if (amountCents <= 0) return false;` looks like the gateway declining an invalid amount, not domain policy",
+      "refund(): removes the authorisation from the Map (gateway side effect)"
+    ],
+    "pass": true,
+    "reasoning": "CardPaymentAdapter is in an infrastructure layer (adapters-outbound) and implements the outbound PaymentPort. It works like an in-memory payment gateway: it records authorisations in a Map and deletes them on refund. That is integration and state-keeping work, which fits infrastructure. The one conditional, `if (amountCents <= 0) return false;` in authorise, looks like a gateway refusing a malformed amount, the way a real card processor rejects non-positive charges. It does not look like a domain rule about orders or payments that would belong in the domain or application layer. It is a borderline case: if the project treats 'amount must be positive' as a domain invariant, this check repeats it. Still, it is too small and too close to normal gateway behaviour to count as a misplaced responsibility. The file has no other policy, orchestration or presentation logic.",
+    "violations": []
+  },
+  "prompt": "## Rule\nThe unit's responsibilities match the role of its declared layer.\n\n## Rubric\nPass: Every responsibility in the file belongs to the role and kind of its declared layer, and agrees with any ADR prose given.\nFail: The file carries a responsibility that belongs to a different layer kind, for example persistence, transport or framework logic in a domain file, or business rules in an infrastructure or presentation file.\nEvidence required: Name the file and cite the function, method or statement that carries the misplaced responsibility, and the layer kind it belongs to.\nOut of scope: import direction and layer-dependency rules, which are checked symbolically.\n\n## Layer model\n- domain (kind: domain): src/domain/**\n- application (kind: application): src/application/**\n- adapters-inbound (kind: presentation): src/adapters/inbound/**\n- adapters-outbound (kind: infrastructure): src/adapters/outbound/**\n- config (kind: application): src/config/**\n\n## Unit\nKind: file\nId: src/adapters/outbound/payment/CardPaymentAdapter.ts\nLayer: adapters-outbound\nUnit files:\n- src/adapters/outbound/payment/CardPaymentAdapter.ts\n\n## Source\n=====SOURCE-BEGIN src/adapters/outbound/payment/CardPaymentAdapter.ts=====\nimport { PaymentPort } from '../../../application/ports/out/PaymentPort';\n\nexport class CardPaymentAdapter implements PaymentPort {\n  private readonly authorised = new Map<string, number>();\n\n  async authorise(reference: string, amountCents: number): Promise<boolean> {\n    if (amountCents <= 0) return false;\n    this.authorised.set(reference, amountCents);\n    return true;\n  }\n\n  async refund(reference: string): Promise<void> {\n    this.authorised.delete(reference);\n  }\n}\n\n=====SOURCE-END=====\n\n## Graph excerpt\n{\"edges\":[{\"from\":\"CardPaymentAdapter@src/adapters/outbound/payment/CardPaymentAdapter.ts\",\"to\":\"PaymentPort@src/application/ports/out/PaymentPort.ts\",\"type\":\"IMPLEMENTS\"},{\"from\":\"src/adapters/outbound/payment/CardPaymentAdapter.ts\",\"to\":\"src/application/ports/out/PaymentPort.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/config/container.ts\",\"to\":\"src/adapters/outbound/payment/CardPaymentAdapter.ts\",\"type\":\"IMPORTS\"}],\"nodes\":[{\"kind\":\"Class\",\"layer\":\"adapters-outbound\",\"name\":\"CardPaymentAdapter\",\"path\":\"src/adapters/outbound/payment/CardPaymentAdapter.ts\"},{\"kind\":\"File\",\"layer\":\"adapters-outbound\",\"path\":\"src/adapters/outbound/payment/CardPaymentAdapter.ts\"},{\"kind\":\"File\",\"layer\":\"application\",\"path\":\"src/application/ports/out/PaymentPort.ts\"},{\"kind\":\"File\",\"layer\":\"config\",\"path\":\"src/config/container.ts\"},{\"kind\":\"Interface\",\"layer\":\"application\",\"name\":\"PaymentPort\",\"path\":\"src/application/ports/out/PaymentPort.ts\"}]}\n\n## Instructions\nJudge the unit against the rule and rubric. Return the JSON object the schema requires. Set pass to false if any file of the unit fails the rubric.\n",
+  "provider": "claude-cli",
+  "recordedAt": "2026-10-16T02:26:34.947Z",
+  "repetition": 0,
+  "requestHash": "42326e02edfb3c6f6ab58334c365471d4ea3d650c7cf6f380639982e6a272f42",
+  "resolvedModel": "claude-opus-5-5",
+  "response": "{\"is_error\":false,\"modelUsage\":{\"claude-opus-5-5\":{\"inputTokens\":2,\"outputTokens\":729}},\"result\":\"{\\\"pass\\\":true,\\\"confidence\\\":0.72,\\\"reasoning\\\":\\\"CardPaymentAdapter is in an infrastructure layer (adapters-outbound) and implements the outbound PaymentPort. It works like an in-memory payment gateway: it records authorisations in a Map and deletes them on refund. That is integration and state-keeping work, which fits infrastructure. The one conditional, `if (amountCents <= 0) return false;` in authorise, looks like a gateway refusing a malformed amount, the way a real card processor rejects non-positive charges. It does not look like a domain rule about orders or payments that would belong in the domain or application layer. It is a borderline case: if the project treats 'amount must be positive' as a domain invariant, this check repeats it. Still, it is too small and too close to normal gateway behaviour to count as a misplaced responsibility. The file has no other policy, orchestration or presentation logic.\\\",\\\"evidence\\\":[\\\"src/adapters/outbound/payment/CardPaymentAdapter.ts: class CardPaymentAdapter implements PaymentPort (the outbound port contract)\\\",\\\"authorise(): stores reference -> amountCents in a private Map, which acts as a stand-in for the gateway's state (infrastructure)\\\",\\\"authorise(): `if (amountCents <= 0) return false;` looks like the gateway declining an invalid amount, not domain policy\\\",\\\"refund(): removes the authorisation from the Map (gateway side effect)\\\"],\\\"violations\\\":[]}\",\"structured_output\":{\"confidence\":0.72,\"evidence\":[\"src/adapters/outbound/payment/CardPaymentAdapter.ts: class CardPaymentAdapter implements PaymentPort (the outbound port contract)\",\"authorise(): stores reference -> amountCents in a private Map, which acts as a stand-in for the gateway's state (infrastructure)\",\"authorise(): `if (amountCents <= 0) return false;` looks like the gateway declining an invalid amount, not domain policy\",\"refund(): removes the authorisation from the Map (gateway side effect)\"],\"pass\":true,\"reasoning\":\"CardPaymentAdapter is in an infrastructure layer (adapters-outbound) and implements the outbound PaymentPort. It works like an in-memory payment gateway: it records authorisations in a Map and deletes them on refund. That is integration and state-keeping work, which fits infrastructure. The one conditional, `if (amountCents <= 0) return false;` in authorise, looks like a gateway refusing a malformed amount, the way a real card processor rejects non-positive charges. It does not look like a domain rule about orders or payments that would belong in the domain or application layer. It is a borderline case: if the project treats 'amount must be positive' as a domain invariant, this check repeats it. Still, it is too small and too close to normal gateway behaviour to count as a misplaced responsibility. The file has no other policy, orchestration or presentation logic.\",\"violations\":[]}}",
+  "runIndex": 0,
+  "schemaVersion": 2,
+  "unitId": "src/adapters/outbound/payment/CardPaymentAdapter.ts",
+  "usage": {
+    "inputTokens": 2619,
+    "outputTokens": 729
+  },
+  "usedOptions": {
+    "effort": "high",
+    "model": "claude-opus-5-5"
+  }
+}
