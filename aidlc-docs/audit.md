@@ -1604,3 +1604,11 @@ Earlier the same night: 15 PRs merged into v1.3 (tip b08ec387), all gated (tsc, 
 **Context**: Research note, no code or result changed. No AI-DLC stage advanced.
 
 ---
+
+## v1.3 CONSTRUCTION — fidelity adjudication prep (scheduled run)
+**Timestamp**: 2026-10-16T00:00:00Z
+**User Input**: (scheduled task, no live user) "Pre-adjudicate every graph-fidelity and reference disagreement row with evidence (new columns proposed_verdict/proposed_class/evidence; never fill human_verdict/adjudication), compute the proposed-not-adjudicated precision/recall per project set, build a seeded author review sheet, add dynamic-import reference cases tested in jest, and write the diagnostic run; one PR into v1.3, not merged."
+**AI Response**: "Branch v1.3-fidelity-adjudication. 2,516 sheet rows proposed (results/v1.3-fidelity-adjudication-prep/), 0 unverified, 0 edge-level tool-bugs; review sheet 235 items (seed 20261016); fixture fixtures/unit/v13-dynamic-imports found one gap (type-position import('x').T has no APG edge). Report: Docs/DiagnosticRuns/v1.3-fidelity-adjudication-prep-2026-10-16.md. AI-DLC approval gates not run: unattended scheduled task with an explicit specification; the author reviews in the PR."
+**Context**: v1.3 link-1 adjudication preparation; no baseline or frozen artefact changed.
+
+---
