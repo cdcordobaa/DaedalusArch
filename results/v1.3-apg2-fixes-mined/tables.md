@@ -2,9 +2,44 @@
 
 | id | commits on path | sampled | valid pairs | bot / mass pairs | files (last) | items (last) | snapshots | errors | median s/snapshot | wall s |
 |---|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|
+| hoppscotch-backend | 319 | 100 | 99 | 0 / 2 | 189 | 10669 | 200 | 1 | 5.0 | 1052 |
+| immich-server | 3601 | 100 | 84 | 16 / 0 | 458 | 8864 | 200 | 31 | 13.3 | 2511 |
+| podkrepi-api | 455 | 100 | 100 | 0 / 1 | 576 | 1247 | 197 | 0 | 3.1 | 680 |
+| hedgedoc-backend | 1151 | 100 | 99 | 62 / 1 | 203 | 584 | 200 | 1 | 3.7 | 767 |
+| awesome-nest-boilerplate | 336 | 100 | 100 | 1 / 10 | 98 | 219 | 200 | 0 | 1.5 | 312 |
+| mikro-orm-realworld | 1079 | 100 | 100 | 93 / 0 | 39 | 51 | 200 | 0 | 0.6 | 144 |
+| clean-ts-api | 576 | 100 | 98 | 0 / 6 | 180 | 67 | 200 | 3 | 0.9 | 203 |
+| standardnotes-auth | 1201 | 100 | 99 | 0 / 0 | 469 | 1295 | 200 | 1 | 5.1 | 1060 |
+| domain-driven-hexagon | 445 | 100 | 100 | 0 / 2 | 82 | 54 | 200 | 0 | 1.3 | 287 |
+| bitloops-ddd-backend | 21 | 21 | 20 | 1 / 7 | 164 | 354 | 22 | 1 | 3.4 | 77 |
+| medplum-server | 2997 | 100 | 99 | 1 / 3 | 491 | 4208 | 200 | 1 | 11.8 | 3252 |
+| ts-express-starter-prisma | 1 | 1 | 0 | 0 / 0 | 34 | 159 | 2 | 1 | 2.7 | 3 |
+| reactive-resume-api | 127 | 100 | 98 | 2 / 15 | 115 | 413 | 126 | 3 | 3.6 | 491 |
+| etherpad | 3948 | 100 | 32 | 15 / 1 | 133 | 161 | 200 | 136 | 4.5 | 350 |
+| pvarentsov-clean | 214 | 100 | 98 | 1 / 12 | 184 | 225 | 198 | 3 | 1.5 | 305 |
+| luizomf-clean-api | 162 | 100 | 100 | 0 / 7 | 125 | 151 | 161 | 0 | 1.2 | 201 |
+| dannielhugo-clean | 83 | 82 | 82 | 0 / 36 | 69 | 51 | 83 | 0 | 0.9 | 81 |
+| bulletproof-nodejs | 48 | 47 | 47 | 0 / 9 | 25 | 20 | 47 | 0 | 0.4 | 23 |
+| w3tec-express-boilerplate | 73 | 72 | 72 | 0 / 20 | 58 | 65 | 72 | 0 | 1.4 | 112 |
+| talento90-typescript-node | 88 | 87 | 85 | 0 / 29 | 35 | 47 | 85 | 3 | 0.8 | 74 |
+| zeldaplay-api | 35 | 35 | 34 | 0 / 7 | 85 | 57 | 36 | 1 | 1.7 | 65 |
+| neoteric-nestjs-auth | 8 | 7 | 5 | 0 / 2 | 183 | 263 | 8 | 3 | 3.4 | 19 |
+| vivify-nestjs-boilerplate | 29 | 28 | 28 | 3 / 10 | 33 | 18 | 29 | 0 | 0.9 | 28 |
+| conduit-ports-adapters | 103 | 100 | 94 | 0 / 38 | 36 | 31 | 103 | 11 | 0.8 | 90 |
+| ddialar-hexagonal-boilerplate | 5 | 4 | 4 | 0 / 1 | 19 | 8 | 5 | 0 | 0.6 | 4 |
+| nest-products-hexagonal | 22 | 21 | 21 | 0 / 4 | 23 | 37 | 22 | 0 | 0.8 | 19 |
+| ddd-forum | 119 | 100 | 99 | 0 / 20 | 248 | 439 | 119 | 1 | 2.2 | 235 |
+| finance-project-ddd | 245 | 100 | 100 | 0 / 44 | 166 | 186 | 199 | 0 | 1.1 | 241 |
+| event-sourcing-ddd | 5 | 4 | 4 | 0 / 1 | 58 | 83 | 5 | 0 | 1.4 | 8 |
+| ghostfolio-api | 1988 | 100 | 100 | 0 / 0 | 334 | 919 | 200 | 0 | 6.6 | 1461 |
+| directus-api | 3305 | 100 | 99 | 8 / 1 | 845 | 3159 | 200 | 1 | 8.6 | 2013 |
+| outline-server | 3124 | 100 | 75 | 1 / 0 | 552 | 703 | 200 | 50 | 11.4 | 1882 |
+| logto-core | 2744 | 100 | 99 | 2 / 1 | 559 | 1596 | 200 | 1 | 7.5 | 1706 |
+| unleash | 3359 | 100 | 99 | 4 / 1 | 941 | 2940 | 200 | 2 | 19.1 | 3633 |
+| budibase-server | 4160 | 100 | 84 | 0 / 2 | 594 | 2026 | 200 | 32 | 9.2 | 1623 |
 | amplication-server | 826 | 100 | 99 | 3 / 2 | 875 | 1252 | 200 | 1 | 3.8 | 1019 |
 
-Valid pairs: 99. Non-bot valid commits: 96; with architecture words: 4 = 4.17% [1.63%, 10.23%].
+Valid pairs: 2656. Non-bot valid commits: 2443; with architecture words: 355 = 14.53% [13.19%, 15.98%].
 
 ## Fix rates by group
 
@@ -12,18 +47,18 @@ Exposure = an item (or baseline edge) present at the parent of a valid sampled p
 
 | group | exposures | credited | rate [Wilson 95%] | vs (a) cross-layer: RR [95%] | repo-boot 95% | vs (b) pkg: RR [95%] | repo-boot 95% | h (a) / h (b) | fix commits | RR without top commit | RR one credit per commit | repos above (a) | arch words in fix commits |
 |---|---:|---:|---|---|---|---|---|---|---:|---|---|---|---|
-| APG v2, blocking-tier templates | 382 | 0 | 0.00% [0.00%, 1.00%] | 6.32 [0.34, 117.11] | [0.00, 0.00] | 1.83 [0.11, 29.62] | [0.00, 0.00] | -0.027 / -0.053 | 0 | 6.32 [0.34, 117.11] | 11.37 [0.55, 236.42] | 0/1 (p=1.000) | 0/0 (n/a) |
-| APG v2, advisory-tier templates | 11812 | 4 | 0.034% [0.013%, 0.087%] | 1.84 [0.46, 7.36] | [1.84, 1.84] | 0.48 [0.17, 1.33] | [0.48, 0.48] | 0.010 / -0.016 | 3 | 0.92 [0.17, 5.02] | 2.76 [0.46, 16.52] | 1/1 (p=1.000) | 1/3 (33.33% [6.15%, 79.23%]) |
-| cheap proxies (all advisory) | 24516 | 74 | 0.30% [0.24%, 0.38%] | 16.41 [6.00, 44.87] | [16.41, 16.41] | 4.27 [2.93, 6.21] | [4.27, 4.27] | 0.083 / 0.057 | 13 | 12.64 [4.59, 34.83] | 5.77 [1.30, 25.54] | 1/1 (p=1.000) | 1/13 (7.69% [1.37%, 33.31%]) |
-| APG v2, import-graph-invisible | 1620 | 3 | 0.19% [0.063%, 0.54%] | 10.07 [2.25, 44.94] | [10.07, 10.07] | 2.62 [0.81, 8.43] | [2.62, 2.62] | 0.059 / 0.033 | 3 | 6.71 [1.23, 36.61] | 20.13 [3.37, 120.40] | 1/1 (p=1.000) | 1/3 (33.33% [6.15%, 79.23%]) |
-| APG v2, import-graph-visible | 10574 | 1 | 0.009% [0.002%, 0.054%] | 0.51 [0.06, 4.60] | [0.51, 0.51] | 0.13 [0.02, 0.97] | [0.13, 0.13] | -0.008 / -0.034 | 1 | 0.23 [0.01, 4.24] | 1.03 [0.09, 11.34] | 0/1 (p=1.000) | 1/1 (100.00% [20.65%, 100.00%]) |
-| proxies, import-graph-invisible | 11112 | 29 | 0.26% [0.18%, 0.37%] | 14.19 [4.99, 40.34] | [14.19, 14.19] | 3.69 [2.30, 5.91] | [3.69, 3.69] | 0.075 / 0.049 | 8 | 11.25 [3.89, 32.53] | 7.83 [1.66, 36.85] | 1/1 (p=1.000) | 1/8 (12.50% [2.24%, 47.09%]) |
-| proxies, import-graph-visible | 13404 | 45 | 0.34% [0.25%, 0.45%] | 18.25 [6.57, 50.73] | [18.25, 18.25] | 4.75 [3.13, 7.21] | [4.75, 4.75] | 0.089 / 0.063 | 8 | 11.36 [3.98, 32.37] | 6.49 [1.38, 30.55] | 1/1 (p=1.000) | 0/8 (0.00% [0.00%, 32.44%]) |
-| all import-graph-invisible items | 12732 | 32 | 0.25% [0.18%, 0.35%] | 13.66 [4.83, 38.62] | [13.66, 13.66] | 3.55 [2.25, 5.61] | [3.55, 3.55] | 0.073 / 0.047 | 10 | 11.10 [3.88, 31.80] | 8.54 [1.87, 38.97] | 1/1 (p=1.000) | 1/10 (10.00% [1.79%, 40.42%]) |
-| baseline (a): unflagged cross-layer import edges | 21744 | 4 | 0.018% [0.007%, 0.047%] | 1.00 [0.25, 4.00] | [1.00, 1.00] | 0.26 [0.09, 0.72] | [0.26, 0.26] | 0.000 / -0.026 | 2 | 0.50 [0.09, 2.73] | 1.00 [0.14, 7.10] | 0/0 (p=1.000) | 1/2 (50.00% [9.45%, 90.55%]) |
-| baseline (a): unflagged layered import edges | 95630 | 56 | 0.059% [0.045%, 0.076%] | 3.18 [1.15, 8.78] | [3.18, 3.18] | 0.83 [0.56, 1.23] | [0.83, 0.83] | 0.021 / -0.005 | 6 | 1.08 [0.37, 3.17] | 0.68 [0.14, 3.38] | 1/1 (p=1.000) | 1/6 (16.67% [3.01%, 56.35%]) |
-| baseline (a): all unflagged internal import edges | 102718 | 63 | 0.061% [0.048%, 0.078%] | 3.33 [1.21, 9.16] | [3.33, 3.33] | 0.87 [0.59, 1.28] | [0.87, 0.87] | 0.022 / -0.004 | 7 | 1.38 [0.48, 3.94] | 0.74 [0.15, 3.57] | 1/1 (p=1.000) | 1/7 (14.29% [2.57%, 51.31%]) |
-| baseline (b): file -> package imports | 60785 | 43 | 0.071% [0.053%, 0.095%] | 3.85 [1.38, 10.71] | [3.85, 3.85] | 1.00 [0.66, 1.53] | [1.00, 1.00] | 0.026 / 0.000 | 6 | 0.80 [0.25, 2.61] | 1.07 [0.22, 5.32] | 1/1 (p=1.000) | 0/6 (0.00% [0.00%, 39.03%]) |
+| APG v2, blocking-tier templates | 72493 | 15 | 0.021% [0.013%, 0.034%] | 1.14 [0.65, 2.00] | [0.45, 2.35] | 0.91 [0.54, 1.55] | [0.37, 2.06] | 0.002 / -0.001 | 10 | 0.92 [0.50, 1.69] | 1.33 [0.67, 2.67] | 6/20 (p=0.115) | 4/10 (40.00% [16.82%, 68.73%]) |
+| APG v2, advisory-tier templates | 110249 | 28 | 0.025% [0.018%, 0.037%] | 1.40 [0.91, 2.18] | [0.66, 3.14] | 1.12 [0.75, 1.67] | [0.61, 2.28] | 0.005 / 0.002 | 19 | 1.30 [0.83, 2.04] | 1.67 [0.97, 2.88] | 11/23 (p=1.000) | 7/19 (36.84% [19.15%, 58.96%]) |
+| cheap proxies (all advisory) | 2014145 | 3587 | 0.18% [0.17%, 0.18%] | 9.84 [7.77, 12.47] | [4.89, 22.95] | 7.87 [6.77, 9.15] | [4.41, 16.66] | 0.058 / 0.054 | 304 | 8.40 [6.63, 10.65] | 1.46 [1.05, 2.03] | 29/30 (p=0.000) | 63/304 (20.72% [16.55%, 25.63%]) |
+| APG v2, import-graph-invisible | 25887 | 17 | 0.066% [0.041%, 0.11%] | 3.63 [2.14, 6.17] | [1.58, 6.84] | 2.90 [1.77, 4.77] | [1.37, 5.08] | 0.024 / 0.021 | 14 | 3.20 [1.83, 5.59] | 5.23 [2.85, 9.61] | 8/21 (p=0.383) | 5/14 (35.71% [16.34%, 61.24%]) |
+| APG v2, import-graph-visible | 156855 | 26 | 0.017% [0.011%, 0.024%] | 0.92 [0.58, 1.44] | [0.43, 1.92] | 0.73 [0.49, 1.11] | [0.37, 1.54] | -0.001 / -0.004 | 17 | 0.81 [0.51, 1.30] | 1.05 [0.59, 1.85] | 10/24 (p=0.541) | 7/17 (41.18% [21.61%, 63.99%]) |
+| proxies, import-graph-invisible | 1586247 | 2814 | 0.18% [0.17%, 0.18%] | 9.81 [7.74, 12.43] | [4.83, 24.33] | 7.84 [6.74, 9.13] | [4.28, 18.30] | 0.057 / 0.054 | 263 | 8.38 [6.61, 10.62] | 1.60 [1.15, 2.24] | 28/29 (p=0.000) | 56/263 (21.29% [16.78%, 26.64%]) |
+| proxies, import-graph-visible | 427898 | 773 | 0.18% [0.17%, 0.19%] | 9.99 [7.82, 12.75] | [4.38, 22.93] | 7.99 [6.78, 9.40] | [4.10, 15.50] | 0.058 / 0.055 | 101 | 6.78 [5.29, 8.70] | 2.28 [1.58, 3.29] | 22/27 (p=0.002) | 15/101 (14.85% [9.21%, 23.07%]) |
+| all import-graph-invisible items | 1612134 | 2831 | 0.18% [0.17%, 0.18%] | 9.71 [7.66, 12.30] | [4.82, 23.35] | 7.76 [6.67, 9.04] | [4.18, 16.98] | 0.057 / 0.054 | 270 | 8.30 [6.55, 10.53] | 1.62 [1.16, 2.26] | 28/29 (p=0.000) | 57/270 (21.11% [16.67%, 26.37%]) |
+| baseline (a): unflagged cross-layer import edges | 386937 | 70 | 0.018% [0.014%, 0.023%] | 1.00 [0.72, 1.39] | [1.00, 1.00] | 0.80 [0.61, 1.05] | [0.43, 1.57] | 0.000 / -0.003 | 40 | 0.87 [0.62, 1.23] | 1.00 [0.65, 1.55] | 0/0 (p=1.000) | 20/40 (50.00% [35.20%, 64.80%]) |
+| baseline (a): unflagged layered import edges | 1000964 | 167 | 0.017% [0.014%, 0.019%] | 0.92 [0.70, 1.22] | [0.60, 1.48] | 0.74 [0.60, 0.91] | [0.44, 1.08] | -0.001 / -0.004 | 64 | 0.72 [0.54, 0.96] | 0.62 [0.42, 0.92] | 6/22 (p=0.052) | 29/64 (45.31% [33.73%, 57.43%]) |
+| baseline (a): all unflagged internal import edges | 1733504 | 255 | 0.015% [0.013%, 0.017%] | 0.81 [0.62, 1.06] | [0.48, 1.37] | 0.65 [0.54, 0.79] | [0.44, 0.98] | -0.003 / -0.006 | 94 | 0.70 [0.53, 0.91] | 0.52 [0.36, 0.76] | 10/26 (p=0.327) | 39/94 (41.49% [32.06%, 51.59%]) |
+| baseline (b): file -> package imports | 782430 | 177 | 0.023% [0.020%, 0.026%] | 1.25 [0.95, 1.65] | [0.65, 2.22] | 1.00 [0.81, 1.23] | [1.00, 1.00] | 0.003 / 0.000 | 77 | 1.01 [0.76, 1.34] | 0.95 [0.65, 1.39] | 16/27 (p=0.442) | 19/77 (24.68% [16.40%, 35.35%]) |
 
 ### Touched pairs only
 
@@ -31,120 +66,165 @@ Exposures restricted to pairs whose commit touched a file the item (edge, packag
 
 | group | exposures in touched pairs | credited | rate [Wilson 95%] | vs (a) cross-layer touched: RR [95%] | vs (b) pkg touched: RR [95%] |
 |---|---:|---:|---|---|---|
-| APG v2, blocking-tier templates | 0 | 0 | n/a | n/a | n/a |
-| APG v2, advisory-tier templates | 395 | 2 | 0.51% [0.14%, 1.83%] | 0.86 [0.16, 4.69] | 0.10 [0.03, 0.43] |
-| cheap proxies (all advisory) | 1039 | 40 | 3.85% [2.84%, 5.20%] | 6.55 [2.36, 18.24] | 0.79 [0.52, 1.20] |
-| APG v2, import-graph-invisible | 116 | 1 | 0.86% [0.15%, 4.72%] | 1.47 [0.17, 13.02] | 0.18 [0.02, 1.27] |
-| APG v2, import-graph-visible | 279 | 1 | 0.36% [0.063%, 2.00%] | 0.61 [0.07, 5.44] | 0.07 [0.01, 0.53] |
-| proxies, import-graph-invisible | 442 | 11 | 2.49% [1.40%, 4.40%] | 4.24 [1.36, 13.22] | 0.51 [0.26, 0.98] |
-| proxies, import-graph-visible | 597 | 29 | 4.86% [3.40%, 6.89%] | 8.27 [2.92, 23.39] | 0.99 [0.63, 1.57] |
-| all import-graph-invisible items | 558 | 12 | 2.15% [1.23%, 3.72%] | 3.66 [1.19, 11.29] | 0.44 [0.23, 0.83] |
-| baseline (a): unflagged cross-layer import edges | 681 | 4 | 0.59% [0.23%, 1.50%] | 1.00 [0.25, 3.98] | 0.12 [0.04, 0.33] |
-| baseline (a): unflagged layered import edges | 2524 | 56 | 2.22% [1.71%, 2.87%] | 3.78 [1.37, 10.38] | 0.45 [0.31, 0.67] |
-| baseline (a): all unflagged internal import edges | 2833 | 63 | 2.22% [1.74%, 2.83%] | 3.79 [1.38, 10.37] | 0.45 [0.31, 0.66] |
-| baseline (b): file -> package imports | 879 | 43 | 4.89% [3.65%, 6.52%] | 8.33 [3.00, 23.09] | 1.00 [0.66, 1.51] |
+| APG v2, blocking-tier templates | 1025 | 9 | 0.88% [0.46%, 1.66%] | 2.34 [1.17, 4.67] | 0.79 [0.41, 1.55] |
+| APG v2, advisory-tier templates | 2711 | 23 | 0.85% [0.57%, 1.27%] | 2.26 [1.41, 3.61] | 0.77 [0.50, 1.18] |
+| cheap proxies (all advisory) | 61074 | 2605 | 4.27% [4.11%, 4.43%] | 11.36 [8.96, 14.39] | 3.86 [3.32, 4.49] |
+| APG v2, import-graph-invisible | 833 | 15 | 1.80% [1.09%, 2.95%] | 4.79 [2.76, 8.34] | 1.63 [0.97, 2.75] |
+| APG v2, import-graph-visible | 2903 | 17 | 0.59% [0.37%, 0.94%] | 1.56 [0.92, 2.64] | 0.53 [0.32, 0.87] |
+| proxies, import-graph-invisible | 46850 | 1917 | 4.09% [3.92%, 4.27%] | 10.89 [8.59, 13.82] | 3.70 [3.18, 4.31] |
+| proxies, import-graph-visible | 14224 | 688 | 4.84% [4.50%, 5.20%] | 12.88 [10.08, 16.45] | 4.38 [3.72, 5.15] |
+| all import-graph-invisible items | 47683 | 1932 | 4.05% [3.88%, 4.23%] | 10.79 [8.50, 13.68] | 3.67 [3.15, 4.27] |
+| baseline (a): unflagged cross-layer import edges | 18637 | 70 | 0.38% [0.30%, 0.47%] | 1.00 [0.72, 1.39] | 0.34 [0.26, 0.45] |
+| baseline (a): unflagged layered import edges | 36606 | 167 | 0.46% [0.39%, 0.53%] | 1.21 [0.92, 1.60] | 0.41 [0.33, 0.51] |
+| baseline (a): all unflagged internal import edges | 64270 | 255 | 0.40% [0.35%, 0.45%] | 1.06 [0.81, 1.38] | 0.36 [0.30, 0.43] |
+| baseline (b): file -> package imports | 16016 | 177 | 1.11% [0.95%, 1.28%] | 2.94 [2.23, 3.88] | 1.00 [0.81, 1.23] |
 
 ## Fix rates by template and proxy
 
 | group | exposures | credited | rate [Wilson 95%] | vs (a) cross-layer: RR [95%] | repo-boot 95% | vs (b) pkg: RR [95%] | repo-boot 95% | h (a) / h (b) | fix commits | RR without top commit | RR one credit per commit | repos above (a) | arch words in fix commits |
 |---|---:|---:|---|---|---|---|---|---|---:|---|---|---|---|
-| component-adp-cycle (blocking) | 382 | 0 | 0.00% [0.00%, 1.00%] | 6.32 [0.34, 117.11] | [0.00, 0.00] | 1.83 [0.11, 29.62] | [0.00, 0.00] | -0.027 / -0.053 | 0 | 6.32 [0.34, 117.11] | 11.37 [0.55, 236.42] | 0/1 (p=1.000) | 0/0 (n/a) |
-| component-main-sequence-distance (advisory) | 217 | 2 | 0.92% [0.25%, 3.30%] | 50.10 [9.23, 272.10] | [50.10, 50.10] | 13.03 [3.18, 53.44] | [13.03, 13.03] | 0.165 / 0.139 | 2 | 25.05 [2.81, 223.21] | 100.20 [14.18, 708.11] | 1/1 (p=1.000) | 1/2 (50.00% [9.45%, 90.55%]) |
-| component-sdp-violation (advisory) | 291 | 0 | 0.00% [0.00%, 1.30%] | 8.29 [0.45, 153.59] | [0.00, 0.00] | 2.40 [0.15, 38.84] | [0.00, 0.00] | -0.027 / -0.053 | 0 | 8.29 [0.45, 153.59] | 14.92 [0.72, 310.07] | 0/1 (p=1.000) | 0/0 (n/a) |
-| deep-import-inferred-api (advisory) | 9885 | 1 | 0.010% [0.002%, 0.057%] | 0.55 [0.06, 4.92] | [0.55, 0.55] | 0.14 [0.02, 1.04] | [0.14, 0.14] | -0.007 / -0.033 | 1 | 0.24 [0.01, 4.54] | 1.10 [0.10, 12.13] | 0/1 (p=1.000) | 1/1 (100.00% [20.65%, 100.00%]) |
-| nondeterminism-in-core (advisory) | 1419 | 1 | 0.070% [0.012%, 0.40%] | 3.83 [0.43, 34.25] | [3.83, 3.83] | 1.00 [0.14, 7.23] | [1.00, 1.00] | 0.026 / -0.000 | 1 | 1.70 [0.09, 31.60] | 7.66 [0.70, 84.44] | 1/1 (p=1.000) | 0/1 (0.00% [0.00%, 79.35%]) |
-| clones/cross-component-exact-structural | 56 | 0 | 0.00% [0.00%, 6.42%] | 42.76 [2.33, 785.02] | [0.00, 0.00] | 12.37 [0.77, 198.43] | [0.00, 0.00] | -0.027 / -0.053 | 0 | 42.76 [2.33, 785.02] | 76.97 [3.74, 1585.34] | 0/1 (p=1.000) | 0/0 (n/a) |
-| clones/same-component-exact-structural | 4548 | 8 | 0.18% [0.089%, 0.35%] | 9.56 [2.88, 31.74] | [9.56, 9.56] | 2.49 [1.17, 5.29] | [2.49, 2.49] | 0.057 / 0.031 | 2 | 4.78 [1.20, 19.11] | 4.78 [0.67, 33.93] | 1/1 (p=1.000) | 0/2 (0.00% [0.00%, 65.76%]) |
-| clones/same-component-guard | 2516 | 8 | 0.32% [0.16%, 0.63%] | 17.28 [5.21, 57.36] | [17.28, 17.28] | 4.49 [2.12, 9.55] | [4.49, 4.49] | 0.086 / 0.060 | 2 | 4.32 [0.79, 23.58] | 8.64 [1.22, 61.33] | 1/1 (p=1.000) | 0/2 (0.00% [0.00%, 65.76%]) |
-| clones/same-component-near | 6270 | 16 | 0.26% [0.16%, 0.41%] | 13.87 [4.64, 41.48] | [13.87, 13.87] | 3.61 [2.03, 6.40] | [3.61, 3.61] | 0.074 / 0.048 | 6 | 10.40 [3.36, 32.25] | 10.40 [2.10, 51.53] | 1/1 (p=1.000) | 0/6 (0.00% [0.00%, 39.03%]) |
-| cohesion/broad-responsibility | 1046 | 1 | 0.096% [0.017%, 0.54%] | 5.20 [0.58, 46.46] | [5.20, 5.20] | 1.35 [0.19, 9.80] | [1.35, 1.35] | 0.035 / 0.009 | 1 | 2.31 [0.12, 42.85] | 10.39 [0.94, 114.53] | 1/1 (p=1.000) | 0/1 (0.00% [0.00%, 79.35%]) |
-| cohesion/low-cohesion | 567 | 1 | 0.18% [0.031%, 0.99%] | 9.59 [1.07, 85.64] | [9.59, 9.59] | 2.49 [0.34, 18.07] | [2.49, 2.49] | 0.057 / 0.031 | 1 | 4.26 [0.23, 78.98] | 19.17 [1.74, 211.16] | 1/1 (p=1.000) | 1/1 (100.00% [20.65%, 100.00%]) |
-| communities/community-component-mismatch | 3450 | 21 | 0.61% [0.40%, 0.93%] | 33.09 [11.37, 96.34] | [33.09, 33.09] | 8.60 [5.11, 14.48] | [8.60, 8.60] | 0.129 / 0.103 | 6 | 23.63 [7.85, 71.17] | 18.91 [3.82, 93.64] | 1/1 (p=1.000) | 1/6 (16.67% [3.01%, 56.35%]) |
-| config-surface/env-read-outside-config | 20 | 0 | 0.00% [0.00%, 16.11%] | 117.86 [6.55, 2119.49] | [0.00, 0.00] | 34.08 [2.17, 535.20] | [0.00, 0.00] | -0.027 / -0.053 | 0 | 117.86 [6.55, 2119.49] | 212.14 [10.51, 4283.70] | 0/1 (p=1.000) | 0/0 (n/a) |
-| logic-density/adapter-logic-density | 77 | 0 | 0.00% [0.00%, 4.75%] | 31.17 [1.69, 574.12] | [0.00, 0.00] | 9.02 [0.56, 145.14] | [0.00, 0.00] | -0.027 / -0.053 | 0 | 31.17 [1.69, 574.12] | 56.11 [2.72, 1159.29] | 0/1 (p=1.000) | 0/0 (n/a) |
-| logic-density/controller-logic-density | 45 | 0 | 0.00% [0.00%, 7.87%] | 53.10 [2.90, 972.05] | [0.00, 0.00] | 15.36 [0.96, 245.67] | [0.00, 0.00] | -0.027 / -0.053 | 0 | 53.10 [2.90, 972.05] | 95.58 [4.65, 1963.27] | 0/1 (p=1.000) | 0/0 (n/a) |
-| name-behaviour/controller-business-logic | 45 | 0 | 0.00% [0.00%, 7.87%] | 53.10 [2.90, 972.05] | [0.00, 0.00] | 15.36 [0.96, 245.67] | [0.00, 0.00] | -0.027 / -0.053 | 0 | 53.10 [2.90, 972.05] | 95.58 [4.65, 1963.27] | 0/1 (p=1.000) | 0/0 (n/a) |
-| reachability/unreachable-module | 4578 | 19 | 0.42% [0.27%, 0.65%] | 22.56 [7.68, 66.29] | [22.56, 22.56] | 5.87 [3.42, 10.06] | [5.87, 5.87] | 0.102 / 0.076 | 3 | 2.37 [0.44, 12.96] | 7.12 [1.19, 42.63] | 1/1 (p=1.000) | 0/3 (0.00% [0.00%, 56.15%]) |
-| sdk-spread/vendor-sdk-outside-adapters | 950 | 0 | 0.00% [0.00%, 0.40%] | 2.54 [0.14, 47.18] | [0.00, 0.00] | 0.74 [0.05, 11.93] | [0.00, 0.00] | -0.027 / -0.053 | 0 | 2.54 [0.14, 47.18] | 4.58 [0.22, 95.24] | 0/1 (p=1.000) | 0/0 (n/a) |
-| shared-literals/shared-number-literal | 325 | 0 | 0.00% [0.00%, 1.17%] | 7.42 [0.40, 137.58] | [0.00, 0.00] | 2.15 [0.13, 34.79] | [0.00, 0.00] | -0.027 / -0.053 | 0 | 7.42 [0.40, 137.58] | 13.36 [0.64, 277.75] | 0/1 (p=1.000) | 0/0 (n/a) |
-| vocabulary/vocabulary-leakage | 23 | 0 | 0.00% [0.00%, 14.31%] | 102.81 [5.69, 1856.58] | [0.00, 0.00] | 29.73 [1.89, 468.91] | [0.00, 0.00] | -0.027 / -0.053 | 0 | 102.81 [5.69, 1856.58] | 185.06 [9.13, 3751.73] | 0/1 (p=1.000) | 0/0 (n/a) |
+| boundary-type-leak (blocking) | 6918 | 1 | 0.014% [0.003%, 0.082%] | 0.80 [0.11, 5.75] | [0.00, 2.97] | 0.64 [0.09, 4.56] | [0.00, 3.55] | -0.003 / -0.006 | 1 | 0.40 [0.02, 6.40] | 1.40 [0.19, 10.17] | 1/5 (p=0.375) | 1/1 (100.00% [20.65%, 100.00%]) |
+| component-adp-cycle (blocking) | 44884 | 6 | 0.013% [0.006%, 0.029%] | 0.74 [0.32, 1.70] | [0.12, 2.31] | 0.59 [0.26, 1.33] | [0.10, 1.56] | -0.004 / -0.007 | 5 | 0.49 [0.18, 1.35] | 1.08 [0.43, 2.73] | 3/15 (p=0.035) | 1/5 (20.00% [3.62%, 62.45%]) |
+| component-main-sequence-distance (advisory) | 2296 | 2 | 0.087% [0.024%, 0.32%] | 4.82 [1.18, 19.62] | [0.00, 18.79] | 3.85 [0.96, 15.51] | [0.00, 10.19] | 0.032 / 0.029 | 2 | 2.41 [0.33, 17.32] | 8.43 [2.04, 34.84] | 1/12 (p=0.006) | 1/2 (50.00% [9.45%, 90.55%]) |
+| component-sdp-violation (advisory) | 19097 | 3 | 0.016% [0.005%, 0.046%] | 0.87 [0.27, 2.76] | [0.00, 2.78] | 0.69 [0.22, 2.17] | [0.00, 2.43] | -0.002 / -0.005 | 2 | 0.29 [0.04, 2.08] | 1.01 [0.24, 4.19] | 2/19 (p=0.001) | 1/2 (50.00% [9.45%, 90.55%]) |
+| deep-import-declared-api (blocking) | 78 | 0 | 0.00% [0.00%, 4.69%] | 0 [0, 559.46] | [0.00, 0.00] | 0 [0, 446.67] | [0.00, 0.00] | -0.027 / -0.030 | 0 | 34.96 [2.18, 559.46] | 60.85 [3.77, 980.97] | 0/1 (p=1.000) | 0/0 (n/a) |
+| deep-import-inferred-api (advisory) | 61845 | 6 | 0.010% [0.004%, 0.021%] | 0.54 [0.23, 1.23] | [0.16, 1.60] | 0.43 [0.19, 0.97] | [0.13, 1.23] | -0.007 / -0.010 | 5 | 0.36 [0.13, 0.98] | 0.78 [0.31, 1.98] | 2/9 (p=0.180) | 2/5 (40.00% [11.76%, 76.93%]) |
+| io-outside-adapters (blocking) | 20613 | 8 | 0.039% [0.020%, 0.077%] | 2.15 [1.03, 4.46] | [0.26, 6.81] | 1.72 [0.84, 3.48] | [0.25, 5.46] | 0.013 / 0.009 | 4 | 1.34 [0.54, 3.32] | 1.88 [0.67, 5.25] | 4/15 (p=0.118) | 2/4 (50.00% [15.00%, 85.00%]) |
+| nondeterminism-in-core (advisory) | 26895 | 17 | 0.063% [0.039%, 0.10%] | 3.49 [2.06, 5.93] | [1.27, 7.19] | 2.79 [1.70, 4.60] | [0.94, 5.60] | 0.023 / 0.020 | 11 | 3.08 [1.77, 5.38] | 3.96 [2.03, 7.71] | 7/20 (p=0.263) | 4/11 (36.36% [15.17%, 64.62%]) |
+| undeclared-async-coupling (advisory) | 116 | 0 | 0.00% [0.00%, 3.21%] | 0 [0, 378.06] | [0.00, 0.00] | 0 [0, 301.84] | [0.00, 0.00] | -0.027 / -0.030 | 0 | 23.56 [1.47, 378.06] | 41.00 [2.54, 662.90] | 0/1 (p=1.000) | 0/0 (n/a) |
+| clones/cross-component-exact-structural | 56138 | 66 | 0.12% [0.092%, 0.15%] | 6.50 [4.64, 9.10] | [0.00, 21.32] | 5.20 [3.92, 6.89] | [0.00, 16.82] | 0.042 / 0.039 | 9 | 4.53 [3.12, 6.57] | 1.55 [0.75, 3.20] | 2/11 (p=0.065) | 0/9 (0.00% [0.00%, 29.91%]) |
+| clones/cross-component-guard | 2366 | 0 | 0.00% [0.00%, 0.16%] | 0 [0, 18.72] | [0.00, 0.00] | 0 [0, 14.94] | [0.00, 0.00] | -0.027 / -0.030 | 0 | 1.16 [0.07, 18.72] | 2.02 [0.12, 32.82] | 0/6 (p=0.031) | 0/0 (n/a) |
+| clones/cross-component-near | 596774 | 576 | 0.097% [0.089%, 0.10%] | 5.34 [4.16, 6.84] | [2.73, 42.07] | 4.27 [3.61, 5.05] | [2.52, 32.29] | 0.035 / 0.032 | 27 | 3.46 [2.68, 4.47] | 0.44 [0.27, 0.71] | 5/10 (p=1.000) | 2/27 (7.41% [2.06%, 23.37%]) |
+| clones/same-component-exact-structural | 271484 | 266 | 0.098% [0.087%, 0.11%] | 5.42 [4.16, 7.05] | [2.46, 10.85] | 4.33 [3.58, 5.24] | [2.32, 8.10] | 0.036 / 0.033 | 38 | 4.64 [3.55, 6.07] | 1.35 [0.87, 2.11] | 16/23 (p=0.093) | 6/38 (15.79% [7.44%, 30.42%]) |
+| clones/same-component-guard | 28102 | 478 | 1.70% [1.56%, 1.86%] | 94.02 [73.19, 120.79] | [6.41, 242.02] | 75.19 [63.31, 89.31] | [5.75, 166.01] | 0.235 / 0.232 | 10 | 11.02 [7.75, 15.65] | 3.44 [1.72, 6.88] | 7/11 (p=0.549) | 4/10 (40.00% [16.82%, 68.73%]) |
+| clones/same-component-near | 668528 | 918 | 0.14% [0.13%, 0.15%] | 7.59 [5.95, 9.68] | [2.72, 17.39] | 6.07 [5.17, 7.13] | [2.62, 11.92] | 0.047 / 0.044 | 66 | 4.25 [3.31, 5.46] | 0.96 [0.64, 1.41] | 18/26 (p=0.076) | 9/66 (13.64% [7.34%, 23.93%]) |
+| cohesion/broad-responsibility | 15984 | 3 | 0.019% [0.006%, 0.055%] | 1.04 [0.33, 3.29] | [0.00, 3.33] | 0.83 [0.27, 2.60] | [0.00, 2.16] | 0.000 / -0.003 | 3 | 0.69 [0.17, 2.82] | 1.82 [0.56, 5.87] | 3/10 (p=0.344) | 0/3 (0.00% [0.00%, 56.15%]) |
+| cohesion/low-cohesion | 18944 | 7 | 0.037% [0.018%, 0.076%] | 2.04 [0.94, 4.44] | [0.65, 3.80] | 1.63 [0.77, 3.48] | [0.57, 3.46] | 0.012 / 0.008 | 7 | 1.75 [0.76, 4.03] | 3.57 [1.60, 7.98] | 6/15 (p=0.607) | 3/7 (42.86% [15.82%, 74.95%]) |
+| communities/community-component-mismatch | 126745 | 905 | 0.71% [0.67%, 0.76%] | 39.47 [30.95, 50.33] | [19.12, 76.21] | 31.56 [26.87, 37.08] | [16.76, 61.37] | 0.142 / 0.139 | 155 | 38.34 [30.06, 48.90] | 11.83 [8.36, 16.75] | 23/25 (p=0.000) | 37/155 (23.87% [17.84%, 31.16%]) |
+| config-surface/env-key-shared | 136 | 0 | 0.00% [0.00%, 2.75%] | 0 [0, 322.95] | [0.00, 0.00] | 0 [0, 257.84] | [0.00, 0.00] | -0.027 / -0.030 | 0 | 20.10 [1.25, 322.95] | 35.00 [2.16, 566.26] | 0/4 (p=0.125) | 0/0 (n/a) |
+| config-surface/env-read-outside-config | 7445 | 2 | 0.027% [0.007%, 0.098%] | 1.48 [0.36, 6.05] | [0.00, 4.20] | 1.19 [0.29, 4.78] | [0.00, 2.95] | 0.006 / 0.003 | 2 | 0.74 [0.10, 5.34] | 2.60 [0.63, 10.75] | 2/14 (p=0.013) | 1/2 (50.00% [9.45%, 90.55%]) |
+| error-flow/domain-error-swallowed | 221 | 0 | 0.00% [0.00%, 1.71%] | 0 [0, 199.40] | [0.00, 0.00] | 0 [0, 159.21] | [0.00, 0.00] | -0.027 / -0.030 | 0 | 12.39 [0.77, 199.40] | 21.57 [1.33, 349.64] | 0/1 (p=1.000) | 0/0 (n/a) |
+| logic-density/adapter-logic-density | 9104 | 0 | 0.00% [0.00%, 0.042%] | 0 [0, 4.87] | [0.00, 0.00] | 0 [0, 3.89] | [0.00, 0.00] | -0.027 / -0.030 | 0 | 0.30 [0.02, 4.87] | 0.52 [0.03, 8.53] | 0/15 (p=0.000) | 0/0 (n/a) |
+| logic-density/controller-logic-density | 11073 | 17 | 0.15% [0.096%, 0.25%] | 8.49 [5.00, 14.41] | [0.64, 22.18] | 6.79 [4.13, 11.16] | [0.56, 14.56] | 0.051 / 0.048 | 6 | 3.00 [1.30, 6.89] | 5.24 [2.22, 12.36] | 4/11 (p=0.549) | 3/6 (50.00% [18.76%, 81.24%]) |
+| name-behaviour/controller-business-logic | 11073 | 17 | 0.15% [0.096%, 0.25%] | 8.49 [5.00, 14.41] | [0.67, 21.66] | 6.79 [4.13, 11.16] | [0.61, 14.51] | 0.051 / 0.048 | 6 | 3.00 [1.30, 6.89] | 5.24 [2.22, 12.36] | 4/11 (p=0.549) | 3/6 (50.00% [18.76%, 81.24%]) |
+| name-behaviour/domain-does-io | 12 | 0 | 0.00% [0.00%, 24.25%] | 0 [0, 3352.12] | [0.00, 0.00] | 0 [0, 2676.06] | [0.00, 0.00] | -0.027 / -0.030 | 0 | 219.54 [14.38, 3352.12] | 382.16 [24.84, 5878.47] | 0/0 (p=1.000) | 0/0 (n/a) |
+| name-behaviour/repository-does-outbound-io | 238 | 0 | 0.00% [0.00%, 1.59%] | 0 [0, 185.23] | [0.00, 0.00] | 0 [0, 147.89] | [0.00, 0.00] | -0.027 / -0.030 | 0 | 11.51 [0.71, 185.23] | 20.03 [1.24, 324.79] | 0/1 (p=1.000) | 0/0 (n/a) |
+| reachability/unreachable-module | 70643 | 84 | 0.12% [0.096%, 0.15%] | 6.57 [4.79, 9.03] | [1.94, 17.12] | 5.26 [4.05, 6.81] | [1.87, 14.20] | 0.042 / 0.039 | 25 | 5.24 [3.75, 7.33] | 3.42 [2.08, 5.64] | 9/19 (p=1.000) | 2/25 (8.00% [2.22%, 24.97%]) |
+| sdk-spread/vendor-sdk-outside-adapters | 21836 | 5 | 0.023% [0.010%, 0.054%] | 1.27 [0.51, 3.14] | [0.00, 2.89] | 1.01 [0.42, 2.46] | [0.00, 2.36] | 0.003 / 0.000 | 4 | 0.76 [0.24, 2.41] | 1.77 [0.63, 4.95] | 3/13 (p=0.092) | 0/4 (0.00% [0.00%, 48.99%]) |
+| shared-literals/shared-number-literal | 64530 | 173 | 0.27% [0.23%, 0.31%] | 14.82 [11.23, 19.56] | [6.19, 37.15] | 11.85 [9.61, 14.61] | [6.67, 21.50] | 0.077 / 0.074 | 47 | 13.19 [9.95, 17.50] | 7.05 [4.62, 10.74] | 13/17 (p=0.049) | 11/47 (23.40% [13.60%, 37.22%]) |
+| shared-literals/shared-string-literal | 32660 | 69 | 0.21% [0.17%, 0.27%] | 11.68 [8.38, 16.28] | [2.66, 31.54] | 9.34 [7.07, 12.33] | [1.99, 21.70] | 0.065 / 0.062 | 19 | 8.80 [6.15, 12.60] | 5.63 [3.26, 9.71] | 6/11 (p=1.000) | 4/19 (21.05% [8.51%, 43.33%]) |
+| vocabulary/vocabulary-leakage | 109 | 1 | 0.92% [0.16%, 5.01%] | 50.71 [7.11, 361.82] | [0.00, 220.93] | 40.56 [5.73, 286.91] | [0.00, 188.84] | 0.165 / 0.162 | 1 | 25.06 [1.56, 402.07] | 88.75 [12.31, 639.83] | 1/6 (p=0.219) | 0/1 (0.00% [0.00%, 79.35%]) |
 
 ### Touched pairs only
 
 | group | exposures in touched pairs | credited | rate [Wilson 95%] | vs (a) cross-layer touched: RR [95%] | vs (b) pkg touched: RR [95%] |
 |---|---:|---:|---|---|---|
+| boundary-type-leak (blocking) | 227 | 1 | 0.44% [0.078%, 2.45%] | 1.17 [0.16, 8.41] | 0.40 [0.06, 2.83] |
 | component-adp-cycle (blocking) | 0 | 0 | n/a | n/a | n/a |
 | component-main-sequence-distance (advisory) | 0 | 0 | n/a | n/a | n/a |
 | component-sdp-violation (advisory) | 0 | 0 | n/a | n/a | n/a |
-| deep-import-inferred-api (advisory) | 279 | 1 | 0.36% [0.063%, 2.00%] | 0.61 [0.07, 5.44] | 0.07 [0.01, 0.53] |
-| nondeterminism-in-core (advisory) | 116 | 1 | 0.86% [0.15%, 4.72%] | 1.47 [0.17, 13.02] | 0.18 [0.02, 1.27] |
-| clones/cross-component-exact-structural | 0 | 0 | n/a | n/a | n/a |
-| clones/same-component-exact-structural | 282 | 8 | 2.84% [1.44%, 5.50%] | 4.83 [1.47, 15.91] | 0.58 [0.28, 1.22] |
-| clones/same-component-guard | 230 | 8 | 3.48% [1.77%, 6.71%] | 5.92 [1.80, 19.48] | 0.71 [0.34, 1.49] |
-| clones/same-component-near | 346 | 16 | 4.62% [2.87%, 7.38%] | 7.87 [2.65, 23.37] | 0.95 [0.54, 1.66] |
-| cohesion/broad-responsibility | 28 | 1 | 3.57% [0.63%, 17.71%] | 6.08 [0.70, 52.64] | 0.73 [0.10, 5.11] |
-| cohesion/low-cohesion | 14 | 1 | 7.14% [1.27%, 31.47%] | 12.16 [1.45, 101.97] | 1.46 [0.22, 9.87] |
-| communities/community-component-mismatch | 44 | 3 | 6.82% [2.35%, 18.23%] | 11.61 [2.68, 50.26] | 1.39 [0.45, 4.32] |
-| config-surface/env-read-outside-config | 0 | 0 | n/a | n/a | n/a |
-| logic-density/adapter-logic-density | 0 | 0 | n/a | n/a | n/a |
-| logic-density/controller-logic-density | 0 | 0 | n/a | n/a | n/a |
-| name-behaviour/controller-business-logic | 0 | 0 | n/a | n/a | n/a |
-| reachability/unreachable-module | 51 | 3 | 5.88% [2.02%, 15.92%] | 10.01 [2.30, 43.54] | 1.20 [0.39, 3.74] |
-| sdk-spread/vendor-sdk-outside-adapters | 28 | 0 | 0.00% [0.00%, 12.06%] | 2.66 [0.15, 48.17] | 0.35 [0.02, 5.62] |
-| shared-literals/shared-number-literal | 16 | 0 | 0.00% [0.00%, 19.36%] | 4.59 [0.26, 81.81] | 0.61 [0.04, 9.53] |
-| vocabulary/vocabulary-leakage | 0 | 0 | n/a | n/a | n/a |
+| deep-import-declared-api (blocking) | 10 | 0 | 0.00% [0.00%, 27.75%] | 0 [0, 190.15] | 0 [0, 64.51] |
+| deep-import-inferred-api (advisory) | 1805 | 6 | 0.33% [0.15%, 0.72%] | 0.89 [0.39, 2.03] | 0.30 [0.13, 0.68] |
+| io-outside-adapters (blocking) | 788 | 8 | 1.02% [0.52%, 1.99%] | 2.70 [1.31, 5.60] | 0.92 [0.45, 1.86] |
+| nondeterminism-in-core (advisory) | 899 | 17 | 1.89% [1.18%, 3.01%] | 5.03 [2.98, 8.52] | 1.71 [1.04, 2.80] |
+| undeclared-async-coupling (advisory) | 7 | 0 | 0.00% [0.00%, 35.43%] | 0 [0, 259.10] | 0 [0, 87.90] |
+| clones/cross-component-exact-structural | 2232 | 66 | 2.96% [2.33%, 3.74%] | 7.87 [5.64, 10.99] | 2.68 [2.02, 3.54] |
+| clones/cross-component-guard | 32 | 0 | 0.00% [0.00%, 10.72%] | 0 [0, 64.28] | 0 [0, 21.81] |
+| clones/cross-component-near | 23646 | 576 | 2.44% [2.25%, 2.64%] | 6.49 [5.06, 8.31] | 2.20 [1.86, 2.61] |
+| clones/same-component-exact-structural | 7524 | 266 | 3.54% [3.14%, 3.98%] | 9.41 [7.24, 12.23] | 3.20 [2.65, 3.86] |
+| clones/same-component-guard | 2282 | 478 | 20.95% [19.33%, 22.66%] | 55.77 [43.56, 71.40] | 18.95 [16.04, 22.39] |
+| clones/same-component-near | 14686 | 918 | 6.25% [5.87%, 6.65%] | 16.64 [13.06, 21.20] | 5.66 [4.82, 6.63] |
+| cohesion/broad-responsibility | 482 | 3 | 0.62% [0.21%, 1.81%] | 1.66 [0.52, 5.24] | 0.56 [0.18, 1.76] |
+| cohesion/low-cohesion | 552 | 7 | 1.27% [0.62%, 2.59%] | 3.38 [1.56, 7.31] | 1.15 [0.54, 2.43] |
+| communities/community-component-mismatch | 2126 | 69 | 3.25% [2.57%, 4.09%] | 8.64 [6.22, 12.01] | 2.94 [2.23, 3.86] |
+| config-surface/env-key-shared | 10 | 0 | 0.00% [0.00%, 27.75%] | 0 [0, 190.15] | 0 [0, 64.51] |
+| config-surface/env-read-outside-config | 271 | 2 | 0.74% [0.20%, 2.65%] | 1.96 [0.48, 7.97] | 0.67 [0.17, 2.68] |
+| error-flow/domain-error-swallowed | 5 | 0 | 0.00% [0.00%, 43.45%] | 0 [0, 341.21] | 0 [0, 115.74] |
+| logic-density/adapter-logic-density | 172 | 0 | 0.00% [0.00%, 2.18%] | 0 [0, 12.32] | 0 [0, 4.18] |
+| logic-density/controller-logic-density | 407 | 17 | 4.18% [2.62%, 6.59%] | 11.12 [6.61, 18.72] | 3.78 [2.32, 6.16] |
+| name-behaviour/controller-business-logic | 407 | 17 | 4.18% [2.62%, 6.59%] | 11.12 [6.61, 18.72] | 3.78 [2.32, 6.16] |
+| name-behaviour/domain-does-io | 0 | 0 | n/a | n/a | n/a |
+| name-behaviour/repository-does-outbound-io | 3 | 0 | 0.00% [0.00%, 56.15%] | 0 [0, 496.79] | 0 [0, 168.49] |
+| reachability/unreachable-module | 729 | 20 | 2.74% [1.78%, 4.20%] | 7.30 [4.47, 11.94] | 2.48 [1.57, 3.92] |
+| sdk-spread/vendor-sdk-outside-adapters | 488 | 5 | 1.02% [0.44%, 2.38%] | 2.73 [1.11, 6.73] | 0.93 [0.38, 2.24] |
+| shared-literals/shared-number-literal | 3585 | 107 | 2.98% [2.48%, 3.59%] | 7.95 [5.89, 10.72] | 2.70 [2.13, 3.42] |
+| shared-literals/shared-string-literal | 1425 | 54 | 3.79% [2.92%, 4.91%] | 10.09 [7.10, 14.33] | 3.43 [2.54, 4.63] |
+| vocabulary/vocabulary-leakage | 10 | 0 | 0.00% [0.00%, 27.75%] | 0 [0, 190.15] | 0 [0, 64.51] |
 
 ## Within a rule: import-graph-invisible vs visible items
 
 | rule | invisible exposures | credited | rate | visible exposures | credited | rate | RR invisible / visible |
 |---|---:|---:|---|---:|---:|---|---|
-| nondeterminism-in-core | 1403 | 1 | 0.071% [0.013%, 0.40%] | 16 | 0 | 0.00% [0.00%, 19.36%] | 0.04 [0.00, 0.83] |
-| clones/same-component-exact-structural | 2110 | 4 | 0.19% [0.074%, 0.49%] | 2438 | 4 | 0.16% [0.064%, 0.42%] | 1.16 [0.29, 4.61] |
-| clones/same-component-guard | 254 | 0 | 0.00% [0.00%, 1.49%] | 2262 | 8 | 0.35% [0.18%, 0.70%] | 0.52 [0.03, 9.03] |
-| clones/same-component-near | 3094 | 2 | 0.065% [0.018%, 0.24%] | 3176 | 14 | 0.44% [0.26%, 0.74%] | 0.15 [0.03, 0.64] |
+| boundary-type-leak | 272 | 0 | 0.00% [0.00%, 1.39%] | 6646 | 1 | 0.015% [0.003%, 0.085%] | 0 [0, 199.12] |
+| io-outside-adapters | 1293 | 1 | 0.077% [0.014%, 0.44%] | 19320 | 7 | 0.036% [0.018%, 0.075%] | 2.13 [0.26, 17.34] |
+| nondeterminism-in-core | 21921 | 14 | 0.064% [0.038%, 0.11%] | 4974 | 3 | 0.060% [0.021%, 0.18%] | 1.06 [0.30, 3.68] |
+| undeclared-async-coupling | 105 | 0 | 0.00% [0.00%, 3.53%] | 11 | 0 | 0.00% [0.00%, 25.88%] | 0 [0, 5.24] |
+| clones/cross-component-exact-structural | 52356 | 66 | 0.13% [0.099%, 0.16%] | 3782 | 0 | 0.00% [0.00%, 0.10%] | 9.61 [0.59, 155.19] |
+| clones/cross-component-guard | 2042 | 0 | 0.00% [0.00%, 0.19%] | 324 | 0 | 0.00% [0.00%, 1.17%] | 0 [0, 7.99] |
+| clones/cross-component-near | 589622 | 558 | 0.095% [0.087%, 0.10%] | 7152 | 18 | 0.25% [0.16%, 0.40%] | 0.38 [0.24, 0.60] |
+| clones/same-component-exact-structural | 153054 | 170 | 0.11% [0.096%, 0.13%] | 118430 | 96 | 0.081% [0.066%, 0.099%] | 1.37 [1.07, 1.76] |
+| clones/same-component-guard | 11584 | 222 | 1.92% [1.68%, 2.18%] | 16518 | 256 | 1.55% [1.37%, 1.75%] | 1.24 [1.03, 1.48] |
+| clones/same-component-near | 494800 | 650 | 0.13% [0.12%, 0.14%] | 173728 | 268 | 0.15% [0.14%, 0.17%] | 0.85 [0.74, 0.98] |
+| shared-literals/shared-number-literal | 56086 | 138 | 0.25% [0.21%, 0.29%] | 8444 | 35 | 0.41% [0.30%, 0.58%] | 0.59 [0.41, 0.86] |
+| shared-literals/shared-string-literal | 25619 | 58 | 0.23% [0.18%, 0.29%] | 7041 | 11 | 0.16% [0.087%, 0.28%] | 1.45 [0.76, 2.76] |
 
 ## Member-level credited removals: was the member itself kept?
 
 | rule | member still declared | member gone (deleted or renamed in place) |
 |---|---:|---:|
-| nondeterminism-in-core | 0 | 1 |
+| boundary-type-leak | 0 | 1 |
+| clones/cross-component-exact-structural | 64 | 0 |
+| clones/cross-component-near | 576 | 0 |
+| clones/same-component-exact-structural | 240 | 0 |
+| clones/same-component-guard | 471 | 0 |
+| clones/same-component-near | 877 | 0 |
+| io-outside-adapters | 2 | 6 |
+| nondeterminism-in-core | 7 | 10 |
+| shared-literals/shared-number-literal | 99 | 0 |
+| shared-literals/shared-string-literal | 28 | 0 |
 
 ## Survival (grid lineages, left-censored excluded)
 
 | group | lineages | ended | KM median days | S(365 d) | ends with files in place |
 |---|---:|---:|---|---|---|
-| APG v2, blocking-tier templates | 20 | 2 | > window | 0.950 | 100.00% |
-| APG v2, advisory-tier templates | 501 | 123 | > window | 0.860 | 26.02% |
-| cheap proxies (all advisory) | 1600 | 745 | 808 | 0.649 | 79.60% |
-| APG v2, import-graph-invisible | 57 | 21 | > window | 0.807 | 61.90% |
-| APG v2, import-graph-visible | 464 | 104 | > window | 0.871 | 20.19% |
-| proxies, import-graph-invisible | 799 | 282 | > window | 0.737 | 82.98% |
-| proxies, import-graph-visible | 801 | 463 | 543 | 0.564 | 77.54% |
-| all import-graph-invisible items | 856 | 303 | > window | 0.742 | 81.52% |
-| component-adp-cycle | 20 | 2 | > window | 0.950 | 100.00% |
-| component-main-sequence-distance | 6 | 2 | > window | 0.667 | 100.00% |
-| component-sdp-violation | 15 | 7 | > window | 0.667 | 100.00% |
-| deep-import-inferred-api | 428 | 95 | > window | 0.874 | 12.63% |
-| nondeterminism-in-core | 52 | 19 | > window | 0.827 | 57.89% |
-| unflagged cross-layer import edges | 863 | 145 | > window | 0.909 | 35.17% |
-| unflagged layered import edges | 3314 | 726 | > window | 0.905 | 23.55% |
-| all unflagged import edges | 3712 | 849 | > window | 0.885 | 23.09% |
+| APG v2, blocking-tier templates | 1946 | 653 | > window | 0.741 | 84.23% |
+| APG v2, advisory-tier templates | 4391 | 1846 | 1009 | 0.646 | 60.18% |
+| cheap proxies (all advisory) | 81717 | 43639 | 472 | 0.542 | 70.25% |
+| APG v2, import-graph-invisible | 860 | 313 | 1219 | 0.696 | 72.20% |
+| APG v2, import-graph-visible | 5477 | 2186 | 1197 | 0.672 | 65.65% |
+| proxies, import-graph-invisible | 63947 | 33544 | 490 | 0.552 | 69.48% |
+| proxies, import-graph-visible | 17770 | 10095 | 381 | 0.507 | 72.83% |
+| all import-graph-invisible items | 64807 | 33857 | 490 | 0.553 | 69.50% |
+| boundary-type-leak | 217 | 76 | > window | 0.710 | 68.42% |
+| component-adp-cycle | 1075 | 293 | > window | 0.776 | 100.00% |
+| component-main-sequence-distance | 65 | 32 | 496 | 0.568 | 100.00% |
+| component-sdp-violation | 594 | 280 | 849 | 0.611 | 100.00% |
+| deep-import-declared-api | 4 | 0 | > window | 1.000 | n/a |
+| deep-import-inferred-api | 2838 | 1227 | 986 | 0.633 | 48.49% |
+| io-outside-adapters | 650 | 284 | 923 | 0.686 | 72.18% |
+| nondeterminism-in-core | 890 | 307 | 1219 | 0.733 | 66.45% |
+| undeclared-async-coupling | 4 | 0 | > window | 1.000 | n/a |
+| unflagged cross-layer import edges | 11081 | 3633 | > window | 0.755 | 32.98% |
+| unflagged layered import edges | 28217 | 8164 | > window | 0.793 | 26.63% |
+| all unflagged import edges | 54155 | 22545 | 1212 | 0.665 | 23.00% |
 
 ## Example fix commits (seeded draw)
 
 | # | repository | commit | rule | import-graph | item | commit message |
 |---|---|---|---|---|---|---|
 | 1 | amplication-server | [0839158c26](https://github.com/amplication/amplication/commit/0839158c26758344692e75abacca65ab67296ea7) | component-main-sequence-distance | invisible | folder core D=0.987 (A=0.013, I=0) (``) | Merge pull request #55 from amplication/refactor/resource-decorators — Resource Paramater Decorators |
-| 2 | amplication-server | [ea7df7a4d5](https://github.com/amplication/amplication/commit/ea7df7a4d5e4d43d3a509fab333dcc25360bea4b) | nondeterminism-in-core | invisible | AssistantService.handleRunStatus (application) reads clock: Date.now(), new Date() (`src/core/assistant/assistant.service.ts`) | Merge pull request #8440 from amplication/next — Release v1.17.0 |
-| 3 | amplication-server | [0cac982221](https://github.com/amplication/amplication/commit/0cac98222106eaead3a59ec3a2bce06ffbc3acda) | clones/same-component-exact-structural | invisible | body clone (exact-structural, similarity 1.00) of EntityResolver.entityVersions in component core (`src/core/app/app.resolver.ts -> src/core/entity/entity.resolver.ts`) | Merge pull request #460 from amplication/fix/entity-versions — Fix entityVersions and fieldPermanentId |
-| 4 | amplication-server | [b7ad162551](https://github.com/amplication/amplication/commit/b7ad16255117fd0b3466eda4f6d0d3ec3ea1701f) | clones/same-component-near | invisible | body clone (near, similarity 0.81) of EntityService.getChangedEntities in component core (`src/core/block/block.service.ts -> src/core/entity/entity.service.ts`) | Merge pull request #5040 from amplication/next — Next |
-| 5 | amplication-server | [bb5943b1b7](https://github.com/amplication/amplication/commit/bb5943b1b79b0cdeeab09f0e38909caf54f4cf5d) | communities/community-component-mismatch | invisible | src/core/app/dto/EnumPendingChangeAction.ts (component core) clusters with community 10 whose majority component is models (`src/core/app/dto/EnumPendingChangeAction.ts`) | Merge pull request #1114 from amplication/feat/sync-with-guthub — Sync with GitHub |
-| 6 | amplication-server | [fb8978f162](https://github.com/amplication/amplication/commit/fb8978f162b74029293bbdf49f27579256815196) | reachability/unreachable-module | visible | no entry point reaches src/core/deployment/deployment.resolver.ts (1 entries) (`src/core/deployment/deployment.resolver.ts`) | Merge pull request #584 from amplication/feature/deployment-client — Deployment dialog |
-| 7 | amplication-server | [10ae924977](https://github.com/amplication/amplication/commit/10ae9249779ab90cc55a5479145f7ea1fcc67437) | communities/community-component-mismatch | invisible | src/core/app/dto/EnumPendingChangeResourceType.ts (component core) clusters with community 14 whose majority component is models (`src/core/app/dto/EnumPendingChangeResourceType.ts`) | Merge pull request #2581 from amplication/release/0.12.4 — Release/0.12.4 |
-| 8 | amplication-server | [56f3460fc3](https://github.com/amplication/amplication/commit/56f3460fc39ded200d97539c2ca9b819f596bc27) | communities/community-component-mismatch | invisible | src/services/googleSecretsManager.module.ts (component services) clusters with community 0 whose majority component is core (`src/services/googleSecretsManager.module.ts`) | Merge pull request #6229 from amplication/next — chore: Merge next into master (1.7.2) |
-| 9 | amplication-server | [c0a59d0e61](https://github.com/amplication/amplication/commit/c0a59d0e61bebce4e97ed3d6e1bf1a1ab0a876d1) | clones/same-component-near | visible | body clone (near, similarity 0.84) of EntityService.updateEntityPermission in component core (`src/core/entity/entity.service.ts`) | Merge pull request #233 from amplication/feature/entity-update-roles-batch — Update roles in batch |
-| 10 | amplication-server | [cb69a50e30](https://github.com/amplication/amplication/commit/cb69a50e3082e06916ac30b81b6b17877473ffc1) | reachability/unreachable-module | visible | no entry point reaches src/util/softDelete.ts (1 entries) (`src/util/softDelete.ts`) | Merge pull request #1419 from amplication/feat/delete-app — feat(client):delete app |
-| 11 | amplication-server | [297e99e249](https://github.com/amplication/amplication/commit/297e99e24989b3f119955d3a5694adb62af8e30e) | clones/same-component-near | visible | body clone (near, similarity 0.80) of ProjectService.createProject in component core (`src/core/resource/resource.service.ts -> src/core/project/project.service.ts`) | Merge pull request #4689 from amplication/next — Next release |
-| 12 | amplication-server | [eaf9eae7d6](https://github.com/amplication/amplication/commit/eaf9eae7d60722cd75ecf0315f97a5f09632e814) | communities/community-component-mismatch | invisible | src/models/index.ts (component models) clusters with community 0 whose majority component is core (`src/models/index.ts`) | Merge pull request #14 from amplication/feature/apps-view — Apps View |
-| 13 | amplication-server | [ce020af2ef](https://github.com/amplication/amplication/commit/ce020af2ef3d466e5a2a60d0ee4cb0d9e1fc66ba) | communities/community-component-mismatch | invisible | src/decorators/user.decorator.ts (component decorators) clusters with community 48 whose majority component is models (`src/decorators/user.decorator.ts`) | Merge pull request #93 from amplication/lint/imports — Lint Imports |
+| 2 | budibase-server | [18f79e641f](https://github.com/Budibase/budibase/commit/18f79e641f1f7dcee244f5b773538a6951a26384) | io-outside-adapters | invisible | createLiteLLMFetch (business) performs http-out: fetch() (`src/sdk/workspace/ai/agents/utils.ts`) | Merge pull request #17966 from Budibase/bbai_2.0 — Allow BBAI in new AI configurations |
+| 3 | immich-server | [8338657eaa](https://github.com/immich-app/immich/commit/8338657eaa3c965f4f260723cd59fffad9f3b73b) | nondeterminism-in-core | invisible | AssetService.updateAll (application) reads clock: new Date() (`src/services/asset.service.ts`) | refactor(server): stacks (#11453) |
+| 4 | domain-driven-hexagon | [5e4aa7ccd8](https://github.com/Sairyss/domain-driven-hexagon/commit/5e4aa7ccd86c99f3f6973d7a61d9682e3ac61607) | boundary-type-leak | visible | CreateUserService.create exposes infrastructure type UserRepositoryPort (src/modules/user/database/user.repository.port.ts) (`src/modules/user/commands/create-user/create-user.service.ts -> src/modules/user/database/user.repository.port.ts`) | refactor: abstracted UnitOfWork initiation |
+| 5 | awesome-nest-boilerplate | [c61bafd11c](https://github.com/NarHakobyan/awesome-nest-boilerplate/commit/c61bafd11ce7d67fcb32490160a7f871e8de4d30) | component-adp-cycle | visible | folder entity-subscribers -> providers (``) | chore(): move util function to separate file without wrapping it under provider |
+| 6 | luizomf-clean-api | [c8d0a6f173](https://github.com/luizomf/clean-architecture-api-boilerplate/commit/c8d0a6f173c0bd7748ef14cb7588274dc3a106b8) | component-sdp-violation | visible | layer application -> infrastructure (``) | test: sign in use case |
+| 7 | standardnotes-auth | [1a388f00c3](https://github.com/standardnotes/server/commit/1a388f00c3897d1ebb1411793cfb23c3d305ac2e) | deep-import-inferred-api | visible | src/Infra/InversifyExpressUtils/Middleware/RequiredCrossServiceTokenMiddleware.ts imports src/Bootstrap/Types.ts, not in the public API of B (`src/Infra/InversifyExpressUtils/Middleware/RequiredCrossServiceTokenMiddleware.ts -> src/Bootstrap/Types.ts`) | feat(auth): introduce AWS X-Ray SDK (#859) |
+| 8 | podkrepi-api | [708e660dce](https://github.com/podkrepi-bg/api/commit/708e660dce0b7c7743341f8871372934351db089) | clones/cross-component-exact-structural | invisible | body clone (exact-structural, similarity 1.00) of CampaignService.removeMany in component campaign (`src/withdrawal/withdrawal.service.ts -> src/campaign/campaign.service.ts`) | Merge pull request #206 from podkrepi-bg/203-remove-all-delete-many-endpoints — 203 remove all delete many endpoints |
+| 9 | hoppscotch-backend | [dd65ad3103](https://github.com/hoppscotch/hoppscotch/commit/dd65ad31034ba5fd2723b53aac0dcfdb70575f71) | clones/cross-component-near | invisible | body clone (near, similarity 0.85) of TeamCollectionController.searchByTitle in component team-collection (`src/shortcode/shortcode.resolver.ts -> src/team-collection/team-collection.controller.ts`) | chore: added input validation to search query (#3921) |
+| 10 | directus-api | [91a36120fa](https://github.com/directus/directus/commit/91a36120fa96fef8049aecfa5e8fe0ce4798be81) | clones/same-component-exact-structural | invisible | body clone (exact-structural, similarity 1.00) of OperationsService.createOne in component services (`src/services/flows.ts -> src/services/operations.ts`) | fix operations foreign key errors on Flow deletion (#15087) |
+| 11 | ghostfolio-api | [7d68905f1b](https://github.com/ghostfolio/ghostfolio/commit/7d68905f1ba3f35b34dc5e3a8f37fa1e33504ab6) | clones/same-component-guard | invisible | guard clone (guard, similarity 1.00) of AdminController.updateProperty in component app (`src/app/admin/queue/queue.controller.ts -> src/app/admin/admin.controller.ts`) | Feature/use has permission annotation in endpoints (#2771) |
+| 12 | immich-server | [d03647904b](https://github.com/immich-app/immich/commit/d03647904be5376026f45a4e523fc1ad27f22271) | clones/same-component-near | invisible | body clone (near, similarity 0.81) of PartnerRepository.update in component repositories (`src/repositories/move.repository.ts -> src/repositories/partner.repository.ts`) | refactor: remove move entity (#17489) |
+| 13 | awesome-nest-boilerplate | [7889c22879](https://github.com/NarHakobyan/awesome-nest-boilerplate/commit/7889c22879b3064b0bb9a47ac13e69a392c2038c) | cohesion/broad-responsibility | invisible | AuthController: 0 I/O categories, 4 other components (`src/modules/auth/auth.controller.ts`) | fix(): fix issues related to updates |
+| 14 | finance-project-ddd | [1aa7292560](https://github.com/4lessandrodev/finance-project-ddd/commit/1aa7292560b94dacbb28c36b9a34730feaa3949a) | cohesion/low-cohesion | invisible | GenericAbstractRepository: LCOM4 4 over 4 methods ({save} {delete} {find} {exist}) (`src/infra/repositories/shared/core/generic-abstract.repository.ts`) | feat(infra): implement generic abstract repository |
+| 15 | logto-core | [755176e252](https://github.com/logto-io/logto/commit/755176e252b71da53bac0937b1f539c80e5cee88) | communities/community-component-mismatch | invisible | src/queries/roles.ts (component queries) clusters with community 4 whose majority component is routes (`src/queries/roles.ts`) | refactor(core): add regex for commonly used fields (#288) |
 

@@ -1562,3 +1562,10 @@ Earlier the same night: 15 PRs merged into v1.3 (tip b08ec387), all gated (tsc, 
 **Context**: v1.3 spike follow-up, outside the v1.3 study stages. Development-set evidence only.
 
 ---
+## v1.3 — APG v2 fixes-mined (scheduled task)
+**Timestamp**: 2026-10-16T11:10:00Z
+**User Input**: "Scheduled task: reuse the developer-fix mining harness of v1.3-validity-fixes-mined, on the same corpus, for the APG v2 templates and the cheap semantic proxies: fix rate of flagged items vs the random-edge baseline, survival, architecture words in fix commits, Wilson CIs and effect sizes; separately for the import-graph-invisible items (the direct SO2 real-world test); write Docs/DiagnosticRuns/v1.3-apg2-fixes-mined-2026-10-16.md with 15 example fix commits. Branch v1.3-apg2-fixes-mined from origin/v1.3, one PR into v1.3, not merged. Never edit templates or tiers, never commit third-party source." (Intent: find out whether the extended graph's import-invisible information is something real developers act on.)
+**AI Response**: "Harness branch existed and had finished; its corpus, specs and statistics library copied verbatim. New walker (APG v2 extraction, in-memory template mirrors, cheap proxies minus co-change and test-topology), protocol committed before any corpus walk (3ba26034); 100 sampled commits per project, 2,656 valid pairs. Result: APG v2 templates not removed more than unflagged cross-layer import edges (blocking RR 1.14 [0.65, 2.00]); import-invisible APG v2 items RR 3.63 [2.14, 6.17] but 14/17 one rule, no within-rule invisible-vs-visible difference, 9/15 member deletions, touched-only vs package-import baseline 1.63 [0.97, 2.75]; proxies 9.8x but churn and flicker (78% of community removals reappear). No support for SO2 from developer behaviour. The AI-DLC approval gates were not run interactively: scheduled task, no one present; the stored prompt served as the requirements."
+**Context**: v1.3 evidence unit outside the study stages; no instrument change.
+
+---
