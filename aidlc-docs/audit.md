@@ -1513,3 +1513,11 @@ Earlier the same night: 15 PRs merged into v1.3 (tip b08ec387), all gated (tsc, 
 **Context**: v1.3 spike follow-up, outside the v1.3 study stages. Development-set evidence only.
 
 ---
+
+## v1.3 SPIKE — cypher-interp review fixes: merged with v1.3 (PR #151)
+**Timestamp**: 2026-10-16T03:05:00Z
+**User Input**: "(No new user input; PR-ownership follow-up on #151.) #128 was merged into v1.3 by the merge train while the review fixes were in flight, leaving #151 in conflict with v1.3."
+**AI Response**: "Merged origin/v1.3 (f94eb251) into v1.3-interp-review-fixes (conflict: this audit log, both entries kept). The merged state exposed two gaps: (1) the seven cheap2 templates read facts no persistence unit writes, so the order guard found no rows for them: the thin synthetic graphs now write those facts in the layout cheap2-templates.ts specifies, with the ingester's own statement shapes; (2) v1.3 compiles FF-P05 into CALL { … UNION … } (a82c3bb5), which the interpreter rejected, so --engine cypher-interp failed FF-P05 in the pipeline on 28 projects (56 unsupported in parity): the uncorrelated CALL { } subquery with UNION / UNION ALL is now supported, checked live against Neo4j 5.26.24, other subquery forms still rejected. Re-run on the merged state: parity 72,388 statements, 0 content / error / unsupported, 360 order, 206 float-drift; reference set byte-identical 73/73, whole CLI result 71/71 vs a Neo4j control. Template text unchanged (git diff origin/v1.3 -- src/fitness-compiler empty)."
+**Context**: v1.3 spike follow-up; PR #151 into v1.3, left open for review.
+
+---

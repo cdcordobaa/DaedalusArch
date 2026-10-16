@@ -1,7 +1,9 @@
 # v1.3 spike: an in-process Cypher interpreter (`--engine cypher-interp`)
 
-Branch `v1.3-cypher-interp`, 2026-10-15; review fixes on `v1.3-interp-review-fixes`, 2026-10-16 (an adversarial
-review found the parity claim held with caveats; §0, "What may be claimed", §2.1, §3, §4 and §5 are updated). Status:
+Branch `v1.3-cypher-interp`, 2026-10-15 (merged into `v1.3` as #128); review fixes on `v1.3-interp-review-fixes`,
+2026-10-16 (an adversarial review found the parity claim held with caveats; §0, "What may be claimed", §2.1, §3, §4
+and §5 are updated). All numbers below are for `v1.3` at `f94eb251` merged with the review fixes, which includes the
+seven `cheap2` templates and the FF-P05 signature-types rewrite that arrived after the spike's base `dc1a1c4a`. Status:
 spike, development-set evidence only. Neo4j stays the reference engine for every reported number; nothing in this
 document replaces a Neo4j run in a study.
 
@@ -15,13 +17,14 @@ easier to interpret (`git diff origin/v1.3 -- src/fitness-compiler` is empty).
 |---|---|
 | `ue-baseline-live --engine cypher-interp --keep-cli`, 71 reference variants, **no Neo4j variable set** | outputs committed in `results/v1.3-cypher-interp/ue-baseline-live/` (`raw/`, `evidence/`, `cli/`, `report.json`, `report.md`). `raw/` (71 files), `report.json`, `report.md` **byte-identical** to `results/v1.3-reference/after-member-facts` and to a Neo4j control run (73/73); evidence violations identical 71/71 (only `elapsedMs` differs) |
 | Scores and universal metrics, cypher-interp vs Neo4j control (`cypher-interp-compare-runs.ts`, §4.3) | the whole CLI JSON result identical 71/71 field by field: `ahsDeterministic`, `tiers.blockingAhs`, verdicts, per-dimension scores, universal metrics, tier counts, function results, graph stats, warnings. `engine-comparison.md`; control in `results/v1.3-cypher-interp/neo4j-control/` |
-| Differential parity against live Neo4j 5.26.24 + APOC (`memory-parity.ts`) | **66,212 statements, 81 projects: 0 content, 0 error, 0 unsupported**; 358 `order` (all the ingestion verification counts, trap T1), 214 `float-drift` (only the two named `averageInstability` texts, ≤ 5 ULP observed, bound 16 ULP, both values recorded; T2). Table in §4 |
-| Coverage | per template, statements non-empty on both engines, per binding (§4.2). 14 catalogue templates were **thin** (< 50 non-empty) in the first run; two synthetic graphs now give each of them ≥ 4 non-empty comparisons per binding, but 12 stay under 50 in total and stay flagged |
+| Differential parity against live Neo4j 5.26.24 + APOC (`memory-parity.ts`) | **72,388 statements, 81 projects: 0 content, 0 error, 0 unsupported**; 360 `order` (all the ingestion verification counts, trap T1), 206 `float-drift` (only the two named `averageInstability` texts, ≤ 5 ULP observed, bound 16 ULP, both values recorded; T2). Table in §4
+| Coverage | per template, statements non-empty on both engines, per binding (§4.2). 14 catalogue templates were **thin** (< 50 non-empty) in the first run, and the 7 `cheap2` templates (merged from `v1.3`) have no rows on any real graph; two synthetic graphs now give each of these 21 ≥ 4 non-empty comparisons per binding, but 19 stay under 50 in total and stay flagged |
 | Order guard (`tests/unit/cypher-interp/template-order.test.ts`) | every catalogue template, every compiled text: ends in `RETURN … ORDER BY` over projected columns; no ORDER BY key tie on any row of the synthetic and APG v2 fixture graphs under the three bindings. One stated precondition: the aggregate templates need non-overlapping aggregates (§4.4) |
-| Unsupported syntax (`tests/unit/cypher-interp/unsupported-and-timeout.test.ts`) | 43 forms (writes, `COUNT { }`, `COLLECT { }`, map projections, Cypher-25-only forms, Java-only regex, every CALL) fail with `CypherInterp.Unsupported` and a message naming the construct |
+| Unsupported syntax (`tests/unit/cypher-interp/unsupported-and-timeout.test.ts`) | 45 forms (writes, `COUNT { }`, `COLLECT { }`, map projections, Cypher-25-only forms, Java-only regex, every CALL procedure, correlated / OPTIONAL / IN TRANSACTIONS subqueries) fail with `CypherInterp.Unsupported` and a message naming the construct |
 | Query timeout (NFR-07) | honoured: `timeoutMs` (else 30 s, the Neo4j repository's default) bounds every read; past it the query fails with `Neo.ClientError.Transaction.TransactionTimedOutClientConfiguration` (§3.1) |
 | APG v2 hand mirrors vs interpreter on the same graphs (no Neo4j) | 9 templates × 78 projects: rows and row order identical (`results/v1.3-cypher-interp/mirrors/mirrors.json`; not re-run by the review fixes) |
-| Unit tests (`jest --maxWorkers=2`) | `tests/unit/cypher-interp` 214, `tests/unit/scripts/memory-sweep.test.ts` 7 |
+| `CALL { … UNION … }` (§3) | supported, uncorrelated form only: `v1.3` compiles FF-P05 `controller-no-entity` into it (a82c3bb5), which the spike rejected, so on `v1.3` before this fix `--engine cypher-interp` failed FF-P05 in the pipeline on 28 projects (56 `unsupported` in a first parity run of the merged state) |
+| Unit tests (`jest --maxWorkers=2`) | `tests/unit/cypher-interp` 234, `tests/unit/scripts/memory-sweep.test.ts` 7 |
 | Licence | generated parser keeps Neo4j's Apache-2.0 header plus attribution; `NOTICE`, `licenses/Apache-2.0.txt`; `LICENSE` (MIT, matching `package.json`) added (§2.1) |
 | Warm in-process evaluation, one variant | 149 ms (interp) vs 728 ms (Neo4j); graph stages ≈20 ms vs ≈600 ms (§6; not re-measured) |
 
@@ -33,8 +36,8 @@ On the evidence in this document, and only on the development set:
    produces byte-identical tool outputs and reports, and an identical CLI result in every field (AHS, verdicts,
    per-dimension scores, universal metrics as the CLI reports them, i.e. rounded to 3 decimals), to Neo4j 5.26.24.
 2. **The interpreter returns Neo4j's rows for every statement the harness issues, in Neo4j's order, for every catalogue
-   template.** 66,212 statements over 81 graphs: no content difference, error or unsupported construct. Every
-   catalogue template statement is `equal` (values and row order).
+   template.** 72,388 statements over 81 graphs: no content difference, error or unsupported construct. Every
+   catalogue template statement is `equal` (values and row order), the FF-P05 `CALL { … UNION … }` form included.
 3. **Two documented differences remain, both outside the templates:** row order of the ingestion's un-ordered
    verification counts (`order`, T1; the pipeline reads them as a map) and the last bits of `averageInstability`
    (`float-drift`, T2: ≤ 5 ULP observed; every value Neo4j returns is the incremental mean of its own row order, and
@@ -49,7 +52,12 @@ What may **not** be claimed:
   `deep-import-inferred-api`, `domain-event-placement`, `inheritance-depth`, `io-outside-adapters`,
   `module-domain-imports-infrastructure`, `naming-controllers`, `no-index-logic`, `no-orphan-files` and
   `undeclared-async-coupling` are compared on 16-48 non-empty statements each, most of them on hand-built synthetic
-  graphs; their `equal` rate rests largely on empty-vs-empty comparisons.
+  graphs; their `equal` rate rests largely on empty-vs-empty comparisons. The seven `cheap2` templates
+  (`framework-exception-in-core`, `endpoint-bypasses-application`, `vendor-sdk-outside-adapters`, `untested-component`,
+  `env-read-outside-config`, `hidden-coupling`, `agent-reimplementation`) are compared on rows only on the synthetic
+  graphs (12 non-empty statements each): no persistence unit writes their facts yet, so the synthetic graphs write
+  them in the layout `cheap2-templates.ts` specifies; if the eventual persistence unit chooses another layout, that
+  comparison does not carry over.
 - **Bit-exact floats for `avg` in general.** The float tolerance is restricted by exact text to the two
   `averageInstability` metrics; within it, the harness cannot tell an accumulation-order difference from a 1-16 ULP
   algorithm difference (the `avg` algorithm itself, T3, is checked by the unit tests and a live check, not by parity).
@@ -57,13 +65,9 @@ What may **not** be claimed:
 - **Row order without ORDER BY, or under ORDER BY ties.** The interpreter's order is deterministic (creation order,
   stable sort); Neo4j's is not (T1, T8). Downstream code (report top-10, the cycle cap) is safe because every template
   orders on keys unique at the row grain, under the preconditions of §4.4.
-- **Parity on the current `v1.3` templates.** All evidence is for the template set at `dc1a1c4a`, the spike's base.
-  `origin/v1.3` has since added the seven `cheap2` extension templates and changed the v1.3 rewrites and edge views. A
-  trial merge (not committed) shows the new templates parse, pass the static order guard and run without an
-  unsupported construct, but return no rows on any synthetic or fixture graph, so the dynamic order guard fails until
-  they get synthetic coverage, and the parity harness and the reference-set comparison must be re-run on the merged
-  state before this claim extends to it. The branch also conflicts with `v1.3` in `eslint.config.mjs` (inherited from
-  the spike; a two-line union).
+- **Parity on a later `v1.3`.** The evidence is for `v1.3` at `f94eb251` plus these fixes. A template or compiler
+  rewrite added later is covered only after the harness and the order guard run on it (the order guard fails until
+  every catalogue template returns rows on some test graph; that is how the `cheap2` gap was found).
 - **Anything about a study.** Reported numbers still come from Neo4j; nothing here is a validity estimate.
 - **Performance beyond §6** (single-threaded, in memory, measured on the reference projects only; a long query blocks
   the event loop until its timeout).
@@ -181,7 +185,9 @@ rewrites), 11 distinct universal-metric texts, 4 judge graph-view queries, 4 ing
 ingestion writes.
 
 **Clauses**: `MATCH`, `OPTIONAL MATCH` (WHERE inside the optional match), `WHERE`, `WITH [DISTINCT] … [ORDER BY] [SKIP]
-[LIMIT] [WHERE]`, `RETURN [DISTINCT] … [ORDER BY] [SKIP] [LIMIT]`, `UNWIND`, `WITH *` / `RETURN *`.
+[LIMIT] [WHERE]`, `RETURN [DISTINCT] … [ORDER BY] [SKIP] [LIMIT]`, `UNWIND`, `WITH *` / `RETURN *`, and the uncorrelated
+subquery `CALL { q [UNION [ALL] q]... }` (each branch a read query ending in RETURN that sees no outer variable; added
+by the review fixes for the v1.3 FF-P05 rewrite; UNION keeps the first of equivalent rows, as Neo4j's Distinct does).
 
 **Patterns**: node labels and label expressions (`:A:B`, `:A|B`, `!`, `%`, `IS`), inline property maps, inline
 `WHERE` in node and relationship patterns, relationship type alternatives (`[:IMPORTS|RE_EXPORTS]`), directions
@@ -202,7 +208,8 @@ isEmpty range split substring left right replace toLower toUpper trim ltrim rtri
 abs sign ceil floor sqrt`, and `apoc.coll.indexOf`, `apoc.coll.toSet`, `apoc.coll.sort` as built-ins.
 
 **Rejected with `CypherUnsupportedError`** (never a silent answer): every write clause (CREATE, MERGE, SET, DELETE,
-REMOVE, FOREACH, LOAD CSV) outside the recognised ingestion shapes, `CALL` (procedures, GDS, subqueries), `UNION`,
+REMOVE, FOREACH, LOAD CSV) outside the recognised ingestion shapes, `CALL` of any procedure (GDS included), correlated
+(`CALL (x) { }`, importing `WITH`), `OPTIONAL` and `IN TRANSACTIONS` subqueries, `UNION` outside `CALL { }`,
 quantified path patterns and `shortestPath`, match modes, hints, `COUNT { }` / `COLLECT { }` subqueries, pattern
 comprehensions and pattern expressions, map projections, type predicates, `split` with a list of delimiters, WHERE
 inside a variable-length relationship, `stDev`/`percentile*`, any function outside the table above, Java-only regex
@@ -210,11 +217,13 @@ syntax (inline flags after the start, possessive quantifiers, `\p{javaX}`, `\Q�
 Cypher-25-only form listed in §2.1. Undefined variables, missing parameters, type errors and arithmetic errors fail
 with Neo4j's error codes.
 
-Each rejection is pinned by `tests/unit/cypher-interp/unsupported-and-timeout.test.ts` (43 forms: MERGE, SET, CREATE,
+Each rejection is pinned by `tests/unit/cypher-interp/unsupported-and-timeout.test.ts` (45 forms: MERGE, SET, CREATE,
 DELETE / DETACH DELETE, REMOVE, FOREACH, LOAD CSV, `COUNT { }`, `COLLECT { }`, three map projections, `||`, `WHEN`
 branches, `NEXT`, `FILTER`, `LET`, comma lists in `CASE`, type predicates, seven Java-only regex constructs, CALL of
 `db.labels`, `apoc.help` and of the name `apoc.coll.sort` (the three apoc.coll built-ins are functions, never
-procedures), both CALL subquery forms, other APOC and GDS functions, UNION, quantified path patterns): the error code
+procedures), correlated, OPTIONAL and IN TRANSACTIONS subqueries, other APOC and GDS functions, UNION outside
+`CALL { }`, quantified path patterns); the supported `CALL { … UNION … }` form and its three syntax errors (mixed
+UNION / UNION ALL, different column names, an outer variable redeclared) have tests with Neo4j's answers: the error code
 is `CypherInterp.Unsupported` and the message names the construct (`MERGE (write clause)`, `COUNT { } subquery`, `map
 projection`, ...), not the grammar rule alone.
 
@@ -263,11 +272,13 @@ classes the pair and hands Neo4j's answer back, so the pipeline under test runs 
   any text matching `/\b(avg|sum)\s*\(/`: a future `avg`/`sum` template would have been tolerated silently, and the
   rule, documented as "4 ULP", allows up to 8 ULP for values in [0.25, 0.5). The bound is now measured (§4.1).
 
-Result: **66,212 statements: equal 65,640, order 358, float-drift 214, content 0, error 0, unsupported 0, both-error 0**
+Result: **72,388 statements: equal 71,822, order 360, float-drift 206, content 0, error 0, unsupported 0, both-error 0**
 (`results/v1.3-cypher-interp/parity/`, Neo4j 5.26.24 Community tarball plus its bundled `labs/apoc-5.26.24-core.jar` in
-`plugins/`, 4m41s). The `order` count moves between runs with Neo4j's node-id reuse (T1): 763 `order` in the spike's run
-counted both families together; the first run of this fix gave 315 `order` + 283 `float-drift` + 4 `content`, the last
-being `averageInstability` at 5 ULP under the first bound tried (4 ULP), which §4.1 resolves.
+`plugins/`, 5m11s). The `order` count moves between runs with Neo4j's node-id reuse (T1): 763 `order` in the spike's run
+counted both families together. Earlier runs of this fix: on the spike's base, 315 `order` + 283 `float-drift` + 4
+`content` (`averageInstability` at 5 ULP under the first bound tried, 4 ULP, which §4.1 resolves), then 66,212
+statements all clean; on the merged `v1.3`, 56 `unsupported` (FF-P05's `CALL { … UNION … }`, pipeline arms only), which
+the subquery support resolves. The sweep also emits FF-P05's signature-types text (`v1.3+signature`).
 
 Columns: classes per statement; `Neo4j rows` = rows Neo4j returned; `non-empty` = statements that returned rows on
 **both** engines; `p/s/l/h` = non-empty per binding (pipeline / spec / low / high); `synthetic s/l/h` = non-empty per
@@ -276,6 +287,7 @@ binding on the synthetic graphs only; `thin` = fewer than 50 non-empty (writes a
 | template / query family | statements | projects | equal | order | float-drift | content | error | unsupported | both-error | Neo4j rows | non-empty | non-empty p/s/l/h | synthetic s/l/h | thin |
 |---|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---|---|---|
 | abstraction-ratio | 882 | 81 | 882 | 0 | 0 | 0 | 0 | 0 | 0 | 494 | 494 | 28 / 304 / 0 / 162 | 6 / 0 / 6 |  |
+| agent-reimplementation | 770 | 81 | 770 | 0 | 0 | 0 | 0 | 0 | 0 | 24 | 12 | 0 / 4 / 4 / 4 | 4 / 4 / 4 | thin |
 | aggregate-boundary | 1570 | 81 | 1570 | 0 | 0 | 0 | 0 | 0 | 0 | 434 | 326 | 2 / 128 / 128 / 68 | 8 / 8 / 8 |  |
 | application-service-thin | 800 | 81 | 800 | 0 | 0 | 0 | 0 | 0 | 0 | 2076 | 548 | 2 / 190 / 298 / 58 | 4 / 4 / 0 |  |
 | boundary-type-leak | 770 | 81 | 770 | 0 | 0 | 0 | 0 | 0 | 0 | 156 | 48 | 0 / 10 / 32 / 6 | 4 / 4 / 4 | thin |
@@ -285,7 +297,7 @@ binding on the synthetic graphs only; `thin` = fewer than 50 non-empty (writes a
 | component-main-sequence-distance | 770 | 81 | 770 | 0 | 0 | 0 | 0 | 0 | 0 | 130 | 50 | 0 / 4 / 42 / 4 | 4 / 4 / 4 |  |
 | component-sdp-violation | 770 | 81 | 770 | 0 | 0 | 0 | 0 | 0 | 0 | 118 | 82 | 0 / 38 / 38 / 6 | 4 / 4 / 4 |  |
 | context-isolation | 1570 | 81 | 1570 | 0 | 0 | 0 | 0 | 0 | 0 | 35316 | 1252 | 4 / 492 / 492 / 264 | 12 / 12 / 12 |  |
-| controller-no-entity | 1596 | 81 | 1596 | 0 | 0 | 0 | 0 | 0 | 0 | 1632 | 464 | 0 / 4 / 456 / 4 | 4 / 0 / 4 |  |
+| controller-no-entity | 2366 | 81 | 2366 | 0 | 0 | 0 | 0 | 0 | 0 | 2450 | 698 | 0 / 8 / 684 / 6 | 6 / 0 / 6 |  |
 | core-isolation | 1570 | 81 | 1570 | 0 | 0 | 0 | 0 | 0 | 0 | 3154 | 482 | 6 / 188 / 188 / 100 | 12 / 12 / 12 |  |
 | deep-import-declared-api | 770 | 81 | 770 | 0 | 0 | 0 | 0 | 0 | 0 | 50 | 26 | 0 / 10 / 10 / 6 | 4 / 4 / 4 | thin |
 | deep-import-inferred-api | 770 | 81 | 770 | 0 | 0 | 0 | 0 | 0 | 0 | 30 | 18 | 0 / 6 / 6 / 6 | 4 / 4 / 4 | thin |
@@ -296,8 +308,12 @@ binding on the synthetic graphs only; `thin` = fewer than 50 non-empty (writes a
 | domain-purity | 1682 | 81 | 1682 | 0 | 0 | 0 | 0 | 0 | 0 | 200 | 188 | 16 / 68 / 68 / 36 | 4 / 4 / 4 |  |
 | domain-stability | 1596 | 81 | 1596 | 0 | 0 | 0 | 0 | 0 | 0 | 5238 | 598 | 6 / 0 / 592 / 0 | 0 / 12 / 0 |  |
 | domain-state-purity | 856 | 81 | 856 | 0 | 0 | 0 | 0 | 0 | 0 | 578 | 172 | 6 / 66 / 66 / 34 | 2 / 2 / 2 |  |
-| ingest | 4196 | 81 | 4196 | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 / 0 / 0 / 0 | 0 / 0 / 0 |  |
-| ingest-verify | 892 | 81 | 534 | 358 | 0 | 0 | 0 | 0 | 0 | 3750 | 892 | 568 / 324 / 0 / 0 | 12 / 0 / 0 |  |
+| endpoint-bypasses-application | 770 | 81 | 770 | 0 | 0 | 0 | 0 | 0 | 0 | 24 | 12 | 0 / 4 / 4 / 4 | 4 / 4 / 4 | thin |
+| env-read-outside-config | 770 | 81 | 770 | 0 | 0 | 0 | 0 | 0 | 0 | 24 | 12 | 0 / 4 / 4 / 4 | 4 / 4 / 4 | thin |
+| framework-exception-in-core | 770 | 81 | 770 | 0 | 0 | 0 | 0 | 0 | 0 | 24 | 12 | 0 / 4 / 4 / 4 | 4 / 4 / 4 | thin |
+| hidden-coupling | 770 | 81 | 770 | 0 | 0 | 0 | 0 | 0 | 0 | 24 | 12 | 0 / 4 / 4 / 4 | 4 / 4 / 4 | thin |
+| ingest | 4212 | 81 | 4212 | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 / 0 / 0 / 0 | 0 / 0 / 0 |  |
+| ingest-verify | 892 | 81 | 532 | 360 | 0 | 0 | 0 | 0 | 0 | 3750 | 892 | 568 / 324 / 0 / 0 | 12 / 0 / 0 |  |
 | inheritance-depth | 882 | 81 | 882 | 0 | 0 | 0 | 0 | 0 | 0 | 100 | 18 | 0 / 6 / 6 / 6 | 6 / 6 / 6 | thin |
 | interface-segregation-proxy | 882 | 81 | 882 | 0 | 0 | 0 | 0 | 0 | 0 | 1312 | 244 | 0 / 2 / 240 / 2 | 2 / 2 / 2 |  |
 | io-outside-adapters | 770 | 81 | 770 | 0 | 0 | 0 | 0 | 0 | 0 | 48 | 18 | 0 / 6 / 6 / 6 | 4 / 4 / 4 | thin |
@@ -326,23 +342,25 @@ binding on the synthetic graphs only; `thin` = fewer than 50 non-empty (writes a
 | single-responsibility-proxy | 882 | 81 | 882 | 0 | 0 | 0 | 0 | 0 | 0 | 5000 | 398 | 0 / 64 / 300 / 34 | 0 / 6 / 0 |  |
 | test-file-pairing | 882 | 81 | 882 | 0 | 0 | 0 | 0 | 0 | 0 | 23368 | 858 | 112 / 296 / 296 / 154 | 6 / 6 / 6 |  |
 | undeclared-async-coupling | 770 | 81 | 770 | 0 | 0 | 0 | 0 | 0 | 0 | 66 | 18 | 0 / 6 / 6 / 6 | 4 / 4 / 4 | thin |
-| universal-literal:averageInstability | 456 | 81 | 347 | 0 | 109 | 0 | 0 | 0 | 0 | 456 | 456 | 71 / 152 / 152 / 81 | 3 / 3 / 3 |  |
+| universal-literal:averageInstability | 456 | 81 | 351 | 0 | 105 | 0 | 0 | 0 | 0 | 456 | 456 | 71 / 152 / 152 / 81 | 3 / 3 / 3 |  |
 | universal-literal:cyclicDependencyCount | 456 | 81 | 456 | 0 | 0 | 0 | 0 | 0 | 0 | 456 | 456 | 71 / 152 / 152 / 81 | 3 / 3 / 3 |  |
 | universal-literal:maxFanIn | 456 | 81 | 456 | 0 | 0 | 0 | 0 | 0 | 0 | 456 | 456 | 71 / 152 / 152 / 81 | 3 / 3 / 3 |  |
 | universal-literal:maxFanOut | 456 | 81 | 456 | 0 | 0 | 0 | 0 | 0 | 0 | 456 | 456 | 71 / 152 / 152 / 81 | 3 / 3 / 3 |  |
 | universal-literal:orphanFileCount | 456 | 81 | 456 | 0 | 0 | 0 | 0 | 0 | 0 | 456 | 456 | 71 / 152 / 152 / 81 | 3 / 3 / 3 |  |
 | universal:abstractionRatio | 912 | 81 | 912 | 0 | 0 | 0 | 0 | 0 | 0 | 912 | 912 | 142 / 304 / 304 / 162 | 6 / 6 / 6 |  |
-| universal:averageInstability | 456 | 81 | 351 | 0 | 105 | 0 | 0 | 0 | 0 | 456 | 456 | 71 / 152 / 152 / 81 | 3 / 3 / 3 |  |
+| universal:averageInstability | 456 | 81 | 355 | 0 | 101 | 0 | 0 | 0 | 0 | 456 | 456 | 71 / 152 / 152 / 81 | 3 / 3 / 3 |  |
 | universal:cyclicDependencyCount | 456 | 81 | 456 | 0 | 0 | 0 | 0 | 0 | 0 | 456 | 456 | 71 / 152 / 152 / 81 | 3 / 3 / 3 |  |
 | universal:maxFanIn | 456 | 81 | 456 | 0 | 0 | 0 | 0 | 0 | 0 | 456 | 456 | 71 / 152 / 152 / 81 | 3 / 3 / 3 |  |
 | universal:maxFanOut | 456 | 81 | 456 | 0 | 0 | 0 | 0 | 0 | 0 | 456 | 456 | 71 / 152 / 152 / 81 | 3 / 3 / 3 |  |
 | universal:orphanFileCount | 456 | 81 | 456 | 0 | 0 | 0 | 0 | 0 | 0 | 456 | 456 | 71 / 152 / 152 / 81 | 3 / 3 / 3 |  |
+| untested-component | 770 | 81 | 770 | 0 | 0 | 0 | 0 | 0 | 0 | 24 | 12 | 0 / 4 / 4 / 4 | 4 / 4 / 4 | thin |
 | use-case-isolation | 1596 | 81 | 1596 | 0 | 0 | 0 | 0 | 0 | 0 | 76 | 76 | 4 / 28 / 28 / 16 | 4 / 4 / 4 |  |
 | value-object-immutability | 800 | 81 | 800 | 0 | 0 | 0 | 0 | 0 | 0 | 2224 | 306 | 4 / 6 / 292 / 4 | 2 / 6 / 2 |  |
+| vendor-sdk-outside-adapters | 770 | 81 | 770 | 0 | 0 | 0 | 0 | 0 | 0 | 30 | 12 | 0 / 4 / 4 / 4 | 4 / 4 / 4 | thin |
 
 Every catalogue template is `equal` on every statement. `order` is only the ingestion verification `n.type, count(*)` /
-`type(r), count(*)` (358: group order follows Neo4j's label-scan order, T1; the pipeline reads them into a map).
-`float-drift` is only `averageInstability` in both universal-metric sets (214). Files: `parity.md`,
+`type(r), count(*)` (360: group order follows Neo4j's label-scan order, T1; the pipeline reads them into a map).
+`float-drift` is only `averageInstability` in both universal-metric sets (206). Files: `parity.md`,
 `parity-by-template.json` (classes and coverage per template, timings per project and phase), `parity-nonequal.json`
 (every statement not `equal`, with its detail), `parity-float-drift.json` (both values of every drifting cell),
 `avg-order-spread.json` (§4.1).
@@ -356,7 +374,7 @@ mean. Result (`results/v1.3-cypher-interp/parity/avg-order-spread.json`): the in
 Neo4j's (three ingestions) equal the fold of that engine's own row order; the permutations give 11 distinct doubles,
 -2..+8 ULP around the interpreter's answer (an unseeded run gave -3..+9); Neo4j returned 0, +3, +4 and +5 ULP for this
 graph on different ingestions. So the drift is accumulation order only, and the spread on this graph alone exceeds 4
-ULP. The bound is 16 ULP (≈ 3.6e-15 relative here); observed drift: 1 ULP × 99 cells, 2 × 82, 3 × 27, 4 × 2, 5 × 4.
+ULP. The bound is 16 ULP (≈ 3.6e-15 relative here); observed drift: 1 ULP × 98 cells, 2 × 75, 3 × 27, 4 × 2, 5 × 4.
 
 ### 4.2 Coverage and the thin templates
 
@@ -375,8 +393,15 @@ on the synthetic graphs; asserted by the order-guard test); they also give `aggr
 component `Shipping` has `distance` 2.5 (the extractor's is in [0, 1]) so that `component-main-sequence-distance`
 returns a row under the `high` binding (threshold 2). Their aggregates are given explicitly and do not overlap.
 
+The seven `cheap2` templates read facts no persistence unit writes yet (edges `THROWS`, `REACHES`, `READS_ENV`,
+`CO_CHANGES_WITH`, `REIMPLEMENTS`; virtual nodes `EntryPoint`, `EnvKey`, `ErrorType`; node facts `cheap.<key>`), so they
+return no rows on any real graph. The thin graphs carry such facts in the layout `cheap2-templates.ts` specifies: node
+facts as APG node properties through `ingestAPG`, the rest written by `writeCheapFacts` with the ingester's own
+statement shapes (`UNWIND $batch … CREATE (n:APGNode:<Kind>) SET n = node`, and the edge form), which Neo4j runs and the
+interpreter's adapter applies, so both engines receive identical writes.
+
 After the re-run, 2 of the 14 are above 50 (`component-main-sequence-distance` 50, `repository-aggregate-root` 58); 12
-stay **thin** (16-48 non-empty) and are flagged in the table and in "What may be claimed". Not thin, but with a binding
+stay **thin** (16-48 non-empty), as do the 7 `cheap2` templates (12 each), and are flagged in the table and in "What may be claimed". Not thin, but with a binding
 that never returns rows (by the binding's meaning): `abstraction-ratio`, `dependency-inversion`,
 `port-dependency-inversion` (low), `domain-stability`, `naming-services` (spec, high), `component-instability` (high).
 
@@ -400,14 +425,14 @@ same command (`results/v1.3-cypher-interp/neo4j-control/`). `scripts/v1.3/cypher
 | CLI: the whole result | 71/71 |
 
 The CLI rounds the universal metrics to 3 decimals, so T2 cannot show there; the unrounded values are compared by the
-parity harness (§4, `universal:*`). Wall time: 2m52.7s (interp), 3m21.0s (Neo4j control).
+parity harness (§4, `universal:*`). Wall time: 2m54.5s (interp), 3m18.8s (Neo4j control).
 
 ### 4.4 Order guard
 
 Downstream code reads violation rows in query order (the report formatter's top-10, the `no-cyclic-deps` cap
 `ORDER BY cycle LIMIT 101`), so a template whose ORDER BY ties would let Neo4j's planner (T1) and unstable Top-N (T8)
 pick the surviving rows. `tests/unit/cypher-interp/template-order.test.ts` asserts, for every catalogue template in
-every compiled text (47 templates, 134 texts): the query ends in `RETURN … ORDER BY`, every key is a projected column, no SKIP; and,
+every compiled text (54 templates, 150 texts): the query ends in `RETURN … ORDER BY`, every key is a projected column, no SKIP; and,
 running every text under the three bindings on the three synthetic graphs and the seven APG v2 fixture graphs, no two
 rows share their ORDER BY key, and every template returns rows on at least one of them. The keys rely on preconditions
 the extractor guarantees and the test states: one edge per (source, target, type) between two files, single class

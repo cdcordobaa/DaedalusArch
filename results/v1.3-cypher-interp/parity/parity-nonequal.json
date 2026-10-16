@@ -8,30 +8,20 @@
   "klass": "order",
   "refRows": 7,
   "candRows": 7,
-  "refMs": 2.2038030000003346,
-  "candMs": 4.701755999999932
+  "refMs": 77.18313399999988,
+  "candMs": 5.4276199999999335
  },
  {
   "project": "clean-architecture/clean",
-  "phase": "arm:v1.3",
-  "label": "universal-literal:averageInstability",
-  "cypher": "MATCH (f:File)\n      OPTIONAL MATCH (f)-[ro:IMPORTS]->(out:File) WHERE NOT coalesce(ro.viaReExport, false)\n      WITH f, count(DISTINCT out) AS fo\n      OPTIONAL MATCH (f)<-[ri:IMPORTS]-(inc:File) WHERE NOT coalesce(ri.viaReExport, false)\n      WITH f, fo, count(DISTINCT inc) AS fi\n      WHERE fo + fi > 0\n      RETURN avg(toFloat(fo) / (fo + fi)) AS val",
+  "phase": "arm:v1.2e",
+  "label": "ingest-verify",
+  "cypher": "MATCH (n:APGNode) RETURN n.type AS type, count(*) AS cnt",
   "write": false,
-  "klass": "float-drift",
-  "refRows": 1,
-  "candRows": 1,
-  "refMs": 85.54319000000032,
-  "candMs": 4.638270999999804,
-  "detail": "universal-literal:averageInstability: 1 cell(s), max 1 ULP (bound 16)",
-  "floatDrift": [
-   {
-    "row": 0,
-    "column": "val",
-    "neo4j": "0.4556650246305418",
-    "interp": "0.45566502463054187",
-    "ulps": 1
-   }
-  ]
+  "klass": "order",
+  "refRows": 5,
+  "candRows": 5,
+  "refMs": 8.113483999999517,
+  "candMs": 0.49878200000057404
  },
  {
   "project": "clean-architecture/clean",
@@ -42,162 +32,8 @@
   "klass": "order",
   "refRows": 7,
   "candRows": 7,
-  "refMs": 1.3703670000004422,
-  "candMs": 1.0107440000001588
- },
- {
-  "project": "clean-architecture/clean",
-  "phase": "arm:v1.2e",
-  "label": "universal:averageInstability",
-  "cypher": "MATCH (f:File)\n      OPTIONAL MATCH (f)-[:IMPORTS]->(out:File)\n      OPTIONAL MATCH (f)<-[:IMPORTS]-(inc:File)\n      WITH f, count(DISTINCT out) AS fo, count(DISTINCT inc) AS fi\n      WHERE fo + fi > 0\n      RETURN avg(toFloat(fo) / (fo + fi)) AS val",
-  "write": false,
-  "klass": "float-drift",
-  "refRows": 1,
-  "candRows": 1,
-  "refMs": 4.658516999999847,
-  "candMs": 7.434493000000657,
-  "detail": "universal:averageInstability: 1 cell(s), max 2 ULP (bound 16)",
-  "floatDrift": [
-   {
-    "row": 0,
-    "column": "val",
-    "neo4j": "0.455665024630542",
-    "interp": "0.45566502463054187",
-    "ulps": 2
-   }
-  ]
- },
- {
-  "project": "clean-architecture/clean",
-  "phase": "sweep:v1.3-graph",
-  "label": "universal:averageInstability",
-  "cypher": "MATCH (f:File)\n      OPTIONAL MATCH (f)-[:IMPORTS]->(out:File)\n      OPTIONAL MATCH (f)<-[:IMPORTS]-(inc:File)\n      WITH f, count(DISTINCT out) AS fo, count(DISTINCT inc) AS fi\n      WHERE fo + fi > 0\n      RETURN avg(toFloat(fo) / (fo + fi)) AS val",
-  "write": false,
-  "klass": "float-drift",
-  "refRows": 1,
-  "candRows": 1,
-  "refMs": 1.359375,
-  "candMs": 0.843101000000388,
-  "detail": "universal:averageInstability: 1 cell(s), max 2 ULP (bound 16)",
-  "floatDrift": [
-   {
-    "row": 0,
-    "column": "val",
-    "neo4j": "0.455665024630542",
-    "interp": "0.45566502463054187",
-    "ulps": 2
-   }
-  ]
- },
- {
-  "project": "clean-architecture/clean",
-  "phase": "sweep:v1.3-graph",
-  "label": "universal-literal:averageInstability",
-  "cypher": "MATCH (f:File)\n      OPTIONAL MATCH (f)-[ro:IMPORTS]->(out:File) WHERE NOT coalesce(ro.viaReExport, false)\n      WITH f, count(DISTINCT out) AS fo\n      OPTIONAL MATCH (f)<-[ri:IMPORTS]-(inc:File) WHERE NOT coalesce(ri.viaReExport, false)\n      WITH f, fo, count(DISTINCT inc) AS fi\n      WHERE fo + fi > 0\n      RETURN avg(toFloat(fo) / (fo + fi)) AS val",
-  "write": false,
-  "klass": "float-drift",
-  "refRows": 1,
-  "candRows": 1,
-  "refMs": 1.3478400000003603,
-  "candMs": 0.8729440000006434,
-  "detail": "universal-literal:averageInstability: 1 cell(s), max 2 ULP (bound 16)",
-  "floatDrift": [
-   {
-    "row": 0,
-    "column": "val",
-    "neo4j": "0.455665024630542",
-    "interp": "0.45566502463054187",
-    "ulps": 2
-   }
-  ]
- },
- {
-  "project": "clean-architecture/clean",
-  "phase": "sweep:v1.3-graph:low",
-  "label": "universal:averageInstability",
-  "cypher": "MATCH (f:File)\n      OPTIONAL MATCH (f)-[:IMPORTS]->(out:File)\n      OPTIONAL MATCH (f)<-[:IMPORTS]-(inc:File)\n      WITH f, count(DISTINCT out) AS fo, count(DISTINCT inc) AS fi\n      WHERE fo + fi > 0\n      RETURN avg(toFloat(fo) / (fo + fi)) AS val",
-  "write": false,
-  "klass": "float-drift",
-  "refRows": 1,
-  "candRows": 1,
-  "refMs": 1.197680000001128,
-  "candMs": 1.7162680000001274,
-  "detail": "universal:averageInstability: 1 cell(s), max 2 ULP (bound 16)",
-  "floatDrift": [
-   {
-    "row": 0,
-    "column": "val",
-    "neo4j": "0.455665024630542",
-    "interp": "0.45566502463054187",
-    "ulps": 2
-   }
-  ]
- },
- {
-  "project": "clean-architecture/clean",
-  "phase": "sweep:v1.3-graph:low",
-  "label": "universal-literal:averageInstability",
-  "cypher": "MATCH (f:File)\n      OPTIONAL MATCH (f)-[ro:IMPORTS]->(out:File) WHERE NOT coalesce(ro.viaReExport, false)\n      WITH f, count(DISTINCT out) AS fo\n      OPTIONAL MATCH (f)<-[ri:IMPORTS]-(inc:File) WHERE NOT coalesce(ri.viaReExport, false)\n      WITH f, fo, count(DISTINCT inc) AS fi\n      WHERE fo + fi > 0\n      RETURN avg(toFloat(fo) / (fo + fi)) AS val",
-  "write": false,
-  "klass": "float-drift",
-  "refRows": 1,
-  "candRows": 1,
-  "refMs": 1.4722079999992275,
-  "candMs": 1.4351000000006024,
-  "detail": "universal-literal:averageInstability: 1 cell(s), max 2 ULP (bound 16)",
-  "floatDrift": [
-   {
-    "row": 0,
-    "column": "val",
-    "neo4j": "0.455665024630542",
-    "interp": "0.45566502463054187",
-    "ulps": 2
-   }
-  ]
- },
- {
-  "project": "clean-architecture/clean",
-  "phase": "sweep:v1.3-graph:high",
-  "label": "universal:averageInstability",
-  "cypher": "MATCH (f:File)\n      OPTIONAL MATCH (f)-[:IMPORTS]->(out:File)\n      OPTIONAL MATCH (f)<-[:IMPORTS]-(inc:File)\n      WITH f, count(DISTINCT out) AS fo, count(DISTINCT inc) AS fi\n      WHERE fo + fi > 0\n      RETURN avg(toFloat(fo) / (fo + fi)) AS val",
-  "write": false,
-  "klass": "float-drift",
-  "refRows": 1,
-  "candRows": 1,
-  "refMs": 1.160487999999532,
-  "candMs": 0.8685610000011366,
-  "detail": "universal:averageInstability: 1 cell(s), max 2 ULP (bound 16)",
-  "floatDrift": [
-   {
-    "row": 0,
-    "column": "val",
-    "neo4j": "0.455665024630542",
-    "interp": "0.45566502463054187",
-    "ulps": 2
-   }
-  ]
- },
- {
-  "project": "clean-architecture/clean",
-  "phase": "sweep:v1.3-graph:high",
-  "label": "universal-literal:averageInstability",
-  "cypher": "MATCH (f:File)\n      OPTIONAL MATCH (f)-[ro:IMPORTS]->(out:File) WHERE NOT coalesce(ro.viaReExport, false)\n      WITH f, count(DISTINCT out) AS fo\n      OPTIONAL MATCH (f)<-[ri:IMPORTS]-(inc:File) WHERE NOT coalesce(ri.viaReExport, false)\n      WITH f, fo, count(DISTINCT inc) AS fi\n      WHERE fo + fi > 0\n      RETURN avg(toFloat(fo) / (fo + fi)) AS val",
-  "write": false,
-  "klass": "float-drift",
-  "refRows": 1,
-  "candRows": 1,
-  "refMs": 5.879038999999466,
-  "candMs": 0.9202999999997701,
-  "detail": "universal-literal:averageInstability: 1 cell(s), max 2 ULP (bound 16)",
-  "floatDrift": [
-   {
-    "row": 0,
-    "column": "val",
-    "neo4j": "0.455665024630542",
-    "interp": "0.45566502463054187",
-    "ulps": 2
-   }
-  ]
+  "refMs": 6.6290009999993345,
+  "candMs": 2.0521630000002915
  },
  {
   "project": "clean-architecture/clean",
@@ -208,8 +44,8 @@
   "klass": "order",
   "refRows": 7,
   "candRows": 7,
-  "refMs": 1.174090000000433,
-  "candMs": 0.31462199999987206
+  "refMs": 3.912159999999858,
+  "candMs": 0.5297239999999874
  },
  {
   "project": "clean-architecture/clean",
@@ -220,8 +56,8 @@
   "klass": "order",
   "refRows": 11,
   "candRows": 11,
-  "refMs": 1.227480999999898,
-  "candMs": 0.8076490000003105
+  "refMs": 5.050523000001704,
+  "candMs": 1.4423319999987143
  },
  {
   "project": "clean-architecture/n01-second-composition-root-for-tests",
@@ -232,8 +68,8 @@
   "klass": "order",
   "refRows": 7,
   "candRows": 7,
-  "refMs": 1.1259850000005827,
-  "candMs": 0.6951030000000173
+  "refMs": 3.9965550000015355,
+  "candMs": 1.1773020000000542
  },
  {
   "project": "clean-architecture/n01-second-composition-root-for-tests",
@@ -244,8 +80,8 @@
   "klass": "float-drift",
   "refRows": 1,
   "candRows": 1,
-  "refMs": 5.152280999998766,
-  "candMs": 1.2969200000006822,
+  "refMs": 5.1644539999979315,
+  "candMs": 0.899730000001,
   "detail": "universal-literal:averageInstability: 1 cell(s), max 1 ULP (bound 16)",
   "floatDrift": [
    {
@@ -266,8 +102,8 @@
   "klass": "order",
   "refRows": 7,
   "candRows": 7,
-  "refMs": 1.2916229999991629,
-  "candMs": 0.6342610000010609
+  "refMs": 2.0787300000010873,
+  "candMs": 0.6716439999981958
  },
  {
   "project": "clean-architecture/n01-second-composition-root-for-tests",
@@ -278,8 +114,8 @@
   "klass": "order",
   "refRows": 11,
   "candRows": 11,
-  "refMs": 7.430130000000645,
-  "candMs": 1.3829659999992145
+  "refMs": 1.8092849999993632,
+  "candMs": 0.8182899999992514
  },
  {
   "project": "clean-architecture/n01-second-composition-root-for-tests",
@@ -290,8 +126,8 @@
   "klass": "float-drift",
   "refRows": 1,
   "candRows": 1,
-  "refMs": 3.7885219999989204,
-  "candMs": 1.0116180000004533,
+  "refMs": 6.906797999999981,
+  "candMs": 1.0030159999987518,
   "detail": "universal:averageInstability: 1 cell(s), max 1 ULP (bound 16)",
   "floatDrift": [
    {
@@ -312,8 +148,8 @@
   "klass": "float-drift",
   "refRows": 1,
   "candRows": 1,
-  "refMs": 4.530714000000444,
-  "candMs": 0.9495559999995749,
+  "refMs": 6.653871999998955,
+  "candMs": 1.045233000000735,
   "detail": "universal-literal:averageInstability: 1 cell(s), max 1 ULP (bound 16)",
   "floatDrift": [
    {
@@ -334,8 +170,8 @@
   "klass": "float-drift",
   "refRows": 1,
   "candRows": 1,
-  "refMs": 3.753026000000318,
-  "candMs": 0.8958330000004935,
+  "refMs": 1.8439670000007027,
+  "candMs": 0.9416640000017651,
   "detail": "universal:averageInstability: 1 cell(s), max 1 ULP (bound 16)",
   "floatDrift": [
    {
@@ -356,8 +192,8 @@
   "klass": "float-drift",
   "refRows": 1,
   "candRows": 1,
-  "refMs": 1.3693220000004658,
-  "candMs": 0.9057620000003226,
+  "refMs": 2.7225560000006226,
+  "candMs": 1.1316639999968174,
   "detail": "universal-literal:averageInstability: 1 cell(s), max 1 ULP (bound 16)",
   "floatDrift": [
    {
@@ -378,8 +214,8 @@
   "klass": "order",
   "refRows": 7,
   "candRows": 7,
-  "refMs": 2.578797999998642,
-  "candMs": 0.6885450000008859
+  "refMs": 2.973386000001483,
+  "candMs": 0.6015069999994012
  },
  {
   "project": "clean-architecture/n02-report-writer-named-like-repo",
@@ -390,8 +226,8 @@
   "klass": "order",
   "refRows": 7,
   "candRows": 7,
-  "refMs": 7.320853999999599,
-  "candMs": 0.6825040000003355
+  "refMs": 1.5898619999970833,
+  "candMs": 1.0210240000014892
  },
  {
   "project": "clean-architecture/n02-report-writer-named-like-repo",
@@ -402,8 +238,8 @@
   "klass": "order",
   "refRows": 11,
   "candRows": 11,
-  "refMs": 1.2379430000000866,
-  "candMs": 0.8090220000012778
+  "refMs": 2.0380960000002233,
+  "candMs": 0.6712079999997513
  },
  {
   "project": "clean-architecture/n03-controller-uses-dto-that-wraps-entity",
@@ -414,8 +250,8 @@
   "klass": "order",
   "refRows": 7,
   "candRows": 7,
-  "refMs": 1.2568180000016582,
-  "candMs": 0.8748239999986254
+  "refMs": 1.5325779999984661,
+  "candMs": 0.5235400000019581
  },
  {
   "project": "clean-architecture/n03-controller-uses-dto-that-wraps-entity",
@@ -426,8 +262,8 @@
   "klass": "order",
   "refRows": 7,
   "candRows": 7,
-  "refMs": 1.123132999997324,
-  "candMs": 0.5837780000001658
+  "refMs": 3.9966940000012983,
+  "candMs": 1.3847180000011576
  },
  {
   "project": "clean-architecture/n03-controller-uses-dto-that-wraps-entity",
@@ -438,8 +274,8 @@
   "klass": "order",
   "refRows": 7,
   "candRows": 7,
-  "refMs": 0.9587610000016866,
-  "candMs": 0.31794000000081724
+  "refMs": 2.3966079999954673,
+  "candMs": 0.6863560000056168
  },
  {
   "project": "clean-architecture/n03-controller-uses-dto-that-wraps-entity",
@@ -450,8 +286,8 @@
   "klass": "order",
   "refRows": 11,
   "candRows": 11,
-  "refMs": 1.8530089999985648,
-  "candMs": 0.6932510000006005
+  "refMs": 2.283638000000792,
+  "candMs": 1.4960340000034194
  },
  {
   "project": "clean-architecture/v01-domain-imports-application-port",
@@ -462,8 +298,8 @@
   "klass": "order",
   "refRows": 7,
   "candRows": 7,
-  "refMs": 1.4158080000015616,
-  "candMs": 0.6042729999971925
+  "refMs": 2.220140999997966,
+  "candMs": 1.028701999995974
  },
  {
   "project": "clean-architecture/v01-domain-imports-application-port",
@@ -474,8 +310,8 @@
   "klass": "float-drift",
   "refRows": 1,
   "candRows": 1,
-  "refMs": 5.787937999997666,
-  "candMs": 1.3949370000009367,
+  "refMs": 4.72686899999826,
+  "candMs": 0.7696310000028461,
   "detail": "universal-literal:averageInstability: 1 cell(s), max 1 ULP (bound 16)",
   "floatDrift": [
    {
@@ -496,8 +332,8 @@
   "klass": "order",
   "refRows": 7,
   "candRows": 7,
-  "refMs": 1.736797999998089,
-  "candMs": 0.5817989999995916
+  "refMs": 1.4853990000046906,
+  "candMs": 0.5251749999952153
  },
  {
   "project": "clean-architecture/v01-domain-imports-application-port",
@@ -508,8 +344,8 @@
   "klass": "float-drift",
   "refRows": 1,
   "candRows": 1,
-  "refMs": 3.2022980000001553,
-  "candMs": 0.8220900000014808,
+  "refMs": 4.7640739999988,
+  "candMs": 1.2449590000032913,
   "detail": "universal:averageInstability: 1 cell(s), max 1 ULP (bound 16)",
   "floatDrift": [
    {
@@ -530,8 +366,8 @@
   "klass": "float-drift",
   "refRows": 1,
   "candRows": 1,
-  "refMs": 1.4710940000004484,
-  "candMs": 1.3644950000016252,
+  "refMs": 1.982190000002447,
+  "candMs": 1.2621349999972153,
   "detail": "universal:averageInstability: 1 cell(s), max 1 ULP (bound 16)",
   "floatDrift": [
    {
@@ -552,8 +388,8 @@
   "klass": "float-drift",
   "refRows": 1,
   "candRows": 1,
-  "refMs": 1.8367920000018785,
-  "candMs": 1.3969230000002426,
+  "refMs": 2.2547880000056466,
+  "candMs": 1.0038480000002892,
   "detail": "universal-literal:averageInstability: 1 cell(s), max 1 ULP (bound 16)",
   "floatDrift": [
    {
@@ -574,8 +410,8 @@
   "klass": "float-drift",
   "refRows": 1,
   "candRows": 1,
-  "refMs": 1.4781199999997625,
-  "candMs": 1.4621380000025965,
+  "refMs": 1.6728460000013001,
+  "candMs": 0.8294909999967786,
   "detail": "universal:averageInstability: 1 cell(s), max 1 ULP (bound 16)",
   "floatDrift": [
    {
@@ -596,8 +432,8 @@
   "klass": "float-drift",
   "refRows": 1,
   "candRows": 1,
-  "refMs": 1.7543450000011944,
-  "candMs": 1.4756369999995513,
+  "refMs": 1.6075239999991027,
+  "candMs": 0.9604380000018864,
   "detail": "universal-literal:averageInstability: 1 cell(s), max 1 ULP (bound 16)",
   "floatDrift": [
    {
@@ -618,8 +454,8 @@
   "klass": "float-drift",
   "refRows": 1,
   "candRows": 1,
-  "refMs": 1.4094769999974233,
-  "candMs": 0.7890070000030391,
+  "refMs": 1.3732729999974254,
+  "candMs": 0.9276739999986603,
   "detail": "universal:averageInstability: 1 cell(s), max 1 ULP (bound 16)",
   "floatDrift": [
    {
@@ -640,8 +476,8 @@
   "klass": "float-drift",
   "refRows": 1,
   "candRows": 1,
-  "refMs": 1.0843890000032843,
-  "candMs": 0.7970749999985856,
+  "refMs": 1.5645199999999022,
+  "candMs": 1.090288999999757,
   "detail": "universal-literal:averageInstability: 1 cell(s), max 1 ULP (bound 16)",
   "floatDrift": [
    {
@@ -662,8 +498,8 @@
   "klass": "order",
   "refRows": 7,
   "candRows": 7,
-  "refMs": 2.4987639999999374,
-  "candMs": 0.46495800000047893
+  "refMs": 1.3864340000000084,
+  "candMs": 0.548159999998461
  },
  {
   "project": "clean-architecture/v01-domain-imports-application-port",
@@ -674,8 +510,8 @@
   "klass": "order",
   "refRows": 11,
   "candRows": 11,
-  "refMs": 4.350458000000799,
-  "candMs": 1.2630749999989348
+  "refMs": 1.808406999996805,
+  "candMs": 0.8933719999986351
  },
  {
   "project": "clean-architecture/v02-domain-uses-infrastructure-clock",
@@ -686,8 +522,8 @@
   "klass": "order",
   "refRows": 7,
   "candRows": 7,
-  "refMs": 1.0182549999990442,
-  "candMs": 0.7159829999982321
+  "refMs": 1.7821190000031493,
+  "candMs": 0.5510939999949187
  },
  {
   "project": "clean-architecture/v02-domain-uses-infrastructure-clock",
@@ -698,8 +534,8 @@
   "klass": "float-drift",
   "refRows": 1,
   "candRows": 1,
-  "refMs": 5.2080150000001595,
-  "candMs": 0.7737099999976635,
+  "refMs": 2.970325000002049,
+  "candMs": 0.7436510000043199,
   "detail": "universal-literal:averageInstability: 1 cell(s), max 2 ULP (bound 16)",
   "floatDrift": [
    {
@@ -720,8 +556,8 @@
   "klass": "order",
   "refRows": 7,
   "candRows": 7,
-  "refMs": 0.8356979999989562,
-  "candMs": 0.5613899999989371
+  "refMs": 1.3461820000011357,
+  "candMs": 0.6417139999975916
  },
  {
   "project": "clean-architecture/v02-domain-uses-infrastructure-clock",
@@ -732,8 +568,8 @@
   "klass": "float-drift",
   "refRows": 1,
   "candRows": 1,
-  "refMs": 4.067761000002065,
-  "candMs": 0.7436479999996664,
+  "refMs": 2.395584999998391,
+  "candMs": 0.9767490000012913,
   "detail": "universal:averageInstability: 1 cell(s), max 2 ULP (bound 16)",
   "floatDrift": [
    {
@@ -754,8 +590,8 @@
   "klass": "float-drift",
   "refRows": 1,
   "candRows": 1,
-  "refMs": 1.0628560000004654,
-  "candMs": 0.7542020000000775,
+  "refMs": 1.525496000002022,
+  "candMs": 0.8049609999943641,
   "detail": "universal:averageInstability: 1 cell(s), max 2 ULP (bound 16)",
   "floatDrift": [
    {
@@ -776,8 +612,8 @@
   "klass": "float-drift",
   "refRows": 1,
   "candRows": 1,
-  "refMs": 4.275444000002608,
-  "candMs": 0.8206909999971685,
+  "refMs": 2.0369040000005043,
+  "candMs": 0.778202000001329,
   "detail": "universal-literal:averageInstability: 1 cell(s), max 2 ULP (bound 16)",
   "floatDrift": [
    {
@@ -798,8 +634,8 @@
   "klass": "float-drift",
   "refRows": 1,
   "candRows": 1,
-  "refMs": 1.479006000001391,
-  "candMs": 1.4468489999999292,
+  "refMs": 1.5252249999975902,
+  "candMs": 0.9058980000045267,
   "detail": "universal:averageInstability: 1 cell(s), max 2 ULP (bound 16)",
   "floatDrift": [
    {
@@ -820,8 +656,8 @@
   "klass": "float-drift",
   "refRows": 1,
   "candRows": 1,
-  "refMs": 1.686795000001439,
-  "candMs": 1.3703349999996135,
+  "refMs": 1.4943490000005113,
+  "candMs": 1.2979090000008,
   "detail": "universal-literal:averageInstability: 1 cell(s), max 2 ULP (bound 16)",
   "floatDrift": [
    {
@@ -842,8 +678,8 @@
   "klass": "float-drift",
   "refRows": 1,
   "candRows": 1,
-  "refMs": 3.4329409999991185,
-  "candMs": 0.7548800000004121,
+  "refMs": 4.480685000002268,
+  "candMs": 1.2761180000015884,
   "detail": "universal:averageInstability: 1 cell(s), max 2 ULP (bound 16)",
   "floatDrift": [
    {
@@ -864,8 +700,8 @@
   "klass": "float-drift",
   "refRows": 1,
   "candRows": 1,
-  "refMs": 4.827087000001484,
-  "candMs": 0.8606089999993856,
+  "refMs": 2.295427999997628,
+  "candMs": 1.3267679999989923,
   "detail": "universal-literal:averageInstability: 1 cell(s), max 2 ULP (bound 16)",
   "floatDrift": [
    {
@@ -886,8 +722,8 @@
   "klass": "order",
   "refRows": 7,
   "candRows": 7,
-  "refMs": 1.4276060000011057,
-  "candMs": 0.3094229999987874
+  "refMs": 1.2866849999991246,
+  "candMs": 0.34505799999897135
  },
  {
   "project": "clean-architecture/v02-domain-uses-infrastructure-clock",
@@ -898,8 +734,8 @@
   "klass": "order",
   "refRows": 11,
   "candRows": 11,
-  "refMs": 1.0897289999993518,
-  "candMs": 0.8005489999995916
+  "refMs": 1.1721200000029057,
+  "candMs": 0.8007310000029975
  },
  {
   "project": "clean-architecture/v03-domain-entity-cycle",
@@ -910,8 +746,8 @@
   "klass": "order",
   "refRows": 7,
   "candRows": 7,
-  "refMs": 1.1187130000034813,
-  "candMs": 0.6719839999968826
+  "refMs": 1.666758999999729,
+  "candMs": 0.5252020000043558
  },
  {
   "project": "clean-architecture/v03-domain-entity-cycle",
@@ -922,8 +758,8 @@
   "klass": "float-drift",
   "refRows": 1,
   "candRows": 1,
-  "refMs": 9.360671000002185,
-  "candMs": 0.7798430000002554,
+  "refMs": 6.14306800000486,
+  "candMs": 0.8403799999941839,
   "detail": "universal-literal:averageInstability: 1 cell(s), max 2 ULP (bound 16)",
   "floatDrift": [
    {
@@ -944,8 +780,8 @@
   "klass": "order",
   "refRows": 7,
   "candRows": 7,
-  "refMs": 1.2115589999993972,
-  "candMs": 0.5857419999992999
+  "refMs": 1.4180249999990338,
+  "candMs": 0.7570159999959287
  },
  {
   "project": "clean-architecture/v03-domain-entity-cycle",
@@ -956,8 +792,8 @@
   "klass": "float-drift",
   "refRows": 1,
   "candRows": 1,
-  "refMs": 2.343802000003052,
-  "candMs": 0.848322999998345,
+  "refMs": 2.730878999995184,
+  "candMs": 0.8031480000063311,
   "detail": "universal:averageInstability: 1 cell(s), max 2 ULP (bound 16)",
   "floatDrift": [
    {
@@ -978,8 +814,8 @@
   "klass": "float-drift",
   "refRows": 1,
   "candRows": 1,
-  "refMs": 1.174087999999756,
-  "candMs": 0.7798709999988205,
+  "refMs": 1.7967470000003232,
+  "candMs": 1.4498569999996107,
   "detail": "universal:averageInstability: 1 cell(s), max 2 ULP (bound 16)",
   "floatDrift": [
    {
@@ -1000,8 +836,8 @@
   "klass": "float-drift",
   "refRows": 1,
   "candRows": 1,
-  "refMs": 1.4409679999989748,
-  "candMs": 0.7308390000034706,
+  "refMs": 1.415264000002935,
+  "candMs": 0.9125999999960186,
   "detail": "universal-literal:averageInstability: 1 cell(s), max 2 ULP (bound 16)",
   "floatDrift": [
    {
@@ -1022,8 +858,8 @@
   "klass": "float-drift",
   "refRows": 1,
   "candRows": 1,
-  "refMs": 0.9711649999990186,
-  "candMs": 0.8590150000018184,
+  "refMs": 1.6761879999976372,
+  "candMs": 1.045003999999608,
   "detail": "universal:averageInstability: 1 cell(s), max 2 ULP (bound 16)",
   "floatDrift": [
    {
@@ -1044,8 +880,8 @@
   "klass": "float-drift",
   "refRows": 1,
   "candRows": 1,
-  "refMs": 2.983456000001752,
-  "candMs": 1.0195820000008098,
+  "refMs": 1.2452379999958794,
+  "candMs": 0.7680380000019795,
   "detail": "universal-literal:averageInstability: 1 cell(s), max 2 ULP (bound 16)",
   "floatDrift": [
    {
@@ -1066,8 +902,8 @@
   "klass": "float-drift",
   "refRows": 1,
   "candRows": 1,
-  "refMs": 0.8930540000001201,
-  "candMs": 0.8910909999976866,
+  "refMs": 1.349702999999863,
+  "candMs": 0.7715859999952954,
   "detail": "universal:averageInstability: 1 cell(s), max 2 ULP (bound 16)",
   "floatDrift": [
    {
@@ -1088,8 +924,8 @@
   "klass": "float-drift",
   "refRows": 1,
   "candRows": 1,
-  "refMs": 1.316579999998794,
-  "candMs": 0.9488450000026205,
+  "refMs": 2.09193100000266,
+  "candMs": 0.8852919999990263,
   "detail": "universal-literal:averageInstability: 1 cell(s), max 2 ULP (bound 16)",
   "floatDrift": [
    {
@@ -1110,8 +946,8 @@
   "klass": "order",
   "refRows": 7,
   "candRows": 7,
-  "refMs": 1.6350509999974747,
-  "candMs": 0.32634300000063377
+  "refMs": 1.643780999998853,
+  "candMs": 0.303063999999722
  },
  {
   "project": "clean-architecture/v03-domain-entity-cycle",
@@ -1122,8 +958,8 @@
   "klass": "order",
   "refRows": 11,
   "candRows": 11,
-  "refMs": 1.2398780000003171,
-  "candMs": 0.7188399999977264
+  "refMs": 1.5470839999979944,
+  "candMs": 0.6825069999977131
  },
  {
   "project": "clean-architecture/v04-domain-entity-typeorm-decorator",
@@ -1134,8 +970,8 @@
   "klass": "order",
   "refRows": 7,
   "candRows": 7,
-  "refMs": 1.2418390000020736,
-  "candMs": 1.0931599999967148
+  "refMs": 1.4552650000041467,
+  "candMs": 0.5803059999961988
  },
  {
   "project": "clean-architecture/v04-domain-entity-typeorm-decorator",
@@ -1146,8 +982,8 @@
   "klass": "float-drift",
   "refRows": 1,
   "candRows": 1,
-  "refMs": 1.8350030000001425,
-  "candMs": 0.8116500000032829,
+  "refMs": 5.569331999999122,
+  "candMs": 0.700408000004245,
   "detail": "universal-literal:averageInstability: 1 cell(s), max 1 ULP (bound 16)",
   "floatDrift": [
    {
@@ -1168,8 +1004,8 @@
   "klass": "order",
   "refRows": 7,
   "candRows": 7,
-  "refMs": 1.3858859999963897,
-  "candMs": 0.9707699999999022
+  "refMs": 1.3103320000009262,
+  "candMs": 0.4637159999983851
  },
  {
   "project": "clean-architecture/v04-domain-entity-typeorm-decorator",
@@ -1180,8 +1016,8 @@
   "klass": "order",
   "refRows": 8,
   "candRows": 8,
-  "refMs": 1.034152999993239,
-  "candMs": 0.2978770000045188
+  "refMs": 1.9634899999946356,
+  "candMs": 0.27141900000424357
  },
  {
   "project": "clean-architecture/v04-domain-entity-typeorm-decorator",
@@ -1192,8 +1028,8 @@
   "klass": "order",
   "refRows": 11,
   "candRows": 11,
-  "refMs": 1.1198460000014165,
-  "candMs": 1.2779030000019702
+  "refMs": 1.6037780000042403,
+  "candMs": 0.6526539999977103
  },
  {
   "project": "clean-architecture/v05-use-case-injects-concrete-repository",
@@ -1204,8 +1040,8 @@
   "klass": "order",
   "refRows": 7,
   "candRows": 7,
-  "refMs": 4.498206000003847,
-  "candMs": 0.5091229999961797
+  "refMs": 1.0054380000001402,
+  "candMs": 0.49913999999989755
  },
  {
   "project": "clean-architecture/v05-use-case-injects-concrete-repository",
@@ -1216,8 +1052,8 @@
   "klass": "float-drift",
   "refRows": 1,
   "candRows": 1,
-  "refMs": 4.050178000004962,
-  "candMs": 0.999017999994976,
+  "refMs": 3.2552099999957136,
+  "candMs": 0.6660140000021784,
   "detail": "universal-literal:averageInstability: 1 cell(s), max 1 ULP (bound 16)",
   "floatDrift": [
    {
@@ -1238,8 +1074,8 @@
   "klass": "order",
   "refRows": 7,
   "candRows": 7,
-  "refMs": 1.1855959999957122,
-  "candMs": 0.5389780000041355
+  "refMs": 1.7064680000039516,
+  "candMs": 0.8487769999992452
  },
  {
   "project": "clean-architecture/v05-use-case-injects-concrete-repository",
@@ -1250,8 +1086,8 @@
   "klass": "order",
   "refRows": 7,
   "candRows": 7,
-  "refMs": 4.496431999999913,
-  "candMs": 0.569867999998678
+  "refMs": 1.1870789999957196,
+  "candMs": 0.4422220000051311
  },
  {
   "project": "clean-architecture/v05-use-case-injects-concrete-repository",
@@ -1262,8 +1098,8 @@
   "klass": "order",
   "refRows": 11,
   "candRows": 11,
-  "refMs": 4.200085000004037,
-  "candMs": 0.68533899999602
+  "refMs": 1.3436169999986305,
+  "candMs": 0.689472999998543
  },
  {
   "project": "clean-architecture/v06-repository-without-port",
@@ -1274,8 +1110,8 @@
   "klass": "order",
   "refRows": 5,
   "candRows": 5,
-  "refMs": 1.0336810000007972,
-  "candMs": 0.2869799999971292
+  "refMs": 1.0118119999970077,
+  "candMs": 0.2795120000009774
  },
  {
   "project": "clean-architecture/v06-repository-without-port",
@@ -1286,8 +1122,8 @@
   "klass": "order",
   "refRows": 7,
   "candRows": 7,
-  "refMs": 1.77170599999954,
-  "candMs": 0.4562819999991916
+  "refMs": 0.9822829999975511,
+  "candMs": 0.47653400000126567
  },
  {
   "project": "clean-architecture/v06-repository-without-port",
@@ -1298,8 +1134,8 @@
   "klass": "order",
   "refRows": 5,
   "candRows": 5,
-  "refMs": 0.9359680000052322,
-  "candMs": 0.25101100000028964
+  "refMs": 1.2753579999989597,
+  "candMs": 0.3147420000022976
  },
  {
   "project": "clean-architecture/v06-repository-without-port",
@@ -1310,8 +1146,8 @@
   "klass": "order",
   "refRows": 7,
   "candRows": 7,
-  "refMs": 2.8612560000037774,
-  "candMs": 0.48948699999891687
+  "refMs": 1.2227550000025076,
+  "candMs": 0.4366969999973662
  },
  {
   "project": "clean-architecture/v06-repository-without-port",
@@ -1322,8 +1158,8 @@
   "klass": "order",
   "refRows": 7,
   "candRows": 7,
-  "refMs": 1.9391080000059446,
-  "candMs": 2.118640000000596
+  "refMs": 1.1256940000021132,
+  "candMs": 0.8761610000001383
  },
  {
   "project": "clean-architecture/v06-repository-without-port",
@@ -1334,8 +1170,8 @@
   "klass": "order",
   "refRows": 11,
   "candRows": 11,
-  "refMs": 1.4105869999984861,
-  "candMs": 0.6162429999967571
+  "refMs": 1.1246660000033444,
+  "candMs": 0.6403270000009798
  },
  {
   "project": "clean-architecture/v07-controller-reads-entity",
@@ -1346,8 +1182,8 @@
   "klass": "order",
   "refRows": 5,
   "candRows": 5,
-  "refMs": 1.7044729999979609,
-  "candMs": 0.2545810000010533
+  "refMs": 0.9691950000051293,
+  "candMs": 0.29157199999463046
  },
  {
   "project": "clean-architecture/v07-controller-reads-entity",
@@ -1358,8 +1194,8 @@
   "klass": "order",
   "refRows": 7,
   "candRows": 7,
-  "refMs": 3.7861639999973704,
-  "candMs": 0.6143910000027972
+  "refMs": 0.9984390000026906,
+  "candMs": 0.4295570000031148
  },
  {
   "project": "clean-architecture/v07-controller-reads-entity",
@@ -1370,8 +1206,8 @@
   "klass": "order",
   "refRows": 7,
   "candRows": 7,
-  "refMs": 0.8233340000006137,
-  "candMs": 0.5785130000003846
+  "refMs": 1.4569479999991017,
+  "candMs": 0.5142540000015288
  },
  {
   "project": "clean-architecture/v07-controller-reads-entity",
@@ -1382,8 +1218,8 @@
   "klass": "float-drift",
   "refRows": 1,
   "candRows": 1,
-  "refMs": 10.469651999999769,
-  "candMs": 0.6992880000034347,
+  "refMs": 1.8489449999979115,
+  "candMs": 0.7159769999998389,
   "detail": "universal:averageInstability: 1 cell(s), max 2 ULP (bound 16)",
   "floatDrift": [
    {
@@ -1404,8 +1240,8 @@
   "klass": "float-drift",
   "refRows": 1,
   "candRows": 1,
-  "refMs": 1.0984360000002198,
-  "candMs": 0.7459889999954612,
+  "refMs": 1.1559110000016517,
+  "candMs": 0.7791010000000824,
   "detail": "universal:averageInstability: 1 cell(s), max 2 ULP (bound 16)",
   "floatDrift": [
    {
@@ -1426,8 +1262,8 @@
   "klass": "float-drift",
   "refRows": 1,
   "candRows": 1,
-  "refMs": 1.809954000003927,
-  "candMs": 0.7069309999933466,
+  "refMs": 1.2785749999966356,
+  "candMs": 0.6486579999982496,
   "detail": "universal-literal:averageInstability: 1 cell(s), max 2 ULP (bound 16)",
   "floatDrift": [
    {
@@ -1448,8 +1284,8 @@
   "klass": "float-drift",
   "refRows": 1,
   "candRows": 1,
-  "refMs": 1.1027969999995548,
-  "candMs": 0.8038410000008298,
+  "refMs": 1.7292110000053071,
+  "candMs": 1.1733139999996638,
   "detail": "universal:averageInstability: 1 cell(s), max 2 ULP (bound 16)",
   "floatDrift": [
    {
@@ -1470,8 +1306,8 @@
   "klass": "float-drift",
   "refRows": 1,
   "candRows": 1,
-  "refMs": 1.1479199999957928,
-  "candMs": 0.7041969999991124,
+  "refMs": 1.4665749999985565,
+  "candMs": 0.6882360000017798,
   "detail": "universal-literal:averageInstability: 1 cell(s), max 2 ULP (bound 16)",
   "floatDrift": [
    {
@@ -1492,8 +1328,8 @@
   "klass": "float-drift",
   "refRows": 1,
   "candRows": 1,
-  "refMs": 0.8700299999982235,
-  "candMs": 0.7398270000048797,
+  "refMs": 1.394322000000102,
+  "candMs": 0.7622689999989234,
   "detail": "universal:averageInstability: 1 cell(s), max 2 ULP (bound 16)",
   "floatDrift": [
    {
@@ -1514,8 +1350,8 @@
   "klass": "float-drift",
   "refRows": 1,
   "candRows": 1,
-  "refMs": 0.8999100000000908,
-  "candMs": 0.7297319999997853,
+  "refMs": 1.7332050000040908,
+  "candMs": 0.7060100000016973,
   "detail": "universal-literal:averageInstability: 1 cell(s), max 2 ULP (bound 16)",
   "floatDrift": [
    {
@@ -1536,8 +1372,8 @@
   "klass": "order",
   "refRows": 7,
   "candRows": 7,
-  "refMs": 1.2217899999959627,
-  "candMs": 0.26611099999718135
+  "refMs": 1.3625479999973322,
+  "candMs": 0.2543950000035693
  },
  {
   "project": "clean-architecture/v07-controller-reads-entity",
@@ -1548,8 +1384,8 @@
   "klass": "order",
   "refRows": 11,
   "candRows": 11,
-  "refMs": 1.2032540000000154,
-  "candMs": 0.5821309999955702
+  "refMs": 1.5623780000023544,
+  "candMs": 0.6952499999970314
  },
  {
   "project": "clean-architecture/v08-domain-service-holds-infrastructure-clock",
@@ -1560,8 +1396,8 @@
   "klass": "order",
   "refRows": 7,
   "candRows": 7,
-  "refMs": 0.8694409999952768,
-  "candMs": 0.448898000002373
+  "refMs": 1.3230000000039581,
+  "candMs": 0.779884999996284
  },
  {
   "project": "clean-architecture/v08-domain-service-holds-infrastructure-clock",
@@ -1572,8 +1408,8 @@
   "klass": "float-drift",
   "refRows": 1,
   "candRows": 1,
-  "refMs": 4.071547999999893,
-  "candMs": 0.6454450000019278,
+  "refMs": 2.769120999990264,
+  "candMs": 0.6688189999986207,
   "detail": "universal-literal:averageInstability: 1 cell(s), max 2 ULP (bound 16)",
   "floatDrift": [
    {
@@ -1594,8 +1430,8 @@
   "klass": "order",
   "refRows": 7,
   "candRows": 7,
-  "refMs": 2.427186000000802,
-  "candMs": 0.4603690000003553
+  "refMs": 1.1294510000006994,
+  "candMs": 0.45242300000973046
  },
  {
   "project": "clean-architecture/v08-domain-service-holds-infrastructure-clock",
@@ -1606,8 +1442,8 @@
   "klass": "float-drift",
   "refRows": 1,
   "candRows": 1,
-  "refMs": 1.707630999997491,
-  "candMs": 0.7287270000015269,
+  "refMs": 4.423133999996935,
+  "candMs": 0.6789690000005066,
   "detail": "universal:averageInstability: 1 cell(s), max 2 ULP (bound 16)",
   "floatDrift": [
    {
@@ -1628,8 +1464,8 @@
   "klass": "float-drift",
   "refRows": 1,
   "candRows": 1,
-  "refMs": 1.3329939999966882,
-  "candMs": 1.256033000005118,
+  "refMs": 1.2062280000100145,
+  "candMs": 0.7378509999980452,
   "detail": "universal:averageInstability: 1 cell(s), max 2 ULP (bound 16)",
   "floatDrift": [
    {
@@ -1650,8 +1486,8 @@
   "klass": "float-drift",
   "refRows": 1,
   "candRows": 1,
-  "refMs": 4.633420999998634,
-  "candMs": 1.261638000003586,
+  "refMs": 1.3335010000009788,
+  "candMs": 0.8036699999938719,
   "detail": "universal-literal:averageInstability: 1 cell(s), max 2 ULP (bound 16)",
   "floatDrift": [
    {
@@ -1672,8 +1508,8 @@
   "klass": "float-drift",
   "refRows": 1,
   "candRows": 1,
-  "refMs": 1.0068620000020019,
-  "candMs": 0.7372899999973015,
+  "refMs": 1.2447360000078334,
+  "candMs": 0.7170869999972638,
   "detail": "universal:averageInstability: 1 cell(s), max 2 ULP (bound 16)",
   "floatDrift": [
    {
@@ -1694,8 +1530,8 @@
   "klass": "float-drift",
   "refRows": 1,
   "candRows": 1,
-  "refMs": 2.1964179999995395,
-  "candMs": 0.7863310000029742,
+  "refMs": 1.4036840000044322,
+  "candMs": 0.6467779999948107,
   "detail": "universal-literal:averageInstability: 1 cell(s), max 2 ULP (bound 16)",
   "floatDrift": [
    {
@@ -1716,8 +1552,8 @@
   "klass": "float-drift",
   "refRows": 1,
   "candRows": 1,
-  "refMs": 1.4087359999975888,
-  "candMs": 1.2692620000016177,
+  "refMs": 1.1088369999924907,
+  "candMs": 0.6526610000000801,
   "detail": "universal:averageInstability: 1 cell(s), max 2 ULP (bound 16)",
   "floatDrift": [
    {
@@ -1738,8 +1574,8 @@
   "klass": "float-drift",
   "refRows": 1,
   "candRows": 1,
-  "refMs": 1.8498839999956544,
-  "candMs": 0.7591090000059921,
+  "refMs": 1.362210999999661,
+  "candMs": 1.3126570000022184,
   "detail": "universal-literal:averageInstability: 1 cell(s), max 2 ULP (bound 16)",
   "floatDrift": [
    {
@@ -1760,8 +1596,8 @@
   "klass": "order",
   "refRows": 7,
   "candRows": 7,
-  "refMs": 1.0121880000006058,
-  "candMs": 0.3041769999981625
+  "refMs": 1.3899990000063553,
+  "candMs": 0.38273599999956787
  },
  {
   "project": "clean-architecture/v08-domain-service-holds-infrastructure-clock",
@@ -1772,8 +1608,8 @@
   "klass": "order",
   "refRows": 11,
   "candRows": 11,
-  "refMs": 2.2542840000023716,
-  "candMs": 1.0647479999970528
+  "refMs": 4.948705999995582,
+  "candMs": 0.7049640000041109
  },
  {
   "project": "clean-architecture/v09-dto-depends-on-http-adapter",
@@ -1784,8 +1620,8 @@
   "klass": "order",
   "refRows": 7,
   "candRows": 7,
-  "refMs": 0.9867979999980889,
-  "candMs": 0.4939799999992829
+  "refMs": 1.12850000000617,
+  "candMs": 0.7543689999874914
  },
  {
   "project": "clean-architecture/v09-dto-depends-on-http-adapter",
@@ -1796,8 +1632,8 @@
   "klass": "float-drift",
   "refRows": 1,
   "candRows": 1,
-  "refMs": 6.330836000001,
-  "candMs": 0.9939860000013141,
+  "refMs": 28.901224999994156,
+  "candMs": 0.6429710000084015,
   "detail": "universal-literal:averageInstability: 1 cell(s), max 1 ULP (bound 16)",
   "floatDrift": [
    {
@@ -1818,8 +1654,8 @@
   "klass": "order",
   "refRows": 7,
   "candRows": 7,
-  "refMs": 1.141221999998379,
-  "candMs": 0.46066199999768287
+  "refMs": 1.5270590000000084,
+  "candMs": 0.5732140000036452
  },
  {
   "project": "clean-architecture/v09-dto-depends-on-http-adapter",
@@ -1830,8 +1666,8 @@
   "klass": "float-drift",
   "refRows": 1,
   "candRows": 1,
-  "refMs": 2.272164000001794,
-  "candMs": 0.71418999999878,
+  "refMs": 2.8404109999974025,
+  "candMs": 0.6585000000050059,
   "detail": "universal:averageInstability: 1 cell(s), max 1 ULP (bound 16)",
   "floatDrift": [
    {
@@ -1852,8 +1688,8 @@
   "klass": "float-drift",
   "refRows": 1,
   "candRows": 1,
-  "refMs": 0.9088770000016666,
-  "candMs": 0.7298079999964102,
+  "refMs": 1.404830999992555,
+  "candMs": 0.7889049999939743,
   "detail": "universal:averageInstability: 1 cell(s), max 1 ULP (bound 16)",
   "floatDrift": [
    {
@@ -1874,8 +1710,8 @@
   "klass": "float-drift",
   "refRows": 1,
   "candRows": 1,
-  "refMs": 0.9631080000035581,
-  "candMs": 0.6507579999961308,
+  "refMs": 1.4601019999972777,
+  "candMs": 0.7281440000078874,
   "detail": "universal-literal:averageInstability: 1 cell(s), max 1 ULP (bound 16)",
   "floatDrift": [
    {
@@ -1896,8 +1732,8 @@
   "klass": "float-drift",
   "refRows": 1,
   "candRows": 1,
-  "refMs": 0.9149400000023888,
-  "candMs": 0.6730569999999716,
+  "refMs": 1.073047999991104,
+  "candMs": 0.7297850000031758,
   "detail": "universal:averageInstability: 1 cell(s), max 1 ULP (bound 16)",
   "floatDrift": [
    {
@@ -1918,8 +1754,8 @@
   "klass": "float-drift",
   "refRows": 1,
   "candRows": 1,
-  "refMs": 0.8870309999983874,
-  "candMs": 0.6565560000017285,
+  "refMs": 1.351794999995036,
+  "candMs": 0.6796969999995781,
   "detail": "universal-literal:averageInstability: 1 cell(s), max 1 ULP (bound 16)",
   "floatDrift": [
    {
@@ -1940,8 +1776,8 @@
   "klass": "float-drift",
   "refRows": 1,
   "candRows": 1,
-  "refMs": 0.9228040000016335,
-  "candMs": 0.7438479999982519,
+  "refMs": 1.3359359999885783,
+  "candMs": 1.332380000007106,
   "detail": "universal:averageInstability: 1 cell(s), max 1 ULP (bound 16)",
   "floatDrift": [
    {
@@ -1962,8 +1798,8 @@
   "klass": "float-drift",
   "refRows": 1,
   "candRows": 1,
-  "refMs": 1.0584390000003623,
-  "candMs": 0.6872719999955734,
+  "refMs": 1.5461230000073556,
+  "candMs": 0.747202999991714,
   "detail": "universal-literal:averageInstability: 1 cell(s), max 1 ULP (bound 16)",
   "floatDrift": [
    {
@@ -1984,8 +1820,8 @@
   "klass": "order",
   "refRows": 7,
   "candRows": 7,
-  "refMs": 0.9354370000000927,
-  "candMs": 0.22763400000258116
+  "refMs": 1.4998920000070939,
+  "candMs": 0.509024999992107
  },
  {
   "project": "clean-architecture/v09-dto-depends-on-http-adapter",
@@ -1996,8 +1832,8 @@
   "klass": "order",
   "refRows": 11,
   "candRows": 11,
-  "refMs": 1.0034900000027847,
-  "candMs": 0.5728109999981825
+  "refMs": 1.391166000001249,
+  "candMs": 1.0610329999908572
  },
  {
   "project": "clean-architecture/v10-domain-entity-type-imports-express",
@@ -2008,8 +1844,8 @@
   "klass": "order",
   "refRows": 7,
   "candRows": 7,
-  "refMs": 1.0327849999957834,
-  "candMs": 0.5022440000029746
+  "refMs": 1.333080999989761,
+  "candMs": 0.49704499999643303
  },
  {
   "project": "clean-architecture/v10-domain-entity-type-imports-express",
@@ -2020,8 +1856,8 @@
   "klass": "float-drift",
   "refRows": 1,
   "candRows": 1,
-  "refMs": 2.847540000002482,
-  "candMs": 1.1440920000022743,
+  "refMs": 2.7227989999955753,
+  "candMs": 0.6660899999988033,
   "detail": "universal-literal:averageInstability: 1 cell(s), max 1 ULP (bound 16)",
   "floatDrift": [
    {
@@ -2042,8 +1878,8 @@
   "klass": "order",
   "refRows": 7,
   "candRows": 7,
-  "refMs": 1.1582930000004126,
-  "candMs": 0.48503599999821745
+  "refMs": 1.1362730000109877,
+  "candMs": 0.5042959999991581
  },
  {
   "project": "clean-architecture/v10-domain-entity-type-imports-express",
@@ -2054,8 +1890,8 @@
   "klass": "order",
   "refRows": 8,
   "candRows": 8,
-  "refMs": 0.9945289999959641,
-  "candMs": 0.38197600000421517
+  "refMs": 1.164055000001099,
+  "candMs": 0.2713570000050822
  },
  {
   "project": "clean-architecture/v10-domain-entity-type-imports-express",
@@ -2066,8 +1902,8 @@
   "klass": "order",
   "refRows": 11,
   "candRows": 11,
-  "refMs": 1.2423449999987497,
-  "candMs": 1.0768479999969713
+  "refMs": 1.0767639999976382,
+  "candMs": 0.6774959999893326
  },
  {
   "project": "layered/clean",
@@ -2078,8 +1914,8 @@
   "klass": "order",
   "refRows": 6,
   "candRows": 6,
-  "refMs": 1.1204340000040247,
-  "candMs": 0.5065749999994296
+  "refMs": 1.0061509999941336,
+  "candMs": 0.4431110000004992
  },
  {
   "project": "layered/clean",
@@ -2090,8 +1926,8 @@
   "klass": "float-drift",
   "refRows": 1,
   "candRows": 1,
-  "refMs": 2.8182400000005146,
-  "candMs": 0.5627339999991818,
+  "refMs": 2.449091000002227,
+  "candMs": 0.537452000004123,
   "detail": "universal-literal:averageInstability: 1 cell(s), max 4 ULP (bound 16)",
   "floatDrift": [
    {
@@ -2107,13 +1943,25 @@
   "project": "layered/clean",
   "phase": "arm:v1.2e",
   "label": "ingest-verify",
+  "cypher": "MATCH (n:APGNode) RETURN n.type AS type, count(*) AS cnt",
+  "write": false,
+  "klass": "order",
+  "refRows": 5,
+  "candRows": 5,
+  "refMs": 1.5101639999920735,
+  "candMs": 0.22859600000083447
+ },
+ {
+  "project": "layered/clean",
+  "phase": "arm:v1.2e",
+  "label": "ingest-verify",
   "cypher": "MATCH ()-[r]->() RETURN type(r) AS type, count(*) AS cnt",
   "write": false,
   "klass": "order",
   "refRows": 6,
   "candRows": 6,
-  "refMs": 1.2071859999996377,
-  "candMs": 0.44387100000312785
+  "refMs": 1.3371150000020862,
+  "candMs": 0.4237240000074962
  },
  {
   "project": "layered/clean",
@@ -2124,8 +1972,8 @@
   "klass": "order",
   "refRows": 7,
   "candRows": 7,
-  "refMs": 1.0800649999946472,
-  "candMs": 0.2899969999998575
+  "refMs": 1.0620539999945322,
+  "candMs": 0.24230199999874458
  },
  {
   "project": "layered/clean",
@@ -2136,8 +1984,8 @@
   "klass": "order",
   "refRows": 10,
   "candRows": 10,
-  "refMs": 1.022491000003356,
-  "candMs": 0.6773589999938849
+  "refMs": 1.0858339999977034,
+  "candMs": 0.6428759999980684
  },
  {
   "project": "layered/n01-controller-parses-money",
@@ -2148,8 +1996,8 @@
   "klass": "order",
   "refRows": 5,
   "candRows": 5,
-  "refMs": 0.9410250000000815,
-  "candMs": 0.2069069999997737
+  "refMs": 1.0894499999994878,
+  "candMs": 0.2321290000109002
  },
  {
   "project": "layered/n01-controller-parses-money",
@@ -2160,8 +2008,8 @@
   "klass": "order",
   "refRows": 6,
   "candRows": 6,
-  "refMs": 0.9702810000017053,
-  "candMs": 0.455151999994996
+  "refMs": 1.1247280000097817,
+  "candMs": 0.4929429999901913
  },
  {
   "project": "layered/n01-controller-parses-money",
@@ -2172,8 +2020,8 @@
   "klass": "order",
   "refRows": 5,
   "candRows": 5,
-  "refMs": 0.9156020000009448,
-  "candMs": 0.2091519999958109
+  "refMs": 1.1074570000055246,
+  "candMs": 0.37439899999299087
  },
  {
   "project": "layered/n01-controller-parses-money",
@@ -2184,8 +2032,8 @@
   "klass": "order",
   "refRows": 6,
   "candRows": 6,
-  "refMs": 0.8024230000009993,
-  "candMs": 0.479762999995728
+  "refMs": 1.5841639999998733,
+  "candMs": 0.6732690000062576
  },
  {
   "project": "layered/n01-controller-parses-money",
@@ -2196,8 +2044,8 @@
   "klass": "order",
   "refRows": 7,
   "candRows": 7,
-  "refMs": 0.9997629999998026,
-  "candMs": 0.21639199999481207
+  "refMs": 1.557373000003281,
+  "candMs": 0.26912100000481587
  },
  {
   "project": "layered/n01-controller-parses-money",
@@ -2208,8 +2056,8 @@
   "klass": "order",
   "refRows": 10,
   "candRows": 10,
-  "refMs": 1.0373970000000554,
-  "candMs": 0.6245689999996102
+  "refMs": 1.382008999993559,
+  "candMs": 0.6326810000027763
  },
  {
   "project": "layered/n02-reporting-service-reads-database",
@@ -2220,8 +2068,8 @@
   "klass": "order",
   "refRows": 5,
   "candRows": 5,
-  "refMs": 1.3050279999952181,
-  "candMs": 0.5261380000010831
+  "refMs": 0.9774550000001909,
+  "candMs": 0.31127000000560656
  },
  {
   "project": "layered/n02-reporting-service-reads-database",
@@ -2232,8 +2080,8 @@
   "klass": "order",
   "refRows": 6,
   "candRows": 6,
-  "refMs": 1.438480000004347,
-  "candMs": 0.8018539999975474
+  "refMs": 0.9880420000117738,
+  "candMs": 0.4186419999896316
  },
  {
   "project": "layered/n02-reporting-service-reads-database",
@@ -2244,8 +2092,8 @@
   "klass": "order",
   "refRows": 5,
   "candRows": 5,
-  "refMs": 1.0534690000058617,
-  "candMs": 0.2697639999969397
+  "refMs": 1.288966000007349,
+  "candMs": 0.24448999999731313
  },
  {
   "project": "layered/n02-reporting-service-reads-database",
@@ -2256,8 +2104,8 @@
   "klass": "order",
   "refRows": 6,
   "candRows": 6,
-  "refMs": 1.175984999994398,
-  "candMs": 0.5436210000043502
+  "refMs": 1.180754999993951,
+  "candMs": 0.43778400000883266
  },
  {
   "project": "layered/n02-reporting-service-reads-database",
@@ -2268,8 +2116,8 @@
   "klass": "order",
   "refRows": 7,
   "candRows": 7,
-  "refMs": 2.9351889999961713,
-  "candMs": 0.27366500000061933
+  "refMs": 1.2080279999936465,
+  "candMs": 0.24053799999819603
  },
  {
   "project": "layered/n02-reporting-service-reads-database",
@@ -2280,8 +2128,8 @@
   "klass": "order",
   "refRows": 10,
   "candRows": 10,
-  "refMs": 1.1286370000016177,
-  "candMs": 0.6907719999871915
+  "refMs": 1.2417920000007143,
+  "candMs": 0.7330859999929089
  },
  {
   "project": "layered/n03-views-import-model-barrel",
@@ -2292,8 +2140,8 @@
   "klass": "order",
   "refRows": 5,
   "candRows": 5,
-  "refMs": 3.4571210000140127,
-  "candMs": 0.3788569999887841
+  "refMs": 2.7017310000082944,
+  "candMs": 0.24139299998932984
  },
  {
   "project": "layered/n03-views-import-model-barrel",
@@ -2304,8 +2152,8 @@
   "klass": "order",
   "refRows": 7,
   "candRows": 7,
-  "refMs": 1.3100649999978486,
-  "candMs": 0.5055350000038743
+  "refMs": 1.184320000000298,
+  "candMs": 0.5157369999942603
  },
  {
   "project": "layered/n03-views-import-model-barrel",
@@ -2316,8 +2164,8 @@
   "klass": "order",
   "refRows": 5,
   "candRows": 5,
-  "refMs": 1.1625789999961853,
-  "candMs": 0.3877070000016829
+  "refMs": 1.0805660000041826,
+  "candMs": 0.24265799998829607
  },
  {
   "project": "layered/n03-views-import-model-barrel",
@@ -2328,8 +2176,8 @@
   "klass": "order",
   "refRows": 7,
   "candRows": 7,
-  "refMs": 1.265557999999146,
-  "candMs": 0.767122000004747
+  "refMs": 1.5251310000021476,
+  "candMs": 0.622440999999526
  },
  {
   "project": "layered/n03-views-import-model-barrel",
@@ -2340,8 +2188,8 @@
   "klass": "order",
   "refRows": 7,
   "candRows": 7,
-  "refMs": 1.1187400000053458,
-  "candMs": 0.3134379999974044
+  "refMs": 1.021825000003446,
+  "candMs": 0.24700800000573508
  },
  {
   "project": "layered/n03-views-import-model-barrel",
@@ -2352,8 +2200,8 @@
   "klass": "order",
   "refRows": 11,
   "candRows": 11,
-  "refMs": 1.045191999990493,
-  "candMs": 0.604419000010239
+  "refMs": 1.1540979999990668,
+  "candMs": 0.7352379999938421
  },
  {
   "project": "layered/v01-gateway-returns-business-money",
@@ -2364,8 +2212,8 @@
   "klass": "order",
   "refRows": 5,
   "candRows": 5,
-  "refMs": 1.1229030000104103,
-  "candMs": 0.2497519999888027
+  "refMs": 1.052095000006375,
+  "candMs": 0.22026800000458024
  },
  {
   "project": "layered/v01-gateway-returns-business-money",
@@ -2376,8 +2224,8 @@
   "klass": "order",
   "refRows": 6,
   "candRows": 6,
-  "refMs": 1.156447000001208,
-  "candMs": 1.781476999996812
+  "refMs": 0.9467220000078669,
+  "candMs": 0.4356559999869205
  },
  {
   "project": "layered/v01-gateway-returns-business-money",
@@ -2388,8 +2236,8 @@
   "klass": "order",
   "refRows": 5,
   "candRows": 5,
-  "refMs": 0.8473479999956908,
-  "candMs": 0.23732200000085868
+  "refMs": 1.1805699999968056,
+  "candMs": 0.2340390000026673
  },
  {
   "project": "layered/v01-gateway-returns-business-money",
@@ -2400,8 +2248,8 @@
   "klass": "order",
   "refRows": 6,
   "candRows": 6,
-  "refMs": 0.9478979999985313,
-  "candMs": 0.4607560000004014
+  "refMs": 0.9888690000079805,
+  "candMs": 0.46520599999348633
  },
  {
   "project": "layered/v01-gateway-returns-business-money",
@@ -2412,8 +2260,8 @@
   "klass": "order",
   "refRows": 7,
   "candRows": 7,
-  "refMs": 1.222206999998889,
-  "candMs": 0.2509399999980815
+  "refMs": 2.108882000000449,
+  "candMs": 0.4971999999979744
  },
  {
   "project": "layered/v01-gateway-returns-business-money",
@@ -2424,8 +2272,8 @@
   "klass": "order",
   "refRows": 10,
   "candRows": 10,
-  "refMs": 1.31000800000038,
-  "candMs": 0.6589050000038696
+  "refMs": 1.920920999997179,
+  "candMs": 1.1595680000027642
  },
  {
   "project": "layered/v02-service-renders-view",
@@ -2436,8 +2284,8 @@
   "klass": "order",
   "refRows": 5,
   "candRows": 5,
-  "refMs": 1.0949839999957476,
-  "candMs": 0.42959200000041164
+  "refMs": 0.9419079999934183,
+  "candMs": 0.23377099999925122
  },
  {
   "project": "layered/v02-service-renders-view",
@@ -2448,8 +2296,8 @@
   "klass": "order",
   "refRows": 6,
   "candRows": 6,
-  "refMs": 1.0077710000041407,
-  "candMs": 0.7448869999934686
+  "refMs": 1.0082799999945564,
+  "candMs": 0.43565500000840984
  },
  {
   "project": "layered/v02-service-renders-view",
@@ -2460,8 +2308,8 @@
   "klass": "order",
   "refRows": 5,
   "candRows": 5,
-  "refMs": 0.9057170000014594,
-  "candMs": 0.226490000000922
+  "refMs": 1.314100999996299,
+  "candMs": 0.25358800000685733
  },
  {
   "project": "layered/v02-service-renders-view",
@@ -2472,8 +2320,8 @@
   "klass": "order",
   "refRows": 6,
   "candRows": 6,
-  "refMs": 0.9592799999954877,
-  "candMs": 0.5081709999940358
+  "refMs": 1.11526999999478,
+  "candMs": 0.48142100000404753
  },
  {
   "project": "layered/v02-service-renders-view",
@@ -2484,8 +2332,8 @@
   "klass": "order",
   "refRows": 7,
   "candRows": 7,
-  "refMs": 1.2180279999884078,
-  "candMs": 0.2507530000002589
+  "refMs": 1.0187330000044312,
+  "candMs": 0.2986349999991944
  },
  {
   "project": "layered/v02-service-renders-view",
@@ -2496,8 +2344,8 @@
   "klass": "order",
   "refRows": 10,
   "candRows": 10,
-  "refMs": 1.2191860000020824,
-  "candMs": 0.6383260000002338
+  "refMs": 1.052066999996896,
+  "candMs": 0.6230250000080559
  },
  {
   "project": "layered/v03-controller-reads-gateway",
@@ -2508,8 +2356,8 @@
   "klass": "order",
   "refRows": 5,
   "candRows": 5,
-  "refMs": 1.2679470000002766,
-  "candMs": 0.4547010000096634
+  "refMs": 1.3062210000061896,
+  "candMs": 0.3868569999904139
  },
  {
   "project": "layered/v03-controller-reads-gateway",
@@ -2520,8 +2368,8 @@
   "klass": "order",
   "refRows": 6,
   "candRows": 6,
-  "refMs": 1.283859000002849,
-  "candMs": 0.8167760000069393
+  "refMs": 1.0980899999995017,
+  "candMs": 0.83143900000141
  },
  {
   "project": "layered/v03-controller-reads-gateway",
@@ -2532,8 +2380,8 @@
   "klass": "order",
   "refRows": 5,
   "candRows": 5,
-  "refMs": 1.4026339999982156,
-  "candMs": 0.4085530000011204
+  "refMs": 1.2294379999948433,
+  "candMs": 0.24247399999876507
  },
  {
   "project": "layered/v03-controller-reads-gateway",
@@ -2544,8 +2392,8 @@
   "klass": "order",
   "refRows": 6,
   "candRows": 6,
-  "refMs": 1.408727000001818,
-  "candMs": 0.5182659999991301
+  "refMs": 1.1080459999939194,
+  "candMs": 0.48777000000700355
  },
  {
   "project": "layered/v03-controller-reads-gateway",
@@ -2556,8 +2404,8 @@
   "klass": "order",
   "refRows": 7,
   "candRows": 7,
-  "refMs": 0.9102500000008149,
-  "candMs": 0.2424520000058692
+  "refMs": 2.521375000011176,
+  "candMs": 0.22226699999009725
  },
  {
   "project": "layered/v03-controller-reads-gateway",
@@ -2568,8 +2416,8 @@
   "klass": "order",
   "refRows": 10,
   "candRows": 10,
-  "refMs": 0.8652430000074673,
-  "candMs": 0.603250999993179
+  "refMs": 1.3827440000022762,
+  "candMs": 0.6431999999913387
  },
  {
   "project": "layered/v04-view-types-persistence-record",
@@ -2580,8 +2428,8 @@
   "klass": "order",
   "refRows": 5,
   "candRows": 5,
-  "refMs": 1.0918280000041705,
-  "candMs": 0.2541979999950854
+  "refMs": 0.99403399998846,
+  "candMs": 0.23729499999899417
  },
  {
   "project": "layered/v04-view-types-persistence-record",
@@ -2592,8 +2440,8 @@
   "klass": "order",
   "refRows": 6,
   "candRows": 6,
-  "refMs": 5.115858000004664,
-  "candMs": 0.45179200000711717
+  "refMs": 1.102627999993274,
+  "candMs": 0.48543299999437295
  },
  {
   "project": "layered/v04-view-types-persistence-record",
@@ -2604,8 +2452,8 @@
   "klass": "order",
   "refRows": 5,
   "candRows": 5,
-  "refMs": 1.022860999990371,
-  "candMs": 0.2455889999982901
+  "refMs": 0.976725999993505,
+  "candMs": 0.23686499999894295
  },
  {
   "project": "layered/v04-view-types-persistence-record",
@@ -2616,8 +2464,8 @@
   "klass": "order",
   "refRows": 6,
   "candRows": 6,
-  "refMs": 0.9579779999912716,
-  "candMs": 0.471361000003526
+  "refMs": 1.0314320000034058,
+  "candMs": 0.46971099999791477
  },
  {
   "project": "layered/v04-view-types-persistence-record",
@@ -2628,8 +2476,8 @@
   "klass": "order",
   "refRows": 7,
   "candRows": 7,
-  "refMs": 6.7787200000020675,
-  "candMs": 0.27229899998928886
+  "refMs": 1.6982939999870723,
+  "candMs": 0.28561000000627246
  },
  {
   "project": "layered/v04-view-types-persistence-record",
@@ -2640,8 +2488,8 @@
   "klass": "order",
   "refRows": 10,
   "candRows": 10,
-  "refMs": 6.636173000006238,
-  "candMs": 0.6541819999984
+  "refMs": 2.7809790000028443,
+  "candMs": 0.6691639999917243
  },
  {
   "project": "layered/v05-business-model-cycle",
@@ -2652,8 +2500,8 @@
   "klass": "order",
   "refRows": 5,
   "candRows": 5,
-  "refMs": 1.0761210000055144,
-  "candMs": 0.3352429999940796
+  "refMs": 1.3355630000005476,
+  "candMs": 0.2756179999996675
  },
  {
   "project": "layered/v05-business-model-cycle",
@@ -2664,8 +2512,8 @@
   "klass": "order",
   "refRows": 6,
   "candRows": 6,
-  "refMs": 0.8756810000049882,
-  "candMs": 0.41911899999831803
+  "refMs": 1.3166920000076061,
+  "candMs": 0.44705899999826215
  },
  {
   "project": "layered/v05-business-model-cycle",
@@ -2676,8 +2524,8 @@
   "klass": "order",
   "refRows": 5,
   "candRows": 5,
-  "refMs": 0.9520009999978356,
-  "candMs": 0.2843319999956293
+  "refMs": 0.9014580000075512,
+  "candMs": 0.2481149999948684
  },
  {
   "project": "layered/v05-business-model-cycle",
@@ -2688,8 +2536,8 @@
   "klass": "order",
   "refRows": 6,
   "candRows": 6,
-  "refMs": 0.9318160000111675,
-  "candMs": 0.4490739999891957
+  "refMs": 1.1135840000060853,
+  "candMs": 0.5510170000052312
  },
  {
   "project": "layered/v05-business-model-cycle",
@@ -2700,8 +2548,8 @@
   "klass": "order",
   "refRows": 7,
   "candRows": 7,
-  "refMs": 1.3122270000021672,
-  "candMs": 0.25622199999634176
+  "refMs": 1.0154849999962607,
+  "candMs": 0.2648800000024494
  },
  {
   "project": "layered/v05-business-model-cycle",
@@ -2712,8 +2560,8 @@
   "klass": "order",
   "refRows": 10,
   "candRows": 10,
-  "refMs": 1.0265459999936866,
-  "candMs": 0.6858579999970971
+  "refMs": 0.9889109999930952,
+  "candMs": 0.6706370000028983
  },
  {
   "project": "layered/v06-router-controller-cycle",
@@ -2724,8 +2572,8 @@
   "klass": "order",
   "refRows": 5,
   "candRows": 5,
-  "refMs": 3.3278359999967506,
-  "candMs": 0.432065999993938
+  "refMs": 0.9460799999942537,
+  "candMs": 0.26952000000164844
  },
  {
   "project": "layered/v06-router-controller-cycle",
@@ -2736,8 +2584,8 @@
   "klass": "order",
   "refRows": 6,
   "candRows": 6,
-  "refMs": 1.0458680000010645,
-  "candMs": 0.826400999998441
+  "refMs": 0.952145000002929,
+  "candMs": 0.4836009999999078
  },
  {
   "project": "layered/v06-router-controller-cycle",
@@ -2748,8 +2596,8 @@
   "klass": "order",
   "refRows": 5,
   "candRows": 5,
-  "refMs": 2.171159000004991,
-  "candMs": 0.4758250000013504
+  "refMs": 1.3242719999980181,
+  "candMs": 0.24136800000269432
  },
  {
   "project": "layered/v06-router-controller-cycle",
@@ -2760,8 +2608,8 @@
   "klass": "order",
   "refRows": 6,
   "candRows": 6,
-  "refMs": 2.6502590000018245,
-  "candMs": 3.5280209999909857
+  "refMs": 1.164904999997816,
+  "candMs": 0.44554500000958797
  },
  {
   "project": "layered/v06-router-controller-cycle",
@@ -2772,8 +2620,8 @@
   "klass": "order",
   "refRows": 7,
   "candRows": 7,
-  "refMs": 4.859192000003532,
-  "candMs": 0.3202389999933075
+  "refMs": 1.12433800000872,
+  "candMs": 0.29054199998790864
  },
  {
   "project": "layered/v06-router-controller-cycle",
@@ -2784,8 +2632,8 @@
   "klass": "order",
   "refRows": 10,
   "candRows": 10,
-  "refMs": 3.0849579999921843,
-  "candMs": 0.754679000005126
+  "refMs": 1.180701000004774,
+  "candMs": 0.5974829999904614
  },
  {
   "project": "layered/v07-business-model-typeorm-decorator",
@@ -2796,8 +2644,8 @@
   "klass": "order",
   "refRows": 6,
   "candRows": 6,
-  "refMs": 1.079740999994101,
-  "candMs": 0.3198360000096727
+  "refMs": 1.0895889999956125,
+  "candMs": 0.2643030000035651
  },
  {
   "project": "layered/v07-business-model-typeorm-decorator",
@@ -2808,8 +2656,8 @@
   "klass": "order",
   "refRows": 6,
   "candRows": 6,
-  "refMs": 1.1521820000052685,
-  "candMs": 0.4698050000006333
+  "refMs": 1.0151069999992615,
+  "candMs": 0.7095330000011018
  },
  {
   "project": "layered/v07-business-model-typeorm-decorator",
@@ -2820,8 +2668,8 @@
   "klass": "order",
   "refRows": 6,
   "candRows": 6,
-  "refMs": 1.4938879999972414,
-  "candMs": 0.26160800000070594
+  "refMs": 1.241506999998819,
+  "candMs": 0.4043569999921601
  },
  {
   "project": "layered/v07-business-model-typeorm-decorator",
@@ -2832,8 +2680,8 @@
   "klass": "order",
   "refRows": 6,
   "candRows": 6,
-  "refMs": 1.0712950000015553,
-  "candMs": 0.427916999993613
+  "refMs": 1.1123789999983273,
+  "candMs": 0.8098700000118697
  },
  {
   "project": "layered/v07-business-model-typeorm-decorator",
@@ -2844,8 +2692,8 @@
   "klass": "order",
   "refRows": 8,
   "candRows": 8,
-  "refMs": 0.8857929999940097,
-  "candMs": 0.23132999999506865
+  "refMs": 1.1034010000003036,
+  "candMs": 0.46433400000387337
  },
  {
   "project": "layered/v07-business-model-typeorm-decorator",
@@ -2856,8 +2704,8 @@
   "klass": "order",
   "refRows": 10,
   "candRows": 10,
-  "refMs": 0.9615579999954207,
-  "candMs": 0.5801409999985481
+  "refMs": 3.2572070000023814,
+  "candMs": 0.7032420000032289
  },
  {
   "project": "layered/v08-business-service-takes-express-request",
@@ -2868,8 +2716,8 @@
   "klass": "order",
   "refRows": 6,
   "candRows": 6,
-  "refMs": 1.6883539999980712,
-  "candMs": 0.43276099998911377
+  "refMs": 1.1279340000037337,
+  "candMs": 0.39997100000618957
  },
  {
   "project": "layered/v08-business-service-takes-express-request",
@@ -2880,8 +2728,8 @@
   "klass": "order",
   "refRows": 6,
   "candRows": 6,
-  "refMs": 1.3313629999902332,
-  "candMs": 0.8182010000018636
+  "refMs": 1.1368050000019139,
+  "candMs": 0.7842079999973066
  },
  {
   "project": "layered/v08-business-service-takes-express-request",
@@ -2892,8 +2740,8 @@
   "klass": "order",
   "refRows": 6,
   "candRows": 6,
-  "refMs": 1.5358279999927618,
-  "candMs": 0.3277230000094278
+  "refMs": 1.1507819999969797,
+  "candMs": 0.2857490000023972
  },
  {
   "project": "layered/v08-business-service-takes-express-request",
@@ -2904,8 +2752,8 @@
   "klass": "order",
   "refRows": 6,
   "candRows": 6,
-  "refMs": 0.9505689999932656,
-  "candMs": 0.43280300000333227
+  "refMs": 1.0154769999935525,
+  "candMs": 0.40694499999517575
  },
  {
   "project": "layered/v08-business-service-takes-express-request",
@@ -2916,8 +2764,8 @@
   "klass": "order",
   "refRows": 8,
   "candRows": 8,
-  "refMs": 1.174576999997953,
-  "candMs": 0.39446399999724235
+  "refMs": 0.8982839999953285,
+  "candMs": 0.2749530000000959
  },
  {
   "project": "layered/v08-business-service-takes-express-request",
@@ -2928,8 +2776,8 @@
   "klass": "order",
   "refRows": 10,
   "candRows": 10,
-  "refMs": 1.33606200000213,
-  "candMs": 1.0207490000029793
+  "refMs": 0.9466680000041379,
+  "candMs": 0.5952639999886742
  },
  {
   "project": "layered/v09-presentation-root-builds-database",
@@ -2940,8 +2788,8 @@
   "klass": "order",
   "refRows": 5,
   "candRows": 5,
-  "refMs": 1.0217890000058105,
-  "candMs": 0.3603049999946961
+  "refMs": 1.2748429999919608,
+  "candMs": 0.2871060000034049
  },
  {
   "project": "layered/v09-presentation-root-builds-database",
@@ -2952,8 +2800,8 @@
   "klass": "order",
   "refRows": 6,
   "candRows": 6,
-  "refMs": 1.0964870000025257,
-  "candMs": 0.4341300000087358
+  "refMs": 1.1631669999915175,
+  "candMs": 0.4754550000070594
  },
  {
   "project": "layered/v09-presentation-root-builds-database",
@@ -2964,8 +2812,8 @@
   "klass": "order",
   "refRows": 5,
   "candRows": 5,
-  "refMs": 1.433617000002414,
-  "candMs": 0.3976929999917047
+  "refMs": 1.1066160000045784,
+  "candMs": 0.23862599999119993
  },
  {
   "project": "layered/v09-presentation-root-builds-database",
@@ -2976,8 +2824,8 @@
   "klass": "order",
   "refRows": 6,
   "candRows": 6,
-  "refMs": 1.1984100000117905,
-  "candMs": 0.8199779999995371
+  "refMs": 0.8704730000026757,
+  "candMs": 0.4573090000048978
  },
  {
   "project": "layered/v09-presentation-root-builds-database",
@@ -2988,8 +2836,8 @@
   "klass": "order",
   "refRows": 7,
   "candRows": 7,
-  "refMs": 1.826495999994222,
-  "candMs": 0.27064300001075026
+  "refMs": 1.1248950000008335,
+  "candMs": 0.22637599999143276
  },
  {
   "project": "layered/v09-presentation-root-builds-database",
@@ -3000,8 +2848,8 @@
   "klass": "order",
   "refRows": 10,
   "candRows": 10,
-  "refMs": 1.375555999999051,
-  "candMs": 0.7561209999985294
+  "refMs": 1.082311000005575,
+  "candMs": 0.613733999998658
  },
  {
   "project": "nestjs/clean",
@@ -3012,8 +2860,8 @@
   "klass": "order",
   "refRows": 6,
   "candRows": 6,
-  "refMs": 1.2548700000043027,
-  "candMs": 0.23774899999261834
+  "refMs": 1.1161940000019968,
+  "candMs": 0.261834999997518
  },
  {
   "project": "nestjs/clean",
@@ -3024,8 +2872,8 @@
   "klass": "order",
   "refRows": 9,
   "candRows": 9,
-  "refMs": 1.1039010000095004,
-  "candMs": 0.5005379999929573
+  "refMs": 1.0009069999941858,
+  "candMs": 0.43707800000265706
  },
  {
   "project": "nestjs/clean",
@@ -3036,8 +2884,8 @@
   "klass": "order",
   "refRows": 6,
   "candRows": 6,
-  "refMs": 1.0860810000012862,
-  "candMs": 0.25424300000304356
+  "refMs": 1.0571040000068024,
+  "candMs": 0.3332689999951981
  },
  {
   "project": "nestjs/clean",
@@ -3048,8 +2896,8 @@
   "klass": "order",
   "refRows": 9,
   "candRows": 9,
-  "refMs": 3.1192619999928866,
-  "candMs": 0.5129600000072969
+  "refMs": 1.064948999992339,
+  "candMs": 0.5225329999957466
  },
  {
   "project": "nestjs/clean",
@@ -3060,8 +2908,8 @@
   "klass": "order",
   "refRows": 8,
   "candRows": 8,
-  "refMs": 1.2143749999959255,
-  "candMs": 0.2649260000034701
+  "refMs": 1.065325000003213,
+  "candMs": 0.25504399999044836
  },
  {
   "project": "nestjs/clean",
@@ -3072,8 +2920,8 @@
   "klass": "order",
   "refRows": 13,
   "candRows": 13,
-  "refMs": 1.415880999993533,
-  "candMs": 0.6087490000063553
+  "refMs": 1.1458410000050208,
+  "candMs": 0.6742649999941932
  },
  {
   "project": "nestjs/n01-controller-catches-domain-error",
@@ -3084,8 +2932,8 @@
   "klass": "order",
   "refRows": 6,
   "candRows": 6,
-  "refMs": 1.1368689999944763,
-  "candMs": 0.25259400000504684
+  "refMs": 1.1809959999955026,
+  "candMs": 0.23565200000302866
  },
  {
   "project": "nestjs/n01-controller-catches-domain-error",
@@ -3096,8 +2944,8 @@
   "klass": "order",
   "refRows": 9,
   "candRows": 9,
-  "refMs": 0.9744860000064364,
-  "candMs": 0.4538360000005923
+  "refMs": 0.9666880000004312,
+  "candMs": 0.46650700000463985
  },
  {
   "project": "nestjs/n01-controller-catches-domain-error",
@@ -3108,8 +2956,8 @@
   "klass": "order",
   "refRows": 6,
   "candRows": 6,
-  "refMs": 1.2591490000049816,
-  "candMs": 0.3013289999944391
+  "refMs": 0.9029710000031628,
+  "candMs": 0.22238600000855513
  },
  {
   "project": "nestjs/n01-controller-catches-domain-error",
@@ -3120,8 +2968,8 @@
   "klass": "order",
   "refRows": 9,
   "candRows": 9,
-  "refMs": 1.0824779999966267,
-  "candMs": 0.46631399999023415
+  "refMs": 0.8453980000049341,
+  "candMs": 0.4740940000046976
  },
  {
   "project": "nestjs/n01-controller-catches-domain-error",
@@ -3132,8 +2980,8 @@
   "klass": "order",
   "refRows": 8,
   "candRows": 8,
-  "refMs": 1.227377000002889,
-  "candMs": 0.5549780000001192
+  "refMs": 2.6042509999970207,
+  "candMs": 0.21782700000039767
  },
  {
   "project": "nestjs/n01-controller-catches-domain-error",
@@ -3144,8 +2992,8 @@
   "klass": "order",
   "refRows": 13,
   "candRows": 13,
-  "refMs": 1.184421999991173,
-  "candMs": 1.1721880000113742
+  "refMs": 1.1257199999963632,
+  "candMs": 0.6265550000098301
  },
  {
   "project": "nestjs/n02-domain-port-named-dot-repository",
@@ -3156,8 +3004,8 @@
   "klass": "order",
   "refRows": 6,
   "candRows": 6,
-  "refMs": 1.2819559999916237,
-  "candMs": 0.28000400000019
+  "refMs": 1.269257000007201,
+  "candMs": 0.29214999999385327
  },
  {
   "project": "nestjs/n02-domain-port-named-dot-repository",
@@ -3168,8 +3016,8 @@
   "klass": "order",
   "refRows": 9,
   "candRows": 9,
-  "refMs": 1.0362419999873964,
-  "candMs": 0.49179700000968296
+  "refMs": 1.3506390000111423,
+  "candMs": 0.5388659999880474
  },
  {
   "project": "nestjs/n02-domain-port-named-dot-repository",
@@ -3180,8 +3028,8 @@
   "klass": "order",
   "refRows": 6,
   "candRows": 6,
-  "refMs": 1.0091190000093775,
-  "candMs": 0.2744349999993574
+  "refMs": 1.1827890000131447,
+  "candMs": 0.2546319999964908
  },
  {
   "project": "nestjs/n02-domain-port-named-dot-repository",
@@ -3192,8 +3040,8 @@
   "klass": "order",
   "refRows": 9,
   "candRows": 9,
-  "refMs": 3.0645349999977043,
-  "candMs": 0.6847109999944223
+  "refMs": 1.0408109999843873,
+  "candMs": 0.5247150000068359
  },
  {
   "project": "nestjs/n02-domain-port-named-dot-repository",
@@ -3204,8 +3052,8 @@
   "klass": "order",
   "refRows": 8,
   "candRows": 8,
-  "refMs": 0.9313859999965644,
-  "candMs": 0.4331780000065919
+  "refMs": 1.441248999995878,
+  "candMs": 0.312158000015188
  },
  {
   "project": "nestjs/n02-domain-port-named-dot-repository",
@@ -3216,8 +3064,8 @@
   "klass": "order",
   "refRows": 13,
   "candRows": 13,
-  "refMs": 1.0218969999987166,
-  "candMs": 0.6345719999953872
+  "refMs": 1.126999000000069,
+  "candMs": 0.6408330000122078
  },
  {
   "project": "nestjs/n03-service-injects-sibling-service",
@@ -3228,8 +3076,8 @@
   "klass": "order",
   "refRows": 10,
   "candRows": 10,
-  "refMs": 1.0545529999944847,
-  "candMs": 0.4797099999996135
+  "refMs": 1.6137650000164285,
+  "candMs": 0.850505999987945
  },
  {
   "project": "nestjs/n03-service-injects-sibling-service",
@@ -3240,8 +3088,8 @@
   "klass": "float-drift",
   "refRows": 1,
   "candRows": 1,
-  "refMs": 2.900454999995418,
-  "candMs": 0.6937889999971958,
+  "refMs": 3.725111999985529,
+  "candMs": 0.6220280000125058,
   "detail": "universal-literal:averageInstability: 1 cell(s), max 3 ULP (bound 16)",
   "floatDrift": [
    {
@@ -3262,8 +3110,8 @@
   "klass": "order",
   "refRows": 6,
   "candRows": 6,
-  "refMs": 1.0226170000096317,
-  "candMs": 0.2697130000015022
+  "refMs": 1.173676999984309,
+  "candMs": 0.3121899999969173
  },
  {
   "project": "nestjs/n03-service-injects-sibling-service",
@@ -3274,8 +3122,8 @@
   "klass": "order",
   "refRows": 10,
   "candRows": 10,
-  "refMs": 1.1116069999989122,
-  "candMs": 0.5315780000091763
+  "refMs": 1.1767049999907613,
+  "candMs": 0.6018069999990985
  },
  {
   "project": "nestjs/n03-service-injects-sibling-service",
@@ -3286,8 +3134,8 @@
   "klass": "order",
   "refRows": 8,
   "candRows": 8,
-  "refMs": 1.0283280000003288,
-  "candMs": 0.3321029999933671
+  "refMs": 1.2355749999987893,
+  "candMs": 0.24470800001290627
  },
  {
   "project": "nestjs/n03-service-injects-sibling-service",
@@ -3298,8 +3146,8 @@
   "klass": "order",
   "refRows": 14,
   "candRows": 14,
-  "refMs": 1.0025999999925261,
-  "candMs": 1.0373230000113836
+  "refMs": 1.4271139999909792,
+  "candMs": 0.6978060000110418
  },
  {
   "project": "nestjs/v01-domain-entity-imports-dto",
@@ -3310,8 +3158,8 @@
   "klass": "order",
   "refRows": 6,
   "candRows": 6,
-  "refMs": 1.2498040000064066,
-  "candMs": 0.41169199999421835
+  "refMs": 1.1895690000092145,
+  "candMs": 0.22239599999738857
  },
  {
   "project": "nestjs/v01-domain-entity-imports-dto",
@@ -3322,8 +3170,8 @@
   "klass": "order",
   "refRows": 9,
   "candRows": 9,
-  "refMs": 1.1102850000024773,
-  "candMs": 0.7966719999967609
+  "refMs": 1.1493980000086594,
+  "candMs": 0.42124699999112636
  },
  {
   "project": "nestjs/v01-domain-entity-imports-dto",
@@ -3334,8 +3182,8 @@
   "klass": "order",
   "refRows": 6,
   "candRows": 6,
-  "refMs": 1.2596030000131577,
-  "candMs": 0.22026099999493454
+  "refMs": 3.376779999991413,
+  "candMs": 0.26551900000777096
  },
  {
   "project": "nestjs/v01-domain-entity-imports-dto",
@@ -3346,8 +3194,8 @@
   "klass": "order",
   "refRows": 9,
   "candRows": 9,
-  "refMs": 1.0797220000094967,
-  "candMs": 0.45011999999405816
+  "refMs": 1.1443020000006072,
+  "candMs": 0.4416930000006687
  },
  {
   "project": "nestjs/v01-domain-entity-imports-dto",
@@ -3358,8 +3206,8 @@
   "klass": "order",
   "refRows": 8,
   "candRows": 8,
-  "refMs": 1.1978810000000522,
-  "candMs": 0.3945779999921797
+  "refMs": 1.105875000008382,
+  "candMs": 0.2721719999972265
  },
  {
   "project": "nestjs/v01-domain-entity-imports-dto",
@@ -3370,8 +3218,8 @@
   "klass": "order",
   "refRows": 13,
   "candRows": 13,
-  "refMs": 1.2507860000041546,
-  "candMs": 1.1521619999984978
+  "refMs": 1.1364729999913834,
+  "candMs": 0.6944310000108089
  },
  {
   "project": "nestjs/v02-repository-builds-response-dto",
@@ -3382,8 +3230,8 @@
   "klass": "order",
   "refRows": 6,
   "candRows": 6,
-  "refMs": 1.33663499999966,
-  "candMs": 0.3462980000040261
+  "refMs": 1.1124589999963064,
+  "candMs": 0.23179699998581782
  },
  {
   "project": "nestjs/v02-repository-builds-response-dto",
@@ -3394,8 +3242,8 @@
   "klass": "order",
   "refRows": 9,
   "candRows": 9,
-  "refMs": 1.0480569999926956,
-  "candMs": 0.778481000001193
+  "refMs": 1.2003459999978077,
+  "candMs": 0.5454000000027008
  },
  {
   "project": "nestjs/v02-repository-builds-response-dto",
@@ -3406,8 +3254,8 @@
   "klass": "order",
   "refRows": 6,
   "candRows": 6,
-  "refMs": 1.6801570000097854,
-  "candMs": 0.2665429999906337
+  "refMs": 0.9605260000098497,
+  "candMs": 0.23538399999961257
  },
  {
   "project": "nestjs/v02-repository-builds-response-dto",
@@ -3418,8 +3266,8 @@
   "klass": "order",
   "refRows": 9,
   "candRows": 9,
-  "refMs": 2.9607819999946514,
-  "candMs": 0.5312039999989793
+  "refMs": 2.8497560000105295,
+  "candMs": 0.46272599999792874
  },
  {
   "project": "nestjs/v02-repository-builds-response-dto",
@@ -3430,8 +3278,8 @@
   "klass": "order",
   "refRows": 8,
   "candRows": 8,
-  "refMs": 1.463525999992271,
-  "candMs": 0.2851950000040233
+  "refMs": 3.535453000018606,
+  "candMs": 0.39220799997565337
  },
  {
   "project": "nestjs/v02-repository-builds-response-dto",
@@ -3442,8 +3290,8 @@
   "klass": "order",
   "refRows": 13,
   "candRows": 13,
-  "refMs": 1.3476939999964088,
-  "candMs": 0.6356890000024578
+  "refMs": 1.4773989999957848,
+  "candMs": 1.11256599999615
  },
  {
   "project": "nestjs/v03-service-imports-guard",
@@ -3454,8 +3302,8 @@
   "klass": "order",
   "refRows": 6,
   "candRows": 6,
-  "refMs": 1.5223950000072364,
-  "candMs": 0.44337500000256114
+  "refMs": 0.935563999984879,
+  "candMs": 0.2889009999926202
  },
  {
   "project": "nestjs/v03-service-imports-guard",
@@ -3466,8 +3314,8 @@
   "klass": "order",
   "refRows": 9,
   "candRows": 9,
-  "refMs": 1.4795679999951972,
-  "candMs": 0.8364719999954104
+  "refMs": 1.1373099999909755,
+  "candMs": 0.5956790000200272
  },
  {
   "project": "nestjs/v03-service-imports-guard",
@@ -3478,8 +3326,8 @@
   "klass": "order",
   "refRows": 6,
   "candRows": 6,
-  "refMs": 1.4087409999920055,
-  "candMs": 0.2679740000021411
+  "refMs": 0.8896919999970123,
+  "candMs": 0.3450909999955911
  },
  {
   "project": "nestjs/v03-service-imports-guard",
@@ -3490,8 +3338,8 @@
   "klass": "order",
   "refRows": 9,
   "candRows": 9,
-  "refMs": 1.335823999994318,
-  "candMs": 0.5812450000084937
+  "refMs": 1.0462269999843556,
+  "candMs": 0.4915789999940898
  },
  {
   "project": "nestjs/v03-service-imports-guard",
@@ -3502,8 +3350,8 @@
   "klass": "order",
   "refRows": 8,
   "candRows": 8,
-  "refMs": 1.0082379999948898,
-  "candMs": 0.23304900000221096
+  "refMs": 0.9016870000050403,
+  "candMs": 0.31814899999881163
  },
  {
   "project": "nestjs/v03-service-imports-guard",
@@ -3514,8 +3362,8 @@
   "klass": "order",
   "refRows": 13,
   "candRows": 13,
-  "refMs": 1.0649830000038492,
-  "candMs": 0.8198269999993499
+  "refMs": 2.4535520000208635,
+  "candMs": 0.6422559999919031
  },
  {
   "project": "nestjs/v04-response-dto-cycle",
@@ -3526,8 +3374,8 @@
   "klass": "order",
   "refRows": 6,
   "candRows": 6,
-  "refMs": 1.441766000003554,
-  "candMs": 0.36287500000617
+  "refMs": 1.463488999987021,
+  "candMs": 0.3209480000077747
  },
  {
   "project": "nestjs/v04-response-dto-cycle",
@@ -3538,8 +3386,8 @@
   "klass": "order",
   "refRows": 9,
   "candRows": 9,
-  "refMs": 1.5083000000013271,
-  "candMs": 0.812223000000813
+  "refMs": 1.2090129999851342,
+  "candMs": 0.7336420000065118
  },
  {
   "project": "nestjs/v04-response-dto-cycle",
@@ -3550,8 +3398,8 @@
   "klass": "order",
   "refRows": 6,
   "candRows": 6,
-  "refMs": 0.9917209999985062,
-  "candMs": 0.20500000000174623
+  "refMs": 1.0797069999971427,
+  "candMs": 0.21070600001257844
  },
  {
   "project": "nestjs/v04-response-dto-cycle",
@@ -3562,8 +3410,8 @@
   "klass": "order",
   "refRows": 9,
   "candRows": 9,
-  "refMs": 1.0259509999887086,
-  "candMs": 0.4966380000114441
+  "refMs": 0.975613999995403,
+  "candMs": 0.5152159999997821
  },
  {
   "project": "nestjs/v04-response-dto-cycle",
@@ -3574,8 +3422,8 @@
   "klass": "order",
   "refRows": 8,
   "candRows": 8,
-  "refMs": 0.9990659999893978,
-  "candMs": 0.26053100000717677
+  "refMs": 0.95803100001649,
+  "candMs": 0.22061399999074638
  },
  {
   "project": "nestjs/v04-response-dto-cycle",
@@ -3586,8 +3434,8 @@
   "klass": "order",
   "refRows": 13,
   "candRows": 13,
-  "refMs": 0.9954350000043632,
-  "candMs": 0.6749989999952959
+  "refMs": 1.3242749999917578,
+  "candMs": 0.581131999992067
  },
  {
   "project": "nestjs/v05-domain-entity-typeorm-decorator",
@@ -3598,8 +3446,8 @@
   "klass": "order",
   "refRows": 6,
   "candRows": 6,
-  "refMs": 0.8965690000040922,
-  "candMs": 0.238684000010835
+  "refMs": 1.0825909999839496,
+  "candMs": 0.2320119999931194
  },
  {
   "project": "nestjs/v05-domain-entity-typeorm-decorator",
@@ -3610,8 +3458,8 @@
   "klass": "order",
   "refRows": 9,
   "candRows": 9,
-  "refMs": 0.8757259999983944,
-  "candMs": 0.5477230000251438
+  "refMs": 0.9933139999920968,
+  "candMs": 0.45054800002253614
  },
  {
   "project": "nestjs/v05-domain-entity-typeorm-decorator",
@@ -3622,8 +3470,8 @@
   "klass": "order",
   "refRows": 6,
   "candRows": 6,
-  "refMs": 1.3909890000068117,
-  "candMs": 0.2227419999835547
+  "refMs": 1.4418379999988247,
+  "candMs": 0.23258599999826401
  },
  {
   "project": "nestjs/v05-domain-entity-typeorm-decorator",
@@ -3634,8 +3482,8 @@
   "klass": "order",
   "refRows": 9,
   "candRows": 9,
-  "refMs": 1.5817340000066906,
-  "candMs": 0.48125499999150634
+  "refMs": 1.0849359999992885,
+  "candMs": 0.5112779999908525
  },
  {
   "project": "nestjs/v05-domain-entity-typeorm-decorator",
@@ -3646,8 +3494,8 @@
   "klass": "order",
   "refRows": 8,
   "candRows": 8,
-  "refMs": 1.005128999997396,
-  "candMs": 0.2590599999821279
+  "refMs": 1.6980179999954998,
+  "candMs": 0.2559320000000298
  },
  {
   "project": "nestjs/v05-domain-entity-typeorm-decorator",
@@ -3658,8 +3506,8 @@
   "klass": "order",
   "refRows": 13,
   "candRows": 13,
-  "refMs": 1.5035220000136178,
-  "candMs": 0.6676260000094771
+  "refMs": 3.8553670000110287,
+  "candMs": 0.6735219999973197
  },
  {
   "project": "nestjs/v06-domain-entity-type-imports-express",
@@ -3670,8 +3518,8 @@
   "klass": "order",
   "refRows": 6,
   "candRows": 6,
-  "refMs": 1.0964850000164006,
-  "candMs": 0.4153719999885652
+  "refMs": 3.2778180000022985,
+  "candMs": 0.20951400001649745
  },
  {
   "project": "nestjs/v06-domain-entity-type-imports-express",
@@ -3682,8 +3530,8 @@
   "klass": "order",
   "refRows": 9,
   "candRows": 9,
-  "refMs": 1.2042269999801647,
-  "candMs": 0.6247860000003129
+  "refMs": 1.511610000015935,
+  "candMs": 0.5555879999883473
  },
  {
   "project": "nestjs/v06-domain-entity-type-imports-express",
@@ -3694,8 +3542,8 @@
   "klass": "order",
   "refRows": 6,
   "candRows": 6,
-  "refMs": 1.2148480000032578,
-  "candMs": 0.23336499999277294
+  "refMs": 1.4183940000075381,
+  "candMs": 0.33538199999020435
  },
  {
   "project": "nestjs/v06-domain-entity-type-imports-express",
@@ -3706,8 +3554,8 @@
   "klass": "order",
   "refRows": 9,
   "candRows": 9,
-  "refMs": 1.1918360000126995,
-  "candMs": 0.4968669999798294
+  "refMs": 1.3236770000075921,
+  "candMs": 0.6657560000021476
  },
  {
   "project": "nestjs/v06-domain-entity-type-imports-express",
@@ -3718,8 +3566,8 @@
   "klass": "order",
   "refRows": 8,
   "candRows": 8,
-  "refMs": 1.2765159999835305,
-  "candMs": 0.35702200001105666
+  "refMs": 1.2947859999840148,
+  "candMs": 0.368283000017982
  },
  {
   "project": "nestjs/v06-domain-entity-type-imports-express",
@@ -3730,8 +3578,8 @@
   "klass": "order",
   "refRows": 13,
   "candRows": 13,
-  "refMs": 1.3788599999970756,
-  "candMs": 1.1388220000080764
+  "refMs": 1.1028109999897424,
+  "candMs": 1.0123449999955483
  },
  {
   "project": "nestjs/v07-service-injects-concrete-repository",
@@ -3742,8 +3590,8 @@
   "klass": "order",
   "refRows": 6,
   "candRows": 6,
-  "refMs": 0.9593440000026021,
-  "candMs": 0.2817429999995511
+  "refMs": 1.0342890000029001,
+  "candMs": 0.29378999999607913
  },
  {
   "project": "nestjs/v07-service-injects-concrete-repository",
@@ -3754,8 +3602,8 @@
   "klass": "order",
   "refRows": 9,
   "candRows": 9,
-  "refMs": 0.9541510000126436,
-  "candMs": 0.4787589999905322
+  "refMs": 2.569381000008434,
+  "candMs": 0.5357470000162721
  },
  {
   "project": "nestjs/v07-service-injects-concrete-repository",
@@ -3766,8 +3614,8 @@
   "klass": "order",
   "refRows": 6,
   "candRows": 6,
-  "refMs": 1.460627000022214,
-  "candMs": 0.2820289999945089
+  "refMs": 0.8743269999977201,
+  "candMs": 0.20574100001249462
  },
  {
   "project": "nestjs/v07-service-injects-concrete-repository",
@@ -3778,8 +3626,8 @@
   "klass": "order",
   "refRows": 9,
   "candRows": 9,
-  "refMs": 1.2028579999750946,
-  "candMs": 0.5264270000043325
+  "refMs": 0.9329910000087693,
+  "candMs": 0.4348619999946095
  },
  {
   "project": "nestjs/v07-service-injects-concrete-repository",
@@ -3790,8 +3638,8 @@
   "klass": "order",
   "refRows": 8,
   "candRows": 8,
-  "refMs": 1.0757739999971818,
-  "candMs": 0.33033999998588115
+  "refMs": 0.9517239999840967,
+  "candMs": 0.22771199999260716
  },
  {
   "project": "nestjs/v07-service-injects-concrete-repository",
@@ -3802,8 +3650,8 @@
   "klass": "order",
   "refRows": 13,
   "candRows": 13,
-  "refMs": 1.1591539999935776,
-  "candMs": 1.6226339999993797
+  "refMs": 0.9793369999970309,
+  "candMs": 0.6618620000081137
  },
  {
   "project": "nestjs/v08-repository-without-port",
@@ -3814,8 +3662,8 @@
   "klass": "order",
   "refRows": 6,
   "candRows": 6,
-  "refMs": 1.3492320000077598,
-  "candMs": 0.2661880000086967
+  "refMs": 1.0926520000211895,
+  "candMs": 0.3504199999733828
  },
  {
   "project": "nestjs/v08-repository-without-port",
@@ -3826,8 +3674,8 @@
   "klass": "order",
   "refRows": 9,
   "candRows": 9,
-  "refMs": 1.3289710000099149,
-  "candMs": 0.8034829999960493
+  "refMs": 1.008036000013817,
+  "candMs": 0.7845809999853373
  },
  {
   "project": "nestjs/v08-repository-without-port",
@@ -3838,8 +3686,8 @@
   "klass": "order",
   "refRows": 6,
   "candRows": 6,
-  "refMs": 2.152258999994956,
-  "candMs": 0.25892200000816956
+  "refMs": 1.2536110000219196,
+  "candMs": 0.3548869999940507
  },
  {
   "project": "nestjs/v08-repository-without-port",
@@ -3850,8 +3698,8 @@
   "klass": "order",
   "refRows": 9,
   "candRows": 9,
-  "refMs": 1.202447999996366,
-  "candMs": 0.7881000000052154
+  "refMs": 1.063401999999769,
+  "candMs": 0.7624520000244956
  },
  {
   "project": "nestjs/v08-repository-without-port",
@@ -3862,8 +3710,8 @@
   "klass": "order",
   "refRows": 8,
   "candRows": 8,
-  "refMs": 1.2158280000148807,
-  "candMs": 0.27059999998891726
+  "refMs": 1.0831920000200626,
+  "candMs": 0.3264339999877848
  },
  {
   "project": "nestjs/v08-repository-without-port",
@@ -3874,8 +3722,8 @@
   "klass": "order",
   "refRows": 13,
   "candRows": 13,
-  "refMs": 2.60239400001592,
-  "candMs": 0.5795489999873098
+  "refMs": 1.0947369999776129,
+  "candMs": 0.6031150000053458
  },
  {
   "project": "nestjs/v09-controller-returns-entity",
@@ -3886,8 +3734,8 @@
   "klass": "order",
   "refRows": 6,
   "candRows": 6,
-  "refMs": 1.378586999984691,
-  "candMs": 0.2694680000131484
+  "refMs": 1.7461139999795705,
+  "candMs": 0.24001599999610335
  },
  {
   "project": "nestjs/v09-controller-returns-entity",
@@ -3898,8 +3746,8 @@
   "klass": "order",
   "refRows": 9,
   "candRows": 9,
-  "refMs": 1.1626759999780916,
-  "candMs": 0.4935490000061691
+  "refMs": 1.7397730000084266,
+  "candMs": 0.5016759999853093
  },
  {
   "project": "nestjs/v09-controller-returns-entity",
@@ -3910,8 +3758,8 @@
   "klass": "order",
   "refRows": 6,
   "candRows": 6,
-  "refMs": 1.7591479999828152,
-  "candMs": 0.33604800002649426
+  "refMs": 0.9631450000160839,
+  "candMs": 0.24776399999973364
  },
  {
   "project": "nestjs/v09-controller-returns-entity",
@@ -3922,8 +3770,8 @@
   "klass": "order",
   "refRows": 9,
   "candRows": 9,
-  "refMs": 1.891659000015352,
-  "candMs": 0.5237389999965671
+  "refMs": 0.8896989999921061,
+  "candMs": 0.44255400000838563
  },
  {
   "project": "nestjs/v09-controller-returns-entity",
@@ -3934,8 +3782,8 @@
   "klass": "order",
   "refRows": 8,
   "candRows": 8,
-  "refMs": 1.2288699999917299,
-  "candMs": 0.3864549999998417
+  "refMs": 1.1333070000109728,
+  "candMs": 0.24617399999988265
  },
  {
   "project": "nestjs/v09-controller-returns-entity",
@@ -3946,8 +3794,8 @@
   "klass": "order",
   "refRows": 13,
   "candRows": 13,
-  "refMs": 1.3411790000100154,
-  "candMs": 1.0369470000150613
+  "refMs": 0.9514069999859203,
+  "candMs": 0.80881399998907
  },
  {
   "project": "nestjs/v10-domain-policy-holds-repository",
@@ -3958,8 +3806,8 @@
   "klass": "order",
   "refRows": 6,
   "candRows": 6,
-  "refMs": 1.408064999995986,
-  "candMs": 0.3604829999967478
+  "refMs": 0.9684430000197608,
+  "candMs": 0.2313060000014957
  },
  {
   "project": "nestjs/v10-domain-policy-holds-repository",
@@ -3970,8 +3818,8 @@
   "klass": "order",
   "refRows": 9,
   "candRows": 9,
-  "refMs": 1.1176459999987856,
-  "candMs": 0.46119000000180677
+  "refMs": 0.9010509999934584,
+  "candMs": 0.478529999993043
  },
  {
   "project": "nestjs/v10-domain-policy-holds-repository",
@@ -3982,8 +3830,8 @@
   "klass": "order",
   "refRows": 6,
   "candRows": 6,
-  "refMs": 1.0163440000033006,
-  "candMs": 0.32776800001738593
+  "refMs": 1.0101720000093337,
+  "candMs": 0.23372899999958463
  },
  {
   "project": "nestjs/v10-domain-policy-holds-repository",
@@ -3994,8 +3842,8 @@
   "klass": "order",
   "refRows": 9,
   "candRows": 9,
-  "refMs": 1.0098889999790117,
-  "candMs": 0.4674620000005234
+  "refMs": 0.9561689999827649,
+  "candMs": 0.5056170000170823
  },
  {
   "project": "nestjs/v10-domain-policy-holds-repository",
@@ -4006,8 +3854,8 @@
   "klass": "order",
   "refRows": 8,
   "candRows": 8,
-  "refMs": 2.6014849999919534,
-  "candMs": 0.2572949999885168
+  "refMs": 2.9356020000122953,
+  "candMs": 0.2315729999972973
  },
  {
   "project": "nestjs/v10-domain-policy-holds-repository",
@@ -4018,8 +3866,8 @@
   "klass": "order",
   "refRows": 13,
   "candRows": 13,
-  "refMs": 1.271387999993749,
-  "candMs": 0.7200529999972787
+  "refMs": 1.3466189999890048,
+  "candMs": 0.7024030000029597
  },
  {
   "project": "hexagonal/clean",
@@ -4030,8 +3878,8 @@
   "klass": "order",
   "refRows": 5,
   "candRows": 5,
-  "refMs": 1.0074250000179745,
-  "candMs": 0.30529799999203533
+  "refMs": 0.9963409999909345,
+  "candMs": 0.27151900000171736
  },
  {
   "project": "hexagonal/clean",
@@ -4042,8 +3890,8 @@
   "klass": "order",
   "refRows": 7,
   "candRows": 7,
-  "refMs": 0.9860530000005383,
-  "candMs": 0.5045089999912307
+  "refMs": 0.9077529999776743,
+  "candMs": 0.4509799999941606
  },
  {
   "project": "hexagonal/clean",
@@ -4054,8 +3902,8 @@
   "klass": "order",
   "refRows": 5,
   "candRows": 5,
-  "refMs": 0.9973190000164323,
-  "candMs": 0.3420619999815244
+  "refMs": 1.357813000009628,
+  "candMs": 0.39461399998981506
  },
  {
   "project": "hexagonal/clean",
@@ -4066,8 +3914,8 @@
   "klass": "order",
   "refRows": 7,
   "candRows": 7,
-  "refMs": 0.9987360000086483,
-  "candMs": 0.5103099999832921
+  "refMs": 1.0792579999833833,
+  "candMs": 0.7440409999981057
  },
  {
   "project": "hexagonal/clean",
@@ -4078,8 +3926,8 @@
   "klass": "order",
   "refRows": 10,
   "candRows": 10,
-  "refMs": 1.1986829999950714,
-  "candMs": 0.669770000007702
+  "refMs": 0.9979480000038166,
+  "candMs": 0.6503369999991264
  },
  {
   "project": "hexagonal/clean",
@@ -4090,8 +3938,8 @@
   "klass": "float-drift",
   "refRows": 1,
   "candRows": 1,
-  "refMs": 1.46655200002715,
-  "candMs": 1.196587999991607,
+  "refMs": 1.6007260000042152,
+  "candMs": 0.950550999987172,
   "detail": "universal:averageInstability: 1 cell(s), max 1 ULP (bound 16)",
   "floatDrift": [
    {
@@ -4112,8 +3960,8 @@
   "klass": "float-drift",
   "refRows": 1,
   "candRows": 1,
-  "refMs": 1.399600000004284,
-  "candMs": 0.9480779999867082,
+  "refMs": 1.1011449999932665,
+  "candMs": 0.7060449999989942,
   "detail": "universal-literal:averageInstability: 1 cell(s), max 1 ULP (bound 16)",
   "floatDrift": [
    {
@@ -4134,8 +3982,8 @@
   "klass": "float-drift",
   "refRows": 1,
   "candRows": 1,
-  "refMs": 0.8950239999976475,
-  "candMs": 0.7768380000197794,
+  "refMs": 1.1532639999932144,
+  "candMs": 0.7124710000061896,
   "detail": "universal:averageInstability: 1 cell(s), max 1 ULP (bound 16)",
   "floatDrift": [
    {
@@ -4156,8 +4004,8 @@
   "klass": "float-drift",
   "refRows": 1,
   "candRows": 1,
-  "refMs": 1.22981499999878,
-  "candMs": 0.7066990000021178,
+  "refMs": 1.1713650000165217,
+  "candMs": 0.7138569999951869,
   "detail": "universal-literal:averageInstability: 1 cell(s), max 1 ULP (bound 16)",
   "floatDrift": [
    {
@@ -4178,8 +4026,8 @@
   "klass": "order",
   "refRows": 7,
   "candRows": 7,
-  "refMs": 1.3574599999992643,
-  "candMs": 0.46289200001046993
+  "refMs": 1.0155870000016876,
+  "candMs": 0.5621640000026673
  },
  {
   "project": "hexagonal/n01-inbound-adapter-parses-domain-value",
@@ -4190,8 +4038,8 @@
   "klass": "order",
   "refRows": 7,
   "candRows": 7,
-  "refMs": 0.9456559999962337,
-  "candMs": 0.4518439999956172
+  "refMs": 0.8904760000004899,
+  "candMs": 0.623916000011377
  },
  {
   "project": "hexagonal/n01-inbound-adapter-parses-domain-value",
@@ -4202,8 +4050,8 @@
   "klass": "order",
   "refRows": 10,
   "candRows": 10,
-  "refMs": 1.086968000017805,
-  "candMs": 0.7273270000005141
+  "refMs": 1.2127939999918453,
+  "candMs": 0.6548769999935757
  },
  {
   "project": "hexagonal/n01-inbound-adapter-parses-domain-value",
@@ -4214,8 +4062,8 @@
   "klass": "float-drift",
   "refRows": 1,
   "candRows": 1,
-  "refMs": 1.0325569999986328,
-  "candMs": 0.9346609999774955,
+  "refMs": 1.0352119999879505,
+  "candMs": 0.6535980000044219,
   "detail": "universal:averageInstability: 1 cell(s), max 3 ULP (bound 16)",
   "floatDrift": [
    {
@@ -4236,8 +4084,8 @@
   "klass": "float-drift",
   "refRows": 1,
   "candRows": 1,
-  "refMs": 1.409802000009222,
-  "candMs": 0.7084510000131559,
+  "refMs": 0.9494650000124238,
+  "candMs": 0.8965399999869987,
   "detail": "universal-literal:averageInstability: 1 cell(s), max 3 ULP (bound 16)",
   "floatDrift": [
    {
@@ -4258,8 +4106,8 @@
   "klass": "float-drift",
   "refRows": 1,
   "candRows": 1,
-  "refMs": 0.9656529999920167,
-  "candMs": 0.991370999981882,
+  "refMs": 0.8897069999948144,
+  "candMs": 0.8151500000094529,
   "detail": "universal:averageInstability: 1 cell(s), max 3 ULP (bound 16)",
   "floatDrift": [
    {
@@ -4280,8 +4128,8 @@
   "klass": "float-drift",
   "refRows": 1,
   "candRows": 1,
-  "refMs": 1.3005669999984093,
-  "candMs": 0.8561629999894649,
+  "refMs": 1.1169300000183284,
+  "candMs": 0.727004999993369,
   "detail": "universal-literal:averageInstability: 1 cell(s), max 3 ULP (bound 16)",
   "floatDrift": [
    {
@@ -4302,8 +4150,8 @@
   "klass": "order",
   "refRows": 7,
   "candRows": 7,
-  "refMs": 1.0327410000027157,
-  "candMs": 0.4715989999822341
+  "refMs": 1.4191310000023805,
+  "candMs": 0.5272830000030808
  },
  {
   "project": "hexagonal/n02-test-composition-root",
@@ -4314,8 +4162,8 @@
   "klass": "float-drift",
   "refRows": 1,
   "candRows": 1,
-  "refMs": 2.9237299999804236,
-  "candMs": 0.7392840000102296,
+  "refMs": 2.7048399999912363,
+  "candMs": 0.7177010000159498,
   "detail": "universal-literal:averageInstability: 1 cell(s), max 1 ULP (bound 16)",
   "floatDrift": [
    {
@@ -4336,8 +4184,8 @@
   "klass": "order",
   "refRows": 7,
   "candRows": 7,
-  "refMs": 1.2896250000048894,
-  "candMs": 0.5966419999895152
+  "refMs": 0.8592870000284165,
+  "candMs": 0.47495099998195656
  },
  {
   "project": "hexagonal/n02-test-composition-root",
@@ -4348,8 +4196,8 @@
   "klass": "float-drift",
   "refRows": 1,
   "candRows": 1,
-  "refMs": 3.131629999988945,
-  "candMs": 0.8340179999941029,
+  "refMs": 2.0176619999983814,
+  "candMs": 0.7709520000207704,
   "detail": "universal:averageInstability: 1 cell(s), max 2 ULP (bound 16)",
   "floatDrift": [
    {
@@ -4370,8 +4218,8 @@
   "klass": "float-drift",
   "refRows": 1,
   "candRows": 1,
-  "refMs": 1.2561769999738317,
-  "candMs": 0.8974150000140071,
+  "refMs": 0.9623010000213981,
+  "candMs": 0.7899859999888577,
   "detail": "universal:averageInstability: 1 cell(s), max 2 ULP (bound 16)",
   "floatDrift": [
    {
@@ -4392,8 +4240,8 @@
   "klass": "float-drift",
   "refRows": 1,
   "candRows": 1,
-  "refMs": 1.1896549999946728,
-  "candMs": 0.8295269999944139,
+  "refMs": 1.10773099999642,
+  "candMs": 0.7123309999878984,
   "detail": "universal-literal:averageInstability: 1 cell(s), max 2 ULP (bound 16)",
   "floatDrift": [
    {
@@ -4414,8 +4262,8 @@
   "klass": "float-drift",
   "refRows": 1,
   "candRows": 1,
-  "refMs": 1.1324889999814332,
-  "candMs": 0.9392660000012256,
+  "refMs": 1.1343499999784399,
+  "candMs": 1.0768620000162628,
   "detail": "universal:averageInstability: 1 cell(s), max 2 ULP (bound 16)",
   "floatDrift": [
    {
@@ -4436,8 +4284,8 @@
   "klass": "float-drift",
   "refRows": 1,
   "candRows": 1,
-  "refMs": 1.0903479999979027,
-  "candMs": 0.901510000025155,
+  "refMs": 2.3619679999828804,
+  "candMs": 0.9907590000075288,
   "detail": "universal-literal:averageInstability: 1 cell(s), max 2 ULP (bound 16)",
   "floatDrift": [
    {
@@ -4458,8 +4306,8 @@
   "klass": "float-drift",
   "refRows": 1,
   "candRows": 1,
-  "refMs": 1.2678310000046622,
-  "candMs": 0.8027390000061132,
+  "refMs": 1.2091569999756757,
+  "candMs": 0.7961620000132825,
   "detail": "universal:averageInstability: 1 cell(s), max 2 ULP (bound 16)",
   "floatDrift": [
    {
@@ -4480,8 +4328,8 @@
   "klass": "float-drift",
   "refRows": 1,
   "candRows": 1,
-  "refMs": 1.0986370000173338,
-  "candMs": 0.8353389999829233,
+  "refMs": 1.4796449999848846,
+  "candMs": 0.7110760000068694,
   "detail": "universal-literal:averageInstability: 1 cell(s), max 2 ULP (bound 16)",
   "floatDrift": [
    {
@@ -4502,8 +4350,8 @@
   "klass": "order",
   "refRows": 10,
   "candRows": 10,
-  "refMs": 1.1622000000206754,
-  "candMs": 0.6249559999851044
+  "refMs": 1.1248800000175834,
+  "candMs": 0.6001760000071954
  },
  {
   "project": "hexagonal/n02-test-composition-root",
@@ -4514,8 +4362,8 @@
   "klass": "float-drift",
   "refRows": 1,
   "candRows": 1,
-  "refMs": 2.503274999995483,
-  "candMs": 0.8325649999896996,
+  "refMs": 0.9849589999939781,
+  "candMs": 0.8222550000064075,
   "detail": "universal:averageInstability: 1 cell(s), max 2 ULP (bound 16)",
   "floatDrift": [
    {
@@ -4536,8 +4384,8 @@
   "klass": "float-drift",
   "refRows": 1,
   "candRows": 1,
-  "refMs": 1.119371000007959,
-  "candMs": 0.8505529999965802,
+  "refMs": 0.9804540000041015,
+  "candMs": 0.778959000017494,
   "detail": "universal-literal:averageInstability: 1 cell(s), max 2 ULP (bound 16)",
   "floatDrift": [
    {
@@ -4558,8 +4406,8 @@
   "klass": "float-drift",
   "refRows": 1,
   "candRows": 1,
-  "refMs": 1.0436470000131521,
-  "candMs": 0.8763350000081118,
+  "refMs": 1.007389999984298,
+  "candMs": 0.965282000019215,
   "detail": "universal:averageInstability: 1 cell(s), max 2 ULP (bound 16)",
   "floatDrift": [
    {
@@ -4580,8 +4428,8 @@
   "klass": "float-drift",
   "refRows": 1,
   "candRows": 1,
-  "refMs": 1.044659999985015,
-  "candMs": 0.729274000012083,
+  "refMs": 1.1670699999958742,
+  "candMs": 0.7417540000169538,
   "detail": "universal-literal:averageInstability: 1 cell(s), max 2 ULP (bound 16)",
   "floatDrift": [
    {
@@ -4602,8 +4450,8 @@
   "klass": "order",
   "refRows": 7,
   "candRows": 7,
-  "refMs": 1.1081790000025649,
-  "candMs": 0.45681199998944066
+  "refMs": 0.9276869999885093,
+  "candMs": 0.452129999990575
  },
  {
   "project": "hexagonal/n03-gateway-named-helper",
@@ -4614,8 +4462,8 @@
   "klass": "float-drift",
   "refRows": 1,
   "candRows": 1,
-  "refMs": 2.3883070000156295,
-  "candMs": 0.7094949999882374,
+  "refMs": 2.773185999976704,
+  "candMs": 0.7313450000074226,
   "detail": "universal-literal:averageInstability: 1 cell(s), max 2 ULP (bound 16)",
   "floatDrift": [
    {
@@ -4636,8 +4484,8 @@
   "klass": "order",
   "refRows": 7,
   "candRows": 7,
-  "refMs": 1.4164380000147503,
-  "candMs": 0.7771629999915604
+  "refMs": 1.0747409999894444,
+  "candMs": 0.4674529999902006
  },
  {
   "project": "hexagonal/n03-gateway-named-helper",
@@ -4648,8 +4496,8 @@
   "klass": "float-drift",
   "refRows": 1,
   "candRows": 1,
-  "refMs": 4.815419999998994,
-  "candMs": 0.7931830000015907,
+  "refMs": 2.9707470000139438,
+  "candMs": 1.0423169999849051,
   "detail": "universal:averageInstability: 1 cell(s), max 2 ULP (bound 16)",
   "floatDrift": [
    {
@@ -4670,8 +4518,8 @@
   "klass": "float-drift",
   "refRows": 1,
   "candRows": 1,
-  "refMs": 1.1313669999944977,
-  "candMs": 1.1910250000073574,
+  "refMs": 0.8999119999934919,
+  "candMs": 0.717640000017127,
   "detail": "universal:averageInstability: 1 cell(s), max 2 ULP (bound 16)",
   "floatDrift": [
    {
@@ -4692,8 +4540,8 @@
   "klass": "float-drift",
   "refRows": 1,
   "candRows": 1,
-  "refMs": 1.3453759999829344,
-  "candMs": 1.3088480000151321,
+  "refMs": 2.14835000000312,
+  "candMs": 1.2552940000023227,
   "detail": "universal-literal:averageInstability: 1 cell(s), max 2 ULP (bound 16)",
   "floatDrift": [
    {
@@ -4714,8 +4562,8 @@
   "klass": "float-drift",
   "refRows": 1,
   "candRows": 1,
-  "refMs": 1.3909810000041034,
-  "candMs": 0.782575999997789,
+  "refMs": 1.452607999992324,
+  "candMs": 0.7009890000044834,
   "detail": "universal:averageInstability: 1 cell(s), max 2 ULP (bound 16)",
   "floatDrift": [
    {
@@ -4736,8 +4584,8 @@
   "klass": "float-drift",
   "refRows": 1,
   "candRows": 1,
-  "refMs": 1.4861559999990277,
-  "candMs": 0.8817240000062156,
+  "refMs": 2.0083409999788273,
+  "candMs": 0.6688040000153705,
   "detail": "universal-literal:averageInstability: 1 cell(s), max 2 ULP (bound 16)",
   "floatDrift": [
    {
@@ -4758,8 +4606,8 @@
   "klass": "float-drift",
   "refRows": 1,
   "candRows": 1,
-  "refMs": 1.049408000020776,
-  "candMs": 0.7934019999811426,
+  "refMs": 0.9990769999858458,
+  "candMs": 0.689578999998048,
   "detail": "universal:averageInstability: 1 cell(s), max 2 ULP (bound 16)",
   "floatDrift": [
    {
@@ -4780,8 +4628,8 @@
   "klass": "float-drift",
   "refRows": 1,
   "candRows": 1,
-  "refMs": 1.0633770000131335,
-  "candMs": 1.0470860000059474,
+  "refMs": 2.243959999992512,
+  "candMs": 1.3697209999954794,
   "detail": "universal-literal:averageInstability: 1 cell(s), max 2 ULP (bound 16)",
   "floatDrift": [
    {
@@ -4802,8 +4650,8 @@
   "klass": "order",
   "refRows": 10,
   "candRows": 10,
-  "refMs": 1.1953550000034738,
-  "candMs": 1.1036420000018552
+  "refMs": 1.0071510000270791,
+  "candMs": 0.6652429999958258
  },
  {
   "project": "hexagonal/n03-gateway-named-helper",
@@ -4814,8 +4662,8 @@
   "klass": "float-drift",
   "refRows": 1,
   "candRows": 1,
-  "refMs": 1.064836000005016,
-  "candMs": 1.141117999999551,
+  "refMs": 0.9925579999980982,
+  "candMs": 0.7094550000037998,
   "detail": "universal:averageInstability: 1 cell(s), max 2 ULP (bound 16)",
   "floatDrift": [
    {
@@ -4836,8 +4684,8 @@
   "klass": "float-drift",
   "refRows": 1,
   "candRows": 1,
-  "refMs": 1.0193880000151694,
-  "candMs": 0.7822440000018105,
+  "refMs": 0.9795779999985825,
+  "candMs": 0.6525540000002366,
   "detail": "universal-literal:averageInstability: 1 cell(s), max 2 ULP (bound 16)",
   "floatDrift": [
    {
@@ -4858,8 +4706,8 @@
   "klass": "float-drift",
   "refRows": 1,
   "candRows": 1,
-  "refMs": 1.1332899999979418,
-  "candMs": 0.7160689999873284,
+  "refMs": 1.0113729999866337,
+  "candMs": 0.7479820000007749,
   "detail": "universal:averageInstability: 1 cell(s), max 2 ULP (bound 16)",
   "floatDrift": [
    {
@@ -4880,8 +4728,8 @@
   "klass": "float-drift",
   "refRows": 1,
   "candRows": 1,
-  "refMs": 1.3619999999937136,
-  "candMs": 0.7053270000033081,
+  "refMs": 1.083098000002792,
+  "candMs": 0.7081619999953546,
   "detail": "universal-literal:averageInstability: 1 cell(s), max 2 ULP (bound 16)",
   "floatDrift": [
    {
@@ -4902,8 +4750,8 @@
   "klass": "order",
   "refRows": 7,
   "candRows": 7,
-  "refMs": 1.2206789999909233,
-  "candMs": 0.46144600000116043
+  "refMs": 1.2322770000027958,
+  "candMs": 0.8684990000037942
  },
  {
   "project": "hexagonal/v01-domain-uses-outbound-adapter-constant",
@@ -4914,8 +4762,8 @@
   "klass": "float-drift",
   "refRows": 1,
   "candRows": 1,
-  "refMs": 4.2469920000003185,
-  "candMs": 1.2000310000148602,
+  "refMs": 1.6608370000030845,
+  "candMs": 0.94372999999905,
   "detail": "universal-literal:averageInstability: 1 cell(s), max 2 ULP (bound 16)",
   "floatDrift": [
    {
@@ -4936,8 +4784,8 @@
   "klass": "order",
   "refRows": 7,
   "candRows": 7,
-  "refMs": 1.0658039999834727,
-  "candMs": 0.5059910000127275
+  "refMs": 1.0036749999853782,
+  "candMs": 0.43150199999217875
  },
  {
   "project": "hexagonal/v01-domain-uses-outbound-adapter-constant",
@@ -4948,8 +4796,8 @@
   "klass": "float-drift",
   "refRows": 1,
   "candRows": 1,
-  "refMs": 3.71842999997898,
-  "candMs": 1.250832999998238,
+  "refMs": 3.5867600000055972,
+  "candMs": 0.7215269999869633,
   "detail": "universal:averageInstability: 1 cell(s), max 3 ULP (bound 16)",
   "floatDrift": [
    {
@@ -4970,8 +4818,8 @@
   "klass": "float-drift",
   "refRows": 1,
   "candRows": 1,
-  "refMs": 1.1478519999946002,
-  "candMs": 0.6851319999841508,
+  "refMs": 0.876222000020789,
+  "candMs": 0.7181379999965429,
   "detail": "universal:averageInstability: 1 cell(s), max 3 ULP (bound 16)",
   "floatDrift": [
    {
@@ -4992,8 +4840,8 @@
   "klass": "float-drift",
   "refRows": 1,
   "candRows": 1,
-  "refMs": 1.5159280000079889,
-  "candMs": 1.2429119999869727,
+  "refMs": 1.9401639999996405,
+  "candMs": 0.6974739999859594,
   "detail": "universal-literal:averageInstability: 1 cell(s), max 3 ULP (bound 16)",
   "floatDrift": [
    {
@@ -5014,8 +4862,8 @@
   "klass": "float-drift",
   "refRows": 1,
   "candRows": 1,
-  "refMs": 1.0663690000073984,
-  "candMs": 0.8374820000026375,
+  "refMs": 1.117365999991307,
+  "candMs": 0.7712460000184365,
   "detail": "universal:averageInstability: 1 cell(s), max 3 ULP (bound 16)",
   "floatDrift": [
    {
@@ -5036,8 +4884,8 @@
   "klass": "float-drift",
   "refRows": 1,
   "candRows": 1,
-  "refMs": 1.0085440000111703,
-  "candMs": 0.7883790000050794,
+  "refMs": 2.024736999999732,
+  "candMs": 0.7347280000103638,
   "detail": "universal-literal:averageInstability: 1 cell(s), max 3 ULP (bound 16)",
   "floatDrift": [
    {
@@ -5058,8 +4906,8 @@
   "klass": "float-drift",
   "refRows": 1,
   "candRows": 1,
-  "refMs": 1.16823400001158,
-  "candMs": 0.7702189999981783,
+  "refMs": 0.9594590000051539,
+  "candMs": 0.7258009999932256,
   "detail": "universal:averageInstability: 1 cell(s), max 3 ULP (bound 16)",
   "floatDrift": [
    {
@@ -5080,8 +4928,8 @@
   "klass": "float-drift",
   "refRows": 1,
   "candRows": 1,
-  "refMs": 1.2800569999963045,
-  "candMs": 0.7064729999983683,
+  "refMs": 1.0382310000131838,
+  "candMs": 0.752898999984609,
   "detail": "universal-literal:averageInstability: 1 cell(s), max 3 ULP (bound 16)",
   "floatDrift": [
    {
@@ -5102,8 +4950,8 @@
   "klass": "order",
   "refRows": 10,
   "candRows": 10,
-  "refMs": 2.8883980000100564,
-  "candMs": 0.6689879999903496
+  "refMs": 1.039169999974547,
+  "candMs": 0.6226590000151191
  },
  {
   "project": "hexagonal/v01-domain-uses-outbound-adapter-constant",
@@ -5114,8 +4962,8 @@
   "klass": "float-drift",
   "refRows": 1,
   "candRows": 1,
-  "refMs": 1.3137489999935497,
-  "candMs": 0.7682550000026822,
+  "refMs": 0.957741000020178,
+  "candMs": 0.6558959999820217,
   "detail": "universal:averageInstability: 1 cell(s), max 2 ULP (bound 16)",
   "floatDrift": [
    {
@@ -5136,8 +4984,8 @@
   "klass": "float-drift",
   "refRows": 1,
   "candRows": 1,
-  "refMs": 1.475852000003215,
-  "candMs": 0.6751559999829624,
+  "refMs": 1.1838839999982156,
+  "candMs": 0.6823290000029374,
   "detail": "universal-literal:averageInstability: 1 cell(s), max 2 ULP (bound 16)",
   "floatDrift": [
    {
@@ -5158,8 +5006,8 @@
   "klass": "float-drift",
   "refRows": 1,
   "candRows": 1,
-  "refMs": 1.3505030000233091,
-  "candMs": 0.696909999998752,
+  "refMs": 1.3117759999877308,
+  "candMs": 0.7626840000157245,
   "detail": "universal:averageInstability: 1 cell(s), max 2 ULP (bound 16)",
   "floatDrift": [
    {
@@ -5180,8 +5028,8 @@
   "klass": "float-drift",
   "refRows": 1,
   "candRows": 1,
-  "refMs": 1.3230339999718126,
-  "candMs": 0.8839810000208672,
+  "refMs": 0.9337029999878723,
+  "candMs": 0.6615250000031665,
   "detail": "universal-literal:averageInstability: 1 cell(s), max 2 ULP (bound 16)",
   "floatDrift": [
    {
@@ -5202,8 +5050,8 @@
   "klass": "order",
   "refRows": 7,
   "candRows": 7,
-  "refMs": 1.0963669999910053,
-  "candMs": 0.4800600000016857
+  "refMs": 1.195940999983577,
+  "candMs": 0.5047619999968447
  },
  {
   "project": "hexagonal/v02-domain-entity-uses-driven-port",
@@ -5214,8 +5062,8 @@
   "klass": "float-drift",
   "refRows": 1,
   "candRows": 1,
-  "refMs": 3.666561999998521,
-  "candMs": 0.7038730000203941,
+  "refMs": 2.7378240000107326,
+  "candMs": 0.7406769999943208,
   "detail": "universal-literal:averageInstability: 1 cell(s), max 1 ULP (bound 16)",
   "floatDrift": [
    {
@@ -5236,8 +5084,8 @@
   "klass": "order",
   "refRows": 7,
   "candRows": 7,
-  "refMs": 1.0646990000095684,
-  "candMs": 0.7491560000053141
+  "refMs": 0.8549810000113212,
+  "candMs": 0.41968500000075437
  },
  {
   "project": "hexagonal/v02-domain-entity-uses-driven-port",
@@ -5248,8 +5096,8 @@
   "klass": "order",
   "refRows": 10,
   "candRows": 10,
-  "refMs": 1.1182719999924302,
-  "candMs": 0.6838290000159759
+  "refMs": 1.11724900000263,
+  "candMs": 0.5809799999988172
  },
  {
   "project": "hexagonal/v03-use-case-injects-concrete-adapter",
@@ -5260,8 +5108,8 @@
   "klass": "order",
   "refRows": 7,
   "candRows": 7,
-  "refMs": 1.317077000014251,
-  "candMs": 0.5595069999981206
+  "refMs": 0.8878329999861307,
+  "candMs": 0.4882870000146795
  },
  {
   "project": "hexagonal/v03-use-case-injects-concrete-adapter",
@@ -5272,8 +5120,8 @@
   "klass": "float-drift",
   "refRows": 1,
   "candRows": 1,
-  "refMs": 2.976949000003515,
-  "candMs": 1.292858000000706,
+  "refMs": 5.08796999999322,
+  "candMs": 0.701284000009764,
   "detail": "universal-literal:averageInstability: 1 cell(s), max 1 ULP (bound 16)",
   "floatDrift": [
    {
@@ -5294,8 +5142,8 @@
   "klass": "order",
   "refRows": 7,
   "candRows": 7,
-  "refMs": 0.9556520000041928,
-  "candMs": 0.4903059999924153
+  "refMs": 1.135959000006551,
+  "candMs": 0.5009439999994356
  },
  {
   "project": "hexagonal/v03-use-case-injects-concrete-adapter",
@@ -5306,8 +5154,8 @@
   "klass": "float-drift",
   "refRows": 1,
   "candRows": 1,
-  "refMs": 1.788845000002766,
-  "candMs": 0.6907249999931082,
+  "refMs": 4.343954999989364,
+  "candMs": 1.2627790000115056,
   "detail": "universal:averageInstability: 1 cell(s), max 1 ULP (bound 16)",
   "floatDrift": [
    {
@@ -5328,8 +5176,8 @@
   "klass": "float-drift",
   "refRows": 1,
   "candRows": 1,
-  "refMs": 1.1133130000089295,
-  "candMs": 0.7572130000044126,
+  "refMs": 0.8705490000138525,
+  "candMs": 0.6779380000079982,
   "detail": "universal:averageInstability: 1 cell(s), max 1 ULP (bound 16)",
   "floatDrift": [
    {
@@ -5350,8 +5198,8 @@
   "klass": "float-drift",
   "refRows": 1,
   "candRows": 1,
-  "refMs": 1.3650629999756347,
-  "candMs": 1.2145520000194665,
+  "refMs": 1.1695379999873694,
+  "candMs": 0.6943779999855906,
   "detail": "universal-literal:averageInstability: 1 cell(s), max 1 ULP (bound 16)",
   "floatDrift": [
    {
@@ -5372,8 +5220,8 @@
   "klass": "float-drift",
   "refRows": 1,
   "candRows": 1,
-  "refMs": 1.6940260000119451,
-  "candMs": 1.2914520000049379,
+  "refMs": 1.0669559999951161,
+  "candMs": 0.7876459999824874,
   "detail": "universal:averageInstability: 1 cell(s), max 1 ULP (bound 16)",
   "floatDrift": [
    {
@@ -5394,8 +5242,8 @@
   "klass": "float-drift",
   "refRows": 1,
   "candRows": 1,
-  "refMs": 1.9010870000056457,
-  "candMs": 1.3346380000002682,
+  "refMs": 1.062270999973407,
+  "candMs": 0.7115880000055768,
   "detail": "universal-literal:averageInstability: 1 cell(s), max 1 ULP (bound 16)",
   "floatDrift": [
    {
@@ -5416,8 +5264,8 @@
   "klass": "float-drift",
   "refRows": 1,
   "candRows": 1,
-  "refMs": 1.03570600002422,
-  "candMs": 0.7655159999849275,
+  "refMs": 1.145998000021791,
+  "candMs": 0.6911660000041593,
   "detail": "universal:averageInstability: 1 cell(s), max 1 ULP (bound 16)",
   "floatDrift": [
    {
@@ -5438,8 +5286,8 @@
   "klass": "float-drift",
   "refRows": 1,
   "candRows": 1,
-  "refMs": 1.0293609999935143,
-  "candMs": 0.7682020000065677,
+  "refMs": 1.0088319999922533,
+  "candMs": 0.6830960000224877,
   "detail": "universal-literal:averageInstability: 1 cell(s), max 1 ULP (bound 16)",
   "floatDrift": [
    {
@@ -5460,8 +5308,8 @@
   "klass": "order",
   "refRows": 10,
   "candRows": 10,
-  "refMs": 1.0734629999788012,
-  "candMs": 0.7134690000093542
+  "refMs": 0.9857090000004973,
+  "candMs": 0.690643000009004
  },
  {
   "project": "hexagonal/v04-use-case-throws-http-error",
@@ -5472,8 +5320,8 @@
   "klass": "order",
   "refRows": 7,
   "candRows": 7,
-  "refMs": 1.3308370000158902,
-  "candMs": 0.6941669999796432
+  "refMs": 1.1591980000084732,
+  "candMs": 0.7193509999779053
  },
  {
   "project": "hexagonal/v04-use-case-throws-http-error",
@@ -5484,8 +5332,8 @@
   "klass": "order",
   "refRows": 7,
   "candRows": 7,
-  "refMs": 1.3071209999907296,
-  "candMs": 0.5933899999945424
+  "refMs": 0.8569169999973383,
+  "candMs": 0.5139450000133365
  },
  {
   "project": "hexagonal/v04-use-case-throws-http-error",
@@ -5496,8 +5344,8 @@
   "klass": "order",
   "refRows": 10,
   "candRows": 10,
-  "refMs": 1.1320929999928921,
-  "candMs": 0.7935860000143293
+  "refMs": 0.9077359999937471,
+  "candMs": 0.6146970000118017
  },
  {
   "project": "hexagonal/v04-use-case-throws-http-error",
@@ -5508,8 +5356,8 @@
   "klass": "float-drift",
   "refRows": 1,
   "candRows": 1,
-  "refMs": 1.3298630000208504,
-  "candMs": 1.192849999992177,
+  "refMs": 1.2372329999925569,
+  "candMs": 1.2147859999968205,
   "detail": "universal:averageInstability: 1 cell(s), max 1 ULP (bound 16)",
   "floatDrift": [
    {
@@ -5530,8 +5378,8 @@
   "klass": "float-drift",
   "refRows": 1,
   "candRows": 1,
-  "refMs": 1.382091000006767,
-  "candMs": 0.8949739999952726,
+  "refMs": 1.0139189999899827,
+  "candMs": 0.8366840000089724,
   "detail": "universal-literal:averageInstability: 1 cell(s), max 1 ULP (bound 16)",
   "floatDrift": [
    {
@@ -5552,8 +5400,8 @@
   "klass": "float-drift",
   "refRows": 1,
   "candRows": 1,
-  "refMs": 0.9933359999849927,
-  "candMs": 0.7779070000106003,
+  "refMs": 1.1592339999915566,
+  "candMs": 0.6778429999831133,
   "detail": "universal:averageInstability: 1 cell(s), max 1 ULP (bound 16)",
   "floatDrift": [
    {
@@ -5574,8 +5422,8 @@
   "klass": "float-drift",
   "refRows": 1,
   "candRows": 1,
-  "refMs": 1.5138199999928474,
-  "candMs": 0.6613970000180416,
+  "refMs": 1.195200999994995,
+  "candMs": 0.6740929999796208,
   "detail": "universal-literal:averageInstability: 1 cell(s), max 1 ULP (bound 16)",
   "floatDrift": [
    {
@@ -5596,8 +5444,8 @@
   "klass": "order",
   "refRows": 7,
   "candRows": 7,
-  "refMs": 1.2741970000206493,
-  "candMs": 0.8448820000048727
+  "refMs": 0.9999360000074375,
+  "candMs": 0.4492829999944661
  },
  {
   "project": "hexagonal/v05-inbound-adapter-reads-outbound-adapter",
@@ -5608,8 +5456,8 @@
   "klass": "float-drift",
   "refRows": 1,
   "candRows": 1,
-  "refMs": 4.415333000011742,
-  "candMs": 0.6749279999930877,
+  "refMs": 2.3991600000008475,
+  "candMs": 0.693831999989925,
   "detail": "universal-literal:averageInstability: 1 cell(s), max 1 ULP (bound 16)",
   "floatDrift": [
    {
@@ -5630,8 +5478,8 @@
   "klass": "order",
   "refRows": 7,
   "candRows": 7,
-  "refMs": 1.221810999995796,
-  "candMs": 0.8523240000067744
+  "refMs": 0.8944480000063777,
+  "candMs": 0.4856629999994766
  },
  {
   "project": "hexagonal/v05-inbound-adapter-reads-outbound-adapter",
@@ -5642,8 +5490,8 @@
   "klass": "float-drift",
   "refRows": 1,
   "candRows": 1,
-  "refMs": 1.70920599999954,
-  "candMs": 1.3650930000003427,
+  "refMs": 1.7037030000064988,
+  "candMs": 0.7222760000149719,
   "detail": "universal:averageInstability: 1 cell(s), max 3 ULP (bound 16)",
   "floatDrift": [
    {
@@ -5664,8 +5512,8 @@
   "klass": "float-drift",
   "refRows": 1,
   "candRows": 1,
-  "refMs": 1.0445780000009108,
-  "candMs": 0.7303109999920707,
+  "refMs": 0.9103450000111479,
+  "candMs": 0.8174049999797717,
   "detail": "universal:averageInstability: 1 cell(s), max 3 ULP (bound 16)",
   "floatDrift": [
    {
@@ -5686,8 +5534,8 @@
   "klass": "float-drift",
   "refRows": 1,
   "candRows": 1,
-  "refMs": 1.1536830000113696,
-  "candMs": 0.8073469999944791,
+  "refMs": 1.0082629999960773,
+  "candMs": 0.7854890000016894,
   "detail": "universal-literal:averageInstability: 1 cell(s), max 3 ULP (bound 16)",
   "floatDrift": [
    {
@@ -5708,8 +5556,8 @@
   "klass": "float-drift",
   "refRows": 1,
   "candRows": 1,
-  "refMs": 1.1838719999941532,
-  "candMs": 0.8799540000036359,
+  "refMs": 1.6859930000209715,
+  "candMs": 0.731394000002183,
   "detail": "universal:averageInstability: 1 cell(s), max 3 ULP (bound 16)",
   "floatDrift": [
    {
@@ -5730,8 +5578,8 @@
   "klass": "float-drift",
   "refRows": 1,
   "candRows": 1,
-  "refMs": 1.190604000003077,
-  "candMs": 0.7171199999866076,
+  "refMs": 1.447972000023583,
+  "candMs": 0.7823499999940395,
   "detail": "universal-literal:averageInstability: 1 cell(s), max 3 ULP (bound 16)",
   "floatDrift": [
    {
@@ -5752,8 +5600,8 @@
   "klass": "float-drift",
   "refRows": 1,
   "candRows": 1,
-  "refMs": 1.4877780000097118,
-  "candMs": 1.2150859999819659,
+  "refMs": 0.9103809999942314,
+  "candMs": 0.7339619999984279,
   "detail": "universal:averageInstability: 1 cell(s), max 3 ULP (bound 16)",
   "floatDrift": [
    {
@@ -5774,8 +5622,8 @@
   "klass": "float-drift",
   "refRows": 1,
   "candRows": 1,
-  "refMs": 1.3553130000072997,
-  "candMs": 1.173875999986194,
+  "refMs": 0.919039000000339,
+  "candMs": 0.6749169999966398,
   "detail": "universal-literal:averageInstability: 1 cell(s), max 3 ULP (bound 16)",
   "floatDrift": [
    {
@@ -5796,8 +5644,8 @@
   "klass": "order",
   "refRows": 10,
   "candRows": 10,
-  "refMs": 1.2105619999929331,
-  "candMs": 0.631232000014279
+  "refMs": 1.189983000018401,
+  "candMs": 0.7600880000100005
  },
  {
   "project": "hexagonal/v05-inbound-adapter-reads-outbound-adapter",
@@ -5808,8 +5656,8 @@
   "klass": "float-drift",
   "refRows": 1,
   "candRows": 1,
-  "refMs": 1.3421650000091176,
-  "candMs": 0.953668000001926,
+  "refMs": 0.9225830000068527,
+  "candMs": 0.6866860000009183,
   "detail": "universal:averageInstability: 1 cell(s), max 3 ULP (bound 16)",
   "floatDrift": [
    {
@@ -5830,8 +5678,8 @@
   "klass": "float-drift",
   "refRows": 1,
   "candRows": 1,
-  "refMs": 1.2973350000102073,
-  "candMs": 0.7091979999968316,
+  "refMs": 1.052644000010332,
+  "candMs": 0.7495669999916572,
   "detail": "universal-literal:averageInstability: 1 cell(s), max 3 ULP (bound 16)",
   "floatDrift": [
    {
@@ -5852,8 +5700,8 @@
   "klass": "float-drift",
   "refRows": 1,
   "candRows": 1,
-  "refMs": 1.1275840000016615,
-  "candMs": 0.7514870000013616,
+  "refMs": 0.9496839999919757,
+  "candMs": 0.6501040000002831,
   "detail": "universal:averageInstability: 1 cell(s), max 3 ULP (bound 16)",
   "floatDrift": [
    {
@@ -5874,8 +5722,8 @@
   "klass": "float-drift",
   "refRows": 1,
   "candRows": 1,
-  "refMs": 1.133851999999024,
-  "candMs": 0.7390160000068136,
+  "refMs": 1.0455519999959506,
+  "candMs": 0.7219540000078268,
   "detail": "universal-literal:averageInstability: 1 cell(s), max 3 ULP (bound 16)",
   "floatDrift": [
    {
@@ -5896,8 +5744,8 @@
   "klass": "order",
   "refRows": 7,
   "candRows": 7,
-  "refMs": 1.1321400000015274,
-  "candMs": 0.5106749999977183
+  "refMs": 1.9775359999912325,
+  "candMs": 0.4576480000105221
  },
  {
   "project": "hexagonal/v06-outbound-adapter-uses-cli-formatter",
@@ -5908,8 +5756,8 @@
   "klass": "order",
   "refRows": 7,
   "candRows": 7,
-  "refMs": 0.867965000012191,
-  "candMs": 0.5033579999872018
+  "refMs": 1.6043419999768957,
+  "candMs": 0.5570719999959692
  },
  {
   "project": "hexagonal/v06-outbound-adapter-uses-cli-formatter",
@@ -5920,8 +5768,8 @@
   "klass": "order",
   "refRows": 10,
   "candRows": 10,
-  "refMs": 1.1285920000227634,
-  "candMs": 0.6803119999822229
+  "refMs": 1.2648090000147931,
+  "candMs": 0.68792399999802
  },
  {
   "project": "hexagonal/v06-outbound-adapter-uses-cli-formatter",
@@ -5932,8 +5780,8 @@
   "klass": "float-drift",
   "refRows": 1,
   "candRows": 1,
-  "refMs": 0.8755189999938011,
-  "candMs": 0.7531030000245664,
+  "refMs": 0.9827280000026803,
+  "candMs": 0.8314959999988787,
   "detail": "universal:averageInstability: 1 cell(s), max 1 ULP (bound 16)",
   "floatDrift": [
    {
@@ -5954,8 +5802,8 @@
   "klass": "float-drift",
   "refRows": 1,
   "candRows": 1,
-  "refMs": 1.3791959999944083,
-  "candMs": 0.8001829999848269,
+  "refMs": 0.9622709999966901,
+  "candMs": 0.7188800000003539,
   "detail": "universal-literal:averageInstability: 1 cell(s), max 1 ULP (bound 16)",
   "floatDrift": [
    {
@@ -5976,8 +5824,8 @@
   "klass": "float-drift",
   "refRows": 1,
   "candRows": 1,
-  "refMs": 1.2834900000016205,
-  "candMs": 0.9323739999963436,
+  "refMs": 1.0093660000129603,
+  "candMs": 0.671117999998387,
   "detail": "universal:averageInstability: 1 cell(s), max 1 ULP (bound 16)",
   "floatDrift": [
    {
@@ -5998,8 +5846,8 @@
   "klass": "float-drift",
   "refRows": 1,
   "candRows": 1,
-  "refMs": 1.1926280000188854,
-  "candMs": 0.7288980000012089,
+  "refMs": 0.9841519999899901,
+  "candMs": 0.7381490000116173,
   "detail": "universal-literal:averageInstability: 1 cell(s), max 1 ULP (bound 16)",
   "floatDrift": [
    {
@@ -6020,8 +5868,8 @@
   "klass": "order",
   "refRows": 7,
   "candRows": 7,
-  "refMs": 1.0058160000189673,
-  "candMs": 0.7689029999892227
+  "refMs": 0.9862080000166316,
+  "candMs": 0.5410589999810327
  },
  {
   "project": "hexagonal/v07-domain-service-nestjs-decorator",
@@ -6032,8 +5880,8 @@
   "klass": "float-drift",
   "refRows": 1,
   "candRows": 1,
-  "refMs": 5.450718999985838,
-  "candMs": 1.268517000018619,
+  "refMs": 4.034203000017442,
+  "candMs": 0.6741009999823291,
   "detail": "universal-literal:averageInstability: 1 cell(s), max 2 ULP (bound 16)",
   "floatDrift": [
    {
@@ -6054,8 +5902,8 @@
   "klass": "order",
   "refRows": 7,
   "candRows": 7,
-  "refMs": 1.0492019999946933,
-  "candMs": 0.7069179999816697
+  "refMs": 1.015270000003511,
+  "candMs": 0.49368800001684576
  },
  {
   "project": "hexagonal/v07-domain-service-nestjs-decorator",
@@ -6066,8 +5914,8 @@
   "klass": "float-drift",
   "refRows": 1,
   "candRows": 1,
-  "refMs": 2.1214469999831636,
-  "candMs": 0.6544130000111181,
+  "refMs": 1.5305800000205636,
+  "candMs": 0.7178030000068247,
   "detail": "universal:averageInstability: 1 cell(s), max 2 ULP (bound 16)",
   "floatDrift": [
    {
@@ -6088,8 +5936,8 @@
   "klass": "float-drift",
   "refRows": 1,
   "candRows": 1,
-  "refMs": 1.0957150000031106,
-  "candMs": 0.7268650000041816,
+  "refMs": 1.0779639999964274,
+  "candMs": 1.2565000000176951,
   "detail": "universal:averageInstability: 1 cell(s), max 2 ULP (bound 16)",
   "floatDrift": [
    {
@@ -6110,8 +5958,8 @@
   "klass": "float-drift",
   "refRows": 1,
   "candRows": 1,
-  "refMs": 1.3810339999909047,
-  "candMs": 0.674193999991985,
+  "refMs": 1.4246890000067651,
+  "candMs": 1.2063019999768585,
   "detail": "universal-literal:averageInstability: 1 cell(s), max 2 ULP (bound 16)",
   "floatDrift": [
    {
@@ -6132,8 +5980,8 @@
   "klass": "float-drift",
   "refRows": 1,
   "candRows": 1,
-  "refMs": 1.178604999993695,
-  "candMs": 0.6877320000203326,
+  "refMs": 1.1368910000019241,
+  "candMs": 0.7625930000212975,
   "detail": "universal:averageInstability: 1 cell(s), max 2 ULP (bound 16)",
   "floatDrift": [
    {
@@ -6154,8 +6002,8 @@
   "klass": "float-drift",
   "refRows": 1,
   "candRows": 1,
-  "refMs": 1.1111279999895487,
-  "candMs": 0.6752029999915976,
+  "refMs": 1.0226440000114962,
+  "candMs": 0.6754059999948367,
   "detail": "universal-literal:averageInstability: 1 cell(s), max 2 ULP (bound 16)",
   "floatDrift": [
    {
@@ -6176,8 +6024,8 @@
   "klass": "float-drift",
   "refRows": 1,
   "candRows": 1,
-  "refMs": 1.4968640000151936,
-  "candMs": 1.1211670000047889,
+  "refMs": 1.1783289999875706,
+  "candMs": 1.3049490000121295,
   "detail": "universal:averageInstability: 1 cell(s), max 2 ULP (bound 16)",
   "floatDrift": [
    {
@@ -6198,8 +6046,8 @@
   "klass": "float-drift",
   "refRows": 1,
   "candRows": 1,
-  "refMs": 1.7047489999968093,
-  "candMs": 1.3059810000122525,
+  "refMs": 1.0221280000114348,
+  "candMs": 0.7066969999868888,
   "detail": "universal-literal:averageInstability: 1 cell(s), max 2 ULP (bound 16)",
   "floatDrift": [
    {
@@ -6220,8 +6068,8 @@
   "klass": "order",
   "refRows": 10,
   "candRows": 10,
-  "refMs": 1.782623999984935,
-  "candMs": 1.1645490000082646
+  "refMs": 1.5045849999878556,
+  "candMs": 0.6997020000126213
  },
  {
   "project": "hexagonal/v08-adapter-without-port",
@@ -6232,8 +6080,8 @@
   "klass": "order",
   "refRows": 7,
   "candRows": 7,
-  "refMs": 4.06230299998424,
-  "candMs": 0.4998080000223126
+  "refMs": 1.1464320000086445,
+  "candMs": 0.5031109999981709
  },
  {
   "project": "hexagonal/v08-adapter-without-port",
@@ -6244,8 +6092,8 @@
   "klass": "float-drift",
   "refRows": 1,
   "candRows": 1,
-  "refMs": 2.280139999988023,
-  "candMs": 1.2776409999933094,
+  "refMs": 3.745996000012383,
+  "candMs": 0.7787919999973383,
   "detail": "universal-literal:averageInstability: 1 cell(s), max 4 ULP (bound 16)",
   "floatDrift": [
    {
@@ -6266,8 +6114,8 @@
   "klass": "order",
   "refRows": 7,
   "candRows": 7,
-  "refMs": 1.1660379999957513,
-  "candMs": 0.47139900000183843
+  "refMs": 0.9246469999779947,
+  "candMs": 0.4649630000058096
  },
  {
   "project": "hexagonal/v08-adapter-without-port",
@@ -6278,8 +6126,8 @@
   "klass": "float-drift",
   "refRows": 1,
   "candRows": 1,
-  "refMs": 3.9654020000016317,
-  "candMs": 1.0600289999856614,
+  "refMs": 3.1282179999980144,
+  "candMs": 0.8748520000081044,
   "detail": "universal:averageInstability: 1 cell(s), max 1 ULP (bound 16)",
   "floatDrift": [
    {
@@ -6300,8 +6148,8 @@
   "klass": "float-drift",
   "refRows": 1,
   "candRows": 1,
-  "refMs": 1.2411509999947157,
-  "candMs": 0.7201260000001639,
+  "refMs": 1.1595720000041183,
+  "candMs": 0.657578000013018,
   "detail": "universal:averageInstability: 1 cell(s), max 1 ULP (bound 16)",
   "floatDrift": [
    {
@@ -6322,8 +6170,8 @@
   "klass": "float-drift",
   "refRows": 1,
   "candRows": 1,
-  "refMs": 2.7061910000047646,
-  "candMs": 0.778647999977693,
+  "refMs": 1.1075010000204202,
+  "candMs": 0.620718999998644,
   "detail": "universal-literal:averageInstability: 1 cell(s), max 1 ULP (bound 16)",
   "floatDrift": [
    {
@@ -6344,8 +6192,8 @@
   "klass": "float-drift",
   "refRows": 1,
   "candRows": 1,
-  "refMs": 1.5611460000218358,
-  "candMs": 1.1428989999985788,
+  "refMs": 0.9085699999995995,
+  "candMs": 0.6630090000107884,
   "detail": "universal:averageInstability: 1 cell(s), max 1 ULP (bound 16)",
   "floatDrift": [
    {
@@ -6366,8 +6214,8 @@
   "klass": "float-drift",
   "refRows": 1,
   "candRows": 1,
-  "refMs": 1.5593320000043605,
-  "candMs": 1.6656509999884292,
+  "refMs": 1.008921000000555,
+  "candMs": 0.7547780000022613,
   "detail": "universal-literal:averageInstability: 1 cell(s), max 1 ULP (bound 16)",
   "floatDrift": [
    {
@@ -6388,8 +6236,8 @@
   "klass": "float-drift",
   "refRows": 1,
   "candRows": 1,
-  "refMs": 1.5451329999777954,
-  "candMs": 1.2242020000121556,
+  "refMs": 1.0688720000034664,
+  "candMs": 1.188586000003852,
   "detail": "universal:averageInstability: 1 cell(s), max 1 ULP (bound 16)",
   "floatDrift": [
    {
@@ -6410,8 +6258,8 @@
   "klass": "float-drift",
   "refRows": 1,
   "candRows": 1,
-  "refMs": 1.0086170000140555,
-  "candMs": 0.7270129999960773,
+  "refMs": 1.4727619999903254,
+  "candMs": 1.1218020000087563,
   "detail": "universal-literal:averageInstability: 1 cell(s), max 1 ULP (bound 16)",
   "floatDrift": [
    {
@@ -6432,8 +6280,8 @@
   "klass": "order",
   "refRows": 10,
   "candRows": 10,
-  "refMs": 1.187432999984594,
-  "candMs": 0.6669960000144783
+  "refMs": 1.2670539999962784,
+  "candMs": 0.6457890000019688
  },
  {
   "project": "hexagonal/v08-adapter-without-port",
@@ -6444,8 +6292,8 @@
   "klass": "float-drift",
   "refRows": 1,
   "candRows": 1,
-  "refMs": 0.9537549999949988,
-  "candMs": 0.7286859999876469,
+  "refMs": 1.0977190000121482,
+  "candMs": 1.1554059999762103,
   "detail": "universal:averageInstability: 1 cell(s), max 2 ULP (bound 16)",
   "floatDrift": [
    {
@@ -6466,8 +6314,8 @@
   "klass": "float-drift",
   "refRows": 1,
   "candRows": 1,
-  "refMs": 1.067992000025697,
-  "candMs": 0.7184309999865945,
+  "refMs": 1.119821000000229,
+  "candMs": 1.3273290000215638,
   "detail": "universal-literal:averageInstability: 1 cell(s), max 2 ULP (bound 16)",
   "floatDrift": [
    {
@@ -6488,8 +6336,8 @@
   "klass": "float-drift",
   "refRows": 1,
   "candRows": 1,
-  "refMs": 1.367467999982182,
-  "candMs": 0.6566880000173114,
+  "refMs": 0.8914269999950193,
+  "candMs": 0.6951249999983702,
   "detail": "universal:averageInstability: 1 cell(s), max 2 ULP (bound 16)",
   "floatDrift": [
    {
@@ -6510,8 +6358,8 @@
   "klass": "float-drift",
   "refRows": 1,
   "candRows": 1,
-  "refMs": 1.1713989999843761,
-  "candMs": 0.8184290000062902,
+  "refMs": 0.9829310000059195,
+  "candMs": 0.6888219999964349,
   "detail": "universal-literal:averageInstability: 1 cell(s), max 2 ULP (bound 16)",
   "floatDrift": [
    {
@@ -6532,8 +6380,8 @@
   "klass": "order",
   "refRows": 7,
   "candRows": 7,
-  "refMs": 1.094463999994332,
-  "candMs": 0.5126999999920372
+  "refMs": 1.279707999987295,
+  "candMs": 0.5693219999957364
  },
  {
   "project": "hexagonal/v09-adapter-implements-local-interface",
@@ -6544,8 +6392,8 @@
   "klass": "float-drift",
   "refRows": 1,
   "candRows": 1,
-  "refMs": 3.390295999997761,
-  "candMs": 0.9320449999941047,
+  "refMs": 3.5697159999981523,
+  "candMs": 0.8838030000042636,
   "detail": "universal-literal:averageInstability: 1 cell(s), max 1 ULP (bound 16)",
   "floatDrift": [
    {
@@ -6566,8 +6414,8 @@
   "klass": "order",
   "refRows": 7,
   "candRows": 7,
-  "refMs": 1.3623110000044107,
-  "candMs": 0.8097629999974743
+  "refMs": 1.0554379999812227,
+  "candMs": 0.5309850000194274
  },
  {
   "project": "hexagonal/v09-adapter-implements-local-interface",
@@ -6578,8 +6426,8 @@
   "klass": "order",
   "refRows": 10,
   "candRows": 10,
-  "refMs": 1.2307659999933094,
-  "candMs": 0.7288439999974798
+  "refMs": 1.140280999999959,
+  "candMs": 1.0989400000253227
  },
  {
   "project": "hexagonal/v09-adapter-implements-local-interface",
@@ -6590,8 +6438,8 @@
   "klass": "float-drift",
   "refRows": 1,
   "candRows": 1,
-  "refMs": 1.0672780000022613,
-  "candMs": 0.8132719999994151,
+  "refMs": 1.4035629999998491,
+  "candMs": 0.9217969999881461,
   "detail": "universal:averageInstability: 1 cell(s), max 1 ULP (bound 16)",
   "floatDrift": [
    {
@@ -6612,8 +6460,8 @@
   "klass": "float-drift",
   "refRows": 1,
   "candRows": 1,
-  "refMs": 1.2438440000114497,
-  "candMs": 0.736308999999892,
+  "refMs": 1.4283830000204034,
+  "candMs": 0.7476849999802653,
   "detail": "universal-literal:averageInstability: 1 cell(s), max 1 ULP (bound 16)",
   "floatDrift": [
    {
@@ -6634,8 +6482,8 @@
   "klass": "float-drift",
   "refRows": 1,
   "candRows": 1,
-  "refMs": 1.443647999985842,
-  "candMs": 1.2522030000109226,
+  "refMs": 0.9922249999945052,
+  "candMs": 0.7271799999871291,
   "detail": "universal:averageInstability: 1 cell(s), max 1 ULP (bound 16)",
   "floatDrift": [
    {
@@ -6656,8 +6504,8 @@
   "klass": "float-drift",
   "refRows": 1,
   "candRows": 1,
-  "refMs": 1.4755569999979343,
-  "candMs": 1.1859910000057425,
+  "refMs": 1.0369300000020303,
+  "candMs": 0.7815320000227075,
   "detail": "universal-literal:averageInstability: 1 cell(s), max 1 ULP (bound 16)",
   "floatDrift": [
    {
@@ -6678,8 +6526,8 @@
   "klass": "order",
   "refRows": 7,
   "candRows": 7,
-  "refMs": 0.9192389999807347,
-  "candMs": 0.9587820000015199
+  "refMs": 0.9018480000086129,
+  "candMs": 0.44018199999118224
  },
  {
   "project": "hexagonal/v10-domain-service-holds-adapter",
@@ -6690,8 +6538,8 @@
   "klass": "order",
   "refRows": 7,
   "candRows": 7,
-  "refMs": 1.1825859999808017,
-  "candMs": 0.8387060000095516
+  "refMs": 1.1972200000018347,
+  "candMs": 0.5118640000000596
  },
  {
   "project": "hexagonal/v10-domain-service-holds-adapter",
@@ -6702,8 +6550,8 @@
   "klass": "float-drift",
   "refRows": 1,
   "candRows": 1,
-  "refMs": 3.0963120000087656,
-  "candMs": 1.0328410000074655,
+  "refMs": 4.246645000006538,
+  "candMs": 0.7095879999978933,
   "detail": "universal:averageInstability: 1 cell(s), max 1 ULP (bound 16)",
   "floatDrift": [
    {
@@ -6724,8 +6572,8 @@
   "klass": "float-drift",
   "refRows": 1,
   "candRows": 1,
-  "refMs": 1.142600000021048,
-  "candMs": 0.7035139999934472,
+  "refMs": 0.9384140000038315,
+  "candMs": 0.7031920000154059,
   "detail": "universal:averageInstability: 1 cell(s), max 1 ULP (bound 16)",
   "floatDrift": [
    {
@@ -6746,8 +6594,8 @@
   "klass": "float-drift",
   "refRows": 1,
   "candRows": 1,
-  "refMs": 1.513941999990493,
-  "candMs": 0.9083140000002459,
+  "refMs": 2.2842670000100043,
+  "candMs": 0.6982399999978952,
   "detail": "universal-literal:averageInstability: 1 cell(s), max 1 ULP (bound 16)",
   "floatDrift": [
    {
@@ -6768,8 +6616,8 @@
   "klass": "float-drift",
   "refRows": 1,
   "candRows": 1,
-  "refMs": 2.6043590000190306,
-  "candMs": 0.8686269999889191,
+  "refMs": 1.400882999994792,
+  "candMs": 0.7082870000158437,
   "detail": "universal:averageInstability: 1 cell(s), max 1 ULP (bound 16)",
   "floatDrift": [
    {
@@ -6790,8 +6638,8 @@
   "klass": "float-drift",
   "refRows": 1,
   "candRows": 1,
-  "refMs": 1.5629720000142697,
-  "candMs": 0.81616699998267,
+  "refMs": 2.354684999998426,
+  "candMs": 0.6592149999924004,
   "detail": "universal-literal:averageInstability: 1 cell(s), max 1 ULP (bound 16)",
   "floatDrift": [
    {
@@ -6812,8 +6660,8 @@
   "klass": "float-drift",
   "refRows": 1,
   "candRows": 1,
-  "refMs": 1.0032420000061393,
-  "candMs": 0.7383820000104606,
+  "refMs": 0.9708879999816418,
+  "candMs": 0.672011000016937,
   "detail": "universal:averageInstability: 1 cell(s), max 1 ULP (bound 16)",
   "floatDrift": [
    {
@@ -6834,8 +6682,8 @@
   "klass": "float-drift",
   "refRows": 1,
   "candRows": 1,
-  "refMs": 1.526425999996718,
-  "candMs": 0.7354979999945499,
+  "refMs": 0.990023000020301,
+  "candMs": 0.7397769999806769,
   "detail": "universal-literal:averageInstability: 1 cell(s), max 1 ULP (bound 16)",
   "floatDrift": [
    {
@@ -6856,8 +6704,8 @@
   "klass": "order",
   "refRows": 10,
   "candRows": 10,
-  "refMs": 1.2521339999802876,
-  "candMs": 0.6118739999947138
+  "refMs": 1.5156189999834169,
+  "candMs": 0.6858200000133365
  },
  {
   "project": "hexagonal/v10-domain-service-holds-adapter",
@@ -6868,8 +6716,8 @@
   "klass": "float-drift",
   "refRows": 1,
   "candRows": 1,
-  "refMs": 2.3771530000085477,
-  "candMs": 0.7468149999913294,
+  "refMs": 0.9434200000250712,
+  "candMs": 0.6582269999780692,
   "detail": "universal:averageInstability: 1 cell(s), max 1 ULP (bound 16)",
   "floatDrift": [
    {
@@ -6890,8 +6738,8 @@
   "klass": "float-drift",
   "refRows": 1,
   "candRows": 1,
-  "refMs": 1.5319310000049882,
-  "candMs": 0.803252000012435,
+  "refMs": 1.0456319999939296,
+  "candMs": 0.6721650000254158,
   "detail": "universal-literal:averageInstability: 1 cell(s), max 1 ULP (bound 16)",
   "floatDrift": [
    {
@@ -6912,8 +6760,8 @@
   "klass": "float-drift",
   "refRows": 1,
   "candRows": 1,
-  "refMs": 1.2605400000174996,
-  "candMs": 0.7010979999904521,
+  "refMs": 1.0672320000012405,
+  "candMs": 0.6918409999925643,
   "detail": "universal:averageInstability: 1 cell(s), max 1 ULP (bound 16)",
   "floatDrift": [
    {
@@ -6934,8 +6782,8 @@
   "klass": "float-drift",
   "refRows": 1,
   "candRows": 1,
-  "refMs": 1.3323879999807104,
-  "candMs": 0.9854040000063833,
+  "refMs": 1.155495000013616,
+  "candMs": 0.7522809999936726,
   "detail": "universal-literal:averageInstability: 1 cell(s), max 1 ULP (bound 16)",
   "floatDrift": [
    {
@@ -6956,8 +6804,8 @@
   "klass": "order",
   "refRows": 7,
   "candRows": 7,
-  "refMs": 0.9930380000150762,
-  "candMs": 0.5132579999917652
+  "refMs": 1.1885180000099353,
+  "candMs": 0.6471489999967162
  },
  {
   "project": "hexagonal/v11-domain-model-cycle",
@@ -6968,8 +6816,8 @@
   "klass": "float-drift",
   "refRows": 1,
   "candRows": 1,
-  "refMs": 3.0442210000182968,
-  "candMs": 0.6377320000028703,
+  "refMs": 6.804661999980453,
+  "candMs": 1.1064810000243597,
   "detail": "universal-literal:averageInstability: 1 cell(s), max 2 ULP (bound 16)",
   "floatDrift": [
    {
@@ -6990,8 +6838,8 @@
   "klass": "order",
   "refRows": 7,
   "candRows": 7,
-  "refMs": 0.9389129999908619,
-  "candMs": 0.5616180000070017
+  "refMs": 0.8309889999800362,
+  "candMs": 0.4273580000153743
  },
  {
   "project": "hexagonal/v11-domain-model-cycle",
@@ -7002,8 +6850,8 @@
   "klass": "float-drift",
   "refRows": 1,
   "candRows": 1,
-  "refMs": 3.368069000018295,
-  "candMs": 0.8651240000035614,
+  "refMs": 1.8436450000153854,
+  "candMs": 1.0713079999841284,
   "detail": "universal:averageInstability: 1 cell(s), max 1 ULP (bound 16)",
   "floatDrift": [
    {
@@ -7024,8 +6872,8 @@
   "klass": "float-drift",
   "refRows": 1,
   "candRows": 1,
-  "refMs": 1.050191000016639,
-  "candMs": 0.8713310000021011,
+  "refMs": 1.087705999991158,
+  "candMs": 0.814687000005506,
   "detail": "universal:averageInstability: 1 cell(s), max 1 ULP (bound 16)",
   "floatDrift": [
    {
@@ -7046,8 +6894,8 @@
   "klass": "float-drift",
   "refRows": 1,
   "candRows": 1,
-  "refMs": 1.4491909999924246,
-  "candMs": 0.7038599999796133,
+  "refMs": 2.28431499999715,
+  "candMs": 0.7520839999779128,
   "detail": "universal-literal:averageInstability: 1 cell(s), max 1 ULP (bound 16)",
   "floatDrift": [
    {
@@ -7068,8 +6916,8 @@
   "klass": "float-drift",
   "refRows": 1,
   "candRows": 1,
-  "refMs": 0.9386890000023413,
-  "candMs": 0.7629280000110157,
+  "refMs": 2.142900999984704,
+  "candMs": 0.8206150000041816,
   "detail": "universal:averageInstability: 1 cell(s), max 1 ULP (bound 16)",
   "floatDrift": [
    {
@@ -7090,8 +6938,8 @@
   "klass": "float-drift",
   "refRows": 1,
   "candRows": 1,
-  "refMs": 0.9780550000141375,
-  "candMs": 0.6592219999874942,
+  "refMs": 1.7293439999921247,
+  "candMs": 1.2671750000154134,
   "detail": "universal-literal:averageInstability: 1 cell(s), max 1 ULP (bound 16)",
   "floatDrift": [
    {
@@ -7112,8 +6960,8 @@
   "klass": "float-drift",
   "refRows": 1,
   "candRows": 1,
-  "refMs": 0.9620159999758471,
-  "candMs": 0.752665000007255,
+  "refMs": 2.056679000001168,
+  "candMs": 0.8029830000014044,
   "detail": "universal:averageInstability: 1 cell(s), max 1 ULP (bound 16)",
   "floatDrift": [
    {
@@ -7134,8 +6982,8 @@
   "klass": "float-drift",
   "refRows": 1,
   "candRows": 1,
-  "refMs": 1.172537000005832,
-  "candMs": 0.7384359999850858,
+  "refMs": 1.516009999992093,
+  "candMs": 0.9519159999908879,
   "detail": "universal-literal:averageInstability: 1 cell(s), max 1 ULP (bound 16)",
   "floatDrift": [
    {
@@ -7156,8 +7004,8 @@
   "klass": "order",
   "refRows": 10,
   "candRows": 10,
-  "refMs": 1.1451979999837931,
-  "candMs": 0.6242400000046473
+  "refMs": 1.6613450000004377,
+  "candMs": 0.6664070000115316
  },
  {
   "project": "hexagonal/v11-domain-model-cycle",
@@ -7168,8 +7016,8 @@
   "klass": "float-drift",
   "refRows": 1,
   "candRows": 1,
-  "refMs": 1.3227079999924172,
-  "candMs": 1.129004000016721,
+  "refMs": 0.9586129999952391,
+  "candMs": 0.6922910000139382,
   "detail": "universal:averageInstability: 1 cell(s), max 5 ULP (bound 16)",
   "floatDrift": [
    {
@@ -7190,8 +7038,8 @@
   "klass": "float-drift",
   "refRows": 1,
   "candRows": 1,
-  "refMs": 1.0339490000042133,
-  "candMs": 0.720644999993965,
+  "refMs": 1.663416999974288,
+  "candMs": 1.1111500000115484,
   "detail": "universal-literal:averageInstability: 1 cell(s), max 5 ULP (bound 16)",
   "floatDrift": [
    {
@@ -7212,8 +7060,8 @@
   "klass": "float-drift",
   "refRows": 1,
   "candRows": 1,
-  "refMs": 1.1202199999825098,
-  "candMs": 0.7308320000011008,
+  "refMs": 0.9499579999828711,
+  "candMs": 0.7186170000059064,
   "detail": "universal:averageInstability: 1 cell(s), max 5 ULP (bound 16)",
   "floatDrift": [
    {
@@ -7234,8 +7082,8 @@
   "klass": "float-drift",
   "refRows": 1,
   "candRows": 1,
-  "refMs": 1.4734189999871887,
-  "candMs": 0.7758190000022296,
+  "refMs": 1.0054349999991246,
+  "candMs": 1.0030649999971502,
   "detail": "universal-literal:averageInstability: 1 cell(s), max 5 ULP (bound 16)",
   "floatDrift": [
    {
@@ -7256,8 +7104,8 @@
   "klass": "order",
   "refRows": 8,
   "candRows": 8,
-  "refMs": 1.0464499999943655,
-  "candMs": 0.5266680000058841
+  "refMs": 1.222879999986617,
+  "candMs": 0.47284299999591894
  },
  {
   "project": "ddd/clean",
@@ -7268,8 +7116,8 @@
   "klass": "float-drift",
   "refRows": 1,
   "candRows": 1,
-  "refMs": 4.0089309999893885,
-  "candMs": 1.1676530000113416,
+  "refMs": 6.648014000005787,
+  "candMs": 0.9147109999903478,
   "detail": "universal-literal:averageInstability: 1 cell(s), max 1 ULP (bound 16)",
   "floatDrift": [
    {
@@ -7290,8 +7138,8 @@
   "klass": "order",
   "refRows": 8,
   "candRows": 8,
-  "refMs": 1.1944019999937154,
-  "candMs": 0.8614489999890793
+  "refMs": 0.962656000017887,
+  "candMs": 0.43010500000673346
  },
  {
   "project": "ddd/clean",
@@ -7302,8 +7150,8 @@
   "klass": "float-drift",
   "refRows": 1,
   "candRows": 1,
-  "refMs": 7.563662000000477,
-  "candMs": 0.7268570000014734,
+  "refMs": 8.251432999997633,
+  "candMs": 1.0898919999890495,
   "detail": "universal:averageInstability: 1 cell(s), max 1 ULP (bound 16)",
   "floatDrift": [
    {
@@ -7324,8 +7172,8 @@
   "klass": "float-drift",
   "refRows": 1,
   "candRows": 1,
-  "refMs": 1.3849289999925531,
-  "candMs": 1.1977030000125524,
+  "refMs": 1.0588100000168197,
+  "candMs": 0.7600319999910425,
   "detail": "universal:averageInstability: 1 cell(s), max 1 ULP (bound 16)",
   "floatDrift": [
    {
@@ -7346,8 +7194,8 @@
   "klass": "float-drift",
   "refRows": 1,
   "candRows": 1,
-  "refMs": 0.865747999981977,
-  "candMs": 0.6787190000177361,
+  "refMs": 1.1478900000220165,
+  "candMs": 0.7244859999918845,
   "detail": "universal:averageInstability: 1 cell(s), max 1 ULP (bound 16)",
   "floatDrift": [
    {
@@ -7368,8 +7216,8 @@
   "klass": "float-drift",
   "refRows": 1,
   "candRows": 1,
-  "refMs": 1.3084040000103414,
-  "candMs": 1.2244559999962803,
+  "refMs": 1.0665319999970961,
+  "candMs": 0.7793790000141598,
   "detail": "universal:averageInstability: 1 cell(s), max 1 ULP (bound 16)",
   "floatDrift": [
    {
@@ -7390,8 +7238,8 @@
   "klass": "order",
   "refRows": 7,
   "candRows": 7,
-  "refMs": 1.3747410000069067,
-  "candMs": 0.3591960000048857
+  "refMs": 0.9459199999982957,
+  "candMs": 0.2430739999981597
  },
  {
   "project": "ddd/clean",
@@ -7402,8 +7250,8 @@
   "klass": "order",
   "refRows": 14,
   "candRows": 14,
-  "refMs": 1.6480790000059642,
-  "candMs": 0.6830309999932069
+  "refMs": 0.9144190000079107,
+  "candMs": 0.7633309999946505
  },
  {
   "project": "ddd/g01-value-object-setter-accessor",
@@ -7414,8 +7262,8 @@
   "klass": "order",
   "refRows": 5,
   "candRows": 5,
-  "refMs": 1.3081880000245292,
-  "candMs": 0.2521279999928083
+  "refMs": 1.145626000012271,
+  "candMs": 0.23458799999207258
  },
  {
   "project": "ddd/g01-value-object-setter-accessor",
@@ -7426,8 +7274,8 @@
   "klass": "order",
   "refRows": 8,
   "candRows": 8,
-  "refMs": 1.1841819999972358,
-  "candMs": 0.611055999994278
+  "refMs": 1.295073000015691,
+  "candMs": 0.5000580000050832
  },
  {
   "project": "ddd/g01-value-object-setter-accessor",
@@ -7438,8 +7286,8 @@
   "klass": "order",
   "refRows": 5,
   "candRows": 5,
-  "refMs": 1.1470810000027996,
-  "candMs": 0.368226999999024
+  "refMs": 0.9760349999996834,
+  "candMs": 0.2545669999963138
  },
  {
   "project": "ddd/g01-value-object-setter-accessor",
@@ -7450,8 +7298,8 @@
   "klass": "order",
   "refRows": 8,
   "candRows": 8,
-  "refMs": 1.1090019999828655,
-  "candMs": 0.7808249999943655
+  "refMs": 3.008253000007244,
+  "candMs": 0.47891099998378195
  },
  {
   "project": "ddd/g01-value-object-setter-accessor",
@@ -7462,8 +7310,8 @@
   "klass": "order",
   "refRows": 7,
   "candRows": 7,
-  "refMs": 1.4386349999986123,
-  "candMs": 0.3791239999991376
+  "refMs": 1.0470989999885205,
+  "candMs": 0.3096910000022035
  },
  {
   "project": "ddd/g01-value-object-setter-accessor",
@@ -7474,8 +7322,8 @@
   "klass": "order",
   "refRows": 14,
   "candRows": 14,
-  "refMs": 1.4974939999810886,
-  "candMs": 1.1679600000206847
+  "refMs": 1.2123119999887422,
+  "candMs": 0.7380019999982323
  },
  {
   "project": "ddd/g02-barrel-reexported-service",
@@ -7486,8 +7334,8 @@
   "klass": "order",
   "refRows": 5,
   "candRows": 5,
-  "refMs": 1.128707999974722,
-  "candMs": 0.40593200002331287
+  "refMs": 0.957966000016313,
+  "candMs": 0.23809699999401346
  },
  {
   "project": "ddd/g02-barrel-reexported-service",
@@ -7498,8 +7346,8 @@
   "klass": "order",
   "refRows": 8,
   "candRows": 8,
-  "refMs": 1.0966929999995045,
-  "candMs": 0.8507709999976214
+  "refMs": 0.9769559999986086,
+  "candMs": 0.4778949999890756
  },
  {
   "project": "ddd/g02-barrel-reexported-service",
@@ -7510,8 +7358,8 @@
   "klass": "order",
   "refRows": 5,
   "candRows": 5,
-  "refMs": 0.9039629999897443,
-  "candMs": 0.24599800002761185
+  "refMs": 2.1510339999804273,
+  "candMs": 0.31583999999566004
  },
  {
   "project": "ddd/g02-barrel-reexported-service",
@@ -7522,8 +7370,8 @@
   "klass": "order",
   "refRows": 8,
   "candRows": 8,
-  "refMs": 0.9634840000071563,
-  "candMs": 0.524238999991212
+  "refMs": 1.4588240000011865,
+  "candMs": 0.8002050000068266
  },
  {
   "project": "ddd/g02-barrel-reexported-service",
@@ -7534,8 +7382,8 @@
   "klass": "order",
   "refRows": 7,
   "candRows": 7,
-  "refMs": 1.5012170000118203,
-  "candMs": 0.4467690000019502
+  "refMs": 0.9598669999977574,
+  "candMs": 0.24134999999660067
  },
  {
   "project": "ddd/g02-barrel-reexported-service",
@@ -7546,8 +7394,8 @@
   "klass": "order",
   "refRows": 14,
   "candRows": 14,
-  "refMs": 1.3681570000189822,
-  "candMs": 1.3025639999832492
+  "refMs": 0.9030389999970794,
+  "candMs": 0.7239899999985937
  },
  {
   "project": "ddd/g03-deep-import-of-reexported-file",
@@ -7558,8 +7406,8 @@
   "klass": "order",
   "refRows": 5,
   "candRows": 5,
-  "refMs": 0.9719500000064727,
-  "candMs": 0.43820999999297783
+  "refMs": 0.877887999988161,
+  "candMs": 0.3008280000067316
  },
  {
   "project": "ddd/g03-deep-import-of-reexported-file",
@@ -7570,8 +7418,8 @@
   "klass": "order",
   "refRows": 8,
   "candRows": 8,
-  "refMs": 0.9768049999838695,
-  "candMs": 0.5208400000119582
+  "refMs": 3.3710490000084974,
+  "candMs": 0.49423399998340756
  },
  {
   "project": "ddd/g03-deep-import-of-reexported-file",
@@ -7582,8 +7430,8 @@
   "klass": "order",
   "refRows": 5,
   "candRows": 5,
-  "refMs": 3.39964799999143,
-  "candMs": 0.22628900001291186
+  "refMs": 1.4218929999915417,
+  "candMs": 0.3078290000266861
  },
  {
   "project": "ddd/g03-deep-import-of-reexported-file",
@@ -7594,8 +7442,8 @@
   "klass": "order",
   "refRows": 8,
   "candRows": 8,
-  "refMs": 1.2322299999941606,
-  "candMs": 0.4989939999941271
+  "refMs": 1.3418609999935143,
+  "candMs": 0.6990839999925811
  },
  {
   "project": "ddd/g03-deep-import-of-reexported-file",
@@ -7606,8 +7454,8 @@
   "klass": "order",
   "refRows": 7,
   "candRows": 7,
-  "refMs": 1.4700139999913517,
-  "candMs": 0.42326199999661185
+  "refMs": 1.619470999983605,
+  "candMs": 0.22964500001398847
  },
  {
   "project": "ddd/g03-deep-import-of-reexported-file",
@@ -7618,8 +7466,8 @@
   "klass": "order",
   "refRows": 14,
   "candRows": 14,
-  "refMs": 1.387920999986818,
-  "candMs": 1.3543080000090413
+  "refMs": 1.1024209999886807,
+  "candMs": 0.7179130000004079
  },
  {
   "project": "ddd/n01-acl-internal-import",
@@ -7630,8 +7478,8 @@
   "klass": "order",
   "refRows": 5,
   "candRows": 5,
-  "refMs": 1.5179400000197347,
-  "candMs": 0.45439499997883104
+  "refMs": 1.1745630000077654,
+  "candMs": 0.22599199999240227
  },
  {
   "project": "ddd/n01-acl-internal-import",
@@ -7642,8 +7490,8 @@
   "klass": "order",
   "refRows": 8,
   "candRows": 8,
-  "refMs": 1.166612000000896,
-  "candMs": 0.9356689999985974
+  "refMs": 0.8982630000100471,
+  "candMs": 0.4328819999936968
  },
  {
   "project": "ddd/n01-acl-internal-import",
@@ -7654,8 +7502,8 @@
   "klass": "order",
   "refRows": 5,
   "candRows": 5,
-  "refMs": 1.2766969999938738,
-  "candMs": 0.2534110000124201
+  "refMs": 1.0505770000163466,
+  "candMs": 0.26661399999284185
  },
  {
   "project": "ddd/n01-acl-internal-import",
@@ -7666,8 +7514,8 @@
   "klass": "order",
   "refRows": 8,
   "candRows": 8,
-  "refMs": 1.3315050000092015,
-  "candMs": 0.44799699998111464
+  "refMs": 0.9921340000000782,
+  "candMs": 0.598400999995647
  },
  {
   "project": "ddd/n01-acl-internal-import",
@@ -7678,8 +7526,8 @@
   "klass": "order",
   "refRows": 7,
   "candRows": 7,
-  "refMs": 1.0738399999972899,
-  "candMs": 0.26425900001777336
+  "refMs": 0.9311340000131167,
+  "candMs": 0.24114599998574704
  },
  {
   "project": "ddd/n01-acl-internal-import",
@@ -7690,8 +7538,8 @@
   "klass": "order",
   "refRows": 14,
   "candRows": 14,
-  "refMs": 1.1027540000213776,
-  "candMs": 0.8047029999725055
+  "refMs": 0.9502600000123493,
+  "candMs": 0.9385439999750815
  },
  {
   "project": "ddd/v01-aggregate-boundary",
@@ -7702,8 +7550,8 @@
   "klass": "order",
   "refRows": 5,
   "candRows": 5,
-  "refMs": 0.8863710000005085,
-  "candMs": 0.24320899997837842
+  "refMs": 1.4086060000117868,
+  "candMs": 0.24282899999525398
  },
  {
   "project": "ddd/v01-aggregate-boundary",
@@ -7714,8 +7562,8 @@
   "klass": "order",
   "refRows": 8,
   "candRows": 8,
-  "refMs": 0.9362940000137314,
-  "candMs": 0.44418799999402836
+  "refMs": 0.986166000016965,
+  "candMs": 0.42518599997856654
  },
  {
   "project": "ddd/v01-aggregate-boundary",
@@ -7726,8 +7574,8 @@
   "klass": "order",
   "refRows": 5,
   "candRows": 5,
-  "refMs": 0.9214729999948759,
-  "candMs": 0.23463099999935366
+  "refMs": 1.014647000003606,
+  "candMs": 0.2278050000022631
  },
  {
   "project": "ddd/v01-aggregate-boundary",
@@ -7738,8 +7586,8 @@
   "klass": "order",
   "refRows": 8,
   "candRows": 8,
-  "refMs": 1.0169710000045598,
-  "candMs": 0.4763119999843184
+  "refMs": 0.9824080000107642,
+  "candMs": 0.481337999983225
  },
  {
   "project": "ddd/v01-aggregate-boundary",
@@ -7750,8 +7598,8 @@
   "klass": "order",
   "refRows": 7,
   "candRows": 7,
-  "refMs": 1.129002000001492,
-  "candMs": 0.24501499999314547
+  "refMs": 1.1391850000072736,
+  "candMs": 0.40557399997487664
  },
  {
   "project": "ddd/v01-aggregate-boundary",
@@ -7762,8 +7610,8 @@
   "klass": "order",
   "refRows": 14,
   "candRows": 14,
-  "refMs": 0.9057789999933448,
-  "candMs": 0.745613000006415
+  "refMs": 1.195330999995349,
+  "candMs": 1.1973050000087824
  },
  {
   "project": "ddd/v02-repository-for-inner-entity",
@@ -7774,8 +7622,8 @@
   "klass": "order",
   "refRows": 5,
   "candRows": 5,
-  "refMs": 1.3852239999978337,
-  "candMs": 0.24962799999048002
+  "refMs": 0.9918979999783915,
+  "candMs": 0.2329780000145547
  },
  {
   "project": "ddd/v02-repository-for-inner-entity",
@@ -7786,8 +7634,8 @@
   "klass": "order",
   "refRows": 8,
   "candRows": 8,
-  "refMs": 0.9206640000047628,
-  "candMs": 0.45132799999555573
+  "refMs": 0.9240180000197142,
+  "candMs": 0.7664289999811444
  },
  {
   "project": "ddd/v02-repository-for-inner-entity",
@@ -7798,8 +7646,8 @@
   "klass": "order",
   "refRows": 8,
   "candRows": 8,
-  "refMs": 1.0347080000210553,
-  "candMs": 0.486531999980798
+  "refMs": 1.3278989999962505,
+  "candMs": 1.1315079999912996
  },
  {
   "project": "ddd/v02-repository-for-inner-entity",
@@ -7810,8 +7658,8 @@
   "klass": "float-drift",
   "refRows": 1,
   "candRows": 1,
-  "refMs": 2.8940890000085346,
-  "candMs": 0.8311390000162646,
+  "refMs": 2.361153000005288,
+  "candMs": 0.7066849999828264,
   "detail": "universal:averageInstability: 1 cell(s), max 3 ULP (bound 16)",
   "floatDrift": [
    {
@@ -7832,8 +7680,8 @@
   "klass": "float-drift",
   "refRows": 1,
   "candRows": 1,
-  "refMs": 0.9397799999860581,
-  "candMs": 0.7207490000000689,
+  "refMs": 1.1780020000005607,
+  "candMs": 0.8350449999852572,
   "detail": "universal:averageInstability: 1 cell(s), max 3 ULP (bound 16)",
   "floatDrift": [
    {
@@ -7854,8 +7702,8 @@
   "klass": "float-drift",
   "refRows": 1,
   "candRows": 1,
-  "refMs": 1.194258000003174,
-  "candMs": 0.740760999993654,
+  "refMs": 1.3356280000007246,
+  "candMs": 1.1537240000034217,
   "detail": "universal-literal:averageInstability: 1 cell(s), max 1 ULP (bound 16)",
   "floatDrift": [
    {
@@ -7876,8 +7724,8 @@
   "klass": "float-drift",
   "refRows": 1,
   "candRows": 1,
-  "refMs": 1.015346000000136,
-  "candMs": 1.228318000008585,
+  "refMs": 1.0318540000007488,
+  "candMs": 0.7194429999799468,
   "detail": "universal:averageInstability: 1 cell(s), max 3 ULP (bound 16)",
   "floatDrift": [
    {
@@ -7898,8 +7746,8 @@
   "klass": "float-drift",
   "refRows": 1,
   "candRows": 1,
-  "refMs": 3.06701499997871,
-  "candMs": 0.9073200000275392,
+  "refMs": 1.0063289999961853,
+  "candMs": 0.7208800000080373,
   "detail": "universal-literal:averageInstability: 1 cell(s), max 1 ULP (bound 16)",
   "floatDrift": [
    {
@@ -7920,8 +7768,8 @@
   "klass": "float-drift",
   "refRows": 1,
   "candRows": 1,
-  "refMs": 2.8325429999968037,
-  "candMs": 0.7437480000080541,
+  "refMs": 1.1206189999938942,
+  "candMs": 0.6773300000058953,
   "detail": "universal:averageInstability: 1 cell(s), max 3 ULP (bound 16)",
   "floatDrift": [
    {
@@ -7942,8 +7790,8 @@
   "klass": "float-drift",
   "refRows": 1,
   "candRows": 1,
-  "refMs": 1.101262999989558,
-  "candMs": 0.6397550000110641,
+  "refMs": 1.0248420000134502,
+  "candMs": 0.8167319999774918,
   "detail": "universal-literal:averageInstability: 1 cell(s), max 1 ULP (bound 16)",
   "floatDrift": [
    {
@@ -7964,8 +7812,8 @@
   "klass": "order",
   "refRows": 7,
   "candRows": 7,
-  "refMs": 3.172476000007009,
-  "candMs": 0.248611000017263
+  "refMs": 1.140505999996094,
+  "candMs": 0.23602899999241345
  },
  {
   "project": "ddd/v02-repository-for-inner-entity",
@@ -7976,8 +7824,8 @@
   "klass": "order",
   "refRows": 14,
   "candRows": 14,
-  "refMs": 1.271177999995416,
-  "candMs": 0.7265999999945052
+  "refMs": 1.1100819999992382,
+  "candMs": 0.6946140000072774
  },
  {
   "project": "ddd/v03-mutable-value-object",
@@ -7988,8 +7836,8 @@
   "klass": "order",
   "refRows": 8,
   "candRows": 8,
-  "refMs": 1.0048820000083651,
-  "candMs": 0.4697579999919981
+  "refMs": 1.1086250000225846,
+  "candMs": 0.4999029999889899
  },
  {
   "project": "ddd/v03-mutable-value-object",
@@ -8000,8 +7848,8 @@
   "klass": "order",
   "refRows": 8,
   "candRows": 8,
-  "refMs": 1.0482170000032056,
-  "candMs": 1.5930290000105742
+  "refMs": 0.9564609999943059,
+  "candMs": 0.5054620000009891
  },
  {
   "project": "ddd/v03-mutable-value-object",
@@ -8012,8 +7860,8 @@
   "klass": "float-drift",
   "refRows": 1,
   "candRows": 1,
-  "refMs": 2.405264000000898,
-  "candMs": 0.7900249999947846,
+  "refMs": 2.1876720000000205,
+  "candMs": 1.2106880000210367,
   "detail": "universal:averageInstability: 1 cell(s), max 1 ULP (bound 16)",
   "floatDrift": [
    {
@@ -8034,8 +7882,8 @@
   "klass": "float-drift",
   "refRows": 1,
   "candRows": 1,
-  "refMs": 0.8579630000167526,
-  "candMs": 0.7605949999997392,
+  "refMs": 0.9494490000070073,
+  "candMs": 0.8175950000004377,
   "detail": "universal:averageInstability: 1 cell(s), max 1 ULP (bound 16)",
   "floatDrift": [
    {
@@ -8056,8 +7904,8 @@
   "klass": "float-drift",
   "refRows": 1,
   "candRows": 1,
-  "refMs": 1.0085419999959413,
-  "candMs": 0.6786699999938719,
+  "refMs": 1.266760999977123,
+  "candMs": 0.6045120000198949,
   "detail": "universal-literal:averageInstability: 1 cell(s), max 1 ULP (bound 16)",
   "floatDrift": [
    {
@@ -8078,8 +7926,8 @@
   "klass": "float-drift",
   "refRows": 1,
   "candRows": 1,
-  "refMs": 0.9074950000212993,
-  "candMs": 0.7164309999789111,
+  "refMs": 1.1117669999948703,
+  "candMs": 0.7273730000015348,
   "detail": "universal:averageInstability: 1 cell(s), max 1 ULP (bound 16)",
   "floatDrift": [
    {
@@ -8100,8 +7948,8 @@
   "klass": "float-drift",
   "refRows": 1,
   "candRows": 1,
-  "refMs": 1.0157409999810625,
-  "candMs": 0.6626519999990705,
+  "refMs": 1.1899890000058804,
+  "candMs": 0.7306979999993928,
   "detail": "universal-literal:averageInstability: 1 cell(s), max 1 ULP (bound 16)",
   "floatDrift": [
    {
@@ -8122,8 +7970,8 @@
   "klass": "float-drift",
   "refRows": 1,
   "candRows": 1,
-  "refMs": 10.296510999993188,
-  "candMs": 0.7835290000075474,
+  "refMs": 0.9343490000173915,
+  "candMs": 0.6488369999860879,
   "detail": "universal:averageInstability: 1 cell(s), max 1 ULP (bound 16)",
   "floatDrift": [
    {
@@ -8144,8 +7992,8 @@
   "klass": "float-drift",
   "refRows": 1,
   "candRows": 1,
-  "refMs": 2.034270000003744,
-  "candMs": 0.7002569999895059,
+  "refMs": 1.216325000015786,
+  "candMs": 0.6294429999834392,
   "detail": "universal-literal:averageInstability: 1 cell(s), max 1 ULP (bound 16)",
   "floatDrift": [
    {
@@ -8166,8 +8014,8 @@
   "klass": "order",
   "refRows": 7,
   "candRows": 7,
-  "refMs": 4.141623000003165,
-  "candMs": 0.28069599997252226
+  "refMs": 1.1056209999951534,
+  "candMs": 0.24549900001147762
  },
  {
   "project": "ddd/v03-mutable-value-object",
@@ -8178,8 +8026,8 @@
   "klass": "order",
   "refRows": 14,
   "candRows": 14,
-  "refMs": 1.779301000002306,
-  "candMs": 0.7293470000149682
+  "refMs": 1.0320249999931548,
+  "candMs": 0.7831949999963399
  },
  {
   "project": "ddd/v04-framework-in-domain",
@@ -8190,8 +8038,8 @@
   "klass": "order",
   "refRows": 6,
   "candRows": 6,
-  "refMs": 1.085071000008611,
-  "candMs": 0.26809399999910966
+  "refMs": 0.9636839999875519,
+  "candMs": 0.2521230000129435
  },
  {
   "project": "ddd/v04-framework-in-domain",
@@ -8202,8 +8050,8 @@
   "klass": "order",
   "refRows": 8,
   "candRows": 8,
-  "refMs": 1.4916530000045896,
-  "candMs": 0.5126969999982975
+  "refMs": 1.5332720000005793,
+  "candMs": 0.7190100000007078
  },
  {
   "project": "ddd/v04-framework-in-domain",
@@ -8214,8 +8062,8 @@
   "klass": "order",
   "refRows": 6,
   "candRows": 6,
-  "refMs": 1.235832999984268,
-  "candMs": 0.25892100000055507
+  "refMs": 0.9570420000236481,
+  "candMs": 0.2945199999958277
  },
  {
   "project": "ddd/v04-framework-in-domain",
@@ -8226,8 +8074,8 @@
   "klass": "order",
   "refRows": 8,
   "candRows": 8,
-  "refMs": 1.1139050000056159,
-  "candMs": 0.4532809999946039
+  "refMs": 0.9985359999991488,
+  "candMs": 0.4302109999989625
  },
  {
   "project": "ddd/v04-framework-in-domain",
@@ -8238,8 +8086,8 @@
   "klass": "order",
   "refRows": 8,
   "candRows": 8,
-  "refMs": 1.5465749999857508,
-  "candMs": 0.447734000015771
+  "refMs": 1.203559999994468,
+  "candMs": 0.2717619999893941
  },
  {
   "project": "ddd/v04-framework-in-domain",
@@ -8250,8 +8098,8 @@
   "klass": "order",
   "refRows": 14,
   "candRows": 14,
-  "refMs": 4.16081000000122,
-  "candMs": 1.0959980000043288
+  "refMs": 1.091883000015514,
+  "candMs": 0.7973139999958221
  },
  {
   "project": "ddd/v05-event-outside-domain",
@@ -8262,8 +8110,8 @@
   "klass": "order",
   "refRows": 5,
   "candRows": 5,
-  "refMs": 1.757581999991089,
-  "candMs": 0.3970079999999143
+  "refMs": 1.103443999949377,
+  "candMs": 0.2227050000219606
  },
  {
   "project": "ddd/v05-event-outside-domain",
@@ -8274,8 +8122,8 @@
   "klass": "order",
   "refRows": 8,
   "candRows": 8,
-  "refMs": 1.652577000000747,
-  "candMs": 0.7397599999967497
+  "refMs": 1.235581999993883,
+  "candMs": 0.4900560000096448
  },
  {
   "project": "ddd/v05-event-outside-domain",
@@ -8286,8 +8134,8 @@
   "klass": "order",
   "refRows": 5,
   "candRows": 5,
-  "refMs": 1.1992069999978412,
-  "candMs": 0.2545739999914076
+  "refMs": 1.07348700001603,
+  "candMs": 0.3886519999941811
  },
  {
   "project": "ddd/v05-event-outside-domain",
@@ -8298,8 +8146,8 @@
   "klass": "order",
   "refRows": 8,
   "candRows": 8,
-  "refMs": 1.1004940000129864,
-  "candMs": 0.49577700000372715
+  "refMs": 1.15261599997757,
+  "candMs": 0.7838409999967553
  },
  {
   "project": "ddd/v05-event-outside-domain",
@@ -8310,8 +8158,8 @@
   "klass": "order",
   "refRows": 7,
   "candRows": 7,
-  "refMs": 1.2270920000155456,
-  "candMs": 0.3160740000021178
+  "refMs": 1.5035420000203885,
+  "candMs": 0.24417899997206405
  },
  {
   "project": "ddd/v05-event-outside-domain",
@@ -8322,8 +8170,8 @@
   "klass": "order",
   "refRows": 14,
   "candRows": 14,
-  "refMs": 1.3852570000162814,
-  "candMs": 0.7191729999904055
+  "refMs": 1.215135999955237,
+  "candMs": 0.717705000017304
  },
  {
   "project": "ddd/v06-fat-application-service",
@@ -8334,8 +8182,8 @@
   "klass": "order",
   "refRows": 5,
   "candRows": 5,
-  "refMs": 1.1153190000040922,
-  "candMs": 0.38953099999343976
+  "refMs": 1.1199439999763854,
+  "candMs": 0.25273800001014024
  },
  {
   "project": "ddd/v06-fat-application-service",
@@ -8346,8 +8194,8 @@
   "klass": "order",
   "refRows": 8,
   "candRows": 8,
-  "refMs": 1.012933999998495,
-  "candMs": 0.5138289999740664
+  "refMs": 1.1478449999704026,
+  "candMs": 0.4436110000242479
  },
  {
   "project": "ddd/v06-fat-application-service",
@@ -8358,8 +8206,8 @@
   "klass": "order",
   "refRows": 5,
   "candRows": 5,
-  "refMs": 1.2866090000024997,
-  "candMs": 0.26999800000339746
+  "refMs": 1.4383209999650717,
+  "candMs": 0.23392500000772998
  },
  {
   "project": "ddd/v06-fat-application-service",
@@ -8370,8 +8218,8 @@
   "klass": "order",
   "refRows": 8,
   "candRows": 8,
-  "refMs": 1.1997750000155065,
-  "candMs": 0.49955099998624064
+  "refMs": 1.0733040000195615,
+  "candMs": 0.4076529999729246
  },
  {
   "project": "ddd/v06-fat-application-service",
@@ -8382,8 +8230,8 @@
   "klass": "order",
   "refRows": 7,
   "candRows": 7,
-  "refMs": 1.3016910000005737,
-  "candMs": 0.32594400001107715
+  "refMs": 1.4859929999802262,
+  "candMs": 0.24697700003162026
  },
  {
   "project": "ddd/v06-fat-application-service",
@@ -8394,8 +8242,8 @@
   "klass": "order",
   "refRows": 14,
   "candRows": 14,
-  "refMs": 1.4262060000037309,
-  "candMs": 0.8698980000044685
+  "refMs": 1.2963400000007823,
+  "candMs": 0.7346550000365824
  },
  {
   "project": "ddd/v07-module-outside-context",
@@ -8406,8 +8254,8 @@
   "klass": "order",
   "refRows": 8,
   "candRows": 8,
-  "refMs": 0.8267219999979716,
-  "candMs": 0.4929520000005141
+  "refMs": 0.9653549999929965,
+  "candMs": 0.44109999999636784
  },
  {
   "project": "ddd/v07-module-outside-context",
@@ -8418,8 +8266,8 @@
   "klass": "order",
   "refRows": 8,
   "candRows": 8,
-  "refMs": 0.9144950000045355,
-  "candMs": 0.4255410000041593
+  "refMs": 1.3506030000280589,
+  "candMs": 0.754311999946367
  },
  {
   "project": "ddd/v07-module-outside-context",
@@ -8430,8 +8278,8 @@
   "klass": "float-drift",
   "refRows": 1,
   "candRows": 1,
-  "refMs": 2.7496329999994487,
-  "candMs": 0.7355610000086017,
+  "refMs": 1.082637999963481,
+  "candMs": 0.7809250000282191,
   "detail": "universal-literal:averageInstability: 1 cell(s), max 2 ULP (bound 16)",
   "floatDrift": [
    {
@@ -8452,8 +8300,8 @@
   "klass": "float-drift",
   "refRows": 1,
   "candRows": 1,
-  "refMs": 0.9769180000002962,
-  "candMs": 1.5569950000208337,
+  "refMs": 0.8896919999970123,
+  "candMs": 0.6967060000170022,
   "detail": "universal-literal:averageInstability: 1 cell(s), max 2 ULP (bound 16)",
   "floatDrift": [
    {
@@ -8474,8 +8322,8 @@
   "klass": "float-drift",
   "refRows": 1,
   "candRows": 1,
-  "refMs": 0.9756749999942258,
-  "candMs": 0.6698860000178684,
+  "refMs": 1.0020120000117458,
+  "candMs": 0.8353379999753088,
   "detail": "universal-literal:averageInstability: 1 cell(s), max 2 ULP (bound 16)",
   "floatDrift": [
    {
@@ -8496,8 +8344,8 @@
   "klass": "order",
   "refRows": 7,
   "candRows": 7,
-  "refMs": 0.9161080000048969,
-  "candMs": 0.25903699998161756
+  "refMs": 3.3091749999439344,
+  "candMs": 0.28957900003297254
  },
  {
   "project": "ddd/v07-module-outside-context",
@@ -8508,8 +8356,8 @@
   "klass": "order",
   "refRows": 14,
   "candRows": 14,
-  "refMs": 0.8979600000020582,
-  "candMs": 0.6712390000175219
+  "refMs": 1.5683509999653324,
+  "candMs": 0.6969619999872521
  },
  {
   "project": "ddd/v08-cross-context-internal-import",
@@ -8520,8 +8368,8 @@
   "klass": "order",
   "refRows": 5,
   "candRows": 5,
-  "refMs": 1.1243330000143033,
-  "candMs": 0.29217299999436364
+  "refMs": 1.5709550000028685,
+  "candMs": 0.44631400000071153
  },
  {
   "project": "ddd/v08-cross-context-internal-import",
@@ -8532,8 +8380,8 @@
   "klass": "order",
   "refRows": 8,
   "candRows": 8,
-  "refMs": 1.2301040000165813,
-  "candMs": 0.5087420000054408
+  "refMs": 1.4041609999840148,
+  "candMs": 0.8044929999741726
  },
  {
   "project": "ddd/v08-cross-context-internal-import",
@@ -8544,8 +8392,8 @@
   "klass": "order",
   "refRows": 5,
   "candRows": 5,
-  "refMs": 1.2110939999984112,
-  "candMs": 0.5187260000093374
+  "refMs": 1.2442600000067614,
+  "candMs": 0.3143960000015795
  },
  {
   "project": "ddd/v08-cross-context-internal-import",
@@ -8556,8 +8404,8 @@
   "klass": "order",
   "refRows": 8,
   "candRows": 8,
-  "refMs": 1.293271000002278,
-  "candMs": 0.7933980000088923
+  "refMs": 1.4934920000378042,
+  "candMs": 0.4292009999626316
  },
  {
   "project": "ddd/v08-cross-context-internal-import",
@@ -8568,8 +8416,8 @@
   "klass": "order",
   "refRows": 7,
   "candRows": 7,
-  "refMs": 0.9181760000064969,
-  "candMs": 0.3011079999851063
+  "refMs": 1.1541779999970458,
+  "candMs": 0.3283949999604374
  },
  {
   "project": "ddd/v08-cross-context-internal-import",
@@ -8580,8 +8428,8 @@
   "klass": "order",
   "refRows": 14,
   "candRows": 14,
-  "refMs": 0.879144999984419,
-  "candMs": 0.7423750000016298
+  "refMs": 1.1548750000074506,
+  "candMs": 1.244180999987293
  },
  {
   "project": "ddd/v09-domain-imports-application",
@@ -8592,8 +8440,8 @@
   "klass": "order",
   "refRows": 5,
   "candRows": 5,
-  "refMs": 1.2361399999936111,
-  "candMs": 0.26803300000028685
+  "refMs": 0.9343660000013188,
+  "candMs": 0.859262999962084
  },
  {
   "project": "ddd/v09-domain-imports-application",
@@ -8604,8 +8452,8 @@
   "klass": "order",
   "refRows": 8,
   "candRows": 8,
-  "refMs": 1.281807999999728,
-  "candMs": 0.4730170000111684
+  "refMs": 1.0219179999548942,
+  "candMs": 0.43740400002570823
  },
  {
   "project": "ddd/v09-domain-imports-application",
@@ -8616,8 +8464,8 @@
   "klass": "order",
   "refRows": 5,
   "candRows": 5,
-  "refMs": 0.9605729999893811,
-  "candMs": 0.26841000001877546
+  "refMs": 1.1975729999830946,
+  "candMs": 0.24034600000595674
  },
  {
   "project": "ddd/v09-domain-imports-application",
@@ -8628,8 +8476,8 @@
   "klass": "order",
   "refRows": 8,
   "candRows": 8,
-  "refMs": 1.2827320000214968,
-  "candMs": 0.7451209999853745
+  "refMs": 1.1151989999925718,
+  "candMs": 0.44932200002949685
  },
  {
   "project": "ddd/v09-domain-imports-application",
@@ -8640,8 +8488,8 @@
   "klass": "order",
   "refRows": 7,
   "candRows": 7,
-  "refMs": 0.9823130000149831,
-  "candMs": 0.3298990000039339
+  "refMs": 0.9762179999961518,
+  "candMs": 0.24164600000949576
  },
  {
   "project": "ddd/v09-domain-imports-application",
@@ -8652,8 +8500,8 @@
   "klass": "order",
   "refRows": 14,
   "candRows": 14,
-  "refMs": 0.9866460000048392,
-  "candMs": 0.679470000002766
+  "refMs": 1.919285999960266,
+  "candMs": 0.6903780000284314
  },
  {
   "project": "ddd/v10-api-imports-infrastructure",
@@ -8664,8 +8512,8 @@
   "klass": "order",
   "refRows": 5,
   "candRows": 5,
-  "refMs": 1.1089799999899697,
-  "candMs": 0.2739980000187643
+  "refMs": 1.2521379999816418,
+  "candMs": 0.21193400002084672
  },
  {
   "project": "ddd/v10-api-imports-infrastructure",
@@ -8676,8 +8524,8 @@
   "klass": "order",
   "refRows": 8,
   "candRows": 8,
-  "refMs": 1.0851759999932256,
-  "candMs": 0.4950130000070203
+  "refMs": 1.267227999982424,
+  "candMs": 0.4781560000265017
  },
  {
   "project": "ddd/v10-api-imports-infrastructure",
@@ -8688,8 +8536,8 @@
   "klass": "order",
   "refRows": 5,
   "candRows": 5,
-  "refMs": 0.9449080000049435,
-  "candMs": 0.2931699999899138
+  "refMs": 1.2205350000294857,
+  "candMs": 0.24060299998382106
  },
  {
   "project": "ddd/v10-api-imports-infrastructure",
@@ -8700,8 +8548,8 @@
   "klass": "order",
   "refRows": 8,
   "candRows": 8,
-  "refMs": 1.0618039999972098,
-  "candMs": 0.4286980000033509
+  "refMs": 1.0175440000020899,
+  "candMs": 0.47662100003799424
  },
  {
   "project": "ddd/v10-api-imports-infrastructure",
@@ -8712,8 +8560,8 @@
   "klass": "order",
   "refRows": 7,
   "candRows": 7,
-  "refMs": 1.390443000011146,
-  "candMs": 0.2857419999781996
+  "refMs": 1.0086989999981597,
+  "candMs": 0.28965300001436844
  },
  {
   "project": "ddd/v10-api-imports-infrastructure",
@@ -8724,8 +8572,8 @@
   "klass": "order",
   "refRows": 14,
   "candRows": 14,
-  "refMs": 1.3548719999962486,
-  "candMs": 0.7113479999825358
+  "refMs": 0.9576970000052825,
+  "candMs": 0.686455000017304
  },
  {
   "project": "apg2-fixture/type-flow",
@@ -8736,8 +8584,8 @@
   "klass": "order",
   "refRows": 8,
   "candRows": 8,
-  "refMs": 1.0260969999944791,
-  "candMs": 0.30237200000556186
+  "refMs": 1.0062449999968521,
+  "candMs": 0.21531499997945502
  },
  {
   "project": "apg2-fixture/components",
@@ -8748,8 +8596,8 @@
   "klass": "order",
   "refRows": 8,
   "candRows": 8,
-  "refMs": 1.1142150000086986,
-  "candMs": 0.30342000001110137
+  "refMs": 1.2626150000141934,
+  "candMs": 0.409230999997817
  },
  {
   "project": "apg2-fixture/components",
@@ -8760,8 +8608,8 @@
   "klass": "float-drift",
   "refRows": 1,
   "candRows": 1,
-  "refMs": 1.1627779999980703,
-  "candMs": 0.3666999999550171,
+  "refMs": 23.99681199999759,
+  "candMs": 0.3605009999591857,
   "detail": "universal:averageInstability: 1 cell(s), max 1 ULP (bound 16)",
   "floatDrift": [
    {
@@ -8782,8 +8630,8 @@
   "klass": "float-drift",
   "refRows": 1,
   "candRows": 1,
-  "refMs": 1.15054100000998,
-  "candMs": 0.5068919999757782,
+  "refMs": 0.9393939999863505,
+  "candMs": 0.2828599999775179,
   "detail": "universal-literal:averageInstability: 1 cell(s), max 1 ULP (bound 16)",
   "floatDrift": [
    {
@@ -8804,8 +8652,8 @@
   "klass": "float-drift",
   "refRows": 1,
   "candRows": 1,
-  "refMs": 1.2509670000290498,
-  "candMs": 0.4485690000001341,
+  "refMs": 0.6908059999695979,
+  "candMs": 0.24762000003829598,
   "detail": "universal:averageInstability: 1 cell(s), max 1 ULP (bound 16)",
   "floatDrift": [
    {
@@ -8826,8 +8674,8 @@
   "klass": "float-drift",
   "refRows": 1,
   "candRows": 1,
-  "refMs": 1.1243069999618456,
-  "candMs": 0.5516930000158027,
+  "refMs": 0.8108260000008158,
+  "candMs": 0.3977049999521114,
   "detail": "universal-literal:averageInstability: 1 cell(s), max 1 ULP (bound 16)",
   "floatDrift": [
    {
@@ -8848,8 +8696,8 @@
   "klass": "float-drift",
   "refRows": 1,
   "candRows": 1,
-  "refMs": 1.001825999992434,
-  "candMs": 0.3035249999957159,
+  "refMs": 0.792399000027217,
+  "candMs": 0.4120359999942593,
   "detail": "universal:averageInstability: 1 cell(s), max 1 ULP (bound 16)",
   "floatDrift": [
    {
@@ -8870,8 +8718,8 @@
   "klass": "float-drift",
   "refRows": 1,
   "candRows": 1,
-  "refMs": 1.2263849999872036,
-  "candMs": 0.4585930000175722,
+  "refMs": 1.426333999959752,
+  "candMs": 0.46166299999458715,
   "detail": "universal-literal:averageInstability: 1 cell(s), max 1 ULP (bound 16)",
   "floatDrift": [
    {
@@ -8892,8 +8740,8 @@
   "klass": "order",
   "refRows": 5,
   "candRows": 5,
-  "refMs": 8.319041000038851,
-  "candMs": 0.3016910000005737
+  "refMs": 8.711000999959651,
+  "candMs": 0.15454200003296137
  },
  {
   "project": "apg2-fixture/public-api",
@@ -8904,8 +8752,8 @@
   "klass": "order",
   "refRows": 12,
   "candRows": 12,
-  "refMs": 0.8520019999705255,
-  "candMs": 0.20459500001743436
+  "refMs": 0.7991829999955371,
+  "candMs": 0.21252599998842925
  },
  {
   "project": "apg2-fixture/async",
@@ -8916,8 +8764,8 @@
   "klass": "order",
   "refRows": 7,
   "candRows": 7,
-  "refMs": 1.0988740000175312,
-  "candMs": 0.20514999999431893
+  "refMs": 1.2125919999671169,
+  "candMs": 0.18101599998772144
  },
  {
   "project": "apg2-fixture/async",
@@ -8928,8 +8776,8 @@
   "klass": "order",
   "refRows": 10,
   "candRows": 10,
-  "refMs": 1.0648350000265054,
-  "candMs": 0.32420199998887256
+  "refMs": 1.07902499998454,
+  "candMs": 0.21184400003403425
  },
  {
   "project": "apg2-fixture/io",
@@ -8940,8 +8788,8 @@
   "klass": "order",
   "refRows": 9,
   "candRows": 9,
-  "refMs": 1.1968939999933355,
-  "candMs": 0.2410389999859035
+  "refMs": 0.9563320000306703,
+  "candMs": 0.18690399994375184
  },
  {
   "project": "apg2-fixture/control-clean",
@@ -8952,8 +8800,8 @@
   "klass": "order",
   "refRows": 14,
   "candRows": 14,
-  "refMs": 0.9141329999547452,
-  "candMs": 0.2091150000342168
+  "refMs": 1.1422249999595806,
+  "candMs": 0.27098000003024936
  },
  {
   "project": "synthetic/shapes",
@@ -8964,8 +8812,8 @@
   "klass": "order",
   "refRows": 9,
   "candRows": 9,
-  "refMs": 0.7888379999785684,
-  "candMs": 0.16105700004845858
+  "refMs": 0.9618710000067949,
+  "candMs": 0.22506199998315424
  },
  {
   "project": "synthetic/thin-a",
@@ -8976,8 +8824,8 @@
   "klass": "order",
   "refRows": 13,
   "candRows": 13,
-  "refMs": 1.2348289999645203,
-  "candMs": 0.2366840000031516
+  "refMs": 10.168808999995235,
+  "candMs": 0.3495579999871552
  },
  {
   "project": "synthetic/thin-b",
@@ -8988,8 +8836,8 @@
   "klass": "order",
   "refRows": 8,
   "candRows": 8,
-  "refMs": 0.9483110000146553,
-  "candMs": 0.16504400002304465
+  "refMs": 0.8759779999963939,
+  "candMs": 0.15626499999780208
  },
  {
   "project": "synthetic/thin-b",
@@ -9000,7 +8848,7 @@
   "klass": "order",
   "refRows": 13,
   "candRows": 13,
-  "refMs": 1.1594909999985248,
-  "candMs": 0.3892960000084713
+  "refMs": 0.9483360000303946,
+  "candMs": 0.2531120000057854
  }
 ]

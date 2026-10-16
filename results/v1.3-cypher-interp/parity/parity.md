@@ -1,12 +1,13 @@
 # cypher-interp parity against Neo4j 5.26.24 + APOC
 
-Statements: 66212 (equal 65640, order 358, float-drift 214, content 0, error 0, unsupported 0, both-error 0); projects: 81.
+Statements: 72388 (equal 71822, order 360, float-drift 206, content 0, error 0, unsupported 0, both-error 0); projects: 81.
 
 `float-drift` applies only to universal:averageInstability, universal-literal:averageInstability (bound 16 ULP; both values per cell in parity-float-drift.json). "non-empty" = statements that returned rows on both engines; a template under 50 is **thin**. Per binding: pipeline / spec / low / high; synthetic = the same on the synthetic graphs only.
 
 | template / query family | statements | projects | equal | order | float-drift | content | error | unsupported | both-error | Neo4j rows | non-empty | non-empty p/s/l/h | synthetic s/l/h | thin |
 |---|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---|---|---|
 | abstraction-ratio | 882 | 81 | 882 | 0 | 0 | 0 | 0 | 0 | 0 | 494 | 494 | 28 / 304 / 0 / 162 | 6 / 0 / 6 |  |
+| agent-reimplementation | 770 | 81 | 770 | 0 | 0 | 0 | 0 | 0 | 0 | 24 | 12 | 0 / 4 / 4 / 4 | 4 / 4 / 4 | thin |
 | aggregate-boundary | 1570 | 81 | 1570 | 0 | 0 | 0 | 0 | 0 | 0 | 434 | 326 | 2 / 128 / 128 / 68 | 8 / 8 / 8 |  |
 | application-service-thin | 800 | 81 | 800 | 0 | 0 | 0 | 0 | 0 | 0 | 2076 | 548 | 2 / 190 / 298 / 58 | 4 / 4 / 0 |  |
 | boundary-type-leak | 770 | 81 | 770 | 0 | 0 | 0 | 0 | 0 | 0 | 156 | 48 | 0 / 10 / 32 / 6 | 4 / 4 / 4 | thin |
@@ -16,7 +17,7 @@ Statements: 66212 (equal 65640, order 358, float-drift 214, content 0, error 0, 
 | component-main-sequence-distance | 770 | 81 | 770 | 0 | 0 | 0 | 0 | 0 | 0 | 130 | 50 | 0 / 4 / 42 / 4 | 4 / 4 / 4 |  |
 | component-sdp-violation | 770 | 81 | 770 | 0 | 0 | 0 | 0 | 0 | 0 | 118 | 82 | 0 / 38 / 38 / 6 | 4 / 4 / 4 |  |
 | context-isolation | 1570 | 81 | 1570 | 0 | 0 | 0 | 0 | 0 | 0 | 35316 | 1252 | 4 / 492 / 492 / 264 | 12 / 12 / 12 |  |
-| controller-no-entity | 1596 | 81 | 1596 | 0 | 0 | 0 | 0 | 0 | 0 | 1632 | 464 | 0 / 4 / 456 / 4 | 4 / 0 / 4 |  |
+| controller-no-entity | 2366 | 81 | 2366 | 0 | 0 | 0 | 0 | 0 | 0 | 2450 | 698 | 0 / 8 / 684 / 6 | 6 / 0 / 6 |  |
 | core-isolation | 1570 | 81 | 1570 | 0 | 0 | 0 | 0 | 0 | 0 | 3154 | 482 | 6 / 188 / 188 / 100 | 12 / 12 / 12 |  |
 | deep-import-declared-api | 770 | 81 | 770 | 0 | 0 | 0 | 0 | 0 | 0 | 50 | 26 | 0 / 10 / 10 / 6 | 4 / 4 / 4 | thin |
 | deep-import-inferred-api | 770 | 81 | 770 | 0 | 0 | 0 | 0 | 0 | 0 | 30 | 18 | 0 / 6 / 6 / 6 | 4 / 4 / 4 | thin |
@@ -27,8 +28,12 @@ Statements: 66212 (equal 65640, order 358, float-drift 214, content 0, error 0, 
 | domain-purity | 1682 | 81 | 1682 | 0 | 0 | 0 | 0 | 0 | 0 | 200 | 188 | 16 / 68 / 68 / 36 | 4 / 4 / 4 |  |
 | domain-stability | 1596 | 81 | 1596 | 0 | 0 | 0 | 0 | 0 | 0 | 5238 | 598 | 6 / 0 / 592 / 0 | 0 / 12 / 0 |  |
 | domain-state-purity | 856 | 81 | 856 | 0 | 0 | 0 | 0 | 0 | 0 | 578 | 172 | 6 / 66 / 66 / 34 | 2 / 2 / 2 |  |
-| ingest | 4196 | 81 | 4196 | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 / 0 / 0 / 0 | 0 / 0 / 0 |  |
-| ingest-verify | 892 | 81 | 534 | 358 | 0 | 0 | 0 | 0 | 0 | 3750 | 892 | 568 / 324 / 0 / 0 | 12 / 0 / 0 |  |
+| endpoint-bypasses-application | 770 | 81 | 770 | 0 | 0 | 0 | 0 | 0 | 0 | 24 | 12 | 0 / 4 / 4 / 4 | 4 / 4 / 4 | thin |
+| env-read-outside-config | 770 | 81 | 770 | 0 | 0 | 0 | 0 | 0 | 0 | 24 | 12 | 0 / 4 / 4 / 4 | 4 / 4 / 4 | thin |
+| framework-exception-in-core | 770 | 81 | 770 | 0 | 0 | 0 | 0 | 0 | 0 | 24 | 12 | 0 / 4 / 4 / 4 | 4 / 4 / 4 | thin |
+| hidden-coupling | 770 | 81 | 770 | 0 | 0 | 0 | 0 | 0 | 0 | 24 | 12 | 0 / 4 / 4 / 4 | 4 / 4 / 4 | thin |
+| ingest | 4212 | 81 | 4212 | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 / 0 / 0 / 0 | 0 / 0 / 0 |  |
+| ingest-verify | 892 | 81 | 532 | 360 | 0 | 0 | 0 | 0 | 0 | 3750 | 892 | 568 / 324 / 0 / 0 | 12 / 0 / 0 |  |
 | inheritance-depth | 882 | 81 | 882 | 0 | 0 | 0 | 0 | 0 | 0 | 100 | 18 | 0 / 6 / 6 / 6 | 6 / 6 / 6 | thin |
 | interface-segregation-proxy | 882 | 81 | 882 | 0 | 0 | 0 | 0 | 0 | 0 | 1312 | 244 | 0 / 2 / 240 / 2 | 2 / 2 / 2 |  |
 | io-outside-adapters | 770 | 81 | 770 | 0 | 0 | 0 | 0 | 0 | 0 | 48 | 18 | 0 / 6 / 6 / 6 | 4 / 4 / 4 | thin |
@@ -57,16 +62,18 @@ Statements: 66212 (equal 65640, order 358, float-drift 214, content 0, error 0, 
 | single-responsibility-proxy | 882 | 81 | 882 | 0 | 0 | 0 | 0 | 0 | 0 | 5000 | 398 | 0 / 64 / 300 / 34 | 0 / 6 / 0 |  |
 | test-file-pairing | 882 | 81 | 882 | 0 | 0 | 0 | 0 | 0 | 0 | 23368 | 858 | 112 / 296 / 296 / 154 | 6 / 6 / 6 |  |
 | undeclared-async-coupling | 770 | 81 | 770 | 0 | 0 | 0 | 0 | 0 | 0 | 66 | 18 | 0 / 6 / 6 / 6 | 4 / 4 / 4 | thin |
-| universal-literal:averageInstability | 456 | 81 | 347 | 0 | 109 | 0 | 0 | 0 | 0 | 456 | 456 | 71 / 152 / 152 / 81 | 3 / 3 / 3 |  |
+| universal-literal:averageInstability | 456 | 81 | 351 | 0 | 105 | 0 | 0 | 0 | 0 | 456 | 456 | 71 / 152 / 152 / 81 | 3 / 3 / 3 |  |
 | universal-literal:cyclicDependencyCount | 456 | 81 | 456 | 0 | 0 | 0 | 0 | 0 | 0 | 456 | 456 | 71 / 152 / 152 / 81 | 3 / 3 / 3 |  |
 | universal-literal:maxFanIn | 456 | 81 | 456 | 0 | 0 | 0 | 0 | 0 | 0 | 456 | 456 | 71 / 152 / 152 / 81 | 3 / 3 / 3 |  |
 | universal-literal:maxFanOut | 456 | 81 | 456 | 0 | 0 | 0 | 0 | 0 | 0 | 456 | 456 | 71 / 152 / 152 / 81 | 3 / 3 / 3 |  |
 | universal-literal:orphanFileCount | 456 | 81 | 456 | 0 | 0 | 0 | 0 | 0 | 0 | 456 | 456 | 71 / 152 / 152 / 81 | 3 / 3 / 3 |  |
 | universal:abstractionRatio | 912 | 81 | 912 | 0 | 0 | 0 | 0 | 0 | 0 | 912 | 912 | 142 / 304 / 304 / 162 | 6 / 6 / 6 |  |
-| universal:averageInstability | 456 | 81 | 351 | 0 | 105 | 0 | 0 | 0 | 0 | 456 | 456 | 71 / 152 / 152 / 81 | 3 / 3 / 3 |  |
+| universal:averageInstability | 456 | 81 | 355 | 0 | 101 | 0 | 0 | 0 | 0 | 456 | 456 | 71 / 152 / 152 / 81 | 3 / 3 / 3 |  |
 | universal:cyclicDependencyCount | 456 | 81 | 456 | 0 | 0 | 0 | 0 | 0 | 0 | 456 | 456 | 71 / 152 / 152 / 81 | 3 / 3 / 3 |  |
 | universal:maxFanIn | 456 | 81 | 456 | 0 | 0 | 0 | 0 | 0 | 0 | 456 | 456 | 71 / 152 / 152 / 81 | 3 / 3 / 3 |  |
 | universal:maxFanOut | 456 | 81 | 456 | 0 | 0 | 0 | 0 | 0 | 0 | 456 | 456 | 71 / 152 / 152 / 81 | 3 / 3 / 3 |  |
 | universal:orphanFileCount | 456 | 81 | 456 | 0 | 0 | 0 | 0 | 0 | 0 | 456 | 456 | 71 / 152 / 152 / 81 | 3 / 3 / 3 |  |
+| untested-component | 770 | 81 | 770 | 0 | 0 | 0 | 0 | 0 | 0 | 24 | 12 | 0 / 4 / 4 / 4 | 4 / 4 / 4 | thin |
 | use-case-isolation | 1596 | 81 | 1596 | 0 | 0 | 0 | 0 | 0 | 0 | 76 | 76 | 4 / 28 / 28 / 16 | 4 / 4 / 4 |  |
 | value-object-immutability | 800 | 81 | 800 | 0 | 0 | 0 | 0 | 0 | 0 | 2224 | 306 | 4 / 6 / 292 / 4 | 2 / 6 / 2 |  |
+| vendor-sdk-outside-adapters | 770 | 81 | 770 | 0 | 0 | 0 | 0 | 0 | 0 | 30 | 12 | 0 / 4 / 4 / 4 | 4 / 4 / 4 | thin |
