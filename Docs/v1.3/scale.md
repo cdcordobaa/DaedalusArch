@@ -1,6 +1,6 @@
 # v1.3 scale: large TypeScript codebases
 
-Written 2026-10-16 on branch `v1.3-scale`, cut from `origin/v1.3` @ `2c64d1d5`. Goal: make `firewall evaluate` fast and stable on large TypeScript backends **without changing any output**. Every number below is a measurement on this machine (4 vCPU Intel Xeon 2.1 GHz, 15 GiB RAM, Linux cloud container, Node 22.22.0, Neo4j 5.26.24 Community + APOC 5.26.24 from the release tarball, 1 GB heap and 512 MB page cache as in `docker-compose.yml`). They are engineering measurements, not thesis results.
+Written 2026-10-16 on branch `v1.3-scale`, cut from `origin/v1.3` @ `2c64d1d5`. Goal: make `firewall evaluate` fast and stable on large TypeScript backends **without changing any output that completed before** (where a baseline query timed out, the output does change; §4). Every number below is a measurement on this machine (4 vCPU Intel Xeon 2.1 GHz, 15 GiB RAM, Linux cloud container, Node 22.22.0, Neo4j 5.26.24 Community + APOC 5.26.24 from the release tarball, 1 GB heap and 512 MB page cache as in `docker-compose.yml`). They are engineering measurements, not thesis results.
 
 **Summary.**
 
@@ -9,7 +9,7 @@ Written 2026-10-16 on branch `v1.3-scale`, cut from `origin/v1.3` @ `2c64d1d5`. 
 - **Extraction.** 9–27% faster with an identical APG.
 - **Peak memory.** Peak RSS falls by 2–12% by default, and by up to 42% (prisma: 2,269 → 1,321 MB) with the new opt-in `--skip-excluded-sources`.
 - **Size limits.** A memory guard and `--max-files` turn "JavaScript heap out of memory" into a clear error.
-- **Outputs.** Byte-identical before and after on the 71 reference cases and the 5 golden fixtures (228 files, three modes). On the six large projects the APG is byte-identical, and every query that completed before returns the same rows.
+- **Outputs.** Byte-identical before and after on the 71 reference cases and the 5 golden fixtures only (228 files, three modes). On the six large projects the APG is byte-identical and every query that completed before returns the same rows, but the default reports change wherever a baseline query timed out (13 or 1,776 lines), and three default verdicts flip `pass` → `hard-block` (amplication, typeorm, payload). For the 21 query forms Neo4j could not finish, equivalence rests on the random-graph and brute-force tests, not a direct comparison (§4).
 
 ## 1. Corpus
 
@@ -43,7 +43,7 @@ The five presets cover every built-in template family (core, NestJS, layered, he
 
 Three findings:
 
-1. **The two bounded cycle queries dominate, and they fail.** FF-S02 `no-cyclic-deps` (`MATCH p = (f:File)-[:IMPORTS|RE_EXPORTS*2..10]->(f) … ORDER BY cycle LIMIT 101`) and the universal `cyclicDependencyCount` metric enumerate every bounded path from every File. The repository default timeout is 30 s (`DEFAULT_INGESTION_CONFIG.queryTimeoutMs`). The metric timed out on 6 of 6 projects and FF-S02 on 3 of the 5 specs that have it. When FF-S02 times out the run loses its blocking cycle rule silently: typeorm's verdict was `pass` only because FF-S02 failed to run. With the rows it is `hard-block` (§4).
+1. **The two bounded cycle queries dominate, and they fail.** FF-S02 `no-cyclic-deps` (`MATCH p = (f:File)-[:IMPORTS|RE_EXPORTS*2..10]->(f) … ORDER BY cycle LIMIT 101`) and the universal `cyclicDependencyCount` metric enumerate every bounded path from every File. The repository default timeout is 30 s (`DEFAULT_INGESTION_CONFIG.queryTimeoutMs`). The metric timed out on 6 of 6 projects and FF-S02 on 3 of the 5 specs that have it. When FF-S02 times out the run loses its blocking cycle rule silently: the verdicts of amplication, typeorm and payload were `pass` only because FF-S02 failed to run. With the rows all three are `hard-block` (§4; `before.*.verdict` vs `after.*.verdict` in `results/v1.3-scale/profiles.json`).
 2. **Every other rule is cheap.** No other template takes more than 0.5 s on any project; most take under 0.1 s. The slowest non-cycle rules are FF-CV05 `test-file-pairing` (≤ 0.5 s), FF-S03 and FF-DT01 (≤ 0.4 s).
 3. **Extraction is the next cost**, and it scales with what ts-morph loads, not with what is analysed. The breakdown is in §5.
 
@@ -70,7 +70,7 @@ The template text is not edited (`CYPHER_TEMPLATES`, rule tiers and the H13 cycl
   - a walk over 20 M steps.
 - **`--query-engine neo4j`** sends every query to Neo4j: the behaviour before this change, for audits and for the registered H13 latency gate (`Docs/DiagnosticRuns/bt-latency-profile.md`).
 
-## 4. Proof that outputs did not change
+## 4. Output equivalence: where outputs are unchanged, and where they change
 
 **Reference cases and golden fixtures.** `scripts/v1.3/scale/equivalence.ts` runs the real pipeline in-process over the 71 reference cases (materialised with `validate-reference.ts --materialise`) and the 5 golden fixtures (`specs/clean-arch.yaml`). Each case runs under both scoring modes (`v1.3`, `v1.2e`). Per case it writes the `--format json` report, without the run-time fields `runId`, `durationMs`, `executionTimeMs`, `totalMs` and `timestamp`, and the extracted APG. That gives 228 files. Two baseline runs of `origin/v1.3` agree byte for byte, so the harness is deterministic. Every set below has the same combined SHA-256 (`c3a745d9…b06b1a`; per-file hashes in `results/v1.3-scale/equivalence-sha256.txt`):
 
@@ -88,7 +88,7 @@ The golden suite (`GOLDEN_REQUIRED=1 npm run test:golden`) passes its snapshot s
 | Project | Report lines changed | What changed |
 |---|---|---|
 | nest, prisma, rocketchat | 13 | `cyclicDependencyCount`: `null` + METRIC_001 → a number. FF-S02 rows identical (nest and prisma: truncated at 101, as before) |
-| amplication, typeorm, payload | 1,776 | the same, plus FF-S02 moves from `failed: EVAL_002` (timeout) to 100 rows (truncated). The blocking tier and the AHS follow; typeorm `pass` → `hard-block` |
+| amplication, typeorm, payload | 1,776 | the same, plus FF-S02 moves from `failed: EVAL_002` (timeout) to 100 rows (truncated). The blocking tier and the AHS follow; the default verdict flips `pass` → `hard-block` on all three |
 
 **In-memory answers against Neo4j itself.**
 

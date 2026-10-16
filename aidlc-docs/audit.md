@@ -1492,3 +1492,11 @@ Plan checkboxes ticked. Auto-approved under standing approval; no blocking or ma
 **Context**: v1.3 — scale work, CONSTRUCTION (code + Build and Test) under delegation; PR into v1.3, not merged.
 
 ---
+
+## v1.3 SCALE — correction to the 2026-10-16T02:30:00Z entry
+**Timestamp**: 2026-10-16T08:59:00Z
+**User Input**: (none; foreman correction after the adversarial review of PR #188)
+**AI Response**: "Correction: the 2026-10-16T02:30:00Z entry says the memory guard fires at '92% of heap after a forced GC'. The code and the doc use 95% (`HEAP_FRACTION = 0.95` in `src/shared/process/memory-guard.ts`; `Docs/v1.3/scale.md` §6). Also, 'byte-identical' holds for the 71 reference cases and 5 golden fixtures only: on the large projects the default reports change where a baseline query timed out, and three default verdicts flip pass → hard-block (amplication, typeorm, payload; `results/v1.3-scale/profiles.json`)."
+**Context**: v1.3 — scale work; documentation correction only, earlier entry left unchanged.
+
+---
