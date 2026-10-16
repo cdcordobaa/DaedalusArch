@@ -22,6 +22,8 @@ import { ProjectView } from './project-files.js';
 import { explainFinding } from './explain-finding.js';
 import { inferProjectSpec, isIseStyle } from './infer-spec.js';
 import { specRuleMeta } from './rule-meta.js';
+import { proposeWithBuiltinPresets } from '../ise/propose.js';
+import type { SpecProposal } from '../ise/propose.js';
 import type { NeuralService } from './neural-service.js';
 import { explainAndFix, reviewUnit } from './neural-tools.js';
 import type { ExplainAndFixArgs, ExplainAndFixResult, FixHintSource, ReviewUnitArgs, ReviewUnitResult } from './neural-tools.js';
@@ -56,6 +58,8 @@ export interface ServerContext {
   readonly env: NodeJS.ProcessEnv;
   readonly evaluateDeps: EvaluateDeps;
   readonly loadSpec: (specPath: string) => Promise<ToolOutcome<LoadedSpec>>;
+  /** ISE spec proposal for `propose_spec` (default: the tool's own presets). */
+  readonly proposeSpec?: (projectDir: string) => Promise<SpecProposal>;
   /** The tool's canonical presets (`presets/`), read by `infer_spec`. */
   readonly presetsDir?: string | undefined;
   /** The neural arm (`--neural`); absent means off: no neural tool is registered (v1.3, neural-arm-agent-tools.md). */
@@ -301,6 +305,26 @@ export async function suggestPlacementTool(
   const loaded = await specFor(ctx, args.spec);
   if (!loaded.ok) return loaded;
   return ok(suggestPlacement(loaded.data.spec, { purpose: args.purpose, name: args.name }));
+}
+
+/**
+ * `propose_spec`: the spec `firewall init` would write for a project without one (ISE), as data plus the commented
+ * YAML. Reads only the project's src/ and tsconfig.json; writes nothing.
+ */
+export async function proposeSpecTool(
+  ctx: ServerContext,
+  args: { readonly project?: string | undefined },
+): Promise<ToolOutcome<SpecProposal>> {
+  const project = args.project ?? ctx.defaultProjectPath;
+  if (project === undefined) {
+    return fail('No project configured: pass `project` or start the server with --project <path>.');
+  }
+  const propose = ctx.proposeSpec ?? proposeWithBuiltinPresets;
+  try {
+    return ok(await propose(path.resolve(project)));
+  } catch (e: unknown) {
+    return fail(`Cannot infer a spec for ${project}: ${e instanceof Error ? e.message : String(e)}`);
+  }
 }
 
 export async function inferSpecTool(

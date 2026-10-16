@@ -133,7 +133,8 @@ const FUNCTIONS: ReadonlyMap<string, Fn> = new Map<string, Fn>([
   }],
   ['head', (a) => { arity('head', a, 1); const v = a[0] as Value; if (v === null) return null; return list('head', v)[0] ?? null; }],
   ['last', (a) => { arity('last', a, 1); const v = a[0] as Value; if (v === null) return null; const l = list('last', v); return l[l.length - 1] ?? null; }],
-  ['tail', (a) => { arity('tail', a, 1); const v = a[0] as Value; if (v === null) return null; return list('tail', v).slice(1); }],
+  // A non-list is a one-element list here, as in Neo4j (`traversable`, fuzz finding F3): `tail(3)` is `[]`.
+  ['tail', (a) => { arity('tail', a, 1); const v = a[0] as Value; if (v === null) return null; return Array.isArray(v) ? (v as readonly Value[]).slice(1) : []; }],
   ['reverse', (a) => {
     arity('reverse', a, 1);
     const v = a[0] as Value;

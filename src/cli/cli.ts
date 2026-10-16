@@ -34,6 +34,8 @@ import { GRAPH_MODES } from '../apg-extractor/types.js';
 import type { GraphMode } from '../apg-extractor/types.js';
 import { runCheck, neo4jEngine, lexicalEngine, formatGateHuman, formatGateJSON, formatGateMarkdown } from '../ci-gate/index.js';
 import type { GateEngine } from '../ci-gate/index.js';
+import { defaultPropose, inferredBanner, inferredSpecFile, labelJsonReport, runInit } from './init-command.js';
+import type { InferredSpecFile } from './init-command.js';
 
 // Load .env before anything else
 loadDotenv();
@@ -201,7 +203,9 @@ withLLMOptions(program
   .description('Evaluate a single TypeScript project for architectural compliance'))
   .argument('[project]', 'Path to TypeScript project (same as --project)')
   .option('--project <path>', 'Path to TypeScript project (or the positional argument)')
-  .requiredOption('--spec <path>', 'Path to AoC YAML spec')
+  // Required unless --from-inferred (checked in the action, with commander's own message).
+  .option('--spec <path>', 'Path to AoC YAML spec (required unless --from-inferred)')
+  .option('--from-inferred', 'Evaluate under the spec ISE infers from the project (`firewall init`), labelled "inferred spec, not author-declared"; excludes --spec', false)
   .option('--format <fmt>', 'Output format: json | human | csv', 'human')
   .option('--verbose', 'Enable verbose logging', false)
   .option('--neo4j-uri <uri>', 'Neo4j bolt URI', process.env['NEO4J_URI'] ?? 'bolt://localhost:7687')
@@ -222,7 +226,8 @@ withLLMOptions(program
     engine?: string;
     project?: string;
     tsconfig?: string;
-    spec: string;
+    spec?: string;
+    fromInferred: boolean;
     format: string;
     verbose: boolean;
     neo4jUri: string;
@@ -247,6 +252,14 @@ withLLMOptions(program
       return;
     }
     opts.project = project;
+    if (opts.fromInferred && opts.spec !== undefined) {
+      process.stderr.write('Error: --spec and --from-inferred are mutually exclusive\n');
+      process.exitCode = 2;
+      return;
+    }
+    if (!opts.fromInferred && opts.spec === undefined) {
+      cmd.error("error: required option '--spec <path>' not specified");
+    }
     const evaluationMode = resolveEvaluationMode(opts.symbolicOnly, opts.neuronalOnly);
     const graphMode = resolveGraphMode(opts.graphMode);
     if (graphMode === undefined) return;
@@ -271,9 +284,22 @@ withLLMOptions(program
     const llmConfig = llmConfigFor(evaluationMode, opts.project, opts);
     if (llmConfig === null) return;
 
+    // --from-inferred: the ISE proposal in a temporary file (never written into the project).
+    let inferred: InferredSpecFile | undefined;
+    if (opts.fromInferred) {
+      try {
+        inferred = await inferredSpecFile(opts.project, defaultPropose);
+      } catch (e: unknown) {
+        process.stderr.write(`Error: cannot infer a spec for ${opts.project}: ${e instanceof Error ? e.message : String(e)}\n`);
+        process.exitCode = 2;
+        return;
+      }
+      process.stderr.write(inferredBanner(inferred.proposal) + '\n');
+    }
+
     const config: PipelineConfig = {
       projectPath: opts.project,
-      specFilePath: opts.spec,
+      specFilePath: inferred?.specPath ?? opts.spec ?? '',
       neo4jUri: opts.neo4jUri,
       neo4jUser: process.env['NEO4J_USER'] ?? 'neo4j',
       neo4jPassword,
@@ -311,7 +337,8 @@ withLLMOptions(program
       const result = await executor.execute();
 
       if (!result.success) {
-        process.stderr.write(`Error: ${result.errors.map((e) => e.message).join('; ')}\n`);
+        inferred?.dispose();
+        process.stderr.write(`Error: ${result.errors.map((e) => e.message).join('; ')}${inferred !== undefined ? ' (under the inferred spec)' : ''}\n`);
         process.exit(exitCodeFromErrors(result.errors));
       }
 
@@ -338,7 +365,7 @@ withLLMOptions(program
       // Route output: machine-readable to stdout, human to stderr
       switch (format) {
         case 'json':
-          process.stdout.write(formatJSON(report) + '\n');
+          process.stdout.write((inferred !== undefined ? labelJsonReport(formatJSON(report), inferred.proposal) : formatJSON(report)) + '\n');
           break;
         case 'human':
           process.stderr.write(formatHuman(report) + '\n');
@@ -348,6 +375,7 @@ withLLMOptions(program
           process.stdout.write(formatCSV(report) + '\n');
           break;
       }
+      if (inferred !== undefined && format !== 'json') process.stderr.write(`${inferredBanner(inferred.proposal).split('\n')[0] ?? ''}\n`);
 
       // Architect HTML report: only with --html, so the default outputs stay as they were.
       if (opts.html !== undefined) {
@@ -361,7 +389,7 @@ withLLMOptions(program
             ...(apg !== undefined && { graph: graphInputFromApg(apg) }),
             projectRoot: path.resolve(opts.project),
             projectName: path.basename(path.resolve(opts.project)),
-            specPath: opts.spec,
+            specPath: config.specFilePath,
           }, opts.html);
           process.stderr.write(`HTML report written to ${written}\n`);
         } catch (err: unknown) {
@@ -382,10 +410,28 @@ withLLMOptions(program
 
       process.exitCode = exitCodeFromVerdict(exitVerdict);
     } finally {
+      inferred?.dispose();
       process.removeListener('SIGINT', onSignal);
       process.removeListener('SIGTERM', onSignal);
       await cleanup();
     }
+  });
+
+// ── init command ─────────────────────────────────────────────────────────────
+
+program
+  .command('init')
+  .description('Zero-config onboarding: infer a spec (style and layer map) from a project that has none, and write it commented with confidence and evidence; never overwrites a spec')
+  .requiredOption('--project <path>', 'Path to TypeScript project (needs src/ and tsconfig.json)')
+  .option('-o, --out <path>', 'Spec file to write (default <project>/firewall.spec.yaml); refused if it exists')
+  .option('--print', 'Print the proposed spec to stdout and write nothing', false)
+  .option('--format <fmt>', 'Summary format: human (stderr) | json (the whole proposal on stdout)', 'human')
+  .action(async (opts: { project: string; out?: string; print: boolean; format: string }) => {
+    process.exitCode = await runInit(opts, {
+      propose: defaultPropose,
+      out: (t) => process.stdout.write(t),
+      err: (t) => process.stderr.write(t),
+    });
   });
 
 // ── batch command ────────────────────────────────────────────────────────────
