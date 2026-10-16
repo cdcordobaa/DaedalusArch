@@ -1,0 +1,1277 @@
+{
+  "rule": {
+    "id": "panel-authority-v1",
+    "minDecoys": 20,
+    "minDecoysPerClass": 10,
+    "minDecoyAccuracy": 0.85,
+    "minClassAccuracy": 0.7,
+    "minValidShare": 0.9,
+    "minQualifiedVendors": 2,
+    "minAgreeingVendors": 2,
+    "minPanelKappa": 0.6
+  },
+  "raters": [
+    "google:fake-gemini",
+    "openai:fake-gpt",
+    "anthropic:fake-claude"
+  ],
+  "humans": [],
+  "decoyCounts": {
+    "correct": 10,
+    "wrong": 10
+  },
+  "designOk": true,
+  "accuracy": [
+    {
+      "rater": "google:fake-gemini",
+      "vendor": "google",
+      "decoys": {
+        "k": 19,
+        "n": 20,
+        "share": 0.95,
+        "low": 0.763868806553258,
+        "high": 0.9911185511992047
+      },
+      "knownCorrect": {
+        "k": 9,
+        "n": 10,
+        "share": 0.9,
+        "low": 0.5958499732047615,
+        "high": 0.9821237869049271
+      },
+      "knownWrong": {
+        "k": 10,
+        "n": 10,
+        "share": 1,
+        "low": 0.7224672001371107,
+        "high": 0.9999999999999999
+      },
+      "decoyUncertain": 1,
+      "valid": {
+        "k": 40,
+        "n": 40,
+        "share": 1,
+        "low": 0.9123783988027135,
+        "high": 1
+      },
+      "selfDisagree": {
+        "k": 3,
+        "n": 40,
+        "share": 0.075,
+        "low": 0.025836025774588198,
+        "high": 0.19864233524310543
+      },
+      "qualified": true,
+      "reasons": []
+    },
+    {
+      "rater": "openai:fake-gpt",
+      "vendor": "openai",
+      "decoys": {
+        "k": 17,
+        "n": 20,
+        "share": 0.85,
+        "low": 0.6395811352592431,
+        "high": 0.9476312541037835
+      },
+      "knownCorrect": {
+        "k": 8,
+        "n": 10,
+        "share": 0.8,
+        "low": 0.49016247153664183,
+        "high": 0.9433178485456247
+      },
+      "knownWrong": {
+        "k": 9,
+        "n": 10,
+        "share": 0.9,
+        "low": 0.5958499732047615,
+        "high": 0.9821237869049271
+      },
+      "decoyUncertain": 2,
+      "valid": {
+        "k": 40,
+        "n": 40,
+        "share": 1,
+        "low": 0.9123783988027135,
+        "high": 1
+      },
+      "selfDisagree": {
+        "k": 3,
+        "n": 40,
+        "share": 0.075,
+        "low": 0.025836025774588198,
+        "high": 0.19864233524310543
+      },
+      "qualified": true,
+      "reasons": []
+    },
+    {
+      "rater": "anthropic:fake-claude",
+      "vendor": "anthropic",
+      "decoys": {
+        "k": 15,
+        "n": 20,
+        "share": 0.75,
+        "low": 0.531299122381256,
+        "high": 0.8881382985923343
+      },
+      "knownCorrect": {
+        "k": 7,
+        "n": 10,
+        "share": 0.7,
+        "low": 0.39677814746114537,
+        "high": 0.8922087325936989
+      },
+      "knownWrong": {
+        "k": 8,
+        "n": 10,
+        "share": 0.8,
+        "low": 0.49016247153664183,
+        "high": 0.9433178485456247
+      },
+      "decoyUncertain": 4,
+      "valid": {
+        "k": 40,
+        "n": 40,
+        "share": 1,
+        "low": 0.9123783988027135,
+        "high": 1
+      },
+      "selfDisagree": {
+        "k": 4,
+        "n": 40,
+        "share": 0.1,
+        "low": 0.03957952868260638,
+        "high": 0.23051775227522298
+      },
+      "qualified": false,
+      "reasons": [
+        "decoy accuracy 0.750 < 0.85"
+      ]
+    }
+  ],
+  "qualifiedVendors": [
+    "google:fake-gemini",
+    "openai:fake-gpt"
+  ],
+  "pairs": [
+    {
+      "a": "google:fake-gemini",
+      "b": "openai:fake-gpt",
+      "scope": "targets",
+      "threeWay": {
+        "categories": [
+          "yes",
+          "no",
+          "uncertain"
+        ],
+        "n": 20,
+        "table": [
+          [
+            11,
+            0,
+            2
+          ],
+          [
+            0,
+            5,
+            0
+          ],
+          [
+            1,
+            1,
+            0
+          ]
+        ],
+        "observed": 0.8,
+        "observedLow": 0.5839825677481064,
+        "observedHigh": 0.919342337420202,
+        "kappa": 0.6190476190476191,
+        "ac1": 0.7290431837425911
+      },
+      "binary": {
+        "categories": [
+          "yes",
+          "not-yes"
+        ],
+        "n": 20,
+        "table": [
+          [
+            11,
+            2
+          ],
+          [
+            1,
+            6
+          ]
+        ],
+        "observed": 0.85,
+        "observedLow": 0.6395811352592431,
+        "observedHigh": 0.9476312541037835,
+        "kappa": 0.6808510638297872,
+        "ac1": 0.7176470588235294
+      }
+    },
+    {
+      "a": "google:fake-gemini",
+      "b": "openai:fake-gpt",
+      "scope": "decoys",
+      "threeWay": {
+        "categories": [
+          "yes",
+          "no",
+          "uncertain"
+        ],
+        "n": 20,
+        "table": [
+          [
+            7,
+            0,
+            2
+          ],
+          [
+            1,
+            9,
+            0
+          ],
+          [
+            1,
+            0,
+            0
+          ]
+        ],
+        "observed": 0.8,
+        "observedLow": 0.5839825677481064,
+        "observedHigh": 0.919342337420202,
+        "kappa": 0.6475770925110133,
+        "ac1": 0.7210113339145598
+      },
+      "binary": {
+        "categories": [
+          "yes",
+          "not-yes"
+        ],
+        "n": 20,
+        "table": [
+          [
+            7,
+            2
+          ],
+          [
+            2,
+            9
+          ]
+        ],
+        "observed": 0.8,
+        "observedLow": 0.5839825677481064,
+        "observedHigh": 0.919342337420202,
+        "kappa": 0.595959595959596,
+        "ac1": 0.603960396039604
+      }
+    },
+    {
+      "a": "google:fake-gemini",
+      "b": "anthropic:fake-claude",
+      "scope": "targets",
+      "threeWay": {
+        "categories": [
+          "yes",
+          "no",
+          "uncertain"
+        ],
+        "n": 20,
+        "table": [
+          [
+            7,
+            3,
+            3
+          ],
+          [
+            0,
+            3,
+            2
+          ],
+          [
+            0,
+            1,
+            1
+          ]
+        ],
+        "observed": 0.55,
+        "observedLow": 0.34208534245034233,
+        "observedHigh": 0.7418021417443759,
+        "kappa": 0.3129770992366413,
+        "ac1": 0.34782608695652184
+      },
+      "binary": {
+        "categories": [
+          "yes",
+          "not-yes"
+        ],
+        "n": 20,
+        "table": [
+          [
+            7,
+            6
+          ],
+          [
+            0,
+            7
+          ]
+        ],
+        "observed": 0.7,
+        "observedLow": 0.4810271816464765,
+        "observedHigh": 0.8545227551323956,
+        "kappa": 0.4495412844036697,
+        "ac1": 0.4
+      }
+    },
+    {
+      "a": "google:fake-gemini",
+      "b": "anthropic:fake-claude",
+      "scope": "decoys",
+      "threeWay": {
+        "categories": [
+          "yes",
+          "no",
+          "uncertain"
+        ],
+        "n": 20,
+        "table": [
+          [
+            6,
+            0,
+            3
+          ],
+          [
+            1,
+            8,
+            1
+          ],
+          [
+            1,
+            0,
+            0
+          ]
+        ],
+        "observed": 0.7,
+        "observedLow": 0.4810271816464765,
+        "observedHigh": 0.8545227551323956,
+        "kappa": 0.5081967213114753,
+        "ac1": 0.5710455764075066
+      },
+      "binary": {
+        "categories": [
+          "yes",
+          "not-yes"
+        ],
+        "n": 20,
+        "table": [
+          [
+            6,
+            3
+          ],
+          [
+            2,
+            9
+          ]
+        ],
+        "observed": 0.75,
+        "observedLow": 0.531299122381256,
+        "observedHigh": 0.8881382985923343,
+        "kappa": 0.4897959183673469,
+        "ac1": 0.511002444987775
+      }
+    },
+    {
+      "a": "openai:fake-gpt",
+      "b": "anthropic:fake-claude",
+      "scope": "targets",
+      "threeWay": {
+        "categories": [
+          "yes",
+          "no",
+          "uncertain"
+        ],
+        "n": 20,
+        "table": [
+          [
+            6,
+            3,
+            3
+          ],
+          [
+            0,
+            4,
+            2
+          ],
+          [
+            1,
+            0,
+            1
+          ]
+        ],
+        "observed": 0.55,
+        "observedLow": 0.34208534245034233,
+        "observedHigh": 0.7418021417443759,
+        "kappa": 0.3129770992366413,
+        "ac1": 0.34366453965360083
+      },
+      "binary": {
+        "categories": [
+          "yes",
+          "not-yes"
+        ],
+        "n": 20,
+        "table": [
+          [
+            6,
+            6
+          ],
+          [
+            1,
+            7
+          ]
+        ],
+        "observed": 0.65,
+        "observedLow": 0.43285427668523624,
+        "observedHigh": 0.818808175898918,
+        "kappa": 0.33962264150943405,
+        "ac1": 0.30174563591022446
+      }
+    },
+    {
+      "a": "openai:fake-gpt",
+      "b": "anthropic:fake-claude",
+      "scope": "decoys",
+      "threeWay": {
+        "categories": [
+          "yes",
+          "no",
+          "uncertain"
+        ],
+        "n": 20,
+        "table": [
+          [
+            5,
+            1,
+            3
+          ],
+          [
+            1,
+            7,
+            1
+          ],
+          [
+            2,
+            0,
+            0
+          ]
+        ],
+        "observed": 0.6,
+        "observedLow": 0.3865815007622531,
+        "observedHigh": 0.781193467627183,
+        "kappa": 0.3548387096774193,
+        "ac1": 0.4218608852755194
+      },
+      "binary": {
+        "categories": [
+          "yes",
+          "not-yes"
+        ],
+        "n": 20,
+        "table": [
+          [
+            5,
+            4
+          ],
+          [
+            3,
+            8
+          ]
+        ],
+        "observed": 0.65,
+        "observedLow": 0.43285427668523624,
+        "observedHigh": 0.818808175898918,
+        "kappa": 0.2857142857142856,
+        "ac1": 0.3154034229828851
+      }
+    }
+  ],
+  "multi": [
+    {
+      "scope": "all model raters",
+      "raters": 3,
+      "fleissBinary": 0.4642857142857145,
+      "fleissThreeWay": 0.3866171003717471,
+      "fleissItems": 20,
+      "alphaThreeWay": 0.39684014869888473,
+      "alphaBinary": 0.4732142857142857
+    },
+    {
+      "scope": "qualified vendors",
+      "raters": 2,
+      "fleissBinary": 0.6799999999999999,
+      "fleissThreeWay": 0.6181384248210026,
+      "fleissItems": 20,
+      "alphaThreeWay": 0.6276849642004774,
+      "alphaBinary": 0.688
+    }
+  ],
+  "panelKappa": 0.6799999999999999,
+  "verdict": "authoritative",
+  "verdictReasons": [],
+  "items": [
+    {
+      "id": "P001",
+      "origin": "decoy",
+      "sourceId": "c78933132f72c9434e2a3b88",
+      "truth": "yes",
+      "labels": {
+        "google:fake-gemini": "yes",
+        "openai:fake-gpt": "yes",
+        "anthropic:fake-claude": "yes"
+      },
+      "majority": "yes",
+      "confidence": 1,
+      "qualifiedMajority": "yes",
+      "qualifiedAgreeing": 2,
+      "qualifiedVoting": 2,
+      "unanimous": true,
+      "authoritative": true
+    },
+    {
+      "id": "P002",
+      "origin": "wild",
+      "sourceId": "W04",
+      "labels": {
+        "google:fake-gemini": "yes",
+        "openai:fake-gpt": "yes",
+        "anthropic:fake-claude": "no"
+      },
+      "majority": "yes",
+      "confidence": 0.6666666666666666,
+      "qualifiedMajority": "yes",
+      "qualifiedAgreeing": 2,
+      "qualifiedVoting": 2,
+      "unanimous": true,
+      "authoritative": true
+    },
+    {
+      "id": "P003",
+      "origin": "wild",
+      "sourceId": "W13",
+      "labels": {
+        "google:fake-gemini": "yes",
+        "openai:fake-gpt": "yes",
+        "anthropic:fake-claude": "uncertain"
+      },
+      "majority": "yes",
+      "confidence": 0.6666666666666666,
+      "qualifiedMajority": "yes",
+      "qualifiedAgreeing": 2,
+      "qualifiedVoting": 2,
+      "unanimous": true,
+      "authoritative": true
+    },
+    {
+      "id": "P004",
+      "origin": "wild",
+      "sourceId": "W17",
+      "labels": {
+        "google:fake-gemini": "uncertain",
+        "openai:fake-gpt": "no",
+        "anthropic:fake-claude": "no"
+      },
+      "majority": "no",
+      "confidence": 0.6666666666666666,
+      "qualifiedMajority": "uncertain",
+      "qualifiedAgreeing": 1,
+      "qualifiedVoting": 2,
+      "unanimous": false,
+      "authoritative": false
+    },
+    {
+      "id": "P005",
+      "origin": "wild",
+      "sourceId": "W01",
+      "labels": {
+        "google:fake-gemini": "yes",
+        "openai:fake-gpt": "uncertain",
+        "anthropic:fake-claude": "yes"
+      },
+      "majority": "yes",
+      "confidence": 0.6666666666666666,
+      "qualifiedMajority": "uncertain",
+      "qualifiedAgreeing": 1,
+      "qualifiedVoting": 2,
+      "unanimous": false,
+      "authoritative": false
+    },
+    {
+      "id": "P006",
+      "origin": "decoy",
+      "sourceId": "e318c5be0e4922053c7af376",
+      "truth": "yes",
+      "labels": {
+        "google:fake-gemini": "yes",
+        "openai:fake-gpt": "uncertain",
+        "anthropic:fake-claude": "yes"
+      },
+      "majority": "yes",
+      "confidence": 0.6666666666666666,
+      "qualifiedMajority": "uncertain",
+      "qualifiedAgreeing": 1,
+      "qualifiedVoting": 2,
+      "unanimous": false,
+      "authoritative": false
+    },
+    {
+      "id": "P007",
+      "origin": "decoy",
+      "sourceId": "2d87ed773d7dfa9819127ab8",
+      "truth": "no",
+      "labels": {
+        "google:fake-gemini": "no",
+        "openai:fake-gpt": "no",
+        "anthropic:fake-claude": "no"
+      },
+      "majority": "no",
+      "confidence": 1,
+      "qualifiedMajority": "no",
+      "qualifiedAgreeing": 2,
+      "qualifiedVoting": 2,
+      "unanimous": true,
+      "authoritative": true
+    },
+    {
+      "id": "P008",
+      "origin": "wild",
+      "sourceId": "W11",
+      "labels": {
+        "google:fake-gemini": "no",
+        "openai:fake-gpt": "no",
+        "anthropic:fake-claude": "no"
+      },
+      "majority": "no",
+      "confidence": 1,
+      "qualifiedMajority": "no",
+      "qualifiedAgreeing": 2,
+      "qualifiedVoting": 2,
+      "unanimous": true,
+      "authoritative": true
+    },
+    {
+      "id": "P009",
+      "origin": "wild",
+      "sourceId": "W09",
+      "labels": {
+        "google:fake-gemini": "yes",
+        "openai:fake-gpt": "yes",
+        "anthropic:fake-claude": "yes"
+      },
+      "majority": "yes",
+      "confidence": 1,
+      "qualifiedMajority": "yes",
+      "qualifiedAgreeing": 2,
+      "qualifiedVoting": 2,
+      "unanimous": true,
+      "authoritative": true
+    },
+    {
+      "id": "P010",
+      "origin": "decoy",
+      "sourceId": "483590ce2234555c72e98d3c",
+      "truth": "no",
+      "labels": {
+        "google:fake-gemini": "no",
+        "openai:fake-gpt": "no",
+        "anthropic:fake-claude": "no"
+      },
+      "majority": "no",
+      "confidence": 1,
+      "qualifiedMajority": "no",
+      "qualifiedAgreeing": 2,
+      "qualifiedVoting": 2,
+      "unanimous": true,
+      "authoritative": true
+    },
+    {
+      "id": "P011",
+      "origin": "decoy",
+      "sourceId": "e6c66acddd191fcf2399e466",
+      "truth": "no",
+      "labels": {
+        "google:fake-gemini": "no",
+        "openai:fake-gpt": "no",
+        "anthropic:fake-claude": "uncertain"
+      },
+      "majority": "no",
+      "confidence": 0.6666666666666666,
+      "qualifiedMajority": "no",
+      "qualifiedAgreeing": 2,
+      "qualifiedVoting": 2,
+      "unanimous": true,
+      "authoritative": true
+    },
+    {
+      "id": "P012",
+      "origin": "decoy",
+      "sourceId": "862748d9ea03d081ca25b85e",
+      "truth": "yes",
+      "labels": {
+        "google:fake-gemini": "yes",
+        "openai:fake-gpt": "yes",
+        "anthropic:fake-claude": "uncertain"
+      },
+      "majority": "yes",
+      "confidence": 0.6666666666666666,
+      "qualifiedMajority": "yes",
+      "qualifiedAgreeing": 2,
+      "qualifiedVoting": 2,
+      "unanimous": true,
+      "authoritative": true
+    },
+    {
+      "id": "P013",
+      "origin": "decoy",
+      "sourceId": "01d49cb2c3a89e15aad74185",
+      "truth": "no",
+      "labels": {
+        "google:fake-gemini": "no",
+        "openai:fake-gpt": "no",
+        "anthropic:fake-claude": "no"
+      },
+      "majority": "no",
+      "confidence": 1,
+      "qualifiedMajority": "no",
+      "qualifiedAgreeing": 2,
+      "qualifiedVoting": 2,
+      "unanimous": true,
+      "authoritative": true
+    },
+    {
+      "id": "P014",
+      "origin": "wild",
+      "sourceId": "W03",
+      "labels": {
+        "google:fake-gemini": "no",
+        "openai:fake-gpt": "no",
+        "anthropic:fake-claude": "no"
+      },
+      "majority": "no",
+      "confidence": 1,
+      "qualifiedMajority": "no",
+      "qualifiedAgreeing": 2,
+      "qualifiedVoting": 2,
+      "unanimous": true,
+      "authoritative": true
+    },
+    {
+      "id": "P015",
+      "origin": "wild",
+      "sourceId": "W02",
+      "labels": {
+        "google:fake-gemini": "yes",
+        "openai:fake-gpt": "uncertain",
+        "anthropic:fake-claude": "uncertain"
+      },
+      "majority": "uncertain",
+      "confidence": 0.6666666666666666,
+      "qualifiedMajority": "uncertain",
+      "qualifiedAgreeing": 1,
+      "qualifiedVoting": 2,
+      "unanimous": false,
+      "authoritative": false
+    },
+    {
+      "id": "P016",
+      "origin": "decoy",
+      "sourceId": "51bf86b540353c3e19f760be",
+      "truth": "yes",
+      "labels": {
+        "google:fake-gemini": "yes",
+        "openai:fake-gpt": "uncertain",
+        "anthropic:fake-claude": "yes"
+      },
+      "majority": "yes",
+      "confidence": 0.6666666666666666,
+      "qualifiedMajority": "uncertain",
+      "qualifiedAgreeing": 1,
+      "qualifiedVoting": 2,
+      "unanimous": false,
+      "authoritative": false
+    },
+    {
+      "id": "P017",
+      "origin": "decoy",
+      "sourceId": "bf4bbd088f5f1a19be31a835",
+      "truth": "no",
+      "labels": {
+        "google:fake-gemini": "no",
+        "openai:fake-gpt": "no",
+        "anthropic:fake-claude": "no"
+      },
+      "majority": "no",
+      "confidence": 1,
+      "qualifiedMajority": "no",
+      "qualifiedAgreeing": 2,
+      "qualifiedVoting": 2,
+      "unanimous": true,
+      "authoritative": true
+    },
+    {
+      "id": "P018",
+      "origin": "decoy",
+      "sourceId": "e2266871944786952d34496e",
+      "truth": "yes",
+      "labels": {
+        "google:fake-gemini": "uncertain",
+        "openai:fake-gpt": "yes",
+        "anthropic:fake-claude": "yes"
+      },
+      "majority": "yes",
+      "confidence": 0.6666666666666666,
+      "qualifiedMajority": "uncertain",
+      "qualifiedAgreeing": 1,
+      "qualifiedVoting": 2,
+      "unanimous": false,
+      "authoritative": false
+    },
+    {
+      "id": "P019",
+      "origin": "decoy",
+      "sourceId": "42a779e999205c6939b5186a",
+      "truth": "yes",
+      "labels": {
+        "google:fake-gemini": "yes",
+        "openai:fake-gpt": "yes",
+        "anthropic:fake-claude": "uncertain"
+      },
+      "majority": "yes",
+      "confidence": 0.6666666666666666,
+      "qualifiedMajority": "yes",
+      "qualifiedAgreeing": 2,
+      "qualifiedVoting": 2,
+      "unanimous": true,
+      "authoritative": true
+    },
+    {
+      "id": "P020",
+      "origin": "decoy",
+      "sourceId": "0b6077bbf525e624c19207c1",
+      "truth": "no",
+      "labels": {
+        "google:fake-gemini": "no",
+        "openai:fake-gpt": "yes",
+        "anthropic:fake-claude": "no"
+      },
+      "majority": "no",
+      "confidence": 0.6666666666666666,
+      "qualifiedMajority": "uncertain",
+      "qualifiedAgreeing": 1,
+      "qualifiedVoting": 2,
+      "unanimous": false,
+      "authoritative": false
+    },
+    {
+      "id": "P021",
+      "origin": "decoy",
+      "sourceId": "122c471430e6e56d307af7b3",
+      "truth": "yes",
+      "labels": {
+        "google:fake-gemini": "yes",
+        "openai:fake-gpt": "yes",
+        "anthropic:fake-claude": "yes"
+      },
+      "majority": "yes",
+      "confidence": 1,
+      "qualifiedMajority": "yes",
+      "qualifiedAgreeing": 2,
+      "qualifiedVoting": 2,
+      "unanimous": true,
+      "authoritative": true
+    },
+    {
+      "id": "P022",
+      "origin": "wild",
+      "sourceId": "W06",
+      "labels": {
+        "google:fake-gemini": "no",
+        "openai:fake-gpt": "no",
+        "anthropic:fake-claude": "uncertain"
+      },
+      "majority": "no",
+      "confidence": 0.6666666666666666,
+      "qualifiedMajority": "no",
+      "qualifiedAgreeing": 2,
+      "qualifiedVoting": 2,
+      "unanimous": true,
+      "authoritative": true
+    },
+    {
+      "id": "P023",
+      "origin": "decoy",
+      "sourceId": "a11426f4e932736e67201804",
+      "truth": "yes",
+      "labels": {
+        "google:fake-gemini": "yes",
+        "openai:fake-gpt": "yes",
+        "anthropic:fake-claude": "yes"
+      },
+      "majority": "yes",
+      "confidence": 1,
+      "qualifiedMajority": "yes",
+      "qualifiedAgreeing": 2,
+      "qualifiedVoting": 2,
+      "unanimous": true,
+      "authoritative": true
+    },
+    {
+      "id": "P024",
+      "origin": "decoy",
+      "sourceId": "a2e64767b1a2890b7a4f2322",
+      "truth": "no",
+      "labels": {
+        "google:fake-gemini": "no",
+        "openai:fake-gpt": "no",
+        "anthropic:fake-claude": "no"
+      },
+      "majority": "no",
+      "confidence": 1,
+      "qualifiedMajority": "no",
+      "qualifiedAgreeing": 2,
+      "qualifiedVoting": 2,
+      "unanimous": true,
+      "authoritative": true
+    },
+    {
+      "id": "P025",
+      "origin": "wild",
+      "sourceId": "W16",
+      "labels": {
+        "google:fake-gemini": "uncertain",
+        "openai:fake-gpt": "yes",
+        "anthropic:fake-claude": "uncertain"
+      },
+      "majority": "uncertain",
+      "confidence": 0.6666666666666666,
+      "qualifiedMajority": "uncertain",
+      "qualifiedAgreeing": 1,
+      "qualifiedVoting": 2,
+      "unanimous": false,
+      "authoritative": false
+    },
+    {
+      "id": "P026",
+      "origin": "wild",
+      "sourceId": "W14",
+      "labels": {
+        "google:fake-gemini": "yes",
+        "openai:fake-gpt": "yes",
+        "anthropic:fake-claude": "yes"
+      },
+      "majority": "yes",
+      "confidence": 1,
+      "qualifiedMajority": "yes",
+      "qualifiedAgreeing": 2,
+      "qualifiedVoting": 2,
+      "unanimous": true,
+      "authoritative": true
+    },
+    {
+      "id": "P027",
+      "origin": "wild",
+      "sourceId": "W19",
+      "labels": {
+        "google:fake-gemini": "yes",
+        "openai:fake-gpt": "yes",
+        "anthropic:fake-claude": "yes"
+      },
+      "majority": "yes",
+      "confidence": 1,
+      "qualifiedMajority": "yes",
+      "qualifiedAgreeing": 2,
+      "qualifiedVoting": 2,
+      "unanimous": true,
+      "authoritative": true
+    },
+    {
+      "id": "P028",
+      "origin": "wild",
+      "sourceId": "W05",
+      "labels": {
+        "google:fake-gemini": "yes",
+        "openai:fake-gpt": "yes",
+        "anthropic:fake-claude": "no"
+      },
+      "majority": "yes",
+      "confidence": 0.6666666666666666,
+      "qualifiedMajority": "yes",
+      "qualifiedAgreeing": 2,
+      "qualifiedVoting": 2,
+      "unanimous": true,
+      "authoritative": true
+    },
+    {
+      "id": "P029",
+      "origin": "decoy",
+      "sourceId": "8e9b6caece54e1f404865600",
+      "truth": "no",
+      "labels": {
+        "google:fake-gemini": "no",
+        "openai:fake-gpt": "no",
+        "anthropic:fake-claude": "yes"
+      },
+      "majority": "no",
+      "confidence": 0.6666666666666666,
+      "qualifiedMajority": "no",
+      "qualifiedAgreeing": 2,
+      "qualifiedVoting": 2,
+      "unanimous": true,
+      "authoritative": true
+    },
+    {
+      "id": "P030",
+      "origin": "wild",
+      "sourceId": "W12",
+      "labels": {
+        "google:fake-gemini": "yes",
+        "openai:fake-gpt": "yes",
+        "anthropic:fake-claude": "uncertain"
+      },
+      "majority": "yes",
+      "confidence": 0.6666666666666666,
+      "qualifiedMajority": "yes",
+      "qualifiedAgreeing": 2,
+      "qualifiedVoting": 2,
+      "unanimous": true,
+      "authoritative": true
+    },
+    {
+      "id": "P031",
+      "origin": "wild",
+      "sourceId": "W10",
+      "labels": {
+        "google:fake-gemini": "yes",
+        "openai:fake-gpt": "yes",
+        "anthropic:fake-claude": "yes"
+      },
+      "majority": "yes",
+      "confidence": 1,
+      "qualifiedMajority": "yes",
+      "qualifiedAgreeing": 2,
+      "qualifiedVoting": 2,
+      "unanimous": true,
+      "authoritative": true
+    },
+    {
+      "id": "P032",
+      "origin": "wild",
+      "sourceId": "W07",
+      "labels": {
+        "google:fake-gemini": "yes",
+        "openai:fake-gpt": "yes",
+        "anthropic:fake-claude": "no"
+      },
+      "majority": "yes",
+      "confidence": 0.6666666666666666,
+      "qualifiedMajority": "yes",
+      "qualifiedAgreeing": 2,
+      "qualifiedVoting": 2,
+      "unanimous": true,
+      "authoritative": true
+    },
+    {
+      "id": "P033",
+      "origin": "decoy",
+      "sourceId": "755ce3350726a27a6edb96f8",
+      "truth": "no",
+      "labels": {
+        "google:fake-gemini": "no",
+        "openai:fake-gpt": "no",
+        "anthropic:fake-claude": "no"
+      },
+      "majority": "no",
+      "confidence": 1,
+      "qualifiedMajority": "no",
+      "qualifiedAgreeing": 2,
+      "qualifiedVoting": 2,
+      "unanimous": true,
+      "authoritative": true
+    },
+    {
+      "id": "P034",
+      "origin": "decoy",
+      "sourceId": "f63d84a4f732a5b5b5f46d42",
+      "truth": "yes",
+      "labels": {
+        "google:fake-gemini": "yes",
+        "openai:fake-gpt": "yes",
+        "anthropic:fake-claude": "yes"
+      },
+      "majority": "yes",
+      "confidence": 1,
+      "qualifiedMajority": "yes",
+      "qualifiedAgreeing": 2,
+      "qualifiedVoting": 2,
+      "unanimous": true,
+      "authoritative": true
+    },
+    {
+      "id": "P035",
+      "origin": "wild",
+      "sourceId": "W15",
+      "labels": {
+        "google:fake-gemini": "yes",
+        "openai:fake-gpt": "yes",
+        "anthropic:fake-claude": "yes"
+      },
+      "majority": "yes",
+      "confidence": 1,
+      "qualifiedMajority": "yes",
+      "qualifiedAgreeing": 2,
+      "qualifiedVoting": 2,
+      "unanimous": true,
+      "authoritative": true
+    },
+    {
+      "id": "P036",
+      "origin": "decoy",
+      "sourceId": "c31f7b9547a029c038f89c41",
+      "truth": "yes",
+      "labels": {
+        "google:fake-gemini": "yes",
+        "openai:fake-gpt": "yes",
+        "anthropic:fake-claude": "uncertain"
+      },
+      "majority": "yes",
+      "confidence": 0.6666666666666666,
+      "qualifiedMajority": "yes",
+      "qualifiedAgreeing": 2,
+      "qualifiedVoting": 2,
+      "unanimous": true,
+      "authoritative": true
+    },
+    {
+      "id": "P037",
+      "origin": "decoy",
+      "sourceId": "9279bb132ffea217b36f1b33",
+      "truth": "no",
+      "labels": {
+        "google:fake-gemini": "no",
+        "openai:fake-gpt": "no",
+        "anthropic:fake-claude": "no"
+      },
+      "majority": "no",
+      "confidence": 1,
+      "qualifiedMajority": "no",
+      "qualifiedAgreeing": 2,
+      "qualifiedVoting": 2,
+      "unanimous": true,
+      "authoritative": true
+    },
+    {
+      "id": "P038",
+      "origin": "wild",
+      "sourceId": "W08",
+      "labels": {
+        "google:fake-gemini": "yes",
+        "openai:fake-gpt": "yes",
+        "anthropic:fake-claude": "yes"
+      },
+      "majority": "yes",
+      "confidence": 1,
+      "qualifiedMajority": "yes",
+      "qualifiedAgreeing": 2,
+      "qualifiedVoting": 2,
+      "unanimous": true,
+      "authoritative": true
+    },
+    {
+      "id": "P039",
+      "origin": "wild",
+      "sourceId": "W20",
+      "labels": {
+        "google:fake-gemini": "no",
+        "openai:fake-gpt": "no",
+        "anthropic:fake-claude": "uncertain"
+      },
+      "majority": "no",
+      "confidence": 0.6666666666666666,
+      "qualifiedMajority": "no",
+      "qualifiedAgreeing": 2,
+      "qualifiedVoting": 2,
+      "unanimous": true,
+      "authoritative": true
+    },
+    {
+      "id": "P040",
+      "origin": "wild",
+      "sourceId": "W18",
+      "labels": {
+        "google:fake-gemini": "no",
+        "openai:fake-gpt": "no",
+        "anthropic:fake-claude": "no"
+      },
+      "majority": "no",
+      "confidence": 1,
+      "qualifiedMajority": "no",
+      "qualifiedAgreeing": 2,
+      "qualifiedVoting": 2,
+      "unanimous": true,
+      "authoritative": true
+    }
+  ],
+  "targetSummary": [
+    {
+      "origin": "wild",
+      "n": 20,
+      "yes": 11,
+      "no": 5,
+      "unresolved": 4,
+      "unanimous": 16
+    }
+  ],
+  "humanVsPanel": [],
+  "usage": [
+    {
+      "name": "google:fake-gemini",
+      "vendor": "google",
+      "provider": "fake",
+      "model": "fake-gemini",
+      "usage": {
+        "calls": 84,
+        "fromCassette": 84,
+        "inputTokens": 31092,
+        "outputTokens": 1600
+      }
+    },
+    {
+      "name": "openai:fake-gpt",
+      "vendor": "openai",
+      "provider": "fake",
+      "model": "fake-gpt",
+      "usage": {
+        "calls": 84,
+        "fromCassette": 84,
+        "inputTokens": 31092,
+        "outputTokens": 1600
+      }
+    },
+    {
+      "name": "anthropic:fake-claude",
+      "vendor": "anthropic",
+      "provider": "fake",
+      "model": "fake-claude",
+      "usage": {
+        "calls": 80,
+        "fromCassette": 80,
+        "inputTokens": 30968,
+        "outputTokens": 1600
+      }
+    }
+  ],
+  "withheld": []
+}

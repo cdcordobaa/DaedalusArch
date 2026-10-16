@@ -27,25 +27,31 @@ export interface DiffCounts {
   readonly deleted: number;
 }
 
-function gitEnv(): NodeJS.ProcessEnv {
+function gitEnv(fixedDate?: string): NodeJS.ProcessEnv {
   const env: NodeJS.ProcessEnv = {};
   for (const k of ['PATH', 'HOME', 'LANG', 'TMPDIR']) {
     const v = process.env[k];
     if (v !== undefined) env[k] = v;
   }
-  return { ...env, GIT_CONFIG_NOSYSTEM: '1', GIT_CONFIG_GLOBAL: '/dev/null', GIT_TERMINAL_PROMPT: '0', LC_ALL: 'C' };
+  const dates = fixedDate !== undefined ? { GIT_AUTHOR_DATE: fixedDate, GIT_COMMITTER_DATE: fixedDate } : {};
+  return { ...env, ...dates, GIT_CONFIG_NOSYSTEM: '1', GIT_CONFIG_GLOBAL: '/dev/null', GIT_TERMINAL_PROMPT: '0', LC_ALL: 'C' };
 }
 
 export class WorkTreeSnapshots {
+  /**
+   * `fixedDate` (a git date, e.g. `2026-10-16T00:00:00Z`) pins the author and committer dates, so the same trees give
+   * the same commit shas (the loop replay checks runs byte for byte); without it git uses the clock.
+   */
   constructor(
     readonly gitDir: string,
     readonly workTree: string,
+    readonly fixedDate?: string,
   ) {}
 
   private git(args: readonly string[]): DomainResult<string> {
     const r = spawnSync('git', [...IDENTITY, `--git-dir=${this.gitDir}`, `--work-tree=${this.workTree}`, ...args], {
       cwd: this.workTree,
-      env: gitEnv(),
+      env: gitEnv(this.fixedDate),
       encoding: 'utf8',
       timeout: GIT_TIMEOUT_MS,
       maxBuffer: 64 * 1024 * 1024,

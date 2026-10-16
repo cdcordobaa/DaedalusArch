@@ -201,12 +201,27 @@ describe('evaluator mapping (v1.3 scoring)', () => {
       blockingViolationCount: 2,
       advisoryViolationCount: 1,
       blockingByRule: { 'FF-S01': 2 },
+      advisoryByRule: { 'FF-CV05': 1 },
       blockingFindings: [
         { ruleId: 'FF-S01', ruleName: 'layers', filePath: 'src/domain/a.ts', line: 3, target: 'src/infra/x.ts', message: 'm1' },
         { ruleId: 'FF-S01', ruleName: 'layers', filePath: 'src/domain/b.ts', message: 'm2' },
       ],
       durationMs: 12,
     });
+    // With the report's violations (the live evaluator asks for them): every blocking one, uncapped, with its template
+    // and id, and the violations handed on for the loop to write beside the turn.
+    const violations = [
+      { id: 'v2', type: 'LAYER_VIOLATION', functionId: 'FF-S01', filePath: 'src/domain/b.ts', message: 'm2' },
+      { id: 'v3', type: 'MISSING_TEST', functionId: 'FF-CV05', filePath: 'src/a.ts', message: 'm3' },
+      { id: 'v1', type: 'CUSTOM_core-isolation', functionId: 'FF-S01', filePath: 'src/domain/a.ts', line: 3, target: 'src/infra/x.ts', message: 'm1' },
+    ];
+    const full = toStepEvaluation({ ...result, violations } as unknown as EvaluateProjectResult);
+    if (!full.success) throw new Error('mapping failed');
+    expect(full.data.blockingFindings).toEqual([
+      { ruleId: 'FF-S01', ruleName: 'layers', template: 'dependency-direction', violationId: 'v2', filePath: 'src/domain/b.ts', message: 'm2' },
+      { ruleId: 'FF-S01', ruleName: 'layers', template: 'core-isolation', violationId: 'v1', filePath: 'src/domain/a.ts', line: 3, target: 'src/infra/x.ts', message: 'm1' },
+    ]);
+    expect(full.data.reportViolations).toBe(violations);
     const { tiers: _drop, ...noTiers } = result;
     const fail = toStepEvaluation(noTiers);
     expect(fail.success ? [] : fail.errors.map((e) => e.code)).toEqual(['LOOP_EVAL_NO_TIERS']);
