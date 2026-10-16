@@ -1,0 +1,36 @@
+{
+  "attempts": 1,
+  "cliVersion": "2.1.294",
+  "configListingSha256": "47aa04258852fab9a706f3f0c14cee22306d69fbb6fdfbde8c11854bd54997bc",
+  "durationMs": 9601,
+  "effort": "high",
+  "functionId": "filter-explain",
+  "ignoredOptions": [
+    "maxTokens"
+  ],
+  "isolationProbeSha256": "97a2e2d0af1100c13c55e028c1a0c71f069093c3d08705af122aaeb302f1a641",
+  "key": "e4cb9f0bd5ff71f01677ac2b2398ad17fc434f545d3659182903af7d3d196813-r0-0",
+  "model": "claude-opus-5-5",
+  "outcome": {
+    "kind": "valid"
+  },
+  "parsedVerdict": null,
+  "prompt": "## Finding\nRule: FF-CV05\nRule intent: Each source file has a paired test file.\nType: MISSING_TEST_FILE\nSeverity: advisory; tier: advisory (unscored)\nFile: src/adapters/inbound/http/HttpTypes.ts\nMessage: Violation in src/adapters/inbound/http/HttpTypes.ts\n\n## Layer model\n- domain (kind: domain): src/domain/**\n- application (kind: application): src/application/**\n- adapters-inbound (kind: presentation): src/adapters/inbound/**\n- adapters-outbound (kind: infrastructure): src/adapters/outbound/**\n- config (kind: application): src/config/**\n\n## Source (line-numbered)\n=====SOURCE-BEGIN src/adapters/inbound/http/HttpTypes.ts (layer adapters-inbound)=====\n 1| export interface HttpRequest {\n 2|   params: Record<string, string>;\n 3|   query: Record<string, string>;\n 4|   body: Record<string, unknown>;\n 5| }\n 6| \n 7| export interface HttpResponse {\n 8|   status: number;\n 9|   body: unknown;\n10| }\n11| \n12| export class HttpError extends Error {\n13|   constructor(readonly status: number, message: string) {\n14|     super(message);\n15|   }\n16| }\n=====SOURCE-END=====\n\n## Instructions\nDecide confirm or dismiss. Confirm: the cited code has the problem the rule is meant to catch, in this project and layer model. Dismiss: the rule fired, but the code does not have that problem (a false positive of the rule's mechanism, a threshold artefact on sound code, or a case the style allows). Measurements stated in the finding (counts, ratios, missing files) are correct as measurements; judge what they mean for this code. explanation: one paragraph that justifies the decision from the code, citing file paths and line numbers exactly as numbered below. fix: one concrete change: for a confirm, how to fix the code; for a dismiss, what (if anything) the rule or its configuration should change. citations: the line ranges your explanation relies on; every one must name a file shown below and lines that exist.\n",
+  "provider": "claude-cli",
+  "recordedAt": "2026-10-15T23:58:48.798Z",
+  "repetition": 0,
+  "requestHash": "e4cb9f0bd5ff71f01677ac2b2398ad17fc434f545d3659182903af7d3d196813",
+  "resolvedModel": "claude-opus-5-5",
+  "response": "{\"is_error\":false,\"modelUsage\":{\"claude-opus-5-5\":{\"inputTokens\":2,\"outputTokens\":644}},\"result\":\"{\\\"decision\\\":\\\"dismiss\\\",\\\"explanation\\\":\\\"This file is mostly type definitions with nothing to run, so it has nothing worth testing on its own. Lines 1-10 declare two interfaces, `HttpRequest` and `HttpResponse`, which disappear when the code is compiled. The only runtime code is `HttpError` (lines 12-16), a trivial subclass of `Error`. Its constructor only stores `status` as a readonly field and passes `message` to `super`. There is no branching, validation or transformation, so a dedicated `HttpTypes.test.ts` could only check the language's own behaviour. These types and the error class are used and covered by the HTTP adapter's handler and controller tests. The rule wants each source file paired with a test file so that untested logic doesn't slip through. This file contains no such logic, so the missing test file is a gap in the rule's mechanism, not a real coverage problem.\\\",\\\"fix\\\":\\\"Have FF-CV05 skip files that contain only type declarations or trivial `Error` subclasses with no logic. For example, skip files whose runtime statements are limited to classes whose constructors only call `super` and assign parameter properties. Another option is to let the project exclude shared type modules such as `**/*Types.ts` in the rule configuration.\\\",\\\"citations\\\":[{\\\"filePath\\\":\\\"src/adapters/inbound/http/HttpTypes.ts\\\",\\\"startLine\\\":1,\\\"endLine\\\":10},{\\\"filePath\\\":\\\"src/adapters/inbound/http/HttpTypes.ts\\\",\\\"startLine\\\":12,\\\"endLine\\\":16}]}\",\"structured_output\":{\"citations\":[{\"endLine\":10,\"filePath\":\"src/adapters/inbound/http/HttpTypes.ts\",\"startLine\":1},{\"endLine\":16,\"filePath\":\"src/adapters/inbound/http/HttpTypes.ts\",\"startLine\":12}],\"decision\":\"dismiss\",\"explanation\":\"This file is mostly type definitions with nothing to run, so it has nothing worth testing on its own. Lines 1-10 declare two interfaces, `HttpRequest` and `HttpResponse`, which disappear when the code is compiled. The only runtime code is `HttpError` (lines 12-16), a trivial subclass of `Error`. Its constructor only stores `status` as a readonly field and passes `message` to `super`. There is no branching, validation or transformation, so a dedicated `HttpTypes.test.ts` could only check the language's own behaviour. These types and the error class are used and covered by the HTTP adapter's handler and controller tests. The rule wants each source file paired with a test file so that untested logic doesn't slip through. This file contains no such logic, so the missing test file is a gap in the rule's mechanism, not a real coverage problem.\",\"fix\":\"Have FF-CV05 skip files that contain only type declarations or trivial `Error` subclasses with no logic. For example, skip files whose runtime statements are limited to classes whose constructors only call `super` and assign parameter properties. Another option is to let the project exclude shared type modules such as `**/*Types.ts` in the rule configuration.\"}}",
+  "runIndex": 0,
+  "schemaVersion": 2,
+  "unitId": "1930ed4b623322f2",
+  "usage": {
+    "inputTokens": 2149,
+    "outputTokens": 644
+  },
+  "usedOptions": {
+    "effort": "high",
+    "model": "claude-opus-5-5"
+  }
+}
