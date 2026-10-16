@@ -124,6 +124,8 @@ export interface CheckImportResult {
   readonly notes: readonly string[];
   /** MCP v2: `block` when a violation is blocking under v1.3. */
   readonly blockingVerdict?: BlockingVerdict;
+  /** Set only with `--fast-rules-engine cypher-interp` (Docs/v1.3/mcp-interp-parity.md): the compiled rules answered. */
+  readonly engine?: 'cypher-interp';
 }
 
 // ── explain_violation ────────────────────────────────────────────────────────
@@ -295,6 +297,8 @@ export interface FileCheckResult {
   readonly notChecked: readonly NotChecked[];
   /** The project root was read (barrels followed, cycles checked, entry files found). */
   readonly projectAware: boolean;
+  /** Set only with `--fast-rules-engine cypher-interp` (Docs/v1.3/mcp-interp-parity.md): the compiled rules answered. */
+  readonly engine?: 'cypher-interp';
   /** v1.3 npx mode, only with `templates: true`: the compiled templates on the in-process interpreter. */
   readonly templates?: TemplateCheckResult;
 }
@@ -303,7 +307,8 @@ export interface DiffCheckResult {
   readonly verdict: FileVerdict;
   readonly summary: string;
   readonly files: readonly (FileCheckResult & {
-    readonly change: 'added' | 'modified' | 'renamed';
+    /** `affected` (cypher-interp only): a file outside the diff where the change made a rule fire. */
+    readonly change: 'added' | 'modified' | 'renamed' | 'affected';
     /**
      * `whole-file`: an added file, checked whole; `delta`: a modified file rebuilt from the diff and the project, and
      * reported as what the new content has that the old does not; `added-lines`: only the added lines were readable.
@@ -316,6 +321,8 @@ export interface DiffCheckResult {
   readonly blockingCount: number;
   readonly advisoryCount: number;
   readonly blockingSummary: string;
+  /** Set only with `--fast-rules-engine cypher-interp` (Docs/v1.3/mcp-interp-parity.md): the compiled rules answered. */
+  readonly engine?: 'cypher-interp';
   /** v1.3 npx mode, only with `templates: true`: the compiled templates on the in-process interpreter, whole diff. */
   readonly templates?: TemplateCheckResult;
 }

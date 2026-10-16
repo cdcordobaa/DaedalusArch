@@ -31,7 +31,7 @@ It was written after the adversarial review of 2026-10-15. The blocking findings
 | V13-TV-C1 | Rule sources are unverified paraphrases | High | Medium |
 | V13-TV-C2 | FLOWS_TO gap: FF-P06 has no estimable half on the dev set | High (for FF-P06) | High |
 | V13-TV-C3 | DUP-RULE seeds confounded with the twin's cue | Medium | Medium |
-| V13-TV-C4 | DDD style never judged | Medium | High (judge claim excludes DDD) |
+| V13-TV-C4 | DDD style not judged in the catch rounds; first judged in CHECK-2 (#191, open, dev) | Medium | Medium (DDD n = 4 seeds, 6 clean units; not in the 16/21 claim) |
 | V13-TV-C5 | Study 1 `none` arm had a folder-layout hint | Medium (Study 1) | Declared |
 | V13-TV-C6 | Graph fidelity is unadjudicated agreement, not precision | High (for M7) | Medium |
 | V13-TV-C7 | Rules stricter than, or different from, their sources | Medium | Medium |
@@ -127,7 +127,9 @@ It was written after the adversarial review of 2026-10-15. The blocking findings
 - **Residual.** Medium. The judge's sensitivity to duplication is unmeasured.
 - **Thesis.** Ch7: report DUP-RULE separately as "confounded, not interpretable". The pooled judge figure is 16/21, with the qualification. Note that 16/21 = 0.76 is below the requirements' ≥ 0.80 judge target (`aidlc-docs/inception/requirements/v1.3-validity-requirements.md:47`).
 
-### V13-TV-C4: The DDD style was never judged
+### V13-TV-C4: The DDD style was not judged in the catch rounds (first judged in CHECK-2, #191)
+
+> **Update (2026-10-16).** DDD has now been judged once. PR #191 (judge v2.2 vs v1 on CHECK-2, still open, development set) ran a DDD base: v1 catches 4/4 DDD seeds, with a clean false fail of 1/6 = 0.17 [0.03, 0.56] (`src/claims/application/FileClaim.ts`); v2.2 catches 4/4 with 0/6 (`v1.3-judge-v22-run:Docs/DiagnosticRuns/v1.3-judge-v22-check2-2026-10-16.md:122-125`). The description below is kept as written: it is still true of judge-catch rounds 1 and 2 and of the defensible 16/21, which contain no DDD seed. Cite the DDD figures only once #191 is merged, and as n = 4, not as coverage of the style.
 
 - **Description.** `presets/ddd.yaml` declares neither FF-N01 nor FF-N02. The 9 DDD twin copies were seeded but not judged. The hexagonal layer globs do not cover the DDD layout, so a borrowed config would give DDD files no layer kind. Every judge figure covers four styles, and in practice mostly one NestJS fixture plus E1.
 - **Evidence.**
@@ -137,8 +139,9 @@ It was written after the adversarial review of 2026-10-15. The blocking findings
 - **Severity.** Medium. The judge is non-blocking in v1.3 (`rule-tiers.md:13`), so no verdict depends on it.
 - **Mitigation done.** Stated in the qualified judge row.
 - **Mitigation planned.** Either add FF-N01/FF-N02 to a DDD judging config and run the frozen operators on the DDD project (a new development round), or scope the judge claim to "not evaluated on DDD".
-- **Residual.** High for any claim that the judge covers five styles.
-- **Thesis.** Ch7: the judge table has a DDD row reading "not evaluated (no judge dimensions in the DDD preset)".
+- **Mitigation done (2026-10-16, open PR #191).** The first DDD judged run, on CHECK-2 (see the update above).
+- **Residual.** Medium: DDD rests on 4 seeds and 6 clean units, from one development run on an unmerged PR. High for any claim that the 16/21 judge figure covers five styles.
+- **Thesis.** Ch7: the judge table has a DDD row reading "not in the catch rounds; CHECK-2 (#191): v1 4/4, clean false fail 1/6, development set".
 
 ### V13-TV-C5: The Study 1 `none` arm had a folder-layout hint (cross-reference)
 

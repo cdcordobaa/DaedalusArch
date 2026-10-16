@@ -1,0 +1,47 @@
+{
+  "attempts": 1,
+  "cliVersion": "2.1.294",
+  "configListingSha256": "47aa04258852fab9a706f3f0c14cee22306d69fbb6fdfbde8c11854bd54997bc",
+  "durationMs": 9262,
+  "effort": "high",
+  "functionId": "FF-N02",
+  "ignoredOptions": [
+    "maxTokens"
+  ],
+  "isolationProbeSha256": "97a2e2d0af1100c13c55e028c1a0c71f069093c3d08705af122aaeb302f1a641",
+  "key": "b57fda924593c14bfa906f2a4d0a961bba6613e73e3090ea076a779b38572a44-r0-0",
+  "model": "claude-opus-5-5",
+  "outcome": {
+    "kind": "valid"
+  },
+  "parsedVerdict": {
+    "confidence": 0.93,
+    "evidence": [
+      "src/domain/model/Spot.ts: class Spot only declares fields and a constructor, with no persistence, HTTP or framework code",
+      "src/domain/model/Spot.ts: priceFor(hours) applies the business pricing rule `hours >= 8 ? Math.round(base * 0.8) : base`, which is domain behavior",
+      "src/domain/model/Spot.ts: hasCode() is a simple check on the entity's own state",
+      "The file has no imports, so it depends on no infrastructure or framework"
+    ],
+    "pass": true,
+    "reasoning": "src/domain/model/Spot.ts holds a plain domain entity. It has data fields (code, level, electric, hourlyRateCents), a constructor, a pricing rule (priceFor, which gives 20% off for stays of 8 hours or more) and a simple check (hasCode). Pricing logic is a business rule, so it belongs in the domain layer. The file does no persistence, transport, framework, I/O or presentation work. The public mutable fields and the hasCode check, which is nearly useless, are design-quality issues. They aren't responsibilities that belong to a different layer kind.",
+    "violations": []
+  },
+  "prompt": "## Rule\nThe unit's responsibilities match the role of its declared layer.\n\n## Rubric\nPass: Every responsibility in the file belongs to the role and kind of its declared layer, and agrees with any ADR prose given.\nFail: The file carries a responsibility that belongs to a different layer kind, for example persistence, transport or framework logic in a domain file, or business rules in an infrastructure or presentation file.\nEvidence required: Name the file and cite the function, method or statement that carries the misplaced responsibility, and the layer kind it belongs to.\nOut of scope: import direction and layer-dependency rules, which are checked symbolically.\n\n## Layer model\n- domain (kind: domain): src/domain/**\n- application (kind: application): src/application/**\n- adapters-inbound (kind: presentation): src/adapters/inbound/**\n- adapters-outbound (kind: infrastructure): src/adapters/outbound/**\n- config (kind: application): src/config/**\n\n## Unit\nKind: file\nId: src/domain/model/Spot.ts\nLayer: domain\nUnit files:\n- src/domain/model/Spot.ts\n\n## Source\n=====SOURCE-BEGIN src/domain/model/Spot.ts=====\nexport class Spot {\n  code: string;\n  level: number;\n  electric: boolean;\n  hourlyRateCents: number;\n\n  constructor(code: string, level: number, electric: boolean, hourlyRateCents: number) {\n    this.code = code;\n    this.level = level;\n    this.electric = electric;\n    this.hourlyRateCents = hourlyRateCents;\n  }\n\n  priceFor(hours: number): number {\n    const base = hours * this.hourlyRateCents;\n    return hours >= 8 ? Math.round(base * 0.8) : base;\n  }\n\n  hasCode(): boolean {\n    return this.code !== undefined;\n  }\n}\n\n=====SOURCE-END=====\n\n## Graph excerpt\n{\"edges\":[{\"from\":\"src/adapters/outbound/persistence/InMemorySpotRepository.ts\",\"to\":\"src/domain/model/Spot.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/application/ports/out/SpotRepository.ts\",\"to\":\"src/domain/model/Spot.ts\",\"type\":\"IMPORTS\"}],\"nodes\":[{\"kind\":\"Class\",\"layer\":\"domain\",\"name\":\"Spot\",\"path\":\"src/domain/model/Spot.ts\"},{\"kind\":\"File\",\"layer\":\"adapters-outbound\",\"path\":\"src/adapters/outbound/persistence/InMemorySpotRepository.ts\"},{\"kind\":\"File\",\"layer\":\"application\",\"path\":\"src/application/ports/out/SpotRepository.ts\"},{\"kind\":\"File\",\"layer\":\"domain\",\"path\":\"src/domain/model/Spot.ts\"}]}\n\n## Instructions\nJudge the unit against the rule and rubric. Return the JSON object the schema requires. Set pass to false if any file of the unit fails the rubric.\n",
+  "provider": "claude-cli",
+  "recordedAt": "2026-10-16T03:01:24.936Z",
+  "repetition": 0,
+  "requestHash": "b57fda924593c14bfa906f2a4d0a961bba6613e73e3090ea076a779b38572a44",
+  "resolvedModel": "claude-opus-5-5",
+  "response": "{\"is_error\":false,\"modelUsage\":{\"claude-opus-5-5\":{\"inputTokens\":2,\"outputTokens\":503}},\"result\":\"{\\\"pass\\\":true,\\\"confidence\\\":0.93,\\\"reasoning\\\":\\\"src/domain/model/Spot.ts holds a plain domain entity. It has data fields (code, level, electric, hourlyRateCents), a constructor, a pricing rule (priceFor, which gives 20% off for stays of 8 hours or more) and a simple check (hasCode). Pricing logic is a business rule, so it belongs in the domain layer. The file does no persistence, transport, framework, I/O or presentation work. The public mutable fields and the hasCode check, which is nearly useless, are design-quality issues. They aren't responsibilities that belong to a different layer kind.\\\",\\\"evidence\\\":[\\\"src/domain/model/Spot.ts: class Spot only declares fields and a constructor, with no persistence, HTTP or framework code\\\",\\\"src/domain/model/Spot.ts: priceFor(hours) applies the business pricing rule `hours >= 8 ? Math.round(base * 0.8) : base`, which is domain behavior\\\",\\\"src/domain/model/Spot.ts: hasCode() is a simple check on the entity's own state\\\",\\\"The file has no imports, so it depends on no infrastructure or framework\\\"],\\\"violations\\\":[]}\",\"structured_output\":{\"confidence\":0.93,\"evidence\":[\"src/domain/model/Spot.ts: class Spot only declares fields and a constructor, with no persistence, HTTP or framework code\",\"src/domain/model/Spot.ts: priceFor(hours) applies the business pricing rule `hours >= 8 ? Math.round(base * 0.8) : base`, which is domain behavior\",\"src/domain/model/Spot.ts: hasCode() is a simple check on the entity's own state\",\"The file has no imports, so it depends on no infrastructure or framework\"],\"pass\":true,\"reasoning\":\"src/domain/model/Spot.ts holds a plain domain entity. It has data fields (code, level, electric, hourlyRateCents), a constructor, a pricing rule (priceFor, which gives 20% off for stays of 8 hours or more) and a simple check (hasCode). Pricing logic is a business rule, so it belongs in the domain layer. The file does no persistence, transport, framework, I/O or presentation work. The public mutable fields and the hasCode check, which is nearly useless, are design-quality issues. They aren't responsibilities that belong to a different layer kind.\",\"violations\":[]}}",
+  "runIndex": 0,
+  "schemaVersion": 2,
+  "unitId": "src/domain/model/Spot.ts",
+  "usage": {
+    "inputTokens": 2455,
+    "outputTokens": 503
+  },
+  "usedOptions": {
+    "effort": "high",
+    "model": "claude-opus-5-5"
+  }
+}

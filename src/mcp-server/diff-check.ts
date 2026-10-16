@@ -28,7 +28,7 @@ export interface DiffFileWithHunks extends DiffFile {
   readonly hunks: readonly DiffHunk[];
 }
 
-const SOURCE_FILE_RE = /\.(?:[cm]?[jt]sx?)$/;
+export const SOURCE_FILE_RE = /\.(?:[cm]?[jt]sx?)$/;
 const HUNK_RE = /^@@ -(\d+)(?:,(\d+))? \+(\d+)(?:,(\d+))? @@/;
 
 function stripPrefix(raw: string): string | null {
@@ -145,7 +145,7 @@ export function applyHunks(from: string, hunks: readonly DiffHunk[], direction: 
 }
 
 /** Old and new contents of a modified file: the project holds either side (agent edited already, or not yet). */
-function rebuild(view: ProjectView, f: DiffFileWithHunks): { oldText: string; newText: string } | undefined {
+export function rebuild(view: ProjectView, f: DiffFileWithHunks): { oldText: string; newText: string } | undefined {
   if (!view.hasRoot || f.newPath === null || f.oldPath === null) return undefined;
   const onDiskNew = view.read(f.newPath);
   if (onDiskNew !== undefined) {

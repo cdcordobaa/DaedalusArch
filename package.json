@@ -16,10 +16,11 @@
     "README.md"
   ],
   "scripts": {
-    "build": "node -e \"require('fs').rmSync('dist',{recursive:true,force:true})\" && tsc --project tsconfig.json",
+    "build": "node -e \"require('fs').rmSync('dist',{recursive:true,force:true})\" && tsc --project tsconfig.json && node -e \"for (const f of ['dist/cli/bin.js','dist/mcp-server/main.js']) require('fs').chmodSync(f,0o755)\"",
     "build:watch": "tsc --project tsconfig.json --watch",
     "prepare": "npm run build",
     "start": "node dist/cli/bin.js",
+    "artifact:kick": "bash replication/kick-the-tires.sh",
     "dev": "tsx src/cli/index.ts",
     "mcp": "tsx src/mcp-server/main.ts",
     "mcp:check-file": "tsx src/mcp-server/check-file-cli.ts",
@@ -44,7 +45,8 @@
     "u5b:run": "tsx scripts/run-experiment-cli.ts",
     "u5b:aggregate": "tsx scripts/aggregate-cli.ts",
     "u5b:env": "tsx scripts/record-env-cli.ts",
-    "demo:sdd": "tsx scripts/sdd/replay-demo.ts"
+    "demo:sdd": "tsx scripts/sdd/replay-demo.ts",
+    "replicate:v1.3": "node replication/v1.3/run.mjs"
   },
   "keywords": [
     "architecture",

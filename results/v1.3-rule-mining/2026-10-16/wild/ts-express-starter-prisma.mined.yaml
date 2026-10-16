@@ -1,0 +1,396 @@
+# PROPOSED rules, mined from the code (daedalus mine-rules; src/rule-mining). Not a reviewed spec: review before use.
+# style: clean-architecture (ISE, confidence 0.33); layers: ISE preset-first
+# mined rules: 26 (25 emitted)
+# MR-001 [layer-direction, high 0.86] domain must not depend on application (16 edges application -> domain; 0/10 domain files import application)
+# MR-002 [acyclic-files, high 0.97] no file lies on an import cycle (34/34 files do not)
+# MR-003 [component-direction, medium 0.64] folder component middlewares must not depend on routes (4 imports routes -> middlewares; 0/4 files import back)
+# MR-004 [component-direction, low 0.40] folder component middlewares must not depend on controllers (1 imports controllers -> middlewares; 0/4 files import back)
+# MR-005 [component-direction, medium 0.56] folder component services must not depend on controllers (3 imports controllers -> services; 0/3 files import back)
+# MR-006 [component-direction, low 0.42] folder component interfaces must not depend on middlewares (1 imports middlewares -> interfaces; 0/5 files import back)
+# MR-007 [component-direction, low 0.42] folder component interfaces must not depend on services (1 imports services -> interfaces; 0/5 files import back)
+# MR-008 [component-direction, medium 0.63] folder component interfaces must not depend on routes (3 imports routes -> interfaces; 0/5 files import back)
+# MR-009 [component-direction, low 0.42] folder component interfaces must not depend on controllers (1 imports controllers -> interfaces; 0/5 files import back)
+# MR-010 [component-direction, low 0.42] folder component interfaces must not depend on repositories (1 imports repositories -> interfaces; 0/5 files import back)
+# MR-011 [component-direction, medium 0.50] folder component routes must not depend on config (2 imports config -> routes; 0/3 files import back)
+# MR-012 [component-direction, low 0.33] folder component entities must not depend on services (2 imports services -> entities; 0/1 files import back)
+# MR-013 [component-direction, low 0.25] folder component entities must not depend on repositories (1 imports repositories -> entities; 0/1 files import back)
+# MR-014 [component-direction, medium 0.50] folder component config must not depend on middlewares (2 imports middlewares -> config; 0/3 files import back)
+# MR-015 [component-direction, medium 0.56] folder component dtos must not depend on routes (3 imports routes -> dtos; 0/3 files import back)
+# MR-016 [component-direction, medium 0.50] folder component dtos must not depend on controllers (2 imports controllers -> dtos; 0/3 files import back)
+# MR-017 [component-direction, medium 0.53] folder component utils must not depend on middlewares (2 imports middlewares -> utils; 0/4 files import back)
+# MR-018 [component-direction, medium 0.64] folder component utils must not depend on services (4 imports services -> utils; 0/4 files import back)
+# MR-019 [component-direction, medium 0.60] folder component utils must not depend on controllers (3 imports controllers -> utils; 0/4 files import back)
+# MR-020 [component-direction, low 0.40] folder component utils must not depend on repositories (1 imports repositories -> utils; 0/4 files import back)
+# MR-021 [component-direction, medium 0.56] folder component controllers must not depend on routes (3 imports routes -> controllers; 0/3 files import back)
+# MR-022 [component-direction, medium 0.50] folder component controllers must not depend on config (2 imports config -> controllers; 0/3 files import back)
+# MR-023 [component-direction, low 0.33] folder component repositories must not depend on middlewares (1 imports middlewares -> repositories; 0/2 files import back)
+# MR-024 [component-direction, medium 0.50] folder component repositories must not depend on services (3 imports services -> repositories; 0/2 files import back)
+# MR-025 [port-implementation, high 0.75] every *Route class in application implements an interface declared in another layer (3/3) -- not emitted: the existing templates check the infrastructure-kind layer only (infrastructure), not application
+# MR-026 [core-package-free, high 0.82] domain (a core layer: it may depend on no other layer) imports none of @prisma/client, bcryptjs, compression, cookie-parser, cors, dotenv, express-rate-limit, fs, helmet, hpp, jsonwebtoken, morgan, path, pino, reflect-metadata, tsyringe -- 1 exception(s): src/entities/user.entity.ts -> @prisma/client
+
+spec_version: "1.0.0"
+
+architecture:
+  style: clean-architecture
+
+  layers:
+    - name: domain
+      directories:
+        - src/dtos/**
+        - src/entities/**
+        - src/exceptions/**
+        - src/interfaces/**
+      roles:
+        - entity
+        - value-object
+        - domain-service
+        - repository-interface
+
+    - name: application
+      directories:
+        - src/app.ts
+        - src/config/**
+        - src/controllers/**
+        - src/middlewares/**
+        - src/repositories/**
+        - src/routes/**
+        - src/services/**
+        - src/utils/**
+      roles:
+        - use-case
+        - dto
+        - application-service
+
+    - name: infrastructure
+      directories: []
+      roles:
+        - repository-impl
+        - controller
+        - middleware
+        - orm-entity
+
+fitness_functions:
+
+  # ── STRUCTURAL ──
+
+  # mined: MR-001 high 0.86, 0 exceptions
+  - id: FF-S01
+    name: dependency-direction
+    dimension: structural
+    severity: critical
+    route: symbolic
+    validated: true
+
+  # mined: MR-002 high 0.97, 0 exceptions
+  - id: FF-S02
+    name: no-cyclic-deps
+    dimension: structural
+    severity: critical
+    route: symbolic
+    validated: true
+
+  # mined: MR-026 high 0.82, 1 exception
+  - id: FF-P01
+    name: domain-purity
+    dimension: pattern
+    severity: critical
+    route: symbolic
+    validated: true
+    forbidden_imports:
+      - "@prisma/client"
+      - bcryptjs
+      - compression
+      - cookie-parser
+      - cors
+      - dotenv
+      - express-rate-limit
+      - fs
+      - helmet
+      - hpp
+      - jsonwebtoken
+      - morgan
+      - path
+      - pino
+      - reflect-metadata
+      - tsyringe
+  # mined: MR-003 medium 0.64, 0 exceptions; MR-004 low 0.40, 0 exceptions; MR-005 medium 0.56, 0 exceptions; MR-006 low 0.42, 0 exceptions; MR-007 low 0.42, 0 exceptions; MR-008 medium 0.63, 0 exceptions; MR-009 low 0.42, 0 exceptions; MR-010 low 0.42, 0 exceptions; MR-011 medium 0.50, 0 exceptions; MR-012 low 0.33, 0 exceptions; MR-013 low 0.25, 0 exceptions; MR-014 medium 0.50, 0 exceptions; MR-015 medium 0.56, 0 exceptions; MR-016 medium 0.50, 0 exceptions; MR-017 medium 0.53, 0 exceptions; MR-018 medium 0.64, 0 exceptions; MR-019 medium 0.60, 0 exceptions; MR-020 low 0.40, 0 exceptions; MR-021 medium 0.56, 0 exceptions; MR-022 medium 0.50, 0 exceptions; MR-023 low 0.33, 0 exceptions; MR-024 medium 0.50, 0 exceptions (APG v2: evaluated on a graph extracted with V13_APG2_OPTIONS)
+  - id: FF-A01
+    name: component-adp-cycle
+    dimension: structural
+    severity: advisory
+    route: symbolic
+    validated: false
+
+  # not mined: switched off (the style template would otherwise add them)
+  - id: FF-S03
+    name: no-layer-skip
+    dimension: structural
+    severity: critical
+    route: symbolic
+    validated: false
+    enabled: false
+    reason: "not mined: rule mining proposes only the rules the code follows"
+
+  - id: FF-S04
+    name: no-domain-outward-dep
+    dimension: structural
+    severity: major
+    route: symbolic
+    validated: false
+    enabled: false
+    reason: "not mined: rule mining proposes only the rules the code follows"
+
+  - id: FF-P02
+    name: dependency-inversion
+    dimension: pattern
+    severity: critical
+    route: symbolic
+    validated: true
+    threshold: 0.85
+    enabled: false
+    reason: "not mined: rule mining proposes only the rules the code follows"
+
+  - id: FF-P03
+    name: repository-pattern
+    dimension: pattern
+    severity: critical
+    route: symbolic
+    validated: true
+    enabled: false
+    reason: "not mined: rule mining proposes only the rules the code follows"
+
+  - id: FF-P04
+    name: use-case-isolation
+    dimension: pattern
+    severity: major
+    route: symbolic
+    validated: true
+    enabled: false
+    reason: "not mined: rule mining proposes only the rules the code follows"
+
+  - id: FF-P05
+    name: controller-no-entity
+    dimension: pattern
+    severity: major
+    route: symbolic
+    validated: false
+    enabled: false
+    reason: "not mined: rule mining proposes only the rules the code follows"
+
+  - id: FF-P06
+    name: domain-state-purity
+    dimension: pattern
+    severity: critical
+    route: symbolic
+    validated: false
+    enabled: false
+    reason: "not mined: rule mining proposes only the rules the code follows"
+
+  - id: FF-C01
+    name: domain-stability
+    dimension: coupling
+    severity: major
+    route: symbolic
+    validated: true
+    threshold: 0.3
+    enabled: false
+    reason: "not mined: rule mining proposes only the rules the code follows"
+
+  - id: FF-C02
+    name: module-fan-out
+    dimension: coupling
+    severity: major
+    route: symbolic
+    validated: true
+    threshold: 10
+    enabled: false
+    reason: "not mined: rule mining proposes only the rules the code follows"
+
+  - id: FF-C03
+    name: component-instability
+    dimension: coupling
+    severity: major
+    route: symbolic
+    validated: true
+    enabled: false
+    reason: "not mined: rule mining proposes only the rules the code follows"
+
+  - id: FF-C04
+    name: no-orphan-files
+    dimension: coupling
+    severity: minor
+    route: symbolic
+    validated: false
+    enabled: false
+    reason: "not mined: rule mining proposes only the rules the code follows"
+
+  - id: FF-C05
+    name: max-fan-in
+    dimension: coupling
+    severity: minor
+    route: symbolic
+    validated: false
+    threshold: 15
+    enabled: false
+    reason: "not mined: rule mining proposes only the rules the code follows"
+
+  - id: FF-C06
+    name: abstraction-ratio
+    dimension: coupling
+    severity: advisory
+    route: symbolic
+    validated: false
+    threshold: 0.3
+    enabled: false
+    reason: "not mined: rule mining proposes only the rules the code follows"
+
+  - id: FF-SO01
+    name: single-responsibility-proxy
+    dimension: solid
+    severity: major
+    route: symbolic
+    validated: true
+    max_public_methods: 10
+    max_dependencies: 5
+    enabled: false
+    reason: "not mined: rule mining proposes only the rules the code follows"
+
+  - id: FF-SO02
+    name: interface-segregation-proxy
+    dimension: solid
+    severity: major
+    route: symbolic
+    validated: true
+    max_interface_methods: 5
+    enabled: false
+    reason: "not mined: rule mining proposes only the rules the code follows"
+
+  - id: FF-SO03
+    name: inheritance-depth
+    dimension: solid
+    severity: minor
+    route: symbolic
+    validated: false
+    max_depth: 3
+    enabled: false
+    reason: "not mined: rule mining proposes only the rules the code follows"
+
+  - id: FF-CV01
+    name: naming-conventions
+    dimension: convention
+    severity: minor
+    route: symbolic
+    enabled: false
+    reason: "not mined: rule mining proposes only the rules the code follows"
+    validated: true
+
+  - id: FF-CV02
+    name: naming-services
+    dimension: convention
+    severity: minor
+    route: symbolic
+    validated: false
+    pattern: "*Service|*UseCase"
+    enabled: false
+    reason: "not mined: rule mining proposes only the rules the code follows"
+
+  - id: FF-CV03
+    name: naming-repos
+    dimension: convention
+    severity: minor
+    route: symbolic
+    validated: false
+    pattern: "*Repository|*Repo"
+    enabled: false
+    reason: "not mined: rule mining proposes only the rules the code follows"
+
+  - id: FF-CV04
+    name: naming-controllers
+    dimension: convention
+    severity: minor
+    route: symbolic
+    enabled: false
+    reason: "not mined: rule mining proposes only the rules the code follows"
+    validated: false
+    pattern: "*Controller"
+
+  - id: FF-CV05
+    name: test-file-pairing
+    dimension: convention
+    severity: advisory
+    route: symbolic
+    validated: false
+    enabled: false
+    reason: "not mined: rule mining proposes only the rules the code follows"
+
+  - id: FF-CV06
+    name: no-index-logic
+    dimension: convention
+    severity: advisory
+    route: symbolic
+    validated: false
+    enabled: false
+    reason: "not mined: rule mining proposes only the rules the code follows"
+
+  - id: FF-N01
+    name: architectural-integrity
+    dimension: integrity
+    severity: major
+    route: neuronal
+    validated: false
+    semantic_criteria:
+      rule: "The module's files form one coherent unit with a consistent abstraction and boundary."
+      rubric:
+        pass: "The files serve one cohesive concern, use the module's abstractions consistently, and keep each rule or invariant in one place."
+        fail: "The files split into unrelated concerns, duplicate a rule or invariant that should live in one place, or bypass the module's own abstractions."
+        evidence_required: "Name each file involved and cite the declarations that show the split, the duplication or the bypass."
+    enabled: false
+    reason: "not mined: rule mining proposes only the rules the code follows"
+
+  - id: FF-N02
+    name: intent-alignment
+    dimension: semantic
+    severity: major
+    route: neuronal
+    validated: false
+    semantic_criteria:
+      rule: "The unit's responsibilities match the role of its declared layer."
+      rubric:
+        pass: "Every responsibility in the file belongs to the role and kind of its declared layer, and agrees with any ADR prose given."
+        fail: "The file carries a responsibility that belongs to a different layer kind, for example persistence, transport or framework logic in a domain file, or business rules in an infrastructure or presentation file."
+        evidence_required: "Name the file and cite the function, method or statement that carries the misplaced responsibility, and the layer kind it belongs to."
+    enabled: false
+    reason: "not mined: rule mining proposes only the rules the code follows"
+
+default_exclude_paths:
+  - "node_modules/**"
+  - "dist/**"
+  - "**/*.spec.ts"
+  - "**/*.test.ts"
+
+scoring:
+  weights:
+    structural: 0.35
+    coupling: 0.20
+    pattern: 0.30
+    solid: 0.10
+    convention: 0.05
+
+  full_mode_weights:
+    structural: 0.32
+    coupling: 0.18
+    pattern: 0.27
+    solid: 0.10
+    convention: 0.05
+    semantic: 0.04
+    integrity: 0.04
+
+  thresholds:
+    pass: 0.80
+    warning: 0.65
+    soft_block: 0.50
+
+confidence_thresholds:
+  high: 0.85
+  medium: 0.60
+  icc_minimum: 0.70
