@@ -1,0 +1,2207 @@
+{
+  "set": "CHECK-2",
+  "exploratory": true,
+  "preRegistered": false,
+  "runs": 1,
+  "rater": "gemini via agy",
+  "model": "gemini-4-argon-high",
+  "cliVersion": "1.3.6",
+  "prompts": "check2-v2.2 (committed), persona JUDGE_V22_PERSONA prepended",
+  "textSha256": "1915fb117f43cb2d13d43675887a46fcb6f6546eda8f369034a1738501ce22c6",
+  "complete": true,
+  "verdicts": [
+    {
+      "itemId": "check2|base:clean-subscriptions|FF-N02|src/application/use-cases/CancelSubscription.ts",
+      "runs": [
+        {
+          "runIndex": 0,
+          "valid": true,
+          "pass": true,
+          "confidence": 0.99,
+          "violations": [],
+          "reasoning": "CancelSubscription is an application-layer use case whose constructor, method signature, error handling, and statements all belong to the application layer role and only depend on domain layer types (SubscriptionRepository and SubscriptionError) and language primitives."
+        }
+      ],
+      "verdict": "pass"
+    },
+    {
+      "itemId": "check2|base:clean-subscriptions|FF-N02|src/application/use-cases/StartSubscription.ts",
+      "runs": [
+        {
+          "runIndex": 0,
+          "valid": true,
+          "pass": true,
+          "confidence": 0.98,
+          "violations": [],
+          "reasoning": "The file src/application/use-cases/StartSubscription.ts is in the application layer and fulfills an application use-case role. Its constructor injects domain ports (SubscriptionRepository and PlanCatalog), its execute method accepts primitive parameters and returns an application DTO (SubscriptionSummary), and its implementation coordinates domain models (Subscription), domain errors (SubscriptionError), and domain ports without introducing any HTTP, transport, delivery, or infrastructure concerns."
+        }
+      ],
+      "verdict": "pass"
+    },
+    {
+      "itemId": "check2|base:clean-subscriptions|FF-N02|src/domain/model/Subscription.ts",
+      "runs": [
+        {
+          "runIndex": 0,
+          "valid": true,
+          "pass": true,
+          "confidence": 1,
+          "violations": [],
+          "reasoning": "All declarations in src/domain/model/Subscription.ts—the SubscriptionState union type and the Subscription class with its properties, constructor, and domain methods (start, resize, cancel)—embody pure domain logic and invariants appropriate for the domain layer. There are no transport/HTTP types, framework/ORM annotations, or direct I/O operations."
+        }
+      ],
+      "verdict": "pass"
+    },
+    {
+      "itemId": "check2|base:clean-subscriptions|FF-N02|src/infrastructure/http/SubscriptionController.ts",
+      "runs": [
+        {
+          "runIndex": 0,
+          "valid": true,
+          "pass": true,
+          "confidence": 1,
+          "violations": [],
+          "reasoning": "Every declaration in src/infrastructure/http/SubscriptionController.ts matches the role of the infrastructure layer. The file defines HTTP payload interfaces and a controller that wires and delegates directly to application-layer use cases (StartSubscription, ChangeSeats, CancelSubscription), which the infrastructure layer is permitted to depend on. It contains no business rules, domain invariants, or calculations. The candidate low-cohesion flag reflects standard per-endpoint use-case injection in a controller and does not violate layer responsibility."
+        }
+      ],
+      "verdict": "pass"
+    },
+    {
+      "itemId": "check2|base:clean-subscriptions|FF-N02|src/infrastructure/persistence/InMemorySubscriptionRepository.ts",
+      "runs": [
+        {
+          "runIndex": 0,
+          "valid": true,
+          "pass": true,
+          "confidence": 0.98,
+          "violations": [],
+          "reasoning": "InMemorySubscriptionRepository in src/infrastructure/persistence/InMemorySubscriptionRepository.ts is a persistence adapter in the infrastructure layer that implements the domain port SubscriptionRepository. All of its declarations, signatures, field types, and statements (storing and querying Subscription entities in an in-memory Map and generating persistence IDs) belong to the infrastructure layer role and only reference types from the domain layer, which infrastructure is allowed to depend on. It contains no business rules, domain invariants, or domain calculations."
+        }
+      ],
+      "verdict": "pass"
+    },
+    {
+      "itemId": "check2|base:ddd-insurance|FF-N02|src/claims/api/ClaimController.ts",
+      "runs": [
+        {
+          "runIndex": 0,
+          "valid": true,
+          "pass": true,
+          "confidence": 1,
+          "violations": [],
+          "reasoning": "All declarations, signatures, constructor dependencies, and method bodies in src/claims/api/ClaimController.ts belong to the presentation (api) layer. The controller defines a request DTO (FileClaimBody), wires application layer services (FileClaim and SettleClaim), converts the string date input to a Date, delegates to the application layer, and formats the response object. No business rules or misplaced responsibilities are present. The candidate clone flags merely reflect standard thin controller delegation and do not indicate a layer violation."
+        }
+      ],
+      "verdict": "pass"
+    },
+    {
+      "itemId": "check2|base:ddd-insurance|FF-N02|src/claims/application/FileClaim.ts",
+      "runs": [
+        {
+          "runIndex": 0,
+          "valid": true,
+          "pass": true,
+          "confidence": 1,
+          "violations": [],
+          "reasoning": "src/claims/application/FileClaim.ts belongs to the application layer and fulfills an application use-case orchestration role. Its constructor injects dependencies from its own layer (CoverageSource) and an allowed dependency layer (ClaimRepository in domain). Its method signature and implementation use only standard types and domain/application types (Claim, DomainError, ClaimRepository, CoverageSource), with no web, transport, or delivery-layer constructs."
+        }
+      ],
+      "verdict": "pass"
+    },
+    {
+      "itemId": "check2|base:ddd-insurance|FF-N02|src/claims/application/SettleClaim.ts",
+      "runs": [
+        {
+          "runIndex": 0,
+          "valid": true,
+          "pass": true,
+          "confidence": 1,
+          "violations": [],
+          "reasoning": "SettleClaim in src/claims/application/SettleClaim.ts is an application-layer use-case service that coordinates domain entities/value objects (Claim, Money, DomainError) and repository/port interfaces from the domain and application layers (ClaimRepository, CoverageSource). Its signatures, constructor dependencies, and orchestration logic strictly match the application layer role."
+        }
+      ],
+      "verdict": "pass"
+    },
+    {
+      "itemId": "check2|base:ddd-insurance|FF-N02|src/claims/domain/claim/Claim.ts",
+      "runs": [
+        {
+          "runIndex": 0,
+          "valid": true,
+          "pass": true,
+          "confidence": 1,
+          "violations": [],
+          "reasoning": "All declarations, types, parameters, return types, and statements in src/claims/domain/claim/Claim.ts represent pure domain concepts and business logic (Claim entity, ClaimStatus type, settle and decline domain behaviors) using only domain-layer types (Money, DomainError from shared-kernel). There are no misplaced responsibilities from other layers."
+        }
+      ],
+      "verdict": "pass"
+    },
+    {
+      "itemId": "check2|base:ddd-insurance|FF-N02|src/claims/infrastructure/InMemoryClaimRepository.ts",
+      "runs": [
+        {
+          "runIndex": 0,
+          "valid": true,
+          "pass": true,
+          "confidence": 1,
+          "violations": [],
+          "reasoning": "InMemoryClaimRepository is a concrete persistence implementation of the domain's ClaimRepository interface, which belongs in the infrastructure layer. Its fields, method signatures, and statements strictly handle storing and retrieving Claim instances without encoding any business rules or domain invariants."
+        }
+      ],
+      "verdict": "pass"
+    },
+    {
+      "itemId": "check2|base:ddd-insurance|FF-N02|src/policies/domain/policy/Coverage.ts",
+      "runs": [
+        {
+          "runIndex": 0,
+          "valid": true,
+          "pass": true,
+          "confidence": 1,
+          "violations": [],
+          "reasoning": "The file src/policies/domain/policy/Coverage.ts defines a pure domain class Coverage with primitive properties (peril, limitCents, deductibleCents) and a standard constructor. It contains no framework or ORM annotations, transport/HTTP types, or I/O operations, fully matching the role of the domain layer."
+        }
+      ],
+      "verdict": "pass"
+    },
+    {
+      "itemId": "check2|base:hexagonal-parking|FF-N02|src/adapters/inbound/http/ReservationController.ts",
+      "runs": [
+        {
+          "runIndex": 0,
+          "valid": true,
+          "pass": true,
+          "confidence": 0.98,
+          "violations": [],
+          "reasoning": "ReservationController.ts is in the adapters-inbound (presentation) layer. Its declarations (ReserveBody and ReservationController) purely handle inbound request DTO definition, input parsing (converting body.from to Date), delegation to injected application-layer services/ports (ReserveSpotService and CancelReservation), and response shaping. It contains no business rules, domain invariants, or misplaced responsibilities."
+        }
+      ],
+      "verdict": "pass"
+    },
+    {
+      "itemId": "check2|base:hexagonal-parking|FF-N02|src/adapters/outbound/payment/CardPaymentAdapter.ts",
+      "runs": [
+        {
+          "runIndex": 0,
+          "valid": true,
+          "pass": true,
+          "confidence": 0.95,
+          "violations": [],
+          "reasoning": "CardPaymentAdapter is an outbound infrastructure adapter in layer adapters-outbound that implements the application outbound port PaymentPort. All declarations, parameter and return types, fields, and statements belong to the infrastructure adapter role of executing payment authorisation and refund operations behind the port interface."
+        }
+      ],
+      "verdict": "pass"
+    },
+    {
+      "itemId": "check2|base:hexagonal-parking|FF-N02|src/application/services/ReserveSpotService.ts",
+      "runs": [
+        {
+          "runIndex": 0,
+          "valid": true,
+          "pass": true,
+          "confidence": 0.98,
+          "violations": [],
+          "reasoning": "The file src/application/services/ReserveSpotService.ts is in the application layer and fulfills an application use-case orchestration role. Its class declaration, constructor dependencies (outbound ports from the application layer), method signature (primitives/Date parameters and an application-layer ReservationReceipt return type), and implementation statements (coordinating domain models Reservation and ParkingError with outbound ports) all belong to the application layer and its allowed dependency (domain). No delivery, HTTP, or infrastructure concerns are present."
+        }
+      ],
+      "verdict": "pass"
+    },
+    {
+      "itemId": "check2|base:hexagonal-parking|FF-N02|src/domain/model/Reservation.ts",
+      "runs": [
+        {
+          "runIndex": 0,
+          "valid": true,
+          "pass": true,
+          "confidence": 1,
+          "violations": [],
+          "reasoning": "The Reservation class in src/domain/model/Reservation.ts is a pure domain entity encapsulating reservation state, time-overlap calculations, and cancellation invariants using only built-in types and the domain-layer ParkingError. It contains no transport, framework, ORM, or I/O dependencies or annotations, matching the role of the domain layer."
+        }
+      ],
+      "verdict": "pass"
+    },
+    {
+      "itemId": "check2|base:hexagonal-parking|FF-N02|src/domain/model/Spot.ts",
+      "runs": [
+        {
+          "runIndex": 0,
+          "valid": true,
+          "pass": true,
+          "confidence": 1,
+          "violations": [],
+          "reasoning": "The Spot class in src/domain/model/Spot.ts is a pure domain model containing only domain state and a business calculation method (priceFor). It has no framework, ORM, transport, or I/O dependencies or annotations, fully matching the role of the domain layer."
+        }
+      ],
+      "verdict": "pass"
+    },
+    {
+      "itemId": "check2|base:layered-clinic|FF-N01|src/business/services",
+      "runs": [
+        {
+          "runIndex": 0,
+          "valid": true,
+          "pass": false,
+          "confidence": 0.98,
+          "violations": [
+            {
+              "filePath": "src/business/services/VisitNotesService.ts",
+              "message": "VisitNotesService bypasses the DAO/repository abstraction used by SchedulingService in src/business/services/SchedulingService.ts (PatientDao, AppointmentDao) by injecting PrismaService in its constructor and calling the ORM client directly in write() (this.prisma.visitNote.create) and notesFor() (this.prisma.visitNote.findMany), as well as defining the VisitNote interface inline instead of using domain entities."
+            }
+          ],
+          "reasoning": "The module src/business/services fails the rubric because its files do not use a consistent persistence boundary or abstraction. In src/business/services/SchedulingService.ts, SchedulingService accesses persistence through DAO abstractions (PatientDao and AppointmentDao injected into its constructor) and models domain concepts with entity classes (Appointment, Patient, Practitioner). In contrast, src/business/services/VisitNotesService.ts bypasses the DAO/repository boundary by injecting the ORM client wrapper PrismaService directly into VisitNotesService's constructor and issuing direct Prisma queries in VisitNotesService.write (this.prisma.visitNote.create) and VisitNotesService.notesFor (this.prisma.visitNote.findMany), while defining a plain VisitNote interface inline instead of using the module's entity and DAO abstractions."
+        }
+      ],
+      "verdict": "fail"
+    },
+    {
+      "itemId": "check2|base:layered-clinic|FF-N02|src/business/entities/Appointment.ts",
+      "runs": [
+        {
+          "runIndex": 0,
+          "valid": true,
+          "pass": true,
+          "confidence": 1,
+          "violations": [],
+          "reasoning": "Every declaration in src/business/entities/Appointment.ts belongs to the business (domain) layer. The AppointmentStatus type and Appointment class encapsulate domain state, calculations (endsAt, overlaps), and cancellation business invariants (cancel) throwing the domain-layer SchedulingError, with no transport, framework, ORM, or direct I/O concerns."
+        }
+      ],
+      "verdict": "pass"
+    },
+    {
+      "itemId": "check2|base:layered-clinic|FF-N02|src/business/services/SchedulingService.ts",
+      "runs": [
+        {
+          "runIndex": 0,
+          "valid": true,
+          "pass": true,
+          "confidence": 1,
+          "violations": [],
+          "reasoning": "All declarations, signatures, and statements in src/business/services/SchedulingService.ts belong to the domain role of the business layer. The service enforces domain scheduling invariants and coordinates domain entities (Patient, Practitioner, Appointment) and domain errors (SchedulingError), while delegating data access to injected DAOs (PatientDao, AppointmentDao) from the persistence layer, which the layer model explicitly allows the business layer to depend on."
+        }
+      ],
+      "verdict": "pass"
+    },
+    {
+      "itemId": "check2|base:layered-clinic|FF-N02|src/business/services/VisitNotesService.ts",
+      "runs": [
+        {
+          "runIndex": 0,
+          "valid": false
+        }
+      ],
+      "verdict": "invalid"
+    },
+    {
+      "itemId": "check2|base:layered-clinic|FF-N02|src/presentation/controllers/AppointmentsController.ts",
+      "runs": [
+        {
+          "runIndex": 0,
+          "valid": true,
+          "pass": true,
+          "confidence": 1,
+          "violations": [],
+          "reasoning": "All declarations in src/presentation/controllers/AppointmentsController.ts belong to the presentation layer role. BookingForm and NoteForm define presentation input shapes, and AppointmentsController coordinates request input adaptation, calls into the allowed business layer services (SchedulingService and VisitNotesService), and formats responses using AppointmentPresenter.present. No domain invariants, calculations, or misplaced layer responsibilities are present."
+        }
+      ],
+      "verdict": "pass"
+    },
+    {
+      "itemId": "check2|base:layered-fleet|FF-N01|src/business/services",
+      "runs": [
+        {
+          "runIndex": 0,
+          "valid": true,
+          "pass": false,
+          "confidence": 0.98,
+          "violations": [
+            {
+              "filePath": "src/business/services/MileageService.ts",
+              "message": "MileageService bypasses the module's repository and domain abstractions established in MaintenanceService (which uses VehicleTable, WorkOrderTable, and the Vehicle entity) by injecting PrismaService directly to call this.prisma.mileage.create in record() and this.prisma.mileage.findMany in averageDaily(), and by computing service-due logic (km - lastServiceKm >= SERVICE_INTERVAL_KM) on raw parameters in record() rather than using the Vehicle abstraction."
+            }
+          ],
+          "reasoning": "The module src/business/services fails to maintain a consistent abstraction and persistence boundary across its files. In src/business/services/MaintenanceService.ts, MaintenanceService reaches persistence through repository/table abstractions (VehicleTable and WorkOrderTable) and operates through domain model entities (Vehicle and WorkOrder). In contrast, src/business/services/MileageService.ts bypasses both the repository layer and domain model abstractions: MileageService injects the ORM client PrismaService directly in its constructor and executes direct Prisma queries in MileageService.record (this.prisma.mileage.create) and MileageService.averageDaily (this.prisma.mileage.findMany), while MileageService.record also bypasses the Vehicle entity and VehicleTable by accepting raw primitives (plate, km, lastServiceKm) and evaluating km - lastServiceKm >= SERVICE_INTERVAL_KM inline."
+        }
+      ],
+      "verdict": "fail"
+    },
+    {
+      "itemId": "check2|base:layered-fleet|FF-N02|src/business/model/Vehicle.ts",
+      "runs": [
+        {
+          "runIndex": 0,
+          "valid": true,
+          "pass": true,
+          "confidence": 1,
+          "violations": [],
+          "reasoning": "The file src/business/model/Vehicle.ts is in the business layer (kind: domain) and contains only a pure domain constant (SERVICE_INTERVAL_KM) and a pure domain model class (Vehicle) with business state and domain behavior. It contains no HTTP/transport types, framework or ORM annotations/types, or direct I/O."
+        }
+      ],
+      "verdict": "pass"
+    },
+    {
+      "itemId": "check2|base:layered-fleet|FF-N02|src/business/services/MaintenanceService.ts",
+      "runs": [
+        {
+          "runIndex": 0,
+          "valid": true,
+          "pass": true,
+          "confidence": 0.98,
+          "violations": [],
+          "reasoning": "MaintenanceService in src/business/services/MaintenanceService.ts belongs to the business (domain) layer. Its constructor parameters (VehicleTable and WorkOrderTable) come from the persistence layer, which the closed layered model explicitly permits business to depend on. Its methods (open, logHours, close, and private helpers vehicle and order) enforce domain rules and coordinate domain entities (Vehicle, WorkOrder) and domain errors (FleetError, declared in src/business/model/FleetError.ts) while delegating data access through the allowed persistence layer tables. No web/transport/delivery types, framework/ORM decorators or base classes, or disallowed direct I/O are present."
+        }
+      ],
+      "verdict": "pass"
+    },
+    {
+      "itemId": "check2|base:layered-fleet|FF-N02|src/business/services/MileageService.ts",
+      "runs": [
+        {
+          "runIndex": 0,
+          "valid": true,
+          "pass": true,
+          "confidence": 0.95,
+          "violations": [],
+          "reasoning": "MileageService in src/business/services/MileageService.ts belongs to the business layer (kind: domain), which the layer model explicitly permits to depend on the persistence layer (src/persistence/**). Its constructor parameter `prisma: PrismaService` is dependency wiring of a project-declared type from a layer (`persistence`) that `business` may depend on, which the rubric explicitly allows. The candidate flags (`name-behaviour/domain-does-io` at lines 8 and 13) do not constitute rubric violations: `MileageService.ts` does not itself create, import from a package, or obtain from a global accessor any database or ORM client, nor does it perform persistence through a layer it is forbidden to depend on. Under the rubric, calls to a class of a layer that this layer may depend on (`PrismaService` in `persistence`) are part of the layer's role and are not misplaced I/O. All method signatures and statements belong to the business layer's role."
+        }
+      ],
+      "verdict": "pass"
+    },
+    {
+      "itemId": "check2|base:layered-fleet|FF-N02|src/presentation/api/WorkshopController.ts",
+      "runs": [
+        {
+          "runIndex": 0,
+          "valid": true,
+          "pass": true,
+          "confidence": 1,
+          "violations": [],
+          "reasoning": "All declarations in src/presentation/api/WorkshopController.ts match the presentation layer role. The file defines input DTO interfaces and a controller class that wires services from the business layer (which presentation may depend on), delegates all domain operations to MaintenanceService and MileageService, and formats the outputs into response structures using workOrderJson. No business rules, domain invariants, or misplaced layer responsibilities are present."
+        }
+      ],
+      "verdict": "pass"
+    },
+    {
+      "itemId": "check2|base:layered-library|FF-N01|src/business/services",
+      "runs": [
+        {
+          "runIndex": 0,
+          "valid": true,
+          "pass": false,
+          "confidence": 0.98,
+          "violations": [
+            {
+              "filePath": "src/business/services/LoanHistoryService.ts",
+              "message": "LoanHistoryService bypasses the gateway abstraction used by LendingService (BookGateway, MemberGateway, LoanGateway) and reaches persistence directly via PrismaService (db) in constructor, note (this.db.loanEvent.create), and eventsOf (this.db.loanEvent.findMany)."
+            }
+          ],
+          "reasoning": "The module src/business/services does not maintain a consistent persistence boundary across its services. While LendingService in src/business/services/LendingService.ts reaches persistence through gateway abstractions (BookGateway, MemberGateway, LoanGateway), LoanHistoryService in src/business/services/LoanHistoryService.ts bypasses the gateway abstraction and injects PrismaService directly to issue ORM queries (this.db.loanEvent.create in note and this.db.loanEvent.findMany in eventsOf)."
+        }
+      ],
+      "verdict": "fail"
+    },
+    {
+      "itemId": "check2|base:layered-library|FF-N02|src/business/model/Member.ts",
+      "runs": [
+        {
+          "runIndex": 0,
+          "valid": true,
+          "pass": true,
+          "confidence": 1,
+          "violations": [],
+          "reasoning": "The Member class in src/business/model/Member.ts is a pure domain entity encapsulating member state and the borrowing eligibility business rule (canBorrow). It contains only primitive types and pure domain logic, fully matching the role of the business (domain) layer."
+        }
+      ],
+      "verdict": "pass"
+    },
+    {
+      "itemId": "check2|base:layered-library|FF-N02|src/business/services/LendingService.ts",
+      "runs": [
+        {
+          "runIndex": 0,
+          "valid": true,
+          "pass": true,
+          "confidence": 1,
+          "violations": [],
+          "reasoning": "All declarations, signatures, types, and statements in src/business/services/LendingService.ts belong to the business (domain) layer role. It encapsulates lending rules, loan lifecycle management, and overdue fine calculation using domain models (Book, Loan, Member) and domain errors (LendingError), while delegating persistence through injected gateways (BookGateway, MemberGateway, LoanGateway) from the persistence layer, which the business layer is permitted to depend on."
+        }
+      ],
+      "verdict": "pass"
+    },
+    {
+      "itemId": "check2|base:layered-library|FF-N02|src/business/services/LoanHistoryService.ts",
+      "runs": [
+        {
+          "runIndex": 0,
+          "valid": true,
+          "pass": true,
+          "confidence": 0.98,
+          "violations": [],
+          "reasoning": "LoanHistoryService and LoanEvent in src/business/services/LoanHistoryService.ts belong to the business layer (kind: domain), which the layer model permits to depend on the persistence layer (src/persistence/**). PrismaService is a project-declared type in src/persistence/PrismaService.ts rather than an external framework type, and injecting it via the constructor is valid dependency wiring from a layer that business may depend on. Although candidate flags report domain-does-io on lines 16 and 20 (this.db.loanEvent.create and this.db.loanEvent.findMany), the rubric specifies that direct I/O is a client that the file itself creates, imports from a package, or obtains from a global accessor, or persistence done through a layer that the layer model does not let this layer depend on, whereas calling a class of a layer that this layer may depend on is not misplaced I/O. No transport/HTTP types, framework decorators, or base classes are present."
+        }
+      ],
+      "verdict": "pass"
+    },
+    {
+      "itemId": "check2|base:layered-library|FF-N02|src/presentation/http/LoanController.ts",
+      "runs": [
+        {
+          "runIndex": 0,
+          "valid": true,
+          "pass": true,
+          "confidence": 0.98,
+          "violations": [],
+          "reasoning": "Every declaration, signature, and statement in src/presentation/http/LoanController.ts matches the role of the presentation layer. It defines request DTOs (LendRequest, ReturnRequest), delegates lending and loan-history operations to services in the business layer (LendingService, LoanHistoryService), formats responses using LoanView (renderLoan), and returns HttpResult objects with HTTP status codes. No business rules, domain calculations, or invariants are implemented in the controller."
+        }
+      ],
+      "verdict": "pass"
+    },
+    {
+      "itemId": "check2|base:layered-payroll|FF-N01|src/business/services",
+      "runs": [
+        {
+          "runIndex": 0,
+          "valid": true,
+          "pass": false,
+          "confidence": 0.98,
+          "violations": [
+            {
+              "filePath": "src/business/services/PayrollAuditService.ts",
+              "message": "PayrollAuditService bypasses the repository boundary used by PayrollService (EmployeeRepository, TimesheetRepository) and reaches persistence directly via PrismaService in constructor, calling this.prisma.payrollAudit.create in log() and this.prisma.payrollAudit.findMany in trail()."
+            }
+          ],
+          "reasoning": "The module src/business/services does not maintain a consistent persistence boundary across its services. While PayrollService (in src/business/services/PayrollService.ts) reaches persistence exclusively through repository abstractions (EmployeeRepository and TimesheetRepository), PayrollAuditService (in src/business/services/PayrollAuditService.ts) bypasses the repository abstraction by injecting PrismaService directly in its constructor and executing Prisma ORM queries (this.prisma.payrollAudit.create in log and this.prisma.payrollAudit.findMany in trail)."
+        }
+      ],
+      "verdict": "fail"
+    },
+    {
+      "itemId": "check2|base:layered-payroll|FF-N02|src/business/model/Employee.ts",
+      "runs": [
+        {
+          "runIndex": 0,
+          "valid": true,
+          "pass": true,
+          "confidence": 1,
+          "violations": [],
+          "reasoning": "The file src/business/model/Employee.ts is in the business layer (kind: domain). It defines only the Contract union type and the Employee domain entity class with primitive/domain fields and the pure business method overtimeEligible(). It contains no transport/delivery constructs, framework or ORM types/decorators, or direct I/O, fully matching the role of a domain layer file."
+        }
+      ],
+      "verdict": "pass"
+    },
+    {
+      "itemId": "check2|base:layered-payroll|FF-N02|src/business/services/PayrollService.ts",
+      "runs": [
+        {
+          "runIndex": 0,
+          "valid": true,
+          "pass": true,
+          "confidence": 1,
+          "violations": [],
+          "reasoning": "PayrollService in src/business/services/PayrollService.ts belongs to the business (domain) layer and encapsulates payroll domain logic (validating weekly hours, submitting and approving timesheets, and computing payslips). Its constructor injects EmployeeRepository and TimesheetRepository from the persistence layer, which the layer model explicitly allows the business layer to depend on. All method signatures, thrown errors, and statements use domain models and permitted repository calls, with no transport, presentation, framework, or unauthorized I/O concerns."
+        }
+      ],
+      "verdict": "pass"
+    },
+    {
+      "itemId": "check2|base:layered-payroll|FF-N02|src/presentation/handlers/PayrollController.ts",
+      "runs": [
+        {
+          "runIndex": 0,
+          "valid": true,
+          "pass": true,
+          "confidence": 1,
+          "violations": [],
+          "reasoning": "All declarations, signatures, dependencies, and statements in src/presentation/handlers/PayrollController.ts match the presentation layer role. The controller delegates business logic and audit logging to injected services from the business layer (which the presentation layer is permitted to depend on) and handles only payload unpacking and view/response formatting. No business rules, calculations, or domain invariants are present in the file."
+        }
+      ],
+      "verdict": "pass"
+    },
+    {
+      "itemId": "check2|base:layered-ticketing|FF-N01|src/business/logic",
+      "runs": [
+        {
+          "runIndex": 0,
+          "valid": true,
+          "pass": false,
+          "confidence": 0.95,
+          "violations": [
+            {
+              "filePath": "src/business/logic/GateLog.ts",
+              "message": "GateLog bypasses the repository/store boundary used by BoxOffice (EventStore, TicketStore) by injecting PrismaService directly and calling this.prisma.scan.create in scanned() and this.prisma.scan.findMany in busiestGate()."
+            }
+          ],
+          "reasoning": "Within src/business/logic, BoxOffice establishes the module's persistence boundary by accessing data through repository/store abstractions (EventStore and TicketStore) and working with domain types (Event and Ticket). GateLog in src/business/logic/GateLog.ts violates this consistent abstraction and boundary by injecting the ORM client wrapper PrismaService directly in its constructor and issuing raw Prisma queries (this.prisma.scan.create in scanned and this.prisma.scan.findMany in busiestGate), reaching persistence around the repository abstraction."
+        }
+      ],
+      "verdict": "fail"
+    },
+    {
+      "itemId": "check2|base:layered-ticketing|FF-N02|src/business/core/Event.ts",
+      "runs": [
+        {
+          "runIndex": 0,
+          "valid": true,
+          "pass": true,
+          "confidence": 1,
+          "violations": [],
+          "reasoning": "The Event class in src/business/core/Event.ts is a pure domain entity encapsulating event state, remaining seat calculation, and seat-selling business rules (capacity check and total price calculation). Its fields, constructor, method signatures, and thrown error (SoldOut from src/business/core/TicketingError.ts in the same business/domain layer) contain only domain logic and standard built-in types, with no transport/HTTP artifacts, framework/ORM annotations, or direct I/O."
+        }
+      ],
+      "verdict": "pass"
+    },
+    {
+      "itemId": "check2|base:layered-ticketing|FF-N02|src/business/logic/BoxOffice.ts",
+      "runs": [
+        {
+          "runIndex": 0,
+          "valid": true,
+          "pass": true,
+          "confidence": 1,
+          "violations": [],
+          "reasoning": "All declarations, method signatures, and statements in src/business/logic/BoxOffice.ts belong to the business (domain) layer role. Constructor injection of EventStore and TicketStore and calls to their methods are permitted because the layer model allows the business layer to depend on the persistence layer. Error and entity types (Event, Ticket, NotFound, TicketRejected) are project-declared domain types from src/business/core."
+        }
+      ],
+      "verdict": "pass"
+    },
+    {
+      "itemId": "check2|base:layered-ticketing|FF-N02|src/presentation/web/TicketController.ts",
+      "runs": [
+        {
+          "runIndex": 0,
+          "valid": true,
+          "pass": true,
+          "confidence": 1,
+          "violations": [],
+          "reasoning": "Every declaration in src/presentation/web/TicketController.ts belongs to the presentation layer role. It defines request payload interfaces (BuyBody, ScanBody) and a controller class (TicketController) that wires dependencies from the allowed business layer (BoxOffice, GateLog), delegates business operations to them, and formats the responses for presentation using euros(). No domain invariants, calculations, or business decisions are implemented in this file."
+        }
+      ],
+      "verdict": "pass"
+    },
+    {
+      "itemId": "check2|base:layered-warehouse|FF-N01|src/business/services",
+      "runs": [
+        {
+          "runIndex": 0,
+          "valid": true,
+          "pass": false,
+          "confidence": 0.95,
+          "violations": [
+            {
+              "filePath": "src/business/services/CycleCountService.ts",
+              "message": "CycleCountService (constructor, count, openDiscrepancies) reaches persistence directly via PrismaService (this.prisma.stockCount.create and this.prisma.stockCount.findMany) instead of a table/repository abstraction like BinTable and ItemTable used in src/business/services/ReceivingService.ts, bypasses the Bin domain abstraction, and duplicates the discrepancy calculation across count and openDiscrepancies."
+            }
+          ],
+          "reasoning": "The module src/business/services does not maintain a consistent persistence boundary or abstraction across its files. In src/business/services/ReceivingService.ts, ReceivingService (via constructor, receive, pick, item, and bin) accesses persistence through table repository abstractions (ItemTable and BinTable) and enforces domain rules through domain abstractions (Bin, Item, and StockError). In contrast, in src/business/services/CycleCountService.ts, CycleCountService injects the ORM client wrapper PrismaService directly in its constructor and executes raw Prisma queries (this.prisma.stockCount.create in count and this.prisma.stockCount.findMany in openDiscrepancies), reaching persistence around the table/repository boundary and bypassing the domain abstractions. Additionally, CycleCountService writes out the discrepancy rule (comparing counted and expected and computing counted - expected) in two places: count and openDiscrepancies."
+        }
+      ],
+      "verdict": "fail"
+    },
+    {
+      "itemId": "check2|base:layered-warehouse|FF-N02|src/business/services/ReceivingService.ts",
+      "runs": [
+        {
+          "runIndex": 0,
+          "valid": true,
+          "pass": true,
+          "confidence": 1,
+          "violations": [],
+          "reasoning": "ReceivingService in src/business/services/ReceivingService.ts belongs to the business (domain) layer, which is permitted by the layer model to depend on the persistence layer. Its constructor injects ItemTable and BinTable from the persistence layer, which is valid dependency wiring into an allowed dependency layer. Its method signatures, return types, thrown errors (StockError), and domain entities (Bin, Item) are all domain-level declarations with no transport/HTTP types, framework/ORM annotations, or direct external I/O clients. Calls to ItemTable and BinTable are calls into a layer that business may depend on and therefore belong to its role under the rubric."
+        }
+      ],
+      "verdict": "pass"
+    },
+    {
+      "itemId": "check2|base:layered-warehouse|FF-N02|src/business/stock/Item.ts",
+      "runs": [
+        {
+          "runIndex": 0,
+          "valid": true,
+          "pass": true,
+          "confidence": 1,
+          "violations": [],
+          "reasoning": "The Item class in src/business/stock/Item.ts is a pure domain model encapsulating stock item attributes and the reorder threshold business rule. It contains no HTTP/transport artifacts, framework/ORM decorators or types, or direct I/O, fully matching the responsibilities of the business (domain) layer."
+        }
+      ],
+      "verdict": "pass"
+    },
+    {
+      "itemId": "check2|base:layered-warehouse|FF-N02|src/presentation/controllers/StockController.ts",
+      "runs": [
+        {
+          "runIndex": 0,
+          "valid": true,
+          "pass": true,
+          "confidence": 0.98,
+          "violations": [],
+          "reasoning": "StockController in src/presentation/controllers/StockController.ts belongs to the presentation layer and adheres strictly to presentation responsibilities. Its constructor wires dependencies from the business layer (ReceivingService and CycleCountService), which the layer model allows presentation to depend on. Its methods (receive, pick, count) accept presentation DTOs, delegate all business logic to the injected business services, and map the returned results into presentation response shapes. No business rules, domain invariants, or misplaced layer responsibilities are present."
+        }
+      ],
+      "verdict": "pass"
+    },
+    {
+      "itemId": "check2|base:nestjs-courses|FF-N01|src/enrolments#application",
+      "runs": [
+        {
+          "runIndex": 0,
+          "valid": true,
+          "pass": true,
+          "confidence": 0.95,
+          "violations": [],
+          "reasoning": "The unit `src/enrolments#application` consists of a single file, `src/enrolments/enrolments.service.ts`, defining `EnrolmentsService`. All declarations in the file serve one cohesive concern: managing the student enrolment lifecycle (`enrol` and `withdraw`). Domain rules and mappings are kept in single shared places rather than duplicated—course hydration uses `toCourse` from `src/courses/courses.service.ts`, course capacity/admission rules are delegated to `course.admit()`, and withdrawal cooling-off rules are delegated to `enrolment.withinCoolingOff(new Date())`. Persistence is accessed consistently through the injected TypeORM `Repository<EnrolmentEntity>` and `Repository<CourseEntity>` abstractions without bypassing any module repository or port. The candidate `cohesion/broad-responsibility` flag (triggered because the class imports from `typeorm` plus three internal directories: `src/domain`, `src/persistence`, and `src/courses`) is not a violation, as all three dependencies directly support the single concern of enrolling and withdrawing students in courses."
+        }
+      ],
+      "verdict": "pass"
+    },
+    {
+      "itemId": "check2|base:nestjs-courses|FF-N02|src/courses/courses.service.ts",
+      "runs": [
+        {
+          "runIndex": 0,
+          "valid": true,
+          "pass": true,
+          "confidence": 1,
+          "violations": [],
+          "reasoning": "src/courses/courses.service.ts is declared in the application layer, which may depend on both domain and infrastructure layers. All declarations, signatures, decorators, and statements in the file belong to the application layer's role of orchestrating use cases (create, publish, catalogue) over domain types (Course, DomainError) and infrastructure persistence (CourseEntity, TypeORM Repository). No presentation or transport concerns (requests, responses, HTTP status codes, or HTTP exceptions) appear anywhere in the file."
+        }
+      ],
+      "verdict": "pass"
+    },
+    {
+      "itemId": "check2|base:nestjs-courses|FF-N02|src/domain/course.ts",
+      "runs": [
+        {
+          "runIndex": 0,
+          "valid": true,
+          "pass": true,
+          "confidence": 1,
+          "violations": [],
+          "reasoning": "The Course class in src/domain/course.ts is a pure domain entity that encapsulates course state and enrolment domain invariants (admit and release). It uses only primitive types and DomainError from the domain layer, with no framework, ORM, transport, or direct I/O dependencies or responsibilities."
+        }
+      ],
+      "verdict": "pass"
+    },
+    {
+      "itemId": "check2|base:nestjs-courses|FF-N02|src/enrolments/enrolments.controller.ts",
+      "runs": [
+        {
+          "runIndex": 0,
+          "valid": true,
+          "pass": true,
+          "confidence": 1,
+          "violations": [],
+          "reasoning": "EnrolmentsController in src/enrolments/enrolments.controller.ts belongs to the presentation layer and exclusively handles HTTP routing, request body extraction, delegation to the application service (EnrolmentsService), and response formatting. All referenced types (EnrolDto, EnrolmentsService from application; Enrolment from domain) belong to layers that presentation is allowed to depend on, and the controller contains no business logic or domain invariants."
+        }
+      ],
+      "verdict": "pass"
+    },
+    {
+      "itemId": "check2|base:nestjs-courses|FF-N02|src/enrolments/enrolments.service.ts",
+      "runs": [
+        {
+          "runIndex": 0,
+          "valid": true,
+          "pass": true,
+          "confidence": 0.98,
+          "violations": [],
+          "reasoning": "EnrolmentsService in src/enrolments/enrolments.service.ts belongs to the application layer, which in the declared NestJS layer model may depend on both domain and infrastructure. Its constructor injects repositories for infrastructure entities (EnrolmentEntity, CourseEntity), and its methods (enrol and withdraw) orchestrate application use cases using domain models (Enrolment, Course via toCourse) and throw DomainError without any HTTP/transport request, response, status code, or delivery-layer leakage. The candidate flag regarding broad responsibility simply reflects normal application-service orchestration across domain and infrastructure components."
+        }
+      ],
+      "verdict": "pass"
+    },
+    {
+      "itemId": "check2|clean-subscriptions__AP-FAT-CONTROLLERn|FF-N02|src/infrastructure/http/SubscriptionController.ts",
+      "runs": [
+        {
+          "runIndex": 0,
+          "valid": true,
+          "pass": true,
+          "confidence": 0.98,
+          "violations": [],
+          "reasoning": "SubscriptionController in src/infrastructure/http/SubscriptionController.ts belongs to the infrastructure layer and acts purely as an HTTP delivery adapter. It defines request payload shapes (StartBody, SeatsBody, CancelBody), wires application-layer use cases (StartSubscription, ChangeSeats, CancelSubscription) via constructor injection, and forwards parameters to those use cases without containing any business rules, domain invariants, or calculations. The LCOM4 candidate flag reflects standard per-endpoint use-case delegation rather than a misplaced layer responsibility."
+        }
+      ],
+      "verdict": "pass"
+    },
+    {
+      "itemId": "check2|clean-subscriptions__AP-FAT-CONTROLLER|FF-N02|src/application/use-cases/CancelSubscription.ts",
+      "runs": [
+        {
+          "runIndex": 0,
+          "valid": true,
+          "pass": true,
+          "confidence": 1,
+          "violations": [],
+          "reasoning": "CancelSubscription in src/application/use-cases/CancelSubscription.ts is an application-layer use case whose constructor, method signature, error handling, and statements strictly belong to the application layer role and only depend on domain layer types (SubscriptionRepository and SubscriptionError). No transport, HTTP, or infrastructure concerns are present."
+        }
+      ],
+      "verdict": "pass"
+    },
+    {
+      "itemId": "check2|clean-subscriptions__AP-FAT-CONTROLLER|FF-N02|src/infrastructure/http/SubscriptionController.ts",
+      "runs": [
+        {
+          "runIndex": 0,
+          "valid": true,
+          "pass": false,
+          "confidence": 0.95,
+          "violations": [
+            {
+              "filePath": "src/infrastructure/http/SubscriptionController.ts",
+              "message": "SubscriptionController.cancel (lines 36-42) encodes a domain invariant (`if (body.reason.trim().length < 3)`) and throws `SubscriptionError` from `../../domain/errors/SubscriptionError` (kind: domain); this business rule belongs in the domain or application layer (`CancelSubscription`), not in the infrastructure HTTP controller."
+            }
+          ],
+          "reasoning": "`src/infrastructure/http/SubscriptionController.ts` is declared in the `infrastructure` layer (kind: `infrastructure`). While `create` and `resize` merely delegate to application use cases (`StartSubscription`, `ChangeSeats`) and constructor parameters are valid dependency wiring, `SubscriptionController.cancel` (lines 36-42) directly enforces a business rule / domain invariant on the cancellation reason (`if (body.reason.trim().length < 3)`) and throws the domain error `SubscriptionError('invalid', 'Give a cancellation reason')` imported from `../../domain/errors/SubscriptionError` (kind: `domain`). Under the rubric, a domain invariant or decision in an infrastructure file that the domain or application layer should own is a misplaced responsibility. The low-cohesion candidate flag (LCOM4 over `create`, `resize`, `cancel`) reflects standard per-endpoint use-case delegation and is not a layer-responsibility violation."
+        }
+      ],
+      "verdict": "fail"
+    },
+    {
+      "itemId": "check2|clean-subscriptions__AP-FRAMEWORK-LEAKn|FF-N02|src/application/use-cases/StartSubscription.ts",
+      "runs": [
+        {
+          "runIndex": 0,
+          "valid": true,
+          "pass": true,
+          "confidence": 0.98,
+          "violations": [],
+          "reasoning": "StartSubscription in src/application/use-cases/StartSubscription.ts belongs to the application layer and fulfills an application use-case role: orchestrating domain ports (SubscriptionRepository, PlanCatalog), domain entities and errors (Subscription, SubscriptionError), and mapping to an application DTO (SubscriptionSummary). Although execute accepts an optional unused parameter context?: ExecuteContextDto, ExecuteContextDto is a plain interface declared within the application file itself (containing only readonly requestId?: string) rather than a request, response, or HTTP context from a web/transport package or delivery layer. All declarations, signatures, and statements match the role of the application layer."
+        }
+      ],
+      "verdict": "pass"
+    },
+    {
+      "itemId": "check2|clean-subscriptions__AP-FRAMEWORK-LEAK|FF-N02|src/application/use-cases/StartSubscription.ts",
+      "runs": [
+        {
+          "runIndex": 0,
+          "valid": true,
+          "pass": false,
+          "confidence": 1,
+          "violations": [
+            {
+              "filePath": "src/application/use-cases/StartSubscription.ts",
+              "message": "Method signature `StartSubscription.execute(customerId: string, planCode: string, seats: number, request?: Request)` in the application layer accepts an HTTP `Request` parameter imported from the `express` web package, which belongs to the infrastructure/delivery layer kind."
+            }
+          ],
+          "reasoning": "The file src/application/use-cases/StartSubscription.ts is in the application layer (kind: application), but the method signature StartSubscription.execute(customerId: string, planCode: string, seats: number, request?: Request) includes an optional parameter `request?: Request` imported from the `express` web/transport package. Under the rubric, a request type from a web or transport package in any method signature of an application file is a misplaced responsibility belonging to the infrastructure/delivery layer kind, even when the parameter is optional and unused."
+        }
+      ],
+      "verdict": "fail"
+    },
+    {
+      "itemId": "check2|clean-subscriptions__AP-PERSIST-IN-DOMAINn|FF-N02|src/domain/model/Subscription.ts",
+      "runs": [
+        {
+          "runIndex": 0,
+          "valid": true,
+          "pass": true,
+          "confidence": 1,
+          "violations": [],
+          "reasoning": "All declarations, signatures, fields, and statements in src/domain/model/Subscription.ts belong to the domain layer role. The Subscription class and SubscriptionState type model core subscription state and domain invariants (seat limits and state transitions) using only domain types (Plan, SubscriptionError) without any web/transport types, framework/ORM annotations, or direct I/O."
+        }
+      ],
+      "verdict": "pass"
+    },
+    {
+      "itemId": "check2|clean-subscriptions__AP-PERSIST-IN-DOMAIN|FF-N02|src/domain/model/Subscription.ts",
+      "runs": [
+        {
+          "runIndex": 0,
+          "valid": true,
+          "pass": false,
+          "confidence": 1,
+          "violations": [
+            {
+              "filePath": "src/domain/model/Subscription.ts",
+              "message": "Domain class Subscription and its field id carry ORM persistence mapping decorators @Entity() (line 7) and @Column() (line 9) from package 'typeorm', which belong to the infrastructure layer kind."
+            }
+          ],
+          "reasoning": "The file src/domain/model/Subscription.ts is in the domain layer (kind: domain), which must not carry any framework or ORM type, decorator, or base class such as persistence mapping, even when the class logic is pure. However, Subscription is decorated with @Entity() (line 7) and its id field is decorated with @Column() (line 9), both imported from the 'typeorm' ORM package (line 3). Persistence mapping decorators belong to the infrastructure layer kind, so the unit fails the rubric."
+        }
+      ],
+      "verdict": "fail"
+    },
+    {
+      "itemId": "check2|clean-subscriptions__MO-DF01n|FF-N02|src/infrastructure/persistence/InMemorySubscriptionRepository.ts",
+      "runs": [
+        {
+          "runIndex": 0,
+          "valid": true,
+          "pass": true,
+          "confidence": 0.98,
+          "violations": [],
+          "reasoning": "InMemorySubscriptionRepository in src/infrastructure/persistence/InMemorySubscriptionRepository.ts is an in-memory repository implementation belonging to the infrastructure layer. It implements the SubscriptionRepository port from the domain layer and only performs persistence storage, query filtering (byId, activeFor, save), and ID generation (nextId). Its use of domain types (Subscription, SubscriptionRepository, Plan) is allowed since infrastructure may depend on domain, and it contains no misplaced business rules, domain invariants, or calculations."
+        }
+      ],
+      "verdict": "pass"
+    },
+    {
+      "itemId": "check2|clean-subscriptions__MO-DF01|FF-N02|src/domain/model/Subscription.ts",
+      "runs": [
+        {
+          "runIndex": 0,
+          "valid": true,
+          "pass": false,
+          "confidence": 0.95,
+          "violations": [
+            {
+              "filePath": "src/domain/model/Subscription.ts",
+              "message": "Domain entity `Subscription` declares and instantiates `private readonly repo = new InMemorySubscriptionRepository();`, embedding a persistence implementation from `../../infrastructure/persistence/InMemorySubscriptionRepository` (`infrastructure` layer kind) inside the `domain` layer."
+            }
+          ],
+          "reasoning": "The file `src/domain/model/Subscription.ts` is in the `domain` layer (kind `domain`, which may depend on no other layer), but `Subscription` declares the field `private readonly repo = new InMemorySubscriptionRepository();`. This declaration holds and directly instantiates `InMemorySubscriptionRepository` from `../../infrastructure/persistence/InMemorySubscriptionRepository` (`src/infrastructure/persistence/InMemorySubscriptionRepository.ts`), a persistence implementation belonging to the `infrastructure` layer kind. Under the rubric, every declaration (including field types and statements) must belong to the role and kind of its declared layer, and a domain file fails when it carries or creates persistence/I/O objects from a layer that the layer model does not allow `domain` to depend on, regardless of whether it is invoked at run time."
+        }
+      ],
+      "verdict": "fail"
+    },
+    {
+      "itemId": "check2|ddd-insurance__AP-FAT-CONTROLLERn|FF-N02|src/claims/api/ClaimController.ts",
+      "runs": [
+        {
+          "runIndex": 0,
+          "valid": true,
+          "pass": true,
+          "confidence": 1,
+          "violations": [],
+          "reasoning": "All declarations in src/claims/api/ClaimController.ts belong to the presentation (api) layer role. FileClaimBody defines the request payload shape, and ClaimController wires allowed application-layer services (FileClaim and SettleClaim) and delegates to them after basic input unpacking/parsing and response formatting. No business rules, domain invariants, or misplaced responsibilities exist in the file. The candidate cross-component near-clone flags reflect standard thin controller delegation and do not violate layer responsibilities."
+        }
+      ],
+      "verdict": "pass"
+    },
+    {
+      "itemId": "check2|ddd-insurance__AP-FAT-CONTROLLER|FF-N02|src/claims/api/ClaimController.ts",
+      "runs": [
+        {
+          "runIndex": 0,
+          "valid": true,
+          "pass": false,
+          "confidence": 0.95,
+          "violations": [
+            {
+              "filePath": "src/claims/api/ClaimController.ts",
+              "message": "Method `ClaimController.file` (lines 18-24) enforces a domain invariant in a presentation (`api`) file via `if (body.claimedCents <= 0) { throw new DomainError('invalid', 'The claimed amount must be positive'); }` (lines 19-21), throwing `DomainError` from `../../shared-kernel/DomainError` (layer `domain`); this business rule belongs to the `domain` or `application` layer kind."
+            }
+          ],
+          "reasoning": "`src/claims/api/ClaimController.ts` is declared in the `api` layer (kind `presentation`). While its constructor wiring (`FileClaim`, `SettleClaim` from the `application` layer) and `settle` method only delegate to application services, `ClaimController.file` (lines 18-24) directly enforces a domain invariant (`if (body.claimedCents <= 0) { throw new DomainError('invalid', 'The claimed amount must be positive'); }`, lines 19-21) using `DomainError` from `../../shared-kernel/DomainError` (layer `domain`). Per the rubric, a presentation file fails when it contains a business rule (domain invariant) that the `domain` or `application` layer should own."
+        }
+      ],
+      "verdict": "fail"
+    },
+    {
+      "itemId": "check2|ddd-insurance__AP-FAT-CONTROLLER|FF-N02|src/claims/application/FileClaim.ts",
+      "runs": [
+        {
+          "runIndex": 0,
+          "valid": true,
+          "pass": true,
+          "confidence": 1,
+          "violations": [],
+          "reasoning": "src/claims/application/FileClaim.ts belongs to the application layer and fulfills an application use-case role. Its constructor wires dependencies from its own layer (CoverageSource) and an allowed dependency layer (ClaimRepository from domain). Its file method signature uses domain-appropriate primitive/Date types, orchestrates coverage verification via CoverageSource, instantiates the domain entity Claim, throws DomainError from shared-kernel (domain), and persists the claim via ClaimRepository without any transport, HTTP, or presentation concerns."
+        }
+      ],
+      "verdict": "pass"
+    },
+    {
+      "itemId": "check2|ddd-insurance__AP-FRAMEWORK-LEAKn|FF-N02|src/claims/application/SettleClaim.ts",
+      "runs": [
+        {
+          "runIndex": 0,
+          "valid": true,
+          "pass": true,
+          "confidence": 0.98,
+          "violations": [],
+          "reasoning": "All declarations in src/claims/application/SettleClaim.ts match the role and kind of the application layer. SettleClaim is an application service that coordinates a use case across the domain repository (ClaimRepository) and an application port (CoverageSource), delegating domain state transitions and calculations to the Claim aggregate and Money value object. SettleContextDto is a plain application-layer DTO defined in the same file rather than a transport/web package or delivery-layer type."
+        }
+      ],
+      "verdict": "pass"
+    },
+    {
+      "itemId": "check2|ddd-insurance__AP-FRAMEWORK-LEAK|FF-N02|src/claims/application/SettleClaim.ts",
+      "runs": [
+        {
+          "runIndex": 0,
+          "valid": true,
+          "pass": false,
+          "confidence": 1,
+          "violations": [
+            {
+              "filePath": "src/claims/application/SettleClaim.ts",
+              "message": "Method signature SettleClaim.settle(claimId: string, request?: Request): Promise<number> includes parameter request?: Request of type Request from package 'express', which belongs to the presentation layer kind rather than the application layer."
+            }
+          ],
+          "reasoning": "src/claims/application/SettleClaim.ts is declared in the application layer (kind: application), but its method signature SettleClaim.settle(claimId: string, request?: Request): Promise<number> accepts an optional request parameter of type Request imported from the 'express' web package. Under the rubric, an HTTP request type from a web or transport package belongs to the presentation/delivery layer kind and fails the rule when present in any method signature of an application file, even when optional and unused."
+        }
+      ],
+      "verdict": "fail"
+    },
+    {
+      "itemId": "check2|ddd-insurance__AP-PERSIST-IN-DOMAINn|FF-N02|src/policies/domain/policy/Coverage.ts",
+      "runs": [
+        {
+          "runIndex": 0,
+          "valid": true,
+          "pass": true,
+          "confidence": 1,
+          "violations": [],
+          "reasoning": "The Coverage class in src/policies/domain/policy/Coverage.ts represents a pure domain concept with only primitive types and domain logic, without any transport, framework, ORM, or direct I/O dependencies. It fully conforms to the domain layer role."
+        }
+      ],
+      "verdict": "pass"
+    },
+    {
+      "itemId": "check2|ddd-insurance__AP-PERSIST-IN-DOMAIN|FF-N02|src/policies/domain/policy/Coverage.ts",
+      "runs": [
+        {
+          "runIndex": 0,
+          "valid": true,
+          "pass": false,
+          "confidence": 1,
+          "violations": [
+            {
+              "filePath": "src/policies/domain/policy/Coverage.ts",
+              "message": "Domain class Coverage uses TypeORM persistence mapping decorators @Entity() (line 3) and @Column() on field peril (line 5) from package 'typeorm', which belong to the infrastructure layer kind."
+            }
+          ],
+          "reasoning": "The file src/policies/domain/policy/Coverage.ts is declared in the domain layer (kind: domain), which forbids any framework or ORM type, decorator, or base class such as persistence mapping, even when class logic is pure. However, class Coverage is decorated with @Entity() and its field peril is decorated with @Column(), both imported from the 'typeorm' ORM package. These persistence mapping decorators belong to the infrastructure layer kind."
+        }
+      ],
+      "verdict": "fail"
+    },
+    {
+      "itemId": "check2|ddd-insurance__MO-DF01n|FF-N02|src/claims/infrastructure/InMemoryClaimRepository.ts",
+      "runs": [
+        {
+          "runIndex": 0,
+          "valid": true,
+          "pass": true,
+          "confidence": 0.98,
+          "violations": [],
+          "reasoning": "InMemoryClaimRepository in src/claims/infrastructure/InMemoryClaimRepository.ts belongs to the infrastructure layer and fulfills an infrastructure role by providing an in-memory implementation of the domain's ClaimRepository interface (byId and save). Its references to domain types (Claim, ClaimRepository, Coverage) are permitted by the layer model (infrastructure may depend on domain), and it contains no business rules, domain invariants, calculations, or decisions that belong in the domain or application layers. Cross-context import rules are out of scope for this rule."
+        }
+      ],
+      "verdict": "pass"
+    },
+    {
+      "itemId": "check2|ddd-insurance__MO-DF01|FF-N02|src/claims/domain/claim/Claim.ts",
+      "runs": [
+        {
+          "runIndex": 0,
+          "valid": true,
+          "pass": false,
+          "confidence": 0.98,
+          "violations": [
+            {
+              "filePath": "src/claims/domain/claim/Claim.ts",
+              "message": "Class `Claim` in `src/claims/domain/claim/Claim.ts` (layer `domain`, kind `domain`) declares `private readonly repo = new InMemoryClaimRepository();`, directly instantiating `InMemoryClaimRepository` from `../../infrastructure/InMemoryClaimRepository` (`src/claims/infrastructure/InMemoryClaimRepository.ts`), which belongs to the `infrastructure` layer (kind `infrastructure`)."
+            }
+          ],
+          "reasoning": "The unit `src/claims/domain/claim/Claim.ts` is in the `domain` layer (kind `domain`), which may not depend on any other layer. Inside the `Claim` class, the field declaration `private readonly repo = new InMemoryClaimRepository();` directly instantiates and holds `InMemoryClaimRepository` from `../../infrastructure/InMemoryClaimRepository` (`src/claims/infrastructure/InMemoryClaimRepository.ts`), which belongs to the `infrastructure` layer (kind `infrastructure`). Directly creating and holding an infrastructure persistence repository inside a domain entity is a misplaced infrastructure/persistence responsibility in the domain layer."
+        }
+      ],
+      "verdict": "fail"
+    },
+    {
+      "itemId": "check2|hexagonal-parking__AP-FAT-CONTROLLERn|FF-N02|src/adapters/inbound/http/ReservationController.ts",
+      "runs": [
+        {
+          "runIndex": 0,
+          "valid": true,
+          "pass": true,
+          "confidence": 0.98,
+          "violations": [],
+          "reasoning": "ReservationController and ReserveBody in src/adapters/inbound/http/ReservationController.ts fulfill presentation/inbound-adapter responsibilities. The constructor wires dependencies from the application layer (ReserveSpotService and CancelReservation), which the layer model permits adapters-inbound to depend on. The reserve and cancel methods perform simple input deserialization and response formatting while delegating all business logic to the application layer. No business rules or misplaced layer responsibilities are present."
+        }
+      ],
+      "verdict": "pass"
+    },
+    {
+      "itemId": "check2|hexagonal-parking__AP-FAT-CONTROLLER|FF-N02|src/adapters/inbound/http/ReservationController.ts",
+      "runs": [
+        {
+          "runIndex": 0,
+          "valid": true,
+          "pass": false,
+          "confidence": 0.98,
+          "violations": [
+            {
+              "filePath": "src/adapters/inbound/http/ReservationController.ts",
+              "message": "Presentation controller method `ReservationController.reserve` enforces a domain invariant (`if (body.hours < 1 || body.hours > 24)`) and throws domain error `ParkingError` (from `../../../domain/errors/ParkingError`), which is a business rule belonging to the `domain` (or `application`) layer kind."
+            }
+          ],
+          "reasoning": "`src/adapters/inbound/http/ReservationController.ts` is declared in the `adapters-inbound` layer (`presentation` kind), but its `ReservationController.reserve` method directly enforces a domain invariant / business rule (`if (body.hours < 1 || body.hours > 24)`) and throws a domain error (`new ParkingError('invalid', 'Reservations last between 1 and 24 hours')` from `src/domain/errors/ParkingError.ts`). Under the rubric, a presentation file fails when it contains a business rule or domain invariant that the domain or application layer should own."
+        }
+      ],
+      "verdict": "fail"
+    },
+    {
+      "itemId": "check2|hexagonal-parking__AP-FAT-CONTROLLER|FF-N02|src/application/services/ReserveSpotService.ts",
+      "runs": [
+        {
+          "runIndex": 0,
+          "valid": true,
+          "pass": true,
+          "confidence": 1,
+          "violations": [],
+          "reasoning": "ReserveSpotService in the application layer exclusively performs use-case orchestration using application-layer inbound/outbound ports (ReserveSpot, ReservationReceipt, SpotRepository, ReservationRepository, PaymentPort) and domain-layer types (Reservation, ParkingError). It contains no HTTP, transport, delivery, or direct infrastructure responsibilities."
+        }
+      ],
+      "verdict": "pass"
+    },
+    {
+      "itemId": "check2|hexagonal-parking__AP-FRAMEWORK-LEAKn|FF-N02|src/application/services/ReserveSpotService.ts",
+      "runs": [
+        {
+          "runIndex": 0,
+          "valid": true,
+          "pass": true,
+          "confidence": 0.98,
+          "violations": [],
+          "reasoning": "All declarations, signatures, constructor dependencies, and orchestration logic in src/application/services/ReserveSpotService.ts belong to the application layer role and only depend on application ports and domain models/errors. Although reserve() accepts an optional context?: ReserveContextDto containing requestId, ReserveContextDto is declared locally within the application layer rather than imported from a web/transport package or delivery layer, so it does not violate the layer responsibility rule."
+        }
+      ],
+      "verdict": "pass"
+    },
+    {
+      "itemId": "check2|hexagonal-parking__AP-FRAMEWORK-LEAK|FF-N02|src/application/services/ReserveSpotService.ts",
+      "runs": [
+        {
+          "runIndex": 0,
+          "valid": true,
+          "pass": false,
+          "confidence": 1,
+          "violations": [
+            {
+              "filePath": "src/application/services/ReserveSpotService.ts",
+              "message": "Method signature `ReserveSpotService.reserve(..., request?: Request)` includes an HTTP `Request` parameter imported from the `'express'` web package, which is a presentation/delivery layer concern and does not belong in the `application` layer (even when optional and unused)."
+            }
+          ],
+          "reasoning": "`src/application/services/ReserveSpotService.ts` belongs to the `application` layer (kind: `application`), but the signature of `ReserveSpotService.reserve` includes an optional parameter `request?: Request` imported from `'express'`. Per the rubric, an application file fails if any method or function signature includes a request type from a web or transport package (belonging to the presentation/delivery layer kind), even when the parameter is optional or unused."
+        }
+      ],
+      "verdict": "fail"
+    },
+    {
+      "itemId": "check2|hexagonal-parking__AP-PERSIST-IN-DOMAINn|FF-N02|src/domain/model/Spot.ts",
+      "runs": [
+        {
+          "runIndex": 0,
+          "valid": true,
+          "pass": true,
+          "confidence": 1,
+          "violations": [],
+          "reasoning": "The file src/domain/model/Spot.ts defines a pure domain model class (Spot) encapsulating domain state and pricing calculation logic. It contains no HTTP/transport concerns, framework or ORM types/decorators, or direct I/O, matching the role of the domain layer."
+        }
+      ],
+      "verdict": "pass"
+    },
+    {
+      "itemId": "check2|hexagonal-parking__AP-PERSIST-IN-DOMAIN|FF-N02|src/domain/model/Spot.ts",
+      "runs": [
+        {
+          "runIndex": 0,
+          "valid": true,
+          "pass": false,
+          "confidence": 1,
+          "violations": [
+            {
+              "filePath": "src/domain/model/Spot.ts",
+              "message": "Domain class Spot uses ORM persistence-mapping decorators @Entity() (line 3) and @Column() on field 'code' (line 5) from package 'typeorm', which belong to the infrastructure layer kind."
+            }
+          ],
+          "reasoning": "The file src/domain/model/Spot.ts is declared in the 'domain' layer (kind: domain), which must not carry any framework or ORM types, decorators, or base classes, even when the class logic is pure. Spot is decorated with @Entity() (line 3) and its 'code' field is decorated with @Column() (line 5), both imported from the 'typeorm' ORM package. These persistence-mapping decorators belong to the infrastructure layer kind (adapters-outbound) and violate the layer role rule in a domain file."
+        }
+      ],
+      "verdict": "fail"
+    },
+    {
+      "itemId": "check2|hexagonal-parking__MO-DF01n|FF-N02|src/adapters/outbound/payment/CardPaymentAdapter.ts",
+      "runs": [
+        {
+          "runIndex": 0,
+          "valid": true,
+          "pass": true,
+          "confidence": 0.98,
+          "violations": [],
+          "reasoning": "CardPaymentAdapter in src/adapters/outbound/payment/CardPaymentAdapter.ts is declared in the adapters-outbound layer (kind: infrastructure), which is permitted to depend on the domain and application layers. Implementing PaymentPort (application) and referencing/instantiating Spot (domain) are calls/references into layers that the layer model allows this layer to depend on, which the rubric explicitly defines as part of the layer's role. The file contains no misplaced business rules, domain invariants, calculations, or decisions that belong to the domain or application layers."
+        }
+      ],
+      "verdict": "pass"
+    },
+    {
+      "itemId": "check2|hexagonal-parking__MO-DF01|FF-N02|src/domain/model/Reservation.ts",
+      "runs": [
+        {
+          "runIndex": 0,
+          "valid": true,
+          "pass": false,
+          "confidence": 0.98,
+          "violations": [
+            {
+              "filePath": "src/domain/model/Reservation.ts",
+              "message": "Domain entity `Reservation` declares `private readonly repo = new InMemorySpotRepository();`, directly instantiating and holding persistence class `InMemorySpotRepository` from `../../adapters/outbound/persistence/InMemorySpotRepository` (layer `adapters-outbound`, kind `infrastructure`), which is a persistence responsibility from a layer that `domain` may not depend on."
+            }
+          ],
+          "reasoning": "The file `src/domain/model/Reservation.ts` is in the `domain` layer (kind: `domain`, which may depend on no other layer), but its `Reservation` class declares the field `private readonly repo = new InMemorySpotRepository();`. `InMemorySpotRepository` originates from `../../adapters/outbound/persistence/InMemorySpotRepository` (`src/adapters/outbound/persistence/InMemorySpotRepository.ts`) in the `adapters-outbound` layer (kind: `infrastructure`). Directly instantiating and holding an outbound persistence repository adapter in a field declaration of a domain entity introduces an `infrastructure` persistence responsibility into a `domain` file, violating the rule and rubric even though the field is not invoked at run time."
+        }
+      ],
+      "verdict": "fail"
+    },
+    {
+      "itemId": "check2|layered-clinic__AP-FAT-CONTROLLERn|FF-N02|src/presentation/controllers/AppointmentsController.ts",
+      "runs": [
+        {
+          "runIndex": 0,
+          "valid": true,
+          "pass": true,
+          "confidence": 0.98,
+          "violations": [],
+          "reasoning": "All declarations in src/presentation/controllers/AppointmentsController.ts belong to the presentation layer role. BookingForm and NoteForm represent presentation input DTOs, and AppointmentsController coordinates request handling by converting input strings to Date, delegating business operations to SchedulingService and VisitNotesService (in the allowed business layer), and formatting responses via AppointmentPresenter. No business rules, domain invariants, or calculations are present in this controller."
+        }
+      ],
+      "verdict": "pass"
+    },
+    {
+      "itemId": "check2|layered-clinic__AP-FAT-CONTROLLER|FF-N02|src/business/services/SchedulingService.ts",
+      "runs": [
+        {
+          "runIndex": 0,
+          "valid": true,
+          "pass": true,
+          "confidence": 1,
+          "violations": [],
+          "reasoning": "SchedulingService in the business (domain) layer encapsulates scheduling business rules and workflows (booking validation, minor eligibility, daily capacity, slot overlap checks, and cancellation) using domain entities and domain errors. Its constructor wiring and persistence calls use PatientDao and AppointmentDao from the persistence layer, which the business layer is explicitly allowed to depend on under the closed layered model. No transport/HTTP types, framework decorators, or direct I/O clients are present."
+        }
+      ],
+      "verdict": "pass"
+    },
+    {
+      "itemId": "check2|layered-clinic__AP-FAT-CONTROLLER|FF-N02|src/presentation/controllers/AppointmentsController.ts",
+      "runs": [
+        {
+          "runIndex": 0,
+          "valid": true,
+          "pass": false,
+          "confidence": 0.98,
+          "violations": [
+            {
+              "filePath": "src/presentation/controllers/AppointmentsController.ts",
+              "message": "AppointmentsController.book enforces a domain invariant (`if (form.minutes < 10 || form.minutes > 120) { throw new SchedulingError('rejected', 'A visit lasts between 10 and 120 minutes'); }`, using `SchedulingError` from `src/business/errors/SchedulingError.ts`), which is a business rule belonging to the `domain` (`business`) layer kind rather than `presentation`."
+            }
+          ],
+          "reasoning": "`src/presentation/controllers/AppointmentsController.ts` is declared in the `presentation` layer (kind `presentation`), whose role is handling delivery inputs/outputs and delegating business operations to the `business` (`domain`) layer. However, `AppointmentsController.book` directly encodes and enforces a domain invariant on appointment duration (`if (form.minutes < 10 || form.minutes > 120) { throw new SchedulingError('rejected', 'A visit lasts between 10 and 120 minutes'); }`), even instantiating and throwing the domain error `SchedulingError` from `src/business/errors/SchedulingError.ts`. Per the rubric, a presentation file fails when it contains a business rule (a domain invariant, calculation, or decision that the domain layer should own)."
+        }
+      ],
+      "verdict": "fail"
+    },
+    {
+      "itemId": "check2|layered-clinic__AP-FRAMEWORK-LEAKn|FF-N02|src/business/services/VisitNotesService.ts",
+      "runs": [
+        {
+          "runIndex": 0,
+          "valid": true,
+          "pass": true,
+          "confidence": 0.98,
+          "violations": [],
+          "reasoning": "In the declared closed layered model, the `business` layer (kind: domain) is permitted to depend on the `persistence` layer (`src/persistence/**`). `VisitNotesService` injects `PrismaService` from `src/persistence/PrismaService.ts` via constructor dependency wiring and performs persistence operations through it. Under the rubric, constructor parameters typed from a layer the file may depend on are valid dependency wiring, a project-declared type is not a framework type regardless of name, and calls to a class of a layer that this layer may depend on are not misplaced I/O regardless of what that layer does behind it. Furthermore, `NotesForContextDto` is declared locally within `VisitNotesService.ts` rather than originating from a web/transport package or the presentation layer. Therefore, the candidate flags do not constitute violations, and the unit passes."
+        }
+      ],
+      "verdict": "pass"
+    },
+    {
+      "itemId": "check2|layered-clinic__AP-FRAMEWORK-LEAK|FF-N02|src/business/services/VisitNotesService.ts",
+      "runs": [
+        {
+          "runIndex": 0,
+          "valid": true,
+          "pass": false,
+          "confidence": 0.98,
+          "violations": [
+            {
+              "filePath": "src/business/services/VisitNotesService.ts",
+              "message": "Domain service method `VisitNotesService.notesFor(appointmentId: string, request?: Request): Promise<VisitNote[]>` (line 20) includes parameter `request?: Request` imported from web transport package `'express'` (line 2), carrying a presentation/delivery layer responsibility in a domain layer signature."
+            }
+          ],
+          "reasoning": "src/business/services/VisitNotesService.ts belongs to the 'business' layer (kind: domain), which may depend on the 'persistence' layer. In VisitNotesService, the method signature `async notesFor(appointmentId: string, request?: Request): Promise<VisitNote[]>` (line 20) accepts an optional parameter `request?: Request` where `Request` is imported from the web/transport package `'express'` (line 2), which belongs to the presentation/delivery layer kind. Per the rubric, an HTTP request type from a web or transport package in any method signature of a domain file is a violation even when the parameter is optional or unused. By contrast, the candidate flags for `this.prisma.visitNote.create` (lines 14-16) and `this.prisma.visitNote.findMany` (line 21) do not violate the rubric because `PrismaService` is a project-declared class in `src/persistence/PrismaService.ts` (layer `persistence`), which the `business` layer is permitted to depend on, and calls through an allowed layer dependency are not misplaced I/O."
+        }
+      ],
+      "verdict": "fail"
+    },
+    {
+      "itemId": "check2|layered-clinic__AP-PERSIST-IN-DOMAINn|FF-N02|src/business/entities/Appointment.ts",
+      "runs": [
+        {
+          "runIndex": 0,
+          "valid": true,
+          "pass": true,
+          "confidence": 1,
+          "violations": [],
+          "reasoning": "All declarations, signatures, field types, and statements in src/business/entities/Appointment.ts represent pure domain entity state and business rules (time calculation, overlap detection, cancellation policy) matching the domain role of the business layer, with no transport, framework, ORM, or direct I/O concerns."
+        }
+      ],
+      "verdict": "pass"
+    },
+    {
+      "itemId": "check2|layered-clinic__AP-PERSIST-IN-DOMAIN|FF-N02|src/business/entities/Appointment.ts",
+      "runs": [
+        {
+          "runIndex": 0,
+          "valid": true,
+          "pass": false,
+          "confidence": 1,
+          "violations": [
+            {
+              "filePath": "src/business/entities/Appointment.ts",
+              "message": "Domain entity Appointment uses ORM persistence mapping decorators @Entity() and @Column() from 'typeorm', which belong to the infrastructure layer kind rather than the domain layer kind."
+            }
+          ],
+          "reasoning": "The file src/business/entities/Appointment.ts belongs to the 'business' layer, which has the 'domain' layer kind. Although the class logic itself models domain behavior (appointment duration, overlap checking, and cancellation rules), the class Appointment is annotated with @Entity() and its id field is annotated with @Column(), both imported from the 'typeorm' ORM package. Under the rubric, a domain file fails if it carries any framework or ORM decorator (such as persistence mapping), even when the class logic is pure, because ORM persistence mapping belongs to the infrastructure layer kind."
+        }
+      ],
+      "verdict": "fail"
+    },
+    {
+      "itemId": "check2|layered-clinic__AP-REPO-BYPASSn|FF-N01|src/business/services",
+      "runs": [
+        {
+          "runIndex": 0,
+          "valid": true,
+          "pass": false,
+          "confidence": 0.98,
+          "violations": [
+            {
+              "filePath": "src/business/services/VisitNotesService.ts",
+              "message": "VisitNotesService bypasses the DAO/repository abstraction used by SchedulingService (PatientDao, AppointmentDao) and reaches persistence directly through the PrismaService ORM client in constructor(private readonly prisma: PrismaService), write() (calling this.prisma.visitNote.create), and notesFor() (calling prisma.visitNote.findMany)."
+            }
+          ],
+          "reasoning": "The services module does not use a consistent persistence boundary or abstraction. While SchedulingService in src/business/services/SchedulingService.ts accesses persistence through DAO abstractions (PatientDao and AppointmentDao) and domain entities, VisitNotesService in src/business/services/VisitNotesService.ts bypasses the DAO/repository pattern and uses the PrismaService ORM client directly via this.prisma.visitNote.create in write() and prisma.visitNote.findMany in notesFor()."
+        }
+      ],
+      "verdict": "fail"
+    },
+    {
+      "itemId": "check2|layered-clinic__AP-REPO-BYPASS|FF-N01|src/business/services",
+      "runs": [
+        {
+          "runIndex": 0,
+          "valid": true,
+          "pass": false,
+          "confidence": 0.98,
+          "violations": [
+            {
+              "filePath": "src/business/services/VisitNotesService.ts",
+              "message": "VisitNotesService breaks the module's persistence abstraction established in SchedulingService (which uses PatientDao and AppointmentDao) by injecting PrismaService to call this.prisma.visitNote.create directly in VisitNotesService.write, and by instantiating new PrismaClient() from @prisma/client to call prisma.visitNote.findMany directly in VisitNotesService.notesFor."
+            }
+          ],
+          "reasoning": "The module src/business/services fails the rubric because its files do not maintain a consistent abstraction and persistence boundary. While src/business/services/SchedulingService.ts (SchedulingService) mediates all persistence access through DAO abstractions (PatientDao and AppointmentDao) and uses domain entities, src/business/services/VisitNotesService.ts (VisitNotesService) bypasses the DAO boundary to query the ORM directly: VisitNotesService injects PrismaService and calls this.prisma.visitNote.create in VisitNotesService.write, and VisitNotesService.notesFor directly instantiates new PrismaClient() from @prisma/client to call prisma.visitNote.findMany."
+        }
+      ],
+      "verdict": "fail"
+    },
+    {
+      "itemId": "check2|layered-fleet__AP-FAT-CONTROLLERn|FF-N02|src/presentation/api/WorkshopController.ts",
+      "runs": [
+        {
+          "runIndex": 0,
+          "valid": true,
+          "pass": true,
+          "confidence": 1,
+          "violations": [],
+          "reasoning": "All declarations, signatures, dependencies, and statements in src/presentation/api/WorkshopController.ts belong to the presentation layer role. The controller defines input types, receives allowed business-layer services via constructor injection, delegates all business operations and calculations to those services, and formats the output for presentation without containing any business rules or domain invariants."
+        }
+      ],
+      "verdict": "pass"
+    },
+    {
+      "itemId": "check2|layered-fleet__AP-FAT-CONTROLLER|FF-N02|src/business/services/MaintenanceService.ts",
+      "runs": [
+        {
+          "runIndex": 0,
+          "valid": true,
+          "pass": true,
+          "confidence": 0.95,
+          "violations": [],
+          "reasoning": "All declarations, method signatures, domain logic, and dependencies in src/business/services/MaintenanceService.ts align with the role of the business (domain) layer. Its constructor injects VehicleTable and WorkOrderTable from the persistence layer, which the business layer is explicitly allowed to depend on, and all persistence operations are delegated through those permitted dependencies while domain invariants and state transitions are handled via domain models (Vehicle, WorkOrder, FleetError)."
+        }
+      ],
+      "verdict": "pass"
+    },
+    {
+      "itemId": "check2|layered-fleet__AP-FAT-CONTROLLER|FF-N02|src/presentation/api/WorkshopController.ts",
+      "runs": [
+        {
+          "runIndex": 0,
+          "valid": true,
+          "pass": false,
+          "confidence": 0.98,
+          "violations": [
+            {
+              "filePath": "src/presentation/api/WorkshopController.ts",
+              "message": "WorkshopController.openOrder contains a domain business rule (`if (input.estimatedHours <= 0 || input.estimatedHours > 40) { throw new FleetError('Estimates must be between 0 and 40 hours', 400); }`, using `FleetError` from `../../business/model/FleetError`), which is a domain invariant that belongs to the domain (`business`) layer rather than the `presentation` layer."
+            }
+          ],
+          "reasoning": "`src/presentation/api/WorkshopController.ts` is declared in the `presentation` layer (kind: `presentation`), whose role is handling presentation/delivery concerns and delegating domain operations to the `business` (domain) layer. However, `WorkshopController.openOrder` directly enforces a domain business rule/invariant (`if (input.estimatedHours <= 0 || input.estimatedHours > 40)`) and throws the domain exception `FleetError` (originating from `../../business/model/FleetError` in the `business` layer). Enforcing the 0-to-40 hour estimate cap is a domain invariant that belongs to the `domain` layer kind (`business` layer, such as `MaintenanceService` or a domain model), not the `presentation` layer."
+        }
+      ],
+      "verdict": "fail"
+    },
+    {
+      "itemId": "check2|layered-fleet__AP-FRAMEWORK-LEAKn|FF-N02|src/business/services/MileageService.ts",
+      "runs": [
+        {
+          "runIndex": 0,
+          "valid": true,
+          "pass": true,
+          "confidence": 0.98,
+          "violations": [],
+          "reasoning": "All declarations, signatures, types, and statements in src/business/services/MileageService.ts conform to the role of the business (domain) layer under the project's layered model. In this architecture, the business layer is permitted to depend on the persistence layer (src/persistence/**). PrismaService is a project-declared class in src/persistence/PrismaService.ts injected via the constructor (lines 1, 5), which the rubric permits as dependency wiring and not a framework type. The candidate flags at lines 8 and 13 (this.prisma.mileage.create and this.prisma.mileage.findMany) do not constitute violations because the file does not create, import from a package, or obtain from a global accessor any database or ORM client itself; instead, it accesses persistence through PrismaService in the persistence layer, which the rubric explicitly allows ('A call to a class or interface of a layer that this layer may depend on is not misplaced I/O, whatever that layer does behind it'). Furthermore, the optional parameter context?: AverageDailyContextDto in averageDaily (line 12) uses an interface declared within the same business file (lines 22-24) rather than a type from a web/transport package or the presentation layer."
+        }
+      ],
+      "verdict": "pass"
+    },
+    {
+      "itemId": "check2|layered-fleet__AP-FRAMEWORK-LEAK|FF-N02|src/business/services/MileageService.ts",
+      "runs": [
+        {
+          "runIndex": 0,
+          "valid": true,
+          "pass": false,
+          "confidence": 1,
+          "violations": [
+            {
+              "filePath": "src/business/services/MileageService.ts",
+              "message": "Method signature 'async averageDaily(plate: string, request?: Request): Promise<number>' (line 13) takes an optional HTTP 'Request' parameter imported from the 'express' web package (line 3), which belongs to the presentation/delivery layer kind and is not allowed in a domain ('business') layer file even when optional and unused."
+            }
+          ],
+          "reasoning": "src/business/services/MileageService.ts belongs to the 'business' layer (kind: domain), which may depend on 'persistence'. In method 'averageDaily(plate: string, request?: Request): Promise<number>' (line 13), the signature accepts an optional 'request?: Request' parameter imported from the 'express' web package (line 3). Per the rubric, a domain file fails if any method signature includes a request type from a web or transport package (belonging to the presentation/delivery layer kind), even when the parameter is optional or unused. By contrast, injecting 'PrismaService' from 'src/persistence/PrismaService.ts' and calling 'this.prisma.mileage.create' (line 9) and 'this.prisma.mileage.findMany' (line 14) are not violations because 'PrismaService' is a project-declared class in the 'persistence' layer, which the 'business' layer is allowed to depend on, and calls through an allowed layer dependency are not misplaced I/O under the rubric."
+        }
+      ],
+      "verdict": "fail"
+    },
+    {
+      "itemId": "check2|layered-fleet__AP-PERSIST-IN-DOMAINn|FF-N02|src/business/model/Vehicle.ts",
+      "runs": [
+        {
+          "runIndex": 0,
+          "valid": true,
+          "pass": true,
+          "confidence": 1,
+          "violations": [],
+          "reasoning": "All declarations in src/business/model/Vehicle.ts belong to the business (domain) layer. The file defines a domain constant (SERVICE_INTERVAL_KM) and a domain entity class (Vehicle) encapsulating vehicle state and domain rules (service interval calculation and service status transitions) with primitive field and signature types and no external dependencies, decorators, or I/O."
+        }
+      ],
+      "verdict": "pass"
+    },
+    {
+      "itemId": "check2|layered-fleet__AP-PERSIST-IN-DOMAIN|FF-N02|src/business/model/Vehicle.ts",
+      "runs": [
+        {
+          "runIndex": 0,
+          "valid": true,
+          "pass": false,
+          "confidence": 1,
+          "violations": [
+            {
+              "filePath": "src/business/model/Vehicle.ts",
+              "message": "Domain class Vehicle in layer business (kind: domain) uses ORM persistence mapping decorators @Entity() (line 5) and @Column() on property plate (line 7) from package 'typeorm', which belong to the infrastructure layer kind."
+            }
+          ],
+          "reasoning": "src/business/model/Vehicle.ts belongs to the business layer (kind: domain), but class Vehicle and its plate property carry ORM persistence mapping decorators @Entity() and @Column() imported from the 'typeorm' package. Per the rubric, any ORM decorator or persistence mapping in a domain file is a misplaced infrastructure responsibility, even when the class logic itself is pure."
+        }
+      ],
+      "verdict": "fail"
+    },
+    {
+      "itemId": "check2|layered-fleet__AP-REPO-BYPASSn|FF-N01|src/business/services",
+      "runs": [
+        {
+          "runIndex": 0,
+          "valid": true,
+          "pass": false,
+          "confidence": 0.95,
+          "violations": [
+            {
+              "filePath": "src/business/services/MileageService.ts",
+              "message": "MileageService (constructor, record, averageDaily) bypasses the table/repository abstraction used in MaintenanceService by injecting PrismaService directly and calling this.prisma.mileage.create and prisma.mileage.findMany, and record bypasses the Vehicle domain abstraction by computing km - lastServiceKm >= SERVICE_INTERVAL_KM directly on primitives."
+            }
+          ],
+          "reasoning": "The module src/business/services does not maintain a consistent abstraction and persistence boundary across its files. While MaintenanceService in src/business/services/MaintenanceService.ts interacts with persistence through table abstractions (VehicleTable, WorkOrderTable) and encapsulates domain rules within domain models (Vehicle, WorkOrder), MileageService in src/business/services/MileageService.ts injects PrismaService directly and issues raw ORM queries (this.prisma.mileage.create in record and prisma.mileage.findMany in averageDaily), bypassing the repository/table boundary and evaluating Vehicle service interval rules (SERVICE_INTERVAL_KM) directly on primitives."
+        }
+      ],
+      "verdict": "fail"
+    },
+    {
+      "itemId": "check2|layered-fleet__AP-REPO-BYPASS|FF-N01|src/business/services",
+      "runs": [
+        {
+          "runIndex": 0,
+          "valid": true,
+          "pass": false,
+          "confidence": 0.98,
+          "violations": [
+            {
+              "filePath": "src/business/services/MileageService.ts",
+              "message": "MileageService bypasses the persistence repository abstraction used in MaintenanceService (VehicleTable, WorkOrderTable): constructor and MileageService.record access the ORM directly via PrismaService (this.prisma.mileage.create), and MileageService.averageDaily directly instantiates PrismaClient from @prisma/client (new PrismaClient()) and calls prisma.mileage.findMany."
+            }
+          ],
+          "reasoning": "The module src/business/services does not maintain a consistent persistence boundary or abstraction across its files. In src/business/services/MaintenanceService.ts, MaintenanceService reaches persistence through repository/table abstractions (VehicleTable and WorkOrderTable) and works through domain entities (Vehicle and WorkOrder). In contrast, src/business/services/MileageService.ts bypasses this repository abstraction: MileageService injects PrismaService directly and calls the ORM client in MileageService.record (this.prisma.mileage.create), and MileageService.averageDaily bypasses even the injected PrismaService by directly instantiating PrismaClient from @prisma/client (const prisma = new PrismaClient()) and executing prisma.mileage.findMany."
+        }
+      ],
+      "verdict": "fail"
+    },
+    {
+      "itemId": "check2|layered-library__AP-FAT-CONTROLLERn|FF-N02|src/presentation/http/LoanController.ts",
+      "runs": [
+        {
+          "runIndex": 0,
+          "valid": true,
+          "pass": true,
+          "confidence": 0.98,
+          "violations": [],
+          "reasoning": "All declarations, types, constructor injections, and statements in src/presentation/http/LoanController.ts belong to the presentation layer role. The controller handles request/response shaping (LendRequest, ReturnRequest, HttpResult, renderLoan) and delegates domain operations to injected services from the business layer (LendingService and LoanHistoryService), which the layer model allows presentation to depend on. It contains no business rules, domain invariants, calculations, or domain decisions."
+        }
+      ],
+      "verdict": "pass"
+    },
+    {
+      "itemId": "check2|layered-library__AP-FAT-CONTROLLER|FF-N02|src/business/services/LendingService.ts",
+      "runs": [
+        {
+          "runIndex": 0,
+          "valid": true,
+          "pass": true,
+          "confidence": 1,
+          "violations": [],
+          "reasoning": "Every declaration in src/business/services/LendingService.ts belongs to the role and kind of the business (domain) layer. It orchestrates domain models (Book, Loan, Member), enforces lending rules and fine calculations, throws a domain error (LendingError), and interacts with persistence only via injected gateways (BookGateway, MemberGateway, LoanGateway) from the persistence layer, which the closed layered model explicitly permits the business layer to depend on. There are no transport/HTTP types, framework/ORM annotations, or direct I/O clients."
+        }
+      ],
+      "verdict": "pass"
+    },
+    {
+      "itemId": "check2|layered-library__AP-FAT-CONTROLLER|FF-N02|src/presentation/http/LoanController.ts",
+      "runs": [
+        {
+          "runIndex": 0,
+          "valid": true,
+          "pass": false,
+          "confidence": 0.98,
+          "violations": [
+            {
+              "filePath": "src/presentation/http/LoanController.ts",
+              "message": "Method `LoanController.lend` contains the domain invariant statement `if (body.days < 1 || body.days > 60) { throw new LendingError('INVALID', 'A loan lasts between 1 and 60 days'); }` (using `LendingError` from `../../business/errors/LendingError`), which is a business rule belonging to the `domain` layer kind (`business` layer) rather than the `presentation` layer."
+            }
+          ],
+          "reasoning": "`src/presentation/http/LoanController.ts` is declared in the `presentation` layer (kind: `presentation`), which is responsible for HTTP request/response handling and delegating to `business` services. However, `LoanController.lend` directly implements a business rule (domain invariant) by checking `if (body.days < 1 || body.days > 60)` and throwing the domain error `new LendingError('INVALID', 'A loan lasts between 1 and 60 days')` (originating from `../../business/errors/LendingError` in the `business` layer). Enforcing domain invariants on loan duration belongs to the `domain` layer kind (`business` layer), not the `presentation` layer."
+        }
+      ],
+      "verdict": "fail"
+    },
+    {
+      "itemId": "check2|layered-library__AP-FRAMEWORK-LEAKn|FF-N02|src/business/services/LoanHistoryService.ts",
+      "runs": [
+        {
+          "runIndex": 0,
+          "valid": true,
+          "pass": true,
+          "confidence": 0.98,
+          "violations": [],
+          "reasoning": "In this layered architecture, the business layer (kind: domain) is permitted to depend on the persistence layer (kind: infrastructure). LoanHistoryService receives PrismaService (declared in src/persistence/PrismaService.ts) via constructor injection and performs persistence operations through it (this.db.loanEvent.create and this.db.loanEvent.findMany). Per the rubric, a project-declared type from an allowed dependency layer is not a framework type, constructor injection from an allowed layer is valid dependency wiring, and calls through a class of a layer that this layer may depend on are not misplaced I/O (refuting both candidate flags). Furthermore, EventsOfContextDto is declared locally in the business layer rather than originating from a web/transport package or the presentation layer. All declarations, signatures, and statements conform to the role of the business layer."
+        }
+      ],
+      "verdict": "pass"
+    },
+    {
+      "itemId": "check2|layered-library__AP-FRAMEWORK-LEAK|FF-N02|src/business/services/LoanHistoryService.ts",
+      "runs": [
+        {
+          "runIndex": 0,
+          "valid": true,
+          "pass": false,
+          "confidence": 1,
+          "violations": [
+            {
+              "filePath": "src/business/services/LoanHistoryService.ts",
+              "message": "Domain service method `LoanHistoryService.eventsOf(loanId: string, request?: Request): Promise<LoanEvent[]>` includes HTTP `Request` from package `express` (presentation/transport layer responsibility) in its parameter signature."
+            }
+          ],
+          "reasoning": "`src/business/services/LoanHistoryService.ts` belongs to the `business` layer (kind: `domain`). In `LoanHistoryService.eventsOf(loanId: string, request?: Request): Promise<LoanEvent[]>`, the method signature accepts an optional `request?: Request` parameter imported from the web/transport package `express`, which belongs to the presentation/delivery layer kind. Under the rubric, a domain file fails if any method signature includes a request type from a web or transport package, even when the parameter is optional or unused. By contrast, injecting `PrismaService` from `src/persistence/PrismaService.ts` and calling `this.db.loanEvent.create` and `this.db.loanEvent.findMany` are not violations under the rubric because `PrismaService` is a project-declared type in the `persistence` layer, which the `business` layer is permitted to depend on in the declared layer model."
+        }
+      ],
+      "verdict": "fail"
+    },
+    {
+      "itemId": "check2|layered-library__AP-PERSIST-IN-DOMAINn|FF-N02|src/business/model/Member.ts",
+      "runs": [
+        {
+          "runIndex": 0,
+          "valid": true,
+          "pass": true,
+          "confidence": 1,
+          "violations": [],
+          "reasoning": "The Member class in src/business/model/Member.ts is a pure domain model containing only domain properties and business rule methods (canBorrow, hasId) using primitive types, matching the role of the business (domain) layer."
+        }
+      ],
+      "verdict": "pass"
+    },
+    {
+      "itemId": "check2|layered-library__AP-PERSIST-IN-DOMAIN|FF-N02|src/business/model/Member.ts",
+      "runs": [
+        {
+          "runIndex": 0,
+          "valid": true,
+          "pass": false,
+          "confidence": 1,
+          "violations": [
+            {
+              "filePath": "src/business/model/Member.ts",
+              "message": "Domain class Member carries ORM persistence mapping decorators @Entity() (line 3) and @Column() on field id (line 5) from package 'typeorm', which belong to the infrastructure (persistence) layer kind."
+            }
+          ],
+          "reasoning": "The file src/business/model/Member.ts is in the business layer (kind: domain), which must not carry any framework or ORM type, decorator, or base class such as persistence mapping, even when the class logic is pure. In src/business/model/Member.ts, the class Member is decorated with @Entity() (line 3) and its id field is decorated with @Column() (line 5), both imported from the 'typeorm' ORM package. These persistence mapping decorators belong to the infrastructure (persistence) layer kind rather than the domain layer kind."
+        }
+      ],
+      "verdict": "fail"
+    },
+    {
+      "itemId": "check2|layered-library__AP-REPO-BYPASSn|FF-N01|src/business/services",
+      "runs": [
+        {
+          "runIndex": 0,
+          "valid": true,
+          "pass": false,
+          "confidence": 0.98,
+          "violations": [
+            {
+              "filePath": "src/business/services/LoanHistoryService.ts",
+              "message": "LoanHistoryService bypasses the gateway abstraction used in src/business/services/LendingService.ts (BookGateway, MemberGateway, LoanGateway) by injecting PrismaService directly in its constructor and executing ORM queries directly in note (db.loanEvent.create) and eventsOf (this.db.loanEvent.findMany)."
+            }
+          ],
+          "reasoning": "The module src/business/services does not maintain a consistent persistence boundary and abstraction across its files. In src/business/services/LendingService.ts, LendingService accesses persistence exclusively through gateway abstractions (BookGateway, MemberGateway, LoanGateway) and domain entities (Book, Loan, Member). In contrast, in src/business/services/LoanHistoryService.ts, LoanHistoryService bypasses the gateway abstraction (such as LoanGateway) and injects the ORM client wrapper PrismaService directly in its constructor, issuing direct Prisma queries via db.loanEvent.create in note() and this.db.loanEvent.findMany in eventsOf()."
+        }
+      ],
+      "verdict": "fail"
+    },
+    {
+      "itemId": "check2|layered-library__AP-REPO-BYPASS|FF-N01|src/business/services",
+      "runs": [
+        {
+          "runIndex": 0,
+          "valid": true,
+          "pass": false,
+          "confidence": 0.98,
+          "violations": [
+            {
+              "filePath": "src/business/services/LoanHistoryService.ts",
+              "message": "LoanHistoryService bypasses the module's gateway/repository boundary by injecting PrismaService directly (used in eventsOf via this.db.loanEvent.findMany) and instantiating PrismaClient from @prisma/client directly in note (calling db.loanEvent.create), whereas LendingService accesses persistence through gateway abstractions (BookGateway, MemberGateway, LoanGateway)."
+            }
+          ],
+          "reasoning": "The unit src/business/services fails the rubric because its files do not maintain a consistent persistence boundary and abstraction. While LendingService in src/business/services/LendingService.ts reaches persistence through gateway abstractions (BookGateway, MemberGateway, LoanGateway) and domain models (Book, Loan, Member), LoanHistoryService in src/business/services/LoanHistoryService.ts bypasses the gateway pattern entirely: its constructor injects PrismaService directly, LoanHistoryService.eventsOf executes ORM queries via this.db.loanEvent.findMany, and LoanHistoryService.note directly instantiates new PrismaClient() from @prisma/client to call db.loanEvent.create."
+        }
+      ],
+      "verdict": "fail"
+    },
+    {
+      "itemId": "check2|layered-payroll__AP-FAT-CONTROLLERn|FF-N02|src/presentation/handlers/PayrollController.ts",
+      "runs": [
+        {
+          "runIndex": 0,
+          "valid": true,
+          "pass": true,
+          "confidence": 0.98,
+          "violations": [],
+          "reasoning": "All declarations in src/presentation/handlers/PayrollController.ts match the presentation layer role. HoursPayload defines an input payload, PayrollController wires allowed business-layer services (PayrollService and PayrollAuditService), and its methods (submit, approve, export) only unpack inputs, delegate to the business layer, and format presentation responses (including formatting via payslipRow from the presentation layer). No domain invariants, calculations, or business decisions are present."
+        }
+      ],
+      "verdict": "pass"
+    },
+    {
+      "itemId": "check2|layered-payroll__AP-FAT-CONTROLLER|FF-N02|src/business/services/PayrollService.ts",
+      "runs": [
+        {
+          "runIndex": 0,
+          "valid": true,
+          "pass": true,
+          "confidence": 1,
+          "violations": [],
+          "reasoning": "PayrollService in src/business/services/PayrollService.ts belongs to the business (domain) layer and its responsibilities, method signatures, and statements match its declared layer role. It coordinates domain models (Employee, Timesheet, Payslip, UnknownRecordError) and delegates persistence calls to injected repositories (EmployeeRepository, TimesheetRepository) from the persistence layer, which the layer model explicitly permits the business layer to depend on. It contains no HTTP/transport types, framework/ORM decorators or types, or unauthorized direct I/O."
+        }
+      ],
+      "verdict": "pass"
+    },
+    {
+      "itemId": "check2|layered-payroll__AP-FAT-CONTROLLER|FF-N02|src/presentation/handlers/PayrollController.ts",
+      "runs": [
+        {
+          "runIndex": 0,
+          "valid": true,
+          "pass": false,
+          "confidence": 0.98,
+          "violations": [
+            {
+              "filePath": "src/presentation/handlers/PayrollController.ts",
+              "message": "PayrollController.submit (lines 18-21) enforces a domain invariant (`if (payload.hours < 0 || payload.hours > 80)`) and throws `PayrollRuleError` (from `../../business/model/PayrollRuleError`, `business` / `domain` layer), placing a `domain` layer business rule inside a `presentation` layer controller."
+            }
+          ],
+          "reasoning": "`src/presentation/handlers/PayrollController.ts` is in the `presentation` layer, but `PayrollController.submit` enforces a business rule / domain invariant (`payload.hours < 0 || payload.hours > 80`) and throws `PayrollRuleError` (from `src/business/model/PayrollRuleError.ts`, `business` / `domain` layer), which belongs to the `domain` layer."
+        }
+      ],
+      "verdict": "fail"
+    },
+    {
+      "itemId": "check2|layered-payroll__AP-FRAMEWORK-LEAKn|FF-N02|src/business/services/PayrollService.ts",
+      "runs": [
+        {
+          "runIndex": 0,
+          "valid": true,
+          "pass": true,
+          "confidence": 0.98,
+          "violations": [],
+          "reasoning": "All declarations, signatures, types, and statements in src/business/services/PayrollService.ts match the role of the business (domain) layer. The service coordinates domain models and domain invariants while delegating persistence operations through injected repositories from the persistence layer, which the business layer is permitted to depend on under the declared layer model. No framework/ORM decorators or types, direct I/O clients, or transport/presentation layer types appear in the file."
+        }
+      ],
+      "verdict": "pass"
+    },
+    {
+      "itemId": "check2|layered-payroll__AP-FRAMEWORK-LEAK|FF-N02|src/business/services/PayrollService.ts",
+      "runs": [
+        {
+          "runIndex": 0,
+          "valid": true,
+          "pass": false,
+          "confidence": 1,
+          "violations": [
+            {
+              "filePath": "src/business/services/PayrollService.ts",
+              "message": "Method signature 'async run(week: string, request?: Request): Promise<Payslip[]>' in domain layer class PayrollService takes parameter 'request?: Request' from web package 'express', which belongs to the presentation layer kind."
+            }
+          ],
+          "reasoning": "PayrollService is declared in the business layer (kind: domain). While its constructor injection and calls to EmployeeRepository and TimesheetRepository in the persistence layer are permitted because the business layer may depend on persistence, the method signature PayrollService.run(week: string, request?: Request): Promise<Payslip[]> includes an optional parameter of type Request imported from the 'express' web package. Under the rubric, a domain file fails if any method signature includes a request type from a web or transport package (which belongs to the presentation/delivery layer kind), even when the parameter is optional or unused."
+        }
+      ],
+      "verdict": "fail"
+    },
+    {
+      "itemId": "check2|layered-payroll__AP-PERSIST-IN-DOMAINn|FF-N02|src/business/model/Employee.ts",
+      "runs": [
+        {
+          "runIndex": 0,
+          "valid": true,
+          "pass": true,
+          "confidence": 1,
+          "violations": [],
+          "reasoning": "All declarations in src/business/model/Employee.ts belong to the business (domain) layer. The Contract union type and Employee class encapsulate pure domain state and domain behavior (overtimeEligible, hasId) using only built-in TypeScript types, without any transport/HTTP constructs, framework or ORM annotations/types, or direct I/O."
+        }
+      ],
+      "verdict": "pass"
+    },
+    {
+      "itemId": "check2|layered-payroll__AP-PERSIST-IN-DOMAIN|FF-N02|src/business/model/Employee.ts",
+      "runs": [
+        {
+          "runIndex": 0,
+          "valid": true,
+          "pass": false,
+          "confidence": 1,
+          "violations": [
+            {
+              "filePath": "src/business/model/Employee.ts",
+              "message": "Domain class Employee and its field id carry ORM persistence mapping decorators (@Entity and @Column) from the 'typeorm' package, which belong to the infrastructure layer kind."
+            }
+          ],
+          "reasoning": "The file src/business/model/Employee.ts is declared in the 'business' layer, which has the 'domain' layer kind. According to the rubric, a domain file fails if it carries any framework or ORM decorator (such as persistence mapping), even when the class logic is pure. In src/business/model/Employee.ts, the Employee class is annotated with the @Entity() decorator (line 5) and its id property is annotated with the @Column() decorator (line 7), both imported from the 'typeorm' ORM package. These persistence mapping decorators belong to the infrastructure layer kind and violate the domain layer's role."
+        }
+      ],
+      "verdict": "fail"
+    },
+    {
+      "itemId": "check2|layered-payroll__AP-REPO-BYPASSn|FF-N01|src/business/services",
+      "runs": [
+        {
+          "runIndex": 0,
+          "valid": true,
+          "pass": false,
+          "confidence": 0.98,
+          "violations": [
+            {
+              "filePath": "src/business/services/PayrollAuditService.ts",
+              "message": "PayrollAuditService bypasses the repository abstraction used by the module (PayrollService uses EmployeeRepository and TimesheetRepository) and reaches persistence directly by injecting PrismaService and calling prisma.payrollAudit.create in log() and this.prisma.payrollAudit.findMany in trail()."
+            }
+          ],
+          "reasoning": "The module src/business/services does not maintain a consistent persistence boundary and abstraction across its services. While PayrollService (in src/business/services/PayrollService.ts) accesses persistence through repository abstractions (EmployeeRepository and TimesheetRepository) and operates on domain models, PayrollAuditService (in src/business/services/PayrollAuditService.ts) bypasses the repository abstraction and reaches persistence directly by injecting PrismaService and invoking ORM query methods (prisma.payrollAudit.create in log and this.prisma.payrollAudit.findMany in trail)."
+        }
+      ],
+      "verdict": "fail"
+    },
+    {
+      "itemId": "check2|layered-payroll__AP-REPO-BYPASS|FF-N01|src/business/services",
+      "runs": [
+        {
+          "runIndex": 0,
+          "valid": true,
+          "pass": false,
+          "confidence": 0.98,
+          "violations": [
+            {
+              "filePath": "src/business/services/PayrollAuditService.ts",
+              "message": "PayrollAuditService bypasses the repository abstraction used by the module (PayrollService uses EmployeeRepository and TimesheetRepository) and reaches persistence directly via the ORM: its constructor injects PrismaService, trail() calls this.prisma.payrollAudit.findMany(), and log() instantiates new PrismaClient() directly to call prisma.payrollAudit.create()."
+            }
+          ],
+          "reasoning": "The unit src/business/services fails the rubric because PayrollAuditService reaches persistence directly through the Prisma ORM client rather than through a repository abstraction, breaking the module's abstraction and persistence boundary. While PayrollService in src/business/services/PayrollService.ts accesses persistence exclusively through EmployeeRepository and TimesheetRepository, PayrollAuditService in src/business/services/PayrollAuditService.ts injects PrismaService directly in its constructor, queries this.prisma.payrollAudit.findMany in PayrollAuditService.trail, and even bypasses the injected PrismaService in PayrollAuditService.log by instantiating a raw PrismaClient (new PrismaClient()) to call prisma.payrollAudit.create."
+        }
+      ],
+      "verdict": "fail"
+    },
+    {
+      "itemId": "check2|layered-ticketing__AP-FAT-CONTROLLERn|FF-N02|src/presentation/web/TicketController.ts",
+      "runs": [
+        {
+          "runIndex": 0,
+          "valid": true,
+          "pass": true,
+          "confidence": 1,
+          "violations": [],
+          "reasoning": "Every declaration, signature, parameter, return type, and statement in src/presentation/web/TicketController.ts matches the presentation layer role. The controller unpacks input DTOs (BuyBody, ScanBody), delegates domain operations to injected business-layer services (BoxOffice, GateLog), and formats results for presentation using the presentation-layer helper euros(). No business rules, domain invariants, calculations, or decisions are implemented in the controller."
+        }
+      ],
+      "verdict": "pass"
+    },
+    {
+      "itemId": "check2|layered-ticketing__AP-FAT-CONTROLLER|FF-N02|src/business/logic/BoxOffice.ts",
+      "runs": [
+        {
+          "runIndex": 0,
+          "valid": true,
+          "pass": true,
+          "confidence": 1,
+          "violations": [],
+          "reasoning": "Every declaration in src/business/logic/BoxOffice.ts belongs to the business (domain) layer role. Constructor parameters (EventStore, TicketStore) and persistence calls target the persistence layer, which the layer model explicitly allows business to depend on. All method signatures, return types, domain logic, and thrown errors (NotFound, TicketRejected from src/business/core/TicketingError.ts) are pure domain concepts with no transport, HTTP, framework, ORM, or unauthorized direct I/O concerns."
+        }
+      ],
+      "verdict": "pass"
+    },
+    {
+      "itemId": "check2|layered-ticketing__AP-FAT-CONTROLLER|FF-N02|src/presentation/web/TicketController.ts",
+      "runs": [
+        {
+          "runIndex": 0,
+          "valid": true,
+          "pass": false,
+          "confidence": 0.95,
+          "violations": [
+            {
+              "filePath": "src/presentation/web/TicketController.ts",
+              "message": "TicketController.buy enforces a domain invariant (`if (body.seats < 1 || body.seats > 8) { throw new TicketRejected('Between 1 and 8 seats per purchase'); }` using `TicketRejected` from `../../business/core/TicketingError`), placing a business rule in the presentation layer instead of the domain (`business`) layer."
+            }
+          ],
+          "reasoning": "`src/presentation/web/TicketController.ts` is declared in the `presentation` layer (kind: `presentation`), which should only handle delivery concerns and delegate business decisions to the `business` (domain) layer. However, `TicketController.buy` directly enforces a domain invariant—restricting purchases to between 1 and 8 seats (`if (body.seats < 1 || body.seats > 8)`) and throwing the domain error `TicketRejected` from `../../business/core/TicketingError`. Under the rubric, a presentation file containing a business rule (a domain invariant or decision that the domain layer should own) fails the rule."
+        }
+      ],
+      "verdict": "fail"
+    },
+    {
+      "itemId": "check2|layered-ticketing__AP-FRAMEWORK-LEAKn|FF-N02|src/business/logic/BoxOffice.ts",
+      "runs": [
+        {
+          "runIndex": 0,
+          "valid": true,
+          "pass": true,
+          "confidence": 0.98,
+          "violations": [],
+          "reasoning": "All declarations, signatures, types, and statements in src/business/logic/BoxOffice.ts match the role of the business (domain) layer under the declared closed layered model. Dependencies on EventStore and TicketStore (from the persistence layer) are permitted because the layer model allows business to depend on persistence, and calls into those stores are part of the allowed role. Domain errors (NotFound, TicketRejected) and types (Purchase, AdmitContextDto) are defined within the business layer itself, with no framework, ORM, transport, or presentation layer types or direct I/O present."
+        }
+      ],
+      "verdict": "pass"
+    },
+    {
+      "itemId": "check2|layered-ticketing__AP-FRAMEWORK-LEAK|FF-N02|src/business/logic/BoxOffice.ts",
+      "runs": [
+        {
+          "runIndex": 0,
+          "valid": true,
+          "pass": false,
+          "confidence": 1,
+          "violations": [
+            {
+              "filePath": "src/business/logic/BoxOffice.ts",
+              "message": "Method signature `async admit(code: string, request?: Request): Promise<Ticket>` in domain file `src/business/logic/BoxOffice.ts` includes parameter `request?: Request` from the `'express'` web package, which belongs to the presentation (delivery) layer kind."
+            }
+          ],
+          "reasoning": "`src/business/logic/BoxOffice.ts` is in the `business` layer (kind: `domain`). Its method `BoxOffice.admit(code: string, request?: Request): Promise<Ticket>` accepts an optional `request?: Request` parameter where `Request` is imported from the `'express'` web transport package. Per the rubric, a request type from a web or transport package (presentation/delivery layer kind) in any method signature of a domain file is a violation, even when the parameter is optional and unused. The injected `EventStore` and `TicketStore` constructor parameters and calls to them are valid because the layer model permits `business` to depend on `persistence`."
+        }
+      ],
+      "verdict": "fail"
+    },
+    {
+      "itemId": "check2|layered-ticketing__AP-PERSIST-IN-DOMAINn|FF-N02|src/business/core/Event.ts",
+      "runs": [
+        {
+          "runIndex": 0,
+          "valid": true,
+          "pass": true,
+          "confidence": 1,
+          "violations": [],
+          "reasoning": "src/business/core/Event.ts belongs to the business layer (kind: domain). It defines a pure domain entity (Event) encapsulating ticketing state and domain invariants (remaining capacity calculation, seat selling check throwing domain error SoldOut, and ID presence check) using only built-in types and a domain error from the same layer, with no framework, ORM, transport, or direct I/O dependencies."
+        }
+      ],
+      "verdict": "pass"
+    },
+    {
+      "itemId": "check2|layered-ticketing__AP-PERSIST-IN-DOMAIN|FF-N02|src/business/core/Event.ts",
+      "runs": [
+        {
+          "runIndex": 0,
+          "valid": true,
+          "pass": false,
+          "confidence": 1,
+          "violations": [
+            {
+              "filePath": "src/business/core/Event.ts",
+              "message": "Domain class Event in layer 'business' (kind: domain) carries ORM persistence-mapping decorators @Entity() (line 4) and @Column() on field 'id' (line 6) from package 'typeorm', which belong to the infrastructure (persistence) layer kind."
+            }
+          ],
+          "reasoning": "The file src/business/core/Event.ts is in the business layer (kind: domain), but its Event class and id property are decorated with @Entity() and @Column() imported from the 'typeorm' ORM package. Under the rubric, a domain file fails when it carries any ORM decorator or persistence mapping, even when the class logic itself is pure. These persistence-mapping decorators belong to the infrastructure (persistence) layer kind."
+        }
+      ],
+      "verdict": "fail"
+    },
+    {
+      "itemId": "check2|layered-ticketing__AP-REPO-BYPASSn|FF-N01|src/business/logic",
+      "runs": [
+        {
+          "runIndex": 0,
+          "valid": true,
+          "pass": false,
+          "confidence": 0.98,
+          "violations": [
+            {
+              "filePath": "src/business/logic/GateLog.ts",
+              "message": "GateLog (constructor, scanned, busiestGate) reaches persistence directly through the ORM client PrismaService (calling prisma.scan.create and this.prisma.scan.findMany) instead of using a repository/store abstraction as BoxOffice (in src/business/logic/BoxOffice.ts) does with EventStore and TicketStore."
+            }
+          ],
+          "reasoning": "The module src/business/logic fails the rule because its files do not maintain a consistent persistence abstraction and boundary. In src/business/logic/BoxOffice.ts, BoxOffice (via its constructor and methods purchase, admit, and listing) uses the domain entities (Event, Ticket) and reaches persistence exclusively through repository abstractions (EventStore and TicketStore). In contrast, src/business/logic/GateLog.ts bypasses the repository abstraction and domain model by injecting PrismaService directly into GateLog and executing direct ORM queries in GateLog.scanned (prisma.scan.create) and GateLog.busiestGate (this.prisma.scan.findMany)."
+        }
+      ],
+      "verdict": "fail"
+    },
+    {
+      "itemId": "check2|layered-ticketing__AP-REPO-BYPASS|FF-N01|src/business/logic",
+      "runs": [
+        {
+          "runIndex": 0,
+          "valid": true,
+          "pass": false,
+          "confidence": 0.98,
+          "violations": [
+            {
+              "filePath": "src/business/logic/GateLog.ts",
+              "message": "GateLog reaches persistence directly through the ORM client instead of a repository/store abstraction (unlike BoxOffice in src/business/logic/BoxOffice.ts, which uses EventStore and TicketStore): GateLog.constructor injects PrismaService, GateLog.busiestGate calls this.prisma.scan.findMany() directly, and GateLog.scanned instantiates a raw PrismaClient from @prisma/client (bypassing even PrismaService) to call prisma.scan.create()."
+            }
+          ],
+          "reasoning": "The module src/business/logic fails to maintain a consistent persistence abstraction and boundary across its files. In src/business/logic/BoxOffice.ts, BoxOffice mediates all persistence operations through dedicated store abstractions (EventStore and TicketStore) and domain objects (Event and Ticket), including ticket admission scanning in BoxOffice.admit via TicketStore.markScanned. In contrast, src/business/logic/GateLog.ts bypasses the repository/store abstraction entirely and reaches persistence directly through the Prisma ORM client: GateLog injects PrismaService in its constructor and queries this.prisma.scan.findMany() directly in GateLog.busiestGate, while GateLog.scanned instantiates a raw PrismaClient from @prisma/client (bypassing even the injected PrismaService) to call prisma.scan.create()."
+        }
+      ],
+      "verdict": "fail"
+    },
+    {
+      "itemId": "check2|layered-warehouse__AP-FAT-CONTROLLERn|FF-N02|src/presentation/controllers/StockController.ts",
+      "runs": [
+        {
+          "runIndex": 0,
+          "valid": true,
+          "pass": true,
+          "confidence": 0.98,
+          "violations": [],
+          "reasoning": "Every declaration, signature, parameter type, return type, and statement in src/presentation/controllers/StockController.ts matches the presentation layer's role. Constructor parameters inject services from the business layer, which the presentation layer is permitted to depend on, and all methods merely unpack presentation DTOs, delegate operations to those business services, and format the response objects without encoding domain invariants or business calculations."
+        }
+      ],
+      "verdict": "pass"
+    },
+    {
+      "itemId": "check2|layered-warehouse__AP-FAT-CONTROLLER|FF-N02|src/business/services/ReceivingService.ts",
+      "runs": [
+        {
+          "runIndex": 0,
+          "valid": true,
+          "pass": true,
+          "confidence": 0.98,
+          "violations": [],
+          "reasoning": "ReceivingService in src/business/services/ReceivingService.ts fulfills business/domain responsibilities (receiving and picking stock, coordinating Bin and Item domain entities, and raising StockError). Its constructor injects ItemTable and BinTable from the persistence layer, and its methods call those persistence tables; because the layer model explicitly permits the business layer to depend on the persistence layer, both the constructor wiring and calls to persistence classes are valid for its role under the rubric."
+        }
+      ],
+      "verdict": "pass"
+    },
+    {
+      "itemId": "check2|layered-warehouse__AP-FAT-CONTROLLER|FF-N02|src/presentation/controllers/StockController.ts",
+      "runs": [
+        {
+          "runIndex": 0,
+          "valid": true,
+          "pass": false,
+          "confidence": 0.95,
+          "violations": [
+            {
+              "filePath": "src/presentation/controllers/StockController.ts",
+              "message": "StockController.receive enforces a domain invariant (`if (!Number.isInteger(dto.quantity) || dto.quantity <= 0)`) and throws the domain error `StockError` (from `src/business/stock/StockError.ts`, layer `business`, kind `domain`), which is a business rule belonging to the `domain` layer rather than `presentation`."
+            }
+          ],
+          "reasoning": "`src/presentation/controllers/StockController.ts` is declared in the `presentation` layer (kind `presentation`), but `StockController.receive(dto: ReceiveDto)` enforces a domain invariant on stock quantities (`!Number.isInteger(dto.quantity) || dto.quantity <= 0`) and directly throws the domain error `StockError` (from `src/business/stock/StockError.ts`, layer `business`, kind `domain`). Domain invariants and domain error enforcement belong to the `domain` (`business`) layer rather than the `presentation` layer."
+        }
+      ],
+      "verdict": "fail"
+    },
+    {
+      "itemId": "check2|layered-warehouse__AP-FRAMEWORK-LEAKn|FF-N02|src/business/services/ReceivingService.ts",
+      "runs": [
+        {
+          "runIndex": 0,
+          "valid": true,
+          "pass": true,
+          "confidence": 0.98,
+          "violations": [],
+          "reasoning": "All declarations, signatures, types, and statements in src/business/services/ReceivingService.ts match the domain role of the business layer. Dependencies on ItemTable and BinTable are allowed by the closed layered model (business may depend on persistence), and PickContextDto is a locally declared domain/service interface rather than a transport or presentation layer type."
+        }
+      ],
+      "verdict": "pass"
+    },
+    {
+      "itemId": "check2|layered-warehouse__AP-FRAMEWORK-LEAK|FF-N02|src/business/services/ReceivingService.ts",
+      "runs": [
+        {
+          "runIndex": 0,
+          "valid": true,
+          "pass": false,
+          "confidence": 1,
+          "violations": [
+            {
+              "filePath": "src/business/services/ReceivingService.ts",
+              "message": "Method signature 'ReceivingService.pick(sku: string, quantity: number, request?: Request)' declares parameter 'request?: Request' of type 'Request' from the 'express' web package, which belongs to the presentation/delivery layer kind rather than the domain ('business') layer."
+            }
+          ],
+          "reasoning": "src/business/services/ReceivingService.ts is in the 'business' layer (kind: domain). Its method ReceivingService.pick(sku: string, quantity: number, request?: Request) includes an optional parameter 'request?: Request' where Request is imported from the 'express' web package. Under the rubric, a request type from a web or transport package in any method signature of a domain file fails the rule even when the parameter is optional or unused, because HTTP transport concerns belong to the presentation/delivery layer kind. Constructor dependencies on ItemTable and BinTable and calls to them are permitted because the layer model allows 'business' to depend on 'persistence'."
+        }
+      ],
+      "verdict": "fail"
+    },
+    {
+      "itemId": "check2|layered-warehouse__AP-PERSIST-IN-DOMAINn|FF-N02|src/business/stock/Item.ts",
+      "runs": [
+        {
+          "runIndex": 0,
+          "valid": true,
+          "pass": true,
+          "confidence": 1,
+          "violations": [],
+          "reasoning": "The file src/business/stock/Item.ts in the business (domain) layer defines a pure domain entity class Item containing only stock item properties and domain logic (needsReorder and hasSku). It has no external imports, framework or ORM annotations, transport types, or direct I/O, fully matching the role of the domain layer."
+        }
+      ],
+      "verdict": "pass"
+    },
+    {
+      "itemId": "check2|layered-warehouse__AP-PERSIST-IN-DOMAIN|FF-N02|src/business/stock/Item.ts",
+      "runs": [
+        {
+          "runIndex": 0,
+          "valid": true,
+          "pass": false,
+          "confidence": 1,
+          "violations": [
+            {
+              "filePath": "src/business/stock/Item.ts",
+              "message": "Domain class Item and its field sku carry ORM persistence mapping decorators @Entity() (line 3) and @Column() (line 5) from the 'typeorm' package, which belong to the infrastructure layer kind."
+            }
+          ],
+          "reasoning": "src/business/stock/Item.ts is in the 'business' layer (kind: domain), which prohibits carrying ORM decorators or persistence mapping even when the class logic is pure. The class Item is annotated with the @Entity() decorator and its sku property is annotated with the @Column() decorator, both imported from the 'typeorm' ORM package, which belong to the infrastructure (persistence) layer kind."
+        }
+      ],
+      "verdict": "fail"
+    },
+    {
+      "itemId": "check2|layered-warehouse__AP-REPO-BYPASSn|FF-N01|src/business/services",
+      "runs": [
+        {
+          "runIndex": 0,
+          "valid": true,
+          "pass": false,
+          "confidence": 0.98,
+          "violations": [
+            {
+              "filePath": "src/business/services/CycleCountService.ts",
+              "message": "CycleCountService bypasses the table/repository and domain abstractions used by ReceivingService in src/business/services/ReceivingService.ts: its constructor injects PrismaService directly and its count and openDiscrepancies methods call this.prisma.stockCount.create and prisma.stockCount.findMany directly, while also duplicating the discrepancy condition and delta calculation (counted - expected) across count and openDiscrepancies."
+            }
+          ],
+          "reasoning": "The module src/business/services does not maintain a consistent abstraction and persistence boundary across its files. While ReceivingService in src/business/services/ReceivingService.ts reaches persistence through table abstractions (ItemTable and BinTable) and works with domain models (Bin, Item), CycleCountService in src/business/services/CycleCountService.ts bypasses table/repository and domain abstractions entirely by injecting PrismaService directly and invoking Prisma ORM client methods (this.prisma.stockCount.create in count and prisma.stockCount.findMany in openDiscrepancies). Furthermore, CycleCountService writes out the discrepancy condition and delta calculation inline in two places (count and openDiscrepancies) rather than encapsulating it in a shared domain abstraction."
+        }
+      ],
+      "verdict": "fail"
+    },
+    {
+      "itemId": "check2|layered-warehouse__AP-REPO-BYPASS|FF-N01|src/business/services",
+      "runs": [
+        {
+          "runIndex": 0,
+          "valid": true,
+          "pass": false,
+          "confidence": 0.98,
+          "violations": [
+            {
+              "filePath": "src/business/services/CycleCountService.ts",
+              "message": "CycleCountService bypasses repository abstractions and accesses the ORM directly: constructor and count() use PrismaService (this.prisma.stockCount.create) instead of a table repository like BinTable/ItemTable in ReceivingService, and openDiscrepancies() instantiates PrismaClient from @prisma/client directly (new PrismaClient(), prisma.stockCount.findMany()), while also duplicating the discrepancy calculation across count() and openDiscrepancies()."
+            }
+          ],
+          "reasoning": "The module src/business/services fails the coherence and boundary rubric because src/business/services/CycleCountService.ts bypasses the persistence and domain abstractions used in src/business/services/ReceivingService.ts. While ReceivingService accesses persistence exclusively through table repositories (ItemTable, BinTable) and enforces rules through domain entities (Bin, Item, StockError), CycleCountService reaches persistence directly through the ORM client: CycleCountService.count calls this.prisma.stockCount.create on an injected PrismaService, and CycleCountService.openDiscrepancies instantiates a raw PrismaClient from @prisma/client to call prisma.stockCount.findMany(), bypassing even its own injected PrismaService. Additionally, CycleCountService duplicates the discrepancy rule (counted !== expected and delta: counted - expected) across count and openDiscrepancies."
+        }
+      ],
+      "verdict": "fail"
+    },
+    {
+      "itemId": "check2|nestjs-courses__AP-FAT-CONTROLLERn|FF-N02|src/enrolments/enrolments.controller.ts",
+      "runs": [
+        {
+          "runIndex": 0,
+          "valid": true,
+          "pass": true,
+          "confidence": 1,
+          "violations": [],
+          "reasoning": "src/enrolments/enrolments.controller.ts is a presentation-layer controller whose decorators (@Controller, @Post, @Body), constructor wiring (EnrolmentsService), method signatures, and statements strictly handle HTTP request extraction, delegation to the application service, and response formatting without containing any business rules or misplaced layer responsibilities."
+        }
+      ],
+      "verdict": "pass"
+    },
+    {
+      "itemId": "check2|nestjs-courses__AP-FAT-CONTROLLER|FF-N02|src/enrolments/enrolments.controller.ts",
+      "runs": [
+        {
+          "runIndex": 0,
+          "valid": true,
+          "pass": false,
+          "confidence": 0.95,
+          "violations": [
+            {
+              "filePath": "src/enrolments/enrolments.controller.ts",
+              "message": "In src/enrolments/enrolments.controller.ts, EnrolmentsController.enrol(@Body() dto: EnrolDto) contains the statement `if (!dto.studentEmail.includes('@')) { throw new DomainError('invalid', 'A valid student email is required'); }`, enforcing a domain invariant and throwing `DomainError` from `../domain/domain-error` (`src/domain/domain-error.ts`), which belongs to the `domain` (or `application`) layer kind rather than `presentation`."
+            }
+          ],
+          "reasoning": "`src/enrolments/enrolments.controller.ts` is declared in the `presentation` layer (kind `presentation`). In `EnrolmentsController.enrol(@Body() dto: EnrolDto)`, the statement `if (!dto.studentEmail.includes('@')) { throw new DomainError('invalid', 'A valid student email is required'); }` directly enforces a domain invariant on `dto.studentEmail` and throws `DomainError` (originating from `../domain/domain-error`, i.e., `src/domain/domain-error.ts` in layer `domain`, kind `domain`). Under the rubric, a presentation file fails when it carries a business rule or domain invariant/decision that the `domain` or `application` layer should own."
+        }
+      ],
+      "verdict": "fail"
+    },
+    {
+      "itemId": "check2|nestjs-courses__AP-FAT-CONTROLLER|FF-N02|src/enrolments/enrolments.service.ts",
+      "runs": [
+        {
+          "runIndex": 0,
+          "valid": true,
+          "pass": true,
+          "confidence": 1,
+          "violations": [],
+          "reasoning": "EnrolmentsService in src/enrolments/enrolments.service.ts fulfills the role of an application-layer service. It coordinates use-case workflows (enrolling and withdrawing students) by combining domain models and rules (Enrolment, Course.admit, Enrolment.withinCoolingOff, DomainError) with infrastructure persistence (TypeORM Repository<EnrolmentEntity> and Repository<CourseEntity>), which the layer model permits the application layer to depend on. It contains no HTTP requests, responses, status codes, transport contexts, or delivery-layer errors in its signatures or statements. The candidate flag regarding 1 I/O category and 3 other components reflects normal application-service orchestration across allowed domain and infrastructure dependencies rather than a misplaced layer responsibility."
+        }
+      ],
+      "verdict": "pass"
+    },
+    {
+      "itemId": "check2|nestjs-courses__AP-FRAMEWORK-LEAKn|FF-N02|src/courses/courses.service.ts",
+      "runs": [
+        {
+          "runIndex": 0,
+          "valid": true,
+          "pass": true,
+          "confidence": 1,
+          "violations": [],
+          "reasoning": "All declarations in src/courses/courses.service.ts belong to the application layer role and respect the layer model (which permits application to depend on domain and infrastructure). CoursesService orchestrates course creation, publishing, and querying while throwing DomainError from the domain layer and mapping between CourseEntity (infrastructure) and Course (domain). CreateContextDto is a project-declared interface within the application layer itself rather than a request or HTTP context type from a web/transport package or the delivery layer, and framework/ORM restrictions in the rubric apply only to domain files."
+        }
+      ],
+      "verdict": "pass"
+    },
+    {
+      "itemId": "check2|nestjs-courses__AP-FRAMEWORK-LEAK|FF-N02|src/courses/courses.service.ts",
+      "runs": [
+        {
+          "runIndex": 0,
+          "valid": true,
+          "pass": false,
+          "confidence": 1,
+          "violations": [
+            {
+              "filePath": "src/courses/courses.service.ts",
+              "message": "Method `CoursesService.create(title: string, capacity: number, request?: Request): Promise<Course>` (line 16) has parameter `request?: Request` imported from the `'express'` web/transport package (line 7), which belongs to the presentation/delivery layer rather than the application layer."
+            }
+          ],
+          "reasoning": "The file `src/courses/courses.service.ts` is in the `application` layer, but its `CoursesService.create` method signature (`async create(title: string, capacity: number, request?: Request): Promise<Course>`) accepts an HTTP `Request` parameter imported from the `'express'` web/transport package. According to the rubric, an application file fails when a method or function signature includes a request type from a web or transport package (which belongs to the presentation/delivery layer), even when the parameter is optional or unused."
+        }
+      ],
+      "verdict": "fail"
+    },
+    {
+      "itemId": "check2|nestjs-courses__AP-PERSIST-IN-DOMAINn|FF-N02|src/domain/course.ts",
+      "runs": [
+        {
+          "runIndex": 0,
+          "valid": true,
+          "pass": true,
+          "confidence": 1,
+          "violations": [],
+          "reasoning": "The Course class in src/domain/course.ts is a pure domain entity encapsulating course state and enrolment invariants (admit, release, hasId) and only depends on DomainError from the domain layer. It contains no framework or ORM decorators, transport types, or direct I/O, matching the role of the domain layer."
+        }
+      ],
+      "verdict": "pass"
+    },
+    {
+      "itemId": "check2|nestjs-courses__AP-PERSIST-IN-DOMAIN|FF-N02|src/domain/course.ts",
+      "runs": [
+        {
+          "runIndex": 0,
+          "valid": true,
+          "pass": false,
+          "confidence": 1,
+          "violations": [
+            {
+              "filePath": "src/domain/course.ts",
+              "message": "Domain class Course carries ORM persistence mapping decorators @Entity() (line 4) and @Column() on field id (line 6) from package 'typeorm', which belong to the infrastructure layer kind."
+            }
+          ],
+          "reasoning": "The file src/domain/course.ts is declared in the domain layer (kind: domain), which must not carry any framework or ORM types, decorators, or base classes such as persistence mapping, even when the class logic itself is pure. Course is decorated with @Entity() and its id property is decorated with @Column(), both imported from the 'typeorm' ORM package, which are persistence mapping concerns belonging to the infrastructure layer kind."
+        }
+      ],
+      "verdict": "fail"
+    },
+    {
+      "itemId": "check2|nestjs-courses__AP-REPO-BYPASSn|FF-N01|src/enrolments#application",
+      "runs": [
+        {
+          "runIndex": 0,
+          "valid": true,
+          "pass": false,
+          "confidence": 0.95,
+          "violations": [
+            {
+              "filePath": "src/enrolments/enrolments.service.ts",
+              "message": "EnrolmentsService bypasses the courses module's service boundary and reaches persistence outside its own repository (`enrolmentRepository`) by injecting `Repository<CourseEntity>` (`courseRepository`) and importing `toCourse` from `../courses/courses.service` to directly query, admit, and save `CourseEntity` in `enrol()`."
+            }
+          ],
+          "reasoning": "`src/enrolments/enrolments.service.ts` fails the module cohesion and boundary rubric. Instead of reaching persistence only through the enrolments module's own repository (`enrolmentRepository: Repository<EnrolmentEntity>`) and delegating course operations to the courses module's abstraction, `EnrolmentsService` directly injects `@InjectRepository(CourseEntity) private readonly courseRepository: Repository<CourseEntity>` and imports the low-level mapper `toCourse` from `../courses/courses.service`. In `EnrolmentsService.enrol`, it directly loads `CourseEntity` (`courseRepository.findOne`), checks course existence, maps the entity with `toCourse(entity)`, invokes `course.admit()`, mutates `entity.enrolled = course.enrolled`, and saves `CourseEntity` (`courseRepository.save(entity)`), bypassing the courses module boundary and mixing course persistence responsibilities into `EnrolmentsService`."
+        }
+      ],
+      "verdict": "fail"
+    },
+    {
+      "itemId": "check2|nestjs-courses__AP-REPO-BYPASS|FF-N01|src/enrolments#application",
+      "runs": [
+        {
+          "runIndex": 0,
+          "valid": true,
+          "pass": false,
+          "confidence": 0.98,
+          "violations": [
+            {
+              "filePath": "src/enrolments/enrolments.service.ts",
+              "message": "EnrolmentsService.enrol bypasses the injected courseRepository property (and module repository boundary) by calling TypeORM's getRepository(CourseEntity) directly to load and save CourseEntity records."
+            }
+          ],
+          "reasoning": "In src/enrolments/enrolments.service.ts, EnrolmentsService violates the rubric by reaching persistence directly through TypeORM's global getRepository(CourseEntity) inside EnrolmentsService.enrol instead of using its injected repository abstraction (this.courseRepository), and by directly querying and mutating CourseEntity persistence outside the module's own enrolment repository."
+        }
+      ],
+      "verdict": "fail"
+    }
+  ]
+}
