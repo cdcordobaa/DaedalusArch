@@ -1493,6 +1493,19 @@ Plan checkboxes ticked. Auto-approved under standing approval; no blocking or ma
 
 ---
 
+## v1.3 Construction — night plan (2026-10-16)
+**Timestamp**: 2026-10-16T01:55:00Z
+**User Input**: "The author wants all remaining subscription usage spent tonight on closing the thesis gaps (SO3 neuro-symbolic, SO4 validity, SO5 spec level), never on side tracks (frontend dropped). The overriding constraint is that Study 2 must run exactly once ('I don't want to ruin a third study'). Human labels by the author or director carry little authority, so validity must rest on non-human evidence. Cloud work must bill the subscription, not the $250 credit. The plan is to be tracked in AI-DLC."
+**AI Response**: "Wrote construction/plans/v1.3-night-2026-10-16-plan.md, tracking about 40 jobs across three usage windows with a pass criterion each.
+- Validity without raters: developer-fix mining, predictive bug-fix churn, convergent agreement with three external checkers, a cross-vendor model panel, a methods memo, an external human-written set, and graph-fidelity adjudication prep.
+- Readiness: a go/no-go gate, a floor-effect probe, an analysis rehearsal on synthetic data, a no-LLM loop replay, and task design.
+- Tool behaviour: blind-key misses, fix hints, warning noise, npx, CI gate, HTML report, init, rule mining, rule gaps, scale, interpreter fuzz and review fixes, dogfooding, and a spec-driven OpenSpec/AI-DLC demo.
+- Quality: a local multi-agent post-merge review, merge trains at 02:47, 04:17 and 09:30 UTC, and an adversarial review of open PRs at 07:50 that holds failing PRs before the morning train.
+Earlier the same night: 15 PRs merged into v1.3 (tip b08ec387), all gated (tsc, jest with no new failures, byte-identical reference results on Neo4j and the in-process engine). Billing finding: `claude --cloud` sessions drew on the cloud credit ($250 → $186), so further jobs are routines only."
+**Context**: CONSTRUCTION, v1.3 validity cycle. Autonomous under the standing delegation; author decisions are listed in §6 of the plan.
+
+---
+
 ## v1.3 — rule-gap catalogue (opt-in, advisory)
 **Timestamp**: 2026-10-16T01:35:00Z
 **User Input**: (scheduled task) "Find constraints the style sources state but the tool does not check; add the most valuable 5–8 as an opt-in, advisory extension catalogue with fixtures, unit tests and source rows; run them on the 71-case dev set and the E1 projects; write Docs/v1.3/rule-gap-catalogue.md; one PR into v1.3, not merged."
