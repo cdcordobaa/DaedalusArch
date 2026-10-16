@@ -28,7 +28,7 @@ function renderSummary(m: ArchitectReportModel): string {
     `<div class="stat stat-${t}"><span class="stat-n">${String(s.counts[t])}</span><span class="stat-l" title="${esc(m.tierExplanations[t])}">${esc(m.tierLabels[t])}</span></div>`;
   return `<section class="summary verdict-${s.verdict}" aria-labelledby="summary-h">
   <div class="verdict-card">
-    <p class="verdict-word">${s.verdict === 'fail' ? 'FAIL' : 'PASS'}</p>
+    <p class="verdict-word">${s.verdict === 'fail' ? 'FAIL' : s.verdict === 'incomplete' ? 'INCOMPLETE' : 'PASS'}</p>
     <h2 id="summary-h">${esc(s.headline)}</h2>
     <ul class="explain">${s.explanation.map((e) => `<li>${esc(e)}</li>`).join('')}</ul>
   </div>
