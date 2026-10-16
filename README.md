@@ -7,6 +7,10 @@ architecture property graph, scored as an Architecture Health Score (AHS) and tu
 **Artifact evaluators:** start with [`ARTIFACT.md`](ARTIFACT.md). It has a 15-minute check that needs no database
 (`npm ci && npm run artifact:kick`) and the full-reproduction path, both with expected outputs.
 
+**Using it on your own code?** Start with the [user guide](docs/guide/README.md). It covers the quick start with no
+database, writing a spec, reading a report, the MCP server for coding agents, the CI gate, the HTML report and zero-config
+init.
+
 ## Quick start without a database (npx)
 
 No Neo4j server, no Docker, no credentials: when `NEO4J_URI` is not set, every command runs the rule templates on
