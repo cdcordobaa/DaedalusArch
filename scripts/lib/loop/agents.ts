@@ -17,6 +17,10 @@
  * The `gate` arm runs every turn with the `none` argv: its feedback is the repair prompt, not a tool.
  * The pinned per-run tsconfig is written under `<H>/runs/<runId>/` before every turn (the type-check command of the
  * prompt points at it).
+ *
+ * Claude only, OFF by default (`isolation.ts`, `Docs/v1.3/loop-isolation.md`): `cliVersion` makes the pre-run probe
+ * refuse any other `claude --version`; `isolation` runs the probe and every turn with a per-run `HOME`, the dedicated
+ * `CLAUDE_CONFIG_DIR` and auto-update off, checks both before every spawn, and writes `env-<turnId>.json`.
  */
 import * as fs from 'node:fs';
 import * as path from 'node:path';
@@ -39,6 +43,8 @@ import { DEFAULT_RETRY_POLICY, realSleep, runWithRetries, systemClock } from '..
 import type { Clock, RetryPolicy, Sleeper } from '../generators/retry.js';
 import { CLAUDE_CODE_ADAPTER_ID, CODEX_CLI_ADAPTER_ID_VALUE } from '../generators/types.js';
 import type { GeneratorCliConfig } from '../generators/types.js';
+import { checkIsolationBeforeSpawn, isolatedClaudeEnv, parseCliVersion, probeHomeOf, runHomeOf, turnEnvRecord } from './isolation.js';
+import type { ClaudeIsolation } from './isolation.js';
 import { EMPTY_USAGE } from './types.js';
 import type { LoopArm, StepAgent, TurnInput, TurnResult, TurnStatus, TurnUsage } from './types.js';
 
@@ -114,6 +120,10 @@ export interface StepAgentDeps {
   readonly knownSecrets?: readonly string[];
   /** Required for the `daedalus-mcp` arm. */
   readonly daedalus?: DaedalusServerInput;
+  /** Claude only: the pinned `claude --version` (x.y.z); the probe refuses any other. Unpinned when absent. */
+  readonly cliVersion?: string;
+  /** Claude only: the isolation of every spawn. The E1 environment when absent. */
+  readonly isolation?: ClaudeIsolation;
 }
 
 interface CallPlan {
@@ -124,6 +134,8 @@ interface CallPlan {
   readonly before?: () => DomainResult<void>;
   readonly parse: (cli: ProcessResult) => ParsedEnvelope | null;
   readonly disposition: (cli: ProcessResult | null, envelope: ParsedEnvelope | null, changed: number) => AttemptDisposition;
+  /** Written as `env-<turnId>.json` beside the envelope when present (isolated Claude turns). */
+  readonly envRecord?: () => unknown;
 }
 
 /** The shared turn driver: retries, interruptions, envelope, status and usage. */
@@ -175,6 +187,9 @@ async function driveTurn(
     path.join(input.recordDir, envelopeName),
     envelope !== null ? envelope.scrubbed : { unreadable: true, exitCode: cli?.exitCode ?? null, timedOut: cli?.timedOut ?? null },
   );
+  if (plan.envRecord !== undefined) {
+    fs.writeFileSync(path.join(input.recordDir, `env-${input.turnId}.json`), `${JSON.stringify(plan.envRecord(), null, 2)}\n`);
+  }
   return DomainResult.ok({
     status: turnStatus(cli, retried.data.exhausted, envelope, config.modelId),
     usage: turnUsage(envelope),
@@ -203,11 +218,42 @@ export class ClaudeStepAgent implements StepAgent {
     this.modelId = config.modelId;
   }
 
-  /** `<binary> --version` answers (the E1 availability check). */
-  async isAvailable(): Promise<boolean> {
-    const env = buildGeneratorChildEnv(this.deps.parentEnv ?? process.env);
+  private probedVersion: string | null = null;
+
+  /**
+   * The pre-run probe: `<binary> --version` answers (the E1 availability check), in the environment the turns use;
+   * with `cliVersion`, the first `x.y.z` token must equal it (`LOOP_CLI_VERSION_MISMATCH`).
+   */
+  async probe(): Promise<DomainResult<{ readonly cliVersion: string | null }>> {
+    const parent = this.deps.parentEnv ?? process.env;
+    const iso = this.deps.isolation;
+    let env: Readonly<Record<string, string>>;
+    if (iso !== undefined) {
+      const home = probeHomeOf(this.config.harnessRoot);
+      const ok = checkIsolationBeforeSpawn(home, iso);
+      if (!ok.success) return DomainResult.fail(ok.errors);
+      env = isolatedClaudeEnv(parent, home, iso);
+    } else {
+      env = buildGeneratorChildEnv(parent);
+    }
     const r = await this.deps.runner.run(this.config.binary, ['--version'], { env, timeoutMs: VERSION_TIMEOUT_MS });
-    return r.success && r.data.exitCode === 0 && !r.data.timedOut;
+    if (!r.success || r.data.exitCode !== 0 || r.data.timedOut) {
+      return DomainResult.fail([{ code: 'LOOP_CLI_UNAVAILABLE', message: 'the claude CLI is not available at the plan binary path' }]);
+    }
+    const version = parseCliVersion(r.data.stdout);
+    const pinned = this.deps.cliVersion;
+    if (pinned !== undefined && version !== pinned) {
+      return DomainResult.fail([
+        { code: 'LOOP_CLI_VERSION_MISMATCH', message: `claude --version reports ${version ?? 'no version'}, the plan pins ${pinned}`, context: { found: version, pinned } },
+      ]);
+    }
+    this.probedVersion = version;
+    return DomainResult.ok({ cliVersion: version });
+  }
+
+  /** The probe succeeded (kept for the E1 call sites). */
+  async isAvailable(): Promise<boolean> {
+    return (await this.probe()).success;
   }
 
   /** The argv, prompt and MCP config of one turn (no process is spawned). */
@@ -226,6 +272,23 @@ export class ClaudeStepAgent implements StepAgent {
     writeHarnessTsconfig(this.config.harnessRoot, input.runId, input.cwd);
     if (planned.data.mcpConfigPath !== null) writeMcpConfig(planned.data.mcpConfigPath, planned.data.mcpConfig);
     const secrets = this.deps.knownSecrets ?? [];
+    const parent = this.deps.parentEnv ?? process.env;
+    const iso = this.deps.isolation;
+    const home = runHomeOf(this.config.harnessRoot, input.runId);
+    const env = iso !== undefined ? isolatedClaudeEnv(parent, home, iso) : buildGeneratorChildEnv(parent);
+    let listingSha256 = '';
+    const isolated =
+      iso === undefined
+        ? {}
+        : {
+            before: (): DomainResult<void> => {
+              const ok = checkIsolationBeforeSpawn(home, iso);
+              if (!ok.success) return DomainResult.fail(ok.errors);
+              listingSha256 = ok.data.configListingSha256;
+              return DomainResult.ok(undefined);
+            },
+            envRecord: () => turnEnvRecord(env, this.probedVersion, listingSha256),
+          };
     return driveTurn(
       input,
       this.config,
@@ -233,12 +296,13 @@ export class ClaudeStepAgent implements StepAgent {
       {
         command: this.config.binary,
         args: planned.data.args,
-        env: buildGeneratorChildEnv(this.deps.parentEnv ?? process.env),
+        env,
         parse: (cli) => {
           const p = parseEnvelope(cli.stdout, secrets);
           return p.success ? p.data : null;
         },
         disposition: attemptDisposition,
+        ...isolated,
       },
       planned.data.prompt,
     );

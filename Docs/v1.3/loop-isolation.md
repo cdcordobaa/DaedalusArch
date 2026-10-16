@@ -39,3 +39,18 @@ A null or failing result is reported as such in the PR.
 - Credential location: on macOS the CLI login lives in the Keychain; on Linux in `<config dir>/.credentials.json`, which the judge's frozen allow-list does not list, so on Linux the listing check would refuse a logged-in dir. Study 2 runs on the author's Mac; a Linux run would need an allow-list decision (not taken here).
 - The live confinement probes with the MCP server attached, per CLI and arm (S4), and the first live turn authenticating under the exact production env (S3 pass) need a real login.
 - Auto-update verified off on the machine that runs Study 2 (S2 pass).
+
+## 5. Result (2026-10-16, after the code)
+
+Code: `scripts/lib/loop/isolation.ts` (new), `agents.ts` (`ClaudeStepAgent.probe`, isolated env, `before` check, `env-<turnId>.json`), `plan.ts` (`adapters[].cliVersion`, `generatorIsolation`, `--claude-config-dir` fill), `main.ts` (the probe runs before the skeleton install; mismatch exits 1; `LOOP_UNPINNED` warning). Tests: `tests/unit/scripts/loop/isolation.test.ts` (19 tests).
+
+| Criterion | Result |
+|---|---|
+| P1 version pin | PASS. A stub `claude` printing `2.1.300` against the pin `2.1.294`: `LOOP_CLI_VERSION_MISMATCH` from the probe, and `main` exits 1 with no skeleton install and no `schedule.json`. The pinned version passes. Unpinned plans accept any answering binary, as before. |
+| P2 plan validation | PASS. Malformed pin, Codex pin ≠ `codex.cliVersion`, isolation without a Claude pin, a bad block shape, and a config dir inside the repository, `outRoot`, `<H>/runs`, the real `~/.claude` or the real `HOME` are refused. |
+| P3 isolated spawns | PASS. The stub binary, really spawned, sees only the E1 allow-list names plus `CLAUDE_CONFIG_DIR` and `DISABLE_AUTOUPDATER`, with `HOME` = `<H>/probe-home`, and no credential. Step and repair turns spawn with `HOME` = `<H>/runs/<runId>/home` (0700). `env-<turnId>.json` is written for both. A `hooks/` dir, a `CLAUDE.md`, a `settings.json` with `hooks`, a `.claude` in the run `HOME`, or a missing config dir each stop the turn (or the probe) before any spawn. |
+| P4 OFF by default | PASS. Without the fields, the probe and turn env equal `buildGeneratorChildEnv(parent)` exactly (real `HOME` kept), no `env-*.json`, no run `HOME`. The existing agent, loop, pilot and plan tests pass unchanged. |
+| P5 usage limits | PASS. The recorded usage-limit text at a repair turn (E1 env), an isolated step turn and an isolated repair turn: one interruption, one pause, attempts `['completed']`. |
+| P6 bytes | See the PR body for the rule 3 reference diff. The loop dry run on the demo plan equals the `origin/v1.3-loop-replay` dry run in every file except timing fields and the commit shas that carry commit times. The Neo4j loop replay test skips here (no scratch Neo4j); `replay.ts` does not reach the changed code (its agent is the scripted one). |
+
+**Not done here.** Pause durations in the turn record (other half of S1); the live probes with the MCP server attached (S4); a real login under the isolated env (S3 pass); the pilot and Study 2 plans are not given `cliVersion` or `generatorIsolation` (author's values); the Linux credential-file allow-list question (§4).

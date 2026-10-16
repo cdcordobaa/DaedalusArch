@@ -4,6 +4,7 @@
  * Usage (repository root):
  *   npx tsx scripts/loop-harness-cli.ts --plan <plan.json> [--dry-run] [--binary <abs>] [--harness-root <abs>]
  *                                       [--out-root <abs>] [--codex-home <abs>] [--codex-user-home <abs>]
+ *                                       [--claude-config-dir <abs>]
  *   npx tsx scripts/loop-harness-cli.ts --help
  *
  * `--dry-run` replaces the generator, the firewall and the type-check with the stubs of `stub.ts`: the whole loop
@@ -20,10 +21,14 @@
  * The grid writes `<outRoot>/schedule.json` (the plan and tasks file sha256 and the seeded order). Re-running the same
  * plan resumes: complete runs are skipped, a run stopped mid-step restarts that step from the last snapshot. A
  * schedule.json from a different plan or tasks file stops the grid. Exit codes: 0 grid completed, 1 a CLI is not
- * available, 2 usage, plan or harness error.
+ * available or its version differs from the plan's `cliVersion`, 2 usage, plan or harness error.
+ *
+ * Live runs probe every adapter before the skeleton install, so a version mismatch or a failed isolation check stops
+ * the grid before any work (`Docs/v1.3/loop-isolation.md`). A Claude adapter without `cliVersion` gets a warning.
  */
 import * as crypto from 'node:crypto';
 import * as fs from 'node:fs';
+import * as os from 'node:os';
 import * as path from 'node:path';
 import { DomainResult } from '../../../src/shared/errors/domain-result.js';
 import type { DomainError } from '../../../src/shared/errors/domain-result.js';
@@ -41,6 +46,7 @@ import { checkSkeletonIntact, ensureHarness, prepareCellDir } from '../generator
 import type { SkeletonInstall } from '../generators/skeleton.js';
 import { CODEX_CLI_ADAPTER_ID_VALUE } from '../generators/types.js';
 import { ClaudeStepAgent, CodexStepAgent } from './agents.js';
+import { checkIsolationPaths } from './isolation.js';
 import { firewallEvaluator, harnessSnapshotTsconfig, harnessTypechecker } from './evaluator.js';
 import { runLoop } from './loop.js';
 import type { LoopContext, LoopRunResult, TaskProfile } from './loop.js';
@@ -59,6 +65,7 @@ export const LOOP_SCHEDULE_JSON = 'schedule.json';
 export const LOOP_USAGE = [
   'usage: npx tsx scripts/loop-harness-cli.ts --plan <plan.json> [--dry-run] [--binary <abs>] [--harness-root <abs>]',
   '                                          [--out-root <abs>] [--codex-home <abs>] [--codex-user-home <abs>]',
+  '                                          [--claude-config-dir <abs>]',
   '       npx tsx scripts/loop-harness-cli.ts --help',
   '',
   'Runs the multi-step firewall-in-the-loop grid: each run applies the k steps of a task to one work directory under',
@@ -108,7 +115,7 @@ export function parseLoopArgs(argv: readonly string[]): DomainResult<ParsedArgs>
   let help = false;
   let dryRun = false;
   let plan: string | undefined;
-  const local: { binary?: string; harnessRoot?: string; outRoot?: string } = {};
+  const local: { binary?: string; harnessRoot?: string; outRoot?: string; claudeConfigDir?: string } = {};
   const homes: { codexHome?: string; userHome?: string } = {};
   const value = (i: number): string | undefined => {
     const v = argv[i + 1];
@@ -121,6 +128,7 @@ export function parseLoopArgs(argv: readonly string[]): DomainResult<ParsedArgs>
     '--out-root': (v) => (local.outRoot = v),
     '--codex-home': (v) => (homes.codexHome = v),
     '--codex-user-home': (v) => (homes.userHome = v),
+    '--claude-config-dir': (v) => (local.claudeConfigDir = v),
   };
   for (let i = 0; i < argv.length; i++) {
     const a = argv[i] ?? '';
@@ -273,9 +281,12 @@ async function liveWiring(loaded: LoadedPlan, repoRoot: string, args: ParsedArgs
   const { plan } = loaded;
   if (isInsideOrEqual(repoRoot, plan.outRoot)) return DomainResult.fail([{ code: 'LOOP_PLAN_INVALID', message: 'outRoot must lie outside the repository' }]);
   if (deps.evaluateDeps === undefined) return DomainResult.fail([{ code: 'LOOP_NO_EVALUATOR', message: 'no evaluate_project wiring' }]);
-  const ready = await ensureHarness(deps.runner, repoRoot, plan.harnessRoot);
-  if (!ready.success) return DomainResult.fail(ready.errors);
-  const install: SkeletonInstall = ready.data.install;
+  const isolation = plan.generatorIsolation !== undefined ? { configDir: plan.generatorIsolation.claudeConfigDir } : undefined;
+  if (isolation !== undefined) {
+    const where = { repoRoot, outRoot: plan.outRoot, harnessRoot: plan.harnessRoot, realHome: deps.parentEnv.HOME ?? os.homedir() };
+    const problems = checkIsolationPaths(isolation, where);
+    if (problems.length > 0) return DomainResult.fail(problems);
+  }
   const common = { runner: deps.runner, parentEnv: deps.parentEnv, clock: deps.clock, sleep: deps.sleep, ...(plan.daedalus !== undefined ? { daedalus: plan.daedalus } : {}) };
   const agents = new Map<string, StepAgent>();
   for (const a of plan.adapters) {
@@ -292,10 +303,15 @@ async function liveWiring(loaded: LoadedPlan, repoRoot: string, args: ParsedArgs
       repoRoot,
     );
     if (!c.success) return DomainResult.fail(c.errors);
-    const agent = new ClaudeStepAgent(c.data, common);
-    if (!(await agent.isAvailable())) return DomainResult.fail([{ code: 'LOOP_CLI_UNAVAILABLE', message: 'the claude CLI is not available at the plan binary path' }]);
+    const agent = new ClaudeStepAgent(c.data, { ...common, ...(a.cliVersion !== undefined ? { cliVersion: a.cliVersion } : {}), ...(isolation !== undefined ? { isolation } : {}) });
+    const probed = await agent.probe();
+    if (!probed.success) return DomainResult.fail(probed.errors);
+    if (a.cliVersion === undefined) deps.err(`LOOP_UNPINNED: ${a.adapterId}/${a.modelId} has no cliVersion; claude --version reports ${probed.data.cliVersion ?? 'no version'}\n`);
     agents.set(agentKey(a.adapterId, a.modelId), agent);
   }
+  const ready = await ensureHarness(deps.runner, repoRoot, plan.harnessRoot);
+  if (!ready.success) return DomainResult.fail(ready.errors);
+  const install: SkeletonInstall = ready.data.install;
   const evaluateDeps = await deps.evaluateDeps();
   const evaluatorOf = (specFile: string): StepEvaluator => firewallEvaluator(specFile, deps.parentEnv, evaluateDeps, harnessSnapshotTsconfig(plan.harnessRoot));
   const profiles = buildProfiles(loaded, repoRoot, evaluatorOf, iseDddFreezer(repoRoot));
@@ -403,7 +419,7 @@ export async function main(argv: readonly string[], repoRoot: string, depsIn?: L
   } else {
     const live = await liveWiring(loaded.data, repoRoot, args.data, deps);
     if (!live.success) {
-      const unavailable = live.errors.some((e) => e.code === 'LOOP_CLI_UNAVAILABLE');
+      const unavailable = live.errors.some((e) => e.code === 'LOOP_CLI_UNAVAILABLE' || e.code === 'LOOP_CLI_VERSION_MISMATCH');
       report(deps, live.errors);
       return unavailable ? 1 : 2;
     }
