@@ -1,0 +1,114 @@
+{
+  "duration_api_ms": 82685,
+  "stop_reason": "end_turn",
+  "session_id": "d5b4b69d-4a7b-412c-9073-a4f659c5c797",
+  "total_cost_usd": 0.292441,
+  "usage": {
+    "input_tokens": 12,
+    "cache_creation_input_tokens": 31119,
+    "cache_read_input_tokens": 75810,
+    "output_tokens": 16036,
+    "output_tokens_details": {
+      "thinking_tokens": 1345
+    },
+    "server_tool_use": {
+      "web_search_requests": 0,
+      "web_fetch_requests": 0
+    },
+    "service_tier": "standard",
+    "cache_creation": {
+      "ephemeral_1h_input_tokens": 31119,
+      "ephemeral_5m_input_tokens": 0
+    },
+    "inference_geo": "global",
+    "iterations": [
+      {
+        "input_tokens": 2,
+        "output_tokens": 752,
+        "cache_read_input_tokens": 27037,
+        "cache_creation_input_tokens": 9994,
+        "cache_creation": {
+          "ephemeral_5m_input_tokens": 0,
+          "ephemeral_1h_input_tokens": 9994
+        },
+        "type": "message"
+      }
+    ],
+    "speed": "standard",
+    "fallback_credit": null
+  },
+  "modelUsage": {
+    "claude-sonnet-5-5": {
+      "inputTokens": 12,
+      "outputTokens": 16036,
+      "cacheReadInputTokens": 75810,
+      "cacheCreationInputTokens": 31119,
+      "webSearchRequests": 0,
+      "costUSD": 0.292441,
+      "contextWindow": 1000000,
+      "maxOutputTokens": 128000,
+      "thinkingTokens": 1345,
+      "canonicalModel": "claude-sonnet-5-5",
+      "provider": "firstParty",
+      "costBasis": "list"
+    }
+  },
+  "permission_denials": [
+    {
+      "tool_name": "Bash",
+      "tool_use_id": "toolu_014JX4BuWxd3iYb4v1AJbNVd",
+      "tool_input": {
+        "command": "cd /root/pilot/out/runs/claude-code-cli/claude-sonnet-5-5/market-vendors/gate/run-0/work; find . -path ./node_modules -prune -o -type f -print | head -100; cat package.json; cat /root/pilot/harness/runs/claude-code-cli/claude-sonnet-5-5/market-vendors/gate/run-0/tsconfig.json; wc -l $(find src -name '*.ts')"
+      }
+    },
+    {
+      "tool_name": "Bash",
+      "tool_use_id": "toolu_01487MyDa3JZpwFy1BzWfeEz",
+      "tool_input": {
+        "command": "cd /root/pilot/out/runs/claude-code-cli/claude-sonnet-5-5/market-vendors/gate/run-0/work/src && python3 - <<'E'\nimport re\ndef sub(p,a,b):\n    s=open(p).read(); assert a in s,(p,a); open(p,'w').write(s.replace(a,b,1))\nsub('domain/entities.ts','''export interface CardSale {\n  id: string;\n  marketDayId: string;\n  vendorId: string;\n  readerId: string;\n''','''export type PaymentProvider = \"paylane\" | \"tillwave\";\n\nexport interface MerchantLink {\n  marketDayId: string;\n  merchantId: string; // TillWave merchant id\n  vendorId: string;\n}\n\nexport interface CardSale {\n  id: string;\n  marketDayId: string;\n  vendorId: string;\n  provider: PaymentProvider;\n  readerId?: string; // PayLane\n  merchantId?: string; // TillWave\n  externalId?: string; // provider's own sale id, used to ignore repeats\n''')\nsub('domain/repositories.ts','import { Booking, CardSale, FeeSchedule, MarketDay, Pitch, ReaderLink,','import { Booking, CardSale, FeeSchedule, MarketDay, MerchantLink, Pitch, ReaderLink,')\nsub('domain/repositories.ts','''  find(marketDayId: string, readerId: string): ReaderLink | undefined;\n}''','''  find(marketDayId: string, readerId: string): ReaderLink | undefined;\n  findByVendor(marketDayId: string, vendorId: string): ReaderLink | undefined;\n}\n\nexport interface MerchantLinkRepository {\n  set(link: MerchantLink): void;\n  find(marketDayId: string, merchantId: string): MerchantLink | undefined;\n  findByVendor(marketDayId: string, vendorId: string): MerchantLink | undefined;\n}''')\nsub('domain/repositories.ts','''  add(sale: CardSale): void;''','''  add(sale: CardSale): void;\n  findByExternalId(provider: string, externalId: string): CardSale | undefined;''')\n\np='infrastructure/in-memory.ts'\nsub(p,'MarketDay, Pitch, ReaderLink,','MarketDay, MerchantLink, Pitch, ReaderLink,')\nsub(p,'  FeeScheduleRepository,\\n  MarketDayRepository,','  FeeScheduleRepository,\\n  MarketDayRepository,\\n  MerchantLinkRepository,')\nsub(p,'''this.items.get(`${marketDayId}|${readerId}`); }\n}''','''this.items.get(`${marketDayId}|${readerId}`); }\n  findByVendor(marketDayId: string, vendorId: string) {\n    return [...this.items.values()].find((l) => l.marketDayId === marketDayId && l.vendorId === vendorId);\n  }\n}\n\nexport class InMemoryMerchantLinks implements MerchantLinkRepository {\n  private items = new Map<string, MerchantLink>();\n  set(link: MerchantLink) { this.items.set(`${link.marketDayId}|${link.merchantId}`, link); }\n  find(marketDayId: string, merchantId: string) { return this.items.get(`${marketDayId}|${merchantId}`); }\n  findByVendor(marketDayId: string, vendorId: string) {\n    return [...this.items.values()].find((l) => l.marketDayId === marketDayId && l.vendorId === vendorId);\n  }\n}''')\nsub(p,'''  add(sale: CardSale) { this.items.push(sale); }''','''  add(sale: CardSale) { this.items.push(sale); }\n  findByExternalId(provider: string, externalId: string) {\n    return this.items.find((s) => s.provider === provider && s.externalId === externalId);\n  }''')\n\np='infrastructure/main.ts'\nsub(p,'import { createApp } from \"./http\";','import { createApp } from \"./http\";\\nimport { HttpTillWaveGateway, startTillWavePoller } from \"./tillwave\";')\nsub(p,'  InMemoryMarketDays,\\n','  InMemoryMarketDays,\\n  InMemoryMerchantLinks,\\n')\nsub(p,'  readers: new InMemoryReaderLinks(),','  readers: new InMemoryReaderLinks(),\\n  merchants: new InMemoryMerchantLinks(),')\nsub(p,'const port','''const tillWaveUrl = process.env.TILLWAVE_BASE_URL;\nif (tillWaveUrl) {\n  startTillWavePoller(service, new HttpTillWaveGateway(tillWaveUrl, process.env.TILLWAVE_API_KEY));\n}\n\nconst port''')\n\np='infrastructure/http.ts'\nsub(p,'  app.post(\"/market-days/:dayId/readers\"','''  app.post(\"/market-days/:dayId/merchants\", (req, res) => {\n    res.status(201).json(service.linkMerchant(param(req, \"dayId\"), body(req)));\n  });\n  app.post(\"/market-days/:dayId/readers\"''')\n\np='application/market-service.ts'\nsub(p,'  MarketDay,\\n  Pitch,','  MarketDay,\\n  MerchantLink,\\n  Pitch,')\nsub(p,'  MarketDayRepository,\\n  PitchRepository,','  MarketDayRepository,\\n  MerchantLinkRepository,\\n  PitchRepository,')\nsub(p,'  readers: ReaderLinkRepository;','  readers: ReaderLinkRepository;\\n  merchants: MerchantLinkRepository;')\nsub(p,'''export interface VendorSalesForDay''','''/** A sale as reported by TillWave: amount in cents, seller identified by TillWave merchant id. */\nexport interface TillWaveSale {\n  id: string;\n  merchantId: string;\n  amountCents: number;\n  time: string;\n}\n\nexport interface TillWaveGateway {\n  fetchSales(since?: string): Promise<TillWaveSale[]>;\n}\n\nexport interface TillWavePollResult {\n  imported: number;\n  duplicates: number;\n  rejected: number;\n}\n\nconst POLL_OVERLAP_MS = 60 * 60 * 1000;\n\nexport interface VendorSalesForDay''')\nsub(p,'''    const existing = this.r.readers.find(marketDayId, readerId);''','''    if (this.r.merchants.findByVendor(marketDayId, vendorId)) {\n      throw new DomainError(\"conflict\", \"vendor already uses TillWave on this market day\");\n    }\n    const existing = this.r.readers.find(marketDayId, readerId);''')\n# replace recordSale\ni=open(p).read()\na=i.index('  recordSale(')\nb=i.index('  listVendorSales')\nnew='''  linkMerchant(marketDayId: string, input: { merchantId?: unknown; vendorId?: unknown }): MerchantLink {\n    const merchantId = requireString(input.merchantId, \"merchantId\");\n    const vendorId = requireString(input.vendorId, \"vendorId\");\n    this.getDay(marketDayId);\n    this.getVendor(vendorId);\n    if (this.r.readers.findByVendor(marketDayId, vendorId)) {\n      throw new DomainError(\"conflict\", \"vendor already uses PayLane on this market day\");\n    }\n    const existing = this.r.merchants.find(marketDayId, merchantId);\n    if (existing && existing.vendorId !== vendorId) {\n      throw new DomainError(\"conflict\", \"merchant already linked to another vendor for this market day\");\n    }\n    const other = this.r.merchants.findByVendor(marketDayId, vendorId);\n    if (other && other.merchantId !== merchantId) {\n      throw new DomainError(\"conflict\", \"vendor is already linked to another merchant on this market day\");\n    }\n    const link = { marketDayId, merchantId, vendorId };\n    this.r.merchants.set(link);\n    return link;\n  }\n\n  recordSale(input: { readerId?: unknown; amount?: unknown; time?: unknown }): CardSale {\n    const readerId = requireString(input.readerId, \"readerId\");\n    const { amount } = input;\n    if (typeof amount !== \"number\" || !Number.isFinite(amount) || amount <= 0) {\n      throw new DomainError(\"validation\", \"amount must be a positive number\");\n    }\n    const t = new Date(requireString(input.time, \"time\"));\n    if (Number.isNaN(t.getTime())) throw new DomainError(\"validation\", \"time must be a valid timestamp\");\n    const day = this.openDayFor(t);\n    const link = this.r.readers.find(day.id, readerId);\n    if (!link) throw new DomainError(\"rejected\", \"reader is not linked to a vendor on this market day\");\n    return this.storeSale(day, link.vendorId, { provider: \"paylane\", readerId }, amount, t);\n  }\n\n  recordTillWaveSale(input: { id?: unknown; merchantId?: unknown; amountCents?: unknown; time?: unknown }): CardSale | \"duplicate\" {\n    const externalId = requireString(input.id, \"id\");\n    const merchantId = requireString(input.merchantId, \"merchantId\");\n    const { amountCents } = input;\n    if (typeof amountCents !== \"number\" || !Number.isInteger(amountCents) || amountCents <= 0) {\n      throw new DomainError(\"validation\", \"amount must be a positive whole number of cents\");\n    }\n    const t = new Date(requireString(input.time, \"time\"));\n    if (Number.isNaN(t.getTime())) throw new DomainError(\"validation\", \"time must be a valid timestamp\");\n    if (this.r.sales.findByExternalId(\"tillwave\", externalId)) return \"duplicate\";\n    const day = this.openDayFor(t);\n    const link = this.r.merchants.find(day.id, merchantId);\n    if (!link) throw new DomainError(\"rejected\", \"merchant is not linked to a vendor on this market day\");\n    return this.storeSale(day, link.vendorId, { provider: \"tillwave\", merchantId, externalId }, amountCents / 100, t);\n  }\n\n  private tillWaveCursor?: number;\n\n  async pollTillWave(gateway: TillWaveGateway): Promise<TillWavePollResult> {\n    const startedAt = this.now().getTime();\n    const since = this.tillWaveCursor === undefined ? undefined : new Date(this.tillWaveCursor - POLL_OVERLAP_MS).toISOString();\n    const reported = await gateway.fetchSales(since);\n    const result: TillWavePollResult = { imported: 0, duplicates: 0, rejected: 0 };\n    for (const item of reported) {\n      try {\n        if (this.recordTillWaveSale(item) === \"duplicate\") result.duplicates++;\n        else result.imported++;\n      } catch (e) {\n        if (!(e instanceof DomainError)) throw e;\n        result.rejected++;\n      }\n    }\n    this.tillWaveCursor = startedAt;\n    return result;\n  }\n\n  private openDayFor(t: Date): MarketDay {\n    const day = this.r.days.getByDate(t.toISOString().slice(0, 10));\n    if (!day) throw new DomainError(\"rejected\", \"no market day on the date of the sale\");\n    if (day.status === \"settled\") throw new DomainError(\"rejected\", \"market day is already settled\");\n    return day;\n  }\n\n  private storeSale(\n    day: MarketDay,\n    vendorId: string,\n    source: Pick<CardSale, \"provider\" | \"readerId\" | \"merchantId\" | \"externalId\">,\n    amount: number,\n    t: Date,\n  ): CardSale {\n    if (!this.r.bookings.findByDayAndVendor(day.id, vendorId)) {\n      throw new DomainError(\"rejected\", \"linked vendor has no booking on this market day\");\n    }\n    const sale: CardSale = {\n      id: randomUUID(),\n      marketDayId: day.id,\n      vendorId,\n      ...source,\n      amount: round2(amount),\n      time: t.toISOString(),\n    };\n    this.r.sales.add(sale);\n    return sale;\n  }\n\n'''\ns=i[:a]+new+i[b:]\nopen(p,'w').write(s)\nE\ncat > infrastructure/tillwave.ts <<'E'\nimport { MarketService, TillWaveGateway, TillWaveSale } from \"../application/market-service\";\n\nconst POLL_INTERVAL_MS = 15 * 60 * 1000;\n\n/** Reads sales from the TillWave HTTP API: GET {baseUrl}/sales?since=<ISO> -> [{ id, merchantId, amount (cents), time }]. */\nexport class HttpTillWaveGateway implements TillWaveGateway {\n  constructor(\n    private readonly baseUrl: string,\n    private readonly apiKey?: string,\n  ) {}\n\n  async fetchSales(since?: string): Promise<TillWaveSale[]> {\n    const url = new URL(\"sales\", this.baseUrl.endsWith(\"/\") ? this.baseUrl : `${this.baseUrl}/`);\n    if (since) url.searchParams.set(\"since\", since);\n    const res = await fetch(url, { headers: this.apiKey ? { authorization: `Bearer ${this.apiKey}` } : {} });\n    if (!res.ok) throw new Error(`TillWave responded ${res.status}`);\n    const data: unknown = await res.json();\n    const list = Array.isArray(data) ? data : (data as { sales?: unknown } | null)?.sales;\n    if (!Array.isArray(list)) throw new Error(\"unexpected TillWave response\");\n    return list.map((raw) => {\n      const s = (raw ?? {}) as Record<string, unknown>;\n      return {\n        id: s.id as string,\n        merchantId: s.merchantId as string,\n        amountCents: s.amount as number,\n        time: s.time as string,\n      };\n    });\n  }\n}\n\nexport function startTillWavePoller(service: MarketService, gateway: TillWaveGateway): NodeJS.Timeout {\n  let running = false;\n  const poll = async () => {\n    if (running) return;\n    running = true;\n    try {\n      const r = await service.pollTillWave(gateway);\n      console.log(`tillwave poll: ${r.imported} imported, ${r.duplicates} duplicate, ${r.rejected} rejected`);\n    } catch (e) {\n      console.error(\"tillwave poll failed\", e);\n    } finally {\n      running = false;\n    }\n  };\n  void poll();\n  return setInterval(poll, POLL_INTERVAL_MS);\n}\nE\n/root/pilot/harness/bin/tsc --noEmit --incremental false -p /root/pilot/harness/runs/claude-code-cli/claude-sonnet-5-5/market-vendors/gate/run-0/tsconfig.json"
+      }
+    }
+  ],
+  "terminal_reason": "completed",
+  "fast_mode_state": "off",
+  "fast_mode_disabled_reason": "sdk_opt_in_required",
+  "subagent_stats": {
+    "spawned": 0,
+    "requested": {
+      "background": 0,
+      "foreground": 0,
+      "unset": 0
+    },
+    "started_in_background": 0,
+    "max_depth": 0,
+    "spawned_by_subagents": 0,
+    "completed": 0,
+    "failed": 0,
+    "killed": {
+      "parent": 0,
+      "user": 0,
+      "system": 0
+    },
+    "refused": {
+      "depth_limit": 0,
+      "concurrency_limit": 0,
+      "budget": 0
+    },
+    "by_type": {}
+  },
+  "safety_stops": 0,
+  "is_error": false,
+  "num_turns": 33,
+  "subtype": "success",
+  "api_error_status": null,
+  "result": "TillWave sales are now polled every 15 minutes and go through the same checks, commission and settlement as PayLane sales. The type-check command you gave passes with no errors. I haven't run the service or tested it, and I had to guess the TillWave API shape (below).\n\n**Assumed API.** I didn't know TillWave's real API. `HttpTillWaveGateway` calls `GET {TILLWAVE_BASE_URL}/sales?since=<ISO time>`, with `Authorization: Bearer $TILLWAVE_API_KEY` when a key is set. It expects a JSON array of `{id, merchantId, amount (cents), time}`, or `{sales: [...]}`. If the real API differs, only `src/infrastructure/tillwave.ts` needs to change.\n\n**Polling.** The poller starts only when `TILLWAVE_BASE_URL` is set, so existing deployments are unaffected. Each poll asks for sales since the last successful poll, minus a one-hour overlap so late-arriving sales aren't missed. Failed polls are logged and retried at the next interval.\n\n**Merchant links.** The organiser links a TillWave merchant id to a vendor per market day with `POST /market-days/:dayId/merchants` and `{merchantId, vendorId}`, the same way readers are linked.\n\n**One provider per vendor per day.** Linking a merchant is refused if the vendor already has a PayLane reader that day, and linking a reader is refused if the vendor already has a TillWave merchant. A vendor can also have only one merchant per day.\n\n**Amounts and checks.** Cents are divided by 100 to match the existing amounts. A TillWave sale then goes through the same checks as a PayLane sale: a market day exists for the sale date and isn't settled, the seller is linked, and the vendor has a booking. Sales that fail a check are counted as rejected and the rest of the poll continues.\n\n**Duplicates.** A sale reported twice is counted once, matched on the TillWave sale id.\n\n**Other changes.**\n- Stored sales now carry a `provider` field, and `readerId` is optional.\n- Settlement is unchanged, because it already sums every sale for a vendor.\n- PayLane has no sale id, so PayLane sales get no duplicate check, same as before.",
+  "ttft_ms": 1981,
+  "type": "result",
+  "duration_ms": 83981,
+  "uuid": "58081e22-cf56-482c-adbe-1a5d8bf39f73",
+  "ttft_stream_ms": 1059,
+  "time_to_request_ms": 236,
+  "first_content_frame_ms": 1059,
+  "queued_turn_count": 0,
+  "result_index": 0
+}

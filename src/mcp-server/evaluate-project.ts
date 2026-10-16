@@ -16,7 +16,7 @@ import type { EvaluationReport, ScoringMode } from '../shared/types/evaluation.j
 import type { DomainResult } from '../shared/errors/domain-result.js';
 import { DomainResult as Result } from '../shared/errors/domain-result.js';
 import { neo4jScrubPolicy, scrubWithPolicy } from '../shared/errors/scrub.js';
-import type { PipelineConfig } from '../pipeline/types.js';
+import type { ExtractorDefaults, PipelineConfig } from '../pipeline/types.js';
 import type { PipelineBundle } from '../pipeline/pipeline-factory.js';
 import { MissingEnvError, requireEnv } from '../cli/require-env.js';
 import type { EvaluateProjectResult, Neo4jEnv, RuleViolationGroup } from './types.js';
@@ -46,9 +46,11 @@ export interface EvaluateInput {
   readonly scoringMode?: ScoringMode;
   /**
    * Explicit tsconfig for the extractor (ADR-032; absent = `<project>/tsconfig.json`). The loop harness passes the
-   * pinned per-run tsconfig, because the agent's work tree has none of its own.
+   * pinned per-run tsconfig, because the agent's work tree has none of its own (R01).
    */
   readonly tsconfigPath?: string;
+  /** Extractor defaults (R02; absent = the v1.3 defaults). `v1.2e` with scoring `v1.2e` measures the v1.2E graph. */
+  readonly extractorDefaults?: ExtractorDefaults;
   /** Also return the report's violations, uncapped (`EvaluateProjectResult.violations`). */
   readonly includeViolations?: boolean;
 }
@@ -119,7 +121,7 @@ export async function evaluateProject(
   if (!fs.existsSync(input.specPath)) {
     return failure('SPEC_NOT_FOUND', `Spec file not found: ${input.specPath}`);
   }
-  if (deps.graphEngine === 'cypher-interp') return evaluateInProcess(projectPath, input.specPath, scoringMode, deps);
+  if (deps.graphEngine === 'cypher-interp') return evaluateInProcess(projectPath, input, scoringMode, deps);
 
   let neo4j: Neo4jEnv;
   try {
@@ -170,6 +172,7 @@ export async function evaluateProject(
     apgStorePath: neo4j.apgStorePath,
     scoringMode,
     ...(input.tsconfigPath !== undefined ? { tsconfigPath: path.resolve(input.tsconfigPath) } : {}),
+    ...(input.extractorDefaults !== undefined ? { extractorDefaults: input.extractorDefaults } : {}),
   };
   const { executor, cleanup } = deps.makePipeline(config);
   try {
@@ -207,12 +210,14 @@ export async function evaluateProject(
 /** The cypher-interp path: no connection, no credential; the report summarised exactly as on Neo4j. */
 async function evaluateInProcess(
   projectPath: string,
-  specPath: string,
+  input: EvaluateInput,
   scoringMode: ScoringMode,
   deps: EvaluateDeps,
 ): Promise<DomainResult<EvaluateProjectResult>> {
   if (deps.interp === undefined) return failure('ENGINE_UNAVAILABLE', 'cypher-interp selected but no in-process evaluator is wired.');
-  const res = await deps.interp({ projectPath, specPath, scoringMode });
+  const specPath = input.specPath;
+  // The explicit tsconfig and the uncapped violations reach the interpreter path exactly as the Neo4j path above.
+  const res = await deps.interp({ projectPath, specPath, scoringMode, ...(input.tsconfigPath !== undefined ? { tsconfigPath: input.tsconfigPath } : {}) });
   if (!res.success) {
     const [first] = res.errors;
     return failure('PIPELINE_FAILED', res.errors.map((e) => e.message).join('; ') || (first?.code ?? 'evaluation failed'));
@@ -229,6 +234,7 @@ async function evaluateInProcess(
     durationMs: report.durationMs,
     scoringMode,
     ...(report.tiers !== undefined && { tiers: report.tiers }),
+    ...(input.includeViolations === true && { violations: report.violations }),
     engine: 'cypher-interp',
     latencyMs,
     cache,

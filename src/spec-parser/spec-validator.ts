@@ -7,6 +7,7 @@ import { HEXAGONAL_TEMPLATES } from '../fitness-compiler/hexagonal-templates.js'
 import { v13ExtensionCatalogueOf } from '../fitness-compiler/extension-templates.js';
 import { EXTENSION_TEMPLATES } from './template-registry.js';
 import { globToRegex } from '../fitness-compiler/glob-to-regex.js';
+import { AGGREGATE_TEMPLATE_NAMES } from '../fitness-compiler/empty-aggregates.js';
 import { existsSync, readdirSync } from 'node:fs';
 import { relative, resolve, sep } from 'node:path';
 import picomatch from 'picomatch';
@@ -173,6 +174,12 @@ export interface SpecValidationOptions {
    * an extension style library (`EXTENSION_TEMPLATES`).
    */
   readonly rules?: SpecRuleSet;
+  /**
+   * Loop-pilot tool defect T1 option b, OFF by default: a `ddd` spec that keeps an aggregate rule (FF-DT01
+   * aggregate-boundary, FF-DT02 repository-aggregate-root) with an empty `architecture.ddd.aggregates` is an error
+   * (`DDD_NO_AGGREGATES`) here, instead of a BR-SPEC-10 compile failure at evaluation.
+   */
+  readonly rejectEmptyAggregates?: boolean;
 }
 
 function templateCheckFor(rules: SpecRuleSet): (name: string) => boolean {
@@ -282,6 +289,8 @@ export function validateSpecAgainstProject(
     }
   }
 
+  if (options.rejectEmptyAggregates === true) checkEmptyAggregates(spec, errors);
+
   // Check for duplicate function IDs
   const ids = new Set<string>();
   for (const ff of spec.fitnessFunctions) {
@@ -351,4 +360,20 @@ export function validateSpecAgainstProject(
       totalWarnings: warnings.length,
     },
   };
+}
+
+/** T1 option b (`SpecValidationOptions.rejectEmptyAggregates`): one error per enabled aggregate rule of a ddd spec with no aggregate. */
+function checkEmptyAggregates(spec: ParsedSpec, errors: V11ValidationError[]): void {
+  if (spec.style?.toLowerCase() !== 'ddd') return;
+  const ddd = spec.layerModel.ddd;
+  if (ddd === undefined || ddd.aggregates.length > 0) return;
+  for (const ff of spec.fitnessFunctions) {
+    if (ff.enabled === false || !AGGREGATE_TEMPLATE_NAMES.includes(ff.name)) continue;
+    errors.push({
+      code: 'DDD_NO_AGGREGATES',
+      message: `${String(ff.id)} (${ff.name}) needs an aggregate, but architecture.ddd.aggregates is empty`,
+      field: 'architecture.ddd.aggregates',
+      suggestion: 'Declare the aggregates, or disable the aggregate rules',
+    });
+  }
 }

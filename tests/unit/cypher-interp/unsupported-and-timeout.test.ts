@@ -56,7 +56,8 @@ const UNSUPPORTED: readonly (readonly [string, string, RegExp])[] = [
   ['\\h class', "RETURN 'a' =~ '\\\\h' AS x", /Java-only regular expression/],
   ['\\x{41} escape', "RETURN 'A' =~ '\\\\x{41}' AS x", /Java-only regular expression/],
   ['class intersection &&', "RETURN 'x' =~ '[a-z&&[^e]]' AS x", /Java-only regular expression/],
-  ['(?i) over non-ASCII letters', "RETURN 'É' =~ '(?i)é' AS x", /Java-only regular expression/],
+  // (?i) over non-ASCII letters is no longer rejected: v1.3's translator folds ASCII only, as Java does
+  // (java-regex.test.ts, 'R15: (?i) is ASCII-only unless (?u) is given').
   // CALL: no procedure at all (the three apoc.coll functions are built-ins, not procedures); of the CALL { } subqueries
   // only the returning unit form (importing WITH allowed, merged from v1.3's npx branch) runs.
   ['CALL db.labels()', 'CALL db.labels() YIELD label RETURN label', /CALL procedure/],

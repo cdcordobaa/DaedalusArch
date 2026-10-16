@@ -1,0 +1,16 @@
+# firewall validate --spec results/v1.3-validity-refactor-pr/specs/etherpad.yaml --project <clone>/. --engine cypher-interp  (pin b052af27a66893b25ae11201e29273ce26ccc966)
+# exit 0
+daedalus: graph engine cypher-interp (in-process, no database) [--engine]
+Spec valid: 25 fitness functions (2 disabled), 3 layers, 0 errors
+declared 27, compiled 17, disabled 10
+  Disabled: FF-CV01 naming-conventions: ADR-016 b (B&T Step 31): cannot fire; per-layer naming patterns compile to .* and no requirement supplies them (SP-FF-CV01 not fired)
+  Disabled: FF-CV04 naming-controllers: ADR-016 b (B&T Step 31): cannot fire; class decorators are not ingested (BR-U2-31), so no controller is selected (SP-FF-CV04 not fired)
+  Disabled: FF-S04 no-domain-outward-dep: not applicable to style layered
+  Disabled: FF-P02 dependency-inversion: not applicable to style layered
+  Disabled: FF-P03 repository-pattern: not applicable to style layered
+  Disabled: FF-P04 use-case-isolation: not applicable to style layered
+  Disabled: FF-P05 controller-no-entity: not applicable to style layered
+  Disabled: FF-P06 domain-state-purity: not applicable to style layered (v1.3: FF-P06 needs a style with an isolated domain; layered permits the business layer to use the layer below (ADR-V13-02 draft))
+  Disabled: FF-C01 domain-stability: not applicable to style layered
+  Disabled: FF-CV02 naming-services: no application layer
+cypher-interp: 15/15 compiled queries parse

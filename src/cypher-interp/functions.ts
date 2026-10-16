@@ -36,17 +36,52 @@ function codePoints(s: string): string[] {
   return Array.from(s); // code points, as Neo4j counts them (not UTF-16 units, not grapheme clusters)
 }
 
+/**
+ * Java `Character.isWhitespace`: Unicode Zs, Zl and Zp except the no-break spaces U+00A0, U+2007 and U+202F, plus
+ * U+0009-U+000D and U+001C-U+001F. Neo4j trims strings by this test, code point by code point; JavaScript's
+ * `String.prototype.trim` set differs (it strips the no-break spaces and U+FEFF, and keeps U+001C-U+001F).
+ */
+const UNICODE_SEPARATOR = /^[\p{Zs}\p{Zl}\p{Zp}]$/u;
+const JAVA_NON_BREAKING = new Set(['\u00A0', '\u2007', '\u202F']);
+
+function isJavaWhitespace(ch: string): boolean {
+  const cp = ch.charCodeAt(0);
+  if ((cp >= 0x09 && cp <= 0x0d) || (cp >= 0x1c && cp <= 0x1f)) return true;
+  return UNICODE_SEPARATOR.test(ch) && !JAVA_NON_BREAKING.has(ch);
+}
+
+/** Strip leading and/or trailing Java whitespace (every whitespace character is a single UTF-16 unit). */
+function javaTrim(s: string, start = true, end = true): string {
+  let i = 0;
+  let j = s.length;
+  if (start) while (i < j && isJavaWhitespace(s.charAt(i))) i++;
+  if (end) while (j > i && isJavaWhitespace(s.charAt(j - 1))) j--;
+  return s.slice(i, j);
+}
+
+const INT64_MAX = 2n ** 63n - 1n;
+const INT64_MIN = -(2n ** 63n);
+
+/** Java's `(long) d` narrowing: NaN is 0, values outside the int64 range (and the infinities) saturate, else truncate. */
+function javaLongCast(d: number): bigint {
+  if (Number.isNaN(d)) return 0n;
+  if (d >= 2 ** 63) return INT64_MAX;
+  if (d <= -(2 ** 63)) return INT64_MIN;
+  return BigInt(Math.trunc(d));
+}
+
 function toIntegerOf(v: Value): Value {
   if (v === null) return null;
   if (typeof v === 'bigint') return v;
-  if (typeof v === 'number') return Number.isFinite(v) ? checkedInt(BigInt(Math.trunc(v))) : null;
+  if (typeof v === 'number') return javaLongCast(v); // FloatingPointValue.longValue(): a Java (long) cast
   if (typeof v === 'boolean') return v ? 1n : 0n;
   if (typeof v === 'string') {
-    const t = v.trim();
+    const t = javaTrim(v);
     if (/^[+-]?\d+$/.test(t)) {
       try { return checkedInt(BigInt(t)); } catch { return null; }
     }
-    const d = Number(t);
+    // JS Number() would also skip whitespace Java keeps (a no-break space): such a string does not parse.
+    const d = t === t.trim() ? Number(t) : Number.NaN;
     return t !== '' && Number.isFinite(d) ? checkedInt(BigInt(Math.trunc(d))) : null;
   }
   throw new CypherRuntimeError(`Invalid input for function 'toInteger()': ${typeName(v)}`);
@@ -57,7 +92,7 @@ function toFloatOf(v: Value): Value {
   if (typeof v === 'number') return v;
   if (typeof v === 'bigint') return Number(v);
   if (typeof v === 'string') {
-    const t = v.trim();
+    const t = javaTrim(v);
     if (t === '' || !/^[+-]?(\d+\.?\d*|\.\d+)([eE][+-]?\d+)?[fFdD]?$|^[+-]?(NaN|Infinity)$/.test(t)) return null;
     return Number(t.replace(/[fFdD]$/, ''));
   }
@@ -170,9 +205,9 @@ const FUNCTIONS: ReadonlyMap<string, Fn> = new Map<string, Fn>([
   }],
   ['tolower', (a) => { arity('toLower', a, 1); const s = a[0] as Value; return s === null ? null : str('toLower', s).toLowerCase(); }],
   ['toupper', (a) => { arity('toUpper', a, 1); const s = a[0] as Value; return s === null ? null : str('toUpper', s).toUpperCase(); }],
-  ['trim', (a) => { arity('trim', a, 1); const s = a[0] as Value; return s === null ? null : str('trim', s).trim(); }],
-  ['ltrim', (a) => { arity('ltrim', a, 1); const s = a[0] as Value; return s === null ? null : str('ltrim', s).trimStart(); }],
-  ['rtrim', (a) => { arity('rtrim', a, 1); const s = a[0] as Value; return s === null ? null : str('rtrim', s).trimEnd(); }],
+  ['trim', (a) => { arity('trim', a, 1); const s = a[0] as Value; return s === null ? null : javaTrim(str('trim', s)); }],
+  ['ltrim', (a) => { arity('ltrim', a, 1); const s = a[0] as Value; return s === null ? null : javaTrim(str('ltrim', s), true, false); }],
+  ['rtrim', (a) => { arity('rtrim', a, 1); const s = a[0] as Value; return s === null ? null : javaTrim(str('rtrim', s), false, true); }],
   ['tostring', (a) => { arity('toString', a, 1); const v = a[0] as Value; return v === null ? null : scalarToString(v); }],
   ['tointeger', (a) => { arity('toInteger', a, 1); return toIntegerOf(a[0] as Value); }],
   ['tofloat', (a) => { arity('toFloat', a, 1); return toFloatOf(a[0] as Value); }],
@@ -185,7 +220,7 @@ const FUNCTIONS: ReadonlyMap<string, Fn> = new Map<string, Fn>([
     throw new CypherRuntimeError('toBoolean() expects a String, Boolean or Integer');
   }],
   ['abs', (a) => { arity('abs', a, 1); const v = a[0] as Value; if (v === null) return null; if (typeof v === 'bigint') return checkedInt(v < 0n ? -v : v); if (typeof v === 'number') return Math.abs(v); throw new CypherRuntimeError('abs() expects a number'); }],
-  ['sign', (a) => { arity('sign', a, 1); const v = a[0] as Value; if (v === null) return null; if (typeof v === 'bigint') return v > 0n ? 1n : v < 0n ? -1n : 0n; if (typeof v === 'number') return BigInt(Math.sign(v)); throw new CypherRuntimeError('sign() expects a number'); }],
+  ['sign', (a) => { arity('sign', a, 1); const v = a[0] as Value; if (v === null) return null; if (typeof v === 'bigint') return v > 0n ? 1n : v < 0n ? -1n : 0n; if (typeof v === 'number') return javaLongCast(Math.sign(v)); throw new CypherRuntimeError('sign() expects a number'); }],
   ['ceil', (a) => { arity('ceil', a, 1); const v = a[0] as Value; if (v === null) return null; if (!isNumber(v)) throw new CypherRuntimeError('ceil() expects a number'); return Math.ceil(Number(v)); }],
   ['floor', (a) => { arity('floor', a, 1); const v = a[0] as Value; if (v === null) return null; if (!isNumber(v)) throw new CypherRuntimeError('floor() expects a number'); return Math.floor(Number(v)); }],
   ['sqrt', (a) => { arity('sqrt', a, 1); const v = a[0] as Value; if (v === null) return null; if (!isNumber(v)) throw new CypherRuntimeError('sqrt() expects a number'); return Math.sqrt(Number(v)); }],
@@ -233,42 +268,199 @@ export function lookupFunction(name: string): Fn | undefined {
 export const AGGREGATES: ReadonlySet<string> = new Set(['count', 'collect', 'sum', 'avg', 'min', 'max', 'stdev', 'stdevp', 'percentilecont', 'percentiledisc']);
 
 // ── regular expressions (`=~`) ──
-
 const regexCache = new Map<string, RegExp>();
 
-/** Escapes whose meaning differs between Java and JS (non-`u` mode), or that JS lacks: rejected, never approximated. */
-const JAVA_ONLY_ESCAPES = new Set(['p', 'P', 'h', 'H', 'R', 'X', 'v', 'V', 'G', 'Q', 'E', 'A', 'Z', 'z']);
+/** What Java's `.` matches without `(?s)`: anything but its line terminators (`\n`, `\r`, NEL, LS, PS). */
+const JAVA_DOT = '[^\\n\\r\\u{85}\\u{2028}\\u{2029}]';
+/** Java's `\s` without UNICODE_CHARACTER_CLASS: the six ASCII whitespace characters (JS `\s` is Unicode). */
+const JAVA_SPACE = '\\t\\n\\x0B\\f\\r ';
+/** Characters that keep their backslash in a `u`-mode pattern (JS SyntaxCharacter and `/`). */
+const SYNTAX_CHARS = '^$\\.*+?()[]{}|/';
+/** Java escapes with no JS equivalent of the same meaning: rejected wherever they appear. */
+const JAVA_ONLY_ESCAPES = 'pPhHRXvVGNQEAZzc';
+
+interface JavaFlags { i: boolean; m: boolean; s: boolean; u: boolean }
+
+/** One escape or character: its JS text and, when it denotes one character, that code point. */
+interface Atom { readonly text: string; readonly cp?: number }
 
 /**
- * Java `Pattern.matches` semantics: the whole input must match. Leading inline flags `(?i)`, `(?s)`, `(?m)`, `(?u)`
- * become JS flags; the pattern is anchored with input-boundary lookarounds, not `^`/`$`, so `(?m)` changes only the
- * pattern's own anchors, as in Java. Java-only or differently-read syntax is rejected (post-merge review R15): inline
- * flags after the start, possessive quantifiers, `\p{…}` / `\P{…}`, `\h \H \R \X \v \V \G`, `\Q…\E`, `\A \Z \z`,
- * `\x{…}`, `&&` inside a class, and `(?i)` over non-ASCII letters (ASCII-only in Java, Unicode in JS).
+ * Translate a Java pattern body (leading flags already stripped) to a JS `u`-mode source with the Java meaning, or
+ * throw `CypherUnsupportedError` for a construct whose meaning would differ. Java (?i) without (?u) folds ASCII letters
+ * only, so it is expanded by hand (`a` becomes `[aA]`) instead of using the JS `i` flag (which folds Unicode).
+ */
+function translateJavaRegex(pattern: string, body: string, f: JavaFlags): string {
+  const asciiCase = f.i && !f.u;
+  const n = body.length;
+  let pos = 0;
+  const reject = (what: string): never => {
+    throw new CypherUnsupportedError(`Java-only regular expression syntax (${what}) in ${JSON.stringify(pattern)}`);
+  };
+  const hexAt = (len: number): number | undefined => {
+    const h = body.slice(pos, pos + len);
+    return h.length === len && /^[0-9a-fA-F]+$/.test(h) ? parseInt(h, 16) : undefined;
+  };
+  const isAsciiLetter = (cp: number): boolean => (cp >= 0x41 && cp <= 0x5a) || (cp >= 0x61 && cp <= 0x7a);
+  const caseChar = (a: Atom): string => {
+    if (!asciiCase || a.cp === undefined || !isAsciiLetter(a.cp)) return a.text;
+    const ch = String.fromCharCode(a.cp);
+    return `[${ch.toLowerCase()}${ch.toUpperCase()}]`;
+  };
+
+  /** The escape at `body[pos]` (a backslash). */
+  const escape = (inClass: boolean): Atom => {
+    const e = body[pos + 1];
+    if (e === undefined) { pos += 1; return { text: '\\' }; } // a trailing backslash: a SyntaxError, as in Java
+    pos += 2;
+    switch (e) {
+      case 'd': case 'D': case 'w': case 'W': return { text: `\\${e}` };
+      case 's': return { text: inClass ? JAVA_SPACE : `[${JAVA_SPACE}]` };
+      case 'S': return inClass ? reject('\\S inside a class') : { text: `[^${JAVA_SPACE}]` };
+      case 'b': case 'B': return inClass ? reject('\\b inside a class') : { text: `\\${e}` };
+      case 't': return { text: '\\t', cp: 0x09 };
+      case 'n': return { text: '\\n', cp: 0x0a };
+      case 'r': return { text: '\\r', cp: 0x0d };
+      case 'f': return { text: '\\f', cp: 0x0c };
+      case 'a': return { text: '\\x07', cp: 0x07 };
+      case 'e': return { text: '\\x1B', cp: 0x1b };
+      case 'x': {
+        if (body[pos] === '{') return reject('\\x{...}');
+        const cp = hexAt(2);
+        if (cp === undefined) return { text: '\\x' }; // malformed: a SyntaxError
+        pos += 2;
+        return { text: `\\x${body.slice(pos - 2, pos)}`, cp };
+      }
+      case 'u': {
+        const cp = hexAt(4);
+        if (cp === undefined) return { text: '\\u' }; // malformed (Java has no \u{...}): a SyntaxError
+        pos += 4;
+        return { text: `\\u${body.slice(pos - 4, pos)}`, cp };
+      }
+      case 'k': {
+        if (inClass) return reject('\\k inside a class');
+        if (asciiCase) return reject('a backreference under ASCII (?i)');
+        const m = /^<[A-Za-z][A-Za-z0-9]*>/.exec(body.slice(pos));
+        if (m === null) return { text: '\\k' };
+        pos += m[0].length;
+        return { text: `\\k${m[0]}` };
+      }
+      case '0': return reject('octal escape');
+      default: break;
+    }
+    if (e >= '1' && e <= '9') {
+      if (inClass) return reject('a backreference inside a class');
+      if (asciiCase) return reject('a backreference under ASCII (?i)');
+      return { text: `\\${e}` };
+    }
+    if (/[A-Za-z]/.test(e)) {
+      if (JAVA_ONLY_ESCAPES.includes(e)) return reject(`\\${e}`);
+      return { text: `\\${e}` }; // not an escape in Java either: a SyntaxError
+    }
+    // Java lets a backslash precede any non-alphabetic character; u-mode JS only a SyntaxCharacter, `/` and (in a class) `-`.
+    const cp = body.codePointAt(pos - 1) ?? 0;
+    const ch = String.fromCodePoint(cp);
+    pos += ch.length - 1;
+    return SYNTAX_CHARS.includes(ch) || (inClass && ch === '-') ? { text: `\\${ch}`, cp } : { text: ch, cp };
+  };
+
+  const literal = (): Atom => {
+    const cp = body.codePointAt(pos) ?? 0;
+    const ch = String.fromCodePoint(cp);
+    pos += ch.length;
+    return { text: ch, cp };
+  };
+
+  /** A class `[...]` at `body[pos]`; ASCII case partners of its letters are appended under ASCII (?i). */
+  const charClass = (): string => {
+    pos += 1;
+    let text = '[';
+    if (body[pos] === '^') { text += '^'; pos += 1; }
+    if (body[pos] === ']') return reject('] first in a class');
+    const partners: string[] = [];
+    const addPartners = (lo: number, hi: number): void => {
+      for (const [from, to, shift] of [[0x61, 0x7a, -32], [0x41, 0x5a, 32]] as const) {
+        const a = Math.max(lo, from);
+        const b = Math.min(hi, to);
+        if (a <= b) partners.push(a === b ? String.fromCharCode(a + shift) : `${String.fromCharCode(a + shift)}-${String.fromCharCode(b + shift)}`);
+      }
+    };
+    while (pos < n) {
+      const ch = body[pos];
+      if (ch === ']') { pos += 1; return `${text}${partners.join('')}]`; }
+      if (ch === '[') return reject('a nested class');
+      if (ch === '&' && body[pos + 1] === '&') return reject('class intersection &&');
+      const lo = ch === '\\' ? escape(true) : literal();
+      if (lo.cp !== undefined && body[pos] === '-' && pos + 1 < n && body[pos + 1] !== ']') {
+        pos += 1;
+        if (body[pos] === '[') return reject('a nested class');
+        const hi = body[pos] === '\\' ? escape(true) : literal();
+        text += `${lo.text}-${hi.text}`;
+        if (asciiCase && hi.cp !== undefined) addPartners(lo.cp, hi.cp);
+        continue;
+      }
+      text += lo.text;
+      if (asciiCase && lo.cp !== undefined) addPartners(lo.cp, lo.cp);
+    }
+    return text; // unterminated: a SyntaxError
+  };
+
+  /** After a quantifier: a lazy `?` is kept, a possessive `+` rejected. */
+  const quantifierSuffix = (): string => {
+    if (body[pos] === '+') return reject('possessive quantifier');
+    if (body[pos] === '?') { pos += 1; return '?'; }
+    return '';
+  };
+
+  let out = '';
+  while (pos < n) {
+    const ch = body[pos];
+    if (ch === '\\') { out += caseChar(escape(false)); continue; }
+    if (ch === '[') { out += charClass(); continue; }
+    if (ch === '(' && body[pos + 1] === '?') {
+      const m = /^(?::|=|!|<=|<!|<[A-Za-z][A-Za-z0-9]*>)/.exec(body.slice(pos + 2));
+      if (m === null) return reject(body[pos + 2] === '>' ? 'atomic group' : 'inline flags or group construct');
+      out += `(?${m[0]}`;
+      pos += 2 + m[0].length;
+      continue;
+    }
+    if (ch === '*' || ch === '+' || ch === '?') { pos += 1; out += ch + quantifierSuffix(); continue; }
+    if (ch === '{') {
+      const m = /^\{\d+(?:,\d*)?\}/.exec(body.slice(pos));
+      pos += m === null ? 1 : m[0].length;
+      out += m === null ? '{' : m[0] + quantifierSuffix(); // a lone `{` is a SyntaxError, as in Java
+      continue;
+    }
+    if (ch === '}' || ch === ']') { pos += 1; out += `\\${ch}`; continue; } // literal in Java
+    if (ch === '.') { pos += 1; out += f.s ? '.' : JAVA_DOT; continue; }
+    out += caseChar(literal());
+  }
+  return out;
+}
+
+/**
+ * Java `Pattern.matches` semantics: the whole string must match. Leading inline flags `(?i)`, `(?s)`, `(?m)`, `(?u)`
+ * are read; the body is translated to a JS `u`-mode pattern (so `.` is one code point) with Java's meaning of `.`,
+ * `\s`, ASCII `(?i)` and identity escapes. Java-only syntax (possessive quantifiers, atomic groups, `\p{..}`, `\h`,
+ * `\R`, `\x{..}`, `\Q..\E`, `\A`/`\Z`/`\z`, class union and intersection, inline flags elsewhere) is rejected.
  */
 export function javaRegex(pattern: string): RegExp {
   const hit = regexCache.get(pattern);
   if (hit !== undefined) return hit;
   let body = pattern;
-  let flags = '';
+  const f: JavaFlags = { i: false, m: false, s: false, u: false };
   for (;;) {
     const m = /^\(\?([imsu]+)\)/.exec(body);
     if (m === null) break;
-    for (const f of Array.from(m[1] ?? '')) if (f !== 'u' && !flags.includes(f)) flags += f;
+    for (const ch of m[1] ?? '') f[ch as keyof JavaFlags] = true;
     body = body.slice(m[0].length);
   }
-  const unsupported = (): never => {
-    throw new CypherUnsupportedError(`Java-only regular expression syntax in ${JSON.stringify(pattern)}`);
-  };
-  // Escapes, read pairwise so an escaped backslash (`\\`) is never taken for the start of another escape.
-  const escapes = [...body.matchAll(/\\([\s\S])(?=([\s\S]?))/g)];
-  if (escapes.some((m) => JAVA_ONLY_ESCAPES.has(m[1] ?? '') || (m[1] === 'x' && m[2] === '{'))) unsupported();
-  const unescaped = body.replace(/\\[\s\S]/g, '');
-  if (/\(\?[a-zA-Z-]+[):]/.test(unescaped) || /[*+?}][+]/.test(unescaped) || /\[[^\]]*&&/.test(unescaped)) unsupported();
-  if (flags.includes('i') && /[^\x00-\x7f]/.test(body)) unsupported();
+  const source = translateJavaRegex(pattern, body, f);
+  const flags = `u${f.s ? 's' : ''}${f.m ? 'm' : ''}${f.i && f.u ? 'i' : ''}`;
+  // (?m) makes ^ and $ inside the pattern line anchors; the whole-input requirement must not become one.
+  const anchored = f.m ? `(?<![\\s\\S])(?:${source})(?![\\s\\S])` : `^(?:${source})$`;
   let re: RegExp;
   try {
-    re = new RegExp(`(?<![\\s\\S])(?:${body})(?![\\s\\S])`, flags);
+    re = new RegExp(anchored, flags);
   } catch (e) {
     throw new CypherRuntimeError(`Invalid Regex: ${e instanceof Error ? e.message : String(e)}`, 'Neo.ClientError.Statement.ArgumentError');
   }

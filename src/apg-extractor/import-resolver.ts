@@ -72,6 +72,8 @@ export interface ImportResolutionContext {
   readonly host: ts.ModuleResolutionHost;
   /** ADR-V13-01 (`ExtractorOptions.reExportEdges`). */
   readonly reExportEdges: ReExportEdgesMode;
+  /** `ExtractorOptions.resolvedEdgesInLiteralView` (MT-B1): resolved occurrences through a re-export are not marked. */
+  readonly resolvedEdgesInLiteralView: boolean;
   /** `reExportEdges: 'both'` only: per-file `export … from` targets, filled lazily (barrel-path search). */
   readonly reExportAdjacency: Map<string, readonly SourceFile[]>;
   /** v1.3 F-P01-ALIAS (`ExtractorOptions.aliasDeclarationPackages`). */
@@ -173,6 +175,7 @@ export function buildImportResolutionContext(
     project,
     host,
     reExportEdges: opts.reExportEdges ?? DEFAULT_OPTIONS.reExportEdges,
+    resolvedEdgesInLiteralView: opts.resolvedEdgesInLiteralView ?? DEFAULT_OPTIONS.resolvedEdgesInLiteralView,
     reExportAdjacency: new Map(),
     aliasDeclarationPackages: opts.aliasDeclarationPackages ?? DEFAULT_OPTIONS.aliasDeclarationPackages,
   };
@@ -531,8 +534,8 @@ export function resolveImportTargets(
     .filter(([key]) => key !== moduleKey)
     .map(([, { target, specs: routedSpecs, barrels }]): ImportOccurrence => ({
       ...occurrence(target, routedSpecs.map(s => s.name), statementTypeOnly || allTypeMarked(routedSpecs)),
-      viaReExport: true,
-      reExportBarrels: [...new Set(barrels)],
+      // MT-B1 (OFF by default): unmarked, the resolved edge is in the literal view too.
+      ...(ctx.resolvedEdgesInLiteralView ? {} : { viaReExport: true, reExportBarrels: [...new Set(barrels)] }),
     }));
   return { occurrences: [literal, ...resolvedViaReExport], outcome: outcomeOf(occurrences), outOfRootAlias: false };
 }

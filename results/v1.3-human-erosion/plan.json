@@ -1,0 +1,103 @@
+{
+ "version": 1,
+ "date": "2026-10-16",
+ "job": "M1 (night-backlog-2026-10-16 #23)",
+ "source": {
+  "branch": "origin/v1.3-external-set",
+  "commit": "b8492a7a61dca397389501d8c68a2fb22398b9d4",
+  "selection": "results/v1.3-external/selection.json"
+ },
+ "selectionRule": "From the 15 external-set entries, the 2 with the most commits up to the pin (selection.json provenance.commitsUpToPin) in each of the styles clean-architecture, layered and ddd. All 6 have >= 100 commits up to the pin.",
+ "samplingRule": "First-parent chain from the pin (oldest first), starting at the oldest first-parent commit whose tree has at least one counted .ts file under <root>/src/ (not .d.ts, not *.spec.ts/*.test.ts, not under __tests__/, test/ or tests/). With chain length N, the 8 sampled commits are the chain positions round(i*(N-1)/7), i=0..7 (first = first src/ commit, last = pin).",
+ "evaluation": "npx tsx bin/firewall.ts evaluate --project <export>/<root> --spec <pinned spec> --symbolic-only --engine cypher-interp --scoring v1.3 --format json, on a git-archive export of the sampled commit, no node_modules (as the external set). Exit 0/1 are verdicts; anything else, or no JSON report, is an evaluation error and is reported. A commit with no counted src/ .ts file is no-src; one with no <root>/tsconfig.json is no-tsconfig; both reported, never dropped.",
+ "identityRule": "pilot-outcome-memo.md section 3 as implemented in scripts/lib/loop/pilot-metrics.ts findingIdentity: rule id, template, file and target, lines ignored; for a cycle template, rule id, template and the set of files. A finding is new at a sampled commit if no earlier evaluated sample of the same repo holds its identity. Renames count as new (accepted bias toward erosion). Unlike the pilot memo, findings are not filtered by check-correct.ts (descriptive job; counts are tool counts).",
+ "blockingRule": "A finding is blocking if its rule is in the report own tiers.blocking table (rule-tiers.md for the spec style), as scripts/v1.3/external-sheet.ts.",
+ "measures": [
+  "blocking count",
+  "blocking per rule",
+  "LOC (non-blank lines of counted src/ .ts)",
+  "counted src/ .ts file count",
+  "blocking per KLOC",
+  "layer-coverage share = layerAnnotation.mapped/(mapped+unmapped)",
+  "new identities per interval",
+  "identities gone per interval",
+  "evaluation status and errors"
+ ],
+ "analysis": {
+  "primary": "Per repo, OLS slope of blocking/KLOC on first-parent chain index over evaluated samples (null with fewer than 4 evaluated samples). Exact two-sided sign test across the 6 repos (zero and null slopes dropped).",
+  "secondary": [
+   "OLS slope of the raw blocking count, same sign test",
+   "total new identities after the first evaluated sample, per repo",
+   "layer-coverage share per commit (spec-drift caveat)"
+  ]
+ },
+ "passCriterion": "The job passes when all 48 sampled commits have a recorded status, the per-repo slopes and the sign test are computed and reported, whatever their values. Interpretation fixed in advance: erosion under a fixed spec is called present in this sample only if the primary sign test gives p < 0.05 with positive slopes (with 6 repos that needs 6/6 positive); 5/6 positive is reported as a direction without significance; otherwise no evidence of growth. Descriptive and exploratory; no claim of validity on its own.",
+ "repos": [
+  {
+   "id": "pvarentsov-clean",
+   "repo": "pvarentsov/typescript-clean-architecture",
+   "url": "https://github.com/pvarentsov/typescript-clean-architecture.git",
+   "style": "clean-architecture",
+   "sha": "b6e0518ee4e092917015f4d448ad7fccd404e12e",
+   "root": ".",
+   "commitsUpToPin": 239,
+   "spec": "results/v1.3-external/specs/pvarentsov-clean.yaml",
+   "specSha256": "2abcd847cd5f4cd50d48ae0a1d57a014d9a9d9f64ae300fcf2a6869a77166b1e"
+  },
+  {
+   "id": "luizomf-clean-api",
+   "repo": "luizomf/clean-architecture-api-boilerplate",
+   "url": "https://github.com/luizomf/clean-architecture-api-boilerplate.git",
+   "style": "clean-architecture",
+   "sha": "7fb1ba431f8dd3d9f581798c072019eceb72d73e",
+   "root": ".",
+   "commitsUpToPin": 178,
+   "spec": "results/v1.3-external/specs/luizomf-clean-api.yaml",
+   "specSha256": "ad5c9f48c82727c49712f1364dee87d8644293b343d5f5e0c57b693164ceaec1"
+  },
+  {
+   "id": "w3tec-express-boilerplate",
+   "repo": "w3tecch/express-typescript-boilerplate",
+   "url": "https://github.com/w3tecch/express-typescript-boilerplate.git",
+   "style": "layered",
+   "sha": "17727010f7f098d8ca8b78da0a5b3c7297659381",
+   "root": ".",
+   "commitsUpToPin": 714,
+   "spec": "results/v1.3-external/specs/w3tec-express-boilerplate.yaml",
+   "specSha256": "4af83254559662e22ade3634dc3dbc0792c0aef2c2f2f6e0c74074839ed0d30a"
+  },
+  {
+   "id": "talento90-typescript-node",
+   "repo": "Talento90/typescript-node",
+   "url": "https://github.com/Talento90/typescript-node.git",
+   "style": "layered",
+   "sha": "0bf9796f8a739cf9cc5d51202bbf05b899fe740c",
+   "root": ".",
+   "commitsUpToPin": 166,
+   "spec": "results/v1.3-external/specs/talento90-typescript-node.yaml",
+   "specSha256": "371136f5a3034bda0e3f6f66b077ca6568cfaeae6f773edb561e6b13cafd4033"
+  },
+  {
+   "id": "ddd-forum",
+   "repo": "stemmlerjs/ddd-forum",
+   "url": "https://github.com/stemmlerjs/ddd-forum.git",
+   "style": "ddd",
+   "sha": "3aa0b8d3ad3b58c111c57974fb321ddb230bde73",
+   "root": ".",
+   "commitsUpToPin": 165,
+   "spec": "results/v1.3-external/specs/ddd-forum.yaml",
+   "specSha256": "e2a25fa47b757778f91dae5b62e5f6c3be67fe62b9c7bd4f7c453f00e586b0e8"
+  },
+  {
+   "id": "finance-project-ddd",
+   "repo": "4lessandrodev/finance-project-ddd",
+   "url": "https://github.com/4lessandrodev/finance-project-ddd.git",
+   "style": "ddd",
+   "sha": "9f0725a83be4863db3da230e3bf9c5fa3f6c9a7d",
+   "root": ".",
+   "commitsUpToPin": 372,
+   "spec": "results/v1.3-external/specs/finance-project-ddd.yaml",
+   "specSha256": "1bc2114baf9eeae6fa03fc0f3e020c62114866ebdf9dbac4788bd990a2dee0f5"
+  }
+ ]
+}

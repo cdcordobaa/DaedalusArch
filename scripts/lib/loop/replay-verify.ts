@@ -170,7 +170,7 @@ export async function labelNewBlocking(result: ReplayResult, repoRoot: string, s
     const records = readRunSteps(run.runDir, steps);
     const outcomes = runOutcomes(records);
     for (const ns of outcomes.newBlocking) {
-      if (ns.count === 0) continue;
+      if (ns.count === null || ns.count === 0) continue;
       const rec = records[ns.step - 1];
       const last = rec?.turns[rec.turns.length - 1];
       if (rec === undefined || last === undefined) continue;

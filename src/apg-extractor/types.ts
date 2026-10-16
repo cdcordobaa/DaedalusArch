@@ -41,6 +41,16 @@ export interface ExtractorOptions {
    */
   reExportEdges?: ReExportEdgesMode;
   /**
+   * v1.3 metamorphic finding MT-B1 (`Docs/DiagnosticRuns/v1.3-metamorphic-2026-10-16.md`), OFF in both
+   * `V12E_DEFAULT_OPTIONS` and `V13_DEFAULT_OPTIONS`. With `reExportEdges: 'both'`, the resolved occurrence of a name
+   * imported through a re-export file is recorded without the `viaReExport` mark, so the literal view keeps the edge to
+   * the declaring file next to the literal edge to the barrel. The barrel edge (and its `reExportHop` mark) is
+   * unchanged, so the resolved view and barrel-induced cycles are unchanged. Use: a barrel that belongs to no layer
+   * (a NestJS feature folder's `index.ts`, layers assigned by file-name pattern) otherwise hides the layer of what it
+   * re-exports from every literal-view layer rule. No effect with `reExportEdges: 'resolved-only'`.
+   */
+  resolvedEdgesInLiteralView?: boolean;
+  /**
    * v1.3, ON by default on the v1.3 branch; OFF in the frozen v1.2E instrument. Write class-member facts on Class
    * nodes (field names with their readonly, static and visibility facts, get/set accessors, public mutator methods,
    * fields assigned outside the constructor) and on Method nodes (`visibility`, `assignedFields`). See
@@ -179,6 +189,7 @@ export const V12E_DEFAULT_OPTIONS: Readonly<Required<ExtractorOptions>> = Object
   dynamicImports: false,
   moduleWiring: false,
   reExportEdges: 'resolved-only',
+  resolvedEdgesInLiteralView: false,
   memberFacts: false,
   aliasDeclarationPackages: false,
   fieldState: false,

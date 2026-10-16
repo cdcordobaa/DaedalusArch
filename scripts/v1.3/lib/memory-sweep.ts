@@ -17,6 +17,7 @@ import { applyV13Rewrites } from '../../../src/fitness-compiler/v13-rewrites.js'
 import { applySignatureTypes } from '../../../src/fitness-compiler/v13-signature-types.js';
 import { UNIVERSAL_METRIC_QUERIES, UNIVERSAL_METRIC_QUERIES_LITERAL } from '../../../src/scoring-engine/universal-metrics.js';
 import { parseCypher } from '../../../src/cypher-interp/parse.js';
+import type { Query } from '../../../src/cypher-interp/ast.js';
 
 /**
  * - `equal`: same columns, same values (INTEGER and FLOAT kept apart), same row order.
@@ -130,13 +131,14 @@ export function classify(ref: DomainResult<QueryResult>, cand: DomainResult<Quer
   const sa = [...a].sort();
   const sb = [...b].sort();
   if (sa.length === sb.length && sa.every((x, i) => x === sb[i])) {
-    // A reordering is `order` only where the query leaves the order open (post-merge review R17): under an ORDER BY,
-    // whose keys are unique at the row grain for every template (template-order.test.ts), it is an ordering bug.
-    return endsInOrderBy(cypher)
-      ? { klass: 'content', detail: `same rows in a different order under ORDER BY (${String(a.length)} rows)` }
-      : { klass: 'order' };
+    // Trap T1 (row order without ORDER BY) is `order`. Under a final ORDER BY, only rows tied on every key may move.
+    const keys = finalOrderKeys(cypher);
+    if (keys === undefined) return { klass: 'order' };
+    if (tiedReordering(ref.data, cand.data, keys)) return { klass: 'order', detail: 'rows tied on the ORDER BY keys' };
+    return { klass: 'content', detail: `row order differs under the final ORDER BY: ${firstMove(a, b)}`.slice(0, 2000) };
   }
-  // Trap T2, for the named texts only: same rows, same order, FLOATs within the ULP bound.
+  // Trap T2, for the named texts only: same rows, same order, FLOATs within the ULP bound (#151; replaces the earlier
+  // 4-ULP rule on any `avg(`/`sum(` text, which allowed up to 8 ULP).
   if (FLOAT_DRIFT_TEMPLATES.has(cypher)) {
     const cells = floatDriftCells(ref.data, cand.data);
     if (cells !== undefined) {
@@ -158,6 +160,55 @@ export function endsInOrderBy(cypher: string): boolean {
   } catch {
     return false;
   }
+}
+
+/**
+ * The keys of the ORDER BY on the statement's final RETURN, each as the returned column it reads (`null` when it is
+ * not a returned column); `undefined` when the final RETURN has no ORDER BY, so the row order is unspecified.
+ */
+export function finalOrderKeys(cypher: string): (string | null)[] | undefined {
+  let q: Query;
+  try {
+    q = parseCypher(cypher);
+  } catch {
+    // Not interpreter Cypher (the candidate then failed and never reaches here) or no text: judge by the text alone.
+    const last = cypher.search(/\bRETURN\b(?![\s\S]*\bRETURN\b)/i);
+    return last >= 0 && /\bORDER\s+BY\b/i.test(cypher.slice(last)) ? [null] : undefined;
+  }
+  const ret = q.clauses[q.clauses.length - 1];
+  if (ret?.k !== 'return' || ret.projection.orderBy.length === 0) return undefined;
+  const { items, star } = ret.projection;
+  const text = (e: unknown): string => JSON.stringify(e, (_k, v: unknown) => (typeof v === 'bigint' ? `${v.toString()}n` : v));
+  return ret.projection.orderBy.map(({ expr }) => {
+    if (expr.k === 'var' && (star || items.some((it) => it.alias === expr.name))) return expr.name;
+    return items.find((it) => text(it.expr) === text(expr))?.alias ?? null;
+  });
+}
+
+/** Same key sequence on both sides, and within every run of equal keys the same rows: a reordering among ties. */
+function tiedReordering(ref: QueryResult, cand: QueryResult, keys: readonly (string | null)[]): boolean {
+  const cols = keys.filter((k): k is string => k !== null);
+  if (cols.length !== keys.length || ![...ref.records, ...cand.records].every((r) => cols.every((k) => k in r))) return false;
+  const keyOf = (r: Record<string, unknown>): string => JSON.stringify(cols.map((k) => canon(r[k])));
+  const ka = ref.records.map(keyOf);
+  const kb = cand.records.map(keyOf);
+  if (ka.length !== kb.length || ka.some((k, i) => k !== kb[i])) return false;
+  const ra = rowsOf(ref);
+  const rb = rowsOf(cand);
+  for (let i = 0; i < ka.length;) {
+    let j = i;
+    while (j < ka.length && ka[j] === ka[i]) j++;
+    const x = ra.slice(i, j).sort();
+    const y = rb.slice(i, j).sort();
+    if (x.some((v, t) => v !== y[t])) return false;
+    i = j;
+  }
+  return true;
+}
+
+function firstMove(a: readonly string[], b: readonly string[]): string {
+  const i = a.findIndex((x, k) => x !== b[k]);
+  return `row ${String(i)}: neo4j ${a[i] ?? ''} | interp ${b[i] ?? ''}`;
 }
 
 /** Distance in units in the last place between two finite doubles of the same sign (Infinity otherwise). */

@@ -27,6 +27,9 @@ import type { CheapFlag } from '../apg-enrich/cheap/types.js';
 import type { LayerDefinition } from '../shared/types/spec.js';
 import { JUDGE_V2_PERSONA, rubricV2Of } from './judge-v2.js';
 import { candidateFlagsOf, constructPromptV2, renderCandidateFlags, renderNeighbourhood } from './context-v2.js';
+import { JUDGE_V22_PERSONA, rubricV22Of } from './judge-v22.js';
+import { renderLayerModelV22 } from './context-v22.js';
+import type { RubricText } from './rubric.js';
 
 /**
  * C7 LLM critic (U4 plan Step 21, U4-K4; BLM §2, §5, §7.2, §8, §9; BR-U4-CTX-01, SEL-05,
@@ -136,8 +139,9 @@ export async function evaluateNeuronal(input: NeuronalEvalInput): Promise<Domain
     view = loaded.data;
   }
 
-  // Judge v2 (v1.3 development): the cheap-proxy flags, computed once per run.
-  const v2 = opts.judgeVersion === 'v2';
+  // Judge v2 and v2.2 (v1.3 development): the cheap-proxy flags, computed once per run.
+  const v22 = opts.judgeVersion === 'v2.2';
+  const v2 = opts.judgeVersion === 'v2' || v22;
   let cheapFlags: readonly CheapFlag[] = [];
   if (v2) {
     if (input.cheapFlags !== undefined) cheapFlags = input.cheapFlags;
@@ -153,11 +157,17 @@ export async function evaluateNeuronal(input: NeuronalEvalInput): Promise<Domain
     }
   }
 
+  const layerModelInput = {
+    layers: opts.evaluatorSpecLayers,
+    ...(opts.evaluatorSpecStyle !== undefined ? { style: opts.evaluatorSpecStyle } : {}),
+    ...(opts.evaluatorSpecAllowedDependencies !== undefined ? { allowedDependencies: opts.evaluatorSpecAllowedDependencies } : {}),
+  };
+
   // 1. Plan: candidates, units, selection, unit source and prompts (no call yet).
   const planned: PlannedFunction[] = [];
   const calls: PlannedCall[] = [];
   for (const instruction0 of instructions) {
-    const instruction = v2 ? withV2Rubric(instruction0) : instruction0;
+    const instruction = v22 ? withV22Rubric(instruction0) : v2 ? withV2Rubric(instruction0) : instruction0;
     const functionId = String(instruction.functionId);
     const baseline = resolveBaselineSelection(instruction.functionId, opts.baseline);
     if (!baseline.success) return DomainResult.fail(baseline.errors);
@@ -199,12 +209,14 @@ export async function evaluateNeuronal(input: NeuronalEvalInput): Promise<Domain
         break;
       }
       contexts.push(ctx.data);
-      const packet = assembleContext(
+      const packet0 = assembleContext(
         instruction,
         { unit, context: ctx.data, evaluatorSpecLayers: opts.evaluatorSpecLayers },
         input.adrProse?.[functionId],
         opts.tokenBudget,
       );
+      // v2.2: the layer model section also states the style and each layer's allowed dependencies.
+      const packet = v22 ? { ...packet0, layerModel: renderLayerModelV22(layerModelInput) } : packet0;
       const prompt = v2
         ? constructPromptV2(packet, {
           neighbourhood: renderNeighbourhood(unit.filePaths, view, opts.evaluatorSpecLayers),
@@ -212,7 +224,7 @@ export async function evaluateNeuronal(input: NeuronalEvalInput): Promise<Domain
         })
         : constructPrompt(packet);
       for (let runIndex = 0; runIndex < opts.runsPerEvaluation; runIndex++) {
-        fnCalls.push({ fn: fnIndex, unitIndex, functionId, unit, runIndex, prompt, ...(v2 ? { systemPrompt: JUDGE_V2_PERSONA } : {}) });
+        fnCalls.push({ fn: fnIndex, unitIndex, functionId, unit, runIndex, prompt, ...(v22 ? { systemPrompt: JUDGE_V22_PERSONA } : v2 ? { systemPrompt: JUDGE_V2_PERSONA } : {}) });
       }
     }
     if (contextError !== undefined) {
@@ -300,7 +312,15 @@ function callContext(
 
 /** The instruction with the v2 rubric of its function (`judge-v2.ts`); unchanged for a function v2 does not define. */
 export function withV2Rubric(instruction: NeuronalInstruction): NeuronalInstruction {
-  const v2 = rubricV2Of(String(instruction.functionId));
+  return withRubric(instruction, rubricV2Of(String(instruction.functionId)));
+}
+
+/** The instruction with the v2.2 rubric of its function (`judge-v22.ts`); unchanged for a function v2.2 does not define. */
+export function withV22Rubric(instruction: NeuronalInstruction): NeuronalInstruction {
+  return withRubric(instruction, rubricV22Of(String(instruction.functionId)));
+}
+
+function withRubric(instruction: NeuronalInstruction, v2: RubricText | undefined): NeuronalInstruction {
   if (v2 === undefined) return instruction;
   return {
     ...instruction,
