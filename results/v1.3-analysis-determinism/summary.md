@@ -69,38 +69,38 @@ Rates over the simulated studies. Under `null` every rate is the test size. Cove
 
 ## Decision stability across 10 seeds (scenario null; seeds 20261016..20261025; same data)
 
-Exact enumeration must give identical p on every seed. Monte Carlo p varies with the seed; the plan file fixes which seed is used.
+Exact enumeration must give identical p on every seed. Monte Carlo p varies with the seed; the plan file fixes which seed is used. The p columns hold the Holm p on T2/T2b rows (the p their decision uses) and the unadjusted p on T3 and T5 rows; the Scope column says which. A Holm p capped at 1 reads as identical on every seed even when the Monte Carlo p underneath varies.
 
-| Scope | Contrast | Units | Test | p min | p max | Identical on every seed | Seeds rejecting |
+| Scope | Contrast | Units | Test | p min | p max | Identical on every seed | Seeds rejecting (at α, on that p) |
 |---|---|---|---|---|---|---|---|
-| T2b raw (Holm) | gate − none | 54 | Monte Carlo sign-flip | 0.5609 | 0.5720 | NO | 0 of 10 |
-| T2b raw (Holm) | daedalus-mcp − none | 54 | Monte Carlo sign-flip | 0.8208 | 0.8303 | NO | 0 of 10 |
-| T2b perKloc (Holm) | gate − none | 54 | Monte Carlo sign-flip | 0.5801 | 0.5954 | NO | 0 of 10 |
-| T2b perKloc (Holm) | daedalus-mcp − none | 54 | Monte Carlo sign-flip | 0.8432 | 0.8542 | NO | 0 of 10 |
-| T3 task level | gate − none | 6 | exact sign-flip | 0.4063 | 0.4063 | yes | 0 of 10 |
-| T3 task level | daedalus-mcp − none | 6 | exact sign-flip | 0.8125 | 0.8125 | yes | 0 of 10 |
-| T5 claude-code-cli/synth-model-a | gate − none | 18 | exact sign-flip | 0.9647 | 0.9647 | yes | 0 of 10 |
-| T5 claude-code-cli/synth-model-a | daedalus-mcp − none | 18 | exact sign-flip | 0.9516 | 0.9516 | yes | 0 of 10 |
-| T5 claude-code-cli/synth-model-b | gate − none | 18 | exact sign-flip | 0.7278 | 0.7278 | yes | 0 of 10 |
-| T5 claude-code-cli/synth-model-b | daedalus-mcp − none | 18 | exact sign-flip | 0.6170 | 0.6170 | yes | 0 of 10 |
-| T5 codex-cli/synth-model-c | gate − none | 18 | exact sign-flip | 0.5157 | 0.5157 | yes | 0 of 10 |
-| T5 codex-cli/synth-model-c | daedalus-mcp − none | 18 | exact sign-flip | 0.8291 | 0.8291 | yes | 0 of 10 |
+| T2b raw (Holm p) | gate − none | 54 | Monte Carlo sign-flip | 1.0000 | 1.0000 | yes | 0 of 10 |
+| T2b raw (Holm p) | daedalus-mcp − none | 54 | Monte Carlo sign-flip | 1.0000 | 1.0000 | yes | 0 of 10 |
+| T2b perKloc (Holm p) | gate − none | 54 | Monte Carlo sign-flip | 1.0000 | 1.0000 | yes | 0 of 10 |
+| T2b perKloc (Holm p) | daedalus-mcp − none | 54 | Monte Carlo sign-flip | 1.0000 | 1.0000 | yes | 0 of 10 |
+| T3 task level (unadjusted p) | gate − none | 6 | exact sign-flip | 0.4063 | 0.4063 | yes | 0 of 10 |
+| T3 task level (unadjusted p) | daedalus-mcp − none | 6 | exact sign-flip | 0.8125 | 0.8125 | yes | 0 of 10 |
+| T5 claude-code-cli/synth-model-a (unadjusted p) | gate − none | 18 | exact sign-flip | 0.9647 | 0.9647 | yes | 0 of 10 |
+| T5 claude-code-cli/synth-model-a (unadjusted p) | daedalus-mcp − none | 18 | exact sign-flip | 0.9516 | 0.9516 | yes | 0 of 10 |
+| T5 claude-code-cli/synth-model-b (unadjusted p) | gate − none | 18 | exact sign-flip | 0.7278 | 0.7278 | yes | 0 of 10 |
+| T5 claude-code-cli/synth-model-b (unadjusted p) | daedalus-mcp − none | 18 | exact sign-flip | 0.6170 | 0.6170 | yes | 0 of 10 |
+| T5 codex-cli/synth-model-c (unadjusted p) | gate − none | 18 | exact sign-flip | 0.5157 | 0.5157 | yes | 0 of 10 |
+| T5 codex-cli/synth-model-c (unadjusted p) | daedalus-mcp − none | 18 | exact sign-flip | 0.8291 | 0.8291 | yes | 0 of 10 |
 
 ## Decision stability across 10 seeds (scenario expected; seeds 20261016..20261025; same data)
 
-Exact enumeration must give identical p on every seed. Monte Carlo p varies with the seed; the plan file fixes which seed is used.
+Exact enumeration must give identical p on every seed. Monte Carlo p varies with the seed; the plan file fixes which seed is used. The p columns hold the Holm p on T2/T2b rows (the p their decision uses) and the unadjusted p on T3 and T5 rows; the Scope column says which. A Holm p capped at 1 reads as identical on every seed even when the Monte Carlo p underneath varies.
 
-| Scope | Contrast | Units | Test | p min | p max | Identical on every seed | Seeds rejecting |
+| Scope | Contrast | Units | Test | p min | p max | Identical on every seed | Seeds rejecting (at α, on that p) |
 |---|---|---|---|---|---|---|---|
-| T2b raw (Holm) | gate − none | 54 | Monte Carlo sign-flip | 0.0031 | 0.0050 | NO | 10 of 10 |
-| T2b raw (Holm) | daedalus-mcp − none | 54 | Monte Carlo sign-flip | 0.0463 | 0.0560 | NO | 4 of 10 |
-| T2b perKloc (Holm) | gate − none | 54 | Monte Carlo sign-flip | 0.1011 | 0.1084 | NO | 0 of 10 |
-| T2b perKloc (Holm) | daedalus-mcp − none | 54 | Monte Carlo sign-flip | 0.1358 | 0.1501 | NO | 0 of 10 |
-| T3 task level | gate − none | 6 | exact sign-flip | 0.1563 | 0.1563 | yes | 0 of 10 |
-| T3 task level | daedalus-mcp − none | 6 | exact sign-flip | 0.1250 | 0.1250 | yes | 0 of 10 |
-| T5 claude-code-cli/synth-model-a | gate − none | 18 | exact sign-flip | 0.1287 | 0.1287 | yes | 0 of 10 |
-| T5 claude-code-cli/synth-model-a | daedalus-mcp − none | 18 | exact sign-flip | 0.2767 | 0.2767 | yes | 0 of 10 |
-| T5 claude-code-cli/synth-model-b | gate − none | 18 | exact sign-flip | 0.1867 | 0.1867 | yes | 0 of 10 |
-| T5 claude-code-cli/synth-model-b | daedalus-mcp − none | 18 | exact sign-flip | 0.3639 | 0.3639 | yes | 0 of 10 |
-| T5 codex-cli/synth-model-c | gate − none | 18 | exact sign-flip | 0.0563 | 0.0563 | yes | 0 of 10 |
-| T5 codex-cli/synth-model-c | daedalus-mcp − none | 18 | exact sign-flip | 0.1898 | 0.1898 | yes | 0 of 10 |
+| T2b raw (Holm p) | gate − none | 54 | Monte Carlo sign-flip | 0.0062 | 0.0100 | NO | 10 of 10 |
+| T2b raw (Holm p) | daedalus-mcp − none | 54 | Monte Carlo sign-flip | 0.0463 | 0.0560 | NO | 4 of 10 |
+| T2b perKloc (Holm p) | gate − none | 54 | Monte Carlo sign-flip | 0.2022 | 0.2168 | NO | 0 of 10 |
+| T2b perKloc (Holm p) | daedalus-mcp − none | 54 | Monte Carlo sign-flip | 0.2022 | 0.2168 | NO | 0 of 10 |
+| T3 task level (unadjusted p) | gate − none | 6 | exact sign-flip | 0.1563 | 0.1563 | yes | 0 of 10 |
+| T3 task level (unadjusted p) | daedalus-mcp − none | 6 | exact sign-flip | 0.1250 | 0.1250 | yes | 0 of 10 |
+| T5 claude-code-cli/synth-model-a (unadjusted p) | gate − none | 18 | exact sign-flip | 0.1287 | 0.1287 | yes | 0 of 10 |
+| T5 claude-code-cli/synth-model-a (unadjusted p) | daedalus-mcp − none | 18 | exact sign-flip | 0.2767 | 0.2767 | yes | 0 of 10 |
+| T5 claude-code-cli/synth-model-b (unadjusted p) | gate − none | 18 | exact sign-flip | 0.1867 | 0.1867 | yes | 0 of 10 |
+| T5 claude-code-cli/synth-model-b (unadjusted p) | daedalus-mcp − none | 18 | exact sign-flip | 0.3639 | 0.3639 | yes | 0 of 10 |
+| T5 codex-cli/synth-model-c (unadjusted p) | gate − none | 18 | exact sign-flip | 0.0563 | 0.0563 | yes | 0 of 10 |
+| T5 codex-cli/synth-model-c (unadjusted p) | daedalus-mcp − none | 18 | exact sign-flip | 0.1898 | 0.1898 | yes | 0 of 10 |

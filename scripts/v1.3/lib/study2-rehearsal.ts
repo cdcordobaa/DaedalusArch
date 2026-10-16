@@ -197,10 +197,11 @@ export function seedStability(runs: readonly LoadedRun[], scheduled: readonly st
     if (reject) r.rejects++;
   };
   for (const rep of reps) {
-    const sets = rep.plan !== undefined && rep.plan.scales.length > 0 ? rep.plan.scales.map((x) => ({ s: `T2b ${x.scale} (Holm)`, cs: x.contrasts })) : [{ s: 'T2 (Holm)', cs: rep.confirmatory }];
-    for (const { s, cs } of sets) for (const c of cs) add(s, c, c.p, c.blocks, c.inference?.test.method ?? 'sign-flip', c.holmReject === true);
-    for (const c of rep.confirmatory) add('T3 task level', c, c.taskLevelP, c.tasks, c.inference?.taskLevelTest.method ?? 'sign-flip', (c.taskLevelP ?? 1) <= o.alpha);
-    for (const m of rep.perModel) for (const c of m.contrasts) add(`T5 ${m.model}`, c, c.p, c.blocks, c.inference?.test.method ?? 'sign-flip', (c.p ?? 1) <= o.alpha);
+    // T2/T2b rows carry the Holm p, the p their decision uses; T3 and T5 rows are unadjusted.
+    const sets = rep.plan !== undefined && rep.plan.scales.length > 0 ? rep.plan.scales.map((x) => ({ s: `T2b ${x.scale} (Holm p)`, cs: x.contrasts })) : [{ s: 'T2 (Holm p)', cs: rep.confirmatory }];
+    for (const { s, cs } of sets) for (const c of cs) add(s, c, c.holmP ?? null, c.blocks, c.inference?.test.method ?? 'sign-flip', c.holmReject === true);
+    for (const c of rep.confirmatory) add('T3 task level (unadjusted p)', c, c.taskLevelP, c.tasks, c.inference?.taskLevelTest.method ?? 'sign-flip', (c.taskLevelP ?? 1) <= o.alpha);
+    for (const m of rep.perModel) for (const c of m.contrasts) add(`T5 ${m.model} (unadjusted p)`, c, c.p, c.blocks, c.inference?.test.method ?? 'sign-flip', (c.p ?? 1) <= o.alpha);
   }
   return [...rows.values()].map((r) => {
     const ps = r.ps.filter((x): x is number => x !== null);
