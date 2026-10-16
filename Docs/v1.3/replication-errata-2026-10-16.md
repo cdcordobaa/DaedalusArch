@@ -153,4 +153,23 @@ changes.
 
 ## Re-run
 
-Full run (`npm run replicate:v1.3`) in progress; totals follow in the next commit.
+Full offline run, `npm run replicate:v1.3` at `f1f1c132` (Node v22.22.0, no LLM, no Neo4j, 57 min). **It exits 0.**
+
+| | PR #215 (`8b6c1398`) | this branch |
+|---|---:|---:|
+| numbers registered | 5,154 | 5,155 |
+| **yes** (PASS) | 4,587 | **4,644** |
+| **no** (KNOWN) | 58 | **2** (rows 29 and 30, class c) |
+| FAIL / ERROR | 0 / 0 | **0 / 0** |
+| needs-LLM / needs-Neo4j / needs-external / not-checkable | 6 / 235 / 148 / 120 | 6 / 235 / 148 / 120 (unchanged) |
+
+- **The +57 yes:** the 56 numbers corrected or fixed here, and one new number. Row 48 is now checked as two
+  numbers, `e-mcp-l-orders` and `e-mcp-l-orders-p50`.
+- **The `--fast` subset of the same run:** 3,947 PASS, 0 KNOWN, 0 FAIL, 0 ERROR, with 699 skipped in slow groups.
+  Both KNOWN rows are in the slow group `d-audit-smoke`.
+- **The separate `--fast` run:** it ran before the post-merge-review fix and gave 3,931 PASS and 16 FAIL. All 16
+  were that review's quotes of the corrected lines, which the group now reads at the review's commit.
+
+The per-doc tables in [`replication-2/`](replication-2/) are regenerated from this run
+(`node replication/v1.3/report.mjs rows.json --dir Docs/v1.3/replication-2`). The prose of `replication-2.md` stays
+the PR #215 record.
