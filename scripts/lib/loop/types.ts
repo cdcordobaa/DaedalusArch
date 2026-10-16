@@ -156,7 +156,7 @@ export interface StepEvaluation {
   /** AHS over the blocking rules only; null when none ran. */
   readonly blockingAhs: number | null;
   /** v1.3 verdict: `fail` iff a blocking rule has an applicable violation. */
-  readonly verdict: 'pass' | 'fail';
+  readonly verdict: 'pass' | 'fail' | 'incomplete';
   readonly violationCount: number;
   readonly blockingViolationCount: number;
   readonly advisoryViolationCount: number;

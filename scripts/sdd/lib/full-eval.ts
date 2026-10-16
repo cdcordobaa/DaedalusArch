@@ -13,7 +13,7 @@ import type { EvaluationReport } from '../../../src/shared/types/evaluation.js';
 import type { FullFindingKey } from './transcript.js';
 
 export interface FullEvalSummary {
-  readonly verdict: 'pass' | 'fail';
+  readonly verdict: 'pass' | 'fail' | 'incomplete';
   readonly blocking: readonly FullFindingKey[];
   readonly advisoryCount: number;
   readonly advisoryRules: readonly string[];

@@ -139,15 +139,63 @@ describe('v1.3 verdict: only blocking rules fail it', () => {
     expect(verdict).toBe('pass');
   });
 
-  it('a blocking rule that failed to execute is listed and does not count (as in v1.2E)', async () => {
+  it('a blocking rule that failed to execute is listed, adds no violation, and makes the verdict INCOMPLETE', async () => {
     const results: EvaluationResults = {
       symbolicResults: [sym('FF-S01', 'structural'), sym('FF-P01', 'pattern', 2)],
       neuronalResults: [],
       failures: [{ functionId: functionId('FF-P01'), name: 'domain-purity', code: 'EVAL_001', message: 'timeout' }],
     };
     const report = await scored(results, { scoringMode: 'v1.3' });
-    expect(report.tiers?.verdict).toBe('pass');
+    expect(report.tiers?.verdict).toBe('incomplete');
+    expect(report.verdict).toBe('soft-block');
     expect(report.tiers?.blockingNotExecuted.map(String)).toEqual(['FF-P01']);
+  });
+});
+
+describe('v1.3 fail-closed: a blocking rule that times out (EVAL_002)', () => {
+  const timedOut = (id: string, name: string) => ({ functionId: functionId(id), name, code: 'EVAL_002', message: 'transaction timeout' });
+
+  it('gives INCOMPLETE, not PASS, when nothing else blocks (report verdict soft-block, schema-valid)', async () => {
+    const results: EvaluationResults = {
+      symbolicResults: [sym('FF-S01', 'structural'), sym('FF-P01', 'pattern'), sym('FF-P03', 'pattern')],
+      neuronalResults: [],
+      failures: [timedOut('FF-S02', 'no-cyclic-deps')],
+    };
+    const report = await scored(results, { scoringMode: 'v1.3' });
+    expect(report.tiers?.blocking.violatedRules).toBe(0);
+    expect(report.tiers?.blockingNotExecuted.map(String)).toEqual(['FF-S02']);
+    expect(report.tiers?.verdict).toBe('incomplete');
+    expect(report.verdict).toBe('soft-block');
+    if (report.tiers !== undefined) expect(overallVerdictOf(report.tiers)).toBe('soft-block');
+    const assembled = await scoreAndAssemble(input(results, { scoringMode: 'v1.3' }));
+    expect(assembled.success).toBe(true);
+    if (!assembled.success) return;
+    expect(assembled.data.tiers?.verdict).toBe('incomplete');
+    const checked = validateReport(assembled.data);
+    expect(checked.success ? [] : checked.errors).toEqual([]);
+  });
+
+  it('FAIL takes precedence when another blocking rule is violated', async () => {
+    const results: EvaluationResults = {
+      symbolicResults: [sym('FF-S01', 'structural', 1), sym('FF-P01', 'pattern'), sym('FF-P03', 'pattern')],
+      neuronalResults: [],
+      failures: [timedOut('FF-S02', 'no-cyclic-deps')],
+    };
+    const report = await scored(results, { scoringMode: 'v1.3' });
+    expect(report.tiers?.verdict).toBe('fail');
+    expect(report.verdict).toBe('hard-block');
+  });
+
+  it('an ADVISORY rule that times out leaves the verdict PASS', async () => {
+    const results: EvaluationResults = {
+      symbolicResults: BLOCKING_CLEAN,
+      neuronalResults: [],
+      failures: [timedOut('FF-C02', 'module-fan-out')],
+    };
+    const report = await scored(results, { scoringMode: 'v1.3' });
+    expect(report.tiers?.blockingNotExecuted).toEqual([]);
+    expect(report.tiers?.verdict).toBe('pass');
+    expect(report.verdict).toBe('pass');
   });
 });
 

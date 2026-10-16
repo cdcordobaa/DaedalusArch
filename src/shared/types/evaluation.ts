@@ -413,8 +413,11 @@ export interface TieredScoring {
   readonly scoringMode: 'v1.3';
   readonly tierTable: string;
   readonly style: string | null;
-  /** `fail` iff a blocking rule has at least one applicable violation. */
-  readonly verdict: 'pass' | 'fail';
+  /**
+   * `fail` iff a blocking rule has at least one applicable violation; otherwise `incomplete` iff a blocking rule failed
+   * to execute (`blockingNotExecuted` non-empty; fail-closed, 2026-10-16); otherwise `pass`.
+   */
+  readonly verdict: 'pass' | 'fail' | 'incomplete';
   readonly verdictRule: 'any-blocking-violation';
   /** The v1.2E verdict of the same run (the report's v1.2E AHS fields are unchanged). */
   readonly v12eVerdict: import('./enums.js').OverallVerdict;
@@ -423,7 +426,7 @@ export interface TieredScoring {
   readonly blocking: TierGroup;
   readonly advisory: TierGroup;
   readonly notApplicable: readonly NotApplicablePart[];
-  /** Blocking rules that failed to execute (FR-13); they do not count, as in v1.2E. */
+  /** Blocking rules that failed to execute (FR-13); they add no violation, but make a non-failing verdict `incomplete`. */
   readonly blockingNotExecuted: readonly FunctionId[];
 }
 

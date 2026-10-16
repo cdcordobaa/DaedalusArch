@@ -96,6 +96,21 @@ describe('runCheck on git commits (lexical engine)', () => {
     expect(seen.every((p) => p.includes(clean))).toBe(true);
   });
 
+  it('fails closed when a blocking rule failed to execute on head (EVAL_002), with no new finding', async () => {
+    const timedOutOnHead: GateEngine = {
+      name: 'neo4j',
+      evaluate: (input) => Promise.resolve({ findings: [], blockingNotExecuted: input.projectDir.includes(violating) ? ['FF-S02'] : [] }),
+    };
+    const r = await check(clean, violating, timedOutOnHead);
+    expect(r.newBlocking).toBe(0);
+    expect(r.headBlockingNotExecuted).toEqual(['FF-S02']);
+    expect(r.verdict).toBe('fail');
+    // The base's failure alone does not fail the gate, and a complete head omits the field.
+    const baseOnly = await check(violating, clean, timedOutOnHead);
+    expect(baseOnly.verdict).toBe('pass');
+    expect(baseOnly.headBlockingNotExecuted).toBeUndefined();
+  });
+
   it('refuses a project or spec path outside the repository', async () => {
     await expect(runCheck({ repo, base: clean, head: violating, spec: '../x.yaml', engine: lexicalEngine() })).rejects.toThrow('inside the repository');
     await expect(runCheck({ repo, base: clean, head: violating, spec: 'spec.yaml', project: '/etc', engine: lexicalEngine() })).rejects.toThrow('inside the repository');
