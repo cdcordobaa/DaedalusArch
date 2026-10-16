@@ -187,9 +187,9 @@ function report(rows: readonly VariantRow[], targets: readonly IseTarget[]): str
   const groups: [string, (t: string) => boolean][] = [
     ['5 reference projects', (t) => !/^(P\d|N\d|S)-/.test(t)],
     ['P1-P5 (development rename probe)', (t) => /^P\d-/.test(t)],
-    ['N1 (held out)', (t) => t.startsWith('N1-')],
-    ['N2 (held out)', (t) => t.startsWith('N2-')],
-    ['S (held out, scrambled)', (t) => t.startsWith('S-')],
+    ['N1 (rename probe)', (t) => t.startsWith('N1-')],
+    ['N2 (rename probe)', (t) => t.startsWith('N2-')],
+    ['S (rename probe, scrambled suffixes)', (t) => t.startsWith('S-')],
   ];
   out.push('## (A) Clean variants: mined allowed graph vs the true spec (precision / recall, pooled)', '');
   for (const kind of ['clean', 'near-miss'] as const) {

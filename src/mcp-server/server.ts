@@ -1,6 +1,7 @@
 /**
- * MCP server wiring: registers the eleven DaedalusArch tools (MCP v2: the eight v1 tools with v1.3 fields added, plus
- * `infer_spec` and `explain_finding`; then `propose_rules`, rule mining) on an `McpServer`. Transport-agnostic (`main.ts`
+ * MCP server wiring: registers the ten DaedalusArch tools (MCP v2: the eight v1 tools with v1.3 fields added, plus
+ * `infer_spec` and `explain_finding`) on an `McpServer`, and `propose_rules` (rule mining) only when the context opts
+ * in (`ruleMining`: `--rule-mining` or `DAEDALUS_RULE_MINING=1`; off by default). Transport-agnostic (`main.ts`
  * connects stdio; the tests connect an in-memory pair). Tools only read the spec and, for `evaluate_project`,
  * run the existing pipeline; none writes to the project under evaluation.
  */
@@ -37,12 +38,19 @@ export const TOOL_NAMES: readonly string[] = Object.freeze([
   'suggest_placement',
   'infer_spec',
   'explain_finding',
-  'propose_rules',
 ]);
+
+/** Opt-in tools, registered after `TOOL_NAMES` only when the context enables them (`ServerContext.ruleMining`). */
+export const RULE_MINING_TOOL_NAMES: readonly string[] = Object.freeze(['propose_rules']);
+
+/** The tools a server built from `ctx` registers, in registration order. */
+export function toolNamesFor(ctx: Pick<ServerContext, 'ruleMining'>): readonly string[] {
+  return ctx.ruleMining === true ? [...TOOL_NAMES, ...RULE_MINING_TOOL_NAMES] : TOOL_NAMES;
+}
 
 /** Tools that read only the spec: instant, no graph, no database (the set an experiment arm may allow-list). */
 export const SPEC_TOOL_NAMES: readonly string[] = Object.freeze(
-  TOOL_NAMES.filter((n) => n !== 'evaluate_project' && n !== 'propose_rules'),
+  TOOL_NAMES.filter((n) => n !== 'evaluate_project'),
 );
 
 const specArg = z
@@ -299,7 +307,7 @@ export function createServer(ctx: ServerContext): McpServer {
     async (args) => toResult(await explainFindingTool(ctx, z.object(explainFindingShape).parse(args))),
   );
 
-  register(
+  if (ctx.ruleMining === true) register(
     'propose_rules',
     {
       title: 'Propose the implicit architecture rules of a project (proposals)',

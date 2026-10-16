@@ -13,13 +13,19 @@ import type { ServerContext } from './tools.js';
 export interface McpArgs {
   readonly spec?: string;
   readonly project?: string;
+  /** `--rule-mining`: also register the opt-in `propose_rules` tool. */
+  readonly ruleMining?: boolean;
 }
 
-/** `--spec <path>` and `--project <path>` (also `--flag=value`); unknown flags are ignored. Pure. */
+/** `--spec <path>`, `--project <path>` (also `--flag=value`) and `--rule-mining`; unknown flags are ignored. Pure. */
 export function parseArgs(argv: readonly string[]): McpArgs {
-  const out: { spec?: string; project?: string } = {};
+  const out: { spec?: string; project?: string; ruleMining?: boolean } = {};
   for (let i = 0; i < argv.length; i++) {
     const arg = argv[i] ?? '';
+    if (arg === '--rule-mining') {
+      out.ruleMining = true;
+      continue;
+    }
     const [flag, inline] = arg.split('=', 2);
     const value = inline ?? argv[i + 1];
     if ((flag === '--spec' || flag === '--project') && value !== undefined && value !== '') {
@@ -48,6 +54,7 @@ export function buildContext(args: McpArgs, env: NodeJS.ProcessEnv): ServerConte
     presetsDir: presetsDirFrom(env, process.argv[1], process.cwd()),
     defaultSpecPath: args.spec ?? env.DAEDALUS_SPEC,
     defaultProjectPath: args.project ?? env.DAEDALUS_PROJECT,
+    ruleMining: args.ruleMining === true || env.DAEDALUS_RULE_MINING === '1',
     env,
     loadSpec: createSpecLoader(),
     evaluateDeps: {

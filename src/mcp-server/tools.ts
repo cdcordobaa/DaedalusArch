@@ -55,6 +55,8 @@ export interface ServerContext {
   readonly loadSpec: (specPath: string) => Promise<ToolOutcome<LoadedSpec>>;
   /** The tool's canonical presets (`presets/`), read by `infer_spec`. */
   readonly presetsDir?: string | undefined;
+  /** Register the opt-in `propose_rules` tool (rule mining). Off by default. */
+  readonly ruleMining?: boolean | undefined;
 }
 
 const ok = <T>(data: T): ToolOutcome<T> => ({ ok: true, data });

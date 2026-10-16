@@ -6,7 +6,7 @@ import { InMemoryTransport } from '@modelcontextprotocol/sdk/inMemory.js';
 import type { GraphRepository } from '../../../src/shared/interfaces/graph-repository.js';
 import { DomainResult } from '../../../src/shared/errors/domain-result.js';
 import { buildContext, parseArgs } from '../../../src/mcp-server/context.js';
-import { SPEC_TOOL_NAMES, TOOL_NAMES, createServer } from '../../../src/mcp-server/server.js';
+import { RULE_MINING_TOOL_NAMES, SPEC_TOOL_NAMES, TOOL_NAMES, createServer, toolNamesFor } from '../../../src/mcp-server/server.js';
 import { createSpecLoader, toProjectRelative } from '../../../src/mcp-server/tools.js';
 import type { ServerContext } from '../../../src/mcp-server/tools.js';
 import { CLEAN_ARCH_SPEC, FIXTURES } from './helpers.js';
@@ -75,7 +75,7 @@ async function call(client: Client, name: string, args: Record<string, unknown> 
 }
 
 describe('MCP server over an in-memory transport', () => {
-  it('exposes exactly the eleven tools (the eight v1 tools first, then the MCP v2 tools, then propose_rules), each with a description and an input schema', async () => {
+  it('exposes exactly the ten tools (the eight v1 tools first, then the MCP v2 tools), each with a description and an input schema', async () => {
     const { client, close } = await connect(context());
     const { tools } = await client.listTools();
     expect(tools.map((t) => t.name)).toEqual([...TOOL_NAMES]);
@@ -90,10 +90,8 @@ describe('MCP server over an in-memory transport', () => {
       'suggest_placement',
       'infer_spec',
       'explain_finding',
-      'propose_rules',
     ]);
     expect(SPEC_TOOL_NAMES).not.toContain('evaluate_project');
-    expect(SPEC_TOOL_NAMES).not.toContain('propose_rules');
     expect(SPEC_TOOL_NAMES).toHaveLength(9);
     for (const tool of tools) {
       expect(tool.description?.length).toBeGreaterThan(40);
@@ -326,9 +324,28 @@ describe('path and argument handling', () => {
   });
 });
 
-describe('propose_rules', () => {
+describe('propose_rules (opt-in)', () => {
+  it('is not registered by default, and is registered after the ten tools with ruleMining', async () => {
+    const off = await connect(context());
+    expect((await off.client.listTools()).tools.map((t) => t.name)).not.toContain('propose_rules');
+    await off.close();
+    const on = await connect(context({ ruleMining: true }));
+    expect((await on.client.listTools()).tools.map((t) => t.name)).toEqual([...TOOL_NAMES, ...RULE_MINING_TOOL_NAMES]);
+    await on.close();
+    expect(toolNamesFor({})).toEqual(TOOL_NAMES);
+    expect(SPEC_TOOL_NAMES).not.toContain('propose_rules');
+  });
+
+  it('turns on with --rule-mining or DAEDALUS_RULE_MINING=1', () => {
+    expect(parseArgs(['--rule-mining']).ruleMining).toBe(true);
+    expect(parseArgs([]).ruleMining).toBeUndefined();
+    expect(buildContext(parseArgs([]), {}).ruleMining).toBe(false);
+    expect(buildContext(parseArgs([]), { DAEDALUS_RULE_MINING: '1' }).ruleMining).toBe(true);
+    expect(buildContext(parseArgs(['--rule-mining']), {}).ruleMining).toBe(true);
+  });
+
   it('returns the mined rules of a project as labelled proposals with a compiling spec', async () => {
-    const { client, close } = await connect(context());
+    const { client, close } = await connect(context({ ruleMining: true }));
     const project = path.join(process.cwd(), 'tests/fixtures/v1.3-reference/hexagonal/project');
     const r = await call(client, 'propose_rules', { project, maxExceptions: 2 });
     await close();
@@ -343,7 +360,7 @@ describe('propose_rules', () => {
   }, 120_000);
 
   it('fails clearly for a directory without src/', async () => {
-    const { client, close } = await connect(context());
+    const { client, close } = await connect(context({ ruleMining: true }));
     const r = await call(client, 'propose_rules', { project: os.tmpdir() });
     await close();
     expect(r.isError).toBe(true);

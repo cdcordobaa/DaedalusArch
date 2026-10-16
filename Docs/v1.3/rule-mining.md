@@ -71,8 +71,10 @@ why. The emitted spec is parsed, validated against the project (`--rules v1.3`) 
 
 ### 1.4 Evaluation protocol
 
-Targets: the five v1.3 reference projects (71 variants), the ISE development rename probe P1–P5, and the held-out
-probes N1, N2 and S (`scripts/v1.3/lib/ise-targets.ts`; renamed directories, inserted levels, scrambled suffixes).
+Targets: the five v1.3 reference projects (71 variants), the ISE development rename probe P1–P5, and the probes N1,
+N2 and S (`scripts/v1.3/lib/ise-targets.ts`; renamed directories, inserted levels, scrambled suffixes). (Wording
+corrected after review: this section first called N1, N2 and S "held-out". They were held out from ISE's robustness
+fixes, but here they are in-repo rename transforms of the same five projects, not an independent sample; see §3.3.)
 
 **(A) Clean variants: mined graph against the true spec.** On each target's `clean` variant (primary) and its
 `near-miss` variants (secondary), mine the rules and compare the mined allowed layer graph M with the true spec's
@@ -106,6 +108,7 @@ ground truth): style, rule counts by kind and level, exceptions, spec validity.
 | `cdb2e8b8` | The miner, the emitter, their unit tests and §1 of this document. No evaluation had run. |
 | `+1` | `analyseSnapshot` / `proposeFromAnalysis` split out of `proposeRules` (no behaviour change), the CLI command, the MCP tool, the evaluation scripts, the offline and external results and §2–§7. |
 | `+2` | The live Neo4j downstream results and §4. |
+| after review | `propose_rules` gated off by default (`--rule-mining` / `DAEDALUS_RULE_MINING=1`); N1, N2 and S relabelled as rename probes (not held out). No result changed. |
 | merge, `+3`, `+4` | Merge of `origin/v1.3` (the MCP registry conflict), `--engine cypher-interp` for the downstream script, its rerun. |
 
 `src/rule-mining/miner.ts`, `emit.ts` and `types.ts` were not changed after the first evaluation run; no threshold was
@@ -139,8 +142,8 @@ Precision / recall of the allowed layer edges, pooled over the five targets of e
 | 5 reference projects | ISE | 100% / 86% (25/25, 25/29) | 100% / 86% | 100% / 79% (23/23, 23/29) |
 | 5 reference projects | oracle | 100% / 86% | 100% / 86% | 100% / 79% |
 | P1–P5 (development rename probe) | ISE | 100% / 86% | 100% / 86% | 100% / 79% |
-| N1, N2 (held out) | ISE | 100% / 86% | 100% / 86% | 100% / 79% |
-| S (held out, scrambled suffixes) | ISE | 96% / 86% (25/26) | 96% / 83% | 96% / 76% (22/23, 22/29) |
+| N1, N2 (rename probes) | ISE | 100% / 86% | 100% / 86% | 100% / 79% |
+| S (rename probe, scrambled suffixes) | ISE | 96% / 86% (25/26) | 96% / 83% | 96% / 76% (22/23, 22/29) |
 | S | oracle | 100% / 86% | 100% / 86% | 100% / 79% |
 
 On the 14 near-miss variants of each target set the figures are the same within one edge (reference projects: 100% /
@@ -194,8 +197,8 @@ Each of the 52 violating variants is mined on its own, with no clean version.
 |---|---|---|---|---|---|
 | 5 reference projects | 68 | 44 (65%) | 44 | 28/52 | 0.6 |
 | P1–P5 | 68 | 44 (65%) | 44 | 28/52 | 0.6 |
-| N1, N2 (held out) | 68 | 44 (65%) | 44 | 28/52 | 0.6 |
-| S (held out) | 68 | 41 (60%) | 44 | 25/52 | 0.9 |
+| N1, N2 (rename probes) | 68 | 44 (65%) | 44 | 28/52 | 0.6 |
+| S (rename probe) | 68 | 41 (60%) | 44 | 25/52 | 0.9 |
 
 "Exact" means a mined rule's exception has the finding's file and target. No planted finding matched at file level
 only. By planted rule (reference projects; the rule shown is the highest-confidence one that surfaced it):
@@ -231,6 +234,11 @@ confidence: the planted edge is itself counted in the evidence and lowers it.
   but the contexts receive one cross-context import in the clean code, under the minimum of two.
 
 ### 3.3 (C) Robustness to renaming
+
+**These probes test robustness, not generalisation.** P1–P5, N1, N2 and S are renaming transforms of the same five
+reference projects, with the same code and the same planted violations. They show that the miner does not read names.
+They are **not** held-out evidence of accuracy on unseen code, and N1 and N2 reproduce the reference numbers exactly.
+Accuracy on code the method was not developed on rests on the external projects (§5), which have no ground truth.
 
 Renamed layer directories (P1–P5), an inserted root wrapper (N1) or an inner level (N2) change **nothing**: every
 figure equals the reference projects', because the miner reads layers and edges, not names. Scrambled class and file
@@ -344,7 +352,9 @@ arguments or an extraction failure.
 **MCP** (`src/mcp-server/server.ts`): `propose_rules` with `project`, `minConfidence`, `includeSpec` (default true)
 and `maxExceptions` (default 20). It returns `label` ("PROPOSED rules: … not a reviewed spec"), the style, the
 allowed graph, every rule with `status: "proposal"`, counts and the spec with its validation result. It is
-read-only, needs no Neo4j, and is **not** in `SPEC_TOOL_NAMES`, so the experiment arms' allow-list is unchanged.
+read-only, needs no Neo4j, and is **opt-in**: the server registers it only when started with `--rule-mining` or
+`DAEDALUS_RULE_MINING=1`, so by default every MCP client still sees the ten v1.3 tools. It is never in
+`SPEC_TOOL_NAMES`, so the experiment arms' allow-list is unchanged.
 
 ## 7. Limitations
 
