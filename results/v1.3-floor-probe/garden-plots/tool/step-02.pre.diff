@@ -1,0 +1,242 @@
+diff --git a/src/adapters/inbound/http.ts b/src/adapters/inbound/http.ts
+index 16674d1..755795c 100644
+--- a/src/adapters/inbound/http.ts
++++ b/src/adapters/inbound/http.ts
+@@ -1,7 +1,8 @@
+ import express, { NextFunction, Request, Response } from 'express';
+ import { GardenService } from '../../application/garden-service';
++import { WaterService } from '../../application/water-service';
+ 
+-export function createApp(garden: GardenService): express.Express {
++export function createApp(garden: GardenService, water: WaterService): express.Express {
+   const app = express();
+   app.use(express.json());
+ 
+@@ -31,6 +32,18 @@ export function createApp(garden: GardenService): express.Express {
+     garden.recordPayment(req.body.reference, req.body.status);
+     res.sendStatus(204);
+   });
++  app.post('/meters', (req, res) => {
++    water.linkMeter(String(req.body.meterId), Number(req.body.plotNumber));
++    res.sendStatus(204);
++  });
++  app.get('/plots/:number/water', (req, res) => {
++    res.json(water.weeklyUseForPlot(Number(req.params.number)));
++  });
++  // AquaTick webhook
++  app.post('/webhooks/aquatick', (req, res) => {
++    const { meterId, litres, time } = req.body as { meterId: string; litres: number; time: string };
++    res.status(201).json(water.recordReading(meterId, Number(litres), time));
++  });
+ 
+   app.use((err: Error, _req: Request, res: Response, _next: NextFunction) => {
+     res.status(400).json({ error: err.message });
+diff --git a/src/adapters/outbound/fake-mailer.ts b/src/adapters/outbound/fake-mailer.ts
+new file mode 100644
+index 0000000..41110d1
+--- /dev/null
++++ b/src/adapters/outbound/fake-mailer.ts
+@@ -0,0 +1,8 @@
++import { Mailer } from '../../application/ports';
++
++export class FakeMailer implements Mailer {
++  readonly outbox: { to: string; subject: string; body: string; at: string }[] = [];
++  send(to: string, subject: string, body: string): void {
++    this.outbox.push({ to, subject, body, at: new Date().toISOString() });
++  }
++}
+diff --git a/src/adapters/outbound/in-memory.ts b/src/adapters/outbound/in-memory.ts
+index 2236f4a..1ea2b56 100644
+--- a/src/adapters/outbound/in-memory.ts
++++ b/src/adapters/outbound/in-memory.ts
+@@ -1,5 +1,13 @@
+ import { Allocation, Gardener, Plot, isActive } from '../../domain/garden';
+-import { AllocationRepository, GardenerRepository, PlotRepository, WaitingList } from '../../application/ports';
++import {
++  AllocationRepository,
++  GardenerRepository,
++  MeterRepository,
++  PlotRepository,
++  ReadingRepository,
++  WaitingList,
++} from '../../application/ports';
++import { MeterReading } from '../../domain/water';
+ 
+ export class InMemoryPlotRepository implements PlotRepository {
+   private readonly plots = new Map<number, Plot>();
+@@ -58,3 +66,23 @@ export class InMemoryWaitingList implements WaitingList {
+     return [...this.queue];
+   }
+ }
++
++export class InMemoryMeterRepository implements MeterRepository {
++  private readonly links = new Map<string, number>();
++  link(meterId: string, plotNumber: number): void {
++    this.links.set(meterId, plotNumber);
++  }
++  plotFor(meterId: string): number | undefined {
++    return this.links.get(meterId);
++  }
++}
++
++export class InMemoryReadingRepository implements ReadingRepository {
++  private readonly readings: MeterReading[] = [];
++  add(r: MeterReading): void {
++    this.readings.push(r);
++  }
++  forPlot(plotNumber: number): MeterReading[] {
++    return this.readings.filter((r) => r.plotNumber === plotNumber);
++  }
++}
+diff --git a/src/application/ports.ts b/src/application/ports.ts
+index cc3a643..c51b1aa 100644
+--- a/src/application/ports.ts
++++ b/src/application/ports.ts
+@@ -1,4 +1,5 @@
+ import { Allocation, Gardener, Plot } from '../domain/garden';
++import { MeterReading } from '../domain/water';
+ 
+ export interface PlotRepository {
+   save(plot: Plot): void;
+@@ -33,3 +34,17 @@ export interface PaymentProvider {
+ export interface Clock {
+   now(): Date;
+ }
++
++export interface MeterRepository {
++  link(meterId: string, plotNumber: number): void;
++  plotFor(meterId: string): number | undefined;
++}
++
++export interface ReadingRepository {
++  add(r: MeterReading): void;
++  forPlot(plotNumber: number): MeterReading[];
++}
++
++export interface Mailer {
++  send(to: string, subject: string, body: string): void;
++}
+diff --git a/src/application/water-service.ts b/src/application/water-service.ts
+new file mode 100644
+index 0000000..1b79a1e
+--- /dev/null
++++ b/src/application/water-service.ts
+@@ -0,0 +1,46 @@
++import { MeterReading, WEEKLY_WARNING_LITRES, weekStart, weeklyUse } from '../domain/water';
++import { AllocationRepository, GardenerRepository, Mailer, MeterRepository, ReadingRepository } from './ports';
++
++export class WaterService {
++  private readonly warned = new Set<string>();
++
++  constructor(
++    private readonly meters: MeterRepository,
++    private readonly readings: ReadingRepository,
++    private readonly allocations: AllocationRepository,
++    private readonly gardeners: GardenerRepository,
++    private readonly mailer: Mailer,
++  ) {}
++
++  linkMeter(meterId: string, plotNumber: number): void {
++    this.meters.link(meterId, plotNumber);
++  }
++
++  recordReading(meterId: string, litres: number, time: string): MeterReading {
++    const plotNumber = this.meters.plotFor(meterId);
++    if (plotNumber === undefined) throw new Error(`Meter ${meterId} is not linked to a plot`);
++    const reading: MeterReading = { meterId, plotNumber, litres, time };
++    this.readings.add(reading);
++    this.checkWeeklyUse(plotNumber, weekStart(new Date(time)));
++    return reading;
++  }
++
++  weeklyUseForPlot(plotNumber: number): Record<string, number> {
++    return weeklyUse(this.readings.forPlot(plotNumber));
++  }
++
++  private checkWeeklyUse(plotNumber: number, week: string): void {
++    const used = this.weeklyUseForPlot(plotNumber)[week] ?? 0;
++    const key = `${plotNumber}:${week}`;
++    if (used <= WEEKLY_WARNING_LITRES || this.warned.has(key)) return;
++    const allocation = this.allocations.active().find((a) => a.plotNumber === plotNumber);
++    const gardener = allocation ? this.gardeners.find(allocation.gardenerId) : undefined;
++    if (!gardener) return;
++    this.warned.add(key);
++    this.mailer.send(
++      gardener.email,
++      `High water use on plot ${plotNumber}`,
++      `Hi ${gardener.name}, your plot used ${used} litres in the week of ${week}, above the ${WEEKLY_WARNING_LITRES} litre limit.`,
++    );
++  }
++}
+diff --git a/src/config/main.ts b/src/config/main.ts
+index e58ed2f..2bee83c 100644
+--- a/src/config/main.ts
++++ b/src/config/main.ts
+@@ -2,25 +2,33 @@ import { GardenService } from '../application/garden-service';
+ import {
+   InMemoryAllocationRepository,
+   InMemoryGardenerRepository,
++  InMemoryMeterRepository,
+   InMemoryPlotRepository,
++  InMemoryReadingRepository,
+   InMemoryWaitingList,
+ } from '../adapters/outbound/in-memory';
+ import { PayBeeClient } from '../adapters/outbound/paybee';
+ import { SystemClock } from '../adapters/outbound/system-clock';
++import { FakeMailer } from '../adapters/outbound/fake-mailer';
++import { WaterService } from '../application/water-service';
+ import { createApp } from '../adapters/inbound/http';
+ 
++const gardeners = new InMemoryGardenerRepository();
++const allocations = new InMemoryAllocationRepository();
++export const mailer = new FakeMailer();
+ const garden = new GardenService(
+   new InMemoryPlotRepository(),
+-  new InMemoryGardenerRepository(),
+-  new InMemoryAllocationRepository(),
++  gardeners,
++  allocations,
+   new InMemoryWaitingList(),
+   new PayBeeClient(process.env.PAYBEE_URL ?? 'https://api.paybee.example', process.env.PAYBEE_KEY ?? '', process.env.PAYBEE_WEBHOOK ?? ''),
+   new SystemClock(),
+ );
++const water = new WaterService(new InMemoryMeterRepository(), new InMemoryReadingRepository(), allocations, gardeners, mailer);
+ 
+ // check for overdue payments every hour
+ setInterval(() => {
+   garden.releaseOverdue().catch((e) => console.error('release failed', e));
+ }, 60 * 60 * 1000);
+ 
+-createApp(garden).listen(Number(process.env.PORT ?? 3000), () => console.log('garden service up'));
++createApp(garden, water).listen(Number(process.env.PORT ?? 3000), () => console.log('garden service up'));
+diff --git a/src/domain/water.ts b/src/domain/water.ts
+new file mode 100644
+index 0000000..4d2a989
+--- /dev/null
++++ b/src/domain/water.ts
+@@ -0,0 +1,25 @@
++export interface MeterReading {
++  meterId: string;
++  plotNumber: number;
++  litres: number;
++  time: string;
++}
++
++export const WEEKLY_WARNING_LITRES = 2000;
++
++/** Monday (UTC) of the week the date falls in, as YYYY-MM-DD. */
++export function weekStart(date: Date): string {
++  const d = new Date(Date.UTC(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate()));
++  const day = (d.getUTCDay() + 6) % 7;
++  d.setUTCDate(d.getUTCDate() - day);
++  return d.toISOString().slice(0, 10);
++}
++
++export function weeklyUse(readings: MeterReading[]): Record<string, number> {
++  const out: Record<string, number> = {};
++  for (const r of readings) {
++    const w = weekStart(new Date(r.time));
++    out[w] = (out[w] ?? 0) + r.litres;
++  }
++  return out;
++}

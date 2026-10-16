@@ -1,0 +1,293 @@
+diff --git a/src/adapters/inbound/daily-scheduler.ts b/src/adapters/inbound/daily-scheduler.ts
+index 3680c81..1543d9b 100644
+--- a/src/adapters/inbound/daily-scheduler.ts
++++ b/src/adapters/inbound/daily-scheduler.ts
+@@ -1,12 +1,13 @@
+ /** Runs a job every day at the given local hour. */
+-export function scheduleDaily(hour: number, job: () => Promise<unknown>): void {
++export function scheduleDaily(hour: number, job: () => Promise<unknown> | unknown): void {
+   const scheduleNext = (): void => {
+     const now = new Date();
+     const next = new Date(now);
+     next.setHours(hour, 0, 0, 0);
+     if (next <= now) next.setDate(next.getDate() + 1);
+     setTimeout(() => {
+-      job()
++      Promise.resolve()
++        .then(job)
+         .catch((e) => console.error('scheduled job failed', e))
+         .finally(scheduleNext);
+     }, next.getTime() - now.getTime());
+diff --git a/src/adapters/inbound/routes.ts b/src/adapters/inbound/routes.ts
+index c7c4c26..e40ecd7 100644
+--- a/src/adapters/inbound/routes.ts
++++ b/src/adapters/inbound/routes.ts
+@@ -18,6 +18,9 @@ export function foodBankRoutes(service: FoodBankService): Router {
+   r.put('/households/:id/slot', (req, res) => {
+     res.json(service.bookSlot(req.params.id, Number(req.body.weekday), Number(req.body.hour)));
+   });
++  r.put('/households/:id/reminder', (req, res) => {
++    res.json(service.setReminderPreference(req.params.id, !!req.body.smsReminder, req.body.phone));
++  });
+   r.post('/households/:id/pickups', (req, res) => {
+     res.status(201).json(service.recordPickup(req.params.id, req.body.items ?? []));
+   });
+diff --git a/src/adapters/outbound/fake-mailer.ts b/src/adapters/outbound/fake-mailer.ts
+new file mode 100644
+index 0000000..417e4ae
+--- /dev/null
++++ b/src/adapters/outbound/fake-mailer.ts
+@@ -0,0 +1,8 @@
++import { Mailer } from '../../application/ports';
++
++export class FakeMailer implements Mailer {
++  readonly messages: { to: string; subject: string; body: string }[] = [];
++  send(to: string, subject: string, body: string): void {
++    this.messages.push({ to, subject, body });
++  }
++}
+diff --git a/src/adapters/outbound/memory-store.ts b/src/adapters/outbound/memory-store.ts
+index 4cea3de..9f241d7 100644
+--- a/src/adapters/outbound/memory-store.ts
++++ b/src/adapters/outbound/memory-store.ts
+@@ -50,6 +50,9 @@ export class MemoryBookingRepository implements BookingRepository {
+   remove(householdId: string): void {
+     this.data.delete(householdId);
+   }
++  all(): SlotBooking[] {
++    return [...this.data.values()];
++  }
+ }
+ 
+ export class MemoryPickupRepository implements PickupRepository {
+diff --git a/src/adapters/outbound/snaptext-sms.ts b/src/adapters/outbound/snaptext-sms.ts
+new file mode 100644
+index 0000000..fd51fea
+--- /dev/null
++++ b/src/adapters/outbound/snaptext-sms.ts
+@@ -0,0 +1,14 @@
++import { SmsSender } from '../../application/ports';
++
++export class SnapTextSmsSender implements SmsSender {
++  constructor(private readonly url: string, private readonly apiKey: string) {}
++
++  async send(phone: string, message: string): Promise<void> {
++    const res = await fetch(`${this.url}/sms`, {
++      method: 'POST',
++      headers: { 'content-type': 'application/json', 'x-api-key': this.apiKey },
++      body: JSON.stringify({ phone, message }),
++    });
++    if (!res.ok) throw new Error(`SnapText returned ${res.status}`);
++  }
++}
+diff --git a/src/application/attendance-service.ts b/src/application/attendance-service.ts
+new file mode 100644
+index 0000000..05000ec
+--- /dev/null
++++ b/src/application/attendance-service.ts
+@@ -0,0 +1,52 @@
++import { MAX_MISSED_IN_ROW, isoWeekday } from '../domain/pickup';
++import { BookingRepository, HouseholdRepository, Mailer, PickupRepository, SmsSender } from './ports';
++
++export class AttendanceService {
++  constructor(
++    private readonly households: HouseholdRepository,
++    private readonly bookings: BookingRepository,
++    private readonly pickups: PickupRepository,
++    private readonly sms: SmsSender,
++    private readonly mailer: Mailer,
++    private readonly staffOnDuty: () => string[],
++  ) {}
++
++  /** Sends SMS reminders to households with a pickup tomorrow (run in the evening). */
++  async sendReminders(tomorrow: string): Promise<number> {
++    const weekday = isoWeekday(tomorrow);
++    let sent = 0;
++    for (const b of this.bookings.all().filter((x) => x.weekday === weekday)) {
++      const h = this.households.get(b.householdId);
++      if (!h || !h.smsReminder || !h.phone) continue;
++      await this.sms.send(h.phone, `Food bank reminder: your pickup is tomorrow (${tomorrow}) at ${b.hour}:00.`);
++      sent++;
++    }
++    return sent;
++  }
++
++  /** Called after a pickup day: counts misses and cancels bookings after three in a row. */
++  checkMissedPickups(date: string): string[] {
++    const weekday = isoWeekday(date);
++    const pickedUp = new Set(this.pickups.list().filter((p) => p.date === date).map((p) => p.householdId));
++    const cancelled: string[] = [];
++    for (const b of this.bookings.all().filter((x) => x.weekday === weekday)) {
++      if (pickedUp.has(b.householdId)) continue;
++      const missed = (b.missedInRow ?? 0) + 1;
++      if (missed >= MAX_MISSED_IN_ROW) {
++        this.bookings.remove(b.householdId);
++        cancelled.push(b.householdId);
++        const h = this.households.get(b.householdId);
++        for (const to of this.staffOnDuty()) {
++          this.mailer.send(
++            to,
++            `Pickup booking cancelled: ${h?.name ?? b.householdId}`,
++            `${h?.name ?? b.householdId} missed ${missed} pickups in a row; their slot (day ${b.weekday}, ${b.hour}:00) was cancelled.`,
++          );
++        }
++      } else {
++        this.bookings.save({ ...b, missedInRow: missed });
++      }
++    }
++    return cancelled;
++  }
++}
+diff --git a/src/application/food-bank-service.ts b/src/application/food-bank-service.ts
+index ddbb814..8501e00 100644
+--- a/src/application/food-bank-service.ts
++++ b/src/application/food-bank-service.ts
+@@ -13,10 +13,25 @@ export class FoodBankService {
+     private readonly today: () => string = () => new Date().toISOString().slice(0, 10),
+   ) {}
+ 
+-  registerHousehold(input: { name: string; postcode: string; people: number; dietaryNeeds?: DietaryNeed[] }): Household {
++  registerHousehold(input: {
++    name: string;
++    postcode: string;
++    people: number;
++    dietaryNeeds?: DietaryNeed[];
++    phone?: string;
++    smsReminder?: boolean;
++  }): Household {
+     if (!input.name || !input.postcode) throw new Error('name and postcode are required');
+     if (!(input.people > 0)) throw new Error('people must be at least 1');
+-    const h: Household = { id: randomUUID(), name: input.name, postcode: input.postcode, people: input.people, dietaryNeeds: input.dietaryNeeds ?? [] };
++    const h: Household = {
++      id: randomUUID(),
++      name: input.name,
++      postcode: input.postcode,
++      people: input.people,
++      dietaryNeeds: input.dietaryNeeds ?? [],
++      phone: input.phone,
++      smsReminder: !!input.smsReminder && !!input.phone,
++    };
+     this.households.save(h);
+     return h;
+   }
+@@ -46,6 +61,15 @@ export class FoodBankService {
+     return booking;
+   }
+ 
++  setReminderPreference(householdId: string, smsReminder: boolean, phone?: string): Household {
++    const h = this.households.get(householdId);
++    if (!h) throw new Error('Unknown household');
++    const updated: Household = { ...h, phone: phone ?? h.phone, smsReminder };
++    if (updated.smsReminder && !updated.phone) throw new Error('A phone number is needed for SMS reminders');
++    this.households.save(updated);
++    return updated;
++  }
++
+   recordPickup(householdId: string, items: { itemId: string; quantity: number }[]): Pickup {
+     if (!this.households.get(householdId)) throw new Error('Unknown household');
+     const today = this.today();
+@@ -61,6 +85,9 @@ export class FoodBankService {
+     updates.forEach((u) => this.inventory.save(u));
+     const pickup: Pickup = { id: randomUUID(), householdId, date: today, lines };
+     this.pickups.save(pickup);
++    const booking = this.bookings.forHousehold(householdId);
++    if (booking && booking.missedInRow) this.bookings.save({ ...booking, missedInRow: 0 });
+     return pickup;
+   }
+ }
++
+diff --git a/src/application/ports.ts b/src/application/ports.ts
+index 4395e5e..92f713b 100644
+--- a/src/application/ports.ts
++++ b/src/application/ports.ts
+@@ -20,6 +20,7 @@ export interface BookingRepository {
+   forHousehold(householdId: string): SlotBooking | undefined;
+   inSlot(weekday: number, hour: number): SlotBooking[];
+   remove(householdId: string): void;
++  all(): SlotBooking[];
+ }
+ 
+ export interface PickupRepository {
+@@ -42,3 +43,11 @@ export interface ImportLog {
+   has(key: string): boolean;
+   add(key: string): void;
+ }
++
++export interface SmsSender {
++  send(phone: string, message: string): Promise<void>;
++}
++
++export interface Mailer {
++  send(to: string, subject: string, body: string): void;
++}
+diff --git a/src/config/main.ts b/src/config/main.ts
+index f5c511a..7fc5443 100644
+--- a/src/config/main.ts
++++ b/src/config/main.ts
+@@ -9,6 +9,9 @@ import {
+   MemoryPickupRepository,
+ } from '../adapters/outbound/memory-store';
+ import { FreshLinkClient } from '../adapters/outbound/freshlink-client';
++import { SnapTextSmsSender } from '../adapters/outbound/snaptext-sms';
++import { FakeMailer } from '../adapters/outbound/fake-mailer';
++import { AttendanceService } from '../application/attendance-service';
+ import { foodBankRoutes } from '../adapters/inbound/routes';
+ import { donationRoutes } from '../adapters/inbound/donation-routes';
+ import { createServer } from '../adapters/inbound/server';
+@@ -27,7 +30,21 @@ const donations = new DonationImportService(
+   new MemoryImportLog(),
+ );
+ 
++export const mailer = new FakeMailer();
++const attendance = new AttendanceService(
++  households,
++  bookings,
++  pickups,
++  new SnapTextSmsSender(process.env.SNAPTEXT_URL ?? 'https://api.snaptext.example', process.env.SNAPTEXT_KEY ?? ''),
++  mailer,
++  () => (process.env.STAFF_ON_DUTY ?? 'duty@foodbank.example').split(','),
++);
++
++const isoDate = (offsetDays: number): string => new Date(Date.now() + offsetDays * 86400000).toISOString().slice(0, 10);
++
+ scheduleDaily(6, () => donations.importYesterday());
++scheduleDaily(18, () => attendance.sendReminders(isoDate(1)));
++scheduleDaily(23, () => attendance.checkMissedPickups(isoDate(0)));
+ 
+ createServer(foodBankRoutes(foodBank), donationRoutes(donations)).listen(Number(process.env.PORT ?? 3000), () =>
+   console.log('food bank service listening'),
+diff --git a/src/domain/household.ts b/src/domain/household.ts
+index 2984899..b50db04 100644
+--- a/src/domain/household.ts
++++ b/src/domain/household.ts
+@@ -6,4 +6,6 @@ export interface Household {
+   postcode: string;
+   people: number;
+   dietaryNeeds: DietaryNeed[];
++  phone?: string;
++  smsReminder?: boolean;
+ }
+diff --git a/src/domain/pickup.ts b/src/domain/pickup.ts
+index 0e71f0d..84f2536 100644
+--- a/src/domain/pickup.ts
++++ b/src/domain/pickup.ts
+@@ -4,6 +4,7 @@ export interface SlotBooking {
+   householdId: string;
+   weekday: number; // 1 = Monday ... 7 = Sunday
+   hour: number;
++  missedInRow?: number;
+ }
+ 
+ export interface PickupLine {
+@@ -28,3 +29,11 @@ export function validateSlot(weekday: number, hour: number): void {
+   if (!Number.isInteger(weekday) || weekday < 1 || weekday > 7) throw new Error('weekday must be 1..7');
+   if (!Number.isInteger(hour) || hour < 0 || hour > 23) throw new Error('hour must be 0..23');
+ }
++
++export const MAX_MISSED_IN_ROW = 3;
++
++/** ISO weekday (1 = Monday) of a YYYY-MM-DD date. */
++export function isoWeekday(date: string): number {
++  const d = new Date(`${date}T12:00:00Z`).getUTCDay();
++  return d === 0 ? 7 : d;
++}
