@@ -1,0 +1,19 @@
+{
+  "answer": {
+    "inputTokens": 287,
+    "outputTokens": 20,
+    "servedModel": "fake-claude",
+    "text": "{\"choice\":\"B\",\"reason\":\"fake anthropic answer\"}"
+  },
+  "failedAttempts": [],
+  "itemKey": "9f151cd29673b7f6007c7f25",
+  "key": "f43aee7efb7866062bad62929363bf33d4fe7cfb5b5176f8835c6c78fe714e5c",
+  "model": "fake-claude",
+  "provider": "fake",
+  "request": {
+    "prompt": "## Architectural style\n- No architectural style is declared for this code base. Judge against widely shared principles of software architecture:\n  dependencies point from volatile, concrete code towards stable, abstract code; layers and components keep their\n  responsibilities; side effects and framework details stay at the edges; cycles between components are avoided.\n\n## Code excerpt\nFile: src/team/team-member.resolver.ts\n```ts\n    1> import { Resolver, ResolveField, Parent } from '@nestjs/graphql';\n    2  import { TeamMember } from './team.model';\n    3  import { UserService } from 'src/user/user.service';\n    4  import { User } from '../user/user.model';\n    5  import { throwErr } from 'src/utils';\n    6  import { USER_NOT_FOUND } from 'src/errors';\n    7  import * as O from 'fp-ts/Option';\n    8  \n    9  @Resolver(() => TeamMember)\n```\n\n## Reported finding\nComponent `team` lies far from the main sequence: abstractness 0.00, instability 0.09, distance 0.91.\n\n## Question\nWould an architect following this style want this changed?\nA. yes\nB. no\nC. uncertain\n\nReply with JSON only: {\"choice\": \"<letter>\", \"reason\": \"<one sentence>\"}",
+    "system": "You are a software architect reviewing a TypeScript code base against an architectural style. Judge only from the material in the message: the style definition, the code excerpt and the reported finding. You have no tools. Reply with one JSON object and nothing else.",
+    "temperature": 0
+  },
+  "runIndex": 0
+}
