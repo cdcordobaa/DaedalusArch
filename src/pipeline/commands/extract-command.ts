@@ -4,6 +4,7 @@ import type { DomainResult as DomainResultType } from '../../shared/errors/domai
 import { DomainResult } from '../../shared/errors/domain-result.js';
 import { extractAPG } from '../../apg-extractor/index.js';
 import type { GraphMode } from '../../apg-extractor/types.js';
+import { V12E_DEFAULT_OPTIONS } from '../../apg-extractor/types.js';
 import { toPipelineError, toPipelineWarning } from './map-helpers.js';
 
 export class ExtractCommand implements PipelineCommand {
@@ -20,10 +21,13 @@ export class ExtractCommand implements PipelineCommand {
     private readonly sourceOverrides?: ReadonlyMap<string, string | null>,
     /** MT-B1 (OFF by default): `ExtractorOptions.resolvedEdgesInLiteralView`. */
     private readonly resolvedEdgesInLiteralView = false,
+    /** R02: `v1.2e` extracts with `V12E_DEFAULT_OPTIONS` (the registered graph); absent = the v1.3 defaults. */
+    private readonly defaults?: 'v1.3' | 'v1.2e',
   ) {}
 
   async execute(context: FirewallContext): Promise<DomainResultType<void>> {
     const options = {
+      ...(this.defaults === 'v1.2e' ? V12E_DEFAULT_OPTIONS : {}),
       excludePatterns: this.excludePatterns,
       ...(this.graphMode !== undefined && { graphMode: this.graphMode }),
       ...(this.resolvedEdgesInLiteralView && { resolvedEdgesInLiteralView: true }),

@@ -356,6 +356,7 @@ export function auditMain(argv: readonly string[], io: MainIo, repoRoot: string 
     io.out(`meaningful: n ${String(m.n)}, kappa ${m.kappa?.toFixed(3) ?? 'n/a'}, AC1 ${m.ac1?.toFixed(3) ?? 'n/a'}, agreement ${m.observed?.toFixed(3) ?? 'n/a'} [${m.observedLow?.toFixed(3) ?? '-'}, ${m.observedHigh?.toFixed(3) ?? '-'}]\n`);
     io.out(`gate (kappa >= ${String(report.gate.threshold)}, n >= ${String(AUDIT_MIN)}): ${report.gate.pass ? 'PASS' : 'FAIL'}\n`);
     if (report.unanswered.length > 0) io.out(`unanswered: ${report.unanswered.join(', ')}\n`);
+    if (report.correctnessUnmatched.length > 0) io.out(`correct answer not yes/no (left out of correctness): ${report.correctnessUnmatched.join(', ')}\n`);
     return 0;
   }
   throw new Error('audit-sheet: subcommand sheet, agreement, union or union-agreement');

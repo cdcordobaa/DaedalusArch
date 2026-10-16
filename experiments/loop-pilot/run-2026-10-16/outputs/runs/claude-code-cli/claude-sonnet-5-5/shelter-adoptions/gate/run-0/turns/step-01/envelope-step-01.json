@@ -1,0 +1,114 @@
+{
+  "duration_api_ms": 47599,
+  "stop_reason": "end_turn",
+  "session_id": "6cc72901-09cc-4b14-9e04-77f80ae9d024",
+  "total_cost_usd": 0.14608970000000002,
+  "usage": {
+    "input_tokens": 12,
+    "cache_creation_input_tokens": 12062,
+    "cache_read_input_tokens": 45877,
+    "output_tokens": 9323,
+    "output_tokens_details": {
+      "thinking_tokens": 386
+    },
+    "server_tool_use": {
+      "web_search_requests": 0,
+      "web_fetch_requests": 0
+    },
+    "service_tier": "standard",
+    "cache_creation": {
+      "ephemeral_1h_input_tokens": 12062,
+      "ephemeral_5m_input_tokens": 0
+    },
+    "inference_geo": "global",
+    "iterations": [
+      {
+        "input_tokens": 2,
+        "output_tokens": 636,
+        "cache_read_input_tokens": 8845,
+        "cache_creation_input_tokens": 9129,
+        "cache_creation": {
+          "ephemeral_5m_input_tokens": 0,
+          "ephemeral_1h_input_tokens": 9129
+        },
+        "type": "message"
+      }
+    ],
+    "speed": "standard",
+    "fallback_credit": null
+  },
+  "modelUsage": {
+    "claude-sonnet-5-5": {
+      "inputTokens": 12,
+      "outputTokens": 9323,
+      "cacheReadInputTokens": 45877,
+      "cacheCreationInputTokens": 12062,
+      "webSearchRequests": 0,
+      "costUSD": 0.14608970000000002,
+      "contextWindow": 1000000,
+      "maxOutputTokens": 128000,
+      "thinkingTokens": 386,
+      "canonicalModel": "claude-sonnet-5-5",
+      "provider": "firstParty",
+      "costBasis": "list"
+    }
+  },
+  "permission_denials": [
+    {
+      "tool_name": "Bash",
+      "tool_use_id": "toolu_01NycAQ2EdorT7cJs3BKBvTQ",
+      "tool_input": {
+        "command": "pwd; ls -la; cat /root/pilot/harness/runs/claude-code-cli/claude-sonnet-5-5/shelter-adoptions/gate/run-0/tsconfig.json; ls /root/pilot/harness/ /root/pilot/harness/node_modules 2>/dev/null | head -30"
+      }
+    },
+    {
+      "tool_name": "Read",
+      "tool_use_id": "toolu_01SNPmiDrkDu91NJHXQndLpb",
+      "tool_input": {
+        "file_path": "/root/pilot/harness/runs/claude-code-cli/claude-sonnet-5-5/shelter-adoptions/gate/run-0/tsconfig.json"
+      }
+    }
+  ],
+  "terminal_reason": "completed",
+  "fast_mode_state": "off",
+  "fast_mode_disabled_reason": "sdk_opt_in_required",
+  "subagent_stats": {
+    "spawned": 0,
+    "requested": {
+      "background": 0,
+      "foreground": 0,
+      "unset": 0
+    },
+    "started_in_background": 0,
+    "max_depth": 0,
+    "spawned_by_subagents": 0,
+    "completed": 0,
+    "failed": 0,
+    "killed": {
+      "parent": 0,
+      "user": 0,
+      "system": 0
+    },
+    "refused": {
+      "depth_limit": 0,
+      "concurrency_limit": 0,
+      "budget": 0
+    },
+    "by_type": {}
+  },
+  "safety_stops": 0,
+  "is_error": false,
+  "num_turns": 18,
+  "subtype": "success",
+  "api_error_status": null,
+  "result": "The service is written and the type-check passes. `tsc` printed no errors, using exactly the command you gave. I haven't started the server or sent it any requests, so the runtime behavior is untested.\n\n**Layout** (the five folders you specified, plus a `src/config/main.ts` entry point):\n- `src/domain`: the animal and application models, their status transitions, and error types.\n- `src/application`: the ports (repositories, mail, id generator, clock) and two services, `AnimalService` and `ApplicationService`.\n- `src/adapters/inbound`: an HTTP server on plain `node:http`, with no Express.\n- `src/adapters/outbound`: in-memory repositories, a fake mail provider that records every message, a UUID generator and a system clock.\n- `src/config`: `main.ts`, which builds the pieces and starts the server on `PORT` (default 3000).\n\n**Endpoints:**\n- `POST /animals`, `GET /animals`, `GET /animals/:id`: register and view animals.\n- `POST /animals/:id/ready`: mark an animal ready for adoption.\n- `POST /applications`, `GET /applications`, `GET /applications/:id`: submit and view applications.\n- `POST /applications/:id/approve` and `POST /applications/:id/reject`: staff decisions.\n- `GET /mail`: the e-mails the fake provider has recorded.\n\n**Rules I chose:**\n- A new animal starts as `in_care` and becomes `ready_for_adoption`, then `adopted`.\n- Applications are only accepted for animals that are ready for adoption.\n- Approving an application marks the animal adopted and rejects its other open applications.\n- Every decision, including those automatic rejections, e-mails the applicant.\n- Deciding an application that is already decided returns 409.\n- Input errors return 400 and unknown ids return 404.\n\nThere is no authentication, so nothing separates staff operations from public ones yet.",
+  "ttft_ms": 1949,
+  "type": "result",
+  "duration_ms": 49140,
+  "uuid": "ab562dfc-1800-4431-bd29-3bc3bf83ce0a",
+  "ttft_stream_ms": 976,
+  "time_to_request_ms": 347,
+  "first_content_frame_ms": 977,
+  "queued_turn_count": 0,
+  "result_index": 0
+}

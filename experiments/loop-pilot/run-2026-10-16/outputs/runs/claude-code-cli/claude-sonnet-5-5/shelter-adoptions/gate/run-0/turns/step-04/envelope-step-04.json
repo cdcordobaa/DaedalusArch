@@ -1,0 +1,114 @@
+{
+  "duration_api_ms": 119337,
+  "stop_reason": "end_turn",
+  "session_id": "edc03354-e363-443f-bcde-8afb2c8db7d8",
+  "total_cost_usd": 0.41969860000000003,
+  "usage": {
+    "input_tokens": 32,
+    "cache_creation_input_tokens": 42470,
+    "cache_read_input_tokens": 410346,
+    "output_tokens": 20872,
+    "output_tokens_details": {
+      "thinking_tokens": 3345
+    },
+    "server_tool_use": {
+      "web_search_requests": 0,
+      "web_fetch_requests": 0
+    },
+    "service_tier": "standard",
+    "cache_creation": {
+      "ephemeral_1h_input_tokens": 42470,
+      "ephemeral_5m_input_tokens": 0
+    },
+    "inference_geo": "global",
+    "iterations": [
+      {
+        "input_tokens": 2,
+        "output_tokens": 804,
+        "cache_read_input_tokens": 48161,
+        "cache_creation_input_tokens": 221,
+        "cache_creation": {
+          "ephemeral_5m_input_tokens": 0,
+          "ephemeral_1h_input_tokens": 221
+        },
+        "type": "message"
+      }
+    ],
+    "speed": "standard",
+    "fallback_credit": null
+  },
+  "modelUsage": {
+    "claude-sonnet-5-5": {
+      "inputTokens": 32,
+      "outputTokens": 20872,
+      "cacheReadInputTokens": 410346,
+      "cacheCreationInputTokens": 42470,
+      "webSearchRequests": 0,
+      "costUSD": 0.41969860000000003,
+      "contextWindow": 1000000,
+      "maxOutputTokens": 128000,
+      "thinkingTokens": 3345,
+      "canonicalModel": "claude-sonnet-5-5",
+      "provider": "firstParty",
+      "costBasis": "list"
+    }
+  },
+  "permission_denials": [
+    {
+      "tool_name": "Bash",
+      "tool_use_id": "toolu_01KdNUMqSwsPcyjDQEvaQeEz",
+      "tool_input": {
+        "command": "find . -path ./node_modules -prune -o -type f -print | head -100 && wc -l $(find src -name '*.ts') && cat package.json; cat /root/pilot/harness/runs/claude-code-cli/claude-sonnet-5-5/shelter-adoptions/gate/run-0/tsconfig.json"
+      }
+    },
+    {
+      "tool_name": "Bash",
+      "tool_use_id": "toolu_01Y31qvjXRrF4SPqFypmX5rw",
+      "tool_input": {
+        "command": "cd /root/pilot/out/runs/claude-code-cli/claude-sonnet-5-5/shelter-adoptions/gate/run-0/work/src && sed -i -E 's/private readonly items = new Map/readonly items = new Map/' adapters/outbound/in-memory-repositories.ts && grep -n \"readonly items\" adapters/outbound/in-memory-repositories.ts; cat domain/errors.ts | head -20"
+      }
+    }
+  ],
+  "terminal_reason": "completed",
+  "fast_mode_state": "off",
+  "fast_mode_disabled_reason": "sdk_opt_in_required",
+  "subagent_stats": {
+    "spawned": 0,
+    "requested": {
+      "background": 0,
+      "foreground": 0,
+      "unset": 0
+    },
+    "started_in_background": 0,
+    "max_depth": 0,
+    "spawned_by_subagents": 0,
+    "completed": 0,
+    "failed": 0,
+    "killed": {
+      "parent": 0,
+      "user": 0,
+      "system": 0
+    },
+    "refused": {
+      "depth_limit": 0,
+      "concurrency_limit": 0,
+      "budget": 0
+    },
+    "by_type": {}
+  },
+  "safety_stops": 0,
+  "is_error": false,
+  "num_turns": 62,
+  "subtype": "success",
+  "api_error_status": null,
+  "result": "The audit trail is in and the project type-checks with the exact command you gave, with no errors. I haven't run the service or exercised the new endpoints, so the behaviour is untested beyond the type-check.\n\n**What's recorded.** Every save to an animal, an application, a placement or a notification now writes an audit entry. Each entry holds the entity type and id, the animal id (when there is one), created or updated, the actor, the timestamp, and the full before and after values. The before value is null on creation.\n\n**Who is recorded.** The actor comes from the `x-staff-id` request header. Webhook delivery reports are recorded as `system`. If the header is missing on a staff request, the actor is `anonymous`. I chose that over rejecting the request so existing callers keep working; say if you'd rather return a 400.\n\n**Endpoints**\n- `GET /animals/:id/audit` lists the animal's entries together with those for its applications and placements. It returns 404 for an unknown animal.\n- `GET /staff/:staffId/audit?from=…&to=…` lists the changes one staff member made. Both dates are required, must be valid, and are inclusive. Otherwise it returns 400. A date-only `to` such as `2026-10-16` means midnight at the start of that day.\n- Notification entries have no animal, so they don't appear in an animal's trail. They do appear in the staff list.\n\n**Saved together or not at all.** Services no longer save entities directly. They send their changes to a single `commit` call, which writes the entities and their audit entries as one unit and rolls everything back if any part fails. Commits run one at a time so a rollback can't discard another request's writes. Approving an application is now a single commit covering the approval, the animal becoming adopted, the ended foster placement and the rejections of the other open applications. The foster capacity check happens inside the commit and still returns \"Carer is at full capacity\".\n\nNotification emails and SMS are sent after or between commits. A failed send is not rolled back, because it can't be.\n\n**Code changes**\n- New files: `src/domain/audit.ts`, `src/application/audit-service.ts` and `src/adapters/outbound/in-memory-audit.ts`.\n- Edited files: the four existing services, the HTTP server (routes and actor header), the in-memory repositories (their `items` maps are now public so the store can snapshot them for rollback) and `src/config/main.ts` (wiring).\n- Foster carer registration is not audited, since it wasn't in the request.",
+  "ttft_ms": 2029,
+  "type": "result",
+  "duration_ms": 120891,
+  "uuid": "f4193d31-6489-4ee2-a54c-1437340cf684",
+  "ttft_stream_ms": 848,
+  "time_to_request_ms": 221,
+  "first_content_frame_ms": 848,
+  "queued_turn_count": 0,
+  "result_index": 0
+}

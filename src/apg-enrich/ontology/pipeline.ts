@@ -35,6 +35,7 @@ import { PASS_IDS } from './types.js';
 import { buildUnits } from './units.js';
 import type { ClassUnit, OntologyUnits } from './units.js';
 import { verifyRuleDuplication } from './verify.js';
+import { hostIndependentCompare } from '../../shared/collation.js';
 
 export interface OntologyInput {
   readonly apg: APGResult;
@@ -337,7 +338,7 @@ export async function runOntology(input: OntologyInput, o: OntologyOptionsInput)
     const conf = mean(members.map((m) => m.c.out.confidence));
     nodes.push({ id, label: 'SemBusinessConcept', name: names[0] ?? first.c.out.name, properties: { names }, provenance: first.c.provenance, confidence: conf, evidence: dedupEvidence(members.flatMap((m) => m.c.evidence)), agreement: mergeAgreement(members.map((m) => m.c)) });
     for (const m of members) edge('SemEMBODIES', m.cls.nodeId, id, { provenance: m.c.provenance, agreement: m.c.agreement, evidence: m.c.evidence, confidence: m.c.out.confidence }, { relation: m.c.out.relation });
-    const definers = [...new Map(members.filter((m) => m.c.out.relation === 'defines').map((m) => [m.cls.nodeId, m.cls])).values()].sort((a, b) => a.nodeId.localeCompare(b.nodeId));
+    const definers = [...new Map(members.filter((m) => m.c.out.relation === 'defines').map((m) => [m.cls.nodeId, m.cls])).values()].sort((a, b) => hostIndependentCompare(a.nodeId, b.nodeId));
     const distinctNames = new Set(definers.map((c) => c.name));
     const components = [...new Set(definers.map((c) => c.component))].sort();
     if (distinctNames.size < options.minFragmentClasses || components.length < 2) continue;
@@ -366,7 +367,7 @@ export async function runOntology(input: OntologyInput, o: OntologyOptionsInput)
     }
     const components = [...new Set([...realizers.values()].map((c) => c.component))].sort();
     if (components.length >= options.scatterMinComponents) {
-      findings.push({ kind: 'capability-scatter', capabilityId: id, capability: first.out.name, classes: [...realizers.values()].sort((a, b) => a.nodeId.localeCompare(b.nodeId)).map((c) => site(c)), components, confidence: conf });
+      findings.push({ kind: 'capability-scatter', capabilityId: id, capability: first.out.name, classes: [...realizers.values()].sort((a, b) => hostIndependentCompare(a.nodeId, b.nodeId)).map((c) => site(c)), components, confidence: conf });
     }
   }
 
@@ -378,7 +379,7 @@ export async function runOntology(input: OntologyInput, o: OntologyOptionsInput)
     provider: { provider: d.provider, model: d.model },
     nodes: [...new Map(nodes.map((n) => [n.id, n])).values()].sort(byId),
     edges: [...new Map(edges.map((e) => [e.id, e])).values()].sort(byId),
-    findings: findings.sort((a, b) => findingKey(a).localeCompare(findingKey(b))),
+    findings: findings.sort((a, b) => hostIndependentCompare(findingKey(a), findingKey(b))),
     hallucinations: p.hallucinations,
     acceptedAssertions: p.accepted,
     agreement: Object.fromEntries(PASS_IDS.map((id) => [id, p.tallies[id].result()])) as OntologyResult['agreement'],

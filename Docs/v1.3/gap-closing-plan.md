@@ -9,6 +9,10 @@
 
 Numbers are quoted from the docs. Where no run exists the plan says **pending**. Effort figures are this plan's estimates, not measurements.
 
+**Amendment, 2026-10-16 (declared deviation).** Decision 5 and steps 5.2 and 5.5 are superseded by `Docs/v1.3/study2-deviation-2026-10-16.md`: the Study 2 primary outcome is the level outcome Y (distinct blocking edges at step k = 4), the arms are `none` and `daedalus-mcp`, the generators are Sonnet 5.5 and the Codex pin, and if neither confirmatory stratum passes the validation pilot Study 2 does not run. The superseded text is kept below and marked.
+
+<!-- study2-protocol: primary=Y-distinct-blocking-edges-at-step-k; k=4; arms=none,daedalus-mcp; unit=distinct-edge; fallback=do-not-run; order=freeze,hold-out,dress-rehearsal,pre-registration,gate,run; generators=claude-sonnet-5-5,codex-pin -->
+
 **Owners.**
 
 - **[A]** author decision.
@@ -213,12 +217,12 @@ Gate and rehearsal:
 | # | Step | Owner | Effort (est.) | Pass criterion (fixed now) |
 |---|---|---|---|---|
 | 5.1 | Fix freezer defect T1 (DDD aggregates) on the dev set; re-freeze each DDD pilot run from its **same** recorded step-1 commit; score the 8 kept snapshots. This is option 1 at `v1.3-pilot-run:…loop-pilot-2026-10-16.md:32`. No new generation. (Decision 4) | [C] fix + [L] score | half a day | 8/8 DDD snapshots scored with 0 `evaluationError`; memo §5 decision written by the pre-fixed rule (`:19`). |
-| 5.2 | Apply the pilot memo's pre-committed rule (Decision 5). This is not a free choice. If DDD `none` has 0 new blocking findings at steps 2–4, "the zero branch applies: Study 2's primary outcome moves to the advisory-tier erosion rate" (`v1.3-pilot-run:…loop-pilot-2026-10-16.md:19`; memo §5 at `Docs/v1.3/pilot-outcome-memo.md:52`). If it has 1 or more correct findings, the positive branch applies. The author's decision is only how to frame the zero branch; see Decision 5. | [A] | 1 h | Branch recorded mechanically from 5.1; framing addendum dated before the rehearsal; no relaxation of §5. |
+| 5.2 | *(Superseded 2026-10-16: the branch is recorded in the deviation record §4, zero on #229, and reported as a secondary; the primary is Y.)* Apply the pilot memo's pre-committed rule (Decision 5). This is not a free choice. If DDD `none` has 0 new blocking findings at steps 2–4, "the zero branch applies: Study 2's primary outcome moves to the advisory-tier erosion rate" (`v1.3-pilot-run:…loop-pilot-2026-10-16.md:19`; memo §5 at `Docs/v1.3/pilot-outcome-memo.md:52`). If it has 1 or more correct findings, the positive branch applies. The author's decision is only how to frame the zero branch; see Decision 5. | [A] | 1 h | Branch recorded mechanically from 5.1; framing addendum dated before the rehearsal; no relaxation of §5. |
 | 5.3 | S5: keep the layout frame and record "no-spec" (thesis §16.1) as **not tested** in both studies. This follows the pre-stated rule of probe 2. (Decision 6) | [A] | 15 min | Gate S5 closed by a dated decision. |
 | 5.4 | Task design W3-3: tasks whose natural implementation crosses a layer (the only lever not yet ruled out). Check against the sealed list; banned-term audit with #174. | [C] draft + [A] approve | 1 day | Unsealer audit FAIL 0 on the new tasks; author approval committed. |
-| 5.5 | Re-run the power simulation with the pilot's θ and the chosen design; choose the grid (Decision 7). | [C] | 2 h | Gate D3: power ≥ 0.80 for the gate contrast, or a dated decision accepting less, with the number stated. |
+| 5.5 | Re-run the level-outcome power simulation (`scripts/v1.3/level-power-sim.ts`) with the validation pilot's step-4 Y mean and θ per stratum, at 24 blocks (4 tasks × 3 replicates × 2 generators); fix the grid (Decision 7). Amended 2026-10-16. | [C] | 2 h | Gate D3, no waiver: every confirmatory contrast (H1–H3) at power ≥ 0.80 at RR 0.25. A contrast below 0.80 is **demoted to secondary before D10**; if none reaches 0.80, Study 2 does not run. No decision may accept less. |
 | 5.6 | Close the open loop-harness lines: merge #171 (pins, isolation) and #180 (fault drills, 11/13), fix #180's R1–R4, and fix the MCP tool gap (`Docs/v1.3/loop-replay.md:135-139`; gate V9). | [C] | 1–2 days | #180 drills 13/13; V9 parity check green (#176's criteria at `v1.3-mcp-interp-parity:Docs/v1.3/mcp-interp-parity.md:100-121`). |
-| 5.7 | **Dress rehearsal** per #146: 9 runs with 3 arms or 15 with 5, at the candidate run commit, 72–216 or 126–378 USD (`v1.3-study2-readiness:Docs/v1.3/study2-dress-rehearsal.md:45-46,120-121`). | [L] | 2 calendar days (`:130`) | Exit report `Docs/DiagnosticRuns/v1.3-study2-rehearsal-<date>.md`; every line it can turn green (`:140`) is green; 0 evaluation errors (S7). |
+| 5.7 | **Dress rehearsal** per #146, with the two arms and five cells of the deviation record and both generators (the original estimate was 9 runs with three arms or 15 with five, at the candidate run commit, 72–216 or 126–378 USD (`v1.3-study2-readiness:Docs/v1.3/study2-dress-rehearsal.md:45-46,120-121`). | [L] | 2 calendar days (`:130`) | Exit report `Docs/DiagnosticRuns/v1.3-study2-rehearsal-<date>.md`; every line it can turn green (`:140`) is green; 0 evaluation errors (S7). |
 | 5.8 | Pre-registration (D10), its hash checked in CI (S10), tunables manifest written (S11). | [C] draft + [A] sign | 1 day | `study2-tunables.ts verify` passes; pre-registration hash committed before the go. |
 | 5.9 | Gate re-verification at the run commit; [W] lines closed only by dated waivers; the author signs the go. | [L] + [A] | half a day | All 42 lines green or waived (only [W] lines), evidence in `results/v1.3-study2-gate/<id>.txt` (`study2-readiness-gate.md:22-23`). |
 | 5.10 | **Study 2, once.** | [L] | per the chosen grid | As pre-registered. |
@@ -267,7 +271,7 @@ APG v2 on the dev set: it "adds no planted catch that the v1.3 rules miss" (`Doc
 
 ## 2. Critical path from today to the single Study 2 run
 
-The order follows the gate's fixed rule 5: pilot → freeze/hold-out → rehearsal → pre-registration → gate → Study 2 (`v1.3-study2-readiness:Docs/v1.3/study2-readiness-gate.md:24`). Steps on the same line can run in parallel.
+The order follows the gate's fixed rule 5: pilot → freeze/hold-out → rehearsal → pre-registration → gate → Study 2 (`Docs/v1.3/study2-readiness-gate.md` rule 5). Amended 2026-10-16: the validation pilot and the level power re-run come before the freeze (P2b'), so the canonical order is validation pilot → freeze → hold-out → dress rehearsal → pre-registration → gate → Study 2. Steps on the same line can run in parallel.
 
 ```text
 P0  [C] Merge #146 (gate + rehearsal docs) and re-baseline the 42 lines on v1.3 tip
@@ -276,6 +280,7 @@ P1  [A] Director meeting: decisions 1-8 below
      |
      +--> P2a [A] Construct sheet (4.1) --> [C]/[L] ADR-V13-03 + Q16/Q25 runs (4.2)
      +--> P2b [C]/[L] Pilot T1 fix + DDD re-score (5.1) --> memo §5 branch (5.2)
+     +--> P2b' [C]/[L] Instrument repairs (floor-escape 3.6) --> validation pilot --> level power re-run (5.5)
      +--> P2c [C] Merge train: #164 #133 #167 #175 #173 #174 #171 #180 #191 #179 #165
      +--> P2d [C] Wave-2 correctness (4.7), type-flow check (2.1)
      |
@@ -323,7 +328,8 @@ Each decision gives its options and a recommendation.
    - **Recommend (1).** No new generation and no memo change, and it reaches the pre-fixed §5 decision.
 5. **Study 2 under the zero branch.** The outcome itself is fixed by the pilot memo §5 (step 5.2). If DDD scores 0, the primary outcome becomes the advisory erosion rate. That outcome has power ≈ 0.05 under default assumptions, a "costly null by design" (`v1.3-study2-analysis-rehearsal:Docs/v1.3/study2-analysis-rehearsal.md:167-168`). The pilot's advisory slopes without FF-CV05 in `none` were negative: −0.50 and −0.58 (`v1.3-pilot-run:…loop-pilot-2026-10-16.md:57,59`).
    - Options: (a) run Study 2 anyway on the advisory outcome, with the null pre-declared as interpretable, per G4: success is "a correctly run, pre-specified study whose result is reported"; (b) amend the memo by a dated addendum before the DDD score is seen. This is weak, because the Clean and Hexagonal pilot results are already known; (c) do not run Study 2 and report the design and readiness evidence as future work, per G4 (`v1.3-distinction-readiness:Docs/v1.3/research/distinction-readiness.md:489-507`).
-   - **Recommend:** score DDD first (Decision 4), and do not touch §5. Under the positive branch, proceed. Under the zero branch, choose (a) only if the power re-run (5.5) at the largest affordable grid gives a defensible number; otherwise (c). Do not choose (b).
+   - ~~**Recommend:** score DDD first (Decision 4), and leave §5 untouched; under the zero branch choose (a) or (c), never (b).~~
+   - **Superseded 2026-10-16. Decided:** the DDD snapshots were scored first (PR #229: zero branch under every scoring option). The author then took a variant of (b) as a **declared, dated deviation** (`Docs/v1.3/study2-deviation-2026-10-16.md`), not as an addendum claiming to precede the data: the primary outcome becomes Y, the memo §5 outcomes stay registered secondaries, and the branch is reported beside the result. If the validation pilot passes no stratum, (c) applies: Study 2 does not run.
 6. **S5 no-hint arm.**
    - Options: (a) keep the layout frame and record the no-spec claim as not tested; (b) add a no-hint arm.
    - **Recommend (a).** Probe 2 failed the ≥ 3/8 pre-stated trigger for (b). Its C2 zero is partly invisibility: 19/28 unmapped files.
@@ -370,4 +376,4 @@ None of the following moves SO2–SO5 or a gate line. Most are on the backlog's 
   - Neo4j GDS;
   - any frontend or dashboard.
 - **No interpreter work beyond parity.** Neo4j "stays the reference engine for every reported number" (`Docs/v1.3/cypher-interpreter.md:3-4`). #183 and #188 are enough. #188 changes large-repo reports (see SO2), so it merges before the freeze or not at all. Do not switch the MCP default (#176) before Study 2.
-- **No Study 2 "practice" runs on the real grid.** The pilot and the dress rehearsal are the only allowed loop runs before the single run. Per distinction readiness G4: "If the gate is not green by the writing deadline: do not run Study 2." (`v1.3-distinction-readiness:Docs/v1.3/research/distinction-readiness.md:489-507`).
+- **No Study 2 "practice" runs on the real grid.** The loop pilot, the validation pilot (development tasks only, deviation record §6) and the dress rehearsal are the only allowed loop runs before the single run (amended 2026-10-16; floor probe 3 ran before this amendment and is reported as a departure). Per distinction readiness G4: "If the gate is not green by the writing deadline: do not run Study 2." (`v1.3-distinction-readiness:Docs/v1.3/research/distinction-readiness.md:489-507`).

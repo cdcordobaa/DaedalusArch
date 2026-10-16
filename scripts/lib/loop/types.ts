@@ -194,7 +194,7 @@ export interface StepEvaluation {
   /** AHS over the blocking rules only; null when none ran. */
   readonly blockingAhs: number | null;
   /** v1.3 verdict: `fail` iff a blocking rule has an applicable violation. */
-  readonly verdict: 'pass' | 'fail';
+  readonly verdict: 'pass' | 'fail' | 'incomplete';
   readonly violationCount: number;
   readonly blockingViolationCount: number;
   readonly advisoryViolationCount: number;
@@ -206,8 +206,8 @@ export interface StepEvaluation {
    */
   readonly advisoryByRule?: Readonly<Record<string, number>>;
   /**
-   * The listed blocking findings: every one when the evaluator returns the report's violations (the live
-   * evaluator), else each rule capped as `evaluate_project` caps it.
+   * The blocking findings: every report row the v1.3 scoring counts as blocking (FF-P06's N/A rows and rows a
+   * construct switch moves to advisory are left out), so the list has exactly `blockingViolationCount` entries.
    */
   readonly blockingFindings: readonly BlockingFinding[];
   readonly durationMs: number;
@@ -218,8 +218,8 @@ export interface StepEvaluation {
    */
   readonly reportViolations?: readonly unknown[];
   /**
-   * The graph engine this evaluation was recorded on. Absent in the default mode (no `--engine`), so default records
-   * are unchanged; `neo4j` under `--engine both`, `cypher-interp` under `--engine cypher-interp`
+   * The graph engine this evaluation was recorded on: set by every live evaluator (`evaluatorForEngine`; `neo4j`
+   * under `--engine both`). Absent from the stub and from records written before 2026-10-16
    * (`Docs/v1.3/loop-engine-tee.md`).
    */
   readonly engineOfRecord?: 'neo4j' | 'cypher-interp';
@@ -283,7 +283,7 @@ export interface RunParityCounts {
 /** The firewall run on a snapshot. A failure here is recorded on the step, never retried silently. */
 export interface StepEvaluator {
   readonly id: string;
-  /** `runId` names the loop run of the snapshot (the live evaluator finds the run's pinned tsconfig with it). */
+  /** `runId` names the loop run of the snapshot (the live evaluator finds the run's pinned tsconfig with it, R01). */
   evaluate(projectDir: string, runId?: string): Promise<DomainResult<StepEvaluation>>;
 }
 
@@ -338,7 +338,17 @@ export interface StepRecord {
   readonly finishedAt: string;
   readonly turns: readonly TurnRecord[];
   /** Gate arm: whether a repair turn ran and whether it cleared every blocking finding. */
-  readonly repair: { readonly attempted: boolean; readonly blockingBefore: number | null; readonly blockingAfter: number | null; readonly cleared: boolean | null } | null;
+  readonly repair: {
+    readonly attempted: boolean;
+    readonly blockingBefore: number | null;
+    readonly blockingAfter: number | null;
+    readonly cleared: boolean | null;
+    /**
+     * Set when the gate could not judge the step: its snapshot has no evaluation (see `evaluationError`). Such a step
+     * is a harness failure, not a step with no blocking findings (R01, post-merge review 2026-10-16).
+     */
+    readonly skipped?: 'evaluation-failed';
+  } | null;
   /**
    * Gate arm, when a repair ran and both snapshots were evaluated: finding by finding, which blocking findings the
    * repair removed and which it introduced (`repairOutcome` in `loop.ts`).

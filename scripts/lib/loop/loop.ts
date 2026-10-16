@@ -17,7 +17,9 @@
  * so it can be re-scored); a turn or snapshot failure is a harness failure and stops the run. In the `gate` arm an
  * evaluator failure on the step turn's snapshot also stops the run (`LOOP_GATE_UNSCORED`): the gate cannot decide on
  * it, and going on would run the step as `none` (loop fault drills D4, `Docs/v1.3/loop-fault-drills.md`). A spec that
- * could not be frozen is not such a failure (it is recorded once in `spec/` and holds for the whole run).
+ * could not be frozen is not such a failure (it is recorded once in `spec/` and holds for the whole run): the gate step
+ * is then recorded with `repair.skipped = 'evaluation-failed'` (R01). A run in which every snapshot failed evaluation
+ * fails at its end (`LOOP_EVAL_ALL_FAILED`) and is not marked complete.
  *
  * Per-task style and spec (`LoopContext.profiles`, optional): the task's step frames carry its style slot (`style.ts`)
  * and its snapshots are evaluated against its own spec, a fixed file or a DDD spec the ISE infers from the run's
@@ -403,8 +405,13 @@ class LoopRun {
           },
         ]);
       }
-      if (ev === null || ev.blockingViolationCount === 0) {
-        repair = { attempted: false, blockingBefore: ev?.blockingViolationCount ?? null, blockingAfter: null, cleared: null };
+      if (ev === null) {
+        // Only a spec that was not frozen reaches here: the gate saw nothing, recorded as such, never as a step with no
+        // blocking findings (R01).
+        repair = { attempted: false, blockingBefore: null, blockingAfter: null, cleared: null, skipped: 'evaluation-failed' };
+        this.ctx.log?.(`${this.runId}: step ${String(stepIndex + 1)} GATE NOT APPLIED: the snapshot has no evaluation (${first.data.snapshot.evaluationError?.code ?? 'unknown'})`);
+      } else if (ev.blockingViolationCount === 0) {
+        repair = { attempted: false, blockingBefore: 0, blockingAfter: null, cleared: null };
       } else {
         const fix = await this.turn(stepIndex, 'repair', repairPrompt(ev.blockingFindings, ev.blockingViolationCount, tcCommand), first.data.snapshot.commit);
         if (!fix.success) return DomainResult.fail(fix.errors);
@@ -516,11 +523,32 @@ class LoopRun {
       last = r.data.finalCommit;
       this.ctx.log?.(`${this.runId}: step ${String(i + 1)}/${String(steps)} ${describeStep(r.data)}`);
     }
+    const unevaluated = allSnapshotsUnevaluated(this.runId, out);
+    if (unevaluated !== undefined) {
+      this.ctx.log?.(unevaluated.message);
+      return DomainResult.fail([unevaluated]);
+    }
     // `--engine both`: parity counts over every step of the run (earlier invocations' steps included); absent otherwise.
     const parity = runParityCounts(out);
     writeJsonAtomic(runFile, { ...record, completedAt: this.ctx.now().toISOString(), ...(parity !== undefined ? { parity } : {}) });
     return DomainResult.ok({ kind: 'completed', runId: this.runId, resumedFromStep: done.length, steps: out });
   }
+}
+
+/**
+ * A run in which no snapshot was evaluated has no outcome (a systematic evaluator failure, such as every snapshot
+ * failing with TSCONFIG_NOT_FOUND, would otherwise pass as a completed run). Such a run fails with
+ * `LOOP_EVAL_ALL_FAILED`, which stops the grid, and is never marked complete; its step records and commits are kept,
+ * so it can be re-scored.
+ */
+export function allSnapshotsUnevaluated(runId: string, records: readonly StepRecord[]): { readonly code: string; readonly message: string } | undefined {
+  const snapshots = records.flatMap((r) => r.turns.map((t) => t.snapshot));
+  if (snapshots.length === 0 || snapshots.some((s) => s.evaluation !== null)) return undefined;
+  const codes = [...new Set(snapshots.map((s) => s.evaluationError?.code ?? 'unknown'))].sort();
+  return {
+    code: 'LOOP_EVAL_ALL_FAILED',
+    message: `${runId}: all ${String(snapshots.length)} snapshots failed evaluation (${codes.join(', ')}); the run is not marked complete`,
+  };
 }
 
 /** Parity counts over every evaluated turn of the given step records; undefined when none carries a parity block. */
@@ -548,6 +576,13 @@ export function describeStep(r: StepRecord): string {
   const ahs = ev?.ahs !== undefined && ev.ahs !== null ? ev.ahs.toFixed(3) : 'n/a';
   const repair = r.repair?.attempted === true ? ` repair ${String(r.repair.blockingBefore)}→${String(r.repair.blockingAfter)}` : '';
   return `${last?.result.status ?? 'n/a'} files=${String(last?.snapshot.sourceFiles.length ?? 0)} loc=${String(last?.snapshot.loc ?? 0)} blocking=${blocking} ahs=${ahs}${repair}`;
+}
+
+/** Gate steps whose snapshot had no evaluation, so the gate was not applied (R01: a harness failure to report). */
+export function gateEvaluationFailures(results: readonly LoopRunResult[]): number {
+  let n = 0;
+  for (const r of results) if (r.kind === 'completed') for (const s of r.steps) if (s.repair?.skipped === 'evaluation-failed') n++;
+  return n;
 }
 
 /** Runs (or resumes) one loop run. */

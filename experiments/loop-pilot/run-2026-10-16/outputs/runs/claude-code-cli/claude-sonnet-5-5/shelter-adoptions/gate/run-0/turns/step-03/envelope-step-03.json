@@ -1,0 +1,121 @@
+{
+  "duration_api_ms": 81374,
+  "stop_reason": "end_turn",
+  "session_id": "102565f9-6ef0-4021-8691-eab600f91136",
+  "total_cost_usd": 0.29209060000000003,
+  "usage": {
+    "input_tokens": 26,
+    "cache_creation_input_tokens": 30139,
+    "cache_read_input_tokens": 256026,
+    "output_tokens": 14588,
+    "output_tokens_details": {
+      "thinking_tokens": 1155
+    },
+    "server_tool_use": {
+      "web_search_requests": 0,
+      "web_fetch_requests": 0
+    },
+    "service_tier": "standard",
+    "cache_creation": {
+      "ephemeral_1h_input_tokens": 30139,
+      "ephemeral_5m_input_tokens": 0
+    },
+    "inference_geo": "global",
+    "iterations": [
+      {
+        "input_tokens": 2,
+        "output_tokens": 850,
+        "cache_read_input_tokens": 35873,
+        "cache_creation_input_tokens": 178,
+        "cache_creation": {
+          "ephemeral_5m_input_tokens": 0,
+          "ephemeral_1h_input_tokens": 178
+        },
+        "type": "message"
+      }
+    ],
+    "speed": "standard",
+    "fallback_credit": null
+  },
+  "modelUsage": {
+    "claude-sonnet-5-5": {
+      "inputTokens": 26,
+      "outputTokens": 14588,
+      "cacheReadInputTokens": 256026,
+      "cacheCreationInputTokens": 30139,
+      "webSearchRequests": 0,
+      "costUSD": 0.29209060000000003,
+      "contextWindow": 1000000,
+      "maxOutputTokens": 128000,
+      "thinkingTokens": 1155,
+      "canonicalModel": "claude-sonnet-5-5",
+      "provider": "firstParty",
+      "costBasis": "list"
+    }
+  },
+  "permission_denials": [
+    {
+      "tool_name": "Bash",
+      "tool_use_id": "toolu_01KM6hGHJzyWmxjkqxurCjAk",
+      "tool_input": {
+        "command": "find . -path ./node_modules -prune -o -type f -print | head -100 && cat package.json && cat /root/pilot/harness/runs/claude-code-cli/claude-sonnet-5-5/shelter-adoptions/gate/run-0/tsconfig.json"
+      }
+    },
+    {
+      "tool_name": "Read",
+      "tool_use_id": "toolu_0184wcF8nz1E89wb3SLtn1hX",
+      "tool_input": {
+        "file_path": "/root/pilot/harness/runs/claude-code-cli/claude-sonnet-5-5/shelter-adoptions/gate/run-0/tsconfig.json"
+      }
+    },
+    {
+      "tool_name": "Bash",
+      "tool_use_id": "toolu_012yDRQE5ZRgdKcVBgm6jszf",
+      "tool_input": {
+        "command": "cd /root/pilot/out/runs/claude-code-cli/claude-sonnet-5-5/shelter-adoptions/gate/run-0/work/src && python3 - <<'E'\np='domain/notification.ts'\ns=open(p).read()\ns=s.replace(\"  /** Set on an e-mail sent\",\"  /** E-mail address used if this SMS fails. */\\n  fallbackEmail?: string;\\n  /** Set on an e-mail sent\",1)\nopen(p,'w').write(s)\np='application/notification-service.ts'\ns=open(p).read()\ns=s.replace('      status: \"pending\",\\n','      status: \"pending\",\\n      fallbackEmail: recipient.email,\\n',1)\nopen(p,'w').write(s)\nE"
+      }
+    }
+  ],
+  "terminal_reason": "completed",
+  "fast_mode_state": "off",
+  "fast_mode_disabled_reason": "sdk_opt_in_required",
+  "subagent_stats": {
+    "spawned": 0,
+    "requested": {
+      "background": 0,
+      "foreground": 0,
+      "unset": 0
+    },
+    "started_in_background": 0,
+    "max_depth": 0,
+    "spawned_by_subagents": 0,
+    "completed": 0,
+    "failed": 0,
+    "killed": {
+      "parent": 0,
+      "user": 0,
+      "system": 0
+    },
+    "refused": {
+      "depth_limit": 0,
+      "concurrency_limit": 0,
+      "budget": 0
+    },
+    "by_type": {}
+  },
+  "safety_stops": 0,
+  "is_error": false,
+  "num_turns": 47,
+  "subtype": "success",
+  "api_error_status": null,
+  "result": "SMS notifications are in, and the type-check you specified passes with no errors. I haven't run the service or exercised any of the new endpoints.\n\n**Choosing SMS**\n- Applicants and carers can set `notificationChannel` to `\"email\"` or `\"sms\"` when they submit an application or register as a carer.\n- It defaults to e-mail, so existing requests behave as before.\n- Any other value returns a 400.\n\n**Sending**\n- Every application decision and the \"foster placement ended\" notice now go through a new `NotificationService` (`src/application/notification-service.ts`).\n- For SMS, the text is the message body cut to 160 characters, with `...` added if it was shortened.\n- SMS messages are sent through a new `SmsPort`.\n- The real TextBridge client (`src/adapters/outbound/sms-providers.ts`) is used when `TEXTBRIDGE_URL` is set, with an optional `TEXTBRIDGE_API_KEY`. Otherwise an in-memory fake is used, and `GET /sms` lists what it \"sent\".\n\n**Failed deliveries**\n- `POST /webhooks/textbridge` takes a body like `{messageId, status: \"delivered\" | \"failed\", reason?}`.\n- A failed report marks the SMS as failed and sends the same subject and body by e-mail to the address on file.\n- If TextBridge rejects the SMS when we submit it, the e-mail fallback is sent right away.\n- Repeated or late reports are ignored, so the fallback goes out only once.\n- An unknown `messageId` returns a 404.\n\n**Staff view**\n- `GET /notifications` lists every notification, and `?status=pending|sent|delivered|failed` filters it.\n- `GET /notifications/:id` returns one.\n- Each notification shows its channel, recipient, status, any failure reason, and links between an SMS and its fallback e-mail.\n\n**Assumptions**\n- I made up TextBridge's request and response shapes. The client posts `{to, text}` to `{TEXTBRIDGE_URL}/messages` and expects a `messageId` (or `id`) back. The webhook accepts `delivered`, `failed` or `undelivered`. Please check these against TextBridge's real docs.\n- A delivery report that arrives before the send call has returned would get a 404, because the provider's message id isn't stored yet. I didn't handle that case.\n- Notifications are stored in memory only, like the existing repositories.\n\nEarly on, a couple of shell commands were denied for needing approval, so I used the file tools for the edits. The type-check ran without any problem.",
+  "ttft_ms": 2234,
+  "type": "result",
+  "duration_ms": 82774,
+  "uuid": "1d436c35-821d-489f-9c20-88bdf06f0170",
+  "ttft_stream_ms": 1086,
+  "time_to_request_ms": 222,
+  "first_content_frame_ms": 1087,
+  "queued_turn_count": 0,
+  "result_index": 0
+}

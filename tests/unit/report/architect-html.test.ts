@@ -105,6 +105,21 @@ describe('architect HTML report: reference variants', () => {
     }
   });
 
+  it('a defining rule that could not run (EVAL_002) shows INCOMPLETE, not PASS', async () => {
+    const input = await reportInput('correct-reference');
+    const tiers = input.report.tiers;
+    if (tiers === undefined) throw new Error('fixture without tiers');
+    const report = { ...input.report, verdict: 'soft-block' as const, tiers: { ...tiers, verdict: 'incomplete' as const, blockingNotExecuted: [...tiers.blockingNotExecuted, 'FF-S02' as (typeof tiers.blockingNotExecuted)[number]] } };
+    const model = buildArchitectModel({ ...input, report });
+    expect(model.summary.verdict).toBe('incomplete');
+    expect(model.summary.headline).toMatch(/^Incomplete/);
+    expect(model.summary.explanation[0]).toMatch(/could not run/);
+    expect(model.summary.notExecuted.map((r) => r.ruleId)).toContain('FF-S02');
+    const html = architectReportHtml({ ...input, report });
+    expect(html).toContain('class="summary verdict-incomplete"');
+    expect(html).toContain('>INCOMPLETE</p>');
+  });
+
   it('without tiers (v1.2e scoring) explains that the verdict comes from the score', async () => {
     const input = await reportInput('variant-a-structural');
     const { tiers: _drop, ...report } = input.report;

@@ -29,16 +29,18 @@ export interface McpArgs {
   readonly engine?: string;
   /** `--rule-mining`: also register the opt-in `propose_rules` tool. */
   readonly ruleMining?: boolean;
+  /** `--tsconfig <path>`: explicit tsconfig for `evaluate_project` extraction (ADR-032); absent = `DAEDALUS_TSCONFIG`. */
+  readonly tsconfig?: string;
 }
 
-const FLAGS: Readonly<Record<string, 'spec' | 'project' | 'engine' | 'fastRulesEngine'>> = { '--spec': 'spec', '--project': 'project', '--engine': 'engine', '--fast-rules-engine': 'fastRulesEngine' };
+const FLAGS: Readonly<Record<string, 'spec' | 'project' | 'engine' | 'fastRulesEngine' | 'tsconfig'>> = { '--spec': 'spec', '--project': 'project', '--engine': 'engine', '--fast-rules-engine': 'fastRulesEngine', '--tsconfig': 'tsconfig' };
 
 /**
- * `--spec <path>`, `--project <path>`, `--engine <name>` and `--fast-rules-engine <name>` (also `--flag=value`), `--hints`,
+ * `--spec <path>`, `--project <path>`, `--engine <name>`, `--fast-rules-engine <name>` and `--tsconfig <path>` (also `--flag=value`), `--hints`,
  * `--rule-mining`, plus the neural flags (`neural-context.ts`); unknown flags are ignored. Pure.
  */
 export function parseArgs(argv: readonly string[]): McpArgs {
-  const out: { spec?: string; project?: string; engine?: string; fastRulesEngine?: string; hints?: boolean; neural?: NeuralArgs; ruleMining?: boolean } = {};
+  const out: { spec?: string; project?: string; engine?: string; fastRulesEngine?: string; tsconfig?: string; hints?: boolean; neural?: NeuralArgs; ruleMining?: boolean } = {};
   const neural = parseNeuralArgs(argv);
   if (neural !== undefined) out.neural = neural;
   for (let i = 0; i < argv.length; i++) {
@@ -92,6 +94,7 @@ function realEntry(entry: string | undefined): string | undefined {
 
 export function buildContext(args: McpArgs, env: NodeJS.ProcessEnv): ServerContext {
   const fastRulesEngine = fastRulesEngineOf(args.fastRulesEngine, env);
+  const tsconfigPath = args.tsconfig ?? env.DAEDALUS_TSCONFIG;
   // Off unless `--neural` or DAEDALUS_NEURAL names a provider: the default server is unchanged.
   const neural = buildNeuralService(args.neural ?? parseNeuralArgs([], env), env);
   const graphEngine = serverEngine(args, env)?.engine ?? 'neo4j';
@@ -117,6 +120,7 @@ export function buildContext(args: McpArgs, env: NodeJS.ProcessEnv): ServerConte
       makePipeline: createPipeline,
       graphEngine,
       ...(graphEngine === 'cypher-interp' && { interp: createInterpEvaluator() }),
+      ...(tsconfigPath !== undefined && tsconfigPath !== '' && { tsconfigPath: path.resolve(tsconfigPath) }),
     },
   };
 }
