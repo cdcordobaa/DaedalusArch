@@ -2300,3 +2300,11 @@ Options taken under delegation: (1) all new behaviour is opt-in (night rule 3), 
 **Context**: v1.3 pre-freeze improvement wave.
 
 ---
+
+## v1.3 post-review fixes and final re-test (fix/post-merge-review)
+**Timestamp**: 2026-10-16T20:10:00Z
+**User Input**: "Full review and test so everything we worked on is still working as expected; construct and protocol calls delegated (live, 2026-10-16)."
+**AI Response**: "Applied the MT7 review fixes (items 1-11), decision D-e (FE bareLines default back to 'longest'), the results-path guard decision (v1.3 folders by pattern), the CI citation guard fix (director decks archived to the private thesis repo, then removed from main) and the cypher-interpreter.md errata. Final re-test on the tip: reference output byte-identical on three engines; replicate --fast 0 FAIL / 0 KNOWN; claims ledger 0 failures. Report: Docs/DiagnosticRuns/v1.3-post-review-fixes-2026-10-16.md."
+**Context**: Delegated fix job on main; decision-chronology rows 13-15.
+
+---
