@@ -132,7 +132,65 @@ export function numberLines(content: string): string {
   return lines.map((l, i) => `${String(i + 1).padStart(width, ' ')}| ${l}`).join('\n');
 }
 
+/** A file as the prompt actually rendered it: its path and the number of lines whose number label was shown. */
+export interface ShownLines {
+  readonly path: string;
+  readonly lineCount: number;
+}
+
+/** The prompt text and the files and line counts it actually rendered (R19). */
+export interface RenderedFilterExplainPrompt {
+  readonly prompt: string;
+  readonly shown: readonly ShownLines[];
+}
+
+interface RenderedSources {
+  readonly blocks: readonly string[];
+  readonly shown: readonly ShownLines[];
+}
+
+/** Lines of a (possibly cut) numbered body whose `N|` label is fully shown. */
+function shownLinesOfBody(body: string): number {
+  if (body === '') return 0;
+  return body.split('\n').filter((l) => /^\s*\d+\|/.test(l)).length;
+}
+
+function renderSources(files: readonly ShownFile[], fileLayers?: FilterExplainInput['fileLayers']): RenderedSources {
+  let remaining = FE_SOURCE_BUDGET_CHARS;
+  const blocks: string[] = [];
+  const shown: ShownLines[] = [];
+  for (const file of files) {
+    const full = numberLines(file.content).split(SOURCE_DELIMITER_PREFIX).join(SOURCE_DELIMITER_ESCAPED);
+    let body = full;
+    let lineCount = lineCountOf(file.content);
+    if (body.length > remaining) {
+      const kept = full.slice(0, Math.max(0, remaining));
+      lineCount = shownLinesOfBody(kept);
+      body = `${kept}\n${TRUNCATION_MARKER}`;
+    }
+    remaining -= body.length;
+    const layer = fileLayers?.[file.path];
+    blocks.push(`${SOURCE_BEGIN} ${file.path}${layer !== undefined ? ` (layer ${layer ?? 'none'})` : ''}=====\n${body}\n${SOURCE_END}`);
+    shown.push({ path: file.path, lineCount });
+    if (remaining <= 0) break;
+  }
+  return { blocks, shown };
+}
+
+/**
+ * The files and line counts `buildFilterExplainPrompt` renders for these files (only the shown prefix of a truncated
+ * file; files after the budget runs out are left out). The budget depends on the files alone.
+ */
+export function shownLineCounts(files: readonly ShownFile[]): readonly ShownLines[] {
+  return renderSources(files).shown;
+}
+
 export function buildFilterExplainPrompt(input: FilterExplainInput): string {
+  return renderFilterExplainPrompt(input).prompt;
+}
+
+/** `buildFilterExplainPrompt` plus the files and line counts it rendered, for `checkGrounding`. */
+export function renderFilterExplainPrompt(input: FilterExplainInput): RenderedFilterExplainPrompt {
   const f = input.finding;
   const intent = RULE_INTENTS[f.functionId] ?? f.ruleName ?? f.functionId;
   const finding = [
@@ -147,22 +205,18 @@ export function buildFilterExplainPrompt(input: FilterExplainInput): string {
     ...(f.discriminator !== undefined && f.discriminator.length > 0 ? [`Discriminator: ${f.discriminator.join(' | ')}`] : []),
     ...(f.evidence !== undefined && f.evidence.length > 0 ? [`Evidence: ${f.evidence.join('; ')}`] : []),
   ].join('\n');
-  let remaining = FE_SOURCE_BUDGET_CHARS;
-  const blocks: string[] = [];
-  for (const file of input.files) {
-    let body = numberLines(file.content).split(SOURCE_DELIMITER_PREFIX).join(SOURCE_DELIMITER_ESCAPED);
-    if (body.length > remaining) body = `${body.slice(0, Math.max(0, remaining))}\n${TRUNCATION_MARKER}`;
-    remaining -= body.length;
-    const layer = input.fileLayers?.[file.path];
-    blocks.push(`${SOURCE_BEGIN} ${file.path}${layer !== undefined ? ` (layer ${layer ?? 'none'})` : ''}=====\n${body}\n${SOURCE_END}`);
-    if (remaining <= 0) break;
-  }
-  return [
+  const { blocks, shown } = renderSources(input.files, input.fileLayers);
+  const prompt = [
     `## Finding\n${finding}`,
     `## Layer model\n${input.layerModel}`,
     `## Source (line-numbered)\n${blocks.length === 0 ? '(no file: the finding is about the whole project)' : blocks.join('\n\n')}`,
     `## Instructions\n${FE_INSTRUCTIONS}`,
   ].join('\n\n') + '\n';
+  return { prompt, shown };
+}
+
+function lineCountOf(content: string): number {
+  return content.replace(/\r\n/g, '\n').replace(/\n$/, '').split('\n').length;
 }
 
 export interface FilterExplainAnswer {
@@ -194,15 +248,30 @@ export interface Grounding {
   readonly problems: readonly string[];
 }
 
+export interface GroundingOptions {
+  /**
+   * What a bare `line N` / `lines N-M` reference is checked against. 'longest' (default; the committed judge-v2
+   * figures used it): the longest shown file. 'finding-file' (opt-in, R20): the finding's own file, i.e. the first
+   * shown file, when more than one file is shown (with one file both modes agree).
+   */
+  readonly bareLines?: 'longest' | 'finding-file';
+}
+
 /**
  * Grounding check: at least one citation when files were shown; every citation names a shown file with
  * 1 <= startLine <= endLine <= its line count; every `path:line[-line]` in the explanation names a shown file and
- * existing lines; every bare `line N` / `lines N-M` lies within the longest shown file.
+ * existing lines; every bare `line N` / `lines N-M` lies within the longest shown file (or, with
+ * `bareLines: 'finding-file'`, within the first shown file).
+ *
+ * `files` should be what the prompt rendered (`renderFilterExplainPrompt(...).shown` / `shownLineCounts`): a full
+ * `ShownFile` counts all its lines, which over-counts when the prompt truncated it or dropped it (R19). For a prompt
+ * that was not truncated the two give the same result.
  */
-export function checkGrounding(answer: FilterExplainAnswer, files: readonly ShownFile[]): Grounding {
+export function checkGrounding(answer: FilterExplainAnswer, files: readonly (ShownFile | ShownLines)[], options: GroundingOptions = {}): Grounding {
   const problems: string[] = [];
-  const count = new Map(files.map((f) => [f.path, f.content.replace(/\r\n/g, '\n').replace(/\n$/, '').split('\n').length]));
-  const maxLines = Math.max(0, ...count.values());
+  const count = new Map(files.map((f) => [f.path, 'lineCount' in f ? f.lineCount : lineCountOf(f.content)]));
+  const first = files[0] !== undefined ? count.get(files[0].path) ?? 0 : 0;
+  const maxLines = options.bareLines === 'finding-file' && files.length > 1 ? first : Math.max(0, ...count.values());
   if (files.length > 0 && answer.citations.length === 0) problems.push('no citation');
   for (const c of answer.citations) {
     const n = count.get(c.filePath);
@@ -233,9 +302,11 @@ export type FilterExplainOutcome =
   | { readonly status: 'invalid'; readonly cause: string };
 
 /** Effective outcome of one answer: a dismiss or a confirm counts only when grounded. */
-export function outcomeOf(answer: FilterExplainAnswer | null, files: readonly ShownFile[], invalidCause = 'PARSE_FAILURE'): FilterExplainOutcome {
+export function outcomeOf(
+  answer: FilterExplainAnswer | null, files: readonly (ShownFile | ShownLines)[], invalidCause = 'PARSE_FAILURE', options: GroundingOptions = {},
+): FilterExplainOutcome {
   if (answer === null) return { status: 'invalid', cause: invalidCause };
-  const grounding = checkGrounding(answer, files);
+  const grounding = checkGrounding(answer, files, options);
   return grounding.grounded ? { status: answer.decision, answer, grounding } : { status: 'rejected', answer, grounding };
 }
 
