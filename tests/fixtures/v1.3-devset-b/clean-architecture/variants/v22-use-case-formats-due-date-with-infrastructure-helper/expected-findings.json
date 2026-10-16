@@ -1,0 +1,18 @@
+{
+  "schemaVersion": 1,
+  "style": "clean-architecture",
+  "variant": "v22-use-case-formats-due-date-with-infrastructure-helper",
+  "kind": "violation",
+  "plants": "FF-S01",
+  "description": "ListOverdueLoansUseCase default-imports formatDueDate from a new infrastructure helper (infrastructure/system/formatDueDate.ts) and calls it in execute() (no injection).",
+  "patch": "variant.patch",
+  "expectedFindings": [
+    {
+      "ruleId": "FF-S01",
+      "ruleName": "dependency-direction",
+      "file": "src/application/use-cases/ListOverdueLoansUseCase.ts",
+      "target": "src/infrastructure/system/formatDueDate.ts",
+      "reason": "A use case imports an infrastructure module (default import): the dependency points outward."
+    }
+  ]
+}

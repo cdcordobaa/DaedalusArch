@@ -1,0 +1,47 @@
+{
+  "attempts": 1,
+  "cliVersion": "2.1.294",
+  "configListingSha256": "47aa04258852fab9a706f3f0c14cee22306d69fbb6fdfbde8c11854bd54997bc",
+  "durationMs": 8040,
+  "effort": "high",
+  "functionId": "FF-N02",
+  "ignoredOptions": [
+    "maxTokens"
+  ],
+  "isolationProbeSha256": "97a2e2d0af1100c13c55e028c1a0c71f069093c3d08705af122aaeb302f1a641",
+  "key": "42326e02edfb3c6f6ab58334c365471d4ea3d650c7cf6f380639982e6a272f42-r0-2",
+  "model": "claude-opus-5-5",
+  "outcome": {
+    "kind": "valid"
+  },
+  "parsedVerdict": {
+    "confidence": 0.8,
+    "evidence": [
+      "src/adapters/outbound/payment/CardPaymentAdapter.ts: class CardPaymentAdapter implements PaymentPort, an outbound port adapter, which fits the infrastructure role",
+      "authorise(): stores the reference and amount in a private Map, which simulates the provider's authorisation state",
+      "authorise(): `if (amountCents <= 0) return false;` is a gateway-style validity check, not a business policy decision",
+      "refund(): deletes the stored authorisation, which simulates a provider refund"
+    ],
+    "pass": true,
+    "reasoning": "CardPaymentAdapter belongs to the adapters-outbound (infrastructure) layer. It implements the application-owned PaymentPort and works as an in-memory stand-in for an external card payment provider. Its methods are authorise, which records an authorisation in a Map, and refund, which removes it. Talking to an external system, or simulating one, is the job of an infrastructure adapter. The one conditional, `if (amountCents <= 0) return false;`, matches how a real payment gateway rejects an invalid amount. It does not decide anything about the business process, such as order rules, pricing or refund eligibility, so it does not move domain or application logic into infrastructure. There is no presentation or transport-to-client logic either.",
+    "violations": []
+  },
+  "prompt": "## Rule\nThe unit's responsibilities match the role of its declared layer.\n\n## Rubric\nPass: Every responsibility in the file belongs to the role and kind of its declared layer, and agrees with any ADR prose given.\nFail: The file carries a responsibility that belongs to a different layer kind, for example persistence, transport or framework logic in a domain file, or business rules in an infrastructure or presentation file.\nEvidence required: Name the file and cite the function, method or statement that carries the misplaced responsibility, and the layer kind it belongs to.\nOut of scope: import direction and layer-dependency rules, which are checked symbolically.\n\n## Layer model\n- domain (kind: domain): src/domain/**\n- application (kind: application): src/application/**\n- adapters-inbound (kind: presentation): src/adapters/inbound/**\n- adapters-outbound (kind: infrastructure): src/adapters/outbound/**\n- config (kind: application): src/config/**\n\n## Unit\nKind: file\nId: src/adapters/outbound/payment/CardPaymentAdapter.ts\nLayer: adapters-outbound\nUnit files:\n- src/adapters/outbound/payment/CardPaymentAdapter.ts\n\n## Source\n=====SOURCE-BEGIN src/adapters/outbound/payment/CardPaymentAdapter.ts=====\nimport { PaymentPort } from '../../../application/ports/out/PaymentPort';\n\nexport class CardPaymentAdapter implements PaymentPort {\n  private readonly authorised = new Map<string, number>();\n\n  async authorise(reference: string, amountCents: number): Promise<boolean> {\n    if (amountCents <= 0) return false;\n    this.authorised.set(reference, amountCents);\n    return true;\n  }\n\n  async refund(reference: string): Promise<void> {\n    this.authorised.delete(reference);\n  }\n}\n\n=====SOURCE-END=====\n\n## Graph excerpt\n{\"edges\":[{\"from\":\"CardPaymentAdapter@src/adapters/outbound/payment/CardPaymentAdapter.ts\",\"to\":\"PaymentPort@src/application/ports/out/PaymentPort.ts\",\"type\":\"IMPLEMENTS\"},{\"from\":\"src/adapters/outbound/payment/CardPaymentAdapter.ts\",\"to\":\"src/application/ports/out/PaymentPort.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/config/container.ts\",\"to\":\"src/adapters/outbound/payment/CardPaymentAdapter.ts\",\"type\":\"IMPORTS\"}],\"nodes\":[{\"kind\":\"Class\",\"layer\":\"adapters-outbound\",\"name\":\"CardPaymentAdapter\",\"path\":\"src/adapters/outbound/payment/CardPaymentAdapter.ts\"},{\"kind\":\"File\",\"layer\":\"adapters-outbound\",\"path\":\"src/adapters/outbound/payment/CardPaymentAdapter.ts\"},{\"kind\":\"File\",\"layer\":\"application\",\"path\":\"src/application/ports/out/PaymentPort.ts\"},{\"kind\":\"File\",\"layer\":\"config\",\"path\":\"src/config/container.ts\"},{\"kind\":\"Interface\",\"layer\":\"application\",\"name\":\"PaymentPort\",\"path\":\"src/application/ports/out/PaymentPort.ts\"}]}\n\n## Instructions\nJudge the unit against the rule and rubric. Return the JSON object the schema requires. Set pass to false if any file of the unit fails the rubric.\n",
+  "provider": "claude-cli",
+  "recordedAt": "2026-10-16T02:26:51.105Z",
+  "repetition": 0,
+  "requestHash": "42326e02edfb3c6f6ab58334c365471d4ea3d650c7cf6f380639982e6a272f42",
+  "resolvedModel": "claude-opus-5-5",
+  "response": "{\"is_error\":false,\"modelUsage\":{\"claude-opus-5-5\":{\"inputTokens\":2,\"outputTokens\":672}},\"result\":\"{\\\"pass\\\":true,\\\"confidence\\\":0.8,\\\"reasoning\\\":\\\"CardPaymentAdapter belongs to the adapters-outbound (infrastructure) layer. It implements the application-owned PaymentPort and works as an in-memory stand-in for an external card payment provider. Its methods are authorise, which records an authorisation in a Map, and refund, which removes it. Talking to an external system, or simulating one, is the job of an infrastructure adapter. The one conditional, `if (amountCents <= 0) return false;`, matches how a real payment gateway rejects an invalid amount. It does not decide anything about the business process, such as order rules, pricing or refund eligibility, so it does not move domain or application logic into infrastructure. There is no presentation or transport-to-client logic either.\\\",\\\"evidence\\\":[\\\"src/adapters/outbound/payment/CardPaymentAdapter.ts: class CardPaymentAdapter implements PaymentPort, an outbound port adapter, which fits the infrastructure role\\\",\\\"authorise(): stores the reference and amount in a private Map, which simulates the provider's authorisation state\\\",\\\"authorise(): `if (amountCents <= 0) return false;` is a gateway-style validity check, not a business policy decision\\\",\\\"refund(): deletes the stored authorisation, which simulates a provider refund\\\"],\\\"violations\\\":[]}\",\"structured_output\":{\"confidence\":0.8,\"evidence\":[\"src/adapters/outbound/payment/CardPaymentAdapter.ts: class CardPaymentAdapter implements PaymentPort, an outbound port adapter, which fits the infrastructure role\",\"authorise(): stores the reference and amount in a private Map, which simulates the provider's authorisation state\",\"authorise(): `if (amountCents <= 0) return false;` is a gateway-style validity check, not a business policy decision\",\"refund(): deletes the stored authorisation, which simulates a provider refund\"],\"pass\":true,\"reasoning\":\"CardPaymentAdapter belongs to the adapters-outbound (infrastructure) layer. It implements the application-owned PaymentPort and works as an in-memory stand-in for an external card payment provider. Its methods are authorise, which records an authorisation in a Map, and refund, which removes it. Talking to an external system, or simulating one, is the job of an infrastructure adapter. The one conditional, `if (amountCents <= 0) return false;`, matches how a real payment gateway rejects an invalid amount. It does not decide anything about the business process, such as order rules, pricing or refund eligibility, so it does not move domain or application logic into infrastructure. There is no presentation or transport-to-client logic either.\",\"violations\":[]}}",
+  "runIndex": 2,
+  "schemaVersion": 2,
+  "unitId": "src/adapters/outbound/payment/CardPaymentAdapter.ts",
+  "usage": {
+    "inputTokens": 2619,
+    "outputTokens": 672
+  },
+  "usedOptions": {
+    "effort": "high",
+    "model": "claude-opus-5-5"
+  }
+}

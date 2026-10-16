@@ -1,0 +1,47 @@
+{
+  "attempts": 1,
+  "cliVersion": "2.1.294",
+  "configListingSha256": "47aa04258852fab9a706f3f0c14cee22306d69fbb6fdfbde8c11854bd54997bc",
+  "durationMs": 6183,
+  "effort": "high",
+  "functionId": "FF-N02",
+  "ignoredOptions": [
+    "maxTokens"
+  ],
+  "isolationProbeSha256": "97a2e2d0af1100c13c55e028c1a0c71f069093c3d08705af122aaeb302f1a641",
+  "key": "128327dd78aa35370206176138220e87fc53392a9f6cfd51f0ab0eca2c763033-r0-2",
+  "model": "claude-opus-5-5",
+  "outcome": {
+    "kind": "valid"
+  },
+  "parsedVerdict": {
+    "confidence": 0.93,
+    "evidence": [
+      "src/business/core/Event.ts: class Event holds only domain state (id, title, venueCapacity, seatsSold, startsAt, priceCents)",
+      "src/business/core/Event.ts: remaining() is a domain calculation (venueCapacity - seatsSold)",
+      "src/business/core/Event.ts: sell() enforces a business invariant (seats > remaining() throws SoldOut) and computes the price (seats * priceCents)",
+      "The only import is ./TicketingError, a domain error in the same business layer; there is no persistence, transport or framework code"
+    ],
+    "pass": true,
+    "reasoning": "src/business/core/Event.ts is a pure domain entity. It holds event state (capacity, seats sold, price, start time) and carries domain rules: remaining() computes how many seats are left, and sell() enforces the capacity limit by throwing the domain error SoldOut, then updates seatsSold and returns the total price. The file has no persistence logic (no database, repository or SQL), no transport or HTTP handling, no framework code and no presentation formatting. Every responsibility fits the domain layer kind.",
+    "violations": []
+  },
+  "prompt": "## Rule\nThe unit's responsibilities match the role of its declared layer.\n\n## Rubric\nPass: Every responsibility in the file belongs to the role and kind of its declared layer, and agrees with any ADR prose given.\nFail: The file carries a responsibility that belongs to a different layer kind, for example persistence, transport or framework logic in a domain file, or business rules in an infrastructure or presentation file.\nEvidence required: Name the file and cite the function, method or statement that carries the misplaced responsibility, and the layer kind it belongs to.\nOut of scope: import direction and layer-dependency rules, which are checked symbolically.\n\n## Layer model\n- persistence (kind: infrastructure): src/persistence/**\n- business (kind: domain): src/business/**\n- presentation (kind: presentation): src/presentation/**\n\n## Unit\nKind: file\nId: src/business/core/Event.ts\nLayer: business\nUnit files:\n- src/business/core/Event.ts\n\n## Source\n=====SOURCE-BEGIN src/business/core/Event.ts=====\nimport { SoldOut } from './TicketingError';\n\nexport class Event {\n  id: string;\n  title: string;\n  venueCapacity: number;\n  seatsSold: number;\n  startsAt: Date;\n  priceCents: number;\n\n  constructor(id: string, title: string, venueCapacity: number, seatsSold: number, startsAt: Date, priceCents: number) {\n    this.id = id;\n    this.title = title;\n    this.venueCapacity = venueCapacity;\n    this.seatsSold = seatsSold;\n    this.startsAt = startsAt;\n    this.priceCents = priceCents;\n  }\n\n  remaining(): number {\n    return this.venueCapacity - this.seatsSold;\n  }\n\n  sell(seats: number): number {\n    if (seats > this.remaining()) throw new SoldOut(`Only ${this.remaining()} seats left for ${this.title}`);\n    this.seatsSold += seats;\n    return seats * this.priceCents;\n  }\n}\n\n=====SOURCE-END=====\n\n## Graph excerpt\n{\"edges\":[{\"from\":\"src/business/core/Event.ts\",\"to\":\"src/business/core/TicketingError.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/business/logic/BoxOffice.ts\",\"to\":\"src/business/core/Event.ts\",\"type\":\"IMPORTS\"}],\"nodes\":[{\"kind\":\"Class\",\"layer\":\"business\",\"name\":\"Event\",\"path\":\"src/business/core/Event.ts\"},{\"kind\":\"File\",\"layer\":\"business\",\"path\":\"src/business/core/Event.ts\"},{\"kind\":\"File\",\"layer\":\"business\",\"path\":\"src/business/core/TicketingError.ts\"},{\"kind\":\"File\",\"layer\":\"business\",\"path\":\"src/business/logic/BoxOffice.ts\"}]}\n\n## Instructions\nJudge the unit against the rule and rubric. Return the JSON object the schema requires. Set pass to false if any file of the unit fails the rubric.\n",
+  "provider": "claude-cli",
+  "recordedAt": "2026-10-16T02:41:17.605Z",
+  "repetition": 0,
+  "requestHash": "128327dd78aa35370206176138220e87fc53392a9f6cfd51f0ab0eca2c763033",
+  "resolvedModel": "claude-opus-5-5",
+  "response": "{\"is_error\":false,\"modelUsage\":{\"claude-opus-5-5\":{\"inputTokens\":2,\"outputTokens\":492}},\"result\":\"{\\\"pass\\\":true,\\\"confidence\\\":0.93,\\\"reasoning\\\":\\\"src/business/core/Event.ts is a pure domain entity. It holds event state (capacity, seats sold, price, start time) and carries domain rules: remaining() computes how many seats are left, and sell() enforces the capacity limit by throwing the domain error SoldOut, then updates seatsSold and returns the total price. The file has no persistence logic (no database, repository or SQL), no transport or HTTP handling, no framework code and no presentation formatting. Every responsibility fits the domain layer kind.\\\",\\\"evidence\\\":[\\\"src/business/core/Event.ts: class Event holds only domain state (id, title, venueCapacity, seatsSold, startsAt, priceCents)\\\",\\\"src/business/core/Event.ts: remaining() is a domain calculation (venueCapacity - seatsSold)\\\",\\\"src/business/core/Event.ts: sell() enforces a business invariant (seats > remaining() throws SoldOut) and computes the price (seats * priceCents)\\\",\\\"The only import is ./TicketingError, a domain error in the same business layer; there is no persistence, transport or framework code\\\"],\\\"violations\\\":[]}\",\"structured_output\":{\"confidence\":0.93,\"evidence\":[\"src/business/core/Event.ts: class Event holds only domain state (id, title, venueCapacity, seatsSold, startsAt, priceCents)\",\"src/business/core/Event.ts: remaining() is a domain calculation (venueCapacity - seatsSold)\",\"src/business/core/Event.ts: sell() enforces a business invariant (seats > remaining() throws SoldOut) and computes the price (seats * priceCents)\",\"The only import is ./TicketingError, a domain error in the same business layer; there is no persistence, transport or framework code\"],\"pass\":true,\"reasoning\":\"src/business/core/Event.ts is a pure domain entity. It holds event state (capacity, seats sold, price, start time) and carries domain rules: remaining() computes how many seats are left, and sell() enforces the capacity limit by throwing the domain error SoldOut, then updates seatsSold and returns the total price. The file has no persistence logic (no database, repository or SQL), no transport or HTTP handling, no framework code and no presentation formatting. Every responsibility fits the domain layer kind.\",\"violations\":[]}}",
+  "runIndex": 2,
+  "schemaVersion": 2,
+  "unitId": "src/business/core/Event.ts",
+  "usage": {
+    "inputTokens": 2463,
+    "outputTokens": 492
+  },
+  "usedOptions": {
+    "effort": "high",
+    "model": "claude-opus-5-5"
+  }
+}

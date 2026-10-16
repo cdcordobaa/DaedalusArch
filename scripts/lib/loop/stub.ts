@@ -32,6 +32,16 @@ export interface StubLayout {
   readonly domain: string;
   readonly application: string;
   readonly infrastructure: string;
+  /**
+   * Writes each step's domain file in a folder of its own (`<domain>/<id>/<id>.ts`), the aggregate module the ISE
+   * infers a DDD aggregate from; without one, the frozen DDD spec cannot be compiled (`specs.ts`).
+   */
+  readonly aggregateFolders?: boolean;
+  /**
+   * Further domain folders that get the step's domain module too (DDD step 1: every declared context, because the ISE
+   * finds no bounded context in a step-1 tree with a single context folder).
+   */
+  readonly alsoDomains?: readonly string[];
 }
 
 export const CLEAN_STUB_LAYOUT: StubLayout = Object.freeze({ domain: 'src/domain', application: 'src/application', infrastructure: 'src/infrastructure' });
@@ -69,16 +79,21 @@ export function layoutStubScript(layoutOf: (taskId: string, stepIndex: number) =
     const at = layoutOf(task.id, input.stepIndex);
     const name = pascal(step.id);
     const violate = input.stepIndex > 0 && input.stepIndex % 2 === 1;
-    const domainFile = `${at.domain}/${step.id}.ts`;
+    const domainDir = at.aggregateFolders === true ? `${at.domain}/${step.id}` : at.domain;
+    const domainFile = `${domainDir}/${step.id}.ts`;
     const storeFile = `${at.infrastructure}/${step.id}-store.ts`;
     files[domainFile] =
-      (violate ? `import { ${name}Store } from '${relImport(at.domain, storeFile)}';\n` : '') +
+      (violate ? `import { ${name}Store } from '${relImport(domainDir, storeFile)}';\n` : '') +
       `export interface ${name} {\n  readonly id: string;\n}\n` +
       (violate ? `export const ${name.charAt(0).toLowerCase()}${name.slice(1)}Store = new ${name}Store();\n` : '');
     files[`${at.application}/${step.id}-service.ts`] =
       `import type { ${name} } from '${relImport(at.application, domainFile)}';\n\n` +
       `export class ${name}Service {\n  private readonly items: ${name}[] = [];\n\n  list(): readonly ${name}[] {\n    return this.items;\n  }\n}\n`;
     if (violate) files[storeFile] = `export class ${name}Store {\n  readonly rows: string[] = [];\n}\n`;
+    for (const d of at.alsoDomains ?? []) {
+      const dir = at.aggregateFolders === true ? `${d}/${step.id}` : d;
+      files[`${dir}/${step.id}.ts`] = `export interface ${name} {\n  readonly id: string;\n}\n`;
+    }
     return files;
   };
 }
@@ -181,6 +196,7 @@ export function stubEvaluator(): StepEvaluator {
           blockingViolationCount: blocking,
           advisoryViolationCount: advisory,
           blockingByRule: blocking > 0 ? { 'STUB-DEP': blocking } : {},
+          advisoryByRule: advisory > 0 ? { 'STUB-TODO': advisory } : {},
           blockingFindings: findings,
           durationMs: 0,
         }),

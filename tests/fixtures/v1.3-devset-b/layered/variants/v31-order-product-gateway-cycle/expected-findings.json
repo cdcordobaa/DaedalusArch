@@ -1,0 +1,18 @@
+{
+  "schemaVersion": 1,
+  "style": "layered",
+  "variant": "v31-order-product-gateway-cycle",
+  "kind": "violation",
+  "plants": "FF-S02",
+  "description": "OrderGateway imports ProductGateway (findOrphanLines) and ProductGateway imports the OrderGateway type (orderedQuantity), a mutual dependency inside persistence.",
+  "patch": "variant.patch",
+  "expectedFindings": [
+    {
+      "ruleId": "FF-S02",
+      "ruleName": "no-cyclic-deps",
+      "file": "src/persistence/OrderGateway.ts",
+      "target": "src/persistence/ProductGateway.ts",
+      "reason": "Two-file import cycle OrderGateway -> ProductGateway -> OrderGateway within the persistence layer."
+    }
+  ]
+}

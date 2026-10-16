@@ -1,0 +1,48 @@
+{
+  "attempts": 1,
+  "cliVersion": "2.1.294",
+  "configListingSha256": "47aa04258852fab9a706f3f0c14cee22306d69fbb6fdfbde8c11854bd54997bc",
+  "durationMs": 9177,
+  "effort": "high",
+  "functionId": "FF-N02",
+  "ignoredOptions": [
+    "maxTokens"
+  ],
+  "isolationProbeSha256": "97a2e2d0af1100c13c55e028c1a0c71f069093c3d08705af122aaeb302f1a641",
+  "key": "a2568d23de58e3a925a73b4e96bf0072e68affc04b643c7b3555394d9aaa86a5-r0-2",
+  "model": "claude-opus-5-5",
+  "outcome": {
+    "kind": "valid"
+  },
+  "parsedVerdict": {
+    "confidence": 0.88,
+    "evidence": [
+      "Employee class declares only domain attributes: id, name, hourlyRateCents, contract",
+      "overtimeEligible() encodes a payroll business rule (contract === 'hourly'), which belongs in the domain layer",
+      "hasId() is a trivial check on the entity's own field and makes no persistence or storage calls",
+      "No imports and no I/O, framework, transport or persistence code in the file",
+      "The only files that use it are in the business layer: src/business/model/Payslip.ts and src/business/services/PayrollService.ts"
+    ],
+    "pass": true,
+    "reasoning": "src/business/model/Employee.ts is a plain domain entity. It holds the employee's identity and attributes and one business rule, overtimeEligible(), which says only hourly contracts get overtime. That rule belongs in the domain layer. The file contains no persistence code (no SQL, ORM, repository or storage calls), no transport code (no HTTP or request/response handling) and no framework or UI code. hasId() is a simple identity check on the entity's own field. It could hint at a \"has this been saved yet?\" check, but it does no persistence work itself, so it stays within what a domain entity may do. The graph shows the file is used only by other business-layer files, Payslip and PayrollService.",
+    "violations": []
+  },
+  "prompt": "## Rule\nThe unit's responsibilities match the role of its declared layer.\n\n## Rubric\nPass: Every responsibility in the file belongs to the role and kind of its declared layer, and agrees with any ADR prose given.\nFail: The file carries a responsibility that belongs to a different layer kind, for example persistence, transport or framework logic in a domain file, or business rules in an infrastructure or presentation file.\nEvidence required: Name the file and cite the function, method or statement that carries the misplaced responsibility, and the layer kind it belongs to.\nOut of scope: import direction and layer-dependency rules, which are checked symbolically.\n\n## Layer model\n- persistence (kind: infrastructure): src/persistence/**\n- business (kind: domain): src/business/**\n- presentation (kind: presentation): src/presentation/**\n\n## Unit\nKind: file\nId: src/business/model/Employee.ts\nLayer: business\nUnit files:\n- src/business/model/Employee.ts\n\n## Source\n=====SOURCE-BEGIN src/business/model/Employee.ts=====\nexport type Contract = 'hourly' | 'salaried';\n\nexport class Employee {\n  id: string;\n  name: string;\n  hourlyRateCents: number;\n  contract: Contract;\n\n  constructor(id: string, name: string, hourlyRateCents: number, contract: Contract) {\n    this.id = id;\n    this.name = name;\n    this.hourlyRateCents = hourlyRateCents;\n    this.contract = contract;\n  }\n\n  overtimeEligible(): boolean {\n    return this.contract === 'hourly';\n  }\n\n  hasId(): boolean {\n    return this.id !== undefined;\n  }\n}\n\n=====SOURCE-END=====\n\n## Graph excerpt\n{\"edges\":[{\"from\":\"src/business/model/Payslip.ts\",\"to\":\"src/business/model/Employee.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/business/services/PayrollService.ts\",\"to\":\"src/business/model/Employee.ts\",\"type\":\"IMPORTS\"}],\"nodes\":[{\"kind\":\"Class\",\"layer\":\"business\",\"name\":\"Employee\",\"path\":\"src/business/model/Employee.ts\"},{\"kind\":\"File\",\"layer\":\"business\",\"path\":\"src/business/model/Employee.ts\"},{\"kind\":\"File\",\"layer\":\"business\",\"path\":\"src/business/model/Payslip.ts\"},{\"kind\":\"File\",\"layer\":\"business\",\"path\":\"src/business/services/PayrollService.ts\"}]}\n\n## Instructions\nJudge the unit against the rule and rubric. Return the JSON object the schema requires. Set pass to false if any file of the unit fails the rubric.\n",
+  "provider": "claude-cli",
+  "recordedAt": "2026-10-16T03:22:39.864Z",
+  "repetition": 0,
+  "requestHash": "a2568d23de58e3a925a73b4e96bf0072e68affc04b643c7b3555394d9aaa86a5",
+  "resolvedModel": "claude-opus-5-5",
+  "response": "{\"is_error\":false,\"modelUsage\":{\"claude-opus-5-5\":{\"inputTokens\":2,\"outputTokens\":597}},\"result\":\"{\\\"pass\\\":true,\\\"confidence\\\":0.88,\\\"reasoning\\\":\\\"src/business/model/Employee.ts is a plain domain entity. It holds the employee's identity and attributes and one business rule, overtimeEligible(), which says only hourly contracts get overtime. That rule belongs in the domain layer. The file contains no persistence code (no SQL, ORM, repository or storage calls), no transport code (no HTTP or request/response handling) and no framework or UI code. hasId() is a simple identity check on the entity's own field. It could hint at a \\\\\\\"has this been saved yet?\\\\\\\" check, but it does no persistence work itself, so it stays within what a domain entity may do. The graph shows the file is used only by other business-layer files, Payslip and PayrollService.\\\",\\\"evidence\\\":[\\\"Employee class declares only domain attributes: id, name, hourlyRateCents, contract\\\",\\\"overtimeEligible() encodes a payroll business rule (contract === 'hourly'), which belongs in the domain layer\\\",\\\"hasId() is a trivial check on the entity's own field and makes no persistence or storage calls\\\",\\\"No imports and no I/O, framework, transport or persistence code in the file\\\",\\\"The only files that use it are in the business layer: src/business/model/Payslip.ts and src/business/services/PayrollService.ts\\\"],\\\"violations\\\":[]}\",\"structured_output\":{\"confidence\":0.88,\"evidence\":[\"Employee class declares only domain attributes: id, name, hourlyRateCents, contract\",\"overtimeEligible() encodes a payroll business rule (contract === 'hourly'), which belongs in the domain layer\",\"hasId() is a trivial check on the entity's own field and makes no persistence or storage calls\",\"No imports and no I/O, framework, transport or persistence code in the file\",\"The only files that use it are in the business layer: src/business/model/Payslip.ts and src/business/services/PayrollService.ts\"],\"pass\":true,\"reasoning\":\"src/business/model/Employee.ts is a plain domain entity. It holds the employee's identity and attributes and one business rule, overtimeEligible(), which says only hourly contracts get overtime. That rule belongs in the domain layer. The file contains no persistence code (no SQL, ORM, repository or storage calls), no transport code (no HTTP or request/response handling) and no framework or UI code. hasId() is a simple identity check on the entity's own field. It could hint at a \\\"has this been saved yet?\\\" check, but it does no persistence work itself, so it stays within what a domain entity may do. The graph shows the file is used only by other business-layer files, Payslip and PayrollService.\",\"violations\":[]}}",
+  "runIndex": 2,
+  "schemaVersion": 2,
+  "unitId": "src/business/model/Employee.ts",
+  "usage": {
+    "inputTokens": 2345,
+    "outputTokens": 597
+  },
+  "usedOptions": {
+    "effort": "high",
+    "model": "claude-opus-5-5"
+  }
+}
