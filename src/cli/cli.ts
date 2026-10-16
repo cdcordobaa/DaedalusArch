@@ -36,6 +36,9 @@ import { runCheck, neo4jEngine, lexicalEngine, formatGateHuman, formatGateJSON, 
 import type { GateEngine } from '../ci-gate/index.js';
 import { defaultPropose, inferredBanner, inferredSpecFile, labelJsonReport, runInit } from './init-command.js';
 import type { InferredSpecFile } from './init-command.js';
+import { defaultPresetsDir, formatProposalHuman, proposeRules, summariseProposal } from '../rule-mining/index.js';
+import { ISE_STYLES } from '../ise/index.js';
+import type { IseStyle } from '../ise/index.js';
 
 // Load .env before anything else
 loadDotenv();
@@ -597,6 +600,50 @@ program
       for (const r of rejected) process.stderr.write(`  - [CYPHER_INTERP_UNSUPPORTED] ${r}\n`);
       process.stderr.write(`cypher-interp: ${String(queries.length - rejected.length)}/${String(queries.length)} compiled queries parse\n`);
       if (rejected.length > 0) process.exitCode = 1;
+    }
+  });
+
+// ── mine-rules command ───────────────────────────────────────────────────────
+
+program
+  .command('mine-rules')
+  .description('PROPOSE the implicit rules of a project that has no spec: mined from its graph (deterministic, no LLM, no Neo4j), each with evidence, confidence and exceptions (candidate violations), plus a spec that compiles to the existing templates. Proposals to review, not a spec.')
+  .option('--project <path>', 'Path to the TypeScript project (its src/ and tsconfig.json are read)', '.')
+  .option('--out <path>', 'Write the proposed spec YAML to this file')
+  .option('--format <fmt>', 'Output format: human | json', 'human')
+  .option('--min-confidence <n>', 'Leave rules below this confidence (0-1) out of the proposed spec (they are still reported)', '0')
+  .option('--style <style>', `Skip the style classification and use this style (${ISE_STYLES.join(', ')})`)
+  .option('--max-exceptions <n>', 'Exceptions listed per rule in the human output', '5')
+  .action(async (opts: { project: string; out?: string; format: string; minConfidence: string; style?: string; maxExceptions: string }) => {
+    const minConfidence = Number(opts.minConfidence);
+    if (!Number.isFinite(minConfidence) || minConfidence < 0 || minConfidence > 1) {
+      process.stderr.write('Error: --min-confidence takes a number between 0 and 1\n');
+      process.exitCode = 2;
+      return;
+    }
+    if (opts.style !== undefined && !(ISE_STYLES as readonly string[]).includes(opts.style)) {
+      process.stderr.write(`Error: --style takes one of ${ISE_STYLES.join(', ')}\n`);
+      process.exitCode = 2;
+      return;
+    }
+    if (opts.format !== 'human' && opts.format !== 'json') {
+      process.stderr.write('Error: --format takes human or json\n');
+      process.exitCode = 2;
+      return;
+    }
+    try {
+      const proposal = await proposeRules(path.resolve(opts.project), {
+        presetsDir: defaultPresetsDir(), minConfidence, ...(opts.style !== undefined ? { style: opts.style as IseStyle } : {}),
+      });
+      if (opts.out !== undefined) fs.writeFileSync(opts.out, proposal.specYaml);
+      process.stdout.write(opts.format === 'json'
+        ? JSON.stringify(summariseProposal(proposal, { includeSpec: opts.out === undefined }), null, 2) + '\n'
+        : formatProposalHuman(proposal, Number(opts.maxExceptions) || 5));
+      if (opts.out !== undefined) process.stderr.write(`Proposed spec written to ${opts.out}\n`);
+      process.exitCode = 0;
+    } catch (e: unknown) {
+      process.stderr.write(`Error: ${e instanceof Error ? e.message : String(e)}\n`);
+      process.exitCode = 2;
     }
   });
 
