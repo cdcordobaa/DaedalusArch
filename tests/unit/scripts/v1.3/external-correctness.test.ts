@@ -4,13 +4,11 @@ import type { ImportLister } from '../../../../scripts/v1.3/lib/external-correct
 import type { Finding } from '../../../../scripts/v1.3/lib/labelling/findings.js';
 import type { SampledFinding } from '../../../../scripts/v1.3/lib/labelling/sampler.js';
 
-/** Partial<Finding> that may also clear optional fields (exactOptionalPropertyTypes). */
-type Over = { [K in keyof Finding]?: Finding[K] | undefined };
-const finding = (over: Over): Finding => ({
+const finding = (over: Partial<Finding>): Finding => ({
   key: 'k', projectId: 'p', style: 'nestjs', ruleId: 'FF-S01', template: 'dependency-direction', type: 'LAYER_VIOLATION',
   tier: 'blocking', file: 'src/a.ts', line: 3, target: 'src/b.ts', discriminator: ['IMPORTS'], evidence: [], message: 'm', violationId: 'v1', ...over,
-}) as Finding;
-const sampled = (over: Over): SampledFinding => ({ ...finding(over), rule: `${over.ruleId ?? 'FF-S01'}/${over.template ?? 'dependency-direction'}`, inclusionProbability: 1 });
+});
+const sampled = (over: Partial<Finding>): SampledFinding => ({ ...finding(over), rule: `${over.ruleId ?? 'FF-S01'}/${over.template ?? 'dependency-direction'}`, inclusionProbability: 1 });
 
 describe('external correctness: jobs', () => {
   it('builds one job per entry from the clone root, the spec and the report', () => {
@@ -77,7 +75,8 @@ describe('external correctness: negative control', () => {
   });
 
   it('breaks a cycle with a project file the first file does not import', () => {
-    const cyc = sampled({ key: 'cy', ruleId: 'FF-S02', template: 'no-cyclic-deps', file: 'src/x.ts', target: undefined, line: undefined, discriminator: [JSON.stringify(['src/x.ts', 'src/y.ts', 'src/x.ts'])] });
+    // A cycle finding has no target or line; drop them rather than pass `undefined` (exactOptionalPropertyTypes).
+    const { target: _t, line: _l, ...cyc } = sampled({ key: 'cy', ruleId: 'FF-S02', template: 'no-cyclic-deps', file: 'src/x.ts', discriminator: [JSON.stringify(['src/x.ts', 'src/y.ts', 'src/x.ts'])] });
     const other = sampled({ key: 'o', file: 'src/z.ts', target: 'src/w.ts' });
     const c = controlItems([cyc, other], () => lister({ 'src/x.ts': [{ startLine: 1, resolvedFile: 'src/y.ts' }, { startLine: 2, resolvedFile: 'src/w.ts' }] }));
     const item = c.items.find((i) => i.kind === 'cycle');

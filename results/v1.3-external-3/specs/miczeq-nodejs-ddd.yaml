@@ -1,0 +1,219 @@
+# v1.3 external set, wave 3: spec for `miczeq-nodejs-ddd` (style ddd).
+# Derived from presets/ddd.yaml: the `architecture:` block maps THIS project's folders
+# (judgements in results/v1.3-external-3/spec-rationale.md); `fitness_functions:` is the preset's, verbatim.
+# Written before any tool run on the project.
+
+spec_version: "1.0.0"
+
+architecture:
+  style: ddd
+
+  # README: "a simple example how to write Tactical Domain Driven Design in Node.js". At the pin only the domain
+  # exists: src/core/{errors,identity}. tsconfig paths name the intended folders (@app, @infrastructure, @api,
+  # @core, @tools); src/app and src/api do not exist yet, so application and api match nothing.
+  # src/tools/building-blocks (AggregateRoot, ValueObject, buses, dispatcher) is a framework library used by
+  # every layer and is unmapped, like wave 2's _lib; tools/mock-proxy.ts is a test helper (unmapped).
+  layers:
+    - name: domain
+      kind: domain
+      directories:
+        - src/core/**
+      roles:
+        - aggregate
+        - entity
+        - value-object
+        - repository-interface
+
+    - name: application
+      kind: application
+      directories:
+        - src/app/**
+      roles:
+        - application-service
+
+    - name: infrastructure
+      kind: infrastructure
+      directories:
+        - src/infrastructure/**
+      roles:
+        - repository
+
+    - name: api
+      kind: presentation
+      directories:
+        - src/api/**
+      roles:
+        - controller
+
+    - name: composition
+      kind: application
+      directories:
+        - src/index.ts
+      roles:
+        - composition-root
+
+  allowed_dependencies:
+    - from: application
+      to: [domain]
+    - from: infrastructure
+      to: [application, domain]
+    - from: api
+      to: [application, domain]
+    - from: composition
+      to: [domain, application, infrastructure, api]
+
+  ddd:
+    source_root: src/core/
+    # One context, identity (its own shared-kernel/ subfolder is internal to it). core/errors is outside it.
+    contexts:
+      - name: identity
+        root: src/core/identity/
+        public_api: []
+        acl: []
+    outside_contexts: [src/core/errors/**]
+    aggregates:
+      - name: PlatformRegistration
+        context: identity
+        module: src/core/identity/platform-registration/**
+        root: src/core/identity/platform-registration/platform-registration.aggregate-root.ts
+        inner_entities: []
+    value_objects: ["src/core/**/*.value-object.ts"]
+    repositories: ["src/core/**/*.repository.ts"]
+    domain_event_types: [DomainEvent]
+    # No application service exists at the pin; this is the @app folder from tsconfig and matches nothing.
+    application_services: ["src/app/**/*.ts"]
+
+fitness_functions:
+
+  # ── STRATEGIC ──
+
+  - id: FF-DS01
+    name: bounded-context-modules
+    dimension: structural
+    severity: critical
+    route: symbolic
+    validated: false
+    tier: blocking
+
+  - id: FF-DS02
+    name: context-isolation
+    dimension: structural
+    severity: critical
+    route: symbolic
+    validated: false
+    tier: blocking
+
+  # ── TACTICAL ──
+
+  - id: FF-DT01
+    name: aggregate-boundary
+    dimension: structural
+    severity: critical
+    route: symbolic
+    validated: false
+    tier: blocking
+
+  - id: FF-DT02
+    name: repository-aggregate-root
+    dimension: pattern
+    severity: critical
+    route: symbolic
+    validated: false
+    tier: blocking
+
+  # Blocking per the sealed Docs/v1.3/rule-tiers.md. The check is still a method-name proxy (the extractor sees no
+  # readonly, accessors or visibility); see Docs/v1.3-ddd-notes.md §2 for the proposed ADR.
+  - id: FF-DT03
+    name: value-object-immutability
+    dimension: pattern
+    severity: critical
+    route: symbolic
+    validated: false
+    tier: blocking
+
+  # Framework-free domain: the existing domain-purity template, unchanged, with the DDD package list.
+  - id: FF-DT04
+    name: domain-purity
+    dimension: pattern
+    severity: critical
+    route: symbolic
+    validated: false
+    tier: blocking
+    forbidden_imports:
+      - "@nestjs/*"
+      - typeorm
+      - express
+      - prisma
+      - "@prisma/*"
+      - sequelize
+      - mongoose
+      - "@mikro-orm/*"
+      - class-validator
+      - class-transformer
+      - inversify
+      - tsyringe
+
+  # Advisory per the sealed Docs/v1.3/rule-tiers.md (placement guideline).
+  - id: FF-DT05
+    name: domain-event-placement
+    dimension: pattern
+    severity: minor
+    route: symbolic
+    validated: false
+    tier: advisory
+
+  # Advisory heuristic: more methods than the threshold in an application service.
+  - id: FF-DT06
+    name: application-service-thin
+    dimension: pattern
+    severity: advisory
+    route: symbolic
+    validated: false
+    tier: advisory
+    threshold: 3
+
+  # ── LAYERING INSIDE EACH CONTEXT (hexagonal templates) ──
+
+  - id: FF-S01
+    name: dependency-direction-graph
+    dimension: structural
+    severity: critical
+    route: symbolic
+    validated: false
+    tier: blocking
+
+  # Advisory per the sealed Docs/v1.3/rule-tiers.md (hexagonal does not define strict layering).
+  - id: FF-S03
+    name: layer-skip-graph
+    dimension: structural
+    severity: minor
+    route: symbolic
+    validated: false
+    tier: advisory
+
+scoring:
+  weights:
+    structural: 0.35
+    coupling: 0.20
+    pattern: 0.30
+    solid: 0.10
+    convention: 0.05
+
+  full_mode_weights:
+    structural: 0.32
+    coupling: 0.18
+    pattern: 0.27
+    solid: 0.10
+    convention: 0.05
+    semantic: 0.04
+    integrity: 0.04
+
+  thresholds:
+    pass: 0.80
+    warning: 0.65
+    soft_block: 0.50
+
+confidence_thresholds:
+  high: 0.85
+  medium: 0.60
+  icc_minimum: 0.70
