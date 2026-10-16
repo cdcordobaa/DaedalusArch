@@ -1562,3 +1562,11 @@ Earlier the same night: 15 PRs merged into v1.3 (tip b08ec387), all gated (tsc, 
 **Context**: v1.3 spike follow-up, outside the v1.3 study stages. Development-set evidence only.
 
 ---
+
+## Night backlog job #12 (K1): known-groups and discriminant validity (scheduled routine)
+**Timestamp**: 2026-10-16T12:30:00Z
+**User Input**: "Scheduled routine: execute night-backlog job #12 (K1) under the standard rules block and the kill list."
+**AI Response**: "Committed the analysis plan (994efebc) before opening any findings file; measured sizes from sparse clones of the 29 pinned SHAs; ran exact permutation tests and Spearman with bootstrap CIs; wrote Docs/DiagnosticRuns/v1.3-known-groups-2026-10-16.md and results/v1.3-known-groups/. Known groups: not supported (external delta -0.18, p 0.81; wild exploratory delta -0.58, p 0.95). Discriminant: B/KLOC rho 0.39 (LOC) / 0.41 (files), 'still size-related' with CIs spanning zero; the expected advisory-tracks-size contrast is reversed (rho C~LOC 0.30 vs B~LOC 0.68). Reference results byte-identical (cypher-interp, mod elapsedMs). PR opened into v1.3, not merged."
+**Context**: SO4 evidence; development-set, exploratory. Options taken under delegation: (1) PR #133 is unmerged, so the external set was read from origin/v1.3-external-set with git show, not merged; (2) the wild set has no v1.3 tiers, so its measure is the APG v2 template total (G) and cheap-proxy flags (P), labelled exploratory and never pooled with the external set; (3) neither selection has a repo-owned description field, so the primary rule uses id/repo/url and a sensitivity rule adds the session-written styleClaim/ownDescription; (4) the stratified-by-style permutation was added as a secondary test; (5) one descriptive delta (C/KLOC by group) not in the plan is reported as such, untested.
+
+---
