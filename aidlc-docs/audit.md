@@ -1505,3 +1505,11 @@ Earlier the same night: 15 PRs merged into v1.3 (tip b08ec387), all gated (tsc, 
 **Context**: CONSTRUCTION, v1.3 validity cycle. Autonomous under the standing delegation; author decisions are listed in §6 of the plan.
 
 ---
+
+## v1.3 Construction — X1 external-set deterministic correctness (scheduled task)
+**Timestamp**: 2026-10-16T09:10:00Z
+**User Input**: "Scheduled task: run night-backlog job #3 (X1): label every blocking finding of the external set (PR #133, 15 human-written repositories) with the deterministic correctness checker; precision-of-correctness per style and rule with Wilson intervals; not-checkable share per template; 30 advisory findings as a secondary table; standard night rules (PR not merged, no LLM, reference results byte-identical, no sealed material)."
+**AI Response**: "Branch v1.3-external-correctness from origin/v1.3 (d65fddbb); #133 read from origin/v1.3-external-set (b8492a7a), not merged. Pass criterion and analysis committed before any run (2d1b90a2). 15 repositories cloned at the pinned SHAs. Result: 283/283 blocking findings labelled, all correct (pooled Wilson [0.987, 1]); 0 not-checkable, 0 incorrect, no checker gap, no checker change. Because all-correct cannot distinguish a working checker from a permissive one, a negative control was added and committed before it ran: 500 perturbed findings (line, target, cycle), all incorrect. Advisory: 18 correct, 12 not-checkable (metric templates). Reference run (cypher-interp) byte-identical to after-member-facts; jest tests/unit/scripts/v1.3 21/21 suites pass. Options taken under delegation: (1) the 30 advisory findings are #133's own seeded draw (seed 20261016) rather than a fresh draw, so the human sheet and this table share items; (2) the negative control was added after the first result (stated as such in the report); (3) results committed under results/v1.3-external-correctness/ with scratch paths replaced by placeholders. Not done: meaningful labels (no vendor key), spec-author spread (job K2), recall."
+**Context**: CONSTRUCTION, v1.3 validity (SO4, SO2). Development-set / exploratory evidence only.
+
+---
