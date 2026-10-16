@@ -16,7 +16,7 @@ import { LABELS_RESULTS_DIR, resultsPathAllowed } from '../../../golden/check-ch
 import { ROOT } from './score-fixture.js';
 
 function git(...args: string[]): string {
-  return execFileSync('git', args, { cwd: ROOT, encoding: 'utf8', stdio: ['ignore', 'pipe', 'pipe'] }).trim();
+  return execFileSync('git', args, { cwd: ROOT, encoding: 'utf8', stdio: ['ignore', 'pipe', 'pipe'], maxBuffer: 1 << 28 }).trim();
 }
 
 /**

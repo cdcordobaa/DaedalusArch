@@ -2,9 +2,13 @@
 // 71 reference variants, DDD overlays, pilot tasks, judge cassettes and rates, interpreter timings, Study 2 outline
 // figures), re-derived from the committed tree; facts that live only on unmerged branches are listed as needs-external.
 import { judgeCatch } from './h-post-merge-review.mjs';
+import { readAt } from '../lib/at-commit.mjs';
 
 const DOC = 'Docs/v1.3/night-backlog-2026-10-16.md';
 const N = (id, line, what, stated, extra = {}) => ({ id, doc: DOC, line, what, stated, ...extra });
+// The plan reviews origin/v1.3 at its own commit. Two of its inputs changed later: more judge cassettes were committed,
+// and #151 re-ran the interpreter parity (results/v1.3-cypher-interp/parity/). Those two counts are read at this commit.
+const DOC_COMMIT = 'f3a64cf5';
 
 const repo = {
   id: 'h-nb-repo',
@@ -47,7 +51,7 @@ const repo = {
     const runsPer = Number(/RUNS_PER_EVALUATION = (\d+)/.exec(ctx.read('src/llm-critic/frozen.ts'))[1]);
     // cassettes: <store>/<shard>/<sha256>-r<run>-<n>.json; count (store, prompt key) pairs with exactly
     // RUNS_PER_EVALUATION run files (a key can recur in two stores, e.g. a round-2 prompt re-judged in CHECK)
-    const files = ctx.sh('find tests/fixtures/judge-cassettes-v13 -type f -name "*.json"').trim().split('\n');
+    const files = ctx.sh(`git ls-tree -r --name-only ${DOC_COMMIT} tests/fixtures/judge-cassettes-v13`).trim().split('\n').filter((f) => f.endsWith('.json'));
     const perKey = new Map();
     for (const f of files) {
       const m = /^(.*)\/[0-9a-f]{2}\/([0-9a-f]{64})-r\d+-\d+\.json$/.exec(f);
@@ -73,7 +77,7 @@ const repo = {
     const warm = (r) => Number(r[4].replace(' ms', '')) / 1000;
     const stages = Number(bi[6]) + Number(bi[7]) + Number(bi[8]);
     const ms10 = Math.round(stages / 10) * 10;
-    const parity = ctx.json('results/v1.3-cypher-interp/parity/parity-by-template.json');
+    const parity = JSON.parse(readAt(ctx, DOC_COMMIT, 'results/v1.3-cypher-interp/parity/parity-by-template.json'));
     const stmts = parity.rows.reduce((s, r) => s + r.statements, 0);
     const outline = ctx.read('Docs/v1.3/study2-outline.md');
     const runs = /\*\*(\d+) runs\*\*/.exec(outline)[1];
