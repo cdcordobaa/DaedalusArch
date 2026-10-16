@@ -13,6 +13,7 @@ import type { NeuralAggregation } from '../scoring-engine/neural-aggregation.js'
 import { parseScoringMode, SCORING_MODES } from '../scoring-engine/tiered-scoring.js';
 import type { ScoringMode } from '../shared/types/evaluation.js';
 import { generateReport } from '../report/report-generator.js';
+import { graphInputFromApg, writeArchitectReport } from '../report/architect/index.js';
 import { formatActionableHuman } from '../scoring-engine/report-formatter.js';
 import { runBatch } from './batch-runner.js';
 import { requireEnvForCli } from './require-env.js';
@@ -215,6 +216,7 @@ withLLMOptions(program
   .option('--tsconfig <path>', 'Explicit tsconfig for APG extraction; the project\'s own tsconfig.json is then ignored (ADR-032)')
   .option('--scoring <mode>', 'Scoring mode: v1.3 (rule tiers, default; verdict from blocking rules) | v1.2e (the registered Study 1 scoring; on the default v1.3 graph its universal metrics count both re-export edge views, so pair it with --extractor v1.2e for the v1.2E graph)', 'v1.3')
   .option('--extractor <defaults>', 'Extractor defaults: v1.3 (default; literal and resolved re-export edges, dynamic imports, module wiring, member facts) | v1.2e (the registered v1.2E graph)', 'v1.3')
+  .option('--html <out.html>', 'Also write a self-contained architect HTML report (layer diagram, findings in plain language, filters)')
   .option('--engine <name>', ENGINE_OPTION_HELP)
   .action(async (projectArg: string | undefined, opts: LLMCliOpts & {
     engine?: string;
@@ -234,6 +236,7 @@ withLLMOptions(program
     neuralAggregation: string;
     scoring: string;
     extractor: string;
+    html?: string;
   }, cmd: Command) => {
     const project = opts.project ?? projectArg;
     if (project === undefined || (opts.project !== undefined && projectArg !== undefined && opts.project !== projectArg)) {
@@ -290,7 +293,7 @@ withLLMOptions(program
       ...(graphEngine !== 'neo4j' && { graphEngine }),
     };
 
-    const { executor, cleanup } = createPipeline(config);
+    const { executor, context, cleanup } = createPipeline(config);
 
     // Graceful shutdown on signals
     const onSignal = (): void => {
@@ -344,6 +347,28 @@ withLLMOptions(program
           process.stdout.write(csvHeader() + '\n');
           process.stdout.write(formatCSV(report) + '\n');
           break;
+      }
+
+      // Architect HTML report: only with --html, so the default outputs stay as they were.
+      if (opts.html !== undefined) {
+        try {
+          const apg = (() => {
+            try { return context.getApgResult(); } catch { return undefined; }
+          })();
+          const written = writeArchitectReport({
+            report,
+            spec: context.getParsedSpec(),
+            ...(apg !== undefined && { graph: graphInputFromApg(apg) }),
+            projectRoot: path.resolve(opts.project),
+            projectName: path.basename(path.resolve(opts.project)),
+            specPath: opts.spec,
+          }, opts.html);
+          process.stderr.write(`HTML report written to ${written}\n`);
+        } catch (err: unknown) {
+          process.stderr.write(`Error writing HTML report: ${err instanceof Error ? err.message : String(err)}\n`);
+          process.exitCode = 2;
+          return;
+        }
       }
 
       // Print stage timings in verbose mode

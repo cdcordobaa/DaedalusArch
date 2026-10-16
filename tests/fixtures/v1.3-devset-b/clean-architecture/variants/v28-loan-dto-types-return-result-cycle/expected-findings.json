@@ -1,0 +1,18 @@
+{
+  "schemaVersion": 1,
+  "style": "clean-architecture",
+  "variant": "v28-loan-dto-types-return-result-cycle",
+  "kind": "violation",
+  "plants": "FF-S02",
+  "description": "The LoanDto module imports the ReturnBookResult type from ReturnBookUseCase (import type) for describeReturn(); ReturnBookUseCase already imports LoanDto.",
+  "patch": "variant.patch",
+  "expectedFindings": [
+    {
+      "ruleId": "FF-S02",
+      "ruleName": "no-cyclic-deps",
+      "file": "src/application/dto/LoanDto.ts",
+      "target": "src/application/use-cases/ReturnBookUseCase.ts",
+      "reason": "Two-file import cycle LoanDto -> ReturnBookUseCase -> LoanDto (a type-only import is still an edge); keyed on the lexicographically smallest path."
+    }
+  ]
+}

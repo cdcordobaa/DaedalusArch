@@ -1,0 +1,81 @@
+--- /dev/null
++++ b/src/adapters/outbound/audit/InMemoryAuditTrailAdapter.ts
+@@ -0,0 +1,10 @@
++import { AuditTrail } from '../../../application/ports/out/AuditTrail';
++import { AuditEntry } from '../../../domain/model/AuditEntry';
++
++export class InMemoryAuditTrailAdapter implements AuditTrail {
++  readonly entries: AuditEntry[] = [];
++
++  async record(entry: AuditEntry): Promise<void> {
++    this.entries.push(entry);
++  }
++}
+--- /dev/null
++++ b/src/application/ports/out/AuditTrail.ts
+@@ -0,0 +1,5 @@
++import { AuditEntry } from '../../../domain/model/AuditEntry';
++
++export interface AuditTrail {
++  record(entry: AuditEntry): Promise<void>;
++}
+--- a/src/application/services/CancelBookingService.ts
++++ b/src/application/services/CancelBookingService.ts
+@@ -1,6 +1,8 @@
+ import { BookingError } from '../../domain/errors/BookingError';
++import { AuditEntry } from '../../domain/model/AuditEntry';
+ import { CancelBooking } from '../ports/in/CancelBooking';
+ import { BookingView, toBookingView } from '../ports/in/BookingView';
++import { AuditTrail } from '../ports/out/AuditTrail';
+ import { BookingRepository } from '../ports/out/BookingRepository';
+ import { GuestRepository } from '../ports/out/GuestRepository';
+ import { NotificationSender } from '../ports/out/NotificationSender';
+@@ -12,6 +14,7 @@
+     private readonly guests: GuestRepository,
+     private readonly payments: PaymentGateway,
+     private readonly notifications: NotificationSender,
++    private readonly audit: AuditTrail,
+   ) {}
+ 
+   async cancel(bookingId: string): Promise<BookingView> {
+@@ -20,6 +23,7 @@
+     booking.cancel();
+     await this.payments.refund(booking.paymentRef);
+     await this.bookings.save(booking);
++    await this.audit.record(new AuditEntry(new Date(), 'cancelled', booking.id));
+     const guest = await this.guests.findById(booking.guestId);
+     if (guest !== undefined) await this.notifications.send(guest.email, `Booking ${booking.id} is cancelled`);
+     return toBookingView(booking);
+--- a/src/config/container.ts
++++ b/src/config/container.ts
+@@ -1,6 +1,7 @@
+ import { BookingCli } from '../adapters/inbound/cli/BookingCli';
+ import { BookingController } from '../adapters/inbound/http/BookingController';
+ import { RoomController } from '../adapters/inbound/http/RoomController';
++import { InMemoryAuditTrailAdapter } from '../adapters/outbound/audit/InMemoryAuditTrailAdapter';
+ import { OutboxNotificationAdapter } from '../adapters/outbound/notification/OutboxNotificationAdapter';
+ import { FakePaymentGateway } from '../adapters/outbound/payment/FakePaymentGateway';
+ import { InMemoryBookingRepository } from '../adapters/outbound/persistence/InMemoryBookingRepository';
+@@ -23,10 +24,11 @@
+   const guests = new InMemoryGuestRepository();
+   const payments = new FakePaymentGateway();
+   const notifications = new OutboxNotificationAdapter();
++  const audit = new InMemoryAuditTrailAdapter();
+ 
+   const bookRoom = new BookRoomService(rooms, bookings, guests, payments, notifications);
+   return {
+-    bookings: new BookingController(bookRoom, new CancelBookingService(bookings, guests, payments, notifications)),
++    bookings: new BookingController(bookRoom, new CancelBookingService(bookings, guests, payments, notifications, audit)),
+     rooms: new RoomController(new FindAvailableRoomsService(rooms, bookings)),
+     cli: new BookingCli(bookRoom),
+   };
+--- /dev/null
++++ b/src/domain/model/AuditEntry.ts
+@@ -0,0 +1,7 @@
++export class AuditEntry {
++  constructor(
++    readonly at: Date,
++    readonly action: 'booked' | 'cancelled',
++    readonly bookingId: string,
++  ) {}
++}
