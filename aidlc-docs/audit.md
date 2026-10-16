@@ -1542,3 +1542,11 @@ Earlier the same night: 15 PRs merged into v1.3 (tip b08ec387), all gated (tsc, 
 **Context**: v1.3 CONSTRUCTION, SO5 and Study 2 design (D1, D11). Exploratory feasibility probe, development set; not the pilot, not Study 2.
 
 ---
+
+## v1.3 CONSTRUCTION: precedent-propagation probe, review follow-up (PR #189)
+**Timestamp**: 2026-10-16T08:10:00Z
+**User Input**: "Owner review on PR #189: verdict HOLD pending the author's sealed-domain check. Six checks clear. One minor: 'agents do not copy this shortcut at this n' overclaims; suggest 'this agent did not copy'."
+**AI Response**: "Report §0 and §4 and summary.md/summary.json now quote the plan's pre-stated wording as such and state the scoped reading: this agent (one session that also wrote the hypothesis; n = 8 paired near-duplicates) did not copy the shortcut. The plan is left unchanged (committed before the run). No number changed. The HOLD stays: the sealed-domain check is the author's."
+**Context**: Review follow-up, wording only.
+
+---

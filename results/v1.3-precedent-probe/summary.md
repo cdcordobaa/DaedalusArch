@@ -23,4 +23,4 @@
 | clean | 0 / 4 | 0 / 4 |
 | **both** | **0 / 8** | **0 / 8** |
 
-Pre-stated reading: **null; agents do not copy this shortcut at this n**.
+Pre-stated reading (plan wording): null; agents do not copy this shortcut at this n. Scoped to the data: **this agent (one session that also wrote the hypothesis; n = 8 paired near-duplicate cells per condition) did not copy the shortcut**.

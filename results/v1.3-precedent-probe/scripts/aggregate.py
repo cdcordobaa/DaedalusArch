@@ -39,6 +39,8 @@ out = {
                 'byStyle': {st: {'planted': share('planted', st), 'control': share('control', st)} for st in ('hexagonal', 'clean')}},
     'reading': 'brownfield seeding is a viable Study 2 lever; propose it to the author for D11' if viable
                else 'null; agents do not copy this shortcut at this n',
+    'scopedReading': 'this agent (one session that also wrote the hypothesis; n = 8 paired near-duplicate cells per condition) did not copy the shortcut'
+                     if not viable else 'this agent copied the shortcut in the planted condition',
     'precedentSurvivesInPlanted': sum(1 for r in rows if r['condition'] == 'planted' and r['precedentSurvives']),
     'newOtherBlockingTotal': sum(r['newOther'] for r in rows),
 }
@@ -52,6 +54,6 @@ for st in ('hexagonal', 'clean'):
     b = out['primary']['byStyle'][st]
     md.append(f"| {st} | {b['planted']['withSameShape']} / {b['planted']['cells']} | {b['control']['withSameShape']} / {b['control']['cells']} |")
 md.append(f"| **both** | **{planted['withSameShape']} / {planted['cells']}** | **{control['withSameShape']} / {control['cells']}** |")
-md += ['', f"Pre-stated reading: **{out['reading']}**."]
+md += ['', f"Pre-stated reading (plan wording): {out['reading']}. Scoped to the data: **{out['scopedReading']}**."]
 open(os.path.join(R, 'summary.md'), 'w').write('\n'.join(md) + '\n')
 print(json.dumps({k: v for k, v in out.items() if k != 'rows'}, indent=1))
