@@ -1,0 +1,67 @@
+{
+  "schemaVersion": 1,
+  "case": "case-04a-control-near-miss-rules",
+  "writtenAt": "2026-10-15",
+  "writtenBefore": "any ontology pipeline code, prompt or run (committed in the first commit of branch v1.3-ontology)",
+  "planted": "control",
+  "description": "Three rules with the same code shape `if (x >= N) return ...` and two of them the same constant 50, which are genuinely different business rules: bulk discount for 50+ units (catalog), free shipping from an order total of 50 (shipping), legal age 18 (accounts).",
+  "expect": {
+    "ruleDuplications": [],
+    "misplacedResponsibilities": [],
+    "conceptFragmentations": [],
+    "capabilityScatter": []
+  },
+  "forbid": {
+    "ruleDuplications": [
+      {
+        "sites": [
+          {
+            "file": "src/catalog/domain/bulk-discount.ts",
+            "class": "BulkDiscount",
+            "method": "rateFor"
+          },
+          {
+            "file": "src/shipping/domain/free-shipping.ts",
+            "class": "FreeShippingRule",
+            "method": "costFor"
+          }
+        ]
+      },
+      {
+        "sites": [
+          {
+            "file": "src/catalog/domain/bulk-discount.ts",
+            "class": "BulkDiscount",
+            "method": "rateFor"
+          },
+          {
+            "file": "src/accounts/domain/age-check.ts",
+            "class": "AgeCheck",
+            "method": "mayPurchaseAlcohol"
+          }
+        ]
+      },
+      {
+        "sites": [
+          {
+            "file": "src/shipping/domain/free-shipping.ts",
+            "class": "FreeShippingRule",
+            "method": "costFor"
+          },
+          {
+            "file": "src/accounts/domain/age-check.ts",
+            "class": "AgeCheck",
+            "method": "mayPurchaseAlcohol"
+          }
+        ]
+      }
+    ],
+    "misplacedResponsibilities": [],
+    "conceptFragmentations": [],
+    "capabilityScatter": []
+  },
+  "cheapExpectation": {
+    "ruleDuplications": "false-positive-possible",
+    "why": "Same shape and the shared literal 50: the clone and shared-literal proxies may pair BulkDiscount and FreeShippingRule."
+  }
+}

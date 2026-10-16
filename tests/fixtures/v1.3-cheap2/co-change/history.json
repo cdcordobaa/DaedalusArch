@@ -1,0 +1,255 @@
+{
+ "description": "Replayed by the co-change test into a fresh git repository, one commit per entry (fixed identity and dates). Option coChangeMaxFilesPerCommit = 6 for this fixture.",
+ "commits": [
+  {
+   "message": "initial import",
+   "files": {
+    "src/orders/order.ts": "export class Order {\n  readonly v = 1;\n}\n",
+    "src/orders/order.service.ts": "import { Order } from './order';\n\nexport class OrderService {\n  make(): Order {\n    return new Order();\n  }\n  readonly v = 1;\n}\n",
+    "src/billing/billing.service.ts": "import { Order } from '../orders/order';\n\nexport class BillingService {\n  bill(o: Order): number {\n    return o.v + 1;\n  }\n}\n",
+    "src/billing/invoice.ts": "export class Invoice {\n  readonly v = 1;\n}\n",
+    "src/shipping/label.ts": "export class Label {\n  readonly v = 1;\n}\n",
+    "src/catalog/product.ts": "export class Product {\n  readonly v = 1;\n}\n",
+    "src/search/indexer.ts": "export class Indexer {\n  readonly v = 1;\n}\n",
+    "src/users/user.ts": "export class User {\n  readonly v = 1;\n}\n",
+    "src/audit/audit-log.ts": "export class AuditLog {\n  readonly v = 1;\n}\n",
+    "src/catalog/category.ts": "export class Category {\n  readonly v = 1;\n}\n",
+    "src/users/profile.ts": "export class Profile {\n  readonly v = 1;\n}\n",
+    "src/reports/report.ts": "export class Report {\n  readonly v = 1;\n}\n",
+    "src/metrics/meter.ts": "export class Meter {\n  readonly v = 1;\n}\n"
+   }
+  },
+  {
+   "message": "P1 invoice and label #1",
+   "files": {
+    "src/billing/invoice.ts": "export class Invoice {\n  readonly v = 2;\n}\n",
+    "src/shipping/label.ts": "export class Label {\n  readonly v = 2;\n}\n"
+   }
+  },
+  {
+   "message": "P1 invoice and label #2",
+   "files": {
+    "src/billing/invoice.ts": "export class Invoice {\n  readonly v = 3;\n}\n",
+    "src/shipping/label.ts": "export class Label {\n  readonly v = 3;\n}\n"
+   }
+  },
+  {
+   "message": "P1 invoice and label #3",
+   "files": {
+    "src/billing/invoice.ts": "export class Invoice {\n  readonly v = 4;\n}\n",
+    "src/shipping/label.ts": "export class Label {\n  readonly v = 4;\n}\n"
+   }
+  },
+  {
+   "message": "P1 invoice and label #4",
+   "files": {
+    "src/billing/invoice.ts": "export class Invoice {\n  readonly v = 5;\n}\n",
+    "src/shipping/label.ts": "export class Label {\n  readonly v = 5;\n}\n"
+   }
+  },
+  {
+   "message": "P2 product and indexer #1",
+   "files": {
+    "src/catalog/product.ts": "export class Product {\n  readonly v = 2;\n}\n",
+    "src/search/indexer.ts": "export class Indexer {\n  readonly v = 2;\n}\n"
+   }
+  },
+  {
+   "message": "P2 product and indexer #2",
+   "files": {
+    "src/catalog/product.ts": "export class Product {\n  readonly v = 3;\n}\n",
+    "src/search/indexer.ts": "export class Indexer {\n  readonly v = 3;\n}\n"
+   }
+  },
+  {
+   "message": "P2 product and indexer #3",
+   "files": {
+    "src/catalog/product.ts": "export class Product {\n  readonly v = 4;\n}\n",
+    "src/search/indexer.ts": "export class Indexer {\n  readonly v = 4;\n}\n"
+   }
+  },
+  {
+   "message": "P3 user and audit log #1",
+   "files": {
+    "src/users/user.ts": "export class User {\n  readonly v = 2;\n}\n",
+    "src/audit/audit-log.ts": "export class AuditLog {\n  readonly v = 2;\n}\n"
+   }
+  },
+  {
+   "message": "P3 user and audit log #2",
+   "files": {
+    "src/users/user.ts": "export class User {\n  readonly v = 3;\n}\n",
+    "src/audit/audit-log.ts": "export class AuditLog {\n  readonly v = 3;\n}\n"
+   }
+  },
+  {
+   "message": "P3 user and audit log #3",
+   "files": {
+    "src/users/user.ts": "export class User {\n  readonly v = 4;\n}\n",
+    "src/audit/audit-log.ts": "export class AuditLog {\n  readonly v = 4;\n}\n"
+   }
+  },
+  {
+   "message": "N1 order and billing (static dependency) #1",
+   "files": {
+    "src/orders/order.ts": "export class Order {\n  readonly v = 2;\n}\n",
+    "src/billing/billing.service.ts": "import { Order } from '../orders/order';\n\nexport class BillingService {\n  bill(o: Order): number {\n    return o.v + 2;\n  }\n}\n"
+   }
+  },
+  {
+   "message": "N1 order and billing (static dependency) #2",
+   "files": {
+    "src/orders/order.ts": "export class Order {\n  readonly v = 3;\n}\n",
+    "src/billing/billing.service.ts": "import { Order } from '../orders/order';\n\nexport class BillingService {\n  bill(o: Order): number {\n    return o.v + 3;\n  }\n}\n"
+   }
+  },
+  {
+   "message": "N1 order and billing (static dependency) #3",
+   "files": {
+    "src/orders/order.ts": "export class Order {\n  readonly v = 4;\n}\n",
+    "src/billing/billing.service.ts": "import { Order } from '../orders/order';\n\nexport class BillingService {\n  bill(o: Order): number {\n    return o.v + 4;\n  }\n}\n"
+   }
+  },
+  {
+   "message": "N1 order and billing (static dependency) #4",
+   "files": {
+    "src/orders/order.ts": "export class Order {\n  readonly v = 5;\n}\n",
+    "src/billing/billing.service.ts": "import { Order } from '../orders/order';\n\nexport class BillingService {\n  bill(o: Order): number {\n    return o.v + 5;\n  }\n}\n"
+   }
+  },
+  {
+   "message": "N2 category and profile, support 2 #1",
+   "files": {
+    "src/catalog/category.ts": "export class Category {\n  readonly v = 2;\n}\n",
+    "src/users/profile.ts": "export class Profile {\n  readonly v = 2;\n}\n"
+   }
+  },
+  {
+   "message": "N2 category and profile, support 2 #2",
+   "files": {
+    "src/catalog/category.ts": "export class Category {\n  readonly v = 3;\n}\n",
+    "src/users/profile.ts": "export class Profile {\n  readonly v = 3;\n}\n"
+   }
+  },
+  {
+   "message": "N4 report and meter together #1",
+   "files": {
+    "src/reports/report.ts": "export class Report {\n  readonly v = 2;\n}\n",
+    "src/metrics/meter.ts": "export class Meter {\n  readonly v = 2;\n}\n"
+   }
+  },
+  {
+   "message": "N4 report and meter together #2",
+   "files": {
+    "src/reports/report.ts": "export class Report {\n  readonly v = 3;\n}\n",
+    "src/metrics/meter.ts": "export class Meter {\n  readonly v = 3;\n}\n"
+   }
+  },
+  {
+   "message": "N4 report and meter together #3",
+   "files": {
+    "src/reports/report.ts": "export class Report {\n  readonly v = 4;\n}\n",
+    "src/metrics/meter.ts": "export class Meter {\n  readonly v = 4;\n}\n"
+   }
+  },
+  {
+   "message": "N4 report alone #1",
+   "files": {
+    "src/reports/report.ts": "export class Report {\n  readonly v = 5;\n}\n"
+   }
+  },
+  {
+   "message": "N4 report alone #2",
+   "files": {
+    "src/reports/report.ts": "export class Report {\n  readonly v = 6;\n}\n"
+   }
+  },
+  {
+   "message": "N4 report alone #3",
+   "files": {
+    "src/reports/report.ts": "export class Report {\n  readonly v = 7;\n}\n"
+   }
+  },
+  {
+   "message": "N4 report alone #4",
+   "files": {
+    "src/reports/report.ts": "export class Report {\n  readonly v = 8;\n}\n"
+   }
+  },
+  {
+   "message": "N4 report alone #5",
+   "files": {
+    "src/reports/report.ts": "export class Report {\n  readonly v = 9;\n}\n"
+   }
+  },
+  {
+   "message": "N4 meter alone #1",
+   "files": {
+    "src/metrics/meter.ts": "export class Meter {\n  readonly v = 5;\n}\n"
+   }
+  },
+  {
+   "message": "N4 meter alone #2",
+   "files": {
+    "src/metrics/meter.ts": "export class Meter {\n  readonly v = 6;\n}\n"
+   }
+  },
+  {
+   "message": "N4 meter alone #3",
+   "files": {
+    "src/metrics/meter.ts": "export class Meter {\n  readonly v = 7;\n}\n"
+   }
+  },
+  {
+   "message": "N4 meter alone #4",
+   "files": {
+    "src/metrics/meter.ts": "export class Meter {\n  readonly v = 8;\n}\n"
+   }
+  },
+  {
+   "message": "N4 meter alone #5",
+   "files": {
+    "src/metrics/meter.ts": "export class Meter {\n  readonly v = 9;\n}\n"
+   }
+  },
+  {
+   "message": "N3 large reformatting commit #1 (8 files, dropped at max 6)",
+   "files": {
+    "src/catalog/category.ts": "export class Category {\n  readonly v = 4;\n}\n",
+    "src/users/profile.ts": "export class Profile {\n  readonly v = 4;\n}\n",
+    "src/orders/order.service.ts": "import { Order } from './order';\n\nexport class OrderService {\n  make(): Order {\n    return new Order();\n  }\n  readonly v = 2;\n}\n",
+    "src/catalog/product.ts": "export class Product {\n  readonly v = 5;\n}\n",
+    "src/reports/report.ts": "export class Report {\n  readonly v = 10;\n}\n",
+    "src/metrics/meter.ts": "export class Meter {\n  readonly v = 10;\n}\n",
+    "src/users/user.ts": "export class User {\n  readonly v = 5;\n}\n",
+    "src/search/indexer.ts": "export class Indexer {\n  readonly v = 5;\n}\n"
+   }
+  },
+  {
+   "message": "N3 large reformatting commit #2 (8 files, dropped at max 6)",
+   "files": {
+    "src/catalog/category.ts": "export class Category {\n  readonly v = 5;\n}\n",
+    "src/users/profile.ts": "export class Profile {\n  readonly v = 5;\n}\n",
+    "src/orders/order.service.ts": "import { Order } from './order';\n\nexport class OrderService {\n  make(): Order {\n    return new Order();\n  }\n  readonly v = 3;\n}\n",
+    "src/catalog/product.ts": "export class Product {\n  readonly v = 6;\n}\n",
+    "src/reports/report.ts": "export class Report {\n  readonly v = 11;\n}\n",
+    "src/metrics/meter.ts": "export class Meter {\n  readonly v = 11;\n}\n",
+    "src/users/user.ts": "export class User {\n  readonly v = 6;\n}\n",
+    "src/search/indexer.ts": "export class Indexer {\n  readonly v = 6;\n}\n"
+   }
+  },
+  {
+   "message": "N3 large reformatting commit #3 (8 files, dropped at max 6)",
+   "files": {
+    "src/catalog/category.ts": "export class Category {\n  readonly v = 6;\n}\n",
+    "src/users/profile.ts": "export class Profile {\n  readonly v = 6;\n}\n",
+    "src/orders/order.service.ts": "import { Order } from './order';\n\nexport class OrderService {\n  make(): Order {\n    return new Order();\n  }\n  readonly v = 4;\n}\n",
+    "src/catalog/product.ts": "export class Product {\n  readonly v = 7;\n}\n",
+    "src/reports/report.ts": "export class Report {\n  readonly v = 12;\n}\n",
+    "src/metrics/meter.ts": "export class Meter {\n  readonly v = 12;\n}\n",
+    "src/users/user.ts": "export class User {\n  readonly v = 7;\n}\n",
+    "src/search/indexer.ts": "export class Indexer {\n  readonly v = 7;\n}\n"
+   }
+  }
+ ]
+}

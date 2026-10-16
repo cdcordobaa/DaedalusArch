@@ -59,8 +59,8 @@ interface LedgerRun {
   at: string;
 }
 
-function readJson<T>(file: string): T {
-  return JSON.parse(fs.readFileSync(file, 'utf8')) as T;
+function readJson(file: string): unknown {
+  return JSON.parse(fs.readFileSync(file, 'utf8')) as unknown;
 }
 
 function safe(id: string): string {
@@ -72,7 +72,7 @@ function allEntries(dir: string): Entry[] {
   for (const sub of fs.readdirSync(dir)) {
     const p = path.join(dir, sub);
     if (sub === '_incomplete' || !fs.statSync(p).isDirectory()) continue;
-    for (const f of fs.readdirSync(p).filter((x) => x.endsWith('.json'))) out.push(readJson<Entry>(path.join(p, f)));
+    for (const f of fs.readdirSync(p).filter((x) => x.endsWith('.json'))) out.push(readJson(path.join(p, f)) as Entry);
   }
   return out.sort((a, b) => (a.recordedAt < b.recordedAt ? -1 : 1));
 }
@@ -89,16 +89,22 @@ function symKey(v: { functionId: string; filePath: string; target?: string }): s
   return `${v.functionId}|${v.filePath}|${v.target ?? ''}`;
 }
 
+/** A CSV cell: '' for null and undefined, the primitive's text, else its JSON. */
+function cell(x: unknown): string {
+  if (x === null || x === undefined) return '';
+  return typeof x === 'string' || typeof x === 'number' || typeof x === 'boolean' ? String(x) : JSON.stringify(x);
+}
+
 export function main(argv: readonly string[]): number {
   const argOf = (n: string, d: string): string => {
     const i = argv.indexOf(n);
-    return i >= 0 && argv[i + 1] !== undefined ? (argv[i + 1] as string) : d;
+    return (i >= 0 ? argv[i + 1] : undefined) ?? d;
   };
   const results = path.resolve(argOf('--results', 'results/v1.3-judge-catch'));
   const cas = path.resolve(argOf('--cassettes', 'tests/fixtures/judge-cassettes-v13/judge-catch'));
-  const { targets, skipped } = readJson<{ targets: Target[]; skipped: { id: string; reason: string }[] }>(path.join(results, 'plan.json'));
-  const rows = readJson<{ rows: SeedRow[] }>(path.join(results, 'seed-manifest.json')).rows;
-  const ledger = readJson<{ calls: number; runs: LedgerRun[] }>(path.join(results, 'call-ledger.json'));
+  const { targets, skipped } = readJson(path.join(results, 'plan.json')) as { targets: Target[]; skipped: { id: string; reason: string }[] };
+  const rows = (readJson(path.join(results, 'seed-manifest.json')) as { rows: SeedRow[] }).rows;
+  const ledger = readJson(path.join(results, 'call-ledger.json')) as { calls: number; runs: LedgerRun[] };
   const entries = allEntries(cas);
   // Entries of a run: recorded after the previous run ended and up to this run's end (runs are sequential).
   const entriesOf = new Map<string, Entry[]>();
@@ -109,7 +115,7 @@ export function main(argv: readonly string[]): number {
   }
   const reportOf = (id: string): Report | null => {
     const f = path.join(results, 'reports', `${safe(id)}.json`);
-    return fs.existsSync(f) ? readJson<Report>(f) : null;
+    return fs.existsSync(f) ? (readJson(f) as Report) : null;
   };
   const unitVerdict = (rep: Report, fn: string, unit: string): string | null =>
     rep.neuralResults?.find((n) => n.functionId === fn)?.unitResults.find((u) => u.unitId === unit)?.verdict ?? null;
@@ -161,10 +167,10 @@ export function main(argv: readonly string[]): number {
   }
 
   const positives = Object.keys(PROBED_FUNCTION);
-  const judgedRows = rowScores.filter((r) => r['judged'] === true);
+  const judgedRows = rowScores.filter((r) => r.judged === true);
   const perOperator = positives.map((pos) => {
-    const seeds = judgedRows.filter((r) => r['positiveId'] === pos && r['role'] === 'seed');
-    const twins = judgedRows.filter((r) => r['positiveId'] === pos && r['role'] === 'twin');
+    const seeds = judgedRows.filter((r) => r.positiveId === pos && r.role === 'seed');
+    const twins = judgedRows.filter((r) => r.positiveId === pos && r.role === 'twin');
     const c = (xs: Record<string, unknown>[], k: string): number => xs.filter((x) => x[k] === true).length;
     return {
       operator: pos,
@@ -176,14 +182,14 @@ export function main(argv: readonly string[]): number {
       pairedCatch: rate(c(seeds, 'pairedCatch'), seeds.length),
       constructFlagAnyRun: rate(c(seeds, 'constructFlagAnyRun'), seeds.length),
       twinFalseFail: rate(c(twins, 'unitFail'), twins.length),
-      twinFalseFailWithFlag: rate(twins.filter((x) => x['unitFail'] === true || x['constructFlagMajority'] === true).length, twins.length),
+      twinFalseFailWithFlag: rate(twins.filter((x) => x.unitFail === true || x.constructFlagMajority === true).length, twins.length),
       symbolicS1: rate(c(seeds, 'symbolicS1'), seeds.length),
       symbolicS2: rate(c(seeds, 'symbolicS2'), seeds.length),
-      judgeOnlyS2: rate(seeds.filter((x) => x['catch'] === true && x['symbolicS2'] !== true).length, seeds.length),
+      judgeOnlyS2: rate(seeds.filter((x) => x.catch === true && x.symbolicS2 !== true).length, seeds.length),
     };
   });
-  const allSeeds = judgedRows.filter((r) => r['role'] === 'seed');
-  const allTwins = judgedRows.filter((r) => r['role'] === 'twin');
+  const allSeeds = judgedRows.filter((r) => r.role === 'seed');
+  const allTwins = judgedRows.filter((r) => r.role === 'twin');
   const judgedClean = cleanUnits.filter((u) => u.verdict !== null);
   const macro = perOperator.filter((p) => p.catch.rate !== null);
   const scores = {
@@ -192,26 +198,26 @@ export function main(argv: readonly string[]): number {
     skipped,
     perOperator,
     pooled: {
-      catch: rate(allSeeds.filter((x) => x['catch'] === true).length, allSeeds.length),
-      unitFailOnly: rate(allSeeds.filter((x) => x['unitFail'] === true).length, allSeeds.length),
-      pairedCatch: rate(allSeeds.filter((x) => x['pairedCatch'] === true).length, allSeeds.length),
+      catch: rate(allSeeds.filter((x) => x.catch === true).length, allSeeds.length),
+      unitFailOnly: rate(allSeeds.filter((x) => x.unitFail === true).length, allSeeds.length),
+      pairedCatch: rate(allSeeds.filter((x) => x.pairedCatch === true).length, allSeeds.length),
       macroCatch: macro.length === 0 ? null : macro.reduce((s, p) => s + (p.catch.rate ?? 0), 0) / macro.length,
-      twinFalseFail: rate(allTwins.filter((x) => x['unitFail'] === true).length, allTwins.length),
-      twinFalseFailWithFlag: rate(allTwins.filter((x) => x['unitFail'] === true || x['constructFlagMajority'] === true).length, allTwins.length),
+      twinFalseFail: rate(allTwins.filter((x) => x.unitFail === true).length, allTwins.length),
+      twinFalseFailWithFlag: rate(allTwins.filter((x) => x.unitFail === true || x.constructFlagMajority === true).length, allTwins.length),
       cleanUnitFalseFail: rate(judgedClean.filter((u) => u.verdict === 'fail').length, judgedClean.length),
       cleanBaseFalseFail: rate(
         [...new Set(judgedClean.map((u) => u.base))].filter((b) => judgedClean.some((u) => u.base === b && u.verdict === 'fail')).length,
         new Set(judgedClean.map((u) => u.base)).size,
       ),
-      symbolicS2: rate(allSeeds.filter((x) => x['symbolicS2'] === true).length, allSeeds.length),
+      symbolicS2: rate(allSeeds.filter((x) => x.symbolicS2 === true).length, allSeeds.length),
     },
-    exitTarget: { rule: 'catch rate >= 0.80', pooledCatch: allSeeds.length === 0 ? null : allSeeds.filter((x) => x['catch'] === true).length / allSeeds.length },
+    exitTarget: { rule: 'catch rate >= 0.80', pooledCatch: allSeeds.length === 0 ? null : allSeeds.filter((x) => x.catch === true).length / allSeeds.length },
     cleanUnits,
     rows: rowScores,
   };
   fs.writeFileSync(path.join(results, 'scores.json'), `${JSON.stringify(scores, null, 2)}\n`);
   const csv = ['rowId,operatorId,role,baseId,judged,unitFail,constructFlagMajority,catch,pairedCatch,symbolicS1,symbolicS2,blockingVerdict'];
-  for (const r of rowScores) csv.push([r['rowId'], r['operatorId'], r['role'], r['baseId'], r['judged'], r['unitFail'], r['constructFlagMajority'], r['catch'], r['pairedCatch'], r['symbolicS1'], r['symbolicS2'], r['blockingVerdict']].map((x) => String(x ?? '')).join(','));
+  for (const r of rowScores) csv.push([r.rowId, r.operatorId, r.role, r.baseId, r.judged, r.unitFail, r.constructFlagMajority, r.catch, r.pairedCatch, r.symbolicS1, r.symbolicS2, r.blockingVerdict].map(cell).join(','));
   fs.writeFileSync(path.join(results, 'rows.csv'), `${csv.join('\n')}\n`);
   const out: string[] = ['| Operator | Fn | Seeds | Catch | Unit fail only | Paired catch | Twins | Twin false fail | Symbolic S1 | Symbolic S2 |', '|---|---|---|---|---|---|---|---|---|---|'];
   for (const p of perOperator) out.push(`| ${p.operator} | ${p.probedFunction ?? ''} | ${String(p.seeds)} | ${p.catch.text} | ${p.unitFailOnly.text} | ${p.pairedCatch.text} | ${String(p.twins)} | ${p.twinFalseFail.text} | ${p.symbolicS1.text} | ${p.symbolicS2.text} |`);

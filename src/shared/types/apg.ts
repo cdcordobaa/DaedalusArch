@@ -1,4 +1,4 @@
-import type { NodeType, EdgeType, V13EdgeType, Apg2NodeType, Apg2EdgeType } from './enums.js';
+import type { NodeType, EdgeType, V13EdgeType, Apg2NodeType, Apg2EdgeType, FieldStateEdgeType } from './enums.js';
 
 export interface APGNode {
   readonly id: string;
@@ -13,7 +13,7 @@ export interface APGNode {
 
 export interface APGEdge {
   readonly id: string;
-  readonly type: EdgeType | V13EdgeType | Apg2EdgeType;
+  readonly type: EdgeType | V13EdgeType | FieldStateEdgeType | Apg2EdgeType;
   readonly sourceId: string;
   readonly targetId: string;
   readonly properties: Readonly<Record<string, unknown>>;

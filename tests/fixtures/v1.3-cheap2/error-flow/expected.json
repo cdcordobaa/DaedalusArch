@@ -1,0 +1,98 @@
+{
+  "proxy": "error-flow",
+  "planted": [
+    {
+      "id": "P1",
+      "kind": "framework-http-exception-in-core",
+      "file": "src/orders/domain/order.ts",
+      "className": "Order",
+      "methodName": "line"
+    },
+    {
+      "id": "P2",
+      "kind": "framework-http-exception-in-core",
+      "file": "src/orders/application/confirm-order.service.ts",
+      "className": "ConfirmOrderService",
+      "methodName": "validate"
+    },
+    {
+      "id": "P3",
+      "kind": "framework-http-exception-in-core",
+      "file": "src/billing/application/issue-invoice.ts",
+      "className": "IssueInvoice",
+      "methodName": "find"
+    },
+    {
+      "id": "P4",
+      "kind": "domain-error-swallowed",
+      "file": "src/orders/infrastructure/order-sync.adapter.ts",
+      "className": "OrderSyncAdapter",
+      "methodName": "sync"
+    },
+    {
+      "id": "P5",
+      "kind": "domain-error-swallowed",
+      "file": "src/orders/presentation/order.controller.ts",
+      "className": "OrderController",
+      "methodName": "confirm"
+    },
+    {
+      "id": "P6",
+      "kind": "domain-error-swallowed",
+      "file": "src/billing/infrastructure/invoice-job.ts",
+      "className": "InvoiceJob",
+      "methodName": "runNightly"
+    }
+  ],
+  "nearMisses": [
+    {
+      "id": "N1",
+      "file": "src/orders/presentation/order.controller.ts",
+      "className": "OrderController",
+      "methodName": "find",
+      "note": "HTTP exception in presentation"
+    },
+    {
+      "id": "N2",
+      "file": "src/billing/domain/invoice.ts",
+      "className": "Invoice",
+      "methodName": "load",
+      "note": "project NotFoundError is not a framework exception"
+    },
+    {
+      "id": "N3",
+      "file": "src/orders/presentation/order.controller.ts",
+      "className": "OrderController",
+      "methodName": "confirmMapped",
+      "note": "translated by a mapper"
+    },
+    {
+      "id": "N4",
+      "file": "src/orders/presentation/order.controller.ts",
+      "className": "OrderController",
+      "methodName": "confirmNarrowed",
+      "note": "narrowed with instanceof"
+    },
+    {
+      "id": "N5",
+      "file": "src/orders/infrastructure/order-sync.adapter.ts",
+      "className": "OrderSyncAdapter",
+      "methodName": "parse",
+      "note": "no project error can be thrown"
+    },
+    {
+      "id": "N6",
+      "file": "src/orders/domain/order.ts",
+      "className": "Order",
+      "methodName": "tryConfirm",
+      "note": "catch-all in the domain, not an adapter"
+    },
+    {
+      "id": "N7",
+      "file": "src/billing/infrastructure/invoice-job.ts",
+      "className": "InvoiceJob",
+      "methodName": "runChecked",
+      "note": "logged then rethrown"
+    }
+  ]
+}

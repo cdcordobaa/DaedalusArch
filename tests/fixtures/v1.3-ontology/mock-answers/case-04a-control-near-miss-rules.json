@@ -1,0 +1,150 @@
+{
+  "case": "case-04a-control-near-miss-rules",
+  "note": "Hand-written scripted mock answers (NOT model output). They exercise the ontology pipeline, the grounding validator, the cache and the scorer on the planted cases; they were written after expected-semantic.json and say nothing about what a model would answer. Planted hallucinations are marked 'planted-hallucination'.",
+  "responses": [
+    {
+      "pass": "responsibility",
+      "item": "BulkDiscount",
+      "answer": {
+        "responsibilities": [
+          {
+            "name": "Give a bulk discount rate by quantity",
+            "description": "Give a bulk discount rate by quantity",
+            "naturalLayer": "domain",
+            "confidence": 0.85,
+            "evidence": [
+              {
+                "node": "BulkDiscount.rateFor",
+                "quote": "if (quantity >= 50) {"
+              }
+            ]
+          }
+        ],
+        "concepts": []
+      }
+    },
+    {
+      "pass": "responsibility",
+      "item": "FreeShippingRule",
+      "answer": {
+        "responsibilities": [
+          {
+            "name": "Waive shipping above an order total",
+            "description": "Waive shipping above an order total",
+            "naturalLayer": "domain",
+            "confidence": 0.85,
+            "evidence": [
+              {
+                "node": "FreeShippingRule.costFor",
+                "quote": "if (orderTotal >= 50) {"
+              }
+            ]
+          }
+        ],
+        "concepts": []
+      }
+    },
+    {
+      "pass": "responsibility",
+      "item": "AgeCheck",
+      "answer": {
+        "responsibilities": [
+          {
+            "name": "Check the legal age for alcohol",
+            "description": "Check the legal age for alcohol",
+            "naturalLayer": "domain",
+            "confidence": 0.85,
+            "evidence": [
+              {
+                "node": "AgeCheck.mayPurchaseAlcohol",
+                "quote": "if (age >= 18) {"
+              }
+            ]
+          }
+        ],
+        "concepts": []
+      }
+    },
+    {
+      "pass": "rules",
+      "item": "BulkDiscount",
+      "answer": {
+        "rules": [
+          {
+            "statement": "Orders of 50 or more units get a 5% bulk discount",
+            "subject": "unit quantity",
+            "operator": ">=",
+            "threshold": 50,
+            "unit": "units",
+            "enforcedBy": "BulkDiscount.rateFor",
+            "confidence": 0.85,
+            "evidence": [
+              {
+                "node": "BulkDiscount.rateFor",
+                "quote": "if (quantity >= 50) {"
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "pass": "rules",
+      "item": "FreeShippingRule",
+      "answer": {
+        "rules": [
+          {
+            "statement": "Shipping is free for order totals of at least 50",
+            "subject": "order total",
+            "operator": ">=",
+            "threshold": 50,
+            "unit": "currency units",
+            "enforcedBy": "FreeShippingRule.costFor",
+            "confidence": 0.85,
+            "evidence": [
+              {
+                "node": "FreeShippingRule.costFor",
+                "quote": "if (orderTotal >= 50) {"
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "pass": "rules",
+      "item": "AgeCheck",
+      "answer": {
+        "rules": [
+          {
+            "statement": "Alcohol may be sold only to customers aged 18 or over",
+            "subject": "customer age",
+            "operator": ">=",
+            "threshold": 18,
+            "unit": "years",
+            "enforcedBy": "AgeCheck.mayPurchaseAlcohol",
+            "confidence": 0.85,
+            "evidence": [
+              {
+                "node": "AgeCheck.mayPurchaseAlcohol",
+                "quote": "if (age >= 18) {"
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "pass": "adjudicate",
+      "contains": [
+        "bulk discount",
+        "Shipping is free"
+      ],
+      "answer": {
+        "same": false,
+        "confidence": 0.9,
+        "rationale": "A quantity-based discount and a value-based shipping waiver are different policies that share the number 50."
+      }
+    }
+  ]
+}

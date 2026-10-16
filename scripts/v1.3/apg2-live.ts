@@ -42,6 +42,7 @@ import type { SnapshotStore } from '../../src/shared/interfaces/snapshot-store.j
 import { loadAllReferences } from './lib/reference-model.js';
 import { makeTempRoot, materialiseVariant } from './lib/materialise.js';
 import { normaliseFindingPath } from './lib/compare.js';
+import { must } from './lib/must.js';
 
 const ROOT = process.cwd();
 const SUITE = path.join(ROOT, 'tests/fixtures/v1.3-apg2');
@@ -49,7 +50,7 @@ const ABLATION = path.join(ROOT, 'Docs/DiagnosticRuns/apg2-ablation-2026-10-15/a
 
 // ── Fixture suite model (as scripts/apg2-ablation.ts) ────────────────────────
 interface ProjectSpec {
-  readonly layers: ReadonlyArray<{ name: string; directories: string[]; filePatterns?: string[]; kind: LayerKind }>;
+  readonly layers: readonly { name: string; directories: string[]; filePatterns?: string[]; kind: LayerKind }[];
   readonly components: 'layers' | 'folders' | ComponentDeclaration[];
   readonly forbiddenImports: string[];
   readonly allowedAsync?: string[];
@@ -136,7 +137,7 @@ async function compareTemplates(repo: Neo4jRepository, apg: APGResult, layerMode
   for (const name of APG2_TEMPLATES.keys()) {
     const live = await runLive(repo, name, p, false);
     const liveEx = await runLive(repo, name, p, true);
-    const mirror = APG2_IN_MEMORY.get(name)!(g, p).map(plainRow);
+    const mirror = must(APG2_IN_MEMORY.get(name), `in-memory mirror of ${name}`)(g, p).map(plainRow);
     liveRows.set(name, live);
     const a = canon(live);
     const b = canon(mirror);
@@ -156,9 +157,9 @@ async function compareTemplates(repo: Neo4jRepository, apg: APGResult, layerMode
 // ── Mode: fixtures ───────────────────────────────────────────────────────────
 async function fixtures(repo: Neo4jRepository, out: string): Promise<number> {
   const suite = JSON.parse(fs.readFileSync(path.join(SUITE, 'cases.json'), 'utf8')) as Suite;
-  const ablation = new Map((JSON.parse(fs.readFileSync(ABLATION, 'utf8')) as Array<{ id: string; apg2: boolean; apg2Rows: number; v13Graph: boolean }>).map((r) => [r.id, r]));
+  const ablation = new Map((JSON.parse(fs.readFileSync(ABLATION, 'utf8')) as { id: string; apg2: boolean; apg2Rows: number; v13Graph: boolean }[]).map((r) => [r.id, r]));
   const projects: Record<string, { templates: TemplateComparison[]; b1LiveRows: Record<string, number> }> = {};
-  const cases: Array<Record<string, unknown>> = [];
+  const cases: Record<string, unknown>[] = [];
   for (const [name, p] of Object.entries(suite.projects)) {
     const dir = path.join(SUITE, name);
     const layerModel = layerModelOf(p);
@@ -186,7 +187,7 @@ async function fixtures(repo: Neo4jRepository, out: string): Promise<number> {
       const pass = c.kind === 'planted' ? detected && b1Hits.length === 0 : !detected;
       cases.push({ id: c.id, project: name, kind: c.kind, template: c.template, liveDetected: detected, liveRows: hits.length,
         liveB1: b1Hits.length > 0, mirrorDetected: prior?.apg2 ?? null, mirrorRows: prior?.apg2Rows ?? null,
-        agrees: prior !== undefined && prior.apg2 === detected && prior.apg2Rows === hits.length && prior.v13Graph === (b1Hits.length > 0), pass });
+        agrees: prior?.apg2 === detected && prior.apg2Rows === hits.length && prior.v13Graph === (b1Hits.length > 0), pass });
     }
     process.stdout.write(`${name}: ${cmp.map((x) => `${x.template}=${String(x.live)}/${String(x.mirror)}${x.multisetEqual ? '' : ' DIFF'}${x.orderEqual ? '' : ' (order)'}${x.excludeVariantEqual ? '' : ' EXCL-DIFF'}`).join(', ')}; b1 rows ${String(Object.values(b1).reduce((a, b) => a + b, 0))}\n`);
   }
@@ -216,7 +217,7 @@ async function v13Findings(repo: Neo4jRepository, spec: ParsedSpec, apg: APGResu
 async function reference(repo: Neo4jRepository, out: string): Promise<number> {
   const refs = loadAllReferences(ROOT);
   const work = makeTempRoot('apg2-live-');
-  const variants: Array<Record<string, unknown>> = [];
+  const variants: Record<string, unknown>[] = [];
   let problems = 0;
   try {
     for (const ref of refs) {
