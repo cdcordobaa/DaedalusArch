@@ -15,6 +15,11 @@
  * commentary keys), a JSON array of strings, or any other file as plain text. `--frame <file>` audits a prompt frame
  * as the arm's frame: folder paths and layer names are then allowed in it only with `--frame-may-name-layout`
  * (arms that carry the layout sentence); without that flag (a no-hint arm) they FAIL like anywhere else.
+ * `--frame-rung L2|L3|L4` audits a frame of that spec rung (Docs/v1.3/floor-escape-design-2026-10-16.md §3.3):
+ * L2 is the same as --frame-may-name-layout. L3 and L4 frames state the blocking rules in plain sentences, so they
+ * also may name layers, imports and role words (WARN, for the identity check across arms), and L4 may name its spec
+ * file; but a fix instruction (FIX_PHRASES: "move", "refactor", "break the cycle", …) FAILs in an L3/L4 frame, because
+ * the rung states rules and never says what to move where. The attention sentence is audited like any frame text.
  * Options: --task <id> audits only that task of a tasks file (repeatable); --context <name>
  * lists a DDD task's own context (WARN; repeatable); --term <word> adds a FAIL term (repeatable); --allow <word> waives a term, recorded in the output
  * (repeatable); --json prints the machine-readable report.
@@ -30,6 +35,7 @@ const allowed = [];
 let preset = '';
 let json = false;
 let frameMayNameLayout = false;
+let frameRung = '';
 const onlyTasks = [];
 const extraContexts = [];
 for (let i = 0; i < argv.length; i += 1) {
@@ -39,15 +45,19 @@ for (let i = 0; i < argv.length; i += 1) {
   else if (a === '--allow') allowed.push((argv[++i] ?? '').toLowerCase());
   else if (a === '--frame') frames.push(argv[++i] ?? '');
   else if (a === '--frame-may-name-layout') frameMayNameLayout = true;
+  else if (a === '--frame-rung') frameRung = (argv[++i] ?? '').toUpperCase();
   else if (a === '--context') extraContexts.push(argv[++i] ?? '');
   else if (a === '--task') onlyTasks.push(argv[++i] ?? '');
   else if (a === '--json') json = true;
   else files.push(a);
 }
-if (files.length === 0 && frames.length === 0) {
-  process.stderr.write('usage: hint-audit.mjs [--preset <yaml>] [--task id]... [--context c]... [--term w]... [--allow w]... [--frame f [--frame-may-name-layout]] [--json] <file|->...\n');
+if ((files.length === 0 && frames.length === 0) || (frameRung !== '' && !['L2', 'L3', 'L4'].includes(frameRung))) {
+  process.stderr.write('usage: hint-audit.mjs [--preset <yaml>] [--task id]... [--context c]... [--term w]... [--allow w]... [--frame f [--frame-may-name-layout | --frame-rung L2|L3|L4]] [--json] <file|->...\n');
   process.exit(2);
 }
+// Every rung frame carries the style and layout sentences (L1 is not run).
+if (frameRung !== '') frameMayNameLayout = true;
+const rulesRung = frameRung === 'L3' || frameRung === 'L4';
 
 // ── Vocabulary ────────────────────────────────────────────────────────────────────────────────────────────────────
 // FAIL: words that name a structure. They have no ordinary product meaning in a task request.
@@ -66,6 +76,8 @@ const GENERIC_FAIL = [
   'presentation layer', 'pluggable',
   'decouple', 'decoupled', 'decoupling', 'loosely coupled', 'coupling', 'cohesion', 'solid',
   'mock', 'mocks', 'testable', 'unit test', 'unit tests',
+  // persistence stack (floor-escape design §3.6): a stack sentence names a structure the agent would otherwise choose
+  'orm', 'orms', 'typeorm',
 ];
 // WARN: ordinary English that can also hint at a structure. Each hit needs a one-line human verdict.
 const GENERIC_WARN = [
@@ -76,6 +88,13 @@ const GENERIC_WARN = [
   'client', 'handler', 'endpoint', 'api', 'model', 'models', 'schema', 'config', 'configuration', 'setting', 'settings',
   'logic', 'rules', 'boundary', 'boundaries', 'contract', 'contracts', 'public', 'internal', 'translate', 'translation',
   'clean', 'structure', 'organise', 'organize', 'folder', 'directory', 'file', 'files', 'src',
+  // persistence words with an ordinary product sense (a table at the café, a column of a report)
+  'database', 'databases', 'table', 'tables', 'column', 'columns',
+];
+// FAIL in an L3/L4 frame only (--frame-rung): a fix instruction, which the rung must not carry.
+const FIX_PHRASES = [
+  'move', 'moves', 'moved', 'moving', 'relocate', 'restructure', 'refactor', 'rewrite', 'extract',
+  'break the cycle', 'go through a port', 'keep the domain free', 'fix these violations',
 ];
 
 /** Layer names and folder globs of a preset, by a line scan of its YAML (no YAML dependency). */
@@ -170,6 +189,7 @@ for (const u of all) {
   for (const m of u.text.matchAll(CODE_NAME)) add(layoutOk ? 'WARN' : 'FAIL', m[0], 'code identifier with a role suffix', m.index);
   for (const [w, why] of warn) for (const m of u.text.matchAll(wordRe(w))) add('WARN', m[0], why, m.index);
   for (const p of pathPatterns) for (const m of u.text.matchAll(p.re)) add(layoutOk || p.level === 'WARN' ? 'WARN' : 'FAIL', m[0], p.why, m.index);
+  if (u.frame && rulesRung) for (const w of FIX_PHRASES) for (const m of u.text.matchAll(wordRe(w))) add('FAIL', m[0], `fix instruction in an ${frameRung} frame`, m.index);
   // One hit per (level, term, position): longer phrases and single words can overlap; keep both, they are cheap.
   hits.sort((a, b) => a.at - b.at);
   report.push({ where: u.where, frame: u.frame, fail: hits.filter((h) => h.level === 'FAIL').length, warn: hits.filter((h) => h.level === 'WARN').length, hits });
@@ -177,7 +197,7 @@ for (const u of all) {
 
 const totalFail = report.reduce((s, r) => s + r.fail, 0);
 if (json) {
-  process.stdout.write(JSON.stringify({ preset, extraTerms, allowed, frameMayNameLayout, totalFail, report }, null, 1) + '\n');
+  process.stdout.write(JSON.stringify({ preset, extraTerms, allowed, frameMayNameLayout, ...(frameRung !== '' ? { frameRung } : {}), totalFail, report }, null, 1) + '\n');
 } else {
   process.stdout.write(`hint audit: preset=${preset || '(none)'} layers=[${vocab.names.join(', ')}] dirs=[${vocab.dirs.join(', ')}]` +
     `${vocab.contexts.length ? ` contexts=[${vocab.contexts.join(', ')}]` : ''}${extraTerms.length ? ` extra=[${extraTerms.join(', ')}]` : ''}\n`);

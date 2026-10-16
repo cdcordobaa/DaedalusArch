@@ -28,6 +28,11 @@
  * `LoopContext.evaluator`. Every turn's prompt is written beside its envelope (`turns/step-NN/prompt-<turnId>.txt`).
  * The gate's repair record says finding by finding which blocking findings the repair removed (`repairOutcome`).
  *
+ * Frame extras (`LoopContext.frameExtras`, optional, off by default): the task's step frames carry its spec rung and
+ * the attention sentence (`prompts.ts`). At L4 the evaluator spec is placed in the cwd before the base commit, and
+ * after every turn the file-read log (`rungs.ts`) is written to the turn record and to `spec-reads.jsonl`. Without
+ * extras nothing of this runs and every record is as before.
+ *
  * Held-out rules (`LoopContext.gateShownRules`, optional, `Docs/v1.3/gate-heldout-rules.md`): the gate's repair prompt
  * lists only the findings of the shown rules (and counts only them), a step with no shown blocking finding gets no
  * repair turn, and the records tag each blocking finding `shown` and split the counts. Absent: nothing changes.
@@ -50,8 +55,10 @@ import { agentFileCount, sourceFilePaths } from '../generators/outcome.js';
 import { treeLoc } from '../so5-size.js';
 import type { AcceptanceRunner } from './acceptance.js';
 import { loopRunId } from './plan.js';
-import { MAX_REPAIR_FINDINGS, repairPrompt, sha256, stepPrompt } from './prompts.js';
+import { L4_SPEC_FILE, MAX_REPAIR_FINDINGS, repairPrompt, sha256, stepPrompt } from './prompts.js';
 import { WorkTreeSnapshots, SNAPSHOT_GIT_DIR } from './snapshot.js';
+import { placeSpec, readLogMethod, watchSpecRead } from './rungs.js';
+import type { ReadLogMethod, SpecReadLog, TaskFrameExtras } from './rungs.js';
 import { callLogPathFor, earliestWriteSince, stepProcess } from './process-metrics.js';
 import type { TurnCallLog } from './process-metrics.js';
 import { FROZEN_SPEC_FILE, FROZEN_SPEC_RECORD, ISE_RAW_FILE, SPEC_DIR } from './specs.js';
@@ -82,6 +89,7 @@ export const STEPS_DIR = 'steps';
 export const TURNS_DIR = 'turns';
 export const RESTARTS_LOG = 'restarts.jsonl';
 export const LOOP_INTERRUPTIONS_DIR = 'interruptions';
+export const SPEC_READS_LOG = 'spec-reads.jsonl';
 export const DISCARDED_DIR = 'discarded';
 /** Evaluation errors that are not a failed evaluation of the snapshot but the run's spec (`specs.ts`). */
 const SPEC_ERRORS: ReadonlySet<string> = new Set(['LOOP_SPEC_FREEZE_FAILED', 'LOOP_SPEC_NOT_FROZEN']);
@@ -117,6 +125,8 @@ export interface LoopContext {
   readonly evaluator: StepEvaluator;
   /** Per-task style frame and spec; a task absent here uses the default frame and `evaluator`. */
   readonly profiles?: ReadonlyMap<string, TaskProfile>;
+  /** Per-task frame extras (spec rung, attention sentence); a task absent here gets today's frame. */
+  readonly frameExtras?: ReadonlyMap<string, TaskFrameExtras>;
   readonly typechecker: StepTypechecker;
   /** Fills a fresh, empty work directory with the skeleton. */
   readonly prepareWorkDir: (cwd: string) => DomainResult<void>;
@@ -272,6 +282,8 @@ class LoopRun {
   readonly workDir: string;
   readonly snaps: WorkTreeSnapshots;
   private readonly profile: TaskProfile | undefined;
+  private readonly extras: TaskFrameExtras | undefined;
+  private readMethod: ReadLogMethod = 'unavailable';
   private lastSpecRef: StepSpecRef | undefined;
   /** Sorted `gateShownRules`; undefined when the plan sets none. */
   private readonly shownRules: readonly string[] | undefined;
@@ -285,7 +297,8 @@ class LoopRun {
     this.runId = loopRunId(spec);
     this.runDir = runDirFor(ctx.outRoot, this.runId);
     this.workDir = path.join(this.runDir, WORK_DIR);
-    this.snaps = new WorkTreeSnapshots(path.join(this.runDir, SNAPSHOT_GIT_DIR), this.workDir, ctx.snapshotDate);
+    this.extras = ctx.frameExtras?.get(task.id);
+    this.snaps = new WorkTreeSnapshots(path.join(this.runDir, SNAPSHOT_GIT_DIR), this.workDir, ctx.snapshotDate, this.extras?.placedSpec !== undefined);
     this.profile = ctx.profiles?.get(task.id);
     this.shownRules = sortedShownRules(ctx.gateShownRules);
   }
@@ -334,6 +347,11 @@ class LoopRun {
     fs.mkdirSync(this.runDir, { recursive: true });
     const prep = this.ctx.prepareWorkDir(this.workDir);
     if (!prep.success) return DomainResult.fail(prep.errors);
+    const placed = this.extras?.placedSpec;
+    if (placed !== undefined) {
+      placeSpec(this.workDir, placed);
+      this.readMethod = readLogMethod(this.runDir);
+    }
     const init = this.snaps.init();
     if (!init.success) return DomainResult.fail(init.errors);
     const base = this.snaps.commit('base: skeleton');
@@ -346,6 +364,15 @@ class LoopRun {
       baseCommit: base.data,
       createdAt: this.ctx.now().toISOString(),
       dryRun: this.ctx.dryRun,
+      ...(this.extras !== undefined
+        ? {
+            frame: {
+              specRung: this.extras.extras.rung,
+              attention: this.extras.extras.attention,
+              ...(placed !== undefined ? { placedSpec: { file: L4_SPEC_FILE, source: placed.source, sha256: placed.sha256, readLogMethod: this.readMethod } } : {}),
+            },
+          }
+        : {}),
       ...(this.shownRules !== undefined ? { heldOutRules: { shownRuleIds: this.shownRules } } : {}),
     };
     writeJsonAtomic(path.join(this.runDir, RUN_JSON), record);
@@ -403,6 +430,8 @@ class LoopRun {
     const recordDir = path.join(this.runDir, TURNS_DIR, `step-${pad(stepIndex + 1)}`);
     fs.mkdirSync(recordDir, { recursive: true });
     fs.writeFileSync(path.join(recordDir, `prompt-${turnId}.txt`), prompt);
+    const placed = this.extras?.placedSpec;
+    const readCheck = placed !== undefined ? watchSpecRead(this.workDir, placed, this.readMethod) : undefined;
     const callLogPath = this.callLogOn() ? callLogPathFor(this.runDir, turnId) : undefined;
     // A log left by a discarded partial step belongs to that attempt, not to this one.
     if (callLogPath !== undefined) fs.rmSync(callLogPath, { force: true });
@@ -431,12 +460,17 @@ class LoopRun {
       },
     });
     if (!result.success) return DomainResult.fail(result.errors);
+    let specRead: SpecReadLog | undefined;
+    if (readCheck !== undefined) {
+      specRead = readCheck();
+      fs.appendFileSync(path.join(this.runDir, SPEC_READS_LOG), `${JSON.stringify({ turnId, at: this.ctx.now().toISOString(), ...specRead })}\n`);
+    }
     if (callLogPath !== undefined) this.callLogs.set(turnId, { logPath: callLogPath, firstWriteBoundMs: earliestWriteSince(this.workDir, turnStartedMs) });
     const commit = this.snaps.commit(`${turnId} ${this.spec.arm}`);
     if (!commit.success) return DomainResult.fail(commit.errors);
     const snapshot = await this.measure(commit.data, base, stepIndex, kind);
     if (!snapshot.success) return DomainResult.fail(snapshot.errors);
-    return DomainResult.ok({ turnId, kind, promptSha256: sha256(prompt), result: result.data, snapshot: snapshot.data });
+    return DomainResult.ok({ turnId, kind, promptSha256: sha256(prompt), result: result.data, snapshot: snapshot.data, ...(specRead !== undefined ? { specRead } : {}) });
   }
 
   private callLogOn(): boolean {
@@ -446,7 +480,7 @@ class LoopRun {
   private async step(stepIndex: number, start: string): Promise<DomainResult<StepRecord>> {
     const startedAt = this.ctx.now().toISOString();
     const tcCommand = this.ctx.typecheckCommand(this.runId);
-    const first = await this.turn(stepIndex, 'step', stepPrompt(this.task, stepIndex, tcCommand, this.profile?.frame), start);
+    const first = await this.turn(stepIndex, 'step', stepPrompt(this.task, stepIndex, tcCommand, this.profile?.frame, this.extras?.extras), start);
     if (!first.success) return DomainResult.fail(first.errors);
     const turns: TurnRecord[] = [first.data];
     let repair: StepRecord['repair'] = null;
@@ -564,6 +598,7 @@ class LoopRun {
       if (!created.success) return DomainResult.fail(created.errors);
       record = created.data;
     }
+    this.readMethod = record.frame?.placedSpec?.readLogMethod ?? this.readMethod;
     const recorded = record.heldOutRules?.shownRuleIds;
     if (JSON.stringify(recorded) !== JSON.stringify(this.shownRules)) {
       return DomainResult.fail([

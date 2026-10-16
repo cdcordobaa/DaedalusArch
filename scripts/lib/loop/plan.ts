@@ -15,6 +15,12 @@
  * default spec and may be left out only when every task has a profile. `callBudget`, when present, must equal the
  * budget the plan implies (`planCallBudget`), so the recorded figure cannot drift from the plan.
  *
+ * Frame extras (`frame`, optional, off by default; `Docs/v1.3/floor-escape-design-2026-10-16.md` §3.2, §3.3):
+ * `specRung` L2 (today's frame, the default), L3 (one plain sentence per blocking rule of the task's evaluator spec)
+ * or L4 (L3 plus the spec file in the cwd and a file-read log), and `attention` (one sentence, identical across arms).
+ * L3 and L4 need a static spec for every task (a static profile or the default `evaluatorSpec`); a DDD spec frozen
+ * after step 1 does not exist before step 1, so it cannot be stated in the frame (decision D15, not taken here).
+ *
  * Spec equality (review finding R23; `Docs/v1.3/study2-tunables.md` §4): a plan may pin `specSha256`. `loadLoopPlan` then
  * checks that the evaluator spec and, for the `daedalus-mcp` arm, the MCP server's spec both hash to it, so the arm's
  * tools answer from the spec that is scored. A `daedalus-mcp` plan cannot carry `taskProfiles`, so one spec covers
@@ -38,6 +44,8 @@ import { GENERATOR_ADAPTER_IDS } from '../generators/types.js';
 import type { GeneratorAdapterId } from '../generators/types.js';
 import { CONTEXT_ROOT_RE, LOOP_STYLES } from './style.js';
 import type { LoopContextDecl, LoopStyle } from './style.js';
+import { SPEC_RUNGS } from './prompts.js';
+import type { SpecRung } from './prompts.js';
 import { LOOP_ARMS, parseLoopEngine } from './types.js';
 import type { LoopArm, LoopEngine, LoopRunSpec, LoopTask, LoopTasksFile, TaskAcceptance } from './types.js';
 
@@ -50,6 +58,12 @@ export interface TaskProfilePlan {
   readonly evaluatorSpec?: string;
   /** DDD: the bounded contexts the frame names and the spec declares. */
   readonly contexts?: readonly LoopContextDecl[];
+}
+
+/** Frame extras of a plan (module header). Absent, or `{ specRung: 'L2', attention: false }`: today's frames. */
+export interface FramePlan {
+  readonly specRung?: SpecRung;
+  readonly attention?: boolean;
 }
 
 /** Model calls a plan implies: one per step turn, plus at most one repair turn per gate step. */
@@ -90,6 +104,8 @@ export interface LoopPlanFile {
   readonly evaluatorSpec?: string;
   /** Per-task style and spec, keyed by task id. */
   readonly taskProfiles?: Readonly<Record<string, TaskProfilePlan>>;
+  /** Frame extras (module header); absent = today's frames. */
+  readonly frame?: FramePlan;
   /** The recorded call budget; checked against `planCallBudget`. */
   readonly callBudget?: CallBudget;
   /**
@@ -235,6 +251,7 @@ export function validatePlan(raw: unknown): DomainResult<LoopPlanFile> {
   if (Array.isArray(arms) && arms.includes('daedalus-mcp') && !isRecord(raw.daedalus)) {
     errors.push(err('LOOP_PLAN_INVALID', 'the daedalus-mcp arm needs a daedalus block { nodeBinary, serverEntry, specPath }'));
   }
+  if (raw.frame !== undefined) errors.push(...validateFrame(raw.frame, raw.taskProfiles));
   if (raw.gate !== undefined) errors.push(...validateGate(raw.gate, raw.arms));
   if (raw.acceptance !== undefined) errors.push(...validateAcceptancePlan(raw.acceptance));
   if (raw.cassette !== undefined && (!isRecord(raw.cassette) || typeof raw.cassette.dir !== 'string' || !['record', 'replay'].includes(String(raw.cassette.mode)))) {
@@ -244,6 +261,23 @@ export function validatePlan(raw: unknown): DomainResult<LoopPlanFile> {
     errors.push(err('LOOP_PLAN_INVALID', 'specSha256 must be a lower-case 64-hex sha256'));
   }
   return errors.length > 0 ? DomainResult.fail(errors) : DomainResult.ok(raw as unknown as LoopPlanFile);
+}
+
+function validateFrame(raw: unknown, profiles: unknown): DomainError[] {
+  if (!isRecord(raw) || Object.keys(raw).some((k) => k !== 'specRung' && k !== 'attention')) {
+    return [err('LOOP_PLAN_INVALID', 'frame must be { specRung?: L2 | L3 | L4, attention?: boolean }')];
+  }
+  const errors: DomainError[] = [];
+  if (raw.specRung !== undefined && !(SPEC_RUNGS as readonly unknown[]).includes(raw.specRung)) {
+    errors.push(err('LOOP_PLAN_INVALID', `frame.specRung must be one of ${SPEC_RUNGS.join(', ')}`));
+  }
+  if (raw.attention !== undefined && typeof raw.attention !== 'boolean') errors.push(err('LOOP_PLAN_INVALID', 'frame.attention must be a boolean'));
+  if ((raw.specRung === 'L3' || raw.specRung === 'L4') && isRecord(profiles)) {
+    for (const [id, p] of Object.entries(profiles)) {
+      if (isRecord(p) && p.specMode === 'ise-step1') errors.push(err('LOOP_PLAN_INVALID', `taskProfiles.${id}: an ${raw.specRung} frame needs a static spec (ise-step1 has none before step 1)`));
+    }
+  }
+  return errors;
 }
 
 function validateGate(raw: unknown, arms: unknown): DomainError[] {
@@ -257,6 +291,11 @@ function validateGate(raw: unknown, arms: unknown): DomainError[] {
     if (!Array.isArray(arms) || !arms.includes('gate')) errors.push(err('LOOP_PLAN_INVALID', 'gate.shownRules needs the gate arm'));
   }
   return errors;
+}
+
+/** The rung and attention flag a plan's frames carry (defaults: L2, no attention). */
+export function planFrame(plan: Pick<LoopPlanFile, 'frame'>): { readonly specRung: SpecRung; readonly attention: boolean } {
+  return { specRung: plan.frame?.specRung ?? 'L2', attention: plan.frame?.attention ?? false };
 }
 
 /** `adapters[].cliVersion` and `generatorIsolation` (module header). */
