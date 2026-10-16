@@ -8,6 +8,7 @@ import * as path from 'node:path';
 import { RUN_JSON, readStepRecords, runDirFor, stepRecordPath } from '../../lib/loop/loop.js';
 import { LOOP_SCHEDULE_JSON } from '../../lib/loop/main.js';
 import type { RunRecord } from '../../lib/loop/types.js';
+import type { GraphEngine } from '../../../src/cypher-interp/engine.js';
 import type { LoadedRun } from './study2-analysis.js';
 import type { SynthStudy } from './study2-synth.js';
 
@@ -52,4 +53,19 @@ export function loadOutRoot(outRoot: string): LoadedOutRoot {
     runs.push({ run, steps: readStepRecords(dir, run.steps) });
   }
   return { scheduled, runs, missingRuns };
+}
+
+/**
+ * Every evaluated snapshot of the loaded runs must name `expected` as its graph engine (`StepEvaluation.graphEngine`).
+ * Returns one line per run that breaks this (another engine, or no engine recorded); empty when all agree.
+ */
+export function engineProblems(runs: readonly LoadedRun[], expected: GraphEngine): string[] {
+  const problems: string[] = [];
+  for (const r of runs) {
+    const seen = new Set<string>();
+    for (const s of r.steps) for (const t of s.turns) if (t.snapshot.evaluation !== null) seen.add(t.snapshot.evaluation.graphEngine ?? 'not recorded');
+    const other = [...seen].filter((e) => e !== expected).sort();
+    if (other.length > 0) problems.push(`${r.run.runId}: graph engine ${other.join(', ')} (expected ${expected})`);
+  }
+  return problems;
 }

@@ -1764,3 +1764,11 @@ Earlier the same night: 15 PRs merged into v1.3 (tip b08ec387), all gated (tsc, 
 **Context**: v1.3 DEVELOPMENT data only; nothing scored or sealed.
 
 ---
+
+## v1.3 — loop harness correctness (review batch 1: F17, F18, F24, F7)
+**Timestamp**: 2026-10-16T14:30:00Z
+**User Input**: (scheduled task) "Before any Study 2 run, fix the loop harness: blocking findings must be the counted rows, unscored steps must not count as 0, cypher-interp must honour the pinned tsconfig and a run whose snapshots all fail must fail, and the engine must be recorded and asserted. Re-run the loop replay and the 71/71 byte-identity check, open a PR into v1.3 and merge it if everything is green."
+**AI Response**: "Branch v1.3-loop-harness-fixes from origin/v1.3. countedTierOf (tiered-scoring.ts) places a row exactly as computeTieredScoring does; the loop evaluator builds blockingFindings from it and fails with LOOP_EVAL_FINDINGS_MISMATCH on a count mismatch; repair prompt 'more' clamped at 0. pilot-metrics: nullable count/total, unscoredSteps, afterUnscored flag. #206's tsconfigPath threading reused; LOOP_EVAL_ALL_FAILED when no snapshot of a run was evaluated. graphEngine recorded on every step evaluation, pinned by the loop plan (default neo4j), checked per snapshot, asserted by loop-replay-cli and study2-analyse (--engine). Loop replay passes on neo4j (tarball 5.26.24 + APOC) and on cypher-interp with the documented outcomes; ue-baseline-live --engine cypher-interp: 71/71 raw byte-identical to after-member-facts. No template, tier, preset or prompt frame changed; no LLM call. The AI-DLC approval gates were not run interactively: scheduled task, no one present."
+**Context**: v1.3 CONSTRUCTION, Study 2 instrument correctness.
+
+---

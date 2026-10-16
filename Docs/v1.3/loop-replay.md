@@ -12,7 +12,7 @@ Code: `scripts/lib/loop/replay.ts` (scripted agent and wiring), `replay-tapes.ts
 - The v1.3 symbolic evaluator `evaluate_project`.
 - The MCP handlers `check_diff` and `check_file`, called in process.
 
-**Engine.** When this branch was cut, `--engine cypher-interp` was not on `origin/v1.3`, so the replay uses Neo4j Community 5.26.24 with APOC 5.26.24, from the release tarballs (the server and APOC versions of `Docs/environment.md`). The interpreter has since merged (PR #128). The replay still runs on Neo4j; running it on the interpreter is not done here. After merging the new base (MCP v2 included), the test still passes unchanged, and the MCP gap in §4 still holds.
+**Engine.** When this branch was cut, `--engine cypher-interp` was not on `origin/v1.3`, so the replay uses Neo4j Community 5.26.24 with APOC 5.26.24, from the release tarballs (the server and APOC versions of `Docs/environment.md`). The interpreter has since merged (PR #128). The replay still runs on Neo4j by default; `--engine cypher-interp` runs it on the interpreter (§5). After merging the new base (MCP v2 included), the test still passes unchanged, and the MCP gap in §4 still holds.
 
 **Replaced components:**
 - The generator becomes `ScriptedStepAgent`.
@@ -144,11 +144,27 @@ The figures are milliseconds on this container, measured on the second CLI run. 
 3. **Labelling input.** The reports now exist beside each turn, but there is no script yet that turns a pilot's `<out-root>` into a `check-correct` jobs file. `replay-verify.ts` (`labelNewBlocking`) shows the mapping: project root = a checkout of the snapshot commit, `tsconfig: adr-032`, spec = the step's `evaluatorSpec`.
 4. **Stale readiness figure.** `loop-pilot-readiness.md` §5 says the dry run makes 4 repair turns. On `origin/v1.3` it makes 6, which is 2 planted violations per task × 3 gate runs. This branch does not change that number.
 
-## 5. Reproduce
+## 5. Re-run after the harness correctness fixes (2026-10-16)
+
+The harness changed after the first run, so the replay was run again on `v1.3-loop-harness-fixes`:
+- The blocking findings are now exactly the rows the v1.3 scoring counts. FF-P06's FLOWS_TO and HOLDS_STATE_OF rows are N/A, and so are rows a construct switch moves to advisory. They no longer reach the repair prompt, `repairOutcome` or the pilot outcomes. A count mismatch fails the evaluation with `LOOP_EVAL_FINDINGS_MISMATCH`.
+- An unscored step has a `null` count, never 0. `newBlockingTotal` is null when any step is unscored, and `unscoredSteps` lists those steps.
+- `evaluate_project` on cypher-interp honours the run's pinned tsconfig. A run in which every snapshot failed evaluation fails with `LOOP_EVAL_ALL_FAILED`.
+- Every evaluation records `graphEngine`. The replay takes `--engine` (default `neo4j`) and fails on a snapshot recorded on another engine.
+
+| Engine | Failures | Reproducible (files) | Consistency | Labels | New blocking, steps 2–4 (none / daedalus-mcp / gate) |
+|---|---|---|---|---|---|
+| neo4j (Neo4j Community 5.26.24 + APOC 5.26.24, tarballs) | 0 | yes (321) | 39/39 | 8/8 `correct` | market [2,0,0] / [0,0,0] / [0,0,0]; shelter [0,2,0] / [0,2,0] / [0,0,0]; relief [1,0,0] / [1,0,0] / [0,0,0] |
+| cypher-interp (no database) | 0 | yes (321) | 39/39 | 8/8 `correct` | identical to neo4j |
+
+These are the same outcomes as §2. None of the 39 snapshot reports holds an FF-P06 row on these tapes, so the counted-row change does not move any number here; the new unit tests cover it. No step is unscored on either engine, and the gate repairs ran exactly on the scripted steps.
+
+## 6. Reproduce
 
 ```bash
 # scratch Neo4j 5.26 + APOC (docker compose up -d neo4j, or the tarballs), never a database you need
 export NEO4J_PASSWORD='<scratch password>'          # NEO4J_URI defaults to bolt://localhost:7687
 npm run loop:replay -- --report "$(mktemp -d)/replay.json"   # exit 0 = every check passed
+npm run loop:replay -- --engine cypher-interp --report "$(mktemp -d)/replay.json"   # no database needed
 npm run test:loop-replay                                       # the same checks under jest (about 2 minutes)
 ```

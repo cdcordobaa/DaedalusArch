@@ -192,7 +192,8 @@ describeNeo4j('loop replay: scripted agent through none, daedalus-mcp and gate (
   });
 
   it('labels every new blocking finding `correct` with the check-correct checker (memo §3)', () => {
-    const total = v.outcomes.reduce((n, o) => n + o.newBlockingTotal, 0);
+    for (const o of v.outcomes) expect({ run: o.runId, unscored: o.unscoredSteps }).toEqual({ run: o.runId, unscored: [] });
+    const total = v.outcomes.reduce((n, o) => n + (o.newBlockingTotal ?? 0), 0);
     expect(v.labels).toHaveLength(total);
     for (const l of v.labels) expect(l).toEqual({ ...l, verdict: 'correct' });
   });

@@ -10,7 +10,8 @@
  * (schedule, work directories, snapshots, measures, the gate's repair turn, resume) runs with no model call, no Neo4j
  * and no skeleton install. Without it the Claude Code / Codex step agents run under the plan's pins with the E1
  * confinement, the skeleton install is prepared (`ensureHarness`), and every snapshot is type-checked with the E1
- * type-check of record and evaluated by `evaluate_project` (v1.3 scoring) on a scratch Neo4j.
+ * type-check of record and evaluated by `evaluate_project` (v1.3 scoring) on the plan's `graphEngine` (default
+ * `neo4j`, on a scratch database; NEO4J_URI never picks the engine), recorded on every evaluation.
  *
  * A plan with `taskProfiles` gives each task its style frame and its spec (`style.ts`, `specs.ts`). In a dry run the
  * stub generator writes each task's style layout, the stub firewall stands in for every spec, the static spec files
@@ -31,6 +32,7 @@ import type { ProcessRunner } from '../../../src/shared/interfaces/process-runne
 import { NodeProcessRunner } from '../../../src/shared/process/node-process-runner.js';
 import { scrubSecrets } from '../../../src/shared/errors/scrub.js';
 import type { EvaluateDeps } from '../../../src/mcp-server/evaluate-project.js';
+import type { GraphEngine } from '../../../src/cypher-interp/engine.js';
 import { typecheckCommand } from '../generators/argv.js';
 import { codexConfigFromPlan } from '../generators/codex-plan.js';
 import type { CodexHomes } from '../generators/codex-plan.js';
@@ -76,8 +78,8 @@ export interface LoopMainDeps {
   readonly parentEnv: NodeJS.ProcessEnv;
   readonly out: (text: string) => void;
   readonly err: (text: string) => void;
-  /** Production wiring of `evaluate_project` (Neo4j); loaded lazily so a dry run never touches it. */
-  readonly evaluateDeps?: () => Promise<EvaluateDeps>;
+  /** Production wiring of `evaluate_project` on the plan's engine; loaded lazily so a dry run never touches it. */
+  readonly evaluateDeps?: (engine: GraphEngine) => Promise<EvaluateDeps>;
 }
 
 export function defaultLoopDeps(): LoopMainDeps {
@@ -89,9 +91,9 @@ export function defaultLoopDeps(): LoopMainDeps {
     parentEnv: process.env,
     out: (t) => process.stdout.write(t),
     err: (t) => process.stderr.write(t),
-    evaluateDeps: async () => {
+    evaluateDeps: async (engine) => {
       const { buildContext } = await import('../../../src/mcp-server/context.js');
-      return buildContext({}, process.env).evaluateDeps;
+      return buildContext({ engine }, process.env).evaluateDeps;
     },
   };
 }
@@ -296,7 +298,12 @@ async function liveWiring(loaded: LoadedPlan, repoRoot: string, args: ParsedArgs
     if (!(await agent.isAvailable())) return DomainResult.fail([{ code: 'LOOP_CLI_UNAVAILABLE', message: 'the claude CLI is not available at the plan binary path' }]);
     agents.set(agentKey(a.adapterId, a.modelId), agent);
   }
-  const evaluateDeps = await deps.evaluateDeps();
+  // The engine is pinned by the plan (neo4j unless it says otherwise), never inherited from NEO4J_URI.
+  const engine: GraphEngine = plan.graphEngine ?? 'neo4j';
+  const evaluateDeps = await deps.evaluateDeps(engine);
+  if ((evaluateDeps.graphEngine ?? 'neo4j') !== engine) {
+    return DomainResult.fail([{ code: 'LOOP_ENGINE_MISMATCH', message: `the plan pins graph engine ${engine}, the evaluator is wired for ${evaluateDeps.graphEngine ?? 'neo4j'}` }]);
+  }
   const evaluatorOf = (specFile: string): StepEvaluator => firewallEvaluator(specFile, deps.parentEnv, evaluateDeps, harnessSnapshotTsconfig(plan.harnessRoot));
   const profiles = buildProfiles(loaded, repoRoot, evaluatorOf, iseDddFreezer(repoRoot));
   if (!profiles.success) return DomainResult.fail(profiles.errors);
@@ -372,6 +379,7 @@ export function gridSummary(loaded: LoadedPlan, results: readonly LoopRunResult[
   return {
     outRoot: loaded.plan.outRoot,
     dryRun,
+    graphEngine: dryRun ? 'stub' : (loaded.plan.graphEngine ?? 'neo4j'),
     runs: results.length,
     completed: completed.length,
     skipped: results.length - completed.length,

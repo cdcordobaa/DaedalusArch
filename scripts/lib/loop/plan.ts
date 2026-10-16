@@ -19,6 +19,8 @@ import * as fs from 'node:fs';
 import * as path from 'node:path';
 import { DomainResult } from '../../../src/shared/errors/domain-result.js';
 import type { DomainError } from '../../../src/shared/errors/domain-result.js';
+import { GRAPH_ENGINES, parseGraphEngine } from '../../../src/cypher-interp/engine.js';
+import type { GraphEngine } from '../../../src/cypher-interp/engine.js';
 import { mulberry32 } from '../mutation/rng.js';
 import type { DaedalusServerInput } from '../generators/arms.js';
 import type { CodexPlanBlock } from '../generators/schedule.js';
@@ -75,6 +77,12 @@ export interface LoopPlanFile {
   readonly callBudget?: CallBudget;
   /** Recorded for a judge-mode evaluator (the symbolic evaluator makes no model call). */
   readonly cassette?: { readonly dir: string; readonly mode: 'record' | 'replay' };
+  /**
+   * The graph engine every snapshot must be evaluated on (absent = `neo4j`, the reference engine). The live wiring
+   * builds the evaluator with exactly this engine, whatever NEO4J_URI says, and a snapshot answered by another engine
+   * fails with `LOOP_ENGINE_MISMATCH`.
+   */
+  readonly graphEngine?: GraphEngine;
 }
 
 const ID_RE = /^[a-z0-9][a-z0-9-]*$/;
@@ -162,6 +170,9 @@ export function validatePlan(raw: unknown): DomainResult<LoopPlanFile> {
   }
   if (Array.isArray(arms) && arms.includes('daedalus-mcp') && !isRecord(raw.daedalus)) {
     errors.push(err('LOOP_PLAN_INVALID', 'the daedalus-mcp arm needs a daedalus block { nodeBinary, serverEntry, specPath }'));
+  }
+  if (raw.graphEngine !== undefined && (typeof raw.graphEngine !== 'string' || parseGraphEngine(raw.graphEngine) === undefined)) {
+    errors.push(err('LOOP_PLAN_INVALID', `graphEngine must be one of ${GRAPH_ENGINES.join(', ')}`));
   }
   if (raw.cassette !== undefined && (!isRecord(raw.cassette) || typeof raw.cassette.dir !== 'string' || !['record', 'replay'].includes(String(raw.cassette.mode)))) {
     errors.push(err('LOOP_PLAN_INVALID', 'cassette must be { dir, mode: record | replay }'));

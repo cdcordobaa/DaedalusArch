@@ -151,6 +151,11 @@ export interface BlockingFinding {
 /** The firewall evaluation of one snapshot (v1.3 scoring, FR-V6). */
 export interface StepEvaluation {
   readonly scoringMode: 'v1.3';
+  /**
+   * The graph engine that answered (`neo4j`, the reference engine, or `cypher-interp`). Absent in records written
+   * before it was recorded, and from the stub.
+   */
+  readonly graphEngine?: 'neo4j' | 'cypher-interp';
   /** The v1.2E symbolic AHS (unchanged by v1.3 scoring); null when no rule ran. */
   readonly ahs: number | null;
   /** AHS over the blocking rules only; null when none ran. */
@@ -168,8 +173,8 @@ export interface StepEvaluation {
    */
   readonly advisoryByRule?: Readonly<Record<string, number>>;
   /**
-   * The listed blocking findings: every one when the evaluator returns the report's violations (the live
-   * evaluator), else each rule capped as `evaluate_project` caps it.
+   * The blocking findings: every report row the v1.3 scoring counts as blocking (FF-P06's N/A rows and rows a
+   * construct switch moves to advisory are left out), so the list has exactly `blockingViolationCount` entries.
    */
   readonly blockingFindings: readonly BlockingFinding[];
   readonly durationMs: number;
