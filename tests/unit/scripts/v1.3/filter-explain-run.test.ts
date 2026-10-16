@@ -53,11 +53,12 @@ describe('filter-explain-run score', () => {
     expect(scoreFilterExplain(planOf(r, [big]), early).rows[0]?.status).toBe('confirm');
   });
 
-  it('R20: score passes bareLines through (default: attributed, the finding file when no file is named)', () => {
+  it('score passes bareLines through (default: longest, D-e; attributed R20 and finding-file opt-in)', () => {
     const longer: ShownFile = { path: 'src/infra/b.ts', content: Array.from({ length: 50 }, () => '//').join('\n') };
     const r = [row('clean/v10#0', 'true', 'blocking', { functionId: 'FF-S01' }, 'p3')];
     const a = { p3: answer({ explanation: 'At line 30.' }) };
-    expect(scoreFilterExplain(planOf(r, [small, longer]), a).rows[0]?.status).toBe('rejected');
+    expect(scoreFilterExplain(planOf(r, [small, longer]), a).rows[0]?.status).toBe('confirm');
+    expect(scoreFilterExplain(planOf(r, [small, longer]), a, { bareLines: 'attributed' }).rows[0]?.status).toBe('rejected');
     expect(scoreFilterExplain(planOf(r, [small, longer]), a, { bareLines: 'longest' }).rows[0]?.status).toBe('confirm');
     expect(scoreFilterExplain(planOf(r, [small, longer]), a, { bareLines: 'finding-file' }).rows[0]?.status).toBe('rejected');
   });

@@ -23,8 +23,9 @@
  *                          --na-partial (opt-in, R26): rows of a partial rule's N/A half (FF-P06 FLOWS_TO /
  *                          HOLDS_STATE_OF field rows, rule-tiers.md) are labelled 'n/a' and left out of the true/false
  *                          counts. Off by default because it changes the committed scores.json (66 -> 63 true rows).
- *                          --bare-lines (R20): see `GroundingOptions.bareLines`; default 'attributed' (v1.3's rule);
- *                          'longest' is the pre-R20 heuristic the committed judge-v2 figures used.
+ *                          --bare-lines: see `GroundingOptions.bareLines`; default 'longest', the rule the committed
+ *                          judge-v2 figures used (restored 2026-10-16, decision D-e); 'attributed' (R20) and
+ *                          'finding-file' are opt-in.
  */
 import { createHash } from 'node:crypto';
 import * as fs from 'node:fs';
@@ -350,7 +351,7 @@ export function scoreFilterExplain(
 function score(argv: readonly string[]): number {
   const p = readJson<FilterExplainPlan>(path.join(REPO, OUT, 'plan.json'));
   const a = readJson<{ answers: Record<string, { valid: boolean; response: string }> }>(path.join(REPO, OUT, 'answers.json')).answers;
-  const bare = arg(argv, '--bare-lines', 'attributed');
+  const bare = arg(argv, '--bare-lines', 'longest');
   if (bare !== 'attributed' && bare !== 'longest' && bare !== 'finding-file') {
     process.stderr.write('--bare-lines must be attributed, longest or finding-file\n');
     return 2;
