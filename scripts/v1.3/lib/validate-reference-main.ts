@@ -9,6 +9,9 @@
  *   (default, live)         materialise each variant, run `firewall evaluate --symbolic-only --format json` on it
  *                           (Neo4j required: NEO4J_URI and NEO4J_PASSWORD), save the raw rows, compare
  * Common options: --style <a,b>  --out <dir> (report directory; default results/v1.3-reference)
+ *                 --set <reference|devset-b>  which reference set to load (default `reference`, the 71-case set
+ *                 under tests/fixtures/v1.3-reference; `devset-b` is the separate expansion set under
+ *                 tests/fixtures/v1.3-devset-b, whose default report directory is results/v1.3-devset-b)
  *
  * The runner never edits a manifest: a disagreement is a reported mismatch (anti-circularity rule,
  * Docs/v1.3-reference-notes.md §6).
@@ -21,7 +24,7 @@ import { cliEvaluate } from '../../lib/freeze-gate-main.js';
 import { compareVariant, normaliseFindingPath, renderMarkdown, styleMetrics } from './compare.js';
 import type { ActualFinding, StyleMetrics, VariantComparison } from './compare.js';
 import { makeTempRoot, materialiseVariant } from './materialise.js';
-import { REFERENCE_STYLES, crossCheck, isReferenceStyle, loadAllReferences } from './reference-model.js';
+import { DEVSET_B_ROOT, REFERENCE_ROOT, REFERENCE_STYLES, crossCheck, isReferenceStyle, loadAllReferences } from './reference-model.js';
 import { typecheckProject } from './typecheck.js';
 import type { LoadedReference, ReferenceStyle } from './reference-model.js';
 
@@ -40,7 +43,15 @@ interface Args {
   readonly dir?: string;
   readonly styles: readonly ReferenceStyle[];
   readonly out: string;
+  /** Fixture root of the selected reference set (`--set`). */
+  readonly root: string;
 }
+
+/** The reference sets `--set` accepts: fixture root and default report directory. */
+export const REFERENCE_SETS: Readonly<Record<string, { readonly root: string; readonly out: string }>> = {
+  reference: { root: REFERENCE_ROOT, out: 'results/v1.3-reference' },
+  'devset-b': { root: DEVSET_B_ROOT, out: 'results/v1.3-devset-b' },
+};
 
 export const LIVE_REFUSAL =
   'live run needs Neo4j: set NEO4J_URI and NEO4J_PASSWORD (see README), or use --check, --materialise <dir> or --from-raw <dir>';
@@ -49,7 +60,8 @@ export function parseArgs(argv: readonly string[]): Args | string {
   let mode: Args['mode'] = 'live';
   let dir: string | undefined;
   let styles: ReferenceStyle[] = [...REFERENCE_STYLES];
-  let out = 'results/v1.3-reference';
+  let out: string | undefined;
+  let set = 'reference';
   let modes = 0;
   for (let i = 0; i < argv.length; i += 1) {
     const a = argv[i];
@@ -70,6 +82,10 @@ export function parseArgs(argv: readonly string[]): Args | string {
       const bad = list.filter((s) => !isReferenceStyle(s));
       if (list.length === 0 || bad.length > 0) return `--style takes a comma list of ${REFERENCE_STYLES.join(', ')}`;
       styles = list as ReferenceStyle[];
+    } else if (a === '--set') {
+      const v = value();
+      if (v === undefined || REFERENCE_SETS[v] === undefined) return `--set takes one of ${Object.keys(REFERENCE_SETS).join(', ')}`;
+      set = v;
     } else if (a === '--out') {
       const v = value();
       if (v === undefined) return '--out needs a directory';
@@ -79,7 +95,8 @@ export function parseArgs(argv: readonly string[]): Args | string {
     }
   }
   if (modes > 1) return 'choose one of --check, --materialise, --from-raw';
-  return { mode, styles, out, ...(dir !== undefined ? { dir } : {}) };
+  const chosen = REFERENCE_SETS[set] ?? { root: REFERENCE_ROOT, out: 'results/v1.3-reference' };
+  return { mode, styles, out: out ?? chosen.out, root: chosen.root, ...(dir !== undefined ? { dir } : {}) };
 }
 
 /** The live evaluator: `bin/firewall.ts evaluate --symbolic-only --format json` per variant, through the CLI. */
@@ -143,7 +160,7 @@ export async function main(argv: readonly string[], repoRoot: string, deps: Main
     deps.err(`${args}\n`);
     return 2;
   }
-  const refs = loadAllReferences(repoRoot, args.styles);
+  const refs = loadAllReferences(repoRoot, args.styles, args.root);
   const problems = refs.flatMap(crossCheck);
   if (problems.length > 0) {
     deps.err(problems.map((p) => `cross-check: ${p}`).join('\n') + '\n');

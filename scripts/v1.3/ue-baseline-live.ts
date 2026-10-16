@@ -6,6 +6,7 @@
  *
  * Usage (repository root, Neo4j env loaded):
  *   npx tsx scripts/v1.3/ue-baseline-live.ts --out results/v1.3-reference/baseline-pre-barrel
+ *   npx tsx scripts/v1.3/ue-baseline-live.ts --set devset-b --out results/v1.3-devset-b
  * Writes <out>/raw/<style>/<variant>.json (replayable with --from-raw), <out>/evidence/<style>/<variant>.json,
  * <out>/report.json and <out>/report.md.
  */
@@ -20,7 +21,9 @@ import { main } from './lib/validate-reference-main.js';
 
 const argv = process.argv.slice(2);
 const outIdx = argv.indexOf('--out');
-const outDir = path.resolve(process.cwd(), outIdx >= 0 ? argv[outIdx + 1] ?? '' : 'results/v1.3-reference');
+const setIdx = argv.indexOf('--set');
+const defaultOut = setIdx >= 0 && argv[setIdx + 1] === 'devset-b' ? 'results/v1.3-devset-b' : 'results/v1.3-reference';
+const outDir = path.resolve(process.cwd(), outIdx >= 0 ? argv[outIdx + 1] ?? '' : defaultOut);
 const env = process.env;
 const secrets = [env.NEO4J_PASSWORD ?? ''].filter((s) => s !== '');
 const runner = new NodeProcessRunner();
