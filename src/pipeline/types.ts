@@ -44,6 +44,8 @@ export interface PipelineConfig {
   readonly graphEngine?: GraphEngine | undefined;
   /** Harness injection (the parity tee): this repository is used instead of the one `graphEngine` selects. */
   readonly graphRepository?: GraphRepository | undefined;
+  /** v1.3 npx mode (MCP template checks): in-memory file contents for extraction (absolute path; `null` = removed). */
+  readonly sourceOverrides?: ReadonlyMap<string, string | null> | undefined;
 }
 
 export type OutputFormat = 'json' | 'human' | 'csv';
@@ -68,6 +70,8 @@ export interface BatchOptions {
   readonly neo4jUri: string;
   readonly symbolicOnly: boolean;
   readonly neuronalOnly: boolean;
+  /** Graph engine of every project's pipeline; absent = `neo4j` (the CLI passes its resolved default). */
+  readonly graphEngine?: GraphEngine | undefined;
 }
 
 export interface DriftOptions {
@@ -78,6 +82,8 @@ export interface DriftOptions {
   readonly format: 'json' | 'human';
   readonly neo4jUri: string;
   readonly persist: boolean;
+  /** Graph engine of the fresh evaluation (latest-vs-current); absent = `neo4j`. */
+  readonly graphEngine?: GraphEngine | undefined;
 }
 
 // Moved to C10 (FR-14); re-exported here for existing importers

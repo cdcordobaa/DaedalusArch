@@ -15,7 +15,9 @@ import { generateReport } from '../report/report-generator.js';
 import { formatActionableHuman } from '../scoring-engine/report-formatter.js';
 import { runBatch } from './batch-runner.js';
 import { requireEnvForCli } from './require-env.js';
-import { GRAPH_ENGINES, parseGraphEngine } from '../cypher-interp/engine.js';
+import { ENGINE_OPTION_HELP, resolveEngineForCli } from './engine-default.js';
+import type { GraphEngine } from '../cypher-interp/engine.js';
+import { CypherSyntaxError, CypherUnsupportedError, parseCypher } from '../cypher-interp/parse.js';
 import { handleDrift } from './drift-handler.js';
 import { parseSpec, validateSpecAgainstProject } from '../spec-parser/index.js';
 import { compileFunctions, compilerInputFromSpec, V13_COMPILE_OPTIONS } from '../fitness-compiler/index.js';
@@ -50,6 +52,25 @@ function resolveGraphMode(value: string): GraphMode | undefined {
   process.stderr.write(`Error: --graph-mode must be one of ${GRAPH_MODES.join(' | ')}\n`);
   process.exitCode = 2;
   return undefined;
+}
+
+/** `functionId name: reason` for every compiled query the interpreter's parser refuses. */
+function interpreterRejections(queries: readonly { functionId: unknown; name: string; cypher: string }[]): string[] {
+  const out: string[] = [];
+  for (const q of queries) {
+    try {
+      parseCypher(q.cypher);
+    } catch (err) {
+      if (!(err instanceof CypherUnsupportedError) && !(err instanceof CypherSyntaxError)) throw err;
+      out.push(`${String(q.functionId)} ${q.name}: ${err.message}`);
+    }
+  }
+  return out;
+}
+
+/** The command's graph engine (`engine-default.ts`): prints the one engine line; undefined (exit 2) for an unknown value. */
+function engineFor(flag: string | undefined, cmd: Command): GraphEngine | undefined {
+  return resolveEngineForCli({ flag, neo4jUriFlag: cmd.getOptionValueSource('neo4jUri') === 'cli', env: process.env });
 }
 
 /** `--neural-aggregation` value (ADR-028): `registered` (default) or `proportional`; anything else exits 2. */
@@ -173,7 +194,8 @@ program
 withLLMOptions(program
   .command('evaluate')
   .description('Evaluate a single TypeScript project for architectural compliance'))
-  .requiredOption('--project <path>', 'Path to TypeScript project')
+  .argument('[project]', 'Path to TypeScript project (same as --project)')
+  .option('--project <path>', 'Path to TypeScript project (or the positional argument)')
   .requiredOption('--spec <path>', 'Path to AoC YAML spec')
   .option('--format <fmt>', 'Output format: json | human | csv', 'human')
   .option('--verbose', 'Enable verbose logging', false)
@@ -189,10 +211,10 @@ withLLMOptions(program
   .option('--tsconfig <path>', 'Explicit tsconfig for APG extraction; the project\'s own tsconfig.json is then ignored (ADR-032)')
   .option('--resolved-edges-in-literal-view', 'Off by default. Keep an import\'s edge to the declaring file in the literal view when it goes through a barrel (MT-B1, Docs/DiagnosticRuns/v1.3-metamorphic-2026-10-16.md)', false)
   .option('--scoring <mode>', 'Scoring mode: v1.3 (rule tiers, default; verdict from blocking rules) | v1.2e (the registered Study 1 scoring)', 'v1.3')
-  .option('--engine <name>', 'Graph engine: neo4j (default, the reference engine) | cypher-interp (in-process Cypher interpreter, no Neo4j server; v1.3 spike)', 'neo4j')
-  .action(async (opts: LLMCliOpts & {
-    engine: string;
-    project: string;
+  .option('--engine <name>', ENGINE_OPTION_HELP)
+  .action(async (projectArg: string | undefined, opts: LLMCliOpts & {
+    engine?: string;
+    project?: string;
     tsconfig?: string;
     resolvedEdgesInLiteralView: boolean;
     spec: string;
@@ -208,7 +230,16 @@ withLLMOptions(program
     instrument: string;
     neuralAggregation: string;
     scoring: string;
-  }) => {
+  }, cmd: Command) => {
+    const project = opts.project ?? projectArg;
+    if (project === undefined || (opts.project !== undefined && projectArg !== undefined && opts.project !== projectArg)) {
+      process.stderr.write(project === undefined
+        ? "error: required option '--project <path>' not specified (or pass the project as the first argument)\n"
+        : 'error: the positional project and --project differ; pass one\n');
+      process.exitCode = 2;
+      return;
+    }
+    opts.project = project;
     const evaluationMode = resolveEvaluationMode(opts.symbolicOnly, opts.neuronalOnly);
     const graphMode = resolveGraphMode(opts.graphMode);
     if (graphMode === undefined) return;
@@ -218,12 +249,8 @@ withLLMOptions(program
     if (instrumentVersion === undefined) return;
     const neuralAggregation = resolveNeuralAggregation(opts.neuralAggregation);
     if (neuralAggregation === undefined) return;
-    const graphEngine = parseGraphEngine(opts.engine);
-    if (graphEngine === undefined) {
-      process.stderr.write(`Error: --engine must be one of ${GRAPH_ENGINES.join(' | ')}\n`);
-      process.exitCode = 2;
-      return;
-    }
+    const graphEngine = engineFor(opts.engine, cmd);
+    if (graphEngine === undefined) return;
     // BR-U3-80: no default password; stop before any connection. The in-process engine opens none and reads none.
     const neo4jPassword = graphEngine === 'cypher-interp' ? '' : requireEnvForCli('NEO4J_PASSWORD');
     if (neo4jPassword === undefined) return;
@@ -338,6 +365,7 @@ program
   .option('--neo4j-uri <uri>', 'Neo4j bolt URI', process.env['NEO4J_URI'] ?? 'bolt://localhost:7687')
   .option('--symbolic-only', 'Run symbolic evaluation only', false)
   .option('--neuronal-only', 'Run neuronal evaluation only', false)
+  .option('--engine <name>', ENGINE_OPTION_HELP)
   .action(async (opts: {
     dir: string;
     spec: string;
@@ -346,7 +374,10 @@ program
     neo4jUri: string;
     symbolicOnly: boolean;
     neuronalOnly: boolean;
-  }) => {
+    engine?: string;
+  }, cmd: Command) => {
+    const graphEngine = engineFor(opts.engine, cmd);
+    if (graphEngine === undefined) return;
     // FR-16 (reduced): batch is symbolic-only; without a flag it runs symbolic-only, and
     // `--neuronal-only` reaches runBatch's mode guard, which exits 2 (BR-U3-82).
     const evaluationMode: EvaluationMode = opts.neuronalOnly
@@ -361,6 +392,7 @@ program
       neo4jUri: opts.neo4jUri,
       symbolicOnly: opts.symbolicOnly,
       neuronalOnly: opts.neuronalOnly,
+      graphEngine,
     };
 
     const exitCode = await runBatch(batchOpts, evaluationMode);
@@ -379,6 +411,7 @@ program
   .option('--format <fmt>', 'Output format: json | human', 'human')
   .option('--neo4j-uri <uri>', 'Neo4j bolt URI', process.env['NEO4J_URI'] ?? 'bolt://localhost:7687')
   .option('--persist', 'Save new snapshot after evaluation', false)
+  .option('--engine <name>', `${ENGINE_OPTION_HELP} Used by the latest-vs-current mode only (--from/--to read snapshots).`)
   .action(async (opts: {
     project?: string;
     spec?: string;
@@ -387,7 +420,14 @@ program
     format: string;
     neo4jUri: string;
     persist: boolean;
-  }) => {
+    engine?: string;
+  }, cmd: Command) => {
+    // Only the latest-vs-current mode evaluates; snapshot-vs-snapshot opens no graph and prints no engine line.
+    let graphEngine: GraphEngine | undefined;
+    if (opts.from === undefined && opts.to === undefined) {
+      graphEngine = engineFor(opts.engine, cmd);
+      if (graphEngine === undefined) return;
+    }
     const driftOpts: DriftOptions = {
       project: opts.project,
       spec: opts.spec,
@@ -396,6 +436,7 @@ program
       format: opts.format as 'json' | 'human',
       neo4jUri: opts.neo4jUri,
       persist: opts.persist,
+      ...(graphEngine !== undefined && { graphEngine }),
     };
 
     const exitCode = await handleDrift(driftOpts);
@@ -410,13 +451,17 @@ program
   .requiredOption('--spec <path>', 'Path to AoC YAML spec')
   .option('--project <path>', 'Path to TypeScript project (for directory checks)', '.')
   .option('--rules <set>', 'Rule set the template check accepts: v1.3 (default; adds the v1.3 extension templates) | v1.2e (frozen templates only)', 'v1.3')
+  .option('--engine <name>', `${ENGINE_OPTION_HELP} validate never connects; with cypher-interp it also parses every compiled query with the interpreter (subset check).`)
   .action(async (opts: {
     spec: string;
     project: string;
     rules: string;
-  }) => {
+    engine?: string;
+  }, cmd: Command) => {
     const rules = resolveScoringMode(opts.rules, '--rules');
     if (rules === undefined) return;
+    const graphEngine = engineFor(opts.engine, cmd);
+    if (graphEngine === undefined) return;
     const parseResult = await parseSpec({ specFilePath: opts.spec });
     if (!parseResult.success) {
       process.stderr.write(`Spec parse error: ${parseResult.errors.map((e) => e.message).join('; ')}\n`);
@@ -465,6 +510,14 @@ program
     for (const d of disabledFunctions) {
       process.stderr.write(`  Disabled: ${String(d.id)} ${d.name}: ${d.reason ?? ''}\n`);
     }
+    if (graphEngine === 'cypher-interp') {
+      // The compiled text is the rule; the interpreter must accept it as is (Docs/v1.3/cypher-interpreter.md §3).
+      const queries = [...compiled.data.symbolicQueries, ...compiled.data.hybridPairs.map((h) => h.symbolicQuery)];
+      const rejected = interpreterRejections(queries);
+      for (const r of rejected) process.stderr.write(`  - [CYPHER_INTERP_UNSUPPORTED] ${r}\n`);
+      process.stderr.write(`cypher-interp: ${String(queries.length - rejected.length)}/${String(queries.length)} compiled queries parse\n`);
+      if (rejected.length > 0) process.exitCode = 1;
+    }
   });
 
 // ── baseline command ─────────────────────────────────────────────────────────
@@ -477,15 +530,19 @@ program
   .option('-o, --output <path>', 'Output file path', 'baseline_violations.json')
   .option('--verbose', 'Enable verbose logging', false)
   .option('--neo4j-uri <uri>', 'Neo4j bolt URI', process.env['NEO4J_URI'] ?? 'bolt://localhost:7687')
+  .option('--engine <name>', ENGINE_OPTION_HELP)
   .action(async (opts: {
     spec: string;
     project: string;
     output: string;
     verbose: boolean;
     neo4jUri: string;
-  }) => {
-    // BR-U3-80: no default password; stop before any connection.
-    const neo4jPassword = requireEnvForCli('NEO4J_PASSWORD');
+    engine?: string;
+  }, cmd: Command) => {
+    const graphEngine = engineFor(opts.engine, cmd);
+    if (graphEngine === undefined) return;
+    // BR-U3-80: no default password; stop before any connection. The in-process engine opens none and reads none.
+    const neo4jPassword = graphEngine === 'cypher-interp' ? '' : requireEnvForCli('NEO4J_PASSWORD');
     if (neo4jPassword === undefined) return;
 
     const config: PipelineConfig = {
@@ -500,6 +557,7 @@ program
       diff: false,
       verbose: opts.verbose,
       apgStorePath: process.env['APG_STORE_PATH'] ?? '.apg-store',
+      ...(graphEngine !== 'neo4j' && { graphEngine }),
     };
 
     const { executor, cleanup } = createPipeline(config);
@@ -548,6 +606,7 @@ withLLMOptions(program
   .option('--neo4j-uri <uri>', 'Neo4j bolt URI', process.env['NEO4J_URI'] ?? 'bolt://localhost:7687')
   .option('--symbolic-only', 'Run symbolic evaluation only', false)
   .option('--neuronal-only', 'Run neuronal evaluation only', false)
+  .option('--engine <name>', ENGINE_OPTION_HELP)
   .action(async (opts: LLMCliOpts & {
     project: string;
     spec: string;
@@ -556,10 +615,13 @@ withLLMOptions(program
     neo4jUri: string;
     symbolicOnly: boolean;
     neuronalOnly: boolean;
-  }) => {
+    engine?: string;
+  }, cmd: Command) => {
     const evaluationMode = resolveEvaluationMode(opts.symbolicOnly, opts.neuronalOnly);
-    // BR-U3-80: no default password; stop before any connection.
-    const neo4jPassword = requireEnvForCli('NEO4J_PASSWORD');
+    const graphEngine = engineFor(opts.engine, cmd);
+    if (graphEngine === undefined) return;
+    // BR-U3-80: no default password; stop before any connection. The in-process engine opens none and reads none.
+    const neo4jPassword = graphEngine === 'cypher-interp' ? '' : requireEnvForCli('NEO4J_PASSWORD');
     if (neo4jPassword === undefined) return;
     // U4 C9 hunk: judge options parsed before any connection (no key fallback, D-U0-8)
     const llmConfig = llmConfigFor(evaluationMode, opts.project, opts);
@@ -578,6 +640,7 @@ withLLMOptions(program
       verbose: opts.verbose,
       apgStorePath: process.env['APG_STORE_PATH'] ?? '.apg-store',
       llmConfig,
+      ...(graphEngine !== 'neo4j' && { graphEngine }),
     };
 
     const { executor, context, cleanup } = createPipeline(config);
