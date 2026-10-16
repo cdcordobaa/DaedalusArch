@@ -1,0 +1,36 @@
+{
+  "attempts": 1,
+  "cliVersion": "2.1.294",
+  "configListingSha256": "47aa04258852fab9a706f3f0c14cee22306d69fbb6fdfbde8c11854bd54997bc",
+  "durationMs": 9814,
+  "effort": "high",
+  "functionId": "filter-explain",
+  "ignoredOptions": [
+    "maxTokens"
+  ],
+  "isolationProbeSha256": "97a2e2d0af1100c13c55e028c1a0c71f069093c3d08705af122aaeb302f1a641",
+  "key": "674b05dd26ff4cdbd961b81d7ba38e9fe406f937c20b31a7ceb929363deffe0b-r0-0",
+  "model": "claude-opus-5-5",
+  "outcome": {
+    "kind": "valid"
+  },
+  "parsedVerdict": null,
+  "prompt": "## Finding\nRule: FF-S01\nRule intent: Dependencies point inward or downward per the layer model; a file must not import a layer it may not depend on.\nType: LAYER_VIOLATION\nSeverity: critical; tier: blocking\nFile: src/application/dto/LoanDto.ts\nTarget: src/infrastructure/http/HttpTypes.ts\nReported lines: 2\nMessage: src/application/dto/LoanDto.ts (application) imports from src/infrastructure/http/HttpTypes.ts (infrastructure)\nDiscriminator: IMPORTS\n\n## Layer model\n- domain (kind: domain): src/domain/**\n- application (kind: application): src/application/**\n- infrastructure (kind: infrastructure): src/infrastructure/**\n\n## Source (line-numbered)\n=====SOURCE-BEGIN src/application/dto/LoanDto.ts (layer application)=====\n 1| import { Loan } from '../../domain/entities/Loan';\n 2| import { HttpResponse, ok } from '../../infrastructure/http/HttpTypes';\n 3| \n 4| export interface LoanDto {\n 5|   id: string;\n 6|   bookId: string;\n 7|   memberId: string;\n 8|   dueAt: string;\n 9|   overdue: boolean;\n10| }\n11| \n12| export function toLoanResponse(loan: Loan, now: Date): HttpResponse {\n13|   return ok(toLoanDto(loan, now));\n14| }\n15| \n16| export function toLoanDto(loan: Loan, now: Date): LoanDto {\n17|   return {\n18|     id: loan.id,\n19|     bookId: loan.bookId,\n20|     memberId: loan.memberId,\n21|     dueAt: loan.dueAt.toISOString(),\n22|     overdue: loan.isOverdue(now),\n23|   };\n24| }\n=====SOURCE-END=====\n\n=====SOURCE-BEGIN src/infrastructure/http/HttpTypes.ts (layer infrastructure)=====\n 1| export interface HttpRequest {\n 2|   params: Record<string, string>;\n 3|   body: Record<string, unknown>;\n 4| }\n 5| \n 6| export interface HttpResponse {\n 7|   status: number;\n 8|   body: unknown;\n 9| }\n10| \n11| export function ok(body: unknown): HttpResponse {\n12|   return { status: 200, body };\n13| }\n14| \n15| export function created(body: unknown): HttpResponse {\n16|   return { status: 201, body };\n17| }\n18| \n19| export function fail(status: number, message: string): HttpResponse {\n20|   return { status, body: { error: message } };\n21| }\n=====SOURCE-END=====\n\n## Instructions\nDecide confirm or dismiss. Confirm: the cited code has the problem the rule is meant to catch, in this project and layer model. Dismiss: the rule fired, but the code does not have that problem (a false positive of the rule's mechanism, a threshold artefact on sound code, or a case the style allows). Measurements stated in the finding (counts, ratios, missing files) are correct as measurements; judge what they mean for this code. explanation: one paragraph that justifies the decision from the code, citing file paths and line numbers exactly as numbered below. fix: one concrete change: for a confirm, how to fix the code; for a dismiss, what (if anything) the rule or its configuration should change. citations: the line ranges your explanation relies on; every one must name a file shown below and lines that exist.\n",
+  "provider": "claude-cli",
+  "recordedAt": "2026-10-16T00:03:05.611Z",
+  "repetition": 0,
+  "requestHash": "674b05dd26ff4cdbd961b81d7ba38e9fe406f937c20b31a7ceb929363deffe0b",
+  "resolvedModel": "claude-opus-5-5",
+  "response": "{\"is_error\":false,\"modelUsage\":{\"claude-opus-5-5\":{\"inputTokens\":2,\"outputTokens\":652}},\"result\":\"{\\\"decision\\\":\\\"confirm\\\",\\\"explanation\\\":\\\"This is a real layer violation. src/application/dto/LoanDto.ts sits in the application layer, and line 2 imports `HttpResponse` and `ok` from src/infrastructure/http/HttpTypes.ts, which is in the infrastructure layer. The import is used, not just type noise: `toLoanResponse` (lines 12-14) builds an HTTP response with status code 200 by calling `ok` from HttpTypes.ts lines 11-13. That means the application layer depends on how the HTTP transport works, which is the outward dependency the layer model forbids. The DTO mapping itself (lines 4-10 and 16-24) only needs the domain `Loan` entity (line 1), which is allowed. The HTTP-specific helper is the only thing causing the violation.\\\",\\\"fix\\\":\\\"Move `toLoanResponse` out of src/application/dto/LoanDto.ts and into the infrastructure HTTP layer, for example the controller or an http/LoanResponses.ts file. There it can call `ok(toLoanDto(loan, now))`. Then delete the import on line 2, so LoanDto.ts depends only on the domain layer.\\\",\\\"citations\\\":[{\\\"filePath\\\":\\\"src/application/dto/LoanDto.ts\\\",\\\"startLine\\\":2,\\\"endLine\\\":2},{\\\"filePath\\\":\\\"src/application/dto/LoanDto.ts\\\",\\\"startLine\\\":12,\\\"endLine\\\":14},{\\\"filePath\\\":\\\"src/infrastructure/http/HttpTypes.ts\\\",\\\"startLine\\\":6,\\\"endLine\\\":13},{\\\"filePath\\\":\\\"src/application/dto/LoanDto.ts\\\",\\\"startLine\\\":16,\\\"endLine\\\":24}]}\",\"structured_output\":{\"citations\":[{\"endLine\":2,\"filePath\":\"src/application/dto/LoanDto.ts\",\"startLine\":2},{\"endLine\":14,\"filePath\":\"src/application/dto/LoanDto.ts\",\"startLine\":12},{\"endLine\":13,\"filePath\":\"src/infrastructure/http/HttpTypes.ts\",\"startLine\":6},{\"endLine\":24,\"filePath\":\"src/application/dto/LoanDto.ts\",\"startLine\":16}],\"decision\":\"confirm\",\"explanation\":\"This is a real layer violation. src/application/dto/LoanDto.ts sits in the application layer, and line 2 imports `HttpResponse` and `ok` from src/infrastructure/http/HttpTypes.ts, which is in the infrastructure layer. The import is used, not just type noise: `toLoanResponse` (lines 12-14) builds an HTTP response with status code 200 by calling `ok` from HttpTypes.ts lines 11-13. That means the application layer depends on how the HTTP transport works, which is the outward dependency the layer model forbids. The DTO mapping itself (lines 4-10 and 16-24) only needs the domain `Loan` entity (line 1), which is allowed. The HTTP-specific helper is the only thing causing the violation.\",\"fix\":\"Move `toLoanResponse` out of src/application/dto/LoanDto.ts and into the infrastructure HTTP layer, for example the controller or an http/LoanResponses.ts file. There it can call `ok(toLoanDto(loan, now))`. Then delete the import on line 2, so LoanDto.ts depends only on the domain layer.\"}}",
+  "runIndex": 0,
+  "schemaVersion": 2,
+  "unitId": "c5f48b77a6c8636b",
+  "usage": {
+    "inputTokens": 2611,
+    "outputTokens": 652
+  },
+  "usedOptions": {
+    "effort": "high",
+    "model": "claude-opus-5-5"
+  }
+}

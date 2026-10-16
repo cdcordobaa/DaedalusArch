@@ -1,0 +1,1858 @@
+{
+  "split": "TUNE",
+  "runs": 1,
+  "judgeVersion": "v2",
+  "revision": "v2.0",
+  "judgeV2Sha256": "b19f6623cec516575e343c7ea6b86e16e19777e151a67c0217be6db84d9d92ec",
+  "complete": true,
+  "verdicts": [
+    {
+      "itemId": "dv2|antipattern-nest__AP-DUP-RULE2__0|FF-N01|src/invoice#application",
+      "runs": [
+        {
+          "runIndex": 0,
+          "valid": true,
+          "pass": false,
+          "confidence": 0.8,
+          "violations": [
+            {
+              "filePath": "src/invoice/invoice.service.ts",
+              "message": "InvoiceService.validateCreate copies the order module's 'quantity must be positive' rule (an exact clone of OrderService.create at src/order/order.service.ts:14-16, same error literal) instead of calling one shared definition. The method is an order concern that does not belong in the invoice service."
+            }
+          ],
+          "reasoning": "Most of InvoiceService is a coherent invoice concern. `issue` and `countFor` reach persistence only through the TypeORM `Repository<InvoiceEntity>` injected with `@InjectRepository`, which is the module's own repository. That part passes.\n\n`validateCreate(quantity: number)` is the problem. It checks `quantity <= 0` and throws BadRequestException('Quantity must be positive'). Nothing in the invoice module takes a quantity: `issue` takes `orderId` and `amount`. So the method belongs to the order module's creation rule, not to invoicing.\n\nThe flags say it is an exact structural clone (similarity 1.00) of `OrderService.create` in `src/order/order.service.ts:14-16`, sharing the same error string. On the invoice side, the source matches the flagged lines 23-25 exactly, and the odd indentation looks like pasted code. The order file is not in the provided material, so its side comes only from the flags.\n\nThis is a fail under the rubric for two reasons: the same validation rule is written out in two places rather than shared, and an unrelated order concern sits inside the invoice service."
+        }
+      ],
+      "verdict": "fail"
+    },
+    {
+      "itemId": "dv2|antipattern-nest__AP-DUP-RULE2n__0|FF-N01|src/order#application",
+      "runs": [
+        {
+          "runIndex": 0,
+          "valid": true,
+          "pass": true,
+          "confidence": 0.85,
+          "violations": [],
+          "reasoning": "The unit has one file, src/order/order.service.ts, which handles a single concern: creating and reading orders. It reaches persistence only through the injected TypeORM Repository<OrderEntity> (orderRepository). That is the standard NestJS repository abstraction. No separate custom order repository or port appears among the outgoing dependencies, so nothing is being bypassed. The service runs no raw queries and uses no DataSource or EntityManager. The quantity-positive check exists only in assertCreateRule, which create() calls, so the rule is not duplicated within the unit. The not-found handling exists only in findOne. No candidate flags were raised, and the source shows no split into unrelated concerns."
+        }
+      ],
+      "verdict": "pass"
+    },
+    {
+      "itemId": "dv2|base:antipattern-nest|FF-N01|src/invoice#application",
+      "runs": [
+        {
+          "runIndex": 0,
+          "valid": true,
+          "pass": true,
+          "confidence": 0.85,
+          "violations": [],
+          "reasoning": "The unit has one file, src/invoice/invoice.service.ts, and it handles a single concern: issuing invoices and counting them per order. It reaches persistence only through the injected TypeORM Repository<InvoiceEntity>. No custom invoice repository or port appears in the source or the neighbourhood, so this injected repository is the module's persistence abstraction and nothing goes around it. Each rule appears once. No rule, invariant or validation is copied. No candidate flags were raised, and I found no violations of my own."
+        }
+      ],
+      "verdict": "pass"
+    },
+    {
+      "itemId": "dv2|base:antipattern-nest|FF-N01|src/order#application",
+      "runs": [
+        {
+          "runIndex": 0,
+          "valid": true,
+          "pass": true,
+          "confidence": 0.85,
+          "violations": [],
+          "reasoning": "The unit has one file, src/order/order.service.ts, and it covers a single concern: creating and looking up orders. The class OrderService reaches persistence only through the repository injected with @InjectRepository(OrderEntity) as Repository<OrderEntity>. The material shows no separate custom order repository or port that this injection would bypass, and the service has no raw query builder, DataSource or EntityManager. The quantity-must-be-positive check is written once, in create, and the not-found handling is written once, in findOne. Nothing in the unit duplicates a rule or invariant, and nothing bypasses the module's abstractions. No candidate flags were raised."
+        }
+      ],
+      "verdict": "pass"
+    },
+    {
+      "itemId": "dv2|base:e1/claude-haiku-4-5.order-fulfilment.minimal-prose.run-2|FF-N01|src/application/usecases",
+      "runs": [
+        {
+          "runIndex": 0,
+          "valid": true,
+          "pass": false,
+          "confidence": 0.68,
+          "violations": [
+            {
+              "filePath": "src/application/usecases/UpdateOrderStatusUseCase.ts",
+              "message": "The `validStatuses` array copies the OrderStatus status set from the domain Order entity and appears to leave out 'cancelled'. The entity's transitionTo should be the single place that checks status changes."
+            },
+            {
+              "filePath": "src/application/usecases/PlaceOrderUseCase.ts",
+              "message": "The private `mapToDto` holds the Order-to-OrderDto mapping. The same mapping is copied in CancelOrderUseCase, ListOrdersByStatusUseCase and UpdateOrderStatusUseCase instead of being one shared mapper."
+            },
+            {
+              "filePath": "src/application/usecases/CancelOrderUseCase.ts",
+              "message": "`execute` builds the OrderDto with an inline copy of the Order-to-OrderDto mapping instead of using a shared mapper."
+            },
+            {
+              "filePath": "src/application/usecases/ListOrdersByStatusUseCase.ts",
+              "message": "`execute` builds the OrderDto with an inline copy of the Order-to-OrderDto mapping instead of using a shared mapper."
+            }
+          ],
+          "reasoning": "The module is cohesive: it holds order and stock use cases, and all of them reach persistence through the domain repositories (OrderRepository, ProductRepository) and StockManager. There is no persistence bypass. However, a rule is duplicated. UpdateOrderStatusUseCase writes out its own list of valid statuses (`validStatuses`), a copy of the OrderStatus definition in the domain Order entity. The copy also appears to leave out 'cancelled', so it may already have drifted. The entity's own transitionTo method is the abstraction meant to govern status changes. Separately, the Order-to-OrderDto mapping is copied inline in four use cases instead of living in one shared mapper."
+        }
+      ],
+      "verdict": "fail"
+    },
+    {
+      "itemId": "dv2|base:e1/claude-sonnet-5-5.order-fulfilment.full-aac.run-0|FF-N01|src/application",
+      "runs": [
+        {
+          "runIndex": 0,
+          "valid": true,
+          "pass": true,
+          "confidence": 0.85,
+          "violations": [],
+          "reasoning": "The files form one concern: the application-layer use cases for orders and stock, plus the DTOs they return. Every use case reaches persistence only through the domain ports, OrderRepository and ProductRepository. None uses a database or ORM client directly.\n\nThe \"order not found\" check is written once, in `requireOrder`. The advance, cancel and get use cases all call it rather than repeating it.\n\nOrder-state validation calls the shared domain function `isOrderState`. Stock is reserved and released through the domain functions `reserveStock` and `releaseStock`, not reimplemented inline. Every order use case maps its result through the shared `toOrderDto`.\n\nTwo small inconsistencies do not amount to duplicating a rule:\n- `ListStockLevelsUseCase` builds `StockLevelDto` inline. No shared stock mapper exists, so nothing is being bypassed.\n- The place and cancel use cases each build their own product-by-id Map. That is a convenience structure, not an invariant.\n\nThere were no candidate flags to check."
+        }
+      ],
+      "verdict": "pass"
+    },
+    {
+      "itemId": "dv2|base:e1/claude-sonnet-5-5.order-fulfilment.full-aac.run-0|FF-N01|src/domain",
+      "runs": [
+        {
+          "runIndex": 0,
+          "valid": true,
+          "pass": true,
+          "confidence": 0.72,
+          "violations": [],
+          "reasoning": "The domain module covers one concern: order placement and fulfilment with stock reservation. The pieces are errors, order entities, the order state machine, product stock, a reservation service and two repository ports. The module has no persistence access beyond the repository interfaces (no database, ORM or query client). State-transition rules live only in order-state.ts, and Order calls them. The stock rule is defined once in Product.canReserve. Both Product.reserve and the all-or-nothing pre-check in stock-reservation.reserveStock call it rather than copying the comparison. The insufficient_stock error code and message wording are repeated in stock-reservation.ts, but the rule itself (the predicate) is shared. That makes this borderline rather than a clear copied rule. The quantity check in OrderLine and the stock check in Product are different rules (positive vs non-negative), not duplicates."
+        }
+      ],
+      "verdict": "pass"
+    },
+    {
+      "itemId": "dv2|base:e1/claude-sonnet-5-5.order-fulfilment.full-aac.run-1|FF-N01|src/application",
+      "runs": [
+        {
+          "runIndex": 0,
+          "valid": true,
+          "pass": true,
+          "confidence": 0.8,
+          "violations": [],
+          "reasoning": "The src/application module passes. It holds the application use cases for the order/stock bounded context, the DTOs they return and an order mapper. Every use case reaches persistence only through the domain repository ports (OrderRepository, ProductRepository) or the StockAllocationService. None uses a database, ORM or query client directly.\n\nAll four order use cases build their output with the shared toOrderDto mapper rather than mapping inline. Status validation in AdvanceOrderUseCase and ListOrdersUseCase calls the one shared isOrderStatus definition from the domain, so the rule is not copied. Only the error messages differ.\n\nTwo use cases repeat a small 'findById or throw NOT_FOUND' guard. This is a short lookup step at the application level, not a business rule or invariant written out twice, so it does not reach the rubric's bar for duplication.\n\nGetStockLevelsUseCase maps products to StockLevelDto inline. No product mapper exists in the module, so it bypasses nothing. Placing StockLevelDto in order-dto.ts is a small naming quirk, not a split into unrelated concerns: stock reservation and release are part of the same ordering flow."
+        }
+      ],
+      "verdict": "pass"
+    },
+    {
+      "itemId": "dv2|base:e1/claude-sonnet-5-5.order-fulfilment.full-aac.run-1|FF-N01|src/domain",
+      "runs": [
+        {
+          "runIndex": 0,
+          "valid": true,
+          "pass": false,
+          "confidence": 0.8,
+          "violations": [
+            {
+              "filePath": "src/domain/stock-allocation-service.ts",
+              "message": "StockAllocationService.reserve copies Product.reserve's stock-sufficiency rule (quantity > available → DomainError INSUFFICIENT_STOCK, same message template) instead of calling a single shared definition on Product, so the rule is written out twice."
+            }
+          ],
+          "reasoning": "Most of the module holds together as one ordering and stock domain. Order uses mergeLines from order-line.ts and isCancellable and nextFulfilmentStatus from order-status.ts, so the transition rules live in one place. StockAllocationService reaches persistence only through the ProductRepository port, and there are no candidate flags.\n\nThe problem is the stock-sufficiency invariant (\"requested quantity must not exceed available stock, otherwise INSUFFICIENT_STOCK\"). Product.reserve in product.ts enforces it. StockAllocationService.reserve in stock-allocation-service.ts writes the same comparison again, with the same error code and an identical message template, instead of calling one shared definition. The service's pre-check makes the reservation all-or-nothing across lines. That is a fair reason, but the rule itself is still copied rather than shared, for example through a Product.canReserve(quantity) method. That is a copy of the rule, which the rubric counts as a fail."
+        }
+      ],
+      "verdict": "fail"
+    },
+    {
+      "itemId": "dv2|base:e1/claude-sonnet-5-5.order-fulfilment.minimal-prose.run-1|FF-N01|src/application",
+      "runs": [
+        {
+          "runIndex": 0,
+          "valid": true,
+          "pass": true,
+          "confidence": 0.82,
+          "violations": [],
+          "reasoning": "The src/application module passes. All seven files serve one concern: order and stock use cases plus the DTOs and mappers they share. Every use case reaches persistence only through the domain repository ports (OrderRepository, ProductRepository). None uses a database, ORM or query client directly. Order changes go through the domain's own methods (order.cancel(), order.moveTo(target)), stock goes through StockReservationService, and IDs come from IdGenerator, so no file skips the module's abstractions. DTO mapping is defined once in dtos.ts (toOrderDto, toStockLevelDto) and every use case calls it rather than copying it. Three use cases repeat the guard `if (!order) throw new NotFoundError(...)` after findById: CancelOrderUseCase, GetOrderUseCase and TransitionOrderUseCase. That is a lookup idiom, not a business rule or invariant written out twice, so it is not counted as a violation. The `customerId is required` check appears only in PlaceOrderUseCase. No candidate flags were raised, and no violations were found."
+        }
+      ],
+      "verdict": "pass"
+    },
+    {
+      "itemId": "dv2|base:e1/gpt-5.6-terra.order-fulfilment.minimal-prose.run-2|FF-N01|src/application",
+      "runs": [
+        {
+          "runIndex": 0,
+          "valid": true,
+          "pass": false,
+          "confidence": 0.78,
+          "violations": [
+            {
+              "filePath": "src/application/order-service.ts",
+              "message": "OrderService.combineItems copies the Order aggregate's item rules (non-empty items; product id and positive whole-number quantity) and throws the same messages that appear at src/domain/order.ts:27 and :30. The invariant is written out in two places instead of being enforced once in the domain."
+            }
+          ],
+          "reasoning": "The module holds one concern: application services for the catalogue and for orders, plus their DTOs. Both services reach persistence only through the domain repository ports, `ProductRepository` and `OrderRepository`, and nothing touches a database or ORM directly. However, the private `combineItems` method in `OrderService` (`src/application/order-service.ts`) repeats the order-item checks: the list must not be empty, and each item needs a product id and a positive whole-number quantity. It throws the exact error messages that also appear at `src/domain/order.ts:27` and `:30`. Those checks are an invariant of the `Order` aggregate. `OrderService` then passes the combined items to `new Order(...)`, which checks them again. So the invariant is written out in two places as a copy, not one shared definition the service calls. The two candidate flags are consistent with the visible source: the two messages appear in `order-service.ts` at lines 65 and 69, and the flags place matching strings at `order.ts:27` and `:30`. That domain file is not shown here, so this is the one point I could not check directly. A smaller issue: `placeOrder` checks stock before calling `product.reserve`, and that may also repeat a check inside `Product`. No flag names it and the domain source is not shown, so I only note it and do not count it. The not-found check for products is written twice inside `order-service.ts` (lines 18–19 and 55–56) instead of in a private helper like `requireOrder`. It is a small copy within one file. `catalogue-service.ts` and `dtos.ts` are consistent with the module's abstractions."
+        }
+      ],
+      "verdict": "fail"
+    },
+    {
+      "itemId": "dv2|e1__claude-haiku-4-5.order-fulfilment.minimal-prose.run-2__AP-DUP-RULE2__0|FF-N01|src/application/usecases",
+      "runs": [
+        {
+          "runIndex": 0,
+          "valid": true,
+          "pass": false,
+          "confidence": 0.86,
+          "violations": [
+            {
+              "filePath": "src/application/usecases/ListOrdersByStatusUseCase.ts",
+              "message": "`validateExecute(request: CreateOrderRequest)` copies the 'Order must contain at least one line' rule from `PlaceOrderUseCase.execute`, and it is a create-order concern unrelated to listing orders by status."
+            },
+            {
+              "filePath": "src/application/usecases/PlaceOrderUseCase.ts",
+              "message": "Its inline 'at least one line' check is copied in `ListOrdersByStatusUseCase.validateExecute`. The same validation exists in two places."
+            },
+            {
+              "filePath": "src/application/usecases/CancelOrderUseCase.ts",
+              "message": "Writes the Order-to-OrderDto mapping inline. It duplicates `PlaceOrderUseCase.mapToDto` instead of using one shared mapper."
+            },
+            {
+              "filePath": "src/application/usecases/UpdateOrderStatusUseCase.ts",
+              "message": "Writes the Order-to-OrderDto mapping inline. It duplicates `PlaceOrderUseCase.mapToDto` instead of using one shared mapper."
+            }
+          ],
+          "reasoning": "Every use case reaches persistence only through the domain repository ports (`OrderRepository` and `ProductRepository`), so there is no persistence bypass. The rubric still fails on duplication.\n\n1. `ListOrdersByStatusUseCase` declares `validateExecute(request: CreateOrderRequest)`. It repeats the \"Order must contain at least one line\" rule from `PlaceOrderUseCase.execute`. This is a second copy of the rule, not a call to a shared definition. It is also a create-order concern placed in a listing use case.\n2. The order-to-`OrderDto` mapping (`id`, `status`, `lines`, `createdAt.toISOString()`) is written inline in `CancelOrderUseCase`, `ListOrdersByStatusUseCase` and `UpdateOrderStatusUseCase`. It also appears as the private `mapToDto` in `PlaceOrderUseCase`. That is four copies instead of one shared mapper.\n\n`UpdateOrderStatusUseCase` also hard-codes a `validStatuses` array, which may re-encode the `OrderStatus` type or the entity's transition rules. I can't confirm this because `Order.ts` isn't in the material provided, so it is not counted as a violation."
+        }
+      ],
+      "verdict": "fail"
+    },
+    {
+      "itemId": "dv2|e1__claude-haiku-4-5.order-fulfilment.minimal-prose.run-2__AP-DUP-RULE2n__0|FF-N01|src/application/usecases",
+      "runs": [
+        {
+          "runIndex": 0,
+          "valid": true,
+          "pass": true,
+          "confidence": 0.6,
+          "violations": [],
+          "reasoning": "All five files are order and stock use cases that call each other's domain parts in the same way. They inject the OrderRepository and ProductRepository ports and the StockManager domain service. No file uses a database, ORM or query client directly, and none bypasses the repositories.\n\nThe same Order-to-OrderDto mapping is written out four times:\n- CancelOrderUseCase, inline\n- ListOrdersByStatusUseCase, inline\n- PlaceOrderUseCase.mapToDto\n- UpdateOrderStatusUseCase, inline\n\nThis copies a data transformation that only moves fields across. It is not a business rule, invariant or validation, so the rubric's duplication test does not strictly apply. It is a maintainability smell.\n\nUpdateOrderStatusUseCase also hard-codes a validStatuses list. This may restate the OrderStatus set, and Order.transitionTo may already check it. The source of Order is not available here, so I can't confirm this as a copy of a domain rule. The domain checks that are visible are called, not reimplemented: order.canBeCancelled(), stockManager.canReserveStock, and order.transitionTo.\n\nI found no split into unrelated concerns, no copied rule I could confirm, and no persistence bypass, so the unit passes. Confidence is moderate because of the repeated mapping and the unconfirmed status list."
+        }
+      ],
+      "verdict": "pass"
+    },
+    {
+      "itemId": "dv2|e1__claude-sonnet-5-5.order-fulfilment.full-aac.run-0__AP-DUP-RULE2__0|FF-N01|src/application",
+      "runs": [
+        {
+          "runIndex": 0,
+          "valid": true,
+          "pass": false,
+          "confidence": 0.88,
+          "violations": [
+            {
+              "filePath": "src/application/get-order-use-case.ts",
+              "message": "GetOrderUseCase.validateExecute copies the order-state validation (isOrderState check that throws DomainError 'validation' with the message 'Unknown order state: ...') from ListOrdersByStateUseCase.execute instead of sharing one definition. It also places a state-listing concern inside the get-by-id use case."
+            },
+            {
+              "filePath": "src/application/list-orders-by-state-use-case.ts",
+              "message": "ListOrdersByStateUseCase.execute writes out the same order-state validation as GetOrderUseCase.validateExecute, so one rule now lives in two places."
+            }
+          ],
+          "reasoning": "The module is mostly cohesive. It holds the order and stock use cases, a shared DTO mapper (toOrderDto) and a shared lookup guard (requireOrder). Persistence goes only through OrderRepository and ProductRepository. However, the order-state validation is written out twice. GetOrderUseCase.validateExecute copies the same isOrderState check and DomainError(\"validation\", `Unknown order state: ${state}`) throw that ListOrdersByStateUseCase.execute contains, instead of both calling one shared definition. The method also does not fit GetOrderUseCase, which loads an order by id and never handles a state, so a ListOrdersByState concern has leaked into it. No candidate flags were raised."
+        }
+      ],
+      "verdict": "fail"
+    },
+    {
+      "itemId": "dv2|e1__claude-sonnet-5-5.order-fulfilment.full-aac.run-0__AP-DUP-RULE2n__0|FF-N01|src/application",
+      "runs": [
+        {
+          "runIndex": 0,
+          "valid": true,
+          "pass": true,
+          "confidence": 0.85,
+          "violations": [],
+          "reasoning": "All eight files serve one concern: order use cases, plus a stock-level read model that belongs with order placement and reservation. The \"order not found\" check is written once, in requireOrder (require-order.ts), and the get, advance and cancel use cases all call it. The DTO mapping is written once, in toOrderDto (order-dto.ts), and every order use case calls it. Stock reservation, stock release and state validation are calls to the domain functions reserveStock, releaseStock and assertOrderState, not copies. Every file reaches persistence only through the OrderRepository and ProductRepository ports. ListStockLevelsUseCase builds the stock-level DTO inline instead of through a shared mapper, but no other file builds it, so nothing is duplicated. Both PlaceOrderUseCase and CancelOrderUseCase build a product-by-id Map. That repeated line is plumbing, not a business rule or invariant. No candidate flags were raised."
+        }
+      ],
+      "verdict": "pass"
+    },
+    {
+      "itemId": "dv2|e1__claude-sonnet-5-5.order-fulfilment.full-aac.run-0__AP-DUP-RULE2n__0|FF-N01|src/domain",
+      "runs": [
+        {
+          "runIndex": 0,
+          "valid": true,
+          "pass": true,
+          "confidence": 0.72,
+          "violations": [],
+          "reasoning": "The domain module is cohesive: order lifecycle (Order, OrderLine, order-state), product stock (Product, stock-reservation), the shared DomainError, and the two repository ports. No file reaches persistence directly, since the domain only declares the OrderRepository and ProductRepository interfaces. Each invariant is defined once: the stock check lives in Product.canReserve and stock-reservation.ts calls it rather than repeating `quantity <= available`. The state-transition rules live in order-state.ts (nextState, isCancellable, isOrderState) and Order and assertOrderState call them. The quantity checks in OrderLine (positive) and Product (non-negative stock) are different rules, not copies. One minor smell: reserveStock rebuilds the same 'insufficient_stock' DomainError message that Product.reserve builds. The decision logic is still shared through canReserve, and the early check exists so that all lines are reserved or none are, so I don't count this as a duplicated rule."
+        }
+      ],
+      "verdict": "pass"
+    },
+    {
+      "itemId": "dv2|e1__claude-sonnet-5-5.order-fulfilment.full-aac.run-1__AP-DUP-RULE2__0|FF-N01|src/application",
+      "runs": [
+        {
+          "runIndex": 0,
+          "valid": true,
+          "pass": false,
+          "confidence": 0.85,
+          "violations": [
+            {
+              "filePath": "src/application/advance-order-use-case.ts",
+              "message": "AdvanceOrderUseCase.validateExecute copies the status-query validation (the isOrderStatus check plus DomainError(\"VALIDATION\", \"Query parameter 'status' must be a valid order status\")) word for word from ListOrdersUseCase.execute, instead of calling one shared definition. This method concerns a list-query parameter, not advancing an order."
+            },
+            {
+              "filePath": "src/application/list-orders-use-case.ts",
+              "message": "ListOrdersUseCase.execute holds the same status-validation guard and message that AdvanceOrderUseCase.validateExecute repeats. The rule is written out in two places rather than defined once."
+            }
+          ],
+          "reasoning": "The module is cohesive overall. It holds order and stock use cases, DTOs and a mapper. It reaches persistence only through the domain ports OrderRepository and ProductRepository, and every order use case uses the shared toOrderDto mapper. However, the same status validation is written out twice. AdvanceOrderUseCase.validateExecute is a word-for-word copy of the guard in ListOrdersUseCase.execute: it checks `!isOrderStatus(status)` and throws DomainError(\"VALIDATION\", \"Query parameter 'status' must be a valid order status\"). Neither file calls a shared definition. The copied method also has nothing to do with advancing an order: its message refers to a list-query parameter, and AdvanceOrderUseCase.execute already runs its own inline isOrderStatus check with a different message. This kind of copy is what the rubric's Fail criterion describes."
+        }
+      ],
+      "verdict": "fail"
+    },
+    {
+      "itemId": "dv2|e1__claude-sonnet-5-5.order-fulfilment.full-aac.run-1__AP-DUP-RULE2n__0|FF-N01|src/application",
+      "runs": [
+        {
+          "runIndex": 0,
+          "valid": true,
+          "pass": true,
+          "confidence": 0.8,
+          "violations": [],
+          "reasoning": "The seven files serve one concern: order placement and fulfilment, plus the stock levels it depends on. Every use case reaches persistence only through the domain ports it is given (OrderRepository, ProductRepository). No file uses a database, ORM or query client directly. Converting an Order to an OrderDto always goes through the shared toOrderDto in order-mapper.ts. State rules stay on the domain objects: use cases call order.advanceTo, order.cancel and stock.reserve/release rather than repeating that logic. Status validation reads the single domain definition in order-status. AdvanceOrderUseCase calls isOrderStatus and throws its own VALIDATION error, while ListOrdersUseCase calls assertOrderStatus. That is a small inconsistency in how the failure is reported, not a copied rule, and the domain source is not shown to confirm the two errors differ. The repeated NOT_FOUND guard in two use cases is a one-line check, not a copied business rule."
+        }
+      ],
+      "verdict": "pass"
+    },
+    {
+      "itemId": "dv2|e1__claude-sonnet-5-5.order-fulfilment.full-aac.run-1__AP-DUP-RULE2n__0|FF-N01|src/domain",
+      "runs": [
+        {
+          "runIndex": 0,
+          "valid": true,
+          "pass": false,
+          "confidence": 0.82,
+          "violations": [
+            {
+              "filePath": "src/domain/stock-allocation-service.ts",
+              "message": "StockAllocationService.reserve re-implements Product.reserve's insufficient-stock rule. It repeats the `quantity > available` comparison, the INSUFFICIENT_STOCK code and the message template instead of using one shared definition on Product (for example, a canReserve query)."
+            }
+          ],
+          "reasoning": "Most of the domain module holds together. Orders, order lines, status flow, products, stock allocation and the repository ports all belong to one ordering and stock concern, and nothing reaches persistence around the ports: StockAllocationService only uses ProductRepository.\n\nThe problem is the insufficient-stock rule, which exists in two places. Product.reserve checks `quantity > this.available` and throws DomainError(\"INSUFFICIENT_STOCK\", \"Insufficient stock for product ${id}: requested ..., available ...\").\n\nStockAllocationService.reserve writes out the same comparison against product.availableQuantity and throws the same error code with the same message template. It does not call a shared definition. The pre-check exists so that no line is reserved unless all of them can be, but it is still a second copy of the invariant and its error text. The two can drift apart; Product could instead expose something like canReserve().\n\nA smaller point: assertOrderStatus in order-status.ts uses the error message \"Query parameter 'status' must be a valid order status\". That message is about the HTTP request, not the domain. It is a boundary leak but not serious enough to fail the unit by itself."
+        }
+      ],
+      "verdict": "fail"
+    },
+    {
+      "itemId": "dv2|e1__claude-sonnet-5-5.order-fulfilment.minimal-prose.run-1__AP-DUP-RULE2__0|FF-N01|src/application",
+      "runs": [
+        {
+          "runIndex": 0,
+          "valid": true,
+          "pass": false,
+          "confidence": 0.88,
+          "violations": [
+            {
+              "filePath": "src/application/list-stock-levels-use-case.ts",
+              "message": "validateExecute repeats the customerId-required check from PlaceOrderUseCase.execute as a separate copy, not a shared definition. It also adds order-placement request validation (PlaceOrderRequest) to the stock-level listing use case, mixing an unrelated concern into this class."
+            }
+          ],
+          "reasoning": "Most of the module is cohesive. Each use case reaches persistence only through the domain repository ports (OrderRepository, ProductRepository) and maps results through the shared toOrderDto/toStockLevelDto in dtos.ts. One file breaks the rubric. ListStockLevelsUseCase declares validateExecute(request: PlaceOrderRequest), which repeats the customerId-required check that PlaceOrderUseCase.execute already makes. It is a separate copy, not a call to one shared definition. It also puts order-placement request validation inside the stock-level read use case, which mixes two unrelated concerns in that class. No candidate flags were given. I found no direct database or ORM access."
+        }
+      ],
+      "verdict": "fail"
+    },
+    {
+      "itemId": "dv2|e1__claude-sonnet-5-5.order-fulfilment.minimal-prose.run-1__AP-DUP-RULE2n__0|FF-N01|src/application",
+      "runs": [
+        {
+          "runIndex": 0,
+          "valid": true,
+          "pass": true,
+          "confidence": 0.85,
+          "violations": [],
+          "reasoning": "The module's files share one concern: application use cases and DTO mapping for order and stock management. Every use case follows the same pattern: load through a domain port, call a domain behaviour, save through the port, then map with the shared toOrderDto or toStockLevelDto in dtos.ts. Data is reached only through the injected OrderRepository, ProductRepository and StockReservationService ports. No database, ORM or query client is used directly. Order state changes stay in the domain (order.cancel(), order.moveTo(target)). The only application-level validation, assertExecuteRule in place-order-use-case.ts, appears once. Three use cases repeat a short not-found guard, but it is a basic existence check, not a business rule written twice. No candidate flags were raised."
+        }
+      ],
+      "verdict": "pass"
+    },
+    {
+      "itemId": "dv2|e1__gpt-5.6-terra.order-fulfilment.minimal-prose.run-2__AP-DUP-RULE2__0|FF-N01|src/application",
+      "runs": [
+        {
+          "runIndex": 0,
+          "valid": true,
+          "pass": false,
+          "confidence": 0.88,
+          "violations": [
+            {
+              "filePath": "src/application/catalogue-service.ts",
+              "message": "validateCombineItems copies the 'An order requires at least one item' guard from OrderService.combineItems instead of calling one shared definition. It also puts order-item validation inside the product catalogue service, which splits that service across two concerns."
+            },
+            {
+              "filePath": "src/application/order-service.ts",
+              "message": "combineItems writes out the empty-items and positive-quantity checks itself. CatalogueService.validateCombineItems has a copy of the empty-items check, and the flags indicate that the domain Order (src/domain/order.ts:27 and :30) has the same checks too."
+            }
+          ],
+          "reasoning": "Both services reach persistence only through the domain repository ports (ProductRepository and OrderRepository), and dtos.ts is a cohesive set of DTOs. However, the rule that an order needs at least one item is written out twice inside the unit. CatalogueService.validateCombineItems repeats the guard from OrderService.combineItems instead of calling one shared definition. The method also adds an order-item concern to the product catalogue service, so CatalogueService no longer serves a single concern. The candidate flags support this: the same literal appears at catalogue-service.ts:25 and order-service.ts:65. Those flags also suggest that combineItems repeats item validation that already exists in the domain (src/domain/order.ts:27 and :30). I could not see that file, so I treat this as a likely second copy of the rule rather than a confirmed one."
+        }
+      ],
+      "verdict": "fail"
+    },
+    {
+      "itemId": "dv2|e1__gpt-5.6-terra.order-fulfilment.minimal-prose.run-2__AP-DUP-RULE2n__0|FF-N01|src/application",
+      "runs": [
+        {
+          "runIndex": 0,
+          "valid": true,
+          "pass": false,
+          "confidence": 0.8,
+          "violations": [
+            {
+              "filePath": "src/application/order-service.ts",
+              "message": "assertCombineItemsRule copies the domain Order invariant \"An order requires at least one item\" (also in src/domain/order.ts:27) instead of relying on one shared definition."
+            },
+            {
+              "filePath": "src/application/order-service.ts",
+              "message": "OrderService.combineItems copies the per-item validation (product id present, positive integer quantity) with the same message as src/domain/order.ts:30, so the rule lives in two places."
+            }
+          ],
+          "reasoning": "**What fits:** the three files are one coherent concern: application services for the catalogue and for orders, plus their DTOs. Persistence goes only through the domain ports `ProductRepository` and `OrderRepository`. No database or ORM is used directly.\n\n**What fails:** `order-service.ts` writes out its own copy of order-item validation that the domain `Order` already enforces. Both copies throw the same error messages:\n- The module-level `assertCombineItemsRule` throws \"An order requires at least one item\" (`order-service.ts` line 88).\n- The private `OrderService.combineItems` checks that each item has a product id and a positive integer quantity, throwing \"Each order item needs a product id and positive integer quantity\" (`order-service.ts` line 69).\n\nThe candidate flags show these identical literals in `src/domain/order.ts` at lines 27 and 30, which is where `Order` validates its items. The application service does not call one shared definition. It restates the invariant, so the rule now lives in two places. The source I could see supports both flags: they point at validation logic, not just a reused message string.\n\n**Possible further copy:** `placeOrder` also runs its own pre-check, `products[index].stock < items[index].quantity`, before calling `product.reserve`. This probably repeats the stock check inside `Product.reserve`, but `src/domain/product.ts` was not provided, so I could not confirm it."
+        }
+      ],
+      "verdict": "fail"
+    },
+    {
+      "itemId": "r1|antipattern-nest__AP-DUP-RULE__0|FF-N01|src/invoice#application",
+      "runs": [
+        {
+          "runIndex": 0,
+          "valid": true,
+          "pass": false,
+          "confidence": 0.8,
+          "violations": [
+            {
+              "filePath": "src/invoice/invoice.service.ts",
+              "message": "InvoiceService.validateCreate copies the order module's 'quantity must be positive' rule (an exact clone of OrderService.create at src/order/order.service.ts:14-16, same error literal) instead of calling one shared definition. The method is an order concern that does not belong in the invoice service."
+            }
+          ],
+          "reasoning": "Most of InvoiceService is a coherent invoice concern. `issue` and `countFor` reach persistence only through the TypeORM `Repository<InvoiceEntity>` injected with `@InjectRepository`, which is the module's own repository. That part passes.\n\n`validateCreate(quantity: number)` is the problem. It checks `quantity <= 0` and throws BadRequestException('Quantity must be positive'). Nothing in the invoice module takes a quantity: `issue` takes `orderId` and `amount`. So the method belongs to the order module's creation rule, not to invoicing.\n\nThe flags say it is an exact structural clone (similarity 1.00) of `OrderService.create` in `src/order/order.service.ts:14-16`, sharing the same error string. On the invoice side, the source matches the flagged lines 23-25 exactly, and the odd indentation looks like pasted code. The order file is not in the provided material, so its side comes only from the flags.\n\nThis is a fail under the rubric for two reasons: the same validation rule is written out in two places rather than shared, and an unrelated order concern sits inside the invoice service."
+        }
+      ],
+      "verdict": "fail"
+    },
+    {
+      "itemId": "r1|antipattern-nest__AP-DUP-RULEn__0|FF-N01|src/invoice#application",
+      "runs": [
+        {
+          "runIndex": 0,
+          "valid": true,
+          "pass": true,
+          "confidence": 0.8,
+          "violations": [],
+          "reasoning": "The unit has a single file, src/invoice/invoice.service.ts, and it handles one concern: invoices. It persists data through the injected TypeORM Repository<InvoiceEntity> (invoiceRepository). That is the module's own repository abstraction. The unit contains no custom invoice repository or port, so nothing is being bypassed, and the file makes no raw DataSource, EntityManager or query-builder calls. validateCreate(quantity) calls assertCreateRule, which is imported from the order module. The rule stays defined in one place and is not copied here. Having an order-creation check inside InvoiceService is a little out of place, but it delegates to the shared definition and does not duplicate it. No candidate flags were raised."
+        }
+      ],
+      "verdict": "pass"
+    },
+    {
+      "itemId": "r1|antipattern-nest__AP-DUP-RULEn__0|FF-N01|src/order#application",
+      "runs": [
+        {
+          "runIndex": 0,
+          "valid": true,
+          "pass": true,
+          "confidence": 0.8,
+          "violations": [],
+          "reasoning": "The unit is one file, src/order/order.service.ts, and it handles a single concern: creating orders and looking them up. It reaches persistence only through the TypeORM Repository<OrderEntity> it is given via @InjectRepository(OrderEntity). That is the standard NestJS repository abstraction, and the outgoing dependencies show no separate order repository or port that this injection would be bypassing. No raw query client, EntityManager or DataSource is used. The quantity rule is written once, in the exported assertCreateRule, and create() calls it rather than copying it. Other modules such as invoice.service can reuse that one definition, so this is not duplication. No candidate flags were raised, and nothing in the source points to a split concern, a copied rule or a bypassed abstraction."
+        }
+      ],
+      "verdict": "pass"
+    },
+    {
+      "itemId": "r1|antipattern-nest__AP-FAT-CONTROLLER__0|FF-N02|src/order/order.controller.ts",
+      "runs": [
+        {
+          "runIndex": 0,
+          "valid": true,
+          "pass": false,
+          "confidence": 0.72,
+          "violations": [
+            {
+              "filePath": "src/order/order.controller.ts",
+              "message": "OrderController.create (lines 12-14) enforces the order rule `dto.quantity <= 0` -> throw 'Quantity must be positive'. This domain invariant belongs in the domain (OrderEntity) or application (OrderService) layer, not in a presentation controller."
+            }
+          ],
+          "reasoning": "The file is in the presentation layer. Most of it fits that role: NestJS @Controller/@Post/@Get/@Body/@Param decorators, a constructor that injects OrderService, and methods that hand work to the service. But OrderController.create checks the rule that an order's quantity must be positive (`dto.quantity <= 0`) and rejects the request itself. That rule is an invariant of the domain order, not a delivery concern. The domain entity or the application service should enforce it, for example inside OrderService.create or OrderEntity. As written, the rule lives in the controller and is skipped by any other caller of OrderService.create. The candidate flags (1 branch, 1 comparison, 1 validation throw) match the source. Confidence is moderate because a positivity check can also be read as input validation at the boundary. Even so, the rubric treats a domain invariant decided in a presentation file as a violation, and the usual NestJS way is a DTO validator or a domain-level check."
+        }
+      ],
+      "verdict": "fail"
+    },
+    {
+      "itemId": "r1|antipattern-nest__AP-FAT-CONTROLLER__0|FF-N02|src/order/order.service.ts",
+      "runs": [
+        {
+          "runIndex": 0,
+          "valid": true,
+          "pass": false,
+          "confidence": 0.9,
+          "violations": [
+            {
+              "filePath": "src/order/order.service.ts",
+              "message": "findOne throws NotFoundException from @nestjs/common. This is an HTTP 404 error that belongs to the delivery (presentation) layer, so an application service should not throw it. Use an error type the project declares itself, or a domain/application error, and let presentation map it to HTTP."
+            },
+            {
+              "filePath": "src/order/order.service.ts",
+              "message": "The constructor parameter field orderRepository has the type Repository<OrderEntity> from the typeorm package. That puts an ORM/framework type in an application-layer signature. Depend on a repository port the project declares itself instead."
+            }
+          ],
+          "reasoning": "src/order/order.service.ts is in the application layer and has two problems the rubric names.\n\n1. `findOne` throws `NotFoundException` from `@nestjs/common`. That is an HTTP error that maps to status 404, and it belongs to the delivery (presentation) layer. An application service should signal \"not found\" with a type the project declares itself, or with a domain or application error.\n\n2. The constructor parameter field `orderRepository` has the type `Repository<OrderEntity>`, which comes from the `typeorm` package. That puts a framework/ORM package type in an application signature.\n\nTwo things are allowed and were not counted against the file:\n- The `@Injectable` and `@InjectRepository` decorators. The rubric bans framework decorators only in domain files.\n- The calculation `total = quantity * unitPrice`. The rubric counts a business rule as a violation only in infrastructure or presentation files.\n\n`BadRequestException` is imported but never used in any declaration, so it was not counted either. No candidate flags were given."
+        }
+      ],
+      "verdict": "fail"
+    },
+    {
+      "itemId": "r1|antipattern-nest__AP-FAT-CONTROLLERn__0|FF-N02|src/order/order.controller.ts",
+      "runs": [
+        {
+          "runIndex": 0,
+          "valid": true,
+          "pass": true,
+          "confidence": 0.92,
+          "violations": [],
+          "reasoning": "This is a presentation-layer controller, and it only does presentation work. It uses NestJS routing decorators (@Controller, @Post, @Get, @Body, @Param), which belong in a presentation file. It takes HTTP input and passes it to OrderService without changing it. There is no business rule, calculation or decision here: it never computes quantity * unitPrice and never checks any invariant. It does not query a database or do any I/O itself. Returning OrderEntity is about import direction and how data reaches the client, not business logic in the wrong layer, and import direction is out of scope. No candidate flags were raised, and I found no violations."
+        }
+      ],
+      "verdict": "pass"
+    },
+    {
+      "itemId": "r1|antipattern-nest__AP-FRAMEWORK-LEAK__0|FF-N02|src/invoice/invoice.service.ts",
+      "runs": [
+        {
+          "runIndex": 0,
+          "valid": true,
+          "pass": false,
+          "confidence": 0.9,
+          "violations": [
+            {
+              "filePath": "src/invoice/invoice.service.ts",
+              "message": "Application method `InvoiceService.issue` takes the parameter `request?: Request`, and `Request` is from 'express'. That is a delivery-layer web framework type in an application signature. It is a violation even though the parameter is optional and unused."
+            },
+            {
+              "filePath": "src/invoice/invoice.service.ts",
+              "message": "The constructor field `invoiceRepository` has the type `Repository<InvoiceEntity>` from 'typeorm'. That is an ORM framework type (infrastructure layer) in an application field signature. It should be a repository port the project declares itself."
+            }
+          ],
+          "reasoning": "The candidate flag is correct. `issue` takes a `request?: Request` parameter, and `Request` comes from the `express` web framework. That type belongs to the presentation (delivery) layer. The rubric counts it even when the parameter is optional or unused, as it is here. The constructor parameter property `invoiceRepository` also has the type `Repository<InvoiceEntity>` from `typeorm`, an ORM framework package, so a field signature carries a framework type too. The `@Injectable` and `@InjectRepository` decorators fall under the rubric's decorator rule only for domain files, so they are not counted here."
+        }
+      ],
+      "verdict": "fail"
+    },
+    {
+      "itemId": "r1|antipattern-nest__AP-FRAMEWORK-LEAK__1|FF-N02|src/invoice/invoice.service.ts",
+      "runs": [
+        {
+          "runIndex": 0,
+          "valid": true,
+          "pass": false,
+          "confidence": 0.93,
+          "violations": [
+            {
+              "filePath": "src/invoice/invoice.service.ts",
+              "message": "Application method `countFor` declares the parameter `request?: Request`, typed with Express's HTTP request type ('express'). That type belongs to the presentation/delivery layer. It is a violation even though the parameter is optional and unused."
+            },
+            {
+              "filePath": "src/invoice/invoice.service.ts",
+              "message": "Constructor field `invoiceRepository: Repository<InvoiceEntity>` uses TypeORM's `Repository` type ('typeorm'). That is an ORM framework/infrastructure type in an application-layer field signature. It should be replaced by a repository port that the project declares itself."
+            }
+          ],
+          "reasoning": "src/invoice/invoice.service.ts belongs to the application layer. Its method `countFor(orderId: string, request?: Request)` has a parameter typed with `Request` from the 'express' package, which is the delivery layer's HTTP request. The rubric counts this as a failure even though the parameter is optional and unused, so the candidate flag is confirmed. Separately, the constructor field `invoiceRepository` is typed `Repository<InvoiceEntity>` from 'typeorm'. That is an ORM framework type in a field signature, which the rubric also forbids in an application file. The `@Injectable` and `@InjectRepository` decorators are not banned on their own in an application file, because the rubric bans framework decorators only in domain files. The two type violations are enough to fail the file."
+        }
+      ],
+      "verdict": "fail"
+    },
+    {
+      "itemId": "r1|antipattern-nest__AP-FRAMEWORK-LEAK__2|FF-N02|src/order/order.service.ts",
+      "runs": [
+        {
+          "runIndex": 0,
+          "valid": true,
+          "pass": false,
+          "confidence": 0.9,
+          "violations": [
+            {
+              "filePath": "src/order/order.service.ts",
+              "message": "OrderService.create has the parameter `request?: Request`, whose type comes from express (a web framework). An application signature should not use a delivery-layer request type, even when the parameter is optional and unused."
+            },
+            {
+              "filePath": "src/order/order.service.ts",
+              "message": "OrderService.create throws `BadRequestException` from @nestjs/common. This is an HTTP 400 error that belongs to the presentation/delivery layer. The application layer should throw a domain or application error instead."
+            },
+            {
+              "filePath": "src/order/order.service.ts",
+              "message": "OrderService.findOne throws `NotFoundException` from @nestjs/common. This is an HTTP 404 error that belongs to the presentation/delivery layer. The application layer should throw a domain or application error instead."
+            },
+            {
+              "filePath": "src/order/order.service.ts",
+              "message": "The constructor field `orderRepository` has the type `Repository<OrderEntity>` from typeorm, an ORM framework type. An application class should depend on a repository port that the project declares, not on the ORM's own type."
+            }
+          ],
+          "reasoning": "The file fails the rule. src/order/order.service.ts is in the application layer, but it contains things that belong to the presentation (delivery) layer and to infrastructure frameworks.\n\n1. The candidate flag is correct. `create` has an optional parameter `request?: Request` whose type comes from express, a web framework. The rubric counts this even though the parameter is optional and never used.\n2. The service throws `BadRequestException` and `NotFoundException` from @nestjs/common. These are HTTP errors, so they belong to the delivery layer, not the application layer. The flag did not catch these.\n3. The constructor field `orderRepository` has the type `Repository<OrderEntity>`, which comes from the typeorm package. That puts an ORM framework type in an application signature. The flag did not catch this either.\n\n`@Injectable` (dependency injection) is only banned for domain files, so it does not count against an application file. The `quantity <= 0` check and the `total` calculation are business logic, which is allowed in the application layer."
+        }
+      ],
+      "verdict": "fail"
+    },
+    {
+      "itemId": "r1|antipattern-nest__AP-FRAMEWORK-LEAK__3|FF-N02|src/order/order.service.ts",
+      "runs": [
+        {
+          "runIndex": 0,
+          "valid": true,
+          "pass": false,
+          "confidence": 0.93,
+          "violations": [
+            {
+              "filePath": "src/order/order.service.ts",
+              "message": "OrderService.findOne declares parameter `request?: Request` using the Express Request type ('express'). That is a web or transport type from the presentation layer, placed in an application signature. It is optional and unused, but still not allowed."
+            },
+            {
+              "filePath": "src/order/order.service.ts",
+              "message": "OrderService.create throws BadRequestException and OrderService.findOne throws NotFoundException. Both are HTTP errors from @nestjs/common that belong to the delivery or presentation layer. The application layer should throw its own errors, and presentation should map them to HTTP responses."
+            },
+            {
+              "filePath": "src/order/order.service.ts",
+              "message": "The constructor field `orderRepository: Repository<OrderEntity>` uses Repository from the 'typeorm' ORM package. That is a persistence-framework type from infrastructure, placed in an application field signature, instead of a port or interface the project declares itself."
+            }
+          ],
+          "reasoning": "src/order/order.service.ts is in the application layer. The source confirms the candidate flag. findOne has an optional parameter `request?: Request` from the 'express' package. That is a web framework type in an application signature, and the rubric fails it even when the parameter is optional and unused. The flags missed two more problems. First, the service throws BadRequestException and NotFoundException from @nestjs/common. These are HTTP errors that belong to the delivery or presentation layer. Second, the constructor field orderRepository is typed Repository<OrderEntity> from the 'typeorm' ORM package, which puts a persistence-framework type in an application field signature. The @Injectable and @InjectRepository decorators are not counted, because the rubric bans those only in domain files."
+        }
+      ],
+      "verdict": "fail"
+    },
+    {
+      "itemId": "r1|antipattern-nest__AP-FRAMEWORK-LEAKn__0|FF-N02|src/invoice/invoice.service.ts",
+      "runs": [
+        {
+          "runIndex": 0,
+          "valid": true,
+          "pass": false,
+          "confidence": 0.72,
+          "violations": [
+            {
+              "filePath": "src/invoice/invoice.service.ts",
+              "message": "The application service declares the field `invoiceRepository: Repository<InvoiceEntity>`. `Repository` comes from the 'typeorm' ORM framework package, so its type belongs to the infrastructure layer, and `@InjectRepository` from '@nestjs/typeorm' injects it. The rubric does not allow framework package types in application signatures. A port interface the project declares itself should replace it."
+            }
+          ],
+          "reasoning": "The unit is in the application layer. The rubric fails an application file that has a web, transport or framework package type in any signature, including field types. The constructor parameter property `private readonly invoiceRepository: Repository<InvoiceEntity>` is a class field, and its type `Repository` comes from the 'typeorm' package. That is an ORM/persistence framework type, which belongs to the infrastructure layer. It also ties the service's public construction contract to TypeORM instead of a port the project declares itself. The `@InjectRepository` decorator (from '@nestjs/typeorm') on the same parameter makes this concrete: it injects the TypeORM repository directly. The rubric forbids the `@Injectable` decorator only in domain files, so it is not counted against this file. The other signatures are fine. `IssueContextDto` is declared by the project, so it is not a framework type even though its name ends in Dto. `InvoiceEntity` and `Promise<number>` are not framework types. No candidate flags were raised. This is a common NestJS pattern, which is why confidence is moderate, but the rubric's literal wording covers it."
+        }
+      ],
+      "verdict": "fail"
+    },
+    {
+      "itemId": "r1|antipattern-nest__AP-FRAMEWORK-LEAKn__1|FF-N02|src/invoice/invoice.service.ts",
+      "runs": [
+        {
+          "runIndex": 0,
+          "valid": true,
+          "pass": false,
+          "confidence": 0.7,
+          "violations": [
+            {
+              "filePath": "src/invoice/invoice.service.ts",
+              "message": "Application-layer InvoiceService declares the constructor field/parameter `invoiceRepository: Repository<InvoiceEntity>`, a type from the 'typeorm' framework package (injected with `@InjectRepository` from '@nestjs/typeorm'). This puts an ORM framework (infrastructure) type in an application signature instead of a port the project declares itself."
+            }
+          ],
+          "reasoning": "src/invoice/invoice.service.ts is in the application layer. Its constructor declares a parameter property `private readonly invoiceRepository: Repository<InvoiceEntity>`. That makes `Repository` a field and parameter type, and it is imported from 'typeorm', a persistence framework. The rubric fails an application file for any web, transport or framework package type in a parameter, return or field signature, so this field breaks the rule. The `@InjectRepository` decorator from '@nestjs/typeorm' on the same parameter ties the signature to the ORM framework even more directly. `@Injectable` on its own is not a failure here, because the decorator clause applies only to domain files. `CountForContextDto` is an interface the project declares itself, so it is not a framework type even though its name ends in Dto and the parameter is optional and unused. No candidate flags were raised. The flags missed this violation."
+        }
+      ],
+      "verdict": "fail"
+    },
+    {
+      "itemId": "r1|antipattern-nest__AP-FRAMEWORK-LEAKn__2|FF-N02|src/order/order.service.ts",
+      "runs": [
+        {
+          "runIndex": 0,
+          "valid": true,
+          "pass": false,
+          "confidence": 0.9,
+          "violations": [
+            {
+              "filePath": "src/order/order.service.ts",
+              "message": "OrderService.create throws BadRequestException from @nestjs/common. This is an HTTP 400 error of the delivery layer, inside an application service. A domain or application error should be raised here and turned into an HTTP status in presentation."
+            },
+            {
+              "filePath": "src/order/order.service.ts",
+              "message": "OrderService.findOne throws NotFoundException from @nestjs/common. This is an HTTP 404 error of the delivery layer, inside an application service."
+            },
+            {
+              "filePath": "src/order/order.service.ts",
+              "message": "The constructor field orderRepository has the type Repository<OrderEntity> from the 'typeorm' package. This puts an ORM framework type (infrastructure) in an application-layer signature, when it should be a repository port the project declares itself."
+            }
+          ],
+          "reasoning": "The file is in the application layer, but it throws delivery-layer HTTP errors from @nestjs/common: BadRequestException (status 400) in create and NotFoundException (status 404) in findOne. That ties the use case to the HTTP transport. The rubric names this kind of error as a failure for application files.\n\nThe constructor field orderRepository also has the type Repository<OrderEntity> from the 'typeorm' package. That is a persistence-framework type in a field signature, which the rubric also lists as a failure for application files.\n\nThese things are fine:\n- @Injectable and @InjectRepository: the decorator restriction applies only to domain files.\n- CreateContextDto: the project declares this type itself, so it is not a framework type even though its name ends in 'Dto'.\n\nNo candidate flags were raised, so there were none to check."
+        }
+      ],
+      "verdict": "fail"
+    },
+    {
+      "itemId": "r1|antipattern-nest__AP-FRAMEWORK-LEAKn__3|FF-N02|src/order/order.service.ts",
+      "runs": [
+        {
+          "runIndex": 0,
+          "valid": true,
+          "pass": false,
+          "confidence": 0.92,
+          "violations": [
+            {
+              "filePath": "src/order/order.service.ts",
+              "message": "create() throws BadRequestException from @nestjs/common. This is an HTTP 400 error of the delivery/presentation layer, raised inside an application service. Use an application or domain error and map it to HTTP in the controller or a filter."
+            },
+            {
+              "filePath": "src/order/order.service.ts",
+              "message": "findOne() throws NotFoundException from @nestjs/common. This is an HTTP 404 error of the delivery/presentation layer, raised inside an application service."
+            },
+            {
+              "filePath": "src/order/order.service.ts",
+              "message": "The constructor field orderRepository is typed Repository<OrderEntity> from the typeorm package. This puts an ORM framework type (infrastructure) in an application-layer field signature instead of a port the project declares itself."
+            }
+          ],
+          "reasoning": "This application-layer service throws HTTP errors from @nestjs/common: BadRequestException in create() and NotFoundException in findOne(). Those errors belong to the presentation/delivery layer. The service also declares a constructor field typed Repository<OrderEntity> from the typeorm package, so a framework/ORM type appears in a field signature. The rubric forbids that in application files. The @Injectable decorator is a DI decorator, but the rubric forbids those only in domain files, so it is not counted. FindOneContextDto is declared by the project, so it is not a framework type. There were no candidate flags to check."
+        }
+      ],
+      "verdict": "fail"
+    },
+    {
+      "itemId": "r1|antipattern-nest__AP-PERSIST-IN-DOMAIN__0|FF-N02|src/order/domain/order.ts",
+      "runs": [
+        {
+          "runIndex": 0,
+          "valid": true,
+          "pass": false,
+          "confidence": 0.97,
+          "violations": [
+            {
+              "filePath": "src/order/domain/order.ts",
+              "message": "Domain class Order has the TypeORM decorator @Entity() (line 5, package 'typeorm'). This ORM persistence mapping belongs to the infrastructure layer, not the domain."
+            },
+            {
+              "filePath": "src/order/domain/order.ts",
+              "message": "Domain field Order.status has the TypeORM decorator @Column() (line 7, package 'typeorm'). This column mapping belongs to the infrastructure layer, not the domain."
+            }
+          ],
+          "reasoning": "src/order/domain/order.ts is in the domain layer, but its Order class has TypeORM persistence-mapping decorators: @Entity() on the class (line 5) and @Column() on the status field (line 7). Both are imported from the 'typeorm' package. Under the rubric, a domain file must not carry ORM decorators, even when the class logic is pure. Here the logic is pure: pay() and isPaid() are real domain invariants and do no I/O. Both candidate flags hold up against the source. I found nothing else wrong. OrderStatus is a type the project declares itself, and the constructor parameters are plain primitives."
+        }
+      ],
+      "verdict": "fail"
+    },
+    {
+      "itemId": "r1|antipattern-nest__AP-PERSIST-IN-DOMAINn__1|FF-N02|src/order/domain/order.ts",
+      "runs": [
+        {
+          "runIndex": 0,
+          "valid": true,
+          "pass": true,
+          "confidence": 0.95,
+          "violations": [],
+          "reasoning": "src/order/domain/order.ts is a plain domain entity. It declares an OrderStatus union type and an Order class with an invariant (\"Only open orders can be paid\") plus some query methods. It has no imports. It has no framework or ORM decorators and no base classes. Every signature uses only primitives or types the project declares itself. It does no persistence or I/O, and nothing in it belongs to HTTP or the delivery layer. Throwing a plain Error is fine for a domain file. Every declaration fits the domain layer."
+        }
+      ],
+      "verdict": "pass"
+    },
+    {
+      "itemId": "r1|antipattern-nest__AP-REPO-BYPASS__0|FF-N01|src/invoice#application",
+      "runs": [
+        {
+          "runIndex": 0,
+          "valid": true,
+          "pass": false,
+          "confidence": 0.9,
+          "violations": [
+            {
+              "filePath": "src/invoice/invoice.service.ts",
+              "message": "InvoiceService.issue calls TypeORM's global getRepository(InvoiceEntity) and uses it to create and save the invoice. This goes around the module's injected invoiceRepository, which countFor uses, so the class reaches persistence two inconsistent ways."
+            }
+          ],
+          "reasoning": "InvoiceService takes an injected Repository<InvoiceEntity> through its constructor (`this.invoiceRepository`), which is the module's own route to persistence. countFor uses that injected repository. The issue method does not. It calls TypeORM's global `getRepository(InvoiceEntity)` to get a separate repository from the global connection, then calls create and save on it. That gets around the module's own injected repository and its DI boundary. The code also reaches persistence two different ways in one class, so it does not use the module's abstractions consistently. Both candidate flags match the source."
+        }
+      ],
+      "verdict": "fail"
+    },
+    {
+      "itemId": "r1|antipattern-nest__AP-REPO-BYPASS__1|FF-N01|src/invoice#application",
+      "runs": [
+        {
+          "runIndex": 0,
+          "valid": true,
+          "pass": false,
+          "confidence": 0.9,
+          "violations": [
+            {
+              "filePath": "src/invoice/invoice.service.ts",
+              "message": "InvoiceService.countFor calls TypeORM's global getRepository(InvoiceEntity) instead of the injected this.invoiceRepository. This reaches persistence around the module's own repository, and the two methods of one class use two different ways to get the same repository."
+            }
+          ],
+          "reasoning": "InvoiceService has one cohesive concern, invoices. Its constructor injects a repository: `@InjectRepository(InvoiceEntity) private readonly invoiceRepository: Repository<InvoiceEntity>`. issue() uses that injected repository correctly. countFor() does not. It calls TypeORM's global `getRepository(InvoiceEntity)` and makes a second, local `invoiceRepository` that hides the injected one. This reaches persistence around the module's own repository. The rubric says this fails the rule: a class uses the ORM directly where the module's repository exists, and it bypasses the module's own abstraction. Both candidate flags are confirmed by the source at line 19. They point to the same bypass."
+        }
+      ],
+      "verdict": "fail"
+    },
+    {
+      "itemId": "r1|antipattern-nest__AP-REPO-BYPASS__2|FF-N01|src/order#application",
+      "runs": [
+        {
+          "runIndex": 0,
+          "valid": true,
+          "pass": false,
+          "confidence": 0.9,
+          "violations": [
+            {
+              "filePath": "src/order/order.service.ts",
+              "message": "OrderService.create calls typeorm's global `getRepository(OrderEntity)` and saves through it instead of the injected `this.orderRepository`. This bypasses the module's own repository abstraction, and the service reaches persistence in two different ways (findOne uses the injected repository)."
+            }
+          ],
+          "reasoning": "This fails the rubric because OrderService gets around its own repository. OrderService receives `orderRepository: Repository<OrderEntity>` through `@InjectRepository(OrderEntity)` in its constructor, and `findOne` uses it. `create`, however, calls the global `getRepository(OrderEntity)` from typeorm and saves through that local instance. It does not use the injected `this.orderRepository`. So the service uses the ORM directly even though the module's own repository is available, which the rubric names as a failure. Both candidate flags (service-direct-orm and repo-bypass at line 14) match the source. The file serves a single concern (orders), and no rule is written out twice."
+        }
+      ],
+      "verdict": "fail"
+    },
+    {
+      "itemId": "r1|antipattern-nest__AP-REPO-BYPASS__3|FF-N01|src/order#application",
+      "runs": [
+        {
+          "runIndex": 0,
+          "valid": true,
+          "pass": false,
+          "confidence": 0.93,
+          "violations": [
+            {
+              "filePath": "src/order/order.service.ts",
+              "message": "OrderService.findOne goes around the module's injected repository (this.orderRepository). It calls typeorm's global getRepository(OrderEntity) to reach persistence directly, so OrderService uses two different ways to access the data."
+            }
+          ],
+          "reasoning": "OrderService gets a Repository<OrderEntity> through its constructor (@InjectRepository) and uses it in create(). findOne() does not use it. Instead it calls typeorm's global getRepository(OrderEntity) to get a second, separate repository instance. That goes around the module's own injected repository, which is the bypass the rubric fails. Both candidate flags (service-direct-orm and repo-bypass at line 22) match the source. Apart from that, the file handles one concern (orders), and I found no rule written out twice."
+        }
+      ],
+      "verdict": "fail"
+    },
+    {
+      "itemId": "r1|antipattern-nest__AP-REPO-BYPASSn__0|FF-N01|src/invoice#application",
+      "runs": [
+        {
+          "runIndex": 0,
+          "valid": true,
+          "pass": true,
+          "confidence": 0.85,
+          "violations": [],
+          "reasoning": "The unit is one file, src/invoice/invoice.service.ts, and it deals only with invoices. Its two methods both use the injected `@InjectRepository(InvoiceEntity) Repository<InvoiceEntity>`: `issue` calls create and save, and `countFor` calls count. That injected repository is the module's own persistence access. The unit has no separate custom repository or port that the service goes around, and it never uses a raw database client, query builder or DataSource. No rule or validation appears twice. The local `const invoiceRepository = this.invoiceRepository` in `issue` only renames the same injected repository, so it is not a bypass. There were no candidate flags to check."
+        }
+      ],
+      "verdict": "pass"
+    },
+    {
+      "itemId": "r1|antipattern-nest__AP-REPO-BYPASSn__1|FF-N01|src/invoice#application",
+      "runs": [
+        {
+          "runIndex": 0,
+          "valid": true,
+          "pass": true,
+          "confidence": 0.85,
+          "violations": [],
+          "reasoning": "The unit passes. It is a single file, src/invoice/invoice.service.ts, and it covers one concern: issuing and counting invoices. The only way it reaches persistence is the injected `Repository<InvoiceEntity>`, `invoiceRepository`. The module has no custom repository or port that this would go around, so this injected TypeORM repository is the module's own persistence abstraction, and both methods use it. In `countFor`, the local `const invoiceRepository = this.invoiceRepository` is just another name for the same injected repository. It does not open a separate data-access path such as a DataSource, EntityManager or query builder. No rule or validation appears twice, and the deterministic checks raised no candidate flags. Import direction is out of scope."
+        }
+      ],
+      "verdict": "pass"
+    },
+    {
+      "itemId": "r1|antipattern-nest__AP-REPO-BYPASSn__2|FF-N01|src/order#application",
+      "runs": [
+        {
+          "runIndex": 0,
+          "valid": true,
+          "pass": true,
+          "confidence": 0.85,
+          "violations": [],
+          "reasoning": "The unit has a single file, src/order/order.service.ts, and it handles one concern: creating and looking up orders. It reaches persistence only through the injected TypeORM Repository<OrderEntity>. This is the standard NestJS repository abstraction. The module has no custom order repository or port that this injection could be going around. Nothing in the Outgoing or Neighbourhood lists shows one, and no file matches *.repository.ts. The quantity-must-be-positive check appears once. Nothing shows the same check written out again elsewhere in the unit. No file splits into unrelated concerns, and no file bypasses the module's own abstractions. The deterministic checks raised no candidate flags."
+        }
+      ],
+      "verdict": "pass"
+    },
+    {
+      "itemId": "r1|antipattern-nest__AP-REPO-BYPASSn__3|FF-N01|src/order#application",
+      "runs": [
+        {
+          "runIndex": 0,
+          "valid": true,
+          "pass": true,
+          "confidence": 0.85,
+          "violations": [],
+          "reasoning": "The unit is a single file, src/order/order.service.ts. It covers one concern: creating and loading orders. It reaches persistence only through the injected TypeORM Repository<OrderEntity> (orderRepository). Nothing in the source or neighbourhood shows a separate module-owned repository or port that this code goes around. No raw query client, DataSource or EntityManager is used. In findOne, the local `const orderRepository = this.orderRepository` just gives the same injected repository a second name, so it is not a bypass. The quantity validation appears only once, in create. No rule is duplicated and the file does not split into unrelated concerns. No candidate flags were raised."
+        }
+      ],
+      "verdict": "pass"
+    },
+    {
+      "itemId": "r1|base:antipattern-nest|FF-N01|src/invoice#application",
+      "runs": [
+        {
+          "runIndex": 0,
+          "valid": true,
+          "pass": true,
+          "confidence": 0.85,
+          "violations": [],
+          "reasoning": "The unit has one file, src/invoice/invoice.service.ts, and it handles a single concern: issuing invoices and counting them per order. It reaches persistence only through the injected TypeORM Repository<InvoiceEntity>. No custom invoice repository or port appears in the source or the neighbourhood, so this injected repository is the module's persistence abstraction and nothing goes around it. Each rule appears once. No rule, invariant or validation is copied. No candidate flags were raised, and I found no violations of my own."
+        }
+      ],
+      "verdict": "pass"
+    },
+    {
+      "itemId": "r1|base:antipattern-nest|FF-N01|src/order#application",
+      "runs": [
+        {
+          "runIndex": 0,
+          "valid": true,
+          "pass": true,
+          "confidence": 0.85,
+          "violations": [],
+          "reasoning": "The unit has one file, src/order/order.service.ts, and it covers a single concern: creating and looking up orders. The class OrderService reaches persistence only through the repository injected with @InjectRepository(OrderEntity) as Repository<OrderEntity>. The material shows no separate custom order repository or port that this injection would bypass, and the service has no raw query builder, DataSource or EntityManager. The quantity-must-be-positive check is written once, in create, and the not-found handling is written once, in findOne. Nothing in the unit duplicates a rule or invariant, and nothing bypasses the module's abstractions. No candidate flags were raised."
+        }
+      ],
+      "verdict": "pass"
+    },
+    {
+      "itemId": "r1|base:antipattern-nest|FF-N02|src/invoice/invoice.service.ts",
+      "runs": [
+        {
+          "runIndex": 0,
+          "valid": true,
+          "pass": false,
+          "confidence": 0.85,
+          "violations": [
+            {
+              "filePath": "src/invoice/invoice.service.ts",
+              "message": "The constructor field `invoiceRepository: Repository<InvoiceEntity>` uses the TypeORM `Repository` type (package 'typeorm') and is injected with `@InjectRepository` from '@nestjs/typeorm'. An ORM framework type in an application-layer signature belongs to infrastructure. Depend on a repository interface the project declares itself instead."
+            }
+          ],
+          "reasoning": "src/invoice/invoice.service.ts is in the application layer. The rubric bans types from web, transport or framework packages in any application signature, including fields. The constructor field `invoiceRepository` is typed `Repository<InvoiceEntity>`, which comes from the 'typeorm' package. That type belongs to the infrastructure (persistence) side, so the service is tied directly to TypeORM instead of a port it declares itself. The field is injected with `@InjectRepository` from '@nestjs/typeorm'. The methods also call ORM-specific APIs: `create`, `save`, and `count` with a TypeORM `where` option. The `@Injectable()` decorator is only forbidden in domain files, so it isn't counted here. No deterministic checks flagged anything; this finding comes from reading the source."
+        }
+      ],
+      "verdict": "fail"
+    },
+    {
+      "itemId": "r1|base:antipattern-nest|FF-N02|src/order/domain/order.ts",
+      "runs": [
+        {
+          "runIndex": 0,
+          "valid": true,
+          "pass": true,
+          "confidence": 0.97,
+          "violations": [],
+          "reasoning": "The file is a plain domain entity. Its OrderStatus type and Order class hold the order state and an invariant: an order can only be paid while it is open. It has no imports and no decorators or base classes. Every signature uses only primitives or types the project declares itself. It does no persistence, I/O or HTTP work. Its only error is a plain Error, not an HTTP error from the delivery layer. All of this fits the domain layer."
+        }
+      ],
+      "verdict": "pass"
+    },
+    {
+      "itemId": "r1|base:antipattern-nest|FF-N02|src/order/order.controller.ts",
+      "runs": [
+        {
+          "runIndex": 0,
+          "valid": true,
+          "pass": true,
+          "confidence": 0.93,
+          "violations": [],
+          "reasoning": "This is a presentation-layer controller, and it does only delivery work. It uses NestJS routing decorators (@Controller, @Post, @Get, @Body, @Param), which belong in this layer. Both methods hand the work straight to OrderService and pass the DTO fields through unchanged. The file contains no calculation, invariant, decision or persistence. Returning OrderEntity (a domain type) is a matter of layer dependency, which is out of scope here. No deterministic checks flagged anything."
+        }
+      ],
+      "verdict": "pass"
+    },
+    {
+      "itemId": "r1|base:antipattern-nest|FF-N02|src/order/order.service.ts",
+      "runs": [
+        {
+          "runIndex": 0,
+          "valid": true,
+          "pass": false,
+          "confidence": 0.93,
+          "violations": [
+            {
+              "filePath": "src/order/order.service.ts",
+              "message": "This application-layer service throws HTTP errors from @nestjs/common, which belong to the presentation layer: BadRequestException in create() and NotFoundException in findOne(). It should throw application or domain errors and let the controller map them to HTTP responses."
+            },
+            {
+              "filePath": "src/order/order.service.ts",
+              "message": "The constructor field orderRepository is typed as Repository<OrderEntity> from the typeorm package and injected with @InjectRepository from @nestjs/typeorm. That puts an ORM persistence type in an application-layer signature. Use a repository interface the project declares itself instead."
+            }
+          ],
+          "reasoning": "src/order/order.service.ts is in the application layer, so it should not depend on delivery-layer concerns or carry framework types in its signatures. It breaks this in two ways.\n\n1. **HTTP errors from the delivery layer.** It throws NestJS's HTTP-specific errors from `@nestjs/common`. `create()` throws `BadRequestException` when quantity is 0 or less. `findOne()` throws `NotFoundException` when no order is found. Both map to HTTP status codes (400 and 404), so they belong in the presentation layer. The service should throw its own application or domain errors and let the controller turn them into HTTP responses.\n\n2. **An ORM type in a signature.** The constructor parameter property `orderRepository` is typed as `Repository<OrderEntity>`, which comes from the `typeorm` package. The `@InjectRepository` decorator from `@nestjs/typeorm` binds it to TypeORM. That puts a persistence type in an application-layer signature. The service should depend on a repository interface that the project declares itself, with the TypeORM version in the infrastructure layer.\n\n`@Injectable()` is only forbidden for domain files under the rubric, so I did not count it as a violation here. No candidate flags were raised."
+        }
+      ],
+      "verdict": "fail"
+    },
+    {
+      "itemId": "r1|base:clean-architecture/clean|FF-N02|src/application/use-cases/ListOverdueLoansUseCase.ts",
+      "runs": [
+        {
+          "runIndex": 0,
+          "valid": true,
+          "pass": true,
+          "confidence": 0.93,
+          "violations": [],
+          "reasoning": "This application-layer use case fits its layer's role. Its dependencies come in through the constructor: LoanRepository, a domain-layer port, and Clock, an application-layer port. The execute method returns the project-declared LoanDto[] type. The method only coordinates work: it reads the current time from the clock, fetches active loans from the repository, uses the domain method loan.isOverdue to filter them, and maps the results to DTOs. No signature uses a framework, web or transport type. There are no decorators, no base class, no HTTP request, response or status code, and no direct I/O or database client. The overdue rule itself lives in the domain entity, so this file isn't taking on business logic."
+        }
+      ],
+      "verdict": "pass"
+    },
+    {
+      "itemId": "r1|base:hexagonal/clean|FF-N02|src/application/services/BookRoomService.ts",
+      "runs": [
+        {
+          "runIndex": 0,
+          "valid": true,
+          "pass": true,
+          "confidence": 0.9,
+          "violations": [],
+          "reasoning": "BookRoomService is a plain application use-case class. It implements the inbound port BookRoom and gets the outbound ports it needs (RoomRepository, BookingRepository, GuestRepository, PaymentGateway, NotificationSender) through its constructor. Every port is an interface the project declares itself. No signature uses a web, transport or framework type. The class has no decorators and extends no framework base class. It has no request or response objects, status codes or HTTP errors. It does no direct I/O: all persistence, payment and notification work goes through the ports. The domain owns the business decisions: capacity (room.fits), availability (AvailabilityChecker), pricing (PriceCalculator) and date parsing (DateRange.parse). The service only orchestrates them and maps the result to a BookingView DTO. The errors it throws are the domain's own BookingError. No candidate flags were raised, and I found no violations."
+        }
+      ],
+      "verdict": "pass"
+    },
+    {
+      "itemId": "r1|base:hexagonal/clean|FF-N02|src/application/services/CancelBookingService.ts",
+      "runs": [
+        {
+          "runIndex": 0,
+          "valid": true,
+          "pass": true,
+          "confidence": 0.9,
+          "violations": [],
+          "reasoning": "CancelBookingService fits the application-layer role. It is a use-case service that implements the inbound port CancelBooking. Its constructor takes only ports the project declares itself (BookingRepository, GuestRepository, PaymentGateway and NotificationSender). It coordinates loading the booking, calling the domain behaviour, refunding the payment, saving the booking and notifying the guest, and it returns a view model (BookingView) that the project declares. No signature uses a type from a framework, web or transport package. The class has no decorators or framework base classes. The file contains no HTTP request, response or status code, and it does no persistence or I/O except through the ports. The business rule for cancelling stays in the domain object, because the service just calls booking.cancel(). The service raises a domain BookingError, not an HTTP error. No candidate flags were raised."
+        }
+      ],
+      "verdict": "pass"
+    },
+    {
+      "itemId": "r1|base:hexagonal/clean|FF-N02|src/application/services/FindAvailableRoomsService.ts",
+      "runs": [
+        {
+          "runIndex": 0,
+          "valid": true,
+          "pass": true,
+          "confidence": 0.9,
+          "violations": [],
+          "reasoning": "The file passes. FindAvailableRoomsService is an application use-case service. It implements the inbound port FindAvailableRooms. Its constructor takes only the project's own outbound ports, RoomRepository and BookingRepository, with no DI decorators. Its find method uses plain types (string, number, Promise<AvailableRoom[]>), and AvailableRoom is a type the project declares itself. No signature or field uses a web, transport or framework type. There are no HTTP requests, responses, status codes or errors, and no direct persistence or I/O, because data access goes through the repository ports. The business decisions are left to the domain: room.fits(guests), AvailabilityChecker.isAvailable and DateRange.parse. The service only coordinates those calls and maps the results to an output DTO, which is what an application layer should do. No candidate flags were raised, and I found no violations of my own."
+        }
+      ],
+      "verdict": "pass"
+    },
+    {
+      "itemId": "r1|base:nestjs/clean|FF-N02|src/attendees/attendees.service.ts",
+      "runs": [
+        {
+          "runIndex": 0,
+          "valid": true,
+          "pass": true,
+          "confidence": 0.86,
+          "violations": [],
+          "reasoning": "src/attendees/attendees.service.ts is in the application layer, and it does what an application service should. It coordinates a use case: it builds an Attendee, which is a domain entity, saves it through the AttendeeRepository port and returns a plain projection. It uses the NestJS @Injectable and @Inject decorators for dependency injection. The rubric forbids those decorators only in domain files, so they are allowed here. No signature contains a web, transport or framework type. The parameter is CreateAttendeeDto, a DTO the project declares itself in the application layer. The return types are plain object literals. The service does not use HTTP request or response objects, status codes or HTTP exceptions. Its not-found error is DomainError, a type the project declares itself. There is no direct persistence or I/O, because data access goes through the repository abstraction. The deterministic checks raised no candidate flags."
+        }
+      ],
+      "verdict": "pass"
+    },
+    {
+      "itemId": "r1|base:nestjs/clean|FF-N02|src/domain/registration.ts",
+      "runs": [
+        {
+          "runIndex": 0,
+          "valid": true,
+          "pass": true,
+          "confidence": 0.93,
+          "violations": [],
+          "reasoning": "src/domain/registration.ts declares a plain domain entity named Registration. It has no decorators and no base class. Its fields and signatures use only `string`, `Date`, `boolean` and `void`. It does no persistence or I/O. It enforces one domain invariant: an already-cancelled registration can't be cancelled again. To do that it throws DomainError, a type the project declares in src/domain/domain-error.ts, so it isn't a framework type. Its 'conflict' argument is a string that names the kind of domain error. It isn't an HTTP status code or a delivery-layer exception. Everything in the file fits the domain layer."
+        }
+      ],
+      "verdict": "pass"
+    },
+    {
+      "itemId": "r1|base:nestjs/clean|FF-N02|src/registrations/registrations.service.ts",
+      "runs": [
+        {
+          "runIndex": 0,
+          "valid": true,
+          "pass": true,
+          "confidence": 0.85,
+          "violations": [],
+          "reasoning": "src/registrations/registrations.service.ts fits the application-layer role. RegistrationsService coordinates use cases: it loads aggregates through repository ports declared in the domain, hands the eligibility decision to the domain RegistrationPolicy and the entity methods (takeSeat, releaseSeat, cancel), saves the results, and maps them to application DTOs.\n\nThe NestJS @Injectable and @Inject decorators are dependency-injection wiring. The rubric bans framework decorators only in domain files. For application files it bans framework types in signatures, and no NestJS type appears in any parameter, return or field type.\n\nThe parameter and return types are all project-declared: RegisterAttendeeDto and RegistrationResponseDto are application DTOs, and the repository interfaces come from the domain. Errors are raised as the project's own DomainError, not HTTP exceptions, and the file uses no status codes or request/response objects. It does no direct persistence or I/O; it only calls repository ports."
+        }
+      ],
+      "verdict": "pass"
+    },
+    {
+      "itemId": "r1|base:nestjs/n03-service-injects-sibling-service|FF-N02|src/registrations/registrations.service.ts",
+      "runs": [
+        {
+          "runIndex": 0,
+          "valid": true,
+          "pass": true,
+          "confidence": 0.85,
+          "violations": [],
+          "reasoning": "RegistrationsService is an application-layer use-case service, and what it contains fits that role. It loads aggregates through repository interfaces declared in the domain layer and hands the business decision to the domain: RegistrationPolicy.assertCanRegister, workshop.takeSeat/releaseSeat and registration.cancel. It then saves the results and maps them to application DTOs.\n\nEvery parameter and return type is declared by the project itself: RegisterAttendeeDto, RegistrationResponseDto, WorkshopResponseDto and string ids. None of them come from a web, transport or framework package. There are no HTTP request, response, status-code or HTTP-exception types.\n\nThe only framework items are the NestJS @Injectable/@Inject decorators. Under the rubric, decorators are banned only in domain files, so they are allowed in an application service.\n\nErrors are raised with the project's own DomainError, not an HTTP exception. The service does no direct persistence or I/O; it only calls repository abstractions.\n\nThe clone flags point to duplicated code shared with WorkshopsService.findOne. That is a duplication issue, not a code-in-the-wrong-layer issue, so it is out of scope for this rule."
+        }
+      ],
+      "verdict": "pass"
+    },
+    {
+      "itemId": "r1|clean-architecture__clean__AP-FRAMEWORK-LEAKn__1|FF-N02|src/application/use-cases/ListOverdueLoansUseCase.ts",
+      "runs": [
+        {
+          "runIndex": 0,
+          "valid": true,
+          "pass": true,
+          "confidence": 0.88,
+          "violations": [],
+          "reasoning": "This file is an application use case that coordinates domain objects. It takes in a domain repository (LoanRepository) and an application port (Clock). It fetches the active loans, leaves the overdue decision to the domain entity (loan.isOverdue), and maps the results to application DTOs. Every type in its signatures is one the project declares itself: LoanRepository, Clock, LoanDto and ExecuteContextDto. None comes from a web, transport or framework package. ExecuteContextDto has an optional requestId string, so it sounds transport-related. But the rubric says a type the project declares itself is not a framework type, whatever its name. It is a plain interface, not an HTTP request or response. The file has no decorators, no framework base classes, no status codes, no HTTP errors and no direct I/O. It reaches persistence only through the repository abstraction, which is normal for this layer. No deterministic checks raised flags."
+        }
+      ],
+      "verdict": "pass"
+    },
+    {
+      "itemId": "r1|hexagonal__clean__AP-FRAMEWORK-LEAKn__0|FF-N02|src/application/services/BookRoomService.ts",
+      "runs": [
+        {
+          "runIndex": 0,
+          "valid": true,
+          "pass": true,
+          "confidence": 0.86,
+          "violations": [],
+          "reasoning": "BookRoomService is a use-case orchestrator in the application layer, and that fits its declared role. It gets entities through outbound port interfaces (RoomRepository, GuestRepository, BookingRepository, PaymentGateway, NotificationSender). It hands availability and pricing decisions to the domain services AvailabilityChecker and PriceCalculator, and the capacity check to the domain method room.fits. It signals failures with the domain BookingError and returns an application view model (BookingView). The optional parameter `context?: BookContextDto` has a type the file declares itself (an interface with an optional requestId string), so under the rubric it is not a framework or transport type. Nothing in the file is a framework decorator, a base class, an HTTP request or response, a status code or a direct I/O client."
+        }
+      ],
+      "verdict": "pass"
+    },
+    {
+      "itemId": "r1|hexagonal__clean__AP-FRAMEWORK-LEAKn__1|FF-N02|src/application/services/CancelBookingService.ts",
+      "runs": [
+        {
+          "runIndex": 0,
+          "valid": true,
+          "pass": true,
+          "confidence": 0.88,
+          "violations": [],
+          "reasoning": "CancelBookingService is an application service, and everything in it fits that role. It implements an inbound port (CancelBooking). Its four constructor dependencies are outbound port interfaces from the application layer. The cancel use case only coordinates: it loads the booking, calls the domain method booking.cancel(), refunds through PaymentGateway, saves, notifies through NotificationSender and returns a view. It has no framework or transport types, no HTTP requests or responses, no status codes and no decorators. It does not call the database or ORM directly. The optional parameter type CancelContextDto is declared in this same file with a single readonly requestId?: string field. The project declares it itself, so it is not a web or framework type even though its name ends in Dto. BookingError is a domain error, not an HTTP error. No candidate flags were raised."
+        }
+      ],
+      "verdict": "pass"
+    },
+    {
+      "itemId": "r1|hexagonal__clean__AP-FRAMEWORK-LEAKn__2|FF-N02|src/application/services/FindAvailableRoomsService.ts",
+      "runs": [
+        {
+          "runIndex": 0,
+          "valid": true,
+          "pass": true,
+          "confidence": 0.8,
+          "violations": [],
+          "reasoning": "The file passes the rule. It is an application service that coordinates domain objects and outbound ports, which is what the application layer is for. Its only signature types are its own ports (FindAvailableRooms, RoomRepository, BookingRepository), domain types (DateRange, AvailabilityChecker) and plain TypeScript types (string, number, Promise). The optional `context?: FindContextDto` parameter could look like delivery-layer leakage because of its name. But FindContextDto is declared in this file as a plain interface with an optional `requestId` string. It does not come from any web, transport or framework package, and the rubric says a type the project declares itself is not a framework type, whatever its name. It is also not an HTTP request or response object. The class has no decorators and no base classes. It does no direct persistence or I/O: data access goes through repository ports. The deterministic checks raised no flags."
+        }
+      ],
+      "verdict": "pass"
+    },
+    {
+      "itemId": "r1|nestjs__clean__AP-FRAMEWORK-LEAKn__0|FF-N02|src/attendees/attendees.service.ts",
+      "runs": [
+        {
+          "runIndex": 0,
+          "valid": true,
+          "pass": true,
+          "confidence": 0.85,
+          "violations": [],
+          "reasoning": "This is an application-layer file. No signature uses a type from a web, transport or framework package. `create` takes `CreateAttendeeDto` and `CreateContextDto`, and the project declares both itself. Both methods return plain object types. The `@Injectable` and `@Inject` decorators come from `@nestjs/common`. The rubric bans framework decorators only in domain files, so they are allowed here. The service does no persistence or I/O directly; it goes through the domain-declared `AttendeeRepository` port. When an attendee is missing it throws the domain's own `DomainError`, not an HTTP exception or status code. It contains no request or response objects from the delivery layer. Its work is use-case orchestration: build the entity, save it, find it and map it to a result. That fits the application role. No candidate flags were raised."
+        }
+      ],
+      "verdict": "pass"
+    },
+    {
+      "itemId": "r1|nestjs__clean__AP-FRAMEWORK-LEAKn__1|FF-N02|src/attendees/attendees.service.ts",
+      "runs": [
+        {
+          "runIndex": 0,
+          "valid": true,
+          "pass": true,
+          "confidence": 0.86,
+          "violations": [],
+          "reasoning": "The file is an application-layer service that coordinates domain objects through a repository interface. Its signatures use only types the project declares itself: CreateAttendeeDto, FindOneContextDto (declared in this file), AttendeeRepository, and plain object return types. No web, transport or framework type appears in any parameter, return or field. @Injectable and @Inject from @nestjs/common are dependency-injection decorators, and the rubric bans those only in domain files, not application files. The 'not-found' error is the project's own DomainError, not an HTTP exception or status code. There is no direct persistence or I/O, and generating ids and building response objects are application-level orchestration."
+        }
+      ],
+      "verdict": "pass"
+    },
+    {
+      "itemId": "r1|nestjs__clean__AP-FRAMEWORK-LEAKn__2|FF-N02|src/registrations/registrations.service.ts",
+      "runs": [
+        {
+          "runIndex": 0,
+          "valid": true,
+          "pass": true,
+          "confidence": 0.85,
+          "violations": [],
+          "reasoning": "This is an application file, so the rubric's fail conditions are framework or transport types in any signature, and delivery-layer request, response, status-code or HTTP-error constructs. None of these is present.\n\n- **Signatures:** every type in the signatures is either a domain repository interface or a DTO the project declares itself: `RegisterAttendeeDto`, `RegistrationResponseDto` and `RegisterContextDto`. The optional `context` parameter uses `RegisterContextDto`, an interface declared in this file. A type the project declares is not a framework type, whatever its name.\n- **Errors:** failures are raised as the project's `DomainError('not-found', ...)`, not as NestJS HTTP exceptions such as `NotFoundException`.\n- **Decorators:** `@Injectable` and `@Inject` from `@nestjs/common` are dependency-injection decorators. The rubric forbids those only in domain files, not in application files.\n- **Business rules:** the service orchestrates rather than deciding rules itself. Eligibility is checked by `RegistrationPolicy.assertCanRegister`, and seat counting stays in the domain entity (`workshop.takeSeat()` / `releaseSeat()`). Loading and saving go through repository abstractions, which is the normal application-service role.\n- **Candidate flags:** there were none to verify."
+        }
+      ],
+      "verdict": "pass"
+    },
+    {
+      "itemId": "r1|nestjs__clean__AP-FRAMEWORK-LEAKn__3|FF-N02|src/registrations/registrations.service.ts",
+      "runs": [
+        {
+          "runIndex": 0,
+          "valid": true,
+          "pass": true,
+          "confidence": 0.85,
+          "violations": [],
+          "reasoning": "This application-layer file runs the use case: it loads data through domain repository interfaces, calls RegistrationPolicy and the entity methods, saves, and maps the result to application DTOs. The NestJS @Injectable/@Inject decorators are framework annotations, but the rubric bans them only in domain files. Every parameter and return type (RegisterAttendeeDto, RegistrationResponseDto, CancelContextDto) is declared by the project. CancelContextDto is declared locally with only an optional requestId string, so it is not a web or framework type. Errors use the project's DomainError, not HTTP exceptions or status codes. No signature contains a transport or framework type, and nothing here belongs to another layer."
+        }
+      ],
+      "verdict": "pass"
+    },
+    {
+      "itemId": "r1|nestjs__clean__AP-PERSIST-IN-DOMAINn__0|FF-N02|src/domain/registration.ts",
+      "runs": [
+        {
+          "runIndex": 0,
+          "valid": true,
+          "pass": true,
+          "confidence": 0.93,
+          "violations": [],
+          "reasoning": "The file passes. src/domain/registration.ts is a plain domain entity. It has no decorators, no base class and no framework or transport types in any signature. It does no persistence or I/O. Its only import is the project's own DomainError from the domain layer. Its methods carry real domain rules: the isActive state, and the rule that a registration that is already cancelled cannot be cancelled again. The 'conflict' passed to DomainError is a string label for a project-defined error type. It is not an HTTP status code or a delivery-layer exception. The deterministic checks raised no candidate flags, and I found no violation of my own."
+        }
+      ],
+      "verdict": "pass"
+    },
+    {
+      "itemId": "r1|nestjs__n03-service-injects-sibling-service__AP-FRAMEWORK-LEAKn__2|FF-N02|src/registrations/registrations.service.ts",
+      "runs": [
+        {
+          "runIndex": 0,
+          "valid": true,
+          "pass": true,
+          "confidence": 0.86,
+          "violations": [],
+          "reasoning": "The application-layer file fits its role. It uses the NestJS DI decorators @Injectable and @Inject, which the rubric bans only in domain files. Every parameter and return type is a type the project declares itself (RegisterAttendeeDto, WorkshopOfContextDto, WorkshopResponseDto, RegistrationResponseDto, string). No web, transport or framework type appears in any signature. Errors are the project's DomainError, not HTTP exceptions or status codes. Business decisions are delegated to RegistrationPolicy and the domain entity methods (takeSeat, releaseSeat, cancel). Persistence goes through repository interfaces declared in the domain. The clone flag points to near-duplicate code between workshopOf and WorkshopsService.findOne, but duplication is not a layer-role problem, and workshopOf just delegates to another application service."
+        }
+      ],
+      "verdict": "pass"
+    },
+    {
+      "itemId": "r2|base:e1/claude-haiku-4-5.order-fulfilment.minimal-prose.run-2|FF-N01|src/application/usecases",
+      "runs": [
+        {
+          "runIndex": 0,
+          "valid": true,
+          "pass": false,
+          "confidence": 0.68,
+          "violations": [
+            {
+              "filePath": "src/application/usecases/UpdateOrderStatusUseCase.ts",
+              "message": "The `validStatuses` array copies the OrderStatus status set from the domain Order entity and appears to leave out 'cancelled'. The entity's transitionTo should be the single place that checks status changes."
+            },
+            {
+              "filePath": "src/application/usecases/PlaceOrderUseCase.ts",
+              "message": "The private `mapToDto` holds the Order-to-OrderDto mapping. The same mapping is copied in CancelOrderUseCase, ListOrdersByStatusUseCase and UpdateOrderStatusUseCase instead of being one shared mapper."
+            },
+            {
+              "filePath": "src/application/usecases/CancelOrderUseCase.ts",
+              "message": "`execute` builds the OrderDto with an inline copy of the Order-to-OrderDto mapping instead of using a shared mapper."
+            },
+            {
+              "filePath": "src/application/usecases/ListOrdersByStatusUseCase.ts",
+              "message": "`execute` builds the OrderDto with an inline copy of the Order-to-OrderDto mapping instead of using a shared mapper."
+            }
+          ],
+          "reasoning": "The module is cohesive: it holds order and stock use cases, and all of them reach persistence through the domain repositories (OrderRepository, ProductRepository) and StockManager. There is no persistence bypass. However, a rule is duplicated. UpdateOrderStatusUseCase writes out its own list of valid statuses (`validStatuses`), a copy of the OrderStatus definition in the domain Order entity. The copy also appears to leave out 'cancelled', so it may already have drifted. The entity's own transitionTo method is the abstraction meant to govern status changes. Separately, the Order-to-OrderDto mapping is copied inline in four use cases instead of living in one shared mapper."
+        }
+      ],
+      "verdict": "fail"
+    },
+    {
+      "itemId": "r2|base:e1/claude-haiku-4-5.order-fulfilment.none.run-0|FF-N02|src/application/CancelOrderUseCase.ts",
+      "runs": [
+        {
+          "runIndex": 0,
+          "valid": true,
+          "pass": true,
+          "confidence": 0.9,
+          "violations": [],
+          "reasoning": "CancelOrderUseCase is a plain application-layer class. Its constructor injects Catalog and OrderRepository, both domain types from src/domain. The execute(orderId: string): Order signature uses only primitive and domain types. The class has no decorators, base classes, framework, web or transport types, HTTP request or response objects, status codes or HTTP errors. The cancellation decision is delegated to the domain function canCancelOrder. The use case only coordinates the work: it loads the order, checks the rule, releases stock and saves. The plain JavaScript Error it throws is not a delivery-layer HTTP error. Nothing in the file belongs to a different layer kind. No candidate flags were raised."
+        }
+      ],
+      "verdict": "pass"
+    },
+    {
+      "itemId": "r2|base:e1/claude-opus-5-5.order-fulfilment.full-aac.run-1|FF-N02|src/application/catalogue/ListStockLevelsUseCase.ts",
+      "runs": [
+        {
+          "runIndex": 0,
+          "valid": true,
+          "pass": true,
+          "confidence": 0.95,
+          "violations": [],
+          "reasoning": "The file is a plain application use case. It defines a ListStockLevels port interface and a ListStockLevelsUseCase class. The class depends on a domain repository interface through its constructor, gets products with findAll() and maps them to application DTOs. No signature uses a framework, web or transport type. The class has no decorators or framework base classes. It returns no HTTP request, response or status code and does no direct I/O. Everything it does is orchestration, which is the application layer's job."
+        }
+      ],
+      "verdict": "pass"
+    },
+    {
+      "itemId": "r2|base:e1/claude-opus-5-5.task-management.full-aac.run-0|FF-N02|src/application/use-cases/ListProjectTasksUseCase.ts",
+      "runs": [
+        {
+          "runIndex": 0,
+          "valid": true,
+          "pass": true,
+          "confidence": 0.93,
+          "violations": [],
+          "reasoning": "The file is a plain application-layer use case. It coordinates the domain repository ports (ProjectRepository, TaskRepository), applies the domain value-object parser parseTaskStatus, throws the domain NotFoundError, and maps the results to application DTOs. All of its signatures use types the project declares itself. It has no web, transport or framework types, no HTTP request, response or status codes, no decorators, and no direct persistence or I/O. Its constructor injects repository interfaces, which is normal for an application layer. NotFoundError comes from the domain, not from the HTTP delivery layer. The deterministic checks raised no candidate flags, and I found no violations."
+        }
+      ],
+      "verdict": "pass"
+    },
+    {
+      "itemId": "r2|base:e1/claude-sonnet-5-5.order-fulfilment.full-aac.run-0|FF-N01|src/application",
+      "runs": [
+        {
+          "runIndex": 0,
+          "valid": true,
+          "pass": true,
+          "confidence": 0.85,
+          "violations": [],
+          "reasoning": "The files form one concern: the application-layer use cases for orders and stock, plus the DTOs they return. Every use case reaches persistence only through the domain ports, OrderRepository and ProductRepository. None uses a database or ORM client directly.\n\nThe \"order not found\" check is written once, in `requireOrder`. The advance, cancel and get use cases all call it rather than repeating it.\n\nOrder-state validation calls the shared domain function `isOrderState`. Stock is reserved and released through the domain functions `reserveStock` and `releaseStock`, not reimplemented inline. Every order use case maps its result through the shared `toOrderDto`.\n\nTwo small inconsistencies do not amount to duplicating a rule:\n- `ListStockLevelsUseCase` builds `StockLevelDto` inline. No shared stock mapper exists, so nothing is being bypassed.\n- The place and cancel use cases each build their own product-by-id Map. That is a convenience structure, not an invariant.\n\nThere were no candidate flags to check."
+        }
+      ],
+      "verdict": "pass"
+    },
+    {
+      "itemId": "r2|base:e1/claude-sonnet-5-5.order-fulfilment.full-aac.run-1|FF-N01|src/application",
+      "runs": [
+        {
+          "runIndex": 0,
+          "valid": true,
+          "pass": true,
+          "confidence": 0.8,
+          "violations": [],
+          "reasoning": "The src/application module passes. It holds the application use cases for the order/stock bounded context, the DTOs they return and an order mapper. Every use case reaches persistence only through the domain repository ports (OrderRepository, ProductRepository) or the StockAllocationService. None uses a database, ORM or query client directly.\n\nAll four order use cases build their output with the shared toOrderDto mapper rather than mapping inline. Status validation in AdvanceOrderUseCase and ListOrdersUseCase calls the one shared isOrderStatus definition from the domain, so the rule is not copied. Only the error messages differ.\n\nTwo use cases repeat a small 'findById or throw NOT_FOUND' guard. This is a short lookup step at the application level, not a business rule or invariant written out twice, so it does not reach the rubric's bar for duplication.\n\nGetStockLevelsUseCase maps products to StockLevelDto inline. No product mapper exists in the module, so it bypasses nothing. Placing StockLevelDto in order-dto.ts is a small naming quirk, not a split into unrelated concerns: stock reservation and release are part of the same ordering flow."
+        }
+      ],
+      "verdict": "pass"
+    },
+    {
+      "itemId": "r2|base:e1/claude-sonnet-5-5.order-fulfilment.minimal-prose.run-1|FF-N01|src/application",
+      "runs": [
+        {
+          "runIndex": 0,
+          "valid": true,
+          "pass": true,
+          "confidence": 0.82,
+          "violations": [],
+          "reasoning": "The src/application module passes. All seven files serve one concern: order and stock use cases plus the DTOs and mappers they share. Every use case reaches persistence only through the domain repository ports (OrderRepository, ProductRepository). None uses a database, ORM or query client directly. Order changes go through the domain's own methods (order.cancel(), order.moveTo(target)), stock goes through StockReservationService, and IDs come from IdGenerator, so no file skips the module's abstractions. DTO mapping is defined once in dtos.ts (toOrderDto, toStockLevelDto) and every use case calls it rather than copying it. Three use cases repeat the guard `if (!order) throw new NotFoundError(...)` after findById: CancelOrderUseCase, GetOrderUseCase and TransitionOrderUseCase. That is a lookup idiom, not a business rule or invariant written out twice, so it is not counted as a violation. The `customerId is required` check appears only in PlaceOrderUseCase. No candidate flags were raised, and no violations were found."
+        }
+      ],
+      "verdict": "pass"
+    },
+    {
+      "itemId": "r2|base:e1/claude-sonnet-5-5.order-fulfilment.minimal-prose.run-2|FF-N02|src/application/get-order-use-case.ts",
+      "runs": [
+        {
+          "runIndex": 0,
+          "valid": true,
+          "pass": true,
+          "confidence": 0.9,
+          "violations": [],
+          "reasoning": "GetOrderUseCase handles the use case: it loads the order through the domain OrderRepository port and maps the result to an application DTO. Every type in its signatures belongs to the project: OrderRepository, OrderDto and string. It uses no framework decorators or base classes, and no web or transport types. NotFoundError comes from src/domain/errors, so the project declares it itself. It is a domain or application error, not an HTTP error of the delivery layer. The file runs no queries, makes no HTTP calls and reads no files. It only calls through the injected repository port. No candidate flags were raised."
+        }
+      ],
+      "verdict": "pass"
+    },
+    {
+      "itemId": "r2|base:e1/gpt-5.6-terra.order-fulfilment.minimal-prose.run-2|FF-N01|src/application",
+      "runs": [
+        {
+          "runIndex": 0,
+          "valid": true,
+          "pass": false,
+          "confidence": 0.78,
+          "violations": [
+            {
+              "filePath": "src/application/order-service.ts",
+              "message": "OrderService.combineItems copies the Order aggregate's item rules (non-empty items; product id and positive whole-number quantity) and throws the same messages that appear at src/domain/order.ts:27 and :30. The invariant is written out in two places instead of being enforced once in the domain."
+            }
+          ],
+          "reasoning": "The module holds one concern: application services for the catalogue and for orders, plus their DTOs. Both services reach persistence only through the domain repository ports, `ProductRepository` and `OrderRepository`, and nothing touches a database or ORM directly. However, the private `combineItems` method in `OrderService` (`src/application/order-service.ts`) repeats the order-item checks: the list must not be empty, and each item needs a product id and a positive whole-number quantity. It throws the exact error messages that also appear at `src/domain/order.ts:27` and `:30`. Those checks are an invariant of the `Order` aggregate. `OrderService` then passes the combined items to `new Order(...)`, which checks them again. So the invariant is written out in two places as a copy, not one shared definition the service calls. The two candidate flags are consistent with the visible source: the two messages appear in `order-service.ts` at lines 65 and 69, and the flags place matching strings at `order.ts:27` and `:30`. That domain file is not shown here, so this is the one point I could not check directly. A smaller issue: `placeOrder` checks stock before calling `product.reserve`, and that may also repeat a check inside `Product`. No flag names it and the domain source is not shown, so I only note it and do not count it. The not-found check for products is written twice inside `order-service.ts` (lines 18–19 and 55–56) instead of in a private helper like `requireOrder`. It is a small copy within one file. `catalogue-service.ts` and `dtos.ts` are consistent with the module's abstractions."
+        }
+      ],
+      "verdict": "fail"
+    },
+    {
+      "itemId": "r2|base:hexagonal/clean|FF-N02|src/application/services/CancelBookingService.ts",
+      "runs": [
+        {
+          "runIndex": 0,
+          "valid": true,
+          "pass": true,
+          "confidence": 0.9,
+          "violations": [],
+          "reasoning": "CancelBookingService fits the application-layer role. It is a use-case service that implements the inbound port CancelBooking. Its constructor takes only ports the project declares itself (BookingRepository, GuestRepository, PaymentGateway and NotificationSender). It coordinates loading the booking, calling the domain behaviour, refunding the payment, saving the booking and notifying the guest, and it returns a view model (BookingView) that the project declares. No signature uses a type from a framework, web or transport package. The class has no decorators or framework base classes. The file contains no HTTP request, response or status code, and it does no persistence or I/O except through the ports. The business rule for cancelling stays in the domain object, because the service just calls booking.cancel(). The service raises a domain BookingError, not an HTTP error. No candidate flags were raised."
+        }
+      ],
+      "verdict": "pass"
+    },
+    {
+      "itemId": "r2|base:hexagonal/clean|FF-N02|src/domain/services/AvailabilityChecker.ts",
+      "runs": [
+        {
+          "runIndex": 0,
+          "valid": true,
+          "pass": true,
+          "confidence": 0.96,
+          "violations": [],
+          "reasoning": "AvailabilityChecker is a plain domain service. It has no decorators and no base class. It imports only domain model types the project declares itself (Booking, DateRange, Room). Its one method holds a pure business rule: a room is available when no active booking for it overlaps the requested stay. Nothing in the file does persistence, I/O, HTTP or framework work. This matches the role of the domain layer."
+        }
+      ],
+      "verdict": "pass"
+    },
+    {
+      "itemId": "r2|base:layered/clean|FF-N02|src/business/model/Order.ts",
+      "runs": [
+        {
+          "runIndex": 0,
+          "valid": true,
+          "pass": true,
+          "confidence": 0.92,
+          "violations": [],
+          "reasoning": "src/business/model/Order.ts is a plain domain entity, and it belongs in the domain layer. Its constructor checks a domain rule: an order needs at least one line. It works out the subtotal and total with the domain value object Money, and it controls how its status changes (cancel() refuses an order that is already cancelled). Every type in its signatures comes from the project or the language: string, Date, readonly OrderLine[], Money, and a status string union. It has no decorators, base classes, framework or ORM types, persistence, or I/O. It raises BusinessError, an error type the project declares in src/business/errors. The codes 'INVALID' and 'CONFLICT' are the project's own business error codes, not HTTP status codes or errors from a delivery framework. There were no candidate flags to check."
+        }
+      ],
+      "verdict": "pass"
+    },
+    {
+      "itemId": "r2|base:nestjs/clean|FF-N02|src/domain/workshop.ts",
+      "runs": [
+        {
+          "runIndex": 0,
+          "valid": true,
+          "pass": true,
+          "confidence": 0.95,
+          "violations": [],
+          "reasoning": "src/domain/workshop.ts is a plain domain entity, and it fits the domain layer. Its fields and signatures use only primitives (string, number) and the built-in Date. It has no decorators, no base class and no framework or ORM types. It does no persistence or I/O, and it has no HTTP request, response or status codes. Its job is to protect domain invariants: the capacity must be at least 1, a seat cannot be taken when the workshop is full, and the seat count cannot go below zero. These rules belong in the domain layer. The errors it throws are DomainError, a type the project declares in src/domain/domain-error.ts. Its kind labels ('invalid', 'conflict') are domain error categories, not HTTP status codes or HTTP errors. The deterministic checks raised no candidate flags."
+        }
+      ],
+      "verdict": "pass"
+    },
+    {
+      "itemId": "r2|e1__claude-haiku-4-5.order-fulfilment.minimal-prose.run-2__AP-DUP-RULE__0|FF-N01|src/application/usecases",
+      "runs": [
+        {
+          "runIndex": 0,
+          "valid": true,
+          "pass": false,
+          "confidence": 0.86,
+          "violations": [
+            {
+              "filePath": "src/application/usecases/ListOrdersByStatusUseCase.ts",
+              "message": "`validateExecute(request: CreateOrderRequest)` copies the 'Order must contain at least one line' rule from `PlaceOrderUseCase.execute`, and it is a create-order concern unrelated to listing orders by status."
+            },
+            {
+              "filePath": "src/application/usecases/PlaceOrderUseCase.ts",
+              "message": "Its inline 'at least one line' check is copied in `ListOrdersByStatusUseCase.validateExecute`. The same validation exists in two places."
+            },
+            {
+              "filePath": "src/application/usecases/CancelOrderUseCase.ts",
+              "message": "Writes the Order-to-OrderDto mapping inline. It duplicates `PlaceOrderUseCase.mapToDto` instead of using one shared mapper."
+            },
+            {
+              "filePath": "src/application/usecases/UpdateOrderStatusUseCase.ts",
+              "message": "Writes the Order-to-OrderDto mapping inline. It duplicates `PlaceOrderUseCase.mapToDto` instead of using one shared mapper."
+            }
+          ],
+          "reasoning": "Every use case reaches persistence only through the domain repository ports (`OrderRepository` and `ProductRepository`), so there is no persistence bypass. The rubric still fails on duplication.\n\n1. `ListOrdersByStatusUseCase` declares `validateExecute(request: CreateOrderRequest)`. It repeats the \"Order must contain at least one line\" rule from `PlaceOrderUseCase.execute`. This is a second copy of the rule, not a call to a shared definition. It is also a create-order concern placed in a listing use case.\n2. The order-to-`OrderDto` mapping (`id`, `status`, `lines`, `createdAt.toISOString()`) is written inline in `CancelOrderUseCase`, `ListOrdersByStatusUseCase` and `UpdateOrderStatusUseCase`. It also appears as the private `mapToDto` in `PlaceOrderUseCase`. That is four copies instead of one shared mapper.\n\n`UpdateOrderStatusUseCase` also hard-codes a `validStatuses` array, which may re-encode the `OrderStatus` type or the entity's transition rules. I can't confirm this because `Order.ts` isn't in the material provided, so it is not counted as a violation."
+        }
+      ],
+      "verdict": "fail"
+    },
+    {
+      "itemId": "r2|e1__claude-haiku-4-5.order-fulfilment.minimal-prose.run-2__AP-DUP-RULEn__0|FF-N01|src/application/usecases",
+      "runs": [
+        {
+          "runIndex": 0,
+          "valid": true,
+          "pass": false,
+          "confidence": 0.68,
+          "violations": [
+            {
+              "filePath": "src/application/usecases/ListOrdersByStatusUseCase.ts",
+              "message": "The query use case ListOrdersByStatusUseCase has `validateExecute(request: CreateOrderRequest)`, which calls PlaceOrderUseCase's `assertExecuteRule`. This puts a place-order validation, an unrelated write-side concern, into a list-by-status use case."
+            },
+            {
+              "filePath": "src/application/usecases/PlaceOrderUseCase.ts",
+              "message": "`export function assertExecuteRule` exposes PlaceOrderUseCase's own request rule as a free function that other use cases import. The rule leaves its use case's boundary instead of living in one dedicated validation place."
+            },
+            {
+              "filePath": "src/application/usecases/UpdateOrderStatusUseCase.ts",
+              "message": "Hard-codes `validStatuses: OrderStatus[] = ['placed','paid','packed','shipped','delivered']` before calling `order.transitionTo`. This probably copies the status list and transition rule from the Order domain type instead of relying on the entity. It also repeats the inline Order->OrderDto mapping."
+            }
+          ],
+          "reasoning": "Most of the module is cohesive. Each order and stock use case gets persistence through the injected domain repositories (OrderRepository, ProductRepository) and no use case calls a database or ORM directly. Two things break that consistency.\n\n1. ListOrdersByStatusUseCase is a read-only query, but it also has a method `validateExecute(request: CreateOrderRequest)`. That method imports `assertExecuteRule` from PlaceOrderUseCase.ts, which is the place-order rule that an order must have at least one line. So a write-side validation for a different use case sits inside a query class. It is a call to one shared definition, not a copy, so it is not duplication. It does split the file into two unrelated concerns. It also means PlaceOrderUseCase.ts exports its own validation rule as a free function for other use cases to import, so that file is no longer only a use case.\n\n2. Every use case writes out the same Order-to-OrderDto mapping (id, status, lines, createdAt.toISOString()). PlaceOrderUseCase has it as the private `mapToDto`, and the other three repeat it inline instead of sharing one mapping. Also, UpdateOrderStatusUseCase hard-codes `validStatuses: OrderStatus[] = ['placed','paid','packed','shipped','delivered']` before calling `order.transitionTo`. This probably restates the status list and transition rule that the Order entity defines. Order.ts is not in the material, so I can't confirm that one.\n\nThe main finding is the misplaced validation in ListOrdersByStatusUseCase together with the rule exported from PlaceOrderUseCase. The repeated mapping and the status list are supporting evidence."
+        }
+      ],
+      "verdict": "fail"
+    },
+    {
+      "itemId": "r2|e1__claude-haiku-4-5.order-fulfilment.none.run-0__AP-FRAMEWORK-LEAK__0|FF-N02|src/application/CancelOrderUseCase.ts",
+      "runs": [
+        {
+          "runIndex": 0,
+          "valid": true,
+          "pass": false,
+          "confidence": 0.95,
+          "violations": [
+            {
+              "filePath": "src/application/CancelOrderUseCase.ts",
+              "message": "CancelOrderUseCase.execute (line 9) takes a parameter `request?: Request` typed with Request from 'express', a web-framework/delivery-layer type. An application-layer use case signature must not carry transport types, even when the parameter is optional and unused. Remove the parameter, or replace it with a type the project declares itself."
+            }
+          ],
+          "reasoning": "The candidate flag holds up against the source. CancelOrderUseCase is in the application layer, and its method execute(orderId: string, request?: Request) takes Request, a type from the express web framework. The rubric says a web or framework type in any application-layer signature is a violation even when the parameter is optional or unused, and here it is both. The rest of the file fits the application role: it gets the order, checks the domain rule canCancelOrder, releases stock through the Catalog port, and saves through the OrderRepository port."
+        }
+      ],
+      "verdict": "fail"
+    },
+    {
+      "itemId": "r2|e1__claude-haiku-4-5.order-fulfilment.none.run-0__AP-FRAMEWORK-LEAKn__0|FF-N02|src/application/CancelOrderUseCase.ts",
+      "runs": [
+        {
+          "runIndex": 0,
+          "valid": true,
+          "pass": true,
+          "confidence": 0.9,
+          "violations": [],
+          "reasoning": "CancelOrderUseCase does the job of an application layer. It coordinates domain objects: it loads the order through the domain OrderRepository port, asks the domain whether the order can be cancelled (canCancelOrder), releases stock through the domain Catalog, and saves the order. No signature uses a type from a web, transport or framework package. The optional `context?: ExecuteContextDto` parameter uses a type this file declares itself, which only holds a requestId string. Under the rubric, a type the project declares is not a framework type, whatever its name. The file has no decorators, no framework base classes, no HTTP status codes or delivery-layer errors, and no direct I/O: it throws plain Error. The cancellation rule stays in the domain. No deterministic check raised a flag."
+        }
+      ],
+      "verdict": "pass"
+    },
+    {
+      "itemId": "r2|e1__claude-opus-5-5.order-fulfilment.full-aac.run-1__AP-FRAMEWORK-LEAK__0|FF-N02|src/application/catalogue/ListStockLevelsUseCase.ts",
+      "runs": [
+        {
+          "runIndex": 0,
+          "valid": true,
+          "pass": false,
+          "confidence": 0.96,
+          "violations": [
+            {
+              "filePath": "src/application/catalogue/ListStockLevelsUseCase.ts",
+              "message": "The application-layer use case ListStockLevelsUseCase.execute declares the parameter `request?: Request`. `Request` comes from the 'express' package and belongs to the web/delivery layer. Application signatures must not use web framework types, even when the parameter is optional and unused."
+            }
+          ],
+          "reasoning": "The candidate flag is correct. ListStockLevelsUseCase.execute is in the application layer, and its signature takes an optional parameter `request?: Request`. That `Request` type comes from the 'express' web framework. The rubric says a web, transport or framework type in any application-layer signature is a violation, even if the parameter is optional or unused. Here it is both. Everything else in the file fits the application layer: the DTO, the mapper, the domain repository port and the ListStockLevels interface."
+        }
+      ],
+      "verdict": "fail"
+    },
+    {
+      "itemId": "r2|e1__claude-opus-5-5.order-fulfilment.full-aac.run-1__AP-FRAMEWORK-LEAKn__0|FF-N02|src/application/catalogue/ListStockLevelsUseCase.ts",
+      "runs": [
+        {
+          "runIndex": 0,
+          "valid": true,
+          "pass": true,
+          "confidence": 0.86,
+          "violations": [],
+          "reasoning": "The file passes. Everything in it fits the application layer. It declares a use case interface and a class that takes a domain repository port, plus a DTO type that the project defines itself. execute() calls the repository and maps the results to application DTOs. The optional, unused parameter `context?: ExecuteContextDto` might look like a delivery-layer request type. But ExecuteContextDto is declared in this same file and holds only an optional string `requestId`. It doesn't come from a web, transport or framework package. The rubric says a type the project declares itself is not a framework type, whatever its name. The file has no decorators, no framework base classes, no HTTP request, response or status types, and no persistence or I/O calls. No candidate flags were raised."
+        }
+      ],
+      "verdict": "pass"
+    },
+    {
+      "itemId": "r2|e1__claude-opus-5-5.task-management.full-aac.run-0__AP-FRAMEWORK-LEAK__0|FF-N02|src/application/use-cases/ListProjectTasksUseCase.ts",
+      "runs": [
+        {
+          "runIndex": 0,
+          "valid": true,
+          "pass": false,
+          "confidence": 0.97,
+          "violations": [
+            {
+              "filePath": "src/application/use-cases/ListProjectTasksUseCase.ts",
+              "message": "The application-layer ListProjectTasksUseCase.execute takes `request?: Request` (line 16), and Request is the Express HTTP request type from the 'express' package. That type belongs to the delivery/web framework (infrastructure/presentation), not to the application layer. A use case signature must not expose it, even as an optional or unused parameter."
+            }
+          ],
+          "reasoning": "This file is in the application layer, but its execute method signature uses a type from the Express web framework (an HTTP request). The rubric says a framework type in any signature of an application file is a failure, even when the parameter is optional or unused. Here the `request` parameter is both: the method never reads it. The candidate flag is correct. Everything else fits the application role: the use case coordinates the domain repository interfaces, throws a domain NotFoundError, parses the status with a domain value object and maps the results to application DTOs."
+        }
+      ],
+      "verdict": "fail"
+    },
+    {
+      "itemId": "r2|e1__claude-opus-5-5.task-management.full-aac.run-0__AP-FRAMEWORK-LEAKn__0|FF-N02|src/application/use-cases/ListProjectTasksUseCase.ts",
+      "runs": [
+        {
+          "runIndex": 0,
+          "valid": true,
+          "pass": true,
+          "confidence": 0.88,
+          "violations": [],
+          "reasoning": "The file holds one application use case. It uses repositories (abstractions declared in the domain), throws a domain NotFoundError, converts the status with a domain value-object parser and maps results to application DTOs. The optional `context?: ExecuteContextDto` parameter might look like a delivery-layer request object, but ExecuteContextDto is declared in this same file as a plain interface with an optional `requestId: string`. The rubric says a type the project declares itself is not a framework type, so it is not a web or transport package type. Nothing in the file uses a framework decorator, an HTTP request or response, a status code, an HTTP error or direct I/O. No candidate flags were raised, and I found no violations of my own."
+        }
+      ],
+      "verdict": "pass"
+    },
+    {
+      "itemId": "r2|e1__claude-sonnet-5-5.order-fulfilment.full-aac.run-0__AP-DUP-RULE__0|FF-N01|src/application",
+      "runs": [
+        {
+          "runIndex": 0,
+          "valid": true,
+          "pass": false,
+          "confidence": 0.88,
+          "violations": [
+            {
+              "filePath": "src/application/get-order-use-case.ts",
+              "message": "GetOrderUseCase.validateExecute copies the order-state validation (isOrderState check that throws DomainError 'validation' with the message 'Unknown order state: ...') from ListOrdersByStateUseCase.execute instead of sharing one definition. It also places a state-listing concern inside the get-by-id use case."
+            },
+            {
+              "filePath": "src/application/list-orders-by-state-use-case.ts",
+              "message": "ListOrdersByStateUseCase.execute writes out the same order-state validation as GetOrderUseCase.validateExecute, so one rule now lives in two places."
+            }
+          ],
+          "reasoning": "The module is mostly cohesive. It holds the order and stock use cases, a shared DTO mapper (toOrderDto) and a shared lookup guard (requireOrder). Persistence goes only through OrderRepository and ProductRepository. However, the order-state validation is written out twice. GetOrderUseCase.validateExecute copies the same isOrderState check and DomainError(\"validation\", `Unknown order state: ${state}`) throw that ListOrdersByStateUseCase.execute contains, instead of both calling one shared definition. The method also does not fit GetOrderUseCase, which loads an order by id and never handles a state, so a ListOrdersByState concern has leaked into it. No candidate flags were raised."
+        }
+      ],
+      "verdict": "fail"
+    },
+    {
+      "itemId": "r2|e1__claude-sonnet-5-5.order-fulfilment.full-aac.run-1__AP-DUP-RULE__0|FF-N01|src/application",
+      "runs": [
+        {
+          "runIndex": 0,
+          "valid": true,
+          "pass": false,
+          "confidence": 0.85,
+          "violations": [
+            {
+              "filePath": "src/application/advance-order-use-case.ts",
+              "message": "AdvanceOrderUseCase.validateExecute copies the status-query validation (the isOrderStatus check plus DomainError(\"VALIDATION\", \"Query parameter 'status' must be a valid order status\")) word for word from ListOrdersUseCase.execute, instead of calling one shared definition. This method concerns a list-query parameter, not advancing an order."
+            },
+            {
+              "filePath": "src/application/list-orders-use-case.ts",
+              "message": "ListOrdersUseCase.execute holds the same status-validation guard and message that AdvanceOrderUseCase.validateExecute repeats. The rule is written out in two places rather than defined once."
+            }
+          ],
+          "reasoning": "The module is cohesive overall. It holds order and stock use cases, DTOs and a mapper. It reaches persistence only through the domain ports OrderRepository and ProductRepository, and every order use case uses the shared toOrderDto mapper. However, the same status validation is written out twice. AdvanceOrderUseCase.validateExecute is a word-for-word copy of the guard in ListOrdersUseCase.execute: it checks `!isOrderStatus(status)` and throws DomainError(\"VALIDATION\", \"Query parameter 'status' must be a valid order status\"). Neither file calls a shared definition. The copied method also has nothing to do with advancing an order: its message refers to a list-query parameter, and AdvanceOrderUseCase.execute already runs its own inline isOrderStatus check with a different message. This kind of copy is what the rubric's Fail criterion describes."
+        }
+      ],
+      "verdict": "fail"
+    },
+    {
+      "itemId": "r2|e1__claude-sonnet-5-5.order-fulfilment.minimal-prose.run-1__AP-DUP-RULE__0|FF-N01|src/application",
+      "runs": [
+        {
+          "runIndex": 0,
+          "valid": true,
+          "pass": false,
+          "confidence": 0.88,
+          "violations": [
+            {
+              "filePath": "src/application/list-stock-levels-use-case.ts",
+              "message": "validateExecute repeats the customerId-required check from PlaceOrderUseCase.execute as a separate copy, not a shared definition. It also adds order-placement request validation (PlaceOrderRequest) to the stock-level listing use case, mixing an unrelated concern into this class."
+            }
+          ],
+          "reasoning": "Most of the module is cohesive. Each use case reaches persistence only through the domain repository ports (OrderRepository, ProductRepository) and maps results through the shared toOrderDto/toStockLevelDto in dtos.ts. One file breaks the rubric. ListStockLevelsUseCase declares validateExecute(request: PlaceOrderRequest), which repeats the customerId-required check that PlaceOrderUseCase.execute already makes. It is a separate copy, not a call to one shared definition. It also puts order-placement request validation inside the stock-level read use case, which mixes two unrelated concerns in that class. No candidate flags were given. I found no direct database or ORM access."
+        }
+      ],
+      "verdict": "fail"
+    },
+    {
+      "itemId": "r2|e1__claude-sonnet-5-5.order-fulfilment.minimal-prose.run-1__AP-DUP-RULEn__0|FF-N01|src/application",
+      "runs": [
+        {
+          "runIndex": 0,
+          "valid": true,
+          "pass": true,
+          "confidence": 0.68,
+          "violations": [],
+          "reasoning": "The src/application module is a cohesive set of order/stock application use cases. Each one reaches persistence only through domain ports injected into it (OrderRepository, ProductRepository, StockReservationService, IdGenerator). No direct DB, ORM or query client is used. DTO mapping is centralised in dtos.ts (toOrderDto, toStockLevelDto) and used the same way everywhere. The customerId validation rule is defined once, in assertExecuteRule in place-order-use-case.ts. ListStockLevelsUseCase.validateExecute calls that shared function instead of copying it, and the rubric explicitly excludes calls to one shared definition from duplication. One oddity: the stock-listing use case exposes an order-request validation method, which is a minor placement smell. It is not a copy of the rule and not a bypass of the module's abstractions, so I do not treat it as a split into unrelated concerns. A stricter reading of \"one cohesive concern\" could fail list-stock-levels-use-case.ts for this, which is why confidence is moderate."
+        }
+      ],
+      "verdict": "pass"
+    },
+    {
+      "itemId": "r2|e1__claude-sonnet-5-5.order-fulfilment.minimal-prose.run-2__AP-FRAMEWORK-LEAK__0|FF-N02|src/application/get-order-use-case.ts",
+      "runs": [
+        {
+          "runIndex": 0,
+          "valid": true,
+          "pass": false,
+          "confidence": 0.95,
+          "violations": [
+            {
+              "filePath": "src/application/get-order-use-case.ts",
+              "message": "GetOrderUseCase.execute(orderId: string, request?: Request) has a parameter typed with Request from the 'express' package. This is a type from the web/delivery layer, and it appears in an application-layer signature. That is not allowed even though the parameter is optional and unused. Remove the parameter so the use case does not depend on HTTP."
+            }
+          ],
+          "reasoning": "GetOrderUseCase is in the application layer. Its execute method signature has the parameter `request?: Request`, and `Request` is imported from the express package. That is a web-framework type from the delivery layer. The rubric says a framework type in an application signature fails even when the parameter is optional or unused. Here the parameter is both optional and unused. The candidate flag is correct. NotFoundError and OrderRepository are types the project declares in its own domain layer, so they are not framework types. Throwing a domain error from the use case is fine."
+        }
+      ],
+      "verdict": "fail"
+    },
+    {
+      "itemId": "r2|e1__claude-sonnet-5-5.order-fulfilment.minimal-prose.run-2__AP-FRAMEWORK-LEAKn__0|FF-N02|src/application/get-order-use-case.ts",
+      "runs": [
+        {
+          "runIndex": 0,
+          "valid": true,
+          "pass": true,
+          "confidence": 0.88,
+          "violations": [],
+          "reasoning": "This file passes. GetOrderUseCase is a plain application-layer use case. Its constructor takes a repository interface that the domain layer defines. Its execute method returns OrderDto, which the application layer declares itself. Nothing in its signatures comes from a web, transport or framework package. The optional context parameter is ExecuteContextDto, which the project declares in this same file, so it is not a framework request type. Its requestId field is a plain optional string. The rubric says a type the project declares itself is not a framework type, whatever its name. NotFoundError comes from src/domain/errors, so it is a domain error, not an HTTP error or status code. The file has no decorators, no framework base classes, and no direct persistence or I/O: it only calls the repository through its interface. No checks flagged anything, and I found no violations."
+        }
+      ],
+      "verdict": "pass"
+    },
+    {
+      "itemId": "r2|e1__gpt-5.6-terra.order-fulfilment.minimal-prose.run-2__AP-DUP-RULE__0|FF-N01|src/application",
+      "runs": [
+        {
+          "runIndex": 0,
+          "valid": true,
+          "pass": false,
+          "confidence": 0.88,
+          "violations": [
+            {
+              "filePath": "src/application/catalogue-service.ts",
+              "message": "validateCombineItems copies the 'An order requires at least one item' guard from OrderService.combineItems instead of calling one shared definition. It also puts order-item validation inside the product catalogue service, which splits that service across two concerns."
+            },
+            {
+              "filePath": "src/application/order-service.ts",
+              "message": "combineItems writes out the empty-items and positive-quantity checks itself. CatalogueService.validateCombineItems has a copy of the empty-items check, and the flags indicate that the domain Order (src/domain/order.ts:27 and :30) has the same checks too."
+            }
+          ],
+          "reasoning": "Both services reach persistence only through the domain repository ports (ProductRepository and OrderRepository), and dtos.ts is a cohesive set of DTOs. However, the rule that an order needs at least one item is written out twice inside the unit. CatalogueService.validateCombineItems repeats the guard from OrderService.combineItems instead of calling one shared definition. The method also adds an order-item concern to the product catalogue service, so CatalogueService no longer serves a single concern. The candidate flags support this: the same literal appears at catalogue-service.ts:25 and order-service.ts:65. Those flags also suggest that combineItems repeats item validation that already exists in the domain (src/domain/order.ts:27 and :30). I could not see that file, so I treat this as a likely second copy of the rule rather than a confirmed one."
+        }
+      ],
+      "verdict": "fail"
+    },
+    {
+      "itemId": "r2|e1__gpt-5.6-terra.order-fulfilment.minimal-prose.run-2__AP-DUP-RULEn__0|FF-N01|src/application",
+      "runs": [
+        {
+          "runIndex": 0,
+          "valid": true,
+          "pass": false,
+          "confidence": 0.72,
+          "violations": [
+            {
+              "filePath": "src/application/order-service.ts",
+              "message": "assertCombineItemsRule copies the domain Order invariant 'An order requires at least one item' (also at src/domain/order.ts:27) instead of relying on that single definition."
+            },
+            {
+              "filePath": "src/application/order-service.ts",
+              "message": "combineItems copies the per-item validation (productId present, positive integer quantity, same message as src/domain/order.ts:30), so the same invariant exists in both application and domain."
+            },
+            {
+              "filePath": "src/application/catalogue-service.ts",
+              "message": "validateCombineItems puts order-item validation (assertCombineItemsRule from order-service) in CatalogueService, mixing an order rule into the catalogue concern."
+            }
+          ],
+          "reasoning": "Persistence goes only through the injected repository ports (ProductRepository, OrderRepository), and dtos.ts is consistent. Order-service.ts fails the duplication criterion. It writes out the Order invariants as its own code instead of leaving them to the domain Order: the non-empty items check in assertCombineItemsRule and the per-item productId/positive-integer quantity check in combineItems. The candidate flags show the same error messages in src/domain/order.ts at lines 27 and 30. That points to the same guards existing in the Order constructor, so each invariant lives in two places. OrderService then passes the combined items to `new Order(...)`, which validates them again. I could not see the domain source, so this conclusion depends on those flagged lines being validation code, which the identical error texts strongly suggest. There is also a smaller cohesion problem: CatalogueService exposes validateCombineItems, an order rule taken from order-service.ts. Because it calls the shared function, it is not a copy, but it puts order validation inside the catalogue concern."
+        }
+      ],
+      "verdict": "fail"
+    },
+    {
+      "itemId": "r2|hp__hexagonal__AP-FRAMEWORK-LEAKn__v04|FF-N02|src/application/services/CancelBookingService.ts",
+      "runs": [
+        {
+          "runIndex": 0,
+          "valid": true,
+          "pass": true,
+          "confidence": 0.88,
+          "violations": [],
+          "reasoning": "CancelBookingService is an application service, and everything in it fits that role. It implements an inbound port (CancelBooking). Its four constructor dependencies are outbound port interfaces from the application layer. The cancel use case only coordinates: it loads the booking, calls the domain method booking.cancel(), refunds through PaymentGateway, saves, notifies through NotificationSender and returns a view. It has no framework or transport types, no HTTP requests or responses, no status codes and no decorators. It does not call the database or ORM directly. The optional parameter type CancelContextDto is declared in this same file with a single readonly requestId?: string field. The project declares it itself, so it is not a web or framework type even though its name ends in Dto. BookingError is a domain error, not an HTTP error. No candidate flags were raised."
+        }
+      ],
+      "verdict": "pass"
+    },
+    {
+      "itemId": "r2|hp__hexagonal__v04|FF-N02|src/application/services/CancelBookingService.ts",
+      "runs": [
+        {
+          "runIndex": 0,
+          "valid": true,
+          "pass": false,
+          "confidence": 0.93,
+          "violations": [
+            {
+              "filePath": "src/application/services/CancelBookingService.ts",
+              "message": "cancel() throws `new HttpError(404, ...)`. HttpError comes from src/adapters/inbound/http/HttpTypes, the presentation/delivery layer. An HTTP status code and HTTP error don't belong in an application service. It should throw an application or domain not-found error and let the HTTP adapter map it to a 404."
+            }
+          ],
+          "reasoning": "This is an application-layer service, but it throws an HTTP error with status code 404. HttpError comes from the inbound HTTP adapter, which is the presentation/delivery layer. The rubric fails any application file that uses an HTTP error or status code from the delivery layer. A use-case service should signal \"not found\" with an application or domain error and let the HTTP adapter turn that into a 404. Everything else in the file fits the application role: the constructor takes the project's own outbound port interfaces, the method returns BookingView (an application type), and the method coordinates domain and port calls without containing any business rules of its own."
+        }
+      ],
+      "verdict": "fail"
+    },
+    {
+      "itemId": "r2|hp__hexagonal__v07|FF-N02|src/domain/services/AvailabilityChecker.ts",
+      "runs": [
+        {
+          "runIndex": 0,
+          "valid": true,
+          "pass": false,
+          "confidence": 0.95,
+          "violations": [
+            {
+              "filePath": "src/domain/services/AvailabilityChecker.ts",
+              "message": "Domain class AvailabilityChecker has the @Injectable() decorator from @nestjs/common. This is a framework dependency-injection annotation that belongs to the framework/infrastructure (composition) layer, not the domain, even though the class logic is pure."
+            }
+          ],
+          "reasoning": "The file sits in the domain layer, and the rubric says a domain file must not carry a framework dependency-injection decorator, even when the class logic is pure. AvailabilityChecker has the @Injectable() decorator from @nestjs/common, which is a NestJS DI annotation. That belongs to the framework or wiring layer (infrastructure, or application/config composition), not to the domain. Apart from that, the isAvailable signature uses only project-declared domain types (Room, DateRange, Booking) and returns boolean. The overlap logic is a genuine domain rule with no I/O. No candidate flags were raised, so this violation was found by reading the source directly."
+        }
+      ],
+      "verdict": "fail"
+    },
+    {
+      "itemId": "r2|hp__layered__v07|FF-N02|src/business/model/Order.ts",
+      "runs": [
+        {
+          "runIndex": 0,
+          "valid": true,
+          "pass": false,
+          "confidence": 0.95,
+          "violations": [
+            {
+              "filePath": "src/business/model/Order.ts",
+              "message": "Domain class Order has the TypeORM decorator @Entity('orders') (package 'typeorm'), which maps the class to a database table. Persistence mapping belongs in the infrastructure (persistence) layer, not in a business/domain entity."
+            }
+          ],
+          "reasoning": "Order.ts belongs to the business layer, which is the domain kind. The class is decorated with @Entity('orders') from the typeorm package. That decorator maps the class to a database table, so it does persistence-mapping work that belongs in infrastructure. The rubric fails a domain file for an ORM decorator even when the class logic is pure. The rest of the file fits the domain role. It checks that an order has at least one line, works out the subtotal and total, and controls cancellation. It uses only project types (BusinessError, Money, OrderLine), so it carries no request, response, HTTP or I/O concerns. The candidate flag is confirmed."
+        }
+      ],
+      "verdict": "fail"
+    },
+    {
+      "itemId": "r2|hp__nestjs__v05|FF-N02|src/domain/workshop.ts",
+      "runs": [
+        {
+          "runIndex": 0,
+          "valid": true,
+          "pass": false,
+          "confidence": 0.97,
+          "violations": [
+            {
+              "filePath": "src/domain/workshop.ts",
+              "message": "Domain class Workshop has the TypeORM decorator @Entity('workshops') (package typeorm). This decorator maps the class to a database table, which is persistence work for the infrastructure layer, not the domain layer."
+            }
+          ],
+          "reasoning": "The rule fails. The domain class Workshop has the TypeORM decorator @Entity('workshops'), which maps the class to a database table. That is persistence mapping, and it belongs to the infrastructure layer. The rubric says a domain file fails if it carries an ORM decorator, even when the class logic is pure. The rest of the class fits the domain layer: the capacity check, takeSeat, releaseSeat and seatsLeft are all domain rules, and DomainError is a type the project declares itself. The candidate flag is confirmed."
+        }
+      ],
+      "verdict": "fail"
+    }
+  ]
+}

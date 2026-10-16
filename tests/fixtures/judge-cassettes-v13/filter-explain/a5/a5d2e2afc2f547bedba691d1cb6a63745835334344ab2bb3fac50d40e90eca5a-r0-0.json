@@ -1,0 +1,36 @@
+{
+  "attempts": 1,
+  "cliVersion": "2.1.294",
+  "configListingSha256": "47aa04258852fab9a706f3f0c14cee22306d69fbb6fdfbde8c11854bd54997bc",
+  "durationMs": 9284,
+  "effort": "high",
+  "functionId": "filter-explain",
+  "ignoredOptions": [
+    "maxTokens"
+  ],
+  "isolationProbeSha256": "97a2e2d0af1100c13c55e028c1a0c71f069093c3d08705af122aaeb302f1a641",
+  "key": "a5d2e2afc2f547bedba691d1cb6a63745835334344ab2bb3fac50d40e90eca5a-r0-0",
+  "model": "claude-opus-5-5",
+  "outcome": {
+    "kind": "valid"
+  },
+  "parsedVerdict": null,
+  "prompt": "## Finding\nRule: FF-DT03\nRule intent: Value objects are immutable.\nType: CUSTOM_value-object-immutability\nSeverity: critical; tier: blocking\nFile: src/ordering/domain/value-objects/Quantity.ts\nMessage: Value object Quantity in src/ordering/domain/value-objects/Quantity.ts is mutable through Quantity.value (public mutable field), Quantity.setValue (mutator method)\nDiscriminator: Quantity | Quantity.value (public mutable field), Quantity.setValue (mutator method)\n\n## Layer model\n- domain (kind: domain): src/*/domain/**, src/shared-kernel/**\n- application (kind: application): src/*/application/**\n- infrastructure (kind: infrastructure): src/*/infrastructure/**, src/*/acl/**\n- api (kind: presentation): src/*/api/**\n- composition (kind: application): src/main.ts\n\n## Source (line-numbered)\n=====SOURCE-BEGIN src/ordering/domain/value-objects/Quantity.ts (layer domain)=====\n 1| /** Value object: a positive whole quantity. */\n 2| export class Quantity {\n 3|   // VIOLATION (value-object immutability): the field is not readonly and a public setter changes it.\n 4|   constructor(public value: number) {\n 5|     if (!Number.isInteger(value) || value <= 0) throw new Error('Quantity must be a positive integer');\n 6|   }\n 7| \n 8|   plus(other: Quantity): Quantity {\n 9|     return new Quantity(this.value + other.value);\n10|   }\n11| \n12|   setValue(value: number): void {\n13|     this.value = value;\n14|   }\n15| }\n=====SOURCE-END=====\n\n## Instructions\nDecide confirm or dismiss. Confirm: the cited code has the problem the rule is meant to catch, in this project and layer model. Dismiss: the rule fired, but the code does not have that problem (a false positive of the rule's mechanism, a threshold artefact on sound code, or a case the style allows). Measurements stated in the finding (counts, ratios, missing files) are correct as measurements; judge what they mean for this code. explanation: one paragraph that justifies the decision from the code, citing file paths and line numbers exactly as numbered below. fix: one concrete change: for a confirm, how to fix the code; for a dismiss, what (if anything) the rule or its configuration should change. citations: the line ranges your explanation relies on; every one must name a file shown below and lines that exist.\n",
+  "provider": "claude-cli",
+  "recordedAt": "2026-10-16T00:00:37.544Z",
+  "repetition": 0,
+  "requestHash": "a5d2e2afc2f547bedba691d1cb6a63745835334344ab2bb3fac50d40e90eca5a",
+  "resolvedModel": "claude-opus-5-5",
+  "response": "{\"is_error\":false,\"modelUsage\":{\"claude-opus-5-5\":{\"inputTokens\":2,\"outputTokens\":600}},\"result\":\"{\\\"decision\\\":\\\"confirm\\\",\\\"explanation\\\":\\\"Quantity is documented as a value object (src/ordering/domain/value-objects/Quantity.ts line 1) and sits in the domain layer. It is not immutable. The constructor parameter property `public value: number` on line 4 is a public field without `readonly`, so any caller can reassign it. `setValue` on lines 12-14 is a public mutator that overwrites `this.value`, and it skips the positive-integer check from line 5. That means a Quantity can end up holding 0, a negative number or a fraction even though its own rule forbids this. `plus` on lines 8-10 shows the intended style: it returns a new instance instead of changing the existing one. Both mutation routes the rule reports are real. Because Quantity can be changed in place, it can't be shared safely or compared by value, which is exactly what this rule is meant to prevent.\\\",\\\"fix\\\":\\\"Change the constructor to `constructor(public readonly value: number)`. Delete `setValue`, or replace it with `withValue(value: number): Quantity { return new Quantity(value); }`, which returns a new, validated instance. Update callers to use the returned value.\\\",\\\"citations\\\":[{\\\"filePath\\\":\\\"src/ordering/domain/value-objects/Quantity.ts\\\",\\\"startLine\\\":1,\\\"endLine\\\":6},{\\\"filePath\\\":\\\"src/ordering/domain/value-objects/Quantity.ts\\\",\\\"startLine\\\":8,\\\"endLine\\\":10},{\\\"filePath\\\":\\\"src/ordering/domain/value-objects/Quantity.ts\\\",\\\"startLine\\\":12,\\\"endLine\\\":14}]}\",\"structured_output\":{\"citations\":[{\"endLine\":6,\"filePath\":\"src/ordering/domain/value-objects/Quantity.ts\",\"startLine\":1},{\"endLine\":10,\"filePath\":\"src/ordering/domain/value-objects/Quantity.ts\",\"startLine\":8},{\"endLine\":14,\"filePath\":\"src/ordering/domain/value-objects/Quantity.ts\",\"startLine\":12}],\"decision\":\"confirm\",\"explanation\":\"Quantity is documented as a value object (src/ordering/domain/value-objects/Quantity.ts line 1) and sits in the domain layer. It is not immutable. The constructor parameter property `public value: number` on line 4 is a public field without `readonly`, so any caller can reassign it. `setValue` on lines 12-14 is a public mutator that overwrites `this.value`, and it skips the positive-integer check from line 5. That means a Quantity can end up holding 0, a negative number or a fraction even though its own rule forbids this. `plus` on lines 8-10 shows the intended style: it returns a new instance instead of changing the existing one. Both mutation routes the rule reports are real. Because Quantity can be changed in place, it can't be shared safely or compared by value, which is exactly what this rule is meant to prevent.\",\"fix\":\"Change the constructor to `constructor(public readonly value: number)`. Delete `setValue`, or replace it with `withValue(value: number): Quantity { return new Quantity(value); }`, which returns a new, validated instance. Update callers to use the returned value.\"}}",
+  "runIndex": 0,
+  "schemaVersion": 2,
+  "unitId": "6638dc9e89a10d13",
+  "usage": {
+    "inputTokens": 2281,
+    "outputTokens": 600
+  },
+  "usedOptions": {
+    "effort": "high",
+    "model": "claude-opus-5-5"
+  }
+}

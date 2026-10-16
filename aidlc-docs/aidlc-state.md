@@ -113,7 +113,12 @@
 - CONSTRUCTION: Functional Design EXECUTE U1–U5 / SKIP U0; NFR Requirements EXECUTE light (in U0); NFR Design, Infrastructure Design SKIP; Code Generation and Build and Test EXECUTE
 
 ### v1.3 VALIDITY CYCLE (started 2026-10-14) — tool validity, greenfield focus
-- **Current Stage**: INCEPTION — Requirements Analysis, waiting for author answers in `inception/requirements/v1.3-validity-questions.md`
+- **Current Stage** (updated 2026-10-16): CONSTRUCTION. Night plan in `construction/plans/v1.3-night-2026-10-16-plan.md`, tracking every job, branch and PR. Next author gate: the score-free construct sheet (PR #129), then the freeze, then the sealed test once.
+- **Standing rules (2026-10-16)**:
+  - Study 2 runs exactly once, after the readiness gate is all green and a dress rehearsal has passed.
+  - Validity rests on non-human evidence.
+  - Cypher text is the only rule definition.
+  - New behaviour is OFF by default, and the reference results stay byte-identical.
 - **Study framing (proposed, Q14)**: v1.2E frozen as Study 1; v1.3 = development; Study 2 pre-registered on fresh held-out data
 - **Approval**: the v1.2E standing approval does not cover v1.3 gates (requirement change)
 - [x] Workspace Detection (existing code; reverse-engineering artefacts exist, RE skipped)
