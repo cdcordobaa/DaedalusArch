@@ -98,7 +98,8 @@ export function questionCoverage(subjects: readonly string[], layers: FileLayerS
 
 export function summariseTarget(id: string, style: string, renamed: boolean, rows: readonly VariantRow[]): TargetSummary {
   const ev = rows.filter((r) => r.agreement !== null);
-  const vio = rows.filter((r) => r.kind === 'violation');
+  // Planted recall only over variants both specs evaluated (a rejected inferred spec has no rows).
+  const vio = ev.filter((r) => r.kind === 'violation');
   return {
     id,
     style,

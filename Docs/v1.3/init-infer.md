@@ -149,7 +149,38 @@ No inferred spec was rejected by the firewall on these targets. The true spec mi
 
 ### Results: held-out probes N1, N2, S (213 variants)
 
-HELDOUT_TABLE
+| Target | Style accuracy (variants) | Per-file layer accuracy | Verdict agrees | Blocking set identical | Mean blocking Jaccard | Planted, true spec | Planted, inferred spec | Inferred spec rejected | Questions per variant | Wrong files under a question | Questions on correct folders |
+|---|---|---|---|---|---|---|---|---|---|---|---|
+| N1-clean-architecture | 14/14 | 408/408 (100.0%) | 14/14 | 14/14 | 1.00 | 9/10 | 9/10 | 0 | 3.0 | n/a | 42 |
+| N1-layered | 13/13 | 353/353 (100.0%) | 13/13 | 13/13 | 1.00 | 9/9 | 9/9 | 0 | 3.0 | n/a | 39 |
+| N1-nestjs | 14/14 | 407/408 (99.8%) | 14/14 | 14/14 | 1.00 | 9/10 | 9/10 | 0 | 2.0 | 1/1 | 27 |
+| N1-hexagonal | 15/15 | 453/453 (100.0%) | 15/15 | 15/15 | 1.00 | 11/11 | 11/11 | 0 | 5.0 | n/a | 75 |
+| N1-ddd | 15/15 | 464/467 (99.4%) | 14/15 | 14/15 | 0.93 | 12/12 | 10/12 | 0 | 6.1 | 3/3 | 89 |
+| N2-clean-architecture | 14/14 | 408/408 (100.0%) | 14/14 | 14/14 | 1.00 | 9/10 | 9/10 | 0 | 3.0 | n/a | 42 |
+| N2-layered | 13/13 | 353/353 (100.0%) | 13/13 | 13/13 | 1.00 | 9/9 | 9/9 | 0 | 3.0 | n/a | 39 |
+| N2-nestjs | 14/14 | 407/408 (99.8%) | 14/14 | 14/14 | 1.00 | 9/10 | 9/10 | 0 | 2.0 | 1/1 | 27 |
+| N2-hexagonal | 15/15 | 453/453 (100.0%) | 15/15 | 15/15 | 1.00 | 11/11 | 11/11 | 0 | 5.0 | n/a | 75 |
+| N2-ddd | 15/15 | 464/467 (99.4%) | 14/15 | 14/15 | 0.93 | 12/12 | 10/12 | 0 | 6.1 | 3/3 | 89 |
+| S-clean-architecture-scrambled | 14/14 | 408/408 (100.0%) | 14/14 | 14/14 | 1.00 | 8/10 | 8/10 | 0 | 3.0 | n/a | 42 |
+| S-layered-scrambled | 13/13 | 353/353 (100.0%) | 13/13 | 13/13 | 1.00 | 9/9 | 9/9 | 0 | 3.0 | n/a | 39 |
+| S-nestjs-scrambled | 14/14 | 267/408 (65.4%) | 7/14 | 0/14 | 0.07 | 8/10 | 6/10 | 0 | 7.0 | 141/141 | 42 |
+| S-hexagonal-scrambled | 15/15 | 453/453 (100.0%) | 15/15 | 15/15 | 1.00 | 9/11 | 9/11 | 0 | 5.0 | n/a | 75 |
+| S-ddd-scrambled | 15/15 | 464/467 (99.4%) | n/a | n/a | - | - | - | 15 | 6.1 | 3/3 | 89 |
+| **N1 + N2, all 5 styles** | **142/142** | **4170/4178 (99.8%)** | **140/142** | **140/142** | 0.99 | 100/104 | **96/104** | 0 | 3.9 | 8/8 | |
+| **S, 4 evaluable styles (S-ddd rejected)** | 71/71 | 1945/2089 (93.1%) | 49/56 | 42/56 | | 34/40 | 32/40 | 15 | | 144/144 | |
+
+The probes are the ISE robustness run's held-out set:
+
+- **N1** wraps every file one level deeper, under a root folder with a random name.
+- **N2** inserts a random inner level inside every top-level folder.
+- **S** uses N1's names and also scrambles the class and file suffixes (`Repository→Store`, `Controller→Endpoint`, …).
+
+**Names and nesting (N1, N2): the same result as P1–P5.** 142/142 styles are right and 99.8% of files. The blocking set differs on the two ddd v07 variants, for the same reason as on the dev set, and the planted violations are lost on ddd v07 and v10, as on P5. Every wrong file is under a question.
+
+**Suffixes (S): the known ISE limits pass straight through to the user path.**
+- **S-nestjs.** Without the `.controller`/`.service`/`.repository` suffixes the preset's file patterns match nothing, and each feature folder becomes one structural unit. That leaves 141 wrong files and 6 extra FF-S01 blocking findings on every variant. The verdict agrees on 7/14, no blocking set is identical, and planted recall is 6/10 against 8/10 under the true spec. The ISE robustness run reported exactly the same, from the clean variant. All 141 wrong files are under a question: 7 per variant.
+- **S-ddd.** The inferred `architecture.ddd.repositories` is empty, and the fitness compiler rejects the spec (`BR-SPEC-10 FF-DT02: repositoryPatterns`), so `--from-inferred` exits 2 on all 15 variants. `firewall init` reports the same before any evaluation: it exits 1 with `WARNING: the proposal does not pass the repository checks: MISSING_REQUIRED_PARAM: BR-SPEC-10 FF-DT02: repositoryPatterns`. That is the reason `init` runs the compiler, not just the validator.
+- **The other three styles.** S-clean, S-layered and S-hexagonal agree on 42/42 variants. Their lower planted recall (8/10, 9/11) is the firewall's own: it is the same under the true spec.
 
 ### What the disagreements are
 
@@ -168,7 +199,7 @@ The verdict differs on only one variant per set, and it is the same one: **ddd v
    - **The effect.** None: no blocking finding involves it.
    - **Was it asked?** Its folder is asked about.
 
-**Every wrong file in both sets lies in a folder that the proposal asks about** (dev 1/1, P1–P5 4/4). The questions are deliberately generous. On renamed projects nearly every folder is mapped by structure alone, so it is asked about: 3.9 questions per variant, and most of them are confirmations of a correct mapping. On the unrenamed dev set there is one question in 71 variants.
+**Every wrong file in every set lies in a folder that the proposal asks about** (dev 1/1, P1–P5 4/4, held-out 152/152). The questions are deliberately generous. On renamed projects nearly every folder is mapped by structure alone, so it is asked about: 3.9 questions per variant, and most of them are confirmations of a correct mapping. On the unrenamed dev set there is one question in 71 variants.
 
 ### Inferring from the variant against inferring from the clean variant
 
