@@ -345,6 +345,7 @@ export async function runLoopGrid(
         now: options.now,
         dryRun: options.dryRun,
         ...(options.log !== undefined ? { log: options.log } : {}),
+        ...(plan.gate?.shownRules !== undefined ? { gateShownRules: plan.gate.shownRules } : {}),
       },
       spec,
     );

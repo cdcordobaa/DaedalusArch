@@ -43,6 +43,9 @@ Records (only when the field is set):
 | step record, gate arm | `heldOut` | `{ shownBefore, withheldBefore, shownAfter, withheldAfter }`: blocking counts by split on the step-turn snapshot and (when a repair ran) the repair snapshot; null when the evaluation failed |
 | step record, gate arm | `repairOutcome.findings[].shown` | unchanged meaning: listed in the repair prompt (shown rule and within `MAX_REPAIR_FINDINGS`) |
 
+`repair.blockingBefore` / `blockingAfter` / `cleared` keep their meaning (all blocking rules), so a repair that
+clears every shown finding but leaves a withheld one reads `cleared: false`; the shown-only figures are in `heldOut`.
+
 A resumed run whose `run.json` records a different `shownRuleIds` than the plan fails with `LOOP_HELDOUT_MISMATCH`
 (a run never mixes two splits).
 
@@ -74,6 +77,11 @@ Proposed additions to that document's ambiguity list (§5), for the author:
 5. With the field absent the loop's records are byte-identical to before: the existing loop tests pass unchanged, and
    a dedicated test compares the absent-field run's records with a run built without any `gate` key.
 6. The 71 reference results stay byte-identical (rule 3 diff).
+
+How criterion 5 was checked: the existing loop tests pass unchanged; a test asserts that no `shown`, `heldOut` or
+`heldOutRules` key is written without the field; a test shows that listing every rule gives the same repair prompt as
+no field; and the loop replay (`scripts/lib/loop/replay.ts`, Neo4j 5.26.24 + APOC) run on untouched `origin/v1.3`
+and on this branch gives identical files (`compareReplays`, timing fields aside; 321 files).
 
 ## 5. Options taken under delegation
 

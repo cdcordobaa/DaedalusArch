@@ -22,6 +22,10 @@
  * `LoopContext.evaluator`. Every turn's prompt is written beside its envelope (`turns/step-NN/prompt-<turnId>.txt`).
  * The gate's repair record says finding by finding which blocking findings the repair removed (`repairOutcome`).
  *
+ * Held-out rules (`LoopContext.gateShownRules`, optional, `Docs/v1.3/gate-heldout-rules.md`): the gate's repair prompt
+ * lists only the findings of the shown rules (and counts only them), a step with no shown blocking finding gets no
+ * repair turn, and the records tag each blocking finding `shown` and split the counts. Absent: nothing changes.
+ *
  * Resume: the step records are the only progress state. On start, a run with every step record and `completedAt` is
  * skipped; otherwise the work tree is put back to the last recorded step's final commit (the base commit when none),
  * any partial step after it is logged in `restarts.jsonl` and discarded, and the loop continues with the next step.
@@ -39,6 +43,7 @@ import type { FrozenSpecRecord, SpecFreezer } from './specs.js';
 import type { LoopContextDecl, StyleFrame } from './style.js';
 import type {
   BlockingFinding,
+  HeldOutCounts,
   LoopRunSpec,
   LoopTask,
   RunRecord,
@@ -104,6 +109,8 @@ export interface LoopContext {
   readonly log?: (line: string) => void;
   /** Pins the snapshot commits' dates (`WorkTreeSnapshots`); the loop replay sets it, live runs do not. */
   readonly snapshotDate?: string;
+  /** The plan's `gate.shownRules`: the only blocking rules the gate's repair prompt lists. Absent: all are listed. */
+  readonly gateShownRules?: readonly string[];
 }
 
 export type LoopRunResult =
@@ -168,8 +175,17 @@ function identity(f: Pick<BlockingFinding, 'ruleId' | 'template' | 'filePath' | 
  * Finding by finding, what a repair did: each identity before the repair (rule, file, target; lines ignored), whether
  * the repair prompt listed it and whether it is gone afterwards, and the identities the repair introduced.
  */
-export function repairOutcome(before: readonly BlockingFinding[], after: readonly BlockingFinding[]): RepairOutcome {
-  const shownIds = new Set(before.slice(0, MAX_REPAIR_FINDINGS).map(identity));
+export function repairOutcome(
+  before: readonly BlockingFinding[],
+  after: readonly BlockingFinding[],
+  isShownRule: (ruleId: string) => boolean = () => true,
+): RepairOutcome {
+  const shownIds = new Set(
+    before
+      .filter((f) => isShownRule(f.ruleId))
+      .slice(0, MAX_REPAIR_FINDINGS)
+      .map(identity),
+  );
   const afterIds = new Set(after.map(identity));
   const seen = new Set<string>();
   const findings: RepairOutcome['findings'][number][] = [];
@@ -199,6 +215,24 @@ export function repairOutcome(before: readonly BlockingFinding[], after: readonl
   };
 }
 
+/** Blocking count of the shown (or the withheld) rules of an evaluation. */
+function splitCount(ev: StepEvaluation, isShownRule: (ruleId: string) => boolean, shown: boolean): number {
+  return Object.entries(ev.blockingByRule).reduce((a, [rule, n]) => (isShownRule(rule) === shown ? a + n : a), 0);
+}
+
+/** The evaluation with every blocking finding tagged `shown`. */
+function tagShown(ev: StepEvaluation | null, isShownRule: (ruleId: string) => boolean): StepEvaluation | null {
+  return ev === null ? null : { ...ev, blockingFindings: ev.blockingFindings.map((f) => ({ ...f, shown: isShownRule(f.ruleId) })) };
+}
+
+function tagTurn(t: TurnRecord, isShownRule: (ruleId: string) => boolean): TurnRecord {
+  return { ...t, snapshot: { ...t.snapshot, evaluation: tagShown(t.snapshot.evaluation, isShownRule) } };
+}
+
+function sortedShownRules(rules: readonly string[] | undefined): readonly string[] | undefined {
+  return rules === undefined ? undefined : [...rules].sort();
+}
+
 interface ResolvedEvaluator {
   readonly evaluator: StepEvaluator | null;
   readonly error?: { readonly code: string; readonly message: string };
@@ -212,6 +246,8 @@ class LoopRun {
   readonly snaps: WorkTreeSnapshots;
   private readonly profile: TaskProfile | undefined;
   private lastSpecRef: StepSpecRef | undefined;
+  /** Sorted `gateShownRules`; undefined when the plan sets none. */
+  private readonly shownRules: readonly string[] | undefined;
 
   constructor(
     private readonly ctx: LoopContext,
@@ -223,6 +259,7 @@ class LoopRun {
     this.workDir = path.join(this.runDir, WORK_DIR);
     this.snaps = new WorkTreeSnapshots(path.join(this.runDir, SNAPSHOT_GIT_DIR), this.workDir, ctx.snapshotDate);
     this.profile = ctx.profiles?.get(task.id);
+    this.shownRules = sortedShownRules(ctx.gateShownRules);
   }
 
   /**
@@ -281,6 +318,7 @@ class LoopRun {
       baseCommit: base.data,
       createdAt: this.ctx.now().toISOString(),
       dryRun: this.ctx.dryRun,
+      ...(this.shownRules !== undefined ? { heldOutRules: { shownRuleIds: this.shownRules } } : {}),
     };
     writeJsonAtomic(path.join(this.runDir, RUN_JSON), record);
     return DomainResult.ok(record);
@@ -364,18 +402,37 @@ class LoopRun {
     const turns: TurnRecord[] = [first.data];
     let repair: StepRecord['repair'] = null;
     let outcome: RepairOutcome | undefined;
+    let heldOut: HeldOutCounts | undefined;
+    const shown = this.shownRules;
+    const isShownRule = shown === undefined ? () => true : (r: string): boolean => shown.includes(r);
     if (this.spec.arm === 'gate') {
       const ev = first.data.snapshot.evaluation;
-      if (ev === null || ev.blockingViolationCount === 0) {
+      // With held-out rules the repair sees, and is triggered by, the shown rules' findings only (the single filter).
+      const shownCount = ev === null ? 0 : shown === undefined ? ev.blockingViolationCount : splitCount(ev, isShownRule, true);
+      if (ev === null || shownCount === 0) {
         repair = { attempted: false, blockingBefore: ev?.blockingViolationCount ?? null, blockingAfter: null, cleared: null };
       } else {
-        const fix = await this.turn(stepIndex, 'repair', repairPrompt(ev.blockingFindings, ev.blockingViolationCount, tcCommand), first.data.snapshot.commit);
+        const listed = shown === undefined ? ev.blockingFindings : ev.blockingFindings.filter((f) => isShownRule(f.ruleId));
+        const fix = await this.turn(stepIndex, 'repair', repairPrompt(listed, shownCount, tcCommand), first.data.snapshot.commit);
         if (!fix.success) return DomainResult.fail(fix.errors);
         turns.push(fix.data);
         const afterEv = fix.data.snapshot.evaluation;
         const after = afterEv?.blockingViolationCount ?? null;
         repair = { attempted: true, blockingBefore: ev.blockingViolationCount, blockingAfter: after, cleared: after === null ? null : after === 0 };
-        if (afterEv !== null) outcome = repairOutcome(ev.blockingFindings, afterEv.blockingFindings);
+        if (afterEv !== null) outcome = repairOutcome(ev.blockingFindings, afterEv.blockingFindings, isShownRule);
+      }
+      if (shown !== undefined) {
+        const afterEv = turns.length > 1 ? (turns[turns.length - 1]?.snapshot.evaluation ?? null) : null;
+        heldOut = {
+          shownBefore: ev === null ? null : splitCount(ev, isShownRule, true),
+          withheldBefore: ev === null ? null : splitCount(ev, isShownRule, false),
+          shownAfter: afterEv === null ? null : splitCount(afterEv, isShownRule, true),
+          withheldAfter: afterEv === null ? null : splitCount(afterEv, isShownRule, false),
+        };
+        for (let i = 0; i < turns.length; i++) {
+          const t = turns[i];
+          if (t !== undefined) turns[i] = tagTurn(t, isShownRule);
+        }
       }
     }
     const last = turns[turns.length - 1] ?? first.data;
@@ -391,6 +448,7 @@ class LoopRun {
       repair,
       ...(outcome !== undefined ? { repairOutcome: outcome } : {}),
       ...(this.lastSpecRef !== undefined ? { evaluatorSpec: this.lastSpecRef } : {}),
+      ...(heldOut !== undefined ? { heldOut } : {}),
       finalCommit: last.snapshot.commit,
       cost: {
         costUsd: sumOrNull(turns.map((t) => t.result.usage.costUsd)),
@@ -408,6 +466,12 @@ class LoopRun {
       const created = this.create();
       if (!created.success) return DomainResult.fail(created.errors);
       record = created.data;
+    }
+    const recorded = record.heldOutRules?.shownRuleIds;
+    if (JSON.stringify(recorded) !== JSON.stringify(this.shownRules)) {
+      return DomainResult.fail([
+        { code: 'LOOP_HELDOUT_MISMATCH', message: `${this.runId}: run.json records shown rules ${JSON.stringify(recorded ?? null)}, the plan ${JSON.stringify(this.shownRules ?? null)}` },
+      ]);
     }
     const steps = this.task.steps.length;
     const done = readStepRecords(this.runDir, steps);
@@ -437,9 +501,21 @@ class LoopRun {
       last = r.data.finalCommit;
       this.ctx.log?.(`${this.runId}: step ${String(i + 1)}/${String(steps)} ${describeStep(r.data)}`);
     }
-    writeJsonAtomic(runFile, { ...record, completedAt: this.ctx.now().toISOString() });
+    const split = this.shownRules !== undefined ? { heldOutRules: { shownRuleIds: this.shownRules, withheldRuleIds: withheldRuleIds(records, this.shownRules) } } : {};
+    writeJsonAtomic(runFile, { ...record, ...split, completedAt: this.ctx.now().toISOString() });
     return DomainResult.ok({ kind: 'completed', runId: this.runId, resumedFromStep: done.length, steps: records });
   }
+}
+
+/** Rules with a blocking finding on any snapshot of the run that are not shown, sorted. */
+function withheldRuleIds(records: readonly StepRecord[], shown: readonly string[]): readonly string[] {
+  const out = new Set<string>();
+  for (const r of records) {
+    for (const t of r.turns) {
+      for (const [rule, n] of Object.entries(t.snapshot.evaluation?.blockingByRule ?? {})) if (n > 0 && !shown.includes(rule)) out.add(rule);
+    }
+  }
+  return [...out].sort();
 }
 
 /** One-line summary of a step for the console. */
