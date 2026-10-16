@@ -46,7 +46,7 @@ for (const k of ['PATH', 'HOME', 'NEO4J_URI', 'NEO4J_USER', 'NEO4J_PASSWORD']) {
 
 async function evaluate(projectDir: string, specPath: string): Promise<readonly ActualFinding[]> {
   const args = [CLI_ENTRY, 'evaluate', '--project', projectDir, '--spec', specPath, '--format', 'json', '--symbolic-only', '--neo4j-uri', env.NEO4J_URI ?? '',
-    ...(engine === 'neo4j' ? [] : ['--engine', engine])];
+    '--engine', engine];
   const started = Date.now();
   const run = await runner.run(tsx, args, { cwd: repoRoot, env: childEnv, timeoutMs: 600_000 });
   if (!run.success) throw new Error(run.errors.map((e) => e.message).join('; '));
