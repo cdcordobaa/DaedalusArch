@@ -372,6 +372,8 @@ export interface EvaluationReport {
    * when an option is on. The rows the options removed from `violations`; scores, tiers and the verdict are pre-filter.
    */
   readonly advisoryFilter?: AdvisoryFilterSection;
+  /** `firewall evaluate --hints` only (Docs/v1.3/fix-hints.md): a deterministic fix hint per blocking violation; absent otherwise. */
+  readonly fixHints?: readonly import('../../fix-hints/types.js').ReportFixHint[];
 }
 
 /** One advisory row an advisory post-filter option removed from `violations`. */
