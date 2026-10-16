@@ -4,8 +4,15 @@ Written 2026-10-16 on branch `v1.3-dogfood` (cut from `origin/v1.3` at b08ec387)
 hand-written source files (285 with the generated Cypher parser). It ran symbolic only, on the in-process Cypher
 engine (`--engine cypher-interp`), with no Neo4j, no LLM and no secrets.
 
-The run serves two purposes: it is a credibility demonstration, and it is a real-world test of the tool. Nothing in
-`src/` was changed. The debt it found is listed in §6 with suggested fixes.
+This is a self-application case study: a real-world test of the tool on a codebase whose design documents exist.
+Nothing in `src/` was changed. The debt it found is listed in §6 with suggested fixes.
+
+**Limitation.** One agent recovered the intended architecture, wrote the spec and triaged the findings. The spec was
+committed before the run, so it could not be tuned to the results. The triage labels (real debt, spec too strict,
+tool false positive), however, are a single rater's judgement and were not checked by anyone independent. The
+mechanical agreement figures (44/44 with the mined graph, interpreter equal to the mirrors) do not depend on that
+judgement. A second, blind triage of §5 would be needed before quoting the "0 tool false positives" figure as a
+precision result.
 
 ## 0. Results in one screen
 
@@ -13,7 +20,7 @@ The run serves two purposes: it is a credibility demonstration, and it is a real
 |---|---|
 | Declared spec | `specs/dogfood/daedalus-self.yaml`: hexagonal, one layer per module over a shared kernel, 52 allowed module edges. Committed (c78fb2b3) **before** any run. Rationale: `specs/dogfood/RATIONALE.md` |
 | v1.3 verdict, declared spec | **fail**: 11 dependency-direction + 5 cycle rows (blocking), 33 layer-skip rows (advisory for hexagonal) |
-| Triage of the 49 defining-rule rows | **29 real debt**, **20 spec too strict**, **0 tool false positives** |
+| Triage of the 49 defining-rule rows (one rater, see Limitation) | **29 real debt**, **20 spec too strict**, **0 tool false positives** |
 | Completeness check | The 44 undeclared cross-module import pairs that the ISE miner sees independently are the 44 S01/S03 rows the templates report: 0 missed, 0 extra. Every declared edge is used at least once |
 | APG v2 (9 templates on the interpreter) | rows identical to the hand mirrors on 9/9 templates. Main finding: **8 modules form one strongly connected component** (`component-adp-cycle`, 18 edges) |
 | Cheap proxies | `apg-enrich/ontology` (16 files) is unreachable from any product entry point; a hidden co-change coupling exists between `apg-extractor/id-generator.ts` and `neo4j-ingestion/graph-ingester.ts`. The generated parser causes 99.7 % of the clone flags and makes the run 9× slower |
