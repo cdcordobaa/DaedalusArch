@@ -4,8 +4,8 @@
  * Seeded; no Neo4j, no LLM. Entry file: no exports.
  *
  * Usage (repository root):
- *   git show origin/v1.3-external-correctness:results/v1.3-external-correctness/blocking/correctness.csv > <scratch>/c.csv
- *   node --import tsx scripts/v1.3/external-cluster-bootstrap.ts --csv <scratch>/c.csv [--seed 20261016] [--resamples 10000]
+ *   node --import tsx scripts/v1.3/external-cluster-bootstrap.ts --csv results/v1.3-external-correctness/blocking/correctness.csv
+ *     [--seed 20261016] [--resamples 10000]
  *     [--out Docs/DiagnosticRuns/v1.3-external-cluster-bootstrap-2026-10-16.json]
  *
  * The statistic is the ratio of sums (correct / checked) over a resample of whole repositories. Repositories with
@@ -79,7 +79,7 @@ const sensitivity = withFindings.map((c) => {
 });
 
 const result = {
-  source: 'origin/v1.3-external-correctness (PR #167) results/v1.3-external-correctness/blocking/correctness.csv',
+  source: 'results/v1.3-external-correctness/blocking/correctness.csv (PR #167)',
   seed,
   resamples,
   findings: { correct: k, checked: n, notCheckable: rows.length - n },
