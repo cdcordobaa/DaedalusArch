@@ -9,7 +9,7 @@
  *   record carries `engineOfRecord: 'neo4j'` and a `parity` block. A divergence never fails the snapshot.
  * - `compareEvaluations`: the parity rule of the design doc §3.
  *
- * Absent `--engine`, none of this is wired and every record is unchanged.
+ * Absent `--engine`, the base wiring evaluates; its engine is still recorded on every evaluation.
  */
 import { MemoryGraphRepository } from '../../../src/cypher-interp/repository.js';
 import { DomainResult } from '../../../src/shared/errors/domain-result.js';
@@ -169,7 +169,9 @@ export function teeEvaluator(record: StepEvaluator, check: StepEvaluator, o: Tee
 
 /**
  * The step evaluator of a spec file under an engine. `build(deps, env)` makes the plain evaluator (normally
- * `firewallEvaluator` with the run's tsconfig); `undefined` engine = the base wiring unchanged.
+ * `firewallEvaluator` with the run's tsconfig); `undefined` engine = the base wiring unchanged. Every mode records the
+ * engine its evaluations ran on (`engineOfRecord`): the base wiring's own engine, the chosen one, or Neo4j under
+ * `both` (review fix F7: a record never leaves its engine to be guessed).
  */
 export function evaluatorForEngine(
   engine: LoopEngine | undefined,
@@ -178,8 +180,8 @@ export function evaluatorForEngine(
   build: (deps: EvaluateDeps, env: NodeJS.ProcessEnv) => StepEvaluator,
   o: TeeOptions = {},
 ): StepEvaluator {
-  if (engine === undefined) return build(base, env);
-  if (engine === 'neo4j') return build(engineDeps(base, 'neo4j'), env);
+  if (engine === undefined) return taggedEvaluator(build(base, env), base.graphEngine ?? 'neo4j');
+  if (engine === 'neo4j') return taggedEvaluator(build(engineDeps(base, 'neo4j'), env), 'neo4j');
   if (engine === 'cypher-interp') return taggedEvaluator(build(engineDeps(base, 'cypher-interp'), engineEnv(env, engine)), 'cypher-interp');
   return teeEvaluator(build(engineDeps(base, 'neo4j'), env), build(engineDeps(base, 'cypher-interp'), env), o);
 }

@@ -1,0 +1,244 @@
+spec_version: "1.0.0"
+
+# Idiomatic translation of Sairyss/domain-driven-hexagon .dependency-cruiser.js (rules no-domain-to-api-deps,
+# no-domain-to-app-deps, no-domain-to-infra-deps, no-infra-to-api-deps, no-command-query-to-api-deps),
+# written by hand with globs. The human layers are OVERLAPPING substring regexes; ours is a first-match partition,
+# so this file records more judgement calls than the other two:
+#  J1 order of precedence (first match wins): api, domain, infrastructure, application. A file matching two human
+#     layers (e.g. src/libs/api/... dto files are api; src/modules/*/database/*.repository.port.ts are infra by
+#     'repository' and exempted as targets by pathNot port.ts) gets one layer only;
+#  J2 ports (**/*.port.ts) go to the DOMAIN layer: the human config exempts port.ts from no-domain-to-infra-deps,
+#     i.e. the authors treat ports as importable from the domain;
+#  J3 AppRequestContext.ts is exempted from no-domain-to-app-deps by pathNot; we keep it in application and accept
+#     that a domain -> AppRequestContext import would be flagged by us and not by them (none exists at HEAD);
+#  J4 the substring 'controller'/'dtos'/'request'/'response' regexes become name globs (**/*controller*.ts,
+#     **/dtos/**, **/*.request.dto.ts, **/*response*.ts) and 'dto.ts$', 'resolver.ts$';
+#  J5 the 'service.ts$', 'command-handler.ts$', 'query-handler.ts$', 'command.ts$' rule (commands/queries must
+#     not import api) is folded into application: application may not import api;
+#  J6 infrastructure: dirs infrastructure, infra, database plus *.repository.ts; src/configs and module wiring
+#     (*.module.ts, main.ts, *.di-tokens.ts, *.mapper.ts) stay unlayered as the human rules never constrain them
+#     as a source... except mapper/di-tokens files under database/? none exist at HEAD.
+architecture:
+  style: hexagonal
+  layers:
+    - name: api
+      kind: presentation
+      roles: [controller]
+      directories:
+        - "src/**/dtos/**"
+      file_patterns:
+        - "**/*controller*.ts"
+        - "**/*resolver.ts"
+        - "**/*dto.ts"
+        - "**/*request*.ts"
+        - "**/*response*.ts"
+    - name: domain
+      kind: domain
+      roles: [entity]
+      directories:
+        - "src/**/domain/**"
+      file_patterns:
+        - "**/*.port.ts"
+        - "**/*entity.ts"
+        - "**/*aggregate.ts"
+        - "**/*domain-event.ts"
+        - "**/*value-object.ts"
+    - name: infrastructure
+      kind: infrastructure
+      roles: [repository]
+      directories:
+        - "src/**/infrastructure/**"
+        - "src/**/infra/**"
+        - "src/**/database/**"
+      file_patterns:
+        - "**/*repository*.ts"
+    - name: application
+      kind: application
+      roles: [use-case]
+      directories:
+        - "src/**/application/**"
+      file_patterns:
+        - "**/*service.ts"
+        - "**/*command-handler.ts"
+        - "**/*query-handler.ts"
+        - "**/*command.ts"
+  allowed_dependencies:
+    - from: api
+      to: [domain, infrastructure, application]
+    - from: infrastructure
+      to: [domain, application]
+    - from: application
+      to: [domain, infrastructure]
+
+fitness_functions:
+  - id: FF-S01
+    name: dependency-direction-graph
+    dimension: structural
+    severity: critical
+    route: symbolic
+    validated: false
+  - id: FF-S03
+    name: layer-skip-graph
+    dimension: structural
+    severity: critical
+    route: symbolic
+    validated: false
+  - id: FF-S02
+    name: no-cyclic-deps
+    dimension: structural
+    severity: critical
+    route: symbolic
+    enabled: false
+    reason: "human-rules pilot: only the layer rules are compared"
+  - id: FF-S04
+    name: core-isolation
+    dimension: structural
+    severity: major
+    route: symbolic
+    enabled: false
+    reason: "human-rules pilot: only the layer rules are compared"
+  - id: FF-P01
+    name: domain-purity
+    dimension: pattern
+    severity: critical
+    route: symbolic
+    enabled: false
+    reason: "human-rules pilot: only the layer rules are compared"
+  - id: FF-P02
+    name: port-dependency-inversion
+    dimension: pattern
+    severity: critical
+    route: symbolic
+    enabled: false
+    reason: "human-rules pilot: only the layer rules are compared"
+  - id: FF-P03
+    name: port-adapter-pattern
+    dimension: pattern
+    severity: critical
+    route: symbolic
+    enabled: false
+    reason: "human-rules pilot: only the layer rules are compared"
+  - id: FF-P06
+    name: domain-state-purity
+    dimension: pattern
+    severity: critical
+    route: symbolic
+    enabled: false
+    reason: "human-rules pilot: only the layer rules are compared"
+  - id: FF-C02
+    name: module-fan-out
+    dimension: coupling
+    severity: major
+    route: symbolic
+    enabled: false
+    reason: "human-rules pilot: only the layer rules are compared"
+  - id: FF-C03
+    name: component-instability
+    dimension: coupling
+    severity: major
+    route: symbolic
+    enabled: false
+    reason: "human-rules pilot: only the layer rules are compared"
+  - id: FF-C04
+    name: no-orphan-files
+    dimension: coupling
+    severity: minor
+    route: symbolic
+    enabled: false
+    reason: "human-rules pilot: only the layer rules are compared"
+  - id: FF-C05
+    name: max-fan-in
+    dimension: coupling
+    severity: minor
+    route: symbolic
+    enabled: false
+    reason: "human-rules pilot: only the layer rules are compared"
+  - id: FF-C06
+    name: abstraction-ratio
+    dimension: coupling
+    severity: advisory
+    route: symbolic
+    enabled: false
+    reason: "human-rules pilot: only the layer rules are compared"
+  - id: FF-SO01
+    name: single-responsibility-proxy
+    dimension: solid
+    severity: major
+    route: symbolic
+    enabled: false
+    reason: "human-rules pilot: only the layer rules are compared"
+  - id: FF-SO02
+    name: interface-segregation-proxy
+    dimension: solid
+    severity: major
+    route: symbolic
+    enabled: false
+    reason: "human-rules pilot: only the layer rules are compared"
+  - id: FF-SO03
+    name: inheritance-depth
+    dimension: solid
+    severity: minor
+    route: symbolic
+    enabled: false
+    reason: "human-rules pilot: only the layer rules are compared"
+  - id: FF-CV01
+    name: naming-conventions
+    dimension: convention
+    severity: minor
+    route: symbolic
+    enabled: false
+    reason: "human-rules pilot: only the layer rules are compared"
+  - id: FF-CV02
+    name: naming-services
+    dimension: convention
+    severity: minor
+    route: symbolic
+    enabled: false
+    reason: "human-rules pilot: only the layer rules are compared"
+  - id: FF-CV03
+    name: naming-repos
+    dimension: convention
+    severity: minor
+    route: symbolic
+    enabled: false
+    reason: "human-rules pilot: only the layer rules are compared"
+  - id: FF-CV04
+    name: naming-controllers
+    dimension: convention
+    severity: minor
+    route: symbolic
+    enabled: false
+    reason: "human-rules pilot: only the layer rules are compared"
+  - id: FF-CV05
+    name: test-file-pairing
+    dimension: convention
+    severity: advisory
+    route: symbolic
+    enabled: false
+    reason: "human-rules pilot: only the layer rules are compared"
+  - id: FF-CV06
+    name: no-index-logic
+    dimension: convention
+    severity: advisory
+    route: symbolic
+    enabled: false
+    reason: "human-rules pilot: only the layer rules are compared"
+  - id: FF-N01
+    name: architectural-integrity
+    dimension: integrity
+    severity: major
+    route: neuronal
+    enabled: false
+    reason: "human-rules pilot: only the layer rules are compared"
+  - id: FF-N02
+    name: intent-alignment
+    dimension: semantic
+    severity: major
+    route: neuronal
+    enabled: false
+    reason: "human-rules pilot: only the layer rules are compared"
+
+scoring:
+  weights: { structural: 0.35, coupling: 0.20, pattern: 0.30, solid: 0.10, convention: 0.05 }
+  thresholds: { pass: 0.80, warning: 0.65, soft_block: 0.50 }
+confidence_thresholds: { high: 0.85, medium: 0.60, icc_minimum: 0.70 }

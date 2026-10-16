@@ -14,7 +14,8 @@
  * diff, skeleton integrity), type-checked and evaluated. In the `gate` arm, when that evaluation reports blocking
  * findings, the agent gets them in one repair turn, and the tree is committed, measured, type-checked and evaluated
  * again; the step's outcome is the last snapshot. An evaluator failure is recorded on the snapshot (the commit is kept,
- * so it can be re-scored); a turn or snapshot failure is a harness failure and stops the run.
+ * so it can be re-scored); a turn or snapshot failure is a harness failure and stops the run. A run in which every
+ * snapshot failed evaluation fails at its end (`LOOP_EVAL_ALL_FAILED`) and is not marked complete.
  *
  * Per-task style and spec (`LoopContext.profiles`, optional): the task's step frames carry its style slot (`style.ts`)
  * and its snapshots are evaluated against its own spec, a fixed file or a DDD spec the ISE infers from the run's
@@ -457,11 +458,32 @@ class LoopRun {
       last = r.data.finalCommit;
       this.ctx.log?.(`${this.runId}: step ${String(i + 1)}/${String(steps)} ${describeStep(r.data)}`);
     }
+    const unevaluated = allSnapshotsUnevaluated(this.runId, records);
+    if (unevaluated !== undefined) {
+      this.ctx.log?.(unevaluated.message);
+      return DomainResult.fail([unevaluated]);
+    }
     // `--engine both`: parity counts over every step of the run (earlier invocations' steps included); absent otherwise.
     const parity = runParityCounts(records);
     writeJsonAtomic(runFile, { ...record, completedAt: this.ctx.now().toISOString(), ...(parity !== undefined ? { parity } : {}) });
     return DomainResult.ok({ kind: 'completed', runId: this.runId, resumedFromStep: done.length, steps: records });
   }
+}
+
+/**
+ * A run in which no snapshot was evaluated has no outcome (a systematic evaluator failure, such as every snapshot
+ * failing with TSCONFIG_NOT_FOUND, would otherwise pass as a completed run). Such a run fails with
+ * `LOOP_EVAL_ALL_FAILED`, which stops the grid, and is never marked complete; its step records and commits are kept,
+ * so it can be re-scored.
+ */
+export function allSnapshotsUnevaluated(runId: string, records: readonly StepRecord[]): { readonly code: string; readonly message: string } | undefined {
+  const snapshots = records.flatMap((r) => r.turns.map((t) => t.snapshot));
+  if (snapshots.length === 0 || snapshots.some((s) => s.evaluation !== null)) return undefined;
+  const codes = [...new Set(snapshots.map((s) => s.evaluationError?.code ?? 'unknown'))].sort();
+  return {
+    code: 'LOOP_EVAL_ALL_FAILED',
+    message: `${runId}: all ${String(snapshots.length)} snapshots failed evaluation (${codes.join(', ')}); the run is not marked complete`,
+  };
 }
 
 /** Parity counts over every evaluated turn of the given step records; undefined when none carries a parity block. */

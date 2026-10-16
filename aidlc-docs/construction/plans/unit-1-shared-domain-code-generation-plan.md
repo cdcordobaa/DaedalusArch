@@ -5,7 +5,7 @@
 - **Components**: C10 (Shared Domain), C11 (FirewallContext)
 - **Stories**: US-6.1, US-6.2, US-17.1, US-17.2, US-17.3, US-17.4
 - **Dependencies**: U0 complete (project scaffolded)
-- **Workspace root**: `/Volumes/Life-OS/Users/Arkatechie/Development/Archi-Firewall/DaedalusArch`
+- **Workspace root**: `<workspace>/DaedalusArch`
 
 ## Generation Steps
 

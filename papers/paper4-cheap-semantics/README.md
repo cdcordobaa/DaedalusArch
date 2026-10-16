@@ -9,7 +9,8 @@ independent analogues), the guard-unit fix for duplicated rules (projected 9/9, 
 the advisory post-filters as cheap relevance (PR #139 in sample, PR #213 out of sample; both on hold), the
 blind-miss classification (PR #134: 0 extractor gaps, 14 definition gaps) and the in-process Cypher interpreter
 (byte-identical, 149 ms vs 728 ms; fuzz 0 mismatches). #139 and #213 are on hold; their `% src:` comments use
-`git show origin/<branch>:<path>`.
+`git show <sha>:<path>`, pinned to each branch tip on 2026-10-16 (`afb44917`, `d5170b93`). The sentences are
+provisional until the PRs merge; see the submission gate in `papers/STATUS.md`.
 
 ```
 pdflatex main && bibtex main && pdflatex main && pdflatex main

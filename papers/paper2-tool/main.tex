@@ -5,6 +5,12 @@
 % file it was read from (paths relative to the repository root, at branch v1.2e). Where a number was derived
 % (for example a sum of rows), the comment says so. Nothing here comes from an uncommitted file.
 %
+% Pinned [hold] citations (updated 2026-10-16): a report that exists only on an unmerged PR branch is cited as
+% "git show <sha>:<path>", where <sha> is that branch's tip on 2026-10-16, so a rebase or branch deletion cannot change
+% the source. Such a report has not passed review and is not on v1.3; a sentence that rests on it is provisional and
+% must be re-checked against the merged file, or removed, before submission (papers/STATUS.md, "Submission gate").
+% A report whose PR has since merged is cited by its plain v1.3 path.
+%
 % "Docs/ADR.md" in the comments abbreviates the repository file "Docs/ADR <U+2014> Architectural Decision Records
 % Firewall Tech.md" (its real name contains an em dash, which this draft does not reproduce).
 %
@@ -93,7 +99,7 @@ control rejects all 500 falsified ones. Verdicts are invariant in 637 of 655 sem
 We also report the limits: the development sets detect only 33\% of rule mutants, and two exploratory searches for
 external validity (developer fixes and known groups) found no robust signal. A sealed hold-out run and human labels
 are still pending.
-% src abstract v1.3 additions: Docs/v1.3/cypher-interpreter.md (65,254); Docs/v1.3/cypher-interp-fuzz.md (836,000, 0 mismatches); Docs/DiagnosticRuns/v1.3-validity-convergent-2026-10-16.md §0 (kappa table; 14 wild + 15 external = 29 projects); origin/v1.3-external-correctness:Docs/DiagnosticRuns/v1.3-external-correctness-2026-10-16.md §3 (283/283; control 500); origin/v1.3-metamorphic:Docs/DiagnosticRuns/v1.3-metamorphic-2026-10-16.md (637 of 655); origin/v1.3-rule-mutation:Docs/DiagnosticRuns/v1.3-rule-mutation-2026-10-16.md §1 (90/273 = 33%); origin/v1.3-validity-fixes-mined:Docs/DiagnosticRuns/v1.3-validity-fixes-mined-2026-10-16.md "Verdict"; origin/v1.3-known-groups:Docs/DiagnosticRuns/v1.3-known-groups-2026-10-16.md §1
+% src abstract v1.3 additions: Docs/v1.3/cypher-interpreter.md (65,254); Docs/v1.3/cypher-interp-fuzz.md (836,000, 0 mismatches); Docs/DiagnosticRuns/v1.3-validity-convergent-2026-10-16.md §0 (kappa table; 14 wild + 15 external = 29 projects); git show 23adb369:Docs/DiagnosticRuns/v1.3-external-correctness-2026-10-16.md §3 (283/283; control 500); Docs/DiagnosticRuns/v1.3-metamorphic-2026-10-16.md (637 of 655); Docs/DiagnosticRuns/v1.3-rule-mutation-2026-10-16.md §1 (90/273 = 33%); Docs/DiagnosticRuns/v1.3-validity-fixes-mined-2026-10-16.md "Verdict"; git show ba1c6327:Docs/DiagnosticRuns/v1.3-known-groups-2026-10-16.md §1
 % src abstract v1.3: Docs/DiagnosticRuns/v1.3-graph-fidelity-2026-10-14.md (Jaccard 0.988341 E1 tsc; 0.913217 SO4 scoped tsc; extractor-bug 0); Docs/DiagnosticRuns/v1.3-labelling-2026-10-15.md (2,668 checkable, 0 incorrect); Docs/DiagnosticRuns/apg2-scope-2026-10-15.md (25/27); Docs/DiagnosticRuns/apg2-ablation-2026-10-15.md (v1.3 graph 0/27); Section 7 of this paper (eleven defects, Table v13-defects)
 % src abstract SO4: results/so4-heldout/agg/prf_overall.csv (labelled), results/so4-heldout/agg-corrected/prf_overall.csv (precision 1.000)
 % src abstract judge robustness: results/judge-robustness/summary.json (agreement 0.94, kappa 0.766355, registeredVerdictChanges 0); ADR-038 in Docs/ADR.md
@@ -1222,8 +1228,9 @@ finding that did not appear. % src: Docs/DiagnosticRuns/v1.3-judge-catch-2026-10
 \subsection{One rule text, two engines}\label{sec:v13-interp}
 
 % Provenance for the subsections from sec:v13-interp to sec:v13-null: paths without a branch prefix are on origin/v1.3. A path written
-% "origin/<branch>:<path>" is on the head branch of a pull request that was not merged into v1.3 when this text was
-% written; it was read with `git show` and the PR number is given. Figures marked \explor{} come from human-written
+% "git show <sha>:<path>" is on the head branch of a pull request that is not merged into v1.3 (pinned to the branch
+% tip on 2026-10-16; see the header note); the PR number is given. Reports from #190, #168, #185 and #215, which have since
+% merged, are cited by their v1.3 paths. Figures marked \explor{} come from human-written
 % code outside the development set; they are exploratory (no pre-registration, no hold-out) and are not validity
 % estimates either.
 A rule in \tool{} is its Cypher text, and v1.3 keeps it that way: an in-process, read-only Cypher interpreter runs
@@ -1247,7 +1254,7 @@ whose expected value is Neo4j's live answer. The real-graph parity run was repea
 result. Two qualifications apply. The fuzz graphs are random, so they exercise the query semantics, not the shapes of
 real architectures; and on the largest projects one blocking cycle query (\ff{FF-S02}) does not finish within 20 to 25
 minutes on the interpreter, which then falls back to Neo4j (Section~\ref{sec:v13-limits}).
-% src: Docs/v1.3/cypher-interp-fuzz.md (fixes F1 to F10; regression tests 33/33 against live Neo4j; parity re-run 65,254, 0 content / error / unsupported); Docs/DiagnosticRuns/v1.3-validity-convergent-2026-10-16.md §0 ("Our FF-S02 cycle rule did not finish ... The interpreter ran past 20 minutes"); origin/v1.3-external-set-2:Docs/DiagnosticRuns/v1.3-external-set-2-2026-10-16.md (PR #181, not merged; bank-server FF-S02 killed after 25 minutes, Neo4j in 47 s)
+% src: Docs/v1.3/cypher-interp-fuzz.md (fixes F1 to F10; regression tests 33/33 against live Neo4j; parity re-run 65,254, 0 content / error / unsupported); Docs/DiagnosticRuns/v1.3-validity-convergent-2026-10-16.md §0 ("Our FF-S02 cycle rule did not finish ... The interpreter ran past 20 minutes"); git show b1d05f7a:Docs/DiagnosticRuns/v1.3-external-set-2-2026-10-16.md (PR #181, [hold], open; pinned to its branch tip SHA; bank-server FF-S02 killed after 25 minutes, Neo4j in 47 s)
 On one variant a warm in-process evaluation takes 149\,ms against 728\,ms on Neo4j.
 % src: Docs/v1.3/cypher-interpreter.md, results table and §6 (results/v1.3-cypher-interp/bench.md)
 
@@ -1304,7 +1311,7 @@ by people (three per style, each pinned to its last commit before 2023). The pas
 committed before the checker ran. All 283 blocking findings received a label with the checker's evidence, and all
 283 are correct (precision of correctness 1.000, Wilson 95\% [0.987, 1.000]; per style 27/27, 12/12, 78/78, 4/4 and
 162/162). \explor{}
-% src: origin/v1.3-external-correctness:Docs/DiagnosticRuns/v1.3-external-correctness-2026-10-16.md (PR #167, not merged) §1, §3 table (283/283, 1.000 [0.987, 1.000]; clean-architecture 27, layered 12, nestjs 78, hexagonal 4, ddd 162)
+% src: git show 23adb369:Docs/DiagnosticRuns/v1.3-external-correctness-2026-10-16.md (PR #167, [hold], open; pinned to its branch tip SHA) §1, §3 table (283/283, 1.000 [0.987, 1.000]; clean-architecture 27, layered 12, nestjs 78, hexagonal 4, ddd 162)
 Because every label was \emph{correct}, we added a negative control, fixed before it ran, to check that the checker
 does not accept everything: 500 findings were altered so that their claims became false (a moved line, a swapped
 target, a broken cycle), and the checker labelled all 500 incorrect.
@@ -1319,11 +1326,11 @@ compiler on 7,948 of 8,057 import edges (coverage 0.986, confirmation 1.000), an
 (106 \texttt{baseUrl} bare imports in one project that the extractor classes as external, and 3 \texttt{typeof
 import()} type queries). The default graph, which barrel routing reshapes, has coverage 0.850.
 \explor{}
-% src: origin/v1.3-external-set-2:Docs/DiagnosticRuns/v1.3-external-set-2-2026-10-16.md (PR #181, not merged) §5 pooled table (35 projects, 625 blocking), "Graph fidelity, pooled" table (default 6845/8057 = 0.850; literal 7948/8057 = 0.986, 7948/7948 = 1.000) and following paragraph (109 missing: felixle 106 baseUrl, ts-seed 3 type queries)
+% src: git show b1d05f7a:Docs/DiagnosticRuns/v1.3-external-set-2-2026-10-16.md (PR #181, [hold], open; pinned to its branch tip SHA) §5 pooled table (35 projects, 625 blocking), "Graph fidelity, pooled" table (default 6845/8057 = 0.850; literal 7948/8057 = 0.986, 7948/7948 = 1.000) and following paragraph (109 missing: felixle 106 baseUrl, ts-seed 3 type queries)
 30 of the 35 projects fail the v1.3 verdict. We do not read this as a property of the projects: one Claude-family
 session selected the projects and wrote every specification, and on the first wave a blind second specification
 author flips 5 of 15 verdicts (verdict $\kappa = 0.21$). Verdicts depend on who writes the specification.
-% src: origin/v1.3-external-set-2:Docs/DiagnosticRuns/v1.3-external-set-2-2026-10-16.md §5 (30 fail, 0.857 (0.706 to 0.937); "a blind second spec author (PR #186, unmerged) flips 5 of 15 verdicts (verdict kappa 0.21)")
+% src: git show b1d05f7a:Docs/DiagnosticRuns/v1.3-external-set-2-2026-10-16.md §5 (30 fail, 0.857 (0.706 to 0.937); "a blind second spec author (PR #186, merged into v1.3) flips 5 of 15 verdicts (verdict kappa 0.21)")
 
 \subsection{Metamorphic invariance}\label{sec:v13-metamorphic}
 
@@ -1333,7 +1340,7 @@ type-check) and compared the blocking findings before and after, keyed on (rule,
 Over the 655 applicable cases, 637 are invariant (0.973). Renaming (with the specification following the rename),
 reordering, reformatting, switching between default and named exports, \texttt{import type}, path aliases and
 splitting a file are invariant on all 71 variants. \devset{}
-% src: origin/v1.3-metamorphic:Docs/DiagnosticRuns/v1.3-metamorphic-2026-10-16.md (PR #185, not merged) §1 and line 98 ("637 of 655 applicable cases are invariant (0.973)"); origin/v1.3-metamorphic:results/v1.3-metamorphic/summary.md (per-transformation table)
+% src: Docs/DiagnosticRuns/v1.3-metamorphic-2026-10-16.md (PR #185, merged into v1.3) §1 and line 98 ("637 of 655 applicable cases are invariant (0.973)"); results/v1.3-metamorphic/summary.md (per-transformation table)
 The 18 changes come from three transformations: adding barrels (67/71 invariant), removing barrels (15/16) and
 merging two files of one layer (58/71). We traced each change. One is a defect: a barrel that belongs to no layer
 hides what it re-exports from the literal-view layer rules. A fix exists behind an option that is off by default,
@@ -1342,7 +1349,7 @@ are intended construct choices: barrels and merges that create module cycles (4 
 on files), and a DDD context whose declared public API is its barrel (1 case). Two probes show where the rules are
 deliberately bound to names: opaque identifiers that drop role words leave 61 of 71 verdicts unchanged, and a
 rename that leaves the DDD specification stale leaves 68 of 71. \devset{}
-% src: origin/v1.3-metamorphic:Docs/DiagnosticRuns/v1.3-metamorphic-2026-10-16.md §1 (barrel-add 67/71, barrel-remove 15/16, merge 58/71; MT-B1 tool bug; 4 barrel-induced cycles; 1 DDD public API; 13 merge cycles; opaque names 61/71; rename-spec-stale 68/71; option OFF, FF-DS02 false positive on DDD g02)
+% src: Docs/DiagnosticRuns/v1.3-metamorphic-2026-10-16.md §1 (barrel-add 67/71, barrel-remove 15/16, merge 58/71; MT-B1 tool bug; 4 barrel-induced cycles; 1 DDD public API; 13 merge cycles; opaque names 61/71; rename-spec-stale 68/71; option OFF, FF-DS02 false positive on DDD g02)
 These are development-set figures: the transformations were applied to the same reference variants that the v1.3
 changes were made against, although nothing was tuned on them.
 
@@ -1354,14 +1361,14 @@ operators applied in memory to the 22 scored rules give 290 mutants, of which 27
 interpreter. The two development sets detect a change in an expected finding for 90 of the 273 (33\%), or 130
 (48\%) when changes that only add or remove false positives on clean and near-miss cases are counted.
 \devset{}
-% src: origin/v1.3-rule-mutation:Docs/DiagnosticRuns/v1.3-rule-mutation-2026-10-16.md (PR #190, not merged) §1 ("On the 22 scored rules there are 290 mutants; 273 can be measured ... 90 of the 273 (33%) ... 130 (48%)"); origin/v1.3-rule-mutation:results/v1.3-rule-mutation/rule-mutation-2026-10-16.json
+% src: Docs/DiagnosticRuns/v1.3-rule-mutation-2026-10-16.md (PR #190, merged into v1.3) §1 ("On the 22 scored rules there are 290 mutants; 273 can be measured ... 90 of the 273 (33%) ... 130 (48%)"); results/v1.3-rule-mutation/rule-mutation-2026-10-16.json
 The split by operator is clear. Mutants that invert a rule are caught: a flipped comparison (28/29), a removed
 \texttt{NOT} (20/21), a swapped layer parameter (9/9). Mutants that loosen or tighten a rule are rarely caught:
 a dropped \texttt{WHERE} conjunct (9/67, or 41/67 counting false positives), a widened or narrowed label or type
 (22/80). Changes to \texttt{ORDER BY} (0/59) and \texttt{DISTINCT} (0/2) are never caught. Most survivors are
 equivalent mutants, but 14 are real blind spots, each listed with the smallest case that would expose it: for
 example re-export-only violations, the cycle-length bound, and role-named classes outside their layer.
-% src: origin/v1.3-rule-mutation:Docs/DiagnosticRuns/v1.3-rule-mutation-2026-10-16.md §1 (per-operator counts; "§6 group A, 14 items")
+% src: Docs/DiagnosticRuns/v1.3-rule-mutation-2026-10-16.md §1 (per-operator counts; "§6 group A, 14 items")
 The unit tests do not close the gap. They fail on 116 of the 273 mutants, but every failure comes from a test that
 asserts on the template text or uses a stub repository; no unit test runs a template against a graph, so the tests
 cannot tell a wrong edit from a correct refactoring. 106 of the 273 mutants survive both the sets and the unit tests.
@@ -1385,7 +1392,7 @@ server or inputs that are sealed or outside the repository, or cannot be checked
 which are typographical errors, swapped labels, rounding and stale counts. The same run found that the first
 part's smoke script no longer reproduces two of its outputs at the current head, because later commits changed the
 scripts that produce them; the package records this rather than hiding it.
-% src: origin/v1.3-replication-2:Docs/v1.3/replication-2.md (PR #215, not merged) §2 table (5,154; yes 4,587; no 58; needs-LLM 6; needs-Neo4j 235; needs-external 148; not-checkable 120) and "No headline result is overturned"; §4 item 1 ("replication/smoke.sh exits 1 at the v1.3 head")
+% src: Docs/v1.3/replication-2.md (PR #215, merged into v1.3) §2 table (5,154; yes 4,587; no 58; needs-LLM 6; needs-Neo4j 235; needs-external 148; not-checkable 120) and "No headline result is overturned"; §4 item 1 ("replication/smoke.sh exits 1 at the v1.3 head")
 The audits were run by sessions of the same project with the same tooling; they show internal consistency between
 reports and raw data, not independent replication.
 
@@ -1403,7 +1410,7 @@ one-year survival is 0.71 for blocking findings against 0.75 for unflagged cross
 stays above baseline (2.7 times without the one commit). The method cannot separate two readings: the findings do
 not match what these projects intend, or they are right and the debt is tolerated. Either way, developer behaviour
 does not validate the dependency-direction rules. \explor{}
-% src: origin/v1.3-validity-fixes-mined:Docs/DiagnosticRuns/v1.3-validity-fixes-mined-2026-10-16.md (PR #168, not merged), "Verdict" (2.65x, 95% CI 1.97-3.56; 74 credited removals; amplication PR #93; 0.93 (0.61-1.43); 1.00 (0.56-1.80); rate ratios 0.65, 0.38 and 0; survival 0.76 / 0.71 vs 0.75; FF-S02 2.7x (1.5-5.1)) and §1 (36 projects, up to 200 commits)
+% src: Docs/DiagnosticRuns/v1.3-validity-fixes-mined-2026-10-16.md (PR #168, merged into v1.3), "Verdict" (2.65x, 95% CI 1.97-3.56; 74 credited removals; amplication PR #93; 0.93 (0.61-1.43); 1.00 (0.56-1.80); rate ratios 0.65, 0.38 and 0; survival 0.76 / 0.71 vs 0.75; FF-S02 2.7x (1.5-5.1)) and §1 (36 projects, up to 200 commits)
 
 \emph{Known groups.} We expected showcase repositories (templates, samples, boilerplates) to have fewer blocking
 findings per thousand lines than application repositories. With the test and its reading fixed before the data were
@@ -1413,7 +1420,7 @@ $p = 0.951$). The group rule is crude and the external set was selected for repo
 ``application'' repositories are themselves teaching examples; the null shows that this split does not separate the
 groups, not that no split can. The blocking count also correlates with size ($\rho = 0.68$ with lines of code,
 $n = 15$). \explor{}
-% src: origin/v1.3-known-groups:Docs/DiagnosticRuns/v1.3-known-groups-2026-10-16.md (PR #198, not merged) §1 table (K-1 delta -0.18, p 0.811; K-4 wild delta -0.58, p 0.951) and "Reading this null honestly"; PR #198 body and report §2 (B vs LOC rho 0.68 [0.19, 0.96])
+% src: git show ba1c6327:Docs/DiagnosticRuns/v1.3-known-groups-2026-10-16.md (PR #198, [hold], open; pinned to its branch tip SHA) §1 table (K-1 delta -0.18, p 0.811; K-4 wild delta -0.58, p 0.951) and "Reading this null honestly"; PR #198 body and report §2 (B vs LOC rho 0.68 [0.19, 0.96])
 
 \subsection{Honest limits of the v1.3 evidence}\label{sec:v13-limits}
 
@@ -1442,7 +1449,7 @@ $n = 15$). \explor{}
         and on Neo4j it hit the transaction timeout on three of them, so those verdicts are computed without it.
         The convergent and mutation runs could not run \ff{FF-P05} on the interpreter; support for its
         \texttt{CALL \{ \ldots{} UNION \ldots{} \}} form was added later and has not been checked live.
-        % src: Docs/DiagnosticRuns/v1.3-validity-convergent-2026-10-16.md §0 ("Rules that did not run"); origin/v1.3-rule-mutation:Docs/DiagnosticRuns/v1.3-rule-mutation-2026-10-16.md §1, §4.1 (PR #190); Docs/v1.3/npx-mode.md status table ("done, not checked live")
+        % src: Docs/DiagnosticRuns/v1.3-validity-convergent-2026-10-16.md §0 ("Rules that did not run"); Docs/DiagnosticRuns/v1.3-rule-mutation-2026-10-16.md §1, §4.1 (PR #190); Docs/v1.3/npx-mode.md status table ("done, not checked live")
   \item \textbf{Unmerged evidence.} The external-correctness, second-wave, metamorphic, mutation, part-two
         replication, developer-fix and known-groups reports are on pull requests that await the author's review.
         Their numbers may change before they are merged.

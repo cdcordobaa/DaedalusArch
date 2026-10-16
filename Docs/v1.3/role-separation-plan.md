@@ -1,6 +1,6 @@
 # v1.3 role-separation plan (before the hold-out run)
 
-**2026-10-16. Status: proposal, for the author and the director.** It addresses V13-TV-D1 (role overlap) and V13-TV-I1 (same-vendor authorship) in `Docs/v1.3/threats-register.md`. It changes no protocol by itself. Each adopted item goes into the frozen hold-out prespec (`Docs/v1.3/holdout-prespec.md` §1) or into a dated protocol addendum, **before** `<FREEZE_SHA>` is filled.
+**2026-10-16. Status: proposal, for the author.** It addresses V13-TV-D1 (role overlap) and V13-TV-I1 (same-vendor authorship) in `Docs/v1.3/threats-register.md`. It changes no protocol by itself. Each adopted item goes into the frozen hold-out prespec (`Docs/v1.3/holdout-prespec.md` §1) or into a dated protocol addendum, **before** `<FREEZE_SHA>` is filled.
 
 ## 1. The problem, in one table
 
@@ -16,9 +16,8 @@ Today one person, or one model family, holds every role:
 | Judge | `claude-opus-5-5` | `Docs/v1.3/judge-catch-frozen.md:35` |
 | Adjudicator (dev disagreements) | the author | `Docs/v1.3/validation-protocol.md:17` |
 | Hold-out defect classifier | the author | `Docs/v1.3/holdout-prespec.md:89` |
-| Rater | the author (audit; secondary rater); the director proposed as second rater | `Docs/v1.3/human-labelling-protocol.md:44-46`; `Docs/v1.3/director-email-draft.md:28` |
+| Rater | the author (audit; secondary rater); the independent second rater not yet named | `Docs/v1.3/human-labelling-protocol.md:44-46`; `Docs/v1.3/validation-protocol.md:33` |
 | Decider (construct questions, ADRs, tiers) | the author | `Docs/v1.3/construct-decisions.md:3`; `Docs/v1.3/adr-v13.md:7` |
-| Examiner and supervisor | the director | |
 
 There are two separate problems:
 
@@ -31,7 +30,7 @@ Human separation fixes (1) but only partly fixes (2). A non-Claude model fixes p
 
 - **P-R1. Decide before you key.** Rules, tiers and construct readings are the author's to decide. They are decided and dated *before* any new key is written. A decision dated after a key it affects is reported as post-hoc.
 - **P-R2. Whoever writes a key does not adjudicate it.** No one adjudicates a disagreement that involves their own key, rule or output.
-- **P-R3. The primary human reference is someone with no stake.** No authorship, no supervision, no co-authorship, and no rating of the director's own student's work.
+- **P-R3. The primary human reference is someone with no stake.** No authorship, no part in supervising or examining the thesis, and no co-authorship.
 - **P-R4. At least one key per item from outside the Claude family.** It is reported as its own manifest. It is never merged into the Claude keys.
 - **P-R5. Disagreements are reported, not resolved away.** Where nobody without a stake can adjudicate, the disagreement stays a disagreement in the figures.
 
@@ -43,19 +42,14 @@ Human separation fixes (1) but only partly fixes (2). A non-Claude model fixes p
 | **Key writer K-C** (existing) | Claude-family agents: author-manifests, blind manifests, hold-out | | as today | unchanged; sealed keys never edited |
 | **Key writer K-G** (new) | Gemini via API, tools off (§4.1) | rater of the same items | comment-stripped source, opaque paths, verified `style-rule-sources.md`, tier rule names and constructs, the spec's layer declarations | a third manifest per case, hashed before the tool run |
 | **Key writer K-X** (optional) | Codex CLI, a GPT model (§4.2) | | same as K-G | a fourth manifest, for K-G vs K-X agreement |
-| **Primary rater R1** | an independent professional TypeScript developer (§5); **not the director** | key writer, adjudicator, decider | the union sheet of `human-labelling-protocol.md` | primary human reference |
+| **Primary rater R1** | an independent professional TypeScript developer (§5) | key writer, adjudicator, decider | the union sheet of `human-labelling-protocol.md` | primary human reference |
 | **Secondary rater R2** | the author | adjudicator of R1 disagreements | the same sheet | agreement pairs only (unchanged) |
 | **Model rater R3** | Gemini *meaningful* labeller (existing) | K-G on the same items in the same run (use a separate session and seed; report the overlap) | `labelling.md` §5 | agreement only |
 | **Adjudicator (dev set)** | R1, on a paid, bounded sheet: the 39 reference rows, the 39 E1 and 218 SO4 barrel fidelity rows, and the 100 agreement samples | author of the rule or the key | `adjudication.csv` files, comment-stripped excerpts | `human_verdict` filled; the author's own classification kept in a separate column |
 | **Adjudicator (hold-out)** | nobody. Disagreements are reported (`holdout-prespec.md` §7). R1 classifies defect *classes* blind to the tool's verdict; the author's classification sits beside it. | | | the defect ADR carries both columns |
-| **Unsealer and witness** | the author unseals; the director witnesses (receives the hashes, confirms the freeze diff is empty) | | the hashes, `git diff X Y` | a signed line in the run report |
-| **Examiner** | the director | rater, adjudicator | the report | |
+| **Unsealer and witness** | the author unseals; a witness with no stake in the result receives the hashes and confirms the freeze diff is empty | | the hashes, `git diff X Y` | a signed line in the run report |
 
-**Why the director should not rate.**
-- The human protocol's own qualification excludes anyone with "part in … writing the thesis" (`human-labelling-protocol.md:52`). Supervision is such a part.
-- The director's ratings would also be the ones they later examine.
-- The director's role is better used as witness of the freeze and the unseal, and as the decider of which option (A: 60 items, or B: 120 items) the sheet uses (`human-labelling-protocol.md:26`).
-- The draft email (`director-email-draft.md:28`, `:63`) should be changed to ask for a *recommendation* of a rater, not for the director's own ratings. That edit is the author's; it is not made here.
+**Why the primary rater must have no stake.** The human protocol's own qualification excludes anyone with "part in … writing the thesis" (`human-labelling-protocol.md:52`). The choice between option A (60 items) and option B (120 items) is made before the sheet is drawn (`human-labelling-protocol.md:26`).
 
 ## 4. What a non-Claude model can do
 
@@ -119,16 +113,14 @@ Run the frozen judge rubric with Gemini as the judge on the FRAMEWORK-LEAK and P
 
 - **Profile** (unchanged from `human-labelling-protocol.md:52`): a professional TypeScript developer with shipped production code in at least 2 of the 5 styles.
 - **Exclusions:**
-  - the director;
-  - anyone supervised by the author or the director;
+  - anyone with a part in supervising or examining the thesis;
+  - anyone supervised by the author;
   - co-authors;
   - anyone who has seen this repository.
 - **Where to look:**
   - a former colleague of the author's in industry;
   - a developer in another research group;
   - a paid reviewer through the university.
-
-  The director's recommendation is welcome; the director's own rating is not.
 - **Conflict-of-interest declaration** signed before calibration, and recorded in the run report.
 - **Load.**
   - Calibration: about 60 minutes.
@@ -136,7 +128,7 @@ Run the frozen judge rubric with Gemini as the judge on the FRAMEWORK-LEAK and P
   - The 20-case "anything else?" pass.
   - The dev adjudication sheet of §3: about 396 rows (39 + 39 + 218 + 100), mostly one-line barrel checks. Estimate 3–4 h, and offer a seeded subsample if that is too much.
 - **Compensation.** State it in the invitation.
-- **Fallback if no R1 is found in time.** Run the hold-out with K-G and K-X as the only non-author keys. Report the human reference as "not available". Do not substitute the director or the author.
+- **Fallback if no R1 is found in time.** Run the hold-out with K-G and K-X as the only non-author keys. Report the human reference as "not available". Do not substitute the author or anyone else with a stake.
 
 ## 6. Order of work (all before the hold-out run)
 
@@ -146,7 +138,7 @@ Run the frozen judge rubric with Gemini as the judge on the FRAMEWORK-LEAK and P
 4. Write the 48 seed variants (`seed-floor-plan.md`), comment-free with opaque names. Keys: K-C (an agent that did not write the variant) plus K-G. Run the tool. Record the result as a **development round**, not validity.
 5. Recruit R1. Calibrate on the development calibration sheet.
 6. R1 fills the dev adjudication sheets (§3).
-7. Freeze: fill `<FREEZE_SHA>`, `<N_PER_STYLE>`, the manifests list (K-C blind, K-G, optionally K-X), the role matrix of §3 and the κ definition (V13-TV-R2). Hash the prespec. The director witnesses.
+7. Freeze: fill `<FREEZE_SHA>`, `<N_PER_STYLE>`, the manifests list (K-C blind, K-G, optionally K-X), the role matrix of §3 and the κ definition (V13-TV-R2). Hash the prespec. The witness of §3 confirms.
 8. Unseal. Run K-G (and K-X) on the hold-out sources; hash and commit unread. Run the tool once. Commit the outputs.
 9. Labelling: R1, R2 and R3 on the union sheet. No adjudication.
 10. Defect ADR with R1's and the author's classifications side by side.
