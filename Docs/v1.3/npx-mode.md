@@ -1,12 +1,14 @@
 # v1.3 npx mode: DaedalusArch without a database
 
-Branch `v1.3-npx` (cut from `v1.3-cypher-interp`, PR #128, with `v1.3-mcp2`, PR #122, merged in), 2026-10-16.
+Branch `v1.3-npx` (cut from `v1.3-cypher-interp`, PR #128, with `v1.3-mcp2`, PR #122, and then `origin/v1.3` at
+b2592923 merged in), 2026-10-16.
 It builds on the in-process Cypher interpreter (`--engine cypher-interp`, design and parity in
 [`cypher-interpreter.md`](cypher-interpreter.md)).
 
 **The author's decision, kept here.** The Cypher template text is the only definition of every rule. Nothing on this
 branch re-implements a rule in TypeScript, and no template text changed (`git diff origin/v1.3-cypher-interp --
-src/fitness-compiler` is empty). Neo4j stays the reference engine for reported numbers.
+src/fitness-compiler` is empty; the template changes that arrive with `origin/v1.3` are v1.3's own). Neo4j stays the
+reference engine for reported numbers.
 
 ## 0. Status
 
@@ -24,6 +26,7 @@ src/fitness-compiler` is empty). Neo4j stays the reference engine for reported n
 | Incremental graph update on file change | **not built** (not cheap, §3.1); rebuild per call plus a result cache | §3.1 |
 | Live-Neo4j parity harness re-run on this branch | **not re-run** (no Neo4j in this container); its last run is the evidence | §4 |
 | Judge (`full`, `neuronal-only`) end to end on cypher-interp | **not run** (spends judge calls) | §6 |
+| Interpreter: `CALL { … UNION … }` (FF-P05's text on v1.3 since PR #108) | done, **not checked live** | §4.1 |
 
 ## 1. Quick start
 
@@ -142,12 +145,12 @@ reference project (`tests/fixtures/v1.3-reference/clean-architecture/project`, 3
 
 | step | ms |
 |---|---:|
-| MCP server start to `initialized` (spawn, module load) | 972 |
-| `get_architecture_spec` / `suggest_placement` / `check_file` (fast) | 42 / 51 / 15 |
-| `evaluate_project`, cache miss (extract + ingest + evaluate + score on cypher-interp) | 953 |
-| `evaluate_project`, cache hit | 19 |
-| `check_file` with `templates` (before: cache hit; after: miss) | 295 |
-| `check_diff` with `templates` (before: hit; after: miss) | 424 |
+| MCP server start to `initialized` (spawn, module load) | 977 |
+| `get_architecture_spec` / `suggest_placement` / `check_file` (fast) | 55 / 53 / 13 |
+| `evaluate_project`, cache miss (extract + ingest + evaluate + score on cypher-interp) | 1,073 |
+| `evaluate_project`, cache hit | 4 |
+| `check_file` with `templates` (before: cache hit; after: miss) | 322 |
+| `check_diff` with `templates` (before: hit; after: miss) | 477 |
 
 A larger project: this repository against `specs/daedalus-arch.yaml` (256 source files, including the 2 MB generated
 parser), `node dist/cli/bin.js evaluate . --symbolic-only`, cypher-interp: 16.6 s and 17.7 s wall; stages of the
@@ -167,7 +170,31 @@ two such evaluations (one is usually a cache hit). Neo4j was not available to ti
 
 Run the heavy guard (`node --import tsx scripts/v1.3/memory-parity.ts --engine cypher-interp --out <dir>`, holds the
 Neo4j lock) whenever a template, the compiler's rewrites, `graph-ingester.ts` or the interpreter changes. It was not
-re-run on this branch: no Neo4j server exists in this container, and this branch changes none of those four.
+re-run on this branch: no Neo4j server exists in this container. **It is due before this branch's interpreter is used
+for anything but speed**: merging `origin/v1.3` brought template changes (FF-P05 signature types, PR #108; the cheap2
+and field-state templates, PRs #110 and #121) that the 65,254-statement run of PR #128 never saw, and §4.1 extends
+the interpreter.
+
+### 4.1 Interpreter extension: `CALL { }` subqueries
+
+On `origin/v1.3`, FF-P05 controller-no-entity compiles (with `signatureTypes`, a v1.3 default) to
+`CALL { <frozen text> UNION <SIGNATURE_USES branch> } RETURN controller, entity, filePath ORDER BY …`
+(`src/fitness-compiler/v13-signature-types.ts`). The interpreter rejected `CALL { }`, so after the merge `validate`
+reported `21/22 compiled queries parse` and the golden parity test failed on FF-P05. The template text stays as it
+is; the interpreter now executes it:
+
+- `CALL { part (UNION [ALL] part)* }` as a returning unit subquery, once per incoming row; a part starting with
+  `WITH` imports from the outer row through that projection, any other part sees no outer variable;
+- `UNION` drops repeated rows (value equivalence, first seen kept), `UNION ALL` keeps them; parts' rows in part
+  order (the template's outer `ORDER BY` fixes the final order);
+- errors as Neo4j: mixed `UNION` / `UNION ALL`, different column names, a returned column that rebinds an outer
+  variable; still rejected as unsupported: `OPTIONAL CALL`, `CALL (scope) { }`, `IN TRANSACTIONS`, `RETURN *` inside,
+  a unit subquery without `RETURN`, and `UNION` outside `CALL { }`.
+
+Evidence: 2 new unit tests (`tests/unit/cypher-interp/interpreter.test.ts`), expected values from the Neo4j 5.26
+manual, **not re-checked against a live Neo4j**; the golden parity test (FF-P05 is in `specs/clean-arch.yaml`) is
+byte-identical again, and the tarball run equals the Neo4j reference findings (28/28; FF-P05 has no finding on that
+project, so this checks that the text runs, not its rows). `validate`: `22/22 compiled queries parse`.
 
 ## 5. Packaging
 
@@ -183,11 +210,11 @@ project (no repository on the path, no link), run with `env -i PATH HOME`. Last 
 
 | measure | value |
 |---|---|
-| tarball | 611,585 bytes (597 KB), 265 files (unpacked 3.6 MB) |
-| install into an empty project | 5.5 s; `node_modules` 90 MB (180 packages; ts-morph with its TypeScript is the bulk) |
-| cold start `npx daedalus --version` | 1,345 ms (the CLI loads every module eagerly) |
-| cold `npx daedalus evaluate <reference project> --spec <its spec>`, 3 runs | 2,178 / 2,203 / 2,249 ms |
-| MCP stdio smoke against the installed `daedalus-mcp`, all steps | 3,055 ms, 10/10 steps ok |
+| tarball | 688,568 bytes (672 KB), 296 files (unpacked 3.8 MB) |
+| install into an empty project | 8.6 s; `node_modules` 90 MB (180 packages; ts-morph with its TypeScript is the bulk) |
+| cold start `npx daedalus --version` | 1,132 ms (the CLI loads every module eagerly) |
+| cold `npx daedalus evaluate <reference project> --spec <its spec>`, 3 runs | 2,420 / 2,192 / 2,554 ms |
+| MCP stdio smoke against the installed `daedalus-mcp`, all steps | 3,244 ms, 10/10 steps ok |
 
 ## 6. What still needs Neo4j
 
@@ -216,6 +243,7 @@ project (no repository on the path, no link), run with `env -i PATH HOME`. Last 
 - `src/mcp-server/interp-evaluator.ts`, `template-check.ts`, `stdio-smoke.ts`; changes in `context.ts`, `main.ts`,
   `server.ts`, `tools.ts`, `types.ts`, `evaluate-project.ts`, `diff-check.ts` (`diffOverrides`), `check-file-cli.ts`.
 - `src/spec-parser/preset-loader.ts` (presets from the packaged entry).
+- `src/cypher-interp/ast.ts`, `parse.ts`, `eval.ts` (`CALL { }` subqueries, §4.1).
 - `package.json`; `scripts/v1.3/npx-verify.sh`; the pinned call sites of §2.2.
 - Tests: `tests/unit/cli/engine-default.test.ts`, `tests/unit/cypher-interp/golden-parity.test.ts`,
   `tests/unit/mcp-server/npx-mode.test.ts`, `tests/unit/mcp-server/stdio-smoke.test.ts`; argv expectations updated
