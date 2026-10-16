@@ -1,9 +1,9 @@
 /**
- * MCP server wiring: registers the ten DaedalusArch tools (MCP v2: the eight v1 tools with v1.3 fields added, plus
- * `infer_spec` and `explain_finding`) on an `McpServer`, plus the two neural-arm tools (`review_unit`,
- * `explain_and_fix`) when the server runs with `--neural` (Docs/v1.3/neural-arm-agent-tools.md). Transport-agnostic (`main.ts`
+ * MCP server wiring: registers the eleven DaedalusArch tools (MCP v2: the eight v1 tools with v1.3 fields added, plus
+ * `infer_spec` and `explain_finding`; then `propose_spec`) on an `McpServer`, plus the two neural-arm tools
+ * (`review_unit`, `explain_and_fix`) when the server runs with `--neural` (Docs/v1.3/neural-arm-agent-tools.md). Transport-agnostic (`main.ts`
  * connects stdio; the tests connect an in-memory pair). Tools only read the spec and, for `evaluate_project`,
- * run the existing pipeline; none writes to the project under evaluation.
+ * run the existing pipeline; `propose_spec` reads the project's source; none writes to the project under evaluation.
  */
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import type { CallToolResult, ToolAnnotations } from '@modelcontextprotocol/sdk/types.js';
@@ -18,6 +18,7 @@ import {
   explainViolationTool,
   getArchitectureSpec,
   inferSpecTool,
+  proposeSpecTool,
   reviewUnitTool,
   suggestPlacementTool,
   whichLayerTool,
@@ -40,11 +41,12 @@ export const TOOL_NAMES: readonly string[] = Object.freeze([
   'suggest_placement',
   'infer_spec',
   'explain_finding',
+  'propose_spec',
 ]);
 
 /** Tools that read only the spec: instant, no graph, no database (the set an experiment arm may allow-list). */
 export const SPEC_TOOL_NAMES: readonly string[] = Object.freeze(
-  TOOL_NAMES.filter((n) => n !== 'evaluate_project'),
+  TOOL_NAMES.filter((n) => n !== 'evaluate_project' && n !== 'propose_spec'),
 );
 
 /**
@@ -61,6 +63,13 @@ const specArg = z
   .string()
   .optional()
   .describe("Path to the firewall spec YAML; defaults to the server's configured spec.");
+
+const hintsArg = z
+  .boolean()
+  .optional()
+  .describe(
+    "Attach a deterministic fix hint to each blocking violation: what is wrong, the edge and the allowed-dependency rule it breaks, the target layer and folder, and the minimal structural fix. Defaults to the server's --hints setting (off).",
+  );
 
 function toResult<T extends object>(outcome: ToolOutcome<T>): CallToolResult {
   if (!outcome.ok) return { isError: true, content: [{ type: 'text', text: outcome.message }] };
@@ -128,10 +137,20 @@ const checkFileShape = {
     .describe('Path of the file, relative to the project root (decides its layer).'),
   content: z.string().describe('The full proposed content of the file.'),
   spec: specArg,
+  templates: z
+    .boolean()
+    .optional()
+    .describe('Also run the compiled rule templates on the whole project before and after the change (in-process interpreter, no database; about a second or more) and report what the change introduces. Needs a project root and the cypher-interp engine.'),
+  hints: hintsArg,
 };
 const checkDiffShape = {
   diff: z.string().min(1).describe('A unified diff (git diff or diff -u output).'),
   spec: specArg,
+  templates: z
+    .boolean()
+    .optional()
+    .describe('Also run the compiled rule templates on the whole project before and after the diff (in-process interpreter, no database; about a second or more) and report what it introduces. Needs a project root and the cypher-interp engine.'),
+  hints: hintsArg,
 };
 const placementShape = {
   purpose: z
@@ -144,9 +163,16 @@ const placementShape = {
     .describe('Base name to use, e.g. "Order"; derived from the purpose when omitted.'),
   spec: specArg,
 };
+const proposeShape = {
+  project: z
+    .string()
+    .optional()
+    .describe("Project root (needs src/ and tsconfig.json); defaults to the server's configured project."),
+};
 const explainShape = {
   rule: z.string().min(1).describe('Rule id, rule name or violation type.'),
   spec: specArg,
+  hints: hintsArg,
 };
 const inferShape = {
   project: z
@@ -259,7 +285,7 @@ export function createServer(ctx: ServerContext): McpServer {
     {
       title: 'Evaluate a project (symbolic-only)',
       description:
-        'Runs the existing symbolic-only firewall pipeline on a project and returns the AHS, the verdict and the violations grouped by rule. Slow (extracts and ingests the whole project) and needs Neo4j via NEO4J_URI, NEO4J_USER and NEO4J_PASSWORD; it replaces the graph in that database, so point it at a scratch instance. Fails with a clear message when Neo4j is unreachable.' + followUp,
+        'Runs the existing symbolic-only firewall pipeline on a project and returns the AHS, the verdict and the violations grouped by rule. Takes seconds (extracts the whole project). Engine: the in-process Cypher interpreter (no database) unless the server runs on Neo4j (--engine neo4j or NEO4J_URI set); on Neo4j it replaces the graph in that database, so point it at a scratch instance, and fails with a clear message when Neo4j is unreachable.' + followUp,
       inputSchema: evaluateShape,
       annotations: {
         readOnlyHint: false,
@@ -288,7 +314,7 @@ export function createServer(ctx: ServerContext): McpServer {
     {
       title: 'Check a proposed file against the architecture rules',
       description:
-        'Checks one file before you write it against the v1.3 rules the spec makes active: layer direction and skipping (also over allowed_dependencies for hexagonal/ddd), core isolation, domain purity (through barrels), repository/port placement, constructor-injected infrastructure in the domain, DDD context isolation, aggregate boundary, value-object immutability, naming, and (with a project root) import cycles. Act on blockingVerdict: "block" means a blocking-tier violation. Each violation carries ruleId, tier (blocking/advisory), construct, literature source, file:line, reason and a concrete fix; hints (APG v2 and cheap proxies) are advisory. notChecked lists rules only evaluate_project decides. Fast (no graph database).' + followUp,
+        'Checks one file before you write it against the v1.3 rules the spec makes active: layer direction and skipping (also over allowed_dependencies for hexagonal/ddd), core isolation, domain purity (through barrels), repository/port placement, constructor-injected infrastructure in the domain, DDD context isolation, aggregate boundary, value-object immutability, naming, and (with a project root) import cycles. Act on blockingVerdict: "block" means a blocking-tier violation. Each violation carries ruleId, tier (blocking/advisory), construct, literature source, file:line, reason and a concrete fix; hints (APG v2 and cheap proxies) are advisory. notChecked lists rules only evaluate_project decides. Fast (no graph database). With templates: true, also the compiled rule templates on the whole project (templates.introduced, templates.blockingVerdict).' + followUp,
       inputSchema: checkFileShape,
       annotations: readOnly,
     },
@@ -300,7 +326,7 @@ export function createServer(ctx: ServerContext): McpServer {
     {
       title: 'Check a unified diff against the architecture rules',
       description:
-        'The check_file rules over a unified diff (git diff or diff -u). New files are checked whole; with a project root a modified file is rebuilt from the diff and the project and only what the change introduces is reported (else its added lines are checked). Act on blockingVerdict: "block" means a blocking-tier violation; each violation has ruleId, tier, construct, source, file:line, reason and fix; hints are advisory. Fast (no graph database).' + followUp,
+        'The check_file rules over a unified diff (git diff or diff -u). New files are checked whole; with a project root a modified file is rebuilt from the diff and the project and only what the change introduces is reported (else its added lines are checked). Act on blockingVerdict: "block" means a blocking-tier violation; each violation has ruleId, tier, construct, source, file:line, reason and fix; hints are advisory. Fast (no graph database). With templates: true, also the compiled rule templates on the whole project (templates.introduced, templates.blockingVerdict).' + followUp,
       inputSchema: checkDiffShape,
       annotations: readOnly,
     },
@@ -343,6 +369,17 @@ export function createServer(ctx: ServerContext): McpServer {
     async (args) => toResult(await explainFindingTool(ctx, z.object(explainFindingShape).parse(args))),
   );
 
+  register(
+    'propose_spec',
+    {
+      title: 'Propose a spec for a project without one',
+      description:
+        'Zero-config onboarding: infers the architecture style and the layer map from the code (ISE) and returns the spec `firewall init` would write: the commented YAML (every inferred mapping with its confidence and evidence), the mappings as data, files without a layer, and the ambiguous folders as questions to put to the user. It is an inferred spec, not author-declared: confirm it with the user before relying on it. Reads only src/ and tsconfig.json; writes nothing; no database. Takes seconds (builds the import graph).',
+      inputSchema: proposeShape,
+      annotations: readOnly,
+    },
+    async (args) => toResult(await proposeSpecTool(ctx, z.object(proposeShape).parse(args))),
+  );
   if (ctx.neural !== undefined) registerNeuralTools(register, ctx);
 
   return server;
