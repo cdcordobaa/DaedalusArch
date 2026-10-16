@@ -284,7 +284,7 @@ between the layers named.
 | D6 | layer matching inside the Neo4j adapter | 5 S03 rows to `layer-annotator.ts` | Move the pure glob → layer function to `shared` (or `spec-parser`); `neo4j-ingestion` then imports it like everyone else |
 | D7 | in-memory rule mirrors inside the compiler | `provenance.ts:47-48`, `cheap2-in-memory.ts:7`; `cheap2-in-memory.ts` unreachable from product entry points | Move `*-in-memory*.ts` to their own module (for example `src/in-memory-eval/`), or under `scripts/` if only experiments and tests use them |
 | D8 | utilities owned by stages | `glob-to-regex` used by llm-critic (2); `violation-id` used by llm-critic and construct-switches | Move both to `shared` |
-| D9 | mcp-server → cli | `evaluate-project.ts:18` | Move `requireEnv` / `MissingEnvError` to `shared` |
+| D9 | mcp-server → cli | `evaluate-project.ts:18`; since the v1.3 merge (§11) also `context.ts:15`, `main.ts:18` → `cli/engine-default.ts` | Move `requireEnv` / `MissingEnvError` and the engine-default resolution to `shared` (or `pipeline`) |
 | D10 | cycle hidden by a dynamic import | `cheap/provenance.ts:318` | Pass `openProject` / `enrichCheap` in as parameters, or move them to a leaf file |
 | D11 | type-only kernel cycles | `llm-provider.ts:2`, `evaluation.ts:10`; `violation-types.ts:3`, `baseline.ts:3` | Move `LLMEffort` to `types/llm-config.ts` (or `enums.ts`) and `BaselineStatus` to `enums.ts` |
 | D12 | I/O outside the adapters | 13 io rows (see 5.4); `neo4j-lock.ts` also reads env (3 config-surface flags) | Move `neo4j-lock.ts` to `neo4j-ingestion`; put baseline I/O behind a store port as snapshots are; let the CLI write the HTML; move the provenance experiment I/O to `scripts/` |
@@ -386,6 +386,27 @@ The tool's own words, ranked by what a reviewer of DaedalusArch would act on:
   PR.
 - The gate does not include the APG v2 templates (L7). Once `evaluate` can run them, add `component-adp-cycle` to
   the gated rules: it is the rule that would have prevented D1.
+
+## 11. Re-run after merging `v1.3` (fecf704f): the gate at work
+
+During the night, `v1.3` gained merged PRs that changed `src/`, among them #157 (neural arm as MCP agent tools),
+#135 (npx mode) and #158 (CLI bin fix). The branch merged them, and `npm run self-check` then **failed with 30 new
+defining-rule rows**: undeclared module couplings, none of them in the known list. Triage:
+
+| New rows | Edge | Triage |
+|---|---|---|
+| 25 | `mcp-server/neural-{context,review,service,tools}.ts` → `llm-critic/*` | spec too strict: the MCP server now wires the judge providers, as the CLI does (`cli → llm-critic` was already allowed). The edge is added to the revised spec. Note: the 25 rows reach into 14 different `llm-critic` files; there is no single entry |
+| 3 | `mcp-server/{evaluate-project,main,tools}.ts` → `cypher-interp/engine.ts` | spec too strict: engine choice, as `cli → cypher-interp`. The edge is added |
+| 2 | `mcp-server/context.ts:15`, `main.ts:18` → `cli/engine-default.ts` | **real debt**, the same pattern as D9 (one inbound adapter importing the other). Added to `known-findings.json` (31 rows) |
+
+The same merge independently confirmed two items of this study:
+
+- T1 (`naming-repos` matching "Report") is now a construct question in `Docs/v1.3/construct-question-ff-cv03.md`,
+  raised by another run.
+- Part of L3: the CLI bin now points to `src/cli/bin.ts`, which calls `main()`. The `dev` script still runs
+  `src/cli/index.ts`.
+
+The tables in §0-§10 describe the run at b08ec387 and are not re-computed.
 
 ## Files
 

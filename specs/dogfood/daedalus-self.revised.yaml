@@ -172,7 +172,9 @@ architecture:
     - from: mcp-server
       # triage: + apg-extractor, apg-enrich (MCP v2 fast hints), report (fix text reuse), neo4j-ingestion (the server is
       # its own composition root: it builds the Neo4j repository for evaluate_project, as the CLI does)
-      to: [shared, pipeline, spec-parser, fitness-compiler, scoring-engine, ise, apg-extractor, apg-enrich, report, neo4j-ingestion]
+      # triage (re-run after merging v1.3 at fecf704f, dogfood.md §11): + llm-critic (the neural MCP tools of #157 wire
+      # the judge providers, as the CLI does), cypher-interp (engine choice, as the CLI does)
+      to: [shared, pipeline, spec-parser, fitness-compiler, scoring-engine, ise, apg-extractor, apg-enrich, report, neo4j-ingestion, llm-critic, cypher-interp]
     # Composition root: wires every stage and adapter (S1 row of the v1.2E matrix, plus the v1.3 engine and switches)
     - from: pipeline
       to: [shared, apg-extractor, spec-parser, fitness-compiler, construct-switches, neo4j-ingestion, cypher-interp, neuro-symbolic-router, evaluation-engine, llm-critic, scoring-engine, baseline, report]
