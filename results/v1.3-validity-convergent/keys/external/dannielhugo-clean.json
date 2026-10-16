@@ -1,0 +1,107 @@
+{
+ "corpus": "external",
+ "id": "dannielhugo-clean",
+ "style": "clean-architecture",
+ "programFiles": 69,
+ "ourFileNodes": 69,
+ "ourFailedFunctions": [
+  {
+   "functionId": "FF-P05",
+   "name": "controller-no-entity",
+   "code": "EVAL_001",
+   "message": "Query failed for FF-P05 (controller-no-entity): cypher-interp: unsupported: clause subqueryClause"
+  }
+ ],
+ "rules": [
+  {
+   "id": "FF-S01",
+   "template": "dependency-direction",
+   "kind": "layer-edge",
+   "view": "literal"
+  },
+  {
+   "id": "FF-S02",
+   "template": "no-cyclic-deps",
+   "kind": "cycle",
+   "view": "literal"
+  },
+  {
+   "id": "FF-S04",
+   "template": "no-domain-outward-dep",
+   "kind": "layer-edge",
+   "view": "literal"
+  },
+  {
+   "id": "FF-P01",
+   "template": "domain-purity",
+   "kind": "package",
+   "view": "resolved"
+  },
+  {
+   "id": "FF-C04",
+   "template": "no-orphan-files",
+   "kind": "orphan",
+   "view": "literal"
+  },
+  {
+   "id": "FF-C05",
+   "template": "max-fan-in",
+   "kind": "fan-in",
+   "view": "literal"
+  }
+ ],
+ "universe": {
+  "edges": 202,
+  "packages": 11
+ },
+ "unresolved": [
+  "src/data/db/index.ts|lokijs",
+  "src/data/deposit/deposit.validator.impl.ts|joi",
+  "src/data/signup/signup.validator.impl.ts|joi",
+  "src/data/transfer/transfer.validator.impl.ts|joi",
+  "src/frameworks/api/index.ts|body-parser",
+  "src/frameworks/api/index.ts|express",
+  "src/frameworks/api/register.ts|awilix",
+  "src/frameworks/register.ts|awilix",
+  "src/frameworks/register.ts|joi",
+  "src/frameworks/script/register.ts|awilix",
+  "src/test-environment.ts|awilix"
+ ],
+ "barrels": [],
+ "tools": {
+  "ours": {
+   "keys": [
+    "FF-C05|src/app/core/definitions/id.ts|"
+   ],
+   "outOfScope": 0,
+   "wallMs": 2930,
+   "errors": 0,
+   "notComputed": [
+    "FF-P05"
+   ]
+  },
+  "depcruise": {
+   "keys": [
+    "FF-C05|src/app/core/definitions/id.ts|"
+   ],
+   "outOfScope": 0,
+   "wallMs": 1059,
+   "errors": 0,
+   "notComputed": []
+  },
+  "boundaries": {
+   "keys": [],
+   "outOfScope": 0,
+   "wallMs": 2828,
+   "errors": 0,
+   "notComputed": []
+  },
+  "archunit": {
+   "keys": [],
+   "outOfScope": 0,
+   "wallMs": 980,
+   "errors": 0,
+   "notComputed": []
+  }
+ }
+}
