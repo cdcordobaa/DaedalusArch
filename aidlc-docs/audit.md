@@ -1629,3 +1629,59 @@ Earlier the same night: 15 PRs merged into v1.3 (tip b08ec387), all gated (tsc, 
 **Context**: v1.3 link-1 adjudication preparation; no baseline or frozen artefact changed.
 
 ---
+
+## v1.3 CONSTRUCTION — hexagonal/DDD mutation operators (scheduled task)
+**Timestamp**: 2026-10-16T00:00:00Z
+**User Input**: (scheduled task, no live user) "Design and implement mutation operators for every blocking hexagonal and DDD rule, run them on the hexagonal and DDD reference projects and the real projects available, measure site feasibility, compile success, recall with Wilson CI and false fires on near-miss twins; write Docs/v1.3/operator-catalogue-hexddd.md and a DiagnosticRuns report; one PR into v1.3, not merged."
+**AI Response**: "Branch v1.3-operators-hexddd from origin/v1.3. Separate DRAFT registry scripts/lib/mutation/hexddd/ (12 operators, 13 twins), catalogue Docs/v1.3/operator-catalogue-hexddd.md (frozen Docs/operator-catalogue.md untouched), runner scripts/v1.3/operators-hexddd-run.ts, real-project specs under experiments/v1.3-operators-hexddd/. Engine: no cypher-interp on v1.3, so Neo4j 5.26.0 + APOC 5.26.0 from the tarballs. No Cypher template, tier or preset edited. Approval gates of the AI-DLC workflow were not held: the task was scheduled with no reviewer present; the PR is the review point."
+**Context**: v1.3 — SO4 operator coverage for the hexagonal and DDD libraries; development data only.
+
+---
+
+## v1.3 Construction — night backlog job N1: judge selective prediction (scheduled task)
+**Timestamp**: 2026-10-16T04:15:00Z
+**User Input**: "Scheduled task: run job #1 (N1) of Docs/v1.3/night-backlog-2026-10-16.md under its standard rules. Using only the committed judge cassettes and verdict files, measure whether 3-run unanimity predicts a correct verdict, per judge (v1, v2.1) and per item class. Use the pre-stated rule: unanimous accuracy >= 0.90, Wilson lower bound >= 0.80 and coverage >= 0.60 on CHECK. If it passes, write a design note for a review_unit confidence tag; otherwise report a null result. Open a PR into v1.3 and do not merge it."
+**AI Response**: "Branch v1.3-judge-selective-prediction. The script, the definitions and the decision rule were committed before computing (742264d5). Result on CHECK: coverage 0.95 for both judges. Unanimous accuracy is 0.883 for v1 (Wilson lower bound 0.778) and 0.900 for v2.1 (lower bound 0.7985). The rule is not met for either judge, so no design note was written. The unanimous errors are systematic: two antipattern-nest entity files and DUP-RULE twins. v2.1's 3 split items are all wrong (the layered OrderService false fail). Report: Docs/DiagnosticRuns/v1.3-judge-selective-2026-10-16.md. No LLM call was made. Options taken under delegation: (1) v1 per-run votes were recovered from the round cassettes by matching each item to the report's aggregate fingerprint (the reports keep only majorities); 29 items with several candidates sharing the same vote split use that split. (2) The 4 current-graph v1 overrides were used for CHECK, as in the judge v2 report. (3) v2 TUNE was excluded because it has 1 run per unit. (4) Coverage and accuracy were computed per item, not per target. (5) 'Clean units' in the agent view means clean-control units only; twins are shown separately."
+**Context**: CONSTRUCTION, v1.3 validity cycle, SO3. Development-set evidence only. The AI-DLC approval gates were not run interactively: the request came from a scheduled task with no one present, and the stored prompt served as the requirements.
+
+---
+
+## v1.3 EVIDENCE — validity from developer behaviour, fixes mined (scheduled task)
+**Timestamp**: 2026-10-16T02:40:00Z
+**User Input**: "Scheduled task: measure validity without human raters, using developer behaviour as ground truth. Corpus of 20-40 public TypeScript backends with long histories (the pinned v1.3-wild and v1.3-external projects plus more); layer specs written and committed before any run; walk up to 200 evenly spaced commits per repository, tool on each commit and its parent (--symbolic-only, --engine cypher-interp); FIXED-BY-DEV disappearances (edge removed, not file deletion or mass rename) with commit messages; introductions and survival; per rule fix rate, median survival, architecture words in fix messages; baselines: random unflagged import edges and advisory-tier findings; report Docs/DiagnosticRuns/v1.3-validity-fixes-mined-2026-10-16.md with Wilson CIs, effect sizes, threats and 20 example fix commits. Branch v1.3-validity-fixes-mined from origin/v1.3, one PR into v1.3, not merged. Never read secrets, never touch main or v1.2e, never edit Cypher templates or tiers, jest --maxWorkers=2."
+**AI Response**: "Corpus (36: 14 wild + 15 external pinned, 7 added), 21 new layer specs plus the 15 external specs verbatim, protocol (definitions and thresholds) committed before any corpus run. Runtime calibration (on ToolJet, excluded by the size rule) showed the interpreter enumerating every trail for the two `*2..10` cycle queries (110 s of a 112 s snapshot); a harness GraphRepository (scripts/v1.3/lib/fast-cycles.ts) answers exactly those two texts with an equivalent bounded search, everything else by the interpreter, with parity checks (unit tests on random graphs; live on every snapshot of at most 100 files). No template, tier or src/ file changed. The AI-DLC approval gates were not run interactively: scheduled task, no one present; the stored prompt served as the requirements."
+**Context**: v1.3 evidence unit outside the study stages; exploratory, no labels.
+
+---
+
+## v1.3 EVIDENCE — validity fixes mined: results
+**Timestamp**: 2026-10-16T06:30:00Z
+**User Input**: (none; scheduled task continued)
+**AI Response**: "36 histories walked (7,904 snapshots; 5,175 live cycle-parity checks, 0 mismatches). Report Docs/DiagnosticRuns/v1.3-validity-fixes-mined-2026-10-16.md. Verdict: no robust validity signal. Pooled blocking removal rate 2.65x the unflagged cross-layer baseline, but 48 of 74 credited removals are one amplication commit (PR #93, import/no-cycle lint); without it 0.93, per commit 1.00, sign test 6/21 repositories. Dependency-direction rules are removed less often than baseline (FF-S01 0.65x, FF-S03 layered 0.38x, FF-S04 0); FF-S02 cycles 14.6x raw, about 3.9x length-adjusted, 2.7x without the one commit. Only 14 blocking fix commits exist (task asked for 20; all 14 listed). Sensitivity rows labelled post hoc."
+**Context**: v1.3 evidence unit; PR into v1.3, not merged.
+
+---
+
+## v1.3 Construction — L1 fixture-comment leakage census and scrubbed-copy generator (V11, scheduled task)
+**Timestamp**: 2026-10-16T04:34:03Z
+**User Input**: "Scheduled routine, night backlog job #20 (L1): count answer-revealing comments in every development fixture per style and set, and provide a scrubbed-copy generator for blind writers and raters, proven by tsc on the copy and byte-identical evaluate reports on all 71 variants. Never open the sealed directory."
+**AI Response**: "Branch v1.3-fixture-leakage from origin/v1.3. Pattern set and pass criterion committed before any count (scripts/v1.3/lib/leakage-terms.ts, Docs/DiagnosticRuns/v1.3-fixture-leakage-2026-10-16.md §1). Census (scripts/v1.3/fixture-leakage-census.ts): DDD 14/14 planted variants carry an answer-revealing comment; 3/52 patch variants hit a pattern and 8/52 add an explanatory comment; no judge-catch TUNE or CHECK seed adds a comment. scrub-fixtures.ts copies a tree with every comment removed (line numbers kept, patches rewritten hunk by hunk): 71/71 variants compile and the cypher-interp reference run on the copy is byte-identical to after-member-facts (raw, report.json, report.md). Options taken under delegation: (1) the scrubber removes every comment, not only pattern hits, because the census shows explanatory comments the patterns miss; (2) 'hold-out-shaped' read as the reference formats, since the only tree in that format outside the sealed directory is the reference root; (3) CHECK/TUNE scanned as the added lines of the judge-catch seed diffs plus the antipattern-nest base; (4) variant directory names and manifests are not renamed (runners key on them), recorded as not done; (5) commentLineTexts added as a new export of excerpt-scrub.ts (stripComments unchanged). PR into v1.3, not merged."
+**Context**: CONSTRUCTION, v1.3 validity cycle, threats register V13-TV-I4. Development set only; no LLM call; sealed directory not touched.
+
+---
+
+## v1.3 Construction — N2 symbolic–neural complementarity matrix (scheduled task)
+**Timestamp**: 2026-10-16T12:00:00Z
+**User Input**: "Scheduled routine: run night-backlog job #2 (N2): a 2x2 per planted seed (does the symbolic arm flag the seeded unit; did the judge fail it) over rounds 1, 2, DUP v2 and CHECK, with no LLM call. The classification rule is to be committed first; Wilson CIs; the judge false-fail cost on symbolic-pass clean units; a diagnostic doc; a PR into v1.3, not merged."
+**AI Response**: "Branch v1.3-complementarity-matrix. The rule and the analysis (scripts/v1.3/complementarity.ts plus a unit test) were committed before any run. The non-E1 seeds were re-materialised with the frozen seed scripts unchanged, and the manifests are identical to the committed ones (r1 125/125, r2 9 hand-planted, dv2 2 fixture). All 55 judged copies are byte-identical to the committed diffs. The E1 rows use the committed round reports (Neo4j), because ../daedalus-e1-outcomes is absent. Headline (v1 judge, 35 de-duplicated seeds): the symbolic arm sees 9/35; judge catch given symbolic-blind is 22/26 = 0.85 [0.66, 0.94]; on the restricted FRAMEWORK-LEAK + PERSIST cut it is 8/12 = 0.67 [0.39, 0.86]. Judge false fail on symbolic-pass clean units is 3/60 = 0.05 [0.02, 0.14]; twins: symbolic 0/55 alarms, judge 10/55. CHECK-2 symbolic side fixed before v2.2: 25/40 visible. Reference set byte-identical on cypher-interp (71/71, report.json, report.md). Options taken under delegation: (1) E1 fallback to the recorded reports, kept apart in every table; (2) pooled seeds de-duplicated by base plus diff (all 9 DUP v2 seeds duplicate r1/r2 seeds); (3) clean-unit files taken from the recorded judge report's filePaths; (4) CHECK-2 classified on the symbolic side only, from the unmerged prep branch read-only, judge cells left pending; (5) a --no-e1 flag first added to two hash-frozen seed scripts was reverted and replaced by a shadow repository root."
+**Context**: v1.3 SO3 framing, development-set evidence only. No Study 2 material touched, no construct switch, no LLM call.
+
+---
+
+## v1.3 Construction — N2 review follow-up (PR #179)
+**Timestamp**: 2026-10-16T08:20:00Z
+**User Input**: "Author review (HOLD): the numbers reconcile, but clean units are not de-duplicated the way seeds are (12 duplicate base/unit/function rows across r2/dv2), and the line 'structurally cannot see' overclaims against §6."
+**AI Response**: "Added a distinct-unit count of clean units (any-round fail) alongside the per-round count: 2/48 = 0.04 [0.01, 0.14] (50 distinct units, 12 judged twice, 0 round disagreements), now the headline cost figure; per-round 3/60 kept. Replaced the 'structurally cannot see' wording with the §6 definition. No other number changed (rows.csv, clean-units.csv, symbolic.json byte-identical)."
+**Context**: v1.3 SO3 framing, development-set evidence; review fix under delegation.
+
+---
