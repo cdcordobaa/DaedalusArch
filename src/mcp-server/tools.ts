@@ -119,6 +119,19 @@ function interpInput(ctx: ServerContext, loaded: LoadedSpec): InterpInput | unde
   return { spec: loaded.spec, specPath: loaded.specPath, root: path.resolve(ctx.defaultProjectPath), evaluator: ctx.interp };
 }
 
+function interpFailedNote(e: unknown): string {
+  return `fast-rules-engine cypher-interp failed (${e instanceof Error ? e.message : String(e)}); answered on the fast path`;
+}
+
+/** The interp answer, or the fast-path answer with the reason when the evaluation fails (never an exception). */
+async function orFast<T extends { readonly notes: readonly string[] }>(fast: T, interp: () => Promise<T>): Promise<T> {
+  try {
+    return await interp();
+  } catch (e) {
+    return { ...fast, notes: [...fast.notes, interpFailedNote(e)] };
+  }
+}
+
 /** The fast-path answer with the no-root note, when the cypher-interp engine is on but cannot run. */
 function noRoot<T extends { readonly notes: readonly string[] }>(ctx: ServerContext, result: T): T {
   return ctx.fastRulesEngine === 'cypher-interp' ? { ...result, notes: [...result.notes, NO_ROOT_NOTE] } : result;
@@ -170,11 +183,11 @@ export async function checkImportTool(
   const fast: CheckImportResult = { ...res, violations, blockingVerdict: blocking ? 'block' : res.verdict === 'unknown' ? 'unknown' : 'pass' };
   const interp = interpInput(ctx, loaded.data);
   if (interp === undefined) return ok(noRoot(ctx, fast));
-  return ok(await interpCheckImport(interp, fast, {
+  return ok(await orFast(fast, () => interpCheckImport(interp, fast, {
     from: toProjectRelative(ctx, args.from),
     module: args.module,
     ...(args.resolvedPath !== undefined ? { resolvedPath: toProjectRelative(ctx, args.resolvedPath) } : {}),
-  }));
+  })));
 }
 
 export async function explainViolationTool(
@@ -226,15 +239,14 @@ export async function checkFileTool(
   const loaded = await specFor(ctx, args.spec);
   if (!loaded.ok) return loaded;
   const rel = toProjectRelative(ctx, args.path);
+  const fast = checkSource(loaded.data.spec, {
+    path: rel,
+    content: args.content,
+    view: new ProjectView({ root: ctx.defaultProjectPath, overrides: new Map([[rel, args.content]]) }),
+  });
   const interp = interpInput(ctx, loaded.data);
-  if (interp !== undefined) return ok(await interpCheckFile(interp, rel, args.content));
-  return ok(noRoot(ctx,
-    checkSource(loaded.data.spec, {
-      path: rel,
-      content: args.content,
-      view: new ProjectView({ root: ctx.defaultProjectPath, overrides: new Map([[rel, args.content]]) }),
-    })),
-  );
+  if (interp !== undefined) return ok(await orFast(fast, () => interpCheckFile(interp, rel, args.content)));
+  return ok(noRoot(ctx, fast));
 }
 
 export async function checkDiffTool(
@@ -250,7 +262,12 @@ export async function checkDiffTool(
   if (ctx.fastRulesEngine !== 'cypher-interp') return ok(result);
   const interp = interpInput(ctx, loaded.data);
   if (interp === undefined) return ok({ ...result, files: result.files.map((f) => noRoot(ctx, f)) });
-  return ok(await interpCheckDiff(interp, args.diff));
+  try {
+    return ok(await interpCheckDiff(interp, args.diff));
+  } catch (e) {
+    const note = interpFailedNote(e);
+    return ok({ ...result, files: result.files.map((f) => ({ ...f, notes: [...f.notes, note] })) });
+  }
 }
 
 export async function suggestPlacementTool(

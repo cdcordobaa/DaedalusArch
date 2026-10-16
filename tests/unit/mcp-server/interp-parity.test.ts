@@ -93,3 +93,18 @@ describe('#161 §3.7 defects with --fast-rules-engine cypher-interp (hexagonal r
     expect(imp.notes.includes(NO_ROOT_NOTE)).toBe(true);
   });
 });
+
+describe('cypher-interp evaluation failure', () => {
+  it('falls back to the fast path with a note instead of throwing', async () => {
+    const broken = { ...interpCtx(), interp: { evaluate: () => Promise.reject(new Error('boom')) } } as unknown as ServerContext;
+    const file = data(await checkFileTool(broken, { path: SERVICE, content: PROPOSED_SERVICE }));
+    expect(file.engine).toBe(undefined);
+    expect(file.notes.some((n) => n.includes('cypher-interp failed (boom)'))).toBe(true);
+    const diff = data(await checkDiffTool(broken, { diff: captureDiff() }));
+    expect(diff.engine).toBe(undefined);
+    expect(diff.files.every((f) => f.notes.some((n) => n.includes('cypher-interp failed (boom)')))).toBe(true);
+    const imp = data(await checkImportTool(broken, { from: SERVICE, module: OUTBOUND_SPECIFIER }));
+    expect(imp.blockingVerdict).toBe('pass');
+    expect(imp.notes.some((n) => n.includes('cypher-interp failed (boom)'))).toBe(true);
+  });
+});
