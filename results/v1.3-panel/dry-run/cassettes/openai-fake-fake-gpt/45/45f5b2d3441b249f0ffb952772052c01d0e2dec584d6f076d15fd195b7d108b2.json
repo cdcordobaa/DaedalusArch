@@ -1,0 +1,19 @@
+{
+  "answer": {
+    "inputTokens": 276,
+    "outputTokens": 20,
+    "servedModel": "fake-gpt",
+    "text": "{\"choice\":\"A\",\"reason\":\"fake openai answer\"}"
+  },
+  "failedAttempts": [],
+  "itemKey": "d3278e02935485aa4606969d",
+  "key": "45f5b2d3441b249f0ffb952772052c01d0e2dec584d6f076d15fd195b7d108b2",
+  "model": "fake-gpt",
+  "provider": "fake",
+  "request": {
+    "prompt": "## Architectural style\n- No architectural style is declared for this code base. Judge against widely shared principles of software architecture:\n  dependencies point from volatile, concrete code towards stable, abstract code; layers and components keep their\n  responsibilities; side effects and framework details stay at the edges; cycles between components are avoided.\n\n## Code excerpt\nFile: src/utils/asset.util.ts\n```ts\n  210  \n  211  const isFlipped = (orientation?: string | null) => {\n  212    const value = Number(orientation);\n  213>   return value && [5, 6, 7, 8, -90, 90].includes(value);\n  214  };\n  215  \n  216  export const getDimensions = ({\n  217    exifImageHeight: height,\n  218    exifImageWidth: width,\n  219    orientation,\n  220  }: {\n  221    exifImageHeight: number | null;\n```\n\n## Reported finding\nliteral \"-90\" also used in component(s) (root), services (other end: src/services/metadata.service.ts:1128)\n\n## Question\nWould an architect following this style want this changed?\nA. yes\nB. no\nC. uncertain\n\nReply with JSON only: {\"choice\": \"<letter>\", \"reason\": \"<one sentence>\"}",
+    "system": "You are a software architect reviewing a TypeScript code base against an architectural style. Judge only from the material in the message: the style definition, the code excerpt and the reported finding. You have no tools. Reply with one JSON object and nothing else.",
+    "temperature": 0
+  },
+  "runIndex": 0
+}

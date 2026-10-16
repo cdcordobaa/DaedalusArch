@@ -236,12 +236,14 @@ export function buildProfiles(
   return DomainResult.ok(out);
 }
 
-/** Where the dry-run stub writes a step of a task of the given style (DDD: the declared contexts in turn). */
+/** Where the dry-run stub writes a step of a task of the given style (DDD: the declared contexts in turn, one folder per aggregate, every context at step 1). */
 export function stubLayoutFor(style: LoopStyle | undefined, contextRoots: readonly string[], stepIndex: number): StubLayout {
   if (style === 'hexagonal') return { domain: 'src/domain', application: 'src/application', infrastructure: 'src/adapters/outbound' };
   if (style === 'ddd' && contextRoots.length > 0) {
-    const root = (contextRoots[stepIndex % contextRoots.length] ?? '').replace(/\/$/, '');
-    return { domain: `${root}/domain`, application: `${root}/application`, infrastructure: `${root}/infrastructure` };
+    const roots = contextRoots.map((r) => r.replace(/\/$/, ''));
+    const root = roots[stepIndex % roots.length] ?? '';
+    const also = stepIndex === 0 ? roots.filter((r) => r !== root).map((r) => `${r}/domain`) : [];
+    return { domain: `${root}/domain`, application: `${root}/application`, infrastructure: `${root}/infrastructure`, aggregateFolders: true, ...(also.length > 0 ? { alsoDomains: also } : {}) };
   }
   return CLEAN_STUB_LAYOUT;
 }

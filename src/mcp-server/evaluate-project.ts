@@ -42,6 +42,8 @@ export interface EvaluateInput {
   readonly tsconfigPath?: string;
   /** Extractor defaults (R02; absent = the v1.3 defaults). `v1.2e` with scoring `v1.2e` measures the v1.2E graph. */
   readonly extractorDefaults?: ExtractorDefaults;
+  /** Also return the report's violations, uncapped (`EvaluateProjectResult.violations`). */
+  readonly includeViolations?: boolean;
 }
 
 /** The Neo4j settings from the environment (the CLI's variables); throws `MissingEnvError` for no password. */
@@ -183,6 +185,7 @@ export async function evaluateProject(
       durationMs: report.durationMs,
       scoringMode,
       ...(report.tiers !== undefined && { tiers: report.tiers }),
+      ...(input.includeViolations === true && { violations: report.violations }),
     });
   } catch (err) {
     return failure(
