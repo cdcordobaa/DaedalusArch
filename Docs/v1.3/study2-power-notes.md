@@ -104,7 +104,7 @@ for `gate`. The fallback is only useful if a pilot shows advisory density growin
 ## 5. Readings (informal)
 
 1. **The outline's normal approximation is about right for the block-level test, but halving the slope is not a
-   d_z of 0.42 under these assumptions.** In option B it gives a mean |d_z| of about 0.33 and power about 0.55 (the
+   d_z of 0.42 under these assumptions.** In option B it gives a mean |d_z| of about 0.33 and power about 0.54 (the
    approximation gives 0.57). Only with Poisson counts does it reach d_z ≈ 0.56 and power 0.94.
 2. **Six tasks cannot carry a task-level test at Holm's first step.** With six clusters the smallest two-sided
    sign-flip p-value is 2/64 ≈ 0.031 > 0.025, so the task-level analysis has power 0 whatever the effect. Either the
