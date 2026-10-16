@@ -15,6 +15,12 @@
  * default spec and may be left out only when every task has a profile. `callBudget`, when present, must equal the
  * budget the plan implies (`planCallBudget`), so the recorded figure cannot drift from the plan.
  *
+ * Spec equality (review finding R23; `Docs/v1.3/study2-tunables.md` §4): a plan may pin `specSha256`. `loadLoopPlan` then
+ * checks that the evaluator spec and, for the `daedalus-mcp` arm, the MCP server's spec both hash to it, so the arm's
+ * tools answer from the spec that is scored. A `daedalus-mcp` plan cannot carry `taskProfiles`, so one spec covers
+ * every task. Without `specSha256` nothing changes, unless the caller asks for it (`requireSpecSha256`, from
+ * `DAEDALUS_LOOP_REQUIRE_SPEC_SHA256=1` in `main.ts`; OFF by default).
+ *
  * Pins and isolation (optional, OFF when absent; `Docs/v1.3/loop-isolation.md`): `adapters[].cliVersion` pins the CLI
  * version (a Codex value must equal `codex.cliVersion`); `generatorIsolation.claudeConfigDir` (`"<local>"` filled from
  * `--claude-config-dir`) isolates every Claude spawn and requires `cliVersion` on every Claude adapter.
@@ -88,12 +94,16 @@ export interface LoopPlanFile {
   readonly engine?: LoopEngine;
   /** Recorded for a judge-mode evaluator (the symbolic evaluator makes no model call). */
   readonly cassette?: { readonly dir: string; readonly mode: 'record' | 'replay' };
+  /** sha256 of the spec file every task is scored against (and the `daedalus-mcp` server reads); checked at load. */
+  readonly specSha256?: string;
   /** Per-snapshot acceptance checks (`acceptance.ts`, gate D12); off unless `enabled` is true. */
   readonly acceptance?: AcceptancePlan;
 }
 
 const ID_RE = /^[a-z0-9][a-z0-9-]*$/;
 const MODEL_RE = /^[A-Za-z0-9][A-Za-z0-9._-]*$/;
+const SHA256_RE = /^[0-9a-f]{64}$/;
+export const SPEC_SHA_ENV = 'DAEDALUS_LOOP_REQUIRE_SPEC_SHA256';
 const VERSION_RE = /^\d+\.\d+\.\d+$/;
 export const LOCAL = '<local>';
 
@@ -218,6 +228,9 @@ export function validatePlan(raw: unknown): DomainResult<LoopPlanFile> {
   if (raw.acceptance !== undefined) errors.push(...validateAcceptancePlan(raw.acceptance));
   if (raw.cassette !== undefined && (!isRecord(raw.cassette) || typeof raw.cassette.dir !== 'string' || !['record', 'replay'].includes(String(raw.cassette.mode)))) {
     errors.push(err('LOOP_PLAN_INVALID', 'cassette must be { dir, mode: record | replay }'));
+  }
+  if (raw.specSha256 !== undefined && (typeof raw.specSha256 !== 'string' || !SHA256_RE.test(raw.specSha256))) {
+    errors.push(err('LOOP_PLAN_INVALID', 'specSha256 must be a lower-case 64-hex sha256'));
   }
   return errors.length > 0 ? DomainResult.fail(errors) : DomainResult.ok(raw as unknown as LoopPlanFile);
 }
@@ -348,6 +361,43 @@ export interface LocalOverrides {
   readonly claudeConfigDir?: string;
 }
 
+/** Plan-load checks a caller turns on (all OFF by default). */
+export interface PlanLoadChecks {
+  /** A plan with the `daedalus-mcp` arm must pin `specSha256` (R23). */
+  readonly requireSpecSha256?: boolean;
+}
+
+/**
+ * R23: when the plan pins `specSha256`, the evaluator spec and (for the `daedalus-mcp` arm) the MCP server's spec must
+ * hash to it. With `requireSpecSha256`, a `daedalus-mcp` plan without the pin is refused.
+ */
+export function checkSpecEquality(plan: LoopPlanFile, repoRoot: string, checks: PlanLoadChecks = {}): DomainError[] {
+  const mcp = plan.arms.includes('daedalus-mcp');
+  if (plan.specSha256 === undefined) {
+    return mcp && checks.requireSpecSha256 === true
+      ? [err('LOOP_PLAN_INVALID', `the daedalus-mcp arm needs specSha256 (${SPEC_SHA_ENV}=1)`)]
+      : [];
+  }
+  const files: [string, string][] = [];
+  if (plan.evaluatorSpec !== undefined) files.push(['evaluatorSpec', path.resolve(repoRoot, plan.evaluatorSpec)]);
+  for (const [id, p] of Object.entries(plan.taskProfiles ?? {})) {
+    if (p.evaluatorSpec !== undefined) files.push([`taskProfiles.${id}.evaluatorSpec`, path.resolve(repoRoot, p.evaluatorSpec)]);
+  }
+  if (mcp && plan.daedalus !== undefined) files.push(['daedalus.specPath', path.resolve(repoRoot, plan.daedalus.specPath)]);
+  const errors: DomainError[] = [];
+  for (const [field, file] of files) {
+    let got: string;
+    try {
+      got = createHash('sha256').update(fs.readFileSync(file)).digest('hex');
+    } catch (e) {
+      errors.push(err('LOOP_FILE_UNREADABLE', `${field} ${file}: ${e instanceof Error ? e.message : String(e)}`));
+      continue;
+    }
+    if (got !== plan.specSha256) errors.push(err('LOOP_PLAN_SPEC_MISMATCH', `${field} ${file} has sha256 ${got}, the plan pins ${plan.specSha256}`));
+  }
+  return errors;
+}
+
 export interface LoadedPlan {
   readonly plan: LoopPlanFile;
   readonly tasks: LoopTasksFile;
@@ -355,7 +405,7 @@ export interface LoadedPlan {
 }
 
 /** Loads the plan (with `"<local>"` fields filled from the overrides) and its tasks file. */
-export function loadLoopPlan(planFile: string, repoRoot: string, local: LocalOverrides = {}): DomainResult<LoadedPlan> {
+export function loadLoopPlan(planFile: string, repoRoot: string, local: LocalOverrides = {}, checks: PlanLoadChecks = {}): DomainResult<LoadedPlan> {
   const raw = readJson(planFile);
   if (!raw.success) return DomainResult.fail(raw.errors);
   const filled: Record<string, unknown> = isRecord(raw.data) ? { ...raw.data } : {};
@@ -378,7 +428,7 @@ export function loadLoopPlan(planFile: string, repoRoot: string, local: LocalOve
   if (!rawTasks.success) return DomainResult.fail(rawTasks.errors);
   const tasks = validateTasks(rawTasks.data);
   if (!tasks.success) return DomainResult.fail(tasks.errors);
-  const cross = checkPlanAgainstTasks(plan.data, tasks.data);
+  const cross = [...checkPlanAgainstTasks(plan.data, tasks.data), ...checkSpecEquality(plan.data, repoRoot, checks)];
   if (cross.length > 0) return DomainResult.fail(cross);
   const acc = plan.data.acceptance;
   if (acc?.enabled === true) {

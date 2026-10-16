@@ -1942,3 +1942,19 @@ Options taken under delegation: (1) all new behaviour is opt-in (night rule 3), 
 **Context**: v1.3 Study 2 readiness, gate S2/S3 tooling; review fix only.
 
 ---
+
+## Night backlog job #13 (T1): Study 2 frozen-tunables manifest tool and spec-equality check (routine)
+**Timestamp**: 2026-10-16T04:30:14Z
+**User Input**: "Scheduled routine: execute job #13 (T1) of Docs/v1.3/night-backlog-2026-10-16.md under the standard rules block and the kill list. Tooling to hash and verify every Study 2 frozen tunable and to enforce spec equality between the MCP arm and the evaluator (R23); no pre-registration text."
+**AI Response**: "Branch v1.3-tunables-manifest. Committed the schema and pass criterion first (Docs/v1.3/study2-tunables.md). Added scripts/v1.3/study2-tunables.ts (write | verify) over scripts/v1.3/lib/study2-tunables.ts: 172 sha256 entries (56 Cypher template texts plus their metadata, tier maps, compiler tables, 5 style libraries, 5 presets, 15 frame entries, MCP identity and the 10 default tools' name, title, description and input schema, both judge anchors and values, the two sealed docs, 7 extractor option sets, the correctness checker and identity-key files). Two writes are byte-identical; verify exits 1 and names each drifting key. Loop plan: optional specSha256; loadLoopPlan checks the evaluator spec and the daedalus-mcp server spec against it (LOOP_PLAN_SPEC_MISMATCH); requiring the pin is OFF unless DAEDALUS_LOOP_REQUIRE_SPEC_SHA256=1. CI: a verify step that runs only if Docs/v1.3/study2-tunables.json exists (not created). 71 reference results byte-identical on cypher-interp (only elapsedMs excluded); jest tests/unit/scripts/v1.3 + loop: 26 suites, 405 tests pass. Options taken under delegation: (1) the spec pin is one plan-level specSha256 rather than one per task, because a daedalus-mcp plan cannot carry taskProfiles, so one spec covers every task; (2) requiring the pin is env-gated OFF so the demo plan and existing tests are unchanged; (3) the --neural tool set is recorded under 'absent' because it lives only on the unmerged v1.3-neural-mcp branch; (4) 'default PipelineConfig' has no object in code, so the extractor, cheap-proxy and spec-parser default option sets stand for it; (5) the CI step is added to the existing build-and-test job, whose triggers do not include v1.3 branches, so it is dormant on v1.3 PRs until the author widens the triggers."
+**Context**: CONSTRUCTION, v1.3 Study 2 readiness (S10, S11, R23). Tooling only; no LLM call, no sealed material read, no template, tier, preset or frame text edited.
+
+---
+
+## PR #173 review follow-up: hash the --neural MCP tool set
+**Timestamp**: 2026-10-16T08:17:47Z
+**User Input**: "Author review on PR #173 (HOLD, no blocking findings). Nit: ABSENT_GROUPS and study2-tunables.md still say the --neural tools are on an unmerged branch; #157 has since merged. Update before the freeze."
+**AI Response**: "Merged origin/v1.3 into v1.3-tunables-manifest. The manifest now hashes the --neural server as mcp-tool/neural/<tool> (13 tools: the 11 symbolic ones with the neural follow-up sentence plus review_unit and explain_and_fix) and mcp/neural-tool-names; ABSENT_GROUPS is empty. Tools are listed with a stand-in neural service (registration only checks presence; no judge call). 187 entries. Doc and tests updated. 71 reference results byte-identical on cypher-interp after the merge; jest tests/unit/scripts/v1.3 + loop: 30 suites, 464 tests pass. Option taken under delegation: hash the full --neural tool list (not only the two neural tools), because the neural flag also changes the symbolic tools' descriptions."
+**Context**: CONSTRUCTION, v1.3 Study 2 readiness (S11). Tooling only.
+
+---

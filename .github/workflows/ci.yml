@@ -71,6 +71,12 @@ jobs:
         # D-U4-14 (Build and Test Step 5)
         run: npx tsc -p tsconfig.u4-tests.json
 
+      - name: Study 2 frozen-tunables verify
+        # Night backlog T1 (Docs/v1.3/study2-tunables.md): fails on any drift from the frozen manifest. Runs only once
+        # the author has written Docs/v1.3/study2-tunables.json at the freeze; until then this step is skipped.
+        if: hashFiles('Docs/v1.3/study2-tunables.json') != ''
+        run: npx tsx scripts/v1.3/study2-tunables.ts verify Docs/v1.3/study2-tunables.json
+
       - name: Citation and personal-path guard
         # Fails on citations of internal communications removed from the public tree (#132) and on personal
         # absolute paths in Docs/, papers/, results/, experiments/, replication/ and aidlc-docs/.
