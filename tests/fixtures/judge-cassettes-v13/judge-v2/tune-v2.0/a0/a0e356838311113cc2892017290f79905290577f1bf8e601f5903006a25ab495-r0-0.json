@@ -1,0 +1,51 @@
+{
+  "attempts": 1,
+  "cliVersion": "2.1.294",
+  "configListingSha256": "47aa04258852fab9a706f3f0c14cee22306d69fbb6fdfbde8c11854bd54997bc",
+  "durationMs": 11229,
+  "effort": "high",
+  "functionId": "FF-N02",
+  "ignoredOptions": [
+    "maxTokens"
+  ],
+  "isolationProbeSha256": "97a2e2d0af1100c13c55e028c1a0c71f069093c3d08705af122aaeb302f1a641",
+  "key": "a0e356838311113cc2892017290f79905290577f1bf8e601f5903006a25ab495-r0-0",
+  "model": "claude-opus-5-5",
+  "outcome": {
+    "kind": "valid"
+  },
+  "parsedVerdict": {
+    "confidence": 0.95,
+    "evidence": [
+      "src/business/model/Order.ts:1 `import { Entity } from 'typeorm';` brings in an ORM package (infrastructure/persistence)",
+      "src/business/model/Order.ts:6 `@Entity('orders')` on `export class Order` is a TypeORM persistence-mapping decorator on a domain class",
+      "The constructor invariant, subtotal(), total() and cancel() are pure domain logic and use only project-declared types"
+    ],
+    "pass": false,
+    "reasoning": "Order.ts belongs to the business layer, which is the domain kind. The class is decorated with @Entity('orders') from the typeorm package. That decorator maps the class to a database table, so it does persistence-mapping work that belongs in infrastructure. The rubric fails a domain file for an ORM decorator even when the class logic is pure. The rest of the file fits the domain role. It checks that an order has at least one line, works out the subtotal and total, and controls cancellation. It uses only project types (BusinessError, Money, OrderLine), so it carries no request, response, HTTP or I/O concerns. The candidate flag is confirmed.",
+    "violations": [
+      {
+        "filePath": "src/business/model/Order.ts",
+        "message": "Domain class Order has the TypeORM decorator @Entity('orders') (package 'typeorm'), which maps the class to a database table. Persistence mapping belongs in the infrastructure (persistence) layer, not in a business/domain entity."
+      }
+    ]
+  },
+  "prompt": "## Rule\nThe unit's responsibilities, signatures and annotations match the role of its declared layer.\n\n## Rubric\nPass: Every declaration in the file belongs to the role and kind of its declared layer, including its parameter, return and field types, its decorators and base classes, and its statements, and agrees with any ADR prose given.\nFail: The file carries something that belongs to a different layer kind. In a domain or application file: a type of a web, transport or framework package in any signature (parameter, return or field), even when the parameter is optional or unused; or a request, response, status code or HTTP error of the delivery layer. In a domain file also: a framework or ORM decorator or base class (dependency injection, routing, persistence mapping), even when the class logic is pure; or persistence or I/O (queries, database or ORM clients, HTTP or file access). In an infrastructure or presentation file: a business rule, that is a domain invariant, calculation or decision that the domain or application layer should own. A type the project declares itself is not a framework type, whatever its name.\nEvidence required: Name the file and cite the signature, decorator, declaration or statement that carries the misplaced responsibility, its package or origin, and the layer kind it belongs to.\nOut of scope: import direction and layer-dependency rules, which are checked symbolically.\n\n## Layer model\n- persistence (kind: infrastructure): src/persistence/**\n- business (kind: domain): src/business/**\n- presentation (kind: presentation): src/presentation/**\n\n## Unit\nKind: file\nId: src/business/model/Order.ts\nLayer: business\nUnit files:\n- src/business/model/Order.ts\n\n## Source\n=====SOURCE-BEGIN src/business/model/Order.ts=====\nimport { Entity } from 'typeorm';\nimport { BusinessError } from '../errors/BusinessError';\nimport { Money } from './Money';\nimport { OrderLine } from './OrderLine';\n\n@Entity('orders')\nexport class Order {\n  constructor(\n    readonly id: string,\n    readonly customerId: string,\n    readonly lines: readonly OrderLine[],\n    readonly createdAt: Date,\n    readonly discount: Money,\n    private orderStatus: 'placed' | 'cancelled' = 'placed',\n  ) {\n    if (lines.length === 0) throw new BusinessError('INVALID', 'An order needs at least one line');\n  }\n\n  get status(): 'placed' | 'cancelled' {\n    return this.orderStatus;\n  }\n\n  subtotal(): Money {\n    return this.lines.reduce((sum, line) => sum.add(line.total()), Money.zero());\n  }\n\n  total(): Money {\n    return this.subtotal().subtract(this.discount);\n  }\n\n  cancel(): void {\n    if (this.orderStatus === 'cancelled') throw new BusinessError('CONFLICT', `Order ${this.id} is already cancelled`);\n    this.orderStatus = 'cancelled';\n  }\n}\n\n=====SOURCE-END=====\n\n## Neighbourhood\nsrc/business/model/Order.ts (layer business, kind domain)\n  imports: package typeorm; src/business/errors/BusinessError.ts (layer business, kind domain); src/business/model/Money.ts (layer business, kind domain); src/business/model/OrderLine.ts (layer business, kind domain)\n  imported by: src/business/services/OrderService.ts (layer business, kind domain); src/business/services/RecordMapping.ts (layer business, kind domain); src/presentation/views/OrderView.ts (layer presentation, kind presentation)\n  types: Order injects Money in src/business/model/Money.ts (layer business, kind domain)\n\n## Candidate flags\nCandidates proposed by deterministic checks; verify, don't trust. Each line is a tool observation with its location, not a finding.\n- name-behaviour/domain-persistence-mapping at src/business/model/Order.ts:6: domain class Order carries persistence mapping @Entity\n\n## Instructions\nJudge the unit against the rule and rubric. Return the JSON object the schema requires. Set pass to false if any file of the unit fails the rubric. Check each candidate flag against the source: a flag the source does not support must not count against the unit, and a violation the flags miss counts as much as one they name. Judge what each declaration is, not only what it does at run time.\n",
+  "provider": "claude-cli",
+  "recordedAt": "2026-10-15T20:56:20.960Z",
+  "repetition": 0,
+  "requestHash": "a0e356838311113cc2892017290f79905290577f1bf8e601f5903006a25ab495",
+  "resolvedModel": "claude-opus-5-5",
+  "response": "{\"is_error\":false,\"modelUsage\":{\"claude-opus-5-5\":{\"inputTokens\":2,\"outputTokens\":599}},\"result\":\"{\\\"pass\\\":false,\\\"confidence\\\":0.95,\\\"reasoning\\\":\\\"Order.ts belongs to the business layer, which is the domain kind. The class is decorated with @Entity('orders') from the typeorm package. That decorator maps the class to a database table, so it does persistence-mapping work that belongs in infrastructure. The rubric fails a domain file for an ORM decorator even when the class logic is pure. The rest of the file fits the domain role. It checks that an order has at least one line, works out the subtotal and total, and controls cancellation. It uses only project types (BusinessError, Money, OrderLine), so it carries no request, response, HTTP or I/O concerns. The candidate flag is confirmed.\\\",\\\"evidence\\\":[\\\"src/business/model/Order.ts:1 `import { Entity } from 'typeorm';` brings in an ORM package (infrastructure/persistence)\\\",\\\"src/business/model/Order.ts:6 `@Entity('orders')` on `export class Order` is a TypeORM persistence-mapping decorator on a domain class\\\",\\\"The constructor invariant, subtotal(), total() and cancel() are pure domain logic and use only project-declared types\\\"],\\\"violations\\\":[{\\\"filePath\\\":\\\"src/business/model/Order.ts\\\",\\\"message\\\":\\\"Domain class Order has the TypeORM decorator @Entity('orders') (package 'typeorm'), which maps the class to a database table. Persistence mapping belongs in the infrastructure (persistence) layer, not in a business/domain entity.\\\"}]}\",\"structured_output\":{\"confidence\":0.95,\"evidence\":[\"src/business/model/Order.ts:1 `import { Entity } from 'typeorm';` brings in an ORM package (infrastructure/persistence)\",\"src/business/model/Order.ts:6 `@Entity('orders')` on `export class Order` is a TypeORM persistence-mapping decorator on a domain class\",\"The constructor invariant, subtotal(), total() and cancel() are pure domain logic and use only project-declared types\"],\"pass\":false,\"reasoning\":\"Order.ts belongs to the business layer, which is the domain kind. The class is decorated with @Entity('orders') from the typeorm package. That decorator maps the class to a database table, so it does persistence-mapping work that belongs in infrastructure. The rubric fails a domain file for an ORM decorator even when the class logic is pure. The rest of the file fits the domain role. It checks that an order has at least one line, works out the subtotal and total, and controls cancellation. It uses only project types (BusinessError, Money, OrderLine), so it carries no request, response, HTTP or I/O concerns. The candidate flag is confirmed.\",\"violations\":[{\"filePath\":\"src/business/model/Order.ts\",\"message\":\"Domain class Order has the TypeORM decorator @Entity('orders') (package 'typeorm'), which maps the class to a database table. Persistence mapping belongs in the infrastructure (persistence) layer, not in a business/domain entity.\"}]}}",
+  "runIndex": 0,
+  "schemaVersion": 2,
+  "unitId": "src/business/model/Order.ts",
+  "usage": {
+    "inputTokens": 2963,
+    "outputTokens": 599
+  },
+  "usedOptions": {
+    "effort": "high",
+    "model": "claude-opus-5-5"
+  }
+}

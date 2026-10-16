@@ -1,0 +1,52 @@
+{
+  "attempts": 1,
+  "cliVersion": "2.1.294",
+  "configListingSha256": "47aa04258852fab9a706f3f0c14cee22306d69fbb6fdfbde8c11854bd54997bc",
+  "durationMs": 9886,
+  "effort": "high",
+  "functionId": "FF-N02",
+  "ignoredOptions": [
+    "maxTokens"
+  ],
+  "isolationProbeSha256": "97a2e2d0af1100c13c55e028c1a0c71f069093c3d08705af122aaeb302f1a641",
+  "key": "e76e71825d0f6bbd0cc85692304916198ff2a23dbbd13c19c32efa38d3b94bfc-r0-0",
+  "model": "claude-opus-5-5",
+  "outcome": {
+    "kind": "valid"
+  },
+  "parsedVerdict": {
+    "confidence": 0.8,
+    "evidence": [
+      "src/invoice/invoice.entity.ts: `@Entity('invoices')` on class InvoiceEntity maps the class to the database table 'invoices'. That is persistence mapping, which belongs in the infrastructure layer.",
+      "src/invoice/invoice.entity.ts: `@PrimaryGeneratedColumn('uuid') id` sets how the database generates ids. That is persistence work, which belongs in the infrastructure layer.",
+      "src/invoice/invoice.entity.ts: `@Column() orderId` and `@Column() amount` are ORM column mappings, which belong in the infrastructure layer.",
+      "InvoiceEntity has no domain behaviour or invariants. It only holds persistence-annotated fields."
+    ],
+    "pass": false,
+    "reasoning": "This file is in the domain layer because it matches **/*.entity.ts, but its whole job is mapping data to a database table with TypeORM. The class is marked @Entity('invoices'), which ties it to a specific table name. Its fields use @PrimaryGeneratedColumn('uuid') and @Column(), which set how ids are generated and how columns are mapped. That is persistence work, which belongs in the infrastructure layer. The class has no business rules or invariants of its own. It is a database record model, not a domain model. The rubric names persistence logic in a domain file as a failure. The typeorm import itself is an import-direction matter and is out of scope here. The failure rests on the persistence mapping the file carries.",
+    "violations": [
+      {
+        "filePath": "src/invoice/invoice.entity.ts",
+        "message": "Class InvoiceEntity is in the domain layer but does persistence work: @Entity('invoices') maps it to a database table, and @PrimaryGeneratedColumn('uuid') and @Column() map its fields to columns. This ORM mapping belongs in the infrastructure layer. It should be kept separate from a plain domain model."
+      }
+    ]
+  },
+  "prompt": "## Rule\nThe unit's responsibilities match the role of its declared layer.\n\n## Rubric\nPass: Every responsibility in the file belongs to the role and kind of its declared layer, and agrees with any ADR prose given.\nFail: The file carries a responsibility that belongs to a different layer kind, for example persistence, transport or framework logic in a domain file, or business rules in an infrastructure or presentation file.\nEvidence required: Name the file and cite the function, method or statement that carries the misplaced responsibility, and the layer kind it belongs to.\nOut of scope: import direction and layer-dependency rules, which are checked symbolically.\n\n## Layer model\n- domain (kind: domain): src/domain/**, src/core/**, src/entities/**, src/models/**, **/domain/**; file patterns: **/*.entity.ts\n- infrastructure (kind: infrastructure): src/infrastructure/**, src/persistence/**, src/adapters/**, src/prisma/**, src/lib/**, src/common/middleware/**, src/common/filters/**, src/common/pipes/**; file patterns: **/*.repository.ts, **/*.worker.ts, **/workers/**, **/strategies/**\n- application (kind: application): src/application/**, src/use-cases/**, src/services/**; file patterns: **/*.service.ts, **/*.processor.ts, **/dto/**, **/*.dto.ts\n- presentation (kind: presentation): src/controllers/**, src/gateways/**, src/common/guards/**, src/common/interceptors/**; file patterns: **/*.controller.ts, **/*.module.ts, **/*.guard.ts, **/*.interceptor.ts, **/*.gateway.ts\n\n## Unit\nKind: file\nId: src/invoice/invoice.entity.ts\nLayer: domain\nUnit files:\n- src/invoice/invoice.entity.ts\n\n## Source\n=====SOURCE-BEGIN src/invoice/invoice.entity.ts=====\nimport { Column, Entity, PrimaryGeneratedColumn } from 'typeorm';\n\n@Entity('invoices')\nexport class InvoiceEntity {\n  @PrimaryGeneratedColumn('uuid')\n  id!: string;\n\n  @Column()\n  orderId!: string;\n\n  @Column()\n  amount!: number;\n}\n\n=====SOURCE-END=====\n\n## Graph excerpt\n{\"edges\":[{\"from\":\"src/invoice/invoice.entity.ts\",\"to\":\"typeorm\",\"type\":\"IMPORTS\"},{\"from\":\"src/invoice/invoice.service.ts\",\"to\":\"src/invoice/invoice.entity.ts\",\"type\":\"IMPORTS\"}],\"nodes\":[{\"kind\":\"Class\",\"layer\":\"domain\",\"name\":\"InvoiceEntity\",\"path\":\"src/invoice/invoice.entity.ts\"},{\"kind\":\"File\",\"layer\":\"application\",\"path\":\"src/invoice/invoice.service.ts\"},{\"kind\":\"File\",\"layer\":\"domain\",\"path\":\"src/invoice/invoice.entity.ts\"},{\"kind\":\"Package\",\"layer\":null,\"path\":\"typeorm\"}]}\n\n## Instructions\nJudge the unit against the rule and rubric. Return the JSON object the schema requires. Set pass to false if any file of the unit fails the rubric.\n",
+  "provider": "claude-cli",
+  "recordedAt": "2026-10-15T21:10:46.732Z",
+  "repetition": 0,
+  "requestHash": "e76e71825d0f6bbd0cc85692304916198ff2a23dbbd13c19c32efa38d3b94bfc",
+  "resolvedModel": "claude-opus-5-5",
+  "response": "{\"is_error\":false,\"modelUsage\":{\"claude-opus-5-5\":{\"inputTokens\":2,\"outputTokens\":954}},\"result\":\"{\\\"pass\\\":false,\\\"confidence\\\":0.8,\\\"reasoning\\\":\\\"This file is in the domain layer because it matches **/*.entity.ts, but its whole job is mapping data to a database table with TypeORM. The class is marked @Entity('invoices'), which ties it to a specific table name. Its fields use @PrimaryGeneratedColumn('uuid') and @Column(), which set how ids are generated and how columns are mapped. That is persistence work, which belongs in the infrastructure layer. The class has no business rules or invariants of its own. It is a database record model, not a domain model. The rubric names persistence logic in a domain file as a failure. The typeorm import itself is an import-direction matter and is out of scope here. The failure rests on the persistence mapping the file carries.\\\",\\\"evidence\\\":[\\\"src/invoice/invoice.entity.ts: `@Entity('invoices')` on class InvoiceEntity maps the class to the database table 'invoices'. That is persistence mapping, which belongs in the infrastructure layer.\\\",\\\"src/invoice/invoice.entity.ts: `@PrimaryGeneratedColumn('uuid') id` sets how the database generates ids. That is persistence work, which belongs in the infrastructure layer.\\\",\\\"src/invoice/invoice.entity.ts: `@Column() orderId` and `@Column() amount` are ORM column mappings, which belong in the infrastructure layer.\\\",\\\"InvoiceEntity has no domain behaviour or invariants. It only holds persistence-annotated fields.\\\"],\\\"violations\\\":[{\\\"filePath\\\":\\\"src/invoice/invoice.entity.ts\\\",\\\"message\\\":\\\"Class InvoiceEntity is in the domain layer but does persistence work: @Entity('invoices') maps it to a database table, and @PrimaryGeneratedColumn('uuid') and @Column() map its fields to columns. This ORM mapping belongs in the infrastructure layer. It should be kept separate from a plain domain model.\\\"}]}\",\"structured_output\":{\"confidence\":0.8,\"evidence\":[\"src/invoice/invoice.entity.ts: `@Entity('invoices')` on class InvoiceEntity maps the class to the database table 'invoices'. That is persistence mapping, which belongs in the infrastructure layer.\",\"src/invoice/invoice.entity.ts: `@PrimaryGeneratedColumn('uuid') id` sets how the database generates ids. That is persistence work, which belongs in the infrastructure layer.\",\"src/invoice/invoice.entity.ts: `@Column() orderId` and `@Column() amount` are ORM column mappings, which belong in the infrastructure layer.\",\"InvoiceEntity has no domain behaviour or invariants. It only holds persistence-annotated fields.\"],\"pass\":false,\"reasoning\":\"This file is in the domain layer because it matches **/*.entity.ts, but its whole job is mapping data to a database table with TypeORM. The class is marked @Entity('invoices'), which ties it to a specific table name. Its fields use @PrimaryGeneratedColumn('uuid') and @Column(), which set how ids are generated and how columns are mapped. That is persistence work, which belongs in the infrastructure layer. The class has no business rules or invariants of its own. It is a database record model, not a domain model. The rubric names persistence logic in a domain file as a failure. The typeorm import itself is an import-direction matter and is out of scope here. The failure rests on the persistence mapping the file carries.\",\"violations\":[{\"filePath\":\"src/invoice/invoice.entity.ts\",\"message\":\"Class InvoiceEntity is in the domain layer but does persistence work: @Entity('invoices') maps it to a database table, and @PrimaryGeneratedColumn('uuid') and @Column() map its fields to columns. This ORM mapping belongs in the infrastructure layer. It should be kept separate from a plain domain model.\"}]}}",
+  "runIndex": 0,
+  "schemaVersion": 2,
+  "unitId": "src/invoice/invoice.entity.ts",
+  "usage": {
+    "inputTokens": 2568,
+    "outputTokens": 954
+  },
+  "usedOptions": {
+    "effort": "high",
+    "model": "claude-opus-5-5"
+  }
+}
