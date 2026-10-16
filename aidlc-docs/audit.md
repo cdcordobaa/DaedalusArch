@@ -1484,3 +1484,11 @@ Plan checkboxes ticked. Auto-approved under standing approval; no blocking or ma
 **Context**: v1.3 — requirements revision 1; Gate 2 (first fidelity result) is now a human gate.
 
 ---
+
+## v1.3 CONSTRUCTION — architect HTML report (`evaluate --html`)
+**Timestamp**: 2026-10-16T01:20:00Z
+**User Input**: "Add `daedalus evaluate --html <out.html>`: one self-contained static HTML report (no network, inline JS/CSS, pinned vendored libs) with a layer diagram highlighting violating edges, per-finding plain-language rule, defining vs warning tier, code excerpt with line numbers, edge path and fix hint, filters by tier/rule/layer/file, and a score/verdict summary explaining what blocks the verdict; plain labels 'defining rule (can fail)' / 'warning (never fails)', rule ids in tooltips only; snapshot tests on 3 reference variants (1 clean, 2 violating) and Playwright render checks (no overflow, no console errors); Docs/v1.3/html-report.md with screenshots under docs/images. Branch v1.3-html-report from origin/v1.3, one PR into v1.3, not merged. Never read .env/secrets; never touch main or v1.2e; never edit Cypher template text or rule tiers; default outputs byte-identical without the flag; jest --maxWorkers=2; engine cypher-interp if on v1.3, else Neo4j 5.26 + APOC from the tarball." (Intent: an at-a-glance, offline report for architects, opt-in, with no change to existing outputs or the instrument.)
+**AI Response**: "Request is a complete specification, so it is treated as the approved requirements; the gates are recorded in aidlc-docs/construction/v1.3-html-report/html-report-plan.md rather than run interactively. cypher-interp is not on v1.3, so Neo4j 5.26.24 + APOC 5.26.24 ran from the community tarball. New module src/report/architect/ (model, rule text, excerpt guard, renderer, inline CSS/JS, SVG diagram; no third-party library), `--html` option on evaluate only. Tiers resolved with the scoring's own lookup; fix hint = existing actionable-formatter text (v1.3 has no separate hints feature). Tests: 25 unit/snapshot, 11 Playwright. Default json/human/csv outputs and exit codes of the 3 variants unchanged (run-variable fields masked). No Cypher template, tier or v1.2e artefact touched."
+**Context**: v1.3 CONSTRUCTION — single unit, code generation and build/test in one PR into v1.3.
+
+---
