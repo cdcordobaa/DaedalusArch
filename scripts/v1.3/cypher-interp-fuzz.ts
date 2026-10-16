@@ -61,7 +61,7 @@ const outDir = path.resolve(opt('--out') ?? 'results/v1.3-cypher-interp/fuzz');
 const env = process.env;
 const secrets = [env.NEO4J_PASSWORD ?? ''].filter((s) => s !== '');
 const nullStore = {} as SnapshotStore;
-const TIMEOUT_MS = 20_000;
+const TIMEOUT_MS = 10_000;
 
 if ((env.NEO4J_URI ?? '') === '' || (env.NEO4J_PASSWORD ?? '') === '') {
   process.stderr.write('cypher-interp-fuzz needs live Neo4j: set NEO4J_URI and NEO4J_PASSWORD\n');
@@ -309,6 +309,7 @@ async function rejectFuzz(neo: GraphRepository): Promise<Record<string, unknown>
 }
 
 async function main(): Promise<number> {
+  evalDiagnostics.enabled = true;
   const neo = new Neo4jRepository({ neo4jUri: env.NEO4J_URI ?? '', neo4jUser: env.NEO4J_USER ?? 'neo4j', neo4jPassword: env.NEO4J_PASSWORD ?? '' });
   const lock = await acquireNeo4jLock(env.NEO4J_URI ?? '', { label: 'cypher-interp-fuzz', env, onWait: (t) => process.stderr.write(`${t}\n`) });
   fs.mkdirSync(outDir, { recursive: true });

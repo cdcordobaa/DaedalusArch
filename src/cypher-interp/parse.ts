@@ -8,6 +8,7 @@
  * - `CypherUnsupportedError`: valid Cypher outside the interpreter's subset (writes, CALL, UNION, GDS, QPP, ...).
  */
 import { checkStaticTypes } from './typecheck.js';
+import { simplifyQuery } from './simplify.js';
 import { BaseErrorListener, CharStream, CommonTokenStream, ParserRuleContext, TerminalNode } from 'antlr4ng';
 import type { ParseTree, RecognitionException, Recognizer, Token, ATNSimulator } from 'antlr4ng';
 import { Cypher25Lexer } from './generated/Cypher25Lexer.js';
@@ -580,8 +581,10 @@ export function parseCypher(text: string): Query {
   parser.addErrorListener(listener);
   const tree = parser.statements();
   if (listener.errors.length > 0) throw new CypherSyntaxError(`Invalid Cypher: ${listener.errors.join('; ')}`);
-  const q = new Builder(text).statements(tree);
-  checkStaticTypes(q);
+  const built = new Builder(text).statements(tree);
+  // Neo4j's semantic analysis runs on the query as written, its simplifications after it.
+  checkStaticTypes(built);
+  const q = simplifyQuery(built);
   cache.set(text, q);
   return q;
 }

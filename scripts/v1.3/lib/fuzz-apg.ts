@@ -182,7 +182,7 @@ export function fuzzProject(seed: number): FuzzProject {
     edges.push({ id: `e${String(eid++)}`, type, sourceId: s, targetId: t, properties: props(r, EDGE_KEYS, plausibleEdge(r)) });
   };
   if (nodes.length > 0) {
-    for (let i = 0, n = r.int(0, Math.min(45 * scale, nodes.length * 3)); i < n; i++) {
+    for (let i = 0, n = r.int(0, Math.min(36 * scale, nodes.length * 3)); i < n; i++) {
       const roll = r.next();
       const type: APGEdge['type'] = roll < 0.35 ? r.pick(['IMPORTS', 'RE_EXPORTS'] as const) : r.pick(ALL_EDGE_TYPES);
       const fileEdge = (type === 'IMPORTS' || type === 'RE_EXPORTS') && files.length > 0 && r.chance(0.8);
